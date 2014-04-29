@@ -1,0 +1,12 @@
+# Ignore filename patterns wherever they appear
+*~
+*.o
+*.orig
+*.pyc
+*.swp
+.#*
+\#*
+
+# Ignore specific patterns at the top-level directory
+/llvm2ice
+/build/

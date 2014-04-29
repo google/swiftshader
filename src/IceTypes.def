@@ -1,0 +1,31 @@
+//===- subzero/src/IceTypes.def - X-macros for ICE types --------*- C++ -*-===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file defines properties of ICE primitive types in the form of
+// x-macros.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef SUBZERO_SRC_ICETYPES_DEF
+#define SUBZERO_SRC_ICETYPES_DEF
+
+#define ICETYPE_TABLE                              \
+  /* enum value,  size, align, printable string */ \
+  /*   (size and alignment in bytes) */            \
+  X(IceType_void, 0,    0,     "void")             \
+  X(IceType_i1,   1,    1,     "i1")               \
+  X(IceType_i8,   1,    1,     "i8")               \
+  X(IceType_i16,  2,    1,     "i16")              \
+  X(IceType_i32,  4,    1,     "i32")              \
+  X(IceType_i64,  8,    1,     "i64")              \
+  X(IceType_f32,  4,    4,     "float")            \
+  X(IceType_f64,  8,    8,     "double")
+//#define X(tag, size, align, str)
+
+#endif // SUBZERO_SRC_ICETYPES_DEF

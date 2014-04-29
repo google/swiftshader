@@ -1,0 +1,36 @@
+; RUIN: %llvm2ice %s | FileCheck %s
+; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; RUN: %szdiff --llvm2ice=%llvm2ice %s | FileCheck --check-prefix=DUMP %s
+
+define i32 @testSwitch(i32 %a) {
+entry:
+  switch i32 %a, label %sw.default [
+    i32 1, label %sw.epilog
+    i32 2, label %sw.epilog
+    i32 3, label %sw.epilog
+    i32 7, label %sw.bb1
+    i32 8, label %sw.bb1
+    i32 15, label %sw.bb2
+    i32 14, label %sw.bb2
+  ]
+
+sw.default:                                       ; preds = %entry
+  %add = add i32 %a, 27
+  br label %sw.epilog
+
+sw.bb1:                                           ; preds = %entry, %entry
+  %phitmp = sub i32 21, %a
+  br label %sw.bb2
+
+sw.bb2:                                           ; preds = %sw.bb1, %entry, %entry
+  %result.0 = phi i32 [ 1, %entry ], [ 1, %entry ], [ %phitmp, %sw.bb1 ]
+  br label %sw.epilog
+
+sw.epilog:                                        ; preds = %sw.bb2, %sw.default, %entry, %entry, %entry
+  %result.1 = phi i32 [ %add, %sw.default ], [ %result.0, %sw.bb2 ], [ 17, %entry ], [ 17, %entry ], [ 17, %entry ]
+  ret i32 %result.1
+}
+
+; CHECK-NOT: ICE translation error
+; ERRORS-NOT: ICE translation error
+; DUMP-NOT: SZ
