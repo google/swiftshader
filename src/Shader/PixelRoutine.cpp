@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -249,7 +249,7 @@ namespace sw
 				if(shader->vFaceDeclared)
 				{
 					Float4 area = *Pointer<Float>(r.primitive + OFFSET(Primitive,area));
-					Float4 face = booleanFaceRegister ? As<Float4>(CmpNLT(area, Float4(0.0f))) : area;
+					Float4 face = booleanFaceRegister ? Float4(As<Float4>(CmpNLT(area, Float4(0.0f)))) : area;
 
 					r.vFace.x = face;
 					r.vFace.y = face;
@@ -370,7 +370,7 @@ namespace sw
 					if(colorUsed())
 					{
 						#if PERF_PROFILE
-							AddAtomic(Pointer<Long>(&profiler.ropOperations), Long(4));
+							AddAtomic(Pointer<Long>(&profiler.ropOperations), 4);
 						#endif
 
 						if(integerPipeline)
@@ -2139,6 +2139,7 @@ namespace sw
 			case FORMAT_A16B16G16R16:
 			case FORMAT_A8R8G8B8:
 			case FORMAT_X8R8G8B8:
+			case FORMAT_A8:
 			case FORMAT_G16R16:
 				oC[index].x = Max(oC[index].x, Float4(0.0f)); oC[index].x = Min(oC[index].x, Float4(1.0f));
 				oC[index].y = Max(oC[index].y, Float4(0.0f)); oC[index].y = Min(oC[index].y, Float4(1.0f));
@@ -2168,6 +2169,7 @@ namespace sw
 		{
 		case FORMAT_X8R8G8B8:
 		case FORMAT_A8R8G8B8:
+		case FORMAT_A8:
 		case FORMAT_G16R16:
 		case FORMAT_A16B16G16R16:
 			if(!postBlendSRGB && state.writeSRGB)
@@ -2244,6 +2246,7 @@ namespace sw
 			{
 			case FORMAT_X8R8G8B8:
 			case FORMAT_A8R8G8B8:
+			case FORMAT_A8:
 			case FORMAT_G16R16:
 			case FORMAT_A16B16G16R16:
 				for(unsigned int q = 0; q < state.multiSample; q++)
@@ -2449,6 +2452,16 @@ namespace sw
 			pixel.y = UnpackHigh(As<Byte8>(pixel.y), As<Byte8>(pixel.y));
 			pixel.z = UnpackLow(As<Byte8>(pixel.z), As<Byte8>(pixel.z));
 			pixel.w = UnpackHigh(As<Byte8>(pixel.w), As<Byte8>(pixel.w));
+			break;
+		case FORMAT_A8:
+			buffer = cBuffer + 1 * x;
+			pixel.w = Insert(pixel.w, *Pointer<Short>(buffer), 0);
+			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
+			pixel.w = Insert(pixel.w, *Pointer<Short>(buffer), 1);
+			pixel.w = UnpackLow(As<Byte8>(pixel.w), As<Byte8>(pixel.w));
+			pixel.x = Short4(0x0000);
+			pixel.y = Short4(0x0000);
+			pixel.z = Short4(0x0000);
 			break;
 		case FORMAT_X8R8G8B8:
 			buffer = cBuffer + 4 * x;
@@ -2714,6 +2727,10 @@ namespace sw
 				current.y = As<Short4>(UnpackHigh(current.y, current.x));
 			}
 			break;
+		case FORMAT_A8:
+			current.w = As<Short4>(As<UShort4>(current.w) >> 8);
+			current.w = As<Short4>(Pack(As<UShort4>(current.w), As<UShort4>(current.w)));
+			break;
 		case FORMAT_G16R16:
 			current.z = current.x;
 			current.x = As<Short4>(UnpackLow(current.x, current.y));
@@ -2839,6 +2856,23 @@ namespace sw
 			value &= *Pointer<Short4>(r.constants + OFFSET(Constants,invMaskD23Q) + xMask * 8);
 			c23 |= value;
 			*Pointer<Short4>(buffer) = c23;
+			break;
+		case FORMAT_A8:
+			if(rgbaWriteMask & 0x00000008)
+			{
+				buffer = cBuffer + 1 * x;
+				Insert(value, *Pointer<Short>(buffer), 0);
+				Int pitch = *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
+				Insert(value, *Pointer<Short>(buffer + pitch), 1);
+				value = UnpackLow(As<Byte8>(value), As<Byte8>(value));
+
+				current.w &= *Pointer<Short4>(r.constants + OFFSET(Constants,maskB4Q) + 8 * xMask);
+				value &= *Pointer<Short4>(r.constants + OFFSET(Constants,invMaskB4Q) + 8 * xMask);
+				current.w |= value;
+
+				*Pointer<Short>(buffer) = Extract(current.w, 0);
+				*Pointer<Short>(buffer + pitch) = Extract(current.w, 1);
+			}
 			break;
 		case FORMAT_G16R16:
 			buffer = cBuffer + 4 * x;
@@ -3135,15 +3169,25 @@ namespace sw
 			pixel.z = convertUnsigned16(As<UShort4>(color.z));
 			pixel.w = Float4(1.0f);
 			break;
+		case FORMAT_A8:
+			buffer = cBuffer + 1 * x;
+			c01 = Insert(c01, *Pointer<Short>(buffer), 0);
+			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
+			c01 = Insert(c01, *Pointer<Short>(buffer), 1);
+			pixel.w = convertUnsigned16(As<UShort4>(UnpackLow(As<Byte8>(c01), As<Byte8>(c01))));
+			pixel.x = Float4(0.0f);
+			pixel.y = Float4(0.0f);
+			pixel.z = Float4(0.0f);
+			break;
 		case FORMAT_A8G8R8B8Q:
-UNIMPLEMENTED();
+			UNIMPLEMENTED();
 		//	UnpackLow(pixel.z, qword_ptr [cBuffer+8*x+0]);
 		//	UnpackHigh(pixel.x, qword_ptr [cBuffer+8*x+0]);
 		//	UnpackLow(pixel.y, qword_ptr [cBuffer+8*x+8]);
 		//	UnpackHigh(pixel.w, qword_ptr [cBuffer+8*x+8]);
 			break;
 		case FORMAT_X8G8R8B8Q:
-UNIMPLEMENTED();
+			UNIMPLEMENTED();
 		//	UnpackLow(pixel.z, qword_ptr [cBuffer+8*x+0]);
 		//	UnpackHigh(pixel.x, qword_ptr [cBuffer+8*x+0]);
 		//	UnpackLow(pixel.y, qword_ptr [cBuffer+8*x+8]);
@@ -3349,6 +3393,7 @@ UNIMPLEMENTED();
 		{
 		case FORMAT_X8R8G8B8:
 		case FORMAT_A8R8G8B8:
+		case FORMAT_A8:
 		case FORMAT_G16R16:
 		case FORMAT_A16B16G16R16:
 			convertFixed16(color, oC, true);
@@ -5326,7 +5371,7 @@ UNIMPLEMENTED();
 		Nucleus::setInsertBlock(testBlock);
 		r.enableContinue = restoreContinue;
 
-		Vector4f &src = reg(r, temporaryRegister);
+		const Vector4f &src = reg(r, temporaryRegister);
 		Int4 condition = As<Int4>(src.x);
 		condition &= r.enableStack[r.enableIndex - 1];
 		r.enableStack[r.enableIndex] = condition;
@@ -5359,7 +5404,7 @@ UNIMPLEMENTED();
 				// FIXME: Encapsulate
 				UInt index = r.callStack[--r.stackIndex];
  
-				llvm::Value *value = Nucleus::createLoad(index.address);
+				llvm::Value *value = index.loadValue();
 				llvm::Value *switchInst = Nucleus::createSwitch(value, unreachableBlock, (int)callRetBlock[currentLabel].size());
 
 				for(unsigned int i = 0; i < callRetBlock[currentLabel].size(); i++)
@@ -5450,10 +5495,10 @@ UNIMPLEMENTED();
 			ASSERT(false);
 		}
 
-		Short4 &x = (*reg)[(src.swizzle >> 0) & 0x3];
-		Short4 &y = (*reg)[(src.swizzle >> 2) & 0x3];
-		Short4 &z = (*reg)[(src.swizzle >> 4) & 0x3];
-		Short4 &w = (*reg)[(src.swizzle >> 6) & 0x3];
+		const Short4 &x = (*reg)[(src.swizzle >> 0) & 0x3];
+		const Short4 &y = (*reg)[(src.swizzle >> 2) & 0x3];
+		const Short4 &z = (*reg)[(src.swizzle >> 4) & 0x3];
+		const Short4 &w = (*reg)[(src.swizzle >> 6) & 0x3];
 
 		Vector4i mod;
 
@@ -5630,10 +5675,10 @@ UNIMPLEMENTED();
 			ASSERT(false);
 		}
 
-		Float4 &x = reg[(src.swizzle >> 0) & 0x3];
-		Float4 &y = reg[(src.swizzle >> 2) & 0x3];
-		Float4 &z = reg[(src.swizzle >> 4) & 0x3];
-		Float4 &w = reg[(src.swizzle >> 6) & 0x3];
+		const Float4 &x = reg[(src.swizzle >> 0) & 0x3];
+		const Float4 &y = reg[(src.swizzle >> 2) & 0x3];
+		const Float4 &z = reg[(src.swizzle >> 4) & 0x3];
+		const Float4 &w = reg[(src.swizzle >> 6) & 0x3];
 
 		Vector4f mod;
 
@@ -5662,6 +5707,12 @@ UNIMPLEMENTED();
 			mod.y = -Abs(y);
 			mod.z = -Abs(z);
 			mod.w = -Abs(w);
+			break;
+		case Shader::MODIFIER_NOT:
+			mod.x = As<Float4>(As<Int4>(x) ^ Int4(0xFFFFFFFF));
+			mod.y = As<Float4>(As<Int4>(y) ^ Int4(0xFFFFFFFF));
+			mod.z = As<Float4>(As<Int4>(z) ^ Int4(0xFFFFFFFF));
+			mod.w = As<Float4>(As<Int4>(w) ^ Int4(0xFFFFFFFF));
 			break;
 		default:
 			ASSERT(false);

@@ -32,7 +32,7 @@ namespace sw
 	{
 	}
 
-	Vector4f VertexPipeline::transformBlend(Registers &r, Register &src, Pointer<Byte> &matrix, bool homogeneous)
+	Vector4f VertexPipeline::transformBlend(Registers &r, const Register &src, const Pointer<Byte> &matrix, bool homogeneous)
 	{
 		Vector4f dst;
 
@@ -62,20 +62,20 @@ namespace sw
 					case 3: indices = As<UInt>(Float(B.w)); break;
 					}
 
-					index0[i] = (indices & UInt(0x000000FF)) << UInt(6);   // FIXME: (indices & 0x000000FF) << 6
-					index1[i] = (indices & UInt(0x0000FF00)) >> UInt(2);
-					index2[i] = (indices & UInt(0x00FF0000)) >> UInt(10);
-					index3[i] = (indices & UInt(0xFF000000)) >> UInt(18);
+					index0[i] = (indices & 0x000000FF) << 6;
+					index1[i] = (indices & 0x0000FF00) >> 2;
+					index2[i] = (indices & 0x00FF0000) >> 10;
+					index3[i] = (indices & 0xFF000000) >> 18;
 				}
 			}
 			else
 			{
 				for(int i = 0; i < 4; i++)
 				{
-					index0[i] = Int(0 * 64);   // FIXME: index0 = 0 * 64;
-					index1[i] = Int(1 * 64);   // FIXME: index1 = 1 * 64;
-					index2[i] = Int(2 * 64);   // FIXME: index2 = 2 * 64;
-					index3[i] = Int(3 * 64);   // FIXME: index3 = 3 * 64;
+					index0[i] = 0 * 64;
+					index1[i] = 1 * 64;
+					index2[i] = 2 * 64;
+					index3[i] = 3 * 64;
 				}
 			}
 
@@ -785,9 +785,9 @@ namespace sw
 			return;   // Use global pointsize
 		}
 
-		if(state.input[PSize])
+		if(state.input[PointSize])
 		{
-			r.o[Pts].y = r.v[PSize].x;
+			r.o[Pts].y = r.v[PointSize].x;
 		}
 		else
 		{
@@ -810,7 +810,7 @@ namespace sw
 		}
 	}
 
-	Vector4f VertexPipeline::transform(Register &src, Pointer<Byte> &matrix, bool homogeneous)
+	Vector4f VertexPipeline::transform(const Register &src, const Pointer<Byte> &matrix, bool homogeneous)
 	{
 		Vector4f dst;
 
@@ -857,7 +857,7 @@ namespace sw
 		return dst;
 	}
 
-	Vector4f VertexPipeline::transform(Register &src, Pointer<Byte> &matrix, UInt index[4], bool homogeneous)
+	Vector4f VertexPipeline::transform(const Register &src, const Pointer<Byte> &matrix, UInt index[4], bool homogeneous)
 	{
 		Vector4f dst;
 

@@ -12,31 +12,35 @@
 #ifndef	sw_FrameBufferDD_hpp
 #define	sw_FrameBufferDD_hpp
 
-#include "FrameBuffer.hpp"
+#include "FrameBufferWin.hpp"
 
 #include <ddraw.h>
 
 namespace sw
 {
-	class FrameBufferDD : public FrameBuffer
+	class FrameBufferDD : public FrameBufferWin
 	{
 	public:
 		FrameBufferDD(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin);
 
 		virtual ~FrameBufferDD();
 
-		void *lock();
-		void unlock();
+		virtual void flip(void *source, bool HDR);
+		virtual void blit(void *source, const Rect *sourceRect, const Rect *destRect, bool HDR);
 
-		void flip(HWND windowOverride, void *source, bool HDR);
-		void blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, bool HDR);
+		virtual void flip(HWND windowOverride, void *source, bool HDR);
+		virtual void blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, bool HDR);
 
-		void screenshot(void *destBuffer);
-		void setGammaRamp(GammaRamp *gammaRamp, bool calibrate);
-		void getGammaRamp(GammaRamp *gammaRamp);
+		virtual void *lock();
+		virtual void unlock();
+
+		virtual void setGammaRamp(GammaRamp *gammaRamp, bool calibrate);
+		virtual void getGammaRamp(GammaRamp *gammaRamp);
+
+		virtual void screenshot(void *destBuffer);
+		virtual bool getScanline(bool &inVerticalBlank, unsigned int &scanline);
 
 		void drawText(int x, int y, const char *string, ...);
-		bool getScanline(bool &inVerticalBlank, unsigned int &scanline);
 
 	private:
 		void initFullscreen();

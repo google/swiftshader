@@ -16,10 +16,13 @@
 
 #include <stdarg.h>
 #include <vector>
+#include <stdio.h>
+#include <wchar.h>
 
 #undef abs
 #undef max
 #undef min
+#undef Bool
 
 namespace llvm
 {
@@ -64,7 +67,7 @@ namespace sw
 
 	class Routine
 	{
-		friend Nucleus;
+		friend class Nucleus;
 
 	public:
 		Routine(int bufferSize);
@@ -106,7 +109,6 @@ namespace sw
 		static void setFunction(llvm::Function *function);
 
 		static llvm::Module *getModule();
-		static Builder *getBuilder();
 		static llvm::Function *getFunction();
 		static llvm::LLVMContext *getContext();
 
@@ -124,7 +126,7 @@ namespace sw
 		static llvm::Value *createRet(llvm::Value *V);
 		static llvm::Value *createBr(llvm::BasicBlock *dest);
 		static llvm::Value *createCondBr(llvm::Value *cond, llvm::BasicBlock *ifTrue, llvm::BasicBlock *ifFalse);
-		
+
 		// Binary operators
 		static llvm::Value *createAdd(llvm::Value *lhs, llvm::Value *rhs);
 		static llvm::Value *createSub(llvm::Value *lhs, llvm::Value *rhs);
@@ -147,7 +149,7 @@ namespace sw
 		static llvm::Value *createNeg(llvm::Value *V);
 		static llvm::Value *createFNeg(llvm::Value *V);
 		static llvm::Value *createNot(llvm::Value *V);
-  
+
 		// Memory instructions
 		static llvm::Value *createLoad(llvm::Value *ptr, bool isVolatile = false, unsigned int align = 0);
 		static llvm::Value *createStore(llvm::Value *value, llvm::Value *ptr, bool isVolatile = false, unsigned int align = 0);
@@ -227,7 +229,7 @@ namespace sw
 
 		// Constant values
 		static llvm::Constant *createNullValue(llvm::Type *Ty);
-		static llvm::ConstantInt *createConstantLong(int64_t i);
+		static llvm::ConstantInt *createConstantInt(int64_t i);
 		static llvm::ConstantInt *createConstantInt(int i);
 		static llvm::ConstantInt *createConstantInt(unsigned int i);
 		static llvm::ConstantInt *createConstantBool(bool b);
@@ -281,7 +283,7 @@ namespace sw
 	{
 	public:
 		static llvm::Type *getType();
-		
+
 		static bool isVoid()
 		{
 			return true;
@@ -291,34 +293,51 @@ namespace sw
 	};
 
 	template<class T>
-	class Variable
+	class RValue;
+
+	template<class T>
+	class Pointer;
+
+	class LValue
 	{
 	public:
+		LValue(llvm::Type *type, int arraySize = 0);
+
 		static bool isVoid()
 		{
 			return false;
 		}
 
+		llvm::Value *loadValue(unsigned int alignment = 0) const;
+		llvm::Value *storeValue(llvm::Value *value, unsigned int alignment = 0) const;
+		llvm::Value *getAddress(llvm::Value *index) const;
+
+	private:
 		llvm::Value *address;
-		typedef T ctype;
 	};
 
 	template<class T>
-	class RValue;
+	class Variable : public LValue
+	{
+	public:
+		Variable(int arraySize = 0);
+
+		RValue<Pointer<T> > operator&();
+	};
 
 	template<class T>
 	class Reference
 	{
-		friend Long1;
-
 	public:
 		explicit Reference(llvm::Value *pointer, int alignment = 1);
 
 		RValue<T> operator=(RValue<T> rhs) const;
-		operator RValue<T>() const;
 		RValue<T> operator=(const Reference<T> &ref) const;
 
 		RValue<T> operator+=(RValue<T> rhs) const;
+
+		llvm::Value *loadValue() const;
+		int getAlignment() const;
 
 	private:
 		llvm::Value *address;
@@ -338,6 +357,30 @@ namespace sw
 		typedef int type;
 	};
 
+	template<> struct
+	IntLiteral<UInt>
+	{
+		typedef unsigned int type;
+	};
+
+	template<> struct
+	IntLiteral<Long>
+	{
+		typedef int64_t type;
+	};
+
+	template<class T>
+	struct FloatLiteral
+	{
+		struct type;
+	};
+
+	template<> struct
+	FloatLiteral<Float>
+	{
+		typedef float type;
+	};
+
 	template<class T>
 	class RValue
 	{
@@ -346,20 +389,19 @@ namespace sw
 
 		RValue(const T &lvalue);
 		RValue(typename IntLiteral<T>::type i);
+		RValue(typename FloatLiteral<T>::type f);
+		RValue(const Reference<T> &rhs);
 
 		llvm::Value *value;   // FIXME: Make private
 	};
 
-	template<class T>
-	class Pointer;
-
-	class MMX : public Variable<uint64_t>
+	class MMX : public Variable<MMX>
 	{
 	public:
 		static llvm::Type *getType();
 	};
 
-	class Bool : public Variable<bool>
+	class Bool : public Variable<Bool>
 	{
 	public:
 		explicit Bool(llvm::Argument *argument);
@@ -368,12 +410,12 @@ namespace sw
 		Bool(bool x);
 		Bool(RValue<Bool> rhs);
 		Bool(const Bool &rhs);
+		Bool(const Reference<Bool> &rhs);
 
 	//	RValue<Bool> operator=(bool rhs) const;   // FIXME: Implement
 		RValue<Bool> operator=(RValue<Bool> rhs) const;
 		RValue<Bool> operator=(const Bool &rhs) const;
-
-		RValue<Pointer<Bool>> operator&();
+		RValue<Bool> operator=(const Reference<Bool> &rhs) const;
 
 		friend RValue<Bool> operator!(RValue<Bool> val);
 		friend RValue<Bool> operator&&(RValue<Bool> lhs, RValue<Bool> rhs);
@@ -382,7 +424,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class Byte : public Variable<unsigned char>
+	class Byte : public Variable<Byte>
 	{
 	public:
 		explicit Byte(llvm::Argument *argument);
@@ -394,11 +436,12 @@ namespace sw
 		Byte(unsigned char x);
 		Byte(RValue<Byte> rhs);
 		Byte(const Byte &rhs);
+		Byte(const Reference<Byte> &rhs);
 
 	//	RValue<Byte> operator=(unsigned char rhs) const;   // FIXME: Implement
 		RValue<Byte> operator=(RValue<Byte> rhs) const;
 		RValue<Byte> operator=(const Byte &rhs) const;
-		RValue<Pointer<Byte>> operator&();
+		RValue<Byte> operator=(const Reference<Byte> &rhs) const;
 
 		friend RValue<Byte> operator+(RValue<Byte> lhs, RValue<Byte> rhs);
 		friend RValue<Byte> operator-(RValue<Byte> lhs, RValue<Byte> rhs);
@@ -437,7 +480,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class SByte : public Variable<signed char>
+	class SByte : public Variable<SByte>
 	{
 	public:
 		explicit SByte(llvm::Argument *argument);
@@ -446,11 +489,12 @@ namespace sw
 		SByte(signed char x);
 		SByte(RValue<SByte> rhs);
 		SByte(const SByte &rhs);
+		SByte(const Reference<SByte> &rhs);
 
 	//	RValue<SByte> operator=(signed char rhs) const;   // FIXME: Implement
 		RValue<SByte> operator=(RValue<SByte> rhs) const;
 		RValue<SByte> operator=(const SByte &rhs) const;
-		RValue<Pointer<SByte>> operator&();
+		RValue<SByte> operator=(const Reference<SByte> &rhs) const;
 
 		friend RValue<SByte> operator+(RValue<SByte> lhs, RValue<SByte> rhs);
 		friend RValue<SByte> operator-(RValue<SByte> lhs, RValue<SByte> rhs);
@@ -489,7 +533,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class Short : public Variable<short>
+	class Short : public Variable<Short>
 	{
 	public:
 		explicit Short(llvm::Argument *argument);
@@ -500,11 +544,12 @@ namespace sw
 		Short(short x);
 		Short(RValue<Short> rhs);
 		Short(const Short &rhs);
+		Short(const Reference<Short> &rhs);
 
 	//	RValue<Short> operator=(short rhs) const;   // FIXME: Implement
 		RValue<Short> operator=(RValue<Short> rhs) const;
 		RValue<Short> operator=(const Short &rhs) const;
-		RValue<Pointer<Short>> operator&();
+		RValue<Short> operator=(const Reference<Short> &rhs) const;
 
 		friend RValue<Short> operator+(RValue<Short> lhs, RValue<Short> rhs);
 		friend RValue<Short> operator-(RValue<Short> lhs, RValue<Short> rhs);
@@ -543,7 +588,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class UShort : public Variable<unsigned short>
+	class UShort : public Variable<UShort>
 	{
 	public:
 		explicit UShort(llvm::Argument *argument);
@@ -552,11 +597,12 @@ namespace sw
 		UShort(unsigned short x);
 		UShort(RValue<UShort> rhs);
 		UShort(const UShort &rhs);
+		UShort(const Reference<UShort> &rhs);
 
 	//	RValue<UShort> operator=(unsigned short rhs) const;   // FIXME: Implement
 		RValue<UShort> operator=(RValue<UShort> rhs) const;
 		RValue<UShort> operator=(const UShort &rhs) const;
-		RValue<Pointer<UShort>> operator&();
+		RValue<UShort> operator=(const Reference<UShort> &rhs) const;
 
 		friend RValue<UShort> operator+(RValue<UShort> lhs, RValue<UShort> rhs);
 		friend RValue<UShort> operator-(RValue<UShort> lhs, RValue<UShort> rhs);
@@ -595,17 +641,18 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class Byte4 : public Variable<byte4>
+	class Byte4 : public Variable<Byte4>
 	{
 	public:
 	//	Byte4();
 	//	Byte4(int x, int y, int z, int w);
 	//	Byte4(RValue<Byte4> rhs);
 	//	Byte4(const Byte4 &rhs);
+	//	Byte4(const Reference<Byte4> &rhs);
 
 	//	RValue<Byte4> operator=(RValue<Byte4> rhs) const;
 	//	RValue<Byte4> operator=(const Byte4 &rhs) const;
-	//	RValue<Pointer<Byte4>> operator&();
+	//	RValue<Byte4> operator=(const Reference<Byte4> &rhs) const;
 
 	//	friend RValue<Byte4> operator+(RValue<Byte4> lhs, RValue<Byte4> rhs);
 	//	friend RValue<Byte4> operator-(RValue<Byte4> lhs, RValue<Byte4> rhs);
@@ -638,17 +685,18 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class SByte4 : public Variable<sbyte4>
+	class SByte4 : public Variable<SByte4>
 	{
 	public:
 	//	SByte4();
 	//	SByte4(int x, int y, int z, int w);
 	//	SByte4(RValue<SByte4> rhs);
 	//	SByte4(const SByte4 &rhs);
+	//	SByte4(const Reference<SByte4> &rhs);
 
 	//	RValue<SByte4> operator=(RValue<SByte4> rhs) const;
 	//	RValue<SByte4> operator=(const SByte4 &rhs) const;
-	//	RValue<Pointer<SByte4>> operator&();
+	//	RValue<SByte4> operator=(const Reference<SByte4> &rhs) const;
 
 	//	friend RValue<SByte4> operator+(RValue<SByte4> lhs, RValue<SByte4> rhs);
 	//	friend RValue<SByte4> operator-(RValue<SByte4> lhs, RValue<SByte4> rhs);
@@ -681,7 +729,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class Byte8 : public Variable<byte8>
+	class Byte8 : public Variable<Byte8>
 	{
 	public:
 		Byte8();
@@ -689,10 +737,11 @@ namespace sw
 		Byte8(int64_t x);
 		Byte8(RValue<Byte8> rhs);
 		Byte8(const Byte8 &rhs);
+		Byte8(const Reference<Byte8> &rhs);
 
 		RValue<Byte8> operator=(RValue<Byte8> rhs) const;
 		RValue<Byte8> operator=(const Byte8 &rhs) const;
-	//	RValue<Pointer<Byte8>> operator&();
+		RValue<Byte8> operator=(const Reference<Byte8> &rhs) const;
 
 		friend RValue<Byte8> operator+(RValue<Byte8> lhs, RValue<Byte8> rhs);
 		friend RValue<Byte8> operator-(RValue<Byte8> lhs, RValue<Byte8> rhs);
@@ -736,7 +785,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class SByte8 : public Variable<sbyte8>
+	class SByte8 : public Variable<SByte8>
 	{
 	public:
 		SByte8();
@@ -744,10 +793,11 @@ namespace sw
 		SByte8(int64_t x);
 		SByte8(RValue<SByte8> rhs);
 		SByte8(const SByte8 &rhs);
+		SByte8(const Reference<SByte8> &rhs);
 
 		RValue<SByte8> operator=(RValue<SByte8> rhs) const;
 		RValue<SByte8> operator=(const SByte8 &rhs) const;
-	//	RValue<Pointer<SByte8>> operator&();
+		RValue<SByte8> operator=(const Reference<SByte8> &rhs) const;
 
 		friend RValue<SByte8> operator+(RValue<SByte8> lhs, RValue<SByte8> rhs);
 		friend RValue<SByte8> operator-(RValue<SByte8> lhs, RValue<SByte8> rhs);
@@ -790,17 +840,18 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class Byte16 : public Variable<byte16>
+	class Byte16 : public Variable<Byte16>
 	{
 	public:
 	//	Byte16();
 	//	Byte16(int x, int y, int z, int w);
 		Byte16(RValue<Byte16> rhs);
 		Byte16(const Byte16 &rhs);
+		Byte16(const Reference<Byte16> &rhs);
 
 		RValue<Byte16> operator=(RValue<Byte16> rhs) const;
 		RValue<Byte16> operator=(const Byte16 &rhs) const;
-	//	RValue<Pointer<Byte16>> operator&();
+		RValue<Byte16> operator=(const Reference<Byte16> &rhs) const;
 
 	//	friend RValue<Byte16> operator+(RValue<Byte16> lhs, RValue<Byte16> rhs);
 	//	friend RValue<Byte16> operator-(RValue<Byte16> lhs, RValue<Byte16> rhs);
@@ -833,17 +884,18 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class SByte16 : public Variable<sbyte16>
+	class SByte16 : public Variable<SByte16>
 	{
 	public:
 	//	SByte16();
 	//	SByte16(int x, int y, int z, int w);
 	//	SByte16(RValue<SByte16> rhs);
 	//	SByte16(const SByte16 &rhs);
+	//	SByte16(const Reference<SByte16> &rhs);
 
 	//	RValue<SByte16> operator=(RValue<SByte16> rhs) const;
 	//	RValue<SByte16> operator=(const SByte16 &rhs) const;
-	//	RValue<Pointer<SByte16>> operator&();
+	//	RValue<SByte16> operator=(const Reference<SByte16> &rhs) const;
 
 	//	friend RValue<SByte16> operator+(RValue<SByte16> lhs, RValue<SByte16> rhs);
 	//	friend RValue<SByte16> operator-(RValue<SByte16> lhs, RValue<SByte16> rhs);
@@ -876,7 +928,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class Short4 : public Variable<short4>
+	class Short4 : public Variable<Short4>
 	{
 	public:
 		explicit Short4(RValue<Int> cast);
@@ -889,14 +941,17 @@ namespace sw
 		Short4(short x, short y, short z, short w);
 		Short4(RValue<Short4> rhs);
 		Short4(const Short4 &rhs);
+		Short4(const Reference<Short4> &rhs);
 		Short4(RValue<UShort4> rhs);
 		Short4(const UShort4 &rhs);
+		Short4(const Reference<UShort4> &rhs);
 
 		RValue<Short4> operator=(RValue<Short4> rhs) const;
 		RValue<Short4> operator=(const Short4 &rhs) const;
+		RValue<Short4> operator=(const Reference<Short4> &rhs) const;
 		RValue<Short4> operator=(RValue<UShort4> rhs) const;
 		RValue<Short4> operator=(const UShort4 &rhs) const;
-		RValue<Pointer<Short4>> operator&();
+		RValue<Short4> operator=(const Reference<UShort4> &rhs) const;
 
 		friend RValue<Short4> operator+(RValue<Short4> lhs, RValue<Short4> rhs);
 		friend RValue<Short4> operator-(RValue<Short4> lhs, RValue<Short4> rhs);
@@ -958,7 +1013,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class UShort4 : public Variable<ushort4>
+	class UShort4 : public Variable<UShort4>
 	{
 	public:
 		explicit UShort4(RValue<Int4> cast);
@@ -968,14 +1023,17 @@ namespace sw
 		UShort4(unsigned short x, unsigned short y, unsigned short z, unsigned short w);
 		UShort4(RValue<UShort4> rhs);
 		UShort4(const UShort4 &rhs);
+		UShort4(const Reference<UShort4> &rhs);
 		UShort4(RValue<Short4> rhs);
 		UShort4(const Short4 &rhs);
+		UShort4(const Reference<Short4> &rhs);
 
 		RValue<UShort4> operator=(RValue<UShort4> rhs) const;
 		RValue<UShort4> operator=(const UShort4 &rhs) const;
+		RValue<UShort4> operator=(const Reference<UShort4> &rhs) const;
 		RValue<UShort4> operator=(RValue<Short4> rhs) const;
 		RValue<UShort4> operator=(const Short4 &rhs) const;
-	//	RValue<Pointer<UShort4>> operator&();
+		RValue<UShort4> operator=(const Reference<Short4> &rhs) const;
 
 		friend RValue<UShort4> operator+(RValue<UShort4> lhs, RValue<UShort4> rhs);
 		friend RValue<UShort4> operator-(RValue<UShort4> lhs, RValue<UShort4> rhs);
@@ -1022,17 +1080,18 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class Short8 : public Variable<short8>
+	class Short8 : public Variable<Short8>
 	{
 	public:
 	//	Short8();
 		Short8(short c0, short c1, short c2, short c3, short c4, short c5, short c6, short c7);
 		Short8(RValue<Short8> rhs);
 	//	Short8(const Short8 &rhs);
+	//	Short8(const Reference<Short8> &rhs);
 
 	//	RValue<Short8> operator=(RValue<Short8> rhs) const;
 	//	RValue<Short8> operator=(const Short8 &rhs) const;
-	//	RValue<Pointer<Short8>> operator&();
+	//	RValue<Short8> operator=(const Reference<Short8> &rhs) const;
 
 		friend RValue<Short8> operator+(RValue<Short8> lhs, RValue<Short8> rhs);
 	//	friend RValue<Short8> operator-(RValue<Short8> lhs, RValue<Short8> rhs);
@@ -1078,17 +1137,18 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class UShort8 : public Variable<ushort8>
+	class UShort8 : public Variable<UShort8>
 	{
 	public:
 	//	UShort8();
 		UShort8(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3, unsigned short c4, unsigned short c5, unsigned short c6, unsigned short c7);
 		UShort8(RValue<UShort8> rhs);
 	//	UShort8(const UShort8 &rhs);
+	//	UShort8(const Reference<UShort8> &rhs);
 
 		RValue<UShort8> operator=(RValue<UShort8> rhs) const;
 		RValue<UShort8> operator=(const UShort8 &rhs) const;
-	//	RValue<Pointer<UShort8>> operator&();
+		RValue<UShort8> operator=(const Reference<UShort8> &rhs) const;
 
 		friend RValue<UShort8> operator+(RValue<UShort8> lhs, RValue<UShort8> rhs);
 	//	friend RValue<UShort8> operator-(RValue<UShort8> lhs, RValue<UShort8> rhs);
@@ -1134,7 +1194,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class Int : public Variable<int>
+	class Int : public Variable<Int>
 	{
 	public:
 		explicit Int(llvm::Argument *argument);
@@ -1153,13 +1213,16 @@ namespace sw
 		Int(RValue<UInt> rhs);
 		Int(const Int &rhs);
 		Int(const UInt &rhs);
+		Int(const Reference<Int> &rhs);
+		Int(const Reference<UInt> &rhs);
 
 		RValue<Int> operator=(int rhs) const;
 		RValue<Int> operator=(RValue<Int> rhs) const;
 		RValue<Int> operator=(RValue<UInt> rhs) const;
 		RValue<Int> operator=(const Int &rhs) const;
 		RValue<Int> operator=(const UInt &rhs) const;
-		RValue<Pointer<Int>> operator&();
+		RValue<Int> operator=(const Reference<Int> &rhs) const;
+		RValue<Int> operator=(const Reference<UInt> &rhs) const;
 
 		friend RValue<Int> operator+(RValue<Int> lhs, RValue<Int> rhs);
 		friend RValue<Int> operator-(RValue<Int> lhs, RValue<Int> rhs);
@@ -1204,7 +1267,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class Long : public Variable<qword>
+	class Long : public Variable<Long>
 	{
 	public:
 	//	explicit Long(llvm::Argument *argument);
@@ -1220,14 +1283,17 @@ namespace sw
 		Long(RValue<Long> rhs);
 	//	Long(RValue<ULong> rhs);
 	//	Long(const Long &rhs);
+	//	Long(const Reference<Long> &rhs);
 	//	Long(const ULong &rhs);
+	//	Long(const Reference<ULong> &rhs);
 
 		RValue<Long> operator=(int64_t rhs) const;
 		RValue<Long> operator=(RValue<Long> rhs) const;
 	//	RValue<Long> operator=(RValue<ULong> rhs) const;
 		RValue<Long> operator=(const Long &rhs) const;
+		RValue<Long> operator=(const Reference<Long> &rhs) const;
 	//	RValue<Long> operator=(const ULong &rhs) const;
-	//	RValue<Pointer<Long>> operator&();
+	//	RValue<Long> operator=(const Reference<ULong> &rhs) const;
 
 		friend RValue<Long> operator+(RValue<Long> lhs, RValue<Long> rhs);
 		friend RValue<Long> operator-(RValue<Long> lhs, RValue<Long> rhs);
@@ -1265,12 +1331,12 @@ namespace sw
 
 	//	friend RValue<Long> RoundLong(RValue<Float> cast);
 
-		friend RValue<Long> AddAtomic( RValue<Pointer<Long>> x, RValue<Long> y);
+		friend RValue<Long> AddAtomic( RValue<Pointer<Long> > x, RValue<Long> y);
 
 		static llvm::Type *getType();
 	};
 
-	class Long1 : public Variable<qword>
+	class Long1 : public Variable<Long1>
 	{
 	public:
 	//	explicit Long1(llvm::Argument *argument);
@@ -1288,14 +1354,17 @@ namespace sw
 		Long1(RValue<Long1> rhs);
 	//	Long1(RValue<ULong1> rhs);
 	//	Long1(const Long1 &rhs);
+	//	Long1(const Reference<Long1> &rhs);
 	//	Long1(const ULong1 &rhs);
+	//	Long1(const Reference<ULong1> &rhs);
 
 	//	RValue<Long1> operator=(qword rhs) const;
 	//	RValue<Long1> operator=(RValue<Long1> rhs) const;
 	//	RValue<Long1> operator=(RValue<ULong1> rhs) const;
 	//	RValue<Long1> operator=(const Long1 &rhs) const;
+	//	RValue<Long1> operator=(const Reference<Long1> &rhs) const;
 	//	RValue<Long1> operator=(const ULong1 &rhs) const;
-	//	RValue<Pointer<Long1>> operator&();
+	//	RValue<Long1> operator=(const Reference<ULong1> &rhs) const;
 
 	//	friend RValue<Long1> operator+(RValue<Long1> lhs, RValue<Long1> rhs);
 	//	friend RValue<Long1> operator-(RValue<Long1> lhs, RValue<Long1> rhs);
@@ -1336,7 +1405,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class Long2 : public Variable<qword2>
+	class Long2 : public Variable<Long2>
 	{
 	public:
 	//	explicit Long2(RValue<Long> cast);
@@ -1346,10 +1415,11 @@ namespace sw
 	//	Long2(int x, int y);
 	//	Long2(RValue<Long2> rhs);
 	//	Long2(const Long2 &rhs);
+	//	Long2(const Reference<Long2> &rhs);
 
 	//	RValue<Long2> operator=(RValue<Long2> rhs) const;
 	//	RValue<Long2> operator=(const Long2 &rhs) const;
-	//	RValue<Pointer<Long2>> operator&();
+	//	RValue<Long2> operator=(const Reference<Long2 &rhs) const;
 
 	//	friend RValue<Long2> operator+(RValue<Long2> lhs, RValue<Long2> rhs);
 	//	friend RValue<Long2> operator-(RValue<Long2> lhs, RValue<Long2> rhs);
@@ -1399,7 +1469,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class UInt : public Variable<unsigned int>
+	class UInt : public Variable<UInt>
 	{
 	public:
 		explicit UInt(llvm::Argument *argument);
@@ -1415,13 +1485,16 @@ namespace sw
 		UInt(RValue<Int> rhs);
 		UInt(const UInt &rhs);
 		UInt(const Int &rhs);
+		UInt(const Reference<UInt> &rhs);
+		UInt(const Reference<Int> &rhs);
 
 		RValue<UInt> operator=(unsigned int rhs) const;
 		RValue<UInt> operator=(RValue<UInt> rhs) const;
 		RValue<UInt> operator=(RValue<Int> rhs) const;
 		RValue<UInt> operator=(const UInt &rhs) const;
 		RValue<UInt> operator=(const Int &rhs) const;
-		RValue<Pointer<UInt>> operator&();
+		RValue<UInt> operator=(const Reference<UInt> &rhs) const;
+		RValue<UInt> operator=(const Reference<Int> &rhs) const;
 
 		friend RValue<UInt> operator+(RValue<UInt> lhs, RValue<UInt> rhs);
 		friend RValue<UInt> operator-(RValue<UInt> lhs, RValue<UInt> rhs);
@@ -1466,7 +1539,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class Int2 : public Variable<int2>
+	class Int2 : public Variable<Int2>
 	{
 	public:
 	//	explicit Int2(RValue<Int> cast);
@@ -1476,10 +1549,11 @@ namespace sw
 		Int2(int x, int y);
 		Int2(RValue<Int2> rhs);
 		Int2(const Int2 &rhs);
+		Int2(const Reference<Int2> &rhs);
 
 		RValue<Int2> operator=(RValue<Int2> rhs) const;
 		RValue<Int2> operator=(const Int2 &rhs) const;
-	//	RValue<Pointer<Int2>> operator&();
+		RValue<Int2> operator=(const Reference<Int2> &rhs) const;
 
 		friend RValue<Int2> operator+(RValue<Int2> lhs, RValue<Int2> rhs);
 		friend RValue<Int2> operator-(RValue<Int2> lhs, RValue<Int2> rhs);
@@ -1529,17 +1603,18 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class UInt2 : public Variable<uint2>
+	class UInt2 : public Variable<UInt2>
 	{
 	public:
 		UInt2();
 		UInt2(unsigned int x, unsigned int y);
 		UInt2(RValue<UInt2> rhs);
 		UInt2(const UInt2 &rhs);
+		UInt2(const Reference<UInt2> &rhs);
 
 		RValue<UInt2> operator=(RValue<UInt2> rhs) const;
 		RValue<UInt2> operator=(const UInt2 &rhs) const;
-	//	RValue<Pointer<UInt2>> operator&();
+		RValue<UInt2> operator=(const Reference<UInt2> &rhs) const;
 
 		friend RValue<UInt2> operator+(RValue<UInt2> lhs, RValue<UInt2> rhs);
 		friend RValue<UInt2> operator-(RValue<UInt2> lhs, RValue<UInt2> rhs);
@@ -1584,7 +1659,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class Int4 : public Variable<int4>
+	class Int4 : public Variable<Int4>
 	{
 	public:
 		explicit Int4(RValue<Float4> cast);
@@ -1596,12 +1671,14 @@ namespace sw
 		Int4(int x, int y, int z, int w);
 		Int4(RValue<Int4> rhs);
 		Int4(const Int4 &rhs);
+		Int4(const Reference<Int4> &rhs);
 		Int4(RValue<UInt4> rhs);
 		Int4(const UInt4 &rhs);
+		Int4(const Reference<UInt4> &rhs);
 
 		RValue<Int4> operator=(RValue<Int4> rhs) const;
 		RValue<Int4> operator=(const Int4 &rhs) const;
-	//	RValue<Pointer<Int4>> operator&();
+		RValue<Int4> operator=(const Reference<Int4> &rhs) const;
 
 		friend RValue<Int4> operator+(RValue<Int4> lhs, RValue<Int4> rhs);
 		friend RValue<Int4> operator-(RValue<Int4> lhs, RValue<Int4> rhs);
@@ -1661,7 +1738,7 @@ namespace sw
 		void constant(int x, int y, int z, int w);
 	};
 
-	class UInt4 : public Variable<uint4>
+	class UInt4 : public Variable<UInt4>
 	{
 	public:
 		explicit UInt4(RValue<Float4> cast);
@@ -1674,12 +1751,14 @@ namespace sw
 		UInt4(unsigned int x, unsigned int y, unsigned int z, unsigned int w);
 		UInt4(RValue<UInt4> rhs);
 		UInt4(const UInt4 &rhs);
+		UInt4(const Reference<UInt4> &rhs);
 		UInt4(RValue<Int4> rhs);
 		UInt4(const Int4 &rhs);
+		UInt4(const Reference<Int4> &rhs);
 
 		RValue<UInt4> operator=(RValue<UInt4> rhs) const;
 		RValue<UInt4> operator=(const UInt4 &rhs) const;
-	//	RValue<Pointer<UInt4>> operator&();
+		RValue<UInt4> operator=(const Reference<UInt4> &rhs) const;
 
 		friend RValue<UInt4> operator+(RValue<UInt4> lhs, RValue<UInt4> rhs);
 		friend RValue<UInt4> operator-(RValue<UInt4> lhs, RValue<UInt4> rhs);
@@ -1735,7 +1814,73 @@ namespace sw
 		void constant(int x, int y, int z, int w);
 	};
 
-	class Float : public Variable<float>
+	template<int T>
+	class Swizzle2Float4
+	{
+		friend class Float4;
+
+	public:
+		operator RValue<Float4>() const;
+
+	private:
+		Float4 *parent;
+	};
+
+	template<int T>
+	class SwizzleFloat4
+	{
+	public:
+		operator RValue<Float4>() const;
+
+	private:
+		Float4 *parent;
+	};
+
+	template<int T>
+	class SwizzleMaskFloat4
+	{
+		friend class Float4;
+
+	public:
+		operator RValue<Float4>() const;
+
+		RValue<Float4> operator=(RValue<Float4> rhs) const;
+		RValue<Float4> operator=(RValue<Float> rhs) const;
+
+	private:
+		Float4 *parent;
+	};
+
+	template<int T>
+	class SwizzleMask1Float4
+	{
+	public:
+		operator RValue<Float>() const;
+		operator RValue<Float4>() const;
+
+		RValue<Float4> operator=(float x) const;
+		RValue<Float4> operator=(RValue<Float4> rhs) const;
+		RValue<Float4> operator=(RValue<Float> rhs) const;
+
+	private:
+		Float4 *parent;
+	};
+
+	template<int T>
+	class SwizzleMask2Float4
+	{
+		friend class Float4;
+
+	public:
+		operator RValue<Float4>() const;
+
+		RValue<Float4> operator=(RValue<Float4> rhs) const;
+
+	private:
+		Float4 *parent;
+	};
+
+	class Float : public Variable<Float>
 	{
 	public:
 		explicit Float(RValue<Int> cast);
@@ -1744,11 +1889,18 @@ namespace sw
 		Float(float x);
 		Float(RValue<Float> rhs);
 		Float(const Float &rhs);
+		Float(const Reference<Float> &rhs);
+
+		template<int T>
+		Float(const SwizzleMask1Float4<T> &rhs);
 
 	//	RValue<Float> operator=(float rhs) const;   // FIXME: Implement
 		RValue<Float> operator=(RValue<Float> rhs) const;
 		RValue<Float> operator=(const Float &rhs) const;
-		RValue<Pointer<Float>> operator&();
+		RValue<Float> operator=(const Reference<Float> &rhs) const;
+
+		template<int T>
+		RValue<Float> operator=(const SwizzleMask1Float4<T> &rhs) const;
 
 		friend RValue<Float> operator+(RValue<Float> lhs, RValue<Float> rhs);
 		friend RValue<Float> operator-(RValue<Float> lhs, RValue<Float> rhs);
@@ -1784,7 +1936,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	class Float2 : public Variable<float2>
+	class Float2 : public Variable<Float2>
 	{
 	public:
 	//	explicit Float2(RValue<Byte2> cast);
@@ -1798,8 +1950,10 @@ namespace sw
 	//	Float2(float x, float y);
 	//	Float2(RValue<Float2> rhs);
 	//	Float2(const Float2 &rhs);
+	//	Float2(const Reference<Float2> &rhs);
 	//	Float2(RValue<Float> rhs);
 	//	Float2(const Float &rhs);
+	//	Float2(const Reference<Float> &rhs);
 
 	//	template<int T>
 	//	Float2(const SwizzleMask1Float4<T> &rhs);
@@ -1807,13 +1961,13 @@ namespace sw
 	//	RValue<Float2> operator=(float replicate) const;
 	//	RValue<Float2> operator=(RValue<Float2> rhs) const;
 	//	RValue<Float2> operator=(const Float2 &rhs) const;
+	//	RValue<Float2> operator=(const Reference<Float2> &rhs) const;
 	//	RValue<Float2> operator=(RValue<Float> rhs) const;
 	//	RValue<Float2> operator=(const Float &rhs) const;
+	//	RValue<Float2> operator=(const Reference<Float> &rhs) const;
 
 	//	template<int T>
 	//	RValue<Float2> operator=(const SwizzleMask1Float4<T> &rhs);
-
-	//	RValue<Pointer<Float2>> operator&();
 
 	//	friend RValue<Float2> operator+(RValue<Float2> lhs, RValue<Float2> rhs);
 	//	friend RValue<Float2> operator-(RValue<Float2> lhs, RValue<Float2> rhs);
@@ -1838,73 +1992,7 @@ namespace sw
 		static llvm::Type *getType();
 	};
 
-	template<int T>
-	class Swizzle2Float4
-	{
-		friend Float4;
-
-	public:
-		operator RValue<Float4>() const;
-
-	private:
-		Float4 *parent;
-	};
-
-	template<int T>
-	class SwizzleFloat4
-	{
-	public:
-		operator RValue<Float4>() const;
-
-	private:
-		Float4 *parent;
-	};
-
-	template<int T>
-	class SwizzleMaskFloat4
-	{
-		friend Float4;
-
-	public:
-		operator RValue<Float4>() const;
-
-		RValue<Float4> operator=(RValue<Float4> rhs) const;
-		RValue<Float4> operator=(RValue<Float> rhs) const;
-
-	private:
-		Float4 *parent;
-	};
-
-	template<int T>
-	class SwizzleMask1Float4
-	{
-	public:
-		operator RValue<Float>() const;
-		operator RValue<Float4>() const;
-
-		RValue<Float4> operator=(float x) const;
-		RValue<Float4> operator=(RValue<Float4> rhs) const;
-		RValue<Float4> operator=(RValue<Float> rhs) const;
-
-	private:
-		Float4 *parent;
-	};
-
-	template<int T>
-	class SwizzleMask2Float4
-	{
-		friend Float4;
-
-	public:
-		operator RValue<Float4>() const;
-
-		RValue<Float4> operator=(RValue<Float4> rhs) const;
-
-	private:
-		Float4 *parent;
-	};
-
-	class Float4 : public Variable<float4>
+	class Float4 : public Variable<Float4>
 	{
 	public:
 		explicit Float4(RValue<Byte4> cast);
@@ -1921,11 +2009,15 @@ namespace sw
 		Float4(float x, float y, float z, float w);
 		Float4(RValue<Float4> rhs);
 		Float4(const Float4 &rhs);
+		Float4(const Reference<Float4> &rhs);
 		Float4(RValue<Float> rhs);
 		Float4(const Float &rhs);
+		Float4(const Reference<Float> &rhs);
 
 		template<int T>
 		Float4(const SwizzleMask1Float4<T> &rhs);
+		template<int T>
+		Float4(const SwizzleFloat4<T> &rhs);
 		template<int X, int Y>
 		Float4(const Swizzle2Float4<X> &x, const Swizzle2Float4<Y> &y);
 		template<int X, int Y>
@@ -1938,13 +2030,15 @@ namespace sw
 		RValue<Float4> operator=(float replicate) const;
 		RValue<Float4> operator=(RValue<Float4> rhs) const;
 		RValue<Float4> operator=(const Float4 &rhs) const;
+		RValue<Float4> operator=(const Reference<Float4> &rhs) const;
 		RValue<Float4> operator=(RValue<Float> rhs) const;
 		RValue<Float4> operator=(const Float &rhs) const;
+		RValue<Float4> operator=(const Reference<Float> &rhs) const;
 
 		template<int T>
 		RValue<Float4> operator=(const SwizzleMask1Float4<T> &rhs);
-
-		RValue<Pointer<Float4>> operator&();
+		template<int T>
+		RValue<Float4> operator=(const SwizzleFloat4<T> &rhs);
 
 		friend RValue<Float4> operator+(RValue<Float4> lhs, RValue<Float4> rhs);
 		friend RValue<Float4> operator-(RValue<Float4> lhs, RValue<Float4> rhs);
@@ -2340,54 +2434,51 @@ namespace sw
 	};
 
 	template<class T>
-	class Pointer : public Variable<T*>
+	class Pointer : public Variable<Pointer<T> >
 	{
 	public:
 		template<class S>
-		Pointer(RValue<Pointer<S>> pointerS, int alignment = 1) : alignment(alignment)
+		Pointer(RValue<Pointer<S> > pointerS, int alignment = 1) : alignment(alignment)
 		{
-			address = Nucleus::allocateStackVariable(Nucleus::getPointerType(T::getType()));
-
 			llvm::Value *pointerT = Nucleus::createBitCast(pointerS.value, Nucleus::getPointerType(T::getType()));
-			Nucleus::createStore(pointerT, address);
+			LValue::storeValue(pointerT);
 		}
 
 		template<class S>
 		Pointer(const Pointer<S> &pointer, int alignment = 1) : alignment(alignment)
 		{
-			address = Nucleus::allocateStackVariable(Nucleus::getPointerType(T::getType()));
-
-			llvm::Value *pointerS = Nucleus::createLoad(pointer.address);
+			llvm::Value *pointerS = pointer.loadValue(alignment);
 			llvm::Value *pointerT = Nucleus::createBitCast(pointerS, Nucleus::getPointerType(T::getType()));
-			Nucleus::createStore(pointerT, address);
+			LValue::storeValue(pointerT);
 		}
 
-		explicit Pointer(llvm::Value *pointer);
 		explicit Pointer(llvm::Argument *argument);
 		explicit Pointer(const void *external);
 
 		Pointer();
-		Pointer(RValue<Pointer<T>> rhs);
+		Pointer(RValue<Pointer<T> > rhs);
 		Pointer(const Pointer<T> &rhs);
+		Pointer(const Reference<Pointer<T> > &rhs);
 
-		RValue<Pointer<T>> operator=(RValue<Pointer<T>> rhs) const;
-		RValue<Pointer<T>> operator=(const Pointer<T> &rhs) const;
+		RValue<Pointer<T> > operator=(RValue<Pointer<T> > rhs) const;
+		RValue<Pointer<T> > operator=(const Pointer<T> &rhs) const;
+		RValue<Pointer<T> > operator=(const Reference<Pointer<T> > &rhs) const;
 
 		Reference<T> operator*();
 
-		friend RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, int offset);
-		friend RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, RValue<Int> offset);
-		friend RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, RValue<UInt> offset);
-		friend RValue<Pointer<Byte>> operator+=(const Pointer<Byte> &lhs, int offset);
-		friend RValue<Pointer<Byte>> operator+=(const Pointer<Byte> &lhs, RValue<Int> offset);
-		friend RValue<Pointer<Byte>> operator+=(const Pointer<Byte> &lhs, RValue<UInt> offset);
+		friend RValue<Pointer<Byte> > operator+(RValue<Pointer<Byte> > lhs, int offset);
+		friend RValue<Pointer<Byte> > operator+(RValue<Pointer<Byte> > lhs, RValue<Int> offset);
+		friend RValue<Pointer<Byte> > operator+(RValue<Pointer<Byte> > lhs, RValue<UInt> offset);
+		friend RValue<Pointer<Byte> > operator+=(const Pointer<Byte> &lhs, int offset);
+		friend RValue<Pointer<Byte> > operator+=(const Pointer<Byte> &lhs, RValue<Int> offset);
+		friend RValue<Pointer<Byte> > operator+=(const Pointer<Byte> &lhs, RValue<UInt> offset);
 
-		friend RValue<Pointer<Byte>> operator-(RValue<Pointer<Byte>> lhs, int offset);
-		friend RValue<Pointer<Byte>> operator-(RValue<Pointer<Byte>> lhs, RValue<Int> offset);
-		friend RValue<Pointer<Byte>> operator-(RValue<Pointer<Byte>> lhs, RValue<UInt> offset);
-		friend RValue<Pointer<Byte>> operator-=(const Pointer<Byte> &lhs, int offset);
-		friend RValue<Pointer<Byte>> operator-=(const Pointer<Byte> &lhs, RValue<Int> offset);
-		friend RValue<Pointer<Byte>> operator-=(const Pointer<Byte> &lhs, RValue<UInt> offset);
+		friend RValue<Pointer<Byte> > operator-(RValue<Pointer<Byte> > lhs, int offset);
+		friend RValue<Pointer<Byte> > operator-(RValue<Pointer<Byte> > lhs, RValue<Int> offset);
+		friend RValue<Pointer<Byte> > operator-(RValue<Pointer<Byte> > lhs, RValue<UInt> offset);
+		friend RValue<Pointer<Byte> > operator-=(const Pointer<Byte> &lhs, int offset);
+		friend RValue<Pointer<Byte> > operator-=(const Pointer<Byte> &lhs, RValue<Int> offset);
+		friend RValue<Pointer<Byte> > operator-=(const Pointer<Byte> &lhs, RValue<UInt> offset);
 
 		static llvm::Type *getType();
 
@@ -2396,7 +2487,7 @@ namespace sw
 	};
 
 	template<class T, int S = 1>
-	class Array : public Variable<T[]>
+	class Array : public Variable<T>
 	{
 	public:
 		Array(int size = S);
@@ -2405,9 +2496,9 @@ namespace sw
 		Reference<T> operator[](RValue<Int> index);
 		Reference<T> operator[](RValue<UInt> index);
 
-	//	friend RValue<Array<T>> operator++(const Array<T> &val, int);   // Post-increment
+	//	friend RValue<Array<T> > operator++(const Array<T> &val, int);   // Post-increment
 	//	friend const Array<T> &operator++(const Array<T> &val);   // Pre-increment
-	//	friend RValue<Array<T>> operator--(const Array<T> &val, int);   // Post-decrement
+	//	friend RValue<Array<T> > operator--(const Array<T> &val, int);   // Post-decrement
 	//	friend const Array<T> &operator--(const Array<T> &val);   // Pre-decrement
 	};
 
@@ -2423,7 +2514,7 @@ namespace sw
 	void Return(const Pointer<T> &ret);
 
 	template<class T>
-	void Return(RValue<Pointer<T>> ret);
+	void Return(RValue<Pointer<T> > ret);
 
 	template<class R = Void, class A1 = Void, class A2 = Void, class A3 = Void, class A4 = Void>
 	class Function
@@ -2444,11 +2535,21 @@ namespace sw
 	};
 
 	RValue<Long> Ticks();
-	void Emms();
 }
 
 namespace sw
 {
+	template<class T>
+	Variable<T>::Variable(int arraySize) : LValue(T::getType(), arraySize)
+	{
+	}
+
+	template<class T>
+	RValue<Pointer<T> > Variable<T>::operator&()
+	{
+		return RValue<Pointer<T> >(LValue::address);
+	}
+
 	template<class T>
 	Reference<T>::Reference(llvm::Value *pointer, int alignment) : alignment(alignment)
 	{
@@ -2461,12 +2562,6 @@ namespace sw
 		Nucleus::createStore(rhs.value, address, false, alignment);
 
 		return rhs;
-	}
-
-	template<class T>
-	Reference<T>::operator RValue<T>() const
-	{
-		return RValue<T>(Nucleus::createLoad(address, false, alignment));
 	}
 
 	template<class T>
@@ -2485,6 +2580,18 @@ namespace sw
 	}
 
 	template<class T>
+	llvm::Value *Reference<T>::loadValue() const
+	{
+		return Nucleus::createLoad(address, false, alignment);
+	}
+
+	template<class T>
+	int Reference<T>::getAlignment() const
+	{
+		return alignment;
+	}
+
+	template<class T>
 	RValue<T>::RValue(llvm::Value *rvalue)
 	{
 		value = rvalue;
@@ -2493,7 +2600,7 @@ namespace sw
 	template<class T>
 	RValue<T>::RValue(const T &lvalue)
 	{
-		value = Nucleus::createLoad(lvalue.address);
+		value = lvalue.loadValue();
 	}
 
 	template<class T>
@@ -2502,10 +2609,22 @@ namespace sw
 		value = (llvm::Value*)Nucleus::createConstantInt(i);
 	}
 
+	template<class T>
+	RValue<T>::RValue(typename FloatLiteral<T>::type f)
+	{
+		value = (llvm::Value*)Nucleus::createConstantFloat(f);
+	}
+
+	template<class T>
+	RValue<T>::RValue(const Reference<T> &ref)
+	{
+		value = ref.loadValue();
+	}
+
 	template<int T>
 	Swizzle2Float4<T>::operator RValue<Float4>() const
 	{
-		llvm::Value *vector = Nucleus::createLoad(parent->address);
+		llvm::Value *vector = parent->loadValue();
 
 		return RValue<Float4>(Nucleus::createSwizzle(vector, T));
 	}
@@ -2513,7 +2632,7 @@ namespace sw
 	template<int T>
 	SwizzleFloat4<T>::operator RValue<Float4>() const
 	{
-		llvm::Value *vector = Nucleus::createLoad(parent->address);
+		llvm::Value *vector = parent->loadValue();
 
 		return RValue<Float4>(Nucleus::createSwizzle(vector, T));
 	}
@@ -2521,7 +2640,7 @@ namespace sw
 	template<int T>
 	SwizzleMaskFloat4<T>::operator RValue<Float4>() const
 	{
-		llvm::Value *vector = Nucleus::createLoad(parent->address);
+		llvm::Value *vector = parent->loadValue();
 
 		return RValue<Float4>(Nucleus::createSwizzle(vector, T));
 	}
@@ -2547,7 +2666,7 @@ namespace sw
 	template<int T>
 	SwizzleMask1Float4<T>::operator RValue<Float4>() const
 	{
-		llvm::Value *vector = Nucleus::createLoad(parent->address);
+		llvm::Value *vector = parent->loadValue();
 
 		return RValue<Float4>(Nucleus::createSwizzle(vector, T));
 	}
@@ -2573,7 +2692,7 @@ namespace sw
 	template<int T>
 	SwizzleMask2Float4<T>::operator RValue<Float4>() const
 	{
-		llvm::Value *vector = Nucleus::createLoad(parent->address);
+		llvm::Value *vector = parent->loadValue();
 
 		return RValue<Float4>(Nucleus::createSwizzle(vector, T));
 	}
@@ -2585,19 +2704,37 @@ namespace sw
 	}
 
 	template<int T>
-	Float4::Float4(const SwizzleMask1Float4<T> &lhs)
+	Float::Float(const SwizzleMask1Float4<T> &rhs)
+	{
+		*this = rhs.operator RValue<Float>();
+	}
+
+	template<int T>
+	RValue<Float> Float::operator=(const SwizzleMask1Float4<T> &rhs) const
+	{
+		return *this = rhs.operator RValue<Float>();
+	}
+
+	template<int T>
+	Float4::Float4(const SwizzleMask1Float4<T> &rhs)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		*this = RValue<Float4>(lhs);
+		*this = rhs.operator RValue<Float4>();
+	}
+
+	template<int T>
+	Float4::Float4(const SwizzleFloat4<T> &rhs)
+	{
+		xyzw.parent = this;
+
+		*this = rhs.operator RValue<Float4>();
 	}
 
 	template<int X, int Y>
 	Float4::Float4(const Swizzle2Float4<X> &x, const Swizzle2Float4<Y> &y)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		*this = ShuffleLowHigh(*x.parent, *y.parent, (X & 0xF) | (Y & 0xF) << 4);
 	}
@@ -2606,7 +2743,6 @@ namespace sw
 	Float4::Float4(const SwizzleMask2Float4<X> &x, const Swizzle2Float4<Y> &y)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		*this = ShuffleLowHigh(*x.parent, *y.parent, (X & 0xF) | (Y & 0xF) << 4);
 	}
@@ -2615,7 +2751,6 @@ namespace sw
 	Float4::Float4(const Swizzle2Float4<X> &x, const SwizzleMask2Float4<Y> &y)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		*this = ShuffleLowHigh(*x.parent, *y.parent, (X & 0xF) | (Y & 0xF) << 4);
 	}
@@ -2624,36 +2759,31 @@ namespace sw
 	Float4::Float4(const SwizzleMask2Float4<X> &x, const SwizzleMask2Float4<Y> &y)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		*this = ShuffleLowHigh(*x.parent, *y.parent, (X & 0xF) | (Y & 0xF) << 4);
 	}
 
 	template<int T>
-	RValue<Float4> Float4::operator=(const SwizzleMask1Float4<T> &lhs)
+	RValue<Float4> Float4::operator=(const SwizzleMask1Float4<T> &rhs)
 	{
-		return *this = RValue<Float4>(lhs);
+		return *this = rhs.operator RValue<Float4>();
 	}
 
-	template<class T>
-	Pointer<T>::Pointer(llvm::Value *pointer) : alignment(1)
+	template<int T>
+	RValue<Float4> Float4::operator=(const SwizzleFloat4<T> &rhs)
 	{
-		address = pointer;
+		return *this = rhs.operator RValue<Float4>();
 	}
 
 	template<class T>
 	Pointer<T>::Pointer(llvm::Argument *argument) : alignment(1)
 	{
-		address = Nucleus::allocateStackVariable(Nucleus::getPointerType(T::getType()));
-
-		Nucleus::createStore((llvm::Value*)argument, address);
+		LValue::storeValue((llvm::Value*)argument);
 	}
 
 	template<class T>
-	Pointer<T>::Pointer(const void *external) : alignment((size_t)external & 0x0000000F ? 1 : 16)
+	Pointer<T>::Pointer(const void *external) : alignment((intptr_t)external & 0x0000000F ? 1 : 16)
 	{
-		address = Nucleus::allocateStackVariable(Nucleus::getPointerType(T::getType()));
-
 		llvm::Module *module = Nucleus::getModule();
 		const llvm::GlobalValue *globalPointer = Nucleus::getGlobalValueAtAddress(const_cast<void*>(external));   // FIXME: Const
 
@@ -2664,55 +2794,65 @@ namespace sw
 			Nucleus::addGlobalMapping(globalPointer, const_cast<void*>(external));   // FIXME: Const
 		}
 
-		Nucleus::createStore((llvm::Value*)globalPointer, address);   // FIXME: Const
+		LValue::storeValue((llvm::Value*)globalPointer);   // FIXME: Const
 	}
 
 	template<class T>
 	Pointer<T>::Pointer() : alignment(1)
 	{
-		address = Nucleus::allocateStackVariable(Nucleus::getPointerType(T::getType()));
-
-		Nucleus::createStore(Nucleus::createNullPointer(T::getType()), address);
+		LValue::storeValue(Nucleus::createNullPointer(T::getType()));
 	}
 
 	template<class T>
-	Pointer<T>::Pointer(RValue<Pointer<T>> rhs) : alignment(1)
+	Pointer<T>::Pointer(RValue<Pointer<T> > rhs) : alignment(1)
 	{
-		address = Nucleus::allocateStackVariable(Nucleus::getPointerType(T::getType()));
-
-		Nucleus::createStore(rhs.value, address);
+		LValue::storeValue(rhs.value);
 	}
 
 	template<class T>
 	Pointer<T>::Pointer(const Pointer<T> &rhs) : alignment(rhs.alignment)
 	{
-		address = Nucleus::allocateStackVariable(Nucleus::getPointerType(T::getType()));
-
-		llvm::Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		llvm::Value *value = rhs.loadValue();
+		LValue::storeValue(value);
 	}
 
 	template<class T>
-	RValue<Pointer<T>> Pointer<T>::operator=(RValue<Pointer<T>> rhs) const
+	Pointer<T>::Pointer(const Reference<Pointer<T> > &rhs) : alignment(rhs.getAlignment())
 	{
-		Nucleus::createStore(rhs.value, address);
+		llvm::Value *value = rhs.loadValue();
+		LValue::storeValue(value);
+	}
+
+	template<class T>
+	RValue<Pointer<T> > Pointer<T>::operator=(RValue<Pointer<T> > rhs) const
+	{
+		LValue::storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	template<class T>
-	RValue<Pointer<T>> Pointer<T>::operator=(const Pointer<T> &rhs) const
+	RValue<Pointer<T> > Pointer<T>::operator=(const Pointer<T> &rhs) const
 	{
-		llvm::Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		llvm::Value *value = rhs.loadValue();
+		LValue::storeValue(value);
 
-		return RValue<Pointer<T>>(value);
+		return RValue<Pointer<T> >(value);
+	}
+
+	template<class T>
+	RValue<Pointer<T> > Pointer<T>::operator=(const Reference<Pointer<T> > &rhs) const
+	{
+		llvm::Value *value = rhs.loadValue();
+		LValue::storeValue(value);
+
+		return RValue<Pointer<T> >(value);
 	}
 
 	template<class T>
 	Reference<T> Pointer<T>::operator*()
 	{
-		return Reference<T>(Nucleus::createLoad(address), alignment);
+		return Reference<T>(LValue::loadValue(), alignment);
 	}
 
 	template<class T>
@@ -2722,41 +2862,40 @@ namespace sw
 	}
 
 	template<class T, int S>
-	Array<T, S>::Array(int size)
+	Array<T, S>::Array(int size) : Variable<T>(size)
 	{
-		address = Nucleus::allocateStackVariable(T::getType(), size);
 	}
 
 	template<class T, int S>
 	Reference<T> Array<T, S>::operator[](int index)
 	{
-		llvm::Value *element = Nucleus::createGEP(address, (llvm::Value*)Nucleus::createConstantInt(index));
-	
+		llvm::Value *element = LValue::getAddress((llvm::Value*)Nucleus::createConstantInt(index));
+
 		return Reference<T>(element);
 	}
 
 	template<class T, int S>
 	Reference<T> Array<T, S>::operator[](RValue<Int> index)
 	{
-		llvm::Value *element = Nucleus::createGEP(address, index.value);
-	
+		llvm::Value *element = LValue::getAddress(index.value);
+
 		return Reference<T>(element);
 	}
 
 	template<class T, int S>
 	Reference<T> Array<T, S>::operator[](RValue<UInt> index)
 	{
-		llvm::Value *element = Nucleus::createGEP(address, index.value);
-	
+		llvm::Value *element = LValue::getAddress(index.value);
+
 		return Reference<T>(element);
 	}
 
 //	template<class T>
-//	RValue<Array<T>> operator++(const Array<T> &val, int)
+//	RValue<Array<T> > operator++(const Array<T> &val, int)
 //	{
 //		// FIXME: Requires storing the address of the array
 //	}
-	
+
 //	template<class T>
 //	const Array<T> &operator++(const Array<T> &val)
 //	{
@@ -2764,7 +2903,7 @@ namespace sw
 //	}
 
 //	template<class T>
-//	RValue<Array<T>> operator--(const Array<T> &val, int)
+//	RValue<Array<T> > operator--(const Array<T> &val, int)
 //	{
 //		// FIXME: Requires storing the address of the array
 //	}
@@ -2784,7 +2923,7 @@ namespace sw
 	template<class T>
 	RValue<T> IfThenElse(RValue<Bool> condition, const T &ifTrue, RValue<T> ifFalse)
 	{
-		llvm::Value *trueValue = Nucleus::createLoad(ifTrue.address);
+		llvm::Value *trueValue = ifTrue.loadValue();
 
 		return RValue<T>(Nucleus::createSelect(condition.value, trueValue, ifFalse.value));
 	}
@@ -2792,7 +2931,7 @@ namespace sw
 	template<class T>
 	RValue<T> IfThenElse(RValue<Bool> condition, RValue<T> ifTrue, const T &ifFalse)
 	{
-		llvm::Value *falseValue = Nucleus::createLoad(ifFalse.address);
+		llvm::Value *falseValue = ifFalse.loadValue();
 
 		return RValue<T>(Nucleus::createSelect(condition.value, ifTrue.value, falseValue));
 	}
@@ -2800,8 +2939,8 @@ namespace sw
 	template<class T>
 	RValue<T> IfThenElse(RValue<Bool> condition, const T &ifTrue, const T &ifFalse)
 	{
-		llvm::Value *trueValue = Nucleus::createLoad(ifTrue.address);
-		llvm::Value *falseValue = Nucleus::createLoad(ifFalse.address);
+		llvm::Value *trueValue = ifTrue.loadValue();
+		llvm::Value *falseValue = ifFalse.loadValue();
 
 		return RValue<T>(Nucleus::createSelect(condition.value, trueValue, falseValue));
 	}
@@ -2809,21 +2948,13 @@ namespace sw
 	template<class T>
 	void Return(const Pointer<T> &ret)
 	{
-		#if !(defined(_M_AMD64) || defined(_M_X64))
-			x86::emms();
-		#endif
-
 		Nucleus::createRet(Nucleus::createLoad(ret.address));
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
 	}
 
 	template<class T>
-	void Return(RValue<Pointer<T>> ret)
+	void Return(RValue<Pointer<T> > ret)
 	{
-		#if !(defined(_M_AMD64) || defined(_M_X64))
-			x86::emms();
-		#endif
-
 		Nucleus::createRet(ret.value);
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
 	}
@@ -2839,7 +2970,7 @@ namespace sw
 		if(!A4::isVoid()) arguments.push_back(A4::getType());
 
 		function = Nucleus::createFunction(R::getType(), arguments);
-		Nucleus::setFunction(function);	
+		Nucleus::setFunction(function);
 	}
 
 	template<class R, class A1, class A2, class A3, class A4>
@@ -2873,10 +3004,10 @@ namespace sw
 		return RValue<T>(Nucleus::createBitCast(val.value, T::getType()));
 	}
 
-	template<class T, class S>
-	RValue<T> ReinterpretCast(const Variable<S> &var)
+	template<class T>
+	RValue<T> ReinterpretCast(const LValue &var)
 	{
-		llvm::Value *val = Nucleus::createLoad(var.address);
+		llvm::Value *val = var.loadValue();
 
 		return RValue<T>(Nucleus::createBitCast(val, T::getType()));
 	}
@@ -2893,8 +3024,8 @@ namespace sw
 		return ReinterpretCast<T>(val);
 	}
 
-	template<class T, class S>
-	RValue<T> As(const Variable<S> &var)
+	template<class T>
+	RValue<T> As(const LValue &var)
 	{
 		return ReinterpretCast<T>(var);
 	}

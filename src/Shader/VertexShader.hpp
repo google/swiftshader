@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -32,8 +32,11 @@ namespace sw
 		int positionRegister;     // FIXME: Private
 		int pointSizeRegister;    // FIXME: Private
 
-		Semantic input[16];       // FIXME: Private
-		Semantic output[12][4];   // FIXME: Private
+		enum {MAX_INPUT_ATTRIBUTES = 16};
+		Semantic input[MAX_INPUT_ATTRIBUTES];       // FIXME: Private
+
+		enum {MAX_OUTPUT_VARYINGS = 12};
+		Semantic output[MAX_OUTPUT_VARYINGS][4];   // FIXME: Private
 
 	private:
 		void analyzeInput();

@@ -302,9 +302,10 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\Socket.cpp" />
     <ClCompile Include="..\Common\Thread.cpp" />
     <ClCompile Include="..\Main\Config.cpp" />
-    <ClCompile Include="..\Main\CRC.cpp" />
+    <ClCompile Include="..\Main\FrameBufferWin.cpp" />
     <ClCompile Include="..\Main\Register.cpp" />
     <ClCompile Include="..\Shader\Constants.cpp" />
     <ClCompile Include="..\Shader\PixelRoutine.cpp" />
@@ -353,6 +354,7 @@
     <ClCompile Include="..\Renderer\TextureStage.cpp" />
     <ClCompile Include="..\Renderer\Vector.cpp" />
     <ClCompile Include="..\Renderer\VertexProcessor.cpp" />
+    <ClCompile Include="..\Main\crc.c" />
     <ClCompile Include="..\Main\FrameBuffer.cpp" />
     <ClCompile Include="..\Main\FrameBufferDD.cpp" />
     <ClCompile Include="..\Main\FrameBufferGDI.cpp" />
@@ -369,9 +371,13 @@
     <ClCompile Include="..\Common\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Common\SharedLibrary.hpp" />
+    <ClInclude Include="..\Common\Socket.hpp" />
     <ClInclude Include="..\Common\Thread.hpp" />
     <ClInclude Include="..\Common\Version.h" />
+    <ClInclude Include="..\Main\FrameBufferWin.hpp" />
     <ClInclude Include="..\Main\Register.hpp" />
+    <ClInclude Include="..\Renderer\RoutineCache.hpp" />
     <ClInclude Include="MemoryManager.hpp" />
     <ClInclude Include="..\Shader\Constants.hpp" />
     <ClInclude Include="..\Shader\PixelRoutine.hpp" />

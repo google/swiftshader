@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -15,103 +15,12 @@
 #include "Types.hpp"
 
 #include <math.h>
-#include <intrin.h>
+#if defined(_MSC_VER)
+	#include <intrin.h>
+#endif
 
 namespace sw
 {
-	extern const float M_PI;
-	extern const float M_PI_180;
-	extern const float M_180_PI;
-	extern const float M_2PI;
-	extern const float M_PI_2;
-
-	inline float rad(float deg)
-	{
-		return deg * M_PI_180;
-	}
-
-	inline float deg(float rad)
-	{
-		return rad * M_180_PI;
-	}
-
-	inline float sin(float x)
-	{
-		return sinf(x);
-	}
-
-	inline float asin(float x)
-	{
-		return asinf(x);
-	}
-
-	inline float sinh(float x)
-	{
-		return sinhf(x);
-	}
-
-	inline float cos(float x)
-	{
-		return cosf(x);
-	}
-
-	inline float acos(float x)
-	{
-		return acosf(x);
-	}
-
-	inline float cosh(float x)
-	{
-		return coshf(x);
-	}
-
-	inline float tan(float x)
-	{
-		return tanf(x);
-	}
-
-	inline float cot(float x)
-	{
-		return 1.0f / tan(x);
-	}
-
-	inline float atan(float x)
-	{
-		return atanf(x);
-	}
-
-	inline float tanh(float x)
-	{
-		return tanhf(x);
-	}
-
-	inline float sqrt(float x)
-	{
-		return sqrtf(x);
-	}
-
-	inline float exp(float x)
-	{
-		return expf(x);
-	}
-
-	inline float exp2(float x)
-	{
-		static const float ln2 = logf(2);
-
-		return exp(ln2 * x);
-	}
-
-	inline float pow(float x, float y)
-	{
-		return powf(x, y);
-	}
-
-	inline float pow2(float x)
-	{
-		return x * x;
-	}
-
 	inline float abs(float x)
 	{
 		return fabsf(x);
@@ -125,7 +34,7 @@ namespace sw
 		return a > b ? a : b;
 	}
 
-	inline float min(float a, float b) 
+	inline float min(float a, float b)
 	{
 		return a < b ? a : b;
 	}
@@ -155,7 +64,7 @@ namespace sw
 		return a > b ? a : b;
 	}
 
-	inline int min(int a, int b) 
+	inline int min(int a, int b)
 	{
 		return a < b ? a : b;
 	}
@@ -198,7 +107,7 @@ namespace sw
 	{
 		return (int)floor(x);
 	}
-	
+
 	inline int ceilFix4(int x)
 	{
 		return (x + 0xF) & 0xFFFFFFF0;
@@ -250,11 +159,13 @@ namespace sw
 
 	inline unsigned long log2(int x)
 	{
-		unsigned long y;
-
-		_BitScanReverse(&y, x);
-
-		return y;
+		#if defined(_MSC_VER)
+			unsigned long y;
+			_BitScanReverse(&y, x);
+			return y;
+		#else
+			return 31 - __builtin_clz(x);
+		#endif
 	}
 
 	inline int ilog2(float x)
@@ -393,7 +304,7 @@ namespace sw
 		}
 	}
 
-	int64_t FNV_1(const unsigned char *data, int size);   // Fowler-Noll-Vo hash function
+	uint64_t FNV_1a(const unsigned char *data, int size);   // Fowler-Noll-Vo hash function
 }
 
 #endif   // sw_Math_hpp

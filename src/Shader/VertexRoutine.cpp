@@ -34,7 +34,7 @@ namespace sw
 
 	void VertexRoutine::generate()
 	{
-		Function<Void, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>> function;
+		Function<Void, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte> > function;
 		{
 			Pointer<Byte> vertex(function.arg(0));
 			Pointer<Byte> batch(function.arg(1));
@@ -51,13 +51,13 @@ namespace sw
 
 			Registers r(shader);
 			r.data = data;
-			r.constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,constants));
+			r.constants = *Pointer<Pointer<Byte> >(data + OFFSET(DrawData,constants));
 
 			Do
 			{
 				UInt index = *Pointer<UInt>(batch);
-				UInt tagIndex = index & UInt(0x0000003C);
-				UInt indexQ = !texldl ? index & UInt(0xFFFFFFFC) : index;   // FIXME: TEXLDL hack to have independent LODs, hurts performance.
+				UInt tagIndex = index & 0x0000003C;
+				UInt indexQ = !texldl ? UInt(index & 0xFFFFFFFC) : index;   // FIXME: TEXLDL hack to have independent LODs, hurts performance.
 
 				If(*Pointer<UInt>(tagCache + tagIndex) != indexQ)
 				{
@@ -72,7 +72,7 @@ namespace sw
 					writeCache(cacheLine0, r);
 				}
 
-				UInt cacheIndex = index & UInt(0x0000003F);
+				UInt cacheIndex = index & 0x0000003F;
 				Pointer<Byte> cacheLine = vertexCache + cacheIndex * UInt((int)sizeof(Vertex));
 				writeVertex(vertex, cacheLine);
 
@@ -80,7 +80,7 @@ namespace sw
 				batch += sizeof(unsigned int);
 				count--;
 			}
-			Until(count == UInt(0))
+			Until(count == 0)
 
 			Return();
 		}
@@ -97,7 +97,7 @@ namespace sw
 	{
 		for(int i = 0; i < 16; i++)
 		{
-			Pointer<Byte> input = *Pointer<Pointer<Byte>>(r.data + OFFSET(DrawData,input) + sizeof(void*) * i);
+			Pointer<Byte> input = *Pointer<Pointer<Byte> >(r.data + OFFSET(DrawData,input) + sizeof(void*) * i);
 			UInt stride = *Pointer<UInt>(r.data + OFFSET(DrawData,stride) + sizeof(unsigned int) * i);
 
 			r.v[i] = readStream(r, input, stride, state.input[i], index);

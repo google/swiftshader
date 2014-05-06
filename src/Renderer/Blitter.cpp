@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -18,7 +18,7 @@ namespace sw
 {
 	Blitter::Blitter()
 	{
-		blitCache = new LRUCache<BlitState, Routine>(1024);
+		blitCache = new RoutineCache<BlitState>(1024);
 	}
 
 	Blitter::~Blitter()
@@ -79,12 +79,16 @@ namespace sw
 		case FORMAT_L8:
 			c.xyz = Float(Int(*Pointer<Byte>(element)));
 			break;
+		case FORMAT_A8:
+			c.xyz = 0.0f;
+			c.w = Float(Int(*Pointer<Byte>(element)));
+			break;
 		case FORMAT_A8R8G8B8:
 			c = Float4(*Pointer<Byte4>(element)).zyxw;
 			break;
 		case FORMAT_X8R8G8B8:
 			c = Float4(*Pointer<Byte4>(element)).zyxw;
-			c.w = Float(1.0f);
+			c.w = 1.0f;
 			break;
 		case FORMAT_A16B16G16R16:
 			c = Float4(*Pointer<UShort4>(element));
@@ -123,12 +127,12 @@ namespace sw
 		
 		if(!blitRoutine)
 		{
-			Function<Void, Pointer<Byte>> function;
+			Function<Void, Pointer<Byte> > function;
 			{
 				Pointer<Byte> blit(function.arg(0));
 
-				Pointer<Byte> source = *Pointer<Pointer<Byte>>(blit + OFFSET(BlitData,source));
-				Pointer<Byte> dest = *Pointer<Pointer<Byte>>(blit + OFFSET(BlitData,dest));
+				Pointer<Byte> source = *Pointer<Pointer<Byte> >(blit + OFFSET(BlitData,source));
+				Pointer<Byte> dest = *Pointer<Pointer<Byte> >(blit + OFFSET(BlitData,dest));
 				Int sPitchB = *Pointer<Int>(blit + OFFSET(BlitData,sPitchB));
 				Int dPitchB = *Pointer<Int>(blit + OFFSET(BlitData,dPitchB));
 
@@ -169,8 +173,8 @@ namespace sw
 						}
 						else   // Bilinear filtering
 						{
-							Float x0 = x - Float(0.5f);
-							Float y0 = y - Float(0.5f);
+							Float x0 = x - 0.5f;
+							Float y0 = y - 0.5f;
 
 							Int X0 = Max(Int(x0), 0);
 							Int Y0 = Max(Int(y0), 0);
@@ -202,6 +206,7 @@ namespace sw
 						switch(state.sourceFormat)
 						{
 						case FORMAT_L8:
+						case FORMAT_A8:
 						case FORMAT_A8R8G8B8:
 						case FORMAT_X8R8G8B8:
 							unscale = vector(255, 255, 255, 255);
@@ -224,6 +229,7 @@ namespace sw
 						switch(state.destFormat)
 						{
 						case FORMAT_L8:
+						case FORMAT_A8:
 						case FORMAT_A8R8G8B8:
 						case FORMAT_X8R8G8B8:
 							scale = vector(255, 255, 255, 255);
@@ -263,6 +269,9 @@ namespace sw
 						case FORMAT_L8:
 							*Pointer<Byte>(d) = Byte(RoundInt(Float(color.x)));
 							break;
+						case FORMAT_A8:
+							*Pointer<Byte>(d) = Byte(RoundInt(Float(color.w)));
+							break;
 						case FORMAT_A8R8G8B8:
 							{
 								UShort4 c0 = As<UShort4>(RoundShort4(color.zyxw));
@@ -274,7 +283,7 @@ namespace sw
 							{
 								UShort4 c0 = As<UShort4>(RoundShort4(color.zyxw));
 								Byte8 c1 = Pack(c0, c0);
-								*Pointer<UInt>(d) = UInt(As<Long>(c1)) | UInt(0xFF000000);
+								*Pointer<UInt>(d) = UInt(As<Long>(c1)) | 0xFF000000;
 							}
 							break;
 						case FORMAT_A16B16G16R16:
@@ -301,8 +310,6 @@ namespace sw
 
 					y += h;
 				}
-
-				Emms();   // FIXME: Not required when performing blits in the renderer engine
 			}
 
 			blitRoutine = function(L"BlitRoutine");
@@ -310,7 +317,7 @@ namespace sw
 			blitCache->add(state, blitRoutine);
 		}
 
-		void (__cdecl *blitFunction)(const BlitData *data) = (void(__cdecl*)(const BlitData*))blitRoutine->getEntry();
+		void (*blitFunction)(const BlitData *data) = (void(*)(const BlitData*))blitRoutine->getEntry();
 
 		BlitData data;
 

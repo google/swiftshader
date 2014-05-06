@@ -13,14 +13,13 @@
 #define sw_PixelProcessor_hpp
 
 #include "Context.hpp"
-#include "LRUCache.hpp"
+#include "RoutineCache.hpp"
 
 namespace sw
 {
 	class PixelShader;
 	class Rasterizer;
 	struct Texture;
-	class Routine;
 	struct DrawData;
 
 	class PixelProcessor
@@ -179,7 +178,7 @@ namespace sw
 		};
 
 	public:
-		typedef void (__cdecl *RoutinePointer)(const Primitive *primitive, int count, int thread, DrawData *draw);
+		typedef void (*RoutinePointer)(const Primitive *primitive, int count, int thread, DrawData *draw);
 
 		PixelProcessor(Context *context);
 
@@ -302,8 +301,7 @@ namespace sw
 
 		Context *const context;
 
-		LRUCache<State, Routine> *routineCache;
-		HMODULE precacheDLL;
+		RoutineCache<State> *routineCache;
 	};
 }
 

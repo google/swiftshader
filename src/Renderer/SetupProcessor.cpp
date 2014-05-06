@@ -24,6 +24,8 @@ namespace sw
 	extern bool complementaryDepthBuffer;
 	extern bool fullPixelPositionRegister;
 
+	bool precacheSetup = false;
+
 	unsigned int SetupProcessor::States::computeHash()
 	{
 		unsigned int *state = (unsigned int*)this;
@@ -54,7 +56,6 @@ namespace sw
 
 	SetupProcessor::SetupProcessor(Context *context) : context(context)
 	{
-		precacheDLL = 0;
 		routineCache = 0;
 		setRoutineCacheSize(1024);
 	}
@@ -87,7 +88,7 @@ namespace sw
 		state.positionRegister = Pos;
 		state.pointSizeRegister = 0xF;   // No vertex point size
 
-		state.multiSample = context->renderTarget[0]->getMultiSampleCount();
+		state.multiSample = context->getMultiSampleCount();
 
 		if(context->vertexShader)
 		{
@@ -235,6 +236,6 @@ namespace sw
 	void SetupProcessor::setRoutineCacheSize(int cacheSize)
 	{
 		delete routineCache;
-		routineCache = new LRUCache<State, Routine>(clamp(cacheSize, 1, 65536));
+		routineCache = new RoutineCache<State>(clamp(cacheSize, 1, 65536), precacheSetup ? "sw-setup" : 0);
 	}
 }

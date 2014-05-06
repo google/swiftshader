@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -23,11 +23,11 @@ namespace sw
 	void SamplerCore::sampleTexture(Pointer<Byte> &texture, Vector4i &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool bias, bool fixed12, bool gradients, bool lodProvided)
 	{
 		#if PERF_PROFILE
-			AddAtomic(Pointer<Long>(&profiler.texOperations), Long(4));
+			AddAtomic(Pointer<Long>(&profiler.texOperations), 4);
 
 			if(state.compressedFormat)
 			{
-				AddAtomic(Pointer<Long>(&profiler.compressedTex), Long(4));
+				AddAtomic(Pointer<Long>(&profiler.compressedTex), 4);
 			}
 		#endif
 
@@ -73,16 +73,16 @@ namespace sw
 			{
 				if(!cubeTexture)
 				{
-					computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, Float(q.x), dsx, dsy, bias, gradients, lodProvided);
+					computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, q.x, dsx, dsy, bias, gradients, lodProvided);
 				}
 				else
 				{
-					computeLod(texture, lod, anisotropy, uDelta, vDelta, lodU, lodV, Float(q.x), dsx, dsy, bias, gradients, lodProvided);
+					computeLod(texture, lod, anisotropy, uDelta, vDelta, lodU, lodV, q.x, dsx, dsy, bias, gradients, lodProvided);
 				}
 			}
 			else
 			{
-				computeLod3D(texture, lod, uuuu, vvvv, wwww, Float(q.x), dsx, dsy, bias, gradients, lodProvided);
+				computeLod3D(texture, lod, uuuu, vvvv, wwww, q.x, dsx, dsy, bias, gradients, lodProvided);
 			}
 
 			if(cubeTexture)
@@ -173,8 +173,8 @@ namespace sw
 				case FORMAT_A32B32G32R32F:
 					break;
 				case FORMAT_D32F_LOCKABLE:
-				case FORMAT_D32F_TEXTURE:
-				case FORMAT_D32F_SHADOW:
+				case FORMAT_D32FS8_TEXTURE:
+				case FORMAT_D32FS8_SHADOW:
 					c.y = c.x;
 					c.z = c.x;
 					c.w = c.x;
@@ -189,11 +189,11 @@ namespace sw
 	void SamplerCore::sampleTexture(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool bias, bool gradients, bool lodProvided)
 	{
 		#if PERF_PROFILE
-			AddAtomic(Pointer<Long>(&profiler.texOperations), Long(4));
+			AddAtomic(Pointer<Long>(&profiler.texOperations), 4);
 
 			if(state.compressedFormat)
 			{
-				AddAtomic(Pointer<Long>(&profiler.compressedTex), Long(4));
+				AddAtomic(Pointer<Long>(&profiler.compressedTex), 4);
 			}
 		#endif
 
@@ -233,16 +233,16 @@ namespace sw
 				{
 					if(!cubeTexture)
 					{
-						computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, Float(q.x), dsx, dsy, bias, gradients, lodProvided);
+						computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, q.x, dsx, dsy, bias, gradients, lodProvided);
 					}
 					else
 					{
-						computeLod(texture, lod, anisotropy, uDelta, vDelta, lodU, lodV, Float(q.x), dsx, dsy, bias, gradients, lodProvided);
+						computeLod(texture, lod, anisotropy, uDelta, vDelta, lodU, lodV, q.x, dsx, dsy, bias, gradients, lodProvided);
 					}
 				}
 				else
 				{
-					computeLod3D(texture, lod, uuuu, vvvv, wwww, Float(q.x), dsx, dsy, bias, gradients, lodProvided);
+					computeLod3D(texture, lod, uuuu, vvvv, wwww, q.x, dsx, dsy, bias, gradients, lodProvided);
 				}
 
 				if(cubeTexture)
@@ -327,8 +327,8 @@ namespace sw
 				case FORMAT_A32B32G32R32F:
 					break;
 				case FORMAT_D32F_LOCKABLE:
-				case FORMAT_D32F_TEXTURE:
-				case FORMAT_D32F_SHADOW:
+				case FORMAT_D32FS8_TEXTURE:
+				case FORMAT_D32FS8_SHADOW:
 					c.y = c.x;
 					c.z = c.x;
 					c.w = c.x;
@@ -1197,7 +1197,7 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::computeLod(Pointer<Byte> &texture, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, Float &lodBias, Vector4f &dsx, Vector4f &dsy, bool bias, bool gradients, bool lodProvided)
+	void SamplerCore::computeLod(Pointer<Byte> &texture, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, const Float &lodBias, Vector4f &dsx, Vector4f &dsy, bool bias, bool gradients, bool lodProvided)
 	{
 		if(!lodProvided)
 		{
@@ -1263,11 +1263,11 @@ namespace sw
 			lod = lodBias + *Pointer<Float>(texture + OFFSET(Texture,LOD));
 		}
 
-		lod = Max(lod, Float(0));
+		lod = Max(lod, 0.0f);
 		lod = Min(lod, Float(MIPMAP_LEVELS - 2));   // Trilinear accesses lod+1
 	}
 
-	void SamplerCore::computeLod3D(Pointer<Byte> &texture, Float &lod, Float4 &uuuu, Float4 &vvvv, Float4 &wwww, Float &lodBias, Vector4f &dsx, Vector4f &dsy, bool bias, bool gradients, bool lodProvided)
+	void SamplerCore::computeLod3D(Pointer<Byte> &texture, Float &lod, Float4 &uuuu, Float4 &vvvv, Float4 &wwww, const Float &lodBias, Vector4f &dsx, Vector4f &dsy, bool bias, bool gradients, bool lodProvided)
 	{
 		if(state.mipmapFilter == MIPMAP_NONE)
 		{
@@ -1662,7 +1662,7 @@ namespace sw
 			c.x.z = *Pointer<Float>(buffer[f2] + index[2] * 4);
 			c.x.w = *Pointer<Float>(buffer[f3] + index[3] * 4);
 
-			if(state.textureFormat == FORMAT_D32F_SHADOW && state.textureFilter != FILTER_GATHER)
+			if(state.textureFormat == FORMAT_D32FS8_SHADOW && state.textureFilter != FILTER_GATHER)
 			{
 				Float4 d = Min(Max(z, Float4(0.0f)), Float4(1.0f));
 
@@ -1698,13 +1698,13 @@ namespace sw
 
 		if(state.textureType != TEXTURE_CUBE)
 		{
-			buffer[0] = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap,buffer[0]));
+			buffer[0] = *Pointer<Pointer<Byte> >(mipmap + OFFSET(Mipmap,buffer[0]));
 		}
 		else
 		{
 			for(int i = 0; i < 4; i++)
 			{
-				buffer[i] = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap,buffer) + face[i] * sizeof(void*));
+				buffer[i] = *Pointer<Pointer<Byte> >(mipmap + OFFSET(Mipmap,buffer) + face[i] * sizeof(void*));
 			}
 		}
 	}
@@ -1824,8 +1824,8 @@ namespace sw
 		case FORMAT_L8:
 		case FORMAT_A8L8:
 		case FORMAT_D32F_LOCKABLE:
-		case FORMAT_D32F_TEXTURE:
-		case FORMAT_D32F_SHADOW:
+		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32FS8_SHADOW:
 			return false;
 		case FORMAT_L16:
 		case FORMAT_G16R16:
@@ -1845,28 +1845,28 @@ namespace sw
 	{
 		switch(state.textureFormat)
 		{
-		case FORMAT_G8R8:          return component < 2;
-		case FORMAT_X8R8G8B8:      return component < 3;
-		case FORMAT_A8R8G8B8:      return component < 3;
-		case FORMAT_V8U8:          return false;
-		case FORMAT_Q8W8V8U8:      return false;
-		case FORMAT_X8L8V8U8:      return false;
-		case FORMAT_R32F:          return component < 1;
-		case FORMAT_G32R32F:       return component < 2;
-		case FORMAT_A32B32G32R32F: return component < 3;
-		case FORMAT_A8:            return false;
-		case FORMAT_R8:            return component < 1;
-		case FORMAT_L8:            return component < 1;
-		case FORMAT_A8L8:          return component < 1;
-		case FORMAT_D32F_LOCKABLE: return false;
-		case FORMAT_D32F_TEXTURE:  return false;
-		case FORMAT_D32F_SHADOW:   return false;
-		case FORMAT_L16:           return component < 1;
-		case FORMAT_G16R16:        return component < 2;
-		case FORMAT_A16B16G16R16:  return component < 3;
-		case FORMAT_V16U16:        return false;
-		case FORMAT_A16W16V16U16:  return false;
-		case FORMAT_Q16W16V16U16:  return false;
+		case FORMAT_G8R8:           return component < 2;
+		case FORMAT_X8R8G8B8:       return component < 3;
+		case FORMAT_A8R8G8B8:       return component < 3;
+		case FORMAT_V8U8:           return false;
+		case FORMAT_Q8W8V8U8:       return false;
+		case FORMAT_X8L8V8U8:       return false;
+		case FORMAT_R32F:           return component < 1;
+		case FORMAT_G32R32F:        return component < 2;
+		case FORMAT_A32B32G32R32F:  return component < 3;
+		case FORMAT_A8:             return false;
+		case FORMAT_R8:             return component < 1;
+		case FORMAT_L8:             return component < 1;
+		case FORMAT_A8L8:           return component < 1;
+		case FORMAT_D32F_LOCKABLE:  return false;
+		case FORMAT_D32FS8_TEXTURE: return false;
+		case FORMAT_D32FS8_SHADOW:  return false;
+		case FORMAT_L16:            return component < 1;
+		case FORMAT_G16R16:         return component < 2;
+		case FORMAT_A16B16G16R16:   return component < 3;
+		case FORMAT_V16U16:         return false;
+		case FORMAT_A16W16V16U16:   return false;
+		case FORMAT_Q16W16V16U16:   return false;
 		default:
 			ASSERT(false);
 		}

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -18,13 +18,11 @@
 	#endif
 	#include <windows.h>
 	#include <intrin.h>
-#elif defined(__APPLE__)
-	#include <pthread.h>
 #else
-	#error Unimplemented platform
+	#include <pthread.h>
+	#include <unistd.h>
+	#define TLS_OUT_OF_INDEXES (~0)
 #endif
-
-#include "Types.hpp"
 
 namespace sw
 {
@@ -42,6 +40,17 @@ namespace sw
 		static void yield();
 		static void sleep(int milliseconds);
 
+		#if defined(_WIN32)
+			typedef DWORD LocalStorageKey;
+		#else
+			typedef pthread_key_t LocalStorageKey;
+		#endif
+
+		static LocalStorageKey allocateLocalStorageKey();
+		static void freeLocalStorageKey(LocalStorageKey key);
+		static void setLocalStorage(LocalStorageKey key, void *value);
+		static void *getLocalStorage(LocalStorageKey key);
+
 	private:
 		struct Entry
 		{
@@ -49,15 +58,13 @@ namespace sw
 			void *threadParameters;
 			Event *init;
 		};
-		
+
 		#if defined(_WIN32)
 			static unsigned long __stdcall startFunction(void *parameters);
 			HANDLE handle;
-		#elif defined(__APPLE__)
+		#else
 			static void *startFunction(void *parameters);
 			pthread_t handle;
-		#else
-			#error Unimplemented platform
 		#endif
 	};
 
@@ -76,12 +83,10 @@ namespace sw
 	private:
 		#if defined(_WIN32)
 			HANDLE handle;
-		#elif defined(__APPLE__)
+		#else
 			pthread_cond_t handle;
 			pthread_mutex_t mutex;
 			volatile bool signaled;
-		#else
-			#error Unimplemented platform
 		#endif
 	};
 
@@ -92,6 +97,7 @@ namespace sw
 	int atomicExchange(int volatile *target, int value);
 	int atomicIncrement(int volatile *value);
 	int atomicDecrement(int volatile *value);
+	int atomicAdd(int volatile *target, int value);
 	void nop();
 }
 
@@ -104,7 +110,7 @@ namespace sw
 		#elif defined(__APPLE__)
 			pthread_yield_np();
 		#else
-			#error Unimplemented platform
+			pthread_yield();
 		#endif
 	}
 
@@ -115,7 +121,45 @@ namespace sw
 		#elif defined(__APPLE__)
 			nap(milliseconds);
 		#else
-			#error Unimplemented platform
+			usleep(1000 * milliseconds);
+		#endif
+	}
+
+	inline Thread::LocalStorageKey Thread::allocateLocalStorageKey()
+	{
+		#if defined(_WIN32)
+			return TlsAlloc();
+		#else
+			LocalStorageKey key;
+			pthread_key_create(&key, 0);
+			return key;
+		#endif
+	}
+	
+	inline void Thread::freeLocalStorageKey(LocalStorageKey key)
+	{
+		#if defined(_WIN32)
+			TlsFree(key);
+		#else
+			pthread_key_delete(key);
+		#endif
+	}
+
+	inline void Thread::setLocalStorage(LocalStorageKey key, void *value)
+	{
+		#if defined(_WIN32)
+			TlsSetValue(key, value);
+		#else
+			pthread_setspecific(key, value);
+		#endif
+	}
+
+	inline void *Thread::getLocalStorage(LocalStorageKey key)
+	{
+		#if defined(_WIN32)
+			return TlsGetValue(key);
+		#else
+			return pthread_getspecific(key);
 		#endif
 	}
 
@@ -123,13 +167,11 @@ namespace sw
 	{
 		#if defined(_WIN32)
 			SetEvent(handle);
-		#elif defined(__APPLE__)
+		#else
 			pthread_mutex_lock(&mutex);
 			signaled = true;
 			pthread_cond_signal(&handle);
 			pthread_mutex_unlock(&mutex);
-		#else
-			#error Unimplemented platform
 		#endif
 	}
 
@@ -137,13 +179,11 @@ namespace sw
 	{
 		#if defined(_WIN32)
 			WaitForSingleObject(handle, INFINITE);
-		#elif defined(__APPLE__)
+		#else
 			pthread_mutex_lock(&mutex);
 			while(!signaled) pthread_cond_wait(&handle, &mutex);
 			signaled = false;
 			pthread_mutex_unlock(&mutex);
-		#else
-			#error Unimplemented platform
 		#endif
 	}
 
@@ -152,12 +192,10 @@ namespace sw
 	{
 		#if defined(_WIN32)
 			return InterlockedExchange64(target, value);
-		#elif defined(__APPLE__)
+		#else
 			int ret;
 			__asm__ __volatile__("lock; xchg8 %0,(%1)" : "=r" (ret) :"r" (target), "0" (value) : "memory" );
 			return ret;
-		#else
-			#error Unimplemented platform
 		#endif
 	}
 	#endif
@@ -166,12 +204,10 @@ namespace sw
 	{
 		#if defined(_WIN32)
 			return InterlockedExchange((volatile long*)target, (long)value);
-		#elif defined(__APPLE__)
+		#else
 			int ret;
 			__asm__ __volatile__("lock; xchgl %0,(%1)" : "=r" (ret) :"r" (target), "0" (value) : "memory" );
 			return ret;
-		#else
-			#error Unimplemented platform
 		#endif
 	}
 
@@ -179,12 +215,8 @@ namespace sw
 	{
 		#if defined(_WIN32)
 			return InterlockedIncrement((volatile long*)value);
-		#elif defined(__APPLE__)
-			 int ret;
-			__asm__ __volatile__( "lock; xaddl %0,(%1)" : "=r" (ret) : "r" (dest), "0" (1) : "memory" );
-			return ret + 1;
 		#else
-			#error Unimplemented platform
+			return __sync_add_and_fetch(value, 1);
 		#endif
 	}
 
@@ -192,12 +224,17 @@ namespace sw
 	{
 		#if defined(_WIN32)
 			return InterlockedDecrement((volatile long*)value);
-		#elif defined(__APPLE__)
-			int ret;
-			__asm__ __volatile__( "lock; xaddl %0,(%1)" : "=r" (ret) : "r" (dest), "0" (-1) : "memory" );
-			return ret - 1;
 		#else
-			#error Unimplemented platform
+			return __sync_sub_and_fetch(value, 1);
+		#endif
+	}
+
+	inline int atomicAdd(volatile int* target, int value)
+	{
+		#if defined(_MSC_VER)
+			return InterlockedExchangeAdd((volatile long*)target, value) + value;
+		#else
+			return __sync_add_and_fetch(target, value);
 		#endif
 	}
 
@@ -205,10 +242,8 @@ namespace sw
 	{
 		#if defined(_WIN32)
 			__nop();
-		#elif defined(__APPLE__)
-			__asm__ __volatile__ ("nop");
 		#else
-			#error Unimplemented platform
+			__asm__ __volatile__ ("nop");
 		#endif
 	}
 }

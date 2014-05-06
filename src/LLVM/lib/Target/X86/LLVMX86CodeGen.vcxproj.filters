@@ -101,9 +101,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="X86CompilationCallback_Win64.asm" />
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="Source Files">
       <UniqueIdentifier>{1733179C-6FE4-462E-9EA5-4A29A1ACFE25}</UniqueIdentifier>
     </Filter>

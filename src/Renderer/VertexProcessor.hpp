@@ -14,11 +14,10 @@
 
 #include "Matrix.hpp"
 #include "Context.hpp"
-#include "LRUCache.hpp"
+#include "RoutineCache.hpp"
 
 namespace sw
 {
-	class Routine;
 	struct DrawData;
 
 	struct VertexCache   // FIXME: Variable size
@@ -173,23 +172,13 @@ namespace sw
 			float pointScaleC;
 		};
 
-		typedef void (__cdecl *RoutinePointer)(Vertex *output, unsigned int *batch, VertexTask *vertexTask, DrawData *draw);
+		typedef void (*RoutinePointer)(Vertex *output, unsigned int *batch, VertexTask *vertexTask, DrawData *draw);
 
 		VertexProcessor(Context *context);
 
 		virtual ~VertexProcessor();
 
 		virtual void setInputStream(int index, const Stream &stream);
-
-		virtual void setInputPositionStream(const Stream &stream);
-		virtual void setInputBlendWeightStream(const Stream &stream);
-		virtual void setInputBlendIndicesStream(const Stream &stream);
-		virtual void setInputNormalStream(const Stream &stream);
-		virtual void setInputPSizeStream(const Stream &stream);
-		virtual void setInputTexCoordStream(const Stream &stream, int index);
-		virtual void setInputPositiontStream(const Stream &stream);
-		virtual void setInputColorStream(const Stream &stream, int index);
-
 		virtual void resetInputStreams(bool preTransformed);
 
 		virtual void setFloatConstant(unsigned int index, const float value[4]);
@@ -287,8 +276,7 @@ namespace sw
 
 		Context *const context;
 
-		LRUCache<State, Routine> *routineCache;
-		HMODULE precacheDLL;
+		RoutineCache<State> *routineCache;
 
 	protected:
 		Matrix M[12];      // Model/Geometry/World matrix

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -39,6 +39,9 @@ namespace sw
 		static void setEnableSSE3(bool enable);
 		static void setEnableSSSE3(bool enable);
 		static void setEnableSSE4_1(bool enable);
+
+		static void setFlushToZero(bool enable);        // Denormal results are written as zero
+		static void setDenormalsAreZero(bool enable);   // Denormal inputs are read as zero
 
 	private:
 		static bool MMX;

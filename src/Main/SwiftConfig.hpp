@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -12,10 +12,12 @@
 #ifndef sw_SwiftConfig_hpp
 #define sw_SwiftConfig_hpp
 
-#include "Nucleus.hpp"
+#include "Reactor/Nucleus.hpp"
 
-#include <winsock2.h>
-#include <ws2tcpip.h>
+#include "Common/Thread.hpp"
+#include "Common/MutexLock.hpp"
+#include "Common/Socket.hpp"
+
 #include <string>
 
 namespace sw
@@ -54,6 +56,7 @@ namespace sw
 			bool disable10BitMode;
 			int transparencyAntialiasing;
 			int frameBufferAPI;
+			bool precache;
 			int shadowMapping;
 			bool forceClearRegisters;
 		#ifndef NDEBUG
@@ -79,14 +82,13 @@ namespace sw
 		void createServer();
 		void destroyServer();
 
-		static unsigned long __stdcall serverRoutine(void *parameters);
+		static void serverRoutine(void *parameters);
 
-		bool pending(SOCKET socket, int ms);
 		void serverLoop();
-		void respond(const char *request);
+		void respond(Socket *clientSocket, const char *request);
 		std::string page();
 		std::string profile();
-		void send(Status code, std::string body = "");
+		void send(Socket *clientSocket, Status code, std::string body = "");
 		void parsePost(const char *post);
 
 		void readConfiguration(bool disableServerOverride = false);
@@ -94,14 +96,14 @@ namespace sw
 
 		Configuration config;
 
-		HANDLE serverThread;
+		Thread *serverThread;
 		volatile bool terminate;
-		CRITICAL_SECTION criticalSection;   // Protects reading and writing the configuration settings
+		BackoffLock criticalSection;   // Protects reading and writing the configuration settings
 
 		bool newConfig;
 
-		SOCKET listenSocket;
-		SOCKET clientSocket;
+		Socket *listenSocket;
+		Socket *clientSocket;
 
 		int bufferLength;
 		char *receiveBuffer;

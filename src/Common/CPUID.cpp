@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -17,12 +17,12 @@
 	#endif
 	#include <windows.h>
 	#include <intrin.h>
-#elif defined(__APPLE__)
+	#include <float.h>
+#else
+	#include <unistd.h>
 	#include <sched.h>
 	#include <sys/types.h>
 	#include <sys/sysctl.h>
-#else
-	#error Unimplemented platform
 #endif
 
 namespace sw
@@ -75,7 +75,7 @@ namespace sw
 
 	void CPUID::setEnableSSE(bool enable)
 	{
-		SSE = enable;
+		enableSSE = enable;
 
 		if(enableSSE)
 		{
@@ -111,7 +111,7 @@ namespace sw
 
 	void CPUID::setEnableSSE3(bool enable)
 	{
-		SSE3 = enable;
+		enableSSE3 = enable;
 
 		if(enableSSE3)
 		{
@@ -160,18 +160,25 @@ namespace sw
 		}
 	}
 
+	static void cpuid(int registers[4], int info)
+	{
+		#if defined(_WIN32)
+			__cpuid(registers, info);
+		#else
+            __asm volatile("cpuid": "=a" (registers[0]), "=b" (registers[1]), "=c" (registers[2]), "=d" (registers[3]): "a" (info));
+		#endif
+	}
+
 	bool CPUID::detectMMX()
 	{
-		#if defined(_WIN32) && _M_IX86 >= 500
-			int registers[4];
-			__cpuid(registers, 1);
-			return MMX = (registers[3] & 0x00800000) != 0;
-		#elif defined(__APPLE__)
+		#if defined(__APPLE__)
 			int MMX = false;
 			size_t length = sizeof(MMX);
 			sysctlbyname("hw.optional.mmx", &MMX, &length, 0, 0);
 		#else
-			#error Unimplemented platform
+			int registers[4];
+			cpuid(registers, 1);
+			return MMX = (registers[3] & 0x00800000) != 0;
 		#endif
 
 		return MMX;
@@ -179,16 +186,14 @@ namespace sw
 
 	bool CPUID::detectCMOV()
 	{
-		#if defined(_WIN32) && _M_IX86 >= 500
-			int registers[4];
-			__cpuid(registers, 1);
-			return CMOV = (registers[3] & 0x00008000) != 0;
-		#elif defined(__APPLE__)
+		#if defined(__APPLE__)
 			int CMOV = false;
 			size_t length = sizeof(CMOV);
 			sysctlbyname("hw.optional.floatingpoint", &CMOV, &length, 0, 0);
 		#else
-			#error Unimplemented platform
+			int registers[4];
+			cpuid(registers, 1);
+			return CMOV = (registers[3] & 0x00008000) != 0;
 		#endif
 
 		return CMOV;
@@ -196,16 +201,14 @@ namespace sw
 
 	bool CPUID::detectSSE()
 	{
-		#if defined(_WIN32) && _M_IX86 >= 500
-			int registers[4];
-			__cpuid(registers, 1);
-			return SSE = (registers[3] & 0x02000000) != 0;
-		#elif defined(__APPLE__)
+		#if defined(__APPLE__)
 			int SSE = false;
 			size_t length = sizeof(SSE);
 			sysctlbyname("hw.optional.sse", &SSE, &length, 0, 0);
 		#else
-			#error Unimplemented platform
+			int registers[4];
+			cpuid(registers, 1);
+			return SSE = (registers[3] & 0x02000000) != 0;
 		#endif
 
 		return SSE;
@@ -213,16 +216,14 @@ namespace sw
 
 	bool CPUID::detectSSE2()
 	{
-		#if defined(_WIN32) && _M_IX86 >= 500
-			int registers[4];
-			__cpuid(registers, 1);
-			return SSE2 = (registers[3] & 0x04000000) != 0;
-		#elif defined(__APPLE__)
+		#if defined(__APPLE__)
 			int SSE2 = false;
 			size_t length = sizeof(SSE2);
 			sysctlbyname("hw.optional.sse2", &SSE2, &length, 0, 0);
 		#else
-			#error Unimplemented platform
+			int registers[4];
+			cpuid(registers, 1);
+			return SSE2 = (registers[3] & 0x04000000) != 0;
 		#endif
 
 		return SSE2;
@@ -230,16 +231,14 @@ namespace sw
 
 	bool CPUID::detectSSE3()
 	{
-		#if defined(_WIN32) && _M_IX86 >= 500
-			int registers[4];
-			__cpuid(registers, 1);
-			return SSE3 = (registers[2] & 0x00000001) != 0;
-		#elif defined(__APPLE__)
+		#if defined(__APPLE__)
 			int SSE3 = false;
 			size_t length = sizeof(SSE3);
 			sysctlbyname("hw.optional.sse3", &SSE3, &length, 0, 0);
 		#else
-			#error Unimplemented platform
+			int registers[4];
+			cpuid(registers, 1);
+			return SSE3 = (registers[2] & 0x00000001) != 0;
 		#endif
 
 		return SSE3;
@@ -247,16 +246,14 @@ namespace sw
 
 	bool CPUID::detectSSSE3()
 	{
-		#if defined(_WIN32) && _M_IX86 >= 500
-			int registers[4];
-			__cpuid(registers, 1);
-			return SSSE3 = (registers[2] & 0x00000200) != 0;
-		#elif defined(__APPLE__)
+		#if defined(__APPLE__)
 			int SSSE3 = false;
 			size_t length = sizeof(SSSE3);
 			sysctlbyname("hw.optional.supplementalsse3", &SSSE3, &length, 0, 0);
 		#else
-			#error Unimplemented platform
+			int registers[4];
+			cpuid(registers, 1);
+			return SSSE3 = (registers[2] & 0x00000200) != 0;
 		#endif
 
 		return SSSE3;
@@ -264,16 +261,14 @@ namespace sw
 
 	bool CPUID::detectSSE4_1()
 	{
-		#if defined(_WIN32) && _M_IX86 >= 500
-			int registers[4];
-			__cpuid(registers, 1);
-			return SSE4_1 = (registers[2] & 0x00080000) != 0;
-		#elif defined(__APPLE__)
+		#if defined(__APPLE__)
 			int SSE4_1 = false;
 			size_t length = sizeof(SSE4_1);
 			sysctlbyname("hw.optional.sse4_1", &SSE4_1, &length, 0, 0);
 		#else
-			#error Unimplemented platform
+			int registers[4];
+			cpuid(registers, 1);
+			return SSE4_1 = (registers[2] & 0x00080000) != 0;
 		#endif
 
 		return SSE4_1;
@@ -286,7 +281,7 @@ namespace sw
 		#if defined(_WIN32)
 			DWORD_PTR processAffinityMask = 1;
 			DWORD_PTR systemAffinityMask = 1;
-			
+
 			GetProcessAffinityMask(GetCurrentProcess(), &processAffinityMask, &systemAffinityMask);
 
 			while(systemAffinityMask)
@@ -302,11 +297,11 @@ namespace sw
 			int MIB[2];
 			MIB[0] = CTL_HW;
 			MIB[1] = HW_NCPU;
-			
+
 			size_t length = sizeof(cores);
 			sysctl(MIB, 2, &cores, &length, 0, 0);
 		#else
-			#error Unimplemented platform
+			cores = sysconf(_SC_NPROCESSORS_ONLN);
 		#endif
 
 		if(cores < 1)  cores = 1;
@@ -322,7 +317,7 @@ namespace sw
 		#if defined(_WIN32)
 			DWORD_PTR processAffinityMask = 1;
 			DWORD_PTR systemAffinityMask = 1;
-			
+
 			GetProcessAffinityMask(GetCurrentProcess(), &processAffinityMask, &systemAffinityMask);
 
 			while(processAffinityMask)
@@ -334,15 +329,27 @@ namespace sw
 
 				processAffinityMask >>= 1;
 			}
-		#elif defined(__APPLE__)
-			return detectCoreCount();   // FIXME: Assumes no affinity limitation	
 		#else
-			#error Unimplemented platform
+			return detectCoreCount();   // FIXME: Assumes no affinity limitation
 		#endif
 
 		if(cores < 1)  cores = 1;
 		if(cores > 16) cores = 16;
 
 		return cores;
+	}
+
+	void CPUID::setFlushToZero(bool enable)
+	{
+		#if defined(_MSC_VER)
+			_controlfp(enable ? _DN_FLUSH : _DN_SAVE, _MCW_DN);
+		#else
+			// Unimplemented
+		#endif
+	}
+
+	void CPUID::setDenormalsAreZero(bool enable)
+	{
+		// Unimplemented
 	}
 }

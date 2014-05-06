@@ -84,7 +84,7 @@ namespace sw
 	class Register
 	{
 	public:
-		Register(Reference<Float4> &x, Reference<Float4> &y, Reference<Float4> &z, Reference<Float4> &w) : x(x), y(y), z(z), w(w)
+		Register(const Reference<Float4> &x, const Reference<Float4> &y, const Reference<Float4> &z, const Reference<Float4> &w) : x(x), y(y), z(z), w(w)
 		{
 		}
 

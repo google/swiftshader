@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="SwiftShader">
+		<Project filename="./GLES2/libEGL/libEGL.cbp" />
+		<Project filename="./GLES2/libGLESv2/libGLESv2.cbp">
+			<Depends filename="./LLVM/LLVM.cbp" />
+		</Project>
+		<Project filename="./LLVM/LLVM.cbp" />
+	</Workspace>
+</CodeBlocks_workspace_file>

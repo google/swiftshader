@@ -13,7 +13,7 @@
 #define sw_SetupProcessor_hpp
 
 #include "Context.hpp"
-#include "LRUCache.hpp"
+#include "RoutineCache.hpp"
 #include "Shader/VertexShader.hpp"
 #include "Shader/PixelShader.hpp"
 #include "Common/Types.hpp"
@@ -24,7 +24,6 @@ namespace sw
 	struct Triangle;
 	struct Polygon;
 	struct Vertex;
-	class Routine;
 	struct DrawCall;
 	struct DrawData;
 
@@ -80,7 +79,7 @@ namespace sw
 			unsigned int hash;
 		};
 
-		typedef bool (__cdecl *RoutinePointer)(Primitive *primitive, const Triangle *triangle, const Polygon *polygon, const DrawData *draw);
+		typedef bool (*RoutinePointer)(Primitive *primitive, const Triangle *triangle, const Polygon *polygon, const DrawData *draw);
 
 		SetupProcessor(Context *context);
 
@@ -98,8 +97,7 @@ namespace sw
 	private:
 		Context *const context;
 
-		LRUCache<State, Routine> *routineCache;
-		HMODULE precacheDLL;
+		RoutineCache<State> *routineCache;
 	};
 }
 

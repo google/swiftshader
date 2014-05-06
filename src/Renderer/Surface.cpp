@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -182,8 +182,8 @@ namespace sw
 			break;
 		case FORMAT_D32F:
 		case FORMAT_D32F_LOCKABLE:
-		case FORMAT_D32F_TEXTURE:
-		case FORMAT_D32F_SHADOW:
+		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32FS8_SHADOW:
 			*((float*)element) = color.r;
 			break;
 		case FORMAT_D32F_COMPLEMENTARY:
@@ -536,15 +536,15 @@ namespace sw
 			break;
 		case FORMAT_D32F:
 		case FORMAT_D32F_LOCKABLE:
-		case FORMAT_D32F_TEXTURE:
-		case FORMAT_D32F_SHADOW:
+		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32FS8_SHADOW:
 			r = *(float*)element;
 			g = r;
 			b = r;
 			a = r;
 			break;
 		case FORMAT_D32F_COMPLEMENTARY:
-			r = 1 - *(float*)element;
+			r = 1.0f - *(float*)element;
 			g = r;
 			b = r;
 			a = r;
@@ -655,13 +655,15 @@ namespace sw
 		{
 		#if S3TC_SUPPORT
 		case FORMAT_DXT1:
+		#endif
 		case FORMAT_ATI1:
 			return (unsigned char*)buffer + 8 * (x / 4) + (y / 4) * pitchB + z * sliceB;
+		#if S3TC_SUPPORT
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
+		#endif
 		case FORMAT_ATI2:
 			return (unsigned char*)buffer + 16 * (x / 4) + (y / 4) * pitchB + z * sliceB;
-		#endif
 		default:
 			return (unsigned char*)buffer + x * bytes + y * pitchB + z * sliceB;
 		}
@@ -692,7 +694,6 @@ namespace sw
 		external.sliceP = sliceP(external.width, external.height, external.format, renderTarget && !texture);
 		external.lock = LOCK_UNLOCKED;
 		external.dirty = false;
-		external.paletteUsed = 0;
 
 		internal.buffer = 0;
 		internal.width = width;
@@ -706,7 +707,6 @@ namespace sw
 		internal.sliceP = sliceP(internal.width, internal.height, internal.format, renderTarget);
 		internal.lock = LOCK_UNLOCKED;
 		internal.dirty = false;
-		internal.paletteUsed = 0;
 
 		stencil.buffer = 0;
 		stencil.width = width;
@@ -720,9 +720,9 @@ namespace sw
 		stencil.sliceP = sliceP(stencil.width, stencil.height, stencil.format, renderTarget);
 		stencil.lock = LOCK_UNLOCKED;
 		stencil.dirty = false;
-		stencil.paletteUsed = 0;
 
 		dirtyMipmaps = true;
+		paletteUsed = 0;
 	}
 
 	Surface::~Surface()
@@ -772,6 +772,8 @@ namespace sw
 			{
 				update(external, internal);
 			}
+
+			internal.dirty = false;
 		}
 
 		switch(lock)
@@ -841,17 +843,15 @@ namespace sw
 			}
 		}
 
-		if(external.dirty)
+		if(external.dirty || (isPalette(external.format) && paletteUsed != Surface::paletteID))
 		{
 			if(lock != LOCK_DISCARD)
 			{
 				update(internal, external);
 			}
-		}
 
-		if(isPalette(external.format) && internal.paletteUsed != Surface::paletteID)
-		{
-			update(internal, external);
+			external.dirty = false;
+			paletteUsed = Surface::paletteID;
 		}
 
 		switch(lock)
@@ -890,11 +890,6 @@ namespace sw
 		if(!stencil.buffer)
 		{
 			stencil.buffer = allocateBuffer(stencil.width, stencil.height, stencil.depth, stencil.format);
-		}
-
-		if(external.dirty)
-		{
-			update(stencil, external);   // FIXME: Only when not discarding
 		}
 
 		return stencil.lockRect(0, 0, front, LOCK_READWRITE);   // FIXME
@@ -940,9 +935,9 @@ namespace sw
 		case FORMAT_DXT1:				return 2;   // Column of four pixels
 		case FORMAT_DXT3:				return 4;   // Column of four pixels
 		case FORMAT_DXT5:				return 4;   // Column of four pixels
+		#endif
 		case FORMAT_ATI1:				return 2;   // Column of four pixels
 		case FORMAT_ATI2:				return 4;   // Column of four pixels
-		#endif
 		// Bumpmap formats
 		case FORMAT_V8U8:				return 2;
 		case FORMAT_L6V5U5:				return 2;
@@ -973,10 +968,10 @@ namespace sw
 		case FORMAT_D32F:				return 4;
 		case FORMAT_D32F_COMPLEMENTARY:	return 4;
 		case FORMAT_D32F_LOCKABLE:		return 4;
-		case FORMAT_D32F_TEXTURE:		return 4;
-		case FORMAT_D32F_SHADOW:		return 4;
-		case FORMAT_DF24:				return 4;
-		case FORMAT_DF16:				return 2;
+		case FORMAT_D32FS8_TEXTURE:		return 4;
+		case FORMAT_D32FS8_SHADOW:		return 4;
+		case FORMAT_DF24S8:				return 4;
+		case FORMAT_DF16S8:				return 2;
 		case FORMAT_INTZ:				return 4;
 		case FORMAT_S8:					return 1;
 		default:
@@ -1001,11 +996,11 @@ namespace sw
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
 			return 16 * ((width + 3) / 4);   // 128 bit per 4x4 block, computed per 4 rows
+		#endif
 		case FORMAT_ATI1:
 			return 2 * ((width + 3) / 4);    // 64 bit per 4x4 block, computed per row
 		case FORMAT_ATI2:
 			return 4 * ((width + 3) / 4);    // 128 bit per 4x4 block, computed per row
-		#endif
 		default:
 			return bytes(format) * width;
 		}
@@ -1032,9 +1027,9 @@ namespace sw
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
 			return pitchB(width, format, target) * ((height + 3) / 4);   // Pitch computed per 4 rows
+		#endif
 		case FORMAT_ATI1:   // Pitch computed per row
 		case FORMAT_ATI2:   // Pitch computed per row
-		#endif
 		default:
 			return pitchB(width, format, target) * height;
 		}
@@ -1077,9 +1072,6 @@ namespace sw
 			default:				genericUpdate(destination, source);		break;
 			}
 		}
-
-		source.dirty = false;
-		destination.paletteUsed = Surface::paletteID;
 	}
 
 	void Surface::genericUpdate(Buffer &destination, Buffer &source)
@@ -1792,13 +1784,15 @@ namespace sw
 		{
 		#if S3TC_SUPPORT
 		case FORMAT_DXT1:
+		#endif
 		case FORMAT_ATI1:
 			return width4 * height4 * depth / 2;
+		#if S3TC_SUPPORT
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
+		#endif
 		case FORMAT_ATI2:
 			return width4 * height4 * depth;
-		#endif
 		default:
 			return bytes(format) * width * height * depth;
 		}
@@ -1820,10 +1814,10 @@ namespace sw
 		case FORMAT_D24S8:
 		case FORMAT_D24FS8:
 		case FORMAT_S8:
-		case FORMAT_DF24:
-		case FORMAT_DF16:
-		case FORMAT_D32F_TEXTURE:
-		case FORMAT_D32F_SHADOW:
+		case FORMAT_DF24S8:
+		case FORMAT_DF16S8:
+		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32FS8_SHADOW:
 		case FORMAT_INTZ:
 			return true;
 		default:
@@ -1843,10 +1837,10 @@ namespace sw
 		case FORMAT_D32F:
 		case FORMAT_D32F_COMPLEMENTARY:
 		case FORMAT_D32F_LOCKABLE:
-		case FORMAT_DF24:
-		case FORMAT_DF16:
-		case FORMAT_D32F_TEXTURE:
-		case FORMAT_D32F_SHADOW:
+		case FORMAT_DF24S8:
+		case FORMAT_DF16S8:
+		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32FS8_SHADOW:
 		case FORMAT_INTZ:
 			return true;
 		case FORMAT_S8:
@@ -1895,8 +1889,8 @@ namespace sw
 		case FORMAT_D32F:
 		case FORMAT_D32F_COMPLEMENTARY:
 		case FORMAT_D32F_LOCKABLE:
-		case FORMAT_D32F_TEXTURE:
-		case FORMAT_D32F_SHADOW:
+		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32FS8_SHADOW:
 			return true;
 		default:
 			ASSERT(false);
@@ -1918,8 +1912,8 @@ namespace sw
 		case FORMAT_D32F:
 		case FORMAT_D32F_COMPLEMENTARY:
 		case FORMAT_D32F_LOCKABLE:
-		case FORMAT_D32F_TEXTURE:
-		case FORMAT_D32F_SHADOW:
+		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32FS8_SHADOW:
 		case FORMAT_A8:
 		case FORMAT_R8:
 		case FORMAT_L8:
@@ -1996,9 +1990,9 @@ namespace sw
 		case FORMAT_DXT1:
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
+		#endif
 		case FORMAT_ATI1:
 		case FORMAT_ATI2:
-		#endif
 			return true;
 		default:
 			return false;
@@ -2032,10 +2026,10 @@ namespace sw
 		case FORMAT_DXT1:
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
+		#endif
 		case FORMAT_ATI1:
 		case FORMAT_ATI2:
 			return true;
-		#endif
 		default:
 			return false;
 		}
@@ -2060,8 +2054,8 @@ namespace sw
 		case FORMAT_G32R32F:		return 2;
 		case FORMAT_A32B32G32R32F:	return 4;
 		case FORMAT_D32F_LOCKABLE:	return 1;
-		case FORMAT_D32F_TEXTURE:	return 1;
-		case FORMAT_D32F_SHADOW:	return 1;
+		case FORMAT_D32FS8_TEXTURE:	return 1;
+		case FORMAT_D32FS8_SHADOW:	return 1;
 		case FORMAT_A8:				return 1;
 		case FORMAT_R8:				return 1;
 		case FORMAT_L8:				return 1;
@@ -2466,8 +2460,8 @@ namespace sw
 		int y1 = y0 + height;
 
 		if(internal.format == FORMAT_D32F_LOCKABLE ||
-		   internal.format == FORMAT_D32F_TEXTURE ||
-		   internal.format == FORMAT_D32F_SHADOW)
+		   internal.format == FORMAT_D32FS8_TEXTURE ||
+		   internal.format == FORMAT_D32FS8_SHADOW)
 		{
 			float *target = (float*)lockInternal(0, 0, 0, lock, PUBLIC) + x0 + width2 * y0;
 
@@ -2837,12 +2831,12 @@ namespace sw
 
 	bool Surface::identicalFormats() const
 	{
-		return external.format  == internal.format &&
-		       external.width   == internal.width &&
-			   external.height  == internal.height &&
-			   external.depth   == internal.depth &&
-			   external.pitchB  == internal.pitchB &&
-			   external.sliceB  == internal.sliceB;
+		return external.format == internal.format &&
+		       external.width  == internal.width &&
+			   external.height == internal.height &&
+			   external.depth  == internal.depth &&
+			   external.pitchB == internal.pitchB &&
+			   external.sliceB == internal.sliceB;
 	}
 
 	Format Surface::selectInternalFormat(Format format) const
@@ -2900,11 +2894,11 @@ namespace sw
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
 			return FORMAT_A8R8G8B8;
+		#endif
 		case FORMAT_ATI1:
 			return FORMAT_R8;
 		case FORMAT_ATI2:
 			return FORMAT_G8R8;
-		#endif
 		// Bumpmap formats
 		case FORMAT_V8U8:			return FORMAT_V8U8;
 		case FORMAT_L6V5U5:			return FORMAT_X8L8V8U8;
@@ -2933,7 +2927,7 @@ namespace sw
 		case FORMAT_D24FS8:
 			if(hasParent)   // Texture
 			{
-				return FORMAT_D32F_SHADOW;
+				return FORMAT_D32FS8_SHADOW;
 			}
 			else if(complementaryDepthBuffer)
 			{
@@ -2943,10 +2937,11 @@ namespace sw
 			{
 				return FORMAT_D32F;
 			}
-		case FORMAT_D32F_LOCKABLE:	return FORMAT_D32F_LOCKABLE;
-		case FORMAT_INTZ:			return FORMAT_D32F_TEXTURE;
-		case FORMAT_DF24:			return FORMAT_D32F_SHADOW;
-		case FORMAT_DF16:			return FORMAT_D32F_SHADOW;
+		case FORMAT_D32F_LOCKABLE:  return FORMAT_D32F_LOCKABLE;
+		case FORMAT_D32FS8_TEXTURE: return FORMAT_D32FS8_TEXTURE;
+		case FORMAT_INTZ:           return FORMAT_D32FS8_TEXTURE;
+		case FORMAT_DF24S8:         return FORMAT_D32FS8_SHADOW;
+		case FORMAT_DF16S8:         return FORMAT_D32FS8_SHADOW;
 		default:
 			ASSERT(false);
 		}

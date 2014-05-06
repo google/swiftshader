@@ -12,28 +12,31 @@
 #ifndef	sw_FrameBufferGDI_hpp
 #define	sw_FrameBufferGDI_hpp
 
-#include "FrameBuffer.hpp"
+#include "FrameBufferWin.hpp"
 
 namespace sw
 {
-	class FrameBufferGDI : public FrameBuffer
+	class FrameBufferGDI : public FrameBufferWin
 	{
 	public:
 		FrameBufferGDI(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin);
 
 		virtual ~FrameBufferGDI();
+		
+		virtual void flip(void *source, bool HDR);
+		virtual void blit(void *source, const Rect *sourceRect, const Rect *destRect, bool HDR);
 
-		void *lock();
-		void unlock();
+		virtual void flip(HWND windowOverride, void *source, bool HDR);
+		virtual void blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, bool HDR);
 
-		void flip(HWND windowOverride, void *source, bool HDR);
-		void blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, bool HDR);
+		virtual void *lock();
+		virtual void unlock();
 
-		void setGammaRamp(GammaRamp *gammaRamp, bool calibrate);
-		void getGammaRamp(GammaRamp *gammaRamp);
+		virtual void setGammaRamp(GammaRamp *gammaRamp, bool calibrate);
+		virtual void getGammaRamp(GammaRamp *gammaRamp);
 
-		void screenshot(void *destBuffer);
-		bool getScanline(bool &inVerticalBlank, unsigned int &scanline);
+		virtual void screenshot(void *destBuffer);
+		virtual bool getScanline(bool &inVerticalBlank, unsigned int &scanline);
 
 	private:
 		void init(HWND bitmapWindow);

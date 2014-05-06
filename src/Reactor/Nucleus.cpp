@@ -18,7 +18,7 @@
 #include "llvm/LLVMContext.h"
 #include "llvm/Constants.h"
 #include "llvm/Intrinsics.h"
-#include "llvm/Passmanager.h"
+#include "llvm/PassManager.h"
 #include "llvm/Analysis/LoopPass.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Target/TargetData.h"
@@ -33,6 +33,13 @@
 #include "Memory.hpp"
 
 #include <fstream>
+
+#if defined(__x86_64__)
+extern "C" void X86CompilationCallback()
+{
+	assert(false);   // UNIMPLEMENTED
+}
+#endif
 
 extern "C"
 {
@@ -152,7 +159,7 @@ namespace sw
 
 		module = new Module("", *context);
 		memoryManager = new MemoryManager();
-		
+
 		#if defined(__x86_64__)
 			const char *architecture = "x86-64";
 		#else
@@ -176,15 +183,17 @@ namespace sw
 		{
 			builder = static_cast<Builder*>(new IRBuilder<>(*context));
 
-			HMODULE CodeAnalyst = LoadLibrary("CAJitNtfyLib.dll");
-			if(CodeAnalyst)
-			{
-				CodeAnalystInitialize = (bool(*)())GetProcAddress(CodeAnalyst, "CAJIT_Initialize");
-				CodeAnalystCompleteJITLog = (void(*)())GetProcAddress(CodeAnalyst, "CAJIT_CompleteJITLog");
-				CodeAnalystLogJITCode = (bool(*)(const void*, unsigned int, const wchar_t*))GetProcAddress(CodeAnalyst, "CAJIT_LogJITCode");
-			
-				CodeAnalystInitialize();
-			}
+			#if defined(_WIN32)
+				HMODULE CodeAnalyst = LoadLibrary("CAJitNtfyLib.dll");
+				if(CodeAnalyst)
+				{
+					CodeAnalystInitialize = (bool(*)())GetProcAddress(CodeAnalyst, "CAJIT_Initialize");
+					CodeAnalystCompleteJITLog = (void(*)())GetProcAddress(CodeAnalyst, "CAJIT_CompleteJITLog");
+					CodeAnalystLogJITCode = (bool(*)(const void*, unsigned int, const wchar_t*))GetProcAddress(CodeAnalyst, "CAJIT_LogJITCode");
+
+					CodeAnalystInitialize();
+				}
+			#endif
 		}
 	}
 
@@ -202,10 +211,6 @@ namespace sw
 	{
 		if(builder->GetInsertBlock()->empty() || !builder->GetInsertBlock()->back().isTerminator())
 		{
-			#if !(defined(_M_AMD64) || defined(_M_X64))
-				x86::emms();
-			#endif
-
 			Type *type = function->getReturnType();
 
 			if(type->isVoidTy())
@@ -220,7 +225,9 @@ namespace sw
 
 		if(false)
 		{
-			module->print(raw_fd_ostream("llvm-dump-unopt.txt", std::string()), 0);
+			std::string error;
+			raw_fd_ostream file("llvm-dump-unopt.txt", error);
+			module->print(file, 0);
 		}
 
 		if(runOptimizations)
@@ -230,11 +237,13 @@ namespace sw
 
 		if(false)
 		{
-			module->print(raw_fd_ostream("llvm-dump-opt.txt", std::string()), 0);
+			std::string error;
+			raw_fd_ostream file("llvm-dump-opt.txt", error);
+			module->print(file, 0);
 		}
 
 		void *entry = executionEngine->getPointerToFunction(function);
-		
+
 		Routine *routine = memoryManager->acquireRoutine();
 		routine->entry = entry;
 		markExecutable(routine->buffer, routine->bufferSize);
@@ -250,7 +259,7 @@ namespace sw
 	void Nucleus::optimize()
 	{
 		static PassManager *passManager = 0;
-		
+
 		if(!passManager)
 		{
 			passManager = new PassManager();
@@ -295,11 +304,6 @@ namespace sw
 	Module *Nucleus::getModule()
 	{
 		return module;
-	}
-
-	Builder *Nucleus::getBuilder()
-	{
-		return builder;
 	}
 
 	llvm::Function *Nucleus::getFunction()
@@ -379,11 +383,15 @@ namespace sw
 
 	Value *Nucleus::createRetVoid()
 	{
+		x86::emms();
+
 		return builder->CreateRetVoid();
 	}
 
 	Value *Nucleus::createRet(Value *V)
 	{
+		x86::emms();
+
 		return builder->CreateRet(V);
 	}
 
@@ -828,7 +836,7 @@ namespace sw
 		return llvm::Constant::getNullValue(Ty);
 	}
 
-	llvm::ConstantInt *Nucleus::createConstantLong(int64_t i)
+	llvm::ConstantInt *Nucleus::createConstantInt(int64_t i)
 	{
 		return llvm::ConstantInt::get(Type::getInt64Ty(*context), i, true);
 	}
@@ -888,6 +896,26 @@ namespace sw
 		return Type::getVoidTy(*Nucleus::getContext());
 	}
 
+	LValue::LValue(llvm::Type *type, int arraySize)
+	{
+		address = Nucleus::allocateStackVariable(type, arraySize);
+	}
+
+	llvm::Value *LValue::loadValue(unsigned int alignment) const
+	{
+		return Nucleus::createLoad(address, false, alignment);
+	}
+
+	llvm::Value *LValue::storeValue(llvm::Value *value, unsigned int alignment) const
+	{
+		return Nucleus::createStore(value, address, false, alignment);
+	}
+
+	llvm::Value *LValue::getAddress(llvm::Value *index) const
+	{
+		return Nucleus::createGEP(address, index);
+	}
+
 	Type *MMX::getType()
 	{
 		return Type::getX86_MMXTy(*Nucleus::getContext());
@@ -895,56 +923,56 @@ namespace sw
 
 	Bool::Bool(Argument *argument)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(argument, address);
+		storeValue(argument);
 	}
 
 	Bool::Bool()
 	{
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	Bool::Bool(bool x)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(Nucleus::createConstantBool(x), address);
+		storeValue(Nucleus::createConstantBool(x));
 	}
 
 	Bool::Bool(RValue<Bool> rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Bool::Bool(const Bool &rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+	Bool::Bool(const Reference<Bool> &rhs)
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<Bool> Bool::operator=(RValue<Bool> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<Bool> Bool::operator=(const Bool &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Bool>(value);
 	}
 
-	RValue<Pointer<Bool>> Bool::operator&()
+	RValue<Bool> Bool::operator=(const Reference<Bool> &rhs) const
 	{
-		return RValue<Pointer<Bool>>(address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Bool>(value);
 	}
 
 	RValue<Bool> operator!(RValue<Bool> val)
@@ -969,72 +997,68 @@ namespace sw
 
 	Byte::Byte(Argument *argument)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(argument, address);
+		storeValue(argument);
 	}
 
 	Byte::Byte(RValue<Int> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *integer = Nucleus::createTrunc(cast.value, Byte::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	Byte::Byte()
 	{
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	Byte::Byte(int x)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(Nucleus::createConstantByte((unsigned char)x), address);
+		storeValue(Nucleus::createConstantByte((unsigned char)x));
 	}
 
 	Byte::Byte(unsigned char x)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(Nucleus::createConstantByte(x), address);
+		storeValue(Nucleus::createConstantByte(x));
 	}
 
 	Byte::Byte(RValue<Byte> rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Byte::Byte(const Byte &rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+	Byte::Byte(const Reference<Byte> &rhs)
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<Byte> Byte::operator=(RValue<Byte> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<Byte> Byte::operator=(const Byte &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Byte>(value);
 	}
 
-	RValue<Pointer<Byte>> Byte::operator&()
+	RValue<Byte> Byte::operator=(const Reference<Byte> &rhs) const
 	{
-		return RValue<Pointer<Byte>>(address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Byte>(value);
 	}
 
 	RValue<Byte> operator+(RValue<Byte> lhs, RValue<Byte> rhs)
@@ -1157,15 +1181,15 @@ namespace sw
 		RValue<Byte> res = val;
 
 		Value *inc = Nucleus::createAdd(res.value, Nucleus::createConstantByte((unsigned char)1));
-		Nucleus::createStore(inc, val.address);
+		val.storeValue(inc);
 
 		return res;
 	}
 
 	const Byte &operator++(const Byte &val)   // Pre-increment
 	{
-		Value *inc = Nucleus::createAdd(Nucleus::createLoad(val.address), Nucleus::createConstantByte((unsigned char)1));
-		Nucleus::createStore(inc, val.address);
+		Value *inc = Nucleus::createAdd(val.loadValue(), Nucleus::createConstantByte((unsigned char)1));
+		val.storeValue(inc);
 
 		return val;
 	}
@@ -1175,15 +1199,15 @@ namespace sw
 		RValue<Byte> res = val;
 
 		Value *inc = Nucleus::createSub(res.value, Nucleus::createConstantByte((unsigned char)1));
-		Nucleus::createStore(inc, val.address);
+		val.storeValue(inc);
 
 		return res;
 	}
 
 	const Byte &operator--(const Byte &val)   // Pre-decrement
 	{
-		Value *inc = Nucleus::createSub(Nucleus::createLoad(val.address), Nucleus::createConstantByte((unsigned char)1));
-		Nucleus::createStore(inc, val.address);
+		Value *inc = Nucleus::createSub(val.loadValue(), Nucleus::createConstantByte((unsigned char)1));
+		val.storeValue(inc);
 
 		return val;
 	}
@@ -1225,56 +1249,56 @@ namespace sw
 
 	SByte::SByte(Argument *argument)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(argument, address);
+		storeValue(argument);
 	}
 
 	SByte::SByte()
 	{
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	SByte::SByte(signed char x)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(Nucleus::createConstantByte(x), address);
+		storeValue(Nucleus::createConstantByte(x));
 	}
 
 	SByte::SByte(RValue<SByte> rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	SByte::SByte(const SByte &rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+	SByte::SByte(const Reference<SByte> &rhs)
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<SByte> SByte::operator=(RValue<SByte> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<SByte> SByte::operator=(const SByte &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<SByte>(value);
 	}
 
-	RValue<Pointer<SByte>> SByte::operator&()
+	RValue<SByte> SByte::operator=(const Reference<SByte> &rhs) const
 	{
-		return RValue<Pointer<SByte>>(address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<SByte>(value);
 	}
 
 	RValue<SByte> operator+(RValue<SByte> lhs, RValue<SByte> rhs)
@@ -1397,15 +1421,15 @@ namespace sw
 		RValue<SByte> res = val;
 
 		Value *inc = Nucleus::createAdd(res.value, Nucleus::createConstantByte((signed char)1));
-		Nucleus::createStore(inc, val.address);
+		val.storeValue(inc);
 
 		return res;
 	}
 
 	const SByte &operator++(const SByte &val)   // Pre-increment
 	{
-		Value *inc = Nucleus::createAdd(Nucleus::createLoad(val.address), Nucleus::createConstantByte((signed char)1));
-		Nucleus::createStore(inc, val.address);
+		Value *inc = Nucleus::createAdd(val.loadValue(), Nucleus::createConstantByte((signed char)1));
+		val.storeValue(inc);
 
 		return val;
 	}
@@ -1415,15 +1439,15 @@ namespace sw
 		RValue<SByte> res = val;
 
 		Value *inc = Nucleus::createSub(res.value, Nucleus::createConstantByte((signed char)1));
-		Nucleus::createStore(inc, val.address);
+		val.storeValue(inc);
 
 		return res;
 	}
 
 	const SByte &operator--(const SByte &val)   // Pre-decrement
 	{
-		Value *inc = Nucleus::createSub(Nucleus::createLoad(val.address), Nucleus::createConstantByte((signed char)1));
-		Nucleus::createStore(inc, val.address);
+		Value *inc = Nucleus::createSub(val.loadValue(), Nucleus::createConstantByte((signed char)1));
+		val.storeValue(inc);
 
 		return val;
 	}
@@ -1465,65 +1489,63 @@ namespace sw
 
 	Short::Short(Argument *argument)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(argument, address);
+		storeValue(argument);
 	}
 
 	Short::Short(RValue<Int> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *integer = Nucleus::createTrunc(cast.value, Short::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	Short::Short()
 	{
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	Short::Short(short x)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(Nucleus::createConstantShort(x), address);
+		storeValue(Nucleus::createConstantShort(x));
 	}
 
 	Short::Short(RValue<Short> rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Short::Short(const Short &rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+	Short::Short(const Reference<Short> &rhs)
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<Short> Short::operator=(RValue<Short> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<Short> Short::operator=(const Short &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Short>(value);
 	}
 
-	RValue<Pointer<Short>> Short::operator&()
+	RValue<Short> Short::operator=(const Reference<Short> &rhs) const
 	{
-		return RValue<Pointer<Short>>(address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Short>(value);
 	}
 
 	RValue<Short> operator+(RValue<Short> lhs, RValue<Short> rhs)
@@ -1646,15 +1668,15 @@ namespace sw
 		RValue<Short> res = val;
 
 		Value *inc = Nucleus::createAdd(res.value, Nucleus::createConstantShort((short)1));
-		Nucleus::createStore(inc, val.address);
+		val.storeValue(inc);
 
 		return res;
 	}
 
 	const Short &operator++(const Short &val)   // Pre-increment
 	{
-		Value *inc = Nucleus::createAdd(Nucleus::createLoad(val.address), Nucleus::createConstantShort((short)1));
-		Nucleus::createStore(inc, val.address);
+		Value *inc = Nucleus::createAdd(val.loadValue(), Nucleus::createConstantShort((short)1));
+		val.storeValue(inc);
 
 		return val;
 	}
@@ -1664,15 +1686,15 @@ namespace sw
 		RValue<Short> res = val;
 
 		Value *inc = Nucleus::createSub(res.value, Nucleus::createConstantShort((short)1));
-		Nucleus::createStore(inc, val.address);
+		val.storeValue(inc);
 
 		return res;
 	}
 
 	const Short &operator--(const Short &val)   // Pre-decrement
 	{
-		Value *inc = Nucleus::createSub(Nucleus::createLoad(val.address), Nucleus::createConstantShort((short)1));
-		Nucleus::createStore(inc, val.address);
+		Value *inc = Nucleus::createSub(val.loadValue(), Nucleus::createConstantShort((short)1));
+		val.storeValue(inc);
 
 		return val;
 	}
@@ -1714,56 +1736,56 @@ namespace sw
 
 	UShort::UShort(Argument *argument)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(argument, address);
+		storeValue(argument);
 	}
 
 	UShort::UShort()
 	{
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	UShort::UShort(unsigned short x)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(Nucleus::createConstantShort(x), address);
+		storeValue(Nucleus::createConstantShort(x));
 	}
 
 	UShort::UShort(RValue<UShort> rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	UShort::UShort(const UShort &rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+	UShort::UShort(const Reference<UShort> &rhs)
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<UShort> UShort::operator=(RValue<UShort> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<UShort> UShort::operator=(const UShort &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<UShort>(value);
 	}
 
-	RValue<Pointer<UShort>> UShort::operator&()
+	RValue<UShort> UShort::operator=(const Reference<UShort> &rhs) const
 	{
-		return RValue<Pointer<UShort>>(address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<UShort>(value);
 	}
 
 	RValue<UShort> operator+(RValue<UShort> lhs, RValue<UShort> rhs)
@@ -1886,15 +1908,15 @@ namespace sw
 		RValue<UShort> res = val;
 
 		Value *inc = Nucleus::createAdd(res.value, Nucleus::createConstantShort((unsigned short)1));
-		Nucleus::createStore(inc, val.address);
+		val.storeValue(inc);
 
 		return res;
 	}
 
 	const UShort &operator++(const UShort &val)   // Pre-increment
 	{
-		Value *inc = Nucleus::createAdd(Nucleus::createLoad(val.address), Nucleus::createConstantShort((unsigned short)1));
-		Nucleus::createStore(inc, val.address);
+		Value *inc = Nucleus::createAdd(val.loadValue(), Nucleus::createConstantShort((unsigned short)1));
+		val.storeValue(inc);
 
 		return val;
 	}
@@ -1904,15 +1926,15 @@ namespace sw
 		RValue<UShort> res = val;
 
 		Value *inc = Nucleus::createSub(res.value, Nucleus::createConstantShort((unsigned short)1));
-		Nucleus::createStore(inc, val.address);
+		val.storeValue(inc);
 
 		return res;
 	}
 
 	const UShort &operator--(const UShort &val)   // Pre-decrement
 	{
-		Value *inc = Nucleus::createSub(Nucleus::createLoad(val.address), Nucleus::createConstantShort((unsigned short)1));
-		Nucleus::createStore(inc, val.address);
+		Value *inc = Nucleus::createSub(val.loadValue(), Nucleus::createConstantShort((unsigned short)1));
+		val.storeValue(inc);
 
 		return val;
 	}
@@ -1973,13 +1995,11 @@ namespace sw
 	Byte8::Byte8()
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	Byte8::Byte8(byte x0, byte x1, byte x2, byte x3, byte x4, byte x5, byte x6, byte x7)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[8];
 		constantVector[0] = Nucleus::createConstantByte(x0);
@@ -1992,13 +2012,12 @@ namespace sw
 		constantVector[7] = Nucleus::createConstantByte(x7);
 		Value *vector = Nucleus::createConstantVector(constantVector, 8);
 
-		Nucleus::createStore(Nucleus::createBitCast(vector, getType()), address);
+		storeValue(Nucleus::createBitCast(vector, getType()));
 	}
 
 	Byte8::Byte8(int64_t x)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[8];
 		constantVector[0] = Nucleus::createConstantByte((unsigned char)(x >>  0));
@@ -2011,37 +2030,51 @@ namespace sw
 		constantVector[7] = Nucleus::createConstantByte((unsigned char)(x >> 56));
 		Value *vector = Nucleus::createConstantVector(constantVector, 8);
 
-		Nucleus::createStore(Nucleus::createBitCast(vector, getType()), address);
+		storeValue(Nucleus::createBitCast(vector, getType()));
 	}
 
 	Byte8::Byte8(RValue<Byte8> rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Byte8::Byte8(const Byte8 &rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
+	Byte8::Byte8(const Reference<Byte8> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<Byte8> Byte8::operator=(RValue<Byte8> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<Byte8> Byte8::operator=(const Byte8 &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Byte8>(value);
+	}
+
+	RValue<Byte8> Byte8::operator=(const Reference<Byte8> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Byte8>(value);
 	}
@@ -2116,7 +2149,7 @@ namespace sw
 			return As<Byte8>(x86::pxor(As<Short4>(lhs), As<Short4>(rhs)));
 		}
 		else
-		{	
+		{
 			return RValue<Byte8>(Nucleus::createXor(lhs.value, rhs.value));
 		}
 	}
@@ -2207,7 +2240,7 @@ namespace sw
 	{
 		return x86::paddusb(x, y);
 	}
-	
+
 	RValue<Byte8> SubSat(RValue<Byte8> x, RValue<Byte8> y)
 	{
 		return x86::psubusb(x, y);
@@ -2244,7 +2277,7 @@ namespace sw
 			return RValue<Short4>(Nucleus::createBitCast(packed, Short4::getType()));
 		}
 	}
-	
+
 	RValue<Short4> UnpackHigh(RValue<Byte8> x, RValue<Byte8> y)
 	{
 		if(CPUID::supportsMMX2())
@@ -2278,7 +2311,7 @@ namespace sw
 //	{
 //		return x86::pcmpgtb(x, y);   // FIXME: Signedness
 //	}
-	
+
 	RValue<Byte8> CmpEQ(RValue<Byte8> x, RValue<Byte8> y)
 	{
 		return x86::pcmpeqb(x, y);
@@ -2299,13 +2332,11 @@ namespace sw
 	SByte8::SByte8()
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	SByte8::SByte8(byte x0, byte x1, byte x2, byte x3, byte x4, byte x5, byte x6, byte x7)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[8];
 		constantVector[0] = Nucleus::createConstantByte(x0);
@@ -2318,13 +2349,12 @@ namespace sw
 		constantVector[7] = Nucleus::createConstantByte(x7);
 		Value *vector = Nucleus::createConstantVector(constantVector, 8);
 
-		Nucleus::createStore(Nucleus::createBitCast(vector, getType()), address);
+		storeValue(Nucleus::createBitCast(vector, getType()));
 	}
 
 	SByte8::SByte8(int64_t x)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[8];
 		constantVector[0] = Nucleus::createConstantByte((unsigned char)(x >>  0));
@@ -2337,37 +2367,51 @@ namespace sw
 		constantVector[7] = Nucleus::createConstantByte((unsigned char)(x >> 56));
 		Value *vector = Nucleus::createConstantVector(constantVector, 8);
 
-		Nucleus::createStore(Nucleus::createBitCast(vector, getType()), address);
+		storeValue(Nucleus::createBitCast(vector, getType()));
 	}
 
 	SByte8::SByte8(RValue<SByte8> rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	SByte8::SByte8(const SByte8 &rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
+	SByte8::SByte8(const Reference<SByte8> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<SByte8> SByte8::operator=(RValue<SByte8> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<SByte8> SByte8::operator=(const SByte8 &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<SByte8>(value);
+	}
+
+	RValue<SByte8> SByte8::operator=(const Reference<SByte8> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<SByte8>(value);
 	}
@@ -2512,7 +2556,7 @@ namespace sw
 	{
 		return x86::paddsb(x, y);
 	}
-	
+
 	RValue<SByte8> SubSat(RValue<SByte8> x, RValue<SByte8> y)
 	{
 		return x86::psubsb(x, y);
@@ -2541,7 +2585,7 @@ namespace sw
 			return RValue<Short4>(Nucleus::createBitCast(packed, Short4::getType()));
 		}
 	}
-	
+
 	RValue<Short4> UnpackHigh(RValue<SByte8> x, RValue<SByte8> y)
 	{
 		if(CPUID::supportsMMX2())
@@ -2575,7 +2619,7 @@ namespace sw
 	{
 		return x86::pcmpgtb(x, y);
 	}
-	
+
 	RValue<Byte8> CmpEQ(RValue<SByte8> x, RValue<SByte8> y)
 	{
 		return x86::pcmpeqb(As<Byte8>(x), As<Byte8>(y));
@@ -2596,31 +2640,45 @@ namespace sw
 	Byte16::Byte16(RValue<Byte16> rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Byte16::Byte16(const Byte16 &rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
+	Byte16::Byte16(const Reference<Byte16> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<Byte16> Byte16::operator=(RValue<Byte16> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<Byte16> Byte16::operator=(const Byte16 &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Byte16>(value);
+	}
+
+	RValue<Byte16> Byte16::operator=(const Reference<Byte16> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Byte16>(value);
 	}
@@ -2637,18 +2695,14 @@ namespace sw
 
 	Short4::Short4(RValue<Int> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *extend = Nucleus::createZExt(cast.value, Long::getType());
 		Value *swizzle = Swizzle(RValue<Short4>(extend), 0x00).value;
-		
-		Nucleus::createStore(swizzle, address);
+
+		storeValue(swizzle);
 	}
 
 	Short4::Short4(RValue<Int4> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *short8 = Nucleus::createBitCast(cast.value, Short8::getType());
 
 		#if 0   // FIXME: Check codegen (pshuflw phshufhw pshufd)
@@ -2724,7 +2778,7 @@ namespace sw
 			#endif
 		#endif
 
-		Nucleus::createStore(short4, address);
+		storeValue(short4);
 	}
 
 //	Short4::Short4(RValue<Float> cast)
@@ -2733,24 +2787,20 @@ namespace sw
 
 	Short4::Short4(RValue<Float4> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Int4 v4i32 = Int4(cast);
 		v4i32 = As<Int4>(x86::packssdw(v4i32, v4i32));
-		
-		Nucleus::createStore(As<Short4>(Int2(v4i32)).value, address);
+
+		storeValue(As<Short4>(Int2(v4i32)).value);
 	}
 
 	Short4::Short4()
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	Short4::Short4(short xyzw)
 	{
 		//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[4];
 		constantVector[0] = Nucleus::createConstantShort(xyzw);
@@ -2759,13 +2809,12 @@ namespace sw
 		constantVector[3] = Nucleus::createConstantShort(xyzw);
 		Value *vector = Nucleus::createConstantVector(constantVector, 4);
 
-		Nucleus::createStore(Nucleus::createBitCast(vector, getType()), address);
+		storeValue(Nucleus::createBitCast(vector, getType()));
 	}
 
 	Short4::Short4(short x, short y, short z, short w)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[4];
 		constantVector[0] = Nucleus::createConstantShort(x);
@@ -2774,69 +2823,95 @@ namespace sw
 		constantVector[3] = Nucleus::createConstantShort(w);
 		Value *vector = Nucleus::createConstantVector(constantVector, 4);
 
-		Nucleus::createStore(Nucleus::createBitCast(vector, getType()), address);
+		storeValue(Nucleus::createBitCast(vector, getType()));
 	}
 
 	Short4::Short4(RValue<Short4> rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Short4::Short4(const Short4 &rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
+	Short4::Short4(const Reference<Short4> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	Short4::Short4(RValue<UShort4> rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Short4::Short4(const UShort4 &rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		storeValue(rhs.loadValue());
+	}
+
+	Short4::Short4(const Reference<UShort4> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		storeValue(rhs.loadValue());
 	}
 
 	RValue<Short4> Short4::operator=(RValue<Short4> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<Short4> Short4::operator=(const Short4 &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Short4>(value);
+	}
+
+	RValue<Short4> Short4::operator=(const Reference<Short4> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Short4>(value);
 	}
 
 	RValue<Short4> Short4::operator=(RValue<UShort4> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
-		return rhs;
+		return RValue<Short4>(rhs);
 	}
 
 	RValue<Short4> Short4::operator=(const UShort4 &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Short4>(value);
+	}
+
+	RValue<Short4> Short4::operator=(const Reference<UShort4> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Short4>(value);
 	}
@@ -3044,7 +3119,7 @@ namespace sw
 	{
 		RValue<Int4> v4i32 = x86::cvtps2dq(cast);
 		v4i32 = As<Int4>(x86::packssdw(v4i32, v4i32));
-		
+
 		return As<Short4>(Int2(v4i32));
 	}
 
@@ -3183,15 +3258,11 @@ namespace sw
 
 	UShort4::UShort4(RValue<Int4> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		*this = Short4(cast);
 	}
 
 	UShort4::UShort4(RValue<Float4> cast, bool saturate)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Float4 sat;
 
 		if(saturate)
@@ -3225,13 +3296,11 @@ namespace sw
 	UShort4::UShort4()
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	UShort4::UShort4(unsigned short x, unsigned short y, unsigned short z, unsigned short w)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[4];
 		constantVector[0] = Nucleus::createConstantShort(x);
@@ -3240,69 +3309,97 @@ namespace sw
 		constantVector[3] = Nucleus::createConstantShort(w);
 		Value *vector = Nucleus::createConstantVector(constantVector, 4);
 
-		Nucleus::createStore(Nucleus::createBitCast(vector, getType()), address);
+		storeValue(Nucleus::createBitCast(vector, getType()));
 	}
 
 	UShort4::UShort4(RValue<UShort4> rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	UShort4::UShort4(const UShort4 &rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
+	UShort4::UShort4(const Reference<UShort4> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	UShort4::UShort4(RValue<Short4> rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	UShort4::UShort4(const Short4 &rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
+	UShort4::UShort4(const Reference<Short4> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<UShort4> UShort4::operator=(RValue<UShort4> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<UShort4> UShort4::operator=(const UShort4 &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<UShort4>(value);
+	}
+
+	RValue<UShort4> UShort4::operator=(const Reference<UShort4> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<UShort4>(value);
 	}
 
 	RValue<UShort4> UShort4::operator=(RValue<Short4> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
-		return rhs;
+		return RValue<UShort4>(rhs);
 	}
 
 	RValue<UShort4> UShort4::operator=(const Short4 &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<UShort4>(value);
+	}
+
+	RValue<UShort4> UShort4::operator=(const Reference<Short4> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<UShort4>(value);
 	}
@@ -3406,12 +3503,12 @@ namespace sw
 
 	RValue<UShort4> Max(RValue<UShort4> x, RValue<UShort4> y)
 	{
-		return Max(As<Short4>(x) - Short4(0x8000u, 0x8000u, 0x8000u, 0x8000u), As<Short4>(y) - Short4(0x8000u, 0x8000u, 0x8000u, 0x8000u)) + Short4(0x8000u, 0x8000u, 0x8000u, 0x8000u);;
+		return RValue<UShort4>(Max(As<Short4>(x) - Short4(0x8000u, 0x8000u, 0x8000u, 0x8000u), As<Short4>(y) - Short4(0x8000u, 0x8000u, 0x8000u, 0x8000u)) + Short4(0x8000u, 0x8000u, 0x8000u, 0x8000u));
 	}
 
 	RValue<UShort4> Min(RValue<UShort4> x, RValue<UShort4> y)
 	{
-		return Min(As<Short4>(x) - Short4(0x8000u, 0x8000u, 0x8000u, 0x8000u), As<Short4>(y) - Short4(0x8000u, 0x8000u, 0x8000u, 0x8000u)) + Short4(0x8000u, 0x8000u, 0x8000u, 0x8000u);;
+		return RValue<UShort4>(Min(As<Short4>(x) - Short4(0x8000u, 0x8000u, 0x8000u, 0x8000u), As<Short4>(y) - Short4(0x8000u, 0x8000u, 0x8000u, 0x8000u)) + Short4(0x8000u, 0x8000u, 0x8000u, 0x8000u));
 	}
 
 	RValue<UShort4> AddSat(RValue<UShort4> x, RValue<UShort4> y)
@@ -3454,7 +3551,6 @@ namespace sw
 	Short8::Short8(short c0, short c1, short c2, short c3, short c4, short c5, short c6, short c7)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[8];
 		constantVector[0] = Nucleus::createConstantShort(c0);
@@ -3466,15 +3562,14 @@ namespace sw
 		constantVector[6] = Nucleus::createConstantShort(c6);
 		constantVector[7] = Nucleus::createConstantShort(c7);
 
-		Nucleus::createStore(Nucleus::createConstantVector(constantVector, 8), address);
+		storeValue(Nucleus::createConstantVector(constantVector, 8));
 	}
 
 	Short8::Short8(RValue<Short8> rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	RValue<Short8> operator+(RValue<Short8> lhs, RValue<Short8> rhs)
@@ -3528,7 +3623,6 @@ namespace sw
 	UShort8::UShort8(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3, unsigned short c4, unsigned short c5, unsigned short c6, unsigned short c7)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[8];
 		constantVector[0] = Nucleus::createConstantShort(c0);
@@ -3540,28 +3634,35 @@ namespace sw
 		constantVector[6] = Nucleus::createConstantShort(c6);
 		constantVector[7] = Nucleus::createConstantShort(c7);
 
-		Nucleus::createStore(Nucleus::createConstantVector(constantVector, 8), address);
+		storeValue(Nucleus::createConstantVector(constantVector, 8));
 	}
 
 	UShort8::UShort8(RValue<UShort8> rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	RValue<UShort8> UShort8::operator=(RValue<UShort8> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<UShort8> UShort8::operator=(const UShort8 &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<UShort8>(value);
+	}
+
+	RValue<UShort8> UShort8::operator=(const Reference<UShort8> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<UShort8>(value);
 	}
@@ -3680,152 +3781,148 @@ namespace sw
 
 	Int::Int(Argument *argument)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(argument, address);
+		storeValue(argument);
 	}
 
 	Int::Int(RValue<Byte> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *integer = Nucleus::createZExt(cast.value, Int::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	Int::Int(RValue<SByte> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *integer = Nucleus::createSExt(cast.value, Int::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	Int::Int(RValue<Short> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *integer = Nucleus::createSExt(cast.value, Int::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	Int::Int(RValue<UShort> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *integer = Nucleus::createZExt(cast.value, Int::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	Int::Int(RValue<Int2> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		*this = Extract(cast, 0);
 	}
 
 	Int::Int(RValue<Long> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *integer = Nucleus::createTrunc(cast.value, Int::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	Int::Int(RValue<Float> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *integer = Nucleus::createFPToSI(cast.value, Int::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	Int::Int()
 	{
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	Int::Int(int x)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(Nucleus::createConstantInt(x), address);
+		storeValue(Nucleus::createConstantInt(x));
 	}
 
 	Int::Int(RValue<Int> rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Int::Int(RValue<UInt> rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Int::Int(const Int &rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+	Int::Int(const Reference<Int> &rhs)
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	Int::Int(const UInt &rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+	Int::Int(const Reference<UInt> &rhs)
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<Int> Int::operator=(int rhs) const
 	{
-		return RValue<Int>(Nucleus::createStore(Nucleus::createConstantInt(rhs), address));
+		return RValue<Int>(storeValue(Nucleus::createConstantInt(rhs)));
 	}
 
 	RValue<Int> Int::operator=(RValue<Int> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<Int> Int::operator=(RValue<UInt> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
-		return rhs;
+		return RValue<Int>(rhs);
 	}
 
 	RValue<Int> Int::operator=(const Int &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Int>(value);
+	}
+
+	RValue<Int> Int::operator=(const Reference<Int> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Int>(value);
 	}
 
 	RValue<Int> Int::operator=(const UInt &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Int>(value);
 	}
 
-	RValue<Pointer<Int>> Int::operator&()
+	RValue<Int> Int::operator=(const Reference<UInt> &rhs) const
 	{
-		return RValue<Pointer<Int>>(address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Int>(value);
 	}
 
 	RValue<Int> operator+(RValue<Int> lhs, RValue<Int> rhs)
@@ -3948,15 +4045,15 @@ namespace sw
 		RValue<Int> res = val;
 
 		Value *inc = Nucleus::createAdd(res.value, Nucleus::createConstantInt(1));
-		Nucleus::createStore(inc, val.address);
+		val.storeValue(inc);
 
 		return res;
 	}
 
 	const Int &operator++(const Int &val)   // Pre-increment
 	{
-		Value *inc = Nucleus::createAdd(Nucleus::createLoad(val.address), Nucleus::createConstantInt(1));
-		Nucleus::createStore(inc, val.address);
+		Value *inc = Nucleus::createAdd(val.loadValue(), Nucleus::createConstantInt(1));
+		val.storeValue(inc);
 
 		return val;
 	}
@@ -3966,15 +4063,15 @@ namespace sw
 		RValue<Int> res = val;
 
 		Value *inc = Nucleus::createSub(res.value, Nucleus::createConstantInt(1));
-		Nucleus::createStore(inc, val.address);
+		val.storeValue(inc);
 
 		return res;
 	}
 
 	const Int &operator--(const Int &val)   // Pre-decrement
 	{
-		Value *inc = Nucleus::createSub(Nucleus::createLoad(val.address), Nucleus::createConstantInt(1));
-		Nucleus::createStore(inc, val.address);
+		Value *inc = Nucleus::createSub(val.loadValue(), Nucleus::createConstantInt(1));
+		val.storeValue(inc);
 
 		return val;
 	}
@@ -4028,7 +4125,7 @@ namespace sw
 	{
 		return x86::cvtss2si(cast);
 
-	//	return IfThenElse(val > Float(0), Int(val + Float(0.5f)), Int(val - Float(0.5f)));
+	//	return IfThenElse(val > 0.0f, Int(val + 0.5f), Int(val - 0.5f));
 	}
 
 	Type *Int::getType()
@@ -4038,50 +4135,53 @@ namespace sw
 
 	Long::Long(RValue<Int> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
+
 
 		Value *integer = Nucleus::createSExt(cast.value, Long::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	Long::Long(RValue<UInt> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *integer = Nucleus::createZExt(cast.value, Long::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	Long::Long()
 	{
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	Long::Long(RValue<Long> rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	RValue<Long> Long::operator=(int64_t rhs) const
 	{
-		return RValue<Long>(Nucleus::createStore(Nucleus::createConstantLong(rhs), address));
+		return RValue<Long>(storeValue(Nucleus::createConstantInt(rhs)));
 	}
 
 	RValue<Long> Long::operator=(RValue<Long> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<Long> Long::operator=(const Long &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Long>(value);
+	}
+
+	RValue<Long> Long::operator=(const Reference<Long> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Long>(value);
 	}
@@ -4106,7 +4206,7 @@ namespace sw
 		return lhs = lhs - rhs;
 	}
 
-	RValue<Long> AddAtomic(RValue<Pointer<Long>> x, RValue<Long> y)
+	RValue<Long> AddAtomic(RValue<Pointer<Long> > x, RValue<Long> y)
 	{
 		return RValue<Long>(Nucleus::createAtomicAdd(x.value, y.value));
 	}
@@ -4118,20 +4218,16 @@ namespace sw
 
 	Long1::Long1(const Reference<UInt> &cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Value *uint = Nucleus::createLoad(cast.address);
+		Value *uint = cast.loadValue();
 		Value *int64 = Nucleus::createZExt(uint, Long::getType());
 		Value *long1 = Nucleus::createBitCast(int64, Long1::getType());
-		
-		Nucleus::createStore(long1, address);
+
+		storeValue(long1);
 	}
 
 	Long1::Long1(RValue<Long1> rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Type *Long1::getType()
@@ -4164,125 +4260,127 @@ namespace sw
 
 	UInt::UInt(Argument *argument)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(argument, address);
+		storeValue(argument);
 	}
 
 	UInt::UInt(RValue<UShort> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *integer = Nucleus::createZExt(cast.value, UInt::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	UInt::UInt(RValue<Long> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *integer = Nucleus::createTrunc(cast.value, UInt::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	UInt::UInt(RValue<Float> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *integer = Nucleus::createFPToSI(cast.value, UInt::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	UInt::UInt()
 	{
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	UInt::UInt(int x)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(Nucleus::createConstantInt(x), address);
+		storeValue(Nucleus::createConstantInt(x));
 	}
 
 	UInt::UInt(unsigned int x)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(Nucleus::createConstantInt(x), address);
+		storeValue(Nucleus::createConstantInt(x));
 	}
 
 	UInt::UInt(RValue<UInt> rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	UInt::UInt(RValue<Int> rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	UInt::UInt(const UInt &rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+	UInt::UInt(const Reference<UInt> &rhs)
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	UInt::UInt(const Int &rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+	UInt::UInt(const Reference<Int> &rhs)
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<UInt> UInt::operator=(unsigned int rhs) const
 	{
-		return RValue<UInt>(Nucleus::createStore(Nucleus::createConstantInt(rhs), address));
+		return RValue<UInt>(storeValue(Nucleus::createConstantInt(rhs)));
 	}
 
 	RValue<UInt> UInt::operator=(RValue<UInt> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<UInt> UInt::operator=(RValue<Int> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
-		return rhs;
+		return RValue<UInt>(rhs);
 	}
 
 	RValue<UInt> UInt::operator=(const UInt &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<UInt>(value);
+	}
+
+	RValue<UInt> UInt::operator=(const Reference<UInt> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<UInt>(value);
 	}
 
 	RValue<UInt> UInt::operator=(const Int &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<UInt>(value);
 	}
 
-	RValue<Pointer<UInt>> UInt::operator&()
+	RValue<UInt> UInt::operator=(const Reference<Int> &rhs) const
 	{
-		return RValue<Pointer<UInt>>(address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<UInt>(value);
 	}
 
 	RValue<UInt> operator+(RValue<UInt> lhs, RValue<UInt> rhs)
@@ -4405,15 +4503,15 @@ namespace sw
 		RValue<UInt> res = val;
 
 		Value *inc = Nucleus::createAdd(res.value, Nucleus::createConstantInt(1));
-		Nucleus::createStore(inc, val.address);
+		val.storeValue(inc);
 
 		return res;
 	}
 
 	const UInt &operator++(const UInt &val)   // Pre-increment
 	{
-		Value *inc = Nucleus::createAdd(Nucleus::createLoad(val.address), Nucleus::createConstantInt(1));
-		Nucleus::createStore(inc, val.address);
+		Value *inc = Nucleus::createAdd(val.loadValue(), Nucleus::createConstantInt(1));
+		val.storeValue(inc);
 
 		return val;
 	}
@@ -4423,15 +4521,15 @@ namespace sw
 		RValue<UInt> res = val;
 
 		Value *inc = Nucleus::createSub(res.value, Nucleus::createConstantInt(1));
-		Nucleus::createStore(inc, val.address);
+		val.storeValue(inc);
 
 		return res;
 	}
 
 	const UInt &operator--(const UInt &val)   // Pre-decrement
 	{
-		Value *inc = Nucleus::createSub(Nucleus::createLoad(val.address), Nucleus::createConstantInt(1));
-		Nucleus::createStore(inc, val.address);
+		Value *inc = Nucleus::createSub(val.loadValue(), Nucleus::createConstantInt(1));
+		val.storeValue(inc);
 
 		return val;
 	}
@@ -4485,7 +4583,7 @@ namespace sw
 //	{
 //		return x86::cvtss2si(val);   // FIXME: Unsigned
 //
-//	//	return IfThenElse(val > Float(0), Int(val + Float(0.5f)), Int(val - Float(0.5f)));
+//	//	return IfThenElse(val > 0.0f, Int(val + 0.5f), Int(val - 0.5f));
 //	}
 
 	Type *UInt::getType()
@@ -4495,78 +4593,86 @@ namespace sw
 
 //	Int2::Int2(RValue<Int> cast)
 //	{
-//		address = Nucleus::allocateStackVariable(getType());
-//
 //		Value *extend = Nucleus::createZExt(cast.value, Long::getType());
 //		Value *vector = Nucleus::createBitCast(extend, Int2::getType());
-//		
+//
 //		Constant *shuffle[2];
 //		shuffle[0] = Nucleus::createConstantInt(0);
 //		shuffle[1] = Nucleus::createConstantInt(0);
 //
 //		Value *replicate = Nucleus::createShuffleVector(vector, UndefValue::get(Int2::getType()), Nucleus::createConstantVector(shuffle, 2));
 //
-//		Nucleus::createStore(replicate, address);
+//		storeValue(replicate);
 //	}
 
 	Int2::Int2(RValue<Int4> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *long2 = Nucleus::createBitCast(cast.value, Long2::getType());
 		Value *element = Nucleus::createExtractElement(long2, 0);
 		Value *int2 = Nucleus::createBitCast(element, Int2::getType());
 
-		Nucleus::createStore(int2, address);
+		storeValue(int2);
 	}
 
 	Int2::Int2()
 	{
 	//	xy.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	Int2::Int2(int x, int y)
 	{
 	//	xy.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[2];
 		constantVector[0] = Nucleus::createConstantInt(x);
 		constantVector[1] = Nucleus::createConstantInt(y);
 		Value *vector = Nucleus::createConstantVector(constantVector, 2);
 
-		Nucleus::createStore(Nucleus::createBitCast(vector, getType()), address);
+		storeValue(Nucleus::createBitCast(vector, getType()));
 	}
 
 	Int2::Int2(RValue<Int2> rhs)
 	{
 	//	xy.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Int2::Int2(const Int2 &rhs)
 	{
 	//	xy.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
+	Int2::Int2(const Reference<Int2> &rhs)
+	{
+	//	xy.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<Int2> Int2::operator=(RValue<Int2> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<Int2> Int2::operator=(const Int2 &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Int2>(value);
+	}
+
+	RValue<Int2> Int2::operator=(const Reference<Int2> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Int2>(value);
 	}
@@ -4773,7 +4879,7 @@ namespace sw
 			return RValue<Long1>(Nucleus::createBitCast(packed, Long1::getType()));
 		}
 	}
-	
+
 	RValue<Long1> UnpackHigh(RValue<Int2> x, RValue<Int2> y)
 	{
 		if(CPUID::supportsMMX2())
@@ -4834,50 +4940,62 @@ namespace sw
 	UInt2::UInt2()
 	{
 	//	xy.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	UInt2::UInt2(unsigned int x, unsigned int y)
 	{
 	//	xy.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[2];
 		constantVector[0] = Nucleus::createConstantInt(x);
 		constantVector[1] = Nucleus::createConstantInt(y);
 		Value *vector = Nucleus::createConstantVector(constantVector, 2);
 
-		Nucleus::createStore(Nucleus::createBitCast(vector, getType()), address);
+		storeValue(Nucleus::createBitCast(vector, getType()));
 	}
 
 	UInt2::UInt2(RValue<UInt2> rhs)
 	{
 	//	xy.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	UInt2::UInt2(const UInt2 &rhs)
 	{
 	//	xy.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
+	UInt2::UInt2(const Reference<UInt2> &rhs)
+	{
+	//	xy.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<UInt2> UInt2::operator=(RValue<UInt2> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<UInt2> UInt2::operator=(const UInt2 &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<UInt2>(value);
+	}
+
+	RValue<UInt2> UInt2::operator=(const Reference<UInt2> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<UInt2>(value);
 	}
@@ -5082,17 +5200,15 @@ namespace sw
 	Int4::Int4(RValue<Float4> cast)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Value *xyzw = Nucleus::createFPToSI(cast.value, Int4::getType());
 
-		Nucleus::createStore(xyzw, address);
+		storeValue(xyzw);
 	}
 
 	Int4::Int4()
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	Int4::Int4(int xyzw)
@@ -5118,7 +5234,6 @@ namespace sw
 	void Int4::constant(int x, int y, int z, int w)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[4];
 		constantVector[0] = Nucleus::createConstantInt(x);
@@ -5126,54 +5241,74 @@ namespace sw
 		constantVector[2] = Nucleus::createConstantInt(z);
 		constantVector[3] = Nucleus::createConstantInt(w);
 
-		Nucleus::createStore(Nucleus::createConstantVector(constantVector, 4), address);
+		storeValue(Nucleus::createConstantVector(constantVector, 4));
 	}
 
 	Int4::Int4(RValue<Int4> rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Int4::Int4(const Int4 &rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
+	Int4::Int4(const Reference<Int4> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	Int4::Int4(RValue<UInt4> rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Int4::Int4(const UInt4 &rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
+	Int4::Int4(const Reference<UInt4> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<Int4> Int4::operator=(RValue<Int4> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<Int4> Int4::operator=(const Int4 &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Int4>(value);
+	}
+
+	RValue<Int4> Int4::operator=(const Reference<Int4> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Int4>(value);
 	}
@@ -5404,17 +5539,15 @@ namespace sw
 	UInt4::UInt4(RValue<Float4> cast)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Value *xyzw = Nucleus::createFPToUI(cast.value, UInt4::getType());
 
-		Nucleus::createStore(xyzw, address);
+		storeValue(xyzw);
 	}
 
 	UInt4::UInt4()
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 	}
 
 	UInt4::UInt4(int xyzw)
@@ -5440,7 +5573,6 @@ namespace sw
 	void UInt4::constant(int x, int y, int z, int w)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[4];
 		constantVector[0] = Nucleus::createConstantInt(x);
@@ -5448,54 +5580,74 @@ namespace sw
 		constantVector[2] = Nucleus::createConstantInt(z);
 		constantVector[3] = Nucleus::createConstantInt(w);
 
-		Nucleus::createStore(Nucleus::createConstantVector(constantVector, 4), address);
+		storeValue(Nucleus::createConstantVector(constantVector, 4));
 	}
 
 	UInt4::UInt4(RValue<UInt4> rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	UInt4::UInt4(const UInt4 &rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
+	UInt4::UInt4(const Reference<UInt4> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	UInt4::UInt4(RValue<Int4> rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	UInt4::UInt4(const Int4 &rhs)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
+	UInt4::UInt4(const Reference<Int4> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<UInt4> UInt4::operator=(RValue<UInt4> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<UInt4> UInt4::operator=(const UInt4 &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<UInt4>(value);
+	}
+
+	RValue<UInt4> UInt4::operator=(const Reference<UInt4> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<UInt4>(value);
 	}
@@ -5700,58 +5852,59 @@ namespace sw
 
 	Float::Float(RValue<Int> cast)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
 		Value *integer = Nucleus::createSIToFP(cast.value, Float::getType());
 
-		Nucleus::createStore(integer, address);
+		storeValue(integer);
 	}
 
 	Float::Float()
 	{
-		address = Nucleus::allocateStackVariable(getType());
+
 	}
 
 	Float::Float(float x)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(Nucleus::createConstantFloat(x), address);
+		storeValue(Nucleus::createConstantFloat(x));
 	}
 
 	Float::Float(RValue<Float> rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
-
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Float::Float(const Float &rhs)
 	{
-		address = Nucleus::allocateStackVariable(getType());
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+	Float::Float(const Reference<Float> &rhs)
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	RValue<Float> Float::operator=(RValue<Float> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<Float> Float::operator=(const Float &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Float>(value);
 	}
 
-	RValue<Pointer<Float>> Float::operator&()
+	RValue<Float> Float::operator=(const Reference<Float> &rhs) const
 	{
-		return RValue<Pointer<Float>>(address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Float>(value);
 	}
 
 	RValue<Float> operator+(RValue<Float> lhs, RValue<Float> rhs)
@@ -5836,7 +5989,7 @@ namespace sw
 
 	RValue<Float> Abs(RValue<Float> x)
 	{
-		return IfThenElse(x > Float(0), x, -x);
+		return IfThenElse(x > 0.0f, x, -x);
 	}
 
 	RValue<Float> Max(RValue<Float> x, RValue<Float> y)
@@ -5853,7 +6006,7 @@ namespace sw
 	{
 		return x86::rcpss(x);
 	}
-	
+
 	RValue<Float> RcpSqrt_pp(RValue<Float> x)
 	{
 		return x86::rsqrtss(x);
@@ -5932,13 +6085,12 @@ namespace sw
 	Float2::Float2(RValue<Float4> cast)
 	{
 	//	xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Value *int64x2 = Nucleus::createBitCast(cast.value, Long2::getType());
 		Value *int64 = Nucleus::createExtractElement(int64x2, 0);
 		Value *float2 = Nucleus::createBitCast(int64, Float2::getType());
 
-		Nucleus::createStore(float2, address);
+		storeValue(float2);
 	}
 
 	Type *Float2::getType()
@@ -5949,12 +6101,11 @@ namespace sw
 	Float4::Float4(RValue<Byte4> cast)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		#if 0
 			Value *xyzw = Nucleus::createUIToFP(cast.value, Float4::getType());   // FIXME: Crashes
 		#elif 0
-			Value *vector = Nucleus::createLoad(address);
+			Value *vector = loadValue();
 
 			Value *i8x = Nucleus::createExtractElement(cast.value, 0);
 			Value *f32x = Nucleus::createUIToFP(i8x, Float::getType());
@@ -6022,19 +6173,18 @@ namespace sw
 			Value *g = Nucleus::createSIToFP(f, Float4::getType());
 			Value *xyzw = g;
 		#endif
-		
-		Nucleus::createStore(xyzw, address);
+
+		storeValue(xyzw);
 	}
 
 	Float4::Float4(RValue<SByte4> cast)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		#if 0
 			Value *xyzw = Nucleus::createSIToFP(cast.value, Float4::getType());   // FIXME: Crashes
 		#elif 0
-			Value *vector = Nucleus::createLoad(address);
+			Value *vector = loadValue();
 
 			Value *i8x = Nucleus::createExtractElement(cast.value, 0);
 			Value *f32x = Nucleus::createSIToFP(i8x, Float::getType());
@@ -6104,19 +6254,18 @@ namespace sw
 
 			Value *xyzw = Nucleus::createSIToFP(g, Float4::getType());
 		#endif
-		
-		Nucleus::createStore(xyzw, address);
+
+		storeValue(xyzw);
 	}
 
 	Float4::Float4(RValue<Short4> cast)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		#if 0
 			Value *xyzw = Nucleus::createSIToFP(cast.value, Float4::getType());   // FIXME: Crashes
 		#elif 0
-			Value *vector = Nucleus::createLoad(address);
+			Value *vector = loadValue();
 
 			Value *i16x = Nucleus::createExtractElement(cast.value, 0);
 			Value *f32x = Nucleus::createSIToFP(i16x, Float::getType());
@@ -6160,11 +6309,11 @@ namespace sw
 				swizzle[5] = Nucleus::createConstantInt(2);
 				swizzle[6] = Nucleus::createConstantInt(3);
 				swizzle[7] = Nucleus::createConstantInt(3);
-				
+
 				Value *c = Nucleus::createShuffleVector(b, b, Nucleus::createConstantVector(swizzle, 8));
 				Value *d = Nucleus::createBitCast(c, Int4::getType());
 				Value *e = Nucleus::createSIToFP(d, Float4::getType());
-				
+
 				Constant *constantVector[4];
 				constantVector[0] = Nucleus::createConstantFloat(1.0f / (1 << 16));
 				constantVector[1] = Nucleus::createConstantFloat(1.0f / (1 << 16));
@@ -6174,19 +6323,18 @@ namespace sw
 				xyzw = Nucleus::createFMul(e, Nucleus::createConstantVector(constantVector, 4));
 			}
 		#endif
-		
-		Nucleus::createStore(xyzw, address);
+
+		storeValue(xyzw);
 	}
 
 	Float4::Float4(RValue<UShort4> cast)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		#if 0
 			Value *xyzw = Nucleus::createUIToFP(cast.value, Float4::getType());   // FIXME: Crashes
 		#elif 0
-			Value *vector = Nucleus::createLoad(address);
+			Value *vector = loadValue();
 
 			Value *i16x = Nucleus::createExtractElement(cast.value, 0);
 			Value *f32x = Nucleus::createUIToFP(i16x, Float::getType());
@@ -6210,7 +6358,7 @@ namespace sw
 			RValue<Int4> vector = RValue<Int4>(Nucleus::createBitCast(long2, Int4::getType()));
 
 			Value *c;
-				
+
 			if(CPUID::supportsSSE4_1())
 			{
 				c = x86::pmovzxwd(RValue<Int4>(vector)).value;
@@ -6236,36 +6384,33 @@ namespace sw
 			Value *e = Nucleus::createSIToFP(d, Float4::getType());
 			Value *xyzw = e;
 		#endif
-		
-		Nucleus::createStore(xyzw, address);
+
+		storeValue(xyzw);
 	}
 
 	Float4::Float4(RValue<Int4> cast)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Value *xyzw = Nucleus::createSIToFP(cast.value, Float4::getType());
 
-		Nucleus::createStore(xyzw, address);
+		storeValue(xyzw);
 	}
 
 	Float4::Float4(RValue<UInt4> cast)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Value *xyzw = Nucleus::createUIToFP(cast.value, Float4::getType());
 
-		Nucleus::createStore(xyzw, address);
+		storeValue(xyzw);
 	}
 
 	Float4::Float4()
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 	}
-	
+
 	Float4::Float4(float xyzw)
 	{
 		constant(xyzw, xyzw, xyzw, xyzw);
@@ -6289,7 +6434,6 @@ namespace sw
 	void Float4::constant(float x, float y, float z, float w)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
 		Constant *constantVector[4];
 		constantVector[0] = Nucleus::createConstantFloat(x);
@@ -6297,32 +6441,37 @@ namespace sw
 		constantVector[2] = Nucleus::createConstantFloat(z);
 		constantVector[3] = Nucleus::createConstantFloat(w);
 
-		Nucleus::createStore(Nucleus::createConstantVector(constantVector, 4), address);
+		storeValue(Nucleus::createConstantVector(constantVector, 4));
 	}
 
 	Float4::Float4(RValue<Float4> rhs)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 	}
 
 	Float4::Float4(const Float4 &rhs)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
+	Float4::Float4(const Reference<Float4> &rhs)
+	{
+		xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	Float4::Float4(RValue<Float> rhs)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *vector = Nucleus::createLoad(address);
+		Value *vector = loadValue();
 		Value *insert = Nucleus::createInsertElement(vector, rhs.value, 0);
 
 		Constant *swizzle[4];
@@ -6333,27 +6482,21 @@ namespace sw
 
 		Value *replicate = Nucleus::createShuffleVector(insert, UndefValue::get(Float4::getType()), Nucleus::createConstantVector(swizzle, 4));
 
-		Nucleus::createStore(replicate, address);
+		storeValue(replicate);
 	}
 
 	Float4::Float4(const Float &rhs)
 	{
 		xyzw.parent = this;
-		address = Nucleus::allocateStackVariable(getType());
 
-		Value *vector = Nucleus::createLoad(address);
-		Value *element = Nucleus::createLoad(rhs.address);
-		Value *insert = Nucleus::createInsertElement(vector, element, 0);
+		*this = RValue<Float>(rhs.loadValue());
+	}
 
-		Constant *swizzle[4];
-		swizzle[0] = Nucleus::createConstantInt(0);
-		swizzle[1] = Nucleus::createConstantInt(0);
-		swizzle[2] = Nucleus::createConstantInt(0);
-		swizzle[3] = Nucleus::createConstantInt(0);
+	Float4::Float4(const Reference<Float> &rhs)
+	{
+		xyzw.parent = this;
 
-		Value *replicate = Nucleus::createShuffleVector(insert, UndefValue::get(Float4::getType()), Nucleus::createConstantVector(swizzle, 4));
-
-		Nucleus::createStore(replicate, address);
+		*this = RValue<Float>(rhs.loadValue());
 	}
 
 	RValue<Float4> Float4::operator=(float x) const
@@ -6363,15 +6506,23 @@ namespace sw
 
 	RValue<Float4> Float4::operator=(RValue<Float4> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address);
+		storeValue(rhs.value);
 
 		return rhs;
 	}
 
 	RValue<Float4> Float4::operator=(const Float4 &rhs) const
 	{
-		Value *value = Nucleus::createLoad(rhs.address);
-		Nucleus::createStore(value, address);
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Float4>(value);
+	}
+
+	RValue<Float4> Float4::operator=(const Reference<Float4> &rhs) const
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
 
 		return RValue<Float4>(value);
 	}
@@ -6386,9 +6537,9 @@ namespace sw
 		return *this = Float4(rhs);
 	}
 
-	RValue<Pointer<Float4>> Float4::operator&()
+	RValue<Float4> Float4::operator=(const Reference<Float> &rhs) const
 	{
-		return RValue<Pointer<Float4>>(address);
+		return *this = Float4(rhs);
 	}
 
 	RValue<Float4> operator+(RValue<Float4> lhs, RValue<Float4> rhs)
@@ -6480,7 +6631,7 @@ namespace sw
 	{
 		return x86::rcpps(x);
 	}
-	
+
 	RValue<Float4> RcpSqrt_pp(RValue<Float4> x)
 	{
 		return x86::rsqrtps(x);
@@ -6493,7 +6644,7 @@ namespace sw
 
 	RValue<Float4> Insert(const Float4 &val, RValue<Float> element, int i)
 	{
-		llvm::Value *value = Nucleus::createLoad(val.address);
+		llvm::Value *value = val.loadValue();
 		llvm::Value *insert = Nucleus::createInsertElement(value, element.value, i);
 
 		val = RValue<Float4>(insert);
@@ -6543,12 +6694,12 @@ namespace sw
 
 		return RValue<Float4>(Nucleus::createShuffleVector(x.value, y.value, Nucleus::createConstantVector(shuffle, 4)));
 	}
-	
+
 	RValue<Float4> Mask(Float4 &lhs, RValue<Float4> rhs, unsigned char select)
 	{
-		Value *vector = Nucleus::createLoad(lhs.address);
+		Value *vector = lhs.loadValue();
 		Value *shuffle = Nucleus::createMask(vector, rhs.value, select);
-		Nucleus::createStore(shuffle, lhs.address);
+		lhs.storeValue(shuffle);
 
 		return RValue<Float4>(shuffle);
 	}
@@ -6661,72 +6812,68 @@ namespace sw
 		return VectorType::get(Float::getType(), 4);
 	}
 
-	RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, int offset)
+	RValue<Pointer<Byte> > operator+(RValue<Pointer<Byte> > lhs, int offset)
 	{
-		return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Nucleus::createConstantInt(offset)));
+		return RValue<Pointer<Byte> >(Nucleus::createGEP(lhs.value, Nucleus::createConstantInt(offset)));
 	}
 
-	RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, RValue<Int> offset)
+	RValue<Pointer<Byte> > operator+(RValue<Pointer<Byte> > lhs, RValue<Int> offset)
 	{
-		return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, offset.value));
+		return RValue<Pointer<Byte> >(Nucleus::createGEP(lhs.value, offset.value));
 	}
 
-	RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, RValue<UInt> offset)
+	RValue<Pointer<Byte> > operator+(RValue<Pointer<Byte> > lhs, RValue<UInt> offset)
 	{
-		return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, offset.value));
+		return RValue<Pointer<Byte> >(Nucleus::createGEP(lhs.value, offset.value));
 	}
 
-	RValue<Pointer<Byte>> operator+=(const Pointer<Byte> &lhs, int offset)
-	{
-		return lhs = lhs + offset;
-	}
-
-	RValue<Pointer<Byte>> operator+=(const Pointer<Byte> &lhs, RValue<Int> offset)
+	RValue<Pointer<Byte> > operator+=(const Pointer<Byte> &lhs, int offset)
 	{
 		return lhs = lhs + offset;
 	}
 
-	RValue<Pointer<Byte>> operator+=(const Pointer<Byte> &lhs, RValue<UInt> offset)
+	RValue<Pointer<Byte> > operator+=(const Pointer<Byte> &lhs, RValue<Int> offset)
 	{
 		return lhs = lhs + offset;
 	}
 
-	RValue<Pointer<Byte>> operator-(RValue<Pointer<Byte>> lhs, int offset)
+	RValue<Pointer<Byte> > operator+=(const Pointer<Byte> &lhs, RValue<UInt> offset)
+	{
+		return lhs = lhs + offset;
+	}
+
+	RValue<Pointer<Byte> > operator-(RValue<Pointer<Byte> > lhs, int offset)
 	{
 		return lhs + -offset;
 	}
 
-	RValue<Pointer<Byte>> operator-(RValue<Pointer<Byte>> lhs, RValue<Int> offset)
+	RValue<Pointer<Byte> > operator-(RValue<Pointer<Byte> > lhs, RValue<Int> offset)
 	{
 		return lhs + -offset;
 	}
 
-	RValue<Pointer<Byte>> operator-(RValue<Pointer<Byte>> lhs, RValue<UInt> offset)
+	RValue<Pointer<Byte> > operator-(RValue<Pointer<Byte> > lhs, RValue<UInt> offset)
 	{
 		return lhs + -offset;
 	}
 
-	RValue<Pointer<Byte>> operator-=(const Pointer<Byte> &lhs, int offset)
+	RValue<Pointer<Byte> > operator-=(const Pointer<Byte> &lhs, int offset)
 	{
 		return lhs = lhs - offset;
 	}
 
-	RValue<Pointer<Byte>> operator-=(const Pointer<Byte> &lhs, RValue<Int> offset)
+	RValue<Pointer<Byte> > operator-=(const Pointer<Byte> &lhs, RValue<Int> offset)
 	{
 		return lhs = lhs - offset;
 	}
 
-	RValue<Pointer<Byte>> operator-=(const Pointer<Byte> &lhs, RValue<UInt> offset)
+	RValue<Pointer<Byte> > operator-=(const Pointer<Byte> &lhs, RValue<UInt> offset)
 	{
 		return lhs = lhs - offset;
 	}
 
 	void Return()
 	{
-		#if !(defined(_M_AMD64) || defined(_M_X64))
-			x86::emms();
-		#endif
-
 		Nucleus::createRetVoid();
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
 		Nucleus::createUnreachable();
@@ -6734,10 +6881,6 @@ namespace sw
 
 	void Return(bool ret)
 	{
-		#if !(defined(_M_AMD64) || defined(_M_X64))
-			x86::emms();
-		#endif
-
 		Nucleus::createRet(Nucleus::createConstantBool(ret));
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
 		Nucleus::createUnreachable();
@@ -6745,11 +6888,7 @@ namespace sw
 
 	void Return(const Int &ret)
 	{
-		#if !(defined(_M_AMD64) || defined(_M_X64))
-			x86::emms();
-		#endif
-
-		Nucleus::createRet(Nucleus::createLoad(ret.address));
+		Nucleus::createRet(ret.loadValue());
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
 		Nucleus::createUnreachable();
 	}
@@ -6759,7 +6898,7 @@ namespace sw
 		BasicBlock *loopBB = Nucleus::createBasicBlock();
 
 		Nucleus::createBr(loopBB);
-		Nucleus::getBuilder()->SetInsertPoint(loopBB);
+		Nucleus::setInsertBlock(loopBB);
 
 		return loopBB;
 	}
@@ -6767,15 +6906,15 @@ namespace sw
 	bool branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB)
 	{
 		Nucleus::createCondBr(cmp.value, bodyBB, endBB);
-		Nucleus::getBuilder()->SetInsertPoint(bodyBB);
-		
+		Nucleus::setInsertBlock(bodyBB);
+
 		return true;
 	}
 
 	bool elseBlock(BasicBlock *falseBB)
 	{
 		falseBB->back().eraseFromParent();
-		Nucleus::getBuilder()->SetInsertPoint(falseBB);
+		Nucleus::setInsertBlock(falseBB);
 
 		return true;
 	}
@@ -6787,11 +6926,6 @@ namespace sw
 
 		return RValue<Long>(Nucleus::createCall(rdtsc));
 	}
-
-	void Emms()
-	{
-		x86::emms();
-	}
 }
 
 namespace sw
@@ -6802,7 +6936,7 @@ namespace sw
 		{
 			Module *module = Nucleus::getModule();
 			llvm::Function *cvtss2si = Intrinsic::getDeclaration(module, Intrinsic::x86_sse_cvtss2si);
-			
+
 			Float4 vector;
 			vector.x = val;
 
@@ -6838,7 +6972,7 @@ namespace sw
 			{
 				Int2 lo = x86::cvtps2pi(val);
 				Int2 hi = x86::cvtps2pi(Swizzle(val, 0xEE));
-				
+
 				return Concatenate(lo, hi);
 			}
 		}
@@ -6849,7 +6983,7 @@ namespace sw
 			llvm::Function *rcpss = Intrinsic::getDeclaration(module, Intrinsic::x86_sse_rcp_ss);
 
 			Value *vector = Nucleus::createInsertElement(UndefValue::get(Float4::getType()), val.value, 0);
-			
+
 			return RValue<Float>(Nucleus::createExtractElement(Nucleus::createCall(rcpss, vector), 0));
 		}
 
@@ -6859,7 +6993,7 @@ namespace sw
 			llvm::Function *sqrtss = Intrinsic::getDeclaration(module, Intrinsic::x86_sse_sqrt_ss);
 
 			Value *vector = Nucleus::createInsertElement(UndefValue::get(Float4::getType()), val.value, 0);
-			
+
 			return RValue<Float>(Nucleus::createExtractElement(Nucleus::createCall(sqrtss, vector), 0));
 		}
 
@@ -6867,7 +7001,7 @@ namespace sw
 		{
 			Module *module = Nucleus::getModule();
 			llvm::Function *rsqrtss = Intrinsic::getDeclaration(module, Intrinsic::x86_sse_rsqrt_ss);
-			
+
 			Value *vector = Nucleus::createInsertElement(UndefValue::get(Float4::getType()), val.value, 0);
 
 			return RValue<Float>(Nucleus::createExtractElement(Nucleus::createCall(rsqrtss, vector), 0));
@@ -6877,7 +7011,7 @@ namespace sw
 		{
 			Module *module = Nucleus::getModule();
 			llvm::Function *rcpps = Intrinsic::getDeclaration(module, Intrinsic::x86_sse_rcp_ps);
-			
+
 			return RValue<Float4>(Nucleus::createCall(rcpps, val.value));
 		}
 
@@ -6885,7 +7019,7 @@ namespace sw
 		{
 			Module *module = Nucleus::getModule();
 			llvm::Function *sqrtps = Intrinsic::getDeclaration(module, Intrinsic::x86_sse_sqrt_ps);
-			
+
 			return RValue<Float4>(Nucleus::createCall(sqrtps, val.value));
 		}
 
@@ -6893,7 +7027,7 @@ namespace sw
 		{
 			Module *module = Nucleus::getModule();
 			llvm::Function *rsqrtps = Intrinsic::getDeclaration(module, Intrinsic::x86_sse_rsqrt_ps);
-			
+
 			return RValue<Float4>(Nucleus::createCall(rsqrtps, val.value));
 		}
 
@@ -7066,7 +7200,7 @@ namespace sw
 
 			return As<Short4>(RValue<MMX>(Nucleus::createCall(paddsw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
-		
+
 		RValue<Short4> psubsw(RValue<Short4> x, RValue<Short4> y)
 		{
 			Module *module = Nucleus::getModule();
@@ -7082,7 +7216,7 @@ namespace sw
 
 			return As<UShort4>(RValue<MMX>(Nucleus::createCall(paddusw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
-		
+
 		RValue<UShort4> psubusw(RValue<UShort4> x, RValue<UShort4> y)
 		{
 			Module *module = Nucleus::getModule();
@@ -7098,7 +7232,7 @@ namespace sw
 
 			return As<SByte8>(RValue<MMX>(Nucleus::createCall(paddsb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
-		
+
 		RValue<SByte8> psubsb(RValue<SByte8> x, RValue<SByte8> y)
 		{
 			Module *module = Nucleus::getModule();
@@ -7106,7 +7240,7 @@ namespace sw
 
 			return As<SByte8>(RValue<MMX>(Nucleus::createCall(psubsb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
-		
+
 		RValue<Byte8> paddusb(RValue<Byte8> x, RValue<Byte8> y)
 		{
 			Module *module = Nucleus::getModule();
@@ -7114,7 +7248,7 @@ namespace sw
 
 			return As<Byte8>(RValue<MMX>(Nucleus::createCall(paddusb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
-		
+
 		RValue<Byte8> psubusb(RValue<Byte8> x, RValue<Byte8> y)
 		{
 			Module *module = Nucleus::getModule();
@@ -7355,10 +7489,10 @@ namespace sw
 
 				Int2 loY = Int2(y);
 				Int2 hiY = Int2(Swizzle(y, 0xEE));
-				
+
 				Short4 lo = x86::packssdw(loX, hiX);
 				Short4 hi = x86::packssdw(loY, hiY);
-				
+
 				return Concatenate(lo, hi);
 			}
 		}
@@ -7385,7 +7519,7 @@ namespace sw
 			{
 				Module *module = Nucleus::getModule();
 				llvm::Function *packusdw = Intrinsic::getDeclaration(module, Intrinsic::x86_sse41_packusdw);
-	
+
 				return RValue<UShort8>(Nucleus::createCall(packusdw, x.value, y.value));
 			}
 			else
@@ -7464,10 +7598,10 @@ namespace sw
 			{
 				Int2 lo = Int2(x);
 				Int2 hi = Int2(Swizzle(x, 0xEE));
-				
+
 				lo = x86::pslld(lo, y);
 				hi = x86::pslld(hi, y);
-				
+
 				return Concatenate(lo, hi);
 			}
 		}
@@ -7493,10 +7627,10 @@ namespace sw
 			{
 				Int2 lo = Int2(x);
 				Int2 hi = Int2(Swizzle(x, 0xEE));
-				
+
 				lo = x86::psrad(lo, y);
 				hi = x86::psrad(hi, y);
-				
+
 				return Concatenate(lo, hi);
 			}
 		}
@@ -7522,10 +7656,10 @@ namespace sw
 			{
 				UInt2 lo = As<UInt2>(Int2(As<Int4>(x)));
 				UInt2 hi = As<UInt2>(Int2(Swizzle(As<Int4>(x), 0xEE)));
-				
+
 				lo = x86::psrld(lo, y);
 				hi = x86::psrld(hi, y);
-				
+
 				return Concatenate(lo, hi);
 			}
 		}
@@ -7599,7 +7733,7 @@ namespace sw
 			Module *module = Nucleus::getModule();
 			llvm::Function *pmaxud = Intrinsic::getDeclaration(module, Intrinsic::x86_sse41_pmaxud);
 
-			return RValue<Int4>(Nucleus::createCall(pmaxud, x.value, y.value));
+			return RValue<UInt4>(Nucleus::createCall(pmaxud, x.value, y.value));
 		}
 
 		RValue<UInt4> pminud(RValue<UInt4> x, RValue<UInt4> y)
@@ -7607,7 +7741,7 @@ namespace sw
 			Module *module = Nucleus::getModule();
 			llvm::Function *pminud = Intrinsic::getDeclaration(module, Intrinsic::x86_sse41_pminud);
 
-			return RValue<Int4>(Nucleus::createCall(pminud, x.value, y.value));
+			return RValue<UInt4>(Nucleus::createCall(pminud, x.value, y.value));
 		}
 
 		RValue<Short4> pmulhw(RValue<Short4> x, RValue<Short4> y)
@@ -7674,7 +7808,7 @@ namespace sw
 			return RValue<Int>(Nucleus::createCall(pmovmskb, As<MMX>(x).value));
 		}
 
-		//RValue<Int2> movd(RValue<Pointer<Int>> x)
+		//RValue<Int2> movd(RValue<Pointer<Int> > x)
 		//{
 		//	Value *element = Nucleus::createLoad(x.value);
 
@@ -7698,7 +7832,7 @@ namespace sw
 		{
 			Module *module = Nucleus::getModule();
 			llvm::Function *pmovzxbd = Intrinsic::getDeclaration(module, Intrinsic::x86_sse41_pmovzxbd);
-		
+
 			return RValue<Int4>(Nucleus::createCall(pmovzxbd, Nucleus::createBitCast(x.value, Byte16::getType())));
 		}
 
@@ -7706,7 +7840,7 @@ namespace sw
 		{
 			Module *module = Nucleus::getModule();
 			llvm::Function *pmovsxbd = Intrinsic::getDeclaration(module, Intrinsic::x86_sse41_pmovsxbd);
-		
+
 			return RValue<Int4>(Nucleus::createCall(pmovsxbd, Nucleus::createBitCast(x.value, SByte16::getType())));
 		}
 
@@ -7714,7 +7848,7 @@ namespace sw
 		{
 			Module *module = Nucleus::getModule();
 			llvm::Function *pmovzxwd = Intrinsic::getDeclaration(module, Intrinsic::x86_sse41_pmovzxwd);
-		
+
 			return RValue<Int4>(Nucleus::createCall(pmovzxwd, Nucleus::createBitCast(x.value, UShort8::getType())));
 		}
 
@@ -7722,7 +7856,7 @@ namespace sw
 		{
 			Module *module = Nucleus::getModule();
 			llvm::Function *pmovsxwd = Intrinsic::getDeclaration(module, Intrinsic::x86_sse41_pmovsxwd);
-		
+
 			return RValue<Int4>(Nucleus::createCall(pmovsxwd, Nucleus::createBitCast(x.value, Short8::getType())));
 		}
 

@@ -317,19 +317,6 @@ namespace sw
 			ANALYSIS_LEAVE    = 0x00000008,
 		};
 
-		struct RelativeAddress
-		{
-			RelativeAddress() : type(PARAMETER_VOID), index(0), swizzle(0), scale(1), deterministic(false)
-			{
-			}
-
-			ParameterType type : 8;
-			unsigned int index;
-			unsigned int swizzle : 8;
-			unsigned int scale;
-			bool deterministic;   // Equal accross shader instances run in lockstep (e.g. unrollable loop couters)
-		};
-
 		struct Parameter
 		{
 			union
@@ -338,7 +325,14 @@ namespace sw
 				{
 					unsigned int index;   // For registers types
 
-					RelativeAddress rel;
+					struct
+					{
+						ParameterType type : 8;
+						unsigned int index;
+						unsigned int swizzle : 8;
+						unsigned int scale;
+						bool deterministic;   // Equal accross shader instances run in lockstep (e.g. unrollable loop couters)
+					} rel;
 				};
 
 				float value[4];       // For float constants
@@ -354,6 +348,11 @@ namespace sw
 
 			Parameter() : type(PARAMETER_VOID), index(0)
 			{
+				rel.type = PARAMETER_VOID;
+				rel.index = 0;
+				rel.swizzle = 0;
+				rel.scale = 1;
+				rel.deterministic = false;
 			}
 
 			std::string string(ShaderType shaderType, unsigned short version) const;

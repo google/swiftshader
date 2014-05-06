@@ -13,13 +13,13 @@
 #define sw_Blitter_hpp
 
 #include "Surface.hpp"
-#include "LRUCache.hpp"
+#include "RoutineCache.hpp"
 #include "Reactor/Nucleus.hpp"
+
+#include <string.h>
 
 namespace sw
 {
-	class Routine;
-
 	class Blitter
 	{
 	public:
@@ -66,7 +66,7 @@ namespace sw
 			int sHeight;
 		};
 
-		LRUCache<BlitState, Routine> *blitCache;
+		RoutineCache<BlitState> *blitCache;
 	};
 }
 

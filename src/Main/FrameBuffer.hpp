@@ -14,19 +14,11 @@
 
 #include "Reactor/Nucleus.hpp"
 #include "Renderer/Surface.hpp"
-
-#include <windows.h>
+#include "Common/Thread.hpp"
 
 namespace sw
 {
 	class Surface;
-
-	struct GammaRamp
-	{
-		short red[256];
-		short green[256];
-		short blue[256];
-	};
 
 	struct BlitState
 	{
@@ -42,7 +34,7 @@ namespace sw
 	class FrameBuffer
 	{
 	public:
-		FrameBuffer(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin);
+		FrameBuffer(int width, int height, bool fullscreen, bool topLeftOrigin);
 
 		virtual ~FrameBuffer();
 
@@ -50,17 +42,11 @@ namespace sw
 		int getHeight() const;
 		int getStride() const;
 
+		virtual void flip(void *source, bool HDR) = 0;
+		virtual void blit(void *source, const Rect *sourceRect, const Rect *destRect, bool HDR) = 0;
+
 		virtual void *lock() = 0;
 		virtual void unlock() = 0;
-
-		virtual void flip(HWND windowOverride, void *source, bool HDR) = 0;
-		virtual void blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, bool HDR) = 0;
-
-		virtual void setGammaRamp(GammaRamp *gammaRamp, bool calibrate) = 0;
-		virtual void getGammaRamp(GammaRamp *gammaRamp) = 0;
-
-		virtual void screenshot(void *destBuffer) = 0;
-		virtual bool getScanline(bool &inVerticalBlank, unsigned int &scanline) = 0;
 
 		static void setCursorImage(sw::Surface *cursor);
 		static void setCursorOrigin(int x0, int y0);
@@ -69,31 +55,25 @@ namespace sw
 		static Routine *copyRoutine(const BlitState &state);
 
 	protected:
-		void updateBounds(HWND windowOverride);
-
-		void copy(HWND windowOverride, void *source, bool HDR);
-		void copyLocked();
-
-		static unsigned long __stdcall threadFunction(void *parameters);
-
-		void *locked;   // Video memory back buffer
-		void *target;   // Render target buffer
-
+		void copy(void *source, bool HDR);
+		
 		int width;
 		int height;
 		int stride;
 		int bitDepth;
 		bool HDRdisplay;
-
-		HWND windowHandle;
-		DWORD originalWindowStyle;
-		RECT bounds;
 		bool windowed;
 
-		HCURSOR nullCursor;
-		HCURSOR win32Cursor;
+		void *locked;   // Video memory back buffer
 
-		void (__cdecl *blitFunction)(void *dst, void *src);
+	private:
+		void copyLocked();
+
+		static void threadFunction(void *parameters);
+
+		void *target;   // Render target buffer
+
+		void (*blitFunction)(void *dst, void *src);
 		Routine *blitRoutine;
 		BlitState blitState;
 
@@ -113,18 +93,25 @@ namespace sw
 		static int cursorX;
 		static int cursorY;
 
-		HANDLE blitThread;
-		HANDLE syncEvent;
-		HANDLE blitEvent;
+		Thread *blitThread;
+		Event syncEvent;
+		Event blitEvent;
 		volatile bool terminate;
 
 		static bool topLeftOrigin;
 	};
+
+	class FrameBufferWin;
 }
 
 extern "C"
 {
-	sw::FrameBuffer *createFrameBuffer(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin);
+	#if defined(_WIN32)
+	sw::FrameBuffer *createFrameBuffer(HWND windowHandle, int width, int height);
+	sw::FrameBufferWin *createFrameBufferWin(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin);
+	#else
+	sw::FrameBuffer *createFrameBuffer(unsigned long window, int width, int height);
+	#endif
 }
 
 #endif	 //	sw_FrameBuffer_hpp

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -13,7 +13,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <strstream>
 
 using namespace std;
 
@@ -188,7 +187,7 @@ namespace sw
 	{
 		int keyID = findKey(keyName);
 		if(keyID == -1) return defaultValue;
-		int valueID = findValue(unsigned int(keyID), valueName);
+		int valueID = findValue((unsigned int)keyID, valueName);
 		if(valueID == -1) return defaultValue;
 
 		return sections[keyID].values[valueID];

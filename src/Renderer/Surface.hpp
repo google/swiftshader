@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -57,13 +57,11 @@ namespace sw
 		FORMAT_P8,
 		FORMAT_A8P8,
 		// Compressed formats
-		#if S3TC_SUPPORT
 		FORMAT_DXT1,
 		FORMAT_DXT3,
 		FORMAT_DXT5,
 		FORMAT_ATI1,
 		FORMAT_ATI2,
-		#endif
 		// Floating-point formats
 		FORMAT_R16F,
 		FORMAT_G16R16F,
@@ -94,10 +92,10 @@ namespace sw
 		FORMAT_D32F,                 // Quad layout
 		FORMAT_D32F_COMPLEMENTARY,   // Quad layout, 1 - z
 		FORMAT_D32F_LOCKABLE,        // Linear layout
-		FORMAT_D32F_TEXTURE,         // Linear layout, no PCF
-		FORMAT_D32F_SHADOW,          // Linear layout, PCF
-		FORMAT_DF24,
-		FORMAT_DF16,
+		FORMAT_D32FS8_TEXTURE,       // Linear layout, no PCF
+		FORMAT_D32FS8_SHADOW,        // Linear layout, PCF
+		FORMAT_DF24S8,
+		FORMAT_DF16S8,
 		FORMAT_INTZ,
 		FORMAT_S8,
 		// Quad layout framebuffer
@@ -147,7 +145,6 @@ namespace sw
 			Lock lock;
 			
 			bool dirty;
-			unsigned int paletteUsed;
 		};
 
 	public:
@@ -350,10 +347,11 @@ namespace sw
 		const bool lockable;
 		const bool renderTarget;
 
+		bool dirtyMipmaps;
+		unsigned int paletteUsed;
+
 		static unsigned int *palette;   // FIXME: Not multi-device safe
 		static unsigned int paletteID;
-
-		bool dirtyMipmaps;
 
 		sw::Resource *resource;
 		bool hasParent;

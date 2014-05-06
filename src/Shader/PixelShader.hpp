@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -34,7 +34,8 @@ namespace sw
 
 		virtual void analyze();
 
-		Semantic semantic[10][4];   // FIXME: Private
+		enum {MAX_INPUT_VARYINGS = 11};
+		Semantic semantic[MAX_INPUT_VARYINGS][4];   // FIXME: Private
 
 		bool vPosDeclared;
 		bool vFaceDeclared;

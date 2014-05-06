@@ -35,7 +35,7 @@ namespace sw
 		BlendWeight = 1,
 		BlendIndices = 2,
 		Normal = 3,
-		PSize = 4,
+		PointSize = 4,
 		Color0 = 5,
 		Color1 = 6,
 		TexCoord0 = 7,
@@ -360,6 +360,9 @@ namespace sw
 
 		unsigned short pixelShaderVersion() const;
 		unsigned short vertexShaderVersion() const;
+
+		int getMultiSampleCount() const;
+		int getSuperSampleCount() const;
 
 		DrawType drawType;
 

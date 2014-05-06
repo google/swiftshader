@@ -17,7 +17,7 @@ namespace sw
 {
 	extern bool forceWindowed;
 
-	FrameBufferGDI::FrameBufferGDI(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin) : FrameBuffer(windowHandle, width, height, fullscreen, topLeftOrigin)
+	FrameBufferGDI::FrameBufferGDI(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin) : FrameBufferWin(windowHandle, width, height, fullscreen, topLeftOrigin)
 	{
 		if(!windowed)
 		{
@@ -68,6 +68,27 @@ namespace sw
 	{
 	}
 
+	void FrameBufferGDI::flip(void *source, bool HDR)
+	{
+		blit(source, 0, 0, HDR);
+	}
+	
+	void FrameBufferGDI::blit(void *source, const Rect *sourceRect, const Rect *destRect, bool HDR)
+	{
+		copy(source, HDR);
+
+		int sourceLeft = sourceRect ? sourceRect->x0 : 0;
+		int sourceTop = sourceRect ? sourceRect->y0 : 0;
+		int sourceWidth = sourceRect ? sourceRect->x1 - sourceRect->x0 : width;
+		int sourceHeight = sourceRect ? sourceRect->y1 - sourceRect->y0 : height;
+		int destLeft = destRect ? destRect->x0 : 0;
+		int destTop = destRect ? destRect->y0 : 0;
+		int destWidth = destRect ? destRect->x1 - destRect->x0 : bounds.right - bounds.left;
+		int destHeight = destRect ? destRect->y1 - destRect->y0 : bounds.bottom - bounds.top;
+
+		StretchBlt(windowContext, destLeft, destTop, destWidth, destHeight, bitmapContext, sourceLeft, sourceTop, sourceWidth, sourceHeight, SRCCOPY);
+	}
+
 	void FrameBufferGDI::flip(HWND windowOverride, void *source, bool HDR)
 	{
 		blit(windowOverride, source, 0, 0, HDR);
@@ -81,18 +102,7 @@ namespace sw
 			init(windowOverride);
 		}
 
-		copy(windowOverride, source, HDR);
-
-		int sourceLeft = sourceRect ? sourceRect->x0 : 0;
-		int sourceTop = sourceRect ? sourceRect->y0 : 0;
-		int sourceWidth = sourceRect ? sourceRect->x1 - sourceRect->x0 : width;
-		int sourceHeight = sourceRect ? sourceRect->y1 - sourceRect->y0 : height;
-		int destLeft = destRect ? destRect->x0 : 0;
-		int destTop = destRect ? destRect->y0 : 0;
-		int destWidth = destRect ? destRect->x1 - destRect->x0 : bounds.right - bounds.left;
-		int destHeight = destRect ? destRect->y1 - destRect->y0 : bounds.bottom - bounds.top;
-
-		StretchBlt(windowContext, destLeft, destTop, destWidth, destHeight, bitmapContext, sourceLeft, sourceTop, sourceWidth, sourceHeight, SRCCOPY);
+		blit(source, sourceRect, destRect, HDR);
 	}
 
 	void FrameBufferGDI::setGammaRamp(GammaRamp *gammaRamp, bool calibrate)
@@ -135,6 +145,8 @@ namespace sw
 		
 		bitmap = CreateDIBSection(bitmapContext, &bitmapInfo, DIB_RGB_COLORS, &locked, 0, 0);
 		SelectObject(bitmapContext, bitmap);
+
+		updateBounds(window);
 	}
 
 	void FrameBufferGDI::release()

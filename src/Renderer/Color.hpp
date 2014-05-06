@@ -38,28 +38,28 @@ namespace sw
 		T &operator[](int i);
 		const T &operator[](int i) const;
 
-		Color operator+() const;
-		Color operator-() const;
+		Color<T> operator+() const;
+		Color<T> operator-() const;
 
-		Color& operator=(const Color& c);
+		Color<T>& operator=(const Color<T>& c);
 
-		Color &operator+=(const Color &c);
-		Color &operator*=(float l);
+		Color<T> &operator+=(const Color<T> &c);
+		Color<T> &operator*=(float l);
 
-		static Color gradient(const Color &c1, const Color  &c2, float d);
-		static Color shade(const Color &c1, const Color  &c2, float d);
+		static Color<T> gradient(const Color<T> &c1, const Color<T>  &c2, float d);
+		static Color<T> shade(const Color<T> &c1, const Color<T>  &c2, float d);
 
-		template<class T>
-		friend Color operator+(const Color &c1, const Color &c2);
-		template<class T>
-		friend Color operator-(const Color &c1, const Color &c2);
+		template<class S>
+		friend Color<S> operator+(const Color<S> &c1, const Color<S> &c2);
+		template<class S>
+		friend Color<S> operator-(const Color<S> &c1, const Color<S> &c2);
 
-		template<class T>
-		friend Color operator*(float l, const Color &c);
-		template<class T>
-		friend Color operator*(const Color &c1, const Color &c2);
-		template<class T>
-		friend Color operator/(const Color &c, float l);
+		template<class S>
+		friend Color<S> operator*(float l, const Color<S> &c);
+		template<class S>
+		friend Color<S> operator*(const Color<S> &c1, const Color<S> &c2);
+		template<class S>
+		friend Color<S> operator/(const Color<S> &c, float l);
 
 		T r;
 		T g;
@@ -77,6 +77,7 @@ namespace sw
 	{
 	}
 
+	template<>
 	inline Color<byte>::Color(const Color<byte> &c)
 	{
 		r = c.r;
@@ -85,6 +86,7 @@ namespace sw
 		a = c.a;
 	}
 
+	template<>
 	inline Color<byte>::Color(const Color<short> &c)
 	{
 		r = clamp(c.r >> 4, 0, 255);
@@ -93,6 +95,7 @@ namespace sw
 		a = clamp(c.a >> 4, 0, 255);
 	}
 
+	template<>
 	inline Color<byte>::Color(const Color<float> &c)
 	{
 		r = ifloor(clamp(c.r * 256.0f, 0.0f, 255.0f));
@@ -101,6 +104,7 @@ namespace sw
 		a = ifloor(clamp(c.a * 256.0f, 0.0f, 255.0f));
 	}
 
+	template<>
 	inline Color<short>::Color(const Color<short> &c)
 	{
 		r = c.r;
@@ -109,6 +113,7 @@ namespace sw
 		a = c.a;
 	}
 
+	template<>
 	inline Color<short>::Color(const Color<byte> &c)
 	{
 		r = c.r << 4;
@@ -117,6 +122,7 @@ namespace sw
 		a = c.a << 4;
 	}
 
+	template<>
 	inline Color<float>::Color(const Color<float> &c)
 	{
 		r = c.r;
@@ -125,6 +131,7 @@ namespace sw
 		a = c.a;
 	}
 
+	template<>
 	inline Color<short>::Color(const Color<float> &c)
 	{
 		r = iround(clamp(c.r * 4095.0f, -4096.0f, 4095.0f));
@@ -133,6 +140,7 @@ namespace sw
 		a = iround(clamp(c.a * 4095.0f, -4096.0f, 4095.0f));
 	}
 
+	template<>
 	inline Color<float>::Color(const Color<byte> &c)
 	{
 		r = c.r / 255.0f;
@@ -141,6 +149,7 @@ namespace sw
 		a = c.a / 255.0f;
 	}
 
+	template<>
 	inline Color<float>::Color(const Color<short> &c)
 	{
 		r = c.r / 4095.0f;
@@ -149,6 +158,7 @@ namespace sw
 		a = c.a / 4095.0f;
 	}
 
+	template<>
 	inline Color<float>::Color(unsigned short c)
 	{
 		r = (float)(c & 0xF800) / (float)0xF800;
@@ -157,6 +167,7 @@ namespace sw
 		a = 1;
 	}
 
+	template<>
 	inline Color<short>::Color(unsigned short c)
 	{
 		// 4.12 fixed-point format
@@ -166,6 +177,7 @@ namespace sw
 		a = 0x1000;
 	}
 
+	template<>
 	inline Color<byte>::Color(unsigned short c)
 	{
 		r = (byte)(((c & 0xF800) >> 8) + ((c & 0xE000) >> 13));
@@ -174,6 +186,7 @@ namespace sw
 		a = 0xFF;
 	}
 
+	template<>
 	inline Color<float>::Color(int c)
 	{
 		const float d = 1.0f / 255.0f;
@@ -184,6 +197,7 @@ namespace sw
 		a = (float)((c & 0xFF000000) >> 24) * d;
 	}
 
+	template<>
 	inline Color<short>::Color(int c)
 	{
 		// 4.12 fixed-point format
@@ -193,6 +207,7 @@ namespace sw
 		a = (short)((c & 0xFF000000) >> 20);
 	}
 
+	template<>
 	inline Color<byte>::Color(int c)
 	{
 		r = (byte)((c & 0x00FF0000) >> 16);
@@ -201,6 +216,7 @@ namespace sw
 		a = (byte)((c & 0xFF000000) >> 24);
 	}
 
+	template<>
 	inline Color<float>::Color(unsigned int c)
 	{
 		const float d = 1.0f / 255.0f;
@@ -211,6 +227,7 @@ namespace sw
 		a = (float)((c & 0xFF000000) >> 24) * d;
 	}
 
+	template<>
 	inline Color<short>::Color(unsigned int c)
 	{
 		// 4.12 fixed-point format
@@ -220,6 +237,7 @@ namespace sw
 		a = (short)((c & 0xFF000000) >> 20);
 	}
 
+	template<>
 	inline Color<byte>::Color(unsigned int c)
 	{
 		r = (byte)((c & 0x00FF0000) >> 16);
@@ -228,6 +246,7 @@ namespace sw
 		a = (byte)((c & 0xFF000000) >> 24);
 	}
 
+	template<>
 	inline Color<float>::Color(unsigned long c)
 	{
 		const float d = 1.0f / 255.0f;
@@ -238,6 +257,7 @@ namespace sw
 		a = (float)((c & 0xFF000000) >> 24) * d;
 	}
 
+	template<>
 	inline Color<short>::Color(unsigned long c)
 	{
 		// 4.12 fixed-point format
@@ -247,6 +267,7 @@ namespace sw
 		a = (short)((c & 0xFF000000) >> 20);
 	}
 
+	template<>
 	inline Color<byte>::Color(unsigned long c)
 	{
 		r = (byte)((c & 0x00FF0000) >> 16);
@@ -264,6 +285,7 @@ namespace sw
 		a = a_;
 	}
 
+	template<>
 	inline Color<float>::operator unsigned int() const
 	{
 		return ((unsigned int)min(b * 255.0f, 255.0f) << 0) |
@@ -272,6 +294,7 @@ namespace sw
 		       ((unsigned int)min(a * 255.0f, 255.0f) << 24);
 	}
 
+	template<>
 	inline Color<short>::operator unsigned int() const
 	{
 		return ((unsigned int)min(b >> 4, 255) << 0) |
@@ -280,6 +303,7 @@ namespace sw
 		       ((unsigned int)min(a >> 4, 255) << 24);
 	}
 
+	template<>
 	inline Color<byte>::operator unsigned int() const
 	{
 		return (b << 0) +
@@ -382,6 +406,7 @@ namespace sw
 		return Color<T>(r, g, b, a);
 	}
 
+	template<>
 	inline Color<short> operator*(const Color<short> &c1, const Color<short> &c2)
 	{
 		short r = c1.r * c2.r >> 12;
@@ -392,6 +417,7 @@ namespace sw
 		return Color<short>(r, g, b, a);
 	}
 
+	template<>
 	inline Color<byte> operator*(const Color<byte> &c1, const Color<byte> &c2)
 	{
 		byte r = c1.r * c2.r >> 8;

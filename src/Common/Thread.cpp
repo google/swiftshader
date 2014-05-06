@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -17,26 +17,22 @@ namespace sw
 	{
 		Event init;
 		Entry entry = {threadFunction, parameters, &init};
-		
+
 		#if defined(_WIN32)
 			handle = CreateThread(0, 1024 * 1024, startFunction, &entry, 0, 0);
-		#elif defined(__APPLE__)
-			pthread_create(&handle, 0, startFunction, &entry);
 		#else
-			#error Unimplemented platform
+			pthread_create(&handle, 0, startFunction, &entry);
 		#endif
-		
+
 		init.wait();
 	}
 
 	Thread::~Thread()
-	{		
+	{
 		#if defined(_WIN32)
 			CloseHandle(handle);
-		#elif defined(__APPLE__)
-			pthread_cancel(handle);
 		#else
-			#error Unimplemented platform
+			pthread_cancel(handle);
 		#endif
 	}
 
@@ -44,10 +40,8 @@ namespace sw
 	{
 		#if defined(_WIN32)
 			WaitForSingleObject(handle, INFINITE);
-		#elif defined(__APPLE__)
-			pthread_join(handle, 0);
 		#else
-			#error Unimplemented platform
+			pthread_join(handle, 0);
 		#endif
 	}
 
@@ -59,7 +53,7 @@ namespace sw
 			entry.threadFunction(entry.threadParameters);
 			return 0;
 		}
-	#elif defined(__APPLE__)
+	#else
 		void *Thread::startFunction(void *parameters)
 		{
 			Entry entry = *(Entry*)parameters;
@@ -67,20 +61,16 @@ namespace sw
 			entry.threadFunction(entry.threadParameters);
 			return 0;
 		}
-	#else
-		#error Unimplemented platform
 	#endif
 
 	Event::Event()
 	{
 		#if defined(_WIN32)
-			handle = CreateEvent(0, false, false, 0);
-		#elif defined(__APPLE__)
+			handle = CreateEvent(0, FALSE, FALSE, 0);
+		#else
 			pthread_cond_init(&handle, 0);
 			pthread_mutex_init(&mutex, 0);
 			signaled = false;
-		#else
-			#error Unimplemented platform
 		#endif
 	}
 
@@ -88,11 +78,9 @@ namespace sw
 	{
 		#if defined(_WIN32)
 			CloseHandle(handle);
-		#elif defined(__APPLE__)
+		#else
 			pthread_cond_destroy(&handle);
 			pthread_mutex_destroy(&mutex);
-		#else
-			#error Unimplemented platform
 		#endif
 	}
 }

@@ -34,7 +34,7 @@ namespace sw
 
 	void QuadRasterizer::generate()
 	{
-		Function<Void, Pointer<Byte>, Int, Int, Pointer<Byte>> function;
+		Function<Void, Pointer<Byte>, Int, Int, Pointer<Byte> > function;
 		{
 			#if PERF_PROFILE
 				Long pixelTime = Ticks();
@@ -46,7 +46,7 @@ namespace sw
 			Pointer<Byte> data(function.arg(3));
 
 			Registers r(shader);
-			r.constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,constants));
+			r.constants = *Pointer<Pointer<Byte> >(data + OFFSET(DrawData,constants));
 			r.cluster = cluster;
 			r.data = data;
 			
@@ -104,18 +104,18 @@ namespace sw
 		{
 			if(state.colorWriteActive(index))
 			{
-				cBuffer[index] = *Pointer<Pointer<Byte>>(r.data + OFFSET(DrawData,colorBuffer[index])) + yMin * *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
+				cBuffer[index] = *Pointer<Pointer<Byte> >(r.data + OFFSET(DrawData,colorBuffer[index])) + yMin * *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
 			}
 		}
 
 		if(state.depthTestActive)
 		{
-			zBuffer = *Pointer<Pointer<Byte>>(r.data + OFFSET(DrawData,depthBuffer)) + yMin * *Pointer<Int>(r.data + OFFSET(DrawData,depthPitchB));
+			zBuffer = *Pointer<Pointer<Byte> >(r.data + OFFSET(DrawData,depthBuffer)) + yMin * *Pointer<Int>(r.data + OFFSET(DrawData,depthPitchB));
 		}
 
 		if(state.stencilActive)
 		{
-			sBuffer = *Pointer<Pointer<Byte>>(r.data + OFFSET(DrawData,stencilBuffer)) + yMin * *Pointer<Int>(r.data + OFFSET(DrawData,stencilPitchB));
+			sBuffer = *Pointer<Pointer<Byte> >(r.data + OFFSET(DrawData,stencilBuffer)) + yMin * *Pointer<Int>(r.data + OFFSET(DrawData,stencilPitchB));
 		}
 
 		Int y = yMin;

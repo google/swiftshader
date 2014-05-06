@@ -19,10 +19,12 @@
 #include "Constants.hpp"
 #include "Debug.hpp"
 
-#include <malloc.h>
+#include <string.h>
 
 namespace sw
 {
+	bool precacheVertex = false;
+
 	void VertexCache::clear()
 	{
 		for(int i = 0; i < 16; i++)
@@ -97,7 +99,6 @@ namespace sw
 			updateModelMatrix[i] = true;
 		}
 
-		precacheDLL = 0;
 		routineCache = 0;
 		setRoutineCacheSize(1024);
 	}
@@ -111,46 +112,6 @@ namespace sw
 	void VertexProcessor::setInputStream(int index, const Stream &stream)
 	{
 		context->input[index] = stream;
-	}
-
-	void VertexProcessor::setInputPositionStream(const Stream &stream)
-	{
-		context->input[Position] = stream;
-	}
-
-	void VertexProcessor::setInputBlendWeightStream(const Stream &stream)
-	{
-		context->input[BlendWeight] = stream;
-	}
-
-	void VertexProcessor::setInputBlendIndicesStream(const Stream &stream)
-	{
-		context->input[BlendIndices] = stream;
-	}
-
-	void VertexProcessor::setInputNormalStream(const Stream &stream)
-	{
-		context->input[Normal] = stream;
-	}
-
-	void VertexProcessor::setInputPSizeStream(const Stream &stream)
-	{
-		context->input[PSize] = stream;
-	}
-
-	void VertexProcessor::setInputTexCoordStream(const Stream &stream, int index)
-	{
-		context->input[TexCoord0 + index] = stream;
-	}
-
-	void VertexProcessor::setInputPositiontStream(const Stream &stream)
-	{
-		context->input[PositionT] = stream;
-	}
-
-	void VertexProcessor::setInputColorStream(const Stream &stream, int index)
-	{
-		context->input[Color0 + index] = stream;
 	}
 
 	void VertexProcessor::resetInputStreams(bool preTransformed)
@@ -767,7 +728,7 @@ namespace sw
 	void VertexProcessor::setRoutineCacheSize(int cacheSize)
 	{
 		delete routineCache;
-		routineCache = new LRUCache<State, Routine>(clamp(cacheSize, 1, 65536));
+		routineCache = new RoutineCache<State>(clamp(cacheSize, 1, 65536), precacheVertex ? "sw-vertex" : 0);
 	}
 
 	const VertexProcessor::State VertexProcessor::update()
@@ -837,8 +798,8 @@ namespace sw
 		state.pointScaleActive = context->pointScaleActive();
 
 		state.preTransformed = context->preTransformed;
-		state.superSampling = context->renderTarget[0]->getSuperSampleCount() > 1;
-		state.multiSampling = context->renderTarget[0]->getMultiSampleCount() > 1;
+		state.superSampling = context->getSuperSampleCount() > 1;
+		state.multiSampling = context->getMultiSampleCount() > 1;
 
 		for(int i = 0; i < 16; i++)
 		{
@@ -930,7 +891,7 @@ namespace sw
 				}
 			}
 
-			if(context->input[PSize])
+			if(context->input[PointSize])
 			{
 				state.output[Pts].yWrite = true;
 			}

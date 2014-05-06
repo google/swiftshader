@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <string.h>
 
 #if PERF_PROFILE
 extern Profiler profiler;
@@ -41,10 +42,8 @@ namespace sw
 		return ss.str();
 	}
 
-	SwiftConfig::SwiftConfig(bool disableServerOverride)
+	SwiftConfig::SwiftConfig(bool disableServerOverride) : listenSocket(0)
 	{
-		InitializeCriticalSection(&criticalSection);
-
 		readConfiguration(disableServerOverride);
 
 		if(!disableServerOverride)
@@ -63,8 +62,6 @@ namespace sw
 	SwiftConfig::~SwiftConfig()
 	{
 		destroyServer();
-
-		DeleteCriticalSection(&criticalSection);
 	}
 
 	void SwiftConfig::createServer()
@@ -72,27 +69,12 @@ namespace sw
 		bufferLength = 16 * 1024;
 		receiveBuffer = new char[bufferLength];
 
-		WSADATA winsockData;
-		WSAStartup(MAKEWORD(2, 2), &winsockData);
+		Socket::startup();
+		listenSocket = new Socket("localhost", "8080");
+		listenSocket->listen();
 
-		addrinfo hints = {0};
-		hints.ai_family = AF_INET;
-		hints.ai_socktype = SOCK_STREAM;
-		hints.ai_protocol = IPPROTO_TCP;
-		hints.ai_flags = AI_PASSIVE;
-
-		addrinfo *info = 0;
-		getaddrinfo("localhost", "8080", &hints, &info);
-
-		if(info)
-		{
-			listenSocket = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
-			bind(listenSocket, info->ai_addr, (int)info->ai_addrlen);
-			listen(listenSocket, SOMAXCONN);
-
-			terminate = false;
-			serverThread = CreateThread(0, 1024 * 1024, serverRoutine, this, 0, 0);
-		}
+		terminate = false;
+		serverThread = new Thread(serverRoutine, this);
 	}
 
 	void SwiftConfig::destroyServer()
@@ -100,12 +82,13 @@ namespace sw
 		if(receiveBuffer)
 		{
 			terminate = true;
-			WaitForSingleObject(serverThread, INFINITE);
-			CloseHandle(serverThread);
+			serverThread->join();
+			delete serverThread;
 
-			closesocket(listenSocket);
+			delete listenSocket;
+			listenSocket = 0;
 
-			WSACleanup();
+			Socket::cleanup();
 
 			delete[] receiveBuffer;
 			receiveBuffer = 0;
@@ -126,26 +109,16 @@ namespace sw
 
 	void SwiftConfig::getConfiguration(Configuration &configuration)
 	{
-		EnterCriticalSection(&criticalSection);
+		criticalSection.lock();
 		configuration = config;
-		LeaveCriticalSection(&criticalSection);
+		criticalSection.unlock();
 	}
 
-	unsigned long __stdcall SwiftConfig::serverRoutine(void *parameters)
+	void SwiftConfig::serverRoutine(void *parameters)
 	{
 		SwiftConfig *swiftConfig = (SwiftConfig*)parameters;
 
 		swiftConfig->serverLoop();
-
-		return 0;
-	}
-
-	bool SwiftConfig::pending(SOCKET socket, int ms)
-	{
-		fd_set sockets = {1, {socket}};
-		timeval timeout = {ms / 1000, ms % 1000};
-
-		return select(0, &sockets, 0, 0, &timeout) == 1;
 	}
 
 	void SwiftConfig::serverLoop()
@@ -154,27 +127,27 @@ namespace sw
 
 		while(!terminate)
 		{
-			if(pending(listenSocket, 100))
+			if(listenSocket->select(100000))
 			{
-				clientSocket = accept(listenSocket, 0, 0);
+				Socket *clientSocket = listenSocket->accept();
 				int bytesReceived = 1;
 
 				while(bytesReceived > 0 && !terminate)
 				{
-					if(pending(clientSocket, 10))
+					if(clientSocket->select(10))
 					{
-						bytesReceived = recv(clientSocket, receiveBuffer, bufferLength, 0);
+						bytesReceived = clientSocket->receive(receiveBuffer, bufferLength);
 
 						if(bytesReceived > 0)
 						{
 							receiveBuffer[bytesReceived] = 0;
 							
-							respond(receiveBuffer);
+							respond(clientSocket, receiveBuffer);
 						}
 					}
 				}
 
-				closesocket(clientSocket);
+				delete clientSocket;
 			}
 		}
 	}
@@ -193,7 +166,7 @@ namespace sw
 		return false;
 	}
 
-	void SwiftConfig::respond(const char *request)
+	void SwiftConfig::respond(Socket *clientSocket, const char *request)
 	{
 		if(match(&request, "GET /"))
 		{
@@ -201,7 +174,7 @@ namespace sw
 			{
 				if(match(&request, " ") || match(&request, "/ "))
 				{
-					return send(OK, page());
+					return send(clientSocket, OK, page());
 				}
 			}
 		}
@@ -211,7 +184,7 @@ namespace sw
 			{
 				if(match(&request, " ") || match(&request, "/ "))
 				{
-					EnterCriticalSection(&criticalSection);
+					criticalSection.lock();
 
 					const char *postData = strstr(request, "\r\n\r\n");
 					postData = postData ? postData + 4 : 0;
@@ -222,7 +195,7 @@ namespace sw
 					}
 					else   // POST data in next packet
 					{
-						int bytesReceived = recv(clientSocket, receiveBuffer, bufferLength, 0);
+						int bytesReceived = clientSocket->receive(receiveBuffer, bufferLength);
 						
 						if(bytesReceived > 0)
 						{
@@ -239,18 +212,18 @@ namespace sw
 						destroyServer();
 					}
 
-					LeaveCriticalSection(&criticalSection);
+					criticalSection.unlock();
 
-					return send(OK, page());
+					return send(clientSocket, OK, page());
 				}
 				else if(match(&request, "/profile "))
 				{
-					return send(OK, profile());
+					return send(clientSocket, OK, profile());
 				}
 			}
 		}
 
-		return send(NotFound);
+		return send(clientSocket, NotFound);
 	}
 
 	std::string SwiftConfig::page()
@@ -393,7 +366,6 @@ namespace sw
 		html += "<tr><td>Transparency anti-aliasing:</td><td><select name='transparencyAntialiasing' title='The technique used to anti-alias alpha-tested transparent textures.'>\n";
 		html += "<option value='0'" + (config.transparencyAntialiasing == 0 ? selected : empty) + ">None (default)</option>\n";
 		html += "<option value='1'" + (config.transparencyAntialiasing == 1 ? selected : empty) + ">Alpha-to-Coverage</option>\n";
-		html += "<option value='2'" + (config.transparencyAntialiasing == 2 ? selected : empty) + ">Interpolation</option>\n";
 		html += "</select></td>\n";
 		html += "</table>\n";
 		html += "<h2><em>Processor settings</em></h2>\n";
@@ -457,6 +429,7 @@ namespace sw
 		html += "<option value='0'" + (config.frameBufferAPI == 0 ? selected : empty) + ">DirectDraw (default)</option>\n";
 		html += "<option value='1'" + (config.frameBufferAPI == 1 ? selected : empty) + ">GDI</option>\n";
 		html += "</select></td>\n";
+		html += "<tr><td>DLL precaching:</td><td><input name = 'precache' type='checkbox'" + (config.precache == true ? checked : empty) + " title='If checked dynamically generated routines will be stored in a DLL for faster loading on application restart.'></td></tr>";
 		html += "<tr><td>Shadow mapping extensions:</td><td><select name='shadowMapping' title='Features that may accelerate or improve the quality of shadow mapping.'>\n";
 		html += "<option value='0'" + (config.shadowMapping == 0 ? selected : empty) + ">None</option>\n";
 		html += "<option value='1'" + (config.shadowMapping == 1 ? selected : empty) + ">Fetch4</option>\n";
@@ -537,7 +510,7 @@ namespace sw
 		return html;
 	}
 
-	void SwiftConfig::send(Status code, std::string body)
+	void SwiftConfig::send(Socket *clientSocket, Status code, std::string body)
 	{
 		std::string status;
 		char header[1024];
@@ -554,7 +527,7 @@ namespace sw
 						"\r\n", body.size());
 
 		std::string message = status + header + body;
-		::send(clientSocket, message.c_str(), (int)message.length(), 0);
+		clientSocket->send(message.c_str(), (int)message.length());
 	}
 
 	void SwiftConfig::parsePost(const char *post)
@@ -572,6 +545,7 @@ namespace sw
 		config.exactColorRounding = false;
 		config.disableAlphaMode = false;
 		config.disable10BitMode = false;
+		config.precache = false;
 		config.forceClearRegisters = false;
 
 		while(*post != 0)
@@ -707,6 +681,10 @@ namespace sw
 			{
 				config.disable10BitMode = true;
 			}
+			else if(strstr(post, "precache=on"))
+			{
+				config.precache = true;
+			}
 			else if(strstr(post, "forceClearRegisters=on"))
 			{
 				config.forceClearRegisters = true;
@@ -771,6 +749,7 @@ namespace sw
 		config.disableAlphaMode = ini.getBoolean("Testing", "DisableAlphaMode", false);
 		config.disable10BitMode = ini.getBoolean("Testing", "Disable10BitMode", false);
 		config.frameBufferAPI = ini.getInteger("Testing", "FrameBufferAPI", 0);
+		config.precache = ini.getBoolean("Testing", "Precache", false);
 		config.shadowMapping = ini.getInteger("Testing", "ShadowMapping", 3);
 		config.forceClearRegisters = ini.getBoolean("Testing", "ForceClearRegisters", false);
 
@@ -828,6 +807,7 @@ namespace sw
 		ini.addValue("Testing", "DisableAlphaMode", itoa(config.disableAlphaMode));
 		ini.addValue("Testing", "Disable10BitMode", itoa(config.disable10BitMode));
 		ini.addValue("Testing", "FrameBufferAPI", itoa(config.frameBufferAPI));
+		ini.addValue("Testing", "Precache", itoa(config.precache));
 		ini.addValue("Testing", "ShadowMapping", itoa(config.shadowMapping));
 		ini.addValue("Testing", "ForceClearRegisters", itoa(config.forceClearRegisters));
 		ini.addValue("LastModified", "Time", itoa((int)time(0)));

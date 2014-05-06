@@ -42,7 +42,7 @@ namespace sw
 		~Resource();   // Always call destruct() instead
 
 		BackoffLock criticalSection;
-		volatile HANDLE unblock;
+		Event unblock;
 		volatile int blocked;
 
 		volatile Accessor accessor;

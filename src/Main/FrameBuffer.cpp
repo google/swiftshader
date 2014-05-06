@@ -14,23 +14,25 @@
 #include "Timer.hpp"
 #include "CPUID.hpp"
 #include "serialvalid.h"
-#include "Surface.hpp"
 #include "Register.hpp"
-#include "Debug.hpp"
+#include "Renderer/Surface.hpp"
 #include "Reactor/Reactor.hpp"
 #include "Common/Configurator.hpp"
+#include "Common/Debug.hpp"
 
 #include <stdio.h>
-
-extern const int logoWidth;
-extern const int logoHeight;
-extern const unsigned int logoData[];
+#include <string.h>
+#include <time.h>
 
 #ifndef DISPLAY_LOGO
 #define DISPLAY_LOGO (NDEBUG & 1)
 #endif
 
 #define ASYNCHRONOUS_BLIT 0   // FIXME: Currently leads to rare race conditions
+
+extern const int logoWidth;
+extern const int logoHeight;
+extern const unsigned int logoData[];
 
 namespace sw
 {
@@ -49,13 +51,12 @@ namespace sw
 	int FrameBuffer::cursorY;
 	bool FrameBuffer::topLeftOrigin = false;
 
-	FrameBuffer::FrameBuffer(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin)
+	FrameBuffer::FrameBuffer(int width, int height, bool fullscreen, bool topLeftOrigin)
 	{
 		this->topLeftOrigin = topLeftOrigin;
 
 		locked = 0;
 
-		this->windowHandle = windowHandle;
 		this->width = width;
 		this->height = height;
 		bitDepth = 32;
@@ -68,20 +69,6 @@ namespace sw
 		}
 
 		windowed = !fullscreen;
-
-		if(!windowed)
-		{
-			// Force fullscreen window style (no borders)
-			originalWindowStyle = GetWindowLong(windowHandle, GWL_STYLE);
-			SetWindowLong(windowHandle, GWL_STYLE, WS_POPUP);
-		}
-
-		HINSTANCE instance = (HINSTANCE)GetWindowLongPtr(windowHandle, GWLP_HINSTANCE);
-		unsigned char one[32 * 32 / sizeof(unsigned char)];
-		memset(one, 0xFFFFFFFF, sizeof(one));
-		unsigned char zero[32 * 32 / sizeof(unsigned char)] = {0};
-		nullCursor = CreateCursor(instance, 0, 0, 32, 32, one, zero);
-		win32Cursor = GetCursor();
 
 		blitFunction = 0;
 		blitRoutine = 0;
@@ -96,13 +83,9 @@ namespace sw
 
 		if(ASYNCHRONOUS_BLIT)
 		{
-			syncEvent = CreateEvent(0, FALSE, FALSE, 0);
-			blitEvent = CreateEvent(0, FALSE, FALSE, 0);
-			FrameBuffer *parameters = this;
-
 			terminate = false;
-			blitThread = CreateThread(0, 1024 * 1024, threadFunction, &parameters, 0, 0);
-			WaitForSingleObject(syncEvent, INFINITE);
+			FrameBuffer *parameters = this;
+			blitThread = new Thread(threadFunction, &parameters);
 		}
 	}
 
@@ -111,37 +94,12 @@ namespace sw
 		if(ASYNCHRONOUS_BLIT)
 		{
 			terminate = true;
-			SetEvent(blitEvent);
-			WaitForSingleObject(blitThread, INFINITE);
-			CloseHandle(blitThread);
-			CloseHandle(blitEvent);
-			CloseHandle(syncEvent);
+			blitEvent.signal();
+			blitThread->join();
+			delete blitThread;
 		}
 
 		delete blitRoutine;
-
-		DestroyCursor(nullCursor);
-
-		if(!windowed && GetWindowLong(windowHandle, GWL_STYLE) == WS_POPUP)
-		{
-			SetWindowLong(windowHandle, GWL_STYLE, originalWindowStyle);
-		}
-	}
-
-	void FrameBuffer::updateBounds(HWND windowOverride)
-	{
-		HWND window = windowOverride ? windowOverride : windowHandle;
-
-		if(windowed)
-		{
-			GetClientRect(window, &bounds);
-			ClientToScreen(window, (POINT*)&bounds);
-			ClientToScreen(window, (POINT*)&bounds + 1);
-		}
-		else
-		{
-			SetRect(&bounds, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
-		}
 	}
 
 	int FrameBuffer::getWidth() const
@@ -188,14 +146,12 @@ namespace sw
 		cursorPositionY = y;
 	}
 
-	void FrameBuffer::copy(HWND windowOverride, void *source, bool HDR)
+	void FrameBuffer::copy(void *source, bool HDR)
 	{
 		if(!source)
 		{
 			return;
 		}
-
-		updateBounds(windowOverride);
 
 		if(!lock())
 		{
@@ -217,30 +173,13 @@ namespace sw
 
 		HDRdisplay = HDR;
 
-		if(cursor)
-		{
-			cursorX = cursorPositionX - cursorHotspotX;
-			cursorY = cursorPositionY - cursorHotspotY;
-
-			HCURSOR oldCursor = SetCursor(nullCursor);
-			
-			if(oldCursor != nullCursor)
-			{
-				win32Cursor = oldCursor;
-			}
-		}
-		else
-		{
-			if(GetCursor() == nullCursor)
-			{
-				SetCursor(win32Cursor);
-			}
-		}
+		cursorX = cursorPositionX - cursorHotspotX;
+		cursorY = cursorPositionY - cursorHotspotY;
 
 		if(ASYNCHRONOUS_BLIT)
 		{
-			SetEvent(blitEvent);
-			WaitForSingleObject(syncEvent, INFINITE);
+			blitEvent.signal();
+			syncEvent.wait();
 		}
 		else
 		{
@@ -252,7 +191,7 @@ namespace sw
 
 	void FrameBuffer::copyLocked()
 	{
-		BlitState update;
+		BlitState update = {0};
 
 		update.width = width;
 		update.height = height;
@@ -268,14 +207,10 @@ namespace sw
 			delete blitRoutine;
 
 			blitRoutine = copyRoutine(blitState);
-			blitFunction = (void(__cdecl*)(void*, void*))blitRoutine->getEntry();
+			blitFunction = (void(*)(void*, void*))blitRoutine->getEntry();
 		}
 
 		blitFunction(locked, target);
-
-		#ifndef _M_AMD64
-			__asm emms
-		#endif
 	}
 
 	Routine *FrameBuffer::copyRoutine(const BlitState &state)
@@ -294,7 +229,27 @@ namespace sw
 	//	bool validApp = strcmp(compareApp, registeredApp) == 0;
 		bool validKey = ValidateSerialNumber(validationKey, CHECKSUM_KEY, SERIAL_PREFIX);
 
-		Function<Void, Pointer<Byte>, Pointer<Byte>> function;
+		// Date of the end of the logo-free license
+		const int endYear = 2099;
+		const int endMonth = 12;
+		const int endDay = 31;
+
+		const int endDate = (endYear << 16) + (endMonth << 8) + endDay;
+
+		time_t rawtime = time(0);
+		tm *timeinfo = localtime(&rawtime);
+		int year = timeinfo->tm_year + 1900;
+		int month = timeinfo->tm_mon + 1;
+		int day = timeinfo->tm_mday;
+
+		int date = (year << 16) + (month << 8) + day;
+
+		if(date > endDate)
+		{
+			validKey = false;
+		}
+
+		Function<Void, Pointer<Byte>, Pointer<Byte> > function;
 		{
 			Pointer<Byte> dst(function.arg(0));
 			Pointer<Byte> src(function.arg(1));
@@ -408,13 +363,13 @@ namespace sw
 				If(!Bool(validKey)/* || !Bool(validApp)*/)
 				{
 					UInt hash = UInt(0x0B020C04) + UInt(0xC0F090E0);   // Initial value
-					UInt imageHash = S3TC_SUPPORT ? UInt(0x01010600) + UInt(0xC0302010) : UInt(0x0D030E0B) + UInt(0xB0D01040);
+					UInt imageHash = S3TC_SUPPORT ? UInt(0x0F0D0700) + UInt(0xA0C0A090) : UInt(0x0207040B) + UInt(0xD0406010);
 
 					While(hash != imageHash)
 					{
 						For(y = (height - 1), height - 1 - y < logoHeight, y--)
 						{
-							Pointer<Byte> logo = *Pointer<Pointer<Byte>>(&logoImage) + 4 * (logoHeight - height + y) * logoWidth;
+							Pointer<Byte> logo = *Pointer<Pointer<Byte> >(&logoImage) + 4 * (logoHeight - height + y) * logoWidth;
 							Pointer<Byte> s = src + y * sStride;
 							Pointer<Byte> d = dst + y * dStride;
 
@@ -448,7 +403,7 @@ namespace sw
 				{
 					Pointer<Byte> d = dst + y * dStride + x0 * dBytes;
 					Pointer<Byte> s = src + y * sStride + x0 * sBytes;
-					Pointer<Byte> c = *Pointer<Pointer<Byte>>(&cursor) + y1 * cursorWidth * 4;
+					Pointer<Byte> c = *Pointer<Pointer<Byte> >(&cursor) + y1 * cursorWidth * 4;
 
 					For(Int x1 = 0, x1 < cursorWidth, x1++)
 					{
@@ -465,8 +420,6 @@ namespace sw
 					}
 				}
 			}
-
-			Return();
 		}
 
 		return function(L"FrameBuffer");
@@ -523,25 +476,21 @@ namespace sw
 		else ASSERT(false);
 	}
 
-	unsigned long __stdcall FrameBuffer::threadFunction(void *parameters)
+	void FrameBuffer::threadFunction(void *parameters)
 	{
 		FrameBuffer *frameBuffer = *static_cast<FrameBuffer**>(parameters);
 
-		SetEvent(frameBuffer->syncEvent);   // Received parameters
-
 		while(!frameBuffer->terminate)
 		{
-			WaitForSingleObject(frameBuffer->blitEvent, INFINITE);
+			frameBuffer->blitEvent.wait();
 
 			if(!frameBuffer->terminate)
 			{
 				frameBuffer->copyLocked();
 
-				SetEvent(frameBuffer->syncEvent);
+				frameBuffer->syncEvent.signal();
 			}
 		}
-
-		return 0;
 	}
 
 	void FrameBuffer::initializeLogo()
@@ -568,26 +517,41 @@ namespace sw
 	}
 }
 
-#include "FrameBufferDD.hpp"
-#include "FrameBufferGDI.hpp"
+#if defined(_WIN32)
+	#include "FrameBufferDD.hpp"
+	#include "FrameBufferGDI.hpp"
+#else
+	#include "FrameBufferX11.hpp"
+#endif
 
 extern "C"
 {
-	sw::FrameBuffer *createFrameBuffer(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin)
+#if defined(_WIN32)
+	sw::FrameBuffer *createFrameBuffer(HWND window, int width, int height)
+	{
+		return createFrameBufferWin(window, width, height, false, false);
+	}
+
+	sw::FrameBufferWin *createFrameBufferWin(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin)
 	{
 		sw::Configurator ini("SwiftShader.ini");
-		int api = ini.getInteger("Testing", "FrameBufferAPI", 1);
+		int api = ini.getInteger("Testing", "FrameBufferAPI", 0);
 
-		if(api == 0)
+		if(api == 0 && topLeftOrigin)
 		{
 			return new sw::FrameBufferDD(windowHandle, width, height, fullscreen, topLeftOrigin);
 		}
-		else if(api == 1)
+		else
 		{
 			return new sw::FrameBufferGDI(windowHandle, width, height, fullscreen, topLeftOrigin);
 		}
-		else ASSERT(false);
 
 		return 0;
 	}
+#else
+	sw::FrameBuffer *createFrameBuffer(Window window, int width, int height)
+	{
+		return new sw::FrameBufferX11(window, width, height);
+	}
+#endif
 }

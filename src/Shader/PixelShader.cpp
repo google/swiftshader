@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -12,6 +12,8 @@
 #include "PixelShader.hpp"
 
 #include "Debug.hpp"
+
+#include <string.h>
 
 namespace sw
 {
@@ -216,7 +218,7 @@ namespace sw
 				}
 			}
 
-			bool interpolant[10][4] = {false};   // Interpolants in use
+			bool interpolant[MAX_INPUT_VARYINGS][4] = {false};   // Interpolants in use
 
 			for(unsigned int i = 0; i < instruction.size(); i++)
 			{
@@ -642,7 +644,7 @@ namespace sw
 				}
 			}
 
-			for(int index = 0; index < 10; index++)
+			for(int index = 0; index < MAX_INPUT_VARYINGS; index++)
 			{
 				for(int component = 0; component < 4; component++)
 				{

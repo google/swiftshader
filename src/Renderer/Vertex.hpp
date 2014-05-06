@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -70,7 +70,7 @@ namespace sw
 					};
 				};
 
-				Color<float> C[2];   // Diffuse and specular color
+				float4 C[2];   // Diffuse and specular color
 
 				UVWQ T[8];           // Texture coordinates
 

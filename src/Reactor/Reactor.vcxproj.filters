@@ -15,6 +15,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DLL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="MemoryManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -23,6 +26,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DLL.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MemoryManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

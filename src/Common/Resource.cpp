@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -17,7 +17,6 @@ namespace sw
 {
 	Resource::Resource(int bytes)
 	{
-		unblock = CreateEvent(NULL, FALSE, FALSE, NULL);
 		blocked = 0;
 
 		accessor = PUBLIC;
@@ -41,7 +40,7 @@ namespace sw
 			blocked++;
 			criticalSection.unlock();
 
-			WaitForSingleObject(unblock, INFINITE);
+			unblock.wait();
 
 			criticalSection.lock();
 			blocked--;
@@ -63,12 +62,12 @@ namespace sw
 		while(count > 0 && accessor == relinquisher)
 		{
 			count--;
-		
+
 			if(count == 0)
 			{
 				if(blocked)
 				{
-					SetEvent(unblock);
+					unblock.signal();
 				}
 				else if(orphaned)
 				{
@@ -87,7 +86,7 @@ namespace sw
 			blocked++;
 			criticalSection.unlock();
 
-			WaitForSingleObject(unblock, INFINITE);
+			unblock.wait();
 
 			criticalSection.lock();
 			blocked--;
@@ -106,12 +105,12 @@ namespace sw
 		criticalSection.lock();
 
 		count--;
-		
+
 		if(count == 0)
 		{
 			if(blocked)
 			{
-				SetEvent(unblock);
+				unblock.signal();
 			}
 			else if(orphaned)
 			{
@@ -133,12 +132,12 @@ namespace sw
 		while(count > 0 && accessor == relinquisher)
 		{
 			count--;
-		
+
 			if(count == 0)
 			{
 				if(blocked)
 				{
-					SetEvent(unblock);
+					unblock.signal();
 				}
 				else if(orphaned)
 				{

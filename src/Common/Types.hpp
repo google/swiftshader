@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -12,7 +12,7 @@
 #ifndef sw_Types_hpp
 #define sw_Types_hpp
 
-#if defined(_WIN32)
+#if defined(_MSC_VER)
 	typedef signed __int8 int8_t;
 	typedef signed __int16 int16_t;
 	typedef signed __int32 int32_t;
@@ -22,11 +22,9 @@
 	typedef unsigned __int32 uint32_t;
 	typedef unsigned __int64 uint64_t;
 	#define ALIGN(bytes, type) __declspec(align(bytes)) type
-#elif defined(__APPLE__)
+#else
 	#include <stdint.h>
 	#define ALIGN(bytes, type) type __attribute__((aligned(bytes)))
-#else
-	#error Unimplemented platform
 #endif
 
 namespace sw

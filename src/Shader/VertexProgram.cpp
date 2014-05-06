@@ -587,7 +587,7 @@ namespace sw
 				r.o[T0 + i].w = r.v[TexCoord0 + i].w;
 			}
 
-			r.o[Pts].y = r.v[PSize].x;
+			r.o[Pts].y = r.v[PointSize].x;
 		}
 	}
 
@@ -658,64 +658,44 @@ namespace sw
 			ASSERT(false);
 		}
 
-		Vector4f mod;
+		const Float4 &x = reg[(src.swizzle >> 0) & 0x3];
+		const Float4 &y = reg[(src.swizzle >> 2) & 0x3];
+		const Float4 &z = reg[(src.swizzle >> 4) & 0x3];
+		const Float4 &w = reg[(src.swizzle >> 6) & 0x3];
 
-		mod.x = reg[(src.swizzle >> 0) & 0x03];
-		mod.y = reg[(src.swizzle >> 2) & 0x03];
-		mod.z = reg[(src.swizzle >> 4) & 0x03];
-		mod.w = reg[(src.swizzle >> 6) & 0x03];
+		Vector4f mod;
 
 		switch(src.modifier)
 		{
 		case Shader::MODIFIER_NONE:
+			mod.x = x;
+			mod.y = y;
+			mod.z = z;
+			mod.w = w;
 			break;
 		case Shader::MODIFIER_NEGATE:
-			mod.x = -mod.x;
-			mod.y = -mod.y;
-			mod.z = -mod.z;
-			mod.w = -mod.w;
-			break;
-		case Shader::MODIFIER_BIAS:
-			ASSERT(false);   // NOTE: Unimplemented
-			break;
-		case Shader::MODIFIER_BIAS_NEGATE:
-			ASSERT(false);   // NOTE: Unimplemented
-			break;
-		case Shader::MODIFIER_SIGN:
-			ASSERT(false);   // NOTE: Unimplemented
-			break;
-		case Shader::MODIFIER_SIGN_NEGATE:
-			ASSERT(false);   // NOTE: Unimplemented
-			break;
-		case Shader::MODIFIER_COMPLEMENT:
-			ASSERT(false);   // NOTE: Unimplemented
-			break;
-		case Shader::MODIFIER_X2:
-			ASSERT(false);   // NOTE: Unimplemented
-			break;
-		case Shader::MODIFIER_X2_NEGATE:
-			ASSERT(false);   // NOTE: Unimplemented
-			break;
-		case Shader::MODIFIER_DZ:
-			ASSERT(false);   // NOTE: Unimplemented
-			break;
-		case Shader::MODIFIER_DW:
-			ASSERT(false);   // NOTE: Unimplemented
+			mod.x = -x;
+			mod.y = -y;
+			mod.z = -z;
+			mod.w = -w;
 			break;
 		case Shader::MODIFIER_ABS:
-			mod.x = Abs(mod.x);
-			mod.y = Abs(mod.y);
-			mod.z = Abs(mod.z);
-			mod.w = Abs(mod.w);
+			mod.x = Abs(x);
+			mod.y = Abs(y);
+			mod.z = Abs(z);
+			mod.w = Abs(w);
 			break;
 		case Shader::MODIFIER_ABS_NEGATE:
-			mod.x = -Abs(mod.x);
-			mod.y = -Abs(mod.y);
-			mod.z = -Abs(mod.z);
-			mod.w = -Abs(mod.w);
+			mod.x = -Abs(x);
+			mod.y = -Abs(y);
+			mod.z = -Abs(z);
+			mod.w = -Abs(w);
 			break;
 		case Shader::MODIFIER_NOT:
-			UNIMPLEMENTED();
+			mod.x = As<Float4>(As<Int4>(x) ^ Int4(0xFFFFFFFF));
+			mod.y = As<Float4>(As<Int4>(y) ^ Int4(0xFFFFFFFF));
+			mod.z = As<Float4>(As<Int4>(z) ^ Int4(0xFFFFFFFF));
+			mod.w = As<Float4>(As<Int4>(w) ^ Int4(0xFFFFFFFF));
 			break;
 		default:
 			ASSERT(false);
@@ -795,7 +775,7 @@ namespace sw
 				case Shader::PARAMETER_TEMP:   a = r.r[src.rel.index][component]; break;
 				case Shader::PARAMETER_INPUT:  a = r.v[src.rel.index][component]; break;
 				case Shader::PARAMETER_OUTPUT: a = r.o[src.rel.index][component]; break;
-				case Shader::PARAMETER_CONST:  a = Float4(*Pointer<Float>(r.data + OFFSET(DrawData,vs.c[src.rel.index][component]))); break;
+				case Shader::PARAMETER_CONST:  a = *Pointer<Float>(r.data + OFFSET(DrawData,vs.c[src.rel.index][component])); break;
 				default: ASSERT(false);
 				}
 
@@ -1370,7 +1350,7 @@ namespace sw
 		Nucleus::setInsertBlock(testBlock);
 		r.enableContinue = restoreContinue;
 
-		Vector4f &src = reg(r, temporaryRegister);
+		const Vector4f &src = reg(r, temporaryRegister);
 		Int4 condition = As<Int4>(src.x);
 		condition &= r.enableStack[r.enableIndex - 1];
 		r.enableStack[r.enableIndex] = condition;
@@ -1403,7 +1383,7 @@ namespace sw
 				// FIXME: Encapsulate
 				UInt index = r.callStack[--r.stackIndex];
  
-				llvm::Value *value = Nucleus::createLoad(index.address);
+				llvm::Value *value = index.loadValue();
 				llvm::Value *switchInst = Nucleus::createSwitch(value, unreachableBlock, (int)callRetBlock[currentLabel].size());
 
 				for(unsigned int i = 0; i < callRetBlock[currentLabel].size(); i++)

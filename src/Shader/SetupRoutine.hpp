@@ -31,7 +31,7 @@ namespace sw
 
 	private:
 		void setupGradient(Pointer<Byte> &primitive, Pointer<Byte> &triangle, Float4 &w012, Float4 (&m)[3], Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2, int attribute, int planeEquation, bool flatShading, bool sprite, bool perspective, bool wrap, int component);
-		void edge(Pointer<Byte> &primitive, Pointer<Byte> &data, Int &X1, Int &Y1, Int &X2, Int &Y2, Int &q);
+		void edge(Pointer<Byte> &primitive, Pointer<Byte> &data, const Int &X1, const Int &Y1, const Int &X2, const Int &Y2, Int &q);
 		void conditionalRotate1(Bool condition, Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2);
 		void conditionalRotate2(Bool condition, Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2);
 

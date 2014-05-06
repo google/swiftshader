@@ -29,7 +29,7 @@ namespace sw
 		return 1;
 	}
 
-	FrameBufferDD::FrameBufferDD(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin) : FrameBuffer(windowHandle, width, height, fullscreen, topLeftOrigin)
+	FrameBufferDD::FrameBufferDD(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin) : FrameBufferWin(windowHandle, width, height, fullscreen, topLeftOrigin)
 	{
 		directDraw = 0;
 		frontBuffer = 0;
@@ -240,11 +240,9 @@ namespace sw
 		updateBounds(windowHandle);
 	}
 
-	void FrameBufferDD::flip(HWND windowOverride, void *source, bool HDR)
+	void FrameBufferDD::flip(void *source, bool HDR)
 	{
-		updateClipper(windowOverride);
-
-		copy(windowOverride, source, HDR);
+		copy(source, HDR);
 
 		if(!readySurfaces())
 		{
@@ -273,11 +271,9 @@ namespace sw
 		}
 	}
 
-	void FrameBufferDD::blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, bool HDR)
+	void FrameBufferDD::blit(void *source, const Rect *sourceRect, const Rect *destRect, bool HDR)
 	{
-		updateClipper(windowOverride);
-
-		copy(windowOverride, source, HDR);
+		copy(source, HDR);
 
 		if(!readySurfaces())
 		{
@@ -312,6 +308,22 @@ namespace sw
 
 			Sleep(0);
 		}
+	}
+
+	void FrameBufferDD::flip(HWND windowOverride, void *source, bool HDR)
+	{
+		updateClipper(windowOverride);
+		updateBounds(windowOverride);
+
+		flip(source, HDR);
+	}
+
+	void FrameBufferDD::blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, bool HDR)
+	{
+		updateClipper(windowOverride);
+		updateBounds(windowOverride);
+
+		blit(source, sourceRect, destRect, HDR);
 	}
 
 	void FrameBufferDD::screenshot(void *destBuffer)

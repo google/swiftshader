@@ -31,9 +31,9 @@ namespace sw
 		void processTextureCoordinate(Registers &r, int stage, Vector4f &normal, Vector4f &position);
 		void processPointSize(Registers &r);
 
-		Vector4f transformBlend(Registers &r, Register &src, Pointer<Byte> &matrix, bool homogenous);
-		Vector4f transform(Register &src, Pointer<Byte> &matrix, bool homogenous);
-		Vector4f transform(Register &src, Pointer<Byte> &matrix, UInt index[4], bool homogenous);
+		Vector4f transformBlend(Registers &r, const Register &src, const Pointer<Byte> &matrix, bool homogenous);
+		Vector4f transform(const Register &src, const Pointer<Byte> &matrix, bool homogenous);
+		Vector4f transform(const Register &src, const Pointer<Byte> &matrix, UInt index[4], bool homogenous);
 		Vector4f normalize(Vector4f &src);
 		Float4 power(Float4 &src0, Float4 &src1);
 	};

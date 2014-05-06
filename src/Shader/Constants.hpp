@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -9,7 +9,10 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-#include "Types.hpp"
+#ifndef sw_Constants_hpp
+#define sw_Constants_hpp
+
+#include "Common/Types.hpp"
 
 namespace sw
 {
@@ -98,5 +101,7 @@ namespace sw
 		float half2float[65536];
 	};
 
-	static Constants constants;
+	extern Constants constants;
 }
+
+#endif   // sw_Constants_hpp

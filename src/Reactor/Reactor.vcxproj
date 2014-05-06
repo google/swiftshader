@@ -254,10 +254,12 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DLL.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="Nucleus.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DLL.hpp" />
     <ClInclude Include="MemoryManager.hpp" />
     <ClInclude Include="Nucleus.hpp" />
     <ClInclude Include="Reactor.hpp" />

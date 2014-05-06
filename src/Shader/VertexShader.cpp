@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -14,6 +14,8 @@
 #include "Vertex.hpp"
 #include "Debug.hpp"
 
+#include <string.h>
+
 namespace sw
 {
 	VertexShader::VertexShader(const VertexShader *vs) : Shader()
@@ -22,7 +24,7 @@ namespace sw
 		positionRegister = Pos;
 		pointSizeRegister = -1;   // No vertex point size
 
-		for(int i = 0; i < 16; i++)
+		for(int i = 0; i < MAX_INPUT_ATTRIBUTES; i++)
 		{
 			input[i] = Semantic(-1, -1);
 		}
@@ -51,7 +53,7 @@ namespace sw
 		positionRegister = Pos;
 		pointSizeRegister = -1;   // No vertex point size
 
-		for(int i = 0; i < 16; i++)
+		for(int i = 0; i < MAX_INPUT_ATTRIBUTES; i++)
 		{
 			input[i] = Semantic(-1, -1);
 		}
@@ -218,7 +220,7 @@ namespace sw
 					if(dst.x) output[T0 + dst.index][0] = Semantic(Shader::USAGE_TEXCOORD, dst.index);
 					if(dst.y) output[T0 + dst.index][1] = Semantic(Shader::USAGE_TEXCOORD, dst.index);
 					if(dst.z) output[T0 + dst.index][2] = Semantic(Shader::USAGE_TEXCOORD, dst.index);
-					if(dst.w) output[T0 + dst.index][3] = Semantic(Shader::USAGE_TEXCOORD, dst.index);	
+					if(dst.w) output[T0 + dst.index][3] = Semantic(Shader::USAGE_TEXCOORD, dst.index);
 					break;
 				default:
 					break;

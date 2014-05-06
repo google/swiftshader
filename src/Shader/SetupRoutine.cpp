@@ -33,14 +33,14 @@ namespace sw
 
 	void SetupRoutine::generate()
 	{
-		Function<Bool, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>> function;
+		Function<Bool, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte> > function;
 		{
 			Pointer<Byte> primitive(function.arg(0));
 			Pointer<Byte> tri(function.arg(1));
 			Pointer<Byte> polygon(function.arg(2));
 			Pointer<Byte> data(function.arg(3));
 
-			Pointer<Byte> constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,constants));
+			Pointer<Byte> constants = *Pointer<Pointer<Byte> >(data + OFFSET(DrawData,constants));
 
 			const bool point = state.isDrawPoint;
 			const bool sprite = state.pointSprite;
@@ -84,7 +84,7 @@ namespace sw
 
 				Float A = (y2 - y0) * x1 + (y1 - y2) * x0 + (y0 - y1) * x2;   // Area
 
-				If(A == Float(0.0f))
+				If(A == 0.0f)
 				{
 					Return(false);
 				}
@@ -93,22 +93,22 @@ namespace sw
 							   *Pointer<Float>(v1 + pos * 16 + 12) *
 							   *Pointer<Float>(v2 + pos * 16 + 12);
 
-				A = IfThenElse(w0w1w2 < Float(0.0f), -A, A);
+				A = IfThenElse(w0w1w2 < 0.0f, -A, A);
 
 				if(state.cullMode == Context::CULL_CLOCKWISE)
 				{
-					If(A >= Float(0.0f)) Return(false);
+					If(A >= 0.0f) Return(false);
 				}
 				else if(state.cullMode == Context::CULL_COUNTERCLOCKWISE)
 				{
-					If(A <= Float(0.0f)) Return(false);
+					If(A <= 0.0f) Return(false);
 				}
 
-				d = IfThenElse(A < Float(0.0f), d, Int(0));
+				d = IfThenElse(A < 0.0f, d, Int(0));
 
 				if(state.twoSidedStencil)
 				{
-					If(A > Float(0.0f))
+					If(A > 0.0f)
 					{
 						*Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask)) =  Byte8(0xFFFFFFFFFFFFFFFF);
 						*Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask)) = Byte8(0x0000000000000000);
@@ -122,7 +122,7 @@ namespace sw
 
 				if(state.vFace)
 				{
-					*Pointer<Float>(primitive + OFFSET(Primitive,area)) = Float(0.5f) * A;
+					*Pointer<Float>(primitive + OFFSET(Primitive,area)) = 0.5f * A;
 				}
 			}
 			else
@@ -145,11 +145,11 @@ namespace sw
 
 				Do
 				{
-					Pointer<Float4> p = *Pointer<Pointer<Float4>>(V + i * sizeof(void*));
+					Pointer<Float4> p = *Pointer<Pointer<Float4> >(V + i * sizeof(void*));
 					Float4 v = *Pointer<Float4>(p, 16);
 
 					Float w = v.w;
-					Float rhw = IfThenElse(w != Float(0.0f), Float(1.0f) / w, Float(1.0f));
+					Float rhw = IfThenElse(w != 0.0f, 1.0f / w, Float(1.0f));
 
 					X[i] = RoundInt(*Pointer<Float>(data + OFFSET(DrawData,X0x16)) + v.x * rhw * *Pointer<Float>(data + OFFSET(DrawData,Wx16)));
 					Y[i] = RoundInt(*Pointer<Float>(data + OFFSET(DrawData,Y0x16)) + v.y * rhw * *Pointer<Float>(data + OFFSET(DrawData,Hx16)));
@@ -238,7 +238,7 @@ namespace sw
 
 					Do
 					{
-						edge(primitive, data, Int(Xq[i + 1 - d]), Int(Yq[i + 1 - d]), Int(Xq[i + d]), Int(Yq[i + d]), q);
+						edge(primitive, data, Xq[i + 1 - d], Yq[i + 1 - d], Xq[i + d], Yq[i + d], q);
 
 						i++;
 					}
@@ -329,8 +329,8 @@ namespace sw
 				Y2 = Y1 + X0 - X1;
 			}
 
-			Float dx = Float(X0) * Float(1.0f / 16.0f);
-			Float dy = Float(Y0) * Float(1.0f / 16.0f);
+			Float dx = Float(X0) * (1.0f / 16.0f);
+			Float dy = Float(Y0) * (1.0f / 16.0f);
 
 			X1 -= X0;
 			Y1 -= Y0;
@@ -338,11 +338,11 @@ namespace sw
 			X2 -= X0;
 			Y2 -= Y0;
 
-			Float x1 = w1 * Float(1.0f / 16.0f) * Float(X1);
-			Float y1 = w1 * Float(1.0f / 16.0f) * Float(Y1);
+			Float x1 = w1 * (1.0f / 16.0f) * Float(X1);
+			Float y1 = w1 * (1.0f / 16.0f) * Float(Y1);
 
-			Float x2 = w2 * Float(1.0f / 16.0f) * Float(X2);
-			Float y2 = w2 * Float(1.0f / 16.0f) * Float(Y2);
+			Float x2 = w2 * (1.0f / 16.0f) * Float(X2);
+			Float y2 = w2 * (1.0f / 16.0f) * Float(Y2);
 
 			Float a = x1 * y2 - x2 * y1;
 
@@ -360,9 +360,9 @@ namespace sw
 
 			M[0].z = rhw0;
 
-			If(a != Float(0.0f))
+			If(a != 0.0f)
 			{
-				Float A = Float(1) / a;
+				Float A = 1.0f / a;
 				Float D = A * rhw0;
 
 				M[0].x = (y1 * w2 - y2 * w1) * D;
@@ -409,10 +409,10 @@ namespace sw
 
 				if(!point)
 				{
-					Float x1 = Float(X1) * Float(1.0f / 16.0f);
-					Float y1 = Float(Y1) * Float(1.0f / 16.0f);
-					Float x2 = Float(X2) * Float(1.0f / 16.0f);
-					Float y2 = Float(Y2) * Float(1.0f / 16.0f);
+					Float x1 = Float(X1) * (1.0f / 16.0f);
+					Float y1 = Float(Y1) * (1.0f / 16.0f);
+					Float x2 = Float(X2) * (1.0f / 16.0f);
+					Float y2 = Float(Y2) * (1.0f / 16.0f);
 
 					Float D = *Pointer<Float>(data + OFFSET(DrawData,depthRange)) / (x1 * y2 - x2 * y1);
 
@@ -489,20 +489,20 @@ namespace sw
 			}
 			else
 			{
-				if(component == 0) i.x = Float(0.5f);
-				if(component == 1) i.x = Float(0.5f);
-				if(component == 2) i.x = Float(0.0f);
-				if(component == 3) i.x = Float(1.0f);
+				if(component == 0) i.x = 0.5f;
+				if(component == 1) i.x = 0.5f;
+				if(component == 2) i.x = 0.0f;
+				if(component == 3) i.x = 1.0f;
 
-				if(component == 0) i.y = Float(1.0f);
-				if(component == 1) i.y = Float(0.5f);
-				if(component == 2) i.y = Float(0.0f);
-				if(component == 3) i.y = Float(1.0f);
+				if(component == 0) i.y = 1.0f;
+				if(component == 1) i.y = 0.5f;
+				if(component == 2) i.y = 0.0f;
+				if(component == 3) i.y = 1.0f;
 
-				if(component == 0) i.z = Float(0.5f);
-				if(component == 1) i.z = Float(1.0f);
-				if(component == 2) i.z = Float(0.0f);
-				if(component == 3) i.z = Float(1.0f);
+				if(component == 0) i.z = 0.5f;
+				if(component == 1) i.z = 1.0f;
+				if(component == 2) i.z = 0.0f;
+				if(component == 3) i.z = 1.0f;
 				
 				i.w = 0;
 			}
@@ -514,12 +514,12 @@ namespace sw
 				m = *Pointer<Float>(v0 + attribute);
 				m = Max(m, *Pointer<Float>(v1 + attribute));
 				m = Max(m, *Pointer<Float>(v2 + attribute));
-				m -= Float(0.5f);   // FIXME: m -= 0.5f;
+				m -= 0.5f;
 
 				// FIXME: Vectorize
-				If(Float(i.x) < m) i.x = Float(i.x) + Float(1.0f);
-				If(Float(i.y) < m) i.y = Float(i.y) + Float(1.0f);
-				If(Float(i.z) < m) i.z = Float(i.z) + Float(1.0f);
+				If(Float(i.x) < m) i.x = i.x + 1.0f;
+				If(Float(i.y) < m) i.y = i.y + 1.0f;
+				If(Float(i.z) < m) i.z = i.z + 1.0f;
 			}
 
 			if(!perspective)
@@ -551,7 +551,7 @@ namespace sw
 		}
 	}
 
-	void SetupRoutine::edge(Pointer<Byte> &primitive, Pointer<Byte> &data, Int &X1, Int &Y1, Int &X2, Int &Y2, Int &q)
+	void SetupRoutine::edge(Pointer<Byte> &primitive, Pointer<Byte> &data, const Int &X1, const Int &Y1, const Int &X2, const Int &Y2, Int &q)
 	{
 		If(Y1 != Y2)
 		{

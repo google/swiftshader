@@ -18,6 +18,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <stdarg.h>
 
 namespace sw
 {

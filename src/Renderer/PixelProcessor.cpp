@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -19,11 +19,15 @@
 #include "Constants.hpp"
 #include "Debug.hpp"
 
+#include <string.h>
+
 namespace sw
 {
 	extern bool complementaryDepthBuffer;
 	extern Context::TransparencyAntialiasing transparencyAntialiasing;
 	extern bool perspectiveCorrection;
+
+	bool precachePixel = false;
 
 	unsigned int PixelProcessor::States::computeHash()
 	{
@@ -59,7 +63,6 @@ namespace sw
 		                             // Round to nearest LOD [0.7, 1.4]:  0.0
 		                             // Round to lowest LOD  [1.0, 2.0]:  0.5
 
-		precacheDLL = 0;
 		routineCache = 0;
 		setRoutineCacheSize(1024);
 	}
@@ -788,7 +791,7 @@ namespace sw
 	void PixelProcessor::setRoutineCacheSize(int cacheSize)
 	{
 		delete routineCache;
-		routineCache = new LRUCache<State, Routine>(clamp(cacheSize, 1, 65536));
+		routineCache = new RoutineCache<State>(clamp(cacheSize, 1, 65536), precachePixel ? "sw-pixel" : 0);
 	}
 
 	void PixelProcessor::setFogRanges(float start, float end)
@@ -828,7 +831,7 @@ namespace sw
 		{
 			state.alphaCompareMode = context->alphaCompareMode;
 
-			state.transparencyAntialiasing = context->renderTarget[0]->getMultiSampleCount() > 1 ? transparencyAntialiasing : Context::TRANSPARENCY_NONE;
+			state.transparencyAntialiasing = context->getMultiSampleCount() > 1 ? transparencyAntialiasing : Context::TRANSPARENCY_NONE;
 		}
 
 		state.depthWriteEnable = context->depthWriteActive();
@@ -859,8 +862,8 @@ namespace sw
 			state.depthTestActive = true;
 			state.depthCompareMode = context->depthCompareMode;
 			state.quadLayoutDepthBuffer = context->depthStencil->getInternalFormat() != FORMAT_D32F_LOCKABLE &&
-			                              context->depthStencil->getInternalFormat() != FORMAT_D32F_TEXTURE &&
-			                              context->depthStencil->getInternalFormat() != FORMAT_D32F_SHADOW;
+			                              context->depthStencil->getInternalFormat() != FORMAT_D32FS8_TEXTURE &&
+			                              context->depthStencil->getInternalFormat() != FORMAT_D32FS8_SHADOW;
 		}
 
 		state.occlusionEnabled = context->occlusionEnabled;
@@ -891,8 +894,8 @@ namespace sw
 			state.targetFormat[i] = context->renderTargetInternalFormat(i);
 		}
 
-		state.writeSRGB	= context->writeSRGB && Surface::isSRGBwritable(context->renderTarget[0]->getExternalFormat());
-		state.multiSample = context->renderTarget[0]->getMultiSampleCount();
+		state.writeSRGB	= context->writeSRGB && context->renderTarget[0] && Surface::isSRGBwritable(context->renderTarget[0]->getExternalFormat());
+		state.multiSample = context->getMultiSampleCount();
 		state.multiSampleMask = context->multiSampleMask;
 
 		if(state.multiSample > 1 && context->pixelShader)

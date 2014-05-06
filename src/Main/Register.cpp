@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -11,9 +11,18 @@
 
 #include "Register.hpp"
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <stdlib.h>
+#if defined(_WIN32)
+	#ifndef WIN32_LEAN_AND_MEAN
+		#define WIN32_LEAN_AND_MEAN
+	#endif
+	#include <windows.h>
+	#include <stdlib.h>
+#else
+	#include <unistd.h>
+	#include <stdio.h>
+	#include <libgen.h>
+	#include <string.h>
+#endif
 
 #define SERIAL_PREFIX "SS"
 #define CHECKSUM_KEY "ShaderCore"
@@ -26,18 +35,29 @@ char validationApp[32];   // Application name
 
 void InitValidationApp(void)
 {
-	char exePath[MAX_PATH*10];
-	char fileName[_MAX_FNAME];
-	GetModuleFileName(NULL, exePath, sizeof(exePath));
-	_splitpath(exePath, 0, 0, fileName, 0);
-	_strlwr(fileName);
 	memset(validationApp, '\0', sizeof(validationApp));
-	strncpy(validationApp, fileName, strlen(fileName));
+
+	char exePath[4096];
+
+	#if defined(_WIN32)
+		GetModuleFileName(NULL, exePath, sizeof(exePath));
+		char exeName[256];
+		_splitpath(exePath, 0, 0, exeName, 0);
+		_strlwr(exeName);
+		strncpy(validationApp, exeName, strlen(exeName));
+	#else
+		char linkPath[4096];
+		sprintf(linkPath, "/proc/%d/exe", getpid());
+		int bytes = readlink(linkPath, exePath, sizeof(exePath));
+		exePath[bytes] = '\0';
+		const char *exeName = basename(exePath);
+		strncpy(validationApp, exeName, strlen(exeName));
+	#endif
 }
 
 extern "C"
 {
-	void __stdcall Register(char *licenseKey)
+	void Register(char *licenseKey)
 	{
 		InitValidationApp();
 		memset(validationKey, '\0', sizeof(validationKey));

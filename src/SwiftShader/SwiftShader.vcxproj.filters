@@ -119,6 +119,9 @@
     <ClCompile Include="..\Renderer\VertexProcessor.cpp">
       <Filter>Source Files\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="..\Main\crc.c">
+      <Filter>Source Files\Main</Filter>
+    </ClCompile>
     <ClCompile Include="..\Main\FrameBuffer.cpp">
       <Filter>Source Files\Main</Filter>
     </ClCompile>
@@ -170,7 +173,10 @@
     <ClCompile Include="..\Main\Register.cpp">
       <Filter>Source Files\Main</Filter>
     </ClCompile>
-    <ClCompile Include="..\Main\CRC.cpp">
+    <ClCompile Include="..\Common\Socket.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Main\FrameBufferWin.cpp">
       <Filter>Source Files\Main</Filter>
     </ClCompile>
   </ItemGroup>
@@ -337,6 +343,18 @@
     <ClInclude Include="..\Common\Version.h" />
     <ClInclude Include="..\Main\Register.hpp">
       <Filter>Header Files\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Socket.hpp">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Renderer\RoutineCache.hpp">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Main\FrameBufferWin.hpp">
+      <Filter>Header Files\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\SharedLibrary.hpp">
+      <Filter>Header Files\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -12,8 +12,10 @@
 #ifndef Memory_hpp
 #define Memory_hpp
 
-void *allocate(size_t bytes);
-void *allocateZero(size_t bytes);
+#include <stddef.h>
+
+void *allocate(size_t bytes, int alignment = 16);
+void *allocateZero(size_t bytes, int alignment = 16);
 void deallocate(void *memory);
 
 void *allocateExecutable(size_t bytes);   // Allocates memory that can be made executable using markExecutable()

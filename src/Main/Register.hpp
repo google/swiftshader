@@ -29,7 +29,7 @@ void InitValidationApp();
 
 extern "C"
 {
-	void __stdcall Register(char *licenseKey);
+	void Register(char *licenseKey);
 }
 
 #endif   // Register_hpp

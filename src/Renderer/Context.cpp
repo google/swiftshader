@@ -456,7 +456,7 @@ namespace sw
 			return false;
 		}
 
-		return isDrawPoint(true) && (input[PSize] || (!preTransformed && pointScaleActive()));
+		return isDrawPoint(true) && (input[PointSize] || (!preTransformed && pointScaleActive()));
 	}
 
 	Context::FogMode Context::pixelFogActive()
@@ -1400,6 +1400,16 @@ namespace sw
 	unsigned short Context::vertexShaderVersion() const
 	{
 		return vertexShader ? vertexShader->getVersion() : 0x0000;
+	}
+
+	int Context::getMultiSampleCount() const
+	{
+		return renderTarget[0] ? renderTarget[0]->getMultiSampleCount() : 1;
+	}
+
+	int Context::getSuperSampleCount() const
+	{
+		return renderTarget[0] ? renderTarget[0]->getSuperSampleCount() : 1;
 	}
 
 	Format Context::renderTargetInternalFormat(int index)

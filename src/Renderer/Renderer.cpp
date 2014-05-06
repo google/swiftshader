@@ -30,7 +30,6 @@
 
 #include <malloc.h>
 #include <assert.h>
-#include <float.h>
 
 #undef max
 
@@ -54,6 +53,10 @@ namespace sw
 	extern bool exactColorRounding;
 	extern Context::TransparencyAntialiasing transparencyAntialiasing;
 	extern bool forceClearRegisters;
+
+	extern bool precacheVertex;
+	extern bool precacheSetup;
+	extern bool precachePixel;
 
 	int batchSize = 128;
 	int threadCount = 1;
@@ -204,8 +207,8 @@ namespace sw
 		updateConfiguration();
 		updateClipper();
 
-		int ss = context->renderTarget[0]->getSuperSampleCount();
-		int ms = context->renderTarget[0]->getMultiSampleCount();
+		int ss = context->getSuperSampleCount();
+		int ms = context->getMultiSampleCount();
 
 		for(int q = 0; q < ss; q++)
 		{
@@ -287,7 +290,7 @@ namespace sw
 			{
 				for(std::list<Query*>::iterator query = queries.begin(); query != queries.end(); query++)
 				{
-					InterlockedIncrement((volatile long*)&(*query)->reference);
+					atomicIncrement(&(*query)->reference);
 				}
 
 				draw->queries = new std::list<Query*>(queries);
@@ -607,7 +610,8 @@ namespace sw
 
 		if(logPrecision < IEEE)
 		{
-			_controlfp(_DN_FLUSH, _MCW_DN);
+			CPUID::setFlushToZero(true);
+			CPUID::setDenormalsAreZero(true);
 		}
 
 		renderer->threadLoop(threadIndex);
@@ -847,11 +851,11 @@ namespace sw
 			pixelProgress[cluster].processedPrimitives = 0;
 		}
 
-		int ref = InterlockedDecrement((volatile long*)&primitiveProgress[unit].references);
+		int ref = atomicDecrement(&primitiveProgress[unit].references);
 
 		if(ref == 0)
 		{
-			ref = InterlockedDecrement((volatile long*)&draw.references);
+			ref = atomicDecrement(&draw.references);
 
 			if(ref == 0)
 			{
@@ -873,10 +877,10 @@ namespace sw
 
 						for(int cluster = 0; cluster < clusterCount; cluster++)
 						{
-							InterlockedExchangeAdd((volatile long*)&query->data, data.occlusion[cluster]);
+							atomicAdd((volatile int*)&query->data, data.occlusion[cluster]);
 						}
 
-						InterlockedDecrement((volatile long*)&query->reference);
+						atomicDecrement(&query->reference);
 					}
 
 					delete draw.queries;
@@ -1178,37 +1182,37 @@ namespace sw
 			break;
 		case Context::DRAW_INDEXEDLINELOOP8:
 			{
-				const unsigned char *index = (const unsigned char*)indices + start;
+				const unsigned char *index = (const unsigned char*)indices;
 
 				for(unsigned int i = 0; i < count; i++)
 				{
-					batch[i][0] = index[(i + 0) % loop];
-					batch[i][1] = index[(i + 1) % loop];
-					batch[i][2] = index[(i + 1) % loop];
+					batch[i][0] = index[(start + i + 0) % loop];
+					batch[i][1] = index[(start + i + 1) % loop];
+					batch[i][2] = index[(start + i + 1) % loop];
 				}
 			}
 			break;
 		case Context::DRAW_INDEXEDLINELOOP16:
 			{
-				const unsigned short *index = (const unsigned short*)indices + start;
+				const unsigned short *index = (const unsigned short*)indices;
 
 				for(unsigned int i = 0; i < count; i++)
 				{
-					batch[i][0] = index[(i + 0) % loop];
-					batch[i][1] = index[(i + 1) % loop];
-					batch[i][2] = index[(i + 1) % loop];
+					batch[i][0] = index[(start + i + 0) % loop];
+					batch[i][1] = index[(start + i + 1) % loop];
+					batch[i][2] = index[(start + i + 1) % loop];
 				}
 			}
 			break;
 		case Context::DRAW_INDEXEDLINELOOP32:
 			{
-				const unsigned int *index = (const unsigned int*)indices + start;
+				const unsigned int *index = (const unsigned int*)indices;
 
 				for(unsigned int i = 0; i < count; i++)
 				{
-					batch[i][0] = index[(i + 0) % loop];
-					batch[i][1] = index[(i + 1) % loop];
-					batch[i][2] = index[(i + 1) % loop];
+					batch[i][0] = index[(start + i + 0) % loop];
+					batch[i][1] = index[(start + i + 1) % loop];
+					batch[i][2] = index[(start + i + 1) % loop];
 				}
 			}
 			break;
@@ -1421,9 +1425,9 @@ namespace sw
 			for(int i = 0; i < 2; i++)
 			{
 				triangle[1].v0.C[i] = triangle[0].v0.C[i];
-				triangle[1].v1.C[i] = triangle[0].v1.C[i];
+				triangle[1].v1.C[i] = triangle[0].v0.C[i];
 				triangle[2].v0.C[i] = triangle[0].v0.C[i];
-				triangle[2].v1.C[i] = triangle[0].v1.C[i];
+				triangle[2].v1.C[i] = triangle[0].v0.C[i];
 			}
 		}
 
@@ -2425,6 +2429,10 @@ namespace sw
 
 			SwiftConfig::Configuration configuration = {0};
 			swiftConfig->getConfiguration(configuration);
+
+			precacheVertex = !newConfiguration && configuration.precache;
+			precacheSetup = !newConfiguration && configuration.precache;
+			precachePixel = !newConfiguration && configuration.precache;
 
 			VertexProcessor::setRoutineCacheSize(configuration.vertexRoutineCacheSize);
 			PixelProcessor::setRoutineCacheSize(configuration.pixelRoutineCacheSize);
