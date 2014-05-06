@@ -1911,7 +1911,7 @@ namespace sh
 
 				for(int i = 0; i < sampler->totalRegisterCount(); i++)
 				{
-					shader->declareSampler(i);
+					shader->declareSampler(index + i);
 				}
 			}
 
