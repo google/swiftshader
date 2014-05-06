@@ -3781,6 +3781,11 @@ namespace sw
 		r.enableIndex = 0;
 		r.stackIndex = 0;
 
+		if(shader->containsLeaveInstruction())
+		{
+			r.enableLeave = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+		}
+
 		bool out[4][4] = {false};
 
 		// Create all call site return blocks up front

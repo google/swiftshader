@@ -70,6 +70,11 @@ namespace sw
 		r.enableIndex = 0;
 		r.stackIndex = 0;
 
+		if(shader->containsLeaveInstruction())
+		{
+			r.enableLeave = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+		}
+
 		// Create all call site return blocks up front
 		for(int i = 0; i < shader->getLength(); i++)
 		{

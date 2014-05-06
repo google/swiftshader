@@ -41,11 +41,6 @@ namespace sw
 				{
 					enableContinue = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 				}
-
-				if(shader && shader->containsLeaveInstruction())
-				{
-					enableLeave = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
-				}
 			}
 
 			Pointer<Byte> data;
