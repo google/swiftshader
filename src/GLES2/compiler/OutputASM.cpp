@@ -21,8 +21,6 @@
 
 namespace sh
 {
-	static const unsigned char swizzleSize[5] = {0x00, 0x00, 0x54, 0xA4, 0xE4};   // (void), xxxx, xyyy, xyzz, xyzw
-
 	// Integer to TString conversion
 	TString str(int i)
 	{
@@ -875,7 +873,7 @@ namespace sh
 
 					Instruction *mov = emit(sw::Shader::OPCODE_MOV, result, argi);
 					mov->dst.mask = (0xF << component) & 0xF;
-					mov->src[0].swizzle = swizzleSize[size] << (component * 2);
+					mov->src[0].swizzle = readSwizzle(argi, size) << (component * 2);
 
 					component += size;
 				}
@@ -926,7 +924,7 @@ namespace sh
 							Instruction *mov = emit(sw::Shader::OPCODE_MOV, result, argi);
 							mov->dst.index += column;
 							mov->dst.mask = (0xF << row) & 0xF;
-							mov->src[0].swizzle = (swizzleSize[size] << (row * 2)) + 0x55 * element;
+							mov->src[0].swizzle = (readSwizzle(argi, size) << (row * 2)) + 0x55 * element;
 					
 							int end = row + size - element;
 							column = end >= dim ? column + 1 : column;
@@ -1444,7 +1442,7 @@ namespace sh
 
 			if(!IsSampler(arg->getBasicType()))
 			{
-				parameter.swizzle = swizzleSize[size];
+				parameter.swizzle = readSwizzle(arg, size);
 			}
 		}
 	}
@@ -1760,6 +1758,18 @@ namespace sh
 		}
 
 		return 0xF >> (4 - registerSize(destination->getType(), index));
+	}
+
+	int OutputASM::readSwizzle(TIntermTyped *argument, int size)
+	{
+		if(argument->getQualifier() == EvqPointSize)
+		{
+			return 0x55;   // Point size stored in the y component
+		}
+
+		static const unsigned char swizzleSize[5] = {0x00, 0x00, 0x54, 0xA4, 0xE4};   // (void), xxxx, xyyy, xyzz, xyzw
+
+		return swizzleSize[size];
 	}
 
 	// Conservatively checks whether an expression is fast to compute and has no side effects
