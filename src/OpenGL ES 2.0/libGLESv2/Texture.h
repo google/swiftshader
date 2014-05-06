@@ -88,7 +88,7 @@ public:
     static const GLuint INCOMPLETE_TEXTURE_ID = static_cast<GLuint>(-1);   // Every texture takes an id at creation time. The value is arbitrary because it is never registered with the resource manager.
 
 protected:
-    void setImage(GLint unpackAlignment, const void *pixels, Image *image);
+    void setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image);
     void subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image);
     void setCompressedImage(GLsizei imageSize, const void *pixels, Image *image);
     void subImageCompressed(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels, Image *image);

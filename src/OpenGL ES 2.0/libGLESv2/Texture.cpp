@@ -726,7 +726,7 @@ void Texture::loadBGRAImageData(GLint xoffset, GLint yoffset, GLsizei width, GLs
     }
 }
 
-void Texture::setImage(GLint unpackAlignment, const void *pixels, Image *image)
+void Texture::setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image)
 {
     if(pixels && image)
     {
@@ -734,7 +734,7 @@ void Texture::setImage(GLint unpackAlignment, const void *pixels, Image *image)
 
         if(buffer)
         {
-            loadImageData(0, 0, image->getWidth(), image->getHeight(), image->getFormat(), image->getType(), unpackAlignment, pixels, image->getPitch(), buffer, image);
+            loadImageData(0, 0, image->getWidth(), image->getHeight(), format, type, unpackAlignment, pixels, image->getPitch(), buffer, image);
             image->unlock();
         }
     }
@@ -928,7 +928,7 @@ void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLenum form
 
 	image[level]->bind();
 
-    Texture::setImage(unpackAlignment, pixels, image[level]);
+    Texture::setImage(format, type, unpackAlignment, pixels, image[level]);
 }
 
 void Texture2D::bindTexImage(egl::Surface *surface)
@@ -1468,7 +1468,7 @@ void TextureCubeMap::setImage(GLenum target, GLint level, GLsizei width, GLsizei
 
 	image[face][level]->bind();
 
-    Texture::setImage(unpackAlignment, pixels, image[face][level]);
+    Texture::setImage(format, type, unpackAlignment, pixels, image[face][level]);
 }
 
 void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source)
