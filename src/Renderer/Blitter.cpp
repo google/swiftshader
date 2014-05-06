@@ -1,0 +1,345 @@
+// SwiftShader Software Renderer
+//
+// Copyright(c) 2005-2011 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
+//
+
+#include "Blitter.hpp"
+
+#include "Common/Debug.hpp"
+#include "Reactor/Shell.hpp"
+
+namespace sw
+{
+	Blitter::Blitter()
+	{
+		blitCache = new LRUCache<BlitState, Routine>(1024);
+	}
+
+	Blitter::~Blitter()
+	{
+		delete blitCache;
+	}
+
+	void Blitter::blit(Surface *source, const Rect &sRect, Surface *dest, const Rect &dRect, bool filter)
+	{
+		if(blitReactor(source, sRect, dest, dRect, filter))
+		{
+			return;
+		}
+
+		source->lockInternal(sRect.left, sRect.top, 0, sw::LOCK_READONLY, sw::PUBLIC);
+		dest->lockInternal(dRect.left, dRect.top, 0, sw::LOCK_WRITEONLY, sw::PUBLIC);
+
+		float w = 1.0f / (dRect.right - dRect.left) * (sRect.right - sRect.left);
+		float h = 1.0f / (dRect.bottom - dRect.top) * (sRect.bottom - sRect.top);
+
+		float y = (float)sRect.top + 0.5f * h;
+
+		for(int j = dRect.top; j < dRect.bottom; j++)
+		{
+			float x = (float)sRect.left + 0.5f * w;
+
+			for(int i = dRect.left; i < dRect.right; i++)
+			{
+				sw::Color<float> color;
+
+				if(!filter)
+				{
+					color = source->readInternal((int)x, (int)y);
+				}
+				else   // Bilinear filtering
+				{
+					color = source->sampleInternal(x, y);
+				}
+
+				dest->writeInternal(i, j, color);
+
+				x += w;
+			}
+
+			y += h;
+		}
+
+		source->unlockInternal();
+		dest->unlockInternal();
+	}
+
+	bool Blitter::read(Float4 &c, Pointer<Byte> element, Format format)
+	{
+		c = Float4(1.0f, 1.0f, 1.0f, 1.0f);
+
+		switch(format)
+		{
+		case FORMAT_L8:
+			c.xyz = Float(Int(*Pointer<Byte>(element)));
+			break;
+		case FORMAT_A8R8G8B8:
+			c = Float4(*Pointer<Byte4>(element)).zyxw;
+			break;
+		case FORMAT_X8R8G8B8:
+			c = Float4(*Pointer<Byte4>(element)).zyxw;
+			c.w = Float(1.0f);
+			break;
+		case FORMAT_A16B16G16R16:
+			c = Float4(*Pointer<UShort4>(element));
+			break;
+		case FORMAT_G16R16:
+			// FIXME: Optimize
+			c.x = Float(Int(*Pointer<UShort>(element + 0)));
+			c.y = Float(Int(*Pointer<UShort>(element + 2)));
+			break;
+		case FORMAT_A32B32G32R32F:
+			c = *Pointer<Float4>(element);
+			break;
+		case FORMAT_G32R32F:
+			c.x = *Pointer<Float>(element + 0);
+			c.y = *Pointer<Float>(element + 4);
+			break;
+		case FORMAT_R32F:
+			c.x = *Pointer<Float>(element);
+			break;
+		default:
+			return false;
+		}
+
+		return true;
+	}
+
+	bool Blitter::blitReactor(Surface *source, const Rect &sRect, Surface *dest, const Rect &dRect, bool filter)
+	{
+		BlitState state;
+
+		state.sourceFormat = source->getInternalFormat();
+		state.destFormat = dest->getInternalFormat();
+		state.filter = filter;
+
+		Routine *blitRoutine = blitCache->query(state);
+		
+		if(!blitRoutine)
+		{
+			Function<Void, Pointer<Byte>> function;
+			{
+				Pointer<Byte> blit(function.arg(0));
+
+				Pointer<Byte> source = *Pointer<Pointer<Byte>>(blit + OFFSET(BlitData,source));
+				Pointer<Byte> dest = *Pointer<Pointer<Byte>>(blit + OFFSET(BlitData,dest));
+				Int sPitchB = *Pointer<Int>(blit + OFFSET(BlitData,sPitchB));
+				Int dPitchB = *Pointer<Int>(blit + OFFSET(BlitData,dPitchB));
+
+				Float x0 = *Pointer<Float>(blit + OFFSET(BlitData,x0));
+				Float y0 = *Pointer<Float>(blit + OFFSET(BlitData,y0));
+				Float w = *Pointer<Float>(blit + OFFSET(BlitData,w));
+				Float h = *Pointer<Float>(blit + OFFSET(BlitData,h));
+
+				Int top = *Pointer<Int>(blit + OFFSET(BlitData,top));
+				Int bottom = *Pointer<Int>(blit + OFFSET(BlitData,bottom));
+				Int left = *Pointer<Int>(blit + OFFSET(BlitData,left));
+				Int right = *Pointer<Int>(blit + OFFSET(BlitData,right));
+
+				Int width = *Pointer<Int>(blit + OFFSET(BlitData,width));
+				Int height = *Pointer<Int>(blit + OFFSET(BlitData,height));
+
+				Float y = y0;
+
+				For(Int j = top, j < bottom, j++)
+				{
+					Float x = x0;
+
+					For(Int i = left, i < right, i++)
+					{
+						Float4 color;
+
+						if(!filter)
+						{
+							Int X = Int(x);
+							Int Y = Int(y);
+
+							Pointer<Byte> s = source + Y * sPitchB + X * Surface::bytes(state.sourceFormat);
+
+							if(!read(color, s, state.sourceFormat))
+							{
+								return false;
+							}
+						}
+						else   // Bilinear filtering
+						{
+							Float x0 = x - Float(0.5f);
+							Float y0 = y - Float(0.5f);
+
+							Int X0 = Int(x0);
+							Int Y0 = Int(y0);
+
+							X0 = IfThenElse(X0 < 0, Int(0), X0);
+							Y0 = IfThenElse(Y0 < 0, Int(0), Y0);
+
+							Int X1 = IfThenElse(X0 + 1 >= width, X0, X0 + 1);
+							Int Y1 = IfThenElse(Y0 + 1 >= height, Y0, Y0 + 1);
+
+							Pointer<Byte> s00 = source + Y0 * sPitchB + X0 * Surface::bytes(state.sourceFormat);
+							Pointer<Byte> s01 = source + Y0 * sPitchB + X1 * Surface::bytes(state.sourceFormat);
+							Pointer<Byte> s10 = source + Y1 * sPitchB + X0 * Surface::bytes(state.sourceFormat);
+							Pointer<Byte> s11 = source + Y1 * sPitchB + X1 * Surface::bytes(state.sourceFormat);
+
+							Float4 c00; if(!read(c00, s00, state.sourceFormat)) return false;
+							Float4 c01; if(!read(c01, s01, state.sourceFormat)) return false;
+							Float4 c10; if(!read(c10, s10, state.sourceFormat)) return false;
+							Float4 c11; if(!read(c11, s11, state.sourceFormat)) return false;
+
+							Float4 fx = Float4(x0 - Float(X0));
+							Float4 fy = Float4(y0 - Float(Y0));
+
+							color = c00 * (Float4(1.0f) - fx) * (Float4(1.0f) - fy) +
+							        c01 * fx * (Float4(1.0f) - fy) +
+									c10 * (Float4(1.0f) - fx) * fy +
+									c11 * fx * fy;
+						}
+
+						float4 unscale;
+
+						switch(state.sourceFormat)
+						{
+						case FORMAT_L8:
+						case FORMAT_A8R8G8B8:
+						case FORMAT_X8R8G8B8:
+							unscale = vector(255, 255, 255, 255);
+							break;
+						case FORMAT_A16B16G16R16:
+						case FORMAT_G16R16:
+							unscale = vector(65535, 65535, 65535, 65535);
+							break;
+						case FORMAT_A32B32G32R32F:
+						case FORMAT_G32R32F:
+						case FORMAT_R32F:
+							unscale = vector(1.0f, 1.0f, 1.0f, 1.0f);
+							break;
+						default:
+							return false;
+						}
+
+						float4 scale;
+
+						switch(state.destFormat)
+						{
+						case FORMAT_L8:
+						case FORMAT_A8R8G8B8:
+						case FORMAT_X8R8G8B8:
+							scale = vector(255, 255, 255, 255);
+							break;
+						case FORMAT_A16B16G16R16:
+						case FORMAT_G16R16:
+							scale = vector(65535, 65535, 65535, 65535);
+							break;
+						case FORMAT_A32B32G32R32F:
+						case FORMAT_G32R32F:
+						case FORMAT_R32F:
+							scale = vector(1.0f, 1.0f, 1.0f, 1.0f);
+							break;
+						default:
+							return false;
+						}
+
+						if(unscale != scale)
+						{
+							color *= Float4(scale.x / unscale.x, scale.y / unscale.y, scale.z / unscale.z, scale.w / unscale.w);
+						}
+
+						if(Surface::isFloatFormat(state.sourceFormat) && !Surface::isFloatFormat(state.destFormat))
+						{
+							color = Min(color, Float4(1.0f, 1.0f, 1.0f, 1.0f));
+
+							color = Max(color, Float4(Surface::isUnsignedComponent(state.destFormat, 0) ? 0.0f : -1.0f,
+							                          Surface::isUnsignedComponent(state.destFormat, 1) ? 0.0f : -1.0f,
+													  Surface::isUnsignedComponent(state.destFormat, 2) ? 0.0f : -1.0f,
+													  Surface::isUnsignedComponent(state.destFormat, 3) ? 0.0f : -1.0f));
+						}
+
+						Pointer<Byte> d = dest + j * dPitchB + i * Surface::bytes(state.destFormat);
+
+						switch(state.destFormat)
+						{
+						case FORMAT_L8:
+							*Pointer<Byte>(d) = Byte(RoundInt(Float(color.x)));
+							break;
+						case FORMAT_A8R8G8B8:
+							{
+								UShort4 c0 = As<UShort4>(RoundShort4(color.zyxw));
+								Byte8 c1 = Pack(c0, c0);
+								*Pointer<UInt>(d) = UInt(As<Long>(c1));
+							}
+							break;
+						case FORMAT_X8R8G8B8:
+							{
+								UShort4 c0 = As<UShort4>(RoundShort4(color.zyxw));
+								Byte8 c1 = Pack(c0, c0);
+								*Pointer<UInt>(d) = UInt(As<Long>(c1)) | UInt(0xFF000000);
+							}
+							break;
+						case FORMAT_A16B16G16R16:
+							*Pointer<UShort4>(d) = UShort4(RoundInt(color));
+							break;
+						case FORMAT_G16R16:
+							*Pointer<UInt>(d) = UInt(As<Long>(UShort4(RoundInt(color))));
+							break;
+						case FORMAT_A32B32G32R32F:
+							*Pointer<Float4>(d) = color;
+							break;
+						case FORMAT_G32R32F:
+							*Pointer<Float2>(d) = Float2(color);
+							break;
+						case FORMAT_R32F:
+							*Pointer<Float>(d) = color.x;
+							break;
+						default:
+							return false;
+						}
+
+						x += w;
+					}
+
+					y += h;
+				}
+
+				Emms();   // FIXME: Not required when performing blits in the renderer engine
+			}
+
+			blitRoutine = function(L"BlitRoutine");
+
+			blitCache->add(state, blitRoutine);
+		}
+
+		void (__cdecl *blitFunction)(const BlitData *data) = (void(__cdecl*)(const BlitData*))blitRoutine->getEntry();
+
+		BlitData data;
+
+		data.source = source->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
+		data.dest = dest->lockInternal(0, 0, 0, sw::LOCK_WRITEONLY, sw::PUBLIC);
+		data.sPitchB = source->getInternalPitchB();
+		data.dPitchB = dest->getInternalPitchB();
+
+		data.w = 1.0f / (dRect.right - dRect.left) * (sRect.right - sRect.left);
+		data.h = 1.0f / (dRect.bottom - dRect.top) * (sRect.bottom - sRect.top);
+		data.x0 = (float)sRect.left + 0.5f * data.w;
+		data.y0 = (float)sRect.top + 0.5f * data.h;
+		
+		data.top = dRect.top;
+		data.bottom = dRect.bottom;
+		data.left = dRect.left;
+		data.right = dRect.right;
+
+		data.width = source->getInternalWidth();
+		data.height = source->getInternalHeight();
+
+		blitFunction(&data);
+
+		source->unlockInternal();
+		dest->unlockInternal();
+
+		return true;
+	}
+}

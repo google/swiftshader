@@ -1,0 +1,359 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\SelectionDAG">
+      <UniqueIdentifier>{fa353097-0e7d-41b1-82db-24e05c45d83a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\AsmPrinter">
+      <UniqueIdentifier>{64391b6a-6b4d-4e4b-8b78-7db7dfe630c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SelectionDAG">
+      <UniqueIdentifier>{0bfa7d04-4a03-4c53-99d4-2a76c1e582df}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\lib\CodeGen\AggressiveAntiDepBreaker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\Analysis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\BranchFolding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\CalcSpillWeights.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\CallingConvLower.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\CodePlacementOpt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\CriticalAntiDepBreaker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\DeadMachineInstructionElim.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\InlineSpiller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\LatencyPriorityQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\LiveInterval.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\LiveIntervalAnalysis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\LiveStackAnalysis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\LiveVariables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\LLVMTargetMachine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\LowerSubregs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineBasicBlock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineCSE.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineDominators.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineFunction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineFunctionAnalysis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineFunctionPass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineFunctionPrinterPass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineInstr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineLICM.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineLoopInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineModuleInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineModuleInfoImpls.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachinePassRegistry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineRegisterInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineSink.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\MachineSSAUpdater.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\ObjectCodeEmitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\OptimizePHIs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\Passes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\PeepholeOptimizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\PHIElimination.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\PostRAHazardRecognizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\PostRASchedulerList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\PreAllocSplitting.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\ProcessImplicitDefs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\PrologEpilogInserter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\PseudoSourceValue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\RegAllocFast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\RegAllocLinearScan.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\RegisterCoalescer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\RegisterScavenging.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\ScheduleDAG.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\ScheduleDAGEmit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\ScheduleDAGInstrs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\ScheduleDAGPrinter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\ShrinkWrapping.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SimpleRegisterCoalescing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SlotIndexes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\Spiller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SplitKit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\StackProtector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\StackSlotColoring.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\StrongPHIElimination.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\TailDuplication.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\TargetInstrInfoImpl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\TwoAddressInstructionPass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\UnreachableBlockElim.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\VirtRegMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\VirtRegRewriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\DAGCombiner.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\FunctionLoweringInfo.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\InstrEmitter.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeDAG.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeFloatTypes.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeIntegerTypes.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeTypes.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeTypesGeneric.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeVectorOps.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeVectorTypes.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\ScheduleDAGFast.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\ScheduleDAGList.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\ScheduleDAGRRList.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\ScheduleDAGSDNodes.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\SelectionDAG.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\SelectionDAGBuilder.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\SelectionDAGISel.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\SelectionDAGPrinter.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\TargetLowering.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\TargetSelectionDAGInfo.cpp">
+      <Filter>Source Files\SelectionDAG</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\lib\CodeGen\AggressiveAntiDepBreaker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\AntiDepBreaker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\BranchFolding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\CriticalAntiDepBreaker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\ELF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\ELFCodeEmitter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\ELFWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\PHIElimination.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\PrologEpilogInserter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\RenderMachineFunction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\ScheduleDAGInstrs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\SimpleRegisterCoalescing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\Spiller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\SplitKit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\Splitter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\VirtRegMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\VirtRegRewriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\AsmPrinter\DIE.h">
+      <Filter>Header Files\AsmPrinter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\AsmPrinter\DwarfDebug.h">
+      <Filter>Header Files\AsmPrinter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\AsmPrinter\DwarfException.h">
+      <Filter>Header Files\AsmPrinter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\SelectionDAG\InstrEmitter.h">
+      <Filter>Header Files\SelectionDAG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\SelectionDAG\LegalizeTypes.h">
+      <Filter>Header Files\SelectionDAG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\SelectionDAG\ScheduleDAGSDNodes.h">
+      <Filter>Header Files\SelectionDAG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\SelectionDAG\SDNodeDbgValue.h">
+      <Filter>Header Files\SelectionDAG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\SelectionDAG\SDNodeOrdering.h">
+      <Filter>Header Files\SelectionDAG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\CodeGen\SelectionDAG\SelectionDAGBuilder.h">
+      <Filter>Header Files\SelectionDAG</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

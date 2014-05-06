@@ -1,0 +1,54 @@
+Index: include/llvm/Intrinsics.td
+===================================================================
+--- include/llvm/Intrinsics.td	(revision 3174)
++++ include/llvm/Intrinsics.td	(working copy)
+@@ -480,9 +480,9 @@
+ // Target-specific intrinsics
+ //===----------------------------------------------------------------------===//
+ 
+-include "llvm/IntrinsicsPowerPC.td"
++//include "llvm/IntrinsicsPowerPC.td"
+ include "llvm/IntrinsicsX86.td"
+-include "llvm/IntrinsicsARM.td"
+-include "llvm/IntrinsicsCellSPU.td"
+-include "llvm/IntrinsicsAlpha.td"
+-include "llvm/IntrinsicsXCore.td"
++//include "llvm/IntrinsicsARM.td"
++//include "llvm/IntrinsicsCellSPU.td"
++//include "llvm/IntrinsicsAlpha.td"
++//include "llvm/IntrinsicsXCore.td"
+Index: lib/Transforms/InstCombine/InstCombineCalls.cpp
+===================================================================
+--- lib/Transforms/InstCombine/InstCombineCalls.cpp	(revision 3174)
++++ lib/Transforms/InstCombine/InstCombineCalls.cpp	(working copy)
+@@ -597,8 +597,8 @@
+       }
+     }
+     break;
+-  case Intrinsic::ppc_altivec_lvx:
+-  case Intrinsic::ppc_altivec_lvxl:
++  //case Intrinsic::ppc_altivec_lvx:
++  //case Intrinsic::ppc_altivec_lvxl:
+   case Intrinsic::x86_sse_loadu_ps:
+   case Intrinsic::x86_sse2_loadu_pd:
+   case Intrinsic::x86_sse2_loadu_dq:
+@@ -610,8 +610,8 @@
+       return new LoadInst(Ptr);
+     }
+     break;
+-  case Intrinsic::ppc_altivec_stvx:
+-  case Intrinsic::ppc_altivec_stvxl:
++  //case Intrinsic::ppc_altivec_stvx:
++  //case Intrinsic::ppc_altivec_stvxl:
+     // Turn stvx -> store if the pointer is known aligned.
+     if (GetOrEnforceKnownAlignment(II->getArgOperand(1), 16) >= 16) {
+       const Type *OpPtrTy = 
+@@ -647,7 +647,7 @@
+     break;
+   }
+     
+-  case Intrinsic::ppc_altivec_vperm:
++  //case Intrinsic::ppc_altivec_vperm:
+     // Turn vperm(V1,V2,mask) -> shuffle(V1,V2,mask) if mask is a constant.
+     if (ConstantVector *Mask = dyn_cast<ConstantVector>(II->getArgOperand(2))) {
+       assert(Mask->getNumOperands() == 16 && "Bad type for intrinsic!");

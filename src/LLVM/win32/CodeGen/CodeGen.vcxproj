@@ -1,0 +1,380 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Profile|Win32">
+      <Configuration>Profile</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Profile|x64">
+      <Configuration>Profile</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{08CEB1BB-C2A4-4587-B9A9-AEDB8FB44897}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\include;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;WIN32;_DEBUG;_LIB;__STDC_LIMIT_MACROS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4355;4146;4800;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\include;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;WIN32;_DEBUG;_LIB;__STDC_LIMIT_MACROS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4355;4146;4800;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <OmitFramePointers>true</OmitFramePointers>
+      <AdditionalIncludeDirectories>..\..\include;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;WIN32;NDEBUG;_LIB;__STDC_LIMIT_MACROS;_SECURE_SCL=0;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <DisableSpecificWarnings>4355;4146;4800;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <OmitFramePointers>false</OmitFramePointers>
+      <AdditionalIncludeDirectories>..\..\include;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;WIN32;NDEBUG;_LIB;__STDC_LIMIT_MACROS;_SECURE_SCL=0;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4355;4146;4800;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <OmitFramePointers>true</OmitFramePointers>
+      <AdditionalIncludeDirectories>..\..\include;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;WIN32;NDEBUG;_LIB;__STDC_LIMIT_MACROS;_SECURE_SCL=0;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <DisableSpecificWarnings>4355;4146;4800;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <OmitFramePointers>false</OmitFramePointers>
+      <AdditionalIncludeDirectories>..\..\include;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;WIN32;NDEBUG;_LIB;__STDC_LIMIT_MACROS;_SECURE_SCL=0;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4355;4146;4800;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\lib\CodeGen\AggressiveAntiDepBreaker.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\Analysis.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\BranchFolding.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\CalcSpillWeights.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\CallingConvLower.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\CodePlacementOpt.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\CriticalAntiDepBreaker.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\DeadMachineInstructionElim.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\InlineSpiller.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\LatencyPriorityQueue.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\LiveInterval.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\LiveIntervalAnalysis.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\LiveStackAnalysis.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\LiveVariables.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\LLVMTargetMachine.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\LowerSubregs.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineBasicBlock.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineCSE.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineDominators.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineFunction.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineFunctionAnalysis.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineFunctionPass.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineFunctionPrinterPass.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineInstr.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineLICM.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineLoopInfo.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineModuleInfo.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineModuleInfoImpls.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachinePassRegistry.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineRegisterInfo.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineSink.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\MachineSSAUpdater.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\ObjectCodeEmitter.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\OptimizePHIs.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\Passes.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\PeepholeOptimizer.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\PHIElimination.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\PostRAHazardRecognizer.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\PostRASchedulerList.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\PreAllocSplitting.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\ProcessImplicitDefs.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\PrologEpilogInserter.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\PseudoSourceValue.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\RegAllocFast.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\RegAllocLinearScan.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\RegisterCoalescer.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\RegisterScavenging.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\ScheduleDAG.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\ScheduleDAGEmit.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\ScheduleDAGInstrs.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\ScheduleDAGPrinter.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\ShrinkWrapping.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SimpleRegisterCoalescing.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SlotIndexes.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\Spiller.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SplitKit.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\StackProtector.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\StackSlotColoring.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\StrongPHIElimination.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\TailDuplication.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\TargetInstrInfoImpl.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\TwoAddressInstructionPass.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\UnreachableBlockElim.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\VirtRegMap.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\VirtRegRewriter.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\DAGCombiner.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\FunctionLoweringInfo.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\InstrEmitter.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeDAG.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeFloatTypes.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeIntegerTypes.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeTypes.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeTypesGeneric.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeVectorOps.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\LegalizeVectorTypes.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\ScheduleDAGFast.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\ScheduleDAGList.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\ScheduleDAGRRList.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\ScheduleDAGSDNodes.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\SelectionDAG.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\SelectionDAGBuilder.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\SelectionDAGISel.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\SelectionDAGPrinter.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\TargetLowering.cpp" />
+    <ClCompile Include="..\..\lib\CodeGen\SelectionDAG\TargetSelectionDAGInfo.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\lib\CodeGen\AggressiveAntiDepBreaker.h" />
+    <ClInclude Include="..\..\lib\CodeGen\AntiDepBreaker.h" />
+    <ClInclude Include="..\..\lib\CodeGen\BranchFolding.h" />
+    <ClInclude Include="..\..\lib\CodeGen\CriticalAntiDepBreaker.h" />
+    <ClInclude Include="..\..\lib\CodeGen\ELF.h" />
+    <ClInclude Include="..\..\lib\CodeGen\ELFCodeEmitter.h" />
+    <ClInclude Include="..\..\lib\CodeGen\ELFWriter.h" />
+    <ClInclude Include="..\..\lib\CodeGen\PHIElimination.h" />
+    <ClInclude Include="..\..\lib\CodeGen\PrologEpilogInserter.h" />
+    <ClInclude Include="..\..\lib\CodeGen\RenderMachineFunction.h" />
+    <ClInclude Include="..\..\lib\CodeGen\ScheduleDAGInstrs.h" />
+    <ClInclude Include="..\..\lib\CodeGen\SimpleRegisterCoalescing.h" />
+    <ClInclude Include="..\..\lib\CodeGen\Spiller.h" />
+    <ClInclude Include="..\..\lib\CodeGen\SplitKit.h" />
+    <ClInclude Include="..\..\lib\CodeGen\Splitter.h" />
+    <ClInclude Include="..\..\lib\CodeGen\VirtRegMap.h" />
+    <ClInclude Include="..\..\lib\CodeGen\VirtRegRewriter.h" />
+    <ClInclude Include="..\..\lib\CodeGen\AsmPrinter\DIE.h" />
+    <ClInclude Include="..\..\lib\CodeGen\AsmPrinter\DwarfDebug.h" />
+    <ClInclude Include="..\..\lib\CodeGen\AsmPrinter\DwarfException.h" />
+    <ClInclude Include="..\..\lib\CodeGen\SelectionDAG\InstrEmitter.h" />
+    <ClInclude Include="..\..\lib\CodeGen\SelectionDAG\LegalizeTypes.h" />
+    <ClInclude Include="..\..\lib\CodeGen\SelectionDAG\ScheduleDAGSDNodes.h" />
+    <ClInclude Include="..\..\lib\CodeGen\SelectionDAG\SDNodeDbgValue.h" />
+    <ClInclude Include="..\..\lib\CodeGen\SelectionDAG\SDNodeOrdering.h" />
+    <ClInclude Include="..\..\lib\CodeGen\SelectionDAG\SelectionDAGBuilder.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
