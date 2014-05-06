@@ -28,6 +28,22 @@
 namespace egl
 {
 
+namespace
+{
+const int versionWindowsVista = MAKEWORD(0x00, 0x06);
+const int versionWindows7 = MAKEWORD(0x01, 0x06);
+
+// Return the version of the operating system in a format suitable for ordering
+// comparison.
+int getComparableOSVersion()
+{
+    DWORD version = GetVersion();
+    int majorVersion = LOBYTE(LOWORD(version));
+    int minorVersion = HIBYTE(LOWORD(version));
+    return MAKEWORD(minorVersion, majorVersion);
+}
+}
+
 Surface::Surface(Display *display, const Config *config, HWND window) 
     : mDisplay(display), mConfig(config), mWindow(window)
 {
@@ -85,7 +101,7 @@ bool Surface::initialize()
     // Modify present parameters for this window, if we are composited,
     // to minimize the amount of queuing done by DWM between our calls to
     // present and the actual screen.
-    if(mWindow && (LOWORD(GetVersion()) >= 0x60))
+    if (mWindow && (getComparableOSVersion() >= versionWindowsVista))
 	{
         BOOL isComposited;
         HRESULT result = DwmIsCompositionEnabled(&isComposited);
