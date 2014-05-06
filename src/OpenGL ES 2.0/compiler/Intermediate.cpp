@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2012 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -656,6 +656,7 @@ TIntermTyped* TIntermediate::addSelection(TIntermTyped* cond, TIntermTyped* true
     // Make a selection node.
     //
     TIntermSelection* node = new TIntermSelection(cond, trueBlock, falseBlock, trueBlock->getType());
+	node->getTypePointer()->setQualifier(EvqTemporary);
     node->setLine(line);
 
     return node;
@@ -844,6 +845,11 @@ bool TIntermUnary::promote(TInfoSink&)
     }
 
     setType(operand->getType());
+
+	// Unary operations results in temporary variables unless const.
+    if (operand->getQualifier() != EvqConst) {
+        getTypePointer()->setQualifier(EvqTemporary);
+    }
 
     return true;
 }

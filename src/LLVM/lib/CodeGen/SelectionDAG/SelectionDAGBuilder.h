@@ -18,15 +18,11 @@
 #include "llvm/CodeGen/SelectionDAG.h"
 #include "llvm/ADT/APInt.h"
 #include "llvm/ADT/DenseMap.h"
-#ifndef NDEBUG
-#include "llvm/ADT/SmallSet.h"
-#endif
 #include "llvm/CodeGen/SelectionDAGNodes.h"
 #include "llvm/CodeGen/ValueTypes.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/Support/ErrorHandling.h"
 #include <vector>
-#include <set>
 
 namespace llvm {
 
@@ -36,6 +32,7 @@ class BasicBlock;
 class BitCastInst;
 class BranchInst;
 class CallInst;
+class DbgValueInst;
 class ExtractElementInst;
 class ExtractValueInst;
 class FCmpInst;
@@ -46,9 +43,11 @@ class FPTruncInst;
 class Function;
 class FunctionLoweringInfo;
 class GetElementPtrInst;
+class GCFunctionInfo;
 class ICmpInst;
 class IntToPtrInst;
 class IndirectBrInst;
+class InvokeInst;
 class InsertElementInst;
 class InsertValueInst;
 class Instruction;
@@ -60,7 +59,6 @@ class MDNode;
 class PHINode;
 class PtrToIntInst;
 class ReturnInst;
-class SDISelAsmOperandInfo;
 class SDDbgValue;
 class SExtInst;
 class SelectInst;
@@ -73,6 +71,7 @@ class TargetLowering;
 class TruncInst;
 class UIToFPInst;
 class UnreachableInst;
+class UnwindInst;
 class VAArgInst;
 class ZExtInst;
 
@@ -89,6 +88,24 @@ class SelectionDAGBuilder {
   /// UnusedArgNodeMap - Maps argument value for unused arguments. This is used
   /// to preserve debug information for incoming arguments.
   DenseMap<const Value*, SDValue> UnusedArgNodeMap;
+
+  /// DanglingDebugInfo - Helper type for DanglingDebugInfoMap.
+  class DanglingDebugInfo {
+    const DbgValueInst* DI;
+    DebugLoc dl;
+    unsigned SDNodeOrder;
+  public:
+    DanglingDebugInfo() : DI(0), dl(DebugLoc()), SDNodeOrder(0) { }
+    DanglingDebugInfo(const DbgValueInst *di, DebugLoc DL, unsigned SDNO) :
+      DI(di), dl(DL), SDNodeOrder(SDNO) { }
+    const DbgValueInst* getDI() { return DI; }
+    DebugLoc getdl() { return dl; }
+    unsigned getSDNodeOrder() { return SDNodeOrder; }
+  };
+
+  /// DanglingDebugInfoMap - Keeps track of dbg_values for which we have not
+  /// yet seen the referent.  We defer handling these until we do see it.
+  DenseMap<const Value*, DanglingDebugInfo> DanglingDebugInfoMap;
 
 public:
   /// PendingLoads - Loads are not emitted to the program immediately.  We bunch
@@ -115,10 +132,13 @@ private:
     Constant* Low;
     Constant* High;
     MachineBasicBlock* BB;
+    uint32_t ExtraWeight;
 
-    Case() : Low(0), High(0), BB(0) { }
-    Case(Constant* low, Constant* high, MachineBasicBlock* bb) :
-      Low(low), High(high), BB(bb) { }
+    Case() : Low(0), High(0), BB(0), ExtraWeight(0) { }
+    Case(Constant* low, Constant* high, MachineBasicBlock* bb,
+         uint32_t extraweight) : Low(low), High(high), BB(bb),
+         ExtraWeight(extraweight) { }
+
     APInt size() const {
       const APInt &rHigh = cast<ConstantInt>(High)->getValue();
       const APInt &rLow  = cast<ConstantInt>(Low)->getValue();
@@ -186,20 +206,30 @@ private:
     CaseBlock(ISD::CondCode cc, const Value *cmplhs, const Value *cmprhs,
               const Value *cmpmiddle,
               MachineBasicBlock *truebb, MachineBasicBlock *falsebb,
-              MachineBasicBlock *me)
+              MachineBasicBlock *me,
+              uint32_t trueweight = 0, uint32_t falseweight = 0)
       : CC(cc), CmpLHS(cmplhs), CmpMHS(cmpmiddle), CmpRHS(cmprhs),
-        TrueBB(truebb), FalseBB(falsebb), ThisBB(me) {}
+        TrueBB(truebb), FalseBB(falsebb), ThisBB(me),
+        TrueWeight(trueweight), FalseWeight(falseweight) { }
+
     // CC - the condition code to use for the case block's setcc node
     ISD::CondCode CC;
+
     // CmpLHS/CmpRHS/CmpMHS - The LHS/MHS/RHS of the comparison to emit.
     // Emit by default LHS op RHS. MHS is used for range comparisons:
     // If MHS is not null: (LHS <= MHS) and (MHS <= RHS).
     const Value *CmpLHS, *CmpMHS, *CmpRHS;
+
     // TrueBB/FalseBB - the block to branch to if the setcc is true/false.
     MachineBasicBlock *TrueBB, *FalseBB;
+
     // ThisBB - the block into which to emit the code for the setcc and branches
     MachineBasicBlock *ThisBB;
+
+    // TrueWeight/FalseWeight - branch weights.
+    uint32_t TrueWeight, FalseWeight;
   };
+
   struct JumpTable {
     JumpTable(unsigned R, unsigned J, MachineBasicBlock *M,
               MachineBasicBlock *D): Reg(R), JTI(J), MBB(M), Default(D) {}
@@ -239,15 +269,16 @@ private:
 
   struct BitTestBlock {
     BitTestBlock(APInt F, APInt R, const Value* SV,
-                 unsigned Rg, bool E,
+                 unsigned Rg, EVT RgVT, bool E,
                  MachineBasicBlock* P, MachineBasicBlock* D,
                  const BitTestInfo& C):
-      First(F), Range(R), SValue(SV), Reg(Rg), Emitted(E),
+      First(F), Range(R), SValue(SV), Reg(Rg), RegVT(RgVT), Emitted(E),
       Parent(P), Default(D), Cases(C) { }
     APInt First;
     APInt Range;
     const Value *SValue;
     unsigned Reg;
+    EVT RegVT;
     bool Emitted;
     MachineBasicBlock *Parent;
     MachineBasicBlock *Default;
@@ -285,6 +316,12 @@ public:
   /// OptLevel - What optimization level we're generating code for.
   /// 
   CodeGenOpt::Level OptLevel;
+  
+  /// GFI - Garbage collection metadata for the function.
+  GCFunctionInfo *GFI;
+
+  /// LPadToCallSiteMap - Map a landing pad to the call site indexes.
+  DenseMap<MachineBasicBlock*, SmallVector<unsigned, 4> > LPadToCallSiteMap;
 
   /// HasTailCall - This is set to true if a call in the current
   /// block has been translated as a tail call. In this case,
@@ -301,7 +338,7 @@ public:
       HasTailCall(false), Context(dag.getContext()) {
   }
 
-  void init(AliasAnalysis &aa);
+  void init(GCFunctionInfo *gfi, AliasAnalysis &aa);
 
   /// clear - Clear out the current SelectionDAG and the associated
   /// state and prepare this SelectionDAGBuilder object to be used
@@ -310,6 +347,14 @@ public:
   /// or PHI node updating; that information is cleared out as it is
   /// consumed.
   void clear();
+
+  /// clearDanglingDebugInfo - Clear the dangling debug information
+  /// map. This function is seperated from the clear so that debug
+  /// information that is dangling in a basic block can be properly
+  /// resolved in a different basic block. This allows the
+  /// SelectionDAG to resolve dangling debug information attached
+  /// to PHI nodes.
+  void clearDanglingDebugInfo();
 
   /// getRoot - Return the current virtual root of the Selection DAG,
   /// flushing any PendingLoad items. This must be done before emitting
@@ -339,6 +384,9 @@ public:
 
   void visit(unsigned Opcode, const User &I);
 
+  // resolveDanglingDebugInfo - if we saw an earlier dbg_value referring to V,
+  // generate the debug data structures now that we've seen its definition.
+  void resolveDanglingDebugInfo(const Value *V, SDValue Val);
   SDValue getValue(const Value *V);
   SDValue getNonRegisterValue(const Value *V);
   SDValue getValueImpl(const Value *V);
@@ -354,10 +402,6 @@ public:
     assert(N.getNode() == 0 && "Already set a value for this node!");
     N = NewN;
   }
-  
-  void GetRegistersForValue(SDISelAsmOperandInfo &OpInfo,
-                            std::set<unsigned> &OutputRegs, 
-                            std::set<unsigned> &InputRegs);
 
   void FindMergedConditions(const Value *Cond, MachineBasicBlock *TBB,
                             MachineBasicBlock *FBB, MachineBasicBlock *CurBB,
@@ -370,7 +414,12 @@ public:
   bool isExportableFromCurrentBlock(const Value *V, const BasicBlock *FromBB);
   void CopyToExportRegsIfNeeded(const Value *V);
   void ExportFromCurrentBlock(const Value *V);
-  void LowerCallTo(ImmutableCallSite CS, SDValue Callee, bool IsTailCall);
+  void LowerCallTo(ImmutableCallSite CS, SDValue Callee, bool IsTailCall,
+                   MachineBasicBlock *LandingPad = NULL);
+
+  /// UpdateSplitBlock - When an MBB was split during scheduling, update the
+  /// references that ned to refer to the last resulting block.
+  void UpdateSplitBlock(MachineBasicBlock *First, MachineBasicBlock *Last);
 
 private:
   // Terminator instructions.
@@ -401,11 +450,16 @@ private:
                                 const Value* SV,
                                 MachineBasicBlock* Default,
                                 MachineBasicBlock *SwitchBB);
+
+  uint32_t getEdgeWeight(MachineBasicBlock *Src, MachineBasicBlock *Dst);
+  void addSuccessorWithWeight(MachineBasicBlock *Src, MachineBasicBlock *Dst,
+                              uint32_t Weight = 0);
 public:
   void visitSwitchCase(CaseBlock &CB,
                        MachineBasicBlock *SwitchBB);
   void visitBitTestHeader(BitTestBlock &B, MachineBasicBlock *SwitchBB);
-  void visitBitTestCase(MachineBasicBlock* NextMBB,
+  void visitBitTestCase(BitTestBlock &BB,
+                        MachineBasicBlock* NextMBB,
                         unsigned Reg,
                         BitTestCase &B,
                         MachineBasicBlock *SwitchBB);
@@ -414,6 +468,11 @@ public:
                             MachineBasicBlock *SwitchBB);
   
 private:
+  // These all get lowered before this pass.
+  void visitInvoke(const InvokeInst &I);
+  void visitResume(const ResumeInst &I);
+  void visitUnwind(const UnwindInst &I);
+
   void visitBinary(const User &I, unsigned OpCode);
   void visitShift(const User &I, unsigned Opcode);
   void visitAdd(const User &I)  { visitBinary(I, ISD::ADD); }
@@ -426,7 +485,7 @@ private:
   void visitSRem(const User &I) { visitBinary(I, ISD::SREM); }
   void visitFRem(const User &I) { visitBinary(I, ISD::FREM); }
   void visitUDiv(const User &I) { visitBinary(I, ISD::UDIV); }
-  void visitSDiv(const User &I) { visitBinary(I, ISD::SDIV); }
+  void visitSDiv(const User &I);
   void visitFDiv(const User &I) { visitBinary(I, ISD::FDIV); }
   void visitAnd (const User &I) { visitBinary(I, ISD::AND); }
   void visitOr  (const User &I) { visitBinary(I, ISD::OR); }
@@ -456,6 +515,7 @@ private:
 
   void visitExtractValue(const ExtractValueInst &I);
   void visitInsertValue(const InsertValueInst &I);
+  void visitLandingPad(const LandingPadInst &I);
 
   void visitGetElementPtr(const User &I);
   void visitSelect(const User &I);
@@ -463,10 +523,16 @@ private:
   void visitAlloca(const AllocaInst &I);
   void visitLoad(const LoadInst &I);
   void visitStore(const StoreInst &I);
+  void visitAtomicCmpXchg(const AtomicCmpXchgInst &I);
+  void visitAtomicRMW(const AtomicRMWInst &I);
+  void visitFence(const FenceInst &I);
   void visitPHI(const PHINode &I);
   void visitCall(const CallInst &I);
   bool visitMemCmpCall(const CallInst &I);
-  
+  void visitAtomicLoad(const LoadInst &I);
+  void visitAtomicStore(const StoreInst &I);
+
+  void visitInlineAsm(ImmutableCallSite CS);
   const char *visitIntrinsicCall(const CallInst &I, unsigned Intrinsic);
   void visitTargetIntrinsic(const CallInst &I, unsigned Intrinsic);
 
@@ -477,6 +543,11 @@ private:
   void visitLog2(const CallInst &I);
   void visitLog10(const CallInst &I);
 
+  void visitVAStart(const CallInst &I);
+  void visitVAArg(const VAArgInst &I);
+  void visitVAEnd(const CallInst &I);
+  void visitVACopy(const CallInst &I);
+
   void visitUserOp1(const Instruction &I) {
     llvm_unreachable("UserOp1 should not exist at instruction selection time!");
   }
@@ -484,10 +555,15 @@ private:
     llvm_unreachable("UserOp2 should not exist at instruction selection time!");
   }
   
-  const char *implVisitBinaryAtomic(const CallInst& I, ISD::NodeType Op);
   const char *implVisitAluOverflow(const CallInst &I, ISD::NodeType Op);
 
   void HandlePHINodesInSuccessorBlocks(const BasicBlock *LLVMBB);
+
+  /// EmitFuncArgumentDbgValue - If V is an function argument then create
+  /// corresponding DBG_VALUE machine instruction for it now. At the end of 
+  /// instruction selection, they will be inserted to the entry BB.
+  bool EmitFuncArgumentDbgValue(const Value *V, MDNode *Variable,
+                                int64_t Offset, const SDValue &N);
 };
 
 } // end namespace llvm

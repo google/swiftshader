@@ -13,31 +13,40 @@
 
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetRegisterInfo.h"
-#include "llvm/Target/TargetFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/ADT/BitVector.h"
+#include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
 
-TargetRegisterInfo::TargetRegisterInfo(const TargetRegisterDesc *D, unsigned NR,
+TargetRegisterInfo::TargetRegisterInfo(const TargetRegisterInfoDesc *ID,
                              regclass_iterator RCB, regclass_iterator RCE,
-                             const char *const *subregindexnames,
-                             int CFSO, int CFDO,
-                             const unsigned* subregs, const unsigned subregsize,
-                         const unsigned* aliases, const unsigned aliasessize)
-  : SubregHash(subregs), SubregHashSize(subregsize),
-    AliasesHash(aliases), AliasesHashSize(aliasessize),
-    Desc(D), SubRegIndexNames(subregindexnames), NumRegs(NR),
+                             const char *const *subregindexnames)
+  : InfoDesc(ID), SubRegIndexNames(subregindexnames),
     RegClassBegin(RCB), RegClassEnd(RCE) {
-  assert(NumRegs < FirstVirtualRegister &&
-         "Target has too many physical registers!");
-
-  CallFrameSetupOpcode   = CFSO;
-  CallFrameDestroyOpcode = CFDO;
 }
 
 TargetRegisterInfo::~TargetRegisterInfo() {}
+
+void PrintReg::print(raw_ostream &OS) const {
+  if (!Reg)
+    OS << "%noreg";
+  else if (TargetRegisterInfo::isStackSlot(Reg))
+    OS << "SS#" << TargetRegisterInfo::stackSlot2Index(Reg);
+  else if (TargetRegisterInfo::isVirtualRegister(Reg))
+    OS << "%vreg" << TargetRegisterInfo::virtReg2Index(Reg);
+  else if (TRI && Reg < TRI->getNumRegs())
+    OS << '%' << TRI->getName(Reg);
+  else
+    OS << "%physreg" << Reg;
+  if (SubIdx) {
+    if (TRI)
+      OS << ':' << TRI->getSubRegIndexName(SubIdx);
+    else
+      OS << ":sub(" << SubIdx << ')';
+  }
+}
 
 /// getMinimalPhysRegClass - Returns the Register Class of a physical
 /// register of the given type, picking the most sub register class of
@@ -63,83 +72,51 @@ TargetRegisterInfo::getMinimalPhysRegClass(unsigned reg, EVT VT) const {
 /// getAllocatableSetForRC - Toggle the bits that represent allocatable
 /// registers for the specific register class.
 static void getAllocatableSetForRC(const MachineFunction &MF,
-                                   const TargetRegisterClass *RC, BitVector &R){  
-  for (TargetRegisterClass::iterator I = RC->allocation_order_begin(MF),
-         E = RC->allocation_order_end(MF); I != E; ++I)
-    R.set(*I);
+                                   const TargetRegisterClass *RC, BitVector &R){
+  ArrayRef<unsigned> Order = RC->getRawAllocationOrder(MF);
+  for (unsigned i = 0; i != Order.size(); ++i)
+    R.set(Order[i]);
 }
 
 BitVector TargetRegisterInfo::getAllocatableSet(const MachineFunction &MF,
                                           const TargetRegisterClass *RC) const {
-  BitVector Allocatable(NumRegs);
+  BitVector Allocatable(getNumRegs());
   if (RC) {
     getAllocatableSetForRC(MF, RC, Allocatable);
-    return Allocatable;
+  } else {
+    for (TargetRegisterInfo::regclass_iterator I = regclass_begin(),
+         E = regclass_end(); I != E; ++I)
+      if ((*I)->isAllocatable())
+        getAllocatableSetForRC(MF, *I, Allocatable);
   }
 
-  for (TargetRegisterInfo::regclass_iterator I = regclass_begin(),
-         E = regclass_end(); I != E; ++I)
-    getAllocatableSetForRC(MF, *I, Allocatable);
+  // Mask out the reserved registers
+  BitVector Reserved = getReservedRegs(MF);
+  Allocatable &= Reserved.flip();
+
   return Allocatable;
 }
 
-/// getFrameIndexOffset - Returns the displacement from the frame register to
-/// the stack frame of the specified index. This is the default implementation
-/// which is overridden for some targets.
-int TargetRegisterInfo::getFrameIndexOffset(const MachineFunction &MF,
-                                            int FI) const {
-  const TargetFrameInfo &TFI = *MF.getTarget().getFrameInfo();
-  const MachineFrameInfo *MFI = MF.getFrameInfo();
-  return MFI->getObjectOffset(FI) + MFI->getStackSize() -
-    TFI.getOffsetOfLocalArea() + MFI->getOffsetAdjustment();
-}
-
-/// getInitialFrameState - Returns a list of machine moves that are assumed
-/// on entry to a function.
-void
-TargetRegisterInfo::getInitialFrameState(std::vector<MachineMove> &Moves) const{
-  // Default is to do nothing.
-}
-
 const TargetRegisterClass *
-llvm::getCommonSubClass(const TargetRegisterClass *A,
-                        const TargetRegisterClass *B) {
-  // First take care of the trivial cases
+TargetRegisterInfo::getCommonSubClass(const TargetRegisterClass *A,
+                                      const TargetRegisterClass *B) const {
+  // First take care of the trivial cases.
   if (A == B)
     return A;
   if (!A || !B)
     return 0;
 
-  // If B is a subclass of A, it will be handled in the loop below
-  if (B->hasSubClass(A))
-    return A;
+  // Register classes are ordered topologically, so the largest common
+  // sub-class it the common sub-class with the smallest ID.
+  const unsigned *SubA = A->getSubClassMask();
+  const unsigned *SubB = B->getSubClassMask();
 
-  const TargetRegisterClass *Best = 0;
-  for (TargetRegisterClass::sc_iterator I = A->subclasses_begin();
-       const TargetRegisterClass *X = *I; ++I) {
-    if (X == B)
-      return B;                 // B is a subclass of A
+  // We could start the search from max(A.ID, B.ID), but we are only going to
+  // execute 2-3 iterations anyway.
+  for (unsigned Base = 0, BaseE = getNumRegClasses(); Base < BaseE; Base += 32)
+    if (unsigned Common = *SubA++ & *SubB++)
+      return getRegClass(Base + CountTrailingZeros_32(Common));
 
-    // X must be a common subclass of A and B
-    if (!B->hasSubClass(X))
-      continue;
-
-    // A superclass is definitely better.
-    if (!Best || Best->hasSuperClass(X)) {
-      Best = X;
-      continue;
-    }
-
-    // A subclass is definitely worse
-    if (Best->hasSubClass(X))
-      continue;
-
-    // Best and *I have no super/sub class relation - pick the larger class, or
-    // the smaller spill size.
-    int nb = std::distance(Best->begin(), Best->end());
-    int ni = std::distance(X->begin(), X->end());
-    if (ni>nb || (ni==nb && X->getSize() < Best->getSize()))
-      Best = X;
-  }
-  return Best;
+  // No common sub-class exists.
+  return NULL;
 }

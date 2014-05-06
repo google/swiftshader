@@ -226,7 +226,7 @@ bool PEI::calcAnticInOut(MachineBasicBlock* MBB) {
   // AnticIn[MBB] = UNION(CSRUsed[MBB], AnticOut[MBB]);
   CSRegSet prevAnticIn = AnticIn[MBB];
   AnticIn[MBB] = CSRUsed[MBB] | AnticOut[MBB];
-  if (prevAnticIn |= AnticIn[MBB])
+  if (prevAnticIn != AnticIn[MBB])
     changed = true;
   return changed;
 }
@@ -264,7 +264,7 @@ bool PEI::calcAvailInOut(MachineBasicBlock* MBB) {
   // AvailOut[MBB] = UNION(CSRUsed[MBB], AvailIn[MBB]);
   CSRegSet prevAvailOut = AvailOut[MBB];
   AvailOut[MBB] = CSRUsed[MBB] | AvailIn[MBB];
-  if (prevAvailOut |= AvailOut[MBB])
+  if (prevAvailOut != AvailOut[MBB])
     changed = true;
   return changed;
 }
@@ -277,7 +277,7 @@ void PEI::calculateAnticAvail(MachineFunction &Fn) {
   // Initialize data flow sets.
   clearAnticAvailSets();
 
-  // Calulate Antic{In,Out} and Avail{In,Out} iteratively on the MCFG.
+  // Calculate Antic{In,Out} and Avail{In,Out} iteratively on the MCFG.
   bool changed = true;
   unsigned iterations = 0;
   while (changed) {

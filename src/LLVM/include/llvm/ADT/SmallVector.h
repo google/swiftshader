@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <iterator>
 #include <memory>
 
 #ifdef _MSC_VER
@@ -57,19 +58,13 @@ protected:
   // Allocate raw space for N elements of type T.  If T has a ctor or dtor, we
   // don't want it to be automatically run, so we need to represent the space as
   // something else.  An array of char would work great, but might not be
-  // aligned sufficiently.  Instead, we either use GCC extensions, or some
-  // number of union instances for the space, which guarantee maximal alignment.
-  struct U {
-#ifdef __GNUC__
-    char X __attribute__((aligned(8)));
-#else
-    union {
-      double D;
-      long double LD;
-      long long L;
-      void *P;
-    } X;
-#endif
+  // aligned sufficiently.  Instead we use some number of union instances for
+  // the space, which guarantee maximal alignment.
+  union U {
+    double D;
+    long double LD;
+    long long L;
+    void *P;
   } FirstEl;
   // Space after 'FirstEl' is clobbered, do not add any instance vars after it.
 
@@ -83,21 +78,21 @@ protected:
     return BeginX == static_cast<const void*>(&FirstEl);
   }
 
+  /// grow_pod - This is an implementation of the grow() method which only works
+  /// on POD-like data types and is out of line to reduce code duplication.
+  void grow_pod(size_t MinSizeInBytes, size_t TSize);
+
+public:
   /// size_in_bytes - This returns size()*sizeof(T).
   size_t size_in_bytes() const {
     return size_t((char*)EndX - (char*)BeginX);
   }
-
+  
   /// capacity_in_bytes - This returns capacity()*sizeof(T).
   size_t capacity_in_bytes() const {
     return size_t((char*)CapacityX - (char*)BeginX);
   }
 
-  /// grow_pod - This is an implementation of the grow() method which only works
-  /// on POD-like datatypes and is out of line to reduce code duplication.
-  void grow_pod(size_t MinSizeInBytes, size_t TSize);
-
-public:
   bool empty() const { return BeginX == EndX; }
 };
 
@@ -206,7 +201,7 @@ template <typename T, bool isPodLike>
 void SmallVectorTemplateBase<T, isPodLike>::grow(size_t MinSize) {
   size_t CurCapacity = this->capacity();
   size_t CurSize = this->size();
-  size_t NewCapacity = 2*CurCapacity;
+  size_t NewCapacity = 2*CurCapacity + 1; // Always grow, even from zero.
   if (NewCapacity < MinSize)
     NewCapacity = MinSize;
   T *NewElts = static_cast<T*>(malloc(NewCapacity*sizeof(T)));
@@ -269,7 +264,7 @@ public:
 template <typename T>
 class SmallVectorImpl : public SmallVectorTemplateBase<T, isPodLike<T>::value> {
   typedef SmallVectorTemplateBase<T, isPodLike<T>::value > SuperClass;
-  
+
   SmallVectorImpl(const SmallVectorImpl&); // DISABLED.
 public:
   typedef typename SuperClass::iterator iterator;
@@ -346,7 +341,6 @@ public:
     return Result;
   }
 
-
   void swap(SmallVectorImpl &RHS);
 
   /// append - Add the specified range to the end of the SmallVector.
@@ -416,7 +410,14 @@ public:
       this->setEnd(this->end()+1);
       // Push everything else over.
       std::copy_backward(I, this->end()-1, this->end());
-      *I = Elt;
+
+      // If we just moved the element we're inserting, be sure to update
+      // the reference.
+      const T *EltPtr = &Elt;
+      if (I <= EltPtr && EltPtr < this->EndX)
+        ++EltPtr;
+
+      *I = *EltPtr;
       return I;
     }
     size_t EltNo = I-this->begin();
@@ -706,6 +707,41 @@ public:
   }
 
 };
+
+/// Specialize SmallVector at N=0.  This specialization guarantees
+/// that it can be instantiated at an incomplete T if none of its
+/// members are required.
+template <typename T>
+class SmallVector<T,0> : public SmallVectorImpl<T> {
+public:
+  SmallVector() : SmallVectorImpl<T>(0) {}
+
+  explicit SmallVector(unsigned Size, const T &Value = T())
+    : SmallVectorImpl<T>(0) {
+    this->reserve(Size);
+    while (Size--)
+      this->push_back(Value);
+  }
+
+  template<typename ItTy>
+  SmallVector(ItTy S, ItTy E) : SmallVectorImpl<T>(0) {
+    this->append(S, E);
+  }
+
+  SmallVector(const SmallVector &RHS) : SmallVectorImpl<T>(0) {
+    SmallVectorImpl<T>::operator=(RHS);
+  }
+
+  SmallVector &operator=(const SmallVectorImpl<T> &RHS) {
+    return SmallVectorImpl<T>::operator=(RHS);
+  }
+
+};
+
+template<typename T, unsigned N>
+static inline size_t capacity_in_bytes(const SmallVector<T, N> &X) {
+  return X.capacity_in_bytes();
+}
 
 } // End llvm namespace
 

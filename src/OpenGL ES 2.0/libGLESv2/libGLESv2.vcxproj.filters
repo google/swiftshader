@@ -71,6 +71,9 @@
     <ClCompile Include="Unknown.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Query.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h">
@@ -83,15 +86,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Framebuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\GLES2\gl2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\GLES2\gl2ext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\GLES2\gl2platform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HandleAllocator.h">
@@ -130,9 +124,6 @@
     <ClInclude Include="utilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\version.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VertexDataManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -143,6 +134,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Unknown.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\GLES2\gl2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\GLES2\gl2ext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\GLES2\gl2platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Query.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

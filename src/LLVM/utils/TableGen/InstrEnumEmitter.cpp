@@ -14,7 +14,7 @@
 
 #include "InstrEnumEmitter.h"
 #include "CodeGenTarget.h"
-#include "Record.h"
+#include "llvm/TableGen/Record.h"
 #include <cstdio>
 using namespace llvm;
 
@@ -23,7 +23,7 @@ void InstrEnumEmitter::run(raw_ostream &OS) {
   EmitSourceFileHeader("Target Instruction Enum Values", OS);
   OS << "namespace llvm {\n\n";
 
-  CodeGenTarget Target;
+  CodeGenTarget Target(Records);
 
   // We must emit the PHI opcode first...
   std::string Namespace = Target.getInstNamespace();

@@ -35,7 +35,9 @@ namespace {
   ///
   struct IPCP : public ModulePass {
     static char ID; // Pass identification, replacement for typeid
-    IPCP() : ModulePass(ID) {}
+    IPCP() : ModulePass(ID) {
+      initializeIPCPPass(*PassRegistry::getPassRegistry());
+    }
 
     bool runOnModule(Module &M);
   private:
@@ -46,7 +48,7 @@ namespace {
 
 char IPCP::ID = 0;
 INITIALIZE_PASS(IPCP, "ipconstprop",
-                "Interprocedural constant propagation", false, false);
+                "Interprocedural constant propagation", false, false)
 
 ModulePass *llvm::createIPConstantPropagationPass() { return new IPCP(); }
 
@@ -165,7 +167,7 @@ bool IPCP::PropagateConstantReturn(Function &F) {
     
   // Check to see if this function returns a constant.
   SmallVector<Value *,4> RetVals;
-  const StructType *STy = dyn_cast<StructType>(F.getReturnType());
+  StructType *STy = dyn_cast<StructType>(F.getReturnType());
   if (STy)
     for (unsigned i = 0, e = STy->getNumElements(); i < e; ++i) 
       RetVals.push_back(UndefValue::get(STy->getElementType(i)));
@@ -184,7 +186,7 @@ bool IPCP::PropagateConstantReturn(Function &F) {
         // Find the returned value
         Value *V;
         if (!STy)
-          V = RI->getOperand(i);
+          V = RI->getOperand(0);
         else
           V = FindInsertedValue(RI->getOperand(0), i);
 

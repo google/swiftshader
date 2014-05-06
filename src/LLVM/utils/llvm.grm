@@ -9,7 +9,6 @@ IR that is semantically valid. Most of the IR produced doesn't
 pass the Verifier.
 
 TODO: Metadata, in all its forms
-TODO: Union types
 
 *)
 
@@ -173,6 +172,8 @@ FuncAttr      ::= noreturn
  | optsize
  | ssp
  | sspreq
+ | returns_twice
+ | nonlazybind
  ;
 
 OptFuncAttrs  ::= + _ | OptFuncAttrs FuncAttr ;

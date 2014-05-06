@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // utilities.cpp: Conversion functions and other utility routines.
@@ -198,18 +203,21 @@ namespace gl
 		{
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-			break;
+			return 8 * (GLsizei)ceil((float)width / 4.0f) * (GLsizei)ceil((float)height / 4.0f);
+		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
+			return 16 * (GLsizei)ceil((float)width / 4.0f) * (GLsizei)ceil((float)height / 4.0f);
 		default:
 			return 0;
 		}
-
-		return 8 * (GLsizei)ceil((float)width / 4.0f) * (GLsizei)ceil((float)height / 4.0f);
 	}
 
 	bool IsCompressed(GLenum format)
 	{
 		if(format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
-		   format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT)
+		   format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ||
+		   format == GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE ||
+		   format == GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE)
 		{
 			return true;
 		}
@@ -275,35 +283,16 @@ namespace gl
 
 	CubeFace ConvertCubeFace(GLenum cubeFace)
 	{
-		CubeFace face = CUBEMAP_FACE_POSITIVE_X;
-
-		// Map a cube map texture target to the corresponding Device surface index. Note that the
-		// Y faces are swapped because the Y coordinate to the texture lookup intrinsic functions
-		// are negated in the pixel shader.
 		switch(cubeFace)
 		{
-		case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
-			face = CUBEMAP_FACE_POSITIVE_X;
-			break;
-		case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
-			face = CUBEMAP_FACE_NEGATIVE_X;
-			break;
-		case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
-			face = CUBEMAP_FACE_NEGATIVE_Y;
-			break;
-		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
-			face = CUBEMAP_FACE_POSITIVE_Y;
-			break;
-		case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
-			face = CUBEMAP_FACE_POSITIVE_Z;
-			break;
-		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
-			face = CUBEMAP_FACE_NEGATIVE_Z;
-			break;
-		default: UNREACHABLE();
+		case GL_TEXTURE_CUBE_MAP_POSITIVE_X: return CUBEMAP_FACE_POSITIVE_X;
+		case GL_TEXTURE_CUBE_MAP_NEGATIVE_X: return CUBEMAP_FACE_NEGATIVE_X;
+		case GL_TEXTURE_CUBE_MAP_POSITIVE_Y: return CUBEMAP_FACE_POSITIVE_Y;
+		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y: return CUBEMAP_FACE_NEGATIVE_Y;
+		case GL_TEXTURE_CUBE_MAP_POSITIVE_Z: return CUBEMAP_FACE_POSITIVE_Z;
+		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z: return CUBEMAP_FACE_NEGATIVE_Z;
+		default: UNREACHABLE(); return CUBEMAP_FACE_POSITIVE_X;
 		}
-
-		return face;
 	}
 
 	bool IsTextureTarget(GLenum target)
@@ -674,8 +663,8 @@ namespace sw2es
 		case sw::FORMAT_D32F_LOCKABLE:
 		case sw::FORMAT_D16:
 			return 0;
-	//	case sw::FORMAT_D32_LOCKABLE:  return 0;   // DirectX 9Ex only
-	//	case sw::FORMAT_S8_LOCKABLE:   return 8;   // DirectX 9Ex only
+	//	case sw::FORMAT_D32_LOCKABLE:  return 0;
+	//	case sw::FORMAT_S8_LOCKABLE:   return 8;
 		default:
 			return 0;
 		}

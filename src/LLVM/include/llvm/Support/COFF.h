@@ -11,7 +11,7 @@
 //
 // Structures and enums defined within this file where created using
 // information from Microsoft's publicly available PE/COFF format document:
-// 
+//
 // Microsoft Portable Executable and Common Object File Format Specification
 // Revision 8.1 - February 15, 2008
 //
@@ -23,7 +23,7 @@
 #ifndef LLVM_SUPPORT_WIN_COFF_H
 #define LLVM_SUPPORT_WIN_COFF_H
 
-#include "llvm/System/DataTypes.h"
+#include "llvm/Support/DataTypes.h"
 #include <cstring>
 
 namespace llvm {
@@ -48,6 +48,11 @@ namespace COFF {
     uint16_t Characteristics;
   };
 
+  enum MachineTypes {
+    IMAGE_FILE_MACHINE_I386 = 0x14C,
+    IMAGE_FILE_MACHINE_AMD64 = 0x8664
+  };
+
   struct symbol {
     char     Name[NameSize];
     uint32_t Value;
@@ -64,7 +69,13 @@ namespace COFF {
     SF_ClassMask = 0x00FF0000,
     SF_ClassShift = 16,
 
-    SF_WeakReference = 0x01000000
+    SF_WeakExternal = 0x01000000
+  };
+
+  enum SymbolSectionNumber {
+    IMAGE_SYM_DEBUG     = -2,
+    IMAGE_SYM_ABSOLUTE  = -1,
+    IMAGE_SYM_UNDEFINED = 0
   };
 
   /// Storage class tells where and what the symbol represents
@@ -122,11 +133,11 @@ namespace COFF {
   };
 
   enum SymbolComplexType {
-    IMAGE_SYM_DTYPE_NULL     = 0, ///< No complex type; simple scalar variable. 
+    IMAGE_SYM_DTYPE_NULL     = 0, ///< No complex type; simple scalar variable.
     IMAGE_SYM_DTYPE_POINTER  = 1, ///< A pointer to base type.
     IMAGE_SYM_DTYPE_FUNCTION = 2, ///< A function that returns a base type.
     IMAGE_SYM_DTYPE_ARRAY    = 3, ///< An array of base type.
-    
+
     /// Type is formed as (base + (derived << SCT_COMPLEX_TYPE_SHIFT))
     SCT_COMPLEX_TYPE_SHIFT   = 4
   };
@@ -199,7 +210,25 @@ namespace COFF {
     IMAGE_REL_I386_SECREL   = 0x000B,
     IMAGE_REL_I386_TOKEN    = 0x000C,
     IMAGE_REL_I386_SECREL7  = 0x000D,
-    IMAGE_REL_I386_REL32    = 0x0014
+    IMAGE_REL_I386_REL32    = 0x0014,
+
+    IMAGE_REL_AMD64_ABSOLUTE  = 0x0000,
+    IMAGE_REL_AMD64_ADDR64    = 0x0001,
+    IMAGE_REL_AMD64_ADDR32    = 0x0002,
+    IMAGE_REL_AMD64_ADDR32NB  = 0x0003,
+    IMAGE_REL_AMD64_REL32     = 0x0004,
+    IMAGE_REL_AMD64_REL32_1   = 0x0005,
+    IMAGE_REL_AMD64_REL32_2   = 0x0006,
+    IMAGE_REL_AMD64_REL32_3   = 0x0007,
+    IMAGE_REL_AMD64_REL32_4   = 0x0008,
+    IMAGE_REL_AMD64_REL32_5   = 0x0009,
+    IMAGE_REL_AMD64_SECTION   = 0x000A,
+    IMAGE_REL_AMD64_SECREL    = 0x000B,
+    IMAGE_REL_AMD64_SECREL7   = 0x000C,
+    IMAGE_REL_AMD64_TOKEN     = 0x000D,
+    IMAGE_REL_AMD64_SREL32    = 0x000E,
+    IMAGE_REL_AMD64_PAIR      = 0x000F,
+    IMAGE_REL_AMD64_SSPAN32   = 0x0010
   };
 
   enum COMDATType {

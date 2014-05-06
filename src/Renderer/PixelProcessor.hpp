@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -30,10 +30,10 @@ namespace sw
 		{
 			unsigned int computeHash();
 
-			uint64_t shaderHash;
+			int shaderID;
 
 			unsigned int depthOverride            : 1;
-			unsigned int shaderContainsTexkill    : 1;
+			unsigned int shaderContainsKill       : 1;
 
 			unsigned int depthCompareMode         : BITS(Context::DEPTH_LAST);
 			unsigned int alphaCompareMode         : BITS(Context::ALPHA_LAST);
@@ -303,6 +303,7 @@ namespace sw
 		Context *const context;
 
 		LRUCache<State, Routine> *routineCache;
+		HMODULE precacheDLL;
 	};
 }
 

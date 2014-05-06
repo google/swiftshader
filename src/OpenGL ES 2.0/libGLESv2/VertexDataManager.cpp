@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // VertexDataManager.h: Defines the VertexDataManager, a class that
@@ -11,7 +16,6 @@
 
 #include "Buffer.h"
 #include "Program.h"
-#include "main.h"
 #include "IndexDataManager.h"
 #include "common/debug.h"
 
@@ -23,7 +27,7 @@ namespace
 namespace gl
 {
 
-VertexDataManager::VertexDataManager(Context *context, Device *device) : mContext(context), mDevice(device)
+VertexDataManager::VertexDataManager(Context *context) : mContext(context)
 {
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
@@ -31,7 +35,7 @@ VertexDataManager::VertexDataManager(Context *context, Device *device) : mContex
         mCurrentValueBuffer[i] = NULL;
     }
 
-    mStreamingBuffer = new StreamingVertexBuffer(mDevice, INITIAL_STREAM_BUFFER_SIZE);
+    mStreamingBuffer = new StreamingVertexBuffer(INITIAL_STREAM_BUFFER_SIZE);
 
     if(!mStreamingBuffer)
     {
@@ -49,7 +53,7 @@ VertexDataManager::~VertexDataManager()
     }
 }
 
-UINT VertexDataManager::writeAttributeData(ArrayVertexBuffer *vertexBuffer, GLint start, GLsizei count, const VertexAttribute &attribute)
+UINT VertexDataManager::writeAttributeData(StreamingVertexBuffer *vertexBuffer, GLint start, GLsizei count, const VertexAttribute &attribute)
 {
     Buffer *buffer = attribute.mBoundBuffer.get();
 
@@ -61,7 +65,7 @@ UINT VertexDataManager::writeAttributeData(ArrayVertexBuffer *vertexBuffer, GLin
     
     if(vertexBuffer)
     {
-        output = (char*)vertexBuffer->map(attribute, spaceRequired(attribute, count), &streamOffset);
+        output = (char*)vertexBuffer->map(attribute, attribute.typeSize() * count, &streamOffset);
     }
 
     if(output == NULL)
@@ -114,19 +118,14 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
     const VertexAttributeArray &attribs = mContext->getVertexAttributes();
     Program *program = mContext->getCurrentProgram();
 
-    for(int attributeIndex = 0; attributeIndex < MAX_VERTEX_ATTRIBS; attributeIndex++)
-    {
-        translated[attributeIndex].active = (program->getSemanticIndex(attributeIndex) != -1);
-    }
-
-    // Determine the required storage size per used buffer, and invalidate static buffers that don't contain matching attributes
+    // Determine the required storage size per used buffer
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
-        if(translated[i].active && attribs[i].mArrayEnabled)
+        if(program->getAttributeStream(i) != -1 && attribs[i].mArrayEnabled)
         {
             if(!attribs[i].mBoundBuffer)
             {
-                mStreamingBuffer->addRequiredSpace(spaceRequired(attribs[i], count));
+                mStreamingBuffer->addRequiredSpace(attribs[i].typeSize() * count);
             }
         }
     }
@@ -136,7 +135,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
     // Perform the vertex data translations
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
-        if(translated[i].active)
+        if(program->getAttributeStream(i) != -1)
         {
             if(attribs[i].mArrayEnabled)
             {
@@ -190,7 +189,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
                 if(mDirtyCurrentValue[i])
                 {
                     delete mCurrentValueBuffer[i];
-                    mCurrentValueBuffer[i] = new ConstantVertexBuffer(mDevice, attribs[i].mCurrentValue[0], attribs[i].mCurrentValue[1], attribs[i].mCurrentValue[2], attribs[i].mCurrentValue[3]);
+                    mCurrentValueBuffer[i] = new ConstantVertexBuffer(attribs[i].mCurrentValue[0], attribs[i].mCurrentValue[1], attribs[i].mCurrentValue[2], attribs[i].mCurrentValue[3]);
                     mDirtyCurrentValue[i] = false;
                 }
 
@@ -207,12 +206,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
     return GL_NO_ERROR;
 }
 
-std::size_t VertexDataManager::spaceRequired(const VertexAttribute &attrib, std::size_t count) const
-{
-	return attrib.typeSize() * count;
-}
-
-VertexBuffer::VertexBuffer(Device *device, std::size_t size) : mDevice(device), mVertexBuffer(NULL)
+VertexBuffer::VertexBuffer(std::size_t size) : mVertexBuffer(NULL)
 {
     if(size > 0)
     {
@@ -246,24 +240,12 @@ sw::Resource *VertexBuffer::getResource() const
     return mVertexBuffer;
 }
 
-ConstantVertexBuffer::ConstantVertexBuffer(Device *device, float x, float y, float z, float w) : VertexBuffer(device, 4 * sizeof(float))
+ConstantVertexBuffer::ConstantVertexBuffer(float x, float y, float z, float w) : VertexBuffer(4 * sizeof(float))
 {
-    void *buffer = NULL;
-
     if(mVertexBuffer)
     {
-		buffer = mVertexBuffer->lock(sw::PUBLIC);
+		float *vector = (float*)mVertexBuffer->lock(sw::PUBLIC);
      
-        if(!buffer)
-        {
-            ERR("Lock failed");
-        }
-    }
-
-    if(buffer)
-    {
-        float *vector = (float*)buffer;
-
         vector[0] = x;
         vector[1] = y;
         vector[2] = z;
@@ -277,28 +259,20 @@ ConstantVertexBuffer::~ConstantVertexBuffer()
 {
 }
 
-ArrayVertexBuffer::ArrayVertexBuffer(Device *device, std::size_t size) : VertexBuffer(device, size)
+StreamingVertexBuffer::StreamingVertexBuffer(std::size_t size) : VertexBuffer(size)
 {
     mBufferSize = size;
     mWritePosition = 0;
     mRequiredSpace = 0;
 }
 
-ArrayVertexBuffer::~ArrayVertexBuffer()
-{
-}
-
-void ArrayVertexBuffer::addRequiredSpace(UINT requiredSpace)
-{
-    mRequiredSpace += requiredSpace;
-}
-
-StreamingVertexBuffer::StreamingVertexBuffer(Device *device, std::size_t initialSize) : ArrayVertexBuffer(device, initialSize)
-{
-}
-
 StreamingVertexBuffer::~StreamingVertexBuffer()
 {
+}
+
+void StreamingVertexBuffer::addRequiredSpace(UINT requiredSpace)
+{
+    mRequiredSpace += requiredSpace;
 }
 
 void *StreamingVertexBuffer::map(const VertexAttribute &attribute, std::size_t requiredSpace, std::size_t *offset)

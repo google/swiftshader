@@ -23,7 +23,7 @@
 #include "llvm/CodeGen/BinaryObject.h"
 #include "llvm/CodeGen/MachineRelocation.h"
 #include "llvm/Support/ELF.h"
-#include "llvm/System/DataTypes.h"
+#include "llvm/Support/DataTypes.h"
 
 namespace llvm {
   class GlobalValue;
@@ -173,7 +173,7 @@ namespace llvm {
     unsigned Offset;    // sh_offset - Offset from the file start
     unsigned Size;      // sh_size - The section size.
     unsigned Link;      // sh_link - Section header table index link.
-    unsigned Info;      // sh_info - Auxillary information.
+    unsigned Info;      // sh_info - Auxiliary information.
     unsigned Align;     // sh_addralign - Alignment of section.
     unsigned EntSize;   // sh_entsize - Size of entries in the section e
 

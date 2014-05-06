@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -26,8 +26,7 @@
 #include "Resource.hpp"
 #include "Constants.hpp"
 #include "Debug.hpp"
-#include "SwiftShader.h"
-#include "Reactor/Shell.hpp"
+#include "Reactor/Reactor.hpp"
 
 #include <malloc.h>
 #include <assert.h>
@@ -35,10 +34,7 @@
 
 #undef max
 
-SWFILTER maximumFilterQuality = SWF_DEFAULT;
-SWFILTER maximumMipmapQuality = SWF_DEFAULT;
-SWPERSPECTIVE perspectiveQuality = SWP_DEFAULT;
-bool disableServer = false;
+bool disableServer = true;
 
 #ifndef NDEBUG
 unsigned int minPrimitives = 1;
@@ -47,6 +43,11 @@ unsigned int maxPrimitives = 1 << 21;
 
 namespace sw
 {
+	extern bool halfIntegerCoordinates;     // Pixel centers are not at integer coordinates
+	extern bool symmetricNormalizedDepth;   // [-1, 1] instead of [0, 1]
+	extern bool booleanFaceRegister;
+	extern bool fullPixelPositionRegister;
+
 	extern bool forceWindowed;
 	extern bool complementaryDepthBuffer;
 	extern bool postBlendSRGB;
@@ -54,16 +55,16 @@ namespace sw
 	extern Context::TransparencyAntialiasing transparencyAntialiasing;
 	extern bool forceClearRegisters;
 
-	extern TranscendentalPrecision logPrecision;
-	extern TranscendentalPrecision expPrecision;
-	extern TranscendentalPrecision rcpPrecision;
-	extern TranscendentalPrecision rsqPrecision;
-	extern bool perspectiveCorrection;
-
 	int batchSize = 128;
 	int threadCount = 1;
 	int unitCount = 1;
 	int clusterCount = 1;
+
+	TranscendentalPrecision logPrecision = ACCURATE;
+	TranscendentalPrecision expPrecision = ACCURATE;
+	TranscendentalPrecision rcpPrecision = ACCURATE;
+	TranscendentalPrecision rsqPrecision = ACCURATE;
+	bool perspectiveCorrection = true;
 
 	struct Parameters
 	{
@@ -96,14 +97,16 @@ namespace sw
 		deallocate(data);
 	}
 
-	Renderer::Renderer(Context *context, Surface *renderTarget) : context(context), VertexProcessor(context), PixelProcessor(context), SetupProcessor(context), viewport()
+	Renderer::Renderer(Context *context, bool halfIntegerCoordinates, bool symmetricNormalizedDepth, bool booleanFaceRegister, bool fullPixelPositionRegister, bool exactColorRounding) : context(context), VertexProcessor(context), PixelProcessor(context), SetupProcessor(context), viewport()
 	{
-		setRenderTarget(0, renderTarget);
+		sw::halfIntegerCoordinates = halfIntegerCoordinates;
+		sw::symmetricNormalizedDepth = symmetricNormalizedDepth;
+		sw::booleanFaceRegister = booleanFaceRegister;
+		sw::fullPixelPositionRegister = fullPixelPositionRegister;
+		sw::exactColorRounding = exactColorRounding;
 
+		setRenderTarget(0, 0);
 		clipper = new Clipper();
-
-		posScale = vector(1.0f, 1.0f, 1.0f, 1.0f);
-		posOffset = vector(0.0f, 0.0f, 0.0f, 0.0f);
 
 		updateViewMatrix = true;
 		updateBaseMatrix = true;
@@ -158,11 +161,14 @@ namespace sw
 
 		swiftConfig = new SwiftConfig(disableServer);
 		updateConfiguration(true);
-		startupConfiguration();
+
+		sync = new Resource(0);
 	}
 
 	Renderer::~Renderer()
 	{
+		sync->destruct();
+
 		delete clipper;
 		clipper = 0;
 
@@ -204,12 +210,14 @@ namespace sw
 		for(int q = 0; q < ss; q++)
 		{
 			int oldMultiSampleMask = context->multiSampleMask;
-			context->multiSampleMask = (context->sampleMask >> (ms * q)) & ((unsigned)0xFFFFFFFF  >> (32 - ms));
+			context->multiSampleMask = (context->sampleMask >> (ms * q)) & ((unsigned)0xFFFFFFFF >> (32 - ms));
 
 			if(!context->multiSampleMask)
 			{
 				continue;
 			}
+
+			sync->lock(sw::PRIVATE);
 
 			if(update || oldMultiSampleMask != context->multiSampleMask)
 			{
@@ -471,12 +479,12 @@ namespace sw
 
 			// Viewport
 			{
-				float W = 0.5f * viewport.getWidth();
-				float H = 0.5f * viewport.getHeight();
-				float L = viewport.getLeft() + W;
-				float T = viewport.getTop() + H;
-				float N = viewport.getNear();
-				float F = viewport.getFar();
+				float W = 0.5f * viewport.width;
+				float H = 0.5f * viewport.height;
+				float X0 = viewport.x0 + W;
+				float Y0 = viewport.y0 + H;
+				float N = viewport.minZ;
+				float F = viewport.maxZ;
 				float Z = F - N;
 
 				if(context->isDrawTriangle(false))
@@ -510,17 +518,15 @@ namespace sw
 
 				int s = sw::log2(ss);
 
-				data->WWWWx16 = replicate(W * 16);
-				data->HHHHx16 = replicate(-H * 16);
-				data->LLLLx16 = replicate(L * 16);
-				data->TTTTx16 = replicate(T * 16);
+				data->Wx16 = replicate(W * 16);
+				data->Hx16 = replicate(H * 16);
+				data->X0x16 = replicate(X0 * 16);
+				data->Y0x16 = replicate(Y0 * 16);
 				data->XXXX = replicate(X[s][q] / W);
 				data->YYYY = replicate(Y[s][q] / H);
-				data->offX = replicate(+0.5f / W);
-				data->offY = replicate(-0.5f / H);
-				data->posScale = posScale;
-				data->posOffset = posOffset;
-				data->viewportHeight = viewport.getHeight();   // FIXME: Should use true viewport size, not scissored viewport
+				data->halfPixelX = replicate(0.5f / W);
+				data->halfPixelY = replicate(0.5f / H);
+				data->viewportHeight = abs(viewport.height);
 				data->slopeDepthBias = slopeDepthBias;
 				data->depthRange = Z;
 				data->depthNear = N;
@@ -563,6 +569,14 @@ namespace sw
 					data->stencilPitchB = context->depthStencil->getStencilPitchB();
 					data->stencilSliceB = context->depthStencil->getStencilSliceB();
 				}
+			}
+
+			// Scissor
+			{
+				data->scissorX0 = scissor.x0;
+				data->scissorX1 = scissor.x1;
+				data->scissorY0 = scissor.y0;
+				data->scissorY1 = scissor.y1;
 			}
 
 			draw->primitive = 0;
@@ -809,6 +823,12 @@ namespace sw
 		}
 	}
 
+	void Renderer::synchronize()
+	{
+		sync->lock(sw::PUBLIC);
+		sync->unlock();
+	}
+
 	void Renderer::finishRendering(Task &pixelTask)
 	{
 		int unit = pixelTask.primitiveUnit;
@@ -901,6 +921,8 @@ namespace sw
 				draw.vertexRoutine->unbind();
 				draw.setupRoutine->unbind();
 				draw.pixelRoutine->unbind();
+
+				sync->unlock();
 
 				draw.references = -1;
 				resumeApp->signal();
@@ -1534,8 +1556,8 @@ namespace sw
 			return false;
 		}
 
-		const float W =  data.WWWWx16[0] * (1.0f / 16.0f);
-		const float H = -data.HHHHx16[0] * (1.0f / 16.0f);
+		const float W = data.Wx16[0] * (1.0f / 16.0f);
+		const float H = data.Hx16[0] * (1.0f / 16.0f);
 
 		float dx = W * (P1.x / P1.w - P0.x / P0.w);
 		float dy = H * (P1.y / P1.w - P0.y / P0.w);
@@ -1570,20 +1592,20 @@ namespace sw
 			float dx1h = dx * P1.w / H;
 			float dy1w = dy * P1.w / W;
 
-			P[0].x += +dy0w + -dx0w;
-			P[0].y += -dx0h + -dy0h;
+			P[0].x += -dy0w + -dx0w;
+			P[0].y += -dx0h + +dy0h;
 			C[0] = computeClipFlags(P[0], data);
 
-			P[1].x += +dy1w + +dx1w;
+			P[1].x += -dy1w + +dx1w;
 			P[1].y += -dx1h + +dy1h;
 			C[1] = computeClipFlags(P[1], data);
 
-			P[2].x += -dy1w + +dx1w;
-			P[2].y += +dx1h + +dy1h;
+			P[2].x += +dy1w + +dx1w;
+			P[2].y += +dx1h + -dy1h;
 			C[2] = computeClipFlags(P[2], data);
 
-			P[3].x += -dy0w + -dx0w;
-			P[3].y += +dx0h + -dy0h;
+			P[3].x += +dy0w + -dx0w;
+			P[3].y += +dx0h + +dy0h;
 			C[3] = computeClipFlags(P[3], data);
 
 			if((C[0] & C[1] & C[2] & C[3]) == Clipper::CLIP_FINITE)
@@ -1626,34 +1648,34 @@ namespace sw
 			P[0].x += -dx0;
 			C[0] = computeClipFlags(P[0], data);
 
-			P[1].y += -dy0;
+			P[1].y += +dy0;
 			C[1] = computeClipFlags(P[1], data);
 
 			P[2].x += +dx0;
 			C[2] = computeClipFlags(P[2], data);
 
-			P[3].y += +dy0;
+			P[3].y += -dy0;
 			C[3] = computeClipFlags(P[3], data);
 
 			P[4].x += -dx1;
 			C[4] = computeClipFlags(P[4], data);
 
-			P[5].y += -dy1;
+			P[5].y += +dy1;
 			C[5] = computeClipFlags(P[5], data);
 
 			P[6].x += +dx1;
 			C[6] = computeClipFlags(P[6], data);
 
-			P[7].y += +dy1;
+			P[7].y += -dy1;
 			C[7] = computeClipFlags(P[7], data);
 
 			if((C[0] & C[1] & C[2] & C[3] & C[4] & C[5] & C[6] & C[7]) == Clipper::CLIP_FINITE)
 			{
 				float4 L[6];
 
-				if(dx > dy)
+				if(dx > -dy)
 				{
-					if(dx > -dy)   // Right
+					if(dx > dy)   // Right
 					{
 						L[0] = P[0];
 						L[1] = P[1];
@@ -1674,7 +1696,7 @@ namespace sw
 				}
 				else
 				{
-					if(dx > -dy)   // Up
+					if(dx > dy)   // Up
 					{
 						L[0] = P[0];
 						L[1] = P[1];
@@ -1746,30 +1768,30 @@ namespace sw
 		P[2] = v.v[pos];
 		P[3] = v.v[pos];
 
-		const float X = 0.5f * pSize * P[0].w /  (data.WWWWx16[0] * (1.0f / 16.0f));
-		const float Y = 0.5f * pSize * P[0].w / -(data.HHHHx16[0] * (1.0f / 16.0f));
+		const float X = pSize * P[0].w * data.halfPixelX[0];
+		const float Y = pSize * P[0].w * data.halfPixelY[0];
 
 		P[0].x -= X;
-		P[0].y -= Y;
+		P[0].y += Y;
 		C[0] = computeClipFlags(P[0], data);
 
 		P[1].x += X;
-		P[1].y -= Y;
+		P[1].y += Y;
 		C[1] = computeClipFlags(P[1], data);
 
 		P[2].x += X;
-		P[2].y += Y;
+		P[2].y -= Y;
 		C[2] = computeClipFlags(P[2], data);
 
 		P[3].x -= X;
-		P[3].y += Y;
+		P[3].y -= Y;
 		C[3] = computeClipFlags(P[3], data);
 
 		triangle.v1 = triangle.v0;
 		triangle.v2 = triangle.v0;
 
 		triangle.v1.X += iround(16 * 0.5f * pSize);
-		triangle.v2.Y -= iround(16 * 0.5f * pSize);
+		triangle.v2.Y -= iround(16 * 0.5f * pSize) * (data.Hx16[0] > 0.0f ? 1 : -1);   // Both Direct3D and OpenGL expect (0, 0) in the top-left corner
 
 		Polygon polygon(P, 4);
 
@@ -1793,8 +1815,8 @@ namespace sw
 
 	unsigned int Renderer::computeClipFlags(const float4 &v, const DrawData &data)
 	{
-		float clX = v.x + data.offX[0] * v.w;
-		float clY = v.y + data.offY[0] * v.w;
+		float clX = v.x + data.halfPixelX[0] * v.w;
+		float clY = v.y + data.halfPixelY[0] * v.w;
 
 		return ((clX > v.w)  << 0) |
 			   ((clY > v.w)  << 1) |
@@ -1846,7 +1868,7 @@ namespace sw
 	{
 		while(threadsAwake != 0)
 		{
-			Thread::sleep(100);
+			Thread::sleep(1);
 		}
 
 		for(int thread = 0; thread < threadCount; thread++)
@@ -1890,38 +1912,36 @@ namespace sw
 
 		for(int i = 0; i < count; i++)
 		{
-			const ShaderInstruction *instruction = vertexShader->getInstruction(i);
+			const Shader::Instruction *instruction = vertexShader->getInstruction(i);
 
-			if(instruction->getOpcode() == VertexShaderInstruction::Operation::OPCODE_DEF)
+			if(instruction->opcode == Shader::OPCODE_DEF)
 			{
-				int index = instruction->getDestinationParameter().index;
+				int index = instruction->dst.index;
 				float value[4];
 
-				value[0] = instruction->getSourceParameter(0).value;
-				value[1] = instruction->getSourceParameter(1).value;
-				value[2] = instruction->getSourceParameter(2).value;
-				value[3] = instruction->getSourceParameter(3).value;
+				value[0] = instruction->src[0].value[0];
+				value[1] = instruction->src[0].value[1];
+				value[2] = instruction->src[0].value[2];
+				value[3] = instruction->src[0].value[3];
 
 				setVertexShaderConstantF(index, value);
 			}
-			else if(instruction->getOpcode() == VertexShaderInstruction::Operation::OPCODE_DEFI)
+			else if(instruction->opcode == Shader::OPCODE_DEFI)
 			{
-				int index = instruction->getDestinationParameter().index;
+				int index = instruction->dst.index;
 				int integer[4];
 
-				integer[0] = instruction->getSourceParameter(0).integer;
-				integer[1] = instruction->getSourceParameter(1).integer;
-				integer[2] = instruction->getSourceParameter(2).integer;
-				integer[3] = instruction->getSourceParameter(3).integer;
+				integer[0] = instruction->src[0].integer[0];
+				integer[1] = instruction->src[0].integer[1];
+				integer[2] = instruction->src[0].integer[2];
+				integer[3] = instruction->src[0].integer[3];
 
 				setVertexShaderConstantI(index, integer);
 			}
-			else if(instruction->getOpcode() == VertexShaderInstruction::Operation::OPCODE_DEFB)
+			else if(instruction->opcode == Shader::OPCODE_DEFB)
 			{
-				int index = instruction->getDestinationParameter().index;
-				int boolean;
-
-				boolean = instruction->getSourceParameter(0).boolean;
+				int index = instruction->dst.index;
+				int boolean = instruction->src[0].boolean[0];
 
 				setVertexShaderConstantB(index, &boolean);
 			}
@@ -1936,38 +1956,36 @@ namespace sw
 
 		for(int i = 0; i < count; i++)
 		{
-			const ShaderInstruction *instruction = pixelShader->getInstruction(i);
+			const Shader::Instruction *instruction = pixelShader->getInstruction(i);
 
-			if(instruction->getOpcode() == PixelShaderInstruction::Operation::OPCODE_DEF)
+			if(instruction->opcode == Shader::OPCODE_DEF)
 			{
-				int index = instruction->getDestinationParameter().index;
+				int index = instruction->dst.index;
 				float value[4];
 
-				value[0] = instruction->getSourceParameter(0).value;
-				value[1] = instruction->getSourceParameter(1).value;
-				value[2] = instruction->getSourceParameter(2).value;
-				value[3] = instruction->getSourceParameter(3).value;
+				value[0] = instruction->src[0].value[0];
+				value[1] = instruction->src[0].value[1];
+				value[2] = instruction->src[0].value[2];
+				value[3] = instruction->src[0].value[3];
 
 				setPixelShaderConstantF(index, value);
 			}
-			else if(instruction->getOpcode() == PixelShaderInstruction::Operation::OPCODE_DEFI)
+			else if(instruction->opcode == Shader::OPCODE_DEFI)
 			{
-				int index = instruction->getDestinationParameter().index;
+				int index = instruction->dst.index;
 				int integer[4];
 
-				integer[0] = instruction->getSourceParameter(0).integer;
-				integer[1] = instruction->getSourceParameter(1).integer;
-				integer[2] = instruction->getSourceParameter(2).integer;
-				integer[3] = instruction->getSourceParameter(3).integer;
+				integer[0] = instruction->src[0].integer[0];
+				integer[1] = instruction->src[0].integer[1];
+				integer[2] = instruction->src[0].integer[2];
+				integer[3] = instruction->src[0].integer[3];
 
 				setPixelShaderConstantI(index, integer);
 			}
-			else if(instruction->getOpcode() == PixelShaderInstruction::Operation::OPCODE_DEFB)
+			else if(instruction->opcode == Shader::OPCODE_DEFB)
 			{
-				int index = instruction->getDestinationParameter().index;
-				int boolean;
-
-				boolean = instruction->getSourceParameter(0).boolean;
+				int index = instruction->dst.index;
+				int boolean = instruction->src[0].boolean[0];
 
 				setPixelShaderConstantB(index, &boolean);
 			}
@@ -2011,15 +2029,9 @@ namespace sw
 	{
 		if(updateClipPlanes)
 		{
-			// Transformation from viewport clip space to scissored viewport clip space
-			Matrix scissorClip(posScale.x, 0.0f,        0.0f, posOffset.x,
-			                   0.0f,       posScale.y,  0.0f, posOffset.y,
-			                   0.0f,       0.0f,        1.0f, 0.0f,
-			                   0.0f ,      0.0f,        0.0f, 1.0f);
-
 			if(VertexProcessor::isFixedFunction())   // User plane in world space
 			{
-				const Matrix &scissorWorld = scissorClip * getViewTransform();
+				const Matrix &scissorWorld = getViewTransform();
 
 				if(clipFlags & Clipper::CLIP_PLANE0) clipPlane[0] = scissorWorld * userPlane[0];
 				if(clipFlags & Clipper::CLIP_PLANE1) clipPlane[1] = scissorWorld * userPlane[1];
@@ -2030,12 +2042,12 @@ namespace sw
 			}
 			else   // User plane in clip space
 			{
-				if(clipFlags & Clipper::CLIP_PLANE0) clipPlane[0] = scissorClip * userPlane[0];
-				if(clipFlags & Clipper::CLIP_PLANE1) clipPlane[1] = scissorClip * userPlane[1];
-				if(clipFlags & Clipper::CLIP_PLANE2) clipPlane[2] = scissorClip * userPlane[2];
-				if(clipFlags & Clipper::CLIP_PLANE3) clipPlane[3] = scissorClip * userPlane[3];
-				if(clipFlags & Clipper::CLIP_PLANE4) clipPlane[4] = scissorClip * userPlane[4];
-				if(clipFlags & Clipper::CLIP_PLANE5) clipPlane[5] = scissorClip * userPlane[5];
+				if(clipFlags & Clipper::CLIP_PLANE0) clipPlane[0] = userPlane[0];
+				if(clipFlags & Clipper::CLIP_PLANE1) clipPlane[1] = userPlane[1];
+				if(clipFlags & Clipper::CLIP_PLANE2) clipPlane[2] = userPlane[2];
+				if(clipFlags & Clipper::CLIP_PLANE3) clipPlane[3] = userPlane[3];
+				if(clipFlags & Clipper::CLIP_PLANE4) clipPlane[4] = userPlane[4];
+				if(clipFlags & Clipper::CLIP_PLANE5) clipPlane[5] = userPlane[5];
 			}
 
 			updateClipPlanes = false;
@@ -2335,31 +2347,6 @@ namespace sw
 		updateClipPlanes = true;
 	}
 
-	void Renderer::setPostTransformEnable(bool enable)
-	{
-		context->postTransform = enable;
-	}
-
-	void Renderer::setPosScale(float x, float y)
-	{
-		posScale[0] = x;
-		posScale[1] = y;
-		posScale[2] = 1;
-		posScale[3] = 1;
-
-		updateClipPlanes = true;
-	}
-
-	void Renderer::setPosOffset(float x, float y)
-	{
-		posOffset[0] = x;
-		posOffset[1] = y;
-		posOffset[2] = 0;
-		posOffset[3] = 0;
-
-		updateClipPlanes = true;
-	}
-
 	void Renderer::addQuery(Query *query)
 	{
 		queries.push_back(query);
@@ -2405,6 +2392,11 @@ namespace sw
 	void Renderer::setViewport(const Viewport &viewport)
 	{
 		this->viewport = viewport;
+	}
+
+	void Renderer::setScissor(const Rect &scissor)
+	{
+		this->scissor = scissor;
 	}
 
 	void Renderer::setClipFlags(int flags)
@@ -2530,78 +2522,6 @@ namespace sw
 			minPrimitives = configuration.minPrimitives;
 			maxPrimitives = configuration.maxPrimitives;
 		#endif
-		}
-	}
-
-	void Renderer::startupConfiguration()
-	{
-		if(!CPUID::supportsSSE2())
-		{
-			MessageBox(0, "Failed to initialize graphics: software mode requires SSE2 support (Pentium 4, Athlon 64, or higher). Aborting application.", 0, MB_ICONERROR);
-
-			exit(0);
-		}
-
-		if(maximumFilterQuality != SWF_DEFAULT)
-		{
-			switch(maximumFilterQuality)
-			{
-			case SWF_DEFAULT:	Sampler::setFilterQuality(FILTER_LINEAR);	break;
-			case SWF_NONE:		Sampler::setFilterQuality(FILTER_POINT);	break;
-			case SWF_POINT:		Sampler::setFilterQuality(FILTER_POINT);	break;
-			case SWF_AVERAGE2:	Sampler::setFilterQuality(FILTER_LINEAR);	break;
-			case SWF_AVERAGE4:	Sampler::setFilterQuality(FILTER_LINEAR);	break;
-			case SWF_POLYGON:	Sampler::setFilterQuality(FILTER_LINEAR);	break;
-			case SWF_LINEAR:	Sampler::setFilterQuality(FILTER_LINEAR);	break;
-			case SWF_MAXIMUM:	Sampler::setFilterQuality(FILTER_LINEAR);	break;
-			default:
-				ASSERT(false);
-			}
-		}
-
-		if(maximumMipmapQuality != SWF_DEFAULT)
-		{
-			switch(maximumMipmapQuality)
-			{
-			case SWF_DEFAULT:	Sampler::setMipmapQuality(MIPMAP_POINT);	break;
-			case SWF_NONE:		Sampler::setMipmapQuality(MIPMAP_NONE);	break;
-			case SWF_POINT:		Sampler::setMipmapQuality(MIPMAP_POINT);	break;
-			case SWF_AVERAGE2:	Sampler::setMipmapQuality(MIPMAP_POINT);	break;
-			case SWF_AVERAGE4:	Sampler::setMipmapQuality(MIPMAP_POINT);	break;
-			case SWF_POLYGON:	Sampler::setMipmapQuality(MIPMAP_POINT);	break;
-			case SWF_LINEAR:	Sampler::setMipmapQuality(MIPMAP_LINEAR);	break;
-			case SWF_MAXIMUM:	Sampler::setMipmapQuality(MIPMAP_LINEAR);	break;
-			default:
-				ASSERT(false);
-			}
-		}
-
-		if(perspectiveQuality != SWP_DEFAULT)
-		{
-			switch(perspectiveQuality)
-			{
-			case SWP_DEFAULT:	setPerspectiveCorrection(true);		break;
-			case SWP_NONE:		setPerspectiveCorrection(false);	break;
-			case SWP_FAST:		setPerspectiveCorrection(true);		break;
-			case SWP_ACCURATE:	setPerspectiveCorrection(true);		break;
-			default:
-				ASSERT(false);
-			}
-		}
-
-		const char *commandLine = GetCommandLine();
-		bool whql = (strstr(commandLine, "-WHQL") != 0) || (strstr(commandLine, "-THQL") != 0);
-
-		if(whql)
-		{
-			Sampler::setFilterQuality(FILTER_ANISOTROPIC);
-			Sampler::setMipmapQuality(MIPMAP_LINEAR);
-
-			logPrecision = WHQL;
-			expPrecision = WHQL;
-			rcpPrecision = WHQL;
-			rsqPrecision = WHQL;
-			perspectiveCorrection = true;
 		}
 	}
 }

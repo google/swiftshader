@@ -12,15 +12,22 @@
 //===----------------------------------------------------------------------===//
 
 #define DEBUG_TYPE "ssaupdater"
+#include "llvm/Constants.h"
 #include "llvm/Instructions.h"
+#include "llvm/IntrinsicInst.h"
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/TinyPtrVector.h"
+#include "llvm/Analysis/InstructionSimplify.h"
 #include "llvm/Support/AlignOf.h"
 #include "llvm/Support/Allocator.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Transforms/Utils/BasicBlockUtils.h"
+#include "llvm/Transforms/Utils/Local.h"
 #include "llvm/Transforms/Utils/SSAUpdater.h"
 #include "llvm/Transforms/Utils/SSAUpdaterImpl.h"
+
 using namespace llvm;
 
 typedef DenseMap<BasicBlock*, Value*> AvailableValsTy;
@@ -29,20 +36,21 @@ static AvailableValsTy &getAvailableVals(void *AV) {
 }
 
 SSAUpdater::SSAUpdater(SmallVectorImpl<PHINode*> *NewPHI)
-  : AV(0), PrototypeValue(0), InsertedPHIs(NewPHI) {}
+  : AV(0), ProtoType(0), ProtoName(), InsertedPHIs(NewPHI) {}
 
 SSAUpdater::~SSAUpdater() {
   delete &getAvailableVals(AV);
 }
 
 /// Initialize - Reset this object to get ready for a new set of SSA
-/// updates.  ProtoValue is the value used to name PHI nodes.
-void SSAUpdater::Initialize(Value *ProtoValue) {
+/// updates with type 'Ty'.  PHI nodes get a name based on 'Name'.
+void SSAUpdater::Initialize(Type *Ty, StringRef Name) {
   if (AV == 0)
     AV = new AvailableValsTy();
   else
     getAvailableVals(AV).clear();
-  PrototypeValue = ProtoValue;
+  ProtoType = Ty;
+  ProtoName = Name;
 }
 
 /// HasValueForBlock - Return true if the SSAUpdater already has a value for
@@ -54,8 +62,8 @@ bool SSAUpdater::HasValueForBlock(BasicBlock *BB) const {
 /// AddAvailableValue - Indicate that a rewritten value is available in the
 /// specified block with the specified value.
 void SSAUpdater::AddAvailableValue(BasicBlock *BB, Value *V) {
-  assert(PrototypeValue != 0 && "Need to initialize SSAUpdater");
-  assert(PrototypeValue->getType() == V->getType() &&
+  assert(ProtoType != 0 && "Need to initialize SSAUpdater");
+  assert(ProtoType == V->getType() &&
          "All rewritten values must have the same type");
   getAvailableVals(AV)[BB] = V;
 }
@@ -148,7 +156,7 @@ Value *SSAUpdater::GetValueInMiddleOfBlock(BasicBlock *BB) {
 
   // If there are no predecessors, just return undef.
   if (PredValues.empty())
-    return UndefValue::get(PrototypeValue->getType());
+    return UndefValue::get(ProtoType);
 
   // Otherwise, if all the merged values are the same, just use it.
   if (SingularValue != 0)
@@ -168,9 +176,8 @@ Value *SSAUpdater::GetValueInMiddleOfBlock(BasicBlock *BB) {
   }
 
   // Ok, we have no way out, insert a new one now.
-  PHINode *InsertedPHI = PHINode::Create(PrototypeValue->getType(),
-                                         &BB->front());
-  InsertedPHI->reserveOperandSpace(PredValues.size());
+  PHINode *InsertedPHI = PHINode::Create(ProtoType, PredValues.size(),
+                                         ProtoName, &BB->front());
 
   // Fill in all the predecessors of the PHI.
   for (unsigned i = 0, e = PredValues.size(); i != e; ++i)
@@ -178,10 +185,13 @@ Value *SSAUpdater::GetValueInMiddleOfBlock(BasicBlock *BB) {
 
   // See if the PHI node can be merged to a single value.  This can happen in
   // loop cases when we get a PHI of itself and one other value.
-  if (Value *ConstVal = InsertedPHI->hasConstantValue()) {
+  if (Value *V = SimplifyInstruction(InsertedPHI)) {
     InsertedPHI->eraseFromParent();
-    return ConstVal;
+    return V;
   }
+
+  // Set DebugLoc.
+  InsertedPHI->setDebugLoc(GetFirstDebugLocInBasicBlock(BB));
 
   // If the client wants to know about all new instructions, tell it.
   if (InsertedPHIs) InsertedPHIs->push_back(InsertedPHI);
@@ -201,6 +211,22 @@ void SSAUpdater::RewriteUse(Use &U) {
   else
     V = GetValueInMiddleOfBlock(User->getParent());
 
+  U.set(V);
+}
+
+/// RewriteUseAfterInsertions - Rewrite a use, just like RewriteUse.  However,
+/// this version of the method can rewrite uses in the same block as a
+/// definition, because it assumes that all uses of a value are below any
+/// inserted values.
+void SSAUpdater::RewriteUseAfterInsertions(Use &U) {
+  Instruction *User = cast<Instruction>(U.getUser());
+  
+  Value *V;
+  if (PHINode *UserPN = dyn_cast<PHINode>(User))
+    V = GetValueAtEndOfBlock(UserPN->getIncomingBlock(U));
+  else
+    V = GetValueAtEndOfBlock(User->getParent());
+  
   U.set(V);
 }
 
@@ -265,16 +291,15 @@ public:
   /// GetUndefVal - Get an undefined value of the same type as the value
   /// being handled.
   static Value *GetUndefVal(BasicBlock *BB, SSAUpdater *Updater) {
-    return UndefValue::get(Updater->PrototypeValue->getType());
+    return UndefValue::get(Updater->ProtoType);
   }
 
   /// CreateEmptyPHI - Create a new PHI instruction in the specified block.
   /// Reserve space for the operands but do not fill them in yet.
   static Value *CreateEmptyPHI(BasicBlock *BB, unsigned NumPreds,
                                SSAUpdater *Updater) {
-    PHINode *PHI = PHINode::Create(Updater->PrototypeValue->getType(),
-                                   &BB->front());
-    PHI->reserveOperandSpace(NumPreds);
+    PHINode *PHI = PHINode::Create(Updater->ProtoType, NumPreds,
+                                   Updater->ProtoName, &BB->front());
     return PHI;
   }
 
@@ -325,4 +350,171 @@ Value *SSAUpdater::GetValueAtEndOfBlockInternal(BasicBlock *BB) {
 
   SSAUpdaterImpl<SSAUpdater> Impl(this, &AvailableVals, InsertedPHIs);
   return Impl.GetValue(BB);
+}
+
+//===----------------------------------------------------------------------===//
+// LoadAndStorePromoter Implementation
+//===----------------------------------------------------------------------===//
+
+LoadAndStorePromoter::
+LoadAndStorePromoter(const SmallVectorImpl<Instruction*> &Insts,
+                     SSAUpdater &S, StringRef BaseName) : SSA(S) {
+  if (Insts.empty()) return;
+  
+  Value *SomeVal;
+  if (LoadInst *LI = dyn_cast<LoadInst>(Insts[0]))
+    SomeVal = LI;
+  else
+    SomeVal = cast<StoreInst>(Insts[0])->getOperand(0);
+
+  if (BaseName.empty())
+    BaseName = SomeVal->getName();
+  SSA.Initialize(SomeVal->getType(), BaseName);
+}
+
+
+void LoadAndStorePromoter::
+run(const SmallVectorImpl<Instruction*> &Insts) const {
+  
+  // First step: bucket up uses of the alloca by the block they occur in.
+  // This is important because we have to handle multiple defs/uses in a block
+  // ourselves: SSAUpdater is purely for cross-block references.
+  DenseMap<BasicBlock*, TinyPtrVector<Instruction*> > UsesByBlock;
+  
+  for (unsigned i = 0, e = Insts.size(); i != e; ++i) {
+    Instruction *User = Insts[i];
+    UsesByBlock[User->getParent()].push_back(User);
+  }
+  
+  // Okay, now we can iterate over all the blocks in the function with uses,
+  // processing them.  Keep track of which loads are loading a live-in value.
+  // Walk the uses in the use-list order to be determinstic.
+  SmallVector<LoadInst*, 32> LiveInLoads;
+  DenseMap<Value*, Value*> ReplacedLoads;
+  
+  for (unsigned i = 0, e = Insts.size(); i != e; ++i) {
+    Instruction *User = Insts[i];
+    BasicBlock *BB = User->getParent();
+    TinyPtrVector<Instruction*> &BlockUses = UsesByBlock[BB];
+    
+    // If this block has already been processed, ignore this repeat use.
+    if (BlockUses.empty()) continue;
+    
+    // Okay, this is the first use in the block.  If this block just has a
+    // single user in it, we can rewrite it trivially.
+    if (BlockUses.size() == 1) {
+      // If it is a store, it is a trivial def of the value in the block.
+      if (StoreInst *SI = dyn_cast<StoreInst>(User)) {
+        updateDebugInfo(SI);
+        SSA.AddAvailableValue(BB, SI->getOperand(0));
+      } else 
+        // Otherwise it is a load, queue it to rewrite as a live-in load.
+        LiveInLoads.push_back(cast<LoadInst>(User));
+      BlockUses.clear();
+      continue;
+    }
+    
+    // Otherwise, check to see if this block is all loads.
+    bool HasStore = false;
+    for (unsigned i = 0, e = BlockUses.size(); i != e; ++i) {
+      if (isa<StoreInst>(BlockUses[i])) {
+        HasStore = true;
+        break;
+      }
+    }
+    
+    // If so, we can queue them all as live in loads.  We don't have an
+    // efficient way to tell which on is first in the block and don't want to
+    // scan large blocks, so just add all loads as live ins.
+    if (!HasStore) {
+      for (unsigned i = 0, e = BlockUses.size(); i != e; ++i)
+        LiveInLoads.push_back(cast<LoadInst>(BlockUses[i]));
+      BlockUses.clear();
+      continue;
+    }
+    
+    // Otherwise, we have mixed loads and stores (or just a bunch of stores).
+    // Since SSAUpdater is purely for cross-block values, we need to determine
+    // the order of these instructions in the block.  If the first use in the
+    // block is a load, then it uses the live in value.  The last store defines
+    // the live out value.  We handle this by doing a linear scan of the block.
+    Value *StoredValue = 0;
+    for (BasicBlock::iterator II = BB->begin(), E = BB->end(); II != E; ++II) {
+      if (LoadInst *L = dyn_cast<LoadInst>(II)) {
+        // If this is a load from an unrelated pointer, ignore it.
+        if (!isInstInList(L, Insts)) continue;
+        
+        // If we haven't seen a store yet, this is a live in use, otherwise
+        // use the stored value.
+        if (StoredValue) {
+          replaceLoadWithValue(L, StoredValue);
+          L->replaceAllUsesWith(StoredValue);
+          ReplacedLoads[L] = StoredValue;
+        } else {
+          LiveInLoads.push_back(L);
+        }
+        continue;
+      }
+      
+      if (StoreInst *SI = dyn_cast<StoreInst>(II)) {
+        // If this is a store to an unrelated pointer, ignore it.
+        if (!isInstInList(SI, Insts)) continue;
+        updateDebugInfo(SI);
+
+        // Remember that this is the active value in the block.
+        StoredValue = SI->getOperand(0);
+      }
+    }
+    
+    // The last stored value that happened is the live-out for the block.
+    assert(StoredValue && "Already checked that there is a store in block");
+    SSA.AddAvailableValue(BB, StoredValue);
+    BlockUses.clear();
+  }
+  
+  // Okay, now we rewrite all loads that use live-in values in the loop,
+  // inserting PHI nodes as necessary.
+  for (unsigned i = 0, e = LiveInLoads.size(); i != e; ++i) {
+    LoadInst *ALoad = LiveInLoads[i];
+    Value *NewVal = SSA.GetValueInMiddleOfBlock(ALoad->getParent());
+    replaceLoadWithValue(ALoad, NewVal);
+
+    // Avoid assertions in unreachable code.
+    if (NewVal == ALoad) NewVal = UndefValue::get(NewVal->getType());
+    ALoad->replaceAllUsesWith(NewVal);
+    ReplacedLoads[ALoad] = NewVal;
+  }
+  
+  // Allow the client to do stuff before we start nuking things.
+  doExtraRewritesBeforeFinalDeletion();
+  
+  // Now that everything is rewritten, delete the old instructions from the
+  // function.  They should all be dead now.
+  for (unsigned i = 0, e = Insts.size(); i != e; ++i) {
+    Instruction *User = Insts[i];
+    
+    // If this is a load that still has uses, then the load must have been added
+    // as a live value in the SSAUpdate data structure for a block (e.g. because
+    // the loaded value was stored later).  In this case, we need to recursively
+    // propagate the updates until we get to the real value.
+    if (!User->use_empty()) {
+      Value *NewVal = ReplacedLoads[User];
+      assert(NewVal && "not a replaced load?");
+      
+      // Propagate down to the ultimate replacee.  The intermediately loads
+      // could theoretically already have been deleted, so we don't want to
+      // dereference the Value*'s.
+      DenseMap<Value*, Value*>::iterator RLI = ReplacedLoads.find(NewVal);
+      while (RLI != ReplacedLoads.end()) {
+        NewVal = RLI->second;
+        RLI = ReplacedLoads.find(NewVal);
+      }
+      
+      replaceLoadWithValue(cast<LoadInst>(User), NewVal);
+      User->replaceAllUsesWith(NewVal);
+    }
+    
+    instructionDeleted(User);
+    User->eraseFromParent();
+  }
 }

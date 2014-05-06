@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // Renderbuffer.cpp: the Renderbuffer class and its derived classes
@@ -29,19 +34,19 @@ Renderbuffer::~Renderbuffer()
     delete mStorage;
 }
 
-bool Renderbuffer::isColorbuffer() const
+Colorbuffer *Renderbuffer::getColorbuffer()
 {
-    return mStorage->isColorbuffer();
+    return mStorage->getColorbuffer();
 }
 
-bool Renderbuffer::isDepthbuffer() const
+DepthStencilbuffer *Renderbuffer::getDepthbuffer()
 {
-    return mStorage->isDepthbuffer();
+    return mStorage->getDepthbuffer();
 }
 
-bool Renderbuffer::isStencilbuffer() const
+DepthStencilbuffer *Renderbuffer::getStencilbuffer()
 {
-    return mStorage->isStencilbuffer();
+    return mStorage->getStencilbuffer();
 }
 
 Image *Renderbuffer::getRenderTarget()
@@ -135,19 +140,19 @@ RenderbufferStorage::~RenderbufferStorage()
 {
 }
 
-bool RenderbufferStorage::isColorbuffer() const
+Colorbuffer *RenderbufferStorage::getColorbuffer()
 {
-    return false;
+    return NULL;
 }
 
-bool RenderbufferStorage::isDepthbuffer() const
+DepthStencilbuffer *RenderbufferStorage::getDepthbuffer()
 {
-    return false;
+    return NULL;
 }
 
-bool RenderbufferStorage::isStencilbuffer() const
+DepthStencilbuffer *RenderbufferStorage::getStencilbuffer()
 {
-    return false;
+    return NULL;
 }
 
 Image *RenderbufferStorage::getRenderTarget()
@@ -343,21 +348,28 @@ GLenum Colorbuffer::getFormat() const
     return format;
 }
 
-bool Colorbuffer::isColorbuffer() const
+Colorbuffer *Colorbuffer::getColorbuffer()
 {
-    return true;
+    return this;
 }
 
 Image *Colorbuffer::getRenderTarget()
 {
     if(mTexture)
     {
-        if(mRenderTarget)
+        Image *newRenderTarget = mTexture->getRenderTarget(mTarget);
+
+		if(mRenderTarget)
         {
             mRenderTarget->release();
         }
 
-        mRenderTarget = mTexture->getRenderTarget(mTarget);
+		mRenderTarget = newRenderTarget;
+    }
+
+	if(mRenderTarget)
+    {
+        mRenderTarget->addRef();
     }
 
     return mRenderTarget;
@@ -418,14 +430,14 @@ DepthStencilbuffer::~DepthStencilbuffer()
     }
 }
 
-bool DepthStencilbuffer::isDepthbuffer() const
+DepthStencilbuffer *DepthStencilbuffer::getDepthbuffer()
 {
-    return true;
+    return this;
 }
 
-bool DepthStencilbuffer::isStencilbuffer() const
+DepthStencilbuffer *DepthStencilbuffer::getStencilbuffer()
 {
-    return true;
+    return this;
 }
 
 Image *DepthStencilbuffer::getDepthStencil()
@@ -457,14 +469,14 @@ Depthbuffer::~Depthbuffer()
 {
 }
 
-bool Depthbuffer::isDepthbuffer() const
+DepthStencilbuffer *Depthbuffer::getDepthbuffer()
 {
-    return true;
+    return this;
 }
 
-bool Depthbuffer::isStencilbuffer() const
+DepthStencilbuffer *Depthbuffer::getStencilbuffer()
 {
-    return false;
+    return NULL;
 }
 
 Stencilbuffer::Stencilbuffer(Image *depthStencil) : DepthStencilbuffer(depthStencil)
@@ -491,13 +503,13 @@ Stencilbuffer::~Stencilbuffer()
 {
 }
 
-bool Stencilbuffer::isDepthbuffer() const
+DepthStencilbuffer *Stencilbuffer::getDepthbuffer()
 {
-    return false;
+    return NULL;
 }
 
-bool Stencilbuffer::isStencilbuffer() const
+DepthStencilbuffer *Stencilbuffer::getStencilbuffer()
 {
-    return true;
+    return this;
 }
 }

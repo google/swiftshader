@@ -21,6 +21,7 @@
 
 #include "llvm/Constants.h"
 #include "llvm/InstrTypes.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/Analysis/ConstantFolding.h"
 
 namespace llvm {
@@ -46,50 +47,32 @@ public:
   // Binary Operators
   //===--------------------------------------------------------------------===//
 
-  Constant *CreateAdd(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getAdd(LHS, RHS));
-  }
-  Constant *CreateNSWAdd(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getNSWAdd(LHS, RHS));
-  }
-  Constant *CreateNUWAdd(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getNUWAdd(LHS, RHS));
+  Constant *CreateAdd(Constant *LHS, Constant *RHS,
+                      bool HasNUW = false, bool HasNSW = false) const {
+    return Fold(ConstantExpr::getAdd(LHS, RHS, HasNUW, HasNSW));
   }
   Constant *CreateFAdd(Constant *LHS, Constant *RHS) const {
     return Fold(ConstantExpr::getFAdd(LHS, RHS));
   }
-  Constant *CreateSub(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getSub(LHS, RHS));
-  }
-  Constant *CreateNSWSub(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getNSWSub(LHS, RHS));
-  }
-  Constant *CreateNUWSub(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getNUWSub(LHS, RHS));
+  Constant *CreateSub(Constant *LHS, Constant *RHS,
+                      bool HasNUW = false, bool HasNSW = false) const {
+    return Fold(ConstantExpr::getSub(LHS, RHS, HasNUW, HasNSW));
   }
   Constant *CreateFSub(Constant *LHS, Constant *RHS) const {
     return Fold(ConstantExpr::getFSub(LHS, RHS));
   }
-  Constant *CreateMul(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getMul(LHS, RHS));
-  }
-  Constant *CreateNSWMul(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getNSWMul(LHS, RHS));
-  }
-  Constant *CreateNUWMul(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getNUWMul(LHS, RHS));
+  Constant *CreateMul(Constant *LHS, Constant *RHS,
+                      bool HasNUW = false, bool HasNSW = false) const {
+    return Fold(ConstantExpr::getMul(LHS, RHS, HasNUW, HasNSW));
   }
   Constant *CreateFMul(Constant *LHS, Constant *RHS) const {
     return Fold(ConstantExpr::getFMul(LHS, RHS));
   }
-  Constant *CreateUDiv(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getUDiv(LHS, RHS));
+  Constant *CreateUDiv(Constant *LHS, Constant *RHS, bool isExact = false)const{
+    return Fold(ConstantExpr::getUDiv(LHS, RHS, isExact));
   }
-  Constant *CreateSDiv(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getSDiv(LHS, RHS));
-  }
-  Constant *CreateExactSDiv(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getExactSDiv(LHS, RHS));
+  Constant *CreateSDiv(Constant *LHS, Constant *RHS, bool isExact = false)const{
+    return Fold(ConstantExpr::getSDiv(LHS, RHS, isExact));
   }
   Constant *CreateFDiv(Constant *LHS, Constant *RHS) const {
     return Fold(ConstantExpr::getFDiv(LHS, RHS));
@@ -103,14 +86,15 @@ public:
   Constant *CreateFRem(Constant *LHS, Constant *RHS) const {
     return Fold(ConstantExpr::getFRem(LHS, RHS));
   }
-  Constant *CreateShl(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getShl(LHS, RHS));
+  Constant *CreateShl(Constant *LHS, Constant *RHS,
+                      bool HasNUW = false, bool HasNSW = false) const {
+    return Fold(ConstantExpr::getShl(LHS, RHS, HasNUW, HasNSW));
   }
-  Constant *CreateLShr(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getLShr(LHS, RHS));
+  Constant *CreateLShr(Constant *LHS, Constant *RHS, bool isExact = false)const{
+    return Fold(ConstantExpr::getLShr(LHS, RHS, isExact));
   }
-  Constant *CreateAShr(Constant *LHS, Constant *RHS) const {
-    return Fold(ConstantExpr::getAShr(LHS, RHS));
+  Constant *CreateAShr(Constant *LHS, Constant *RHS, bool isExact = false)const{
+    return Fold(ConstantExpr::getAShr(LHS, RHS, isExact));
   }
   Constant *CreateAnd(Constant *LHS, Constant *RHS) const {
     return Fold(ConstantExpr::getAnd(LHS, RHS));
@@ -131,14 +115,9 @@ public:
   // Unary Operators
   //===--------------------------------------------------------------------===//
 
-  Constant *CreateNeg(Constant *C) const {
-    return Fold(ConstantExpr::getNeg(C));
-  }
-  Constant *CreateNSWNeg(Constant *C) const {
-    return Fold(ConstantExpr::getNSWNeg(C));
-  }
-  Constant *CreateNUWNeg(Constant *C) const {
-    return Fold(ConstantExpr::getNUWNeg(C));
+  Constant *CreateNeg(Constant *C,
+                      bool HasNUW = false, bool HasNSW = false) const {
+    return Fold(ConstantExpr::getNeg(C, HasNUW, HasNSW));
   }
   Constant *CreateFNeg(Constant *C) const {
     return Fold(ConstantExpr::getFNeg(C));
@@ -151,22 +130,34 @@ public:
   // Memory Instructions
   //===--------------------------------------------------------------------===//
 
-  Constant *CreateGetElementPtr(Constant *C, Constant* const *IdxList,
-                                unsigned NumIdx) const {
-    return Fold(ConstantExpr::getGetElementPtr(C, IdxList, NumIdx));
+  Constant *CreateGetElementPtr(Constant *C,
+                                ArrayRef<Constant *> IdxList) const {
+    return Fold(ConstantExpr::getGetElementPtr(C, IdxList));
   }
-  Constant *CreateGetElementPtr(Constant *C, Value* const *IdxList,
-                                unsigned NumIdx) const {
-    return Fold(ConstantExpr::getGetElementPtr(C, IdxList, NumIdx));
+  Constant *CreateGetElementPtr(Constant *C, Constant *Idx) const {
+    // This form of the function only exists to avoid ambiguous overload
+    // warnings about whether to convert Idx to ArrayRef<Constant *> or
+    // ArrayRef<Value *>.
+    return Fold(ConstantExpr::getGetElementPtr(C, Idx));
+  }
+  Constant *CreateGetElementPtr(Constant *C,
+                                ArrayRef<Value *> IdxList) const {
+    return Fold(ConstantExpr::getGetElementPtr(C, IdxList));
   }
 
-  Constant *CreateInBoundsGetElementPtr(Constant *C, Constant* const *IdxList,
-                                        unsigned NumIdx) const {
-    return Fold(ConstantExpr::getInBoundsGetElementPtr(C, IdxList, NumIdx));
+  Constant *CreateInBoundsGetElementPtr(Constant *C,
+                                        ArrayRef<Constant *> IdxList) const {
+    return Fold(ConstantExpr::getInBoundsGetElementPtr(C, IdxList));
   }
-  Constant *CreateInBoundsGetElementPtr(Constant *C, Value* const *IdxList,
-                                        unsigned NumIdx) const {
-    return Fold(ConstantExpr::getInBoundsGetElementPtr(C, IdxList, NumIdx));
+  Constant *CreateInBoundsGetElementPtr(Constant *C, Constant *Idx) const {
+    // This form of the function only exists to avoid ambiguous overload
+    // warnings about whether to convert Idx to ArrayRef<Constant *> or
+    // ArrayRef<Value *>.
+    return Fold(ConstantExpr::getInBoundsGetElementPtr(C, Idx));
+  }
+  Constant *CreateInBoundsGetElementPtr(Constant *C,
+                                        ArrayRef<Value *> IdxList) const {
+    return Fold(ConstantExpr::getInBoundsGetElementPtr(C, IdxList));
   }
 
   //===--------------------------------------------------------------------===//
@@ -174,40 +165,40 @@ public:
   //===--------------------------------------------------------------------===//
 
   Constant *CreateCast(Instruction::CastOps Op, Constant *C,
-                       const Type *DestTy) const {
+                       Type *DestTy) const {
     if (C->getType() == DestTy)
       return C; // avoid calling Fold
     return Fold(ConstantExpr::getCast(Op, C, DestTy));
   }
-  Constant *CreateIntCast(Constant *C, const Type *DestTy,
+  Constant *CreateIntCast(Constant *C, Type *DestTy,
                           bool isSigned) const {
     if (C->getType() == DestTy)
       return C; // avoid calling Fold
     return Fold(ConstantExpr::getIntegerCast(C, DestTy, isSigned));
   }
-  Constant *CreatePointerCast(Constant *C, const Type *DestTy) const {
+  Constant *CreatePointerCast(Constant *C, Type *DestTy) const {
     return ConstantExpr::getPointerCast(C, DestTy);
   }
-  Constant *CreateBitCast(Constant *C, const Type *DestTy) const {
+  Constant *CreateBitCast(Constant *C, Type *DestTy) const {
     return CreateCast(Instruction::BitCast, C, DestTy);
   }
-  Constant *CreateIntToPtr(Constant *C, const Type *DestTy) const {
+  Constant *CreateIntToPtr(Constant *C, Type *DestTy) const {
     return CreateCast(Instruction::IntToPtr, C, DestTy);
   }
-  Constant *CreatePtrToInt(Constant *C, const Type *DestTy) const {
+  Constant *CreatePtrToInt(Constant *C, Type *DestTy) const {
     return CreateCast(Instruction::PtrToInt, C, DestTy);
   }
-  Constant *CreateZExtOrBitCast(Constant *C, const Type *DestTy) const {
+  Constant *CreateZExtOrBitCast(Constant *C, Type *DestTy) const {
     if (C->getType() == DestTy)
       return C; // avoid calling Fold
     return Fold(ConstantExpr::getZExtOrBitCast(C, DestTy));
   }
-  Constant *CreateSExtOrBitCast(Constant *C, const Type *DestTy) const {
+  Constant *CreateSExtOrBitCast(Constant *C, Type *DestTy) const {
     if (C->getType() == DestTy)
       return C; // avoid calling Fold
     return Fold(ConstantExpr::getSExtOrBitCast(C, DestTy));
   }
-  Constant *CreateTruncOrBitCast(Constant *C, const Type *DestTy) const {
+  Constant *CreateTruncOrBitCast(Constant *C, Type *DestTy) const {
     if (C->getType() == DestTy)
       return C; // avoid calling Fold
     return Fold(ConstantExpr::getTruncOrBitCast(C, DestTy));
@@ -248,14 +239,14 @@ public:
     return Fold(ConstantExpr::getShuffleVector(V1, V2, Mask));
   }
 
-  Constant *CreateExtractValue(Constant *Agg, const unsigned *IdxList,
-                               unsigned NumIdx) const {
-    return Fold(ConstantExpr::getExtractValue(Agg, IdxList, NumIdx));
+  Constant *CreateExtractValue(Constant *Agg,
+                               ArrayRef<unsigned> IdxList) const {
+    return Fold(ConstantExpr::getExtractValue(Agg, IdxList));
   }
 
   Constant *CreateInsertValue(Constant *Agg, Constant *Val,
-                              const unsigned *IdxList, unsigned NumIdx) const {
-    return Fold(ConstantExpr::getInsertValue(Agg, Val, IdxList, NumIdx));
+                              ArrayRef<unsigned> IdxList) const {
+    return Fold(ConstantExpr::getInsertValue(Agg, Val, IdxList));
   }
 };
 

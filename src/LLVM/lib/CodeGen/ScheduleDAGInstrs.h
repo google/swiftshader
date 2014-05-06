@@ -48,7 +48,8 @@ namespace llvm {
     /// VisitLoop - Clear out any previous state and analyze the given loop.
     ///
     void VisitLoop(const MachineLoop *Loop) {
-      Deps.clear();
+      assert(Deps.empty() && "stale loop dependencies");
+
       MachineBasicBlock *Header = Loop->getHeader();
       SmallSet<unsigned, 8> LoopLiveIns;
       for (MachineBasicBlock::livein_iterator LI = Header->livein_begin(),
@@ -101,6 +102,7 @@ namespace llvm {
     const MachineLoopInfo &MLI;
     const MachineDominatorTree &MDT;
     const MachineFrameInfo *MFI;
+    const InstrItineraryData *InstrItins;
 
     /// Defs, Uses - Remember where defs and uses of each physical register
     /// are as we iterate upward through the instructions. This is allocated
@@ -108,10 +110,6 @@ namespace llvm {
     /// initialized and destructed for each block.
     std::vector<std::vector<SUnit *> > Defs;
     std::vector<std::vector<SUnit *> > Uses;
- 
-    /// DbgValueVec - Remember DBG_VALUEs that refer to a particular
-    /// register.
-    std::vector<MachineInstr *>DbgValueVec;
 
     /// PendingLoads - Remember where unknown loads are after the most recent
     /// unknown store, as we iterate. As with Defs and Uses, this is here
@@ -126,6 +124,14 @@ namespace llvm {
     /// back-edge-aware scheduling.
     ///
     SmallSet<unsigned, 8> LoopLiveInRegs;
+
+  protected:
+
+    /// DbgValues - Remember instruction that preceeds DBG_VALUE.
+    typedef std::vector<std::pair<MachineInstr *, MachineInstr *> >
+      DbgValueVector;
+    DbgValueVector DbgValues;
+    MachineInstr *FirstDbgValue;
 
   public:
     MachineBasicBlock::iterator Begin;    // The beginning of the range to
@@ -162,6 +168,15 @@ namespace llvm {
     /// BuildSchedGraph - Build SUnits from the MachineBasicBlock that we are
     /// input.
     virtual void BuildSchedGraph(AliasAnalysis *AA);
+
+    /// AddSchedBarrierDeps - Add dependencies from instructions in the current
+    /// list of instructions being scheduled to scheduling barrier. We want to
+    /// make sure instructions which define registers that are either used by
+    /// the terminator or are live-out are properly scheduled. This is
+    /// especially important when the definition latency of the return value(s)
+    /// are too high to be hidden by the branch or when the liveout registers
+    /// used by instructions in the fallthrough block.
+    void AddSchedBarrierDeps();
 
     /// ComputeLatency - Compute node latency.
     ///

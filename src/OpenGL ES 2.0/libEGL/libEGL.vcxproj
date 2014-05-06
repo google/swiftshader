@@ -75,7 +75,6 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BrowseInformation>true</BrowseInformation>
-      <ExceptionHandling>Sync</ExceptionHandling>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -106,7 +105,6 @@ copy "$(OutDir)libEGL.lib" "$(ProjectDir)..\..\lib\$(Configuration)\"
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ExceptionHandling>Sync</ExceptionHandling>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -139,6 +137,7 @@ copy "$(OutDir)libEGL.lib" "$(ProjectDir)..\..\lib\$(Configuration)\"
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -169,15 +168,14 @@ copy "$(OutDir)libEGL.lib" "$(ProjectDir)..\..\lib\$(Configuration)\"
     <ClCompile Include="Surface.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\EGL\egl.h" />
+    <ClInclude Include="..\include\EGL\eglext.h" />
+    <ClInclude Include="..\include\EGL\eglplatform.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Display.h" />
-    <ClInclude Include="..\..\include\EGL\egl.h" />
-    <ClInclude Include="..\..\include\EGL\eglext.h" />
-    <ClInclude Include="..\..\include\EGL\eglplatform.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Surface.h" />
-    <ClInclude Include="..\common\version.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libEGL.def" />

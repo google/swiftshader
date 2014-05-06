@@ -19,6 +19,12 @@
 #include "llvm/Support/ErrorHandling.h"
 using namespace llvm;
 
+EVT EVT::changeExtendedVectorElementTypeToInteger() const {
+  LLVMContext &Context = LLVMTy->getContext();
+  EVT IntTy = getIntegerVT(Context, getVectorElementType().getSizeInBits());
+  return getVectorVT(Context, IntTy, getVectorNumElements());
+}
+
 EVT EVT::getExtendedIntegerVT(LLVMContext &Context, unsigned BitWidth) {
   EVT VT;
   VT.LLVMTy = IntegerType::get(Context, BitWidth);
@@ -77,9 +83,9 @@ unsigned EVT::getExtendedVectorNumElements() const {
 
 unsigned EVT::getExtendedSizeInBits() const {
   assert(isExtended() && "Type is not extended!");
-  if (const IntegerType *ITy = dyn_cast<IntegerType>(LLVMTy))
+  if (IntegerType *ITy = dyn_cast<IntegerType>(LLVMTy))
     return ITy->getBitWidth();
-  if (const VectorType *VTy = dyn_cast<VectorType>(LLVMTy))
+  if (VectorType *VTy = dyn_cast<VectorType>(LLVMTy))
     return VTy->getBitWidth();
   assert(false && "Unrecognized extended type!");
   return 0; // Suppress warnings.
@@ -109,7 +115,8 @@ std::string EVT::getEVTString() const {
   case MVT::ppcf128: return "ppcf128";
   case MVT::isVoid:  return "isVoid";
   case MVT::Other:   return "ch";
-  case MVT::Flag:    return "flag";
+  case MVT::Glue:    return "glue";
+  case MVT::x86mmx:  return "x86mmx";
   case MVT::v2i8:    return "v2i8";
   case MVT::v4i8:    return "v4i8";
   case MVT::v8i8:    return "v8i8";
@@ -132,13 +139,14 @@ std::string EVT::getEVTString() const {
   case MVT::v2f64:   return "v2f64";
   case MVT::v4f64:   return "v4f64";
   case MVT::Metadata:return "Metadata";
+  case MVT::untyped: return "untyped";
   }
 }
 
 /// getTypeForEVT - This method returns an LLVM type corresponding to the
 /// specified EVT.  For integer types, this returns an unsigned type.  Note
 /// that this will abort for types that cannot be represented.
-const Type *EVT::getTypeForEVT(LLVMContext &Context) const {
+Type *EVT::getTypeForEVT(LLVMContext &Context) const {
   switch (V.SimpleTy) {
   default:
     assert(isExtended() && "Type is not extended!");
@@ -155,6 +163,7 @@ const Type *EVT::getTypeForEVT(LLVMContext &Context) const {
   case MVT::f80:     return Type::getX86_FP80Ty(Context);
   case MVT::f128:    return Type::getFP128Ty(Context);
   case MVT::ppcf128: return Type::getPPC_FP128Ty(Context);
+  case MVT::x86mmx:  return Type::getX86_MMXTy(Context);
   case MVT::v2i8:    return VectorType::get(Type::getInt8Ty(Context), 2);
   case MVT::v4i8:    return VectorType::get(Type::getInt8Ty(Context), 4);
   case MVT::v8i8:    return VectorType::get(Type::getInt8Ty(Context), 8);
@@ -183,7 +192,7 @@ const Type *EVT::getTypeForEVT(LLVMContext &Context) const {
 /// getEVT - Return the value type corresponding to the specified type.  This
 /// returns all pointers as MVT::iPTR.  If HandleUnknown is true, unknown types
 /// are returned as Other, otherwise they are invalid.
-EVT EVT::getEVT(const Type *Ty, bool HandleUnknown){
+EVT EVT::getEVT(Type *Ty, bool HandleUnknown){
   switch (Ty->getTypeID()) {
   default:
     if (HandleUnknown) return MVT(MVT::Other);
@@ -196,11 +205,12 @@ EVT EVT::getEVT(const Type *Ty, bool HandleUnknown){
   case Type::FloatTyID:     return MVT(MVT::f32);
   case Type::DoubleTyID:    return MVT(MVT::f64);
   case Type::X86_FP80TyID:  return MVT(MVT::f80);
+  case Type::X86_MMXTyID:   return MVT(MVT::x86mmx);
   case Type::FP128TyID:     return MVT(MVT::f128);
   case Type::PPC_FP128TyID: return MVT(MVT::ppcf128);
   case Type::PointerTyID:   return MVT(MVT::iPTR);
   case Type::VectorTyID: {
-    const VectorType *VTy = cast<VectorType>(Ty);
+    VectorType *VTy = cast<VectorType>(Ty);
     return getVectorVT(Ty->getContext(), getEVT(VTy->getElementType(), false),
                        VTy->getNumElements());
   }

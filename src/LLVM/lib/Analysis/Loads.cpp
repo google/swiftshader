@@ -17,6 +17,7 @@
 #include "llvm/GlobalAlias.h"
 #include "llvm/GlobalVariable.h"
 #include "llvm/IntrinsicInst.h"
+#include "llvm/Operator.h"
 using namespace llvm;
 
 /// AreEquivalentAddressValues - Test if A and B will obviously have the same
@@ -30,7 +31,7 @@ using namespace llvm;
 static bool AreEquivalentAddressValues(const Value *A, const Value *B) {
   // Test if the values are trivially equivalent.
   if (A == B) return true;
-  
+
   // Test if the values come from identical arithmetic instructions.
   // Use isIdenticalToWhenDefined instead of isIdenticalTo because
   // this function is only used when one address use dominates the
@@ -41,7 +42,7 @@ static bool AreEquivalentAddressValues(const Value *A, const Value *B) {
     if (const Instruction *BI = dyn_cast<Instruction>(B))
       if (cast<Instruction>(A)->isIdenticalToWhenDefined(BI))
         return true;
-  
+
   // Otherwise they may not be equivalent.
   return false;
 }
@@ -49,7 +50,7 @@ static bool AreEquivalentAddressValues(const Value *A, const Value *B) {
 /// getUnderlyingObjectWithOffset - Strip off up to MaxLookup GEPs and
 /// bitcasts to get back to the underlying object being addressed, keeping
 /// track of the offset in bytes from the GEPs relative to the result.
-/// This is closely related to Value::getUnderlyingObject but is located
+/// This is closely related to GetUnderlyingObject but is located
 /// here to avoid making VMCore depend on TargetData.
 static Value *getUnderlyingObjectWithOffset(Value *V, const TargetData *TD,
                                             uint64_t &ByteOffset,
@@ -62,7 +63,7 @@ static Value *getUnderlyingObjectWithOffset(Value *V, const TargetData *TD,
         return V;
       SmallVector<Value*, 8> Indices(GEP->op_begin() + 1, GEP->op_end());
       ByteOffset += TD->getIndexedOffset(GEP->getPointerOperandType(),
-                                         &Indices[0], Indices.size());
+                                         Indices);
       V = GEP->getPointerOperand();
     } else if (Operator::getOpcode(V) == Instruction::BitCast) {
       V = cast<Operator>(V)->getOperand(0);
@@ -89,7 +90,7 @@ bool llvm::isSafeToLoadUnconditionally(Value *V, Instruction *ScanFrom,
   if (TD)
     Base = getUnderlyingObjectWithOffset(V, TD, ByteOffset);
 
-  const Type *BaseType = 0;
+  Type *BaseType = 0;
   unsigned BaseAlign = 0;
   if (const AllocaInst *AI = dyn_cast<AllocaInst>(Base)) {
     // An alloca is safe to load from as load as it is suitably aligned.
@@ -113,7 +114,7 @@ bool llvm::isSafeToLoadUnconditionally(Value *V, Instruction *ScanFrom,
         return true; // Loading directly from an alloca or global is OK.
 
       // Check if the load is within the bounds of the underlying object.
-      const PointerType *AddrTy = cast<PointerType>(V->getType());
+      PointerType *AddrTy = cast<PointerType>(V->getType());
       uint64_t LoadSize = TD->getTypeStoreSize(AddrTy->getElementType());
       if (ByteOffset + LoadSize <= TD->getTypeAllocSize(BaseType) &&
           (Align == 0 || (ByteOffset % Align) == 0))
@@ -134,7 +135,7 @@ bool llvm::isSafeToLoadUnconditionally(Value *V, Instruction *ScanFrom,
     // If we see a free or a call which may write to memory (i.e. which might do
     // a free) the pointer could be marked invalid.
     if (isa<CallInst>(BBI) && BBI->mayWriteToMemory() &&
-        !ISA_DEBUG_INFO_INTRINSIC(BBI))
+        !isa<DbgInfoIntrinsic>(BBI))
       return false;
 
     if (LoadInst *LI = dyn_cast<LoadInst>(BBI)) {
@@ -166,9 +167,9 @@ Value *llvm::FindAvailableLoadedValue(Value *Ptr, BasicBlock *ScanBB,
   if (MaxInstsToScan == 0) MaxInstsToScan = ~0U;
 
   // If we're using alias analysis to disambiguate get the size of *Ptr.
-  unsigned AccessSize = 0;
+  uint64_t AccessSize = 0;
   if (AA) {
-    const Type *AccessTy = cast<PointerType>(Ptr->getType())->getElementType();
+    Type *AccessTy = cast<PointerType>(Ptr->getType())->getElementType();
     AccessSize = AA->getTypeStoreSize(AccessTy);
   }
   
@@ -176,7 +177,7 @@ Value *llvm::FindAvailableLoadedValue(Value *Ptr, BasicBlock *ScanBB,
     // We must ignore debug info directives when counting (otherwise they
     // would affect codegen).
     Instruction *Inst = --ScanFrom;
-    if (ISA_DEBUG_INFO_INTRINSIC(Inst))
+    if (isa<DbgInfoIntrinsic>(Inst))
       continue;
 
     // Restore ScanFrom to expected value in case next test succeeds
@@ -187,12 +188,16 @@ Value *llvm::FindAvailableLoadedValue(Value *Ptr, BasicBlock *ScanBB,
     
     --ScanFrom;
     // If this is a load of Ptr, the loaded value is available.
+    // (This is true even if the load is volatile or atomic, although
+    // those cases are unlikely.)
     if (LoadInst *LI = dyn_cast<LoadInst>(Inst))
       if (AreEquivalentAddressValues(LI->getOperand(0), Ptr))
         return LI;
     
     if (StoreInst *SI = dyn_cast<StoreInst>(Inst)) {
       // If this is a store through Ptr, the value is available!
+      // (This is true even if the store is volatile or atomic, although
+      // those cases are unlikely.)
       if (AreEquivalentAddressValues(SI->getOperand(1), Ptr))
         return SI->getOperand(0);
       

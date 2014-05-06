@@ -34,7 +34,7 @@ namespace llvm {
   class ScheduleDAG;
   class SDNode;
   class TargetInstrInfo;
-  class TargetInstrDesc;
+  class MCInstrDesc;
   class TargetMachine;
   class TargetRegisterClass;
   template<class Graph> class GraphWriter;
@@ -221,6 +221,9 @@ namespace llvm {
     }
   };
 
+  template <>
+  struct isPodLike<SDep> { static const bool value = true; };
+
   /// SUnit - Scheduling unit. This is a node in the scheduling DAG.
   class SUnit {
   private:
@@ -229,9 +232,8 @@ namespace llvm {
   public:
     SUnit *OrigNode;                    // If not this, the node from which
                                         // this node was cloned.
-    
-    // Preds/Succs - The SUnits before/after us in the graph.  The boolean value
-    // is true if the edge is a token chain edge, false if it is a value edge. 
+
+    // Preds/Succs - The SUnits before/after us in the graph.
     SmallVector<SDep, 4> Preds;  // All sunit predecessors.
     SmallVector<SDep, 4> Succs;  // All sunit successors.
 
@@ -242,11 +244,15 @@ namespace llvm {
 
     unsigned NodeNum;                   // Entry # of node in the node vector.
     unsigned NodeQueueId;               // Queue id of node.
-    unsigned short Latency;             // Node latency.
     unsigned NumPreds;                  // # of SDep::Data preds.
     unsigned NumSuccs;                  // # of SDep::Data sucss.
     unsigned NumPredsLeft;              // # of preds not scheduled.
     unsigned NumSuccsLeft;              // # of succs not scheduled.
+    unsigned short NumRegDefsLeft;      // # of reg defs with no scheduled use.
+    unsigned short Latency;             // Node latency.
+    bool isVRegCycle      : 1;          // May use and def the same vreg.
+    bool isCall           : 1;          // Is a function call.
+    bool isCallOp         : 1;          // Is a function call operand.
     bool isTwoAddress     : 1;          // Is a two-address instruction.
     bool isCommutable     : 1;          // Is a commutable instruction.
     bool hasPhysRegDefs   : 1;          // Has physreg defs that are being used.
@@ -255,10 +261,10 @@ namespace llvm {
     bool isAvailable      : 1;          // True once available.
     bool isScheduled      : 1;          // True once scheduled.
     bool isScheduleHigh   : 1;          // True if preferable to schedule high.
+    bool isScheduleLow    : 1;          // True if preferable to schedule low.
     bool isCloned         : 1;          // True if this node has been cloned.
     Sched::Preference SchedulingPref;   // Scheduling preference.
 
-    SmallVector<MachineInstr*, 4> DbgInstrList; // dbg_values referencing this.
   private:
     bool isDepthCurrent   : 1;          // True if Depth is current.
     bool isHeightCurrent  : 1;          // True if Height is current.
@@ -267,16 +273,17 @@ namespace llvm {
   public:
     const TargetRegisterClass *CopyDstRC; // Is a special copy node if not null.
     const TargetRegisterClass *CopySrcRC;
-    
+
     /// SUnit - Construct an SUnit for pre-regalloc scheduling to represent
     /// an SDNode and any nodes flagged to it.
     SUnit(SDNode *node, unsigned nodenum)
       : Node(node), Instr(0), OrigNode(0), NodeNum(nodenum),
-        NodeQueueId(0),  Latency(0), NumPreds(0), NumSuccs(0), NumPredsLeft(0),
-        NumSuccsLeft(0), isTwoAddress(false), isCommutable(false),
-        hasPhysRegDefs(false), hasPhysRegClobbers(false),
+        NodeQueueId(0), NumPreds(0), NumSuccs(0), NumPredsLeft(0),
+        NumSuccsLeft(0), NumRegDefsLeft(0), Latency(0),
+        isVRegCycle(false), isCall(false), isCallOp(false), isTwoAddress(false),
+        isCommutable(false), hasPhysRegDefs(false), hasPhysRegClobbers(false),
         isPending(false), isAvailable(false), isScheduled(false),
-        isScheduleHigh(false), isCloned(false),
+        isScheduleHigh(false), isScheduleLow(false), isCloned(false),
         SchedulingPref(Sched::None),
         isDepthCurrent(false), isHeightCurrent(false), Depth(0), Height(0),
         CopyDstRC(NULL), CopySrcRC(NULL) {}
@@ -285,11 +292,12 @@ namespace llvm {
     /// a MachineInstr.
     SUnit(MachineInstr *instr, unsigned nodenum)
       : Node(0), Instr(instr), OrigNode(0), NodeNum(nodenum),
-        NodeQueueId(0), Latency(0), NumPreds(0), NumSuccs(0), NumPredsLeft(0),
-        NumSuccsLeft(0), isTwoAddress(false), isCommutable(false),
-        hasPhysRegDefs(false), hasPhysRegClobbers(false),
+        NodeQueueId(0), NumPreds(0), NumSuccs(0), NumPredsLeft(0),
+        NumSuccsLeft(0), NumRegDefsLeft(0), Latency(0),
+        isVRegCycle(false), isCall(false), isCallOp(false), isTwoAddress(false),
+        isCommutable(false), hasPhysRegDefs(false), hasPhysRegClobbers(false),
         isPending(false), isAvailable(false), isScheduled(false),
-        isScheduleHigh(false), isCloned(false),
+        isScheduleHigh(false), isScheduleLow(false), isCloned(false),
         SchedulingPref(Sched::None),
         isDepthCurrent(false), isHeightCurrent(false), Depth(0), Height(0),
         CopyDstRC(NULL), CopySrcRC(NULL) {}
@@ -297,11 +305,12 @@ namespace llvm {
     /// SUnit - Construct a placeholder SUnit.
     SUnit()
       : Node(0), Instr(0), OrigNode(0), NodeNum(~0u),
-        NodeQueueId(0), Latency(0), NumPreds(0), NumSuccs(0), NumPredsLeft(0),
-        NumSuccsLeft(0), isTwoAddress(false), isCommutable(false),
-        hasPhysRegDefs(false), hasPhysRegClobbers(false),
+        NodeQueueId(0), NumPreds(0), NumSuccs(0), NumPredsLeft(0),
+        NumSuccsLeft(0), NumRegDefsLeft(0), Latency(0),
+        isVRegCycle(false), isCall(false), isCallOp(false), isTwoAddress(false),
+        isCommutable(false), hasPhysRegDefs(false), hasPhysRegClobbers(false),
         isPending(false), isAvailable(false), isScheduled(false),
-        isScheduleHigh(false), isCloned(false),
+        isScheduleHigh(false), isScheduleLow(false), isCloned(false),
         SchedulingPref(Sched::None),
         isDepthCurrent(false), isHeightCurrent(false), Depth(0), Height(0),
         CopyDstRC(NULL), CopySrcRC(NULL) {}
@@ -320,6 +329,10 @@ namespace llvm {
       return Node;
     }
 
+    /// isInstr - Return true if this SUnit refers to a machine instruction as
+    /// opposed to an SDNode.
+    bool isInstr() const { return Instr; }
+
     /// setInstr - Assign the instruction for the SUnit.
     /// This may be used during post-regalloc scheduling.
     void setInstr(MachineInstr *MI) {
@@ -337,7 +350,7 @@ namespace llvm {
     /// addPred - This adds the specified edge as a pred of the current node if
     /// not already.  It also adds the current node as a successor of the
     /// specified node.
-    void addPred(const SDep &D);
+    bool addPred(const SDep &D);
 
     /// removePred - This removes the specified edge as a pred of the current
     /// node if it exists.  It also removes the current node as a successor of
@@ -345,17 +358,17 @@ namespace llvm {
     void removePred(const SDep &D);
 
     /// getDepth - Return the depth of this node, which is the length of the
-    /// maximum path up to any node with has no predecessors.
+    /// maximum path up to any node which has no predecessors.
     unsigned getDepth() const {
-      if (!isDepthCurrent) 
+      if (!isDepthCurrent)
         const_cast<SUnit *>(this)->ComputeDepth();
       return Depth;
     }
 
     /// getHeight - Return the height of this node, which is the length of the
-    /// maximum path down to any node with has no successors.
+    /// maximum path down to any node which has no successors.
     unsigned getHeight() const {
-      if (!isHeightCurrent) 
+      if (!isHeightCurrent)
         const_cast<SUnit *>(this)->ComputeHeight();
       return Height;
     }
@@ -387,7 +400,7 @@ namespace llvm {
           return true;
       return false;
     }
-    
+
     /// isSucc - Test if node N is a successor of this node.
     bool isSucc(SUnit *N) {
       for (unsigned i = 0, e = (unsigned)Succs.size(); i != e; ++i)
@@ -408,25 +421,38 @@ namespace llvm {
   //===--------------------------------------------------------------------===//
   /// SchedulingPriorityQueue - This interface is used to plug different
   /// priorities computation algorithms into the list scheduler. It implements
-  /// the interface of a standard priority queue, where nodes are inserted in 
+  /// the interface of a standard priority queue, where nodes are inserted in
   /// arbitrary order and returned in priority order.  The computation of the
   /// priority and the representation of the queue are totally up to the
   /// implementation to decide.
-  /// 
+  ///
   class SchedulingPriorityQueue {
     unsigned CurCycle;
+    bool HasReadyFilter;
   public:
-    SchedulingPriorityQueue() : CurCycle(0) {}
+    SchedulingPriorityQueue(bool rf = false):
+      CurCycle(0), HasReadyFilter(rf) {}
     virtual ~SchedulingPriorityQueue() {}
-  
+
+    virtual bool isBottomUp() const = 0;
+
     virtual void initNodes(std::vector<SUnit> &SUnits) = 0;
     virtual void addNode(const SUnit *SU) = 0;
     virtual void updateNode(const SUnit *SU) = 0;
     virtual void releaseState() = 0;
 
     virtual bool empty() const = 0;
+
+    bool hasReadyFilter() const { return HasReadyFilter; }
+
+    virtual bool tracksRegPressure() const { return false; }
+
+    virtual bool isReady(SUnit *) const {
+      assert(!HasReadyFilter && "The ready filter must override isReady()");
+      return true;
+    }
     virtual void push(SUnit *U) = 0;
-  
+
     void push_all(const std::vector<SUnit *> &Nodes) {
       for (std::vector<SUnit *>::const_iterator I = Nodes.begin(),
            E = Nodes.end(); I != E; ++I)
@@ -436,6 +462,8 @@ namespace llvm {
     virtual SUnit *pop() = 0;
 
     virtual void remove(SUnit *SU) = 0;
+
+    virtual void dump(ScheduleDAG *) const {}
 
     /// ScheduledNode - As each node is scheduled, this method is invoked.  This
     /// allows the priority function to adjust the priority of related
@@ -451,7 +479,7 @@ namespace llvm {
 
     unsigned getCurCycle() const {
       return CurCycle;
-    }    
+    }
   };
 
   class ScheduleDAG {
@@ -469,15 +497,28 @@ namespace llvm {
     SUnit EntrySU;                        // Special node for the region entry.
     SUnit ExitSU;                         // Special node for the region exit.
 
+#ifdef NDEBUG
+    static const bool StressSched = false;
+#else
+    bool StressSched;
+#endif
+
     explicit ScheduleDAG(MachineFunction &mf);
 
     virtual ~ScheduleDAG();
+
+    /// getInstrDesc - Return the MCInstrDesc of this SUnit.
+    /// Return NULL for SDNodes without a machine opcode.
+    const MCInstrDesc *getInstrDesc(const SUnit *SU) const {
+      if (SU->isInstr()) return &SU->getInstr()->getDesc();
+      return getNodeDesc(SU->getNode());
+    }
 
     /// viewGraph - Pop up a GraphViz/gv window with the ScheduleDAG rendered
     /// using 'dot'.
     ///
     void viewGraph();
-  
+
     /// EmitSchedule - Insert MachineInstrs into the MachineBasicBlock
     /// according to the order specified in Sequence.
     ///
@@ -536,6 +577,10 @@ namespace llvm {
     void EmitNoop();
 
     void EmitPhysRegCopy(SUnit *SU, DenseMap<SUnit*, unsigned> &VRBaseMap);
+
+  private:
+    // Return the MCInstrDesc of this SDNode or NULL.
+    const MCInstrDesc *getNodeDesc(const SDNode *Node) const;
   };
 
   class SUnitIterator : public std::iterator<std::forward_iterator_tag,
@@ -627,7 +672,7 @@ namespace llvm {
     /// Visited - a set of nodes visited during a DFS traversal.
     BitVector Visited;
 
-    /// DFS - make a DFS traversal and mark all nodes affected by the 
+    /// DFS - make a DFS traversal and mark all nodes affected by the
     /// edge insertion. These nodes will later get new topological indexes
     /// by means of the Shift method.
     void DFS(const SUnit *SU, int UpperBound, bool& HasLoop);
@@ -642,7 +687,7 @@ namespace llvm {
   public:
     explicit ScheduleDAGTopologicalSort(std::vector<SUnit> &SUnits);
 
-    /// InitDAGTopologicalSorting - create the initial topological 
+    /// InitDAGTopologicalSorting - create the initial topological
     /// ordering from the DAG to be scheduled.
     void InitDAGTopologicalSorting();
 
@@ -653,11 +698,11 @@ namespace llvm {
     /// will create a cycle.
     bool WillCreateCycle(SUnit *SU, SUnit *TargetSU);
 
-    /// AddPred - Updates the topological ordering to accomodate an edge
+    /// AddPred - Updates the topological ordering to accommodate an edge
     /// to be added from SUnit X to SUnit Y.
     void AddPred(SUnit *Y, SUnit *X);
 
-    /// RemovePred - Updates the topological ordering to accomodate an
+    /// RemovePred - Updates the topological ordering to accommodate an
     /// an edge to be removed from the specified node N from the predecessors
     /// of the current node M.
     void RemovePred(SUnit *M, SUnit *N);

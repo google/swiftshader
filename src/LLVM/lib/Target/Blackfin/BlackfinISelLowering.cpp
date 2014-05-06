@@ -15,6 +15,7 @@
 #include "BlackfinISelLowering.h"
 #include "BlackfinTargetMachine.h"
 #include "llvm/Function.h"
+#include "llvm/Type.h"
 #include "llvm/CodeGen/CallingConvLower.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
@@ -40,8 +41,8 @@ using namespace llvm;
 
 BlackfinTargetLowering::BlackfinTargetLowering(TargetMachine &TM)
   : TargetLowering(TM, new TargetLoweringObjectFileELF()) {
-  setShiftAmountType(MVT::i16);
   setBooleanContents(ZeroOrOneBooleanContent);
+  setBooleanVectorContents(ZeroOrOneBooleanContent); // FIXME: Is this correct?
   setStackPointerRegisterToSaveRestore(BF::SP);
   setIntDivIsCheap(false);
 
@@ -99,6 +100,7 @@ BlackfinTargetLowering::BlackfinTargetLowering(TargetMachine &TM)
 
   // Blackfin has no intrinsics for these particular operations.
   setOperationAction(ISD::MEMBARRIER, MVT::Other, Expand);
+  setOperationAction(ISD::ATOMIC_FENCE, MVT::Other, Expand);
   setOperationAction(ISD::BSWAP, MVT::i32, Expand);
 
   setOperationAction(ISD::SHL_PARTS, MVT::i32, Expand);
@@ -121,6 +123,8 @@ BlackfinTargetLowering::BlackfinTargetLowering(TargetMachine &TM)
   setOperationAction(ISD::VAEND, MVT::Other, Expand);
   setOperationAction(ISD::STACKSAVE, MVT::Other, Expand);
   setOperationAction(ISD::STACKRESTORE, MVT::Other, Expand);
+
+  setMinFunctionAlignment(2);
 }
 
 const char *BlackfinTargetLowering::getTargetNodeName(unsigned Opcode) const {
@@ -132,7 +136,7 @@ const char *BlackfinTargetLowering::getTargetNodeName(unsigned Opcode) const {
   }
 }
 
-MVT::SimpleValueType BlackfinTargetLowering::getSetCCResultType(EVT VT) const {
+EVT BlackfinTargetLowering::getSetCCResultType(EVT VT) const {
   // SETCC always sets the CC register. Technically that is an i1 register, but
   // that type is not legal, so we treat it as an i32 register.
   return MVT::i32;
@@ -169,8 +173,8 @@ BlackfinTargetLowering::LowerFormalArguments(SDValue Chain,
   MachineFrameInfo *MFI = MF.getFrameInfo();
 
   SmallVector<CCValAssign, 16> ArgLocs;
-  CCState CCInfo(CallConv, isVarArg, getTargetMachine(),
-                 ArgLocs, *DAG.getContext());
+  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+		 getTargetMachine(), ArgLocs, *DAG.getContext());
   CCInfo.AllocateStack(12, 4);  // ABI requires 12 bytes stack space
   CCInfo.AnalyzeFormalArguments(Ins, CC_Blackfin);
 
@@ -207,7 +211,8 @@ BlackfinTargetLowering::LowerFormalArguments(SDValue Chain,
       unsigned ObjSize = VA.getLocVT().getStoreSize();
       int FI = MFI->CreateFixedObject(ObjSize, VA.getLocMemOffset(), true);
       SDValue FIN = DAG.getFrameIndex(FI, MVT::i32);
-      InVals.push_back(DAG.getLoad(VA.getValVT(), dl, Chain, FIN, NULL, 0,
+      InVals.push_back(DAG.getLoad(VA.getValVT(), dl, Chain, FIN,
+                                   MachinePointerInfo(),
                                    false, false, 0));
     }
   }
@@ -226,8 +231,8 @@ BlackfinTargetLowering::LowerReturn(SDValue Chain,
   SmallVector<CCValAssign, 16> RVLocs;
 
   // CCState - Info about the registers and stack slot.
-  CCState CCInfo(CallConv, isVarArg, DAG.getTarget(),
-                 RVLocs, *DAG.getContext());
+  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+		 DAG.getTarget(), RVLocs, *DAG.getContext());
 
   // Analize return values.
   CCInfo.AnalyzeReturn(Outs, RetCC_Blackfin);
@@ -287,8 +292,8 @@ BlackfinTargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
   // Analyze operands of the call, assigning locations to each operand.
   SmallVector<CCValAssign, 16> ArgLocs;
-  CCState CCInfo(CallConv, isVarArg, DAG.getTarget(), ArgLocs,
-                 *DAG.getContext());
+  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+		 DAG.getTarget(), ArgLocs, *DAG.getContext());
   CCInfo.AllocateStack(12, 4);  // ABI requires 12 bytes stack space
   CCInfo.AnalyzeCallOperands(Outs, CC_Blackfin);
 
@@ -332,8 +337,7 @@ BlackfinTargetLowering::LowerCall(SDValue Chain, SDValue Callee,
       SDValue OffsetN = DAG.getIntPtrConstant(Offset);
       OffsetN = DAG.getNode(ISD::ADD, dl, MVT::i32, SPN, OffsetN);
       MemOpChains.push_back(DAG.getStore(Chain, dl, Arg, OffsetN,
-                                         PseudoSourceValue::getStack(),
-                                         Offset, false, false, 0));
+                                         MachinePointerInfo(),false, false, 0));
     }
   }
 
@@ -345,7 +349,7 @@ BlackfinTargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
   // Build a sequence of copy-to-reg nodes chained together with token
   // chain and flag operands which copy the outgoing args into registers.
-  // The InFlag in necessary since all emited instructions must be
+  // The InFlag in necessary since all emitted instructions must be
   // stuck together.
   SDValue InFlag;
   for (unsigned i = 0, e = RegsToPass.size(); i != e; ++i) {
@@ -364,7 +368,7 @@ BlackfinTargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
   std::vector<EVT> NodeTys;
   NodeTys.push_back(MVT::Other);   // Returns a chain
-  NodeTys.push_back(MVT::Flag);    // Returns a flag for retval copy to use.
+  NodeTys.push_back(MVT::Glue);    // Returns a flag for retval copy to use.
   SDValue Ops[] = { Chain, Callee, InFlag };
   Chain = DAG.getNode(BFISD::CALL, dl, NodeTys, Ops,
                       InFlag.getNode() ? 3 : 2);
@@ -376,8 +380,8 @@ BlackfinTargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
-  CCState RVInfo(CallConv, isVarArg, DAG.getTarget(), RVLocs,
-                 *DAG.getContext());
+  CCState RVInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+		 DAG.getTarget(), RVLocs, *DAG.getContext());
 
   RVInfo.AnalyzeCallResult(Ins, RetCC_Blackfin);
 
@@ -431,7 +435,7 @@ SDValue BlackfinTargetLowering::LowerADDE(SDValue Op, SelectionDAG &DAG) const {
                                SDValue(CarryIn, 0));
 
   // Add operands, produce sum and carry flag
-  SDNode *Sum = DAG.getMachineNode(Opcode, dl, MVT::i32, MVT::Flag,
+  SDNode *Sum = DAG.getMachineNode(Opcode, dl, MVT::i32, MVT::Glue,
                                    Op.getOperand(0), Op.getOperand(1));
 
   // Store intermediate carry from Sum
@@ -439,11 +443,11 @@ SDValue BlackfinTargetLowering::LowerADDE(SDValue Op, SelectionDAG &DAG) const {
                                       /* flag= */ SDValue(Sum, 1));
 
   // Add incoming carry, again producing an output flag
-  Sum = DAG.getMachineNode(Opcode, dl, MVT::i32, MVT::Flag,
+  Sum = DAG.getMachineNode(Opcode, dl, MVT::i32, MVT::Glue,
                            SDValue(Sum, 0), SDValue(CarryIn, 0));
 
   // Update AC0 with the intermediate carry, producing a flag.
-  SDNode *CarryOut = DAG.getMachineNode(BF::OR_ac0_cc, dl, MVT::Flag,
+  SDNode *CarryOut = DAG.getMachineNode(BF::OR_ac0_cc, dl, MVT::Glue,
                                         SDValue(Carry1, 0));
 
   // Compose (i32, flag) pair
@@ -497,11 +501,6 @@ BlackfinTargetLowering::ReplaceNodeResults(SDNode *N,
   }
 }
 
-/// getFunctionAlignment - Return the Log2 alignment of this function.
-unsigned BlackfinTargetLowering::getFunctionAlignment(const Function *F) const {
-  return 2;
-}
-
 //===----------------------------------------------------------------------===//
 //                         Blackfin Inline Assembly Support
 //===----------------------------------------------------------------------===//
@@ -549,6 +548,52 @@ BlackfinTargetLowering::getConstraintType(const std::string &Constraint) const {
   return TargetLowering::getConstraintType(Constraint);
 }
 
+/// Examine constraint type and operand type and determine a weight value.
+/// This object must already have been set up with the operand type
+/// and the current alternative constraint selected.
+TargetLowering::ConstraintWeight
+BlackfinTargetLowering::getSingleConstraintMatchWeight(
+    AsmOperandInfo &info, const char *constraint) const {
+  ConstraintWeight weight = CW_Invalid;
+  Value *CallOperandVal = info.CallOperandVal;
+    // If we don't have a value, we can't do a match,
+    // but allow it at the lowest weight.
+  if (CallOperandVal == NULL)
+    return CW_Default;
+  // Look at the constraint type.
+  switch (*constraint) {
+  default:
+    weight = TargetLowering::getSingleConstraintMatchWeight(info, constraint);
+    break;
+
+    // Blackfin-specific constraints
+  case 'a':
+  case 'd':
+  case 'z':
+  case 'D':
+  case 'W':
+  case 'e':
+  case 'b':
+  case 'v':
+  case 'f':
+  case 'c':
+  case 't':
+  case 'u':
+  case 'k':
+  case 'x':
+  case 'y':
+  case 'w':
+    return CW_Register;
+  case 'A':
+  case 'B':
+  case 'C':
+  case 'Z':
+  case 'Y':
+    return CW_SpecificReg;
+  }
+  return weight;
+}
+
 /// getRegForInlineAsmConstraint - Return register no and class for a C_Register
 /// constraint.
 std::pair<unsigned, const TargetRegisterClass*> BlackfinTargetLowering::
@@ -578,37 +623,19 @@ getRegForInlineAsmConstraint(const std::string &Constraint, EVT VT) const {
   case 'w': return Pair(0U, ALLRegisterClass);
   case 'Z': return Pair(P3, PRegisterClass);
   case 'Y': return Pair(P1, PRegisterClass);
+  case 'z': return Pair(0U, zConsRegisterClass);
+  case 'D': return Pair(0U, DConsRegisterClass);
+  case 'W': return Pair(0U, WConsRegisterClass);
+  case 'c': return Pair(0U, cConsRegisterClass);
+  case 't': return Pair(0U, tConsRegisterClass);
+  case 'u': return Pair(0U, uConsRegisterClass);
+  case 'k': return Pair(0U, kConsRegisterClass);
+  case 'y': return Pair(0U, yConsRegisterClass);
   }
 
   // Not implemented: q0-q7, qA. Use {R2} etc instead.
-  // Constraints z, D, W, c, t, u, k, and y use non-existing classes, defer to
-  // getRegClassForInlineAsmConstraint()
 
   return TargetLowering::getRegForInlineAsmConstraint(Constraint, VT);
-}
-
-std::vector<unsigned> BlackfinTargetLowering::
-getRegClassForInlineAsmConstraint(const std::string &Constraint, EVT VT) const {
-  using namespace BF;
-
-  if (Constraint.size() != 1)
-    return std::vector<unsigned>();
-
-  switch (Constraint[0]) {
-  case 'z': return make_vector<unsigned>(P0, P1, P2, 0);
-  case 'D': return make_vector<unsigned>(R0, R2, R4, R6, 0);
-  case 'W': return make_vector<unsigned>(R1, R3, R5, R7, 0);
-  case 'c': return make_vector<unsigned>(I0, I1, I2, I3,
-                                         B0, B1, B2, B3,
-                                         L0, L1, L2, L3, 0);
-  case 't': return make_vector<unsigned>(LT0, LT1, 0);
-  case 'u': return make_vector<unsigned>(LB0, LB1, 0);
-  case 'k': return make_vector<unsigned>(LC0, LC1, 0);
-  case 'y': return make_vector<unsigned>(RETS, RETN, RETI, RETX, RETE,
-                                         ASTAT, SEQSTAT, USP, 0);
-  }
-
-  return std::vector<unsigned>();
 }
 
 bool BlackfinTargetLowering::

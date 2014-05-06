@@ -14,17 +14,11 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/Pass.h"
-#include "llvm/PassManager.h"
 #include "llvm/PassRegistry.h"
-#include "llvm/Module.h"
-#include "llvm/ADT/StringMap.h"
 #include "llvm/Assembly/PrintModulePass.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/PassNameParser.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/System/Atomic.h"
-#include "llvm/System/Mutex.h"
-#include "llvm/System/Threading.h"
 using namespace llvm;
 
 //===----------------------------------------------------------------------===//
@@ -141,30 +135,6 @@ Pass *FunctionPass::createPrinterPass(raw_ostream &O,
   return createPrintFunctionPass(Banner, &O);
 }
 
-// run - On a module, we run this pass by initializing, runOnFunction'ing once
-// for every function in the module, then by finalizing.
-//
-bool FunctionPass::runOnModule(Module &M) {
-  bool Changed = doInitialization(M);
-
-  for (Module::iterator I = M.begin(), E = M.end(); I != E; ++I)
-    if (!I->isDeclaration())      // Passes are not run on external functions!
-    Changed |= runOnFunction(*I);
-
-  return Changed | doFinalization(M);
-}
-
-// run - On a function, we simply initialize, run the function, then finalize.
-//
-bool FunctionPass::run(Function &F) {
-  // Passes are not run on external functions!
-  if (F.isDeclaration()) return false;
-
-  bool Changed = doInitialization(*F.getParent());
-  Changed |= runOnFunction(F);
-  return Changed | doFinalization(*F.getParent());
-}
-
 bool FunctionPass::doInitialization(Module &) {
   // By default, don't do anything.
   return false;
@@ -188,16 +158,6 @@ Pass *BasicBlockPass::createPrinterPass(raw_ostream &O,
   
   llvm_unreachable("BasicBlockPass printing unsupported.");
   return 0;
-}
-
-// To run this pass on a function, we simply call runOnBasicBlock once for each
-// function.
-//
-bool BasicBlockPass::runOnFunction(Function &F) {
-  bool Changed = doInitialization(F);
-  for (Function::iterator I = F.begin(), E = F.end(); I != E; ++I)
-    Changed |= runOnBasicBlock(*I);
-  return Changed | doFinalization(F);
 }
 
 bool BasicBlockPass::doInitialization(Module &) {
@@ -252,7 +212,6 @@ RegisterAGBase::RegisterAGBase(const char *Name, const void *InterfaceID,
   PassRegistry::getPassRegistry()->registerAnalysisGroup(InterfaceID, PassID,
                                                          *this, isDefault);
 }
-
 
 //===----------------------------------------------------------------------===//
 // PassRegistrationListener implementation

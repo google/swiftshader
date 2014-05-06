@@ -57,6 +57,7 @@ namespace llvm {
     typedef list_type::iterator iterator;
     
   private:
+    friend class GCModuleInfo;
     const Module *M;
     std::string Name;
     

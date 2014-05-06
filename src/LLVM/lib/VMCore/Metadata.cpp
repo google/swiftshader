@@ -19,7 +19,9 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/SmallString.h"
+#include "llvm/ADT/STLExtras.h"
 #include "SymbolTableListTraitsImpl.h"
+#include "llvm/Support/LeakDetector.h"
 #include "llvm/Support/ValueHandle.h"
 using namespace llvm;
 
@@ -83,18 +85,18 @@ static MDNodeOperand *getOperandPtr(MDNode *N, unsigned Op) {
   return reinterpret_cast<MDNodeOperand*>(N+1)+Op;
 }
 
-MDNode::MDNode(LLVMContext &C, Value *const *Vals, unsigned NumVals,
-               bool isFunctionLocal)
+MDNode::MDNode(LLVMContext &C, ArrayRef<Value*> Vals, bool isFunctionLocal)
 : Value(Type::getMetadataTy(C), Value::MDNodeVal) {
-  NumOperands = NumVals;
+  NumOperands = Vals.size();
 
   if (isFunctionLocal)
     setValueSubclassData(getSubclassDataFromValue() | FunctionLocalBit);
 
   // Initialize the operand list, which is co-allocated on the end of the node.
+  unsigned i = 0;
   for (MDNodeOperand *Op = getOperandPtr(this, 0), *E = Op+NumOperands;
-       Op != E; ++Op, ++Vals)
-    new (Op) MDNodeOperand(*Vals, this);
+       Op != E; ++Op, ++i)
+    new (Op) MDNodeOperand(Vals[i], this);
 }
 
 
@@ -182,14 +184,28 @@ static bool isFunctionLocalValue(Value *V) {
          (isa<MDNode>(V) && cast<MDNode>(V)->isFunctionLocal());
 }
 
-MDNode *MDNode::getMDNode(LLVMContext &Context, Value *const *Vals,
-                          unsigned NumVals, FunctionLocalness FL,
-                          bool Insert) {
+MDNode *MDNode::getMDNode(LLVMContext &Context, ArrayRef<Value*> Vals,
+                          FunctionLocalness FL, bool Insert) {
   LLVMContextImpl *pImpl = Context.pImpl;
+
+  // Add all the operand pointers. Note that we don't have to add the
+  // isFunctionLocal bit because that's implied by the operands.
+  // Note that if the operands are later nulled out, the node will be
+  // removed from the uniquing map.
+  FoldingSetNodeID ID;
+  for (unsigned i = 0; i != Vals.size(); ++i)
+    ID.AddPointer(Vals[i]);
+
+  void *InsertPoint;
+  MDNode *N = NULL;
+  
+  if ((N = pImpl->MDNodeSet.FindNodeOrInsertPos(ID, InsertPoint)))
+    return N;
+    
   bool isFunctionLocal = false;
   switch (FL) {
   case FL_Unknown:
-    for (unsigned i = 0; i != NumVals; ++i) {
+    for (unsigned i = 0; i != Vals.size(); ++i) {
       Value *V = Vals[i];
       if (!V) continue;
       if (isFunctionLocalValue(V)) {
@@ -206,23 +222,9 @@ MDNode *MDNode::getMDNode(LLVMContext &Context, Value *const *Vals,
     break;
   }
 
-  FoldingSetNodeID ID;
-  for (unsigned i = 0; i != NumVals; ++i)
-    ID.AddPointer(Vals[i]);
-  ID.AddBoolean(isFunctionLocal);
-
-  void *InsertPoint;
-  MDNode *N = NULL;
-  
-  if ((N = pImpl->MDNodeSet.FindNodeOrInsertPos(ID, InsertPoint)))
-    return N;
-    
-  if (!Insert)
-    return NULL;
-    
   // Coallocate space for the node and Operands together, then placement new.
-  void *Ptr = malloc(sizeof(MDNode)+NumVals*sizeof(MDNodeOperand));
-  N = new (Ptr) MDNode(Context, Vals, NumVals, isFunctionLocal);
+  void *Ptr = malloc(sizeof(MDNode)+Vals.size()*sizeof(MDNodeOperand));
+  N = new (Ptr) MDNode(Context, Vals, isFunctionLocal);
 
   // InsertPoint will have been set by the FindNodeOrInsertPos call.
   pImpl->MDNodeSet.InsertNode(N, InsertPoint);
@@ -230,18 +232,42 @@ MDNode *MDNode::getMDNode(LLVMContext &Context, Value *const *Vals,
   return N;
 }
 
-MDNode *MDNode::get(LLVMContext &Context, Value*const* Vals, unsigned NumVals) {
-  return getMDNode(Context, Vals, NumVals, FL_Unknown);
+MDNode *MDNode::get(LLVMContext &Context, ArrayRef<Value*> Vals) {
+  return getMDNode(Context, Vals, FL_Unknown);
 }
 
-MDNode *MDNode::getWhenValsUnresolved(LLVMContext &Context, Value *const *Vals,
-                                      unsigned NumVals, bool isFunctionLocal) {
-  return getMDNode(Context, Vals, NumVals, isFunctionLocal ? FL_Yes : FL_No);
+MDNode *MDNode::getWhenValsUnresolved(LLVMContext &Context,
+                                      ArrayRef<Value*> Vals,
+                                      bool isFunctionLocal) {
+  return getMDNode(Context, Vals, isFunctionLocal ? FL_Yes : FL_No);
 }
 
-MDNode *MDNode::getIfExists(LLVMContext &Context, Value *const *Vals,
-                            unsigned NumVals) {
-  return getMDNode(Context, Vals, NumVals, FL_Unknown, false);
+MDNode *MDNode::getIfExists(LLVMContext &Context, ArrayRef<Value*> Vals) {
+  return getMDNode(Context, Vals, FL_Unknown, false);
+}
+
+MDNode *MDNode::getTemporary(LLVMContext &Context, ArrayRef<Value*> Vals) {
+  MDNode *N =
+    (MDNode *)malloc(sizeof(MDNode)+Vals.size()*sizeof(MDNodeOperand));
+  N = new (N) MDNode(Context, Vals, FL_No);
+  N->setValueSubclassData(N->getSubclassDataFromValue() |
+                          NotUniquedBit);
+  LeakDetector::addGarbageObject(N);
+  return N;
+}
+
+void MDNode::deleteTemporary(MDNode *N) {
+  assert(N->use_empty() && "Temporary MDNode has uses!");
+  assert(!N->getContext().pImpl->MDNodeSet.RemoveNode(N) &&
+         "Deleting a non-temporary uniqued node!");
+  assert(!N->getContext().pImpl->NonUniquedMDNodes.erase(N) &&
+         "Deleting a non-temporary non-uniqued node!");
+  assert((N->getSubclassDataFromValue() & NotUniquedBit) &&
+         "Temporary MDNode does not have NotUniquedBit set!");
+  assert((N->getSubclassDataFromValue() & DestroyFlag) == 0 &&
+         "Temporary MDNode has DestroyFlag set!");
+  LeakDetector::removeGarbageObject(N);
+  N->destroy();
 }
 
 /// getOperand - Return specified operand.
@@ -250,9 +276,12 @@ Value *MDNode::getOperand(unsigned i) const {
 }
 
 void MDNode::Profile(FoldingSetNodeID &ID) const {
+  // Add all the operand pointers. Note that we don't have to add the
+  // isFunctionLocal bit because that's implied by the operands.
+  // Note that if the operands are later nulled out, the node will be
+  // removed from the uniquing map.
   for (unsigned i = 0, e = getNumOperands(); i != e; ++i)
     ID.AddPointer(getOperand(i));
-  ID.AddBoolean(isFunctionLocal());
 }
 
 void MDNode::setIsNotUniqued() {
@@ -301,7 +330,8 @@ void MDNode::replaceOperand(MDNodeOperand *Op, Value *To) {
 
   // If we are dropping an argument to null, we choose to not unique the MDNode
   // anymore.  This commonly occurs during destruction, and uniquing these
-  // brings little reuse.
+  // brings little reuse.  Also, this means we don't need to include
+  // isFunctionLocal bits in FoldingSetNodeIDs for MDNodes.
   if (To == 0) {
     setIsNotUniqued();
     return;
@@ -309,21 +339,34 @@ void MDNode::replaceOperand(MDNodeOperand *Op, Value *To) {
 
   // Now that the node is out of the folding set, get ready to reinsert it.
   // First, check to see if another node with the same operands already exists
-  // in the set.  If it doesn't exist, this returns the position to insert it.
+  // in the set.  If so, then this node is redundant.
   FoldingSetNodeID ID;
   Profile(ID);
   void *InsertPoint;
-  MDNode *N = pImpl->MDNodeSet.FindNodeOrInsertPos(ID, InsertPoint);
-
-  if (N) {
-    N->replaceAllUsesWith(this);
-    N->destroy();
-    N = pImpl->MDNodeSet.FindNodeOrInsertPos(ID, InsertPoint);
-    assert(N == 0 && "shouldn't be in the map now!"); (void)N;
+  if (MDNode *N = pImpl->MDNodeSet.FindNodeOrInsertPos(ID, InsertPoint)) {
+    replaceAllUsesWith(N);
+    destroy();
+    return;
   }
 
   // InsertPoint will have been set by the FindNodeOrInsertPos call.
   pImpl->MDNodeSet.InsertNode(this, InsertPoint);
+
+  // If this MDValue was previously function-local but no longer is, clear
+  // its function-local flag.
+  if (isFunctionLocal() && !isFunctionLocalValue(To)) {
+    bool isStillFunctionLocal = false;
+    for (unsigned i = 0, e = getNumOperands(); i != e; ++i) {
+      Value *V = getOperand(i);
+      if (!V) continue;
+      if (isFunctionLocalValue(V)) {
+        isStillFunctionLocal = true;
+        break;
+      }
+    }
+    if (!isStillFunctionLocal)
+      setValueSubclassData(getSubclassDataFromValue() & ~FunctionLocalBit);
+  }
 }
 
 //===----------------------------------------------------------------------===//
@@ -357,6 +400,8 @@ MDNode *NamedMDNode::getOperand(unsigned i) const {
 
 /// addOperand - Add metadata Operand.
 void NamedMDNode::addOperand(MDNode *M) {
+  assert(!M->isFunctionLocal() &&
+         "NamedMDNode operands must not be function-local!");
   getNMDOps(Operands).push_back(TrackingVH<MDNode>(M));
 }
 

@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // mathutil.h: Math and bit manipulation functions.
@@ -70,27 +75,6 @@ inline unsigned int unorm(float x)
     {
         return (unsigned int)(max * x + 0.5f);
     }
-}
-
-inline sw::Rect transformPixelRect(GLint x, GLint y, GLint w, GLint h, GLint surfaceHeight)
-{
-	sw::Rect rect = {x,
-	                 surfaceHeight - y - h,
-	                 x + w,
-	                 surfaceHeight - y};
-
-    return rect;
-}
-
-inline int transformPixelYOffset(GLint yoffset, GLint h, GLint surfaceHeight)
-{
-    return surfaceHeight - yoffset - h;
-}
-
-inline GLenum adjustWinding(GLenum winding)
-{
-    ASSERT(winding == GL_CW || winding == GL_CCW);
-    return winding == GL_CW ? GL_CCW : GL_CW;
 }
 
 inline bool supportsSSE2()

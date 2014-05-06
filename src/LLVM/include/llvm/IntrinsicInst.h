@@ -55,6 +55,67 @@ namespace llvm {
       return isa<CallInst>(V) && classof(cast<CallInst>(V));
     }
   };
+  
+  /// DbgInfoIntrinsic - This is the common base class for debug info intrinsics
+  ///
+  class DbgInfoIntrinsic : public IntrinsicInst {
+  public:
+
+    // Methods for support type inquiry through isa, cast, and dyn_cast:
+    static inline bool classof(const DbgInfoIntrinsic *) { return true; }
+    static inline bool classof(const IntrinsicInst *I) {
+      switch (I->getIntrinsicID()) {
+      case Intrinsic::dbg_declare:
+      case Intrinsic::dbg_value:
+        return true;
+      default: return false;
+      }
+    }
+    static inline bool classof(const Value *V) {
+      return isa<IntrinsicInst>(V) && classof(cast<IntrinsicInst>(V));
+    }
+
+    static Value *StripCast(Value *C);
+  };
+
+  /// DbgDeclareInst - This represents the llvm.dbg.declare instruction.
+  ///
+  class DbgDeclareInst : public DbgInfoIntrinsic {
+  public:
+    Value *getAddress() const;
+    MDNode *getVariable() const { return cast<MDNode>(getArgOperand(1)); }
+
+    // Methods for support type inquiry through isa, cast, and dyn_cast:
+    static inline bool classof(const DbgDeclareInst *) { return true; }
+    static inline bool classof(const IntrinsicInst *I) {
+      return I->getIntrinsicID() == Intrinsic::dbg_declare;
+    }
+    static inline bool classof(const Value *V) {
+      return isa<IntrinsicInst>(V) && classof(cast<IntrinsicInst>(V));
+    }
+  };
+
+  /// DbgValueInst - This represents the llvm.dbg.value instruction.
+  ///
+  class DbgValueInst : public DbgInfoIntrinsic {
+  public:
+    const Value *getValue() const;
+    Value *getValue();
+    uint64_t getOffset() const {
+      return cast<ConstantInt>(
+                          const_cast<Value*>(getArgOperand(1)))->getZExtValue();
+    }
+    MDNode *getVariable() const { return cast<MDNode>(getArgOperand(2)); }
+
+    // Methods for support type inquiry through isa, cast, and dyn_cast:
+    static inline bool classof(const DbgValueInst *) { return true; }
+    static inline bool classof(const IntrinsicInst *I) {
+      return I->getIntrinsicID() == Intrinsic::dbg_value;
+    }
+    static inline bool classof(const Value *V) {
+      return isa<IntrinsicInst>(V) && classof(cast<IntrinsicInst>(V));
+    }
+  };
 
   /// MemIntrinsic - This is the common base class for memset/memcpy/memmove.
   ///
@@ -76,6 +137,10 @@ namespace llvm {
     }
     bool isVolatile() const {
       return !getVolatileCst()->isZero();
+    }
+
+    unsigned getDestAddressSpace() const {
+      return cast<PointerType>(getRawDest()->getType())->getAddressSpace();
     }
 
     /// getDest - This is just like getRawDest, but it strips off any cast
@@ -105,7 +170,7 @@ namespace llvm {
       setArgOperand(4, V);
     }
 
-    const Type *getAlignmentType() const {
+    Type *getAlignmentType() const {
       return getArgOperand(3)->getType();
     }
 
@@ -162,6 +227,10 @@ namespace llvm {
     /// value is guaranteed to be a pointer.
     Value *getSource() const { return getRawSource()->stripPointerCasts(); }
 
+    unsigned getSourceAddressSpace() const {
+      return cast<PointerType>(getRawSource()->getType())->getAddressSpace();
+    }
+
     void setSource(Value *Ptr) {
       assert(getRawSource()->getType() == Ptr->getType() &&
              "setSource called with pointer of wrong type!");
@@ -208,23 +277,28 @@ namespace llvm {
     }
   };
 
-  /// MemoryUseIntrinsic - This is the common base class for the memory use
-  /// marker intrinsics.
+  /// EHExceptionInst - This represents the llvm.eh.exception instruction.
   ///
-  class MemoryUseIntrinsic : public IntrinsicInst {
+  class EHExceptionInst : public IntrinsicInst {
   public:
-
     // Methods for support type inquiry through isa, cast, and dyn_cast:
-    static inline bool classof(const MemoryUseIntrinsic *) { return true; }
+    static inline bool classof(const EHExceptionInst *) { return true; }
     static inline bool classof(const IntrinsicInst *I) {
-      switch (I->getIntrinsicID()) {
-      case Intrinsic::lifetime_start:
-      case Intrinsic::lifetime_end:
-      case Intrinsic::invariant_start:
-      case Intrinsic::invariant_end:
-        return true;
-      default: return false;
-      }
+      return I->getIntrinsicID() == Intrinsic::eh_exception;
+    }
+    static inline bool classof(const Value *V) {
+      return isa<IntrinsicInst>(V) && classof(cast<IntrinsicInst>(V));
+    }
+  };
+
+  /// EHSelectorInst - This represents the llvm.eh.selector instruction.
+  ///
+  class EHSelectorInst : public IntrinsicInst {
+  public:
+    // Methods for support type inquiry through isa, cast, and dyn_cast:
+    static inline bool classof(const EHSelectorInst *) { return true; }
+    static inline bool classof(const IntrinsicInst *I) {
+      return I->getIntrinsicID() == Intrinsic::eh_selector;
     }
     static inline bool classof(const Value *V) {
       return isa<IntrinsicInst>(V) && classof(cast<IntrinsicInst>(V));

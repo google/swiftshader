@@ -10,17 +10,22 @@
 #ifndef LLVM_MC_MCEXPR_H
 #define LLVM_MC_MCEXPR_H
 
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/Support/Casting.h"
-#include "llvm/System/DataTypes.h"
+#include "llvm/Support/DataTypes.h"
 
 namespace llvm {
 class MCAsmInfo;
 class MCAsmLayout;
+class MCAssembler;
 class MCContext;
+class MCSection;
+class MCSectionData;
 class MCSymbol;
 class MCValue;
 class raw_ostream;
 class StringRef;
+typedef DenseMap<const MCSectionData*, uint64_t> SectionAddrMap;
 
 /// MCExpr - Base class for the full range of assembler expressions which are
 /// needed for parsing.
@@ -40,9 +45,16 @@ private:
   MCExpr(const MCExpr&); // DO NOT IMPLEMENT
   void operator=(const MCExpr&); // DO NOT IMPLEMENT
 
+  bool EvaluateAsAbsolute(int64_t &Res, const MCAssembler *Asm,
+                          const MCAsmLayout *Layout,
+                          const SectionAddrMap *Addrs) const;
 protected:
   explicit MCExpr(ExprKind _Kind) : Kind(_Kind) {}
 
+  bool EvaluateAsRelocatableImpl(MCValue &Res, const MCAssembler *Asm,
+                                 const MCAsmLayout *Layout,
+                                 const SectionAddrMap *Addrs,
+                                 bool InSet) const;
 public:
   /// @name Accessors
   /// @{
@@ -67,7 +79,11 @@ public:
   /// values. If not given, then only non-symbolic expressions will be
   /// evaluated.
   /// @result - True on success.
-  bool EvaluateAsAbsolute(int64_t &Res, const MCAsmLayout *Layout = 0) const;
+  bool EvaluateAsAbsolute(int64_t &Res) const;
+  bool EvaluateAsAbsolute(int64_t &Res, const MCAssembler &Asm) const;
+  bool EvaluateAsAbsolute(int64_t &Res, const MCAsmLayout &Layout) const;
+  bool EvaluateAsAbsolute(int64_t &Res, const MCAsmLayout &Layout,
+                          const SectionAddrMap &Addrs) const;
 
   /// EvaluateAsRelocatable - Try to evaluate the expression to a relocatable
   /// value, i.e. an expression of the fixed form (a - b + constant).
@@ -75,7 +91,13 @@ public:
   /// @param Res - The relocatable value, if evaluation succeeds.
   /// @param Layout - The assembler layout object to use for evaluating values.
   /// @result - True on success.
-  bool EvaluateAsRelocatable(MCValue &Res, const MCAsmLayout *Layout = 0) const;
+  bool EvaluateAsRelocatable(MCValue &Res, const MCAsmLayout &Layout) const;
+
+  /// FindAssociatedSection - Find the "associated section" for this expression,
+  /// which is currently defined as the absolute section for constants, or
+  /// otherwise the section associated with the first defined symbol in the
+  /// expression.
+  const MCSection *FindAssociatedSection() const;
 
   /// @}
 
@@ -132,12 +154,27 @@ public:
     VK_GOTTPOFF,
     VK_INDNTPOFF,
     VK_NTPOFF,
+    VK_GOTNTPOFF,
     VK_PLT,
     VK_TLSGD,
+    VK_TLSLD,
+    VK_TLSLDM,
     VK_TPOFF,
-    VK_ARM_HI16, // The R_ARM_MOVT_ABS relocation (:upper16: in the asm file)
-    VK_ARM_LO16, // The R_ARM_MOVW_ABS_NC relocation (:lower16: in the asm file)
-    VK_TLVP // Mach-O thread local variable relocation
+    VK_DTPOFF,
+    VK_TLVP,      // Mach-O thread local variable relocation
+    // FIXME: We'd really like to use the generic Kinds listed above for these.
+    VK_ARM_PLT,   // ARM-style PLT references. i.e., (PLT) instead of @PLT
+    VK_ARM_TLSGD, //   ditto for TLSGD, GOT, GOTOFF, TPOFF and GOTTPOFF
+    VK_ARM_GOT,
+    VK_ARM_GOTOFF,
+    VK_ARM_TPOFF,
+    VK_ARM_GOTTPOFF,
+
+    VK_PPC_TOC,
+    VK_PPC_DARWIN_HA16,  // ha16(symbol)
+    VK_PPC_DARWIN_LO16,  // lo16(symbol)
+    VK_PPC_GAS_HA16,     // symbol@ha
+    VK_PPC_GAS_LO16      // symbol@l
   };
 
 private:
@@ -162,7 +199,7 @@ public:
                                        MCContext &Ctx);
   static const MCSymbolRefExpr *Create(StringRef Name, VariantKind Kind,
                                        MCContext &Ctx);
-  
+
   /// @}
   /// @name Accessors
   /// @{
@@ -391,7 +428,8 @@ public:
   virtual void PrintImpl(raw_ostream &OS) const = 0;
   virtual bool EvaluateAsRelocatableImpl(MCValue &Res,
                                          const MCAsmLayout *Layout) const = 0;
-
+  virtual void AddValueSymbols(MCAssembler *) const = 0;
+  virtual const MCSection *FindAssociatedSection() const = 0;
 
   static bool classof(const MCExpr *E) {
     return E->getKind() == MCExpr::Target;

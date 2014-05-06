@@ -31,25 +31,25 @@ namespace llvm {
 
       /// GPRelHi/GPRelLo - These represent the high and low 16-bit
       /// parts of a global address respectively.
-      GPRelHi, GPRelLo, 
+      GPRelHi, GPRelLo,
 
       /// RetLit - Literal Relocation of a Global
       RelLit,
 
       /// GlobalRetAddr - used to restore the return address
       GlobalRetAddr,
-      
+
       /// CALL - Normal call.
       CALL,
 
       /// DIVCALL - used for special library calls for div and rem
       DivCall,
-      
+
       /// return flag operand
       RET_FLAG,
 
       /// CHAIN = COND_BRANCH CHAIN, OPC, (G|F)PRC, DESTBB [, INFLAG] - This
-      /// corresponds to the COND_BRANCH pseudo instruction.  
+      /// corresponds to the COND_BRANCH pseudo instruction.
       /// *PRC is the input register to compare to zero,
       /// OPC is the branch opcode to use (e.g. Alpha::BEQ),
       /// DESTBB is the destination block to branch to, and INFLAG is
@@ -62,9 +62,11 @@ namespace llvm {
   class AlphaTargetLowering : public TargetLowering {
   public:
     explicit AlphaTargetLowering(TargetMachine &TM);
-    
+
+    virtual MVT getShiftAmountTy(EVT LHSTy) const { return MVT::i64; }
+
     /// getSetCCResultType - Get the SETCC result ValueType
-    virtual MVT::SimpleValueType getSetCCResultType(EVT VT) const;
+    virtual EVT getSetCCResultType(EVT VT) const;
 
     /// LowerOperation - Provide custom lowering hooks for some operations.
     ///
@@ -87,18 +89,20 @@ namespace llvm {
 
     ConstraintType getConstraintType(const std::string &Constraint) const;
 
-    std::vector<unsigned> 
-      getRegClassForInlineAsmConstraint(const std::string &Constraint,
-                                        EVT VT) const;
+    /// Examine constraint string and operand type and determine a weight value.
+    /// The operand object must already have been set up with the operand type.
+    ConstraintWeight getSingleConstraintMatchWeight(
+      AsmOperandInfo &info, const char *constraint) const;
+
+    std::pair<unsigned, const TargetRegisterClass*>
+    getRegForInlineAsmConstraint(const std::string &Constraint,
+				 EVT VT) const;
 
     MachineBasicBlock *
       EmitInstrWithCustomInserter(MachineInstr *MI,
                                   MachineBasicBlock *BB) const;
 
     virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
-
-    /// getFunctionAlignment - Return the Log2 alignment of this function.
-    virtual unsigned getFunctionAlignment(const Function *F) const;
 
     /// isFPImmLegal - Returns true if the target can instruction select the
     /// specified FP immediate natively. If false, the legalizer will

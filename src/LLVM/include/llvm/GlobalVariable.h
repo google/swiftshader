@@ -12,7 +12,7 @@
 //
 // Global variables are constant pointers that refer to hunks of space that are
 // allocated by either the VM, or by the linker in a static compiler.  A global
-// variable may have an intial value, which is copied into the executables .data
+// variable may have an initial value, which is copied into the executables .data
 // area.  Global Constants are required to have initializers.
 //
 //===----------------------------------------------------------------------===//
@@ -50,12 +50,12 @@ public:
   }
   /// GlobalVariable ctor - If a parent module is specified, the global is
   /// automatically inserted into the end of the specified modules global list.
-  GlobalVariable(const Type *Ty, bool isConstant, LinkageTypes Linkage,
+  GlobalVariable(Type *Ty, bool isConstant, LinkageTypes Linkage,
                  Constant *Initializer = 0, const Twine &Name = "",
                  bool ThreadLocal = false, unsigned AddressSpace = 0);
   /// GlobalVariable ctor - This creates a global and inserts it before the
   /// specified other global.
-  GlobalVariable(Module &M, const Type *Ty, bool isConstant,
+  GlobalVariable(Module &M, Type *Ty, bool isConstant,
                  LinkageTypes Linkage, Constant *Initializer,
                  const Twine &Name,
                  GlobalVariable *InsertBefore = 0, bool ThreadLocal = false,
@@ -68,11 +68,6 @@ public:
   /// Provide fast operand accessors
   DECLARE_TRANSPARENT_OPERAND_ACCESSORS(Value);
 
-  /// isDeclaration - Is this global variable lacking an initializer?  If so, 
-  /// the global variable is defined in some other translation unit, and is thus
-  /// only a declaration here.
-  virtual bool isDeclaration() const { return getNumOperands() == 0; }
-
   /// hasInitializer - Unless a global variable isExternal(), it has an
   /// initializer.  The initializer for the global variable/constant is held by
   /// Initializer if an initializer is specified.
@@ -80,7 +75,21 @@ public:
   inline bool hasInitializer() const { return !isDeclaration(); }
 
   /// hasDefinitiveInitializer - Whether the global variable has an initializer,
-  /// and this is the initializer that will be used in the final executable.
+  /// and any other instances of the global (this can happen due to weak
+  /// linkage) are guaranteed to have the same initializer.
+  ///
+  /// Note that if you want to transform a global, you must use
+  /// hasUniqueInitializer() instead, because of the *_odr linkage type.
+  ///
+  /// Example:
+  ///
+  /// @a = global SomeType* null - Initializer is both definitive and unique.
+  ///
+  /// @b = global weak SomeType* null - Initializer is neither definitive nor
+  /// unique.
+  ///
+  /// @c = global weak_odr SomeType* null - Initializer is definitive, but not
+  /// unique.
   inline bool hasDefinitiveInitializer() const {
     return hasInitializer() &&
       // The initializer of a global variable with weak linkage may change at
@@ -88,11 +97,24 @@ public:
       !mayBeOverridden();
   }
 
+  /// hasUniqueInitializer - Whether the global variable has an initializer, and
+  /// any changes made to the initializer will turn up in the final executable.
+  inline bool hasUniqueInitializer() const {
+    return hasInitializer() &&
+      // It's not safe to modify initializers of global variables with weak
+      // linkage, because the linker might choose to discard the initializer and
+      // use the initializer from another instance of the global variable
+      // instead. It is wrong to modify the initializer of a global variable
+      // with *_odr linkage because then different instances of the global may
+      // have different initializers, breaking the One Definition Rule.
+      !isWeakForLinker();
+  }
+
   /// getInitializer - Return the initializer for this global variable.  It is
   /// illegal to call this method if the global is external, because we cannot
   /// tell what the value is initialized to!
   ///
-  inline /*const FIXME*/ Constant *getInitializer() const {
+  inline const Constant *getInitializer() const {
     assert(hasInitializer() && "GV doesn't have initializer!");
     return static_cast<Constant*>(Op<0>().get());
   }
@@ -142,7 +164,8 @@ public:
 };
 
 template <>
-struct OperandTraits<GlobalVariable> : public OptionalOperandTraits<> {
+struct OperandTraits<GlobalVariable> :
+  public OptionalOperandTraits<GlobalVariable> {
 };
 
 DEFINE_TRANSPARENT_OPERAND_ACCESSORS(GlobalVariable, Value)

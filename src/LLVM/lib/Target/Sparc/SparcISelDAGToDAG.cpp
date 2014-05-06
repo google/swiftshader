@@ -44,9 +44,8 @@ public:
   SDNode *Select(SDNode *N);
 
   // Complex Pattern Selectors.
-  bool SelectADDRrr(SDNode *Op, SDValue N, SDValue &R1, SDValue &R2);
-  bool SelectADDRri(SDNode *Op, SDValue N, SDValue &Base,
-                    SDValue &Offset);
+  bool SelectADDRrr(SDValue N, SDValue &R1, SDValue &R2);
+  bool SelectADDRri(SDValue N, SDValue &Base, SDValue &Offset);
 
   /// SelectInlineAsmMemoryOperand - Implement addressing mode selection for
   /// inline asm expressions.
@@ -71,7 +70,7 @@ SDNode* SparcDAGToDAGISel::getGlobalBaseReg() {
   return CurDAG->getRegister(GlobalBaseReg, TLI.getPointerTy()).getNode();
 }
 
-bool SparcDAGToDAGISel::SelectADDRri(SDNode *Op, SDValue Addr,
+bool SparcDAGToDAGISel::SelectADDRri(SDValue Addr,
                                      SDValue &Base, SDValue &Offset) {
   if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>(Addr)) {
     Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i32);
@@ -84,7 +83,7 @@ bool SparcDAGToDAGISel::SelectADDRri(SDNode *Op, SDValue Addr,
 
   if (Addr.getOpcode() == ISD::ADD) {
     if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Addr.getOperand(1))) {
-      if (Predicate_simm13(CN)) {
+      if (isInt<13>(CN->getSExtValue())) {
         if (FrameIndexSDNode *FIN =
                 dyn_cast<FrameIndexSDNode>(Addr.getOperand(0))) {
           // Constant offset from frame ref.
@@ -112,17 +111,16 @@ bool SparcDAGToDAGISel::SelectADDRri(SDNode *Op, SDValue Addr,
   return true;
 }
 
-bool SparcDAGToDAGISel::SelectADDRrr(SDNode *Op, SDValue Addr,
-                                     SDValue &R1,  SDValue &R2) {
+bool SparcDAGToDAGISel::SelectADDRrr(SDValue Addr, SDValue &R1, SDValue &R2) {
   if (Addr.getOpcode() == ISD::FrameIndex) return false;
   if (Addr.getOpcode() == ISD::TargetExternalSymbol ||
       Addr.getOpcode() == ISD::TargetGlobalAddress)
     return false;  // direct calls.
 
   if (Addr.getOpcode() == ISD::ADD) {
-    if (isa<ConstantSDNode>(Addr.getOperand(1)) &&
-        Predicate_simm13(Addr.getOperand(1).getNode()))
-      return false;  // Let the reg+imm pattern catch this!
+    if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Addr.getOperand(1)))
+      if (isInt<13>(CN->getSExtValue()))
+        return false;  // Let the reg+imm pattern catch this!
     if (Addr.getOperand(0).getOpcode() == SPISD::Lo ||
         Addr.getOperand(1).getOpcode() == SPISD::Lo)
       return false;  // Let the reg+imm pattern catch this!
@@ -160,7 +158,7 @@ SDNode *SparcDAGToDAGISel::Select(SDNode *N) {
     } else {
       TopPart = CurDAG->getRegister(SP::G0, MVT::i32);
     }
-    TopPart = SDValue(CurDAG->getMachineNode(SP::WRYrr, dl, MVT::Flag, TopPart,
+    TopPart = SDValue(CurDAG->getMachineNode(SP::WRYrr, dl, MVT::Glue, TopPart,
                                      CurDAG->getRegister(SP::G0, MVT::i32)), 0);
 
     // FIXME: Handle div by immediate.
@@ -174,7 +172,7 @@ SDNode *SparcDAGToDAGISel::Select(SDNode *N) {
     SDValue MulLHS = N->getOperand(0);
     SDValue MulRHS = N->getOperand(1);
     unsigned Opcode = N->getOpcode() == ISD::MULHU ? SP::UMULrr : SP::SMULrr;
-    SDNode *Mul = CurDAG->getMachineNode(Opcode, dl, MVT::i32, MVT::Flag,
+    SDNode *Mul = CurDAG->getMachineNode(Opcode, dl, MVT::i32, MVT::Glue,
                                          MulLHS, MulRHS);
     // The high part is in the Y register.
     return CurDAG->SelectNodeTo(N, SP::RDY, MVT::i32, SDValue(Mul, 1));
@@ -196,8 +194,8 @@ SparcDAGToDAGISel::SelectInlineAsmMemoryOperand(const SDValue &Op,
   switch (ConstraintCode) {
   default: return true;
   case 'm':   // memory
-   if (!SelectADDRrr(Op.getNode(), Op, Op0, Op1))
-     SelectADDRri(Op.getNode(), Op, Op0, Op1);
+   if (!SelectADDRrr(Op, Op0, Op1))
+     SelectADDRri(Op, Op0, Op1);
    break;
   }
 

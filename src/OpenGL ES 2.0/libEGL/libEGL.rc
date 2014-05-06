@@ -73,7 +73,7 @@ BEGIN
             VALUE "FileDescription", "SwiftShader libEGL Dynamic Link Library"
             VALUE "FileVersion", VERSION_STRING
             VALUE "InternalName", "libEGL"
-            VALUE "LegalCopyright", "Copyright (C) 2011 TransGaming Inc."
+            VALUE "LegalCopyright", "Copyright (C) 2012 TransGaming Inc."
             VALUE "OriginalFilename", "libEGL.dll"
             VALUE "PrivateBuild", VERSION_STRING
             VALUE "ProductName", "SwiftShader libEGL Dynamic Link Library"

@@ -17,7 +17,8 @@
 #include "X86DisassemblerShared.h"
 #include "X86DisassemblerTables.h"
 
-#include "TableGenBackend.h"
+#include "llvm/TableGen/TableGenBackend.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/Format.h"
 
@@ -31,24 +32,32 @@ using namespace X86Disassembler;
 /// @param parent - The class that may be the superset
 /// @return       - True if child is a subset of parent, false otherwise.
 static inline bool inheritsFrom(InstructionContext child,
-                                InstructionContext parent) {
+                                InstructionContext parent,
+                                bool VEX_LIG = false) {
   if (child == parent)
     return true;
   
   switch (parent) {
   case IC:
-    return true;
+    return(inheritsFrom(child, IC_64BIT) ||
+           inheritsFrom(child, IC_OPSIZE) ||
+           inheritsFrom(child, IC_XD) ||
+           inheritsFrom(child, IC_XS));
   case IC_64BIT:
     return(inheritsFrom(child, IC_64BIT_REXW)   ||
            inheritsFrom(child, IC_64BIT_OPSIZE) ||
            inheritsFrom(child, IC_64BIT_XD)     ||
            inheritsFrom(child, IC_64BIT_XS));
   case IC_OPSIZE:
-    return(inheritsFrom(child, IC_64BIT_OPSIZE));
+    return inheritsFrom(child, IC_64BIT_OPSIZE);
   case IC_XD:
-    return(inheritsFrom(child, IC_64BIT_XD));
+    return inheritsFrom(child, IC_64BIT_XD);
   case IC_XS:
-    return(inheritsFrom(child, IC_64BIT_XS));
+    return inheritsFrom(child, IC_64BIT_XS);
+  case IC_XD_OPSIZE:
+    return inheritsFrom(child, IC_64BIT_XD_OPSIZE);
+  case IC_XS_OPSIZE:
+    return inheritsFrom(child, IC_64BIT_XS_OPSIZE);
   case IC_64BIT_REXW:
     return(inheritsFrom(child, IC_64BIT_REXW_XS) ||
            inheritsFrom(child, IC_64BIT_REXW_XD) ||
@@ -59,13 +68,37 @@ static inline bool inheritsFrom(InstructionContext child,
     return(inheritsFrom(child, IC_64BIT_REXW_XD));
   case IC_64BIT_XS:
     return(inheritsFrom(child, IC_64BIT_REXW_XS));
+  case IC_64BIT_XD_OPSIZE:
+  case IC_64BIT_XS_OPSIZE:
+    return false;
   case IC_64BIT_REXW_XD:
-    return false;
   case IC_64BIT_REXW_XS:
-    return false;
   case IC_64BIT_REXW_OPSIZE:
     return false;
+  case IC_VEX:
+    return inheritsFrom(child, IC_VEX_W) ||
+           (VEX_LIG && inheritsFrom(child, IC_VEX_L));
+  case IC_VEX_XS:
+    return inheritsFrom(child, IC_VEX_W_XS) ||
+           (VEX_LIG && inheritsFrom(child, IC_VEX_L_XS));
+  case IC_VEX_XD:
+    return inheritsFrom(child, IC_VEX_W_XD) ||
+           (VEX_LIG && inheritsFrom(child, IC_VEX_L_XD));
+  case IC_VEX_OPSIZE:
+    return inheritsFrom(child, IC_VEX_W_OPSIZE) ||
+           (VEX_LIG && inheritsFrom(child, IC_VEX_L_OPSIZE));
+  case IC_VEX_W:
+  case IC_VEX_W_XS:
+  case IC_VEX_W_XD:
+  case IC_VEX_W_OPSIZE:
+    return false;
+  case IC_VEX_L:
+  case IC_VEX_L_XS:
+  case IC_VEX_L_XD:
+  case IC_VEX_L_OPSIZE:
+    return false;
   default:
+    llvm_unreachable("Unknown instruction class");
     return false;
   }
 }
@@ -161,7 +194,7 @@ void DisassemblerTables::emitOneID(raw_ostream &o,
 /// @param i        - The indentation level for that output stream.
 static void emitEmptyTable(raw_ostream &o, uint32_t &i)
 {
-  o.indent(i * 2) << "static InstrUID modRMEmptyTable[1] = { 0 };" << "\n";
+  o.indent(i * 2) << "static const InstrUID modRMEmptyTable[1] = { 0 };\n";
   o << "\n";
 }
 
@@ -236,7 +269,7 @@ static const char* stringForModifierType(ModifierType mt)
 DisassemblerTables::DisassemblerTables() {
   unsigned i;
   
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < array_lengthof(Tables); i++) {
     Tables[i] = new ContextDecision;
     memset(Tables[i], 0, sizeof(ContextDecision));
   }
@@ -247,7 +280,7 @@ DisassemblerTables::DisassemblerTables() {
 DisassemblerTables::~DisassemblerTables() {
   unsigned i;
   
-  for (i = 0; i < 4; i++)
+  for (i = 0; i < array_lengthof(Tables); i++)
     delete Tables[i];
 }
   
@@ -275,7 +308,7 @@ void DisassemblerTables::emitModRMDecision(raw_ostream &o1,
     return;
   }
     
-  o1.indent(i1) << "static InstrUID modRMTable" << thisTableNumber;
+  o1.indent(i1) << "static const InstrUID modRMTable" << thisTableNumber;
     
   switch (dt) {
     default:
@@ -365,7 +398,7 @@ void DisassemblerTables::emitContextDecision(
   uint32_t &i2,
   ContextDecision &decision,
   const char* name) const {
-  o2.indent(i2) << "struct ContextDecision " << name << " = {" << "\n";
+  o2.indent(i2) << "static const struct ContextDecision " << name << " = {\n";
   i2++;
   o2.indent(i2) << "{ /* opcodeDecisions */" << "\n";
   i2++;
@@ -392,10 +425,8 @@ void DisassemblerTables::emitContextDecision(
 
 void DisassemblerTables::emitInstructionInfo(raw_ostream &o, uint32_t &i) 
   const {
-  o.indent(i * 2) << "struct InstructionSpecifier ";
-  o << INSTRUCTIONS_STR << "[";
-  o << InstructionSpecifiers.size();
-  o << "] = {" << "\n";
+  o.indent(i * 2) << "static const struct InstructionSpecifier ";
+  o << INSTRUCTIONS_STR "[" << InstructionSpecifiers.size() << "] = {\n";
   
   i++;
 
@@ -456,20 +487,48 @@ void DisassemblerTables::emitInstructionInfo(raw_ostream &o, uint32_t &i)
 void DisassemblerTables::emitContextTable(raw_ostream &o, uint32_t &i) const {
   uint16_t index;
 
-  o.indent(i * 2) << "InstructionContext ";
-  o << CONTEXTS_STR << "[256] = {" << "\n";
+  o.indent(i * 2) << "static const InstructionContext " CONTEXTS_STR
+                     "[256] = {\n";
   i++;
 
   for (index = 0; index < 256; ++index) {
     o.indent(i * 2);
 
-    if ((index & ATTR_64BIT) && (index & ATTR_REXW) && (index & ATTR_XS))
+    if ((index & ATTR_VEXL) && (index & ATTR_OPSIZE))
+      o << "IC_VEX_L_OPSIZE";
+    else if ((index & ATTR_VEXL) && (index & ATTR_XD))
+      o << "IC_VEX_L_XD";
+    else if ((index & ATTR_VEXL) && (index & ATTR_XS))
+      o << "IC_VEX_L_XS";
+    else if ((index & ATTR_VEX) && (index & ATTR_REXW) && (index & ATTR_OPSIZE))
+      o << "IC_VEX_W_OPSIZE";
+    else if ((index & ATTR_VEX) && (index & ATTR_REXW) && (index & ATTR_XD))
+      o << "IC_VEX_W_XD";
+    else if ((index & ATTR_VEX) && (index & ATTR_REXW) && (index & ATTR_XS))
+      o << "IC_VEX_W_XS";
+    else if (index & ATTR_VEXL)
+      o << "IC_VEX_L";
+    else if ((index & ATTR_VEX) && (index & ATTR_REXW))
+      o << "IC_VEX_W";
+    else if ((index & ATTR_VEX) && (index & ATTR_OPSIZE))
+      o << "IC_VEX_OPSIZE";
+    else if ((index & ATTR_VEX) && (index & ATTR_XD))
+      o << "IC_VEX_XD";
+    else if ((index & ATTR_VEX) && (index & ATTR_XS))
+      o << "IC_VEX_XS";
+    else if (index & ATTR_VEX)
+      o << "IC_VEX";
+    else if ((index & ATTR_64BIT) && (index & ATTR_REXW) && (index & ATTR_XS))
       o << "IC_64BIT_REXW_XS";
     else if ((index & ATTR_64BIT) && (index & ATTR_REXW) && (index & ATTR_XD))
       o << "IC_64BIT_REXW_XD";
     else if ((index & ATTR_64BIT) && (index & ATTR_REXW) && 
              (index & ATTR_OPSIZE))
       o << "IC_64BIT_REXW_OPSIZE";
+    else if ((index & ATTR_64BIT) && (index & ATTR_XD) && (index & ATTR_OPSIZE))
+      o << "IC_64BIT_XD_OPSIZE";
+    else if ((index & ATTR_64BIT) && (index & ATTR_XS) && (index & ATTR_OPSIZE))
+      o << "IC_64BIT_XS_OPSIZE";
     else if ((index & ATTR_64BIT) && (index & ATTR_XS))
       o << "IC_64BIT_XS";
     else if ((index & ATTR_64BIT) && (index & ATTR_XD))
@@ -480,6 +539,10 @@ void DisassemblerTables::emitContextTable(raw_ostream &o, uint32_t &i) const {
       o << "IC_64BIT_REXW";
     else if ((index & ATTR_64BIT))
       o << "IC_64BIT";
+    else if ((index & ATTR_XS) && (index & ATTR_OPSIZE))
+      o << "IC_XS_OPSIZE";
+    else if ((index & ATTR_XD) && (index & ATTR_OPSIZE))
+      o << "IC_XD_OPSIZE";
     else if (index & ATTR_XS)
       o << "IC_XS";
     else if (index & ATTR_XD)
@@ -512,6 +575,8 @@ void DisassemblerTables::emitContextDecisions(raw_ostream &o1,
   emitContextDecision(o1, o2, i1, i2, *Tables[1], TWOBYTE_STR);
   emitContextDecision(o1, o2, i1, i2, *Tables[2], THREEBYTE38_STR);
   emitContextDecision(o1, o2, i1, i2, *Tables[3], THREEBYTE3A_STR);
+  emitContextDecision(o1, o2, i1, i2, *Tables[4], THREEBYTEA6_STR);
+  emitContextDecision(o1, o2, i1, i2, *Tables[5], THREEBYTEA7_STR);
 }
 
 void DisassemblerTables::emit(raw_ostream &o) const {
@@ -560,8 +625,11 @@ void DisassemblerTables::setTableFields(ModRMDecision     &decision,
         if(newInfo.filtered)
           continue; // filtered instructions get lowest priority
         
-        if(previousInfo.name == "NOOP")
-          continue; // special case for XCHG32ar and NOOP
+        if(previousInfo.name == "NOOP" && (newInfo.name == "XCHG16ar" ||
+                                           newInfo.name == "XCHG32ar" ||
+                                           newInfo.name == "XCHG32ar64" ||
+                                           newInfo.name == "XCHG64ar"))
+          continue; // special case for XCHG*ar and NOOP
 
         if (outranks(previousInfo.insnContext, newInfo.insnContext))
           continue;
@@ -587,14 +655,19 @@ void DisassemblerTables::setTableFields(OpcodeType          type,
                                         InstructionContext  insnContext,
                                         uint8_t             opcode,
                                         const ModRMFilter   &filter,
-                                        InstrUID            uid) {
+                                        InstrUID            uid,
+                                        bool                is32bit,
+                                        bool                ignoresVEX_L) {
   unsigned index;
   
   ContextDecision &decision = *Tables[type];
 
   for (index = 0; index < IC_max; ++index) {
+    if (is32bit && inheritsFrom((InstructionContext)index, IC_64BIT))
+      continue;
+
     if (inheritsFrom((InstructionContext)index, 
-                     InstructionSpecifiers[uid].insnContext))
+                     InstructionSpecifiers[uid].insnContext, ignoresVEX_L))
       setTableFields(decision.opcodeDecisions[index].modRMDecisions[opcode], 
                      filter,
                      uid,

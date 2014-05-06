@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -29,7 +29,7 @@ namespace sw
 		return 1;
 	}
 
-	FrameBufferDD::FrameBufferDD(HWND windowHandle, int width, int height, bool fullscreen) : FrameBuffer(windowHandle, width, height, fullscreen)
+	FrameBufferDD::FrameBufferDD(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin) : FrameBuffer(windowHandle, width, height, fullscreen, topLeftOrigin)
 	{
 		directDraw = 0;
 		frontBuffer = 0;
@@ -104,20 +104,22 @@ namespace sw
 
 			if((result != DD_OK && result != DDERR_PRIMARYSURFACEALREADYEXISTS) || (bitDepth != 32 && bitDepth != 24 && bitDepth != 16))
 			{
-				gracefulExit("Failed to initialize graphics: incompatible display mode. Aborting application.", result);
+				assert(!"Failed to initialize graphics: Incompatible display mode.");
 			}
+			else
+			{
+				ddsd.dwFlags = DDSD_CAPS | DDSD_WIDTH | DDSD_HEIGHT;
+				ddsd.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN;
+				ddsd.dwWidth = width;
+				ddsd.dwHeight = height;
 
-			ddsd.dwFlags = DDSD_CAPS | DDSD_WIDTH | DDSD_HEIGHT;	   
-			ddsd.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN;
-			ddsd.dwWidth = width;
-			ddsd.dwHeight = height;
+				directDraw->CreateSurface(&ddsd, &backBuffer, 0);
 
-			directDraw->CreateSurface(&ddsd, &backBuffer, 0);
-
-			directDraw->CreateClipper(0, &clipper, 0);
-			clipper->SetHWnd(0, windowHandle);
-			frontBuffer->SetClipper(clipper);
-			clipper->Release();
+				directDraw->CreateClipper(0, &clipper, 0);
+				clipper->SetHWnd(0, windowHandle);
+				frontBuffer->SetClipper(clipper);
+				clipper->Release();
+			}
 		}
 	}
 
@@ -209,7 +211,7 @@ namespace sw
 
 					if(result == DDERR_INVALIDMODE)
 					{
-						gracefulExit("Failed to initialize graphics: display mode unsupported. Aborting application.", result);
+						assert(!"Failed to initialize graphics: Display mode not supported.");
 					}
 				}
 			}
@@ -286,10 +288,10 @@ namespace sw
 
 		if(destRect)
 		{
-			dRect.bottom = bounds.top + destRect->bottom;
-			dRect.left = bounds.left + destRect->left;
-			dRect.right = bounds.left + destRect->right;
-			dRect.top = bounds.top + destRect->top;
+			dRect.bottom = bounds.top + destRect->y1;
+			dRect.left = bounds.left + destRect->x0;
+			dRect.right = bounds.left + destRect->x1;
+			dRect.top = bounds.top + destRect->y0;
 		}
 		else
 		{

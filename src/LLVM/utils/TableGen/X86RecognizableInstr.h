@@ -20,9 +20,9 @@
 #include "X86DisassemblerTables.h"
 
 #include "CodeGenTarget.h"
-#include "Record.h"
 
-#include "llvm/System/DataTypes.h"
+#include "llvm/TableGen/Record.h"
+#include "llvm/Support/DataTypes.h"
 #include "llvm/ADT/SmallVector.h"
 
 namespace llvm {
@@ -52,12 +52,24 @@ private:
   bool HasOpSizePrefix;
   /// The hasREX_WPrefix field from the record
   bool HasREX_WPrefix;
+  /// The hasVEXPrefix field from the record
+  bool HasVEXPrefix;
   /// The hasVEX_4VPrefix field from the record
   bool HasVEX_4VPrefix;
+  /// The hasVEX_WPrefix field from the record
+  bool HasVEX_WPrefix;
+  /// Inferred from the operands; indicates whether the L bit in the VEX prefix is set
+  bool HasVEX_LPrefix;
+  // The ignoreVEX_L field from the record
+  bool IgnoresVEX_L;
   /// The hasLockPrefix field from the record
   bool HasLockPrefix;
   /// The isCodeGenOnly filed from the record
   bool IsCodeGenOnly;
+  // Whether the instruction has the predicate "In64BitMode"
+  bool Is64Bit;
+  // Whether the instruction has the predicate "In32BitMode"
+  bool Is32Bit;
   
   /// The instruction name as listed in the tables
   std::string Name;
@@ -76,7 +88,8 @@ private:
   /// The operands of the instruction, as listed in the CodeGenInstruction.
   /// They are not one-to-one with operands listed in the MCInst; for example,
   /// memory operands expand to 5 operands in the MCInst
-  const std::vector<CodeGenInstruction::OperandInfo>* Operands;
+  const std::vector<CGIOperandList::OperandInfo>* Operands;
+  
   /// The description of the instruction that is emitted into the instruction
   /// info table
   InstructionSpecifier* Spec;
@@ -95,7 +108,7 @@ private:
                       // error if it conflcits with any other FILTER_NORMAL
                       // instruction
   };
-  
+      
   /// filter - Determines whether the instruction should be decodable.  Some 
   ///   instructions are pure intrinsics and use unencodable operands; many
   ///   synthetic instructions are duplicates of other instructions; other
@@ -105,6 +118,12 @@ private:
   ///
   /// @return - The degree of filtering to be applied (see filter_ret).
   filter_ret filter() const;
+
+  /// hasFROperands - Returns true if any operand is a FR operand.
+  bool hasFROperands() const;
+  
+  /// has256BitOperands - Returns true if any operand is a 256-bit SSE operand.
+  bool has256BitOperands() const;
   
   /// typeFromString - Translates an operand type from the string provided in
   ///   the LLVM tables to an OperandType for use in the operand specifier.
@@ -154,6 +173,8 @@ private:
                                                       bool hasOpSizePrefix);
   static OperandEncoding opcodeModifierEncodingFromString(const std::string &s,
                                                           bool hasOpSizePrefix);
+  static OperandEncoding vvvvRegisterEncodingFromString(const std::string &s,
+                                                        bool HasOpSizePrefix);
   
   /// handleOperand - Converts a single operand from the LLVM table format to
   ///   the emitted table format, handling any duplicate operands it encounters

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -14,7 +14,6 @@
 #include "SetupRoutine.hpp"
 #include "Primitive.hpp"
 #include "Polygon.hpp"
-#include "Viewport.hpp"
 #include "Context.hpp"
 #include "Renderer.hpp"
 #include "Constants.hpp"
@@ -23,6 +22,7 @@
 namespace sw
 {
 	extern bool complementaryDepthBuffer;
+	extern bool fullPixelPositionRegister;
 
 	unsigned int SetupProcessor::States::computeHash()
 	{
@@ -54,6 +54,7 @@ namespace sw
 
 	SetupProcessor::SetupProcessor(Context *context) : context(context)
 	{
+		precacheDLL = 0;
 		routineCache = 0;
 		setRoutineCacheSize(1024);
 	}
@@ -68,11 +69,14 @@ namespace sw
 	{
 		State state;
 
+		bool vPosZW = (context->pixelShader && context->pixelShader->vPosDeclared && fullPixelPositionRegister);
+
 		state.isDrawPoint = context->isDrawPoint(true);
 		state.isDrawLine = context->isDrawLine(true);
 		state.isDrawTriangle = context->isDrawTriangle(false);
 		state.isDrawSolidTriangle = context->isDrawTriangle(true);
-		state.interpolateDepth = context->depthBufferActive() || context->pixelFogActive() != Context::FOG_NONE;
+		state.interpolateZ = context->depthBufferActive() || context->pixelFogActive() != Context::FOG_NONE || vPosZW;
+		state.interpolateW = context->perspectiveActive() || vPosZW;
 		state.perspective = context->perspectiveActive();
 		state.pointSprite = context->pointSpriteActive();
 		state.cullMode = context->cullMode;
@@ -135,8 +139,8 @@ namespace sw
 
 						switch(context->pixelShader->semantic[interpolant][component - project].usage)
 						{
-						case ShaderOperation::USAGE_TEXCOORD: flat = point && !sprite; break;
-						case ShaderOperation::USAGE_COLOR:    flat = flatShading;      break;
+						case Shader::USAGE_TEXCOORD: flat = point && !sprite; break;
+						case Shader::USAGE_COLOR:    flat = flatShading;      break;
 						}
 
 						state.gradient[interpolant][component].attribute = input;
@@ -157,11 +161,11 @@ namespace sw
 					{
 					case 0xFF:
 						break;
-					case ShaderOperation::USAGE_TEXCOORD:
+					case Shader::USAGE_TEXCOORD:
 						state.gradient[interpolant][component].attribute = T0 + index;
 						state.gradient[interpolant][component].flat = point && !sprite;
 						break;
-					case ShaderOperation::USAGE_COLOR:
+					case Shader::USAGE_COLOR:
 						state.gradient[interpolant][component].attribute = D0 + index;
 						state.gradient[interpolant][component].flat = flatShading;
 						break;

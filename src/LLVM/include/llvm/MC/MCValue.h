@@ -14,7 +14,7 @@
 #ifndef LLVM_MC_MCVALUE_H
 #define LLVM_MC_MCVALUE_H
 
-#include "llvm/System/DataTypes.h"
+#include "llvm/Support/DataTypes.h"
 #include "llvm/MC/MCSymbol.h"
 #include <cassert>
 
@@ -45,16 +45,6 @@ public:
 
   /// isAbsolute - Is this an absolute (as opposed to relocatable) value.
   bool isAbsolute() const { return !SymA && !SymB; }
-
-  /// getAssociatedSection - For relocatable values, return the section the
-  /// value is associated with.
-  ///
-  /// @result - The value's associated section, or null for external or constant
-  /// values.
-  //
-  // FIXME: Switch to a tagged section, so this can return the tagged section
-  // value.
-  const MCSection *getAssociatedSection() const;
 
   /// print - Print the value to the stream \arg OS.
   void print(raw_ostream &OS, const MCAsmInfo *MAI) const;

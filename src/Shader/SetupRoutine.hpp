@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -31,7 +31,7 @@ namespace sw
 
 	private:
 		void setupGradient(Pointer<Byte> &primitive, Pointer<Byte> &triangle, Float4 &w012, Float4 (&m)[3], Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2, int attribute, int planeEquation, bool flatShading, bool sprite, bool perspective, bool wrap, int component);
-		void edge(Pointer<Byte> &primitive, Int &X1, Int &Y1, Int &X2, Int &Y2, Int &q);
+		void edge(Pointer<Byte> &primitive, Pointer<Byte> &data, Int &X1, Int &Y1, Int &X2, Int &Y2, Int &q);
 		void conditionalRotate1(Bool condition, Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2);
 		void conditionalRotate2(Bool condition, Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2);
 

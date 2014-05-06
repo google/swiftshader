@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -57,13 +57,13 @@ namespace sw
 			float w;
 			float h;
 
-			int top;
-			int bottom;
-			int left;
-			int right;
+			int y0d;
+			int y1d;
+			int x0d;
+			int x1d;
 
-			int width;
-			int height;
+			int sWidth;
+			int sHeight;
 		};
 
 		LRUCache<BlitState, Routine> *blitCache;

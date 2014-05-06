@@ -73,15 +73,14 @@ namespace llvm {
   public:
     explicit MSP430TargetLowering(MSP430TargetMachine &TM);
 
+    virtual MVT getShiftAmountTy(EVT LHSTy) const { return MVT::i8; }
+
     /// LowerOperation - Provide custom lowering hooks for some operations.
     virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const;
 
     /// getTargetNodeName - This method returns the name of a target specific
     /// DAG node.
     virtual const char *getTargetNodeName(unsigned Opcode) const;
-
-    /// getFunctionAlignment - Return the Log2 alignment of this function.
-    virtual unsigned getFunctionAlignment(const Function *F) const;
 
     SDValue LowerShifts(SDValue Op, SelectionDAG &DAG) const;
     SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
@@ -103,7 +102,7 @@ namespace llvm {
     /// isTruncateFree - Return true if it's free to truncate a value of type
     /// Ty1 to type Ty2. e.g. On msp430 it's free to truncate a i16 value in
     /// register R15W to i8 by referencing its sub-register R15B.
-    virtual bool isTruncateFree(const Type *Ty1, const Type *Ty2) const;
+    virtual bool isTruncateFree(Type *Ty1, Type *Ty2) const;
     virtual bool isTruncateFree(EVT VT1, EVT VT2) const;
 
     /// isZExtFree - Return true if any actual instruction that defines a value
@@ -114,7 +113,7 @@ namespace llvm {
     /// necessarily apply to truncate instructions. e.g. on msp430, all
     /// instructions that define 8-bit values implicit zero-extend the result
     /// out to 16 bits.
-    virtual bool isZExtFree(const Type *Ty1, const Type *Ty2) const;
+    virtual bool isZExtFree(Type *Ty1, Type *Ty2) const;
     virtual bool isZExtFree(EVT VT1, EVT VT2) const;
 
     MachineBasicBlock* EmitInstrWithCustomInserter(MachineInstr *MI,

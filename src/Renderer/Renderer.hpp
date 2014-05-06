@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -15,7 +15,6 @@
 #include "VertexProcessor.hpp"
 #include "PixelProcessor.hpp"
 #include "SetupProcessor.hpp"
-#include "Viewport.hpp"
 #include "Plane.hpp"
 #include "Blitter.hpp"
 #include "Common/MutexLock.hpp"
@@ -27,7 +26,6 @@
 namespace sw
 {
 	class Clipper;
-	class Viewport;
 	class PixelShader;
 	class VertexShader;
 	class SwiftConfig;
@@ -39,6 +37,21 @@ namespace sw
 	extern int threadCount;
 	extern int unitCount;
 	extern int clusterCount;
+
+	enum TranscendentalPrecision
+	{
+		APPROXIMATE,
+		PARTIAL,	// 2^-10
+		ACCURATE,
+		WHQL,		// 2^-21
+		IEEE		// 2^-23
+	};
+
+	extern TranscendentalPrecision logPrecision;
+	extern TranscendentalPrecision expPrecision;
+	extern TranscendentalPrecision rcpPrecision;
+	extern TranscendentalPrecision rsqPrecision;
+	extern bool perspectiveCorrection;
 
 	struct Query
 	{
@@ -111,17 +124,14 @@ namespace sw
 
 		TextureStage::Uniforms textureStage[8];
 
-		float4 WWWWx16;
-		float4 HHHHx16;
-		float4 LLLLx16;
-		float4 TTTTx16;
-		float4 ZZZZ;
+		float4 Wx16;
+		float4 Hx16;
+		float4 X0x16;
+		float4 Y0x16;
 		float4 XXXX;
 		float4 YYYY;
-		float4 offX;
-		float4 offY;
-		float4 posScale;
-		float4 posOffset;
+		float4 halfPixelX;
+		float4 halfPixelY;
 		float viewportHeight;
 		float slopeDepthBias;
 		float depthRange;
@@ -137,6 +147,11 @@ namespace sw
 		unsigned char *stencilBuffer;
 		int stencilPitchB;
 		int stencilSliceB;
+
+		int scissorX0;
+		int scissorX1;
+		int scissorY0;
+		int scissorY1;
 
 		float4 a2c0;
 		float4 a2c1;
@@ -187,6 +202,16 @@ namespace sw
 		volatile int references;   // Remaining references to this draw call, 0 when done drawing, -1 when resources unlocked and slot is free
 
 		DrawData *data;
+	};
+
+	struct Viewport
+	{
+		float x0;
+		float y0;
+		float width;
+		float height;
+		float minZ;
+		float maxZ;
 	};
 
 	class Renderer : public VertexProcessor, public PixelProcessor, public SetupProcessor
@@ -240,7 +265,7 @@ namespace sw
 		};
 
 	public:
-		Renderer(Context *context, Surface *renderTarget = 0);
+		Renderer(Context *context, bool halfIntegerCoordinates, bool symmetricNormalizedDepth, bool booleanFaceRegister, bool fullPixelPositionRegister, bool exactColorRounding);
 
 		virtual ~Renderer();
 
@@ -286,6 +311,7 @@ namespace sw
 
 		// Viewport & Clipper
 		virtual void setViewport(const Viewport &viewport);
+		virtual void setScissor(const Rect &scissor);
 		virtual void setClipFlags(int flags);
 		virtual void setClipPlane(unsigned int index, const float plane[4]);
 
@@ -295,13 +321,10 @@ namespace sw
 		virtual void setBaseMatrix(const Matrix &B);
 		virtual void setProjectionMatrix(const Matrix &P);
 
-		virtual void setPostTransformEnable(bool enable);
-
-		virtual void setPosScale(float x, float y);
-		virtual void setPosOffset(float x, float y);
-
 		virtual void addQuery(Query *query);
 		virtual void removeQuery(Query *query);
+
+		void synchronize();
 
 		#if PERF_HUD
 			// Performance timers
@@ -335,7 +358,6 @@ namespace sw
 		bool isReadWriteTexture(int sampler);
 		void updateClipper();
 		void updateConfiguration(bool initialUpdate = false);
-		void startupConfiguration();
 		static unsigned int computeClipFlags(const float4 &v, const DrawData &data);
 		void initializeThreads(int threadCount);
 		void terminateThreads();
@@ -347,8 +369,7 @@ namespace sw
 		Context *context;
 		Clipper *clipper;
 		Viewport viewport;
-		float4 posScale;
-		float4 posOffset;
+		Rect scissor;
 		int clipFlags;
 
 		Triangle *triangleBatch[16];
@@ -394,6 +415,7 @@ namespace sw
 		SwiftConfig *swiftConfig;
 
 		std::list<Query*> queries;
+		Resource *sync;
 
 		VertexProcessor::State vertexState;
 		SetupProcessor::State setupState;

@@ -18,14 +18,14 @@
 #include "SPUInstrInfo.h"
 #include "SPUISelLowering.h"
 #include "SPUSelectionDAGInfo.h"
-#include "SPUFrameInfo.h"
+#include "SPUFrameLowering.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetData.h"
 
 namespace llvm {
 class PassManager;
 class GlobalValue;
-class TargetFrameInfo;
+class TargetFrameLowering;
 
 /// SPUTargetMachine
 ///
@@ -33,13 +33,14 @@ class SPUTargetMachine : public LLVMTargetMachine {
   SPUSubtarget        Subtarget;
   const TargetData    DataLayout;
   SPUInstrInfo        InstrInfo;
-  SPUFrameInfo        FrameInfo;
+  SPUFrameLowering    FrameLowering;
   SPUTargetLowering   TLInfo;
   SPUSelectionDAGInfo TSInfo;
   InstrItineraryData  InstrItins;
 public:
-  SPUTargetMachine(const Target &T, const std::string &TT,
-                   const std::string &FS);
+  SPUTargetMachine(const Target &T, StringRef TT,
+                   StringRef CPU, StringRef FS,
+                   Reloc::Model RM, CodeModel::Model CM);
 
   /// Return the subtarget implementation object
   virtual const SPUSubtarget     *getSubtargetImpl() const {
@@ -48,8 +49,8 @@ public:
   virtual const SPUInstrInfo     *getInstrInfo() const {
     return &InstrInfo;
   }
-  virtual const SPUFrameInfo     *getFrameInfo() const {
-    return &FrameInfo;
+  virtual const SPUFrameLowering *getFrameLowering() const {
+    return &FrameLowering;
   }
   /*!
     \note Cell SPU does not support JIT today. It could support JIT at some
@@ -75,13 +76,14 @@ public:
     return &DataLayout;
   }
 
-  virtual const InstrItineraryData getInstrItineraryData() const {
-    return InstrItins;
+  virtual const InstrItineraryData *getInstrItineraryData() const {
+    return &InstrItins;
   }
   
   // Pass Pipeline Configuration
   virtual bool addInstSelector(PassManagerBase &PM,
                                CodeGenOpt::Level OptLevel);
+  virtual bool addPreEmitPass(PassManagerBase &, CodeGenOpt::Level);	
 };
 
 } // end namespace llvm

@@ -36,7 +36,9 @@ namespace llvm {
   class PEI : public MachineFunctionPass {
   public:
     static char ID;
-    PEI() : MachineFunctionPass(ID) {}
+    PEI() : MachineFunctionPass(ID) {
+      initializePEIPass(*PassRegistry::getPassRegistry());
+    }
 
     const char *getPassName() const {
       return "Prolog/Epilog Insertion & Frame Finalization";
@@ -98,13 +100,6 @@ namespace llvm {
     // frame index materialization registers. Set according to
     // TRI->requiresFrameIndexScavenging() for the curren function.
     bool FrameIndexVirtualScavenging;
-
-    // When using the scavenger post-pass to resolve frame reference
-    // materialization registers, maintain a map of the registers to
-    // the constant value and SP adjustment associated with it.
-    typedef std::pair<TargetRegisterInfo::FrameIndexValue, int>
-      FrameConstantEntry;
-    DenseMap<unsigned, FrameConstantEntry> FrameConstantRegMap;
 
 #ifndef NDEBUG
     // Machine function handle.

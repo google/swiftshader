@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -59,6 +59,7 @@ namespace sw
 		                             // Round to nearest LOD [0.7, 1.4]:  0.0
 		                             // Round to lowest LOD  [1.0, 2.0]:  0.5
 
+		precacheDLL = 0;
 		routineCache = 0;
 		setRoutineCacheSize(1024);
 	}
@@ -813,15 +814,15 @@ namespace sw
 
 		if(context->pixelShader)
 		{
-			state.shaderHash = context->pixelShader->getHash();
+			state.shaderID = context->pixelShader->getSerialID();
 		}
 		else
 		{
-			state.shaderHash = 0;
+			state.shaderID = 0;
 		}
 
 		state.depthOverride = context->pixelShader && context->pixelShader->depthOverride();
-		state.shaderContainsTexkill = context->pixelShader ? context->pixelShader->containsTexkill() : false;
+		state.shaderContainsKill = context->pixelShader ? context->pixelShader->containsKill() : false;
 		
 		if(context->alphaTestActive())
 		{
@@ -1004,8 +1005,8 @@ namespace sw
 
 						switch(context->pixelShader->semantic[interpolant][component].usage)
 						{
-						case ShaderOperation::USAGE_TEXCOORD:	flat = point && !sprite;	break;
-						case ShaderOperation::USAGE_COLOR:		flat = flatShading;			break;
+						case Shader::USAGE_TEXCOORD:	flat = point && !sprite;	break;
+						case Shader::USAGE_COLOR:		flat = flatShading;			break;
 						}
 
 						state.interpolant[interpolant].component |= 1 << component;

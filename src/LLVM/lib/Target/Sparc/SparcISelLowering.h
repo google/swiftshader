@@ -36,7 +36,8 @@ namespace llvm {
 
       CALL,        // A call instruction.
       RET_FLAG,    // Return with a flag operand.
-      GLOBAL_BASE_REG // Global base reg for PIC
+      GLOBAL_BASE_REG, // Global base reg for PIC
+      FLUSHW       // FLUSH register windows to stack
     };
   }
 
@@ -64,14 +65,8 @@ namespace llvm {
     ConstraintType getConstraintType(const std::string &Constraint) const;
     std::pair<unsigned, const TargetRegisterClass*>
     getRegForInlineAsmConstraint(const std::string &Constraint, EVT VT) const;
-    std::vector<unsigned>
-    getRegClassForInlineAsmConstraint(const std::string &Constraint,
-                                      EVT VT) const;
 
     virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
-
-    /// getFunctionAlignment - Return the Log2 alignment of this function.
-    virtual unsigned getFunctionAlignment(const Function *F) const;
 
     virtual SDValue
       LowerFormalArguments(SDValue Chain,
@@ -100,6 +95,8 @@ namespace llvm {
 
     SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
     SDValue LowerConstantPool(SDValue Op, SelectionDAG &DAG) const;
+
+    unsigned getSRetArgSize(SelectionDAG &DAG, SDValue Callee) const;
   };
 } // end namespace llvm
 

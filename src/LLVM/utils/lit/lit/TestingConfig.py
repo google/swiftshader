@@ -1,4 +1,5 @@
 import os
+import sys
 
 class TestingConfig:
     """"
@@ -10,13 +11,21 @@ class TestingConfig:
         if config is None:
             # Set the environment based on the command line arguments.
             environment = {
+                'LIBRARY_PATH' : os.environ.get('LIBRARY_PATH',''),
                 'LD_LIBRARY_PATH' : os.environ.get('LD_LIBRARY_PATH',''),
                 'PATH' : os.pathsep.join(litConfig.path +
                                          [os.environ.get('PATH','')]),
-                'PATHEXT' : os.environ.get('PATHEXT',''),
                 'SYSTEMROOT' : os.environ.get('SYSTEMROOT',''),
-                'LLVM_DISABLE_CRT_DEBUG' : '1',
                 }
+
+            if sys.platform == 'win32':
+                environment.update({
+                        'LLVM_DISABLE_CRT_DEBUG' : '1',
+                        'PATHEXT' : os.environ.get('PATHEXT',''),
+                        'PYTHONUNBUFFERED' : '1',
+                        'TEMP' : os.environ.get('TEMP',''),
+                        'TMP' : os.environ.get('TMP',''),
+                        })
 
             config = TestingConfig(parent,
                                    name = '<unnamed>',

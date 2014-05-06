@@ -27,9 +27,47 @@
 #include "llvm/Metadata.h"
 using namespace llvm;
 
+//===----------------------------------------------------------------------===//
+/// DbgInfoIntrinsic - This is the common base class for debug info intrinsics
+///
+
 static Value *CastOperand(Value *C) {
   if (ConstantExpr *CE = dyn_cast<ConstantExpr>(C))
     if (CE->isCast())
       return CE->getOperand(0);
   return NULL;
+}
+
+Value *DbgInfoIntrinsic::StripCast(Value *C) {
+  if (Value *CO = CastOperand(C)) {
+    C = StripCast(CO);
+  } else if (GlobalVariable *GV = dyn_cast<GlobalVariable>(C)) {
+    if (GV->hasInitializer())
+      if (Value *CO = CastOperand(GV->getInitializer()))
+        C = StripCast(CO);
+  }
+  return dyn_cast<GlobalVariable>(C);
+}
+
+//===----------------------------------------------------------------------===//
+/// DbgDeclareInst - This represents the llvm.dbg.declare instruction.
+///
+
+Value *DbgDeclareInst::getAddress() const {
+  if (MDNode* MD = cast_or_null<MDNode>(getArgOperand(0)))
+    return MD->getOperand(0);
+  else
+    return NULL;
+}
+
+//===----------------------------------------------------------------------===//
+/// DbgValueInst - This represents the llvm.dbg.value instruction.
+///
+
+const Value *DbgValueInst::getValue() const {
+  return cast<MDNode>(getArgOperand(0))->getOperand(0);
+}
+
+Value *DbgValueInst::getValue() {
+  return cast<MDNode>(getArgOperand(0))->getOperand(0);
 }

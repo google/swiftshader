@@ -14,6 +14,7 @@
 //===----------------------------------------------------------------------===//
 #define DEBUG_TYPE "insert-optimal-edge-profiling"
 #include "ProfilingUtils.h"
+#include "llvm/Constants.h"
 #include "llvm/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Analysis/Passes.h"
@@ -26,7 +27,6 @@
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/Statistic.h"
 #include "MaximumSpanningTree.h"
-#include <set>
 using namespace llvm;
 
 STATISTIC(NumEdgesInserted, "The # of edges inserted.");
@@ -36,7 +36,9 @@ namespace {
     bool runOnModule(Module &M);
   public:
     static char ID; // Pass identification, replacement for typeid
-    OptimalEdgeProfiler() : ModulePass(ID) {}
+    OptimalEdgeProfiler() : ModulePass(ID) {
+      initializeOptimalEdgeProfilerPass(*PassRegistry::getPassRegistry());
+    }
 
     void getAnalysisUsage(AnalysisUsage &AU) const {
       AU.addRequiredID(ProfileEstimatorPassID);
@@ -50,9 +52,14 @@ namespace {
 }
 
 char OptimalEdgeProfiler::ID = 0;
-INITIALIZE_PASS(OptimalEdgeProfiler, "insert-optimal-edge-profiling", 
+INITIALIZE_PASS_BEGIN(OptimalEdgeProfiler, "insert-optimal-edge-profiling",
                 "Insert optimal instrumentation for edge profiling",
-                false, false);
+                false, false)
+INITIALIZE_PASS_DEPENDENCY(ProfileEstimatorPass)
+INITIALIZE_AG_DEPENDENCY(ProfileInfo)
+INITIALIZE_PASS_END(OptimalEdgeProfiler, "insert-optimal-edge-profiling",
+                "Insert optimal instrumentation for edge profiling",
+                false, false)
 
 ModulePass *llvm::createOptimalEdgeProfilerPass() {
   return new OptimalEdgeProfiler();
@@ -105,44 +112,44 @@ bool OptimalEdgeProfiler::runOnModule(Module &M) {
   // be calculated from other edge counters on reading the profile info back
   // in.
 
-  const Type *Int32 = Type::getInt32Ty(M.getContext());
-  const ArrayType *ATy = ArrayType::get(Int32, NumEdges);
+  Type *Int32 = Type::getInt32Ty(M.getContext());
+  ArrayType *ATy = ArrayType::get(Int32, NumEdges);
   GlobalVariable *Counters =
     new GlobalVariable(M, ATy, false, GlobalValue::InternalLinkage,
                        Constant::getNullValue(ATy), "OptEdgeProfCounters");
   NumEdgesInserted = 0;
 
   std::vector<Constant*> Initializer(NumEdges);
-  Constant* Zero = ConstantInt::get(Int32, 0);
-  Constant* Uncounted = ConstantInt::get(Int32, ProfileInfoLoader::Uncounted);
+  Constant *Zero = ConstantInt::get(Int32, 0);
+  Constant *Uncounted = ConstantInt::get(Int32, ProfileInfoLoader::Uncounted);
 
   // Instrument all of the edges not in MST...
   unsigned i = 0;
   for (Module::iterator F = M.begin(), E = M.end(); F != E; ++F) {
     if (F->isDeclaration()) continue;
-    DEBUG(dbgs()<<"Working on "<<F->getNameStr()<<"\n");
+    DEBUG(dbgs() << "Working on " << F->getNameStr() << "\n");
 
     // Calculate a Maximum Spanning Tree with the edge weights determined by
     // ProfileEstimator. ProfileEstimator also assign weights to the virtual
     // edges (0,entry) and (BB,0) (for blocks with no successors) and this
-    // edges also participate in the maximum spanning tree calculation. 
+    // edges also participate in the maximum spanning tree calculation.
     // The third parameter of MaximumSpanningTree() has the effect that not the
     // actual MST is returned but the edges _not_ in the MST.
 
-    ProfileInfo::EdgeWeights ECs = 
+    ProfileInfo::EdgeWeights ECs =
       getAnalysis<ProfileInfo>(*F).getEdgeWeights(F);
     std::vector<ProfileInfo::EdgeWeight> EdgeVector(ECs.begin(), ECs.end());
-    MaximumSpanningTree<BasicBlock> MST (EdgeVector);
-    std::stable_sort(MST.begin(),MST.end());
+    MaximumSpanningTree<BasicBlock> MST(EdgeVector);
+    std::stable_sort(MST.begin(), MST.end());
 
     // Check if (0,entry) not in the MST. If not, instrument edge
     // (IncrementCounterInBlock()) and set the counter initially to zero, if
     // the edge is in the MST the counter is initialised to -1.
 
     BasicBlock *entry = &(F->getEntryBlock());
-    ProfileInfo::Edge edge = ProfileInfo::getEdge(0,entry);
+    ProfileInfo::Edge edge = ProfileInfo::getEdge(0, entry);
     if (!std::binary_search(MST.begin(), MST.end(), edge)) {
-      printEdgeCounter(edge,entry,i);
+      printEdgeCounter(edge, entry, i);
       IncrementCounterInBlock(entry, i, Counters); ++NumEdgesInserted;
       Initializer[i++] = (Zero);
     } else{
@@ -163,9 +170,9 @@ bool OptimalEdgeProfiler::runOnModule(Module &M) {
       // has no successors, the virtual edge (BB,0) is processed.
       TerminatorInst *TI = BB->getTerminator();
       if (TI->getNumSuccessors() == 0) {
-        ProfileInfo::Edge edge = ProfileInfo::getEdge(BB,0);
+        ProfileInfo::Edge edge = ProfileInfo::getEdge(BB, 0);
         if (!std::binary_search(MST.begin(), MST.end(), edge)) {
-          printEdgeCounter(edge,BB,i);
+          printEdgeCounter(edge, BB, i);
           IncrementCounterInBlock(BB, i, Counters); ++NumEdgesInserted;
           Initializer[i++] = (Zero);
         } else{
@@ -188,11 +195,11 @@ bool OptimalEdgeProfiler::runOnModule(Module &M) {
           // otherwise insert it in the successor block.
           if (TI->getNumSuccessors() == 1) {
             // Insert counter at the start of the block
-            printEdgeCounter(edge,BB,i);
+            printEdgeCounter(edge, BB, i);
             IncrementCounterInBlock(BB, i, Counters); ++NumEdgesInserted;
           } else {
             // Insert counter at the start of the block
-            printEdgeCounter(edge,Succ,i);
+            printEdgeCounter(edge, Succ, i);
             IncrementCounterInBlock(Succ, i, Counters); ++NumEdgesInserted;
           }
           Initializer[i++] = (Zero);
@@ -205,9 +212,9 @@ bool OptimalEdgeProfiler::runOnModule(Module &M) {
 
   // Check if the number of edges counted at first was the number of edges we
   // considered for instrumentation.
-  assert(i==NumEdges && "the number of edges in counting array is wrong");
+  assert(i == NumEdges && "the number of edges in counting array is wrong");
 
-  // Assing the now completely defined initialiser to the array.
+  // Assign the now completely defined initialiser to the array.
   Constant *init = ConstantArray::get(ATy, Initializer);
   Counters->setInitializer(init);
 

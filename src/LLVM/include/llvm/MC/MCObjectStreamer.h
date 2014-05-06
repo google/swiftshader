@@ -19,7 +19,7 @@ class MCSectionData;
 class MCExpr;
 class MCFragment;
 class MCDataFragment;
-class TargetAsmBackend;
+class MCAsmBackend;
 class raw_ostream;
 
 /// \brief Streaming object file generation interface.
@@ -33,9 +33,14 @@ class MCObjectStreamer : public MCStreamer {
   MCAssembler *Assembler;
   MCSectionData *CurSectionData;
 
+  virtual void EmitInstToData(const MCInst &Inst) = 0;
+
 protected:
-  MCObjectStreamer(MCContext &Context, TargetAsmBackend &TAB,
+  MCObjectStreamer(MCContext &Context, MCAsmBackend &TAB,
                    raw_ostream &_OS, MCCodeEmitter *_Emitter);
+  MCObjectStreamer(MCContext &Context, MCAsmBackend &TAB,
+                   raw_ostream &_OS, MCCodeEmitter *_Emitter,
+                   MCAssembler *_Assembler);
   ~MCObjectStreamer();
 
   MCSectionData *getCurrentSectionData() const {
@@ -56,7 +61,22 @@ public:
   /// @name MCStreamer Interface
   /// @{
 
-  virtual void SwitchSection(const MCSection *Section);
+  virtual void EmitLabel(MCSymbol *Symbol);
+  virtual void EmitValueImpl(const MCExpr *Value, unsigned Size,
+                             unsigned AddrSpace);
+  virtual void EmitULEB128Value(const MCExpr *Value);
+  virtual void EmitSLEB128Value(const MCExpr *Value);
+  virtual void EmitWeakReference(MCSymbol *Alias, const MCSymbol *Symbol);
+  virtual void ChangeSection(const MCSection *Section);
+  virtual void EmitInstruction(const MCInst &Inst);
+  virtual void EmitInstToFragment(const MCInst &Inst);
+  virtual void EmitValueToOffset(const MCExpr *Offset, unsigned char Value);
+  virtual void EmitDwarfAdvanceLineAddr(int64_t LineDelta,
+                                        const MCSymbol *LastLabel,
+                                        const MCSymbol *Label,
+                                        unsigned PointerSize);
+  virtual void EmitDwarfAdvanceFrameAddr(const MCSymbol *LastLabel,
+                                         const MCSymbol *Label);
   virtual void Finish();
 
   /// @}

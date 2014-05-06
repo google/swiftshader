@@ -21,6 +21,7 @@
 #include "llvm/Support/GetElementPtrTypeIterator.h"
 #include "llvm/Support/PatternMatch.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/CallSite.h"
 
 using namespace llvm;
 using namespace llvm::PatternMatch;
@@ -221,7 +222,7 @@ bool AddressingModeMatcher::MatchOperationAddr(User *AddrInst, unsigned Opcode,
     const TargetData *TD = TLI.getTargetData();
     gep_type_iterator GTI = gep_type_begin(AddrInst);
     for (unsigned i = 1, e = AddrInst->getNumOperands(); i != e; ++i, ++GTI) {
-      if (const StructType *STy = dyn_cast<StructType>(*GTI)) {
+      if (StructType *STy = dyn_cast<StructType>(*GTI)) {
         const StructLayout *SL = TD->getStructLayout(STy);
         unsigned Idx =
           cast<ConstantInt>(AddrInst->getOperand(i))->getZExtValue();
@@ -379,27 +380,10 @@ bool AddressingModeMatcher::MatchAddr(Value *Addr, unsigned Depth) {
 /// return false.
 static bool IsOperandAMemoryOperand(CallInst *CI, InlineAsm *IA, Value *OpVal,
                                     const TargetLowering &TLI) {
-  std::vector<InlineAsm::ConstraintInfo>
-  Constraints = IA->ParseConstraints();
-
-  unsigned ArgNo = 0;   // The argument of the CallInst.
-  for (unsigned i = 0, e = Constraints.size(); i != e; ++i) {
-    TargetLowering::AsmOperandInfo OpInfo(Constraints[i]);
-
-    // Compute the value type for each operand.
-    switch (OpInfo.Type) {
-      case InlineAsm::isOutput:
-        if (OpInfo.isIndirect)
-          OpInfo.CallOperandVal = CI->getArgOperand(ArgNo++);
-        break;
-      case InlineAsm::isInput:
-        OpInfo.CallOperandVal = CI->getArgOperand(ArgNo++);
-        break;
-      case InlineAsm::isClobber:
-        // Nothing to do.
-        break;
-    }
-
+  TargetLowering::AsmOperandInfoVector TargetConstraints = TLI.ParseConstraints(ImmutableCallSite(CI));
+  for (unsigned i = 0, e = TargetConstraints.size(); i != e; ++i) {
+    TargetLowering::AsmOperandInfo &OpInfo = TargetConstraints[i];
+    
     // Compute the constraint code and ConstraintType to use.
     TLI.ComputeConstraintToUse(OpInfo, SDValue());
 
@@ -573,7 +557,7 @@ IsProfitableToFoldIntoAddressingMode(Instruction *I, ExtAddrMode &AMBefore,
     Value *Address = User->getOperand(OpNo);
     if (!Address->getType()->isPointerTy())
       return false;
-    const Type *AddressAccessTy =
+    Type *AddressAccessTy =
       cast<PointerType>(Address->getType())->getElementType();
     
     // Do a match against the root of this address, ignoring profitability. This
@@ -584,7 +568,7 @@ IsProfitableToFoldIntoAddressingMode(Instruction *I, ExtAddrMode &AMBefore,
                                   MemoryInst, Result);
     Matcher.IgnoreProfitability = true;
     bool Success = Matcher.MatchAddr(Address, 0);
-    Success = Success; assert(Success && "Couldn't select *anything*?");
+    (void)Success; assert(Success && "Couldn't select *anything*?");
 
     // If the match didn't cover I, then it won't be shared by it.
     if (std::find(MatchedAddrModeInsts.begin(), MatchedAddrModeInsts.end(),

@@ -62,8 +62,7 @@ typedef enum {
   SH_ACTIVE_UNIFORMS             =  0x8B86,
   SH_ACTIVE_UNIFORM_MAX_LENGTH   =  0x8B87,
   SH_ACTIVE_ATTRIBUTES           =  0x8B89,
-  SH_ACTIVE_ATTRIBUTE_MAX_LENGTH =  0x8B8A,
-  SH_MAPPED_NAME_MAX_LENGTH      =  0x8B8B
+  SH_ACTIVE_ATTRIBUTE_MAX_LENGTH =  0x8B8A
 } ShShaderInfo;
 
 // Compile options.
@@ -74,8 +73,7 @@ typedef enum {
   SH_OBJECT_CODE             = 0x0004,
   SH_ATTRIBUTES_UNIFORMS     = 0x0008,
   SH_LINE_DIRECTIVES         = 0x0010,
-  SH_SOURCE_PATH             = 0x0020,
-  SH_MAP_LONG_VARIABLE_NAMES = 0x0040
+  SH_SOURCE_PATH             = 0x0020
 } ShCompileOptions;
 
 //

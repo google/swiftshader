@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -17,7 +17,7 @@
 #include "Surface.hpp"
 #include "Register.hpp"
 #include "Debug.hpp"
-#include "Reactor/Shell.hpp"
+#include "Reactor/Reactor.hpp"
 #include "Common/Configurator.hpp"
 
 #include <stdio.h>
@@ -26,7 +26,11 @@ extern const int logoWidth;
 extern const int logoHeight;
 extern const unsigned int logoData[];
 
-#define DISPLAY_LOGO NDEBUG & 1
+#ifndef DISPLAY_LOGO
+#define DISPLAY_LOGO (NDEBUG & 1)
+#endif
+
+#define ASYNCHRONOUS_BLIT 0   // FIXME: Currently leads to rare race conditions
 
 namespace sw
 {
@@ -43,9 +47,12 @@ namespace sw
 	int FrameBuffer::cursorPositionY;
 	int FrameBuffer::cursorX;
 	int FrameBuffer::cursorY;
+	bool FrameBuffer::topLeftOrigin = false;
 
-	FrameBuffer::FrameBuffer(HWND windowHandle, int width, int height, bool fullscreen)
+	FrameBuffer::FrameBuffer(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin)
 	{
+		this->topLeftOrigin = topLeftOrigin;
+
 		locked = 0;
 
 		this->windowHandle = windowHandle;
@@ -87,25 +94,33 @@ namespace sw
 
 		logo = 0;
 
-		syncEvent = CreateEvent(0, FALSE, FALSE, 0);
-		blitEvent = CreateEvent(0, FALSE, FALSE, 0);
-		FrameBuffer *parameters = this;
+		if(ASYNCHRONOUS_BLIT)
+		{
+			syncEvent = CreateEvent(0, FALSE, FALSE, 0);
+			blitEvent = CreateEvent(0, FALSE, FALSE, 0);
+			FrameBuffer *parameters = this;
 
-		terminate = false;
-		blitThread = CreateThread(0, 1024 * 1024, threadFunction, &parameters, 0, 0);
-		WaitForSingleObject(syncEvent, INFINITE);
+			terminate = false;
+			blitThread = CreateThread(0, 1024 * 1024, threadFunction, &parameters, 0, 0);
+			WaitForSingleObject(syncEvent, INFINITE);
+		}
 	}
 
 	FrameBuffer::~FrameBuffer()
 	{
-		terminate = true;
-		SetEvent(blitEvent);
-		WaitForSingleObject(blitThread, INFINITE);
-		CloseHandle(blitThread);
-		CloseHandle(blitEvent);
-		CloseHandle(syncEvent);
+		if(ASYNCHRONOUS_BLIT)
+		{
+			terminate = true;
+			SetEvent(blitEvent);
+			WaitForSingleObject(blitThread, INFINITE);
+			CloseHandle(blitThread);
+			CloseHandle(blitEvent);
+			CloseHandle(syncEvent);
+		}
 
 		delete blitRoutine;
+
+		DestroyCursor(nullCursor);
 
 		if(!windowed && GetWindowLong(windowHandle, GWL_STYLE) == WS_POPUP)
 		{
@@ -127,17 +142,6 @@ namespace sw
 		{
 			SetRect(&bounds, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
 		}
-	}
-
-	void FrameBuffer::gracefulExit(const char *errorMessage, long result)
-	{
-		char error[256];
-
-		sprintf_s(error, 256, "%s\n(FrameBuffer error code 0x%0.8X)", errorMessage, result);
-
-		MessageBox(0, error, 0, MB_ICONERROR);
-
-		exit(0);
 	}
 
 	int FrameBuffer::getWidth() const
@@ -198,7 +202,19 @@ namespace sw
 			return;
 		}
 
-		target = source;
+		if(topLeftOrigin)
+		{
+			target = source;
+		}
+		else
+		{
+			const int width2 = (width + 1) & ~1;
+			const int sBytes = HDR ? 8 : 4;
+			const int sStride = sBytes * width2;
+
+			target = (byte*)source + (height - 1) * sStride;
+		}
+
 		HDRdisplay = HDR;
 
 		if(cursor)
@@ -221,8 +237,15 @@ namespace sw
 			}
 		}
 
-		SetEvent(blitEvent);
-		WaitForSingleObject(syncEvent, INFINITE);
+		if(ASYNCHRONOUS_BLIT)
+		{
+			SetEvent(blitEvent);
+			WaitForSingleObject(syncEvent, INFINITE);
+		}
+		else
+		{
+			copyLocked();
+		}
 	
 		unlock();
 	}
@@ -265,7 +288,7 @@ namespace sw
 		const int dBytes = state.depth / 8;
 		const int dStride = state.stride;
 		const int sBytes = state.HDR ? 8 : 4;
-		const int sStride = sBytes * width2;
+		const int sStride = topLeftOrigin ? (sBytes * width2) : -(sBytes * width2);
 
 	//	char compareApp[32] = SCRAMBLE31(validationApp, APPNAME_SCRAMBLE);
 	//	bool validApp = strcmp(compareApp, registeredApp) == 0;
@@ -468,7 +491,7 @@ namespace sw
 		c1 = As<Short4>(As<UShort4>(c1) >> 9);
 		c2 = As<Short4>(As<UShort4>(c2) >> 9);
 
-		Short4 alpha = Swizzle(c1, 0xFF) & Short4(0xFFFF, 0xFFFF, 0xFFFF, 0x0000);
+		Short4 alpha = Swizzle(c1, 0xFF) & Short4(0xFFFFu, 0xFFFFu, 0xFFFFu, 0x0000);
 
 		c1 = (c1 - c2) * alpha;
 		c1 = c1 >> 7;
@@ -550,18 +573,18 @@ namespace sw
 
 extern "C"
 {
-	sw::FrameBuffer *createFrameBuffer(HWND windowHandle, int width, int height, bool fullscreen)
+	sw::FrameBuffer *createFrameBuffer(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin)
 	{
 		sw::Configurator ini("SwiftShader.ini");
 		int api = ini.getInteger("Testing", "FrameBufferAPI", 1);
 
 		if(api == 0)
 		{
-			return new sw::FrameBufferDD(windowHandle, width, height, fullscreen);
+			return new sw::FrameBufferDD(windowHandle, width, height, fullscreen, topLeftOrigin);
 		}
 		else if(api == 1)
 		{
-			return new sw::FrameBufferGDI(windowHandle, width, height, fullscreen);
+			return new sw::FrameBufferGDI(windowHandle, width, height, fullscreen, topLeftOrigin);
 		}
 		else ASSERT(false);
 

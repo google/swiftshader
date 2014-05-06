@@ -16,7 +16,9 @@
 #define BLACKFINREGISTERINFO_H
 
 #include "llvm/Target/TargetRegisterInfo.h"
-#include "BlackfinGenRegisterInfo.h.inc"
+
+#define GET_REGINFO_HEADER
+#include "BlackfinGenRegisterInfo.inc"
 
 namespace llvm {
 
@@ -41,34 +43,20 @@ namespace llvm {
       return &BF::PRegClass;
     }
 
-    bool hasFP(const MachineFunction &MF) const;
-
-    // bool hasReservedCallFrame(MachineFunction &MF) const;
-
     bool requiresRegisterScavenging(const MachineFunction &MF) const;
 
     void eliminateCallFramePseudoInstr(MachineFunction &MF,
                                        MachineBasicBlock &MBB,
                                        MachineBasicBlock::iterator I) const;
 
-    unsigned eliminateFrameIndex(MachineBasicBlock::iterator II,
-                                 int SPAdj, FrameIndexValue *Value = NULL,
-                                 RegScavenger *RS = NULL) const;
-
-    void processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
-                                              RegScavenger *RS) const;
-
-    void emitPrologue(MachineFunction &MF) const;
-    void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
+    void eliminateFrameIndex(MachineBasicBlock::iterator II,
+                             int SPAdj, RegScavenger *RS = NULL) const;
 
     unsigned getFrameRegister(const MachineFunction &MF) const;
-    unsigned getRARegister() const;
 
     // Exception handling queries.
     unsigned getEHExceptionRegister() const;
     unsigned getEHHandlerRegister() const;
-
-    int getDwarfRegNum(unsigned RegNum, bool isEH) const;
 
     // Utility functions
     void adjustRegister(MachineBasicBlock &MBB,

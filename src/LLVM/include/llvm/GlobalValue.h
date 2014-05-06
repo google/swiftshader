@@ -41,6 +41,8 @@ public:
     PrivateLinkage,     ///< Like Internal, but omit from symbol table.
     LinkerPrivateLinkage, ///< Like Private, but linker removes.
     LinkerPrivateWeakLinkage, ///< Like LinkerPrivate, but weak.
+    LinkerPrivateWeakDefAutoLinkage, ///< Like LinkerPrivateWeak, but possibly
+                                     ///  hidden.
     DLLImportLinkage,   ///< Function to be imported from DLL
     DLLExportLinkage,   ///< Function to be accessible from DLL.
     ExternalWeakLinkage,///< ExternalWeak linkage description.
@@ -55,10 +57,11 @@ public:
   };
 
 protected:
-  GlobalValue(const Type *ty, ValueTy vty, Use *Ops, unsigned NumOps,
+  GlobalValue(Type *ty, ValueTy vty, Use *Ops, unsigned NumOps,
               LinkageTypes linkage, const Twine &Name)
     : Constant(ty, vty, Ops, NumOps), Parent(0),
-      Linkage(linkage), Visibility(DefaultVisibility), Alignment(0) {
+      Linkage(linkage), Visibility(DefaultVisibility), Alignment(0),
+      UnnamedAddr(0) {
     setName(Name);
   }
 
@@ -68,6 +71,7 @@ protected:
   LinkageTypes Linkage : 5;   // The linkage of this global
   unsigned Visibility : 2;    // The visibility style of this global
   unsigned Alignment : 16;    // Alignment of this symbol, must be power of two
+  unsigned UnnamedAddr : 1;   // This value's address is not significant
   std::string Section;        // Section to emit this into, empty mean default
 public:
   ~GlobalValue() {
@@ -78,6 +82,9 @@ public:
     return (1u << Alignment) >> 1;
   }
   void setAlignment(unsigned Align);
+
+  bool hasUnnamedAddr() const { return UnnamedAddr; }
+  void setUnnamedAddr(bool Val) { UnnamedAddr = Val; }
 
   VisibilityTypes getVisibility() const { return VisibilityTypes(Visibility); }
   bool hasDefaultVisibility() const { return Visibility == DefaultVisibility; }
@@ -99,8 +106,8 @@ public:
   bool use_empty_except_constants();
 
   /// getType - Global values are always pointers.
-  inline const PointerType *getType() const {
-    return reinterpret_cast<const PointerType*>(User::getType());
+  inline PointerType *getType() const {
+    return reinterpret_cast<PointerType*>(User::getType());
   }
 
   static LinkageTypes getLinkOnceLinkage(bool ODR) {
@@ -137,9 +144,13 @@ public:
   static bool isLinkerPrivateWeakLinkage(LinkageTypes Linkage) {
     return Linkage == LinkerPrivateWeakLinkage;
   }
+  static bool isLinkerPrivateWeakDefAutoLinkage(LinkageTypes Linkage) {
+    return Linkage == LinkerPrivateWeakDefAutoLinkage;
+  }
   static bool isLocalLinkage(LinkageTypes Linkage) {
     return isInternalLinkage(Linkage) || isPrivateLinkage(Linkage) ||
-      isLinkerPrivateLinkage(Linkage) || isLinkerPrivateWeakLinkage(Linkage);
+      isLinkerPrivateLinkage(Linkage) || isLinkerPrivateWeakLinkage(Linkage) ||
+      isLinkerPrivateWeakDefAutoLinkage(Linkage);
   }
   static bool isDLLImportLinkage(LinkageTypes Linkage) {
     return Linkage == DLLImportLinkage;
@@ -158,24 +169,28 @@ public:
   /// by something non-equivalent at link time.  For example, if a function has
   /// weak linkage then the code defining it may be replaced by different code.
   static bool mayBeOverridden(LinkageTypes Linkage) {
-    return (Linkage == WeakAnyLinkage ||
-            Linkage == LinkOnceAnyLinkage ||
-            Linkage == CommonLinkage ||
-            Linkage == ExternalWeakLinkage ||
-            Linkage == LinkerPrivateWeakLinkage);
+    return Linkage == WeakAnyLinkage ||
+           Linkage == LinkOnceAnyLinkage ||
+           Linkage == CommonLinkage ||
+           Linkage == ExternalWeakLinkage ||
+           Linkage == LinkerPrivateWeakLinkage ||
+           Linkage == LinkerPrivateWeakDefAutoLinkage;
   }
 
   /// isWeakForLinker - Whether the definition of this global may be replaced at
-  /// link time.
+  /// link time.  NB: Using this method outside of the code generators is almost
+  /// always a mistake: when working at the IR level use mayBeOverridden instead
+  /// as it knows about ODR semantics.
   static bool isWeakForLinker(LinkageTypes Linkage)  {
-    return (Linkage == AvailableExternallyLinkage ||
-            Linkage == WeakAnyLinkage ||
-            Linkage == WeakODRLinkage ||
-            Linkage == LinkOnceAnyLinkage ||
-            Linkage == LinkOnceODRLinkage ||
-            Linkage == CommonLinkage ||
-            Linkage == ExternalWeakLinkage ||
-            Linkage == LinkerPrivateWeakLinkage);
+    return Linkage == AvailableExternallyLinkage ||
+           Linkage == WeakAnyLinkage ||
+           Linkage == WeakODRLinkage ||
+           Linkage == LinkOnceAnyLinkage ||
+           Linkage == LinkOnceODRLinkage ||
+           Linkage == CommonLinkage ||
+           Linkage == ExternalWeakLinkage ||
+           Linkage == LinkerPrivateWeakLinkage ||
+           Linkage == LinkerPrivateWeakDefAutoLinkage;
   }
 
   bool hasExternalLinkage() const { return isExternalLinkage(Linkage); }
@@ -194,6 +209,9 @@ public:
   bool hasLinkerPrivateLinkage() const { return isLinkerPrivateLinkage(Linkage); }
   bool hasLinkerPrivateWeakLinkage() const {
     return isLinkerPrivateWeakLinkage(Linkage);
+  }
+  bool hasLinkerPrivateWeakDefAutoLinkage() const {
+    return isLinkerPrivateWeakDefAutoLinkage(Linkage);
   }
   bool hasLocalLinkage() const { return isLocalLinkage(Linkage); }
   bool hasDLLImportLinkage() const { return isDLLImportLinkage(Linkage); }
@@ -240,16 +258,12 @@ public:
 
 /// @}
 
-  /// Override from Constant class. No GlobalValue's are null values so this
-  /// always returns false.
-  virtual bool isNullValue() const { return false; }
-
   /// Override from Constant class.
   virtual void destroyConstant();
 
   /// isDeclaration - Return true if the primary definition of this global 
-  /// value is outside of the current translation unit...
-  virtual bool isDeclaration() const = 0;
+  /// value is outside of the current translation unit.
+  bool isDeclaration() const;
 
   /// removeFromParent - This method unlinks 'this' from the containing module,
   /// but does not delete it.
@@ -263,12 +277,6 @@ public:
   /// of...
   inline Module *getParent() { return Parent; }
   inline const Module *getParent() const { return Parent; }
-
-  /// removeDeadConstantUsers - If there are any dead constant users dangling
-  /// off of this global value, remove them.  This method is useful for clients
-  /// that want to check to see if a global is unused, but don't want to deal
-  /// with potentially dead constants hanging off of the globals.
-  void removeDeadConstantUsers() const;
 
   // Methods for support type inquiry through isa, cast, and dyn_cast:
   static inline bool classof(const GlobalValue *) { return true; }

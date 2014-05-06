@@ -7,16 +7,21 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file implements the ARM specific subclass of TargetSubtarget.
+// This file implements the ARM specific subclass of TargetSubtargetInfo.
 //
 //===----------------------------------------------------------------------===//
 
 #include "ARMSubtarget.h"
-#include "ARMGenSubtarget.inc"
+#include "ARMBaseRegisterInfo.h"
 #include "llvm/GlobalValue.h"
-#include "llvm/Target/TargetOptions.h"
+#include "llvm/Target/TargetSubtargetInfo.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/ADT/SmallVector.h"
+
+#define GET_SUBTARGETINFO_TARGET_DESC
+#define GET_SUBTARGETINFO_CTOR
+#include "ARMGenSubtargetInfo.inc"
+
 using namespace llvm;
 
 static cl::opt<bool>
@@ -24,88 +29,79 @@ ReserveR9("arm-reserve-r9", cl::Hidden,
           cl::desc("Reserve R9, making it unavailable as GPR"));
 
 static cl::opt<bool>
-UseMOVT("arm-use-movt",
-        cl::init(true), cl::Hidden);
+DarwinUseMOVT("arm-darwin-use-movt", cl::init(true), cl::Hidden);
 
-ARMSubtarget::ARMSubtarget(const std::string &TT, const std::string &FS,
-                           bool isT)
-  : ARMArchVersion(V4)
-  , ARMFPUType(None)
+static cl::opt<bool>
+StrictAlign("arm-strict-align", cl::Hidden,
+            cl::desc("Disallow all unaligned memory accesses"));
+
+ARMSubtarget::ARMSubtarget(const std::string &TT, const std::string &CPU,
+                           const std::string &FS)
+  : ARMGenSubtargetInfo(TT, CPU, FS)
+  , ARMProcFamily(Others)
+  , HasV4TOps(false)
+  , HasV5TOps(false)
+  , HasV5TEOps(false)
+  , HasV6Ops(false)
+  , HasV6T2Ops(false)
+  , HasV7Ops(false)
+  , HasVFPv2(false)
+  , HasVFPv3(false)
+  , HasNEON(false)
   , UseNEONForSinglePrecisionFP(false)
-  , SlowVMLx(false)
+  , SlowFPVMLx(false)
+  , HasVMLxForwarding(false)
   , SlowFPBrcc(false)
-  , IsThumb(isT)
-  , ThumbMode(Thumb1)
+  , InThumbMode(false)
+  , InNaClMode(false)
+  , HasThumb2(false)
+  , IsMClass(false)
+  , NoARM(false)
   , PostRAScheduler(false)
   , IsR9Reserved(ReserveR9)
-  , UseMovt(UseMOVT)
+  , UseMovt(false)
+  , SupportsTailCall(false)
   , HasFP16(false)
+  , HasD16(false)
   , HasHardwareDivide(false)
   , HasT2ExtractPack(false)
+  , HasDataBarrier(false)
   , Pref32BitThumb(false)
+  , AvoidCPSRPartialUpdate(false)
+  , HasMPExtension(false)
+  , FPOnlySP(false)
+  , AllowsUnalignedMem(false)
+  , Thumb2DSP(false)
   , stackAlignment(4)
-  , CPUString("generic")
-  , TargetType(isELF) // Default to ELF unless otherwise specified.
+  , CPUString(CPU)
+  , TargetTriple(TT)
   , TargetABI(ARM_ABI_APCS) {
-  // default to soft float ABI
-  if (FloatABIType == FloatABI::Default)
-    FloatABIType = FloatABI::Soft;
-
   // Determine default and user specified characteristics
+  if (CPUString.empty())
+    CPUString = "generic";
 
-  // Parse features string.
-  CPUString = ParseSubtargetFeatures(FS, CPUString);
-
-  // When no arch is specified either by CPU or by attributes, make the default
-  // ARMv4T.
-  if (CPUString == "generic" && (FS.empty() || FS == "generic"))
-    ARMArchVersion = V4T;
-
-  // Set the boolean corresponding to the current target triple, or the default
-  // if one cannot be determined, to true.
-  unsigned Len = TT.length();
-  unsigned Idx = 0;
-
-  if (Len >= 5 && TT.substr(0, 4) == "armv")
-    Idx = 4;
-  else if (Len >= 6 && TT.substr(0, 5) == "thumb") {
-    IsThumb = true;
-    if (Len >= 7 && TT[5] == 'v')
-      Idx = 6;
+  // Insert the architecture feature derived from the target triple into the
+  // feature string. This is important for setting features that are implied
+  // based on the architecture version.
+  std::string ArchFS = ARM_MC::ParseARMTriple(TT);
+  if (!FS.empty()) {
+    if (!ArchFS.empty())
+      ArchFS = ArchFS + "," + FS;
+    else
+      ArchFS = FS;
   }
-  if (Idx) {
-    unsigned SubVer = TT[Idx];
-    if (SubVer >= '7' && SubVer <= '9') {
-      ARMArchVersion = V7A;
-      if (Len >= Idx+2 && TT[Idx+1] == 'm')
-        ARMArchVersion = V7M;
-    } else if (SubVer == '6') {
-      ARMArchVersion = V6;
-      if (Len >= Idx+3 && TT[Idx+1] == 't' && TT[Idx+2] == '2')
-        ARMArchVersion = V6T2;
-    } else if (SubVer == '5') {
-      ARMArchVersion = V5T;
-      if (Len >= Idx+3 && TT[Idx+1] == 't' && TT[Idx+2] == 'e')
-        ARMArchVersion = V5TE;
-    } else if (SubVer == '4') {
-      if (Len >= Idx+2 && TT[Idx+1] == 't')
-        ARMArchVersion = V4T;
-      else
-        ARMArchVersion = V4;
-    }
-  }
+  ParseSubtargetFeatures(CPUString, ArchFS);
 
-  // Thumb2 implies at least V6T2.
-  if (ARMArchVersion >= V6T2)
-    ThumbMode = Thumb2;
-  else if (ThumbMode >= Thumb2)
-    ARMArchVersion = V6T2;
+  // Thumb2 implies at least V6T2. FIXME: Fix tests to explicitly specify a
+  // ARM version or CPU and then remove this.
+  if (!HasV6T2Ops && hasThumb2())
+    HasV4TOps = HasV5TOps = HasV5TEOps = HasV6Ops = HasV6T2Ops = true;
 
-  if (Len >= 10) {
-    if (TT.find("-darwin") != std::string::npos)
-      // arm-darwin
-      TargetType = isDarwin;
-  }
+  // Initialize scheduling itinerary for the specified CPU.
+  InstrItins = getInstrItineraryForCPU(CPUString);
+
+  // After parsing Itineraries, set ItinData.IssueWidth.
+  computeIssueWidth();
 
   if (TT.find("eabi") != std::string::npos)
     TargetABI = ARM_ABI_AAPCS;
@@ -113,11 +109,22 @@ ARMSubtarget::ARMSubtarget(const std::string &TT, const std::string &FS,
   if (isAAPCS_ABI())
     stackAlignment = 8;
 
-  if (isTargetDarwin())
-    IsR9Reserved = ReserveR9 | (ARMArchVersion < V6);
+  if (!isTargetDarwin())
+    UseMovt = hasV6T2Ops();
+  else {
+    IsR9Reserved = ReserveR9 | !HasV6Ops;
+    UseMovt = DarwinUseMOVT && hasV6T2Ops();
+    const Triple &T = getTargetTriple();
+    SupportsTailCall = T.getOS() == Triple::IOS && !T.isOSVersionLT(5, 0);
+  }
 
   if (!isThumb() || hasThumb2())
     PostRAScheduler = true;
+
+  // v6+ may or may not support unaligned mem access depending on the system
+  // configuration.
+  if (!StrictAlign && hasV6Ops() && isTargetDarwin())
+    AllowsUnalignedMem = true;
 }
 
 /// GVIsIndirectSymbol - true if the GV will be accessed via an indirect symbol.
@@ -129,7 +136,9 @@ ARMSubtarget::GVIsIndirectSymbol(const GlobalValue *GV,
 
   // Materializable GVs (in JIT lazy compilation mode) do not require an extra
   // load from stub.
-  bool isDecl = GV->isDeclaration() && !GV->isMaterializable();
+  bool isDecl = GV->hasAvailableExternallyLinkage();
+  if (GV->isDeclaration() && !GV->isMaterializable())
+    isDecl = true;
 
   if (!isTargetDarwin()) {
     // Extra load is needed for all externally visible.
@@ -160,7 +169,7 @@ ARMSubtarget::GVIsIndirectSymbol(const GlobalValue *GV,
       // through a stub.
       if (!isDecl && !GV->isWeakForLinker())
         return false;
-    
+
       // Unless we have a symbol with hidden visibility, we have to go through a
       // normal $non_lazy_ptr stub because this symbol might be resolved late.
       if (!GV->hasHiddenVisibility())  // Non-hidden $non_lazy_ptr reference.
@@ -171,11 +180,39 @@ ARMSubtarget::GVIsIndirectSymbol(const GlobalValue *GV,
   return false;
 }
 
+unsigned ARMSubtarget::getMispredictionPenalty() const {
+  // If we have a reasonable estimate of the pipeline depth, then we can
+  // estimate the penalty of a misprediction based on that.
+  if (isCortexA8())
+    return 13;
+  else if (isCortexA9())
+    return 8;
+
+  // Otherwise, just return a sensible default.
+  return 10;
+}
+
+void ARMSubtarget::computeIssueWidth() {
+  unsigned allStage1Units = 0;
+  for (const InstrItinerary *itin = InstrItins.Itineraries;
+       itin->FirstStage != ~0U; ++itin) {
+    const InstrStage *IS = InstrItins.Stages + itin->FirstStage;
+    allStage1Units |= IS->getUnits();
+  }
+  InstrItins.IssueWidth = 0;
+  while (allStage1Units) {
+    ++InstrItins.IssueWidth;
+    // clear the lowest bit
+    allStage1Units ^= allStage1Units & ~(allStage1Units - 1);
+  }
+  assert(InstrItins.IssueWidth <= 2 && "itinerary bug, too many stage 1 units");
+}
+
 bool ARMSubtarget::enablePostRAScheduler(
            CodeGenOpt::Level OptLevel,
-           TargetSubtarget::AntiDepBreakMode& Mode,
+           TargetSubtargetInfo::AntiDepBreakMode& Mode,
            RegClassVector& CriticalPathRCs) const {
-  Mode = TargetSubtarget::ANTIDEP_CRITICAL;
+  Mode = TargetSubtargetInfo::ANTIDEP_CRITICAL;
   CriticalPathRCs.clear();
   CriticalPathRCs.push_back(&ARM::GPRRegClass);
   return PostRAScheduler && OptLevel >= CodeGenOpt::Default;

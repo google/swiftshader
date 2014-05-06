@@ -25,24 +25,37 @@ protected:
   /// assembly emission is disable.
   raw_ostream *CommentStream;
   const MCAsmInfo &MAI;
+
+  /// The current set of available features.
+  unsigned AvailableFeatures;
+
+  /// Utility function for printing annotations.
+  void printAnnotation(raw_ostream &OS, StringRef Annot);
 public:
   MCInstPrinter(const MCAsmInfo &mai)
-    : CommentStream(0), MAI(mai) {}
-  
+    : CommentStream(0), MAI(mai), AvailableFeatures(0) {}
+
   virtual ~MCInstPrinter();
 
   /// setCommentStream - Specify a stream to emit comments to.
   void setCommentStream(raw_ostream &OS) { CommentStream = &OS; }
-  
+
   /// printInst - Print the specified MCInst to the specified raw_ostream.
   ///
-  virtual void printInst(const MCInst *MI, raw_ostream &OS) = 0;
-  
+  virtual void printInst(const MCInst *MI, raw_ostream &OS,
+                         StringRef Annot) = 0;
+
   /// getOpcodeName - Return the name of the specified opcode enum (e.g.
   /// "MOV32ri") or empty if we can't resolve it.
   virtual StringRef getOpcodeName(unsigned Opcode) const;
+
+  /// printRegName - Print the assembler register name.
+  virtual void printRegName(raw_ostream &OS, unsigned RegNo) const;
+
+  unsigned getAvailableFeatures() const { return AvailableFeatures; }
+  void setAvailableFeatures(unsigned Value) { AvailableFeatures = Value; }
 };
-  
+
 } // namespace llvm
 
 #endif

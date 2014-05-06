@@ -20,15 +20,21 @@
 #include "llvm/Instructions.h"
 #include "llvm/Intrinsics.h"
 #include "llvm/IntrinsicInst.h"
+#include "llvm/Metadata.h"
+#include "llvm/Operator.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/Analysis/ConstantFolding.h"
+#include "llvm/Analysis/DebugInfo.h"
+#include "llvm/Analysis/DIBuilder.h"
+#include "llvm/Analysis/Dominators.h"
 #include "llvm/Analysis/InstructionSimplify.h"
 #include "llvm/Analysis/ProfileInfo.h"
+#include "llvm/Analysis/ValueTracking.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/GetElementPtrTypeIterator.h"
+#include "llvm/Support/IRBuilder.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/ValueHandle.h"
 #include "llvm/Support/raw_ostream.h"
@@ -38,12 +44,16 @@ using namespace llvm;
 //  Local constant propagation.
 //
 
-// ConstantFoldTerminator - If a terminator instruction is predicated on a
-// constant value, convert it into an unconditional branch to the constant
-// destination.
-//
-bool llvm::ConstantFoldTerminator(BasicBlock *BB) {
+/// ConstantFoldTerminator - If a terminator instruction is predicated on a
+/// constant value, convert it into an unconditional branch to the constant
+/// destination.  This is a nontrivial operation because the successors of this
+/// basic block must have their PHI nodes updated.
+/// Also calls RecursivelyDeleteTriviallyDeadInstructions() on any branch/switch
+/// conditions and indirectbr addresses this might make dead if
+/// DeleteDeadConditions is true.
+bool llvm::ConstantFoldTerminator(BasicBlock *BB, bool DeleteDeadConditions) {
   TerminatorInst *T = BB->getTerminator();
+  IRBuilder<> Builder(T);
 
   // Branch - See if we are conditional jumping on constant
   if (BranchInst *BI = dyn_cast<BranchInst>(T)) {
@@ -63,12 +73,11 @@ bool llvm::ConstantFoldTerminator(BasicBlock *BB) {
 
       // Let the basic block know that we are letting go of it.  Based on this,
       // it will adjust it's PHI nodes.
-      assert(BI->getParent() && "Terminator not inserted in block!");
-      OldDest->removePredecessor(BI->getParent());
+      OldDest->removePredecessor(BB);
 
-      // Set the unconditional destination, and change the insn to be an
-      // unconditional branch.
-      BI->setUnconditionalDest(Destination);
+      // Replace the conditional branch with an unconditional one.
+      Builder.CreateBr(Destination);
+      BI->eraseFromParent();
       return true;
     }
     
@@ -81,8 +90,12 @@ bool llvm::ConstantFoldTerminator(BasicBlock *BB) {
       assert(BI->getParent() && "Terminator not inserted in block!");
       Dest1->removePredecessor(BI->getParent());
 
-      // Change a conditional branch to unconditional.
-      BI->setUnconditionalDest(Dest1);
+      // Replace the conditional branch with an unconditional one.
+      Builder.CreateBr(Dest1);
+      Value *Cond = BI->getCondition();
+      BI->eraseFromParent();
+      if (DeleteDeadConditions)
+        RecursivelyDeleteTriviallyDeadInstructions(Cond);
       return true;
     }
     return false;
@@ -131,7 +144,7 @@ bool llvm::ConstantFoldTerminator(BasicBlock *BB) {
     // now.
     if (TheOnlyDest) {
       // Insert the new branch.
-      BranchInst::Create(TheOnlyDest, SI);
+      Builder.CreateBr(TheOnlyDest);
       BasicBlock *BB = SI->getParent();
 
       // Remove entries from PHI nodes which we no longer branch to...
@@ -145,17 +158,21 @@ bool llvm::ConstantFoldTerminator(BasicBlock *BB) {
       }
 
       // Delete the old switch.
-      BB->getInstList().erase(SI);
+      Value *Cond = SI->getCondition();
+      SI->eraseFromParent();
+      if (DeleteDeadConditions)
+        RecursivelyDeleteTriviallyDeadInstructions(Cond);
       return true;
     }
     
     if (SI->getNumSuccessors() == 2) {
       // Otherwise, we can fold this switch into a conditional branch
       // instruction if it has only one non-default destination.
-      Value *Cond = new ICmpInst(SI, ICmpInst::ICMP_EQ, SI->getCondition(),
-                                 SI->getSuccessorValue(1));
+      Value *Cond = Builder.CreateICmpEQ(SI->getCondition(),
+                                         SI->getSuccessorValue(1), "cond");
+
       // Insert the new branch.
-      BranchInst::Create(SI->getSuccessor(1), SI->getSuccessor(0), Cond, SI);
+      Builder.CreateCondBr(Cond, SI->getSuccessor(1), SI->getSuccessor(0));
 
       // Delete the old switch.
       SI->eraseFromParent();
@@ -170,7 +187,7 @@ bool llvm::ConstantFoldTerminator(BasicBlock *BB) {
           dyn_cast<BlockAddress>(IBI->getAddress()->stripPointerCasts())) {
       BasicBlock *TheOnlyDest = BA->getBasicBlock();
       // Insert the new branch.
-      BranchInst::Create(TheOnlyDest, IBI);
+      Builder.CreateBr(TheOnlyDest);
       
       for (unsigned i = 0, e = IBI->getNumDestinations(); i != e; ++i) {
         if (IBI->getDestination(i) == TheOnlyDest)
@@ -178,7 +195,10 @@ bool llvm::ConstantFoldTerminator(BasicBlock *BB) {
         else
           IBI->getDestination(i)->removePredecessor(IBI->getParent());
       }
+      Value *Address = IBI->getAddress();
       IBI->eraseFromParent();
+      if (DeleteDeadConditions)
+        RecursivelyDeleteTriviallyDeadInstructions(Address);
       
       // If we didn't find our destination in the IBI successor list, then we
       // have undefined behavior.  Replace the unconditional branch with an
@@ -206,20 +226,37 @@ bool llvm::ConstantFoldTerminator(BasicBlock *BB) {
 bool llvm::isInstructionTriviallyDead(Instruction *I) {
   if (!I->use_empty() || isa<TerminatorInst>(I)) return false;
 
-  // We don't want debug info removed by anything this general.
-  if (ISA_DEBUG_INFO_INTRINSIC(I)) return false;
+  // We don't want the landingpad instruction removed by anything this general.
+  if (isa<LandingPadInst>(I))
+    return false;
 
-  // Likewise for memory use markers.
-  if (isa<MemoryUseIntrinsic>(I)) return false;
+  // We don't want debug info removed by anything this general, unless
+  // debug info is empty.
+  if (DbgDeclareInst *DDI = dyn_cast<DbgDeclareInst>(I)) {
+    if (DDI->getAddress())
+      return false;
+    return true;
+  }
+  if (DbgValueInst *DVI = dyn_cast<DbgValueInst>(I)) {
+    if (DVI->getValue())
+      return false;
+    return true;
+  }
 
   if (!I->mayHaveSideEffects()) return true;
 
   // Special case intrinsics that "may have side effects" but can be deleted
   // when dead.
-  if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(I))
+  if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(I)) {
     // Safe to delete llvm.stacksave if dead.
     if (II->getIntrinsicID() == Intrinsic::stacksave)
       return true;
+
+    // Lifetime intrinsics are dead when their right-hand is undef.
+    if (II->getIntrinsicID() == Intrinsic::lifetime_start ||
+        II->getIntrinsicID() == Intrinsic::lifetime_end)
+      return isa<UndefValue>(II->getArgOperand(1));
+  }
   return false;
 }
 
@@ -260,36 +297,46 @@ bool llvm::RecursivelyDeleteTriviallyDeadInstructions(Value *V) {
   return true;
 }
 
+/// areAllUsesEqual - Check whether the uses of a value are all the same.
+/// This is similar to Instruction::hasOneUse() except this will also return
+/// true when there are no uses or multiple uses that all refer to the same
+/// value.
+static bool areAllUsesEqual(Instruction *I) {
+  Value::use_iterator UI = I->use_begin();
+  Value::use_iterator UE = I->use_end();
+  if (UI == UE)
+    return true;
+
+  User *TheUse = *UI;
+  for (++UI; UI != UE; ++UI) {
+    if (*UI != TheUse)
+      return false;
+  }
+  return true;
+}
+
 /// RecursivelyDeleteDeadPHINode - If the specified value is an effectively
 /// dead PHI node, due to being a def-use chain of single-use nodes that
 /// either forms a cycle or is terminated by a trivially dead instruction,
 /// delete it.  If that makes any of its operands trivially dead, delete them
-/// too, recursively.  Return true if the PHI node is actually deleted.
-bool
-llvm::RecursivelyDeleteDeadPHINode(PHINode *PN) {
-  // We can remove a PHI if it is on a cycle in the def-use graph
-  // where each node in the cycle has degree one, i.e. only one use,
-  // and is an instruction with no side effects.
-  if (!PN->hasOneUse())
-    return false;
+/// too, recursively.  Return true if a change was made.
+bool llvm::RecursivelyDeleteDeadPHINode(PHINode *PN) {
+  SmallPtrSet<Instruction*, 4> Visited;
+  for (Instruction *I = PN; areAllUsesEqual(I) && !I->mayHaveSideEffects();
+       I = cast<Instruction>(*I->use_begin())) {
+    if (I->use_empty())
+      return RecursivelyDeleteTriviallyDeadInstructions(I);
 
-  bool Changed = false;
-  SmallPtrSet<PHINode *, 4> PHIs;
-  PHIs.insert(PN);
-  for (Instruction *J = cast<Instruction>(*PN->use_begin());
-       J->hasOneUse() && !J->mayHaveSideEffects();
-       J = cast<Instruction>(*J->use_begin()))
-    // If we find a PHI more than once, we're on a cycle that
+    // If we find an instruction more than once, we're on a cycle that
     // won't prove fruitful.
-    if (PHINode *JP = dyn_cast<PHINode>(J))
-      if (!PHIs.insert(cast<PHINode>(JP))) {
-        // Break the cycle and delete the PHI and its operands.
-        JP->replaceAllUsesWith(UndefValue::get(JP->getType()));
-        (void)RecursivelyDeleteTriviallyDeadInstructions(JP);
-        Changed = true;
-        break;
-      }
-  return Changed;
+    if (!Visited.insert(I)) {
+      // Break the cycle and delete the instruction and its operands.
+      I->replaceAllUsesWith(UndefValue::get(I->getType()));
+      (void)RecursivelyDeleteTriviallyDeadInstructions(I);
+      return true;
+    }
+  }
+  return false;
 }
 
 /// SimplifyInstructionsInBlock - Scan the specified basic block and try to
@@ -310,8 +357,14 @@ bool llvm::SimplifyInstructionsInBlock(BasicBlock *BB, const TargetData *TD) {
         BI = BB->begin();
       continue;
     }
-    
+
+    if (Inst->isTerminator())
+      break;
+
+    WeakVH BIHandle(BI);
     MadeChange |= RecursivelyDeleteTriviallyDeadInstructions(Inst);
+    if (BIHandle != BI)
+      BI = BB->begin();
   }
   return MadeChange;
 }
@@ -346,13 +399,13 @@ void llvm::RemovePredecessorAndSimplify(BasicBlock *BB, BasicBlock *Pred,
   WeakVH PhiIt = &BB->front();
   while (PHINode *PN = dyn_cast<PHINode>(PhiIt)) {
     PhiIt = &*++BasicBlock::iterator(cast<Instruction>(PhiIt));
-    
-    Value *PNV = PN->hasConstantValue();
+
+    Value *PNV = SimplifyInstruction(PN, TD);
     if (PNV == 0) continue;
-    
+
     // If we're able to simplify the phi to a single value, substitute the new
     // value into all of its uses.
-    assert(PNV != PN && "hasConstantValue broken");
+    assert(PNV != PN && "SimplifyInstruction broken!");
     
     Value *OldPhiIt = PhiIt;
     ReplaceAndSimplifyAllUses(PN, PNV, TD);
@@ -383,10 +436,6 @@ void llvm::MergeBasicBlockIntoOnlyPred(BasicBlock *DestBB, Pass *P) {
   BasicBlock *PredBB = DestBB->getSinglePredecessor();
   assert(PredBB && "Block doesn't have a single predecessor!");
   
-  // Splice all the instructions from PredBB to DestBB.
-  PredBB->getTerminator()->eraseFromParent();
-  DestBB->getInstList().splice(DestBB->begin(), PredBB->getInstList());
-
   // Zap anything that took the address of DestBB.  Not doing this will give the
   // address an invalid value.
   if (DestBB->hasAddressTaken()) {
@@ -401,7 +450,17 @@ void llvm::MergeBasicBlockIntoOnlyPred(BasicBlock *DestBB, Pass *P) {
   // Anything that branched to PredBB now branches to DestBB.
   PredBB->replaceAllUsesWith(DestBB);
   
+  // Splice all the instructions from PredBB to DestBB.
+  PredBB->getTerminator()->eraseFromParent();
+  DestBB->getInstList().splice(DestBB->begin(), PredBB->getInstList());
+
   if (P) {
+    DominatorTree *DT = P->getAnalysisIfAvailable<DominatorTree>();
+    if (DT) {
+      BasicBlock *PredBBIDom = DT->getNode(PredBB)->getIDom()->getBlock();
+      DT->changeImmediateDominator(DestBB, PredBBIDom);
+      DT->eraseNode(PredBB);
+    }
     ProfileInfo *PI = P->getAnalysisIfAvailable<ProfileInfo>();
     if (PI) {
       PI->replaceAllUses(PredBB, DestBB);
@@ -486,10 +545,13 @@ static bool CanPropagatePredecessorsForPHIs(BasicBlock *BB, BasicBlock *Succ) {
 
 /// TryToSimplifyUncondBranchFromEmptyBlock - BB is known to contain an
 /// unconditional branch, and contains no instructions other than PHI nodes,
-/// potential debug intrinsics and the branch.  If possible, eliminate BB by
-/// rewriting all the predecessors to branch to the successor block and return
-/// true.  If we can't transform, return false.
+/// potential side-effect free intrinsics and the branch.  If possible,
+/// eliminate BB by rewriting all the predecessors to branch to the successor
+/// block and return true.  If we can't transform, return false.
 bool llvm::TryToSimplifyUncondBranchFromEmptyBlock(BasicBlock *BB) {
+  assert(BB != &BB->getParent()->getEntryBlock() &&
+         "TryToSimplifyUncondBranchFromEmptyBlock called on entry block!");
+
   // We can't eliminate infinite loops.
   BasicBlock *Succ = cast<BranchInst>(BB->getTerminator())->getSuccessor(0);
   if (BB == Succ) return false;
@@ -560,13 +622,15 @@ bool llvm::TryToSimplifyUncondBranchFromEmptyBlock(BasicBlock *BB) {
     }
   }
   
-  while (PHINode *PN = dyn_cast<PHINode>(&BB->front())) {
-    if (Succ->getSinglePredecessor()) {
-      // BB is the only predecessor of Succ, so Succ will end up with exactly
-      // the same predecessors BB had.
-      Succ->getInstList().splice(Succ->begin(),
-                                 BB->getInstList(), BB->begin());
-    } else {
+  if (Succ->getSinglePredecessor()) {
+    // BB is the only predecessor of Succ, so Succ will end up with exactly
+    // the same predecessors BB had.
+
+    // Copy over any phi, debug or lifetime instruction.
+    BB->getTerminator()->eraseFromParent();
+    Succ->getInstList().splice(Succ->getFirstNonPHI(), BB->getInstList());
+  } else {
+    while (PHINode *PN = dyn_cast<PHINode>(&BB->front())) {
       // We explicitly check for such uses in CanPropagatePredecessorsForPHIs.
       assert(PN->use_empty() && "There shouldn't be any uses here!");
       PN->eraseFromParent();
@@ -589,7 +653,7 @@ bool llvm::EliminateDuplicatePHINodes(BasicBlock *BB) {
   bool Changed = false;
 
   // This implementation doesn't currently consider undef operands
-  // specially. Theroetically, two phis which are identical except for
+  // specially. Theoretically, two phis which are identical except for
   // one having an undef where the other doesn't could be collapsed.
 
   // Map from PHI hash values to PHI nodes. If multiple PHIs have
@@ -607,12 +671,19 @@ bool llvm::EliminateDuplicatePHINodes(BasicBlock *BB) {
     // them, which helps expose duplicates, but we have to check all the
     // operands to be safe in case instcombine hasn't run.
     uintptr_t Hash = 0;
+    // This hash algorithm is quite weak as hash functions go, but it seems
+    // to do a good enough job for this particular purpose, and is very quick.
     for (User::op_iterator I = PN->op_begin(), E = PN->op_end(); I != E; ++I) {
-      // This hash algorithm is quite weak as hash functions go, but it seems
-      // to do a good enough job for this particular purpose, and is very quick.
       Hash ^= reinterpret_cast<uintptr_t>(static_cast<Value *>(*I));
       Hash = (Hash << 7) | (Hash >> (sizeof(uintptr_t) * CHAR_BIT - 7));
     }
+    for (PHINode::block_iterator I = PN->block_begin(), E = PN->block_end();
+         I != E; ++I) {
+      Hash ^= reinterpret_cast<uintptr_t>(static_cast<BasicBlock *>(*I));
+      Hash = (Hash << 7) | (Hash >> (sizeof(uintptr_t) * CHAR_BIT - 7));
+    }
+    // Avoid colliding with the DenseMap sentinels ~0 and ~0-1.
+    Hash >>= 1;
     // If we've never seen this hash value before, it's a unique PHI.
     std::pair<DenseMap<uintptr_t, PHINode *>::iterator, bool> Pair =
       HashMap.insert(std::make_pair(Hash, PN));
@@ -641,4 +712,177 @@ bool llvm::EliminateDuplicatePHINodes(BasicBlock *BB) {
   }
 
   return Changed;
+}
+
+/// enforceKnownAlignment - If the specified pointer points to an object that
+/// we control, modify the object's alignment to PrefAlign. This isn't
+/// often possible though. If alignment is important, a more reliable approach
+/// is to simply align all global variables and allocation instructions to
+/// their preferred alignment from the beginning.
+///
+static unsigned enforceKnownAlignment(Value *V, unsigned Align,
+                                      unsigned PrefAlign, const TargetData *TD) {
+  V = V->stripPointerCasts();
+
+  if (AllocaInst *AI = dyn_cast<AllocaInst>(V)) {
+    // If the preferred alignment is greater than the natural stack alignment
+    // then don't round up. This avoids dynamic stack realignment.
+    if (TD && TD->exceedsNaturalStackAlignment(PrefAlign))
+      return Align;
+    // If there is a requested alignment and if this is an alloca, round up.
+    if (AI->getAlignment() >= PrefAlign)
+      return AI->getAlignment();
+    AI->setAlignment(PrefAlign);
+    return PrefAlign;
+  }
+
+  if (GlobalValue *GV = dyn_cast<GlobalValue>(V)) {
+    // If there is a large requested alignment and we can, bump up the alignment
+    // of the global.
+    if (GV->isDeclaration()) return Align;
+    
+    if (GV->getAlignment() >= PrefAlign)
+      return GV->getAlignment();
+    // We can only increase the alignment of the global if it has no alignment
+    // specified or if it is not assigned a section.  If it is assigned a
+    // section, the global could be densely packed with other objects in the
+    // section, increasing the alignment could cause padding issues.
+    if (!GV->hasSection() || GV->getAlignment() == 0)
+      GV->setAlignment(PrefAlign);
+    return GV->getAlignment();
+  }
+
+  return Align;
+}
+
+/// getOrEnforceKnownAlignment - If the specified pointer has an alignment that
+/// we can determine, return it, otherwise return 0.  If PrefAlign is specified,
+/// and it is more than the alignment of the ultimate object, see if we can
+/// increase the alignment of the ultimate object, making this check succeed.
+unsigned llvm::getOrEnforceKnownAlignment(Value *V, unsigned PrefAlign,
+                                          const TargetData *TD) {
+  assert(V->getType()->isPointerTy() &&
+         "getOrEnforceKnownAlignment expects a pointer!");
+  unsigned BitWidth = TD ? TD->getPointerSizeInBits() : 64;
+  APInt Mask = APInt::getAllOnesValue(BitWidth);
+  APInt KnownZero(BitWidth, 0), KnownOne(BitWidth, 0);
+  ComputeMaskedBits(V, Mask, KnownZero, KnownOne, TD);
+  unsigned TrailZ = KnownZero.countTrailingOnes();
+  
+  // Avoid trouble with rediculously large TrailZ values, such as
+  // those computed from a null pointer.
+  TrailZ = std::min(TrailZ, unsigned(sizeof(unsigned) * CHAR_BIT - 1));
+  
+  unsigned Align = 1u << std::min(BitWidth - 1, TrailZ);
+  
+  // LLVM doesn't support alignments larger than this currently.
+  Align = std::min(Align, +Value::MaximumAlignment);
+  
+  if (PrefAlign > Align)
+    Align = enforceKnownAlignment(V, Align, PrefAlign, TD);
+    
+  // We don't need to make any adjustment.
+  return Align;
+}
+
+///===---------------------------------------------------------------------===//
+///  Dbg Intrinsic utilities
+///
+
+/// Inserts a llvm.dbg.value instrinsic before the stores to an alloca'd value
+/// that has an associated llvm.dbg.decl intrinsic.
+bool llvm::ConvertDebugDeclareToDebugValue(DbgDeclareInst *DDI,
+                                           StoreInst *SI, DIBuilder &Builder) {
+  DIVariable DIVar(DDI->getVariable());
+  if (!DIVar.Verify())
+    return false;
+
+  Instruction *DbgVal = NULL;
+  // If an argument is zero extended then use argument directly. The ZExt
+  // may be zapped by an optimization pass in future.
+  Argument *ExtendedArg = NULL;
+  if (ZExtInst *ZExt = dyn_cast<ZExtInst>(SI->getOperand(0)))
+    ExtendedArg = dyn_cast<Argument>(ZExt->getOperand(0));
+  if (SExtInst *SExt = dyn_cast<SExtInst>(SI->getOperand(0)))
+    ExtendedArg = dyn_cast<Argument>(SExt->getOperand(0));
+  if (ExtendedArg)
+    DbgVal = Builder.insertDbgValueIntrinsic(ExtendedArg, 0, DIVar, SI);
+  else
+    DbgVal = Builder.insertDbgValueIntrinsic(SI->getOperand(0), 0, DIVar, SI);
+
+  // Propagate any debug metadata from the store onto the dbg.value.
+  DebugLoc SIDL = SI->getDebugLoc();
+  if (!SIDL.isUnknown())
+    DbgVal->setDebugLoc(SIDL);
+  // Otherwise propagate debug metadata from dbg.declare.
+  else
+    DbgVal->setDebugLoc(DDI->getDebugLoc());
+  return true;
+}
+
+/// Inserts a llvm.dbg.value instrinsic before the stores to an alloca'd value
+/// that has an associated llvm.dbg.decl intrinsic.
+bool llvm::ConvertDebugDeclareToDebugValue(DbgDeclareInst *DDI,
+                                           LoadInst *LI, DIBuilder &Builder) {
+  DIVariable DIVar(DDI->getVariable());
+  if (!DIVar.Verify())
+    return false;
+
+  Instruction *DbgVal = 
+    Builder.insertDbgValueIntrinsic(LI->getOperand(0), 0,
+                                    DIVar, LI);
+  
+  // Propagate any debug metadata from the store onto the dbg.value.
+  DebugLoc LIDL = LI->getDebugLoc();
+  if (!LIDL.isUnknown())
+    DbgVal->setDebugLoc(LIDL);
+  // Otherwise propagate debug metadata from dbg.declare.
+  else
+    DbgVal->setDebugLoc(DDI->getDebugLoc());
+  return true;
+}
+
+/// LowerDbgDeclare - Lowers llvm.dbg.declare intrinsics into appropriate set
+/// of llvm.dbg.value intrinsics.
+bool llvm::LowerDbgDeclare(Function &F) {
+  DIBuilder DIB(*F.getParent());
+  SmallVector<DbgDeclareInst *, 4> Dbgs;
+  for (Function::iterator FI = F.begin(), FE = F.end(); FI != FE; ++FI)
+    for (BasicBlock::iterator BI = FI->begin(), BE = FI->end(); BI != BE; ++BI) {
+      if (DbgDeclareInst *DDI = dyn_cast<DbgDeclareInst>(BI))
+        Dbgs.push_back(DDI);
+    }
+  if (Dbgs.empty())
+    return false;
+
+  for (SmallVector<DbgDeclareInst *, 4>::iterator I = Dbgs.begin(),
+         E = Dbgs.end(); I != E; ++I) {
+    DbgDeclareInst *DDI = *I;
+    if (AllocaInst *AI = dyn_cast_or_null<AllocaInst>(DDI->getAddress())) {
+      bool RemoveDDI = true;
+      for (Value::use_iterator UI = AI->use_begin(), E = AI->use_end();
+           UI != E; ++UI)
+        if (StoreInst *SI = dyn_cast<StoreInst>(*UI))
+          ConvertDebugDeclareToDebugValue(DDI, SI, DIB);
+        else if (LoadInst *LI = dyn_cast<LoadInst>(*UI))
+          ConvertDebugDeclareToDebugValue(DDI, LI, DIB);
+        else
+          RemoveDDI = false;
+      if (RemoveDDI)
+        DDI->eraseFromParent();
+    }
+  }
+  return true;
+}
+
+/// FindAllocaDbgDeclare - Finds the llvm.dbg.declare intrinsic describing the
+/// alloca 'V', if any.
+DbgDeclareInst *llvm::FindAllocaDbgDeclare(Value *V) {
+  if (MDNode *DebugNode = MDNode::getIfExists(V->getContext(), V))
+    for (Value::use_iterator UI = DebugNode->use_begin(),
+         E = DebugNode->use_end(); UI != E; ++UI)
+      if (DbgDeclareInst *DDI = dyn_cast<DbgDeclareInst>(*UI))
+        return DDI;
+
+  return 0;
 }

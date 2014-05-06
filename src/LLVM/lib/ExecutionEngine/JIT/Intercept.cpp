@@ -17,7 +17,7 @@
 
 #include "JIT.h"
 #include "llvm/Support/ErrorHandling.h"
-#include "llvm/System/DynamicLibrary.h"
+#include "llvm/Support/DynamicLibrary.h"
 #include "llvm/Config/config.h"
 using namespace llvm;
 
@@ -52,8 +52,9 @@ static void runAtExitHandlers() {
 #include <sys/stat.h>
 #endif
 #include <fcntl.h>
-/* stat functions are redirecting to __xstat with a version number.  On x86-64 
- * linking with libc_nonshared.a and -Wl,--export-dynamic doesn't make 'stat' 
+#include <unistd.h>
+/* stat functions are redirecting to __xstat with a version number.  On x86-64
+ * linking with libc_nonshared.a and -Wl,--export-dynamic doesn't make 'stat'
  * available as an exported symbol, so we have to add it explicitly.
  */
 namespace {
@@ -89,6 +90,10 @@ static int jit_atexit(void (*Fn)()) {
   return 0;  // Always successful
 }
 
+static int jit_noop() {
+  return 0;
+}
+
 //===----------------------------------------------------------------------===//
 //
 /// getPointerToNamedFunction - This method returns the address of the specified
@@ -104,21 +109,29 @@ void *JIT::getPointerToNamedFunction(const std::string &Name,
     if (Name == "exit") return (void*)(intptr_t)&jit_exit;
     if (Name == "atexit") return (void*)(intptr_t)&jit_atexit;
 
+    // We should not invoke parent's ctors/dtors from generated main()!
+    // On Mingw and Cygwin, the symbol __main is resolved to
+    // callee's(eg. tools/lli) one, to invoke wrong duplicated ctors
+    // (and register wrong callee's dtors with atexit(3)).
+    // We expect ExecutionEngine::runStaticConstructorsDestructors()
+    // is called before ExecutionEngine::runFunctionAsMain() is called.
+    if (Name == "__main") return (void*)(intptr_t)&jit_noop;
+
     const char *NameStr = Name.c_str();
     // If this is an asm specifier, skip the sentinal.
     if (NameStr[0] == 1) ++NameStr;
-    
+
     // If it's an external function, look it up in the process image...
     void *Ptr = sys::DynamicLibrary::SearchForAddressOfSymbol(NameStr);
     if (Ptr) return Ptr;
-    
+
     // If it wasn't found and if it starts with an underscore ('_') character,
     // and has an asm specifier, try again without the underscore.
     if (Name[0] == 1 && NameStr[0] == '_') {
       Ptr = sys::DynamicLibrary::SearchForAddressOfSymbol(NameStr+1);
       if (Ptr) return Ptr;
     }
-    
+
     // Darwin/PPC adds $LDBLStub suffixes to various symbols like printf.  These
     // are references to hidden visibility symbols that dlsym cannot resolve.
     // If we have one of these, strip off $LDBLStub and try again.
@@ -135,7 +148,7 @@ void *JIT::getPointerToNamedFunction(const std::string &Name,
     }
 #endif
   }
-  
+
   /// If a LazyFunctionCreator is installed, use it to get/create the function.
   if (LazyFunctionCreator)
     if (void *RP = LazyFunctionCreator(Name))

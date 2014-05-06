@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2011 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // Context.h: Defines the Context class, managing all GL state and performing
@@ -13,8 +18,8 @@
 #include "ResourceManager.h"
 #include "HandleAllocator.h"
 #include "RefCountObject.h"
-#include "common/angleutils.h"
 #include "Image.hpp"
+#include "common/angleutils.h"
 #include "Renderer/Sampler.hpp"
 
 #define GL_APICALL
@@ -55,26 +60,36 @@ class DepthStencilbuffer;
 class VertexDataManager;
 class IndexDataManager;
 class Fence;
+class Query;
 
 enum
 {
     MAX_VERTEX_ATTRIBS = 16,
-    MAX_VERTEX_UNIFORM_VECTORS = 256 - 2,   // 256 is the minimum for SM2, and in practice the maximum for DX9. Reserve space for dx_HalfPixelSize and dx_DepthRange.
+	MAX_UNIFORM_VECTORS = 256,   // Device limit
+    MAX_VERTEX_UNIFORM_VECTORS = 256 - 3,   // Reserve space for gl_DepthRange
     MAX_VARYING_VECTORS = 10,
     MAX_TEXTURE_IMAGE_UNITS = 16,
-    MAX_VERTEX_TEXTURE_IMAGE_UNITS = 4,   // For devices supporting vertex texture fetch
+    MAX_VERTEX_TEXTURE_IMAGE_UNITS = 4,
     MAX_COMBINED_TEXTURE_IMAGE_UNITS = MAX_TEXTURE_IMAGE_UNITS + MAX_VERTEX_TEXTURE_IMAGE_UNITS,
-    MAX_FRAGMENT_UNIFORM_VECTORS = 224 - 3,    // Reserve space for dx_Viewport, dx_Depth, and dx_DepthRange. dx_PointOrLines and dx_FrontCCW use separate bool registers.
+    MAX_FRAGMENT_UNIFORM_VECTORS = 224 - 3,    // Reserve space for gl_DepthRange
     MAX_DRAW_BUFFERS = 1,
 
     IMPLEMENTATION_COLOR_READ_FORMAT = GL_RGB,
     IMPLEMENTATION_COLOR_READ_TYPE = GL_UNSIGNED_SHORT_5_6_5
 };
 
+enum QueryType
+{
+    QUERY_ANY_SAMPLES_PASSED,
+    QUERY_ANY_SAMPLES_PASSED_CONSERVATIVE,
+
+    QUERY_TYPE_COUNT
+};
+
 const float ALIASED_LINE_WIDTH_RANGE_MIN = 1.0f;
 const float ALIASED_LINE_WIDTH_RANGE_MAX = 1.0f;
-const float ALIASED_POINT_SIZE_RANGE_MIN = 1.0f;
-const float ALIASED_POINT_SIZE_RANGE_MAX = 64.0f;
+const float ALIASED_POINT_SIZE_RANGE_MIN = 0.125f;
+const float ALIASED_POINT_SIZE_RANGE_MAX = 8192.0f;
 
 struct Color
 {
@@ -213,6 +228,7 @@ struct State
 
     VertexAttribute vertexAttribute[MAX_VERTEX_ATTRIBS];
     BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
+	BindingPointer<Query> activeQuery[QUERY_TYPE_COUNT];
 
     GLint unpackAlignment;
     GLint packAlignment;
@@ -292,6 +308,8 @@ class Context
     GLuint getDrawFramebufferHandle() const;
     GLuint getRenderbufferHandle() const;
 
+	GLuint getActiveQuery(GLenum target) const;
+
     GLuint getArrayBufferHandle() const;
 
     void setEnableVertexAttribArray(unsigned int attribNum, bool enabled);
@@ -326,9 +344,13 @@ class Context
     GLuint createFramebuffer();
     void deleteFramebuffer(GLuint framebuffer);
 
-    // Fences are owned by the Context.
+    // Fences are owned by the Context
     GLuint createFence();
     void deleteFence(GLuint fence);
+
+	// Queries are owned by the Context
+    GLuint createQuery();
+    void deleteQuery(GLuint query);
 
     void bindArrayBuffer(GLuint buffer);
     void bindElementArrayBuffer(GLuint buffer);
@@ -338,6 +360,9 @@ class Context
     void bindDrawFramebuffer(GLuint framebuffer);
     void bindRenderbuffer(GLuint renderbuffer);
     void useProgram(GLuint program);
+
+	void beginQuery(GLenum target, GLuint query);
+    void endQuery(GLenum target);
 
     void setFramebufferZero(Framebuffer *framebuffer);
 
@@ -352,6 +377,7 @@ class Context
     Texture *getTexture(GLuint handle);
     Framebuffer *getFramebuffer(GLuint handle);
     Renderbuffer *getRenderbuffer(GLuint handle);
+	Query *getQuery(GLuint handle, bool create, GLenum type);
 
     Buffer *getArrayBuffer();
     Buffer *getElementArrayBuffer();
@@ -368,7 +394,7 @@ class Context
 
     bool getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *numParams);
 
-    void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void* pixels);
+    void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
     void clear(GLbitfield mask);
     void drawArrays(GLenum mode, GLint first, GLsizei count);
     void drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices);
@@ -393,7 +419,7 @@ class Context
   private:
     DISALLOW_COPY_AND_ASSIGN(Context);
 
-    bool applyRenderTarget(bool ignoreViewport);
+    bool applyRenderTarget();
     void applyState(GLenum drawMode);
     GLenum applyVertexBuffer(GLint base, GLint first, GLsizei count);
     GLenum applyIndexBuffer(const void *indices, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo);
@@ -425,6 +451,10 @@ class Context
     FenceMap mFenceMap;
     HandleAllocator mFenceHandleAllocator;
 
+	typedef stdext::hash_map<GLuint, Query*> QueryMap;
+    QueryMap mQueryMap;
+    HandleAllocator mQueryHandleAllocator;
+
     void initExtensionString();
     std::string mExtensionString;
 
@@ -441,23 +471,16 @@ class Context
     bool mHasBeenCurrent;
 
     unsigned int mAppliedProgramSerial;
-    unsigned int mAppliedRenderTargetSerial;
-    unsigned int mAppliedDepthbufferSerial;
-    unsigned int mAppliedStencilbufferSerial;
-    bool mDepthStencilInitialized;
 
     std::map<sw::Format, bool*> mMultiSampleSupport;
     
     // state caching flags
-    bool mClearStateDirty;
-    bool mCullStateDirty;
     bool mDepthStateDirty;
     bool mMaskStateDirty;
     bool mPixelPackingStateDirty;
     bool mBlendStateDirty;
     bool mStencilStateDirty;
     bool mPolygonOffsetStateDirty;
-    bool mScissorStateDirty;
     bool mSampleStateDirty;
     bool mFrontFaceDirty;
     bool mDitherStateDirty;

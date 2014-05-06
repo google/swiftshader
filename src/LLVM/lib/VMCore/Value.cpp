@@ -22,6 +22,7 @@
 #include "llvm/ValueSymbolTable.h"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/Support/GetElementPtrTypeIterator.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/LeakDetector.h"
 #include "llvm/Support/ManagedStatic.h"
@@ -34,22 +35,21 @@ using namespace llvm;
 //                                Value Class
 //===----------------------------------------------------------------------===//
 
-static inline const Type *checkType(const Type *Ty) {
+static inline Type *checkType(Type *Ty) {
   assert(Ty && "Value defined with a null type: Error!");
-  return Ty;
+  return const_cast<Type*>(Ty);
 }
 
-Value::Value(const Type *ty, unsigned scid)
+Value::Value(Type *ty, unsigned scid)
   : SubclassID(scid), HasValueHandle(0),
-    SubclassOptionalData(0), SubclassData(0), VTy(checkType(ty)),
+    SubclassOptionalData(0), SubclassData(0), VTy((Type*)checkType(ty)),
     UseList(0), Name(0) {
-  if (isa<CallInst>(this) || ISA_INVOKE_INST(this))
-    assert((VTy->isFirstClassType() || VTy->isVoidTy() ||
-            ty->isOpaqueTy() || VTy->isStructTy()) &&
-           "invalid CallInst  type!");
+  // FIXME: Why isn't this in the subclass gunk??
+  if (isa<CallInst>(this) || isa<InvokeInst>(this))
+    assert((VTy->isFirstClassType() || VTy->isVoidTy() || VTy->isStructTy()) &&
+           "invalid CallInst type!");
   else if (!isa<Constant>(this) && !isa<BasicBlock>(this))
-    assert((VTy->isFirstClassType() || VTy->isVoidTy() ||
-            ty->isOpaqueTy()) &&
+    assert((VTy->isFirstClassType() || VTy->isVoidTy()) &&
            "Cannot create non-first-class values except for constants!");
 }
 
@@ -254,7 +254,7 @@ void Value::takeName(Value *V) {
   // Get V's ST, this should always succed, because V has a name.
   ValueSymbolTable *VST;
   bool Failure = getSymTab(V, VST);
-  assert(!Failure && "V has a name, so it should have a ST!"); Failure=Failure;
+  assert(!Failure && "V has a name, so it should have a ST!"); (void)Failure;
 
   // If these values are both in the same symtab, we can do this very fast.
   // This works even if both values have no symtab yet.
@@ -280,17 +280,16 @@ void Value::takeName(Value *V) {
 }
 
 
-// uncheckedReplaceAllUsesWith - This is exactly the same as replaceAllUsesWith,
-// except that it doesn't have all of the asserts.  The asserts fail because we
-// are half-way done resolving types, which causes some types to exist as two
-// different Type*'s at the same time.  This is a sledgehammer to work around
-// this problem.
-//
-void Value::uncheckedReplaceAllUsesWith(Value *New) {
+void Value::replaceAllUsesWith(Value *New) {
+  assert(New && "Value::replaceAllUsesWith(<null>) is invalid!");
+  assert(New != this && "this->replaceAllUsesWith(this) is NOT valid!");
+  assert(New->getType() == getType() &&
+         "replaceAllUses of value with new value of different type!");
+
   // Notify all ValueHandles (if present) that this value is going away.
   if (HasValueHandle)
     ValueHandleBase::ValueIsRAUWd(this, New);
-
+  
   while (!use_empty()) {
     Use &U = *UseList;
     // Must handle Constants specially, we cannot call replaceUsesOfWith on a
@@ -301,18 +300,12 @@ void Value::uncheckedReplaceAllUsesWith(Value *New) {
         continue;
       }
     }
-
+    
     U.set(New);
   }
-}
-
-void Value::replaceAllUsesWith(Value *New) {
-  assert(New && "Value::replaceAllUsesWith(<null>) is invalid!");
-  assert(New != this && "this->replaceAllUsesWith(this) is NOT valid!");
-  assert(New->getType() == getType() &&
-         "replaceAllUses of value with new value of different type!");
-
-  uncheckedReplaceAllUsesWith(New);
+  
+  if (BasicBlock *BB = dyn_cast<BasicBlock>(this))
+    BB->replaceSuccessorsPhiUsesWith(cast<BasicBlock>(New));
 }
 
 Value *Value::stripPointerCasts() {
@@ -345,25 +338,62 @@ Value *Value::stripPointerCasts() {
   return V;
 }
 
-Value *Value::getUnderlyingObject(unsigned MaxLookup) {
-  if (!getType()->isPointerTy())
-    return this;
-  Value *V = this;
-  for (unsigned Count = 0; MaxLookup == 0 || Count < MaxLookup; ++Count) {
-    if (GEPOperator *GEP = dyn_cast<GEPOperator>(V)) {
-      V = GEP->getPointerOperand();
-    } else if (Operator::getOpcode(V) == Instruction::BitCast) {
-      V = cast<Operator>(V)->getOperand(0);
-    } else if (GlobalAlias *GA = dyn_cast<GlobalAlias>(V)) {
-      if (GA->mayBeOverridden())
-        return V;
-      V = GA->getAliasee();
-    } else {
-      return V;
+/// isDereferenceablePointer - Test if this value is always a pointer to
+/// allocated and suitably aligned memory for a simple load or store.
+bool Value::isDereferenceablePointer() const {
+  // Note that it is not safe to speculate into a malloc'd region because
+  // malloc may return null.
+  // It's also not always safe to follow a bitcast, for example:
+  //   bitcast i8* (alloca i8) to i32*
+  // would result in a 4-byte load from a 1-byte alloca. Some cases could
+  // be handled using TargetData to check sizes and alignments though.
+
+  // These are obviously ok.
+  if (isa<AllocaInst>(this)) return true;
+
+  // Global variables which can't collapse to null are ok.
+  if (const GlobalVariable *GV = dyn_cast<GlobalVariable>(this))
+    return !GV->hasExternalWeakLinkage();
+
+  // byval arguments are ok.
+  if (const Argument *A = dyn_cast<Argument>(this))
+    return A->hasByValAttr();
+  
+  // For GEPs, determine if the indexing lands within the allocated object.
+  if (const GEPOperator *GEP = dyn_cast<GEPOperator>(this)) {
+    // Conservatively require that the base pointer be fully dereferenceable.
+    if (!GEP->getOperand(0)->isDereferenceablePointer())
+      return false;
+    // Check the indices.
+    gep_type_iterator GTI = gep_type_begin(GEP);
+    for (User::const_op_iterator I = GEP->op_begin()+1,
+         E = GEP->op_end(); I != E; ++I) {
+      Value *Index = *I;
+      Type *Ty = *GTI++;
+      // Struct indices can't be out of bounds.
+      if (isa<StructType>(Ty))
+        continue;
+      ConstantInt *CI = dyn_cast<ConstantInt>(Index);
+      if (!CI)
+        return false;
+      // Zero is always ok.
+      if (CI->isZero())
+        continue;
+      // Check to see that it's within the bounds of an array.
+      ArrayType *ATy = dyn_cast<ArrayType>(Ty);
+      if (!ATy)
+        return false;
+      if (CI->getValue().getActiveBits() > 64)
+        return false;
+      if (CI->getZExtValue() >= ATy->getNumElements())
+        return false;
     }
-    assert(V->getType()->isPointerTy() && "Unexpected operand type!");
+    // Indices check out; this is dereferenceable.
+    return true;
   }
-  return V;
+
+  // If we don't know, assume the worst.
+  return false;
 }
 
 /// DoPHITranslation - If this value is a PHI node with CurBB as its parent,
@@ -600,26 +630,3 @@ void ValueHandleBase::ValueIsRAUWd(Value *Old, Value *New) {
 /// ~CallbackVH. Empty, but defined here to avoid emitting the vtable
 /// more than once.
 CallbackVH::~CallbackVH() {}
-
-
-//===----------------------------------------------------------------------===//
-//                                 User Class
-//===----------------------------------------------------------------------===//
-
-// replaceUsesOfWith - Replaces all references to the "From" definition with
-// references to the "To" definition.
-//
-void User::replaceUsesOfWith(Value *From, Value *To) {
-  if (From == To) return;   // Duh what?
-
-  assert((!isa<Constant>(this) || isa<GlobalValue>(this)) &&
-         "Cannot call User::replaceUsesOfWith on a constant!");
-
-  for (unsigned i = 0, E = getNumOperands(); i != E; ++i)
-    if (getOperand(i) == From) {  // Is This operand is pointing to oldval?
-      // The side effects of this setOperand call include linking to
-      // "To", adding "this" to the uses list of To, and
-      // most importantly, removing "this" from the use list of "From".
-      setOperand(i, To); // Fix it now...
-    }
-}

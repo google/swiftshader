@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_ANALYSIS_LIVEVALUES_H
-#define LLVM_ANALYSIS_LIVEVALUES_H
+#ifndef LLVM_ANALYSIS_LAZYVALUEINFO_H
+#define LLVM_ANALYSIS_LAZYVALUEINFO_H
 
 #include "llvm/Pass.h"
 
@@ -31,7 +31,9 @@ class LazyValueInfo : public FunctionPass {
   void operator=(const LazyValueInfo&); // DO NOT IMPLEMENT.
 public:
   static char ID;
-  LazyValueInfo() : FunctionPass(ID), PImpl(0) {}
+  LazyValueInfo() : FunctionPass(ID), PImpl(0) {
+    initializeLazyValueInfoPass(*PassRegistry::getPassRegistry());
+  }
   ~LazyValueInfo() { assert(PImpl == 0 && "releaseMemory not called"); }
 
   /// Tristate - This is used to return true/false/dunno results.
@@ -61,6 +63,8 @@ public:
   /// PredBB to OldSucc to be from PredBB to NewSucc instead.
   void threadEdge(BasicBlock *PredBB, BasicBlock *OldSucc, BasicBlock *NewSucc);
   
+  /// eraseBlock - Inform the analysis cache that we have erased a block.
+  void eraseBlock(BasicBlock *BB);
   
   // Implementation boilerplate.
   

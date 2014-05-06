@@ -38,6 +38,7 @@
 #ifndef LLVM_ADT_ILIST_H
 #define LLVM_ADT_ILIST_H
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <iterator>
@@ -288,7 +289,7 @@ template<typename NodeTy> struct simplify_type<const ilist_iterator<NodeTy> > {
 //===----------------------------------------------------------------------===//
 //
 /// iplist - The subset of list functionality that can safely be used on nodes
-/// of polymorphic types, i.e. a heterogenous list with a common base class that
+/// of polymorphic types, i.e. a heterogeneous list with a common base class that
 /// holds the next/prev pointers.  The only state of the list itself is a single
 /// pointer to the head of the list.
 ///
@@ -614,7 +615,6 @@ public:
 
   template<class Pr3> void sort(Pr3 pred);
   void sort() { sort(op_less); }
-  void reverse();
 };
 
 

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -19,13 +19,16 @@ namespace sw
 	class VertexShader : public Shader
 	{
 	public:
-		VertexShader(const unsigned long *token);
+		explicit VertexShader(const VertexShader *vs = 0);
+		explicit VertexShader(const unsigned long *token);
 
 		virtual ~VertexShader();
 
 		static int validate(const unsigned long *const token);   // Returns number of instructions if valid
 		bool containsTexldl() const;
 		
+		virtual void analyze();
+
 		int positionRegister;     // FIXME: Private
 		int pointSizeRegister;    // FIXME: Private
 
@@ -33,16 +36,12 @@ namespace sw
 		Semantic output[12][4];   // FIXME: Private
 
 	private:
-		void parse(const unsigned long *token);
-
 		void analyzeInput();
 		void analyzeOutput();
 		void analyzeTexldl();
 
 		bool texldl;
 	};
-
-	typedef VertexShader::Instruction VertexShaderInstruction;
 }
 
 #endif   // sw_VertexShader_hpp

@@ -12,41 +12,37 @@
 //===----------------------------------------------------------------------===//
 
 #include "SPU.h"
-#include "SPURegisterNames.h"
-#include "SPUMCAsmInfo.h"
 #include "SPUTargetMachine.h"
 #include "llvm/PassManager.h"
 #include "llvm/CodeGen/RegAllocRegistry.h"
 #include "llvm/CodeGen/SchedulerRegistry.h"
-#include "llvm/Target/TargetRegistry.h"
+#include "llvm/Support/DynamicLibrary.h"
+#include "llvm/Support/TargetRegistry.h"
 
 using namespace llvm;
 
 extern "C" void LLVMInitializeCellSPUTarget() { 
   // Register the target.
   RegisterTargetMachine<SPUTargetMachine> X(TheCellSPUTarget);
-  RegisterAsmInfo<SPULinuxMCAsmInfo> Y(TheCellSPUTarget);
 }
 
 const std::pair<unsigned, int> *
-SPUFrameInfo::getCalleeSaveSpillSlots(unsigned &NumEntries) const {
+SPUFrameLowering::getCalleeSaveSpillSlots(unsigned &NumEntries) const {
   NumEntries = 1;
   return &LR[0];
 }
 
-SPUTargetMachine::SPUTargetMachine(const Target &T, const std::string &TT,
-                                   const std::string &FS)
-  : LLVMTargetMachine(T, TT),
-    Subtarget(TT, FS),
+SPUTargetMachine::SPUTargetMachine(const Target &T, StringRef TT,
+                                   StringRef CPU, StringRef FS,
+                                   Reloc::Model RM, CodeModel::Model CM)
+  : LLVMTargetMachine(T, TT, CPU, FS, RM, CM),
+    Subtarget(TT, CPU, FS),
     DataLayout(Subtarget.getTargetDataString()),
     InstrInfo(*this),
-    FrameInfo(*this),
+    FrameLowering(Subtarget),
     TLInfo(*this),
     TSInfo(*this),
     InstrItins(Subtarget.getInstrItineraryData()) {
-  // For the time being, use static relocations, since there's really no
-  // support for PIC yet.
-  setRelocationModel(Reloc::Static);
 }
 
 //===----------------------------------------------------------------------===//
@@ -58,4 +54,21 @@ bool SPUTargetMachine::addInstSelector(PassManagerBase &PM,
   // Install an instruction selector.
   PM.add(createSPUISelDag(*this));
   return false;
+}
+
+// passes to run just before printing the assembly
+bool SPUTargetMachine::
+addPreEmitPass(PassManagerBase &PM, CodeGenOpt::Level OptLevel) {
+  // load the TCE instruction scheduler, if available via
+  // loaded plugins
+  typedef llvm::FunctionPass* (*BuilderFunc)(const char*);
+  BuilderFunc schedulerCreator =
+    (BuilderFunc)(intptr_t)sys::DynamicLibrary::SearchForAddressOfSymbol(
+          "createTCESchedulerPass");
+  if (schedulerCreator != NULL)
+      PM.add(schedulerCreator("cellspu"));
+
+  //align instructions with nops/lnops for dual issue
+  PM.add(createSPUNopFillerPass(*this));
+  return true;
 }

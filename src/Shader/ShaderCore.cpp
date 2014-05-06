@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -11,11 +11,459 @@
 
 #include "ShaderCore.hpp"
 
-#include "Debug.hpp"
+#include "Renderer/Renderer.hpp"
+#include "Common/Debug.hpp"
 
 namespace sw
 {
-	void ShaderCore::mov(Color4f &dst, Color4f &src, bool floorToInteger)
+	extern TranscendentalPrecision logPrecision;
+	extern TranscendentalPrecision expPrecision;
+	extern TranscendentalPrecision rcpPrecision;
+	extern TranscendentalPrecision rsqPrecision;
+
+	Vector4i::Vector4i()
+	{
+	}
+
+	Vector4i::Vector4i(unsigned short x, unsigned short y, unsigned short z, unsigned short w)
+	{
+		this->x = Short4(x);
+		this->y = Short4(y);
+		this->z = Short4(z);
+		this->w = Short4(w);
+	}
+
+	Vector4i::Vector4i(const Vector4i &rhs)
+	{
+		x = rhs.x;
+		y = rhs.y;
+		z = rhs.z;
+		w = rhs.w;
+	}
+
+	Vector4i &Vector4i::operator=(const Vector4i &rhs)
+	{
+		x = rhs.x;
+		y = rhs.y;
+		z = rhs.z;
+		w = rhs.w;
+
+		return *this;
+	}
+
+	Short4 &Vector4i::operator[](int i)
+	{
+		switch(i)
+		{
+		case 0: return x;
+		case 1: return y;
+		case 2: return z;
+		case 3: return w;
+		}
+
+		return x;
+	}
+
+	Vector4f::Vector4f()
+	{
+	}
+
+	Vector4f::Vector4f(float x, float y, float z, float w)
+	{
+		this->x = Float4(x);
+		this->y = Float4(y);
+		this->z = Float4(z);
+		this->w = Float4(w);
+	}
+
+	Vector4f::Vector4f(const Vector4f &rhs)
+	{
+		x = rhs.x;
+		y = rhs.y;
+		z = rhs.z;
+		w = rhs.w;
+	}
+
+	Vector4f &Vector4f::operator=(const Vector4f &rhs)
+	{
+		x = rhs.x;
+		y = rhs.y;
+		z = rhs.z;
+		w = rhs.w;
+
+		return *this;
+	}
+
+	Float4 &Vector4f::operator[](int i)
+	{
+		switch(i)
+		{
+		case 0: return x;
+		case 1: return y;
+		case 2: return z;
+		case 3: return w;
+		}
+
+		return x;
+	}
+
+	Float4 exponential2(RValue<Float4> x, bool pp)
+	{
+		Float4 x0;
+		Float4 x1;
+		Int4 x2;
+	
+		x0 = x;
+
+		x0 = Min(x0, As<Float4>(Int4(0x43010000)));   // 129.00000e+0f
+		x0 = Max(x0, As<Float4>(Int4(0xC2FDFFFF)));   // -126.99999e+0f
+		x1 = x0;
+		x1 -= Float4(0.5f);
+		x2 = RoundInt(x1);
+		x1 = Float4(x2);
+		x2 += Int4(0x0000007F);   // 127
+		x2 = x2 << 23;
+		x0 -= x1;
+		x1 = As<Float4>(Int4(0x3AF61905));   // 1.8775767e-3f
+		x1 *= x0;
+		x1 += As<Float4>(Int4(0x3C134806));   // 8.9893397e-3f
+		x1 *= x0;
+		x1 += As<Float4>(Int4(0x3D64AA23));   // 5.5826318e-2f
+		x1 *= x0;
+		x1 += As<Float4>(Int4(0x3E75EAD4));   // 2.4015361e-1f
+		x1 *= x0;
+		x1 += As<Float4>(Int4(0x3F31727B));   // 6.9315308e-1f
+		x1 *= x0;
+		x1 += As<Float4>(Int4(0x3F7FFFFF));   // 9.9999994e-1f
+		x1 *= As<Float4>(x2);
+			
+		return x1;
+	}
+
+	Float4 logarithm2(RValue<Float4> x, bool absolute, bool pp)
+	{
+		Float4 x0;
+		Float4 x1;
+		Float4 x2;
+		Float4 x3;
+		
+		x0 = x;
+		
+		x1 = As<Float4>(As<Int4>(x0) & Int4(0x7F800000));
+		x1 = As<Float4>(As<UInt4>(x1) >> 8);
+		x1 = As<Float4>(As<Int4>(x1) | As<Int4>(Float4(1.0f)));
+		x1 = (x1 - Float4(1.4960938f)) * Float4(256.0f);   // FIXME: (x1 - 1.4960938f) * 256.0f;
+		x0 = As<Float4>((As<Int4>(x0) & Int4(0x007FFFFF)) | As<Int4>(Float4(1.0f)));
+
+		x2 = (Float4(9.5428179e-2f) * x0 + Float4(4.7779095e-1f)) * x0 + Float4(1.9782813e-1f);
+		x3 = ((Float4(1.6618466e-2f) * x0 + Float4(2.0350508e-1f)) * x0 + Float4(2.7382900e-1f)) * x0 + Float4(4.0496687e-2f);
+		x2 /= x3;
+
+		x1 += (x0 - Float4(1.0f)) * x2;
+				
+		return x1;
+	}
+
+	Float4 exponential(RValue<Float4> x, bool pp)
+	{
+		// FIXME: Propagate the constant
+		return exponential2(Float4(1.44269541f) * x, pp);   // 1/ln(2)
+	}
+
+	Float4 logarithm(RValue<Float4> x, bool absolute, bool pp)
+	{
+		// FIXME: Propagate the constant
+		return Float4(6.93147181e-1f) * logarithm2(x, absolute, pp);   // ln(2)
+	}
+
+	Float4 power(RValue<Float4> x, RValue<Float4> y, bool pp)
+	{
+		Float4 log = logarithm2(x, true, pp);
+		log *= y;
+		return exponential2(log, pp);
+	}
+
+	Float4 reciprocal(RValue<Float4> x, bool pp, bool finite)
+	{
+		Float4 rcp;
+
+		if(!pp && rcpPrecision >= WHQL)
+		{
+			rcp = Float4(1.0f) / x;
+		}
+		else
+		{
+			rcp = Rcp_pp(x);
+
+			if(!pp)
+			{
+				rcp = (rcp + rcp) - (x * rcp * rcp);
+			}
+		}
+
+		if(finite)
+		{
+			int big = 0x7F7FFFFF;
+			rcp = Min(rcp, Float4((float&)big));
+		}
+
+		return rcp;
+	}
+
+	Float4 reciprocalSquareRoot(RValue<Float4> x, bool absolute, bool pp)
+	{
+		Float4 abs = x;
+
+		if(absolute)
+		{
+			abs = Abs(abs);
+		}
+
+		Float4 rsq;
+
+		if(!pp && rsqPrecision >= IEEE)
+		{
+			rsq = Float4(1.0f) / Sqrt(abs);
+		}
+		else
+		{
+			rsq = RcpSqrt_pp(abs);
+
+			if(!pp)
+			{
+				rsq = rsq * (Float4(3.0f) - rsq * rsq * abs) * Float4(0.5f);
+			}
+		}
+
+		int big = 0x7F7FFFFF;
+		rsq = Min(rsq, Float4((float&)big));
+
+		return rsq;
+	}
+
+	Float4 modulo(RValue<Float4> x, RValue<Float4> y)
+	{
+		return x - y * Floor(x / y);
+	}
+
+	Float4 sine_pi(RValue<Float4> x, bool pp)
+	{
+		const Float4 A = Float4(-4.05284734e-1f);   // -4/pi^2
+		const Float4 B = Float4(1.27323954e+0f);    // 4/pi
+		const Float4 C = Float4(7.75160950e-1f);
+		const Float4 D = Float4(2.24839049e-1f);
+
+		// Parabola approximating sine
+		Float4 sin = x * (Abs(x) * A + B);
+
+		// Improve precision from 0.06 to 0.001
+		if(true)
+		{
+			sin = sin * (Abs(sin) * D + C);
+		}
+
+		return sin;
+	}
+
+	Float4 cosine_pi(RValue<Float4> x, bool pp)
+	{
+		// cos(x) = sin(x + pi/2)
+		Float4 y = x + Float4(1.57079632e+0f);
+		
+		// Wrap around
+		y -= As<Float4>(CmpNLT(y, Float4(3.14159265e+0f)) & As<Int4>(Float4(6.28318530e+0f)));
+
+		return sine_pi(y, pp);
+	}
+
+	Float4 sine(RValue<Float4> x, bool pp)
+	{
+		// Reduce to [-0.5, 0.5] range
+		Float4 y = x * Float4(1.59154943e-1f);   // 1/2pi
+		y = y - Round(y);
+
+		const Float4 A = Float4(-16.0f);
+		const Float4 B = Float4(8.0f);
+		const Float4 C = Float4(7.75160950e-1f);
+		const Float4 D = Float4(2.24839049e-1f);
+
+		// Parabola approximating sine
+		Float4 sin = y * (Abs(y) * A + B);
+
+		// Improve precision from 0.06 to 0.001
+		if(true)
+		{
+			sin = sin * (Abs(sin) * D + C);
+		}
+
+		return sin;
+	}
+
+	Float4 cosine(RValue<Float4> x, bool pp)
+	{
+		// cos(x) = sin(x + pi/2)
+		Float4 y = x + Float4(1.57079632e+0f);
+		return sine(y, pp);
+	}
+
+	Float4 tangent(RValue<Float4> x, bool pp)
+	{
+		return sine(x, pp) / cosine(x, pp);
+	}
+
+	Float4 arccos(RValue<Float4> x, bool pp)
+	{
+		// pi/2 - arcsin(x)
+		return Float4(1.57079632e+0f) - arcsin(x);
+	}
+
+	Float4 arcsin(RValue<Float4> x, bool pp)
+	{
+		// x*(pi/2-sqrt(1-x*x)*pi/5)
+		return x * (Float4(1.57079632e+0f) - Sqrt(Float4(1.0f) - x*x) * Float4(6.28318531e-1f));
+	}
+
+	Float4 arctan(RValue<Float4> x, bool pp)
+	{
+		Int4 O = CmpNLT(Abs(x), Float4(1.0f));
+		Float4 y = As<Float4>(O & As<Int4>(Float4(1.0f) / x) | ~O & As<Int4>(x));   // FIXME: Vector select
+
+		// Approximation of atan in [-1..1]
+		Float4 theta = y * (Float4(-0.27f) * Abs(y) + Float4(1.05539816f));
+		
+		// +/-pi/2 depending on sign of x
+		Float4 sgnPi_2 = As<Float4>(As<Int4>(Float4(1.57079632e+0f)) ^ (As<Int4>(x) & Int4(0x80000000)));
+
+		theta = As<Float4>(O & As<Int4>(sgnPi_2 - theta) | ~O & As<Int4>(theta));   // FIXME: Vector select
+
+		return theta;
+	}
+
+	Float4 arctan(RValue<Float4> y, RValue<Float4> x, bool pp)
+	{
+		// Rotate to upper semicircle when in lower semicircle
+		Int4 S = CmpLT(y, Float4(0.0f));
+		Float4 theta = As<Float4>(S & As<Int4>(Float4(-3.14159265e+0f)));   // -pi
+		Float4 x0 = As<Float4>((As<Int4>(y) & Int4(0x80000000)) ^ As<Int4>(x));
+		Float4 y0 = Abs(y);
+
+		// Rotate to right quadrant when in left quadrant
+		Int4 Q = CmpLT(x0, Float4(0.0f));
+		theta += As<Float4>(Q & As<Int4>(Float4(1.57079632e+0f)));   // pi/2
+		Float4 x1 = As<Float4>(Q & As<Int4>(y0) | ~Q & As<Int4>(x0));    // FIXME: Vector select
+		Float4 y1 = As<Float4>(Q & As<Int4>(-x0) | ~Q & As<Int4>(y0));   // FIXME: Vector select
+
+		// Rotate to first octant when in second octant
+		Int4 O = CmpNLT(y1, x1);
+		theta += As<Float4>(O & As<Int4>(Float4(7.85398163e-1f)));   // pi/4
+		Float4 x2 = As<Float4>(O & As<Int4>(Float4(7.07106781e-1f) * x1 + Float4(7.07106781e-1f) * y1) | ~O & As<Int4>(x1));   // sqrt(2)/2   // FIXME: Vector select
+		Float4 y2 = As<Float4>(O & As<Int4>(Float4(7.07106781e-1f) * y1 - Float4(7.07106781e-1f) * x1) | ~O & As<Int4>(y1));   // FIXME: Vector select
+
+		// Approximation of atan in [0..1]
+		Float4 y_x = y2 / x2;
+		theta += y_x * (Float4(-0.27f) * y_x + Float4(1.05539816f));
+
+		return theta;
+	}
+
+	Float4 dot2(Vector4f &v0, Vector4f &v1)
+	{
+		return v0.x * v1.x + v0.y * v1.y;
+	}
+
+	Float4 dot3(Vector4f &v0, Vector4f &v1)
+	{
+		return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z;
+	}
+
+	Float4 dot4(Vector4f &v0, Vector4f &v1)
+	{
+		return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z + v0.w * v1.w;
+	}
+
+	void transpose4x4(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3)
+	{
+		Int2 tmp0 = UnpackHigh(row0, row1);
+		Int2 tmp1 = UnpackHigh(row2, row3);
+		Int2 tmp2 = UnpackLow(row0, row1);
+		Int2 tmp3 = UnpackLow(row2, row3);
+
+		row0 = As<Short4>(UnpackLow(tmp2, tmp3));
+		row1 = As<Short4>(UnpackHigh(tmp2, tmp3));
+		row2 = As<Short4>(UnpackLow(tmp0, tmp1));
+		row3 = As<Short4>(UnpackHigh(tmp0, tmp1));
+	}
+
+	void transpose4x4(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3)
+	{
+		Float4 tmp0 = UnpackLow(row0, row1);
+		Float4 tmp1 = UnpackLow(row2, row3);
+		Float4 tmp2 = UnpackHigh(row0, row1);
+		Float4 tmp3 = UnpackHigh(row2, row3);
+
+		row0 = Float4(tmp0.xy, tmp1.xy);
+		row1 = Float4(tmp0.zw, tmp1.zw);
+		row2 = Float4(tmp2.xy, tmp3.xy);
+		row3 = Float4(tmp2.zw, tmp3.zw);
+	}
+
+	void transpose4x3(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3)
+	{
+		Float4 tmp0 = UnpackLow(row0, row1);
+		Float4 tmp1 = UnpackLow(row2, row3);
+		Float4 tmp2 = UnpackHigh(row0, row1);
+		Float4 tmp3 = UnpackHigh(row2, row3);
+
+		row0 = Float4(tmp0.xy, tmp1.xy);
+		row1 = Float4(tmp0.zw, tmp1.zw);
+		row2 = Float4(tmp2.xy, tmp3.xy);
+	}
+
+	void transpose4x2(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3)
+	{
+		Float4 tmp0 = UnpackLow(row0, row1);
+		Float4 tmp1 = UnpackLow(row2, row3);
+
+		row0 = Float4(tmp0.xy, tmp1.xy);
+		row1 = Float4(tmp0.zw, tmp1.zw);
+	}
+
+	void transpose4x1(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3)
+	{
+		Float4 tmp0 = UnpackLow(row0, row1);
+		Float4 tmp1 = UnpackLow(row2, row3);
+
+		row0 = Float4(tmp0.xy, tmp1.xy);
+	}
+
+	void transpose2x4(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3)
+	{
+		row0 = UnpackLow(row0, row1);
+		row1 = Float4(row0.zw, row1.zw);
+		row2 = UnpackHigh(row0, row1);
+		row3 = Float4(row2.zw, row3.zw);
+	}
+
+	void transpose2x4h(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3)
+	{
+		row0 = UnpackLow(row2, row3);
+		row1 = Float4(row0.zw, row1.zw);
+		row2 = UnpackHigh(row2, row3);
+		row3 = Float4(row2.zw, row3.zw);
+	}
+
+	void transpose4xN(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3, int N)
+	{
+		switch(N)
+		{
+		case 1: transpose4x1(row0, row1, row2, row3); break;
+		case 2: transpose4x2(row0, row1, row2, row3); break;
+		case 3: transpose4x3(row0, row1, row2, row3); break;
+		case 4: transpose4x4(row0, row1, row2, row3); break;
+		}
+	}
+
+	void ShaderCore::mov(Vector4f &dst, Vector4f &src, bool floorToInteger)
 	{
 		if(floorToInteger)
 		{
@@ -27,7 +475,23 @@ namespace sw
 		}
 	}
 
-	void ShaderCore::add(Color4f &dst, Color4f &src0, Color4f &src1)
+	void ShaderCore::f2b(Vector4f &dst, Vector4f &src)
+	{
+		dst.x = As<Float4>(CmpNEQ(src.x, Float4(0.0f)));
+		dst.y = As<Float4>(CmpNEQ(src.y, Float4(0.0f)));
+		dst.z = As<Float4>(CmpNEQ(src.z, Float4(0.0f)));
+		dst.w = As<Float4>(CmpNEQ(src.w, Float4(0.0f)));
+	}
+
+	void ShaderCore::b2f(Vector4f &dst, Vector4f &src)
+	{
+		dst.x = As<Float4>(As<Int4>(src.x) & As<Int4>(Float4(1.0f)));
+		dst.y = As<Float4>(As<Int4>(src.y) & As<Int4>(Float4(1.0f)));
+		dst.z = As<Float4>(As<Int4>(src.z) & As<Int4>(Float4(1.0f)));
+		dst.w = As<Float4>(As<Int4>(src.w) & As<Int4>(Float4(1.0f)));
+	}
+
+	void ShaderCore::add(Vector4f &dst, Vector4f &src0, Vector4f &src1)
 	{
 		dst.x = src0.x + src1.x;
 		dst.y = src0.y + src1.y;
@@ -35,7 +499,7 @@ namespace sw
 		dst.w = src0.w + src1.w;
 	}
 
-	void ShaderCore::sub(Color4f &dst, Color4f &src0, Color4f &src1)
+	void ShaderCore::sub(Vector4f &dst, Vector4f &src0, Vector4f &src1)
 	{
 		dst.x = src0.x - src1.x;
 		dst.y = src0.y - src1.y;
@@ -43,7 +507,7 @@ namespace sw
 		dst.w = src0.w - src1.w;
 	}
 
-	void ShaderCore::mad(Color4f &dst, Color4f &src0, Color4f &src1, Color4f &src2)
+	void ShaderCore::mad(Vector4f &dst, Vector4f &src0, Vector4f &src1, Vector4f &src2)
 	{
 		dst.x = src0.x * src1.x + src2.x;
 		dst.y = src0.y * src1.y + src2.y;
@@ -51,7 +515,7 @@ namespace sw
 		dst.w = src0.w * src1.w + src2.w;
 	}
 
-	void ShaderCore::mul(Color4f &dst, Color4f &src0, Color4f &src1)
+	void ShaderCore::mul(Vector4f &dst, Vector4f &src0, Vector4f &src1)
 	{
 		dst.x = src0.x * src1.x;
 		dst.y = src0.y * src1.y;
@@ -59,7 +523,7 @@ namespace sw
 		dst.w = src0.w * src1.w;
 	}
 
-	void ShaderCore::rcp(Color4f &dst, Color4f &src, bool pp)
+	void ShaderCore::rcpx(Vector4f &dst, Vector4f &src, bool pp)
 	{
 		Float4 rcp = reciprocal(src.x, pp, true);
 
@@ -69,17 +533,126 @@ namespace sw
 		dst.w = rcp;
 	}
 
-	void ShaderCore::rsq(Color4f &dst, Color4f &src, bool pp)
+	void ShaderCore::div(Vector4f &dst, Vector4f &src0, Vector4f &src1)
+	{
+		dst.x = src0.x / src1.x;
+		dst.y = src0.y / src1.y;
+		dst.z = src0.z / src1.z;
+		dst.w = src0.w / src1.w;
+	}
+
+	void ShaderCore::mod(Vector4f &dst, Vector4f &src0, Vector4f &src1)
+	{
+		dst.x = modulo(src0.x, src1.x);
+		dst.y = modulo(src0.y, src1.y);
+		dst.z = modulo(src0.z, src1.z);
+		dst.w = modulo(src0.w, src1.w);
+	}
+
+	void ShaderCore::rsqx(Vector4f &dst, Vector4f &src, bool pp)
 	{
 		Float4 rsq = reciprocalSquareRoot(src.x, true, pp);
 
-		dst.r = rsq;
-		dst.g = rsq;
-		dst.b = rsq;
-		dst.a = rsq;
+		dst.x = rsq;
+		dst.y = rsq;
+		dst.z = rsq;
+		dst.w = rsq;
 	}
 
-	void ShaderCore::dp3(Color4f &dst, Color4f &src0, Color4f &src1)
+	void ShaderCore::sqrt(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = Sqrt(src.x);
+		dst.y = Sqrt(src.y);
+		dst.z = Sqrt(src.z);
+		dst.w = Sqrt(src.w);
+	}
+
+	void ShaderCore::rsq(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = reciprocalSquareRoot(src.x, false, pp);
+		dst.y = reciprocalSquareRoot(src.y, false, pp);
+		dst.z = reciprocalSquareRoot(src.z, false, pp);
+		dst.w = reciprocalSquareRoot(src.w, false, pp);
+	}
+
+	void ShaderCore::len2(Float4 &dst, Vector4f &src, bool pp)
+	{
+		dst = Sqrt(dot2(src, src));
+	}
+
+	void ShaderCore::len3(Float4 &dst, Vector4f &src, bool pp)
+	{
+		dst = Sqrt(dot3(src, src));
+	}
+
+	void ShaderCore::len4(Float4 &dst, Vector4f &src, bool pp)
+	{
+		dst = Sqrt(dot4(src, src));
+	}
+
+	void ShaderCore::dist1(Float4 &dst, Vector4f &src0, Vector4f &src1, bool pp)
+	{
+		dst = Abs(src0.x - src1.x);
+	}
+
+	void ShaderCore::dist2(Float4 &dst, Vector4f &src0, Vector4f &src1, bool pp)
+	{
+		Float4 dx = src0.x - src1.x;
+		Float4 dy = src0.y - src1.y;
+		Float4 dot2 = dx * dx + dy * dy;
+		dst = Sqrt(dot2);
+	}
+
+	void ShaderCore::dist3(Float4 &dst, Vector4f &src0, Vector4f &src1, bool pp)
+	{
+		Float4 dx = src0.x - src1.x;
+		Float4 dy = src0.y - src1.y;
+		Float4 dz = src0.z - src1.z;
+		Float4 dot3 = dx * dx + dy * dy + dz * dz;
+		dst = Sqrt(dot3);
+	}
+
+	void ShaderCore::dist4(Float4 &dst, Vector4f &src0, Vector4f &src1, bool pp)
+	{
+		Float4 dx = src0.x - src1.x;
+		Float4 dy = src0.y - src1.y;
+		Float4 dz = src0.z - src1.z;
+		Float4 dw = src0.w - src1.w;
+		Float4 dot4 = dx * dx + dy * dy + dz * dz + dw * dw;
+		dst = Sqrt(dot4);
+	}
+
+	void ShaderCore::dp1(Vector4f &dst, Vector4f &src0, Vector4f &src1)
+	{
+		Float4 t = src0.x * src1.x;
+
+		dst.x = t;
+		dst.y = t;
+		dst.z = t;
+		dst.w = t;
+	}
+
+	void ShaderCore::dp2(Vector4f &dst, Vector4f &src0, Vector4f &src1)
+	{
+		Float4 t = dot2(src0, src1);
+
+		dst.x = t;
+		dst.y = t;
+		dst.z = t;
+		dst.w = t;
+	}
+
+	void ShaderCore::dp2add(Vector4f &dst, Vector4f &src0, Vector4f &src1, Vector4f &src2)
+	{
+		Float4 t = dot2(src0, src1) + src2.x;
+
+		dst.x = t;
+		dst.y = t;
+		dst.z = t;
+		dst.w = t;
+	}
+
+	void ShaderCore::dp3(Vector4f &dst, Vector4f &src0, Vector4f &src1)
 	{
 		Float4 dot = dot3(src0, src1);
 
@@ -89,7 +662,7 @@ namespace sw
 		dst.w = dot;
 	}
 
-	void ShaderCore::dp4(Color4f &dst, Color4f &src0, Color4f &src1)
+	void ShaderCore::dp4(Vector4f &dst, Vector4f &src0, Vector4f &src1)
 	{
 		Float4 dot = dot4(src0, src1);
 
@@ -99,7 +672,7 @@ namespace sw
 		dst.w = dot;
 	}
 
-	void ShaderCore::min(Color4f &dst, Color4f &src0, Color4f &src1)
+	void ShaderCore::min(Vector4f &dst, Vector4f &src0, Vector4f &src1)
 	{
 		dst.x = Min(src0.x, src1.x);
 		dst.y = Min(src0.y, src1.y);
@@ -107,7 +680,7 @@ namespace sw
 		dst.w = Min(src0.w, src1.w);
 	}
 
-	void ShaderCore::max(Color4f &dst, Color4f &src0, Color4f &src1)
+	void ShaderCore::max(Vector4f &dst, Vector4f &src0, Vector4f &src1)
 	{
 		dst.x = Max(src0.x, src1.x);
 		dst.y = Max(src0.y, src1.y);
@@ -115,39 +688,25 @@ namespace sw
 		dst.w = Max(src0.w, src1.w);
 	}
 
-	void ShaderCore::slt(Color4f &dst, Color4f &src0, Color4f &src1)
+	void ShaderCore::slt(Vector4f &dst, Vector4f &src0, Vector4f &src1)
 	{
-		Int4 xMask = As<Int4>(CmpLT(src0.x, src1.x));
-		Int4 yMask = As<Int4>(CmpLT(src0.y, src1.y));
-		Int4 zMask = As<Int4>(CmpLT(src0.z, src1.z));
-		Int4 wMask = As<Int4>(CmpLT(src0.w, src1.w));
-
-		Int4 iOne = As<Int4>(Float4(1, 1, 1, 1));
-
-		dst.x = As<Float4>(xMask & iOne);
-		dst.y = As<Float4>(yMask & iOne);
-		dst.z = As<Float4>(zMask & iOne);
-		dst.w = As<Float4>(wMask & iOne);
+		dst.x = As<Float4>(As<Int4>(CmpLT(src0.x, src1.x)) & As<Int4>(Float4(1.0f)));
+		dst.y = As<Float4>(As<Int4>(CmpLT(src0.y, src1.y)) & As<Int4>(Float4(1.0f)));
+		dst.z = As<Float4>(As<Int4>(CmpLT(src0.z, src1.z)) & As<Int4>(Float4(1.0f)));
+		dst.w = As<Float4>(As<Int4>(CmpLT(src0.w, src1.w)) & As<Int4>(Float4(1.0f)));
 	}
 
-	void ShaderCore::sge(Color4f &dst, Color4f &src0, Color4f &src1)
+	void ShaderCore::step(Vector4f &dst, Vector4f &edge, Vector4f &x)
 	{
-		Int4 xMask = As<Int4>(CmpNLT(src0.x, src1.x));
-		Int4 yMask = As<Int4>(CmpNLT(src0.y, src1.y));
-		Int4 zMask = As<Int4>(CmpNLT(src0.z, src1.z));
-		Int4 wMask = As<Int4>(CmpNLT(src0.w, src1.w));
-
-		Int4 iOne = As<Int4>(Float4(1, 1, 1, 1));
-
-		dst.x = As<Float4>(xMask & iOne);
-		dst.y = As<Float4>(yMask & iOne);
-		dst.z = As<Float4>(zMask & iOne);
-		dst.w = As<Float4>(wMask & iOne);
+		dst.x = As<Float4>(CmpNLT(x.x, edge.x) & As<Int4>(Float4(1.0f)));
+		dst.y = As<Float4>(CmpNLT(x.y, edge.y) & As<Int4>(Float4(1.0f)));
+		dst.z = As<Float4>(CmpNLT(x.z, edge.z) & As<Int4>(Float4(1.0f)));
+		dst.w = As<Float4>(CmpNLT(x.w, edge.w) & As<Int4>(Float4(1.0f)));
 	}
 
-	void ShaderCore::exp(Color4f &dst, Color4f &src, bool pp)
+	void ShaderCore::exp2x(Vector4f &dst, Vector4f &src, bool pp)
 	{ 
-		Float4 exp = exponential(src.x, pp);
+		Float4 exp = exponential2(src.x, pp);
 
 		dst.x = exp;
 		dst.y = exp;
@@ -155,9 +714,25 @@ namespace sw
 		dst.w = exp;
 	}
 
-	void ShaderCore::log(Color4f &dst, Color4f &src, bool pp)
+	void ShaderCore::exp2(Vector4f &dst, Vector4f &src, bool pp)
 	{
-		Float4 log = logarithm(src.x, true, pp);
+		dst.x = exponential2(src.x, pp);
+		dst.y = exponential2(src.y, pp);
+		dst.z = exponential2(src.z, pp);
+		dst.w = exponential2(src.w, pp);
+	}
+
+	void ShaderCore::exp(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = exponential(src.x, pp);
+		dst.y = exponential(src.y, pp);
+		dst.z = exponential(src.z, pp);
+		dst.w = exponential(src.w, pp);
+	}
+
+	void ShaderCore::log2x(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		Float4 log = logarithm2(src.x, true, pp);
 
 		dst.x = log;
 		dst.y = log;
@@ -165,33 +740,50 @@ namespace sw
 		dst.w = log;
 	}
 
-	void ShaderCore::lit(Color4f &dst, Color4f &src)
+	void ShaderCore::log2(Vector4f &dst, Vector4f &src, bool pp)
 	{
-		dst.x = Float4(1.0f, 1.0f, 1.0f, 1.0f);
-		dst.y = Max(src.x, Float4(0.0f, 0.0f, 0.0f, 0.0f));
+		dst.x = logarithm2(src.x, pp);
+		dst.y = logarithm2(src.y, pp);
+		dst.z = logarithm2(src.z, pp);
+		dst.w = logarithm2(src.w, pp);
+	}
+
+	void ShaderCore::log(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = logarithm(src.x, false, pp);
+		dst.y = logarithm(src.y, false, pp);
+		dst.z = logarithm(src.z, false, pp);
+		dst.w = logarithm(src.w, false, pp);
+	}
+
+	void ShaderCore::lit(Vector4f &dst, Vector4f &src)
+	{
+		dst.x = Float4(1.0f);
+		dst.y = Max(src.x, Float4(0.0f));
 
 		Float4 pow;
 
 		pow = src.w;
-		pow = Min(pow, Float4(127.9961f, 127.9961f, 127.9961f, 127.9961f));
-		pow = Max(pow, Float4(-127.9961f, -127.9961f, -127.9961f, -127.9961f));
+		pow = Min(pow, Float4(127.9961f));
+		pow = Max(pow, Float4(-127.9961f));
 
 		dst.z = power(src.y, pow);
-		dst.z = As<Float4>(As<Int4>(dst.z) & CmpNLT(src.x, Float4(0.0f, 0.0f, 0.0f, 0.0f)));
-		dst.z = As<Float4>(As<Int4>(dst.z) & CmpNLT(src.y, Float4(0.0f, 0.0f, 0.0f, 0.0f)));
+		dst.z = As<Float4>(As<Int4>(dst.z) & CmpNLT(src.x, Float4(0.0f)));
+		dst.z = As<Float4>(As<Int4>(dst.z) & CmpNLT(src.y, Float4(0.0f)));
 
-		dst.w = Float4(1.0f, 1.0f, 1.0f, 1.0f);
+		dst.w = Float4(1.0f);
 	}
 
-	void ShaderCore::dst(Color4f &dst, Color4f &src0, Color4f &src1)
+	void ShaderCore::att(Vector4f &dst, Vector4f &src0, Vector4f &src1)
 	{
+		// Computes attenuation factors (1, d, d^2, 1/d) assuming src0 = d^2, src1 = 1/d
 		dst.x = 1;
 		dst.y = src0.y * src1.y;
 		dst.z = src0.z;
 		dst.w = src1.w;
 	}
 
-	void ShaderCore::lrp(Color4f &dst, Color4f &src0, Color4f &src1, Color4f &src2)
+	void ShaderCore::lrp(Vector4f &dst, Vector4f &src0, Vector4f &src1, Vector4f &src2)
 	{
 		dst.x = src0.x * (src1.x - src2.x) + src2.x;
 		dst.y = src0.y * (src1.y - src2.y) + src2.y;
@@ -199,15 +791,47 @@ namespace sw
 		dst.w = src0.w * (src1.w - src2.w) + src2.w;
 	}
 
-	void ShaderCore::frc(Color4f &dst, Color4f &src)
+	void ShaderCore::smooth(Vector4f &dst, Vector4f &edge0, Vector4f &edge1, Vector4f &x)
 	{
-		dst.x = Fraction(src.x);
-		dst.y = Fraction(src.y);
-		dst.z = Fraction(src.z);
-		dst.w = Fraction(src.w);
+		Float4 tx = Min(Max((x.x - edge0.x) / (edge1.x - edge0.x), Float4(0.0f)), Float4(1.0f)); dst.x = tx * tx * (Float4(3.0f) - Float4(2.0f) * tx);
+		Float4 ty = Min(Max((x.y - edge0.y) / (edge1.y - edge0.y), Float4(0.0f)), Float4(1.0f)); dst.y = ty * ty * (Float4(3.0f) - Float4(2.0f) * ty);
+		Float4 tz = Min(Max((x.z - edge0.z) / (edge1.z - edge0.z), Float4(0.0f)), Float4(1.0f)); dst.z = tz * tz * (Float4(3.0f) - Float4(2.0f) * tz);
+		Float4 tw = Min(Max((x.w - edge0.w) / (edge1.w - edge0.w), Float4(0.0f)), Float4(1.0f)); dst.w = tw * tw * (Float4(3.0f) - Float4(2.0f) * tw);
 	}
 
-	void ShaderCore::pow(Color4f &dst, Color4f &src0, Color4f &src1, bool pp)
+	void ShaderCore::frc(Vector4f &dst, Vector4f &src)
+	{
+		dst.x = Frac(src.x);
+		dst.y = Frac(src.y);
+		dst.z = Frac(src.z);
+		dst.w = Frac(src.w);
+	}
+
+	void ShaderCore::trunc(Vector4f &dst, Vector4f &src)
+	{
+		dst.x = Trunc(src.x);
+		dst.y = Trunc(src.y);
+		dst.z = Trunc(src.z);
+		dst.w = Trunc(src.w);
+	}
+
+	void ShaderCore::floor(Vector4f &dst, Vector4f &src)
+	{
+		dst.x = Floor(src.x);
+		dst.y = Floor(src.y);
+		dst.z = Floor(src.z);
+		dst.w = Floor(src.w);
+	}
+
+	void ShaderCore::ceil(Vector4f &dst, Vector4f &src)
+	{
+		dst.x = Ceil(src.x);
+		dst.y = Ceil(src.y);
+		dst.z = Ceil(src.z);
+		dst.w = Ceil(src.w);
+	}
+
+	void ShaderCore::powx(Vector4f &dst, Vector4f &src0, Vector4f &src1, bool pp)
 	{
 		Float4 pow = power(src0.x, src1.x, pp);
 
@@ -217,14 +841,136 @@ namespace sw
 		dst.w = pow;
 	}
 
-	void ShaderCore::crs(Color4f &dst, Color4f &src0, Color4f &src1)
+	void ShaderCore::pow(Vector4f &dst, Vector4f &src0, Vector4f &src1, bool pp)
+	{
+		dst.x = power(src0.x, src1.x, pp);
+		dst.y = power(src0.y, src1.y, pp);
+		dst.z = power(src0.z, src1.z, pp);
+		dst.w = power(src0.w, src1.w, pp);
+	}
+
+	void ShaderCore::crs(Vector4f &dst, Vector4f &src0, Vector4f &src1)
 	{
 		dst.x = src0.y * src1.z - src0.z * src1.y;
 		dst.y = src0.z * src1.x - src0.x * src1.z;
 		dst.z = src0.x * src1.y - src0.y * src1.x;
 	}
 
-	void ShaderCore::sgn(Color4f &dst, Color4f &src)
+	void ShaderCore::forward1(Vector4f &dst, Vector4f &N, Vector4f &I, Vector4f &Nref)
+	{
+		Int4 flip = CmpNLT(Nref.x * I.x, Float4(0.0f)) & Int4(0x80000000);
+
+		dst.x =  As<Float4>(flip ^ As<Int4>(N.x));
+	}
+
+	void ShaderCore::forward2(Vector4f &dst, Vector4f &N, Vector4f &I, Vector4f &Nref)
+	{
+		Int4 flip = CmpNLT(dot2(Nref, I), Float4(0.0f)) & Int4(0x80000000);
+
+		dst.x =  As<Float4>(flip ^ As<Int4>(N.x));
+		dst.y =  As<Float4>(flip ^ As<Int4>(N.y));
+	}
+
+	void ShaderCore::forward3(Vector4f &dst, Vector4f &N, Vector4f &I, Vector4f &Nref)
+	{
+		Int4 flip = CmpNLT(dot3(Nref, I), Float4(0.0f)) & Int4(0x80000000);
+
+		dst.x =  As<Float4>(flip ^ As<Int4>(N.x));
+		dst.y =  As<Float4>(flip ^ As<Int4>(N.y));
+		dst.z =  As<Float4>(flip ^ As<Int4>(N.z));
+	}
+
+	void ShaderCore::forward4(Vector4f &dst, Vector4f &N, Vector4f &I, Vector4f &Nref)
+	{
+		Int4 flip = CmpNLT(dot4(Nref, I), Float4(0.0f)) & Int4(0x80000000);
+
+		dst.x =  As<Float4>(flip ^ As<Int4>(N.x));
+		dst.y =  As<Float4>(flip ^ As<Int4>(N.y));
+		dst.z =  As<Float4>(flip ^ As<Int4>(N.z));
+		dst.w =  As<Float4>(flip ^ As<Int4>(N.w));
+	}
+	
+	void ShaderCore::reflect1(Vector4f &dst, Vector4f &I, Vector4f &N)
+	{
+		Float4 d = N.x * I.x;
+
+		dst.x = I.x - Float4(2.0f) * d * N.x;
+	}
+
+	void ShaderCore::reflect2(Vector4f &dst, Vector4f &I, Vector4f &N)
+	{
+		Float4 d = dot2(N, I);
+
+		dst.x = I.x - Float4(2.0f) * d * N.x;
+		dst.y = I.y - Float4(2.0f) * d * N.y;
+	}
+
+	void ShaderCore::reflect3(Vector4f &dst, Vector4f &I, Vector4f &N)
+	{
+		Float4 d = dot3(N, I);
+
+		dst.x = I.x - Float4(2.0f) * d * N.x;
+		dst.y = I.y - Float4(2.0f) * d * N.y;
+		dst.z = I.z - Float4(2.0f) * d * N.z;
+	}
+
+	void ShaderCore::reflect4(Vector4f &dst, Vector4f &I, Vector4f &N)
+	{
+		Float4 d = dot4(N, I);
+
+		dst.x = I.x - Float4(2.0f) * d * N.x;
+		dst.y = I.y - Float4(2.0f) * d * N.y;
+		dst.z = I.z - Float4(2.0f) * d * N.z;
+		dst.w = I.w - Float4(2.0f) * d * N.w;
+	}
+
+	void ShaderCore::refract1(Vector4f &dst, Vector4f &I, Vector4f &N, Float4 &eta)
+	{
+		Float4 d = N.x * I.x;
+		Float4 k = Float4(1.0f) - eta * eta * (Float4(1.0f) - d * d);
+		Int4 pos = CmpNLT(k, Float4(0.0f));
+		Float4 t = (eta * d + Sqrt(k));
+
+		dst.x = As<Float4>(pos & As<Int4>(eta * I.x - t * N.x));
+	}
+
+	void ShaderCore::refract2(Vector4f &dst, Vector4f &I, Vector4f &N, Float4 &eta)
+	{
+		Float4 d = dot2(N, I);
+		Float4 k = Float4(1.0f) - eta * eta * (Float4(1.0f) - d * d);
+		Int4 pos = CmpNLT(k, Float4(0.0f));
+		Float4 t = (eta * d + Sqrt(k));
+
+		dst.x = As<Float4>(pos & As<Int4>(eta * I.x - t * N.x));
+		dst.y = As<Float4>(pos & As<Int4>(eta * I.y - t * N.y));
+	}
+
+	void ShaderCore::refract3(Vector4f &dst, Vector4f &I, Vector4f &N, Float4 &eta)
+	{
+		Float4 d = dot3(N, I);
+		Float4 k = Float4(1.0f) - eta * eta * (Float4(1.0f) - d * d);
+		Int4 pos = CmpNLT(k, Float4(0.0f));
+		Float4 t = (eta * d + Sqrt(k));
+
+		dst.x = As<Float4>(pos & As<Int4>(eta * I.x - t * N.x));
+		dst.y = As<Float4>(pos & As<Int4>(eta * I.y - t * N.y));
+		dst.z = As<Float4>(pos & As<Int4>(eta * I.z - t * N.z));
+	}
+
+	void ShaderCore::refract4(Vector4f &dst, Vector4f &I, Vector4f &N, Float4 &eta)
+	{
+		Float4 d = dot4(N, I);
+		Float4 k = Float4(1.0f) - eta * eta * (Float4(1.0f) - d * d);
+		Int4 pos = CmpNLT(k, Float4(0.0f));
+		Float4 t = (eta * d + Sqrt(k));
+
+		dst.x = As<Float4>(pos & As<Int4>(eta * I.x - t * N.x));
+		dst.y = As<Float4>(pos & As<Int4>(eta * I.y - t * N.y));
+		dst.z = As<Float4>(pos & As<Int4>(eta * I.z - t * N.z));
+		dst.w = As<Float4>(pos & As<Int4>(eta * I.w - t * N.w));
+	}
+
+	void ShaderCore::sgn(Vector4f &dst, Vector4f &src)
 	{
 		sgn(dst.x, src.x);
 		sgn(dst.y, src.y);
@@ -232,15 +978,26 @@ namespace sw
 		sgn(dst.w, src.w);
 	}
 
-	void ShaderCore::abs(Color4f &dst, Color4f &src)
+	void ShaderCore::abs(Vector4f &dst, Vector4f &src)
 	{
 		dst.x = Abs(src.x);
 		dst.y = Abs(src.y);
 		dst.z = Abs(src.z);
 		dst.w = Abs(src.w);
 	}
+	
+	void ShaderCore::nrm2(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		Float4 dot = dot2(src, src);
+		Float4 rsq = reciprocalSquareRoot(dot, false, pp);
 
-	void ShaderCore::nrm(Color4f &dst, Color4f &src, bool pp)
+		dst.x = src.x * rsq;
+		dst.y = src.y * rsq;
+		dst.z = src.z * rsq;
+		dst.w = src.w * rsq;
+	}
+
+	void ShaderCore::nrm3(Vector4f &dst, Vector4f &src, bool pp)
 	{
 		Float4 dot = dot3(src, src);
 		Float4 rsq = reciprocalSquareRoot(dot, false, pp);
@@ -250,42 +1007,99 @@ namespace sw
 		dst.z = src.z * rsq;
 		dst.w = src.w * rsq;
 	}
-	
-	void ShaderCore::sincos(Color4f &dst, Color4f &src, bool pp)
+
+	void ShaderCore::nrm4(Vector4f &dst, Vector4f &src, bool pp)
 	{
-		Float4 tmp0;
-		Float4 tmp1;
+		Float4 dot = dot4(src, src);
+		Float4 rsq = reciprocalSquareRoot(dot, false, pp);
 
-		tmp0 = src.x;
-
-		// cos(x) = sin(x + pi/2)
-		tmp0 += Float4(1.57079632e+0f);
-		tmp1 = As<Float4>(CmpNLT(tmp0, Float4(3.14159265e+0f)) & As<Int4>(Float4(6.28318530e+0f)));
-		tmp0 -= tmp1;
-
-		dst.x = sine(tmp0, pp);
-		dst.y = sine(src.x, pp);
+		dst.x = src.x * rsq;
+		dst.y = src.y * rsq;
+		dst.z = src.z * rsq;
+		dst.w = src.w * rsq;
+	}
+	
+	void ShaderCore::sincos(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = cosine_pi(src.x, pp);
+		dst.y = sine_pi(src.x, pp);
 	}
 
-	void ShaderCore::expp(Color4f &dst, Color4f &src, unsigned short version)
+	void ShaderCore::cos(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = cosine(src.x, pp);
+		dst.y = cosine(src.y, pp);
+		dst.z = cosine(src.z, pp);
+		dst.w = cosine(src.w, pp);
+	}
+
+	void ShaderCore::sin(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = sine(src.x, pp);
+		dst.y = sine(src.y, pp);
+		dst.z = sine(src.z, pp);
+		dst.w = sine(src.w, pp);
+	}
+
+	void ShaderCore::tan(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = tangent(src.x, pp);
+		dst.y = tangent(src.y, pp);
+		dst.z = tangent(src.z, pp);
+		dst.w = tangent(src.w, pp);
+	}
+
+	void ShaderCore::acos(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = arccos(src.x, pp);
+		dst.y = arccos(src.y, pp);
+		dst.z = arccos(src.z, pp);
+		dst.w = arccos(src.w, pp);
+	}
+
+	void ShaderCore::asin(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = arcsin(src.x, pp);
+		dst.y = arcsin(src.y, pp);
+		dst.z = arcsin(src.z, pp);
+		dst.w = arcsin(src.w, pp);
+	}
+
+	void ShaderCore::atan(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = arctan(src.x, pp);
+		dst.y = arctan(src.y, pp);
+		dst.z = arctan(src.z, pp);
+		dst.w = arctan(src.w, pp);
+	}
+
+	void ShaderCore::atan2(Vector4f &dst, Vector4f &src0, Vector4f &src1, bool pp)
+	{
+		dst.x = arctan(src0.x, src1.x, pp);
+		dst.y = arctan(src0.y, src1.y, pp);
+		dst.z = arctan(src0.z, src1.z, pp);
+		dst.w = arctan(src0.w, src1.w, pp);
+	}
+
+	void ShaderCore::expp(Vector4f &dst, Vector4f &src, unsigned short version)
 	{
 		if(version < 0x0200)
 		{
-			Float4 frc = Fraction(src.x);
+			Float4 frc = Frac(src.x);
 			Float4 floor = src.x - frc;
 
-			dst.x = exponential(floor, true);
+			dst.x = exponential2(floor, true);
 			dst.y = frc;
-			dst.z = exponential(src.x, true);
-			dst.w = Float4(1.0f, 1.0f, 1.0f, 1.0f);
+			dst.z = exponential2(src.x, true);
+			dst.w = Float4(1.0f);
 		}
 		else   // Version >= 2.0
 		{
-			exp(dst, src, true);   // FIXME: 10-bit precision suffices
+			exp2x(dst, src, true);   // FIXME: 10-bit precision suffices
 		}
 	}
 	
-	void ShaderCore::logp(Color4f &dst, Color4f &src, unsigned short version)
+	void ShaderCore::logp(Vector4f &dst, Vector4f &src, unsigned short version)
 	{
 		if(version < 0x0200)
 		{
@@ -298,92 +1112,109 @@ namespace sw
 			tmp1 = tmp0;
 
 			// X component
-			r = As<Int4>(As<UInt4>(tmp0) >> 23) - Int4(127, 127, 127, 127);
+			r = As<Int4>(As<UInt4>(tmp0) >> 23) - Int4(127);
 			dst.x = Float4(r);
 
 			// Y component
 			dst.y = As<Float4>((As<Int4>(tmp1) & Int4(0x007FFFFF)) | As<Int4>(Float4(1.0f)));
 
 			// Z component
-			dst.z = logarithm(src.x, true, true);
+			dst.z = logarithm2(src.x, true, true);
 
 			// W component
 			dst.w = 1.0f;
 		}
 		else
 		{
-			log(dst, src, true);
+			log2x(dst, src, true);
 		}
 	}
 	
-	void ShaderCore::cmp(Color4f &dst, Color4f &src0, Color4f &src1, Color4f &src2)
+	void ShaderCore::cmp0(Vector4f &dst, Vector4f &src0, Vector4f &src1, Vector4f &src2)
 	{
-		cmp(dst.x, src0.x, src1.x, src2.x);
-		cmp(dst.y, src0.y, src1.y, src2.y);
-		cmp(dst.z, src0.z, src1.z, src2.z);
-		cmp(dst.w, src0.w, src1.w, src2.w);
+		cmp0(dst.x, src0.x, src1.x, src2.x);
+		cmp0(dst.y, src0.y, src1.y, src2.y);
+		cmp0(dst.z, src0.z, src1.z, src2.z);
+		cmp0(dst.w, src0.w, src1.w, src2.w);
 	}
-	
-	void ShaderCore::dp2add(Color4f &dst, Color4f &src0, Color4f &src1, Color4f &src2)
-	{
-		Float4 t = src0.x * src1.x + src0.y * src1.y + src2.x;
 
-		dst.x = t;
-		dst.y = t;
-		dst.z = t;
-		dst.w = t;
+	void ShaderCore::select(Vector4f &dst, Vector4f &src0, Vector4f &src1, Vector4f &src2)
+	{
+		select(dst.x, As<Int4>(src0.x), src1.x, src2.x);
+		select(dst.y, As<Int4>(src0.y), src1.y, src2.y);
+		select(dst.z, As<Int4>(src0.z), src1.z, src2.z);
+		select(dst.w, As<Int4>(src0.w), src1.w, src2.w);
+	}
+
+	void ShaderCore::extract(Float4 &dst, Vector4f &src0, Float4 &src1)
+	{
+		select(dst, CmpEQ(src1, Float4(1.0f)), src0.y, src0.x);
+		select(dst, CmpEQ(src1, Float4(2.0f)), src0.z, dst);
+		select(dst, CmpEQ(src1, Float4(3.0f)), src0.w, dst);
+	}
+
+	void ShaderCore::insert(Vector4f &dst, Vector4f &src, Float4 &element, Float4 &index)
+	{
+		select(dst.x, CmpEQ(index, Float4(0.0f)), element, src.x);
+		select(dst.y, CmpEQ(index, Float4(1.0f)), element, src.y);
+		select(dst.z, CmpEQ(index, Float4(2.0f)), element, src.z);
+		select(dst.w, CmpEQ(index, Float4(3.0f)), element, src.w);
 	}
 
 	void ShaderCore::sgn(Float4 &dst, Float4 &src)
 	{
-		Int4 neg = As<Int4>(CmpLT(src, Float4(0, 0, 0, 0))) & As<Int4>(Float4(-1, -1, -1, -1));
-		Int4 pos = As<Int4>(CmpNLT(src, Float4(0, 0, 0, 0))) & As<Int4>(Float4(1, 1, 1, 1));
+		Int4 neg = As<Int4>(CmpLT(src, Float4(-0.0f))) & As<Int4>(Float4(-1.0f));
+		Int4 pos = As<Int4>(CmpNLE(src, Float4(+0.0f))) & As<Int4>(Float4(1.0f));
 		dst = As<Float4>(neg | pos);
 	}
 
-	void ShaderCore::cmp(Float4 &dst, Float4 &src0, Float4 &src1, Float4 &src2)
+	void ShaderCore::cmp0(Float4 &dst, Float4 &src0, Float4 &src1, Float4 &src2)
 	{
-		Int4 pos = CmpNLE(Float4(0.0f, 0.0f, 0.0f, 0.0f), src0);
-		Int4 t0 = pos & As<Int4>(src2);
-		Int4 t1 = ~pos & As<Int4>(src1);
-		dst = As<Float4>(t0 | t1);
+		Int4 pos = CmpLE(Float4(0.0f), src0);
+		select(dst, pos, src1, src2);
 	}
 
-	void ShaderCore::setp(Color4f &dst, Color4f &src0, Color4f &src1, Control control)
+	void ShaderCore::select(Float4 &dst, RValue<Int4> src0, Float4 &src1, Float4 &src2)
+	{
+		// FIXME: LLVM vector select
+		dst = As<Float4>(src0 & As<Int4>(src1) | ~src0 & As<Int4>(src2));
+	}
+
+	void ShaderCore::cmp(Vector4f &dst, Vector4f &src0, Vector4f &src1, Control control)
 	{
 		switch(control)
 		{
-		case Op::CONTROL_GT:
+		case Shader::CONTROL_GT:
 			dst.x = As<Float4>(CmpNLE(src0.x, src1.x));
 			dst.y = As<Float4>(CmpNLE(src0.y, src1.y));
 			dst.z = As<Float4>(CmpNLE(src0.z, src1.z));
 			dst.w = As<Float4>(CmpNLE(src0.w, src1.w));
 			break;
-		case Op::CONTROL_EQ:
+		case Shader::CONTROL_EQ:
 			dst.x = As<Float4>(CmpEQ(src0.x, src1.x));
 			dst.y = As<Float4>(CmpEQ(src0.y, src1.y));
 			dst.z = As<Float4>(CmpEQ(src0.z, src1.z));
 			dst.w = As<Float4>(CmpEQ(src0.w, src1.w));
 			break;
-		case Op::CONTROL_GE:
+		case Shader::CONTROL_GE:
 			dst.x = As<Float4>(CmpNLT(src0.x, src1.x));
 			dst.y = As<Float4>(CmpNLT(src0.y, src1.y));
 			dst.z = As<Float4>(CmpNLT(src0.z, src1.z));
 			dst.w = As<Float4>(CmpNLT(src0.w, src1.w));
 			break;
-		case Op::CONTROL_LT:
+		case Shader::CONTROL_LT:
 			dst.x = As<Float4>(CmpLT(src0.x, src1.x));
 			dst.y = As<Float4>(CmpLT(src0.y, src1.y));
 			dst.z = As<Float4>(CmpLT(src0.z, src1.z));
 			dst.w = As<Float4>(CmpLT(src0.w, src1.w));
 			break;
-		case Op::CONTROL_NE:
+		case Shader::CONTROL_NE:
 			dst.x = As<Float4>(CmpNEQ(src0.x, src1.x));
 			dst.y = As<Float4>(CmpNEQ(src0.y, src1.y));
 			dst.z = As<Float4>(CmpNEQ(src0.z, src1.z));
 			dst.w = As<Float4>(CmpNEQ(src0.w, src1.w));
 			break;
-		case Op::CONTROL_LE:
+		case Shader::CONTROL_LE:
 			dst.x = As<Float4>(CmpLE(src0.x, src1.x));
 			dst.y = As<Float4>(CmpLE(src0.y, src1.y));
 			dst.z = As<Float4>(CmpLE(src0.z, src1.z));
@@ -392,5 +1223,83 @@ namespace sw
 		default:
 			ASSERT(false);
 		}
+	}
+
+	void ShaderCore::icmp(Vector4f &dst, Vector4f &src0, Vector4f &src1, Control control)
+	{
+		switch(control)
+		{
+		case Shader::CONTROL_GT:
+			dst.x = As<Float4>(CmpNLE(As<Int4>(src0.x), As<Int4>(src1.x)));
+			dst.y = As<Float4>(CmpNLE(As<Int4>(src0.y), As<Int4>(src1.y)));
+			dst.z = As<Float4>(CmpNLE(As<Int4>(src0.z), As<Int4>(src1.z)));
+			dst.w = As<Float4>(CmpNLE(As<Int4>(src0.w), As<Int4>(src1.w)));
+			break;
+		case Shader::CONTROL_EQ:
+			dst.x = As<Float4>(CmpEQ(As<Int4>(src0.x), As<Int4>(src1.x)));
+			dst.y = As<Float4>(CmpEQ(As<Int4>(src0.y), As<Int4>(src1.y)));
+			dst.z = As<Float4>(CmpEQ(As<Int4>(src0.z), As<Int4>(src1.z)));
+			dst.w = As<Float4>(CmpEQ(As<Int4>(src0.w), As<Int4>(src1.w)));
+			break;
+		case Shader::CONTROL_GE:
+			dst.x = As<Float4>(CmpNLT(As<Int4>(src0.x), As<Int4>(src1.x)));
+			dst.y = As<Float4>(CmpNLT(As<Int4>(src0.y), As<Int4>(src1.y)));
+			dst.z = As<Float4>(CmpNLT(As<Int4>(src0.z), As<Int4>(src1.z)));
+			dst.w = As<Float4>(CmpNLT(As<Int4>(src0.w), As<Int4>(src1.w)));
+			break;
+		case Shader::CONTROL_LT:
+			dst.x = As<Float4>(CmpLT(As<Int4>(src0.x), As<Int4>(src1.x)));
+			dst.y = As<Float4>(CmpLT(As<Int4>(src0.y), As<Int4>(src1.y)));
+			dst.z = As<Float4>(CmpLT(As<Int4>(src0.z), As<Int4>(src1.z)));
+			dst.w = As<Float4>(CmpLT(As<Int4>(src0.w), As<Int4>(src1.w)));
+			break;
+		case Shader::CONTROL_NE:
+			dst.x = As<Float4>(CmpNEQ(As<Int4>(src0.x), As<Int4>(src1.x)));
+			dst.y = As<Float4>(CmpNEQ(As<Int4>(src0.y), As<Int4>(src1.y)));
+			dst.z = As<Float4>(CmpNEQ(As<Int4>(src0.z), As<Int4>(src1.z)));
+			dst.w = As<Float4>(CmpNEQ(As<Int4>(src0.w), As<Int4>(src1.w)));
+			break;
+		case Shader::CONTROL_LE:
+			dst.x = As<Float4>(CmpLE(As<Int4>(src0.x), As<Int4>(src1.x)));
+			dst.y = As<Float4>(CmpLE(As<Int4>(src0.y), As<Int4>(src1.y)));
+			dst.z = As<Float4>(CmpLE(As<Int4>(src0.z), As<Int4>(src1.z)));
+			dst.w = As<Float4>(CmpLE(As<Int4>(src0.w), As<Int4>(src1.w)));
+			break;
+		default:
+			ASSERT(false);
+		}
+	}
+
+	void ShaderCore::all(Float4 &dst, Vector4f &src)
+	{
+		dst = As<Float4>(As<Int4>(src.x) & As<Int4>(src.y) & As<Int4>(src.z) & As<Int4>(src.w));
+	}
+
+	void ShaderCore::any(Float4 &dst, Vector4f &src)
+	{
+		dst = As<Float4>(As<Int4>(src.x) | As<Int4>(src.y) | As<Int4>(src.z) | As<Int4>(src.w));
+	}
+
+	void ShaderCore::not(Vector4f &dst, Vector4f &src)
+	{
+		dst.x = As<Float4>(As<Int4>(src.x) ^ Int4(0xFFFFFFFF));
+		dst.y = As<Float4>(As<Int4>(src.y) ^ Int4(0xFFFFFFFF));
+		dst.z = As<Float4>(As<Int4>(src.z) ^ Int4(0xFFFFFFFF));
+		dst.w = As<Float4>(As<Int4>(src.w) ^ Int4(0xFFFFFFFF));
+	}
+
+	void ShaderCore::or(Float4 &dst, Float4 &src0, Float4 &src1)
+	{
+		dst = As<Float4>(As<Int4>(src0) | As<Int4>(src1));
+	}
+
+	void ShaderCore::xor(Float4 &dst, Float4 &src0, Float4 &src1)
+	{
+		dst = As<Float4>(As<Int4>(src0) ^ As<Int4>(src1));
+	}
+
+	void ShaderCore::and(Float4 &dst, Float4 &src0, Float4 &src1)
+	{
+		dst = As<Float4>(As<Int4>(src0) & As<Int4>(src1));
 	}
 }

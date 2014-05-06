@@ -6,7 +6,7 @@
 #
 # You can specify TARGETS=ppc (or i386) on the buildit command line to limit the
 # build to just one target. The default is for ppc and i386. The compiler
-# targetted at this host gets built anyway, but not installed unless it's listed
+# targeted at this host gets built anyway, but not installed unless it's listed
 # in TARGETS.
 
 # Include the set of standard Apple makefile definitions.
@@ -71,14 +71,18 @@ install: $(OBJROOT) $(SYMROOT) $(DSTROOT)
 	    $(RC_ProjectSourceVersion) $(RC_ProjectSourceSubversion) 
 
 EmbeddedHosted:
-	$(MAKE) ARM_HOSTED_BUILD=yes PREFIX=/usr install
+	$(MAKE) ARM_HOSTED_BUILD=yes PREFIX=/usr/local install
 
 # When building for the iOS simulator, MACOSX_DEPLOYMENT_TARGET is not set
 # by default, but it needs to be set when building tools that run on the host
 # (e.g., tblgen), so set it here.
 EmbeddedSim:
 	export MACOSX_DEPLOYMENT_TARGET=`sw_vers -productVersion`; \
-	$(MAKE) IOS_SIM_BUILD=yes PREFIX=$(SDKROOT)/usr install
+	$(MAKE) IOS_SIM_BUILD=yes PREFIX=$(SDKROOT)/usr/local install
+
+Embedded:
+	ARM_PLATFORM=`xcodebuild -version -sdk iphoneos PlatformPath` && \
+	$(MAKE) DSTROOT=$(DSTROOT)$$ARM_PLATFORM install
 
 # installhdrs does nothing, because the headers aren't useful until
 # the compiler is installed.
@@ -128,4 +132,4 @@ clean:
 $(OBJROOT) $(SYMROOT) $(DSTROOT):
 	mkdir -p $@
 
-.PHONY: install installsrc clean EmbeddedHosted EmbeddedSim
+.PHONY: install installsrc clean EmbeddedHosted EmbeddedSim Embedded

@@ -38,6 +38,8 @@ protected:
     return (Obj->*Handler)(Directive, DirectiveLoc);
   }
 
+  bool BracketExpressionsSupported;
+
 public:
   virtual ~MCAsmParserExtension();
 
@@ -54,7 +56,7 @@ public:
   MCAsmParser &getParser() { return *Parser; }
   SourceMgr &getSourceManager() { return getParser().getSourceManager(); }
   MCStreamer &getStreamer() { return getParser().getStreamer(); }
-  void Warning(SMLoc L, const Twine &Msg) {
+  bool Warning(SMLoc L, const Twine &Msg) {
     return getParser().Warning(L, Msg);
   }
   bool Error(SMLoc L, const Twine &Msg) {
@@ -67,6 +69,8 @@ public:
   const AsmToken &Lex() { return getParser().Lex(); }
 
   const AsmToken &getTok() { return getParser().getTok(); }
+
+  bool HasBracketExpressions() const { return BracketExpressionsSupported; }
 
   /// @}
 };

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -25,13 +25,13 @@
 #include "Common/Timer.hpp"
 #include "../common/debug.h"
 
-bool localShaderConstants = true;
+bool localShaderConstants = false;
 
 namespace gl
 {
 	using namespace sw;
 
-	Device::Device(Context *context) : Renderer(context), context(context)
+	Device::Device(Context *context) : Renderer(context, true, true, true, true, true), context(context)
 	{
 		depthStencil = 0;
 		renderTarget = 0;
@@ -67,9 +67,9 @@ namespace gl
 		setVertexFogMode(Context::FOG_NONE);
 		setClipFlags(0);
 		setPointSize(1.0f);
-		setPointSizeMin(1.0f);
+		setPointSizeMin(0.125f);
 		setPointSpriteEnable(false);
-		setPointSizeMax(64.0f);
+        setPointSizeMax(8192.0f);
 		setColorWriteMask(0, 0x0000000F);
 		setBlendOperation(Context::BLENDOP_ADD);
 		scissorEnable = false;
@@ -163,75 +163,73 @@ namespace gl
 	{
 		TRACE("unsigned long color = 0x%0.8X", color);
 
-		int x = viewport.x;
-		int y = viewport.y;
-		int width = viewport.width;
-		int height = viewport.height;
+		int x0 = 0;
+		int y0 = 0;
+		int width = renderTarget->getExternalWidth();
+		int height = renderTarget->getExternalHeight();
 
-		// Clamp against scissor rectangle
-		if(scissorEnable)
+		if(scissorEnable)   // Clamp against scissor rectangle
 		{
-			if(x < scissorRect.left) x = scissorRect.left;
-			if(y < scissorRect.top) y = scissorRect.top;
-			if(width > scissorRect.right - scissorRect.left) width = scissorRect.right - scissorRect.left;
-			if(height > scissorRect.bottom - scissorRect.top) height = scissorRect.bottom - scissorRect.top;
+			if(x0 < scissorRect.x0) x0 = scissorRect.x0;
+			if(y0 < scissorRect.y0) y0 = scissorRect.y0;
+			if(width > scissorRect.x1 - scissorRect.x0) width = scissorRect.x1 - scissorRect.x0;
+			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
 		}
 
-		if(renderTarget)
-		{
-			renderTarget->clearColorBuffer(color, rgbaMask, x, y, width, height);
-		}
+		renderTarget->clearColorBuffer(color, rgbaMask, x0, y0, width, height);
 	}
 
 	void Device::clearDepth(float z)
 	{
 		TRACE("float z = %f", z);
 
+		if(!depthStencil)
+		{
+			return;
+		}
+
 		if(z > 1) z = 1;
 		if(z < 0) z = 0;
 
-		int x = viewport.x;
-		int y = viewport.y;
-		int width = viewport.width;
-		int height = viewport.height;
+		int x0 = 0;
+		int y0 = 0;
+		int width = depthStencil->getExternalWidth();
+		int height = depthStencil->getExternalHeight();
 
-		// Clamp against scissor rectangle
-		if(scissorEnable)
+		if(scissorEnable)   // Clamp against scissor rectangle
 		{
-			if(x < scissorRect.left) x = scissorRect.left;
-			if(y < scissorRect.top) y = scissorRect.top;
-			if(width > scissorRect.right - scissorRect.left) width = scissorRect.right - scissorRect.left;
-			if(height > scissorRect.bottom - scissorRect.top) height = scissorRect.bottom - scissorRect.top;
+			if(x0 < scissorRect.x0) x0 = scissorRect.x0;
+			if(y0 < scissorRect.y0) y0 = scissorRect.y0;
+			if(width > scissorRect.x1 - scissorRect.x0) width = scissorRect.x1 - scissorRect.x0;
+			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
 		}
-
-		if(depthStencil)
-		{
-			depthStencil->clearDepthBuffer(z, x, y, width, height);
-		}
+			
+		depthStencil->clearDepthBuffer(z, x0, y0, width, height);
 	}
 
 	void Device::clearStencil(unsigned int stencil, unsigned int mask)
 	{
 		TRACE("unsigned long stencil = %d", stencil);
 
-		int x = viewport.x;
-		int y = viewport.y;
-		int width = viewport.width;
-		int height = viewport.height;
-
-		// Clamp against scissor rectangle
-		if(scissorEnable)
+		if(!depthStencil)
 		{
-			if(x < scissorRect.left) x = scissorRect.left;
-			if(y < scissorRect.top) y = scissorRect.top;
-			if(width > scissorRect.right - scissorRect.left) width = scissorRect.right - scissorRect.left;
-			if(height > scissorRect.bottom - scissorRect.top) height = scissorRect.bottom - scissorRect.top;
+			return;
 		}
 
-		if(depthStencil)
+		int x0 = 0;
+		int y0 = 0;
+		int width = renderTarget->getExternalWidth();
+		int height = renderTarget->getExternalHeight();
+
+		if(scissorEnable)   // Clamp against scissor rectangle
 		{
-			depthStencil->clearStencilBuffer(stencil, mask, x, y, width, height);
+			if(x0 < scissorRect.x0) x0 = scissorRect.x0;
+			if(y0 < scissorRect.y0) y0 = scissorRect.y0;
+			if(width > scissorRect.x1 - scissorRect.x0) width = scissorRect.x1 - scissorRect.x0;
+			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
 		}
+
+		depthStencil->clearStencilBuffer(stencil, mask, x0, y0, width, height);
 	}
 
 	Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
@@ -420,57 +418,6 @@ namespace gl
 		return depthStencil;
 	}
 
-	bool Device::getRenderTargetData(Image *renderTarget, Image *destSurface)
-	{
-		TRACE("Image *renderTarget = 0x%0.8p, Image *destSurface = 0x%0.8p", renderTarget, destSurface);
-
-		if(!renderTarget || !destSurface)
-		{
-			ERR("Invalid parameters");
-			return false;
-		}
-		
-		if(renderTarget->getWidth()  != destSurface->getWidth() ||
-		   renderTarget->getHeight() != destSurface->getHeight() ||
-		   renderTarget->getInternalFormat() != destSurface->getInternalFormat())
-		{
-			ERR("Invalid parameters");
-			return false;
-		}
-
-		static void (__cdecl *blitFunction)(void *dst, void *src);
-		static Routine *blitRoutine;
-		static BlitState blitState = {0};
-
-		BlitState update;
-		update.width = renderTarget->getInternalWidth();
-		update.height = renderTarget->getInternalHeight();
-		update.depth = 32;
-		update.stride = destSurface->getInternalPitchB();
-		update.HDR = false;
-		update.cursorHeight = 0;
-		update.cursorWidth = 0;
-		
-		if(memcmp(&blitState, &update, sizeof(BlitState)) != 0)
-		{
-			blitState = update;
-			delete blitRoutine;
-
-			blitRoutine = FrameBuffer::copyRoutine(blitState);
-			blitFunction = (void(__cdecl*)(void*, void*))blitRoutine->getEntry();
-		}
-
-		void *dst = destSurface->lockInternal(0, 0, 0, LOCK_WRITEONLY, PUBLIC);
-		void *src = renderTarget->lockInternal(0, 0, 0, LOCK_WRITEONLY, PUBLIC);
-
-		blitFunction(dst, src);
-
-		destSurface->unlockInternal();
-		renderTarget->unlockInternal();
-
-		return true;
-	}
-
 	void Device::setDepthStencilSurface(Image *depthStencil)
 	{
 		TRACE("Image *newDepthStencil = 0x%0.8p", depthStencil);
@@ -542,23 +489,6 @@ namespace gl
 
 		this->renderTarget = renderTarget;
 
-		if(renderTarget)
-		{
-			// Reset viewport to size of current render target
-			viewport.x = 0;
-			viewport.y = 0;
-			viewport.width = renderTarget->getWidth();
-			viewport.height = renderTarget->getHeight();
-			viewport.minZ = 0;
-			viewport.maxZ = 1;
-
-			// Reset scissor rectangle to size of current render target
-			scissorRect.left = 0;
-			scissorRect.top = 0;
-			scissorRect.right = renderTarget->getWidth();
-			scissorRect.bottom = renderTarget->getHeight();
-		}
-
 		Renderer::setRenderTarget(0, renderTarget);
 	}
 
@@ -627,10 +557,10 @@ namespace gl
 		}
 		else
 		{
-			sRect.top = 0;
-			sRect.left = 0;
-			sRect.bottom = sHeight;
-			sRect.right = sWidth;
+			sRect.y0 = 0;
+			sRect.x0 = 0;
+			sRect.y1 = sHeight;
+			sRect.x1 = sWidth;
 		}
 
 		if(destRect)
@@ -639,13 +569,13 @@ namespace gl
 		}
 		else
 		{
-			dRect.top = 0;
-			dRect.left = 0;
-			dRect.bottom = dHeight;
-			dRect.right = dWidth;
+			dRect.y0 = 0;
+			dRect.x0 = 0;
+			dRect.y1 = dHeight;
+			dRect.x1 = dWidth;
 		}
 
-		bool scaling = (sRect.right - sRect.left != dRect.right - dRect.left) || (sRect.bottom - sRect.top != dRect.bottom - dRect.top);
+		bool scaling = (sRect.x1 - sRect.x0 != dRect.x1 - dRect.x0) || (sRect.y1 - sRect.y0 != dRect.y1 - dRect.y0);
 		bool equalFormats = source->getInternalFormat() == dest->getInternalFormat();
 		bool depthStencil = Image::isDepth(source->getInternalFormat()) || Image::isStencil(source->getInternalFormat());
 		bool alpha0xFF = false;
@@ -703,13 +633,13 @@ namespace gl
 		}
 		else if(!scaling && equalFormats)
 		{
-			unsigned char *sourceBytes = (unsigned char*)source->lockInternal(sRect.left, sRect.top, 0, LOCK_READONLY, PUBLIC);
-			unsigned char *destBytes = (unsigned char*)dest->lockInternal(dRect.left, dRect.top, 0, LOCK_READWRITE, PUBLIC);
+			unsigned char *sourceBytes = (unsigned char*)source->lockInternal(sRect.x0, sRect.y0, 0, LOCK_READONLY, PUBLIC);
+			unsigned char *destBytes = (unsigned char*)dest->lockInternal(dRect.x0, dRect.y0, 0, LOCK_READWRITE, PUBLIC);
 			unsigned int sourcePitch = source->getInternalPitchB();
 			unsigned int destPitch = dest->getInternalPitchB();
 
-			unsigned int width = dRect.right - dRect.left;
-			unsigned int height = dRect.bottom - dRect.top;
+			unsigned int width = dRect.x1 - dRect.x0;
+			unsigned int height = dRect.y1 - dRect.y0;
 			unsigned int bytes = width * Image::bytes(source->getInternalFormat());
 
 			for(unsigned int y = 0; y < height; y++)
@@ -754,32 +684,32 @@ namespace gl
 		
 		if(sourceRect)
 		{
-			sRect.left = sourceRect->left;
-			sRect.top = sourceRect->top;
-			sRect.right = sourceRect->right;
-			sRect.bottom = sourceRect->bottom;
+			sRect.x0 = sourceRect->x0;
+			sRect.y0 = sourceRect->y0;
+			sRect.x1 = sourceRect->x1;
+			sRect.y1 = sourceRect->y1;
 		}
 		else
 		{
-			sRect.left = 0;
-			sRect.top = 0;
-			sRect.right = sourceSurface->getWidth();
-			sRect.bottom = sourceSurface->getHeight();
+			sRect.x0 = 0;
+			sRect.y0 = 0;
+			sRect.x1 = sourceSurface->getWidth();
+			sRect.y1 = sourceSurface->getHeight();
 		}
 
 		if(destPoint)
 		{
-			dRect.left = destPoint->x;
-			dRect.top = destPoint->y;
-			dRect.right = destPoint->x + sRect.right - sRect.left;
-			dRect.bottom = destPoint->y + sRect.bottom - sRect.top;
+			dRect.x0 = destPoint->x;
+			dRect.y0 = destPoint->y;
+			dRect.x1 = destPoint->x + sRect.x1 - sRect.x0;
+			dRect.y1 = destPoint->y + sRect.y1 - sRect.y0;
 		}
 		else
 		{
-			dRect.left = 0;
-			dRect.top = 0;
-			dRect.right = sRect.right - sRect.left;
-			dRect.bottom = sRect.bottom - sRect.top;
+			dRect.x0 = 0;
+			dRect.y0 = 0;
+			dRect.x1 = sRect.x1 - sRect.x0;
+			dRect.y1 = sRect.y1 - sRect.y0;
 		}
 
 		if(!validRectangle(&sRect, sourceSurface) || !validRectangle(&dRect, destinationSurface))
@@ -788,11 +718,11 @@ namespace gl
 			return false;
 		}
 
-		int sWidth = sRect.right - sRect.left;
-		int sHeight = sRect.bottom - sRect.top;
+		int sWidth = sRect.x1 - sRect.x0;
+		int sHeight = sRect.y1 - sRect.y0;
 
-		int dWidth = dRect.right - dRect.left;
-		int dHeight = dRect.bottom - dRect.top;
+		int dWidth = dRect.x1 - dRect.x0;
+		int dHeight = dRect.y1 - dRect.y0;
 
 		if(sourceSurface->getMultiSampleDepth() > 1 ||
 		   destinationSurface->getMultiSampleDepth() > 1 ||
@@ -802,8 +732,8 @@ namespace gl
 			return false;
 		}
 		
-		unsigned char *sourceBuffer = (unsigned char*)sourceSurface->lock(sRect.left, sRect.top, LOCK_READONLY);
-		unsigned char *destinationBuffer = (unsigned char*)destinationSurface->lock(dRect.left, dRect.top, LOCK_WRITEONLY);
+		unsigned char *sourceBuffer = (unsigned char*)sourceSurface->lock(sRect.x0, sRect.y0, LOCK_READONLY);
+		unsigned char *destinationBuffer = (unsigned char*)destinationSurface->lock(dRect.x0, dRect.y0, LOCK_WRITEONLY);
 
 		unsigned int width;
 		unsigned int height;
@@ -924,69 +854,39 @@ namespace gl
 
 		if(scissorEnable)
 		{
-			Rect scissor = scissorRect;
-
-			long viewportLeft = viewport.x;
-			long viewportRight = viewport.x + viewport.width;
-			long viewportTop = viewport.y;
-			long viewportBottom = viewport.y + viewport.height;
-
-			// Intersection of scissor rectangle and viewport
-			if(viewportLeft > scissor.left) scissor.left = viewportLeft;
-			if(viewportTop > scissor.top) scissor.top = viewportTop;
-			if(viewportRight < scissor.right) scissor.right = viewportRight;
-			if(viewportBottom < scissor.bottom) scissor.bottom = viewportBottom;
-
-			if(scissor.left == scissor.right ||
-			   scissor.top == scissor.bottom)
+			if(scissorRect.x0 >= scissorRect.x1 || scissorRect.y0 >= scissorRect.y1)
 			{
 				return false;
 			}
 
-			// Dimensions of scissor rectangle relative to viewport
-			float relativeLeft = (float)(scissor.left - viewportLeft) / viewport.width;
-			float relativeRight = (float)(scissor.right - viewportLeft) / viewport.width;
-			float relativeTop = (float)(scissor.top - viewportTop) / viewport.height;
-			float relativeBottom = (float)(scissor.bottom - viewportTop) / viewport.height;
-
-			// Transformation of clip space coordinates
-			float sX = 1.0f / (relativeRight - relativeLeft);   // Scale
-			float tX = sX * ((0.5f - relativeLeft) - (relativeRight - 0.5f));   // Translate
-			float sY = 1.0f / (relativeBottom - relativeTop);   // Scale
-			float tY = sY * ((0.5f - relativeTop) - (relativeBottom - 0.5f));   // Translate
-
-			// Set the new viewport
-			sw::Viewport view;
-
-			view.setLeft((float)scissor.left);
-			view.setTop((float)scissor.top);
-			view.setWidth((float)(scissor.right - scissor.left));
-			view.setHeight((float)(scissor.bottom - scissor.top));
-
-			view.setNear(viewport.minZ);
-			view.setFar(viewport.maxZ);
-
-			Renderer::setViewport(view);
-			setPostTransformEnable(true);
-			setPosScale(sX, sY);
-			setPosOffset(tX, -tY);
+			sw::Rect scissor;
+			scissor.x0 = scissorRect.x0;
+			scissor.x1 = scissorRect.x1;
+			scissor.y0 = scissorRect.y0;
+			scissor.y1 = scissorRect.y1;
+			
+			setScissor(scissor);
 		}
 		else
 		{
-			// Set viewport
-			sw::Viewport view;
-
-			view.setLeft((float)viewport.x);
-			view.setTop((float)viewport.y);
-			view.setWidth((float)viewport.width);
-			view.setHeight((float)viewport.height);
-
-			view.setNear(viewport.minZ);
-			view.setFar(viewport.maxZ);
-
-			Renderer::setViewport(view);
-			setPostTransformEnable(false);
+			sw::Rect scissor;
+			scissor.x0 = max(viewport.x0, 0);
+			scissor.x1 = min(viewport.x0 + viewport.width, renderTarget->getExternalWidth());
+			scissor.y0 = max(viewport.y0, 0);
+			scissor.y1 = min(viewport.y0 + viewport.height, renderTarget->getExternalHeight());
+			
+			setScissor(scissor);
 		}
+
+		sw::Viewport view;
+		view.x0 = (float)viewport.x0;
+		view.y0 = (float)viewport.y0;
+		view.width = (float)viewport.width;
+		view.height = (float)viewport.height;
+		view.minZ = viewport.minZ;
+		view.maxZ = viewport.maxZ;
+		
+		Renderer::setViewport(view);
 
 		return true;
 	}
@@ -998,17 +898,17 @@ namespace gl
 			return true;
 		}
 
-		if(rect->right <= rect->left || rect->bottom <= rect->top)
+		if(rect->x1 <= rect->x0 || rect->y1 <= rect->y0)
 		{
 			return false;
 		}
 
-		if(rect->left < 0 || rect->top < 0)
+		if(rect->x0 < 0 || rect->y0 < 0)
 		{
 			return false;
 		}
 
-		if(rect->right > (int)surface->getWidth() || rect->bottom > (int)surface->getHeight())
+		if(rect->x1 > (int)surface->getWidth() || rect->y1 > (int)surface->getHeight())
 		{
 			return false;
 		}
@@ -1018,11 +918,7 @@ namespace gl
 
 	void Device::finish()
 	{
-		if(renderTarget)
-		{
-			renderTarget->lock(0, 0, sw::LOCK_READWRITE);
-			renderTarget->unlock();
-		}
+		synchronize();
 	}
 }
 

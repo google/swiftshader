@@ -28,10 +28,13 @@ class DenseSet {
   MapTy TheMap;
 public:
   DenseSet(const DenseSet &Other) : TheMap(Other.TheMap) {}
-  explicit DenseSet(unsigned NumInitBuckets = 64) : TheMap(NumInitBuckets) {}
+  explicit DenseSet(unsigned NumInitBuckets = 0) : TheMap(NumInitBuckets) {}
 
   bool empty() const { return TheMap.empty(); }
   unsigned size() const { return TheMap.size(); }
+
+  /// Grow the denseset so that it has at least Size buckets. Does not shrink
+  void resize(size_t Size) { TheMap.resize(Size); }
 
   void clear() {
     TheMap.clear();
@@ -106,8 +109,8 @@ public:
   const_iterator end() const { return ConstIterator(TheMap.end()); }
 
   iterator find(const ValueT &V) { return Iterator(TheMap.find(V)); }
-  bool erase(Iterator I) { return TheMap.erase(I.I); }
-  bool erase(ConstIterator CI) { return TheMap.erase(CI.I); }
+  void erase(Iterator I) { return TheMap.erase(I.I); }
+  void erase(ConstIterator CI) { return TheMap.erase(CI.I); }
 
   std::pair<iterator, bool> insert(const ValueT &V) {
     return TheMap.insert(std::make_pair(V, 0));

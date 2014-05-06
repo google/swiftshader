@@ -73,7 +73,7 @@ BEGIN
             VALUE "FileDescription", "SwiftShader libGLESv2 Dynamic Link Library"
             VALUE "FileVersion", VERSION_STRING
             VALUE "InternalName", "libGLESv2"
-            VALUE "LegalCopyright", "Copyright (C) 2011 TransGaming Inc."
+            VALUE "LegalCopyright", "Copyright (C) 2012 TransGaming Inc."
             VALUE "OriginalFilename", "libGLESv2.dll"
             VALUE "PrivateBuild", VERSION_STRING
             VALUE "ProductName", "SwiftShader libGLESv2 Dynamic Link Library"

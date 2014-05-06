@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -32,62 +32,72 @@ namespace sw
 		virtual ~VertexProgram();
 
 	private:
-		typedef Shader::Instruction::DestinationParameter Dst;
-		typedef Shader::Instruction::SourceParameter Src;
-		typedef Shader::Instruction::Operation Op;
-		typedef Shader::Instruction::Operation::Control Control;
-		typedef Shader::Instruction::Operation::Usage Usage;
+		typedef Shader::DestinationParameter Dst;
+		typedef Shader::SourceParameter Src;
+		typedef Shader::Control Control;
+		typedef Shader::Usage Usage;
 
-		Color4f readConstant(Registers &r, const Src &src, int offset = 0);
 		void pipeline(Registers &r);
-		void shader(Registers &r);
+		void program(Registers &r);
 		void passThrough(Registers &r);
 
-		Color4f reg(Registers &r, const Src &src, int offset = 0);
+		Vector4f reg(Registers &r, const Src &src, int offset = 0);
+		Vector4f readConstant(Registers &r, const Src &src, int offset = 0);
+		Int relativeAddress(Registers &r, const Shader::Parameter &var);
+		Int4 enableMask(Registers &r, const Shader::Instruction *instruction);
 
-		void M3X2(Registers &r, Color4f &dst, Color4f &src0, Src &src1);
-		void M3X3(Registers &r, Color4f &dst, Color4f &src0, Src &src1);
-		void M3X4(Registers &r, Color4f &dst, Color4f &src0, Src &src1);
-		void M4X3(Registers &r, Color4f &dst, Color4f &src0, Src &src1);
-		void M4X4(Registers &r, Color4f &dst, Color4f &src0, Src &src1);
+		void M3X2(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1);
+		void M3X3(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1);
+		void M3X4(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1);
+		void M4X3(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1);
+		void M4X4(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1);
 		void BREAK(Registers &r);
-		void BREAKC(Registers &r, Color4f &src0, Color4f &src1, Control);
+		void BREAKC(Registers &r, Vector4f &src0, Vector4f &src1, Control);
 		void BREAKP(Registers &r, const Src &predicateRegister);
-		void CALL(Registers &r, int labelIndex);
-		void CALLNZ(Registers &r, int labelIndex, const Src &src);
-		void CALLNZb(Registers &r, int labelIndex, const Src &boolRegister);
-		void CALLNZp(Registers &r, int labelIndex, const Src &predicateRegister);
+		void BREAK(Registers &r, Int4 &condition);
+		void CONTINUE(Registers &r);
+		void TEST();
+		void CALL(Registers &r, int labelIndex, int callSiteIndex);
+		void CALLNZ(Registers &r, int labelIndex, int callSiteIndex, const Src &src);
+		void CALLNZb(Registers &r, int labelIndex, int callSiteIndex, const Src &boolRegister);
+		void CALLNZp(Registers &r, int labelIndex, int callSiteIndex, const Src &predicateRegister);
 		void ELSE(Registers &r);
 		void ENDIF(Registers &r);
 		void ENDLOOP(Registers &r);
 		void ENDREP(Registers &r);
+		void ENDWHILE(Registers &r);
 		void IF(Registers &r, const Src &src);
 		void IFb(Registers &r, const Src &boolRegister);
 		void IFp(Registers &r, const Src &predicateRegister);
-		void IFC(Registers &r, Color4f &src0, Color4f &src1, Control);
+		void IFC(Registers &r, Vector4f &src0, Vector4f &src1, Control);
+		void IF(Registers &r, Int4 &condition);
 		void LABEL(int labelIndex);
 		void LOOP(Registers &r, const Src &integerRegister);
 		void REP(Registers &r, const Src &integerRegister);
+		void WHILE(Registers &r, const Src &temporaryRegister);
 		void RET(Registers &r);
-		void TEXLDL(Registers &r, Color4f &dst, Color4f &src, const Src&);
+		void LEAVE(Registers &r);
+		void TEXLDL(Registers &r, Vector4f &dst, Vector4f &src, const Src&);
+		void TEX(Registers &r, Vector4f &dst, Vector4f &src, const Src&);
+
+		void sampleTexture(Registers &r, Vector4f &c, const Src &s, Float4 &u, Float4 &v, Float4 &w, Float4 &q);
 
 		SamplerCore *sampler[4];
 
-		bool returns;
 		int ifDepth;
 		int loopRepDepth;
 		int breakDepth;
+		int currentLabel;
+		bool whileTest;
 
 		// FIXME: Get rid of llvm::
 		llvm::BasicBlock *ifFalseBlock[24 + 24];
 		llvm::BasicBlock *loopRepTestBlock[4];
 		llvm::BasicBlock *loopRepEndBlock[4];
 		llvm::BasicBlock *labelBlock[2048];
-		std::vector<llvm::BasicBlock*> callRetBlock;
+		std::vector<llvm::BasicBlock*> callRetBlock[2048];
 		llvm::BasicBlock *returnBlock;
 		bool isConditionalIf[24 + 24];
-
-		const VertexShader *const vertexShader;
 	};
 }
 

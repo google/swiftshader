@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -20,12 +20,14 @@ namespace sw
 {
 	class Resource;
 
-	struct Rect   // Top-left coordinate system
+	struct Rect
 	{
-		union {int left;   int x1;};
-		union {int top;    int y1;};
-		union {int right;  int x2;};
-		union {int bottom; int y2;};
+		void clip(int minX, int minY, int maxX, int maxY);
+
+		int x0;   // Inclusive
+		int y0;   // Inclusive
+		int x1;   // Exclusive
+		int y1;   // Exclusive
 	};
 
 	enum Format
@@ -129,7 +131,7 @@ namespace sw
 			Color<float> sample(float x, float y, float z) const;
 			Color<float> sample(float x, float y) const;
 
-			void *lockRect(int left, int top, int front, Lock lock);
+			void *lockRect(int x, int y, int z, Lock lock);
 			void unlockRect();
 
 			void *buffer;
@@ -153,7 +155,7 @@ namespace sw
 		
 		virtual ~Surface();
 
-		void *lockExternal(int left, int top, int front, Lock lock, Accessor client);
+		void *lockExternal(int x, int y, int z, Lock lock, Accessor client);
 		void unlockExternal();
 		inline int getExternalWidth() const;
 		inline int getExternalHeight() const;
@@ -164,7 +166,7 @@ namespace sw
 		inline int getExternalSliceB() const;
 		inline int getExternalSliceP() const;
 
-		virtual void *lockInternal(int left, int top, int front, Lock lock, Accessor client);
+		virtual void *lockInternal(int x, int y, int z, Lock lock, Accessor client);
 		virtual void unlockInternal();
 		inline int getInternalWidth() const;
 		inline int getInternalHeight() const;
@@ -327,7 +329,6 @@ namespace sw
 		static void decodeDXT1(Buffer &internal, const Buffer &external);
 		static void decodeDXT3(Buffer &internal, const Buffer &external);
 		static void decodeDXT5(Buffer &internal, const Buffer &external);
-
 		static void decodeATI1(Buffer &internal, const Buffer &external);
 		static void decodeATI2(Buffer &internal, const Buffer &external);
 		#endif

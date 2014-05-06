@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // Renderbuffer.h: Defines the wrapper class Renderbuffer, as well as the
@@ -22,6 +27,8 @@
 namespace gl
 {
 class Texture;
+class Colorbuffer;
+class DepthStencilbuffer;
 
 // A class derived from RenderbufferStorage is created whenever glRenderbufferStorage
 // is called. The specific concrete type depends on whether the internal format is
@@ -33,9 +40,9 @@ class RenderbufferStorage
 
     virtual ~RenderbufferStorage() = 0;
 
-    virtual bool isColorbuffer() const;
-    virtual bool isDepthbuffer() const;
-    virtual bool isStencilbuffer() const;
+    virtual Colorbuffer *getColorbuffer();
+    virtual DepthStencilbuffer *getDepthbuffer();
+    virtual DepthStencilbuffer *getStencilbuffer();
 
     virtual Image *getRenderTarget();
     virtual Image *getDepthStencil();
@@ -82,9 +89,9 @@ class Renderbuffer : public RefCountObject
 
     ~Renderbuffer();
 
-    bool isColorbuffer() const;
-    bool isDepthbuffer() const;
-    bool isStencilbuffer() const;
+    Colorbuffer *getColorbuffer();
+    DepthStencilbuffer *getDepthbuffer();
+    DepthStencilbuffer *getStencilbuffer();
 
     Image *getRenderTarget();
     Image *getDepthStencil();
@@ -121,7 +128,7 @@ class Colorbuffer : public RenderbufferStorage
 
     virtual ~Colorbuffer();
 
-    virtual bool isColorbuffer() const;
+    virtual Colorbuffer *getColorbuffer();
 
     virtual Image *getRenderTarget();
 
@@ -148,8 +155,8 @@ class DepthStencilbuffer : public RenderbufferStorage
 
     ~DepthStencilbuffer();
 
-    virtual bool isDepthbuffer() const;
-    virtual bool isStencilbuffer() const;
+    virtual DepthStencilbuffer *getDepthbuffer();
+    virtual DepthStencilbuffer *getStencilbuffer();
 
     virtual Image *getDepthStencil();
 
@@ -166,8 +173,8 @@ class Depthbuffer : public DepthStencilbuffer
 
     virtual ~Depthbuffer();
 
-    virtual bool isDepthbuffer() const;
-    virtual bool isStencilbuffer() const;
+    virtual DepthStencilbuffer *getDepthbuffer();
+    virtual DepthStencilbuffer *getStencilbuffer();
 
   private:
     DISALLOW_COPY_AND_ASSIGN(Depthbuffer);
@@ -181,8 +188,8 @@ class Stencilbuffer : public DepthStencilbuffer
 
     virtual ~Stencilbuffer();
 
-    virtual bool isDepthbuffer() const;
-    virtual bool isStencilbuffer() const;
+    virtual DepthStencilbuffer *getDepthbuffer();
+    virtual DepthStencilbuffer *getStencilbuffer();
 
   private:
     DISALLOW_COPY_AND_ASSIGN(Stencilbuffer);

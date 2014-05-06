@@ -16,7 +16,7 @@
 #ifndef LLVM_EDINST_H
 #define LLVM_EDINST_H
 
-#include "llvm/System/DataTypes.h"
+#include "llvm/Support/DataTypes.h"
 #include "llvm/ADT/SmallVector.h"
 #include <string>
 #include <vector>
@@ -73,7 +73,7 @@ struct EDInst {
   std::string String;
   /// The order in which operands from the InstInfo's operand information appear
   /// in String
-  const char* OperandOrder;
+  const signed char* OperandOrder;
   
   /// The result of the parseOperands() function
   CachedResult ParseResult;

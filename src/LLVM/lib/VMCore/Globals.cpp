@@ -26,23 +26,6 @@ using namespace llvm;
 //                            GlobalValue Class
 //===----------------------------------------------------------------------===//
 
-/// removeDeadUsersOfConstant - If the specified constantexpr is dead, remove
-/// it.  This involves recursively eliminating any dead users of the
-/// constantexpr.
-static bool removeDeadUsersOfConstant(const Constant *C) {
-  if (isa<GlobalValue>(C)) return false; // Cannot remove this
-
-  while (!C->use_empty()) {
-    const Constant *User = dyn_cast<Constant>(C->use_back());
-    if (!User) return false; // Non-constant usage;
-    if (!removeDeadUsersOfConstant(User))
-      return false; // Constant wasn't dead
-  }
-
-  const_cast<Constant*>(C)->destroyConstant();
-  return true;
-}
-
 bool GlobalValue::isMaterializable() const {
   return getParent() && getParent()->isMaterializable(this);
 }
@@ -56,38 +39,6 @@ void GlobalValue::Dematerialize() {
   getParent()->Dematerialize(this);
 }
 
-/// removeDeadConstantUsers - If there are any dead constant users dangling
-/// off of this global value, remove them.  This method is useful for clients
-/// that want to check to see if a global is unused, but don't want to deal
-/// with potentially dead constants hanging off of the globals.
-void GlobalValue::removeDeadConstantUsers() const {
-  Value::const_use_iterator I = use_begin(), E = use_end();
-  Value::const_use_iterator LastNonDeadUser = E;
-  while (I != E) {
-    if (const Constant *User = dyn_cast<Constant>(*I)) {
-      if (!removeDeadUsersOfConstant(User)) {
-        // If the constant wasn't dead, remember that this was the last live use
-        // and move on to the next constant.
-        LastNonDeadUser = I;
-        ++I;
-      } else {
-        // If the constant was dead, then the iterator is invalidated.
-        if (LastNonDeadUser == E) {
-          I = use_begin();
-          if (I == E) break;
-        } else {
-          I = LastNonDeadUser;
-          ++I;
-        }
-      }
-    } else {
-      LastNonDeadUser = I;
-      ++I;
-    }
-  }
-}
-
-
 /// Override destroyConstant to make sure it doesn't get called on
 /// GlobalValue's because they shouldn't be treated like other constants.
 void GlobalValue::destroyConstant() {
@@ -100,6 +51,7 @@ void GlobalValue::copyAttributesFrom(const GlobalValue *Src) {
   setAlignment(Src->getAlignment());
   setSection(Src->getSection());
   setVisibility(Src->getVisibility());
+  setUnnamedAddr(Src->hasUnnamedAddr());
 }
 
 void GlobalValue::setAlignment(unsigned Align) {
@@ -109,12 +61,26 @@ void GlobalValue::setAlignment(unsigned Align) {
   Alignment = Log2_32(Align) + 1;
   assert(getAlignment() == Align && "Alignment representation error!");
 }
+
+bool GlobalValue::isDeclaration() const {
+  // Globals are definitions if they have an initializer.
+  if (const GlobalVariable *GV = dyn_cast<GlobalVariable>(this))
+    return GV->getNumOperands() == 0;
+
+  // Functions are definitions if they have a body.
+  if (const Function *F = dyn_cast<Function>(this))
+    return F->empty();
+
+  // Aliases are always definitions.
+  assert(isa<GlobalAlias>(this));
+  return false;
+}
   
 //===----------------------------------------------------------------------===//
 // GlobalVariable Implementation
 //===----------------------------------------------------------------------===//
 
-GlobalVariable::GlobalVariable(const Type *Ty, bool constant, LinkageTypes Link,
+GlobalVariable::GlobalVariable(Type *Ty, bool constant, LinkageTypes Link,
                                Constant *InitVal, const Twine &Name,
                                bool ThreadLocal, unsigned AddressSpace)
   : GlobalValue(PointerType::get(Ty, AddressSpace), 
@@ -131,7 +97,7 @@ GlobalVariable::GlobalVariable(const Type *Ty, bool constant, LinkageTypes Link,
   LeakDetector::addGarbageObject(this);
 }
 
-GlobalVariable::GlobalVariable(Module &M, const Type *Ty, bool constant,
+GlobalVariable::GlobalVariable(Module &M, Type *Ty, bool constant,
                                LinkageTypes Link, Constant *InitVal,
                                const Twine &Name,
                                GlobalVariable *Before, bool ThreadLocal,
@@ -220,7 +186,7 @@ void GlobalVariable::copyAttributesFrom(const GlobalValue *Src) {
 // GlobalAlias Implementation
 //===----------------------------------------------------------------------===//
 
-GlobalAlias::GlobalAlias(const Type *Ty, LinkageTypes Link,
+GlobalAlias::GlobalAlias(Type *Ty, LinkageTypes Link,
                          const Twine &Name, Constant* aliasee,
                          Module *ParentModule)
   : GlobalValue(Ty, Value::GlobalAliasVal, &Op<0>(), 1, Link, Name) {
@@ -250,39 +216,26 @@ void GlobalAlias::eraseFromParent() {
   getParent()->getAliasList().erase(this);
 }
 
-bool GlobalAlias::isDeclaration() const {
-  const GlobalValue* AV = getAliasedGlobal();
-  if (AV)
-    return AV->isDeclaration();
-  else
-    return false;
-}
-
-void GlobalAlias::setAliasee(Constant *Aliasee) 
-{
-  if (Aliasee)
-    assert(Aliasee->getType() == getType() &&
-           "Alias and aliasee types should match!");
+void GlobalAlias::setAliasee(Constant *Aliasee) {
+  assert((!Aliasee || Aliasee->getType() == getType()) &&
+         "Alias and aliasee types should match!");
   
   setOperand(0, Aliasee);
 }
 
 const GlobalValue *GlobalAlias::getAliasedGlobal() const {
   const Constant *C = getAliasee();
-  if (C) {
-    if (const GlobalValue *GV = dyn_cast<GlobalValue>(C))
-      return GV;
-    else {
-      const ConstantExpr *CE = 0;
-      if ((CE = dyn_cast<ConstantExpr>(C)) &&
-          (CE->getOpcode() == Instruction::BitCast || 
-           CE->getOpcode() == Instruction::GetElementPtr))
-        return dyn_cast<GlobalValue>(CE->getOperand(0));
-      else
-        llvm_unreachable("Unsupported aliasee");
-    }
-  }
-  return 0;
+  if (C == 0) return 0;
+  
+  if (const GlobalValue *GV = dyn_cast<GlobalValue>(C))
+    return GV;
+
+  const ConstantExpr *CE = cast<ConstantExpr>(C);
+  assert((CE->getOpcode() == Instruction::BitCast || 
+          CE->getOpcode() == Instruction::GetElementPtr) &&
+         "Unsupported aliasee");
+  
+  return cast<GlobalValue>(CE->getOperand(0));
 }
 
 const GlobalValue *GlobalAlias::resolveAliasedGlobal(bool stopOnWeak) const {
@@ -303,7 +256,7 @@ const GlobalValue *GlobalAlias::resolveAliasedGlobal(bool stopOnWeak) const {
     GV = GA->getAliasedGlobal();
 
     if (!Visited.insert(GV))
-      return NULL;
+      return 0;
   }
 
   return GV;

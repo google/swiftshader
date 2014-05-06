@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -24,7 +24,6 @@ namespace sw
 	struct Triangle;
 	struct Polygon;
 	struct Vertex;
-	class Viewport;
 	class Routine;
 	struct DrawCall;
 	struct DrawData;
@@ -36,21 +35,21 @@ namespace sw
 		{
 			unsigned int computeHash();
 
-			unsigned int isDrawPoint			: 1;
-			unsigned int isDrawLine				: 1;
-			unsigned int isDrawTriangle			: 1;
-			unsigned int isDrawSolidTriangle	: 1;
-			unsigned int interpolateDepth		: 1;
-			unsigned int perspective			: 1;
-			unsigned int pointSprite			: 1;
-			unsigned int positionRegister		: 4;
-			unsigned int pointSizeRegister		: 4;
-			unsigned int cullMode				: BITS(Context::CULL_LAST);
-			unsigned int twoSidedStencil		: 1;
-			unsigned int slopeDepthBias			: 1;
-			unsigned int vFace					: 1;
-
-			unsigned int multiSample			: 3;   // 1, 2 or 4
+			unsigned int isDrawPoint         : 1;
+			unsigned int isDrawLine          : 1;
+			unsigned int isDrawTriangle      : 1;
+			unsigned int isDrawSolidTriangle : 1;
+			unsigned int interpolateZ        : 1;
+			unsigned int interpolateW        : 1;
+			unsigned int perspective         : 1;
+			unsigned int pointSprite         : 1;
+			unsigned int positionRegister    : 4;
+			unsigned int pointSizeRegister   : 4;
+			unsigned int cullMode            : BITS(Context::CULL_LAST);
+			unsigned int twoSidedStencil     : 1;
+			unsigned int slopeDepthBias      : 1;
+			unsigned int vFace               : 1;
+			unsigned int multiSample         : 3;   // 1, 2 or 4
 
 			struct Gradient
 			{
@@ -100,6 +99,7 @@ namespace sw
 		Context *const context;
 
 		LRUCache<State, Routine> *routineCache;
+		HMODULE precacheDLL;
 	};
 }
 

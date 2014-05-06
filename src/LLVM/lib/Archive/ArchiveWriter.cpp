@@ -15,9 +15,11 @@
 #include "llvm/Module.h"
 #include "llvm/ADT/OwningPtr.h"
 #include "llvm/Bitcode/ReaderWriter.h"
+#include "llvm/Support/FileSystem.h"
 #include "llvm/Support/MemoryBuffer.h"
-#include "llvm/System/Process.h"
-#include "llvm/System/Signals.h"
+#include "llvm/Support/Process.h"
+#include "llvm/Support/Signals.h"
+#include "llvm/Support/system_error.h"
 #include <fstream>
 #include <ostream>
 #include <iomanip>
@@ -153,9 +155,10 @@ Archive::fillHeader(const ArchiveMember &mbr, ArchiveMemberHeader& hdr,
 // Insert a file into the archive before some other member. This also takes care
 // of extracting the necessary flags and information from the file.
 bool
-Archive::addFileBefore(const sys::Path& filePath, iterator where, 
+Archive::addFileBefore(const sys::Path& filePath, iterator where,
                         std::string* ErrMsg) {
-  if (!filePath.exists()) {
+  bool Exists;
+  if (sys::fs::exists(filePath.str(), Exists) || !Exists) {
     if (ErrMsg)
       *ErrMsg = "Can not add a non-existent file to archive";
     return true;
@@ -178,9 +181,11 @@ Archive::addFileBefore(const sys::Path& filePath, iterator where,
     flags |= ArchiveMember::HasPathFlag;
   if (hasSlash || filePath.str().length() > 15)
     flags |= ArchiveMember::HasLongFilenameFlag;
-  std::string magic;
-  mbr->path.getMagicNumber(magic,4);
-  switch (sys::IdentifyFileType(magic.c_str(),4)) {
+
+  sys::LLVMFileType type;
+  if (sys::fs::identify_magic(mbr->path.str(), type))
+    type = sys::Unknown_FileType;
+  switch (type) {
     case sys::Bitcode_FileType:
       flags |= ArchiveMember::BitcodeFlag;
       break;
@@ -212,9 +217,13 @@ Archive::writeMember(
   const char *data = (const char*)member.getData();
   MemoryBuffer *mFile = 0;
   if (!data) {
-    mFile = MemoryBuffer::getFile(member.getPath().c_str(), ErrMsg);
-    if (mFile == 0)
+    OwningPtr<MemoryBuffer> File;
+    if (error_code ec = MemoryBuffer::getFile(member.getPath().c_str(), File)) {
+      if (ErrMsg)
+        *ErrMsg = ec.message();
       return true;
+    }
+    mFile = File.take();
     data = mFile->getBufferStart();
     fSize = mFile->getBufferSize();
   }
@@ -225,7 +234,7 @@ Archive::writeMember(
     std::vector<std::string> symbols;
     std::string FullMemberName = archPath.str() + "(" + member.getPath().str()
       + ")";
-    Module* M = 
+    Module* M =
       GetBitcodeSymbols(data, fSize, FullMemberName, Context, symbols, ErrMsg);
 
     // If the bitcode parsed successfully
@@ -406,11 +415,15 @@ Archive::writeToDisk(bool CreateSymbolTable, bool TruncateNames, bool Compress,
 
     // Map in the archive we just wrote.
     {
-    OwningPtr<MemoryBuffer> arch(MemoryBuffer::getFile(TmpArchive.c_str()));
-    if (arch == 0) return true;
+    OwningPtr<MemoryBuffer> arch;
+    if (error_code ec = MemoryBuffer::getFile(TmpArchive.c_str(), arch)) {
+      if (ErrMsg)
+        *ErrMsg = ec.message();
+      return true;
+    }
     const char* base = arch->getBufferStart();
 
-    // Open another temporary file in order to avoid invalidating the 
+    // Open another temporary file in order to avoid invalidating the
     // mmapped data
     if (FinalFilePath.createTemporaryFileOnDisk(ErrMsg))
       return true;
@@ -451,17 +464,17 @@ Archive::writeToDisk(bool CreateSymbolTable, bool TruncateNames, bool Compress,
     // Close up shop
     FinalFile.close();
     } // free arch.
-    
+
     // Move the final file over top of TmpArchive
     if (FinalFilePath.renamePathOnDisk(TmpArchive, ErrMsg))
       return true;
   }
-  
+
   // Before we replace the actual archive, we need to forget all the
   // members, since they point to data in that old archive. We need to do
   // this because we cannot replace an open file on Windows.
   cleanUpMemory();
-  
+
   if (TmpArchive.renamePathOnDisk(archPath, ErrMsg))
     return true;
 

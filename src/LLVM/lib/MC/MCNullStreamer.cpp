@@ -25,19 +25,27 @@ namespace {
     /// @name MCStreamer Interface
     /// @{
 
-    virtual void SwitchSection(const MCSection *Section) {
-      CurSection = Section;
+    virtual void InitSections() {
+    }
+
+    virtual void ChangeSection(const MCSection *Section) {
     }
 
     virtual void EmitLabel(MCSymbol *Symbol) {
       assert(Symbol->isUndefined() && "Cannot define a symbol twice!");
-      assert(CurSection && "Cannot emit before setting section!");
-      Symbol->setSection(*CurSection);
+      assert(getCurrentSection() && "Cannot emit before setting section!");
+      Symbol->setSection(*getCurrentSection());
     }
 
     virtual void EmitAssemblerFlag(MCAssemblerFlag Flag) {}
+    virtual void EmitThumbFunc(MCSymbol *Func) {}
 
     virtual void EmitAssignment(MCSymbol *Symbol, const MCExpr *Value) {}
+    virtual void EmitWeakReference(MCSymbol *Alias, const MCSymbol *Symbol){}
+    virtual void EmitDwarfAdvanceLineAddr(int64_t LineDelta,
+                                          const MCSymbol *LastLabel,
+                                          const MCSymbol *Label,
+                                          unsigned PointerSize) {}
 
     virtual void EmitSymbolAttribute(MCSymbol *Symbol, MCSymbolAttr Attribute){}
 
@@ -51,16 +59,18 @@ namespace {
     virtual void EmitELFSize(MCSymbol *Symbol, const MCExpr *Value) {}
     virtual void EmitCommonSymbol(MCSymbol *Symbol, uint64_t Size,
                                   unsigned ByteAlignment) {}
-    virtual void EmitLocalCommonSymbol(MCSymbol *Symbol, uint64_t Size) {}
-
+    virtual void EmitLocalCommonSymbol(MCSymbol *Symbol, uint64_t Size,
+                                       unsigned ByteAlignment) {}
     virtual void EmitZerofill(const MCSection *Section, MCSymbol *Symbol = 0,
                               unsigned Size = 0, unsigned ByteAlignment = 0) {}
     virtual void EmitTBSSSymbol(const MCSection *Section, MCSymbol *Symbol,
                                 uint64_t Size, unsigned ByteAlignment) {}
     virtual void EmitBytes(StringRef Data, unsigned AddrSpace) {}
 
-    virtual void EmitValue(const MCExpr *Value, unsigned Size,
-                           unsigned AddrSpace) {}
+    virtual void EmitValueImpl(const MCExpr *Value, unsigned Size,
+                               unsigned AddrSpace) {}
+    virtual void EmitULEB128Value(const MCExpr *Value) {}
+    virtual void EmitSLEB128Value(const MCExpr *Value) {}
     virtual void EmitGPRel32Value(const MCExpr *Value) {}
     virtual void EmitValueToAlignment(unsigned ByteAlignment, int64_t Value = 0,
                                       unsigned ValueSize = 1,
@@ -73,7 +83,13 @@ namespace {
                                    unsigned char Value = 0) {}
     
     virtual void EmitFileDirective(StringRef Filename) {}
-    virtual void EmitDwarfFileDirective(unsigned FileNo,StringRef Filename) {}
+    virtual bool EmitDwarfFileDirective(unsigned FileNo,StringRef Filename) {
+      return false;
+    }
+    virtual void EmitDwarfLocDirective(unsigned FileNo, unsigned Line,
+                                       unsigned Column, unsigned Flags,
+                                       unsigned Isa, unsigned Discriminator,
+                                       StringRef FileName) {}
     virtual void EmitInstruction(const MCInst &Inst) {}
 
     virtual void Finish() {}

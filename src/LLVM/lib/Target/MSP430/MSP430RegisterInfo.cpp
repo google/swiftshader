@@ -26,18 +26,21 @@
 #include "llvm/ADT/BitVector.h"
 #include "llvm/Support/ErrorHandling.h"
 
+#define GET_REGINFO_TARGET_DESC
+#include "MSP430GenRegisterInfo.inc"
+
 using namespace llvm;
 
 // FIXME: Provide proper call frame setup / destroy opcodes.
 MSP430RegisterInfo::MSP430RegisterInfo(MSP430TargetMachine &tm,
                                        const TargetInstrInfo &tii)
-  : MSP430GenRegisterInfo(MSP430::ADJCALLSTACKDOWN, MSP430::ADJCALLSTACKUP),
-    TM(tm), TII(tii) {
-  StackAlign = TM.getFrameInfo()->getStackAlignment();
+  : MSP430GenRegisterInfo(MSP430::PCW), TM(tm), TII(tii) {
+  StackAlign = TM.getFrameLowering()->getStackAlignment();
 }
 
 const unsigned*
 MSP430RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
+  const TargetFrameLowering *TFI = MF->getTarget().getFrameLowering();
   const Function* F = MF->getFunction();
   static const unsigned CalleeSavedRegs[] = {
     MSP430::FPW, MSP430::R5W, MSP430::R6W, MSP430::R7W,
@@ -62,7 +65,7 @@ MSP430RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
     0
   };
 
-  if (hasFP(*MF))
+  if (TFI->hasFP(*MF))
     return (F->getCallingConv() == CallingConv::MSP430_INTR ?
             CalleeSavedRegsIntrFP : CalleeSavedRegsFP);
   else
@@ -73,15 +76,20 @@ MSP430RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
 
 BitVector MSP430RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   BitVector Reserved(getNumRegs());
+  const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
 
-  // Mark 4 special registers as reserved.
+  // Mark 4 special registers with subregisters as reserved.
+  Reserved.set(MSP430::PCB);
+  Reserved.set(MSP430::SPB);
+  Reserved.set(MSP430::SRB);
+  Reserved.set(MSP430::CGB);
   Reserved.set(MSP430::PCW);
   Reserved.set(MSP430::SPW);
   Reserved.set(MSP430::SRW);
   Reserved.set(MSP430::CGW);
 
   // Mark frame pointer as reserved if needed.
-  if (hasFP(MF))
+  if (TFI->hasFP(MF))
     Reserved.set(MSP430::FPW);
 
   return Reserved;
@@ -92,23 +100,12 @@ MSP430RegisterInfo::getPointerRegClass(unsigned Kind) const {
   return &MSP430::GR16RegClass;
 }
 
-
-bool MSP430RegisterInfo::hasFP(const MachineFunction &MF) const {
-  const MachineFrameInfo *MFI = MF.getFrameInfo();
-
-  return (DisableFramePointerElim(MF) ||
-          MF.getFrameInfo()->hasVarSizedObjects() ||
-          MFI->isFrameAddressTaken());
-}
-
-bool MSP430RegisterInfo::hasReservedCallFrame(const MachineFunction &MF) const {
-  return !MF.getFrameInfo()->hasVarSizedObjects();
-}
-
 void MSP430RegisterInfo::
 eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator I) const {
-  if (!hasReservedCallFrame(MF)) {
+  const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
+
+  if (!TFI->hasReservedCallFrame(MF)) {
     // If the stack pointer can be changed after prologue, turn the
     // adjcallstackup instruction into a 'sub SPW, <amt>' and the
     // adjcallstackdown instruction into 'add SPW, <amt>'
@@ -122,12 +119,12 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
       Amount = (Amount+StackAlign-1)/StackAlign*StackAlign;
 
       MachineInstr *New = 0;
-      if (Old->getOpcode() == getCallFrameSetupOpcode()) {
+      if (Old->getOpcode() == TII.getCallFrameSetupOpcode()) {
         New = BuildMI(MF, Old->getDebugLoc(),
                       TII.get(MSP430::SUB16ri), MSP430::SPW)
           .addReg(MSP430::SPW).addImm(Amount);
       } else {
-        assert(Old->getOpcode() == getCallFrameDestroyOpcode());
+        assert(Old->getOpcode() == TII.getCallFrameDestroyOpcode());
         // factor out the amount the callee already popped.
         uint64_t CalleeAmt = Old->getOperand(1).getImm();
         Amount -= CalleeAmt;
@@ -145,7 +142,7 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
         MBB.insert(I, New);
       }
     }
-  } else if (I->getOpcode() == getCallFrameDestroyOpcode()) {
+  } else if (I->getOpcode() == TII.getCallFrameDestroyOpcode()) {
     // If we are performing frame pointer elimination and if the callee pops
     // something off the stack pointer, add it back.
     if (uint64_t CalleeAmt = I->getOperand(1).getImm()) {
@@ -163,16 +160,16 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
   MBB.erase(I);
 }
 
-unsigned
+void
 MSP430RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
-                                        int SPAdj, FrameIndexValue *Value,
-                                        RegScavenger *RS) const {
+                                        int SPAdj, RegScavenger *RS) const {
   assert(SPAdj == 0 && "Unexpected");
 
   unsigned i = 0;
   MachineInstr &MI = *II;
   MachineBasicBlock &MBB = *MI.getParent();
   MachineFunction &MF = *MBB.getParent();
+  const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
   DebugLoc dl = MI.getDebugLoc();
   while (!MI.getOperand(i).isFI()) {
     ++i;
@@ -181,13 +178,13 @@ MSP430RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
   int FrameIndex = MI.getOperand(i).getIndex();
 
-  unsigned BasePtr = (hasFP(MF) ? MSP430::FPW : MSP430::SPW);
+  unsigned BasePtr = (TFI->hasFP(MF) ? MSP430::FPW : MSP430::SPW);
   int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex);
 
   // Skip the saved PC
   Offset += 2;
 
-  if (!hasFP(MF))
+  if (!TFI->hasFP(MF))
     Offset += MF.getFrameInfo()->getStackSize();
   else
     Offset += 2; // Skip the saved FPW
@@ -204,7 +201,7 @@ MSP430RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
     MI.getOperand(i).ChangeToRegister(BasePtr, false);
 
     if (Offset == 0)
-      return 0;
+      return;
 
     // We need to materialize the offset via add instruction.
     unsigned DstReg = MI.getOperand(0).getReg();
@@ -215,19 +212,20 @@ MSP430RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
       BuildMI(MBB, llvm::next(II), dl, TII.get(MSP430::ADD16ri), DstReg)
         .addReg(DstReg).addImm(Offset);
 
-    return 0;
+    return;
   }
 
   MI.getOperand(i).ChangeToRegister(BasePtr, false);
   MI.getOperand(i+1).ChangeToImmediate(Offset);
-  return 0;
 }
 
 void
 MSP430RegisterInfo::processFunctionBeforeFrameFinalized(MachineFunction &MF)
                                                                          const {
+  const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
+
   // Create a frame entry for the FPW register that must be saved.
-  if (hasFP(MF)) {
+  if (TFI->hasFP(MF)) {
     int FrameIdx = MF.getFrameInfo()->CreateFixedObject(2, -4, true);
     (void)FrameIdx;
     assert(FrameIdx == MF.getFrameInfo()->getObjectIndexBegin() &&
@@ -235,149 +233,8 @@ MSP430RegisterInfo::processFunctionBeforeFrameFinalized(MachineFunction &MF)
   }
 }
 
-
-void MSP430RegisterInfo::emitPrologue(MachineFunction &MF) const {
-  MachineBasicBlock &MBB = MF.front();   // Prolog goes in entry BB
-  MachineFrameInfo *MFI = MF.getFrameInfo();
-  MSP430MachineFunctionInfo *MSP430FI = MF.getInfo<MSP430MachineFunctionInfo>();
-  MachineBasicBlock::iterator MBBI = MBB.begin();
-  DebugLoc DL = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
-
-  // Get the number of bytes to allocate from the FrameInfo.
-  uint64_t StackSize = MFI->getStackSize();
-
-  uint64_t NumBytes = 0;
-  if (hasFP(MF)) {
-    // Calculate required stack adjustment
-    uint64_t FrameSize = StackSize - 2;
-    NumBytes = FrameSize - MSP430FI->getCalleeSavedFrameSize();
-
-    // Get the offset of the stack slot for the EBP register... which is
-    // guaranteed to be the last slot by processFunctionBeforeFrameFinalized.
-    // Update the frame offset adjustment.
-    MFI->setOffsetAdjustment(-NumBytes);
-
-    // Save FPW into the appropriate stack slot...
-    BuildMI(MBB, MBBI, DL, TII.get(MSP430::PUSH16r))
-      .addReg(MSP430::FPW, RegState::Kill);
-
-    // Update FPW with the new base value...
-    BuildMI(MBB, MBBI, DL, TII.get(MSP430::MOV16rr), MSP430::FPW)
-      .addReg(MSP430::SPW);
-
-    // Mark the FramePtr as live-in in every block except the entry.
-    for (MachineFunction::iterator I = llvm::next(MF.begin()), E = MF.end();
-         I != E; ++I)
-      I->addLiveIn(MSP430::FPW);
-
-  } else
-    NumBytes = StackSize - MSP430FI->getCalleeSavedFrameSize();
-
-  // Skip the callee-saved push instructions.
-  while (MBBI != MBB.end() && (MBBI->getOpcode() == MSP430::PUSH16r))
-    ++MBBI;
-
-  if (MBBI != MBB.end())
-    DL = MBBI->getDebugLoc();
-
-  if (NumBytes) { // adjust stack pointer: SPW -= numbytes
-    // If there is an SUB16ri of SPW immediately before this instruction, merge
-    // the two.
-    //NumBytes -= mergeSPUpdates(MBB, MBBI, true);
-    // If there is an ADD16ri or SUB16ri of SPW immediately after this
-    // instruction, merge the two instructions.
-    // mergeSPUpdatesDown(MBB, MBBI, &NumBytes);
-
-    if (NumBytes) {
-      MachineInstr *MI =
-        BuildMI(MBB, MBBI, DL, TII.get(MSP430::SUB16ri), MSP430::SPW)
-        .addReg(MSP430::SPW).addImm(NumBytes);
-      // The SRW implicit def is dead.
-      MI->getOperand(3).setIsDead();
-    }
-  }
-}
-
-void MSP430RegisterInfo::emitEpilogue(MachineFunction &MF,
-                                      MachineBasicBlock &MBB) const {
-  const MachineFrameInfo *MFI = MF.getFrameInfo();
-  MSP430MachineFunctionInfo *MSP430FI = MF.getInfo<MSP430MachineFunctionInfo>();
-  MachineBasicBlock::iterator MBBI = prior(MBB.end());
-  unsigned RetOpcode = MBBI->getOpcode();
-  DebugLoc DL = MBBI->getDebugLoc();
-
-  switch (RetOpcode) {
-  case MSP430::RET:
-  case MSP430::RETI: break;  // These are ok
-  default:
-    llvm_unreachable("Can only insert epilog into returning blocks");
-  }
-
-  // Get the number of bytes to allocate from the FrameInfo
-  uint64_t StackSize = MFI->getStackSize();
-  unsigned CSSize = MSP430FI->getCalleeSavedFrameSize();
-  uint64_t NumBytes = 0;
-
-  if (hasFP(MF)) {
-    // Calculate required stack adjustment
-    uint64_t FrameSize = StackSize - 2;
-    NumBytes = FrameSize - CSSize;
-
-    // pop FPW.
-    BuildMI(MBB, MBBI, DL, TII.get(MSP430::POP16r), MSP430::FPW);
-  } else
-    NumBytes = StackSize - CSSize;
-
-  // Skip the callee-saved pop instructions.
-  while (MBBI != MBB.begin()) {
-    MachineBasicBlock::iterator PI = prior(MBBI);
-    unsigned Opc = PI->getOpcode();
-    if (Opc != MSP430::POP16r && !PI->getDesc().isTerminator())
-      break;
-    --MBBI;
-  }
-
-  DL = MBBI->getDebugLoc();
-
-  // If there is an ADD16ri or SUB16ri of SPW immediately before this
-  // instruction, merge the two instructions.
-  //if (NumBytes || MFI->hasVarSizedObjects())
-  //  mergeSPUpdatesUp(MBB, MBBI, StackPtr, &NumBytes);
-
-  if (MFI->hasVarSizedObjects()) {
-    BuildMI(MBB, MBBI, DL,
-            TII.get(MSP430::MOV16rr), MSP430::SPW).addReg(MSP430::FPW);
-    if (CSSize) {
-      MachineInstr *MI =
-        BuildMI(MBB, MBBI, DL,
-                TII.get(MSP430::SUB16ri), MSP430::SPW)
-        .addReg(MSP430::SPW).addImm(CSSize);
-      // The SRW implicit def is dead.
-      MI->getOperand(3).setIsDead();
-    }
-  } else {
-    // adjust stack pointer back: SPW += numbytes
-    if (NumBytes) {
-      MachineInstr *MI =
-        BuildMI(MBB, MBBI, DL, TII.get(MSP430::ADD16ri), MSP430::SPW)
-        .addReg(MSP430::SPW).addImm(NumBytes);
-      // The SRW implicit def is dead.
-      MI->getOperand(3).setIsDead();
-    }
-  }
-}
-
-unsigned MSP430RegisterInfo::getRARegister() const {
-  return MSP430::PCW;
-}
-
 unsigned MSP430RegisterInfo::getFrameRegister(const MachineFunction &MF) const {
-  return hasFP(MF) ? MSP430::FPW : MSP430::SPW;
-}
+  const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
 
-int MSP430RegisterInfo::getDwarfRegNum(unsigned RegNum, bool isEH) const {
-  llvm_unreachable("Not implemented yet!");
-  return 0;
+  return TFI->hasFP(MF) ? MSP430::FPW : MSP430::SPW;
 }
-
-#include "MSP430GenRegisterInfo.inc"

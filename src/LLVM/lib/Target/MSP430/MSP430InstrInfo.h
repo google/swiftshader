@@ -17,6 +17,9 @@
 #include "llvm/Target/TargetInstrInfo.h"
 #include "MSP430RegisterInfo.h"
 
+#define GET_INSTRINFO_HEADER
+#include "MSP430GenInstrInfo.inc"
+
 namespace llvm {
 
 class MSP430TargetMachine;
@@ -37,7 +40,7 @@ namespace MSP430II {
   };
 }
 
-class MSP430InstrInfo : public TargetInstrInfoImpl {
+class MSP430InstrInfo : public MSP430GenInstrInfo {
   const MSP430RegisterInfo RI;
   MSP430TargetMachine &TM;
 public:
@@ -65,15 +68,6 @@ public:
                                     unsigned DestReg, int FrameIdx,
                                     const TargetRegisterClass *RC,
                                     const TargetRegisterInfo *TRI) const;
-
-  virtual bool spillCalleeSavedRegisters(MachineBasicBlock &MBB,
-                                         MachineBasicBlock::iterator MI,
-                                        const std::vector<CalleeSavedInfo> &CSI,
-                                         const TargetRegisterInfo *TRI) const;
-  virtual bool restoreCalleeSavedRegisters(MachineBasicBlock &MBB,
-                                           MachineBasicBlock::iterator MI,
-                                        const std::vector<CalleeSavedInfo> &CSI,
-                                           const TargetRegisterInfo *TRI) const;
 
   unsigned GetInstSizeInBytes(const MachineInstr *MI) const;
 

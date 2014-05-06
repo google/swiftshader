@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2011 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // Context.cpp: Implements the gl::Context class, managing all GL state and performing
@@ -17,6 +22,7 @@
 #include "Fence.h"
 #include "FrameBuffer.h"
 #include "Program.h"
+#include "Query.h"
 #include "RenderBuffer.h"
 #include "Shader.h"
 #include "Texture.h"
@@ -173,6 +179,11 @@ Context::~Context()
         deleteFence(mFenceMap.begin()->first);
     }
 
+	while(!mQueryMap.empty())
+    {
+        deleteQuery(mQueryMap.begin()->first);
+    }
+
     while(!mMultiSampleSupport.empty())
     {
         delete [] mMultiSampleSupport.begin()->second;
@@ -190,6 +201,11 @@ Context::~Context()
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
         mState.vertexAttribute[i].mBoundBuffer.set(NULL);
+    }
+
+	for(int i = 0; i < QUERY_TYPE_COUNT; i++)
+    {
+        mState.activeQuery[i].set(NULL);
     }
 
     mState.arrayBuffer.set(NULL);
@@ -211,8 +227,8 @@ void Context::makeCurrent(egl::Display *display, egl::Surface *surface)
 
     if(!mHasBeenCurrent)
     {
-        mVertexDataManager = new VertexDataManager(this, device);
-        mIndexDataManager = new IndexDataManager(this, device);
+        mVertexDataManager = new VertexDataManager(this);
+        mIndexDataManager = new IndexDataManager();
 
         const sw::Format renderBufferFormats[] =
         {
@@ -264,19 +280,12 @@ void Context::makeCurrent(egl::Display *display, egl::Surface *surface)
 void Context::markAllStateDirty()
 {
     mAppliedProgramSerial = 0;
-    mAppliedRenderTargetSerial = 0;
-    mAppliedDepthbufferSerial = 0;
-    mAppliedStencilbufferSerial = 0;
-    mDepthStencilInitialized = false;
 
-    mClearStateDirty = true;
-    mCullStateDirty = true;
     mDepthStateDirty = true;
     mMaskStateDirty = true;
     mBlendStateDirty = true;
     mStencilStateDirty = true;
     mPolygonOffsetStateDirty = true;
-    mScissorStateDirty = true;
     mSampleStateDirty = true;
     mDitherStateDirty = true;
     mFrontFaceDirty = true;
@@ -302,11 +311,7 @@ void Context::setClearStencil(int stencil)
 
 void Context::setCullFace(bool enabled)
 {
-    if(mState.cullFace != enabled)
-    {
-        mState.cullFace = enabled;
-        mCullStateDirty = true;
-    }
+    mState.cullFace = enabled;
 }
 
 bool Context::isCullFaceEnabled() const
@@ -316,11 +321,7 @@ bool Context::isCullFaceEnabled() const
 
 void Context::setCullMode(GLenum mode)
 {
-    if(mState.cullMode != mode)
-    {
-        mState.cullMode = mode;
-        mCullStateDirty = true;
-    }
+   mState.cullMode = mode;
 }
 
 void Context::setFrontFace(GLenum front)
@@ -567,11 +568,7 @@ void Context::setSampleCoverageParams(GLclampf value, bool invert)
 
 void Context::setScissorTest(bool enabled)
 {
-    if(mState.scissorTest != enabled)
-    {
-        mState.scissorTest = enabled;
-        mScissorStateDirty = true;
-    }
+    mState.scissorTest = enabled;
 }
 
 bool Context::isScissorTestEnabled() const
@@ -621,21 +618,16 @@ void Context::setViewportParams(GLint x, GLint y, GLsizei width, GLsizei height)
 
 void Context::setScissorParams(GLint x, GLint y, GLsizei width, GLsizei height)
 {
-    if(mState.scissorX != x || mState.scissorY != y || 
-        mState.scissorWidth != width || mState.scissorHeight != height)
-    {
-        mState.scissorX = x;
-        mState.scissorY = y;
-        mState.scissorWidth = width;
-        mState.scissorHeight = height;
-        mScissorStateDirty = true;
-    }
+    mState.scissorX = x;
+    mState.scissorY = y;
+    mState.scissorWidth = width;
+    mState.scissorHeight = height;
 }
 
 void Context::setColorMask(bool red, bool green, bool blue, bool alpha)
 {
     if(mState.colorMaskRed != red || mState.colorMaskGreen != green ||
-        mState.colorMaskBlue != blue || mState.colorMaskAlpha != alpha)
+       mState.colorMaskBlue != blue || mState.colorMaskAlpha != alpha)
     {
         mState.colorMaskRed = red;
         mState.colorMaskGreen = green;
@@ -677,6 +669,30 @@ GLuint Context::getRenderbufferHandle() const
 GLuint Context::getArrayBufferHandle() const
 {
     return mState.arrayBuffer.id();
+}
+
+GLuint Context::getActiveQuery(GLenum target) const
+{
+    Query *queryObject = NULL;
+    
+    switch(target)
+    {
+    case GL_ANY_SAMPLES_PASSED_EXT:
+        queryObject = mState.activeQuery[QUERY_ANY_SAMPLES_PASSED].get();
+        break;
+    case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
+        queryObject = mState.activeQuery[QUERY_ANY_SAMPLES_PASSED_CONSERVATIVE].get();
+        break;
+    default:
+        ASSERT(false);
+    }
+
+    if(queryObject)
+    {
+        return queryObject->id();
+    }
+    
+	return 0;
 }
 
 void Context::setEnableVertexAttribArray(unsigned int attribNum, bool enabled)
@@ -774,6 +790,16 @@ GLuint Context::createFence()
     return handle;
 }
 
+// Returns an unused query name
+GLuint Context::createQuery()
+{
+    GLuint handle = mQueryHandleAllocator.allocate();
+
+    mQueryMap[handle] = NULL;
+
+    return handle;
+}
+
 void Context::deleteBuffer(GLuint buffer)
 {
     if(mResourceManager->getBuffer(buffer))
@@ -837,6 +863,23 @@ void Context::deleteFence(GLuint fence)
         mFenceHandleAllocator.release(fenceObject->first);
         delete fenceObject->second;
         mFenceMap.erase(fenceObject);
+    }
+}
+
+void Context::deleteQuery(GLuint query)
+{
+    QueryMap::iterator queryObject = mQueryMap.find(query);
+    
+	if(queryObject != mQueryMap.end())
+    {
+        mQueryHandleAllocator.release(queryObject->first);
+        
+		if(queryObject->second)
+        {
+            queryObject->second->release();
+        }
+        
+		mQueryMap.erase(queryObject);
     }
 }
 
@@ -952,6 +995,93 @@ void Context::useProgram(GLuint program)
     }
 }
 
+void Context::beginQuery(GLenum target, GLuint query)
+{
+    // From EXT_occlusion_query_boolean: If BeginQueryEXT is called with an <id>  
+    // of zero, if the active query object name for <target> is non-zero (for the  
+    // targets ANY_SAMPLES_PASSED_EXT and ANY_SAMPLES_PASSED_CONSERVATIVE_EXT, if  
+    // the active query for either target is non-zero), if <id> is the name of an 
+    // existing query object whose type does not match <target>, or if <id> is the
+    // active query object name for any query type, the error INVALID_OPERATION is
+    // generated.
+
+    // Ensure no other queries are active
+    // NOTE: If other queries than occlusion are supported, we will need to check
+    // separately that:
+    //    a) The query ID passed is not the current active query for any target/type
+    //    b) There are no active queries for the requested target (and in the case
+    //       of GL_ANY_SAMPLES_PASSED_EXT and GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT,
+    //       no query may be active for either if glBeginQuery targets either.
+    for(int i = 0; i < QUERY_TYPE_COUNT; i++)
+    {
+        if(mState.activeQuery[i].get() != NULL)
+        {
+            return error(GL_INVALID_OPERATION);
+        }
+    }
+
+    QueryType qType;
+    switch(target)
+    {
+    case GL_ANY_SAMPLES_PASSED_EXT: 
+        qType = QUERY_ANY_SAMPLES_PASSED; 
+        break;
+    case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT: 
+        qType = QUERY_ANY_SAMPLES_PASSED_CONSERVATIVE; 
+        break;
+    default: 
+        ASSERT(false);
+    }
+
+    Query *queryObject = getQuery(query, true, target);
+
+    // Check that name was obtained with glGenQueries
+    if(!queryObject)
+    {
+        return error(GL_INVALID_OPERATION);
+    }
+
+    // Check for type mismatch
+    if(queryObject->getType() != target)
+    {
+        return error(GL_INVALID_OPERATION);
+    }
+
+    // Set query as active for specified target
+    mState.activeQuery[qType].set(queryObject);
+
+    // Begin query
+    queryObject->begin();
+}
+
+void Context::endQuery(GLenum target)
+{
+    QueryType qType;
+
+    switch(target)
+    {
+    case GL_ANY_SAMPLES_PASSED_EXT: 
+        qType = QUERY_ANY_SAMPLES_PASSED; 
+        break;
+    case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT: 
+        qType = QUERY_ANY_SAMPLES_PASSED_CONSERVATIVE; 
+        break;
+    default: 
+        ASSERT(false);
+    }
+
+    Query *queryObject = mState.activeQuery[qType].get();
+
+    if(queryObject == NULL)
+    {
+        return error(GL_INVALID_OPERATION);
+    }
+
+    queryObject->end();
+
+    mState.activeQuery[qType].set(NULL);
+}
+
 void Context::setFramebufferZero(Framebuffer *buffer)
 {
     delete mFramebufferMap[0];
@@ -989,6 +1119,26 @@ Fence *Context::getFence(unsigned int handle)
     else
     {
         return fence->second;
+    }
+}
+
+Query *Context::getQuery(unsigned int handle, bool create, GLenum type)
+{
+    QueryMap::iterator query = mQueryMap.find(handle);
+
+    if(query == mQueryMap.end())
+    {
+        return NULL;
+    }
+    else
+    {
+        if(!query->second && create)
+        {
+            query->second = new Query(handle, type);
+            query->second->addRef();
+        }
+
+        return query->second;
     }
 }
 
@@ -1167,9 +1317,11 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
         {
             if(S3TC_SUPPORT)
             {
-                // at current, only GL_COMPRESSED_RGB_S3TC_DXT1_EXT and 
-                // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT are supported
-                *params = 2;
+                // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
+                // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
+				// GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE
+				// GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE
+                *params = 4;
             }
             else
             {
@@ -1222,6 +1374,8 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
             {
                 params[0] = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
                 params[1] = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+				params[2] = GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE;
+                params[3] = GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE;
             }
         }
         break;
@@ -1333,7 +1487,12 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
     // application.
     switch (pname)
     {
-      case GL_COMPRESSED_TEXTURE_FORMATS: /* no compressed texture formats are supported */ 
+      case GL_COMPRESSED_TEXTURE_FORMATS:
+		{
+            *type = GL_INT;
+            *numParams = S3TC_SUPPORT ? 4 : 0;
+        }
+		break;
       case GL_SHADER_BINARY_FORMATS:
         {
             *type = GL_INT;
@@ -1479,7 +1638,7 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
 }
 
 // Applies the render target surface, depth stencil surface, viewport rectangle and scissor rectangle
-bool Context::applyRenderTarget(bool ignoreViewport)
+bool Context::applyRenderTarget()
 {
     Device *device = getDevice();
 
@@ -1494,16 +1653,14 @@ bool Context::applyRenderTarget(bool ignoreViewport)
 
     if(!renderTarget)
     {
-        return false;   // Context must be lost
+        return false;
     }
+
+	device->setRenderTarget(renderTarget);
+	renderTarget->release();
 
     Image *depthStencil = NULL;
 
-    device->setRenderTarget(renderTarget);
-    mScissorStateDirty = true;   // Scissor area must be clamped to render target's size - this is different for different render targets.
-    
-    unsigned int depthbufferSerial = 0;
-    unsigned int stencilbufferSerial = 0;
     if(framebufferObject->getDepthbufferType() != GL_NONE)
     {
         depthStencil = framebufferObject->getDepthbuffer()->getDepthStencil();
@@ -1512,8 +1669,6 @@ bool Context::applyRenderTarget(bool ignoreViewport)
             ERR("Depth stencil pointer unexpectedly null.");
             return false;
         }
-        
-        depthbufferSerial = framebufferObject->getDepthbuffer()->getSerial();
     }
     else if(framebufferObject->getStencilbufferType() != GL_NONE)
     {
@@ -1523,93 +1678,44 @@ bool Context::applyRenderTarget(bool ignoreViewport)
             ERR("Depth stencil pointer unexpectedly null.");
             return false;
         }
-        
-        stencilbufferSerial = framebufferObject->getStencilbuffer()->getSerial();
     }
 
-    if(depthbufferSerial != mAppliedDepthbufferSerial ||
-       stencilbufferSerial != mAppliedStencilbufferSerial ||
-       !mDepthStencilInitialized)
-    {
-        device->setDepthStencilSurface(depthStencil);
-        mAppliedDepthbufferSerial = depthbufferSerial;
-        mAppliedStencilbufferSerial = stencilbufferSerial;
-        mDepthStencilInitialized = true;
-    }
+    device->setDepthStencilSurface(depthStencil);
 
     Viewport viewport;
-
     float zNear = clamp01(mState.zNear);
     float zFar = clamp01(mState.zFar);
 
-    if(ignoreViewport)
-    {
-        viewport.x = 0;
-        viewport.y = 0;
-        viewport.width = renderTarget->getWidth();
-        viewport.height = renderTarget->getHeight();
-        viewport.minZ = 0.0f;
-        viewport.maxZ = 1.0f;
-    }
-    else
-    {
-        sw::Rect rect = transformPixelRect(mState.viewportX, mState.viewportY, mState.viewportWidth, mState.viewportHeight, renderTarget->getHeight());
-        viewport.x = clamp(rect.left, 0L, static_cast<LONG>(renderTarget->getWidth()));
-        viewport.y = clamp(rect.top, 0L, static_cast<LONG>(renderTarget->getHeight()));
-        viewport.width = clamp(rect.right - rect.left, 0L, static_cast<LONG>(renderTarget->getWidth()) - static_cast<LONG>(viewport.x));
-        viewport.height = clamp(rect.bottom - rect.top, 0L, static_cast<LONG>(renderTarget->getHeight()) - static_cast<LONG>(viewport.y));
-        viewport.minZ = zNear;
-        viewport.maxZ = zFar;
-    }
-
-    if(viewport.width <= 0 || viewport.height <= 0)
-    {
-        return false;   // Nothing to render
-    }
+    viewport.x0 = mState.viewportX;
+    viewport.y0 = mState.viewportY;
+    viewport.width = mState.viewportWidth;
+    viewport.height = mState.viewportHeight;
+    viewport.minZ = zNear;
+    viewport.maxZ = zFar;
 
     device->setViewport(viewport);
 
-    if(mScissorStateDirty)
+    if(mState.scissorTest)
     {
-        if(mState.scissorTest)
-        {
-            sw::Rect rect = transformPixelRect(mState.scissorX, mState.scissorY, mState.scissorWidth, mState.scissorHeight, renderTarget->getHeight());
-            rect.left = clamp(rect.left, 0L, static_cast<LONG>(renderTarget->getWidth()));
-            rect.top = clamp(rect.top, 0L, static_cast<LONG>(renderTarget->getHeight()));
-            rect.right = clamp(rect.right, 0L, static_cast<LONG>(renderTarget->getWidth()));
-            rect.bottom = clamp(rect.bottom, 0L, static_cast<LONG>(renderTarget->getHeight()));
-            device->setScissorRect(rect);
-            device->setScissorEnable(true);
-        }
-        else
-        {
-            device->setScissorEnable(false);
-        }
-
-        mScissorStateDirty = false;
+		sw::Rect scissor = {mState.scissorX, mState.scissorY, mState.scissorX + mState.scissorWidth, mState.scissorY + mState.scissorHeight};
+		scissor.clip(0, 0, renderTarget->getWidth(), renderTarget->getHeight());
+        
+		device->setScissorRect(scissor);
+        device->setScissorEnable(true);
+    }
+    else
+    {
+        device->setScissorEnable(false);
     }
 
-    if(mState.currentProgram)
-    {
-        Program *programObject = getCurrentProgram();
+	Program *program = getCurrentProgram();
 
-        GLint halfPixelSize = programObject->getDxHalfPixelSizeLocation();
-        GLfloat xy[2] = {1.0f / viewport.width, -1.0f / viewport.height};
-        programObject->setUniform2fv(halfPixelSize, 1, xy);
-
-        GLint viewport = programObject->getDxViewportLocation();
-        GLfloat whxy[4] = {mState.viewportWidth / 2.0f, mState.viewportHeight / 2.0f, 
-                           (float)mState.viewportX + mState.viewportWidth / 2.0f, 
-                           (float)mState.viewportY + mState.viewportHeight / 2.0f};
-        programObject->setUniform4fv(viewport, 1, whxy);
-
-        GLint depth = programObject->getDxDepthLocation();
-        GLfloat dz[2] = {(zFar - zNear) / 2.0f, (zNear + zFar) / 2.0f};
-        programObject->setUniform2fv(depth, 1, dz);
-
-        GLint depthRange = programObject->getDxDepthRangeLocation();
-        GLfloat nearFarDiff[3] = {zNear, zFar, zFar - zNear};
-        programObject->setUniform3fv(depthRange, 1, nearFarDiff);
+	if(program)
+	{
+		GLfloat nearFarDiff[3] = {zNear, zFar, zFar - zNear};
+        program->setUniform1fv(program->getUniformLocation("gl_DepthRange.near"), 1, &nearFarDiff[0]);
+		program->setUniform1fv(program->getUniformLocation("gl_DepthRange.far"), 1, &nearFarDiff[1]);
+		program->setUniform1fv(program->getUniformLocation("gl_DepthRange.diff"), 1, &nearFarDiff[2]);
     }
 
     return true;
@@ -1623,28 +1729,13 @@ void Context::applyState(GLenum drawMode)
 
     Framebuffer *framebufferObject = getDrawFramebuffer();
 
-    GLenum adjustedFrontFace = adjustWinding(mState.frontFace);
-
-    GLint frontCCW = programObject->getDxFrontCCWLocation();
-    GLint ccw = (adjustedFrontFace == GL_CCW);
-    programObject->setUniform1iv(frontCCW, 1, &ccw);
-
-    GLint pointsOrLines = programObject->getDxPointsOrLinesLocation();
-    GLint alwaysFront = !isTriangleMode(drawMode);
-    programObject->setUniform1iv(pointsOrLines, 1, &alwaysFront);
-
-    if(mCullStateDirty || mFrontFaceDirty)
+    if(mState.cullFace)
     {
-        if(mState.cullFace)
-        {
-            device->setCullMode(es2sw::ConvertCullMode(mState.cullMode, adjustedFrontFace));
-        }
-        else
-        {
-			device->setCullMode(sw::Context::CULL_NONE);
-        }
-
-        mCullStateDirty = false;
+        device->setCullMode(es2sw::ConvertCullMode(mState.cullMode, mState.frontFace));
+    }
+    else
+    {
+		device->setCullMode(sw::Context::CULL_NONE);
     }
 
     if(mDepthStateDirty)
@@ -1706,7 +1797,7 @@ void Context::applyState(GLenum drawMode)
             DepthStencilbuffer *stencilbuffer = framebufferObject->getStencilbuffer();
             GLuint maxStencil = (1 << stencilbuffer->getStencilSize()) - 1;
 
-			if(adjustedFrontFace == GL_CCW)
+			if(mState.frontFace == GL_CCW)
 			{
 				device->setStencilWriteMask(mState.stencilWritemask);
 				device->setStencilCompare(es2sw::ConvertStencilComparison(mState.stencilFunc));
@@ -1854,8 +1945,8 @@ GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count)
 	device->resetInputStreams(false);
 
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
-	{			
-		if(!attributes[i].active)
+	{
+		if(program->getAttributeStream(i) == -1)
 		{
 			continue;
 		}
@@ -1873,16 +1964,8 @@ GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count)
 		attribute.count = attributes[i].count;
 		attribute.normalized = attributes[i].normalized;
 
-		for(int stream = 0; stream < 16; stream++)
-		{
-			if(program->getVertexShader()->input[stream].usage == sw::ShaderOperation::USAGE_TEXCOORD &&
-			   program->getVertexShader()->input[stream].index == program->getSemanticIndex(i))
-			{
-				device->setInputStream(stream, attribute);
-
-				break;
-			}
-		}
+		int stream = program->getAttributeStream(i);
+		device->setInputStream(stream, attribute);
 	}
 
 	return GL_NO_ERROR;
@@ -1908,7 +1991,7 @@ void Context::applyShaders()
     Device *device = getDevice();
     Program *programObject = getCurrentProgram();
     sw::VertexShader *vertexShader = programObject->getVertexShader();
-    sw::PixelShader *pixelShader = programObject->getPixelShader();
+	sw::PixelShader *pixelShader = programObject->getPixelShader();
 
     device->setVertexShader(vertexShader);
     device->setPixelShader(pixelShader);
@@ -1922,16 +2005,12 @@ void Context::applyShaders()
     programObject->applyUniforms();
 }
 
-// Applies the textures and sampler states
 void Context::applyTextures()
 {
     applyTextures(sw::SAMPLER_PIXEL);
 	applyTextures(sw::SAMPLER_VERTEX);
 }
 
-// For each Direct3D 9 sampler of either the pixel or vertex stage,
-// looks up the corresponding OpenGL texture image unit and texture type,
-// and sets the texture and its addressing/filtering state (or NULL when inactive).
 void Context::applyTextures(sw::SamplerType samplerType)
 {
     Device *device = getDevice();
@@ -1949,7 +2028,7 @@ void Context::applyTextures(sw::SamplerType samplerType)
 
             Texture *texture = getSamplerTexture(textureUnit, textureType);
 
-			if(texture->isComplete())
+			if(texture->isSamplerComplete())
             {
                 GLenum wrapS = texture->getWrapS();
                 GLenum wrapT = texture->getWrapT();
@@ -1995,7 +2074,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 	}
 	else if(type == sw::SAMPLER_VERTEX)
 	{
-		textureUsed = program->getPixelShader()->usesSampler(index);
+		textureUsed = program->getVertexShader()->usesSampler(index);
 	}
 	else
 	{
@@ -2068,7 +2147,8 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 	}
 }
 
-void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void* pixels)
+void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
+                         GLenum format, GLenum type, GLsizei *bufSize, void* pixels)
 {
     Framebuffer *framebuffer = getReadFramebuffer();
 
@@ -2082,75 +2162,45 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
         return error(GL_INVALID_OPERATION);
     }
 
+	GLsizei outputPitch = ComputePitch(width, format, type, mState.packAlignment);
+    
+	// Sized query sanity check
+    if(bufSize)
+    {
+        int requiredSize = outputPitch * height;
+        if(requiredSize > *bufSize)
+        {
+            return error(GL_INVALID_OPERATION);
+        }
+    }
+
     Image *renderTarget = framebuffer->getRenderTarget();
 
     if(!renderTarget)
     {
-        return;   // Context must be lost, return silently
-    }
-
-    Device *device = getDevice();
-	
-    Image *systemSurface = device->createOffscreenPlainSurface(renderTarget->getWidth(), renderTarget->getHeight(), renderTarget->getInternalFormat());
-
-    if(!systemSurface)
-    {
         return error(GL_OUT_OF_MEMORY);
     }
 
-    if(renderTarget->getMultiSampleDepth() > 1)
-    {
-        UNIMPLEMENTED();   // FIXME: Requires resolve using StretchRect into non-multisampled render target
-    }
+	sw::Rect rect = {x, y, x + width, y + height};
+	rect.clip(0, 0, renderTarget->getWidth(), renderTarget->getHeight());
 
-    bool success = device->getRenderTargetData(renderTarget, systemSurface);
-
-    if(!success)
-    {
-		UNREACHABLE();
-        systemSurface->release();
-
-        return;   // No sensible error to generate
-    }
-
-    sw::Rect rect = transformPixelRect(x, y, width, height, renderTarget->getHeight());
-    rect.left = clamp(rect.left, 0L, static_cast<LONG>(renderTarget->getWidth()));
-    rect.top = clamp(rect.top, 0L, static_cast<LONG>(renderTarget->getHeight()));
-    rect.right = clamp(rect.right, 0L, static_cast<LONG>(renderTarget->getWidth()));
-    rect.bottom = clamp(rect.bottom, 0L, static_cast<LONG>(renderTarget->getHeight()));
-
-    void *buffer = systemSurface->lock(rect.left, rect.top, sw::LOCK_READONLY);
-
-    if(!buffer)
-    {
-        UNREACHABLE();
-        systemSurface->release();
-
-        return;   // No sensible error to generate
-    }
-
-    unsigned char *source = ((unsigned char*)buffer) + systemSurface->getPitch() * (rect.bottom - rect.top - 1);
+    unsigned char *source = (unsigned char*)renderTarget->lock(rect.x0, rect.y0, sw::LOCK_READONLY);
     unsigned char *dest = (unsigned char*)pixels;
     unsigned short *dest16 = (unsigned short*)pixels;
-    int inputPitch = -(int)systemSurface->getPitch();
-    GLsizei outputPitch = ComputePitch(width, format, type, mState.packAlignment);
+    int inputPitch = (int)renderTarget->getPitch();
 
-    for(int j = 0; j < rect.bottom - rect.top; j++)
+    for(int j = 0; j < rect.y1 - rect.y0; j++)
     {
         if(renderTarget->getInternalFormat() == sw::FORMAT_A8R8G8B8 &&
-           format == GL_BGRA_EXT &&
-           type == GL_UNSIGNED_BYTE)
+           format == GL_BGRA_EXT && type == GL_UNSIGNED_BYTE)
         {
-            // Fast path for EXT_read_format_bgra, given
-            // an RGBA source buffer.  Note that buffers with no
-            // alpha go through the slow path below.
-            memcpy(dest + j * outputPitch,
-                   source + j * inputPitch,
-                   (rect.right - rect.left) * 4);
+            // Fast path for EXT_read_format_bgra, given an RGBA source buffer
+			// Note that buffers with no alpha go through the slow path below
+            memcpy(dest + j * outputPitch, source + j * inputPitch, (rect.x1 - rect.x0) * 4);
         }
 		else
 		{
-			for(int i = 0; i < rect.right - rect.left; i++)
+			for(int i = 0; i < rect.x1 - rect.x0; i++)
 			{
 				float r;
 				float g;
@@ -2230,10 +2280,10 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
 					UNREACHABLE();
 				}
 
-				switch (format)
+				switch(format)
 				{
 				case GL_RGBA:
-					switch (type)
+					switch(type)
 					{
 					case GL_UNSIGNED_BYTE:
 						dest[4 * i + j * outputPitch + 0] = (unsigned char)(255 * r + 0.5f);
@@ -2245,7 +2295,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
 					}
 					break;
 				case GL_BGRA_EXT:
-					switch (type)
+					switch(type)
 					{
 					case GL_UNSIGNED_BYTE:
 						dest[4 * i + j * outputPitch + 0] = (unsigned char)(255 * b + 0.5f);
@@ -2285,7 +2335,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
 					}
 					break;
 				case GL_RGB:   // IMPLEMENTATION_COLOR_READ_FORMAT
-					switch (type)
+					switch(type)
 					{
 					case GL_UNSIGNED_SHORT_5_6_5:   // IMPLEMENTATION_COLOR_READ_TYPE
 						dest16[i + j * outputPitch / sizeof(unsigned short)] = 
@@ -2302,9 +2352,8 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
         }
     }
 
-    systemSurface->unlock();
-
-    systemSurface->release();
+	renderTarget->unlock();
+	renderTarget->release();
 }
 
 void Context::clear(GLbitfield mask)
@@ -2316,13 +2365,12 @@ void Context::clear(GLbitfield mask)
         return error(GL_INVALID_FRAMEBUFFER_OPERATION);
     }
 
-    egl::Display *display = getDisplay();
-    Device *device = getDevice();
-
-    if(!applyRenderTarget(true))   // Clips the clear to the scissor rectangle but not the viewport
+    if(!applyRenderTarget())
     {
         return;
     }
+
+	Device *device = getDevice();
 
 	unsigned int color = (unorm<8>(mState.colorClearValue.alpha) << 24) |
                          (unorm<8>(mState.colorClearValue.red) << 16) |
@@ -2361,7 +2409,6 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
         return error(GL_INVALID_OPERATION);
     }
 
-    egl::Display *display = getDisplay();
     Device *device = getDevice();
     PrimitiveType primitiveType;
     int primitiveCount;
@@ -2374,7 +2421,7 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
         return;
     }
 
-    if(!applyRenderTarget(false))
+    if(!applyRenderTarget())
     {
         return;
     }
@@ -2413,7 +2460,6 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
         return error(GL_INVALID_OPERATION);
     }
 
-    egl::Display *display = getDisplay();
     Device *device = getDevice();
     PrimitiveType primitiveType;
     int primitiveCount;
@@ -2426,7 +2472,7 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
         return;
     }
 
-    if(!applyRenderTarget(false))
+    if(!applyRenderTarget())
     {
         return;
     }
@@ -2701,32 +2747,40 @@ void Context::setVertexAttrib(GLuint index, const GLfloat *values)
 
 void Context::initExtensionString()
 {
-    mExtensionString += "GL_OES_packed_depth_stencil ";
-    mExtensionString += "GL_EXT_texture_format_BGRA8888 ";
-    mExtensionString += "GL_EXT_read_format_bgra ";
-    mExtensionString += "GL_ANGLE_framebuffer_blit ";
-    mExtensionString += "GL_OES_rgb8_rgba8 ";
-    mExtensionString += "GL_OES_standard_derivatives ";
-    mExtensionString += "GL_NV_fence ";
+	// Keep list sorted in following order:
+	// OES extensions
+	// EXT extensions
+	// Vendor extensions
 
-    if(S3TC_SUPPORT)
-    {
-        mExtensionString += "GL_EXT_texture_compression_dxt1 ";
-    }
+	mExtensionString += "GL_OES_element_index_uint ";
+	mExtensionString += "GL_OES_packed_depth_stencil ";
+	mExtensionString += "GL_OES_rgb8_rgba8 ";
+	mExtensionString += "GL_OES_standard_derivatives ";
+	mExtensionString += "GL_OES_texture_float ";
+	mExtensionString += "GL_OES_texture_float_linear ";
+	mExtensionString += "GL_OES_texture_half_float ";
+	mExtensionString += "GL_OES_texture_half_float_linear ";
+	mExtensionString += "GL_OES_texture_npot ";
+	mExtensionString += "GL_EXT_occlusion_query_boolean ";
+	mExtensionString += "GL_EXT_read_format_bgra ";
+	
+	if(S3TC_SUPPORT)
+	{
+		mExtensionString += "GL_EXT_texture_compression_dxt1 ";
+		mExtensionString += "GL_ANGLE_texture_compression_dxt3 ";
+		mExtensionString += "GL_ANGLE_texture_compression_dxt5 ";
+	}
 
-    mExtensionString += "GL_OES_texture_float ";
-    mExtensionString += "GL_OES_texture_half_float ";
-    mExtensionString += "GL_OES_texture_float_linear ";
-    mExtensionString += "GL_OES_texture_half_float_linear ";
-    mExtensionString += "GL_ANGLE_framebuffer_multisample ";
-    mExtensionString += "GL_OES_element_index_uint ";
-    mExtensionString += "GL_OES_texture_npot ";
+	mExtensionString += "GL_EXT_texture_format_BGRA8888 ";
+	mExtensionString += "GL_ANGLE_framebuffer_blit ";
+	mExtensionString += "GL_ANGLE_framebuffer_multisample ";
+	mExtensionString += "GL_NV_fence ";
 
-    std::string::size_type end = mExtensionString.find_last_not_of(' ');
-    if(end != std::string::npos)
-    {
-        mExtensionString.resize(end+1);
-    }
+	std::string::size_type end = mExtensionString.find_last_not_of(' ');
+	if(end != std::string::npos)
+	{
+		mExtensionString.resize(end + 1);
+	}
 }
 
 const char *Context::getExtensionString() const
@@ -2744,7 +2798,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
     Framebuffer *drawFramebuffer = getDrawFramebuffer();
 
     if(!readFramebuffer || readFramebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE ||
-        !drawFramebuffer || drawFramebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE)
+       !drawFramebuffer || drawFramebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE)
     {
         return error(GL_INVALID_FRAMEBUFFER_OPERATION);
     }
@@ -2764,68 +2818,65 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
     if(srcX0 < srcX1)
     {
-        sourceRect.left = srcX0;
-        sourceRect.right = srcX1;
-        destRect.left = dstX0;
-        destRect.right = dstX1;
+        sourceRect.x0 = srcX0;
+        sourceRect.x1 = srcX1;
+        destRect.x0 = dstX0;
+        destRect.x1 = dstX1;
     }
     else
     {
-        sourceRect.left = srcX1;
-        destRect.left = dstX1;
-        sourceRect.right = srcX0;
-        destRect.right = dstX0;
+        sourceRect.x0 = srcX1;
+        destRect.x0 = dstX1;
+        sourceRect.x1 = srcX0;
+        destRect.x1 = dstX0;
     }
 
     if(srcY0 < srcY1)
     {
-        sourceRect.top = readBufferHeight - srcY1;
-        destRect.top = drawBufferHeight - dstY1;
-        sourceRect.bottom = readBufferHeight - srcY0;
-        destRect.bottom = drawBufferHeight - dstY0;
+        sourceRect.y0 = srcY0;
+        destRect.y0 = dstY0;
+        sourceRect.y1 = srcY1;
+        destRect.y1 = dstY1;
     }
     else
     {
-        sourceRect.top = readBufferHeight - srcY0;
-        destRect.top = drawBufferHeight - dstY0;
-        sourceRect.bottom = readBufferHeight - srcY1;
-        destRect.bottom = drawBufferHeight - dstY1;
+        sourceRect.y0 = srcY1;
+        destRect.y0 = dstY1;
+        sourceRect.y1 = srcY0;
+        destRect.y1 = dstY0;
     }
 
     sw::Rect sourceScissoredRect = sourceRect;
     sw::Rect destScissoredRect = destRect;
 
-    if(mState.scissorTest)
+    if(mState.scissorTest)   // Only write to parts of the destination framebuffer which pass the scissor test
     {
-        // Only write to parts of the destination framebuffer which pass the scissor test
-        // Please note: the destRect is now in Y-down coordinates, so the *top* of the
-        // rect will be checked against scissorY, rather than the bottom.
-        if(destRect.left < mState.scissorX)
+        if(destRect.x0 < mState.scissorX)
         {
-            int xDiff = mState.scissorX - destRect.left;
-            destScissoredRect.left = mState.scissorX;
-            sourceScissoredRect.left += xDiff;
+            int xDiff = mState.scissorX - destRect.x0;
+            destScissoredRect.x0 = mState.scissorX;
+            sourceScissoredRect.x0 += xDiff;
         }
 
-        if(destRect.right > mState.scissorX + mState.scissorWidth)
+        if(destRect.x1 > mState.scissorX + mState.scissorWidth)
         {
-            int xDiff = destRect.right - (mState.scissorX + mState.scissorWidth);
-            destScissoredRect.right = mState.scissorX + mState.scissorWidth;
-            sourceScissoredRect.right -= xDiff;
+            int xDiff = destRect.x1 - (mState.scissorX + mState.scissorWidth);
+            destScissoredRect.x1 = mState.scissorX + mState.scissorWidth;
+            sourceScissoredRect.x1 -= xDiff;
         }
 
-        if(destRect.top < mState.scissorY)
+        if(destRect.y0 < mState.scissorY)
         {
-            int yDiff = mState.scissorY - destRect.top;
-            destScissoredRect.top = mState.scissorY;
-            sourceScissoredRect.top += yDiff;
+            int yDiff = mState.scissorY - destRect.y0;
+            destScissoredRect.y0 = mState.scissorY;
+            sourceScissoredRect.y0 += yDiff;
         }
 
-        if(destRect.bottom > mState.scissorY + mState.scissorHeight)
+        if(destRect.y1 > mState.scissorY + mState.scissorHeight)
         {
-            int yDiff = destRect.bottom - (mState.scissorY + mState.scissorHeight);
-            destScissoredRect.bottom = mState.scissorY + mState.scissorHeight;
-            sourceScissoredRect.bottom -= yDiff;
+            int yDiff = destRect.y1 - (mState.scissorY + mState.scissorHeight);
+            destScissoredRect.y1 = mState.scissorY + mState.scissorHeight;
+            sourceScissoredRect.y1 -= yDiff;
         }
     }
 
@@ -2837,68 +2888,68 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
     // The source & destination rectangles also may need to be trimmed if they fall out of the bounds of 
     // the actual draw and read surfaces.
-    if(sourceTrimmedRect.left < 0)
+    if(sourceTrimmedRect.x0 < 0)
     {
-        int xDiff = 0 - sourceTrimmedRect.left;
-        sourceTrimmedRect.left = 0;
-        destTrimmedRect.left += xDiff;
+        int xDiff = 0 - sourceTrimmedRect.x0;
+        sourceTrimmedRect.x0 = 0;
+        destTrimmedRect.x0 += xDiff;
     }
 
-    if(sourceTrimmedRect.right > readBufferWidth)
+    if(sourceTrimmedRect.x1 > readBufferWidth)
     {
-        int xDiff = sourceTrimmedRect.right - readBufferWidth;
-        sourceTrimmedRect.right = readBufferWidth;
-        destTrimmedRect.right -= xDiff;
+        int xDiff = sourceTrimmedRect.x1 - readBufferWidth;
+        sourceTrimmedRect.x1 = readBufferWidth;
+        destTrimmedRect.x1 -= xDiff;
     }
 
-    if(sourceTrimmedRect.top < 0)
+    if(sourceTrimmedRect.y0 < 0)
     {
-        int yDiff = 0 - sourceTrimmedRect.top;
-        sourceTrimmedRect.top = 0;
-        destTrimmedRect.top += yDiff;
+        int yDiff = 0 - sourceTrimmedRect.y0;
+        sourceTrimmedRect.y0 = 0;
+        destTrimmedRect.y0 += yDiff;
     }
 
-    if(sourceTrimmedRect.bottom > readBufferHeight)
+    if(sourceTrimmedRect.y1 > readBufferHeight)
     {
-        int yDiff = sourceTrimmedRect.bottom - readBufferHeight;
-        sourceTrimmedRect.bottom = readBufferHeight;
-        destTrimmedRect.bottom -= yDiff;
+        int yDiff = sourceTrimmedRect.y1 - readBufferHeight;
+        sourceTrimmedRect.y1 = readBufferHeight;
+        destTrimmedRect.y1 -= yDiff;
     }
 
-    if(destTrimmedRect.left < 0)
+    if(destTrimmedRect.x0 < 0)
     {
-        int xDiff = 0 - destTrimmedRect.left;
-        destTrimmedRect.left = 0;
-        sourceTrimmedRect.left += xDiff;
+        int xDiff = 0 - destTrimmedRect.x0;
+        destTrimmedRect.x0 = 0;
+        sourceTrimmedRect.x0 += xDiff;
     }
 
-    if(destTrimmedRect.right > drawBufferWidth)
+    if(destTrimmedRect.x1 > drawBufferWidth)
     {
-        int xDiff = destTrimmedRect.right - drawBufferWidth;
-        destTrimmedRect.right = drawBufferWidth;
-        sourceTrimmedRect.right -= xDiff;
+        int xDiff = destTrimmedRect.x1 - drawBufferWidth;
+        destTrimmedRect.x1 = drawBufferWidth;
+        sourceTrimmedRect.x1 -= xDiff;
     }
 
-    if(destTrimmedRect.top < 0)
+    if(destTrimmedRect.y0 < 0)
     {
-        int yDiff = 0 - destTrimmedRect.top;
-        destTrimmedRect.top = 0;
-        sourceTrimmedRect.top += yDiff;
+        int yDiff = 0 - destTrimmedRect.y0;
+        destTrimmedRect.y0 = 0;
+        sourceTrimmedRect.y0 += yDiff;
     }
 
-    if(destTrimmedRect.bottom > drawBufferHeight)
+    if(destTrimmedRect.y1 > drawBufferHeight)
     {
-        int yDiff = destTrimmedRect.bottom - drawBufferHeight;
-        destTrimmedRect.bottom = drawBufferHeight;
-        sourceTrimmedRect.bottom -= yDiff;
+        int yDiff = destTrimmedRect.y1 - drawBufferHeight;
+        destTrimmedRect.y1 = drawBufferHeight;
+        sourceTrimmedRect.y1 -= yDiff;
     }
 
     bool partialBufferCopy = false;
-    if(sourceTrimmedRect.bottom - sourceTrimmedRect.top < readBufferHeight ||
-        sourceTrimmedRect.right - sourceTrimmedRect.left < readBufferWidth || 
-        destTrimmedRect.bottom - destTrimmedRect.top < drawBufferHeight ||
-        destTrimmedRect.right - destTrimmedRect.left < drawBufferWidth ||
-        sourceTrimmedRect.top != 0 || destTrimmedRect.top != 0 || sourceTrimmedRect.left != 0 || destTrimmedRect.left != 0)
+    if(sourceTrimmedRect.y1 - sourceTrimmedRect.y0 < readBufferHeight ||
+       sourceTrimmedRect.x1 - sourceTrimmedRect.x0 < readBufferWidth || 
+       destTrimmedRect.y1 - destTrimmedRect.y0 < drawBufferHeight ||
+       destTrimmedRect.x1 - destTrimmedRect.x0 < drawBufferWidth ||
+       sourceTrimmedRect.y0 != 0 || destTrimmedRect.y0 != 0 || sourceTrimmedRect.x0 != 0 || destTrimmedRect.x0 != 0)
     {
         partialBufferCopy = true;
     }
@@ -2922,7 +2973,6 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
         }
 
         blitRenderTarget = true;
-
     }
 
     if(mask & (GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT))
@@ -2968,7 +3018,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
         if(partialBufferCopy)
         {
             ERR("Only whole-buffer depth and stencil blits are supported by this implementation.");
-            return error(GL_INVALID_OPERATION); // only whole-buffer copies are permitted
+            return error(GL_INVALID_OPERATION);   // Only whole-buffer copies are permitted
         }
 
         if((drawDSBuffer && drawDSBuffer->getSamples() != 0) || 
@@ -2984,8 +3034,13 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
         if(blitRenderTarget)
         {
-            bool success = device->stretchRect(readFramebuffer->getRenderTarget(), &sourceTrimmedRect, 
-                                               drawFramebuffer->getRenderTarget(), &destTrimmedRect, false);
+            Image *readRenderTarget = readFramebuffer->getRenderTarget();
+            Image *drawRenderTarget = drawFramebuffer->getRenderTarget();
+ 
+            bool success = device->stretchRect(readRenderTarget, &sourceRect, drawRenderTarget, &destRect, false);
+
+            readRenderTarget->release();
+            drawRenderTarget->release();
 
             if(!success)
             {

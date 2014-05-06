@@ -9,7 +9,6 @@
 #include "compiler/ParseHelper.h"
 #include "compiler/ShHandle.h"
 #include "compiler/ValidateLimitations.h"
-#include "compiler/MapLongVariableNames.h"
 
 namespace {
 bool InitializeSymbolTable(
@@ -152,12 +151,6 @@ bool TCompiler::compile(const char* const shaderStrings[],
         if (success && (compileOptions & SH_VALIDATE_LOOP_INDEXING))
             success = validateLimitations(root);
 
-        // Call mapLongVariableNames() before collectAttribsUniforms() so in
-        // collectAttribsUniforms() we already have the mapped symbol names and
-        // we could composite mapped and original variable names.
-        if (success && (compileOptions & SH_MAP_LONG_VARIABLE_NAMES))
-            mapLongVariableNames(root);
-
         if (success && (compileOptions & SH_ATTRIBUTES_UNIFORMS))
             collectAttribsUniforms(root);
 
@@ -226,15 +219,4 @@ void TCompiler::collectAttribsUniforms(TIntermNode* root)
 {
     CollectAttribsUniforms collect(attribs, uniforms);
     root->traverse(&collect);
-}
-
-void TCompiler::mapLongVariableNames(TIntermNode* root)
-{
-    MapLongVariableNames map(varyingLongNameMap);
-    root->traverse(&map);
-}
-
-int TCompiler::getMappedNameMaxLength() const
-{
-    return MAX_IDENTIFIER_NAME_SIZE + 1;
 }

@@ -57,17 +57,14 @@ namespace llvm {
   public:
     explicit SystemZTargetLowering(SystemZTargetMachine &TM);
 
+    virtual MVT getShiftAmountTy(EVT LHSTy) const { return MVT::i64; }
+
     /// LowerOperation - Provide custom lowering hooks for some operations.
     virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const;
 
     /// getTargetNodeName - This method returns the name of a target specific
     /// DAG node.
     virtual const char *getTargetNodeName(unsigned Opcode) const;
-
-    /// getFunctionAlignment - Return the Log2 alignment of this function.
-    virtual unsigned getFunctionAlignment(const Function *F) const {
-      return 1;
-    }
 
     std::pair<unsigned, const TargetRegisterClass*>
     getRegForInlineAsmConstraint(const std::string &Constraint, EVT VT) const;

@@ -80,7 +80,7 @@ namespace {
             // Otherwise we don't know that the it's okay to zapnot this entire
             // byte.  Only do this iff we can prove that the missing bits are
             // already null, so the bytezap doesn't need to really null them.
-            BitsToCheck |= ~Constant & (0xFF << 8*i);
+            BitsToCheck |= ~Constant & (0xFFULL << 8*i);
           }
         }
       }
@@ -114,9 +114,8 @@ namespace {
       if (!x) return 0;
       unsigned at = CountLeadingZeros_64(x);
       uint64_t complow = 1ULL << (63 - at);
-      uint64_t comphigh = 1ULL << (64 - at);
-      //cerr << x << ":" << complow << ":" << comphigh << "\n";
-      if (abs64(complow - x) <= abs64(comphigh - x))
+      uint64_t comphigh = complow << 1;
+      if (x - complow <= comphigh - x)
         return complow;
       else
         return comphigh;
@@ -128,19 +127,6 @@ namespace {
         return (y - x) == r;
       else
         return (x - y) == r;
-    }
-
-    static bool isFPZ(SDValue N) {
-      ConstantFPSDNode *CN = dyn_cast<ConstantFPSDNode>(N);
-      return (CN && (CN->getValueAPF().isZero()));
-    }
-    static bool isFPZn(SDValue N) {
-      ConstantFPSDNode *CN = dyn_cast<ConstantFPSDNode>(N);
-      return (CN && CN->getValueAPF().isNegZero());
-    }
-    static bool isFPZp(SDValue N) {
-      ConstantFPSDNode *CN = dyn_cast<ConstantFPSDNode>(N);
-      return (CN && CN->getValueAPF().isPosZero());
     }
 
   public:
@@ -253,7 +239,7 @@ SDNode *AlphaDAGToDAGISel::Select(SDNode *N) {
     Chain = CurDAG->getCopyToReg(Chain, dl, Alpha::R27, N0, 
                                  Chain.getValue(1));
     SDNode *CNode =
-      CurDAG->getMachineNode(Alpha::JSRs, dl, MVT::Other, MVT::Flag, 
+      CurDAG->getMachineNode(Alpha::JSRs, dl, MVT::Other, MVT::Glue, 
                              Chain, Chain.getValue(1));
     Chain = CurDAG->getCopyFromReg(Chain, dl, Alpha::R27, MVT::i64, 
                                    SDValue(CNode, 1));
@@ -416,13 +402,13 @@ void AlphaDAGToDAGISel::SelectCALL(SDNode *N) {
      Chain = CurDAG->getCopyToReg(Chain, dl, Alpha::R29, GOT, InFlag);
      InFlag = Chain.getValue(1);
      Chain = SDValue(CurDAG->getMachineNode(Alpha::BSR, dl, MVT::Other, 
-                                            MVT::Flag, Addr.getOperand(0),
+                                            MVT::Glue, Addr.getOperand(0),
                                             Chain, InFlag), 0);
    } else {
      Chain = CurDAG->getCopyToReg(Chain, dl, Alpha::R27, Addr, InFlag);
      InFlag = Chain.getValue(1);
      Chain = SDValue(CurDAG->getMachineNode(Alpha::JSR, dl, MVT::Other,
-                                            MVT::Flag, Chain, InFlag), 0);
+                                            MVT::Glue, Chain, InFlag), 0);
    }
    InFlag = Chain.getValue(1);
 

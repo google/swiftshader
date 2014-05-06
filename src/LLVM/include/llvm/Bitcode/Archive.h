@@ -19,7 +19,7 @@
 
 #include "llvm/ADT/ilist.h"
 #include "llvm/ADT/ilist_node.h"
-#include "llvm/System/Path.h"
+#include "llvm/Support/Path.h"
 #include <map>
 #include <set>
 
@@ -82,7 +82,7 @@ class ArchiveMember : public ilist_node<ArchiveMember> {
     unsigned getGroup() const            { return info.getGroup(); }
 
     /// The "mode" specifies the access permissions for the file per Unix
-    /// security. This may not have any applicabiity on non-Unix systems but is
+    /// security. This may not have any applicability on non-Unix systems but is
     /// a required component of the "ar" file format.
     /// @brief Get the permission mode associated with this archive member.
     unsigned getMode() const             { return info.getMode(); }
@@ -144,7 +144,7 @@ class ArchiveMember : public ilist_node<ArchiveMember> {
     /// allowed that doesn't have this restriction. This method determines if
     /// that "long format" is used for this member.
     /// @returns true iff the file name uses the long form
-    /// @brief Determin if the member has a long file name
+    /// @brief Determine if the member has a long file name
     bool hasLongFilename() const { return flags&HasLongFilenameFlag; }
 
     /// This method returns the status info (like Unix stat(2)) for the archive
@@ -297,7 +297,7 @@ class Archive {
     /// its symbol table without reading in any of the archive's members. This
     /// reduces both I/O and cpu time in opening the archive if it is to be used
     /// solely for symbol lookup (e.g. during linking).  The \p Filename must
-    /// exist and be an archive file or an exception will be thrown. This form
+    /// exist and be an archive file or an error will be returned. This form
     /// of opening the archive is intended for read-only operations that need to
     /// locate members via the symbol table for link editing.  Since the archve
     /// members are not read by this method, the archive will appear empty upon
@@ -306,8 +306,7 @@ class Archive {
     /// if this form of opening the archive is used that only the symbol table
     /// lookup methods (getSymbolTable, findModuleDefiningSymbol, and
     /// findModulesDefiningSymbols) be used.
-    /// @throws std::string if an error occurs opening the file
-    /// @returns an Archive* that represents the archive file.
+    /// @returns an Archive* that represents the archive file, or null on error.
     /// @brief Open an existing archive and load its symbols.
     static Archive* OpenAndLoadSymbols(
       const sys::Path& Filename,   ///< Name of the archive file to open
@@ -319,7 +318,6 @@ class Archive {
     /// closes files. It does nothing with the archive file on disk. If you
     /// haven't used the writeToDisk method by the time the destructor is
     /// called, all changes to the archive will be lost.
-    /// @throws std::string if an error occurs
     /// @brief Destruct in-memory archive
     ~Archive();
 
@@ -404,7 +402,7 @@ class Archive {
     /// bitcode archive.  It first makes sure the symbol table has been loaded
     /// and has a non-zero size.  If it does, then it is an archive.  If not,
     /// then it tries to load all the bitcode modules of the archive.  Finally,
-    /// it returns whether it was successfull.
+    /// it returns whether it was successful.
     /// @returns true if the archive is a proper llvm bitcode archive
     /// @brief Determine whether the archive is a proper llvm bitcode archive.
     bool isBitcodeArchive();
@@ -437,7 +435,7 @@ class Archive {
     /// to determine just enough information to create an ArchiveMember object
     /// which is then inserted into the Archive object's ilist at the location
     /// given by \p where.
-    /// @returns true if an error occured, false otherwise
+    /// @returns true if an error occurred, false otherwise
     /// @brief Add a file to the archive.
     bool addFileBefore(
       const sys::Path& filename, ///< The file to be added

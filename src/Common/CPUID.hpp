@@ -23,6 +23,7 @@ namespace sw
 	public:
 		static bool supportsMMX();
 		static bool supportsCMOV();
+		static bool supportsMMX2();   // MMX instructions added by SSE: pshufw, pmulhuw, pmovmskb, pavgw/b, pextrw, pinsrw, pmaxsw/ub, etc.
 		static bool supportsSSE();
 		static bool supportsSSE2();
 		static bool supportsSSE3();
@@ -80,6 +81,11 @@ namespace sw
 	inline bool CPUID::supportsCMOV()
 	{
 		return CMOV && enableCMOV;
+	}
+
+	inline bool CPUID::supportsMMX2()
+	{
+		return supportsSSE();   // Coincides with 64-bit integer vector instructions supported by SSE
 	}
 
 	inline bool CPUID::supportsSSE()

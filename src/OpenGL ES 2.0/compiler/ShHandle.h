@@ -57,7 +57,6 @@ public:
     TInfoSink& getInfoSink() { return infoSink; }
     const TVariableInfoList& getAttribs() const { return attribs; }
     const TVariableInfoList& getUniforms() const { return uniforms; }
-    int getMappedNameMaxLength() const;
 
 protected:
     ShShaderType getShaderType() const { return shaderType; }
@@ -73,8 +72,6 @@ protected:
     bool validateLimitations(TIntermNode* root);
     // Collect info for all attribs and uniforms.
     void collectAttribsUniforms(TIntermNode* root);
-    // Map long variable names into shorter ones.
-    void mapLongVariableNames(TIntermNode* root);
     // Translate to object code.
     virtual void translate(TIntermNode* root) = 0;
 

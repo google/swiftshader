@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -13,12 +13,13 @@
 
 #include "Color.hpp"
 #include "Context.hpp"
+#include "Renderer.hpp"
 #include "Common/Half.hpp"
 #include "Common/Memory.hpp"
 #include "Common/CPUID.hpp"
 #include "Common/Resource.hpp"
 #include "Common/Debug.hpp"
-#include "Reactor/Shell.hpp"
+#include "Reactor/Reactor.hpp"
 
 #include <xmmintrin.h>
 #include <emmintrin.h>
@@ -34,6 +35,14 @@ namespace sw
 
 	unsigned int *Surface::palette = 0;
 	unsigned int Surface::paletteID = 0;
+
+	void Rect::clip(int minX, int minY, int maxX, int maxY)
+	{
+		x0 = sw::clamp(x0, minX, maxX);
+		y0 = sw::clamp(y0, minY, maxY);
+		x1 = sw::clamp(x1, minX, maxX);
+		y1 = sw::clamp(y1, minY, maxY);
+	}
 
 	void Surface::Buffer::write(int x, int y, int z, const Color<float> &color)
 	{
@@ -624,7 +633,7 @@ namespace sw
 		return c00 + c10 + c01 + c11;
 	}
 
-	void *Surface::Buffer::lockRect(int left, int top, int front, Lock lock)
+	void *Surface::Buffer::lockRect(int x, int y, int z, Lock lock)
 	{
 		this->lock = lock;
 
@@ -647,14 +656,14 @@ namespace sw
 		#if S3TC_SUPPORT
 		case FORMAT_DXT1:
 		case FORMAT_ATI1:
-			return (unsigned char*)buffer + 8 * (left / 4) + (top / 4) * pitchB + front * sliceB;
+			return (unsigned char*)buffer + 8 * (x / 4) + (y / 4) * pitchB + z * sliceB;
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
 		case FORMAT_ATI2:
-			return (unsigned char*)buffer + 16 * (left / 4) + (top / 4) * pitchB + front * sliceB;
+			return (unsigned char*)buffer + 16 * (x / 4) + (y / 4) * pitchB + z * sliceB;
 		#endif
 		default:
-			return (unsigned char*)buffer + left * bytes + top * pitchB + front * sliceB;
+			return (unsigned char*)buffer + x * bytes + y * pitchB + z * sliceB;
 		}
 
 		return 0;
@@ -668,7 +677,7 @@ namespace sw
 	Surface::Surface(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget) : lockable(lockable), renderTarget(renderTarget)
 	{
 		resource = texture ? texture : new Resource(0);
-		hasParent = texture;
+		hasParent = texture != 0;
 		depth = max(1, depth);
 
 		external.buffer = 0;
@@ -720,6 +729,9 @@ namespace sw
 	{
 		if(!hasParent)
 		{
+			// Synchronize so we can deallocate the buffers below
+			resource->lock(DESTRUCT);
+			resource->unlock();
 			resource->destruct();
 		}
 
@@ -737,7 +749,7 @@ namespace sw
 		stencil.buffer = 0;
 	}
 
-	void *Surface::lockExternal(int left, int top, int front, Lock lock, Accessor client)
+	void *Surface::lockExternal(int x, int y, int z, Lock lock, Accessor client)
 	{
 		resource->lock(client);
 
@@ -774,7 +786,7 @@ namespace sw
 			ASSERT(false);
 		}
 
-		return external.lockRect(left, top, front, lock);
+		return external.lockRect(x, y, z, lock);
 	}
 
 	void Surface::unlockExternal()
@@ -784,7 +796,7 @@ namespace sw
 		external.unlockRect();
 	}
 
-	void *Surface::lockInternal(int left, int top, int front, Lock lock, Accessor client)
+	void *Surface::lockInternal(int x, int y, int z, Lock lock, Accessor client)
 	{
 		if(lock != LOCK_UNLOCKED)
 		{
@@ -860,7 +872,7 @@ namespace sw
 			resolve();
 		}
 
-		return internal.lockRect(left, top, front, lock);
+		return internal.lockRect(x, y, z, lock);
 	}
 
 	void Surface::unlockInternal()
@@ -2066,9 +2078,7 @@ namespace sw
 		int width4 = (width + 3) & ~3;
 		int height4 = (height + 3) & ~3;
 
-		void *buffer = allocate(size(width4, height4, depth, format));
-
-		return buffer;
+		return allocate(size(width4, height4, depth, format));
 	}
 
 	void Surface::memfill(void *buffer, int pattern, int bytes)
@@ -2199,7 +2209,7 @@ namespace sw
 					case FORMAT_A8R8G8B8:
 				//	case FORMAT_X8G8R8B8Q:   // FIXME
 				//	case FORMAT_A8G8R8B8Q:   // FIXME
-						if(rgbaMask == 0xF || (internal.format == FORMAT_X8R8G8B8 && rgbaMask == 0xF))
+						if(rgbaMask == 0xF || (internal.format == FORMAT_X8R8G8B8 && rgbaMask == 0x7))
 						{
 							memfill(target, color, 4 * (x1 - x0));
 						}

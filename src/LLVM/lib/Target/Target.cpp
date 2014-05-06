@@ -7,18 +7,30 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file implements the C bindings for libLLVMTarget.a, which implements
-// target information.
+// This file implements the common infrastructure (including C bindings) for 
+// libLLVMTarget.a, which implements target information.
 //
 //===----------------------------------------------------------------------===//
 
 #include "llvm-c/Target.h"
+#include "llvm-c/Initialization.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/PassManager.h"
 #include "llvm/Target/TargetData.h"
+#include "llvm/Target/TargetLibraryInfo.h"
 #include "llvm/LLVMContext.h"
 #include <cstring>
 
 using namespace llvm;
+
+void llvm::initializeTarget(PassRegistry &Registry) {
+  initializeTargetDataPass(Registry);
+  initializeTargetLibraryInfoPass(Registry);
+}
+
+void LLVMInitializeTarget(LLVMPassRegistryRef R) {
+  initializeTarget(*unwrap(R));
+}
 
 LLVMTargetDataRef LLVMCreateTargetData(const char *StringRep) {
   return wrap(new TargetData(StringRep));
@@ -26,6 +38,11 @@ LLVMTargetDataRef LLVMCreateTargetData(const char *StringRep) {
 
 void LLVMAddTargetData(LLVMTargetDataRef TD, LLVMPassManagerRef PM) {
   unwrap(PM)->add(new TargetData(*unwrap(TD)));
+}
+
+void LLVMAddTargetLibraryInfo(LLVMTargetLibraryInfoRef TLI,
+                              LLVMPassManagerRef PM) {
+  unwrap(PM)->add(new TargetLibraryInfo(*unwrap(TLI)));
 }
 
 char *LLVMCopyStringRepOfTargetData(LLVMTargetDataRef TD) {
@@ -76,18 +93,14 @@ unsigned LLVMPreferredAlignmentOfGlobal(LLVMTargetDataRef TD,
 
 unsigned LLVMElementAtOffset(LLVMTargetDataRef TD, LLVMTypeRef StructTy,
                              unsigned long long Offset) {
-  const StructType *STy = unwrap<StructType>(StructTy);
+  StructType *STy = unwrap<StructType>(StructTy);
   return unwrap(TD)->getStructLayout(STy)->getElementContainingOffset(Offset);
 }
 
 unsigned long long LLVMOffsetOfElement(LLVMTargetDataRef TD, LLVMTypeRef StructTy,
                                        unsigned Element) {
-  const StructType *STy = unwrap<StructType>(StructTy);
+  StructType *STy = unwrap<StructType>(StructTy);
   return unwrap(TD)->getStructLayout(STy)->getElementOffset(Element);
-}
-
-void LLVMInvalidateStructLayout(LLVMTargetDataRef TD, LLVMTypeRef StructTy) {
-  unwrap(TD)->InvalidateStructLayoutInfo(unwrap<StructType>(StructTy));
 }
 
 void LLVMDisposeTargetData(LLVMTargetDataRef TD) {

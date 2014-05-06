@@ -32,21 +32,24 @@ namespace llvm {
   class BlackfinTargetLowering : public TargetLowering {
   public:
     BlackfinTargetLowering(TargetMachine &TM);
-    virtual MVT::SimpleValueType getSetCCResultType(EVT VT) const;
+    virtual MVT getShiftAmountTy(EVT LHSTy) const { return MVT::i16; }
+    virtual EVT getSetCCResultType(EVT VT) const;
     virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const;
     virtual void ReplaceNodeResults(SDNode *N,
                                     SmallVectorImpl<SDValue> &Results,
                                     SelectionDAG &DAG) const;
 
     ConstraintType getConstraintType(const std::string &Constraint) const;
+
+    /// Examine constraint string and operand type and determine a weight value.
+    /// The operand object must already have been set up with the operand type.
+    ConstraintWeight getSingleConstraintMatchWeight(
+      AsmOperandInfo &info, const char *constraint) const;
+
     std::pair<unsigned, const TargetRegisterClass*>
     getRegForInlineAsmConstraint(const std::string &Constraint, EVT VT) const;
-    std::vector<unsigned>
-    getRegClassForInlineAsmConstraint(const std::string &Constraint,
-                                      EVT VT) const;
     virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
     const char *getTargetNodeName(unsigned Opcode) const;
-    unsigned getFunctionAlignment(const Function *F) const;
 
   private:
     SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;

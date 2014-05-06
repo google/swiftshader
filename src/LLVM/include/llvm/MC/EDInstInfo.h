@@ -9,7 +9,7 @@
 #ifndef EDINSTINFO_H
 #define EDINSTINFO_H
 
-#include "llvm/System/DataTypes.h"
+#include "llvm/Support/DataTypes.h"
 
 namespace llvm {
   
@@ -21,7 +21,7 @@ struct EDInstInfo {
   uint8_t       numOperands;
   uint8_t       operandTypes[EDIS_MAX_OPERANDS];
   uint8_t       operandFlags[EDIS_MAX_OPERANDS];
-  const char    operandOrders[EDIS_MAX_SYNTAXES][EDIS_MAX_OPERANDS];
+  const signed char operandOrders[EDIS_MAX_SYNTAXES][EDIS_MAX_OPERANDS];
 };
   
 } // namespace llvm

@@ -16,8 +16,10 @@
 #define POWERPC32_REGISTERINFO_H
 
 #include "PPC.h"
-#include "PPCGenRegisterInfo.h.inc"
 #include <map>
+
+#define GET_REGINFO_HEADER
+#include "PPCGenRegisterInfo.inc"
 
 namespace llvm {
 class PPCSubtarget;
@@ -31,10 +33,6 @@ class PPCRegisterInfo : public PPCGenRegisterInfo {
 public:
   PPCRegisterInfo(const PPCSubtarget &SubTarget, const TargetInstrInfo &tii);
   
-  /// getRegisterNumbering - Given the enum value for some register, e.g.
-  /// PPC::F14, return the number that it corresponds to (e.g. 14).
-  static unsigned getRegisterNumbering(unsigned RegEnum);
-
   /// getPointerRegClass - Return the register class to use to hold pointers.
   /// This is used for addressing modes.
   virtual const TargetRegisterClass *getPointerRegClass(unsigned Kind=0) const;  
@@ -44,16 +42,9 @@ public:
 
   BitVector getReservedRegs(const MachineFunction &MF) const;
 
-  /// targetHandlesStackFrameRounding - Returns true if the target is
-  /// responsible for rounding up the stack frame (probably at emitPrologue
-  /// time).
-  bool targetHandlesStackFrameRounding() const { return true; }
-
   /// requiresRegisterScavenging - We require a register scavenger.
   /// FIXME (64-bit): Should be inlined.
   bool requiresRegisterScavenging(const MachineFunction &MF) const;
-
-  bool hasFP(const MachineFunction &MF) const;
 
   void eliminateCallFramePseudoInstr(MachineFunction &MF,
                                      MachineBasicBlock &MBB,
@@ -63,31 +54,15 @@ public:
                          int SPAdj, RegScavenger *RS) const;
   void lowerCRSpilling(MachineBasicBlock::iterator II, unsigned FrameIndex,
                        int SPAdj, RegScavenger *RS) const;
-  unsigned eliminateFrameIndex(MachineBasicBlock::iterator II,
-                               int SPAdj, FrameIndexValue *Value = NULL,
-                               RegScavenger *RS = NULL) const;
-
-  /// determineFrameLayout - Determine the size of the frame and maximum call
-  /// frame size.
-  void determineFrameLayout(MachineFunction &MF) const;
-
-  void processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
-                                            RegScavenger *RS = NULL) const;
-  void processFunctionBeforeFrameFinalized(MachineFunction &MF) const;
-
-  void emitPrologue(MachineFunction &MF) const;
-  void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
+  void eliminateFrameIndex(MachineBasicBlock::iterator II,
+                           int SPAdj, RegScavenger *RS = NULL) const;
 
   // Debug information queries.
-  unsigned getRARegister() const;
   unsigned getFrameRegister(const MachineFunction &MF) const;
-  void getInitialFrameState(std::vector<MachineMove> &Moves) const;
 
   // Exception handling queries.
   unsigned getEHExceptionRegister() const;
   unsigned getEHHandlerRegister() const;
-
-  int getDwarfRegNum(unsigned RegNum, bool isEH) const;
 };
 
 } // end namespace llvm

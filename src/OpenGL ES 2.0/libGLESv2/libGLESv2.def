@@ -154,6 +154,19 @@ EXPORTS
     glIsFenceNV                     @155
     glSetFenceNV                    @156
     glTestFenceNV                   @157
+    ;glGetTranslatedShaderSourceANGLE @159
+    ;glTexStorage2DEXT               @160
+    glGetGraphicsResetStatusEXT     @161
+    glReadnPixelsEXT                @162
+    glGetnUniformfvEXT              @163
+    glGetnUniformivEXT              @164
+	glGenQueriesEXT                 @165
+    glDeleteQueriesEXT              @166
+    glIsQueryEXT                    @167
+    glBeginQueryEXT                 @168
+    glEndQueryEXT                   @169
+    glGetQueryivEXT                 @170
+    glGetQueryObjectuivEXT          @171
 
     ; EGL dependencies
     glCreateContext                 @144 NONAME
@@ -163,8 +176,8 @@ EXPORTS
     glGetProcAddress                @148 NONAME
     glBindTexImage                  @158 NONAME
 
-	createFrameBuffer               @159 NONAME
-	createBackBuffer                @160 NONAME
-	createDevice                    @161 NONAME
+	createFrameBuffer               @172 NONAME
+	createBackBuffer                @173 NONAME
+	createDevice                    @174 NONAME
 
 	Register

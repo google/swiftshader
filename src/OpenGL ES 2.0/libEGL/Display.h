@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2011 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // Display.h: Defines the egl::Display class, representing the abstract
@@ -22,11 +27,6 @@
 #include <windows.h>
 #include <set>
 
-namespace sw
-{
-	class Context;
-}
-
 namespace egl
 {
 	class Display
@@ -39,8 +39,8 @@ namespace egl
 		bool initialize();
 		void terminate();
 
-		virtual void startScene() {};   // FIXME: Remove when Chrome no longer calls getDevice() directly
-		virtual void endScene() {};     // FIXME: Remove when Chrome no longer calls getDevice() directly
+		virtual void startScene() {ASSERT(!"Stop calling internal ANGLE methods!");};   // FIXME: Remove when Chrome no longer calls getDevice() directly
+		virtual void endScene() {ASSERT(!"Stop calling internal ANGLE methods!");};     // FIXME: Remove when Chrome no longer calls getDevice() directly
 
 		bool getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint configSize, EGLint *numConfig);
 		bool getConfigAttrib(EGLConfig config, EGLint attribute, EGLint *value);
@@ -61,7 +61,7 @@ namespace egl
 		EGLint getMinSwapInterval();
 		EGLint getMaxSwapInterval();
 
-		virtual gl::Device *getDeviceChrome() {return 0;};   // FIXME: Remove when Chrome no longer calls getDevice() directly
+		virtual gl::Device *getDeviceChrome() {ASSERT(!"Stop calling internal ANGLE methods!"); return 0;};   // FIXME: Remove when Chrome no longer calls getDevice() directly
 		virtual gl::Device *getDevice();
 
 		const char *getExtensionString() const;

@@ -25,7 +25,7 @@ using namespace llvm;
 
 char UnifyFunctionExitNodes::ID = 0;
 INITIALIZE_PASS(UnifyFunctionExitNodes, "mergereturn",
-                "Unify function exit nodes", false, false);
+                "Unify function exit nodes", false, false)
 
 Pass *llvm::createUnifyFunctionExitNodesPass() {
   return new UnifyFunctionExitNodes();
@@ -50,12 +50,32 @@ bool UnifyFunctionExitNodes::runOnFunction(Function &F) {
   // return.
   //
   std::vector<BasicBlock*> ReturningBlocks;
+  std::vector<BasicBlock*> UnwindingBlocks;
   std::vector<BasicBlock*> UnreachableBlocks;
   for(Function::iterator I = F.begin(), E = F.end(); I != E; ++I)
     if (isa<ReturnInst>(I->getTerminator()))
       ReturningBlocks.push_back(I);
+    else if (isa<UnwindInst>(I->getTerminator()))
+      UnwindingBlocks.push_back(I);
     else if (isa<UnreachableInst>(I->getTerminator()))
       UnreachableBlocks.push_back(I);
+
+  // Handle unwinding blocks first.
+  if (UnwindingBlocks.empty()) {
+    UnwindBlock = 0;
+  } else if (UnwindingBlocks.size() == 1) {
+    UnwindBlock = UnwindingBlocks.front();
+  } else {
+    UnwindBlock = BasicBlock::Create(F.getContext(), "UnifiedUnwindBlock", &F);
+    new UnwindInst(F.getContext(), UnwindBlock);
+
+    for (std::vector<BasicBlock*>::iterator I = UnwindingBlocks.begin(),
+           E = UnwindingBlocks.end(); I != E; ++I) {
+      BasicBlock *BB = *I;
+      BB->getInstList().pop_back();  // Remove the unwind insn
+      BranchInst::Create(UnwindBlock, BB);
+    }
+  }
 
   // Then unreachable blocks.
   if (UnreachableBlocks.empty()) {
@@ -64,7 +84,7 @@ bool UnifyFunctionExitNodes::runOnFunction(Function &F) {
     UnreachableBlock = UnreachableBlocks.front();
   } else {
     UnreachableBlock = BasicBlock::Create(F.getContext(), 
-                                          &F);
+                                          "UnifiedUnreachableBlock", &F);
     new UnreachableInst(F.getContext(), UnreachableBlock);
 
     for (std::vector<BasicBlock*>::iterator I = UnreachableBlocks.begin(),
@@ -89,14 +109,15 @@ bool UnifyFunctionExitNodes::runOnFunction(Function &F) {
   // instructions into unconditional branches.
   //
   BasicBlock *NewRetBlock = BasicBlock::Create(F.getContext(),
-                                               &F);
+                                               "UnifiedReturnBlock", &F);
 
   PHINode *PN = 0;
   if (F.getReturnType()->isVoidTy()) {
     ReturnInst::Create(F.getContext(), NULL, NewRetBlock);
   } else {
     // If the function doesn't return void... add a PHI node to the block...
-    PN = PHINode::Create(F.getReturnType());
+    PN = PHINode::Create(F.getReturnType(), ReturningBlocks.size(),
+                         "UnifiedRetVal");
     NewRetBlock->getInstList().push_back(PN);
     ReturnInst::Create(F.getContext(), PN, NewRetBlock);
   }

@@ -29,7 +29,7 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/Support/ValueHandle.h"
 #include "llvm/Support/type_traits.h"
-#include "llvm/System/Mutex.h"
+#include "llvm/Support/Mutex.h"
 
 #include <iterator>
 
@@ -149,7 +149,7 @@ public:
   bool erase(const KeyT &Val) {
     return Map.erase(Wrap(Val));
   }
-  bool erase(iterator I) {
+  void erase(iterator I) {
     return Map.erase(I.base());
   }
 

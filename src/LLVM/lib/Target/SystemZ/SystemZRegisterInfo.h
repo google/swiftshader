@@ -15,7 +15,9 @@
 #define SystemZREGISTERINFO_H
 
 #include "llvm/Target/TargetRegisterInfo.h"
-#include "SystemZGenRegisterInfo.h.inc"
+
+#define GET_REGINFO_HEADER
+#include "SystemZGenRegisterInfo.inc"
 
 namespace llvm {
 
@@ -34,35 +36,23 @@ struct SystemZRegisterInfo : public SystemZGenRegisterInfo {
 
   BitVector getReservedRegs(const MachineFunction &MF) const;
 
-  bool hasReservedCallFrame(const MachineFunction &MF) const { return true; }
-  bool hasFP(const MachineFunction &MF) const;
-
-  int getFrameIndexOffset(const MachineFunction &MF, int FI) const;
+  const TargetRegisterClass*
+  getMatchingSuperRegClass(const TargetRegisterClass *A,
+                           const TargetRegisterClass *B, unsigned Idx) const;
 
   void eliminateCallFramePseudoInstr(MachineFunction &MF,
                                      MachineBasicBlock &MBB,
                                      MachineBasicBlock::iterator I) const;
 
-  unsigned eliminateFrameIndex(MachineBasicBlock::iterator II,
-                               int SPAdj, FrameIndexValue *Value = NULL,
-                               RegScavenger *RS = NULL) const;
-
-
-  void processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
-                                            RegScavenger *RS) const;
-
-  void emitPrologue(MachineFunction &MF) const;
-  void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
+  void eliminateFrameIndex(MachineBasicBlock::iterator II,
+                           int SPAdj, RegScavenger *RS = NULL) const;
 
   // Debug information queries.
-  unsigned getRARegister() const;
   unsigned getFrameRegister(const MachineFunction &MF) const;
 
   // Exception handling queries.
   unsigned getEHExceptionRegister() const;
   unsigned getEHHandlerRegister() const;
-
-  int getDwarfRegNum(unsigned RegNum, bool isEH) const;
 };
 
 } // end namespace llvm

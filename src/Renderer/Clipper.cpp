@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -167,8 +167,8 @@ namespace sw
 		{
 			int j = i == polygon.n - 1 ? 0 : i + 1;
 
-			float di = V[i]->w + (V[i]->x + data.offX[0] * V[i]->w);
-			float dj = V[j]->w + (V[j]->x + data.offX[0] * V[j]->w);
+			float di = V[i]->w + (V[i]->x + data.halfPixelX[0] * V[i]->w);
+			float dj = V[j]->w + (V[j]->x + data.halfPixelX[0] * V[j]->w);
 
 			if(di >= 0)
 			{
@@ -209,8 +209,8 @@ namespace sw
 		{
 			int j = i == polygon.n - 1 ? 0 : i + 1;
 
-			float di = V[i]->w - (V[i]->x + data.offX[0] * V[i]->w);
-			float dj = V[j]->w - (V[j]->x + data.offX[0] * V[j]->w);
+			float di = V[i]->w - (V[i]->x + data.halfPixelX[0] * V[i]->w);
+			float dj = V[j]->w - (V[j]->x + data.halfPixelX[0] * V[j]->w);
 
 			if(di >= 0)
 			{
@@ -251,8 +251,8 @@ namespace sw
 		{
 			int j = i == polygon.n - 1 ? 0 : i + 1;
 
-			float di = V[i]->w - (V[i]->y + data.offY[0] * V[i]->w);
-			float dj = V[j]->w - (V[j]->y + data.offY[0] * V[j]->w);
+			float di = V[i]->w - (V[i]->y + data.halfPixelY[0] * V[i]->w);
+			float dj = V[j]->w - (V[j]->y + data.halfPixelY[0] * V[j]->w);
 
 			if(di >= 0)
 			{
@@ -293,8 +293,8 @@ namespace sw
 		{
 			int j = i == polygon.n - 1 ? 0 : i + 1;
 
-			float di = V[i]->w + (V[i]->y + data.offY[0] * V[i]->w);
-			float dj = V[j]->w + (V[j]->y + data.offY[0] * V[j]->w);
+			float di = V[i]->w + (V[i]->y + data.halfPixelY[0] * V[i]->w);
+			float dj = V[j]->w + (V[j]->y + data.halfPixelY[0] * V[j]->w);
 
 			if(di >= 0)
 			{

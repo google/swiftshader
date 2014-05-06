@@ -2,19 +2,6 @@
 // Random ideas for the X86 backend.
 //===---------------------------------------------------------------------===//
 
-We should add support for the "movbe" instruction, which does a byte-swapping
-copy (3-addr bswap + memory support?)  This is available on Atom processors.
-
-//===---------------------------------------------------------------------===//
-
-CodeGen/X86/lea-3.ll:test3 should be a single LEA, not a shift/move.  The X86
-backend knows how to three-addressify this shift, but it appears the register
-allocator isn't even asking it to do so in this case.  We should investigate
-why this isn't happening, it could have significant impact on other important
-cases for X86 as well.
-
-//===---------------------------------------------------------------------===//
-
 This should be one DIV/IDIV instruction, not a libcall:
 
 unsigned test(unsigned long long X, unsigned Y) {
@@ -67,19 +54,6 @@ cmovs, we should expand to a conditional branch like GCC produces.
 
 //===---------------------------------------------------------------------===//
 
-Compile this:
-_Bool f(_Bool a) { return a!=1; }
-
-into:
-        movzbl  %dil, %eax
-        xorl    $1, %eax
-        ret
-
-(Although note that this isn't a legal way to express the code that llvm-gcc
-currently generates for that function.)
-
-//===---------------------------------------------------------------------===//
-
 Some isel ideas:
 
 1. Dynamic programming based approach when compile time if not an
@@ -106,6 +80,37 @@ the coalescer how to deal with it though.
 //===---------------------------------------------------------------------===//
 
 It appears icc use push for parameter passing. Need to investigate.
+
+//===---------------------------------------------------------------------===//
+
+This:
+
+void foo(void);
+void bar(int x, int *P) { 
+  x >>= 2;
+  if (x) 
+    foo();
+  *P = x;
+}
+
+compiles into:
+
+	movq	%rsi, %rbx
+	movl	%edi, %r14d
+	sarl	$2, %r14d
+	testl	%r14d, %r14d
+	je	LBB0_2
+
+Instead of doing an explicit test, we can use the flags off the sar.  This
+occurs in a bigger testcase like this, which is pretty common:
+
+#include <vector>
+int test1(std::vector<int> &X) {
+  int Sum = 0;
+  for (long i = 0, e = X.size(); i != e; ++i)
+    X[i] = 0;
+  return Sum;
+}
 
 //===---------------------------------------------------------------------===//
 
@@ -394,72 +399,8 @@ boundary to improve performance.
 
 //===---------------------------------------------------------------------===//
 
-Codegen:
-
-int f(int a, int b) {
-  if (a == 4 || a == 6)
-    b++;
-  return b;
-}
-
-
-as:
-
-or eax, 2
-cmp eax, 6
-jz label
-
-//===---------------------------------------------------------------------===//
-
 GCC's ix86_expand_int_movcc function (in i386.c) has a ton of interesting
-simplifications for integer "x cmp y ? a : b".  For example, instead of:
-
-int G;
-void f(int X, int Y) {
-  G = X < 0 ? 14 : 13;
-}
-
-compiling to:
-
-_f:
-        movl $14, %eax
-        movl $13, %ecx
-        movl 4(%esp), %edx
-        testl %edx, %edx
-        cmovl %eax, %ecx
-        movl %ecx, _G
-        ret
-
-it could be:
-_f:
-        movl    4(%esp), %eax
-        sarl    $31, %eax
-        notl    %eax
-        addl    $14, %eax
-        movl    %eax, _G
-        ret
-
-etc.
-
-Another is:
-int usesbb(unsigned int a, unsigned int b) {
-       return (a < b ? -1 : 0);
-}
-to:
-_usesbb:
-	movl	8(%esp), %eax
-	cmpl	%eax, 4(%esp)
-	sbbl	%eax, %eax
-	ret
-
-instead of:
-_usesbb:
-	xorl	%eax, %eax
-	movl	8(%esp), %ecx
-	cmpl	%ecx, 4(%esp)
-	movl	$4294967295, %ecx
-	cmovb	%ecx, %eax
-	ret
+simplifications for integer "x cmp y ? a : b".
 
 //===---------------------------------------------------------------------===//
 
@@ -756,23 +697,17 @@ This:
         { return !full_add(a, b).second; }
 
 Should compile to:
+	addl	%esi, %edi
+	setae	%al
+	movzbl	%al, %eax
+	ret
 
-
-        _Z11no_overflowjj:
-                addl    %edi, %esi
-                setae   %al
-                ret
-
-FIXME: That code looks wrong; bool return is normally defined as zext.
-
-on x86-64, not:
-
-__Z11no_overflowjj:
-        addl    %edi, %esi
-        cmpl    %edi, %esi
-        setae   %al
-        movzbl  %al, %eax
-        ret
+on x86-64, instead of the rather stupid-looking:
+	addl	%esi, %edi
+	setb	%al
+	xorb	$1, %al
+	movzbl	%al, %eax
+	ret
 
 
 //===---------------------------------------------------------------------===//
@@ -1040,10 +975,10 @@ _foo:
 
 instead of:
 _foo:
-        movl    $255, %eax
-        orl     4(%esp), %eax
-        andl    $65535, %eax
-        ret
+	movl	$65280, %eax
+	andl	4(%esp), %eax
+	orl	$255, %eax
+	ret
 
 //===---------------------------------------------------------------------===//
 
@@ -1165,58 +1100,6 @@ abs:
 
 //===---------------------------------------------------------------------===//
 
-Consider:
-int test(unsigned long a, unsigned long b) { return -(a < b); }
-
-We currently compile this to:
-
-define i32 @test(i32 %a, i32 %b) nounwind  {
-	%tmp3 = icmp ult i32 %a, %b		; <i1> [#uses=1]
-	%tmp34 = zext i1 %tmp3 to i32		; <i32> [#uses=1]
-	%tmp5 = sub i32 0, %tmp34		; <i32> [#uses=1]
-	ret i32 %tmp5
-}
-
-and
-
-_test:
-	movl	8(%esp), %eax
-	cmpl	%eax, 4(%esp)
-	setb	%al
-	movzbl	%al, %eax
-	negl	%eax
-	ret
-
-Several deficiencies here.  First, we should instcombine zext+neg into sext:
-
-define i32 @test2(i32 %a, i32 %b) nounwind  {
-	%tmp3 = icmp ult i32 %a, %b		; <i1> [#uses=1]
-	%tmp34 = sext i1 %tmp3 to i32		; <i32> [#uses=1]
-	ret i32 %tmp34
-}
-
-However, before we can do that, we have to fix the bad codegen that we get for
-sext from bool:
-
-_test2:
-	movl	8(%esp), %eax
-	cmpl	%eax, 4(%esp)
-	setb	%al
-	movzbl	%al, %eax
-	shll	$31, %eax
-	sarl	$31, %eax
-	ret
-
-This code should be at least as good as the code above.  Once this is fixed, we
-can optimize this specific case even more to:
-
-	movl	8(%esp), %eax
-	xorl	%ecx, %ecx
-        cmpl    %eax, 4(%esp)
-        sbbl    %ecx, %ecx
-
-//===---------------------------------------------------------------------===//
-
 Take the following code (from 
 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=16541):
 
@@ -1334,7 +1217,7 @@ Also check why xmm7 is not used at all in the function.
 
 Take the following:
 
-target datalayout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128"
+target datalayout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-S128"
 target triple = "i386-apple-darwin8"
 @in_exit.4870.b = internal global i1 false		; <i1*> [#uses=2]
 define fastcc void @abort_gzip() noreturn nounwind  {
@@ -1605,6 +1488,8 @@ loop, the value comes into the loop as two values, and
 RegsForValue::getCopyFromRegs doesn't know how to put an AssertSext on the
 constructed BUILD_PAIR which represents the cast value.
 
+This can be handled by making CodeGenPrepare sink the cast.
+
 //===---------------------------------------------------------------------===//
 
 Test instructions can be eliminated by using EFLAGS values from arithmetic
@@ -1674,7 +1559,7 @@ Implement processor-specific optimizations for parity with GCC on these
 processors.  GCC does two optimizations:
 
 1. ix86_pad_returns inserts a noop before ret instructions if immediately
-   preceeded by a conditional branch or is the target of a jump.
+   preceded by a conditional branch or is the target of a jump.
 2. ix86_avoid_jump_misspredicts inserts noops in cases where a 16-byte block of
    code contains more than 3 branches.
    
@@ -1736,46 +1621,6 @@ Ideal output:
 
 //===---------------------------------------------------------------------===//
 
-Testcase:
-int x(int a) { return (a & 0x80) ? 0x100 : 0; }
-int y(int a) { return (a & 0x80) *2; }
-
-Current:
-	testl	$128, 4(%esp)
-	setne	%al
-	movzbl	%al, %eax
-	shll	$8, %eax
-	ret
-
-Better:
-	movl	4(%esp), %eax
-	addl	%eax, %eax
-	andl	$256, %eax
-	ret
-
-This is another general instcombine transformation that is profitable on all
-targets.  In LLVM IR, these functions look like this:
-
-define i32 @x(i32 %a) nounwind readnone {
-entry:
-	%0 = and i32 %a, 128
-	%1 = icmp eq i32 %0, 0
-	%iftmp.0.0 = select i1 %1, i32 0, i32 256
-	ret i32 %iftmp.0.0
-}
-
-define i32 @y(i32 %a) nounwind readnone {
-entry:
-	%0 = shl i32 %a, 1
-	%1 = and i32 %0, 256
-	ret i32 %1
-}
-
-Replacing an icmp+select with a shift should always be considered profitable in
-instcombine.
-
-//===---------------------------------------------------------------------===//
-
 Re-implement atomic builtins __sync_add_and_fetch() and __sync_sub_and_fetch
 properly.
 
@@ -1798,25 +1643,58 @@ information to add the "lock" prefix.
 
 //===---------------------------------------------------------------------===//
 
-_Bool bar(int *x) { return *x & 1; }
+struct B {
+  unsigned char y0 : 1;
+};
 
-define zeroext i1 @bar(i32* nocapture %x) nounwind readonly {
-entry:
-  %tmp1 = load i32* %x                            ; <i32> [#uses=1]
-  %and = and i32 %tmp1, 1                         ; <i32> [#uses=1]
-  %tobool = icmp ne i32 %and, 0                   ; <i1> [#uses=1]
-  ret i1 %tobool
+int bar(struct B* a) { return a->y0; }
+
+define i32 @bar(%struct.B* nocapture %a) nounwind readonly optsize {
+  %1 = getelementptr inbounds %struct.B* %a, i64 0, i32 0
+  %2 = load i8* %1, align 1
+  %3 = and i8 %2, 1
+  %4 = zext i8 %3 to i32
+  ret i32 %4
 }
 
-bar:                                                        # @bar
-# BB#0:                                                     # %entry
-	movl	4(%esp), %eax
-	movb	(%eax), %al
-	andb	$1, %al
-	movzbl	%al, %eax
-	ret
+bar:                                    # @bar
+# BB#0:
+        movb    (%rdi), %al
+        andb    $1, %al
+        movzbl  %al, %eax
+        ret
 
 Missed optimization: should be movl+andl.
+
+//===---------------------------------------------------------------------===//
+
+The x86_64 abi says:
+
+Booleans, when stored in a memory object, are stored as single byte objects the
+value of which is always 0 (false) or 1 (true).
+
+We are not using this fact:
+
+int bar(_Bool *a) { return *a; }
+
+define i32 @bar(i8* nocapture %a) nounwind readonly optsize {
+  %1 = load i8* %a, align 1, !tbaa !0
+  %tmp = and i8 %1, 1
+  %2 = zext i8 %tmp to i32
+  ret i32 %2
+}
+
+bar:
+        movb    (%rdi), %al
+        andb    $1, %al
+        movzbl  %al, %eax
+        ret
+
+GCC produces
+
+bar:
+        movzbl  (%rdi), %eax
+        ret
 
 //===---------------------------------------------------------------------===//
 
@@ -1845,21 +1723,372 @@ are functionally identical.
 //===---------------------------------------------------------------------===//
 
 Take the following C code:
-int x(int y) { return (y & 63) << 14; }
+int f(int a, int b) { return (unsigned char)a == (unsigned char)b; }
 
-Code produced by gcc:
-	andl	$63, %edi
-	sall	$14, %edi
-	movl	%edi, %eax
+We generate the following IR with clang:
+define i32 @f(i32 %a, i32 %b) nounwind readnone {
+entry:
+  %tmp = xor i32 %b, %a                           ; <i32> [#uses=1]
+  %tmp6 = and i32 %tmp, 255                       ; <i32> [#uses=1]
+  %cmp = icmp eq i32 %tmp6, 0                     ; <i1> [#uses=1]
+  %conv5 = zext i1 %cmp to i32                    ; <i32> [#uses=1]
+  ret i32 %conv5
+}
+
+And the following x86 code:
+	xorl	%esi, %edi
+	testb	$-1, %dil
+	sete	%al
+	movzbl	%al, %eax
 	ret
 
-Code produced by clang:
-	shll	$14, %edi
-	movl	%edi, %eax
-	andl	$1032192, %eax
+A cmpb instead of the xorl+testb would be one instruction shorter.
+
+//===---------------------------------------------------------------------===//
+
+Given the following C code:
+int f(int a, int b) { return (signed char)a == (signed char)b; }
+
+We generate the following IR with clang:
+define i32 @f(i32 %a, i32 %b) nounwind readnone {
+entry:
+  %sext = shl i32 %a, 24                          ; <i32> [#uses=1]
+  %conv1 = ashr i32 %sext, 24                     ; <i32> [#uses=1]
+  %sext6 = shl i32 %b, 24                         ; <i32> [#uses=1]
+  %conv4 = ashr i32 %sext6, 24                    ; <i32> [#uses=1]
+  %cmp = icmp eq i32 %conv1, %conv4               ; <i1> [#uses=1]
+  %conv5 = zext i1 %cmp to i32                    ; <i32> [#uses=1]
+  ret i32 %conv5
+}
+
+And the following x86 code:
+	movsbl	%sil, %eax
+	movsbl	%dil, %ecx
+	cmpl	%eax, %ecx
+	sete	%al
+	movzbl	%al, %eax
 	ret
 
-The code produced by gcc is 3 bytes shorter.  This sort of construct often
-shows up with bitfields.
+
+It should be possible to eliminate the sign extensions.
+
+//===---------------------------------------------------------------------===//
+
+LLVM misses a load+store narrowing opportunity in this code:
+
+%struct.bf = type { i64, i16, i16, i32 }
+
+@bfi = external global %struct.bf*                ; <%struct.bf**> [#uses=2]
+
+define void @t1() nounwind ssp {
+entry:
+  %0 = load %struct.bf** @bfi, align 8            ; <%struct.bf*> [#uses=1]
+  %1 = getelementptr %struct.bf* %0, i64 0, i32 1 ; <i16*> [#uses=1]
+  %2 = bitcast i16* %1 to i32*                    ; <i32*> [#uses=2]
+  %3 = load i32* %2, align 1                      ; <i32> [#uses=1]
+  %4 = and i32 %3, -65537                         ; <i32> [#uses=1]
+  store i32 %4, i32* %2, align 1
+  %5 = load %struct.bf** @bfi, align 8            ; <%struct.bf*> [#uses=1]
+  %6 = getelementptr %struct.bf* %5, i64 0, i32 1 ; <i16*> [#uses=1]
+  %7 = bitcast i16* %6 to i32*                    ; <i32*> [#uses=2]
+  %8 = load i32* %7, align 1                      ; <i32> [#uses=1]
+  %9 = and i32 %8, -131073                        ; <i32> [#uses=1]
+  store i32 %9, i32* %7, align 1
+  ret void
+}
+
+LLVM currently emits this:
+
+  movq  bfi(%rip), %rax
+  andl  $-65537, 8(%rax)
+  movq  bfi(%rip), %rax
+  andl  $-131073, 8(%rax)
+  ret
+
+It could narrow the loads and stores to emit this:
+
+  movq  bfi(%rip), %rax
+  andb  $-2, 10(%rax)
+  movq  bfi(%rip), %rax
+  andb  $-3, 10(%rax)
+  ret
+
+The trouble is that there is a TokenFactor between the store and the
+load, making it non-trivial to determine if there's anything between
+the load and the store which would prohibit narrowing.
+
+//===---------------------------------------------------------------------===//
+
+This code:
+void foo(unsigned x) {
+  if (x == 0) bar();
+  else if (x == 1) qux();
+}
+
+currently compiles into:
+_foo:
+	movl	4(%esp), %eax
+	cmpl	$1, %eax
+	je	LBB0_3
+	testl	%eax, %eax
+	jne	LBB0_4
+
+the testl could be removed:
+_foo:
+	movl	4(%esp), %eax
+	cmpl	$1, %eax
+	je	LBB0_3
+	jb	LBB0_4
+
+0 is the only unsigned number < 1.
+
+//===---------------------------------------------------------------------===//
+
+This code:
+
+%0 = type { i32, i1 }
+
+define i32 @add32carry(i32 %sum, i32 %x) nounwind readnone ssp {
+entry:
+  %uadd = tail call %0 @llvm.uadd.with.overflow.i32(i32 %sum, i32 %x)
+  %cmp = extractvalue %0 %uadd, 1
+  %inc = zext i1 %cmp to i32
+  %add = add i32 %x, %sum
+  %z.0 = add i32 %add, %inc
+  ret i32 %z.0
+}
+
+declare %0 @llvm.uadd.with.overflow.i32(i32, i32) nounwind readnone
+
+compiles to:
+
+_add32carry:                            ## @add32carry
+	addl	%esi, %edi
+	sbbl	%ecx, %ecx
+	movl	%edi, %eax
+	subl	%ecx, %eax
+	ret
+
+But it could be:
+
+_add32carry:
+	leal	(%rsi,%rdi), %eax
+	cmpl	%esi, %eax
+	adcl	$0, %eax
+	ret
+
+//===---------------------------------------------------------------------===//
+
+The hot loop of 256.bzip2 contains code that looks a bit like this:
+
+int foo(char *P, char *Q, int x, int y) {
+  if (P[0] != Q[0])
+     return P[0] < Q[0];
+  if (P[1] != Q[1])
+     return P[1] < Q[1];
+  if (P[2] != Q[2])
+     return P[2] < Q[2];
+   return P[3] < Q[3];
+}
+
+In the real code, we get a lot more wrong than this.  However, even in this
+code we generate:
+
+_foo:                                   ## @foo
+## BB#0:                                ## %entry
+	movb	(%rsi), %al
+	movb	(%rdi), %cl
+	cmpb	%al, %cl
+	je	LBB0_2
+LBB0_1:                                 ## %if.then
+	cmpb	%al, %cl
+	jmp	LBB0_5
+LBB0_2:                                 ## %if.end
+	movb	1(%rsi), %al
+	movb	1(%rdi), %cl
+	cmpb	%al, %cl
+	jne	LBB0_1
+## BB#3:                                ## %if.end38
+	movb	2(%rsi), %al
+	movb	2(%rdi), %cl
+	cmpb	%al, %cl
+	jne	LBB0_1
+## BB#4:                                ## %if.end60
+	movb	3(%rdi), %al
+	cmpb	3(%rsi), %al
+LBB0_5:                                 ## %if.end60
+	setl	%al
+	movzbl	%al, %eax
+	ret
+
+Note that we generate jumps to LBB0_1 which does a redundant compare.  The
+redundant compare also forces the register values to be live, which prevents
+folding one of the loads into the compare.  In contrast, GCC 4.2 produces:
+
+_foo:
+	movzbl	(%rsi), %eax
+	cmpb	%al, (%rdi)
+	jne	L10
+L12:
+	movzbl	1(%rsi), %eax
+	cmpb	%al, 1(%rdi)
+	jne	L10
+	movzbl	2(%rsi), %eax
+	cmpb	%al, 2(%rdi)
+	jne	L10
+	movzbl	3(%rdi), %eax
+	cmpb	3(%rsi), %al
+L10:
+	setl	%al
+	movzbl	%al, %eax
+	ret
+
+which is "perfect".
+
+//===---------------------------------------------------------------------===//
+
+For the branch in the following code:
+int a();
+int b(int x, int y) {
+  if (x & (1<<(y&7)))
+    return a();
+  return y;
+}
+
+We currently generate:
+	movb	%sil, %al
+	andb	$7, %al
+	movzbl	%al, %eax
+	btl	%eax, %edi
+	jae	.LBB0_2
+
+movl+andl would be shorter than the movb+andb+movzbl sequence.
+
+//===---------------------------------------------------------------------===//
+
+For the following:
+struct u1 {
+    float x, y;
+};
+float foo(struct u1 u) {
+    return u.x + u.y;
+}
+
+We currently generate:
+	movdqa	%xmm0, %xmm1
+	pshufd	$1, %xmm0, %xmm0        # xmm0 = xmm0[1,0,0,0]
+	addss	%xmm1, %xmm0
+	ret
+
+We could save an instruction here by commuting the addss.
+
+//===---------------------------------------------------------------------===//
+
+This (from PR9661):
+
+float clamp_float(float a) {
+        if (a > 1.0f)
+                return 1.0f;
+        else if (a < 0.0f)
+                return 0.0f;
+        else
+                return a;
+}
+
+Could compile to:
+
+clamp_float:                            # @clamp_float
+        movss   .LCPI0_0(%rip), %xmm1
+        minss   %xmm1, %xmm0
+        pxor    %xmm1, %xmm1
+        maxss   %xmm1, %xmm0
+        ret
+
+with -ffast-math.
+
+//===---------------------------------------------------------------------===//
+
+This function (from PR9803):
+
+int clamp2(int a) {
+        if (a > 5)
+                a = 5;
+        if (a < 0) 
+                return 0;
+        return a;
+}
+
+Compiles to:
+
+_clamp2:                                ## @clamp2
+        pushq   %rbp
+        movq    %rsp, %rbp
+        cmpl    $5, %edi
+        movl    $5, %ecx
+        cmovlel %edi, %ecx
+        testl   %ecx, %ecx
+        movl    $0, %eax
+        cmovnsl %ecx, %eax
+        popq    %rbp
+        ret
+
+The move of 0 could be scheduled above the test to make it is xor reg,reg.
+
+//===---------------------------------------------------------------------===//
+
+GCC PR48986.  We currently compile this:
+
+void bar(void);
+void yyy(int* p) {
+    if (__sync_fetch_and_add(p, -1) == 1)
+      bar();
+}
+
+into:
+	movl	$-1, %eax
+	lock
+	xaddl	%eax, (%rdi)
+	cmpl	$1, %eax
+	je	LBB0_2
+
+Instead we could generate:
+
+	lock
+	dec %rdi
+	je LBB0_2
+
+The trick is to match "fetch_and_add(X, -C) == C".
+
+//===---------------------------------------------------------------------===//
+
+unsigned log2(unsigned x) {
+  return x > 1 ? 32-__builtin_clz(x-1) : 0;
+}
+
+generates (x86_64):
+	xorl	%eax, %eax
+	cmpl	$2, %edi
+	jb	LBB0_2
+## BB#1:
+	decl	%edi
+	movl	$63, %ecx
+	bsrl	%edi, %eax
+	cmovel	%ecx, %eax
+	xorl	$-32, %eax
+	addl	$33, %eax
+LBB0_2:
+	ret
+
+The cmov and the early test are redundant:
+	xorl	%eax, %eax
+	cmpl	$2, %edi
+	jb	LBB0_2
+## BB#1:
+	decl	%edi
+	bsrl	%edi, %eax
+	xorl	$-32, %eax
+	addl	$33, %eax
+LBB0_2:
+	ret
 
 //===---------------------------------------------------------------------===//

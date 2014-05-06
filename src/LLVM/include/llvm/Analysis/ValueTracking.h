@@ -15,7 +15,8 @@
 #ifndef LLVM_ANALYSIS_VALUETRACKING_H
 #define LLVM_ANALYSIS_VALUETRACKING_H
 
-#include "llvm/System/DataTypes.h"
+#include "llvm/ADT/ArrayRef.h"
+#include "llvm/Support/DataTypes.h"
 #include <string>
 
 namespace llvm {
@@ -39,6 +40,23 @@ namespace llvm {
                          APInt &KnownOne, const TargetData *TD = 0,
                          unsigned Depth = 0);
   
+  /// ComputeSignBit - Determine whether the sign bit is known to be zero or
+  /// one.  Convenience wrapper around ComputeMaskedBits.
+  void ComputeSignBit(Value *V, bool &KnownZero, bool &KnownOne,
+                      const TargetData *TD = 0, unsigned Depth = 0);
+
+  /// isPowerOfTwo - Return true if the given value is known to have exactly one
+  /// bit set when defined. For vectors return true if every element is known to
+  /// be a power of two when defined.  Supports values with integer or pointer
+  /// type and vectors of integers.
+  bool isPowerOfTwo(Value *V, const TargetData *TD = 0, unsigned Depth = 0);
+
+  /// isKnownNonZero - Return true if the given value is known to be non-zero
+  /// when defined.  For vectors return true if every element is known to be
+  /// non-zero when defined.  Supports values with integer or pointer type and
+  /// vectors of integers.
+  bool isKnownNonZero(Value *V, const TargetData *TD = 0, unsigned Depth = 0);
+
   /// MaskedValueIsZero - Return true if 'V & Mask' is known to be zero.  We use
   /// this predicate to simplify operations downstream.  Mask is known to be
   /// zero for bits that V cannot have.
@@ -77,26 +95,13 @@ namespace llvm {
   ///
   bool CannotBeNegativeZero(const Value *V, unsigned Depth = 0);
 
-  /// DecomposeGEPExpression - If V is a symbolic pointer expression, decompose
-  /// it into a base pointer with a constant offset and a number of scaled
-  /// symbolic offsets.
-  ///
-  /// The scaled symbolic offsets (represented by pairs of a Value* and a scale
-  /// in the VarIndices vector) are Value*'s that are known to be scaled by the
-  /// specified amount, but which may have other unrepresented high bits. As
-  /// such, the gep cannot necessarily be reconstructed from its decomposed
-  /// form.
-  ///
-  /// When TargetData is around, this function is capable of analyzing
-  /// everything that Value::getUnderlyingObject() can look through.  When not,
-  /// it just looks through pointer casts.
-  ///
-  const Value *DecomposeGEPExpression(const Value *V, int64_t &BaseOffs,
-                 SmallVectorImpl<std::pair<const Value*, int64_t> > &VarIndices,
-                                      const TargetData *TD);
+  /// isBytewiseValue - If the specified value can be set by repeating the same
+  /// byte in memory, return the i8 value that it is represented with.  This is
+  /// true for all i8 values obviously, but is also true for i32 0, i32 -1,
+  /// i16 0xF0F0, double 0.0 etc.  If the value can't be handled with a repeated
+  /// byte store (e.g. i16 0x1234), return null.
+  Value *isBytewiseValue(Value *V);
     
-  
-  
   /// FindInsertedValue - Given an aggregrate and an sequence of indices, see if
   /// the scalar value indexed is already around as a register, for example if
   /// it were inserted directly into the aggregrate.
@@ -104,16 +109,18 @@ namespace llvm {
   /// If InsertBefore is not null, this function will duplicate (modified)
   /// insertvalues when a part of a nested struct is extracted.
   Value *FindInsertedValue(Value *V,
-                           const unsigned *idx_begin,
-                           const unsigned *idx_end,
+                           ArrayRef<unsigned> idx_range,
                            Instruction *InsertBefore = 0);
 
-  /// This is a convenience wrapper for finding values indexed by a single index
-  /// only.
-  inline Value *FindInsertedValue(Value *V, const unsigned Idx,
-                                  Instruction *InsertBefore = 0) {
-    const unsigned Idxs[1] = { Idx };
-    return FindInsertedValue(V, &Idxs[0], &Idxs[1], InsertBefore);
+  /// GetPointerBaseWithConstantOffset - Analyze the specified pointer to see if
+  /// it can be expressed as a base pointer plus a constant offset.  Return the
+  /// base and offset to the caller.
+  Value *GetPointerBaseWithConstantOffset(Value *Ptr, int64_t &Offset,
+                                          const TargetData &TD);
+  static inline const Value *
+  GetPointerBaseWithConstantOffset(const Value *Ptr, int64_t &Offset,
+                                   const TargetData &TD) {
+    return GetPointerBaseWithConstantOffset(const_cast<Value*>(Ptr), Offset,TD);
   }
   
   /// GetConstantStringInfo - This function computes the length of a
@@ -129,6 +136,24 @@ namespace llvm {
   /// GetStringLength - If we can compute the length of the string pointed to by
   /// the specified pointer, return 'len+1'.  If we can't, return 0.
   uint64_t GetStringLength(Value *V);
+
+  /// GetUnderlyingObject - This method strips off any GEP address adjustments
+  /// and pointer casts from the specified value, returning the original object
+  /// being addressed.  Note that the returned value has pointer type if the
+  /// specified value does.  If the MaxLookup value is non-zero, it limits the
+  /// number of instructions to be stripped off.
+  Value *GetUnderlyingObject(Value *V, const TargetData *TD = 0,
+                             unsigned MaxLookup = 6);
+  static inline const Value *
+  GetUnderlyingObject(const Value *V, const TargetData *TD = 0,
+                      unsigned MaxLookup = 6) {
+    return GetUnderlyingObject(const_cast<Value *>(V), TD, MaxLookup);
+  }
+
+  /// onlyUsedByLifetimeMarkers - Return true if the only users of this pointer
+  /// are lifetime markers.
+  bool onlyUsedByLifetimeMarkers(const Value *V);
+
 } // end namespace llvm
 
 #endif

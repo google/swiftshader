@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // IndexDataManager.cpp: Defines the IndexDataManager, a class that
@@ -10,8 +15,6 @@
 #include "IndexDataManager.h"
 
 #include "Buffer.h"
-#include "mathutil.h"
-#include "main.h"
 #include "common/debug.h"
 
 namespace
@@ -22,9 +25,9 @@ namespace
 namespace gl
 {
 
-IndexDataManager::IndexDataManager(Context *context, Device *device) : mDevice(device)
+IndexDataManager::IndexDataManager()
 {
-    mStreamingBuffer = new StreamingIndexBuffer(mDevice, INITIAL_INDEX_BUFFER_SIZE);
+    mStreamingBuffer = new StreamingIndexBuffer(INITIAL_INDEX_BUFFER_SIZE);
 
     if(!mStreamingBuffer)
     {
@@ -96,7 +99,7 @@ GLenum IndexDataManager::prepareIndexData(GLenum type, GLsizei count, Buffer *bu
 
     if(buffer != NULL)
     {
-        switch (type)
+        switch(type)
         {
           case GL_UNSIGNED_BYTE:  alignedOffset = (offset % sizeof(GLubyte) == 0);  break;
           case GL_UNSIGNED_SHORT: alignedOffset = (offset % sizeof(GLushort) == 0); break;
@@ -151,7 +154,7 @@ GLenum IndexDataManager::prepareIndexData(GLenum type, GLsizei count, Buffer *bu
 
 std::size_t IndexDataManager::typeSize(GLenum type)
 {
-    switch (type)
+    switch(type)
     {
     case GL_UNSIGNED_INT:   return sizeof(GLuint);
     case GL_UNSIGNED_SHORT: return sizeof(GLushort);
@@ -160,7 +163,7 @@ std::size_t IndexDataManager::typeSize(GLenum type)
     }
 }
 
-StreamingIndexBuffer::StreamingIndexBuffer(Device *device, UINT initialSize) : mDevice(device), mBufferSize(initialSize), mIndexBuffer(NULL)
+StreamingIndexBuffer::StreamingIndexBuffer(UINT initialSize) : mBufferSize(initialSize), mIndexBuffer(NULL)
 {
 	if(initialSize > 0)
     {
@@ -228,7 +231,7 @@ void StreamingIndexBuffer::reserveSpace(UINT requiredSpace, GLenum type)
     
         if(!mIndexBuffer)
         {
-            ERR("Out of memory allocating a vertex buffer of size %lu.", mBufferSize);
+            ERR("Out of memory allocating an index buffer of size %lu.", mBufferSize);
         }
 
         mWritePosition = 0;

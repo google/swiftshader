@@ -16,6 +16,7 @@
 
 #define DEBUG_TYPE "stack-protector"
 #include "llvm/CodeGen/Passes.h"
+#include "llvm/Analysis/Dominators.h"
 #include "llvm/Attributes.h"
 #include "llvm/Constants.h"
 #include "llvm/DerivedTypes.h"
@@ -45,6 +46,8 @@ namespace {
     Function *F;
     Module *M;
 
+    DominatorTree* DT;
+
     /// InsertStackProtectors - Insert code into the prologue and epilogue of
     /// the function.
     ///
@@ -62,9 +65,17 @@ namespace {
     bool RequiresStackProtector() const;
   public:
     static char ID;             // Pass identification, replacement for typeid.
-    StackProtector() : FunctionPass(ID), TLI(0) {}
+    StackProtector() : FunctionPass(ID), TLI(0) {
+      initializeStackProtectorPass(*PassRegistry::getPassRegistry());
+    }
     StackProtector(const TargetLowering *tli)
-      : FunctionPass(ID), TLI(tli) {}
+      : FunctionPass(ID), TLI(tli) {
+        initializeStackProtectorPass(*PassRegistry::getPassRegistry());
+      }
+
+    virtual void getAnalysisUsage(AnalysisUsage &AU) const {
+      AU.addPreserved<DominatorTree>();
+    }
 
     virtual bool runOnFunction(Function &Fn);
   };
@@ -72,7 +83,7 @@ namespace {
 
 char StackProtector::ID = 0;
 INITIALIZE_PASS(StackProtector, "stack-protector",
-                "Insert stack protectors", false, false);
+                "Insert stack protectors", false, false)
 
 FunctionPass *llvm::createStackProtectorPass(const TargetLowering *tli) {
   return new StackProtector(tli);
@@ -81,6 +92,7 @@ FunctionPass *llvm::createStackProtectorPass(const TargetLowering *tli) {
 bool StackProtector::runOnFunction(Function &Fn) {
   F = &Fn;
   M = F->getParent();
+  DT = getAnalysisIfAvailable<DominatorTree>();
 
   if (!RequiresStackProtector()) return false;
   
@@ -111,7 +123,7 @@ bool StackProtector::RequiresStackProtector() const {
           // protectors.
           return true;
 
-        if (const ArrayType *AT = dyn_cast<ArrayType>(AI->getAllocatedType())) {
+        if (ArrayType *AT = dyn_cast<ArrayType>(AI->getAllocatedType())) {
           // We apparently only care about character arrays.
           if (!AT->getElementType()->isIntegerTy(8))
             continue;
@@ -135,12 +147,12 @@ bool StackProtector::RequiresStackProtector() const {
 ///    value. It calls __stack_chk_fail if they differ.
 bool StackProtector::InsertStackProtectors() {
   BasicBlock *FailBB = 0;       // The basic block to jump to if check fails.
+  BasicBlock *FailBBDom = 0;    // FailBB's dominator.
   AllocaInst *AI = 0;           // Place on stack that stores the stack guard.
   Value *StackGuardVar = 0;  // The stack guard variable.
 
   for (Function::iterator I = F->begin(), E = F->end(); I != E; ) {
     BasicBlock *BB = I++;
-
     ReturnInst *RI = dyn_cast<ReturnInst>(BB->getTerminator());
     if (!RI) continue;
 
@@ -153,7 +165,7 @@ bool StackProtector::InsertStackProtectors() {
       //     StackGuard = load __stack_chk_guard
       //     call void @llvm.stackprotect.create(StackGuard, StackGuardSlot)
       // 
-      const PointerType *PtrTy = Type::getInt8PtrTy(RI->getContext());
+      PointerType *PtrTy = Type::getInt8PtrTy(RI->getContext());
       unsigned AddressSpace, Offset;
       if (TLI->getStackCookieLocation(AddressSpace, Offset)) {
         Constant *OffsetVal =
@@ -168,13 +180,13 @@ bool StackProtector::InsertStackProtectors() {
       BasicBlock &Entry = F->getEntryBlock();
       Instruction *InsPt = &Entry.front();
 
-      AI = new AllocaInst(PtrTy, InsPt);
-      LoadInst *LI = new LoadInst(StackGuardVar, false, InsPt);
+      AI = new AllocaInst(PtrTy, "StackGuardSlot", InsPt);
+      LoadInst *LI = new LoadInst(StackGuardVar, "StackGuard", false, InsPt);
 
       Value *Args[] = { LI, AI };
       CallInst::
         Create(Intrinsic::getDeclaration(M, Intrinsic::stackprotector),
-               &Args[0], array_endof(Args), "", InsPt);
+               Args, "", InsPt);
 
       // Create the basic block to jump to when the guard check fails.
       FailBB = CreateFailBB();
@@ -203,7 +215,12 @@ bool StackProtector::InsertStackProtectors() {
     //     unreachable
 
     // Split the basic block before the return instruction.
-    BasicBlock *NewBB = BB->splitBasicBlock(RI);
+    BasicBlock *NewBB = BB->splitBasicBlock(RI, "SP_return");
+
+    if (DT && DT->isReachableFromEntry(BB)) {
+      DT->addNewBlock(NewBB, BB);
+      FailBBDom = FailBBDom ? DT->findNearestCommonDominator(FailBBDom, BB) :BB;
+    }
 
     // Remove default branch instruction to the new BB.
     BB->getTerminator()->eraseFromParent();
@@ -215,13 +232,16 @@ bool StackProtector::InsertStackProtectors() {
     // Generate the stack protector instructions in the old basic block.
     LoadInst *LI1 = new LoadInst(StackGuardVar, "", false, BB);
     LoadInst *LI2 = new LoadInst(AI, "", true, BB);
-    ICmpInst *Cmp = new ICmpInst(*BB, CmpInst::ICMP_EQ, LI1, LI2);
+    ICmpInst *Cmp = new ICmpInst(*BB, CmpInst::ICMP_EQ, LI1, LI2, "");
     BranchInst::Create(NewBB, FailBB, Cmp, BB);
   }
 
   // Return if we didn't modify any basic blocks. I.e., there are no return
   // statements in the function.
   if (!FailBB) return false;
+
+  if (DT && FailBBDom)
+    DT->addNewBlock(FailBB, FailBBDom);
 
   return true;
 }
@@ -230,7 +250,7 @@ bool StackProtector::InsertStackProtectors() {
 /// check fails.
 BasicBlock *StackProtector::CreateFailBB() {
   BasicBlock *FailBB = BasicBlock::Create(F->getContext(),
-                                          F);
+                                          "CallStackCheckFailBlk", F);
   Constant *StackChkFail =
     M->getOrInsertFunction("__stack_chk_fail",
                            Type::getVoidTy(F->getContext()), NULL);

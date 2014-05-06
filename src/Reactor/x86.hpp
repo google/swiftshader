@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -15,116 +15,137 @@ namespace sw
 {
 	namespace x86
 	{
-		RValue<Int> cvtss2si(const RValue<Float> &val);
-		RValue<Int2> cvtps2pi(const RValue<Float4> &val);
-		RValue<Int2> cvttps2pi(const RValue<Float4> &val);
-		RValue<Int4> cvtps2dq(const RValue<Float4> &val);
-		RValue<Int4> cvttps2dq(const RValue<Float4> &val);
+		RValue<Int> cvtss2si(RValue<Float> val);
+		RValue<Int2> cvtps2pi(RValue<Float4> val);
+		RValue<Int2> cvttps2pi(RValue<Float4> val);
+		RValue<Int4> cvtps2dq(RValue<Float4> val);
 		
-		RValue<Float4> cvtpi2ps(const RValue<Float4> &x, const RValue<Int2> &y);
-		RValue<Float4> cvtdq2ps(const RValue<Int4> &val);
+		RValue<Float> rcpss(RValue<Float> val);
+		RValue<Float> sqrtss(RValue<Float> val);
+		RValue<Float> rsqrtss(RValue<Float> val);
 
-		RValue<Float> rcpss(const RValue<Float> &val);
-		RValue<Float> sqrtss(const RValue<Float> &val);
-		RValue<Float> rsqrtss(const RValue<Float> &val);
+		RValue<Float4> rcpps(RValue<Float4> val);
+		RValue<Float4> sqrtps(RValue<Float4> val);
+		RValue<Float4> rsqrtps(RValue<Float4> val);
+		RValue<Float4> maxps(RValue<Float4> x, RValue<Float4> y);
+		RValue<Float4> minps(RValue<Float4> x, RValue<Float4> y);
 
-		RValue<Float4> rcpps(const RValue<Float4> &val);
-		RValue<Float4> sqrtps(const RValue<Float4> &val);
-		RValue<Float4> rsqrtps(const RValue<Float4> &val);
-		RValue<Float4> maxps(const RValue<Float4> &x, const RValue<Float4> &y);
-		RValue<Float4> minps(const RValue<Float4> &x, const RValue<Float4> &y);
+		RValue<Float> roundss(RValue<Float> val, unsigned char imm);
+		RValue<Float> floorss(RValue<Float> val);
+		RValue<Float> ceilss(RValue<Float> val);
 
-		RValue<Float> roundss(const RValue<Float> &val, unsigned char imm);
-		RValue<Float> floorss(const RValue<Float> &val);
-		RValue<Float> ceilss(const RValue<Float> &val);
+		RValue<Float4> roundps(RValue<Float4> val, unsigned char imm);
+		RValue<Float4> floorps(RValue<Float4> val);
+		RValue<Float4> ceilps(RValue<Float4> val);
 
-		RValue<Float4> roundps(const RValue<Float4> &val, unsigned char imm);
-		RValue<Float4> floorps(const RValue<Float4> &val);
-		RValue<Float4> ceilps(const RValue<Float4> &val);
+		RValue<Float4> cmpps(RValue<Float4> x, RValue<Float4> y, unsigned char imm);
+		RValue<Float4> cmpeqps(RValue<Float4> x, RValue<Float4> y);
+		RValue<Float4> cmpltps(RValue<Float4> x, RValue<Float4> y);
+		RValue<Float4> cmpleps(RValue<Float4> x, RValue<Float4> y);
+		RValue<Float4> cmpunordps(RValue<Float4> x, RValue<Float4> y);
+		RValue<Float4> cmpneqps(RValue<Float4> x, RValue<Float4> y);
+		RValue<Float4> cmpnltps(RValue<Float4> x, RValue<Float4> y);
+		RValue<Float4> cmpnleps(RValue<Float4> x, RValue<Float4> y);
+		RValue<Float4> cmpordps(RValue<Float4> x, RValue<Float4> y);
 
-		RValue<Float4> cmpps(const RValue<Float4> &x, const RValue<Float4> &y, unsigned char imm);
-		RValue<Float4> cmpeqps(const RValue<Float4> &x, const RValue<Float4> &y);
-		RValue<Float4> cmpltps(const RValue<Float4> &x, const RValue<Float4> &y);
-		RValue<Float4> cmpleps(const RValue<Float4> &x, const RValue<Float4> &y);
-		RValue<Float4> cmpunordps(const RValue<Float4> &x, const RValue<Float4> &y);
-		RValue<Float4> cmpneqps(const RValue<Float4> &x, const RValue<Float4> &y);
-		RValue<Float4> cmpnltps(const RValue<Float4> &x, const RValue<Float4> &y);
-		RValue<Float4> cmpnleps(const RValue<Float4> &x, const RValue<Float4> &y);
-		RValue<Float4> cmpordps(const RValue<Float4> &x, const RValue<Float4> &y);
+		RValue<Float> cmpss(RValue<Float> x, RValue<Float> y, unsigned char imm);
+		RValue<Float> cmpeqss(RValue<Float> x, RValue<Float> y);
+		RValue<Float> cmpltss(RValue<Float> x, RValue<Float> y);
+		RValue<Float> cmpless(RValue<Float> x, RValue<Float> y);
+		RValue<Float> cmpunordss(RValue<Float> x, RValue<Float> y);
+		RValue<Float> cmpneqss(RValue<Float> x, RValue<Float> y);
+		RValue<Float> cmpnltss(RValue<Float> x, RValue<Float> y);
+		RValue<Float> cmpnless(RValue<Float> x, RValue<Float> y);
+		RValue<Float> cmpordss(RValue<Float> x, RValue<Float> y);
 
-		RValue<Float> cmpss(const RValue<Float> &x, const RValue<Float> &y, unsigned char imm);
-		RValue<Float> cmpeqss(const RValue<Float> &x, const RValue<Float> &y);
-		RValue<Float> cmpltss(const RValue<Float> &x, const RValue<Float> &y);
-		RValue<Float> cmpless(const RValue<Float> &x, const RValue<Float> &y);
-		RValue<Float> cmpunordss(const RValue<Float> &x, const RValue<Float> &y);
-		RValue<Float> cmpneqss(const RValue<Float> &x, const RValue<Float> &y);
-		RValue<Float> cmpnltss(const RValue<Float> &x, const RValue<Float> &y);
-		RValue<Float> cmpnless(const RValue<Float> &x, const RValue<Float> &y);
-		RValue<Float> cmpordss(const RValue<Float> &x, const RValue<Float> &y);
+		RValue<Int4> pabsd(RValue<Int4> x, RValue<Int4> y);
 
-		RValue<Int4> pabsd(const RValue<Int4> &x, const RValue<Int4> &y);
+		RValue<Short4> paddsw(RValue<Short4> x, RValue<Short4> y);
+		RValue<Short4> psubsw(RValue<Short4> x, RValue<Short4> y);
+		RValue<UShort4> paddusw(RValue<UShort4> x, RValue<UShort4> y);
+		RValue<UShort4> psubusw(RValue<UShort4> x, RValue<UShort4> y);
+		RValue<SByte8> paddsb(RValue<SByte8> x, RValue<SByte8> y);
+		RValue<SByte8> psubsb(RValue<SByte8> x, RValue<SByte8> y);
+		RValue<Byte8> paddusb(RValue<Byte8> x, RValue<Byte8> y);
+		RValue<Byte8> psubusb(RValue<Byte8> x, RValue<Byte8> y);
 
-		RValue<Short4> paddsw(const RValue<Short4> &x, const RValue<Short4> &y);
-		RValue<Short4> psubsw(const RValue<Short4> &x, const RValue<Short4> &y);
-		RValue<UShort4> paddusw(const RValue<UShort4> &x, const RValue<UShort4> &y);
-		RValue<UShort4> psubusw(const RValue<UShort4> &x, const RValue<UShort4> &y);
-		RValue<SByte8> paddsb(const RValue<SByte8> &x, const RValue<SByte8> &y);
-		RValue<SByte8> psubsb(const RValue<SByte8> &x, const RValue<SByte8> &y);
-		RValue<Byte8> paddusb(const RValue<Byte8> &x, const RValue<Byte8> &y);
-		RValue<Byte8> psubusb(const RValue<Byte8> &x, const RValue<Byte8> &y);
+		RValue<Short4> paddw(RValue<Short4> x, RValue<Short4> y);
+		RValue<Short4> psubw(RValue<Short4> x, RValue<Short4> y);
+		RValue<Short4> pmullw(RValue<Short4> x, RValue<Short4> y);
+		RValue<Short4> pand(RValue<Short4> x, RValue<Short4> y);
+		RValue<Short4> por(RValue<Short4> x, RValue<Short4> y);
+		RValue<Short4> pxor(RValue<Short4> x, RValue<Short4> y);
+		RValue<Short4> pshufw(RValue<Short4> x, unsigned char y);
+		RValue<Int2> punpcklwd(RValue<Short4> x, RValue<Short4> y);
+		RValue<Int2> punpckhwd(RValue<Short4> x, RValue<Short4> y);
+		RValue<Short4> pinsrw(RValue<Short4> x, RValue<Int> y, unsigned int i);
+		RValue<Int> pextrw(RValue<Short4> x, unsigned int i);
+		RValue<Long1> punpckldq(RValue<Int2> x, RValue<Int2> y);
+		RValue<Long1> punpckhdq(RValue<Int2> x, RValue<Int2> y);
+		RValue<Short4> punpcklbw(RValue<Byte8> x, RValue<Byte8> y);
+		RValue<Short4> punpckhbw(RValue<Byte8> x, RValue<Byte8> y);
+		RValue<Byte8> paddb(RValue<Byte8> x, RValue<Byte8> y);
+		RValue<Byte8> psubb(RValue<Byte8> x, RValue<Byte8> y);
+		RValue<Int2> paddd(RValue<Int2> x, RValue<Int2> y);
+		RValue<Int2> psubd(RValue<Int2> x, RValue<Int2> y);
 
-		RValue<UShort4> pavgw(const RValue<UShort4> &x, const RValue<UShort4> &y);
+		RValue<UShort4> pavgw(RValue<UShort4> x, RValue<UShort4> y);
 
-		RValue<Short4> pmaxsw(const RValue<Short4> &x, const RValue<Short4> &y);
-		RValue<Short4> pminsw(const RValue<Short4> &x, const RValue<Short4> &y);
+		RValue<Short4> pmaxsw(RValue<Short4> x, RValue<Short4> y);
+		RValue<Short4> pminsw(RValue<Short4> x, RValue<Short4> y);
 
-		RValue<Short4> pcmpgtw(const RValue<Short4> &x, const RValue<Short4> &y);
-		RValue<Short4> pcmpeqw(const RValue<Short4> &x, const RValue<Short4> &y);
-		RValue<Byte8> pcmpgtb(const RValue<SByte8> &x, const RValue<SByte8> &y);
-		RValue<Byte8> pcmpeqb(const RValue<Byte8> &x, const RValue<Byte8> &y);
+		RValue<Short4> pcmpgtw(RValue<Short4> x, RValue<Short4> y);
+		RValue<Short4> pcmpeqw(RValue<Short4> x, RValue<Short4> y);
+		RValue<Byte8> pcmpgtb(RValue<SByte8> x, RValue<SByte8> y);
+		RValue<Byte8> pcmpeqb(RValue<Byte8> x, RValue<Byte8> y);
 
-		RValue<Short4> packssdw(const RValue<Int2> &x, const RValue<Int2> &y);
-		RValue<Short8> packssdw(const RValue<Int4> &x, const RValue<Int4> &y);
-		RValue<SByte8> packsswb(const RValue<Short4> &x, const RValue<Short4> &y);
-		RValue<Byte8> packuswb(const RValue<UShort4> &x, const RValue<UShort4> &y);
+		RValue<Short4> packssdw(RValue<Int2> x, RValue<Int2> y);
+		RValue<Short8> packssdw(RValue<Int4> x, RValue<Int4> y);
+		RValue<SByte8> packsswb(RValue<Short4> x, RValue<Short4> y);
+		RValue<Byte8> packuswb(RValue<UShort4> x, RValue<UShort4> y);
 
-		RValue<UShort8> packusdw(const RValue<UInt4> &x, const RValue<UInt4> &y);
+		RValue<UShort8> packusdw(RValue<UInt4> x, RValue<UInt4> y);
 
-		RValue<UShort4> psrlw(const RValue<UShort4> &x, unsigned char y);
-		RValue<UShort8> psrlw(const RValue<UShort8> &x, unsigned char y);
-		RValue<Short4> psraw(const RValue<Short4> &x, unsigned char y);
-		RValue<Short8> psraw(const RValue<Short8> &x, unsigned char y);
-		RValue<Short4> psllw(const RValue<Short4> &x, unsigned char y);
-		RValue<Short8> psllw(const RValue<Short8> &x, unsigned char y);
-		RValue<Int2> pslld(const RValue<Int2> &x, unsigned char y);
-		RValue<Int4> pslld(const RValue<Int4> &x, unsigned char y);
-		RValue<Int2> psrad(const RValue<Int2> &x, unsigned char y);
-		RValue<Int4> psrad(const RValue<Int4> &x, unsigned char y);
-		RValue<UInt2> psrld(const RValue<UInt2> &x, unsigned char y);
-		RValue<UInt4> psrld(const RValue<UInt4> &x, unsigned char y);
+		RValue<UShort4> psrlw(RValue<UShort4> x, unsigned char y);
+		RValue<UShort8> psrlw(RValue<UShort8> x, unsigned char y);
+		RValue<Short4> psraw(RValue<Short4> x, unsigned char y);
+		RValue<Short8> psraw(RValue<Short8> x, unsigned char y);
+		RValue<Short4> psllw(RValue<Short4> x, unsigned char y);
+		RValue<Short8> psllw(RValue<Short8> x, unsigned char y);
+		RValue<Int2> pslld(RValue<Int2> x, unsigned char y);
+		RValue<Int4> pslld(RValue<Int4> x, unsigned char y);
+		RValue<Int2> psrad(RValue<Int2> x, unsigned char y);
+		RValue<Int4> psrad(RValue<Int4> x, unsigned char y);
+		RValue<UInt2> psrld(RValue<UInt2> x, unsigned char y);
+		RValue<UInt4> psrld(RValue<UInt4> x, unsigned char y);
 
-		RValue<UShort4> psrlw(const RValue<UShort4> &x, const RValue<Long1> &y);
-		RValue<Short4> psraw(const RValue<Short4> &x, const RValue<Long1> &y);
-		RValue<Short4> psllw(const RValue<Short4> &x, const RValue<Long1> &y);
-		RValue<Int2> pslld(const RValue<Int2> &x, const RValue<Long1> &y);
-		RValue<UInt2> psrld(const RValue<UInt2> &x, const RValue<Long1> &y);
-		RValue<Int2> psrad(const RValue<Int2> &x, const RValue<Long1> &y);
+		RValue<UShort4> psrlw(RValue<UShort4> x, RValue<Long1> y);
+		RValue<Short4> psraw(RValue<Short4> x, RValue<Long1> y);
+		RValue<Short4> psllw(RValue<Short4> x, RValue<Long1> y);
+		RValue<Int2> pslld(RValue<Int2> x, RValue<Long1> y);
+		RValue<UInt2> psrld(RValue<UInt2> x, RValue<Long1> y);
+		RValue<Int2> psrad(RValue<Int2> x, RValue<Long1> y);
 
-		RValue<Short4> pmulhw(const RValue<Short4> &x, const RValue<Short4> &y);
-		RValue<UShort4> pmulhuw(const RValue<UShort4> &x, const RValue<UShort4> &y);
-		RValue<Int2> pmaddwd(const RValue<Short4> &x, const RValue<Short4> &y);
+		RValue<Int4> pmaxsd(RValue<Int4> x, RValue<Int4> y);
+		RValue<Int4> pminsd(RValue<Int4> x, RValue<Int4> y);
+		RValue<UInt4> pmaxud(RValue<UInt4> x, RValue<UInt4> y);
+		RValue<UInt4> pminud(RValue<UInt4> x, RValue<UInt4> y);
 
-		RValue<Short8> pmulhw(const RValue<Short8> &x, const RValue<Short8> &y);
-		RValue<UShort8> pmulhuw(const RValue<UShort8> &x, const RValue<UShort8> &y);
-		RValue<Int4> pmaddwd(const RValue<Short8> &x, const RValue<Short8> &y);
+		RValue<Short4> pmulhw(RValue<Short4> x, RValue<Short4> y);
+		RValue<UShort4> pmulhuw(RValue<UShort4> x, RValue<UShort4> y);
+		RValue<Int2> pmaddwd(RValue<Short4> x, RValue<Short4> y);
 
-		RValue<Int> movmskps(const RValue<Float4> &x);
-		RValue<Int> pmovmskb(const RValue<Byte8> &x);
+		RValue<Short8> pmulhw(RValue<Short8> x, RValue<Short8> y);
+		RValue<UShort8> pmulhuw(RValue<UShort8> x, RValue<UShort8> y);
+		RValue<Int4> pmaddwd(RValue<Short8> x, RValue<Short8> y);
 
-		RValue<Int4> pmovzxbd(const RValue<Int4> &x);
-		RValue<Int4> pmovsxbd(const RValue<Int4> &x);
-		RValue<Int4> pmovzxwd(const RValue<Int4> &x);
-		RValue<Int4> pmovsxwd(const RValue<Int4> &x);
+		RValue<Int> movmskps(RValue<Float4> x);
+		RValue<Int> pmovmskb(RValue<Byte8> x);
+
+		RValue<Int4> pmovzxbd(RValue<Int4> x);
+		RValue<Int4> pmovsxbd(RValue<Int4> x);
+		RValue<Int4> pmovzxwd(RValue<Int4> x);
+		RValue<Int4> pmovsxwd(RValue<Int4> x);
 
 		void emms();
 	}

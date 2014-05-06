@@ -21,7 +21,7 @@
 #include "llvm/ADT/OwningPtr.h"
 #include "llvm/ADT/Triple.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/System/Mutex.h"
+#include "llvm/Support/Mutex.h"
 
 #include <map>
 #include <set>
@@ -29,23 +29,23 @@
 
 namespace llvm {
 class AsmLexer;
+class AsmParser;
 class AsmToken;
 class MCContext;
 class MCAsmInfo;
 class MCAsmLexer;
-class AsmParser;
-class TargetAsmLexer;
-class TargetAsmParser;
 class MCDisassembler;
 class MCInstPrinter;
 class MCInst;
 class MCParsedAsmOperand;
+class MCRegisterInfo;
 class MCStreamer;
+class MCSubtargetInfo;
+class MCTargetAsmLexer;
+class MCTargetAsmParser;
 template <typename T> class SmallVectorImpl;
 class SourceMgr;
 class Target;
-class TargetMachine;
-class TargetRegisterInfo;
 
 struct EDInstInfo;
 struct EDInst;
@@ -87,11 +87,8 @@ struct EDDisassembler {
     
     /// operator< - Less-than operator
     bool operator<(const CPUKey &key) const {
-      if(Arch > key.Arch)
-        return false;
-      if(Syntax >= key.Syntax)
-        return false;
-      return true;
+      return ((Arch < key.Arch) ||
+              ((Arch == key.Arch) && Syntax < (key.Syntax)));
     }
   };
   
@@ -138,10 +135,12 @@ struct EDDisassembler {
   CPUKey Key;
   /// The LLVM target corresponding to the disassembler
   const llvm::Target *Tgt;
-  /// The target machine instance.
-  llvm::OwningPtr<llvm::TargetMachine> TargetMachine;
   /// The assembly information for the target architecture
   llvm::OwningPtr<const llvm::MCAsmInfo> AsmInfo;
+  /// The subtarget information for the target architecture
+  llvm::OwningPtr<const llvm::MCSubtargetInfo> STI;
+  // The register information for the target architecture.
+  llvm::OwningPtr<const llvm::MCRegisterInfo> MRI;
   /// The disassembler for the target architecture
   llvm::OwningPtr<const llvm::MCDisassembler> Disassembler;
   /// The output string for the instruction printer; must be guarded with 
@@ -162,7 +161,7 @@ struct EDDisassembler {
   /// The target-specific lexer for use in tokenizing strings, in
   ///   target-independent and target-specific portions
   llvm::OwningPtr<llvm::AsmLexer> GenericAsmLexer;
-  llvm::OwningPtr<llvm::TargetAsmLexer> SpecificAsmLexer;
+  llvm::OwningPtr<llvm::MCTargetAsmLexer> SpecificAsmLexer;
   /// The guard for the above
   llvm::sys::Mutex ParserMutex;
   /// The LLVM number used for the target disassembly syntax variant
@@ -218,7 +217,7 @@ struct EDDisassembler {
   ///   info
   ///
   /// @arg registerInfo - the register information to use as a source
-  void initMaps(const llvm::TargetRegisterInfo &registerInfo);
+  void initMaps(const llvm::MCRegisterInfo &registerInfo);
   /// nameWithRegisterID - Returns the name (owned by the EDDisassembler) of a 
   ///   register for a given register ID, or NULL on failure
   ///

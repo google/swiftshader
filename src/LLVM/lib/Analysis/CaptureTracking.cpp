@@ -17,6 +17,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/Analysis/CaptureTracking.h"
+#include "llvm/Constants.h"
 #include "llvm/Instructions.h"
 #include "llvm/Value.h"
 #include "llvm/Analysis/AliasAnalysis.h"
@@ -68,8 +69,35 @@ bool llvm::PointerMayBeCaptured(const Value *V,
 
     switch (I->getOpcode()) {
     case Instruction::Call:
+    case Instruction::Invoke: {
+      CallSite CS(I);
+      // Not captured if the callee is readonly, doesn't return a copy through
+      // its return value and doesn't unwind (a readonly function can leak bits
+      // by throwing an exception or not depending on the input value).
+      if (CS.onlyReadsMemory() && CS.doesNotThrow() && I->getType()->isVoidTy())
+        break;
+
+      // Not captured if only passed via 'nocapture' arguments.  Note that
+      // calling a function pointer does not in itself cause the pointer to
+      // be captured.  This is a subtle point considering that (for example)
+      // the callee might return its own address.  It is analogous to saying
+      // that loading a value from a pointer does not cause the pointer to be
+      // captured, even though the loaded value might be the pointer itself
+      // (think of self-referential objects).
+      CallSite::arg_iterator B = CS.arg_begin(), E = CS.arg_end();
+      for (CallSite::arg_iterator A = B; A != E; ++A)
+        if (A->get() == V && !CS.paramHasAttr(A - B + 1, Attribute::NoCapture))
+          // The parameter is not marked 'nocapture' - captured.
+          return true;
+      // Only passed via 'nocapture' arguments, or is the called function - not
+      // captured.
+      break;
+    }
     case Instruction::Load:
       // Loading from a pointer does not cause it to be captured.
+      break;
+    case Instruction::VAArg:
+      // "va-arg" from a pointer does not cause it to be captured.
       break;
     case Instruction::Ret:
       if (ReturnCaptures)

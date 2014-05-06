@@ -21,9 +21,6 @@
     <ClCompile Include="Nucleus.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Shell.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MemoryManager.hpp">
@@ -33,9 +30,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Reactor.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Shell.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="x86.hpp">

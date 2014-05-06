@@ -39,6 +39,12 @@ struct ExtAddrMode : public TargetLowering::AddrMode {
   ExtAddrMode() : BaseReg(0), ScaledReg(0) {}
   void print(raw_ostream &OS) const;
   void dump() const;
+  
+  bool operator==(const ExtAddrMode& O) const {
+    return (BaseReg == O.BaseReg) && (ScaledReg == O.ScaledReg) &&
+           (BaseGV == O.BaseGV) && (BaseOffs == O.BaseOffs) &&
+           (HasBaseReg == O.HasBaseReg) && (Scale == O.Scale);
+  }
 };
 
 static inline raw_ostream &operator<<(raw_ostream &OS, const ExtAddrMode &AM) {
@@ -52,7 +58,7 @@ class AddressingModeMatcher {
 
   /// AccessTy/MemoryInst - This is the type for the access (e.g. double) and
   /// the memory instruction that we're computing this address for.
-  const Type *AccessTy;
+  Type *AccessTy;
   Instruction *MemoryInst;
   
   /// AddrMode - This is the addressing mode that we're building up.  This is
@@ -65,7 +71,7 @@ class AddressingModeMatcher {
   bool IgnoreProfitability;
   
   AddressingModeMatcher(SmallVectorImpl<Instruction*> &AMI,
-                        const TargetLowering &T, const Type *AT,
+                        const TargetLowering &T, Type *AT,
                         Instruction *MI, ExtAddrMode &AM)
     : AddrModeInsts(AMI), TLI(T), AccessTy(AT), MemoryInst(MI), AddrMode(AM) {
     IgnoreProfitability = false;
@@ -75,7 +81,7 @@ public:
   /// Match - Find the maximal addressing mode that a load/store of V can fold,
   /// give an access type of AccessTy.  This returns a list of involved
   /// instructions in AddrModeInsts.
-  static ExtAddrMode Match(Value *V, const Type *AccessTy,
+  static ExtAddrMode Match(Value *V, Type *AccessTy,
                            Instruction *MemoryInst,
                            SmallVectorImpl<Instruction*> &AddrModeInsts,
                            const TargetLowering &TLI) {
@@ -84,7 +90,7 @@ public:
     bool Success = 
       AddressingModeMatcher(AddrModeInsts, TLI, AccessTy,
                             MemoryInst, Result).MatchAddr(V, 0);
-    Success = Success; assert(Success && "Couldn't select *anything*?");
+    (void)Success; assert(Success && "Couldn't select *anything*?");
     return Result;
   }
 private:

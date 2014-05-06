@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // Shader.h: Defines the abstract Shader class and its concrete derived
@@ -14,26 +19,41 @@
 
 #include "ResourceManager.h"
 
+#include "compiler/TranslatorASM.h"
+
 #define GL_APICALL
 #include <GLES2/gl2.h>
-#include <d3dx9.h>
 
 #include <list>
 #include <vector>
+
+namespace sh
+{
+	class OutputASM;
+}
 
 namespace gl
 {
 struct Varying
 {
-    Varying(GLenum type, const std::string &name, int size, bool array)
-        : type(type), name(name), size(size), array(array), reg(-1), col(-1)
+    Varying(GLenum type, const std::string &name, int arraySize, int reg = -1, int col = -1)
+        : type(type), name(name), arraySize(arraySize), reg(reg), col(col)
     {
     }
 
+	bool isArray() const
+	{
+		return arraySize >= 1;
+	}
+
+	int size() const   // Unify with gl::Uniform?
+	{
+		return arraySize > 0 ? arraySize : 1;
+	}
+
     GLenum type;
     std::string name;
-    int size;   // Number of 'type' elements
-    bool array;
+    int arraySize;
 
     int reg;    // First varying register, assigned during link
     int col;    // First register element, assigned during link
@@ -44,8 +64,9 @@ typedef std::list<Varying> VaryingList;
 class Shader
 {
     friend Program;
+	friend sh::OutputASM;
 
-  public:
+public:
     Shader(ResourceManager *manager, GLuint handle);
 
     virtual ~Shader();
@@ -62,7 +83,10 @@ class Shader
 
     virtual void compile() = 0;
     bool isCompiled();
-    const char *getHLSL();
+    
+	virtual sw::Shader *getShader() const = 0;
+	virtual sw::PixelShader *getPixelShader() const;
+	virtual sw::VertexShader *getVertexShader() const;
 
     void addRef();
     void release();
@@ -72,58 +96,38 @@ class Shader
 
     static void releaseCompiler();
 
-  protected:
-    DISALLOW_COPY_AND_ASSIGN(Shader);
-
-    void parseVaryings();
-
-    void compileToHLSL(void *compiler);
+protected:
+	void clear();
+	void initializeCompiler();
 
     static GLenum parseType(const std::string &type);
     static bool compareVarying(const Varying &x, const Varying &y);
 
-    const GLuint mHandle;
+	char *mSource;
+	char *mInfoLog;
+
+    VaryingList varyings;
+	sh::ActiveUniforms activeUniforms;
+	sh::ActiveAttributes activeAttributes;
+
+private:
+	DISALLOW_COPY_AND_ASSIGN(Shader);
+
+	const GLuint mHandle;
     unsigned int mRefCount;     // Number of program objects this shader is attached to
     bool mDeleteStatus;         // Flag to indicate that the shader can be deleted when no longer in use
 
-    char *mSource;
-    char *mHlsl;
-    char *mInfoLog;
+	ResourceManager *mResourceManager;
 
-    VaryingList varyings;
-
-    bool mUsesFragCoord;
-    bool mUsesFrontFacing;
-    bool mUsesPointSize;
-    bool mUsesPointCoord;
-
-    ResourceManager *mResourceManager;
-
-    static void *mFragmentCompiler;
-    static void *mVertexCompiler;
+	static void *mFragmentCompiler;
+	static void *mVertexCompiler;
 };
-
-struct Attribute
-{
-    Attribute() : type(GL_NONE), name("")
-    {
-    }
-
-    Attribute(GLenum type, const std::string &name) : type(type), name(name)
-    {
-    }
-
-    GLenum type;
-    std::string name;
-};
-
-typedef std::vector<Attribute> AttributeArray;
 
 class VertexShader : public Shader
 {
     friend Program;
 
-  public:
+public:
     VertexShader(ResourceManager *manager, GLuint handle);
 
     ~VertexShader();
@@ -132,17 +136,18 @@ class VertexShader : public Shader
     virtual void compile();
     int getSemanticIndex(const std::string &attributeName);
 
-  private:
+	virtual sw::Shader *getShader() const;
+	virtual sw::VertexShader *getVertexShader() const;
+
+private:
     DISALLOW_COPY_AND_ASSIGN(VertexShader);
 
-    void parseAttributes();
-
-    AttributeArray mAttributes;
+	sw::VertexShader *vertexShader;
 };
 
 class FragmentShader : public Shader
 {
-  public:
+public:
     FragmentShader(ResourceManager *manager, GLuint handle);
 
     ~FragmentShader();
@@ -150,8 +155,13 @@ class FragmentShader : public Shader
     virtual GLenum getType();
     virtual void compile();
 
-  private:
+	virtual sw::Shader *getShader() const;
+	virtual sw::PixelShader *getPixelShader() const;
+
+private:
     DISALLOW_COPY_AND_ASSIGN(FragmentShader);
+
+	sw::PixelShader *pixelShader;
 };
 }
 

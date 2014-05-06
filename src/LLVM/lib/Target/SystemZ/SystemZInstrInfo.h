@@ -19,6 +19,9 @@
 #include "llvm/ADT/IndexedMap.h"
 #include "llvm/Target/TargetInstrInfo.h"
 
+#define GET_INSTRINFO_HEADER
+#include "SystemZGenInstrInfo.inc"
+
 namespace llvm {
 
 class SystemZTargetMachine;
@@ -47,10 +50,9 @@ namespace SystemZII {
   };
 }
 
-class SystemZInstrInfo : public TargetInstrInfoImpl {
+class SystemZInstrInfo : public SystemZGenInstrInfo {
   const SystemZRegisterInfo RI;
   SystemZTargetMachine &TM;
-  IndexedMap<unsigned> RegSpillOffsets;
 public:
   explicit SystemZInstrInfo(SystemZTargetMachine &TM);
 
@@ -80,15 +82,6 @@ public:
                                     const TargetRegisterClass *RC,
                                     const TargetRegisterInfo *TRI) const;
 
-  virtual bool spillCalleeSavedRegisters(MachineBasicBlock &MBB,
-                                         MachineBasicBlock::iterator MI,
-                                        const std::vector<CalleeSavedInfo> &CSI,
-                                         const TargetRegisterInfo *TRI) const;
-  virtual bool restoreCalleeSavedRegisters(MachineBasicBlock &MBB,
-                                           MachineBasicBlock::iterator MI,
-                                        const std::vector<CalleeSavedInfo> &CSI,
-                                           const TargetRegisterInfo *TRI) const;
-
   bool ReverseBranchCondition(SmallVectorImpl<MachineOperand> &Cond) const;
   virtual bool isUnpredicatedTerminator(const MachineInstr *MI) const;
   virtual bool AnalyzeBranch(MachineBasicBlock &MBB,
@@ -104,10 +97,10 @@ public:
 
   SystemZCC::CondCodes getOppositeCondition(SystemZCC::CondCodes CC) const;
   SystemZCC::CondCodes getCondFromBranchOpc(unsigned Opc) const;
-  const TargetInstrDesc& getBrCond(SystemZCC::CondCodes CC) const;
-  const TargetInstrDesc& getLongDispOpc(unsigned Opc) const;
+  const MCInstrDesc& getBrCond(SystemZCC::CondCodes CC) const;
+  const MCInstrDesc& getLongDispOpc(unsigned Opc) const;
 
-  const TargetInstrDesc& getMemoryInstr(unsigned Opc, int64_t Offset = 0) const {
+  const MCInstrDesc& getMemoryInstr(unsigned Opc, int64_t Offset = 0) const {
     if (Offset < 0 || Offset >= 4096)
       return getLongDispOpc(Opc);
     else

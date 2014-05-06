@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // Surface.cpp: Implements the egl::Surface class, representing a drawing surface
@@ -22,22 +27,6 @@
 
 namespace egl
 {
-
-namespace
-{
-const int versionWindowsVista = MAKEWORD(0x00, 0x06);
-const int versionWindows7 = MAKEWORD(0x01, 0x06);
-
-// Return the version of the operating system in a format suitable for ordering
-// comparison.
-int getComparableOSVersion()
-{
-    DWORD version = GetVersion();
-    int majorVersion = LOBYTE(LOWORD(version));
-    int minorVersion = HIBYTE(LOWORD(version));
-    return MAKEWORD(minorVersion, majorVersion);
-}
-}
 
 Surface::Surface(Display *display, const Config *config, HWND window) 
     : mDisplay(display), mConfig(config), mWindow(window)
@@ -96,7 +85,7 @@ bool Surface::initialize()
     // Modify present parameters for this window, if we are composited,
     // to minimize the amount of queuing done by DWM between our calls to
     // present and the actual screen.
-    if (mWindow && (getComparableOSVersion() >= versionWindowsVista))
+    if(mWindow && (LOWORD(GetVersion()) >= 0x60))
 	{
         BOOL isComposited;
         HRESULT result = DwmIsCompositionEnabled(&isComposited);
@@ -175,7 +164,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 
     if(mWindow)
     {
-		frameBuffer = createFrameBuffer(0, backBufferWidth, backBufferHeight, false);
+		frameBuffer = createFrameBuffer(0, backBufferWidth, backBufferHeight, false, false);
 
 		if(!frameBuffer)
 		{

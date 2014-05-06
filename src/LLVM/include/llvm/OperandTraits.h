@@ -27,27 +27,17 @@ namespace llvm {
 /// when it is a prefix to the User object, and the number of Use objects is
 /// known at compile time.
 
-template <unsigned ARITY>
+template <typename SubClass, unsigned ARITY>
 struct FixedNumOperandTraits {
-  static Use *op_begin(User* U) {
+  static Use *op_begin(SubClass* U) {
     return reinterpret_cast<Use*>(U) - ARITY;
   }
-  static Use *op_end(User* U) {
+  static Use *op_end(SubClass* U) {
     return reinterpret_cast<Use*>(U);
   }
   static unsigned operands(const User*) {
     return ARITY;
   }
-  struct prefix {
-    Use Ops[ARITY];
-    prefix(); // DO NOT IMPLEMENT
-  };
-  template <class U>
-  struct Layout {
-    struct overlay : public prefix, public U {
-      overlay(); // DO NOT IMPLEMENT
-    };
-  };
 };
 
 //===----------------------------------------------------------------------===//
@@ -57,8 +47,8 @@ struct FixedNumOperandTraits {
 /// OptionalOperandTraits - when the number of operands may change at runtime.
 /// Naturally it may only decrease, because the allocations may not change.
 
-template <unsigned ARITY = 1>
-struct OptionalOperandTraits : public FixedNumOperandTraits<ARITY> {
+template <typename SubClass, unsigned ARITY = 1>
+struct OptionalOperandTraits : public FixedNumOperandTraits<SubClass, ARITY> {
   static unsigned operands(const User *U) {
     return U->getNumOperands();
   }
@@ -72,12 +62,12 @@ struct OptionalOperandTraits : public FixedNumOperandTraits<ARITY> {
 /// when it is a prefix to the User object, and the number of Use objects is
 /// only known at allocation time.
 
-template <unsigned MINARITY = 0>
+template <typename SubClass, unsigned MINARITY = 0>
 struct VariadicOperandTraits {
-  static Use *op_begin(User* U) {
-    return reinterpret_cast<Use*>(U) - U->getNumOperands();
+  static Use *op_begin(SubClass* U) {
+    return reinterpret_cast<Use*>(U) - static_cast<User*>(U)->getNumOperands();
   }
-  static Use *op_end(User* U) {
+  static Use *op_end(SubClass* U) {
     return reinterpret_cast<Use*>(U);
   }
   static unsigned operands(const User *U) {
@@ -146,45 +136,8 @@ CLASS::const_op_iterator CLASS::op_end() const { \
 VALUECLASS *CLASS::getOperand(unsigned i_nocapture) const { \
   assert(i_nocapture < OperandTraits<CLASS>::operands(this) \
          && "getOperand() out of range!"); \
-  return static_cast<VALUECLASS*>( \
-    OperandTraits<CLASS>::op_begin(const_cast<CLASS*>(this))[i_nocapture]); \
-} \
-void CLASS::setOperand(unsigned i_nocapture, VALUECLASS *Val_nocapture) { \
-  assert(i_nocapture < OperandTraits<CLASS>::operands(this) \
-         && "setOperand() out of range!"); \
-  OperandTraits<CLASS>::op_begin(this)[i_nocapture] = Val_nocapture; \
-} \
-unsigned CLASS::getNumOperands() const { \
-  return OperandTraits<CLASS>::operands(this);  \
-} \
-template <int Idx_nocapture> Use &CLASS::Op() { \
-  return this->OpFrom<Idx_nocapture>(this); \
-} \
-template <int Idx_nocapture> const Use &CLASS::Op() const { \
-  return this->OpFrom<Idx_nocapture>(this); \
-}
-
-
-/// Macro for generating out-of-class operand accessor
-/// definitions with casted result
-#define DEFINE_TRANSPARENT_CASTED_OPERAND_ACCESSORS(CLASS, VALUECLASS) \
-CLASS::op_iterator CLASS::op_begin() { \
-  return OperandTraits<CLASS>::op_begin(this); \
-} \
-CLASS::const_op_iterator CLASS::op_begin() const { \
-  return OperandTraits<CLASS>::op_begin(const_cast<CLASS*>(this)); \
-} \
-CLASS::op_iterator CLASS::op_end() { \
-  return OperandTraits<CLASS>::op_end(this); \
-} \
-CLASS::const_op_iterator CLASS::op_end() const { \
-  return OperandTraits<CLASS>::op_end(const_cast<CLASS*>(this)); \
-} \
-VALUECLASS *CLASS::getOperand(unsigned i_nocapture) const { \
-  assert(i_nocapture < OperandTraits<CLASS>::operands(this) \
-         && "getOperand() out of range!"); \
-  return cast<VALUECLASS>( \
-    OperandTraits<CLASS>::op_begin(const_cast<CLASS*>(this))[i_nocapture]); \
+  return cast_or_null<VALUECLASS>( \
+    OperandTraits<CLASS>::op_begin(const_cast<CLASS*>(this))[i_nocapture].get()); \
 } \
 void CLASS::setOperand(unsigned i_nocapture, VALUECLASS *Val_nocapture) { \
   assert(i_nocapture < OperandTraits<CLASS>::operands(this) \

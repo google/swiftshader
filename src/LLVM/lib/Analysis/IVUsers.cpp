@@ -21,7 +21,8 @@
 #include "llvm/Analysis/Dominators.h"
 #include "llvm/Analysis/LoopPass.h"
 #include "llvm/Analysis/ScalarEvolutionExpressions.h"
-#include "llvm/Assembly/AsmAnnotationWriter.h"
+#include "llvm/Target/TargetData.h"
+#include "llvm/Assembly/Writer.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
@@ -29,7 +30,13 @@
 using namespace llvm;
 
 char IVUsers::ID = 0;
-INITIALIZE_PASS(IVUsers, "iv-users", "Induction Variable Users", false, true);
+INITIALIZE_PASS_BEGIN(IVUsers, "iv-users",
+                      "Induction Variable Users", false, true)
+INITIALIZE_PASS_DEPENDENCY(LoopInfo)
+INITIALIZE_PASS_DEPENDENCY(DominatorTree)
+INITIALIZE_PASS_DEPENDENCY(ScalarEvolution)
+INITIALIZE_PASS_END(IVUsers, "iv-users",
+                      "Induction Variable Users", false, true)
 
 Pass *llvm::createIVUsersPass() {
   return new IVUsers();
@@ -38,27 +45,34 @@ Pass *llvm::createIVUsersPass() {
 /// isInteresting - Test whether the given expression is "interesting" when
 /// used by the given expression, within the context of analyzing the
 /// given loop.
-static bool isInteresting(const SCEV *S, const Instruction *I, const Loop *L) {
-  // Anything loop-invariant is interesting.
-  if (!isa<SCEVUnknown>(S) && S->isLoopInvariant(L))
-    return true;
-
+static bool isInteresting(const SCEV *S, const Instruction *I, const Loop *L,
+                          ScalarEvolution *SE, LoopInfo *LI) {
   // An addrec is interesting if it's affine or if it has an interesting start.
   if (const SCEVAddRecExpr *AR = dyn_cast<SCEVAddRecExpr>(S)) {
-    // Keep things simple. Don't touch loop-variant strides.
+    // Keep things simple. Don't touch loop-variant strides unless they're
+    // only used outside the loop and we can simplify them.
     if (AR->getLoop() == L)
-      return AR->isAffine() || !L->contains(I);
-    // Otherwise recurse to see if the start value is interesting.
-    return isInteresting(AR->getStart(), I, L);
+      return AR->isAffine() ||
+             (!L->contains(I) &&
+              SE->getSCEVAtScope(AR, LI->getLoopFor(I->getParent())) != AR);
+    // Otherwise recurse to see if the start value is interesting, and that
+    // the step value is not interesting, since we don't yet know how to
+    // do effective SCEV expansions for addrecs with interesting steps.
+    return isInteresting(AR->getStart(), I, L, SE, LI) &&
+          !isInteresting(AR->getStepRecurrence(*SE), I, L, SE, LI);
   }
 
-  // An add is interesting if any of its operands is.
+  // An add is interesting if exactly one of its operands is interesting.
   if (const SCEVAddExpr *Add = dyn_cast<SCEVAddExpr>(S)) {
+    bool AnyInterestingYet = false;
     for (SCEVAddExpr::op_iterator OI = Add->op_begin(), OE = Add->op_end();
          OI != OE; ++OI)
-      if (isInteresting(*OI, I, L))
-        return true;
-    return false;
+      if (isInteresting(*OI, I, L, SE, LI)) {
+        if (AnyInterestingYet)
+          return false;
+        AnyInterestingYet = true;
+      }
+    return AnyInterestingYet;
   }
 
   // Nothing else is interesting here.
@@ -73,7 +87,10 @@ bool IVUsers::AddUsersIfInteresting(Instruction *I) {
     return false;   // Void and FP expressions cannot be reduced.
 
   // LSR is not APInt clean, do not touch integers bigger than 64-bits.
-  if (SE->getTypeSizeInBits(I->getType()) > 64)
+  // Also avoid creating IVs of non-native types. For example, we don't want a
+  // 64-bit IV in 32-bit code just because the loop has one 64-bit cast.
+  uint64_t Width = SE->getTypeSizeInBits(I->getType());
+  if (Width > 64 || (TD && !TD->isLegalInteger(Width)))
     return false;
 
   if (!Processed.insert(I))
@@ -84,7 +101,7 @@ bool IVUsers::AddUsersIfInteresting(Instruction *I) {
 
   // If we've come to an uninteresting expression, stop the traversal and
   // call this a user.
-  if (!isInteresting(ISE, I, L))
+  if (!isInteresting(ISE, I, L, SE, LI))
     return false;
 
   SmallPtrSet<Instruction *, 4> UniqueUsers;
@@ -112,8 +129,7 @@ bool IVUsers::AddUsersIfInteresting(Instruction *I) {
                      << "   OF SCEV: " << *ISE << '\n');
         AddUserToIVUsers = true;
       }
-    } else if (Processed.count(User) ||
-               !AddUsersIfInteresting(User)) {
+    } else if (Processed.count(User) || !AddUsersIfInteresting(User)) {
       DEBUG(dbgs() << "FOUND USER: " << *User << '\n'
                    << "   OF SCEV: " << *ISE << '\n');
       AddUserToIVUsers = true;
@@ -123,12 +139,15 @@ bool IVUsers::AddUsersIfInteresting(Instruction *I) {
       // Okay, we found a user that we cannot reduce.
       IVUses.push_back(new IVStrideUse(this, User, I));
       IVStrideUse &NewUse = IVUses.back();
-      // Transform the expression into a normalized form.
+      // Autodetect the post-inc loop set, populating NewUse.PostIncLoops.
+      // The regular return value here is discarded; instead of recording
+      // it, we just recompute it when we need it.
       ISE = TransformForPostIncUse(NormalizeAutodetect,
                                    ISE, User, I,
                                    NewUse.PostIncLoops,
                                    *SE, *DT);
-      DEBUG(dbgs() << "   NORMALIZED TO: " << *ISE << '\n');
+      DEBUG(if (SE->getSCEV(I) != ISE)
+              dbgs() << "   NORMALIZED TO: " << *ISE << '\n');
     }
   }
   return true;
@@ -140,7 +159,8 @@ IVStrideUse &IVUsers::AddUser(Instruction *User, Value *Operand) {
 }
 
 IVUsers::IVUsers()
- : LoopPass(ID) {
+    : LoopPass(ID) {
+  initializeIVUsersPass(*PassRegistry::getPassRegistry());
 }
 
 void IVUsers::getAnalysisUsage(AnalysisUsage &AU) const {
@@ -156,6 +176,7 @@ bool IVUsers::runOnLoop(Loop *l, LPPassManager &LPM) {
   LI = &getAnalysis<LoopInfo>();
   DT = &getAnalysis<DominatorTree>();
   SE = &getAnalysis<ScalarEvolution>();
+  TD = getAnalysisIfAvailable<TargetData>();
 
   // Find all uses of induction variables in this loop, and categorize
   // them by stride.  Start by finding all of the PHI nodes in the header for
@@ -175,9 +196,6 @@ void IVUsers::print(raw_ostream &OS, const Module *M) const {
   }
   OS << ":\n";
 
-  // Use a default AssemblyAnnotationWriter to suppress the default info
-  // comments, which aren't relevant here.
-  AssemblyAnnotationWriter Annotator;
   for (ilist<IVStrideUse>::const_iterator UI = IVUses.begin(),
        E = IVUses.end(); UI != E; ++UI) {
     OS << "  ";
@@ -191,7 +209,7 @@ void IVUsers::print(raw_ostream &OS, const Module *M) const {
       OS << ")";
     }
     OS << " in  ";
-    UI->getUser()->print(OS, &Annotator);
+    UI->getUser()->print(OS);
     OS << '\n';
   }
 }

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -25,6 +25,11 @@
 namespace sw
 {
 	extern bool perspectiveCorrection;
+
+	bool halfIntegerCoordinates = false;     // Pixel centers are not at integer coordinates
+	bool symmetricNormalizedDepth = false;   // [-1, 1] instead of [0, 1]
+	bool booleanFaceRegister = false;
+	bool fullPixelPositionRegister = false;
 
 	bool forceWindowed = false;
 	bool quadLayoutEnabled = false;
@@ -192,8 +197,6 @@ namespace sw
 		{
 			input[i].defaults();
 		}
-
-		postTransform = false;
 
 		fogStart = 0.0f;
 		fogEnd = 1.0f;
@@ -502,7 +505,7 @@ namespace sw
 		return lightingEnable && !preTransformed;
 	}
 
-	bool Context::vertexTextureActive(int coordinate, int component)   // FIXME: Rename to texCoordActive
+	bool Context::texCoordActive(int coordinate, int component)
 	{
 		bool hasTexture = pointSpriteActive();
 
@@ -510,7 +513,7 @@ namespace sw
 		{
 			if(!preTransformed)
 			{
-				if(vertexShader->output[T0 + coordinate][component].usage == ShaderOperation::USAGE_TEXCOORD)
+				if(vertexShader->output[T0 + coordinate][component].usage == Shader::USAGE_TEXCOORD)
 				{
 					hasTexture = true;
 				}
@@ -563,12 +566,12 @@ namespace sw
 		return hasTexture && usesTexture;
 	}
 
-	bool Context::vertexTextureActive(int coordinate)   // FIXME: Rename to texCoordActive
+	bool Context::texCoordActive(int coordinate)
 	{
-		return vertexTextureActive(coordinate, 0) ||
-		       vertexTextureActive(coordinate, 1) ||
-			   vertexTextureActive(coordinate, 2) ||
-			   vertexTextureActive(coordinate, 3);
+		return texCoordActive(coordinate, 0) ||
+		       texCoordActive(coordinate, 1) ||
+			   texCoordActive(coordinate, 2) ||
+			   texCoordActive(coordinate, 3);
 	}
 
 	bool Context::isProjectionComponent(unsigned int coordinate, int component)
@@ -1103,7 +1106,7 @@ namespace sw
 
 	Context::TexGen Context::texGenActive(int stage)
 	{
-		if(vertexShader || !vertexTextureActive(stage))
+		if(vertexShader || !texCoordActive(stage))
 		{
 			return TEXGEN_PASSTHRU;
 		}
@@ -1113,7 +1116,7 @@ namespace sw
 	
 	int Context::textureTransformCountActive(int stage)
 	{
-		if(vertexShader || !vertexTextureActive(stage))
+		if(vertexShader || !texCoordActive(stage))
 		{
 			return 0;
 		}
@@ -1123,7 +1126,7 @@ namespace sw
 
 	int Context::texCoordIndexActive(int stage)
 	{
-		if(vertexShader || !vertexTextureActive(stage))
+		if(vertexShader || !texCoordActive(stage))
 		{
 			return stage;
 		}
@@ -1322,14 +1325,14 @@ namespace sw
 		return textureActive(coordinate, 0) || textureActive(coordinate, 1) || textureActive(coordinate, 2) || textureActive(coordinate, 3);
 	}
 
-	bool Context::textureActive(int coordinate, int component)   // FIXME: Rename to texCoordActive
+	bool Context::textureActive(int coordinate, int component)
 	{
 		if(!colorUsed())
 		{
 			return false;
 		}
 
-		if(!vertexTextureActive(coordinate, component))
+		if(!texCoordActive(coordinate, component))
 		{
 			return false;
 		}
@@ -1434,6 +1437,6 @@ namespace sw
 
 	bool Context::colorUsed()
 	{
-		return colorWriteActive() || alphaTestActive() || (pixelShader && pixelShader->containsTexkill());
+		return colorWriteActive() || alphaTestActive() || (pixelShader && pixelShader->containsKill());
 	}
 }

@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // IndexDataManager.h: Defines the IndexDataManager, a class that
@@ -11,13 +16,9 @@
 #define LIBGLESV2_INDEXDATAMANAGER_H_
 
 #include "Context.h"
-#include "Device.hpp"
 
 #define GL_APICALL
 #include <GLES2/gl2.h>
-
-#include <vector>
-#include <cstddef>
 
 namespace gl
 {
@@ -34,19 +35,16 @@ struct TranslatedIndexData
 class StreamingIndexBuffer
 {
   public:
-    StreamingIndexBuffer(Device *device, UINT initialSize);
+    StreamingIndexBuffer(UINT initialSize);
     virtual ~StreamingIndexBuffer();
 
     void *map(UINT requiredSpace, UINT *offset);
 	void unmap();
     void reserveSpace(UINT requiredSpace, GLenum type);
 
-	UINT size() const {return mBufferSize;}
 	sw::Resource *getResource() const;
 
   private:
-	Device *const mDevice;
-
     sw::Resource *mIndexBuffer;
     UINT mBufferSize;
     UINT mWritePosition;
@@ -55,7 +53,7 @@ class StreamingIndexBuffer
 class IndexDataManager
 {
   public:
-    IndexDataManager(Context *context, Device *evice);
+    IndexDataManager();
     virtual ~IndexDataManager();
 
     GLenum prepareIndexData(GLenum type, GLsizei count, Buffer *arrayElementBuffer, const void *indices, TranslatedIndexData *translated);
@@ -63,10 +61,6 @@ class IndexDataManager
 	static std::size_t typeSize(GLenum type);
 
   private:
-    DISALLOW_COPY_AND_ASSIGN(IndexDataManager);
-
-    Device *const mDevice;
-
     StreamingIndexBuffer *mStreamingBuffer;
 };
 

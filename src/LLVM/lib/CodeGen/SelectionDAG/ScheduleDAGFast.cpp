@@ -13,6 +13,7 @@
 
 #define DEBUG_TYPE "pre-RA-sched"
 #include "ScheduleDAGSDNodes.h"
+#include "llvm/InlineAsm.h"
 #include "llvm/CodeGen/SchedulerRegistry.h"
 #include "llvm/CodeGen/SelectionDAGISel.h"
 #include "llvm/Target/TargetRegisterInfo.h"
@@ -204,7 +205,7 @@ void ScheduleDAGFast::ScheduleNodeBottomUp(SUnit *SU, unsigned CurCycle) {
 /// CopyAndMoveSuccessors - Clone the specified node and move its scheduled
 /// successors to the newly created node.
 SUnit *ScheduleDAGFast::CopyAndMoveSuccessors(SUnit *SU) {
-  if (SU->getNode()->getFlaggedNode())
+  if (SU->getNode()->getGluedNode())
     return NULL;
 
   SDNode *N = SU->getNode();
@@ -215,7 +216,7 @@ SUnit *ScheduleDAGFast::CopyAndMoveSuccessors(SUnit *SU) {
   bool TryUnfold = false;
   for (unsigned i = 0, e = N->getNumValues(); i != e; ++i) {
     EVT VT = N->getValueType(i);
-    if (VT == MVT::Flag)
+    if (VT == MVT::Glue)
       return NULL;
     else if (VT == MVT::Other)
       TryUnfold = true;
@@ -223,7 +224,7 @@ SUnit *ScheduleDAGFast::CopyAndMoveSuccessors(SUnit *SU) {
   for (unsigned i = 0, e = N->getNumOperands(); i != e; ++i) {
     const SDValue &Op = N->getOperand(i);
     EVT VT = Op.getNode()->getValueType(Op.getResNo());
-    if (VT == MVT::Flag)
+    if (VT == MVT::Glue)
       return NULL;
   }
 
@@ -248,14 +249,14 @@ SUnit *ScheduleDAGFast::CopyAndMoveSuccessors(SUnit *SU) {
     assert(N->getNodeId() == -1 && "Node already inserted!");
     N->setNodeId(NewSU->NodeNum);
       
-    const TargetInstrDesc &TID = TII->get(N->getMachineOpcode());
-    for (unsigned i = 0; i != TID.getNumOperands(); ++i) {
-      if (TID.getOperandConstraint(i, TOI::TIED_TO) != -1) {
+    const MCInstrDesc &MCID = TII->get(N->getMachineOpcode());
+    for (unsigned i = 0; i != MCID.getNumOperands(); ++i) {
+      if (MCID.getOperandConstraint(i, MCOI::TIED_TO) != -1) {
         NewSU->isTwoAddress = true;
         break;
       }
     }
-    if (TID.isCommutable())
+    if (MCID.isCommutable())
       NewSU->isCommutable = true;
 
     // LoadNode may already exist. This can happen when there is another
@@ -421,15 +422,39 @@ void ScheduleDAGFast::InsertCopiesAndMoveSuccs(SUnit *SU, unsigned Reg,
 /// FIXME: Move to SelectionDAG?
 static EVT getPhysicalRegisterVT(SDNode *N, unsigned Reg,
                                  const TargetInstrInfo *TII) {
-  const TargetInstrDesc &TID = TII->get(N->getMachineOpcode());
-  assert(TID.ImplicitDefs && "Physical reg def must be in implicit def list!");
-  unsigned NumRes = TID.getNumDefs();
-  for (const unsigned *ImpDef = TID.getImplicitDefs(); *ImpDef; ++ImpDef) {
+  const MCInstrDesc &MCID = TII->get(N->getMachineOpcode());
+  assert(MCID.ImplicitDefs && "Physical reg def must be in implicit def list!");
+  unsigned NumRes = MCID.getNumDefs();
+  for (const unsigned *ImpDef = MCID.getImplicitDefs(); *ImpDef; ++ImpDef) {
     if (Reg == *ImpDef)
       break;
     ++NumRes;
   }
   return N->getValueType(NumRes);
+}
+
+/// CheckForLiveRegDef - Return true and update live register vector if the
+/// specified register def of the specified SUnit clobbers any "live" registers.
+static bool CheckForLiveRegDef(SUnit *SU, unsigned Reg,
+                               std::vector<SUnit*> &LiveRegDefs,
+                               SmallSet<unsigned, 4> &RegAdded,
+                               SmallVector<unsigned, 4> &LRegs,
+                               const TargetRegisterInfo *TRI) {
+  bool Added = false;
+  if (LiveRegDefs[Reg] && LiveRegDefs[Reg] != SU) {
+    if (RegAdded.insert(Reg)) {
+      LRegs.push_back(Reg);
+      Added = true;
+    }
+  }
+  for (const unsigned *Alias = TRI->getAliasSet(Reg); *Alias; ++Alias)
+    if (LiveRegDefs[*Alias] && LiveRegDefs[*Alias] != SU) {
+      if (RegAdded.insert(*Alias)) {
+        LRegs.push_back(*Alias);
+        Added = true;
+      }
+    }
+  return Added;
 }
 
 /// DelayForLiveRegsBottomUp - Returns true if it is necessary to delay
@@ -446,37 +471,45 @@ bool ScheduleDAGFast::DelayForLiveRegsBottomUp(SUnit *SU,
   for (SUnit::pred_iterator I = SU->Preds.begin(), E = SU->Preds.end();
        I != E; ++I) {
     if (I->isAssignedRegDep()) {
-      unsigned Reg = I->getReg();
-      if (LiveRegDefs[Reg] && LiveRegDefs[Reg] != I->getSUnit()) {
-        if (RegAdded.insert(Reg))
-          LRegs.push_back(Reg);
-      }
-      for (const unsigned *Alias = TRI->getAliasSet(Reg);
-           *Alias; ++Alias)
-        if (LiveRegDefs[*Alias] && LiveRegDefs[*Alias] != I->getSUnit()) {
-          if (RegAdded.insert(*Alias))
-            LRegs.push_back(*Alias);
-        }
+      CheckForLiveRegDef(I->getSUnit(), I->getReg(), LiveRegDefs,
+                         RegAdded, LRegs, TRI);
     }
   }
 
-  for (SDNode *Node = SU->getNode(); Node; Node = Node->getFlaggedNode()) {
+  for (SDNode *Node = SU->getNode(); Node; Node = Node->getGluedNode()) {
+    if (Node->getOpcode() == ISD::INLINEASM) {
+      // Inline asm can clobber physical defs.
+      unsigned NumOps = Node->getNumOperands();
+      if (Node->getOperand(NumOps-1).getValueType() == MVT::Glue)
+        --NumOps;  // Ignore the glue operand.
+
+      for (unsigned i = InlineAsm::Op_FirstOperand; i != NumOps;) {
+        unsigned Flags =
+          cast<ConstantSDNode>(Node->getOperand(i))->getZExtValue();
+        unsigned NumVals = InlineAsm::getNumOperandRegisters(Flags);
+
+        ++i; // Skip the ID value.
+        if (InlineAsm::isRegDefKind(Flags) ||
+            InlineAsm::isRegDefEarlyClobberKind(Flags) ||
+            InlineAsm::isClobberKind(Flags)) {
+          // Check for def of register or earlyclobber register.
+          for (; NumVals; --NumVals, ++i) {
+            unsigned Reg = cast<RegisterSDNode>(Node->getOperand(i))->getReg();
+            if (TargetRegisterInfo::isPhysicalRegister(Reg))
+              CheckForLiveRegDef(SU, Reg, LiveRegDefs, RegAdded, LRegs, TRI);
+          }
+        } else
+          i += NumVals;
+      }
+      continue;
+    }
     if (!Node->isMachineOpcode())
       continue;
-    const TargetInstrDesc &TID = TII->get(Node->getMachineOpcode());
-    if (!TID.ImplicitDefs)
+    const MCInstrDesc &MCID = TII->get(Node->getMachineOpcode());
+    if (!MCID.ImplicitDefs)
       continue;
-    for (const unsigned *Reg = TID.ImplicitDefs; *Reg; ++Reg) {
-      if (LiveRegDefs[*Reg] && LiveRegDefs[*Reg] != SU) {
-        if (RegAdded.insert(*Reg))
-          LRegs.push_back(*Reg);
-      }
-      for (const unsigned *Alias = TRI->getAliasSet(*Reg);
-           *Alias; ++Alias)
-        if (LiveRegDefs[*Alias] && LiveRegDefs[*Alias] != SU) {
-          if (RegAdded.insert(*Alias))
-            LRegs.push_back(*Alias);
-        }
+    for (const unsigned *Reg = MCID.ImplicitDefs; *Reg; ++Reg) {
+      CheckForLiveRegDef(SU, *Reg, LiveRegDefs, RegAdded, LRegs, TRI);
     }
   }
   return !LRegs.empty();
@@ -538,13 +571,20 @@ void ScheduleDAGFast::ListScheduleBottomUp() {
           TRI->getMinimalPhysRegClass(Reg, VT);
         const TargetRegisterClass *DestRC = TRI->getCrossCopyRegClass(RC);
 
-        // If cross copy register class is null, then it must be possible copy
-        // the value directly. Do not try duplicate the def.
+        // If cross copy register class is the same as RC, then it must be
+        // possible copy the value directly. Do not try duplicate the def.
+        // If cross copy register class is not the same as RC, then it's
+        // possible to copy the value but it require cross register class copies
+        // and it is expensive.
+        // If cross copy register class is null, then it's not possible to copy
+        // the value at all.
         SUnit *NewDef = 0;
-        if (DestRC)
+        if (DestRC != RC) {
           NewDef = CopyAndMoveSuccessors(LRDef);
-        else
-          DestRC = RC;
+          if (!DestRC && !NewDef)
+            report_fatal_error("Can't handle live physical "
+                               "register dependency!");
+        }
         if (!NewDef) {
           // Issue copies, these can be expensive cross register class copies.
           SmallVector<SUnit*, 2> Copies;

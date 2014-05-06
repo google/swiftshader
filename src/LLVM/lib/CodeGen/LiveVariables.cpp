@@ -31,7 +31,6 @@
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/CodeGen/Passes.h"
 #include "llvm/Support/Debug.h"
-#include "llvm/Target/TargetRegisterInfo.h"
 #include "llvm/Target/TargetInstrInfo.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/ADT/DepthFirstIterator.h"
@@ -42,8 +41,11 @@
 using namespace llvm;
 
 char LiveVariables::ID = 0;
-INITIALIZE_PASS(LiveVariables, "livevars",
-                "Live Variable Analysis", false, false);
+INITIALIZE_PASS_BEGIN(LiveVariables, "livevars",
+                "Live Variable Analysis", false, false)
+INITIALIZE_PASS_DEPENDENCY(UnreachableMachineBlockElim)
+INITIALIZE_PASS_END(LiveVariables, "livevars",
+                "Live Variable Analysis", false, false)
 
 
 void LiveVariables::getAnalysisUsage(AnalysisUsage &AU) const {
@@ -79,13 +81,7 @@ void LiveVariables::VarInfo::dump() const {
 LiveVariables::VarInfo &LiveVariables::getVarInfo(unsigned RegIdx) {
   assert(TargetRegisterInfo::isVirtualRegister(RegIdx) &&
          "getVarInfo: not a virtual register!");
-  RegIdx -= TargetRegisterInfo::FirstVirtualRegister;
-  if (RegIdx >= VirtRegInfo.size()) {
-    if (RegIdx >= 2*VirtRegInfo.size())
-      VirtRegInfo.resize(RegIdx*2);
-    else
-      VirtRegInfo.resize(2*VirtRegInfo.size());
-  }
+  VirtRegInfo.grow(RegIdx);
   return VirtRegInfo[RegIdx];
 }
 
@@ -111,9 +107,7 @@ void LiveVariables::MarkVirtRegAliveInBlock(VarInfo& VRInfo,
   // Mark the variable known alive in this bb
   VRInfo.AliveBlocks.set(BBNum);
 
-  for (MachineBasicBlock::const_pred_reverse_iterator PI = MBB->pred_rbegin(),
-         E = MBB->pred_rend(); PI != E; ++PI)
-    WorkList.push_back(*PI);
+  WorkList.insert(WorkList.end(), MBB->pred_rbegin(), MBB->pred_rend());
 }
 
 void LiveVariables::MarkVirtRegAliveInBlock(VarInfo &VRInfo,
@@ -483,21 +477,6 @@ void LiveVariables::UpdatePhysRegDefs(MachineInstr *MI,
   }
 }
 
-namespace {
-  struct RegSorter {
-    const TargetRegisterInfo *TRI;
-
-    RegSorter(const TargetRegisterInfo *tri) : TRI(tri) { }
-    bool operator()(unsigned A, unsigned B) {
-      if (TRI->isSubRegister(A, B))
-        return true;
-      else if (TRI->isSubRegister(B, A))
-        return false;
-      return A < B;
-    }
-  };
-}
-
 bool LiveVariables::runOnMachineFunction(MachineFunction &mf) {
   MF = &mf;
   MRI = &mf.getRegInfo();
@@ -512,9 +491,6 @@ bool LiveVariables::runOnMachineFunction(MachineFunction &mf) {
   std::fill(PhysRegDef,  PhysRegDef  + NumRegs, (MachineInstr*)0);
   std::fill(PhysRegUse,  PhysRegUse  + NumRegs, (MachineInstr*)0);
   PHIJoins.clear();
-
-  /// Get some space for a respectable number of registers.
-  VirtRegInfo.resize(64);
 
   analyzePHINodes(mf);
 
@@ -643,19 +619,14 @@ bool LiveVariables::runOnMachineFunction(MachineFunction &mf) {
 
   // Convert and transfer the dead / killed information we have gathered into
   // VirtRegInfo onto MI's.
-  for (unsigned i = 0, e1 = VirtRegInfo.size(); i != e1; ++i)
-    for (unsigned j = 0, e2 = VirtRegInfo[i].Kills.size(); j != e2; ++j)
-      if (VirtRegInfo[i].Kills[j] ==
-          MRI->getVRegDef(i + TargetRegisterInfo::FirstVirtualRegister))
-        VirtRegInfo[i]
-          .Kills[j]->addRegisterDead(i +
-                                     TargetRegisterInfo::FirstVirtualRegister,
-                                     TRI);
+  for (unsigned i = 0, e1 = VirtRegInfo.size(); i != e1; ++i) {
+    const unsigned Reg = TargetRegisterInfo::index2VirtReg(i);
+    for (unsigned j = 0, e2 = VirtRegInfo[Reg].Kills.size(); j != e2; ++j)
+      if (VirtRegInfo[Reg].Kills[j] == MRI->getVRegDef(Reg))
+        VirtRegInfo[Reg].Kills[j]->addRegisterDead(Reg, TRI);
       else
-        VirtRegInfo[i]
-          .Kills[j]->addRegisterKilled(i +
-                                       TargetRegisterInfo::FirstVirtualRegister,
-                                       TRI);
+        VirtRegInfo[Reg].Kills[j]->addRegisterKilled(Reg, TRI);
+  }
 
   // Check to make sure there are no unreachable blocks in the MC CFG for the
   // function.  If so, it is due to a bug in the instruction selector or some
@@ -691,7 +662,7 @@ void LiveVariables::removeVirtualRegistersKilled(MachineInstr *MI) {
       if (TargetRegisterInfo::isVirtualRegister(Reg)) {
         bool removed = getVarInfo(Reg).removeKill(MI);
         assert(removed && "kill not in register's VarInfo?");
-        removed = true;
+        (void)removed;
       }
     }
   }
@@ -734,7 +705,7 @@ bool LiveVariables::isLiveOut(unsigned Reg, const MachineBasicBlock &MBB) {
 
   // Loop over all of the successors of the basic block, checking to see if
   // the value is either live in the block, or if it is killed in the block.
-  std::vector<MachineBasicBlock*> OpSuccBlocks;
+  SmallVector<MachineBasicBlock*, 8> OpSuccBlocks;
   for (MachineBasicBlock::const_succ_iterator SI = MBB.succ_begin(),
          E = MBB.succ_end(); SI != E; ++SI) {
     MachineBasicBlock *SuccMBB = *SI;
@@ -790,8 +761,8 @@ void LiveVariables::addNewBlock(MachineBasicBlock *BB,
         getVarInfo(BBI->getOperand(i).getReg()).AliveBlocks.set(NumNew);
 
   // Update info for all live variables
-  for (unsigned Reg = TargetRegisterInfo::FirstVirtualRegister,
-         E = MRI->getLastVirtReg()+1; Reg != E; ++Reg) {
+  for (unsigned i = 0, e = MRI->getNumVirtRegs(); i != e; ++i) {
+    unsigned Reg = TargetRegisterInfo::index2VirtReg(i);
     VarInfo &VI = getVarInfo(Reg);
     if (!VI.AliveBlocks.test(NumNew) && VI.isLiveIn(*SuccBB, Reg, *MRI))
       VI.AliveBlocks.set(NumNew);

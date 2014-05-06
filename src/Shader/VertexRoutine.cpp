@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -20,7 +20,10 @@
 
 namespace sw
 {
-	VertexRoutine::VertexRoutine(const VertexProcessor::State &state) : state(state)
+	extern bool halfIntegerCoordinates;     // Pixel centers are not at integer coordinates
+	extern bool symmetricNormalizedDepth;   // [-1, 1] instead of [0, 1]
+
+	VertexRoutine::VertexRoutine(const VertexProcessor::State &state, const VertexShader *shader) : state(state), shader(shader)
 	{
 		routine = 0;
 	}
@@ -46,7 +49,7 @@ namespace sw
 
 			UInt count = *Pointer<UInt>(task+ OFFSET(VertexTask,count));
 
-			Registers r;
+			Registers r(shader);
 			r.data = data;
 			r.constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,constants));
 
@@ -82,7 +85,7 @@ namespace sw
 			Return();
 		}
 
-		routine = function(L"VertexRoutine_%0.16llX", state.shaderHash);
+		routine = function(L"VertexRoutine_%0.8X", state.shaderID);
 	}
 
 	Routine *VertexRoutine::getRoutine()
@@ -108,41 +111,41 @@ namespace sw
 		// Backtransform
 		if(state.preTransformed)
 		{
-			Float4 rhw = Float4(1.0f, 1.0f, 1.0f, 1.0f) / r.ow[pos];
+			Float4 rhw = Float4(1.0f) / r.o[pos].w;
 
-			Float4 W = *Pointer<Float4>(r.data + OFFSET(DrawData,WWWWx16)) * Float4(1.0f / 16.0f, 1.0f / 16.0f, 1.0f / 16.0f, 1.0f / 16.0f);
-			Float4 H = *Pointer<Float4>(r.data + OFFSET(DrawData,HHHHx16)) * Float4(1.0f / 16.0f, 1.0f / 16.0f, 1.0f / 16.0f, 1.0f / 16.0f);
-			Float4 L = *Pointer<Float4>(r.data + OFFSET(DrawData,LLLLx16)) * Float4(1.0f / 16.0f, 1.0f / 16.0f, 1.0f / 16.0f, 1.0f / 16.0f);
-			Float4 T = *Pointer<Float4>(r.data + OFFSET(DrawData,TTTTx16)) * Float4(1.0f / 16.0f, 1.0f / 16.0f, 1.0f / 16.0f, 1.0f / 16.0f);
+			Float4 W = *Pointer<Float4>(r.data + OFFSET(DrawData,Wx16)) * Float4(1.0f / 16.0f);
+			Float4 H = *Pointer<Float4>(r.data + OFFSET(DrawData,Hx16)) * Float4(1.0f / 16.0f);
+			Float4 L = *Pointer<Float4>(r.data + OFFSET(DrawData,X0x16)) * Float4(1.0f / 16.0f);
+			Float4 T = *Pointer<Float4>(r.data + OFFSET(DrawData,Y0x16)) * Float4(1.0f / 16.0f);
 
-			r.ox[pos] = (r.ox[pos] - L) / W * rhw;
-			r.oy[pos] = (r.oy[pos] - T) / H * rhw;
-			r.oz[pos] = r.oz[pos] * rhw;
-			r.ow[pos] = rhw;
+			r.o[pos].x = (r.o[pos].x - L) / W * rhw;
+			r.o[pos].y = (r.o[pos].y - T) / H * rhw;
+			r.o[pos].z = r.o[pos].z * rhw;
+			r.o[pos].w = rhw;
 		}
 
 		if(state.superSampling)
 		{
-			r.ox[pos] = r.ox[pos] + *Pointer<Float4>(r.data + OFFSET(DrawData,XXXX)) * r.ow[pos];
-			r.oy[pos] = r.oy[pos] + *Pointer<Float4>(r.data + OFFSET(DrawData,YYYY)) * r.ow[pos];
+			r.o[pos].x = r.o[pos].x + *Pointer<Float4>(r.data + OFFSET(DrawData,XXXX)) * r.o[pos].w;
+			r.o[pos].y = r.o[pos].y + *Pointer<Float4>(r.data + OFFSET(DrawData,YYYY)) * r.o[pos].w;
 		}
 
-		Float4 clipX = r.ox[pos];
-		Float4 clipY = r.oy[pos];
+		Float4 clipX = r.o[pos].x;
+		Float4 clipY = r.o[pos].y;
 
 		if(state.multiSampling)   // Clip at pixel edges instead of pixel centers
 		{
-			clipX += *Pointer<Float4>(r.data + OFFSET(DrawData,offX)) * r.ow[pos];
-			clipY += *Pointer<Float4>(r.data + OFFSET(DrawData,offY)) * r.ow[pos];
+			clipX += *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelX)) * r.o[pos].w;
+			clipY += *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelY)) * r.o[pos].w;
 		}
 
-		Int4 maxX = CmpLT(r.ow[pos], clipX);
-		Int4 maxY = CmpLT(r.ow[pos], clipY);
-		Int4 maxZ = CmpLT(r.ow[pos], r.oz[pos]);
+		Int4 maxX = CmpLT(r.o[pos].w, clipX);
+		Int4 maxY = CmpLT(r.o[pos].w, clipY);
+		Int4 maxZ = CmpLT(r.o[pos].w, r.o[pos].z);
 
-		Int4 minX = CmpNLE(-r.ow[pos], clipX);
-		Int4 minY = CmpNLE(-r.ow[pos], clipY);
-		Int4 minZ = CmpNLE(Float4(0.0f, 0.0f, 0.0f, 0.0f), r.oz[pos]);
+		Int4 minX = CmpNLE(-r.o[pos].w, clipX);
+		Int4 minY = CmpNLE(-r.o[pos].w, clipY);
+		Int4 minZ = CmpNLE(Float4(0.0f), r.o[pos].z);
 
 		Int flags;
 
@@ -159,9 +162,9 @@ namespace sw
 		flags = SignMask(minZ);
 		r.clipFlags |= *Pointer<Int>(r.constants + OFFSET(Constants,minZ) + flags * 4);
 
-		Int4 finiteX = CmpLE(Abs(r.ox[pos]), *Pointer<Float4>(r.constants + OFFSET(Constants,maxPos)));
-		Int4 finiteY = CmpLE(Abs(r.oy[pos]), *Pointer<Float4>(r.constants + OFFSET(Constants,maxPos)));
-		Int4 finiteZ = CmpLE(Abs(r.oz[pos]), *Pointer<Float4>(r.constants + OFFSET(Constants,maxPos)));
+		Int4 finiteX = CmpLE(Abs(r.o[pos].x), *Pointer<Float4>(r.constants + OFFSET(Constants,maxPos)));
+		Int4 finiteY = CmpLE(Abs(r.o[pos].y), *Pointer<Float4>(r.constants + OFFSET(Constants,maxPos)));
+		Int4 finiteZ = CmpLE(Abs(r.o[pos].z), *Pointer<Float4>(r.constants + OFFSET(Constants,maxPos)));
 
 		flags = SignMask(finiteX & finiteY & finiteZ);
 		r.clipFlags |= *Pointer<Int>(r.constants + OFFSET(Constants,fini) + flags * 4);
@@ -172,11 +175,11 @@ namespace sw
 		}
 	}
 
-	Color4f VertexRoutine::readStream(Registers &r, Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index)
+	Vector4f VertexRoutine::readStream(Registers &r, Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index)
 	{
 		const bool texldl = state.shaderContainsTexldl;
 
-		Color4f v;
+		Vector4f v;
 
 		Pointer<Byte> source0 = buffer + index * stride;
 		Pointer<Byte> source1 = source0 + (!texldl ? stride : 0);
@@ -341,8 +344,8 @@ namespace sw
 
 				transpose4x3(v.x, v.y, v.z, v.w);
 
-				v.y *= Float4(1.0f / 0x00000400, 1.0f / 0x00000400, 1.0f / 0x00000400, 1.0f / 0x00000400);
-				v.z *= Float4(1.0f / 0x00100000, 1.0f / 0x00100000, 1.0f / 0x00100000, 1.0f / 0x00100000);
+				v.y *= Float4(1.0f / 0x00000400);
+				v.z *= Float4(1.0f / 0x00100000);
 			}
 			break;
 		case STREAMTYPE_DEC3N:
@@ -390,9 +393,9 @@ namespace sw
 
 				transpose4x3(v.x, v.y, v.z, v.w);
 
-				v.x *= Float4(1.0f / 0x00400000 / 511.0f, 1.0f / 0x00400000 / 511.0f, 1.0f / 0x00400000 / 511.0f, 1.0f / 0x00400000 / 511.0f);
-				v.y *= Float4(1.0f / 0x00400000 / 511.0f, 1.0f / 0x00400000 / 511.0f, 1.0f / 0x00400000 / 511.0f, 1.0f / 0x00400000 / 511.0f);
-				v.z *= Float4(1.0f / 0x00400000 / 511.0f, 1.0f / 0x00400000 / 511.0f, 1.0f / 0x00400000 / 511.0f, 1.0f / 0x00400000 / 511.0f);
+				v.x *= Float4(1.0f / 0x00400000 / 511.0f);
+				v.y *= Float4(1.0f / 0x00400000 / 511.0f);
+				v.z *= Float4(1.0f / 0x00400000 / 511.0f);
 			}
 			break;
 		case STREAMTYPE_FIXED:
@@ -472,10 +475,10 @@ namespace sw
 			ASSERT(false);
 		}
 
-		if(stream.count < 1) v.x = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-		if(stream.count < 2) v.y = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-		if(stream.count < 3) v.z = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-		if(stream.count < 4) v.w = Float4(1.0f, 1.0f, 1.0f, 1.0f);
+		if(stream.count < 1) v.x = Float4(0.0f);
+		if(stream.count < 2) v.y = Float4(0.0f);
+		if(stream.count < 3) v.z = Float4(0.0f);
+		if(stream.count < 4) v.w = Float4(1.0f);
 
 		return v;
 	}
@@ -484,55 +487,53 @@ namespace sw
 	{
 		int pos = state.positionRegister;
 
-		if(state.postTransform && !state.preTransformed)
+		if(halfIntegerCoordinates)
 		{
-			Float4 posScale = *Pointer<Float4>(r.data + OFFSET(DrawData,posScale));   // FIXME: Unpack
+			r.o[pos].x = r.o[pos].x - *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelX)) * r.o[pos].w;
+			r.o[pos].y = r.o[pos].y - *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelY)) * r.o[pos].w;
+		}
 
-			r.ox[pos] = r.ox[pos] * posScale.x;
-			r.oy[pos] = r.oy[pos] * posScale.y;
-
-			Float4 posOffset = *Pointer<Float4>(r.data + OFFSET(DrawData,posOffset));   // FIXME: Unpack
-
-			r.ox[pos] = r.ox[pos] + r.ow[pos] * posOffset.x;
-			r.oy[pos] = r.oy[pos] + r.ow[pos] * posOffset.y;
+		if(symmetricNormalizedDepth)
+		{
+			r.o[pos].z = (r.o[pos].z + r.o[pos].w) * Float4(0.5f);
 		}
 	}
 
 	void VertexRoutine::writeCache(Pointer<Byte> &cacheLine, Registers &r)
 	{
-		Color4f v;
+		Vector4f v;
 
 		for(int i = 0; i < 12; i++)
 		{
 			if(state.output[i].write)
 			{
-				v.x = r.ox[i];
-				v.y = r.oy[i];
-				v.z = r.oz[i];
-				v.w = r.ow[i];
+				v.x = r.o[i].x;
+				v.y = r.o[i].y;
+				v.z = r.o[i].z;
+				v.w = r.o[i].w;
 
 				if(state.output[i].xClamp)
 				{
-					v.x = Max(v.x, Float4(0.0f, 0.0f, 0.0f, 0.0f));
-					v.x = Min(v.x, Float4(1.0f, 1.0f, 1.0f, 1.0f));
+					v.x = Max(v.x, Float4(0.0f));
+					v.x = Min(v.x, Float4(1.0f));
 				}
 
 				if(state.output[i].yClamp)
 				{
-					v.y = Max(v.y, Float4(0.0f, 0.0f, 0.0f, 0.0f));
-					v.y = Min(v.y, Float4(1.0f, 1.0f, 1.0f, 1.0f));
+					v.y = Max(v.y, Float4(0.0f));
+					v.y = Min(v.y, Float4(1.0f));
 				}
 
 				if(state.output[i].zClamp)
 				{
-					v.z = Max(v.z, Float4(0.0f, 0.0f, 0.0f, 0.0f));
-					v.z = Min(v.z, Float4(1.0f, 1.0f, 1.0f, 1.0f));
+					v.z = Max(v.z, Float4(0.0f));
+					v.z = Min(v.z, Float4(1.0f));
 				}
 
 				if(state.output[i].wClamp)
 				{
-					v.w = Max(v.w, Float4(0.0f, 0.0f, 0.0f, 0.0f));
-					v.w = Min(v.w, Float4(1.0f, 1.0f, 1.0f, 1.0f));
+					v.w = Max(v.w, Float4(0.0f));
+					v.w = Min(v.w, Float4(1.0f));
 				}
 
 				if(state.output[i].write == 0x01)
@@ -568,16 +569,16 @@ namespace sw
 
 		int pos = state.positionRegister;
 
-		v.x = r.ox[pos];
-		v.y = r.oy[pos];
-		v.z = r.oz[pos];
-		v.w = r.ow[pos];
+		v.x = r.o[pos].x;
+		v.y = r.o[pos].y;
+		v.z = r.o[pos].z;
+		v.w = r.o[pos].w;
 
-		Float4 w = As<Float4>(As<Int4>(v.w) | (As<Int4>(CmpEQ(v.w, Float4(0, 0, 0, 0))) & As<Int4>(Float4(1, 1, 1, 1))));
+		Float4 w = As<Float4>(As<Int4>(v.w) | (As<Int4>(CmpEQ(v.w, Float4(0.0f))) & As<Int4>(Float4(1.0f))));
 		Float4 rhw = Float4(1.0f) / w;
 
-		v.x = As<Float4>(RoundInt(*Pointer<Float4>(r.data + OFFSET(DrawData,LLLLx16)) + v.x * rhw * *Pointer<Float4>(r.data + OFFSET(DrawData,WWWWx16))));
-		v.y = As<Float4>(RoundInt(*Pointer<Float4>(r.data + OFFSET(DrawData,TTTTx16)) + v.y * rhw * *Pointer<Float4>(r.data + OFFSET(DrawData,HHHHx16))));
+		v.x = As<Float4>(RoundInt(*Pointer<Float4>(r.data + OFFSET(DrawData,X0x16)) + v.x * rhw * *Pointer<Float4>(r.data + OFFSET(DrawData,Wx16))));
+		v.y = As<Float4>(RoundInt(*Pointer<Float4>(r.data + OFFSET(DrawData,Y0x16)) + v.y * rhw * *Pointer<Float4>(r.data + OFFSET(DrawData,Hx16))));
 		v.z = v.z * rhw;
 		v.w = rhw;
 

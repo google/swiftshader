@@ -17,6 +17,9 @@
 #include "llvm/Target/TargetInstrInfo.h"
 #include "SparcRegisterInfo.h"
 
+#define GET_INSTRINFO_HEADER
+#include "SparcGenInstrInfo.inc"
+
 namespace llvm {
 
 /// SPII - This namespace holds all of the target specific flags that
@@ -31,7 +34,7 @@ namespace SPII {
   };
 }
 
-class SparcInstrInfo : public TargetInstrInfoImpl {
+class SparcInstrInfo : public SparcGenInstrInfo {
   const SparcRegisterInfo RI;
   const SparcSubtarget& Subtarget;
 public:
@@ -58,8 +61,15 @@ public:
   /// any side effects other than storing to the stack slot.
   virtual unsigned isStoreToStackSlot(const MachineInstr *MI,
                                       int &FrameIndex) const;
-  
-  
+
+
+  virtual bool AnalyzeBranch(MachineBasicBlock &MBB, MachineBasicBlock *&TBB,
+                             MachineBasicBlock *&FBB,
+                             SmallVectorImpl<MachineOperand> &Cond,
+                             bool AllowModify = false) const ;
+
+  virtual unsigned RemoveBranch(MachineBasicBlock &MBB) const;
+
   virtual unsigned InsertBranch(MachineBasicBlock &MBB, MachineBasicBlock *TBB,
                                 MachineBasicBlock *FBB,
                                 const SmallVectorImpl<MachineOperand> &Cond,

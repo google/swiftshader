@@ -10,8 +10,7 @@
 #ifndef LLVM_ADT_TRIPLE_H
 #define LLVM_ADT_TRIPLE_H
 
-#include "llvm/ADT/StringRef.h"
-#include <string>
+#include "llvm/ADT/Twine.h"
 
 // Some system headers or GCC predefined macros conflict with identifiers in
 // this file.  Undefine them here.
@@ -19,12 +18,10 @@
 #undef sparc
 
 namespace llvm {
-class StringRef;
-class Twine;
 
 /// Triple - Helper class for working with target triples.
 ///
-/// Target triples are strings in the format of:
+/// Target triples are strings in the canonical form:
 ///   ARCHITECTURE-VENDOR-OPERATING_SYSTEM
 /// or
 ///   ARCHITECTURE-VENDOR-OPERATING_SYSTEM-ENVIRONMENT
@@ -35,34 +32,26 @@ class Twine;
 /// from the components of the target triple to well known IDs.
 ///
 /// At its core the Triple class is designed to be a wrapper for a triple
-/// string; it does not normally change or normalize the triple string, instead
-/// it provides additional APIs to parse normalized parts out of the triple.
+/// string; the constructor does not change or normalize the triple string.
+/// Clients that need to handle the non-canonical triples that users often
+/// specify should use the normalize method.
 ///
-/// One curiosity this implies is that for some odd triples the results of,
-/// e.g., getOSName() can be very different from the result of getOS().  For
-/// example, for 'i386-mingw32', getOS() will return MinGW32, but since
-/// getOSName() is purely based on the string structure that will return the
-/// empty string.
-///
-/// Clients should generally avoid using getOSName() and related APIs unless
-/// they are familiar with the triple format (this is particularly true when
-/// rewriting a triple).
-///
-/// See autoconf/config.guess for a glimpse into what they look like in
+/// See autoconf/config.guess for a glimpse into what triples look like in
 /// practice.
 class Triple {
 public:
   enum ArchType {
     UnknownArch,
-    
+
     alpha,   // Alpha: alpha
     arm,     // ARM; arm, armv.*, xscale
     bfin,    // Blackfin: bfin
     cellspu, // CellSPU: spu, cellspu
     mips,    // MIPS: mips, mipsallegrex
     mipsel,  // MIPSEL: mipsel, mipsallegrexel, psp
+    mips64,  // MIPS64: mips64
+    mips64el,// MIPS64EL: mips64el
     msp430,  // MSP430: msp430
-    pic16,   // PIC16: pic16
     ppc,     // PPC: powerpc
     ppc64,   // PPC64: powerpc64, ppu
     sparc,   // Sparc: sparc
@@ -74,14 +63,19 @@ public:
     x86_64,  // X86-64: amd64, x86_64
     xcore,   // XCore: xcore
     mblaze,  // MBlaze: mblaze
+    ptx32,   // PTX: ptx (32-bit)
+    ptx64,   // PTX: ptx (64-bit)
+    le32,    // le32: generic little-endian 32-bit CPU (PNaCl / Emscripten)
+    amdil,   // amdil: amd IL
 
     InvalidArch
   };
   enum VendorType {
     UnknownVendor,
 
-    Apple, 
-    PC
+    Apple,
+    PC,
+    SCEI
   };
   enum OSType {
     UnknownOS,
@@ -91,19 +85,31 @@ public:
     Darwin,
     DragonFly,
     FreeBSD,
+    IOS,
+    KFreeBSD,
     Linux,
     Lv2,        // PS3
-    MinGW32,
-    MinGW64,
+    MacOSX,
+    MinGW32,    // i*86-pc-mingw32, *-w64-mingw32
     NetBSD,
     OpenBSD,
     Psp,
     Solaris,
     Win32,
     Haiku,
-    Minix
+    Minix,
+    RTEMS,
+    NativeClient
   };
-  
+  enum EnvironmentType {
+    UnknownEnvironment,
+
+    GNU,
+    GNUEABI,
+    EABI,
+    MachO
+  };
+
 private:
   std::string Data;
 
@@ -116,42 +122,62 @@ private:
   /// The parsed OS type.
   mutable OSType OS;
 
+  /// The parsed Environment type.
+  mutable EnvironmentType Environment;
+
   bool isInitialized() const { return Arch != InvalidArch; }
+  static ArchType ParseArch(StringRef ArchName);
+  static VendorType ParseVendor(StringRef VendorName);
+  static OSType ParseOS(StringRef OSName);
+  static EnvironmentType ParseEnvironment(StringRef EnvironmentName);
   void Parse() const;
 
 public:
   /// @name Constructors
   /// @{
-  
+
   Triple() : Data(), Arch(InvalidArch) {}
-  explicit Triple(StringRef Str) : Data(Str), Arch(InvalidArch) {}
-  explicit Triple(StringRef ArchStr, StringRef VendorStr, StringRef OSStr)
-    : Data(ArchStr), Arch(InvalidArch) {
-    Data += '-';
-    Data += VendorStr;
-    Data += '-';
-    Data += OSStr;
+  explicit Triple(const Twine &Str) : Data(Str.str()), Arch(InvalidArch) {}
+  Triple(const Twine &ArchStr, const Twine &VendorStr, const Twine &OSStr)
+    : Data((ArchStr + Twine('-') + VendorStr + Twine('-') + OSStr).str()),
+      Arch(InvalidArch) {
   }
+
+  Triple(const Twine &ArchStr, const Twine &VendorStr, const Twine &OSStr,
+         const Twine &EnvironmentStr)
+    : Data((ArchStr + Twine('-') + VendorStr + Twine('-') + OSStr + Twine('-') +
+            EnvironmentStr).str()), Arch(InvalidArch) {
+  }
+
+  /// @}
+  /// @name Normalization
+  /// @{
+
+  /// normalize - Turn an arbitrary machine specification into the canonical
+  /// triple form (or something sensible that the Triple class understands if
+  /// nothing better can reasonably be done).  In particular, it handles the
+  /// common case in which otherwise valid components are in the wrong order.
+  static std::string normalize(StringRef Str);
 
   /// @}
   /// @name Typed Component Access
   /// @{
-  
+
   /// getArch - Get the parsed architecture type of this triple.
-  ArchType getArch() const { 
-    if (!isInitialized()) Parse(); 
+  ArchType getArch() const {
+    if (!isInitialized()) Parse();
     return Arch;
   }
-  
+
   /// getVendor - Get the parsed vendor type of this triple.
-  VendorType getVendor() const { 
-    if (!isInitialized()) Parse(); 
+  VendorType getVendor() const {
+    if (!isInitialized()) Parse();
     return Vendor;
   }
-  
+
   /// getOS - Get the parsed operating system type of this triple.
-  OSType getOS() const { 
-    if (!isInitialized()) Parse(); 
+  OSType getOS() const {
+    if (!isInitialized()) Parse();
     return OS;
   }
 
@@ -159,6 +185,12 @@ public:
   /// (fourth) component?
   bool hasEnvironment() const {
     return getEnvironmentName() != "";
+  }
+
+  /// getEnvironment - Get the parsed environment type of this triple.
+  EnvironmentType getEnvironment() const {
+    if (!isInitialized()) Parse();
+    return Environment;
   }
 
   /// @}
@@ -189,21 +221,72 @@ public:
   /// if the environment component is present).
   StringRef getOSAndEnvironmentName() const;
 
-  
-  /// getDarwinNumber - Parse the 'darwin number' out of the specific target
-  /// triple.  For example, if we have darwin8.5 return 8,5,0.  If any entry is
-  /// not defined, return 0's.  This requires that the triple have an OSType of
-  /// darwin before it is called.
-  void getDarwinNumber(unsigned &Maj, unsigned &Min, unsigned &Revision) const;
-  
-  /// getDarwinMajorNumber - Return just the major version number, this is
+  /// getOSVersion - Parse the version number from the OS name component of the
+  /// triple, if present.
+  ///
+  /// For example, "fooos1.2.3" would return (1, 2, 3).
+  ///
+  /// If an entry is not defined, it will be returned as 0.
+  void getOSVersion(unsigned &Major, unsigned &Minor, unsigned &Micro) const;
+
+  /// getOSMajorVersion - Return just the major version number, this is
   /// specialized because it is a common query.
-  unsigned getDarwinMajorNumber() const {
-    unsigned Maj, Min, Rev;
-    getDarwinNumber(Maj, Min, Rev);
+  unsigned getOSMajorVersion() const {
+    unsigned Maj, Min, Micro;
+    getOSVersion(Maj, Min, Micro);
     return Maj;
   }
-  
+
+  /// isOSVersionLT - Helper function for doing comparisons against version
+  /// numbers included in the target triple.
+  bool isOSVersionLT(unsigned Major, unsigned Minor = 0,
+                     unsigned Micro = 0) const {
+    unsigned LHS[3];
+    getOSVersion(LHS[0], LHS[1], LHS[2]);
+
+    if (LHS[0] != Major)
+      return LHS[0] < Major;
+    if (LHS[1] != Minor)
+      return LHS[1] < Minor;
+    if (LHS[2] != Micro)
+      return LHS[1] < Micro;
+
+    return false;
+  }
+
+  /// isMacOSX - Is this a Mac OS X triple. For legacy reasons, we support both
+  /// "darwin" and "osx" as OS X triples.
+  bool isMacOSX() const {
+    return getOS() == Triple::Darwin || getOS() == Triple::MacOSX;
+  }
+
+  /// isOSDarwin - Is this a "Darwin" OS (OS X or iOS).
+  bool isOSDarwin() const {
+    return isMacOSX() || getOS() == Triple::IOS;
+  }
+
+  /// isOSWindows - Is this a "Windows" OS.
+  bool isOSWindows() const {
+    return getOS() == Triple::Win32 || getOS() == Triple::Cygwin ||
+      getOS() == Triple::MinGW32;
+  }
+
+  /// isMacOSXVersionLT - Comparison function for checking OS X version
+  /// compatibility, which handles supporting skewed version numbering schemes
+  /// used by the "darwin" triples.
+  unsigned isMacOSXVersionLT(unsigned Major, unsigned Minor = 0,
+			     unsigned Micro = 0) const {
+    assert(isMacOSX() && "Not an OS X triple!");
+
+    // If this is OS X, expect a sane version number.
+    if (getOS() == Triple::MacOSX)
+      return isOSVersionLT(Major, Minor, Micro);
+
+    // Otherwise, compare to the "Darwin" number.
+    assert(Major == 10 && "Unexpected major version");
+    return isOSVersionLT(Minor + 4, Micro, 0);
+  }
+
   /// @}
   /// @name Mutators
   /// @{
@@ -219,6 +302,10 @@ public:
   /// setOS - Set the operating system (third) component of the triple
   /// to a known type.
   void setOS(OSType Kind);
+
+  /// setEnvironment - Set the environment (fourth) component of the triple
+  /// to a known type.
+  void setEnvironment(EnvironmentType Kind);
 
   /// setTriple - Set all components to the new triple \arg Str.
   void setTriple(const Twine &Str);
@@ -267,8 +354,13 @@ public:
   /// vendor.
   static const char *getVendorTypeName(VendorType Kind);
 
-  /// getOSTypeName - Get the canonical name for the \arg Kind vendor.
+  /// getOSTypeName - Get the canonical name for the \arg Kind operating
+  /// system.
   static const char *getOSTypeName(OSType Kind);
+
+  /// getEnvironmentTypeName - Get the canonical name for the \arg Kind
+  /// environment.
+  static const char *getEnvironmentTypeName(EnvironmentType Kind);
 
   /// @}
   /// @name Static helpers for converting alternate architecture names.

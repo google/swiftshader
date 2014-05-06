@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // libEGL.cpp: Implements the exported EGL functions.
@@ -186,7 +191,7 @@ const char *__stdcall eglQueryString(EGLDisplay dpy, EGLint name)
           case EGL_VENDOR:
             return success("TransGaming Inc.");
           case EGL_VERSION:
-            return success("1.4 (ANGLE "VERSION_STRING")");
+            return success("1.4 (SwiftShader "VERSION_STRING")");
         }
 
         return error(EGL_BAD_PARAMETER, (const char*)NULL);
@@ -436,7 +441,7 @@ EGLBoolean __stdcall eglQuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint 
             return error(EGL_BAD_SURFACE, EGL_FALSE);
         }
 
-        switch (attribute)
+        switch(attribute)
         {
           case EGL_VG_ALPHA_FORMAT:
             UNIMPLEMENTED();   // FIXME
@@ -846,7 +851,7 @@ EGLBoolean __stdcall eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface 
         }
 
         if((draw != EGL_NO_SURFACE && !validateSurface(display, static_cast<egl::Surface*>(draw))) ||
-            (read != EGL_NO_SURFACE && !validateSurface(display, static_cast<egl::Surface*>(read))))
+           (read != EGL_NO_SURFACE && !validateSurface(display, static_cast<egl::Surface*>(read))))
         {
             return EGL_FALSE;
         }

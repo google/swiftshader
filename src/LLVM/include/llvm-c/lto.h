@@ -18,26 +18,28 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <unistd.h>
 
-#define LTO_API_VERSION 3
+#define LTO_API_VERSION 4
 
 typedef enum {
-    LTO_SYMBOL_ALIGNMENT_MASK         = 0x0000001F,    /* log2 of alignment */
-    LTO_SYMBOL_PERMISSIONS_MASK       = 0x000000E0,    
-    LTO_SYMBOL_PERMISSIONS_CODE       = 0x000000A0,    
-    LTO_SYMBOL_PERMISSIONS_DATA       = 0x000000C0,    
-    LTO_SYMBOL_PERMISSIONS_RODATA     = 0x00000080,    
-    LTO_SYMBOL_DEFINITION_MASK        = 0x00000700,    
-    LTO_SYMBOL_DEFINITION_REGULAR     = 0x00000100,    
-    LTO_SYMBOL_DEFINITION_TENTATIVE   = 0x00000200,    
-    LTO_SYMBOL_DEFINITION_WEAK        = 0x00000300,    
-    LTO_SYMBOL_DEFINITION_UNDEFINED   = 0x00000400,    
-    LTO_SYMBOL_DEFINITION_WEAKUNDEF   = 0x00000500,
-    LTO_SYMBOL_SCOPE_MASK             = 0x00003800,    
-    LTO_SYMBOL_SCOPE_INTERNAL         = 0x00000800,    
-    LTO_SYMBOL_SCOPE_HIDDEN           = 0x00001000,    
-    LTO_SYMBOL_SCOPE_PROTECTED        = 0x00002000,    
-    LTO_SYMBOL_SCOPE_DEFAULT          = 0x00001800    
+    LTO_SYMBOL_ALIGNMENT_MASK              = 0x0000001F, /* log2 of alignment */
+    LTO_SYMBOL_PERMISSIONS_MASK            = 0x000000E0,    
+    LTO_SYMBOL_PERMISSIONS_CODE            = 0x000000A0,    
+    LTO_SYMBOL_PERMISSIONS_DATA            = 0x000000C0,    
+    LTO_SYMBOL_PERMISSIONS_RODATA          = 0x00000080,    
+    LTO_SYMBOL_DEFINITION_MASK             = 0x00000700,    
+    LTO_SYMBOL_DEFINITION_REGULAR          = 0x00000100,    
+    LTO_SYMBOL_DEFINITION_TENTATIVE        = 0x00000200,    
+    LTO_SYMBOL_DEFINITION_WEAK             = 0x00000300,    
+    LTO_SYMBOL_DEFINITION_UNDEFINED        = 0x00000400,    
+    LTO_SYMBOL_DEFINITION_WEAKUNDEF        = 0x00000500,
+    LTO_SYMBOL_SCOPE_MASK                  = 0x00003800,    
+    LTO_SYMBOL_SCOPE_INTERNAL              = 0x00000800,    
+    LTO_SYMBOL_SCOPE_HIDDEN                = 0x00001000,    
+    LTO_SYMBOL_SCOPE_PROTECTED             = 0x00002000,    
+    LTO_SYMBOL_SCOPE_DEFAULT               = 0x00001800,
+    LTO_SYMBOL_SCOPE_DEFAULT_CAN_BE_HIDDEN = 0x00002800
 } lto_symbol_attributes;
 
 typedef enum {
@@ -70,7 +72,7 @@ lto_get_version(void);
 
 
 /**
- * Returns the last error string or NULL if last operation was sucessful.
+ * Returns the last error string or NULL if last operation was successful.
  */
 extern const char*
 lto_get_error_message(void);
@@ -119,6 +121,21 @@ lto_module_create(const char* path);
  */
 extern lto_module_t
 lto_module_create_from_memory(const void* mem, size_t length);
+
+/**
+ * Loads an object file from disk. The seek point of fd is not preserved.
+ * Returns NULL on error (check lto_get_error_message() for details).
+ */
+extern lto_module_t
+lto_module_create_from_fd(int fd, const char *path, size_t file_size);
+
+/**
+ * Loads an object file from disk. The seek point of fd is not preserved.
+ * Returns NULL on error (check lto_get_error_message() for details).
+ */
+extern lto_module_t
+lto_module_create_from_fd_at_offset(int fd, const char *path, size_t file_size,
+                                    size_t map_size, off_t offset);
 
 
 /**
@@ -213,14 +230,6 @@ lto_codegen_set_cpu(lto_code_gen_t cg, const char *cpu);
 
 
 /**
- * Sets the location of the "gcc" to run. If not set, libLTO will search for
- * "gcc" on the path.
- */
-extern void
-lto_codegen_set_gcc_path(lto_code_gen_t cg, const char* path);
-
-
-/**
  * Sets the location of the assembler tool to run. If not set, libLTO
  * will use gcc to invoke the assembler.
  */
@@ -254,7 +263,7 @@ lto_codegen_write_merged_modules(lto_code_gen_t cg, const char* path);
 
 /**
  * Generates code for all added modules into one native object file.
- * On sucess returns a pointer to a generated mach-o/ELF buffer and
+ * On success returns a pointer to a generated mach-o/ELF buffer and
  * length set to the buffer size.  The buffer is owned by the 
  * lto_code_gen_t and will be freed when lto_codegen_dispose()
  * is called, or lto_codegen_compile() is called again.
@@ -262,6 +271,13 @@ lto_codegen_write_merged_modules(lto_code_gen_t cg, const char* path);
  */
 extern const void*
 lto_codegen_compile(lto_code_gen_t cg, size_t* length);
+
+/**
+ * Generates code for all added modules into one native object file.
+ * The name of the file is written to name. Returns true on error.
+ */
+extern bool
+lto_codegen_compile_to_file(lto_code_gen_t cg, const char** name);
 
 
 /**

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -42,7 +42,7 @@ namespace sw
 	class FrameBuffer
 	{
 	public:
-		FrameBuffer(HWND windowHandle, int width, int height, bool fullscreen);
+		FrameBuffer(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin);
 
 		virtual ~FrameBuffer();
 
@@ -70,7 +70,6 @@ namespace sw
 
 	protected:
 		void updateBounds(HWND windowOverride);
-		void gracefulExit(const char *errorMessage, long result);
 
 		void copy(HWND windowOverride, void *source, bool HDR);
 		void copyLocked();
@@ -118,12 +117,14 @@ namespace sw
 		HANDLE syncEvent;
 		HANDLE blitEvent;
 		volatile bool terminate;
+
+		static bool topLeftOrigin;
 	};
 }
 
 extern "C"
 {
-	sw::FrameBuffer *createFrameBuffer(HWND windowHandle, int width, int height, bool fullscreen);
+	sw::FrameBuffer *createFrameBuffer(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin);
 }
 
 #endif	 //	sw_FrameBuffer_hpp

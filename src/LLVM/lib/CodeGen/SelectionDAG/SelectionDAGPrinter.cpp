@@ -90,10 +90,11 @@ namespace llvm {
     /// If you want to override the dot attributes printed for a particular
     /// edge, override this method.
     template<typename EdgeIter>
-    static std::string getEdgeAttributes(const void *Node, EdgeIter EI) {
+    static std::string getEdgeAttributes(const void *Node, EdgeIter EI,
+                                         const SelectionDAG *Graph) {
       SDValue Op = EI.getNode()->getOperand(EI.getOperand());
       EVT VT = Op.getValueType();
-      if (VT == MVT::Flag)
+      if (VT == MVT::Glue)
         return "color=red,style=bold";
       else if (VT == MVT::Other)
         return "color=blue,style=dashed";
@@ -273,14 +274,14 @@ std::string ScheduleDAGSDNodes::getGraphNodeLabel(const SUnit *SU) const {
   raw_string_ostream O(s);
   O << "SU(" << SU->NodeNum << "): ";
   if (SU->getNode()) {
-    SmallVector<SDNode *, 4> FlaggedNodes;
-    for (SDNode *N = SU->getNode(); N; N = N->getFlaggedNode())
-      FlaggedNodes.push_back(N);
-    while (!FlaggedNodes.empty()) {
+    SmallVector<SDNode *, 4> GluedNodes;
+    for (SDNode *N = SU->getNode(); N; N = N->getGluedNode())
+      GluedNodes.push_back(N);
+    while (!GluedNodes.empty()) {
       O << DOTGraphTraits<SelectionDAG*>
-        ::getSimpleNodeLabel(FlaggedNodes.back(), DAG);
-      FlaggedNodes.pop_back();
-      if (!FlaggedNodes.empty())
+        ::getSimpleNodeLabel(GluedNodes.back(), DAG);
+      GluedNodes.pop_back();
+      if (!GluedNodes.empty())
         O << "\n    ";
     }
   } else {

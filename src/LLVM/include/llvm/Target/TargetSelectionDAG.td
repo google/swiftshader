@@ -1,10 +1,10 @@
 //===- TargetSelectionDAG.td - Common code for DAG isels ---*- tablegen -*-===//
-// 
+//
 //                     The LLVM Compiler Infrastructure
 //
 // This file is distributed under the University of Illinois Open Source
 // License. See LICENSE.TXT for details.
-// 
+//
 //===----------------------------------------------------------------------===//
 //
 // This file defines the target-independent interfaces used by SelectionDAG
@@ -57,6 +57,13 @@ class SDTCisOpSmallerThanOp<int SmallOp, int BigOp> : SDTypeConstraint<SmallOp>{
 /// SDTCisEltOfVec - This indicates that ThisOp is a scalar type of the same
 /// type as the element type of OtherOp, which is a vector type.
 class SDTCisEltOfVec<int ThisOp, int OtherOp>
+  : SDTypeConstraint<ThisOp> {
+  int OtherOpNum = OtherOp;
+}
+
+/// SDTCisSubVecOfVec - This indicates that ThisOp is a vector type
+/// with length less that of OtherOp, which is a vector type.
+class SDTCisSubVecOfVec<int ThisOp, int OtherOp>
   : SDTypeConstraint<ThisOp> {
   int OtherOpNum = OtherOp;
 }
@@ -123,10 +130,10 @@ def SDTFPRoundOp  : SDTypeProfile<1, 1, [   // fround
 def SDTFPExtendOp  : SDTypeProfile<1, 1, [  // fextend
   SDTCisFP<0>, SDTCisFP<1>, SDTCisOpSmallerThanOp<1, 0>
 ]>;
-def SDTIntToFPOp : SDTypeProfile<1, 1, [    // [su]int_to_fp 
+def SDTIntToFPOp : SDTypeProfile<1, 1, [    // [su]int_to_fp
   SDTCisFP<0>, SDTCisInt<1>
 ]>;
-def SDTFPToIntOp : SDTypeProfile<1, 1, [    // fp_to_[su]int 
+def SDTFPToIntOp : SDTypeProfile<1, 1, [    // fp_to_[su]int
   SDTCisInt<0>, SDTCisFP<1>
 ]>;
 def SDTExtInreg : SDTypeProfile<1, 2, [     // sext_inreg
@@ -138,7 +145,11 @@ def SDTSetCC : SDTypeProfile<1, 3, [        // setcc
   SDTCisInt<0>, SDTCisSameAs<1, 2>, SDTCisVT<3, OtherVT>
 ]>;
 
-def SDTSelect : SDTypeProfile<1, 3, [       // select 
+def SDTSelect : SDTypeProfile<1, 3, [       // select
+  SDTCisInt<1>, SDTCisSameAs<0, 2>, SDTCisSameAs<2, 3>
+]>;
+
+def SDTVSelect : SDTypeProfile<1, 3, [       // vselect
   SDTCisInt<1>, SDTCisSameAs<0, 2>, SDTCisSameAs<2, 3>
 ]>;
 
@@ -162,11 +173,11 @@ def SDTBrind : SDTypeProfile<0, 1, [        // brind
 def SDTNone : SDTypeProfile<0, 0, []>;      // ret, trap
 
 def SDTLoad : SDTypeProfile<1, 1, [         // load
-  SDTCisPtrTy<1>  
+  SDTCisPtrTy<1>
 ]>;
 
 def SDTStore : SDTypeProfile<0, 2, [        // store
-  SDTCisPtrTy<1>  
+  SDTCisPtrTy<1>
 ]>;
 
 def SDTIStore : SDTypeProfile<1, 3, [       // indexed store
@@ -183,19 +194,35 @@ def SDTVecInsert : SDTypeProfile<1, 3, [    // vector insert
   SDTCisEltOfVec<2, 1>, SDTCisSameAs<0, 1>, SDTCisPtrTy<3>
 ]>;
 
-def STDPrefetch : SDTypeProfile<0, 3, [     // prefetch
-  SDTCisPtrTy<0>, SDTCisSameAs<1, 2>, SDTCisInt<1>
+def SDTSubVecExtract : SDTypeProfile<1, 2, [// subvector extract
+  SDTCisSubVecOfVec<0,1>, SDTCisInt<2>
+]>;
+def SDTSubVecInsert : SDTypeProfile<1, 3, [ // subvector insert
+  SDTCisSubVecOfVec<2, 1>, SDTCisSameAs<0,1>, SDTCisInt<3>
 ]>;
 
-def STDMemBarrier : SDTypeProfile<0, 5, [   // memory barier
+def SDTPrefetch : SDTypeProfile<0, 4, [     // prefetch
+  SDTCisPtrTy<0>, SDTCisSameAs<1, 2>, SDTCisSameAs<1, 3>, SDTCisInt<1>
+]>;
+
+def SDTMemBarrier : SDTypeProfile<0, 5, [   // memory barier
   SDTCisSameAs<0,1>,  SDTCisSameAs<0,2>,  SDTCisSameAs<0,3>, SDTCisSameAs<0,4>,
   SDTCisInt<0>
 ]>;
-def STDAtomic3 : SDTypeProfile<1, 3, [
+def SDTAtomicFence : SDTypeProfile<0, 2, [
+  SDTCisSameAs<0,1>, SDTCisPtrTy<0>
+]>;
+def SDTAtomic3 : SDTypeProfile<1, 3, [
   SDTCisSameAs<0,2>,  SDTCisSameAs<0,3>, SDTCisInt<0>, SDTCisPtrTy<1>
 ]>;
-def STDAtomic2 : SDTypeProfile<1, 2, [
+def SDTAtomic2 : SDTypeProfile<1, 2, [
   SDTCisSameAs<0,2>, SDTCisInt<0>, SDTCisPtrTy<1>
+]>;
+def SDTAtomicStore : SDTypeProfile<0, 2, [
+  SDTCisPtrTy<0>, SDTCisInt<1>
+]>;
+def SDTAtomicLoad : SDTypeProfile<1, 1, [
+  SDTCisInt<0>, SDTCisPtrTy<1>
 ]>;
 
 def SDTConvertOp : SDTypeProfile<1, 5, [ //cvtss, su, us, uu, ff, fs, fu, sf, su
@@ -216,20 +243,27 @@ class SDNodeProperty;
 def SDNPCommutative : SDNodeProperty;   // X op Y == Y op X
 def SDNPAssociative : SDNodeProperty;   // (X op Y) op Z == X op (Y op Z)
 def SDNPHasChain    : SDNodeProperty;   // R/W chain operand and result
-def SDNPOutFlag     : SDNodeProperty;   // Write a flag result
-def SDNPInFlag      : SDNodeProperty;   // Read a flag operand
-def SDNPOptInFlag   : SDNodeProperty;   // Optionally read a flag operand
+def SDNPOutGlue     : SDNodeProperty;   // Write a flag result
+def SDNPInGlue      : SDNodeProperty;   // Read a flag operand
+def SDNPOptInGlue   : SDNodeProperty;   // Optionally read a flag operand
 def SDNPMayStore    : SDNodeProperty;   // May write to memory, sets 'mayStore'.
 def SDNPMayLoad     : SDNodeProperty;   // May read memory, sets 'mayLoad'.
 def SDNPSideEffect  : SDNodeProperty;   // Sets 'HasUnmodelledSideEffects'.
 def SDNPMemOperand  : SDNodeProperty;   // Touches memory, has assoc MemOperand
 def SDNPVariadic    : SDNodeProperty;   // Node has variable arguments.
+def SDNPWantRoot    : SDNodeProperty;   // ComplexPattern gets the root of match
+def SDNPWantParent  : SDNodeProperty;   // ComplexPattern gets the parent
+
+//===----------------------------------------------------------------------===//
+// Selection DAG Pattern Operations
+class SDPatternOperator;
 
 //===----------------------------------------------------------------------===//
 // Selection DAG Node definitions.
 //
 class SDNode<string opcode, SDTypeProfile typeprof,
-             list<SDNodeProperty> props = [], string sdclass = "SDNode"> {
+             list<SDNodeProperty> props = [], string sdclass = "SDNode">
+             : SDPatternOperator {
   string Opcode  = opcode;
   string SDClass = sdclass;
   list<SDNodeProperty> Properties = props;
@@ -305,14 +339,14 @@ def or         : SDNode<"ISD::OR"        , SDTIntBinOp,
 def xor        : SDNode<"ISD::XOR"       , SDTIntBinOp,
                         [SDNPCommutative, SDNPAssociative]>;
 def addc       : SDNode<"ISD::ADDC"      , SDTIntBinOp,
-                        [SDNPCommutative, SDNPOutFlag]>;
+                        [SDNPCommutative, SDNPOutGlue]>;
 def adde       : SDNode<"ISD::ADDE"      , SDTIntBinOp,
-                        [SDNPCommutative, SDNPOutFlag, SDNPInFlag]>;
+                        [SDNPCommutative, SDNPOutGlue, SDNPInGlue]>;
 def subc       : SDNode<"ISD::SUBC"      , SDTIntBinOp,
-                        [SDNPOutFlag]>;
+                        [SDNPOutGlue]>;
 def sube       : SDNode<"ISD::SUBE"      , SDTIntBinOp,
-                        [SDNPOutFlag, SDNPInFlag]>;
-                        
+                        [SDNPOutGlue, SDNPInGlue]>;
+
 def sext_inreg : SDNode<"ISD::SIGN_EXTEND_INREG", SDTExtInreg>;
 def bswap      : SDNode<"ISD::BSWAP"      , SDTIntUnaryOp>;
 def ctlz       : SDNode<"ISD::CTLZ"       , SDTIntUnaryOp>;
@@ -322,17 +356,19 @@ def sext       : SDNode<"ISD::SIGN_EXTEND", SDTIntExtendOp>;
 def zext       : SDNode<"ISD::ZERO_EXTEND", SDTIntExtendOp>;
 def anyext     : SDNode<"ISD::ANY_EXTEND" , SDTIntExtendOp>;
 def trunc      : SDNode<"ISD::TRUNCATE"   , SDTIntTruncOp>;
-def bitconvert : SDNode<"ISD::BIT_CONVERT", SDTUnaryOp>;
+def bitconvert : SDNode<"ISD::BITCAST"    , SDTUnaryOp>;
 def extractelt : SDNode<"ISD::EXTRACT_VECTOR_ELT", SDTVecExtract>;
 def insertelt  : SDNode<"ISD::INSERT_VECTOR_ELT", SDTVecInsert>;
 
-                        
+
 def fadd       : SDNode<"ISD::FADD"       , SDTFPBinOp, [SDNPCommutative]>;
 def fsub       : SDNode<"ISD::FSUB"       , SDTFPBinOp>;
 def fmul       : SDNode<"ISD::FMUL"       , SDTFPBinOp, [SDNPCommutative]>;
 def fdiv       : SDNode<"ISD::FDIV"       , SDTFPBinOp>;
 def frem       : SDNode<"ISD::FREM"       , SDTFPBinOp>;
+def fma        : SDNode<"ISD::FMA"        , SDTFPTernaryOp>;
 def fabs       : SDNode<"ISD::FABS"       , SDTFPUnaryOp>;
+def fgetsign   : SDNode<"ISD::FGETSIGN"   , SDTFPToIntOp>;
 def fneg       : SDNode<"ISD::FNEG"       , SDTFPUnaryOp>;
 def fsqrt      : SDNode<"ISD::FSQRT"      , SDTFPUnaryOp>;
 def fsin       : SDNode<"ISD::FSIN"       , SDTFPUnaryOp>;
@@ -358,8 +394,8 @@ def f32_to_f16 : SDNode<"ISD::FP32_TO_FP16", SDTFPToIntOp>;
 
 def setcc      : SDNode<"ISD::SETCC"      , SDTSetCC>;
 def select     : SDNode<"ISD::SELECT"     , SDTSelect>;
+def vselect    : SDNode<"ISD::VSELECT"    , SDTVSelect>;
 def selectcc   : SDNode<"ISD::SELECT_CC"  , SDTSelectCC>;
-def vsetcc     : SDNode<"ISD::VSETCC"     , SDTSetCC>;
 
 def brcond     : SDNode<"ISD::BRCOND"     , SDTBrcond, [SDNPHasChain]>;
 def brind      : SDNode<"ISD::BRIND"      , SDTBrind,  [SDNPHasChain]>;
@@ -367,35 +403,43 @@ def br         : SDNode<"ISD::BR"         , SDTBr,     [SDNPHasChain]>;
 def trap       : SDNode<"ISD::TRAP"       , SDTNone,
                         [SDNPHasChain, SDNPSideEffect]>;
 
-def prefetch   : SDNode<"ISD::PREFETCH"   , STDPrefetch,
-                        [SDNPHasChain, SDNPMayLoad, SDNPMayStore]>;
+def prefetch   : SDNode<"ISD::PREFETCH"   , SDTPrefetch,
+                        [SDNPHasChain, SDNPMayLoad, SDNPMayStore,
+                         SDNPMemOperand]>;
 
-def membarrier : SDNode<"ISD::MEMBARRIER" , STDMemBarrier,
+def membarrier : SDNode<"ISD::MEMBARRIER" , SDTMemBarrier,
                         [SDNPHasChain, SDNPSideEffect]>;
 
-def atomic_cmp_swap : SDNode<"ISD::ATOMIC_CMP_SWAP" , STDAtomic3,
+def atomic_fence : SDNode<"ISD::ATOMIC_FENCE" , SDTAtomicFence,
+                          [SDNPHasChain, SDNPSideEffect]>;
+
+def atomic_cmp_swap : SDNode<"ISD::ATOMIC_CMP_SWAP" , SDTAtomic3,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
-def atomic_load_add : SDNode<"ISD::ATOMIC_LOAD_ADD" , STDAtomic2,
+def atomic_load_add : SDNode<"ISD::ATOMIC_LOAD_ADD" , SDTAtomic2,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
-def atomic_swap     : SDNode<"ISD::ATOMIC_SWAP", STDAtomic2,
+def atomic_swap     : SDNode<"ISD::ATOMIC_SWAP", SDTAtomic2,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
-def atomic_load_sub : SDNode<"ISD::ATOMIC_LOAD_SUB" , STDAtomic2,
+def atomic_load_sub : SDNode<"ISD::ATOMIC_LOAD_SUB" , SDTAtomic2,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
-def atomic_load_and : SDNode<"ISD::ATOMIC_LOAD_AND" , STDAtomic2,
+def atomic_load_and : SDNode<"ISD::ATOMIC_LOAD_AND" , SDTAtomic2,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
-def atomic_load_or  : SDNode<"ISD::ATOMIC_LOAD_OR" , STDAtomic2,
+def atomic_load_or  : SDNode<"ISD::ATOMIC_LOAD_OR" , SDTAtomic2,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
-def atomic_load_xor : SDNode<"ISD::ATOMIC_LOAD_XOR" , STDAtomic2,
+def atomic_load_xor : SDNode<"ISD::ATOMIC_LOAD_XOR" , SDTAtomic2,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
-def atomic_load_nand: SDNode<"ISD::ATOMIC_LOAD_NAND", STDAtomic2,
+def atomic_load_nand: SDNode<"ISD::ATOMIC_LOAD_NAND", SDTAtomic2,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
-def atomic_load_min : SDNode<"ISD::ATOMIC_LOAD_MIN", STDAtomic2,
+def atomic_load_min : SDNode<"ISD::ATOMIC_LOAD_MIN", SDTAtomic2,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
-def atomic_load_max : SDNode<"ISD::ATOMIC_LOAD_MAX", STDAtomic2,
+def atomic_load_max : SDNode<"ISD::ATOMIC_LOAD_MAX", SDTAtomic2,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
-def atomic_load_umin : SDNode<"ISD::ATOMIC_LOAD_UMIN", STDAtomic2,
+def atomic_load_umin : SDNode<"ISD::ATOMIC_LOAD_UMIN", SDTAtomic2,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
-def atomic_load_umax : SDNode<"ISD::ATOMIC_LOAD_UMAX", STDAtomic2,
+def atomic_load_umax : SDNode<"ISD::ATOMIC_LOAD_UMAX", SDTAtomic2,
+                    [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
+def atomic_load      : SDNode<"ISD::ATOMIC_LOAD", SDTAtomicLoad,
+                    [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
+def atomic_store     : SDNode<"ISD::ATOMIC_STORE", SDTAtomicStore,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
 
 // Do not use ld, st directly. Use load, extload, sextload, zextload, store,
@@ -415,16 +459,26 @@ def vector_extract : SDNode<"ISD::EXTRACT_VECTOR_ELT",
     SDTypeProfile<1, 2, [SDTCisPtrTy<2>]>, []>;
 def vector_insert : SDNode<"ISD::INSERT_VECTOR_ELT",
     SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>, SDTCisPtrTy<3>]>, []>;
-    
+
+// This operator does not do subvector type checking.  The ARM
+// backend, at least, needs it.
+def vector_extract_subvec : SDNode<"ISD::EXTRACT_SUBVECTOR",
+    SDTypeProfile<1, 2, [SDTCisInt<2>, SDTCisVec<1>, SDTCisVec<0>]>, 
+    []>;
+
+// This operator does subvector type checking.
+def extract_subvector : SDNode<"ISD::EXTRACT_SUBVECTOR", SDTSubVecExtract, []>;
+def insert_subvector : SDNode<"ISD::INSERT_SUBVECTOR", SDTSubVecInsert, []>;
+
 // Nodes for intrinsics, you should use the intrinsic itself and let tblgen use
 // these internally.  Don't reference these directly.
-def intrinsic_void : SDNode<"ISD::INTRINSIC_VOID", 
+def intrinsic_void : SDNode<"ISD::INTRINSIC_VOID",
                             SDTypeProfile<0, -1, [SDTCisPtrTy<0>]>,
                             [SDNPHasChain]>;
-def intrinsic_w_chain : SDNode<"ISD::INTRINSIC_W_CHAIN", 
+def intrinsic_w_chain : SDNode<"ISD::INTRINSIC_W_CHAIN",
                                SDTypeProfile<1, -1, [SDTCisPtrTy<1>]>,
                                [SDNPHasChain]>;
-def intrinsic_wo_chain : SDNode<"ISD::INTRINSIC_WO_CHAIN", 
+def intrinsic_wo_chain : SDNode<"ISD::INTRINSIC_WO_CHAIN",
                                 SDTypeProfile<1, -1, [SDTCisPtrTy<1>]>, []>;
 
 // Do not use cvt directly. Use cvt forms below
@@ -458,6 +512,18 @@ class SDNodeXForm<SDNode opc, code xformFunction> {
 
 def NOOP_SDNodeXForm : SDNodeXForm<imm, [{}]>;
 
+//===----------------------------------------------------------------------===//
+// PatPred Subclasses.
+//
+// These allow specifying different sorts of predicates that control whether a
+// node is matched.
+//
+class PatPred;
+
+class CodePatPred<code predicate> : PatPred {
+  code PredicateCode = predicate;
+}
+
 
 //===----------------------------------------------------------------------===//
 // Selection DAG Pattern Fragments.
@@ -469,13 +535,14 @@ def NOOP_SDNodeXForm : SDNodeXForm<imm, [{}]>;
 //
 
 /// PatFrag - Represents a pattern fragment.  This can match something on the
-/// DAG, frame a single node to multiply nested other fragments.
+/// DAG, from a single node to multiple nested other fragments.
 ///
 class PatFrag<dag ops, dag frag, code pred = [{}],
-              SDNodeXForm xform = NOOP_SDNodeXForm> {
+              SDNodeXForm xform = NOOP_SDNodeXForm> : SDPatternOperator {
   dag Operands = ops;
   dag Fragment = frag;
-  code Predicate = pred;
+  code PredicateCode = pred;
+  code ImmediateCode = [{}];
   SDNodeXForm OperandTransform = xform;
 }
 
@@ -483,6 +550,27 @@ class PatFrag<dag ops, dag frag, code pred = [{}],
 // to define immediates and other common things concisely.
 class PatLeaf<dag frag, code pred = [{}], SDNodeXForm xform = NOOP_SDNodeXForm>
  : PatFrag<(ops), frag, pred, xform>;
+
+
+// ImmLeaf is a pattern fragment with a constraint on the immediate.  The
+// constraint is a function that is run on the immediate (always with the value
+// sign extended out to an int64_t) as Imm.  For example:
+//
+//  def immSExt8 : ImmLeaf<i16, [{ return (char)Imm == Imm; }]>;
+//
+// this is a more convenient form to match 'imm' nodes in than PatLeaf and also
+// is preferred over using PatLeaf because it allows the code generator to
+// reason more about the constraint.
+//
+// If FastIsel should ignore all instructions that have an operand of this type,
+// the FastIselShouldIgnore flag can be set.  This is an optimization to reduce
+// the code size of the generated fast instruction selector.
+class ImmLeaf<ValueType vt, code pred, SDNodeXForm xform = NOOP_SDNodeXForm>
+  : PatFrag<(ops), (vt imm), [{}], xform> {
+  let ImmediateCode = pred;
+  bit FastIselShouldIgnore = 0;
+}
+
 
 // Leaf fragments.
 
@@ -770,6 +858,28 @@ defm atomic_load_min  : binary_atomic_op<atomic_load_min>;
 defm atomic_load_max  : binary_atomic_op<atomic_load_max>;
 defm atomic_load_umin : binary_atomic_op<atomic_load_umin>;
 defm atomic_load_umax : binary_atomic_op<atomic_load_umax>;
+defm atomic_store     : binary_atomic_op<atomic_store>;
+
+def atomic_load_8 :
+  PatFrag<(ops node:$ptr),
+          (atomic_load node:$ptr), [{
+  return cast<AtomicSDNode>(N)->getMemoryVT() == MVT::i8;
+}]>;
+def atomic_load_16 :
+  PatFrag<(ops node:$ptr),
+          (atomic_load node:$ptr), [{
+  return cast<AtomicSDNode>(N)->getMemoryVT() == MVT::i16;
+}]>;
+def atomic_load_32 :
+  PatFrag<(ops node:$ptr),
+          (atomic_load node:$ptr), [{
+  return cast<AtomicSDNode>(N)->getMemoryVT() == MVT::i32;
+}]>;
+def atomic_load_64 :
+  PatFrag<(ops node:$ptr),
+          (atomic_load node:$ptr), [{
+  return cast<AtomicSDNode>(N)->getMemoryVT() == MVT::i64;
+}]>;
 
 //===----------------------------------------------------------------------===//
 // Selection DAG CONVERT_RNDSAT patterns
@@ -822,7 +932,7 @@ def cvtfu : PatFrag<(ops node:$val, node:$dty, node:$sty, node:$rd, node:$sat),
 //===----------------------------------------------------------------------===//
 // Selection DAG Pattern Support.
 //
-// Patterns are what are actually matched against the target-flavored
+// Patterns are what are actually matched against by the target-flavored
 // instruction selection DAG.  Instructions defined by the target implicitly
 // define patterns in most cases, but patterns can also be explicitly added when
 // an operation is defined by a sequence of instructions (e.g. loading a large
@@ -834,7 +944,7 @@ class Pattern<dag patternToMatch, list<dag> resultInstrs> {
   dag             PatternToMatch  = patternToMatch;
   list<dag>       ResultInstrs    = resultInstrs;
   list<Predicate> Predicates      = [];  // See class Instruction in Target.td.
-  int             AddedComplexity = 0;  // See class Instruction in Target.td.
+  int             AddedComplexity = 0;   // See class Instruction in Target.td.
 }
 
 // Pat - A simple (but common) form of a pattern, which produces a simple result

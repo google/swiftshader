@@ -16,6 +16,7 @@
 
 namespace llvm {
   class Module;
+  class GlobalVariable;
   class Function;
   class CallInst;
 
@@ -35,9 +36,17 @@ namespace llvm {
   /// so that it can update all calls to the old function.
   void UpgradeCallsToIntrinsic(Function* F);
 
+  /// This checks for global variables which should be upgraded. It returns true
+  /// if it requires upgrading.
+  bool UpgradeGlobalVariable(GlobalVariable *GV);
+
   /// This function checks debug info intrinsics. If an intrinsic is invalid
   /// then this function simply removes the intrinsic. 
   void CheckDebugInfoIntrinsics(Module *M);
+  
+  /// This function upgrades the old pre-3.0 exception handling system to the
+  /// new one. N.B. This will be removed in 3.1.
+  void UpgradeExceptionHandling(Module *M);
 } // End llvm namespace
 
 #endif

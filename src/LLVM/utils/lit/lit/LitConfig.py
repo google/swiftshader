@@ -8,6 +8,9 @@ class LitConfig:
     easily.
     """
 
+    # Provide access to Test module.
+    import Test
+
     # Provide access to built-in formats.
     import LitFormats as formats
 
@@ -17,7 +20,7 @@ class LitConfig:
     def __init__(self, progname, path, quiet,
                  useValgrind, valgrindLeakCheck, valgrindArgs,
                  useTclAsSh,
-                 noExecute, debug, isWindows,
+                 noExecute, ignoreStdErr, debug, isWindows,
                  params):
         # The name of the test runner.
         self.progname = progname
@@ -29,6 +32,7 @@ class LitConfig:
         self.valgrindUserArgs = list(valgrindArgs)
         self.useTclAsSh = bool(useTclAsSh)
         self.noExecute = noExecute
+        self.ignoreStdErr = ignoreStdErr
         self.debug = debug
         self.isWindows = bool(isWindows)
         self.params = dict(params)
@@ -81,6 +85,22 @@ class LitConfig:
             self.bashPath = ''
 
         return self.bashPath
+
+    def getToolsPath(self, dir, paths, tools):
+        import os, Util
+        if dir is not None and os.path.isabs(dir) and os.path.isdir(dir):
+            if not Util.checkToolsPath(dir, tools):
+                return None
+        else:
+            dir = Util.whichTools(tools, paths)
+
+        # bash
+        self.bashPath = Util.which('bash', dir)
+        if self.bashPath is None:
+            self.note("Unable to find 'bash.exe'.")
+            self.bashPath = ''
+
+        return dir
 
     def _write_message(self, kind, message):
         import inspect, os, sys

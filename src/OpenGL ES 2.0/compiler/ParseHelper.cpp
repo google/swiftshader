@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2002-2011 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2012 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -462,10 +462,8 @@ bool TParseContext::reservedErrorCheck(int line, const TString& identifier)
             }
         }
         if (identifier.find("__") != TString::npos) {
-            //error(line, "Two consecutive underscores are reserved for future use.", identifier.c_str(), "", "");
-            //return true;
-            infoSink.info.message(EPrefixWarning, "Two consecutive underscores are reserved for future use.", line);
-            return false;
+            error(line, "identifiers containing two consecutive underscores (__) are reserved as possible future keywords", identifier.c_str(), "", "");
+            return true;
         }
     }
 
@@ -552,7 +550,7 @@ bool TParseContext::constructorErrorCheck(int line, TIntermNode* node, TFunction
         return true;
     }
 
-    if (!type->isMatrix()) {
+    if (!type->isMatrix() || !matrixInMatrix) {
         if ((op != EOpConstructStruct && size != 1 && size < type->getObjectSize()) ||
             (op == EOpConstructStruct && size < type->getObjectSize())) {
             error(line, "not enough data provided for construction", "constructor", "");

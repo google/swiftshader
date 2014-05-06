@@ -47,7 +47,9 @@ STATISTIC(NumLCSSA, "Number of live out of a loop variables");
 namespace {
   struct LCSSA : public LoopPass {
     static char ID; // Pass identification, replacement for typeid
-    LCSSA() : LoopPass(ID) {}
+    LCSSA() : LoopPass(ID) {
+      initializeLCSSAPass(*PassRegistry::getPassRegistry());
+    }
 
     // Cached analysis information for the current function.
     DominatorTree *DT;
@@ -65,10 +67,7 @@ namespace {
       AU.setPreservesCFG();
 
       AU.addRequired<DominatorTree>();
-      AU.addPreserved<DominatorTree>();
-      AU.addPreserved<DominanceFrontier>();
       AU.addRequired<LoopInfo>();
-      AU.addPreserved<LoopInfo>();
       AU.addPreservedID(LoopSimplifyID);
       AU.addPreserved<ScalarEvolution>();
     }
@@ -90,7 +89,10 @@ namespace {
 }
   
 char LCSSA::ID = 0;
-static RegisterPass<LCSSA> X("lcssa", "Loop-Closed SSA Form Pass");
+INITIALIZE_PASS_BEGIN(LCSSA, "lcssa", "Loop-Closed SSA Form Pass", false, false)
+INITIALIZE_PASS_DEPENDENCY(DominatorTree)
+INITIALIZE_PASS_DEPENDENCY(LoopInfo)
+INITIALIZE_PASS_END(LCSSA, "lcssa", "Loop-Closed SSA Form Pass", false, false)
 
 Pass *llvm::createLCSSAPass() { return new LCSSA(); }
 char &llvm::LCSSAID = LCSSA::ID;
@@ -200,11 +202,15 @@ bool LCSSA::ProcessInstruction(Instruction *Inst,
   // the value, so adjust DomBB to the normal destination block, which is
   // effectively where the value is first usable.
   BasicBlock *DomBB = Inst->getParent();
+  if (InvokeInst *Inv = dyn_cast<InvokeInst>(Inst))
+    DomBB = Inv->getNormalDest();
 
   DomTreeNode *DomNode = DT->getNode(DomBB);
 
+  SmallVector<PHINode*, 16> AddedPHIs;
+
   SSAUpdater SSAUpdate;
-  SSAUpdate.Initialize(Inst);
+  SSAUpdate.Initialize(Inst->getType(), Inst->getName());
   
   // Insert the LCSSA phi's into all of the exit blocks dominated by the
   // value, and add them to the Phi's map.
@@ -217,8 +223,9 @@ bool LCSSA::ProcessInstruction(Instruction *Inst,
     if (SSAUpdate.HasValueForBlock(ExitBB)) continue;
     
     PHINode *PN = PHINode::Create(Inst->getType(),
+                                  PredCache.GetNumPreds(ExitBB),
+                                  Inst->getName()+".lcssa",
                                   ExitBB->begin());
-    PN->reserveOperandSpace(PredCache.GetNumPreds(ExitBB));
 
     // Add inputs from inside the loop for this PHI.
     for (BasicBlock **PI = PredCache.GetPreds(ExitBB); *PI; ++PI) {
@@ -232,6 +239,8 @@ bool LCSSA::ProcessInstruction(Instruction *Inst,
           &PN->getOperandUse(
             PN->getOperandNumForIncomingValue(PN->getNumIncomingValues()-1)));
     }
+
+    AddedPHIs.push_back(PN);
     
     // Remember that this phi makes the value alive in this block.
     SSAUpdate.AddAvailableValue(ExitBB, PN);
@@ -257,6 +266,12 @@ bool LCSSA::ProcessInstruction(Instruction *Inst,
     
     // Otherwise, do full PHI insertion.
     SSAUpdate.RewriteUse(*UsesToRewrite[i]);
+  }
+
+  // Remove PHI nodes that did not have any uses rewritten.
+  for (unsigned i = 0, e = AddedPHIs.size(); i != e; ++i) {
+    if (AddedPHIs[i]->use_empty())
+      AddedPHIs[i]->eraseFromParent();
   }
   
   return true;

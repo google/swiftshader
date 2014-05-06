@@ -10,7 +10,7 @@
 #ifndef LLVM_MC_MCASMPARSER_H
 #define LLVM_MC_MCASMPARSER_H
 
-#include "llvm/System/DataTypes.h"
+#include "llvm/Support/DataTypes.h"
 
 namespace llvm {
 class AsmToken;
@@ -20,11 +20,10 @@ class MCAsmParserExtension;
 class MCContext;
 class MCExpr;
 class MCStreamer;
+class MCTargetAsmParser;
 class SMLoc;
 class SourceMgr;
 class StringRef;
-class Target;
-class TargetAsmParser;
 class Twine;
 
 /// MCAsmParser - Generic assembler parser interface, for use by target specific
@@ -37,7 +36,9 @@ private:
   MCAsmParser(const MCAsmParser &);   // DO NOT IMPLEMENT
   void operator=(const MCAsmParser &);  // DO NOT IMPLEMENT
 
-  TargetAsmParser *TargetParser;
+  MCTargetAsmParser *TargetParser;
+
+  unsigned ShowParsedOperands : 1;
 
 protected: // Can only create subclasses.
   MCAsmParser();
@@ -58,15 +59,20 @@ public:
   /// getStreamer - Return the output streamer for the assembler.
   virtual MCStreamer &getStreamer() = 0;
 
-  TargetAsmParser &getTargetParser() const { return *TargetParser; }
-  void setTargetParser(TargetAsmParser &P);
+  MCTargetAsmParser &getTargetParser() const { return *TargetParser; }
+  void setTargetParser(MCTargetAsmParser &P);
+
+  bool getShowParsedOperands() const { return ShowParsedOperands; }
+  void setShowParsedOperands(bool Value) { ShowParsedOperands = Value; }
 
   /// Run - Run the parser on the input source buffer.
   virtual bool Run(bool NoInitialTextSection, bool NoFinalize = false) = 0;
 
   /// Warning - Emit a warning at the location \arg L, with the message \arg
   /// Msg.
-  virtual void Warning(SMLoc L, const Twine &Msg) = 0;
+  ///
+  /// \return The return value is true, if warnings are fatal.
+  virtual bool Warning(SMLoc L, const Twine &Msg) = 0;
 
   /// Error - Emit an error at the location \arg L, with the message \arg
   /// Msg.
@@ -94,6 +100,10 @@ public:
   /// will be either the EndOfStatement or EOF.
   virtual StringRef ParseStringToEndOfStatement() = 0;
 
+  /// EatToEndOfStatement - Skip to the end of the current statement, for error
+  /// recovery.
+  virtual void EatToEndOfStatement() = 0;
+
   /// ParseExpression - Parse an arbitrary expression.
   ///
   /// @param Res - The value of the expression. The result is undefined
@@ -120,7 +130,7 @@ public:
 };
 
 /// \brief Create an MCAsmParser instance.
-MCAsmParser *createMCAsmParser(const Target &, SourceMgr &, MCContext &,
+MCAsmParser *createMCAsmParser(SourceMgr &, MCContext &,
                                MCStreamer &, const MCAsmInfo &);
 
 } // End llvm namespace

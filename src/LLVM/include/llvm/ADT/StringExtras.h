@@ -14,21 +14,22 @@
 #ifndef LLVM_ADT_STRINGEXTRAS_H
 #define LLVM_ADT_STRINGEXTRAS_H
 
-#include "llvm/System/DataTypes.h"
+#include "llvm/Support/DataTypes.h"
 #include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/StringRef.h"
 #include <cctype>
 #include <cstdio>
 #include <string>
-#include <vector>
 
 namespace llvm {
 template<typename T> class SmallVectorImpl;
 
-/// hexdigit - Return the (uppercase) hexadecimal character for the
+/// hexdigit - Return the hexadecimal character for the
 /// given number \arg X (which should be less than 16).
-static inline char hexdigit(unsigned X) {
-  return X < 10 ? '0' + X : 'A' + X - 10;
+static inline char hexdigit(unsigned X, bool LowerCase = false) {
+  const char HexChar = LowerCase ? 'a' : 'A';
+  return X < 10 ? '0' + X : HexChar + X - 10;
 }
 
 /// utohex_buffer - Emit the specified number into the buffer specified by
@@ -152,7 +153,7 @@ void SplitString(StringRef Source,
                  SmallVectorImpl<StringRef> &OutFragments,
                  StringRef Delimiters = " \t\n\v\f\r");
 
-/// HashString - Hash funtion for strings.
+/// HashString - Hash function for strings.
 ///
 /// This is the Bernstein hash function.
 //

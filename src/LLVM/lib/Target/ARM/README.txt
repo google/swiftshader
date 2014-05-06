@@ -657,3 +657,45 @@ Note that both "tst" and "moveq" are redundant.
 
 //===---------------------------------------------------------------------===//
 
+When loading immediate constants with movt/movw, if there are multiple
+constants needed with the same low 16 bits, and those values are not live at
+the same time, it would be possible to use a single movw instruction, followed
+by multiple movt instructions to rewrite the high bits to different values.
+For example:
+
+  volatile store i32 -1, i32* inttoptr (i32 1342210076 to i32*), align 4,
+  !tbaa
+!0
+  volatile store i32 -1, i32* inttoptr (i32 1342341148 to i32*), align 4,
+  !tbaa
+!0
+
+is compiled and optimized to:
+
+    movw    r0, #32796
+    mov.w    r1, #-1
+    movt    r0, #20480
+    str    r1, [r0]
+    movw    r0, #32796    @ <= this MOVW is not needed, value is there already
+    movt    r0, #20482
+    str    r1, [r0]
+
+//===---------------------------------------------------------------------===//
+
+Improve codegen for select's:
+if (x != 0) x = 1
+if (x == 1) x = 1
+
+ARM codegen used to look like this:
+       mov     r1, r0
+       cmp     r1, #1
+       mov     r0, #0
+       moveq   r0, #1
+
+The naive lowering select between two different values. It should recognize the
+test is equality test so it's more a conditional move rather than a select:
+       cmp     r0, #1
+       movne   r0, #0
+
+Currently this is a ARM specific dag combine. We probably should make it into a
+target-neutral one.

@@ -121,19 +121,19 @@ private:
   /// function is automatically inserted into the end of the function list for
   /// the module.
   ///
-  Function(const FunctionType *Ty, LinkageTypes Linkage,
+  Function(FunctionType *Ty, LinkageTypes Linkage,
            const Twine &N = "", Module *M = 0);
 
 public:
-  static Function *Create(const FunctionType *Ty, LinkageTypes Linkage,
+  static Function *Create(FunctionType *Ty, LinkageTypes Linkage,
                           const Twine &N = "", Module *M = 0) {
     return new(0) Function(Ty, Linkage, N, M);
   }
 
   ~Function();
 
-  const Type *getReturnType() const;           // Return the type of the ret val
-  const FunctionType *getFunctionType() const; // Return the FunctionType for me
+  Type *getReturnType() const;           // Return the type of the ret val
+  FunctionType *getFunctionType() const; // Return the FunctionType for me
 
   /// getContext - Return a pointer to the LLVMContext associated with this 
   /// function, or NULL if this function is not bound to a context yet.
@@ -142,12 +142,6 @@ public:
   /// isVarArg - Return true if this function takes a variable number of
   /// arguments.
   bool isVarArg() const;
-
-  /// isDeclaration - Is the body of this function unknown? (The basic block 
-  /// list is empty if so.) This is true for function declarations, but not 
-  /// true for function definitions.
-  ///
-  virtual bool isDeclaration() const { return BasicBlocks.empty(); }
 
   /// getIntrinsicID - This method returns the ID number of the specified
   /// function, or Intrinsic::not_intrinsic if the function is not an
@@ -198,6 +192,13 @@ public:
     removeAttribute(~0U, N);
   }
 
+  /// hasGC/getGC/setGC/clearGC - The name of the garbage collection algorithm
+  ///                             to use during code generation.
+  bool hasGC() const;
+  const char *getGC() const;
+  void setGC(const char *Str);
+  void clearGC();
+
   /// @brief Determine whether the function has the given attribute.
   bool paramHasAttr(unsigned i, Attributes attr) const {
     return AttributeList.paramHasAttr(i, attr);
@@ -239,6 +240,32 @@ public:
   void setDoesNotReturn(bool DoesNotReturn = true) {
     if (DoesNotReturn) addFnAttr(Attribute::NoReturn);
     else removeFnAttr(Attribute::NoReturn);
+  }
+
+  /// @brief Determine if the function cannot unwind.
+  bool doesNotThrow() const {
+    return hasFnAttr(Attribute::NoUnwind);
+  }
+  void setDoesNotThrow(bool DoesNotThrow = true) {
+    if (DoesNotThrow) addFnAttr(Attribute::NoUnwind);
+    else removeFnAttr(Attribute::NoUnwind);
+  }
+
+  /// @brief True if the ABI mandates (or the user requested) that this
+  /// function be in a unwind table.
+  bool hasUWTable() const {
+    return hasFnAttr(Attribute::UWTable);
+  }
+  void setHasUWTable(bool HasUWTable = true) {
+    if (HasUWTable)
+      addFnAttr(Attribute::UWTable);
+    else
+      removeFnAttr(Attribute::UWTable);
+  }
+
+  /// @brief True if this function needs an unwind table.
+  bool needsUnwindTableEntry() const {
+    return hasUWTable() || !doesNotThrow();
   }
 
   /// @brief Determine if the function returns a structure through first 
@@ -401,6 +428,10 @@ public:
   /// offending user for diagnostic purposes.
   ///
   bool hasAddressTaken(const User** = 0) const;
+
+  /// callsFunctionThatReturnsTwice - Return true if the function has a call to
+  /// setjmp or other function that gcc recognizes as "returning twice".
+  bool callsFunctionThatReturnsTwice() const;
 
 private:
   // Shadow Value::setValueSubclassData with a private forwarding method so that

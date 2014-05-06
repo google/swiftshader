@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -17,7 +17,7 @@ namespace sw
 {
 	extern bool forceWindowed;
 
-	FrameBufferGDI::FrameBufferGDI(HWND windowHandle, int width, int height, bool fullscreen) : FrameBuffer(windowHandle, width, height, fullscreen)
+	FrameBufferGDI::FrameBufferGDI(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin) : FrameBuffer(windowHandle, width, height, fullscreen, topLeftOrigin)
 	{
 		if(!windowed)
 		{
@@ -83,14 +83,14 @@ namespace sw
 
 		copy(windowOverride, source, HDR);
 
-		int sourceLeft = sourceRect ? sourceRect->left : 0;
-		int sourceTop = sourceRect ? sourceRect->top : 0;
-		int sourceWidth = sourceRect ? sourceRect->right - sourceRect->left : width;
-		int sourceHeight = sourceRect ? sourceRect->bottom - sourceRect->top : height;
-		int destLeft = destRect ? destRect->left : 0;
-		int destTop = destRect ? destRect->top : 0;
-		int destWidth = destRect ? destRect->right - destRect->left : bounds.right - bounds.left;
-		int destHeight = destRect ? destRect->bottom - destRect->top : bounds.bottom - bounds.top;
+		int sourceLeft = sourceRect ? sourceRect->x0 : 0;
+		int sourceTop = sourceRect ? sourceRect->y0 : 0;
+		int sourceWidth = sourceRect ? sourceRect->x1 - sourceRect->x0 : width;
+		int sourceHeight = sourceRect ? sourceRect->y1 - sourceRect->y0 : height;
+		int destLeft = destRect ? destRect->x0 : 0;
+		int destTop = destRect ? destRect->y0 : 0;
+		int destWidth = destRect ? destRect->x1 - destRect->x0 : bounds.right - bounds.left;
+		int destHeight = destRect ? destRect->y1 - destRect->y0 : bounds.bottom - bounds.top;
 
 		StretchBlt(windowContext, destLeft, destTop, destWidth, destHeight, bitmapContext, sourceLeft, sourceTop, sourceWidth, sourceHeight, SRCCOPY);
 	}
@@ -141,7 +141,7 @@ namespace sw
 	{
 		SelectObject(bitmapContext, 0);
 		DeleteObject(bitmap);
-		DeleteDC(windowContext);
+		ReleaseDC(bitmapWindow, windowContext);
 		DeleteDC(bitmapContext);
 	}
 }

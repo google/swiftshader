@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // Texture.h: Defines the abstract Texture class and its concrete derived
@@ -64,14 +69,14 @@ public:
     GLenum getWrapS() const;
     GLenum getWrapT() const;
 
-    virtual GLsizei getWidth() const = 0;
-    virtual GLsizei getHeight() const = 0;
+    virtual GLsizei getWidth(GLint level = 0) const = 0;
+    virtual GLsizei getHeight(GLint level = 0) const = 0;
     virtual GLenum getFormat() const = 0;
     virtual GLenum getType() const = 0;
     virtual sw::Format getInternalFormat() const = 0;
 	virtual int getLevelCount() const = 0;
 
-    virtual bool isComplete() const = 0;
+    virtual bool isSamplerComplete() const = 0;
     virtual bool isCompressed() const = 0;
 
     virtual Renderbuffer *getRenderbuffer(GLenum target) = 0;
@@ -143,8 +148,6 @@ private:
                                     int inputPitch, const void *input, size_t outputPitch, void *output) const;
     void loadBGRAImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
                            int inputPitch, const void *input, size_t outputPitch, void *output) const;
-    void loadCompressedImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
-                                 int inputPitch, const void *input, size_t outputPitch, void *output) const;
 };
 
 class Texture2D : public Texture
@@ -158,8 +161,8 @@ class Texture2D : public Texture
 
     virtual GLenum getTarget() const;
 
-    virtual GLsizei getWidth() const;
-    virtual GLsizei getHeight() const;
+    virtual GLsizei getWidth(GLint level = 0) const;
+    virtual GLsizei getHeight(GLint level = 0) const;
     virtual GLenum getFormat() const;
     virtual GLenum getType() const;
     virtual sw::Format getInternalFormat() const;
@@ -172,7 +175,7 @@ class Texture2D : public Texture
     void copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source);
     void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source);
 
-    virtual bool isComplete() const;
+    virtual bool isSamplerComplete() const;
     virtual bool isCompressed() const;
     virtual void bindTexImage(egl::Surface *surface);
     virtual void releaseTexImage();
@@ -184,7 +187,9 @@ class Texture2D : public Texture
 	Image *getRenderTarget(GLenum target);
 
   private:
-	Image *image[MIPMAP_LEVELS];
+	bool isMipmapComplete() const;
+
+	Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS];
     
     egl::Surface *mSurface;
     BindingPointer<Renderbuffer> mColorbufferProxy;
@@ -201,8 +206,8 @@ class TextureCubeMap : public Texture
 
     virtual GLenum getTarget() const;
     
-    virtual GLsizei getWidth() const;
-    virtual GLsizei getHeight() const;
+    virtual GLsizei getWidth(GLint level = 0) const;
+    virtual GLsizei getHeight(GLint level = 0) const;
     virtual GLenum getFormat() const;
     virtual GLenum getType() const;
     virtual sw::Format getInternalFormat() const;
@@ -216,7 +221,7 @@ class TextureCubeMap : public Texture
     void copyImage(GLenum target, GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source);
     virtual void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source);
 
-    virtual bool isComplete() const;
+    virtual bool isSamplerComplete() const;
     virtual bool isCompressed() const;
 
     virtual void generateMipmaps();
@@ -227,6 +232,7 @@ class TextureCubeMap : public Texture
 
   private:
 	bool isCubeComplete() const;
+	bool isMipmapCubeComplete() const;
 
     virtual Image *getRenderTarget(GLenum target);
 

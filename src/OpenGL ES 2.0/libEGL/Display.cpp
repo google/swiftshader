@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2011 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // Display.cpp: Implements the egl::Display class, representing the abstract
@@ -63,12 +68,28 @@ Display::~Display()
 	displays.erase(displayId);
 }
 
+static bool detectSSE()
+{
+	#if defined(_WIN32) && _M_IX86 >= 500
+		int registers[4];
+		__cpuid(registers, 1);
+		return (registers[3] & 0x02000000) != 0;
+	#else
+		#error Unimplemented platform
+	#endif
+}
+
 bool Display::initialize()
 {
     if(isInitialized())
     {
         return true;
     }
+
+	if(!detectSSE())
+	{
+		 return false;
+	}
 		
     mMinSwapInterval = 0;
     mMaxSwapInterval = 4;
@@ -482,7 +503,7 @@ void Display::initExtensionString()
     std::string::size_type end = mExtensionString.find_last_not_of(' ');
     if(end != std::string::npos)
     {
-        mExtensionString.resize(end+1);
+        mExtensionString.resize(end + 1);
     }
 }
 

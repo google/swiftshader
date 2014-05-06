@@ -1,7 +1,12 @@
+// SwiftShader Software Renderer
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright(c) 2005-2012 TransGaming Inc.
+//
+// All rights reserved. No part of this software may be copied, distributed, transmitted,
+// transcribed, stored in a retrieval system, translated into any human or computer
+// language by any means, or disclosed to third parties without the explicit written
+// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
+// or implied, including but not limited to any patent rights, are granted to you.
 //
 
 // Framebuffer.cpp: Implements the Framebuffer class. Implements GL framebuffer
@@ -116,18 +121,6 @@ void Framebuffer::detachRenderbuffer(GLuint renderbuffer)
     }
 }
 
-unsigned int Framebuffer::getRenderTargetSerial()
-{
-    Renderbuffer *colorbuffer = mColorbufferPointer.get();
-
-    if(colorbuffer)
-    {
-        return colorbuffer->getSerial();
-    }
-
-    return 0;
-}
-
 Image *Framebuffer::getRenderTarget()
 {
     Renderbuffer *colorbuffer = mColorbufferPointer.get();
@@ -157,70 +150,40 @@ Image *Framebuffer::getDepthStencil()
     return NULL;
 }
 
-unsigned int Framebuffer::getDepthbufferSerial()
-{
-    Renderbuffer *depthbuffer = mDepthbufferPointer.get();
-
-    if(depthbuffer)
-    {
-        return depthbuffer->getSerial();
-    }
-
-    return 0;
-}
-
-unsigned int Framebuffer::getStencilbufferSerial()
-{
-    Renderbuffer *stencilbuffer = mStencilbufferPointer.get();
-
-    if(stencilbuffer)
-    {
-        return stencilbuffer->getSerial();
-    }
-
-    return 0;
-}
-
 Colorbuffer *Framebuffer::getColorbuffer()
 {
-    Renderbuffer *rb = mColorbufferPointer.get();
+    Renderbuffer *renderbuffer = mColorbufferPointer.get();
 
-    if(rb != NULL && rb->isColorbuffer())
+    if (renderbuffer)
     {
-        return static_cast<Colorbuffer*>(rb->getStorage());
+        return renderbuffer->getColorbuffer();
     }
-    else
-    {
-        return NULL;
-    }
+    
+    return NULL;
 }
 
 DepthStencilbuffer *Framebuffer::getDepthbuffer()
 {
-    Renderbuffer *rb = mDepthbufferPointer.get();
+    Renderbuffer *renderbuffer = mDepthbufferPointer.get();
 
-    if(rb != NULL && rb->isDepthbuffer())
+    if (renderbuffer)
     {
-        return static_cast<DepthStencilbuffer*>(rb->getStorage());
+        return renderbuffer->getDepthbuffer();
     }
-    else
-    {
-        return NULL;
-    }
+
+    return NULL;
 }
 
 DepthStencilbuffer *Framebuffer::getStencilbuffer()
 {
-    Renderbuffer *rb = mStencilbufferPointer.get();
+    Renderbuffer *renderbuffer = mStencilbufferPointer.get();
 
-    if(rb != NULL && rb->isStencilbuffer())
+    if (renderbuffer)
     {
-        return static_cast<DepthStencilbuffer*>(rb->getStorage());
+        return renderbuffer->getStencilbuffer();
     }
-    else
-    {
-        return NULL;
-    }
+    
+    return NULL;
 }
 
 GLenum Framebuffer::getColorbufferType()

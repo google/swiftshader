@@ -24,8 +24,12 @@
 #include <limits>
 using namespace llvm;
 
+namespace llvm {
+  template<> char ProfileInfoT<Function,BasicBlock>::ID = 0;
+}
+
 // Register the ProfileInfo interface, providing a nice name to refer to.
-static RegisterAnalysisGroup<ProfileInfo> Z("Profile Information");
+INITIALIZE_ANALYSIS_GROUP(ProfileInfo, "Profile Information", NoProfileInfo)
 
 namespace llvm {
 
@@ -42,9 +46,6 @@ template <>
 ProfileInfoT<Function, BasicBlock>::~ProfileInfoT() {
   if (MachineProfile) delete MachineProfile;
 }
-
-template<>
-char ProfileInfoT<Function,BasicBlock>::ID = 0;
 
 template<>
 char ProfileInfoT<MachineFunction, MachineBasicBlock>::ID = 0;
@@ -308,9 +309,9 @@ void ProfileInfoT<Function,BasicBlock>::
   removeEdge(oldedge);
 }
 
-/// Replaces all occurences of RmBB in the ProfilingInfo with DestBB.
+/// Replaces all occurrences of RmBB in the ProfilingInfo with DestBB.
 /// This checks all edges of the function the blocks reside in and replaces the
-/// occurences of RmBB with DestBB.
+/// occurrences of RmBB with DestBB.
 template<>
 void ProfileInfoT<Function,BasicBlock>::
         replaceAllUses(const BasicBlock *RmBB, const BasicBlock *DestBB) {
@@ -811,7 +812,7 @@ void ProfileInfoT<Function,BasicBlock>::repair(const Function *F) {
       }
       if (iw < 0) continue;
 
-      // Check the recieving end of the path if it can handle the flow.
+      // Check the receiving end of the path if it can handle the flow.
       double ow = getExecutionCount(Dest);
       Processed.clear();
       for (succ_const_iterator NBB = succ_begin(BB), End = succ_end(BB);
@@ -888,7 +889,7 @@ void ProfileInfoT<Function,BasicBlock>::repair(const Function *F) {
     FI = Unvisited.begin(), FE = Unvisited.end();
     while(FI != FE && !FoundPath) {
       const BasicBlock *BB = *FI; ++FI;
-      const BasicBlock *Dest;
+      const BasicBlock *Dest = 0;
       Path P;
       bool BackEdgeFound = false;
       for (const_pred_iterator NBB = pred_begin(BB), End = pred_end(BB);
@@ -1076,7 +1077,9 @@ raw_ostream& operator<<(raw_ostream &O, std::pair<const MachineBasicBlock *, con
 namespace {
   struct NoProfileInfo : public ImmutablePass, public ProfileInfo {
     static char ID; // Class identification, replacement for typeinfo
-    NoProfileInfo() : ImmutablePass(ID) {}
+    NoProfileInfo() : ImmutablePass(ID) {
+      initializeNoProfileInfoPass(*PassRegistry::getPassRegistry());
+    }
     
     /// getAdjustedAnalysisPointer - This method is used when a pass implements
     /// an analysis interface through multiple inheritance.  If needed, it
@@ -1097,6 +1100,6 @@ namespace {
 char NoProfileInfo::ID = 0;
 // Register this pass...
 INITIALIZE_AG_PASS(NoProfileInfo, ProfileInfo, "no-profile",
-                   "No Profile Information", false, true, true);
+                   "No Profile Information", false, true, true)
 
 ImmutablePass *llvm::createNoProfileInfoPass() { return new NoProfileInfo(); }

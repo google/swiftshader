@@ -16,6 +16,7 @@
 
 #include "llvm/Instructions.h"
 #include "llvm/InlineAsm.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/CodeGen/ValueTypes.h"
 #include "llvm/CodeGen/ISDOpcodes.h"
@@ -23,17 +24,25 @@
 
 namespace llvm {
 
-class TargetLowering;
 class GlobalVariable;
+class TargetLowering;
+class SDNode;
+class SelectionDAG;
 
 /// ComputeLinearIndex - Given an LLVM IR aggregate type and a sequence
 /// of insertvalue or extractvalue indices that identify a member, return
 /// the linearized index of the start of the member.
 ///
-unsigned ComputeLinearIndex(const TargetLowering &TLI, const Type *Ty,
+unsigned ComputeLinearIndex(Type *Ty,
                             const unsigned *Indices,
                             const unsigned *IndicesEnd,
                             unsigned CurIndex = 0);
+
+inline unsigned ComputeLinearIndex(Type *Ty,
+                                   ArrayRef<unsigned> Indices,
+                                   unsigned CurIndex = 0) {
+  return ComputeLinearIndex(Ty, Indices.begin(), Indices.end(), CurIndex);
+}
 
 /// ComputeValueVTs - Given an LLVM IR type, compute a sequence of
 /// EVTs that represent all the individual underlying
@@ -42,7 +51,7 @@ unsigned ComputeLinearIndex(const TargetLowering &TLI, const Type *Ty,
 /// If Offsets is non-null, it points to a vector to be filled in
 /// with the in-memory offsets of each of the individual values.
 ///
-void ComputeValueVTs(const TargetLowering &TLI, const Type *Ty,
+void ComputeValueVTs(const TargetLowering &TLI, Type *Ty,
                      SmallVectorImpl<EVT> &ValueVTs,
                      SmallVectorImpl<uint64_t> *Offsets = 0,
                      uint64_t StartingOffset = 0);
@@ -52,7 +61,7 @@ GlobalVariable *ExtractTypeInfo(Value *V);
 
 /// hasInlineAsmMemConstraint - Return true if the inline asm instruction being
 /// processed uses a memory 'm' constraint.
-bool hasInlineAsmMemConstraint(std::vector<InlineAsm::ConstraintInfo> &CInfos,
+bool hasInlineAsmMemConstraint(InlineAsm::ConstraintInfoVector &CInfos,
                                const TargetLowering &TLI);
 
 /// getFCmpCondCode - Return the ISD condition code corresponding to
@@ -73,6 +82,9 @@ ISD::CondCode getICmpCondCode(ICmpInst::Predicate Pred);
 ///
 /// This function only tests target-independent requirements.
 bool isInTailCallPosition(ImmutableCallSite CS, Attributes CalleeRetAttr,
+                          const TargetLowering &TLI);
+
+bool isInTailCallPosition(SelectionDAG &DAG, SDNode *Node,
                           const TargetLowering &TLI);
 
 } // End llvm namespace

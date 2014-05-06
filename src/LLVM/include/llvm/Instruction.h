@@ -200,11 +200,10 @@ public:
   ///
   ///   Associative operators satisfy:  x op (y op z) === (x op y) op z
   ///
-  /// In LLVM, the Add, Mul, And, Or, and Xor operators are associative, when
-  /// not applied to floating point types.
+  /// In LLVM, the Add, Mul, And, Or, and Xor operators are associative.
   ///
-  bool isAssociative() const { return isAssociative(getOpcode(), getType()); }
-  static bool isAssociative(unsigned op, const Type *Ty);
+  bool isAssociative() const { return isAssociative(getOpcode()); }
+  static bool isAssociative(unsigned op);
 
   /// isCommutative - Return true if the instruction is commutative:
   ///
@@ -224,6 +223,17 @@ public:
   ///
   bool mayReadFromMemory() const;
 
+  /// mayReadOrWriteMemory - Return true if this instruction may read or
+  /// write memory.
+  ///
+  bool mayReadOrWriteMemory() const {
+    return mayReadFromMemory() || mayWriteToMemory();
+  }
+
+  /// mayThrow - Return true if this instruction may throw an exception.
+  ///
+  bool mayThrow() const;
+
   /// mayHaveSideEffects - Return true if the instruction may have side effects.
   ///
   /// Note that this does not consider malloc and alloca to have side
@@ -231,7 +241,7 @@ public:
   /// instructions which don't used the returned value.  For cases where this
   /// matters, isSafeToSpeculativelyExecute may be more appropriate.
   bool mayHaveSideEffects() const {
-    return mayWriteToMemory();
+    return mayWriteToMemory() || mayThrow();
   }
 
   /// isSafeToSpeculativelyExecute - Return true if the instruction does not
@@ -362,9 +372,9 @@ protected:
     return getSubclassDataFromValue() & ~HasMetadataBit;
   }
   
-  Instruction(const Type *Ty, unsigned iType, Use *Ops, unsigned NumOps,
+  Instruction(Type *Ty, unsigned iType, Use *Ops, unsigned NumOps,
               Instruction *InsertBefore = 0);
-  Instruction(const Type *Ty, unsigned iType, Use *Ops, unsigned NumOps,
+  Instruction(Type *Ty, unsigned iType, Use *Ops, unsigned NumOps,
               BasicBlock *InsertAtEnd);
   virtual Instruction *clone_impl() const = 0;
   

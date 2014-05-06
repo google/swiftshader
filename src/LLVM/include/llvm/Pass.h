@@ -13,7 +13,7 @@
 // Passes are designed this way so that it is possible to run passes in a cache
 // and organizationally optimal order without having to specify it at the front
 // end.  This allows arbitrary passes to be strung together and have them
-// executed as effeciently as possible.
+// executed as efficiently as possible.
 //
 // Passes should extend one of the classes below, depending on the guarantees
 // that it can make about what will be modified as it is run.  For example, most
@@ -57,6 +57,7 @@ enum PassManagerType {
   PMT_CallGraphPassManager,  ///< CGPassManager
   PMT_FunctionPassManager,   ///< FPPassManager
   PMT_LoopPassManager,       ///< LPPassManager
+  PMT_RegionPassManager,     ///< RGPassManager
   PMT_BasicBlockPassManager, ///< BBPassManager
   PMT_Last
 };
@@ -64,13 +65,14 @@ enum PassManagerType {
 // Different types of passes.
 enum PassKind {
   PT_BasicBlock,
+  PT_Region,
   PT_Loop,
   PT_Function,
   PT_CallGraphSCC,
   PT_Module,
   PT_PassManager
 };
-  
+
 //===----------------------------------------------------------------------===//
 /// Pass interface - Implemented by all 'passes'.  Subclass this if you are an
 /// interprocedural optimization or you do not fit into any of the more
@@ -112,7 +114,7 @@ public:
   void dump() const; // dump - Print to stderr.
 
   /// createPrinterPass - Get a Pass appropriate to print the IR this
-  /// pass operates one (Module, Function or MachineFunction).
+  /// pass operates on (Module, Function or MachineFunction).
   virtual Pass *createPrinterPass(raw_ostream &O,
                                   const std::string &Banner) const = 0;
 
@@ -295,17 +297,6 @@ public:
   ///
   virtual bool doFinalization(Module &);
 
-  /// runOnModule - On a module, we run this pass by initializing,
-  /// ronOnFunction'ing once for every function in the module, then by
-  /// finalizing.
-  ///
-  virtual bool runOnModule(Module &M);
-
-  /// run - On a function, we simply initialize, run the function, then
-  /// finalize.
-  ///
-  bool run(Function &F);
-
   virtual void assignPassManager(PMStack &PMS, 
                                  PassManagerType T);
 
@@ -329,7 +320,7 @@ class BasicBlockPass : public Pass {
 public:
   explicit BasicBlockPass(char &pid) : Pass(PT_BasicBlock, pid) {}
 
-  /// createPrinterPass - Get a function printer pass.
+  /// createPrinterPass - Get a basic block printer pass.
   Pass *createPrinterPass(raw_ostream &O, const std::string &Banner) const;
 
   /// doInitialization - Virtual method overridden by subclasses to do
@@ -356,12 +347,6 @@ public:
   /// processing needed after all passes have run.
   ///
   virtual bool doFinalization(Module &);
-
-
-  // To run this pass on a function, we simply call runOnBasicBlock once for
-  // each function.
-  //
-  bool runOnFunction(Function &F);
 
   virtual void assignPassManager(PMStack &PMS, 
                                  PassManagerType T);

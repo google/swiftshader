@@ -37,7 +37,7 @@ namespace mblazeIntrinsic {
 #undef GET_LLVM_INTRINSIC_FOR_GCC_BUILTIN
 }
 
-std::string MBlazeIntrinsicInfo::getName(unsigned IntrID, const Type **Tys,
+std::string MBlazeIntrinsicInfo::getName(unsigned IntrID, Type **Tys,
                                          unsigned numTys) const {
   static const char *const names[] = {
 #define GET_INTRINSIC_NAME_TABLE
@@ -48,7 +48,7 @@ std::string MBlazeIntrinsicInfo::getName(unsigned IntrID, const Type **Tys,
   assert(!isOverloaded(IntrID) && "MBlaze intrinsics are not overloaded");
   if (IntrID < Intrinsic::num_intrinsics)
     return 0;
-  assert(IntrID < mblazeIntrinsic::num_mblaze_intrinsics && 
+  assert(IntrID < mblazeIntrinsic::num_mblaze_intrinsics &&
          "Invalid intrinsic ID");
 
   std::string Result(names[IntrID - Intrinsic::num_intrinsics]);
@@ -90,20 +90,20 @@ bool MBlazeIntrinsicInfo::isOverloaded(unsigned IntrID) const {
 #include "MBlazeGenIntrinsics.inc"
 #undef GET_INTRINSIC_ATTRIBUTES
 
-static const FunctionType *getType(LLVMContext &Context, unsigned id) {
-  const Type *ResultTy = NULL;
-  std::vector<const Type*> ArgTys;
+static FunctionType *getType(LLVMContext &Context, unsigned id) {
+  Type *ResultTy = NULL;
+  std::vector<Type*> ArgTys;
   bool IsVarArg = false;
-  
+
 #define GET_INTRINSIC_GENERATOR
 #include "MBlazeGenIntrinsics.inc"
 #undef GET_INTRINSIC_GENERATOR
 
-  return FunctionType::get(ResultTy, ArgTys, IsVarArg); 
+  return FunctionType::get(ResultTy, ArgTys, IsVarArg);
 }
 
 Function *MBlazeIntrinsicInfo::getDeclaration(Module *M, unsigned IntrID,
-                                                const Type **Tys,
+                                                Type **Tys,
                                                 unsigned numTy) const {
   assert(!isOverloaded(IntrID) && "MBlaze intrinsics are not overloaded");
   AttrListPtr AList = getAttributes((mblazeIntrinsic::ID) IntrID);

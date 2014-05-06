@@ -14,9 +14,8 @@
 #ifndef DAGISEL_EMITTER_H
 #define DAGISEL_EMITTER_H
 
-#include "TableGenBackend.h"
+#include "llvm/TableGen/TableGenBackend.h"
 #include "CodeGenDAGPatterns.h"
-#include <set>
 
 namespace llvm {
 
@@ -31,8 +30,6 @@ public:
 
   // run - Output the isel, returning true on failure.
   void run(raw_ostream &OS);
-private:
-  void EmitPredicateFunctions(raw_ostream &OS);
 };
 
 } // End llvm namespace

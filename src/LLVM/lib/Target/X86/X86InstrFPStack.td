@@ -32,21 +32,24 @@ def SDTX86FpToIMem  : SDTypeProfile<0, 2, [SDTCisFP<0>, SDTCisPtrTy<1>]>;
 def SDTX86CwdStore  : SDTypeProfile<0, 1, [SDTCisPtrTy<0>]>;
 
 def X86fld          : SDNode<"X86ISD::FLD", SDTX86Fld,
-                             [SDNPHasChain, SDNPMayLoad]>;
+                             [SDNPHasChain, SDNPMayLoad, SDNPMemOperand]>;
 def X86fst          : SDNode<"X86ISD::FST", SDTX86Fst,
-                             [SDNPHasChain, SDNPInFlag, SDNPMayStore]>;
+                             [SDNPHasChain, SDNPInGlue, SDNPMayStore,
+                              SDNPMemOperand]>;
 def X86fild         : SDNode<"X86ISD::FILD", SDTX86Fild,
-                             [SDNPHasChain, SDNPMayLoad]>;
+                             [SDNPHasChain, SDNPMayLoad, SDNPMemOperand]>;
 def X86fildflag     : SDNode<"X86ISD::FILD_FLAG", SDTX86Fild,
-                             [SDNPHasChain, SDNPOutFlag, SDNPMayLoad]>;
+                             [SDNPHasChain, SDNPOutGlue, SDNPMayLoad,
+                              SDNPMemOperand]>;
 def X86fp_to_i16mem : SDNode<"X86ISD::FP_TO_INT16_IN_MEM", SDTX86FpToIMem,
-                             [SDNPHasChain, SDNPMayStore]>;
+                             [SDNPHasChain, SDNPMayStore, SDNPMemOperand]>;
 def X86fp_to_i32mem : SDNode<"X86ISD::FP_TO_INT32_IN_MEM", SDTX86FpToIMem,
-                             [SDNPHasChain, SDNPMayStore]>;
+                             [SDNPHasChain, SDNPMayStore, SDNPMemOperand]>;
 def X86fp_to_i64mem : SDNode<"X86ISD::FP_TO_INT64_IN_MEM", SDTX86FpToIMem,
-                             [SDNPHasChain, SDNPMayStore]>;
+                             [SDNPHasChain, SDNPMayStore, SDNPMemOperand]>;
 def X86fp_cwd_get16 : SDNode<"X86ISD::FNSTCW16m",          SDTX86CwdStore,
-                             [SDNPHasChain, SDNPMayStore, SDNPSideEffect]>;
+                             [SDNPHasChain, SDNPMayStore, SDNPSideEffect,
+                              SDNPMemOperand]>;
 
 //===----------------------------------------------------------------------===//
 // FPStack pattern fragments
@@ -70,41 +73,23 @@ def fpimmneg1 : PatLeaf<(fpimm), [{
 
 // Some 'special' instructions
 let usesCustomInserter = 1 in {  // Expanded after instruction selection.
-  def FP32_TO_INT16_IN_MEM : I<0, Pseudo,
-                              (outs), (ins i16mem:$dst, RFP32:$src),
-                              "##FP32_TO_INT16_IN_MEM PSEUDO!",
+  def FP32_TO_INT16_IN_MEM : PseudoI<(outs), (ins i16mem:$dst, RFP32:$src),
                               [(X86fp_to_i16mem RFP32:$src, addr:$dst)]>;
-  def FP32_TO_INT32_IN_MEM : I<0, Pseudo,
-                              (outs), (ins i32mem:$dst, RFP32:$src),
-                              "##FP32_TO_INT32_IN_MEM PSEUDO!",
+  def FP32_TO_INT32_IN_MEM : PseudoI<(outs), (ins i32mem:$dst, RFP32:$src),
                               [(X86fp_to_i32mem RFP32:$src, addr:$dst)]>;
-  def FP32_TO_INT64_IN_MEM : I<0, Pseudo,
-                              (outs), (ins i64mem:$dst, RFP32:$src),
-                              "##FP32_TO_INT64_IN_MEM PSEUDO!",
+  def FP32_TO_INT64_IN_MEM : PseudoI<(outs), (ins i64mem:$dst, RFP32:$src),
                               [(X86fp_to_i64mem RFP32:$src, addr:$dst)]>;
-  def FP64_TO_INT16_IN_MEM : I<0, Pseudo,
-                              (outs), (ins i16mem:$dst, RFP64:$src),
-                              "##FP64_TO_INT16_IN_MEM PSEUDO!",
+  def FP64_TO_INT16_IN_MEM : PseudoI<(outs), (ins i16mem:$dst, RFP64:$src),
                               [(X86fp_to_i16mem RFP64:$src, addr:$dst)]>;
-  def FP64_TO_INT32_IN_MEM : I<0, Pseudo,
-                              (outs), (ins i32mem:$dst, RFP64:$src),
-                              "##FP64_TO_INT32_IN_MEM PSEUDO!",
+  def FP64_TO_INT32_IN_MEM : PseudoI<(outs), (ins i32mem:$dst, RFP64:$src),
                               [(X86fp_to_i32mem RFP64:$src, addr:$dst)]>;
-  def FP64_TO_INT64_IN_MEM : I<0, Pseudo,
-                              (outs), (ins i64mem:$dst, RFP64:$src),
-                              "##FP64_TO_INT64_IN_MEM PSEUDO!",
+  def FP64_TO_INT64_IN_MEM : PseudoI<(outs), (ins i64mem:$dst, RFP64:$src),
                               [(X86fp_to_i64mem RFP64:$src, addr:$dst)]>;
-  def FP80_TO_INT16_IN_MEM : I<0, Pseudo,
-                              (outs), (ins i16mem:$dst, RFP80:$src),
-                              "##FP80_TO_INT16_IN_MEM PSEUDO!",
+  def FP80_TO_INT16_IN_MEM : PseudoI<(outs), (ins i16mem:$dst, RFP80:$src),
                               [(X86fp_to_i16mem RFP80:$src, addr:$dst)]>;
-  def FP80_TO_INT32_IN_MEM : I<0, Pseudo,
-                              (outs), (ins i32mem:$dst, RFP80:$src),
-                              "##FP80_TO_INT32_IN_MEM PSEUDO!",
+  def FP80_TO_INT32_IN_MEM : PseudoI<(outs), (ins i32mem:$dst, RFP80:$src),
                               [(X86fp_to_i32mem RFP80:$src, addr:$dst)]>;
-  def FP80_TO_INT64_IN_MEM : I<0, Pseudo,
-                              (outs), (ins i64mem:$dst, RFP80:$src),
-                              "##FP80_TO_INT64_IN_MEM PSEUDO!",
+  def FP80_TO_INT64_IN_MEM : PseudoI<(outs), (ins i64mem:$dst, RFP80:$src),
                               [(X86fp_to_i64mem RFP80:$src, addr:$dst)]>;
 }
 
@@ -127,33 +112,10 @@ let usesCustomInserter = 1 in {  // Expanded after instruction selection.
 // a pattern) and the FPI instruction should have emission info (e.g. opcode
 // encoding and asm printing info).
 
-// Pseudo Instructions for FP stack return values.
-def FpGET_ST0_32 : FpI_<(outs RFP32:$dst), (ins), SpecialFP, []>; // FPR = ST(0)
-def FpGET_ST0_64 : FpI_<(outs RFP64:$dst), (ins), SpecialFP, []>; // FPR = ST(0)
-def FpGET_ST0_80 : FpI_<(outs RFP80:$dst), (ins), SpecialFP, []>; // FPR = ST(0)
+// Pseudo Instruction for FP stack return values.
+def FpPOP_RETVAL : FpI_<(outs RFP80:$dst), (ins), SpecialFP, []>;
 
-// FpGET_ST1* should only be issued *after* an FpGET_ST0* has been issued when
-// there are two values live out on the stack from a call or inlineasm.  This
-// magic is handled by the stackifier.  It is not valid to emit FpGET_ST1* and
-// then FpGET_ST0*.  In addition, it is invalid for any FP-using operations to
-// occur between them.
-def FpGET_ST1_32 : FpI_<(outs RFP32:$dst), (ins), SpecialFP, []>; // FPR = ST(1)
-def FpGET_ST1_64 : FpI_<(outs RFP64:$dst), (ins), SpecialFP, []>; // FPR = ST(1)
-def FpGET_ST1_80 : FpI_<(outs RFP80:$dst), (ins), SpecialFP, []>; // FPR = ST(1)
-
-let Defs = [ST0] in {
-def FpSET_ST0_32 : FpI_<(outs), (ins RFP32:$src), SpecialFP, []>; // ST(0) = FPR
-def FpSET_ST0_64 : FpI_<(outs), (ins RFP64:$src), SpecialFP, []>; // ST(0) = FPR
-def FpSET_ST0_80 : FpI_<(outs), (ins RFP80:$src), SpecialFP, []>; // ST(0) = FPR
-}
-
-let Defs = [ST1] in {
-def FpSET_ST1_32 : FpI_<(outs), (ins RFP32:$src), SpecialFP, []>; // ST(1) = FPR
-def FpSET_ST1_64 : FpI_<(outs), (ins RFP64:$src), SpecialFP, []>; // ST(1) = FPR
-def FpSET_ST1_80 : FpI_<(outs), (ins RFP80:$src), SpecialFP, []>; // ST(1) = FPR
-}
-
-// FpIf32, FpIf64 - Floating Point Psuedo Instruction template.
+// FpIf32, FpIf64 - Floating Point Pseudo Instruction template.
 // f32 instructions can use SSE1 and are predicated on FPStackf32 == !SSE1.
 // f64 instructions can use SSE2 and are predicated on FPStackf64 == !SSE2.
 // f80 instructions cannot use SSE and use neither of these.
@@ -161,19 +123,6 @@ class FpIf32<dag outs, dag ins, FPFormat fp, list<dag> pattern> :
   FpI_<outs, ins, fp, pattern>, Requires<[FPStackf32]>;
 class FpIf64<dag outs, dag ins, FPFormat fp, list<dag> pattern> :
   FpI_<outs, ins, fp, pattern>, Requires<[FPStackf64]>;
-
-// Register copies.  Just copies, the shortening ones do not truncate.
-let neverHasSideEffects = 1 in {
-  def MOV_Fp3232 : FpIf32<(outs RFP32:$dst), (ins RFP32:$src), SpecialFP, []>; 
-  def MOV_Fp3264 : FpIf32<(outs RFP64:$dst), (ins RFP32:$src), SpecialFP, []>; 
-  def MOV_Fp6432 : FpIf32<(outs RFP32:$dst), (ins RFP64:$src), SpecialFP, []>; 
-  def MOV_Fp6464 : FpIf64<(outs RFP64:$dst), (ins RFP64:$src), SpecialFP, []>; 
-  def MOV_Fp8032 : FpIf32<(outs RFP32:$dst), (ins RFP80:$src), SpecialFP, []>; 
-  def MOV_Fp3280 : FpIf32<(outs RFP80:$dst), (ins RFP32:$src), SpecialFP, []>; 
-  def MOV_Fp8064 : FpIf64<(outs RFP64:$dst), (ins RFP80:$src), SpecialFP, []>; 
-  def MOV_Fp6480 : FpIf64<(outs RFP80:$dst), (ins RFP64:$src), SpecialFP, []>; 
-  def MOV_Fp8080 : FpI_  <(outs RFP80:$dst), (ins RFP80:$src), SpecialFP, []>; 
-}
 
 // Factoring for arithmetic.
 multiclass FPBinary_rr<SDNode OpNode> {
@@ -212,11 +161,11 @@ def _Fp80m64: FpI_<(outs RFP80:$dst),
                   [(set RFP80:$dst, 
                     (OpNode RFP80:$src1, (f80 (extloadf64 addr:$src2))))]>;
 def _F32m  : FPI<0xD8, fp, (outs), (ins f32mem:$src), 
-                 !strconcat("f", !strconcat(asmstring, "{s}\t$src"))> { 
+                 !strconcat("f", asmstring, "{s}\t$src")> { 
   let mayLoad = 1; 
 }
 def _F64m  : FPI<0xDC, fp, (outs), (ins f64mem:$src), 
-                 !strconcat("f", !strconcat(asmstring, "{l}\t$src"))> { 
+                 !strconcat("f", asmstring, "{l}\t$src")> { 
   let mayLoad = 1; 
 }
 // ST(0) = ST(0) + [memint]
@@ -245,11 +194,11 @@ def _FpI32m80 : FpI_<(outs RFP80:$dst), (ins RFP80:$src1, i32mem:$src2),
                     [(set RFP80:$dst, (OpNode RFP80:$src1,
                                        (X86fild addr:$src2, i32)))]>;
 def _FI16m  : FPI<0xDE, fp, (outs), (ins i16mem:$src), 
-                  !strconcat("fi", !strconcat(asmstring, "{s}\t$src"))> { 
+                  !strconcat("fi", asmstring, "{s}\t$src")> { 
   let mayLoad = 1; 
 }
 def _FI32m  : FPI<0xDA, fp, (outs), (ins i32mem:$src), 
-                  !strconcat("fi", !strconcat(asmstring, "{l}\t$src"))> { 
+                  !strconcat("fi", asmstring, "{l}\t$src")> { 
   let mayLoad = 1; 
 }
 }
@@ -580,16 +529,16 @@ def UCOM_FPPr  : FPI<0xE9, RawFrm,       // cmp ST(0) with ST(1), pop, pop
 
 def UCOM_FIr   : FPI<0xE8, AddRegFrm,     // CC = cmp ST(0) with ST(i)
                     (outs), (ins RST:$reg),
-                    "fucomi\t{$reg, %st(0)|%ST(0), $reg}">, DB;
+                    "fucomi\t$reg">, DB;
 def UCOM_FIPr  : FPI<0xE8, AddRegFrm,     // CC = cmp ST(0) with ST(i), pop
                     (outs), (ins RST:$reg),
-                    "fucomip\t{$reg, %st(0)|%ST(0), $reg}">, DF;
+                    "fucompi\t$reg">, DF;
 }
 
 def COM_FIr : FPI<0xF0, AddRegFrm, (outs), (ins RST:$reg),
-                  "fcomi\t{$reg, %st(0)|%ST(0), $reg}">, DB;
+                  "fcomi\t$reg">, DB;
 def COM_FIPr : FPI<0xF0, AddRegFrm, (outs), (ins RST:$reg),
-                   "fcomip\t{$reg, %st(0)|%ST(0), $reg}">, DF;
+                   "fcompi\t$reg">, DF;
 
 // Floating point flag ops.
 let Defs = [AX] in
@@ -604,8 +553,8 @@ let mayLoad = 1 in
 def FLDCW16m  : I<0xD9, MRM5m,                   // X87 control world = [mem16]
                   (outs), (ins i16mem:$dst), "fldcw\t$dst", []>;
 
-// Register free
-
+// FPU control instructions
+def FNINIT : I<0xE3, RawFrm, (outs), (ins), "fninit", []>, DB;
 def FFREE : FPI<0xC0, AddRegFrm, (outs), (ins RST:$reg),
                 "ffree\t$reg">, DD;
 
@@ -613,7 +562,8 @@ def FFREE : FPI<0xC0, AddRegFrm, (outs), (ins RST:$reg),
 
 def FNCLEX : I<0xE2, RawFrm, (outs), (ins), "fnclex", []>, DB;
 
-// Operandless floating-point instructions for the disassembler
+// Operandless floating-point instructions for the disassembler.
+def WAIT : I<0x9B, RawFrm, (outs), (ins), "wait", []>;
 
 def FNOP : I<0xD0, RawFrm, (outs), (ins), "fnop", []>, D9;
 def FXAM : I<0xE5, RawFrm, (outs), (ins), "fxam", []>, D9;
@@ -639,8 +589,12 @@ def FCOMPP : I<0xD9, RawFrm, (outs), (ins), "fcompp", []>, DE;
 
 def FXSAVE : I<0xAE, MRM0m, (outs opaque512mem:$dst), (ins),
                "fxsave\t$dst", []>, TB;
+def FXSAVE64 : I<0xAE, MRM0m, (outs opaque512mem:$dst), (ins),
+                 "fxsaveq\t$dst", []>, TB, REX_W, Requires<[In64BitMode]>;
 def FXRSTOR : I<0xAE, MRM1m, (outs), (ins opaque512mem:$src),
                 "fxrstor\t$src", []>, TB;
+def FXRSTOR64 : I<0xAE, MRM1m, (outs), (ins opaque512mem:$src),
+                  "fxrstorq\t$src", []>, TB, REX_W, Requires<[In64BitMode]>;
 
 //===----------------------------------------------------------------------===//
 // Non-Instruction Patterns

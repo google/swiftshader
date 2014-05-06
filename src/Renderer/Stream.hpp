@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -90,7 +90,7 @@ namespace sw
 		}
 
 		StreamType type;
-		unsigned int count;
+		unsigned char count;
 		bool normalized;
 	};
 }

@@ -143,8 +143,7 @@ public:
   static inline _Self end(const GraphT& G, SetType &S) { return _Self(S); }
 
   inline bool operator==(const _Self& x) const {
-    return VisitStack.size() == x.VisitStack.size() &&
-           VisitStack == x.VisitStack;
+    return VisitStack == x.VisitStack;
   }
   inline bool operator!=(const _Self& x) const { return !operator==(x); }
 
@@ -182,6 +181,16 @@ public:
   //
   inline bool nodeVisited(NodeType *Node) const {
     return this->Visited.count(Node) != 0;
+  }
+
+  /// getPathLength - Return the length of the path from the entry node to the
+  /// current node, counting both nodes.
+  unsigned getPathLength() const { return VisitStack.size(); }
+
+  /// getPath - Return the n'th node in the path from the the entry node to the
+  /// current node.
+  NodeType *getPath(unsigned n) const {
+    return VisitStack[n].first.getPointer();
   }
 };
 

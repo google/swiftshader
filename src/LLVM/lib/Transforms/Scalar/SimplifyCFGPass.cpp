@@ -42,7 +42,9 @@ STATISTIC(NumSimpl, "Number of blocks simplified");
 namespace {
   struct CFGSimplifyPass : public FunctionPass {
     static char ID; // Pass identification, replacement for typeid
-    CFGSimplifyPass() : FunctionPass(ID) {}
+    CFGSimplifyPass() : FunctionPass(ID) {
+      initializeCFGSimplifyPassPass(*PassRegistry::getPassRegistry());
+    }
 
     virtual bool runOnFunction(Function &F);
   };
@@ -50,7 +52,7 @@ namespace {
 
 char CFGSimplifyPass::ID = 0;
 INITIALIZE_PASS(CFGSimplifyPass, "simplifycfg",
-                "Simplify the CFG", false, false);
+                "Simplify the CFG", false, false)
 
 // Public interface to the CFGSimplification pass
 FunctionPass *llvm::createCFGSimplificationPass() {
@@ -71,7 +73,8 @@ static void ChangeToUnreachable(Instruction *I, bool UseLLVMTrap) {
   if (UseLLVMTrap) {
     Function *TrapFn =
       Intrinsic::getDeclaration(BB->getParent()->getParent(), Intrinsic::trap);
-    CallInst::Create(TrapFn, "", I);
+    CallInst *CallTrap = CallInst::Create(TrapFn, "", I);
+    CallTrap->setDebugLoc(I->getDebugLoc());
   }
   new UnreachableInst(I->getContext(), I);
   
@@ -82,6 +85,25 @@ static void ChangeToUnreachable(Instruction *I, bool UseLLVMTrap) {
       BBI->replaceAllUsesWith(UndefValue::get(BBI->getType()));
     BB->getInstList().erase(BBI++);
   }
+}
+
+/// ChangeToCall - Convert the specified invoke into a normal call.
+static void ChangeToCall(InvokeInst *II) {
+  BasicBlock *BB = II->getParent();
+  SmallVector<Value*, 8> Args(II->op_begin(), II->op_end() - 3);
+  CallInst *NewCall = CallInst::Create(II->getCalledValue(), Args, "", II);
+  NewCall->takeName(II);
+  NewCall->setCallingConv(II->getCallingConv());
+  NewCall->setAttributes(II->getAttributes());
+  NewCall->setDebugLoc(II->getDebugLoc());
+  II->replaceAllUsesWith(NewCall);
+
+  // Follow the call by a branch to the normal destination.
+  BranchInst::Create(II->getNormalDest(), II);
+
+  // Update PHI nodes in the unwind destination
+  II->getUnwindDest()->removePredecessor(BB);
+  BB->getInstList().erase(II);
 }
 
 static bool MarkAliveBlocks(BasicBlock *BB,
@@ -134,7 +156,14 @@ static bool MarkAliveBlocks(BasicBlock *BB,
       }
     }
 
-    Changed |= ConstantFoldTerminator(BB);
+    // Turn invokes that call 'nounwind' functions into ordinary calls.
+    if (InvokeInst *II = dyn_cast<InvokeInst>(BB->getTerminator()))
+      if (II->doesNotThrow()) {
+        ChangeToCall(II);
+        Changed = true;
+      }
+
+    Changed |= ConstantFoldTerminator(BB, true);
     for (succ_iterator SI = succ_begin(BB), SE = succ_end(BB); SI != SE; ++SI)
       Worklist.push_back(*SI);
   } while (!Worklist.empty());
@@ -198,9 +227,9 @@ static bool MergeEmptyReturnBlocks(Function &F) {
       BasicBlock::iterator I = Ret;
       --I;
       // Skip over debug info.
-      while (ISA_DEBUG_INFO_INTRINSIC(I) && I != BB.begin())
+      while (isa<DbgInfoIntrinsic>(I) && I != BB.begin())
         --I;
-      if (!ISA_DEBUG_INFO_INTRINSIC(I) &&
+      if (!isa<DbgInfoIntrinsic>(I) &&
           (!isa<PHINode>(I) || I != BB.begin() ||
            Ret->getNumOperands() == 0 ||
            Ret->getOperand(0) != I))
@@ -231,11 +260,12 @@ static bool MergeEmptyReturnBlocks(Function &F) {
     PHINode *RetBlockPHI = dyn_cast<PHINode>(RetBlock->begin());
     if (RetBlockPHI == 0) {
       Value *InVal = cast<ReturnInst>(RetBlock->getTerminator())->getOperand(0);
+      pred_iterator PB = pred_begin(RetBlock), PE = pred_end(RetBlock);
       RetBlockPHI = PHINode::Create(Ret->getOperand(0)->getType(),
+                                    std::distance(PB, PE), "merge",
                                     &RetBlock->front());
       
-      for (pred_iterator PI = pred_begin(RetBlock), E = pred_end(RetBlock);
-           PI != E; ++PI)
+      for (pred_iterator PI = PB; PI != PE; ++PI)
         RetBlockPHI->addIncoming(InVal, *PI);
       RetBlock->getTerminator()->setOperand(0, RetBlockPHI);
     }
@@ -259,10 +289,9 @@ static bool IterativeSimplifyCFG(Function &F, const TargetData *TD) {
   while (LocalChange) {
     LocalChange = false;
     
-    // Loop over all of the basic blocks (except the first one) and remove them
-    // if they are unneeded...
+    // Loop over all of the basic blocks and remove them if they are unneeded...
     //
-    for (Function::iterator BBIt = ++F.begin(); BBIt != F.end(); ) {
+    for (Function::iterator BBIt = F.begin(); BBIt != F.end(); ) {
       if (SimplifyCFG(BBIt++, TD)) {
         LocalChange = true;
         ++NumSimpl;

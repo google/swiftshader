@@ -17,18 +17,20 @@
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
-#include "llvm/CodeGen/MachineLocation.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Target/TargetInstrInfo.h"
 #include "llvm/Type.h"
 #include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/STLExtras.h"
+
+#define GET_REGINFO_TARGET_DESC
+#include "SparcGenRegisterInfo.inc"
+
 using namespace llvm;
 
 SparcRegisterInfo::SparcRegisterInfo(SparcSubtarget &st,
                                      const TargetInstrInfo &tii)
-  : SparcGenRegisterInfo(SP::ADJCALLSTACKDOWN, SP::ADJCALLSTACKUP),
-    Subtarget(st), TII(tii) {
+  : SparcGenRegisterInfo(SP::I7), Subtarget(st), TII(tii) {
 }
 
 const unsigned* SparcRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF)
@@ -39,6 +41,8 @@ const unsigned* SparcRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF)
 
 BitVector SparcRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   BitVector Reserved(getNumRegs());
+  // FIXME: G1 reserved for now for large imm generation by frame code.
+  Reserved.set(SP::G1);
   Reserved.set(SP::G2);
   Reserved.set(SP::G3);
   Reserved.set(SP::G4);
@@ -50,10 +54,6 @@ BitVector SparcRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   Reserved.set(SP::G6);
   Reserved.set(SP::G7);
   return Reserved;
-}
-
-bool SparcRegisterInfo::hasFP(const MachineFunction &MF) const {
-  return false;
 }
 
 void SparcRegisterInfo::
@@ -69,10 +69,9 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
   MBB.erase(I);
 }
 
-unsigned
+void
 SparcRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
-                                       int SPAdj, FrameIndexValue *Value,
-                                       RegScavenger *RS) const {
+                                       int SPAdj, RegScavenger *RS) const {
   assert(SPAdj == 0 && "Unexpected");
 
   unsigned i = 0;
@@ -108,64 +107,10 @@ SparcRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
     MI.getOperand(i).ChangeToRegister(SP::G1, false);
     MI.getOperand(i+1).ChangeToImmediate(Offset & ((1 << 10)-1));
   }
-  return 0;
 }
 
 void SparcRegisterInfo::
 processFunctionBeforeFrameFinalized(MachineFunction &MF) const {}
-
-void SparcRegisterInfo::emitPrologue(MachineFunction &MF) const {
-  MachineBasicBlock &MBB = MF.front();
-  MachineFrameInfo *MFI = MF.getFrameInfo();
-  MachineBasicBlock::iterator MBBI = MBB.begin();
-  DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
-
-  // Get the number of bytes to allocate from the FrameInfo
-  int NumBytes = (int) MFI->getStackSize();
-
-  // Emit the correct save instruction based on the number of bytes in
-  // the frame. Minimum stack frame size according to V8 ABI is:
-  //   16 words for register window spill
-  //    1 word for address of returned aggregate-value
-  // +  6 words for passing parameters on the stack
-  // ----------
-  //   23 words * 4 bytes per word = 92 bytes
-  NumBytes += 92;
-
-  // Round up to next doubleword boundary -- a double-word boundary
-  // is required by the ABI.
-  NumBytes = (NumBytes + 7) & ~7;
-  NumBytes = -NumBytes;
-  
-  if (NumBytes >= -4096) {
-    BuildMI(MBB, MBBI, dl, TII.get(SP::SAVEri), SP::O6)
-      .addReg(SP::O6).addImm(NumBytes);
-  } else {
-    // Emit this the hard way.  This clobbers G1 which we always know is 
-    // available here.
-    unsigned OffHi = (unsigned)NumBytes >> 10U;
-    BuildMI(MBB, MBBI, dl, TII.get(SP::SETHIi), SP::G1).addImm(OffHi);
-    // Emit G1 = G1 + I6
-    BuildMI(MBB, MBBI, dl, TII.get(SP::ORri), SP::G1)
-      .addReg(SP::G1).addImm(NumBytes & ((1 << 10)-1));
-    BuildMI(MBB, MBBI, dl, TII.get(SP::SAVErr), SP::O6)
-      .addReg(SP::O6).addReg(SP::G1);
-  }
-}
-
-void SparcRegisterInfo::emitEpilogue(MachineFunction &MF,
-                                     MachineBasicBlock &MBB) const {
-  MachineBasicBlock::iterator MBBI = prior(MBB.end());
-  DebugLoc dl = MBBI->getDebugLoc();
-  assert(MBBI->getOpcode() == SP::RETL &&
-         "Can only put epilog before 'retl' instruction!");
-  BuildMI(MBB, MBBI, dl, TII.get(SP::RESTORErr), SP::G0).addReg(SP::G0)
-    .addReg(SP::G0);
-}
-
-unsigned SparcRegisterInfo::getRARegister() const {
-  return SP::I7;
-}
 
 unsigned SparcRegisterInfo::getFrameRegister(const MachineFunction &MF) const {
   return SP::I6;
@@ -180,10 +125,3 @@ unsigned SparcRegisterInfo::getEHHandlerRegister() const {
   llvm_unreachable("What is the exception handler register");
   return 0;
 }
-
-int SparcRegisterInfo::getDwarfRegNum(unsigned RegNum, bool isEH) const {
-  return SparcGenRegisterInfo::getDwarfRegNumFull(RegNum, 0);
-}
-
-#include "SparcGenRegisterInfo.inc"
-

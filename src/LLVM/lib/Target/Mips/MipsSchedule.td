@@ -1,4 +1,4 @@
-//===- MipsSchedule.td - Mips Scheduling Definitions ------------*- C++ -*-===//
+//===- MipsSchedule.td - Mips Scheduling Definitions -------*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -14,7 +14,7 @@ def ALU     : FuncUnit;
 def IMULDIV : FuncUnit;
 
 //===----------------------------------------------------------------------===//
-// Instruction Itinerary classes used for Mips 
+// Instruction Itinerary classes used for Mips
 //===----------------------------------------------------------------------===//
 def IIAlu              : InstrItinClass;
 def IILoad             : InstrItinClass;
@@ -40,7 +40,7 @@ def IIPseudo           : InstrItinClass;
 //===----------------------------------------------------------------------===//
 // Mips Generic instruction itineraries.
 //===----------------------------------------------------------------------===//
-def MipsGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [
+def MipsGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<IIAlu              , [InstrStage<1,  [ALU]>]>,
   InstrItinData<IILoad             , [InstrStage<3,  [ALU]>]>,
   InstrItinData<IIStore            , [InstrStage<1,  [ALU]>]>,

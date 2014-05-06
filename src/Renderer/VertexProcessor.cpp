@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -11,7 +11,6 @@
 
 #include "VertexProcessor.hpp"
 
-#include "Viewport.hpp"
 #include "Math.hpp"
 #include "VertexPipeline.hpp"
 #include "VertexProgram.hpp"
@@ -98,6 +97,7 @@ namespace sw
 			updateModelMatrix[i] = true;
 		}
 
+		precacheDLL = 0;
 		routineCache = 0;
 		setRoutineCacheSize(1024);
 	}
@@ -795,11 +795,11 @@ namespace sw
 
 		if(context->vertexShader)
 		{
-			state.shaderHash = context->vertexShader->getHash();
+			state.shaderID = context->vertexShader->getSerialID();
 		}
 		else
 		{
-			state.shaderHash = 0;
+			state.shaderID = 0;
 		}
 
 		state.fixedFunction = !context->vertexShader && context->pixelShaderVersion() < 0x0300;
@@ -837,7 +837,6 @@ namespace sw
 		state.pointScaleActive = context->pointScaleActive();
 
 		state.preTransformed = context->preTransformed;
-		state.postTransform = context->postTransform;
 		state.superSampling = context->renderTarget[0]->getSuperSampleCount() > 1;
 		state.multiSampling = context->renderTarget[0]->getMultiSampleCount() > 1;
 
@@ -895,10 +894,10 @@ namespace sw
 
 			for(int stage = 0; stage < 8; stage++)
 			{
-				if(context->vertexTextureActive(stage, 0)) state.output[T0 + stage].write |= 0x01;
-				if(context->vertexTextureActive(stage, 1)) state.output[T0 + stage].write |= 0x02;
-				if(context->vertexTextureActive(stage, 2)) state.output[T0 + stage].write |= 0x04;
-				if(context->vertexTextureActive(stage, 3)) state.output[T0 + stage].write |= 0x08;
+				if(context->texCoordActive(stage, 0)) state.output[T0 + stage].write |= 0x01;
+				if(context->texCoordActive(stage, 1)) state.output[T0 + stage].write |= 0x02;
+				if(context->texCoordActive(stage, 2)) state.output[T0 + stage].write |= 0x04;
+				if(context->texCoordActive(stage, 3)) state.output[T0 + stage].write |= 0x08;
 			}
 
 			if(context->fogActive())

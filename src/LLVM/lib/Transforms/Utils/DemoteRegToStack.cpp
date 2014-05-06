@@ -40,10 +40,10 @@ AllocaInst* llvm::DemoteRegToStack(Instruction &I, bool VolatileLoads,
   AllocaInst *Slot;
   if (AllocaPoint) {
     Slot = new AllocaInst(I.getType(), 0,
-                          AllocaPoint);
+                          I.getName()+".reg2mem", AllocaPoint);
   } else {
     Function *F = I.getParent()->getParent();
-    Slot = new AllocaInst(I.getType(), 0,
+    Slot = new AllocaInst(I.getType(), 0, I.getName()+".reg2mem",
                           F->getEntryBlock().begin());
   }
 
@@ -67,7 +67,7 @@ AllocaInst* llvm::DemoteRegToStack(Instruction &I, bool VolatileLoads,
           Value *&V = Loads[PN->getIncomingBlock(i)];
           if (V == 0) {
             // Insert the load into the predecessor block
-            V = new LoadInst(Slot, VolatileLoads,
+            V = new LoadInst(Slot, I.getName()+".reload", VolatileLoads,
                              PN->getIncomingBlock(i)->getTerminator());
           }
           PN->setIncomingValue(i, V);
@@ -75,15 +75,27 @@ AllocaInst* llvm::DemoteRegToStack(Instruction &I, bool VolatileLoads,
 
     } else {
       // If this is a normal instruction, just insert a load.
-      Value *V = new LoadInst(Slot, VolatileLoads, U);
+      Value *V = new LoadInst(Slot, I.getName()+".reload", VolatileLoads, U);
       U->replaceUsesOfWith(&I, V);
     }
   }
 
 
-  // Insert stores of the computed value into the stack slot.
-  BasicBlock::iterator InsertPt = &I;
-  ++InsertPt;
+  // Insert stores of the computed value into the stack slot.  We have to be
+  // careful is I is an invoke instruction though, because we can't insert the
+  // store AFTER the terminator instruction.
+  BasicBlock::iterator InsertPt;
+  if (!isa<TerminatorInst>(I)) {
+    InsertPt = &I;
+    ++InsertPt;
+  } else {
+    // We cannot demote invoke instructions to the stack if their normal edge
+    // is critical.
+    InvokeInst &II = cast<InvokeInst>(I);
+    assert(II.getNormalDest()->getSinglePredecessor() &&
+           "Cannot demote invoke with a critical successor!");
+    InsertPt = II.getNormalDest()->begin();
+  }
 
   for (; isa<PHINode>(InsertPt); ++InsertPt)
   /* empty */;   // Don't insert before any PHI nodes.
@@ -106,21 +118,25 @@ AllocaInst* llvm::DemotePHIToStack(PHINode *P, Instruction *AllocaPoint) {
   AllocaInst *Slot;
   if (AllocaPoint) {
     Slot = new AllocaInst(P->getType(), 0,
-                         AllocaPoint);
+                          P->getName()+".reg2mem", AllocaPoint);
   } else {
     Function *F = P->getParent()->getParent();
-    Slot = new AllocaInst(P->getType(), 0,
+    Slot = new AllocaInst(P->getType(), 0, P->getName()+".reg2mem",
                           F->getEntryBlock().begin());
   }
 
   // Iterate over each operand, insert store in each predecessor.
   for (unsigned i = 0, e = P->getNumIncomingValues(); i < e; ++i) {
+    if (InvokeInst *II = dyn_cast<InvokeInst>(P->getIncomingValue(i))) {
+      assert(II->getParent() != P->getIncomingBlock(i) &&
+             "Invoke edge not supported yet"); (void)II;
+    }
     new StoreInst(P->getIncomingValue(i), Slot,
                   P->getIncomingBlock(i)->getTerminator());
   }
 
   // Insert load in place of the phi and replace all uses.
-  Value *V = new LoadInst(Slot, P);
+  Value *V = new LoadInst(Slot, P->getName()+".reload", P);
   P->replaceAllUsesWith(V);
 
   // Delete phi.

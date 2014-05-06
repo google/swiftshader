@@ -18,9 +18,12 @@
 #include "llvm/Target/TargetInstrInfo.h"
 #include "SPURegisterInfo.h"
 
+#define GET_INSTRINFO_HEADER
+#include "SPUGenInstrInfo.inc"
+
 namespace llvm {
   //! Cell SPU instruction information class
-  class SPUInstrInfo : public TargetInstrInfoImpl {
+  class SPUInstrInfo : public SPUGenInstrInfo {
     SPUTargetMachine &TM;
     const SPURegisterInfo RI;
   public:
@@ -31,6 +34,10 @@ namespace llvm {
     /// always be able to get register info as well (through this method).
     ///
     virtual const SPURegisterInfo &getRegisterInfo() const { return RI; }
+
+    ScheduleHazardRecognizer *
+    CreateTargetHazardRecognizer(const TargetMachine *TM,
+                                 const ScheduleDAG *DAG) const;
 
     unsigned isLoadFromStackSlot(const MachineInstr *MI,
                                  int &FrameIndex) const;

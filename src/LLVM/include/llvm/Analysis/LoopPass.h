@@ -84,7 +84,7 @@ public:
 class LPPassManager : public FunctionPass, public PMDataManager {
 public:
   static char ID;
-  explicit LPPassManager(int Depth);
+  explicit LPPassManager();
 
   /// run - Execute all of the passes scheduled for execution.  Keep track of
   /// whether any of the passes modifies the module, and if so, return true.
@@ -104,10 +104,10 @@ public:
   /// Print passes managed by this manager
   void dumpPassStructure(unsigned Offset);
 
-  Pass *getContainedPass(unsigned N) {
+  LoopPass *getContainedPass(unsigned N) {
     assert(N < PassVector.size() && "Pass number out of range!");
-    Pass *FP = static_cast<Pass *>(PassVector[N]);
-    return FP;
+    LoopPass *LP = static_cast<LoopPass *>(PassVector[N]);
+    return LP;
   }
 
   virtual PassManagerType getPassManagerType() const {

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -24,7 +24,7 @@
 
 namespace sw
 {
-	VertexPipeline::VertexPipeline(const VertexProcessor::State &state) : VertexRoutine(state)
+	VertexPipeline::VertexPipeline(const VertexProcessor::State &state) : VertexRoutine(state, 0)
 	{
 	}
 
@@ -32,9 +32,9 @@ namespace sw
 	{
 	}
 
-	Color4f VertexPipeline::transformBlend(Registers &r, Color4f &src, Pointer<Byte> &matrix, bool homogeneous)
+	Vector4f VertexPipeline::transformBlend(Registers &r, Register &src, Pointer<Byte> &matrix, bool homogeneous)
 	{
-		Color4f dst;
+		Vector4f dst;
 
 		if(state.vertexBlendMatrixCount == 0)
 		{
@@ -51,14 +51,15 @@ namespace sw
 			{
 				for(int i = 0; i < 4; i++)
 				{
+					Float4 B = r.v[BlendIndices].x;
 					UInt indices;
 					
 					switch(i)
 					{
-					case 0: indices = As<UInt>(Float(r.v[BlendIndices].x.x)); break;
-					case 1: indices = As<UInt>(Float(r.v[BlendIndices].x.y)); break;
-					case 2: indices = As<UInt>(Float(r.v[BlendIndices].x.z)); break;
-					case 3: indices = As<UInt>(Float(r.v[BlendIndices].x.w)); break;
+					case 0: indices = As<UInt>(Float(B.x)); break;
+					case 1: indices = As<UInt>(Float(B.y)); break;
+					case 2: indices = As<UInt>(Float(B.z)); break;
+					case 3: indices = As<UInt>(Float(B.w)); break;
 					}
 
 					index0[i] = (indices & UInt(0x000000FF)) << UInt(6);   // FIXME: (indices & 0x000000FF) << 6
@@ -100,13 +101,13 @@ namespace sw
 			{
 				weight1 = Float4(1.0f) - weight0;
 
-				Color4f pos0;
-				Color4f pos1;
+				Vector4f pos0;
+				Vector4f pos1;
 
 				pos0 = transform(src, matrix, index0, homogeneous);
 				pos1 = transform(src, matrix, index1, homogeneous);
 
-				dst.x = pos0.x * weight0 + pos1.x * weight1;   // FIXME: Color4f operators
+				dst.x = pos0.x * weight0 + pos1.x * weight1;   // FIXME: Vector4f operators
 				dst.y = pos0.y * weight0 + pos1.y * weight1;
 				dst.z = pos0.z * weight0 + pos1.z * weight1;
 				dst.w = pos0.w * weight0 + pos1.w * weight1;
@@ -115,9 +116,9 @@ namespace sw
 			{
 				weight2 = Float4(1.0f) - (weight0 + weight1);
 
-				Color4f pos0;
-				Color4f pos1;
-				Color4f pos2;
+				Vector4f pos0;
+				Vector4f pos1;
+				Vector4f pos2;
 
 				pos0 = transform(src, matrix, index0, homogeneous);
 				pos1 = transform(src, matrix, index1, homogeneous);
@@ -132,10 +133,10 @@ namespace sw
 			{
 				weight3 = Float4(1.0f) - (weight0 + weight1 + weight2);
 
-				Color4f pos0;
-				Color4f pos1;
-				Color4f pos2;
-				Color4f pos3;
+				Vector4f pos0;
+				Vector4f pos1;
+				Vector4f pos2;
+				Vector4f pos3;
 
 				pos0 = transform(src, matrix, index0, homogeneous);
 				pos1 = transform(src, matrix, index1, homogeneous);
@@ -154,8 +155,8 @@ namespace sw
 
 	void VertexPipeline::pipeline(Registers &r)
 	{
-		Color4f position;
-		Color4f normal;
+		Vector4f position;
+		Vector4f normal;
 
 		if(!state.preTransformed)
 		{
@@ -166,10 +167,10 @@ namespace sw
 			position = r.v[PositionT];
 		}
 
-		r.ox[Pos] = position.x;
-		r.oy[Pos] = position.y;
-		r.oz[Pos] = position.z;
-		r.ow[Pos] = position.w;
+		r.o[Pos].x = position.x;
+		r.o[Pos].y = position.y;
+		r.o[Pos].z = position.z;
+		r.o[Pos].w = position.w;
 
 		if(state.vertexNormalActive)
 		{
@@ -186,59 +187,59 @@ namespace sw
 			// FIXME: Don't process if not used at all
 			if(state.diffuseActive && state.input[Color0])
 			{
-				Color4f diffuse = r.v[Color0];
+				Vector4f diffuse = r.v[Color0];
 
-				r.ox[D0] = diffuse.x;
-				r.oy[D0] = diffuse.y;
-				r.oz[D0] = diffuse.z;
-				r.ow[D0] = diffuse.w;
+				r.o[D0].x = diffuse.x;
+				r.o[D0].y = diffuse.y;
+				r.o[D0].z = diffuse.z;
+				r.o[D0].w = diffuse.w;
 			}
 			else
 			{
-				r.ox[D0] = Float4(1.0f, 1.0f, 1.0f, 1.0f);
-				r.oy[D0] = Float4(1.0f, 1.0f, 1.0f, 1.0f);
-				r.oz[D0] = Float4(1.0f, 1.0f, 1.0f, 1.0f);
-				r.ow[D0] = Float4(1.0f, 1.0f, 1.0f, 1.0f);
+				r.o[D0].x = Float4(1.0f);
+				r.o[D0].y = Float4(1.0f);
+				r.o[D0].z = Float4(1.0f);
+				r.o[D0].w = Float4(1.0f);
 			}
 
 			// FIXME: Don't process if not used at all
 			if(state.specularActive && state.input[Color1])
 			{
-				Color4f specular = r.v[Color1];
+				Vector4f specular = r.v[Color1];
 
-				r.ox[D1] = specular.x;
-				r.oy[D1] = specular.y;
-				r.oz[D1] = specular.z;
-				r.ow[D1] = specular.w;
+				r.o[D1].x = specular.x;
+				r.o[D1].y = specular.y;
+				r.o[D1].z = specular.z;
+				r.o[D1].w = specular.w;
 			}
 			else
 			{
-				r.ox[D1] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-				r.oy[D1] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-				r.oz[D1] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-				r.ow[D1] = Float4(1.0f, 1.0f, 1.0f, 1.0f);
+				r.o[D1].x = Float4(0.0f);
+				r.o[D1].y = Float4(0.0f);
+				r.o[D1].z = Float4(0.0f);
+				r.o[D1].w = Float4(1.0f);
 			}
 		}
 		else
 		{
-			Color4f diffuseSum;
+			Vector4f diffuseSum;
 
-			r.ox[D0] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-			r.oy[D0] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-			r.oz[D0] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-			r.ow[D0] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
+			r.o[D0].x = Float4(0.0f);
+			r.o[D0].y = Float4(0.0f);
+			r.o[D0].z = Float4(0.0f);
+			r.o[D0].w = Float4(0.0f);
 
-			r.ox[D1] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-			r.oy[D1] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-			r.oz[D1] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-			r.ow[D1] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
+			r.o[D1].x = Float4(0.0f);
+			r.o[D1].y = Float4(0.0f);
+			r.o[D1].z = Float4(0.0f);
+			r.o[D1].w = Float4(0.0f);
 
-			diffuseSum.x = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-			diffuseSum.y = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-			diffuseSum.z = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-			diffuseSum.w = Float4(0.0f, 0.0f, 0.0f, 0.0f);
+			diffuseSum.x = Float4(0.0f);
+			diffuseSum.y = Float4(0.0f);
+			diffuseSum.z = Float4(0.0f);
+			diffuseSum.w = Float4(0.0f);
 
-			Color4f vertexPosition = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
+			Vector4f vertexPosition = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
 
 			for(int i = 0; i < 8; i++)
 			{
@@ -247,7 +248,7 @@ namespace sw
 					continue;
 				}
 
-				Color4f L;    // Light vector
+				Vector4f L;    // Light vector
 				Float4 att;   // Attenuation
 
 				// Attenuation
@@ -280,9 +281,9 @@ namespace sw
 				{
 					Float4 lightAmbient = *Pointer<Float4>(r.data + OFFSET(DrawData,ff.lightAmbient[i]));   // FIXME: Unpack
 
-					r.ox[D0] = r.ox[D0] + lightAmbient.x * att;
-					r.oy[D0] = r.oy[D0] + lightAmbient.y * att;
-					r.oz[D0] = r.oz[D0] + lightAmbient.z * att;
+					r.o[D0].x = r.o[D0].x + lightAmbient.x * att;
+					r.o[D0].y = r.o[D0].y + lightAmbient.y * att;
+					r.o[D0].z = r.o[D0].z + lightAmbient.z * att;
 				}
 
 				// Diffuse
@@ -291,10 +292,10 @@ namespace sw
 					Float4 dot;
 
 					dot = dot3(L, normal);
-					dot = Max(dot, Float4(0.0f, 0.0f, 0.0f, 0.0f));
+					dot = Max(dot, Float4(0.0f));
 					dot *= att;
 
-					Color4f diff;
+					Vector4f diff;
 
 					if(state.vertexDiffuseMaterialSourceActive == Context::MATERIAL)
 					{
@@ -323,15 +324,15 @@ namespace sw
 				// Specular
 				if(state.vertexSpecularActive)
 				{
-					Color4f S;
-					Color4f C;   // Camera vector
+					Vector4f S;
+					Vector4f C;   // Camera vector
 					Float4 pow;
 
 					pow = *Pointer<Float>(r.data + OFFSET(DrawData,ff.materialShininess));
 
-					S.x = Float4(0.0f, 0.0f, 0.0f, 0.0f) - vertexPosition.x;
-					S.y = Float4(0.0f, 0.0f, 0.0f, 0.0f) - vertexPosition.y;
-					S.z = Float4(0.0f, 0.0f, 0.0f, 0.0f) - vertexPosition.z;
+					S.x = Float4(0.0f) - vertexPosition.x;
+					S.y = Float4(0.0f) - vertexPosition.y;
+					S.z = Float4(0.0f) - vertexPosition.z;
 					C = normalize(S);
 
 					S.x = L.x + C.x;
@@ -344,7 +345,7 @@ namespace sw
 					Float4 P = power(dot, pow);
 					P *= att;
 
-					Color4f spec;
+					Vector4f spec;
 
 					if(state.vertexSpecularMaterialSourceActive == Context::MATERIAL)
 					{
@@ -374,93 +375,93 @@ namespace sw
 					spec.y *= P;
 					spec.z *= P;
 
-					spec.x = Max(spec.x, Float4(0.0f, 0.0f, 0.0f, 0.0f));
-					spec.y = Max(spec.y, Float4(0.0f, 0.0f, 0.0f, 0.0f));
-					spec.z = Max(spec.z, Float4(0.0f, 0.0f, 0.0f, 0.0f));
+					spec.x = Max(spec.x, Float4(0.0f));
+					spec.y = Max(spec.y, Float4(0.0f));
+					spec.z = Max(spec.z, Float4(0.0f));
 
-					r.ox[D1] = r.ox[D1] + spec.x;
-					r.oy[D1] = r.oy[D1] + spec.y;
-					r.oz[D1] = r.oz[D1] + spec.z;
+					r.o[D1].x = r.o[D1].x + spec.x;
+					r.o[D1].y = r.o[D1].y + spec.y;
+					r.o[D1].z = r.o[D1].z + spec.z;
 				}
 			}
 
 			Float4 globalAmbient = *Pointer<Float4>(r.data + OFFSET(DrawData,ff.globalAmbient));   // FIXME: Unpack
 
-			r.ox[D0] = r.ox[D0] + globalAmbient.x;
-			r.oy[D0] = r.oy[D0] + globalAmbient.y;
-			r.oz[D0] = r.oz[D0] + globalAmbient.z;
+			r.o[D0].x = r.o[D0].x + globalAmbient.x;
+			r.o[D0].y = r.o[D0].y + globalAmbient.y;
+			r.o[D0].z = r.o[D0].z + globalAmbient.z;
 
 			if(state.vertexAmbientMaterialSourceActive == Context::MATERIAL)
 			{
 				Float4 materialAmbient = *Pointer<Float4>(r.data + OFFSET(DrawData,ff.materialAmbient));   // FIXME: Unpack
 
-				r.ox[D0] = r.ox[D0] * materialAmbient.x;
-				r.oy[D0] = r.oy[D0] * materialAmbient.y;
-				r.oz[D0] = r.oz[D0] * materialAmbient.z;
+				r.o[D0].x = r.o[D0].x * materialAmbient.x;
+				r.o[D0].y = r.o[D0].y * materialAmbient.y;
+				r.o[D0].z = r.o[D0].z * materialAmbient.z;
 			}
 			else if(state.vertexAmbientMaterialSourceActive == Context::COLOR1)
 			{
-				Color4f materialDiffuse = r.v[Color0];
+				Vector4f materialDiffuse = r.v[Color0];
 
-				r.ox[D0] = r.ox[D0] * materialDiffuse.x;
-				r.oy[D0] = r.oy[D0] * materialDiffuse.y;
-				r.oz[D0] = r.oz[D0] * materialDiffuse.z;
+				r.o[D0].x = r.o[D0].x * materialDiffuse.x;
+				r.o[D0].y = r.o[D0].y * materialDiffuse.y;
+				r.o[D0].z = r.o[D0].z * materialDiffuse.z;
 			}
 			else if(state.vertexAmbientMaterialSourceActive == Context::COLOR2)
 			{
-				Color4f materialSpecular = r.v[Color1];
+				Vector4f materialSpecular = r.v[Color1];
 
-				r.ox[D0] = r.ox[D0] * materialSpecular.x;
-				r.oy[D0] = r.oy[D0] * materialSpecular.y;
-				r.oz[D0] = r.oz[D0] * materialSpecular.z;
+				r.o[D0].x = r.o[D0].x * materialSpecular.x;
+				r.o[D0].y = r.o[D0].y * materialSpecular.y;
+				r.o[D0].z = r.o[D0].z * materialSpecular.z;
 			}
 			else ASSERT(false);
 
-			r.ox[D0] = r.ox[D0] + diffuseSum.x;
-			r.oy[D0] = r.oy[D0] + diffuseSum.y;
-			r.oz[D0] = r.oz[D0] + diffuseSum.z;
+			r.o[D0].x = r.o[D0].x + diffuseSum.x;
+			r.o[D0].y = r.o[D0].y + diffuseSum.y;
+			r.o[D0].z = r.o[D0].z + diffuseSum.z;
 
 			// Emissive
 			if(state.vertexEmissiveMaterialSourceActive == Context::MATERIAL)
 			{
 				Float4 materialEmission = *Pointer<Float4>(r.data + OFFSET(DrawData,ff.materialEmission));   // FIXME: Unpack
 
-				r.ox[D0] = r.ox[D0] + materialEmission.x;
-				r.oy[D0] = r.oy[D0] + materialEmission.y;
-				r.oz[D0] = r.oz[D0] + materialEmission.z;
+				r.o[D0].x = r.o[D0].x + materialEmission.x;
+				r.o[D0].y = r.o[D0].y + materialEmission.y;
+				r.o[D0].z = r.o[D0].z + materialEmission.z;
 			}
 			else if(state.vertexEmissiveMaterialSourceActive == Context::COLOR1)
 			{
-				Color4f materialSpecular = r.v[Color0];
+				Vector4f materialSpecular = r.v[Color0];
 
-				r.ox[D0] = r.ox[D0] + materialSpecular.x;
-				r.oy[D0] = r.oy[D0] + materialSpecular.y;
-				r.oz[D0] = r.oz[D0] + materialSpecular.z;
+				r.o[D0].x = r.o[D0].x + materialSpecular.x;
+				r.o[D0].y = r.o[D0].y + materialSpecular.y;
+				r.o[D0].z = r.o[D0].z + materialSpecular.z;
 			}
 			else if(state.vertexEmissiveMaterialSourceActive == Context::COLOR2)
 			{
-				Color4f materialSpecular = r.v[Color1];
+				Vector4f materialSpecular = r.v[Color1];
 
-				r.ox[D0] = r.ox[D0] + materialSpecular.x;
-				r.oy[D0] = r.oy[D0] + materialSpecular.y;
-				r.oz[D0] = r.oz[D0] + materialSpecular.z;
+				r.o[D0].x = r.o[D0].x + materialSpecular.x;
+				r.o[D0].y = r.o[D0].y + materialSpecular.y;
+				r.o[D0].z = r.o[D0].z + materialSpecular.z;
 			}
 			else ASSERT(false);
 
 			// Diffuse alpha component
 			if(state.vertexDiffuseMaterialSourceActive == Context::MATERIAL)
 			{
-				r.ow[D0] = Float4(*Pointer<Float4>(r.data + OFFSET(DrawData,ff.materialDiffuse[0]))).wwww;   // FIXME: Unpack
+				r.o[D0].w = Float4(*Pointer<Float4>(r.data + OFFSET(DrawData,ff.materialDiffuse[0]))).wwww;   // FIXME: Unpack
 			}
 			else if(state.vertexDiffuseMaterialSourceActive == Context::COLOR1)
 			{
-				Color4f alpha = r.v[Color0];
-				r.ow[D0] = alpha.w;
+				Vector4f alpha = r.v[Color0];
+				r.o[D0].w = alpha.w;
 			}
 			else if(state.vertexDiffuseMaterialSourceActive == Context::COLOR2)
 			{
-				Color4f alpha = r.v[Color1];
-				r.ow[D0] = alpha.w;
+				Vector4f alpha = r.v[Color1];
+				r.o[D0].w = alpha.w;
 			}
 			else ASSERT(false);
 
@@ -469,17 +470,17 @@ namespace sw
 				// Specular alpha component
 				if(state.vertexSpecularMaterialSourceActive == Context::MATERIAL)
 				{
-					r.ow[D1] = Float4(*Pointer<Float4>(r.data + OFFSET(DrawData,ff.materialSpecular[3]))).wwww;   // FIXME: Unpack
+					r.o[D1].w = Float4(*Pointer<Float4>(r.data + OFFSET(DrawData,ff.materialSpecular[3]))).wwww;   // FIXME: Unpack
 				}
 				else if(state.vertexSpecularMaterialSourceActive == Context::COLOR1)
 				{
-					Color4f alpha = r.v[Color0];
-					r.ow[D1] = alpha.w;
+					Vector4f alpha = r.v[Color0];
+					r.o[D1].w = alpha.w;
 				}
 				else if(state.vertexSpecularMaterialSourceActive == Context::COLOR2)
 				{
-					Color4f alpha = r.v[Color1];
-					r.ow[D1] = alpha.w;
+					Vector4f alpha = r.v[Color1];
+					r.o[D1].w = alpha.w;
 				}
 				else ASSERT(false);
 			}
@@ -492,11 +493,11 @@ namespace sw
 			case Context::FOG_NONE:
 				if(state.specularActive)
 				{
-					r.ox[Fog] = r.ow[D1];
+					r.o[Fog].x = r.o[D1].w;
 				}
 				else
 				{
-					r.ox[Fog] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
+					r.o[Fog].x = Float4(0.0f);
 				}
 				break;
 			case Context::FOG_LINEAR:
@@ -504,21 +505,21 @@ namespace sw
 			case Context::FOG_EXP2:
 				if(!state.rangeFogActive)
 				{
-					r.ox[Fog] = r.oz[Pos];
+					r.o[Fog].x = r.o[Pos].z;
 				}
 				else
 				{
-					Color4f pos;
+					Vector4f pos;
 
-					pos.x = r.ox[Pos];
-					pos.y = r.oy[Pos];
-					pos.z = r.oz[Pos];
-					pos.w = r.ow[Pos];
+					pos.x = r.o[Pos].x;
+					pos.y = r.o[Pos].y;
+					pos.z = r.o[Pos].z;
+					pos.w = r.o[Pos].w;
 
-					r.ox[Fog] = Sqrt(dot3(pos, pos));   // FIXME: oFog = length(o[Pos]);
+					r.o[Fog].x = Sqrt(dot3(pos, pos));   // FIXME: oFog = length(o[Pos]);
 				}
 
-				r.ox[Fog] = r.ox[Fog] * *Pointer<Float4>(r.data + OFFSET(DrawData,fog.scale)) + *Pointer<Float4>(r.data + OFFSET(DrawData,fog.offset));
+				r.o[Fog].x = r.o[Fog].x * *Pointer<Float4>(r.data + OFFSET(DrawData,fog.scale)) + *Pointer<Float4>(r.data + OFFSET(DrawData,fog.offset));
 				break;
 			default:
 				ASSERT(false);
@@ -533,7 +534,7 @@ namespace sw
 		processPointSize(r);
 	}
 
-	void VertexPipeline::processTextureCoordinate(Registers &r, int stage, Color4f &normal, Color4f &position)
+	void VertexPipeline::processTextureCoordinate(Registers &r, int stage, Vector4f &normal, Vector4f &position)
 	{
 		if(state.output[T0 + stage].write)
 		{
@@ -543,28 +544,28 @@ namespace sw
 			{
 			case Context::TEXGEN_PASSTHRU:
 				{
-					Color4f v = r.v[TexCoord0 + i];
+					Vector4f v = r.v[TexCoord0 + i];
 
-					r.ox[T0 + stage] = v.x;
-					r.oy[T0 + stage] = v.y;
-					r.oz[T0 + stage] = v.z;
-					r.ow[T0 + stage] = v.w;
+					r.o[T0 + stage].x = v.x;
+					r.o[T0 + stage].y = v.y;
+					r.o[T0 + stage].z = v.z;
+					r.o[T0 + stage].w = v.w;
 
-					if(state.input[TexCoord0 + i].type == STREAMTYPE_FLOAT)
+					if(state.input[TexCoord0 + i])
 					{
 						switch(state.input[TexCoord0 + i].count)
 						{
 						case 1:
-							r.oy[T0 + stage] = Float4(1.0f, 1.0f, 1.0f, 1.0f);
-							r.oz[T0 + stage] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-							r.ow[T0 + stage] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
+							r.o[T0 + stage].y = Float4(1.0f);
+							r.o[T0 + stage].z = Float4(0.0f);
+							r.o[T0 + stage].w = Float4(0.0f);
 							break;
 						case 2:
-							r.oz[T0 + stage] = Float4(1.0f, 1.0f, 1.0f, 1.0f);
-							r.ow[T0 + stage] = Float4(0.0f, 0.0f, 0.0f, 0.0f);
+							r.o[T0 + stage].z = Float4(1.0f);
+							r.o[T0 + stage].w = Float4(0.0f);
 							break;
 						case 3:
-							r.ow[T0 + stage] = Float4(1.0f, 1.0f, 1.0f, 1.0f);
+							r.o[T0 + stage].w = Float4(1.0f);
 							break;
 						case 4:
 							break;
@@ -572,12 +573,11 @@ namespace sw
 							ASSERT(false);
 						}
 					}
-					else ASSERT(!state.input[TexCoord0 + i]);   // Point sprite; coordinates provided by setup
 				}
 				break;
 			case Context::TEXGEN_NORMAL:
 				{
-					Color4f Nc;   // Normal vector in camera space
+					Vector4f Nc;   // Normal vector in camera space
 
 					if(state.vertexNormalActive)
 					{
@@ -585,51 +585,51 @@ namespace sw
 					}
 					else
 					{
-						Nc.x = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-						Nc.y = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-						Nc.z = Float4(0.0f, 0.0f, 0.0f, 0.0f);
+						Nc.x = Float4(0.0f);
+						Nc.y = Float4(0.0f);
+						Nc.z = Float4(0.0f);
 					}
 
-					Nc.w = Float4(1.0f, 1.0f, 1.0f, 1.0f);
+					Nc.w = Float4(1.0f);
 					
-					r.ox[T0 + stage] = Nc.x;
-					r.oy[T0 + stage] = Nc.y;
-					r.oz[T0 + stage] = Nc.z;
-					r.ow[T0 + stage] = Nc.w;
+					r.o[T0 + stage].x = Nc.x;
+					r.o[T0 + stage].y = Nc.y;
+					r.o[T0 + stage].z = Nc.z;
+					r.o[T0 + stage].w = Nc.w;
 				}
 				break;
 			case Context::TEXGEN_POSITION:
 				{
-					Color4f Pn = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);   // Position in camera space
+					Vector4f Pn = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);   // Position in camera space
 
-					Pn.w = Float4(1.0f, 1.0f, 1.0f, 1.0f);
+					Pn.w = Float4(1.0f);
 					
-					r.ox[T0 + stage] = Pn.x;
-					r.oy[T0 + stage] = Pn.y;
-					r.oz[T0 + stage] = Pn.z;
-					r.ow[T0 + stage] = Pn.w;
+					r.o[T0 + stage].x = Pn.x;
+					r.o[T0 + stage].y = Pn.y;
+					r.o[T0 + stage].z = Pn.z;
+					r.o[T0 + stage].w = Pn.w;
 				}
 				break;
 			case Context::TEXGEN_REFLECTION:
 				{
-					Color4f R;   // Reflection vector
+					Vector4f R;   // Reflection vector
 
 					if(state.vertexNormalActive)
 					{
-						Color4f Nc;   // Normal vector in camera space
+						Vector4f Nc;   // Normal vector in camera space
 
 						Nc = normal;
 
 						if(state.localViewerActive)
 						{
-							Color4f Ec;   // Eye vector in camera space
-							Color4f N2;
+							Vector4f Ec;   // Eye vector in camera space
+							Vector4f N2;
 
 							Ec = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
 							Ec = normalize(Ec);
 
 							// R = E - 2 * N * (E . N)
-							Float4 dot = Float4(2.0f, 2.0f, 2.0f, 2.0f) * dot3(Ec, Nc);
+							Float4 dot = Float4(2.0f) * dot3(Ec, Nc);
 
 							R.x = Ec.x - Nc.x * dot;
 							R.y = Ec.y - Nc.y * dot;
@@ -641,46 +641,46 @@ namespace sw
 							// v = -2 * Nz * Ny
 							// w = 1 - 2 * Nz * Nz
 
-							R.x = -Float4(2.0f, 2.0f, 2.0f, 2.0f) * Nc.z * Nc.x;
-							R.y = -Float4(2.0f, 2.0f, 2.0f, 2.0f) * Nc.z * Nc.y;
-							R.z = Float4(1.0f, 1.0f, 1.0f, 1.0f) - Float4(2.0f, 2.0f, 2.0f, 2.0f) * Nc.z * Nc.z;
+							R.x = -Float4(2.0f) * Nc.z * Nc.x;
+							R.y = -Float4(2.0f) * Nc.z * Nc.y;
+							R.z = Float4(1.0f) - Float4(2.0f) * Nc.z * Nc.z;
 						}
 					}
 					else
 					{
-						R.x = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-						R.y = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-						R.z = Float4(0.0f, 0.0f, 0.0f, 0.0f);
+						R.x = Float4(0.0f);
+						R.y = Float4(0.0f);
+						R.z = Float4(0.0f);
 					}
 
-					R.w = Float4(1.0f, 1.0f, 1.0f, 1.0f);
+					R.w = Float4(1.0f);
 
-					r.ox[T0 + stage] = R.x;
-					r.oy[T0 + stage] = R.y;
-					r.oz[T0 + stage] = R.z;
-					r.ow[T0 + stage] = R.w;
+					r.o[T0 + stage].x = R.x;
+					r.o[T0 + stage].y = R.y;
+					r.o[T0 + stage].z = R.z;
+					r.o[T0 + stage].w = R.w;
 				}
 				break;
 			case Context::TEXGEN_SPHEREMAP:
 				{
-					Color4f R;   // Reflection vector
+					Vector4f R;   // Reflection vector
 
 					if(state.vertexNormalActive)
 					{
-						Color4f Nc;   // Normal vector in camera space
+						Vector4f Nc;   // Normal vector in camera space
 
 						Nc = normal;
 
 						if(state.localViewerActive)
 						{
-							Color4f Ec;   // Eye vector in camera space
-							Color4f N2;
+							Vector4f Ec;   // Eye vector in camera space
+							Vector4f N2;
 
 							Ec = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
 							Ec = normalize(Ec);
 
 							// R = E - 2 * N * (E . N)
-							Float4 dot = Float4(2.0f, 2.0f, 2.0f, 2.0f) * dot3(Ec, Nc);
+							Float4 dot = Float4(2.0f) * dot3(Ec, Nc);
 							
 							R.x = Ec.x - Nc.x * dot;
 							R.y = Ec.y - Nc.y * dot;
@@ -692,48 +692,48 @@ namespace sw
 							// v = -2 * Nz * Ny
 							// w = 1 - 2 * Nz * Nz
 
-							R.x = -Float4(2.0f, 2.0f, 2.0f, 2.0f) * Nc.z * Nc.x;
-							R.y = -Float4(2.0f, 2.0f, 2.0f, 2.0f) * Nc.z * Nc.y;
-							R.z = Float4(1.0f, 1.0f, 1.0f, 1.0f) - Float4(2.0f, 2.0f, 2.0f, 2.0f) * Nc.z * Nc.z;
+							R.x = -Float4(2.0f) * Nc.z * Nc.x;
+							R.y = -Float4(2.0f) * Nc.z * Nc.y;
+							R.z = Float4(1.0f) - Float4(2.0f) * Nc.z * Nc.z;
 						}
 					}
 					else
 					{
-						R.x = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-						R.y = Float4(0.0f, 0.0f, 0.0f, 0.0f);
-						R.z = Float4(0.0f, 0.0f, 0.0f, 0.0f);
+						R.x = Float4(0.0f);
+						R.y = Float4(0.0f);
+						R.z = Float4(0.0f);
 					}
 
-					R.z -= Float4(1.0f, 1.0f, 1.0f, 1.0f);
+					R.z -= Float4(1.0f);
 					R = normalize(R);
-					R.x = Float4(0.5f, 0.5f, 0.5f, 0.5f) * R.x + Float4(0.5f, 0.5f, 0.5f, 0.5f);
-					R.y = Float4(0.5f, 0.5f, 0.5f, 0.5f) * R.y + Float4(0.5f, 0.5f, 0.5f, 0.5f);
+					R.x = Float4(0.5f) * R.x + Float4(0.5f);
+					R.y = Float4(0.5f) * R.y + Float4(0.5f);
 
-					R.z = Float4(1.0f, 1.0f, 1.0f, 1.0f);
-					R.w = Float4(0.0f, 0.0f, 0.0f, 0.0f);
+					R.z = Float4(1.0f);
+					R.w = Float4(0.0f);
 
-					r.ox[T0 + stage] = R.x;
-					r.oy[T0 + stage] = R.y;
-					r.oz[T0 + stage] = R.z;
-					r.ow[T0 + stage] = R.w;
+					r.o[T0 + stage].x = R.x;
+					r.o[T0 + stage].y = R.y;
+					r.o[T0 + stage].z = R.z;
+					r.o[T0 + stage].w = R.w;
 				}
 				break;
 			default:
 				ASSERT(false);
 			}
 
-			Color4f texTrans0;
-			Color4f texTrans1;
-			Color4f texTrans2;
-			Color4f texTrans3;
+			Vector4f texTrans0;
+			Vector4f texTrans1;
+			Vector4f texTrans2;
+			Vector4f texTrans3;
 
-			Color4f T;
-			Color4f t;
+			Vector4f T;
+			Vector4f t;
 
-			T.x = r.ox[T0 + stage];
-			T.y = r.oy[T0 + stage];
-			T.z = r.oz[T0 + stage];
-			T.w = r.ow[T0 + stage];
+			T.x = r.o[T0 + stage].x;
+			T.y = r.o[T0 + stage].y;
+			T.z = r.o[T0 + stage].z;
+			T.w = r.o[T0 + stage].w;
 
 			switch(state.textureState[stage].textureTransformCountActive)
 			{
@@ -766,10 +766,10 @@ namespace sw
 				texTrans0.w = texTrans0.w.wwww;
 				t.x = dot4(T, texTrans0);
 
-				r.ox[T0 + stage] = t.x;
-				r.oy[T0 + stage] = t.y;
-				r.oz[T0 + stage] = t.z;
-				r.ow[T0 + stage] = t.w;
+				r.o[T0 + stage].x = t.x;
+				r.o[T0 + stage].y = t.y;
+				r.o[T0 + stage].z = t.z;
+				r.o[T0 + stage].w = t.w;
 			case 0:
 				break;
 			default:
@@ -787,16 +787,16 @@ namespace sw
 
 		if(state.input[PSize])
 		{
-			r.oy[Pts] = r.v[PSize].x;
+			r.o[Pts].y = r.v[PSize].x;
 		}
 		else
 		{
-			r.oy[Pts] = *Pointer<Float4>(r.data + OFFSET(DrawData,point.pointSize));
+			r.o[Pts].y = *Pointer<Float4>(r.data + OFFSET(DrawData,point.pointSize));
 		}
 
 		if(state.pointScaleActive && !state.preTransformed)
 		{
-			Color4f p = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
+			Vector4f p = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
 
 			Float4 d = Sqrt(dot3(p, p));   // FIXME: length(p);
 
@@ -806,18 +806,13 @@ namespace sw
 
 			A = RcpSqrt_pp(A + d * (B + d * C));
 
-			r.oy[Pts] = r.oy[Pts] * Float4(*Pointer<Float>(r.data + OFFSET(DrawData,viewportHeight))) * A;   // FIXME: Unpack
+			r.o[Pts].y = r.o[Pts].y * Float4(*Pointer<Float>(r.data + OFFSET(DrawData,viewportHeight))) * A;   // FIXME: Unpack
 		}
 	}
 
-	Color4f VertexPipeline::transform(Color4f &src, Pointer<Byte> &matrix, bool homogeneous)
+	Vector4f VertexPipeline::transform(Register &src, Pointer<Byte> &matrix, bool homogeneous)
 	{
-		Color4f dst;
-
-		Color4f row0;
-		Color4f row1;
-		Color4f row2;
-		Color4f row3;
+		Vector4f dst;
 
 		if(homogeneous)
 		{
@@ -862,14 +857,9 @@ namespace sw
 		return dst;
 	}
 
-	Color4f VertexPipeline::transform(Color4f &src, Pointer<Byte> &matrix, UInt index[4], bool homogeneous)
+	Vector4f VertexPipeline::transform(Register &src, Pointer<Byte> &matrix, UInt index[4], bool homogeneous)
 	{
-		Color4f dst;
-		
-		Color4f row0;
-		Color4f row1;
-		Color4f row2;
-		Color4f row3;
+		Vector4f dst;
 
 		if(homogeneous)
 		{
@@ -914,9 +904,9 @@ namespace sw
 		return dst;
 	}
 
-	Color4f VertexPipeline::normalize(Color4f &src)
+	Vector4f VertexPipeline::normalize(Vector4f &src)
 	{
-		Color4f dst;
+		Vector4f dst;
 
 		Float4 rcpLength = RcpSqrt_pp(dot3(src, src));
 		
@@ -933,11 +923,11 @@ namespace sw
 				
 		dst = dst * dst;
 		dst = dst * dst;
-		dst = Float4(As<Int4>(dst) - As<Int4>(Float4(1.0f, 1.0f, 1.0f, 1.0f)));
+		dst = Float4(As<Int4>(dst) - As<Int4>(Float4(1.0f)));
 				
 		dst *= src1;
 
-		dst = As<Float4>(Int4(dst) + As<Int4>(Float4(1.0f, 1.0f, 1.0f, 1.0f)));
+		dst = As<Float4>(Int4(dst) + As<Int4>(Float4(1.0f)));
 		dst = RcpSqrt_pp(dst);
 		dst = RcpSqrt_pp(dst);
 

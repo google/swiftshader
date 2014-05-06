@@ -81,15 +81,18 @@ namespace sw
 		hints.ai_protocol = IPPROTO_TCP;
 		hints.ai_flags = AI_PASSIVE;
 
-		addrinfo *info;
+		addrinfo *info = 0;
 		getaddrinfo("localhost", "8080", &hints, &info);
 
-		listenSocket = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
-		bind(listenSocket, info->ai_addr, (int)info->ai_addrlen);
-		listen(listenSocket, SOMAXCONN);
+		if(info)
+		{
+			listenSocket = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
+			bind(listenSocket, info->ai_addr, (int)info->ai_addrlen);
+			listen(listenSocket, SOMAXCONN);
 
-		terminate = false;
-		serverThread = CreateThread(0, 1024 * 1024, serverRoutine, this, 0, 0);
+			terminate = false;
+			serverThread = CreateThread(0, 1024 * 1024, serverRoutine, this, 0, 0);
+		}
 	}
 
 	void SwiftConfig::destroyServer()
@@ -390,6 +393,7 @@ namespace sw
 		html += "<tr><td>Transparency anti-aliasing:</td><td><select name='transparencyAntialiasing' title='The technique used to anti-alias alpha-tested transparent textures.'>\n";
 		html += "<option value='0'" + (config.transparencyAntialiasing == 0 ? selected : empty) + ">None (default)</option>\n";
 		html += "<option value='1'" + (config.transparencyAntialiasing == 1 ? selected : empty) + ">Alpha-to-Coverage</option>\n";
+		html += "<option value='2'" + (config.transparencyAntialiasing == 2 ? selected : empty) + ">Interpolation</option>\n";
 		html += "</select></td>\n";
 		html += "</table>\n";
 		html += "<h2><em>Processor settings</em></h2>\n";
@@ -415,7 +419,7 @@ namespace sw
 		html += "<option value='16'" + (config.threadCount == 16 ? selected : empty) + ">16</option>\n";
 		html += "</select></td></tr>\n";
 		html += "<tr><td>Enable SSE:</td><td><input name = 'enableSSE' type='checkbox'" + (config.enableSSE == true ? checked : empty) + " disabled='disabled' title='If checked enables the use of SSE instruction set extentions if supported by the CPU.'></td></tr>";
-		html += "<tr><td>Enable SSE2:</td><td><input name = 'enableSSE2' type='checkbox'" + (config.enableSSE2 == true ? checked : empty) + " disabled='disabled' title='If checked enables the use of SSE2 instruction set extentions if supported by the CPU.'></td></tr>";
+		html += "<tr><td>Enable SSE2:</td><td><input name = 'enableSSE2' type='checkbox'" + (config.enableSSE2 == true ? checked : empty) + " title='If checked enables the use of SSE2 instruction set extentions if supported by the CPU.'></td></tr>";
 		html += "<tr><td>Enable SSE3:</td><td><input name = 'enableSSE3' type='checkbox'" + (config.enableSSE3 == true ? checked : empty) + " title='If checked enables the use of SSE3 instruction set extentions if supported by the CPU.'></td></tr>";
 		html += "<tr><td>Enable SSSE3:</td><td><input name = 'enableSSSE3' type='checkbox'" + (config.enableSSSE3 == true ? checked : empty) + " title='If checked enables the use of SSSE3 instruction set extentions if supported by the CPU.'></td></tr>";
 		html += "<tr><td>Enable SSE4.1:</td><td><input name = 'enableSSE4_1' type='checkbox'" + (config.enableSSE4_1 == true ? checked : empty) + " title='If checked enables the use of SSE4.1 instruction set extentions if supported by the CPU.'></td></tr>";
@@ -435,6 +439,7 @@ namespace sw
 			html += "<option value='6'"  + (config.optimization[pass] == 6  ? selected : empty) + ">Commutative Expressions Reassociation</option>\n";
 			html += "<option value='7'"  + (config.optimization[pass] == 7  ? selected : empty) + ">Dead Store Elimination</option>\n";
 			html += "<option value='8'"  + (config.optimization[pass] == 8  ? selected : empty) + ">Sparse Conditional Copy Propagation</option>\n";
+			html += "<option value='9'"  + (config.optimization[pass] == 9  ? selected : empty) + ">Scalar Replacement of Aggregates</option>\n";
 			html += "</select></td></tr>\n";
 		}
 
@@ -556,7 +561,7 @@ namespace sw
 	{
 		// Only enabled checkboxes appear in the POST
 		config.enableSSE = true;
-		config.enableSSE2 = true;
+		config.enableSSE2 = false;
 		config.enableSSE3 = false;
 		config.enableSSSE3 = false;
 		config.enableSSE4_1 = false;
@@ -758,11 +763,11 @@ namespace sw
 			config.optimization[pass] = (Optimization)ini.getInteger("Optimization", "OptimizationPass" + itoa(pass + 1), pass == 0 ? InstructionCombining : Disabled);
 		}
 
-		config.disableServer = ini.getBoolean("Testing", "DisableServer", true);
+		config.disableServer = ini.getBoolean("Testing", "DisableServer", false);
 		config.forceWindowed = ini.getBoolean("Testing", "ForceWindowed", false);
 		config.complementaryDepthBuffer = ini.getBoolean("Testing", "ComplementaryDepthBuffer", false);
 		config.postBlendSRGB = ini.getBoolean("Testing", "PostBlendSRGB", false);
-		config.exactColorRounding = ini.getBoolean("Testing", "ExactColorRounding", false);
+		config.exactColorRounding = ini.getBoolean("Testing", "ExactColorRounding", true);
 		config.disableAlphaMode = ini.getBoolean("Testing", "DisableAlphaMode", false);
 		config.disable10BitMode = ini.getBoolean("Testing", "Disable10BitMode", false);
 		config.frameBufferAPI = ini.getInteger("Testing", "FrameBufferAPI", 0);
@@ -805,7 +810,7 @@ namespace sw
 		ini.addValue("Quality", "TransparencyAntialiasing", itoa(config.transparencyAntialiasing));
 		ini.addValue("Processor", "ThreadCount", itoa(config.threadCount));
 	//	ini.addValue("Processor", "EnableSSE", itoa(config.enableSSE));
-	//	ini.addValue("Processor", "EnableSSE2", itoa(config.enableSSE2));
+		ini.addValue("Processor", "EnableSSE2", itoa(config.enableSSE2));
 		ini.addValue("Processor", "EnableSSE3", itoa(config.enableSSE3));
 		ini.addValue("Processor", "EnableSSSE3", itoa(config.enableSSSE3));
 		ini.addValue("Processor", "EnableSSE4_1", itoa(config.enableSSE4_1));

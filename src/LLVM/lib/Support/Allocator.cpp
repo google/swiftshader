@@ -12,10 +12,10 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/Support/Allocator.h"
-#include "llvm/System/DataTypes.h"
+#include "llvm/Support/DataTypes.h"
 #include "llvm/Support/Recycler.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/System/Memory.h"
+#include "llvm/Support/Memory.h"
 #include <cstring>
 
 namespace llvm {
@@ -44,6 +44,12 @@ char *BumpPtrAllocator::AlignPtr(char *Ptr, size_t Alignment) {
 /// StartNewSlab - Allocate a new slab and move the bump pointers over into
 /// the new slab.  Modifies CurPtr and End.
 void BumpPtrAllocator::StartNewSlab() {
+  // If we allocated a big number of slabs already it's likely that we're going
+  // to allocate more. Increase slab size to reduce mallocs and possibly memory
+  // overhead. The factors are chosen conservatively to avoid overallocation.
+  if (BytesAllocated >= SlabSize * 128)
+    SlabSize *= 2;
+
   MemSlab *NewSlab = Allocator.Allocate(SlabSize);
   NewSlab->NextPtr = CurSlab;
   CurSlab = NewSlab;
@@ -130,6 +136,14 @@ unsigned BumpPtrAllocator::GetNumSlabs() const {
   return NumSlabs;
 }
 
+size_t BumpPtrAllocator::getTotalMemory() const {
+  size_t TotalMemory = 0;
+  for (MemSlab *Slab = CurSlab; Slab != 0; Slab = Slab->NextPtr) {
+    TotalMemory += Slab->Size;
+  }
+  return TotalMemory;
+}
+  
 void BumpPtrAllocator::PrintStats() const {
   unsigned NumSlabs = 0;
   size_t TotalMemory = 0;

@@ -29,12 +29,13 @@ using namespace llvm;
 
 namespace {
   /// LowerSwitch Pass - Replace all SwitchInst instructions with chained branch
-  /// instructions.  Note that this cannot be a BasicBlock pass because it
-  /// modifies the CFG!
+  /// instructions.
   class LowerSwitch : public FunctionPass {
   public:
     static char ID; // Pass identification, replacement for typeid
-    LowerSwitch() : FunctionPass(ID) {} 
+    LowerSwitch() : FunctionPass(ID) {
+      initializeLowerSwitchPass(*PassRegistry::getPassRegistry());
+    } 
 
     virtual bool runOnFunction(Function &F);
     
@@ -42,7 +43,7 @@ namespace {
       // This is a cluster of orthogonal Transforms
       AU.addPreserved<UnifyFunctionExitNodes>();
       AU.addPreserved("mem2reg");
-      //AU.addPreservedID(LowerInvokePassID);
+      AU.addPreservedID(LowerInvokePassID);
     }
 
     struct CaseRange {
@@ -50,8 +51,7 @@ namespace {
       Constant* High;
       BasicBlock* BB;
 
-      CaseRange() : Low(0), High(0), BB(0) { }
-      CaseRange(Constant* low, Constant* high, BasicBlock* bb) :
+      CaseRange(Constant *low = 0, Constant *high = 0, BasicBlock *bb = 0) :
         Low(low), High(high), BB(bb) { }
     };
 
@@ -81,10 +81,10 @@ namespace {
 }
 
 char LowerSwitch::ID = 0;
-static RegisterPass<LowerSwitch>
-X("lowerswitch", "Lower SwitchInst's to branches");
+INITIALIZE_PASS(LowerSwitch, "lowerswitch",
+                "Lower SwitchInst's to branches", false, false)
 
-// Publically exposed interface to pass...
+// Publicly exposed interface to pass...
 char &llvm::LowerSwitchID = LowerSwitch::ID;
 // createLowerSwitchPass - Interface to this file...
 FunctionPass *llvm::createLowerSwitchPass() {
@@ -109,7 +109,8 @@ bool LowerSwitch::runOnFunction(Function &F) {
 // operator<< - Used for debugging purposes.
 //
 static raw_ostream& operator<<(raw_ostream &O,
-                               const LowerSwitch::CaseVector &C) ATTRIBUTE_USED;
+                               const LowerSwitch::CaseVector &C)
+    LLVM_ATTRIBUTE_USED;
 static raw_ostream& operator<<(raw_ostream &O,
                                const LowerSwitch::CaseVector &C) {
   O << "[";
@@ -154,12 +155,12 @@ BasicBlock* LowerSwitch::switchConvert(CaseItr Begin, CaseItr End,
   // Create a new node that checks if the value is < pivot. Go to the
   // left branch if it is and right branch if not.
   Function* F = OrigBlock->getParent();
-  BasicBlock* NewNode = BasicBlock::Create(Val->getContext());
+  BasicBlock* NewNode = BasicBlock::Create(Val->getContext(), "NodeBlock");
   Function::iterator FI = OrigBlock;
   F->getBasicBlockList().insert(++FI, NewNode);
 
   ICmpInst* Comp = new ICmpInst(ICmpInst::ICMP_SLT,
-                                Val, Pivot.Low);
+                                Val, Pivot.Low, "Pivot");
   NewNode->getInstList().push_back(Comp);
   BranchInst::Create(LBranch, RBranch, Comp, NewNode);
   return NewNode;
@@ -176,7 +177,7 @@ BasicBlock* LowerSwitch::newLeafBlock(CaseRange& Leaf, Value* Val,
                                       BasicBlock* Default)
 {
   Function* F = OrigBlock->getParent();
-  BasicBlock* NewLeaf = BasicBlock::Create(Val->getContext());
+  BasicBlock* NewLeaf = BasicBlock::Create(Val->getContext(), "LeafBlock");
   Function::iterator FI = OrigBlock;
   F->getBasicBlockList().insert(++FI, NewLeaf);
 
@@ -185,22 +186,26 @@ BasicBlock* LowerSwitch::newLeafBlock(CaseRange& Leaf, Value* Val,
   if (Leaf.Low == Leaf.High) {
     // Make the seteq instruction...
     Comp = new ICmpInst(*NewLeaf, ICmpInst::ICMP_EQ, Val,
-                        Leaf.Low);
+                        Leaf.Low, "SwitchLeaf");
   } else {
     // Make range comparison
     if (cast<ConstantInt>(Leaf.Low)->isMinValue(true /*isSigned*/)) {
       // Val >= Min && Val <= Hi --> Val <= Hi
-      Comp = new ICmpInst(*NewLeaf, ICmpInst::ICMP_SLE, Val, Leaf.High);
+      Comp = new ICmpInst(*NewLeaf, ICmpInst::ICMP_SLE, Val, Leaf.High,
+                          "SwitchLeaf");
     } else if (cast<ConstantInt>(Leaf.Low)->isZero()) {
       // Val >= 0 && Val <= Hi --> Val <=u Hi
-      Comp = new ICmpInst(*NewLeaf, ICmpInst::ICMP_ULE, Val, Leaf.High);
+      Comp = new ICmpInst(*NewLeaf, ICmpInst::ICMP_ULE, Val, Leaf.High,
+                          "SwitchLeaf");      
     } else {
       // Emit V-Lo <=u Hi-Lo
       Constant* NegLo = ConstantExpr::getNeg(Leaf.Low);
       Instruction* Add = BinaryOperator::CreateAdd(Val, NegLo,
+                                                   Val->getName()+".off",
                                                    NewLeaf);
       Constant *UpperBound = ConstantExpr::getAdd(NegLo, Leaf.High);
-      Comp = new ICmpInst(*NewLeaf, ICmpInst::ICMP_ULE, Add, UpperBound);
+      Comp = new ICmpInst(*NewLeaf, ICmpInst::ICMP_ULE, Add, UpperBound,
+                          "SwitchLeaf");
     }
   }
 
@@ -272,11 +277,11 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI) {
   BasicBlock *CurBlock = SI->getParent();
   BasicBlock *OrigBlock = CurBlock;
   Function *F = CurBlock->getParent();
-  Value *Val = SI->getOperand(0);  // The value we are switching on...
+  Value *Val = SI->getCondition();  // The value we are switching on...
   BasicBlock* Default = SI->getDefaultDest();
 
   // If there is only the default destination, don't bother with the code below.
-  if (SI->getNumOperands() == 2) {
+  if (SI->getNumCases() == 1) {
     BranchInst::Create(SI->getDefaultDest(), CurBlock);
     CurBlock->getInstList().erase(SI);
     return;
@@ -284,7 +289,7 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI) {
 
   // Create a new, empty default block so that the new hierarchy of
   // if-then statements go to this and the PHI nodes are happy.
-  BasicBlock* NewDefault = BasicBlock::Create(SI->getContext());
+  BasicBlock* NewDefault = BasicBlock::Create(SI->getContext(), "NewDefault");
   F->getBasicBlockList().insert(Default, NewDefault);
 
   BranchInst::Create(Default, NewDefault);

@@ -16,9 +16,10 @@
 #define LLVM_ADT_SMALLPTRSET_H
 
 #include <cassert>
+#include <cstddef>
 #include <cstring>
 #include <iterator>
-#include "llvm/System/DataTypes.h"
+#include "llvm/Support/DataTypes.h"
 #include "llvm/Support/PointerLikeTypeTraits.h"
 
 namespace llvm {
@@ -56,7 +57,7 @@ protected:
   /// it, so that the end iterator actually points to valid memory.
   unsigned CurArraySize;
 
-  // If small, this is # elts allocated consequtively
+  // If small, this is # elts allocated consecutively
   unsigned NumElements;
   unsigned NumTombstones;
 
@@ -132,7 +133,7 @@ private:
   void shrink_and_clear();
 
   /// Grow - Allocate a larger backing store for the buckets and move it over.
-  void Grow();
+  void Grow(unsigned NewSize);
 
   void operator=(const SmallPtrSetImpl &RHS);  // DO NOT IMPLEMENT.
 protected:

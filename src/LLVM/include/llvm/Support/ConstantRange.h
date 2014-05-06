@@ -33,7 +33,7 @@
 #define LLVM_SUPPORT_CONSTANT_RANGE_H
 
 #include "llvm/ADT/APInt.h"
-#include "llvm/System/DataTypes.h"
+#include "llvm/Support/DataTypes.h"
 
 namespace llvm {
 
@@ -41,8 +41,6 @@ namespace llvm {
 ///
 class ConstantRange {
   APInt Lower, Upper;
-  static ConstantRange intersect1Wrapped(const ConstantRange &LHS,
-                                         const ConstantRange &RHS);
 
 public:
   /// Initialize a full (the default) or empty set for the specified bit width.
@@ -56,7 +54,7 @@ public:
   /// @brief Initialize a range of values explicitly. This will assert out if
   /// Lower==Upper and Lower != Min or Max value for its type. It will also
   /// assert out if the two APInt's are not the same bit width.
-  ConstantRange(const APInt& Lower, const APInt& Upper);
+  ConstantRange(const APInt &Lower, const APInt &Upper);
 
   /// makeICmpRegion - Produce the smallest range that contains all values that
   /// might satisfy the comparison specified by Pred when compared to any value
@@ -93,6 +91,11 @@ public:
   /// for example: [100, 8)
   ///
   bool isWrappedSet() const;
+
+  /// isSignWrappedSet - Return true if this set wraps around the INT_MIN of
+  /// its bitwidth, for example: i8 [120, 140).
+  ///
+  bool isSignWrappedSet() const;
 
   /// contains - Return true if the specified value is in the set.
   ///
@@ -196,40 +199,51 @@ public:
   ConstantRange sextOrTrunc(uint32_t BitWidth) const;
 
   /// add - Return a new range representing the possible values resulting
-  /// from an addition of a value in this range and a value in Other.
+  /// from an addition of a value in this range and a value in \p Other.
   ConstantRange add(const ConstantRange &Other) const;
 
+  /// sub - Return a new range representing the possible values resulting
+  /// from a subtraction of a value in this range and a value in \p Other.
+  ConstantRange sub(const ConstantRange &Other) const;
+
   /// multiply - Return a new range representing the possible values resulting
-  /// from a multiplication of a value in this range and a value in Other.
+  /// from a multiplication of a value in this range and a value in \p Other.
   /// TODO: This isn't fully implemented yet.
   ConstantRange multiply(const ConstantRange &Other) const;
 
   /// smax - Return a new range representing the possible values resulting
-  /// from a signed maximum of a value in this range and a value in Other.
+  /// from a signed maximum of a value in this range and a value in \p Other.
   ConstantRange smax(const ConstantRange &Other) const;
 
   /// umax - Return a new range representing the possible values resulting
-  /// from an unsigned maximum of a value in this range and a value in Other.
+  /// from an unsigned maximum of a value in this range and a value in \p Other.
   ConstantRange umax(const ConstantRange &Other) const;
 
   /// udiv - Return a new range representing the possible values resulting
-  /// from an unsigned division of a value in this range and a value in Other.
-  /// TODO: This isn't fully implemented yet.
+  /// from an unsigned division of a value in this range and a value in
+  /// \p Other.
   ConstantRange udiv(const ConstantRange &Other) const;
 
+  /// binaryAnd - return a new range representing the possible values resulting
+  /// from a binary-and of a value in this range by a value in \p Other.
+  ConstantRange binaryAnd(const ConstantRange &Other) const;
+
+  /// binaryOr - return a new range representing the possible values resulting
+  /// from a binary-or of a value in this range by a value in \p Other.
+  ConstantRange binaryOr(const ConstantRange &Other) const;
+
   /// shl - Return a new range representing the possible values resulting
-  /// from a left shift of a value in this range by the Amount value.
-  ConstantRange shl(const ConstantRange &Amount) const;
+  /// from a left shift of a value in this range by a value in \p Other.
+  /// TODO: This isn't fully implemented yet.
+  ConstantRange shl(const ConstantRange &Other) const;
 
-  /// ashr - Return a new range representing the possible values resulting from
-  /// an arithmetic right shift of a value in this range by the Amount value.
-  ConstantRange ashr(const ConstantRange &Amount) const;
-
-  /// shr - Return a new range representing the possible values resulting
-  /// from a logical right shift of a value in this range by the Amount value.
-  ConstantRange lshr(const ConstantRange &Amount) const;
+  /// lshr - Return a new range representing the possible values resulting
+  /// from a logical right shift of a value in this range and a value in
+  /// \p Other.
+  ConstantRange lshr(const ConstantRange &Other) const;
 
   /// inverse - Return a new range that is the logical not of the current set.
+  ///
   ConstantRange inverse() const;
   
   /// print - Print out the bounds to a stream...

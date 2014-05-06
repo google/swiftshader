@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -15,48 +15,42 @@
 
 namespace sw
 {
-	PixelShader::PixelShader(const unsigned long *token) : Shader(token)
+	PixelShader::PixelShader(const PixelShader *ps) : Shader()
+	{
+		version = 0x0300;
+		vPosDeclared = false;
+		vFaceDeclared = false;
+		centroid = false;
+
+		if(ps)   // Make a copy
+		{
+			for(int i = 0; i < ps->getLength(); i++)
+			{
+				append(new sw::Shader::Instruction(*ps->getInstruction(i)));
+			}
+
+			memcpy(semantic, ps->semantic, sizeof(semantic));
+			vPosDeclared = ps->vPosDeclared;
+			vFaceDeclared = ps->vFaceDeclared;
+			usedSamplers = ps->usedSamplers;
+
+			analyze();
+		}
+	}
+
+	PixelShader::PixelShader(const unsigned long *token) : Shader()
 	{
 		parse(token);
+
+		vPosDeclared = false;
+		vFaceDeclared = false;
+		centroid = false;
+
+		analyze();
 	}
 
 	PixelShader::~PixelShader()
 	{
-	}
-
-	void PixelShader::parse(const unsigned long *token)
-	{
-		minorVersion = (unsigned char)(token[0] & 0x000000FF);
-		majorVersion = (unsigned char)((token[0] & 0x0000FF00) >> 8);
-		shaderType = (ShaderType)((token[0] & 0xFFFF0000) >> 16);
-
-		length = validate(token);
-		ASSERT(length != 0);
-
-		instruction = new Shader::Instruction*[length];
-
-		for(int i = 0; i < length; i++)
-		{
-			while((*token & 0x0000FFFF) == 0x0000FFFE)   // Comment token
-			{
-				int length = (*token & 0x7FFF0000) >> 16;
-
-				token += length + 1;
-			}
-
-			int length = size(*token);
-
-			instruction[i] = new Instruction(token, length, majorVersion);
-
-			token += length + 1;
-		}
-
-		analyzeZOverride();
-		analyzeTexkill();
-		analyzeInterpolants();
-		analyzeDirtyConstants();
-		analyzeDynamicBranching();
-		analyzeSamplers();
 	}
 
 	int PixelShader::validate(const unsigned long *const token)
@@ -88,12 +82,12 @@ namespace sw
 			}
 			else
 			{
-				ShaderOpcode opcode = (ShaderOpcode)(token[i] & 0x0000FFFF);
+				Shader::Opcode opcode = (Shader::Opcode)(token[i] & 0x0000FFFF);
 
 				switch(opcode)
 				{
-				case ShaderOperation::OPCODE_RESERVED0:
-				case ShaderOperation::OPCODE_MOVA:
+				case Shader::OPCODE_RESERVED0:
+				case Shader::OPCODE_MOVA:
 					return 0;   // Unsupported operation
 				default:
 					instructionCount++;
@@ -112,9 +106,9 @@ namespace sw
 		return zOverride;
 	}
 
-	bool PixelShader::containsTexkill() const
+	bool PixelShader::containsKill() const
 	{
-		return texkill;
+		return kill;
 	}
 
 	bool PixelShader::containsCentroid() const
@@ -137,15 +131,27 @@ namespace sw
 		return semantic[2 + coordinate][component].active();
 	}
 
+	void PixelShader::analyze()
+	{
+		analyzeZOverride();
+		analyzeKill();
+		analyzeInterpolants();
+		analyzeDirtyConstants();
+		analyzeDynamicBranching();
+		analyzeSamplers();
+		analyzeCallSites();
+		analyzeDynamicIndexing();
+	}
+
 	void PixelShader::analyzeZOverride()
 	{
 		zOverride = false;
 
-		for(int i = 0; i < length; i++)
+		for(unsigned int i = 0; i < instruction.size(); i++)
 		{
-			if(instruction[i]->getOpcode() == Instruction::Operation::OPCODE_TEXM3X2DEPTH ||
-			   instruction[i]->getOpcode() == Instruction::Operation::OPCODE_TEXDEPTH ||
-			   instruction[i]->getDestinationParameter().type == Instruction::DestinationParameter::PARAMETER_DEPTHOUT)
+			if(instruction[i]->opcode == Shader::OPCODE_TEXM3X2DEPTH ||
+			   instruction[i]->opcode == Shader::OPCODE_TEXDEPTH ||
+			   instruction[i]->dst.type == Shader::PARAMETER_DEPTHOUT)
 			{
 				zOverride = true;
 
@@ -154,15 +160,16 @@ namespace sw
 		}
 	}
 
-	void PixelShader::analyzeTexkill()
+	void PixelShader::analyzeKill()
 	{
-		texkill = false;
+		kill = false;
 
-		for(int i = 0; i < length; i++)
+		for(unsigned int i = 0; i < instruction.size(); i++)
 		{
-			if(instruction[i]->getOpcode() == Instruction::Operation::OPCODE_TEXKILL)
+			if(instruction[i]->opcode == Shader::OPCODE_TEXKILL ||
+			   instruction[i]->opcode == Shader::OPCODE_DISCARD)
 			{
-				texkill = true;
+				kill = true;
 
 				break;
 			}
@@ -171,76 +178,72 @@ namespace sw
 
 	void PixelShader::analyzeInterpolants()
 	{
-		vPosDeclared = false;
-		vFaceDeclared = false;
-		centroid = false;
-
 		if(version < 0x0300)
 		{
 			// Set default mapping; disable unused interpolants below
-			semantic[0][0] = Semantic(ShaderOperation::USAGE_COLOR, 0);
-			semantic[0][1] = Semantic(ShaderOperation::USAGE_COLOR, 0);
-			semantic[0][2] = Semantic(ShaderOperation::USAGE_COLOR, 0);
-			semantic[0][3] = Semantic(ShaderOperation::USAGE_COLOR, 0);
+			semantic[0][0] = Semantic(Shader::USAGE_COLOR, 0);
+			semantic[0][1] = Semantic(Shader::USAGE_COLOR, 0);
+			semantic[0][2] = Semantic(Shader::USAGE_COLOR, 0);
+			semantic[0][3] = Semantic(Shader::USAGE_COLOR, 0);
 
-			semantic[1][0] = Semantic(ShaderOperation::USAGE_COLOR, 1);
-			semantic[1][1] = Semantic(ShaderOperation::USAGE_COLOR, 1);
-			semantic[1][2] = Semantic(ShaderOperation::USAGE_COLOR, 1);
-			semantic[1][3] = Semantic(ShaderOperation::USAGE_COLOR, 1);
+			semantic[1][0] = Semantic(Shader::USAGE_COLOR, 1);
+			semantic[1][1] = Semantic(Shader::USAGE_COLOR, 1);
+			semantic[1][2] = Semantic(Shader::USAGE_COLOR, 1);
+			semantic[1][3] = Semantic(Shader::USAGE_COLOR, 1);
 
 			for(int i = 0; i < 8; i++)
 			{
-				semantic[2 + i][0] = Semantic(ShaderOperation::USAGE_TEXCOORD, i);
-				semantic[2 + i][1] = Semantic(ShaderOperation::USAGE_TEXCOORD, i);
-				semantic[2 + i][2] = Semantic(ShaderOperation::USAGE_TEXCOORD, i);
-				semantic[2 + i][3] = Semantic(ShaderOperation::USAGE_TEXCOORD, i);
+				semantic[2 + i][0] = Semantic(Shader::USAGE_TEXCOORD, i);
+				semantic[2 + i][1] = Semantic(Shader::USAGE_TEXCOORD, i);
+				semantic[2 + i][2] = Semantic(Shader::USAGE_TEXCOORD, i);
+				semantic[2 + i][3] = Semantic(Shader::USAGE_TEXCOORD, i);
 			}
 
-			Instruction::Operation::SamplerType samplerType[16];
+			Shader::SamplerType samplerType[16];
 
 			for(int i = 0; i < 16; i++)
 			{
-				samplerType[i] = Instruction::Operation::SAMPLER_UNKNOWN;
+				samplerType[i] = Shader::SAMPLER_UNKNOWN;
 			}
 
-			for(int i = 0; i < length; i++)
+			for(unsigned int i = 0; i < instruction.size(); i++)
 			{
-				if(instruction[i]->getDestinationParameter().type == Instruction::SourceParameter::PARAMETER_SAMPLER)
+				if(instruction[i]->dst.type == Shader::PARAMETER_SAMPLER)
 				{
-					int sampler = instruction[i]->getDestinationParameter().index;
+					int sampler = instruction[i]->dst.index;
 
-					samplerType[sampler] = instruction[i]->getSamplerType();
+					samplerType[sampler] = instruction[i]->samplerType;
 				}
 			}
 
 			bool interpolant[10][4] = {false};   // Interpolants in use
 
-			for(int i = 0; i < length; i++)
+			for(unsigned int i = 0; i < instruction.size(); i++)
 			{
-				if(instruction[i]->getDestinationParameter().type == Instruction::SourceParameter::PARAMETER_TEXTURE)
+				if(instruction[i]->dst.type == Shader::PARAMETER_TEXTURE)
 				{	
-					int index = instruction[i]->getDestinationParameter().index + 2;
-					int mask = instruction[i]->getDestinationParameter().mask;
+					int index = instruction[i]->dst.index + 2;
+					int mask = instruction[i]->dst.mask;
 
-					switch(instruction[i]->getOpcode())
+					switch(instruction[i]->opcode)
 					{
-					case Instruction::Operation::OPCODE_TEX:
-					case Instruction::Operation::OPCODE_TEXBEM:
-					case Instruction::Operation::OPCODE_TEXBEML:
-					case Instruction::Operation::OPCODE_TEXCOORD:
-					case Instruction::Operation::OPCODE_TEXDP3:
-					case Instruction::Operation::OPCODE_TEXDP3TEX:
-					case Instruction::Operation::OPCODE_TEXM3X2DEPTH:
-					case Instruction::Operation::OPCODE_TEXM3X2PAD:
-					case Instruction::Operation::OPCODE_TEXM3X2TEX:
-					case Instruction::Operation::OPCODE_TEXM3X3:
-					case Instruction::Operation::OPCODE_TEXM3X3PAD:
-					case Instruction::Operation::OPCODE_TEXM3X3TEX:
+					case Shader::OPCODE_TEX:
+					case Shader::OPCODE_TEXBEM:
+					case Shader::OPCODE_TEXBEML:
+					case Shader::OPCODE_TEXCOORD:
+					case Shader::OPCODE_TEXDP3:
+					case Shader::OPCODE_TEXDP3TEX:
+					case Shader::OPCODE_TEXM3X2DEPTH:
+					case Shader::OPCODE_TEXM3X2PAD:
+					case Shader::OPCODE_TEXM3X2TEX:
+					case Shader::OPCODE_TEXM3X3:
+					case Shader::OPCODE_TEXM3X3PAD:
+					case Shader::OPCODE_TEXM3X3TEX:
 						interpolant[index][0] = true;
 						interpolant[index][1] = true;
 						interpolant[index][2] = true;
 						break;
-					case Instruction::Operation::OPCODE_TEXKILL:
+					case Shader::OPCODE_TEXKILL:
 						if(majorVersion < 2)
 						{
 							interpolant[index][0] = true;
@@ -255,7 +258,7 @@ namespace sw
 							interpolant[index][3] = true;
 						}
 						break;
-					case Instruction::Operation::OPCODE_TEXM3X3VSPEC:
+					case Shader::OPCODE_TEXM3X3VSPEC:
 						interpolant[index][0] = true;
 						interpolant[index][1] = true;
 						interpolant[index][2] = true;
@@ -263,7 +266,7 @@ namespace sw
 						interpolant[index - 1][3] = true;
 						interpolant[index - 0][3] = true;
 						break;
-					case Instruction::Operation::OPCODE_DCL:
+					case Shader::OPCODE_DCL:
 						break;   // Ignore
 					default:   // Arithmetic instruction
 						if(version >= 0x0104)
@@ -275,32 +278,32 @@ namespace sw
 
 				for(int argument = 0; argument < 4; argument++)
 				{
-					if(instruction[i]->getSourceParameter(argument).type == Instruction::SourceParameter::PARAMETER_INPUT ||
-					   instruction[i]->getSourceParameter(argument).type == Instruction::SourceParameter::PARAMETER_TEXTURE)
+					if(instruction[i]->src[argument].type == Shader::PARAMETER_INPUT ||
+					   instruction[i]->src[argument].type == Shader::PARAMETER_TEXTURE)
 					{
-						int index = instruction[i]->getSourceParameter(argument).index;
-						int swizzle = instruction[i]->getSourceParameter(argument).swizzle;
-						int mask = instruction[i]->getDestinationParameter().mask;
+						int index = instruction[i]->src[argument].index;
+						int swizzle = instruction[i]->src[argument].swizzle;
+						int mask = instruction[i]->dst.mask;
 						
-						if(instruction[i]->getSourceParameter(argument).type == Instruction::SourceParameter::PARAMETER_TEXTURE)
+						if(instruction[i]->src[argument].type == Shader::PARAMETER_TEXTURE)
 						{
 							index += 2;
 						}
 
-						switch(instruction[i]->getOpcode())
+						switch(instruction[i]->opcode)
 						{
-						case Instruction::Operation::OPCODE_TEX:
-						case Instruction::Operation::OPCODE_TEXLDD:
-						case Instruction::Operation::OPCODE_TEXLDL:
+						case Shader::OPCODE_TEX:
+						case Shader::OPCODE_TEXLDD:
+						case Shader::OPCODE_TEXLDL:
 							{
-								int sampler = instruction[i]->getSourceParameter(1).index;
+								int sampler = instruction[i]->src[1].index;
 
 								switch(samplerType[sampler])
 								{
-								case Instruction::Operation::SAMPLER_UNKNOWN:
+								case Shader::SAMPLER_UNKNOWN:
 									if(version == 0x0104)
 									{
-										if((instruction[i]->getSourceParameter(0).swizzle & 0x30) == 0x20)   // .xyz
+										if((instruction[i]->src[0].swizzle & 0x30) == 0x20)   // .xyz
 										{
 											interpolant[index][0] = true;
 											interpolant[index][1] = true;
@@ -318,19 +321,19 @@ namespace sw
 										ASSERT(false);
 									}
 									break;
-								case Instruction::Operation::SAMPLER_1D:
+								case Shader::SAMPLER_1D:
 									interpolant[index][0] = true;
 									break;
-								case Instruction::Operation::SAMPLER_2D:
+								case Shader::SAMPLER_2D:
 									interpolant[index][0] = true;
 									interpolant[index][1] = true;
 									break;
-								case Instruction::Operation::SAMPLER_CUBE:
+								case Shader::SAMPLER_CUBE:
 									interpolant[index][0] = true;
 									interpolant[index][1] = true;
 									interpolant[index][2] = true;
 									break;
-								case Instruction::Operation::SAMPLER_VOLUME:
+								case Shader::SAMPLER_VOLUME:
 									interpolant[index][0] = true;
 									interpolant[index][1] = true;
 									interpolant[index][2] = true;
@@ -339,31 +342,31 @@ namespace sw
 									ASSERT(false);
 								}
 
-								if(instruction[i]->isBias())
+								if(instruction[i]->bias)
 								{
 									interpolant[index][3] = true;
 								}
 
-								if(instruction[i]->isProject())
+								if(instruction[i]->project)
 								{
 									interpolant[index][3] = true;
 								}
 
-								if(version == 0x0104 && instruction[i]->getOpcode() == Instruction::Operation::OPCODE_TEX)
+								if(version == 0x0104 && instruction[i]->opcode == Shader::OPCODE_TEX)
 								{
-									if(instruction[i]->getSourceParameter(0).modifier == Instruction::SourceParameter::MODIFIER_DZ)
+									if(instruction[i]->src[0].modifier == Shader::MODIFIER_DZ)
 									{
 										interpolant[index][2] = true;
 									}
 
-									if(instruction[i]->getSourceParameter(0).modifier == Instruction::SourceParameter::MODIFIER_DW)
+									if(instruction[i]->src[0].modifier == Shader::MODIFIER_DW)
 									{
 										interpolant[index][3] = true;
 									}
 								}
 							}
 							break;
-						case Instruction::Operation::OPCODE_M3X2:
+						case Shader::OPCODE_M3X2:
 							if(mask & 0x1)
 							{
 								interpolant[index][0] |= swizzleContainsComponentMasked(swizzle, 0, 0x7);
@@ -383,7 +386,7 @@ namespace sw
 								}
 							}
 							break;
-						case Instruction::Operation::OPCODE_M3X3:
+						case Shader::OPCODE_M3X3:
 							if(mask & 0x1)
 							{
 								interpolant[index][0] |= swizzleContainsComponentMasked(swizzle, 0, 0x7);
@@ -411,7 +414,7 @@ namespace sw
 								}
 							}
 							break;
-						case Instruction::Operation::OPCODE_M3X4:
+						case Shader::OPCODE_M3X4:
 							if(mask & 0x1)
 							{
 								interpolant[index][0] |= swizzleContainsComponentMasked(swizzle, 0, 0x7);
@@ -447,7 +450,7 @@ namespace sw
 								}
 							}
 							break;
-						case Instruction::Operation::OPCODE_M4X3:
+						case Shader::OPCODE_M4X3:
 							if(mask & 0x1)
 							{
 								interpolant[index][0] |= swizzleContainsComponent(swizzle, 0);
@@ -475,7 +478,7 @@ namespace sw
 								}
 							}
 							break;
-						case Instruction::Operation::OPCODE_M4X4:
+						case Shader::OPCODE_M4X4:
 							if(mask & 0x1)
 							{
 								interpolant[index][0] |= swizzleContainsComponent(swizzle, 0);
@@ -511,7 +514,7 @@ namespace sw
 								}
 							}
 							break;
-						case Instruction::Operation::OPCODE_CRS:
+						case Shader::OPCODE_CRS:
 							if(mask & 0x1)
 							{
 								interpolant[index][0] |= swizzleContainsComponentMasked(swizzle, 0, 0x6);
@@ -536,7 +539,7 @@ namespace sw
 								interpolant[index][3] |= swizzleContainsComponentMasked(swizzle, 3, 0x3);
 							}
 							break;
-						case Instruction::Operation::OPCODE_DP2ADD:
+						case Shader::OPCODE_DP2ADD:
 							if(argument == 0 || argument == 1)
 							{
 								interpolant[index][0] |= swizzleContainsComponentMasked(swizzle, 0, 0x3);
@@ -552,81 +555,81 @@ namespace sw
 								interpolant[index][3] |= swizzleContainsComponent(swizzle, 3);
 							}
 							break;
-						case Instruction::Operation::OPCODE_DP3:
+						case Shader::OPCODE_DP3:
 							interpolant[index][0] |= swizzleContainsComponentMasked(swizzle, 0, 0x7);
 							interpolant[index][1] |= swizzleContainsComponentMasked(swizzle, 1, 0x7);
 							interpolant[index][2] |= swizzleContainsComponentMasked(swizzle, 2, 0x7);
 							interpolant[index][3] |= swizzleContainsComponentMasked(swizzle, 3, 0x7);
 							break;
-						case Instruction::Operation::OPCODE_DP4:
+						case Shader::OPCODE_DP4:
 							interpolant[index][0] |= swizzleContainsComponent(swizzle, 0);
 							interpolant[index][1] |= swizzleContainsComponent(swizzle, 1);
 							interpolant[index][2] |= swizzleContainsComponent(swizzle, 2);
 							interpolant[index][3] |= swizzleContainsComponent(swizzle, 3);
 							break;
-						case Instruction::Operation::OPCODE_SINCOS:
-						case Instruction::Operation::OPCODE_EXP:
-						case Instruction::Operation::OPCODE_LOG:
-						case Instruction::Operation::OPCODE_POW:
-						case Instruction::Operation::OPCODE_RCP:
-						case Instruction::Operation::OPCODE_RSQ:
+						case Shader::OPCODE_SINCOS:
+						case Shader::OPCODE_EXP2X:
+						case Shader::OPCODE_LOG2X:
+						case Shader::OPCODE_POWX:
+						case Shader::OPCODE_RCPX:
+						case Shader::OPCODE_RSQX:
 							interpolant[index][0] |= swizzleContainsComponent(swizzle, 0);
 							interpolant[index][1] |= swizzleContainsComponent(swizzle, 1);
 							interpolant[index][2] |= swizzleContainsComponent(swizzle, 2);
 							interpolant[index][3] |= swizzleContainsComponent(swizzle, 3);
 							break;
-						case Instruction::Operation::OPCODE_NRM:
+						case Shader::OPCODE_NRM3:
 							interpolant[index][0] |= swizzleContainsComponentMasked(swizzle, 0, 0x7 | mask);
 							interpolant[index][1] |= swizzleContainsComponentMasked(swizzle, 1, 0x7 | mask);
 							interpolant[index][2] |= swizzleContainsComponentMasked(swizzle, 2, 0x7 | mask);
 							interpolant[index][3] |= swizzleContainsComponentMasked(swizzle, 3, 0x7 | mask);
 							break;
-						case Instruction::Operation::OPCODE_MOV:
-						case Instruction::Operation::OPCODE_ADD:
-						case Instruction::Operation::OPCODE_SUB:
-						case Instruction::Operation::OPCODE_MUL:
-						case Instruction::Operation::OPCODE_MAD:
-						case Instruction::Operation::OPCODE_ABS:
-						case Instruction::Operation::OPCODE_CMP:
-						case Instruction::Operation::OPCODE_CND:
-						case Instruction::Operation::OPCODE_FRC:
-						case Instruction::Operation::OPCODE_LRP:
-						case Instruction::Operation::OPCODE_MAX:
-						case Instruction::Operation::OPCODE_MIN:
-						case Instruction::Operation::OPCODE_SETP:
-						case Instruction::Operation::OPCODE_BREAKC:
-						case Instruction::Operation::OPCODE_DSX:
-						case Instruction::Operation::OPCODE_DSY:
+						case Shader::OPCODE_MOV:
+						case Shader::OPCODE_ADD:
+						case Shader::OPCODE_SUB:
+						case Shader::OPCODE_MUL:
+						case Shader::OPCODE_MAD:
+						case Shader::OPCODE_ABS:
+						case Shader::OPCODE_CMP0:
+						case Shader::OPCODE_CND:
+						case Shader::OPCODE_FRC:
+						case Shader::OPCODE_LRP:
+						case Shader::OPCODE_MAX:
+						case Shader::OPCODE_MIN:
+						case Shader::OPCODE_CMP:
+						case Shader::OPCODE_BREAKC:
+						case Shader::OPCODE_DFDX:
+						case Shader::OPCODE_DFDY:
 							interpolant[index][0] |= swizzleContainsComponentMasked(swizzle, 0, mask);
 							interpolant[index][1] |= swizzleContainsComponentMasked(swizzle, 1, mask);
 							interpolant[index][2] |= swizzleContainsComponentMasked(swizzle, 2, mask);
 							interpolant[index][3] |= swizzleContainsComponentMasked(swizzle, 3, mask);
 							break;
-						case Instruction::Operation::OPCODE_TEXCOORD:
+						case Shader::OPCODE_TEXCOORD:
 							interpolant[index][0] = true;
 							interpolant[index][1] = true;
 							interpolant[index][2] = true;
 							interpolant[index][3] = true;
 							break;
-						case Instruction::Operation::OPCODE_TEXDP3:
-						case Instruction::Operation::OPCODE_TEXDP3TEX:
-						case Instruction::Operation::OPCODE_TEXM3X2PAD:
-						case Instruction::Operation::OPCODE_TEXM3X3PAD:
-						case Instruction::Operation::OPCODE_TEXM3X2TEX:
-						case Instruction::Operation::OPCODE_TEXM3X3SPEC:
-						case Instruction::Operation::OPCODE_TEXM3X3VSPEC:
-						case Instruction::Operation::OPCODE_TEXBEM:
-						case Instruction::Operation::OPCODE_TEXBEML:
-						case Instruction::Operation::OPCODE_TEXM3X2DEPTH:
-						case Instruction::Operation::OPCODE_TEXM3X3:
-						case Instruction::Operation::OPCODE_TEXM3X3TEX:
+						case Shader::OPCODE_TEXDP3:
+						case Shader::OPCODE_TEXDP3TEX:
+						case Shader::OPCODE_TEXM3X2PAD:
+						case Shader::OPCODE_TEXM3X3PAD:
+						case Shader::OPCODE_TEXM3X2TEX:
+						case Shader::OPCODE_TEXM3X3SPEC:
+						case Shader::OPCODE_TEXM3X3VSPEC:
+						case Shader::OPCODE_TEXBEM:
+						case Shader::OPCODE_TEXBEML:
+						case Shader::OPCODE_TEXM3X2DEPTH:
+						case Shader::OPCODE_TEXM3X3:
+						case Shader::OPCODE_TEXM3X3TEX:
 							interpolant[index][0] = true;
 							interpolant[index][1] = true;
 							interpolant[index][2] = true;
 							break;
-						case Instruction::Operation::OPCODE_TEXREG2AR:
-						case Instruction::Operation::OPCODE_TEXREG2GB:
-						case Instruction::Operation::OPCODE_TEXREG2RGB:
+						case Shader::OPCODE_TEXREG2AR:
+						case Shader::OPCODE_TEXREG2GB:
+						case Shader::OPCODE_TEXREG2RGB:
 							break;
 						default:
 						//	ASSERT(false);   // Refine component usage
@@ -652,40 +655,25 @@ namespace sw
 		}
 		else   // Shader Model 3.0 input declaration; v# indexable
 		{
-			for(int i = 0; i < length; i++)
+			for(unsigned int i = 0; i < instruction.size(); i++)
 			{
-				if(instruction[i]->getOpcode() == ShaderOperation::OPCODE_DCL)
+				if(instruction[i]->opcode == Shader::OPCODE_DCL)
 				{
-					if(instruction[i]->getDestinationParameter().type == ShaderParameter::PARAMETER_INPUT)
+					if(instruction[i]->dst.type == Shader::PARAMETER_INPUT)
 					{
-						unsigned char usage = instruction[i]->getUsage();
-						unsigned char index = instruction[i]->getUsageIndex();
-						unsigned char mask = instruction[i]->getDestinationParameter().mask;
-						unsigned char reg = instruction[i]->getDestinationParameter().index;
+						unsigned char usage = instruction[i]->usage;
+						unsigned char index = instruction[i]->usageIndex;
+						unsigned char mask = instruction[i]->dst.mask;
+						unsigned char reg = instruction[i]->dst.index;
 
-						if(mask & 0x01)
-						{
-							semantic[reg][0] = Semantic(usage, index);
-						}
-
-						if(mask & 0x02)
-						{
-							semantic[reg][1] = Semantic(usage, index);
-						}
-
-						if(mask & 0x04)
-						{
-							semantic[reg][2] = Semantic(usage, index);
-						}
-
-						if(mask & 0x08)
-						{
-							semantic[reg][3] = Semantic(usage, index);
-						}
+						if(mask & 0x01)	semantic[reg][0] = Semantic(usage, index);
+						if(mask & 0x02) semantic[reg][1] = Semantic(usage, index);
+						if(mask & 0x04) semantic[reg][2] = Semantic(usage, index);
+						if(mask & 0x08)	semantic[reg][3] = Semantic(usage, index);
 					}
-					else if(instruction[i]->getDestinationParameter().type == ShaderParameter::PARAMETER_MISCTYPE)
+					else if(instruction[i]->dst.type == Shader::PARAMETER_MISCTYPE)
 					{
-						unsigned char index = instruction[i]->getDestinationParameter().index;
+						unsigned char index = instruction[i]->dst.index;
 
 						if(index == 0)
 						{
@@ -703,19 +691,19 @@ namespace sw
 
 		if(version >= 0x0200)
 		{
-			for(int i = 0; i < length; i++)
+			for(unsigned int i = 0; i < instruction.size(); i++)
 			{
-				if(instruction[i]->getOpcode() == ShaderOperation::OPCODE_DCL)
+				if(instruction[i]->opcode == Shader::OPCODE_DCL)
 				{
-					bool centroid = instruction[i]->getDestinationParameter().centroid;
-					unsigned char reg = instruction[i]->getDestinationParameter().index;
+					bool centroid = instruction[i]->dst.centroid;
+					unsigned char reg = instruction[i]->dst.index;
 
-					switch(instruction[i]->getDestinationParameter().type)
+					switch(instruction[i]->dst.type)
 					{
-					case ShaderParameter::PARAMETER_INPUT:
+					case Shader::PARAMETER_INPUT:
 						semantic[reg][0].centroid = centroid;
 						break;
-					case ShaderParameter::PARAMETER_TEXTURE:
+					case Shader::PARAMETER_TEXTURE:
 						semantic[2 + reg][0].centroid = centroid;
 						break;
 					}

@@ -78,10 +78,9 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BrowseInformation>true</BrowseInformation>
-      <ExceptionHandling>Sync</ExceptionHandling>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>dwmapi.lib;dxguid.lib;WS2_32.lib;D3dx9.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dwmapi.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>libGLESv2.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -114,10 +113,9 @@ copy "$(OutDir)libGLESv2.lib" "$(ProjectDir)..\..\lib\$(Configuration)\"
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
-      <ExceptionHandling>Sync</ExceptionHandling>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>dwmapi.lib;dxguid.lib;WS2_32.lib;D3dx9.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dwmapi.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <ModuleDefinitionFile>libGLESv2.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -146,16 +144,15 @@ copy "$(OutDir)libGLESv2.lib" "$(ProjectDir)..\..\lib\$(Configuration)\"
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>
-      </DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>dwmapi.lib;dxguid.lib;WS2_32.lib;D3dx9.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dwmapi.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <ModuleDefinitionFile>libGLESv2.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -187,6 +184,7 @@ copy "$(OutDir)libGLESv2.lib" "$(ProjectDir)..\..\lib\$(Configuration)\"
     <ClCompile Include="libGLESv2.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Program.cpp" />
+    <ClCompile Include="Query.cpp" />
     <ClCompile Include="RefCountObject.cpp" />
     <ClCompile Include="Renderbuffer.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
@@ -197,20 +195,21 @@ copy "$(OutDir)libGLESv2.lib" "$(ProjectDir)..\..\lib\$(Configuration)\"
     <ClCompile Include="VertexDataManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\GLES2\gl2.h" />
+    <ClInclude Include="..\include\GLES2\gl2ext.h" />
+    <ClInclude Include="..\include\GLES2\gl2platform.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Context.h" />
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="Fence.h" />
     <ClInclude Include="Framebuffer.h" />
-    <ClInclude Include="..\..\include\GLES2\gl2.h" />
-    <ClInclude Include="..\..\include\GLES2\gl2ext.h" />
-    <ClInclude Include="..\..\include\GLES2\gl2platform.h" />
     <ClInclude Include="HandleAllocator.h" />
     <ClInclude Include="Image.hpp" />
     <ClInclude Include="IndexDataManager.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="mathutil.h" />
     <ClInclude Include="Program.h" />
+    <ClInclude Include="Query.h" />
     <ClInclude Include="RefCountObject.h" />
     <ClInclude Include="Renderbuffer.h" />
     <ClInclude Include="resource.h" />
@@ -219,7 +218,6 @@ copy "$(OutDir)libGLESv2.lib" "$(ProjectDir)..\..\lib\$(Configuration)\"
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Unknown.hpp" />
     <ClInclude Include="utilities.h" />
-    <ClInclude Include="..\common\version.h" />
     <ClInclude Include="VertexDataManager.h" />
   </ItemGroup>
   <ItemGroup>
@@ -229,55 +227,16 @@ copy "$(OutDir)libGLESv2.lib" "$(ProjectDir)..\..\lib\$(Configuration)\"
     <ResourceCompile Include="libGLESv2.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\LLVM\win32\Analysis\Analysis.vcxproj">
-      <Project>{0622e827-8464-489d-8b1c-b0b496f35c08}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LLVM\win32\CodeGen\CodeGen.vcxproj">
-      <Project>{08ceb1bb-c2a4-4587-b9a9-aedb8fb44897}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LLVM\win32\ExecutionEngine\ExecutionEngine.vcxproj">
-      <Project>{76295ae8-a083-460e-9f80-6f2b8923264a}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LLVM\win32\MC\MC.vcxproj">
-      <Project>{12d00cfa-e393-4857-a436-c7324849de51}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LLVM\win32\Support\Support.vcxproj">
-      <Project>{28aa9146-3482-4f41-9cc6-407b1d258508}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LLVM\win32\System\System.vcxproj">
-      <Project>{0f8407f3-fa23-4cf1-83a9-dcbe0b361489}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LLVM\win32\TableGen\TableGen.vcxproj">
-      <Project>{339c2249-26b6-4172-b484-85653029af57}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LLVM\win32\Target\Target.vcxproj">
-      <Project>{059fbab8-c76d-48a0-aa75-3c57bd3eafe4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LLVM\win32\Transforms\Transforms.vcxproj">
-      <Project>{c59374c1-9fc0-4147-b836-327dfdc52d99}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LLVM\win32\VMCore\VMCore.vcxproj">
-      <Project>{45cd78d7-c5d9-47fe-ad12-f3251eedaffb}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\LLVM\win32\x86\x86.vcxproj">
-      <Project>{144eebf6-8c9b-4473-b715-2c821666af6c}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Reactor\Reactor.vcxproj">
-      <Project>{28fd076d-10b5-4bd8-a4cf-f44c7002a803}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\SwiftShader\SwiftShader.vcxproj">
       <Project>{7b02cb19-4cdf-4f79-bc9b-7f3f6164a003}</Project>
       <Private>true</Private>
       <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
       <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\compiler\translator_common.vcxproj">
+    <ProjectReference Include="..\compiler\Compiler.vcxproj">
       <Project>{5b3a6db8-1e7e-40d7-92b9-da8aae619fad}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\compiler\translator_hlsl.vcxproj">
-      <Project>{5620f0e4-6c43-49bc-a178-b804e1a0c3a7}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

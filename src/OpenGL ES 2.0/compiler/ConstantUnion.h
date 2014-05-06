@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2012 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -23,6 +23,19 @@ public:
     int getIConst() const { return iConst; }
     float getFConst() const { return fConst; }
     bool getBConst() const { return bConst; }
+
+	float getAsFloat()
+	{
+		const int FFFFFFFFh = 0xFFFFFFFF;
+
+		switch(type)
+		{
+        case EbtInt:   return (float)iConst;
+        case EbtFloat: return fConst;
+		case EbtBool:  return (bConst == true) ? (float&)FFFFFFFFh : 0;
+        default:       return 0;
+        }
+	}
 
     bool operator==(const int i) const
     {

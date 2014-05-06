@@ -1,6 +1,6 @@
 Index: include/llvm/Function.h
 ===================================================================
---- include/llvm/Function.h	(revision 3005)
+--- include/llvm/Function.h	(revision 3710)
 +++ include/llvm/Function.h	(working copy)
 @@ -93,6 +93,8 @@
    // The Calling Convention is stored in Value::SubclassData.
@@ -20,11 +20,11 @@ Index: include/llvm/Function.h
    
    Function(const Function&); // DO NOT IMPLEMENT
    void operator=(const Function&); // DO NOT IMPLEMENT
-@@ -152,8 +156,8 @@
+@@ -146,8 +150,8 @@
    /// The particular intrinsic functions which correspond to this value are
    /// defined in llvm/Intrinsics.h.
    ///
--  unsigned getIntrinsicID() const ATTRIBUTE_READONLY;
+-  unsigned getIntrinsicID() const LLVM_ATTRIBUTE_READONLY;
 -  bool isIntrinsic() const { return getIntrinsicID() != 0; }
 +  unsigned getIntrinsicID() const { return intrinsicID; }
 +  bool isIntrinsic() const { return intrinsicID != 0; }
@@ -33,9 +33,9 @@ Index: include/llvm/Function.h
    /// calling convention of this function.  The enum values for the known
 Index: lib/VMCore/Function.cpp
 ===================================================================
---- lib/VMCore/Function.cpp	(revision 3005)
+--- lib/VMCore/Function.cpp	(revision 3710)
 +++ lib/VMCore/Function.cpp	(working copy)
-@@ -169,9 +169,9 @@
+@@ -178,9 +178,9 @@
      ParentModule->getFunctionList().push_back(this);
  
    // Ensure intrinsics have the right parameter attributes.

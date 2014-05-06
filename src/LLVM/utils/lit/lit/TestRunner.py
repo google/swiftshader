@@ -8,6 +8,8 @@ import Util
 import platform
 import tempfile
 
+import re
+
 class InternalShellError(Exception):
     def __init__(self, command, message):
         self.command = command
@@ -178,6 +180,13 @@ def executeShCmd(cmd, cfg, cwd, results):
         else:
             input = subprocess.PIPE
 
+    # Explicitly close any redirected files. We need to do this now because we
+    # need to release any handles we may have on the temporary files (important
+    # on Win32, for example). Since we have already spawned the subprocess, our
+    # handles have already been transferred so we do not need them anymore.
+    for f in opened_files:
+        f.close()
+
     # FIXME: There is probably still deadlock potential here. Yawn.
     procData = [None] * len(procs)
     procData[-1] = procs[-1].communicate()
@@ -214,10 +223,6 @@ def executeShCmd(cmd, cfg, cwd, results):
                 exitCode = max(exitCode, res)
         else:
             exitCode = res
-
-    # Explicitly close any redirected files.
-    for f in opened_files:
-        f.close()
 
     # Remove any named temporary files we created.
     for f in named_temp_files:
@@ -332,23 +337,28 @@ def executeTclScriptInternal(test, litConfig, tmpBase, commands, cwd):
     return out, err, exitCode
 
 def executeScript(test, litConfig, tmpBase, commands, cwd):
+    bashPath = litConfig.getBashPath();
+    isWin32CMDEXE = (litConfig.isWindows and not bashPath)
     script = tmpBase + '.script'
-    if litConfig.isWindows:
+    if isWin32CMDEXE:
         script += '.bat'
 
     # Write script file
     f = open(script,'w')
-    if litConfig.isWindows:
+    if isWin32CMDEXE:
         f.write('\nif %ERRORLEVEL% NEQ 0 EXIT\n'.join(commands))
     else:
         f.write(' &&\n'.join(commands))
     f.write('\n')
     f.close()
 
-    if litConfig.isWindows:
+    if isWin32CMDEXE:
         command = ['cmd','/c', script]
     else:
-        command = ['/bin/sh', script]
+        if bashPath:
+            command = [bashPath, script]
+        else:
+            command = ['/bin/sh', script]
         if litConfig.useValgrind:
             # FIXME: Running valgrind on sh is overkill. We probably could just
             # run on clang with no real loss.
@@ -387,7 +397,8 @@ def parseIntegratedTestScript(test, normalize_slashes=False):
     sourcedir = os.path.dirname(sourcepath)
     execpath = test.getExecPath()
     execdir,execbase = os.path.split(execpath)
-    tmpBase = os.path.join(execdir, 'Output', execbase)
+    tmpDir = os.path.join(execdir, 'Output')
+    tmpBase = os.path.join(tmpDir, execbase)
     if test.index is not None:
         tmpBase += '_%d' % test.index
 
@@ -395,6 +406,7 @@ def parseIntegratedTestScript(test, normalize_slashes=False):
     if normalize_slashes:
         sourcepath = sourcepath.replace('\\', '/')
         sourcedir = sourcedir.replace('\\', '/')
+        tmpDir = tmpDir.replace('\\', '/')
         tmpBase = tmpBase.replace('\\', '/')
 
     # We use #_MARKER_# to hide %% while we do the other substitutions.
@@ -404,6 +416,7 @@ def parseIntegratedTestScript(test, normalize_slashes=False):
                           ('%S', sourcedir),
                           ('%p', sourcedir),
                           ('%t', tmpBase + '.tmp'),
+                          ('%T', tmpDir),
                           # FIXME: Remove this once we kill DejaGNU.
                           ('%abs_tmp', tmpBase + '.tmp'),
                           ('#_MARKER_#', '%')])
@@ -441,11 +454,15 @@ def parseIntegratedTestScript(test, normalize_slashes=False):
             if ln[ln.index('END.'):].strip() == 'END.':
                 break
 
-    # Apply substitutions to the script.
+    # Apply substitutions to the script.  Allow full regular
+    # expression syntax.  Replace each matching occurrence of regular
+    # expression pattern a with substitution b in line ln.
     def processLine(ln):
         # Apply substitutions
         for a,b in substitutions:
-            ln = ln.replace(a,b)
+            if kIsWindows:
+                b = b.replace("\\","\\\\")
+            ln = re.sub(a, b, ln)
 
         # Strip the trailing newline and any extra whitespace.
         return ln.strip()
@@ -519,13 +536,13 @@ def executeTclTest(test, litConfig):
     # considered to fail if there is any standard error output.
     out,err,exitCode = res
     if isXFail:
-        ok = exitCode != 0 or err
+        ok = exitCode != 0 or err and not litConfig.ignoreStdErr
         if ok:
             status = Test.XFAIL
         else:
             status = Test.XPASS
     else:
-        ok = exitCode == 0 and not err
+        ok = exitCode == 0 and (not err or litConfig.ignoreStdErr)
         if ok:
             status = Test.PASS
         else:
@@ -536,7 +553,7 @@ def executeTclTest(test, litConfig):
 
     # Set a flag for formatTestOutput so it can explain why the test was
     # considered to have failed, despite having an exit code of 0.
-    failDueToStderr = exitCode == 0 and err
+    failDueToStderr = exitCode == 0 and err and not litConfig.ignoreStdErr
 
     return formatTestOutput(status, out, err, exitCode, failDueToStderr, script)
 
@@ -544,7 +561,7 @@ def executeShTest(test, litConfig, useExternalSh):
     if test.config.unsupported:
         return (Test.UNSUPPORTED, 'Test is unsupported')
 
-    res = parseIntegratedTestScript(test)
+    res = parseIntegratedTestScript(test, useExternalSh)
     if len(res) == 2:
         return res
 

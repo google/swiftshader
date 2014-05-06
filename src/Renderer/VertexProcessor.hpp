@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -18,7 +18,6 @@
 
 namespace sw
 {
-	class Viewport;
 	class Routine;
 	struct DrawData;
 
@@ -45,7 +44,7 @@ namespace sw
 		{
 			unsigned int computeHash();
 
-			uint64_t shaderHash;
+			uint64_t shaderID;
 
 			unsigned int fixedFunction						: 1;
 			unsigned int shaderContainsTexldl				: 1;
@@ -73,7 +72,6 @@ namespace sw
 			unsigned int pointScaleActive					: 1;
 
 			unsigned int preTransformed						: 1;
-			unsigned int postTransform						: 1;
 			unsigned int superSampling						: 1;
 			unsigned int multiSampling						: 1;
 
@@ -290,6 +288,7 @@ namespace sw
 		Context *const context;
 
 		LRUCache<State, Routine> *routineCache;
+		HMODULE precacheDLL;
 
 	protected:
 		Matrix M[12];      // Model/Geometry/World matrix

@@ -162,7 +162,7 @@ namespace sw
 
 	bool CPUID::detectMMX()
 	{
-		#if defined(_WIN32)
+		#if defined(_WIN32) && _M_IX86 >= 500
 			int registers[4];
 			__cpuid(registers, 1);
 			return MMX = (registers[3] & 0x00800000) != 0;
@@ -179,7 +179,7 @@ namespace sw
 
 	bool CPUID::detectCMOV()
 	{
-		#if defined(_WIN32)
+		#if defined(_WIN32) && _M_IX86 >= 500
 			int registers[4];
 			__cpuid(registers, 1);
 			return CMOV = (registers[3] & 0x00008000) != 0;
@@ -196,7 +196,7 @@ namespace sw
 
 	bool CPUID::detectSSE()
 	{
-		#if defined(_WIN32)
+		#if defined(_WIN32) && _M_IX86 >= 500
 			int registers[4];
 			__cpuid(registers, 1);
 			return SSE = (registers[3] & 0x02000000) != 0;
@@ -213,7 +213,7 @@ namespace sw
 
 	bool CPUID::detectSSE2()
 	{
-		#if defined(_WIN32)
+		#if defined(_WIN32) && _M_IX86 >= 500
 			int registers[4];
 			__cpuid(registers, 1);
 			return SSE2 = (registers[3] & 0x04000000) != 0;
@@ -230,7 +230,7 @@ namespace sw
 
 	bool CPUID::detectSSE3()
 	{
-		#if defined(_WIN32)
+		#if defined(_WIN32) && _M_IX86 >= 500
 			int registers[4];
 			__cpuid(registers, 1);
 			return SSE3 = (registers[2] & 0x00000001) != 0;
@@ -247,7 +247,7 @@ namespace sw
 
 	bool CPUID::detectSSSE3()
 	{
-		#if defined(_WIN32)
+		#if defined(_WIN32) && _M_IX86 >= 500
 			int registers[4];
 			__cpuid(registers, 1);
 			return SSSE3 = (registers[2] & 0x00000200) != 0;
@@ -264,7 +264,7 @@ namespace sw
 
 	bool CPUID::detectSSE4_1()
 	{
-		#if defined(_WIN32)
+		#if defined(_WIN32) && _M_IX86 >= 500
 			int registers[4];
 			__cpuid(registers, 1);
 			return SSE4_1 = (registers[2] & 0x00080000) != 0;

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2012 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 
 #include "compiler/BaseTypes.h"
 #include "compiler/Common.h"
-#include "compiler/debug.h"
+#include "common/debug.h"
 
 //
 // Need to have association of line numbers to types in a list for building structs.
@@ -168,23 +168,72 @@ public:
     // One-dimensional size of single instance type
     int getNominalSize() const { return size; }
     void setNominalSize(int s) { size = s; }
+
     // Full size of single instance of type
-    int getObjectSize() const
-    {
-        int totalSize;
+	int getObjectSize() const
+	{
+		if(isArray())
+		{
+			return getElementSize() * std::max(getArraySize(), getMaxArraySize());
+		}
+		else
+		{
+			return getElementSize();
+		}
+	}
 
-        if (getBasicType() == EbtStruct)
-            totalSize = getStructSize();
-        else if (matrix)
-            totalSize = size * size;
-        else
-            totalSize = size;
+	int getElementSize() const
+	{
+		if(getBasicType() == EbtStruct)
+		{
+			return getStructSize();
+		}
+		else if(matrix)
+		{
+			return size * size;
+		}
+		else   // Vector or scalar
+		{
+			return size;
+		}
+	}
 
-        if (isArray())
-            totalSize *= std::max(getArraySize(), getMaxArraySize());
+	int elementRegisterCount() const
+	{
+		TTypeList *structure = getStruct();
 
-        return totalSize;
-    }
+		if(structure)
+		{
+			int registerCount = 0;
+
+			for(size_t i = 0; i < structure->size(); i++)
+			{
+				registerCount += (*structure)[i].type->totalRegisterCount();
+			}
+
+			return registerCount;
+		}
+		else if(isMatrix())
+		{
+			return getNominalSize();
+		}
+		else
+		{
+			return 1;
+		}
+	}
+
+	int totalRegisterCount() const
+	{
+		if(array)
+		{
+			return arraySize * elementRegisterCount();
+		}
+		else
+		{
+			return elementRegisterCount();
+		}
+	}
 
     bool isMatrix() const { return matrix ? true : false; }
     void setMatrix(bool m) { matrix = m; }
@@ -200,6 +249,8 @@ public:
 
     bool isVector() const { return size > 1 && !matrix; }
     bool isScalar() const { return size == 1 && !matrix && !structure; }
+	bool isRegister() const { return !matrix && !structure && !array; }   // Fits in a 4-element register
+	bool isStruct() const { return structure != 0; }
 
     TTypeList* getStruct() const { return structure; }
     void setStruct(TTypeList* s) { structure = s; }

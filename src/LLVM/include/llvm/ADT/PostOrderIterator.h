@@ -29,6 +29,14 @@ public:
   SetType Visited;
 };
 
+/// DFSetTraits - Allow the SetType used to record depth-first search results to
+/// optionally record node postorder.
+template<class SetType>
+struct DFSetTraits {
+  static void finishPostorder(
+    typename SetType::iterator::value_type, SetType &) {}
+};
+
 template<class SetType>
 class po_iterator_storage<SetType, true> {
 public:
@@ -56,8 +64,7 @@ class po_iterator : public std::iterator<std::forward_iterator_tag,
   void traverseChild() {
     while (VisitStack.back().second != GT::child_end(VisitStack.back().first)) {
       NodeType *BB = *VisitStack.back().second++;
-      if (!this->Visited.count(BB)) {  // If the block is not visited...
-        this->Visited.insert(BB);
+      if (this->Visited.insert(BB)) {  // If the block is not visited...
         VisitStack.push_back(std::make_pair(BB, GT::child_begin(BB)));
       }
     }
@@ -72,8 +79,7 @@ class po_iterator : public std::iterator<std::forward_iterator_tag,
 
   inline po_iterator(NodeType *BB, SetType &S) :
     po_iterator_storage<SetType, ExtStorage>(S) {
-    if(!S.count(BB)) {
-      this->Visited.insert(BB);
+    if (this->Visited.insert(BB)) {
       VisitStack.push_back(std::make_pair(BB, GT::child_begin(BB)));
       traverseChild();
     }
@@ -111,6 +117,8 @@ public:
   inline NodeType *operator->() const { return operator*(); }
 
   inline _Self& operator++() {   // Preincrement
+    DFSetTraits<SetType>::finishPostorder(VisitStack.back().first,
+                                          this->Visited);
     VisitStack.pop_back();
     if (!VisitStack.empty())
       traverseChild();

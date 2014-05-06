@@ -41,8 +41,9 @@ namespace llvm {
       CNTB,                     ///< Count leading ones in bytes
       PREFSLOT2VEC,             ///< Promote scalar->vector
       VEC2PREFSLOT,             ///< Extract element 0
-      SHLQUAD_L_BITS,           ///< Rotate quad left, by bits
-      SHLQUAD_L_BYTES,          ///< Rotate quad left, by bytes
+      SHL_BITS,                 ///< Shift quad left, by bits
+      SHL_BYTES,                ///< Shift quad left, by bytes
+      SRL_BYTES,                ///< Shift quad right, by bytes. Insert zeros.
       VEC_ROTL,                 ///< Vector rotate left
       VEC_ROTR,                 ///< Vector rotate right
       ROTBYTES_LEFT,            ///< Rotate bytes (loads -> ROTQBYI)
@@ -54,8 +55,6 @@ namespace llvm {
       ADD64_MARKER,             ///< i64 addition marker
       SUB64_MARKER,             ///< i64 subtraction marker
       MUL64_MARKER,             ///< i64 multiply marker
-      HALF2VEC,                 ///< Promote 64 bit vector to 128 bits
-      VEC2HALF,                 ///< Extract first 64 bits from 128 bit vector
       LAST_SPUISD               ///< Last user-defined instruction
     };
   }
@@ -108,7 +107,9 @@ namespace llvm {
     virtual const char *getTargetNodeName(unsigned Opcode) const;
 
     /// getSetCCResultType - Return the ValueType for ISD::SETCC
-    virtual MVT::SimpleValueType getSetCCResultType(EVT VT) const;
+    virtual EVT getSetCCResultType(EVT VT) const;
+
+    virtual MVT getShiftAmountTy(EVT LHSTy) const { return MVT::i32; }
 
     //! Custom lowering hooks
     virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const;
@@ -131,23 +132,25 @@ namespace llvm {
 
     ConstraintType getConstraintType(const std::string &ConstraintLetter) const;
 
+    /// Examine constraint string and operand type and determine a weight value.
+    /// The operand object must already have been set up with the operand type.
+    ConstraintWeight getSingleConstraintMatchWeight(
+      AsmOperandInfo &info, const char *constraint) const;
+
     std::pair<unsigned, const TargetRegisterClass*>
       getRegForInlineAsmConstraint(const std::string &Constraint,
                                    EVT VT) const;
 
-    void LowerAsmOperandForConstraint(SDValue Op, char ConstraintLetter,
+    void LowerAsmOperandForConstraint(SDValue Op, std::string &Constraint,
                                       std::vector<SDValue> &Ops,
                                       SelectionDAG &DAG) const;
 
     /// isLegalAddressImmediate - Return true if the integer value can be used
     /// as the offset of the target addressing mode.
-    virtual bool isLegalAddressImmediate(int64_t V, const Type *Ty) const;
+    virtual bool isLegalAddressImmediate(int64_t V, Type *Ty) const;
     virtual bool isLegalAddressImmediate(GlobalValue *) const;
 
     virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
-
-    /// getFunctionAlignment - Return the Log2 alignment of this function.
-    virtual unsigned getFunctionAlignment(const Function *F) const;
 
     virtual SDValue
       LowerFormalArguments(SDValue Chain,
@@ -172,6 +175,11 @@ namespace llvm {
                   const SmallVectorImpl<ISD::OutputArg> &Outs,
                   const SmallVectorImpl<SDValue> &OutVals,
                   DebugLoc dl, SelectionDAG &DAG) const;
+
+    virtual bool isLegalICmpImmediate(int64_t Imm) const;
+
+    virtual bool isLegalAddressingMode(const AddrMode &AM,
+                                       Type *Ty) const;
   };
 }
 

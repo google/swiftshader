@@ -28,8 +28,8 @@
 #include "llvm/Pass.h"
 #include "llvm/Analysis/DebugInfo.h"
 #include "llvm/ValueSymbolTable.h"
-#include "llvm/TypeSymbolTable.h"
 #include "llvm/Transforms/Utils/Local.h"
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallPtrSet.h"
 using namespace llvm;
 
@@ -39,7 +39,9 @@ namespace {
   public:
     static char ID; // Pass identification, replacement for typeid
     explicit StripSymbols(bool ODI = false) 
-      : ModulePass(ID), OnlyDebugInfo(ODI) {}
+      : ModulePass(ID), OnlyDebugInfo(ODI) {
+        initializeStripSymbolsPass(*PassRegistry::getPassRegistry());
+      }
 
     virtual bool runOnModule(Module &M);
 
@@ -52,7 +54,9 @@ namespace {
   public:
     static char ID; // Pass identification, replacement for typeid
     explicit StripNonDebugSymbols()
-      : ModulePass(ID) {}
+      : ModulePass(ID) {
+        initializeStripNonDebugSymbolsPass(*PassRegistry::getPassRegistry());
+      }
 
     virtual bool runOnModule(Module &M);
 
@@ -65,7 +69,9 @@ namespace {
   public:
     static char ID; // Pass identification, replacement for typeid
     explicit StripDebugDeclare()
-      : ModulePass(ID) {}
+      : ModulePass(ID) {
+        initializeStripDebugDeclarePass(*PassRegistry::getPassRegistry());
+      }
 
     virtual bool runOnModule(Module &M);
 
@@ -78,7 +84,9 @@ namespace {
   public:
     static char ID; // Pass identification, replacement for typeid
     explicit StripDeadDebugInfo()
-      : ModulePass(ID) {}
+      : ModulePass(ID) {
+        initializeStripDeadDebugInfoPass(*PassRegistry::getPassRegistry());
+      }
 
     virtual bool runOnModule(Module &M);
 
@@ -90,7 +98,7 @@ namespace {
 
 char StripSymbols::ID = 0;
 INITIALIZE_PASS(StripSymbols, "strip",
-                "Strip all symbols from a module", false, false);
+                "Strip all symbols from a module", false, false)
 
 ModulePass *llvm::createStripSymbolsPass(bool OnlyDebugInfo) {
   return new StripSymbols(OnlyDebugInfo);
@@ -99,7 +107,7 @@ ModulePass *llvm::createStripSymbolsPass(bool OnlyDebugInfo) {
 char StripNonDebugSymbols::ID = 0;
 INITIALIZE_PASS(StripNonDebugSymbols, "strip-nondebug",
                 "Strip all symbols, except dbg symbols, from a module",
-                false, false);
+                false, false)
 
 ModulePass *llvm::createStripNonDebugSymbolsPass() {
   return new StripNonDebugSymbols();
@@ -107,7 +115,7 @@ ModulePass *llvm::createStripNonDebugSymbolsPass() {
 
 char StripDebugDeclare::ID = 0;
 INITIALIZE_PASS(StripDebugDeclare, "strip-debug-declare",
-                "Strip all llvm.dbg.declare intrinsics", false, false);
+                "Strip all llvm.dbg.declare intrinsics", false, false)
 
 ModulePass *llvm::createStripDebugDeclarePass() {
   return new StripDebugDeclare();
@@ -115,7 +123,7 @@ ModulePass *llvm::createStripDebugDeclarePass() {
 
 char StripDeadDebugInfo::ID = 0;
 INITIALIZE_PASS(StripDeadDebugInfo, "strip-dead-debug-info",
-                "Strip debug info for unused symbols", false, false);
+                "Strip debug info for unused symbols", false, false)
 
 ModulePass *llvm::createStripDeadDebugInfoPass() {
   return new StripDeadDebugInfo();
@@ -135,8 +143,7 @@ static void RemoveDeadConstant(Constant *C) {
   assert(C->use_empty() && "Constant is not dead!");
   SmallPtrSet<Constant*, 4> Operands;
   for (unsigned i = 0, e = C->getNumOperands(); i != e; ++i)
-    if (isa<DerivedType>(C->getOperand(i)->getType()) &&
-        OnlyUsedBy(C->getOperand(i), C)) 
+    if (OnlyUsedBy(C->getOperand(i), C)) 
       Operands.insert(cast<Constant>(C->getOperand(i)));
   if (GlobalVariable *GV = dyn_cast<GlobalVariable>(C)) {
     if (!GV->hasLocalLinkage()) return;   // Don't delete non static globals.
@@ -166,13 +173,19 @@ static void StripSymtab(ValueSymbolTable &ST, bool PreserveDbgInfo) {
   }
 }
 
-// Strip the symbol table of its names.
-static void StripTypeSymtab(TypeSymbolTable &ST, bool PreserveDbgInfo) {
-  for (TypeSymbolTable::iterator TI = ST.begin(), E = ST.end(); TI != E; ) {
-    if (PreserveDbgInfo && StringRef(TI->first).startswith("llvm.dbg"))
-      ++TI;
-    else
-      ST.remove(TI++);
+// Strip any named types of their names.
+static void StripTypeNames(Module &M, bool PreserveDbgInfo) {
+  std::vector<StructType*> StructTypes;
+  M.findUsedStructTypes(StructTypes);
+
+  for (unsigned i = 0, e = StructTypes.size(); i != e; ++i) {
+    StructType *STy = StructTypes[i];
+    if (STy->isLiteral() || STy->getName().empty()) continue;
+    
+    if (PreserveDbgInfo && STy->getName().startswith("llvm.dbg"))
+      continue;
+
+    STy->setName("");
   }
 }
 
@@ -213,7 +226,7 @@ static bool StripSymbolNames(Module &M, bool PreserveDbgInfo) {
   }
   
   // Remove all names from types.
-  StripTypeSymtab(M.getTypeSymbolTable(), PreserveDbgInfo);
+  StripTypeNames(M, PreserveDbgInfo);
 
   return true;
 }
@@ -350,8 +363,8 @@ bool StripDeadDebugInfo::runOnModule(Module &M) {
 
     for (SmallVector<MDNode *, 8>::iterator I = MDs.begin(),
            E = MDs.end(); I != E; ++I) {
-      if (M.getGlobalVariable(DIGlobalVariable(*I).getGlobal()->getName(), 
-                              true)) {
+      GlobalVariable *GV = DIGlobalVariable(*I).getGlobal();
+      if (GV && M.getGlobalVariable(GV->getName(), true)) {
         if (!NMD)
           NMD = M.getOrInsertNamedMetadata("llvm.dbg.gv");
         NMD->addOperand(*I);

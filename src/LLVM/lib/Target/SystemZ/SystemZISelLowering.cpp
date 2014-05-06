@@ -59,9 +59,6 @@ SystemZTargetLowering::SystemZTargetLowering(SystemZTargetMachine &tm) :
   // Compute derived properties from the register classes
   computeRegisterProperties();
 
-  // Set shifts properties
-  setShiftAmountType(MVT::i64);
-
   // Provide all sorts of operation actions
   setLoadExtAction(ISD::SEXTLOAD, MVT::i1, Promote);
   setLoadExtAction(ISD::ZEXTLOAD, MVT::i1, Promote);
@@ -84,6 +81,7 @@ SystemZTargetLowering::SystemZTargetLowering(SystemZTargetMachine &tm) :
   setSchedulingPreference(Sched::RegPressure);
 
   setBooleanContents(ZeroOrOneBooleanContent);
+  setBooleanVectorContents(ZeroOrOneBooleanContent); // FIXME: Is this correct?
 
   setOperationAction(ISD::BR_JT,            MVT::Other, Expand);
   setOperationAction(ISD::BRCOND,           MVT::Other, Expand);
@@ -145,10 +143,12 @@ SystemZTargetLowering::SystemZTargetLowering(SystemZTargetMachine &tm) :
   setOperationAction(ISD::FCOS,             MVT::f64, Expand);
   setOperationAction(ISD::FREM,             MVT::f32, Expand);
   setOperationAction(ISD::FREM,             MVT::f64, Expand);
+  setOperationAction(ISD::FMA,              MVT::f32, Expand);
+  setOperationAction(ISD::FMA,              MVT::f64, Expand);
 
   // We have only 64-bit bitconverts
-  setOperationAction(ISD::BIT_CONVERT,      MVT::f32, Expand);
-  setOperationAction(ISD::BIT_CONVERT,      MVT::i32, Expand);
+  setOperationAction(ISD::BITCAST,          MVT::f32, Expand);
+  setOperationAction(ISD::BITCAST,          MVT::i32, Expand);
 
   setOperationAction(ISD::UINT_TO_FP,       MVT::i32, Expand);
   setOperationAction(ISD::UINT_TO_FP,       MVT::i64, Expand);
@@ -156,6 +156,8 @@ SystemZTargetLowering::SystemZTargetLowering(SystemZTargetMachine &tm) :
   setOperationAction(ISD::FP_TO_UINT,       MVT::i64, Expand);
 
   setTruncStoreAction(MVT::f64, MVT::f32, Expand);
+
+  setMinFunctionAlignment(1);
 }
 
 SDValue SystemZTargetLowering::LowerOperation(SDValue Op,
@@ -292,8 +294,8 @@ SystemZTargetLowering::LowerCCCArguments(SDValue Chain,
 
   // Assign locations to all of the incoming arguments.
   SmallVector<CCValAssign, 16> ArgLocs;
-  CCState CCInfo(CallConv, isVarArg, getTargetMachine(),
-                 ArgLocs, *DAG.getContext());
+  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+		 getTargetMachine(), ArgLocs, *DAG.getContext());
   CCInfo.AnalyzeFormalArguments(Ins, CC_SystemZ);
 
   if (isVarArg)
@@ -341,7 +343,7 @@ SystemZTargetLowering::LowerCCCArguments(SDValue Chain,
       // from this parameter
       SDValue FIN = DAG.getFrameIndex(FI, getPointerTy());
       ArgValue = DAG.getLoad(LocVT, dl, Chain, FIN,
-                             PseudoSourceValue::getFixedStack(FI), 0,
+                             MachinePointerInfo::getFixedStack(FI),
                              false, false, 0);
     }
 
@@ -377,16 +379,16 @@ SystemZTargetLowering::LowerCCCCallTo(SDValue Chain, SDValue Callee,
                                       const SmallVectorImpl<ISD::InputArg> &Ins,
                                       DebugLoc dl, SelectionDAG &DAG,
                                       SmallVectorImpl<SDValue> &InVals) const {
-
   MachineFunction &MF = DAG.getMachineFunction();
+  const TargetFrameLowering *TFI = TM.getFrameLowering();
 
   // Offset to first argument stack slot.
   const unsigned FirstArgOffset = 160;
 
   // Analyze operands of the call, assigning locations to each operand.
   SmallVector<CCValAssign, 16> ArgLocs;
-  CCState CCInfo(CallConv, isVarArg, getTargetMachine(),
-                 ArgLocs, *DAG.getContext());
+  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+		 getTargetMachine(), ArgLocs, *DAG.getContext());
 
   CCInfo.AnalyzeCallOperands(Outs, CC_SystemZ);
 
@@ -431,7 +433,7 @@ SystemZTargetLowering::LowerCCCCallTo(SDValue Chain, SDValue Callee,
       if (StackPtr.getNode() == 0)
         StackPtr =
           DAG.getCopyFromReg(Chain, dl,
-                             (RegInfo->hasFP(MF) ?
+                             (TFI->hasFP(MF) ?
                               SystemZ::R11D : SystemZ::R15D),
                              getPointerTy());
 
@@ -441,7 +443,7 @@ SystemZTargetLowering::LowerCCCCallTo(SDValue Chain, SDValue Callee,
                                    DAG.getIntPtrConstant(Offset));
 
       MemOpChains.push_back(DAG.getStore(Chain, dl, Arg, PtrOff,
-                                         PseudoSourceValue::getStack(), Offset,
+                                         MachinePointerInfo(),
                                          false, false, 0));
     }
   }
@@ -454,7 +456,7 @@ SystemZTargetLowering::LowerCCCCallTo(SDValue Chain, SDValue Callee,
 
   // Build a sequence of copy-to-reg nodes chained together with token chain and
   // flag operands which copy the outgoing args into registers.  The InFlag in
-  // necessary since all emited instructions must be stuck together.
+  // necessary since all emitted instructions must be stuck together.
   SDValue InFlag;
   for (unsigned i = 0, e = RegsToPass.size(); i != e; ++i) {
     Chain = DAG.getCopyToReg(Chain, dl, RegsToPass[i].first,
@@ -471,7 +473,7 @@ SystemZTargetLowering::LowerCCCCallTo(SDValue Chain, SDValue Callee,
     Callee = DAG.getTargetExternalSymbol(E->getSymbol(), getPointerTy());
 
   // Returns a chain & a flag for retval copy to use.
-  SDVTList NodeTys = DAG.getVTList(MVT::Other, MVT::Flag);
+  SDVTList NodeTys = DAG.getVTList(MVT::Other, MVT::Glue);
   SmallVector<SDValue, 8> Ops;
   Ops.push_back(Chain);
   Ops.push_back(Callee);
@@ -514,8 +516,8 @@ SystemZTargetLowering::LowerCallResult(SDValue Chain, SDValue InFlag,
 
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
-  CCState CCInfo(CallConv, isVarArg, getTargetMachine(), RVLocs,
-                 *DAG.getContext());
+  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+		 getTargetMachine(), RVLocs, *DAG.getContext());
 
   CCInfo.AnalyzeCallResult(Ins, RetCC_SystemZ);
 
@@ -559,8 +561,8 @@ SystemZTargetLowering::LowerReturn(SDValue Chain,
   SmallVector<CCValAssign, 16> RVLocs;
 
   // CCState - Info about the registers and stack slot.
-  CCState CCInfo(CallConv, isVarArg, getTargetMachine(),
-                 RVLocs, *DAG.getContext());
+  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+		 getTargetMachine(), RVLocs, *DAG.getContext());
 
   // Analize return values.
   CCInfo.AnalyzeReturn(Outs, RetCC_SystemZ);
@@ -710,7 +712,7 @@ SDValue SystemZTargetLowering::LowerSELECT_CC(SDValue Op,
   SDValue SystemZCC;
   SDValue Flag = EmitCmp(LHS, RHS, CC, SystemZCC, DAG);
 
-  SDVTList VTs = DAG.getVTList(Op.getValueType(), MVT::Flag);
+  SDVTList VTs = DAG.getVTList(Op.getValueType(), MVT::Glue);
   SmallVector<SDValue, 4> Ops;
   Ops.push_back(TrueV);
   Ops.push_back(FalseV);
@@ -747,7 +749,7 @@ SDValue SystemZTargetLowering::LowerGlobalAddress(SDValue Op,
 
   if (ExtraLoadRequired)
     Result = DAG.getLoad(getPointerTy(), dl, DAG.getEntryNode(), Result,
-                         PseudoSourceValue::getGOT(), 0, false, false, 0);
+                         MachinePointerInfo::getGOT(), false, false, 0);
 
   // If there was a non-zero offset that we didn't fold, create an explicit
   // addition for it.

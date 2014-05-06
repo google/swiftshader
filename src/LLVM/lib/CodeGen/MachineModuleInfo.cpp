@@ -17,9 +17,7 @@
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/Passes.h"
-#include "llvm/Target/TargetInstrInfo.h"
-#include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetOptions.h"
+#include "llvm/MC/MCObjectFileInfo.h"
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/ADT/PointerUnion.h"
 #include "llvm/Support/Dwarf.h"
@@ -29,7 +27,7 @@ using namespace llvm::dwarf;
 
 // Handle the Pass registration stuff necessary to use TargetData's.
 INITIALIZE_PASS(MachineModuleInfo, "machinemoduleinfo",
-                "Machine Module Information", false, false);
+                "Machine Module Information", false, false)
 char MachineModuleInfo::ID = 0;
 
 // Out of line virtual method.
@@ -41,30 +39,30 @@ class MMIAddrLabelMapCallbackPtr : CallbackVH {
 public:
   MMIAddrLabelMapCallbackPtr() : Map(0) {}
   MMIAddrLabelMapCallbackPtr(Value *V) : CallbackVH(V), Map(0) {}
-  
+
   void setPtr(BasicBlock *BB) {
     ValueHandleBase::operator=(BB);
   }
-    
+
   void setMap(MMIAddrLabelMap *map) { Map = map; }
-  
+
   virtual void deleted();
   virtual void allUsesReplacedWith(Value *V2);
 };
-  
+
 class MMIAddrLabelMap {
   MCContext &Context;
   struct AddrLabelSymEntry {
     /// Symbols - The symbols for the label.  This is a pointer union that is
     /// either one symbol (the common case) or a list of symbols.
     PointerUnion<MCSymbol *, std::vector<MCSymbol*>*> Symbols;
-    
+
     Function *Fn;   // The containing function of the BasicBlock.
     unsigned Index; // The index in BBCallbacks for the BasicBlock.
   };
-  
+
   DenseMap<AssertingVH<BasicBlock>, AddrLabelSymEntry> AddrLabelSymbols;
-  
+
   /// BBCallbacks - Callbacks for the BasicBlock's that we have entries for.  We
   /// use this so we get notified if a block is deleted or RAUWd.
   std::vector<MMIAddrLabelMapCallbackPtr> BBCallbacks;
@@ -76,23 +74,23 @@ class MMIAddrLabelMap {
   DenseMap<AssertingVH<Function>, std::vector<MCSymbol*> >
     DeletedAddrLabelsNeedingEmission;
 public:
-  
+
   MMIAddrLabelMap(MCContext &context) : Context(context) {}
   ~MMIAddrLabelMap() {
     assert(DeletedAddrLabelsNeedingEmission.empty() &&
            "Some labels for deleted blocks never got emitted");
-    
+
     // Deallocate any of the 'list of symbols' case.
     for (DenseMap<AssertingVH<BasicBlock>, AddrLabelSymEntry>::iterator
          I = AddrLabelSymbols.begin(), E = AddrLabelSymbols.end(); I != E; ++I)
       if (I->second.Symbols.is<std::vector<MCSymbol*>*>())
         delete I->second.Symbols.get<std::vector<MCSymbol*>*>();
   }
-  
+
   MCSymbol *getAddrLabelSymbol(BasicBlock *BB);
   std::vector<MCSymbol*> getAddrLabelSymbolToEmit(BasicBlock *BB);
 
-  void takeDeletedSymbolsForFunction(Function *F, 
+  void takeDeletedSymbolsForFunction(Function *F,
                                      std::vector<MCSymbol*> &Result);
 
   void UpdateForDeletedBlock(BasicBlock *BB);
@@ -104,7 +102,7 @@ MCSymbol *MMIAddrLabelMap::getAddrLabelSymbol(BasicBlock *BB) {
   assert(BB->hasAddressTaken() &&
          "Shouldn't get label for block without address taken");
   AddrLabelSymEntry &Entry = AddrLabelSymbols[BB];
-  
+
   // If we already had an entry for this block, just return it.
   if (!Entry.Symbols.isNull()) {
     assert(BB->getParent() == Entry.Fn && "Parent changed");
@@ -112,7 +110,7 @@ MCSymbol *MMIAddrLabelMap::getAddrLabelSymbol(BasicBlock *BB) {
       return Entry.Symbols.get<MCSymbol*>();
     return (*Entry.Symbols.get<std::vector<MCSymbol*>*>())[0];
   }
-  
+
   // Otherwise, this is a new entry, create a new symbol for it and add an
   // entry to BBCallbacks so we can be notified if the BB is deleted or RAUWd.
   BBCallbacks.push_back(BB);
@@ -129,9 +127,9 @@ MMIAddrLabelMap::getAddrLabelSymbolToEmit(BasicBlock *BB) {
   assert(BB->hasAddressTaken() &&
          "Shouldn't get label for block without address taken");
   AddrLabelSymEntry &Entry = AddrLabelSymbols[BB];
-  
+
   std::vector<MCSymbol*> Result;
-  
+
   // If we already had an entry for this block, just return it.
   if (Entry.Symbols.isNull())
     Result.push_back(getAddrLabelSymbol(BB));
@@ -152,7 +150,7 @@ takeDeletedSymbolsForFunction(Function *F, std::vector<MCSymbol*> &Result) {
 
   // If there are no entries for the function, just return.
   if (I == DeletedAddrLabelsNeedingEmission.end()) return;
-  
+
   // Otherwise, take the list.
   std::swap(Result, I->second);
   DeletedAddrLabelsNeedingEmission.erase(I);
@@ -175,7 +173,7 @@ void MMIAddrLabelMap::UpdateForDeletedBlock(BasicBlock *BB) {
   if (MCSymbol *Sym = Entry.Symbols.dyn_cast<MCSymbol*>()) {
     if (Sym->isDefined())
       return;
-  
+
     // If the block is not yet defined, we need to emit it at the end of the
     // function.  Add the symbol to the DeletedAddrLabelsNeedingEmission list
     // for the containing Function.  Since the block is being deleted, its
@@ -187,7 +185,7 @@ void MMIAddrLabelMap::UpdateForDeletedBlock(BasicBlock *BB) {
     for (unsigned i = 0, e = Syms->size(); i != e; ++i) {
       MCSymbol *Sym = (*Syms)[i];
       if (Sym->isDefined()) continue;  // Ignore already emitted labels.
-      
+
       // If the block is not yet defined, we need to emit it at the end of the
       // function.  Add the symbol to the DeletedAddrLabelsNeedingEmission list
       // for the containing Function.  Since the block is being deleted, its
@@ -195,7 +193,7 @@ void MMIAddrLabelMap::UpdateForDeletedBlock(BasicBlock *BB) {
       // 'Entry'.
       DeletedAddrLabelsNeedingEmission[Entry.Fn].push_back(Sym);
     }
-    
+
     // The entry is deleted, free the memory associated with the symbol list.
     delete Syms;
   }
@@ -225,7 +223,7 @@ void MMIAddrLabelMap::UpdateForRAUWBlock(BasicBlock *Old, BasicBlock *New) {
     SymList->push_back(PrevSym);
     NewEntry.Symbols = SymList;
   }
-      
+
   std::vector<MCSymbol*> *SymList =
     NewEntry.Symbols.get<std::vector<MCSymbol*>*>();
 
@@ -234,7 +232,7 @@ void MMIAddrLabelMap::UpdateForRAUWBlock(BasicBlock *Old, BasicBlock *New) {
     SymList->push_back(Sym);
     return;
   }
-  
+
   // Otherwise, concatenate the list.
   std::vector<MCSymbol*> *Syms =OldEntry.Symbols.get<std::vector<MCSymbol*>*>();
   SymList->insert(SymList->end(), Syms->begin(), Syms->end());
@@ -253,16 +251,23 @@ void MMIAddrLabelMapCallbackPtr::allUsesReplacedWith(Value *V2) {
 
 //===----------------------------------------------------------------------===//
 
-MachineModuleInfo::MachineModuleInfo(const MCAsmInfo &MAI)
-: ImmutablePass(ID), Context(MAI),
-  ObjFileMMI(0),
-  CurCallSite(0), DbgInfoAvailable(false){
+MachineModuleInfo::MachineModuleInfo(const MCAsmInfo &MAI,
+                                     const MCRegisterInfo &MRI,
+                                     const MCObjectFileInfo *MOFI)
+  : ImmutablePass(ID), Context(MAI, MRI, MOFI),
+    ObjFileMMI(0), CompactUnwindEncoding(0), CurCallSite(0), CallsEHReturn(0),
+    CallsUnwindInit(0), DbgInfoAvailable(false),
+    CallsExternalVAFunctionWithFloatingPointArguments(false) {
+  initializeMachineModuleInfoPass(*PassRegistry::getPassRegistry());
+  // Always emit some info, by default "no personality" info.
+  Personalities.push_back(NULL);
   AddrLabelSymbols = 0;
   TheModule = 0;
 }
 
 MachineModuleInfo::MachineModuleInfo()
-: ImmutablePass(ID), Context(*(MCAsmInfo*)0) {
+  : ImmutablePass(ID),
+    Context(*(MCAsmInfo*)0, *(MCRegisterInfo*)0, (MCObjectFileInfo*)0) {
   assert(0 && "This MachineModuleInfo constructor should never be called, MMI "
          "should always be explicitly constructed by LLVMTargetMachine");
   abort();
@@ -270,7 +275,7 @@ MachineModuleInfo::MachineModuleInfo()
 
 MachineModuleInfo::~MachineModuleInfo() {
   delete ObjFileMMI;
-  
+
   // FIXME: Why isn't doFinalization being called??
   //assert(AddrLabelSymbols == 0 && "doFinalization not called");
   delete AddrLabelSymbols;
@@ -299,10 +304,14 @@ void MachineModuleInfo::EndFunction() {
   FrameMoves.clear();
 
   // Clean up exception info.
+  LandingPads.clear();
   CallSiteMap.clear();
   TypeInfos.clear();
   FilterIds.clear();
   FilterEnds.clear();
+  CallsEHReturn = 0;
+  CallsUnwindInit = 0;
+  CompactUnwindEncoding = 0;
   VariableDbgInfo.clear();
 }
 
@@ -362,6 +371,142 @@ takeDeletedSymbolsForFunction(const Function *F,
      takeDeletedSymbolsForFunction(const_cast<Function*>(F), Result);
 }
 
+//===- EH -----------------------------------------------------------------===//
+
+/// getOrCreateLandingPadInfo - Find or create an LandingPadInfo for the
+/// specified MachineBasicBlock.
+LandingPadInfo &MachineModuleInfo::getOrCreateLandingPadInfo
+    (MachineBasicBlock *LandingPad) {
+  unsigned N = LandingPads.size();
+  for (unsigned i = 0; i < N; ++i) {
+    LandingPadInfo &LP = LandingPads[i];
+    if (LP.LandingPadBlock == LandingPad)
+      return LP;
+  }
+
+  LandingPads.push_back(LandingPadInfo(LandingPad));
+  return LandingPads[N];
+}
+
+/// addInvoke - Provide the begin and end labels of an invoke style call and
+/// associate it with a try landing pad block.
+void MachineModuleInfo::addInvoke(MachineBasicBlock *LandingPad,
+                                  MCSymbol *BeginLabel, MCSymbol *EndLabel) {
+  LandingPadInfo &LP = getOrCreateLandingPadInfo(LandingPad);
+  LP.BeginLabels.push_back(BeginLabel);
+  LP.EndLabels.push_back(EndLabel);
+}
+
+/// addLandingPad - Provide the label of a try LandingPad block.
+///
+MCSymbol *MachineModuleInfo::addLandingPad(MachineBasicBlock *LandingPad) {
+  MCSymbol *LandingPadLabel = Context.CreateTempSymbol();
+  LandingPadInfo &LP = getOrCreateLandingPadInfo(LandingPad);
+  LP.LandingPadLabel = LandingPadLabel;
+  return LandingPadLabel;
+}
+
+/// addPersonality - Provide the personality function for the exception
+/// information.
+void MachineModuleInfo::addPersonality(MachineBasicBlock *LandingPad,
+                                       const Function *Personality) {
+  LandingPadInfo &LP = getOrCreateLandingPadInfo(LandingPad);
+  LP.Personality = Personality;
+
+  for (unsigned i = 0; i < Personalities.size(); ++i)
+    if (Personalities[i] == Personality)
+      return;
+
+  // If this is the first personality we're adding go
+  // ahead and add it at the beginning.
+  if (Personalities[0] == NULL)
+    Personalities[0] = Personality;
+  else
+    Personalities.push_back(Personality);
+}
+
+/// addCatchTypeInfo - Provide the catch typeinfo for a landing pad.
+///
+void MachineModuleInfo::
+addCatchTypeInfo(MachineBasicBlock *LandingPad,
+                 ArrayRef<const GlobalVariable *> TyInfo) {
+  LandingPadInfo &LP = getOrCreateLandingPadInfo(LandingPad);
+  for (unsigned N = TyInfo.size(); N; --N)
+    LP.TypeIds.push_back(getTypeIDFor(TyInfo[N - 1]));
+}
+
+/// addFilterTypeInfo - Provide the filter typeinfo for a landing pad.
+///
+void MachineModuleInfo::
+addFilterTypeInfo(MachineBasicBlock *LandingPad,
+                  ArrayRef<const GlobalVariable *> TyInfo) {
+  LandingPadInfo &LP = getOrCreateLandingPadInfo(LandingPad);
+  std::vector<unsigned> IdsInFilter(TyInfo.size());
+  for (unsigned I = 0, E = TyInfo.size(); I != E; ++I)
+    IdsInFilter[I] = getTypeIDFor(TyInfo[I]);
+  LP.TypeIds.push_back(getFilterIDFor(IdsInFilter));
+}
+
+/// addCleanup - Add a cleanup action for a landing pad.
+///
+void MachineModuleInfo::addCleanup(MachineBasicBlock *LandingPad) {
+  LandingPadInfo &LP = getOrCreateLandingPadInfo(LandingPad);
+  LP.TypeIds.push_back(0);
+}
+
+/// TidyLandingPads - Remap landing pad labels and remove any deleted landing
+/// pads.
+void MachineModuleInfo::TidyLandingPads(DenseMap<MCSymbol*, uintptr_t> *LPMap) {
+  for (unsigned i = 0; i != LandingPads.size(); ) {
+    LandingPadInfo &LandingPad = LandingPads[i];
+    if (LandingPad.LandingPadLabel &&
+        !LandingPad.LandingPadLabel->isDefined() &&
+        (!LPMap || (*LPMap)[LandingPad.LandingPadLabel] == 0))
+      LandingPad.LandingPadLabel = 0;
+
+    // Special case: we *should* emit LPs with null LP MBB. This indicates
+    // "nounwind" case.
+    if (!LandingPad.LandingPadLabel && LandingPad.LandingPadBlock) {
+      LandingPads.erase(LandingPads.begin() + i);
+      continue;
+    }
+
+    for (unsigned j = 0, e = LandingPads[i].BeginLabels.size(); j != e; ++j) {
+      MCSymbol *BeginLabel = LandingPad.BeginLabels[j];
+      MCSymbol *EndLabel = LandingPad.EndLabels[j];
+      if ((BeginLabel->isDefined() ||
+           (LPMap && (*LPMap)[BeginLabel] != 0)) &&
+          (EndLabel->isDefined() ||
+           (LPMap && (*LPMap)[EndLabel] != 0))) continue;
+
+      LandingPad.BeginLabels.erase(LandingPad.BeginLabels.begin() + j);
+      LandingPad.EndLabels.erase(LandingPad.EndLabels.begin() + j);
+      --j, --e;
+    }
+
+    // Remove landing pads with no try-ranges.
+    if (LandingPads[i].BeginLabels.empty()) {
+      LandingPads.erase(LandingPads.begin() + i);
+      continue;
+    }
+
+    // If there is no landing pad, ensure that the list of typeids is empty.
+    // If the only typeid is a cleanup, this is the same as having no typeids.
+    if (!LandingPad.LandingPadBlock ||
+        (LandingPad.TypeIds.size() == 1 && !LandingPad.TypeIds[0]))
+      LandingPad.TypeIds.clear();
+    ++i;
+  }
+}
+
+/// setCallSiteLandingPad - Map the landing pad's EH symbol to the call site
+/// indexes.
+void MachineModuleInfo::setCallSiteLandingPad(MCSymbol *Sym,
+                                              ArrayRef<unsigned> Sites) {
+  for (unsigned I = 0, E = Sites.size(); I != E; ++I)
+    LPadToCallSiteMap[Sym].push_back(Sites[I]);
+}
+
 /// getTypeIDFor - Return the type id for the specified typeinfo.  This is
 /// function wide.
 unsigned MachineModuleInfo::getTypeIDFor(const GlobalVariable *TI) {
@@ -403,19 +548,31 @@ try_next:;
   return FilterID;
 }
 
-namespace {
-  /// VariableDebugSorter - Comparison to sort the VariableDbgInfo map
-  /// by source location, to avoid depending on the arbitrary order that
-  /// instruction selection visits variables in.
-  struct VariableDebugSorter {
-    bool operator()(const MachineModuleInfo::VariableDbgInfoMapTy::value_type &A,
-                    const MachineModuleInfo::VariableDbgInfoMapTy::value_type &B)
-                  const {
-       if (A.second.second.getLine() != B.second.second.getLine())
-         return A.second.second.getLine() < B.second.second.getLine();
-       if (A.second.second.getCol() != B.second.second.getCol())
-         return A.second.second.getCol() < B.second.second.getCol();
-       return false;
+/// getPersonality - Return the personality function for the current function.
+const Function *MachineModuleInfo::getPersonality() const {
+  // FIXME: Until PR1414 will be fixed, we're using 1 personality function per
+  // function
+  return !LandingPads.empty() ? LandingPads[0].Personality : NULL;
+}
+
+/// getPersonalityIndex - Return unique index for current personality
+/// function. NULL/first personality function should always get zero index.
+unsigned MachineModuleInfo::getPersonalityIndex() const {
+  const Function* Personality = NULL;
+
+  // Scan landing pads. If there is at least one non-NULL personality - use it.
+  for (unsigned i = 0; i != LandingPads.size(); ++i)
+    if (LandingPads[i].Personality) {
+      Personality = LandingPads[i].Personality;
+      break;
     }
-  };
+
+  for (unsigned i = 0; i < Personalities.size(); ++i) {
+    if (Personalities[i] == Personality)
+      return i;
+  }
+
+  // This will happen if the current personality function is
+  // in the zero index.
+  return 0;
 }

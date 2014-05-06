@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -16,48 +16,51 @@
 
 namespace sw
 {
-	VertexShader::VertexShader(const unsigned long *token) : Shader(token)
+	VertexShader::VertexShader(const VertexShader *vs) : Shader()
+	{
+		version = 0x0300;
+		positionRegister = Pos;
+		pointSizeRegister = -1;   // No vertex point size
+
+		for(int i = 0; i < 16; i++)
+		{
+			input[i] = Semantic(-1, -1);
+		}
+
+		if(vs)   // Make a copy
+		{
+			for(int i = 0; i < vs->getLength(); i++)
+			{
+				append(new sw::Shader::Instruction(*vs->getInstruction(i)));
+			}
+
+			memcpy(output, vs->output, sizeof(output));
+			memcpy(input, vs->input, sizeof(input));
+			positionRegister = vs->positionRegister;
+			pointSizeRegister = vs->pointSizeRegister;
+			usedSamplers = vs->usedSamplers;
+
+			analyze();
+		}
+	}
+
+	VertexShader::VertexShader(const unsigned long *token) : Shader()
 	{
 		parse(token);
+
+		positionRegister = Pos;
+		pointSizeRegister = -1;   // No vertex point size
+
+		for(int i = 0; i < 16; i++)
+		{
+			input[i] = Semantic(-1, -1);
+		}
+
+		analyze();
 	}
 
 	VertexShader::~VertexShader()
 	{
-	}
-
-	void VertexShader::parse(const unsigned long *token)
-	{
-		minorVersion = (unsigned char)(token[0] & 0x000000FF);
-		majorVersion = (unsigned char)((token[0] & 0x0000FF00) >> 8);
-		shaderType = (ShaderType)((token[0] & 0xFFFF0000) >> 16);
-
-		length = validate(token);
-		ASSERT(length != 0);
-
-		instruction = new Shader::Instruction*[length];
-
-		for(int i = 0; i < length; i++)
-		{
-			while((*token & 0x0000FFFF) == 0x0000FFFE)   // Comment token
-			{
-				int length = (*token & 0x7FFF0000) >> 16;
-
-				token += length + 1;
-			}
-
-			int tokenCount = size(*token);
-
-			instruction[i] = new Instruction(token, tokenCount, majorVersion);
-
-			token += 1 + tokenCount;
-		}
-
-		analyzeInput();
-		analyzeOutput();
-		analyzeDirtyConstants();
-		analyzeTexldl();
-		analyzeDynamicBranching();
-		analyzeSamplers();
 	}
 
 	int VertexShader::validate(const unsigned long *const token)
@@ -89,36 +92,36 @@ namespace sw
 			}
 			else
 			{
-				ShaderOpcode opcode = (ShaderOpcode)(token[i] & 0x0000FFFF);
+				Shader::Opcode opcode = (Shader::Opcode)(token[i] & 0x0000FFFF);
 
 				switch(opcode)
 				{
-				case ShaderOperation::OPCODE_TEXCOORD:
-				case ShaderOperation::OPCODE_TEXKILL:
-				case ShaderOperation::OPCODE_TEX:
-				case ShaderOperation::OPCODE_TEXBEM:
-				case ShaderOperation::OPCODE_TEXBEML:
-				case ShaderOperation::OPCODE_TEXREG2AR:
-				case ShaderOperation::OPCODE_TEXREG2GB:
-				case ShaderOperation::OPCODE_TEXM3X2PAD:
-				case ShaderOperation::OPCODE_TEXM3X2TEX:
-				case ShaderOperation::OPCODE_TEXM3X3PAD:
-				case ShaderOperation::OPCODE_TEXM3X3TEX:
-				case ShaderOperation::OPCODE_RESERVED0:
-				case ShaderOperation::OPCODE_TEXM3X3SPEC:
-				case ShaderOperation::OPCODE_TEXM3X3VSPEC:
-				case ShaderOperation::OPCODE_TEXREG2RGB:
-				case ShaderOperation::OPCODE_TEXDP3TEX:
-				case ShaderOperation::OPCODE_TEXM3X2DEPTH:
-				case ShaderOperation::OPCODE_TEXDP3:
-				case ShaderOperation::OPCODE_TEXM3X3:
-				case ShaderOperation::OPCODE_TEXDEPTH:
-				case ShaderOperation::OPCODE_CMP:
-				case ShaderOperation::OPCODE_BEM:
-				case ShaderOperation::OPCODE_DP2ADD:
-				case ShaderOperation::OPCODE_DSX:
-				case ShaderOperation::OPCODE_DSY:
-				case ShaderOperation::OPCODE_TEXLDD:
+				case Shader::OPCODE_TEXCOORD:
+				case Shader::OPCODE_TEXKILL:
+				case Shader::OPCODE_TEX:
+				case Shader::OPCODE_TEXBEM:
+				case Shader::OPCODE_TEXBEML:
+				case Shader::OPCODE_TEXREG2AR:
+				case Shader::OPCODE_TEXREG2GB:
+				case Shader::OPCODE_TEXM3X2PAD:
+				case Shader::OPCODE_TEXM3X2TEX:
+				case Shader::OPCODE_TEXM3X3PAD:
+				case Shader::OPCODE_TEXM3X3TEX:
+				case Shader::OPCODE_RESERVED0:
+				case Shader::OPCODE_TEXM3X3SPEC:
+				case Shader::OPCODE_TEXM3X3VSPEC:
+				case Shader::OPCODE_TEXREG2RGB:
+				case Shader::OPCODE_TEXDP3TEX:
+				case Shader::OPCODE_TEXM3X2DEPTH:
+				case Shader::OPCODE_TEXDP3:
+				case Shader::OPCODE_TEXM3X3:
+				case Shader::OPCODE_TEXDEPTH:
+				case Shader::OPCODE_CMP0:
+				case Shader::OPCODE_BEM:
+				case Shader::OPCODE_DP2ADD:
+				case Shader::OPCODE_DFDX:
+				case Shader::OPCODE_DFDY:
+				case Shader::OPCODE_TEXLDD:
 					return 0;   // Unsupported operation
 				default:
 					instructionCount++;
@@ -137,81 +140,85 @@ namespace sw
 		return texldl;
 	}
 
+	void VertexShader::analyze()
+	{
+		analyzeInput();
+		analyzeOutput();
+		analyzeDirtyConstants();
+		analyzeTexldl();
+		analyzeDynamicBranching();
+		analyzeSamplers();
+		analyzeCallSites();
+		analyzeDynamicIndexing();
+	}
+
 	void VertexShader::analyzeInput()
 	{
-		for(int i = 0; i < 16; i++)
+		for(unsigned int i = 0; i < instruction.size(); i++)
 		{
-			input[i] = Semantic(-1, -1);
-		}
-
-		for(int i = 0; i < length; i++)
-		{
-			if(instruction[i]->getOpcode() == ShaderOperation::OPCODE_DCL &&
-			   instruction[i]->getDestinationParameter().type == ShaderParameter::PARAMETER_INPUT)
+			if(instruction[i]->opcode == Shader::OPCODE_DCL &&
+			   instruction[i]->dst.type == Shader::PARAMETER_INPUT)
 			{
-				int index = instruction[i]->getDestinationParameter().index;
+				int index = instruction[i]->dst.index;
 
-				input[index] = Semantic(instruction[i]->getUsage(), instruction[i]->getUsageIndex());
+				input[index] = Semantic(instruction[i]->usage, instruction[i]->usageIndex);
 			}
 		}
 	}
 
 	void VertexShader::analyzeOutput()
 	{
-		positionRegister = Pos;
-		pointSizeRegister = -1;   // No vertex point size
-
 		if(version < 0x0300)
 		{
-			output[Pos][0] = Semantic(ShaderOperation::USAGE_POSITION, 0);
-			output[Pos][1] = Semantic(ShaderOperation::USAGE_POSITION, 0);
-			output[Pos][2] = Semantic(ShaderOperation::USAGE_POSITION, 0);
-			output[Pos][3] = Semantic(ShaderOperation::USAGE_POSITION, 0);
+			output[Pos][0] = Semantic(Shader::USAGE_POSITION, 0);
+			output[Pos][1] = Semantic(Shader::USAGE_POSITION, 0);
+			output[Pos][2] = Semantic(Shader::USAGE_POSITION, 0);
+			output[Pos][3] = Semantic(Shader::USAGE_POSITION, 0);
 
-			for(int i = 0; i < length; i++)
+			for(unsigned int i = 0; i < instruction.size(); i++)
 			{
-				const Instruction::DestinationParameter &dst = instruction[i]->getDestinationParameter();
+				const DestinationParameter &dst = instruction[i]->dst;
 
 				switch(dst.type)
 				{
-				case ShaderParameter::PARAMETER_RASTOUT:
+				case Shader::PARAMETER_RASTOUT:
 					switch(dst.index)
 					{
 					case 0:
 						// Position already assumed written
 						break;
 					case 1:
-						output[Fog][0] = Semantic(ShaderOperation::USAGE_FOG, 0);
+						output[Fog][0] = Semantic(Shader::USAGE_FOG, 0);
 						break;
 					case 2:
-						output[Pts][1] = Semantic(ShaderOperation::USAGE_PSIZE, 0);
+						output[Pts][1] = Semantic(Shader::USAGE_PSIZE, 0);
 						pointSizeRegister = Pts;
 						break;
 					default: ASSERT(false);
 					}
 					break;
-				case ShaderParameter::PARAMETER_ATTROUT:
+				case Shader::PARAMETER_ATTROUT:
 					if(dst.index == 0)
 					{
-						if(dst.x) output[D0][0] = Semantic(ShaderOperation::USAGE_COLOR, 0);
-						if(dst.y) output[D0][1] = Semantic(ShaderOperation::USAGE_COLOR, 0);
-						if(dst.z) output[D0][2] = Semantic(ShaderOperation::USAGE_COLOR, 0);
-						if(dst.w) output[D0][3] = Semantic(ShaderOperation::USAGE_COLOR, 0);
+						if(dst.x) output[D0][0] = Semantic(Shader::USAGE_COLOR, 0);
+						if(dst.y) output[D0][1] = Semantic(Shader::USAGE_COLOR, 0);
+						if(dst.z) output[D0][2] = Semantic(Shader::USAGE_COLOR, 0);
+						if(dst.w) output[D0][3] = Semantic(Shader::USAGE_COLOR, 0);
 					}
 					else if(dst.index == 1)
 					{
-						if(dst.x) output[D1][0] = Semantic(ShaderOperation::USAGE_COLOR, 1);
-						if(dst.y) output[D1][1] = Semantic(ShaderOperation::USAGE_COLOR, 1);
-						if(dst.z) output[D1][2] = Semantic(ShaderOperation::USAGE_COLOR, 1);
-						if(dst.w) output[D1][3] = Semantic(ShaderOperation::USAGE_COLOR, 1);
+						if(dst.x) output[D1][0] = Semantic(Shader::USAGE_COLOR, 1);
+						if(dst.y) output[D1][1] = Semantic(Shader::USAGE_COLOR, 1);
+						if(dst.z) output[D1][2] = Semantic(Shader::USAGE_COLOR, 1);
+						if(dst.w) output[D1][3] = Semantic(Shader::USAGE_COLOR, 1);
 					}
 					else ASSERT(false);
 					break;
-				case ShaderParameter::PARAMETER_TEXCRDOUT:
-					if(dst.x) output[T0 + dst.index][0] = Semantic(ShaderOperation::USAGE_TEXCOORD, dst.index);
-					if(dst.y) output[T0 + dst.index][1] = Semantic(ShaderOperation::USAGE_TEXCOORD, dst.index);
-					if(dst.z) output[T0 + dst.index][2] = Semantic(ShaderOperation::USAGE_TEXCOORD, dst.index);
-					if(dst.w) output[T0 + dst.index][3] = Semantic(ShaderOperation::USAGE_TEXCOORD, dst.index);	
+				case Shader::PARAMETER_TEXCRDOUT:
+					if(dst.x) output[T0 + dst.index][0] = Semantic(Shader::USAGE_TEXCOORD, dst.index);
+					if(dst.y) output[T0 + dst.index][1] = Semantic(Shader::USAGE_TEXCOORD, dst.index);
+					if(dst.z) output[T0 + dst.index][2] = Semantic(Shader::USAGE_TEXCOORD, dst.index);
+					if(dst.w) output[T0 + dst.index][3] = Semantic(Shader::USAGE_TEXCOORD, dst.index);	
 					break;
 				default:
 					break;
@@ -220,27 +227,27 @@ namespace sw
 		}
 		else   // Shader Model 3.0 input declaration
 		{
-			for(int i = 0; i < length; i++)
+			for(unsigned int i = 0; i < instruction.size(); i++)
 			{
-				if(instruction[i]->getOpcode() == ShaderOperation::OPCODE_DCL &&
-				   instruction[i]->getDestinationParameter().type == ShaderParameter::PARAMETER_OUTPUT)
+				if(instruction[i]->opcode == Shader::OPCODE_DCL &&
+				   instruction[i]->dst.type == Shader::PARAMETER_OUTPUT)
 				{
-					unsigned char usage = instruction[i]->getUsage();
-					unsigned char usageIndex = instruction[i]->getUsageIndex();
+					unsigned char usage = instruction[i]->usage;
+					unsigned char usageIndex = instruction[i]->usageIndex;
 
-					const Instruction::DestinationParameter &dst = instruction[i]->getDestinationParameter();
+					const DestinationParameter &dst = instruction[i]->dst;
 
 					if(dst.x) output[dst.index][0] = Semantic(usage, usageIndex);
 					if(dst.y) output[dst.index][1] = Semantic(usage, usageIndex);
 					if(dst.z) output[dst.index][2] = Semantic(usage, usageIndex);
 					if(dst.w) output[dst.index][3] = Semantic(usage, usageIndex);
 
-					if(usage == ShaderOperation::USAGE_POSITION && usageIndex == 0)
+					if(usage == Shader::USAGE_POSITION && usageIndex == 0)
 					{
 						positionRegister = dst.index;
 					}
 
-					if(usage == ShaderOperation::USAGE_PSIZE && usageIndex == 0)
+					if(usage == Shader::USAGE_PSIZE && usageIndex == 0)
 					{
 						pointSizeRegister = dst.index;
 					}
@@ -253,9 +260,9 @@ namespace sw
 	{
 		texldl = false;
 
-		for(int i = 0; i < length; i++)
+		for(unsigned int i = 0; i < instruction.size(); i++)
 		{
-			if(instruction[i]->getOpcode() == Instruction::Operation::OPCODE_TEXLDL)
+			if(instruction[i]->opcode == Shader::OPCODE_TEXLDL)
 			{
 				texldl = true;
 

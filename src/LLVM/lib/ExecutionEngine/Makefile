@@ -8,6 +8,6 @@
 ##===----------------------------------------------------------------------===##
 LEVEL = ../..
 LIBRARYNAME = LLVMExecutionEngine
-PARALLEL_DIRS = Interpreter JIT
+PARALLEL_DIRS = Interpreter JIT MCJIT RuntimeDyld
 
 include $(LEVEL)/Makefile.common

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -45,7 +45,7 @@ namespace sw
 			Int cluster(function.arg(2));
 			Pointer<Byte> data(function.arg(3));
 
-			Registers r;
+			Registers r(shader);
 			r.constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,constants));
 			r.cluster = cluster;
 			r.data = data;
@@ -91,7 +91,7 @@ namespace sw
 			Return();
 		}
 
-		routine = function(L"PixelRoutine_%0.16llX", state.shaderHash);
+		routine = function(L"PixelRoutine_%0.8X", state.shaderID);
 	}
 
 	void QuadRasterizer::rasterize(Registers &r, Int &yMin, Int &yMax)
@@ -128,35 +128,35 @@ namespace sw
 
 			x0 = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->left) + (y + 0) * sizeof(Primitive::Span)));
 			x2 = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->left) + (y + 1) * sizeof(Primitive::Span)));
-			x0 = IfThenElse(x0 < x2, x0, x2);
+			x0 = Min(x0, x2);
 			
 			for(unsigned int q = 1; q < state.multiSample; q++)
 			{
 				Int x0q = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->left) + (y + 0) * sizeof(Primitive::Span)));
 				Int x2q = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->left) + (y + 1) * sizeof(Primitive::Span)));
-				x0q = IfThenElse(x0q < x2q, x0q, x2q);
+				x0q = Min(x0q, x2q);
 
-				x0 = IfThenElse(x0q < x0, x0q, x0);
+				x0 = Min(x0q, x0);
 			}
 			
 			x0 &= 0xFFFFFFFE;
 
 			x1 = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->right) + (y + 0) * sizeof(Primitive::Span)));
 			x2 = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->right) + (y + 1) * sizeof(Primitive::Span)));
-			x1 = IfThenElse(x1 > x2, x1, x2);
+			x1 = Max(x1, x2);
 
 			for(unsigned int q = 1; q < state.multiSample; q++)
 			{
 				Int x1q = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->right) + (y + 0) * sizeof(Primitive::Span)));
 				Int x2q = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->right) + (y + 1) * sizeof(Primitive::Span)));
-				x1q = IfThenElse(x1q > x2q, x1q, x2q);
+				x1q = Max(x1q, x2q);
 
-				x1 = IfThenElse(x1q > x1, x1q, x1);
+				x1 = Max(x1q, x1);
 			}
 
 			Float4 yyyy = Float4(Float(y)) + *Pointer<Float4>(r.primitive + OFFSET(Primitive,yQuad), 16);
 
-			if(state.depthTestActive || state.pixelFogActive())
+			if(interpolateZ())
 			{
 				for(unsigned int q = 0; q < state.multiSample; q++)
 				{
@@ -245,7 +245,7 @@ namespace sw
 
 			If(x0 < x1)
 			{
-				if(state.perspective)
+				if(interpolateW())
 				{
 					r.Dw = *Pointer<Float4>(r.primitive + OFFSET(Primitive,w.C), 16) + yyyy * *Pointer<Float4>(r.primitive + OFFSET(Primitive,w.B), 16);
 				}
@@ -299,18 +299,18 @@ namespace sw
 			{
 				if(state.colorWriteActive(index))
 				{
-					cBuffer[index] += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index])) << (1 + log2(clusterCount));   // FIXME: Precompute
+					cBuffer[index] += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index])) << (1 + sw::log2(clusterCount));   // FIXME: Precompute
 				}
 			}
 
 			if(state.depthTestActive)
 			{
-				zBuffer += *Pointer<Int>(r.data + OFFSET(DrawData,depthPitchB)) << (1 + log2(clusterCount));   // FIXME: Precompute
+				zBuffer += *Pointer<Int>(r.data + OFFSET(DrawData,depthPitchB)) << (1 + sw::log2(clusterCount));   // FIXME: Precompute
 			}
 
 			if(state.stencilActive)
 			{
-				sBuffer += *Pointer<Int>(r.data + OFFSET(DrawData,stencilPitchB)) << (1 + log2(clusterCount));   // FIXME: Precompute
+				sBuffer += *Pointer<Int>(r.data + OFFSET(DrawData,stencilPitchB)) << (1 + sw::log2(clusterCount));   // FIXME: Precompute
 			}
 
 			y += 2 * clusterCount;

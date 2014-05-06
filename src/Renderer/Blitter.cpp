@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -12,7 +12,7 @@
 #include "Blitter.hpp"
 
 #include "Common/Debug.hpp"
-#include "Reactor/Shell.hpp"
+#include "Reactor/Reactor.hpp"
 
 namespace sw
 {
@@ -33,19 +33,19 @@ namespace sw
 			return;
 		}
 
-		source->lockInternal(sRect.left, sRect.top, 0, sw::LOCK_READONLY, sw::PUBLIC);
-		dest->lockInternal(dRect.left, dRect.top, 0, sw::LOCK_WRITEONLY, sw::PUBLIC);
+		source->lockInternal(sRect.x0, sRect.y0, 0, sw::LOCK_READONLY, sw::PUBLIC);
+		dest->lockInternal(dRect.x0, dRect.y0, 0, sw::LOCK_WRITEONLY, sw::PUBLIC);
 
-		float w = 1.0f / (dRect.right - dRect.left) * (sRect.right - sRect.left);
-		float h = 1.0f / (dRect.bottom - dRect.top) * (sRect.bottom - sRect.top);
+		float w = 1.0f / (dRect.x1 - dRect.x0) * (sRect.x1 - sRect.x0);
+		float h = 1.0f / (dRect.y1 - dRect.y0) * (sRect.y1 - sRect.y0);
 
-		float y = (float)sRect.top + 0.5f * h;
+		float y = (float)sRect.y0 + 0.5f * h;
 
-		for(int j = dRect.top; j < dRect.bottom; j++)
+		for(int j = dRect.y0; j < dRect.y1; j++)
 		{
-			float x = (float)sRect.left + 0.5f * w;
+			float x = (float)sRect.x0 + 0.5f * w;
 
-			for(int i = dRect.left; i < dRect.right; i++)
+			for(int i = dRect.x0; i < dRect.x1; i++)
 			{
 				sw::Color<float> color;
 
@@ -137,21 +137,21 @@ namespace sw
 				Float w = *Pointer<Float>(blit + OFFSET(BlitData,w));
 				Float h = *Pointer<Float>(blit + OFFSET(BlitData,h));
 
-				Int top = *Pointer<Int>(blit + OFFSET(BlitData,top));
-				Int bottom = *Pointer<Int>(blit + OFFSET(BlitData,bottom));
-				Int left = *Pointer<Int>(blit + OFFSET(BlitData,left));
-				Int right = *Pointer<Int>(blit + OFFSET(BlitData,right));
+				Int x0d = *Pointer<Int>(blit + OFFSET(BlitData,x0d));
+				Int x1d = *Pointer<Int>(blit + OFFSET(BlitData,x1d));
+				Int y0d = *Pointer<Int>(blit + OFFSET(BlitData,y0d));
+				Int y1d = *Pointer<Int>(blit + OFFSET(BlitData,y1d));
 
-				Int width = *Pointer<Int>(blit + OFFSET(BlitData,width));
-				Int height = *Pointer<Int>(blit + OFFSET(BlitData,height));
+				Int sWidth = *Pointer<Int>(blit + OFFSET(BlitData,sWidth));
+				Int sHeight = *Pointer<Int>(blit + OFFSET(BlitData,sHeight));
 
 				Float y = y0;
 
-				For(Int j = top, j < bottom, j++)
+				For(Int j = y0d, j < y1d, j++)
 				{
 					Float x = x0;
 
-					For(Int i = left, i < right, i++)
+					For(Int i = x0d, i < x1d, i++)
 					{
 						Float4 color;
 
@@ -172,14 +172,11 @@ namespace sw
 							Float x0 = x - Float(0.5f);
 							Float y0 = y - Float(0.5f);
 
-							Int X0 = Int(x0);
-							Int Y0 = Int(y0);
-
-							X0 = IfThenElse(X0 < 0, Int(0), X0);
-							Y0 = IfThenElse(Y0 < 0, Int(0), Y0);
-
-							Int X1 = IfThenElse(X0 + 1 >= width, X0, X0 + 1);
-							Int Y1 = IfThenElse(Y0 + 1 >= height, Y0, Y0 + 1);
+							Int X0 = Max(Int(x0), 0);
+							Int Y0 = Max(Int(y0), 0);
+							
+							Int X1 = IfThenElse(X0 + 1 >= sWidth, X0, X0 + 1);
+							Int Y1 = IfThenElse(Y0 + 1 >= sHeight, Y0, Y0 + 1);
 
 							Pointer<Byte> s00 = source + Y0 * sPitchB + X0 * Surface::bytes(state.sourceFormat);
 							Pointer<Byte> s01 = source + Y0 * sPitchB + X1 * Surface::bytes(state.sourceFormat);
@@ -322,18 +319,18 @@ namespace sw
 		data.sPitchB = source->getInternalPitchB();
 		data.dPitchB = dest->getInternalPitchB();
 
-		data.w = 1.0f / (dRect.right - dRect.left) * (sRect.right - sRect.left);
-		data.h = 1.0f / (dRect.bottom - dRect.top) * (sRect.bottom - sRect.top);
-		data.x0 = (float)sRect.left + 0.5f * data.w;
-		data.y0 = (float)sRect.top + 0.5f * data.h;
+		data.w = 1.0f / (dRect.x1 - dRect.x0) * (sRect.x1 - sRect.x0);
+		data.h = 1.0f / (dRect.y1 - dRect.y0) * (sRect.y1 - sRect.y0);
+		data.x0 = (float)sRect.x0 + 0.5f * data.w;
+		data.y0 = (float)sRect.y0 + 0.5f * data.h;
 		
-		data.top = dRect.top;
-		data.bottom = dRect.bottom;
-		data.left = dRect.left;
-		data.right = dRect.right;
+		data.x0d = dRect.x0;
+		data.x1d = dRect.x1;
+		data.y0d = dRect.y0;
+		data.y1d = dRect.y1;
 
-		data.width = source->getInternalWidth();
-		data.height = source->getInternalHeight();
+		data.sWidth = source->getInternalWidth();
+		data.sHeight = source->getInternalHeight();
 
 		blitFunction(&data);
 

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2012 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -195,6 +195,7 @@ class TIntermSelection;
 class TIntermTyped;
 class TIntermSymbol;
 class TIntermLoop;
+class TIntermBranch;
 class TInfoSink;
 
 //
@@ -218,6 +219,7 @@ public:
     virtual TIntermSelection* getAsSelectionNode() { return 0; }
     virtual TIntermSymbol* getAsSymbolNode() { return 0; }
     virtual TIntermLoop* getAsLoopNode() { return 0; }
+	virtual TIntermBranch* getAsBranchNode() { return 0; }
     virtual ~TIntermNode() { }
 
 protected:
@@ -253,9 +255,15 @@ public:
     bool isArray()  const { return type.isArray(); }
     bool isVector() const { return type.isVector(); }
     bool isScalar() const { return type.isScalar(); }
+	bool isRegister() const { return type.isRegister(); }   // Fits in a 4-element register
+	bool isStruct() const { return type.isStruct(); }
     const char* getBasicString() const { return type.getBasicString(); }
     const char* getQualifierString() const { return type.getQualifierString(); }
     TString getCompleteString() const { return type.getCompleteString(); }
+
+	int totalRegisterCount() const { return type.totalRegisterCount(); }
+	int elementRegisterCount() const { return type.elementRegisterCount(); }
+	int getArraySize() const { return type.getArraySize(); }
 
 protected:
     TType type;
@@ -313,6 +321,7 @@ public:
             flowOp(op),
             expression(e) { }
 
+	virtual TIntermBranch* getAsBranchNode() { return this; }
     virtual void traverse(TIntermTraverser*);
 
     TOperator getFlowOp() { return flowOp; }
@@ -332,23 +341,19 @@ public:
     // per process globalpoolallocator, then it causes increased memory usage per compile
     // it is essential to use "symbol = sym" to assign to symbol
     TIntermSymbol(int i, const TString& sym, const TType& t) : 
-            TIntermTyped(t), id(i)  { symbol = sym; originalSymbol = sym; } 
+            TIntermTyped(t), id(i)  { symbol = sym; } 
 
     int getId() const { return id; }
     const TString& getSymbol() const { return symbol; }
 
     void setId(int newId) { id = newId; }
-    void setSymbol(const TString& sym) { symbol = sym; }
-
-    const TString& getOriginalSymbol() const { return originalSymbol; }
-
+    
     virtual void traverse(TIntermTraverser*);
     virtual TIntermSymbol* getAsSymbolNode() { return this; }
 
 protected:
     int id;
     TString symbol;
-    TString originalSymbol;
 };
 
 class TIntermConstantUnion : public TIntermTyped {
@@ -477,12 +482,15 @@ public:
     TIntermSelection(TIntermTyped* cond, TIntermNode* trueB, TIntermNode* falseB) :
             TIntermTyped(TType(EbtVoid, EbpUndefined)), condition(cond), trueBlock(trueB), falseBlock(falseB) {}
     TIntermSelection(TIntermTyped* cond, TIntermNode* trueB, TIntermNode* falseB, const TType& type) :
-            TIntermTyped(type), condition(cond), trueBlock(trueB), falseBlock(falseB) {}
+            TIntermTyped(type), condition(cond), trueBlock(trueB), falseBlock(falseB)
+	{
+		this->type.setQualifier(EvqTemporary);
+	}
 
     virtual void traverse(TIntermTraverser*);
 
     bool usesTernaryOperator() const { return getBasicType() != EbtVoid; }
-    TIntermNode* getCondition() const { return condition; }
+    TIntermTyped* getCondition() const { return condition; }
     TIntermNode* getTrueBlock() const { return trueBlock; }
     TIntermNode* getFalseBlock() const { return falseBlock; }
     TIntermSelection* getAsSelectionNode() { return this; }

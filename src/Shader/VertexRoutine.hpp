@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -14,7 +14,8 @@
 
 #include "Renderer/Color.hpp"
 #include "Renderer/VertexProcessor.hpp"
-#include "Reactor/Reactor.hpp"
+#include "ShaderCore.hpp"
+#include "VertexShader.hpp"
 
 namespace sw
 {
@@ -23,43 +24,58 @@ namespace sw
 	protected:
 		struct Registers
 		{
-			Registers() : callStack(4), aL(4), increment(4), iteration(4), enableStack(1 + 24), ox(12), oy(12), oz(12), ow(12)
+			Registers(const VertexShader *shader) :
+				r(shader && shader->dynamicallyIndexedTemporaries),
+				v(shader && shader->dynamicallyIndexedInput),
+				o(shader && shader->dynamicallyIndexedOutput)
 			{
 				loopDepth = -1;
 				enableStack[0] = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
-				enableBreak = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+				
+				if(shader && shader->containsBreakInstruction())
+				{
+					enableBreak = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+				}
+
+				if(shader && shader->containsContinueInstruction())
+				{
+					enableContinue = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+				}
+
+				if(shader && shader->containsLeaveInstruction())
+				{
+					enableLeave = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+				}
 			}
 
 			Pointer<Byte> data;
 			Pointer<Byte> constants;
 
-			Array<Float4> ox;
-			Array<Float4> oy;
-			Array<Float4> oz;
-			Array<Float4> ow;
-
 			Int clipFlags;
 
-			Color4f v[16];
-			Color4f r[32];
-			Color4f a0;
-			Array<Int> aL;
-			Color4f p0;
+			RegisterArray<16> v;
+			RegisterArray<4096> r;
+			RegisterArray<12> o;
+			Vector4f a0;
+			Array<Int, 4> aL;
+			Vector4f p0;
 
-			Array<Int> increment;
-			Array<Int> iteration;
+			Array<Int, 4> increment;
+			Array<Int, 4> iteration;
 
 			Int loopDepth;
 			Int stackIndex;   // FIXME: Inc/decrement callStack
-			Array<UInt> callStack;
+			Array<UInt, 4> callStack;
 
 			Int enableIndex;
-			Array<Int4> enableStack;
+			Array<Int4, 1 + 24> enableStack;
 			Int4 enableBreak;
+			Int4 enableContinue;
+			Int4 enableLeave;
 		};
 
 	public:
-		VertexRoutine(const VertexProcessor::State &state);
+		VertexRoutine(const VertexProcessor::State &state, const VertexShader *shader);
 
 		virtual ~VertexRoutine();
 
@@ -68,13 +84,14 @@ namespace sw
 
 	protected:
 		const VertexProcessor::State &state;
+		const VertexShader *const shader;
 
 	private:		
 		virtual void pipeline(Registers &r) = 0;
 
 		typedef VertexProcessor::State::Input Stream;
 		
-		Color4f readStream(Registers &r, Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index);
+		Vector4f readStream(Registers &r, Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index);
 		void readInput(Registers &r, UInt &index);
 		void computeClipFlags(Registers &r);
 		void postTransform(Registers &r);

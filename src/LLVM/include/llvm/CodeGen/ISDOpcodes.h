@@ -77,9 +77,42 @@ namespace ISD {
     // adjustment during unwind.
     FRAME_TO_ARGS_OFFSET,
 
+    // RESULT, OUTCHAIN = EXCEPTIONADDR(INCHAIN) - This node represents the
+    // address of the exception block on entry to an landing pad block.
+    EXCEPTIONADDR,
+
     // RESULT, OUTCHAIN = LSDAADDR(INCHAIN) - This node represents the
     // address of the Language Specific Data Area for the enclosing function.
     LSDAADDR,
+
+    // RESULT, OUTCHAIN = EHSELECTION(INCHAIN, EXCEPTION) - This node represents
+    // the selection index of the exception thrown.
+    EHSELECTION,
+
+    // OUTCHAIN = EH_RETURN(INCHAIN, OFFSET, HANDLER) - This node represents
+    // 'eh_return' gcc dwarf builtin, which is used to return from
+    // exception. The general meaning is: adjust stack by OFFSET and pass
+    // execution to HANDLER. Many platform-related details also :)
+    EH_RETURN,
+
+    // RESULT, OUTCHAIN = EH_SJLJ_SETJMP(INCHAIN, buffer)
+    // This corresponds to the eh.sjlj.setjmp intrinsic.
+    // It takes an input chain and a pointer to the jump buffer as inputs
+    // and returns an outchain.
+    EH_SJLJ_SETJMP,
+
+    // OUTCHAIN = EH_SJLJ_LONGJMP(INCHAIN, buffer)
+    // This corresponds to the eh.sjlj.longjmp intrinsic.
+    // It takes an input chain and a pointer to the jump buffer as inputs
+    // and returns an outchain.
+    EH_SJLJ_LONGJMP,
+
+    // OUTCHAIN = EH_SJLJ_DISPATCHSETUP(INCHAIN, setjmpval)
+    // This corresponds to the eh.sjlj.dispatchsetup intrinsic. It takes an
+    // input chain and the value returning from setjmp as inputs and returns an
+    // outchain. By default, this does nothing. Targets can lower this to unwind
+    // setup code if needed.
+    EH_SJLJ_DISPATCHSETUP,
 
     // TargetConstant* - Like Constant*, but the DAG does not do any folding,
     // simplification, or lowering of the constant. They are used for constants
@@ -186,7 +219,7 @@ namespace ISD {
     // RESULT, BOOL = [SU]ADDO(LHS, RHS) - Overflow-aware nodes for addition.
     // These nodes take two operands: the normal LHS and RHS to the add. They
     // produce two results: the normal result of the add, and a boolean that
-    // indicates if an overflow occured (*not* a flag, because it may be stored
+    // indicates if an overflow occurred (*not* a flag, because it may be stored
     // to memory, etc.).  If the type of the boolean is not i1 then the high
     // bits conform to getBooleanContents.
     // These nodes are generated from the llvm.[su]add.with.overflow intrinsics.
@@ -199,7 +232,7 @@ namespace ISD {
     SMULO, UMULO,
 
     // Simple binary floating point operators.
-    FADD, FSUB, FMUL, FDIV, FREM,
+    FADD, FSUB, FMUL, FMA, FDIV, FREM,
 
     // FCOPYSIGN(X, Y) - Return the value of X with the sign of Y.  NOTE: This
     // DAG node does not require that X and Y have the same type, just that they
@@ -236,16 +269,24 @@ namespace ISD {
     /// lengths of the input vectors.
     CONCAT_VECTORS,
 
+    /// INSERT_SUBVECTOR(VECTOR1, VECTOR2, IDX) - Returns a vector
+    /// with VECTOR2 inserted into VECTOR1 at the (potentially
+    /// variable) element number IDX, which must be a multiple of the
+    /// VECTOR2 vector length.  The elements of VECTOR1 starting at
+    /// IDX are overwritten with VECTOR2.  Elements IDX through
+    /// vector_length(VECTOR2) must be valid VECTOR1 indices.
+    INSERT_SUBVECTOR,
+
     /// EXTRACT_SUBVECTOR(VECTOR, IDX) - Returns a subvector from VECTOR (an
-    /// vector value) starting with the (potentially variable) element number
-    /// IDX, which must be a multiple of the result vector length.
+    /// vector value) starting with the element number IDX, which must be a
+    /// constant multiple of the result vector length.
     EXTRACT_SUBVECTOR,
 
-    /// VECTOR_SHUFFLE(VEC1, VEC2) - Returns a vector, of the same type as 
+    /// VECTOR_SHUFFLE(VEC1, VEC2) - Returns a vector, of the same type as
     /// VEC1/VEC2.  A VECTOR_SHUFFLE node also contains an array of constant int
     /// values that indicate which value (or undef) each result element will
-    /// get.  These constant ints are accessible through the 
-    /// ShuffleVectorSDNode class.  This is quite similar to the Altivec 
+    /// get.  These constant ints are accessible through the
+    /// ShuffleVectorSDNode class.  This is quite similar to the Altivec
     /// 'vperm' instruction, except that the indices must be constants and are
     /// in terms of the element size of VEC1/VEC2, not in terms of bytes.
     VECTOR_SHUFFLE,
@@ -262,17 +303,31 @@ namespace ISD {
     // an unsigned/signed value of type i[2*N], then return the top part.
     MULHU, MULHS,
 
-    // Bitwise operators - logical and, logical or, logical xor, shift left,
-    // shift right algebraic (shift in sign bits), shift right logical (shift in
-    // zeroes), rotate left, rotate right, and byteswap.
-    AND, OR, XOR, SHL, SRA, SRL, ROTL, ROTR, BSWAP,
+    /// Bitwise operators - logical and, logical or, logical xor.
+    AND, OR, XOR,
+    
+    /// Shift and rotation operations.  After legalization, the type of the
+    /// shift amount is known to be TLI.getShiftAmountTy().  Before legalization
+    /// the shift amount can be any type, but care must be taken to ensure it is
+    /// large enough.  TLI.getShiftAmountTy() is i8 on some targets, but before
+    /// legalization, types like i1024 can occur and i8 doesn't have enough bits
+    /// to represent the shift amount.  By convention, DAGCombine and
+    /// SelectionDAGBuilder forces these shift amounts to i32 for simplicity.
+    ///
+    SHL, SRA, SRL, ROTL, ROTR,
 
-    // Counting operators
-    CTTZ, CTLZ, CTPOP,
+    /// Byte Swap and Counting operators.
+    BSWAP, CTTZ, CTLZ, CTPOP,
 
     // Select(COND, TRUEVAL, FALSEVAL).  If the type of the boolean COND is not
     // i1 then the high bits must conform to getBooleanContents.
     SELECT,
+
+    // Select with a vector condition (op #0) and two vector operands (ops #1
+    // and #2), returning a vector result.  All vectors have the same length.
+    // Much like the scalar select and setcc, each bit in the condition selects
+    // whether the corresponding result element is taken from op #1 or op #2.
+    VSELECT,
 
     // Select with condition operator - This selects between a true value and
     // a false value (ops #2 and #3) based on the boolean result of comparing
@@ -284,15 +339,9 @@ namespace ISD {
     // true.  If the result value type is not i1 then the high bits conform
     // to getBooleanContents.  The operands to this are the left and right
     // operands to compare (ops #0, and #1) and the condition code to compare
-    // them with (op #2) as a CondCodeSDNode.
+    // them with (op #2) as a CondCodeSDNode. If the operands are vector types
+    // then the result type must also be a vector type.
     SETCC,
-
-    // RESULT = VSETCC(LHS, RHS, COND) operator - This evaluates to a vector of
-    // integer elements with all bits of the result elements set to true if the
-    // comparison is true or all cleared if the comparison is false.  The
-    // operands to this are the left and right operands to compare (LHS/RHS) and
-    // the condition code to compare them with (COND) as a CondCodeSDNode.
-    VSETCC,
 
     // SHL_PARTS/SRA_PARTS/SRL_PARTS - These operators are used for expanded
     // integer shift operations, just like ADD/SUB_PARTS.  The operation
@@ -366,14 +415,14 @@ namespace ISD {
     /// X = FP_EXTEND(Y) - Extend a smaller FP type into a larger FP type.
     FP_EXTEND,
 
-    // BIT_CONVERT - This operator converts between integer, vector and FP
+    // BITCAST - This operator converts between integer, vector and FP
     // values, as if the value was stored to memory with one type and loaded
     // from the same address with the other type (or equivalently for vector
     // format conversions, etc).  The source and result are required to have
     // the same bit size (e.g.  f32 <-> i32).  This can also be used for
     // int-to-int or fp-to-fp conversions, but that is a noop, deleted by
     // getNode().
-    BIT_CONVERT,
+    BITCAST,
 
     // CONVERT_RNDSAT - This operator is used to support various conversions
     // between various types (float, signed, unsigned and vectors of those
@@ -444,6 +493,28 @@ namespace ISD {
     // chain, cc, lhs, rhs, block to branch to if condition is true.
     BR_CC,
 
+    // INLINEASM - Represents an inline asm block.  This node always has two
+    // return values: a chain and a flag result.  The inputs are as follows:
+    //   Operand #0   : Input chain.
+    //   Operand #1   : a ExternalSymbolSDNode with a pointer to the asm string.
+    //   Operand #2   : a MDNodeSDNode with the !srcloc metadata.
+    //   Operand #3   : HasSideEffect, IsAlignStack bits.
+    //   After this, it is followed by a list of operands with this format:
+    //     ConstantSDNode: Flags that encode whether it is a mem or not, the
+    //                     of operands that follow, etc.  See InlineAsm.h.
+    //     ... however many operands ...
+    //   Operand #last: Optional, an incoming flag.
+    //
+    // The variable width operands are required to represent target addressing
+    // modes as a single "operand", even though they may have multiple
+    // SDOperands.
+    INLINEASM,
+
+    // EH_LABEL - Represents a label in mid basic block used to track
+    // locations needed for debug and exception handling tables.  These nodes
+    // take a chain as input and return a chain.
+    EH_LABEL,
+
     // STACKSAVE - STACKSAVE has one operand, an input chain.  It produces a
     // value, the same type as the pointer type for the system, and an output
     // chain.
@@ -478,7 +549,7 @@ namespace ISD {
     // SRCVALUE - This is a node type that holds a Value* that is used to
     // make reference to a value in the LLVM IR.
     SRCVALUE,
-    
+
     // MDNODE_SDNODE - This is a node that holdes an MDNode*, which is used to
     // reference metadata in the IR.
     MDNODE_SDNODE,
@@ -495,21 +566,27 @@ namespace ISD {
     // HANDLENODE node - Used as a handle for various purposes.
     HANDLENODE,
 
-    // TRAMPOLINE - This corresponds to the init_trampoline intrinsic.
-    // It takes as input a token chain, the pointer to the trampoline,
-    // the pointer to the nested function, the pointer to pass for the
-    // 'nest' parameter, a SRCVALUE for the trampoline and another for
-    // the nested function (allowing targets to access the original
-    // Function*).  It produces the result of the intrinsic and a token
-    // chain as output.
-    TRAMPOLINE,
+    // INIT_TRAMPOLINE - This corresponds to the init_trampoline intrinsic.  It
+    // takes as input a token chain, the pointer to the trampoline, the pointer
+    // to the nested function, the pointer to pass for the 'nest' parameter, a
+    // SRCVALUE for the trampoline and another for the nested function (allowing
+    // targets to access the original Function*).  It produces a token chain as
+    // output.
+    INIT_TRAMPOLINE,
+
+    // ADJUST_TRAMPOLINE - This corresponds to the adjust_trampoline intrinsic.
+    // It takes a pointer to the trampoline and produces a (possibly) new
+    // pointer to the same trampoline with platform-specific adjustments
+    // applied.  The pointer it returns points to an executable block of code.
+    ADJUST_TRAMPOLINE,
 
     // TRAP - Trapping instruction
     TRAP,
 
     // PREFETCH - This corresponds to a prefetch intrinsic. It takes chains are
     // their first operand. The other operands are the address to prefetch,
-    // read / write specifier, and locality specifier.
+    // read / write specifier, locality specifier and instruction / data cache
+    // specifier.
     PREFETCH,
 
     // OUTCHAIN = MEMBARRIER(INCHAIN, load-load, load-store, store-load,
@@ -520,22 +597,27 @@ namespace ISD {
     // and produces an output chain.
     MEMBARRIER,
 
+    // OUTCHAIN = ATOMIC_FENCE(INCHAIN, ordering, scope)
+    // This corresponds to the fence instruction. It takes an input chain, and
+    // two integer constants: an AtomicOrdering and a SynchronizationScope.
+    ATOMIC_FENCE,
+
+    // Val, OUTCHAIN = ATOMIC_LOAD(INCHAIN, ptr)
+    // This corresponds to "load atomic" instruction.
+    ATOMIC_LOAD,
+
+    // OUTCHAIN = ATOMIC_LOAD(INCHAIN, ptr, val)
+    // This corresponds to "store atomic" instruction.
+    ATOMIC_STORE,
+
     // Val, OUTCHAIN = ATOMIC_CMP_SWAP(INCHAIN, ptr, cmp, swap)
-    // this corresponds to the atomic.lcs intrinsic.
-    // cmp is compared to *ptr, and if equal, swap is stored in *ptr.
-    // the return is always the original value in *ptr
+    // This corresponds to the cmpxchg instruction.
     ATOMIC_CMP_SWAP,
 
     // Val, OUTCHAIN = ATOMIC_SWAP(INCHAIN, ptr, amt)
-    // this corresponds to the atomic.swap intrinsic.
-    // amt is stored to *ptr atomically.
-    // the return is always the original value in *ptr
-    ATOMIC_SWAP,
-
     // Val, OUTCHAIN = ATOMIC_LOAD_[OpName](INCHAIN, ptr, amt)
-    // this corresponds to the atomic.load.[OpName] intrinsic.
-    // op(*ptr, amt) is stored to *ptr atomically.
-    // the return is always the original value in *ptr
+    // These correspond to the atomicrmw instruction.
+    ATOMIC_SWAP,
     ATOMIC_LOAD_ADD,
     ATOMIC_LOAD_SUB,
     ATOMIC_LOAD_AND,
@@ -556,7 +638,7 @@ namespace ISD {
   /// which do not reference a specific memory location should be less than
   /// this value. Those that do must not be less than this value, and can
   /// be used with SelectionDAG::getMemIntrinsicNode.
-  static const int FIRST_TARGET_MEMORY_OPCODE = BUILTIN_OP_END+100;
+  static const int FIRST_TARGET_MEMORY_OPCODE = BUILTIN_OP_END+150;
 
   //===--------------------------------------------------------------------===//
   /// MemIndexedMode enum - This enum defines the load / store indexed
@@ -586,7 +668,6 @@ namespace ISD {
   ///              (the result of the load and the result of the base +/- offset
   ///              computation); a post-indexed store produces one value (the
   ///              the result of the base +/- offset computation).
-  ///
   enum MemIndexedMode {
     UNINDEXED = 0,
     PRE_INC,
@@ -604,10 +685,8 @@ namespace ISD {
   ///          integer result type.
   /// ZEXTLOAD loads the integer operand and zero extends it to a larger
   ///          integer result type.
-  /// EXTLOAD  is used for three things: floating point extending loads,
-  ///          integer extending loads [the top bits are undefined], and vector
-  ///          extending loads [load into low elt].
-  ///
+  /// EXTLOAD  is used for two things: floating point extending loads and
+  ///          integer extending loads [the top bits are undefined].
   enum LoadExtType {
     NON_EXTLOAD = 0,
     EXTLOAD,

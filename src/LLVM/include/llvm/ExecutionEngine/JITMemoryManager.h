@@ -6,15 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines the JITMemoryManagerInterface
-//
-//===----------------------------------------------------------------------===//
 
 #ifndef LLVM_EXECUTION_ENGINE_JIT_MEMMANAGER_H
 #define LLVM_EXECUTION_ENGINE_JIT_MEMMANAGER_H
 
-#include "llvm/System/DataTypes.h"
+#include "llvm/Support/DataTypes.h"
 #include <string>
 
 namespace llvm {
@@ -29,15 +25,15 @@ namespace llvm {
 class JITMemoryManager {
 protected:
   bool HasGOT;
-public:
 
+public:
   JITMemoryManager() : HasGOT(false) {}
   virtual ~JITMemoryManager();
-  
+
   /// CreateDefaultMemManager - This is used to create the default
   /// JIT Memory Manager if the client does not provide one to the JIT.
   static JITMemoryManager *CreateDefaultMemManager();
-  
+
   /// setMemoryWritable - When code generation is in progress,
   /// the code pages may need permissions changed.
   virtual void setMemoryWritable() = 0;
@@ -48,7 +44,7 @@ public:
 
   /// setPoisonMemory - Setting this flag to true makes the memory manager
   /// garbage values over freed memory.  This is useful for testing and
-  /// debugging, and is be turned on by default in debug mode.
+  /// debugging, and may be turned on by default in debug mode.
   virtual void setPoisonMemory(bool poison) = 0;
 
   //===--------------------------------------------------------------------===//
@@ -59,17 +55,16 @@ public:
   /// method is invoked to allocate it.  This method is required to set HasGOT
   /// to true.
   virtual void AllocateGOT() = 0;
-  
+
   /// isManagingGOT - Return true if the AllocateGOT method is called.
-  ///
   bool isManagingGOT() const {
     return HasGOT;
   }
-  
+
   /// getGOTBase - If this is managing a Global Offset Table, this method should
   /// return a pointer to its base.
   virtual uint8_t *getGOTBase() const = 0;
-  
+
   //===--------------------------------------------------------------------===//
   // Main Allocation Functions
   //===--------------------------------------------------------------------===//
@@ -96,11 +91,11 @@ public:
   /// startFunctionBody.
   virtual uint8_t *allocateStub(const GlobalValue* F, unsigned StubSize,
                                 unsigned Alignment) = 0;
-  
+
   /// endFunctionBody - This method is called when the JIT is done codegen'ing
   /// the specified function.  At this point we know the size of the JIT
   /// compiled function.  This passes in FunctionStart (which was returned by
-  /// the startFunctionBody method) and FunctionEnd which is a pointer to the 
+  /// the startFunctionBody method) and FunctionEnd which is a pointer to the
   /// actual end of the function.  This method should mark the space allocated
   /// and remember where it is in case the client wants to deallocate it.
   virtual void endFunctionBody(const Function *F, uint8_t *FunctionStart,
@@ -111,7 +106,6 @@ public:
   virtual uint8_t *allocateSpace(intptr_t Size, unsigned Alignment) = 0;
 
   /// allocateGlobal - Allocate memory for a global.
-  ///
   virtual uint8_t *allocateGlobal(uintptr_t Size, unsigned Alignment) = 0;
 
   /// deallocateFunctionBody - Free the specified function body.  The argument
@@ -119,12 +113,12 @@ public:
   /// been deallocated yet.  This is never called when the JIT is currently
   /// emitting a function.
   virtual void deallocateFunctionBody(void *Body) = 0;
-  
+
   /// startExceptionTable - When we finished JITing the function, if exception
   /// handling is set, we emit the exception table.
   virtual uint8_t* startExceptionTable(const Function* F,
                                        uintptr_t &ActualSize) = 0;
-  
+
   /// endExceptionTable - This method is called when the JIT is done emitting
   /// the exception table.
   virtual void endExceptionTable(const Function *F, uint8_t *TableStart,

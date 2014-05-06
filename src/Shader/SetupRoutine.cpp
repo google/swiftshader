@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -15,7 +15,7 @@
 #include "Renderer/Primitive.hpp"
 #include "Renderer/Polygon.hpp"
 #include "Renderer/Renderer.hpp"
-#include "Reactor/Shell.hpp"
+#include "Reactor/Reactor.hpp"
 
 namespace sw
 {
@@ -108,10 +108,16 @@ namespace sw
 
 				if(state.twoSidedStencil)
 				{
-					Byte8 clockwiseMask = IfThenElse(A > Float(0.0f), Byte8(0xFFFFFFFFFFFFFFFF), Byte8(0x0000000000000000));
-
-					*Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask)) =  clockwiseMask;
-					*Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask)) = ~clockwiseMask;
+					If(A > Float(0.0f))
+					{
+						*Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask)) =  Byte8(0xFFFFFFFFFFFFFFFF);
+						*Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask)) = Byte8(0x0000000000000000);
+					}
+					Else
+					{
+						*Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask)) =  Byte8(0x0000000000000000);
+						*Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask)) = Byte8(0xFFFFFFFFFFFFFFFF);
+					}
 				}
 
 				if(state.vFace)
@@ -145,8 +151,8 @@ namespace sw
 					Float w = v.w;
 					Float rhw = IfThenElse(w != Float(0.0f), Float(1.0f) / w, Float(1.0f));
 
-					X[i] = RoundInt(*Pointer<Float>(data + OFFSET(DrawData,LLLLx16)) + v.x * rhw * *Pointer<Float>(data + OFFSET(DrawData,WWWWx16)));
-					Y[i] = RoundInt(*Pointer<Float>(data + OFFSET(DrawData,TTTTx16)) + v.y * rhw * *Pointer<Float>(data + OFFSET(DrawData,HHHHx16)));
+					X[i] = RoundInt(*Pointer<Float>(data + OFFSET(DrawData,X0x16)) + v.x * rhw * *Pointer<Float>(data + OFFSET(DrawData,Wx16)));
+					Y[i] = RoundInt(*Pointer<Float>(data + OFFSET(DrawData,Y0x16)) + v.y * rhw * *Pointer<Float>(data + OFFSET(DrawData,Hx16)));
 
 					i++;
 				}
@@ -161,8 +167,8 @@ namespace sw
 			
 			Do
 			{
-				yMin = IfThenElse(Y[i] < yMin, Int(Y[i]), yMin);   // FIXME: Min(Y[i], yMin)
-				yMax = IfThenElse(Y[i] > yMax, Int(Y[i]), yMax);   // FIXME: Max(Y[i], yMax)
+				yMin = Min(Y[i], yMin);
+				yMax = Max(Y[i], yMax);
 
 				i++;
 			}
@@ -183,6 +189,9 @@ namespace sw
 			{
 				Return(false);
 			}
+
+			yMin = Max(yMin, *Pointer<Int>(data + OFFSET(DrawData,scissorY0)));
+			yMax = Min(yMax, *Pointer<Int>(data + OFFSET(DrawData,scissorY1)));
 		
 			For(Int q = 0, q < state.multiSample, q++)
 			{
@@ -229,7 +238,7 @@ namespace sw
 
 					Do
 					{
-						edge(primitive, Int(Xq[i + 1 - d]), Int(Yq[i + 1 - d]), Int(Xq[i + d]), Int(Yq[i + d]), q);
+						edge(primitive, data, Int(Xq[i + 1 - d]), Int(Yq[i + 1 - d]), Int(Xq[i + d]), Int(Yq[i + d]), q);
 
 						i++;
 					}
@@ -372,7 +381,7 @@ namespace sw
 			//	M[2].w = 0;
 			}
 
-			if(state.perspective)
+			if(state.interpolateW)
 			{
 				Float4 ABC = M[0] + M[1] + M[2];
 
@@ -385,7 +394,7 @@ namespace sw
 				*Pointer<Float4>(primitive + OFFSET(Primitive,w.C), 16) = C;
 			}
 
-			if(state.interpolateDepth)
+			if(state.interpolateZ)
 			{
 				Float z0 = *Pointer<Float>(v0 + OFFSET(Vertex,Z));
 				Float z1 = *Pointer<Float>(v1 + OFFSET(Vertex,Z));
@@ -491,7 +500,7 @@ namespace sw
 				if(component == 3) i.y = Float(1.0f);
 
 				if(component == 0) i.z = Float(0.5f);
-				if(component == 1) i.z = Float(0.0f);
+				if(component == 1) i.z = Float(1.0f);
 				if(component == 2) i.z = Float(0.0f);
 				if(component == 3) i.z = Float(1.0f);
 				
@@ -518,17 +527,9 @@ namespace sw
 				i *= w012;
 			}
 
-			Float4 A;
-			Float4 B;
-			Float4 C;
-
-			A = i.xxxx;
-			B = i.yyyy;
-			C = i.zzzz;
-
-			A *= m[0];
-			B *= m[1];
-			C *= m[2];
+			Float4 A = i.xxxx * m[0];
+			Float4 B = i.yyyy * m[1];
+			Float4 C = i.zzzz * m[2];
 
 			C = A + B + C;
 
@@ -550,10 +551,13 @@ namespace sw
 		}
 	}
 
-	void SetupRoutine::edge(Pointer<Byte> &primitive, Int &X1, Int &Y1, Int &X2, Int &Y2, Int &q)
+	void SetupRoutine::edge(Pointer<Byte> &primitive, Pointer<Byte> &data, Int &X1, Int &Y1, Int &X2, Int &Y2, Int &q)
 	{
 		If(Y1 != Y2)
 		{
+			Int xMin = *Pointer<Int>(data + OFFSET(DrawData,scissorX0));
+			Int xMax = *Pointer<Int>(data + OFFSET(DrawData,scissorX1));
+
 			Bool swap = Y2 < Y1;
 
 			Pointer<Byte> leftEdge = primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->left);
@@ -567,10 +571,10 @@ namespace sw
 			Y1 = IfThenElse(swap, Y2, Y1);
 			Y2 = IfThenElse(swap, Y0, Y2);
 
-			Int y1 = (Y1 + 0x0000000F) >> 4;
-			Int y2 = (Y2 + 0x0000000F) >> 4;
+			Int y1 = Max((Y1 + 0x0000000F) >> 4, *Pointer<Int>(data + OFFSET(DrawData,scissorY0)));
+			Int y2 = Min((Y2 + 0x0000000F) >> 4, *Pointer<Int>(data + OFFSET(DrawData,scissorY1)));
 
-			If(y1 != y2)
+			If(y1 < y2)
 			{
 				// Deltas
 				Int DX12 = X2 - X1;
@@ -579,7 +583,7 @@ namespace sw
 				Int FDX12 = DX12 << 4;
 				Int FDY12 = DY12 << 4;
 
-				Int X = DX12 * (-Y1 & 0xF) + X1 * DY12;
+				Int X = DX12 * ((y1 << 4) - Y1) + X1 * DY12;
 				Int x = X / FDY12;     // Edge
 				Int d = X % FDY12;     // Error-term
 				Int ceil = -d >> 31;   // Ceiling division: remainder <= 0
@@ -597,7 +601,7 @@ namespace sw
 
 				Do
 				{
-					*Pointer<Short>(edge + y * sizeof(Primitive::Span)) = Short(x);
+					*Pointer<Short>(edge + y * sizeof(Primitive::Span)) = Short(Clamp(x, xMin, xMax));
 
 					x += Q;
 					d += R;

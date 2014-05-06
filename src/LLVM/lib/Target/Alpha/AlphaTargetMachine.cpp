@@ -11,32 +11,27 @@
 //===----------------------------------------------------------------------===//
 
 #include "Alpha.h"
-#include "AlphaJITInfo.h"
-#include "AlphaMCAsmInfo.h"
 #include "AlphaTargetMachine.h"
 #include "llvm/PassManager.h"
 #include "llvm/Support/FormattedStream.h"
-#include "llvm/Target/TargetRegistry.h"
+#include "llvm/Support/TargetRegistry.h"
 using namespace llvm;
 
 extern "C" void LLVMInitializeAlphaTarget() { 
   // Register the target.
   RegisterTargetMachine<AlphaTargetMachine> X(TheAlphaTarget);
-  RegisterAsmInfo<AlphaMCAsmInfo> Y(TheAlphaTarget);
 }
 
-AlphaTargetMachine::AlphaTargetMachine(const Target &T, const std::string &TT,
-                                       const std::string &FS)
-  : LLVMTargetMachine(T, TT),
+AlphaTargetMachine::AlphaTargetMachine(const Target &T, StringRef TT,
+                                       StringRef CPU, StringRef FS,
+                                       Reloc::Model RM, CodeModel::Model CM)
+  : LLVMTargetMachine(T, TT, CPU, FS, RM, CM),
     DataLayout("e-f128:128:128-n64"),
-    FrameInfo(TargetFrameInfo::StackGrowsDown, 16, 0),
-    JITInfo(*this),
-    Subtarget(TT, FS),
+    FrameLowering(Subtarget),
+    Subtarget(TT, CPU, FS),
     TLInfo(*this),
     TSInfo(*this) {
-  setRelocationModel(Reloc::PIC_);
 }
-
 
 //===----------------------------------------------------------------------===//
 // Pass Pipeline Configuration
@@ -52,11 +47,5 @@ bool AlphaTargetMachine::addPreEmitPass(PassManagerBase &PM,
   // Must run branch selection immediately preceding the asm printer
   PM.add(createAlphaBranchSelectionPass());
   PM.add(createAlphaLLRPPass(*this));
-  return false;
-}
-bool AlphaTargetMachine::addCodeEmitter(PassManagerBase &PM,
-                                        CodeGenOpt::Level OptLevel,
-                                        JITCodeEmitter &JCE) {
-  PM.add(createAlphaJITCodeEmitterPass(*this, JCE));
   return false;
 }

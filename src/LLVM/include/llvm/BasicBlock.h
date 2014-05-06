@@ -18,10 +18,11 @@
 #include "llvm/SymbolTableListTraits.h"
 #include "llvm/ADT/ilist.h"
 #include "llvm/ADT/Twine.h"
-#include "llvm/System/DataTypes.h"
+#include "llvm/Support/DataTypes.h"
 
 namespace llvm {
 
+class LandingPadInst;
 class TerminatorInst;
 class LLVMContext;
 class BlockAddress;
@@ -58,9 +59,9 @@ private:
 /// tables. The type of a BasicBlock is "Type::LabelTy" because the basic block
 /// represents a label to which a branch can jump.
 ///
-/// A well formed basic block is formed of a list of non-terminating 
-/// instructions followed by a single TerminatorInst instruction.  
-/// TerminatorInst's may not occur in the middle of basic blocks, and must 
+/// A well formed basic block is formed of a list of non-terminating
+/// instructions followed by a single TerminatorInst instruction.
+/// TerminatorInst's may not occur in the middle of basic blocks, and must
 /// terminate the blocks. The BasicBlock class allows malformed basic blocks to
 /// occur because it may be useful in the intermediate stage of constructing or
 /// modifying a program. However, the verifier will ensure that basic blocks
@@ -85,12 +86,12 @@ private:
   /// is automatically inserted at either the end of the function (if
   /// InsertBefore is null), or before the specified basic block.
   ///
-  explicit BasicBlock(LLVMContext &C,
+  explicit BasicBlock(LLVMContext &C, const Twine &Name = "",
                       Function *Parent = 0, BasicBlock *InsertBefore = 0);
 public:
   /// getContext - Get the context in which this basic block lives.
   LLVMContext &getContext() const;
-  
+
   /// Instruction iterators...
   typedef InstListType::iterator                              iterator;
   typedef InstListType::const_iterator                  const_iterator;
@@ -98,9 +99,9 @@ public:
   /// Create - Creates a new BasicBlock. If the Parent parameter is specified,
   /// the basic block is automatically inserted at either the end of the
   /// function (if InsertBefore is 0), or before the specified basic block.
-  static BasicBlock *Create(LLVMContext &Context,
+  static BasicBlock *Create(LLVMContext &Context, const Twine &Name = "",
                             Function *Parent = 0,BasicBlock *InsertBefore = 0) {
-    return new BasicBlock(Context, Parent, InsertBefore);
+    return new BasicBlock(Context, Name, Parent, InsertBefore);
   }
   ~BasicBlock();
 
@@ -110,19 +111,19 @@ public:
         Function *getParent()       { return Parent; }
 
   /// use_back - Specialize the methods defined in Value, as we know that an
-  /// BasicBlock can only be used by Users (specifically PHI nodes, terminators,
+  /// BasicBlock can only be used by Users (specifically terminators
   /// and BlockAddress's).
   User       *use_back()       { return cast<User>(*use_begin());}
   const User *use_back() const { return cast<User>(*use_begin());}
-  
+
   /// getTerminator() - If this is a well formed basic block, then this returns
   /// a pointer to the terminator instruction.  If it is not, then you get a
   /// null pointer back.
   ///
   TerminatorInst *getTerminator();
   const TerminatorInst *getTerminator() const;
-  
-  /// Returns a pointer to the first instructon in this block that is not a 
+
+  /// Returns a pointer to the first instructon in this block that is not a
   /// PHINode instruction. When adding instruction to the beginning of the
   /// basic block, they should be added before the returned value, not before
   /// the first instruction, which might be PHI.
@@ -137,7 +138,21 @@ public:
   const Instruction* getFirstNonPHIOrDbg() const {
     return const_cast<BasicBlock*>(this)->getFirstNonPHIOrDbg();
   }
-  
+
+  // Same as above, but also skip lifetime intrinsics.
+  Instruction* getFirstNonPHIOrDbgOrLifetime();
+  const Instruction* getFirstNonPHIOrDbgOrLifetime() const {
+    return const_cast<BasicBlock*>(this)->getFirstNonPHIOrDbgOrLifetime();
+  }
+
+  /// getFirstInsertionPt - Returns an iterator to the first instruction in this
+  /// block that is suitable for inserting a non-PHI instruction. In particular,
+  /// it skips all PHIs and LandingPad instructions.
+  iterator getFirstInsertionPt();
+  const_iterator getFirstInsertionPt() const {
+    return const_cast<BasicBlock*>(this)->getFirstInsertionPt();
+  }
+
   /// removeFromParent - This method unlinks 'this' from the containing
   /// function, but does not delete it.
   ///
@@ -147,15 +162,15 @@ public:
   /// and deletes it.
   ///
   void eraseFromParent();
-  
+
   /// moveBefore - Unlink this basic block from its current function and
   /// insert it into the function that MovePos lives in, right before MovePos.
   void moveBefore(BasicBlock *MovePos);
-  
+
   /// moveAfter - Unlink this basic block from its current function and
   /// insert it into the function that MovePos lives in, right after MovePos.
   void moveAfter(BasicBlock *MovePos);
-  
+
 
   /// getSinglePredecessor - If this basic block has a single predecessor block,
   /// return the block, otherwise return a null pointer.
@@ -166,8 +181,8 @@ public:
 
   /// getUniquePredecessor - If this basic block has a unique predecessor block,
   /// return the block, otherwise return a null pointer.
-  /// Note that unique predecessor doesn't mean single edge, there can be 
-  /// multiple edges from the unique predecessor to this block (for example 
+  /// Note that unique predecessor doesn't mean single edge, there can be
+  /// multiple edges from the unique predecessor to this block (for example
   /// a switch statement with multiple cases having the same destination).
   BasicBlock *getUniquePredecessor();
   const BasicBlock *getUniquePredecessor() const {
@@ -242,12 +257,24 @@ public:
   /// Also note that this doesn't preserve any passes. To split blocks while
   /// keeping loop information consistent, use the SplitBlock utility function.
   ///
-  BasicBlock *splitBasicBlock(iterator I);
+  BasicBlock *splitBasicBlock(iterator I, const Twine &BBName = "");
 
   /// hasAddressTaken - returns true if there are any uses of this basic block
   /// other than direct branches, switches, etc. to it.
   bool hasAddressTaken() const { return getSubclassDataFromValue() != 0; }
-                     
+
+  /// replaceSuccessorsPhiUsesWith - Update all phi nodes in all our successors
+  /// to refer to basic block New instead of to us.
+  void replaceSuccessorsPhiUsesWith(BasicBlock *New);
+
+  /// isLandingPad - Return true if this basic block is a landing pad. I.e.,
+  /// it's the destination of the 'unwind' edge of an invoke instruction.
+  bool isLandingPad() const;
+
+  /// getLandingPadInst() - Return the landingpad instruction associated with
+  /// the landing pad.
+  LandingPadInst *getLandingPadInst();
+
 private:
   /// AdjustBlockAddressRefCount - BasicBlock stores the number of BlockAddress
   /// objects using it.  This is almost always 0, sometimes one, possibly but

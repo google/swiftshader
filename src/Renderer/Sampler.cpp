@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -341,6 +341,11 @@ namespace sw
 		if(textureType == TEXTURE_NULL)
 		{
 			return false;
+		}
+
+		if(texture.mipmap[0].width[0] != texture.mipmap[0].onePitchP[1])
+		{
+			return true;   // Shifting of the texture coordinates doesn't yield the correct address, so using multiply by pitch
 		}
 
 		return !isPow2(texture.mipmap[0].width[0]) || !isPow2(texture.mipmap[0].height[0]) || !isPow2(texture.mipmap[0].depth[0]);

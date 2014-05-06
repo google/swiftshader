@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Copyright(c) 2005-2012 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -11,42 +11,137 @@
 
 #include "Shader.hpp"
 
+#include "VertexShader.hpp"
+#include "PixelShader.hpp"
 #include "Math.hpp"
 #include "Debug.hpp"
 
-#include <stdarg.h>
 #include <fstream>
 #include <sstream>
 
 namespace sw
 {
-	Shader::Instruction::Instruction()
+	volatile int Shader::serialCounter = 1;
+
+	Shader::Opcode Shader::OPCODE_DP(int i)
 	{
-		operation.opcode = Operation::OPCODE_NOP;
-		destinationParameter.type = Parameter::PARAMETER_VOID;
-		sourceParameter[0].type = Parameter::PARAMETER_VOID;
-		sourceParameter[1].type = Parameter::PARAMETER_VOID;
-		sourceParameter[2].type = Parameter::PARAMETER_VOID;
-		sourceParameter[3].type = Parameter::PARAMETER_VOID;
+		switch(i)
+		{
+		default: ASSERT(false);
+		case 1: return OPCODE_DP1;
+		case 2: return OPCODE_DP2;
+		case 3: return OPCODE_DP3;
+		case 4: return OPCODE_DP4;
+		}
 	}
 
-	Shader::Instruction::Instruction(const unsigned long *token, int size, unsigned char majorVersion)
+	Shader::Opcode Shader::OPCODE_LEN(int i)
+	{
+		switch(i)
+		{
+		default: ASSERT(false);
+		case 1: return OPCODE_ABS;
+		case 2: return OPCODE_LEN2;
+		case 3: return OPCODE_LEN3;
+		case 4: return OPCODE_LEN4;
+		}
+	}
+
+	Shader::Opcode Shader::OPCODE_DIST(int i)
+	{
+		switch(i)
+		{
+		default: ASSERT(false);
+		case 1: return OPCODE_DIST1;
+		case 2: return OPCODE_DIST2;
+		case 3: return OPCODE_DIST3;
+		case 4: return OPCODE_DIST4;
+		}
+	}
+
+	Shader::Opcode Shader::OPCODE_NRM(int i)	
+	{
+		switch(i)
+		{
+		default: ASSERT(false);
+		case 1: return OPCODE_SGN;
+		case 2: return OPCODE_NRM2;
+		case 3: return OPCODE_NRM3;
+		case 4: return OPCODE_NRM4;
+		}
+	}
+
+	Shader::Opcode Shader::OPCODE_FORWARD(int i)
+	{
+		switch(i)
+		{
+		default: ASSERT(false);
+		case 1: return OPCODE_FORWARD1;
+		case 2: return OPCODE_FORWARD2;
+		case 3: return OPCODE_FORWARD3;
+		case 4: return OPCODE_FORWARD4;
+		}
+	}
+
+	Shader::Opcode Shader::OPCODE_REFLECT(int i)
+	{
+		switch(i)
+		{
+		default: ASSERT(false);
+		case 1: return OPCODE_REFLECT1;
+		case 2: return OPCODE_REFLECT2;
+		case 3: return OPCODE_REFLECT3;
+		case 4: return OPCODE_REFLECT4;
+		}
+	}
+
+	Shader::Opcode Shader::OPCODE_REFRACT(int i)
+	{
+		switch(i)
+		{
+		default: ASSERT(false);
+		case 1: return OPCODE_REFRACT1;
+		case 2: return OPCODE_REFRACT2;
+		case 3: return OPCODE_REFRACT3;
+		case 4: return OPCODE_REFRACT4;
+		}
+	}
+
+	Shader::Instruction::Instruction(Opcode opcode) : opcode(opcode), analysis(0)
+	{
+		control = CONTROL_RESERVED0;
+
+		predicate = false;
+		predicateNot = false;
+		predicateSwizzle = 0xE4;
+		
+		coissue = false;
+		samplerType = SAMPLER_UNKNOWN;
+		usage = USAGE_POSITION;
+		usageIndex = 0;
+	}
+
+	Shader::Instruction::Instruction(const unsigned long *token, int size, unsigned char majorVersion) : analysis(0)
 	{
 		parseOperationToken(*token++, majorVersion);
 
-		if(operation.opcode == Operation::OPCODE_IF ||
-		   operation.opcode == Operation::OPCODE_IFC ||
-		   operation.opcode == Operation::OPCODE_LOOP ||
-		   operation.opcode == Operation::OPCODE_REP ||
-		   operation.opcode == Operation::OPCODE_BREAKC ||
-		   operation.opcode == Operation::OPCODE_BREAKP)   // No destination operand
+		samplerType = SAMPLER_UNKNOWN;
+		usage = USAGE_POSITION;
+		usageIndex = 0;
+
+		if(opcode == OPCODE_IF ||
+		   opcode == OPCODE_IFC ||
+		   opcode == OPCODE_LOOP ||
+		   opcode == OPCODE_REP ||
+		   opcode == OPCODE_BREAKC ||
+		   opcode == OPCODE_BREAKP)   // No destination operand
 		{
 			if(size > 0) parseSourceToken(0, token++, majorVersion);
 			if(size > 1) parseSourceToken(1, token++, majorVersion);
 			if(size > 2) parseSourceToken(2, token++, majorVersion);
 			if(size > 3) ASSERT(false);
 		}
-		else if(operation.opcode == Operation::OPCODE_DCL)
+		else if(opcode == OPCODE_DCL)
 		{
 			parseDeclarationToken(*token++);
 			parseDestinationToken(token++, majorVersion);
@@ -57,7 +152,7 @@ namespace sw
 			{
 				parseDestinationToken(token, majorVersion);
 
-				if(destinationParameter.relative && majorVersion >= 3)
+				if(dst.rel.type != PARAMETER_VOID && majorVersion >= 3)
 				{
 					token++;
 					size--;
@@ -67,12 +162,12 @@ namespace sw
 				size--;
 			}
 
-			if(operation.predicate)
+			if(predicate)
 			{
 				ASSERT(size != 0);
 
-				operation.predicateNot = (SourceParameter::Modifier)((*token & 0x0F000000) >> 24) == SourceParameter::MODIFIER_NOT;
-				operation.predicateSwizzle = (unsigned char)((*token & 0x00FF0000) >> 16);
+				predicateNot = (Modifier)((*token & 0x0F000000) >> 24) == MODIFIER_NOT;
+				predicateSwizzle = (unsigned char)((*token & 0x00FF0000) >> 16);
 				
 				token++;
 				size--;
@@ -85,7 +180,7 @@ namespace sw
 				token++;
 				size--;
 
-				if(sourceParameter[i].relative && majorVersion >= 2)
+				if(src[i].rel.type != PARAMETER_VOID && majorVersion >= 2)
 				{
 					token++;
 					size--;
@@ -98,105 +193,40 @@ namespace sw
 	{
 	}
 
-	Shader::Instruction::Operation::Opcode Shader::Instruction::getOpcode() const
-	{
-		return operation.opcode;
-	}
-
-	const Shader::Instruction::DestinationParameter &Shader::Instruction::getDestinationParameter() const
-	{
-		return destinationParameter;
-	}
-
-	const Shader::Instruction::SourceParameter &Shader::Instruction::getSourceParameter(int i) const
-	{
-		return sourceParameter[i];
-	}
-
-	bool Shader::Instruction::isCoissue() const
-	{
-		return operation.coissue;
-	}
-
-	bool Shader::Instruction::isProject() const
-	{
-		return operation.project;
-	}
-
-	bool Shader::Instruction::isBias() const
-	{
-		return operation.bias;
-	}
-
-	bool Shader::Instruction::isPredicate() const
-	{
-		return operation.predicate;
-	}
-
-	bool Shader::Instruction::isPredicateNot() const
-	{
-		return operation.predicateNot;
-	}
-
-	unsigned char Shader::Instruction::getPredicateSwizzle() const
-	{
-		return operation.predicateSwizzle;
-	}
-
-	Shader::Instruction::Operation::Control Shader::Instruction::getControl() const
-	{
-		return operation.control;
-	}
-
-	Shader::Instruction::Operation::Usage Shader::Instruction::getUsage() const
-	{
-		return operation.usage;
-	}
-
-	unsigned char Shader::Instruction::getUsageIndex() const
-	{
-		return operation.usageIndex;
-	}
-
-	Shader::Instruction::Operation::SamplerType Shader::Instruction::getSamplerType() const
-	{
-		return operation.samplerType;
-	}
-
 	std::string Shader::Instruction::string(ShaderType shaderType, unsigned short version) const
 	{
 		std::string instructionString;
 		
-		if(operation.opcode != Operation::OPCODE_DCL)
+		if(opcode != OPCODE_DCL)
 		{
-			instructionString += operation.coissue ? "+ " : "";
+			instructionString += coissue ? "+ " : "";
 			
-			if(operation.predicate)
+			if(predicate)
 			{
-				instructionString += operation.predicateNot ? "(!p0" : "(p0";
-				instructionString += swizzleString(Parameter::PARAMETER_PREDICATE, operation.predicateSwizzle);
+				instructionString += predicateNot ? "(!p0" : "(p0";
+				instructionString += swizzleString(PARAMETER_PREDICATE, predicateSwizzle);
 				instructionString += ") ";
 			}
 
-			instructionString += operation.string(version) + operation.controlString() + destinationParameter.shiftString() + destinationParameter.modifierString();
+			instructionString += operationString(version) + controlString() + dst.shiftString() + dst.modifierString();
 
-			if(destinationParameter.type != Parameter::PARAMETER_VOID)
+			if(dst.type != PARAMETER_VOID)
 			{
-				instructionString += " " + destinationParameter.string(shaderType, version) +
-				                           destinationParameter.relativeString() +
-				                           destinationParameter.maskString(); 
+				instructionString += " " + dst.string(shaderType, version) +
+				                           dst.relativeString() +
+				                           dst.maskString(); 
 			}
 
 			for(int i = 0; i < 4; i++)
 			{
-				if(sourceParameter[i].type != Parameter::PARAMETER_VOID)
+				if(src[i].type != PARAMETER_VOID)
 				{
-					instructionString += (destinationParameter.type != Parameter::PARAMETER_VOID || i > 0) ? ", " : " ";
-					instructionString += sourceParameter[i].preModifierString() +
-										 sourceParameter[i].string(shaderType, version) +
-										 sourceParameter[i].relativeString() + 
-										 sourceParameter[i].postModifierString() + 
-										 sourceParameter[i].swizzleString();
+					instructionString += (dst.type != PARAMETER_VOID || i > 0) ? ", " : " ";
+					instructionString += src[i].preModifierString() +
+										 src[i].string(shaderType, version) +
+										 src[i].relativeString() + 
+										 src[i].postModifierString() + 
+										 src[i].swizzleString();
 				}
 			}
 		}
@@ -204,68 +234,68 @@ namespace sw
 		{
 			instructionString += "dcl";
 
-			if(destinationParameter.type == Parameter::PARAMETER_SAMPLER)
+			if(dst.type == PARAMETER_SAMPLER)
 			{
-				switch(operation.samplerType)
+				switch(samplerType)
 				{
-				case Operation::SAMPLER_UNKNOWN:	instructionString += " ";			break;
-				case Operation::SAMPLER_1D:			instructionString += "_1d ";		break;
-				case Operation::SAMPLER_2D:			instructionString += "_2d ";		break;
-				case Operation::SAMPLER_CUBE:		instructionString += "_cube ";		break;
-				case Operation::SAMPLER_VOLUME:		instructionString += "_volume ";	break;
+				case SAMPLER_UNKNOWN: instructionString += " ";        break;
+				case SAMPLER_1D:      instructionString += "_1d ";     break;
+				case SAMPLER_2D:      instructionString += "_2d ";     break;
+				case SAMPLER_CUBE:    instructionString += "_cube ";   break;
+				case SAMPLER_VOLUME:  instructionString += "_volume "; break;
 				default:
 					ASSERT(false);
 				}
 
-				instructionString += destinationParameter.string(shaderType, version);
+				instructionString += dst.string(shaderType, version);
 			}
-			else if(destinationParameter.type == Parameter::PARAMETER_INPUT ||
-				    destinationParameter.type == Parameter::PARAMETER_OUTPUT ||
-				    destinationParameter.type == Parameter::PARAMETER_TEXTURE)
+			else if(dst.type == PARAMETER_INPUT ||
+				    dst.type == PARAMETER_OUTPUT ||
+				    dst.type == PARAMETER_TEXTURE)
 			{
 				if(version >= 0x0300)
 				{
-					switch(operation.usage)
+					switch(usage)
 					{
-					case Operation::USAGE_POSITION:		instructionString += "_position";		break;
-					case Operation::USAGE_BLENDWEIGHT:	instructionString += "_blendweight";	break;
-					case Operation::USAGE_BLENDINDICES:	instructionString += "_blendindices";	break;
-					case Operation::USAGE_NORMAL:		instructionString += "_normal";			break;
-					case Operation::USAGE_PSIZE:		instructionString += "_psize";			break;
-					case Operation::USAGE_TEXCOORD:		instructionString += "_texcoord";		break;
-					case Operation::USAGE_TANGENT:		instructionString += "_tangent";		break;
-					case Operation::USAGE_BINORMAL:		instructionString += "_binormal";		break;
-					case Operation::USAGE_TESSFACTOR:	instructionString += "_tessfactor";		break;
-					case Operation::USAGE_POSITIONT:	instructionString += "_positiont";		break;
-					case Operation::USAGE_COLOR:		instructionString += "_color";			break;
-					case Operation::USAGE_FOG:			instructionString += "_fog";			break;
-					case Operation::USAGE_DEPTH:		instructionString += "_depth";			break;
-					case Operation::USAGE_SAMPLE:		instructionString += "_sample";			break;
+					case USAGE_POSITION:     instructionString += "_position";     break;
+					case USAGE_BLENDWEIGHT:  instructionString += "_blendweight";  break;
+					case USAGE_BLENDINDICES: instructionString += "_blendindices"; break;
+					case USAGE_NORMAL:       instructionString += "_normal";       break;
+					case USAGE_PSIZE:        instructionString += "_psize";        break;
+					case USAGE_TEXCOORD:     instructionString += "_texcoord";     break;
+					case USAGE_TANGENT:      instructionString += "_tangent";      break;
+					case USAGE_BINORMAL:     instructionString += "_binormal";     break;
+					case USAGE_TESSFACTOR:   instructionString += "_tessfactor";   break;
+					case USAGE_POSITIONT:    instructionString += "_positiont";    break;
+					case USAGE_COLOR:        instructionString += "_color";        break;
+					case USAGE_FOG:          instructionString += "_fog";          break;
+					case USAGE_DEPTH:        instructionString += "_depth";        break;
+					case USAGE_SAMPLE:       instructionString += "_sample";       break;
 					default:
 						ASSERT(false);
 					}
 
-					if(operation.usageIndex > 0)
+					if(usageIndex > 0)
 					{
 						std::ostringstream buffer;
 
-						buffer << (int)operation.usageIndex;
+						buffer << (int)usageIndex;
 
 						instructionString += buffer.str();
 					}
 				}
-				else ASSERT(destinationParameter.type != Parameter::PARAMETER_OUTPUT);
+				else ASSERT(dst.type != PARAMETER_OUTPUT);
 
 				instructionString += " ";
 
-				instructionString += destinationParameter.string(shaderType, version);
-				instructionString += destinationParameter.maskString();
+				instructionString += dst.string(shaderType, version);
+				instructionString += dst.maskString();
 			}
-			else if(destinationParameter.type == Parameter::PARAMETER_MISCTYPE)   // vPos and vFace
+			else if(dst.type == PARAMETER_MISCTYPE)   // vPos and vFace
 			{
 				instructionString += " ";
 
-				instructionString += destinationParameter.string(shaderType, version);
+				instructionString += dst.string(shaderType, version);
 			}
 			else ASSERT(false);
 		}
@@ -273,145 +303,7 @@ namespace sw
 		return instructionString;
 	}
 
-	std::string Shader::Instruction::Operation::string(unsigned short version) const
-	{
-		switch(opcode)
-		{
-		case OPCODE_NOP:			return "nop";
-		case OPCODE_MOV:			return "mov";
-		case OPCODE_ADD:			return "add";
-		case OPCODE_SUB:			return "sub";
-		case OPCODE_MAD:			return "mad";
-		case OPCODE_MUL:			return "mul";
-		case OPCODE_RCP:			return "rcp";
-		case OPCODE_RSQ:			return "rsq";
-		case OPCODE_DP3:			return "dp3";
-		case OPCODE_DP4:			return "dp4";
-		case OPCODE_MIN:			return "min";
-		case OPCODE_MAX:			return "max";
-		case OPCODE_SLT:			return "slt";
-		case OPCODE_SGE:			return "sge";
-		case OPCODE_EXP:			return "exp";
-		case OPCODE_LOG:			return "log";
-		case OPCODE_LIT:			return "lit";
-		case OPCODE_DST:			return "dst";
-		case OPCODE_LRP:			return "lrp";
-		case OPCODE_FRC:			return "frc";
-		case OPCODE_M4X4:			return "m4x4";
-		case OPCODE_M4X3:			return "m4x3";
-		case OPCODE_M3X4:			return "m3x4";
-		case OPCODE_M3X3:			return "m3x3";
-		case OPCODE_M3X2:			return "m3x2";
-		case OPCODE_CALL:			return "call";
-		case OPCODE_CALLNZ:			return "callnz";
-		case OPCODE_LOOP:			return "loop";
-		case OPCODE_RET:			return "ret";
-		case OPCODE_ENDLOOP:		return "endloop";
-		case OPCODE_LABEL:			return "label";
-		case OPCODE_DCL:			return "dcl";
-		case OPCODE_POW:			return "pow";
-		case OPCODE_CRS:			return "crs";
-		case OPCODE_SGN:			return "sgn";
-		case OPCODE_ABS:			return "abs";
-		case OPCODE_NRM:			return "nrm";
-		case OPCODE_SINCOS:			return "sincos";
-		case OPCODE_REP:			return "rep";
-		case OPCODE_ENDREP:			return "endrep";
-		case OPCODE_IF:				return "if";
-		case OPCODE_IFC:			return "ifc";
-		case OPCODE_ELSE:			return "else";
-		case OPCODE_ENDIF:			return "endif";
-		case OPCODE_BREAK:			return "break";
-		case OPCODE_BREAKC:			return "breakc";
-		case OPCODE_MOVA:			return "mova";
-		case OPCODE_DEFB:			return "defb";
-		case OPCODE_DEFI:			return "defi";
-		case OPCODE_TEXCOORD:		return "texcoord";
-		case OPCODE_TEXKILL:		return "texkill";
-		case OPCODE_TEX:
-			if(version < 0x0104)	return "tex";
-			else					return "texld";
-		case OPCODE_TEXBEM:			return "texbem";
-		case OPCODE_TEXBEML:		return "texbeml";
-		case OPCODE_TEXREG2AR:		return "texreg2ar";
-		case OPCODE_TEXREG2GB:		return "texreg2gb";
-		case OPCODE_TEXM3X2PAD:		return "texm3x2pad";
-		case OPCODE_TEXM3X2TEX:		return "texm3x2tex";
-		case OPCODE_TEXM3X3PAD:		return "texm3x3pad";
-		case OPCODE_TEXM3X3TEX:		return "texm3x3tex";
-		case OPCODE_RESERVED0:		return "reserved0";
-		case OPCODE_TEXM3X3SPEC:	return "texm3x3spec";
-		case OPCODE_TEXM3X3VSPEC:	return "texm3x3vspec";
-		case OPCODE_EXPP:			return "expp";
-		case OPCODE_LOGP:			return "logp";
-		case OPCODE_CND:			return "cnd";
-		case OPCODE_DEF:			return "def";
-		case OPCODE_TEXREG2RGB:		return "texreg2rgb";
-		case OPCODE_TEXDP3TEX:		return "texdp3tex";
-		case OPCODE_TEXM3X2DEPTH:	return "texm3x2depth";
-		case OPCODE_TEXDP3:			return "texdp3";
-		case OPCODE_TEXM3X3:		return "texm3x3";
-		case OPCODE_TEXDEPTH:		return "texdepth";
-		case OPCODE_CMP:			return "cmp";
-		case OPCODE_BEM:			return "bem";
-		case OPCODE_DP2ADD:			return "dp2add";
-		case OPCODE_DSX:			return "dsx";
-		case OPCODE_DSY:			return "dsy";
-		case OPCODE_TEXLDD:			return "texldd";
-		case OPCODE_SETP:			return "setp";
-		case OPCODE_TEXLDL:			return "texldl";
-		case OPCODE_BREAKP:			return "breakp";
-		case OPCODE_PHASE:			return "phase";
-		case OPCODE_COMMENT:		return "comment";
-		case OPCODE_END:			return "end";
-		case OPCODE_PS_1_0:			return "ps_1_0";
-		case OPCODE_PS_1_1:			return "ps_1_1";
-		case OPCODE_PS_1_2:			return "ps_1_2";
-		case OPCODE_PS_1_3:			return "ps_1_3";
-		case OPCODE_PS_1_4:			return "ps_1_4";
-		case OPCODE_PS_2_0:			return "ps_2_0";
-		case OPCODE_PS_2_x:			return "ps_2_x";
-		case OPCODE_PS_3_0:			return "ps_3_0";
-		case OPCODE_VS_1_0:			return "vs_1_0";
-		case OPCODE_VS_1_1:			return "vs_1_1";
-		case OPCODE_VS_2_0:			return "vs_2_0";
-		case OPCODE_VS_2_x:			return "vs_2_x";
-		case OPCODE_VS_2_sw:		return "vs_2_sw";
-		case OPCODE_VS_3_0:			return "vs_3_0";
-		case OPCODE_VS_3_sw:		return "vs_3_sw";
-		default:
-			ASSERT(false);
-		}
-
-		return "<unknown>";
-	}
-
-	std::string Shader::Instruction::Operation::controlString() const
-	{
-		if(opcode != OPCODE_LOOP && opcode != OPCODE_BREAKC && opcode != OPCODE_IFC && opcode != OPCODE_SETP)
-		{
-			if(project) return "p";
-
-			if(bias) return "b";
-
-			// FIXME: LOD
-		}
-
-		switch(control)
-		{
-		case 1: return "_gt";
-		case 2: return "_eq";
-		case 3: return "_ge";
-		case 4: return "_lt";
-		case 5: return "_ne";
-		case 6: return "_le";
-		default:
-			return "";
-		//	ASSERT(false);   // FIXME
-		}
-	}
-
-	std::string Shader::Instruction::DestinationParameter::modifierString() const
+	std::string Shader::DestinationParameter::modifierString() const
 	{
 		if(type == PARAMETER_VOID || type == PARAMETER_LABEL)
 		{
@@ -419,6 +311,11 @@ namespace sw
 		}
 
 		std::string modifierString;
+
+		if(integer)
+		{
+			modifierString += "_int";
+		}
 
 		if(saturate)
 		{
@@ -438,7 +335,7 @@ namespace sw
 		return modifierString;
 	}
 
-	std::string Shader::Instruction::DestinationParameter::shiftString() const
+	std::string Shader::DestinationParameter::shiftString() const
 	{
 		if(type == PARAMETER_VOID || type == PARAMETER_LABEL)
 		{
@@ -460,7 +357,7 @@ namespace sw
 		}
 	}
 
-	std::string Shader::Instruction::DestinationParameter::maskString() const
+	std::string Shader::DestinationParameter::maskString() const
 	{
 		if(type == PARAMETER_VOID || type == PARAMETER_LABEL)
 		{
@@ -492,7 +389,7 @@ namespace sw
 		return "";
 	}
 
-	std::string Shader::Instruction::SourceParameter::preModifierString() const
+	std::string Shader::SourceParameter::preModifierString() const
 	{
 		if(type == PARAMETER_VOID)
 		{
@@ -522,30 +419,48 @@ namespace sw
 		return "";
 	}
 
-	std::string Shader::Instruction::Parameter::relativeString() const
+	std::string Shader::Parameter::relativeString() const
 	{
-		if(!relative) return "";
-
-		if(relativeType == Parameter::PARAMETER_ADDR)
+		if(type == PARAMETER_CONST || type == PARAMETER_INPUT || type == PARAMETER_OUTPUT || type == PARAMETER_TEMP)
 		{
-			switch(relativeSwizzle & 0x03)
+			if(rel.type == PARAMETER_VOID)
 			{
-			case 0: return "[a0.x]";
-			case 1: return "[a0.y]";
-			case 2: return "[a0.z]";
-			case 3: return "[a0.w]";
+				return "";
 			}
+			else if(rel.type == PARAMETER_ADDR)
+			{
+				switch(rel.swizzle & 0x03)
+				{
+				case 0: return "[a0.x]";
+				case 1: return "[a0.y]";
+				case 2: return "[a0.z]";
+				case 3: return "[a0.w]";
+				}
+			}
+			else if(rel.type == PARAMETER_TEMP)
+			{
+				std::ostringstream buffer;
+				buffer << rel.index;
+
+				switch(rel.swizzle & 0x03)
+				{
+				case 0: return "[r" + buffer.str() + ".x]";
+				case 1: return "[r" + buffer.str() + ".y]";
+				case 2: return "[r" + buffer.str() + ".z]";
+				case 3: return "[r" + buffer.str() + ".w]";
+				}
+			}
+			else if(rel.type == PARAMETER_LOOP)
+			{
+				return "[aL]";
+			}
+			else ASSERT(false);
 		}
-		else if(relativeType == Parameter::PARAMETER_LOOP)
-		{
-			return "[aL]";
-		}
-		else ASSERT(false);
 
 		return "";
 	}
 
-	std::string Shader::Instruction::SourceParameter::postModifierString() const
+	std::string Shader::SourceParameter::postModifierString() const
 	{
 		if(type == PARAMETER_VOID)
 		{
@@ -575,7 +490,7 @@ namespace sw
 		return "";
 	}
 
-	std::string Shader::Instruction::SourceParameter::swizzleString() const
+	std::string Shader::SourceParameter::swizzleString() const
 	{
 		return Instruction::swizzleString(type, swizzle);
 	}
@@ -584,19 +499,21 @@ namespace sw
 	{
 		if((token & 0xFFFF0000) == 0xFFFF0000 || (token & 0xFFFF0000) == 0xFFFE0000)   // Version token
 		{
-			operation.opcode = (Operation::Opcode)token;
-			operation.predicate = false;
-			operation.coissue = false;
+			opcode = (Opcode)token;
+
+			control = CONTROL_RESERVED0;
+			predicate = false;
+			coissue = false;
 		}
 		else
 		{
-			operation.opcode = (Operation::Opcode)(token & 0x0000FFFF);
-			operation.control = (Operation::Control)((token & 0x00FF0000) >> 16);
+			opcode = (Opcode)(token & 0x0000FFFF);
+			control = (Control)((token & 0x00FF0000) >> 16);
 
 			int size = (token & 0x0F000000) >> 24;
 
-			operation.predicate = (token & 0x10000000) != 0x00000000;
-			operation.coissue = (token & 0x40000000) != 0x00000000;
+			predicate = (token & 0x10000000) != 0x00000000;
+			coissue = (token & 0x40000000) != 0x00000000;
 
 			if(majorVersion < 2)
 			{
@@ -608,7 +525,7 @@ namespace sw
 
 			if(majorVersion < 2)
 			{
-				if(operation.predicate)
+				if(predicate)
 				{
 					ASSERT(false);
 				}
@@ -621,7 +538,7 @@ namespace sw
 
 			if(majorVersion >= 2)
 			{
-				if(operation.coissue)
+				if(coissue)
 				{
 					ASSERT(false);   // Reserved
 				}
@@ -636,43 +553,44 @@ namespace sw
 
 	void Shader::Instruction::parseDeclarationToken(unsigned long token)
 	{
-		operation.samplerType = (Operation::SamplerType)((token & 0x78000000) >> 27);
-		operation.usage = (Operation::Usage)(token & 0x0000001F);
-		operation.usageIndex = (unsigned char)((token & 0x000F0000) >> 16);
+		samplerType = (SamplerType)((token & 0x78000000) >> 27);
+		usage = (Usage)(token & 0x0000001F);
+		usageIndex = (unsigned char)((token & 0x000F0000) >> 16);
 	}
 
 	void Shader::Instruction::parseDestinationToken(const unsigned long *token, unsigned char majorVersion)
 	{
-		destinationParameter.index = (unsigned short)(token[0] & 0x000007FF);
-		destinationParameter.type = (Parameter::Type)(((token[0] & 0x00001800) >> 8) | ((token[0] & 0x70000000) >> 28));
+		dst.index = (unsigned short)(token[0] & 0x000007FF);
+		dst.type = (ParameterType)(((token[0] & 0x00001800) >> 8) | ((token[0] & 0x70000000) >> 28));
 
 		// TODO: Check type and index range
 
-		destinationParameter.relative = (token[0] & 0x00002000) != 0x00000000;
-		destinationParameter.relativeType = Parameter::PARAMETER_ADDR;
-		destinationParameter.relativeSwizzle = 0x00;
+		bool relative = (token[0] & 0x00002000) != 0x00000000;
+		dst.rel.type = relative ? PARAMETER_ADDR : PARAMETER_VOID;
+		dst.rel.swizzle = 0x00;
+		dst.rel.scale = 1;
 
-		if(destinationParameter.relative && majorVersion >= 3)
+		if(relative && majorVersion >= 3)
 		{
-			destinationParameter.relativeType = (Parameter::Type)(((token[1] & 0x00001800) >> 8) | ((token[1] & 0x70000000) >> 28));
-			destinationParameter.relativeSwizzle = (unsigned char)((token[1] & 0x00FF0000) >> 16);
+			dst.rel.type = (ParameterType)(((token[1] & 0x00001800) >> 8) | ((token[1] & 0x70000000) >> 28));
+			dst.rel.swizzle = (unsigned char)((token[1] & 0x00FF0000) >> 16);
 		}
-		else if(destinationParameter.relative) ASSERT(false);   // Reserved
+		else if(relative) ASSERT(false);   // Reserved
 
 		if((token[0] & 0x0000C000) != 0x00000000)
 		{
 			ASSERT(false);   // Reserved
 		}
 
-		destinationParameter.mask = (unsigned char)((token[0] & 0x000F0000) >> 16);
-		destinationParameter.saturate = (token[0] & 0x00100000) != 0;
-		destinationParameter.partialPrecision = (token[0] & 0x00200000) != 0;
-		destinationParameter.centroid = (token[0] & 0x00400000) != 0;
-		destinationParameter.shift = (signed char)((token[0] & 0x0F000000) >> 20) >> 4;
+		dst.mask = (unsigned char)((token[0] & 0x000F0000) >> 16);
+		dst.saturate = (token[0] & 0x00100000) != 0;
+		dst.partialPrecision = (token[0] & 0x00200000) != 0;
+		dst.centroid = (token[0] & 0x00400000) != 0;
+		dst.shift = (signed char)((token[0] & 0x0F000000) >> 20) >> 4;
 
 		if(majorVersion >= 2)
 		{
-			if(destinationParameter.shift)
+			if(dst.shift)
 			{
 				ASSERT(false);   // Reserved
 			}
@@ -687,67 +605,71 @@ namespace sw
 	void Shader::Instruction::parseSourceToken(int i, const unsigned long *token, unsigned char majorVersion)
 	{
 		// Defaults
-		sourceParameter[i].value = (float&)*token;
-		sourceParameter[i].type = Parameter::PARAMETER_VOID;
-		sourceParameter[i].modifier = SourceParameter::MODIFIER_NONE;
-		sourceParameter[i].swizzle = 0xE4;
-		sourceParameter[i].relative = false;
-		sourceParameter[i].relativeType = Parameter::PARAMETER_ADDR;
-		sourceParameter[i].relativeSwizzle = 0x00;
+		src[i].index = 0;
+		src[i].type = PARAMETER_VOID;
+		src[i].modifier = MODIFIER_NONE;
+		src[i].swizzle = 0xE4;
+		src[i].rel.type = PARAMETER_VOID;
+		src[i].rel.swizzle = 0x00;
+		src[i].rel.scale = 1;
 		
-		switch(operation.opcode)
+		switch(opcode)
 		{
-		case Instruction::Operation::OPCODE_DEF:
-			sourceParameter[i].type = Parameter::PARAMETER_FLOATLITERAL;
+		case OPCODE_DEF:
+			src[0].type = PARAMETER_FLOAT4LITERAL;
+			src[0].value[i] = *(float*)token;
 			break;
-		case Instruction::Operation::OPCODE_DEFB:
-			sourceParameter[i].type = Parameter::PARAMETER_BOOLLITERAL;
+		case OPCODE_DEFB:
+			src[0].type = PARAMETER_BOOL1LITERAL;
+			src[0].boolean[0] = *(int*)token;
 			break;
-		case Instruction::Operation::OPCODE_DEFI:
-			sourceParameter[i].type = Parameter::PARAMETER_INTLITERAL;
+		case OPCODE_DEFI:
+			src[0].type = PARAMETER_INT4LITERAL;
+			src[0].integer[i] = *(int*)token;
 			break;
 		default:
-			sourceParameter[i].index = (unsigned short)(token[0] & 0x000007FF);
-			sourceParameter[i].type = (Parameter::Type)(((token[0] & 0x00001800) >> 8) | ((token[0] & 0x70000000) >> 28));
+			src[i].index = (unsigned short)(token[0] & 0x000007FF);
+			src[i].type = (ParameterType)(((token[0] & 0x00001800) >> 8) | ((token[0] & 0x70000000) >> 28));
 
 			// FIXME: Check type and index range
 
-			sourceParameter[i].relative = (token[0] & 0x00002000) != 0x00000000;
+			bool relative = (token[0] & 0x00002000) != 0x00000000;
+			src[i].rel.type = relative ? PARAMETER_ADDR : PARAMETER_VOID;
 
 			if((token[0] & 0x0000C000) != 0x00000000)
 			{
-				if(operation.opcode != Operation::OPCODE_DEF &&
-				   operation.opcode != Operation::OPCODE_DEFI &&
-				   operation.opcode != Operation::OPCODE_DEFB)
+				if(opcode != OPCODE_DEF &&
+				   opcode != OPCODE_DEFI &&
+				   opcode != OPCODE_DEFB)
 				{
 					ASSERT(false);
 				}
 			}
 
-			sourceParameter[i].swizzle = (unsigned char)((token[0] & 0x00FF0000) >> 16);
-			sourceParameter[i].modifier = (SourceParameter::Modifier)((token[0] & 0x0F000000) >> 24);
+			src[i].swizzle = (unsigned char)((token[0] & 0x00FF0000) >> 16);
+			src[i].modifier = (Modifier)((token[0] & 0x0F000000) >> 24);
 
 			if((token[0] & 0x80000000) != 0x80000000)
 			{
-				if(operation.opcode != Operation::OPCODE_DEF &&
-				   operation.opcode != Operation::OPCODE_DEFI &&
-				   operation.opcode != Operation::OPCODE_DEFB)
+				if(opcode != OPCODE_DEF &&
+				   opcode != OPCODE_DEFI &&
+				   opcode != OPCODE_DEFB)
 				{
 					ASSERT(false);
 				}
 			}
 
-			if(sourceParameter[i].relative && majorVersion >= 2)
+			if(relative && majorVersion >= 2)
 			{
-				sourceParameter[i].relativeType = (Parameter::Type)(((token[1] & 0x00001800) >> 8) | ((token[1] & 0x70000000) >> 28));
-				sourceParameter[i].relativeSwizzle = (unsigned char)((token[1] & 0x00FF0000) >> 16);
+				src[i].rel.type = (ParameterType)(((token[1] & 0x00001800) >> 8) | ((token[1] & 0x70000000) >> 28));
+				src[i].rel.swizzle = (unsigned char)((token[1] & 0x00FF0000) >> 16);
 			}
 		}
 	}
 
-	std::string Shader::Instruction::swizzleString(Parameter::Type type, unsigned char swizzle)
+	std::string Shader::Instruction::swizzleString(ParameterType type, unsigned char swizzle)
 	{
-		if(type == Parameter::PARAMETER_VOID || type == Parameter::PARAMETER_LABEL || swizzle == 0xE4)
+		if(type == PARAMETER_VOID || type == PARAMETER_LABEL || swizzle == 0xE4)
 		{
 			return "";
 		}
@@ -803,32 +725,230 @@ namespace sw
 		return swizzleString;
 	}
 
-	std::string Shader::Instruction::Parameter::string(ShaderType shaderType, unsigned short version) const
+	std::string Shader::Instruction::operationString(unsigned short version) const
 	{
-		std::ostringstream buffer;
-
-		if(type == PARAMETER_FLOATLITERAL)
+		switch(opcode)
 		{
-			buffer << value;
-
-			return buffer.str();
+		case OPCODE_NOP:			return "nop";
+		case OPCODE_MOV:			return "mov";
+		case OPCODE_ADD:			return "add";
+		case OPCODE_SUB:			return "sub";
+		case OPCODE_MAD:			return "mad";
+		case OPCODE_MUL:			return "mul";
+		case OPCODE_RCPX:			return "rcpx";
+		case OPCODE_DIV:			return "div";
+		case OPCODE_MOD:			return "mod";
+		case OPCODE_RSQX:			return "rsqx";
+		case OPCODE_SQRT:			return "sqrt";
+		case OPCODE_RSQ:			return "rsq";
+		case OPCODE_LEN2:			return "len2";
+		case OPCODE_LEN3:			return "len3";
+		case OPCODE_LEN4:			return "len4";
+		case OPCODE_DIST1:			return "dist1";
+		case OPCODE_DIST2:			return "dist2";
+		case OPCODE_DIST3:			return "dist3";
+		case OPCODE_DIST4:			return "dist4";
+		case OPCODE_DP3:			return "dp3";
+		case OPCODE_DP4:			return "dp4";
+		case OPCODE_MIN:			return "min";
+		case OPCODE_MAX:			return "max";
+		case OPCODE_SLT:			return "slt";
+		case OPCODE_SGE:			return "sge";
+		case OPCODE_EXP2X:			return "exp2x";
+		case OPCODE_LOG2X:			return "log2x";
+		case OPCODE_LIT:			return "lit";
+		case OPCODE_ATT:			return "att";
+		case OPCODE_LRP:			return "lrp";
+		case OPCODE_STEP:			return "step";
+		case OPCODE_SMOOTH:			return "smooth";
+		case OPCODE_FRC:			return "frc";
+		case OPCODE_M4X4:			return "m4x4";
+		case OPCODE_M4X3:			return "m4x3";
+		case OPCODE_M3X4:			return "m3x4";
+		case OPCODE_M3X3:			return "m3x3";
+		case OPCODE_M3X2:			return "m3x2";
+		case OPCODE_CALL:			return "call";
+		case OPCODE_CALLNZ:			return "callnz";
+		case OPCODE_LOOP:			return "loop";
+		case OPCODE_RET:			return "ret";
+		case OPCODE_ENDLOOP:		return "endloop";
+		case OPCODE_LABEL:			return "label";
+		case OPCODE_DCL:			return "dcl";
+		case OPCODE_POWX:			return "powx";
+		case OPCODE_CRS:			return "crs";
+		case OPCODE_SGN:			return "sgn";
+		case OPCODE_ABS:			return "abs";
+		case OPCODE_NRM2:			return "nrm2";
+		case OPCODE_NRM3:			return "nrm3";
+		case OPCODE_NRM4:			return "nrm4";
+		case OPCODE_SINCOS:			return "sincos";
+		case OPCODE_REP:			return "rep";
+		case OPCODE_ENDREP:			return "endrep";
+		case OPCODE_IF:				return "if";
+		case OPCODE_IFC:			return "ifc";
+		case OPCODE_ELSE:			return "else";
+		case OPCODE_ENDIF:			return "endif";
+		case OPCODE_BREAK:			return "break";
+		case OPCODE_BREAKC:			return "breakc";
+		case OPCODE_MOVA:			return "mova";
+		case OPCODE_DEFB:			return "defb";
+		case OPCODE_DEFI:			return "defi";
+		case OPCODE_TEXCOORD:		return "texcoord";
+		case OPCODE_TEXKILL:		return "texkill";
+		case OPCODE_DISCARD:		return "discard";
+		case OPCODE_TEX:
+			if(version < 0x0104)	return "tex";
+			else					return "texld";
+		case OPCODE_TEXBEM:			return "texbem";
+		case OPCODE_TEXBEML:		return "texbeml";
+		case OPCODE_TEXREG2AR:		return "texreg2ar";
+		case OPCODE_TEXREG2GB:		return "texreg2gb";
+		case OPCODE_TEXM3X2PAD:		return "texm3x2pad";
+		case OPCODE_TEXM3X2TEX:		return "texm3x2tex";
+		case OPCODE_TEXM3X3PAD:		return "texm3x3pad";
+		case OPCODE_TEXM3X3TEX:		return "texm3x3tex";
+		case OPCODE_RESERVED0:		return "reserved0";
+		case OPCODE_TEXM3X3SPEC:	return "texm3x3spec";
+		case OPCODE_TEXM3X3VSPEC:	return "texm3x3vspec";
+		case OPCODE_EXPP:			return "expp";
+		case OPCODE_LOGP:			return "logp";
+		case OPCODE_CND:			return "cnd";
+		case OPCODE_DEF:			return "def";
+		case OPCODE_TEXREG2RGB:		return "texreg2rgb";
+		case OPCODE_TEXDP3TEX:		return "texdp3tex";
+		case OPCODE_TEXM3X2DEPTH:	return "texm3x2depth";
+		case OPCODE_TEXDP3:			return "texdp3";
+		case OPCODE_TEXM3X3:		return "texm3x3";
+		case OPCODE_TEXDEPTH:		return "texdepth";
+		case OPCODE_CMP0:			return "cmp0";
+		case OPCODE_ICMP:			return "icmp";
+		case OPCODE_SELECT:			return "select";
+		case OPCODE_EXTRACT:		return "extract";
+		case OPCODE_INSERT:			return "insert";
+		case OPCODE_BEM:			return "bem";
+		case OPCODE_DP2ADD:			return "dp2add";
+		case OPCODE_DFDX:			return "dFdx";
+		case OPCODE_DFDY:			return "dFdy";
+		case OPCODE_FWIDTH:			return "fwidth";
+		case OPCODE_TEXLDD:			return "texldd";
+		case OPCODE_CMP:			return "cmp";
+		case OPCODE_TEXLDL:			return "texldl";
+		case OPCODE_BREAKP:			return "breakp";
+		case OPCODE_PHASE:			return "phase";
+		case OPCODE_COMMENT:		return "comment";
+		case OPCODE_END:			return "end";
+		case OPCODE_PS_1_0:			return "ps_1_0";
+		case OPCODE_PS_1_1:			return "ps_1_1";
+		case OPCODE_PS_1_2:			return "ps_1_2";
+		case OPCODE_PS_1_3:			return "ps_1_3";
+		case OPCODE_PS_1_4:			return "ps_1_4";
+		case OPCODE_PS_2_0:			return "ps_2_0";
+		case OPCODE_PS_2_x:			return "ps_2_x";
+		case OPCODE_PS_3_0:			return "ps_3_0";
+		case OPCODE_VS_1_0:			return "vs_1_0";
+		case OPCODE_VS_1_1:			return "vs_1_1";
+		case OPCODE_VS_2_0:			return "vs_2_0";
+		case OPCODE_VS_2_x:			return "vs_2_x";
+		case OPCODE_VS_2_sw:		return "vs_2_sw";
+		case OPCODE_VS_3_0:			return "vs_3_0";
+		case OPCODE_VS_3_sw:		return "vs_3_sw";
+		case OPCODE_WHILE:          return "while";
+		case OPCODE_ENDWHILE:       return "endwhile";
+		case OPCODE_COS:            return "cos";
+		case OPCODE_SIN:            return "sin";
+		case OPCODE_TAN:            return "tan";
+		case OPCODE_ACOS:           return "acos";
+		case OPCODE_ASIN:           return "asin";
+		case OPCODE_ATAN:           return "atan";
+		case OPCODE_ATAN2:          return "atan2";
+		case OPCODE_DP1:            return "dp1";
+		case OPCODE_DP2:            return "dp2";
+		case OPCODE_TRUNC:          return "trunc";
+		case OPCODE_FLOOR:          return "floor";
+		case OPCODE_CEIL:           return "ceil";
+		case OPCODE_EXP2:           return "exp2";
+		case OPCODE_LOG2:           return "log2";
+		case OPCODE_EXP:            return "exp";
+		case OPCODE_LOG:            return "log";
+		case OPCODE_POW:            return "pow";
+		case OPCODE_F2B:            return "f2b";
+		case OPCODE_B2F:            return "b2f";
+		case OPCODE_ALL:            return "all";
+		case OPCODE_ANY:            return "any";
+		case OPCODE_NOT:            return "not";
+		case OPCODE_OR:             return "or";
+		case OPCODE_XOR:            return "xor";
+		case OPCODE_AND:            return "and";
+		case OPCODE_FORWARD1:       return "forward1";
+		case OPCODE_FORWARD2:       return "forward2";
+		case OPCODE_FORWARD3:       return "forward3";
+		case OPCODE_FORWARD4:       return "forward4";
+		case OPCODE_REFLECT1:       return "reflect1";
+		case OPCODE_REFLECT2:       return "reflect2";
+		case OPCODE_REFLECT3:       return "reflect3";
+		case OPCODE_REFLECT4:       return "reflect4";
+		case OPCODE_REFRACT1:       return "refract1";
+		case OPCODE_REFRACT2:       return "refract2";
+		case OPCODE_REFRACT3:       return "refract3";
+		case OPCODE_REFRACT4:       return "refract4";
+		case OPCODE_LEAVE:          return "leave";
+		case OPCODE_CONTINUE:       return "continue";
+		case OPCODE_TEST:           return "test";
+		default:
+			ASSERT(false);
 		}
-		else
-		{
-			if(type != PARAMETER_RASTOUT && !(type == PARAMETER_ADDR && shaderType == SHADER_VERTEX) && type != PARAMETER_LOOP && type != PARAMETER_PREDICATE && type != PARAMETER_MISCTYPE)
-			{
-				buffer << index;
 
-				return typeString(shaderType, version) + buffer.str();
-			}
-			else
-			{
-				return typeString(shaderType, version);
-			}
+		return "<unknown>";
+	}
+
+	std::string Shader::Instruction::controlString() const
+	{
+		if(opcode != OPCODE_LOOP && opcode != OPCODE_BREAKC && opcode != OPCODE_IFC && opcode != OPCODE_CMP)
+		{
+			if(project) return "p";
+
+			if(bias) return "b";
+
+			// FIXME: LOD
+		}
+
+		switch(control)
+		{
+		case 1: return "_gt";
+		case 2: return "_eq";
+		case 3: return "_ge";
+		case 4: return "_lt";
+		case 5: return "_ne";
+		case 6: return "_le";
+		default:
+			return "";
+		//	ASSERT(false);   // FIXME
 		}
 	}
 
-	std::string Shader::Instruction::Parameter::typeString(ShaderType shaderType, unsigned short version) const
+	std::string Shader::Parameter::string(ShaderType shaderType, unsigned short version) const
+	{
+		std::ostringstream buffer;
+
+		if(type == PARAMETER_FLOAT4LITERAL)
+		{
+			buffer << '{' << value[0] << ", " << value[1] << ", " << value[2] << ", " << value[3] << '}';
+
+			return buffer.str();
+		}
+		else if(type != PARAMETER_RASTOUT && !(type == PARAMETER_ADDR && shaderType == SHADER_VERTEX) && type != PARAMETER_LOOP && type != PARAMETER_PREDICATE && type != PARAMETER_MISCTYPE)
+		{
+			buffer << index;
+			
+			return typeString(shaderType, version) + buffer.str();
+		}
+		else
+		{
+			return typeString(shaderType, version);
+		}
+	}
+
+	std::string Shader::Parameter::typeString(ShaderType shaderType, unsigned short version) const
 	{
 		switch(type)
 		{
@@ -865,9 +985,9 @@ namespace sw
 			else						ASSERT(false);
 		case PARAMETER_LABEL:			return "l";
 		case PARAMETER_PREDICATE:		return "p0";
-		case PARAMETER_FLOATLITERAL:	return "";
-		case PARAMETER_BOOLLITERAL:		return "";
-		case PARAMETER_INTLITERAL:		return "";
+		case PARAMETER_FLOAT4LITERAL:	return "";
+		case PARAMETER_BOOL1LITERAL:	return "";
+		case PARAMETER_INT4LITERAL:		return "";
 	//	case PARAMETER_VOID:			return "";
 		default:
 			ASSERT(false);
@@ -876,55 +996,83 @@ namespace sw
 		return "";
 	}
 
-	Shader::Shader(const unsigned long *shaderToken)
+	bool Shader::Instruction::isBranch() const
 	{
-		instruction = 0;
-		length = 0;
+		return opcode == OPCODE_IF || opcode == OPCODE_IFC;
+	}
+	
+	bool Shader::Instruction::isCall() const
+	{
+		return opcode == OPCODE_CALL || opcode == OPCODE_CALLNZ;
+	}
 
-		tokenCount = 0;
+	bool Shader::Instruction::isBreak() const
+	{
+		return opcode == OPCODE_BREAK || opcode == OPCODE_BREAKC || opcode == OPCODE_BREAKP;
+	}
 
-		while(shaderToken[tokenCount] != 0x0000FFFF)
-		{
-			tokenCount += sw::Shader::size(shaderToken[tokenCount], (unsigned short)(shaderToken[0] & 0xFFFF)) + 1;
-		}
+	bool Shader::Instruction::isLoop() const
+	{
+		return opcode == OPCODE_LOOP || opcode == OPCODE_REP || opcode == OPCODE_WHILE;
+	}
 
-		tokenCount += 1;
+	bool Shader::Instruction::isEndLoop() const
+	{
+		return opcode == OPCODE_ENDLOOP || opcode == OPCODE_ENDREP || opcode == OPCODE_ENDWHILE;
+	}
 
-		this->shaderToken = new unsigned long[tokenCount];
-		memcpy(this->shaderToken, shaderToken, tokenCount * sizeof(unsigned long));
-
-		unsigned long *hashTokens = new unsigned long[tokenCount];
-		memcpy(hashTokens, shaderToken, tokenCount * sizeof(unsigned long));
-		removeComments(hashTokens, tokenCount);
-		hash = FNV_1((unsigned char*)hashTokens, tokenCount * sizeof(unsigned long));
-		delete[] hashTokens;
+	Shader::Shader() : serialID(serialCounter++)
+	{
+		usedSamplers = 0;
 	}
 
 	Shader::~Shader()
 	{
-		delete[] shaderToken;
-		shaderToken = 0;
-
-		for(int i = 0; i < length; i++)
+		for(unsigned int i = 0; i < instruction.size(); i++)
 		{
 			delete instruction[i];
 			instruction[i] = 0;
 		}
-
-		delete[] instruction;
-		instruction = 0;
 	}
 
-	void Shader::getFunction(void *data, unsigned int *size)
+	void Shader::parse(const unsigned long *token)
 	{
-		if(data)
+		minorVersion = (unsigned char)(token[0] & 0x000000FF);
+		majorVersion = (unsigned char)((token[0] & 0x0000FF00) >> 8);
+		shaderType = (ShaderType)((token[0] & 0xFFFF0000) >> 16);
+
+		int length;
+
+		if(shaderType == SHADER_VERTEX)
 		{
-			memcpy(data, shaderToken, tokenCount * 4);
+			length = VertexShader::validate(token);
 		}
+		else if(shaderType == SHADER_PIXEL)
+		{
+			length = PixelShader::validate(token);
+		}
+		else ASSERT(false);
 
-		*size = tokenCount * 4;
+		ASSERT(length != 0);
+		instruction.resize(length);
+
+		for(int i = 0; i < length; i++)
+		{
+			while((*token & 0x0000FFFF) == 0x0000FFFE)   // Comment token
+			{
+				int length = (*token & 0x7FFF0000) >> 16;
+
+				token += length + 1;
+			}
+
+			int tokenCount = size(*token);
+
+			instruction[i] = new Instruction(token, tokenCount, majorVersion);
+
+			token += 1 + tokenCount;
+		}
 	}
-
+	
 	int Shader::size(unsigned long opcode) const
 	{
 		return size(opcode, version);
@@ -1056,28 +1204,28 @@ namespace sw
 
 		int length = 0;
 
-		if((opcode & 0x0000FFFF) == ShaderOperation::OPCODE_COMMENT)
+		if((opcode & 0x0000FFFF) == OPCODE_COMMENT)
 		{
 			return (opcode & 0x7FFF0000) >> 16;
 		}
 
-		if(opcode != ShaderOperation::OPCODE_PS_1_0 &&
-		   opcode != ShaderOperation::OPCODE_PS_1_1 &&
-		   opcode != ShaderOperation::OPCODE_PS_1_2 &&
-		   opcode != ShaderOperation::OPCODE_PS_1_3 &&
-		   opcode != ShaderOperation::OPCODE_PS_1_4 &&
-		   opcode != ShaderOperation::OPCODE_PS_2_0 &&
-		   opcode != ShaderOperation::OPCODE_PS_2_x &&
-		   opcode != ShaderOperation::OPCODE_PS_3_0 &&
-		   opcode != ShaderOperation::OPCODE_VS_1_0 &&
-		   opcode != ShaderOperation::OPCODE_VS_1_1 &&
-		   opcode != ShaderOperation::OPCODE_VS_2_0 &&
-		   opcode != ShaderOperation::OPCODE_VS_2_x &&
-		   opcode != ShaderOperation::OPCODE_VS_2_sw &&
-		   opcode != ShaderOperation::OPCODE_VS_3_0 &&
-		   opcode != ShaderOperation::OPCODE_VS_3_sw &&
-		   opcode != ShaderOperation::OPCODE_PHASE &&
-		   opcode != ShaderOperation::OPCODE_END)
+		if(opcode != OPCODE_PS_1_0 &&
+		   opcode != OPCODE_PS_1_1 &&
+		   opcode != OPCODE_PS_1_2 &&
+		   opcode != OPCODE_PS_1_3 &&
+		   opcode != OPCODE_PS_1_4 &&
+		   opcode != OPCODE_PS_2_0 &&
+		   opcode != OPCODE_PS_2_x &&
+		   opcode != OPCODE_PS_3_0 &&
+		   opcode != OPCODE_VS_1_0 &&
+		   opcode != OPCODE_VS_1_1 &&
+		   opcode != OPCODE_VS_2_0 &&
+		   opcode != OPCODE_VS_2_x &&
+		   opcode != OPCODE_VS_2_sw &&
+		   opcode != OPCODE_VS_3_0 &&
+		   opcode != OPCODE_VS_3_sw &&
+		   opcode != OPCODE_PHASE &&
+		   opcode != OPCODE_END)
 		{
 			if(version >= 0x0200)
 			{
@@ -1098,10 +1246,10 @@ namespace sw
 		{
 			switch(opcode & 0x0000FFFF)
 			{
-			case ShaderOperation::OPCODE_TEX:
+			case OPCODE_TEX:
 				length += 1;
 				break;
-			case ShaderOperation::OPCODE_TEXCOORD:
+			case OPCODE_TEXCOORD:
 				length += 1;
 				break;
 			default:
@@ -1142,19 +1290,34 @@ namespace sw
 		return dynamicBranching;
 	}
 
-	bool Shader::usesSampler(int index) const
+	bool Shader::containsBreakInstruction() const
 	{
-		return (sampler & (1 << index)) != 0;
+		return containsBreak;
 	}
 
-	int64_t Shader::getHash() const
+	bool Shader::containsContinueInstruction() const
 	{
-		return hash;
+		return containsContinue;
+	}
+
+	bool Shader::containsLeaveInstruction() const
+	{
+		return containsLeave;
+	}
+
+	bool Shader::usesSampler(int index) const
+	{
+		return (usedSamplers & (1 << index)) != 0;
+	}
+
+	int Shader::getSerialID() const
+	{
+		return serialID;
 	}
 
 	int Shader::getLength() const
 	{
-		return length;
+		return instruction.size();
 	}
 
 	Shader::ShaderType Shader::getShaderType() const
@@ -1176,9 +1339,9 @@ namespace sw
 		vsnprintf(fullName, 1024, fileName, vararg);
 		va_end(vararg);
 
-		std::ofstream file(fullName, std::ofstream::out | std::ofstream::app);
+		std::ofstream file(fullName, std::ofstream::out);
 
-		for(int i = 0; i < length; i++)
+		for(unsigned int i = 0; i < instruction.size(); i++)
 		{
 			file << instruction[i]->string(shaderType, version) << std::endl;
 		}
@@ -1191,12 +1354,19 @@ namespace sw
 		file << instruction[index]->string(shaderType, version) << std::endl;
 	}
 
-	const ShaderInstruction *Shader::getInstruction(int i) const
+	void Shader::append(Instruction *instruction)
 	{
-		if(i < 0 || i >= length)
-		{
-			ASSERT(false);
-		}
+		this->instruction.push_back(instruction);
+	}
+
+	void Shader::declareSampler(int i)
+	{
+		usedSamplers |= 1 << i;
+	}
+
+	const Shader::Instruction *Shader::getInstruction(unsigned int i) const
+	{
+		ASSERT(i < instruction.size());
 
 		return instruction[i];
 	}
@@ -1207,26 +1377,26 @@ namespace sw
 		dirtyConstantsI = 0;
 		dirtyConstantsB = 0;
 
-		for(int i = 0; i < length; i++)
+		for(unsigned int i = 0; i < instruction.size(); i++)
 		{
-			switch(instruction[i]->operation.opcode)
+			switch(instruction[i]->opcode)
 			{
-			case ShaderOperation::OPCODE_DEF:
-				if(instruction[i]->destinationParameter.index + 1 > dirtyConstantsF)
+			case OPCODE_DEF:
+				if(instruction[i]->dst.index + 1 > dirtyConstantsF)
 				{
-					dirtyConstantsF = instruction[i]->destinationParameter.index + 1;
+					dirtyConstantsF = instruction[i]->dst.index + 1;
 				}
 				break;
-			case ShaderOperation::OPCODE_DEFI:
-				if(instruction[i]->destinationParameter.index + 1 > dirtyConstantsI)
+			case OPCODE_DEFI:
+				if(instruction[i]->dst.index + 1 > dirtyConstantsI)
 				{
-					dirtyConstantsI = instruction[i]->destinationParameter.index + 1;
+					dirtyConstantsI = instruction[i]->dst.index + 1;
 				}
 				break;
-			case ShaderOperation::OPCODE_DEFB:
-				if(instruction[i]->destinationParameter.index + 1 > dirtyConstantsB)
+			case OPCODE_DEFB:
+				if(instruction[i]->dst.index + 1 > dirtyConstantsB)
 				{
-					dirtyConstantsB = instruction[i]->destinationParameter.index + 1;
+					dirtyConstantsB = instruction[i]->dst.index + 1;
 				}
 				break;
 			}
@@ -1236,61 +1406,205 @@ namespace sw
 	void Shader::analyzeDynamicBranching()
 	{
 		dynamicBranching = false;
+		containsLeave = false;
+		containsBreak = false;
+		containsContinue = false;
 
-		for(int i = 0; i < length; i++)
+		// Determine global presence of branching instructions
+		for(unsigned int i = 0; i < instruction.size(); i++)
 		{
-			switch(instruction[i]->getOpcode())
+			switch(instruction[i]->opcode)
 			{
-			case ShaderOperation::OPCODE_CALLNZ:
-			case ShaderOperation::OPCODE_IF:
-			case ShaderOperation::OPCODE_IFC:
-			case ShaderOperation::OPCODE_BREAK:
-			case ShaderOperation::OPCODE_BREAKC:
-			case ShaderOperation::OPCODE_SETP:
-			case ShaderOperation::OPCODE_BREAKP:
-				if(instruction[i]->sourceParameter[0].type != ShaderParameter::PARAMETER_CONSTBOOL)
+			case OPCODE_CALLNZ:
+			case OPCODE_IF:
+			case OPCODE_IFC:
+			case OPCODE_BREAK:
+			case OPCODE_BREAKC:
+			case OPCODE_CMP:
+			case OPCODE_BREAKP:
+			case OPCODE_LEAVE:
+			case OPCODE_CONTINUE:
+				if(instruction[i]->src[0].type != PARAMETER_CONSTBOOL)
 				{
 					dynamicBranching = true;
+				}
+
+				if(instruction[i]->opcode == OPCODE_LEAVE)
+				{
+					containsLeave = true;
+				}
+				
+				if(instruction[i]->isBreak())
+				{
+					containsBreak = true;
+				}
+
+				if(instruction[i]->opcode == OPCODE_CONTINUE)
+				{
+					containsContinue = true;
+				}
+			}
+		}
+
+		// Conservatively determine which instructions are affected by dynamic branching
+		int branchDepth = 0;
+		int breakDepth = 0;
+		int continueDepth = 0;
+		bool leaveReturn = false;
+
+		for(unsigned int i = 0; i < instruction.size(); i++)
+		{
+			// If statements
+			if(instruction[i]->isBranch())
+			{
+				branchDepth++;
+			}
+			else if(instruction[i]->opcode == OPCODE_ENDIF)
+			{
+				branchDepth--;
+			}
+
+			if(branchDepth > 0)
+			{
+				instruction[i]->analysisBranch = true;
+
+				if(instruction[i]->isCall())
+				{
+					markFunctionAnalysis(instruction[i]->dst.label, ANALYSIS_BRANCH);
+				}
+			}
+
+			// Break statemement
+			if(instruction[i]->isBreak())
+			{
+				breakDepth++;
+			}
+			else if(instruction[i]->isEndLoop())
+			{
+				breakDepth--;
+			}
+
+			if(breakDepth > 0)
+			{
+				if(instruction[i]->isLoop())   // Nested loop, don't make the end of it disable the break execution mask
+				{
+					breakDepth++;
+				}
+
+				instruction[i]->analysisBreak = true;
+
+				if(instruction[i]->isCall())
+				{
+					markFunctionAnalysis(instruction[i]->dst.label, ANALYSIS_BRANCH);
+				}
+			}
+
+			// Continue statement
+			if(instruction[i]->opcode == OPCODE_CONTINUE)
+			{
+				continueDepth++;
+			}
+			else if(instruction[i]->isEndLoop())
+			{
+				continueDepth--;
+			}
+
+			if(continueDepth > 0)
+			{
+				if(instruction[i]->isLoop())   // Nested loop, don't make the end of it disable the break execution mask
+				{
+					continueDepth++;
+				}
+
+				instruction[i]->analysisContinue = true;
+
+				if(instruction[i]->isCall())
+				{
+					markFunctionAnalysis(instruction[i]->dst.label, ANALYSIS_CONTINUE);
+				}
+			}
+
+			// Return (leave) statement
+			if(instruction[i]->opcode == OPCODE_LEAVE)
+			{
+				leaveReturn = true;
+			}
+			else if(instruction[i]->opcode == OPCODE_RET)   // End of the function
+			{
+				leaveReturn = false;
+			}
+
+			if(leaveReturn)
+			{
+				instruction[i]->analysisLeave = true;
+
+				if(instruction[i]->isCall())
+				{
+					markFunctionAnalysis(instruction[i]->dst.label, ANALYSIS_LEAVE);
+				}
+			}
+		}
+	}
+
+	void Shader::markFunctionAnalysis(int functionLabel, Analysis flag)
+	{
+		bool marker = false;
+		for(unsigned int i = 0; i < instruction.size(); i++)
+		{
+			if(!marker)
+			{
+				if(instruction[i]->opcode == OPCODE_LABEL && instruction[i]->dst.label == functionLabel)
+				{
+					marker = true;
+				}
+			}
+			else
+			{
+				if(instruction[i]->opcode == OPCODE_RET)
+				{
 					break;
 				}
+				else if(instruction[i]->isCall())
+				{
+					markFunctionAnalysis(instruction[i]->dst.label, flag);
+				}
+
+				instruction[i]->analysis |= flag;
 			}
 		}
 	}
 
 	void Shader::analyzeSamplers()
 	{
-		sampler = 0;
-
-		for(int i = 0; i < length; i++)
+		for(unsigned int i = 0; i < instruction.size(); i++)
 		{
-			switch(instruction[i]->getOpcode())
+			switch(instruction[i]->opcode)
 			{
-			case ShaderOperation::OPCODE_TEX:
-			case ShaderOperation::OPCODE_TEXBEM:
-			case ShaderOperation::OPCODE_TEXBEML:
-			case ShaderOperation::OPCODE_TEXREG2AR:
-			case ShaderOperation::OPCODE_TEXREG2GB:
-			case ShaderOperation::OPCODE_TEXM3X2TEX:
-			case ShaderOperation::OPCODE_TEXM3X3TEX:
-			case ShaderOperation::OPCODE_TEXM3X3SPEC:
-			case ShaderOperation::OPCODE_TEXM3X3VSPEC:
-			case ShaderOperation::OPCODE_TEXREG2RGB:
-			case ShaderOperation::OPCODE_TEXDP3TEX:
-			case ShaderOperation::OPCODE_TEXM3X2DEPTH:
-			case ShaderOperation::OPCODE_TEXLDD:
-			case ShaderOperation::OPCODE_TEXLDL:
+			case OPCODE_TEX:
+			case OPCODE_TEXBEM:
+			case OPCODE_TEXBEML:
+			case OPCODE_TEXREG2AR:
+			case OPCODE_TEXREG2GB:
+			case OPCODE_TEXM3X2TEX:
+			case OPCODE_TEXM3X3TEX:
+			case OPCODE_TEXM3X3SPEC:
+			case OPCODE_TEXM3X3VSPEC:
+			case OPCODE_TEXREG2RGB:
+			case OPCODE_TEXDP3TEX:
+			case OPCODE_TEXM3X2DEPTH:
+			case OPCODE_TEXLDD:
+			case OPCODE_TEXLDL:
 				{
-					ShaderParameter &dst = instruction[i]->destinationParameter;
-					ShaderParameter &src1 = instruction[i]->sourceParameter[1];
+					Parameter &dst = instruction[i]->dst;
+					Parameter &src1 = instruction[i]->src[1];
 
 					if(majorVersion >= 2)
 					{
-						ASSERT(src1.type == ShaderParameter::PARAMETER_SAMPLER);
-						sampler |= 1 << src1.index;
+						usedSamplers |= 1 << src1.index;
 					}
 					else
 					{
-						sampler |= 1 << dst.index;
+						usedSamplers |= 1 << dst.index;
 					}
 				}
 				break;
@@ -1298,21 +1612,57 @@ namespace sw
 		}
 	}
 
-	void Shader::removeComments(unsigned long *shaderToken, int tokenCount)
+	// Assigns a unique index to each call instruction, on a per label basis.
+	// This is used to know what basic block to return to.
+	void Shader::analyzeCallSites()
 	{
-		for(int i = 0; i < tokenCount; )
-		{
-			int instructionSize = sw::Shader::size(shaderToken[i], (unsigned short)(shaderToken[0] & 0xFFFF)) + 1;
+		int callSiteIndex[2048] = {0};
 
-			if((shaderToken[i] & 0x0000FFFF) == ShaderOperation::OPCODE_COMMENT)
+		for(unsigned int i = 0; i < instruction.size(); i++)
+		{
+			if(instruction[i]->opcode == OPCODE_CALL || instruction[i]->opcode == OPCODE_CALLNZ)
 			{
-				for(int j = 0; j < instructionSize; j++)
+				int label = instruction[i]->dst.label;
+
+				instruction[i]->dst.callSite = callSiteIndex[label]++;
+			}
+		}
+	}
+
+	void Shader::analyzeDynamicIndexing()
+	{
+		dynamicallyIndexedTemporaries = false;
+		dynamicallyIndexedInput = false;
+		dynamicallyIndexedOutput = false;
+
+		for(unsigned int i = 0; i < instruction.size(); i++)
+		{
+			if(instruction[i]->dst.rel.type == PARAMETER_ADDR ||
+			   instruction[i]->dst.rel.type == PARAMETER_LOOP ||
+			   instruction[i]->dst.rel.type == PARAMETER_TEMP)
+			{
+				switch(instruction[i]->dst.type)
 				{
-					shaderToken[i + j] = ShaderOperation::OPCODE_NOP;
+				case PARAMETER_TEMP:   dynamicallyIndexedTemporaries = true; break;
+				case PARAMETER_INPUT:  dynamicallyIndexedInput = true;       break;
+				case PARAMETER_OUTPUT: dynamicallyIndexedOutput = true;      break;
 				}
 			}
 
-			i += instructionSize;
+			for(int j = 0; j < 3; j++)
+			{
+				if(instruction[i]->src[j].rel.type == PARAMETER_ADDR ||
+				   instruction[i]->src[j].rel.type == PARAMETER_LOOP ||
+				   instruction[i]->src[j].rel.type == PARAMETER_TEMP)
+				{
+					switch(instruction[i]->src[j].type)
+					{
+					case PARAMETER_TEMP:   dynamicallyIndexedTemporaries = true; break;
+					case PARAMETER_INPUT:  dynamicallyIndexedInput = true;       break;
+					case PARAMETER_OUTPUT: dynamicallyIndexedOutput = true;      break;
+					}
+				}
+			}
 		}
 	}
 }
