@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2002-2012 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2013 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -49,9 +49,7 @@ public:
     virtual bool isVariable() const { return false; }
     void setUniqueId(int id) { uniqueId = id; }
     int getUniqueId() const { return uniqueId; }
-    virtual void dump(TInfoSink &infoSink) const = 0;	
     TSymbol(const TSymbol&);
-    virtual TSymbol* clone(TStructureMap& remapper) = 0;
 
 protected:
     const TString *name;
@@ -80,8 +78,6 @@ public:
     void updateArrayInformationType(TType *t) { arrayInformationType = t; }
     TType* getArrayInformationType() { return arrayInformationType; }
 
-    virtual void dump(TInfoSink &infoSink) const;
-
     ConstantUnion* getConstPointer()
     { 
         if (!unionArray)
@@ -100,8 +96,6 @@ public:
         delete[] unionArray;
         unionArray = constArray;  
     }
-    TVariable(const TVariable&, TStructureMap& remapper); // copy constructor
-    virtual TVariable* clone(TStructureMap& remapper);
 
 protected:
     TType type;
@@ -118,12 +112,7 @@ protected:
 //
 struct TParameter {
     TString *name;
-    TType* type;
-    void copyParam(const TParameter& param, TStructureMap& remapper)
-    {
-        name = NewPoolTString(param.name->c_str());
-        type = param.type->clone(remapper);
-    }
+    TType *type;
 };
 
 //
@@ -172,10 +161,6 @@ public:
     int getParamCount() const { return static_cast<int>(parameters.size()); }  
     const TParameter& getParam(int i) const { return parameters[i]; }
 
-    virtual void dump(TInfoSink &infoSink) const;
-    TFunction(const TFunction&, TStructureMap& remapper);
-    virtual TFunction* clone(TStructureMap& remapper);
-
 protected:
     typedef TVector<TParameter> TParamList;
     TParamList parameters;
@@ -198,8 +183,10 @@ public:
     TSymbolTableLevel() { }
     ~TSymbolTableLevel();
 
-    bool insert(TSymbol& symbol) 
+    bool insert(TSymbol &symbol) 
     {
+		symbol.setUniqueId(++uniqueId);
+
         //
         // returning true means symbol was added to the table
         //
@@ -218,28 +205,17 @@ public:
             return (*it).second;
     }
 
-    const_iterator begin() const
-    {
-        return level.begin();
-    }
-
-    const_iterator end() const
-    {
-        return level.end();
-    }
-
     void relateToOperator(const char* name, TOperator op);
     void relateToExtension(const char* name, const TString& ext);
-    void dump(TInfoSink &infoSink) const;
-    TSymbolTableLevel* clone(TStructureMap& remapper);
 
 protected:
     tLevel level;
+	static int uniqueId;     // for unique identification in code generation
 };
 
 class TSymbolTable {
 public:
-    TSymbolTable() : uniqueId(0)
+    TSymbolTable()
     {
         //
         // The symbol table cannot be used until push() is called, but
@@ -278,9 +254,37 @@ public:
 
     bool insert(TSymbol& symbol)
     {
-        symbol.setUniqueId(++uniqueId);
         return table[currentLevel()]->insert(symbol);
     }
+
+	bool insertConstInt(const char *name, int value)
+	{
+		TVariable *constant = new TVariable(NewPoolTString(name), TType(EbtInt, EbpUndefined, EvqConst, 1));
+		constant->getConstPointer()->setIConst(value);
+		return insert(*constant);
+	}
+
+	bool insertBuiltIn(TType *rvalue, const char *name, TType *ptype1, const char *pname1, TType *ptype2 = 0, const char *pname2 = 0, TType *ptype3 = 0, const char *pname3 = 0)
+	{
+		TFunction *function = new TFunction(NewPoolTString(name), *rvalue);
+
+		TParameter param1 = {NewPoolTString(pname1), ptype1};
+		function->addParameter(param1);
+
+		if(pname2)
+		{
+			TParameter param2 = {NewPoolTString(pname2), ptype2};
+			function->addParameter(param2);
+		}
+
+		if(pname3)
+		{
+			TParameter param3 = {NewPoolTString(pname3), ptype3};
+			function->addParameter(param3);
+		}
+
+		return insert(*function);
+	}
 
     TSymbol* find(const TString& name, bool* builtIn = 0, bool *sameScope = 0) 
     {
@@ -319,14 +323,17 @@ public:
     void relateToExtension(const char* name, const TString& ext) {
         table[0]->relateToExtension(name, ext);
     }
-    int getMaxSymbolId() { return uniqueId; }
-    void dump(TInfoSink &infoSink) const;
-    void copyTable(const TSymbolTable& copyOf);
 
-    void setDefaultPrecision( TBasicType type, TPrecision prec ){
-        if( type != EbtFloat && type != EbtInt ) return; // Only set default precision for int/float
+    bool setDefaultPrecision( const TPublicType& type, TPrecision prec ){
+        if (IsSampler(type.type))
+            return true;  // Skip sampler types for the time being
+        if (type.type != EbtFloat && type.type != EbtInt)
+            return false; // Only set default precision for int/float
+        if (type.size != 1 || type.matrix || type.array)
+            return false; // Not allowed to set for aggregate types
         int indexOfLastElement = static_cast<int>(precisionStack.size()) - 1;
-        precisionStack[indexOfLastElement][type] = prec; // Uses map operator [], overwrites the current value
+        precisionStack[indexOfLastElement][type.type] = prec; // Uses map operator [], overwrites the current value
+        return true;
     }
 
     // Searches down the precisionStack for a precision qualifier for the specified TBasicType
@@ -353,7 +360,6 @@ protected:
     std::vector<TSymbolTableLevel*> table;
     typedef std::map< TBasicType, TPrecision > PrecisionStackLevel;
     std::vector< PrecisionStackLevel > precisionStack;
-    int uniqueId;     // for unique identification in code generation
 };
 
 #endif // _SYMBOL_TABLE_INCLUDED_

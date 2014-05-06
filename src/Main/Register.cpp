@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -28,7 +28,7 @@
 #define CHECKSUM_KEY "ShaderCore"
 
 // The App name ***MUST*** be in lowercase!
-const char registeredApp[32] = SCRAMBLE31("chrome\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", APPNAME_SCRAMBLE);
+const char registeredApp[32] = SCRAMBLE31("chrome\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", APPNAME_SCRAMBLE);
 
 char validationKey[32];   // Serial provided by application
 char validationApp[32];   // Application name
@@ -55,12 +55,9 @@ void InitValidationApp(void)
 	#endif
 }
 
-extern "C"
+void RegisterLicenseKey(const char *licenseKey)
 {
-	void REGISTERAPI Register(char *licenseKey)
-	{
-		InitValidationApp();
-		memset(validationKey, '\0', sizeof(validationKey));
-		strncpy(validationKey, licenseKey, strlen(licenseKey));
-	}
+	InitValidationApp();
+	memset(validationKey, '\0', sizeof(validationKey));
+	strncpy(validationKey, licenseKey, strlen(licenseKey));
 }

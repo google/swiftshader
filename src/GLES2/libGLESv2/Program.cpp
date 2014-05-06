@@ -35,7 +35,7 @@ namespace gl
 		return buffer;
 	}
 
-	Uniform::Uniform(GLenum type, const std::string &name, unsigned int arraySize) : type(type), name(name), arraySize(arraySize)
+	Uniform::Uniform(GLenum type, GLenum precision, const std::string &name, unsigned int arraySize) : type(type), precision(precision), name(name), arraySize(arraySize)
 	{
 		int bytes = UniformTypeSize(type) * size();
 		data = new unsigned char[bytes];
@@ -1132,7 +1132,6 @@ namespace gl
 					if(in + registers > MAX_VARYING_VECTORS)
 					{
 						appendToInfoLog("Too many varyings");
-
 						return false;
 					}
 
@@ -1141,7 +1140,6 @@ namespace gl
 						if(out + registers > MAX_VARYING_VECTORS)
 						{
 							appendToInfoLog("Too many varyings");
-
 							return false;
 						}
 
@@ -1239,7 +1237,6 @@ namespace gl
 				if(rows + location > MAX_VERTEX_ATTRIBS)
 				{
 					appendToInfoLog("Active attribute (%s) at location %d is too big to fit", attribute->name.c_str(), location);
-
 					return false;
 				}
 
@@ -1263,7 +1260,6 @@ namespace gl
 				if(availableIndex == -1 || availableIndex + rows > MAX_VERTEX_ATTRIBS)
 				{
 					appendToInfoLog("Too many active attributes (%s)", attribute->name.c_str());
-
 					return false;   // Fail to link
 				}
 
@@ -1306,7 +1302,7 @@ namespace gl
 		{
 			const sh::Uniform &uniform = activeUniforms[uniformIndex];
 
-			if(!defineUniform(shader->getType(), uniform.type, uniform.name, uniform.arraySize, uniform.registerIndex))
+			if(!defineUniform(shader->getType(), uniform.type, uniform.precision, uniform.name, uniform.arraySize, uniform.registerIndex))
 			{
 				return false;
 			}
@@ -1315,7 +1311,7 @@ namespace gl
 		return true;
 	}
 
-	bool Program::defineUniform(GLenum shader, GLenum type, const std::string &name, unsigned int arraySize, int registerIndex)
+	bool Program::defineUniform(GLenum shader, GLenum type, GLenum precision, const std::string &name, unsigned int arraySize, int registerIndex)
 	{
 		if(type == GL_SAMPLER_2D || type == GL_SAMPLER_CUBE)
 	    {
@@ -1367,12 +1363,19 @@ namespace gl
 
 			if(uniform->type != type)
 			{
+				appendToInfoLog("Types for uniform %s do not match between the vertex and fragment shader", uniform->name.c_str());
+				return false;
+			}
+
+			if(uniform->precision != precision)
+			{
+				appendToInfoLog("Precisions for uniform %s do not match between the vertex and fragment shader", uniform->name.c_str());
 				return false;
 			}
 		}
 		else
 		{
-			uniform = new Uniform(type, name, arraySize);
+			uniform = new Uniform(type, precision, name, arraySize);
 		}
 
 		if(!uniform)
@@ -1880,15 +1883,17 @@ namespace gl
 
 		if(!infoLog)
 		{
-			infoLog = new char[infoLength + 1];
+			infoLog = new char[infoLength + 2];
 			strcpy(infoLog, info);
+			strcpy(infoLog + infoLength, "\n");
 		}
 		else
 		{
 			size_t logLength = strlen(infoLog);
-			char *newLog = new char[logLength + infoLength + 1];
+			char *newLog = new char[logLength + infoLength + 2];
 			strcpy(newLog, infoLog);
 			strcpy(newLog + logLength, info);
+			strcpy(newLog + logLength + infoLength, "\n");
 
 			delete[] infoLog;
 			infoLog = newLog;
@@ -2045,7 +2050,7 @@ namespace gl
 		}
 	}
 
-	void Program::getActiveAttribute(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
+	void Program::getActiveAttribute(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name) const
 	{
 		// Skip over inactive attributes
 		unsigned int activeAttribute = 0;
@@ -2083,7 +2088,7 @@ namespace gl
 		*type = linkedAttribute[attribute].type;
 	}
 
-	GLint Program::getActiveAttributeCount()
+	GLint Program::getActiveAttributeCount() const
 	{
 		int count = 0;
 
@@ -2098,7 +2103,7 @@ namespace gl
 		return count;
 	}
 
-	GLint Program::getActiveAttributeMaxLength()
+	GLint Program::getActiveAttributeMaxLength() const
 	{
 		int maxLength = 0;
 
@@ -2113,7 +2118,7 @@ namespace gl
 		return maxLength;
 	}
 
-	void Program::getActiveUniform(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
+	void Program::getActiveUniform(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name) const
 	{
 		if(bufsize > 0)
 		{
@@ -2138,12 +2143,12 @@ namespace gl
 		*type = uniforms[index]->type;
 	}
 
-	GLint Program::getActiveUniformCount()
+	GLint Program::getActiveUniformCount() const
 	{
 		return uniforms.size();
 	}
 
-	GLint Program::getActiveUniformMaxLength()
+	GLint Program::getActiveUniformMaxLength() const
 	{
 		int maxLength = 0;
 

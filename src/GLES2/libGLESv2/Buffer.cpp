@@ -61,11 +61,6 @@ void Buffer::bufferData(const void *data, GLsizeiptr size, GLenum usage)
 		if(data)
 		{
 			memcpy((void*)mContents->getBuffer(), data, size);
-			memset((char*)mContents->getBuffer() + size, 0, padding);
-		}
-		else
-		{
-			memset((void*)mContents->getBuffer(), 0, size + padding);
 		}
 	}
 }

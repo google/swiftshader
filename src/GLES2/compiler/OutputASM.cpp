@@ -76,9 +76,10 @@ namespace sh
 		ConstantUnion constants[4];
 	};
 
-	Uniform::Uniform(GLenum type, const std::string &name, int arraySize, int registerIndex)
+	Uniform::Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex)
 	{
 		this->type = type;
+		this->precision = precision;
 		this->name = name;
 		this->arraySize = arraySize;
 		this->registerIndex = registerIndex;
@@ -361,14 +362,14 @@ namespace sh
 				mov->src[0].swizzle = swizzle;
 			}
 			break;
-		case EOpAddAssign:               if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_ADD, result, left, left, right); break;
-		case EOpAdd:                     if(visit == PostVisit) emit(sw::Shader::OPCODE_ADD, result, left, right); break;
-		case EOpSubAssign:               if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_SUB, result, left, left, right); break;
-		case EOpSub:                     if(visit == PostVisit) emit(sw::Shader::OPCODE_SUB, result, left, right); break;
-		case EOpMulAssign:               if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_MUL, result, left, left, right); break;
-		case EOpMul:                     if(visit == PostVisit) emit(sw::Shader::OPCODE_MUL, result, left, right); break;
-		case EOpDivAssign:               if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_DIV, result, left, left, right); break;
-		case EOpDiv:                     if(visit == PostVisit) emit(sw::Shader::OPCODE_DIV, result, left, right); break;
+		case EOpAddAssign: if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_ADD, result, left, left, right); break;
+		case EOpAdd:       if(visit == PostVisit) emitBinary(sw::Shader::OPCODE_ADD, result, left, right);       break;
+		case EOpSubAssign: if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_SUB, result, left, left, right); break;
+		case EOpSub:       if(visit == PostVisit) emitBinary(sw::Shader::OPCODE_SUB, result, left, right);       break;
+		case EOpMulAssign: if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_MUL, result, left, left, right); break;
+		case EOpMul:       if(visit == PostVisit) emitBinary(sw::Shader::OPCODE_MUL, result, left, right);       break;
+		case EOpDivAssign: if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_DIV, result, left, left, right); break;
+		case EOpDiv:       if(visit == PostVisit) emitBinary(sw::Shader::OPCODE_DIV, result, left, right);       break;
 		case EOpEqual:
 			if(visit == PostVisit)
 			{
@@ -1111,6 +1112,21 @@ namespace sh
 			return false;
 		}
 
+		unsigned int iterations = loopCount(node);
+
+		if(iterations == 0)
+		{
+			return false;
+		}
+
+		bool unroll = (iterations <= 4);
+
+		if(unroll)
+		{
+			DetectLoopDiscontinuity detectLoopDiscontinuity;
+			unroll = !detectLoopDiscontinuity.traverse(node);
+		}
+
 		TIntermNode *init = node->getInit();
 		TIntermTyped *condition = node->getCondition();
 		TIntermTyped *expression = node->getExpression();
@@ -1143,25 +1159,45 @@ namespace sh
 				init->traverse(this);
 			}
 
-			condition->traverse(this);
-
-			emit(sw::Shader::OPCODE_WHILE, 0, condition);
-
-			if(body)
+			if(unroll)
 			{
-				body->traverse(this);
+				for(unsigned int i = 0; i < iterations; i++)
+				{
+				//	condition->traverse(this);   // Condition could contain statements, but not in an unrollable loop
+
+					if(body)
+					{
+						body->traverse(this);
+					}
+
+					if(expression)
+					{
+						expression->traverse(this);
+					}
+				}
 			}
-
-			emit(sw::Shader::OPCODE_TEST);
-
-			if(expression)
+			else
 			{
-				expression->traverse(this);
+				condition->traverse(this);
+
+				emit(sw::Shader::OPCODE_WHILE, 0, condition);
+
+				if(body)
+				{
+					body->traverse(this);
+				}
+
+				emit(sw::Shader::OPCODE_TEST);
+
+				if(expression)
+				{
+					expression->traverse(this);
+				}
+
+				condition->traverse(this);
+
+				emit(sw::Shader::OPCODE_ENDWHILE);
 			}
-
-			condition->traverse(this);
-
-			emit(sw::Shader::OPCODE_ENDWHILE);
 		}
 
 		return false;
@@ -1198,11 +1234,11 @@ namespace sh
 		return true;
 	}
 
-	Instruction *OutputASM::emit(sw::Shader::Opcode op, TIntermTyped *dst, TIntermNode *src0, TIntermNode *src1, TIntermNode *src2)
+	Instruction *OutputASM::emit(sw::Shader::Opcode op, TIntermTyped *dst, TIntermNode *src0, TIntermNode *src1, TIntermNode *src2, int index)
 	{
 		if(dst && registerType(dst) == sw::Shader::PARAMETER_SAMPLER)
 		{
-			op = sw::Shader::OPCODE_NOP;   // Can't assign to a sampler, but this will be hit when indexing sampler arrays
+			op = sw::Shader::OPCODE_NULL;   // Can't assign to a sampler, but this is hit when indexing sampler arrays
 		}
 
 		Instruction *instruction = new Instruction(op);
@@ -1210,23 +1246,31 @@ namespace sh
 		if(dst)
 		{
 			instruction->dst.type = registerType(dst);
-			instruction->dst.index = registerIndex(dst);
+			instruction->dst.index = registerIndex(dst) + index;
 			instruction->dst.mask = writeMask(dst);
 			instruction->dst.integer = (dst->getBasicType() == EbtInt);
 		}
 
-		argument(instruction->src[0], src0);
-		argument(instruction->src[1], src1);
-		argument(instruction->src[2], src2);
+		argument(instruction->src[0], src0, index);
+		argument(instruction->src[1], src1, index);
+		argument(instruction->src[2], src2, index);
 
 		shader->append(instruction);
 
 		return instruction;
 	}
 
+	void OutputASM::emitBinary(sw::Shader::Opcode op, TIntermTyped *dst, TIntermNode *src0, TIntermNode *src1, TIntermNode *src2)
+	{
+		for(int index = 0; index < dst->elementRegisterCount(); index++)
+		{
+			emit(op, dst, src0, src1, src2, index);
+		}
+	}
+
 	void OutputASM::emitAssign(sw::Shader::Opcode op, TIntermTyped *result, TIntermTyped *lhs, TIntermTyped *src0, TIntermTyped *src1)
 	{
-		emit(op, result, src0, src1);
+		emitBinary(op, result, src0, src1);
 		assignLvalue(lhs, result);
 	}
 
@@ -1997,7 +2041,7 @@ namespace sh
 				index = allocate(samplers, sampler);
 				ActiveUniforms &activeUniforms = shaderObject->activeUniforms;
 				const char *name = symbol->getSymbol().c_str();
-				activeUniforms.push_back(Uniform(glVariableType(type), name, sampler->getArraySize(), index));
+				activeUniforms.push_back(Uniform(glVariableType(type), glVariablePrecision(type), name, sampler->getArraySize(), index));
 
 				for(int i = 0; i < sampler->totalRegisterCount(); i++)
 				{
@@ -2117,7 +2161,7 @@ namespace sh
 
 		if(!structure)
 		{
-			activeUniforms.push_back(Uniform(glVariableType(type), name.c_str(), type.getArraySize(), index));
+			activeUniforms.push_back(Uniform(glVariableType(type), glVariablePrecision(type), name.c_str(), type.getArraySize(), index));
 		}
 		else
 		{
@@ -2234,6 +2278,37 @@ namespace sh
 		return GL_NONE;
 	}
 
+	GLenum OutputASM::glVariablePrecision(const TType &type)
+	{
+		if(type.getBasicType() == EbtFloat)
+		{
+			switch(type.getPrecision())
+			{
+			case EbpHigh:   return GL_HIGH_FLOAT;
+			case EbpMedium: return GL_MEDIUM_FLOAT;
+			case EbpLow:    return GL_LOW_FLOAT;
+			case EbpUndefined:
+				// Should be defined as the default precision by the parser
+			default: UNREACHABLE();
+			}
+		}
+		else if (type.getBasicType() == EbtInt)
+		{
+			switch (type.getPrecision())
+			{
+			case EbpHigh:   return GL_HIGH_INT;
+			case EbpMedium: return GL_MEDIUM_INT;
+			case EbpLow:    return GL_LOW_INT;
+			case EbpUndefined:
+				// Should be defined as the default precision by the parser
+			default: UNREACHABLE();
+			}
+		}
+
+		// Other types (boolean, sampler) don't have a precision
+		return GL_NONE;
+	}
+
 	int OutputASM::dim(TIntermNode *v)
 	{
 		TIntermTyped *vector = v->getAsTyped();
@@ -2246,5 +2321,190 @@ namespace sh
 		TIntermTyped *matrix = m->getAsTyped();
 		ASSERT(matrix && matrix->isMatrix() && !matrix->isArray());
 		return matrix->getNominalSize();
+	}
+
+	// Returns ~0 if no loop count could be determined
+	unsigned int OutputASM::loopCount(TIntermLoop *node)
+	{
+		// Parse loops of the form:
+		// for(int index = initial; index [comparator] limit; index += increment)
+		TIntermSymbol *index = 0;
+		TOperator comparator = EOpNull;
+		int initial = 0;
+		int limit = 0;
+		int increment = 0;
+
+		// Parse index name and intial value
+		if(node->getInit())
+		{
+			TIntermAggregate *init = node->getInit()->getAsAggregate();
+
+			if(init)
+			{
+				TIntermSequence &sequence = init->getSequence();
+				TIntermTyped *variable = sequence[0]->getAsTyped();
+
+				if(variable && variable->getQualifier() == EvqTemporary)
+				{
+					TIntermBinary *assign = variable->getAsBinaryNode();
+
+					if(assign->getOp() == EOpInitialize)
+					{
+						TIntermSymbol *symbol = assign->getLeft()->getAsSymbolNode();
+						TIntermConstantUnion *constant = assign->getRight()->getAsConstantUnion();
+
+						if(symbol && constant)
+						{
+							if(constant->getBasicType() == EbtInt && constant->getNominalSize() == 1)
+							{
+								index = symbol;
+								initial = constant->getUnionArrayPointer()[0].getIConst();
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Parse comparator and limit value
+		if(index && node->getCondition())
+		{
+			TIntermBinary *test = node->getCondition()->getAsBinaryNode();
+        
+			if(test && test->getLeft()->getAsSymbolNode()->getId() == index->getId())
+			{
+				TIntermConstantUnion *constant = test->getRight()->getAsConstantUnion();
+
+				if(constant)
+				{
+					if(constant->getBasicType() == EbtInt && constant->getNominalSize() == 1)
+					{
+						comparator = test->getOp();
+						limit = constant->getUnionArrayPointer()[0].getIConst();
+					}
+				}
+			}
+		}
+
+		// Parse increment
+		if(index && comparator != EOpNull && node->getExpression())
+		{
+			TIntermBinary *binaryTerminal = node->getExpression()->getAsBinaryNode();
+			TIntermUnary *unaryTerminal = node->getExpression()->getAsUnaryNode();
+        
+			if(binaryTerminal)
+			{
+				TOperator op = binaryTerminal->getOp();
+				TIntermConstantUnion *constant = binaryTerminal->getRight()->getAsConstantUnion();
+
+				if(constant)
+				{
+					if(constant->getBasicType() == EbtInt && constant->getNominalSize() == 1)
+					{
+						int value = constant->getUnionArrayPointer()[0].getIConst();
+
+						switch(op)
+						{
+						case EOpAddAssign: increment = value;  break;
+						case EOpSubAssign: increment = -value; break;
+						default: UNIMPLEMENTED();
+						}
+					}
+				}
+			}
+			else if(unaryTerminal)
+			{
+				TOperator op = unaryTerminal->getOp();
+
+				switch(op)
+				{
+				case EOpPostIncrement: increment = 1;  break;
+				case EOpPostDecrement: increment = -1; break;
+				case EOpPreIncrement:  increment = 1;  break;
+				case EOpPreDecrement:  increment = -1; break;
+				default: UNIMPLEMENTED();
+				}
+			}
+		}
+
+		if(index && comparator != EOpNull && increment != 0)
+		{
+			if(comparator == EOpLessThanEqual)
+			{
+				comparator = EOpLessThan;
+				limit += 1;
+			}
+
+			if(comparator == EOpLessThan)
+			{
+				int iterations = (limit - initial) / increment;
+
+				if(iterations <= 0)
+				{
+					iterations = 0;
+				}
+
+				return iterations;
+			}
+			else UNIMPLEMENTED();   // Falls through
+		}
+
+		return ~0;
+	}
+
+	bool DetectLoopDiscontinuity::traverse(TIntermNode *node)
+	{
+		loopDepth = 0;
+		loopDiscontinuity = false;
+		
+		node->traverse(this);
+		
+		return loopDiscontinuity;
+	}
+
+	bool DetectLoopDiscontinuity::visitLoop(Visit visit, TIntermLoop *loop)
+	{
+		if(visit == PreVisit)
+		{
+			loopDepth++;
+		}
+		else if(visit == PostVisit)
+		{
+			loopDepth++;
+		}
+
+		return true;
+	}
+
+	bool DetectLoopDiscontinuity::visitBranch(Visit visit, TIntermBranch *node)
+	{
+		if(loopDiscontinuity)
+		{
+			return false;
+		}
+
+		if(!loopDepth)
+		{
+			return true;
+		}
+	
+		switch(node->getFlowOp())
+		{
+		case EOpKill:
+			break;
+		case EOpBreak:
+		case EOpContinue:
+		case EOpReturn:
+			loopDiscontinuity = true;
+			break;
+		default: UNREACHABLE();
+		}
+
+		return !loopDiscontinuity;
+	}
+
+	bool DetectLoopDiscontinuity::visitAggregate(Visit visit, TIntermAggregate *node)
+	{
+		return !loopDiscontinuity;
 	}
 }

@@ -1336,7 +1336,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
                 switch(pname)
                 {
                 case GL_SAMPLE_BUFFERS:
-                    if(samples != 0)
+                    if(samples > 1)
                     {
                         *params = 1;
                     }
@@ -1346,11 +1346,11 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
                     }
                     break;
                 case GL_SAMPLES:
-                    *params = samples;
+                    *params = samples & ~1;
                     break;
                 }
             }
-            else 
+            else
             {
                 *params = 0;
             }
@@ -2366,12 +2366,16 @@ void Context::clear(GLbitfield mask)
 		                        (mState.colorMaskGreen ? 0x2 : 0) | 
 		                        (mState.colorMaskBlue ? 0x4 : 0) |
 		                        (mState.colorMaskAlpha ? 0x8 : 0);
-		device->clearColor(color, rgbaMask);
+
+		if(rgbaMask != 0)
+		{
+			device->clearColor(color, rgbaMask);
+		}
 	}
 
 	if(mask & GL_DEPTH_BUFFER_BIT)
 	{
-		if(mState.depthMask)
+		if(mState.depthMask != 0)
 		{
 			device->clearDepth(depth);
 		}
@@ -2379,7 +2383,10 @@ void Context::clear(GLbitfield mask)
 
 	if(mask & GL_STENCIL_BUFFER_BIT)
 	{
-		device->clearStencil(stencil, mState.stencilWritemask);
+		if(mState.stencilWritemask != 0)
+		{
+			device->clearStencil(stencil, mState.stencilWritemask);
+		}
 	}
 }
 
@@ -2567,14 +2574,14 @@ GLenum Context::getError()
     return GL_NO_ERROR;
 }
 
-int Context::getNearestSupportedSamples(sw::Format format, int requested) const
+int Context::getSupportedMultiSampleDepth(sw::Format format, int requested)
 {
     if(requested <= 1)
     {
-        return requested;
+        return 1;
     }
 	
-	if(requested <= 2)
+	if(requested == 2)
 	{
 		return 2;
 	}
@@ -2790,7 +2797,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
         return error(GL_INVALID_FRAMEBUFFER_OPERATION);
     }
 
-    if(drawBufferSamples != 0)
+    if(drawBufferSamples > 1)
     {
         return error(GL_INVALID_OPERATION);
     }
@@ -2950,7 +2957,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
             return error(GL_INVALID_OPERATION);
         }
         
-        if(partialBufferCopy && readBufferSamples != 0)
+        if(partialBufferCopy && readBufferSamples > 1)
         {
             return error(GL_INVALID_OPERATION);
         }
@@ -3004,8 +3011,8 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
             return error(GL_INVALID_OPERATION);   // Only whole-buffer copies are permitted
         }
 
-        if((drawDSBuffer && drawDSBuffer->getSamples() != 0) || 
-           (readDSBuffer && readDSBuffer->getSamples() != 0))
+        if((drawDSBuffer && drawDSBuffer->getSamples() > 1) || 
+           (readDSBuffer && readDSBuffer->getSamples() > 1))
         {
             return error(GL_INVALID_OPERATION);
         }

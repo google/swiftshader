@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -121,7 +121,7 @@ namespace sw
 
 			Int loopDepth;
 			Int stackIndex;   // FIXME: Inc/decrement callStack
-			Array<UInt, 4> callStack;
+			Array<UInt, 16> callStack;
 
 			Int enableIndex;
 			Array<Int4, 1 + 24> enableStack;

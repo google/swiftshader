@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -136,72 +136,84 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
 
 namespace egl
 {
+static Current *eglGetCurrent(void)
+{
+	Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+
+	if(!current)
+	{
+		eglAttachThread();
+	}
+
+	return (Current*)sw::Thread::getLocalStorage(currentTLS);
+}
+
 void setCurrentError(EGLint error)
 {
-    Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+    Current *current = eglGetCurrent();
 
     current->error = error;
 }
 
 EGLint getCurrentError()
 {
-    Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+    Current *current = eglGetCurrent();
 
     return current->error;
 }
 
 void setCurrentAPI(EGLenum API)
 {
-    Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+    Current *current = eglGetCurrent();
 
     current->API = API;
 }
 
 EGLenum getCurrentAPI()
 {
-    Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+    Current *current = eglGetCurrent();
 
     return current->API;
 }
 
 void setCurrentDisplay(EGLDisplay dpy)
 {
-    Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+    Current *current = eglGetCurrent();
 
     current->display = dpy;
 }
 
 EGLDisplay getCurrentDisplay()
 {
-    Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+    Current *current = eglGetCurrent();
 
     return current->display;
 }
 
 void setCurrentDrawSurface(EGLSurface surface)
 {
-    Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+    Current *current = eglGetCurrent();
 
     current->drawSurface = surface;
 }
 
 EGLSurface getCurrentDrawSurface()
 {
-    Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+    Current *current = eglGetCurrent();
 
     return current->drawSurface;
 }
 
 void setCurrentReadSurface(EGLSurface surface)
 {
-    Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+    Current *current = eglGetCurrent();
 
     current->readSurface = surface;
 }
 
 EGLSurface getCurrentReadSurface()
 {
-    Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+    Current *current = eglGetCurrent();
 
     return current->readSurface;
 }

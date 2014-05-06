@@ -24,6 +24,7 @@
 #include "Query.h"
 #include "common/debug.h"
 #include "Common/Version.h"
+#include "Main/Register.hpp"
 
 #define GL_APICALL
 #include <GLES2/gl2.h>
@@ -1119,7 +1120,7 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
                 return error(GL_INVALID_FRAMEBUFFER_OPERATION);
             }
 
-            if(context->getReadFramebufferHandle() != 0 && framebuffer->getColorbuffer()->getSamples() != 0)
+            if(context->getReadFramebufferHandle() != 0 && framebuffer->getColorbuffer()->getSamples() > 1)
             {
                 return error(GL_INVALID_OPERATION);
             }
@@ -1255,7 +1256,7 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
                 return error(GL_INVALID_FRAMEBUFFER_OPERATION);
             }
 
-            if(context->getReadFramebufferHandle() != 0 && framebuffer->getColorbuffer()->getSamples() != 0)
+            if(context->getReadFramebufferHandle() != 0 && framebuffer->getColorbuffer()->getSamples() > 1)
             {
                 return error(GL_INVALID_OPERATION);
             }
@@ -3200,26 +3201,17 @@ void GL_APIENTRY glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint
 
             switch(pname)
             {
-              case GL_RENDERBUFFER_WIDTH:           *params = renderbuffer->getWidth();       break;
-              case GL_RENDERBUFFER_HEIGHT:          *params = renderbuffer->getHeight();      break;
-              case GL_RENDERBUFFER_INTERNAL_FORMAT: *params = renderbuffer->getFormat();      break;
-              case GL_RENDERBUFFER_RED_SIZE:        *params = renderbuffer->getRedSize();     break;
-              case GL_RENDERBUFFER_GREEN_SIZE:      *params = renderbuffer->getGreenSize();   break;
-              case GL_RENDERBUFFER_BLUE_SIZE:       *params = renderbuffer->getBlueSize();    break;
-              case GL_RENDERBUFFER_ALPHA_SIZE:      *params = renderbuffer->getAlphaSize();   break;
-              case GL_RENDERBUFFER_DEPTH_SIZE:      *params = renderbuffer->getDepthSize();   break;
-              case GL_RENDERBUFFER_STENCIL_SIZE:    *params = renderbuffer->getStencilSize(); break;
-              case GL_RENDERBUFFER_SAMPLES_ANGLE:
-                if(gl::IMPLEMENTATION_MAX_SAMPLES != 0)
-                {
-                    *params = renderbuffer->getSamples();
-                }
-                else
-                {
-                    return error(GL_INVALID_ENUM);
-                }
-                break;
-              default:
+            case GL_RENDERBUFFER_WIDTH:           *params = renderbuffer->getWidth();       break;
+            case GL_RENDERBUFFER_HEIGHT:          *params = renderbuffer->getHeight();      break;
+            case GL_RENDERBUFFER_INTERNAL_FORMAT: *params = renderbuffer->getFormat();      break;
+            case GL_RENDERBUFFER_RED_SIZE:        *params = renderbuffer->getRedSize();     break;
+            case GL_RENDERBUFFER_GREEN_SIZE:      *params = renderbuffer->getGreenSize();   break;
+            case GL_RENDERBUFFER_BLUE_SIZE:       *params = renderbuffer->getBlueSize();    break;
+            case GL_RENDERBUFFER_ALPHA_SIZE:      *params = renderbuffer->getAlphaSize();   break;
+            case GL_RENDERBUFFER_DEPTH_SIZE:      *params = renderbuffer->getDepthSize();   break;
+            case GL_RENDERBUFFER_STENCIL_SIZE:    *params = renderbuffer->getStencilSize(); break;
+            case GL_RENDERBUFFER_SAMPLES_ANGLE:   *params = renderbuffer->getSamples();     break;
+            default:
                 return error(GL_INVALID_ENUM);
             }
         }
@@ -6116,6 +6108,11 @@ void glBindTexImage(egl::Surface *surface)
     {
         return error(GL_OUT_OF_MEMORY);
     }
+}
+
+void GL_APIENTRY Register(const char *licenseKey)
+{
+	RegisterLicenseKey(licenseKey);
 }
 
 }

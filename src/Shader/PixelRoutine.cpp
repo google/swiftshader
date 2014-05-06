@@ -5813,20 +5813,23 @@ namespace sw
 	Int4 PixelRoutine::enableMask(Registers &r, const Shader::Instruction *instruction)
 	{
 		Int4 enable = instruction->analysisBranch ? Int4(r.enableStack[r.enableIndex]) : Int4(0xFFFFFFFF);
-					
-		if(shader->containsBreakInstruction() && !whileTest && instruction->analysisBreak)
+		
+		if(!whileTest)
 		{
-			enable &= r.enableBreak;
-		}
+			if(shader->containsBreakInstruction() && instruction->analysisBreak)
+			{
+				enable &= r.enableBreak;
+			}
 
-		if(shader->containsContinueInstruction() && !whileTest && instruction->analysisContinue)
-		{
-			enable &= r.enableContinue;
-		}
+			if(shader->containsContinueInstruction() && instruction->analysisContinue)
+			{
+				enable &= r.enableContinue;
+			}
 
-		if(shader->containsLeaveInstruction() && instruction->analysisLeave)
-		{
-			enable &= r.enableLeave;
+			if(shader->containsLeaveInstruction() && instruction->analysisLeave)
+			{
+				enable &= r.enableLeave;
+			}
 		}
 
 		return enable;

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -40,11 +40,16 @@ struct Allocation
 void *allocate(size_t bytes, int alignment)
 {
 	unsigned char *block = new unsigned char[bytes + sizeof(Allocation) + alignment];
-	unsigned char *aligned = (unsigned char*)((uintptr_t)(block + sizeof(Allocation) + alignment - 1) & -(uintptr_t)alignment);
-	Allocation *allocation = (Allocation*)(aligned - sizeof(Allocation));
+	unsigned char *aligned = 0;
 
-//	allocation->bytes = bytes;
-	allocation->block = block;
+	if(block)
+	{
+		aligned = (unsigned char*)((uintptr_t)(block + sizeof(Allocation) + alignment - 1) & -(intptr_t)alignment);
+		Allocation *allocation = (Allocation*)(aligned - sizeof(Allocation));
+
+	//	allocation->bytes = bytes;
+		allocation->block = block;
+	}
 
 	return aligned;
 }
@@ -53,7 +58,10 @@ void *allocateZero(size_t bytes, int alignment)
 {
 	void *memory = allocate(bytes, alignment);
 
-	memset(memory, 0, bytes);
+	if(memory)
+	{
+		memset(memory, 0, bytes);
+	}
 
 	return memory;
 }

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -24,16 +24,12 @@
 
 namespace gl
 {
-void *Shader::mFragmentCompiler = NULL;
-void *Shader::mVertexCompiler = NULL;
-
 Shader::Shader(ResourceManager *manager, GLuint handle) : mHandle(handle), mResourceManager(manager)
 {
     mSource = NULL;
     mInfoLog = NULL;
 
 	clear();
-	initializeCompiler();
 
     mRefCount = 0;
     mDeleteStatus = false;
@@ -156,6 +152,30 @@ void Shader::getSource(GLsizei bufSize, GLsizei *length, char *source)
     }
 }
 
+TranslatorASM *Shader::createCompiler(ShShaderType type)
+{
+	ShInitialize();
+
+	TranslatorASM *assembler = new TranslatorASM(this, type, SH_GLES2_SPEC);
+
+	ShBuiltInResources resources;
+	ShInitBuiltInResources(&resources);     
+	resources.MaxVertexAttribs = MAX_VERTEX_ATTRIBS;
+	resources.MaxVertexUniformVectors = MAX_VERTEX_UNIFORM_VECTORS;
+	resources.MaxVaryingVectors = MAX_VARYING_VECTORS;
+	resources.MaxVertexTextureImageUnits = MAX_VERTEX_TEXTURE_IMAGE_UNITS;
+	resources.MaxCombinedTextureImageUnits = MAX_COMBINED_TEXTURE_IMAGE_UNITS;
+	resources.MaxTextureImageUnits = MAX_TEXTURE_IMAGE_UNITS;
+	resources.MaxFragmentUniformVectors = MAX_FRAGMENT_UNIFORM_VECTORS;
+	resources.MaxDrawBuffers = MAX_DRAW_BUFFERS;
+	resources.OES_standard_derivatives = 1;
+	resources.OES_fragment_precision_high = 1;
+	resources.MaxCallStackDepth = 16;
+	assembler->Init(resources);
+
+	return assembler;
+}
+
 void Shader::clear()
 {
     delete[] mInfoLog;
@@ -210,43 +230,8 @@ void Shader::flagForDeletion()
     mDeleteStatus = true;
 }
 
-// Perform a one-time initialization of the shader compiler (or after being destructed by releaseCompiler)
-void Shader::initializeCompiler()
-{
-    if(!mFragmentCompiler)
-    {
-        int result = ShInitialize();
-
-        if(result)
-        {
-            ShBuiltInResources resources;
-            ShInitBuiltInResources(&resources);
-            Context *context = getContext();            
-
-            resources.MaxVertexAttribs = MAX_VERTEX_ATTRIBS;
-            resources.MaxVertexUniformVectors = MAX_VERTEX_UNIFORM_VECTORS;
-            resources.MaxVaryingVectors = MAX_VARYING_VECTORS;
-            resources.MaxVertexTextureImageUnits = MAX_VERTEX_TEXTURE_IMAGE_UNITS;
-            resources.MaxCombinedTextureImageUnits = MAX_COMBINED_TEXTURE_IMAGE_UNITS;
-            resources.MaxTextureImageUnits = MAX_TEXTURE_IMAGE_UNITS;
-            resources.MaxFragmentUniformVectors = MAX_FRAGMENT_UNIFORM_VECTORS;
-            resources.MaxDrawBuffers = MAX_DRAW_BUFFERS;
-            resources.OES_standard_derivatives = 1;
-
-            mFragmentCompiler = ShConstructCompiler(SH_FRAGMENT_SHADER, SH_GLES2_SPEC, &resources);
-            mVertexCompiler = ShConstructCompiler(SH_VERTEX_SHADER, SH_GLES2_SPEC, &resources);
-        }
-    }
-}
-
 void Shader::releaseCompiler()
 {
-    ShDestruct(mFragmentCompiler);
-    ShDestruct(mVertexCompiler);
-
-    mFragmentCompiler = NULL;
-    mVertexCompiler = NULL;
-
     ShFinalize();
 }
 
@@ -386,25 +371,11 @@ GLenum VertexShader::getType()
 void VertexShader::compile()
 {
 	clear();
-	initializeCompiler();
 
 	delete vertexShader;
 	vertexShader = new sw::VertexShader();
 
-	TranslatorASM *assembler = new TranslatorASM(this, SH_VERTEX_SHADER, SH_GLES2_SPEC);
-
-	ShBuiltInResources resources;
-	ShInitBuiltInResources(&resources);     
-	resources.MaxVertexAttribs = MAX_VERTEX_ATTRIBS;
-	resources.MaxVertexUniformVectors = MAX_VERTEX_UNIFORM_VECTORS;
-	resources.MaxVaryingVectors = MAX_VARYING_VECTORS;
-	resources.MaxVertexTextureImageUnits = MAX_VERTEX_TEXTURE_IMAGE_UNITS;
-	resources.MaxCombinedTextureImageUnits = MAX_COMBINED_TEXTURE_IMAGE_UNITS;
-	resources.MaxTextureImageUnits = MAX_TEXTURE_IMAGE_UNITS;
-	resources.MaxFragmentUniformVectors = MAX_FRAGMENT_UNIFORM_VECTORS;
-	resources.MaxDrawBuffers = MAX_DRAW_BUFFERS;
-	resources.OES_standard_derivatives = 1;
-	assembler->Init(resources);
+	TranslatorASM *compiler = createCompiler(SH_VERTEX_SHADER);
 
 	// Ensure we don't pass a NULL source to the compiler
     char *source = "\0";
@@ -413,7 +384,7 @@ void VertexShader::compile()
         source = mSource;
     }
 
-	int success = ShCompile(assembler, &source, 1, SH_OBJECT_CODE);
+	int success = ShCompile(compiler, &source, 1, SH_OBJECT_CODE);
 
 	if(false)
 	{
@@ -433,13 +404,13 @@ void VertexShader::compile()
 		vertexShader = 0;
 
 		int infoLogLen = 0;
-        ShGetInfo(assembler, SH_INFO_LOG_LENGTH, &infoLogLen);
+        ShGetInfo(compiler, SH_INFO_LOG_LENGTH, &infoLogLen);
         mInfoLog = new char[infoLogLen];
-        ShGetInfoLog(assembler, mInfoLog);
+        ShGetInfoLog(compiler, mInfoLog);
         TRACE("\n%s", mInfoLog);
 	}
 
-	delete assembler;
+	delete compiler;
 }
 
 int VertexShader::getSemanticIndex(const std::string &attributeName)
@@ -486,25 +457,11 @@ GLenum FragmentShader::getType()
 void FragmentShader::compile()
 {
 	clear();
-	initializeCompiler();
 
 	delete pixelShader;
 	pixelShader = new sw::PixelShader();
 
-	TranslatorASM *assembler = new TranslatorASM(this, SH_FRAGMENT_SHADER, SH_GLES2_SPEC);
-
-	ShBuiltInResources resources;
-	ShInitBuiltInResources(&resources);     
-	resources.MaxVertexAttribs = MAX_VERTEX_ATTRIBS;
-	resources.MaxVertexUniformVectors = MAX_VERTEX_UNIFORM_VECTORS;
-	resources.MaxVaryingVectors = MAX_VARYING_VECTORS;
-	resources.MaxVertexTextureImageUnits = MAX_VERTEX_TEXTURE_IMAGE_UNITS;
-	resources.MaxCombinedTextureImageUnits = MAX_COMBINED_TEXTURE_IMAGE_UNITS;
-	resources.MaxTextureImageUnits = MAX_TEXTURE_IMAGE_UNITS;
-	resources.MaxFragmentUniformVectors = MAX_FRAGMENT_UNIFORM_VECTORS;
-	resources.MaxDrawBuffers = MAX_DRAW_BUFFERS;
-	resources.OES_standard_derivatives = 1;
-	assembler->Init(resources);
+	TranslatorASM *compiler = createCompiler(SH_FRAGMENT_SHADER);
 
 	// Ensure we don't pass a NULL source to the compiler
     char *source = "\0";
@@ -513,7 +470,7 @@ void FragmentShader::compile()
         source = mSource;
     }
 
-	int success = ShCompile(assembler, &source, 1, SH_OBJECT_CODE);
+	int success = ShCompile(compiler, &source, 1, SH_OBJECT_CODE);
 	
 	if(false)
 	{
@@ -533,13 +490,13 @@ void FragmentShader::compile()
 		pixelShader = 0;
 
 		int infoLogLen = 0;
-        ShGetInfo(assembler, SH_INFO_LOG_LENGTH, &infoLogLen);
+        ShGetInfo(compiler, SH_INFO_LOG_LENGTH, &infoLogLen);
         mInfoLog = new char[infoLogLen];
-        ShGetInfoLog(assembler, mInfoLog);
+        ShGetInfoLog(compiler, mInfoLog);
         TRACE("\n%s", mInfoLog);
 	}
 
-	delete assembler;
+	delete compiler;
 }
 
 sw::Shader *FragmentShader::getShader() const

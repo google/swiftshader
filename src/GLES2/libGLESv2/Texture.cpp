@@ -284,7 +284,7 @@ Texture2D::~Texture2D()
 	{
 		if(image[i])
 		{
-			image[i]->release();
+			image[i]->unbind();
 			image[i] = 0;
 		}
 	}
@@ -378,17 +378,15 @@ void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLenum form
 {
 	if(image[level])
 	{
-		image[level]->release();
+		image[level]->unbind();
 	}
 
-	image[level] = new Image(resource, width, height, format, type);
+	image[level] = new Image(this, width, height, format, type);
 
 	if(!image[level])
 	{
 		return error(GL_OUT_OF_MEMORY);
 	}
-
-	image[level]->addRef();
 
     Texture::setImage(format, type, unpackAlignment, pixels, image[level]);
 }
@@ -414,7 +412,7 @@ void Texture2D::bindTexImage(egl::Surface *surface)
 	{
 		if(image[level])
 		{
-			image[level]->release();
+			image[level]->unbind();
 			image[level] = 0;
 		}
 	}
@@ -431,7 +429,7 @@ void Texture2D::releaseTexImage()
 	{
 		if(image[level])
 		{
-			image[level]->release();
+			image[level]->unbind();
 			image[level] = 0;
 		}
 	}
@@ -441,17 +439,15 @@ void Texture2D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 {
 	if(image[level])
 	{
-		image[level]->release();
+		image[level]->unbind();
 	}
 
-	image[level] = new Image(resource, width, height, format, GL_UNSIGNED_BYTE);
+	image[level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
 
 	if(!image[level])
 	{
 		return error(GL_OUT_OF_MEMORY);
 	}
-
-	image[level]->addRef();
 
     Texture::setCompressedImage(imageSize, pixels, image[level]);
 }
@@ -478,17 +474,15 @@ void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei 
 
 	if(image[level])
 	{
-		image[level]->release();
+		image[level]->unbind();
 	}
 
-	image[level] = new Image(resource, width, height, format, GL_UNSIGNED_BYTE);
+	image[level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
 
 	if(!image[level])
 	{
 		return error(GL_OUT_OF_MEMORY);
 	}
-
-	image[level]->addRef();
 
     if(width != 0 && height != 0)
     {
@@ -618,17 +612,15 @@ void Texture2D::generateMipmaps()
     {
 		if(image[i])
 		{
-			image[i]->release();
+			image[i]->unbind();
 		}
 
-		image[i] = new Image(resource, std::max(image[0]->getWidth() >> i, 1), std::max(image[0]->getHeight() >> i, 1), image[0]->getFormat(), image[0]->getType());
+		image[i] = new Image(this, std::max(image[0]->getWidth() >> i, 1), std::max(image[0]->getHeight() >> i, 1), image[0]->getFormat(), image[0]->getType());
 
 		if(!image[i])
 		{
 			return error(GL_OUT_OF_MEMORY);
 		}
-
-		image[i]->addRef();
 
 		getDevice()->stretchRect(image[i - 1], 0, image[i], 0, true);
     }
@@ -693,7 +685,7 @@ TextureCubeMap::~TextureCubeMap()
 		{
 			if(image[f][i])
 			{
-				image[f][i]->release();
+				image[f][i]->unbind();
 				image[f][i] = 0;
 			}
 		}
@@ -801,17 +793,15 @@ void TextureCubeMap::setCompressedImage(GLenum target, GLint level, GLenum forma
 
 	if(image[face][level])
 	{
-		image[face][level]->release();
+		image[face][level]->unbind();
 	}
 
-	image[face][level] = new Image(resource, width, height, format, GL_UNSIGNED_BYTE);
+	image[face][level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
 
 	if(!image[face][level])
 	{
 		return error(GL_OUT_OF_MEMORY);
 	}
-
-	image[face][level]->addRef();
 
     Texture::setCompressedImage(imageSize, pixels, image[face][level]);
 }
@@ -939,17 +929,15 @@ void TextureCubeMap::setImage(GLenum target, GLint level, GLsizei width, GLsizei
 
 	if(image[face][level])
 	{
-		image[face][level]->release();
+		image[face][level]->unbind();
 	}
 
-	image[face][level] = new Image(resource, width, height, format, GL_UNSIGNED_BYTE);
+	image[face][level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
 
 	if(!image[face][level])
 	{
 		return error(GL_OUT_OF_MEMORY);
 	}
-
-	image[face][level]->addRef();
 
     Texture::setImage(format, type, unpackAlignment, pixels, image[face][level]);
 }
@@ -968,17 +956,15 @@ void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint 
 
 	if(image[face][level])
 	{
-		image[face][level]->release();
+		image[face][level]->unbind();
 	}
 
-	image[face][level] = new Image(resource, width, height, format, GL_UNSIGNED_BYTE);
+	image[face][level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
 
 	if(!image[face][level])
 	{
 		return error(GL_OUT_OF_MEMORY);
 	}
-
-	image[face][level]->addRef();
 
     if(width != 0 && height != 0)
     {
@@ -1048,17 +1034,15 @@ void TextureCubeMap::generateMipmaps()
 		{
 			if(image[f][i])
 			{
-				image[f][i]->release();
+				image[f][i]->unbind();
 			}
 
-			image[f][i] = new Image(resource, std::max(image[0][0]->getWidth() >> i, 1), std::max(image[0][0]->getHeight() >> i, 1), image[0][0]->getFormat(), image[0][0]->getType());
+			image[f][i] = new Image(this, std::max(image[0][0]->getWidth() >> i, 1), std::max(image[0][0]->getHeight() >> i, 1), image[0][0]->getFormat(), image[0][0]->getType());
 
 			if(!image[f][i])
 			{
 				return error(GL_OUT_OF_MEMORY);
 			}
-
-			image[f][i]->addRef();
 
 			getDevice()->stretchRect(image[f][i - 1], 0, image[f][i], 0, true);
 		}

@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -23,7 +23,6 @@
 #include "Main/FrameBuffer.hpp"
 
 #if defined(_WIN32)
-#include <dwmapi.h>
 #include <tchar.h>
 #endif
 
@@ -84,37 +83,7 @@ bool Surface::initialize()
 {
     ASSERT(!frameBuffer && !backBuffer && !mDepthStencil);
 
-    if(!reset())
-	{
-		return false;
-	}
-
-	#if defined(_WIN32)
-		// Modify present parameters for this window, if we are composited,
-		// to minimize the amount of queuing done by DWM between our calls to
-		// present and the actual screen.
-		if(mWindow && LOBYTE(GetVersion()) >= 6)
-		{
-			BOOL isComposited;
-			HRESULT result = DwmIsCompositionEnabled(&isComposited);
-
-			if(SUCCEEDED(result) && isComposited)
-			{
-				DWM_PRESENT_PARAMETERS presentParams = {0};
-				presentParams.cbSize = sizeof(DWM_PRESENT_PARAMETERS);
-				presentParams.cBuffer = 2;
-
-				result = DwmSetPresentParameters(mWindow, &presentParams);
-				
-				if(FAILED(result))
-				{
-					ERR("Unable to set present parameters: %081X", result);
-				}
-			}
-		}
-    #endif
-
-    return true;
+    return reset();
 }
 
 void Surface::release()
@@ -190,12 +159,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
     }
 
 	backBuffer = gl::createBackBuffer(backBufferWidth, backBufferHeight, mConfig);
-
-	if(backBuffer)
-	{
-		backBuffer->addRef();
-	}
-
+	
     if(!backBuffer)
     {
         ERR("Could not create back buffer");

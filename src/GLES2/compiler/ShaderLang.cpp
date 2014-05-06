@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2002-2012 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2013 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -14,6 +14,8 @@
 #include "compiler/InitializeDll.h"
 #include "compiler/preprocessor/length_limits.h"
 #include "compiler/ShHandle.h"
+
+#include <limits.h>
 
 //
 // This is the platform independent interface between an OGL driver
@@ -107,6 +109,9 @@ void ShInitBuiltInResources(ShBuiltInResources* resources)
 
     // Extensions.
     resources->OES_standard_derivatives = 0;
+	resources->OES_fragment_precision_high = 0;
+
+	resources->MaxCallStackDepth = UINT_MAX;
 }
 
 //

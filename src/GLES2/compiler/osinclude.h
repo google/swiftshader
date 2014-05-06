@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2002-2012 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2013 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -32,7 +32,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <errno.h>
-#endif
+#endif  // ANGLE_OS_WIN
 
 
 #include "compiler/debug.h"
@@ -44,9 +44,9 @@
 typedef DWORD OS_TLSIndex;
 #define OS_INVALID_TLS_INDEX (TLS_OUT_OF_INDEXES)
 #elif defined(ANGLE_OS_POSIX)
-typedef unsigned int OS_TLSIndex;
-#define OS_INVALID_TLS_INDEX 0xFFFFFFFF
-#endif
+typedef pthread_key_t OS_TLSIndex;
+#define OS_INVALID_TLS_INDEX (static_cast<OS_TLSIndex>(-1))
+#endif  // ANGLE_OS_WIN
 
 OS_TLSIndex OS_AllocTLSIndex();
 bool OS_SetTLSValue(OS_TLSIndex nIndex, void *lpvValue);

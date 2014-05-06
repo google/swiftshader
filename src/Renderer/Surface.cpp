@@ -651,21 +651,24 @@ namespace sw
 			ASSERT(false);
 		}
 
-		switch(format)
+		if(buffer)
 		{
-		#if S3TC_SUPPORT
-		case FORMAT_DXT1:
-		#endif
-		case FORMAT_ATI1:
-			return (unsigned char*)buffer + 8 * (x / 4) + (y / 4) * pitchB + z * sliceB;
-		#if S3TC_SUPPORT
-		case FORMAT_DXT3:
-		case FORMAT_DXT5:
-		#endif
-		case FORMAT_ATI2:
-			return (unsigned char*)buffer + 16 * (x / 4) + (y / 4) * pitchB + z * sliceB;
-		default:
-			return (unsigned char*)buffer + x * bytes + y * pitchB + z * sliceB;
+			switch(format)
+			{
+			#if S3TC_SUPPORT
+			case FORMAT_DXT1:
+			#endif
+			case FORMAT_ATI1:
+				return (unsigned char*)buffer + 8 * (x / 4) + (y / 4) * pitchB + z * sliceB;
+			#if S3TC_SUPPORT
+			case FORMAT_DXT3:
+			case FORMAT_DXT5:
+			#endif
+			case FORMAT_ATI2:
+				return (unsigned char*)buffer + 16 * (x / 4) + (y / 4) * pitchB + z * sliceB;
+			default:
+				return (unsigned char*)buffer + x * bytes + y * pitchB + z * sliceB;
+			}
 		}
 
 		return 0;
@@ -2073,7 +2076,7 @@ namespace sw
 		int width4 = (width + 3) & ~3;
 		int height4 = (height + 3) & ~3;
 
-		return allocate(size(width4, height4, depth, format));
+		return allocateZero(size(width4, height4, depth, format));
 	}
 
 	void Surface::memfill(void *buffer, int pattern, int bytes)

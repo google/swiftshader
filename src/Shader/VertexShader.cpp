@@ -42,6 +42,7 @@ namespace sw
 			pointSizeRegister = vs->pointSizeRegister;
 			usedSamplers = vs->usedSamplers;
 
+			optimize();
 			analyze();
 		}
 	}
@@ -58,6 +59,7 @@ namespace sw
 			input[i] = Semantic(-1, -1);
 		}
 
+		optimize();
 		analyze();
 	}
 

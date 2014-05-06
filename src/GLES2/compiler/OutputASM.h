@@ -33,9 +33,10 @@ namespace sh
 {
 	struct Uniform
 	{
-		Uniform(GLenum type, const std::string &name, int arraySize, int registerIndex);
+		Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex);
 
 		GLenum type;
+		GLenum precision;
 		std::string name;
 		int arraySize;
 	
@@ -87,7 +88,7 @@ namespace sh
 
 		void freeTemporary(Temporary *temporary);
 
-	protected:
+	private:
 		enum Scope
 		{
 			GLOBAL,
@@ -105,7 +106,8 @@ namespace sh
 		virtual bool visitLoop(Visit visit, TIntermLoop*);
 		virtual bool visitBranch(Visit visit, TIntermBranch*);
 
-		Instruction *emit(sw::Shader::Opcode op, TIntermTyped *dst = 0, TIntermNode *src0 = 0, TIntermNode *src1 = 0, TIntermNode *src2 = 0);
+		Instruction *emit(sw::Shader::Opcode op, TIntermTyped *dst = 0, TIntermNode *src0 = 0, TIntermNode *src1 = 0, TIntermNode *src2 = 0, int index = 0);
+		void emitBinary(sw::Shader::Opcode op, TIntermTyped *dst = 0, TIntermNode *src0 = 0, TIntermNode *src1 = 0, TIntermNode *src2 = 0);
 		void emitAssign(sw::Shader::Opcode op, TIntermTyped *result, TIntermTyped *lhs, TIntermTyped *src0, TIntermTyped *src1 = 0);
 		void emitCmp(sw::Shader::Control cmpOp, TIntermTyped *dst, TIntermNode *left, TIntermNode *right, int index = 0);
 		void argument(sw::Shader::SourceParameter &parameter, TIntermNode *argument, int index = 0);
@@ -134,9 +136,11 @@ namespace sh
 
 		void declareUniform(const TType &type, const TString &name, int index);
 		GLenum glVariableType(const TType &type);
+		GLenum glVariablePrecision(const TType &type);
 
 		static int dim(TIntermNode *v);
 		static int dim2(TIntermNode *m);
+		static unsigned int loopCount(TIntermLoop *node);
 
 		gl::Shader *const shaderObject;
 		sw::Shader *shader;
@@ -156,6 +160,21 @@ namespace sh
 		std::vector<Function> functionArray;
 
 		TParseContext &mContext;
+	};
+
+	// Checks whether a loop can run for a variable number of iterations
+	class DetectLoopDiscontinuity : public TIntermTraverser
+	{
+	public:
+		bool traverse(TIntermNode *node);
+
+	private:
+		bool visitBranch(Visit visit, TIntermBranch *node);
+		bool visitLoop(Visit visit, TIntermLoop *loop);
+		bool visitAggregate(Visit visit, TIntermAggregate *node);
+
+		int loopDepth;
+		bool loopDiscontinuity;
 	};
 }
 

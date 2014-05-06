@@ -114,6 +114,8 @@
 #if defined(_WIN32) && !defined(_WIN32_WCE) && !defined(__SCITECH_SNAP__)
     /* Win32 but not WinCE */
 #   define KHRONOS_APIENTRY __stdcall
+#elif defined(__GNUC__) && defined(__i386__)
+#   define KHRONOS_APIENTRY __attribute__((__force_align_arg_pointer__))
 #else
 #   define KHRONOS_APIENTRY
 #endif

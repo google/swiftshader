@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -34,7 +34,7 @@ namespace gl
 	// Helper struct representing a single shader uniform
 	struct Uniform
 	{
-		Uniform(GLenum type, const std::string &name, unsigned int arraySize);
+		Uniform(GLenum type, GLenum precision, const std::string &name, unsigned int arraySize);
 
 		~Uniform();
 
@@ -43,6 +43,7 @@ namespace gl
 		int registerCount() const;
 
 		const GLenum type;
+		const GLenum precision;
 		const std::string name;
 		const unsigned int arraySize;
 
@@ -109,13 +110,13 @@ namespace gl
 		void getInfoLog(GLsizei bufSize, GLsizei *length, char *infoLog);
 		void getAttachedShaders(GLsizei maxCount, GLsizei *count, GLuint *shaders);
 
-		void getActiveAttribute(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name);
-		GLint getActiveAttributeCount();
-		GLint getActiveAttributeMaxLength();
+		void getActiveAttribute(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name) const;
+		GLint getActiveAttributeCount() const;
+		GLint getActiveAttributeMaxLength() const;
 
-		void getActiveUniform(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name);
-		GLint getActiveUniformCount();
-		GLint getActiveUniformMaxLength();
+		void getActiveUniform(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name) const;
+		GLint getActiveUniformCount() const;
+		GLint getActiveUniformMaxLength() const;
 
 		void addRef();
 		void release();
@@ -139,7 +140,7 @@ namespace gl
 		int getAttributeBinding(const std::string &name);
 
 		bool linkUniforms(Shader *shader);
-		bool defineUniform(GLenum shader, GLenum type, const std::string &_name, unsigned int arraySize, int registerIndex);
+		bool defineUniform(GLenum shader, GLenum type, GLenum precision, const std::string &_name, unsigned int arraySize, int registerIndex);
 		bool applyUniform1bv(GLint location, GLsizei count, const GLboolean *v);
 		bool applyUniform2bv(GLint location, GLsizei count, const GLboolean *v);
 		bool applyUniform3bv(GLint location, GLsizei count, const GLboolean *v);

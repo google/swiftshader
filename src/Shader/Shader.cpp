@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -16,6 +16,7 @@
 #include "Math.hpp"
 #include "Debug.hpp"
 
+#include <set>
 #include <fstream>
 #include <sstream>
 #include <stdarg.h>
@@ -730,6 +731,7 @@ namespace sw
 	{
 		switch(opcode)
 		{
+		case OPCODE_NULL:			return "null";
 		case OPCODE_NOP:			return "nop";
 		case OPCODE_MOV:			return "mov";
 		case OPCODE_ADD:			return "add";
@@ -1370,6 +1372,110 @@ namespace sw
 		ASSERT(i < instruction.size());
 
 		return instruction[i];
+	}
+
+	void Shader::optimize()
+	{
+		optimizeLeave();
+		optimizeCall();
+		removeNull();
+	}
+
+	void Shader::optimizeLeave()
+	{
+		// A return (leave) right before the end of a function or the shader can be removed
+		for(unsigned int i = 0; i < instruction.size(); i++)
+		{
+			if(instruction[i]->opcode == OPCODE_LEAVE)
+			{
+				if(i == instruction.size() - 1 || instruction[i + 1]->opcode == OPCODE_RET)
+				{
+					instruction[i]->opcode = OPCODE_NULL;
+				}
+			}
+		}
+	}
+
+	void Shader::optimizeCall()
+	{
+		// Eliminate uncalled functions
+		std::set<int> calledFunctions;
+		bool rescan = true;
+
+		while(rescan)
+		{
+			calledFunctions.clear();
+			rescan = false;
+
+			for(unsigned int i = 0; i < instruction.size(); i++)
+			{
+				if(instruction[i]->isCall())
+				{
+					calledFunctions.insert(instruction[i]->dst.label);
+				}
+			}
+
+			if(!calledFunctions.empty())
+			{
+				for(unsigned int i = 0; i < instruction.size(); i++)
+				{
+					if(instruction[i]->opcode == OPCODE_LABEL)
+					{
+						if(calledFunctions.find(instruction[i]->dst.label) == calledFunctions.end())
+						{
+							for( ; i < instruction.size(); i++)
+							{
+								Opcode oldOpcode = instruction[i]->opcode;
+								instruction[i]->opcode = OPCODE_NULL;
+
+								if(oldOpcode == OPCODE_RET)
+								{
+									rescan = true;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Optimize the entry call
+		if(instruction.size() >= 2 && instruction[0]->opcode == OPCODE_CALL && instruction[1]->opcode == OPCODE_RET)
+		{
+			if(calledFunctions.size() == 1)
+			{
+				instruction[0]->opcode = OPCODE_NULL;
+				instruction[1]->opcode = OPCODE_NULL;
+
+				for(int i = 2; i < instruction.size(); i++)
+				{
+					if(instruction[i]->opcode == OPCODE_LABEL || instruction[i]->opcode == OPCODE_RET)
+					{
+						instruction[i]->opcode = OPCODE_NULL;
+					}
+				}
+			}
+		}
+	}
+
+	void Shader::removeNull()
+	{
+		int size = 0;
+		for(int i = 0; i < instruction.size(); i++)
+		{
+			if(instruction[i]->opcode != OPCODE_NULL)
+			{
+				instruction[size] = instruction[i];
+				size++;
+			}
+			else
+			{
+				delete instruction[i];
+			}
+		}
+
+		instruction.resize(size);
 	}
 
 	void Shader::analyzeDirtyConstants()

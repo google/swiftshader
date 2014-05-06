@@ -280,8 +280,6 @@ namespace gl
 			return 0;
 		}
 
-		surface->addRef();
-
 		return surface;
 	}
 
@@ -302,8 +300,6 @@ namespace gl
 			ERR("Out of memory");
 			return 0;
 		}
-
-		surface->addRef();
 		
 		return surface;
 	}

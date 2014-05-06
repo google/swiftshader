@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2002-2012 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2013 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -65,21 +65,23 @@ protected:
     bool InitBuiltInSymbolTable(const ShBuiltInResources& resources);
     // Clears the results from the previous compilation.
     void clearResults();
-    // Return true if function recursion is detected.
-    bool detectRecursion(TIntermNode* root);
+    // Return true if function recursion is detected or call depth exceeded.
+    bool validateCallDepth(TIntermNode *root, TInfoSink &infoSink);
     // Returns true if the given shader does not exceed the minimum
     // functionality mandated in GLSL 1.0 spec Appendix A.
-    bool validateLimitations(TIntermNode* root);
+    bool validateLimitations(TIntermNode *root);
     // Collect info for all attribs and uniforms.
-    void collectAttribsUniforms(TIntermNode* root);
+    void collectAttribsUniforms(TIntermNode *root);
     // Translate to object code.
-    virtual void translate(TIntermNode* root) = 0;
+    virtual void translate(TIntermNode *root) = 0;
     // Get built-in extensions with default behavior.
     const TExtensionBehavior& getExtensionBehavior() const;
 
 private:
     ShShaderType shaderType;
     ShShaderSpec shaderSpec;
+
+    unsigned int maxCallStackDepth;
 
     // Built-in symbol table for the given language, spec, and resources.
     // It is preserved from compile-to-compile.

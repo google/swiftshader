@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -107,9 +107,21 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
 
 namespace gl
 {
+static gl::Current *getCurrent(void)
+{
+	Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+
+	if(!current)
+	{
+		glAttachThread();
+	}
+
+	return (Current*)sw::Thread::getLocalStorage(currentTLS);
+}
+
 void makeCurrent(Context *context, egl::Display *display, egl::Surface *surface)
 {
-    Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+    Current *current = getCurrent();
 
     current->context = context;
     current->display = display;
@@ -122,14 +134,14 @@ void makeCurrent(Context *context, egl::Display *display, egl::Surface *surface)
 
 Context *getContext()
 {
-    Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+    Current *current = getCurrent();
 
     return current->context;
 }
 
 egl::Display *getDisplay()
 {
-    Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+    Current *current = getCurrent();
 
     return current->display;
 }

@@ -90,8 +90,6 @@ public:
     virtual void generateMipmaps() = 0;
     virtual void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source) = 0;
 
-    static const GLuint INCOMPLETE_TEXTURE_ID = static_cast<GLuint>(-1);   // Every texture takes an id at creation time. The value is arbitrary because it is never registered with the resource manager.
-
 protected:
     void setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image);
     void subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image);
@@ -116,7 +114,7 @@ class Texture2D : public Texture
 public:
     explicit Texture2D(GLuint id);
 
-    ~Texture2D();
+    virtual ~Texture2D();
 
 	virtual bool isTexture2D();
 
@@ -172,7 +170,7 @@ class TextureCubeMap : public Texture
 public:
     explicit TextureCubeMap(GLuint id);
 
-    ~TextureCubeMap();
+    virtual ~TextureCubeMap();
 
 	virtual bool isTextureCubeMap();
 

@@ -332,7 +332,7 @@ Colorbuffer::Colorbuffer(Image *renderTarget) : mRenderTarget(renderTarget)
 		mHeight = renderTarget->getHeight();
 		internalFormat = renderTarget->getInternalFormat();
 		format = sw2es::ConvertBackBufferFormat(internalFormat);
-		mSamples = renderTarget->getMultiSampleDepth();
+		mSamples = renderTarget->getMultiSampleDepth() & ~1;
 	}
 }
 
@@ -341,14 +341,7 @@ Colorbuffer::Colorbuffer(int width, int height, GLenum format, GLsizei samples) 
 	Device *device = getDevice();
 
 	sw::Format requestedFormat = es2sw::ConvertRenderbufferFormat(format);
-	int supportedSamples = getContext()->getNearestSupportedSamples(requestedFormat, samples);
-
-	if(supportedSamples == -1)
-	{
-		error(GL_OUT_OF_MEMORY);
-
-		return;
-	}
+	int supportedSamples = Context::getSupportedMultiSampleDepth(requestedFormat, samples);
 
 	if(width > 0 && height > 0)
 	{
@@ -365,7 +358,7 @@ Colorbuffer::Colorbuffer(int width, int height, GLenum format, GLsizei samples) 
 	mHeight = height;
 	this->format = format;
 	internalFormat = requestedFormat;
-	mSamples = supportedSamples;
+	mSamples = supportedSamples & ~1;
 }
 
 Colorbuffer::~Colorbuffer()
@@ -398,7 +391,7 @@ DepthStencilbuffer::DepthStencilbuffer(Image *depthStencil) : mDepthStencil(dept
 		mHeight = depthStencil->getHeight();
 		internalFormat = depthStencil->getInternalFormat();
 		format = sw2es::ConvertDepthStencilFormat(internalFormat);
-		mSamples = depthStencil->getMultiSampleDepth();
+		mSamples = depthStencil->getMultiSampleDepth() & ~1;
 	}
 }
 
@@ -408,14 +401,7 @@ DepthStencilbuffer::DepthStencilbuffer(int width, int height, GLsizei samples)
 
 	mDepthStencil = NULL;
 	
-	int supportedSamples = getContext()->getNearestSupportedSamples(sw::FORMAT_D24S8, samples);
-
-	if(supportedSamples == -1)
-	{
-		error(GL_OUT_OF_MEMORY);
-
-		return;
-	}
+	int supportedSamples = Context::getSupportedMultiSampleDepth(sw::FORMAT_D24S8, samples);
 
 	if(width > 0 && height > 0)
 	{
@@ -432,7 +418,7 @@ DepthStencilbuffer::DepthStencilbuffer(int width, int height, GLsizei samples)
 	mHeight = height;
 	format = GL_DEPTH24_STENCIL8_OES;
 	internalFormat = sw::FORMAT_D24S8;
-	mSamples = supportedSamples;
+	mSamples = supportedSamples & ~1;
 }
 
 DepthStencilbuffer::~DepthStencilbuffer()

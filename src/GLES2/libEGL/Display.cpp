@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -208,6 +208,7 @@ bool Display::getConfigAttrib(EGLConfig config, EGLint attribute, EGLint *value)
       case EGL_CONFIG_ID:                 *value = configuration->mConfigID;               break;
       case EGL_LEVEL:                     *value = configuration->mLevel;                  break;
       case EGL_NATIVE_RENDERABLE:         *value = configuration->mNativeRenderable;       break;
+      case EGL_NATIVE_VISUAL_ID:          *value = configuration->mNativeVisualID;         break;
       case EGL_NATIVE_VISUAL_TYPE:        *value = configuration->mNativeVisualType;       break;
       case EGL_SAMPLES:                   *value = configuration->mSamples;                break;
       case EGL_SAMPLE_BUFFERS:            *value = configuration->mSampleBuffers;          break;

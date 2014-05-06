@@ -1,61 +1,18 @@
 //
-// Copyright (c) 2002-2012 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2013 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
 
-#include "compiler/DetectRecursion.h"
+#include "compiler/AnalyzeCallDepth.h"
 #include "compiler/Initialize.h"
 #include "compiler/InitializeParseContext.h"
 #include "compiler/ParseHelper.h"
 #include "compiler/ShHandle.h"
 #include "compiler/ValidateLimitations.h"
 
-namespace {
-bool InitializeSymbolTable(
-    const TBuiltInStrings& builtInStrings,
-    ShShaderType type, ShShaderSpec spec, const ShBuiltInResources& resources,
-    TInfoSink& infoSink, TSymbolTable& symbolTable)
+namespace 
 {
-    TIntermediate intermediate(infoSink);
-    TExtensionBehavior extBehavior;
-    InitExtensionBehavior(resources, extBehavior);
-    // The builtins deliberately don't specify precisions for the function
-    // arguments and return types. For that reason we don't try to check them.
-    TParseContext parseContext(symbolTable, extBehavior, intermediate, type, spec, 0, false, NULL, infoSink);
-
-    GlobalParseContext = &parseContext;
-
-    assert(symbolTable.isEmpty());       
-    //
-    // Parse the built-ins.  This should only happen once per
-    // language symbol table.
-    //
-    // Push the symbol table to give it an initial scope.  This
-    // push should not have a corresponding pop, so that built-ins
-    // are preserved, and the test for an empty table fails.
-    //
-    symbolTable.push();
-
-    for (TBuiltInStrings::const_iterator i = builtInStrings.begin(); i != builtInStrings.end(); ++i)
-    {
-        const char* builtInShaders = i->c_str();
-        int builtInLengths = static_cast<int>(i->size());
-        if (builtInLengths <= 0)
-          continue;
-
-        if (PaParseStrings(1, &builtInShaders, &builtInLengths, &parseContext) != 0)
-        {
-            infoSink.info.message(EPrefixInternalError, "Unable to parse built-ins");
-            return false;
-        }
-    }
-
-    IdentifyBuiltIns(type, spec, resources, symbolTable);
-
-    return true;
-}
-
 class TScopedPoolAllocator {
 public:
     TScopedPoolAllocator(TPoolAllocator* allocator, bool pushPop)
@@ -86,7 +43,8 @@ TShHandleBase::~TShHandleBase() {
 
 TCompiler::TCompiler(ShShaderType type, ShShaderSpec spec)
     : shaderType(type),
-      shaderSpec(spec)
+      shaderSpec(spec),
+      maxCallStackDepth(UINT_MAX)
 {
 }
 
@@ -96,6 +54,7 @@ TCompiler::~TCompiler()
 
 bool TCompiler::Init(const ShBuiltInResources& resources)
 {
+    maxCallStackDepth = resources.MaxCallStackDepth;
     TScopedPoolAllocator scopedAlloc(&allocator, false);
 
     // Generate built-in symbol table.
@@ -150,7 +109,7 @@ bool TCompiler::compile(const char* const shaderStrings[],
         success = intermediate.postProcess(root);
 
         if (success)
-            success = detectRecursion(root);
+            success = validateCallDepth(root, infoSink);
 
         if (success && (compileOptions & SH_VALIDATE_LOOP_INDEXING))
             success = validateLimitations(root);
@@ -175,13 +134,46 @@ bool TCompiler::compile(const char* const shaderStrings[],
     return success;
 }
 
-bool TCompiler::InitBuiltInSymbolTable(const ShBuiltInResources& resources)
+bool TCompiler::InitBuiltInSymbolTable(const ShBuiltInResources &resources)
 {
-    TBuiltIns builtIns;
+    assert(symbolTable.isEmpty());
+    
+    //
+    // Push the symbol table to give it an initial scope.  This
+    // push should not have a corresponding pop, so that built-ins
+    // are preserved, and the test for an empty table fails.
+    //
+    symbolTable.push();
 
-    builtIns.initialize(shaderType, shaderSpec, resources);
-    return InitializeSymbolTable(builtIns.getBuiltInStrings(),
-        shaderType, shaderSpec, resources, infoSink, symbolTable);
+	TPublicType integer;
+	integer.type = EbtInt;
+	integer.size = 1;
+	integer.matrix = false;
+	integer.array = false;
+
+	TPublicType floatingPoint;
+	floatingPoint.type = EbtFloat;
+	floatingPoint.size = 1;
+	floatingPoint.matrix = false;
+	floatingPoint.array = false;
+
+	switch(shaderType)
+	{
+    case SH_FRAGMENT_SHADER:
+		symbolTable.setDefaultPrecision(integer, EbpMedium);
+        break;
+    case SH_VERTEX_SHADER:
+		symbolTable.setDefaultPrecision(integer, EbpHigh);
+		symbolTable.setDefaultPrecision(floatingPoint, EbpHigh);
+        break;
+    default: assert(false && "Language not supported");
+    }
+
+	InsertBuiltInFunctions(shaderType, resources, symbolTable);
+
+    IdentifyBuiltIns(shaderType, shaderSpec, resources, symbolTable);
+
+    return true;
 }
 
 void TCompiler::clearResults()
@@ -194,23 +186,32 @@ void TCompiler::clearResults()
     uniforms.clear();
 }
 
-bool TCompiler::detectRecursion(TIntermNode* root)
+bool TCompiler::validateCallDepth(TIntermNode *root, TInfoSink &infoSink)
 {
-    DetectRecursion detect;
-    root->traverse(&detect);
-    switch (detect.detectRecursion()) {
-        case DetectRecursion::kErrorNone:
-            return true;
-        case DetectRecursion::kErrorMissingMain:
-            infoSink.info.message(EPrefixError, "Missing main()");
-            return false;
-        case DetectRecursion::kErrorRecursion:
-            infoSink.info.message(EPrefixError, "Function recursion detected");
-            return false;
-        default:
-            UNREACHABLE();
-            return false;
-    }
+    AnalyzeCallDepth validator(root);
+    
+	unsigned int depth = validator.analyzeCallDepth();
+	
+	if(depth == 0)
+	{
+        infoSink.info.prefix(EPrefixError);
+        infoSink.info << "Missing main()";
+        return false;
+	}
+    else if(depth == UINT_MAX)
+	{
+        infoSink.info.prefix(EPrefixError);
+        infoSink.info << "Function recursion detected";
+        return false;
+	}
+	else if(depth > maxCallStackDepth)
+	{
+        infoSink.info.prefix(EPrefixError);
+        infoSink.info << "Function call stack too deep";
+        return false;
+	}
+
+    return true;
 }
 
 bool TCompiler::validateLimitations(TIntermNode* root) {

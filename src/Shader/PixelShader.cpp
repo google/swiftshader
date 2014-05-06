@@ -36,6 +36,7 @@ namespace sw
 			vFaceDeclared = ps->vFaceDeclared;
 			usedSamplers = ps->usedSamplers;
 
+			optimize();
 			analyze();
 		}
 	}
@@ -48,6 +49,7 @@ namespace sw
 		vFaceDeclared = false;
 		centroid = false;
 
+		optimize();
 		analyze();
 	}
 

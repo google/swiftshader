@@ -4,9 +4,9 @@
 
                      SwiftShader Software GPU Toolkit
 
-                                 Build 5139
+                                 Build 5171
 
-                              Feburary 6, 2013
+                                June 11, 2013
   
            SwiftShader is Copyright(c) 2003-2013 TransGaming Inc.
 ###########################################################################
@@ -89,7 +89,7 @@ Incorporating the license check in your C/C++ application requires a small
 change in your application's startup sequence. The "Register" function is
 exported from the libGLESv2 library. It has the following signature:
 
-    void Register(char *licenseKey)
+    void GL_APIENTRY Register(char *licenseKey)
 
 Calling this function with your license key as a C string parameter will ensure
 that the logo rendering is disabled.
@@ -114,6 +114,14 @@ the following text:
 
 Changes since previous version
 ------------------------------
+
+Build 5171 - June 11, 2013
+- Fixed a rare deadlock on using the renderbuffer of a deleted texture.
+- Fixed an infinite loop on shader loops containing both break and return statements.
+- Validate matching uniform precisions during program link.
+- Validate the call stack depth.
+- Restored the use of the __stdcall calling convention for the Register function on Windows.
+- Enabled base address randomization (ASLR). 
 
 Build 5139 - February 6, 2013
 - 64-bit Linux compatible.

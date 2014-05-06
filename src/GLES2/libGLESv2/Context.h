@@ -409,7 +409,7 @@ class Context
 
     GLenum getError();
 
-    int getNearestSupportedSamples(sw::Format format, int requested) const;
+    static int getSupportedMultiSampleDepth(sw::Format format, int requested);
     const char *getExtensionString() const;
     
     void blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, 

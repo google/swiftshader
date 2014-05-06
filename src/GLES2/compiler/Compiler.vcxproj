@@ -103,9 +103,9 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AnalyzeCallDepth.cpp" />
     <ClCompile Include="Compiler.cpp" />
     <ClCompile Include="debug.cpp" />
-    <ClCompile Include="DetectRecursion.cpp" />
     <ClCompile Include="Diagnostics.cpp" />
     <ClCompile Include="DirectiveHandler.cpp" />
     <ClCompile Include="InfoSink.cpp" />
@@ -172,11 +172,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\GLSLANG\ShaderLang.h" />
+    <ClInclude Include="AnalyzeCallDepth.h" />
     <ClInclude Include="BaseTypes.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="ConstantUnion.h" />
     <ClInclude Include="debug.h" />
-    <ClInclude Include="DetectRecursion.h" />
     <ClInclude Include="Diagnostics.h" />
     <ClInclude Include="InfoSink.h" />
     <ClInclude Include="Initialize.h" />

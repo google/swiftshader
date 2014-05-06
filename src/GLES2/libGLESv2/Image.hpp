@@ -19,11 +19,13 @@
 
 namespace gl
 {
+	class Texture;
+
 	class Image : public sw::Surface
 	{
 	public:
-		Image(sw::Resource *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type);
-		Image(sw::Resource *parentTexture, GLsizei width, GLsizei height, sw::Format internalFormat, GLenum format, GLenum type, int multiSampleDepth, bool lockable, bool renderTarget);
+		Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type);
+		Image(Texture *parentTexture, GLsizei width, GLsizei height, sw::Format internalFormat, GLenum format, GLenum type, int multiSampleDepth, bool lockable, bool renderTarget);
 
 		void loadImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *input);
 		void loadCompressedData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels);
@@ -41,6 +43,7 @@ namespace gl
 
 		virtual void addRef();
 		virtual void release();
+		void unbind();   // Break parent ownership and release
 
 		static sw::Format selectInternalFormat(GLenum format, GLenum type);
 		static int bytes(sw::Format format);
@@ -70,6 +73,8 @@ namespace gl
 		void loadD16ImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const;
 		void loadD32ImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const;
 		void loadD24S8ImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer);
+
+		Texture *parentTexture;
 
 		const GLsizei width;
 		const GLsizei height;

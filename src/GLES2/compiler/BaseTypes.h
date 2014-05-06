@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2013 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -16,7 +16,7 @@ enum TPrecision
     EbpUndefined,
     EbpLow,
     EbpMedium,
-    EbpHigh,
+    EbpHigh
 };
 
 inline const char* getPrecisionString(TPrecision p)
@@ -45,7 +45,7 @@ enum TBasicType
     EbtGuardSamplerEnd,    // non type:  see implementation of IsSampler()
     EbtStruct,
     EbtAddress,            // should be deprecated??
-    EbtInvariant,          // used as a type when qualifying a previously declared variable as being invariant
+    EbtInvariant           // used as a type when qualifying a previously declared variable as being invariant
 };
 
 inline const char* getBasicString(TBasicType t)
@@ -110,7 +110,7 @@ enum TQualifier
     EvqFragData,
 
     // end of list
-    EvqLast,
+    EvqLast
 };
 
 //

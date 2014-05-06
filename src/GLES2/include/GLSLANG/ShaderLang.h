@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2013 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -17,7 +17,7 @@ extern "C" {
 
 // Version number for shader translation API.
 // It is incremented everytime the API changes.
-#define SH_VERSION 104
+#define SH_VERSION 105
 
 //
 // The names of the following enums have been derived by replacing GL prefix
@@ -107,6 +107,9 @@ typedef struct
     // Extensions.
     // Set to 1 to enable the extension, else 0.
     int OES_standard_derivatives;
+	int OES_fragment_precision_high;
+
+    unsigned int MaxCallStackDepth;
 } ShBuiltInResources;
 
 //

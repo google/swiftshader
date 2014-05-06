@@ -141,12 +141,12 @@
 		<Unit filename="./../../Common/Version.h" />
 		<Unit filename="./../common/debug.cpp" />
 		<Unit filename="./../common/debug.h" />
+		<Unit filename="../compiler/AnalyzeCallDepth.cpp" />
+		<Unit filename="../compiler/AnalyzeCallDepth.h" />
 		<Unit filename="../compiler/BaseTypes.h" />
 		<Unit filename="../compiler/Common.h" />
 		<Unit filename="../compiler/Compiler.cpp" />
 		<Unit filename="../compiler/ConstantUnion.h" />
-		<Unit filename="../compiler/DetectRecursion.cpp" />
-		<Unit filename="../compiler/DetectRecursion.h" />
 		<Unit filename="../compiler/Diagnostics.cpp" />
 		<Unit filename="../compiler/Diagnostics.h" />
 		<Unit filename="../compiler/DirectiveHandler.cpp" />

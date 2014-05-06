@@ -11,6 +11,7 @@
 
 #include "Image.hpp"
 
+#include "Texture.h"
 #include "utilities.h"
 #include "../common/debug.h"
 #include "Common/Thread.hpp"
@@ -19,14 +20,29 @@
 
 namespace gl
 {
-	Image::Image(sw::Resource *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type) : sw::Surface(parentTexture, width, height, 1, selectInternalFormat(format, type), true, true), width(width), height(height), internalFormat(selectInternalFormat(format, type)), format(format), type(type), multiSampleDepth(1)
+	static sw::Resource *getParentResource(Texture *texture)
 	{
-		referenceCount = 0;
+		if(texture)
+		{
+			return texture->getResource();
+		}
+
+		return 0;
 	}
 
-	Image::Image(sw::Resource *parentTexture, GLsizei width, GLsizei height, sw::Format internalFormat, GLenum format, GLenum type, int multiSampleDepth, bool lockable, bool renderTarget) : sw::Surface(parentTexture, width, height, multiSampleDepth, internalFormat, lockable, renderTarget), width(width), height(height), internalFormat(internalFormat), format(format), type(type), multiSampleDepth(multiSampleDepth)
+	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
+		: parentTexture(parentTexture), width(width), height(height), format(format), type(type)
+		, internalFormat(selectInternalFormat(format, type)), multiSampleDepth(1)
+		, sw::Surface(getParentResource(parentTexture), width, height, 1, selectInternalFormat(format, type), true, true)
 	{
-		referenceCount = 0;
+		referenceCount = 1;
+	}
+
+	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, sw::Format internalFormat, GLenum format, GLenum type, int multiSampleDepth, bool lockable, bool renderTarget)
+		: parentTexture(parentTexture), width(width), height(height), internalFormat(internalFormat), format(format), type(type), multiSampleDepth(multiSampleDepth)
+		, sw::Surface(getParentResource(parentTexture), width, height, multiSampleDepth, internalFormat, lockable, renderTarget)
+	{
+		referenceCount = 1;
 	}
 
 	Image::~Image()
@@ -81,11 +97,21 @@ namespace gl
 
 	void Image::addRef()
 	{
+		if(parentTexture)
+		{
+			return parentTexture->addRef();
+		}
+
 		sw::atomicIncrement(&referenceCount);
 	}
 
 	void Image::release()
 	{
+		if(parentTexture)
+		{
+			return parentTexture->release();
+		}
+
 		if(referenceCount > 0)
 		{
 			sw::atomicDecrement(&referenceCount);
@@ -95,6 +121,13 @@ namespace gl
 		{
 			delete this;
 		}
+	}
+
+	void Image::unbind()
+	{
+		parentTexture = 0;
+
+		release();
 	}
 
 	sw::Format Image::selectInternalFormat(GLenum format, GLenum type)
@@ -162,6 +195,18 @@ namespace gl
 				return sw::FORMAT_D32FS8_TEXTURE;
 			}
 			else UNREACHABLE();
+		}
+		else if(type == GL_UNSIGNED_SHORT_4_4_4_4)
+		{
+			return sw::FORMAT_A8R8G8B8;
+		}
+		else if(type == GL_UNSIGNED_SHORT_5_5_5_1)
+		{
+			return sw::FORMAT_A8R8G8B8;
+		}
+		else if(type == GL_UNSIGNED_SHORT_5_6_5)
+		{
+			return sw::FORMAT_X8R8G8B8;
 		}
 		else UNREACHABLE();
 
@@ -288,9 +333,9 @@ namespace gl
 				break;
 			default: UNREACHABLE();
 			}
-
-			unlock();
 		}
+
+		unlock();
 	}
 
 	void Image::loadAlphaImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const
@@ -653,8 +698,8 @@ namespace gl
 			{
 				memcpy((void*)((GLbyte*)buffer + i * getPitch()), (void*)((GLbyte*)pixels + i * inputPitch), inputPitch);
 			}
-
-            unlock();
         }
+
+		unlock();
 	}
 }

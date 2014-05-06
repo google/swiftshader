@@ -1,6 +1,6 @@
 // SwiftShader Software Renderer
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Copyright(c) 2005-2013 TransGaming Inc.
 //
 // All rights reserved. No part of this software may be copied, distributed, transmitted,
 // transcribed, stored in a retrieval system, translated into any human or computer
@@ -97,8 +97,8 @@ public:
     static void releaseCompiler();
 
 protected:
+	TranslatorASM *createCompiler(ShShaderType type);
 	void clear();
-	void initializeCompiler();
 
     static GLenum parseType(const std::string &type);
     static bool compareVarying(const Varying &x, const Varying &y);
@@ -116,9 +116,6 @@ private:
     bool mDeleteStatus;         // Flag to indicate that the shader can be deleted when no longer in use
 
 	ResourceManager *mResourceManager;
-
-	static void *mFragmentCompiler;
-	static void *mVertexCompiler;
 };
 
 class VertexShader : public Shader

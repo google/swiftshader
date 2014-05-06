@@ -137,7 +137,8 @@ namespace sw
 			OPCODE_VS_3_0 = 0xFFFE0300,
 			OPCODE_VS_3_sw = 0xFFFE03FF,
 
-			OPCODE_WHILE = 0x80000001,
+			OPCODE_NULL = 0x10000000,   // Dead instruction, to be eliminated
+			OPCODE_WHILE,
 			OPCODE_ENDWHILE,
 			OPCODE_COS,
 			OPCODE_SIN,
@@ -519,6 +520,7 @@ namespace sw
 			bool centroid;
 		};
 
+		void optimize();
 		virtual void analyze() = 0;
 
 		// FIXME: Private
@@ -532,6 +534,10 @@ namespace sw
 
 	protected:
 		void parse(const unsigned long *token);
+
+		void optimizeLeave();
+		void optimizeCall();
+		void removeNull();
 
 		void analyzeDirtyConstants();
 		void analyzeDynamicBranching();
