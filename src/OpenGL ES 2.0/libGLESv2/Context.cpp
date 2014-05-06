@@ -1499,14 +1499,9 @@ bool Context::applyRenderTarget(bool ignoreViewport)
 
     Image *depthStencil = NULL;
 
-    unsigned int renderTargetSerial = framebufferObject->getRenderTargetSerial();
-    if(renderTargetSerial != mAppliedRenderTargetSerial)
-    {
-        device->setRenderTarget(renderTarget);
-        mAppliedRenderTargetSerial = renderTargetSerial;
-        mScissorStateDirty = true;   // Scissor area must be clamped to render target's size - this is different for different render targets.
-    }
-
+    device->setRenderTarget(renderTarget);
+    mScissorStateDirty = true;   // Scissor area must be clamped to render target's size - this is different for different render targets.
+    
     unsigned int depthbufferSerial = 0;
     unsigned int stencilbufferSerial = 0;
     if(framebufferObject->getDepthbufferType() != GL_NONE)
