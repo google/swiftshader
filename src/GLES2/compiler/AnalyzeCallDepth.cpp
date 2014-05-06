@@ -116,7 +116,7 @@ bool AnalyzeCallDepth::visitAggregate(Visit visit, TIntermAggregate *node)
 		{
 			if(!node->isUserDefined())
 			{
-				return false;
+				return true;   // Check the arguments for function calls
 			}
 
 			if(visit == PreVisit)
