@@ -1572,9 +1572,8 @@ namespace sw
 				case FORMAT_G8R8:
 				case FORMAT_V8U8:
 				case FORMAT_A8L8:
-					// FIXME: Unpack properly to 0.16 format
-					c.y = c.x;
-					c.x = c.x << 8;
+					c.y = (c.x & Short4(0xFF00, 0xFF00, 0xFF00, 0xFF00)) | As<Short4>(As<UShort4>(c.x) >> 8);
+					c.x = (c.x & Short4(0x00FF, 0x00FF, 0x00FF, 0x00FF)) | (c.x << 8);
 					break;
 				default:
 					ASSERT(false);
