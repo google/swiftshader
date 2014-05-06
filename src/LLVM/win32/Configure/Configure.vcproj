@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="Configure"
+	ProjectGUID="{19514E48-456C-4B9D-8637-F2285476461E}"
+	RootNamespace="Configure"
+	Keyword="Win32Proj"
+	>
+	<Platforms>
+		<Platform
+			Name="Win32"
+		/>
+		<Platform
+			Name="x64"
+		/>
+	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
+	<Configurations>
+		<Configuration
+			Name="Configure|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="10"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Configure|x64"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="10"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
+			<File
+				RelativePath="..\..\include\llvm\Config\config.h.in"
+				>
+				<FileConfiguration
+					Name="Configure|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating $(ProjectDir)..\llvm\Config\config.h"
+						CommandLine="copy &quot;$(InputPath)&quot;+&quot;$(ProjectDir)..\config.h&quot;  &quot;$(ProjectDir)..\llvm\Config\config.h&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(ProjectDir)..\config.h&quot;"
+						Outputs="&quot;$(ProjectDir)..\llvm\Config\config.h&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Configure|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating $(ProjectDir)..\llvm\Config\config.h"
+						CommandLine="copy &quot;$(InputPath)&quot;+&quot;$(ProjectDir)..\config.h&quot;  &quot;$(ProjectDir)..\llvm\Config\config.h&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(ProjectDir)..\config.h&quot;"
+						Outputs="&quot;$(ProjectDir)..\llvm\Config\config.h&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\include\llvm\Support\DataTypes.h.in"
+				>
+				<FileConfiguration
+					Name="Configure|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating $(ProjectDir)..\llvm\System\DataTypes.h"
+						CommandLine="copy &quot;$(InputPath)&quot; &quot;$(ProjectDir)..\llvm\System\DataTypes.h&quot;&#x0D;&#x0A;"
+						Outputs="&quot;$(ProjectDir)..\llvm\System\DataTypes.h&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Configure|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating $(ProjectDir)..\llvm\System\DataTypes.h"
+						CommandLine="copy &quot;$(InputPath)&quot; &quot;$(ProjectDir)..\llvm\System\DataTypes.h&quot;&#x0D;&#x0A;"
+						Outputs="&quot;$(ProjectDir)..\llvm\System\DataTypes.h&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
