@@ -346,7 +346,7 @@ namespace D3D9
 		lockable = presentParameters->Flags & D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
 
 		sw::Configurator ini("SwiftShader.ini");
-		int api = ini.getInteger("Testing", "FrameBufferAPI", 0);
+		int api = ini.getInteger("Testing", "FrameBufferAPI", 1);
 
 		if(api == 0)
 		{

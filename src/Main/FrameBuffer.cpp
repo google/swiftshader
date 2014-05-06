@@ -553,7 +553,7 @@ extern "C"
 	sw::FrameBuffer *createFrameBuffer(HWND windowHandle, int width, int height, bool fullscreen)
 	{
 		sw::Configurator ini("SwiftShader.ini");
-		int api = ini.getInteger("Testing", "FrameBufferAPI", 0);
+		int api = ini.getInteger("Testing", "FrameBufferAPI", 1);
 
 		if(api == 0)
 		{
