@@ -5801,7 +5801,7 @@ namespace sw
 		}
 		else if(var.rel.type == Shader::PARAMETER_CONST)
 		{
-			RValue<Float4> c = *Pointer<Float4>(r.data + OFFSET(DrawData,vs.c[var.rel.index]));
+			RValue<Float4> c = *Pointer<Float4>(r.data + OFFSET(DrawData,ps.c[var.rel.index]));
 
 			return RoundInt(Extract(c, 0)) * var.rel.scale;
 		}
