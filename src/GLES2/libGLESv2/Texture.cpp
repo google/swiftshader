@@ -932,7 +932,7 @@ void TextureCubeMap::setImage(GLenum target, GLint level, GLsizei width, GLsizei
 		image[face][level]->unbind();
 	}
 
-	image[face][level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
+	image[face][level] = new Image(this, width, height, format, type);
 
 	if(!image[face][level])
 	{
