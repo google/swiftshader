@@ -57,7 +57,7 @@ void InitValidationApp(void)
 
 extern "C"
 {
-	void Register(char *licenseKey)
+	void REGISTERAPI Register(char *licenseKey)
 	{
 		InitValidationApp();
 		memset(validationKey, '\0', sizeof(validationKey));

@@ -29,7 +29,12 @@ void InitValidationApp();
 
 extern "C"
 {
-	void Register(char *licenseKey);
+#ifdef _WIN32
+#define REGISTERAPI __stdcall
+#else
+#define REGISTERAPI
+#endif
+	void REGISTERAPI Register(char *licenseKey);
 }
 
 #endif   // Register_hpp
