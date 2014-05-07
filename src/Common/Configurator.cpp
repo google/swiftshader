@@ -35,6 +35,13 @@ namespace sw
 
 	bool Configurator::readFile()
 	{
+		#if defined(__unix__)
+			if(access(path.c_str(), R_OK) != 0)
+			{
+				return false;
+			}
+		#endif
+
 		fstream file(path.c_str(), ios::in);
 		if(file.fail()) return false;
 
@@ -102,6 +109,13 @@ namespace sw
 
 	void Configurator::writeFile(std::string title)
 	{
+		#if defined(__unix__)
+			if(access(path.c_str(), W_OK) != 0)
+			{
+				return;
+			}
+		#endif
+
 		fstream file(path.c_str(), ios::out);
 		if(file.fail()) return;
 
