@@ -274,11 +274,13 @@ namespace sw
 
 				if(state.depth == 32)
 				{
-					if(width2 % 4 == 0 && !state.HDR)
+					Int x = x0;
+
+					if(!state.HDR)
 					{
-						For(Int x = x0, x < width2, x += 4)
+						For(, x < width - 3, x += 4)
 						{
-							*Pointer<Int4>(d, 1) = *Pointer<Int4>(s, 16);
+							*Pointer<Int4>(d, 1) = *Pointer<Int4>(s, width % 4 ? 1 : 16);
 
 							s += 4 * sBytes;
 							d += 4 * dBytes;
@@ -286,27 +288,33 @@ namespace sw
 					}
 					else
 					{
-						For(Int x = x0, x < width2, x += 2)
+						For(, x < width - 1, x += 2)
 						{
-							Int2 c01;
+							UShort4 c0 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 0), 0xC6)) >> 8;
+							UShort4 c1 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 8), 0xC6)) >> 8;
 
-							if(!state.HDR)
-							{
-								c01 = *Pointer<Int2>(s);
-							}
-							else
-							{
-								UShort4 c0 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 0), 0xC6)) >> 8;
-								UShort4 c1 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 8), 0xC6)) >> 8;
-									
-								c01 = As<Int2>(Pack(c0, c1));
-							}
-
-							*Pointer<Int2>(d) = c01;
+							*Pointer<Int2>(d) = As<Int2>(Pack(c0, c1));
 
 							s += 2 * sBytes;
 							d += 2 * dBytes;
 						}
+					}
+
+					For(, x < width, x++)
+					{
+						if(!state.HDR)
+						{
+							*Pointer<Int>(d) = *Pointer<Int>(s);
+						}
+						else
+						{
+							UShort4 c = As<UShort4>(Swizzle(*Pointer<Short4>(s), 0xC6)) >> 8;
+
+							*Pointer<Int>(d) = Int(As<Int2>(Pack(c, c)));
+						}
+
+						s += sBytes;
+						d += dBytes;
 					}
 				}
 				else if(state.depth == 24)
