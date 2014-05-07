@@ -785,18 +785,17 @@ namespace sh
 						else if(argumentCount == 3)   // bias
 						{
 							Temporary proj(this);
-							emit(sw::Shader::OPCODE_MOV, &proj, arg[1]);
 
 							if(t->getNominalSize() == 3)
 							{
-								Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, &proj);
-								div->src[0].swizzle = 0xAA;
+								Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, arg[1], arg[1]);
+								div->src[1].swizzle = 0xAA;
 								div->dst.mask = 0x3;
 							}
 							else if(t->getNominalSize() == 4)
 							{
-								Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, &proj);
-								div->src[0].swizzle = 0xFF;
+								Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, arg[1], arg[1]);
+								div->src[1].swizzle = 0xFF;
 								div->dst.mask = 0x3;
 							}
 							else UNREACHABLE();
@@ -821,20 +820,18 @@ namespace sh
                     else if(name == "texture2DProjLod")
                     {
                         TIntermTyped *t = arg[1]->getAsTyped();
-
 						Temporary proj(this);
-						emit(sw::Shader::OPCODE_MOV, &proj, arg[1]);
 
 						if(t->getNominalSize() == 3)
 						{
-							Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, &proj);
-							div->src[0].swizzle = 0xAA;
+							Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, arg[1], arg[1]);
+							div->src[1].swizzle = 0xAA;
 							div->dst.mask = 0x3;
 						}
 						else if(t->getNominalSize() == 4)
 						{
-							Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, &proj);
-							div->src[0].swizzle = 0xFF;
+							Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, arg[1], arg[1]);
+							div->src[1].swizzle = 0xFF;
 							div->dst.mask = 0x3;
 						}
 						else UNREACHABLE();
