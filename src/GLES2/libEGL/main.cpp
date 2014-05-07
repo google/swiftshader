@@ -84,7 +84,7 @@ CONSTRUCTOR static bool eglAttachProcess()
 	#if defined(_WIN32)
 	const char *libGLESv2_lib = "libGLESv2.dll";
 	#else
-	const char *libGLESv2_lib = "libGLESv2.so";
+	const char *libGLESv2_lib = "libGLESv2.so.2";
 	#endif
 	
     libGLESv2 = loadLibrary(libGLESv2_lib);

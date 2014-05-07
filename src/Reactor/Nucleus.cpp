@@ -34,7 +34,7 @@
 
 #include <fstream>
 
-#if defined(__x86_64__)
+#if defined(__x86_64__) && defined(_WIN32)
 extern "C" void X86CompilationCallback()
 {
 	assert(false);   // UNIMPLEMENTED
