@@ -186,9 +186,8 @@ void Surface::swap()
 
 	if(backBuffer)
     {
-		bool HDR = backBuffer->getInternalFormat() == sw::FORMAT_A16B16G16R16;
 		void *source = backBuffer->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
-		frameBuffer->flip(source, HDR);
+		frameBuffer->flip(source, backBuffer->getInternalFormat());
 		backBuffer->unlockInternal();
 
         checkForResize();

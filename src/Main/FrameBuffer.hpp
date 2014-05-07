@@ -24,9 +24,9 @@ namespace sw
 	{
 		int width;
 		int height;
-		int depth;   // Display bit depth; 32 = X8R8G8B8, 24 = R8G8B8, 16 = R5G6B5
+		Format destFormat;
+		Format sourceFormat;
 		int stride;
-		bool HDR;    // A16B16G16R16 source color buffer
 		int cursorWidth;
 		int cursorHeight;
 	};
@@ -42,8 +42,8 @@ namespace sw
 		int getHeight() const;
 		int getStride() const;
 
-		virtual void flip(void *source, bool HDR) = 0;
-		virtual void blit(void *source, const Rect *sourceRect, const Rect *destRect, bool HDR) = 0;
+		virtual void flip(void *source, Format format) = 0;
+		virtual void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format format) = 0;
 
 		virtual void *lock() = 0;
 		virtual void unlock() = 0;
@@ -55,13 +55,13 @@ namespace sw
 		static Routine *copyRoutine(const BlitState &state);
 
 	protected:
-		void copy(void *source, bool HDR);
+		void copy(void *source, Format format);
 		
 		int width;
 		int height;
+		Format sourceFormat;
+		Format destFormat;
 		int stride;
-		int bitDepth;
-		bool HDRdisplay;
 		bool windowed;
 
 		void *locked;   // Video memory back buffer

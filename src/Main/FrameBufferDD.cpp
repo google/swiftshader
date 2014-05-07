@@ -100,9 +100,16 @@ namespace sw
 
 			long result = directDraw->CreateSurface(&ddsd, &frontBuffer, 0);
 			directDraw->GetDisplayMode(&ddsd);
-			bitDepth = ddsd.ddpfPixelFormat.dwRGBBitCount;
+			
+			switch(ddsd.ddpfPixelFormat.dwRGBBitCount)
+			{
+			case 32: destFormat = FORMAT_X8R8G8B8; break;
+			case 24: destFormat = FORMAT_R8G8B8;   break;
+			case 16: destFormat = FORMAT_R5G6B5;   break;
+			default: destFormat = FORMAT_NULL;     break;
+			}
 
-			if((result != DD_OK && result != DDERR_PRIMARYSURFACEALREADYEXISTS) || (bitDepth != 32 && bitDepth != 24 && bitDepth != 16))
+			if((result != DD_OK && result != DDERR_PRIMARYSURFACEALREADYEXISTS) || (destFormat == FORMAT_NULL))
 			{
 				assert(!"Failed to initialize graphics: Incompatible display mode.");
 			}
@@ -196,18 +203,18 @@ namespace sw
 
 		do
 		{
-			bitDepth = 32;
-			result = directDraw->SetDisplayMode(width, height, bitDepth);
+			destFormat = FORMAT_X8R8G8B8;
+			result = directDraw->SetDisplayMode(width, height, 32);
 
 			if(result == DDERR_INVALIDMODE)
 			{
-				bitDepth = 16;
-				result = directDraw->SetDisplayMode(width, height, bitDepth);
+				destFormat = FORMAT_R8G8B8;
+				result = directDraw->SetDisplayMode(width, height, 24);
 
 				if(result == DDERR_INVALIDMODE)
 				{
-					bitDepth = 24;
-					result = directDraw->SetDisplayMode(width, height, bitDepth);
+					destFormat = FORMAT_R5G6B5;
+					result = directDraw->SetDisplayMode(width, height, 16);
 
 					if(result == DDERR_INVALIDMODE)
 					{
@@ -240,9 +247,9 @@ namespace sw
 		updateBounds(windowHandle);
 	}
 
-	void FrameBufferDD::flip(void *source, bool HDR)
+	void FrameBufferDD::flip(void *source, Format format)
 	{
-		copy(source, HDR);
+		copy(source, format);
 
 		if(!readySurfaces())
 		{
@@ -271,9 +278,9 @@ namespace sw
 		}
 	}
 
-	void FrameBufferDD::blit(void *source, const Rect *sourceRect, const Rect *destRect, bool HDR)
+	void FrameBufferDD::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format format)
 	{
-		copy(source, HDR);
+		copy(source, format);
 
 		if(!readySurfaces())
 		{
@@ -310,20 +317,20 @@ namespace sw
 		}
 	}
 
-	void FrameBufferDD::flip(HWND windowOverride, void *source, bool HDR)
+	void FrameBufferDD::flip(HWND windowOverride, void *source, Format format)
 	{
 		updateClipper(windowOverride);
 		updateBounds(windowOverride);
 
-		flip(source, HDR);
+		flip(source, format);
 	}
 
-	void FrameBufferDD::blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, bool HDR)
+	void FrameBufferDD::blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, Format format)
 	{
 		updateClipper(windowOverride);
 		updateBounds(windowOverride);
 
-		blit(source, sourceRect, destRect, HDR);
+		blit(source, sourceRect, destRect, format);
 	}
 
 	void FrameBufferDD::screenshot(void *destBuffer)

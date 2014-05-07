@@ -239,7 +239,7 @@ class Context
   public:
     Context(const egl::Config *config, const Context *shareContext);
 
-    ~Context();
+    virtual ~Context();
 
     void makeCurrent(egl::Display *display, egl::Surface *surface);
 

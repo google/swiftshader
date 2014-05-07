@@ -34,7 +34,7 @@ namespace sw
 
 		init(this->windowHandle);
 
-		bitDepth = 32;
+		destFormat = FORMAT_X8R8G8B8;
 	}
 
 	FrameBufferGDI::~FrameBufferGDI()
@@ -68,14 +68,14 @@ namespace sw
 	{
 	}
 
-	void FrameBufferGDI::flip(void *source, bool HDR)
+	void FrameBufferGDI::flip(void *source, Format format)
 	{
-		blit(source, 0, 0, HDR);
+		blit(source, 0, 0, format);
 	}
 	
-	void FrameBufferGDI::blit(void *source, const Rect *sourceRect, const Rect *destRect, bool HDR)
+	void FrameBufferGDI::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format format)
 	{
-		copy(source, HDR);
+		copy(source, format);
 
 		int sourceLeft = sourceRect ? sourceRect->x0 : 0;
 		int sourceTop = sourceRect ? sourceRect->y0 : 0;
@@ -89,12 +89,12 @@ namespace sw
 		StretchBlt(windowContext, destLeft, destTop, destWidth, destHeight, bitmapContext, sourceLeft, sourceTop, sourceWidth, sourceHeight, SRCCOPY);
 	}
 
-	void FrameBufferGDI::flip(HWND windowOverride, void *source, bool HDR)
+	void FrameBufferGDI::flip(HWND windowOverride, void *source, Format format)
 	{
-		blit(windowOverride, source, 0, 0, HDR);
+		blit(windowOverride, source, 0, 0, format);
 	}
 
-	void FrameBufferGDI::blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, bool HDR)
+	void FrameBufferGDI::blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, Format format)
 	{
 		if(windowed && windowOverride != 0 && windowOverride != bitmapWindow)
 		{
@@ -102,7 +102,7 @@ namespace sw
 			init(windowOverride);
 		}
 
-		blit(source, sourceRect, destRect, HDR);
+		blit(source, sourceRect, destRect, format);
 	}
 
 	void FrameBufferGDI::setGammaRamp(GammaRamp *gammaRamp, bool calibrate)

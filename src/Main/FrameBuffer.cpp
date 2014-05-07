@@ -58,8 +58,8 @@ namespace sw
 
 		this->width = width;
 		this->height = height;
-		bitDepth = 32;
-		HDRdisplay = false;
+		destFormat = FORMAT_X8R8G8B8;
+		sourceFormat = FORMAT_X8R8G8B8;
 		stride = 0;
 
 		if(forceWindowed)
@@ -74,7 +74,8 @@ namespace sw
 
 		blitState.width = 0;
 		blitState.height = 0;
-		blitState.depth = 0;
+		blitState.destFormat = FORMAT_X8R8G8B8;
+		blitState.sourceFormat = FORMAT_X8R8G8B8;
 		blitState.cursorWidth = 0;
 		blitState.cursorHeight = 0;
 
@@ -145,7 +146,7 @@ namespace sw
 		cursorPositionY = y;
 	}
 
-	void FrameBuffer::copy(void *source, bool HDR)
+	void FrameBuffer::copy(void *source, Format format)
 	{
 		if(!source)
 		{
@@ -164,13 +165,13 @@ namespace sw
 		else
 		{
 			const int width2 = (width + 1) & ~1;
-			const int sBytes = HDR ? 8 : 4;
+			const int sBytes = Surface::bytes(sourceFormat);
 			const int sStride = sBytes * width2;
 
 			target = (byte*)source + (height - 1) * sStride;
 		}
 
-		HDRdisplay = HDR;
+		sourceFormat = format;
 
 		cursorX = cursorPositionX - cursorHotspotX;
 		cursorY = cursorPositionY - cursorHotspotY;
@@ -194,9 +195,9 @@ namespace sw
 
 		update.width = width;
 		update.height = height;
-		update.depth = bitDepth;
+		update.destFormat = destFormat;
+		update.sourceFormat = sourceFormat;
 		update.stride = stride;
-		update.HDR = HDRdisplay;
 		update.cursorWidth = cursorWidth;
 		update.cursorHeight = cursorHeight;
 
@@ -219,9 +220,9 @@ namespace sw
 		const int width = state.width;
 		const int height = state.height;
 		const int width2 = (state.width + 1) & ~1;
-		const int dBytes = state.depth / 8;
+		const int dBytes = Surface::bytes(state.destFormat);
 		const int dStride = state.stride;
-		const int sBytes = state.HDR ? 8 : 4;
+		const int sBytes = Surface::bytes(state.sourceFormat);
 		const int sStride = topLeftOrigin ? (sBytes * width2) : -(sBytes * width2);
 
 	//	char compareApp[32] = SCRAMBLE31(validationApp, APPNAME_SCRAMBLE);
@@ -272,11 +273,11 @@ namespace sw
 					}
 				#endif
 
-				if(state.depth == 32)
+				if(state.destFormat == FORMAT_X8R8G8B8)
 				{
 					Int x = x0;
 
-					if(!state.HDR)
+					if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
 					{
 						For(, x < width - 3, x += 4)
 						{
@@ -286,7 +287,7 @@ namespace sw
 							d += 4 * dBytes;
 						}
 					}
-					else
+					else if(state.sourceFormat == FORMAT_A16B16G16R16)
 					{
 						For(, x < width - 1, x += 2)
 						{
@@ -299,61 +300,65 @@ namespace sw
 							d += 2 * dBytes;
 						}
 					}
+					else ASSERT(false);
 
 					For(, x < width, x++)
 					{
-						if(!state.HDR)
+						if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
 						{
 							*Pointer<Int>(d) = *Pointer<Int>(s);
 						}
-						else
+						else if(state.sourceFormat == FORMAT_A16B16G16R16)
 						{
 							UShort4 c = As<UShort4>(Swizzle(*Pointer<Short4>(s), 0xC6)) >> 8;
 
 							*Pointer<Int>(d) = Int(As<Int2>(Pack(c, c)));
 						}
+						else ASSERT(false);
 
 						s += sBytes;
 						d += dBytes;
 					}
 				}
-				else if(state.depth == 24)
+				else if(state.destFormat == FORMAT_R8G8B8)
 				{
 					For(Int x = x0, x < width, x++)
 					{
-						if(!state.HDR)
+						if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
 						{
 							*Pointer<Byte>(d + 0) = *Pointer<Byte>(s + 0);
 							*Pointer<Byte>(d + 1) = *Pointer<Byte>(s + 1);
 							*Pointer<Byte>(d + 2) = *Pointer<Byte>(s + 2);
 						}
-						else
+						else if(state.sourceFormat == FORMAT_A16B16G16R16)
 						{
 							*Pointer<Byte>(d + 0) = *Pointer<Byte>(s + 5);
 							*Pointer<Byte>(d + 1) = *Pointer<Byte>(s + 3);
 							*Pointer<Byte>(d + 2) = *Pointer<Byte>(s + 1);
 						}
+						else ASSERT(false);
 
 						s += sBytes;
 						d += dBytes;
 					}
 				}
-				else if(state.depth == 16)
+				else if(state.destFormat == FORMAT_R5G6B5)
 				{
 					For(Int x = x0, x < width, x++)
 					{
 						Int c;
 							
-						if(!state.HDR)
+						if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
 						{
 							c = *Pointer<Int>(s);
 						}
-						else
+						else if(state.sourceFormat == FORMAT_A16B16G16R16)
 						{
 							UShort4 cc = As<UShort4>(Swizzle(*Pointer<Short4>(s + 0), 0xC6)) >> 8;
 
 							c = Int(As<Int2>(Pack(cc, cc)));
 						}
+						else ASSERT(false);
 
 						*Pointer<Short>(d) = Short((c & 0x00F80000) >> 8 |
 						                           (c & 0x0000FC00) >> 5 |
@@ -439,14 +444,15 @@ namespace sw
 
 		c1 = UnpackLow(As<Byte8>(c1), *Pointer<Byte8>(c));
 		
-		if(!state.HDR)
+		if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
 		{
 			c2 = UnpackLow(As<Byte8>(c2), *Pointer<Byte8>(s));
 		}
-		else
+		else if(state.sourceFormat == FORMAT_A16B16G16R16)
 		{
 			c2 = Swizzle(*Pointer<Short4>(s + 0), 0xC6);
 		}
+		else ASSERT(false);
 
 		c1 = As<Short4>(As<UShort4>(c1) >> 9);
 		c2 = As<Short4>(As<UShort4>(c2) >> 9);
@@ -460,11 +466,11 @@ namespace sw
 
 		c1 = As<Short4>(Pack(As<UShort4>(c1), As<UShort4>(c1)));
 
-		if(state.depth == 32)
+		if(state.destFormat == FORMAT_X8R8G8B8)
 		{
 			*Pointer<UInt>(d) = UInt(As<Long>(c1));
 		}
-		else if(state.depth == 24)
+		else if(state.destFormat == FORMAT_R8G8B8)
 		{
 			Int c = Int(As<Int2>(c1));
 
@@ -472,7 +478,7 @@ namespace sw
 			*Pointer<Byte>(d + 1) = Byte(c >> 8);
 			*Pointer<Byte>(d + 2) = Byte(c >> 16);
 		}
-		else if(state.depth == 16)
+		else if(state.destFormat == FORMAT_R5G6B5)
 		{
 			Int c = Int(As<Int2>(c1));
 

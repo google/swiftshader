@@ -32,8 +32,8 @@ namespace sw
 		
 		~FrameBufferX11();
 		
-		virtual void flip(void *source, bool HDR) {blit(source, 0, 0, false);};
-		virtual void blit(void *source, const Rect *sourceRect, const Rect *destRect, bool HDR);
+		virtual void flip(void *source, Format format) {blit(source, 0, 0, format);};
+		virtual void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format format);
 		
 		virtual void *lock();
 		virtual void unlock();

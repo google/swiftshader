@@ -40,7 +40,7 @@ public:
     Surface(Display *display, const egl::Config *config, EGLNativeWindowType window);
     Surface(Display *display, const egl::Config *config, EGLint width, EGLint height, EGLenum textureFormat, EGLenum textureTarget);
 
-    ~Surface();
+    virtual ~Surface();
 
 	bool initialize();
     void swap();

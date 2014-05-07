@@ -121,9 +121,9 @@ namespace sw
 		locked = 0;
 	}
 		
-	void FrameBufferX11::blit(void *source, const Rect *sourceRect, const Rect *destRect, bool HDR)
+	void FrameBufferX11::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format format)
 	{
-		copy(source, HDR);
+		copy(source, format);
 	
 		if(!mit_shm)
 		{

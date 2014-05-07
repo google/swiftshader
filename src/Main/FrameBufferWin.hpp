@@ -30,11 +30,11 @@ namespace sw
 
 		virtual ~FrameBufferWin();
 
-		virtual void flip(void *source, bool HDR) = 0;
-		virtual void blit(void *source, const Rect *sourceRect, const Rect *destRect, bool HDR) = 0;
+		virtual void flip(void *source, Format format) = 0;
+		virtual void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format format) = 0;
 
-		virtual void flip(HWND windowOverride, void *source, bool HDR) = 0;
-		virtual void blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, bool HDR) = 0;
+		virtual void flip(HWND windowOverride, void *source, Format format) = 0;
+		virtual void blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, Format format) = 0;
 
 		virtual void *lock() = 0;
 		virtual void unlock() = 0;

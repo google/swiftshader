@@ -222,14 +222,6 @@ void Context::makeCurrent(egl::Display *display, egl::Surface *surface)
         mVertexDataManager = new VertexDataManager(this);
         mIndexDataManager = new IndexDataManager();
 
-        const sw::Format renderBufferFormats[] =
-        {
-            sw::FORMAT_A8R8G8B8,
-            sw::FORMAT_X8R8G8B8,
-            sw::FORMAT_R5G6B5,
-            sw::FORMAT_D24S8
-        };
-
         initExtensionString();
 
         mState.viewportX = 0;
