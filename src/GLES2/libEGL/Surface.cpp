@@ -45,10 +45,6 @@ Surface::Surface(Display *display, const Config *config, EGLNativeWindowType win
     mSwapBehavior = EGL_BUFFER_PRESERVED;
     mSwapInterval = -1;
     setSwapInterval(1);
-
-	#if defined(_WIN32)
-		subclassWindow();
-    #endif
 }
 
 Surface::Surface(Display *display, const Config *config, EGLint width, EGLint height, EGLenum textureFormat, EGLenum textureType)
@@ -72,10 +68,6 @@ Surface::Surface(Display *display, const Config *config, EGLint width, EGLint he
 
 Surface::~Surface()
 {
-	#if defined(_WIN32)
-		unsubclassWindow();
-    #endif
-    
     release();
 }
 
@@ -152,10 +144,6 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 			release();
 			return error(EGL_BAD_ALLOC, false);
 		}
-
-		#if defined(_WIN32)
-			InvalidateRect(mWindow, NULL, FALSE);
-		#endif
     }
 
 	backBuffer = gl::createBackBuffer(backBufferWidth, backBufferHeight, mConfig);
@@ -202,10 +190,8 @@ void Surface::swap()
 		void *source = backBuffer->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
 		frameBuffer->flip(source, HDR);
 		backBuffer->unlockInternal();
-	
-		#if defined(_WIN32)
-			checkForResize();
-		#endif
+
+        checkForResize();
 	}
 }
 
@@ -276,94 +262,27 @@ sw::Format Surface::getInternalFormat() const
     return mConfig->mRenderTargetFormat;
 }
 
-#if defined(WIN32)
-#define kSurfaceProperty _TEXT("Egl::SurfaceOwner")
-#define kParentWndProc _TEXT("Egl::SurfaceParentWndProc")
-
-static LRESULT CALLBACK SurfaceWindowProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
-{
-	if(message == WM_SIZE)
-	{
-		Surface *surface = reinterpret_cast<Surface*>(GetProp(hwnd, kSurfaceProperty));
-		
-		if(surface)
-		{
-			surface->checkForResize();
-		}
-	}
-
-	WNDPROC prevWndFunc = reinterpret_cast<WNDPROC>(GetProp(hwnd, kParentWndProc));
-
-	return CallWindowProc(prevWndFunc, hwnd, message, wparam, lparam);
-}
-
-void Surface::subclassWindow()
-{
-	if(!mWindow)
-	{
-		return;
-	}
-
-	DWORD processId;
-	DWORD threadId = GetWindowThreadProcessId(mWindow, &processId);
-	if (processId != GetCurrentProcessId() || threadId != GetCurrentThreadId())
-	{
-		return;
-	}
-
-	SetLastError(0);
-	LONG oldWndProc = SetWindowLong(mWindow, GWL_WNDPROC, reinterpret_cast<LONG>(SurfaceWindowProc));
-
-	if(oldWndProc == 0 && GetLastError() != ERROR_SUCCESS)
-	{
-		mWindowSubclassed = false;
-		return;
-	}
-
-	SetProp(mWindow, kSurfaceProperty, reinterpret_cast<HANDLE>(this));
-	SetProp(mWindow, kParentWndProc, reinterpret_cast<HANDLE>(oldWndProc));
-	mWindowSubclassed = true;
-}
-
-void Surface::unsubclassWindow()
-{
-	if(!mWindowSubclassed)
-	{
-		return;
-	}
-
-	// un-subclass
-	LONG parentWndFunc = reinterpret_cast<LONG>(GetProp(mWindow, kParentWndProc));
-
-	// Check the windowproc is still SurfaceWindowProc.
-	// If this assert fails, then it is likely the application has subclassed the
-	// hwnd as well and did not unsubclass before destroying its EGL context. The
-	// application should be modified to either subclass before initializing the
-	// EGL context, or to unsubclass before destroying the EGL context.
-	if(parentWndFunc)
-	{
-		LONG prevWndFunc = SetWindowLong(mWindow, GWL_WNDPROC, parentWndFunc);
-		ASSERT(prevWndFunc == reinterpret_cast<LONG>(SurfaceWindowProc));
-	}
-
-	RemoveProp(mWindow, kSurfaceProperty);
-	RemoveProp(mWindow, kParentWndProc);
-	mWindowSubclassed = false;
-}
-
 bool Surface::checkForResize()
 {
-    RECT client;
-    if(!GetClientRect(mWindow, &client))
-    {
-        ASSERT(false);
-        return false;
-    }
+    #if defined(_WIN32)
+		RECT client;
+		if(!GetClientRect(mWindow, &client))
+		{
+			ASSERT(false);
+			return false;
+		}
 
-    // Grow the buffer now, if the window has grown. We need to grow now to avoid losing information.
-    int clientWidth = client.right - client.left;
-    int clientHeight = client.bottom - client.top;
-    bool sizeDirty = clientWidth != getWidth() || clientHeight != getHeight();
+		int clientWidth = client.right - client.left;
+		int clientHeight = client.bottom - client.top;
+	#else
+		XWindowAttributes windowAttributes;
+		XGetWindowAttributes(mDisplay->getNativeDisplay(), mWindow, &windowAttributes);
+
+		int clientWidth = windowAttributes.width;
+		int clientHeight = windowAttributes.height;
+	#endif
+
+	bool sizeDirty = clientWidth != getWidth() || clientHeight != getHeight();
 
     if(sizeDirty)
     {
@@ -379,5 +298,4 @@ bool Surface::checkForResize()
 
     return false;
 }
-#endif
 }

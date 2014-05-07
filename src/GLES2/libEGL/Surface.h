@@ -61,9 +61,7 @@ public:
     virtual void setBoundTexture(gl::Texture2D *texture);
     virtual gl::Texture2D *getBoundTexture() const;
 
-	#if defined(_WIN32)
-	bool checkForResize();   // Returns true if surface changed due to resize or interval update
-	#endif
+	bool checkForResize();   // Returns true if surface changed due to resize
 
 private:
     void release();
@@ -75,12 +73,7 @@ private:
 	gl::Image *backBuffer;
 
 	bool reset(int backbufferWidth, int backbufferHeight);
-
-	#if defined(_WIN32)
-    void subclassWindow();
-    void unsubclassWindow();
-    #endif
-
+    
     const EGLNativeWindowType mWindow;   // Window that the surface is created for.
     bool mWindowSubclassed;              // Indicates whether we successfully subclassed mWindow for WM_RESIZE hooking
     const egl::Config *mConfig;          // EGL config surface was created with
