@@ -95,7 +95,7 @@ CONSTRUCTOR static bool eglAttachProcess()
     gl::getCurrentContext = (gl::Context *(*)())getProcAddress(libGLESv2, "glGetCurrentContext");
     gl::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLESv2, "glGetProcAddress");
     gl::createBackBuffer = (gl::Image *(*)(int, int, const egl::Config*))getProcAddress(libGLESv2, "createBackBuffer");
-    gl::createFrameBuffer = (sw::FrameBuffer *(*)(EGLNativeWindowType, int, int))getProcAddress(libGLESv2, "createFrameBuffer");
+    gl::createFrameBuffer = (sw::FrameBuffer *(*)(EGLNativeDisplayType, EGLNativeWindowType, int, int))getProcAddress(libGLESv2, "createFrameBuffer");
 
 	return libGLESv2 != 0;
 }
@@ -255,7 +255,7 @@ namespace gl
 	Context *(*getCurrentContext)() = 0;
 	__eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname) = 0;
 	Image *(*createBackBuffer)(int width, int height, const egl::Config *config) = 0;
-	sw::FrameBuffer *(*createFrameBuffer)(EGLNativeWindowType window, int width, int height) = 0;
+	sw::FrameBuffer *(*createFrameBuffer)(EGLNativeDisplayType display, EGLNativeWindowType window, int width, int height) = 0;
 }
 
 void *libGLESv2 = 0;   // Handle to the libGLESv2 module

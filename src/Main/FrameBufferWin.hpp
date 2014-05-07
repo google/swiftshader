@@ -54,4 +54,9 @@ namespace sw
 	};
 }
 
+extern "C"
+{
+	sw::FrameBufferWin *createFrameBufferWin(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin);
+}
+
 #endif	 //	sw_FrameBufferWin_hpp

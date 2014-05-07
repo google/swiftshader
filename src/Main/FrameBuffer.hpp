@@ -100,18 +100,6 @@ namespace sw
 
 		static bool topLeftOrigin;
 	};
-
-	class FrameBufferWin;
-}
-
-extern "C"
-{
-	#if defined(_WIN32)
-	sw::FrameBuffer *createFrameBuffer(HWND windowHandle, int width, int height);
-	sw::FrameBufferWin *createFrameBufferWin(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin);
-	#else
-	sw::FrameBuffer *createFrameBuffer(unsigned long window, int width, int height);
-	#endif
 }
 
 #endif	 //	sw_FrameBuffer_hpp

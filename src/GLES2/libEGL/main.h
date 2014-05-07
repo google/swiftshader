@@ -90,7 +90,7 @@ namespace gl
 	extern Context *(*getCurrentContext)();
 	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);
 	extern Image *(*createBackBuffer)(int width, int height, const egl::Config *config);
-	extern sw::FrameBuffer *(*createFrameBuffer)(EGLNativeWindowType window, int width, int height);
+	extern sw::FrameBuffer *(*createFrameBuffer)(EGLNativeDisplayType display, EGLNativeWindowType window, int width, int height);
 }
 
 extern void *libGLESv2;   // Handle to the libGLESv2 module

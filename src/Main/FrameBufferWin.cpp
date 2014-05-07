@@ -47,3 +47,32 @@ namespace sw
 		}
 	}
 }
+
+#include "FrameBufferDD.hpp"
+#include "FrameBufferGDI.hpp"
+#include "Common/Configurator.hpp"
+
+extern "C"
+{
+	sw::FrameBufferWin *createFrameBufferWin(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin)
+	{
+		sw::Configurator ini("SwiftShader.ini");
+		int api = ini.getInteger("Testing", "FrameBufferAPI", 0);
+
+		if(api == 0 && topLeftOrigin)
+		{
+			return new sw::FrameBufferDD(windowHandle, width, height, fullscreen, topLeftOrigin);
+		}
+		else
+		{
+			return new sw::FrameBufferGDI(windowHandle, width, height, fullscreen, topLeftOrigin);
+		}
+
+		return 0;
+	}
+
+	sw::FrameBuffer *createFrameBuffer(HDC display, HWND window, int width, int height)
+	{
+		return createFrameBufferWin(window, width, height, false, false);
+	}
+}

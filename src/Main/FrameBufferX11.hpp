@@ -28,7 +28,7 @@ namespace sw
 	class FrameBufferX11 : public FrameBuffer
 	{
 	public:
-		FrameBufferX11(Window window, int width, int height);
+		FrameBufferX11(Display *display, Window window, int width, int height);
 		
 		~FrameBufferX11();
 		
@@ -38,7 +38,8 @@ namespace sw
 		virtual void *lock();
 		virtual void unlock();
 
-	private:		
+	private:
+		bool ownX11;
 		Display *x_display;
 		Window x_window;
 		XImage *x_image;

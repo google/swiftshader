@@ -144,7 +144,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 
     if(mWindow)
     {
-		frameBuffer = gl::createFrameBuffer(mWindow, backBufferWidth, backBufferHeight);
+		frameBuffer = gl::createFrameBuffer(mDisplay->getNativeDisplay(), mWindow, backBufferWidth, backBufferHeight);
 
 		if(!frameBuffer)
 		{

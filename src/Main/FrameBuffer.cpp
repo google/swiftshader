@@ -17,7 +17,6 @@
 #include "Register.hpp"
 #include "Renderer/Surface.hpp"
 #include "Reactor/Reactor.hpp"
-#include "Common/Configurator.hpp"
 #include "Common/Debug.hpp"
 
 #include <stdio.h>
@@ -515,43 +514,4 @@ namespace sw
 			}
 		#endif
 	}
-}
-
-#if defined(_WIN32)
-	#include "FrameBufferDD.hpp"
-	#include "FrameBufferGDI.hpp"
-#else
-	#include "FrameBufferX11.hpp"
-#endif
-
-extern "C"
-{
-#if defined(_WIN32)
-	sw::FrameBuffer *createFrameBuffer(HWND window, int width, int height)
-	{
-		return createFrameBufferWin(window, width, height, false, false);
-	}
-
-	sw::FrameBufferWin *createFrameBufferWin(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin)
-	{
-		sw::Configurator ini("SwiftShader.ini");
-		int api = ini.getInteger("Testing", "FrameBufferAPI", 0);
-
-		if(api == 0 && topLeftOrigin)
-		{
-			return new sw::FrameBufferDD(windowHandle, width, height, fullscreen, topLeftOrigin);
-		}
-		else
-		{
-			return new sw::FrameBufferGDI(windowHandle, width, height, fullscreen, topLeftOrigin);
-		}
-
-		return 0;
-	}
-#else
-	sw::FrameBuffer *createFrameBuffer(Window window, int width, int height)
-	{
-		return new sw::FrameBufferX11(window, width, height);
-	}
-#endif
 }

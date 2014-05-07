@@ -38,9 +38,13 @@ namespace sw
 		}
 	}
 
-	FrameBufferX11::FrameBufferX11(Window window, int width, int height) : FrameBuffer(width, height, false, false), x_window(window)
+	FrameBufferX11::FrameBufferX11(Display *display, Window window, int width, int height) : FrameBuffer(width, height, false, false), x_window(window), x_display(display), ownX11(!display)
 	{
-		x_display = XOpenDisplay(0);
+		if(!x_display)
+		{
+			x_display = XOpenDisplay(0);
+		}
+
 		int screen = DefaultScreen(x_display);
 		x_gc = XDefaultGC(x_display, screen);
 		Visual *x_visual = XDefaultVisual(x_display, screen);
@@ -98,7 +102,10 @@ namespace sw
 			shmctl(shminfo.shmid, IPC_RMID, 0);
 		}
 		
-		XCloseDisplay(x_display);
+		if(ownX11)
+		{
+			XCloseDisplay(x_display);
+		}
 	}
 	
 	void *FrameBufferX11::lock()
@@ -128,5 +135,13 @@ namespace sw
 		}
 	
 		XSync(x_display, False);
+	}
+}
+
+extern "C"
+{
+	sw::FrameBuffer *createFrameBuffer(void *display, Window window, int width, int height)
+	{
+		return new sw::FrameBufferX11((Display*)display, window, width, height);
 	}
 }
