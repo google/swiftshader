@@ -1024,6 +1024,15 @@ namespace sw
 		return opcode == OPCODE_ENDLOOP || opcode == OPCODE_ENDREP || opcode == OPCODE_ENDWHILE;
 	}
 
+	bool Shader::Instruction::isPredicated() const
+	{
+		return predicate ||
+		       analysisBranch ||
+		       analysisBreak ||
+		       analysisContinue ||
+		       analysisLeave;
+	}
+
 	Shader::Shader() : serialID(serialCounter++)
 	{
 		usedSamplers = 0;

@@ -430,6 +430,8 @@ namespace sw
 			bool isLoop() const;
 			bool isEndLoop() const;
 
+			bool isPredicated() const;
+
 			Opcode opcode;
 			
 			union

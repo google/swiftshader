@@ -283,7 +283,7 @@ namespace sw
 					if(dst.w) d.w = Min(d.w, Float4(1.0f));
 				}
 
-				if(shader->containsDynamicBranching())
+				if(instruction->isPredicated())
 				{
 					Vector4f pDst;   // FIXME: Rename
 

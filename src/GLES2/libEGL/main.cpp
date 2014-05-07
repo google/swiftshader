@@ -115,6 +115,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
     switch(reason)
     {
     case DLL_PROCESS_ATTACH:
+	//	MessageBoxA(0, "Attach debugger now and press OK", "SwiftShader loaded", MB_OK);
         return eglAttachProcess();
         break;
     case DLL_THREAD_ATTACH:
