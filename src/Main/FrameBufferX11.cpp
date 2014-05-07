@@ -21,6 +21,23 @@
 
 namespace sw
 {
+	static int (*PreviousXErrorHandler)(Display *display, XErrorEvent *event) = 0;
+	static bool shmBadAccess = false;
+
+	// Catches BadAcces errors so we can fall back to not using MIT-SHM
+	static int XShmErrorHandler(Display *display, XErrorEvent *event)
+	{
+		if(event->error_code == BadAccess)
+		{
+			shmBadAccess = true;
+			return 0;
+		}
+		else
+		{
+			return PreviousXErrorHandler(display, event);
+		}
+	}
+
 	FrameBufferX11::FrameBufferX11(Window window, int width, int height) : FrameBuffer(width, height, false, false), x_window(window)
 	{
 		x_display = XOpenDisplay(0);
@@ -28,22 +45,38 @@ namespace sw
 		x_gc = XDefaultGC(x_display, screen);
 		Visual *x_visual = XDefaultVisual(x_display, screen);
 		int depth = XDefaultDepth(x_display, screen);
-		
-		mit_shm = XShmQueryExtension(x_display) == True;
-			
+
+		mit_shm = (XShmQueryExtension(x_display) == True);
+
+		if(mit_shm)
+		{
+			x_image = XShmCreateImage(x_display, x_visual, depth, ZPixmap, 0, &shminfo, width, height);
+
+			shminfo.shmid = shmget(IPC_PRIVATE, x_image->bytes_per_line * x_image->height, IPC_CREAT | SHM_R | SHM_W);
+			shminfo.shmaddr = x_image->data = buffer = (char*)shmat(shminfo.shmid, 0, 0);
+			shminfo.readOnly = False;
+
+			PreviousXErrorHandler = XSetErrorHandler(XShmErrorHandler);
+			XShmAttach(x_display, &shminfo);   // May produce a BadAccess error
+			XSync(x_display, False);
+			XSetErrorHandler(PreviousXErrorHandler);
+
+			if(shmBadAccess)
+			{
+				mit_shm = false;
+
+				XDestroyImage(x_image);
+				shmdt(shminfo.shmaddr);
+				shmctl(shminfo.shmid, IPC_RMID, 0);
+
+				shmBadAccess = false;
+			}
+		}
+
 		if(!mit_shm)
 		{
 			buffer = new char[width * height * 4];
-			x_image = XCreateImage(x_display, x_visual, depth, ZPixmap, 0, buffer, width, height, 32, width * 4);	
-		}
-		else
-		{
-			x_image = XShmCreateImage(x_display, x_visual, depth, ZPixmap, 0, &shminfo, width, height);
-			
-			shminfo.shmid = shmget(IPC_PRIVATE, x_image->bytes_per_line * x_image->height, IPC_CREAT | 0777);
-			shminfo.shmaddr = x_image->data = buffer = (char*)shmat(shminfo.shmid, 0, 0);
-			shminfo.readOnly = False;
-			XShmAttach(x_display, &shminfo);
+			x_image = XCreateImage(x_display, x_visual, depth, ZPixmap, 0, buffer, width, height, 32, width * 4);
 		}
 	}
 	
