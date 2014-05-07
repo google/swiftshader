@@ -359,9 +359,8 @@ namespace sw
 		void updateClipper();
 		void updateConfiguration(bool initialUpdate = false);
 		static unsigned int computeClipFlags(const float4 &v, const DrawData &data);
-		void initializeThreads(int threadCount);
+		void initializeThreads();
 		void terminateThreads();
-		void deleteBatches();
 
 		void loadConstants(const VertexShader *vertexShader);
 		void loadConstants(const PixelShader *pixelShader);

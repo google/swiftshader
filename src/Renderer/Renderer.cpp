@@ -183,8 +183,6 @@ namespace sw
 			delete drawCall[draw];
 		}
 
-		deleteBatches();
-
 		delete swiftConfig;
 	}
 
@@ -1831,14 +1829,10 @@ namespace sw
 			   Clipper::CLIP_FINITE;   // FIXME: xyz finite
 	}
 
-	void Renderer::initializeThreads(int threads)
+	void Renderer::initializeThreads()
 	{
-		terminateThreads();
-		deleteBatches();
-
-		threadCount = threads;
-		unitCount = ceilPow2(threads);
-		clusterCount = ceilPow2(threads);
+		unitCount = ceilPow2(threadCount);
+		clusterCount = ceilPow2(threadCount);
 
 		for(int i = 0; i < unitCount; i++)
 		{
@@ -1894,10 +1888,7 @@ namespace sw
 			deallocate(vertexTask[thread]);
 			vertexTask[thread] = 0;
 		}
-	}
 
-	void Renderer::deleteBatches()
-	{
 		for(int i = 0; i < 16; i++)
 		{
 			deallocate(triangleBatch[i]);
@@ -2440,17 +2431,17 @@ namespace sw
 
 			switch(configuration.textureSampleQuality)
 			{
-			case 0:  Sampler::setFilterQuality(FILTER_POINT);			break;
-			case 1:  Sampler::setFilterQuality(FILTER_LINEAR);			break;
-			case 2:  Sampler::setFilterQuality(FILTER_ANISOTROPIC);	break;
-			default: Sampler::setFilterQuality(FILTER_ANISOTROPIC);	break;
+			case 0:  Sampler::setFilterQuality(FILTER_POINT);       break;
+			case 1:  Sampler::setFilterQuality(FILTER_LINEAR);      break;
+			case 2:  Sampler::setFilterQuality(FILTER_ANISOTROPIC); break;
+			default: Sampler::setFilterQuality(FILTER_ANISOTROPIC); break;
 			}
 
 			switch(configuration.mipmapQuality)
 			{
 			case 0:  Sampler::setMipmapQuality(MIPMAP_POINT);  break;
 			case 1:  Sampler::setMipmapQuality(MIPMAP_LINEAR); break;
-			default: Sampler::setMipmapQuality(MIPMAP_LINEAR);  break;
+			default: Sampler::setMipmapQuality(MIPMAP_LINEAR); break;
 			}
 
 			setPerspectiveCorrection(configuration.perspectiveCorrection);
@@ -2497,16 +2488,16 @@ namespace sw
 
 			switch(configuration.transparencyAntialiasing)
 			{
-			case 0:		transparencyAntialiasing = Context::TRANSPARENCY_NONE;				break;
-			case 1:		transparencyAntialiasing = Context::TRANSPARENCY_ALPHA_TO_COVERAGE;	break;
-			default:	transparencyAntialiasing = Context::TRANSPARENCY_NONE;				break;
+			case 0:  transparencyAntialiasing = Context::TRANSPARENCY_NONE;              break;
+			case 1:  transparencyAntialiasing = Context::TRANSPARENCY_ALPHA_TO_COVERAGE; break;
+			default: transparencyAntialiasing = Context::TRANSPARENCY_NONE;              break;
 			}
 
 			switch(configuration.threadCount)
 			{
-			case -1: initializeThreads(CPUID::coreCount());        break;
-			case 0:  initializeThreads(CPUID::processAffinity());  break;
-			default: initializeThreads(configuration.threadCount); break;
+			case -1: threadCount = CPUID::coreCount();        break;
+			case 0:  threadCount = CPUID::processAffinity();  break;
+			default: threadCount = configuration.threadCount; break;
 			}
 
 			CPUID::setEnableSSE4_1(configuration.enableSSE4_1);
@@ -2530,6 +2521,11 @@ namespace sw
 			minPrimitives = configuration.minPrimitives;
 			maxPrimitives = configuration.maxPrimitives;
 		#endif
+		}
+
+		if(!initialUpdate && !worker[0])
+		{
+			initializeThreads();
 		}
 	}
 }
