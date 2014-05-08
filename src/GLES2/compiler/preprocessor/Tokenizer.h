@@ -11,6 +11,8 @@
 #include "Lexer.h"
 #include "pp_utils.h"
 
+#include <algorithm>
+
 namespace pp
 {
 

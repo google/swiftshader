@@ -26,10 +26,12 @@
 #include <tchar.h>
 #endif
 
+#include <algorithm>
+
 namespace egl
 {
 
-Surface::Surface(Display *display, const Config *config, EGLNativeWindowType window) 
+Surface::Surface(Display *display, const Config *config, EGLNativeWindowType window)
     : mDisplay(display), mConfig(config), mWindow(window)
 {
     frameBuffer = 0;

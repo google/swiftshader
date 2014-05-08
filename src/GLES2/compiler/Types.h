@@ -11,6 +11,8 @@
 #include "compiler/Common.h"
 #include "compiler/debug.h"
 
+#include <algorithm>
+
 class TType;
 struct TPublicType;
 

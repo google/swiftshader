@@ -1,5 +1,5 @@
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LLVM", "LLVM", "{B408B98A-E888-4ECF-81E0-7A37A6854B17}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SwiftShader", "SwiftShader\SwiftShader.vcxproj", "{7B02CB19-4CDF-4F79-BC9B-7F3F6164A003}"

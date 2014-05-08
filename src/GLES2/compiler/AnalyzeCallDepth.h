@@ -12,7 +12,7 @@
 #include <set>
 #include <limits.h>
 
-// Traverses intermediate tree to analyze call depth or detect function recursion 
+// Traverses intermediate tree to analyze call depth or detect function recursion
 class AnalyzeCallDepth : public TIntermTraverser
 {
 public:

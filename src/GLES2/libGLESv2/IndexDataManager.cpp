@@ -18,6 +18,7 @@
 #include "common/debug.h"
 
 #include <string.h>
+#include <algorithm>
 
 namespace
 {
