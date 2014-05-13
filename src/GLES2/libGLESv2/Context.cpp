@@ -497,7 +497,6 @@ void Context::setPolygonOffsetFill(bool enabled)
 bool Context::isPolygonOffsetFillEnabled() const
 {
     return mState.polygonOffsetFill;
-
 }
 
 void Context::setPolygonOffsetParams(GLfloat factor, GLfloat units)
@@ -2743,9 +2742,10 @@ void Context::initExtensionString()
 	mExtensionString += "GL_OES_texture_half_float ";
 	mExtensionString += "GL_OES_texture_half_float_linear ";
 	mExtensionString += "GL_OES_texture_npot ";
+	mExtensionString += "GL_EXT_blend_minmax ";
 	mExtensionString += "GL_EXT_occlusion_query_boolean ";
 	mExtensionString += "GL_EXT_read_format_bgra ";
-	
+
 	if(S3TC_SUPPORT)
 	{
 		mExtensionString += "GL_EXT_texture_compression_dxt1 ";

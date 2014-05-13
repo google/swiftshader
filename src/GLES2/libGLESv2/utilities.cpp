@@ -512,6 +512,8 @@ namespace es2sw
 		case GL_FUNC_ADD:              return sw::Context::BLENDOP_ADD;
 		case GL_FUNC_SUBTRACT:         return sw::Context::BLENDOP_SUB;
 		case GL_FUNC_REVERSE_SUBTRACT: return sw::Context::BLENDOP_INVSUB;
+		case GL_MIN_EXT:               return sw::Context::BLENDOP_MIN;
+		case GL_MAX_EXT:               return sw::Context::BLENDOP_MAX;
 		default: UNREACHABLE();
 		}
 

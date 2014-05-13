@@ -425,21 +425,25 @@ void GL_APIENTRY glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
     {
         switch(modeRGB)
         {
-          case GL_FUNC_ADD:
-          case GL_FUNC_SUBTRACT:
-          case GL_FUNC_REVERSE_SUBTRACT:
+        case GL_FUNC_ADD:
+        case GL_FUNC_SUBTRACT:
+        case GL_FUNC_REVERSE_SUBTRACT:
+        case GL_MIN_EXT:
+        case GL_MAX_EXT:
             break;
-          default:
+        default:
             return error(GL_INVALID_ENUM);
         }
 
         switch(modeAlpha)
         {
-          case GL_FUNC_ADD:
-          case GL_FUNC_SUBTRACT:
-          case GL_FUNC_REVERSE_SUBTRACT:
+        case GL_FUNC_ADD:
+        case GL_FUNC_SUBTRACT:
+        case GL_FUNC_REVERSE_SUBTRACT:
+        case GL_MIN_EXT:
+        case GL_MAX_EXT:
             break;
-          default:
+        default:
             return error(GL_INVALID_ENUM);
         }
 
