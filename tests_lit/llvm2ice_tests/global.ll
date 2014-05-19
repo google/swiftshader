@@ -1,21 +1,26 @@
 ; RUIN: %llvm2ice -verbose inst %s | FileCheck %s
 ; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
-; RUN: %szdiff --llvm2ice=%llvm2ice %s | FileCheck --check-prefix=DUMP %s
+; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
-@intern_global = global i32 12, align 4
-@extern_global = external global i32
+; Note: We don't run this test using a PNaCl bitcode file, because
+; external globals are not in the PNaCl ABI.
+
+@intern_global = global [4 x i8] [i8 0, i8 0, i8 0, i8 12], align 4
+@extern_global = external global [4 x i8]
 
 define i32 @test_intern_global() {
 ; CHECK: define i32 @test_intern_global
 entry:
-  %v0 = load i32* @intern_global, align 1
+  %__1 = bitcast [4 x i8]* @intern_global to i32*
+  %v0 = load i32* %__1, align 1
   ret i32 %v0
 }
 
 define i32 @test_extern_global() {
 ; CHECK: define i32 @test_extern_global
 entry:
-  %v0 = load i32* @extern_global, align 1
+  %__1 = bitcast [4 x i8]* @extern_global to i32*
+  %v0 = load i32* %__1, align 1
   ret i32 %v0
 }
 

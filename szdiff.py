@@ -2,45 +2,40 @@
 
 import argparse
 import itertools
-import subprocess
 import re
 
 if __name__ == '__main__':
-    """Runs llvm2ice on an input .ll file, and compares the output
-    against the input.
+    """Compares a LLVM file with a subzero file for differences.
 
-    Before comparing, the input file is massaged to remove comments,
+    Before comparing, the LLVM file is massaged to remove comments,
     blank lines, global variable definitions, external function
     declarations, and possibly other patterns that llvm2ice does not
     handle.
 
-    The output file and the massaged input file are compared line by
+    The subzero file and the massaged LLVM file are compared line by
     line for differences.  However, there is a regex defined such that
-    if the regex matches a line in the input file, that line and the
-    corresponding line in the output file are ignored.  This lets us
+    if the regex matches a line in the LLVM file, that line and the
+    corresponding line in the subzero file are ignored.  This lets us
     ignore minor differences such as inttoptr and ptrtoint, and
     printing of floating-point constants.
 
     On success, no output is produced.  On failure, each mismatch is
-    printed as two lines, one starting with 'SZ' and one starting with
-    'LL'.
+    printed as two lines, one starting with 'SZ' (subzero) and one
+    starting with 'LL' (LLVM).
     """
-    desc = 'Compare llvm2ice output against bitcode input.'
+    desc = 'Compare LLVM and subzero bitcode files.'
     argparser = argparse.ArgumentParser(description=desc)
     argparser.add_argument(
-        'llfile', nargs='?', default='-',
-        type=argparse.FileType('r'), metavar='FILE',
-        help='Textual bitcode file [default stdin]')
+        'llfile', nargs=1,
+        type=argparse.FileType('r'), metavar='LLVM_FILE',
+        help='LLVM bitcode file')
     argparser.add_argument(
-        '--llvm2ice', required=False, default='./llvm2ice', metavar='LLVM2ICE',
-        help='Path to llvm2ice driver program [default ./llvm2ice]')
+        'szfile', nargs='?', default='-',
+        type=argparse.FileType('r'), metavar='SUBZERO_FILE',
+        help='Subzero bitcode file [default stdin]')
     args = argparser.parse_args()
-    bitcode = args.llfile.readlines()
-
-    # Run llvm2ice and collect its output lines into sz_out.
-    command = [args.llvm2ice, '-verbose', 'inst', '-notranslate', '-']
-    p = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    sz_out = p.communicate(input=''.join(bitcode))[0].splitlines()
+    bitcode = args.llfile[0].readlines()
+    sz_out = [ line.rstrip() for line in args.szfile.readlines()]
 
     # Filter certain lines and patterns from the input, and collect
     # the remainder into llc_out.
@@ -63,11 +58,12 @@ if __name__ == '__main__':
     lines_total = 0
     lines_diff = 0
     ignore_pattern = re.compile(
-        '|'.join([' -[0-9]',                # negative constants
-                  ' (float|double) [-0-9]', # FP constants
+        '|'.join([' -[0-9]',                 # negative constants
+                  ' (float|double) [-0-9]',  # FP constants
                   ' (float|double) %\w+, [-0-9]',
-                  ' inttoptr ',             # inttoptr pointer types
-                  ' ptrtoint '              # ptrtoint pointer types
+                  ' inttoptr ',              # inttoptr pointer types
+                  ' ptrtoint ',              # ptrtoint pointer types
+                  ' bitcast .*\* .* to .*\*' # bitcast pointer types
                   ]))
     for (sz_line, llc_line) in itertools.izip_longest(sz_out, llc_out):
         lines_total += 1

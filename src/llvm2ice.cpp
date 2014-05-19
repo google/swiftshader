@@ -577,7 +577,7 @@ static cl::list<Ice::VerboseItem> VerboseList(
         clEnumValN(Ice::IceV_All, "all", "Use all verbose options"),
         clEnumValN(Ice::IceV_None, "none", "No verbosity"), clEnumValEnd));
 static cl::opt<std::string> IRFilename(cl::Positional, cl::desc("<IR file>"),
-                                       cl::Required);
+                                       cl::init("-"));
 static cl::opt<std::string> OutputFilename("o",
                                            cl::desc("Override output filename"),
                                            cl::init("-"),
@@ -594,6 +594,16 @@ DisableTranslation("notranslate", cl::desc("Disable Subzero translation"));
 static cl::opt<bool> SubzeroTimingEnabled(
     "timing", cl::desc("Enable breakdown timing of Subzero translation"));
 
+static cl::opt<NaClFileFormat>
+InputFileFormat(
+    "bitcode-format",
+    cl::desc("Define format of input file:"),
+    cl::values(
+        clEnumValN(LLVMFormat, "llvm", "LLVM file (default)"),
+        clEnumValN(PNaClFormat, "pnacl", "PNaCl bitcode file"),
+        clEnumValEnd),
+    cl::init(LLVMFormat));
+
 int main(int argc, char **argv) {
   cl::ParseCommandLineOptions(argc, argv);
 
@@ -603,7 +613,7 @@ int main(int argc, char **argv) {
 
   {
     Ice::Timer T;
-    Mod = ParseIRFile(IRFilename, Err, getGlobalContext());
+    Mod = NaClParseIRFile(IRFilename, InputFileFormat, Err, getGlobalContext());
 
     if (SubzeroTimingEnabled) {
       std::cerr << "[Subzero timing] IR Parsing: " << T.getElapsedSec()

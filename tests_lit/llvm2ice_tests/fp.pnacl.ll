@@ -1,6 +1,8 @@
 ; RUIN: %llvm2ice --verbose none %s | FileCheck %s
 ; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
-; RUN: %szdiff --llvm2ice=%llvm2ice %s | FileCheck --check-prefix=DUMP %s
+; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
+; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
+; RUN:                           | FileCheck --check-prefix=DUMP %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
@@ -1017,8 +1019,8 @@ entry:
 
 define internal float @loadFloat(i32 %a) {
 entry:
-  %a.asptr = inttoptr i32 %a to float*
-  %v0 = load float* %a.asptr, align 4
+  %__1 = inttoptr i32 %a to float*
+  %v0 = load float* %__1, align 4
   ret float %v0
 }
 ; CHECK: loadFloat:
@@ -1027,8 +1029,8 @@ entry:
 
 define internal double @loadDouble(i32 %a) {
 entry:
-  %a.asptr = inttoptr i32 %a to double*
-  %v0 = load double* %a.asptr, align 8
+  %__1 = inttoptr i32 %a to double*
+  %v0 = load double* %__1, align 8
   ret double %v0
 }
 ; CHECK: loadDouble:
@@ -1037,8 +1039,8 @@ entry:
 
 define internal void @storeFloat(i32 %a, float %value) {
 entry:
-  %a.asptr = inttoptr i32 %a to float*
-  store float %value, float* %a.asptr, align 4
+  %__2 = inttoptr i32 %a to float*
+  store float %value, float* %__2, align 4
   ret void
 }
 ; CHECK: storeFloat:
@@ -1046,8 +1048,8 @@ entry:
 
 define internal void @storeDouble(i32 %a, double %value) {
 entry:
-  %a.asptr = inttoptr i32 %a to double*
-  store double %value, double* %a.asptr, align 8
+  %__2 = inttoptr i32 %a to double*
+  store double %value, double* %__2, align 8
   ret void
 }
 ; CHECK: storeDouble:

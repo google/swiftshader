@@ -1,4 +1,6 @@
-; RUN: %szdiff --llvm2ice=%llvm2ice %s | FileCheck --check-prefix=DUMP %s
+; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
+; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
+; RUN:                           | FileCheck --check-prefix=DUMP %s
 
 ; This is a smoke test for floating-point constant pooling.  It tests
 ; pooling of various float and double constants (including positive

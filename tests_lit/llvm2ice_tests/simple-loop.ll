@@ -1,6 +1,8 @@
 ; RUIN: %llvm2ice -verbose inst %s | FileCheck %s
 ; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
-; RUN: %szdiff --llvm2ice=%llvm2ice %s | FileCheck --check-prefix=DUMP %s
+; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
+; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
+; RUN:                           | FileCheck --check-prefix=DUMP %s
 
 define i32 @simple_loop(i32 %a, i32 %n) {
 entry:
@@ -12,8 +14,8 @@ for.body:
   %sum.05 = phi i32 [ %add, %for.body ], [ 0, %entry ]
   %gep_array = mul i32 %i.06, 4
   %gep = add i32 %a, %gep_array
-  %gep.asptr = inttoptr i32 %gep to i32*
-  %v0 = load i32* %gep.asptr, align 1
+  %__9 = inttoptr i32 %gep to i32*
+  %v0 = load i32* %__9, align 1
   %add = add i32 %v0, %sum.05
   %inc = add i32 %i.06, 1
   %cmp = icmp slt i32 %inc, %n

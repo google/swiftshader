@@ -1,6 +1,8 @@
 ; RUIN: %llvm2ice --verbose none %s | FileCheck %s
 ; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
-; RUN: %szdiff --llvm2ice=%llvm2ice %s | FileCheck --check-prefix=DUMP %s
+; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
+; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
+; RUN:                           | FileCheck --check-prefix=DUMP %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
@@ -719,8 +721,8 @@ entry:
 
 define internal i64 @load64(i32 %a) {
 entry:
-  %a.asptr = inttoptr i32 %a to i64*
-  %v0 = load i64* %a.asptr, align 1
+  %__1 = inttoptr i32 %a to i64*
+  %v0 = load i64* %__1, align 1
   ret i64 %v0
 }
 ; CHECK: load64:
@@ -730,8 +732,8 @@ entry:
 
 define internal void @store64(i32 %a, i64 %value) {
 entry:
-  %a.asptr = inttoptr i32 %a to i64*
-  store i64 %value, i64* %a.asptr, align 1
+  %__2 = inttoptr i32 %a to i64*
+  store i64 %value, i64* %__2, align 1
   ret void
 }
 ; CHECK: store64:
