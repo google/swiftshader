@@ -1,0 +1,13 @@
+
+SUBZERO_LEVEL := ..
+
+TOOLNAME := llvm2ice
+LINK_COMPONENTS := support
+
+# This tool has no plugins, optimize startup time.
+TOOL_NO_EXPORTS := 1
+
+include $(SUBZERO_LEVEL)/../../Makefile.config
+
+include $(SUBZERO_LEVEL)/Makefile
+
