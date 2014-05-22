@@ -1,5 +1,10 @@
-; RUIN: %llvm2ice --verbose none %s | FileCheck %s
-; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; Test of multiple indirect calls to the same target.  Each call
+; should be to the same operand, whether it's in a register or on the
+; stack.
+
+; RUIN: %llvm2ice -O2 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck --check-prefix=OPTM1 %s
+; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
 ; RUN:                           | FileCheck --check-prefix=DUMP %s
@@ -24,6 +29,12 @@ entry:
 ; CHECK: call [[REGISTER]]
 ; CHECK: call [[REGISTER]]
 ; CHECK: call [[REGISTER]]
+;
+; OPTM1: call [[TARGET:.+]]
+; OPTM1: call [[TARGET]]
+; OPTM1: call [[TARGET]]
+; OPTM1: call [[TARGET]]
+; OPTM1: call [[TARGET]]
 
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

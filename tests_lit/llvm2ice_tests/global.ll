@@ -1,5 +1,8 @@
-; RUIN: %llvm2ice -verbose inst %s | FileCheck %s
-; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; Trivial test of the use of internal versus external global
+; functions.
+
+; RUN: %llvm2ice --verbose inst %s | FileCheck %s
+; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 ; Note: We don't run this test using a PNaCl bitcode file, because

@@ -1,5 +1,8 @@
-; RUIN: %llvm2ice %s -verbose inst | FileCheck %s
-; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; Trivial smoke test of compare and branch, with multiple basic
+; blocks.
+
+; RUN: %llvm2ice %s --verbose inst | FileCheck %s
+; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
 ; RUN:                           | FileCheck --check-prefix=DUMP %s

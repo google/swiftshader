@@ -1,5 +1,9 @@
-; RUIN: %llvm2ice -verbose inst %s | FileCheck %s
-; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; This is a test of C-level conversion operations that clang lowers
+; into pairs of shifts.
+
+; RUIN: %llvm2ice -O2 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
 ; RUN:                           | FileCheck --check-prefix=DUMP %s
@@ -17,9 +21,10 @@ entry:
   %__4 = bitcast [4 x i8]* @i1 to i32*
   store i32 %v1, i32* %__4, align 1
   ret void
-  ; CHECK: shl eax, 24
-  ; CHECK-NEXT: sar eax, 24
 }
+; CHECK: conv1:
+; CHECK: shl {{.*}}, 24
+; CHECK: sar {{.*}}, 24
 
 define void @conv2() {
 entry:
@@ -30,9 +35,10 @@ entry:
   %__4 = bitcast [4 x i8]* @i2 to i32*
   store i32 %v1, i32* %__4, align 1
   ret void
-  ; CHECK: shl eax, 16
-  ; CHECK-NEXT: sar eax, 16
 }
+; CHECK: conv2:
+; CHECK: shl {{.*}}, 16
+; CHECK: sar {{.*}}, 16
 
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

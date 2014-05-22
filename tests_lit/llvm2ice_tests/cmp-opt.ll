@@ -1,5 +1,8 @@
-; RUIN: %llvm2ice %s | FileCheck %s
-; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; Simple test of non-fused compare/branch.
+
+; RUIN: %llvm2ice -O2 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck --check-prefix=OPTM1 %s
+; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
 ; RUN:                           | FileCheck --check-prefix=DUMP %s
@@ -27,8 +30,6 @@ if.end7:                                          ; preds = %if.then5, %if.end
 
 declare void @use(i1 zeroext)
 
-; ERRORS-NOT: ICE translation error
-
 ; CHECK:      .globl testBool
 ; Two bool computations
 ; CHECK:      cmp
@@ -40,4 +41,18 @@ declare void @use(i1 zeroext)
 ; CHECK:      cmp
 ; CHECK:      call
 ; CHECK:      ret
+;
+; OPTM1:      .globl testBool
+; Two bool computations
+; OPTM1:      cmp
+; OPTM1:      cmp
+; Test first bool
+; OPTM1:      cmp
+; OPTM1:      call
+; Test second bool
+; OPTM1:      cmp
+; OPTM1:      call
+; OPTM1:      ret
+
+; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

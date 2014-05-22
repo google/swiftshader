@@ -26,6 +26,20 @@ enum Type {
 #undef X
 };
 
+enum TargetArch {
+  Target_X8632,
+  Target_X8664,
+  Target_ARM32,
+  Target_ARM64
+};
+
+enum OptLevel {
+  Opt_m1,
+  Opt_0,
+  Opt_1,
+  Opt_2
+};
+
 size_t typeWidthInBytes(Type Ty);
 size_t typeAlignInBytes(Type Ty);
 

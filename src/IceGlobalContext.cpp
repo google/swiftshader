@@ -17,6 +17,7 @@
 #include "IceCfg.h"
 #include "IceGlobalContext.h"
 #include "IceOperand.h"
+#include "IceTargetLowering.h"
 
 namespace Ice {
 
@@ -75,18 +76,17 @@ public:
 
 GlobalContext::GlobalContext(llvm::raw_ostream *OsDump,
                              llvm::raw_ostream *OsEmit, VerboseMask Mask,
+                             TargetArch Arch, OptLevel Opt,
                              IceString TestPrefix)
     : StrDump(OsDump), StrEmit(OsEmit), VMask(Mask),
-      ConstPool(new ConstantPool()), TestPrefix(TestPrefix) {}
+      ConstPool(new ConstantPool()), Arch(Arch), Opt(Opt),
+      TestPrefix(TestPrefix), HasEmittedFirstMethod(false) {}
 
 // In this context, name mangling means to rewrite a symbol using a
 // given prefix.  For a C++ symbol, nest the original symbol inside
 // the "prefix" namespace.  For other symbols, just prepend the
 // prefix.
 IceString GlobalContext::mangleName(const IceString &Name) const {
-  // TODO: Add explicit tests (beyond the implicit tests in the linker
-  // that come from the cross tests).
-  //
   // An already-nested name like foo::bar() gets pushed down one
   // level, making it equivalent to Prefix::foo::bar().
   //   _ZN3foo3barExyz ==> _ZN6Prefix3foo3barExyz
@@ -100,9 +100,9 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
 
   unsigned PrefixLength = getTestPrefix().length();
   char NameBase[1 + Name.length()];
-  const size_t BufLen = 30 + Name.length() + getTestPrefix().length();
+  const size_t BufLen = 30 + Name.length() + PrefixLength;
   char NewName[BufLen];
-  uint32_t BaseLength = 0;
+  uint32_t BaseLength = 0; // using uint32_t due to sscanf format string
 
   int ItemsParsed = sscanf(Name.c_str(), "_ZN%s", NameBase);
   if (ItemsParsed == 1) {
@@ -118,15 +118,28 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
   }
 
   ItemsParsed = sscanf(Name.c_str(), "_Z%u%s", &BaseLength, NameBase);
-  if (ItemsParsed == 2) {
-    // Transform _Z3barxyz ==> ZN6Prefix3barExyz
-    //                          ^^^^^^^^    ^
+  if (ItemsParsed == 2 && BaseLength <= strlen(NameBase)) {
+    // Transform _Z3barxyz ==> _ZN6Prefix3barExyz
+    //                           ^^^^^^^^    ^
     // (splice in "N6Prefix", and insert "E" after "3bar")
+    // But an "I" after the identifier indicates a template argument
+    // list terminated with "E"; insert the new "E" before/after the
+    // old "E".  E.g.:
+    // Transform _Z3barIabcExyz ==> _ZN6Prefix3barIabcEExyz
+    //                                ^^^^^^^^         ^
+    // (splice in "N6Prefix", and insert "E" after "3barIabcE")
     char OrigName[Name.length()];
     char OrigSuffix[Name.length()];
-    strncpy(OrigName, NameBase, BaseLength);
-    OrigName[BaseLength] = '\0';
-    strcpy(OrigSuffix, NameBase + BaseLength);
+    uint32_t ActualBaseLength = BaseLength;
+    if (NameBase[ActualBaseLength] == 'I') {
+      ++ActualBaseLength;
+      while (NameBase[ActualBaseLength] != 'E' &&
+             NameBase[ActualBaseLength] != '\0')
+        ++ActualBaseLength;
+    }
+    strncpy(OrigName, NameBase, ActualBaseLength);
+    OrigName[ActualBaseLength] = '\0';
+    strcpy(OrigSuffix, NameBase + ActualBaseLength);
     snprintf(NewName, BufLen, "_ZN%u%s%u%sE%s", PrefixLength,
              getTestPrefix().c_str(), BaseLength, OrigName, OrigSuffix);
     return NewName;

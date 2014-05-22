@@ -1,5 +1,9 @@
-; RUIN: %llvm2ice -verbose inst %s | FileCheck %s
-; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; This tests a simple loop that sums the elements of an input array.
+; The O2 check patterns represent the best code currently achieved.
+
+; RUIN: %llvm2ice -O2 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck --check-prefix=OPTM1 %s
+; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
 ; RUN:                           | FileCheck --check-prefix=DUMP %s
@@ -26,17 +30,7 @@ for.end:
   ret i32 %sum.0.lcssa
 }
 
-; Checks for verbose instruction output
-
-; CHECK:  br i1 %cmp4, label %for.body, label %for.end
-; CHECK-NEXT: for.body
-; CHECK:  %i.06 = phi i32 [ %inc, %for.body ], [ 0, %entry ]
-; CHECK-NEXT:  %sum.05 = phi i32 [ %add, %for.body ], [ 0, %entry ]
-
-; Checks for emitted assembly
-
 ; CHECK:      .globl simple_loop
-
 ; CHECK:      mov ecx, dword ptr [esp+{{[0-9]+}}]
 ; CHECK:      cmp ecx, 0
 ; CHECK-NEXT: jg {{.*}}for.body
@@ -49,6 +43,13 @@ for.end:
 ; CHECK-NEXT: mov [[ICMPREG:[a-z]+]], [[IREG]]
 ; CHECK:      cmp [[ICMPREG]], ecx
 ; CHECK-NEXT: jl {{.*}}for.body
+;
+; There's nothing remarkable under Om1 to test for, since Om1 generates
+; such atrocious code (by design).
+; OPTM1:      .globl simple_loop
+; OPTM1:      cmp {{.*}}, 0
+; OPTM1:      jg
+; OPTM1:      ret
 
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

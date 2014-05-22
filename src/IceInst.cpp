@@ -22,7 +22,7 @@ namespace Ice {
 namespace {
 
 // Using non-anonymous struct so that array_lengthof works.
-const struct _InstArithmeticAttributes {
+const struct InstArithmeticAttributes_ {
   const char *DisplayString;
   bool IsCommutative;
 } InstArithmeticAttributes[] = {
@@ -36,7 +36,7 @@ const size_t InstArithmeticAttributesSize =
     llvm::array_lengthof(InstArithmeticAttributes);
 
 // Using non-anonymous struct so that array_lengthof works.
-const struct _InstCastAttributes {
+const struct InstCastAttributes_ {
   const char *DisplayString;
 } InstCastAttributes[] = {
 #define X(tag, str)                                                            \
@@ -48,7 +48,7 @@ const struct _InstCastAttributes {
 const size_t InstCastAttributesSize = llvm::array_lengthof(InstCastAttributes);
 
 // Using non-anonymous struct so that array_lengthof works.
-const struct _InstFcmpAttributes {
+const struct InstFcmpAttributes_ {
   const char *DisplayString;
 } InstFcmpAttributes[] = {
 #define X(tag, str)                                                            \
@@ -60,7 +60,7 @@ const struct _InstFcmpAttributes {
 const size_t InstFcmpAttributesSize = llvm::array_lengthof(InstFcmpAttributes);
 
 // Using non-anonymous struct so that array_lengthof works.
-const struct _InstIcmpAttributes {
+const struct InstIcmpAttributes_ {
   const char *DisplayString;
 } InstIcmpAttributes[] = {
 #define X(tag, str)                                                            \
@@ -180,6 +180,35 @@ void InstPhi::addArgument(Operand *Source, CfgNode *Label) {
   addSource(Source);
 }
 
+// Find the source operand corresponding to the incoming edge for the
+// given node.  TODO: This uses a linear-time search, which could be
+// improved if it becomes a problem.
+Operand *InstPhi::getOperandForTarget(CfgNode *Target) const {
+  for (SizeT I = 0; I < getSrcSize(); ++I) {
+    if (Labels[I] == Target)
+      return getSrc(I);
+  }
+  llvm_unreachable("Phi target not found");
+  return NULL;
+}
+
+// Change "a=phi(...)" to "a_phi=phi(...)" and return a new
+// instruction "a=a_phi".
+Inst *InstPhi::lower(Cfg *Func, CfgNode *Node) {
+  Variable *Dest = getDest();
+  assert(Dest);
+  IceString PhiName = Dest->getName() + "_phi";
+  Variable *NewSrc = Func->makeVariable(Dest->getType(), Node, PhiName);
+  this->Dest = NewSrc;
+  InstAssign *NewInst = InstAssign::create(Func, Dest, NewSrc);
+  // Set Dest and NewSrc to have affinity with each other, as a hint
+  // for register allocation.
+  Dest->setPreferredRegister(NewSrc, false);
+  NewSrc->setPreferredRegister(Dest, false);
+  Dest->replaceDefinition(NewInst, Node);
+  return NewInst;
+}
+
 InstRet::InstRet(Cfg *Func, Operand *RetValue)
     : Inst(Func, Ret, RetValue ? 1 : 0, NULL) {
   if (RetValue)
@@ -233,11 +262,35 @@ NodeList InstSwitch::getTerminatorEdges() const {
 InstUnreachable::InstUnreachable(Cfg *Func)
     : Inst(Func, Inst::Unreachable, 0, NULL) {}
 
+InstFakeDef::InstFakeDef(Cfg *Func, Variable *Dest, Variable *Src)
+    : Inst(Func, Inst::FakeDef, Src ? 1 : 0, Dest) {
+  assert(Dest);
+  if (Src)
+    addSource(Src);
+}
+
+InstFakeUse::InstFakeUse(Cfg *Func, Variable *Src)
+    : Inst(Func, Inst::FakeUse, 1, NULL) {
+  assert(Src);
+  addSource(Src);
+}
+
+InstFakeKill::InstFakeKill(Cfg *Func, const VarList &KilledRegs,
+                           const Inst *Linked)
+    : Inst(Func, Inst::FakeKill, KilledRegs.size(), NULL), Linked(Linked) {
+  for (VarList::const_iterator I = KilledRegs.begin(), E = KilledRegs.end();
+       I != E; ++I) {
+    Variable *Var = *I;
+    addSource(Var);
+  }
+}
+
 // ======================== Dump routines ======================== //
 
 void Inst::dumpDecorated(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
-  if (!Func->getContext()->isVerbose(IceV_Deleted) && isDeleted())
+  if (!Func->getContext()->isVerbose(IceV_Deleted) &&
+      (isDeleted() || isRedundantAssign()))
     return;
   if (Func->getContext()->isVerbose(IceV_InstNumbers)) {
     char buf[30];
@@ -255,6 +308,10 @@ void Inst::dumpDecorated(const Cfg *Func) const {
   Str << "\n";
 }
 
+void Inst::emit(const Cfg * /*Func*/) const {
+  llvm_unreachable("emit() called on a non-lowered instruction");
+}
+
 void Inst::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -268,6 +325,15 @@ void Inst::dumpSources(const Cfg *Func) const {
     if (I > 0)
       Str << ", ";
     getSrc(I)->dump(Func);
+  }
+}
+
+void Inst::emitSources(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  for (SizeT I = 0; I < getSrcSize(); ++I) {
+    if (I > 0)
+      Str << ", ";
+    getSrc(I)->emit(Func);
   }
 }
 
@@ -406,7 +472,7 @@ void InstPhi::dump(const Cfg *Func) const {
 
 void InstRet::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
-  Type Ty = hasRetValue() ? getSrc(0)->getType() : IceType_void;
+  Type Ty = hasRetValue() ? getRetValue()->getType() : IceType_void;
   Str << "ret " << Ty;
   if (hasRetValue()) {
     Str << " ";
@@ -431,6 +497,60 @@ void InstSelect::dump(const Cfg *Func) const {
 void InstUnreachable::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "unreachable";
+}
+
+void InstFakeDef::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t# ";
+  getDest()->emit(Func);
+  Str << " = def.pseudo ";
+  emitSources(Func);
+  Str << "\n";
+}
+
+void InstFakeDef::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpDest(Func);
+  Str << " = def.pseudo ";
+  dumpSources(Func);
+}
+
+void InstFakeUse::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t# ";
+  Str << "use.pseudo ";
+  emitSources(Func);
+  Str << "\n";
+}
+
+void InstFakeUse::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "use.pseudo ";
+  dumpSources(Func);
+}
+
+void InstFakeKill::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t# ";
+  if (Linked->isDeleted())
+    Str << "// ";
+  Str << "kill.pseudo ";
+  emitSources(Func);
+  Str << "\n";
+}
+
+void InstFakeKill::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  if (Linked->isDeleted())
+    Str << "// ";
+  Str << "kill.pseudo ";
+  dumpSources(Func);
+}
+
+void InstTarget::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "[TARGET] ";
+  Inst::dump(Func);
 }
 
 } // end of namespace Ice

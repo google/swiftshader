@@ -16,6 +16,7 @@
 #include "IceCfg.h"
 #include "IceInst.h"
 #include "IceOperand.h"
+#include "IceTargetLowering.h" // dumping stack/frame pointer register
 
 namespace Ice {
 
@@ -25,6 +26,14 @@ bool operator<(const RelocatableTuple &A, const RelocatableTuple &B) {
   if (A.SuppressMangling != B.SuppressMangling)
     return A.SuppressMangling < B.SuppressMangling;
   return A.Name < B.Name;
+}
+
+bool operator<(const RegWeight &A, const RegWeight &B) {
+  return A.getWeight() < B.getWeight();
+}
+bool operator<=(const RegWeight &A, const RegWeight &B) { return !(B < A); }
+bool operator==(const RegWeight &A, const RegWeight &B) {
+  return !(B < A) && !(A < B);
 }
 
 void Variable::setUse(const Inst *Inst, const CfgNode *Node) {
@@ -66,19 +75,57 @@ IceString Variable::getName() const {
   return buf;
 }
 
+Variable Variable::asType(Type Ty) {
+  Variable V(Ty, DefNode, Number, Name);
+  V.RegNum = RegNum;
+  V.StackOffset = StackOffset;
+  return V;
+}
+
 // ======================== dump routines ======================== //
+
+void Variable::emit(const Cfg *Func) const {
+  Func->getTarget()->emitVariable(this, Func);
+}
 
 void Variable::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   const CfgNode *CurrentNode = Func->getCurrentNode();
   (void)CurrentNode; // used only in assert()
   assert(CurrentNode == NULL || DefNode == NULL || DefNode == CurrentNode);
-  Str << "%" << getName();
+  if (Func->getContext()->isVerbose(IceV_RegOrigins) ||
+      (!hasReg() && !Func->getTarget()->hasComputedFrame()))
+    Str << "%" << getName();
+  if (hasReg()) {
+    if (Func->getContext()->isVerbose(IceV_RegOrigins))
+      Str << ":";
+    Str << Func->getTarget()->getRegName(RegNum, getType());
+  } else if (Func->getTarget()->hasComputedFrame()) {
+    if (Func->getContext()->isVerbose(IceV_RegOrigins))
+      Str << ":";
+    Str << "[" << Func->getTarget()->getRegName(
+                      Func->getTarget()->getFrameOrStackReg(), IceType_i32);
+    int32_t Offset = getStackOffset();
+    if (Offset) {
+      if (Offset > 0)
+        Str << "+";
+      Str << Offset;
+    }
+    Str << "]";
+  }
 }
 
-void Operand::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
-  Str << "Operand<?>";
+void ConstantRelocatable::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  if (SuppressMangling)
+    Str << Name;
+  else
+    Str << Func->getContext()->mangleName(Name);
+  if (Offset) {
+    if (Offset > 0)
+      Str << "+";
+    Str << Offset;
+  }
 }
 
 void ConstantRelocatable::dump(const Cfg *Func) const {
@@ -86,6 +133,14 @@ void ConstantRelocatable::dump(const Cfg *Func) const {
   Str << "@" << Name;
   if (Offset)
     Str << "+" << Offset;
+}
+
+Ostream &operator<<(Ostream &Str, const RegWeight &W) {
+  if (W.getWeight() == RegWeight::Inf)
+    Str << "Inf";
+  else
+    Str << W.getWeight();
+  return Str;
 }
 
 } // end of namespace Ice

@@ -17,13 +17,16 @@
 #include "IceDefs.h"
 #include "IceInst.h"
 #include "IceOperand.h"
+#include "IceTargetLowering.h"
 
 namespace Ice {
 
 Cfg::Cfg(GlobalContext *Ctx)
     : Ctx(Ctx), FunctionName(""), ReturnType(IceType_void),
       IsInternalLinkage(false), HasError(false), ErrorMessage(""), Entry(NULL),
-      NextInstNumber(1), CurrentNode(NULL) {}
+      NextInstNumber(1),
+      Target(TargetLowering::createLowering(Ctx->getTargetArch(), this)),
+      CurrentNode(NULL) {}
 
 Cfg::~Cfg() {}
 
@@ -54,13 +57,106 @@ void Cfg::addArg(Variable *Arg) {
   Args.push_back(Arg);
 }
 
+// Returns whether the stack frame layout has been computed yet.  This
+// is used for dumping the stack frame location of Variables.
+bool Cfg::hasComputedFrame() const { return getTarget()->hasComputedFrame(); }
+
+void Cfg::translate() {
+  Ostream &Str = Ctx->getStrDump();
+  if (hasError())
+    return;
+
+  if (Ctx->isVerbose()) {
+    Str << "================ Initial CFG ================\n";
+    dump();
+  }
+
+  Timer T_translate;
+  // The set of translation passes and their order are determined by
+  // the target.
+  getTarget()->translate();
+  T_translate.printElapsedUs(getContext(), "translate()");
+
+  if (Ctx->isVerbose()) {
+    Str << "================ Final output ================\n";
+    dump();
+  }
+}
+
 void Cfg::computePredecessors() {
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     (*I)->computePredecessors();
   }
 }
 
+// placePhiLoads() must be called before placePhiStores().
+void Cfg::placePhiLoads() {
+  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
+    (*I)->placePhiLoads();
+  }
+}
+
+// placePhiStores() must be called after placePhiLoads().
+void Cfg::placePhiStores() {
+  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
+    (*I)->placePhiStores();
+  }
+}
+
+void Cfg::deletePhis() {
+  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
+    (*I)->deletePhis();
+  }
+}
+
+void Cfg::genCode() {
+  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
+    (*I)->genCode();
+  }
+}
+
+// Compute the stack frame layout.
+void Cfg::genFrame() {
+  getTarget()->addProlog(Entry);
+  // TODO: Consider folding epilog generation into the final
+  // emission/assembly pass to avoid an extra iteration over the node
+  // list.  Or keep a separate list of exit nodes.
+  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
+    CfgNode *Node = *I;
+    if (Node->getHasReturn())
+      getTarget()->addEpilog(Node);
+  }
+}
+
 // ======================== Dump routines ======================== //
+
+void Cfg::emit() {
+  Ostream &Str = Ctx->getStrEmit();
+  Timer T_emit;
+  if (!Ctx->testAndSetHasEmittedFirstMethod()) {
+    // Print a helpful command for assembling the output.
+    // TODO: have the Target emit the header
+    // TODO: need a per-file emit in addition to per-CFG
+    Str << "# $LLVM_BIN_PATH/llvm-mc"
+        << " -arch=x86"
+        << " -x86-asm-syntax=intel"
+        << " -filetype=obj"
+        << " -o=MyObj.o"
+        << "\n\n";
+  }
+  Str << "\t.text\n";
+  if (!getInternal()) {
+    IceString MangledName = getContext()->mangleName(getFunctionName());
+    Str << "\t.globl\t" << MangledName << "\n";
+    Str << "\t.type\t" << MangledName << ",@function\n";
+  }
+  for (NodeList::const_iterator I = Nodes.begin(), E = Nodes.end(); I != E;
+       ++I) {
+    (*I)->emit(this);
+  }
+  Str << "\n";
+  T_emit.printElapsedUs(Ctx, "emit()");
+}
 
 void Cfg::dump() {
   Ostream &Str = Ctx->getStrDump();

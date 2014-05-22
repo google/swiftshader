@@ -1,0 +1,25 @@
+#ifndef TEST_ICMP_DEF
+#define TEST_ICMP_DEF
+
+#define XSTR(s) STR(s)
+#define STR(s) #s
+
+#define ICMP_U_TABLE \
+  /* cmp, operator */ \
+  X(Eq,  ==) \
+  X(Ne,  !=) \
+  X(Ugt, >) \
+  X(Uge, >=) \
+  X(Ult, <) \
+  X(Ule, <=) \
+//#define X(cmp, op)
+
+#define ICMP_S_TABLE \
+  /* cmp, operator */ \
+  X(Sgt, >) \
+  X(Sge, >=) \
+  X(Slt, <) \
+  X(Sle, <=) \
+//#define X(cmp, op)
+
+#endif // TEST_ICMP_DEF

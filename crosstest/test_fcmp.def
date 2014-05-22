@@ -1,0 +1,27 @@
+#ifndef TEST_FCMP_DEF
+#define TEST_FCMP_DEF
+
+#define XSTR(s) STR(s)
+#define STR(s) #s
+
+#define FCMP_TABLE \
+  /* cmp */ \
+  X(False) \
+  X(Oeq) \
+  X(Ogt) \
+  X(Oge) \
+  X(Olt) \
+  X(Ole) \
+  X(One) \
+  X(Ord) \
+  X(Ueq) \
+  X(Ugt) \
+  X(Uge) \
+  X(Ult) \
+  X(Ule) \
+  X(Une) \
+  X(Uno) \
+  X(True) \
+//#define X(cmp)
+
+#endif // TEST_FCMP_DEF

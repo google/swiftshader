@@ -1,7 +1,3 @@
-; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
-; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
-; RUN:                           | FileCheck --check-prefix=DUMP %s
-
 ; This is a smoke test for floating-point constant pooling.  It tests
 ; pooling of various float and double constants (including positive
 ; and negative NaN) within functions and across functions.  Note that
@@ -9,6 +5,11 @@
 ; the constant "cannot be represented as a decimal floating point
 ; number in a reasonable number of digits".  See
 ; http://llvm.org/docs/LangRef.html#simple-constants .
+
+; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
+; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
+; RUN:                           | FileCheck --check-prefix=DUMP %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4

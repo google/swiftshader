@@ -1,5 +1,8 @@
-; RUIN: %llvm2ice -verbose inst %s | FileCheck %s
-; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; Simple smoke test of the call instruction.  The assembly checks
+; currently only verify the function labels.
+
+; RUN: %llvm2ice --verbose inst %s | FileCheck %s
+; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
 ; RUN:                           | FileCheck --check-prefix=DUMP %s
@@ -49,6 +52,7 @@ declare i32 @redirect_target(i32)
 
 define void @call_void(i32 %n) {
 ; CHECK: define void @call_void
+
 entry:
   %cmp2 = icmp sgt i32 %n, 0
   br i1 %cmp2, label %if.then, label %if.end

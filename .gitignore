@@ -10,3 +10,4 @@
 # Ignore specific patterns at the top-level directory
 /llvm2ice
 /build/
+/crosstest/Output/

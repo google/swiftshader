@@ -47,7 +47,12 @@ public:
     Ret,
     Select,
     Store,
-    Switch
+    Switch,
+    FakeDef,  // not part of LLVM/PNaCl bitcode
+    FakeUse,  // not part of LLVM/PNaCl bitcode
+    FakeKill, // not part of LLVM/PNaCl bitcode
+    Target    // target-specific low-level ICE
+              // Anything >= Target is an InstTarget subclass.
   };
   InstKind getKind() const { return Kind; }
 
@@ -83,10 +88,13 @@ public:
   // basic blocks, i.e. used in a different block from their definition.
   void updateVars(CfgNode *Node);
 
+  virtual void emit(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   void dumpDecorated(const Cfg *Func) const;
+  void emitSources(const Cfg *Func) const;
   void dumpSources(const Cfg *Func) const;
   void dumpDest(const Cfg *Func) const;
+  virtual bool isRedundantAssign() const { return false; }
 
   virtual ~Inst() {}
 
@@ -154,6 +162,7 @@ public:
     ICEINSTARITHMETIC_TABLE
 #undef X
   };
+
   static InstArithmetic *create(Cfg *Func, OpKind Op, Variable *Dest,
                                 Operand *Source1, Operand *Source2) {
     return new (Func->allocateInst<InstArithmetic>())
@@ -279,6 +288,7 @@ public:
     ICEINSTCAST_TABLE
 #undef X
   };
+
   static InstCast *create(Cfg *Func, OpKind CastKind, Variable *Dest,
                           Operand *Source) {
     return new (Func->allocateInst<InstCast>())
@@ -305,6 +315,7 @@ public:
     ICEINSTFCMP_TABLE
 #undef X
   };
+
   static InstFcmp *create(Cfg *Func, FCond Condition, Variable *Dest,
                           Operand *Source1, Operand *Source2) {
     return new (Func->allocateInst<InstFcmp>())
@@ -332,6 +343,7 @@ public:
     ICEINSTICMP_TABLE
 #undef X
   };
+
   static InstIcmp *create(Cfg *Func, ICond Condition, Variable *Dest,
                           Operand *Source1, Operand *Source2) {
     return new (Func->allocateInst<InstIcmp>())
@@ -376,6 +388,8 @@ public:
     return new (Func->allocateInst<InstPhi>()) InstPhi(Func, MaxSrcs, Dest);
   }
   void addArgument(Operand *Source, CfgNode *Label);
+  Operand *getOperandForTarget(CfgNode *Target) const;
+  Inst *lower(Cfg *Func, CfgNode *Node);
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Phi; }
 
@@ -520,6 +534,104 @@ private:
   InstUnreachable(const InstUnreachable &) LLVM_DELETED_FUNCTION;
   InstUnreachable &operator=(const InstUnreachable &) LLVM_DELETED_FUNCTION;
   virtual ~InstUnreachable() {}
+};
+
+// FakeDef instruction.  This creates a fake definition of a variable,
+// which is how we represent the case when an instruction produces
+// multiple results.  This doesn't happen with high-level ICE
+// instructions, but might with lowered instructions.  For example,
+// this would be a way to represent condition flags being modified by
+// an instruction.
+//
+// It's generally useful to set the optional source operand to be the
+// dest variable of the instruction that actually produces the FakeDef
+// dest.  Otherwise, the original instruction could be dead-code
+// eliminated if its dest operand is unused, and therefore the FakeDef
+// dest wouldn't be properly initialized.
+class InstFakeDef : public Inst {
+public:
+  static InstFakeDef *create(Cfg *Func, Variable *Dest, Variable *Src = NULL) {
+    return new (Func->allocateInst<InstFakeDef>()) InstFakeDef(Func, Dest, Src);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return Inst->getKind() == FakeDef; }
+
+private:
+  InstFakeDef(Cfg *Func, Variable *Dest, Variable *Src);
+  InstFakeDef(const InstFakeDef &) LLVM_DELETED_FUNCTION;
+  InstFakeDef &operator=(const InstFakeDef &) LLVM_DELETED_FUNCTION;
+  virtual ~InstFakeDef() {}
+};
+
+// FakeUse instruction.  This creates a fake use of a variable, to
+// keep the instruction that produces that variable from being
+// dead-code eliminated.  This is useful in a variety of lowering
+// situations.  The FakeUse instruction has no dest, so it can itself
+// never be dead-code eliminated.
+class InstFakeUse : public Inst {
+public:
+  static InstFakeUse *create(Cfg *Func, Variable *Src) {
+    return new (Func->allocateInst<InstFakeUse>()) InstFakeUse(Func, Src);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return Inst->getKind() == FakeUse; }
+
+private:
+  InstFakeUse(Cfg *Func, Variable *Src);
+  InstFakeUse(const InstFakeUse &) LLVM_DELETED_FUNCTION;
+  InstFakeUse &operator=(const InstFakeUse &) LLVM_DELETED_FUNCTION;
+  virtual ~InstFakeUse() {}
+};
+
+// FakeKill instruction.  This "kills" a set of variables by adding a
+// trivial live range at this instruction to each variable.  The
+// primary use is to indicate that scratch registers are killed after
+// a call, so that the register allocator won't assign a scratch
+// register to a variable whose live range spans a call.
+//
+// The FakeKill instruction also holds a pointer to the instruction
+// that kills the set of variables, so that if that linked instruction
+// gets dead-code eliminated, the FakeKill instruction will as well.
+class InstFakeKill : public Inst {
+public:
+  static InstFakeKill *create(Cfg *Func, const VarList &KilledRegs,
+                              const Inst *Linked) {
+    return new (Func->allocateInst<InstFakeKill>())
+        InstFakeKill(Func, KilledRegs, Linked);
+  }
+  const Inst *getLinked() const { return Linked; }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return Inst->getKind() == FakeKill; }
+
+private:
+  InstFakeKill(Cfg *Func, const VarList &KilledRegs, const Inst *Linked);
+  InstFakeKill(const InstFakeKill &) LLVM_DELETED_FUNCTION;
+  InstFakeKill &operator=(const InstFakeKill &) LLVM_DELETED_FUNCTION;
+  virtual ~InstFakeKill() {}
+
+  // This instruction is ignored if Linked->isDeleted() is true.
+  const Inst *Linked;
+};
+
+// The Target instruction is the base class for all target-specific
+// instructions.
+class InstTarget : public Inst {
+public:
+  virtual void emit(const Cfg *Func) const = 0;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return Inst->getKind() >= Target; }
+
+protected:
+  InstTarget(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest)
+      : Inst(Func, Kind, MaxSrcs, Dest) {
+    assert(Kind >= Target);
+  }
+  InstTarget(const InstTarget &) LLVM_DELETED_FUNCTION;
+  InstTarget &operator=(const InstTarget &) LLVM_DELETED_FUNCTION;
+  virtual ~InstTarget() {}
 };
 
 } // end of namespace Ice

@@ -1,0 +1,71 @@
+//===- subzero/src/IceInstX8632.def - X-macros for x86-32 insts -*- C++ -*-===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file defines properties of lowered x86-32 instructions in the
+// form of x-macros.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef SUBZERO_SRC_ICEINSTX8632_DEF
+#define SUBZERO_SRC_ICEINSTX8632_DEF
+
+#define REGX8632_TABLE                                                  \
+  /* val, init, name, name16, name8, scratch, preserved, stackptr,      \
+     frameptr, isI8, isInt, isFP */                                     \
+  X(Reg_eax, = 0,             "eax",  "ax", "al", 1, 0, 0, 0, 1, 1, 0)  \
+  X(Reg_ecx, = Reg_eax + 1,   "ecx",  "cx", "cl", 1, 0, 0, 0, 1, 1, 0)  \
+  X(Reg_edx, = Reg_eax + 2,   "edx",  "dx", "dl", 1, 0, 0, 0, 1, 1, 0)  \
+  X(Reg_ebx, = Reg_eax + 3,   "ebx",  "bx", "bl", 0, 1, 0, 0, 1, 1, 0)  \
+  X(Reg_esp, = Reg_eax + 4,   "esp",  "sp",     , 0, 0, 1, 0, 0, 1, 0)  \
+  X(Reg_ebp, = Reg_eax + 5,   "ebp",  "bp",     , 0, 1, 0, 1, 0, 1, 0)  \
+  X(Reg_esi, = Reg_eax + 6,   "esi",  "si",     , 0, 1, 0, 0, 0, 1, 0)  \
+  X(Reg_edi, = Reg_eax + 7,   "edi",  "di",     , 0, 1, 0, 0, 0, 1, 0)  \
+  X(Reg_ah,   /*none*/,       "???",      , "ah", 0, 0, 0, 0, 1, 0, 0)  \
+  X(Reg_xmm0, /*none*/,       "xmm0",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm1, = Reg_xmm0 + 1, "xmm1",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm2, = Reg_xmm0 + 2, "xmm2",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm3, = Reg_xmm0 + 3, "xmm3",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm4, = Reg_xmm0 + 4, "xmm4",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm5, = Reg_xmm0 + 5, "xmm5",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm6, = Reg_xmm0 + 6, "xmm6",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm7, = Reg_xmm0 + 7, "xmm7",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
+//#define X(val, init, name, name16, name8, scratch, preserved, stackptr,
+//          frameptr, isI8, isInt, isFP)
+
+
+#define ICEINSTX8632BR_TABLE   \
+  /* enum value, dump, emit */ \
+  X(Br_a,        "a",  "ja")   \
+  X(Br_ae,       "ae", "jae")  \
+  X(Br_b,        "b",  "jb")   \
+  X(Br_be,       "be", "jbe")  \
+  X(Br_e,        "e",  "je")   \
+  X(Br_g,        "g",  "jg")   \
+  X(Br_ge,       "ge", "jge")  \
+  X(Br_l,        "l",  "jl")   \
+  X(Br_le,       "le", "jle")  \
+  X(Br_ne,       "ne", "jne")  \
+  X(Br_np,       "np", "jnp")  \
+  X(Br_p,        "p",  "jp")   \
+//#define X(tag, dump, emit)
+
+#define ICETYPEX8632_TABLE                \
+  /* tag,         cvt, sdss, width */     \
+  X(IceType_void, "?",     , "???")       \
+  X(IceType_i1,   "i",     , "byte ptr")  \
+  X(IceType_i8,   "i",     , "byte ptr")  \
+  X(IceType_i16,  "i",     , "word ptr")  \
+  X(IceType_i32,  "i",     , "dword ptr") \
+  X(IceType_i64,  "i",     , "qword ptr") \
+  X(IceType_f32,  "s", "ss", "dword ptr") \
+  X(IceType_f64,  "d", "sd", "qword ptr") \
+  X(IceType_NUM,  "?",     , "???")       \
+//#define X(tag, cvt, sdss, width)
+
+#endif // SUBZERO_SRC_ICEINSTX8632_DEF

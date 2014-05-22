@@ -34,14 +34,23 @@ At this time, ``llvm2ice`` accepts a few arguments:
     ``-notranslate`` -- Suppress the ICE translation phase, which is useful if
     ICE is missing some support.
 
-    ``-target=<TARGET>`` -- Set the target architecture.  The default is x8632,
-    and x8632fast (generate x8632 code as fast as possible at the cost of code
-    quality) is also available.  Future targets include x8664, arm32, and arm64.
+    ``-target=<TARGET>`` -- Set the target architecture.  The default is x8632.
+    Future targets include x8664, arm32, and arm64.
+
+    ``-O<LEVEL>`` -- Set the optimization level.  Valid levels are ``2``, ``1``,
+    ``0``, ``-1``, and ``m1``.  Levels ``-1`` and ``m1`` are synonyms, and
+    represent the minimum optimization and worst code quality, but fastest code
+    generation.
 
     ``-verbose=<list>`` -- Set verbosity flags.  This argument allows a
     comma-separated list of values.  The default is ``none``, and the value
     ``inst,pred`` will roughly match the .ll bitcode file.  Of particular use
     are ``all`` and ``none``.
+
+    ``-o <FILE>`` -- Set the assembly output file name.  Default is stdout.
+
+    ``-log <FILE>`` -- Set the file name for diagnostic output (whose level is
+    controlled by ``-verbose``).  Default is stdout.
 
 See ir_samples/README.rst for more details.
 

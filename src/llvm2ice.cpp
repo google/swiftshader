@@ -165,8 +165,9 @@ private:
     return Ice::IceType_void;
   }
 
-  // Given a LLVM instruction and an operand number, produce the Operand this
-  // refers to. If there's no such operand, return NULL.
+  // Given an LLVM instruction and an operand number, produce the
+  // Ice::Operand this refers to. If there's no such operand, return
+  // NULL.
   Ice::Operand *convertOperand(const Instruction *Inst, unsigned OpNum) {
     if (OpNum >= Inst->getNumOperands()) {
       return NULL;
@@ -189,10 +190,10 @@ private:
           return Ctx->getConstantFloat(CFP->getValueAPF().convertToFloat());
         else if (Type == Ice::IceType_f64)
           return Ctx->getConstantDouble(CFP->getValueAPF().convertToDouble());
-        assert(0 && "Unexpected floating point type");
+        llvm_unreachable("Unexpected floating point type");
         return NULL;
       } else {
-        assert(0 && "Unhandled constant type");
+        llvm_unreachable("Unhandled constant type");
         return NULL;
       }
     } else {
@@ -534,7 +535,7 @@ private:
     return Ice::InstAlloca::create(Func, ByteCount, Align, Dest);
   }
 
-  Ice::Inst *convertUnreachableInstruction(const UnreachableInst *Inst) {
+  Ice::Inst *convertUnreachableInstruction(const UnreachableInst * /*Inst*/) {
     return Ice::InstUnreachable::create(Func);
   }
 
@@ -576,12 +577,35 @@ static cl::list<Ice::VerboseItem> VerboseList(
         clEnumValN(Ice::IceV_Timing, "time", "Pass timing details"),
         clEnumValN(Ice::IceV_All, "all", "Use all verbose options"),
         clEnumValN(Ice::IceV_None, "none", "No verbosity"), clEnumValEnd));
+static cl::opt<Ice::TargetArch> TargetArch(
+    "target", cl::desc("Target architecture:"), cl::init(Ice::Target_X8632),
+    cl::values(
+        clEnumValN(Ice::Target_X8632, "x8632", "x86-32"),
+        clEnumValN(Ice::Target_X8632, "x86-32", "x86-32 (same as x8632)"),
+        clEnumValN(Ice::Target_X8632, "x86_32", "x86-32 (same as x8632)"),
+        clEnumValN(Ice::Target_X8664, "x8664", "x86-64"),
+        clEnumValN(Ice::Target_X8664, "x86-64", "x86-64 (same as x8664)"),
+        clEnumValN(Ice::Target_X8664, "x86_64", "x86-64 (same as x8664)"),
+        clEnumValN(Ice::Target_ARM32, "arm", "arm32"),
+        clEnumValN(Ice::Target_ARM32, "arm32", "arm32 (same as arm)"),
+        clEnumValN(Ice::Target_ARM64, "arm64", "arm64"), clEnumValEnd));
+static cl::opt<Ice::OptLevel>
+OptLevel(cl::desc("Optimization level"), cl::init(Ice::Opt_m1),
+         cl::value_desc("level"),
+         cl::values(clEnumValN(Ice::Opt_m1, "Om1", "-1"),
+                    clEnumValN(Ice::Opt_m1, "O-1", "-1"),
+                    clEnumValN(Ice::Opt_0, "O0", "0"),
+                    clEnumValN(Ice::Opt_1, "O1", "1"),
+                    clEnumValN(Ice::Opt_2, "O2", "2"), clEnumValEnd));
 static cl::opt<std::string> IRFilename(cl::Positional, cl::desc("<IR file>"),
                                        cl::init("-"));
 static cl::opt<std::string> OutputFilename("o",
                                            cl::desc("Override output filename"),
                                            cl::init("-"),
                                            cl::value_desc("filename"));
+static cl::opt<std::string> LogFilename("log", cl::desc("Set log filename"),
+                                        cl::init("-"),
+                                        cl::value_desc("filename"));
 static cl::opt<std::string>
 TestPrefix("prefix", cl::desc("Prepend a prefix to symbol names for testing"),
            cl::init(""), cl::value_desc("prefix"));
@@ -605,6 +629,8 @@ InputFileFormat(
     cl::init(LLVMFormat));
 
 int main(int argc, char **argv) {
+  int ExitStatus = 0;
+
   cl::ParseCommandLineOptions(argc, argv);
 
   // Parse the input LLVM IR file into a module.
@@ -637,8 +663,14 @@ int main(int argc, char **argv) {
   raw_os_ostream *Os =
       new raw_os_ostream(OutputFilename == "-" ? std::cout : Ofs);
   Os->SetUnbuffered();
+  std::ofstream Lfs;
+  if (LogFilename != "-") {
+    Lfs.open(LogFilename.c_str(), std::ofstream::out);
+  }
+  raw_os_ostream *Ls = new raw_os_ostream(LogFilename == "-" ? std::cout : Lfs);
+  Ls->SetUnbuffered();
 
-  Ice::GlobalContext Ctx(Os, Os, VMask, TestPrefix);
+  Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix);
 
   for (Module::const_iterator I = Mod->begin(), E = Mod->end(); I != E; ++I) {
     if (I->empty())
@@ -658,8 +690,28 @@ int main(int argc, char **argv) {
 
     if (DisableTranslation) {
       Func->dump();
+    } else {
+      Ice::Timer TTranslate;
+      Func->translate();
+      if (SubzeroTimingEnabled) {
+        std::cerr << "[Subzero timing] Translate function "
+                  << Func->getFunctionName() << ": "
+                  << TTranslate.getElapsedSec() << " sec\n";
+      }
+      if (Func->hasError()) {
+        errs() << "ICE translation error: " << Func->getError() << "\n";
+        ExitStatus = 1;
+      }
+
+      Ice::Timer TEmit;
+      Func->emit();
+      if (SubzeroTimingEnabled) {
+        std::cerr << "[Subzero timing] Emit function "
+                  << Func->getFunctionName() << ": " << TEmit.getElapsedSec()
+                  << " sec\n";
+      }
     }
   }
 
-  return 0;
+  return ExitStatus;
 }

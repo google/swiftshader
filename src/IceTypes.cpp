@@ -41,7 +41,7 @@ size_t typeWidthInBytes(Type Ty) {
   if (Index < TypeAttributesSize) {
     Width = TypeAttributes[Index].TypeWidthInBytes;
   } else {
-    assert(0 && "Invalid type for typeWidthInBytes()");
+    llvm_unreachable("Invalid type for typeWidthInBytes()");
   }
   return Width;
 }
@@ -52,7 +52,7 @@ size_t typeAlignInBytes(Type Ty) {
   if (Index < TypeAttributesSize) {
     Align = TypeAttributes[Index].TypeAlignInBytes;
   } else {
-    assert(0 && "Invalid type for typeAlignInBytes()");
+    llvm_unreachable("Invalid type for typeAlignInBytes()");
   }
   return Align;
 }
@@ -65,7 +65,7 @@ template <> Ostream &operator<<(Ostream &Str, const Type &Ty) {
     Str << TypeAttributes[Index].DisplayString;
   } else {
     Str << "???";
-    assert(0 && "Invalid type for printing");
+    llvm_unreachable("Invalid type for printing");
   }
 
   return Str;

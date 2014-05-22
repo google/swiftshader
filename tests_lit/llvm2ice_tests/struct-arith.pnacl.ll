@@ -1,13 +1,11 @@
-; RUIN: %llvm2ice -verbose inst %s | FileCheck %s
-; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; This test is lowered from C code that does some simple aritmetic
+; with struct members.
+
+; RUN: %llvm2ice --verbose inst %s | FileCheck %s
+; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
 ; RUN:                           | FileCheck --check-prefix=DUMP %s
-
-; This file is lowered from C code that does some simple aritmetic with
-; struct members. It's also built with the PNaCl toolchain so this is the
-; stable ABI subset of LLVM IR (structs are gone, pointers turned into i32,
-; geps gone, etc.)
 
 define internal i32 @compute_important_function(i32 %v1, i32 %v2) {
 entry:

@@ -58,7 +58,7 @@ public:
   const NodeList &getNodes() const { return Nodes; }
 
   // Manage instruction numbering.
-  int newInstNumber() { return NextInstNumber++; }
+  int32_t newInstNumber() { return NextInstNumber++; }
 
   // Manage Variables.
   Variable *makeVariable(Type Ty, const CfgNode *Node,
@@ -70,16 +70,28 @@ public:
   void addArg(Variable *Arg);
   const VarList &getArgs() const { return Args; }
 
+  // Miscellaneous accessors.
+  TargetLowering *getTarget() const { return Target.get(); }
+  bool hasComputedFrame() const;
+
+  // Passes over the CFG.
+  void translate();
   // After the CFG is fully constructed, iterate over the nodes and
   // compute the predecessor edges, in the form of
   // CfgNode::InEdges[].
   void computePredecessors();
+  void placePhiLoads();
+  void placePhiStores();
+  void deletePhis();
+  void genCode();
+  void genFrame();
 
   // Manage the CurrentNode field, which is used for validating the
   // Variable::DefNode field during dumping/emitting.
   void setCurrentNode(const CfgNode *Node) { CurrentNode = Node; }
   const CfgNode *getCurrentNode() const { return CurrentNode; }
 
+  void emit();
   void dump();
 
   // Allocate data of type T using the per-Cfg allocator.
@@ -124,9 +136,10 @@ private:
   IceString ErrorMessage;
   CfgNode *Entry; // entry basic block
   NodeList Nodes; // linearized node list; Entry should be first
-  int NextInstNumber;
+  int32_t NextInstNumber;
   VarList Variables;
   VarList Args; // subset of Variables, in argument order
+  llvm::OwningPtr<TargetLowering> Target;
 
   // CurrentNode is maintained during dumping/emitting just for
   // validating Variable::DefNode.  Normally, a traversal over

@@ -85,5 +85,4 @@
   X(Sle,         "sle")
 //#define X(tag, str)
 
-
 #endif // SUBZERO_SRC_ICEINST_DEF

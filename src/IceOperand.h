@@ -49,6 +49,7 @@ public:
     assert(I < getNumVars());
     return Vars[I];
   }
+  virtual void emit(const Cfg *Func) const = 0;
   virtual void dump(const Cfg *Func) const = 0;
 
   // Query whether this object was allocated in isolation, or added to
@@ -79,6 +80,7 @@ private:
 // constants are allocated from a global arena and are pooled.
 class Constant : public Operand {
 public:
+  virtual void emit(const Cfg *Func) const = 0;
   virtual void dump(const Cfg *Func) const = 0;
 
   static bool classof(const Operand *Operand) {
@@ -107,6 +109,10 @@ public:
         ConstantPrimitive(Ty, Value);
   }
   T getValue() const { return Value; }
+  virtual void emit(const Cfg *Func) const {
+    Ostream &Str = Func->getContext()->getStrEmit();
+    Str << getValue();
+  }
   virtual void dump(const Cfg *Func) const {
     Ostream &Str = Func->getContext()->getStrDump();
     Str << getValue();
@@ -163,6 +169,7 @@ public:
   IceString getName() const { return Name; }
   void setSuppressMangling(bool Value) { SuppressMangling = Value; }
   bool getSuppressMangling() const { return SuppressMangling; }
+  virtual void emit(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
 
   static bool classof(const Operand *Operand) {
@@ -183,6 +190,34 @@ private:
   const IceString Name; // optional for debug/dump
   bool SuppressMangling;
 };
+
+// RegWeight is a wrapper for a uint32_t weight value, with a
+// special value that represents infinite weight, and an addWeight()
+// method that ensures that W+infinity=infinity.
+class RegWeight {
+public:
+  RegWeight() : Weight(0) {}
+  RegWeight(uint32_t Weight) : Weight(Weight) {}
+  const static uint32_t Inf = ~0; // Force regalloc to give a register
+  const static uint32_t Zero = 0; // Force regalloc NOT to give a register
+  void addWeight(uint32_t Delta) {
+    if (Delta == Inf)
+      Weight = Inf;
+    else if (Weight != Inf)
+      Weight += Delta;
+  }
+  void addWeight(const RegWeight &Other) { addWeight(Other.Weight); }
+  void setWeight(uint32_t Val) { Weight = Val; }
+  uint32_t getWeight() const { return Weight; }
+  bool isInf() const { return Weight == Inf; }
+
+private:
+  uint32_t Weight;
+};
+Ostream &operator<<(Ostream &Str, const RegWeight &W);
+bool operator<(const RegWeight &A, const RegWeight &B);
+bool operator<=(const RegWeight &A, const RegWeight &B);
+bool operator==(const RegWeight &A, const RegWeight &B);
 
 // Variable represents an operand that is register-allocated or
 // stack-allocated.  If it is register-allocated, it will ultimately
@@ -208,23 +243,66 @@ public:
   bool getIsArg() const { return IsArgument; }
   void setIsArg(Cfg *Func);
 
+  int32_t getStackOffset() const { return StackOffset; }
+  void setStackOffset(int32_t Offset) { StackOffset = Offset; }
+
+  static const int32_t NoRegister = -1;
+  bool hasReg() const { return getRegNum() != NoRegister; }
+  int32_t getRegNum() const { return RegNum; }
+  void setRegNum(int32_t NewRegNum) {
+    // Regnum shouldn't be set more than once.
+    assert(!hasReg() || RegNum == NewRegNum);
+    RegNum = NewRegNum;
+  }
+
+  RegWeight getWeight() const { return Weight; }
+  void setWeight(uint32_t NewWeight) { Weight = NewWeight; }
+  void setWeightInfinite() { Weight = RegWeight::Inf; }
+
+  Variable *getPreferredRegister() const { return RegisterPreference; }
+  bool getRegisterOverlap() const { return AllowRegisterOverlap; }
+  void setPreferredRegister(Variable *Prefer, bool Overlap) {
+    RegisterPreference = Prefer;
+    AllowRegisterOverlap = Overlap;
+  }
+
+  Variable *getLo() const { return LoVar; }
+  Variable *getHi() const { return HiVar; }
+  void setLoHi(Variable *Lo, Variable *Hi) {
+    assert(LoVar == NULL);
+    assert(HiVar == NULL);
+    LoVar = Lo;
+    HiVar = Hi;
+  }
+  // Creates a temporary copy of the variable with a different type.
+  // Used primarily for syntactic correctness of textual assembly
+  // emission.  Note that only basic information is copied, in
+  // particular not DefInst, IsArgument, Weight, RegisterPreference,
+  // AllowRegisterOverlap, LoVar, HiVar, VarsReal.
+  Variable asType(Type Ty);
+
+  virtual void emit(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
 
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == kVariable;
   }
 
+  // The destructor is public because of the asType() method.
+  virtual ~Variable() {}
+
 private:
   Variable(Type Ty, const CfgNode *Node, SizeT Index, const IceString &Name)
       : Operand(kVariable, Ty), Number(Index), Name(Name), DefInst(NULL),
-        DefNode(Node), IsArgument(false) {
+        DefNode(Node), IsArgument(false), StackOffset(0), RegNum(NoRegister),
+        Weight(1), RegisterPreference(NULL), AllowRegisterOverlap(false),
+        LoVar(NULL), HiVar(NULL) {
     Vars = VarsReal;
     Vars[0] = this;
     NumVars = 1;
   }
   Variable(const Variable &) LLVM_DELETED_FUNCTION;
   Variable &operator=(const Variable &) LLVM_DELETED_FUNCTION;
-  virtual ~Variable() {}
   // Number is unique across all variables, and is used as a
   // (bit)vector index for liveness analysis.
   const SizeT Number;
@@ -241,6 +319,32 @@ private:
   // of incrementally computing and maintaining the information.
   const CfgNode *DefNode;
   bool IsArgument;
+  // StackOffset is the canonical location on stack (only if
+  // RegNum<0 || IsArgument).
+  int32_t StackOffset;
+  // RegNum is the allocated register, or NoRegister if it isn't
+  // register-allocated.
+  int32_t RegNum;
+  RegWeight Weight; // Register allocation priority
+  // RegisterPreference says that if possible, the register allocator
+  // should prefer the register that was assigned to this linked
+  // variable.  It also allows a spill slot to share its stack
+  // location with another variable, if that variable does not get
+  // register-allocated and therefore has a stack location.
+  Variable *RegisterPreference;
+  // AllowRegisterOverlap says that it is OK to honor
+  // RegisterPreference and "share" a register even if the two live
+  // ranges overlap.
+  bool AllowRegisterOverlap;
+  // LoVar and HiVar are needed for lowering from 64 to 32 bits.  When
+  // lowering from I64 to I32 on a 32-bit architecture, we split the
+  // variable into two machine-size pieces.  LoVar is the low-order
+  // machine-size portion, and HiVar is the remaining high-order
+  // portion.  TODO: It's wasteful to penalize all variables on all
+  // targets this way; use a sparser representation.  It's also
+  // wasteful for a 64-bit target.
+  Variable *LoVar;
+  Variable *HiVar;
   // VarsReal (and Operand::Vars) are set up such that Vars[0] ==
   // this.
   Variable *VarsReal[1];

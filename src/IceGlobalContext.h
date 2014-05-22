@@ -30,7 +30,8 @@ namespace Ice {
 class GlobalContext {
 public:
   GlobalContext(llvm::raw_ostream *OsDump, llvm::raw_ostream *OsEmit,
-                VerboseMask Mask, IceString TestPrefix);
+                VerboseMask Mask, TargetArch Arch, OptLevel Opt,
+                IceString TestPrefix);
   ~GlobalContext();
 
   // Returns true if any of the specified options in the verbose mask
@@ -48,12 +49,24 @@ public:
   Ostream &getStrDump() { return StrDump; }
   Ostream &getStrEmit() { return StrEmit; }
 
+  TargetArch getTargetArch() const { return Arch; }
+  OptLevel getOptLevel() const { return Opt; }
+
   // When emitting assembly, we allow a string to be prepended to
   // names of translated functions.  This makes it easier to create an
   // execution test against a reference translator like llc, with both
   // translators using the same bitcode as input.
   IceString getTestPrefix() const { return TestPrefix; }
   IceString mangleName(const IceString &Name) const;
+
+  // The purpose of HasEmitted is to add a header comment at the
+  // beginning of assembly code emission, doing it once per file
+  // rather than once per function.
+  bool testAndSetHasEmittedFirstMethod() {
+    bool HasEmitted = HasEmittedFirstMethod;
+    HasEmittedFirstMethod = true;
+    return HasEmitted;
+  }
 
   // Manage Constants.
   // getConstant*() functions are not const because they might add
@@ -75,7 +88,10 @@ private:
   llvm::BumpPtrAllocator Allocator;
   VerboseMask VMask;
   llvm::OwningPtr<class ConstantPool> ConstPool;
+  const TargetArch Arch;
+  const OptLevel Opt;
   const IceString TestPrefix;
+  bool HasEmittedFirstMethod;
   GlobalContext(const GlobalContext &) LLVM_DELETED_FUNCTION;
   GlobalContext &operator=(const GlobalContext &) LLVM_DELETED_FUNCTION;
 };

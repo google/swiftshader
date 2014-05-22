@@ -1,5 +1,7 @@
-; RUIN: %llvm2ice %s -verbose inst | FileCheck %s
-; RUIN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; Simple test of the store instruction.
+
+; RUN: %llvm2ice --verbose inst %s | FileCheck %s
+; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
 ; RUN:                           | FileCheck --check-prefix=DUMP %s
@@ -10,6 +12,7 @@ entry:
   store i64 1, i64* %__1, align 1
   ret void
 
+; CHECK:       Initial CFG
 ; CHECK:       %__1 = i32 %addr_arg
 ; CHECK-NEXT:  store i64 1, {{.*}}, align 1
 ; CHECK-NEXT:  ret void
@@ -21,6 +24,7 @@ entry:
   store i32 1, i32* %__1, align 1
   ret void
 
+; CHECK:       Initial CFG
 ; CHECK:       %__1 = i32 %addr_arg
 ; CHECK-NEXT:  store i32 1, {{.*}}, align 1
 ; CHECK-NEXT:  ret void
@@ -32,6 +36,7 @@ entry:
   store i16 1, i16* %__1, align 1
   ret void
 
+; CHECK:       Initial CFG
 ; CHECK:       %__1 = i32 %addr_arg
 ; CHECK-NEXT:  store i16 1, {{.*}}, align 1
 ; CHECK-NEXT:  ret void
@@ -43,6 +48,7 @@ entry:
   store i8 1, i8* %__1, align 1
   ret void
 
+; CHECK:       Initial CFG
 ; CHECK:       %__1 = i32 %addr_arg
 ; CHECK-NEXT:  store i8 1, {{.*}}, align 1
 ; CHECK-NEXT:  ret void
