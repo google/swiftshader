@@ -47,6 +47,7 @@ public:
   virtual void emitVariable(const Variable *Var, const Cfg *Func) const;
   virtual void addProlog(CfgNode *Node);
   virtual void addEpilog(CfgNode *Node);
+  virtual void emitConstants() const;
   SizeT makeNextLabelNumber() { return NextLabelNumber++; }
   // Ensure that a 64-bit Variable has been split into 2 32-bit
   // Variables, creating them if necessary.  This is needed for all
@@ -261,7 +262,11 @@ private:
   TargetX8632(const TargetX8632 &) LLVM_DELETED_FUNCTION;
   TargetX8632 &operator=(const TargetX8632 &) LLVM_DELETED_FUNCTION;
   virtual ~TargetX8632() {}
+  template <typename T> void emitConstantPool() const;
 };
+
+template <> void ConstantFloat::emit(const Cfg *Func) const;
+template <> void ConstantDouble::emit(const Cfg *Func) const;
 
 } // end of namespace Ice
 

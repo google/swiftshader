@@ -34,15 +34,26 @@ class TypePool {
   TypePool &operator=(const TypePool &) LLVM_DELETED_FUNCTION;
 
 public:
-  TypePool() {}
+  TypePool() : NextPoolID(0) {}
   ValueType *getOrAdd(GlobalContext *Ctx, Type Ty, KeyType Key) {
     TupleType TupleKey = std::make_pair(Ty, Key);
     typename ContainerType::const_iterator Iter = Pool.find(TupleKey);
     if (Iter != Pool.end())
       return Iter->second;
-    ValueType *Result = ValueType::create(Ctx, Ty, Key);
+    ValueType *Result = ValueType::create(Ctx, Ty, Key, NextPoolID++);
     Pool[TupleKey] = Result;
     return Result;
+  }
+  ConstantList getConstantPool() const {
+    ConstantList Constants;
+    Constants.reserve(Pool.size());
+    // TODO: replace the loop with std::transform + lambdas.
+    for (typename ContainerType::const_iterator I = Pool.begin(),
+                                                E = Pool.end();
+         I != E; ++I) {
+      Constants.push_back(I->second);
+    }
+    return Constants;
   }
 
 private:
@@ -58,6 +69,7 @@ private:
   };
   typedef std::map<const TupleType, ValueType *, TupleCompare> ContainerType;
   ContainerType Pool;
+  uint32_t NextPoolID;
 };
 
 // The global constant pool bundles individual pools of each type of
@@ -169,6 +181,25 @@ Constant *GlobalContext::getConstantSym(Type Ty, int64_t Offset,
                                         bool SuppressMangling) {
   return ConstPool->Relocatables.getOrAdd(
       this, Ty, RelocatableTuple(Offset, Name, SuppressMangling));
+}
+
+ConstantList GlobalContext::getConstantPool(Type Ty) const {
+  switch (Ty) {
+  case IceType_i1:
+  case IceType_i8:
+  case IceType_i16:
+  case IceType_i32:
+  case IceType_i64:
+    return ConstPool->Integers.getConstantPool();
+  case IceType_f32:
+    return ConstPool->Floats.getConstantPool();
+  case IceType_f64:
+    return ConstPool->Doubles.getConstantPool();
+  case IceType_void:
+  case IceType_NUM:
+    break;
+  }
+  llvm_unreachable("Unknown type");
 }
 
 void Timer::printElapsedUs(GlobalContext *Ctx, const IceString &Tag) const {

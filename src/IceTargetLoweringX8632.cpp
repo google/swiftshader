@@ -562,6 +562,71 @@ void TargetX8632::addEpilog(CfgNode *Node) {
   }
 }
 
+template <typename T> struct PoolTypeConverter {};
+
+template <> struct PoolTypeConverter<float> {
+  typedef float PrimitiveFpType;
+  typedef uint32_t PrimitiveIntType;
+  typedef ConstantFloat IceType;
+  static const Type Ty = IceType_f32;
+  static const char *TypeName;
+  static const char *AsmTag;
+  static const char *PrintfString;
+};
+const char *PoolTypeConverter<float>::TypeName = "float";
+const char *PoolTypeConverter<float>::AsmTag = ".long";
+const char *PoolTypeConverter<float>::PrintfString = "0x%x";
+
+template <> struct PoolTypeConverter<double> {
+  typedef double PrimitiveFpType;
+  typedef uint64_t PrimitiveIntType;
+  typedef ConstantDouble IceType;
+  static const Type Ty = IceType_f64;
+  static const char *TypeName;
+  static const char *AsmTag;
+  static const char *PrintfString;
+};
+const char *PoolTypeConverter<double>::TypeName = "double";
+const char *PoolTypeConverter<double>::AsmTag = ".quad";
+const char *PoolTypeConverter<double>::PrintfString = "0x%llx";
+
+template <typename T> void TargetX8632::emitConstantPool() const {
+  Ostream &Str = Ctx->getStrEmit();
+  Type Ty = T::Ty;
+  SizeT Align = typeAlignInBytes(Ty);
+  ConstantList Pool = Ctx->getConstantPool(Ty);
+
+  Str << "\t.section\t.rodata.cst" << Align << ",\"aM\",@progbits," << Align
+      << "\n";
+  Str << "\t.align\t" << Align << "\n";
+  for (ConstantList::const_iterator I = Pool.begin(), E = Pool.end(); I != E;
+       ++I) {
+    typename T::IceType *Const = llvm::cast<typename T::IceType>(*I);
+    typename T::PrimitiveFpType Value = Const->getValue();
+    // Use memcpy() to copy bits from Value into RawValue in a way
+    // that avoids breaking strict-aliasing rules.
+    typename T::PrimitiveIntType RawValue;
+    memcpy(&RawValue, &Value, sizeof(Value));
+    char buf[30];
+    int CharsPrinted =
+        snprintf(buf, llvm::array_lengthof(buf), T::PrintfString, RawValue);
+    assert(CharsPrinted >= 0 &&
+           (size_t)CharsPrinted < llvm::array_lengthof(buf));
+    (void)CharsPrinted; // avoid warnings if asserts are disabled
+    Str << "L$" << Ty << "$" << Const->getPoolEntryID() << ":\n";
+    Str << "\t" << T::AsmTag << "\t" << buf << "\t# " << T::TypeName << " "
+        << Value << "\n";
+  }
+}
+
+void TargetX8632::emitConstants() const {
+  emitConstantPool<PoolTypeConverter<float> >();
+  emitConstantPool<PoolTypeConverter<double> >();
+
+  // No need to emit constants from the int pool since (for x86) they
+  // are embedded as immediates in the instructions.
+}
+
 void TargetX8632::split64(Variable *Var) {
   switch (Var->getType()) {
   default:
@@ -1876,6 +1941,18 @@ void TargetX8632::postLower() {
       }
     }
   }
+}
+
+template <> void ConstantFloat::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  // It would be better to prefix with ".L$" instead of "L$", but
+  // llvm-mc doesn't parse "dword ptr [.L$foo]".
+  Str << "dword ptr [L$" << IceType_f32 << "$" << getPoolEntryID() << "]";
+}
+
+template <> void ConstantDouble::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "qword ptr [L$" << IceType_f64 << "$" << getPoolEntryID() << "]";
 }
 
 } // end of namespace Ice

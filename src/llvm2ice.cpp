@@ -19,6 +19,7 @@
 #include "IceGlobalContext.h"
 #include "IceInst.h"
 #include "IceOperand.h"
+#include "IceTargetLowering.h"
 #include "IceTypes.h"
 
 #include "llvm/IR/Constant.h"
@@ -63,6 +64,7 @@ public:
     SubzeroPointerType = Ice::IceType_i32;
   }
 
+  // Caller is expected to delete the returned Ice::Cfg object.
   Ice::Cfg *convertFunction(const Function *F) {
     VarMap.clear();
     NodeMap.clear();
@@ -618,14 +620,11 @@ DisableTranslation("notranslate", cl::desc("Disable Subzero translation"));
 static cl::opt<bool> SubzeroTimingEnabled(
     "timing", cl::desc("Enable breakdown timing of Subzero translation"));
 
-static cl::opt<NaClFileFormat>
-InputFileFormat(
-    "bitcode-format",
-    cl::desc("Define format of input file:"),
-    cl::values(
-        clEnumValN(LLVMFormat, "llvm", "LLVM file (default)"),
-        clEnumValN(PNaClFormat, "pnacl", "PNaCl bitcode file"),
-        clEnumValEnd),
+static cl::opt<NaClFileFormat> InputFileFormat(
+    "bitcode-format", cl::desc("Define format of input file:"),
+    cl::values(clEnumValN(LLVMFormat, "llvm", "LLVM file (default)"),
+               clEnumValN(PNaClFormat, "pnacl", "PNaCl bitcode file"),
+               clEnumValEnd),
     cl::init(LLVMFormat));
 
 int main(int argc, char **argv) {
@@ -670,6 +669,15 @@ int main(int argc, char **argv) {
   raw_os_ostream *Ls = new raw_os_ostream(LogFilename == "-" ? std::cout : Lfs);
   Ls->SetUnbuffered();
 
+  // Ideally, Func would be declared inside the loop and its object
+  // would be automatically deleted at the end of the loop iteration.
+  // However, emitting the constant pool requires a valid Cfg object,
+  // so we need to defer deleting the last non-empty Cfg object until
+  // outside the loop and after emitting the constant pool.  TODO:
+  // Since all constants are globally pooled in the Ice::GlobalContext
+  // object, change all Ice::Constant related functions to use
+  // GlobalContext instead of Cfg, and then clean up this loop.
+  OwningPtr<Ice::Cfg> Func;
   Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix);
 
   for (Module::const_iterator I = Mod->begin(), E = Mod->end(); I != E; ++I) {
@@ -678,7 +686,7 @@ int main(int argc, char **argv) {
     LLVM2ICEConverter FunctionConverter(&Ctx);
 
     Ice::Timer TConvert;
-    Ice::Cfg *Func = FunctionConverter.convertFunction(I);
+    Func.reset(FunctionConverter.convertFunction(I));
     if (DisableInternal)
       Func->setInternal(false);
 
@@ -712,6 +720,9 @@ int main(int argc, char **argv) {
       }
     }
   }
+
+  if (!DisableTranslation && Func)
+    Func->getTarget()->emitConstants();
 
   return ExitStatus;
 }

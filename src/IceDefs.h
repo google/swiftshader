@@ -61,6 +61,7 @@ typedef std::list<Inst *> InstList;
 typedef std::list<InstPhi *> PhiList;
 typedef std::vector<Variable *> VarList;
 typedef std::vector<CfgNode *> NodeList;
+typedef std::vector<Constant *> ConstantList;
 
 // SizeT is for holding small-ish limits like number of source
 // operands in an instruction.  It is used instead of size_t (which

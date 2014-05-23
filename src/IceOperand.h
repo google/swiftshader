@@ -80,6 +80,7 @@ private:
 // constants are allocated from a global arena and are pooled.
 class Constant : public Operand {
 public:
+  uint32_t getPoolEntryID() const { return PoolEntryID; }
   virtual void emit(const Cfg *Func) const = 0;
   virtual void dump(const Cfg *Func) const = 0;
 
@@ -89,11 +90,16 @@ public:
   }
 
 protected:
-  Constant(OperandKind Kind, Type Ty) : Operand(Kind, Ty) {
+  Constant(OperandKind Kind, Type Ty, uint32_t PoolEntryID)
+      : Operand(Kind, Ty), PoolEntryID(PoolEntryID) {
     Vars = NULL;
     NumVars = 0;
   }
   virtual ~Constant() {}
+  // PoolEntryID is an integer that uniquely identifies the constant
+  // within its constant pool.  It is used for building the constant
+  // pool in the object code and for referencing its entries.
+  const uint32_t PoolEntryID;
 
 private:
   Constant(const Constant &) LLVM_DELETED_FUNCTION;
@@ -104,9 +110,10 @@ private:
 template <typename T, Operand::OperandKind K>
 class ConstantPrimitive : public Constant {
 public:
-  static ConstantPrimitive *create(GlobalContext *Ctx, Type Ty, T Value) {
+  static ConstantPrimitive *create(GlobalContext *Ctx, Type Ty, T Value,
+                                   uint32_t PoolEntryID) {
     return new (Ctx->allocate<ConstantPrimitive>())
-        ConstantPrimitive(Ty, Value);
+        ConstantPrimitive(Ty, Value, PoolEntryID);
   }
   T getValue() const { return Value; }
   virtual void emit(const Cfg *Func) const {
@@ -123,7 +130,8 @@ public:
   }
 
 private:
-  ConstantPrimitive(Type Ty, T Value) : Constant(K, Ty), Value(Value) {}
+  ConstantPrimitive(Type Ty, T Value, uint32_t PoolEntryID)
+      : Constant(K, Ty, PoolEntryID), Value(Value) {}
   ConstantPrimitive(const ConstantPrimitive &) LLVM_DELETED_FUNCTION;
   ConstantPrimitive &operator=(const ConstantPrimitive &) LLVM_DELETED_FUNCTION;
   virtual ~ConstantPrimitive() {}
@@ -161,9 +169,10 @@ bool operator<(const RelocatableTuple &A, const RelocatableTuple &B);
 class ConstantRelocatable : public Constant {
 public:
   static ConstantRelocatable *create(GlobalContext *Ctx, Type Ty,
-                                     const RelocatableTuple &Tuple) {
+                                     const RelocatableTuple &Tuple,
+                                     uint32_t PoolEntryID) {
     return new (Ctx->allocate<ConstantRelocatable>()) ConstantRelocatable(
-        Ty, Tuple.Offset, Tuple.Name, Tuple.SuppressMangling);
+        Ty, Tuple.Offset, Tuple.Name, Tuple.SuppressMangling, PoolEntryID);
   }
   int64_t getOffset() const { return Offset; }
   IceString getName() const { return Name; }
@@ -179,9 +188,9 @@ public:
 
 private:
   ConstantRelocatable(Type Ty, int64_t Offset, const IceString &Name,
-                      bool SuppressMangling)
-      : Constant(kConstRelocatable, Ty), Offset(Offset), Name(Name),
-        SuppressMangling(SuppressMangling) {}
+                      bool SuppressMangling, uint32_t PoolEntryID)
+      : Constant(kConstRelocatable, Ty, PoolEntryID), Offset(Offset),
+        Name(Name), SuppressMangling(SuppressMangling) {}
   ConstantRelocatable(const ConstantRelocatable &) LLVM_DELETED_FUNCTION;
   ConstantRelocatable &
   operator=(const ConstantRelocatable &) LLVM_DELETED_FUNCTION;
