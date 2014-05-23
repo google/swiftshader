@@ -101,6 +101,7 @@ void xMacroIntegrityCheck() {
 #define X(val, dflt, swap, C1, C2) _tmp_##val,
       FCMPX8632_TABLE
 #undef X
+          _num
     };
 // Define a set of constants based on high-level table entries.
 #define X(tag, str) static const int _table1_##tag = InstFcmp::tag;
@@ -128,6 +129,7 @@ void xMacroIntegrityCheck() {
 #define X(val, C_32, C1_64, C2_64, C3_64) _tmp_##val,
       ICMPX8632_TABLE
 #undef X
+          _num
     };
 // Define a set of constants based on high-level table entries.
 #define X(tag, str) static const int _table1_##tag = InstIcmp::tag;
@@ -155,6 +157,7 @@ void xMacroIntegrityCheck() {
 #define X(tag, cvt, sdss, width) _tmp_##tag,
       ICETYPEX8632_TABLE
 #undef X
+          _num
     };
 // Define a set of constants based on high-level table entries.
 #define X(tag, size, align, str) static const int _table1_##tag = tag;
@@ -276,14 +279,14 @@ IceString TargetX8632::getRegName(SizeT RegNum, Type Ty) const {
   static IceString RegNames8[] = {
 #define X(val, init, name, name16, name8, scratch, preserved, stackptr,        \
           frameptr, isI8, isInt, isFP)                                         \
-  "" name8,
+  name8,
     REGX8632_TABLE
 #undef X
   };
   static IceString RegNames16[] = {
 #define X(val, init, name, name16, name8, scratch, preserved, stackptr,        \
           frameptr, isI8, isInt, isFP)                                         \
-  "" name16,
+  name16,
     REGX8632_TABLE
 #undef X
   };
@@ -761,6 +764,9 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
     Operand *Src1Hi = hiOperand(Src1);
     Variable *T_Lo = NULL, *T_Hi = NULL;
     switch (Inst->getOp()) {
+    case InstArithmetic::_num:
+      llvm_unreachable("Unknown arithmetic operator");
+      break;
     case InstArithmetic::Add:
       _mov(T_Lo, Src0Lo);
       _add(T_Lo, Src1Lo);
@@ -979,6 +985,9 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
     Variable *T_edx = NULL;
     Variable *T = NULL;
     switch (Inst->getOp()) {
+    case InstArithmetic::_num:
+      llvm_unreachable("Unknown arithmetic operator");
+      break;
     case InstArithmetic::Add:
       _mov(T, Src0);
       _add(T, Src1);

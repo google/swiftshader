@@ -161,6 +161,7 @@ public:
 #define X(tag, str, commutative) tag,
     ICEINSTARITHMETIC_TABLE
 #undef X
+        _num
   };
 
   static InstArithmetic *create(Cfg *Func, OpKind Op, Variable *Dest,
@@ -287,6 +288,7 @@ public:
 #define X(tag, str) tag,
     ICEINSTCAST_TABLE
 #undef X
+        _num
   };
 
   static InstCast *create(Cfg *Func, OpKind CastKind, Variable *Dest,
@@ -314,6 +316,7 @@ public:
 #define X(tag, str) tag,
     ICEINSTFCMP_TABLE
 #undef X
+        _num
   };
 
   static InstFcmp *create(Cfg *Func, FCond Condition, Variable *Dest,
@@ -342,6 +345,7 @@ public:
 #define X(tag, str) tag,
     ICEINSTICMP_TABLE
 #undef X
+        _num
   };
 
   static InstIcmp *create(Cfg *Func, ICond Condition, Variable *Dest,

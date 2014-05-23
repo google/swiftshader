@@ -26,7 +26,6 @@
   X(IceType_i64,  8,    1,     "i64")              \
   X(IceType_f32,  4,    4,     "float")            \
   X(IceType_f64,  8,    8,     "double")           \
-  X(IceType_NUM,  0,    0,     "<invalid>")        \
 //#define X(tag, size, align, str)
 
 #endif // SUBZERO_SRC_ICETYPES_DEF

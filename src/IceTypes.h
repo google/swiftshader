@@ -24,6 +24,7 @@ enum Type {
 #define X(tag, size, align, str) tag,
   ICETYPE_TABLE
 #undef X
+      IceType_NUM
 };
 
 enum TargetArch {

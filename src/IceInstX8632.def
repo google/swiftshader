@@ -22,19 +22,19 @@
   X(Reg_ecx, = Reg_eax + 1,   "ecx",  "cx", "cl", 1, 0, 0, 0, 1, 1, 0)  \
   X(Reg_edx, = Reg_eax + 2,   "edx",  "dx", "dl", 1, 0, 0, 0, 1, 1, 0)  \
   X(Reg_ebx, = Reg_eax + 3,   "ebx",  "bx", "bl", 0, 1, 0, 0, 1, 1, 0)  \
-  X(Reg_esp, = Reg_eax + 4,   "esp",  "sp",     , 0, 0, 1, 0, 0, 1, 0)  \
-  X(Reg_ebp, = Reg_eax + 5,   "ebp",  "bp",     , 0, 1, 0, 1, 0, 1, 0)  \
-  X(Reg_esi, = Reg_eax + 6,   "esi",  "si",     , 0, 1, 0, 0, 0, 1, 0)  \
-  X(Reg_edi, = Reg_eax + 7,   "edi",  "di",     , 0, 1, 0, 0, 0, 1, 0)  \
-  X(Reg_ah,   /*none*/,       "???",      , "ah", 0, 0, 0, 0, 1, 0, 0)  \
-  X(Reg_xmm0, /*none*/,       "xmm0",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
-  X(Reg_xmm1, = Reg_xmm0 + 1, "xmm1",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
-  X(Reg_xmm2, = Reg_xmm0 + 2, "xmm2",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
-  X(Reg_xmm3, = Reg_xmm0 + 3, "xmm3",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
-  X(Reg_xmm4, = Reg_xmm0 + 4, "xmm4",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
-  X(Reg_xmm5, = Reg_xmm0 + 5, "xmm5",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
-  X(Reg_xmm6, = Reg_xmm0 + 6, "xmm6",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
-  X(Reg_xmm7, = Reg_xmm0 + 7, "xmm7",     ,     , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_esp, = Reg_eax + 4,   "esp",  "sp", ""  , 0, 0, 1, 0, 0, 1, 0)  \
+  X(Reg_ebp, = Reg_eax + 5,   "ebp",  "bp", ""  , 0, 1, 0, 1, 0, 1, 0)  \
+  X(Reg_esi, = Reg_eax + 6,   "esi",  "si", ""  , 0, 1, 0, 0, 0, 1, 0)  \
+  X(Reg_edi, = Reg_eax + 7,   "edi",  "di", ""  , 0, 1, 0, 0, 0, 1, 0)  \
+  X(Reg_ah,  = Reg_edi + 1,   "???",  ""  , "ah", 0, 0, 0, 0, 1, 0, 0)  \
+  X(Reg_xmm0, = Reg_ah + 1,   "xmm0", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm1, = Reg_xmm0 + 1, "xmm1", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm2, = Reg_xmm0 + 2, "xmm2", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm3, = Reg_xmm0 + 3, "xmm3", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm4, = Reg_xmm0 + 4, "xmm4", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm5, = Reg_xmm0 + 5, "xmm5", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm6, = Reg_xmm0 + 6, "xmm6", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_xmm7, = Reg_xmm0 + 7, "xmm7", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
 //#define X(val, init, name, name16, name8, scratch, preserved, stackptr,
 //          frameptr, isI8, isInt, isFP)
 
@@ -57,15 +57,14 @@
 
 #define ICETYPEX8632_TABLE                \
   /* tag,         cvt, sdss, width */     \
-  X(IceType_void, "?",     , "???")       \
-  X(IceType_i1,   "i",     , "byte ptr")  \
-  X(IceType_i8,   "i",     , "byte ptr")  \
-  X(IceType_i16,  "i",     , "word ptr")  \
-  X(IceType_i32,  "i",     , "dword ptr") \
-  X(IceType_i64,  "i",     , "qword ptr") \
+  X(IceType_void, "?", ""  , "???")       \
+  X(IceType_i1,   "i", ""  , "byte ptr")  \
+  X(IceType_i8,   "i", ""  , "byte ptr")  \
+  X(IceType_i16,  "i", ""  , "word ptr")  \
+  X(IceType_i32,  "i", ""  , "dword ptr") \
+  X(IceType_i64,  "i", ""  , "qword ptr") \
   X(IceType_f32,  "s", "ss", "dword ptr") \
   X(IceType_f64,  "d", "sd", "qword ptr") \
-  X(IceType_NUM,  "?",     , "???")       \
 //#define X(tag, cvt, sdss, width)
 
 #endif // SUBZERO_SRC_ICEINSTX8632_DEF
