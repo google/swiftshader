@@ -80,9 +80,6 @@ namespace egl
 		ContextSet mContextSet;
 
 		bool createDevice();
-
-		void initExtensionString();
-		std::string mExtensionString;
 	};
 }
 

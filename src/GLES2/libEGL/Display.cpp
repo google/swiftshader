@@ -165,8 +165,6 @@ bool Display::initialize()
         return false;
     }
 
-    initExtensionString();
-
     return true;
 }
 
@@ -501,22 +499,6 @@ gl::Device *Display::getDevice()
     }
 
     return mDevice;
-}
-
-void Display::initExtensionString()
-{
-    mExtensionString += "EGL_ANGLE_query_surface_pointer ";
-
-    std::string::size_type end = mExtensionString.find_last_not_of(' ');
-    if(end != std::string::npos)
-    {
-        mExtensionString.resize(end + 1);
-    }
-}
-
-const char *Display::getExtensionString() const
-{
-    return mExtensionString.c_str();
 }
 
 EGLNativeDisplayType Display::getNativeDisplay() const

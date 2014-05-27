@@ -182,15 +182,15 @@ const char *EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name)
             return NULL;
         }
 
-        switch (name)
+        switch(name)
         {
-          case EGL_CLIENT_APIS:
+        case EGL_CLIENT_APIS:
             return success("OpenGL_ES");
-          case EGL_EXTENSIONS:
-            return display->getExtensionString();
-          case EGL_VENDOR:
+        case EGL_EXTENSIONS:
+            return success("EGL_KHR_image_base");
+        case EGL_VENDOR:
             return success("TransGaming Inc.");
-          case EGL_VERSION:
+        case EGL_VERSION:
             return success("1.4 SwiftShader "VERSION_STRING);
         }
 
@@ -1060,6 +1060,82 @@ EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface, EGLNat
     return EGL_FALSE;
 }
 
+EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list)
+{
+    try
+    {
+        egl::Display *display = static_cast<egl::Display*>(dpy);
+        gl::Context *context = static_cast<gl::Context*>(ctx);
+
+        if(!validateDisplay(display))
+        {
+            return error(EGL_BAD_DISPLAY, EGL_NO_IMAGE_KHR);
+        }
+
+        if(context != EGL_NO_CONTEXT && !display->isValidContext(context))
+        {
+            return error(EGL_BAD_CONTEXT, EGL_NO_IMAGE_KHR);
+        }
+
+        switch(target)
+        {
+        default:
+            return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+        }
+
+        EGLenum imagePreserved = EGL_FALSE;
+        if(attrib_list)
+        {
+            for(const EGLint *attribute = attrib_list; attribute[0] != EGL_NONE; attribute += 2)
+            {
+                if(attribute[0] == EGL_IMAGE_PRESERVED_KHR)
+                {
+                    imagePreserved = attribute[1];
+                }
+                else
+                {
+                    return error(EGL_BAD_ATTRIBUTE, EGL_NO_IMAGE_KHR);
+                }
+            }
+        }
+
+        UNIMPLEMENTED();   // FIXME
+
+        return success((EGLImageKHR)0);
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(EGL_BAD_ALLOC, EGL_NO_IMAGE_KHR);
+    }
+
+    return EGL_NO_IMAGE_KHR;
+}
+
+EGLBoolean EGLAPIENTRY eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
+{
+    try
+    {
+        egl::Display *display = static_cast<egl::Display*>(dpy);
+
+        if(!validateDisplay(display))
+        {
+            return error(EGL_BAD_DISPLAY, EGL_FALSE);
+        }
+
+        // FIXME
+        UNIMPLEMENTED();
+        return error(EGL_BAD_PARAMETER, EGL_FALSE);
+
+        return success(EGL_TRUE);
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(EGL_BAD_ALLOC, EGL_FALSE);
+    }
+
+    return EGL_FALSE;
+}
+
 __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const char *procname)
 {
     TRACE("(const char *procname = \"%s\")", procname);
@@ -1074,7 +1150,8 @@ __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const cha
 
         static const Extension eglExtensions[] =
         {
-            {"", NULL},
+            {"eglCreateImageKHR", (__eglMustCastToProperFunctionPointerType)eglCreateImageKHR},
+            {"eglDestroyImageKHR", (__eglMustCastToProperFunctionPointerType)eglDestroyImageKHR},
         };
 
         for(int ext = 0; ext < sizeof(eglExtensions) / sizeof(Extension); ext++)
