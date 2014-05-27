@@ -45,6 +45,9 @@ namespace gl
 		virtual void release();
 		void unbind();   // Break parent ownership and release
 
+		bool isShared() const;
+		void markShared();
+
 		static sw::Format selectInternalFormat(GLenum format, GLenum type);
 		static int bytes(sw::Format format);
 
@@ -75,6 +78,7 @@ namespace gl
 		void loadD24S8ImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer);
 
 		Texture *parentTexture;
+		bool shared;   // Used as an EGLImage
 
 		const GLsizei width;
 		const GLsizei height;

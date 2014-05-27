@@ -35,6 +35,7 @@ namespace gl
 		, internalFormat(selectInternalFormat(format, type)), multiSampleDepth(1)
 		, sw::Surface(getParentResource(parentTexture), width, height, 1, selectInternalFormat(format, type), true, true)
 	{
+        shared = false;
 		referenceCount = 1;
 	}
 
@@ -42,6 +43,7 @@ namespace gl
 		: parentTexture(parentTexture), width(width), height(height), internalFormat(internalFormat), format(format), type(type), multiSampleDepth(multiSampleDepth)
 		, sw::Surface(getParentResource(parentTexture), width, height, multiSampleDepth, internalFormat, lockable, renderTarget)
 	{
+        shared = false;
 		referenceCount = 1;
 	}
 
@@ -129,6 +131,16 @@ namespace gl
 
 		release();
 	}
+
+    bool Image::isShared() const
+    {
+        return shared;
+    }
+
+    void Image::markShared()
+    {
+        shared = true;
+    }
 
 	sw::Format Image::selectInternalFormat(GLenum format, GLenum type)
 	{

@@ -187,7 +187,8 @@ const char *EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name)
         case EGL_CLIENT_APIS:
             return success("OpenGL_ES");
         case EGL_EXTENSIONS:
-            return success("EGL_KHR_image_base");
+            return success("EGL_KHR_gl_texture_2D_image "
+                           "EGL_KHR_image_base");
         case EGL_VENDOR:
             return success("TransGaming Inc.");
         case EGL_VERSION:
@@ -1079,11 +1080,14 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
 
         switch(target)
         {
+        case EGL_GL_TEXTURE_2D_KHR:
+            break;
         default:
             return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
         }
 
         EGLenum imagePreserved = EGL_FALSE;
+        GLuint textureLevel = 0;
         if(attrib_list)
         {
             for(const EGLint *attribute = attrib_list; attribute[0] != EGL_NONE; attribute += 2)
@@ -1092,6 +1096,10 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
                 {
                     imagePreserved = attribute[1];
                 }
+                else if(attribute[0] == EGL_GL_TEXTURE_LEVEL_KHR)
+                {
+                    textureLevel = attribute[1];
+                }
                 else
                 {
                     return error(EGL_BAD_ATTRIBUTE, EGL_NO_IMAGE_KHR);
@@ -1099,9 +1107,52 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
             }
         }
 
-        UNIMPLEMENTED();   // FIXME
+        if(textureLevel >= gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+        {
+            return error(EGL_BAD_MATCH, EGL_NO_IMAGE_KHR);
+        }
 
-        return success((EGLImageKHR)0);
+        if(target == EGL_GL_TEXTURE_2D_KHR)
+        {
+            GLuint name = (GLuint)buffer;
+
+            if(name == 0)
+            {
+                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+            }
+
+            gl::Texture *texture = context->getTexture(name);
+
+            if(!texture || texture->getTarget() != GL_TEXTURE_2D)
+            {
+                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+            }
+
+            if(texture->isShared(GL_TEXTURE_2D, textureLevel))   // Bound to an EGLSurface or already an EGLImage sibling
+            {
+                return error(EGL_BAD_ACCESS, EGL_NO_IMAGE_KHR);
+            }
+
+            if(textureLevel != 0 && !texture->isSamplerComplete())
+            {
+                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+            }
+
+            if(textureLevel == 0 && !(texture->isSamplerComplete() && texture->getLevelCount() == 1))
+            {
+                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+            }
+
+            gl::Image *image = texture->getSharedImage(GL_TEXTURE_2D, textureLevel);
+
+            if(!image)
+            {
+                return error(EGL_BAD_MATCH, EGL_NO_IMAGE_KHR);
+            }
+
+            return success((EGLImageKHR)image);
+        }
+        else UNREACHABLE();
     }
     catch(std::bad_alloc&)
     {
@@ -1122,9 +1173,13 @@ EGLBoolean EGLAPIENTRY eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
             return error(EGL_BAD_DISPLAY, EGL_FALSE);
         }
 
-        // FIXME
-        UNIMPLEMENTED();
-        return error(EGL_BAD_PARAMETER, EGL_FALSE);
+        if(!image)
+        {
+            return error(EGL_BAD_PARAMETER, EGL_FALSE);
+        }
+
+        gl::Image *glImage = static_cast<gl::Image*>(image);
+        glImage->release();
 
         return success(EGL_TRUE);
     }

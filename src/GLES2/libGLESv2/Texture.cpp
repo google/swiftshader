@@ -163,6 +163,18 @@ GLfloat Texture::getMaxAnisotropy() const
     return mMaxAnisotropy;
 }
 
+Image *Texture::getSharedImage(GLenum target, unsigned int level)
+{
+    Image *image = getRenderTarget(target, level);   // Increments reference count
+
+    if(image)
+    {
+        image->markShared();
+    }
+
+    return image;
+}
+
 void Texture::setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image)
 {
     if(pixels && image)
@@ -646,16 +658,35 @@ Renderbuffer *Texture2D::getRenderbuffer(GLenum target)
     return mColorbufferProxy;
 }
 
-Image *Texture2D::getRenderTarget(GLenum target)
+Image *Texture2D::getRenderTarget(GLenum target, unsigned int level)
 {
     ASSERT(target == GL_TEXTURE_2D);
+	ASSERT(level < IMPLEMENTATION_MAX_TEXTURE_LEVELS);
 
-	if(image[0])
+	if(image[level])
 	{
-		image[0]->addRef();
+		image[level]->addRef();
 	}
 
-	return image[0];
+	return image[level];
+}
+
+bool Texture2D::isShared(GLenum target, unsigned int level) const
+{
+    ASSERT(target == GL_TEXTURE_2D);
+    ASSERT(level < IMPLEMENTATION_MAX_TEXTURE_LEVELS);
+
+    if(mSurface)   // Bound to an EGLSurface
+    {
+        return true;
+    }
+
+    if(!image[level])
+    {
+        return false;
+    }
+
+    return image[level]->isShared();
 }
 
 TextureCubeMap::TextureCubeMap(GLuint id) : Texture(id)
@@ -1066,18 +1097,34 @@ Renderbuffer *TextureCubeMap::getRenderbuffer(GLenum target)
     return mFaceProxies[face];
 }
 
-Image *TextureCubeMap::getRenderTarget(GLenum target)
+Image *TextureCubeMap::getRenderTarget(GLenum target, unsigned int level)
 {
     ASSERT(IsCubemapTextureTarget(target));
+    ASSERT(level < IMPLEMENTATION_MAX_TEXTURE_LEVELS);
     
 	int face = CubeFaceIndex(target);
 
-	if(image[face][0])
+	if(image[face][level])
 	{
-		image[face][0]->addRef();
+		image[face][level]->addRef();
 	}
 
-	return image[face][0];
+	return image[face][level];
+}
+
+bool TextureCubeMap::isShared(GLenum target, unsigned int level) const
+{
+    ASSERT(IsCubemapTextureTarget(target));
+    ASSERT(level < IMPLEMENTATION_MAX_TEXTURE_LEVELS);
+
+    int face = CubeFaceIndex(target);
+
+    if(!image[face][level])
+    {
+        return false;
+    }
+
+    return image[face][level]->isShared();
 }
 
 }

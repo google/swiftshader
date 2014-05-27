@@ -85,7 +85,9 @@ public:
 	virtual bool isDepth(GLenum target, GLint level) const = 0;
 
     virtual Renderbuffer *getRenderbuffer(GLenum target) = 0;
-	virtual Image *getRenderTarget(GLenum target) = 0;
+    virtual Image *getRenderTarget(GLenum target, unsigned int level) = 0;
+    virtual Image *getSharedImage(GLenum target, unsigned int level);
+    virtual bool isShared(GLenum target, unsigned int level) const = 0;
 
     virtual void generateMipmaps() = 0;
     virtual void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source) = 0;
@@ -145,9 +147,11 @@ public:
 
     virtual void generateMipmaps();
 
-	virtual Image *getImage(unsigned int level);
-    virtual Renderbuffer *getRenderbuffer(GLenum target);
-	Image *getRenderTarget(GLenum target);
+	virtual Renderbuffer *getRenderbuffer(GLenum target);
+    virtual Image *getRenderTarget(GLenum target, unsigned int level);
+	virtual bool isShared(GLenum target, unsigned int level) const;
+
+    Image *getImage(unsigned int level);
 
 private:
 	bool isMipmapComplete() const;
@@ -201,7 +205,8 @@ public:
     virtual void generateMipmaps();
 
     virtual Renderbuffer *getRenderbuffer(GLenum target);
-	virtual Image *getRenderTarget(GLenum target);
+	virtual Image *getRenderTarget(GLenum target, unsigned int level);
+	virtual bool isShared(GLenum target, unsigned int level) const;
 
 	Image *getImage(int face, unsigned int level);
 

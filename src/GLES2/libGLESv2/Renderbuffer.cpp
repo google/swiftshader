@@ -94,7 +94,7 @@ void RenderbufferTexture2D::releaseProxy(const Renderbuffer *proxy)
 // caller must release() the returned surface
 Image *RenderbufferTexture2D::getRenderTarget()
 {
-	return mTexture2D->getRenderTarget(GL_TEXTURE_2D);
+	return mTexture2D->getRenderTarget(GL_TEXTURE_2D, 0);
 }
 
 GLsizei RenderbufferTexture2D::getWidth() const
@@ -150,7 +150,7 @@ void RenderbufferTextureCubeMap::releaseProxy(const Renderbuffer *proxy)
 // caller must release() the returned surface
 Image *RenderbufferTextureCubeMap::getRenderTarget()
 {
-	return mTextureCubeMap->getRenderTarget(mTarget);
+	return mTextureCubeMap->getRenderTarget(mTarget, 0);
 }
 
 GLsizei RenderbufferTextureCubeMap::getWidth() const

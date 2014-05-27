@@ -374,7 +374,7 @@ class Context
     Fence *getFence(GLuint handle);
     Shader *getShader(GLuint handle);
     Program *getProgram(GLuint handle);
-    Texture *getTexture(GLuint handle);
+    virtual Texture *getTexture(GLuint handle);
     Framebuffer *getFramebuffer(GLuint handle);
     Renderbuffer *getRenderbuffer(GLuint handle);
 	Query *getQuery(GLuint handle, bool create, GLenum type);
