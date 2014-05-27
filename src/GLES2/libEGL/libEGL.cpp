@@ -448,7 +448,7 @@ EGLBoolean EGLAPIENTRY eglQuerySurface(EGLDisplay dpy, EGLSurface surface, EGLin
             UNIMPLEMENTED();   // FIXME
             break;
           case EGL_CONFIG_ID:
-            UNIMPLEMENTED();   // FIXME
+            *value = eglSurface->getConfigID();
             break;
           case EGL_HEIGHT:
             *value = eglSurface->getHeight();
@@ -469,19 +469,19 @@ EGLBoolean EGLAPIENTRY eglQuerySurface(EGLDisplay dpy, EGLSurface surface, EGLin
             UNIMPLEMENTED();   // FIXME
             break;
           case EGL_PIXEL_ASPECT_RATIO:
-            UNIMPLEMENTED();   // FIXME
+            *value = eglSurface->getPixelAspectRatio();
             break;
           case EGL_RENDER_BUFFER:
-            UNIMPLEMENTED();   // FIXME
+            *value = eglSurface->getRenderBuffer();
             break;
           case EGL_SWAP_BEHAVIOR:
-            UNIMPLEMENTED();   // FIXME
+            *value = eglSurface->getSwapBehavior();
             break;
           case EGL_TEXTURE_FORMAT:
-            UNIMPLEMENTED();   // FIXME
+            *value = eglSurface->getTextureFormat();
             break;
           case EGL_TEXTURE_TARGET:
-            UNIMPLEMENTED();   // FIXME
+            *value = eglSurface->getTextureTarget();
             break;
           case EGL_VERTICAL_RESOLUTION:
             UNIMPLEMENTED();   // FIXME
@@ -858,9 +858,6 @@ EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurfac
         {
             UNIMPLEMENTED();   // FIXME
         }
-
-        egl::Surface* previousDraw = static_cast<egl::Surface*>(egl::getCurrentDrawSurface());
-        egl::Surface* previousRead = static_cast<egl::Surface*>(egl::getCurrentReadSurface());
 
         egl::setCurrentDisplay(dpy);
         egl::setCurrentDrawSurface(draw);

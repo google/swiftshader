@@ -196,16 +196,6 @@ void Surface::swap()
 	}
 }
 
-EGLint Surface::getWidth() const
-{
-    return mWidth;
-}
-
-EGLint Surface::getHeight() const
-{
-    return mHeight;
-}
-
 gl::Image *Surface::getRenderTarget()
 {
     if(backBuffer)
@@ -236,6 +226,36 @@ void Surface::setSwapInterval(EGLint interval)
     mSwapInterval = interval;
     mSwapInterval = std::max(mSwapInterval, mDisplay->getMinSwapInterval());
     mSwapInterval = std::min(mSwapInterval, mDisplay->getMaxSwapInterval());
+}
+
+EGLint Surface::getConfigID() const
+{
+    return mConfig->mConfigID;
+}
+
+EGLint Surface::getWidth() const
+{
+    return mWidth;
+}
+
+EGLint Surface::getHeight() const
+{
+    return mHeight;
+}
+
+EGLint Surface::getPixelAspectRatio() const
+{
+    return mPixelAspectRatio;
+}
+
+EGLenum Surface::getRenderBuffer() const
+{
+    return mRenderBuffer;
+}
+
+EGLenum Surface::getSwapBehavior() const
+{
+    return mSwapBehavior;
 }
 
 EGLenum Surface::getTextureFormat() const

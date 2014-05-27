@@ -46,14 +46,18 @@ public:
     void swap();
 
 	EGLNativeWindowType getWindowHandle();
-    virtual EGLint getWidth() const;
-    virtual EGLint getHeight() const;
-
+    
     virtual gl::Image *getRenderTarget();
     virtual gl::Image *getDepthStencil();
 
     void setSwapInterval(EGLint interval);
 
+    virtual EGLint getConfigID() const;
+    virtual EGLint getWidth() const;
+    virtual EGLint getHeight() const;
+    virtual EGLint getPixelAspectRatio() const;
+    virtual EGLenum getRenderBuffer() const;
+    virtual EGLenum getSwapBehavior() const;
     virtual EGLenum getTextureFormat() const;
     virtual EGLenum getTextureTarget() const;
     virtual sw::Format getInternalFormat() const;
