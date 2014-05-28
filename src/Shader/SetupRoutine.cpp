@@ -89,11 +89,11 @@ namespace sw
 					Return(false);
 				}
 
-				Float w0w1w2 = *Pointer<Float>(v0 + pos * 16 + 12) *
-							   *Pointer<Float>(v1 + pos * 16 + 12) *
-							   *Pointer<Float>(v2 + pos * 16 + 12);
+				Int w0w1w2 = *Pointer<Int>(v0 + pos * 16 + 12) ^
+							 *Pointer<Int>(v1 + pos * 16 + 12) ^
+							 *Pointer<Int>(v2 + pos * 16 + 12);
 
-				A = IfThenElse(w0w1w2 < 0.0f, -A, A);
+				A = IfThenElse(w0w1w2 < 0, -A, A);
 
 				if(state.cullMode == Context::CULL_CLOCKWISE)
 				{
