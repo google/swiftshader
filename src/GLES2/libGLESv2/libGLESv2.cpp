@@ -375,13 +375,16 @@ void GL_APIENTRY glBindTexture(GLenum target, GLuint texture)
 
             switch(target)
             {
-              case GL_TEXTURE_2D:
+            case GL_TEXTURE_2D:
                 context->bindTexture2D(texture);
                 return;
-              case GL_TEXTURE_CUBE_MAP:
+            case GL_TEXTURE_CUBE_MAP:
                 context->bindTextureCubeMap(texture);
                 return;
-              default:
+            case GL_TEXTURE_EXTERNAL_OES:
+                context->bindTextureExternal(texture);
+                return;
+            default:
                 return error(GL_INVALID_ENUM);
             }
         }
@@ -3389,17 +3392,46 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
 
         switch(name)
         {
-          case GL_VENDOR:
+        case GL_VENDOR:
             return (GLubyte*)"TransGaming Inc.";
-          case GL_RENDERER:
+        case GL_RENDERER:
             return (GLubyte*)"SwiftShader";
-          case GL_VERSION:
+        case GL_VERSION:
             return (GLubyte*)"OpenGL ES 2.0 SwiftShader "VERSION_STRING;
-          case GL_SHADING_LANGUAGE_VERSION:
+        case GL_SHADING_LANGUAGE_VERSION:
             return (GLubyte*)"OpenGL ES GLSL ES 1.00 SwiftShader "VERSION_STRING;
-          case GL_EXTENSIONS:
-            return (GLubyte*)((context != NULL) ? context->getExtensionString() : "");
-          default:
+        case GL_EXTENSIONS:
+            // Keep list sorted in following order:
+	        // OES extensions
+	        // EXT extensions
+	        // Vendor extensions
+            return (GLubyte*)
+                "GL_OES_depth_texture "
+                "GL_OES_depth_texture_cube_map "
+                "GL_OES_EGL_image_external "
+                "GL_OES_element_index_uint "
+                "GL_OES_packed_depth_stencil "
+                "GL_OES_rgb8_rgba8 "
+                "GL_OES_standard_derivatives "
+                "GL_OES_texture_float "
+                "GL_OES_texture_float_linear "
+                "GL_OES_texture_half_float "
+                "GL_OES_texture_half_float_linear "
+                "GL_OES_texture_npot "
+                "GL_EXT_blend_minmax "
+                "GL_EXT_occlusion_query_boolean "
+                "GL_EXT_read_format_bgra "
+                   #if (S3TC_SUPPORT)
+                "GL_EXT_texture_compression_dxt1 "
+                "GL_ANGLE_texture_compression_dxt3 "
+                "GL_ANGLE_texture_compression_dxt5 "
+                   #endif
+                "GL_EXT_texture_filter_anisotropic "
+                "GL_EXT_texture_format_BGRA8888 "
+                "GL_ANGLE_framebuffer_blit "
+                "GL_ANGLE_framebuffer_multisample "
+                "GL_NV_fence";
+        default:
             return error(GL_INVALID_ENUM, (GLubyte*)NULL);
         }
     }
@@ -3425,34 +3457,40 @@ void GL_APIENTRY glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* param
 
             switch(target)
             {
-              case GL_TEXTURE_2D:
+            case GL_TEXTURE_2D:
                 texture = context->getTexture2D();
                 break;
-              case GL_TEXTURE_CUBE_MAP:
+            case GL_TEXTURE_CUBE_MAP:
                 texture = context->getTextureCubeMap();
                 break;
-              default:
+            case GL_TEXTURE_EXTERNAL_OES:
+                texture = context->getTextureExternal();
+                break;
+            default:
                 return error(GL_INVALID_ENUM);
             }
 
             switch(pname)
             {
-              case GL_TEXTURE_MAG_FILTER:
+            case GL_TEXTURE_MAG_FILTER:
                 *params = (GLfloat)texture->getMagFilter();
                 break;
-              case GL_TEXTURE_MIN_FILTER:
+            case GL_TEXTURE_MIN_FILTER:
                 *params = (GLfloat)texture->getMinFilter();
                 break;
-              case GL_TEXTURE_WRAP_S:
+            case GL_TEXTURE_WRAP_S:
                 *params = (GLfloat)texture->getWrapS();
                 break;
-              case GL_TEXTURE_WRAP_T:
+            case GL_TEXTURE_WRAP_T:
                 *params = (GLfloat)texture->getWrapT();
                 break;
-			  case GL_TEXTURE_MAX_ANISOTROPY_EXT:
+			case GL_TEXTURE_MAX_ANISOTROPY_EXT:
                 *params = texture->getMaxAnisotropy();
                 break;
-              default:
+            case GL_REQUIRED_TEXTURE_IMAGE_UNITS_OES:
+                *params = (GLfloat)1;
+                break;
+            default:
                 return error(GL_INVALID_ENUM);
             }
         }
@@ -3477,34 +3515,40 @@ void GL_APIENTRY glGetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 
             switch(target)
             {
-              case GL_TEXTURE_2D:
+            case GL_TEXTURE_2D:
                 texture = context->getTexture2D();
                 break;
-              case GL_TEXTURE_CUBE_MAP:
+            case GL_TEXTURE_CUBE_MAP:
                 texture = context->getTextureCubeMap();
                 break;
-              default:
+            case GL_TEXTURE_EXTERNAL_OES:
+                texture = context->getTextureExternal();
+                break;
+            default:
                 return error(GL_INVALID_ENUM);
             }
 
             switch(pname)
             {
-              case GL_TEXTURE_MAG_FILTER:
+            case GL_TEXTURE_MAG_FILTER:
                 *params = texture->getMagFilter();
                 break;
-              case GL_TEXTURE_MIN_FILTER:
+            case GL_TEXTURE_MIN_FILTER:
                 *params = texture->getMinFilter();
                 break;
-              case GL_TEXTURE_WRAP_S:
+            case GL_TEXTURE_WRAP_S:
                 *params = texture->getWrapS();
                 break;
-              case GL_TEXTURE_WRAP_T:
+            case GL_TEXTURE_WRAP_T:
                 *params = texture->getWrapT();
                 break;
-			  case GL_TEXTURE_MAX_ANISOTROPY_EXT:
+		    case GL_TEXTURE_MAX_ANISOTROPY_EXT:
                 *params = (GLint)texture->getMaxAnisotropy();
                 break;
-              default:
+            case GL_REQUIRED_TEXTURE_IMAGE_UNITS_OES:
+                *params = 1;
+                break;
+            default:
                 return error(GL_INVALID_ENUM);
             }
         }
@@ -4954,6 +4998,9 @@ void GL_APIENTRY glTexParameterf(GLenum target, GLenum pname, GLfloat param)
             case GL_TEXTURE_CUBE_MAP:
                 texture = context->getTextureCubeMap();
                 break;
+            case GL_TEXTURE_EXTERNAL_OES:
+                texture = context->getTextureExternal();
+                break;
             default:
                 return error(GL_INVALID_ENUM);
             }
@@ -5020,49 +5067,52 @@ void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 
             switch(target)
             {
-              case GL_TEXTURE_2D:
+            case GL_TEXTURE_2D:
                 texture = context->getTexture2D();
                 break;
-              case GL_TEXTURE_CUBE_MAP:
+            case GL_TEXTURE_CUBE_MAP:
                 texture = context->getTextureCubeMap();
                 break;
-              default:
+            case GL_TEXTURE_EXTERNAL_OES:
+                  texture = context->getTextureExternal();
+                  break;
+            default:
                 return error(GL_INVALID_ENUM);
             }
 
             switch(pname)
             {
-              case GL_TEXTURE_WRAP_S:
+            case GL_TEXTURE_WRAP_S:
                 if(!texture->setWrapS((GLenum)param))
                 {
                     return error(GL_INVALID_ENUM);
                 }
                 break;
-              case GL_TEXTURE_WRAP_T:
+            case GL_TEXTURE_WRAP_T:
                 if(!texture->setWrapT((GLenum)param))
                 {
                     return error(GL_INVALID_ENUM);
                 }
                 break;
-              case GL_TEXTURE_MIN_FILTER:
+            case GL_TEXTURE_MIN_FILTER:
                 if(!texture->setMinFilter((GLenum)param))
                 {
                     return error(GL_INVALID_ENUM);
                 }
                 break;
-              case GL_TEXTURE_MAG_FILTER:
+            case GL_TEXTURE_MAG_FILTER:
                 if(!texture->setMagFilter((GLenum)param))
                 {
                     return error(GL_INVALID_ENUM);
                 }
                 break;
-			  case GL_TEXTURE_MAX_ANISOTROPY_EXT:
+			case GL_TEXTURE_MAX_ANISOTROPY_EXT:
                 if(!texture->setMaxAnisotropy((GLfloat)param))
                 {
                     return error(GL_INVALID_VALUE);
                 }
                 break;
-              default:
+            default:
                 return error(GL_INVALID_ENUM);
             }
         }
@@ -6045,6 +6095,47 @@ void GL_APIENTRY glTexImage3DOES(GLenum target, GLint level, GLenum internalform
     }
 }
 
+void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
+{
+    TRACE("(GLenum target = 0x%X, GLeglImageOES image = 0x%0.8p)", target, image);
+
+    try
+    {
+        switch(target)
+        {
+        case GL_TEXTURE_EXTERNAL_OES:
+            break;
+        default:
+            return error(GL_INVALID_ENUM);
+        }
+
+        if(!image)
+        {
+            return error(GL_INVALID_OPERATION);
+        }
+
+        gl::Context *context = gl::getContext();
+
+        if(context)
+        {
+            gl::TextureExternal *texture = context->getTextureExternal();
+
+            if(!texture)
+            {
+                return error(GL_INVALID_OPERATION);
+            }
+
+            gl::Image *glImage = static_cast<gl::Image*>(image);
+
+            texture->setImage(glImage);
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
+}
+
 __eglMustCastToProperFunctionPointerType glGetProcAddress(const char *procname)
 {
     struct Extension
@@ -6076,6 +6167,7 @@ __eglMustCastToProperFunctionPointerType glGetProcAddress(const char *procname)
         {"glEndQueryEXT", (__eglMustCastToProperFunctionPointerType)glEndQueryEXT},
         {"glGetQueryivEXT", (__eglMustCastToProperFunctionPointerType)glGetQueryivEXT},
         {"glGetQueryObjectuivEXT", (__eglMustCastToProperFunctionPointerType)glGetQueryObjectuivEXT},
+        {"glEGLImageTargetTexture2DOES", (__eglMustCastToProperFunctionPointerType)glEGLImageTargetTexture2DOES}
     };
 
     for(int ext = 0; ext < sizeof(glExtensions) / sizeof(Extension); ext++)

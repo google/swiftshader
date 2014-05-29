@@ -18,6 +18,7 @@
 
 #define GL_APICALL
 #include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 
 namespace sh
 {
@@ -2280,6 +2281,10 @@ namespace sh
 		{
 			return GL_SAMPLER_CUBE;
 		}
+        else if(type.getBasicType() == EbtSamplerExternalOES)
+        {
+            return GL_SAMPLER_EXTERNAL_OES;
+        }
 		else UNREACHABLE();
 
 		return GL_NONE;

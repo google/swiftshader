@@ -110,6 +110,7 @@ void ShInitBuiltInResources(ShBuiltInResources* resources)
     // Extensions.
     resources->OES_standard_derivatives = 0;
 	resources->OES_fragment_precision_high = 0;
+    resources->OES_EGL_image_external = 0;
 
 	resources->MaxCallStackDepth = UINT_MAX;
 }

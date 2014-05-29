@@ -126,6 +126,7 @@ Context::Context(const egl::Config *config, const Context *shareContext) : mConf
 
     mTexture2DZero.set(new Texture2D(0));
     mTextureCubeMapZero.set(new TextureCubeMap(0));
+    mTextureExternalZero.set(new TextureExternal(0));
 
     mState.activeSampler = 0;
     bindArrayBuffer(0);
@@ -206,6 +207,7 @@ Context::~Context()
 
     mTexture2DZero.set(NULL);
     mTextureCubeMapZero.set(NULL);
+    mTextureExternalZero.set(NULL);
 
     delete mVertexDataManager;
     delete mIndexDataManager;
@@ -221,8 +223,6 @@ void Context::makeCurrent(egl::Display *display, egl::Surface *surface)
     {
         mVertexDataManager = new VertexDataManager(this);
         mIndexDataManager = new IndexDataManager();
-
-        initExtensionString();
 
         mState.viewportX = 0;
         mState.viewportY = 0;
@@ -929,6 +929,13 @@ void Context::bindTextureCubeMap(GLuint texture)
     mState.samplerTexture[TEXTURE_CUBE][mState.activeSampler].set(getTexture(texture));
 }
 
+void Context::bindTextureExternal(GLuint texture)
+{
+    mResourceManager->checkTextureAllocation(texture, TEXTURE_EXTERNAL);
+
+    mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler].set(getTexture(texture));
+}
+
 void Context::bindReadFramebuffer(GLuint framebuffer)
 {
     if(!getFramebuffer(framebuffer))
@@ -1150,6 +1157,11 @@ TextureCubeMap *Context::getTextureCubeMap()
     return static_cast<TextureCubeMap*>(getSamplerTexture(mState.activeSampler, TEXTURE_CUBE));
 }
 
+TextureExternal *Context::getTextureExternal()
+{
+    return static_cast<TextureExternal*>(getSamplerTexture(mState.activeSampler, TEXTURE_EXTERNAL));
+}
+
 Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type)
 {
     GLuint texid = mState.samplerTexture[type][sampler].id();
@@ -1158,9 +1170,10 @@ Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type)
     {
         switch (type)
         {
-          default: UNREACHABLE();
-          case TEXTURE_2D: return mTexture2DZero.get();
-          case TEXTURE_CUBE: return mTextureCubeMapZero.get();
+        case TEXTURE_2D: return mTexture2DZero.get();
+        case TEXTURE_CUBE: return mTextureCubeMapZero.get();
+        case TEXTURE_EXTERNAL: return mTextureExternalZero.get();
+        default: UNREACHABLE();
         }
     }
 
@@ -1457,6 +1470,17 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
             *params = mState.samplerTexture[TEXTURE_CUBE][mState.activeSampler].id();
         }
         break;
+    case GL_TEXTURE_BINDING_EXTERNAL_OES:
+        {
+            if(mState.activeSampler < 0 || mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+            {
+                error(GL_INVALID_OPERATION);
+                return false;
+            }
+
+            *params = mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler].id();
+        }
+        break;
     default:
         return false;
     }
@@ -1546,6 +1570,7 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
       case GL_IMPLEMENTATION_COLOR_READ_FORMAT:
       case GL_TEXTURE_BINDING_2D:
       case GL_TEXTURE_BINDING_CUBE_MAP:
+      case GL_TEXTURE_BINDING_EXTERNAL_OES:
         {
             *type = GL_INT;
             *numParams = 1;
@@ -2065,7 +2090,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 	{
 		int levelCount = baseTexture->getLevelCount();
 
-		if(baseTexture->isTexture2D())
+		if(baseTexture->getTarget() == GL_TEXTURE_2D || baseTexture->getTarget() == GL_TEXTURE_EXTERNAL_OES)
 		{
 			Texture2D *texture = static_cast<Texture2D*>(baseTexture);
 
@@ -2086,7 +2111,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 				device->setTextureLevel(sampler, 0, mipmapLevel, surface, sw::TEXTURE_2D);
 			}
 		}
-		else if(baseTexture->isTextureCubeMap())
+		else if(baseTexture->getTarget() == GL_TEXTURE_CUBE_MAP)
 		{
 			for(int face = 0; face < 6; face++)
 			{
@@ -2722,53 +2747,6 @@ void Context::setVertexAttrib(GLuint index, const GLfloat *values)
     mState.vertexAttribute[index].mCurrentValue[3] = values[3];
 
     mVertexDataManager->dirtyCurrentValue(index);
-}
-
-void Context::initExtensionString()
-{
-	// Keep list sorted in following order:
-	// OES extensions
-	// EXT extensions
-	// Vendor extensions
-
-	mExtensionString += "GL_OES_depth_texture ";
-	mExtensionString += "GL_OES_depth_texture_cube_map ";
-	mExtensionString += "GL_OES_element_index_uint ";
-	mExtensionString += "GL_OES_packed_depth_stencil ";
-	mExtensionString += "GL_OES_rgb8_rgba8 ";
-	mExtensionString += "GL_OES_standard_derivatives ";
-	mExtensionString += "GL_OES_texture_float ";
-	mExtensionString += "GL_OES_texture_float_linear ";
-	mExtensionString += "GL_OES_texture_half_float ";
-	mExtensionString += "GL_OES_texture_half_float_linear ";
-	mExtensionString += "GL_OES_texture_npot ";
-	mExtensionString += "GL_EXT_blend_minmax ";
-	mExtensionString += "GL_EXT_occlusion_query_boolean ";
-	mExtensionString += "GL_EXT_read_format_bgra ";
-
-	if(S3TC_SUPPORT)
-	{
-		mExtensionString += "GL_EXT_texture_compression_dxt1 ";
-		mExtensionString += "GL_ANGLE_texture_compression_dxt3 ";
-		mExtensionString += "GL_ANGLE_texture_compression_dxt5 ";
-	}
-
-	mExtensionString += "GL_EXT_texture_filter_anisotropic ";
-	mExtensionString += "GL_EXT_texture_format_BGRA8888 ";
-	mExtensionString += "GL_ANGLE_framebuffer_blit ";
-	mExtensionString += "GL_ANGLE_framebuffer_multisample ";
-	mExtensionString += "GL_NV_fence ";
-
-	std::string::size_type end = mExtensionString.find_last_not_of(' ');
-	if(end != std::string::npos)
-	{
-		mExtensionString.resize(end + 1);
-	}
-}
-
-const char *Context::getExtensionString() const
-{
-    return mExtensionString.c_str();
 }
 
 void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, 

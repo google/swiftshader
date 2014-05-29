@@ -52,6 +52,7 @@ void TType::buildMangledName(TString& mangledName)
     case EbtBool:               mangledName += 'b';      break;
     case EbtSampler2D:          mangledName += "s2";     break;
     case EbtSamplerCube:        mangledName += "sC";     break;
+    case EbtSamplerExternalOES: mangledName += "sE";     break;
     case EbtStruct:
         mangledName += "struct-";
         if (typeName)

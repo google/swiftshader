@@ -42,6 +42,7 @@ enum TBasicType
     EbtGuardSamplerBegin,  // non type:  see implementation of IsSampler()
     EbtSampler2D,
     EbtSamplerCube,
+    EbtSamplerExternalOES,
     EbtGuardSamplerEnd,    // non type:  see implementation of IsSampler()
     EbtStruct,
     EbtAddress,            // should be deprecated??
@@ -52,14 +53,15 @@ inline const char* getBasicString(TBasicType t)
 {
     switch (t)
     {
-    case EbtVoid:              return "void";              break;
-    case EbtFloat:             return "float";             break;
-    case EbtInt:               return "int";               break;
-    case EbtBool:              return "bool";              break;
-    case EbtSampler2D:         return "sampler2D";         break;
-    case EbtSamplerCube:       return "samplerCube";       break;
-    case EbtStruct:            return "structure";         break;
-    default:                   return "unknown type";
+    case EbtVoid:               return "void";
+    case EbtFloat:              return "float";
+    case EbtInt:                return "int";
+    case EbtBool:               return "bool";
+    case EbtSampler2D:          return "sampler2D";
+    case EbtSamplerCube:        return "samplerCube";
+    case EbtSamplerExternalOES: return "samplerExternalOES";
+    case EbtStruct:             return "structure";
+    default:                    return "unknown type";
     }
 }
 

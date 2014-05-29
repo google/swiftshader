@@ -53,8 +53,6 @@ public:
     virtual ~Texture();
 
 	sw::Resource *getResource() const;
-	virtual bool isTexture2D();
-	virtual bool isTextureCubeMap();
 
 	virtual void addProxyRef(const Renderbuffer *proxy) = 0;
     virtual void releaseProxy(const Renderbuffer *proxy) = 0;
@@ -118,8 +116,6 @@ public:
 
     virtual ~Texture2D();
 
-	virtual bool isTexture2D();
-
 	void addProxyRef(const Renderbuffer *proxy);
     void releaseProxy(const Renderbuffer *proxy);
 
@@ -153,7 +149,7 @@ public:
 
     Image *getImage(unsigned int level);
 
-private:
+protected:
 	bool isMipmapComplete() const;
 
 	Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS];
@@ -175,8 +171,6 @@ public:
     explicit TextureCubeMap(GLuint id);
 
     virtual ~TextureCubeMap();
-
-	virtual bool isTextureCubeMap();
 
 	void addProxyRef(const Renderbuffer *proxy);
     void releaseProxy(const Renderbuffer *proxy);
@@ -226,6 +220,18 @@ private:
     // the count drops to zero, but will not cause deletion of the Renderbuffer.
     Renderbuffer *mFaceProxies[6];
 	unsigned int mFaceProxyRefs[6];
+};
+
+class TextureExternal : public Texture2D
+{
+public:
+    explicit TextureExternal(GLuint id);
+
+    virtual ~TextureExternal();
+
+    virtual GLenum getTarget() const;
+
+    void setImage(Image *image);
 };
 }
 

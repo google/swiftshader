@@ -48,6 +48,7 @@ class Program;
 class Texture;
 class Texture2D;
 class TextureCubeMap;
+class TextureExternal;
 class Framebuffer;
 class Renderbuffer;
 class RenderbufferStorage;
@@ -356,6 +357,7 @@ class Context
     void bindElementArrayBuffer(GLuint buffer);
     void bindTexture2D(GLuint texture);
     void bindTextureCubeMap(GLuint texture);
+    void bindTextureExternal(GLuint texture);
     void bindReadFramebuffer(GLuint framebuffer);
     void bindDrawFramebuffer(GLuint framebuffer);
     void bindRenderbuffer(GLuint renderbuffer);
@@ -384,6 +386,7 @@ class Context
     Program *getCurrentProgram();
     Texture2D *getTexture2D();
     TextureCubeMap *getTextureCubeMap();
+    TextureExternal *getTextureExternal();
     Texture *getSamplerTexture(unsigned int sampler, TextureType type);
     Framebuffer *getReadFramebuffer();
     Framebuffer *getDrawFramebuffer();
@@ -410,7 +413,6 @@ class Context
     GLenum getError();
 
     static int getSupportedMultiSampleDepth(sw::Format format, int requested);
-    const char *getExtensionString() const;
     
     void blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, 
                          GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
@@ -440,6 +442,7 @@ class Context
 
     BindingPointer<Texture2D> mTexture2DZero;
     BindingPointer<TextureCubeMap> mTextureCubeMapZero;
+    BindingPointer<TextureExternal> mTextureExternalZero;
 
     typedef std::map<GLint, Framebuffer*> FramebufferMap;
     FramebufferMap mFramebufferMap;
@@ -452,9 +455,6 @@ class Context
 	typedef std::map<GLint, Query*> QueryMap;
     QueryMap mQueryMap;
     HandleAllocator mQueryHandleAllocator;
-
-    void initExtensionString();
-    std::string mExtensionString;
 
     VertexDataManager *mVertexDataManager;
     IndexDataManager *mIndexDataManager;

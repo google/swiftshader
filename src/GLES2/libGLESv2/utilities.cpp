@@ -31,6 +31,7 @@ namespace gl
 		case GL_INT:
 		case GL_SAMPLER_2D:
 		case GL_SAMPLER_CUBE:
+        case GL_SAMPLER_EXTERNAL_OES:
 			return 1;
 		case GL_BOOL_VEC2:
 		case GL_FLOAT_VEC2:
@@ -76,6 +77,7 @@ namespace gl
 		case GL_INT:
 		case GL_SAMPLER_2D:
 		case GL_SAMPLER_CUBE:
+        case GL_SAMPLER_EXTERNAL_OES:
 		case GL_INT_VEC2:
 		case GL_INT_VEC3:
 		case GL_INT_VEC4:
@@ -119,6 +121,7 @@ namespace gl
 		case GL_INT_VEC4:
 		case GL_SAMPLER_2D:
 		case GL_SAMPLER_CUBE:
+        case GL_SAMPLER_EXTERNAL_OES:
 			return 1;
 		case GL_FLOAT_MAT2:
 			return 2;

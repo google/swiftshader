@@ -48,27 +48,22 @@ sw::Resource *Texture::getResource() const
 	return resource;
 }
 
-bool Texture::isTexture2D()
-{
-	return false;
-}
-
-bool Texture::isTextureCubeMap()
-{
-	return false;
-}
-
 // Returns true on successful filter state update (valid enum parameter)
 bool Texture::setMinFilter(GLenum filter)
 {
     switch(filter)
     {
-    case GL_NEAREST:
-    case GL_LINEAR:
     case GL_NEAREST_MIPMAP_NEAREST:
     case GL_LINEAR_MIPMAP_NEAREST:
     case GL_NEAREST_MIPMAP_LINEAR:
     case GL_LINEAR_MIPMAP_LINEAR:
+        if(getTarget() == GL_TEXTURE_EXTERNAL_OES)
+        {
+            return false;
+        }
+        // Fall through
+    case GL_NEAREST:
+    case GL_LINEAR:
         mMinFilter = filter;
         return true;
     default:
@@ -96,8 +91,13 @@ bool Texture::setWrapS(GLenum wrap)
     switch(wrap)
     {
     case GL_REPEAT:
-    case GL_CLAMP_TO_EDGE:
     case GL_MIRRORED_REPEAT:
+        if(getTarget() == GL_TEXTURE_EXTERNAL_OES)
+        {
+            return false;
+        }
+        // Fall through
+    case GL_CLAMP_TO_EDGE:
         mWrapS = wrap;
         return true;
     default:
@@ -111,8 +111,13 @@ bool Texture::setWrapT(GLenum wrap)
     switch(wrap)
     {
     case GL_REPEAT:
-    case GL_CLAMP_TO_EDGE:
     case GL_MIRRORED_REPEAT:
+        if(getTarget() == GL_TEXTURE_EXTERNAL_OES)
+        {
+            return false;
+        }
+        // Fall through
+    case GL_CLAMP_TO_EDGE:
          mWrapT = wrap;
          return true;
     default:
@@ -310,11 +315,6 @@ Texture2D::~Texture2D()
     }
 
 	mColorbufferProxy = NULL;
-}
-
-bool Texture2D::isTexture2D()
-{
-	return true;
 }
 
 // We need to maintain a count of references to renderbuffers acting as 
@@ -730,11 +730,6 @@ TextureCubeMap::~TextureCubeMap()
     }
 }
 
-bool TextureCubeMap::isTextureCubeMap()
-{
-	return true;
-}
-
 // We need to maintain a count of references to renderbuffers acting as 
 // proxies for this texture, so that the texture is not deleted while 
 // proxy references still exist. If the reference count drops to zero,
@@ -1125,6 +1120,34 @@ bool TextureCubeMap::isShared(GLenum target, unsigned int level) const
     }
 
     return image[face][level]->isShared();
+}
+
+TextureExternal::TextureExternal(GLuint id) : Texture2D(id)
+{
+    mMinFilter = GL_LINEAR;
+    mMagFilter = GL_LINEAR;
+    mWrapS = GL_CLAMP_TO_EDGE;
+    mWrapT = GL_CLAMP_TO_EDGE;
+}
+
+TextureExternal::~TextureExternal()
+{
+}
+
+GLenum TextureExternal::getTarget() const
+{
+    return GL_TEXTURE_EXTERNAL_OES;
+}
+
+void TextureExternal::setImage(Image *sharedImage)
+{
+    if(image[0])
+    {
+        image[0]->release();
+    }
+
+    sharedImage->addRef();
+    image[0] = sharedImage;
 }
 
 }

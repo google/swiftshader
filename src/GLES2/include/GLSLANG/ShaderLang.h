@@ -53,7 +53,8 @@ typedef enum {
   SH_FLOAT_MAT3     = 0x8B5B,
   SH_FLOAT_MAT4     = 0x8B5C,
   SH_SAMPLER_2D     = 0x8B5E,
-  SH_SAMPLER_CUBE   = 0x8B60
+  SH_SAMPLER_CUBE   = 0x8B60,
+  SH_SAMPLER_EXTERNAL_OES = 0x8D66
 } ShDataType;
 
 typedef enum {
@@ -108,6 +109,7 @@ typedef struct
     // Set to 1 to enable the extension, else 0.
     int OES_standard_derivatives;
 	int OES_fragment_precision_high;
+    int OES_EGL_image_external;
 
     unsigned int MaxCallStackDepth;
 } ShBuiltInResources;

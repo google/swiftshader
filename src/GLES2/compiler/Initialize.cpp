@@ -295,6 +295,15 @@ void InsertBuiltInFunctions(ShShaderType type, const ShBuiltInResources &resourc
 		symbolTable.insertBuiltIn(float4, "textureCubeLod", samplerCube, float3, float1);
 	}
 
+    TType *samplerExternalOES = new TType(EbtSamplerExternalOES, EbpUndefined, EvqGlobal, 1);
+
+    if(resources.OES_EGL_image_external)
+    {
+        symbolTable.insertBuiltIn(float4, "texture2D", samplerExternalOES, float2);
+        symbolTable.insertBuiltIn(float4, "texture2DProj", samplerExternalOES, float3);
+        symbolTable.insertBuiltIn(float4, "texture2DProj", samplerExternalOES, float4);
+    }
+
 	TTypeList *members = NewPoolTTypeList();
 	TTypeLine near = {new TType(EbtFloat, EbpHigh, EvqGlobal, 1), 0};
 	TTypeLine far = {new TType(EbtFloat, EbpHigh, EvqGlobal, 1), 0};
