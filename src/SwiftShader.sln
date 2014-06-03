@@ -1,5 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LLVM", "LLVM", "{B408B98A-E888-4ECF-81E0-7A37A6854B17}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SwiftShader", "SwiftShader\SwiftShader.vcxproj", "{7B02CB19-4CDF-4F79-BC9B-7F3F6164A003}"
@@ -10,6 +12,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Reactor", "Reactor\Reactor.vcxproj", "{28FD076D-10B5-4BD8-A4CF-F44C7002A803}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GLES2", "GLES2", "{D33114D7-E582-4D61-B27D-FAB0297C43FF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{ED25C308-5BDB-43A7-BED6-C2C059FC2D7D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libGLESv2", "GLES2\libGLESv2\libGLESv2.vcxproj", "{B5871A7A-968C-42E3-A33B-981E6F448E78}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -200,6 +204,12 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compiler", "GLES2\compiler\Compiler.vcxproj", "{5B3A6DB8-1E7E-40D7-92B9-DA8AAE619FAD}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "preprocessor", "GLES2\compiler\preprocessor\preprocessor.vcxproj", "{92940255-AB4B-42FB-A2C4-0FAB19C3C48A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OGLES2HelloAPI", "..\tests\third_party\PowerVR\Examples\Beginner\01_HelloAPI\OGLES2\Build\WindowsVC2010\OGLES2HelloAPI.vcxproj", "{9DAFEE32-19F6-4410-AA09-2B564FB86F62}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B5871A7A-968C-42E3-A33B-981E6F448E78} = {B5871A7A-968C-42E3-A33B-981E6F448E78}
+		{E746FCA9-64C3-433E-85E8-9A5A67AB7ED6} = {E746FCA9-64C3-433E-85E8-9A5A67AB7ED6}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -523,6 +533,18 @@ Global
 		{92940255-AB4B-42FB-A2C4-0FAB19C3C48A}.Release|Win32.ActiveCfg = Release|Win32
 		{92940255-AB4B-42FB-A2C4-0FAB19C3C48A}.Release|Win32.Build.0 = Release|Win32
 		{92940255-AB4B-42FB-A2C4-0FAB19C3C48A}.Release|x64.ActiveCfg = Release|Win32
+		{9DAFEE32-19F6-4410-AA09-2B564FB86F62}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9DAFEE32-19F6-4410-AA09-2B564FB86F62}.Debug|Win32.Build.0 = Debug|Win32
+		{9DAFEE32-19F6-4410-AA09-2B564FB86F62}.Debug|x64.ActiveCfg = Debug|x64
+		{9DAFEE32-19F6-4410-AA09-2B564FB86F62}.Debug|x64.Build.0 = Debug|x64
+		{9DAFEE32-19F6-4410-AA09-2B564FB86F62}.Profile|Win32.ActiveCfg = Release|Win32
+		{9DAFEE32-19F6-4410-AA09-2B564FB86F62}.Profile|Win32.Build.0 = Release|Win32
+		{9DAFEE32-19F6-4410-AA09-2B564FB86F62}.Profile|x64.ActiveCfg = Release|x64
+		{9DAFEE32-19F6-4410-AA09-2B564FB86F62}.Profile|x64.Build.0 = Release|x64
+		{9DAFEE32-19F6-4410-AA09-2B564FB86F62}.Release|Win32.ActiveCfg = Release|Win32
+		{9DAFEE32-19F6-4410-AA09-2B564FB86F62}.Release|Win32.Build.0 = Release|Win32
+		{9DAFEE32-19F6-4410-AA09-2B564FB86F62}.Release|x64.ActiveCfg = Release|x64
+		{9DAFEE32-19F6-4410-AA09-2B564FB86F62}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -553,5 +575,6 @@ Global
 		{E746FCA9-64C3-433E-85E8-9A5A67AB7ED6} = {D33114D7-E582-4D61-B27D-FAB0297C43FF}
 		{5B3A6DB8-1E7E-40D7-92B9-DA8AAE619FAD} = {D33114D7-E582-4D61-B27D-FAB0297C43FF}
 		{92940255-AB4B-42FB-A2C4-0FAB19C3C48A} = {D33114D7-E582-4D61-B27D-FAB0297C43FF}
+		{9DAFEE32-19F6-4410-AA09-2B564FB86F62} = {ED25C308-5BDB-43A7-BED6-C2C059FC2D7D}
 	EndGlobalSection
 EndGlobal
