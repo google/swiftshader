@@ -109,6 +109,8 @@ public:
     Func->setError("Target doesn't specify O2 lowering steps.");
   }
 
+  // Tries to do address mode optimization on a single instruction.
+  void doAddressOpt();
   // Lowers a single instruction.
   void lower();
 
@@ -173,6 +175,8 @@ protected:
   virtual void lowerSwitch(const InstSwitch *Inst) = 0;
   virtual void lowerUnreachable(const InstUnreachable *Inst) = 0;
 
+  virtual void doAddressOptLoad() {}
+  virtual void doAddressOptStore() {}
   // This gives the target an opportunity to post-process the lowered
   // expansion before returning.  The primary intention is to do some
   // Register Manager activity as necessary, specifically to eagerly

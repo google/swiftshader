@@ -1,7 +1,7 @@
 ; This is a basic test of the alloca instruction - one test for alloca
 ; of a fixed size, and one test for variable size.
 
-; RUIN: %llvm2ice -O2 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck --check-prefix=OPTM1 %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s

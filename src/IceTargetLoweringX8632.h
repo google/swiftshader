@@ -27,6 +27,7 @@ public:
   static TargetX8632 *create(Cfg *Func) { return new TargetX8632(Func); }
 
   virtual void translateOm1();
+  virtual void translateO2();
 
   virtual Variable *getPhysicalRegister(SizeT RegNum);
   virtual IceString getRegName(SizeT RegNum, Type Ty) const;
@@ -56,7 +57,7 @@ public:
   // latter could be done by directly writing to the stack).
   void split64(Variable *Var);
   void setArgOffsetAndCopy(Variable *Arg, Variable *FramePtr,
-                           int32_t BasicFrameOffset, int32_t &InArgsSizeBytes);
+                           size_t BasicFrameOffset, size_t &InArgsSizeBytes);
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
 
@@ -89,6 +90,8 @@ protected:
   virtual void lowerStore(const InstStore *Inst);
   virtual void lowerSwitch(const InstSwitch *Inst);
   virtual void lowerUnreachable(const InstUnreachable *Inst);
+  virtual void doAddressOptLoad();
+  virtual void doAddressOptStore();
 
   // Operand legalization helpers.  To deal with address mode
   // constraints, the helpers will create a new Operand and emit
@@ -248,8 +251,8 @@ protected:
   }
 
   bool IsEbpBasedFrame;
-  int32_t FrameSizeLocals;
-  int32_t LocalsSizeBytes;
+  size_t FrameSizeLocals;
+  size_t LocalsSizeBytes;
   llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
@@ -265,8 +268,8 @@ private:
   template <typename T> void emitConstantPool() const;
 };
 
-template <> void ConstantFloat::emit(const Cfg *Func) const;
-template <> void ConstantDouble::emit(const Cfg *Func) const;
+template <> void ConstantFloat::emit(GlobalContext *Ctx) const;
+template <> void ConstantDouble::emit(GlobalContext *Ctx) const;
 
 } // end of namespace Ice
 

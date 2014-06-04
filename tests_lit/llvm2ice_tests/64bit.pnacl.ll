@@ -2,7 +2,7 @@
 ; particular the patterns for lowering i64 operations into constituent
 ; i32 operations on x86-32.
 
-; RUIN: %llvm2ice -O2 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck --check-prefix=OPTM1 %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s

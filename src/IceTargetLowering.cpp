@@ -18,6 +18,7 @@
 #include "IceCfg.h" // setError()
 #include "IceCfgNode.h"
 #include "IceOperand.h"
+#include "IceRegAlloc.h"
 #include "IceTargetLowering.h"
 #include "IceTargetLoweringX8632.h"
 
@@ -64,6 +65,15 @@ TargetLowering *TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
 #endif
   Func->setError("Unsupported target");
   return NULL;
+}
+
+void TargetLowering::doAddressOpt() {
+  if (llvm::isa<InstLoad>(*Context.getCur()))
+    doAddressOptLoad();
+  else if (llvm::isa<InstStore>(*Context.getCur()))
+    doAddressOptStore();
+  Context.advanceCur();
+  Context.advanceNext();
 }
 
 // Lowers a single instruction according to the information in
@@ -142,6 +152,23 @@ void TargetLowering::lower() {
 
   Context.advanceCur();
   Context.advanceNext();
+}
+
+// Drives register allocation, allowing all physical registers (except
+// perhaps for the frame pointer) to be allocated.  This set of
+// registers could potentially be parameterized if we want to restrict
+// registers e.g. for performance testing.
+void TargetLowering::regAlloc() {
+  LinearScan LinearScan(Func);
+  RegSetMask RegInclude = RegSet_None;
+  RegSetMask RegExclude = RegSet_None;
+  RegInclude |= RegSet_CallerSave;
+  RegInclude |= RegSet_CalleeSave;
+  RegExclude |= RegSet_StackPointer;
+  if (hasFramePointer())
+    RegExclude |= RegSet_FramePointer;
+  llvm::SmallBitVector RegMask = getRegisterSet(RegInclude, RegExclude);
+  LinearScan.scan(RegMask);
 }
 
 } // end of namespace Ice

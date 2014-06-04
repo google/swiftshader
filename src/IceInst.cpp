@@ -15,6 +15,7 @@
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceInst.h"
+#include "IceLiveness.h"
 #include "IceOperand.h"
 
 namespace Ice {
@@ -74,21 +75,140 @@ const size_t InstIcmpAttributesSize = llvm::array_lengthof(InstIcmpAttributes);
 } // end of anonymous namespace
 
 Inst::Inst(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest)
-    : Kind(Kind), Number(Func->newInstNumber()), Deleted(false),
+    : Kind(Kind), Number(Func->newInstNumber()), Deleted(false), Dead(false),
       HasSideEffects(false), Dest(Dest), MaxSrcs(MaxSrcs), NumSrcs(0),
-      Srcs(Func->allocateArrayOf<Operand *>(MaxSrcs)) {}
+      Srcs(Func->allocateArrayOf<Operand *>(MaxSrcs)), LiveRangesEnded(0) {}
+
+// Assign the instruction a new number.
+void Inst::renumber(Cfg *Func) {
+  Number = isDeleted() ? NumberDeleted : Func->newInstNumber();
+}
+
+// Delete the instruction if its tentative Dead flag is still set
+// after liveness analysis.
+void Inst::deleteIfDead() {
+  if (Dead)
+    setDeleted();
+}
+
+// If Src is a Variable, it returns true if this instruction ends
+// Src's live range.  Otherwise, returns false.
+bool Inst::isLastUse(const Operand *TestSrc) const {
+  if (LiveRangesEnded == 0)
+    return false; // early-exit optimization
+  if (const Variable *TestVar = llvm::dyn_cast<const Variable>(TestSrc)) {
+    LREndedBits Mask = LiveRangesEnded;
+    for (SizeT I = 0; I < getSrcSize(); ++I) {
+      Operand *Src = getSrc(I);
+      SizeT NumVars = Src->getNumVars();
+      for (SizeT J = 0; J < NumVars; ++J) {
+        const Variable *Var = Src->getVar(J);
+        if (Var == TestVar) {
+          // We've found where the variable is used in the instruction.
+          return Mask & 1;
+        }
+        Mask >>= 1;
+        if (Mask == 0)
+          return false; // another early-exit optimization
+      }
+    }
+  }
+  return false;
+}
 
 void Inst::updateVars(CfgNode *Node) {
   if (Dest)
     Dest->setDefinition(this, Node);
 
+  for (SizeT I = 0; I < getSrcSize(); ++I) {
+    Operand *Src = getSrc(I);
+    SizeT NumVars = Src->getNumVars();
+    for (SizeT J = 0; J < NumVars; ++J) {
+      Variable *Var = Src->getVar(J);
+      Var->setUse(this, Node);
+    }
+  }
+}
+
+void Inst::livenessLightweight(llvm::BitVector &Live) {
+  assert(!isDeleted());
+  if (llvm::isa<InstFakeKill>(this))
+    return;
+  resetLastUses();
   SizeT VarIndex = 0;
   for (SizeT I = 0; I < getSrcSize(); ++I) {
     Operand *Src = getSrc(I);
     SizeT NumVars = Src->getNumVars();
     for (SizeT J = 0; J < NumVars; ++J, ++VarIndex) {
-      Variable *Var = Src->getVar(J);
-      Var->setUse(this, Node);
+      const Variable *Var = Src->getVar(J);
+      if (Var->isMultiblockLife())
+        continue;
+      SizeT Index = Var->getIndex();
+      if (Live[Index])
+        continue;
+      Live[Index] = true;
+      setLastUse(VarIndex);
+    }
+  }
+}
+
+void Inst::liveness(InstNumberT InstNumber, llvm::BitVector &Live,
+                    Liveness *Liveness, const CfgNode *Node) {
+  assert(!isDeleted());
+  if (llvm::isa<InstFakeKill>(this))
+    return;
+
+  std::vector<InstNumberT> &LiveBegin = Liveness->getLiveBegin(Node);
+  std::vector<InstNumberT> &LiveEnd = Liveness->getLiveEnd(Node);
+  Dead = false;
+  if (Dest) {
+    SizeT VarNum = Liveness->getLiveIndex(Dest);
+    if (Live[VarNum]) {
+      Live[VarNum] = false;
+      LiveBegin[VarNum] = InstNumber;
+    } else {
+      if (!hasSideEffects())
+        Dead = true;
+    }
+  }
+  if (Dead)
+    return;
+  // Phi arguments only get added to Live in the predecessor node, but
+  // we still need to update LiveRangesEnded.
+  bool IsPhi = llvm::isa<InstPhi>(this);
+  resetLastUses();
+  SizeT VarIndex = 0;
+  for (SizeT I = 0; I < getSrcSize(); ++I) {
+    Operand *Src = getSrc(I);
+    SizeT NumVars = Src->getNumVars();
+    for (SizeT J = 0; J < NumVars; ++J, ++VarIndex) {
+      const Variable *Var = Src->getVar(J);
+      SizeT VarNum = Liveness->getLiveIndex(Var);
+      if (!Live[VarNum]) {
+        setLastUse(VarIndex);
+        if (!IsPhi) {
+          Live[VarNum] = true;
+          // For a variable in SSA form, its live range can end at
+          // most once in a basic block.  However, after lowering to
+          // two-address instructions, we end up with sequences like
+          // "t=b;t+=c;a=t" where t's live range begins and ends
+          // twice.  ICE only allows a variable to have a single
+          // liveness interval in a basic block (except for blocks
+          // where a variable is live-in and live-out but there is a
+          // gap in the middle, and except for the special
+          // InstFakeKill instruction that can appear multiple
+          // times in the same block).  Therefore, this lowered
+          // sequence needs to represent a single conservative live
+          // range for t.  Since the instructions are being traversed
+          // backwards, we make sure LiveEnd is only set once by
+          // setting it only when LiveEnd[VarNum]==0 (sentinel value).
+          // Note that it's OK to set LiveBegin multiple times because
+          // of the backwards traversal.
+          if (LiveEnd[VarNum] == 0) {
+            LiveEnd[VarNum] = InstNumber;
+          }
+        }
+      }
     }
   }
 }
@@ -190,6 +310,28 @@ Operand *InstPhi::getOperandForTarget(CfgNode *Target) const {
   }
   llvm_unreachable("Phi target not found");
   return NULL;
+}
+
+// Updates liveness for a particular operand based on the given
+// predecessor edge.  Doesn't mark the operand as live if the Phi
+// instruction is dead or deleted.
+void InstPhi::livenessPhiOperand(llvm::BitVector &Live, CfgNode *Target,
+                                 Liveness *Liveness) {
+  if (isDeleted() || Dead)
+    return;
+  for (SizeT I = 0; I < getSrcSize(); ++I) {
+    if (Labels[I] == Target) {
+      if (Variable *Var = llvm::dyn_cast<Variable>(getSrc(I))) {
+        SizeT SrcIndex = Liveness->getLiveIndex(Var);
+        if (!Live[SrcIndex]) {
+          setLastUse(I);
+          Live[SrcIndex] = true;
+        }
+      }
+      return;
+    }
+  }
+  llvm_unreachable("Phi operand not found for specified target node");
 }
 
 // Change "a=phi(...)" to "a_phi=phi(...)" and return a new
@@ -294,8 +436,8 @@ void Inst::dumpDecorated(const Cfg *Func) const {
     return;
   if (Func->getContext()->isVerbose(IceV_InstNumbers)) {
     char buf[30];
-    int32_t Number = getNumber();
-    if (Number < 0)
+    InstNumberT Number = getNumber();
+    if (Number == NumberDeleted)
       snprintf(buf, llvm::array_lengthof(buf), "[XXX]");
     else
       snprintf(buf, llvm::array_lengthof(buf), "[%3d]", Number);
@@ -305,6 +447,7 @@ void Inst::dumpDecorated(const Cfg *Func) const {
   if (isDeleted())
     Str << "  //";
   dump(Func);
+  dumpExtras(Func);
   Str << "\n";
 }
 
@@ -317,6 +460,32 @@ void Inst::dump(const Cfg *Func) const {
   dumpDest(Func);
   Str << " =~ ";
   dumpSources(Func);
+}
+
+void Inst::dumpExtras(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  bool First = true;
+  // Print "LIVEEND={a,b,c}" for all source operands whose live ranges
+  // are known to end at this instruction.
+  if (Func->getContext()->isVerbose(IceV_Liveness)) {
+    for (SizeT I = 0; I < getSrcSize(); ++I) {
+      Operand *Src = getSrc(I);
+      SizeT NumVars = Src->getNumVars();
+      for (SizeT J = 0; J < NumVars; ++J) {
+        const Variable *Var = Src->getVar(J);
+        if (isLastUse(Var)) {
+          if (First)
+            Str << " // LIVEEND={";
+          else
+            Str << ",";
+          Var->dump(Func);
+          First = false;
+        }
+      }
+    }
+    if (!First)
+      Str << "}";
+  }
 }
 
 void Inst::dumpSources(const Cfg *Func) const {
@@ -552,5 +721,7 @@ void InstTarget::dump(const Cfg *Func) const {
   Str << "[TARGET] ";
   Inst::dump(Func);
 }
+
+void InstTarget::dumpExtras(const Cfg *Func) const { Inst::dumpExtras(Func); }
 
 } // end of namespace Ice

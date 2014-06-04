@@ -45,6 +45,7 @@ public:
   // Manage the instruction list.
   InstList &getInsts() { return Insts; }
   void appendInst(Inst *Inst);
+  void renumberInstructions();
 
   // Add a predecessor edge to the InEdges list for each of this
   // node's successors.
@@ -53,7 +54,11 @@ public:
   void placePhiLoads();
   void placePhiStores();
   void deletePhis();
+  void doAddressOpt();
   void genCode();
+  void livenessLightweight();
+  bool liveness(Liveness *Liveness);
+  void livenessPostprocess(LivenessMode Mode, Liveness *Liveness);
   void emit(Cfg *Func) const;
   void dump(Cfg *Func) const;
 

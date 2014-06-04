@@ -100,6 +100,29 @@ public:
     return Func;
   }
 
+  // convertConstant() does not use Func or require it to be a valid
+  // Ice::Cfg pointer.  As such, it's suitable for e.g. constructing
+  // global initializers.
+  Ice::Constant *convertConstant(const Constant *Const) {
+    if (const GlobalValue *GV = dyn_cast<GlobalValue>(Const)) {
+      return Ctx->getConstantSym(convertType(GV->getType()), 0, GV->getName());
+    } else if (const ConstantInt *CI = dyn_cast<ConstantInt>(Const)) {
+      return Ctx->getConstantInt(convertIntegerType(CI->getType()),
+                                 CI->getZExtValue());
+    } else if (const ConstantFP *CFP = dyn_cast<ConstantFP>(Const)) {
+      Ice::Type Type = convertType(CFP->getType());
+      if (Type == Ice::IceType_f32)
+        return Ctx->getConstantFloat(CFP->getValueAPF().convertToFloat());
+      else if (Type == Ice::IceType_f64)
+        return Ctx->getConstantDouble(CFP->getValueAPF().convertToDouble());
+      llvm_unreachable("Unexpected floating point type");
+      return NULL;
+    } else {
+      llvm_unreachable("Unhandled constant type");
+      return NULL;
+    }
+  }
+
 private:
   // LLVM values (instructions, etc.) are mapped directly to ICE variables.
   // mapValueToIceVar has a version that forces an ICE type on the variable,
@@ -180,24 +203,7 @@ private:
 
   Ice::Operand *convertValue(const Value *Op) {
     if (const Constant *Const = dyn_cast<Constant>(Op)) {
-      if (const GlobalValue *GV = dyn_cast<GlobalValue>(Const)) {
-        return Ctx->getConstantSym(convertType(GV->getType()), 0,
-                                   GV->getName());
-      } else if (const ConstantInt *CI = dyn_cast<ConstantInt>(Const)) {
-        return Ctx->getConstantInt(convertIntegerType(CI->getType()),
-                                   CI->getZExtValue());
-      } else if (const ConstantFP *CFP = dyn_cast<ConstantFP>(Const)) {
-        Ice::Type Type = convertType(CFP->getType());
-        if (Type == Ice::IceType_f32)
-          return Ctx->getConstantFloat(CFP->getValueAPF().convertToFloat());
-        else if (Type == Ice::IceType_f64)
-          return Ctx->getConstantDouble(CFP->getValueAPF().convertToDouble());
-        llvm_unreachable("Unexpected floating point type");
-        return NULL;
-      } else {
-        llvm_unreachable("Unhandled constant type");
-        return NULL;
-      }
+      return convertConstant(Const);
     } else {
       return mapValueToIceVar(Op);
     }

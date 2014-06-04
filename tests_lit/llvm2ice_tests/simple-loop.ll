@@ -1,7 +1,7 @@
 ; This tests a simple loop that sums the elements of an input array.
 ; The O2 check patterns represent the best code currently achieved.
 
-; RUIN: %llvm2ice -O2 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck --check-prefix=OPTM1 %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s

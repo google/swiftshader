@@ -210,9 +210,10 @@ TargetX8632::TargetX8632(Cfg *Func)
   TypeToRegisterSet[IceType_f64] = FloatRegisters;
 }
 
-void TargetX8632::translateOm1() {
+void TargetX8632::translateO2() {
   GlobalContext *Context = Func->getContext();
-  Ostream &Str = Context->getStrDump();
+
+  // Lower Phi instructions.
   Timer T_placePhiLoads;
   Func->placePhiLoads();
   if (Func->hasError())
@@ -228,30 +229,108 @@ void TargetX8632::translateOm1() {
   if (Func->hasError())
     return;
   T_deletePhis.printElapsedUs(Context, "deletePhis()");
-  if (Context->isVerbose()) {
-    Str << "================ After Phi lowering ================\n";
-    Func->dump();
-  }
+  Func->dump("After Phi lowering");
+
+  // Address mode optimization.
+  Timer T_doAddressOpt;
+  Func->doAddressOpt();
+  T_doAddressOpt.printElapsedUs(Context, "doAddressOpt()");
+
+  // Target lowering.  This requires liveness analysis for some parts
+  // of the lowering decisions, such as compare/branch fusing.  If
+  // non-lightweight liveness analysis is used, the instructions need
+  // to be renumbered first.  TODO: This renumbering should only be
+  // necessary if we're actually calculating live intervals, which we
+  // only do for register allocation.
+  Timer T_renumber1;
+  Func->renumberInstructions();
+  if (Func->hasError())
+    return;
+  T_renumber1.printElapsedUs(Context, "renumberInstructions()");
+  // TODO: It should be sufficient to use the fastest liveness
+  // calculation, i.e. livenessLightweight().  However, for some
+  // reason that slows down the rest of the translation.  Investigate.
+  Timer T_liveness1;
+  Func->liveness(Liveness_Basic);
+  if (Func->hasError())
+    return;
+  T_liveness1.printElapsedUs(Context, "liveness()");
+  Func->dump("After x86 address mode opt");
+  Timer T_genCode;
+  Func->genCode();
+  if (Func->hasError())
+    return;
+  T_genCode.printElapsedUs(Context, "genCode()");
+
+  // Register allocation.  This requires instruction renumbering and
+  // full liveness analysis.
+  Timer T_renumber2;
+  Func->renumberInstructions();
+  if (Func->hasError())
+    return;
+  T_renumber2.printElapsedUs(Context, "renumberInstructions()");
+  Timer T_liveness2;
+  Func->liveness(Liveness_Intervals);
+  if (Func->hasError())
+    return;
+  T_liveness2.printElapsedUs(Context, "liveness()");
+  // Validate the live range computations.  Do it outside the timing
+  // code.  TODO: Put this under a flag.
+  bool ValidLiveness = Func->validateLiveness();
+  assert(ValidLiveness);
+  (void)ValidLiveness; // used only in assert()
+  ComputedLiveRanges = true;
+  // The post-codegen dump is done here, after liveness analysis and
+  // associated cleanup, to make the dump cleaner and more useful.
+  Func->dump("After initial x8632 codegen");
+  Timer T_regAlloc;
+  regAlloc();
+  if (Func->hasError())
+    return;
+  T_regAlloc.printElapsedUs(Context, "regAlloc()");
+  Func->dump("After linear scan regalloc");
+
+  // Stack frame mapping.
+  Timer T_genFrame;
+  Func->genFrame();
+  if (Func->hasError())
+    return;
+  T_genFrame.printElapsedUs(Context, "genFrame()");
+  Func->dump("After stack frame mapping");
+}
+
+void TargetX8632::translateOm1() {
+  GlobalContext *Context = Func->getContext();
+  Timer T_placePhiLoads;
+  Func->placePhiLoads();
+  if (Func->hasError())
+    return;
+  T_placePhiLoads.printElapsedUs(Context, "placePhiLoads()");
+  Timer T_placePhiStores;
+  Func->placePhiStores();
+  if (Func->hasError())
+    return;
+  T_placePhiStores.printElapsedUs(Context, "placePhiStores()");
+  Timer T_deletePhis;
+  Func->deletePhis();
+  if (Func->hasError())
+    return;
+  T_deletePhis.printElapsedUs(Context, "deletePhis()");
+  Func->dump("After Phi lowering");
 
   Timer T_genCode;
   Func->genCode();
   if (Func->hasError())
     return;
   T_genCode.printElapsedUs(Context, "genCode()");
-  if (Context->isVerbose()) {
-    Str << "================ After initial x8632 codegen ================\n";
-    Func->dump();
-  }
+  Func->dump("After initial x8632 codegen");
 
   Timer T_genFrame;
   Func->genFrame();
   if (Func->hasError())
     return;
   T_genFrame.printElapsedUs(Context, "genFrame()");
-  if (Context->isVerbose()) {
-    Str << "================ After stack frame mapping ================\n";
-    Func->dump();
-  }
+  Func->dump("After stack frame mapping");
 }
 
 IceString TargetX8632::RegNames[] = {
@@ -327,8 +406,8 @@ void TargetX8632::emitVariable(const Variable *Var, const Cfg *Func) const {
 // calls itself recursively on the components, taking care to handle
 // Lo first because of the little-endian architecture.
 void TargetX8632::setArgOffsetAndCopy(Variable *Arg, Variable *FramePtr,
-                                      int32_t BasicFrameOffset,
-                                      int32_t &InArgsSizeBytes) {
+                                      size_t BasicFrameOffset,
+                                      size_t &InArgsSizeBytes) {
   Variable *Lo = Arg->getLo();
   Variable *Hi = Arg->getHi();
   Type Ty = Arg->getType();
@@ -359,9 +438,9 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // block 1 and C is local to block 2, then C may share a slot with A
   // or B.
   const bool SimpleCoalescing = true;
-  int32_t InArgsSizeBytes = 0;
-  int32_t RetIpSizeBytes = 4;
-  int32_t PreservedRegsSizeBytes = 0;
+  size_t InArgsSizeBytes = 0;
+  size_t RetIpSizeBytes = 4;
+  size_t PreservedRegsSizeBytes = 0;
   LocalsSizeBytes = 0;
   Context.init(Node);
   Context.setInsertPoint(Context.getCur());
@@ -380,8 +459,8 @@ void TargetX8632::addProlog(CfgNode *Node) {
   llvm::SmallBitVector CalleeSaves =
       getRegisterSet(RegSet_CalleeSave, RegSet_None);
 
-  int32_t GlobalsSize = 0;
-  std::vector<int> LocalsSize(Func->getNumNodes());
+  size_t GlobalsSize = 0;
+  std::vector<size_t> LocalsSize(Func->getNumNodes());
 
   // Prepass.  Compute RegsUsed, PreservedRegsSizeBytes, and
   // LocalsSizeBytes.
@@ -398,6 +477,9 @@ void TargetX8632::addProlog(CfgNode *Node) {
     // An argument passed on the stack already has a stack slot.
     if (Var->getIsArg())
       continue;
+    // An unreferenced variable doesn't need a stack slot.
+    if (ComputedLiveRanges && Var->getLiveRange().isEmpty())
+      continue;
     // A spill slot linked to a variable with a stack slot should reuse
     // that stack slot.
     if (Var->getWeight() == RegWeight::Zero && Var->getRegisterOverlap()) {
@@ -406,7 +488,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
           continue;
       }
     }
-    int32_t Increment = typeWidthInBytesOnStack(Var->getType());
+    size_t Increment = typeWidthInBytesOnStack(Var->getType());
     if (SimpleCoalescing) {
       if (Var->isMultiblockLife()) {
         GlobalsSize += Increment;
@@ -461,7 +543,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // and if they have no home register, home space will need to be
   // allocated on the stack to copy into.
   Variable *FramePtr = getPhysicalRegister(getFrameOrStackReg());
-  int32_t BasicFrameOffset = PreservedRegsSizeBytes + RetIpSizeBytes;
+  size_t BasicFrameOffset = PreservedRegsSizeBytes + RetIpSizeBytes;
   if (!IsEbpBasedFrame)
     BasicFrameOffset += LocalsSizeBytes;
   for (SizeT i = 0; i < Args.size(); ++i) {
@@ -470,10 +552,10 @@ void TargetX8632::addProlog(CfgNode *Node) {
   }
 
   // Fill in stack offsets for locals.
-  int32_t TotalGlobalsSize = GlobalsSize;
+  size_t TotalGlobalsSize = GlobalsSize;
   GlobalsSize = 0;
   LocalsSize.assign(LocalsSize.size(), 0);
-  int32_t NextStackOffset = 0;
+  size_t NextStackOffset = 0;
   for (VarList::const_iterator I = Variables.begin(), E = Variables.end();
        I != E; ++I) {
     Variable *Var = *I;
@@ -482,6 +564,8 @@ void TargetX8632::addProlog(CfgNode *Node) {
       continue;
     }
     if (Var->getIsArg())
+      continue;
+    if (ComputedLiveRanges && Var->getLiveRange().isEmpty())
       continue;
     if (Var->getWeight() == RegWeight::Zero && Var->getRegisterOverlap()) {
       if (Variable *Linked = Var->getPreferredRegister()) {
@@ -493,7 +577,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
         }
       }
     }
-    int32_t Increment = typeWidthInBytesOnStack(Var->getType());
+    size_t Increment = typeWidthInBytesOnStack(Var->getType());
     if (SimpleCoalescing) {
       if (Var->isMultiblockLife()) {
         GlobalsSize += Increment;
@@ -1601,6 +1685,37 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   Operand *Src1 = legalize(Inst->getSrc(1));
   Variable *Dest = Inst->getDest();
 
+  // If Src1 is an immediate, or known to be a physical register, we can
+  // allow Src0 to be a memory operand.  Otherwise, Src0 must be copied into
+  // a physical register.  (Actually, either Src0 or Src1 can be chosen for
+  // the physical register, but unfortunately we have to commit to one or
+  // the other before register allocation.)
+  bool IsSrc1ImmOrReg = false;
+  if (llvm::isa<Constant>(Src1)) {
+    IsSrc1ImmOrReg = true;
+  } else if (Variable *Var = llvm::dyn_cast<Variable>(Src1)) {
+    if (Var->hasReg())
+      IsSrc1ImmOrReg = true;
+  }
+
+  // Try to fuse a compare immediately followed by a conditional branch.  This
+  // is possible when the compare dest and the branch source operands are the
+  // same, and are their only uses.  TODO: implement this optimization for i64.
+  if (InstBr *NextBr = llvm::dyn_cast_or_null<InstBr>(Context.getNextInst())) {
+    if (Src0->getType() != IceType_i64 && !NextBr->isUnconditional() &&
+        Dest == NextBr->getSrc(0) && NextBr->isLastUse(Dest)) {
+      Operand *Src0New =
+          legalize(Src0, IsSrc1ImmOrReg ? Legal_All : Legal_Reg, true);
+      _cmp(Src0New, Src1);
+      _br(getIcmp32Mapping(Inst->getCondition()), NextBr->getTargetTrue(),
+          NextBr->getTargetFalse());
+      // Skip over the following branch instruction.
+      NextBr->setDeleted();
+      Context.advanceNext();
+      return;
+    }
+  }
+
   // a=icmp cond, b, c ==> cmp b,c; a=1; br cond,L1; FakeUse(a); a=0; L1:
   Constant *Zero = Ctx->getConstantInt(IceType_i32, 0);
   Constant *One = Ctx->getConstantInt(IceType_i32, 1);
@@ -1637,19 +1752,6 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
     return;
   }
 
-  // If Src1 is an immediate, or known to be a physical register, we can
-  // allow Src0 to be a memory operand.  Otherwise, Src0 must be copied into
-  // a physical register.  (Actually, either Src0 or Src1 can be chosen for
-  // the physical register, but unfortunately we have to commit to one or
-  // the other before register allocation.)
-  bool IsSrc1ImmOrReg = false;
-  if (llvm::isa<Constant>(Src1)) {
-    IsSrc1ImmOrReg = true;
-  } else if (Variable *Var = llvm::dyn_cast<Variable>(Src1)) {
-    if (Var->hasReg())
-      IsSrc1ImmOrReg = true;
-  }
-
   // cmp b, c
   Operand *Src0New =
       legalize(Src0, IsSrc1ImmOrReg ? Legal_All : Legal_Reg, true);
@@ -1661,6 +1763,135 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   _mov(Dest, Zero);
   Context.insert(Label);
 }
+
+namespace {
+
+bool isAdd(const Inst *Inst) {
+  if (const InstArithmetic *Arith =
+          llvm::dyn_cast_or_null<const InstArithmetic>(Inst)) {
+    return (Arith->getOp() == InstArithmetic::Add);
+  }
+  return false;
+}
+
+void computeAddressOpt(Variable *&Base, Variable *&Index, int32_t &Shift,
+                       int32_t &Offset) {
+  (void)Offset; // TODO: pattern-match for non-zero offsets.
+  if (Base == NULL)
+    return;
+  // If the Base has more than one use or is live across multiple
+  // blocks, then don't go further.  Alternatively (?), never consider
+  // a transformation that would change a variable that is currently
+  // *not* live across basic block boundaries into one that *is*.
+  if (Base->isMultiblockLife() /* || Base->getUseCount() > 1*/)
+    return;
+
+  while (true) {
+    // Base is Base=Var ==>
+    //   set Base=Var
+    const Inst *BaseInst = Base->getDefinition();
+    Operand *BaseOperand0 = BaseInst ? BaseInst->getSrc(0) : NULL;
+    Variable *BaseVariable0 = llvm::dyn_cast_or_null<Variable>(BaseOperand0);
+    // TODO: Helper function for all instances of assignment
+    // transitivity.
+    if (BaseInst && llvm::isa<InstAssign>(BaseInst) && BaseVariable0 &&
+        // TODO: ensure BaseVariable0 stays single-BB
+        true) {
+      Base = BaseVariable0;
+      continue;
+    }
+
+    // Index is Index=Var ==>
+    //   set Index=Var
+
+    // Index==NULL && Base is Base=Var1+Var2 ==>
+    //   set Base=Var1, Index=Var2, Shift=0
+    Operand *BaseOperand1 =
+        BaseInst && BaseInst->getSrcSize() >= 2 ? BaseInst->getSrc(1) : NULL;
+    Variable *BaseVariable1 = llvm::dyn_cast_or_null<Variable>(BaseOperand1);
+    if (Index == NULL && isAdd(BaseInst) && BaseVariable0 && BaseVariable1 &&
+        // TODO: ensure BaseVariable0 and BaseVariable1 stay single-BB
+        true) {
+      Base = BaseVariable0;
+      Index = BaseVariable1;
+      Shift = 0; // should already have been 0
+      continue;
+    }
+
+    // Index is Index=Var*Const && log2(Const)+Shift<=3 ==>
+    //   Index=Var, Shift+=log2(Const)
+    const Inst *IndexInst = Index ? Index->getDefinition() : NULL;
+    if (const InstArithmetic *ArithInst =
+            llvm::dyn_cast_or_null<InstArithmetic>(IndexInst)) {
+      Operand *IndexOperand0 = ArithInst->getSrc(0);
+      Variable *IndexVariable0 = llvm::dyn_cast<Variable>(IndexOperand0);
+      Operand *IndexOperand1 = ArithInst->getSrc(1);
+      ConstantInteger *IndexConstant1 =
+          llvm::dyn_cast<ConstantInteger>(IndexOperand1);
+      if (ArithInst->getOp() == InstArithmetic::Mul && IndexVariable0 &&
+          IndexOperand1->getType() == IceType_i32 && IndexConstant1) {
+        uint64_t Mult = IndexConstant1->getValue();
+        uint32_t LogMult;
+        switch (Mult) {
+        case 1:
+          LogMult = 0;
+          break;
+        case 2:
+          LogMult = 1;
+          break;
+        case 4:
+          LogMult = 2;
+          break;
+        case 8:
+          LogMult = 3;
+          break;
+        default:
+          LogMult = 4;
+          break;
+        }
+        if (Shift + LogMult <= 3) {
+          Index = IndexVariable0;
+          Shift += LogMult;
+          continue;
+        }
+      }
+    }
+
+    // Index is Index=Var<<Const && Const+Shift<=3 ==>
+    //   Index=Var, Shift+=Const
+
+    // Index is Index=Const*Var && log2(Const)+Shift<=3 ==>
+    //   Index=Var, Shift+=log2(Const)
+
+    // Index && Shift==0 && Base is Base=Var*Const && log2(Const)+Shift<=3 ==>
+    //   swap(Index,Base)
+    // Similar for Base=Const*Var and Base=Var<<Const
+
+    // Base is Base=Var+Const ==>
+    //   set Base=Var, Offset+=Const
+
+    // Base is Base=Const+Var ==>
+    //   set Base=Var, Offset+=Const
+
+    // Base is Base=Var-Const ==>
+    //   set Base=Var, Offset-=Const
+
+    // Index is Index=Var+Const ==>
+    //   set Index=Var, Offset+=(Const<<Shift)
+
+    // Index is Index=Const+Var ==>
+    //   set Index=Var, Offset+=(Const<<Shift)
+
+    // Index is Index=Var-Const ==>
+    //   set Index=Var, Offset-=(Const<<Shift)
+
+    // TODO: consider overflow issues with respect to Offset.
+    // TODO: handle symbolic constants.
+    break;
+  }
+}
+
+} // anonymous namespace
 
 void TargetX8632::lowerLoad(const InstLoad *Inst) {
   // A Load instruction can be treated the same as an Assign
@@ -1679,8 +1910,62 @@ void TargetX8632::lowerLoad(const InstLoad *Inst) {
     Src0 = OperandX8632Mem::create(Func, Ty, Base, Offset);
   }
 
+  // Fuse this load with a subsequent Arithmetic instruction in the
+  // following situations:
+  //   a=[mem]; c=b+a ==> c=b+[mem] if last use of a and a not in b
+  //   a=[mem]; c=a+b ==> c=b+[mem] if commutative and above is true
+  //
+  // TODO: Clean up and test thoroughly.
+  //
+  // TODO: Why limit to Arithmetic instructions?  This could probably be
+  // applied to most any instruction type.  Look at all source operands
+  // in the following instruction, and if there is one instance of the
+  // load instruction's dest variable, and that instruction ends that
+  // variable's live range, then make the substitution.  Deal with
+  // commutativity optimization in the arithmetic instruction lowering.
+  InstArithmetic *NewArith = NULL;
+  if (InstArithmetic *Arith =
+          llvm::dyn_cast_or_null<InstArithmetic>(Context.getNextInst())) {
+    Variable *DestLoad = Inst->getDest();
+    Variable *Src0Arith = llvm::dyn_cast<Variable>(Arith->getSrc(0));
+    Variable *Src1Arith = llvm::dyn_cast<Variable>(Arith->getSrc(1));
+    if (Src1Arith == DestLoad && Arith->isLastUse(Src1Arith) &&
+        DestLoad != Src0Arith) {
+      NewArith = InstArithmetic::create(Func, Arith->getOp(), Arith->getDest(),
+                                        Arith->getSrc(0), Src0);
+    } else if (Src0Arith == DestLoad && Arith->isCommutative() &&
+               Arith->isLastUse(Src0Arith) && DestLoad != Src1Arith) {
+      NewArith = InstArithmetic::create(Func, Arith->getOp(), Arith->getDest(),
+                                        Arith->getSrc(1), Src0);
+    }
+    if (NewArith) {
+      Arith->setDeleted();
+      Context.advanceNext();
+      lowerArithmetic(NewArith);
+      return;
+    }
+  }
+
   InstAssign *Assign = InstAssign::create(Func, Inst->getDest(), Src0);
   lowerAssign(Assign);
+}
+
+void TargetX8632::doAddressOptLoad() {
+  Inst *Inst = *Context.getCur();
+  Variable *Dest = Inst->getDest();
+  Operand *Addr = Inst->getSrc(0);
+  Variable *Index = NULL;
+  int32_t Shift = 0;
+  int32_t Offset = 0; // TODO: make Constant
+  Variable *Base = llvm::dyn_cast<Variable>(Addr);
+  computeAddressOpt(Base, Index, Shift, Offset);
+  if (Base && Addr != Base) {
+    Constant *OffsetOp = Ctx->getConstantInt(IceType_i32, Offset);
+    Addr = OperandX8632Mem::create(Func, Dest->getType(), Base, OffsetOp, Index,
+                                   Shift);
+    Inst->setDeleted();
+    Context.insert(InstLoad::create(Func, Dest, Addr));
+  }
 }
 
 void TargetX8632::lowerPhi(const InstPhi * /*Inst*/) {
@@ -1778,6 +2063,24 @@ void TargetX8632::lowerStore(const InstStore *Inst) {
   } else {
     Value = legalize(Value, Legal_Reg | Legal_Imm, true);
     _store(Value, NewAddr);
+  }
+}
+
+void TargetX8632::doAddressOptStore() {
+  InstStore *Inst = llvm::cast<InstStore>(*Context.getCur());
+  Operand *Data = Inst->getData();
+  Operand *Addr = Inst->getAddr();
+  Variable *Index = NULL;
+  int32_t Shift = 0;
+  int32_t Offset = 0; // TODO: make Constant
+  Variable *Base = llvm::dyn_cast<Variable>(Addr);
+  computeAddressOpt(Base, Index, Shift, Offset);
+  if (Base && Addr != Base) {
+    Constant *OffsetOp = Ctx->getConstantInt(IceType_i32, Offset);
+    Addr = OperandX8632Mem::create(Func, Data->getType(), Base, OffsetOp, Index,
+                                   Shift);
+    Inst->setDeleted();
+    Context.insert(InstStore::create(Func, Data, Addr));
   }
 }
 
@@ -1904,11 +2207,10 @@ void TargetX8632::postLower() {
       continue;
     if (llvm::isa<InstFakeKill>(Inst))
       continue;
-    SizeT VarIndex = 0;
     for (SizeT SrcNum = 0; SrcNum < Inst->getSrcSize(); ++SrcNum) {
       Operand *Src = Inst->getSrc(SrcNum);
       SizeT NumVars = Src->getNumVars();
-      for (SizeT J = 0; J < NumVars; ++J, ++VarIndex) {
+      for (SizeT J = 0; J < NumVars; ++J) {
         const Variable *Var = Src->getVar(J);
         if (!Var->hasReg())
           continue;
@@ -1923,11 +2225,10 @@ void TargetX8632::postLower() {
     const Inst *Inst = *I;
     if (Inst->isDeleted())
       continue;
-    SizeT VarIndex = 0;
     for (SizeT SrcNum = 0; SrcNum < Inst->getSrcSize(); ++SrcNum) {
       Operand *Src = Inst->getSrc(SrcNum);
       SizeT NumVars = Src->getNumVars();
-      for (SizeT J = 0; J < NumVars; ++J, ++VarIndex) {
+      for (SizeT J = 0; J < NumVars; ++J) {
         Variable *Var = Src->getVar(J);
         if (Var->hasReg())
           continue;
@@ -1952,15 +2253,15 @@ void TargetX8632::postLower() {
   }
 }
 
-template <> void ConstantFloat::emit(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrEmit();
+template <> void ConstantFloat::emit(GlobalContext *Ctx) const {
+  Ostream &Str = Ctx->getStrEmit();
   // It would be better to prefix with ".L$" instead of "L$", but
   // llvm-mc doesn't parse "dword ptr [.L$foo]".
   Str << "dword ptr [L$" << IceType_f32 << "$" << getPoolEntryID() << "]";
 }
 
-template <> void ConstantDouble::emit(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrEmit();
+template <> void ConstantDouble::emit(GlobalContext *Ctx) const {
+  Ostream &Str = Ctx->getStrEmit();
   Str << "qword ptr [L$" << IceType_f64 << "$" << getPoolEntryID() << "]";
 }
 

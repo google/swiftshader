@@ -1,7 +1,7 @@
 ; Simple test of signed and unsigned integer conversions.
 
-; RUIN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck --check-prefix=OPTM1 %s
+; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
@@ -32,25 +32,14 @@ entry:
   ret void
 }
 ; CHECK: from_int8:
-; CHECK: mov al, byte ptr [
-; CHECK-NEXT: movsx cx, al
-; CHECK-NEXT: mov word ptr [
-; CHECK-NEXT: movsx ecx, al
-; CHECK-NEXT: mov dword ptr [
-; CHECK-NEXT: movsx ecx, al
-; CHECK-NEXT: sar eax, 31
-; CHECK-NEXT: mov dword ptr [i64v+4],
-; CHECK-NEXT: mov dword ptr [i64v],
-;
-; OPTM1: from_int8:
-; OPTM1: mov {{.*}}, byte ptr [
-; OPTM1: movsx
-; OPTM1: mov word ptr [
-; OPTM1: movsx
-; OPTM1: mov dword ptr [
-; OPTM1: movsx
-; OPTM1: sar {{.*}}, 31
-; OPTM1: i64v
+; CHECK: mov {{.*}}, byte ptr [
+; CHECK: movsx
+; CHECK: mov word ptr [
+; CHECK: movsx
+; CHECK: mov dword ptr [
+; CHECK: movsx
+; CHECK: sar {{.*}}, 31
+; CHECK: i64v
 
 define void @from_int16() {
 entry:
@@ -68,24 +57,13 @@ entry:
   ret void
 }
 ; CHECK: from_int16:
-; CHECK: mov ax, word ptr [
-; CHECK-NEXT: mov cx, ax
-; CHECK-NEXT: mov byte ptr [
-; CHECK-NEXT: movsx ecx, ax
-; CHECK-NEXT: mov dword ptr [
-; CHECK-NEXT: movsx ecx, ax
-; CHECK-NEXT: sar eax, 31
-; CHECK-NEXT: mov dword ptr [i64v+4],
-; CHECK-NEXT: mov dword ptr [i64v],
-;
-; OPTM1: from_int16:
-; OPTM1: mov {{.*}}, word ptr [
-; OPTM1: i8v
-; OPTM1: movsx
-; OPTM1: i32v
-; OPTM1: movsx
-; OPTM1: sar {{.*}}, 31
-; OPTM1: i64v
+; CHECK: mov {{.*}}, word ptr [
+; CHECK: i8v
+; CHECK: movsx
+; CHECK: i32v
+; CHECK: movsx
+; CHECK: sar {{.*}}, 31
+; CHECK: i64v
 
 define void @from_int32() {
 entry:
@@ -103,22 +81,11 @@ entry:
   ret void
 }
 ; CHECK: from_int32:
-; CHECK: mov eax, dword ptr [
-; CHECK-NEXT: mov ecx, eax
-; CHECK-NEXT: mov byte ptr [
-; CHECK-NEXT: mov ecx, eax
-; CHECK-NEXT: mov word ptr [
-; CHECK-NEXT: mov ecx, eax
-; CHECK-NEXT: sar eax, 31
-; CHECK-NEXT: mov dword ptr [i64v+4],
-; CHECK-NEXT: mov dword ptr [i64v],
-;
-; OPTM1: from_int32:
-; OPTM1: i32v
-; OPTM1: i8v
-; OPTM1: i16v
-; OPTM1: sar {{.*}}, 31
-; OPTM1: i64v
+; CHECK: i32v
+; CHECK: i8v
+; CHECK: i16v
+; CHECK: sar {{.*}}, 31
+; CHECK: i64v
 
 define void @from_int64() {
 entry:
@@ -136,18 +103,10 @@ entry:
   ret void
 }
 ; CHECK: from_int64:
-; CHECK: mov eax, dword ptr [
-; CHECK-NEXT: mov ecx, eax
-; CHECK-NEXT: mov byte ptr [
-; CHECK-NEXT: mov ecx, eax
-; CHECK-NEXT: mov word ptr [
-; CHECK-NEXT: mov dword ptr [
-;
-; OPTM1: from_int64:
-; OPTM1: i64v
-; OPTM1: i8v
-; OPTM1: i16v
-; OPTM1: i32v
+; CHECK: i64v
+; CHECK: i8v
+; CHECK: i16v
+; CHECK: i32v
 
 define void @from_uint8() {
 entry:
@@ -165,25 +124,14 @@ entry:
   ret void
 }
 ; CHECK: from_uint8:
-; CHECK: mov al, byte ptr [
-; CHECK-NEXT: movzx cx, al
-; CHECK-NEXT: mov word ptr [
-; CHECK-NEXT: movzx ecx, al
-; CHECK-NEXT: mov dword ptr [
-; CHECK-NEXT: movzx eax, al
-; CHECK-NEXT: mov ecx, 0
-; CHECK-NEXT: mov dword ptr [i64v+4],
-; CHECK-NEXT: mov dword ptr [i64v],
-;
-; OPTM1: from_uint8:
-; OPTM1: u8v
-; OPTM1: movzx
-; OPTM1: i16v
-; OPTM1: movzx
-; OPTM1: i32v
-; OPTM1: movzx
-; OPTM1: mov {{.*}}, 0
-; OPTM1: i64v
+; CHECK: u8v
+; CHECK: movzx
+; CHECK: i16v
+; CHECK: movzx
+; CHECK: i32v
+; CHECK: movzx
+; CHECK: mov {{.*}}, 0
+; CHECK: i64v
 
 define void @from_uint16() {
 entry:
@@ -201,24 +149,13 @@ entry:
   ret void
 }
 ; CHECK: from_uint16:
-; CHECK: mov ax, word ptr [
-; CHECK-NEXT: mov cx, ax
-; CHECK-NEXT: mov byte ptr [
-; CHECK-NEXT: movzx ecx, ax
-; CHECK-NEXT: mov dword ptr [
-; CHECK-NEXT: movzx eax, ax
-; CHECK-NEXT: mov ecx, 0
-; CHECK-NEXT: mov dword ptr [i64v+4],
-; CHECK-NEXT: mov dword ptr [i64v],
-;
-; OPTM1: from_uint16:
-; OPTM1: u16v
-; OPTM1: i8v
-; OPTM1: movzx
-; OPTM1: i32v
-; OPTM1: movzx
-; OPTM1: mov {{.*}}, 0
-; OPTM1: i64v
+; CHECK: u16v
+; CHECK: i8v
+; CHECK: movzx
+; CHECK: i32v
+; CHECK: movzx
+; CHECK: mov {{.*}}, 0
+; CHECK: i64v
 
 define void @from_uint32() {
 entry:
@@ -236,21 +173,11 @@ entry:
   ret void
 }
 ; CHECK: from_uint32:
-; CHECK: mov eax, dword ptr [
-; CHECK-NEXT: mov ecx, eax
-; CHECK-NEXT: mov byte ptr [
-; CHECK-NEXT: mov ecx, eax
-; CHECK-NEXT: mov word ptr [
-; CHECK-NEXT: mov ecx, 0
-; CHECK-NEXT: mov dword ptr [i64v+4],
-; CHECK-NEXT: mov dword ptr [i64v],
-;
-; OPTM1: from_uint32:
-; OPTM1: u32v
-; OPTM1: i8v
-; OPTM1: i16v
-; OPTM1: mov {{.*}}, 0
-; OPTM1: i64v
+; CHECK: u32v
+; CHECK: i8v
+; CHECK: i16v
+; CHECK: mov {{.*}}, 0
+; CHECK: i64v
 
 define void @from_uint64() {
 entry:
@@ -268,18 +195,10 @@ entry:
   ret void
 }
 ; CHECK: from_uint64:
-; CHECK: mov eax, dword ptr [
-; CHECK-NEXT: mov ecx, eax
-; CHECK-NEXT: mov byte ptr [
-; CHECK-NEXT: mov ecx, eax
-; CHECK-NEXT: mov word ptr [
-; CHECK-NEXT: mov dword ptr [
-;
-; OPTM1: from_uint64:
-; OPTM1: u64v
-; OPTM1: i8v
-; OPTM1: i16v
-; OPTM1: i32v
+; CHECK: u64v
+; CHECK: i8v
+; CHECK: i16v
+; CHECK: i32v
 
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

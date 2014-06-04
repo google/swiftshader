@@ -81,8 +81,10 @@ private:
 class Constant : public Operand {
 public:
   uint32_t getPoolEntryID() const { return PoolEntryID; }
-  virtual void emit(const Cfg *Func) const = 0;
-  virtual void dump(const Cfg *Func) const = 0;
+  virtual void emit(const Cfg *Func) const { emit(Func->getContext()); }
+  virtual void dump(const Cfg *Func) const { dump(Func->getContext()); }
+  virtual void emit(GlobalContext *Ctx) const = 0;
+  virtual void dump(GlobalContext *Ctx) const = 0;
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
@@ -116,12 +118,14 @@ public:
         ConstantPrimitive(Ty, Value, PoolEntryID);
   }
   T getValue() const { return Value; }
-  virtual void emit(const Cfg *Func) const {
-    Ostream &Str = Func->getContext()->getStrEmit();
+  using Constant::emit;
+  virtual void emit(GlobalContext *Ctx) const {
+    Ostream &Str = Ctx->getStrEmit();
     Str << getValue();
   }
-  virtual void dump(const Cfg *Func) const {
-    Ostream &Str = Func->getContext()->getStrDump();
+  using Constant::dump;
+  virtual void dump(GlobalContext *Ctx) const {
+    Ostream &Str = Ctx->getStrDump();
     Str << getValue();
   }
 
@@ -178,8 +182,10 @@ public:
   IceString getName() const { return Name; }
   void setSuppressMangling(bool Value) { SuppressMangling = Value; }
   bool getSuppressMangling() const { return SuppressMangling; }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  using Constant::emit;
+  using Constant::dump;
+  virtual void emit(GlobalContext *Ctx) const;
+  virtual void dump(GlobalContext *Ctx) const;
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
@@ -228,6 +234,55 @@ bool operator<(const RegWeight &A, const RegWeight &B);
 bool operator<=(const RegWeight &A, const RegWeight &B);
 bool operator==(const RegWeight &A, const RegWeight &B);
 
+// LiveRange is a set of instruction number intervals representing
+// a variable's live range.  Generally there is one interval per basic
+// block where the variable is live, but adjacent intervals get
+// coalesced into a single interval.  LiveRange also includes a
+// weight, in case e.g. we want a live range to have higher weight
+// inside a loop.
+class LiveRange {
+public:
+  LiveRange() : Weight(0) {}
+
+  void reset() {
+    Range.clear();
+    Weight.setWeight(0);
+  }
+  void addSegment(InstNumberT Start, InstNumberT End);
+
+  bool endsBefore(const LiveRange &Other) const;
+  bool overlaps(const LiveRange &Other) const;
+  bool overlaps(InstNumberT OtherBegin) const;
+  bool containsValue(InstNumberT Value) const;
+  bool isEmpty() const { return Range.empty(); }
+  InstNumberT getStart() const {
+    return Range.empty() ? -1 : Range.begin()->first;
+  }
+
+  RegWeight getWeight() const { return Weight; }
+  void setWeight(const RegWeight &NewWeight) { Weight = NewWeight; }
+  void addWeight(uint32_t Delta) { Weight.addWeight(Delta); }
+  void dump(Ostream &Str) const;
+
+  // Defining USE_SET uses std::set to hold the segments instead of
+  // std::list.  Using std::list will be slightly faster, but is more
+  // restrictive because new segments cannot be added in the middle.
+
+  //#define USE_SET
+
+private:
+  typedef std::pair<InstNumberT, InstNumberT> RangeElementType;
+#ifdef USE_SET
+  typedef std::set<RangeElementType> RangeType;
+#else
+  typedef std::list<RangeElementType> RangeType;
+#endif
+  RangeType Range;
+  RegWeight Weight;
+};
+
+Ostream &operator<<(Ostream &Str, const LiveRange &L);
+
 // Variable represents an operand that is register-allocated or
 // stack-allocated.  If it is register-allocated, it will ultimately
 // have a non-negative RegNum field.
@@ -263,6 +318,9 @@ public:
     assert(!hasReg() || RegNum == NewRegNum);
     RegNum = NewRegNum;
   }
+  bool hasRegTmp() const { return getRegNumTmp() != NoRegister; }
+  int32_t getRegNumTmp() const { return RegNumTmp; }
+  void setRegNumTmp(int32_t NewRegNum) { RegNumTmp = NewRegNum; }
 
   RegWeight getWeight() const { return Weight; }
   void setWeight(uint32_t NewWeight) { Weight = NewWeight; }
@@ -274,6 +332,19 @@ public:
     RegisterPreference = Prefer;
     AllowRegisterOverlap = Overlap;
   }
+
+  const LiveRange &getLiveRange() const { return Live; }
+  void setLiveRange(const LiveRange &Range) { Live = Range; }
+  void resetLiveRange() { Live.reset(); }
+  void addLiveRange(InstNumberT Start, InstNumberT End, uint32_t WeightDelta) {
+    assert(WeightDelta != RegWeight::Inf);
+    Live.addSegment(Start, End);
+    if (Weight.isInf())
+      Live.setWeight(RegWeight::Inf);
+    else
+      Live.addWeight(WeightDelta * Weight.getWeight());
+  }
+  void setLiveRangeInfiniteWeight() { Live.setWeight(RegWeight::Inf); }
 
   Variable *getLo() const { return LoVar; }
   Variable *getHi() const { return HiVar; }
@@ -304,8 +375,8 @@ private:
   Variable(Type Ty, const CfgNode *Node, SizeT Index, const IceString &Name)
       : Operand(kVariable, Ty), Number(Index), Name(Name), DefInst(NULL),
         DefNode(Node), IsArgument(false), StackOffset(0), RegNum(NoRegister),
-        Weight(1), RegisterPreference(NULL), AllowRegisterOverlap(false),
-        LoVar(NULL), HiVar(NULL) {
+        RegNumTmp(NoRegister), Weight(1), RegisterPreference(NULL),
+        AllowRegisterOverlap(false), LoVar(NULL), HiVar(NULL) {
     Vars = VarsReal;
     Vars[0] = this;
     NumVars = 1;
@@ -334,6 +405,8 @@ private:
   // RegNum is the allocated register, or NoRegister if it isn't
   // register-allocated.
   int32_t RegNum;
+  // RegNumTmp is the tentative assignment during register allocation.
+  int32_t RegNumTmp;
   RegWeight Weight; // Register allocation priority
   // RegisterPreference says that if possible, the register allocator
   // should prefer the register that was assigned to this linked
@@ -345,6 +418,7 @@ private:
   // RegisterPreference and "share" a register even if the two live
   // ranges overlap.
   bool AllowRegisterOverlap;
+  LiveRange Live;
   // LoVar and HiVar are needed for lowering from 64 to 32 bits.  When
   // lowering from I64 to I32 on a 32-bit architecture, we split the
   // variable into two machine-size pieces.  LoVar is the low-order

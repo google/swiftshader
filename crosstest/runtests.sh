@@ -5,7 +5,7 @@
 
 set -eux
 
-OPTLEVELS="m1"
+OPTLEVELS="m1 2"
 OUTDIR=Output
 # Clean the output directory to avoid reusing stale results.
 rm -rf "${OUTDIR}"

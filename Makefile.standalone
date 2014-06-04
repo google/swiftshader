@@ -39,7 +39,9 @@ SRCS= \
 	IceGlobalContext.cpp \
 	IceInst.cpp \
 	IceInstX8632.cpp \
+	IceLiveness.cpp \
 	IceOperand.cpp \
+	IceRegAlloc.cpp \
 	IceTargetLowering.cpp \
 	IceTargetLoweringX8632.cpp \
 	IceTypes.cpp \

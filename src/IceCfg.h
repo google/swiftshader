@@ -58,7 +58,7 @@ public:
   const NodeList &getNodes() const { return Nodes; }
 
   // Manage instruction numbering.
-  int32_t newInstNumber() { return NextInstNumber++; }
+  InstNumberT newInstNumber() { return NextInstNumber++; }
 
   // Manage Variables.
   Variable *makeVariable(Type Ty, const CfgNode *Node,
@@ -72,6 +72,7 @@ public:
 
   // Miscellaneous accessors.
   TargetLowering *getTarget() const { return Target.get(); }
+  Liveness *getLiveness() const { return Live.get(); }
   bool hasComputedFrame() const;
 
   // Passes over the CFG.
@@ -80,11 +81,16 @@ public:
   // compute the predecessor edges, in the form of
   // CfgNode::InEdges[].
   void computePredecessors();
+  void renumberInstructions();
   void placePhiLoads();
   void placePhiStores();
   void deletePhis();
+  void doAddressOpt();
   void genCode();
   void genFrame();
+  void livenessLightweight();
+  void liveness(LivenessMode Mode);
+  bool validateLiveness() const;
 
   // Manage the CurrentNode field, which is used for validating the
   // Variable::DefNode field during dumping/emitting.
@@ -92,7 +98,7 @@ public:
   const CfgNode *getCurrentNode() const { return CurrentNode; }
 
   void emit();
-  void dump();
+  void dump(const IceString &Message = "");
 
   // Allocate data of type T using the per-Cfg allocator.
   template <typename T> T *allocate() { return Allocator.Allocate<T>(); }
@@ -136,9 +142,10 @@ private:
   IceString ErrorMessage;
   CfgNode *Entry; // entry basic block
   NodeList Nodes; // linearized node list; Entry should be first
-  int32_t NextInstNumber;
+  InstNumberT NextInstNumber;
   VarList Variables;
   VarList Args; // subset of Variables, in argument order
+  llvm::OwningPtr<Liveness> Live;
   llvm::OwningPtr<TargetLowering> Target;
 
   // CurrentNode is maintained during dumping/emitting just for

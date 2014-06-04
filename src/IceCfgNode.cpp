@@ -15,6 +15,7 @@
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceInst.h"
+#include "IceLiveness.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
 
@@ -47,6 +48,22 @@ void CfgNode::appendInst(Inst *Inst) {
     Insts.push_back(Inst);
   }
   Inst->updateVars(this);
+}
+
+// Renumbers the non-deleted instructions in the node.  This needs to
+// be done in preparation for live range analysis.  The instruction
+// numbers in a block must be monotonically increasing.  The range of
+// instruction numbers in a block, from lowest to highest, must not
+// overlap with the range of any other block.
+void CfgNode::renumberInstructions() {
+  for (PhiList::const_iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
+    (*I)->renumber(Func);
+  }
+  InstList::const_iterator I = Insts.begin(), E = Insts.end();
+  while (I != E) {
+    Inst *Inst = *I++;
+    Inst->renumber(Func);
+  }
 }
 
 // When a node is created, the OutEdges are immediately knows, but the
@@ -107,10 +124,25 @@ void CfgNode::placePhiStores() {
   // Every block must end in a terminator instruction.
   assert(InsertionPoint != Insts.begin());
   --InsertionPoint;
-  // Confirm via assert() that InsertionPoint is a terminator
-  // instruction.  Calling getTerminatorEdges() on a non-terminator
-  // instruction will cause an llvm_unreachable().
-  assert(((*InsertionPoint)->getTerminatorEdges(), true));
+  // Confirm that InsertionPoint is a terminator instruction.  Calling
+  // getTerminatorEdges() on a non-terminator instruction will cause
+  // an llvm_unreachable().
+  (void)(*InsertionPoint)->getTerminatorEdges();
+  // If the current insertion point is at a conditional branch
+  // instruction, and the previous instruction is a compare
+  // instruction, then we move the insertion point before the compare
+  // instruction so as not to interfere with compare/branch fusing.
+  if (InstBr *Branch = llvm::dyn_cast<InstBr>(*InsertionPoint)) {
+    if (!Branch->isUnconditional()) {
+      if (InsertionPoint != Insts.begin()) {
+        --InsertionPoint;
+        if (!llvm::isa<InstIcmp>(*InsertionPoint) &&
+            !llvm::isa<InstFcmp>(*InsertionPoint)) {
+          ++InsertionPoint;
+        }
+      }
+    }
+  }
 
   // Consider every out-edge.
   for (NodeList::const_iterator I1 = OutEdges.begin(), E1 = OutEdges.end();
@@ -145,6 +177,19 @@ void CfgNode::deletePhis() {
   }
 }
 
+// Does address mode optimization.  Pass each instruction to the
+// TargetLowering object.  If it returns a new instruction
+// (representing the optimized address mode), then insert the new
+// instruction and delete the old.
+void CfgNode::doAddressOpt() {
+  TargetLowering *Target = Func->getTarget();
+  LoweringContext &Context = Target->getContext();
+  Context.init(this);
+  while (!Context.atEnd()) {
+    Target->doAddressOpt();
+  }
+}
+
 // Drives the target lowering.  Passes the current instruction and the
 // next non-deleted instruction for target lowering.
 void CfgNode::genCode() {
@@ -159,6 +204,189 @@ void CfgNode::genCode() {
     Target->lower();
     // Ensure target lowering actually moved the cursor.
     assert(Context.getCur() != Orig);
+  }
+}
+
+void CfgNode::livenessLightweight() {
+  SizeT NumVars = Func->getNumVariables();
+  llvm::BitVector Live(NumVars);
+  // Process regular instructions in reverse order.
+  for (InstList::const_reverse_iterator I = Insts.rbegin(), E = Insts.rend();
+       I != E; ++I) {
+    if ((*I)->isDeleted())
+      continue;
+    (*I)->livenessLightweight(Live);
+  }
+  for (PhiList::const_iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
+    if ((*I)->isDeleted())
+      continue;
+    (*I)->livenessLightweight(Live);
+  }
+}
+
+// Performs liveness analysis on the block.  Returns true if the
+// incoming liveness changed from before, false if it stayed the same.
+// (If it changes, the node's predecessors need to be processed
+// again.)
+bool CfgNode::liveness(Liveness *Liveness) {
+  SizeT NumVars = Liveness->getNumVarsInNode(this);
+  llvm::BitVector Live(NumVars);
+  // Mark the beginning and ending of each variable's live range
+  // with the sentinel instruction number 0.
+  std::vector<InstNumberT> &LiveBegin = Liveness->getLiveBegin(this);
+  std::vector<InstNumberT> &LiveEnd = Liveness->getLiveEnd(this);
+  LiveBegin.assign(NumVars, Inst::NumberSentinel);
+  LiveEnd.assign(NumVars, Inst::NumberSentinel);
+  // Initialize Live to be the union of all successors' LiveIn.
+  for (NodeList::const_iterator I = OutEdges.begin(), E = OutEdges.end();
+       I != E; ++I) {
+    CfgNode *Succ = *I;
+    Live |= Liveness->getLiveIn(Succ);
+    // Mark corresponding argument of phis in successor as live.
+    for (PhiList::const_iterator I1 = Succ->Phis.begin(), E1 = Succ->Phis.end();
+         I1 != E1; ++I1) {
+      (*I1)->livenessPhiOperand(Live, this, Liveness);
+    }
+  }
+  Liveness->getLiveOut(this) = Live;
+
+  // Process regular instructions in reverse order.
+  for (InstList::const_reverse_iterator I = Insts.rbegin(), E = Insts.rend();
+       I != E; ++I) {
+    if ((*I)->isDeleted())
+      continue;
+    (*I)->liveness((*I)->getNumber(), Live, Liveness, this);
+  }
+  // Process phis in forward order so that we can override the
+  // instruction number to be that of the earliest phi instruction in
+  // the block.
+  InstNumberT FirstPhiNumber = Inst::NumberSentinel;
+  for (PhiList::const_iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
+    if ((*I)->isDeleted())
+      continue;
+    if (FirstPhiNumber == Inst::NumberSentinel)
+      FirstPhiNumber = (*I)->getNumber();
+    (*I)->liveness(FirstPhiNumber, Live, Liveness, this);
+  }
+
+  // When using the sparse representation, after traversing the
+  // instructions in the block, the Live bitvector should only contain
+  // set bits for global variables upon block entry.  We validate this
+  // by shrinking the Live vector and then testing it against the
+  // pre-shrunk version.  (The shrinking is required, but the
+  // validation is not.)
+  llvm::BitVector LiveOrig = Live;
+  Live.resize(Liveness->getNumGlobalVars());
+  // Non-global arguments in the entry node are allowed to be live on
+  // entry.
+  bool IsEntry = (Func->getEntryNode() == this);
+  if (!(IsEntry || Live == LiveOrig)) {
+    // This is a fatal liveness consistency error.  Print some
+    // diagnostics and abort.
+    Ostream &Str = Func->getContext()->getStrDump();
+    Func->setCurrentNode(NULL);
+    Str << "LiveOrig-Live =";
+    for (SizeT i = Live.size(); i < LiveOrig.size(); ++i) {
+      if (LiveOrig.test(i)) {
+        Str << " ";
+        Liveness->getVariable(i, this)->dump(Func);
+      }
+    }
+    Str << "\n";
+    llvm_unreachable("Fatal inconsistency in liveness analysis");
+  }
+
+  bool Changed = false;
+  llvm::BitVector &LiveIn = Liveness->getLiveIn(this);
+  // Add in current LiveIn
+  Live |= LiveIn;
+  // Check result, set LiveIn=Live
+  Changed = (Live != LiveIn);
+  if (Changed)
+    LiveIn = Live;
+  return Changed;
+}
+
+// Now that basic liveness is complete, remove dead instructions that
+// were tentatively marked as dead, and compute actual live ranges.
+// It is assumed that within a single basic block, a live range begins
+// at most once and ends at most once.  This is certainly true for
+// pure SSA form.  It is also true once phis are lowered, since each
+// assignment to the phi-based temporary is in a different basic
+// block, and there is a single read that ends the live in the basic
+// block that contained the actual phi instruction.
+void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
+  InstNumberT FirstInstNum = Inst::NumberSentinel;
+  InstNumberT LastInstNum = Inst::NumberSentinel;
+  // Process phis in any order.  Process only Dest operands.
+  for (PhiList::const_iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
+    InstPhi *Inst = *I;
+    Inst->deleteIfDead();
+    if (Inst->isDeleted())
+      continue;
+    if (FirstInstNum == Inst::NumberSentinel)
+      FirstInstNum = Inst->getNumber();
+    assert(Inst->getNumber() > LastInstNum);
+    LastInstNum = Inst->getNumber();
+  }
+  // Process instructions
+  for (InstList::const_iterator I = Insts.begin(), E = Insts.end(); I != E;
+       ++I) {
+    Inst *Inst = *I;
+    Inst->deleteIfDead();
+    if (Inst->isDeleted())
+      continue;
+    if (FirstInstNum == Inst::NumberSentinel)
+      FirstInstNum = Inst->getNumber();
+    assert(Inst->getNumber() > LastInstNum);
+    LastInstNum = Inst->getNumber();
+    // Create fake live ranges for a Kill instruction, but only if the
+    // linked instruction is still alive.
+    if (Mode == Liveness_Intervals) {
+      if (InstFakeKill *Kill = llvm::dyn_cast<InstFakeKill>(Inst)) {
+        if (!Kill->getLinked()->isDeleted()) {
+          SizeT NumSrcs = Inst->getSrcSize();
+          for (SizeT i = 0; i < NumSrcs; ++i) {
+            Variable *Var = llvm::cast<Variable>(Inst->getSrc(i));
+            InstNumberT InstNumber = Inst->getNumber();
+            Liveness->addLiveRange(Var, InstNumber, InstNumber, 1);
+          }
+        }
+      }
+    }
+  }
+  if (Mode != Liveness_Intervals)
+    return;
+
+  SizeT NumVars = Liveness->getNumVarsInNode(this);
+  SizeT NumGlobals = Liveness->getNumGlobalVars();
+  llvm::BitVector &LiveIn = Liveness->getLiveIn(this);
+  llvm::BitVector &LiveOut = Liveness->getLiveOut(this);
+  std::vector<InstNumberT> &LiveBegin = Liveness->getLiveBegin(this);
+  std::vector<InstNumberT> &LiveEnd = Liveness->getLiveEnd(this);
+  for (SizeT i = 0; i < NumVars; ++i) {
+    // Deal with the case where the variable is both live-in and
+    // live-out, but LiveEnd comes before LiveBegin.  In this case, we
+    // need to add two segments to the live range because there is a
+    // hole in the middle.  This would typically happen as a result of
+    // phi lowering in the presence of loopback edges.
+    bool IsGlobal = (i < NumGlobals);
+    if (IsGlobal && LiveIn[i] && LiveOut[i] && LiveBegin[i] > LiveEnd[i]) {
+      Variable *Var = Liveness->getVariable(i, this);
+      Liveness->addLiveRange(Var, FirstInstNum, LiveEnd[i], 1);
+      Liveness->addLiveRange(Var, LiveBegin[i], LastInstNum + 1, 1);
+      continue;
+    }
+    InstNumberT Begin = (IsGlobal && LiveIn[i]) ? FirstInstNum : LiveBegin[i];
+    InstNumberT End = (IsGlobal && LiveOut[i]) ? LastInstNum + 1 : LiveEnd[i];
+    if (Begin == Inst::NumberSentinel && End == Inst::NumberSentinel)
+      continue;
+    if (Begin <= FirstInstNum)
+      Begin = FirstInstNum;
+    if (End == Inst::NumberSentinel)
+      End = LastInstNum + 1;
+    Variable *Var = Liveness->getVariable(i, this);
+    Liveness->addLiveRange(Var, Begin, End, 1);
   }
 }
 
@@ -194,6 +422,7 @@ void CfgNode::emit(Cfg *Func) const {
 void CfgNode::dump(Cfg *Func) const {
   Func->setCurrentNode(this);
   Ostream &Str = Func->getContext()->getStrDump();
+  Liveness *Liveness = Func->getLiveness();
   if (Func->getContext()->isVerbose(IceV_Instructions)) {
     Str << getName() << ":\n";
   }
@@ -205,6 +434,19 @@ void CfgNode::dump(Cfg *Func) const {
       if (I != InEdges.begin())
         Str << ", ";
       Str << "%" << (*I)->getName();
+    }
+    Str << "\n";
+  }
+  // Dump the live-in variables.
+  llvm::BitVector LiveIn;
+  if (Liveness)
+    LiveIn = Liveness->getLiveIn(this);
+  if (Func->getContext()->isVerbose(IceV_Liveness) && !LiveIn.empty()) {
+    Str << "    // LiveIn:";
+    for (SizeT i = 0; i < LiveIn.size(); ++i) {
+      if (LiveIn[i]) {
+        Str << " %" << Liveness->getVariable(i, this)->getName();
+      }
     }
     Str << "\n";
   }
@@ -220,6 +462,19 @@ void CfgNode::dump(Cfg *Func) const {
       Inst *Inst = *I++;
       Inst->dumpDecorated(Func);
     }
+  }
+  // Dump the live-out variables.
+  llvm::BitVector LiveOut;
+  if (Liveness)
+    LiveOut = Liveness->getLiveOut(this);
+  if (Func->getContext()->isVerbose(IceV_Liveness) && !LiveOut.empty()) {
+    Str << "    // LiveOut:";
+    for (SizeT i = 0; i < LiveOut.size(); ++i) {
+      if (LiveOut[i]) {
+        Str << " %" << Liveness->getVariable(i, this)->getName();
+      }
+    }
+    Str << "\n";
   }
   // Dump list of successor nodes.
   if (Func->getContext()->isVerbose(IceV_Succs)) {

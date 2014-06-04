@@ -12,6 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <ctype.h> // isdigit()
+
 #include "IceDefs.h"
 #include "IceTypes.h"
 #include "IceCfg.h"
@@ -129,8 +131,14 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
     return NewName;
   }
 
-  ItemsParsed = sscanf(Name.c_str(), "_Z%u%s", &BaseLength, NameBase);
-  if (ItemsParsed == 2 && BaseLength <= strlen(NameBase)) {
+  // Artificially limit BaseLength to 9 digits (less than 1 billion)
+  // because sscanf behavior is undefined on integer overflow.  If
+  // there are more than 9 digits (which we test by looking at the
+  // beginning of NameBase), then we consider this a failure to parse
+  // a namespace mangling, and fall back to the simple prefixing.
+  ItemsParsed = sscanf(Name.c_str(), "_Z%9u%s", &BaseLength, NameBase);
+  if (ItemsParsed == 2 && BaseLength <= strlen(NameBase) &&
+      !isdigit(NameBase[0])) {
     // Transform _Z3barxyz ==> _ZN6Prefix3barExyz
     //                           ^^^^^^^^    ^
     // (splice in "N6Prefix", and insert "E" after "3bar")

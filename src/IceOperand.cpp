@@ -7,9 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file implements the Operand class and its
-// target-independent subclasses, primarily for the methods of the
-// Variable class.
+// This file implements the Operand class and its target-independent
+// subclasses, primarily for the methods of the Variable class.
 //
 //===----------------------------------------------------------------------===//
 
@@ -34,6 +33,109 @@ bool operator<(const RegWeight &A, const RegWeight &B) {
 bool operator<=(const RegWeight &A, const RegWeight &B) { return !(B < A); }
 bool operator==(const RegWeight &A, const RegWeight &B) {
   return !(B < A) && !(A < B);
+}
+
+void LiveRange::addSegment(InstNumberT Start, InstNumberT End) {
+#ifdef USE_SET
+  RangeElementType Element(Start, End);
+  RangeType::iterator Next = Range.lower_bound(Element);
+  assert(Next == Range.upper_bound(Element)); // Element not already present
+
+  // Beginning of code that merges contiguous segments.  TODO: change
+  // "if(true)" to "if(false)" to see if this extra optimization code
+  // gives any performance gain, or is just destabilizing.
+  if (true) {
+    RangeType::iterator FirstDelete = Next;
+    RangeType::iterator Prev = Next;
+    bool hasPrev = (Next != Range.begin());
+    bool hasNext = (Next != Range.end());
+    if (hasPrev)
+      --Prev;
+    // See if Element and Next should be joined.
+    if (hasNext && End == Next->first) {
+      Element.second = Next->second;
+      ++Next;
+    }
+    // See if Prev and Element should be joined.
+    if (hasPrev && Prev->second == Start) {
+      Element.first = Prev->first;
+      FirstDelete = Prev;
+    }
+    Range.erase(FirstDelete, Next);
+  }
+  // End of code that merges contiguous segments.
+
+  Range.insert(Next, Element);
+#else
+  if (Range.empty()) {
+    Range.push_back(RangeElementType(Start, End));
+    return;
+  }
+  // Special case for faking in-arg liveness.
+  if (End < Range.front().first) {
+    assert(Start < 0);
+    Range.push_front(RangeElementType(Start, End));
+    return;
+  }
+  InstNumberT CurrentEnd = Range.back().second;
+  assert(Start >= CurrentEnd);
+  // Check for merge opportunity.
+  if (Start == CurrentEnd) {
+    Range.back().second = End;
+    return;
+  }
+  Range.push_back(RangeElementType(Start, End));
+#endif
+}
+
+// Returns true if this live range ends before Other's live range
+// starts.  This means that the highest instruction number in this
+// live range is less than or equal to the lowest instruction number
+// of the Other live range.
+bool LiveRange::endsBefore(const LiveRange &Other) const {
+  // Neither range should be empty, but let's be graceful.
+  if (Range.empty() || Other.Range.empty())
+    return true;
+  InstNumberT MyEnd = (*Range.rbegin()).second;
+  InstNumberT OtherStart = (*Other.Range.begin()).first;
+  return MyEnd <= OtherStart;
+}
+
+// Returns true if there is any overlap between the two live ranges.
+bool LiveRange::overlaps(const LiveRange &Other) const {
+  // Do a two-finger walk through the two sorted lists of segments.
+  RangeType::const_iterator I1 = Range.begin(), I2 = Other.Range.begin();
+  RangeType::const_iterator E1 = Range.end(), E2 = Other.Range.end();
+  while (I1 != E1 && I2 != E2) {
+    if (I1->second <= I2->first) {
+      ++I1;
+      continue;
+    }
+    if (I2->second <= I1->first) {
+      ++I2;
+      continue;
+    }
+    return true;
+  }
+  return false;
+}
+
+bool LiveRange::overlaps(InstNumberT OtherBegin) const {
+  LiveRange Temp;
+  Temp.addSegment(OtherBegin, OtherBegin + 1);
+  return overlaps(Temp);
+}
+
+// Returns true if the live range contains the given instruction
+// number.  This is only used for validating the live range
+// calculation.
+bool LiveRange::containsValue(InstNumberT Value) const {
+  for (RangeType::const_iterator I = Range.begin(), E = Range.end(); I != E;
+       ++I) {
+    if (I->first <= Value && Value <= I->second)
+      return true;
+  }
+  return false;
 }
 
 void Variable::setUse(const Inst *Inst, const CfgNode *Node) {
@@ -115,12 +217,12 @@ void Variable::dump(const Cfg *Func) const {
   }
 }
 
-void ConstantRelocatable::emit(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrEmit();
+void ConstantRelocatable::emit(GlobalContext *Ctx) const {
+  Ostream &Str = Ctx->getStrEmit();
   if (SuppressMangling)
     Str << Name;
   else
-    Str << Func->getContext()->mangleName(Name);
+    Str << Ctx->mangleName(Name);
   if (Offset) {
     if (Offset > 0)
       Str << "+";
@@ -128,11 +230,26 @@ void ConstantRelocatable::emit(const Cfg *Func) const {
   }
 }
 
-void ConstantRelocatable::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
+void ConstantRelocatable::dump(GlobalContext *Ctx) const {
+  Ostream &Str = Ctx->getStrDump();
   Str << "@" << Name;
   if (Offset)
     Str << "+" << Offset;
+}
+
+void LiveRange::dump(Ostream &Str) const {
+  Str << "(weight=" << Weight << ") ";
+  for (RangeType::const_iterator I = Range.begin(), E = Range.end(); I != E;
+       ++I) {
+    if (I != Range.begin())
+      Str << ", ";
+    Str << "[" << (*I).first << ":" << (*I).second << ")";
+  }
+}
+
+Ostream &operator<<(Ostream &Str, const LiveRange &L) {
+  L.dump(Str);
+  return Str;
 }
 
 Ostream &operator<<(Ostream &Str, const RegWeight &W) {

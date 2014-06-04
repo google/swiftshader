@@ -20,5 +20,11 @@ return:                                           ; preds = %entry
   ret i32 %div
 }
 
+; CHECK: cmp
+; CHECK: call ice_unreachable
+; CHECK: cdq
+; CHECK: idiv
+; CHECK: ret
+
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ
