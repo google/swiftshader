@@ -235,8 +235,9 @@ bool CfgNode::liveness(Liveness *Liveness) {
   // with the sentinel instruction number 0.
   std::vector<InstNumberT> &LiveBegin = Liveness->getLiveBegin(this);
   std::vector<InstNumberT> &LiveEnd = Liveness->getLiveEnd(this);
-  LiveBegin.assign(NumVars, Inst::NumberSentinel);
-  LiveEnd.assign(NumVars, Inst::NumberSentinel);
+  InstNumberT Sentinel = Inst::NumberSentinel;
+  LiveBegin.assign(NumVars, Sentinel);
+  LiveEnd.assign(NumVars, Sentinel);
   // Initialize Live to be the union of all successors' LiveIn.
   for (NodeList::const_iterator I = OutEdges.begin(), E = OutEdges.end();
        I != E; ++I) {
