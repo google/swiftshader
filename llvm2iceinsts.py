@@ -7,10 +7,7 @@ import re
 import subprocess
 import sys
 
-for p in sys.path:
-    if p.endswith('/toolchain_build/src/pnacl-subzero'):
-        sys.path.insert(0, p + '/pydir')
-        break
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'pydir'))
 
 from utils import shellcmd
 

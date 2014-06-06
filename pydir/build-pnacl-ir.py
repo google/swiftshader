@@ -40,10 +40,10 @@ Please set the NACL_SDK_ROOT environment variable or pass the path through
         pnaclname = basename + '.pnacl.ll'
         pnaclname = os.path.join(args.dir, pnaclname)
 
-        shellcmd(clang_path + ' -I{0} -c {1} -o {2}'.format(
+        shellcmd(clang_path + ' -O2 -I{0} -c {1} -o {2}'.format(
             includes_path, cname, llname))
         shellcmd(opt_path +
-            ' -O2 -pnacl-abi-simplify-preopt -pnacl-abi-simplify-postopt' +
+            ' -pnacl-abi-simplify-preopt -pnacl-abi-simplify-postopt' +
             ('' if args.disable_verify else
              ' -verify-pnaclabi-module -verify-pnaclabi-functions') +
             ' -pnaclabi-allow-debug-metadata -disable-simplify-libcalls'
