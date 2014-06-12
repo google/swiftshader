@@ -188,6 +188,7 @@ const char *EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name)
             return success("OpenGL_ES");
         case EGL_EXTENSIONS:
             return success("EGL_KHR_gl_texture_2D_image "
+                           "EGL_KHR_gl_texture_cubemap_image "
                            "EGL_KHR_image_base");
         case EGL_VENDOR:
             return success("TransGaming Inc.");
@@ -1078,9 +1079,20 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
             return error(EGL_BAD_CONTEXT, EGL_NO_IMAGE_KHR);
         }
 
+        GLenum textureTarget = GL_NONE;
+
         switch(target)
         {
         case EGL_GL_TEXTURE_2D_KHR:
+            textureTarget = GL_TEXTURE_2D;
+            break;
+        case EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_X_KHR:
+        case EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_X_KHR:
+        case EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_Y_KHR:
+        case EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_KHR:
+        case EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_Z_KHR:
+        case EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_KHR:
+            textureTarget = GL_TEXTURE_CUBE_MAP;
             break;
         default:
             return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
@@ -1112,47 +1124,43 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
             return error(EGL_BAD_MATCH, EGL_NO_IMAGE_KHR);
         }
 
-        if(target == EGL_GL_TEXTURE_2D_KHR)
+        GLuint name = (GLuint)buffer;
+
+        if(name == 0)
         {
-            GLuint name = (GLuint)buffer;
-
-            if(name == 0)
-            {
-                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-            }
-
-            gl::Texture *texture = context->getTexture(name);
-
-            if(!texture || texture->getTarget() != GL_TEXTURE_2D)
-            {
-                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-            }
-
-            if(texture->isShared(GL_TEXTURE_2D, textureLevel))   // Bound to an EGLSurface or already an EGLImage sibling
-            {
-                return error(EGL_BAD_ACCESS, EGL_NO_IMAGE_KHR);
-            }
-
-            if(textureLevel != 0 && !texture->isSamplerComplete())
-            {
-                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-            }
-
-            if(textureLevel == 0 && !(texture->isSamplerComplete() && texture->getLevelCount() == 1))
-            {
-                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-            }
-
-            gl::Image *image = texture->getSharedImage(GL_TEXTURE_2D, textureLevel);
-
-            if(!image)
-            {
-                return error(EGL_BAD_MATCH, EGL_NO_IMAGE_KHR);
-            }
-
-            return success((EGLImageKHR)image);
+            return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
         }
-        else UNREACHABLE();
+
+        gl::Texture *texture = context->getTexture(name);
+
+        if(!texture || texture->getTarget() != textureTarget)
+        {
+            return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+        }
+
+        if(texture->isShared(textureTarget, textureLevel))   // Bound to an EGLSurface or already an EGLImage sibling
+        {
+            return error(EGL_BAD_ACCESS, EGL_NO_IMAGE_KHR);
+        }
+
+        if(textureLevel != 0 && !texture->isSamplerComplete())
+        {
+            return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+        }
+
+        if(textureLevel == 0 && !(texture->isSamplerComplete() && texture->getLevelCount() == 1))
+        {
+            return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+        }
+
+        gl::Image *image = texture->getSharedImage(textureTarget, textureLevel);
+
+        if(!image)
+        {
+            return error(EGL_BAD_MATCH, EGL_NO_IMAGE_KHR);
+        }
+
+        return success((EGLImageKHR)image);
     }
     catch(std::bad_alloc&)
     {
