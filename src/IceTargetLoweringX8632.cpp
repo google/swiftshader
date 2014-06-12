@@ -390,7 +390,9 @@ void TargetX8632::emitVariable(const Variable *Var, const Cfg *Func) const {
   }
   Str << InstX8632::getWidthString(Var->getType());
   Str << " [" << getRegName(getFrameOrStackReg(), IceType_i32);
-  int32_t Offset = Var->getStackOffset() + getStackAdjustment();
+  int32_t Offset = Var->getStackOffset();
+  if (!hasFramePointer())
+    Offset += getStackAdjustment();
   if (Offset) {
     if (Offset > 0)
       Str << "+";
