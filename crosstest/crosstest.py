@@ -82,8 +82,9 @@ if __name__ == '__main__':
                 f.write(line)
             f.close()
 
-        asm_sz = os.path.join(args.dir, base + '.sz.s')
-        obj_sz = os.path.join(args.dir, base + '.sz.o')
+        base_sz = '%s.O%s.%s' % (base, args.optlevel, args.target)
+        asm_sz = os.path.join(args.dir, base_sz + '.sz.s')
+        obj_sz = os.path.join(args.dir, base_sz + '.sz.o')
         obj_llc = os.path.join(args.dir, base + '.llc.o')
         shellcmd(['../llvm2ice',
                   '-O' + args.optlevel,
