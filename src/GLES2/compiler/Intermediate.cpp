@@ -32,7 +32,7 @@ const char* getOperatorString(TOperator op) {
       case EOpDivAssign: return "/=";
 
       // Fall-through.
-      case EOpMulAssign: 
+      case EOpMulAssign:
       case EOpVectorTimesMatrixAssign:
       case EOpVectorTimesScalarAssign:
       case EOpMatrixTimesScalarAssign:
@@ -77,11 +77,11 @@ const char* getOperatorString(TOperator op) {
       // Fall-through.
       case EOpConvIntToBool:
       case EOpConvFloatToBool: return "bool";
- 
+
       // Fall-through.
       case EOpConvBoolToFloat:
       case EOpConvIntToFloat: return "float";
- 
+
       // Fall-through.
       case EOpConvFloatToInt:
       case EOpConvBoolToInt: return "int";
@@ -176,23 +176,9 @@ TIntermTyped* TIntermediate::addBinaryMath(TOperator op, TIntermTyped* left, TIn
         default: break;
     }
 
-    //
-    // First try converting the children to compatible types.
-    //
-    if (left->getType().getStruct() && right->getType().getStruct()) {
-        if (left->getType() != right->getType())
-            return 0;
-    } else {
-        TIntermTyped* child = addConversion(op, left->getType(), right);
-        if (child)
-            right = child;
-        else {
-            child = addConversion(op, right->getType(), left);
-            if (child)
-                left = child;
-            else
-                return 0;
-        }
+    if (left->getBasicType() != right->getBasicType())
+    {
+        return 0;
     }
 
     //
@@ -212,11 +198,10 @@ TIntermTyped* TIntermediate::addBinaryMath(TOperator op, TIntermTyped* left, TIn
     //
     // See if we can fold constants.
     //
-    TIntermTyped* typedReturnNode = 0;
     TIntermConstantUnion *leftTempConstant = left->getAsConstantUnion();
     TIntermConstantUnion *rightTempConstant = right->getAsConstantUnion();
     if (leftTempConstant && rightTempConstant) {
-        typedReturnNode = leftTempConstant->fold(node->getOp(), rightTempConstant, infoSink);
+        TIntermTyped *typedReturnNode = leftTempConstant->fold(node->getOp(), rightTempConstant, infoSink);
 
         if (typedReturnNode)
             return typedReturnNode;
@@ -232,21 +217,21 @@ TIntermTyped* TIntermediate::addBinaryMath(TOperator op, TIntermTyped* left, TIn
 //
 TIntermTyped* TIntermediate::addAssign(TOperator op, TIntermTyped* left, TIntermTyped* right, TSourceLoc line)
 {
-    //
-    // Like adding binary math, except the conversion can only go
-    // from right to left.
-    //
+    if (left->getType().getStruct() || right->getType().getStruct())
+    {
+        if (left->getType() != right->getType())
+        {
+            return 0;
+        }
+    }
+
     TIntermBinary* node = new TIntermBinary(op);
-    if (line == 0)
+    if(line == 0)
         line = left->getLine();
     node->setLine(line);
 
-    TIntermTyped* child = addConversion(op, left->getType(), right);
-    if (child == 0)
-        return 0;
-
     node->setLeft(left);
-    node->setRight(child);
+    node->setRight(right);
     if (! node->promote(infoSink))
         return 0;
 
@@ -303,40 +288,6 @@ TIntermTyped* TIntermediate::addUnaryMath(TOperator op, TIntermNode* childNode, 
         case EOpNegative:
             if (child->getType().getBasicType() == EbtStruct || child->getType().isArray())
                 return 0;
-        default: break;
-    }
-
-    //
-    // Do we need to promote the operand?
-    //
-    // Note: Implicit promotions were removed from the language.
-    //
-    TBasicType newType = EbtVoid;
-    switch (op) {
-        case EOpConstructInt:   newType = EbtInt;   break;
-        case EOpConstructBool:  newType = EbtBool;  break;
-        case EOpConstructFloat: newType = EbtFloat; break;
-        default: break;
-    }
-
-    if (newType != EbtVoid) {
-        child = addConversion(op, TType(newType, child->getPrecision(), EvqTemporary,
-            child->getNominalSize(),
-            child->isMatrix(),
-            child->isArray()),
-            child);
-        if (child == 0)
-            return 0;
-    }
-
-    //
-    // For constructors, we are now done, it's all in the conversion.
-    //
-    switch (op) {
-        case EOpConstructInt:
-        case EOpConstructBool:
-        case EOpConstructFloat:
-            return child;
         default: break;
     }
 
@@ -625,18 +576,9 @@ TIntermTyped* TIntermediate::addComma(TIntermTyped* left, TIntermTyped* right, T
 //
 TIntermTyped* TIntermediate::addSelection(TIntermTyped* cond, TIntermTyped* trueBlock, TIntermTyped* falseBlock, TSourceLoc line)
 {
-    //
-    // Get compatible types.
-    //
-    TIntermTyped* child = addConversion(EOpSequence, trueBlock->getType(), falseBlock);
-    if (child)
-        falseBlock = child;
-    else {
-        child = addConversion(EOpSequence, falseBlock->getType(), trueBlock);
-        if (child)
-            trueBlock = child;
-        else
-            return 0;
+    if (trueBlock->getType() != falseBlock->getType())
+    {
+        return 0;
     }
 
     //
@@ -809,6 +751,7 @@ bool TIntermOperator::isConstructor() const
             return false;
     }
 }
+
 //
 // Make sure the type of a unary operator is appropriate for its
 // combination of operation and operand type.
@@ -869,7 +812,9 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
     // GLSL ES 2.0 does not support implicit type casting.
     // So the basic type should always match.
     if (left->getBasicType() != right->getBasicType())
+    {
         return false;
+    }
 
     //
     // Base assumption:  just make the type the same as the left
