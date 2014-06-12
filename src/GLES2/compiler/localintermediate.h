@@ -20,12 +20,11 @@ struct TVectorFields {
 //
 class TInfoSink;
 class TIntermediate {
-public:    
+public:
     POOL_ALLOCATOR_NEW_DELETE(GlobalPoolAllocator)
 
     TIntermediate(TInfoSink& i) : infoSink(i) { }
     TIntermSymbol* addSymbol(int Id, const TString&, const TType&, TSourceLoc);
-    TIntermTyped* addConversion(TOperator, const TType&, TIntermTyped*);
     TIntermTyped* addBinaryMath(TOperator op, TIntermTyped* left, TIntermTyped* right, TSourceLoc);
     TIntermTyped* addAssign(TOperator op, TIntermTyped* left, TIntermTyped* right, TSourceLoc);
     TIntermTyped* addIndex(TOperator op, TIntermTyped* base, TIntermTyped* index, TSourceLoc);
@@ -37,14 +36,14 @@ public:
     TIntermTyped* addSelection(TIntermTyped* cond, TIntermTyped* trueBlock, TIntermTyped* falseBlock, TSourceLoc);
     TIntermTyped* addComma(TIntermTyped* left, TIntermTyped* right, TSourceLoc);
     TIntermConstantUnion* addConstantUnion(ConstantUnion*, const TType&, TSourceLoc);
-    TIntermTyped* promoteConstantUnion(TBasicType, TIntermConstantUnion*) ;
-    bool parseConstTree(TSourceLoc, TIntermNode*, ConstantUnion*, TOperator, TType, bool singleConstantParam = false);        
+    TIntermTyped* promoteConstantUnion(TBasicType, TIntermConstantUnion*);
+    bool parseConstTree(TSourceLoc, TIntermNode*, ConstantUnion*, TOperator, TType, bool singleConstantParam = false);
     TIntermNode* addLoop(TLoopType, TIntermNode*, TIntermTyped*, TIntermTyped*, TIntermNode*, TSourceLoc);
     TIntermBranch* addBranch(TOperator, TSourceLoc);
     TIntermBranch* addBranch(TOperator, TIntermTyped*, TSourceLoc);
     TIntermTyped* addSwizzle(TVectorFields&, TSourceLoc);
     bool postProcess(TIntermNode*);
-	void remove(TIntermNode*);
+    void remove(TIntermNode*);
     void outputTree(TIntermNode*);
     
 protected:

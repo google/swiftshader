@@ -46,13 +46,6 @@ enum TOperator {
     EOpPreIncrement,
     EOpPreDecrement,
 
-    EOpConvIntToBool,
-    EOpConvFloatToBool,
-    EOpConvBoolToFloat,
-    EOpConvIntToFloat,
-    EOpConvFloatToInt,
-    EOpConvBoolToInt,
-
     //
     // binary operations
     //

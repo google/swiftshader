@@ -152,13 +152,6 @@ bool TOutputTraverser::visitUnary(Visit visit, TIntermUnary* node)
         case EOpPreIncrement:   out << "Pre-Increment";        break;
         case EOpPreDecrement:   out << "Pre-Decrement";        break;
 
-        case EOpConvIntToBool:  out << "Convert int to bool";  break;
-        case EOpConvFloatToBool:out << "Convert float to bool";break;
-        case EOpConvBoolToFloat:out << "Convert bool to float";break;
-        case EOpConvIntToFloat: out << "Convert int to float"; break;
-        case EOpConvFloatToInt: out << "Convert float to int"; break;
-        case EOpConvBoolToInt:  out << "Convert bool to int";  break;
-
         case EOpRadians:        out << "radians";              break;
         case EOpDegrees:        out << "degrees";              break;
         case EOpSin:            out << "sine";                 break;

@@ -601,12 +601,6 @@ namespace sh
 				assignLvalue(arg, result);
 			}
 			break;
-		case EOpConvIntToBool:    if(visit == PostVisit) emit(sw::Shader::OPCODE_F2B, result, arg); break;     // Integers are implemented as float
-		case EOpConvFloatToBool:  if(visit == PostVisit) emit(sw::Shader::OPCODE_F2B, result, arg); break;
-		case EOpConvBoolToFloat:  if(visit == PostVisit) emit(sw::Shader::OPCODE_B2F, result, arg); break;
-		case EOpConvIntToFloat:   if(visit == PostVisit) emit(sw::Shader::OPCODE_MOV, result, arg); break;     // Integers are implemented as float
-		case EOpConvFloatToInt:   if(visit == PostVisit) emit(sw::Shader::OPCODE_TRUNC, result, arg); break;   // Integers are implemented as float
-		case EOpConvBoolToInt:    if(visit == PostVisit) emit(sw::Shader::OPCODE_B2F, result, arg); break;     // Integers are implemented as float
 		case EOpRadians:          if(visit == PostVisit) emit(sw::Shader::OPCODE_MUL, result, arg, &rad); break;
 		case EOpDegrees:          if(visit == PostVisit) emit(sw::Shader::OPCODE_MUL, result, arg, &deg); break;
 		case EOpSin:              if(visit == PostVisit) emit(sw::Shader::OPCODE_SIN, result, arg); break;
