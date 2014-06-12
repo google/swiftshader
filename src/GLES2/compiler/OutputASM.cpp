@@ -707,8 +707,8 @@ namespace sh
 		case EOpFunctionCall:
 			if(visit == PostVisit)
 			{
-                if(node->isUserDefined())
-                {
+				if(node->isUserDefined())
+				{
 					const TString &name = node->getName();
 					const Function &function = findFunction(name);
 					TIntermSequence &arguments = *function.arg;
@@ -716,7 +716,7 @@ namespace sh
 					for(int i = 0; i < argumentCount; i++)
 					{
 						TIntermTyped *in = arguments[i]->getAsTyped();
-								
+
 						if(in->getQualifier() == EvqIn ||
 						   in->getQualifier() == EvqInOut ||
 						   in->getQualifier() == EvqConstReadOnly)
@@ -769,10 +769,10 @@ namespace sh
 						else UNREACHABLE();
 					}
 					else if(name == "texture2DProj")
-                    {
+					{
 						TIntermTyped *t = arg[1]->getAsTyped();
 
-                        if(argumentCount == 2)
+						if(argumentCount == 2)
 						{
 							Instruction *tex = emit(sw::Shader::OPCODE_TEX, result, arg[1], arg[0]);
 							tex->project = true;
@@ -808,19 +808,19 @@ namespace sh
 							tex->bias = true;
 						}
 						else UNREACHABLE();
-                    }
-                    else if(name == "texture2DLod" || name == "textureCubeLod")
-                    {
+					}
+					else if(name == "texture2DLod" || name == "textureCubeLod")
+					{
 						Temporary uvwb(this);
 						emit(sw::Shader::OPCODE_MOV, &uvwb, arg[1]);
 						Instruction *lod = emit(sw::Shader::OPCODE_MOV, &uvwb, arg[2]);
 						lod->dst.mask = 0x8;
 
 						emit(sw::Shader::OPCODE_TEXLDL, result, &uvwb, arg[0]);
-                    }
-                    else if(name == "texture2DProjLod")
-                    {
-                        TIntermTyped *t = arg[1]->getAsTyped();
+					}
+					else if(name == "texture2DProjLod")
+					{
+						TIntermTyped *t = arg[1]->getAsTyped();
 						Temporary proj(this);
 
 						if(t->getNominalSize() == 3)
@@ -841,12 +841,13 @@ namespace sh
 						lod->dst.mask = 0x8;
 
 						emit(sw::Shader::OPCODE_TEXLDL, result, &proj, arg[0]);
-                    }
+					}
 					else UNREACHABLE();
 				}
 			}
 			break;
-		case EOpParameters: break;
+		case EOpParameters:
+			break;
 		case EOpConstructFloat:
 		case EOpConstructVec2:
 		case EOpConstructVec3:
@@ -864,12 +865,12 @@ namespace sh
 				int component = 0;
 
 				for(int i = 0; i < argumentCount; i++)
-                {
-                    TIntermTyped *argi = arg[i]->getAsTyped();
+				{
+					TIntermTyped *argi = arg[i]->getAsTyped();
 					int size = argi->getNominalSize();
 					ASSERT(!argi->isMatrix());
 
-					Instruction *mov = emit(sw::Shader::OPCODE_MOV, result, argi);
+					Instruction *mov = emitCast(result, argi);
 					mov->dst.mask = (0xF << component) & 0xF;
 					mov->src[0].swizzle = readSwizzle(argi, size) << (component * 2);
 
@@ -893,13 +894,13 @@ namespace sh
 						{
 							// Initialize to identity matrix
 							Constant col((i == 0 ? 1.0f : 0.0f), (i == 1 ? 1.0f : 0.0f), (i == 2 ? 1.0f : 0.0f), (i == 3 ? 1.0f : 0.0f));
-							Instruction *mov = emit(sw::Shader::OPCODE_MOV, result, &col);
+							Instruction *mov = emitCast(result, &col);
 							mov->dst.index += i;
 						}
 
 						if(i < dim2(arg0))
 						{
-							Instruction *mov = emit(sw::Shader::OPCODE_MOV, result, arg0);
+							Instruction *mov = emitCast(result, arg0);
 							mov->dst.index += i;
 							mov->dst.mask = 0xF >> (4 - dim2(arg0));
 							argument(mov->src[0], arg0, i);
@@ -919,11 +920,11 @@ namespace sh
 
 						while(element < size)
 						{
-							Instruction *mov = emit(sw::Shader::OPCODE_MOV, result, argi);
+							Instruction *mov = emitCast(result, argi);
 							mov->dst.index += column;
 							mov->dst.mask = (0xF << row) & 0xF;
 							mov->src[0].swizzle = (readSwizzle(argi, size) << (row * 2)) + 0x55 * element;
-					
+
 							int end = row + size - element;
 							column = end >= dim ? column + 1 : column;
 							element = element + dim - row;
@@ -987,7 +988,7 @@ namespace sh
 				ASSERT(dim2(arg[0]) == dim2(arg[1]));
 
 				for(int i = 0; i < dim2(arg[0]); i++)
-                {
+				{
 					Instruction *mul = emit(sw::Shader::OPCODE_MUL, result, arg[0], arg[1]);
 					mul->dst.index += i;
 					argument(mul->src[0], arg[0], i);
@@ -1208,8 +1209,8 @@ namespace sh
 
 		switch(node->getFlowOp())
 		{
-		case EOpKill:      if(visit == PostVisit) emit(sw::Shader::OPCODE_DISCARD); break;
-		case EOpBreak:     if(visit == PostVisit) emit(sw::Shader::OPCODE_BREAK); break;
+		case EOpKill:      if(visit == PostVisit) emit(sw::Shader::OPCODE_DISCARD);  break;
+		case EOpBreak:     if(visit == PostVisit) emit(sw::Shader::OPCODE_BREAK);    break;
 		case EOpContinue:  if(visit == PostVisit) emit(sw::Shader::OPCODE_CONTINUE); break;
 		case EOpReturn:
 			if(visit == PostVisit)
@@ -1254,6 +1255,25 @@ namespace sh
 		shader->append(instruction);
 
 		return instruction;
+	}
+
+	Instruction *OutputASM::emitCast(TIntermTyped *dst, TIntermTyped *src)
+	{
+		// Integers are implemented as float
+		if((dst->getBasicType() == EbtFloat || dst->getBasicType() == EbtInt) && src->getBasicType() == EbtBool)
+		{
+			return emit(sw::Shader::OPCODE_B2F, dst, src);
+		}
+		if(dst->getBasicType() == EbtBool && (src->getBasicType() == EbtFloat || src->getBasicType() == EbtInt))
+		{
+			return emit(sw::Shader::OPCODE_F2B, dst, src);
+		}
+		if(dst->getBasicType() == EbtInt && src->getBasicType() == EbtFloat)
+		{
+			return emit(sw::Shader::OPCODE_TRUNC, dst, src);
+		}
+
+		return emit(sw::Shader::OPCODE_MOV, dst, src);
 	}
 
 	void OutputASM::emitBinary(sw::Shader::Opcode op, TIntermTyped *dst, TIntermNode *src0, TIntermNode *src1, TIntermNode *src2)
@@ -2281,10 +2301,10 @@ namespace sh
 		{
 			return GL_SAMPLER_CUBE;
 		}
-        else if(type.getBasicType() == EbtSamplerExternalOES)
-        {
-            return GL_SAMPLER_EXTERNAL_OES;
-        }
+		else if(type.getBasicType() == EbtSamplerExternalOES)
+		{
+			return GL_SAMPLER_EXTERNAL_OES;
+		}
 		else UNREACHABLE();
 
 		return GL_NONE;
@@ -2382,7 +2402,7 @@ namespace sh
 		if(index && node->getCondition())
 		{
 			TIntermBinary *test = node->getCondition()->getAsBinaryNode();
-        
+
 			if(test && test->getLeft()->getAsSymbolNode()->getId() == index->getId())
 			{
 				TIntermConstantUnion *constant = test->getRight()->getAsConstantUnion();
@@ -2403,7 +2423,7 @@ namespace sh
 		{
 			TIntermBinary *binaryTerminal = node->getExpression()->getAsBinaryNode();
 			TIntermUnary *unaryTerminal = node->getExpression()->getAsUnaryNode();
-        
+
 			if(binaryTerminal)
 			{
 				TOperator op = binaryTerminal->getOp();
