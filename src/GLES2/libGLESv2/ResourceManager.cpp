@@ -301,6 +301,10 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
         {
             textureObject = new TextureCubeMap(texture);
         }
+        else if(type == TEXTURE_EXTERNAL)
+        {
+            textureObject = new TextureExternal(texture);
+        }
         else
         {
             UNREACHABLE();
