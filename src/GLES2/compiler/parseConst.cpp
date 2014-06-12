@@ -61,24 +61,23 @@ void TConstTraverser::visitSymbol(TIntermSymbol* node)
 {
     infoSink.info.message(EPrefixInternalError, "Symbol Node found in constant constructor", node->getLine());
     return;
-
 }
 
 bool TConstTraverser::visitBinary(Visit visit, TIntermBinary* node)
 {
     TQualifier qualifier = node->getType().getQualifier();
-    
+
     if (qualifier != EvqConst) {
         TString buf;
         buf.append("'constructor' : assigning non-constant to ");
         buf.append(type.getCompleteString());
         infoSink.info.message(EPrefixError, buf.c_str(), node->getLine());
         error = true;
-        return false;  
+        return false;
     }
 
-   infoSink.info.message(EPrefixInternalError, "Binary Node found in constant constructor", node->getLine());
-    
+    infoSink.info.message(EPrefixInternalError, "Binary Node found in constant constructor", node->getLine());
+
     return false;
 }
 
@@ -89,7 +88,7 @@ bool TConstTraverser::visitUnary(Visit visit, TIntermUnary* node)
     buf.append(type.getCompleteString());
     infoSink.info.message(EPrefixError, buf.c_str(), node->getLine());
     error = true;
-    return false;  
+    return false;
 }
 
 bool TConstTraverser::visitAggregate(Visit visit, TIntermAggregate* node)
@@ -100,7 +99,7 @@ bool TConstTraverser::visitAggregate(Visit visit, TIntermAggregate* node)
         buf.append(type.getCompleteString());
         infoSink.info.message(EPrefixError, buf.c_str(), node->getLine());
         error = true;
-        return false;  
+        return false;
     }
 
     if (node->getSequence().size() == 0) {
@@ -109,9 +108,9 @@ bool TConstTraverser::visitAggregate(Visit visit, TIntermAggregate* node)
     }
 
     bool flag = node->getSequence().size() == 1 && node->getSequence()[0]->getAsTyped()->getAsConstantUnion();
-    if (flag) 
+    if (flag)
     {
-        singleConstantParam = true; 
+        singleConstantParam = true;
         constructorType = node->getOp();
         size = node->getType().getObjectSize();
 
@@ -119,19 +118,19 @@ bool TConstTraverser::visitAggregate(Visit visit, TIntermAggregate* node)
             isMatrix = true;
             matrixSize = node->getType().getNominalSize();
         }
-    }       
+    }
 
-    for (TIntermSequence::iterator p = node->getSequence().begin(); 
+    for (TIntermSequence::iterator p = node->getSequence().begin();
                                    p != node->getSequence().end(); p++) {
 
         if (node->getOp() == EOpComma)
-            index = 0;           
+            index = 0;
 
         (*p)->traverse(this);
-    }   
-    if (flag) 
+    }
+    if (flag)
     {
-        singleConstantParam = false;   
+        singleConstantParam = false;
         constructorType = EOpNull;
         size = 0;
         isMatrix = false;
@@ -151,18 +150,19 @@ void TConstTraverser::visitConstantUnion(TIntermConstantUnion* node)
 {
     ConstantUnion* leftUnionArray = unionArray;
     int instanceSize = type.getObjectSize();
+    TBasicType basicType = type.getBasicType();
 
     if (index >= instanceSize)
         return;
 
     if (!singleConstantParam) {
         int size = node->getType().getObjectSize();
-    
+
         ConstantUnion *rightUnionArray = node->getUnionArrayPointer();
         for (int i=0; i < size; i++) {
             if (index >= instanceSize)
                 return;
-            leftUnionArray[index] = rightUnionArray[i];
+            leftUnionArray[index].cast(basicType, rightUnionArray[i]);
 
             (index)++;
         }
@@ -175,10 +175,10 @@ void TConstTraverser::visitConstantUnion(TIntermConstantUnion* node)
                 if (i >= instanceSize)
                     return;
 
-                leftUnionArray[i] = rightUnionArray[count];
+                leftUnionArray[i].cast(basicType, rightUnionArray[count]);
 
                 (index)++;
-                
+
                 if (node->getType().getObjectSize() > 1)
                     count++;
             }
@@ -189,14 +189,14 @@ void TConstTraverser::visitConstantUnion(TIntermConstantUnion* node)
                 if (i >= instanceSize)
                     return;
                 if (element - i == 0 || (i - element) % (matrixSize + 1) == 0 )
-                    leftUnionArray[i] = rightUnionArray[count];
-                else 
+                    leftUnionArray[i].cast(basicType, rightUnionArray[0]);
+                else
                     leftUnionArray[i].setFConst(0.0f);
 
                 (index)++;
 
                 if (node->getType().getObjectSize() > 1)
-                    count++;                
+                    count++;
             }
         }
     }

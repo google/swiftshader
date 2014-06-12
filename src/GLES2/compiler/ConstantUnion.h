@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2002-2013 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2014 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -17,14 +17,57 @@ public:
         type = EbtVoid;
     }
 
-    POOL_ALLOCATOR_NEW_DELETE(GlobalPoolAllocator)        
+    bool cast(TBasicType newType, const ConstantUnion &constant)
+    {
+        switch (newType)
+        {
+          case EbtFloat:
+            switch (constant.type)
+            {
+              case EbtInt:   setFConst(static_cast<float>(constant.getIConst())); break;
+              case EbtBool:  setFConst(static_cast<float>(constant.getBConst())); break;
+              case EbtFloat: setFConst(static_cast<float>(constant.getFConst())); break;
+              default:       return false;
+            }
+            break;
+          case EbtInt:
+            switch (constant.type)
+            {
+              case EbtInt:   setIConst(static_cast<int>(constant.getIConst())); break;
+              case EbtBool:  setIConst(static_cast<int>(constant.getBConst())); break;
+              case EbtFloat: setIConst(static_cast<int>(constant.getFConst())); break;
+              default:       return false;
+            }
+            break;
+          case EbtBool:
+            switch (constant.type)
+            {
+              case EbtInt:   setBConst(constant.getIConst() != 0);    break;
+              case EbtBool:  setBConst(constant.getBConst());         break;
+              case EbtFloat: setBConst(constant.getFConst() != 0.0f); break;
+              default:       return false;
+            }
+            break;
+          case EbtStruct:    // Struct fields don't get cast
+            switch (constant.type)
+            {
+              case EbtInt:   setIConst(constant.getIConst()); break;
+              case EbtBool:  setBConst(constant.getBConst()); break;
+              case EbtFloat: setFConst(constant.getFConst()); break;
+              default:       return false;
+            }
+            break;
+          default:
+            return false;
+        }
+
+        return true;
+    }
+
     void setIConst(int i) {iConst = i; type = EbtInt; }
     void setFConst(float f) {fConst = f; type = EbtFloat; }
     void setBConst(bool b) {bConst = b; type = EbtBool; }
 
-    int getIConst() { return iConst; }
-    float getFConst() { return fConst; }
-    bool getBConst() { return bConst; }
     int getIConst() const { return iConst; }
     float getFConst() const { return fConst; }
     bool getBConst() const { return bConst; }
