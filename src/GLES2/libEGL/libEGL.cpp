@@ -189,6 +189,7 @@ const char *EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name)
         case EGL_EXTENSIONS:
             return success("EGL_KHR_gl_texture_2D_image "
                            "EGL_KHR_gl_texture_cubemap_image "
+                           "EGL_KHR_gl_renderbuffer_image "
                            "EGL_KHR_image_base");
         case EGL_VENDOR:
             return success("TransGaming Inc.");
@@ -1094,6 +1095,8 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
         case EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_KHR:
             textureTarget = GL_TEXTURE_CUBE_MAP;
             break;
+        case EGL_GL_RENDERBUFFER_KHR:
+            break;
         default:
             return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
         }
@@ -1131,33 +1134,60 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
             return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
         }
 
-        gl::Texture *texture = context->getTexture(name);
+        gl::Image *image = 0;
 
-        if(!texture || texture->getTarget() != textureTarget)
+        if(textureTarget != GL_NONE)
         {
-            return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-        }
+            gl::Texture *texture = context->getTexture(name);
 
-        if(texture->isShared(textureTarget, textureLevel))   // Bound to an EGLSurface or already an EGLImage sibling
+            if(!texture || texture->getTarget() != textureTarget)
+            {
+                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+            }
+
+            if(texture->isShared(textureTarget, textureLevel))   // Bound to an EGLSurface or already an EGLImage sibling
+            {
+                return error(EGL_BAD_ACCESS, EGL_NO_IMAGE_KHR);
+            }
+
+            if(textureLevel != 0 && !texture->isSamplerComplete())
+            {
+                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+            }
+
+            if(textureLevel == 0 && !(texture->isSamplerComplete() && texture->getLevelCount() == 1))
+            {
+                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+            }
+
+            image = texture->createSharedImage(textureTarget, textureLevel);
+        }
+        else if(target == EGL_GL_RENDERBUFFER_KHR)
         {
-            return error(EGL_BAD_ACCESS, EGL_NO_IMAGE_KHR);
-        }
+            gl::Renderbuffer *renderbuffer = context->getRenderbuffer(name);
 
-        if(textureLevel != 0 && !texture->isSamplerComplete())
-        {
-            return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-        }
+            if(!renderbuffer)
+            {
+                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+            }
 
-        if(textureLevel == 0 && !(texture->isSamplerComplete() && texture->getLevelCount() == 1))
-        {
-            return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-        }
+            if(renderbuffer->isShared())   // Already an EGLImage sibling
+            {
+                return error(EGL_BAD_ACCESS, EGL_NO_IMAGE_KHR);
+            }
 
-        gl::Image *image = texture->getSharedImage(textureTarget, textureLevel);
+            image = renderbuffer->createSharedImage();
+        }
+        else UNREACHABLE();
 
         if(!image)
         {
             return error(EGL_BAD_MATCH, EGL_NO_IMAGE_KHR);
+        }
+
+        if(image->getMultiSampleDepth() > 1)
+        {
+            return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
         }
 
         return success((EGLImageKHR)image);

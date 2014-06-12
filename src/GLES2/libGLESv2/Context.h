@@ -376,7 +376,7 @@ class Context
     Program *getProgram(GLuint handle);
     virtual Texture *getTexture(GLuint handle);
     Framebuffer *getFramebuffer(GLuint handle);
-    Renderbuffer *getRenderbuffer(GLuint handle);
+    virtual Renderbuffer *getRenderbuffer(GLuint handle);
 	Query *getQuery(GLuint handle, bool create, GLenum type);
 
     Buffer *getArrayBuffer();

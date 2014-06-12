@@ -86,7 +86,7 @@ public:
 
     virtual Renderbuffer *getRenderbuffer(GLenum target) = 0;
     virtual Image *getRenderTarget(GLenum target, unsigned int level) = 0;
-    virtual Image *getSharedImage(GLenum target, unsigned int level);
+    virtual Image *createSharedImage(GLenum target, unsigned int level);
     virtual bool isShared(GLenum target, unsigned int level) const = 0;
 
     virtual void generateMipmaps() = 0;

@@ -39,13 +39,13 @@ namespace gl
 		GLenum getFormat();
 		GLenum getType();
 		virtual sw::Format getInternalFormat();
-		int getMultiSampleDepth();
+		virtual int getMultiSampleDepth();
 
 		virtual void addRef();
 		virtual void release();
 		void unbind();   // Break parent ownership and release
 
-		bool isShared() const;
+		virtual bool isShared() const;
 		void markShared();
 
 		static sw::Format selectInternalFormat(GLenum format, GLenum type);

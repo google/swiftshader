@@ -163,7 +163,7 @@ GLfloat Texture::getMaxAnisotropy() const
     return mMaxAnisotropy;
 }
 
-Image *Texture::getSharedImage(GLenum target, unsigned int level)
+Image *Texture::createSharedImage(GLenum target, unsigned int level)
 {
     Image *image = getRenderTarget(target, level);   // Increments reference count
 

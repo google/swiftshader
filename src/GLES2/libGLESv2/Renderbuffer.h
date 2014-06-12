@@ -42,6 +42,8 @@ public:
     virtual void releaseProxy(const Renderbuffer *proxy);
 
 	virtual Image *getRenderTarget() = 0;
+    virtual Image *createSharedImage() = 0;
+    virtual bool isShared() const = 0;
 
 	virtual GLsizei getWidth() const = 0;
 	virtual GLsizei getHeight() const = 0;
@@ -67,7 +69,9 @@ public:
 	virtual void addProxyRef(const Renderbuffer *proxy);
     virtual void releaseProxy(const Renderbuffer *proxy);
 
-	Image *getRenderTarget();
+	virtual Image *getRenderTarget();
+    virtual Image *createSharedImage();
+    virtual bool isShared() const;
 
 	virtual GLsizei getWidth() const;
 	virtual GLsizei getHeight() const;
@@ -89,7 +93,9 @@ public:
 	virtual void addProxyRef(const Renderbuffer *proxy);
     virtual void releaseProxy(const Renderbuffer *proxy);
 
-	Image *getRenderTarget();
+	virtual Image *getRenderTarget();
+    virtual Image *createSharedImage();
+    virtual bool isShared() const;
 
 	virtual GLsizei getWidth() const;
 	virtual GLsizei getHeight() const;
@@ -112,7 +118,9 @@ public:
 
 	virtual ~RenderbufferStorage() = 0;
 
-	virtual Image *getRenderTarget();
+	virtual Image *getRenderTarget() = 0;
+    virtual Image *createSharedImage() = 0;
+    virtual bool isShared() const = 0;
 
 	virtual GLsizei getWidth() const;
 	virtual GLsizei getHeight() const;
@@ -146,6 +154,8 @@ public:
     virtual void release();
 
 	Image *getRenderTarget();
+    virtual Image *createSharedImage();
+    virtual bool isShared() const;
 
 	GLsizei getWidth() const;
 	GLsizei getHeight() const;
@@ -174,6 +184,8 @@ public:
 	virtual ~Colorbuffer();
 
 	virtual Image *getRenderTarget();
+    virtual Image *createSharedImage();
+    virtual bool isShared() const;
 
 private:
 	Image *mRenderTarget;
@@ -188,6 +200,8 @@ public:
 	~DepthStencilbuffer();
 
 	virtual Image *getRenderTarget();
+    virtual Image *createSharedImage();
+    virtual bool isShared() const;
 
 protected:
 	Image *mDepthStencil;
