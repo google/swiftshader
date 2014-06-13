@@ -618,7 +618,7 @@ namespace sh
 		case EOpAbs:              if(visit == PostVisit) emit(sw::Shader::OPCODE_ABS, result, arg); break;
 		case EOpSign:             if(visit == PostVisit) emit(sw::Shader::OPCODE_SGN, result, arg); break;
 		case EOpFloor:            if(visit == PostVisit) emit(sw::Shader::OPCODE_FLOOR, result, arg); break;
-		case EOpCeil:             if(visit == PostVisit) emit(sw::Shader::OPCODE_CEIL, result, arg, result);	break;
+		case EOpCeil:             if(visit == PostVisit) emit(sw::Shader::OPCODE_CEIL, result, arg, result); break;
 		case EOpFract:            if(visit == PostVisit) emit(sw::Shader::OPCODE_FRC, result, arg); break;
 		case EOpLength:           if(visit == PostVisit) emit(sw::Shader::OPCODE_LEN(dim(arg)), result, arg); break;
 		case EOpNormalize:        if(visit == PostVisit) emit(sw::Shader::OPCODE_NRM(dim(arg)), result, arg); break;
@@ -640,6 +640,8 @@ namespace sh
 			return false;
 		}
 
+		Constant zero(0.0f, 0.0f, 0.0f, 0.0f);
+
 		TIntermTyped *result = node;
 		const TType &resultType = node->getType();
 		TIntermSequence &arg = node->getSequence();
@@ -648,7 +650,7 @@ namespace sh
 		switch(node->getOp())
 		{
 		case EOpSequence:           break;
-		case EOpDeclaration:		break;
+		case EOpDeclaration:        break;
 		case EOpPrototype:          break;
 		case EOpComma:
 			if(visit == PostVisit)
@@ -862,13 +864,30 @@ namespace sh
 				{
 					TIntermTyped *argi = arg[i]->getAsTyped();
 					int size = argi->getNominalSize();
-					ASSERT(!argi->isMatrix());
 
-					Instruction *mov = emitCast(result, argi);
-					mov->dst.mask = (0xF << component) & 0xF;
-					mov->src[0].swizzle = readSwizzle(argi, size) << (component * 2);
+					if(!argi->isMatrix())
+					{
+						Instruction *mov = emitCast(result, argi);
+						mov->dst.mask = (0xF << component) & 0xF;
+						mov->src[0].swizzle = readSwizzle(argi, size) << (component * 2);
 
-					component += size;
+						component += size;
+					}
+					else   // Matrix
+					{
+						int column = 0;
+
+						while(component < resultType.getNominalSize())
+						{
+							Instruction *mov = emitCast(result, argi);
+							mov->dst.mask = (0xF << component) & 0xF;
+							mov->src[0].index += column;
+							mov->src[0].swizzle = readSwizzle(argi, size) << (component * 2);
+
+							column++;
+							component += size;
+						}
+					}
 				}
 			}
 			break;
@@ -880,7 +899,19 @@ namespace sh
 				TIntermTyped *arg0 = arg[0]->getAsTyped();
 				const int dim = result->getNominalSize();
 
-				if(arg0->isMatrix())
+				if(arg0->isScalar() && arg.size() == 1)   // Construct scale matrix
+				{
+					for(int i = 0; i < dim; i++)
+					{
+						Instruction *init = emit(sw::Shader::OPCODE_MOV, result, &zero);
+						init->dst.index += i;
+						Instruction *mov = emitCast(result, arg0);
+						mov->dst.index += i;
+						mov->dst.mask = 1 << i;
+						ASSERT(mov->src[0].swizzle == 0x00);
+					}
+				}
+				else if(arg0->isMatrix())
 				{
 					for(int i = 0; i < dim; i++)
 					{
