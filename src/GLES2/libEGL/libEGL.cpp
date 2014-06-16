@@ -738,7 +738,7 @@ EGLBoolean EGLAPIENTRY eglSwapInterval(EGLDisplay dpy, EGLint interval)
         {
             return error(EGL_BAD_SURFACE, EGL_FALSE);
         }
-        
+
         draw_surface->setSwapInterval(interval);
 
         return success(EGL_TRUE);
@@ -1026,7 +1026,7 @@ EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
         }
 
         eglSurface->swap();
-        
+
         return success(EGL_TRUE);
     }
     catch(std::bad_alloc&)
@@ -1127,7 +1127,7 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
             return error(EGL_BAD_MATCH, EGL_NO_IMAGE_KHR);
         }
 
-        GLuint name = (GLuint)buffer;
+        GLuint name = reinterpret_cast<intptr_t>(buffer);
 
         if(name == 0)
         {

@@ -16,7 +16,11 @@
 
 #define PERF_HUD 0       // Display time spent on vertex, setup and pixel processing for each thread
 #define PERF_PROFILE 0   // Profile various pipeline stages and display the timing in SwiftConfig
-#define S3TC_SUPPORT (_WIN32)
+#if defined(_WIN32)
+#define S3TC_SUPPORT 1
+#else
+#define S3TC_SUPPORT 0
+#endif
 
 #if PERF_PROFILE
 enum
@@ -50,7 +54,7 @@ struct Profiler
 	int64_t texOperations;
 	int64_t texOperationsTotal;
 	int64_t texOperationsFrame;
-	
+
 	int64_t compressedTex;
 	int64_t compressedTexTotal;
 	int64_t compressedTexFrame;
