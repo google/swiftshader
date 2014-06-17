@@ -1136,6 +1136,9 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       _mov(Dest, T);
       break;
     case InstArithmetic::Udiv:
+      // div and idiv are the few arithmetic operators that do not allow
+      // immediates as the operand.
+      Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
       if (Dest->getType() == IceType_i8) {
         Variable *T_ah = NULL;
         Constant *Zero = Ctx->getConstantInt(IceType_i8, 0);
@@ -1152,6 +1155,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       }
       break;
     case InstArithmetic::Sdiv:
+      Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
       T_edx = makeReg(IceType_i32, Reg_edx);
       _mov(T, Src0, Reg_eax);
       _cdq(T_edx, T);
@@ -1159,6 +1163,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       _mov(Dest, T);
       break;
     case InstArithmetic::Urem:
+      Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
       if (Dest->getType() == IceType_i8) {
         Variable *T_ah = NULL;
         Constant *Zero = Ctx->getConstantInt(IceType_i8, 0);
@@ -1175,6 +1180,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       }
       break;
     case InstArithmetic::Srem:
+      Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
       T_edx = makeReg(IceType_i32, Reg_edx);
       _mov(T, Src0, Reg_eax);
       _cdq(T_edx, T);
@@ -1370,7 +1376,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
   // computing the strength-reduced result at translation time, but we're
   // unlikely to see something like that in the bitcode that the optimizer
   // wouldn't have already taken care of.
-  Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem, true);
+  Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
   switch (CastKind) {
   default:
     Func->setError("Cast type not supported");
