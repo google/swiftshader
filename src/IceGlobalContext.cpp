@@ -113,22 +113,22 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
     return Name;
 
   unsigned PrefixLength = getTestPrefix().length();
-  char NameBase[1 + Name.length()];
+  llvm::SmallVector<char, 32> NameBase(1 + Name.length());
   const size_t BufLen = 30 + Name.length() + PrefixLength;
-  char NewName[BufLen];
+  llvm::SmallVector<char, 32> NewName(BufLen);
   uint32_t BaseLength = 0; // using uint32_t due to sscanf format string
 
-  int ItemsParsed = sscanf(Name.c_str(), "_ZN%s", NameBase);
+  int ItemsParsed = sscanf(Name.c_str(), "_ZN%s", NameBase.data());
   if (ItemsParsed == 1) {
     // Transform _ZN3foo3barExyz ==> _ZN6Prefix3foo3barExyz
     //   (splice in "6Prefix")          ^^^^^^^
-    snprintf(NewName, BufLen, "_ZN%u%s%s", PrefixLength,
-             getTestPrefix().c_str(), NameBase);
+    snprintf(NewName.data(), BufLen, "_ZN%u%s%s", PrefixLength,
+             getTestPrefix().c_str(), NameBase.data());
     // We ignore the snprintf return value (here and below).  If we
     // somehow miscalculated the output buffer length, the output will
     // be truncated, but it will be truncated consistently for all
     // mangleName() calls on the same input string.
-    return NewName;
+    return NewName.data();
   }
 
   // Artificially limit BaseLength to 9 digits (less than 1 billion)
@@ -136,8 +136,8 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
   // there are more than 9 digits (which we test by looking at the
   // beginning of NameBase), then we consider this a failure to parse
   // a namespace mangling, and fall back to the simple prefixing.
-  ItemsParsed = sscanf(Name.c_str(), "_Z%9u%s", &BaseLength, NameBase);
-  if (ItemsParsed == 2 && BaseLength <= strlen(NameBase) &&
+  ItemsParsed = sscanf(Name.c_str(), "_Z%9u%s", &BaseLength, NameBase.data());
+  if (ItemsParsed == 2 && BaseLength <= strlen(NameBase.data()) &&
       !isdigit(NameBase[0])) {
     // Transform _Z3barxyz ==> _ZN6Prefix3barExyz
     //                           ^^^^^^^^    ^
@@ -148,8 +148,8 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
     // Transform _Z3barIabcExyz ==> _ZN6Prefix3barIabcEExyz
     //                                ^^^^^^^^         ^
     // (splice in "N6Prefix", and insert "E" after "3barIabcE")
-    char OrigName[Name.length()];
-    char OrigSuffix[Name.length()];
+    llvm::SmallVector<char, 32> OrigName(Name.length());
+    llvm::SmallVector<char, 32> OrigSuffix(Name.length());
     uint32_t ActualBaseLength = BaseLength;
     if (NameBase[ActualBaseLength] == 'I') {
       ++ActualBaseLength;
@@ -157,12 +157,13 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
              NameBase[ActualBaseLength] != '\0')
         ++ActualBaseLength;
     }
-    strncpy(OrigName, NameBase, ActualBaseLength);
+    strncpy(OrigName.data(), NameBase.data(), ActualBaseLength);
     OrigName[ActualBaseLength] = '\0';
-    strcpy(OrigSuffix, NameBase + ActualBaseLength);
-    snprintf(NewName, BufLen, "_ZN%u%s%u%sE%s", PrefixLength,
-             getTestPrefix().c_str(), BaseLength, OrigName, OrigSuffix);
-    return NewName;
+    strcpy(OrigSuffix.data(), NameBase.data() + ActualBaseLength);
+    snprintf(NewName.data(), BufLen, "_ZN%u%s%u%sE%s", PrefixLength,
+             getTestPrefix().c_str(), BaseLength, OrigName.data(),
+             OrigSuffix.data());
+    return NewName.data();
   }
 
   // Transform bar ==> Prefixbar
