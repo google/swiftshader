@@ -1281,6 +1281,8 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       _mov(T, Arg);
       _push(T);
     } else {
+      // Otherwise PNaCl requires parameter types to be at least 32-bits.
+      assert(Arg->getType() == IceType_f32 || Arg->getType() == IceType_i32);
       _push(Arg);
     }
     StackOffset += typeWidthInBytesOnStack(Arg->getType());

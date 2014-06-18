@@ -59,6 +59,18 @@ entry:
 ; CHECK: push 123
 ; CHECK: call ignoreFpArgsNoInline
 
+define internal i32 @passFp32ConstArg(float %a) {
+entry:
+  %call = call i32 @ignoreFp32ArgsNoInline(float %a, i32 123, float 2.0)
+  ret i32 %call
+}
+; CHECK: passFp32ConstArg:
+; CHECK: push dword
+; CHECK: push 123
+; CHECK: call ignoreFp32ArgsNoInline
+
+declare i32 @ignoreFp32ArgsNoInline(float, i32, float)
+
 define internal float @returnFloatArg(float %a) {
 entry:
   ret float %a

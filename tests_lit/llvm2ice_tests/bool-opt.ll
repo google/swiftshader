@@ -9,11 +9,12 @@
 define void @testBool(i32 %a, i32 %b) {
 entry:
   %cmp = icmp eq i32 %a, %b
-  tail call void @use(i1 %cmp)
+  %cmp_ext = zext i1 %cmp to i32
+  tail call void @use(i32 %cmp_ext)
   ret void
 }
 
-declare void @use(i1 zeroext) #1
+declare void @use(i32)
 
 ; CHECK-NOT: ICE translation error
 ; ERRORS-NOT: ICE translation error
