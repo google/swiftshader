@@ -18,6 +18,7 @@
 
 #include "IceDefs.h"
 #include "IceInst.def"
+#include "IceIntrinsics.h"
 #include "IceTypes.h"
 
 // TODO: The Cfg structure, and instructions in particular, need to be
@@ -42,6 +43,7 @@ public:
     Cast,
     Fcmp,
     Icmp,
+    IntrinsicCall,
     Load,
     Phi,
     Ret,
@@ -286,8 +288,13 @@ class InstCall : public Inst {
 public:
   static InstCall *create(Cfg *Func, SizeT NumArgs, Variable *Dest,
                           Operand *CallTarget) {
+    // Set HasSideEffects to true so that the call instruction can't be
+    // dead-code eliminated. IntrinsicCalls can override this if the
+    // particular intrinsic is deletable and has no side-effects.
+    const bool HasSideEffects = true;
+    const InstKind Kind = Inst::Call;
     return new (Func->allocateInst<InstCall>())
-        InstCall(Func, NumArgs, Dest, CallTarget);
+        InstCall(Func, NumArgs, Dest, CallTarget, HasSideEffects, Kind);
   }
   void addArg(Operand *Arg) { addSource(Arg); }
   Operand *getCallTarget() const { return getSrc(0); }
@@ -296,18 +303,18 @@ public:
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Call; }
 
-private:
-  InstCall(Cfg *Func, SizeT NumArgs, Variable *Dest, Operand *CallTarget)
-      : Inst(Func, Inst::Call, NumArgs + 1, Dest) {
-    // Set HasSideEffects so that the call instruction can't be
-    // dead-code eliminated.  Don't set this for a deletable intrinsic
-    // call.
-    HasSideEffects = true;
+protected:
+  InstCall(Cfg *Func, SizeT NumArgs, Variable *Dest, Operand *CallTarget,
+           bool HasSideEff, InstKind Kind)
+      : Inst(Func, Kind, NumArgs + 1, Dest) {
+    HasSideEffects = HasSideEff;
     addSource(CallTarget);
   }
+  virtual ~InstCall() {}
+
+private:
   InstCall(const InstCall &) LLVM_DELETED_FUNCTION;
   InstCall &operator=(const InstCall &) LLVM_DELETED_FUNCTION;
-  virtual ~InstCall() {}
 };
 
 // Cast instruction (a.k.a. conversion operation).
@@ -393,6 +400,34 @@ private:
   InstIcmp &operator=(const InstIcmp &) LLVM_DELETED_FUNCTION;
   virtual ~InstIcmp() {}
   const ICond Condition;
+};
+
+// Call to an intrinsic function.  The call target is captured as getSrc(0),
+// and arg I is captured as getSrc(I+1).
+class InstIntrinsicCall : public InstCall {
+public:
+  static InstIntrinsicCall *create(Cfg *Func, SizeT NumArgs, Variable *Dest,
+                                   Operand *CallTarget,
+                                   const Intrinsics::IntrinsicInfo &Info) {
+    return new (Func->allocateInst<InstIntrinsicCall>())
+        InstIntrinsicCall(Func, NumArgs, Dest, CallTarget, Info);
+  }
+  static bool classof(const Inst *Inst) {
+    return Inst->getKind() == IntrinsicCall;
+  }
+
+  Intrinsics::IntrinsicInfo getIntrinsicInfo() const { return Info; }
+
+private:
+  InstIntrinsicCall(Cfg *Func, SizeT NumArgs, Variable *Dest,
+                    Operand *CallTarget, const Intrinsics::IntrinsicInfo &Info)
+      : InstCall(Func, NumArgs, Dest, CallTarget, Info.HasSideEffects,
+                 Inst::IntrinsicCall),
+        Info(Info) {}
+  InstIntrinsicCall(const InstIntrinsicCall &) LLVM_DELETED_FUNCTION;
+  InstIntrinsicCall &operator=(const InstIntrinsicCall &) LLVM_DELETED_FUNCTION;
+  virtual ~InstIntrinsicCall() {}
+  const Intrinsics::IntrinsicInfo Info;
 };
 
 // Load instruction.  The source address is captured in getSrc(0).

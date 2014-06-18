@@ -116,6 +116,9 @@ void TargetLowering::lower() {
   case Inst::Icmp:
     lowerIcmp(llvm::dyn_cast<InstIcmp>(Inst));
     break;
+  case Inst::IntrinsicCall:
+    lowerIntrinsicCall(llvm::dyn_cast<InstIntrinsicCall>(Inst));
+    break;
   case Inst::Load:
     lowerLoad(llvm::dyn_cast<InstLoad>(Inst));
     break;

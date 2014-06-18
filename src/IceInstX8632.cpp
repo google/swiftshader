@@ -50,6 +50,15 @@ const struct TypeX8632Attributes_ {
 const size_t TypeX8632AttributesSize =
     llvm::array_lengthof(TypeX8632Attributes);
 
+const char *InstX8632SegmentRegNames[] = {
+#define X(val, name)                                                           \
+  name,
+    SEG_REGX8632_TABLE
+#undef X
+};
+const size_t InstX8632SegmentRegNamesSize =
+    llvm::array_lengthof(InstX8632SegmentRegNames);
+
 } // end of anonymous namespace
 
 const char *InstX8632::getWidthString(Type Ty) {
@@ -58,9 +67,9 @@ const char *InstX8632::getWidthString(Type Ty) {
 
 OperandX8632Mem::OperandX8632Mem(Cfg *Func, Type Ty, Variable *Base,
                                  Constant *Offset, Variable *Index,
-                                 uint32_t Shift)
+                                 uint16_t Shift, SegmentRegisters SegmentReg)
     : OperandX8632(kMem, Ty), Base(Base), Offset(Offset), Index(Index),
-      Shift(Shift) {
+      Shift(Shift), SegmentReg(SegmentReg) {
   assert(Shift <= 3);
   Vars = NULL;
   NumVars = 0;
@@ -147,6 +156,9 @@ InstX8632Ucomiss::InstX8632Ucomiss(Cfg *Func, Operand *Src0, Operand *Src1)
   addSource(Src0);
   addSource(Src1);
 }
+
+InstX8632UD2::InstX8632UD2(Cfg *Func)
+    : InstX8632(Func, InstX8632::UD2, 0, NULL) {}
 
 InstX8632Test::InstX8632Test(Cfg *Func, Operand *Src1, Operand *Src2)
     : InstX8632(Func, InstX8632::Test, 2, NULL) {
@@ -525,6 +537,17 @@ void InstX8632Ucomiss::dump(const Cfg *Func) const {
   dumpSources(Func);
 }
 
+void InstX8632UD2::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 0);
+  Str << "\tud2\n";
+}
+
+void InstX8632UD2::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "ud2\n";
+}
+
 void InstX8632Test::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
@@ -758,6 +781,11 @@ void OperandX8632::dump(const Cfg *Func) const {
 void OperandX8632Mem::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << TypeX8632Attributes[getType()].WidthString << " ";
+  if (SegmentReg != DefaultSegment) {
+    assert(SegmentReg >= 0 &&
+           static_cast<size_t>(SegmentReg) < InstX8632SegmentRegNamesSize);
+    Str << InstX8632SegmentRegNames[SegmentReg] << ":";
+  }
   // TODO: The following is an almost verbatim paste of dump().
   bool Dumped = false;
   Str << "[";
@@ -782,11 +810,14 @@ void OperandX8632Mem::emit(const Cfg *Func) const {
     OffsetIsZero = (CI->getValue() == 0);
     OffsetIsNegative = (static_cast<int64_t>(CI->getValue()) < 0);
   }
-  if (!OffsetIsZero) { // Suppress if Offset is known to be 0
-    if (Dumped) {
+  if (Dumped) {
+    if (!OffsetIsZero) {     // Suppress if Offset is known to be 0
       if (!OffsetIsNegative) // Suppress if Offset is known to be negative
         Str << "+";
+      Offset->emit(Func);
     }
+  } else {
+    // There is only the offset.
     Offset->emit(Func);
   }
   Str << "]";
@@ -794,6 +825,11 @@ void OperandX8632Mem::emit(const Cfg *Func) const {
 
 void OperandX8632Mem::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
+  if (SegmentReg != DefaultSegment) {
+    assert(SegmentReg >= 0 &&
+           static_cast<size_t>(SegmentReg) < InstX8632SegmentRegNamesSize);
+    Str << InstX8632SegmentRegNames[SegmentReg] << ":";
+  }
   bool Dumped = false;
   Str << "[";
   if (Base) {
@@ -817,11 +853,14 @@ void OperandX8632Mem::dump(const Cfg *Func) const {
     OffsetIsZero = (CI->getValue() == 0);
     OffsetIsNegative = (static_cast<int64_t>(CI->getValue()) < 0);
   }
-  if (!OffsetIsZero) { // Suppress if Offset is known to be 0
-    if (Dumped) {
+  if (Dumped) {
+    if (!OffsetIsZero) {     // Suppress if Offset is known to be 0
       if (!OffsetIsNegative) // Suppress if Offset is known to be negative
         Str << "+";
+      Offset->dump(Func);
     }
+  } else {
+    // There is only the offset.
     Offset->dump(Func);
   }
   Str << "]";

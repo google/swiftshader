@@ -20,6 +20,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "IceDefs.h"
+#include "IceIntrinsics.h"
 #include "IceTypes.h"
 
 namespace Ice {
@@ -88,6 +89,8 @@ public:
   // Allocate data of type T using the global allocator.
   template <typename T> T *allocate() { return Allocator.Allocate<T>(); }
 
+  const Intrinsics &getIntrinsicsInfo() const { return IntrinsicsInfo; }
+
 private:
   Ostream StrDump; // Stream for dumping / diagnostics
   Ostream StrEmit; // Stream for code emission
@@ -95,6 +98,7 @@ private:
   llvm::BumpPtrAllocator Allocator;
   VerboseMask VMask;
   llvm::OwningPtr<class ConstantPool> ConstPool;
+  Intrinsics IntrinsicsInfo;
   const TargetArch Arch;
   const OptLevel Opt;
   const IceString TestPrefix;

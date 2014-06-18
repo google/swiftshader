@@ -43,14 +43,23 @@ if __name__ == '__main__':
     tail_call = re.compile(' tail call ');
     trailing_comment = re.compile(';.*')
     ignore_pattern = re.compile('^ *$|^declare|^@')
+    prev_line = None
     for line in bitcode:
+        if prev_line:
+            line = prev_line + line
+            prev_line = None
         # Convert tail call into regular (non-tail) call.
         line = tail_call.sub(' call ', line)
         # Remove trailing comments and spaces.
         line = trailing_comment.sub('', line).rstrip()
         # Ignore blanks lines, forward declarations, and variable definitions.
-        if not ignore_pattern.search(line):
-            llc_out.append(line)
+        if ignore_pattern.search(line):
+          continue
+        # SZ doesn't break up long lines, but LLVM does. Normalize to SZ.
+        if line.endswith(','):
+            prev_line = line
+            continue
+        llc_out.append(line)
 
     # Compare sz_out and llc_out line by line, but ignore pairs of
     # lines where the llc line matches a certain pattern.
@@ -61,6 +70,8 @@ if __name__ == '__main__':
         '|'.join([' -[0-9]',                 # negative constants
                   ' (float|double) [-0-9]',  # FP constants
                   ' (float|double) %\w+, [-0-9]',
+                  ' @llvm\..*i\d+\*',        # intrinsic calls w/ pointer args
+                  ' i\d+\* @llvm\.',         # intrinsic calls w/ pointer ret
                   ' inttoptr ',              # inttoptr pointer types
                   ' ptrtoint ',              # ptrtoint pointer types
                   ' bitcast .*\* .* to .*\*' # bitcast pointer types
@@ -72,8 +83,8 @@ if __name__ == '__main__':
         if llc_line and ignore_pattern.search(llc_line):
             lines_diff += 1
             continue
-        if sz_line: print 'SZ>' + sz_line
-        if llc_line: print 'LL>' + llc_line
+        if sz_line: print 'SZ (%d)> %s' % (lines_total, sz_line)
+        if llc_line: print 'LL (%d)> %s' % (lines_total, llc_line)
         return_code = 1
 
     if return_code == 0:

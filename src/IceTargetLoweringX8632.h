@@ -83,6 +83,7 @@ protected:
   virtual void lowerCast(const InstCast *Inst);
   virtual void lowerFcmp(const InstFcmp *Inst);
   virtual void lowerIcmp(const InstIcmp *Inst);
+  virtual void lowerIntrinsicCall(const InstIntrinsicCall *Inst);
   virtual void lowerLoad(const InstLoad *Inst);
   virtual void lowerPhi(const InstPhi *Inst);
   virtual void lowerRet(const InstRet *Inst);
@@ -123,6 +124,7 @@ protected:
     InstCall *Call = InstCall::create(Func, MaxSrcs, Dest, CallTarget);
     return Call;
   }
+  static Type stackSlotType();
 
   // The following are helpers that insert lowered x86 instructions
   // with minimal syntactic overhead, so that the lowering code can
@@ -246,6 +248,7 @@ protected:
   void _ucomiss(Operand *Src0, Operand *Src1) {
     Context.insert(InstX8632Ucomiss::create(Func, Src0, Src1));
   }
+  void _ud2() { Context.insert(InstX8632UD2::create(Func)); }
   void _xor(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Xor::create(Func, Dest, Src0));
   }

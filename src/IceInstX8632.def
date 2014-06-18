@@ -38,6 +38,16 @@
 //#define X(val, init, name, name16, name8, scratch, preserved, stackptr,
 //          frameptr, isI8, isInt, isFP)
 
+// X86 segment registers.
+#define SEG_REGX8632_TABLE  \
+  /* enum value, name */    \
+  X(SegReg_CS, "cs")        \
+  X(SegReg_DS, "ds")        \
+  X(SegReg_ES, "es")        \
+  X(SegReg_SS, "ss")        \
+  X(SegReg_FS, "fs")        \
+  X(SegReg_GS, "gs")        \
+//#define X(val, name)
 
 #define ICEINSTX8632BR_TABLE   \
   /* enum value, dump, emit */ \

@@ -52,16 +52,26 @@ private:
 // value for the index register.
 class OperandX8632Mem : public OperandX8632 {
 public:
+  enum SegmentRegisters {
+    DefaultSegment = -1,
+#define X(val, name)                                                           \
+    val,
+      SEG_REGX8632_TABLE
+#undef X
+        SegReg_NUM
+  };
   static OperandX8632Mem *create(Cfg *Func, Type Ty, Variable *Base,
                                  Constant *Offset, Variable *Index = NULL,
-                                 uint32_t Shift = 0) {
+                                 uint16_t Shift = 0,
+                                 SegmentRegisters SegmentReg = DefaultSegment) {
     return new (Func->allocate<OperandX8632Mem>())
-        OperandX8632Mem(Func, Ty, Base, Offset, Index, Shift);
+        OperandX8632Mem(Func, Ty, Base, Offset, Index, Shift, SegmentReg);
   }
   Variable *getBase() const { return Base; }
   Constant *getOffset() const { return Offset; }
   Variable *getIndex() const { return Index; }
-  uint32_t getShift() const { return Shift; }
+  uint16_t getShift() const { return Shift; }
+  SegmentRegisters getSegmentRegister() const { return SegmentReg; }
   virtual void emit(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
 
@@ -71,14 +81,15 @@ public:
 
 private:
   OperandX8632Mem(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
-                  Variable *Index, uint32_t Shift);
+                  Variable *Index, uint16_t Shift, SegmentRegisters SegmentReg);
   OperandX8632Mem(const OperandX8632Mem &) LLVM_DELETED_FUNCTION;
   OperandX8632Mem &operator=(const OperandX8632Mem &) LLVM_DELETED_FUNCTION;
   virtual ~OperandX8632Mem() {}
   Variable *Base;
   Constant *Offset;
   Variable *Index;
-  uint32_t Shift;
+  uint16_t Shift;
+  SegmentRegisters SegmentReg : 16;
 };
 
 // VariableSplit is a way to treat an f64 memory location as a pair
@@ -160,6 +171,7 @@ public:
     Subss,
     Test,
     Ucomiss,
+    UD2,
     Xor
   };
   static const char *getWidthString(Type Ty);
@@ -529,6 +541,23 @@ private:
   InstX8632Ucomiss(const InstX8632Ucomiss &) LLVM_DELETED_FUNCTION;
   InstX8632Ucomiss &operator=(const InstX8632Ucomiss &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Ucomiss() {}
+};
+
+// UD2 instruction.
+class InstX8632UD2 : public InstX8632 {
+public:
+  static InstX8632UD2 *create(Cfg *Func) {
+    return new (Func->allocate<InstX8632UD2>()) InstX8632UD2(Func);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, UD2); }
+
+private:
+  InstX8632UD2(Cfg *Func);
+  InstX8632UD2(const InstX8632UD2 &) LLVM_DELETED_FUNCTION;
+  InstX8632UD2 &operator=(const InstX8632UD2 &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632UD2() {}
 };
 
 // Test instruction.

@@ -431,6 +431,9 @@ void TargetX8632::setArgOffsetAndCopy(Variable *Arg, Variable *FramePtr,
   InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
 }
 
+// static
+Type TargetX8632::stackSlotType() { return IceType_i32; }
+
 void TargetX8632::addProlog(CfgNode *Node) {
   // If SimpleCoalescing is false, each variable without a register
   // gets its own unique stack slot, which leads to large stack
@@ -760,7 +763,7 @@ Operand *TargetX8632::loOperand(Operand *Operand) {
   if (OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Operand)) {
     return OperandX8632Mem::create(Func, IceType_i32, Mem->getBase(),
                                    Mem->getOffset(), Mem->getIndex(),
-                                   Mem->getShift());
+                                   Mem->getShift(), Mem->getSegmentRegister());
   }
   llvm_unreachable("Unsupported operand type");
   return NULL;
@@ -790,7 +793,8 @@ Operand *TargetX8632::hiOperand(Operand *Operand) {
                                    SymOffset->getName());
     }
     return OperandX8632Mem::create(Func, IceType_i32, Mem->getBase(), Offset,
-                                   Mem->getIndex(), Mem->getShift());
+                                   Mem->getIndex(), Mem->getShift(),
+                                   Mem->getSegmentRegister());
   }
   llvm_unreachable("Unsupported operand type");
   return NULL;
@@ -1774,6 +1778,91 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   Context.insert(Label);
 }
 
+void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
+  switch (Instr->getIntrinsicInfo().ID) {
+  case Intrinsics::AtomicCmpxchg:
+  case Intrinsics::AtomicFence:
+  case Intrinsics::AtomicFenceAll:
+  case Intrinsics::AtomicIsLockFree:
+  case Intrinsics::AtomicLoad:
+  case Intrinsics::AtomicRMW:
+  case Intrinsics::AtomicStore:
+  case Intrinsics::Bswap:
+  case Intrinsics::Ctlz:
+  case Intrinsics::Ctpop:
+  case Intrinsics::Cttz:
+    Func->setError("Unhandled intrinsic");
+    return;
+  case Intrinsics::Longjmp: {
+    InstCall *Call = makeHelperCall("longjmp", NULL, 2);
+    Call->addArg(Instr->getArg(0));
+    Call->addArg(Instr->getArg(1));
+    lowerCall(Call);
+    break;
+  }
+  case Intrinsics::Memcpy: {
+    // In the future, we could potentially emit an inline memcpy/memset, etc.
+    // for intrinsic calls w/ a known length.
+    InstCall *Call = makeHelperCall("memcpy", NULL, 3);
+    Call->addArg(Instr->getArg(0));
+    Call->addArg(Instr->getArg(1));
+    Call->addArg(Instr->getArg(2));
+    lowerCall(Call);
+    break;
+  }
+  case Intrinsics::Memmove: {
+    InstCall *Call = makeHelperCall("memmove", NULL, 3);
+    Call->addArg(Instr->getArg(0));
+    Call->addArg(Instr->getArg(1));
+    Call->addArg(Instr->getArg(2));
+    lowerCall(Call);
+    break;
+  }
+  case Intrinsics::Memset: {
+    // The value operand needs to be extended to a stack slot size
+    // because we "push" only works for a specific operand size.
+    Operand *ValOp = Instr->getArg(1);
+    assert(ValOp->getType() == IceType_i8);
+    Variable *ValExt = makeReg(stackSlotType());
+    _movzx(ValExt, ValOp);
+    InstCall *Call = makeHelperCall("memset", NULL, 3);
+    Call->addArg(Instr->getArg(0));
+    Call->addArg(ValExt);
+    Call->addArg(Instr->getArg(2));
+    lowerCall(Call);
+    break;
+  }
+  case Intrinsics::NaClReadTP: {
+    Constant *Zero = Ctx->getConstantInt(IceType_i32, 0);
+    Operand *Src = OperandX8632Mem::create(Func, IceType_i32, NULL, Zero, NULL,
+                                           0, OperandX8632Mem::SegReg_GS);
+    Variable *Dest = Instr->getDest();
+    Variable *T = NULL;
+    _mov(T, Src);
+    _mov(Dest, T);
+    break;
+  }
+  case Intrinsics::Setjmp: {
+    InstCall *Call = makeHelperCall("setjmp", Instr->getDest(), 1);
+    Call->addArg(Instr->getArg(0));
+    lowerCall(Call);
+    break;
+  }
+  case Intrinsics::Sqrt:
+  case Intrinsics::Stacksave:
+  case Intrinsics::Stackrestore:
+    Func->setError("Unhandled intrinsic");
+    return;
+  case Intrinsics::Trap:
+    _ud2();
+    break;
+  case Intrinsics::UnknownIntrinsic:
+    Func->setError("Should not be lowering UnknownIntrinsic");
+    return;
+  }
+  return;
+}
+
 namespace {
 
 bool isAdd(const Inst *Inst) {
@@ -1784,7 +1873,7 @@ bool isAdd(const Inst *Inst) {
   return false;
 }
 
-void computeAddressOpt(Variable *&Base, Variable *&Index, int32_t &Shift,
+void computeAddressOpt(Variable *&Base, Variable *&Index, uint16_t &Shift,
                        int32_t &Offset) {
   (void)Offset; // TODO: pattern-match for non-zero offsets.
   if (Base == NULL)
@@ -1965,14 +2054,20 @@ void TargetX8632::doAddressOptLoad() {
   Variable *Dest = Inst->getDest();
   Operand *Addr = Inst->getSrc(0);
   Variable *Index = NULL;
-  int32_t Shift = 0;
+  uint16_t Shift = 0;
   int32_t Offset = 0; // TODO: make Constant
+  // Vanilla ICE load instructions should not use the segment registers,
+  // and computeAddressOpt only works at the level of Variables and Constants,
+  // not other OperandX8632Mem, so there should be no mention of segment
+  // registers there either.
+  const OperandX8632Mem::SegmentRegisters SegmentReg =
+      OperandX8632Mem::DefaultSegment;
   Variable *Base = llvm::dyn_cast<Variable>(Addr);
   computeAddressOpt(Base, Index, Shift, Offset);
   if (Base && Addr != Base) {
     Constant *OffsetOp = Ctx->getConstantInt(IceType_i32, Offset);
     Addr = OperandX8632Mem::create(Func, Dest->getType(), Base, OffsetOp, Index,
-                                   Shift);
+                                   Shift, SegmentReg);
     Inst->setDeleted();
     Context.insert(InstLoad::create(Func, Dest, Addr));
   }
@@ -2081,14 +2176,20 @@ void TargetX8632::doAddressOptStore() {
   Operand *Data = Inst->getData();
   Operand *Addr = Inst->getAddr();
   Variable *Index = NULL;
-  int32_t Shift = 0;
+  uint16_t Shift = 0;
   int32_t Offset = 0; // TODO: make Constant
   Variable *Base = llvm::dyn_cast<Variable>(Addr);
+  // Vanilla ICE store instructions should not use the segment registers,
+  // and computeAddressOpt only works at the level of Variables and Constants,
+  // not other OperandX8632Mem, so there should be no mention of segment
+  // registers there either.
+  const OperandX8632Mem::SegmentRegisters SegmentReg =
+      OperandX8632Mem::DefaultSegment;
   computeAddressOpt(Base, Index, Shift, Offset);
   if (Base && Addr != Base) {
     Constant *OffsetOp = Ctx->getConstantInt(IceType_i32, Offset);
     Addr = OperandX8632Mem::create(Func, Data->getType(), Base, OffsetOp, Index,
-                                   Shift);
+                                   Shift, SegmentReg);
     Inst->setDeleted();
     Context.insert(InstStore::create(Func, Data, Addr));
   }
@@ -2147,9 +2248,9 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
       RegIndex = legalizeToVar(Index, true);
     }
     if (Base != RegBase || Index != RegIndex) {
-      From =
-          OperandX8632Mem::create(Func, Mem->getType(), RegBase,
-                                  Mem->getOffset(), RegIndex, Mem->getShift());
+      From = OperandX8632Mem::create(
+          Func, Mem->getType(), RegBase, Mem->getOffset(), RegIndex,
+          Mem->getShift(), Mem->getSegmentRegister());
     }
 
     if (!(Allowed & Legal_Mem)) {

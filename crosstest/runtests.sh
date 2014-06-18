@@ -23,6 +23,20 @@ for optlevel in ${OPTLEVELS} ; do
     ./crosstest.py -O${optlevel} --prefix=Subzero_ --target=x8632 \
         --dir="${OUTDIR}" \
         --llvm-bin-path="${LLVM_BIN_PATH}" \
+        --test=mem_intrin.cpp \
+        --driver=mem_intrin_main.cpp \
+        --output=mem_intrin_O${optlevel}
+
+    ./crosstest.py -O${optlevel} --prefix=Subzero_ --target=x8632 \
+        --dir="${OUTDIR}" \
+        --llvm-bin-path="${LLVM_BIN_PATH}" \
+        --test=test_arith.cpp --test=test_arith_frem.ll \
+        --driver=test_arith_main.cpp \
+        --output=test_arith_O${optlevel}
+
+    ./crosstest.py -O${optlevel} --prefix=Subzero_ --target=x8632 \
+        --dir="${OUTDIR}" \
+        --llvm-bin-path="${LLVM_BIN_PATH}" \
         --test=test_cast.cpp --test=test_cast_to_u1.ll \
         --driver=test_cast_main.cpp \
         --output=test_cast_O${optlevel}
@@ -41,19 +55,13 @@ for optlevel in ${OPTLEVELS} ; do
         --driver=test_icmp_main.cpp \
         --output=test_icmp_O${optlevel}
 
-    ./crosstest.py -O${optlevel} --prefix=Subzero_ --target=x8632 \
-        --dir="${OUTDIR}" \
-        --llvm-bin-path="${LLVM_BIN_PATH}" \
-        --test=test_arith.cpp --test=test_arith_frem.ll \
-        --driver=test_arith_main.cpp \
-        --output=test_arith_O${optlevel}
-
 done
 
 for optlevel in ${OPTLEVELS} ; do
     "${OUTDIR}"/simple_loop_O${optlevel}
+    "${OUTDIR}"/mem_intrin_O${optlevel}
+    "${OUTDIR}"/test_arith_O${optlevel}
     "${OUTDIR}"/test_cast_O${optlevel}
     "${OUTDIR}"/test_fcmp_O${optlevel}
     "${OUTDIR}"/test_icmp_O${optlevel}
-    "${OUTDIR}"/test_arith_O${optlevel}
 done

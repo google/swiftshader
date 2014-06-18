@@ -528,10 +528,36 @@ private:
     unsigned NumArgs = Inst->getNumArgOperands();
     // Note: Subzero doesn't (yet) do anything special with the Tail
     // flag in the bitcode, i.e. CallInst::isTailCall().
-    Ice::InstCall *NewInst =
-        Ice::InstCall::create(Func, NumArgs, Dest, CallTarget);
+    Ice::InstCall *NewInst = NULL;
+    const Ice::Intrinsics::FullIntrinsicInfo *Info = NULL;
+
+    if (Ice::ConstantRelocatable *Target =
+            llvm::dyn_cast<Ice::ConstantRelocatable>(CallTarget)) {
+      // Check if this direct call is to an Intrinsic (starts with "llvm.")
+      static const char LLVMPrefix[] = "llvm.";
+      const size_t LLVMPrefixLen = strlen(LLVMPrefix);
+      Ice::IceString Name = Target->getName();
+      if (Name.substr(0, LLVMPrefixLen) == LLVMPrefix) {
+        Ice::IceString NameSuffix = Name.substr(LLVMPrefixLen);
+        Info = Ctx->getIntrinsicsInfo().find(NameSuffix);
+        if (!Info) {
+          report_fatal_error(std::string("Invalid PNaCl intrinsic call: ") +
+                             LLVMObjectAsString(Inst));
+        }
+        NewInst = Ice::InstIntrinsicCall::create(Func, NumArgs, Dest,
+                                                 CallTarget, Info->Info);
+      }
+    }
+
+    // Not an intrinsic call.
+    if (NewInst == NULL) {
+      NewInst = Ice::InstCall::create(Func, NumArgs, Dest, CallTarget);
+    }
     for (unsigned i = 0; i < NumArgs; ++i) {
       NewInst->addArg(convertOperand(Inst, i));
+    }
+    if (Info) {
+      validateIntrinsicCall(NewInst, Info);
     }
     return NewInst;
   }
@@ -557,6 +583,31 @@ private:
       Node->appendInst(Inst);
     }
     return Node;
+  }
+
+  void validateIntrinsicCall(const Ice::InstCall *Call,
+                             const Ice::Intrinsics::FullIntrinsicInfo *I) {
+    assert(I->NumTypes >= 1);
+    if (I->Signature[0] == Ice::IceType_void) {
+      if (Call->getDest() != NULL) {
+        report_fatal_error(
+            "Return value for intrinsic func w/ void return type.");
+      }
+    } else {
+      if (I->Signature[0] != Call->getDest()->getType()) {
+        report_fatal_error("Mismatched return types.");
+      }
+    }
+    if (Call->getNumArgs() + 1 != I->NumTypes) {
+      std::cerr << "Call->getNumArgs() " << (int)Call->getNumArgs()
+                << " I->NumTypes " << (int)I->NumTypes << "\n";
+      report_fatal_error("Mismatched # of args.");
+    }
+    for (size_t i = 1; i < I->NumTypes; ++i) {
+      if (Call->getArg(i - 1)->getType() != I->Signature[i]) {
+        report_fatal_error("Mismatched argument type.");
+      }
+    }
   }
 
 private:

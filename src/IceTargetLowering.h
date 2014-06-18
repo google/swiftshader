@@ -167,6 +167,7 @@ protected:
   virtual void lowerCast(const InstCast *Inst) = 0;
   virtual void lowerFcmp(const InstFcmp *Inst) = 0;
   virtual void lowerIcmp(const InstIcmp *Inst) = 0;
+  virtual void lowerIntrinsicCall(const InstIntrinsicCall *Inst) = 0;
   virtual void lowerLoad(const InstLoad *Inst) = 0;
   virtual void lowerPhi(const InstPhi *Inst) = 0;
   virtual void lowerRet(const InstRet *Inst) = 0;
