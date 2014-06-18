@@ -2174,7 +2174,11 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
       // need to go in uninitialized registers.
       From = Ctx->getConstantZero(From->getType());
     }
-    if (!(Allowed & Legal_Imm)) {
+    bool NeedsReg = !(Allowed & Legal_Imm) ||
+        // ConstantFloat and ConstantDouble are actually memory operands.
+        (!(Allowed & Legal_Mem) && (From->getType() == IceType_f32 ||
+                                    From->getType() == IceType_f64));
+    if (NeedsReg) {
       Variable *Reg = makeReg(From->getType(), RegNum);
       _mov(Reg, From);
       From = Reg;

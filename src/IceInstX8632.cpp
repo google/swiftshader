@@ -544,7 +544,8 @@ void InstX8632Test::dump(const Cfg *Func) const {
 void InstX8632Store::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
-  Str << "\tmov\t";
+  Str << "\tmov" << TypeX8632Attributes[getSrc(0)->getType()].SdSsString
+      << "\t";
   getSrc(1)->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);

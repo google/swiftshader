@@ -19,7 +19,7 @@ define internal i32 @doubleArgs(double %a, i32 %b, double %c) {
 entry:
   ret i32 %b
 }
-; CHECK: doubleArgs:
+; CHECK-LABEL: doubleArgs
 ; CHECK:      mov     eax, dword ptr [esp+12]
 ; CHECK-NEXT: ret
 
@@ -27,7 +27,7 @@ define internal i32 @floatArgs(float %a, i32 %b, float %c) {
 entry:
   ret i32 %b
 }
-; CHECK: floatArgs:
+; CHECK-LABEL: floatArgs
 ; CHECK:      mov     eax, dword ptr [esp+8]
 ; CHECK-NEXT: ret
 
@@ -40,7 +40,7 @@ entry:
   %add3 = add i32 %add, %call2
   ret i32 %add3
 }
-; CHECK: passFpArgs:
+; CHECK-LABEL: passFpArgs
 ; CHECK: push 123
 ; CHECK: call ignoreFpArgsNoInline
 ; CHECK: push 123
@@ -55,7 +55,7 @@ entry:
   %call = call i32 @ignoreFpArgsNoInline(float %a, i32 123, double 2.340000e+00)
   ret i32 %call
 }
-; CHECK: passFpConstArg:
+; CHECK-LABEL: passFpConstArg
 ; CHECK: push 123
 ; CHECK: call ignoreFpArgsNoInline
 
@@ -64,7 +64,7 @@ entry:
   %call = call i32 @ignoreFp32ArgsNoInline(float %a, i32 123, float 2.0)
   ret i32 %call
 }
-; CHECK: passFp32ConstArg:
+; CHECK-LABEL: passFp32ConstArg
 ; CHECK: push dword
 ; CHECK: push 123
 ; CHECK: call ignoreFp32ArgsNoInline
@@ -75,28 +75,28 @@ define internal float @returnFloatArg(float %a) {
 entry:
   ret float %a
 }
-; CHECK: returnFloatArg:
+; CHECK-LABEL: returnFloatArg
 ; CHECK: fld dword ptr [esp
 
 define internal double @returnDoubleArg(double %a) {
 entry:
   ret double %a
 }
-; CHECK: returnDoubleArg:
+; CHECK-LABEL: returnDoubleArg
 ; CHECK: fld qword ptr [esp
 
 define internal float @returnFloatConst() {
 entry:
   ret float 0x3FF3AE1480000000
 }
-; CHECK: returnFloatConst:
+; CHECK-LABEL: returnFloatConst
 ; CHECK: fld
 
 define internal double @returnDoubleConst() {
 entry:
   ret double 1.230000e+00
 }
-; CHECK: returnDoubleConst:
+; CHECK-LABEL: returnDoubleConst
 ; CHECK: fld
 
 define internal float @addFloat(float %a, float %b) {
@@ -104,7 +104,7 @@ entry:
   %add = fadd float %a, %b
   ret float %add
 }
-; CHECK: addFloat:
+; CHECK-LABEL: addFloat
 ; CHECK: addss
 ; CHECK: fld
 
@@ -113,7 +113,7 @@ entry:
   %add = fadd double %a, %b
   ret double %add
 }
-; CHECK: addDouble:
+; CHECK-LABEL: addDouble
 ; CHECK: addsd
 ; CHECK: fld
 
@@ -122,7 +122,7 @@ entry:
   %sub = fsub float %a, %b
   ret float %sub
 }
-; CHECK: subFloat:
+; CHECK-LABEL: subFloat
 ; CHECK: subss
 ; CHECK: fld
 
@@ -131,7 +131,7 @@ entry:
   %sub = fsub double %a, %b
   ret double %sub
 }
-; CHECK: subDouble:
+; CHECK-LABEL: subDouble
 ; CHECK: subsd
 ; CHECK: fld
 
@@ -140,7 +140,7 @@ entry:
   %mul = fmul float %a, %b
   ret float %mul
 }
-; CHECK: mulFloat:
+; CHECK-LABEL: mulFloat
 ; CHECK: mulss
 ; CHECK: fld
 
@@ -149,7 +149,7 @@ entry:
   %mul = fmul double %a, %b
   ret double %mul
 }
-; CHECK: mulDouble:
+; CHECK-LABEL: mulDouble
 ; CHECK: mulsd
 ; CHECK: fld
 
@@ -158,7 +158,7 @@ entry:
   %div = fdiv float %a, %b
   ret float %div
 }
-; CHECK: divFloat:
+; CHECK-LABEL: divFloat
 ; CHECK: divss
 ; CHECK: fld
 
@@ -167,7 +167,7 @@ entry:
   %div = fdiv double %a, %b
   ret double %div
 }
-; CHECK: divDouble:
+; CHECK-LABEL: divDouble
 ; CHECK: divsd
 ; CHECK: fld
 
@@ -176,7 +176,7 @@ entry:
   %div = frem float %a, %b
   ret float %div
 }
-; CHECK: remFloat:
+; CHECK-LABEL: remFloat
 ; CHECK: call fmodf
 
 define internal double @remDouble(double %a, double %b) {
@@ -184,7 +184,7 @@ entry:
   %div = frem double %a, %b
   ret double %div
 }
-; CHECK: remDouble:
+; CHECK-LABEL: remDouble
 ; CHECK: call fmod
 
 define internal float @fptrunc(double %a) {
@@ -192,7 +192,7 @@ entry:
   %conv = fptrunc double %a to float
   ret float %conv
 }
-; CHECK: fptrunc:
+; CHECK-LABEL: fptrunc
 ; CHECK: cvtsd2ss
 ; CHECK: fld
 
@@ -201,7 +201,7 @@ entry:
   %conv = fpext float %a to double
   ret double %conv
 }
-; CHECK: fpext:
+; CHECK-LABEL: fpext
 ; CHECK: cvtss2sd
 ; CHECK: fld
 
@@ -210,7 +210,7 @@ entry:
   %conv = fptosi double %a to i64
   ret i64 %conv
 }
-; CHECK: doubleToSigned64:
+; CHECK-LABEL: doubleToSigned64
 ; CHECK: call cvtdtosi64
 
 define internal i64 @floatToSigned64(float %a) {
@@ -218,7 +218,7 @@ entry:
   %conv = fptosi float %a to i64
   ret i64 %conv
 }
-; CHECK: floatToSigned64:
+; CHECK-LABEL: floatToSigned64
 ; CHECK: call cvtftosi64
 
 define internal i64 @doubleToUnsigned64(double %a) {
@@ -226,7 +226,7 @@ entry:
   %conv = fptoui double %a to i64
   ret i64 %conv
 }
-; CHECK: doubleToUnsigned64:
+; CHECK-LABEL: doubleToUnsigned64
 ; CHECK: call cvtdtoui64
 
 define internal i64 @floatToUnsigned64(float %a) {
@@ -234,7 +234,7 @@ entry:
   %conv = fptoui float %a to i64
   ret i64 %conv
 }
-; CHECK: floatToUnsigned64:
+; CHECK-LABEL: floatToUnsigned64
 ; CHECK: call cvtftoui64
 
 define internal i32 @doubleToSigned32(double %a) {
@@ -242,7 +242,7 @@ entry:
   %conv = fptosi double %a to i32
   ret i32 %conv
 }
-; CHECK: doubleToSigned32:
+; CHECK-LABEL: doubleToSigned32
 ; CHECK: cvtsd2si
 
 define internal i32 @floatToSigned32(float %a) {
@@ -250,7 +250,7 @@ entry:
   %conv = fptosi float %a to i32
   ret i32 %conv
 }
-; CHECK: floatToSigned32:
+; CHECK-LABEL: floatToSigned32
 ; CHECK: cvtss2si
 
 define internal i32 @doubleToUnsigned32(double %a) {
@@ -258,7 +258,7 @@ entry:
   %conv = fptoui double %a to i32
   ret i32 %conv
 }
-; CHECK: doubleToUnsigned32:
+; CHECK-LABEL: doubleToUnsigned32
 ; CHECK: call cvtdtoui32
 
 define internal i32 @floatToUnsigned32(float %a) {
@@ -266,7 +266,7 @@ entry:
   %conv = fptoui float %a to i32
   ret i32 %conv
 }
-; CHECK: floatToUnsigned32:
+; CHECK-LABEL: floatToUnsigned32
 ; CHECK: call cvtftoui32
 
 define internal i32 @doubleToSigned16(double %a) {
@@ -275,7 +275,7 @@ entry:
   %conv.ret_ext = sext i16 %conv to i32
   ret i32 %conv.ret_ext
 }
-; CHECK: doubleToSigned16:
+; CHECK-LABEL: doubleToSigned16
 ; CHECK: cvtsd2si
 ; CHECK: movsx
 
@@ -285,7 +285,7 @@ entry:
   %conv.ret_ext = sext i16 %conv to i32
   ret i32 %conv.ret_ext
 }
-; CHECK: floatToSigned16:
+; CHECK-LABEL: floatToSigned16
 ; CHECK: cvtss2si
 ; CHECK: movsx
 
@@ -295,7 +295,7 @@ entry:
   %conv.ret_ext = zext i16 %conv to i32
   ret i32 %conv.ret_ext
 }
-; CHECK: doubleToUnsigned16:
+; CHECK-LABEL: doubleToUnsigned16
 ; CHECK: cvtsd2si
 ; CHECK: movzx
 
@@ -305,7 +305,7 @@ entry:
   %conv.ret_ext = zext i16 %conv to i32
   ret i32 %conv.ret_ext
 }
-; CHECK: floatToUnsigned16:
+; CHECK-LABEL: floatToUnsigned16
 ; CHECK: cvtss2si
 ; CHECK: movzx
 
@@ -315,7 +315,7 @@ entry:
   %conv.ret_ext = sext i8 %conv to i32
   ret i32 %conv.ret_ext
 }
-; CHECK: doubleToSigned8:
+; CHECK-LABEL: doubleToSigned8
 ; CHECK: cvtsd2si
 ; CHECK: movsx
 
@@ -325,7 +325,7 @@ entry:
   %conv.ret_ext = sext i8 %conv to i32
   ret i32 %conv.ret_ext
 }
-; CHECK: floatToSigned8:
+; CHECK-LABEL: floatToSigned8
 ; CHECK: cvtss2si
 ; CHECK: movsx
 
@@ -335,7 +335,7 @@ entry:
   %conv.ret_ext = zext i8 %conv to i32
   ret i32 %conv.ret_ext
 }
-; CHECK: doubleToUnsigned8:
+; CHECK-LABEL: doubleToUnsigned8
 ; CHECK: cvtsd2si
 ; CHECK: movzx
 
@@ -345,7 +345,7 @@ entry:
   %conv.ret_ext = zext i8 %conv to i32
   ret i32 %conv.ret_ext
 }
-; CHECK: floatToUnsigned8:
+; CHECK-LABEL: floatToUnsigned8
 ; CHECK: cvtss2si
 ; CHECK: movzx
 
@@ -355,7 +355,7 @@ entry:
   %tobool.ret_ext = zext i1 %tobool to i32
   ret i32 %tobool.ret_ext
 }
-; CHECK: doubleToUnsigned1:
+; CHECK-LABEL: doubleToUnsigned1
 ; CHECK: cvtsd2si
 ; CHECK: and eax, 1
 
@@ -365,7 +365,7 @@ entry:
   %tobool.ret_ext = zext i1 %tobool to i32
   ret i32 %tobool.ret_ext
 }
-; CHECK: floatToUnsigned1:
+; CHECK-LABEL: floatToUnsigned1
 ; CHECK: cvtss2si
 ; CHECK: and eax, 1
 
@@ -374,7 +374,7 @@ entry:
   %conv = sitofp i64 %a to double
   ret double %conv
 }
-; CHECK: signed64ToDouble:
+; CHECK-LABEL: signed64ToDouble
 ; CHECK: call cvtsi64tod
 ; CHECK: fstp
 
@@ -383,7 +383,7 @@ entry:
   %conv = sitofp i64 %a to float
   ret float %conv
 }
-; CHECK: signed64ToFloat:
+; CHECK-LABEL: signed64ToFloat
 ; CHECK: call cvtsi64tof
 ; CHECK: fstp
 
@@ -392,7 +392,7 @@ entry:
   %conv = uitofp i64 %a to double
   ret double %conv
 }
-; CHECK: unsigned64ToDouble:
+; CHECK-LABEL: unsigned64ToDouble
 ; CHECK: call cvtui64tod
 ; CHECK: fstp
 
@@ -401,7 +401,7 @@ entry:
   %conv = uitofp i64 %a to float
   ret float %conv
 }
-; CHECK: unsigned64ToFloat:
+; CHECK-LABEL: unsigned64ToFloat
 ; CHECK: call cvtui64tof
 ; CHECK: fstp
 
@@ -410,7 +410,7 @@ entry:
   %conv = sitofp i32 %a to double
   ret double %conv
 }
-; CHECK: signed32ToDouble:
+; CHECK-LABEL: signed32ToDouble
 ; CHECK: cvtsi2sd
 ; CHECK: fld
 
@@ -419,7 +419,7 @@ entry:
   %conv = sitofp i32 %a to float
   ret float %conv
 }
-; CHECK: signed32ToFloat:
+; CHECK-LABEL: signed32ToFloat
 ; CHECK: cvtsi2ss
 ; CHECK: fld
 
@@ -428,7 +428,7 @@ entry:
   %conv = uitofp i32 %a to double
   ret double %conv
 }
-; CHECK: unsigned32ToDouble:
+; CHECK-LABEL: unsigned32ToDouble
 ; CHECK: call cvtui32tod
 ; CHECK: fstp
 
@@ -437,7 +437,7 @@ entry:
   %conv = uitofp i32 %a to float
   ret float %conv
 }
-; CHECK: unsigned32ToFloat:
+; CHECK-LABEL: unsigned32ToFloat
 ; CHECK: call cvtui32tof
 ; CHECK: fstp
 
@@ -447,7 +447,7 @@ entry:
   %conv = sitofp i16 %a.arg_trunc to double
   ret double %conv
 }
-; CHECK: signed16ToDouble:
+; CHECK-LABEL: signed16ToDouble
 ; CHECK: cvtsi2sd
 ; CHECK: fld
 
@@ -457,7 +457,7 @@ entry:
   %conv = sitofp i16 %a.arg_trunc to float
   ret float %conv
 }
-; CHECK: signed16ToFloat:
+; CHECK-LABEL: signed16ToFloat
 ; CHECK: cvtsi2ss
 ; CHECK: fld
 
@@ -467,7 +467,7 @@ entry:
   %conv = uitofp i16 %a.arg_trunc to double
   ret double %conv
 }
-; CHECK: unsigned16ToDouble:
+; CHECK-LABEL: unsigned16ToDouble
 ; CHECK: cvtsi2sd
 ; CHECK: fld
 
@@ -477,7 +477,7 @@ entry:
   %conv = uitofp i16 %a.arg_trunc to float
   ret float %conv
 }
-; CHECK: unsigned16ToFloat:
+; CHECK-LABEL: unsigned16ToFloat
 ; CHECK: cvtsi2ss
 ; CHECK: fld
 
@@ -487,7 +487,7 @@ entry:
   %conv = sitofp i8 %a.arg_trunc to double
   ret double %conv
 }
-; CHECK: signed8ToDouble:
+; CHECK-LABEL: signed8ToDouble
 ; CHECK: cvtsi2sd
 ; CHECK: fld
 
@@ -497,7 +497,7 @@ entry:
   %conv = sitofp i8 %a.arg_trunc to float
   ret float %conv
 }
-; CHECK: signed8ToFloat:
+; CHECK-LABEL: signed8ToFloat
 ; CHECK: cvtsi2ss
 ; CHECK: fld
 
@@ -507,7 +507,7 @@ entry:
   %conv = uitofp i8 %a.arg_trunc to double
   ret double %conv
 }
-; CHECK: unsigned8ToDouble:
+; CHECK-LABEL: unsigned8ToDouble
 ; CHECK: cvtsi2sd
 ; CHECK: fld
 
@@ -517,7 +517,7 @@ entry:
   %conv = uitofp i8 %a.arg_trunc to float
   ret float %conv
 }
-; CHECK: unsigned8ToFloat:
+; CHECK-LABEL: unsigned8ToFloat
 ; CHECK: cvtsi2ss
 ; CHECK: fld
 
@@ -527,7 +527,7 @@ entry:
   %conv = uitofp i1 %a.arg_trunc to double
   ret double %conv
 }
-; CHECK: unsigned1ToDouble:
+; CHECK-LABEL: unsigned1ToDouble
 ; CHECK: cvtsi2sd
 ; CHECK: fld
 
@@ -537,7 +537,7 @@ entry:
   %conv = uitofp i1 %a.arg_trunc to float
   ret float %conv
 }
-; CHECK: unsigned1ToFloat:
+; CHECK-LABEL: unsigned1ToFloat
 ; CHECK: cvtsi2ss
 ; CHECK: fld
 
@@ -561,7 +561,7 @@ if.then2:                                         ; preds = %if.end
 if.end3:                                          ; preds = %if.then2, %if.end
   ret void
 }
-; CHECK: fcmpEq:
+; CHECK-LABEL: fcmpEq
 ; CHECK: ucomiss
 ; CHECK: jne .
 ; CHECK-NEXT: jp .
@@ -593,7 +593,7 @@ if.then2:                                         ; preds = %if.end
 if.end3:                                          ; preds = %if.then2, %if.end
   ret void
 }
-; CHECK: fcmpNe:
+; CHECK-LABEL: fcmpNe
 ; CHECK: ucomiss
 ; CHECK: jne .
 ; CHECK-NEXT: jp .
@@ -623,7 +623,7 @@ if.then2:                                         ; preds = %if.end
 if.end3:                                          ; preds = %if.then2, %if.end
   ret void
 }
-; CHECK: fcmpGt:
+; CHECK-LABEL: fcmpGt
 ; CHECK: ucomiss
 ; CHECK: ja .
 ; CHECK: call func
@@ -651,7 +651,7 @@ if.then2:                                         ; preds = %if.end
 if.end3:                                          ; preds = %if.end, %if.then2
   ret void
 }
-; CHECK: fcmpGe:
+; CHECK-LABEL: fcmpGe
 ; CHECK: ucomiss
 ; CHECK: jb .
 ; CHECK: call func
@@ -679,7 +679,7 @@ if.then2:                                         ; preds = %if.end
 if.end3:                                          ; preds = %if.then2, %if.end
   ret void
 }
-; CHECK: fcmpLt:
+; CHECK-LABEL: fcmpLt
 ; CHECK: ucomiss
 ; CHECK: ja .
 ; CHECK: call func
@@ -707,7 +707,7 @@ if.then2:                                         ; preds = %if.end
 if.end3:                                          ; preds = %if.end, %if.then2
   ret void
 }
-; CHECK: fcmpLe:
+; CHECK-LABEL: fcmpLe
 ; CHECK: ucomiss
 ; CHECK: jb .
 ; CHECK: call func
@@ -721,7 +721,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpFalseFloat:
+; CHECK-LABEL: fcmpFalseFloat
 ; CHECK: mov {{.*}}, 0
 
 define internal i32 @fcmpFalseDouble(double %a, double %b) {
@@ -730,7 +730,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpFalseDouble:
+; CHECK-LABEL: fcmpFalseDouble
 ; CHECK: mov {{.*}}, 0
 
 define internal i32 @fcmpOeqFloat(float %a, float %b) {
@@ -739,7 +739,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOeqFloat:
+; CHECK-LABEL: fcmpOeqFloat
 ; CHECK: ucomiss
 ; CHECK: jne .
 ; CHECK: jp .
@@ -750,7 +750,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOeqDouble:
+; CHECK-LABEL: fcmpOeqDouble
 ; CHECK: ucomisd
 ; CHECK: jne .
 ; CHECK: jp .
@@ -761,7 +761,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOgtFloat:
+; CHECK-LABEL: fcmpOgtFloat
 ; CHECK: ucomiss
 ; CHECK: ja .
 
@@ -771,7 +771,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOgtDouble:
+; CHECK-LABEL: fcmpOgtDouble
 ; CHECK: ucomisd
 ; CHECK: ja .
 
@@ -781,7 +781,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOgeFloat:
+; CHECK-LABEL: fcmpOgeFloat
 ; CHECK: ucomiss
 ; CHECK: jae .
 
@@ -791,7 +791,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOgeDouble:
+; CHECK-LABEL: fcmpOgeDouble
 ; CHECK: ucomisd
 ; CHECK: jae .
 
@@ -801,7 +801,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOltFloat:
+; CHECK-LABEL: fcmpOltFloat
 ; CHECK: ucomiss
 ; CHECK: ja .
 
@@ -811,7 +811,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOltDouble:
+; CHECK-LABEL: fcmpOltDouble
 ; CHECK: ucomisd
 ; CHECK: ja .
 
@@ -821,7 +821,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOleFloat:
+; CHECK-LABEL: fcmpOleFloat
 ; CHECK: ucomiss
 ; CHECK: jae .
 
@@ -831,7 +831,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOleDouble:
+; CHECK-LABEL: fcmpOleDouble
 ; CHECK: ucomisd
 ; CHECK: jae .
 
@@ -841,7 +841,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOneFloat:
+; CHECK-LABEL: fcmpOneFloat
 ; CHECK: ucomiss
 ; CHECK: jne .
 
@@ -851,7 +851,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOneDouble:
+; CHECK-LABEL: fcmpOneDouble
 ; CHECK: ucomisd
 ; CHECK: jne .
 
@@ -861,7 +861,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOrdFloat:
+; CHECK-LABEL: fcmpOrdFloat
 ; CHECK: ucomiss
 ; CHECK: jnp .
 
@@ -871,7 +871,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpOrdDouble:
+; CHECK-LABEL: fcmpOrdDouble
 ; CHECK: ucomisd
 ; CHECK: jnp .
 
@@ -881,7 +881,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUeqFloat:
+; CHECK-LABEL: fcmpUeqFloat
 ; CHECK: ucomiss
 ; CHECK: je .
 
@@ -891,7 +891,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUeqDouble:
+; CHECK-LABEL: fcmpUeqDouble
 ; CHECK: ucomisd
 ; CHECK: je .
 
@@ -901,7 +901,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUgtFloat:
+; CHECK-LABEL: fcmpUgtFloat
 ; CHECK: ucomiss
 ; CHECK: jb .
 
@@ -911,7 +911,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUgtDouble:
+; CHECK-LABEL: fcmpUgtDouble
 ; CHECK: ucomisd
 ; CHECK: jb .
 
@@ -921,7 +921,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUgeFloat:
+; CHECK-LABEL: fcmpUgeFloat
 ; CHECK: ucomiss
 ; CHECK: jbe .
 
@@ -931,7 +931,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUgeDouble:
+; CHECK-LABEL: fcmpUgeDouble
 ; CHECK: ucomisd
 ; CHECK: jbe .
 
@@ -941,7 +941,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUltFloat:
+; CHECK-LABEL: fcmpUltFloat
 ; CHECK: ucomiss
 ; CHECK: jb .
 
@@ -951,7 +951,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUltDouble:
+; CHECK-LABEL: fcmpUltDouble
 ; CHECK: ucomisd
 ; CHECK: jb .
 
@@ -961,7 +961,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUleFloat:
+; CHECK-LABEL: fcmpUleFloat
 ; CHECK: ucomiss
 ; CHECK: jbe .
 
@@ -971,7 +971,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUleDouble:
+; CHECK-LABEL: fcmpUleDouble
 ; CHECK: ucomisd
 ; CHECK: jbe .
 
@@ -981,7 +981,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUneFloat:
+; CHECK-LABEL: fcmpUneFloat
 ; CHECK: ucomiss
 ; CHECK: jne .
 ; CHECK: jp .
@@ -992,7 +992,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUneDouble:
+; CHECK-LABEL: fcmpUneDouble
 ; CHECK: ucomisd
 ; CHECK: jne .
 ; CHECK: jp .
@@ -1003,7 +1003,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUnoFloat:
+; CHECK-LABEL: fcmpUnoFloat
 ; CHECK: ucomiss
 ; CHECK: jp .
 
@@ -1013,7 +1013,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpUnoDouble:
+; CHECK-LABEL: fcmpUnoDouble
 ; CHECK: ucomisd
 ; CHECK: jp .
 
@@ -1023,7 +1023,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpTrueFloat:
+; CHECK-LABEL: fcmpTrueFloat
 ; CHECK: mov {{.*}}, 1
 
 define internal i32 @fcmpTrueDouble(double %a, double %b) {
@@ -1032,7 +1032,7 @@ entry:
   %cmp.ret_ext = zext i1 %cmp to i32
   ret i32 %cmp.ret_ext
 }
-; CHECK: fcmpTrueDouble:
+; CHECK-LABEL: fcmpTrueDouble
 ; CHECK: mov {{.*}}, 1
 
 define internal float @loadFloat(i32 %a) {
@@ -1041,7 +1041,7 @@ entry:
   %v0 = load float* %__1, align 4
   ret float %v0
 }
-; CHECK: loadFloat:
+; CHECK-LABEL: loadFloat
 ; CHECK: movss
 ; CHECK: fld
 
@@ -1051,7 +1051,7 @@ entry:
   %v0 = load double* %__1, align 8
   ret double %v0
 }
-; CHECK: loadDouble:
+; CHECK-LABEL: loadDouble
 ; CHECK: movsd
 ; CHECK: fld
 
@@ -1061,7 +1061,8 @@ entry:
   store float %value, float* %__2, align 4
   ret void
 }
-; CHECK: storeFloat:
+; CHECK-LABEL: storeFloat:
+; CHECK: movss
 ; CHECK: movss
 
 define internal void @storeDouble(i32 %a, double %value) {
@@ -1070,7 +1071,8 @@ entry:
   store double %value, double* %__2, align 8
   ret void
 }
-; CHECK: storeDouble:
+; CHECK-LABEL: storeDouble:
+; CHECK: movsd
 ; CHECK: movsd
 
 define internal void @storeFloatConst(i32 %a) {
@@ -1079,9 +1081,9 @@ entry:
   store float 0x3FF3AE1480000000, float* %a.asptr, align 4
   ret void
 }
-; CHECK: storeFloatConst:
-; CHECK: mov
-; CHECK: mov
+; CHECK-LABEL: storeFloatConst
+; CHECK: movss
+; CHECK: movss
 
 define internal void @storeDoubleConst(i32 %a) {
 entry:
@@ -1089,9 +1091,9 @@ entry:
   store double 1.230000e+00, double* %a.asptr, align 8
   ret void
 }
-; CHECK: storeDoubleConst:
-; CHECK: mov
-; CHECK: mov
+; CHECK-LABEL: storeDoubleConst
+; CHECK: movsd
+; CHECK: movsd
 
 define internal float @selectFloatVarVar(float %a, float %b) {
 entry:
@@ -1099,7 +1101,7 @@ entry:
   %cond = select i1 %cmp, float %a, float %b
   ret float %cond
 }
-; CHECK: selectFloatVarVar:
+; CHECK-LABEL: selectFloatVarVar
 ; CHECK: ucomiss
 ; CHECK: ja .
 ; CHECK: fld
@@ -1110,7 +1112,7 @@ entry:
   %cond = select i1 %cmp, double %a, double %b
   ret double %cond
 }
-; CHECK: selectDoubleVarVar:
+; CHECK-LABEL: selectDoubleVarVar
 ; CHECK: ucomisd
 ; CHECK: ja .
 ; CHECK: fld
