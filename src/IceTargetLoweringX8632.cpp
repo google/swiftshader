@@ -940,7 +940,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       //   a.hi = t3
       Variable *T_1 = NULL, *T_2 = NULL, *T_3 = NULL;
       Constant *BitTest = Ctx->getConstantInt(IceType_i32, 0x20);
-      Constant *Zero = Ctx->getConstantInt(IceType_i32, 0);
+      Constant *Zero = Ctx->getConstantZero(IceType_i32);
       InstX8632Label *Label = InstX8632Label::create(Func, this);
       _mov(T_1, Src1Lo, Reg_ecx);
       _mov(T_2, Src0Lo);
@@ -976,7 +976,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       //   a.hi = t3
       Variable *T_1 = NULL, *T_2 = NULL, *T_3 = NULL;
       Constant *BitTest = Ctx->getConstantInt(IceType_i32, 0x20);
-      Constant *Zero = Ctx->getConstantInt(IceType_i32, 0);
+      Constant *Zero = Ctx->getConstantZero(IceType_i32);
       InstX8632Label *Label = InstX8632Label::create(Func, this);
       _mov(T_1, Src1Lo, Reg_ecx);
       _mov(T_2, Src0Lo);
@@ -1141,13 +1141,13 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
       if (Dest->getType() == IceType_i8) {
         Variable *T_ah = NULL;
-        Constant *Zero = Ctx->getConstantInt(IceType_i8, 0);
+        Constant *Zero = Ctx->getConstantZero(IceType_i8);
         _mov(T, Src0, Reg_eax);
         _mov(T_ah, Zero, Reg_ah);
         _div(T, Src1, T_ah);
         _mov(Dest, T);
       } else {
-        Constant *Zero = Ctx->getConstantInt(IceType_i32, 0);
+        Constant *Zero = Ctx->getConstantZero(IceType_i32);
         _mov(T, Src0, Reg_eax);
         _mov(T_edx, Zero, Reg_edx);
         _div(T, Src1, T_edx);
@@ -1166,13 +1166,13 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
       if (Dest->getType() == IceType_i8) {
         Variable *T_ah = NULL;
-        Constant *Zero = Ctx->getConstantInt(IceType_i8, 0);
+        Constant *Zero = Ctx->getConstantZero(IceType_i8);
         _mov(T, Src0, Reg_eax);
         _mov(T_ah, Zero, Reg_ah);
         _div(T_ah, Src1, T);
         _mov(Dest, T_ah);
       } else {
-        Constant *Zero = Ctx->getConstantInt(IceType_i32, 0);
+        Constant *Zero = Ctx->getConstantZero(IceType_i32);
         _mov(T_edx, Zero, Reg_edx);
         _mov(T, Src0, Reg_eax);
         _div(T_edx, Src1, T);
@@ -1248,7 +1248,7 @@ void TargetX8632::lowerBr(const InstBr *Inst) {
     _br(Inst->getTargetUnconditional());
   } else {
     Operand *Src0 = legalize(Inst->getCondition());
-    Constant *Zero = Ctx->getConstantInt(IceType_i32, 0);
+    Constant *Zero = Ctx->getConstantZero(IceType_i32);
     _cmp(Src0, Zero);
     _br(InstX8632Br::Br_ne, Inst->getTargetTrue(), Inst->getTargetFalse());
   }
@@ -1411,7 +1411,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
   case InstCast::Zext:
     if (Dest->getType() == IceType_i64) {
       // t1=movzx src; dst.lo=t1; dst.hi=0
-      Constant *Zero = Ctx->getConstantInt(IceType_i32, 0);
+      Constant *Zero = Ctx->getConstantZero(IceType_i32);
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
       Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Variable *Tmp = makeReg(DestLo->getType());
@@ -1727,7 +1727,7 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   }
 
   // a=icmp cond, b, c ==> cmp b,c; a=1; br cond,L1; FakeUse(a); a=0; L1:
-  Constant *Zero = Ctx->getConstantInt(IceType_i32, 0);
+  Constant *Zero = Ctx->getConstantZero(IceType_i32);
   Constant *One = Ctx->getConstantInt(IceType_i32, 1);
   if (Src0->getType() == IceType_i64) {
     InstIcmp::ICond Condition = Inst->getCondition();
@@ -2014,7 +2014,7 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
   Operand *SrcT = Inst->getTrueOperand();
   Operand *SrcF = Inst->getFalseOperand();
   Operand *Condition = legalize(Inst->getCondition());
-  Constant *Zero = Ctx->getConstantInt(IceType_i32, 0);
+  Constant *Zero = Ctx->getConstantZero(IceType_i32);
   InstX8632Label *Label = InstX8632Label::create(Func, this);
 
   if (Dest->getType() == IceType_i64) {
