@@ -31,6 +31,7 @@ public:
     kConstFloat,
     kConstDouble,
     kConstRelocatable,
+    kConstUndef,
     kConst_Num,
     kVariable,
     // Target-specific operand classes use kTarget as the starting
@@ -204,6 +205,40 @@ private:
   const int64_t Offset; // fixed offset to add
   const IceString Name; // optional for debug/dump
   bool SuppressMangling;
+};
+
+// ConstantUndef represents an unspecified bit pattern. Although it is
+// legal to lower ConstantUndef to any value, backends should try to
+// make code generation deterministic by lowering ConstantUndefs to 0.
+class ConstantUndef : public Constant {
+public:
+  static ConstantUndef *create(GlobalContext *Ctx, Type Ty,
+                               uint32_t PoolEntryID) {
+    return new (Ctx->allocate<ConstantUndef>()) ConstantUndef(Ty, PoolEntryID);
+  }
+
+  using Constant::emit;
+  virtual void emit(GlobalContext *Ctx) const {
+    Ostream &Str = Ctx->getStrEmit();
+    Str << "undef";
+  }
+
+  using Constant::dump;
+  virtual void dump(GlobalContext *Ctx) const {
+    Ostream &Str = Ctx->getStrEmit();
+    Str << "undef";
+  }
+
+  static bool classof(const Operand *Operand) {
+    return Operand->getKind() == kConstUndef;
+  }
+
+private:
+  ConstantUndef(Type Ty, uint32_t PoolEntryID)
+      : Constant(kConstUndef, Ty, PoolEntryID) {}
+  ConstantUndef(const ConstantUndef &) LLVM_DELETED_FUNCTION;
+  ConstantUndef &operator=(const ConstantUndef &) LLVM_DELETED_FUNCTION;
+  virtual ~ConstantUndef() {}
 };
 
 // RegWeight is a wrapper for a uint32_t weight value, with a

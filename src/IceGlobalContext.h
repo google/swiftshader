@@ -77,6 +77,10 @@ public:
   // Returns a symbolic constant.
   Constant *getConstantSym(Type Ty, int64_t Offset, const IceString &Name = "",
                            bool SuppressMangling = false);
+  // Returns an undef.
+  Constant *getConstantUndef(Type Ty);
+  // Returns a zero value.
+  Constant *getConstantZero(Type Ty);
   // getConstantPool() returns a copy of the constant pool for
   // constants of a given type.
   ConstantList getConstantPool(Type Ty) const;

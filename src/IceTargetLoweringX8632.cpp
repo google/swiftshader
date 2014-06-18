@@ -2160,6 +2160,20 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
     return From;
   }
   if (llvm::isa<Constant>(From)) {
+    if (llvm::isa<ConstantUndef>(From)) {
+      // Lower undefs to zero.  Another option is to lower undefs to an
+      // uninitialized register; however, using an uninitialized register
+      // results in less predictable code.
+      //
+      // If in the future the implementation is changed to lower undef
+      // values to uninitialized registers, a FakeDef will be needed:
+      //     Context.insert(InstFakeDef::create(Func, Reg));
+      // This is in order to ensure that the live range of Reg is not
+      // overestimated.  If the constant being lowered is a 64 bit value,
+      // then the result should be split and the lo and hi components will
+      // need to go in uninitialized registers.
+      From = Ctx->getConstantZero(From->getType());
+    }
     if (!(Allowed & Legal_Imm)) {
       Variable *Reg = makeReg(From->getType(), RegNum);
       _mov(Reg, From);

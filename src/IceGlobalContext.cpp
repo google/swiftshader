@@ -74,6 +74,29 @@ private:
   uint32_t NextPoolID;
 };
 
+// UndefPool maps ICE types to the corresponding ConstantUndef values.
+class UndefPool {
+  UndefPool(const UndefPool &) LLVM_DELETED_FUNCTION;
+  UndefPool &operator=(const UndefPool &) LLVM_DELETED_FUNCTION;
+
+public:
+  UndefPool() : NextPoolID(0) {}
+
+  ConstantUndef *getOrAdd(GlobalContext *Ctx, Type Ty) {
+    ContainerType::iterator I = Pool.find(Ty);
+    if (I != Pool.end())
+      return I->second;
+    ConstantUndef *Undef = ConstantUndef::create(Ctx, Ty, NextPoolID++);
+    Pool[Ty] = Undef;
+    return Undef;
+  }
+
+private:
+  uint32_t NextPoolID;
+  typedef std::map<Type, ConstantUndef *> ContainerType;
+  ContainerType Pool;
+};
+
 // The global constant pool bundles individual pools of each type of
 // interest.
 class ConstantPool {
@@ -86,6 +109,7 @@ public:
   TypePool<double, ConstantDouble, true> Doubles;
   TypePool<uint64_t, ConstantInteger> Integers;
   TypePool<RelocatableTuple, ConstantRelocatable> Relocatables;
+  UndefPool Undefs;
 };
 
 GlobalContext::GlobalContext(llvm::raw_ostream *OsDump,
@@ -190,6 +214,29 @@ Constant *GlobalContext::getConstantSym(Type Ty, int64_t Offset,
                                         bool SuppressMangling) {
   return ConstPool->Relocatables.getOrAdd(
       this, Ty, RelocatableTuple(Offset, Name, SuppressMangling));
+}
+
+Constant *GlobalContext::getConstantUndef(Type Ty) {
+  return ConstPool->Undefs.getOrAdd(this, Ty);
+}
+
+Constant *GlobalContext::getConstantZero(Type Ty) {
+  switch (Ty) {
+  case IceType_i1:
+  case IceType_i8:
+  case IceType_i16:
+  case IceType_i32:
+  case IceType_i64:
+    return getConstantInt(Ty, 0);
+  case IceType_f32:
+    return getConstantFloat(0);
+  case IceType_f64:
+    return getConstantDouble(0);
+  case IceType_void:
+  case IceType_NUM:
+    break;
+  }
+  llvm_unreachable("Unknown type");
 }
 
 ConstantList GlobalContext::getConstantPool(Type Ty) const {

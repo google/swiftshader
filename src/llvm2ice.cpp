@@ -117,6 +117,8 @@ public:
         return Ctx->getConstantDouble(CFP->getValueAPF().convertToDouble());
       llvm_unreachable("Unexpected floating point type");
       return NULL;
+    } else if (const UndefValue *CU = dyn_cast<UndefValue>(Const)) {
+      return Ctx->getConstantUndef(convertType(CU->getType()));
     } else {
       llvm_unreachable("Unhandled constant type");
       return NULL;
