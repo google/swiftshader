@@ -230,6 +230,23 @@ entry:
 ; OPTM1: call    __divdi3
 ; OPTM1: ret
 
+define internal i64 @div64BitSignedConst(i64 %a) {
+entry:
+  %div = sdiv i64 %a, 12345678901234
+  ret i64 %div
+}
+; CHECK-LABEL: div64BitSignedConst:
+; CHECK: push 2874
+; CHECK: push 1942892530
+; CHECK: call    __divdi3
+; CHECK: ret
+;
+; OPTM1-LABEL: div64BitSignedConst:
+; OPTM1: push 2874
+; OPTM1: push 1942892530
+; OPTM1: call    __divdi3
+; OPTM1: ret
+
 define internal i64 @div64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %div = udiv i64 %a, %b
@@ -461,6 +478,31 @@ entry:
 ; OPTM1:      mov     eax, dword ptr [esp+
 ; OPTM1: movsx  eax,
 ; OPTM1: ret
+
+define internal i32 @trunc64To32SignedConst() {
+entry:
+  %conv = trunc i64 12345678901234 to i32
+  ret i32 %conv
+}
+; CHECK-LABEL: trunc64To32SignedConst
+; CHECK: mov eax, 1942892530
+;
+; OPTM1-LABEL: trunc64To32SignedConst
+; OPTM1: mov eax, 1942892530
+
+define internal i32 @trunc64To16SignedConst() {
+entry:
+  %conv = trunc i64 12345678901234 to i16
+  %conv.ret_ext = sext i16 %conv to i32
+  ret i32 %conv.ret_ext
+}
+; CHECK-LABEL: trunc64To16SignedConst
+; CHECK: mov eax, 1942892530
+; CHECK: movsx eax, ax
+;
+; OPTM1-LABEL: trunc64To16SignedConst
+; OPTM1: mov eax, 1942892530
+; OPTM1: movsx eax,
 
 define internal i32 @trunc64To32Unsigned(i64 %a) {
 entry:

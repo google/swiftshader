@@ -405,6 +405,17 @@ entry:
 ; CHECK: call cvtui64tof
 ; CHECK: fstp
 
+define internal double @unsigned64ToDoubleConst() {
+entry:
+  %conv = uitofp i64 12345678901234 to double
+  ret double %conv
+}
+; CHECK-LABEL: unsigned64ToDouble
+; CHECK: push 2874
+; CHECK: push 1942892530
+; CHECK: call cvtui64tod
+; CHECK: fstp
+
 define internal double @signed32ToDouble(i32 %a) {
 entry:
   %conv = sitofp i32 %a to double

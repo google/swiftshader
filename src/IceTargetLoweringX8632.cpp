@@ -1376,18 +1376,18 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
   // a = cast(b) ==> t=cast(b); a=t; (link t->b, link a->t, no overlap)
   InstCast::OpKind CastKind = Inst->getCastKind();
   Variable *Dest = Inst->getDest();
-  // Src0RM is the source operand legalized to physical register or memory, but
-  // not immediate, since the relevant x86 native instructions don't allow an
-  // immediate operand.  If the operand is an immediate, we could consider
-  // computing the strength-reduced result at translation time, but we're
-  // unlikely to see something like that in the bitcode that the optimizer
-  // wouldn't have already taken care of.
-  Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
   switch (CastKind) {
   default:
     Func->setError("Cast type not supported");
     return;
-  case InstCast::Sext:
+  case InstCast::Sext: {
+    // Src0RM is the source operand legalized to physical register or memory,
+    // but not immediate, since the relevant x86 native instructions don't
+    // allow an immediate operand.  If the operand is an immediate, we could
+    // consider computing the strength-reduced result at translation time,
+    // but we're unlikely to see something like that in the bitcode that
+    // the optimizer wouldn't have already taken care of.
+    Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
     if (Dest->getType() == IceType_i64) {
       // t1=movsx src; t2=t1; t2=sar t2, 31; dst.lo=t1; dst.hi=t2
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
@@ -1412,7 +1412,9 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _mov(Dest, T);
     }
     break;
-  case InstCast::Zext:
+  }
+  case InstCast::Zext: {
+    Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
     if (Dest->getType() == IceType_i64) {
       // t1=movzx src; dst.lo=t1; dst.hi=0
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
@@ -1439,9 +1441,12 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _mov(Dest, T);
     }
     break;
+  }
   case InstCast::Trunc: {
-    if (Src0RM->getType() == IceType_i64)
-      Src0RM = loOperand(Src0RM);
+    Operand *Src0 = Inst->getSrc(0);
+    if (Src0->getType() == IceType_i64)
+      Src0 = loOperand(Src0);
+    Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
     // t1 = trunc Src0RM; Dest = t1
     Variable *T = NULL;
     _mov(T, Src0RM);
@@ -1450,6 +1455,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Fptrunc:
   case InstCast::Fpext: {
+    Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
     // t1 = cvt Src0RM; Dest = t1
     Variable *T = makeReg(Dest->getType());
     _cvt(T, Src0RM);
@@ -1473,6 +1479,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       Call->addArg(Inst->getSrc(0));
       lowerCall(Call);
     } else {
+      Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
       Variable *T_1 = makeReg(IceType_i32);
       Variable *T_2 = makeReg(Dest->getType());
@@ -1488,7 +1495,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       split64(Dest);
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
-      Type SrcType = Src0RM->getType();
+      Type SrcType = Inst->getSrc(0)->getType();
       IceString DstSubstring = (DestType == IceType_i64 ? "64" : "32");
       IceString SrcSubstring = (SrcType == IceType_f32 ? "f" : "d");
       // Possibilities are cvtftoui32, cvtdtoui32, cvtftoui64, cvtdtoui64
@@ -1499,6 +1506,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       lowerCall(Call);
       return;
     } else {
+      Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
       Variable *T_1 = makeReg(IceType_i32);
       Variable *T_2 = makeReg(Dest->getType());
@@ -1509,7 +1517,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     }
     break;
   case InstCast::Sitofp:
-    if (Src0RM->getType() == IceType_i64) {
+    if (Inst->getSrc(0)->getType() == IceType_i64) {
       // Use a helper for x86-32.
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
@@ -1520,6 +1528,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       lowerCall(Call);
       return;
     } else {
+      Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       // Sign-extend the operand.
       // t1.i32 = movsx Src0RM; t2 = Cvt t1.i32; Dest = t2
       Variable *T_1 = makeReg(IceType_i32);
@@ -1532,22 +1541,24 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _mov(Dest, T_2);
     }
     break;
-  case InstCast::Uitofp:
-    if (Src0RM->getType() == IceType_i64 || Src0RM->getType() == IceType_i32) {
+  case InstCast::Uitofp: {
+    Operand *Src0 = Inst->getSrc(0);
+    if (Src0->getType() == IceType_i64 || Src0->getType() == IceType_i32) {
       // Use a helper for x86-32 and x86-64.  Also use a helper for
       // i32 on x86-32.
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
-      IceString SrcSubstring = (Src0RM->getType() == IceType_i64 ? "64" : "32");
+      IceString SrcSubstring = (Src0->getType() == IceType_i64 ? "64" : "32");
       IceString DstSubstring = (DestType == IceType_f32 ? "f" : "d");
       // Possibilities are cvtui32tof, cvtui32tod, cvtui64tof, cvtui64tod
       IceString TargetString = "cvtui" + SrcSubstring + "to" + DstSubstring;
       // TODO: Call the correct compiler-rt helper function.
       InstCall *Call = makeHelperCall(TargetString, Dest, MaxSrcs);
-      Call->addArg(Inst->getSrc(0));
+      Call->addArg(Src0);
       lowerCall(Call);
       return;
     } else {
+      Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       // Zero-extend the operand.
       // t1.i32 = movzx Src0RM; t2 = Cvt t1.i32; Dest = t2
       Variable *T_1 = makeReg(IceType_i32);
@@ -1560,9 +1571,11 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _mov(Dest, T_2);
     }
     break;
-  case InstCast::Bitcast:
-    if (Dest->getType() == Src0RM->getType()) {
-      InstAssign *Assign = InstAssign::create(Func, Dest, Src0RM);
+  }
+  case InstCast::Bitcast: {
+    Operand *Src0 = Inst->getSrc(0);
+    if (Dest->getType() == Src0->getType()) {
+      InstAssign *Assign = InstAssign::create(Func, Dest, Src0);
       lowerAssign(Assign);
       return;
     }
@@ -1571,6 +1584,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       llvm_unreachable("Unexpected Bitcast dest type");
     case IceType_i32:
     case IceType_f32: {
+      Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       Type DestType = Dest->getType();
       Type SrcType = Src0RM->getType();
       assert((DestType == IceType_i32 && SrcType == IceType_f32) ||
@@ -1590,6 +1604,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _mov(Dest, Spill);
     } break;
     case IceType_i64: {
+      Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       assert(Src0RM->getType() == IceType_f64);
       // a.i64 = bitcast b.f64 ==>
       //   s.f64 = spill b.f64
@@ -1617,11 +1632,12 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _mov(DestHi, T_Hi);
     } break;
     case IceType_f64: {
-      assert(Src0RM->getType() == IceType_i64);
+      Src0 = legalize(Src0);
+      assert(Src0->getType() == IceType_i64);
       // a.f64 = bitcast b.i64 ==>
       //   t_lo.i32 = b_lo.i32
+      //   FakeDef(s.f64)
       //   lo(s.f64) = t_lo.i32
-      //   FakeUse(s.f64)
       //   t_hi.i32 = b_hi.i32
       //   hi(s.f64) = t_hi.i32
       //   a.f64 = s.f64
@@ -1629,21 +1645,24 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       Spill->setWeight(RegWeight::Zero);
       Spill->setPreferredRegister(Dest, true);
 
-      Context.insert(InstFakeDef::create(Func, Spill));
-
       Variable *T_Lo = NULL, *T_Hi = NULL;
       VariableSplit *SpillLo =
           VariableSplit::create(Func, Spill, VariableSplit::Low);
       VariableSplit *SpillHi =
           VariableSplit::create(Func, Spill, VariableSplit::High);
-      _mov(T_Lo, loOperand(Src0RM));
+      _mov(T_Lo, loOperand(Src0));
+      // Technically, the Spill is defined after the _store happens, but
+      // SpillLo is considered a "use" of Spill so define Spill before it
+      // is used.
+      Context.insert(InstFakeDef::create(Func, Spill));
       _store(T_Lo, SpillLo);
-      _mov(T_Hi, hiOperand(Src0RM));
+      _mov(T_Hi, hiOperand(Src0));
       _store(T_Hi, SpillHi);
       _mov(Dest, Spill);
     } break;
     }
     break;
+  }
   }
 }
 
@@ -2312,6 +2331,8 @@ Variable *TargetX8632::legalizeToVar(Operand *From, bool AllowOverlap,
 }
 
 Variable *TargetX8632::makeReg(Type Type, int32_t RegNum) {
+  // There aren't any 64-bit integer registers for x86-32.
+  assert(Type != IceType_i64);
   Variable *Reg = Func->makeVariable(Type, Context.getNode());
   if (RegNum == Variable::NoRegister)
     Reg->setWeightInfinite();
