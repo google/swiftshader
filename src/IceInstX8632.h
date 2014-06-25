@@ -151,7 +151,9 @@ public:
     Imul,
     Label,
     Load,
+    Mfence,
     Mov,
+    Movq,
     Movsx,
     Movzx,
     Mul,
@@ -167,11 +169,13 @@ public:
     Shr,
     Shrd,
     Store,
+    StoreQ,
     Sub,
     Subss,
     Test,
     Ucomiss,
     UD2,
+    Xadd,
     Xor
   };
   static const char *getWidthString(Type Ty);
@@ -578,6 +582,23 @@ private:
   virtual ~InstX8632Test() {}
 };
 
+// Mfence instruction.
+class InstX8632Mfence : public InstX8632 {
+public:
+  static InstX8632Mfence *create(Cfg *Func) {
+    return new (Func->allocate<InstX8632Mfence>()) InstX8632Mfence(Func);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Mfence); }
+
+private:
+  InstX8632Mfence(Cfg *Func);
+  InstX8632Mfence(const InstX8632Mfence &) LLVM_DELETED_FUNCTION;
+  InstX8632Mfence &operator=(const InstX8632Mfence &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Mfence() {}
+};
+
 // This is essentially a "mov" instruction with an OperandX8632Mem
 // operand instead of Variable as the destination.  It's important
 // for liveness that there is no Dest operand.
@@ -615,6 +636,45 @@ private:
   InstX8632Mov(const InstX8632Mov &) LLVM_DELETED_FUNCTION;
   InstX8632Mov &operator=(const InstX8632Mov &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Mov() {}
+};
+
+// This is essentially a "movq" instruction with an OperandX8632Mem
+// operand instead of Variable as the destination.  It's important
+// for liveness that there is no Dest operand.
+class InstX8632StoreQ : public InstX8632 {
+public:
+  static InstX8632StoreQ *create(Cfg *Func, Operand *Value, OperandX8632 *Mem) {
+    return new (Func->allocate<InstX8632StoreQ>())
+        InstX8632StoreQ(Func, Value, Mem);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, StoreQ); }
+
+private:
+  InstX8632StoreQ(Cfg *Func, Operand *Value, OperandX8632 *Mem);
+  InstX8632StoreQ(const InstX8632StoreQ &) LLVM_DELETED_FUNCTION;
+  InstX8632StoreQ &operator=(const InstX8632StoreQ &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632StoreQ() {}
+};
+
+// Movq - copy between XMM registers, or mem64 and XMM registers.
+class InstX8632Movq : public InstX8632 {
+public:
+  static InstX8632Movq *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    return new (Func->allocate<InstX8632Movq>())
+        InstX8632Movq(Func, Dest, Source);
+  }
+  virtual bool isRedundantAssign() const;
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Movq); }
+
+private:
+  InstX8632Movq(Cfg *Func, Variable *Dest, Operand *Source);
+  InstX8632Movq(const InstX8632Movq &) LLVM_DELETED_FUNCTION;
+  InstX8632Movq &operator=(const InstX8632Movq &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Movq() {}
 };
 
 // Movsx - copy from a narrower integer type to a wider integer
@@ -742,6 +802,33 @@ private:
   InstX8632Ret(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
   InstX8632Ret &operator=(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Ret() {}
+};
+
+// Exchanging Add instruction.  Exchanges the first operand (destination
+// operand) with the second operand (source operand), then loads the sum
+// of the two values into the destination operand. The destination may be
+// a register or memory, while the source must be a register.
+//
+// Both the dest and source are updated. The caller should then insert a
+// FakeDef to reflect the second udpate.
+class InstX8632Xadd : public InstX8632 {
+public:
+  static InstX8632Xadd *create(Cfg *Func, Operand *Dest, Variable *Source,
+                               bool Locked) {
+    return new (Func->allocate<InstX8632Xadd>())
+        InstX8632Xadd(Func, Dest, Source, Locked);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Xadd); }
+
+private:
+  bool Locked;
+
+  InstX8632Xadd(Cfg *Func, Operand *Dest, Variable *Source, bool Locked);
+  InstX8632Xadd(const InstX8632Xadd &) LLVM_DELETED_FUNCTION;
+  InstX8632Xadd &operator=(const InstX8632Xadd &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Xadd() {}
 };
 
 } // end of namespace Ice

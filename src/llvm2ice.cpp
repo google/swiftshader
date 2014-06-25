@@ -599,8 +599,6 @@ private:
       }
     }
     if (Call->getNumArgs() + 1 != I->NumTypes) {
-      std::cerr << "Call->getNumArgs() " << (int)Call->getNumArgs()
-                << " I->NumTypes " << (int)I->NumTypes << "\n";
       report_fatal_error("Mismatched # of args.");
     }
     for (size_t i = 1; i < I->NumTypes; ++i) {

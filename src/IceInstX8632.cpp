@@ -166,6 +166,11 @@ InstX8632Test::InstX8632Test(Cfg *Func, Operand *Src1, Operand *Src2)
   addSource(Src2);
 }
 
+InstX8632Mfence::InstX8632Mfence(Cfg *Func)
+    : InstX8632(Func, InstX8632::Mfence, 0, NULL) {
+  HasSideEffects = true;
+}
+
 InstX8632Store::InstX8632Store(Cfg *Func, Operand *Value, OperandX8632 *Mem)
     : InstX8632(Func, InstX8632::Store, 2, NULL) {
   addSource(Value);
@@ -174,6 +179,17 @@ InstX8632Store::InstX8632Store(Cfg *Func, Operand *Value, OperandX8632 *Mem)
 
 InstX8632Mov::InstX8632Mov(Cfg *Func, Variable *Dest, Operand *Source)
     : InstX8632(Func, InstX8632::Mov, 1, Dest) {
+  addSource(Source);
+}
+
+InstX8632StoreQ::InstX8632StoreQ(Cfg *Func, Operand *Value, OperandX8632 *Mem)
+    : InstX8632(Func, InstX8632::StoreQ, 2, NULL) {
+  addSource(Value);
+  addSource(Mem);
+}
+
+InstX8632Movq::InstX8632Movq(Cfg *Func, Variable *Dest, Operand *Source)
+    : InstX8632(Func, InstX8632::Movq, 1, Dest) {
   addSource(Source);
 }
 
@@ -221,10 +237,32 @@ bool InstX8632Mov::isRedundantAssign() const {
   return false;
 }
 
+bool InstX8632Movq::isRedundantAssign() const {
+  Variable *Src = llvm::dyn_cast<Variable>(getSrc(0));
+  if (Src == NULL)
+    return false;
+  if (getDest()->hasReg() && getDest()->getRegNum() == Src->getRegNum()) {
+    return true;
+  }
+  if (!getDest()->hasReg() && !Src->hasReg() &&
+      Dest->getStackOffset() == Src->getStackOffset())
+    return true;
+  return false;
+}
+
 InstX8632Ret::InstX8632Ret(Cfg *Func, Variable *Source)
     : InstX8632(Func, InstX8632::Ret, Source ? 1 : 0, NULL) {
   if (Source)
     addSource(Source);
+}
+
+InstX8632Xadd::InstX8632Xadd(Cfg *Func, Operand *Dest, Variable *Source,
+                             bool Locked)
+    : InstX8632(Func, InstX8632::Xadd, 2, llvm::dyn_cast<Variable>(Dest)),
+      Locked(Locked) {
+  HasSideEffects = Locked;
+  addSource(Dest);
+  addSource(Source);
 }
 
 // ======================== Dump routines ======================== //
@@ -564,6 +602,17 @@ void InstX8632Test::dump(const Cfg *Func) const {
   dumpSources(Func);
 }
 
+void InstX8632Mfence::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 0);
+  Str << "\tmfence\n";
+}
+
+void InstX8632Mfence::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "mfence\n";
+}
+
 void InstX8632Store::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
@@ -578,6 +627,26 @@ void InstX8632Store::emit(const Cfg *Func) const {
 void InstX8632Store::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "mov." << getSrc(0)->getType() << " ";
+  getSrc(1)->dump(Func);
+  Str << ", ";
+  getSrc(0)->dump(Func);
+}
+
+void InstX8632StoreQ::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 2);
+  assert(getSrc(1)->getType() == IceType_i64 ||
+         getSrc(1)->getType() == IceType_f64);
+  Str << "\tmovq\t";
+  getSrc(1)->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632StoreQ::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "storeq." << getSrc(0)->getType() << " ";
   getSrc(1)->dump(Func);
   Str << ", ";
   getSrc(0)->dump(Func);
@@ -606,6 +675,26 @@ void InstX8632Mov::emit(const Cfg *Func) const {
 void InstX8632Mov::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "mov." << getDest()->getType() << " ";
+  dumpDest(Func);
+  Str << ", ";
+  dumpSources(Func);
+}
+
+void InstX8632Movq::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  assert(getDest()->getType() == IceType_i64 ||
+         getDest()->getType() == IceType_f64);
+  Str << "\tmovq\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632Movq::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "movq." << getDest()->getType() << " ";
   dumpDest(Func);
   Str << ", ";
   dumpSources(Func);
@@ -770,6 +859,29 @@ void InstX8632Ret::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = (getSrcSize() == 0 ? IceType_void : getSrc(0)->getType());
   Str << "ret." << Ty << " ";
+  dumpSources(Func);
+}
+
+void InstX8632Xadd::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  if (Locked) {
+    Str << "\tlock xadd ";
+  } else {
+    Str << "\txadd\t";
+  }
+  getSrc(0)->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632Xadd::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  if (Locked) {
+    Str << "lock ";
+  }
+  Type Ty = getSrc(0)->getType();
+  Str << "xadd." << Ty << " ";
   dumpSources(Func);
 }
 

@@ -94,6 +94,9 @@ protected:
   virtual void doAddressOptLoad();
   virtual void doAddressOptStore();
 
+  void lowerAtomicRMW(Variable *Dest, uint32_t Operation, Operand *Ptr,
+                      Operand *Val);
+
   // Operand legalization helpers.  To deal with address mode
   // constraints, the helpers will create a new Operand and emit
   // instructions that guarantee that the Operand kind is one of those
@@ -114,6 +117,10 @@ protected:
                     int32_t RegNum = Variable::NoRegister);
   Variable *legalizeToVar(Operand *From, bool AllowOverlap = false,
                           int32_t RegNum = Variable::NoRegister);
+  // Turn a pointer operand into a memory operand that can be
+  // used by a real load/store operation. Legalizes the operand as well.
+  // This is a nop if the operand is already a legal memory operand.
+  OperandX8632Mem *FormMemoryOperand(Operand *Ptr, Type Ty);
 
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
   InstCall *makeHelperCall(const IceString &Name, Variable *Dest,
@@ -180,6 +187,7 @@ protected:
   void _imul(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Imul::create(Func, Dest, Src0));
   }
+  void _mfence() { Context.insert(InstX8632Mfence::create(Func)); }
   // If Dest=NULL is passed in, then a new variable is created, marked
   // as infinite register allocation weight, and returned through the
   // in/out Dest argument.
@@ -190,6 +198,9 @@ protected:
     } else {
       Context.insert(InstX8632Mov::create(Func, Dest, Src0));
     }
+  }
+  void _movq(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Movq::create(Func, Dest, Src0));
   }
   void _movsx(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Movsx::create(Func, Dest, Src0));
@@ -236,6 +247,9 @@ protected:
   void _store(Operand *Value, OperandX8632 *Mem) {
     Context.insert(InstX8632Store::create(Func, Value, Mem));
   }
+  void _storeq(Operand *Value, OperandX8632 *Mem) {
+    Context.insert(InstX8632StoreQ::create(Func, Value, Mem));
+  }
   void _sub(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Sub::create(Func, Dest, Src0));
   }
@@ -249,6 +263,12 @@ protected:
     Context.insert(InstX8632Ucomiss::create(Func, Src0, Src1));
   }
   void _ud2() { Context.insert(InstX8632UD2::create(Func)); }
+  void _xadd(Operand *Dest, Variable *Src, bool Locked) {
+    Context.insert(InstX8632Xadd::create(Func, Dest, Src, Locked));
+    // The xadd exchanges Dest and Src (modifying Src).
+    // Model that update with a FakeDef.
+    Context.insert(InstFakeDef::create(Func, Src));
+  }
   void _xor(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Xor::create(Func, Dest, Src0));
   }

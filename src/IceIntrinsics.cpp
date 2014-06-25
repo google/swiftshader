@@ -82,7 +82,7 @@ const struct IceIntrinsicsEntry_ {
   {                                                                            \
     {                                                                          \
       { Intrinsics::AtomicStore, true }                                        \
-      , { IceType_void, Overload, IceType_i32, IceType_i32 }, 5                \
+      , { IceType_void, Overload, IceType_i32, IceType_i32 }, 4                \
     }                                                                          \
     , "nacl.atomic.store." NameSuffix                                          \
   }
@@ -197,6 +197,11 @@ Intrinsics::find(const IceString &Name) const {
   if (it == map.end())
     return NULL;
   return &it->second;
+}
+
+bool Intrinsics::VerifyMemoryOrder(uint64_t Order) {
+  // There is only one memory ordering for atomics allowed right now.
+  return Order == Intrinsics::MemoryOrderSequentiallyConsistent;
 }
 
 } // end of namespace Ice

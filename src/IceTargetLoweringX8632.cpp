@@ -431,7 +431,6 @@ void TargetX8632::setArgOffsetAndCopy(Variable *Arg, Variable *FramePtr,
   InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
 }
 
-// static
 Type TargetX8632::stackSlotType() { return IceType_i32; }
 
 void TargetX8632::addProlog(CfgNode *Node) {
@@ -1615,7 +1614,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       Variable *Spill = Func->makeVariable(IceType_f64, Context.getNode());
       Spill->setWeight(RegWeight::Zero);
       Spill->setPreferredRegister(llvm::dyn_cast<Variable>(Src0RM), true);
-      _mov(Spill, Src0RM);
+      _movq(Spill, Src0RM);
 
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
       Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
@@ -1658,7 +1657,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _store(T_Lo, SpillLo);
       _mov(T_Hi, hiOperand(Src0));
       _store(T_Hi, SpillHi);
-      _mov(Dest, Spill);
+      _movq(Dest, Spill);
     } break;
     }
     break;
@@ -1800,16 +1799,140 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
 void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   switch (Instr->getIntrinsicInfo().ID) {
   case Intrinsics::AtomicCmpxchg:
+    if (!Intrinsics::VerifyMemoryOrder(
+             llvm::cast<ConstantInteger>(Instr->getArg(3))->getValue())) {
+      Func->setError("Unexpected memory ordering (success) for AtomicCmpxchg");
+      return;
+    }
+    if (!Intrinsics::VerifyMemoryOrder(
+             llvm::cast<ConstantInteger>(Instr->getArg(4))->getValue())) {
+      Func->setError("Unexpected memory ordering (failure) for AtomicCmpxchg");
+      return;
+    }
+    // TODO(jvoung): fill it in.
+    Func->setError("Unhandled intrinsic");
+    return;
   case Intrinsics::AtomicFence:
+    if (!Intrinsics::VerifyMemoryOrder(
+             llvm::cast<ConstantInteger>(Instr->getArg(0))->getValue())) {
+      Func->setError("Unexpected memory ordering for AtomicFence");
+      return;
+    }
+    _mfence();
+    return;
   case Intrinsics::AtomicFenceAll:
-  case Intrinsics::AtomicIsLockFree:
-  case Intrinsics::AtomicLoad:
+    // NOTE: FenceAll should prevent and load/store from being moved
+    // across the fence (both atomic and non-atomic). The InstX8632Mfence
+    // instruction is currently marked coarsely as "HasSideEffects".
+    _mfence();
+    return;
+  case Intrinsics::AtomicIsLockFree: {
+    // X86 is always lock free for 8/16/32/64 bit accesses.
+    // TODO(jvoung): Since the result is constant when given a constant
+    // byte size, this opens up DCE opportunities.
+    Operand *ByteSize = Instr->getArg(0);
+    Variable *Dest = Instr->getDest();
+    if (ConstantInteger *CI = llvm::dyn_cast<ConstantInteger>(ByteSize)) {
+      Constant *Result;
+      switch (CI->getValue()) {
+      default:
+        // Some x86-64 processors support the cmpxchg16b intruction, which
+        // can make 16-byte operations lock free (when used with the LOCK
+        // prefix). However, that's not supported in 32-bit mode, so just
+        // return 0 even for large sizes.
+        Result = Ctx->getConstantZero(IceType_i32);
+        break;
+      case 1:
+      case 2:
+      case 4:
+      case 8:
+        Result = Ctx->getConstantInt(IceType_i32, 1);
+        break;
+      }
+      _mov(Dest, Result);
+      return;
+    }
+    // The PNaCl ABI requires the byte size to be a compile-time constant.
+    Func->setError("AtomicIsLockFree byte size should be compile-time const");
+    return;
+  }
+  case Intrinsics::AtomicLoad: {
+    // We require the memory address to be naturally aligned.
+    // Given that is the case, then normal loads are atomic.
+    if (!Intrinsics::VerifyMemoryOrder(
+             llvm::cast<ConstantInteger>(Instr->getArg(1))->getValue())) {
+      Func->setError("Unexpected memory ordering for AtomicLoad");
+      return;
+    }
+    Variable *Dest = Instr->getDest();
+    if (Dest->getType() == IceType_i64) {
+      // Follow what GCC does and use a movq instead of what lowerLoad()
+      // normally does (split the load into two).
+      // Thus, this skips load/arithmetic op folding. Load/arithmetic folding
+      // can't happen anyway, since this is x86-32 and integer arithmetic only
+      // happens on 32-bit quantities.
+      Variable *T = makeReg(IceType_f64);
+      OperandX8632Mem *Addr = FormMemoryOperand(Instr->getArg(0), IceType_f64);
+      _movq(T, Addr);
+      // Then cast the bits back out of the XMM register to the i64 Dest.
+      InstCast *Cast = InstCast::create(Func, InstCast::Bitcast, Dest, T);
+      lowerCast(Cast);
+      // Make sure that the atomic load isn't elided.
+      Context.insert(InstFakeUse::create(Func, Dest->getLo()));
+      Context.insert(InstFakeUse::create(Func, Dest->getHi()));
+      return;
+    }
+    InstLoad *Load = InstLoad::create(Func, Dest, Instr->getArg(0));
+    lowerLoad(Load);
+    // Make sure the atomic load isn't elided.
+    Context.insert(InstFakeUse::create(Func, Dest));
+    return;
+  }
   case Intrinsics::AtomicRMW:
-  case Intrinsics::AtomicStore:
+    if (!Intrinsics::VerifyMemoryOrder(
+             llvm::cast<ConstantInteger>(Instr->getArg(3))->getValue())) {
+      Func->setError("Unexpected memory ordering for AtomicRMW");
+      return;
+    }
+    lowerAtomicRMW(Instr->getDest(),
+                   static_cast<uint32_t>(llvm::cast<ConstantInteger>(
+                       Instr->getArg(0))->getValue()),
+                   Instr->getArg(1), Instr->getArg(2));
+    return;
+  case Intrinsics::AtomicStore: {
+    if (!Intrinsics::VerifyMemoryOrder(
+             llvm::cast<ConstantInteger>(Instr->getArg(2))->getValue())) {
+      Func->setError("Unexpected memory ordering for AtomicStore");
+      return;
+    }
+    // We require the memory address to be naturally aligned.
+    // Given that is the case, then normal stores are atomic.
+    // Add a fence after the store to make it visible.
+    Operand *Value = Instr->getArg(0);
+    Operand *Ptr = Instr->getArg(1);
+    if (Value->getType() == IceType_i64) {
+      // Use a movq instead of what lowerStore() normally does
+      // (split the store into two), following what GCC does.
+      // Cast the bits from int -> to an xmm register first.
+      Variable *T = makeReg(IceType_f64);
+      InstCast *Cast = InstCast::create(Func, InstCast::Bitcast, T, Value);
+      lowerCast(Cast);
+      // Then store XMM w/ a movq.
+      OperandX8632Mem *Addr = FormMemoryOperand(Ptr, IceType_f64);
+      _storeq(T, Addr);
+      _mfence();
+      return;
+    }
+    InstStore *Store = InstStore::create(Func, Value, Ptr);
+    lowerStore(Store);
+    _mfence();
+    return;
+  }
   case Intrinsics::Bswap:
   case Intrinsics::Ctlz:
   case Intrinsics::Ctpop:
   case Intrinsics::Cttz:
+    // TODO(jvoung): fill it in.
     Func->setError("Unhandled intrinsic");
     return;
   case Intrinsics::Longjmp: {
@@ -1817,7 +1940,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Call->addArg(Instr->getArg(0));
     Call->addArg(Instr->getArg(1));
     lowerCall(Call);
-    break;
+    return;
   }
   case Intrinsics::Memcpy: {
     // In the future, we could potentially emit an inline memcpy/memset, etc.
@@ -1827,7 +1950,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Call->addArg(Instr->getArg(1));
     Call->addArg(Instr->getArg(2));
     lowerCall(Call);
-    break;
+    return;
   }
   case Intrinsics::Memmove: {
     InstCall *Call = makeHelperCall("memmove", NULL, 3);
@@ -1835,7 +1958,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Call->addArg(Instr->getArg(1));
     Call->addArg(Instr->getArg(2));
     lowerCall(Call);
-    break;
+    return;
   }
   case Intrinsics::Memset: {
     // The value operand needs to be extended to a stack slot size
@@ -1849,37 +1972,83 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Call->addArg(ValExt);
     Call->addArg(Instr->getArg(2));
     lowerCall(Call);
-    break;
+    return;
   }
   case Intrinsics::NaClReadTP: {
-    Constant *Zero = Ctx->getConstantInt(IceType_i32, 0);
+    Constant *Zero = Ctx->getConstantZero(IceType_i32);
     Operand *Src = OperandX8632Mem::create(Func, IceType_i32, NULL, Zero, NULL,
                                            0, OperandX8632Mem::SegReg_GS);
     Variable *Dest = Instr->getDest();
     Variable *T = NULL;
     _mov(T, Src);
     _mov(Dest, T);
-    break;
+    return;
   }
   case Intrinsics::Setjmp: {
     InstCall *Call = makeHelperCall("setjmp", Instr->getDest(), 1);
     Call->addArg(Instr->getArg(0));
     lowerCall(Call);
-    break;
+    return;
   }
   case Intrinsics::Sqrt:
   case Intrinsics::Stacksave:
   case Intrinsics::Stackrestore:
+    // TODO(jvoung): fill it in.
     Func->setError("Unhandled intrinsic");
     return;
   case Intrinsics::Trap:
     _ud2();
-    break;
+    return;
   case Intrinsics::UnknownIntrinsic:
     Func->setError("Should not be lowering UnknownIntrinsic");
     return;
   }
   return;
+}
+
+void TargetX8632::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
+                                 Operand *Ptr, Operand *Val) {
+  switch (Operation) {
+  default:
+    Func->setError("Unknown AtomicRMW operation");
+    return;
+  case Intrinsics::AtomicAdd: {
+    if (Dest->getType() == IceType_i64) {
+      // Do a nasty cmpxchg8b loop. Factor this into a function.
+      // TODO(jvoung): fill it in.
+      Func->setError("Unhandled AtomicRMW operation");
+      return;
+    }
+    OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Dest->getType());
+    const bool Locked = true;
+    Variable *T = NULL;
+    _mov(T, Val);
+    _xadd(Addr, T, Locked);
+    _mov(Dest, T);
+    return;
+  }
+  case Intrinsics::AtomicSub: {
+    if (Dest->getType() == IceType_i64) {
+      // Do a nasty cmpxchg8b loop.
+      // TODO(jvoung): fill it in.
+      Func->setError("Unhandled AtomicRMW operation");
+      return;
+    }
+    // Generate a memory operand from Ptr.
+    // neg...
+    // Then do the same as AtomicAdd.
+    // TODO(jvoung): fill it in.
+    Func->setError("Unhandled AtomicRMW operation");
+    return;
+  }
+  case Intrinsics::AtomicOr:
+  case Intrinsics::AtomicAnd:
+  case Intrinsics::AtomicXor:
+  case Intrinsics::AtomicExchange:
+    // TODO(jvoung): fill it in.
+    Func->setError("Unhandled AtomicRMW operation");
+    return;
+  }
 }
 
 namespace {
@@ -2018,15 +2187,7 @@ void TargetX8632::lowerLoad(const InstLoad *Inst) {
   // optimization already creates an OperandX8632Mem operand, so it
   // doesn't need another level of transformation.
   Type Ty = Inst->getDest()->getType();
-  Operand *Src0 = Inst->getSourceAddress();
-  // Address mode optimization already creates an OperandX8632Mem
-  // operand, so it doesn't need another level of transformation.
-  if (!llvm::isa<OperandX8632Mem>(Src0)) {
-    Variable *Base = llvm::dyn_cast<Variable>(Src0);
-    Constant *Offset = llvm::dyn_cast<Constant>(Src0);
-    assert(Base || Offset);
-    Src0 = OperandX8632Mem::create(Func, Ty, Base, Offset);
-  }
+  Operand *Src0 = FormMemoryOperand(Inst->getSourceAddress(), Ty);
 
   // Fuse this load with a subsequent Arithmetic instruction in the
   // following situations:
@@ -2034,6 +2195,8 @@ void TargetX8632::lowerLoad(const InstLoad *Inst) {
   //   a=[mem]; c=a+b ==> c=b+[mem] if commutative and above is true
   //
   // TODO: Clean up and test thoroughly.
+  // (E.g., if there is an mfence-all make sure the load ends up on the
+  // same side of the fence).
   //
   // TODO: Why limit to Arithmetic instructions?  This could probably be
   // applied to most any instruction type.  Look at all source operands
@@ -2164,19 +2327,7 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
 void TargetX8632::lowerStore(const InstStore *Inst) {
   Operand *Value = Inst->getData();
   Operand *Addr = Inst->getAddr();
-  OperandX8632Mem *NewAddr = llvm::dyn_cast<OperandX8632Mem>(Addr);
-  // Address mode optimization already creates an OperandX8632Mem
-  // operand, so it doesn't need another level of transformation.
-  if (!NewAddr) {
-    // The address will be either a constant (which represents a global
-    // variable) or a variable, so either the Base or Offset component
-    // of the OperandX8632Mem will be set.
-    Variable *Base = llvm::dyn_cast<Variable>(Addr);
-    Constant *Offset = llvm::dyn_cast<Constant>(Addr);
-    assert(Base || Offset);
-    NewAddr = OperandX8632Mem::create(Func, Value->getType(), Base, Offset);
-  }
-  NewAddr = llvm::cast<OperandX8632Mem>(legalize(NewAddr));
+  OperandX8632Mem *NewAddr = FormMemoryOperand(Addr, Value->getType());
 
   if (NewAddr->getType() == IceType_i64) {
     Value = legalize(Value);
@@ -2294,10 +2445,11 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
       // need to go in uninitialized registers.
       From = Ctx->getConstantZero(From->getType());
     }
-    bool NeedsReg = !(Allowed & Legal_Imm) ||
+    bool NeedsReg =
+        !(Allowed & Legal_Imm) ||
         // ConstantFloat and ConstantDouble are actually memory operands.
-        (!(Allowed & Legal_Mem) && (From->getType() == IceType_f32 ||
-                                    From->getType() == IceType_f64));
+        (!(Allowed & Legal_Mem) &&
+         (From->getType() == IceType_f32 || From->getType() == IceType_f64));
     if (NeedsReg) {
       Variable *Reg = makeReg(From->getType(), RegNum);
       _mov(Reg, From);
@@ -2328,6 +2480,20 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
 Variable *TargetX8632::legalizeToVar(Operand *From, bool AllowOverlap,
                                      int32_t RegNum) {
   return llvm::cast<Variable>(legalize(From, Legal_Reg, AllowOverlap, RegNum));
+}
+
+OperandX8632Mem *TargetX8632::FormMemoryOperand(Operand *Operand, Type Ty) {
+  OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Operand);
+  // It may be the case that address mode optimization already creates
+  // an OperandX8632Mem, so in that case it wouldn't need another level
+  // of transformation.
+  if (!Mem) {
+    Variable *Base = llvm::dyn_cast<Variable>(Operand);
+    Constant *Offset = llvm::dyn_cast<Constant>(Operand);
+    assert(Base || Offset);
+    Mem = OperandX8632Mem::create(Func, Ty, Base, Offset);
+  }
+  return llvm::cast<OperandX8632Mem>(legalize(Mem));
 }
 
 Variable *TargetX8632::makeReg(Type Type, int32_t RegNum) {

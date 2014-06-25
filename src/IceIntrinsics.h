@@ -54,6 +54,39 @@ public:
     Trap
   };
 
+  /// Operations that can be represented by the AtomicRMW
+  /// intrinsic.
+  ///
+  /// Do not reorder these values: their order offers forward
+  /// compatibility of bitcode targeted to PNaCl.
+  enum AtomicRMWOperation {
+    AtomicInvalid = 0, // Invalid, keep first.
+    AtomicAdd,
+    AtomicSub,
+    AtomicOr,
+    AtomicAnd,
+    AtomicXor,
+    AtomicExchange,
+    AtomicNum // Invalid, keep last.
+  };
+
+  /// Memory orderings supported by PNaCl IR.
+  ///
+  /// Do not reorder these values: their order offers forward
+  /// compatibility of bitcode targeted to PNaCl.
+  enum MemoryOrder {
+    MemoryOrderInvalid = 0, // Invalid, keep first.
+    MemoryOrderRelaxed,
+    MemoryOrderConsume,
+    MemoryOrderAcquire,
+    MemoryOrderRelease,
+    MemoryOrderAcquireRelease,
+    MemoryOrderSequentiallyConsistent,
+    MemoryOrderNum // Invalid, keep last.
+  };
+
+  static bool VerifyMemoryOrder(uint64_t Order);
+
   // Basic attributes related to each intrinsic, that are relevant to
   // code generation. We will want to have more attributes (e.g., Setjmp
   // returns twice and which affects stack coloring) once the lowering
