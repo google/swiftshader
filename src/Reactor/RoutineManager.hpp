@@ -42,7 +42,7 @@ namespace sw
 		virtual void setMemoryExecutable();
 		virtual void setPoisonMemory(bool poison);
 
-		Routine *acquireRoutine();
+		Routine *acquireRoutine(void *entry);
 
 	private:
 		Routine *routine;

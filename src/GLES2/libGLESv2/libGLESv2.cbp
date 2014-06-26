@@ -293,6 +293,8 @@
 		<Unit filename="./../../Main/serialcommon.h" />
 		<Unit filename="./../../Main/serialvalid.cpp" />
 		<Unit filename="./../../Main/serialvalid.h" />
+		<Unit filename="./../../Reactor/Routine.cpp" />
+		<Unit filename="./../../Reactor/Routine.hpp" />
 		<Unit filename="./../../Reactor/RoutineManager.cpp" />
 		<Unit filename="./../../Reactor/RoutineManager.hpp" />
 		<Unit filename="./../../Reactor/Nucleus.cpp" />

@@ -26,6 +26,7 @@
 #include "llvm/Support/TargetSelect.h"
 #include "../lib/ExecutionEngine/JIT/JIT.h"
 
+#include "Routine.hpp"
 #include "RoutineManager.hpp"
 #include "x86.hpp"
 #include "CPUID.hpp"
@@ -69,83 +70,6 @@ namespace sw
 	class Builder : public IRBuilder<>
 	{
 	};
-
-	Routine::Routine(int bufferSize) : bufferSize(bufferSize), dynamic(true)
-	{
-		void *memory = allocateExecutable(bufferSize);
-
-		buffer = memory;
-		entry = memory;
-		functionSize = bufferSize;   // Updated by RoutineManager::endFunctionBody
-
-		bindCount = 0;
-	}
-
-	Routine::Routine(void *memory, int bufferSize, int offset) : bufferSize(bufferSize), functionSize(bufferSize), dynamic(false)
-	{
-		buffer = (unsigned char*)memory - offset;
-		entry = memory;
-
-		bindCount = 0;
-	}
-
-	Routine::~Routine()
-	{
-		if(dynamic)
-		{
-			deallocateExecutable(buffer, bufferSize);
-		}
-	}
-
-	void Routine::setFunctionSize(int functionSize)
-	{
-		this->functionSize = functionSize;
-	}
-
-	const void *Routine::getBuffer()
-	{
-		return buffer;
-	}
-
-	const void *Routine::getEntry()
-	{
-		return entry;
-	}
-
-	int Routine::getBufferSize()
-	{
-		return bufferSize;
-	}
-
-	int Routine::getFunctionSize()
-	{
-		return functionSize;
-	}
-
-	int Routine::getCodeSize()
-	{
-		return functionSize - ((uintptr_t)entry - (uintptr_t)buffer);
-	}
-
-	bool Routine::isDynamic()
-	{
-		return dynamic;
-	}
-
-	void Routine::bind()
-	{
-		atomicIncrement(&bindCount);
-	}
-
-	void Routine::unbind()
-	{
-		long count = atomicDecrement(&bindCount);
-
-		if(count == 0)
-		{
-			delete this;
-		}
-	}
 
 	Nucleus::Nucleus()
 	{
@@ -243,14 +167,11 @@ namespace sw
 		}
 
 		void *entry = executionEngine->getPointerToFunction(function);
-
-		Routine *routine = routineManager->acquireRoutine();
-		routine->entry = entry;
-		markExecutable(routine->buffer, routine->bufferSize);
+		Routine *routine = routineManager->acquireRoutine(entry);
 
 		if(CodeAnalystLogJITCode)
 		{
-			CodeAnalystLogJITCode(routine->entry, routine->getCodeSize(), name);
+			CodeAnalystLogJITCode(routine->getEntry(), routine->getCodeSize(), name);
 		}
 
 		return routine;

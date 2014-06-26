@@ -11,7 +11,7 @@
 
 #include "RoutineManager.hpp"
 
-#include "Nucleus.hpp"
+#include "Routine.hpp"
 #include "llvm/Function.h"
 #include "../Common/Memory.hpp"
 #include "../Common/Thread.hpp"
@@ -117,16 +117,18 @@ namespace sw
 
 	void RoutineManager::setMemoryExecutable()
 	{
+		markExecutable(routine->buffer, routine->bufferSize);
 	}
 
 	void RoutineManager::setPoisonMemory(bool poison)
 	{
 	}
 
-	Routine *RoutineManager::acquireRoutine()
+	Routine *RoutineManager::acquireRoutine(void *entry)
 	{
-		Routine *result = routine;
+		routine->entry = entry;
 
+		Routine *result = routine;
 		routine = 0;
 
 		return result;

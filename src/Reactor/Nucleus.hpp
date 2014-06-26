@@ -61,41 +61,9 @@ namespace sw
 
 	extern Optimization optimization[10];
 
+	class Routine;
 	class RoutineManager;
 	class Builder;
-	class Nucleus;
-
-	class Routine
-	{
-		friend class Nucleus;
-
-	public:
-		Routine(int bufferSize);
-		Routine(void *memory, int bufferSize, int offset);
-
-		~Routine();
-
-		void setFunctionSize(int functionSize);
-
-		const void *getBuffer();
-		const void *getEntry();
-		int getBufferSize();
-		int getFunctionSize();   // Includes constants before the entry point
-		int getCodeSize();       // Executable code only
-		bool isDynamic();
-
-		void bind();
-		void unbind();
-
-	private:
-		void *buffer;
-		const void *entry;
-		int bufferSize;
-		int functionSize;
-
-		volatile int bindCount;
-		const bool dynamic;   // Generated or precompiled
-	};
 
 	class Nucleus
 	{

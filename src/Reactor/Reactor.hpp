@@ -10,6 +10,7 @@
 //
 
 #include "Nucleus.hpp"
+#include "Routine.hpp"
 
 namespace sw
 {
