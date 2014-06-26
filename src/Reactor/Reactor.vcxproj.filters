@@ -18,18 +18,15 @@
     <ClCompile Include="DLL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MemoryManager.cpp">
+    <ClCompile Include="Nucleus.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Nucleus.cpp">
+    <ClCompile Include="RoutineManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DLL.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MemoryManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Nucleus.hpp">
@@ -39,6 +36,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="x86.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RoutineManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

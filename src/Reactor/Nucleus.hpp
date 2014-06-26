@@ -61,7 +61,7 @@ namespace sw
 
 	extern Optimization optimization[10];
 
-	class MemoryManager;
+	class RoutineManager;
 	class Builder;
 	class Nucleus;
 
@@ -249,7 +249,7 @@ namespace sw
 		static llvm::Function *function;
 		static llvm::LLVMContext *context;
 		static llvm::Module *module;
-		static MemoryManager *memoryManager;
+		static RoutineManager *routineManager;
 	};
 
 	class Byte;

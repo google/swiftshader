@@ -9,8 +9,8 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-#ifndef sw_MemoryManager_hpp
-#define sw_MemoryManager_hpp
+#ifndef sw_RoutineManager_hpp
+#define sw_RoutineManager_hpp
 
 #include "llvm/GlobalValue.h"
 #include "llvm/ExecutionEngine/JITMemoryManager.h"
@@ -19,12 +19,12 @@ namespace sw
 {
 	class Routine;
 
-	class MemoryManager : public llvm::JITMemoryManager
+	class RoutineManager : public llvm::JITMemoryManager
 	{
 	public:
-		MemoryManager();
+		RoutineManager();
 
-		~MemoryManager();
+		~RoutineManager();
 
 		void AllocateGOT();
 
@@ -51,4 +51,4 @@ namespace sw
 	};
 }
 
-#endif   // sw_MemoryManager_hpp
+#endif   // sw_RoutineManager_hpp

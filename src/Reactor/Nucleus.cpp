@@ -26,7 +26,7 @@
 #include "llvm/Support/TargetSelect.h"
 #include "../lib/ExecutionEngine/JIT/JIT.h"
 
-#include "MemoryManager.hpp"
+#include "RoutineManager.hpp"
 #include "x86.hpp"
 #include "CPUID.hpp"
 #include "Thread.hpp"
@@ -59,7 +59,7 @@ namespace sw
 
 	using namespace llvm;
 
-	MemoryManager *Nucleus::memoryManager = 0;
+	RoutineManager *Nucleus::routineManager = 0;
 	ExecutionEngine *Nucleus::executionEngine = 0;
 	Builder *Nucleus::builder = 0;
 	LLVMContext *Nucleus::context = 0;
@@ -76,7 +76,7 @@ namespace sw
 
 		buffer = memory;
 		entry = memory;
-		functionSize = bufferSize;   // Updated by MemoryManager::endFunctionBody
+		functionSize = bufferSize;   // Updated by RoutineManager::endFunctionBody
 
 		bindCount = 0;
 	}
@@ -158,7 +158,7 @@ namespace sw
 		}
 
 		module = new Module("", *context);
-		memoryManager = new MemoryManager();
+		routineManager = new RoutineManager();
 
 		#if defined(__x86_64__)
 			const char *architecture = "x86-64";
@@ -177,7 +177,7 @@ namespace sw
 
 		std::string error;
 		TargetMachine *targetMachine = EngineBuilder::selectTarget(module, architecture, "", MAttrs, Reloc::Default, CodeModel::JITDefault, &error);
-		executionEngine = JIT::createJIT(module, 0, memoryManager, CodeGenOpt::Aggressive, true, targetMachine);
+		executionEngine = JIT::createJIT(module, 0, routineManager, CodeGenOpt::Aggressive, true, targetMachine);
 
 		if(!builder)
 		{
@@ -202,7 +202,7 @@ namespace sw
 		delete executionEngine;
 		executionEngine = 0;
 
-		memoryManager = 0;
+		routineManager = 0;
 		function = 0;
 		module = 0;
 	}
@@ -244,7 +244,7 @@ namespace sw
 
 		void *entry = executionEngine->getPointerToFunction(function);
 
-		Routine *routine = memoryManager->acquireRoutine();
+		Routine *routine = routineManager->acquireRoutine();
 		routine->entry = entry;
 		markExecutable(routine->buffer, routine->bufferSize);
 
