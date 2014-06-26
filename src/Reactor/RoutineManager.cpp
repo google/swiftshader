@@ -12,10 +12,15 @@
 #include "RoutineManager.hpp"
 
 #include "Nucleus.hpp"
+#include "llvm/Function.h"
+#include "../Common/Memory.hpp"
+#include "../Common/Thread.hpp"
 
 namespace sw
 {
 	using namespace llvm;
+
+	volatile int RoutineManager::averageInstructionSize = 4;
 
 	RoutineManager::RoutineManager()
 	{
@@ -41,12 +46,24 @@ namespace sw
 
 	uint8_t *RoutineManager::startFunctionBody(const llvm::Function *function, uintptr_t &actualSize)
 	{
-		if(actualSize == 0)
+		if(actualSize == 0)   // Estimate size
 		{
-			actualSize = 4096;
+			int instructionCount = 0;
+			for(llvm::Function::const_iterator basicBlock = function->begin(); basicBlock != function->end(); basicBlock++)
+			{
+				instructionCount += basicBlock->size();
+			}
+
+			actualSize = instructionCount * averageInstructionSize;
+		}
+		else   // Estimate was too low
+		{
+			sw::atomicIncrement(&averageInstructionSize);
 		}
 
-		actualSize = (actualSize + 15) & -16;
+		// Round up to the next page size
+		size_t pageSize = memoryPageSize();
+		actualSize = (actualSize + pageSize - 1) & -pageSize;
 
 		delete routine;
 		routine = new Routine(actualSize);

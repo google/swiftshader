@@ -46,6 +46,8 @@ namespace sw
 
 	private:
 		Routine *routine;
+
+		static volatile int averageInstructionSize;
 	};
 }
 
