@@ -15,6 +15,7 @@
 #include "llvm/Function.h"
 #include "../Common/Memory.hpp"
 #include "../Common/Thread.hpp"
+#include "../Common/Debug.hpp"
 
 namespace sw
 {
@@ -34,13 +35,12 @@ namespace sw
 
 	void RoutineManager::AllocateGOT()
 	{
-		// FIXME: ASSERT(false);
+		UNIMPLEMENTED();
 	}
 
 	uint8_t *RoutineManager::allocateStub(const GlobalValue *function, unsigned stubSize, unsigned alignment)
 	{
-		// FIXME: ASSERT(false);
-
+		UNIMPLEMENTED();
 		return 0;
 	}
 
@@ -78,37 +78,42 @@ namespace sw
 
 	uint8_t *RoutineManager::startExceptionTable(const llvm::Function* F, uintptr_t &ActualSize)
 	{
-		// FIXME: ASSERT(false);
-
+		UNIMPLEMENTED();
 		return 0;
 	}
 
 	void RoutineManager::endExceptionTable(const llvm::Function *F, uint8_t *TableStart, uint8_t *TableEnd, uint8_t* FrameRegister) 
 	{
-		// FIXME: ASSERT(false);
+		UNIMPLEMENTED();
 	}
     
 	uint8_t *RoutineManager::getGOTBase() const
 	{
+		ASSERT(!HasGOT);
 		return 0;
 	}
 
 	uint8_t *RoutineManager::allocateSpace(intptr_t Size, unsigned Alignment)
 	{
+		UNIMPLEMENTED();
 		return 0;
 	}
 
 	uint8_t *RoutineManager::allocateGlobal(uintptr_t Size, unsigned Alignment)
 	{
+		UNIMPLEMENTED();
 		return 0;
 	}
 
 	void RoutineManager::deallocateFunctionBody(void *Body)
 	{
+		delete routine;
+		routine = 0;
 	}
 
 	void RoutineManager::deallocateExceptionTable(void *ET)
 	{
+		UNIMPLEMENTED();
 	}
 
 	void RoutineManager::setMemoryWritable()
@@ -122,6 +127,7 @@ namespace sw
 
 	void RoutineManager::setPoisonMemory(bool poison)
 	{
+		UNIMPLEMENTED();
 	}
 
 	Routine *RoutineManager::acquireRoutine(void *entry)
