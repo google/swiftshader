@@ -24,25 +24,23 @@ namespace sw
 	public:
 		RoutineManager();
 
-		~RoutineManager();
+		virtual ~RoutineManager();
 
-		void AllocateGOT();
+		virtual void AllocateGOT();
 
-		unsigned char *allocateStub(const llvm::GlobalValue *function, unsigned stubSize, unsigned alignment);
-		unsigned char *startFunctionBody(const llvm::Function *function, uintptr_t &actualSize);
-		void endFunctionBody(const llvm::Function *function, unsigned char *functionStart, unsigned char *functionEnd);
-		unsigned char *startExceptionTable(const llvm::Function *function, uintptr_t &ActualSize);
-		void endExceptionTable(const llvm::Function *function, unsigned char *tableStart, unsigned char *tableEnd, unsigned char *frameRegister);
-		unsigned char *getGOTBase() const;
-		unsigned char *allocateSpace(intptr_t Size, unsigned Alignment);
-		unsigned char *allocateGlobal(uintptr_t Size, unsigned int Alignment);
-		void deallocateFunctionBody(void *Body);
-		void deallocateExceptionTable(void *ET);
-		void setMemoryWritable();
-		void setMemoryExecutable();
-		void setPoisonMemory(bool poison);
-		void SetDlsymTable(void *pointer);
-		void *getDlsymTable() const;
+		virtual uint8_t *allocateStub(const llvm::GlobalValue *function, unsigned stubSize, unsigned alignment);
+		virtual uint8_t *startFunctionBody(const llvm::Function *function, uintptr_t &actualSize);
+		virtual void endFunctionBody(const llvm::Function *function, uint8_t *functionStart, uint8_t *functionEnd);
+		virtual uint8_t *startExceptionTable(const llvm::Function *function, uintptr_t &ActualSize);
+		virtual void endExceptionTable(const llvm::Function *function, uint8_t *tableStart, uint8_t *tableEnd, uint8_t *frameRegister);
+		virtual uint8_t *getGOTBase() const;
+		virtual uint8_t *allocateSpace(intptr_t Size, unsigned Alignment);
+		virtual uint8_t *allocateGlobal(uintptr_t Size, unsigned int Alignment);
+		virtual void deallocateFunctionBody(void *Body);
+		virtual void deallocateExceptionTable(void *ET);
+		virtual void setMemoryWritable();
+		virtual void setMemoryExecutable();
+		virtual void setPoisonMemory(bool poison);
 
 		Routine *acquireRoutine();
 

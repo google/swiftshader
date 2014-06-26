@@ -32,14 +32,14 @@ namespace sw
 		// FIXME: ASSERT(false);
 	}
 
-	unsigned char *RoutineManager::allocateStub(const GlobalValue *function, unsigned stubSize, unsigned alignment)
+	uint8_t *RoutineManager::allocateStub(const GlobalValue *function, unsigned stubSize, unsigned alignment)
 	{
 		// FIXME: ASSERT(false);
 
 		return 0;
 	}
 
-	unsigned char *RoutineManager::startFunctionBody(const llvm::Function *function, uintptr_t &actualSize)
+	uint8_t *RoutineManager::startFunctionBody(const llvm::Function *function, uintptr_t &actualSize)
 	{
 		if(actualSize == 0)
 		{
@@ -51,37 +51,37 @@ namespace sw
 		delete routine;
 		routine = new Routine(actualSize);
 
-		return (unsigned char*)routine->getBuffer();
+		return (uint8_t*)routine->getBuffer();
 	}
 
-	void RoutineManager::endFunctionBody(const llvm::Function *function, unsigned char *functionStart, unsigned char *functionEnd)
+	void RoutineManager::endFunctionBody(const llvm::Function *function, uint8_t *functionStart, uint8_t *functionEnd)
 	{
 		routine->setFunctionSize(functionEnd - functionStart);
 	}
 
-	unsigned char *RoutineManager::startExceptionTable(const llvm::Function* F, uintptr_t &ActualSize)
+	uint8_t *RoutineManager::startExceptionTable(const llvm::Function* F, uintptr_t &ActualSize)
 	{
 		// FIXME: ASSERT(false);
 
 		return 0;
 	}
 
-	void RoutineManager::endExceptionTable(const llvm::Function *F, unsigned char *TableStart, unsigned char *TableEnd, unsigned char* FrameRegister) 
+	void RoutineManager::endExceptionTable(const llvm::Function *F, uint8_t *TableStart, uint8_t *TableEnd, uint8_t* FrameRegister) 
 	{
 		// FIXME: ASSERT(false);
 	}
     
-	unsigned char *RoutineManager::getGOTBase() const
+	uint8_t *RoutineManager::getGOTBase() const
 	{
 		return 0;
 	}
 
-	unsigned char *RoutineManager::allocateSpace(intptr_t Size, unsigned Alignment)
+	uint8_t *RoutineManager::allocateSpace(intptr_t Size, unsigned Alignment)
 	{
 		return 0;
 	}
 
-	unsigned char *RoutineManager::allocateGlobal(uintptr_t Size, unsigned Alignment)
+	uint8_t *RoutineManager::allocateGlobal(uintptr_t Size, unsigned Alignment)
 	{
 		return 0;
 	}
@@ -113,14 +113,5 @@ namespace sw
 		routine = 0;
 
 		return result;
-	}
-
-	void RoutineManager::SetDlsymTable(void *pointer)
-	{
-	}
-
-	void *RoutineManager::getDlsymTable() const
-	{
-		return 0;
 	}
 }
