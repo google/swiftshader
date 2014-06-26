@@ -31,6 +31,24 @@
 #undef allocateZero
 #undef deallocateZero
 
+size_t memoryPageSize()
+{
+	static int pageSize = 0;
+
+	if(pageSize == 0)
+	{
+		#if defined(_WIN32)
+			SYSTEM_INFO systemInfo;
+			GetSystemInfo(&systemInfo);
+			pageSize = systemInfo.dwPageSize;
+		#else
+			pageSize = sysconf(_SC_PAGESIZE);
+		#endif
+	}
+
+	return pageSize;
+}
+
 struct Allocation
 {
 //	size_t bytes;
@@ -79,15 +97,7 @@ void deallocate(void *memory)
 
 void *allocateExecutable(size_t bytes)
 {
-	int pageSize = 4096;
-
-	#if defined(_WIN32)
-		SYSTEM_INFO systemInfo;
-		GetSystemInfo(&systemInfo);
-		pageSize = systemInfo.dwPageSize;
-	#else
-		pageSize = getpagesize();
-	#endif
+	size_t pageSize = memoryPageSize();
 
 	return allocate((bytes + pageSize - 1) & -pageSize, pageSize);
 }

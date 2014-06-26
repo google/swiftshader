@@ -14,6 +14,8 @@
 
 #include <stddef.h>
 
+size_t memoryPageSize();
+
 void *allocate(size_t bytes, int alignment = 16);
 void *allocateZero(size_t bytes, int alignment = 16);
 void deallocate(void *memory);
