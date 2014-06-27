@@ -36,6 +36,7 @@ LDFLAGS := -m32
 SRCS= \
 	IceCfg.cpp \
 	IceCfgNode.cpp \
+	IceConverter.cpp \
 	IceGlobalContext.cpp \
 	IceInst.cpp \
 	IceInstX8632.cpp \
