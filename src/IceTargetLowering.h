@@ -199,6 +199,29 @@ private:
   TargetLowering &operator=(const TargetLowering &) LLVM_DELETED_FUNCTION;
 };
 
+// TargetGlobalInitLowering is used for "lowering" global
+// initializers.  It is separated out from TargetLowering because it
+// does not require a Cfg.
+class TargetGlobalInitLowering {
+public:
+  static TargetGlobalInitLowering *createLowering(TargetArch Target,
+                                                  GlobalContext *Ctx);
+  // TODO: Allow relocations to be represented as part of the Data.
+  virtual void lower(const IceString &Name, SizeT Align, bool IsInternal,
+                     bool IsConst, bool IsZeroInitializer, SizeT Size,
+                     const char *Data, bool DisableTranslation) = 0;
+
+protected:
+  TargetGlobalInitLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
+  GlobalContext *Ctx;
+
+private:
+  TargetGlobalInitLowering(const TargetGlobalInitLowering &)
+  LLVM_DELETED_FUNCTION;
+  TargetGlobalInitLowering &
+  operator=(const TargetGlobalInitLowering &) LLVM_DELETED_FUNCTION;
+};
+
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICETARGETLOWERING_H

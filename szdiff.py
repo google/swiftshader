@@ -42,7 +42,12 @@ if __name__ == '__main__':
     llc_out = []
     tail_call = re.compile(' tail call ');
     trailing_comment = re.compile(';.*')
-    ignore_pattern = re.compile('^ *$|^declare|^@')
+    ignore_pattern = re.compile('|'.join([
+                '^ *$',     # all-whitespace lines
+                '^declare', # declarations without definitions
+                '^@.*\]$'   # PNaCl global declarations like:
+                            #   @v = external global [4 x i8]
+                ]))
     prev_line = None
     for line in bitcode:
         if prev_line:

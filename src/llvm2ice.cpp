@@ -13,11 +13,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "IceCfg.h"
 #include "IceConverter.h"
 #include "IceDefs.h"
+#include "IceTargetLowering.h"
 #include "IceTypes.h"
 
+#include "llvm/IR/Constant.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_os_ostream.h"
@@ -94,9 +99,10 @@ static cl::opt<NaClFileFormat> InputFileFormat(
                clEnumValEnd),
     cl::init(LLVMFormat));
 
-static cl::opt<bool> BuildOnRead(
-    "build-on-read", cl::desc("Build ICE instructions when reading bitcode"),
-    cl::init(false));
+static cl::opt<bool>
+BuildOnRead("build-on-read",
+            cl::desc("Build ICE instructions when reading bitcode"),
+            cl::init(false));
 
 int main(int argc, char **argv) {
 
@@ -129,8 +135,8 @@ int main(int argc, char **argv) {
     // Parse the input LLVM IR file into a module.
     SMDiagnostic Err;
     Ice::Timer T;
-    Module *Mod = NaClParseIRFile(IRFilename, InputFileFormat, Err,
-                                  getGlobalContext());
+    Module *Mod =
+        NaClParseIRFile(IRFilename, InputFileFormat, Err, getGlobalContext());
 
     if (SubzeroTimingEnabled) {
       std::cerr << "[Subzero timing] IR Parsing: " << T.getElapsedSec()
@@ -141,6 +147,47 @@ int main(int argc, char **argv) {
       Err.print(argv[0], errs());
       return 1;
     }
+
+    // TODO(stichnot): Move this into IceConverter.cpp.
+    OwningPtr<Ice::TargetGlobalInitLowering> GlobalLowering(
+        Ice::TargetGlobalInitLowering::createLowering(TargetArch, &Ctx));
+    for (Module::const_global_iterator I = Mod->global_begin(),
+                                       E = Mod->global_end();
+         I != E; ++I) {
+      if (!I->hasInitializer())
+        continue;
+      const Constant *Initializer = I->getInitializer();
+      Ice::IceString Name = I->getName();
+      unsigned Align = I->getAlignment();
+      uint64_t NumElements = 0;
+      const char *Data = NULL;
+      bool IsInternal = I->hasInternalLinkage();
+      bool IsConst = I->isConstant();
+      bool IsZeroInitializer = false;
+
+      if (const ConstantDataArray *CDA =
+              dyn_cast<ConstantDataArray>(Initializer)) {
+        NumElements = CDA->getNumElements();
+        assert(isa<IntegerType>(CDA->getElementType()) &&
+               cast<IntegerType>(CDA->getElementType())->getBitWidth() == 8);
+        Data = CDA->getRawDataValues().data();
+      } else if (isa<ConstantAggregateZero>(Initializer)) {
+        if (const ArrayType *AT = dyn_cast<ArrayType>(Initializer->getType())) {
+          assert(isa<IntegerType>(AT->getElementType()) &&
+                 cast<IntegerType>(AT->getElementType())->getBitWidth() == 8);
+          NumElements = AT->getNumElements();
+          IsZeroInitializer = true;
+        } else {
+          llvm_unreachable("Unhandled constant aggregate zero type");
+        }
+      } else {
+        llvm_unreachable("Unhandled global initializer");
+      }
+
+      GlobalLowering->lower(Name, Align, IsInternal, IsConst, IsZeroInitializer,
+                            NumElements, Data, DisableTranslation);
+    }
+    GlobalLowering.reset();
 
     Ice::Converter Converter(&Ctx, DisableInternal, SubzeroTimingEnabled,
                              DisableTranslation);

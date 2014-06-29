@@ -43,15 +43,15 @@ entry:
 ; CHECK: mov {{.*}}, esp
 ; CHECK: mov dword ptr {{.*}}, 999
 ;    atomic store (w/ its own mfence)
-; CHECK: mov {{.*}}, g32_a
+; CHECK: lea {{.*}}, g32_a
 ; The load + add are optimized into one everywhere.
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
 ; CHECK: mfence
-; CHECK: mov {{.*}}, g32_b
+; CHECK: lea {{.*}}, g32_b
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
-; CHECK: mov {{.*}}, g32_c
+; CHECK: lea {{.*}}, g32_c
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mfence
 ; CHECK: mov dword ptr
@@ -86,14 +86,14 @@ entry:
 ; CHECK: mov {{.*}}, esp
 ; CHECK: mov dword ptr {{.*}}, 999
 ;    atomic store (w/ its own mfence)
-; CHECK: mov {{.*}}, g32_a
+; CHECK: lea {{.*}}, g32_a
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
 ; CHECK: mfence
-; CHECK: mov {{.*}}, g32_b
+; CHECK: lea {{.*}}, g32_b
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
-; CHECK: mov {{.*}}, g32_c
+; CHECK: lea {{.*}}, g32_c
 ; CHECK: mfence
 ; Load + add can still be optimized into one instruction
 ; because it is not separated by a fence.
@@ -130,11 +130,11 @@ entry:
 ; CHECK: mov {{.*}}, esp
 ; CHECK: mov dword ptr {{.*}}, 999
 ;    atomic store (w/ its own mfence)
-; CHECK: mov {{.*}}, g32_a
+; CHECK: lea {{.*}}, g32_a
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
 ; CHECK: mfence
-; CHECK: mov {{.*}}, g32_b
+; CHECK: lea {{.*}}, g32_b
 ; This load + add are no longer optimized into one,
 ; though perhaps it should be legal as long as
 ; the load stays on the same side of the fence.
@@ -142,7 +142,7 @@ entry:
 ; CHECK: mfence
 ; CHECK: add {{.*}}, 1
 ; CHECK: mov dword ptr
-; CHECK: mov {{.*}}, g32_c
+; CHECK: lea {{.*}}, g32_c
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
 
@@ -182,7 +182,7 @@ entry:
   ret i32 %b1234
 }
 ; CHECK-LABEL: could_have_fused_loads
-; CHECK: mov {{.*}}, g32_d
+; CHECK: lea {{.*}}, g32_d
 ; CHECK: mov {{.*}}, byte ptr
 ; CHECK: mov {{.*}}, byte ptr
 ; CHECK: mov {{.*}}, byte ptr
@@ -206,7 +206,7 @@ branch2:
   ret i32 %z
 }
 ; CHECK-LABEL: could_have_hoisted_loads
-; CHECK: mov {{.*}}, g32_d
+; CHECK: lea {{.*}}, g32_d
 ; CHECK: je {{.*}}
 ; CHECK: jmp {{.*}}
 ; CHECK: mov {{.*}}, dword ptr

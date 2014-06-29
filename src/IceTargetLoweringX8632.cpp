@@ -1319,7 +1319,9 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       break;
     }
   }
-  Operand *CallTarget = legalize(Instr->getCallTarget());
+  // TODO(stichnot): LEAHACK: remove Legal_All (and use default) once
+  // a proper emitter is used.
+  Operand *CallTarget = legalize(Instr->getCallTarget(), Legal_All);
   Inst *NewCall = InstX8632Call::create(Func, eax, CallTarget);
   Context.insert(NewCall);
   if (edx)
@@ -2445,11 +2447,19 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
       // need to go in uninitialized registers.
       From = Ctx->getConstantZero(From->getType());
     }
-    bool NeedsReg =
-        !(Allowed & Legal_Imm) ||
-        // ConstantFloat and ConstantDouble are actually memory operands.
-        (!(Allowed & Legal_Mem) &&
-         (From->getType() == IceType_f32 || From->getType() == IceType_f64));
+    bool NeedsReg = false;
+    if (!(Allowed & Legal_Imm))
+      // Immediate specifically not allowed
+      NeedsReg = true;
+    // TODO(stichnot): LEAHACK: remove Legal_Reloc once a proper
+    // emitter is used.
+    if (!(Allowed & Legal_Reloc) && llvm::isa<ConstantRelocatable>(From))
+      // Relocatable specifically not allowed
+      NeedsReg = true;
+    if (!(Allowed & Legal_Mem) &&
+        (From->getType() == IceType_f32 || From->getType() == IceType_f64))
+      // On x86, FP constants are lowered to mem operands.
+      NeedsReg = true;
     if (NeedsReg) {
       Variable *Reg = makeReg(From->getType(), RegNum);
       _mov(Reg, From);
@@ -2579,6 +2589,102 @@ template <> void ConstantFloat::emit(GlobalContext *Ctx) const {
 template <> void ConstantDouble::emit(GlobalContext *Ctx) const {
   Ostream &Str = Ctx->getStrEmit();
   Str << "qword ptr [L$" << IceType_f64 << "$" << getPoolEntryID() << "]";
+}
+
+TargetGlobalInitX8632::TargetGlobalInitX8632(GlobalContext *Ctx)
+    : TargetGlobalInitLowering(Ctx) {}
+
+namespace {
+char hexdigit(unsigned X) { return X < 10 ? '0' + X : 'A' + X - 10; }
+}
+
+void TargetGlobalInitX8632::lower(const IceString &Name, SizeT Align,
+                                  bool IsInternal, bool IsConst,
+                                  bool IsZeroInitializer, SizeT Size,
+                                  const char *Data, bool DisableTranslation) {
+  if (Ctx->isVerbose()) {
+    // TODO: Consider moving the dump output into the driver to be
+    // reused for all targets.
+    Ostream &Str = Ctx->getStrDump();
+    Str << "@" << Name << " = " << (IsInternal ? "internal" : "external");
+    Str << (IsConst ? " constant" : " global");
+    Str << " [" << Size << " x i8] ";
+    if (IsZeroInitializer) {
+      Str << "zeroinitializer";
+    } else {
+      Str << "c\"";
+      // Code taken from PrintEscapedString() in AsmWriter.cpp.  Keep
+      // the strings in the same format as the .ll file for practical
+      // diffing.
+      for (uint64_t i = 0; i < Size; ++i) {
+        unsigned char C = Data[i];
+        if (isprint(C) && C != '\\' && C != '"')
+          Str << C;
+        else
+          Str << '\\' << hexdigit(C >> 4) << hexdigit(C & 0x0F);
+      }
+      Str << "\"";
+    }
+    Str << ", align " << Align << "\n";
+  }
+
+  if (DisableTranslation)
+    return;
+
+  Ostream &Str = Ctx->getStrEmit();
+  // constant:
+  //   .section .rodata,"a",@progbits
+  //   .align ALIGN
+  //   .byte ...
+  //   .size NAME, SIZE
+
+  // non-constant:
+  //   .data
+  //   .align ALIGN
+  //   .byte ...
+  //   .size NAME, SIZE
+
+  // zeroinitializer (constant):
+  //   (.section or .data as above)
+  //   .align ALIGN
+  //   .zero SIZE
+  //   .size NAME, SIZE
+
+  // zeroinitializer (non-constant):
+  //   (.section or .data as above)
+  //   .comm NAME, SIZE, ALIGN
+  //   .local NAME
+
+  IceString MangledName = Ctx->mangleName(Name);
+  // Start a new section.
+  if (IsConst) {
+    Str << "\t.section\t.rodata,\"a\",@progbits\n";
+  } else {
+    Str << "\t.type\t" << MangledName << ",@object\n";
+    Str << "\t.data\n";
+  }
+  if (IsZeroInitializer) {
+    if (IsConst) {
+      Str << "\t.align\t" << Align << "\n";
+      Str << MangledName << ":\n";
+      Str << "\t.zero\t" << Size << "\n";
+      Str << "\t.size\t" << MangledName << ", " << Size << "\n";
+    } else {
+      // TODO(stichnot): Put the appropriate non-constant
+      // zeroinitializers in a .bss section to reduce object size.
+      Str << "\t.comm\t" << MangledName << ", " << Size << ", " << Align
+          << "\n";
+    }
+  } else {
+    Str << "\t.align\t" << Align << "\n";
+    Str << MangledName << ":\n";
+    for (SizeT i = 0; i < Size; ++i) {
+      Str << "\t.byte\t" << (((unsigned)Data[i]) & 0xff) << "\n";
+    }
+    Str << "\t.size\t" << MangledName << ", " << Size << "\n";
+  }
+  Str << "\t" << (IsInternal ? ".local" : ".global") << "\t" << MangledName
+      << "\n";
 }
 
 } // end of namespace Ice

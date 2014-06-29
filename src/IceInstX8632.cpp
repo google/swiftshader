@@ -655,8 +655,21 @@ void InstX8632StoreQ::dump(const Cfg *Func) const {
 void InstX8632Mov::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
-  Str << "\tmov" << TypeX8632Attributes[getDest()->getType()].SdSsString
-      << "\t";
+  Operand *Src = getSrc(0);
+  // The llvm-mc assembler using Intel syntax has a bug in which "mov
+  // reg, RelocatableConstant" does not generate the right instruction
+  // with a relocation.  To work around, we emit "lea reg,
+  // [RelocatableConstant]".  Also, the lowering and legalization is
+  // changed to allow relocatable constants only in Assign and Call
+  // instructions or in Mem operands.  TODO(stichnot): remove LEAHACK
+  // once a proper emitter is used.
+  bool UseLeaHack = llvm::isa<ConstantRelocatable>(Src);
+  Str << "\t";
+  if (UseLeaHack)
+    Str << "lea";
+  else
+    Str << "mov" << TypeX8632Attributes[getDest()->getType()].SdSsString;
+  Str << "\t";
   // For an integer truncation operation, src is wider than dest.
   // Ideally, we use a mov instruction whose data width matches the
   // narrower dest.  This is a problem if e.g. src is a register like
@@ -665,10 +678,10 @@ void InstX8632Mov::emit(const Cfg *Func) const {
   // for stack-allocated dest variables because typeWidthOnStack()
   // pads to a 4-byte boundary even if only a lower portion is used.
   assert(Func->getTarget()->typeWidthInBytesOnStack(getDest()->getType()) ==
-         Func->getTarget()->typeWidthInBytesOnStack(getSrc(0)->getType()));
-  getDest()->asType(getSrc(0)->getType()).emit(Func);
+         Func->getTarget()->typeWidthInBytesOnStack(Src->getType()));
+  getDest()->asType(Src->getType()).emit(Func);
   Str << ", ";
-  getSrc(0)->emit(Func);
+  Src->emit(Func);
   Str << "\n";
 }
 

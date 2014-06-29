@@ -109,10 +109,13 @@ protected:
     Legal_Reg = 1 << 0, // physical register, not stack location
     Legal_Imm = 1 << 1,
     Legal_Mem = 1 << 2, // includes [eax+4*ecx] as well as [esp+12]
+    // TODO(stichnot): LEAHACK: remove Legal_Reloc once a proper
+    // emitter is used.
+    Legal_Reloc = 1 << 3,
     Legal_All = ~Legal_None
   };
   typedef uint32_t LegalMask;
-  Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
+  Operand *legalize(Operand *From, LegalMask Allowed = Legal_All & ~Legal_Reloc,
                     bool AllowOverlap = false,
                     int32_t RegNum = Variable::NoRegister);
   Variable *legalizeToVar(Operand *From, bool AllowOverlap = false,
@@ -289,6 +292,25 @@ private:
   TargetX8632 &operator=(const TargetX8632 &) LLVM_DELETED_FUNCTION;
   virtual ~TargetX8632() {}
   template <typename T> void emitConstantPool() const;
+};
+
+class TargetGlobalInitX8632 : public TargetGlobalInitLowering {
+public:
+  static TargetGlobalInitLowering *create(GlobalContext *Ctx) {
+    return new TargetGlobalInitX8632(Ctx);
+  }
+  virtual void lower(const IceString &Name, SizeT Align, bool IsInternal,
+                     bool IsConst, bool IsZeroInitializer, SizeT Size,
+                     const char *Data, bool DisableTranslation);
+
+protected:
+  TargetGlobalInitX8632(GlobalContext *Ctx);
+
+private:
+  TargetGlobalInitX8632(const TargetGlobalInitX8632 &) LLVM_DELETED_FUNCTION;
+  TargetGlobalInitX8632 &
+  operator=(const TargetGlobalInitX8632 &) LLVM_DELETED_FUNCTION;
+  virtual ~TargetGlobalInitX8632() {}
 };
 
 template <> void ConstantFloat::emit(GlobalContext *Ctx) const;

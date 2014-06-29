@@ -7,14 +7,14 @@
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
 ; RUN:                           | FileCheck --check-prefix=DUMP %s
 
-@i8v = global [1 x i8] zeroinitializer, align 1
-@i16v = global [2 x i8] zeroinitializer, align 2
-@i32v = global [4 x i8] zeroinitializer, align 4
-@i64v = global [8 x i8] zeroinitializer, align 8
-@u8v = global [1 x i8] zeroinitializer, align 1
-@u16v = global [2 x i8] zeroinitializer, align 2
-@u32v = global [4 x i8] zeroinitializer, align 4
-@u64v = global [8 x i8] zeroinitializer, align 8
+@i8v = internal global [1 x i8] zeroinitializer, align 1
+@i16v = internal global [2 x i8] zeroinitializer, align 2
+@i32v = internal global [4 x i8] zeroinitializer, align 4
+@i64v = internal global [8 x i8] zeroinitializer, align 8
+@u8v = internal global [1 x i8] zeroinitializer, align 1
+@u16v = internal global [2 x i8] zeroinitializer, align 2
+@u32v = internal global [4 x i8] zeroinitializer, align 4
+@u64v = internal global [8 x i8] zeroinitializer, align 8
 
 define void @from_int8() {
 entry:
