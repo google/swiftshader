@@ -232,6 +232,19 @@ Constant *GlobalContext::getConstantZero(Type Ty) {
     return getConstantFloat(0);
   case IceType_f64:
     return getConstantDouble(0);
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+  case IceType_v4f32: {
+    IceString Str;
+    llvm::raw_string_ostream BaseOS(Str);
+    Ostream OS(&BaseOS);
+    OS << "Unsupported constant type: " << Ty;
+    llvm_unreachable(BaseOS.str().c_str());
+  } break;
   case IceType_void:
   case IceType_NUM:
     break;
@@ -251,6 +264,19 @@ ConstantList GlobalContext::getConstantPool(Type Ty) const {
     return ConstPool->Floats.getConstantPool();
   case IceType_f64:
     return ConstPool->Doubles.getConstantPool();
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+  case IceType_v4f32: {
+    IceString Str;
+    llvm::raw_string_ostream BaseOS(Str);
+    Ostream OS(&BaseOS);
+    OS << "Unsupported constant type: " << Ty;
+    llvm_unreachable(BaseOS.str().c_str());
+  } break;
   case IceType_void:
   case IceType_NUM:
     break;

@@ -120,10 +120,9 @@ public:
   }
   T getValue() const { return Value; }
   using Constant::emit;
-  virtual void emit(GlobalContext *Ctx) const {
-    Ostream &Str = Ctx->getStrEmit();
-    Str << getValue();
-  }
+  // The target needs to implement this for each ConstantPrimitive
+  // specialization.
+  virtual void emit(GlobalContext *Ctx) const;
   using Constant::dump;
   virtual void dump(GlobalContext *Ctx) const {
     Ostream &Str = Ctx->getStrDump();

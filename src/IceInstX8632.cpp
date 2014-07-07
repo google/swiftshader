@@ -182,6 +182,11 @@ InstX8632Mov::InstX8632Mov(Cfg *Func, Variable *Dest, Operand *Source)
   addSource(Source);
 }
 
+InstX8632Movp::InstX8632Movp(Cfg *Func, Variable *Dest, Operand *Source)
+    : InstX8632(Func, InstX8632::Movp, 1, Dest) {
+  addSource(Source);
+}
+
 InstX8632StoreQ::InstX8632StoreQ(Cfg *Func, Operand *Value, OperandX8632 *Mem)
     : InstX8632(Func, InstX8632::StoreQ, 2, NULL) {
   addSource(Value);
@@ -222,6 +227,9 @@ InstX8632Push::InstX8632Push(Cfg *Func, Operand *Source,
 }
 
 bool InstX8632Mov::isRedundantAssign() const {
+  // TODO(stichnot): The isRedundantAssign() implementations for
+  // InstX8632Mov, InstX8632Movp, and InstX8632Movq are
+  // identical. Consolidate them.
   Variable *Src = llvm::dyn_cast<Variable>(getSrc(0));
   if (Src == NULL)
     return false;
@@ -229,6 +237,19 @@ bool InstX8632Mov::isRedundantAssign() const {
     // TODO: On x86-64, instructions like "mov eax, eax" are used to
     // clear the upper 32 bits of rax.  We need to recognize and
     // preserve these.
+    return true;
+  }
+  if (!getDest()->hasReg() && !Src->hasReg() &&
+      Dest->getStackOffset() == Src->getStackOffset())
+    return true;
+  return false;
+}
+
+bool InstX8632Movp::isRedundantAssign() const {
+  Variable *Src = llvm::dyn_cast<Variable>(getSrc(0));
+  if (Src == NULL)
+    return false;
+  if (getDest()->hasReg() && getDest()->getRegNum() == Src->getRegNum()) {
     return true;
   }
   if (!getDest()->hasReg() && !Src->hasReg() &&
@@ -381,6 +402,7 @@ template <> const char *InstX8632Sbb::Opcode = "sbb";
 template <> const char *InstX8632And::Opcode = "and";
 template <> const char *InstX8632Or::Opcode = "or";
 template <> const char *InstX8632Xor::Opcode = "xor";
+template <> const char *InstX8632Pxor::Opcode = "pxor";
 template <> const char *InstX8632Imul::Opcode = "imul";
 template <> const char *InstX8632Mulss::Opcode = "mulss";
 template <> const char *InstX8632Div::Opcode = "div";
@@ -693,6 +715,20 @@ void InstX8632Mov::dump(const Cfg *Func) const {
   dumpSources(Func);
 }
 
+void InstX8632Movp::emit(const Cfg *Func) const {
+  // TODO(wala,stichnot): movups works with all vector operands, but
+  // there exist other instructions (movaps, movdqa, movdqu) that may
+  // perform better, depending on the data type and alignment of the
+  // operands.
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  Str << "\tmovups\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+  Str << "\n";
+}
+
 void InstX8632Movq::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
@@ -703,6 +739,14 @@ void InstX8632Movq::emit(const Cfg *Func) const {
   Str << ", ";
   getSrc(0)->emit(Func);
   Str << "\n";
+}
+
+void InstX8632Movp::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "movups." << getDest()->getType() << " ";
+  dumpDest(Func);
+  Str << ", ";
+  dumpSources(Func);
 }
 
 void InstX8632Movq::dump(const Cfg *Func) const {

@@ -165,6 +165,43 @@ private:
     }
   }
 
+  Ice::Type convertVectorType(const VectorType *VecTy) const {
+    unsigned NumElements = VecTy->getNumElements();
+    const Type *ElementType = VecTy->getElementType();
+
+    if (ElementType->isFloatTy()) {
+      if (NumElements == 4)
+        return Ice::IceType_v4f32;
+    } else if (ElementType->isIntegerTy()) {
+      switch (cast<IntegerType>(ElementType)->getBitWidth()) {
+      case 1:
+        if (NumElements == 4)
+          return Ice::IceType_v4i1;
+        if (NumElements == 8)
+          return Ice::IceType_v8i1;
+        if (NumElements == 16)
+          return Ice::IceType_v16i1;
+        break;
+      case 8:
+        if (NumElements == 16)
+          return Ice::IceType_v16i8;
+        break;
+      case 16:
+        if (NumElements == 8)
+          return Ice::IceType_v8i16;
+        break;
+      case 32:
+        if (NumElements == 4)
+          return Ice::IceType_v4i32;
+        break;
+      }
+    }
+
+    report_fatal_error(std::string("Unhandled vector type: ") +
+                       LLVMObjectAsString(VecTy));
+    return Ice::IceType_void;
+  }
+
   Ice::Type convertType(const Type *Ty) const {
     switch (Ty->getTypeID()) {
     case Type::VoidTyID:
@@ -179,6 +216,8 @@ private:
       return SubzeroPointerType;
     case Type::FunctionTyID:
       return SubzeroPointerType;
+    case Type::VectorTyID:
+      return convertVectorType(cast<VectorType>(Ty));
     default:
       report_fatal_error(std::string("Invalid PNaCl type: ") +
                          LLVMObjectAsString(Ty));

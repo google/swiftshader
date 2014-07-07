@@ -21,7 +21,7 @@
 namespace Ice {
 
 enum Type {
-#define X(tag, size, align, str) tag,
+#define X(tag, size, align, elts, elty, str) tag,
   ICETYPE_TABLE
 #undef X
       IceType_NUM
@@ -43,6 +43,10 @@ enum OptLevel {
 
 size_t typeWidthInBytes(Type Ty);
 size_t typeAlignInBytes(Type Ty);
+size_t typeNumElements(Type Ty);
+Type typeElementType(Type Ty);
+
+inline bool isVectorType(Type Ty) { return typeNumElements(Ty) > 1; }
 
 template <> Ostream &operator<<(class Ostream &Str, const Type &Ty);
 

@@ -65,16 +65,23 @@
   X(Br_p,        "p",  "jp")   \
 //#define X(tag, dump, emit)
 
-#define ICETYPEX8632_TABLE                \
-  /* tag,         cvt, sdss, width */     \
-  X(IceType_void, "?", ""  , "???")       \
-  X(IceType_i1,   "i", ""  , "byte ptr")  \
-  X(IceType_i8,   "i", ""  , "byte ptr")  \
-  X(IceType_i16,  "i", ""  , "word ptr")  \
-  X(IceType_i32,  "i", ""  , "dword ptr") \
-  X(IceType_i64,  "i", ""  , "qword ptr") \
-  X(IceType_f32,  "s", "ss", "dword ptr") \
-  X(IceType_f64,  "d", "sd", "qword ptr") \
+#define ICETYPEX8632_TABLE                   \
+  /* tag,         cvt, sdss, width */        \
+  X(IceType_void,  "?", ""  , "???")         \
+  X(IceType_i1,    "i", ""  , "byte ptr")    \
+  X(IceType_i8,    "i", ""  , "byte ptr")    \
+  X(IceType_i16,   "i", ""  , "word ptr")    \
+  X(IceType_i32,   "i", ""  , "dword ptr")   \
+  X(IceType_i64,   "i", ""  , "qword ptr")   \
+  X(IceType_f32,   "s", "ss", "dword ptr")   \
+  X(IceType_f64,   "d", "sd", "qword ptr")   \
+  X(IceType_v4i1,  "?", ""  , "xmmword ptr") \
+  X(IceType_v8i1,  "?", ""  , "xmmword ptr") \
+  X(IceType_v16i1, "?", ""  , "xmmword ptr") \
+  X(IceType_v16i8, "?", ""  , "xmmword ptr") \
+  X(IceType_v8i16, "?", ""  , "xmmword ptr") \
+  X(IceType_v4i32, "?", ""  , "xmmword ptr") \
+  X(IceType_v4f32, "?", ""  , "xmmword ptr") \
 //#define X(tag, cvt, sdss, width)
 
 #endif // SUBZERO_SRC_ICEINSTX8632_DEF

@@ -136,6 +136,8 @@ protected:
   }
   static Type stackSlotType();
 
+  Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
+
   // The following are helpers that insert lowered x86 instructions
   // with minimal syntactic overhead, so that the lowering code can
   // look as close to assembly as practical.
@@ -201,6 +203,9 @@ protected:
     } else {
       Context.insert(InstX8632Mov::create(Func, Dest, Src0));
     }
+  }
+  void _movp(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Movp::create(Func, Dest, Src0));
   }
   void _movq(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Movq::create(Func, Dest, Src0));
@@ -275,6 +280,9 @@ protected:
   void _xor(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Xor::create(Func, Dest, Src0));
   }
+  void _pxor(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Pxor::create(Func, Dest, Src0));
+  }
 
   bool IsEbpBasedFrame;
   size_t FrameSizeLocals;
@@ -313,6 +321,7 @@ private:
   virtual ~TargetGlobalInitX8632() {}
 };
 
+template <> void ConstantInteger::emit(GlobalContext *Ctx) const;
 template <> void ConstantFloat::emit(GlobalContext *Ctx) const;
 template <> void ConstantDouble::emit(GlobalContext *Ctx) const;
 

@@ -153,6 +153,7 @@ public:
     Load,
     Mfence,
     Mov,
+    Movp,
     Movq,
     Movsx,
     Movzx,
@@ -161,6 +162,7 @@ public:
     Or,
     Pop,
     Push,
+    Pxor,
     Ret,
     Sar,
     Sbb,
@@ -402,6 +404,7 @@ typedef InstX8632Binop<InstX8632::Sbb> InstX8632Sbb;
 typedef InstX8632Binop<InstX8632::And> InstX8632And;
 typedef InstX8632Binop<InstX8632::Or> InstX8632Or;
 typedef InstX8632Binop<InstX8632::Xor> InstX8632Xor;
+typedef InstX8632Binop<InstX8632::Pxor> InstX8632Pxor;
 typedef InstX8632Binop<InstX8632::Imul> InstX8632Imul;
 typedef InstX8632Binop<InstX8632::Mulss> InstX8632Mulss;
 typedef InstX8632Binop<InstX8632::Divss> InstX8632Divss;
@@ -636,6 +639,26 @@ private:
   InstX8632Mov(const InstX8632Mov &) LLVM_DELETED_FUNCTION;
   InstX8632Mov &operator=(const InstX8632Mov &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Mov() {}
+};
+
+// Move packed - copy 128 bit values between XMM registers or mem128 and
+// XMM registers
+class InstX8632Movp : public InstX8632 {
+public:
+  static InstX8632Movp *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    return new (Func->allocate<InstX8632Movp>())
+        InstX8632Movp(Func, Dest, Source);
+  }
+  virtual bool isRedundantAssign() const;
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Movp); }
+
+private:
+  InstX8632Movp(Cfg *Func, Variable *Dest, Operand *Source);
+  InstX8632Movp(const InstX8632Movp &) LLVM_DELETED_FUNCTION;
+  InstX8632Movp &operator=(const InstX8632Movp &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Movp() {}
 };
 
 // This is essentially a "movq" instruction with an OperandX8632Mem

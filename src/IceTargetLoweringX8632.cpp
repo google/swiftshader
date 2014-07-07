@@ -160,7 +160,8 @@ void xMacroIntegrityCheck() {
           _num
     };
 // Define a set of constants based on high-level table entries.
-#define X(tag, size, align, str) static const int _table1_##tag = tag;
+#define X(tag, size, align, elts, elty, str)                                   \
+  static const int _table1_##tag = tag;
     ICETYPE_TABLE;
 #undef X
 // Define a set of constants based on low-level table entries,
@@ -172,7 +173,8 @@ void xMacroIntegrityCheck() {
 #undef X
 // Repeat the static asserts with respect to the high-level
 // table entries in case the high-level table has extra entries.
-#define X(tag, size, align, str) STATIC_ASSERT(_table1_##tag == _table2_##tag);
+#define X(tag, size, align, elts, elty, str)                                   \
+  STATIC_ASSERT(_table1_##tag == _table2_##tag);
     ICETYPE_TABLE;
 #undef X
   }
@@ -190,6 +192,7 @@ TargetX8632::TargetX8632(Cfg *Func)
   llvm::SmallBitVector IntegerRegisters(Reg_NUM);
   llvm::SmallBitVector IntegerRegistersI8(Reg_NUM);
   llvm::SmallBitVector FloatRegisters(Reg_NUM);
+  llvm::SmallBitVector VectorRegisters(Reg_NUM);
   llvm::SmallBitVector InvalidRegisters(Reg_NUM);
   ScratchRegs.resize(Reg_NUM);
 #define X(val, init, name, name16, name8, scratch, preserved, stackptr,        \
@@ -197,6 +200,7 @@ TargetX8632::TargetX8632(Cfg *Func)
   IntegerRegisters[val] = isInt;                                               \
   IntegerRegistersI8[val] = isI8;                                              \
   FloatRegisters[val] = isFP;                                                  \
+  VectorRegisters[val] = isFP;                                                 \
   ScratchRegs[val] = scratch;
   REGX8632_TABLE;
 #undef X
@@ -208,6 +212,13 @@ TargetX8632::TargetX8632(Cfg *Func)
   TypeToRegisterSet[IceType_i64] = IntegerRegisters;
   TypeToRegisterSet[IceType_f32] = FloatRegisters;
   TypeToRegisterSet[IceType_f64] = FloatRegisters;
+  TypeToRegisterSet[IceType_v4i1] = VectorRegisters;
+  TypeToRegisterSet[IceType_v8i1] = VectorRegisters;
+  TypeToRegisterSet[IceType_v16i1] = VectorRegisters;
+  TypeToRegisterSet[IceType_v16i8] = VectorRegisters;
+  TypeToRegisterSet[IceType_v8i16] = VectorRegisters;
+  TypeToRegisterSet[IceType_v4i32] = VectorRegisters;
+  TypeToRegisterSet[IceType_v4f32] = VectorRegisters;
 }
 
 void TargetX8632::translateO2() {
@@ -1317,6 +1328,21 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       // Leave eax==edx==NULL, and capture the result with the fstp
       // instruction.
       break;
+    case IceType_v4i1:
+    case IceType_v8i1:
+    case IceType_v16i1:
+    case IceType_v16i8:
+    case IceType_v8i16:
+    case IceType_v4i32:
+    case IceType_v4f32: {
+      // TODO(wala): Handle return values of vector type in the caller.
+      IceString Ty;
+      llvm::raw_string_ostream BaseOS(Ty);
+      Ostream OS(&BaseOS);
+      OS << Dest->getType();
+      Func->setError("Unhandled dest type: " + BaseOS.str());
+      return;
+    }
     }
   }
   // TODO(stichnot): LEAHACK: remove Legal_All (and use default) once
@@ -2273,6 +2299,8 @@ void TargetX8632::lowerRet(const InstRet *Inst) {
     } else if (Src0->getType() == IceType_f32 ||
                Src0->getType() == IceType_f64) {
       _fld(Src0);
+    } else if (isVectorType(Src0->getType())) {
+      Reg = legalizeToVar(Src0, false, Reg_xmm0);
     } else {
       _mov(Reg, Src0, Reg_eax);
     }
@@ -2394,6 +2422,19 @@ void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) {
   lowerCall(Call);
 }
 
+// Helper for legalize() to emit the right code to lower an operand to a
+// register of the appropriate type.
+Variable *TargetX8632::copyToReg(Operand *Src, int32_t RegNum) {
+  Type Ty = Src->getType();
+  Variable *Reg = makeReg(Ty, RegNum);
+  if (isVectorType(Src->getType())) {
+    _movp(Reg, Src);
+  } else {
+    _mov(Reg, Src);
+  }
+  return Reg;
+}
+
 Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
                                bool AllowOverlap, int32_t RegNum) {
   // Assert that a physical register is allowed.  To date, all calls
@@ -2426,9 +2467,7 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
     }
 
     if (!(Allowed & Legal_Mem)) {
-      Variable *Reg = makeReg(From->getType(), RegNum);
-      _mov(Reg, From, RegNum);
-      From = Reg;
+      From = copyToReg(From, RegNum);
     }
     return From;
   }
@@ -2445,7 +2484,19 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
       // overestimated.  If the constant being lowered is a 64 bit value,
       // then the result should be split and the lo and hi components will
       // need to go in uninitialized registers.
-      From = Ctx->getConstantZero(From->getType());
+
+      if (isVectorType(From->getType())) {
+        // There is no support for loading or emitting vector constants, so
+        // undef values are instead initialized in registers.
+        Variable *Reg = makeReg(From->getType(), RegNum);
+        // Insert a FakeDef, since otherwise the live range of Reg might
+        // be overestimated.
+        Context.insert(InstFakeDef::create(Func, Reg));
+        _pxor(Reg, Reg);
+        return Reg;
+      } else {
+        From = Ctx->getConstantZero(From->getType());
+      }
     }
     bool NeedsReg = false;
     if (!(Allowed & Legal_Imm))
@@ -2461,9 +2512,7 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
       // On x86, FP constants are lowered to mem operands.
       NeedsReg = true;
     if (NeedsReg) {
-      Variable *Reg = makeReg(From->getType(), RegNum);
-      _mov(Reg, From);
-      From = Reg;
+      From = copyToReg(From, RegNum);
     }
     return From;
   }
@@ -2473,11 +2522,10 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
     //   RegNum is required and Var->getRegNum() doesn't match.
     if ((!(Allowed & Legal_Mem) && !Var->hasReg()) ||
         (RegNum != Variable::NoRegister && RegNum != Var->getRegNum())) {
-      Variable *Reg = makeReg(From->getType(), RegNum);
+      Variable *Reg = copyToReg(From, RegNum);
       if (RegNum == Variable::NoRegister) {
         Reg->setPreferredRegister(Var, AllowOverlap);
       }
-      _mov(Reg, From);
       From = Reg;
     }
     return From;
@@ -2577,6 +2625,11 @@ void TargetX8632::postLower() {
       }
     }
   }
+}
+
+template <> void ConstantInteger::emit(GlobalContext *Ctx) const {
+  Ostream &Str = Ctx->getStrEmit();
+  Str << getValue();
 }
 
 template <> void ConstantFloat::emit(GlobalContext *Ctx) const {
