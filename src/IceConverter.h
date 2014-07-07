@@ -14,7 +14,7 @@
 #ifndef SUBZERO_SRC_ICECONVERTER_H
 #define SUBZERO_SRC_ICECONVERTER_H
 
-#include "IceGlobalContext.h"
+#include "IceTranslator.h"
 
 namespace llvm {
 class Module;
@@ -22,27 +22,17 @@ class Module;
 
 namespace Ice {
 
-class Converter {
+class Converter : public Translator {
 public:
-  Converter(Ice::GlobalContext *Ctx,
-            bool DisableInternal,
-            bool SubzeroTimingEnabled,
-            bool DisableTranslation)
-      : Ctx(Ctx),
-        DisableInternal(DisableInternal),
-        SubzeroTimingEnabled(SubzeroTimingEnabled),
-        DisableTranslation(DisableTranslation)
-  {}
+  Converter(GlobalContext *Ctx, Ice::ClFlags &Flags) : Translator(Ctx, Flags) {}
   /// Converts the LLVM Module to ICE. Returns exit status 0 if successful,
   /// Nonzero otherwise.
   int convertToIce(llvm::Module *Mod);
-private:
-  Ice::GlobalContext *Ctx;
-  bool DisableInternal;
-  bool SubzeroTimingEnabled;
-  bool DisableTranslation;
-};
 
+private:
+  Converter(const Converter &) LLVM_DELETED_FUNCTION;
+  Converter &operator=(const Converter &) LLVM_DELETED_FUNCTION;
+};
 }
 
-#endif  // SUBZERO_SRC_ICECONVERTER_H
+#endif // SUBZERO_SRC_ICECONVERTER_H

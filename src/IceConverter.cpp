@@ -15,11 +15,11 @@
 
 #include "IceCfg.h"
 #include "IceCfgNode.h"
+#include "IceClFlags.h"
 #include "IceDefs.h"
 #include "IceGlobalContext.h"
 #include "IceInst.h"
 #include "IceOperand.h"
-#include "IceTargetLowering.h"
 #include "IceTypes.h"
 
 #include "llvm/IR/Constant.h"
@@ -616,64 +616,24 @@ private:
   std::map<const BasicBlock *, Ice::CfgNode *> NodeMap;
 };
 
-}
+} // end of anonymous namespace.
 
 int Ice::Converter::convertToIce(llvm::Module *Mod) {
-  int ExitStatus = 0;
-
-  // Ideally, Func would be declared inside the loop and its object
-  // would be automatically deleted at the end of the loop iteration.
-  // However, emitting the constant pool requires a valid Cfg object,
-  // so we need to defer deleting the last non-empty Cfg object until
-  // outside the loop and after emitting the constant pool.  TODO:
-  // Since all constants are globally pooled in the Ice::GlobalContext
-  // object, change all Ice::Constant related functions to use
-  // GlobalContext instead of Cfg, and then clean up this loop.
-  OwningPtr<Ice::Cfg> Func;
-
   for (Module::const_iterator I = Mod->begin(), E = Mod->end(); I != E; ++I) {
     if (I->empty())
       continue;
     LLVM2ICEConverter FunctionConverter(Ctx);
 
     Ice::Timer TConvert;
-    Func.reset(FunctionConverter.convertFunction(I));
-    if (DisableInternal)
-      Func->setInternal(false);
-
-    if (SubzeroTimingEnabled) {
+    Ice::Cfg *Fcn = FunctionConverter.convertFunction(I);
+    if (Flags.SubzeroTimingEnabled) {
       std::cerr << "[Subzero timing] Convert function "
-                << Func->getFunctionName() << ": " << TConvert.getElapsedSec()
+                << Fcn->getFunctionName() << ": " << TConvert.getElapsedSec()
                 << " sec\n";
     }
-
-    if (DisableTranslation) {
-      Func->dump();
-    } else {
-      Ice::Timer TTranslate;
-      Func->translate();
-      if (SubzeroTimingEnabled) {
-        std::cerr << "[Subzero timing] Translate function "
-                  << Func->getFunctionName() << ": "
-                  << TTranslate.getElapsedSec() << " sec\n";
-      }
-      if (Func->hasError()) {
-        errs() << "ICE translation error: " << Func->getError() << "\n";
-        ExitStatus = 1;
-      }
-
-      Ice::Timer TEmit;
-      Func->emit();
-      if (SubzeroTimingEnabled) {
-        std::cerr << "[Subzero timing] Emit function "
-                  << Func->getFunctionName() << ": " << TEmit.getElapsedSec()
-                  << " sec\n";
-      }
-    }
+    translateFcn(Fcn);
   }
 
-  if (!DisableTranslation && Func)
-    Func->getTarget()->emitConstants();
-
+  emitConstants();
   return ExitStatus;
 }

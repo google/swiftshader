@@ -14,12 +14,13 @@
 //===----------------------------------------------------------------------===//
 
 #include "IceCfg.h"
+#include "IceClFlags.h"
 #include "IceConverter.h"
 #include "IceDefs.h"
 #include "IceTargetLowering.h"
 #include "IceTypes.h"
+#include "PNaClTranslator.h"
 
-#include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -128,9 +129,15 @@ int main(int argc, char **argv) {
 
   Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix);
 
+  Ice::ClFlags Flags;
+  Flags.DisableInternal = DisableInternal;
+  Flags.SubzeroTimingEnabled = SubzeroTimingEnabled;
+  Flags.DisableTranslation = DisableTranslation;
+
   if (BuildOnRead) {
-    std::cerr << "Direct build from bitcode not implemented yet!\n";
-    return 1;
+    Ice::PNaClTranslator Translator(&Ctx, Flags);
+    Translator.translate(IRFilename);
+    return Translator.getExitStatus();
   } else {
     // Parse the input LLVM IR file into a module.
     SMDiagnostic Err;
@@ -189,8 +196,7 @@ int main(int argc, char **argv) {
     }
     GlobalLowering.reset();
 
-    Ice::Converter Converter(&Ctx, DisableInternal, SubzeroTimingEnabled,
-                             DisableTranslation);
+    Ice::Converter Converter(&Ctx, Flags);
     return Converter.convertToIce(Mod);
   }
 }
