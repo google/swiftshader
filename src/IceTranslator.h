@@ -40,7 +40,7 @@ protected:
   ClFlags &Flags;
   // The exit status of the translation. 0 is successful. Nonzero
   // otherwise.
-  bool ExitStatus;
+  int ExitStatus;
   // Ideally, Func would be inside the methods that converts IR to
   // functions.  However, emitting the constant pool requires a valid
   // Cfg object, so we need to defer deleting the last non-empty Cfg
