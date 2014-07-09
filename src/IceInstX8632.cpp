@@ -271,6 +271,11 @@ bool InstX8632Movq::isRedundantAssign() const {
   return false;
 }
 
+InstX8632Sqrtss::InstX8632Sqrtss(Cfg *Func, Variable *Dest, Operand *Source)
+    : InstX8632(Func, InstX8632::Sqrtss, 1, Dest) {
+  addSource(Source);
+}
+
 InstX8632Ret::InstX8632Ret(Cfg *Func, Variable *Source)
     : InstX8632(Func, InstX8632::Ret, Source ? 1 : 0, NULL) {
   if (Source)
@@ -916,6 +921,25 @@ void InstX8632Ret::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = (getSrcSize() == 0 ? IceType_void : getSrc(0)->getType());
   Str << "ret." << Ty << " ";
+  dumpSources(Func);
+}
+
+void InstX8632Sqrtss::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  Type Ty = getSrc(0)->getType();
+  assert(Ty == IceType_f32 || Ty == IceType_f64);
+  Str << "\tsqrt" << TypeX8632Attributes[Ty].SdSsString << "\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632Sqrtss::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpDest(Func);
+  Str << " = sqrt." << getDest()->getType() << " ";
   dumpSources(Func);
 }
 

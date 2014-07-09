@@ -252,6 +252,9 @@ protected:
   void _shrd(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert(InstX8632Shrd::create(Func, Dest, Src0, Src1));
   }
+  void _sqrtss(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Sqrtss::create(Func, Dest, Src0));
+  }
   void _store(Operand *Value, OperandX8632 *Mem) {
     Context.insert(InstX8632Store::create(Func, Value, Mem));
   }

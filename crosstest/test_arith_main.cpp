@@ -1,5 +1,6 @@
 /* crosstest.py --test=test_arith.cpp --test=test_arith_frem.ll \
-   --driver=test_arith_main.cpp --prefix=Subzero_ --output=test_arith */
+   --test=test_arith_sqrt.ll --driver=test_arith_main.cpp \
+   --prefix=Subzero_ --output=test_arith */
 
 #include <stdint.h>
 
@@ -123,6 +124,7 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   static const Type NegInf = -1.0 / 0.0;
   static const Type PosInf = 1.0 / 0.0;
   static const Type Nan = 0.0 / 0.0;
+  static const Type NegNan = -0.0 / 0.0;
   volatile Type Values[] = {
     0,                    1,                    0x7e,
     0x7f,                 0x80,                 0x81,
@@ -134,7 +136,8 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     0x100000001ll,        0x7ffffffffffffffell, 0x7fffffffffffffffll,
     0x8000000000000000ll, 0x8000000000000001ll, 0xfffffffffffffffell,
     0xffffffffffffffffll, NegInf,               PosInf,
-    Nan,                  FLT_MIN,              FLT_MAX,
+    Nan,                  NegNan,               -0.0,
+    FLT_MIN,              FLT_MAX,
     DBL_MIN,              DBL_MAX
   };
   const static size_t NumValues = sizeof(Values) / sizeof(*Values);
@@ -171,6 +174,22 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
                     << std::endl;
         }
       }
+    }
+  }
+  for (size_t i = 0; i < NumValues; ++i) {
+    Type Value = Values[i];
+    ++TotalTests;
+    Type ResultSz = Subzero_::mySqrt(Value);
+    Type ResultLlc = mySqrt(Value);
+    // Compare results using memcmp() in case they are both NaN.
+    if (!memcmp(&ResultSz, &ResultLlc, sizeof(Type))) {
+      ++Passes;
+    } else {
+      ++Failures;
+      std::cout << std::fixed << "test_sqrt"
+                << (8 * sizeof(Type)) << "(" << Value
+                << "): sz=" << ResultSz << " llc=" << ResultLlc
+                << std::endl;
     }
   }
 }

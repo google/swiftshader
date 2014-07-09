@@ -22,15 +22,18 @@ int main(int argc, char **argv) {
   static const double Ten = 10.0;
   static const double PosInf = 1.0 / 0.0;
   static const double Nan = 0.0 / 0.0;
+  static const double NegNan = -0.0 / 0.0;
   assert(std::fpclassify(NegInf) == FP_INFINITE);
   assert(std::fpclassify(PosInf) == FP_INFINITE);
   assert(std::fpclassify(Nan) == FP_NAN);
+  assert(std::fpclassify(NegNan) == FP_NAN);
   assert(NegInf < Zero);
   assert(NegInf < PosInf);
   assert(Zero < PosInf);
 
-  volatile double Values[] = { NegInf,  Zero,    DBL_MIN, FLT_MIN, Ten,
-                               FLT_MAX, DBL_MAX, PosInf,  Nan, };
+  volatile double Values[] = { NegInf, -Zero,   Zero,    DBL_MIN, FLT_MIN,
+                               Ten,    FLT_MAX, DBL_MAX, PosInf,  Nan,
+                               NegNan };
   const static size_t NumValues = sizeof(Values) / sizeof(*Values);
 
   typedef bool (*FuncTypeFloat)(float, float);

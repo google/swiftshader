@@ -30,7 +30,9 @@ for optlevel in ${OPTLEVELS} ; do
     ./crosstest.py -O${optlevel} --prefix=Subzero_ --target=x8632 \
         --dir="${OUTDIR}" \
         --llvm-bin-path="${LLVM_BIN_PATH}" \
-        --test=test_arith.cpp --test=test_arith_frem.ll \
+        --test=test_arith.cpp \
+        --test=test_arith_frem.ll \
+        --test=test_arith_sqrt.ll \
         --driver=test_arith_main.cpp \
         --output=test_arith_O${optlevel}
 

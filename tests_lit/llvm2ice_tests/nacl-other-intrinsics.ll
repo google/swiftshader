@@ -15,6 +15,8 @@ declare void @llvm.memmove.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
 declare void @llvm.memset.p0i8.i32(i8*, i8, i32, i32, i1)
 declare void @llvm.nacl.longjmp(i8*, i32)
 declare i32 @llvm.nacl.setjmp(i8*)
+declare float @llvm.sqrt.f32(float)
+declare double @llvm.sqrt.f64(double)
 declare void @llvm.trap()
 
 define i32 @test_nacl_read_tp() {
@@ -159,6 +161,63 @@ entry:
 ; result unused.
 ; CHECKO2REM-LABEL: test_setjmp_unused
 ; CHECKO2REM: call setjmp
+
+define float @test_sqrt_float(float %x, i32 %iptr) {
+entry:
+  %r = call float @llvm.sqrt.f32(float %x)
+  %r2 = call float @llvm.sqrt.f32(float %r)
+  %r3 = call float @llvm.sqrt.f32(float -0.0)
+  %r4 = fadd float %r2, %r3
+  br label %next
+
+next:
+  %__6 = inttoptr i32 %iptr to float*
+  %y = load float* %__6, align 4
+  %r5 = call float @llvm.sqrt.f32(float %y)
+  %r6 = fadd float %r4, %r5
+  ret float %r6
+}
+; CHECK-LABEL: test_sqrt_float
+; CHECK: sqrtss xmm{{.*}}
+; CHECK: sqrtss xmm{{.*}}
+; CHECK: sqrtss xmm{{.*}}, dword ptr
+; CHECK-LABEL: .L{{.*}}next
+; We could fold the load and the sqrt into one operation, but the
+; current folding only handles load + arithmetic op. The sqrt inst
+; is considered an intrinsic call and not an arithmetic op.
+; CHECK: sqrtss xmm{{.*}}
+
+define double @test_sqrt_double(double %x, i32 %iptr) {
+entry:
+  %r = call double @llvm.sqrt.f64(double %x)
+  %r2 = call double @llvm.sqrt.f64(double %r)
+  %r3 = call double @llvm.sqrt.f64(double -0.0)
+  %r4 = fadd double %r2, %r3
+  br label %next
+
+next:
+  %__6 = inttoptr i32 %iptr to double*
+  %y = load double* %__6, align 8
+  %r5 = call double @llvm.sqrt.f64(double %y)
+  %r6 = fadd double %r4, %r5
+  ret double %r6
+}
+; CHECK-LABEL: test_sqrt_double
+; CHECK: sqrtsd xmm{{.*}}
+; CHECK: sqrtsd xmm{{.*}}
+; CHECK: sqrtsd xmm{{.*}}, qword ptr
+; CHECK-LABEL: .L{{.*}}next
+; CHECK: sqrtsd xmm{{.*}}
+
+define float @test_sqrt_ignored(float %x, double %y) {
+entry:
+  %ignored1 = call float @llvm.sqrt.f32(float %x)
+  %ignored2 = call double @llvm.sqrt.f64(double %y)
+  ret float 0.0
+}
+; CHECKO2REM-LABEL: test_sqrt_ignored
+; CHECKO2REM-NOT: sqrtss
+; CHECKO2REM-NOT: sqrtsd
 
 define i32 @test_trap(i32 %br) {
 entry:

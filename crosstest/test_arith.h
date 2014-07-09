@@ -27,3 +27,6 @@ double myFrem(double a, double b);
   double test##inst(double a, double b);
 FPOP_TABLE
 #undef X
+
+float mySqrt(float a);
+double mySqrt(double a);

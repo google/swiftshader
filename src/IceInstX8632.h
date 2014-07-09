@@ -170,6 +170,7 @@ public:
     Shld,
     Shr,
     Shrd,
+    Sqrtss,
     Store,
     StoreQ,
     Sub,
@@ -825,6 +826,24 @@ private:
   InstX8632Ret(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
   InstX8632Ret &operator=(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Ret() {}
+};
+
+// Sqrtss - Scalar sqrt of a float or double.
+class InstX8632Sqrtss : public InstX8632 {
+public:
+  static InstX8632Sqrtss *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    return new (Func->allocate<InstX8632Sqrtss>())
+        InstX8632Sqrtss(Func, Dest, Source);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Sqrtss); }
+
+private:
+  InstX8632Sqrtss(Cfg *Func, Variable *Dest, Operand *Source);
+  InstX8632Sqrtss(const InstX8632Sqrtss &) LLVM_DELETED_FUNCTION;
+  InstX8632Sqrtss &operator=(const InstX8632Sqrtss &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Sqrtss() {}
 };
 
 // Exchanging Add instruction.  Exchanges the first operand (destination

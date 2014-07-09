@@ -2018,7 +2018,14 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     lowerCall(Call);
     return;
   }
-  case Intrinsics::Sqrt:
+  case Intrinsics::Sqrt: {
+    Operand *Src = legalize(Instr->getArg(0));
+    Variable *Dest = Instr->getDest();
+    Variable *T = makeReg(Dest->getType());
+    _sqrtss(T, Src);
+    _mov(Dest, T);
+    return;
+  }
   case Intrinsics::Stacksave:
   case Intrinsics::Stackrestore:
     // TODO(jvoung): fill it in.
