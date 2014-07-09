@@ -339,7 +339,7 @@ public:
   void setUse(const Inst *Inst, const CfgNode *Node);
 
   bool getIsArg() const { return IsArgument; }
-  void setIsArg(Cfg *Func);
+  void setIsArg(Cfg *Func, bool IsArg = true);
 
   int32_t getStackOffset() const { return StackOffset; }
   void setStackOffset(int32_t Offset) { StackOffset = Offset; }

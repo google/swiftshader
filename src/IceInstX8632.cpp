@@ -734,6 +734,14 @@ void InstX8632Movp::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
+void InstX8632Movp::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "movups." << getDest()->getType() << " ";
+  dumpDest(Func);
+  Str << ", ";
+  dumpSources(Func);
+}
+
 void InstX8632Movq::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
@@ -744,14 +752,6 @@ void InstX8632Movq::emit(const Cfg *Func) const {
   Str << ", ";
   getSrc(0)->emit(Func);
   Str << "\n";
-}
-
-void InstX8632Movp::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
-  Str << "movups." << getDest()->getType() << " ";
-  dumpDest(Func);
-  Str << ", ";
-  dumpSources(Func);
 }
 
 void InstX8632Movq::dump(const Cfg *Func) const {
@@ -882,14 +882,19 @@ void InstX8632Push::emit(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   Type Ty = getSrc(0)->getType();
   Variable *Var = llvm::dyn_cast<Variable>(getSrc(0));
-  if ((Ty == IceType_f32 || Ty == IceType_f64) && Var && Var->hasReg()) {
+  if ((isVectorType(Ty) || Ty == IceType_f32 || Ty == IceType_f64) && Var &&
+      Var->hasReg()) {
     // The xmm registers can't be directly pushed, so we fake it by
     // decrementing esp and then storing to [esp].
     Str << "\tsub\tesp, " << typeWidthInBytes(Ty) << "\n";
     if (!SuppressStackAdjustment)
       Func->getTarget()->updateStackAdjustment(typeWidthInBytes(Ty));
-    Str << "\tmov" << TypeX8632Attributes[Ty].SdSsString << "\t"
-        << TypeX8632Attributes[Ty].WidthString << " [esp], ";
+    if (isVectorType(Ty)) {
+      Str << "\tmovups\txmmword ptr [esp], ";
+    } else {
+      Str << "\tmov" << TypeX8632Attributes[Ty].SdSsString << "\t"
+          << TypeX8632Attributes[Ty].WidthString << " [esp], ";
+    }
     getSrc(0)->emit(Func);
     Str << "\n";
   } else if (Ty == IceType_f64 && (!Var || !Var->hasReg())) {

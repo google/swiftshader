@@ -148,6 +148,9 @@ public:
 
   virtual void emitVariable(const Variable *Var, const Cfg *Func) const = 0;
 
+  // Performs target-specific argument lowering.
+  virtual void lowerArguments() = 0;
+
   virtual void addProlog(CfgNode *Node) = 0;
   virtual void addEpilog(CfgNode *Node) = 0;
 

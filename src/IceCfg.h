@@ -69,6 +69,7 @@ public:
   // Manage arguments to the function.
   void addArg(Variable *Arg);
   const VarList &getArgs() const { return Args; }
+  VarList &getArgs() { return Args; }
 
   // Miscellaneous accessors.
   TargetLowering *getTarget() const { return Target.get(); }
@@ -86,6 +87,7 @@ public:
   void placePhiStores();
   void deletePhis();
   void doAddressOpt();
+  void doArgLowering();
   void genCode();
   void genFrame();
   void livenessLightweight();

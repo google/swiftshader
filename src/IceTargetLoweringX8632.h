@@ -46,6 +46,7 @@ public:
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
   virtual void emitVariable(const Variable *Var, const Cfg *Func) const;
+  virtual void lowerArguments();
   virtual void addProlog(CfgNode *Node);
   virtual void addEpilog(CfgNode *Node);
   virtual void emitConstants() const;
@@ -56,8 +57,8 @@ public:
   // function calls using the 32-bit push instruction (though the
   // latter could be done by directly writing to the stack).
   void split64(Variable *Var);
-  void setArgOffsetAndCopy(Variable *Arg, Variable *FramePtr,
-                           size_t BasicFrameOffset, size_t &InArgsSizeBytes);
+  void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
+                              size_t BasicFrameOffset, size_t &InArgsSizeBytes);
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
 

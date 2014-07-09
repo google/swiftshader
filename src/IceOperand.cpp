@@ -159,14 +159,18 @@ void Variable::replaceDefinition(Inst *Inst, const CfgNode *Node) {
   setDefinition(Inst, Node);
 }
 
-void Variable::setIsArg(Cfg *Func) {
-  IsArgument = true;
-  if (DefNode == NULL)
-    return;
-  CfgNode *Entry = Func->getEntryNode();
-  if (DefNode == Entry)
-    return;
-  DefNode = NULL;
+void Variable::setIsArg(Cfg *Func, bool IsArg) {
+  if (IsArg) {
+    IsArgument = true;
+    if (DefNode == NULL)
+      return;
+    CfgNode *Entry = Func->getEntryNode();
+    if (DefNode == Entry)
+      return;
+    DefNode = NULL;
+  } else {
+    IsArgument = false;
+  }
 }
 
 IceString Variable::getName() const {

@@ -85,6 +85,9 @@ InstX8632Br::BrCond getIcmp32Mapping(InstIcmp::ICond Cond) {
   return TableIcmp32[Index].Mapping;
 }
 
+// The maximum number of arguments to pass in XMM registers
+const unsigned X86_MAX_XMM_ARGS = 4;
+
 // In some cases, there are x-macros tables for both high-level and
 // low-level instructions/operands that use the same enum key value.
 // The tables are kept separate to maintain a proper separation
@@ -247,6 +250,11 @@ void TargetX8632::translateO2() {
   Func->doAddressOpt();
   T_doAddressOpt.printElapsedUs(Context, "doAddressOpt()");
 
+  // Argument lowering
+  Timer T_argLowering;
+  Func->doArgLowering();
+  T_argLowering.printElapsedUs(Context, "lowerArguments()");
+
   // Target lowering.  This requires liveness analysis for some parts
   // of the lowering decisions, such as compare/branch fusing.  If
   // non-lightweight liveness analysis is used, the instructions need
@@ -258,6 +266,7 @@ void TargetX8632::translateO2() {
   if (Func->hasError())
     return;
   T_renumber1.printElapsedUs(Context, "renumberInstructions()");
+
   // TODO: It should be sufficient to use the fastest liveness
   // calculation, i.e. livenessLightweight().  However, for some
   // reason that slows down the rest of the translation.  Investigate.
@@ -267,6 +276,7 @@ void TargetX8632::translateO2() {
     return;
   T_liveness1.printElapsedUs(Context, "liveness()");
   Func->dump("After x86 address mode opt");
+
   Timer T_genCode;
   Func->genCode();
   if (Func->hasError())
@@ -328,6 +338,10 @@ void TargetX8632::translateOm1() {
     return;
   T_deletePhis.printElapsedUs(Context, "deletePhis()");
   Func->dump("After Phi lowering");
+
+  Timer T_argLowering;
+  Func->doArgLowering();
+  T_argLowering.printElapsedUs(Context, "lowerArguments()");
 
   Timer T_genCode;
   Func->genCode();
@@ -412,34 +426,74 @@ void TargetX8632::emitVariable(const Variable *Var, const Cfg *Func) const {
   Str << "]";
 }
 
-// Helper function for addProlog().  Sets the frame offset for Arg,
-// updates InArgsSizeBytes according to Arg's width, and generates an
-// instruction to copy Arg into its assigned register if applicable.
-// For an I64 arg that has been split into Lo and Hi components, it
-// calls itself recursively on the components, taking care to handle
-// Lo first because of the little-endian architecture.
-void TargetX8632::setArgOffsetAndCopy(Variable *Arg, Variable *FramePtr,
-                                      size_t BasicFrameOffset,
-                                      size_t &InArgsSizeBytes) {
+void TargetX8632::lowerArguments() {
+  VarList &Args = Func->getArgs();
+  // The first four arguments of vector type, regardless of their
+  // position relative to the other arguments in the argument list, are
+  // passed in registers xmm0 - xmm3.
+  unsigned NumXmmArgs = 0;
+
+  Context.init(Func->getEntryNode());
+  Context.setInsertPoint(Context.getCur());
+
+  for (SizeT I = 0, E = Args.size(); I < E && NumXmmArgs < X86_MAX_XMM_ARGS;
+       ++I) {
+    Variable *Arg = Args[I];
+    Type Ty = Arg->getType();
+    if (!isVectorType(Ty))
+      continue;
+    // Replace Arg in the argument list with the home register.  Then
+    // generate an instruction in the prolog to copy the home register
+    // to the assigned location of Arg.
+    int32_t RegNum = Reg_xmm0 + NumXmmArgs;
+    ++NumXmmArgs;
+    IceString Name = "home_reg:" + Arg->getName();
+    const CfgNode *DefNode = NULL;
+    Variable *RegisterArg = Func->makeVariable(Ty, DefNode, Name);
+    RegisterArg->setRegNum(RegNum);
+    RegisterArg->setIsArg(Func);
+    Arg->setIsArg(Func, false);
+
+    Args[I] = RegisterArg;
+    Context.insert(InstAssign::create(Func, Arg, RegisterArg));
+  }
+}
+
+// Helper function for addProlog().
+//
+// This assumes Arg is an argument passed on the stack.  This sets the
+// frame offset for Arg and updates InArgsSizeBytes according to Arg's
+// width.  For an I64 arg that has been split into Lo and Hi components,
+// it calls itself recursively on the components, taking care to handle
+// Lo first because of the little-endian architecture.  Lastly, this
+// function generates an instruction to copy Arg into its assigned
+// register if applicable.
+void TargetX8632::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
+                                         size_t BasicFrameOffset,
+                                         size_t &InArgsSizeBytes) {
   Variable *Lo = Arg->getLo();
   Variable *Hi = Arg->getHi();
   Type Ty = Arg->getType();
   if (Lo && Hi && Ty == IceType_i64) {
     assert(Lo->getType() != IceType_i64); // don't want infinite recursion
     assert(Hi->getType() != IceType_i64); // don't want infinite recursion
-    setArgOffsetAndCopy(Lo, FramePtr, BasicFrameOffset, InArgsSizeBytes);
-    setArgOffsetAndCopy(Hi, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+    finishArgumentLowering(Lo, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+    finishArgumentLowering(Hi, FramePtr, BasicFrameOffset, InArgsSizeBytes);
     return;
   }
   Arg->setStackOffset(BasicFrameOffset + InArgsSizeBytes);
+  InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
   if (Arg->hasReg()) {
     assert(Ty != IceType_i64);
     OperandX8632Mem *Mem = OperandX8632Mem::create(
         Func, Ty, FramePtr,
         Ctx->getConstantInt(IceType_i32, Arg->getStackOffset()));
-    _mov(Arg, Mem);
+    if (isVectorType(Arg->getType())) {
+      _movp(Arg, Mem);
+    } else {
+      _mov(Arg, Mem);
+    }
   }
-  InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
 }
 
 Type TargetX8632::stackSlotType() { return IceType_i32; }
@@ -489,7 +543,8 @@ void TargetX8632::addProlog(CfgNode *Node) {
       RegsUsed[Var->getRegNum()] = true;
       continue;
     }
-    // An argument passed on the stack already has a stack slot.
+    // An argument either does not need a stack slot (if passed in a
+    // register) or already has one (if passed on the stack).
     if (Var->getIsArg())
       continue;
     // An unreferenced variable doesn't need a stack slot.
@@ -547,23 +602,23 @@ void TargetX8632::addProlog(CfgNode *Node) {
 
   resetStackAdjustment();
 
-  // Fill in stack offsets for args, and copy args into registers for
-  // those that were register-allocated.  Args are pushed right to
+  // Fill in stack offsets for stack args, and copy args into registers
+  // for those that were register-allocated.  Args are pushed right to
   // left, so Arg[0] is closest to the stack/frame pointer.
-  //
-  // TODO: Make this right for different width args, calling
-  // conventions, etc.  For one thing, args passed in registers will
-  // need to be copied/shuffled to their home registers (the
-  // RegManager code may have some permutation logic to leverage),
-  // and if they have no home register, home space will need to be
-  // allocated on the stack to copy into.
   Variable *FramePtr = getPhysicalRegister(getFrameOrStackReg());
   size_t BasicFrameOffset = PreservedRegsSizeBytes + RetIpSizeBytes;
   if (!IsEbpBasedFrame)
     BasicFrameOffset += LocalsSizeBytes;
+
+  unsigned NumXmmArgs = 0;
   for (SizeT i = 0; i < Args.size(); ++i) {
     Variable *Arg = Args[i];
-    setArgOffsetAndCopy(Arg, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+    // Skip arguments passed in registers.
+    if (isVectorType(Arg->getType()) && NumXmmArgs < X86_MAX_XMM_ARGS) {
+      ++NumXmmArgs;
+      continue;
+    }
+    finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, InArgsSizeBytes);
   }
 
   // Fill in stack offsets for locals.
@@ -1253,7 +1308,10 @@ void TargetX8632::lowerAssign(const InstAssign *Inst) {
     const bool AllowOverlap = true;
     // RI is either a physical register or an immediate.
     Operand *RI = legalize(Src0, Legal_Reg | Legal_Imm, AllowOverlap);
-    _mov(Dest, RI);
+    if (isVectorType(Dest->getType()))
+      _movp(Dest, RI);
+    else
+      _mov(Dest, RI);
   }
 }
 
@@ -1269,31 +1327,44 @@ void TargetX8632::lowerBr(const InstBr *Inst) {
 }
 
 void TargetX8632::lowerCall(const InstCall *Instr) {
-  // Generate a sequence of push instructions, pushing right to left,
-  // keeping track of stack offsets in case a push involves a stack
-  // operand and we are using an esp-based frame.
+  // Classify each argument operand according to the location where the
+  // argument is passed.
+  OperandList XmmArgs;
+  OperandList StackArgs;
+  for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
+    Operand *Arg = Instr->getArg(i);
+    if (isVectorType(Arg->getType()) && XmmArgs.size() < X86_MAX_XMM_ARGS) {
+      XmmArgs.push_back(Arg);
+    } else {
+      StackArgs.push_back(Arg);
+    }
+  }
+  // For stack arguments, generate a sequence of push instructions,
+  // pushing right to left, keeping track of stack offsets in case a
+  // push involves a stack operand and we are using an esp-based frame.
   uint32_t StackOffset = 0;
+  // TODO: Consolidate the stack adjustment for function calls by
+  // reserving enough space for the arguments only once.
+  //
   // TODO: If for some reason the call instruction gets dead-code
   // eliminated after lowering, we would need to ensure that the
   // pre-call push instructions and the post-call esp adjustment get
   // eliminated as well.
-  for (SizeT NumArgs = Instr->getNumArgs(), i = 0; i < NumArgs; ++i) {
-    Operand *Arg = legalize(Instr->getArg(NumArgs - i - 1));
+  for (OperandList::reverse_iterator I = StackArgs.rbegin(),
+           E = StackArgs.rend(); I != E; ++I) {
+    Operand *Arg = legalize(*I);
     if (Arg->getType() == IceType_i64) {
       _push(hiOperand(Arg));
       _push(loOperand(Arg));
-    } else if (Arg->getType() == IceType_f64) {
-      // If the Arg turns out to be a memory operand, we need to push
-      // 8 bytes, which requires two push instructions.  This ends up
-      // being somewhat clumsy in the current IR, so we use a
-      // workaround.  Force the operand into a (xmm) register, and
-      // then push the register.  An xmm register push is actually not
-      // possible in x86, but the Push instruction emitter handles
-      // this by decrementing the stack pointer and directly writing
-      // the xmm register value.
-      Variable *T = NULL;
-      _mov(T, Arg);
-      _push(T);
+    } else if (Arg->getType() == IceType_f64 || isVectorType(Arg->getType())) {
+      // If the Arg turns out to be a memory operand, more than one push
+      // instruction is required.  This ends up being somewhat clumsy in
+      // the current IR, so we use a workaround.  Force the operand into
+      // a (xmm) register, and then push the register.  An xmm register
+      // push is actually not possible in x86, but the Push instruction
+      // emitter handles this by decrementing the stack pointer and
+      // directly writing the xmm register value.
+      _push(legalize(Arg, Legal_Reg));
     } else {
       // Otherwise PNaCl requires parameter types to be at least 32-bits.
       assert(Arg->getType() == IceType_f32 || Arg->getType() == IceType_i32);
@@ -1301,11 +1372,28 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     }
     StackOffset += typeWidthInBytesOnStack(Arg->getType());
   }
+  // Copy arguments to be passed in registers to the appropriate
+  // registers.
+  // TODO: Investigate the impact of lowering arguments passed in
+  // registers after lowering stack arguments as opposed to the other
+  // way around.  Lowering register arguments after stack arguments may
+  // reduce register pressure.  On the other hand, lowering register
+  // arguments first (before stack arguments) may result in more compact
+  // code, as the memory operand displacements may end up being smaller
+  // before any stack adjustment is done.
+  for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
+    Variable *Reg = legalizeToVar(XmmArgs[i], false, Reg_xmm0 + i);
+    // Generate a FakeUse of register arguments so that they do not get
+    // dead code eliminated as a result of the FakeKill of scratch
+    // registers after the call.
+    Context.insert(InstFakeUse::create(Func, Reg));
+  }
   // Generate the call instruction.  Assign its result to a temporary
   // with high register allocation weight.
   Variable *Dest = Instr->getDest();
-  Variable *eax = NULL; // doubles as RegLo as necessary
-  Variable *edx = NULL;
+  // ReturnReg doubles as ReturnRegLo as necessary.
+  Variable *ReturnReg = NULL;
+  Variable *ReturnRegHi = NULL;
   if (Dest) {
     switch (Dest->getType()) {
     case IceType_NUM:
@@ -1317,16 +1405,16 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     case IceType_i8:
     case IceType_i16:
     case IceType_i32:
-      eax = makeReg(Dest->getType(), Reg_eax);
+      ReturnReg = makeReg(Dest->getType(), Reg_eax);
       break;
     case IceType_i64:
-      eax = makeReg(IceType_i32, Reg_eax);
-      edx = makeReg(IceType_i32, Reg_edx);
+      ReturnReg = makeReg(IceType_i32, Reg_eax);
+      ReturnRegHi = makeReg(IceType_i32, Reg_edx);
       break;
     case IceType_f32:
     case IceType_f64:
-      // Leave eax==edx==NULL, and capture the result with the fstp
-      // instruction.
+      // Leave ReturnReg==ReturnRegHi==NULL, and capture the result with
+      // the fstp instruction.
       break;
     case IceType_v4i1:
     case IceType_v8i1:
@@ -1334,24 +1422,18 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     case IceType_v16i8:
     case IceType_v8i16:
     case IceType_v4i32:
-    case IceType_v4f32: {
-      // TODO(wala): Handle return values of vector type in the caller.
-      IceString Ty;
-      llvm::raw_string_ostream BaseOS(Ty);
-      Ostream OS(&BaseOS);
-      OS << Dest->getType();
-      Func->setError("Unhandled dest type: " + BaseOS.str());
-      return;
-    }
+    case IceType_v4f32:
+      ReturnReg = makeReg(Dest->getType(), Reg_xmm0);
+      break;
     }
   }
   // TODO(stichnot): LEAHACK: remove Legal_All (and use default) once
   // a proper emitter is used.
   Operand *CallTarget = legalize(Instr->getCallTarget(), Legal_All);
-  Inst *NewCall = InstX8632Call::create(Func, eax, CallTarget);
+  Inst *NewCall = InstX8632Call::create(Func, ReturnReg, CallTarget);
   Context.insert(NewCall);
-  if (edx)
-    Context.insert(InstFakeDef::create(Func, edx));
+  if (ReturnRegHi)
+    Context.insert(InstFakeDef::create(Func, ReturnRegHi));
 
   // Add the appropriate offset to esp.
   if (StackOffset) {
@@ -1368,34 +1450,42 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   Context.insert(InstFakeKill::create(Func, KilledRegs, NewCall));
 
   // Generate a FakeUse to keep the call live if necessary.
-  if (Instr->hasSideEffects() && eax) {
-    Inst *FakeUse = InstFakeUse::create(Func, eax);
+  if (Instr->hasSideEffects() && ReturnReg) {
+    Inst *FakeUse = InstFakeUse::create(Func, ReturnReg);
     Context.insert(FakeUse);
   }
+  
+  if (!Dest)
+    return;
 
-  // Generate Dest=eax assignment.
-  if (Dest && eax) {
-    if (edx) {
+  // Assign the result of the call to Dest.
+  if (ReturnReg) {
+    if (ReturnRegHi) {
+      assert(Dest->getType() == IceType_i64);
       split64(Dest);
       Variable *DestLo = Dest->getLo();
       Variable *DestHi = Dest->getHi();
-      DestLo->setPreferredRegister(eax, false);
-      DestHi->setPreferredRegister(edx, false);
-      _mov(DestLo, eax);
-      _mov(DestHi, edx);
+      DestLo->setPreferredRegister(ReturnReg, false);
+      DestHi->setPreferredRegister(ReturnRegHi, false);
+      _mov(DestLo, ReturnReg);
+      _mov(DestHi, ReturnRegHi);
     } else {
-      Dest->setPreferredRegister(eax, false);
-      _mov(Dest, eax);
+      assert(Dest->getType() == IceType_i32 || Dest->getType() == IceType_i16 ||
+             Dest->getType() == IceType_i8 || Dest->getType() == IceType_i1 ||
+             isVectorType(Dest->getType()));
+      Dest->setPreferredRegister(ReturnReg, false);
+      if (isVectorType(Dest->getType())) {
+        _movp(Dest, ReturnReg);
+      } else {
+        _mov(Dest, ReturnReg);
+      }
     }
-  }
-
-  // Special treatment for an FP function which returns its result in
-  // st(0).
-  if (Dest &&
-      (Dest->getType() == IceType_f32 || Dest->getType() == IceType_f64)) {
+  } else if (Dest->getType() == IceType_f32 || Dest->getType() == IceType_f64) {
+    // Special treatment for an FP function which returns its result in
+    // st(0).
     _fstp(Dest);
-    // If Dest ends up being a physical xmm register, the fstp emit
-    // code will route st(0) through a temporary stack slot.
+    // If Dest ends up being a physical xmm register, the fstp emit code
+    // will route st(0) through a temporary stack slot.
   }
 }
 

@@ -110,6 +110,10 @@ void Cfg::deletePhis() {
   }
 }
 
+void Cfg::doArgLowering() {
+  getTarget()->lowerArguments();
+}
+
 void Cfg::doAddressOpt() {
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     (*I)->doAddressOpt();

@@ -62,6 +62,7 @@ typedef std::string IceString;
 typedef std::list<Inst *> InstList;
 typedef std::list<InstPhi *> PhiList;
 typedef std::vector<Variable *> VarList;
+typedef std::vector<Operand *> OperandList;
 typedef std::vector<CfgNode *> NodeList;
 typedef std::vector<Constant *> ConstantList;
 
