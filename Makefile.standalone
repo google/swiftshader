@@ -76,9 +76,23 @@ check: llvm2ice
 	(cd crosstest; LLVM_BIN_PATH=$(LLVM_BIN_PATH) ./runtests.sh)
 
 # TODO: Fix the use of wildcards.
+# Assumes clang-format is within $PATH.
 format:
-	$(LLVM_BIN_PATH)/clang-format -style=LLVM -i \
-	src/Ice*.h src/Ice*.cpp src/llvm2ice.cpp
+	clang-format -style=LLVM -i src/*.h src/*.cpp
+
+# Assumes clang-format-diff.py is within $PATH, and that the
+# clang-format it calls is also within $PATH.  This may require adding
+# a component to $PATH, or creating symlinks within some existing
+# $PATH component.  Uses the one in /usr/lib/clang-format/ if it
+# exists.
+ifeq (,$(wildcard /usr/lib/clang-format/clang-format-diff.py))
+  CLANG_FORMAT_DIFF = clang-format-diff.py
+else
+  CLANG_FORMAT_DIFF = /usr/lib/clang-format/clang-format-diff.py
+endif
+format-diff:
+	git diff -U0 HEAD^ | \
+	$(CLANG_FORMAT_DIFF) -p1 -style=LLVM -i
 
 clean:
 	rm -rf llvm2ice *.o build/
