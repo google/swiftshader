@@ -2569,7 +2569,11 @@ void TargetX8632::postLower() {
   if (Ctx->getOptLevel() != Opt_m1)
     return;
   // TODO: Avoid recomputing WhiteList every instruction.
-  llvm::SmallBitVector WhiteList = getRegisterSet(RegSet_All, RegSet_None);
+  RegSetMask RegInclude = RegSet_All;
+  RegSetMask RegExclude = RegSet_None;
+  if (hasFramePointer())
+    RegExclude |= RegSet_FramePointer;
+  llvm::SmallBitVector WhiteList = getRegisterSet(RegInclude, RegExclude);
   // Make one pass to black-list pre-colored registers.  TODO: If
   // there was some prior register allocation pass that made register
   // assignments, those registers need to be black-listed here as

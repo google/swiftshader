@@ -167,7 +167,6 @@ void TargetLowering::regAlloc() {
   RegSetMask RegExclude = RegSet_None;
   RegInclude |= RegSet_CallerSave;
   RegInclude |= RegSet_CalleeSave;
-  RegExclude |= RegSet_StackPointer;
   if (hasFramePointer())
     RegExclude |= RegSet_FramePointer;
   llvm::SmallBitVector RegMask = getRegisterSet(RegInclude, RegExclude);

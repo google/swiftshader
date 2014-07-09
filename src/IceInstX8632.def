@@ -15,6 +15,7 @@
 #ifndef SUBZERO_SRC_ICEINSTX8632_DEF
 #define SUBZERO_SRC_ICEINSTX8632_DEF
 
+// NOTE: esp is not considered isInt, to avoid register allocating it.
 #define REGX8632_TABLE                                                  \
   /* val, init, name, name16, name8, scratch, preserved, stackptr,      \
      frameptr, isI8, isInt, isFP */                                     \
@@ -22,7 +23,7 @@
   X(Reg_ecx, = Reg_eax + 1,   "ecx",  "cx", "cl", 1, 0, 0, 0, 1, 1, 0)  \
   X(Reg_edx, = Reg_eax + 2,   "edx",  "dx", "dl", 1, 0, 0, 0, 1, 1, 0)  \
   X(Reg_ebx, = Reg_eax + 3,   "ebx",  "bx", "bl", 0, 1, 0, 0, 1, 1, 0)  \
-  X(Reg_esp, = Reg_eax + 4,   "esp",  "sp", ""  , 0, 0, 1, 0, 0, 1, 0)  \
+  X(Reg_esp, = Reg_eax + 4,   "esp",  "sp", ""  , 0, 0, 1, 0, 0, 0, 0)  \
   X(Reg_ebp, = Reg_eax + 5,   "ebp",  "bp", ""  , 0, 1, 0, 1, 0, 1, 0)  \
   X(Reg_esi, = Reg_eax + 6,   "esi",  "si", ""  , 0, 1, 0, 0, 0, 1, 0)  \
   X(Reg_edi, = Reg_eax + 7,   "edi",  "di", ""  , 0, 1, 0, 0, 0, 1, 0)  \
