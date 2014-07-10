@@ -2615,9 +2615,12 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
   }
   if (Variable *Var = llvm::dyn_cast<Variable>(From)) {
     // We need a new physical register for the operand if:
-    //   Mem is not allowed and Var->getRegNum() is unknown, or
+    //   Mem is not allowed and Var isn't guaranteed a physical
+    //   register, or
     //   RegNum is required and Var->getRegNum() doesn't match.
-    if ((!(Allowed & Legal_Mem) && !Var->hasReg()) ||
+    bool WillHaveRegister =
+        (Var->hasReg() || Var->getWeight() == RegWeight::Inf);
+    if ((!(Allowed & Legal_Mem) && !WillHaveRegister) ||
         (RegNum != Variable::NoRegister && RegNum != Var->getRegNum())) {
       Variable *Reg = copyToReg(From, RegNum);
       if (RegNum == Variable::NoRegister) {

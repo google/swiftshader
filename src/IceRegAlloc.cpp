@@ -205,12 +205,14 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     // overlaps with the current range and is precolored.
     // Cur.endsBefore(*I) is an early exit check that turns a
     // guaranteed O(N^2) algorithm into expected linear complexity.
+    llvm::SmallBitVector PrecoloredUnhandled(RegMask.size());
     for (OrderedRanges::const_iterator I = Unhandled.begin(),
                                        E = Unhandled.end();
          I != E && !Cur.endsBefore(*I); ++I) {
       LiveRangeWrapper Item = *I;
       if (Item.Var->hasReg() && Item.overlaps(Cur)) {
         Free[Item.Var->getRegNum()] = false; // Note: getRegNum not getRegNumTmp
+        PrecoloredUnhandled[Item.Var->getRegNum()] = true;
       }
     }
 
@@ -219,7 +221,8 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       for (SizeT i = 0; i < RegMask.size(); ++i) {
         if (RegMask[i]) {
           Str << Func->getTarget()->getRegName(i, IceType_i32)
-              << "(U=" << RegUses[i] << ",F=" << Free[i] << ") ";
+              << "(U=" << RegUses[i] << ",F=" << Free[i]
+              << ",P=" << PrecoloredUnhandled[i] << ") ";
         }
       }
       Str << "\n";
@@ -228,8 +231,11 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     Variable *Prefer = Cur.Var->getPreferredRegister();
     int32_t PreferReg = Prefer && Prefer->hasRegTmp() ? Prefer->getRegNumTmp()
                                                       : Variable::NoRegister;
+    bool AllowedToOverlap = Cur.Var->getRegisterOverlap() &&
+                            PreferReg != Variable::NoRegister &&
+                            !PrecoloredUnhandled[PreferReg];
     if (PreferReg != Variable::NoRegister &&
-        (Cur.Var->getRegisterOverlap() || Free[PreferReg])) {
+        (AllowedToOverlap || Free[PreferReg])) {
       // First choice: a preferred register that is either free or is
       // allowed to overlap with its linked variable.
       Cur.Var->setRegNumTmp(PreferReg);
