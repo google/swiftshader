@@ -1136,7 +1136,59 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       llvm_unreachable("FP instruction with i64 type");
       break;
     }
-  } else { // Dest->getType() != IceType_i64
+  } else if (isVectorType(Dest->getType())) {
+    switch (Inst->getOp()) {
+    case InstArithmetic::_num:
+      llvm_unreachable("Unknown arithmetic operator");
+      break;
+    case InstArithmetic::Add:
+    case InstArithmetic::And:
+    case InstArithmetic::Or:
+    case InstArithmetic::Xor:
+    case InstArithmetic::Sub:
+    case InstArithmetic::Mul:
+    case InstArithmetic::Shl:
+    case InstArithmetic::Lshr:
+    case InstArithmetic::Ashr:
+    case InstArithmetic::Udiv:
+    case InstArithmetic::Sdiv:
+    case InstArithmetic::Urem:
+    case InstArithmetic::Srem:
+      // TODO(wala): Handle these.
+      Func->setError("Unhandled instruction");
+      break;
+    case InstArithmetic::Fadd: {
+      Variable *T = makeReg(Dest->getType());
+      _movp(T, Src0);
+      _addps(T, Src1);
+      _movp(Dest, T);
+    } break;
+    case InstArithmetic::Fsub: {
+      Variable *T = makeReg(Dest->getType());
+      _movp(T, Src0);
+      _subps(T, Src1);
+      _movp(Dest, T);
+    } break;
+    case InstArithmetic::Fmul: {
+      Variable *T = makeReg(Dest->getType());
+      _movp(T, Src0);
+      _mulps(T, Src1);
+      _movp(Dest, T);
+    } break;
+    case InstArithmetic::Fdiv: {
+      Variable *T = makeReg(Dest->getType());
+      _movp(T, Src0);
+      _divps(T, Src1);
+      _movp(Dest, T);
+    } break;
+    case InstArithmetic::Frem: {
+      const SizeT MaxSrcs = 1;
+      InstCall *Call = makeHelperCall("__frem_v4f32", Dest, MaxSrcs);
+      Call->addArg(Src0);
+      lowerCall(Call);
+    } break;
+    }
+  } else { // Dest->getType() is non-i64 scalar
     Variable *T_edx = NULL;
     Variable *T = NULL;
     switch (Inst->getOp()) {
@@ -1454,7 +1506,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     Inst *FakeUse = InstFakeUse::create(Func, ReturnReg);
     Context.insert(FakeUse);
   }
-  
+
   if (!Dest)
     return;
 

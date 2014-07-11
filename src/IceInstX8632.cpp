@@ -399,9 +399,11 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
 }
 
 template <> const char *InstX8632Add::Opcode = "add";
+template <> const char *InstX8632Addps::Opcode = "addps";
 template <> const char *InstX8632Adc::Opcode = "adc";
 template <> const char *InstX8632Addss::Opcode = "addss";
 template <> const char *InstX8632Sub::Opcode = "sub";
+template <> const char *InstX8632Subps::Opcode = "subps";
 template <> const char *InstX8632Subss::Opcode = "subss";
 template <> const char *InstX8632Sbb::Opcode = "sbb";
 template <> const char *InstX8632And::Opcode = "and";
@@ -409,8 +411,10 @@ template <> const char *InstX8632Or::Opcode = "or";
 template <> const char *InstX8632Xor::Opcode = "xor";
 template <> const char *InstX8632Pxor::Opcode = "pxor";
 template <> const char *InstX8632Imul::Opcode = "imul";
+template <> const char *InstX8632Mulps::Opcode = "mulps";
 template <> const char *InstX8632Mulss::Opcode = "mulss";
 template <> const char *InstX8632Div::Opcode = "div";
+template <> const char *InstX8632Divps::Opcode = "divps";
 template <> const char *InstX8632Idiv::Opcode = "idiv";
 template <> const char *InstX8632Divss::Opcode = "divss";
 template <> const char *InstX8632Shl::Opcode = "shl";

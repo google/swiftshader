@@ -136,6 +136,7 @@ public:
     k__Start = Inst::Target,
     Adc,
     Add,
+    Addps,
     Addss,
     And,
     Br,
@@ -143,6 +144,7 @@ public:
     Cdq,
     Cvt,
     Div,
+    Divps,
     Divss,
     Fld,
     Fstp,
@@ -158,6 +160,7 @@ public:
     Movsx,
     Movzx,
     Mul,
+    Mulps,
     Mulss,
     Or,
     Pop,
@@ -174,6 +177,7 @@ public:
     Store,
     StoreQ,
     Sub,
+    Subps,
     Subss,
     Test,
     Ucomiss,
@@ -397,9 +401,11 @@ private:
 };
 
 typedef InstX8632Binop<InstX8632::Add> InstX8632Add;
+typedef InstX8632Binop<InstX8632::Addps> InstX8632Addps;
 typedef InstX8632Binop<InstX8632::Adc> InstX8632Adc;
 typedef InstX8632Binop<InstX8632::Addss> InstX8632Addss;
 typedef InstX8632Binop<InstX8632::Sub> InstX8632Sub;
+typedef InstX8632Binop<InstX8632::Subps> InstX8632Subps;
 typedef InstX8632Binop<InstX8632::Subss> InstX8632Subss;
 typedef InstX8632Binop<InstX8632::Sbb> InstX8632Sbb;
 typedef InstX8632Binop<InstX8632::And> InstX8632And;
@@ -407,7 +413,9 @@ typedef InstX8632Binop<InstX8632::Or> InstX8632Or;
 typedef InstX8632Binop<InstX8632::Xor> InstX8632Xor;
 typedef InstX8632Binop<InstX8632::Pxor> InstX8632Pxor;
 typedef InstX8632Binop<InstX8632::Imul> InstX8632Imul;
+typedef InstX8632Binop<InstX8632::Mulps> InstX8632Mulps;
 typedef InstX8632Binop<InstX8632::Mulss> InstX8632Mulss;
+typedef InstX8632Binop<InstX8632::Divps> InstX8632Divps;
 typedef InstX8632Binop<InstX8632::Divss> InstX8632Divss;
 typedef InstX8632Binop<InstX8632::Shl, true> InstX8632Shl;
 typedef InstX8632Binop<InstX8632::Shr, true> InstX8632Shr;

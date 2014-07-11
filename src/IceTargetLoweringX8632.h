@@ -148,6 +148,9 @@ protected:
   void _add(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Add::create(Func, Dest, Src0));
   }
+  void _addps(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Addps::create(Func, Dest, Src0));
+  }
   void _addss(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Addss::create(Func, Dest, Src0));
   }
@@ -179,6 +182,9 @@ protected:
   }
   void _div(Variable *Dest, Operand *Src0, Operand *Src1) {
     Context.insert(InstX8632Div::create(Func, Dest, Src0, Src1));
+  }
+  void _divps(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Divps::create(Func, Dest, Src0));
   }
   void _divss(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Divss::create(Func, Dest, Src0));
@@ -220,6 +226,9 @@ protected:
   void _mul(Variable *Dest, Variable *Src0, Operand *Src1) {
     Context.insert(InstX8632Mul::create(Func, Dest, Src0, Src1));
   }
+  void _mulps(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Mulps::create(Func, Dest, Src0));
+  }
   void _mulss(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Mulss::create(Func, Dest, Src0));
   }
@@ -231,6 +240,9 @@ protected:
   }
   void _push(Operand *Src0, bool SuppressStackAdjustment = false) {
     Context.insert(InstX8632Push::create(Func, Src0, SuppressStackAdjustment));
+  }
+  void _pxor(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Pxor::create(Func, Dest, Src0));
   }
   void _ret(Variable *Src0 = NULL) {
     Context.insert(InstX8632Ret::create(Func, Src0));
@@ -265,6 +277,9 @@ protected:
   void _sub(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Sub::create(Func, Dest, Src0));
   }
+  void _subps(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Subps::create(Func, Dest, Src0));
+  }
   void _subss(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Subss::create(Func, Dest, Src0));
   }
@@ -283,9 +298,6 @@ protected:
   }
   void _xor(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Xor::create(Func, Dest, Src0));
-  }
-  void _pxor(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Pxor::create(Func, Dest, Src0));
   }
 
   bool IsEbpBasedFrame;
