@@ -166,9 +166,10 @@ void GlobalContext::incrementSubstitutions(ManglerVector &OldName) const {
         assert(OldName[OldPos - 1] == 'S');
         assert(OldName[OldPos + Length] == '_');
         if (AllZs) {
-          // Replace N 'Z' characters with N+1 '0' characters.  (This
-          // is also true for N=0, i.e. S_ ==> S0_ .)
-          for (size_t i = 0; i < Length + 1; ++i) {
+          // Replace N 'Z' characters with a '0' (if N=0) or '1' (if
+          // N>0) followed by N '0' characters.
+          NewName[NewPos++] = (Length ? '1' : '0');
+          for (size_t i = 0; i < Length; ++i) {
             NewName[NewPos++] = '0';
           }
         } else {

@@ -105,14 +105,14 @@ entry:
 ; Test for substitution incrementing.  This single test captures:
 ;   S<num>_ ==> S<num+1>_ for single-digit <num>
 ;   S_ ==> S0_
-;   String length increase, e.g. SZZZ_ ==> S0000_
+;   String length increase, e.g. SZZZ_ ==> S1000_
 ;   At least one digit wrapping without length increase, e.g. SZ9ZZ_ ==> SZA00_
 ;   Unrelated identifiers containing S[0-9A-Z]* , e.g. MyClassS1x
 ;   A proper substring of S<num>_ at the end of the string
 ;     (to test parser edge cases)
 
 define internal void @_Z3fooP10MyClassS1xP10MyClassS2xRS_RS1_S_S1_SZZZ_SZ9ZZ_S12345() {
-; MANGLE:   _ZN7Subzero3fooEP10MyClassS1xP10MyClassS2xRS0_RS2_S0_S2_S0000_SZA00_S12345:
+; MANGLE:   _ZN7Subzero3fooEP10MyClassS1xP10MyClassS2xRS0_RS2_S0_S2_S1000_SZA00_S12345:
 entry:
   ret void
 }
