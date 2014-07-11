@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <ctype.h> // isdigit()
+#include <ctype.h> // isdigit(), isupper()
 
 #include "IceDefs.h"
 #include "IceTypes.h"
@@ -120,6 +120,92 @@ GlobalContext::GlobalContext(llvm::raw_ostream *OsDump,
       ConstPool(new ConstantPool()), Arch(Arch), Opt(Opt),
       TestPrefix(TestPrefix), HasEmittedFirstMethod(false) {}
 
+// Scan a string for S[0-9A-Z]*_ patterns and replace them with
+// S<num>_ where <num> is the next base-36 value.  If a type name
+// legitimately contains that pattern, then the substitution will be
+// made in error and most likely the link will fail.  In this case,
+// the test classes can be rewritten not to use that pattern, which is
+// much simpler and more reliable than implementing a full demangling
+// parser.  Another substitution-in-error may occur if a type
+// identifier ends with the pattern S[0-9A-Z]*, because an immediately
+// following substitution string like "S1_" or "PS1_" may be combined
+// with the previous type.
+void GlobalContext::incrementSubstitutions(ManglerVector &OldName) const {
+  const std::locale CLocale("C");
+  // Provide extra space in case the length of <num> increases.
+  ManglerVector NewName(OldName.size() * 2);
+  size_t OldPos = 0;
+  size_t NewPos = 0;
+  size_t OldLen = OldName.size();
+  for (; OldPos < OldLen; ++OldPos, ++NewPos) {
+    if (OldName[OldPos] == '\0')
+      break;
+    if (OldName[OldPos] == 'S') {
+      // Search forward until we find _ or invalid character (including \0).
+      bool AllZs = true;
+      bool Found = false;
+      size_t Last;
+      for (Last = OldPos + 1; Last < OldLen; ++Last) {
+        char Ch = OldName[Last];
+        if (Ch == '_') {
+          Found = true;
+          break;
+        } else if (std::isdigit(Ch) || std::isupper(Ch, CLocale)) {
+          if (Ch != 'Z')
+            AllZs = false;
+        } else {
+          // Invalid character, stop searching.
+          break;
+        }
+      }
+      if (Found) {
+        NewName[NewPos++] = OldName[OldPos++]; // 'S'
+        size_t Length = Last - OldPos;
+        // NewPos and OldPos point just past the 'S'.
+        assert(NewName[NewPos - 1] == 'S');
+        assert(OldName[OldPos - 1] == 'S');
+        assert(OldName[OldPos + Length] == '_');
+        if (AllZs) {
+          // Replace N 'Z' characters with N+1 '0' characters.  (This
+          // is also true for N=0, i.e. S_ ==> S0_ .)
+          for (size_t i = 0; i < Length + 1; ++i) {
+            NewName[NewPos++] = '0';
+          }
+        } else {
+          // Iterate right-to-left and increment the base-36 number.
+          bool Carry = true;
+          for (size_t i = 0; i < Length; ++i) {
+            size_t Offset = Length - 1 - i;
+            char Ch = OldName[OldPos + Offset];
+            if (Carry) {
+              Carry = false;
+              switch (Ch) {
+              case '9':
+                Ch = 'A';
+                break;
+              case 'Z':
+                Ch = '0';
+                Carry = true;
+                break;
+              default:
+                ++Ch;
+                break;
+              }
+            }
+            NewName[NewPos + Offset] = Ch;
+          }
+          NewPos += Length;
+        }
+        OldPos = Last;
+        // Fall through and let the '_' be copied across.
+      }
+    }
+    NewName[NewPos] = OldName[OldPos];
+  }
+  assert(NewName[NewPos] == '\0');
+  OldName = NewName;
+}
+
 // In this context, name mangling means to rewrite a symbol using a
 // given prefix.  For a C++ symbol, nest the original symbol inside
 // the "prefix" namespace.  For other symbols, just prepend the
@@ -137,9 +223,9 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
     return Name;
 
   unsigned PrefixLength = getTestPrefix().length();
-  llvm::SmallVector<char, 32> NameBase(1 + Name.length());
+  ManglerVector NameBase(1 + Name.length());
   const size_t BufLen = 30 + Name.length() + PrefixLength;
-  llvm::SmallVector<char, 32> NewName(BufLen);
+  ManglerVector NewName(BufLen);
   uint32_t BaseLength = 0; // using uint32_t due to sscanf format string
 
   int ItemsParsed = sscanf(Name.c_str(), "_ZN%s", NameBase.data());
@@ -152,6 +238,7 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
     // somehow miscalculated the output buffer length, the output will
     // be truncated, but it will be truncated consistently for all
     // mangleName() calls on the same input string.
+    incrementSubstitutions(NewName);
     return NewName.data();
   }
 
@@ -172,8 +259,8 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
     // Transform _Z3barIabcExyz ==> _ZN6Prefix3barIabcEExyz
     //                                ^^^^^^^^         ^
     // (splice in "N6Prefix", and insert "E" after "3barIabcE")
-    llvm::SmallVector<char, 32> OrigName(Name.length());
-    llvm::SmallVector<char, 32> OrigSuffix(Name.length());
+    ManglerVector OrigName(Name.length());
+    ManglerVector OrigSuffix(Name.length());
     uint32_t ActualBaseLength = BaseLength;
     if (NameBase[ActualBaseLength] == 'I') {
       ++ActualBaseLength;
@@ -187,6 +274,7 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
     snprintf(NewName.data(), BufLen, "_ZN%u%s%u%sE%s", PrefixLength,
              getTestPrefix().c_str(), BaseLength, OrigName.data(),
              OrigSuffix.data());
+    incrementSubstitutions(NewName);
     return NewName.data();
   }
 

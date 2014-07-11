@@ -105,6 +105,10 @@ private:
   bool HasEmittedFirstMethod;
   GlobalContext(const GlobalContext &) LLVM_DELETED_FUNCTION;
   GlobalContext &operator=(const GlobalContext &) LLVM_DELETED_FUNCTION;
+
+  // Private helpers for mangleName()
+  typedef llvm::SmallVector<char, 32> ManglerVector;
+  void incrementSubstitutions(ManglerVector &OldName) const;
 };
 
 } // end of namespace Ice
