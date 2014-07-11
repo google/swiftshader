@@ -40,7 +40,7 @@ void Translator::translateFcn(Ice::Cfg *Fcn) {
     }
     if (Func->hasError()) {
       std::cerr << "ICE translation error: " << Func->getError() << "\n";
-      ExitStatus = 1;
+      ErrorStatus = true;
     }
 
     Ice::Timer TEmit;

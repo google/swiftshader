@@ -40,10 +40,10 @@ class TopLevelParser : public NaClBitcodeParser {
 
 public:
   TopLevelParser(const std::string &InputName, NaClBitcodeHeader &Header,
-                 NaClBitstreamCursor &Cursor, int &ExitStatusFlag)
+                 NaClBitstreamCursor &Cursor, bool &ErrorStatus)
       : NaClBitcodeParser(Cursor),
         Mod(new Module(InputName, getGlobalContext())), Header(Header),
-        ExitStatusFlag(ExitStatusFlag), NumErrors(0), NumFunctionIds(0),
+        ErrorStatus(ErrorStatus), NumErrors(0), NumFunctionIds(0),
         GlobalVarPlaceHolderType(Type::getInt8Ty(getLLVMContext())) {
     Mod->setDataLayout(PNaClDataLayout);
   }
@@ -52,7 +52,7 @@ public:
   LLVM_OVERRIDE;
 
   virtual bool Error(const std::string &Message) LLVM_OVERRIDE {
-    ExitStatusFlag = 1;
+    ErrorStatus = true;
     ++NumErrors;
     return NaClBitcodeParser::Error(Message);
   }
@@ -167,8 +167,8 @@ private:
   OwningPtr<Module> Mod;
   // The bitcode header.
   NaClBitcodeHeader &Header;
-  // The exit status flag that should be set to 1 if an error occurs.
-  int &ExitStatusFlag;
+  // The exit status that should be set to true if an error occurs.
+  bool &ErrorStatus;
   // The number of errors reported.
   unsigned NumErrors;
   // The types associated with each type ID.
@@ -810,14 +810,14 @@ void PNaClTranslator::translate(const std::string &IRFilename) {
   if (error_code ec =
           MemoryBuffer::getFileOrSTDIN(IRFilename.c_str(), MemBuf)) {
     errs() << "Error reading '" << IRFilename << "': " << ec.message() << "\n";
-    ExitStatus = 1;
+    ErrorStatus = true;
     return;
   }
 
   if (MemBuf->getBufferSize() % 4 != 0) {
     errs() << IRFilename
            << ": Bitcode stream should be a multiple of 4 bytes in length.\n";
-    ExitStatus = 1;
+    ErrorStatus = true;
     return;
   }
 
@@ -828,7 +828,7 @@ void PNaClTranslator::translate(const std::string &IRFilename) {
   NaClBitcodeHeader Header;
   if (Header.Read(BufPtr, EndBufPtr) || !Header.IsSupported()) {
     errs() << "Invalid PNaCl bitcode header.\n";
-    ExitStatus = 1;
+    ErrorStatus = true;
     return;
   }
 
@@ -837,11 +837,11 @@ void PNaClTranslator::translate(const std::string &IRFilename) {
   NaClBitstreamCursor InputStream(InputStreamFile);
 
   TopLevelParser Parser(MemBuf->getBufferIdentifier(), Header, InputStream,
-                        ExitStatus);
+                        ErrorStatus);
   int TopLevelBlocks = 0;
   while (!InputStream.AtEndOfStream()) {
     if (Parser.Parse()) {
-      ExitStatus = 1;
+      ErrorStatus = true;
       return;
     }
     ++TopLevelBlocks;
@@ -851,7 +851,7 @@ void PNaClTranslator::translate(const std::string &IRFilename) {
     errs() << IRFilename
            << ": Contains more than one module. Found: " << TopLevelBlocks
            << "\n";
-    ExitStatus = 1;
+    ErrorStatus = true;
   }
   return;
 }

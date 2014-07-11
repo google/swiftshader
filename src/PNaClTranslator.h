@@ -25,7 +25,7 @@ public:
   PNaClTranslator(GlobalContext *Ctx, ClFlags &Flags)
       : Translator(Ctx, Flags) {}
   // Reads the PNaCl bitcode file and translates to ICE, which is then
-  // converted to machine code. Sets ExitStatus to non-zero if any
+  // converted to machine code. Sets ErrorStatus to true if any
   // errors occurred.
   void translate(const std::string &IRFilename);
 

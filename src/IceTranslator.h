@@ -30,17 +30,17 @@ class GlobalContext;
 class Translator {
 public:
   Translator(GlobalContext *Ctx, ClFlags &Flags)
-      : Ctx(Ctx), Flags(Flags), ExitStatus(0) {}
+      : Ctx(Ctx), Flags(Flags), ErrorStatus(0) {}
 
   ~Translator();
-  int getExitStatus() const { return ExitStatus; }
+  bool getErrorStatus() const { return ErrorStatus; }
 
 protected:
   GlobalContext *Ctx;
   ClFlags &Flags;
-  // The exit status of the translation. 0 is successful. Nonzero
+  // The exit status of the translation. False is successful. True
   // otherwise.
-  int ExitStatus;
+  bool ErrorStatus;
   // Ideally, Func would be inside the methods that converts IR to
   // functions.  However, emitting the constant pool requires a valid
   // Cfg object, so we need to defer deleting the last non-empty Cfg
