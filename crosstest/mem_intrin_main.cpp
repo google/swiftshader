@@ -40,8 +40,8 @@ void testVariableLen(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   for (size_t len = 4; len < 128; ++len) {                              \
     for (uint8_t init_val = 0; init_val < 100; ++init_val) {            \
       ++TotalTests;                                                     \
-      int llc_result = test_func(buf, (void *)buf2, init_val, len);     \
-      int sz_result = Subzero_::test_func(buf, (void *)buf2, init_val, len); \
+      int llc_result = test_func(buf, buf2, init_val, len);             \
+      int sz_result = Subzero_::test_func(buf, buf2, init_val, len);    \
       if (llc_result == sz_result) {                                    \
         ++Passes;                                                       \
       } else {                                                          \
