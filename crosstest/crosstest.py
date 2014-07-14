@@ -57,6 +57,11 @@ if __name__ == '__main__':
                            metavar='PATH',
                            help='Path to LLVM executables like llc ' +
                                 '(defaults to $LLVM_BIN_PATH)')
+    argparser.add_argument('--crosstest-bitcode', required=False,
+                           default=1, type=int,
+                           help='Compile non-subzero crosstest object file ' +
+                           'from the same bitcode as the subzero object. ' +
+                           'If 0, then compile it straight from source.')
     args = argparser.parse_args()
 
     objs = []
@@ -113,7 +118,9 @@ if __name__ == '__main__':
         # failures.  This behavior can be inspected by switching
         # use_llc between True and False.
         use_llc = False
-        if use_llc:
+        if not args.crosstest_bitcode:
+            objs.append(arg)
+        elif use_llc:
             shellcmd([os.path.join(llvm_bin_path, 'llc'),
                       '-filetype=obj',
                       '-o=' + obj_llc,
@@ -125,4 +132,4 @@ if __name__ == '__main__':
     linker = 'clang' if os.path.splitext(args.driver)[1] == '.c' else 'clang++'
     shellcmd([os.path.join(llvm_bin_path, linker), '-g', '-m32', args.driver] +
              objs +
-             ['-lm', '-o', os.path.join(args.dir, args.output)])
+             ['-lm', '-lpthread', '-o', os.path.join(args.dir, args.output)])

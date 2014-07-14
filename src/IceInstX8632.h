@@ -54,9 +54,8 @@ class OperandX8632Mem : public OperandX8632 {
 public:
   enum SegmentRegisters {
     DefaultSegment = -1,
-#define X(val, name)                                                           \
-    val,
-      SEG_REGX8632_TABLE
+#define X(val, name) val,
+    SEG_REGX8632_TABLE
 #undef X
         SegReg_NUM
   };
@@ -142,6 +141,8 @@ public:
     Br,
     Call,
     Cdq,
+    Cmpxchg,
+    Cmpxchg8b,
     Cvt,
     Div,
     Divps,
@@ -162,6 +163,7 @@ public:
     Mul,
     Mulps,
     Mulss,
+    Neg,
     Or,
     Pop,
     Push,
@@ -183,6 +185,7 @@ public:
     Ucomiss,
     UD2,
     Xadd,
+    Xchg,
     Xor
   };
   static const char *getWidthString(Type Ty);
@@ -328,6 +331,41 @@ private:
   virtual ~InstX8632Call() {}
 };
 
+template <InstX8632::InstKindX8632 K>
+class InstX8632Unaryop : public InstX8632 {
+public:
+  // Create an unary-op instruction like neg.
+  // The source and dest are the same variable.
+  static InstX8632Unaryop *create(Cfg *Func, Operand *SrcDest) {
+    return new (Func->allocate<InstX8632Unaryop>())
+        InstX8632Unaryop(Func, SrcDest);
+  }
+  virtual void emit(const Cfg *Func) const {
+    Ostream &Str = Func->getContext()->getStrEmit();
+    assert(getSrcSize() == 1);
+    Str << "\t" << Opcode << "\t";
+    getSrc(0)->emit(Func);
+    Str << "\n";
+  }
+  virtual void dump(const Cfg *Func) const {
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = " << Opcode << "." << getDest()->getType() << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstX8632Unaryop(Cfg *Func, Operand *SrcDest)
+      : InstX8632(Func, K, 1, llvm::dyn_cast<Variable>(SrcDest)) {
+    addSource(SrcDest);
+  }
+  InstX8632Unaryop(const InstX8632Unaryop &) LLVM_DELETED_FUNCTION;
+  InstX8632Unaryop &operator=(const InstX8632Unaryop &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Unaryop() {}
+  static const char *Opcode;
+};
+
 // See the definition of emitTwoAddress() for a description of
 // ShiftHack.
 void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
@@ -400,6 +438,7 @@ private:
   static const char *Opcode;
 };
 
+typedef InstX8632Unaryop<InstX8632::Neg> InstX8632Neg;
 typedef InstX8632Binop<InstX8632::Add> InstX8632Add;
 typedef InstX8632Binop<InstX8632::Addps> InstX8632Addps;
 typedef InstX8632Binop<InstX8632::Adc> InstX8632Adc;
@@ -422,6 +461,28 @@ typedef InstX8632Binop<InstX8632::Shr, true> InstX8632Shr;
 typedef InstX8632Binop<InstX8632::Sar, true> InstX8632Sar;
 typedef InstX8632Ternop<InstX8632::Idiv> InstX8632Idiv;
 typedef InstX8632Ternop<InstX8632::Div> InstX8632Div;
+
+// Base class for a lockable x86-32 instruction (emits a locked prefix).
+class InstX8632Lockable : public InstX8632 {
+public:
+  virtual void emit(const Cfg *Func) const = 0;
+  virtual void dump(const Cfg *Func) const;
+
+protected:
+  bool Locked;
+
+  InstX8632Lockable(Cfg *Func, InstKindX8632 Kind, SizeT Maxsrcs,
+                    Variable *Dest, bool Locked)
+      : InstX8632(Func, Kind, Maxsrcs, Dest), Locked(Locked) {
+    // Assume that such instructions are used for Atomics and be careful
+    // with optimizations.
+    HasSideEffects = Locked;
+  }
+
+private:
+  InstX8632Lockable(const InstX8632Lockable &) LLVM_DELETED_FUNCTION;
+  InstX8632Lockable &operator=(const InstX8632Lockable &) LLVM_DELETED_FUNCTION;
+};
 
 // Mul instruction - unsigned multiply.
 class InstX8632Mul : public InstX8632 {
@@ -500,6 +561,57 @@ private:
   InstX8632Cdq(const InstX8632Cdq &) LLVM_DELETED_FUNCTION;
   InstX8632Cdq &operator=(const InstX8632Cdq &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Cdq() {}
+};
+
+// Cmpxchg instruction - cmpxchg <dest>, <desired> will compare if <dest>
+// equals eax. If so, the ZF is set and <desired> is stored in <dest>.
+// If not, ZF is cleared and <dest> is copied to eax (or subregister).
+// <dest> can be a register or memory, while <desired> must be a register.
+// It is the user's responsiblity to mark eax with a FakeDef.
+class InstX8632Cmpxchg : public InstX8632Lockable {
+public:
+  static InstX8632Cmpxchg *create(Cfg *Func, Operand *DestOrAddr, Variable *Eax,
+                                  Variable *Desired, bool Locked) {
+    return new (Func->allocate<InstX8632Cmpxchg>())
+        InstX8632Cmpxchg(Func, DestOrAddr, Eax, Desired, Locked);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Cmpxchg); }
+
+private:
+  InstX8632Cmpxchg(Cfg *Func, Operand *DestOrAddr, Variable *Eax,
+                   Variable *Desired, bool Locked);
+  InstX8632Cmpxchg(const InstX8632Cmpxchg &) LLVM_DELETED_FUNCTION;
+  InstX8632Cmpxchg &operator=(const InstX8632Cmpxchg &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Cmpxchg() {}
+};
+
+// Cmpxchg8b instruction - cmpxchg8b <m64> will compare if <m64>
+// equals edx:eax. If so, the ZF is set and ecx:ebx is stored in <m64>.
+// If not, ZF is cleared and <m64> is copied to edx:eax.
+// The caller is responsible for inserting FakeDefs to mark edx
+// and eax as modified.
+// <m64> must be a memory operand.
+class InstX8632Cmpxchg8b : public InstX8632Lockable {
+public:
+  static InstX8632Cmpxchg8b *create(Cfg *Func, OperandX8632 *Dest,
+                                    Variable *Edx, Variable *Eax, Variable *Ecx,
+                                    Variable *Ebx, bool Locked) {
+    return new (Func->allocate<InstX8632Cmpxchg8b>())
+        InstX8632Cmpxchg8b(Func, Dest, Edx, Eax, Ecx, Ebx, Locked);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Cmpxchg8b); }
+
+private:
+  InstX8632Cmpxchg8b(Cfg *Func, OperandX8632 *Dest, Variable *Edx,
+                     Variable *Eax, Variable *Ecx, Variable *Ebx, bool Locked);
+  InstX8632Cmpxchg8b(const InstX8632Cmpxchg8b &) LLVM_DELETED_FUNCTION;
+  InstX8632Cmpxchg8b &
+  operator=(const InstX8632Cmpxchg8b &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Cmpxchg8b() {}
 };
 
 // Cvt instruction - wrapper for cvtsX2sY where X and Y are in {s,d,i}
@@ -861,7 +973,7 @@ private:
 //
 // Both the dest and source are updated. The caller should then insert a
 // FakeDef to reflect the second udpate.
-class InstX8632Xadd : public InstX8632 {
+class InstX8632Xadd : public InstX8632Lockable {
 public:
   static InstX8632Xadd *create(Cfg *Func, Operand *Dest, Variable *Source,
                                bool Locked) {
@@ -873,12 +985,33 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, Xadd); }
 
 private:
-  bool Locked;
-
   InstX8632Xadd(Cfg *Func, Operand *Dest, Variable *Source, bool Locked);
   InstX8632Xadd(const InstX8632Xadd &) LLVM_DELETED_FUNCTION;
   InstX8632Xadd &operator=(const InstX8632Xadd &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Xadd() {}
+};
+
+// Exchange instruction.  Exchanges the first operand (destination
+// operand) with the second operand (source operand). At least one of
+// the operands must be a register (and the other can be reg or mem).
+// Both the Dest and Source are updated. If there is a memory operand,
+// then the instruction is automatically "locked" without the need for
+// a lock prefix.
+class InstX8632Xchg : public InstX8632 {
+public:
+  static InstX8632Xchg *create(Cfg *Func, Operand *Dest, Variable *Source) {
+    return new (Func->allocate<InstX8632Xchg>())
+        InstX8632Xchg(Func, Dest, Source);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Xchg); }
+
+private:
+  InstX8632Xchg(Cfg *Func, Operand *Dest, Variable *Source);
+  InstX8632Xchg(const InstX8632Xchg &) LLVM_DELETED_FUNCTION;
+  InstX8632Xchg &operator=(const InstX8632Xchg &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Xchg() {}
 };
 
 } // end of namespace Ice

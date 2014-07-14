@@ -95,8 +95,14 @@ protected:
   virtual void doAddressOptLoad();
   virtual void doAddressOptStore();
 
+  void lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr, Operand *Expected,
+                          Operand *Desired);
   void lowerAtomicRMW(Variable *Dest, uint32_t Operation, Operand *Ptr,
                       Operand *Val);
+
+  typedef void (TargetX8632::*LowerBinOp)(Variable *, Operand *);
+  void expandAtomicRMWAsCmpxchg(LowerBinOp op_lo, LowerBinOp op_hi,
+                                Variable *Dest, Operand *Ptr, Operand *Val);
 
   // Operand legalization helpers.  To deal with address mode
   // constraints, the helpers will create a new Operand and emit
@@ -177,6 +183,22 @@ protected:
   void _cmp(Operand *Src0, Operand *Src1) {
     Context.insert(InstX8632Icmp::create(Func, Src0, Src1));
   }
+  void _cmpxchg(Operand *DestOrAddr, Variable *Eax, Variable *Desired,
+                bool Locked) {
+    Context.insert(
+        InstX8632Cmpxchg::create(Func, DestOrAddr, Eax, Desired, Locked));
+    // Mark eax as possibly modified by cmpxchg.
+    Context.insert(
+        InstFakeDef::create(Func, Eax, llvm::dyn_cast<Variable>(DestOrAddr)));
+  }
+  void _cmpxchg8b(OperandX8632 *Addr, Variable *Edx, Variable *Eax,
+                  Variable *Ecx, Variable *Ebx, bool Locked) {
+    Context.insert(
+        InstX8632Cmpxchg8b::create(Func, Addr, Edx, Eax, Ecx, Ebx, Locked));
+    // Mark edx, and eax as possibly modified by cmpxchg8b.
+    Context.insert(InstFakeDef::create(Func, Edx));
+    Context.insert(InstFakeDef::create(Func, Eax));
+  }
   void _cvt(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Cvt::create(Func, Dest, Src0));
   }
@@ -231,6 +253,9 @@ protected:
   }
   void _mulss(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Mulss::create(Func, Dest, Src0));
+  }
+  void _neg(Variable *SrcDest) {
+    Context.insert(InstX8632Neg::create(Func, SrcDest));
   }
   void _or(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Or::create(Func, Dest, Src0));
@@ -294,7 +319,14 @@ protected:
     Context.insert(InstX8632Xadd::create(Func, Dest, Src, Locked));
     // The xadd exchanges Dest and Src (modifying Src).
     // Model that update with a FakeDef.
-    Context.insert(InstFakeDef::create(Func, Src));
+    Context.insert(
+        InstFakeDef::create(Func, Src, llvm::dyn_cast<Variable>(Dest)));
+  }
+  void _xchg(Operand *Dest, Variable *Src) {
+    Context.insert(InstX8632Xchg::create(Func, Dest, Src));
+    // The xchg modifies Dest and Src -- model that update with a FakeDef.
+    Context.insert(
+        InstFakeDef::create(Func, Src, llvm::dyn_cast<Variable>(Dest)));
   }
   void _xor(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Xor::create(Func, Dest, Src0));

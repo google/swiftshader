@@ -1968,7 +1968,7 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
 
 void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   switch (Instr->getIntrinsicInfo().ID) {
-  case Intrinsics::AtomicCmpxchg:
+  case Intrinsics::AtomicCmpxchg: {
     if (!Intrinsics::VerifyMemoryOrder(
              llvm::cast<ConstantInteger>(Instr->getArg(3))->getValue())) {
       Func->setError("Unexpected memory ordering (success) for AtomicCmpxchg");
@@ -1979,9 +1979,18 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       Func->setError("Unexpected memory ordering (failure) for AtomicCmpxchg");
       return;
     }
-    // TODO(jvoung): fill it in.
-    Func->setError("Unhandled intrinsic");
+    Variable *DestPrev = Instr->getDest();
+    Operand *PtrToMem = Instr->getArg(0);
+    Operand *Expected = Instr->getArg(1);
+    Operand *Desired = Instr->getArg(2);
+    lowerAtomicCmpxchg(DestPrev, PtrToMem, Expected, Desired);
+    // TODO(jvoung): If we peek ahead a few instructions and see how
+    // DestPrev is used (typically via another compare and branch),
+    // we may be able to optimize. If the result truly is used by a
+    // compare + branch, and the comparison is for equality, then we can
+    // optimize out the later compare, and fuse with the later branch.
     return;
+  }
   case Intrinsics::AtomicFence:
     if (!Intrinsics::VerifyMemoryOrder(
              llvm::cast<ConstantInteger>(Instr->getArg(0))->getValue())) {
@@ -2183,18 +2192,54 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   return;
 }
 
+void TargetX8632::lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr,
+                                     Operand *Expected, Operand *Desired) {
+  if (Expected->getType() == IceType_i64) {
+    // Reserve the pre-colored registers first, before adding any more
+    // infinite-weight variables from FormMemoryOperand's legalization.
+    Variable *T_edx = makeReg(IceType_i32, Reg_edx);
+    Variable *T_eax = makeReg(IceType_i32, Reg_eax);
+    Variable *T_ecx = makeReg(IceType_i32, Reg_ecx);
+    Variable *T_ebx = makeReg(IceType_i32, Reg_ebx);
+    _mov(T_eax, loOperand(Expected));
+    _mov(T_edx, hiOperand(Expected));
+    _mov(T_ebx, loOperand(Desired));
+    _mov(T_ecx, hiOperand(Desired));
+    OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Expected->getType());
+    const bool Locked = true;
+    _cmpxchg8b(Addr, T_edx, T_eax, T_ecx, T_ebx, Locked);
+    Variable *DestLo = llvm::cast<Variable>(loOperand(DestPrev));
+    Variable *DestHi = llvm::cast<Variable>(hiOperand(DestPrev));
+    _mov(DestLo, T_eax);
+    _mov(DestHi, T_edx);
+    return;
+  }
+  Variable *T_eax = makeReg(Expected->getType(), Reg_eax);
+  _mov(T_eax, Expected);
+  OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Expected->getType());
+  Variable *DesiredReg = legalizeToVar(Desired);
+  const bool Locked = true;
+  _cmpxchg(Addr, T_eax, DesiredReg, Locked);
+  _mov(DestPrev, T_eax);
+}
+
 void TargetX8632::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
                                  Operand *Ptr, Operand *Val) {
+  bool NeedsCmpxchg = false;
+  LowerBinOp Op_Lo = NULL;
+  LowerBinOp Op_Hi = NULL;
   switch (Operation) {
   default:
     Func->setError("Unknown AtomicRMW operation");
     return;
   case Intrinsics::AtomicAdd: {
     if (Dest->getType() == IceType_i64) {
-      // Do a nasty cmpxchg8b loop. Factor this into a function.
-      // TODO(jvoung): fill it in.
-      Func->setError("Unhandled AtomicRMW operation");
-      return;
+      // All the fall-through paths must set this to true, but use this
+      // for asserting.
+      NeedsCmpxchg = true;
+      Op_Lo = &TargetX8632::_add;
+      Op_Hi = &TargetX8632::_adc;
+      break;
     }
     OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Dest->getType());
     const bool Locked = true;
@@ -2206,26 +2251,160 @@ void TargetX8632::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
   }
   case Intrinsics::AtomicSub: {
     if (Dest->getType() == IceType_i64) {
-      // Do a nasty cmpxchg8b loop.
-      // TODO(jvoung): fill it in.
-      Func->setError("Unhandled AtomicRMW operation");
-      return;
+      NeedsCmpxchg = true;
+      Op_Lo = &TargetX8632::_sub;
+      Op_Hi = &TargetX8632::_sbb;
+      break;
     }
-    // Generate a memory operand from Ptr.
-    // neg...
-    // Then do the same as AtomicAdd.
-    // TODO(jvoung): fill it in.
-    Func->setError("Unhandled AtomicRMW operation");
+    OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Dest->getType());
+    const bool Locked = true;
+    Variable *T = NULL;
+    _mov(T, Val);
+    _neg(T);
+    _xadd(Addr, T, Locked);
+    _mov(Dest, T);
     return;
   }
   case Intrinsics::AtomicOr:
+    // TODO(jvoung): If Dest is null or dead, then some of these
+    // operations do not need an "exchange", but just a locked op.
+    // That appears to be "worth" it for sub, or, and, and xor.
+    // xadd is probably fine vs lock add for add, and xchg is fine
+    // vs an atomic store.
+    NeedsCmpxchg = true;
+    Op_Lo = &TargetX8632::_or;
+    Op_Hi = &TargetX8632::_or;
+    break;
   case Intrinsics::AtomicAnd:
+    NeedsCmpxchg = true;
+    Op_Lo = &TargetX8632::_and;
+    Op_Hi = &TargetX8632::_and;
+    break;
   case Intrinsics::AtomicXor:
+    NeedsCmpxchg = true;
+    Op_Lo = &TargetX8632::_xor;
+    Op_Hi = &TargetX8632::_xor;
+    break;
   case Intrinsics::AtomicExchange:
-    // TODO(jvoung): fill it in.
-    Func->setError("Unhandled AtomicRMW operation");
+    if (Dest->getType() == IceType_i64) {
+      NeedsCmpxchg = true;
+      // NeedsCmpxchg, but no real Op_Lo/Op_Hi need to be done. The values
+      // just need to be moved to the ecx and ebx registers.
+      Op_Lo = NULL;
+      Op_Hi = NULL;
+      break;
+    }
+    OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Dest->getType());
+    Variable *T = NULL;
+    _mov(T, Val);
+    _xchg(Addr, T);
+    _mov(Dest, T);
     return;
   }
+  // Otherwise, we need a cmpxchg loop.
+  assert(NeedsCmpxchg);
+  expandAtomicRMWAsCmpxchg(Op_Lo, Op_Hi, Dest, Ptr, Val);
+}
+
+void TargetX8632::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo, LowerBinOp Op_Hi,
+                                           Variable *Dest, Operand *Ptr,
+                                           Operand *Val) {
+  // Expand a more complex RMW operation as a cmpxchg loop:
+  // For 64-bit:
+  //   mov     eax, [ptr]
+  //   mov     edx, [ptr + 4]
+  // .LABEL:
+  //   mov     ebx, eax
+  //   <Op_Lo> ebx, <desired_adj_lo>
+  //   mov     ecx, edx
+  //   <Op_Hi> ecx, <desired_adj_hi>
+  //   lock cmpxchg8b [ptr]
+  //   jne     .LABEL
+  //   mov     <dest_lo>, eax
+  //   mov     <dest_lo>, edx
+  //
+  // For 32-bit:
+  //   mov     eax, [ptr]
+  // .LABEL:
+  //   mov     <reg>, eax
+  //   op      <reg>, [desired_adj]
+  //   lock cmpxchg [ptr], <reg>
+  //   jne     .LABEL
+  //   mov     <dest>, eax
+  //
+  // If Op_{Lo,Hi} are NULL, then just copy the value.
+  Val = legalize(Val);
+  Type Ty = Val->getType();
+  if (Ty == IceType_i64) {
+    Variable *T_edx = makeReg(IceType_i32, Reg_edx);
+    Variable *T_eax = makeReg(IceType_i32, Reg_eax);
+    OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Ty);
+    _mov(T_eax, loOperand(Addr));
+    _mov(T_edx, hiOperand(Addr));
+    Variable *T_ecx = makeReg(IceType_i32, Reg_ecx);
+    Variable *T_ebx = makeReg(IceType_i32, Reg_ebx);
+    InstX8632Label *Label = InstX8632Label::create(Func, this);
+    const bool IsXchg8b = Op_Lo == NULL && Op_Hi == NULL;
+    if (!IsXchg8b) {
+      Context.insert(Label);
+      _mov(T_ebx, T_eax);
+      (this->*Op_Lo)(T_ebx, loOperand(Val));
+      _mov(T_ecx, T_edx);
+      (this->*Op_Hi)(T_ecx, hiOperand(Val));
+    } else {
+      // This is for xchg, which doesn't need an actual Op_Lo/Op_Hi.
+      // It just needs the Val loaded into ebx and ecx.
+      // That can also be done before the loop.
+      _mov(T_ebx, loOperand(Val));
+      _mov(T_ecx, hiOperand(Val));
+      Context.insert(Label);
+    }
+    const bool Locked = true;
+    _cmpxchg8b(Addr, T_edx, T_eax, T_ecx, T_ebx, Locked);
+    _br(InstX8632Br::Br_ne, Label);
+    if (!IsXchg8b) {
+      // If Val is a variable, model the extended live range of Val through
+      // the end of the loop, since it will be re-used by the loop.
+      if (Variable *ValVar = llvm::dyn_cast<Variable>(Val)) {
+        Variable *ValLo = llvm::cast<Variable>(loOperand(ValVar));
+        Variable *ValHi = llvm::cast<Variable>(hiOperand(ValVar));
+        Context.insert(InstFakeUse::create(Func, ValLo));
+        Context.insert(InstFakeUse::create(Func, ValHi));
+      }
+    } else {
+      // For xchg, the loop is slightly smaller and ebx/ecx are used.
+      Context.insert(InstFakeUse::create(Func, T_ebx));
+      Context.insert(InstFakeUse::create(Func, T_ecx));
+    }
+    // The address base is also reused in the loop.
+    Context.insert(InstFakeUse::create(Func, Addr->getBase()));
+    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    _mov(DestLo, T_eax);
+    _mov(DestHi, T_edx);
+    return;
+  }
+  OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Ty);
+  Variable *T_eax = makeReg(Ty, Reg_eax);
+  _mov(T_eax, Addr);
+  InstX8632Label *Label = InstX8632Label::create(Func, this);
+  Context.insert(Label);
+  // We want to pick a different register for T than Eax, so don't use
+  // _mov(T == NULL, T_eax).
+  Variable *T = makeReg(Ty);
+  _mov(T, T_eax);
+  (this->*Op_Lo)(T, Val);
+  const bool Locked = true;
+  _cmpxchg(Addr, T_eax, T, Locked);
+  _br(InstX8632Br::Br_ne, Label);
+  // If Val is a variable, model the extended live range of Val through
+  // the end of the loop, since it will be re-used by the loop.
+  if (Variable *ValVar = llvm::dyn_cast<Variable>(Val)) {
+    Context.insert(InstFakeUse::create(Func, ValVar));
+  }
+  // The address base is also reused in the loop.
+  Context.insert(InstFakeUse::create(Func, Addr->getBase()));
+  _mov(Dest, T_eax);
 }
 
 namespace {

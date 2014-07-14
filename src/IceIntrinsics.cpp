@@ -46,7 +46,7 @@ const struct IceIntrinsicsEntry_ {
       "nacl.atomic.fence" },
     { { { Intrinsics::AtomicFenceAll, true }, { IceType_void }, 1 },
       "nacl.atomic.fence.all" },
-    { { { Intrinsics::AtomicIsLockFree, true },
+    { { { Intrinsics::AtomicIsLockFree, false },
         { IceType_i1, IceType_i32, IceType_i32 }, 3 },
       "nacl.atomic.is.lock.free" },
 

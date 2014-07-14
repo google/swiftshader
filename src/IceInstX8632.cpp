@@ -51,9 +51,8 @@ const size_t TypeX8632AttributesSize =
     llvm::array_lengthof(TypeX8632Attributes);
 
 const char *InstX8632SegmentRegNames[] = {
-#define X(val, name)                                                           \
-  name,
-    SEG_REGX8632_TABLE
+#define X(val, name) name,
+  SEG_REGX8632_TABLE
 #undef X
 };
 const size_t InstX8632SegmentRegNamesSize =
@@ -138,6 +137,33 @@ InstX8632Cdq::InstX8632Cdq(Cfg *Func, Variable *Dest, Operand *Source)
   assert(llvm::isa<Variable>(Source));
   assert(llvm::dyn_cast<Variable>(Source)->getRegNum() == TargetX8632::Reg_eax);
   addSource(Source);
+}
+
+InstX8632Cmpxchg::InstX8632Cmpxchg(Cfg *Func, Operand *DestOrAddr,
+                                   Variable *Eax, Variable *Desired,
+                                   bool Locked)
+    : InstX8632Lockable(Func, InstX8632::Cmpxchg, 3,
+                        llvm::dyn_cast<Variable>(DestOrAddr), Locked) {
+  assert(Eax->getRegNum() == TargetX8632::Reg_eax);
+  addSource(DestOrAddr);
+  addSource(Eax);
+  addSource(Desired);
+}
+
+InstX8632Cmpxchg8b::InstX8632Cmpxchg8b(Cfg *Func, OperandX8632 *Addr,
+                                       Variable *Edx, Variable *Eax,
+                                       Variable *Ecx, Variable *Ebx,
+                                       bool Locked)
+    : InstX8632Lockable(Func, InstX8632::Cmpxchg, 5, NULL, Locked) {
+  assert(Edx->getRegNum() == TargetX8632::Reg_edx);
+  assert(Eax->getRegNum() == TargetX8632::Reg_eax);
+  assert(Ecx->getRegNum() == TargetX8632::Reg_ecx);
+  assert(Ebx->getRegNum() == TargetX8632::Reg_ebx);
+  addSource(Addr);
+  addSource(Edx);
+  addSource(Eax);
+  addSource(Ecx);
+  addSource(Ebx);
 }
 
 InstX8632Cvt::InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source)
@@ -284,9 +310,14 @@ InstX8632Ret::InstX8632Ret(Cfg *Func, Variable *Source)
 
 InstX8632Xadd::InstX8632Xadd(Cfg *Func, Operand *Dest, Variable *Source,
                              bool Locked)
-    : InstX8632(Func, InstX8632::Xadd, 2, llvm::dyn_cast<Variable>(Dest)),
-      Locked(Locked) {
-  HasSideEffects = Locked;
+    : InstX8632Lockable(Func, InstX8632::Xadd, 2,
+                        llvm::dyn_cast<Variable>(Dest), Locked) {
+  addSource(Dest);
+  addSource(Source);
+}
+
+InstX8632Xchg::InstX8632Xchg(Cfg *Func, Operand *Dest, Variable *Source)
+    : InstX8632(Func, InstX8632::Xchg, 2, llvm::dyn_cast<Variable>(Dest)) {
   addSource(Dest);
   addSource(Source);
 }
@@ -398,6 +429,7 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
   Str << "\n";
 }
 
+template <> const char *InstX8632Neg::Opcode = "neg";
 template <> const char *InstX8632Add::Opcode = "add";
 template <> const char *InstX8632Addps::Opcode = "addps";
 template <> const char *InstX8632Adc::Opcode = "adc";
@@ -551,6 +583,48 @@ void InstX8632Cdq::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = cdq." << getSrc(0)->getType() << " ";
+  dumpSources(Func);
+}
+
+void InstX8632Cmpxchg::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 3);
+  if (Locked) {
+    Str << "\tlock";
+  }
+  Str << "\tcmpxchg\t";
+  getSrc(0)->emit(Func);
+  Str << ", ";
+  getSrc(2)->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632Cmpxchg::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  if (Locked) {
+    Str << "lock ";
+  }
+  Str << "cmpxchg." << getSrc(0)->getType() << " ";
+  dumpSources(Func);
+}
+
+void InstX8632Cmpxchg8b::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 5);
+  if (Locked) {
+    Str << "\tlock";
+  }
+  Str << "\tcmpxchg8b\t";
+  getSrc(0)->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632Cmpxchg8b::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  if (Locked) {
+    Str << "lock ";
+  }
+  Str << "cmpxchg8b ";
   dumpSources(Func);
 }
 
@@ -955,10 +1029,9 @@ void InstX8632Sqrtss::dump(const Cfg *Func) const {
 void InstX8632Xadd::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   if (Locked) {
-    Str << "\tlock xadd ";
-  } else {
-    Str << "\txadd\t";
+    Str << "\tlock";
   }
+  Str << "\txadd\t";
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
@@ -972,6 +1045,22 @@ void InstX8632Xadd::dump(const Cfg *Func) const {
   }
   Type Ty = getSrc(0)->getType();
   Str << "xadd." << Ty << " ";
+  dumpSources(Func);
+}
+
+void InstX8632Xchg::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\txchg\t";
+  getSrc(0)->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632Xchg::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  Type Ty = getSrc(0)->getType();
+  Str << "xchg." << Ty << " ";
   dumpSources(Func);
 }
 
