@@ -136,8 +136,9 @@ protected:
   InstCall *makeHelperCall(const IceString &Name, Variable *Dest,
                            SizeT MaxSrcs) {
     bool SuppressMangling = true;
-    Type Ty = Dest ? Dest->getType() : IceType_void;
-    Constant *CallTarget = Ctx->getConstantSym(Ty, 0, Name, SuppressMangling);
+    const Type FunctionPointerType = IceType_i32;
+    Constant *CallTarget =
+        Ctx->getConstantSym(FunctionPointerType, 0, Name, SuppressMangling);
     InstCall *Call = InstCall::create(Func, MaxSrcs, Dest, CallTarget);
     return Call;
   }

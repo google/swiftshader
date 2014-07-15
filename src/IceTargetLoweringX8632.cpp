@@ -2756,7 +2756,7 @@ void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) {
 Variable *TargetX8632::copyToReg(Operand *Src, int32_t RegNum) {
   Type Ty = Src->getType();
   Variable *Reg = makeReg(Ty, RegNum);
-  if (isVectorType(Src->getType())) {
+  if (isVectorType(Ty)) {
     _movp(Reg, Src);
   } else {
     _mov(Reg, Src);
@@ -2827,6 +2827,8 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
         From = Ctx->getConstantZero(From->getType());
       }
     }
+    // There should be no constants of vector type (other than undef).
+    assert(!isVectorType(From->getType()));
     bool NeedsReg = false;
     if (!(Allowed & Legal_Imm))
       // Immediate specifically not allowed
@@ -2846,13 +2848,16 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
     return From;
   }
   if (Variable *Var = llvm::dyn_cast<Variable>(From)) {
+    // Check if the variable is guaranteed a physical register.  This
+    // can happen either when the variable is pre-colored or when it is
+    // assigned infinite weight.
+    bool MustHaveRegister =
+        (Var->hasReg() || Var->getWeight() == RegWeight::Inf);
     // We need a new physical register for the operand if:
     //   Mem is not allowed and Var isn't guaranteed a physical
     //   register, or
     //   RegNum is required and Var->getRegNum() doesn't match.
-    bool WillHaveRegister =
-        (Var->hasReg() || Var->getWeight() == RegWeight::Inf);
-    if ((!(Allowed & Legal_Mem) && !WillHaveRegister) ||
+    if ((!(Allowed & Legal_Mem) && !MustHaveRegister) ||
         (RegNum != Variable::NoRegister && RegNum != Var->getRegNum())) {
       Variable *Reg = copyToReg(From, RegNum);
       if (RegNum == Variable::NoRegister) {
