@@ -1182,9 +1182,10 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       _movp(Dest, T);
     } break;
     case InstArithmetic::Frem: {
-      const SizeT MaxSrcs = 1;
+      const SizeT MaxSrcs = 2;
       InstCall *Call = makeHelperCall("__frem_v4f32", Dest, MaxSrcs);
       Call->addArg(Src0);
+      Call->addArg(Src1);
       lowerCall(Call);
     } break;
     }
