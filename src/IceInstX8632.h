@@ -168,8 +168,14 @@ public:
     Mulss,
     Neg,
     Or,
+    Pand,
+    Pcmpeq,
+    Pcmpgt,
     Pop,
     Push,
+    Psll,
+    Psra,
+    Psub,
     Pxor,
     Ret,
     Sar,
@@ -453,7 +459,9 @@ typedef InstX8632Binop<InstX8632::Sub> InstX8632Sub;
 typedef InstX8632Binop<InstX8632::Subps> InstX8632Subps;
 typedef InstX8632Binop<InstX8632::Subss> InstX8632Subss;
 typedef InstX8632Binop<InstX8632::Sbb> InstX8632Sbb;
+typedef InstX8632Binop<InstX8632::Psub> InstX8632Psub;
 typedef InstX8632Binop<InstX8632::And> InstX8632And;
+typedef InstX8632Binop<InstX8632::Pand> InstX8632Pand;
 typedef InstX8632Binop<InstX8632::Or> InstX8632Or;
 typedef InstX8632Binop<InstX8632::Xor> InstX8632Xor;
 typedef InstX8632Binop<InstX8632::Pxor> InstX8632Pxor;
@@ -463,8 +471,12 @@ typedef InstX8632Binop<InstX8632::Mulss> InstX8632Mulss;
 typedef InstX8632Binop<InstX8632::Divps> InstX8632Divps;
 typedef InstX8632Binop<InstX8632::Divss> InstX8632Divss;
 typedef InstX8632Binop<InstX8632::Shl, true> InstX8632Shl;
+typedef InstX8632Binop<InstX8632::Psll> InstX8632Psll;
 typedef InstX8632Binop<InstX8632::Shr, true> InstX8632Shr;
 typedef InstX8632Binop<InstX8632::Sar, true> InstX8632Sar;
+typedef InstX8632Binop<InstX8632::Psra> InstX8632Psra;
+typedef InstX8632Binop<InstX8632::Pcmpeq> InstX8632Pcmpeq;
+typedef InstX8632Binop<InstX8632::Pcmpgt> InstX8632Pcmpgt;
 typedef InstX8632Ternop<InstX8632::Idiv> InstX8632Idiv;
 typedef InstX8632Ternop<InstX8632::Div> InstX8632Div;
 

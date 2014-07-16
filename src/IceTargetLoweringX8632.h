@@ -148,6 +148,10 @@ protected:
 
   Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
 
+  // Returns a vector in a register with the given constant entries.
+  Variable *makeVectorOfZeros(Type Ty, int32_t RegNum = Variable::NoRegister);
+  Variable *makeVectorOfOnes(Type Ty, int32_t RegNum = Variable::NoRegister);
+
   // The following are helpers that insert lowered x86 instructions
   // with minimal syntactic overhead, so that the lowering code can
   // look as close to assembly as practical.
@@ -272,11 +276,29 @@ protected:
   void _or(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Or::create(Func, Dest, Src0));
   }
+  void _pand(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Pand::create(Func, Dest, Src0));
+  }
+  void _pcmpeq(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Pcmpeq::create(Func, Dest, Src0));
+  }
+  void _pcmpgt(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Pcmpgt::create(Func, Dest, Src0));
+  }
   void _pop(Variable *Dest) {
     Context.insert(InstX8632Pop::create(Func, Dest));
   }
   void _push(Operand *Src0, bool SuppressStackAdjustment = false) {
     Context.insert(InstX8632Push::create(Func, Src0, SuppressStackAdjustment));
+  }
+  void _psll(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Psll::create(Func, Dest, Src0));
+  }
+  void _psra(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Psra::create(Func, Dest, Src0));
+  }
+  void _psub(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Psub::create(Func, Dest, Src0));
   }
   void _pxor(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pxor::create(Func, Dest, Src0));

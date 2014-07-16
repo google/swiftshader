@@ -39,10 +39,11 @@ const size_t InstX8632BrAttributesSize =
 const struct TypeX8632Attributes_ {
   const char *CvtString;   // i (integer), s (single FP), d (double FP)
   const char *SdSsString;  // ss, sd, or <blank>
+  const char *PackString;  // b, w, d, or <blank>
   const char *WidthString; // {byte,word,dword,qword} ptr
 } TypeX8632Attributes[] = {
-#define X(tag, cvt, sdss, width)                                               \
-  { cvt, "" sdss, width }                                                      \
+#define X(tag, cvt, sdss, pack, width)                                         \
+  { cvt, "" sdss, pack, width }                                                \
   ,
     ICETYPEX8632_TABLE
 #undef X
@@ -448,8 +449,10 @@ template <> const char *InstX8632Addss::Opcode = "addss";
 template <> const char *InstX8632Sub::Opcode = "sub";
 template <> const char *InstX8632Subps::Opcode = "subps";
 template <> const char *InstX8632Subss::Opcode = "subss";
+template <> const char *InstX8632Psub::Opcode = "psub";
 template <> const char *InstX8632Sbb::Opcode = "sbb";
 template <> const char *InstX8632And::Opcode = "and";
+template <> const char *InstX8632Pand::Opcode = "pand";
 template <> const char *InstX8632Or::Opcode = "or";
 template <> const char *InstX8632Xor::Opcode = "xor";
 template <> const char *InstX8632Pxor::Opcode = "pxor";
@@ -461,8 +464,12 @@ template <> const char *InstX8632Divps::Opcode = "divps";
 template <> const char *InstX8632Idiv::Opcode = "idiv";
 template <> const char *InstX8632Divss::Opcode = "divss";
 template <> const char *InstX8632Shl::Opcode = "shl";
+template <> const char *InstX8632Psll::Opcode = "psll";
 template <> const char *InstX8632Shr::Opcode = "shr";
 template <> const char *InstX8632Sar::Opcode = "sar";
+template <> const char *InstX8632Psra::Opcode = "psra";
+template <> const char *InstX8632Pcmpeq::Opcode = "pcmpeq";
+template <> const char *InstX8632Pcmpgt::Opcode = "pcmpgt";
 
 template <> void InstX8632Sqrtss::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -690,7 +697,7 @@ void InstX8632Cmpxchg8b::dump(const Cfg *Func) const {
 void InstX8632Cvt::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
-  Str << "\tcvts" << TypeX8632Attributes[getSrc(0)->getType()].CvtString << "2s"
+  Str << "\tcvt" << TypeX8632Attributes[getSrc(0)->getType()].CvtString << "2"
       << TypeX8632Attributes[getDest()->getType()].CvtString << "\t";
   getDest()->emit(Func);
   Str << ", ";
@@ -701,8 +708,8 @@ void InstX8632Cvt::emit(const Cfg *Func) const {
 void InstX8632Cvt::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
-  Str << " = cvts" << TypeX8632Attributes[getSrc(0)->getType()].CvtString
-      << "2s" << TypeX8632Attributes[getDest()->getType()].CvtString << " ";
+  Str << " = cvt" << TypeX8632Attributes[getSrc(0)->getType()].CvtString
+      << "2" << TypeX8632Attributes[getDest()->getType()].CvtString << " ";
   dumpSources(Func);
 }
 
@@ -1000,6 +1007,20 @@ void InstX8632Fstp::dump(const Cfg *Func) const {
   Str << "\n";
 }
 
+template <> void InstX8632Pcmpeq::emit(const Cfg *Func) const {
+  char buf[30];
+  snprintf(buf, llvm::array_lengthof(buf), "pcmpeq%s",
+           TypeX8632Attributes[getDest()->getType()].PackString);
+  emitTwoAddress(buf, this, Func);
+}
+
+template <> void InstX8632Pcmpgt::emit(const Cfg *Func) const {
+  char buf[30];
+  snprintf(buf, llvm::array_lengthof(buf), "pcmpgt%s",
+           TypeX8632Attributes[getDest()->getType()].PackString);
+  emitTwoAddress(buf, this, Func);
+}
+
 void InstX8632Pop::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 0);
@@ -1052,6 +1073,31 @@ void InstX8632Push::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "push." << getSrc(0)->getType() << " ";
   dumpSources(Func);
+}
+
+template <> void InstX8632Psll::emit(const Cfg *Func) const {
+  assert(getDest()->getType() == IceType_v8i16 ||
+         getDest()->getType() == IceType_v4i32);
+  char buf[30];
+  snprintf(buf, llvm::array_lengthof(buf), "psll%s",
+           TypeX8632Attributes[getDest()->getType()].PackString);
+  emitTwoAddress(buf, this, Func);
+}
+
+template <> void InstX8632Psra::emit(const Cfg *Func) const {
+  assert(getDest()->getType() == IceType_v8i16 ||
+         getDest()->getType() == IceType_v4i32);
+  char buf[30];
+  snprintf(buf, llvm::array_lengthof(buf), "psra%s",
+           TypeX8632Attributes[getDest()->getType()].PackString);
+  emitTwoAddress(buf, this, Func);
+}
+
+template <> void InstX8632Psub::emit(const Cfg *Func) const {
+  char buf[30];
+  snprintf(buf, llvm::array_lengthof(buf), "psub%s",
+           TypeX8632Attributes[getDest()->getType()].PackString);
+  emitTwoAddress(buf, this, Func);
 }
 
 void InstX8632Ret::emit(const Cfg *Func) const {

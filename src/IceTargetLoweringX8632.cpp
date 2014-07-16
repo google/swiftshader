@@ -87,6 +87,8 @@ InstX8632::BrCond getIcmp32Mapping(InstIcmp::ICond Cond) {
 
 // The maximum number of arguments to pass in XMM registers
 const unsigned X86_MAX_XMM_ARGS = 4;
+// The number of bits in a byte
+const unsigned X86_CHAR_BIT = 8;
 
 // In some cases, there are x-macros tables for both high-level and
 // low-level instructions/operands that use the same enum key value.
@@ -157,7 +159,7 @@ void xMacroIntegrityCheck() {
     // Define a temporary set of enum values based on low-level
     // table entries.
     enum _tmp_enum {
-#define X(tag, cvt, sdss, width) _tmp_##tag,
+#define X(tag, cvt, sdss, pack, width) _tmp_##tag,
       ICETYPEX8632_TABLE
 #undef X
           _num
@@ -169,7 +171,7 @@ void xMacroIntegrityCheck() {
 #undef X
 // Define a set of constants based on low-level table entries,
 // and ensure the table entry keys are consistent.
-#define X(tag, cvt, sdss, width)                                               \
+#define X(tag, cvt, sdss, pack, width)                                         \
   static const int _table2_##tag = _tmp_##tag;                                 \
   STATIC_ASSERT(_table1_##tag == _table2_##tag);
     ICETYPEX8632_TABLE;
@@ -1573,6 +1575,28 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _mov(T_Hi, T_Lo);
       _sar(T_Hi, Shift);
       _mov(DestHi, T_Hi);
+    } else if (isVectorType(Dest->getType())) {
+      Type DestTy = Dest->getType();
+      if (DestTy == IceType_v16i8) {
+        // onemask = materialize(1,1,...); dst = (src & onemask) > 0
+        Variable *OneMask = makeVectorOfOnes(Dest->getType());
+        Variable *T = makeReg(DestTy);
+        _movp(T, Src0RM);
+        _pand(T, OneMask);
+        Variable *Zeros = makeVectorOfZeros(Dest->getType());
+        _pcmpgt(T, Zeros);
+        _movp(Dest, T);
+      } else {
+        // width = width(elty) - 1; dest = (src << width) >> width
+        SizeT ShiftAmount =
+            X86_CHAR_BIT * typeWidthInBytes(typeElementType(DestTy)) - 1;
+        Constant *ShiftConstant = Ctx->getConstantInt(IceType_i8, ShiftAmount);
+        Variable *T = makeReg(DestTy);
+        _movp(T, Src0RM);
+        _psll(T, ShiftConstant);
+        _psra(T, ShiftConstant);
+        _movp(Dest, T);
+      }
     } else {
       // TODO: Sign-extend an i1 via "shl reg, 31; sar reg, 31", and
       // also copy to the high operand of a 64-bit variable.
@@ -1604,6 +1628,14 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _movzx(T, Src0RM);
       _and(T, One);
       _mov(Dest, T);
+    } else if (isVectorType(Dest->getType())) {
+      // onemask = materialize(1,1,...); dest = onemask & src
+      Type DestTy = Dest->getType();
+      Variable *OneMask = makeVectorOfOnes(DestTy);
+      Variable *T = makeReg(DestTy);
+      _movp(T, Src0RM);
+      _pand(T, OneMask);
+      _movp(Dest, T);
     } else {
       // t1 = movzx src; dst = t1
       Variable *T = makeReg(Dest->getType());
@@ -1613,14 +1645,25 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     break;
   }
   case InstCast::Trunc: {
-    Operand *Src0 = Inst->getSrc(0);
-    if (Src0->getType() == IceType_i64)
-      Src0 = loOperand(Src0);
-    Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
-    // t1 = trunc Src0RM; Dest = t1
-    Variable *T = NULL;
-    _mov(T, Src0RM);
-    _mov(Dest, T);
+    if (isVectorType(Dest->getType())) {
+      // onemask = materialize(1,1,...); dst = src & onemask
+      Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+      Type Src0Ty = Src0RM->getType();
+      Variable *OneMask = makeVectorOfOnes(Src0Ty);
+      Variable *T = makeReg(Dest->getType());
+      _movp(T, Src0RM);
+      _pand(T, OneMask);
+      _movp(Dest, T);
+    } else {
+      Operand *Src0 = Inst->getSrc(0);
+      if (Src0->getType() == IceType_i64)
+        Src0 = loOperand(Src0);
+      Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+      // t1 = trunc Src0RM; Dest = t1
+      Variable *T = NULL;
+      _mov(T, Src0RM);
+      _mov(Dest, T);
+    }
     break;
   }
   case InstCast::Fptrunc:
@@ -1633,7 +1676,14 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     break;
   }
   case InstCast::Fptosi:
-    if (Dest->getType() == IceType_i64) {
+    if (isVectorType(Dest->getType())) {
+      assert(Dest->getType() == IceType_v4i32 &&
+             Inst->getSrc(0)->getType() == IceType_v4f32);
+      Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+      Variable *T = makeReg(Dest->getType());
+      _cvt(T, Src0RM);
+      _movp(Dest, T);
+    } else if (Dest->getType() == IceType_i64) {
       // Use a helper for converting floating-point values to 64-bit
       // integers.  SSE2 appears to have no way to convert from xmm
       // registers to something like the edx:eax register pair, and
@@ -1660,7 +1710,15 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     }
     break;
   case InstCast::Fptoui:
-    if (Dest->getType() == IceType_i64 || Dest->getType() == IceType_i32) {
+    if (isVectorType(Dest->getType())) {
+      assert(Dest->getType() == IceType_v4i32 &&
+             Inst->getSrc(0)->getType() == IceType_v4f32);
+      const SizeT MaxSrcs = 1;
+      InstCall *Call = makeHelperCall("Sz_fptoui_v4f32", Dest, MaxSrcs);
+      Call->addArg(Inst->getSrc(0));
+      lowerCall(Call);
+    } else if (Dest->getType() == IceType_i64 ||
+               Dest->getType() == IceType_i32) {
       // Use a helper for both x86-32 and x86-64.
       split64(Dest);
       const SizeT MaxSrcs = 1;
@@ -1687,7 +1745,14 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     }
     break;
   case InstCast::Sitofp:
-    if (Inst->getSrc(0)->getType() == IceType_i64) {
+    if (isVectorType(Dest->getType())) {
+      assert(Dest->getType() == IceType_v4f32 &&
+             Inst->getSrc(0)->getType() == IceType_v4i32);
+      Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+      Variable *T = makeReg(Dest->getType());
+      _cvt(T, Src0RM);
+      _movp(Dest, T);
+    } else if (Inst->getSrc(0)->getType() == IceType_i64) {
       // Use a helper for x86-32.
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
@@ -1713,7 +1778,15 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     break;
   case InstCast::Uitofp: {
     Operand *Src0 = Inst->getSrc(0);
-    if (Src0->getType() == IceType_i64 || Src0->getType() == IceType_i32) {
+    if (isVectorType(Src0->getType())) {
+      assert(Dest->getType() == IceType_v4f32 &&
+             Src0->getType() == IceType_v4i32);
+      const SizeT MaxSrcs = 1;
+      InstCall *Call = makeHelperCall("Sz_uitofp_v4i32", Dest, MaxSrcs);
+      Call->addArg(Src0);
+      lowerCall(Call);
+    } else if (Src0->getType() == IceType_i64 ||
+               Src0->getType() == IceType_i32) {
       // Use a helper for x86-32 and x86-64.  Also use a helper for
       // i32 on x86-32.
       const SizeT MaxSrcs = 1;
@@ -1752,6 +1825,18 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     switch (Dest->getType()) {
     default:
       llvm_unreachable("Unexpected Bitcast dest type");
+    case IceType_i8: {
+      assert(Src0->getType() == IceType_v8i1);
+      InstCall *Call = makeHelperCall("Sz_bitcast_v8i1_to_i8", Dest, 1);
+      Call->addArg(Src0);
+      lowerCall(Call);
+    } break;
+    case IceType_i16: {
+      assert(Src0->getType() == IceType_v16i1);
+      InstCall *Call = makeHelperCall("Sz_bitcast_v16i1_to_i16", Dest, 1);
+      Call->addArg(Src0);
+      lowerCall(Call);
+    } break;
     case IceType_i32:
     case IceType_f32: {
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
@@ -1829,6 +1914,30 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _mov(T_Hi, hiOperand(Src0));
       _store(T_Hi, SpillHi);
       _movq(Dest, Spill);
+    } break;
+    case IceType_v8i1: {
+      assert(Src0->getType() == IceType_i8);
+      InstCall *Call = makeHelperCall("Sz_bitcast_i8_to_v8i1", Dest, 1);
+      Variable *Src0AsI32 = Func->makeVariable(IceType_i32, Context.getNode());
+      // Arguments to functions are required to be at least 32 bits wide.
+      lowerCast(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
+      Call->addArg(Src0AsI32);
+      lowerCall(Call);
+    } break;
+    case IceType_v16i1: {
+      assert(Src0->getType() == IceType_i16);
+      InstCall *Call = makeHelperCall("Sz_bitcast_i16_to_v16i1", Dest, 1);
+      Variable *Src0AsI32 = Func->makeVariable(IceType_i32, Context.getNode());
+      // Arguments to functions are required to be at least 32 bits wide.
+      lowerCast(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
+      Call->addArg(Src0AsI32);
+      lowerCall(Call);
+    } break;
+    case IceType_v8i16:
+    case IceType_v16i8:
+    case IceType_v4i32:
+    case IceType_v4f32: {
+      _movp(Dest, legalizeToVar(Src0));
     } break;
     }
     break;
@@ -2875,6 +2984,29 @@ void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) {
   lowerCall(Call);
 }
 
+Variable *TargetX8632::makeVectorOfZeros(Type Ty, int32_t RegNum) {
+  // There is no support for loading or emitting vector constants, so
+  // this value is initialized using register operations.
+  Variable *Reg = makeReg(Ty, RegNum);
+  // Insert a FakeDef, since otherwise the live range of Reg might
+  // be overestimated.
+  Context.insert(InstFakeDef::create(Func, Reg));
+  _pxor(Reg, Reg);
+  return Reg;
+}
+
+Variable *TargetX8632::makeVectorOfOnes(Type Ty, int32_t RegNum) {
+  // There is no support for loading or emitting vector constants, so
+  // this value is initialized using register operations.
+  Variable *Dest = makeVectorOfZeros(Ty, RegNum);
+  Variable *MinusOne = makeReg(Ty);
+  // Insert a FakeDef so the live range of MinusOne is not overestimated.
+  Context.insert(InstFakeDef::create(Func, MinusOne));
+  _pcmpeq(MinusOne, MinusOne);
+  _psub(Dest, MinusOne);
+  return Dest;
+}
+
 // Helper for legalize() to emit the right code to lower an operand to a
 // register of the appropriate type.
 Variable *TargetX8632::copyToReg(Operand *Src, int32_t RegNum) {
@@ -2937,19 +3069,9 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
       // overestimated.  If the constant being lowered is a 64 bit value,
       // then the result should be split and the lo and hi components will
       // need to go in uninitialized registers.
-
-      if (isVectorType(From->getType())) {
-        // There is no support for loading or emitting vector constants, so
-        // undef values are instead initialized in registers.
-        Variable *Reg = makeReg(From->getType(), RegNum);
-        // Insert a FakeDef, since otherwise the live range of Reg might
-        // be overestimated.
-        Context.insert(InstFakeDef::create(Func, Reg));
-        _pxor(Reg, Reg);
-        return Reg;
-      } else {
-        From = Ctx->getConstantZero(From->getType());
-      }
+      if (isVectorType(From->getType()))
+        return makeVectorOfZeros(From->getType());
+      From = Ctx->getConstantZero(From->getType());
     }
     // There should be no constants of vector type (other than undef).
     assert(!isVectorType(From->getType()));
