@@ -1,10 +1,14 @@
 ; This tests the NaCl intrinsics not related to atomic operations.
 
 ; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s --check-prefix=CHECKO2REM
 ; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 
+; Do another run w/ O2 and a different check-prefix (otherwise O2 and Om1
+; share the same "CHECK" prefix). This separate run helps check that
+; some code is optimized out.
+; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s --check-prefix=CHECKO2REM
+
+; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
 ; RUN:                           | FileCheck --check-prefix=DUMP %s
@@ -18,6 +22,12 @@ declare i32 @llvm.nacl.setjmp(i8*)
 declare float @llvm.sqrt.f32(float)
 declare double @llvm.sqrt.f64(double)
 declare void @llvm.trap()
+declare i32 @llvm.ctlz.i32(i32, i1)
+declare i64 @llvm.ctlz.i64(i64, i1)
+declare i32 @llvm.cttz.i32(i32, i1)
+declare i64 @llvm.cttz.i64(i64, i1)
+declare i32 @llvm.ctpop.i32(i32)
+declare i64 @llvm.ctpop.i64(i64)
 
 define i32 @test_nacl_read_tp() {
 entry:
@@ -231,6 +241,129 @@ NonZero:
 }
 ; CHECK-LABEL: test_trap
 ; CHECK: ud2
+
+define i32 @test_ctlz_32(i32 %x) {
+entry:
+  %r = call i32 @llvm.ctlz.i32(i32 %x, i1 0)
+  ret i32 %r
+}
+; CHECK-LABEL: test_ctlz_32
+; TODO(jvoung): If we detect that LZCNT is supported, then use that
+; and avoid the need to do the cmovne and xor stuff to guarantee that
+; the result is well-defined w/ input == 0.
+; CHECK: bsr [[REG_TMP:e.*]], {{.*}}
+; CHECK: mov [[REG_RES:e.*]], 63
+; CHECK: cmovne [[REG_RES]], [[REG_TMP]]
+; CHECK: xor [[REG_RES]], 31
+
+define i32 @test_ctlz_32_const() {
+entry:
+  %r = call i32 @llvm.ctlz.i32(i32 123456, i1 0)
+  ret i32 %r
+}
+; Could potentially constant fold this, but the front-end should have done that.
+; CHECK-LABEL: test_ctlz_32_const
+; CHECK: bsr
+
+define i32 @test_ctlz_32_ignored(i32 %x) {
+entry:
+  %ignored = call i32 @llvm.ctlz.i32(i32 %x, i1 0)
+  ret i32 1
+}
+; CHECKO2REM-LABEL: test_ctlz_32_ignored
+; CHECKO2REM-NOT: bsr
+
+define i64 @test_ctlz_64(i64 %x) {
+entry:
+  %r = call i64 @llvm.ctlz.i64(i64 %x, i1 0)
+  ret i64 %r
+}
+; CHECKO2REM-LABEL: test_ctlz_64
+; CHECK-LABEL: test_ctlz_64
+; CHECK: bsr [[REG_TMP1:e.*]], {{.*}}
+; CHECK: mov [[REG_RES1:e.*]], 63
+; CHECK: cmovne [[REG_RES1]], [[REG_TMP1]]
+; CHECK: xor [[REG_RES1]], 31
+; CHECK: add [[REG_RES1]], 32
+; CHECK: bsr [[REG_RES2:e.*]], {{.*}}
+; CHECK: xor [[REG_RES2]], 31
+; CHECK: test [[REG_UPPER:.*]], [[REG_UPPER]]
+; CHECK: cmove [[REG_RES2]], [[REG_RES1]]
+; CHECK: mov {{.*}}, 0
+
+define i32 @test_ctlz_64_const(i64 %x) {
+entry:
+  %r = call i64 @llvm.ctlz.i64(i64 123456789012, i1 0)
+  %r2 = trunc i64 %r to i32
+  ret i32 %r2
+}
+; CHECK-LABEL: test_ctlz_64_const
+; CHECK: bsr
+; CHECK: bsr
+
+define i32 @test_ctlz_64_ignored(i64 %x) {
+entry:
+  %ignored = call i64 @llvm.ctlz.i64(i64 1234567890, i1 0)
+  ret i32 2
+}
+; CHECKO2REM-LABEL: test_ctlz_64_ignored
+; CHECKO2REM-NOT: bsr
+
+define i32 @test_cttz_32(i32 %x) {
+entry:
+  %r = call i32 @llvm.cttz.i32(i32 %x, i1 0)
+  ret i32 %r
+}
+; CHECK-LABEL: test_cttz_32
+; CHECK: bsf [[REG_IF_NOTZERO:e.*]], {{.*}}
+; CHECK: mov [[REG_IF_ZERO:e.*]], 32
+; CHECK: cmovne [[REG_IF_ZERO]], [[REG_IF_NOTZERO]]
+
+define i64 @test_cttz_64(i64 %x) {
+entry:
+  %r = call i64 @llvm.cttz.i64(i64 %x, i1 0)
+  ret i64 %r
+}
+; CHECK-LABEL: test_cttz_64
+; CHECK: bsf [[REG_IF_NOTZERO:e.*]], {{.*}}
+; CHECK: mov [[REG_RES1:e.*]], 32
+; CHECK: cmovne [[REG_RES1]], [[REG_IF_NOTZERO]]
+; CHECK: add [[REG_RES1]], 32
+; CHECK: bsf [[REG_RES2:e.*]], [[REG_LOWER:.*]]
+; CHECK: test [[REG_LOWER]], [[REG_LOWER]]
+; CHECK: cmove [[REG_RES2]], [[REG_RES1]]
+; CHECK: mov {{.*}}, 0
+
+define i32 @test_popcount_32(i32 %x) {
+entry:
+  %r = call i32 @llvm.ctpop.i32(i32 %x)
+  ret i32 %r
+}
+; CHECK-LABEL: test_popcount_32
+; CHECK: call __popcountsi2
+
+define i64 @test_popcount_64(i64 %x) {
+entry:
+  %r = call i64 @llvm.ctpop.i64(i64 %x)
+  ret i64 %r
+}
+; CHECK-LABEL: test_popcount_64
+; CHECK: call __popcountdi2
+; __popcountdi2 only returns a 32-bit result, so clear the upper bits of
+; the return value just in case.
+; CHECK: mov {{.*}}, 0
+
+define i32 @test_popcount_64_ret_i32(i64 %x) {
+entry:
+  %r_i64 = call i64 @llvm.ctpop.i64(i64 %x)
+  %r = trunc i64 %r_i64 to i32
+  ret i32 %r
+}
+; If there is a trunc, then the mov {{.*}}, 0 is dead and gets optimized out.
+; CHECKO2REM-LABEL: test_popcount_64_ret_i32
+; CHECKO2REM: call __popcountdi2
+; CHECKO2REM-NOT: mov {{.*}}, 0
+
 
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

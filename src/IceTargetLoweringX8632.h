@@ -99,6 +99,8 @@ protected:
                           Operand *Desired);
   void lowerAtomicRMW(Variable *Dest, uint32_t Operation, Operand *Ptr,
                       Operand *Val);
+  void lowerCountZeros(bool Cttz, Type Ty, Variable *Dest, Operand *FirstVal,
+                       Operand *SecondVal);
 
   typedef void (TargetX8632::*LowerBinOp)(Variable *, Operand *);
   void expandAtomicRMWAsCmpxchg(LowerBinOp op_lo, LowerBinOp op_hi,
@@ -164,7 +166,7 @@ protected:
   void _and(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632And::create(Func, Dest, Src0));
   }
-  void _br(InstX8632Br::BrCond Condition, CfgNode *TargetTrue,
+  void _br(InstX8632::BrCond Condition, CfgNode *TargetTrue,
            CfgNode *TargetFalse) {
     Context.insert(
         InstX8632Br::create(Func, TargetTrue, TargetFalse, Condition));
@@ -172,14 +174,23 @@ protected:
   void _br(CfgNode *Target) {
     Context.insert(InstX8632Br::create(Func, Target));
   }
-  void _br(InstX8632Br::BrCond Condition, CfgNode *Target) {
+  void _br(InstX8632::BrCond Condition, CfgNode *Target) {
     Context.insert(InstX8632Br::create(Func, Target, Condition));
   }
-  void _br(InstX8632Br::BrCond Condition, InstX8632Label *Label) {
+  void _br(InstX8632::BrCond Condition, InstX8632Label *Label) {
     Context.insert(InstX8632Br::create(Func, Label, Condition));
+  }
+  void _bsf(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Bsf::create(Func, Dest, Src0));
+  }
+  void _bsr(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Bsr::create(Func, Dest, Src0));
   }
   void _cdq(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Cdq::create(Func, Dest, Src0));
+  }
+  void _cmov(Variable *Dest, Operand *Src0, InstX8632::BrCond Condition) {
+    Context.insert(InstX8632Cmov::create(Func, Dest, Src0, Condition));
   }
   void _cmp(Operand *Src0, Operand *Src1) {
     Context.insert(InstX8632Icmp::create(Func, Src0, Src1));

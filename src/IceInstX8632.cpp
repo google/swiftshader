@@ -94,6 +94,11 @@ InstX8632Mul::InstX8632Mul(Cfg *Func, Variable *Dest, Variable *Source1,
   addSource(Source2);
 }
 
+InstX8632Neg::InstX8632Neg(Cfg *Func, Operand *SrcDest)
+    : InstX8632(Func, InstX8632::Neg, 1, llvm::dyn_cast<Variable>(SrcDest)) {
+  addSource(SrcDest);
+}
+
 InstX8632Shld::InstX8632Shld(Cfg *Func, Variable *Dest, Variable *Source1,
                              Variable *Source2)
     : InstX8632(Func, InstX8632::Shld, 3, Dest) {
@@ -121,7 +126,7 @@ IceString InstX8632Label::getName(const Cfg *Func) const {
 }
 
 InstX8632Br::InstX8632Br(Cfg *Func, CfgNode *TargetTrue, CfgNode *TargetFalse,
-                         InstX8632Label *Label, InstX8632Br::BrCond Condition)
+                         InstX8632Label *Label, InstX8632::BrCond Condition)
     : InstX8632(Func, InstX8632::Br, 0, NULL), Condition(Condition),
       TargetTrue(TargetTrue), TargetFalse(TargetFalse), Label(Label) {}
 
@@ -136,6 +141,15 @@ InstX8632Cdq::InstX8632Cdq(Cfg *Func, Variable *Dest, Operand *Source)
   assert(Dest->getRegNum() == TargetX8632::Reg_edx);
   assert(llvm::isa<Variable>(Source));
   assert(llvm::dyn_cast<Variable>(Source)->getRegNum() == TargetX8632::Reg_eax);
+  addSource(Source);
+}
+
+InstX8632Cmov::InstX8632Cmov(Cfg *Func, Variable *Dest, Operand *Source,
+                             InstX8632::BrCond Condition)
+    : InstX8632(Func, InstX8632::Cmov, 2, Dest), Condition(Condition) {
+  // The final result is either the original Dest, or Source, so mark
+  // both as sources.
+  addSource(Dest);
   addSource(Source);
 }
 
@@ -297,11 +311,6 @@ bool InstX8632Movq::isRedundantAssign() const {
   return false;
 }
 
-InstX8632Sqrtss::InstX8632Sqrtss(Cfg *Func, Variable *Dest, Operand *Source)
-    : InstX8632(Func, InstX8632::Sqrtss, 1, Dest) {
-  addSource(Source);
-}
-
 InstX8632Ret::InstX8632Ret(Cfg *Func, Variable *Source)
     : InstX8632(Func, InstX8632::Ret, Source ? 1 : 0, NULL) {
   if (Source)
@@ -429,7 +438,9 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
   Str << "\n";
 }
 
-template <> const char *InstX8632Neg::Opcode = "neg";
+template <> const char *InstX8632Bsf::Opcode = "bsf";
+template <> const char *InstX8632Bsr::Opcode = "bsr";
+template <> const char *InstX8632Sqrtss::Opcode = "sqrtss";
 template <> const char *InstX8632Add::Opcode = "add";
 template <> const char *InstX8632Addps::Opcode = "addps";
 template <> const char *InstX8632Adc::Opcode = "adc";
@@ -452,6 +463,18 @@ template <> const char *InstX8632Divss::Opcode = "divss";
 template <> const char *InstX8632Shl::Opcode = "shl";
 template <> const char *InstX8632Shr::Opcode = "shr";
 template <> const char *InstX8632Sar::Opcode = "sar";
+
+template <> void InstX8632Sqrtss::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  Type Ty = getSrc(0)->getType();
+  assert(Ty == IceType_f32 || Ty == IceType_f64);
+  Str << "\tsqrt" << TypeX8632Attributes[Ty].SdSsString << "\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+  Str << "\n";
+}
 
 template <> void InstX8632Addss::emit(const Cfg *Func) const {
   char buf[30];
@@ -523,6 +546,21 @@ void InstX8632Mul::dump(const Cfg *Func) const {
   dumpSources(Func);
 }
 
+void InstX8632Neg::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  Str << "\tneg\t";
+  getSrc(0)->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632Neg::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpDest(Func);
+  Str << " = neg." << getDest()->getType() << " ";
+  dumpSources(Func);
+}
+
 void InstX8632Shld::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 3);
@@ -583,6 +621,27 @@ void InstX8632Cdq::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = cdq." << getSrc(0)->getType() << " ";
+  dumpSources(Func);
+}
+
+void InstX8632Cmov::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t";
+  assert(Condition != Br_None);
+  assert(getDest()->hasReg());
+  Str << "cmov" << InstX8632BrAttributes[Condition].DisplayString << "\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632Cmov::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "cmov" << InstX8632BrAttributes[Condition].DisplayString << ".";
+  Str << getDest()->getType() << " ";
+  dumpDest(Func);
+  Str << ", ";
   dumpSources(Func);
 }
 
@@ -1004,25 +1063,6 @@ void InstX8632Ret::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = (getSrcSize() == 0 ? IceType_void : getSrc(0)->getType());
   Str << "ret." << Ty << " ";
-  dumpSources(Func);
-}
-
-void InstX8632Sqrtss::emit(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrEmit();
-  assert(getSrcSize() == 1);
-  Type Ty = getSrc(0)->getType();
-  assert(Ty == IceType_f32 || Ty == IceType_f64);
-  Str << "\tsqrt" << TypeX8632Attributes[Ty].SdSsString << "\t";
-  getDest()->emit(Func);
-  Str << ", ";
-  getSrc(0)->emit(Func);
-  Str << "\n";
-}
-
-void InstX8632Sqrtss::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
-  dumpDest(Func);
-  Str << " = sqrt." << getDest()->getType() << " ";
   dumpSources(Func);
 }
 

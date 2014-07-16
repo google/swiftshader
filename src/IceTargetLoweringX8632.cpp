@@ -39,7 +39,7 @@ namespace {
 const struct TableFcmp_ {
   uint32_t Default;
   bool SwapOperands;
-  InstX8632Br::BrCond C1, C2;
+  InstX8632::BrCond C1, C2;
 } TableFcmp[] = {
 #define X(val, dflt, swap, C1, C2)                                             \
   { dflt, swap, InstX8632Br::C1, InstX8632Br::C2 }                             \
@@ -54,7 +54,7 @@ const size_t TableFcmpSize = llvm::array_lengthof(TableFcmp);
 // x86 conditional branch instruction.
 
 const struct TableIcmp32_ {
-  InstX8632Br::BrCond Mapping;
+  InstX8632::BrCond Mapping;
 } TableIcmp32[] = {
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
   { InstX8632Br::C_32 }                                                        \
@@ -69,7 +69,7 @@ const size_t TableIcmp32Size = llvm::array_lengthof(TableIcmp32);
 // conditional branches are needed.  For the other conditions, three separate
 // conditional branches are needed.
 const struct TableIcmp64_ {
-  InstX8632Br::BrCond C1, C2, C3;
+  InstX8632::BrCond C1, C2, C3;
 } TableIcmp64[] = {
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
   { InstX8632Br::C1_64, InstX8632Br::C2_64, InstX8632Br::C3_64 }               \
@@ -79,7 +79,7 @@ const struct TableIcmp64_ {
   };
 const size_t TableIcmp64Size = llvm::array_lengthof(TableIcmp64);
 
-InstX8632Br::BrCond getIcmp32Mapping(InstIcmp::ICond Cond) {
+InstX8632::BrCond getIcmp32Mapping(InstIcmp::ICond Cond) {
   size_t Index = static_cast<size_t>(Cond);
   assert(Index < TableIcmp32Size);
   return TableIcmp32[Index].Mapping;
@@ -2109,12 +2109,61 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Bswap:
-  case Intrinsics::Ctlz:
-  case Intrinsics::Ctpop:
-  case Intrinsics::Cttz:
-    // TODO(jvoung): fill it in.
     Func->setError("Unhandled intrinsic");
     return;
+  case Intrinsics::Ctpop: {
+    Variable *Dest = Instr->getDest();
+    Operand *Val = Instr->getArg(0);
+    InstCall *Call = makeHelperCall(Val->getType() == IceType_i64 ?
+        "__popcountdi2" : "__popcountsi2", Dest, 1);
+    Call->addArg(Val);
+    lowerCall(Call);
+    // The popcount helpers always return 32-bit values, while the intrinsic's
+    // signature matches the native POPCNT instruction and fills a 64-bit reg
+    // (in 64-bit mode). Thus, clear the upper bits of the dest just in case
+    // the user doesn't do that in the IR. If the user does that in the IR,
+    // then this zero'ing instruction is dead and gets optimized out.
+    if (Val->getType() == IceType_i64) {
+      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      Constant *Zero = Ctx->getConstantZero(IceType_i32);
+      _mov(DestHi, Zero);
+    }
+    return;
+  }
+  case Intrinsics::Ctlz: {
+    // The "is zero undef" parameter is ignored and we always return
+    // a well-defined value.
+    Operand *Val = legalize(Instr->getArg(0));
+    Operand *FirstVal;
+    Operand *SecondVal = NULL;
+    if (Val->getType() == IceType_i64) {
+      FirstVal = loOperand(Val);
+      SecondVal = hiOperand(Val);
+    } else {
+      FirstVal = Val;
+    }
+    const bool IsCttz = false;
+    lowerCountZeros(IsCttz, Val->getType(), Instr->getDest(), FirstVal,
+                    SecondVal);
+    return;
+  }
+  case Intrinsics::Cttz: {
+    // The "is zero undef" parameter is ignored and we always return
+    // a well-defined value.
+    Operand *Val = legalize(Instr->getArg(0));
+    Operand *FirstVal;
+    Operand *SecondVal = NULL;
+    if (Val->getType() == IceType_i64) {
+      FirstVal = hiOperand(Val);
+      SecondVal = loOperand(Val);
+    } else {
+      FirstVal = Val;
+    }
+    const bool IsCttz = true;
+    lowerCountZeros(IsCttz, Val->getType(), Instr->getDest(), FirstVal,
+                    SecondVal);
+    return;
+  }
   case Intrinsics::Longjmp: {
     InstCall *Call = makeHelperCall("longjmp", NULL, 2);
     Call->addArg(Instr->getArg(0));
@@ -2406,6 +2455,81 @@ void TargetX8632::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo, LowerBinOp Op_Hi,
   // The address base is also reused in the loop.
   Context.insert(InstFakeUse::create(Func, Addr->getBase()));
   _mov(Dest, T_eax);
+}
+
+// Lowers count {trailing, leading} zeros intrinsic.
+//
+// We could do constant folding here, but that should have
+// been done by the front-end/middle-end optimizations.
+void TargetX8632::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
+                                  Operand *FirstVal, Operand *SecondVal) {
+  // TODO(jvoung): Determine if the user CPU supports LZCNT (BMI).
+  // Then the instructions will handle the Val == 0 case much more simply
+  // and won't require conversion from bit position to number of zeros.
+  //
+  // Otherwise:
+  //   bsr IF_NOT_ZERO, Val
+  //   mov T_DEST, 63
+  //   cmovne T_DEST, IF_NOT_ZERO
+  //   xor T_DEST, 31
+  //   mov DEST, T_DEST
+  //
+  // NOTE: T_DEST must be a register because cmov requires its dest to be a
+  // register. Also, bsf and bsr require their dest to be a register.
+  //
+  // The xor DEST, 31 converts a bit position to # of leading zeroes.
+  // E.g., for 000... 00001100, bsr will say that the most significant bit
+  // set is at position 3, while the number of leading zeros is 28. Xor is
+  // like (31 - N) for N <= 31, and converts 63 to 32 (for the all-zeros case).
+  //
+  // Similar for 64-bit, but start w/ speculating that the upper 32 bits
+  // are all zero, and compute the result for that case (checking the lower
+  // 32 bits). Then actually compute the result for the upper bits and
+  // cmov in the result from the lower computation if the earlier speculation
+  // was correct.
+  //
+  // Cttz, is similar, but uses bsf instead, and doesn't require the xor
+  // bit position conversion, and the speculation is reversed.
+  assert(Ty == IceType_i32 || Ty == IceType_i64);
+  Variable *T = makeReg(IceType_i32);
+  if (Cttz) {
+    _bsf(T, FirstVal);
+  } else {
+    _bsr(T, FirstVal);
+  }
+  Variable *T_Dest = makeReg(IceType_i32);
+  Constant *ThirtyTwo = Ctx->getConstantInt(IceType_i32, 32);
+  Constant *ThirtyOne = Ctx->getConstantInt(IceType_i32, 31);
+  if (Cttz) {
+    _mov(T_Dest, ThirtyTwo);
+  } else {
+    Constant *SixtyThree = Ctx->getConstantInt(IceType_i32, 63);
+    _mov(T_Dest, SixtyThree);
+  }
+  _cmov(T_Dest, T, InstX8632::Br_ne);
+  if (!Cttz) {
+    _xor(T_Dest, ThirtyOne);
+  }
+  if (Ty == IceType_i32) {
+    _mov(Dest, T_Dest);
+    return;
+  }
+  _add(T_Dest, ThirtyTwo);
+  Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+  Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+  // Will be using "test" on this, so we need a registerized variable.
+  Variable *SecondVar = legalizeToVar(SecondVal);
+  Variable *T_Dest2 = makeReg(IceType_i32);
+  if (Cttz) {
+    _bsf(T_Dest2, SecondVar);
+  } else {
+    _bsr(T_Dest2, SecondVar);
+    _xor(T_Dest2, ThirtyOne);
+  }
+  _test(SecondVar, SecondVar);
+  _cmov(T_Dest2, T_Dest, InstX8632::Br_e);
+  _mov(DestLo, T_Dest2);
+  _mov(DestHi, Ctx->getConstantZero(IceType_i32));
 }
 
 namespace {

@@ -139,8 +139,11 @@ public:
     Addss,
     And,
     Br,
+    Bsf,
+    Bsr,
     Call,
     Cdq,
+    Cmov,
     Cmpxchg,
     Cmpxchg8b,
     Cvt,
@@ -188,6 +191,14 @@ public:
     Xchg,
     Xor
   };
+
+  enum BrCond {
+#define X(tag, dump, emit) tag,
+    ICEINSTX8632BR_TABLE
+#undef X
+        Br_None
+  };
+
   static const char *getWidthString(Type Ty);
   virtual void emit(const Cfg *Func) const = 0;
   virtual void dump(const Cfg *Func) const;
@@ -262,13 +273,6 @@ private:
 // Conditional and unconditional branch instruction.
 class InstX8632Br : public InstX8632 {
 public:
-  enum BrCond {
-#define X(tag, dump, emit) tag,
-    ICEINSTX8632BR_TABLE
-#undef X
-        Br_None
-  };
-
   // Create a conditional branch to a node.
   static InstX8632Br *create(Cfg *Func, CfgNode *TargetTrue,
                              CfgNode *TargetFalse, BrCond Condition) {
@@ -334,16 +338,16 @@ private:
 template <InstX8632::InstKindX8632 K>
 class InstX8632Unaryop : public InstX8632 {
 public:
-  // Create an unary-op instruction like neg.
-  // The source and dest are the same variable.
-  static InstX8632Unaryop *create(Cfg *Func, Operand *SrcDest) {
+  static InstX8632Unaryop *create(Cfg *Func, Variable *Dest, Operand *Src) {
     return new (Func->allocate<InstX8632Unaryop>())
-        InstX8632Unaryop(Func, SrcDest);
+        InstX8632Unaryop(Func, Dest, Src);
   }
   virtual void emit(const Cfg *Func) const {
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 1);
     Str << "\t" << Opcode << "\t";
+    getDest()->emit(Func);
+    Str << ", ";
     getSrc(0)->emit(Func);
     Str << "\n";
   }
@@ -356,9 +360,9 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 private:
-  InstX8632Unaryop(Cfg *Func, Operand *SrcDest)
-      : InstX8632(Func, K, 1, llvm::dyn_cast<Variable>(SrcDest)) {
-    addSource(SrcDest);
+  InstX8632Unaryop(Cfg *Func, Variable *Dest, Operand *Src)
+      : InstX8632(Func, K, 1, Dest) {
+    addSource(Src);
   }
   InstX8632Unaryop(const InstX8632Unaryop &) LLVM_DELETED_FUNCTION;
   InstX8632Unaryop &operator=(const InstX8632Unaryop &) LLVM_DELETED_FUNCTION;
@@ -438,7 +442,9 @@ private:
   static const char *Opcode;
 };
 
-typedef InstX8632Unaryop<InstX8632::Neg> InstX8632Neg;
+typedef InstX8632Unaryop<InstX8632::Bsf> InstX8632Bsf;
+typedef InstX8632Unaryop<InstX8632::Bsr> InstX8632Bsr;
+typedef InstX8632Unaryop<InstX8632::Sqrtss> InstX8632Sqrtss;
 typedef InstX8632Binop<InstX8632::Add> InstX8632Add;
 typedef InstX8632Binop<InstX8632::Addps> InstX8632Addps;
 typedef InstX8632Binop<InstX8632::Adc> InstX8632Adc;
@@ -503,6 +509,23 @@ private:
   virtual ~InstX8632Mul() {}
 };
 
+// Neg instruction - Two's complement negation.
+class InstX8632Neg : public InstX8632 {
+public:
+  static InstX8632Neg *create(Cfg *Func, Operand *SrcDest) {
+    return new (Func->allocate<InstX8632Neg>()) InstX8632Neg(Func, SrcDest);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Neg); }
+
+private:
+  InstX8632Neg(Cfg *Func, Operand *SrcDest);
+  InstX8632Neg(const InstX8632Neg &) LLVM_DELETED_FUNCTION;
+  InstX8632Neg &operator=(const InstX8632Neg &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Neg() {}
+};
+
 // Shld instruction - shift across a pair of operands.  TODO: Verify
 // that the validator accepts the shld instruction.
 class InstX8632Shld : public InstX8632 {
@@ -561,6 +584,27 @@ private:
   InstX8632Cdq(const InstX8632Cdq &) LLVM_DELETED_FUNCTION;
   InstX8632Cdq &operator=(const InstX8632Cdq &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Cdq() {}
+};
+
+// Conditional move instruction.
+class InstX8632Cmov : public InstX8632 {
+public:
+  static InstX8632Cmov *create(Cfg *Func, Variable *Dest, Operand *Source,
+                               BrCond Cond) {
+    return new (Func->allocate<InstX8632Cmov>())
+        InstX8632Cmov(Func, Dest, Source, Cond);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Cmov); }
+
+private:
+  InstX8632Cmov(Cfg *Func, Variable *Dest, Operand *Source, BrCond Cond);
+  InstX8632Cmov(const InstX8632Cmov &) LLVM_DELETED_FUNCTION;
+  InstX8632Cmov &operator=(const InstX8632Cmov &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Cmov() {}
+
+  BrCond Condition;
 };
 
 // Cmpxchg instruction - cmpxchg <dest>, <desired> will compare if <dest>
@@ -946,24 +990,6 @@ private:
   InstX8632Ret(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
   InstX8632Ret &operator=(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Ret() {}
-};
-
-// Sqrtss - Scalar sqrt of a float or double.
-class InstX8632Sqrtss : public InstX8632 {
-public:
-  static InstX8632Sqrtss *create(Cfg *Func, Variable *Dest, Operand *Source) {
-    return new (Func->allocate<InstX8632Sqrtss>())
-        InstX8632Sqrtss(Func, Dest, Source);
-  }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Sqrtss); }
-
-private:
-  InstX8632Sqrtss(Cfg *Func, Variable *Dest, Operand *Source);
-  InstX8632Sqrtss(const InstX8632Sqrtss &) LLVM_DELETED_FUNCTION;
-  InstX8632Sqrtss &operator=(const InstX8632Sqrtss &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Sqrtss() {}
 };
 
 // Exchanging Add instruction.  Exchanges the first operand (destination

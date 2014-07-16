@@ -39,6 +39,13 @@ for optlevel in ${OPTLEVELS} ; do
     ./crosstest.py -O${optlevel} --prefix=Subzero_ --target=x8632 \
         --dir="${OUTDIR}" \
         --llvm-bin-path="${LLVM_BIN_PATH}" \
+        --test=test_bitmanip.cpp --test=test_bitmanip_intrin.ll \
+        --driver=test_bitmanip_main.cpp \
+        --output=test_bitmanip_O${optlevel}
+
+    ./crosstest.py -O${optlevel} --prefix=Subzero_ --target=x8632 \
+        --dir="${OUTDIR}" \
+        --llvm-bin-path="${LLVM_BIN_PATH}" \
         --test=test_cast.cpp --test=test_cast_to_u1.ll \
         --driver=test_cast_main.cpp \
         --output=test_cast_O${optlevel}
@@ -81,6 +88,7 @@ for optlevel in ${OPTLEVELS} ; do
     "${OUTDIR}"/simple_loop_O${optlevel}
     "${OUTDIR}"/mem_intrin_O${optlevel}
     "${OUTDIR}"/test_arith_O${optlevel}
+    "${OUTDIR}"/test_bitmanip_O${optlevel}
     "${OUTDIR}"/test_cast_O${optlevel}
     "${OUTDIR}"/test_fcmp_O${optlevel}
     "${OUTDIR}"/test_global_O${optlevel}
