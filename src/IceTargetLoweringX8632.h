@@ -276,6 +276,9 @@ protected:
   void _or(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Or::create(Func, Dest, Src0));
   }
+  void _padd(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Padd::create(Func, Dest, Src0));
+  }
   void _pand(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pand::create(Func, Dest, Src0));
   }
@@ -285,11 +288,20 @@ protected:
   void _pcmpgt(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pcmpgt::create(Func, Dest, Src0));
   }
+  void _pmullw(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Pmullw::create(Func, Dest, Src0));
+  }
+  void _pmuludq(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Pmuludq::create(Func, Dest, Src0));
+  }
   void _pop(Variable *Dest) {
     Context.insert(InstX8632Pop::create(Func, Dest));
   }
-  void _push(Operand *Src0, bool SuppressStackAdjustment = false) {
-    Context.insert(InstX8632Push::create(Func, Src0, SuppressStackAdjustment));
+  void _por(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Por::create(Func, Dest, Src0));
+  }
+  void _pshufd(Variable *Dest, Operand *Src0, Operand *Src1) {
+    Context.insert(InstX8632Pshufd::create(Func, Dest, Src0, Src1));
   }
   void _psll(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Psll::create(Func, Dest, Src0));
@@ -299,6 +311,9 @@ protected:
   }
   void _psub(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Psub::create(Func, Dest, Src0));
+  }
+  void _push(Operand *Src0, bool SuppressStackAdjustment = false) {
+    Context.insert(InstX8632Push::create(Func, Src0, SuppressStackAdjustment));
   }
   void _pxor(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pxor::create(Func, Dest, Src0));
@@ -323,6 +338,9 @@ protected:
   }
   void _shrd(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert(InstX8632Shrd::create(Func, Dest, Src0, Src1));
+  }
+  void _shufps(Variable *Dest, Operand *Src0, Operand *Src1) {
+    Context.insert(InstX8632Shufps::create(Func, Dest, Src0, Src1));
   }
   void _sqrtss(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Sqrtss::create(Func, Dest, Src0));

@@ -90,6 +90,20 @@ const unsigned X86_MAX_XMM_ARGS = 4;
 // The number of bits in a byte
 const unsigned X86_CHAR_BIT = 8;
 
+// Return a string representation of the type that is suitable for use
+// in an identifier.
+IceString typeIdentString(const Type Ty) {
+  IceString Str;
+  llvm::raw_string_ostream BaseOS(Str);
+  Ostream OS(&BaseOS);
+  if (isVectorType(Ty)) {
+    OS << "v" << typeNumElements(Ty) << typeElementType(Ty);
+  } else {
+    OS << Ty;
+  }
+  return BaseOS.str();
+}
+
 // In some cases, there are x-macros tables for both high-level and
 // low-level instructions/operands that use the same enum key value.
 // The tables are kept separate to maintain a proper separation
@@ -1139,58 +1153,206 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       break;
     }
   } else if (isVectorType(Dest->getType())) {
+    // TODO: Trap on integer divide and integer modulo by zero.
+    // See: https://code.google.com/p/nativeclient/issues/detail?id=3899
+    //
+    // TODO(wala): ALIGNHACK: All vector arithmetic is currently done in
+    // registers.  This is a workaround of the fact that there is no
+    // support for aligning stack operands.  Once there is support,
+    // remove LEGAL_HACK.
+#define LEGAL_HACK(s) legalizeToVar((s))
     switch (Inst->getOp()) {
     case InstArithmetic::_num:
       llvm_unreachable("Unknown arithmetic operator");
       break;
-    case InstArithmetic::Add:
-    case InstArithmetic::And:
-    case InstArithmetic::Or:
-    case InstArithmetic::Xor:
-    case InstArithmetic::Sub:
-    case InstArithmetic::Mul:
-    case InstArithmetic::Shl:
-    case InstArithmetic::Lshr:
-    case InstArithmetic::Ashr:
-    case InstArithmetic::Udiv:
-    case InstArithmetic::Sdiv:
-    case InstArithmetic::Urem:
-    case InstArithmetic::Srem:
-      // TODO(wala): Handle these.
-      Func->setError("Unhandled instruction");
-      break;
+    case InstArithmetic::Add: {
+      Variable *T = makeReg(Dest->getType());
+      _movp(T, Src0);
+      _padd(T, LEGAL_HACK(Src1));
+      _movp(Dest, T);
+    } break;
+    case InstArithmetic::And: {
+      Variable *T = makeReg(Dest->getType());
+      _movp(T, Src0);
+      _pand(T, LEGAL_HACK(Src1));
+      _movp(Dest, T);
+    } break;
+    case InstArithmetic::Or: {
+      Variable *T = makeReg(Dest->getType());
+      _movp(T, Src0);
+      _por(T, LEGAL_HACK(Src1));
+      _movp(Dest, T);
+    } break;
+    case InstArithmetic::Xor: {
+      Variable *T = makeReg(Dest->getType());
+      _movp(T, Src0);
+      _pxor(T, LEGAL_HACK(Src1));
+      _movp(Dest, T);
+    } break;
+    case InstArithmetic::Sub: {
+      Variable *T = makeReg(Dest->getType());
+      _movp(T, Src0);
+      _psub(T, LEGAL_HACK(Src1));
+      _movp(Dest, T);
+    } break;
+    case InstArithmetic::Mul: {
+      if (Dest->getType() == IceType_v4i32) {
+        // Lowering sequence:
+        // Note: The mask arguments have index 0 on the left.
+        //
+        // movups  T1, Src0
+        // pshufd  T2, Src0, {1,0,3,0}
+        // pshufd  T3, Src1, {1,0,3,0}
+        // # T1 = {Src0[0] * Src1[0], Src0[2] * Src1[2]}
+        // pmuludq T1, Src1
+        // # T2 = {Src0[1] * Src1[1], Src0[3] * Src1[3]}
+        // pmuludq T2, T3
+        // # T1 = {lo(T1[0]), lo(T1[2]), lo(T2[0]), lo(T2[2])}
+        // shufps  T1, T2, {0,2,0,2}
+        // pshufd  T4, T1, {0,2,1,3}
+        // movups  Dest, T4
+        //
+        // TODO(wala): SSE4.1 has pmulld.
+
+        // Mask that directs pshufd to create a vector with entries
+        // Src[1, 0, 3, 0]
+        const unsigned Constant1030 = 0x31;
+        Constant *Mask1030 = Ctx->getConstantInt(IceType_i8, Constant1030);
+        // Mask that directs shufps to create a vector with entries
+        // Dest[0, 2], Src[0, 2]
+        const unsigned Mask0202 = 0x88;
+        // Mask that directs pshufd to create a vector with entries
+        // Src[0, 2, 1, 3]
+        const unsigned Mask0213 = 0xd8;
+        Variable *T1 = makeReg(IceType_v4i32);
+        Variable *T2 = makeReg(IceType_v4i32);
+        Variable *T3 = makeReg(IceType_v4i32);
+        Variable *T4 = makeReg(IceType_v4i32);
+        _movp(T1, Src0);
+        // TODO(wala): ALIGHNHACK: Replace Src0R with Src0 and Src1R
+        // with Src1 after stack operand alignment support is
+        // implemented.
+        Variable *Src0R = LEGAL_HACK(Src0);
+        Variable *Src1R = LEGAL_HACK(Src1);
+        _pshufd(T2, Src0R, Mask1030);
+        _pshufd(T3, Src1R, Mask1030);
+        _pmuludq(T1, Src1R);
+        _pmuludq(T2, T3);
+        _shufps(T1, T2, Ctx->getConstantInt(IceType_i8, Mask0202));
+        _pshufd(T4, T1, Ctx->getConstantInt(IceType_i8, Mask0213));
+        _movp(Dest, T4);
+      } else if (Dest->getType() == IceType_v8i16) {
+        Variable *T = makeReg(IceType_v8i16);
+        _movp(T, Src0);
+        _pmullw(T, legalizeToVar(Src1));
+        _movp(Dest, T);
+      } else {
+        assert(Dest->getType() == IceType_v16i8);
+        // Sz_mul_v16i8
+        const IceString Helper = "Sz_mul_v16i8";
+        const SizeT MaxSrcs = 2;
+        InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
+        Call->addArg(Src0);
+        Call->addArg(Src1);
+        lowerCall(Call);
+      }
+    } break;
+    case InstArithmetic::Shl: {
+      // Sz_shl_v4i32, Sz_shl_v8i16, Sz_shl_v16i8
+      const IceString Helper = "Sz_shl_" + typeIdentString(Dest->getType());
+      const SizeT MaxSrcs = 2;
+      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
+      Call->addArg(Src0);
+      Call->addArg(Src1);
+      lowerCall(Call);
+    } break;
+    case InstArithmetic::Lshr: {
+      // Sz_lshr_v4i32, Sz_lshr_v8i16, Sz_lshr_v16i8
+      const IceString Helper = "Sz_lshr_" + typeIdentString(Dest->getType());
+      const SizeT MaxSrcs = 2;
+      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
+      Call->addArg(Src0);
+      Call->addArg(Src1);
+      lowerCall(Call);
+    } break;
+    case InstArithmetic::Ashr: {
+      // Sz_ashr_v4i32, Sz_ashr_v8i16, Sz_ashr_v16i8
+      const IceString Helper = "Sz_ashr_" + typeIdentString(Dest->getType());
+      const SizeT MaxSrcs = 2;
+      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
+      Call->addArg(Src0);
+      Call->addArg(Src1);
+      lowerCall(Call);
+    } break;
+    case InstArithmetic::Udiv: {
+      // Sz_udiv_v4i32, Sz_udiv_v8i16, Sz_udiv_v16i8
+      const IceString Helper = "Sz_udiv_" + typeIdentString(Dest->getType());
+      const SizeT MaxSrcs = 2;
+      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
+      Call->addArg(Src0);
+      Call->addArg(Src1);
+      lowerCall(Call);
+    } break;
+    case InstArithmetic::Sdiv: {
+      // Sz_sdiv_v4i32, Sz_sdiv_v8i16, Sz_sdiv_v16i8
+      const IceString Helper = "Sz_sdiv_" + typeIdentString(Dest->getType());
+      const SizeT MaxSrcs = 2;
+      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
+      Call->addArg(Src0);
+      Call->addArg(Src1);
+      lowerCall(Call);
+    } break;
+    case InstArithmetic::Urem: {
+      // Sz_urem_v4i32, Sz_urem_v8i16, Sz_urem_v16i8
+      const IceString Helper = "Sz_urem_" + typeIdentString(Dest->getType());
+      const SizeT MaxSrcs = 2;
+      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
+      Call->addArg(Src0);
+      Call->addArg(Src1);
+      lowerCall(Call);
+    } break;
+    case InstArithmetic::Srem: {
+      // Sz_srem_v4i32, Sz_srem_v8i16, Sz_srem_v16i8
+      const IceString Helper = "Sz_srem_" + typeIdentString(Dest->getType());
+      const SizeT MaxSrcs = 2;
+      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
+      Call->addArg(Src0);
+      Call->addArg(Src1);
+      lowerCall(Call);
+    } break;
     case InstArithmetic::Fadd: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _addps(T, Src1);
+      _addps(T, LEGAL_HACK(Src1));
       _movp(Dest, T);
     } break;
     case InstArithmetic::Fsub: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _subps(T, Src1);
+      _subps(T, LEGAL_HACK(Src1));
       _movp(Dest, T);
     } break;
     case InstArithmetic::Fmul: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _mulps(T, Src1);
+      _mulps(T, LEGAL_HACK(Src1));
       _movp(Dest, T);
     } break;
     case InstArithmetic::Fdiv: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _divps(T, Src1);
+      _divps(T, LEGAL_HACK(Src1));
       _movp(Dest, T);
     } break;
     case InstArithmetic::Frem: {
       const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall("__frem_v4f32", Dest, MaxSrcs);
+      InstCall *Call = makeHelperCall("Sz_frem_v4f32", Dest, MaxSrcs);
       Call->addArg(Src0);
       Call->addArg(Src1);
       lowerCall(Call);
     } break;
     }
+#undef LEGAL_HACK
   } else { // Dest->getType() is non-i64 scalar
     Variable *T_edx = NULL;
     Variable *T = NULL;

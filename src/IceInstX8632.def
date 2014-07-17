@@ -82,7 +82,7 @@
   X(IceType_v16i8, "?",  ""  , "b",  "xmmword ptr") \
   X(IceType_v8i16, "?",  ""  , "w",  "xmmword ptr") \
   X(IceType_v4i32, "dq", ""  , "d",  "xmmword ptr") \
-  X(IceType_v4f32, "ps", ""  , "",   "xmmword ptr") \
+  X(IceType_v4f32, "ps", ""  , "" ,  "xmmword ptr") \
 //#define X(tag, cvt, sdss, width)
 
 #endif // SUBZERO_SRC_ICEINSTX8632_DEF

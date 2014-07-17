@@ -42,4 +42,27 @@
 // instruction and "(a + b)" for the Fadd instruction.  The two
 // versions of myFrem() are defined in a separate bitcode file.
 
+#define INT_VALUE_ARRAY                           \
+{ 0x0,        0x1,        0x7ffffffe, 0x7fffffff, \
+  0x80000000, 0x80000001, 0xfffffffe, 0xffffffff, \
+  0x7e,       0x7f,       0x80,       0x81,       \
+  0xfe,       0xff,       0x100,      0x101,      \
+  0x7ffe,     0x7fff,     0x8000,     0x8001,     \
+  0xfffe,     0xffff,     0x10000,    0x10001 }
+
+#define FP_VALUE_ARRAY(NegInf, PosInf, NegNan, NaN)                 \
+{ 0,                    1,                    0x7e,                 \
+  0x7f,                 0x80,                 0x81,                 \
+  0xfe,                 0xff,                 0x7ffe,               \
+  0x7fff,               0x8000,               0x8001,               \
+  0xfffe,               0xffff,               0x7ffffffe,           \
+  0x7fffffff,           0x80000000,           0x80000001,           \
+  0xfffffffe,           0xffffffff,           0x100000000ll,        \
+  0x100000001ll,        0x7ffffffffffffffell, 0x7fffffffffffffffll, \
+  0x8000000000000000ll, 0x8000000000000001ll, 0xfffffffffffffffell, \
+  0xffffffffffffffffll, NegInf,               PosInf,               \
+  Nan,                  NegNan,               -0.0,                 \
+  FLT_MIN,              FLT_MAX,              DBL_MIN,              \
+  DBL_MAX }
+
 #endif // TEST_ARITH_DEF

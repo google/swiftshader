@@ -4,7 +4,10 @@
 
 #include <stdint.h>
 
+#include <climits> // CHAR_BIT
+#include <limits>
 #include <cfloat>
+#include <cmath>   // fmodf
 #include <cstring> // memcmp
 #include <iostream>
 
@@ -16,13 +19,19 @@ namespace Subzero_ {
 #include "test_arith.h"
 }
 
-volatile unsigned Values[] = { 0x0,        0x1,        0x7ffffffe, 0x7fffffff,
-                               0x80000000, 0x80000001, 0xfffffffe, 0xffffffff,
-                               0x7e,       0x7f,       0x80,       0x81,
-                               0xfe,       0xff,       0x100,      0x101,
-                               0x7ffe,     0x7fff,     0x8000,     0x8001,
-                               0xfffe,     0xffff,     0x10000,    0x10001, };
+volatile unsigned Values[] = INT_VALUE_ARRAY;
 const static size_t NumValues = sizeof(Values) / sizeof(*Values);
+
+template <class T> bool inputsMayTriggerException(T Value1, T Value2) {
+  // Avoid HW divide-by-zero exception.
+  if (Value2 == 0)
+    return true;
+  // Avoid HW overflow exception (on x86-32).  TODO: adjust
+  // for other architecture.
+  if (Value1 == std::numeric_limits<T>::min() && Value2 == -1)
+    return true;
+  return false;
+}
 
 template <typename TypeUnsigned, typename TypeSigned>
 void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
@@ -48,9 +57,9 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         (FuncTypeUnsigned)(FuncTypeSigned)Subzero_::test##inst, isdiv          \
   }                                                                            \
   ,
-          SINTOP_TABLE
+      SINTOP_TABLE
 #undef X
-    };
+  };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
 
   if (sizeof(TypeUnsigned) <= sizeof(uint32_t)) {
@@ -62,12 +71,8 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
           TypeUnsigned Value1 = Values[i];
           TypeUnsigned Value2 = Values[j];
           // Avoid HW divide-by-zero exception.
-          if (Funcs[f].ExcludeDivExceptions && Value2 == 0)
-            continue;
-          // Avoid HW overflow exception (on x86-32).  TODO: adjust
-          // for other architectures.
-          if (Funcs[f].ExcludeDivExceptions && Value1 == 0x80000000 &&
-              Value2 == 0xffffffff)
+          if (Funcs[f].ExcludeDivExceptions &&
+              inputsMayTriggerException<TypeSigned>(Value1, Value2))
             continue;
           ++TotalTests;
           TypeUnsigned ResultSz = Funcs[f].FuncSz(Value1, Value2);
@@ -76,9 +81,9 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
             ++Passes;
           } else {
             ++Failures;
-            std::cout << "test" << Funcs[f].Name << (8 * sizeof(TypeUnsigned))
-                      << "(" << Value1 << ", " << Value2
-                      << "): sz=" << (unsigned)ResultSz
+            std::cout << "test" << Funcs[f].Name
+                      << (CHAR_BIT * sizeof(TypeUnsigned)) << "(" << Value1
+                      << ", " << Value2 << "): sz=" << (unsigned)ResultSz
                       << " llc=" << (unsigned)ResultLlc << std::endl;
           }
         }
@@ -96,8 +101,8 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
                   (((TypeUnsigned)Values[iHi]) << 32) + Values[iLo];
               TypeUnsigned Value2 =
                   (((TypeUnsigned)Values[jHi]) << 32) + Values[jLo];
-              // Avoid HW divide-by-zero exception.
-              if (Funcs[f].ExcludeDivExceptions && Value2 == 0)
+              if (Funcs[f].ExcludeDivExceptions &&
+                  inputsMayTriggerException<TypeSigned>(Value1, Value2))
                 continue;
               ++TotalTests;
               TypeUnsigned ResultSz = Funcs[f].FuncSz(Value1, Value2);
@@ -107,13 +112,112 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
               } else {
                 ++Failures;
                 std::cout << "test" << Funcs[f].Name
-                          << (8 * sizeof(TypeUnsigned)) << "(" << Value1 << ", "
-                          << Value2 << "): sz=" << (unsigned)ResultSz
+                          << (CHAR_BIT * sizeof(TypeUnsigned)) << "(" << Value1
+                          << ", " << Value2 << "): sz=" << (unsigned)ResultSz
                           << " llc=" << (unsigned)ResultLlc << std::endl;
               }
             }
           }
         }
+      }
+    }
+  }
+}
+
+// Vectors are deterministically constructed by selecting elements from
+// a pool of scalar values based on a pseudorandom sequence.  Testing
+// all possible combinations of scalar values from the value table is
+// not tractable.
+// TODO: Replace with a portable PRNG from C++11.
+class PRNG {
+public:
+  PRNG(uint32_t Seed = 1) : State(Seed) {}
+
+  uint32_t operator()() {
+    // Lewis, Goodman, and Miller (1969)
+    State = (16807 * State) % 2147483647;
+    return State;
+  }
+
+private:
+  uint32_t State;
+};
+
+const static size_t MaxTestsPerFunc = 100000;
+
+template <typename Type, typename ElementType, typename CastType>
+void outputVector(const Type Vect) {
+  const static size_t NumElementsInType = sizeof(Type) / sizeof(ElementType);
+  for (size_t i = 0; i < NumElementsInType; ++i) {
+    if (i > 0)
+      std::cout << ", ";
+    std::cout << (CastType) Vect[i];
+  }
+}
+
+template <typename TypeUnsigned, typename TypeSigned,
+          typename ElementTypeUnsigned, typename ElementTypeSigned>
+void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
+  typedef TypeUnsigned (*FuncTypeUnsigned)(TypeUnsigned, TypeUnsigned);
+  typedef TypeSigned (*FuncTypeSigned)(TypeSigned, TypeSigned);
+  static struct {
+    const char *Name;
+    FuncTypeUnsigned FuncLlc;
+    FuncTypeUnsigned FuncSz;
+    bool ExcludeDivExceptions; // for divide related tests
+  } Funcs[] = {
+#define X(inst, op, isdiv)                                                     \
+  {                                                                            \
+    STR(inst), (FuncTypeUnsigned)test##inst,                                   \
+        (FuncTypeUnsigned)Subzero_::test##inst, isdiv                          \
+  }                                                                            \
+  ,
+        UINTOP_TABLE
+#undef X
+#define X(inst, op, isdiv)                                                     \
+  {                                                                            \
+    STR(inst), (FuncTypeUnsigned)(FuncTypeSigned)test##inst,                   \
+        (FuncTypeUnsigned)(FuncTypeSigned)Subzero_::test##inst, isdiv          \
+  }                                                                            \
+  ,
+        SINTOP_TABLE
+#undef X
+  };
+  const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
+  const static size_t NumElementsInType =
+      sizeof(TypeUnsigned) / sizeof(ElementTypeUnsigned);
+  for (size_t f = 0; f < NumFuncs; ++f) {
+    PRNG Index;
+    for (size_t i = 0; i < MaxTestsPerFunc; ++i) {
+      // Initialize the test vectors.
+      TypeUnsigned Value1, Value2;
+      for (size_t j = 0; j < NumElementsInType;) {
+        ElementTypeUnsigned Element1 = Values[Index() % NumElementsInType];
+        ElementTypeUnsigned Element2 = Values[Index() % NumElementsInType];
+        if (Funcs[f].ExcludeDivExceptions &&
+            inputsMayTriggerException<ElementTypeSigned>(Element1, Element2))
+          continue;
+        Value1[j] = Element1;
+        Value2[j] = Element2;
+        ++j;
+      }
+      // Perform the test.
+      TypeUnsigned ResultSz = Funcs[f].FuncSz(Value1, Value2);
+      TypeUnsigned ResultLlc = Funcs[f].FuncLlc(Value1, Value2);
+      ++TotalTests;
+      if (!memcmp(&ResultSz, &ResultLlc, sizeof(ResultSz))) {
+        ++Passes;
+      } else {
+        std::cout << "test" << Funcs[f].Name << "v" << NumElementsInType << "i"
+                  << (CHAR_BIT * sizeof(ElementTypeUnsigned)) << "(";
+         outputVector<TypeUnsigned, ElementTypeUnsigned, unsigned>(Value1);
+         std::cout << ", ";
+         outputVector<TypeUnsigned, ElementTypeUnsigned, unsigned>(Value2);
+         std::cout << "): sz=";
+         outputVector<TypeUnsigned, ElementTypeUnsigned, unsigned>(ResultSz);
+         std::cout << " llc=";
+         outputVector<TypeUnsigned, ElementTypeUnsigned, unsigned>(ResultLlc);
+         std::cout << std::endl;
       }
     }
   }
@@ -125,21 +229,7 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   static const Type PosInf = 1.0 / 0.0;
   static const Type Nan = 0.0 / 0.0;
   static const Type NegNan = -0.0 / 0.0;
-  volatile Type Values[] = {
-    0,                    1,                    0x7e,
-    0x7f,                 0x80,                 0x81,
-    0xfe,                 0xff,                 0x7ffe,
-    0x7fff,               0x8000,               0x8001,
-    0xfffe,               0xffff,               0x7ffffffe,
-    0x7fffffff,           0x80000000,           0x80000001,
-    0xfffffffe,           0xffffffff,           0x100000000ll,
-    0x100000001ll,        0x7ffffffffffffffell, 0x7fffffffffffffffll,
-    0x8000000000000000ll, 0x8000000000000001ll, 0xfffffffffffffffell,
-    0xffffffffffffffffll, NegInf,               PosInf,
-    Nan,                  NegNan,               -0.0,
-    FLT_MIN,              FLT_MAX,
-    DBL_MIN,              DBL_MAX
-  };
+  volatile Type Values[] = FP_VALUE_ARRAY(NegInf, PosInf, NegNan, Nan);
   const static size_t NumValues = sizeof(Values) / sizeof(*Values);
   typedef Type (*FuncType)(Type, Type);
   static struct {
@@ -152,7 +242,7 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   ,
       FPOP_TABLE
 #undef X
-    };
+  };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
 
   for (size_t f = 0; f < NumFuncs; ++f) {
@@ -169,8 +259,8 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         } else {
           ++Failures;
           std::cout << std::fixed << "test" << Funcs[f].Name
-                    << (8 * sizeof(Type)) << "(" << Value1 << ", " << Value2
-                    << "): sz=" << ResultSz << " llc=" << ResultLlc
+                    << (CHAR_BIT * sizeof(Type)) << "(" << Value1 << ", "
+                    << Value2 << "): sz=" << ResultSz << " llc=" << ResultLlc
                     << std::endl;
         }
       }
@@ -186,10 +276,62 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       ++Passes;
     } else {
       ++Failures;
-      std::cout << std::fixed << "test_sqrt"
-                << (8 * sizeof(Type)) << "(" << Value
-                << "): sz=" << ResultSz << " llc=" << ResultLlc
+      std::cout << std::fixed << "test_sqrt" << (CHAR_BIT * sizeof(Type)) << "("
+                << Value << "): sz=" << ResultSz << " llc=" << ResultLlc
                 << std::endl;
+    }
+  }
+}
+
+void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
+  static const float NegInf = -1.0 / 0.0;
+  static const float PosInf = 1.0 / 0.0;
+  static const float Nan = 0.0 / 0.0;
+  static const float NegNan = -0.0 / 0.0;
+  volatile float Values[] = FP_VALUE_ARRAY(NegInf, PosInf, NegNan, Nan);
+  const static size_t NumValues = sizeof(Values) / sizeof(*Values);
+  typedef v4f32 (*FuncType)(v4f32, v4f32);
+  static struct {
+    const char *Name;
+    FuncType FuncLlc;
+    FuncType FuncSz;
+  } Funcs[] = {
+#define X(inst, op, func)                                                      \
+  { STR(inst), (FuncType)test##inst, (FuncType)Subzero_::test##inst }          \
+  ,
+      FPOP_TABLE
+#undef X
+  };
+  const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
+  const static size_t NumElementsInType = 4;
+  for (size_t f = 0; f < NumFuncs; ++f) {
+    PRNG Index;
+    for (size_t i = 0; i < MaxTestsPerFunc; ++i) {
+      // Initialize the test vectors.
+      v4f32 Value1, Value2;
+      for (size_t j = 0; j < NumElementsInType; ++j) {
+        Value1[j] = Values[Index() % NumElementsInType];
+        Value2[j] = Values[Index() % NumElementsInType];
+      }
+      // Perform the test.
+      v4f32 ResultSz = Funcs[f].FuncSz(Value1, Value2);
+      v4f32 ResultLlc = Funcs[f].FuncLlc(Value1, Value2);
+      ++TotalTests;
+      if (!memcmp(&ResultSz, &ResultLlc, sizeof(ResultSz))) {
+        ++Passes;
+      } else {
+        ++Failures;
+        std::cout << std::fixed << "test" << Funcs[f].Name << "v4f32"
+                  << "(";
+        outputVector<v4f32, float, float>(Value1);
+        std::cout << ", ";
+        outputVector<v4f32, float, float>(Value2);
+        std::cout << "): sz=";
+        outputVector<v4f32, float, float>(ResultSz);
+        std::cout << " llc=";
+        outputVector<v4f32, float, float>(ResultLlc);
+        std::cout << std::endl;
+      }
     }
   }
 }
@@ -203,10 +345,49 @@ int main(int argc, char **argv) {
   testsInt<uint16_t, int16_t>(TotalTests, Passes, Failures);
   testsInt<uint32_t, int32_t>(TotalTests, Passes, Failures);
   testsInt<uint64_t, int64_t>(TotalTests, Passes, Failures);
+  testsVecInt<v4ui32, v4si32, uint32_t, int32_t>(TotalTests, Passes, Failures);
+  testsVecInt<v8ui16, v8si16, uint16_t, int16_t>(TotalTests, Passes, Failures);
+  testsVecInt<v16ui8, v16si8, uint8_t, int8_t>(TotalTests, Passes, Failures);
   testsFp<float>(TotalTests, Passes, Failures);
   testsFp<double>(TotalTests, Passes, Failures);
+  testsVecFp(TotalTests, Passes, Failures);
 
   std::cout << "TotalTests=" << TotalTests << " Passes=" << Passes
             << " Failures=" << Failures << "\n";
   return Failures;
+}
+
+extern "C" {
+// Subzero helpers
+  v4si32 Sz_shl_v4i32(v4si32 a, v4si32 b) { return a << b; }
+  v4si32 Sz_ashr_v4i32(v4si32 a, v4si32 b) { return a >> b; }
+  v4ui32 Sz_lshr_v4i32(v4ui32 a, v4ui32 b) { return a >> b; }
+  v4si32 Sz_sdiv_v4i32(v4si32 a, v4si32 b) { return a / b; }
+  v4ui32 Sz_udiv_v4i32(v4ui32 a, v4ui32 b) { return a / b; }
+  v4si32 Sz_srem_v4i32(v4si32 a, v4si32 b) { return a % b; }
+  v4ui32 Sz_urem_v4i32(v4ui32 a, v4ui32 b) { return a % b; }
+
+  v8si16 Sz_shl_v8i16(v8si16 a, v8si16 b) { return a << b; }
+  v8si16 Sz_ashr_v8i16(v8si16 a, v8si16 b) { return a >> b; }
+  v8ui16 Sz_lshr_v8i16(v8ui16 a, v8ui16 b) { return a >> b; }
+  v8si16 Sz_sdiv_v8i16(v8si16 a, v8si16 b) { return a / b; }
+  v8ui16 Sz_udiv_v8i16(v8ui16 a, v8ui16 b) { return a / b; }
+  v8si16 Sz_srem_v8i16(v8si16 a, v8si16 b) { return a % b; }
+  v8ui16 Sz_urem_v8i16(v8ui16 a, v8ui16 b) { return a % b; }
+
+  v16ui8 Sz_mul_v16i8(v16ui8 a, v16ui8 b) { return a * b; }
+  v16si8 Sz_shl_v16i8(v16si8 a, v16si8 b) { return a << b; }
+  v16si8 Sz_ashr_v16i8(v16si8 a, v16si8 b) { return a >> b; }
+  v16ui8 Sz_lshr_v16i8(v16ui8 a, v16ui8 b) { return a >> b; }
+  v16si8 Sz_sdiv_v16i8(v16si8 a, v16si8 b) { return a / b; }
+  v16ui8 Sz_udiv_v16i8(v16ui8 a, v16ui8 b) { return a / b; }
+  v16si8 Sz_srem_v16i8(v16si8 a, v16si8 b) { return a % b; }
+  v16ui8 Sz_urem_v16i8(v16ui8 a, v16ui8 b) { return a % b; }
+
+  v4f32 Sz_frem_v4f32(v4f32 a, v4f32 b) {
+    v4f32 Result;
+    for (int i = 0; i < 4; ++i)
+      Result[i] = fmodf(a[i], b[i]);
+    return Result;
+  }
 }

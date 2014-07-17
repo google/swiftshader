@@ -168,14 +168,19 @@ public:
     Mulss,
     Neg,
     Or,
+    Padd,
     Pand,
     Pcmpeq,
     Pcmpgt,
+    Pmullw,
+    Pmuludq,
     Pop,
-    Push,
+    Por,
+    Pshufd,
     Psll,
     Psra,
     Psub,
+    Push,
     Pxor,
     Ret,
     Sar,
@@ -184,6 +189,7 @@ public:
     Shld,
     Shr,
     Shrd,
+    Shufps,
     Sqrtss,
     Store,
     StoreQ,
@@ -455,6 +461,7 @@ typedef InstX8632Binop<InstX8632::Add> InstX8632Add;
 typedef InstX8632Binop<InstX8632::Addps> InstX8632Addps;
 typedef InstX8632Binop<InstX8632::Adc> InstX8632Adc;
 typedef InstX8632Binop<InstX8632::Addss> InstX8632Addss;
+typedef InstX8632Binop<InstX8632::Padd> InstX8632Padd;
 typedef InstX8632Binop<InstX8632::Sub> InstX8632Sub;
 typedef InstX8632Binop<InstX8632::Subps> InstX8632Subps;
 typedef InstX8632Binop<InstX8632::Subss> InstX8632Subss;
@@ -463,11 +470,14 @@ typedef InstX8632Binop<InstX8632::Psub> InstX8632Psub;
 typedef InstX8632Binop<InstX8632::And> InstX8632And;
 typedef InstX8632Binop<InstX8632::Pand> InstX8632Pand;
 typedef InstX8632Binop<InstX8632::Or> InstX8632Or;
+typedef InstX8632Binop<InstX8632::Por> InstX8632Por;
 typedef InstX8632Binop<InstX8632::Xor> InstX8632Xor;
 typedef InstX8632Binop<InstX8632::Pxor> InstX8632Pxor;
 typedef InstX8632Binop<InstX8632::Imul> InstX8632Imul;
 typedef InstX8632Binop<InstX8632::Mulps> InstX8632Mulps;
 typedef InstX8632Binop<InstX8632::Mulss> InstX8632Mulss;
+typedef InstX8632Binop<InstX8632::Pmullw> InstX8632Pmullw;
+typedef InstX8632Binop<InstX8632::Pmuludq> InstX8632Pmuludq;
 typedef InstX8632Binop<InstX8632::Divps> InstX8632Divps;
 typedef InstX8632Binop<InstX8632::Divss> InstX8632Divss;
 typedef InstX8632Binop<InstX8632::Shl, true> InstX8632Shl;
@@ -984,6 +994,27 @@ private:
   virtual ~InstX8632Push() {}
 };
 
+// Pshufd - shuffle a vector of doublewords 
+class InstX8632Pshufd : public InstX8632 {
+public:
+  static InstX8632Pshufd *create(Cfg *Func, Variable *Dest, Operand *Source1,
+                                 Operand *Source2) {
+    return new (Func->allocate<InstX8632Pshufd>())
+        InstX8632Pshufd(Func, Dest, Source1, Source2);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Pshufd); }
+
+private:
+  InstX8632Pshufd(Cfg *Func, Variable *Dest, Operand *Source1,
+                  Operand *Source2);
+  InstX8632Pshufd(const InstX8632Pshufd &) LLVM_DELETED_FUNCTION;
+  InstX8632Pshufd &operator=(const InstX8632Pshufd &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Pshufd() {}
+  static const char *Opcode;
+};
+
 // Ret instruction.  Currently only supports the "ret" version that
 // does not pop arguments.  This instruction takes a Source operand
 // (for non-void returning functions) for liveness analysis, though
@@ -1002,6 +1033,27 @@ private:
   InstX8632Ret(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
   InstX8632Ret &operator=(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Ret() {}
+};
+
+// Shufps - select from two vectors of floating point values
+class InstX8632Shufps : public InstX8632 {
+public:
+  static InstX8632Shufps *create(Cfg *Func, Variable *Dest, Operand *Source1,
+                                 Operand *Source2) {
+    return new (Func->allocate<InstX8632Shufps>())
+        InstX8632Shufps(Func, Dest, Source1, Source2);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Shufps); }
+
+private:
+  InstX8632Shufps(Cfg *Func, Variable *Dest, Operand *Source1,
+                  Operand *Source2);
+  InstX8632Shufps(const InstX8632Shufps &) LLVM_DELETED_FUNCTION;
+  InstX8632Shufps &operator=(const InstX8632Shufps &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Shufps() {}
+  static const char *Opcode;
 };
 
 // Exchanging Add instruction.  Exchanges the first operand (destination

@@ -312,6 +312,21 @@ bool InstX8632Movq::isRedundantAssign() const {
   return false;
 }
 
+InstX8632Pshufd::InstX8632Pshufd(Cfg *Func, Variable *Dest, Operand *Source1,
+                                 Operand *Source2)
+    : InstX8632(Func, InstX8632::Pshufd, 2, Dest) {
+  addSource(Source1);
+  addSource(Source2);
+}
+
+InstX8632Shufps::InstX8632Shufps(Cfg *Func, Variable *Dest, Operand *Source1,
+                                 Operand *Source2)
+    : InstX8632(Func, InstX8632::Shufps, 3, Dest) {
+  addSource(Dest);
+  addSource(Source1);
+  addSource(Source2);
+}
+
 InstX8632Ret::InstX8632Ret(Cfg *Func, Variable *Source)
     : InstX8632(Func, InstX8632::Ret, Source ? 1 : 0, NULL) {
   if (Source)
@@ -446,19 +461,23 @@ template <> const char *InstX8632Add::Opcode = "add";
 template <> const char *InstX8632Addps::Opcode = "addps";
 template <> const char *InstX8632Adc::Opcode = "adc";
 template <> const char *InstX8632Addss::Opcode = "addss";
+template <> const char *InstX8632Padd::Opcode = "padd";
 template <> const char *InstX8632Sub::Opcode = "sub";
 template <> const char *InstX8632Subps::Opcode = "subps";
 template <> const char *InstX8632Subss::Opcode = "subss";
-template <> const char *InstX8632Psub::Opcode = "psub";
 template <> const char *InstX8632Sbb::Opcode = "sbb";
+template <> const char *InstX8632Psub::Opcode = "psub";
 template <> const char *InstX8632And::Opcode = "and";
 template <> const char *InstX8632Pand::Opcode = "pand";
 template <> const char *InstX8632Or::Opcode = "or";
+template <> const char *InstX8632Por::Opcode = "por";
 template <> const char *InstX8632Xor::Opcode = "xor";
 template <> const char *InstX8632Pxor::Opcode = "pxor";
 template <> const char *InstX8632Imul::Opcode = "imul";
 template <> const char *InstX8632Mulps::Opcode = "mulps";
 template <> const char *InstX8632Mulss::Opcode = "mulss";
+template <> const char *InstX8632Pmullw::Opcode = "pmullw";
+template <> const char *InstX8632Pmuludq::Opcode = "pmuludq";
 template <> const char *InstX8632Div::Opcode = "div";
 template <> const char *InstX8632Divps::Opcode = "divps";
 template <> const char *InstX8632Idiv::Opcode = "idiv";
@@ -490,10 +509,24 @@ template <> void InstX8632Addss::emit(const Cfg *Func) const {
   emitTwoAddress(buf, this, Func);
 }
 
+template <> void InstX8632Padd::emit(const Cfg *Func) const {
+  char buf[30];
+  snprintf(buf, llvm::array_lengthof(buf), "padd%s",
+           TypeX8632Attributes[getDest()->getType()].PackString);
+  emitTwoAddress(buf, this, Func);
+}
+
 template <> void InstX8632Subss::emit(const Cfg *Func) const {
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "sub%s",
            TypeX8632Attributes[getDest()->getType()].SdSsString);
+  emitTwoAddress(buf, this, Func);
+}
+
+template <> void InstX8632Psub::emit(const Cfg *Func) const {
+  char buf[30];
+  snprintf(buf, llvm::array_lengthof(buf), "psub%s",
+           TypeX8632Attributes[getDest()->getType()].PackString);
   emitTwoAddress(buf, this, Func);
 }
 
@@ -502,6 +535,18 @@ template <> void InstX8632Mulss::emit(const Cfg *Func) const {
   snprintf(buf, llvm::array_lengthof(buf), "mul%s",
            TypeX8632Attributes[getDest()->getType()].SdSsString);
   emitTwoAddress(buf, this, Func);
+}
+
+template <> void InstX8632Pmullw::emit(const Cfg *Func) const {
+  assert(getSrc(0)->getType() == IceType_v8i16 &&
+         getSrc(1)->getType() == IceType_v8i16);
+  emitTwoAddress(Opcode, this, Func);
+}
+
+template <> void InstX8632Pmuludq::emit(const Cfg *Func) const {
+  assert(getSrc(0)->getType() == IceType_v4i32 &&
+         getSrc(1)->getType() == IceType_v4i32);
+  emitTwoAddress(Opcode, this, Func);
 }
 
 template <> void InstX8632Divss::emit(const Cfg *Func) const {
@@ -1093,11 +1138,23 @@ template <> void InstX8632Psra::emit(const Cfg *Func) const {
   emitTwoAddress(buf, this, Func);
 }
 
-template <> void InstX8632Psub::emit(const Cfg *Func) const {
-  char buf[30];
-  snprintf(buf, llvm::array_lengthof(buf), "psub%s",
-           TypeX8632Attributes[getDest()->getType()].PackString);
-  emitTwoAddress(buf, this, Func);
+void InstX8632Pshufd::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 2);
+  Str << "\tpshufd\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632Pshufd::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpDest(Func);
+  Str << " = pshufd." << getDest()->getType() << " ";
+  dumpSources(Func);
 }
 
 void InstX8632Ret::emit(const Cfg *Func) const {
@@ -1109,6 +1166,25 @@ void InstX8632Ret::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = (getSrcSize() == 0 ? IceType_void : getSrc(0)->getType());
   Str << "ret." << Ty << " ";
+  dumpSources(Func);
+}
+
+void InstX8632Shufps::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 3);
+  Str << "\tshufps\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+  Str << ", ";
+  getSrc(2)->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632Shufps::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpDest(Func);
+  Str << " = shufps." << getDest()->getType() << " ";
   dumpSources(Func);
 }
 
