@@ -19,9 +19,6 @@ namespace Subzero_ {
 #include "test_arith.h"
 }
 
-volatile unsigned Values[] = INT_VALUE_ARRAY;
-const static size_t NumValues = sizeof(Values) / sizeof(*Values);
-
 template <class T> bool inputsMayTriggerException(T Value1, T Value2) {
   // Avoid HW divide-by-zero exception.
   if (Value2 == 0)
@@ -37,6 +34,8 @@ template <typename TypeUnsigned, typename TypeSigned>
 void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   typedef TypeUnsigned (*FuncTypeUnsigned)(TypeUnsigned, TypeUnsigned);
   typedef TypeSigned (*FuncTypeSigned)(TypeSigned, TypeSigned);
+  volatile unsigned Values[] = INT_VALUE_ARRAY;
+  const static size_t NumValues = sizeof(Values) / sizeof(*Values);
   static struct {
     const char *Name;
     FuncTypeUnsigned FuncLlc;
@@ -160,6 +159,8 @@ template <typename TypeUnsigned, typename TypeSigned,
 void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   typedef TypeUnsigned (*FuncTypeUnsigned)(TypeUnsigned, TypeUnsigned);
   typedef TypeSigned (*FuncTypeSigned)(TypeSigned, TypeSigned);
+  volatile unsigned Values[] = INT_VALUE_ARRAY;
+  const static size_t NumValues = sizeof(Values) / sizeof(*Values);
   static struct {
     const char *Name;
     FuncTypeUnsigned FuncLlc;
@@ -192,8 +193,8 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       // Initialize the test vectors.
       TypeUnsigned Value1, Value2;
       for (size_t j = 0; j < NumElementsInType;) {
-        ElementTypeUnsigned Element1 = Values[Index() % NumElementsInType];
-        ElementTypeUnsigned Element2 = Values[Index() % NumElementsInType];
+        ElementTypeUnsigned Element1 = Values[Index() % NumValues];
+        ElementTypeUnsigned Element2 = Values[Index() % NumValues];
         if (Funcs[f].ExcludeDivExceptions &&
             inputsMayTriggerException<ElementTypeSigned>(Element1, Element2))
           continue;
@@ -310,8 +311,8 @@ void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       // Initialize the test vectors.
       v4f32 Value1, Value2;
       for (size_t j = 0; j < NumElementsInType; ++j) {
-        Value1[j] = Values[Index() % NumElementsInType];
-        Value2[j] = Values[Index() % NumElementsInType];
+        Value1[j] = Values[Index() % NumValues];
+        Value2[j] = Values[Index() % NumValues];
       }
       // Perform the test.
       v4f32 ResultSz = Funcs[f].FuncSz(Value1, Value2);
