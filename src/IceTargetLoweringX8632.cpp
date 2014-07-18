@@ -2705,7 +2705,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   }
   case Intrinsics::Memset: {
     // The value operand needs to be extended to a stack slot size
-    // because we "push" only works for a specific operand size.
+    // because "push" only works for a specific operand size.
     Operand *ValOp = Instr->getArg(1);
     assert(ValOp->getType() == IceType_i8);
     Variable *ValExt = makeReg(stackSlotType());
@@ -2741,11 +2741,17 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     _mov(Dest, T);
     return;
   }
-  case Intrinsics::Stacksave:
-  case Intrinsics::Stackrestore:
-    // TODO(jvoung): fill it in.
-    Func->setError("Unhandled intrinsic");
+  case Intrinsics::Stacksave: {
+    Variable *esp = Func->getTarget()->getPhysicalRegister(Reg_esp);
+    Variable *Dest = Instr->getDest();
+    _mov(Dest, esp);
     return;
+  }
+  case Intrinsics::Stackrestore: {
+    Variable *esp = Func->getTarget()->getPhysicalRegister(Reg_esp);
+    _mov(esp, Instr->getArg(0));
+    return;
+  }
   case Intrinsics::Trap:
     _ud2();
     return;

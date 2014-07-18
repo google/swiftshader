@@ -31,6 +31,8 @@ declare i32 @llvm.cttz.i32(i32, i1)
 declare i64 @llvm.cttz.i64(i64, i1)
 declare i32 @llvm.ctpop.i32(i32)
 declare i64 @llvm.ctpop.i64(i64)
+declare i8* @llvm.stacksave()
+declare void @llvm.stackrestore(i8*)
 
 define i32 @test_nacl_read_tp() {
 entry:
@@ -394,6 +396,50 @@ entry:
 ; CHECKO2REM: call __popcountdi2
 ; CHECKO2REM-NOT: mov {{.*}}, 0
 
+define void @test_stacksave_noalloca() {
+entry:
+  %sp = call i8* @llvm.stacksave()
+  call void @llvm.stackrestore(i8* %sp)
+  ret void
+}
+; CHECK-LABEL: test_stacksave_noalloca
+; CHECK: mov {{.*}}, esp
+; CHECK: mov esp, {{.*}}
+
+declare i32 @foo(i32 %x)
+
+define void @test_stacksave_multiple(i32 %x) {
+entry:
+  %x_4 = mul i32 %x, 4
+  %sp1 = call i8* @llvm.stacksave()
+  %tmp1 = alloca i8, i32 %x_4, align 4
+
+  %sp2 = call i8* @llvm.stacksave()
+  %tmp2 = alloca i8, i32 %x_4, align 4
+
+  %y = call i32 @foo(i32 %x)
+
+  %sp3 = call i8* @llvm.stacksave()
+  %tmp3 = alloca i8, i32 %x_4, align 4
+
+  %__9 = bitcast i8* %tmp1 to i32*
+  store i32 %y, i32* %__9, align 1
+
+  %__10 = bitcast i8* %tmp2 to i32*
+  store i32 %x, i32* %__10, align 1
+
+  %__11 = bitcast i8* %tmp3 to i32*
+  store i32 %x, i32* %__11, align 1
+
+  call void @llvm.stackrestore(i8* %sp1)
+  ret void
+}
+; CHECK-LABEL: test_stacksave_multiple
+; At least 3 copies of esp, but probably more from having to do the allocas.
+; CHECK: mov {{.*}}, esp
+; CHECK: mov {{.*}}, esp
+; CHECK: mov {{.*}}, esp
+; CHECK: mov esp, {{.*}}
 
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

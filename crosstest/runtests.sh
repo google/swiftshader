@@ -71,6 +71,13 @@ for optlevel in ${OPTLEVELS} ; do
         --driver=test_icmp_main.cpp \
         --output=test_icmp_O${optlevel}
 
+    ./crosstest.py -O${optlevel} --prefix=Subzero_ --target=x8632 \
+        --dir="${OUTDIR}" \
+        --llvm-bin-path="${LLVM_BIN_PATH}" \
+        --test=test_stacksave.c \
+        --driver=test_stacksave_main.c \
+        --output=test_stacksave_O${optlevel}
+
     # Compile the non-subzero object files straight from source
     # since the native LLVM backend does not understand how to
     # lower NaCl-specific intrinsics.
@@ -100,6 +107,7 @@ for optlevel in ${OPTLEVELS} ; do
     "${OUTDIR}"/test_fcmp_O${optlevel}
     "${OUTDIR}"/test_global_O${optlevel}
     "${OUTDIR}"/test_icmp_O${optlevel}
+    "${OUTDIR}"/test_stacksave_O${optlevel}
     "${OUTDIR}"/test_sync_atomic_O${optlevel}
     "${OUTDIR}"/test_vector_ops_O${optlevel}
 done
