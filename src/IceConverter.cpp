@@ -337,6 +337,10 @@ private:
       return convertArithInstruction(Inst, Ice::InstArithmetic::Or);
     case Instruction::Xor:
       return convertArithInstruction(Inst, Ice::InstArithmetic::Xor);
+    case Instruction::ExtractElement:
+      return convertExtractElementInstruction(cast<ExtractElementInst>(Inst));
+    case Instruction::InsertElement:
+      return convertInsertElementInstruction(cast<InsertElementInst>(Inst));
     case Instruction::Call:
       return convertCallInstruction(cast<CallInst>(Inst));
     case Instruction::Alloca:
@@ -532,6 +536,22 @@ private:
     }
 
     return Ice::InstFcmp::create(Func, Cond, Dest, Src0, Src1);
+  }
+
+  Ice::Inst *convertExtractElementInstruction(const ExtractElementInst *Inst) {
+    Ice::Variable *Dest = mapValueToIceVar(Inst);
+    Ice::Operand *Source1 = convertValue(Inst->getOperand(0));
+    Ice::Operand *Source2 = convertValue(Inst->getOperand(1));
+    return Ice::InstExtractElement::create(Func, Dest, Source1, Source2);
+  }
+
+  Ice::Inst *convertInsertElementInstruction(const InsertElementInst *Inst) {
+    Ice::Variable *Dest = mapValueToIceVar(Inst);
+    Ice::Operand *Source1 = convertValue(Inst->getOperand(0));
+    Ice::Operand *Source2 = convertValue(Inst->getOperand(1));
+    Ice::Operand *Source3 = convertValue(Inst->getOperand(2));
+    return Ice::InstInsertElement::create(Func, Dest, Source1, Source2,
+                                          Source3);
   }
 
   Ice::Inst *convertSelectInstruction(const SelectInst *Inst) {

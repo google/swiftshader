@@ -85,6 +85,27 @@ InstX8632::BrCond getIcmp32Mapping(InstIcmp::ICond Cond) {
   return TableIcmp32[Index].Mapping;
 }
 
+const struct TableTypeX8632Attributes_ {
+  Type InVectorElementType;
+} TableTypeX8632Attributes[] = {
+#define X(tag, elementty, cvt, sdss, pack, width)                              \
+  { elementty }                                                                \
+  ,
+    ICETYPEX8632_TABLE
+#undef X
+  };
+const size_t TableTypeX8632AttributesSize =
+    llvm::array_lengthof(TableTypeX8632Attributes);
+
+// Return the type which the elements of the vector have in the X86
+// representation of the vector.
+Type getInVectorElementType(Type Ty) {
+  assert(isVectorType(Ty));
+  size_t Index = static_cast<size_t>(Ty);
+  assert(Index < TableTypeX8632AttributesSize);
+  return TableTypeX8632Attributes[Ty].InVectorElementType;
+}
+
 // The maximum number of arguments to pass in XMM registers
 const unsigned X86_MAX_XMM_ARGS = 4;
 // The number of bits in a byte
@@ -173,7 +194,7 @@ void xMacroIntegrityCheck() {
     // Define a temporary set of enum values based on low-level
     // table entries.
     enum _tmp_enum {
-#define X(tag, cvt, sdss, pack, width) _tmp_##tag,
+#define X(tag, elementty, cvt, sdss, pack, width) _tmp_##tag,
       ICETYPEX8632_TABLE
 #undef X
           _num
@@ -185,7 +206,7 @@ void xMacroIntegrityCheck() {
 #undef X
 // Define a set of constants based on low-level table entries,
 // and ensure the table entry keys are consistent.
-#define X(tag, cvt, sdss, pack, width)                                         \
+#define X(tag, elementty, cvt, sdss, pack, width)                              \
   static const int _table2_##tag = _tmp_##tag;                                 \
   STATIC_ASSERT(_table1_##tag == _table2_##tag);
     ICETYPEX8632_TABLE;
@@ -2107,6 +2128,85 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
   }
 }
 
+void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
+  Operand *SourceVectOperand = Inst->getSrc(0);
+  ConstantInteger *ElementIndex =
+      llvm::dyn_cast<ConstantInteger>(Inst->getSrc(1));
+  // Only constant indices are allowed in PNaCl IR.
+  assert(ElementIndex);
+
+  unsigned Index = ElementIndex->getValue();
+  Type Ty = SourceVectOperand->getType();
+  Type ElementTy = typeElementType(Ty);
+  Type InVectorElementTy = getInVectorElementType(Ty);
+  Variable *ExtractedElement = makeReg(InVectorElementTy);
+
+  // TODO(wala): Determine the best lowering sequences for each type.
+  if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
+    // Lower extractelement operations where the element is 32 bits
+    // wide with pshufd.
+    // TODO(wala): SSE4.1 has extractps and pextrd
+    //
+    // ALIGNHACK: Force vector operands to registers in instructions that
+    // require aligned memory operands until support for stack alignment
+    // is implemented.
+#define ALIGN_HACK(Vect) legalizeToVar((Vect))
+    Operand *T = NULL;
+    if (Index) {
+      // The shuffle only needs to occur if the element to be extracted
+      // is not at the lowest index.
+      Constant *Mask = Ctx->getConstantInt(IceType_i8, Index);
+      T = makeReg(Ty);
+      _pshufd(llvm::cast<Variable>(T), ALIGN_HACK(SourceVectOperand), Mask);
+    } else {
+      // TODO(wala): If SourceVectOperand is in memory, express it as
+      // mem32 so that the call to legalizeToVar() is made unnecessary.
+      // _movd and _movss only take mem32 memory operands.
+      T = legalizeToVar(SourceVectOperand);
+    }
+
+    if (InVectorElementTy == IceType_i32) {
+      _movd(ExtractedElement, T);
+    } else { // InVectorElementTy == IceType_f32
+      // TODO: _mov should be able to be used here.
+      _movss(ExtractedElement, T);
+    }
+#undef ALIGN_HACK
+  } else if (Ty == IceType_v8i16 || Ty == IceType_v8i1) {
+    Constant *Mask = Ctx->getConstantInt(IceType_i8, Index);
+    _pextrw(ExtractedElement, legalizeToVar(SourceVectOperand), Mask);
+  } else {
+    assert(Ty == IceType_v16i8 || Ty == IceType_v16i1);
+    // Spill the value to a stack slot and do the extraction in memory.
+    // TODO(wala): SSE4.1 has pextrb.
+    //
+    // TODO(wala): use legalize(SourceVectOperand, Legal_Mem) when
+    // support for legalizing to mem is implemented.
+    Variable *Slot = Func->makeVariable(Ty, Context.getNode());
+    Slot->setWeight(RegWeight::Zero);
+    _movp(Slot, legalizeToVar(SourceVectOperand));
+
+    // Compute the location of the element in memory.
+    unsigned Offset = Index * typeWidthInBytes(InVectorElementTy);
+    OperandX8632Mem *Loc =
+        getMemoryOperandForStackSlot(InVectorElementTy, Slot, Offset);
+    _mov(ExtractedElement, Loc);
+  }
+
+  if (ElementTy == IceType_i1) {
+    // Truncate extracted integers to i1s if necessary.
+    Variable *T = makeReg(IceType_i1);
+    InstCast *Cast =
+        InstCast::create(Func, InstCast::Trunc, T, ExtractedElement);
+    lowerCast(Cast);
+    ExtractedElement = T;
+  }
+
+  // Copy the element to the destination.
+  Variable *Dest = Inst->getDest();
+  _mov(Dest, ExtractedElement);
+}
+
 void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
   Operand *Src0 = Inst->getSrc(0);
   Operand *Src1 = Inst->getSrc(1);
@@ -2236,6 +2336,123 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   Context.insert(InstFakeUse::create(Func, Dest));
   _mov(Dest, Zero);
   Context.insert(Label);
+}
+
+void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
+  Operand *SourceVectOperand = Inst->getSrc(0);
+  Operand *ElementToInsert = Inst->getSrc(1);
+  ConstantInteger *ElementIndex =
+      llvm::dyn_cast<ConstantInteger>(Inst->getSrc(2));
+  // Only constant indices are allowed in PNaCl IR.
+  assert(ElementIndex);
+  unsigned Index = ElementIndex->getValue();
+
+  Type Ty = SourceVectOperand->getType();
+  Type ElementTy = typeElementType(Ty);
+  Type InVectorElementTy = getInVectorElementType(Ty);
+
+  if (ElementTy == IceType_i1) {
+    // Expand the element to the appropriate size for it to be inserted
+    // in the vector.
+    Variable *Expanded =
+        Func->makeVariable(InVectorElementTy, Context.getNode());
+    InstCast *Cast =
+        InstCast::create(Func, InstCast::Zext, Expanded, ElementToInsert);
+    lowerCast(Cast);
+    ElementToInsert = Expanded;
+  }
+
+  if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
+    // Lower insertelement with 32-bit wide elements using shufps.
+    // TODO(wala): SSE4.1 has pinsrd and insertps.
+    Variable *Element = NULL;
+    if (InVectorElementTy == IceType_f32) {
+      // Element will be in an XMM register since it is floating point.
+      Element = legalizeToVar(ElementToInsert);
+    } else {
+      // Copy an integer to an XMM register.
+      Operand *T = legalize(ElementToInsert, Legal_Reg | Legal_Mem);
+      Element = makeReg(Ty);
+      _movd(Element, T);
+    }
+
+    // shufps treats the source and desination operands as vectors of
+    // four doublewords.  The destination's two high doublewords are
+    // selected from the source operand and the two low doublewords are
+    // selected from the (original value of) the destination operand.
+    // An insertelement operation can be effected with a sequence of two
+    // shufps operations with appropriate masks.  In all cases below,
+    // Element[0] is being inserted into SourceVectOperand.  Indices are
+    // ordered from left to right.
+    //
+    // insertelement into index 0 (result is stored in Element):
+    //   Element := Element[0, 0] SourceVectOperand[0, 1]
+    //   Element := Element[0, 3] SourceVectOperand[2, 3]
+    //
+    // insertelement into index 1 (result is stored in Element):
+    //   Element := Element[0, 0] SourceVectOperand[0, 0]
+    //   Element := Element[3, 0] SourceVectOperand[2, 3]
+    //
+    // insertelement into index 2 (result is stored in T):
+    //   T := SourceVectOperand
+    //   Element := Element[0, 0] T[0, 3]
+    //   T := T[0, 1] Element[0, 3]
+    //
+    // insertelement into index 3 (result is stored in T):
+    //   T := SourceVectOperand
+    //   Element := Element[0, 0] T[0, 2]
+    //   T := T[0, 1] Element[3, 0]
+    const unsigned char Mask1[4] = {64, 0, 192, 128};
+    const unsigned char Mask2[4] = {236, 227, 196, 52};
+
+    Constant *Mask1Constant = Ctx->getConstantInt(IceType_i8, Mask1[Index]);
+    Constant *Mask2Constant = Ctx->getConstantInt(IceType_i8, Mask2[Index]);
+
+    // ALIGNHACK: Force vector operands to registers in instructions that
+    // require aligned memory operands until support for stack alignment
+    // is implemented.
+#define ALIGN_HACK(Vect) legalizeToVar((Vect))
+    if (Index < 2) {
+      SourceVectOperand = ALIGN_HACK(SourceVectOperand);
+      _shufps(Element, SourceVectOperand, Mask1Constant);
+      _shufps(Element, SourceVectOperand, Mask2Constant);
+      _movp(Inst->getDest(), Element);
+    } else {
+      Variable *T = makeReg(Ty);
+      _movp(T, SourceVectOperand);
+      _shufps(Element, T, Mask1Constant);
+      _shufps(T, Element, Mask2Constant);
+      _movp(Inst->getDest(), T);
+    }
+#undef ALIGN_HACK
+  } else if (Ty == IceType_v8i16 || Ty == IceType_v8i1) {
+    Operand *Element = legalize(ElementToInsert, Legal_Mem | Legal_Reg);
+    Variable *T = makeReg(Ty);
+    _movp(T, SourceVectOperand);
+    _pinsrw(T, Element, Ctx->getConstantInt(IceType_i8, Index));
+    _movp(Inst->getDest(), T);
+  } else {
+    assert(Ty == IceType_v16i8 || Ty == IceType_v16i1);
+    // Spill the value to a stack slot and perform the insertion in
+    // memory.
+    // TODO(wala): SSE4.1 has pinsrb.
+    //
+    // TODO(wala): use legalize(SourceVectOperand, Legal_Mem) when
+    // support for legalizing to mem is implemented.
+    Variable *Slot = Func->makeVariable(Ty, Context.getNode());
+    Slot->setWeight(RegWeight::Zero);
+    _movp(Slot, legalizeToVar(SourceVectOperand));
+
+    // Compute the location of the position to insert in memory.
+    unsigned Offset = Index * typeWidthInBytes(InVectorElementTy);
+    OperandX8632Mem *Loc =
+        getMemoryOperandForStackSlot(InVectorElementTy, Slot, Offset);
+    _store(legalizeToVar(ElementToInsert), Loc);
+
+    Variable *T = makeReg(Ty);
+    _movp(T, Slot);
+    _movp(Inst->getDest(), T);
+  }
 }
 
 void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
@@ -3167,6 +3384,23 @@ Variable *TargetX8632::makeVectorOfOnes(Type Ty, int32_t RegNum) {
   _pcmpeq(MinusOne, MinusOne);
   _psub(Dest, MinusOne);
   return Dest;
+}
+
+OperandX8632Mem *TargetX8632::getMemoryOperandForStackSlot(Type Ty,
+                                                           Variable *Slot,
+                                                           uint32_t Offset) {
+  // Ensure that Loc is a stack slot.
+  assert(Slot->getWeight() == RegWeight::Zero);
+  assert(Slot->getRegNum() == Variable::NoRegister);
+  // Compute the location of Loc in memory.
+  // TODO(wala,stichnot): lea should not be required.  The address of
+  // the stack slot is known at compile time (although not until after
+  // addProlog()).
+  const Type PointerType = IceType_i32;
+  Variable *Loc = makeReg(PointerType);
+  _lea(Loc, Slot);
+  Constant *ConstantOffset = Ctx->getConstantInt(IceType_i32, Offset);
+  return OperandX8632Mem::create(Func, Ty, Loc, ConstantOffset);
 }
 
 // Helper for legalize() to emit the right code to lower an operand to a

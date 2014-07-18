@@ -41,9 +41,11 @@ public:
     Br,
     Call,
     Cast,
+    ExtractElement,
     Fcmp,
     Icmp,
     IntrinsicCall,
+    InsertElement,
     Load,
     Phi,
     Ret,
@@ -344,6 +346,29 @@ private:
   const OpKind CastKind;
 };
 
+// ExtractElement instruction.
+class InstExtractElement : public Inst {
+public:
+  static InstExtractElement *create(Cfg *Func, Variable *Dest, Operand *Source1,
+                                    Operand *Source2) {
+    return new (Func->allocateInst<InstExtractElement>())
+        InstExtractElement(Func, Dest, Source1, Source2);
+  }
+
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) {
+    return Inst->getKind() == ExtractElement;
+  }
+
+private:
+  InstExtractElement(Cfg *Func, Variable *Dest, Operand *Source1,
+                     Operand *Source2);
+  InstExtractElement(const InstExtractElement &) LLVM_DELETED_FUNCTION;
+  InstExtractElement &
+  operator=(const InstExtractElement &) LLVM_DELETED_FUNCTION;
+  virtual ~InstExtractElement() {}
+};
+
 // Floating-point comparison instruction.  The source operands are
 // captured in getSrc(0) and getSrc(1).
 class InstFcmp : public Inst {
@@ -400,6 +425,28 @@ private:
   InstIcmp &operator=(const InstIcmp &) LLVM_DELETED_FUNCTION;
   virtual ~InstIcmp() {}
   const ICond Condition;
+};
+
+// InsertElement instruction.
+class InstInsertElement : public Inst {
+public:
+  static InstInsertElement *create(Cfg *Func, Variable *Dest, Operand *Source1,
+                                   Operand *Source2, Operand *Source3) {
+    return new (Func->allocateInst<InstInsertElement>())
+        InstInsertElement(Func, Dest, Source1, Source2, Source3);
+  }
+
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) {
+    return Inst->getKind() == InsertElement;
+  }
+
+private:
+  InstInsertElement(Cfg *Func, Variable *Dest, Operand *Source1,
+                    Operand *Source2, Operand *Source3);
+  InstInsertElement(const InstInsertElement &) LLVM_DELETED_FUNCTION;
+  InstInsertElement &operator=(const InstInsertElement &) LLVM_DELETED_FUNCTION;
+  virtual ~InstInsertElement() {}
 };
 
 // Call to an intrinsic function.  The call target is captured as getSrc(0),

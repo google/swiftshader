@@ -156,11 +156,14 @@ public:
     Idiv,
     Imul,
     Label,
+    Lea,
     Load,
     Mfence,
     Mov,
+    Movd,
     Movp,
     Movq,
+    Movss,
     Movsx,
     Movzx,
     Mul,
@@ -172,6 +175,8 @@ public:
     Pand,
     Pcmpeq,
     Pcmpgt,
+    Pextrw,
+    Pinsrw,
     Pmullw,
     Pmuludq,
     Pop,
@@ -430,7 +435,11 @@ public:
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 3);
     Str << "\t" << Opcode << "\t";
+    getDest()->emit(Func);
+    Str << ", ";
     getSrc(1)->emit(Func);
+    Str << ", ";
+    getSrc(2)->emit(Func);
     Str << "\n";
   }
   virtual void dump(const Cfg *Func) const {
@@ -454,8 +463,54 @@ private:
   static const char *Opcode;
 };
 
+// Instructions of the form x := y op z
+template <InstX8632::InstKindX8632 K>
+class InstX8632ThreeAddressop : public InstX8632 {
+public:
+  static InstX8632ThreeAddressop *create(Cfg *Func, Variable *Dest,
+                                         Operand *Source0, Operand *Source1) {
+    return new (Func->allocate<InstX8632ThreeAddressop>())
+        InstX8632ThreeAddressop(Func, Dest, Source0, Source1);
+  }
+  virtual void emit(const Cfg *Func) const {
+    Ostream &Str = Func->getContext()->getStrEmit();
+    assert(getSrcSize() == 2);
+    Str << "\t" << Opcode << "\t";
+    getDest()->emit(Func);
+    Str << ", ";
+    getSrc(0)->emit(Func);
+    Str << ", ";
+    getSrc(1)->emit(Func);
+    Str << "\n";
+  }
+  virtual void dump(const Cfg *Func) const {
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = " << Opcode << "." << getDest()->getType() << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstX8632ThreeAddressop(Cfg *Func, Variable *Dest, Operand *Source0,
+                          Operand *Source1)
+      : InstX8632(Func, K, 2, Dest) {
+    addSource(Source0);
+    addSource(Source1);
+  }
+  InstX8632ThreeAddressop(const InstX8632ThreeAddressop &)
+      LLVM_DELETED_FUNCTION;
+  InstX8632ThreeAddressop &
+  operator=(const InstX8632ThreeAddressop &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632ThreeAddressop() {}
+  static const char *Opcode;
+};
+
 typedef InstX8632Unaryop<InstX8632::Bsf> InstX8632Bsf;
 typedef InstX8632Unaryop<InstX8632::Bsr> InstX8632Bsr;
+typedef InstX8632Unaryop<InstX8632::Lea> InstX8632Lea;
+typedef InstX8632Unaryop<InstX8632::Movd> InstX8632Movd;
+typedef InstX8632Unaryop<InstX8632::Movss> InstX8632Movss;
 typedef InstX8632Unaryop<InstX8632::Sqrtss> InstX8632Sqrtss;
 typedef InstX8632Binop<InstX8632::Add> InstX8632Add;
 typedef InstX8632Binop<InstX8632::Addps> InstX8632Addps;
@@ -489,6 +544,10 @@ typedef InstX8632Binop<InstX8632::Pcmpeq> InstX8632Pcmpeq;
 typedef InstX8632Binop<InstX8632::Pcmpgt> InstX8632Pcmpgt;
 typedef InstX8632Ternop<InstX8632::Idiv> InstX8632Idiv;
 typedef InstX8632Ternop<InstX8632::Div> InstX8632Div;
+typedef InstX8632Ternop<InstX8632::Pinsrw> InstX8632Pinsrw;
+typedef InstX8632Ternop<InstX8632::Shufps> InstX8632Shufps;
+typedef InstX8632ThreeAddressop<InstX8632::Pextrw> InstX8632Pextrw;
+typedef InstX8632ThreeAddressop<InstX8632::Pshufd> InstX8632Pshufd;
 
 // Base class for a lockable x86-32 instruction (emits a locked prefix).
 class InstX8632Lockable : public InstX8632 {
@@ -994,27 +1053,6 @@ private:
   virtual ~InstX8632Push() {}
 };
 
-// Pshufd - shuffle a vector of doublewords 
-class InstX8632Pshufd : public InstX8632 {
-public:
-  static InstX8632Pshufd *create(Cfg *Func, Variable *Dest, Operand *Source1,
-                                 Operand *Source2) {
-    return new (Func->allocate<InstX8632Pshufd>())
-        InstX8632Pshufd(Func, Dest, Source1, Source2);
-  }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Pshufd); }
-
-private:
-  InstX8632Pshufd(Cfg *Func, Variable *Dest, Operand *Source1,
-                  Operand *Source2);
-  InstX8632Pshufd(const InstX8632Pshufd &) LLVM_DELETED_FUNCTION;
-  InstX8632Pshufd &operator=(const InstX8632Pshufd &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Pshufd() {}
-  static const char *Opcode;
-};
-
 // Ret instruction.  Currently only supports the "ret" version that
 // does not pop arguments.  This instruction takes a Source operand
 // (for non-void returning functions) for liveness analysis, though
@@ -1033,27 +1071,6 @@ private:
   InstX8632Ret(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
   InstX8632Ret &operator=(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Ret() {}
-};
-
-// Shufps - select from two vectors of floating point values
-class InstX8632Shufps : public InstX8632 {
-public:
-  static InstX8632Shufps *create(Cfg *Func, Variable *Dest, Operand *Source1,
-                                 Operand *Source2) {
-    return new (Func->allocate<InstX8632Shufps>())
-        InstX8632Shufps(Func, Dest, Source1, Source2);
-  }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Shufps); }
-
-private:
-  InstX8632Shufps(Cfg *Func, Variable *Dest, Operand *Source1,
-                  Operand *Source2);
-  InstX8632Shufps(const InstX8632Shufps &) LLVM_DELETED_FUNCTION;
-  InstX8632Shufps &operator=(const InstX8632Shufps &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Shufps() {}
-  static const char *Opcode;
 };
 
 // Exchanging Add instruction.  Exchanges the first operand (destination

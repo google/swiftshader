@@ -42,7 +42,7 @@ const struct TypeX8632Attributes_ {
   const char *PackString;  // b, w, d, or <blank>
   const char *WidthString; // {byte,word,dword,qword} ptr
 } TypeX8632Attributes[] = {
-#define X(tag, cvt, sdss, pack, width)                                         \
+#define X(tag, elementty, cvt, sdss, pack, width)                              \
   { cvt, "" sdss, pack, width }                                                \
   ,
     ICETYPEX8632_TABLE
@@ -312,21 +312,6 @@ bool InstX8632Movq::isRedundantAssign() const {
   return false;
 }
 
-InstX8632Pshufd::InstX8632Pshufd(Cfg *Func, Variable *Dest, Operand *Source1,
-                                 Operand *Source2)
-    : InstX8632(Func, InstX8632::Pshufd, 2, Dest) {
-  addSource(Source1);
-  addSource(Source2);
-}
-
-InstX8632Shufps::InstX8632Shufps(Cfg *Func, Variable *Dest, Operand *Source1,
-                                 Operand *Source2)
-    : InstX8632(Func, InstX8632::Shufps, 3, Dest) {
-  addSource(Dest);
-  addSource(Source1);
-  addSource(Source2);
-}
-
 InstX8632Ret::InstX8632Ret(Cfg *Func, Variable *Source)
     : InstX8632(Func, InstX8632::Ret, Source ? 1 : 0, NULL) {
   if (Source)
@@ -454,9 +439,15 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
   Str << "\n";
 }
 
+
+// Unary ops
 template <> const char *InstX8632Bsf::Opcode = "bsf";
 template <> const char *InstX8632Bsr::Opcode = "bsr";
+template <> const char *InstX8632Lea::Opcode = "lea";
+template <> const char *InstX8632Movd::Opcode = "movd";
+template <> const char *InstX8632Movss::Opcode = "movss";
 template <> const char *InstX8632Sqrtss::Opcode = "sqrtss";
+// Binary ops
 template <> const char *InstX8632Add::Opcode = "add";
 template <> const char *InstX8632Addps::Opcode = "addps";
 template <> const char *InstX8632Adc::Opcode = "adc";
@@ -489,6 +480,12 @@ template <> const char *InstX8632Sar::Opcode = "sar";
 template <> const char *InstX8632Psra::Opcode = "psra";
 template <> const char *InstX8632Pcmpeq::Opcode = "pcmpeq";
 template <> const char *InstX8632Pcmpgt::Opcode = "pcmpgt";
+// Ternary ops
+template <> const char *InstX8632Shufps::Opcode = "shufps";
+template <> const char *InstX8632Pinsrw::Opcode = "pinsrw";
+// Three address ops
+template <> const char *InstX8632Pextrw::Opcode = "pextrw";
+template <> const char *InstX8632Pshufd::Opcode = "pshufd";
 
 template <> void InstX8632Sqrtss::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -554,6 +551,22 @@ template <> void InstX8632Divss::emit(const Cfg *Func) const {
   snprintf(buf, llvm::array_lengthof(buf), "div%s",
            TypeX8632Attributes[getDest()->getType()].SdSsString);
   emitTwoAddress(buf, this, Func);
+}
+
+template <> void InstX8632Div::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 3);
+  Str << "\t" << Opcode << "\t";
+  getSrc(1)->emit(Func);
+  Str << "\n";
+}
+
+template <> void InstX8632Idiv::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 3);
+  Str << "\t" << Opcode << "\t";
+  getSrc(1)->emit(Func);
+  Str << "\n";
 }
 
 template <> void InstX8632Imul::emit(const Cfg *Func) const {
@@ -868,6 +881,25 @@ void InstX8632StoreQ::dump(const Cfg *Func) const {
   getSrc(0)->dump(Func);
 }
 
+template <> void InstX8632Lea::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  assert(getDest()->hasReg());
+  Str << "\tlea\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  Operand *Src0 = getSrc(0);
+  if (Variable *VSrc0 = llvm::dyn_cast<Variable>(Src0)) {
+    Type Ty = VSrc0->getType();
+    // lea on x86-32 doesn't accept mem128 operands, so cast VSrc0 to an
+    // acceptable type.
+    VSrc0->asType(isVectorType(Ty) ? IceType_i32 : Ty).emit(Func);
+  } else {
+    Src0->emit(Func);
+  }
+  Str << "\n";
+}
+
 void InstX8632Mov::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
@@ -893,6 +925,9 @@ void InstX8632Mov::emit(const Cfg *Func) const {
   // safe, we instead widen the dest to match src.  This works even
   // for stack-allocated dest variables because typeWidthOnStack()
   // pads to a 4-byte boundary even if only a lower portion is used.
+  // TODO: This assert disallows usages such as copying a floating point
+  // value between a vector and a scalar (which movss is used for).
+  // Clean this up.
   assert(Func->getTarget()->typeWidthInBytesOnStack(getDest()->getType()) ==
          Func->getTarget()->typeWidthInBytesOnStack(Src->getType()));
   getDest()->asType(Src->getType()).emit(Func);
@@ -1066,6 +1101,39 @@ template <> void InstX8632Pcmpgt::emit(const Cfg *Func) const {
   emitTwoAddress(buf, this, Func);
 }
 
+template <> void InstX8632Pextrw::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 2);
+  Str << "\t" << Opcode << "\t";
+  Variable *Dest = getDest();
+  assert(Dest->hasReg() && Dest->getType() == IceType_i16);
+  // pextrw takes r32 dest.
+  Dest->asType(IceType_i32).emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+  Str << "\n";
+}
+
+template <> void InstX8632Pinsrw::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 3);
+  Str << "\t" << Opcode << "\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  Operand *Src1 = getSrc(1);
+  if (Variable *VSrc1 = llvm::dyn_cast<Variable>(Src1)) {
+    // If src1 is a register, it should be r32.
+    VSrc1->asType(VSrc1->hasReg() ? IceType_i32 : IceType_i16).emit(Func);
+  } else {
+    Src1->emit(Func);
+  }
+  Str << ", ";
+  getSrc(2)->emit(Func);
+  Str << "\n";
+}
+
 void InstX8632Pop::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 0);
@@ -1138,25 +1206,6 @@ template <> void InstX8632Psra::emit(const Cfg *Func) const {
   emitTwoAddress(buf, this, Func);
 }
 
-void InstX8632Pshufd::emit(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrEmit();
-  assert(getSrcSize() == 2);
-  Str << "\tpshufd\t";
-  getDest()->emit(Func);
-  Str << ", ";
-  getSrc(0)->emit(Func);
-  Str << ", ";
-  getSrc(1)->emit(Func);
-  Str << "\n";
-}
-
-void InstX8632Pshufd::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
-  dumpDest(Func);
-  Str << " = pshufd." << getDest()->getType() << " ";
-  dumpSources(Func);
-}
-
 void InstX8632Ret::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\tret\n";
@@ -1166,25 +1215,6 @@ void InstX8632Ret::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = (getSrcSize() == 0 ? IceType_void : getSrc(0)->getType());
   Str << "ret." << Ty << " ";
-  dumpSources(Func);
-}
-
-void InstX8632Shufps::emit(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrEmit();
-  assert(getSrcSize() == 3);
-  Str << "\tshufps\t";
-  getDest()->emit(Func);
-  Str << ", ";
-  getSrc(1)->emit(Func);
-  Str << ", ";
-  getSrc(2)->emit(Func);
-  Str << "\n";
-}
-
-void InstX8632Shufps::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
-  dumpDest(Func);
-  Str << " = shufps." << getDest()->getType() << " ";
   dumpSources(Func);
 }
 

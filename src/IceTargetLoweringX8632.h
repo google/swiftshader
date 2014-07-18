@@ -82,9 +82,11 @@ protected:
   virtual void lowerBr(const InstBr *Inst);
   virtual void lowerCall(const InstCall *Inst);
   virtual void lowerCast(const InstCast *Inst);
+  virtual void lowerExtractElement(const InstExtractElement *Inst);
   virtual void lowerFcmp(const InstFcmp *Inst);
   virtual void lowerIcmp(const InstIcmp *Inst);
   virtual void lowerIntrinsicCall(const InstIntrinsicCall *Inst);
+  virtual void lowerInsertElement(const InstInsertElement *Inst);
   virtual void lowerLoad(const InstLoad *Inst);
   virtual void lowerPhi(const InstPhi *Inst);
   virtual void lowerRet(const InstRet *Inst);
@@ -151,6 +153,10 @@ protected:
   // Returns a vector in a register with the given constant entries.
   Variable *makeVectorOfZeros(Type Ty, int32_t RegNum = Variable::NoRegister);
   Variable *makeVectorOfOnes(Type Ty, int32_t RegNum = Variable::NoRegister);
+
+  // Return a memory operand corresponding to a stack allocated Variable.
+  OperandX8632Mem *getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
+                                                uint32_t Offset = 0);
 
   // The following are helpers that insert lowered x86 instructions
   // with minimal syntactic overhead, so that the lowering code can
@@ -237,6 +243,9 @@ protected:
   void _imul(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Imul::create(Func, Dest, Src0));
   }
+  void _lea(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Lea::create(Func, Dest, Src0));
+  }
   void _mfence() { Context.insert(InstX8632Mfence::create(Func)); }
   // If Dest=NULL is passed in, then a new variable is created, marked
   // as infinite register allocation weight, and returned through the
@@ -249,11 +258,17 @@ protected:
       Context.insert(InstX8632Mov::create(Func, Dest, Src0));
     }
   }
+  void _movd(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Movd::create(Func, Dest, Src0));
+  }
   void _movp(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Movp::create(Func, Dest, Src0));
   }
   void _movq(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Movq::create(Func, Dest, Src0));
+  }
+  void _movss(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Movss::create(Func, Dest, Src0));
   }
   void _movsx(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Movsx::create(Func, Dest, Src0));
@@ -287,6 +302,12 @@ protected:
   }
   void _pcmpgt(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pcmpgt::create(Func, Dest, Src0));
+  }
+  void _pextrw(Variable *Dest, Operand *Src0, Operand *Src1) {
+    Context.insert(InstX8632Pextrw::create(Func, Dest, Src0, Src1));
+  }
+  void _pinsrw(Variable *Dest, Operand *Src0, Operand *Src1) {
+    Context.insert(InstX8632Pinsrw::create(Func, Dest, Src0, Src1));
   }
   void _pmullw(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pmullw::create(Func, Dest, Src0));

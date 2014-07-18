@@ -110,11 +110,17 @@ void TargetLowering::lower() {
   case Inst::Cast:
     lowerCast(llvm::dyn_cast<InstCast>(Inst));
     break;
+  case Inst::ExtractElement:
+    lowerExtractElement(llvm::dyn_cast<InstExtractElement>(Inst));
+    break;
   case Inst::Fcmp:
     lowerFcmp(llvm::dyn_cast<InstFcmp>(Inst));
     break;
   case Inst::Icmp:
     lowerIcmp(llvm::dyn_cast<InstIcmp>(Inst));
+    break;
+  case Inst::InsertElement:
+    lowerInsertElement(llvm::dyn_cast<InstInsertElement>(Inst));
     break;
   case Inst::IntrinsicCall:
     lowerIntrinsicCall(llvm::dyn_cast<InstIntrinsicCall>(Inst));

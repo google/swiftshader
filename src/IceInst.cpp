@@ -267,6 +267,13 @@ InstCast::InstCast(Cfg *Func, OpKind CastKind, Variable *Dest, Operand *Source)
   addSource(Source);
 }
 
+InstExtractElement::InstExtractElement(Cfg *Func, Variable *Dest,
+                                       Operand *Source1, Operand *Source2)
+    : Inst(Func, Inst::ExtractElement, 2, Dest) {
+  addSource(Source1);
+  addSource(Source2);
+}
+
 InstFcmp::InstFcmp(Cfg *Func, FCond Condition, Variable *Dest, Operand *Source1,
                    Operand *Source2)
     : Inst(Func, Inst::Fcmp, 2, Dest), Condition(Condition) {
@@ -279,6 +286,15 @@ InstIcmp::InstIcmp(Cfg *Func, ICond Condition, Variable *Dest, Operand *Source1,
     : Inst(Func, Inst::Icmp, 2, Dest), Condition(Condition) {
   addSource(Source1);
   addSource(Source2);
+}
+
+InstInsertElement::InstInsertElement(Cfg *Func, Variable *Dest,
+                                     Operand *Source1, Operand *Source2,
+                                     Operand *Source3)
+    : Inst(Func, Inst::InsertElement, 3, Dest) {
+  addSource(Source1);
+  addSource(Source2);
+  addSource(Source3);
 }
 
 InstLoad::InstLoad(Cfg *Func, Variable *Dest, Operand *SourceAddr)
@@ -585,6 +601,31 @@ void InstIcmp::dump(const Cfg *Func) const {
       << getSrc(0)->getType() << " ";
   dumpSources(Func);
 }
+
+void InstExtractElement::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpDest(Func);
+  Str << " = extractelement ";
+  Str << getSrc(0)->getType() << " ";
+  getSrc(0)->dump(Func);
+  Str << ", ";
+  Str << getSrc(1)->getType() << " ";
+  getSrc(1)->dump(Func);
+};
+
+void InstInsertElement::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpDest(Func);
+  Str << " = insertelement ";
+  Str << getSrc(0)->getType() << " ";
+  getSrc(0)->dump(Func);
+  Str << ", ";
+  Str << getSrc(1)->getType() << " ";
+  getSrc(1)->dump(Func);
+  Str << ", ";
+  Str << getSrc(2)->getType() << " ";
+  getSrc(2)->dump(Func);
+};
 
 void InstFcmp::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
