@@ -28,27 +28,31 @@ namespace Subzero_ {
 }
 
 volatile uint64_t Values[] = {
-    0,                    1,                    0x7e,
-    0x7f,                 0x80,                 0x81,
-    0xfe,                 0xff,                 0x7ffe,
-    0x7fff,               0x8000,               0x8001,
-    0xfffe,               0xffff,
-    0x007fffff /*Max subnormal + */,
-    0x00800000 /*Min+ */, 0x7f7fffff /*Max+ */,
-    0x7f800000 /*+Inf*/,  0xff800000 /*-Inf*/,
-    0x7fa00000 /*SNaN*/,  0x7fc00000 /*QNaN*/,
-    0x7ffffffe,           0x7fffffff,           0x80000000,
-    0x80000001,           0xfffffffe,           0xffffffff,
-    0x100000000ll,        0x100000001ll,
-    0x000fffffffffffffll /*Max subnormal + */,
-    0x0010000000000000ll /*Min+ */,
-    0x7fefffffffffffffll /*Max+ */,
-    0x7ff0000000000000ll /*+Inf*/,
-    0xfff0000000000000ll /*-Inf*/,
-    0x7ff0000000000001ll /*SNaN*/,
-    0x7ff8000000000000ll /*QNaN*/,
-    0x7ffffffffffffffell, 0x7fffffffffffffffll, 0x8000000000000000ll,
-    0x8000000000000001ll, 0xfffffffffffffffell, 0xffffffffffffffffll };
+    0,                              1,
+    0x7e,                           0x7f,
+    0x80,                           0x81,
+    0xfe,                           0xff,
+    0x7ffe,                         0x7fff,
+    0x8000,                         0x8001,
+    0xfffe,                         0xffff,
+    0xc0de,                         0xabcd,
+    0xdcba,                         0x007fffff /*Max subnormal + */,
+    0x00800000 /*Min+ */,           0x7f7fffff /*Max+ */,
+    0x7f800000 /*+Inf*/,            0xff800000 /*-Inf*/,
+    0x7fa00000 /*SNaN*/,            0x7fc00000 /*QNaN*/,
+    0x7ffffffe,                     0x7fffffff,
+    0x80000000,                     0x80000001,
+    0xfffffffe,                     0xffffffff,
+    0x12345678,                     0xabcd1234,
+    0x1234dcba,                     0x100000000ll,
+    0x100000001ll,                  0x123456789abcdef1ll,
+    0x987654321ab1fedcll,           0x000fffffffffffffll /*Max subnormal + */,
+    0x0010000000000000ll /*Min+ */, 0x7fefffffffffffffll /*Max+ */,
+    0x7ff0000000000000ll /*+Inf*/,  0xfff0000000000000ll /*-Inf*/,
+    0x7ff0000000000001ll /*SNaN*/,  0x7ff8000000000000ll /*QNaN*/,
+    0x7ffffffffffffffell,           0x7fffffffffffffffll,
+    0x8000000000000000ll,           0x8000000000000001ll,
+    0xfffffffffffffffell,           0xffffffffffffffffll};
 
 const static size_t NumValues = sizeof(Values) / sizeof(*Values);
 
@@ -96,6 +100,25 @@ void testBitManip(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   }
 }
 
+template <typename Type>
+void testByteSwap(size_t &TotalTests, size_t &Passes, size_t &Failures) {
+  for (size_t i = 0; i < NumValues; ++i) {
+    Type Value = static_cast<Type>(Values[i]);
+    ++TotalTests;
+    Type ResultSz = test_bswap(Value);
+    Type ResultLlc = Subzero_::test_bswap(Value);
+    if (ResultSz == ResultLlc) {
+      ++Passes;
+    } else {
+      ++Failures;
+      std::cout << "test_bswap" << (CHAR_BIT * sizeof(Type)) << "("
+                << static_cast<uint64_t>(Value)
+                << "): sz=" << static_cast<uint64_t>(ResultSz)
+                << " llc=" << static_cast<uint64_t>(ResultLlc) << "\n";
+    }
+  }
+}
+
 int main(int argc, char **argv) {
   size_t TotalTests = 0;
   size_t Passes = 0;
@@ -103,6 +126,9 @@ int main(int argc, char **argv) {
 
   testBitManip<uint32_t>(TotalTests, Passes, Failures);
   testBitManip<uint64_t>(TotalTests, Passes, Failures);
+  testByteSwap<uint16_t>(TotalTests, Passes, Failures);
+  testByteSwap<uint32_t>(TotalTests, Passes, Failures);
+  testByteSwap<uint64_t>(TotalTests, Passes, Failures);
 
   std::cout << "TotalTests=" << TotalTests << " Passes=" << Passes
             << " Failures=" << Failures << "\n";

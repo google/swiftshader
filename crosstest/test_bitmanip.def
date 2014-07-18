@@ -39,4 +39,10 @@
   FOR_ALL_BMI_TYPES_INST(X, ctpop)
 //#define X(inst, type)
 
+#define BSWAP_TABLE              \
+  /* type, builtin_name */       \
+  X(uint16_t, __builtin_bswap16) \
+  X(uint32_t, __builtin_bswap32) \
+  X(uint64_t, __builtin_bswap64)
+
 #endif // TEST_BIT_MANIP_DEF

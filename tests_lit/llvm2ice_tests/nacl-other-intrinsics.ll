@@ -22,6 +22,9 @@ declare i32 @llvm.nacl.setjmp(i8*)
 declare float @llvm.sqrt.f32(float)
 declare double @llvm.sqrt.f64(double)
 declare void @llvm.trap()
+declare i16 @llvm.bswap.i16(i16)
+declare i32 @llvm.bswap.i32(i32)
+declare i64 @llvm.bswap.i64(i64)
 declare i32 @llvm.ctlz.i32(i32, i1)
 declare i64 @llvm.ctlz.i64(i64, i1)
 declare i32 @llvm.cttz.i32(i32, i1)
@@ -241,6 +244,33 @@ NonZero:
 }
 ; CHECK-LABEL: test_trap
 ; CHECK: ud2
+
+define i32 @test_bswap_16(i32 %x) {
+entry:
+  %x_trunc = trunc i32 %x to i16
+  %r = call i16 @llvm.bswap.i16(i16 %x_trunc)
+  %r_zext = zext i16 %r to i32
+  ret i32 %r_zext
+}
+; CHECK-LABEL: test_bswap_16
+; CHECK: rol {{.*}}, 8
+
+define i32 @test_bswap_32(i32 %x) {
+entry:
+  %r = call i32 @llvm.bswap.i32(i32 %x)
+  ret i32 %r
+}
+; CHECK-LABEL: test_bswap_32
+; CHECK: bswap e{{.*}}
+
+define i64 @test_bswap_64(i64 %x) {
+entry:
+  %r = call i64 @llvm.bswap.i64(i64 %x)
+  ret i64 %r
+}
+; CHECK-LABEL: test_bswap_64
+; CHECK: bswap e{{.*}}
+; CHECK: bswap e{{.*}}
 
 define i32 @test_ctlz_32(i32 %x) {
 entry:

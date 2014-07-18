@@ -141,6 +141,7 @@ public:
     Br,
     Bsf,
     Bsr,
+    Bswap,
     Call,
     Cdq,
     Cmov,
@@ -188,6 +189,7 @@ public:
     Push,
     Pxor,
     Ret,
+    Rol,
     Sar,
     Sbb,
     Shl,
@@ -352,6 +354,42 @@ private:
   virtual ~InstX8632Call() {}
 };
 
+// Instructions of the form x := op(x).
+template <InstX8632::InstKindX8632 K>
+class InstX8632Inplaceop : public InstX8632 {
+public:
+  static InstX8632Inplaceop *create(Cfg *Func, Operand *SrcDest) {
+    return new (Func->allocate<InstX8632Inplaceop>())
+        InstX8632Inplaceop(Func, SrcDest);
+  }
+  virtual void emit(const Cfg *Func) const {
+    Ostream &Str = Func->getContext()->getStrEmit();
+    assert(getSrcSize() == 1);
+    Str << "\t" << Opcode << "\t";
+    getSrc(0)->emit(Func);
+    Str << "\n";
+  }
+  virtual void dump(const Cfg *Func) const {
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = " << Opcode << "." << getDest()->getType() << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstX8632Inplaceop(Cfg *Func, Operand *SrcDest)
+      : InstX8632(Func, K, 1, llvm::dyn_cast<Variable>(SrcDest)) {
+    addSource(SrcDest);
+  }
+  InstX8632Inplaceop(const InstX8632Inplaceop &) LLVM_DELETED_FUNCTION;
+  InstX8632Inplaceop &
+  operator=(const InstX8632Inplaceop &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Inplaceop() {}
+  static const char *Opcode;
+};
+
+// Instructions of the form x := op(y)
 template <InstX8632::InstKindX8632 K>
 class InstX8632Unaryop : public InstX8632 {
 public:
@@ -506,6 +544,8 @@ private:
   static const char *Opcode;
 };
 
+typedef InstX8632Inplaceop<InstX8632::Bswap> InstX8632Bswap;
+typedef InstX8632Inplaceop<InstX8632::Neg> InstX8632Neg;
 typedef InstX8632Unaryop<InstX8632::Bsf> InstX8632Bsf;
 typedef InstX8632Unaryop<InstX8632::Bsr> InstX8632Bsr;
 typedef InstX8632Unaryop<InstX8632::Lea> InstX8632Lea;
@@ -535,6 +575,7 @@ typedef InstX8632Binop<InstX8632::Pmullw> InstX8632Pmullw;
 typedef InstX8632Binop<InstX8632::Pmuludq> InstX8632Pmuludq;
 typedef InstX8632Binop<InstX8632::Divps> InstX8632Divps;
 typedef InstX8632Binop<InstX8632::Divss> InstX8632Divss;
+typedef InstX8632Binop<InstX8632::Rol, true> InstX8632Rol;
 typedef InstX8632Binop<InstX8632::Shl, true> InstX8632Shl;
 typedef InstX8632Binop<InstX8632::Psll> InstX8632Psll;
 typedef InstX8632Binop<InstX8632::Shr, true> InstX8632Shr;
@@ -588,23 +629,6 @@ private:
   InstX8632Mul(const InstX8632Mul &) LLVM_DELETED_FUNCTION;
   InstX8632Mul &operator=(const InstX8632Mul &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Mul() {}
-};
-
-// Neg instruction - Two's complement negation.
-class InstX8632Neg : public InstX8632 {
-public:
-  static InstX8632Neg *create(Cfg *Func, Operand *SrcDest) {
-    return new (Func->allocate<InstX8632Neg>()) InstX8632Neg(Func, SrcDest);
-  }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Neg); }
-
-private:
-  InstX8632Neg(Cfg *Func, Operand *SrcDest);
-  InstX8632Neg(const InstX8632Neg &) LLVM_DELETED_FUNCTION;
-  InstX8632Neg &operator=(const InstX8632Neg &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Neg() {}
 };
 
 // Shld instruction - shift across a pair of operands.  TODO: Verify

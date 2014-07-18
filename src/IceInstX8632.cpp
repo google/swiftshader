@@ -95,11 +95,6 @@ InstX8632Mul::InstX8632Mul(Cfg *Func, Variable *Dest, Variable *Source1,
   addSource(Source2);
 }
 
-InstX8632Neg::InstX8632Neg(Cfg *Func, Operand *SrcDest)
-    : InstX8632(Func, InstX8632::Neg, 1, llvm::dyn_cast<Variable>(SrcDest)) {
-  addSource(SrcDest);
-}
-
 InstX8632Shld::InstX8632Shld(Cfg *Func, Variable *Dest, Variable *Source1,
                              Variable *Source2)
     : InstX8632(Func, InstX8632::Shld, 3, Dest) {
@@ -440,6 +435,9 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
 }
 
 
+// In-place ops
+template <> const char *InstX8632Bswap::Opcode = "bswap";
+template <> const char *InstX8632Neg::Opcode = "neg";
 // Unary ops
 template <> const char *InstX8632Bsf::Opcode = "bsf";
 template <> const char *InstX8632Bsr::Opcode = "bsr";
@@ -473,6 +471,7 @@ template <> const char *InstX8632Div::Opcode = "div";
 template <> const char *InstX8632Divps::Opcode = "divps";
 template <> const char *InstX8632Idiv::Opcode = "idiv";
 template <> const char *InstX8632Divss::Opcode = "divss";
+template <> const char *InstX8632Rol::Opcode = "rol";
 template <> const char *InstX8632Shl::Opcode = "shl";
 template <> const char *InstX8632Psll::Opcode = "psll";
 template <> const char *InstX8632Shr::Opcode = "shr";
@@ -608,21 +607,6 @@ void InstX8632Mul::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = mul." << getDest()->getType() << " ";
-  dumpSources(Func);
-}
-
-void InstX8632Neg::emit(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrEmit();
-  assert(getSrcSize() == 1);
-  Str << "\tneg\t";
-  getSrc(0)->emit(Func);
-  Str << "\n";
-}
-
-void InstX8632Neg::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
-  dumpDest(Func);
-  Str << " = neg." << getDest()->getType() << " ";
   dumpSources(Func);
 }
 

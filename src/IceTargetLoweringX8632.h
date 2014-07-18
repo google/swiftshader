@@ -196,6 +196,9 @@ protected:
   void _bsr(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Bsr::create(Func, Dest, Src0));
   }
+  void _bswap(Variable *SrcDest) {
+    Context.insert(InstX8632Bswap::create(Func, SrcDest));
+  }
   void _cdq(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Cdq::create(Func, Dest, Src0));
   }
@@ -341,6 +344,9 @@ protected:
   }
   void _ret(Variable *Src0 = NULL) {
     Context.insert(InstX8632Ret::create(Func, Src0));
+  }
+  void _rol(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Rol::create(Func, Dest, Src0));
   }
   void _sar(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Sar::create(Func, Dest, Src0));

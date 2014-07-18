@@ -2596,9 +2596,35 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     _mfence();
     return;
   }
-  case Intrinsics::Bswap:
-    Func->setError("Unhandled intrinsic");
+  case Intrinsics::Bswap: {
+    Variable *Dest = Instr->getDest();
+    Operand *Val = Instr->getArg(0);
+    // In 32-bit mode, bswap only works on 32-bit arguments, and the
+    // argument must be a register. Use rotate left for 16-bit bswap.
+    if (Val->getType() == IceType_i64) {
+      Variable *T_Lo = legalizeToVar(loOperand(Val));
+      Variable *T_Hi = legalizeToVar(hiOperand(Val));
+      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      _bswap(T_Lo);
+      _bswap(T_Hi);
+      _mov(DestLo, T_Hi);
+      _mov(DestHi, T_Lo);
+    } else if (Val->getType() == IceType_i32) {
+      Variable *T = legalizeToVar(Val);
+      _bswap(T);
+      _mov(Dest, T);
+    } else {
+      assert(Val->getType() == IceType_i16);
+      Val = legalize(Val);
+      Constant *Eight = Ctx->getConstantInt(IceType_i16, 8);
+      Variable *T = NULL;
+      _mov(T, Val);
+      _rol(T, Eight);
+      _mov(Dest, T);
+    }
     return;
+  }
   case Intrinsics::Ctpop: {
     Variable *Dest = Instr->getDest();
     Operand *Val = Instr->getArg(0);
