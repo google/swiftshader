@@ -2101,7 +2101,8 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     case IceType_v8i1: {
       assert(Src0->getType() == IceType_i8);
       InstCall *Call = makeHelperCall("Sz_bitcast_i8_to_v8i1", Dest, 1);
-      Variable *Src0AsI32 = Func->makeVariable(IceType_i32, Context.getNode());
+      Variable *Src0AsI32 = Func->makeVariable(stackSlotType(),
+                                               Context.getNode());
       // Arguments to functions are required to be at least 32 bits wide.
       lowerCast(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
       Call->addArg(Src0AsI32);
@@ -2110,7 +2111,8 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     case IceType_v16i1: {
       assert(Src0->getType() == IceType_i16);
       InstCall *Call = makeHelperCall("Sz_bitcast_i16_to_v16i1", Dest, 1);
-      Variable *Src0AsI32 = Func->makeVariable(IceType_i32, Context.getNode());
+      Variable *Src0AsI32 = Func->makeVariable(stackSlotType(),
+                                               Context.getNode());
       // Arguments to functions are required to be at least 32 bits wide.
       lowerCast(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
       Call->addArg(Src0AsI32);
@@ -2708,8 +2710,8 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     // because "push" only works for a specific operand size.
     Operand *ValOp = Instr->getArg(1);
     assert(ValOp->getType() == IceType_i8);
-    Variable *ValExt = makeReg(stackSlotType());
-    _movzx(ValExt, ValOp);
+    Variable *ValExt = Func->makeVariable(stackSlotType(), Context.getNode());
+    lowerCast(InstCast::create(Func, InstCast::Zext, ValExt, ValOp));
     InstCall *Call = makeHelperCall("memset", NULL, 3);
     Call->addArg(Instr->getArg(0));
     Call->addArg(ValExt);

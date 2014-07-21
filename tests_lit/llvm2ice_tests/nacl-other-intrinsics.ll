@@ -132,6 +132,7 @@ entry:
   ret void
 }
 ; CHECK-LABEL: test_memset
+; CHECK: movzx
 ; CHECK: call memset
 
 define void @test_memset_const_len_align(i32 %iptr_dst, i32 %wide_val) {
@@ -143,6 +144,18 @@ entry:
   ret void
 }
 ; CHECK-LABEL: test_memset_const_len_align
+; CHECK: movzx
+; CHECK: call memset
+
+define void @test_memset_const_val(i32 %iptr_dst, i32 %len) {
+entry:
+  %dst = inttoptr i32 %iptr_dst to i8*
+  call void @llvm.memset.p0i8.i32(i8* %dst, i8 0, i32 %len, i32 1, i1 0)
+  ret void
+}
+; CHECK-LABEL: test_memset_const_val
+; Make sure the argument is legalized (can't movzx reg, 0).
+; CHECK: movzx {{.*}}, {{[^0]}}
 ; CHECK: call memset
 
 define i32 @test_setjmplongjmp(i32 %iptr_env) {
