@@ -3014,10 +3014,11 @@ void TargetX8632::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
   // bit position conversion, and the speculation is reversed.
   assert(Ty == IceType_i32 || Ty == IceType_i64);
   Variable *T = makeReg(IceType_i32);
+  Operand *FirstValRM = legalize(FirstVal, Legal_Mem | Legal_Reg);
   if (Cttz) {
-    _bsf(T, FirstVal);
+    _bsf(T, FirstValRM);
   } else {
-    _bsr(T, FirstVal);
+    _bsr(T, FirstValRM);
   }
   Variable *T_Dest = makeReg(IceType_i32);
   Constant *ThirtyTwo = Ctx->getConstantInt(IceType_i32, 32);

@@ -8,9 +8,8 @@
 ; some code is optimized out.
 ; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s --check-prefix=CHECKO2REM
 
-; TODO: The next two lines cause this test to fail.
-; RUIN: %llvm2ice -O2 --verbose none %s | llvm-mc -x86-asm-syntax=intel
-; RUIN: %llvm2ice -Om1 --verbose none %s | llvm-mc -x86-asm-syntax=intel
+; RUN: %llvm2ice -O2 --verbose none %s | llvm-mc -x86-asm-syntax=intel
+; RUN: %llvm2ice -Om1 --verbose none %s | llvm-mc -x86-asm-syntax=intel
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
@@ -310,8 +309,10 @@ entry:
   ret i32 %r
 }
 ; Could potentially constant fold this, but the front-end should have done that.
+; The dest operand must be a register and the source operand must be a register
+; or memory.
 ; CHECK-LABEL: test_ctlz_32_const
-; CHECK: bsr
+; CHECK: bsr e{{.*}}, {{.*}}e{{.*}}
 
 define i32 @test_ctlz_32_ignored(i32 %x) {
 entry:
@@ -346,8 +347,9 @@ entry:
   ret i32 %r2
 }
 ; CHECK-LABEL: test_ctlz_64_const
-; CHECK: bsr
-; CHECK: bsr
+; CHECK: bsr e{{.*}}, {{.*}}e{{.*}}
+; CHECK: bsr e{{.*}}, {{.*}}e{{.*}}
+
 
 define i32 @test_ctlz_64_ignored(i64 %x) {
 entry:
