@@ -4,6 +4,9 @@
 
 ; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck --check-prefix=OPTM1 %s
+; TODO: The next two lines cause this test to fail.
+; RUIN: %llvm2ice -O2 --verbose none %s | llvm-mc -x86-asm-syntax=intel
+; RUIN: %llvm2ice -Om1 --verbose none %s | llvm-mc -x86-asm-syntax=intel
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \

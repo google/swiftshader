@@ -2,6 +2,8 @@
 ; option.
 
 ; RUN: %llvm2ice --verbose none %s | FileCheck %s
+; TODO: The following line causes this test to fail.
+; RUIN: %llvm2ice --verbose none %s | llvm-mc -x86-asm-syntax=intel
 ; RUN: %llvm2ice --verbose none --prefix Subzero %s | FileCheck --check-prefix=MANGLE %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
