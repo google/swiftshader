@@ -1,82 +1,29 @@
+//===- subzero/crosstest/test_vector_ops_main.cpp - Driver for tests ------===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// Driver for crosstesting insertelement and extractelement operations
+//
+//===----------------------------------------------------------------------===//
+
 /* crosstest.py --test=test_vector_ops.ll  --driver=test_vector_ops_main.cpp \
    --prefix=Subzero_ --output=test_vector_ops */
 
-#include <stdint.h>
 #include <cstring>
-#include <sstream>
 #include <iostream>
 #include <limits>
-#include <utility>
-#include <vector>
 #include <stdlib.h>
 
-#include "test_vector_ops.def"
+#include "test_vector_ops.h"
 
-// typedefs of native C++ SIMD vector types
-#define X(ty, elty, castty) typedef elty ty __attribute__((vector_size(16)));
-VECTOR_TYPE_TABLE
-#undef X
-
-// i1 vector types are not native C++ SIMD vector types. Instead, they
-// are expanded by the test code into native 128 bit SIMD vector types
-// with the appropriate number of elements. Representing the types in
-// VectorOps<> requires a unique name for each type which this
-// declaration provides.
-#define X(ty, expandedty, num_elements)                                        \
-  class ty;
-I1_VECTOR_TYPE_TABLE
-#undef X
-
-template <typename T> struct VectorOps;
-
-#define DECLARE_VECTOR_OPS(TYNAME, TY, ELTY, CASTTY, NUM_ELEMENTS)             \
-  template <> struct VectorOps<TYNAME> {                                       \
-    typedef TY Ty;                                                             \
-    typedef ELTY ElementTy;                                                    \
-    typedef CASTTY CastTy;                                                     \
-    static TY (*insertelement)(TY, CASTTY, int32_t);                           \
-    static TY (*Subzero_insertelement)(TY, CASTTY, int32_t);                   \
-    static CASTTY (*extractelement)(TY, int32_t);                              \
-    static CASTTY (*Subzero_extractelement)(TY, int32_t);                      \
-    static size_t NumElements;                                                 \
-    static const char *TypeName;                                               \
-  };                                                                           \
-  extern "C" TY insertelement_##TYNAME(TY, CASTTY, int32_t);                   \
-  extern "C" TY Subzero_insertelement_##TYNAME(TY, CASTTY, int32_t);           \
-  extern "C" CASTTY extractelement_##TYNAME(TY, int32_t);                      \
-  extern "C" CASTTY Subzero_extractelement_##TYNAME(TY, int32_t);              \
-  size_t VectorOps<TYNAME>::NumElements = NUM_ELEMENTS;                        \
-  TY (*VectorOps<TYNAME>::insertelement)(TY, CASTTY, int32_t) =                \
-      &insertelement_##TYNAME;                                                 \
-  TY (*VectorOps<TYNAME>::Subzero_insertelement)(TY, CASTTY, int32_t) =        \
-      &Subzero_insertelement_##TYNAME;                                         \
-  CASTTY (*VectorOps<TYNAME>::extractelement)(TY, int32_t) =                   \
-      &extractelement_##TYNAME;                                                \
-  CASTTY (*VectorOps<TYNAME>::Subzero_extractelement)(TY, int32_t) =           \
-      &Subzero_extractelement_##TYNAME;                                        \
-  const char *VectorOps<TYNAME>::TypeName = #TYNAME;
-
-#define X(ty, elty, castty)                                                    \
-  DECLARE_VECTOR_OPS(ty, ty, elty, castty, (sizeof(ty) / sizeof(elty)))
-VECTOR_TYPE_TABLE
-#undef X
-
-#define X(ty, expandedty, num_elements)                                        \
-  DECLARE_VECTOR_OPS(ty, expandedty, bool, int64_t, num_elements)
-I1_VECTOR_TYPE_TABLE
-#undef X
-
-template <typename T>
-std::string vectAsString(const typename VectorOps<T>::Ty Vect) {
-  std::ostringstream OS;
-  for (size_t I = 0; I < VectorOps<T>::NumElements; ++I) {
-    if (I > 0)
-      OS << " ";
-    OS << (typename VectorOps<T>::CastTy)Vect[I];
-  }
-  return OS.str();
-}
-
+// Return a set of test vectors for the given vector type. Due to lack
+// of an aligned allocator in C++, the returned value is allocated with
+// posix_memalign() and should be freed with free().
 template <typename T>
 typename VectorOps<T>::Ty *getTestVectors(size_t &NumTestVectors) {
   typedef typename VectorOps<T>::Ty Ty;

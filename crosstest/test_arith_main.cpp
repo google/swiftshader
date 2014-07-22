@@ -1,3 +1,16 @@
+//===- subzero/crosstest/test_arith_main.cpp - Driver for tests -----------===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// Driver for crosstesting arithmetic operations
+//
+//===----------------------------------------------------------------------===//
+
 /* crosstest.py --test=test_arith.cpp --test=test_arith_frem.ll \
    --test=test_arith_sqrt.ll --driver=test_arith_main.cpp \
    --prefix=Subzero_ --output=test_arith */
@@ -123,40 +136,15 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   }
 }
 
-// Vectors are deterministically constructed by selecting elements from
-// a pool of scalar values based on a pseudorandom sequence.  Testing
-// all possible combinations of scalar values from the value table is
-// not tractable.
-// TODO: Replace with a portable PRNG from C++11.
-class PRNG {
-public:
-  PRNG(uint32_t Seed = 1) : State(Seed) {}
-
-  uint32_t operator()() {
-    // Lewis, Goodman, and Miller (1969)
-    State = (16807 * State) % 2147483647;
-    return State;
-  }
-
-private:
-  uint32_t State;
-};
-
 const static size_t MaxTestsPerFunc = 100000;
 
-template <typename Type, typename ElementType, typename CastType>
-void outputVector(const Type Vect) {
-  const static size_t NumElementsInType = sizeof(Type) / sizeof(ElementType);
-  for (size_t i = 0; i < NumElementsInType; ++i) {
-    if (i > 0)
-      std::cout << ", ";
-    std::cout << (CastType) Vect[i];
-  }
-}
-
-template <typename TypeUnsigned, typename TypeSigned,
-          typename ElementTypeUnsigned, typename ElementTypeSigned>
+template <typename TypeUnsignedLabel, typename TypeSignedLabel>
 void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
+  typedef typename Vectors<TypeUnsignedLabel>::Ty TypeUnsigned;
+  typedef typename Vectors<TypeSignedLabel>::Ty TypeSigned;
+  typedef typename Vectors<TypeUnsignedLabel>::ElementTy ElementTypeUnsigned;
+  typedef typename Vectors<TypeSignedLabel>::ElementTy ElementTypeSigned;
+
   typedef TypeUnsigned (*FuncTypeUnsigned)(TypeUnsigned, TypeUnsigned);
   typedef TypeSigned (*FuncTypeSigned)(TypeSigned, TypeSigned);
   volatile unsigned Values[] = INT_VALUE_ARRAY;
@@ -185,8 +173,7 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 #undef X
   };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
-  const static size_t NumElementsInType =
-      sizeof(TypeUnsigned) / sizeof(ElementTypeUnsigned);
+  const static size_t NumElementsInType = Vectors<TypeUnsigned>::NumElements;
   for (size_t f = 0; f < NumFuncs; ++f) {
     PRNG Index;
     for (size_t i = 0; i < MaxTestsPerFunc; ++i) {
@@ -209,16 +196,14 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       if (!memcmp(&ResultSz, &ResultLlc, sizeof(ResultSz))) {
         ++Passes;
       } else {
+        ++Failures;
         std::cout << "test" << Funcs[f].Name << "v" << NumElementsInType << "i"
-                  << (CHAR_BIT * sizeof(ElementTypeUnsigned)) << "(";
-         outputVector<TypeUnsigned, ElementTypeUnsigned, unsigned>(Value1);
-         std::cout << ", ";
-         outputVector<TypeUnsigned, ElementTypeUnsigned, unsigned>(Value2);
-         std::cout << "): sz=";
-         outputVector<TypeUnsigned, ElementTypeUnsigned, unsigned>(ResultSz);
-         std::cout << " llc=";
-         outputVector<TypeUnsigned, ElementTypeUnsigned, unsigned>(ResultLlc);
-         std::cout << std::endl;
+                  << (CHAR_BIT * sizeof(ElementTypeUnsigned)) << "("
+                  << vectAsString<TypeUnsignedLabel>(Value1) << ","
+                  << vectAsString<TypeUnsignedLabel>(Value2)
+                  << "): sz=" << vectAsString<TypeUnsignedLabel>(ResultSz)
+                  << " llc=" << vectAsString<TypeUnsignedLabel>(ResultLlc)
+                  << std::endl;
       }
     }
   }
@@ -322,16 +307,11 @@ void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         ++Passes;
       } else {
         ++Failures;
-        std::cout << std::fixed << "test" << Funcs[f].Name << "v4f32"
-                  << "(";
-        outputVector<v4f32, float, float>(Value1);
-        std::cout << ", ";
-        outputVector<v4f32, float, float>(Value2);
-        std::cout << "): sz=";
-        outputVector<v4f32, float, float>(ResultSz);
-        std::cout << " llc=";
-        outputVector<v4f32, float, float>(ResultLlc);
-        std::cout << std::endl;
+        std::cout << "test" << Funcs[f].Name << "v4f32"
+                  << "(" << vectAsString<v4f32>(Value1) << ","
+                  << vectAsString<v4f32>(Value2)
+                  << "): sz=" << vectAsString<v4f32>(ResultSz) << " llc"
+                  << vectAsString<v4f32>(ResultLlc) << std::endl;
       }
     }
   }
@@ -346,9 +326,9 @@ int main(int argc, char **argv) {
   testsInt<uint16_t, int16_t>(TotalTests, Passes, Failures);
   testsInt<uint32_t, int32_t>(TotalTests, Passes, Failures);
   testsInt<uint64_t, int64_t>(TotalTests, Passes, Failures);
-  testsVecInt<v4ui32, v4si32, uint32_t, int32_t>(TotalTests, Passes, Failures);
-  testsVecInt<v8ui16, v8si16, uint16_t, int16_t>(TotalTests, Passes, Failures);
-  testsVecInt<v16ui8, v16si8, uint8_t, int8_t>(TotalTests, Passes, Failures);
+  testsVecInt<v4ui32, v4si32>(TotalTests, Passes, Failures);
+  testsVecInt<v8ui16, v8si16>(TotalTests, Passes, Failures);
+  testsVecInt<v16ui8, v16si8>(TotalTests, Passes, Failures);
   testsFp<float>(TotalTests, Passes, Failures);
   testsFp<double>(TotalTests, Passes, Failures);
   testsVecFp(TotalTests, Passes, Failures);

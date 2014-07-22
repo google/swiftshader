@@ -1,14 +1,21 @@
+//===- subzero/crosstest/test_arith.h - Test prototypes ---------*- C++ -*-===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file declares the function prototypes used for crosstesting arithmetic
+// operations.
+//
+//===----------------------------------------------------------------------===//
+
 #include <stdint.h>
 #include "test_arith.def"
 
-// Vector types
-typedef int32_t v4si32 __attribute__((vector_size(16)));
-typedef uint32_t v4ui32 __attribute__((vector_size(16)));
-typedef int16_t v8si16 __attribute__((vector_size(16)));
-typedef uint16_t v8ui16 __attribute__((vector_size(16)));
-typedef int8_t v16si8 __attribute__((vector_size(16)));
-typedef uint8_t v16ui8 __attribute__((vector_size(16)));
-typedef float v4f32 __attribute__((vector_size(16)));
+#include "vectors.h"
 
 #define X(inst, op, isdiv)                                                     \
   bool test##inst(bool a, bool b);                                             \
