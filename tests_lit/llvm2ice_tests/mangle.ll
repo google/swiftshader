@@ -3,7 +3,8 @@
 
 ; RUN: %llvm2ice --verbose none %s | FileCheck %s
 ; TODO: The following line causes this test to fail.
-; RUIN: %llvm2ice --verbose none %s | llvm-mc -x86-asm-syntax=intel
+; RUIN: %llvm2ice --verbose none %s \
+; RUIN:                | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
 ; RUN: %llvm2ice --verbose none --prefix Subzero %s | FileCheck --check-prefix=MANGLE %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
