@@ -67,7 +67,7 @@ for optlevel in ${OPTLEVELS} ; do
     ./crosstest.py -O${optlevel} --prefix=Subzero_ --target=x8632 \
         --dir="${OUTDIR}" \
         --llvm-bin-path="${LLVM_BIN_PATH}" \
-        --test=test_icmp.cpp \
+        --test=test_icmp.cpp --test=test_icmp_i1vec.ll \
         --driver=test_icmp_main.cpp \
         --output=test_icmp_O${optlevel}
 

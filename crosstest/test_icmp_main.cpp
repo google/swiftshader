@@ -1,6 +1,21 @@
-/* crosstest.py --test=test_icmp.cpp --driver=test_icmp_main.cpp \
-   --prefix=Subzero_ --output=test_icmp */
+//===- subzero/crosstest/test_icmp_main.cpp - Driver for tests. -----------===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// Driver for cross testing the icmp bitcode instruction
+//
+//===----------------------------------------------------------------------===//
 
+/* crosstest.py --test=test_icmp.cpp --test=test_icmp_i1vec.ll \
+   --driver=test_icmp_main.cpp --prefix=Subzero_ --output=test_icmp */
+
+#include <climits> // CHAR_BIT
+#include <cstring> // memcmp, memset
 #include <stdint.h>
 #include <iostream>
 
@@ -35,7 +50,7 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         (FuncTypeUnsigned)Subzero_::icmp##cmp                                  \
   }                                                                            \
   ,
-      ICMP_U_TABLE
+        ICMP_U_TABLE
 #undef X
 #define X(cmp, op)                                                             \
   {                                                                            \
@@ -43,9 +58,9 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         (FuncTypeUnsigned)(FuncTypeSigned)Subzero_::icmp##cmp                  \
   }                                                                            \
   ,
-          ICMP_S_TABLE
+        ICMP_S_TABLE
 #undef X
-    };
+  };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
 
   if (sizeof(TypeUnsigned) <= sizeof(uint32_t)) {
@@ -63,8 +78,9 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
             ++Passes;
           } else {
             ++Failures;
-            std::cout << "icmp" << Funcs[f].Name << (8 * sizeof(TypeUnsigned))
-                      << "(" << Value1 << ", " << Value2 << "): sz=" << ResultSz
+            std::cout << "icmp" << Funcs[f].Name
+                      << (CHAR_BIT * sizeof(TypeUnsigned)) << "(" << Value1
+                      << ", " << Value2 << "): sz=" << ResultSz
                       << " llc=" << ResultLlc << std::endl;
           }
         }
@@ -90,12 +106,161 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
               } else {
                 ++Failures;
                 std::cout << "icmp" << Funcs[f].Name
-                          << (8 * sizeof(TypeUnsigned)) << "(" << Value1 << ", "
-                          << Value2 << "): sz=" << ResultSz
+                          << (CHAR_BIT * sizeof(TypeUnsigned)) << "(" << Value1
+                          << ", " << Value2 << "): sz=" << ResultSz
                           << " llc=" << ResultLlc << std::endl;
               }
             }
           }
+        }
+      }
+    }
+  }
+}
+
+const static size_t MaxTestsPerFunc = 100000;
+
+template <typename TypeUnsignedLabel, typename TypeSignedLabel>
+void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
+  typedef typename Vectors<TypeUnsignedLabel>::Ty TypeUnsigned;
+  typedef typename Vectors<TypeSignedLabel>::Ty TypeSigned;
+  typedef TypeUnsigned (*FuncTypeUnsigned)(TypeUnsigned, TypeUnsigned);
+  typedef TypeSigned (*FuncTypeSigned)(TypeSigned, TypeSigned);
+  static struct {
+    const char *Name;
+    FuncTypeUnsigned FuncLlc;
+    FuncTypeUnsigned FuncSz;
+  } Funcs[] = {
+#define X(cmp, op)                                                             \
+  {                                                                            \
+    STR(inst), (FuncTypeUnsigned)icmp##cmp,                                    \
+        (FuncTypeUnsigned)Subzero_::icmp##cmp                                  \
+  }                                                                            \
+  ,
+        ICMP_U_TABLE
+#undef X
+#define X(cmp, op)                                                             \
+  {                                                                            \
+    STR(inst), (FuncTypeUnsigned)(FuncTypeSigned)icmp##cmp,                    \
+        (FuncTypeUnsigned)(FuncTypeSigned)Subzero_::icmp##cmp                  \
+  }                                                                            \
+  ,
+        ICMP_S_TABLE
+#undef X
+  };
+  const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
+  const static size_t NumElementsInType = Vectors<TypeUnsigned>::NumElements;
+  for (size_t f = 0; f < NumFuncs; ++f) {
+    PRNG Index;
+    for (size_t i = 0; i < MaxTestsPerFunc; ++i) {
+      // Initialize the test vectors.
+      TypeUnsigned Value1, Value2;
+      for (size_t j = 0; j < NumElementsInType;) {
+        Value1[j] = Values[Index() % NumValues];
+        Value2[j] = Values[Index() % NumValues];
+        ++j;
+      }
+      // Perform the test.
+      TypeUnsigned ResultSz = Funcs[f].FuncSz(Value1, Value2);
+      TypeUnsigned ResultLlc = Funcs[f].FuncLlc(Value1, Value2);
+      ++TotalTests;
+      if (!memcmp(&ResultSz, &ResultLlc, sizeof(ResultSz))) {
+        ++Passes;
+      } else {
+        ++Failures;
+        std::cout << "test" << Funcs[f].Name
+                  << Vectors<TypeUnsignedLabel>::TypeName << "("
+                  << vectAsString<TypeUnsignedLabel>(Value1) << ","
+                  << vectAsString<TypeUnsignedLabel>(Value2)
+                  << "): sz=" << vectAsString<TypeUnsignedLabel>(ResultSz)
+                  << " llc=" << vectAsString<TypeUnsignedLabel>(ResultLlc)
+                  << std::endl;
+      }
+    }
+  }
+}
+
+// Return true on wraparound
+template <typename T> bool incrementI1Vector(typename Vectors<T>::Ty &Vect) {
+  size_t Pos = 0;
+  const static size_t NumElements = Vectors<T>::NumElements;
+  for (Pos = 0; Pos < NumElements; ++Pos) {
+    if (Vect[Pos] == 0) {
+      Vect[Pos] = 1;
+      break;
+    }
+    Vect[Pos] = 0;
+  }
+  return (Pos == NumElements);
+}
+
+template <typename T>
+void testsVecI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
+  typedef typename Vectors<T>::Ty Ty;
+  typedef Ty (*FuncType)(Ty, Ty);
+  static struct {
+    const char *Name;
+    FuncType FuncLlc;
+    FuncType FuncSz;
+  } Funcs[] = {
+#define X(cmp, op)                                                             \
+  { STR(inst), (FuncType)icmpi1##cmp, (FuncType)Subzero_::icmpi1##cmp }        \
+  ,
+        ICMP_U_TABLE
+        ICMP_S_TABLE
+  };
+  const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
+  const static size_t NumElements = Vectors<T>::NumElements;
+  const static size_t MAX_NUMBER_OF_ELEMENTS_FOR_EXHAUSTIVE_TESTING = 8;
+
+  // Check if the type is small enough to try all possible input pairs.
+  if (NumElements <= MAX_NUMBER_OF_ELEMENTS_FOR_EXHAUSTIVE_TESTING) {
+    for (size_t f = 0; f < NumFuncs; ++f) {
+      Ty Value1, Value2;
+      memset(&Value1, 0, sizeof(Value1));
+      for (bool IsValue1Done = false; !IsValue1Done;
+           IsValue1Done = incrementI1Vector<T>(Value1)) {
+        memset(&Value2, 0, sizeof(Value2));
+        for (bool IsValue2Done = false; !IsValue2Done;
+             IsValue2Done = incrementI1Vector<T>(Value2)) {
+          Ty ResultSz = Funcs[f].FuncSz(Value1, Value2);
+          Ty ResultLlc = Funcs[f].FuncLlc(Value1, Value2);
+          ++TotalTests;
+          if (!memcmp(&ResultSz, &ResultLlc, sizeof(ResultSz))) {
+            ++Passes;
+          } else {
+            ++Failures;
+            std::cout << "test" << Funcs[f].Name << Vectors<T>::TypeName << "("
+                      << vectAsString<T>(Value1) << ","
+                      << vectAsString<T>(Value2)
+                      << "): sz=" << vectAsString<T>(ResultSz)
+                      << " llc=" << vectAsString<T>(ResultLlc) << std::endl;
+          }
+        }
+      }
+    }
+  } else {
+    for (size_t f = 0; f < NumFuncs; ++f) {
+      PRNG Index;
+      for (size_t i = 0; i < MaxTestsPerFunc; ++i) {
+        Ty Value1, Value2;
+        // Initialize the test vectors.
+        for (size_t j = 0; j < NumElements; ++j) {
+          Value1[j] = Index() % 2;
+          Value2[j] = Index() % 2;
+        }
+        // Perform the test.
+        Ty ResultSz = Funcs[f].FuncSz(Value1, Value2);
+        Ty ResultLlc = Funcs[f].FuncLlc(Value1, Value2);
+        ++TotalTests;
+        if (!memcmp(&ResultSz, &ResultLlc, sizeof(ResultSz))) {
+          ++Passes;
+        } else {
+          ++Failures;
+          std::cout << "test" << Funcs[f].Name << Vectors<T>::TypeName << "("
+                    << vectAsString<T>(Value1) << "," << vectAsString<T>(Value2)
+                    << "): sz=" << vectAsString<T>(ResultSz)
+                    << " llc=" << vectAsString<T>(ResultLlc) << std::endl;
         }
       }
     }
@@ -111,6 +276,12 @@ int main(int argc, char **argv) {
   testsInt<uint16_t, int16_t>(TotalTests, Passes, Failures);
   testsInt<uint32_t, int32_t>(TotalTests, Passes, Failures);
   testsInt<uint64_t, int64_t>(TotalTests, Passes, Failures);
+  testsVecInt<v4ui32, v4si32>(TotalTests, Passes, Failures);
+  testsVecInt<v8ui16, v8si16>(TotalTests, Passes, Failures);
+  testsVecInt<v16ui8, v16si8>(TotalTests, Passes, Failures);
+  testsVecI1<v4i1>(TotalTests, Passes, Failures);
+  testsVecI1<v8i1>(TotalTests, Passes, Failures);
+  testsVecI1<v16i1>(TotalTests, Passes, Failures);
 
   std::cout << "TotalTests=" << TotalTests << " Passes=" << Passes
             << " Failures=" << Failures << "\n";

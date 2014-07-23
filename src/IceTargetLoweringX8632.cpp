@@ -2261,6 +2261,124 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   Operand *Src1 = legalize(Inst->getSrc(1));
   Variable *Dest = Inst->getDest();
 
+  if (isVectorType(Dest->getType())) {
+    Type Ty = Src0->getType();
+    // Promote i1 vectors to 128 bit integer vector types.
+    if (typeElementType(Ty) == IceType_i1) {
+      Type NewTy = IceType_NUM;
+      switch (Ty) {
+      default:
+        llvm_unreachable("unexpected type");
+        break;
+      case IceType_v4i1:
+        NewTy = IceType_v4i32;
+        break;
+      case IceType_v8i1:
+        NewTy = IceType_v8i16;
+        break;
+      case IceType_v16i1:
+        NewTy = IceType_v16i8;
+        break;
+      }
+      Variable *NewSrc0 = Func->makeVariable(NewTy, Context.getNode());
+      Variable *NewSrc1 = Func->makeVariable(NewTy, Context.getNode());
+      lowerCast(InstCast::create(Func, InstCast::Sext, NewSrc0, Src0));
+      lowerCast(InstCast::create(Func, InstCast::Sext, NewSrc1, Src1));
+      Src0 = NewSrc0;
+      Src1 = NewSrc1;
+      Ty = NewTy;
+    }
+
+    InstIcmp::ICond Condition = Inst->getCondition();
+
+    // SSE2 only has signed comparison operations.  Transform unsigned
+    // inputs in a manner that allows for the use of signed comparison
+    // operations by flipping the high order bits.
+    if (Condition == InstIcmp::Ugt || Condition == InstIcmp::Uge ||
+        Condition == InstIcmp::Ult || Condition == InstIcmp::Ule) {
+      Variable *T0 = makeReg(Ty);
+      Variable *T1 = makeReg(Ty);
+      Variable *HighOrderBits = makeVectorOfHighOrderBits(Ty);
+      _movp(T0, Src0);
+      _pxor(T0, HighOrderBits);
+      _movp(T1, Src1);
+      _pxor(T1, HighOrderBits);
+      Src0 = T0;
+      Src1 = T1;
+    }
+
+    // TODO: ALIGNHACK: Both operands to compare instructions need to be
+    // in registers until stack alignment support is implemented.  Once
+    // there is support for stack alignment, LEGAL_HACK can be removed.
+#define LEGAL_HACK(Vect) legalizeToVar((Vect))
+    Variable *T = makeReg(Ty);
+    switch (Condition) {
+    default:
+      llvm_unreachable("unexpected condition");
+      break;
+    case InstIcmp::Eq: {
+      _movp(T, Src0);
+      _pcmpeq(T, LEGAL_HACK(Src1));
+    } break;
+    case InstIcmp::Ne: {
+      _movp(T, Src0);
+      _pcmpeq(T, LEGAL_HACK(Src1));
+      Variable *MinusOne = makeVectorOfMinusOnes(Ty);
+      _pxor(T, MinusOne);
+    } break;
+    case InstIcmp::Ugt:
+    case InstIcmp::Sgt: {
+      _movp(T, Src0);
+      _pcmpgt(T, LEGAL_HACK(Src1));
+    } break;
+    case InstIcmp::Uge:
+    case InstIcmp::Sge: {
+      // !(Src1 > Src0)
+      _movp(T, Src1);
+      _pcmpgt(T, LEGAL_HACK(Src0));
+      Variable *MinusOne = makeVectorOfMinusOnes(Ty);
+      _pxor(T, MinusOne);
+    } break;
+    case InstIcmp::Ult:
+    case InstIcmp::Slt: {
+      _movp(T, Src1);
+      _pcmpgt(T, LEGAL_HACK(Src0));
+    } break;
+    case InstIcmp::Ule:
+    case InstIcmp::Sle: {
+      // !(Src0 > Src1)
+      _movp(T, Src0);
+      _pcmpgt(T, LEGAL_HACK(Src1));
+      Variable *MinusOne = makeVectorOfMinusOnes(Ty);
+      _pxor(T, MinusOne);
+    } break;
+    }
+#undef LEGAL_HACK
+
+    _movp(Dest, T);
+
+    // The following pattern occurs often in lowered C and C++ code:
+    //
+    //   %cmp     = icmp pred <n x ty> %src0, %src1
+    //   %cmp.ext = sext <n x i1> %cmp to <n x ty>
+    //
+    // We can avoid the sext operation by copying the result from pcmpgt
+    // and pcmpeq, which is already sign extended, to the result of the
+    // sext operation
+    if (InstCast *NextCast =
+            llvm::dyn_cast_or_null<InstCast>(Context.getNextInst())) {
+      if (NextCast->getCastKind() == InstCast::Sext &&
+          NextCast->getSrc(0) == Dest) {
+        _movp(NextCast->getDest(), T);
+        // Skip over the instruction.
+        NextCast->setDeleted();
+        Context.advanceNext();
+      }
+    }
+
+    return;
+  }
+
   // If Src1 is an immediate, or known to be a physical register, we can
   // allow Src0 to be a memory operand.  Otherwise, Src0 must be copied into
   // a physical register.  (Actually, either Src0 or Src1 can be chosen for
@@ -3398,9 +3516,14 @@ void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) {
   lowerCall(Call);
 }
 
+// There is no support for loading or emitting vector constants, so the
+// vector values returned from makeVectorOfZeros, makeVectorOfOnes,
+// etc. are initialized with register operations.
+//
+// TODO(wala): Add limited support for vector constants so that
+// complex initialization in registers is unnecessary.
+
 Variable *TargetX8632::makeVectorOfZeros(Type Ty, int32_t RegNum) {
-  // There is no support for loading or emitting vector constants, so
-  // this value is initialized using register operations.
   Variable *Reg = makeReg(Ty, RegNum);
   // Insert a FakeDef, since otherwise the live range of Reg might
   // be overestimated.
@@ -3409,16 +3532,39 @@ Variable *TargetX8632::makeVectorOfZeros(Type Ty, int32_t RegNum) {
   return Reg;
 }
 
+Variable *TargetX8632::makeVectorOfMinusOnes(Type Ty, int32_t RegNum) {
+  Variable *MinusOnes = makeReg(Ty, RegNum);
+  // Insert a FakeDef so the live range of MinusOnes is not overestimated.
+  Context.insert(InstFakeDef::create(Func, MinusOnes));
+  _pcmpeq(MinusOnes, MinusOnes);
+  return MinusOnes;
+}
+
 Variable *TargetX8632::makeVectorOfOnes(Type Ty, int32_t RegNum) {
-  // There is no support for loading or emitting vector constants, so
-  // this value is initialized using register operations.
   Variable *Dest = makeVectorOfZeros(Ty, RegNum);
-  Variable *MinusOne = makeReg(Ty);
-  // Insert a FakeDef so the live range of MinusOne is not overestimated.
-  Context.insert(InstFakeDef::create(Func, MinusOne));
-  _pcmpeq(MinusOne, MinusOne);
+  Variable *MinusOne = makeVectorOfMinusOnes(Ty);
   _psub(Dest, MinusOne);
   return Dest;
+}
+
+Variable *TargetX8632::makeVectorOfHighOrderBits(Type Ty, int32_t RegNum) {
+  assert(Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v8i16 ||
+         Ty == IceType_v16i8);
+  if (Ty == IceType_v4f32 || Ty == IceType_v4i32 || Ty == IceType_v8i16) {
+    Variable *Reg = makeVectorOfOnes(Ty, RegNum);
+    SizeT Shift = typeWidthInBytes(typeElementType(Ty)) * X86_CHAR_BIT - 1;
+    _psll(Reg, Ctx->getConstantInt(IceType_i8, Shift));
+    return Reg;
+  } else {
+    // SSE has no left shift operation for vectors of 8 bit integers.
+    const uint32_t HIGH_ORDER_BITS_MASK = 0x80808080;
+    Constant *ConstantMask =
+        Ctx->getConstantInt(IceType_i32, HIGH_ORDER_BITS_MASK);
+    Variable *Reg = makeReg(Ty, RegNum);
+    _movd(Reg, legalize(ConstantMask, Legal_Reg | Legal_Mem));
+    _pshufd(Reg, Reg, Ctx->getConstantZero(IceType_i8));
+    return Reg;
+  }
 }
 
 OperandX8632Mem *TargetX8632::getMemoryOperandForStackSlot(Type Ty,

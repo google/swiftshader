@@ -153,6 +153,10 @@ protected:
   // Returns a vector in a register with the given constant entries.
   Variable *makeVectorOfZeros(Type Ty, int32_t RegNum = Variable::NoRegister);
   Variable *makeVectorOfOnes(Type Ty, int32_t RegNum = Variable::NoRegister);
+  Variable *makeVectorOfMinusOnes(Type Ty,
+                                  int32_t RegNum = Variable::NoRegister);
+  Variable *makeVectorOfHighOrderBits(Type Ty,
+                                      int32_t RegNum = Variable::NoRegister);
 
   // Return a memory operand corresponding to a stack allocated Variable.
   OperandX8632Mem *getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
