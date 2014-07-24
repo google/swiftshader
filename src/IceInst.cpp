@@ -376,7 +376,7 @@ InstRet::InstRet(Cfg *Func, Operand *RetValue)
 InstSelect::InstSelect(Cfg *Func, Variable *Dest, Operand *Condition,
                        Operand *SourceTrue, Operand *SourceFalse)
     : Inst(Func, Inst::Select, 3, Dest) {
-  assert(Condition->getType() == IceType_i1);
+  assert(typeElementType(Condition->getType()) == IceType_i1);
   addSource(Condition);
   addSource(SourceTrue);
   addSource(SourceFalse);

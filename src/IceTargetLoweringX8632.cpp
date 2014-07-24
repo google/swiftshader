@@ -3410,11 +3410,46 @@ void TargetX8632::lowerRet(const InstRet *Inst) {
 }
 
 void TargetX8632::lowerSelect(const InstSelect *Inst) {
-  // a=d?b:c ==> cmp d,0; a=b; jne L1; FakeUse(a); a=c; L1:
   Variable *Dest = Inst->getDest();
   Operand *SrcT = Inst->getTrueOperand();
   Operand *SrcF = Inst->getFalseOperand();
-  Operand *Condition = legalize(Inst->getCondition());
+  Operand *Condition = Inst->getCondition();
+
+  if (isVectorType(Dest->getType())) {
+    // a=d?b:c ==> d=sext(d); a=(b&d)|(c&~d)
+    // TODO(wala): SSE4.1 has blendvps and pblendvb.  SSE4.1 also has
+    // blendps and pblendw for constant condition operands.
+    Type SrcTy = SrcT->getType();
+    Variable *T = makeReg(SrcTy);
+    Variable *T2 = makeReg(SrcTy);
+    // Sign extend the condition operand if applicable.
+    if (SrcTy == IceType_v4f32) {
+      // The sext operation takes only integer arguments.
+      Variable *T3 = Func->makeVariable(IceType_v4i32, Context.getNode());
+      lowerCast(InstCast::create(Func, InstCast::Sext, T3, Condition));
+      _movp(T, T3);
+    } else if (typeElementType(SrcTy) != IceType_i1) {
+      lowerCast(InstCast::create(Func, InstCast::Sext, T, Condition));
+    } else {
+      _movp(T, Condition);
+    }
+    // ALIGNHACK: Until stack alignment support is implemented, the
+    // bitwise vector instructions need to have both operands in
+    // registers.  Once there is support for stack alignment, LEGAL_HACK
+    // can be removed.
+#define LEGAL_HACK(Vect) legalizeToVar((Vect))
+    _movp(T2, T);
+    _pand(T, LEGAL_HACK(SrcT));
+    _pandn(T2, LEGAL_HACK(SrcF));
+    _por(T, T2);
+    _movp(Dest, T);
+#undef LEGAL_HACK
+
+    return;
+  }
+
+  // a=d?b:c ==> cmp d,0; a=b; jne L1; FakeUse(a); a=c; L1:
+  Operand *ConditionRMI = legalize(Condition);
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   InstX8632Label *Label = InstX8632Label::create(Func, this);
 
@@ -3423,7 +3458,7 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     Operand *SrcLoRI = legalize(loOperand(SrcT), Legal_Reg | Legal_Imm, true);
     Operand *SrcHiRI = legalize(hiOperand(SrcT), Legal_Reg | Legal_Imm, true);
-    _cmp(Condition, Zero);
+    _cmp(ConditionRMI, Zero);
     _mov(DestLo, SrcLoRI);
     _mov(DestHi, SrcHiRI);
     _br(InstX8632Br::Br_ne, Label);
@@ -3436,7 +3471,7 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     _mov(DestLo, SrcLoRI);
     _mov(DestHi, SrcHiRI);
   } else {
-    _cmp(Condition, Zero);
+    _cmp(ConditionRMI, Zero);
     SrcT = legalize(SrcT, Legal_Reg | Legal_Imm, true);
     _mov(Dest, SrcT);
     _br(InstX8632Br::Br_ne, Label);

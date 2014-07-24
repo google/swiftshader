@@ -174,6 +174,7 @@ public:
     Or,
     Padd,
     Pand,
+    Pandn,
     Pcmpeq,
     Pcmpgt,
     Pextrw,
@@ -564,6 +565,7 @@ typedef InstX8632Binop<InstX8632::Sbb> InstX8632Sbb;
 typedef InstX8632Binop<InstX8632::Psub> InstX8632Psub;
 typedef InstX8632Binop<InstX8632::And> InstX8632And;
 typedef InstX8632Binop<InstX8632::Pand> InstX8632Pand;
+typedef InstX8632Binop<InstX8632::Pandn> InstX8632Pandn;
 typedef InstX8632Binop<InstX8632::Or> InstX8632Or;
 typedef InstX8632Binop<InstX8632::Por> InstX8632Por;
 typedef InstX8632Binop<InstX8632::Xor> InstX8632Xor;

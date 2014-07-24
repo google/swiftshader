@@ -1,0 +1,85 @@
+; This file tests support for the select instruction with vector valued inputs.
+
+; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -O2 --verbose none %s \
+; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
+; RUN: %llvm2ice -Om1 --verbose none %s \
+; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
+; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
+; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
+; RUN:                           | FileCheck --check-prefix=DUMP %s
+
+define <16 x i8> @test_select_v16i8(<16 x i1> %cond, <16 x i8> %arg1, <16 x i8> %arg2) {
+entry:
+  %res = select <16 x i1> %cond, <16 x i8> %arg1, <16 x i8> %arg2
+  ret <16 x i8> %res
+; CHECK-LABEL: test_select_v16i8:
+; CHECK: pand
+; CHECK: pandn
+; CHECK: por
+}
+
+define <16 x i1> @test_select_v16i1(<16 x i1> %cond, <16 x i1> %arg1, <16 x i1> %arg2) {
+entry:
+  %res = select <16 x i1> %cond, <16 x i1> %arg1, <16 x i1> %arg2
+  ret <16 x i1> %res
+; CHECK-LABEL: test_select_v16i1:
+; CHECK: pand
+; CHECK: pandn
+; CHECK: por
+}
+
+define <8 x i16> @test_select_v8i16(<8 x i1> %cond, <8 x i16> %arg1, <8 x i16> %arg2) {
+entry:
+  %res = select <8 x i1> %cond, <8 x i16> %arg1, <8 x i16> %arg2
+  ret <8 x i16> %res
+; CHECK-LABEL: test_select_v8i16:
+; CHECK: pand
+; CHECK: pandn
+; CHECK: por
+}
+
+define <8 x i1> @test_select_v8i1(<8 x i1> %cond, <8 x i1> %arg1, <8 x i1> %arg2) {
+entry:
+  %res = select <8 x i1> %cond, <8 x i1> %arg1, <8 x i1> %arg2
+  ret <8 x i1> %res
+; CHECK-LABEL: test_select_v8i1:
+; CHECK: pand
+; CHECK: pandn
+; CHECK: por
+}
+
+define <4 x i32> @test_select_v4i32(<4 x i1> %cond, <4 x i32> %arg1, <4 x i32> %arg2) {
+entry:
+  %res = select <4 x i1> %cond, <4 x i32> %arg1, <4 x i32> %arg2
+  ret <4 x i32> %res
+; CHECK-LABEL: test_select_v4i32:
+; CHECK: pand
+; CHECK: pandn
+; CHECK: por
+}
+
+define <4 x float> @test_select_v4f32(<4 x i1> %cond, <4 x float> %arg1, <4 x float> %arg2) {
+entry:
+  %res = select <4 x i1> %cond, <4 x float> %arg1, <4 x float> %arg2
+  ret <4 x float> %res
+; CHECK-LABEL: test_select_v4f32:
+; CHECK: pand
+; CHECK: pandn
+; CHECK: por
+}
+
+define <4 x i1> @test_select_v4i1(<4 x i1> %cond, <4 x i1> %arg1, <4 x i1> %arg2) {
+entry:
+  %res = select <4 x i1> %cond, <4 x i1> %arg1, <4 x i1> %arg2
+  ret <4 x i1> %res
+; CHECK-LABEL: test_select_v4i1:
+; CHECK: pand
+; CHECK: pandn
+; CHECK: por
+}
+
+; ERRORS-NOT: ICE translation error
+; DUMP-NOT: SZ

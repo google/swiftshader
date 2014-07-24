@@ -304,6 +304,9 @@ protected:
   void _pand(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pand::create(Func, Dest, Src0));
   }
+  void _pandn(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Pandn::create(Func, Dest, Src0));
+  }
   void _pcmpeq(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pcmpeq::create(Func, Dest, Src0));
   }

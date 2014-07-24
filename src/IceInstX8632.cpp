@@ -458,6 +458,7 @@ template <> const char *InstX8632Sbb::Opcode = "sbb";
 template <> const char *InstX8632Psub::Opcode = "psub";
 template <> const char *InstX8632And::Opcode = "and";
 template <> const char *InstX8632Pand::Opcode = "pand";
+template <> const char *InstX8632Pandn::Opcode = "pandn";
 template <> const char *InstX8632Or::Opcode = "or";
 template <> const char *InstX8632Por::Opcode = "por";
 template <> const char *InstX8632Xor::Opcode = "xor";
