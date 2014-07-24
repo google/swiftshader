@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
     SzArrayLen = -2;
     LlcArray = getArray(i, LlcArrayLen);
     SzArray = Subzero_::getArray(i, SzArrayLen);
+    ++TotalTests;
     if (LlcArrayLen == SzArrayLen) {
       ++Passes;
     } else {
@@ -33,6 +34,7 @@ int main(int argc, char **argv) {
     }
 
     for (size_t i = 0; i < LlcArrayLen; ++i) {
+      ++TotalTests;
       if (LlcArray[i] == SzArray[i]) {
         ++Passes;
       } else {
