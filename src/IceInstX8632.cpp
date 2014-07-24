@@ -36,6 +36,18 @@ const struct InstX8632BrAttributes_ {
 const size_t InstX8632BrAttributesSize =
     llvm::array_lengthof(InstX8632BrAttributes);
 
+const struct InstX8632CmppsAttributes_ {
+  const char *EmitString;
+} InstX8632CmppsAttributes[] = {
+#define X(tag, emit)                                                           \
+  { emit }                                                                     \
+  ,
+    ICEINSTX8632CMPPS_TABLE
+#undef X
+  };
+const size_t InstX8632CmppsAttributesSize =
+    llvm::array_lengthof(InstX8632CmppsAttributes);
+
 const struct TypeX8632Attributes_ {
   const char *CvtString;   // i (integer), s (single FP), d (double FP)
   const char *SdSsString;  // ss, sd, or <blank>
@@ -145,6 +157,13 @@ InstX8632Cmov::InstX8632Cmov(Cfg *Func, Variable *Dest, Operand *Source,
     : InstX8632(Func, InstX8632::Cmov, 2, Dest), Condition(Condition) {
   // The final result is either the original Dest, or Source, so mark
   // both as sources.
+  addSource(Dest);
+  addSource(Source);
+}
+
+InstX8632Cmpps::InstX8632Cmpps(Cfg *Func, Variable *Dest, Operand *Source,
+                               InstX8632Cmpps::CmppsCond Condition)
+    : InstX8632(Func, InstX8632::Cmpps, 2, Dest), Condition(Condition) {
   addSource(Dest);
   addSource(Source);
 }
@@ -692,6 +711,28 @@ void InstX8632Cmov::dump(const Cfg *Func) const {
   Str << getDest()->getType() << " ";
   dumpDest(Func);
   Str << ", ";
+  dumpSources(Func);
+}
+
+void InstX8632Cmpps::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 2);
+  assert(Condition < InstX8632CmppsAttributesSize);
+  Str << "\t";
+  Str << "cmp" << InstX8632CmppsAttributes[Condition].EmitString << "ps"
+      << "\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632Cmpps::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  assert(Condition < InstX8632CmppsAttributesSize);
+  dumpDest(Func);
+  Str << " = cmp" << InstX8632CmppsAttributes[Condition].EmitString << "ps"
+      << "\t";
   dumpSources(Func);
 }
 

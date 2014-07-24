@@ -145,6 +145,7 @@ public:
     Call,
     Cdq,
     Cmov,
+    Cmpps,
     Cmpxchg,
     Cmpxchg8b,
     Cvt,
@@ -712,6 +713,35 @@ private:
   virtual ~InstX8632Cmov() {}
 
   BrCond Condition;
+};
+
+// Cmpps instruction - compare packed singled-precision floating point
+// values
+class InstX8632Cmpps : public InstX8632 {
+public:
+  enum CmppsCond {
+#define X(tag, emit) tag,
+    ICEINSTX8632CMPPS_TABLE
+#undef X
+    Cmpps_Invalid
+  };
+
+  static InstX8632Cmpps *create(Cfg *Func, Variable *Dest, Operand *Source,
+                                CmppsCond Condition) {
+    return new (Func->allocate<InstX8632Cmpps>())
+        InstX8632Cmpps(Func, Dest, Source, Condition);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Cmpps); }
+
+private:
+  InstX8632Cmpps(Cfg *Func, Variable *Dest, Operand *Source, CmppsCond Cond);
+  InstX8632Cmpps(const InstX8632Cmpps &) LLVM_DELETED_FUNCTION;
+  InstX8632Cmpps &operator=(const InstX8632Cmpps &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Cmpps() {}
+
+  CmppsCond Condition;
 };
 
 // Cmpxchg instruction - cmpxchg <dest>, <desired> will compare if <dest>

@@ -108,6 +108,8 @@ protected:
   void expandAtomicRMWAsCmpxchg(LowerBinOp op_lo, LowerBinOp op_hi,
                                 Variable *Dest, Operand *Ptr, Operand *Val);
 
+  void eliminateNextVectorSextInstruction(Variable *SignExtendedResult);
+
   // Operand legalization helpers.  To deal with address mode
   // constraints, the helpers will create a new Operand and emit
   // instructions that guarantee that the Operand kind is one of those
@@ -211,6 +213,10 @@ protected:
   }
   void _cmp(Operand *Src0, Operand *Src1) {
     Context.insert(InstX8632Icmp::create(Func, Src0, Src1));
+  }
+  void _cmpps(Variable *Dest, Operand *Src0,
+              InstX8632Cmpps::CmppsCond Condition) {
+    Context.insert(InstX8632Cmpps::create(Func, Dest, Src0, Condition));
   }
   void _cmpxchg(Operand *DestOrAddr, Variable *Eax, Variable *Desired,
                 bool Locked) {

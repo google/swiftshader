@@ -15,25 +15,26 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGX8632_DEF
 #define SUBZERO_SRC_ICETARGETLOWERINGX8632_DEF
 
-#define FCMPX8632_TABLE                  \
-  /* val,  dflt, swap, C1,      C2 */    \
-  X(False, 0,    0,    Br_None, Br_None) \
-  X(Oeq,   0,    0,    Br_ne,   Br_p)    \
-  X(Ogt,   1,    0,    Br_a,    Br_None) \
-  X(Oge,   1,    0,    Br_ae,   Br_None) \
-  X(Olt,   1,    1,    Br_a,    Br_None) \
-  X(Ole,   1,    1,    Br_ae,   Br_None) \
-  X(One,   1,    0,    Br_ne,   Br_None) \
-  X(Ord,   1,    0,    Br_np,   Br_None) \
-  X(Ueq,   1,    0,    Br_e,    Br_None) \
-  X(Ugt,   1,    1,    Br_b,    Br_None) \
-  X(Uge,   1,    1,    Br_be,   Br_None) \
-  X(Ult,   1,    0,    Br_b,    Br_None) \
-  X(Ule,   1,    0,    Br_be,   Br_None) \
-  X(Une,   1,    0,    Br_ne,   Br_p)    \
-  X(Uno,   1,    0,    Br_p,    Br_None) \
-  X(True,  1,    0,    Br_None, Br_None) \
-//#define X(val, dflt, swap, C1, C2)
+#define FCMPX8632_TABLE                                              \
+  /*       <---- scalar comparison ---->  <- vector comparison -> */ \
+  /* val,  dflt, swap, C1,      C2,       swap,  predicate        */ \
+  X(False, 0,    0,    Br_None, Br_None,  0,     Cmpps_Invalid)      \
+  X(Oeq,   0,    0,    Br_ne,   Br_p,     0,     Cmpps_eq)           \
+  X(Ogt,   1,    0,    Br_a,    Br_None,  1,     Cmpps_lt)           \
+  X(Oge,   1,    0,    Br_ae,   Br_None,  1,     Cmpps_le)           \
+  X(Olt,   1,    1,    Br_a,    Br_None,  0,     Cmpps_lt)           \
+  X(Ole,   1,    1,    Br_ae,   Br_None,  0,     Cmpps_le)           \
+  X(One,   1,    0,    Br_ne,   Br_None,  0,     Cmpps_Invalid)      \
+  X(Ord,   1,    0,    Br_np,   Br_None,  0,     Cmpps_ord)          \
+  X(Ueq,   1,    0,    Br_e,    Br_None,  0,     Cmpps_Invalid)      \
+  X(Ugt,   1,    1,    Br_b,    Br_None,  0,     Cmpps_nle)          \
+  X(Uge,   1,    1,    Br_be,   Br_None,  0,     Cmpps_nlt)          \
+  X(Ult,   1,    0,    Br_b,    Br_None,  1,     Cmpps_nle)          \
+  X(Ule,   1,    0,    Br_be,   Br_None,  1,     Cmpps_nlt)          \
+  X(Une,   1,    0,    Br_ne,   Br_p,     0,     Cmpps_neq)          \
+  X(Uno,   1,    0,    Br_p,    Br_None,  0,     Cmpps_unord)        \
+  X(True,  1,    0,    Br_None, Br_None,  0,     Cmpps_Invalid)      \
+//#define X(val, dflt, swapS, C1, C2, swapV, pred)
 
 #define ICMPX8632_TABLE                     \
   /* val, C_32,  C1_64,   C2_64,   C3_64 */ \

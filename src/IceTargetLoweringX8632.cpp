@@ -27,26 +27,38 @@ namespace Ice {
 
 namespace {
 
-// The following table summarizes the logic for lowering the fcmp instruction.
-// There is one table entry for each of the 16 conditions.  A comment in
-// lowerFcmp() describes the lowering template.  In the most general case, there
-// is a compare followed by two conditional branches, because some fcmp
-// conditions don't map to a single x86 conditional branch.  However, in many
-// cases it is possible to swap the operands in the comparison and have a single
-// conditional branch.  Since it's quite tedious to validate the table by hand,
-// good execution tests are helpful.
-
+// The following table summarizes the logic for lowering the fcmp
+// instruction.  There is one table entry for each of the 16 conditions.
+//
+// The first four columns describe the case when the operands are
+// floating point scalar values.  A comment in lowerFcmp() describes the
+// lowering template.  In the most general case, there is a compare
+// followed by two conditional branches, because some fcmp conditions
+// don't map to a single x86 conditional branch.  However, in many cases
+// it is possible to swap the operands in the comparison and have a
+// single conditional branch.  Since it's quite tedious to validate the
+// table by hand, good execution tests are helpful.
+//
+// The last two columns describe the case when the operands are vectors
+// of floating point values.  For most fcmp conditions, there is a clear
+// mapping to a single x86 cmpps instruction variant.  Some fcmp
+// conditions require special code to handle and these are marked in the
+// table with a Cmpps_Invalid predicate.
 const struct TableFcmp_ {
   uint32_t Default;
-  bool SwapOperands;
+  bool SwapScalarOperands;
   InstX8632::BrCond C1, C2;
+  bool SwapVectorOperands;
+  InstX8632Cmpps::CmppsCond Predicate;
 } TableFcmp[] = {
-#define X(val, dflt, swap, C1, C2)                                             \
-  { dflt, swap, InstX8632Br::C1, InstX8632Br::C2 }                             \
+#define X(val, dflt, swapS, C1, C2, swapV, pred)                               \
+  {                                                                            \
+    dflt, swapS, InstX8632Br::C1, InstX8632Br::C2, swapV, InstX8632Cmpps::pred \
+  }                                                                            \
   ,
-    FCMPX8632_TABLE
+      FCMPX8632_TABLE
 #undef X
-  };
+};
 const size_t TableFcmpSize = llvm::array_lengthof(TableFcmp);
 
 // The following table summarizes the logic for lowering the icmp instruction
@@ -138,7 +150,7 @@ void xMacroIntegrityCheck() {
     // Define a temporary set of enum values based on low-level
     // table entries.
     enum _tmp_enum {
-#define X(val, dflt, swap, C1, C2) _tmp_##val,
+#define X(val, dflt, swapS, C1, C2, swapV, pred) _tmp_##val,
       FCMPX8632_TABLE
 #undef X
           _num
@@ -149,7 +161,7 @@ void xMacroIntegrityCheck() {
 #undef X
 // Define a set of constants based on low-level table entries,
 // and ensure the table entry keys are consistent.
-#define X(val, dflt, swap, C1, C2)                                             \
+#define X(val, dflt, swapS, C1, C2, swapV, pred)                               \
   static const int _table2_##val = _tmp_##val;                                 \
   STATIC_ASSERT(_table1_##val == _table2_##val);
     FCMPX8632_TABLE;
@@ -2213,6 +2225,68 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
   Operand *Src0 = Inst->getSrc(0);
   Operand *Src1 = Inst->getSrc(1);
   Variable *Dest = Inst->getDest();
+
+  if (isVectorType(Dest->getType())) {
+    InstFcmp::FCond Condition = Inst->getCondition();
+    size_t Index = static_cast<size_t>(Condition);
+    assert(Index < TableFcmpSize);
+
+    if (TableFcmp[Index].SwapVectorOperands) {
+      Operand *T = Src0;
+      Src0 = Src1;
+      Src1 = T;
+    }
+
+    Variable *T = NULL;
+
+    // ALIGNHACK: Without support for stack alignment, both operands to
+    // cmpps need to be forced into registers.  Once support for stack
+    // alignment is implemented, remove LEGAL_HACK.
+#define LEGAL_HACK(Vect) legalizeToVar((Vect))
+    switch (Condition) {
+    default: {
+      InstX8632Cmpps::CmppsCond Predicate = TableFcmp[Index].Predicate;
+      assert(Predicate != InstX8632Cmpps::Cmpps_Invalid);
+      T = makeReg(Src0->getType());
+      _movp(T, Src0);
+      _cmpps(T, LEGAL_HACK(Src1), Predicate);
+    } break;
+    case InstFcmp::False:
+      T = makeVectorOfZeros(Src0->getType());
+      break;
+    case InstFcmp::One: {
+      // Check both unequal and ordered.
+      T = makeReg(Src0->getType());
+      Variable *T2 = makeReg(Src0->getType());
+      Src1 = LEGAL_HACK(Src1);
+      _movp(T, Src0);
+      _cmpps(T, Src1, InstX8632Cmpps::Cmpps_neq);
+      _movp(T2, Src0);
+      _cmpps(T2, Src1, InstX8632Cmpps::Cmpps_ord);
+      _pand(T, T2);
+    } break;
+    case InstFcmp::Ueq: {
+      // Check both equal or unordered.
+      T = makeReg(Src0->getType());
+      Variable *T2 = makeReg(Src0->getType());
+      Src1 = LEGAL_HACK(Src1);
+      _movp(T, Src0);
+      _cmpps(T, Src1, InstX8632Cmpps::Cmpps_eq);
+      _movp(T2, Src0);
+      _cmpps(T2, Src1, InstX8632Cmpps::Cmpps_unord);
+      _por(T, T2);
+    } break;
+    case InstFcmp::True:
+      T = makeVectorOfMinusOnes(IceType_v4i32);
+      break;
+    }
+#undef LEGAL_HACK
+
+    _movp(Dest, T);
+    eliminateNextVectorSextInstruction(Dest);
+    return;
+  }
+
   // Lowering a = fcmp cond, b, c
   //   ucomiss b, c       /* only if C1 != Br_None */
   //                      /* but swap b,c order if SwapOperands==true */
@@ -2225,7 +2299,7 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
   InstFcmp::FCond Condition = Inst->getCondition();
   size_t Index = static_cast<size_t>(Condition);
   assert(Index < TableFcmpSize);
-  if (TableFcmp[Index].SwapOperands) {
+  if (TableFcmp[Index].SwapScalarOperands) {
     Operand *Tmp = Src0;
     Src0 = Src1;
     Src1 = Tmp;
@@ -2356,26 +2430,7 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
 #undef LEGAL_HACK
 
     _movp(Dest, T);
-
-    // The following pattern occurs often in lowered C and C++ code:
-    //
-    //   %cmp     = icmp pred <n x ty> %src0, %src1
-    //   %cmp.ext = sext <n x i1> %cmp to <n x ty>
-    //
-    // We can avoid the sext operation by copying the result from pcmpgt
-    // and pcmpeq, which is already sign extended, to the result of the
-    // sext operation
-    if (InstCast *NextCast =
-            llvm::dyn_cast_or_null<InstCast>(Context.getNextInst())) {
-      if (NextCast->getCastKind() == InstCast::Sext &&
-          NextCast->getSrc(0) == Dest) {
-        _movp(NextCast->getDest(), T);
-        // Skip over the instruction.
-        NextCast->setDeleted();
-        Context.advanceNext();
-      }
-    }
-
+    eliminateNextVectorSextInstruction(Dest);
     return;
   }
 
@@ -3542,6 +3597,28 @@ void TargetX8632::lowerSwitch(const InstSwitch *Inst) {
   }
 
   _br(Inst->getLabelDefault());
+}
+
+// The following pattern occurs often in lowered C and C++ code:
+//
+//   %cmp     = fcmp/icmp pred <n x ty> %src0, %src1
+//   %cmp.ext = sext <n x i1> %cmp to <n x ty>
+//
+// We can eliminate the sext operation by copying the result of pcmpeqd,
+// pcmpgtd, or cmpps (which produce sign extended results) to the result
+// of the sext operation.
+void
+TargetX8632::eliminateNextVectorSextInstruction(Variable *SignExtendedResult) {
+  if (InstCast *NextCast =
+          llvm::dyn_cast_or_null<InstCast>(Context.getNextInst())) {
+    if (NextCast->getCastKind() == InstCast::Sext &&
+        NextCast->getSrc(0) == SignExtendedResult) {
+      _movp(NextCast->getDest(), legalizeToVar(SignExtendedResult));
+      // Skip over the instruction.
+      NextCast->setDeleted();
+      Context.advanceNext();
+    }
+  }
 }
 
 void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) {

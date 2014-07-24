@@ -66,6 +66,18 @@
   X(Br_p,        "p",  "jp")   \
 //#define X(tag, dump, emit)
 
+#define ICEINSTX8632CMPPS_TABLE \
+  /* enum value, emit */        \
+  X(Cmpps_eq,    "eq")          \
+  X(Cmpps_lt,    "lt")          \
+  X(Cmpps_le,    "le")          \
+  X(Cmpps_unord, "unord")       \
+  X(Cmpps_neq,   "neq")         \
+  X(Cmpps_nlt,   "nlt")         \
+  X(Cmpps_nle,   "nle")         \
+  X(Cmpps_ord,   "ord")         \
+//#define X(tag, emit)
+
 #define ICETYPEX8632_TABLE                                        \
   /* tag,          element type, cvt, sdss,  pack, width */       \
   X(IceType_void,  IceType_void, "?" , ""  , "" ,  "???")         \
