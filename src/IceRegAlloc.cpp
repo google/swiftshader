@@ -345,7 +345,17 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           Next = I;
           ++Next;
           LiveRangeWrapper Item = *I;
-          if (Item.Var->getRegNumTmp() == MinWeightIndex) {
+          // Note: The Item.overlaps(Cur) clause is not part of the
+          // description of AssignMemLoc() in the original paper.  But
+          // there doesn't seem to be any need to evict an inactive
+          // live range that doesn't overlap with the live range
+          // currently being considered.  It's especially bad if we
+          // would end up evicting an infinite-weight but
+          // currently-inactive live range.  The most common situation
+          // for this would be a scratch register kill set for call
+          // instructions.
+          if (Item.Var->getRegNumTmp() == MinWeightIndex &&
+              Item.overlaps(Cur)) {
             if (Func->getContext()->isVerbose(IceV_LinearScan)) {
               Str << "Evicting     ";
               Item.dump(Func);
