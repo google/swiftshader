@@ -12,20 +12,37 @@
 
 ; insertelement operations
 
-define <4 x float> @insertelement_v4f32(<4 x float> %vec, float %elt) {
+define <4 x float> @insertelement_v4f32_0(<4 x float> %vec, float %elt) {
+entry:
+  %res = insertelement <4 x float> %vec, float %elt, i32 0
+  ret <4 x float> %res
+; CHECK-LABEL: insertelement_v4f32_0:
+; CHECK: movss
+}
+
+define <4 x i32> @insertelement_v4i32_0(<4 x i32> %vec, i32 %elt) {
+entry:
+  %res = insertelement <4 x i32> %vec, i32 %elt, i32 0
+  ret <4 x i32> %res
+; CHECK-LABEL: insertelement_v4i32_0:
+; CHECK: movss
+}
+
+
+define <4 x float> @insertelement_v4f32_1(<4 x float> %vec, float %elt) {
 entry:
   %res = insertelement <4 x float> %vec, float %elt, i32 1
   ret <4 x float> %res
-; CHECK-LABEL: insertelement_v4f32:
+; CHECK-LABEL: insertelement_v4f32_1:
 ; CHECK: shufps
 ; CHECK: shufps
 }
 
-define <4 x i32> @insertelement_v4i32(<4 x i32> %vec, i32 %elt) {
+define <4 x i32> @insertelement_v4i32_1(<4 x i32> %vec, i32 %elt) {
 entry:
   %res = insertelement <4 x i32> %vec, i32 %elt, i32 1
   ret <4 x i32> %res
-; CHECK-LABEL: insertelement_v4i32:
+; CHECK-LABEL: insertelement_v4i32_1:
 ; CHECK: shufps
 ; CHECK: shufps
 }
@@ -50,12 +67,21 @@ entry:
 ; CHECK: mov
 }
 
-define <4 x i1> @insertelement_v4i1(<4 x i1> %vec, i32 %elt.arg) {
+define <4 x i1> @insertelement_v4i1_0(<4 x i1> %vec, i32 %elt.arg) {
+entry:
+  %elt = trunc i32 %elt.arg to i1
+  %res = insertelement <4 x i1> %vec, i1 %elt, i32 0
+  ret <4 x i1> %res
+; CHECK-LABEL: insertelement_v4i1_0:
+; CHECK: movss
+}
+
+define <4 x i1> @insertelement_v4i1_1(<4 x i1> %vec, i32 %elt.arg) {
 entry:
   %elt = trunc i32 %elt.arg to i1
   %res = insertelement <4 x i1> %vec, i1 %elt, i32 1
   ret <4 x i1> %res
-; CHECK-LABEL: insertelement_v4i1:
+; CHECK-LABEL: insertelement_v4i1_1:
 ; CHECK: shufps
 ; CHECK: shufps
 }

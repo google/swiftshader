@@ -2165,24 +2165,26 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
     // require aligned memory operands until support for stack alignment
     // is implemented.
 #define ALIGN_HACK(Vect) legalizeToVar((Vect))
-    Operand *T = NULL;
+    Variable *T = NULL;
     if (Index) {
       // The shuffle only needs to occur if the element to be extracted
       // is not at the lowest index.
       Constant *Mask = Ctx->getConstantInt(IceType_i8, Index);
       T = makeReg(Ty);
-      _pshufd(llvm::cast<Variable>(T), ALIGN_HACK(SourceVectOperand), Mask);
+      _pshufd(T, ALIGN_HACK(SourceVectOperand), Mask);
     } else {
-      // TODO(wala): If SourceVectOperand is in memory, express it as
-      // mem32 so that the call to legalizeToVar() is made unnecessary.
-      // _movd and _movss only take mem32 memory operands.
       T = legalizeToVar(SourceVectOperand);
     }
 
     if (InVectorElementTy == IceType_i32) {
       _movd(ExtractedElement, T);
-    } else { // InVectorElementTy == IceType_f32
-      // TODO: _mov should be able to be used here.
+    } else { // Ty == Icetype_f32
+      // TODO(wala): _movss is only used here because _mov does not
+      // allow a vector source and a scalar destination.  _mov should be
+      // able to be used here.
+      // _movss is a binary instruction, so the FakeDef is needed to
+      // keep the live range analysis consistent.
+      Context.insert(InstFakeDef::create(Func, ExtractedElement));
       _movss(ExtractedElement, T);
     }
 #undef ALIGN_HACK
@@ -2521,6 +2523,7 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
   // Only constant indices are allowed in PNaCl IR.
   assert(ElementIndex);
   unsigned Index = ElementIndex->getValue();
+  assert(Index < typeNumElements(SourceVectOperand->getType()));
 
   Type Ty = SourceVectOperand->getType();
   Type ElementTy = typeElementType(Ty);
@@ -2538,7 +2541,8 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
   }
 
   if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
-    // Lower insertelement with 32-bit wide elements using shufps.
+    // Lower insertelement with 32-bit wide elements using shufps or
+    // movss.
     // TODO(wala): SSE4.1 has pinsrd and insertps.
     Variable *Element = NULL;
     if (InVectorElementTy == IceType_f32) {
@@ -2551,6 +2555,14 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
       _movd(Element, T);
     }
 
+    if (Index == 0) {
+      Variable *T = makeReg(Ty);
+      _movp(T, SourceVectOperand);
+      _movss(T, Element);
+      _movp(Inst->getDest(), T);
+      return;
+    }
+
     // shufps treats the source and desination operands as vectors of
     // four doublewords.  The destination's two high doublewords are
     // selected from the source operand and the two low doublewords are
@@ -2559,10 +2571,6 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     // shufps operations with appropriate masks.  In all cases below,
     // Element[0] is being inserted into SourceVectOperand.  Indices are
     // ordered from left to right.
-    //
-    // insertelement into index 0 (result is stored in Element):
-    //   Element := Element[0, 0] SourceVectOperand[0, 1]
-    //   Element := Element[0, 3] SourceVectOperand[2, 3]
     //
     // insertelement into index 1 (result is stored in Element):
     //   Element := Element[0, 0] SourceVectOperand[0, 0]
@@ -2577,17 +2585,17 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     //   T := SourceVectOperand
     //   Element := Element[0, 0] T[0, 2]
     //   T := T[0, 1] Element[3, 0]
-    const unsigned char Mask1[4] = {64, 0, 192, 128};
-    const unsigned char Mask2[4] = {236, 227, 196, 52};
+    const unsigned char Mask1[3] = {0, 192, 128};
+    const unsigned char Mask2[3] = {227, 196, 52};
 
-    Constant *Mask1Constant = Ctx->getConstantInt(IceType_i8, Mask1[Index]);
-    Constant *Mask2Constant = Ctx->getConstantInt(IceType_i8, Mask2[Index]);
+    Constant *Mask1Constant = Ctx->getConstantInt(IceType_i8, Mask1[Index - 1]);
+    Constant *Mask2Constant = Ctx->getConstantInt(IceType_i8, Mask2[Index - 1]);
 
     // ALIGNHACK: Force vector operands to registers in instructions that
     // require aligned memory operands until support for stack alignment
     // is implemented.
 #define ALIGN_HACK(Vect) legalizeToVar((Vect))
-    if (Index < 2) {
+    if (Index == 1) {
       SourceVectOperand = ALIGN_HACK(SourceVectOperand);
       _shufps(Element, SourceVectOperand, Mask1Constant);
       _shufps(Element, SourceVectOperand, Mask2Constant);

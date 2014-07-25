@@ -552,7 +552,6 @@ typedef InstX8632Unaryop<InstX8632::Bsf> InstX8632Bsf;
 typedef InstX8632Unaryop<InstX8632::Bsr> InstX8632Bsr;
 typedef InstX8632Unaryop<InstX8632::Lea> InstX8632Lea;
 typedef InstX8632Unaryop<InstX8632::Movd> InstX8632Movd;
-typedef InstX8632Unaryop<InstX8632::Movss> InstX8632Movss;
 typedef InstX8632Unaryop<InstX8632::Sqrtss> InstX8632Sqrtss;
 typedef InstX8632Binop<InstX8632::Add> InstX8632Add;
 typedef InstX8632Binop<InstX8632::Addps> InstX8632Addps;
@@ -586,6 +585,13 @@ typedef InstX8632Binop<InstX8632::Sar, true> InstX8632Sar;
 typedef InstX8632Binop<InstX8632::Psra> InstX8632Psra;
 typedef InstX8632Binop<InstX8632::Pcmpeq> InstX8632Pcmpeq;
 typedef InstX8632Binop<InstX8632::Pcmpgt> InstX8632Pcmpgt;
+// TODO: movss is only a binary operation when the source and dest
+// operands are both registers.  In other cases, it behaves like a copy
+// (mov-like) operation.  Eventually, InstX8632Movss should assert that
+// both its source and dest operands are registers, and the lowering
+// code should use _mov instead of _movss in cases where a copy
+// operation is intended.
+typedef InstX8632Binop<InstX8632::Movss> InstX8632Movss;
 typedef InstX8632Ternop<InstX8632::Idiv> InstX8632Idiv;
 typedef InstX8632Ternop<InstX8632::Div> InstX8632Div;
 typedef InstX8632Ternop<InstX8632::Pinsrw> InstX8632Pinsrw;

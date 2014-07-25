@@ -462,7 +462,6 @@ template <> const char *InstX8632Bsf::Opcode = "bsf";
 template <> const char *InstX8632Bsr::Opcode = "bsr";
 template <> const char *InstX8632Lea::Opcode = "lea";
 template <> const char *InstX8632Movd::Opcode = "movd";
-template <> const char *InstX8632Movss::Opcode = "movss";
 template <> const char *InstX8632Sqrtss::Opcode = "sqrtss";
 // Binary ops
 template <> const char *InstX8632Add::Opcode = "add";
@@ -499,6 +498,7 @@ template <> const char *InstX8632Sar::Opcode = "sar";
 template <> const char *InstX8632Psra::Opcode = "psra";
 template <> const char *InstX8632Pcmpeq::Opcode = "pcmpeq";
 template <> const char *InstX8632Pcmpgt::Opcode = "pcmpgt";
+template <> const char *InstX8632Movss::Opcode = "movss";
 // Ternary ops
 template <> const char *InstX8632Shufps::Opcode = "shufps";
 template <> const char *InstX8632Pinsrw::Opcode = "pinsrw";
