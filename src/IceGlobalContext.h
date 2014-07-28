@@ -47,8 +47,8 @@ public:
   void addVerbose(VerboseMask Mask) { VMask |= Mask; }
   void subVerbose(VerboseMask Mask) { VMask &= ~Mask; }
 
-  Ostream &getStrDump() { return StrDump; }
-  Ostream &getStrEmit() { return StrEmit; }
+  Ostream &getStrDump() { return *StrDump; }
+  Ostream &getStrEmit() { return *StrEmit; }
 
   TargetArch getTargetArch() const { return Arch; }
   OptLevel getOptLevel() const { return Opt; }
@@ -92,8 +92,8 @@ public:
   const Intrinsics &getIntrinsicsInfo() const { return IntrinsicsInfo; }
 
 private:
-  Ostream StrDump; // Stream for dumping / diagnostics
-  Ostream StrEmit; // Stream for code emission
+  Ostream *StrDump; // Stream for dumping / diagnostics
+  Ostream *StrEmit; // Stream for code emission
 
   llvm::BumpPtrAllocator Allocator;
   VerboseMask VMask;

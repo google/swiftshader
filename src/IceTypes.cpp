@@ -81,18 +81,13 @@ Type typeElementType(Type Ty) {
   return ElementType;
 }
 
-// ======================== Dump routines ======================== //
-
-template <> Ostream &operator<<(Ostream &Str, const Type &Ty) {
+const char *typeString(Type Ty) {
   size_t Index = static_cast<size_t>(Ty);
   if (Index < TypeAttributesSize) {
-    Str << TypeAttributes[Index].DisplayString;
-  } else {
-    Str << "???";
-    llvm_unreachable("Invalid type for printing");
+    return TypeAttributes[Index].DisplayString;
   }
-
-  return Str;
+  llvm_unreachable("Invalid type for typeString");
+  return "???";
 }
 
 } // end of namespace Ice

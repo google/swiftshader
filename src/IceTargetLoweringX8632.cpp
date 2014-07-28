@@ -128,11 +128,10 @@ const unsigned X86_CHAR_BIT = 8;
 IceString typeIdentString(const Type Ty) {
   IceString Str;
   llvm::raw_string_ostream BaseOS(Str);
-  Ostream OS(&BaseOS);
   if (isVectorType(Ty)) {
-    OS << "v" << typeNumElements(Ty) << typeElementType(Ty);
+    BaseOS << "v" << typeNumElements(Ty) << typeElementType(Ty);
   } else {
-    OS << Ty;
+    BaseOS << Ty;
   }
   return BaseOS.str();
 }

@@ -330,8 +330,7 @@ Constant *GlobalContext::getConstantZero(Type Ty) {
   case IceType_v4f32: {
     IceString Str;
     llvm::raw_string_ostream BaseOS(Str);
-    Ostream OS(&BaseOS);
-    OS << "Unsupported constant type: " << Ty;
+    BaseOS << "Unsupported constant type: " << Ty;
     llvm_unreachable(BaseOS.str().c_str());
   } break;
   case IceType_void:
@@ -362,8 +361,7 @@ ConstantList GlobalContext::getConstantPool(Type Ty) const {
   case IceType_v4f32: {
     IceString Str;
     llvm::raw_string_ostream BaseOS(Str);
-    Ostream OS(&BaseOS);
-    OS << "Unsupported constant type: " << Ty;
+    BaseOS << "Unsupported constant type: " << Ty;
     llvm_unreachable(BaseOS.str().c_str());
   } break;
   case IceType_void:

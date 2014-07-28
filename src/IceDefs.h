@@ -105,26 +105,7 @@ enum VerboseItem {
 };
 typedef uint32_t VerboseMask;
 
-// The Ostream class wraps an output stream and a Cfg pointer, so
-// that dump routines have access to the Cfg object and can print
-// labels and variable names.
-
-class Ostream {
-public:
-  Ostream(llvm::raw_ostream *Stream) : Stream(Stream) {}
-
-  llvm::raw_ostream *Stream;
-
-private:
-  Ostream(const Ostream &) LLVM_DELETED_FUNCTION;
-  Ostream &operator=(const Ostream &) LLVM_DELETED_FUNCTION;
-};
-
-template <typename T> inline Ostream &operator<<(Ostream &Str, const T &Val) {
-  if (Str.Stream)
-    (*Str.Stream) << Val;
-  return Str;
-}
+typedef llvm::raw_ostream Ostream;
 
 // TODO: Implement in terms of std::chrono after switching to C++11.
 class Timer {

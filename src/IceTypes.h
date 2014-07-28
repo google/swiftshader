@@ -45,10 +45,15 @@ size_t typeWidthInBytes(Type Ty);
 size_t typeAlignInBytes(Type Ty);
 size_t typeNumElements(Type Ty);
 Type typeElementType(Type Ty);
+const char *typeString(Type Ty);
 
 inline bool isVectorType(Type Ty) { return typeNumElements(Ty) > 1; }
 
-template <> Ostream &operator<<(class Ostream &Str, const Type &Ty);
+template <typename StreamType>
+inline StreamType &operator<<(StreamType &Str, const Type &Ty) {
+  Str << typeString(Ty);
+  return Str;
+}
 
 } // end of namespace Ice
 
