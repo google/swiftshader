@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include <ctype.h> // isdigit(), isupper()
+#include <locale>  // locale
 
 #include "IceDefs.h"
 #include "IceTypes.h"
@@ -61,7 +62,7 @@ public:
 private:
   typedef std::pair<Type, KeyType> TupleType;
   struct TupleCompare {
-    bool operator()(const TupleType &A, const TupleType &B) {
+    bool operator()(const TupleType &A, const TupleType &B) const {
       if (A.first != B.first)
         return A.first < B.first;
       if (KeyTypeHasFP)

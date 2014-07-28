@@ -143,7 +143,7 @@ IceString typeIdentString(const Type Ty) {
 // could get out of sync if enum values are reordered or if entries
 // are added or deleted.  This dummy function uses static_assert to
 // ensure everything is kept in sync.
-void xMacroIntegrityCheck() {
+void __attribute__((unused)) xMacroIntegrityCheck() {
   // Validate the enum values in FCMPX8632_TABLE.
   {
     // Define a temporary set of enum values based on low-level

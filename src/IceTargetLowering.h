@@ -211,6 +211,8 @@ class TargetGlobalInitLowering {
 public:
   static TargetGlobalInitLowering *createLowering(TargetArch Target,
                                                   GlobalContext *Ctx);
+  virtual ~TargetGlobalInitLowering();
+
   // TODO: Allow relocations to be represented as part of the Data.
   virtual void lower(const IceString &Name, SizeT Align, bool IsInternal,
                      bool IsConst, bool IsZeroInitializer, SizeT Size,

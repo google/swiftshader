@@ -198,4 +198,6 @@ TargetGlobalInitLowering::createLowering(TargetArch Target,
   return NULL;
 }
 
+TargetGlobalInitLowering::~TargetGlobalInitLowering() {}
+
 } // end of namespace Ice
