@@ -54,9 +54,21 @@
 FOR_ALL_RMWOP_TYPES(X)
 #undef X
 
-#define X(type)                                                          \
-  type test_val_cmp_swap(volatile type *ptr, type oldval, type newval) { \
-    return __sync_val_compare_and_swap(ptr, oldval, newval);             \
+#define X(type)                                                                \
+  type test_val_cmp_swap(volatile type *ptr, type oldval, type newval) {       \
+    return __sync_val_compare_and_swap(ptr, oldval, newval);                   \
+  }                                                                            \
+  type test_val_cmp_swap_loop(volatile type *ptr, type oldval, type newval) {  \
+    type prev;                                                                 \
+    type succeeded_first_try = 1;                                              \
+    while (1) {                                                                \
+      prev = __sync_val_compare_and_swap(ptr, oldval, newval);                 \
+      if (prev == oldval)                                                      \
+        break;                                                                 \
+      succeeded_first_try = 0;                                                 \
+      oldval = prev;                                                           \
+    }                                                                          \
+    return succeeded_first_try;                                                \
   }
 
 ATOMIC_TYPE_TABLE

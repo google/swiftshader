@@ -41,6 +41,12 @@ public:
       return NULL;
     return *Next;
   }
+  Inst *getNextInst(InstList::iterator &Iter) const {
+    advance(Iter);
+    if (Iter == End)
+      return NULL;
+    return *Iter;
+  }
   CfgNode *getNode() const { return Node; }
   bool atEnd() const { return Cur == End; }
   InstList::iterator getCur() const { return Cur; }
@@ -68,8 +74,8 @@ private:
   // End is a copy of Insts.end(), used if Next needs to be advanced.
   InstList::iterator End;
 
-  void skipDeleted(InstList::iterator &I);
-  void advance(InstList::iterator &I);
+  void skipDeleted(InstList::iterator &I) const;
+  void advance(InstList::iterator &I) const;
   LoweringContext(const LoweringContext &) LLVM_DELETED_FUNCTION;
   LoweringContext &operator=(const LoweringContext &) LLVM_DELETED_FUNCTION;
 };

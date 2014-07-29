@@ -2,7 +2,7 @@
 ; size allowed.
 
 ; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s --check-prefix=CHECKO2REM
+; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s --check-prefix=CHECKO2
 ; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice -O2 --verbose none %s \
 ; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
@@ -815,23 +815,6 @@ entry:
 ; CHECK-DAG: mov ebx
 ; CHECK: lock cmpxchg8b qword ptr [e{{.[^x]}}]
 
-define i32 @test_atomic_cmpxchg_32_loop(i32 %iptr, i32 %expected, i32 %desired) {
-entry:
-  br label %loop
-
-loop:
-  %cmp = phi i32 [ %expected, %entry ], [ %old, %loop ]
-  %ptr = inttoptr i32 %iptr to i32*
-  %old = call i32 @llvm.nacl.atomic.cmpxchg.i32(i32* %ptr, i32 %cmp,
-                                                i32 %desired, i32 6, i32 6)
-  %success = icmp eq i32 %cmp, %old
-  br i1 %success, label %done, label %loop
-
-done:
-  ret i32 %old
-}
-; CHECK-LABEL: test_atomic_cmpxchg_32_loop
-
 ;;;; Fence and is-lock-free.
 
 define void @test_atomic_fence() {
@@ -879,9 +862,9 @@ entry:
 ; CHECK-LABEL: test_atomic_is_lock_free_ignored
 ; CHECK: mov {{.*}}, 0
 ; This can get optimized out, because it's side-effect-free.
-; CHECKO2REM-LABEL: test_atomic_is_lock_free_ignored
-; CHECKO2REM-NOT: mov {{.*}}, 1
-; CHECKO2REM: mov {{.*}}, 0
+; CHECKO2-LABEL: test_atomic_is_lock_free_ignored
+; CHECKO2-NOT: mov {{.*}}, 1
+; CHECKO2: mov {{.*}}, 0
 
 ; TODO(jvoung): at some point we can take advantage of the
 ; fact that nacl.atomic.is.lock.free will resolve to a constant

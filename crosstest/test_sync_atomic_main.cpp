@@ -127,33 +127,43 @@ void testAtomicRMW(volatile Type *AtomicLoc,
 template <typename Type>
 void testValCompareAndSwap(volatile Type *AtomicLoc, size_t &TotalTests,
                            size_t &Passes, size_t &Failures) {
-  for (size_t i = 0; i < NumValues; ++i) {
-    Type Value1 = static_cast<Type>(Values[i]);
-    for (size_t j = 0; j < NumValues; ++j) {
-      Type Value2 = static_cast<Type>(Values[j]);
-      for (size_t f = 0; f < 2; ++f) {
-        bool flip = f;
-        ++TotalTests;
-        *AtomicLoc = Value1;
-        Type ResultSz1 = Subzero_::test_val_cmp_swap(
-            AtomicLoc, flip ? Value2 : Value1, Value2);
-        Type ResultSz2 = *AtomicLoc;
-        *AtomicLoc = Value1;
-        Type ResultLlc1 = test_val_cmp_swap(
-            AtomicLoc, flip ? Value2 : Value1, Value2);
-        Type ResultLlc2 = *AtomicLoc;
-        if (ResultSz1 == ResultLlc1 && ResultSz2 == ResultLlc2) {
-          ++Passes;
-        } else {
-          ++Failures;
-          std::cout << "test_val_cmp_swap" << (CHAR_BIT * sizeof(Type)) << "("
-                    << static_cast<uint64_t>(Value1) << ", "
-                    << static_cast<uint64_t>(Value2)
-                    << "): sz1=" << static_cast<uint64_t>(ResultSz1)
-                    << " llc1=" << static_cast<uint64_t>(ResultLlc1)
-                    << " sz2=" << static_cast<uint64_t>(ResultSz2)
-                    << " llc2=" << static_cast<uint64_t>(ResultLlc2)
-                    << "\n";
+  typedef Type (*FuncType)(volatile Type *, Type, Type);
+  static struct {
+    const char *Name;
+    FuncType FuncLlc;
+    FuncType FuncSz;
+  } Funcs[] = {{"val_cmp_swap", test_val_cmp_swap, Subzero_::test_val_cmp_swap},
+               {"val_cmp_swap_loop", test_val_cmp_swap_loop,
+                Subzero_::test_val_cmp_swap_loop}};
+  const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
+  for (size_t f = 0; f < NumFuncs; ++f) {
+    for (size_t i = 0; i < NumValues; ++i) {
+      Type Value1 = static_cast<Type>(Values[i]);
+      for (size_t j = 0; j < NumValues; ++j) {
+        Type Value2 = static_cast<Type>(Values[j]);
+        for (size_t f = 0; f < 2; ++f) {
+          bool flip = f;
+          ++TotalTests;
+          *AtomicLoc = Value1;
+          Type ResultSz1 =
+              Funcs[f].FuncSz(AtomicLoc, flip ? Value2 : Value1, Value2);
+          Type ResultSz2 = *AtomicLoc;
+          *AtomicLoc = Value1;
+          Type ResultLlc1 =
+              Funcs[f].FuncLlc(AtomicLoc, flip ? Value2 : Value1, Value2);
+          Type ResultLlc2 = *AtomicLoc;
+          if (ResultSz1 == ResultLlc1 && ResultSz2 == ResultLlc2) {
+            ++Passes;
+          } else {
+            ++Failures;
+            std::cout << "test_" << Funcs[f].Name << (CHAR_BIT * sizeof(Type))
+                      << "(" << static_cast<uint64_t>(Value1) << ", "
+                      << static_cast<uint64_t>(Value2)
+                      << "): sz1=" << static_cast<uint64_t>(ResultSz1)
+                      << " llc1=" << static_cast<uint64_t>(ResultLlc1)
+                      << " sz2=" << static_cast<uint64_t>(ResultSz2)
+                      << " llc2=" << static_cast<uint64_t>(ResultLlc2) << "\n";
+          }
         }
       }
     }

@@ -104,7 +104,8 @@ void CfgNode::placePhiLoads() {
 // added before any branch instruction, and also if the block ends
 // with a compare instruction followed by a branch instruction that we
 // may want to fuse, it's better to insert the new assignments before
-// the compare instruction.
+// the compare instruction. The tryOptimizedCmpxchgCmpBr() method
+// assumes this ordering of instructions.
 //
 // Note that this transformation takes the Phi dest variables out of
 // SSA form, as there may be assignments to the dest variable in

@@ -22,8 +22,9 @@
 FOR_ALL_RMWOP_TYPES(X)
 #undef X
 
-#define X(type)   \
-  type test_val_cmp_swap(volatile type *ptr, type oldval, type newval);
+#define X(type)                                                                \
+  type test_val_cmp_swap(volatile type *ptr, type oldval, type newval);        \
+  type test_val_cmp_swap_loop(volatile type *ptr, type oldval, type newval);
 
 ATOMIC_TYPE_TABLE
 #undef X

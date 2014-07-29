@@ -97,8 +97,12 @@ protected:
   virtual void doAddressOptLoad();
   virtual void doAddressOptStore();
 
+  // Naive lowering of cmpxchg.
   void lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr, Operand *Expected,
                           Operand *Desired);
+  // Attempt a more optimized lowering of cmpxchg. Returns true if optimized.
+  bool tryOptimizedCmpxchgCmpBr(Variable *DestPrev, Operand *Ptr,
+                                Operand *Expected, Operand *Desired);
   void lowerAtomicRMW(Variable *Dest, uint32_t Operation, Operand *Ptr,
                       Operand *Val);
   void lowerCountZeros(bool Cttz, Type Ty, Variable *Dest, Operand *FirstVal,

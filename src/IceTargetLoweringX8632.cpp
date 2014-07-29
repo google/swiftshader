@@ -2654,12 +2654,9 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Operand *PtrToMem = Instr->getArg(0);
     Operand *Expected = Instr->getArg(1);
     Operand *Desired = Instr->getArg(2);
+    if (tryOptimizedCmpxchgCmpBr(DestPrev, PtrToMem, Expected, Desired))
+      return;
     lowerAtomicCmpxchg(DestPrev, PtrToMem, Expected, Desired);
-    // TODO(jvoung): If we peek ahead a few instructions and see how
-    // DestPrev is used (typically via another compare and branch),
-    // we may be able to optimize. If the result truly is used by a
-    // compare + branch, and the comparison is for equality, then we can
-    // optimize out the later compare, and fuse with the later branch.
     return;
   }
   case Intrinsics::AtomicFence:
@@ -2973,6 +2970,79 @@ void TargetX8632::lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr,
   const bool Locked = true;
   _cmpxchg(Addr, T_eax, DesiredReg, Locked);
   _mov(DestPrev, T_eax);
+}
+
+bool TargetX8632::tryOptimizedCmpxchgCmpBr(Variable *Dest, Operand *PtrToMem,
+                                           Operand *Expected,
+                                           Operand *Desired) {
+  if (Ctx->getOptLevel() == Opt_m1)
+    return false;
+  // Peek ahead a few instructions and see how Dest is used.
+  // It's very common to have:
+  //
+  // %x = call i32 @llvm.nacl.atomic.cmpxchg.i32(i32* ptr, i32 %expected, ...)
+  // [%y_phi = ...] // list of phi stores
+  // %p = icmp eq i32 %x, %expected
+  // br i1 %p, label %l1, label %l2
+  //
+  // which we can optimize into:
+  //
+  // %x = <cmpxchg code>
+  // [%y_phi = ...] // list of phi stores
+  // br eq, %l1, %l2
+  InstList::iterator I = Context.getCur();
+  // I is currently the InstIntrinsicCall. Peek past that.
+  // This assumes that the atomic cmpxchg has not been lowered yet,
+  // so that the instructions seen in the scan from "Cur" is simple.
+  assert(llvm::isa<InstIntrinsicCall>(*I));
+  Inst *NextInst = Context.getNextInst(I);
+  if (!NextInst)
+    return false;
+  // There might be phi assignments right before the compare+branch, since this
+  // could be a backward branch for a loop. This placement of assignments is
+  // determined by placePhiStores().
+  std::vector<InstAssign *> PhiAssigns;
+  while (InstAssign *PhiAssign = llvm::dyn_cast<InstAssign>(NextInst)) {
+    if (PhiAssign->getDest() == Dest)
+      return false;
+    PhiAssigns.push_back(PhiAssign);
+    NextInst = Context.getNextInst(I);
+    if (!NextInst)
+      return false;
+  }
+  if (InstIcmp *NextCmp = llvm::dyn_cast<InstIcmp>(NextInst)) {
+    if (!(NextCmp->getCondition() == InstIcmp::Eq &&
+          ((NextCmp->getSrc(0) == Dest && NextCmp->getSrc(1) == Expected) ||
+           (NextCmp->getSrc(1) == Dest && NextCmp->getSrc(0) == Expected)))) {
+      return false;
+    }
+    NextInst = Context.getNextInst(I);
+    if (!NextInst)
+      return false;
+    if (InstBr *NextBr = llvm::dyn_cast<InstBr>(NextInst)) {
+      if (!NextBr->isUnconditional() &&
+          NextCmp->getDest() == NextBr->getCondition() &&
+          NextBr->isLastUse(NextCmp->getDest())) {
+        lowerAtomicCmpxchg(Dest, PtrToMem, Expected, Desired);
+        for (size_t i = 0; i < PhiAssigns.size(); ++i) {
+          // Lower the phi assignments now, before the branch (same placement
+          // as before).
+          InstAssign *PhiAssign = PhiAssigns[i];
+          lowerAssign(PhiAssign);
+          PhiAssign->setDeleted();
+          Context.advanceNext();
+        }
+        _br(InstX8632::Br_e, NextBr->getTargetTrue(), NextBr->getTargetFalse());
+        // Skip over the old compare and branch, by deleting them.
+        NextCmp->setDeleted();
+        NextBr->setDeleted();
+        Context.advanceNext();
+        Context.advanceNext();
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 void TargetX8632::lowerAtomicRMW(Variable *Dest, uint32_t Operation,

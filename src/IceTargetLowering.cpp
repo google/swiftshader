@@ -38,12 +38,12 @@ void LoweringContext::insert(Inst *Inst) {
   Inst->updateVars(getNode());
 }
 
-void LoweringContext::skipDeleted(InstList::iterator &I) {
+void LoweringContext::skipDeleted(InstList::iterator &I) const {
   while (I != End && (*I)->isDeleted())
     ++I;
 }
 
-void LoweringContext::advance(InstList::iterator &I) {
+void LoweringContext::advance(InstList::iterator &I) const {
   if (I != End) {
     ++I;
     skipDeleted(I);
