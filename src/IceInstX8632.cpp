@@ -484,7 +484,7 @@ template <> const char *InstX8632Pxor::Opcode = "pxor";
 template <> const char *InstX8632Imul::Opcode = "imul";
 template <> const char *InstX8632Mulps::Opcode = "mulps";
 template <> const char *InstX8632Mulss::Opcode = "mulss";
-template <> const char *InstX8632Pmullw::Opcode = "pmullw";
+template <> const char *InstX8632Pmull::Opcode = "pmull";
 template <> const char *InstX8632Pmuludq::Opcode = "pmuludq";
 template <> const char *InstX8632Div::Opcode = "div";
 template <> const char *InstX8632Divps::Opcode = "divps";
@@ -500,10 +500,13 @@ template <> const char *InstX8632Pcmpeq::Opcode = "pcmpeq";
 template <> const char *InstX8632Pcmpgt::Opcode = "pcmpgt";
 template <> const char *InstX8632Movss::Opcode = "movss";
 // Ternary ops
+template <> const char *InstX8632Insertps::Opcode = "insertps";
 template <> const char *InstX8632Shufps::Opcode = "shufps";
-template <> const char *InstX8632Pinsrw::Opcode = "pinsrw";
+template <> const char *InstX8632Pinsr::Opcode = "pinsr";
+template <> const char *InstX8632Blendvps::Opcode = "blendvps";
+template <> const char *InstX8632Pblendvb::Opcode = "pblendvb";
 // Three address ops
-template <> const char *InstX8632Pextrw::Opcode = "pextrw";
+template <> const char *InstX8632Pextr::Opcode = "pextr";
 template <> const char *InstX8632Pshufd::Opcode = "pshufd";
 
 template <> void InstX8632Sqrtss::emit(const Cfg *Func) const {
@@ -532,6 +535,23 @@ template <> void InstX8632Padd::emit(const Cfg *Func) const {
   emitTwoAddress(buf, this, Func);
 }
 
+template <> void InstX8632Pmull::emit(const Cfg *Func) const {
+  char buf[30];
+  bool TypesAreValid = getDest()->getType() == IceType_v4i32 ||
+                       getDest()->getType() == IceType_v8i16;
+  bool InstructionSetIsValid =
+      getDest()->getType() == IceType_v8i16 ||
+      static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
+          TargetX8632::SSE4_1;
+  (void)TypesAreValid;
+  (void)InstructionSetIsValid;
+  assert(TypesAreValid);
+  assert(InstructionSetIsValid);
+  snprintf(buf, llvm::array_lengthof(buf), "pmull%s",
+           TypeX8632Attributes[getDest()->getType()].PackString);
+  emitTwoAddress(buf, this, Func);
+}
+
 template <> void InstX8632Subss::emit(const Cfg *Func) const {
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "sub%s",
@@ -551,12 +571,6 @@ template <> void InstX8632Mulss::emit(const Cfg *Func) const {
   snprintf(buf, llvm::array_lengthof(buf), "mul%s",
            TypeX8632Attributes[getDest()->getType()].SdSsString);
   emitTwoAddress(buf, this, Func);
-}
-
-template <> void InstX8632Pmullw::emit(const Cfg *Func) const {
-  assert(getSrc(0)->getType() == IceType_v8i16 &&
-         getSrc(1)->getType() == IceType_v8i16);
-  emitTwoAddress(Opcode, this, Func);
 }
 
 template <> void InstX8632Pmuludq::emit(const Cfg *Func) const {
@@ -586,6 +600,38 @@ template <> void InstX8632Idiv::emit(const Cfg *Func) const {
   Str << "\t" << Opcode << "\t";
   getSrc(1)->emit(Func);
   Str << "\n";
+}
+
+
+namespace {
+
+// pblendvb and blendvps take xmm0 as a final implicit argument.
+void emitVariableBlendInst(const char *Opcode, const Inst *Inst,
+                           const Cfg *Func) {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(Inst->getSrcSize() == 3);
+  assert(llvm::isa<Variable>(Inst->getSrc(2)));
+  assert(llvm::cast<Variable>(Inst->getSrc(2))->getRegNum() ==
+         TargetX8632::Reg_xmm0);
+  Str << "\t" << Opcode << "\t";
+  Inst->getDest()->emit(Func);
+  Str << ", ";
+  Inst->getSrc(1)->emit(Func);
+  Str << "\n";
+}
+
+} // end anonymous namespace
+
+template <> void InstX8632Blendvps::emit(const Cfg *Func) const {
+  assert(static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
+         TargetX8632::SSE4_1);
+  emitVariableBlendInst(Opcode, this, Func);
+}
+
+template <> void InstX8632Pblendvb::emit(const Cfg *Func) const {
+  assert(static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
+         TargetX8632::SSE4_1);
+  emitVariableBlendInst(Opcode, this, Func);
 }
 
 template <> void InstX8632Imul::emit(const Cfg *Func) const {
@@ -1127,13 +1173,19 @@ template <> void InstX8632Pcmpgt::emit(const Cfg *Func) const {
   emitTwoAddress(buf, this, Func);
 }
 
-template <> void InstX8632Pextrw::emit(const Cfg *Func) const {
+template <> void InstX8632Pextr::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
-  Str << "\t" << Opcode << "\t";
+  // pextrb and pextrd are SSE4.1 instructions.
+  assert(getSrc(0)->getType() == IceType_v8i16 ||
+         getSrc(0)->getType() == IceType_v8i1 ||
+         static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet()
+             >= TargetX8632::SSE4_1);
+  Str << "\t" << Opcode
+      << TypeX8632Attributes[getSrc(0)->getType()].PackString << "\t";
   Variable *Dest = getDest();
-  assert(Dest->hasReg() && Dest->getType() == IceType_i16);
-  // pextrw takes r32 dest.
+  // pextrw must take a register dest.
+  assert(Dest->getType() != IceType_i16 || Dest->hasReg());
   Dest->asType(IceType_i32).emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
@@ -1142,16 +1194,26 @@ template <> void InstX8632Pextrw::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
-template <> void InstX8632Pinsrw::emit(const Cfg *Func) const {
+template <> void InstX8632Pinsr::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 3);
-  Str << "\t" << Opcode << "\t";
+  // pinsrb and pinsrd are SSE4.1 instructions.
+  assert(getDest()->getType() == IceType_v8i16 ||
+         getDest()->getType() == IceType_v8i1 ||
+         static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet()
+             >= TargetX8632::SSE4_1);
+  Str << "\t" << Opcode
+      << TypeX8632Attributes[getDest()->getType()].PackString << "\t";
   getDest()->emit(Func);
   Str << ", ";
   Operand *Src1 = getSrc(1);
   if (Variable *VSrc1 = llvm::dyn_cast<Variable>(Src1)) {
-    // If src1 is a register, it should be r32.
-    VSrc1->asType(VSrc1->hasReg() ? IceType_i32 : IceType_i16).emit(Func);
+    // If src1 is a register, it should always be r32.
+    if (VSrc1->hasReg()) {
+      VSrc1->asType(IceType_i32).emit(Func);
+    } else {
+      VSrc1->emit(Func);
+    }
   } else {
     Src1->emit(Func);
   }
@@ -1216,7 +1278,9 @@ void InstX8632Push::dump(const Cfg *Func) const {
 
 template <> void InstX8632Psll::emit(const Cfg *Func) const {
   assert(getDest()->getType() == IceType_v8i16 ||
-         getDest()->getType() == IceType_v4i32);
+         getDest()->getType() == IceType_v8i1 ||
+         getDest()->getType() == IceType_v4i32 ||
+         getDest()->getType() == IceType_v4i1);
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "psll%s",
            TypeX8632Attributes[getDest()->getType()].PackString);
@@ -1225,7 +1289,9 @@ template <> void InstX8632Psll::emit(const Cfg *Func) const {
 
 template <> void InstX8632Psra::emit(const Cfg *Func) const {
   assert(getDest()->getType() == IceType_v8i16 ||
-         getDest()->getType() == IceType_v4i32);
+         getDest()->getType() == IceType_v8i1 ||
+         getDest()->getType() == IceType_v4i32 ||
+         getDest()->getType() == IceType_v4i1);
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "psra%s",
            TypeX8632Attributes[getDest()->getType()].PackString);

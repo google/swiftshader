@@ -2,9 +2,17 @@
 
 ; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -O2 -mattr=sse4.1 --verbose none %s \
+; RUN:                | FileCheck %s --check-prefix=SSE41
+; RUN: %llvm2ice -Om1 -mattr=sse4.1 --verbose none %s \
+; RUN:                | FileCheck %s --check-prefix=SSE41
 ; RUN: %llvm2ice -O2 --verbose none %s \
 ; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
 ; RUN: %llvm2ice -Om1 --verbose none %s \
+; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
+; RUN: %llvm2ice -O2 -mattr=sse4.1 --verbose none %s \
+; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
+; RUN: %llvm2ice -Om1 -mattr=sse4.1 --verbose none %s \
 ; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
@@ -306,6 +314,9 @@ entry:
 ; CHECK-LABEL: test_mul_v4i32:
 ; CHECK: pmuludq
 ; CHECK: pmuludq
+;
+; SSE41-LABEL: test_mul_v4i32:
+; SSE41: pmulld
 }
 
 define <4 x i32> @test_shl_v4i32(<4 x i32> %arg0, <4 x i32> %arg1) {
@@ -314,6 +325,9 @@ entry:
   ret <4 x i32> %res
 ; CHECK-LABEL: test_shl_v4i32:
 ; CHECK: Sz_shl_v4i32
+
+; This line is to ensure that pmulld is generated in test_mul_v4i32 above.
+; SSE41-LABEL: test_shl_v4i32:
 }
 
 define <4 x i32> @test_lshr_v4i32(<4 x i32> %arg0, <4 x i32> %arg1) {

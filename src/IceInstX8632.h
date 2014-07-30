@@ -138,6 +138,7 @@ public:
     Addps,
     Addss,
     And,
+    Blendvps,
     Br,
     Bsf,
     Bsr,
@@ -157,6 +158,7 @@ public:
     Icmp,
     Idiv,
     Imul,
+    Insertps,
     Label,
     Lea,
     Load,
@@ -176,11 +178,12 @@ public:
     Padd,
     Pand,
     Pandn,
+    Pblendvb,
     Pcmpeq,
     Pcmpgt,
-    Pextrw,
-    Pinsrw,
-    Pmullw,
+    Pextr,
+    Pinsr,
+    Pmull,
     Pmuludq,
     Pop,
     Por,
@@ -573,7 +576,7 @@ typedef InstX8632Binop<InstX8632::Pxor> InstX8632Pxor;
 typedef InstX8632Binop<InstX8632::Imul> InstX8632Imul;
 typedef InstX8632Binop<InstX8632::Mulps> InstX8632Mulps;
 typedef InstX8632Binop<InstX8632::Mulss> InstX8632Mulss;
-typedef InstX8632Binop<InstX8632::Pmullw> InstX8632Pmullw;
+typedef InstX8632Binop<InstX8632::Pmull> InstX8632Pmull;
 typedef InstX8632Binop<InstX8632::Pmuludq> InstX8632Pmuludq;
 typedef InstX8632Binop<InstX8632::Divps> InstX8632Divps;
 typedef InstX8632Binop<InstX8632::Divss> InstX8632Divss;
@@ -594,9 +597,12 @@ typedef InstX8632Binop<InstX8632::Pcmpgt> InstX8632Pcmpgt;
 typedef InstX8632Binop<InstX8632::Movss> InstX8632Movss;
 typedef InstX8632Ternop<InstX8632::Idiv> InstX8632Idiv;
 typedef InstX8632Ternop<InstX8632::Div> InstX8632Div;
-typedef InstX8632Ternop<InstX8632::Pinsrw> InstX8632Pinsrw;
+typedef InstX8632Ternop<InstX8632::Insertps> InstX8632Insertps;
+typedef InstX8632Ternop<InstX8632::Pinsr> InstX8632Pinsr;
 typedef InstX8632Ternop<InstX8632::Shufps> InstX8632Shufps;
-typedef InstX8632ThreeAddressop<InstX8632::Pextrw> InstX8632Pextrw;
+typedef InstX8632Ternop<InstX8632::Blendvps> InstX8632Blendvps;
+typedef InstX8632Ternop<InstX8632::Pblendvb> InstX8632Pblendvb;
+typedef InstX8632ThreeAddressop<InstX8632::Pextr> InstX8632Pextr;
 typedef InstX8632ThreeAddressop<InstX8632::Pshufd> InstX8632Pshufd;
 
 // Base class for a lockable x86-32 instruction (emits a locked prefix).

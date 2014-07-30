@@ -1,9 +1,18 @@
 ; This checks support for insertelement and extractelement.
 
-; RUN: %llvm2ice --verbose inst %s | FileCheck %s
+; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -O2 -mattr=sse4.1 --verbose none %s \
+; RUN:                | FileCheck %s --check-prefix=SSE41
+; RUN: %llvm2ice -Om1 -mattr=sse4.1 --verbose none %s \
+; RUN:                | FileCheck %s --check-prefix=SSE41
 ; RUN: %llvm2ice -O2 --verbose none %s \
 ; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
 ; RUN: %llvm2ice -Om1 --verbose none %s \
+; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
+; RUN: %llvm2ice -O2 -mattr=sse4.1 --verbose none %s \
+; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
+; RUN: %llvm2ice -Om1 -mattr=sse4.1 --verbose none %s \
 ; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
@@ -18,6 +27,9 @@ entry:
   ret <4 x float> %res
 ; CHECK-LABEL: insertelement_v4f32_0:
 ; CHECK: movss
+
+; SSE41-LABEL: insertelement_v4f32_0:
+; SSE41: insertps {{.*}}, {{.*}}, 0
 }
 
 define <4 x i32> @insertelement_v4i32_0(<4 x i32> %vec, i32 %elt) {
@@ -26,6 +38,9 @@ entry:
   ret <4 x i32> %res
 ; CHECK-LABEL: insertelement_v4i32_0:
 ; CHECK: movss
+
+; SSE41-LABEL: insertelement_v4i32_0:
+; SSE41: pinsrd {{.*}}, {{.*}}, 0
 }
 
 
@@ -36,6 +51,9 @@ entry:
 ; CHECK-LABEL: insertelement_v4f32_1:
 ; CHECK: shufps
 ; CHECK: shufps
+
+; SSE41-LABEL: insertelement_v4f32_1:
+; SSE41: insertps {{.*}}, {{.*}}, 16
 }
 
 define <4 x i32> @insertelement_v4i32_1(<4 x i32> %vec, i32 %elt) {
@@ -45,6 +63,9 @@ entry:
 ; CHECK-LABEL: insertelement_v4i32_1:
 ; CHECK: shufps
 ; CHECK: shufps
+
+; SSE41-LABEL: insertelement_v4i32_1:
+; SSE41: pinsrd {{.*}}, {{.*}}, 1
 }
 
 define <8 x i16> @insertelement_v8i16(<8 x i16> %vec, i32 %elt.arg) {
@@ -52,8 +73,11 @@ entry:
   %elt = trunc i32 %elt.arg to i16
   %res = insertelement <8 x i16> %vec, i16 %elt, i32 1
   ret <8 x i16> %res
-; CHECK-LABEL: insertelement_v8i16
+; CHECK-LABEL: insertelement_v8i16:
 ; CHECK: pinsrw
+
+; SSE41-LABEL: insertelement_v8i16:
+; SSE41: pinsrw
 }
 
 define <16 x i8> @insertelement_v16i8(<16 x i8> %vec, i32 %elt.arg) {
@@ -65,6 +89,9 @@ entry:
 ; CHECK: movups
 ; CHECK: lea
 ; CHECK: mov
+
+; SSE41-LABEL: insertelement_v16i8:
+; SSE41: pinsrb
 }
 
 define <4 x i1> @insertelement_v4i1_0(<4 x i1> %vec, i32 %elt.arg) {
@@ -74,6 +101,9 @@ entry:
   ret <4 x i1> %res
 ; CHECK-LABEL: insertelement_v4i1_0:
 ; CHECK: movss
+
+; SSE41-LABEL: insertelement_v4i1_0:
+; SSE41: pinsrd {{.*}}, {{.*}}, 0
 }
 
 define <4 x i1> @insertelement_v4i1_1(<4 x i1> %vec, i32 %elt.arg) {
@@ -84,6 +114,9 @@ entry:
 ; CHECK-LABEL: insertelement_v4i1_1:
 ; CHECK: shufps
 ; CHECK: shufps
+
+; SSE41-LABEL: insertelement_v4i1_1:
+; SSE41: pinsrd {{.*}}, {{.*}}, 1
 }
 
 define <8 x i1> @insertelement_v8i1(<8 x i1> %vec, i32 %elt.arg) {
@@ -93,6 +126,9 @@ entry:
   ret <8 x i1> %res
 ; CHECK-LABEL: insertelement_v8i1:
 ; CHECK: pinsrw
+
+; SSE41-LABEL: insertelement_v8i1:
+; SSE41: pinsrw
 }
 
 define <16 x i1> @insertelement_v16i1(<16 x i1> %vec, i32 %elt.arg) {
@@ -104,6 +140,9 @@ entry:
 ; CHECK: movups
 ; CHECK: lea
 ; CHECK: mov
+
+; SSE41-LABEL: insertelement_v16i1:
+; SSE41: pinsrb
 }
 
 ; extractelement operations
@@ -114,6 +153,9 @@ entry:
   ret float %res
 ; CHECK-LABEL: extractelement_v4f32:
 ; CHECK: pshufd
+
+; SSE41-LABEL: extractelement_v4f32:
+; SSE41: pshufd
 }
 
 define i32 @extractelement_v4i32(<4 x i32> %vec) {
@@ -122,6 +164,9 @@ entry:
   ret i32 %res
 ; CHECK-LABEL: extractelement_v4i32:
 ; CHECK: pshufd
+
+; SSE41-LABEL: extractelement_v4i32:
+; SSE41: pextrd
 }
 
 define i32 @extractelement_v8i16(<8 x i16> %vec) {
@@ -131,6 +176,9 @@ entry:
   ret i32 %res.ext
 ; CHECK-LABEL: extractelement_v8i16:
 ; CHECK: pextrw
+
+; SSE41-LABEL: extractelement_v8i16:
+; SSE41: pextrw
 }
 
 define i32 @extractelement_v16i8(<16 x i8> %vec) {
@@ -142,6 +190,9 @@ entry:
 ; CHECK: movups
 ; CHECK: lea
 ; CHECK: mov
+
+; SSE41-LABEL: extractelement_v16i8:
+; SSE41: pextrb
 }
 
 define i32 @extractelement_v4i1(<4 x i1> %vec) {
@@ -151,6 +202,9 @@ entry:
   ret i32 %res.ext
 ; CHECK-LABEL: extractelement_v4i1:
 ; CHECK: pshufd
+
+; SSE41-LABEL: extractelement_v4i1:
+; SSE41: pextrd
 }
 
 define i32 @extractelement_v8i1(<8 x i1> %vec) {
@@ -160,6 +214,9 @@ entry:
   ret i32 %res.ext
 ; CHECK-LABEL: extractelement_v8i1:
 ; CHECK: pextrw
+
+; SSE41-LABEL: extractelement_v8i1:
+; SSE41: pextrw
 }
 
 define i32 @extractelement_v16i1(<16 x i1> %vec) {
@@ -171,6 +228,9 @@ entry:
 ; CHECK: movups
 ; CHECK: lea
 ; CHECK: mov
+
+; SSE41-LABEL: extractelement_v16i1:
+; SSE41: pextrb
 }
 
 ; ERRORS-NOT: ICE translation error

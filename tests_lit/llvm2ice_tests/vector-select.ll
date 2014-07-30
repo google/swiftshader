@@ -2,9 +2,17 @@
 
 ; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -O2 -mattr=sse4.1 --verbose none %s \
+; RUN:                | FileCheck %s --check-prefix=SSE41
+; RUN: %llvm2ice -Om1 -mattr=sse4.1 --verbose none %s \
+; RUN:                | FileCheck %s --check-prefix=SSE41
 ; RUN: %llvm2ice -O2 --verbose none %s \
 ; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
 ; RUN: %llvm2ice -Om1 --verbose none %s \
+; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
+; RUN: %llvm2ice -O2 -mattr=sse4.1 --verbose none %s \
+; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
+; RUN: %llvm2ice -Om1 -mattr=sse4.1 --verbose none %s \
 ; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
@@ -19,6 +27,9 @@ entry:
 ; CHECK: pand
 ; CHECK: pandn
 ; CHECK: por
+
+; SSE41-LABEL: test_select_v16i8:
+; SSE41: pblendvb
 }
 
 define <16 x i1> @test_select_v16i1(<16 x i1> %cond, <16 x i1> %arg1, <16 x i1> %arg2) {
@@ -29,6 +40,9 @@ entry:
 ; CHECK: pand
 ; CHECK: pandn
 ; CHECK: por
+
+; SSE41-LABEL: test_select_v16i1:
+; SSE41: pblendvb
 }
 
 define <8 x i16> @test_select_v8i16(<8 x i1> %cond, <8 x i16> %arg1, <8 x i16> %arg2) {
@@ -39,6 +53,9 @@ entry:
 ; CHECK: pand
 ; CHECK: pandn
 ; CHECK: por
+
+; SSE41-LABEL: test_select_v8i16:
+; SSE41: pblendvb
 }
 
 define <8 x i1> @test_select_v8i1(<8 x i1> %cond, <8 x i1> %arg1, <8 x i1> %arg2) {
@@ -49,6 +66,9 @@ entry:
 ; CHECK: pand
 ; CHECK: pandn
 ; CHECK: por
+
+; SSE41-LABEL: test_select_v8i1:
+; SSE41: pblendvb
 }
 
 define <4 x i32> @test_select_v4i32(<4 x i1> %cond, <4 x i32> %arg1, <4 x i32> %arg2) {
@@ -59,6 +79,10 @@ entry:
 ; CHECK: pand
 ; CHECK: pandn
 ; CHECK: por
+
+; SSE41-LABEL: test_select_v4i32:
+; SSE41: pslld xmm0, 31
+; SSE41: blendvps
 }
 
 define <4 x float> @test_select_v4f32(<4 x i1> %cond, <4 x float> %arg1, <4 x float> %arg2) {
@@ -69,6 +93,10 @@ entry:
 ; CHECK: pand
 ; CHECK: pandn
 ; CHECK: por
+
+; SSE41-LABEL: test_select_v4f32:
+; SSE41: pslld xmm0, 31
+; SSE41: blendvps
 }
 
 define <4 x i1> @test_select_v4i1(<4 x i1> %cond, <4 x i1> %arg1, <4 x i1> %arg2) {
@@ -79,6 +107,10 @@ entry:
 ; CHECK: pand
 ; CHECK: pandn
 ; CHECK: por
+
+; SSE41-LABEL: test_select_v4i1:
+; SSE41: pslld xmm0, 31
+; SSE41: blendvps
 }
 
 ; ERRORS-NOT: ICE translation error

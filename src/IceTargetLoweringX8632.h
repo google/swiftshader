@@ -71,6 +71,14 @@ public:
         Reg_NUM
   };
 
+  enum X86InstructionSet {
+    // SSE2 is the PNaCl baseline instruction set.
+    SSE2,
+    SSE4_1
+  };
+
+  X86InstructionSet getInstructionSet() const { return InstructionSet; }
+
 protected:
   TargetX8632(Cfg *Func);
 
@@ -186,6 +194,9 @@ protected:
   void _and(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632And::create(Func, Dest, Src0));
   }
+  void _blendvps(Variable *Dest, Operand *Src0, Operand *Src1) {
+    Context.insert(InstX8632Blendvps::create(Func, Dest, Src0, Src1));
+  }
   void _br(InstX8632::BrCond Condition, CfgNode *TargetTrue,
            CfgNode *TargetFalse) {
     Context.insert(
@@ -260,6 +271,9 @@ protected:
   void _imul(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Imul::create(Func, Dest, Src0));
   }
+  void _insertps(Variable *Dest, Operand *Src0, Operand *Src1) {
+    Context.insert(InstX8632Insertps::create(Func, Dest, Src0, Src1));
+  }
   void _lea(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Lea::create(Func, Dest, Src0));
   }
@@ -317,20 +331,23 @@ protected:
   void _pandn(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pandn::create(Func, Dest, Src0));
   }
+  void _pblendvb(Variable *Dest, Operand *Src0, Operand *Src1) {
+    Context.insert(InstX8632Pblendvb::create(Func, Dest, Src0, Src1));
+  }
   void _pcmpeq(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pcmpeq::create(Func, Dest, Src0));
   }
   void _pcmpgt(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pcmpgt::create(Func, Dest, Src0));
   }
-  void _pextrw(Variable *Dest, Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Pextrw::create(Func, Dest, Src0, Src1));
+  void _pextr(Variable *Dest, Operand *Src0, Operand *Src1) {
+    Context.insert(InstX8632Pextr::create(Func, Dest, Src0, Src1));
   }
-  void _pinsrw(Variable *Dest, Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Pinsrw::create(Func, Dest, Src0, Src1));
+  void _pinsr(Variable *Dest, Operand *Src0, Operand *Src1) {
+    Context.insert(InstX8632Pinsr::create(Func, Dest, Src0, Src1));
   }
-  void _pmullw(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Pmullw::create(Func, Dest, Src0));
+  void _pmull(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Pmull::create(Func, Dest, Src0));
   }
   void _pmuludq(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pmuludq::create(Func, Dest, Src0));
@@ -428,6 +445,7 @@ protected:
     Context.insert(InstX8632Xor::create(Func, Dest, Src0));
   }
 
+  const X86InstructionSet InstructionSet;
   bool IsEbpBasedFrame;
   size_t FrameSizeLocals;
   size_t LocalsSizeBytes;

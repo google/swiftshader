@@ -22,6 +22,7 @@
 #include "IceOperand.h"
 #include "IceTargetLoweringX8632.def"
 #include "IceTargetLoweringX8632.h"
+#include "llvm/Support/CommandLine.h"
 
 namespace Ice {
 
@@ -122,6 +123,17 @@ Type getInVectorElementType(Type Ty) {
 const unsigned X86_MAX_XMM_ARGS = 4;
 // The number of bits in a byte
 const unsigned X86_CHAR_BIT = 8;
+
+// Instruction set options
+namespace cl = ::llvm::cl;
+cl::opt<TargetX8632::X86InstructionSet> CLInstructionSet(
+    "mattr", cl::desc("X86 target attributes"),
+    cl::init(TargetX8632::SSE2),
+    cl::values(
+        clEnumValN(TargetX8632::SSE2, "sse2",
+                   "Enable SSE2 instructions (default)"),
+        clEnumValN(TargetX8632::SSE4_1, "sse4.1",
+                   "Enable SSE 4.1 instructions"), clEnumValEnd));
 
 // Return a string representation of the type that is suitable for use
 // in an identifier.
@@ -234,8 +246,9 @@ void __attribute__((unused)) xMacroIntegrityCheck() {
 } // end of anonymous namespace
 
 TargetX8632::TargetX8632(Cfg *Func)
-    : TargetLowering(Func), IsEbpBasedFrame(false), FrameSizeLocals(0),
-      LocalsSizeBytes(0), NextLabelNumber(0), ComputedLiveRanges(false),
+    : TargetLowering(Func), InstructionSet(CLInstructionSet),
+      IsEbpBasedFrame(false), FrameSizeLocals(0), LocalsSizeBytes(0),
+      NextLabelNumber(0), ComputedLiveRanges(false),
       PhysicalRegisters(VarList(Reg_NUM)) {
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
@@ -1228,7 +1241,16 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       _movp(Dest, T);
     } break;
     case InstArithmetic::Mul: {
-      if (Dest->getType() == IceType_v4i32) {
+      bool TypesAreValidForPmull =
+          Dest->getType() == IceType_v4i32 || Dest->getType() == IceType_v8i16;
+      bool InstructionSetIsValidForPmull =
+          Dest->getType() == IceType_v8i16 || InstructionSet >= SSE4_1;
+      if (TypesAreValidForPmull && InstructionSetIsValidForPmull) {
+        Variable *T = makeReg(Dest->getType());
+        _movp(T, Src0);
+        _pmull(T, legalizeToVar(Src1));
+        _movp(Dest, T);
+      } else if (Dest->getType() == IceType_v4i32) {
         // Lowering sequence:
         // Note: The mask arguments have index 0 on the left.
         //
@@ -1243,8 +1265,6 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
         // shufps  T1, T2, {0,2,0,2}
         // pshufd  T4, T1, {0,2,1,3}
         // movups  Dest, T4
-        //
-        // TODO(wala): SSE4.1 has pmulld.
 
         // Mask that directs pshufd to create a vector with entries
         // Src[1, 0, 3, 0]
@@ -1273,11 +1293,6 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
         _shufps(T1, T2, Ctx->getConstantInt(IceType_i8, Mask0202));
         _pshufd(T4, T1, Ctx->getConstantInt(IceType_i8, Mask0213));
         _movp(Dest, T4);
-      } else if (Dest->getType() == IceType_v8i16) {
-        Variable *T = makeReg(IceType_v8i16);
-        _movp(T, Src0);
-        _pmullw(T, legalizeToVar(Src1));
-        _movp(Dest, T);
       } else {
         assert(Dest->getType() == IceType_v16i8);
         // Sz_mul_v16i8
@@ -2155,10 +2170,15 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
   Variable *ExtractedElement = makeReg(InVectorElementTy);
 
   // TODO(wala): Determine the best lowering sequences for each type.
-  if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
-    // Lower extractelement operations where the element is 32 bits
-    // wide with pshufd.
-    // TODO(wala): SSE4.1 has extractps and pextrd
+  bool CanUsePextr =
+      Ty == IceType_v8i16 || Ty == IceType_v8i1 || InstructionSet >= SSE4_1;
+  if (CanUsePextr && Ty != IceType_v4f32) {
+    // Use pextrb, pextrw, or pextrd.
+    Constant *Mask = Ctx->getConstantInt(IceType_i8, Index);
+    Variable *SourceVectR = legalizeToVar(SourceVectOperand);
+    _pextr(ExtractedElement, SourceVectR, Mask);
+  } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
+    // Use pshufd and movd/movss.
     //
     // ALIGNHACK: Force vector operands to registers in instructions that
     // require aligned memory operands until support for stack alignment
@@ -2187,13 +2207,9 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
       _movss(ExtractedElement, T);
     }
 #undef ALIGN_HACK
-  } else if (Ty == IceType_v8i16 || Ty == IceType_v8i1) {
-    Constant *Mask = Ctx->getConstantInt(IceType_i8, Index);
-    _pextrw(ExtractedElement, legalizeToVar(SourceVectOperand), Mask);
   } else {
     assert(Ty == IceType_v16i8 || Ty == IceType_v16i1);
     // Spill the value to a stack slot and do the extraction in memory.
-    // TODO(wala): SSE4.1 has pextrb.
     //
     // TODO(wala): use legalize(SourceVectOperand, Legal_Mem) when
     // support for legalizing to mem is implemented.
@@ -2539,10 +2555,18 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     ElementToInsert = Expanded;
   }
 
-  if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
-    // Lower insertelement with 32-bit wide elements using shufps or
-    // movss.
-    // TODO(wala): SSE4.1 has pinsrd and insertps.
+  if (Ty == IceType_v8i16 || Ty == IceType_v8i1 || InstructionSet >= SSE4_1) {
+    // Use insertps, pinsrb, pinsrw, or pinsrd.
+    Operand *Element = legalize(ElementToInsert, Legal_Mem | Legal_Reg);
+    Variable *T = makeReg(Ty);
+    _movp(T, SourceVectOperand);
+    if (Ty == IceType_v4f32)
+      _insertps(T, Element, Ctx->getConstantInt(IceType_i8, Index << 4));
+    else
+      _pinsr(T, Element, Ctx->getConstantInt(IceType_i8, Index));
+    _movp(Inst->getDest(), T);
+  } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
+    // Use shufps or movss.
     Variable *Element = NULL;
     if (InVectorElementTy == IceType_f32) {
       // Element will be in an XMM register since it is floating point.
@@ -2607,17 +2631,10 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
       _movp(Inst->getDest(), T);
     }
 #undef ALIGN_HACK
-  } else if (Ty == IceType_v8i16 || Ty == IceType_v8i1) {
-    Operand *Element = legalize(ElementToInsert, Legal_Mem | Legal_Reg);
-    Variable *T = makeReg(Ty);
-    _movp(T, SourceVectOperand);
-    _pinsrw(T, Element, Ctx->getConstantInt(IceType_i8, Index));
-    _movp(Inst->getDest(), T);
   } else {
     assert(Ty == IceType_v16i8 || Ty == IceType_v16i1);
     // Spill the value to a stack slot and perform the insertion in
     // memory.
-    // TODO(wala): SSE4.1 has pinsrb.
     //
     // TODO(wala): use legalize(SourceVectOperand, Legal_Mem) when
     // support for legalizing to mem is implemented.
@@ -3551,11 +3568,42 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
   Operand *Condition = Inst->getCondition();
 
   if (isVectorType(Dest->getType())) {
-    // a=d?b:c ==> d=sext(d); a=(b&d)|(c&~d)
-    // TODO(wala): SSE4.1 has blendvps and pblendvb.  SSE4.1 also has
-    // blendps and pblendw for constant condition operands.
     Type SrcTy = SrcT->getType();
     Variable *T = makeReg(SrcTy);
+    // ALIGNHACK: Until stack alignment support is implemented, vector
+    // instructions need to have vector operands in registers.  Once
+    // there is support for stack alignment, LEGAL_HACK can be removed.
+#define LEGAL_HACK(Vect) legalizeToVar((Vect))
+    if (InstructionSet >= SSE4_1) {
+      // TODO(wala): If the condition operand is a constant, use blendps
+      // or pblendw.
+      //
+      // Use blendvps or pblendvb to implement select.
+      if (SrcTy == IceType_v4i1 || SrcTy == IceType_v4i32 ||
+          SrcTy == IceType_v4f32) {
+        Variable *xmm0 = makeReg(IceType_v4i32, Reg_xmm0);
+        _movp(xmm0, Condition);
+        _psll(xmm0, Ctx->getConstantInt(IceType_i8, 31));
+        _movp(T, SrcF);
+        _blendvps(T, LEGAL_HACK(SrcT), xmm0);
+        _movp(Dest, T);
+      } else {
+        assert(typeNumElements(SrcTy) == 8 || typeNumElements(SrcTy) == 16);
+        Type SignExtTy = Condition->getType() == IceType_v8i1 ? IceType_v8i16
+            : IceType_v16i8;
+        Variable *xmm0 = makeReg(SignExtTy, Reg_xmm0);
+        lowerCast(InstCast::create(Func, InstCast::Sext, xmm0, Condition));
+        _movp(T, SrcF);
+        _pblendvb(T, LEGAL_HACK(SrcT), xmm0);
+        _movp(Dest, T);
+      }
+      return;
+    }
+    // Lower select without SSE4.1:
+    // a=d?b:c ==>
+    //   if elementtype(d) != i1:
+    //      d=sext(d);
+    //   a=(b&d)|(c&~d);
     Variable *T2 = makeReg(SrcTy);
     // Sign extend the condition operand if applicable.
     if (SrcTy == IceType_v4f32) {
@@ -3568,11 +3616,6 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     } else {
       _movp(T, Condition);
     }
-    // ALIGNHACK: Until stack alignment support is implemented, the
-    // bitwise vector instructions need to have both operands in
-    // registers.  Once there is support for stack alignment, LEGAL_HACK
-    // can be removed.
-#define LEGAL_HACK(Vect) legalizeToVar((Vect))
     _movp(T2, T);
     _pand(T, LEGAL_HACK(SrcT));
     _pandn(T2, LEGAL_HACK(SrcF));

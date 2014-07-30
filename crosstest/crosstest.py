@@ -43,6 +43,9 @@ if __name__ == '__main__':
                            metavar='OPTLEVEL',
                            help='Optimization level ' +
                                 '(m1 and -1 are equivalent)')
+    argparser.add_argument('--mattr',  required=False, default='sse2',
+                           dest='attr', choices=['sse2', 'sse4.1'],
+                           metavar='ATTRIBUTE', help='Target attribute')
     argparser.add_argument('--prefix', required=True,
                            metavar='SZ_PREFIX',
                            help='String prepended to Subzero symbol names')
@@ -93,6 +96,7 @@ if __name__ == '__main__':
         obj_llc = os.path.join(args.dir, base + '.llc.o')
         shellcmd(['../llvm2ice',
                   '-O' + args.optlevel,
+                  '-mattr=' + args.attr,
                   '--target=' + args.target,
                   '--prefix=' + args.prefix,
                   '-o=' + asm_sz,

@@ -88,9 +88,9 @@
   X(IceType_i64,   IceType_void, "si", ""  , "" ,  "qword ptr")   \
   X(IceType_f32,   IceType_void, "ss", "ss", "" ,  "dword ptr")   \
   X(IceType_f64,   IceType_void, "sd", "sd", "" ,  "qword ptr")   \
-  X(IceType_v4i1,  IceType_i32 , "?" , ""  , "" ,  "xmmword ptr") \
-  X(IceType_v8i1,  IceType_i16 , "?" , ""  , "" ,  "xmmword ptr") \
-  X(IceType_v16i1, IceType_i8  , "?" , ""  , "" ,  "xmmword ptr") \
+  X(IceType_v4i1,  IceType_i32 , "?" , ""  , "d",  "xmmword ptr") \
+  X(IceType_v8i1,  IceType_i16 , "?" , ""  , "w",  "xmmword ptr") \
+  X(IceType_v16i1, IceType_i8  , "?" , ""  , "b",  "xmmword ptr") \
   X(IceType_v16i8, IceType_i8  , "?" , ""  , "b",  "xmmword ptr") \
   X(IceType_v8i16, IceType_i16 , "?" , ""  , "w",  "xmmword ptr") \
   X(IceType_v4i32, IceType_i32 , "dq", ""  , "d",  "xmmword ptr") \
