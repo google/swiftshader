@@ -33,8 +33,6 @@ const struct InstX8632BrAttributes_ {
     ICEINSTX8632BR_TABLE
 #undef X
   };
-const size_t InstX8632BrAttributesSize =
-    llvm::array_lengthof(InstX8632BrAttributes);
 
 const struct InstX8632CmppsAttributes_ {
   const char *EmitString;
@@ -45,8 +43,6 @@ const struct InstX8632CmppsAttributes_ {
     ICEINSTX8632CMPPS_TABLE
 #undef X
   };
-const size_t InstX8632CmppsAttributesSize =
-    llvm::array_lengthof(InstX8632CmppsAttributes);
 
 const struct TypeX8632Attributes_ {
   const char *CvtString;   // i (integer), s (single FP), d (double FP)
@@ -60,16 +56,12 @@ const struct TypeX8632Attributes_ {
     ICETYPEX8632_TABLE
 #undef X
   };
-const size_t TypeX8632AttributesSize =
-    llvm::array_lengthof(TypeX8632Attributes);
 
 const char *InstX8632SegmentRegNames[] = {
 #define X(val, name) name,
   SEG_REGX8632_TABLE
 #undef X
 };
-const size_t InstX8632SegmentRegNamesSize =
-    llvm::array_lengthof(InstX8632SegmentRegNames);
 
 } // end of anonymous namespace
 
@@ -766,7 +758,7 @@ void InstX8632Cmov::dump(const Cfg *Func) const {
 void InstX8632Cmpps::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
-  assert(Condition < InstX8632CmppsAttributesSize);
+  assert(Condition < Cmpps_Invalid);
   Str << "\t";
   Str << "cmp" << InstX8632CmppsAttributes[Condition].EmitString << "ps"
       << "\t";
@@ -778,7 +770,7 @@ void InstX8632Cmpps::emit(const Cfg *Func) const {
 
 void InstX8632Cmpps::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
-  assert(Condition < InstX8632CmppsAttributesSize);
+  assert(Condition < Cmpps_Invalid);
   dumpDest(Func);
   Str << " = cmp" << InstX8632CmppsAttributes[Condition].EmitString << "ps"
       << "\t";
@@ -1360,8 +1352,7 @@ void OperandX8632Mem::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << TypeX8632Attributes[getType()].WidthString << " ";
   if (SegmentReg != DefaultSegment) {
-    assert(SegmentReg >= 0 &&
-           static_cast<size_t>(SegmentReg) < InstX8632SegmentRegNamesSize);
+    assert(SegmentReg >= 0 && SegmentReg < SegReg_NUM);
     Str << InstX8632SegmentRegNames[SegmentReg] << ":";
   }
   // TODO: The following is an almost verbatim paste of dump().
@@ -1404,8 +1395,7 @@ void OperandX8632Mem::emit(const Cfg *Func) const {
 void OperandX8632Mem::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   if (SegmentReg != DefaultSegment) {
-    assert(SegmentReg >= 0 &&
-           static_cast<size_t>(SegmentReg) < InstX8632SegmentRegNamesSize);
+    assert(SegmentReg >= 0 && SegmentReg < SegReg_NUM);
     Str << InstX8632SegmentRegNames[SegmentReg] << ":";
   }
   bool Dumped = false;
