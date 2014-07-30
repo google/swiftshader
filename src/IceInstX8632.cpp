@@ -640,6 +640,7 @@ template <> void InstX8632Imul::emit(const Cfg *Func) const {
   if (getDest()->getType() == IceType_i8) {
     // The 8-bit version of imul only allows the form "imul r/m8".
     Variable *Src0 = llvm::dyn_cast<Variable>(getSrc(0));
+    (void)Src0;
     assert(Src0 && Src0->getRegNum() == TargetX8632::Reg_eax);
     Str << "\timul\t";
     getSrc(1)->emit(Func);
@@ -686,6 +687,7 @@ void InstX8632Shld::emit(const Cfg *Func) const {
   getSrc(1)->emit(Func);
   Str << ", ";
   if (Variable *ShiftReg = llvm::dyn_cast<Variable>(getSrc(2))) {
+    (void)ShiftReg;
     assert(ShiftReg->getRegNum() == TargetX8632::Reg_ecx);
     Str << "cl";
   } else {
@@ -711,6 +713,7 @@ void InstX8632Shrd::emit(const Cfg *Func) const {
   getSrc(1)->emit(Func);
   Str << ", ";
   if (Variable *ShiftReg = llvm::dyn_cast<Variable>(getSrc(2))) {
+    (void)ShiftReg;
     assert(ShiftReg->getRegNum() == TargetX8632::Reg_ecx);
     Str << "cl";
   } else {

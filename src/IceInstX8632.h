@@ -1190,6 +1190,31 @@ private:
   virtual ~InstX8632Xchg() {}
 };
 
+// Declare partial template specializations of emit() methods that
+// already have default implementations.  Without this, there is the
+// possibility of ODR violations and link errors.
+template <> void InstX8632Addss::emit(const Cfg *Func) const;
+template <> void InstX8632Blendvps::emit(const Cfg *Func) const;
+template <> void InstX8632Div::emit(const Cfg *Func) const;
+template <> void InstX8632Divss::emit(const Cfg *Func) const;
+template <> void InstX8632Idiv::emit(const Cfg *Func) const;
+template <> void InstX8632Imul::emit(const Cfg *Func) const;
+template <> void InstX8632Lea::emit(const Cfg *Func) const;
+template <> void InstX8632Mulss::emit(const Cfg *Func) const;
+template <> void InstX8632Padd::emit(const Cfg *Func) const;
+template <> void InstX8632Pblendvb::emit(const Cfg *Func) const;
+template <> void InstX8632Pcmpeq::emit(const Cfg *Func) const;
+template <> void InstX8632Pcmpgt::emit(const Cfg *Func) const;
+template <> void InstX8632Pextr::emit(const Cfg *Func) const;
+template <> void InstX8632Pinsr::emit(const Cfg *Func) const;
+template <> void InstX8632Pmull::emit(const Cfg *Func) const;
+template <> void InstX8632Pmuludq::emit(const Cfg *Func) const;
+template <> void InstX8632Psll::emit(const Cfg *Func) const;
+template <> void InstX8632Psra::emit(const Cfg *Func) const;
+template <> void InstX8632Psub::emit(const Cfg *Func) const;
+template <> void InstX8632Sqrtss::emit(const Cfg *Func) const;
+template <> void InstX8632Subss::emit(const Cfg *Func) const;
+
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICEINSTX8632_H

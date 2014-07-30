@@ -115,6 +115,7 @@ const size_t TableTypeX8632AttributesSize =
 Type getInVectorElementType(Type Ty) {
   assert(isVectorType(Ty));
   size_t Index = static_cast<size_t>(Ty);
+  (void)Index;
   assert(Index < TableTypeX8632AttributesSize);
   return TableTypeX8632Attributes[Ty].InVectorElementType;
 }
@@ -2051,6 +2052,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       Type DestType = Dest->getType();
       Type SrcType = Src0RM->getType();
+      (void)DestType;
       assert((DestType == IceType_i32 && SrcType == IceType_f32) ||
              (DestType == IceType_f32 && SrcType == IceType_i32));
       // a.i32 = bitcast b.f32 ==>
@@ -2751,8 +2753,8 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     // Make sure the atomic load isn't elided when unused, by adding a FakeUse.
     // Since lowerLoad may fuse the load w/ an arithmetic instruction,
     // insert the FakeUse on the last-inserted instruction's dest.
-    Context.insert(InstFakeUse::create(Func,
-                                       Context.getLastInserted()->getDest()));
+    Context.insert(
+        InstFakeUse::create(Func, Context.getLastInserted()->getDest()));
     return;
   }
   case Intrinsics::AtomicRMW:
@@ -3144,6 +3146,7 @@ void TargetX8632::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
     return;
   }
   // Otherwise, we need a cmpxchg loop.
+  (void)NeedsCmpxchg;
   assert(NeedsCmpxchg);
   expandAtomicRMWAsCmpxchg(Op_Lo, Op_Hi, Dest, Ptr, Val);
 }
