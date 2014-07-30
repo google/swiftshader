@@ -621,6 +621,7 @@ protected:
     // with optimizations.
     HasSideEffects = Locked;
   }
+  virtual ~InstX8632Lockable() {}
 
 private:
   InstX8632Lockable(const InstX8632Lockable &) LLVM_DELETED_FUNCTION;
