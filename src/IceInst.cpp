@@ -611,7 +611,7 @@ void InstExtractElement::dump(const Cfg *Func) const {
   Str << ", ";
   Str << getSrc(1)->getType() << " ";
   getSrc(1)->dump(Func);
-};
+}
 
 void InstInsertElement::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
@@ -625,7 +625,7 @@ void InstInsertElement::dump(const Cfg *Func) const {
   Str << ", ";
   Str << getSrc(2)->getType() << " ";
   getSrc(2)->dump(Func);
-};
+}
 
 void InstFcmp::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
