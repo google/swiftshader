@@ -26,11 +26,12 @@ namespace Ice {
 
 void LoweringContext::init(CfgNode *N) {
   Node = N;
-  Cur = getNode()->getInsts().begin();
+  Begin = getNode()->getInsts().begin();
+  Cur = Begin;
   End = getNode()->getInsts().end();
   skipDeleted(Cur);
   Next = Cur;
-  advance(Next);
+  advanceForward(Next);
 }
 
 void LoweringContext::insert(Inst *Inst) {
@@ -43,11 +44,24 @@ void LoweringContext::skipDeleted(InstList::iterator &I) const {
     ++I;
 }
 
-void LoweringContext::advance(InstList::iterator &I) const {
+void LoweringContext::advanceForward(InstList::iterator &I) const {
   if (I != End) {
     ++I;
     skipDeleted(I);
   }
+}
+
+void LoweringContext::advanceBackward(InstList::iterator &I) const {
+  assert(I != Begin);
+  do {
+    --I;
+  } while (I != Begin && (*I)->isDeleted());
+}
+
+Inst *LoweringContext::getLastInserted() const {
+  InstList::iterator Cursor = Next;
+  advanceBackward(Cursor);
+  return *Cursor;
 }
 
 TargetLowering *TargetLowering::createLowering(TargetArch Target, Cfg *Func) {

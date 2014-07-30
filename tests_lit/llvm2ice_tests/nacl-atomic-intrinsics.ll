@@ -88,6 +88,9 @@ entry:
 
 define i32 @test_atomic_load_32_with_arith(i32 %iptr) {
 entry:
+  br label %next
+
+next:
   %ptr = inttoptr i32 %iptr to i32*
   %r = call i32 @llvm.nacl.atomic.load.i32(i32* %ptr, i32 6)
   %r2 = add i32 %r, 32
@@ -96,6 +99,11 @@ entry:
 ; CHECK-LABEL: test_atomic_load_32_with_arith
 ; CHECK: mov {{.*}}, dword
 ; The next instruction may be a separate load or folded into an add.
+;
+; In O2 mode, we know that the load and add are going to be fused.
+; CHECKO2-LABEL: test_atomic_load_32_with_arith
+; CHECKO2: mov {{.*}}, dword
+; CHECKO2: add {{.*}}, dword
 
 define i32 @test_atomic_load_32_ignored(i32 %iptr) {
 entry:
@@ -106,6 +114,9 @@ entry:
 ; CHECK-LABEL: test_atomic_load_32_ignored
 ; CHECK: mov {{.*}}, dword
 ; CHECK: mov {{.*}}, dword
+; CHECKO2-LABEL: test_atomic_load_32_ignored
+; CHECKO2: mov {{.*}}, dword
+; CHECKO2: mov {{.*}}, dword
 
 define i64 @test_atomic_load_64_ignored(i32 %iptr) {
 entry:

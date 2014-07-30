@@ -42,7 +42,7 @@ public:
     return *Next;
   }
   Inst *getNextInst(InstList::iterator &Iter) const {
-    advance(Iter);
+    advanceForward(Iter);
     if (Iter == End)
       return NULL;
     return *Iter;
@@ -52,8 +52,9 @@ public:
   InstList::iterator getCur() const { return Cur; }
   InstList::iterator getEnd() const { return End; }
   void insert(Inst *Inst);
+  Inst *getLastInserted() const;
   void advanceCur() { Cur = Next; }
-  void advanceNext() { advance(Next); }
+  void advanceNext() { advanceForward(Next); }
   void setInsertPoint(const InstList::iterator &Position) { Next = Position; }
 
 private:
@@ -71,11 +72,14 @@ private:
   // insertion point", to avoid confusion when previously-deleted
   // instructions come between the two points.
   InstList::iterator Next;
+  // Begin is a copy of Insts.begin(), used if iterators are moved backward.
+  InstList::iterator Begin;
   // End is a copy of Insts.end(), used if Next needs to be advanced.
   InstList::iterator End;
 
   void skipDeleted(InstList::iterator &I) const;
-  void advance(InstList::iterator &I) const;
+  void advanceForward(InstList::iterator &I) const;
+  void advanceBackward(InstList::iterator &I) const;
   LoweringContext(const LoweringContext &) LLVM_DELETED_FUNCTION;
   LoweringContext &operator=(const LoweringContext &) LLVM_DELETED_FUNCTION;
 };

@@ -2724,15 +2724,18 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       // Then cast the bits back out of the XMM register to the i64 Dest.
       InstCast *Cast = InstCast::create(Func, InstCast::Bitcast, Dest, T);
       lowerCast(Cast);
-      // Make sure that the atomic load isn't elided.
+      // Make sure that the atomic load isn't elided when unused.
       Context.insert(InstFakeUse::create(Func, Dest->getLo()));
       Context.insert(InstFakeUse::create(Func, Dest->getHi()));
       return;
     }
     InstLoad *Load = InstLoad::create(Func, Dest, Instr->getArg(0));
     lowerLoad(Load);
-    // Make sure the atomic load isn't elided.
-    Context.insert(InstFakeUse::create(Func, Dest));
+    // Make sure the atomic load isn't elided when unused, by adding a FakeUse.
+    // Since lowerLoad may fuse the load w/ an arithmetic instruction,
+    // insert the FakeUse on the last-inserted instruction's dest.
+    Context.insert(InstFakeUse::create(Func,
+                                       Context.getLastInserted()->getDest()));
     return;
   }
   case Intrinsics::AtomicRMW:
