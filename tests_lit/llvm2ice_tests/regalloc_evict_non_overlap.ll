@@ -34,7 +34,8 @@ bb21:                                             ; preds = %bb27, %bb17
   %tmp22 = phi i32 [ undef, %bb17 ], [ %tmp30, %bb27 ]
   %tmp23 = add i32 undef, -1
   %tmp24 = add i32 undef, undef
-  %tmp25 = load i32* undef, align 1
+  %undef.ptr = inttoptr i32 undef to i32*
+  %tmp25 = load i32* %undef.ptr, align 1
   %tmp26 = icmp eq i32 undef, %tmp22
   br i1 %tmp26, label %bb34, label %bb32
 

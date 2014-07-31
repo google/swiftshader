@@ -1249,7 +1249,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       if (TypesAreValidForPmull && InstructionSetIsValidForPmull) {
         Variable *T = makeReg(Dest->getType());
         _movp(T, Src0);
-        _pmull(T, legalizeToVar(Src1));
+        _pmull(T, LEGAL_HACK(Src1));
         _movp(Dest, T);
       } else if (Dest->getType() == IceType_v4i32) {
         // Lowering sequence:
@@ -2159,17 +2159,17 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
 }
 
 void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
-  Operand *SourceVectOperand = Inst->getSrc(0);
+  Operand *SourceVectNotLegalized = Inst->getSrc(0);
   ConstantInteger *ElementIndex =
       llvm::dyn_cast<ConstantInteger>(Inst->getSrc(1));
   // Only constant indices are allowed in PNaCl IR.
   assert(ElementIndex);
 
   unsigned Index = ElementIndex->getValue();
-  Type Ty = SourceVectOperand->getType();
+  Type Ty = SourceVectNotLegalized->getType();
   Type ElementTy = typeElementType(Ty);
   Type InVectorElementTy = getInVectorElementType(Ty);
-  Variable *ExtractedElement = makeReg(InVectorElementTy);
+  Variable *ExtractedElementR = makeReg(InVectorElementTy);
 
   // TODO(wala): Determine the best lowering sequences for each type.
   bool CanUsePextr =
@@ -2177,8 +2177,8 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
   if (CanUsePextr && Ty != IceType_v4f32) {
     // Use pextrb, pextrw, or pextrd.
     Constant *Mask = Ctx->getConstantInt(IceType_i8, Index);
-    Variable *SourceVectR = legalizeToVar(SourceVectOperand);
-    _pextr(ExtractedElement, SourceVectR, Mask);
+    Variable *SourceVectR = legalizeToVar(SourceVectNotLegalized);
+    _pextr(ExtractedElementR, SourceVectR, Mask);
   } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
     // Use pshufd and movd/movss.
     //
@@ -2186,58 +2186,60 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
     // require aligned memory operands until support for stack alignment
     // is implemented.
 #define ALIGN_HACK(Vect) legalizeToVar((Vect))
+    Operand *SourceVectRM =
+        legalize(SourceVectNotLegalized, Legal_Reg | Legal_Mem);
     Variable *T = NULL;
     if (Index) {
       // The shuffle only needs to occur if the element to be extracted
       // is not at the lowest index.
       Constant *Mask = Ctx->getConstantInt(IceType_i8, Index);
       T = makeReg(Ty);
-      _pshufd(T, ALIGN_HACK(SourceVectOperand), Mask);
+      _pshufd(T, ALIGN_HACK(SourceVectRM), Mask);
     } else {
-      T = legalizeToVar(SourceVectOperand);
+      T = ALIGN_HACK(SourceVectRM);
     }
 
     if (InVectorElementTy == IceType_i32) {
-      _movd(ExtractedElement, T);
+      _movd(ExtractedElementR, T);
     } else { // Ty == Icetype_f32
       // TODO(wala): _movss is only used here because _mov does not
       // allow a vector source and a scalar destination.  _mov should be
       // able to be used here.
       // _movss is a binary instruction, so the FakeDef is needed to
       // keep the live range analysis consistent.
-      Context.insert(InstFakeDef::create(Func, ExtractedElement));
-      _movss(ExtractedElement, T);
+      Context.insert(InstFakeDef::create(Func, ExtractedElementR));
+      _movss(ExtractedElementR, T);
     }
 #undef ALIGN_HACK
   } else {
     assert(Ty == IceType_v16i8 || Ty == IceType_v16i1);
     // Spill the value to a stack slot and do the extraction in memory.
     //
-    // TODO(wala): use legalize(SourceVectOperand, Legal_Mem) when
+    // TODO(wala): use legalize(SourceVectNotLegalized, Legal_Mem) when
     // support for legalizing to mem is implemented.
     Variable *Slot = Func->makeVariable(Ty, Context.getNode());
     Slot->setWeight(RegWeight::Zero);
-    _movp(Slot, legalizeToVar(SourceVectOperand));
+    _movp(Slot, legalizeToVar(SourceVectNotLegalized));
 
     // Compute the location of the element in memory.
     unsigned Offset = Index * typeWidthInBytes(InVectorElementTy);
     OperandX8632Mem *Loc =
         getMemoryOperandForStackSlot(InVectorElementTy, Slot, Offset);
-    _mov(ExtractedElement, Loc);
+    _mov(ExtractedElementR, Loc);
   }
 
   if (ElementTy == IceType_i1) {
     // Truncate extracted integers to i1s if necessary.
     Variable *T = makeReg(IceType_i1);
     InstCast *Cast =
-        InstCast::create(Func, InstCast::Trunc, T, ExtractedElement);
+        InstCast::create(Func, InstCast::Trunc, T, ExtractedElementR);
     lowerCast(Cast);
-    ExtractedElement = T;
+    ExtractedElementR = T;
   }
 
   // Copy the element to the destination.
   Variable *Dest = Inst->getDest();
-  _mov(Dest, ExtractedElement);
+  _mov(Dest, ExtractedElementR);
 }
 
 void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
@@ -2258,48 +2260,52 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
 
     Variable *T = NULL;
 
-    // ALIGNHACK: Without support for stack alignment, both operands to
-    // cmpps need to be forced into registers.  Once support for stack
-    // alignment is implemented, remove LEGAL_HACK.
-#define LEGAL_HACK(Vect) legalizeToVar((Vect))
-    switch (Condition) {
-    default: {
-      InstX8632Cmpps::CmppsCond Predicate = TableFcmp[Index].Predicate;
-      assert(Predicate != InstX8632Cmpps::Cmpps_Invalid);
-      T = makeReg(Src0->getType());
-      _movp(T, Src0);
-      _cmpps(T, LEGAL_HACK(Src1), Predicate);
-    } break;
-    case InstFcmp::False:
-      T = makeVectorOfZeros(Src0->getType());
-      break;
-    case InstFcmp::One: {
-      // Check both unequal and ordered.
-      T = makeReg(Src0->getType());
-      Variable *T2 = makeReg(Src0->getType());
-      Src1 = LEGAL_HACK(Src1);
-      _movp(T, Src0);
-      _cmpps(T, Src1, InstX8632Cmpps::Cmpps_neq);
-      _movp(T2, Src0);
-      _cmpps(T2, Src1, InstX8632Cmpps::Cmpps_ord);
-      _pand(T, T2);
-    } break;
-    case InstFcmp::Ueq: {
-      // Check both equal or unordered.
-      T = makeReg(Src0->getType());
-      Variable *T2 = makeReg(Src0->getType());
-      Src1 = LEGAL_HACK(Src1);
-      _movp(T, Src0);
-      _cmpps(T, Src1, InstX8632Cmpps::Cmpps_eq);
-      _movp(T2, Src0);
-      _cmpps(T2, Src1, InstX8632Cmpps::Cmpps_unord);
-      _por(T, T2);
-    } break;
-    case InstFcmp::True:
+    if (Condition == InstFcmp::True) {
+      // makeVectorOfOnes() requires an integer vector type.
       T = makeVectorOfMinusOnes(IceType_v4i32);
-      break;
-    }
+    } else if (Condition == InstFcmp::False) {
+      T = makeVectorOfZeros(Dest->getType());
+    } else {
+      Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+      Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+
+      // ALIGNHACK: Without support for stack alignment, both operands to
+      // cmpps need to be forced into registers.  Once support for stack
+      // alignment is implemented, remove LEGAL_HACK.
+#define LEGAL_HACK(Vect) legalizeToVar((Vect))
+      switch (Condition) {
+      default: {
+        InstX8632Cmpps::CmppsCond Predicate = TableFcmp[Index].Predicate;
+        assert(Predicate != InstX8632Cmpps::Cmpps_Invalid);
+        T = makeReg(Src0RM->getType());
+        _movp(T, Src0RM);
+        _cmpps(T, LEGAL_HACK(Src1RM), Predicate);
+      } break;
+      case InstFcmp::One: {
+        // Check both unequal and ordered.
+        T = makeReg(Src0RM->getType());
+        Variable *T2 = makeReg(Src0RM->getType());
+        Src1RM = LEGAL_HACK(Src1RM);
+        _movp(T, Src0RM);
+        _cmpps(T, Src1RM, InstX8632Cmpps::Cmpps_neq);
+        _movp(T2, Src0RM);
+        _cmpps(T2, Src1RM, InstX8632Cmpps::Cmpps_ord);
+        _pand(T, T2);
+      } break;
+      case InstFcmp::Ueq: {
+        // Check both equal or unordered.
+        T = makeReg(Src0RM->getType());
+        Variable *T2 = makeReg(Src0RM->getType());
+        Src1RM = LEGAL_HACK(Src1RM);
+        _movp(T, Src0RM);
+        _cmpps(T, Src1RM, InstX8632Cmpps::Cmpps_eq);
+        _movp(T2, Src0RM);
+        _cmpps(T2, Src1RM, InstX8632Cmpps::Cmpps_unord);
+        _por(T, T2);
+      } break;
+      }
 #undef LEGAL_HACK
+    }
 
     _movp(Dest, T);
     eliminateNextVectorSextInstruction(Dest);
@@ -2384,6 +2390,9 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
 
     InstIcmp::ICond Condition = Inst->getCondition();
 
+    Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+    Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+
     // SSE2 only has signed comparison operations.  Transform unsigned
     // inputs in a manner that allows for the use of signed comparison
     // operations by flipping the high order bits.
@@ -2392,12 +2401,12 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
       Variable *T0 = makeReg(Ty);
       Variable *T1 = makeReg(Ty);
       Variable *HighOrderBits = makeVectorOfHighOrderBits(Ty);
-      _movp(T0, Src0);
+      _movp(T0, Src0RM);
       _pxor(T0, HighOrderBits);
-      _movp(T1, Src1);
+      _movp(T1, Src1RM);
       _pxor(T1, HighOrderBits);
-      Src0 = T0;
-      Src1 = T1;
+      Src0RM = T0;
+      Src1RM = T1;
     }
 
     // TODO: ALIGNHACK: Both operands to compare instructions need to be
@@ -2410,38 +2419,38 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
       llvm_unreachable("unexpected condition");
       break;
     case InstIcmp::Eq: {
-      _movp(T, Src0);
-      _pcmpeq(T, LEGAL_HACK(Src1));
+      _movp(T, Src0RM);
+      _pcmpeq(T, LEGAL_HACK(Src1RM));
     } break;
     case InstIcmp::Ne: {
-      _movp(T, Src0);
-      _pcmpeq(T, LEGAL_HACK(Src1));
+      _movp(T, Src0RM);
+      _pcmpeq(T, LEGAL_HACK(Src1RM));
       Variable *MinusOne = makeVectorOfMinusOnes(Ty);
       _pxor(T, MinusOne);
     } break;
     case InstIcmp::Ugt:
     case InstIcmp::Sgt: {
-      _movp(T, Src0);
-      _pcmpgt(T, LEGAL_HACK(Src1));
+      _movp(T, Src0RM);
+      _pcmpgt(T, LEGAL_HACK(Src1RM));
     } break;
     case InstIcmp::Uge:
     case InstIcmp::Sge: {
-      // !(Src1 > Src0)
-      _movp(T, Src1);
-      _pcmpgt(T, LEGAL_HACK(Src0));
+      // !(Src1RM > Src0RM)
+      _movp(T, Src1RM);
+      _pcmpgt(T, LEGAL_HACK(Src0RM));
       Variable *MinusOne = makeVectorOfMinusOnes(Ty);
       _pxor(T, MinusOne);
     } break;
     case InstIcmp::Ult:
     case InstIcmp::Slt: {
-      _movp(T, Src1);
-      _pcmpgt(T, LEGAL_HACK(Src0));
+      _movp(T, Src1RM);
+      _pcmpgt(T, LEGAL_HACK(Src0RM));
     } break;
     case InstIcmp::Ule:
     case InstIcmp::Sle: {
-      // !(Src0 > Src1)
-      _movp(T, Src0);
-      _pcmpgt(T, LEGAL_HACK(Src1));
+      // !(Src0RM > Src1RM)
+      _movp(T, Src0RM);
+      _pcmpgt(T, LEGAL_HACK(Src1RM));
       Variable *MinusOne = makeVectorOfMinusOnes(Ty);
       _pxor(T, MinusOne);
     } break;
@@ -2533,16 +2542,16 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
 }
 
 void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
-  Operand *SourceVectOperand = Inst->getSrc(0);
-  Operand *ElementToInsert = Inst->getSrc(1);
+  Operand *SourceVectNotLegalized = Inst->getSrc(0);
+  Operand *ElementToInsertNotLegalized = Inst->getSrc(1);
   ConstantInteger *ElementIndex =
       llvm::dyn_cast<ConstantInteger>(Inst->getSrc(2));
   // Only constant indices are allowed in PNaCl IR.
   assert(ElementIndex);
   unsigned Index = ElementIndex->getValue();
-  assert(Index < typeNumElements(SourceVectOperand->getType()));
+  assert(Index < typeNumElements(SourceVectNotLegalized->getType()));
 
-  Type Ty = SourceVectOperand->getType();
+  Type Ty = SourceVectNotLegalized->getType();
   Type ElementTy = typeElementType(Ty);
   Type InVectorElementTy = getInVectorElementType(Ty);
 
@@ -2551,39 +2560,45 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     // in the vector.
     Variable *Expanded =
         Func->makeVariable(InVectorElementTy, Context.getNode());
-    InstCast *Cast =
-        InstCast::create(Func, InstCast::Zext, Expanded, ElementToInsert);
+    InstCast *Cast = InstCast::create(Func, InstCast::Zext, Expanded,
+                                      ElementToInsertNotLegalized);
     lowerCast(Cast);
-    ElementToInsert = Expanded;
+    ElementToInsertNotLegalized = Expanded;
   }
 
   if (Ty == IceType_v8i16 || Ty == IceType_v8i1 || InstructionSet >= SSE4_1) {
     // Use insertps, pinsrb, pinsrw, or pinsrd.
-    Operand *Element = legalize(ElementToInsert, Legal_Mem | Legal_Reg);
+    Operand *ElementRM =
+        legalize(ElementToInsertNotLegalized, Legal_Reg | Legal_Mem);
+    Operand *SourceVectRM =
+        legalize(SourceVectNotLegalized, Legal_Reg | Legal_Mem);
     Variable *T = makeReg(Ty);
-    _movp(T, SourceVectOperand);
+    _movp(T, SourceVectRM);
     if (Ty == IceType_v4f32)
-      _insertps(T, Element, Ctx->getConstantInt(IceType_i8, Index << 4));
+      _insertps(T, ElementRM, Ctx->getConstantInt(IceType_i8, Index << 4));
     else
-      _pinsr(T, Element, Ctx->getConstantInt(IceType_i8, Index));
+      _pinsr(T, ElementRM, Ctx->getConstantInt(IceType_i8, Index));
     _movp(Inst->getDest(), T);
   } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
     // Use shufps or movss.
-    Variable *Element = NULL;
+    Variable *ElementR = NULL;
+    Operand *SourceVectRM =
+        legalize(SourceVectNotLegalized, Legal_Reg | Legal_Mem);
+
     if (InVectorElementTy == IceType_f32) {
-      // Element will be in an XMM register since it is floating point.
-      Element = legalizeToVar(ElementToInsert);
+      // ElementR will be in an XMM register since it is floating point.
+      ElementR = legalizeToVar(ElementToInsertNotLegalized);
     } else {
       // Copy an integer to an XMM register.
-      Operand *T = legalize(ElementToInsert, Legal_Reg | Legal_Mem);
-      Element = makeReg(Ty);
-      _movd(Element, T);
+      Operand *T = legalize(ElementToInsertNotLegalized, Legal_Reg | Legal_Mem);
+      ElementR = makeReg(Ty);
+      _movd(ElementR, T);
     }
 
     if (Index == 0) {
       Variable *T = makeReg(Ty);
-      _movp(T, SourceVectOperand);
-      _movss(T, Element);
+      _movp(T, SourceVectRM);
+      _movss(T, ElementR);
       _movp(Inst->getDest(), T);
       return;
     }
@@ -2597,19 +2612,19 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     // Element[0] is being inserted into SourceVectOperand.  Indices are
     // ordered from left to right.
     //
-    // insertelement into index 1 (result is stored in Element):
-    //   Element := Element[0, 0] SourceVectOperand[0, 0]
-    //   Element := Element[3, 0] SourceVectOperand[2, 3]
+    // insertelement into index 1 (result is stored in ElementR):
+    //   ElementR := ElementR[0, 0] SourceVectRM[0, 0]
+    //   ElementR := ElementR[3, 0] SourceVectRM[2, 3]
     //
     // insertelement into index 2 (result is stored in T):
-    //   T := SourceVectOperand
-    //   Element := Element[0, 0] T[0, 3]
-    //   T := T[0, 1] Element[0, 3]
+    //   T := SourceVectRM
+    //   ElementR := ElementR[0, 0] T[0, 3]
+    //   T := T[0, 1] ElementR[0, 3]
     //
     // insertelement into index 3 (result is stored in T):
-    //   T := SourceVectOperand
-    //   Element := Element[0, 0] T[0, 2]
-    //   T := T[0, 1] Element[3, 0]
+    //   T := SourceVectRM
+    //   ElementR := ElementR[0, 0] T[0, 2]
+    //   T := T[0, 1] ElementR[3, 0]
     const unsigned char Mask1[3] = {0, 192, 128};
     const unsigned char Mask2[3] = {227, 196, 52};
 
@@ -2621,15 +2636,15 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     // is implemented.
 #define ALIGN_HACK(Vect) legalizeToVar((Vect))
     if (Index == 1) {
-      SourceVectOperand = ALIGN_HACK(SourceVectOperand);
-      _shufps(Element, SourceVectOperand, Mask1Constant);
-      _shufps(Element, SourceVectOperand, Mask2Constant);
-      _movp(Inst->getDest(), Element);
+      SourceVectRM = ALIGN_HACK(SourceVectRM);
+      _shufps(ElementR, SourceVectRM, Mask1Constant);
+      _shufps(ElementR, SourceVectRM, Mask2Constant);
+      _movp(Inst->getDest(), ElementR);
     } else {
       Variable *T = makeReg(Ty);
-      _movp(T, SourceVectOperand);
-      _shufps(Element, T, Mask1Constant);
-      _shufps(T, Element, Mask2Constant);
+      _movp(T, SourceVectRM);
+      _shufps(ElementR, T, Mask1Constant);
+      _shufps(T, ElementR, Mask2Constant);
       _movp(Inst->getDest(), T);
     }
 #undef ALIGN_HACK
@@ -2638,17 +2653,17 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     // Spill the value to a stack slot and perform the insertion in
     // memory.
     //
-    // TODO(wala): use legalize(SourceVectOperand, Legal_Mem) when
+    // TODO(wala): use legalize(SourceVectNotLegalized, Legal_Mem) when
     // support for legalizing to mem is implemented.
     Variable *Slot = Func->makeVariable(Ty, Context.getNode());
     Slot->setWeight(RegWeight::Zero);
-    _movp(Slot, legalizeToVar(SourceVectOperand));
+    _movp(Slot, legalizeToVar(SourceVectNotLegalized));
 
     // Compute the location of the position to insert in memory.
     unsigned Offset = Index * typeWidthInBytes(InVectorElementTy);
     OperandX8632Mem *Loc =
         getMemoryOperandForStackSlot(InVectorElementTy, Slot, Offset);
-    _store(legalizeToVar(ElementToInsert), Loc);
+    _store(legalizeToVar(ElementToInsertNotLegalized), Loc);
 
     Variable *T = makeReg(Ty);
     _movp(T, Slot);
@@ -3573,6 +3588,8 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
   if (isVectorType(Dest->getType())) {
     Type SrcTy = SrcT->getType();
     Variable *T = makeReg(SrcTy);
+    Operand *SrcTRM = legalize(SrcT, Legal_Reg | Legal_Mem);
+    Operand *SrcFRM = legalize(SrcF, Legal_Reg | Legal_Mem);
     // ALIGNHACK: Until stack alignment support is implemented, vector
     // instructions need to have vector operands in registers.  Once
     // there is support for stack alignment, LEGAL_HACK can be removed.
@@ -3584,11 +3601,12 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
       // Use blendvps or pblendvb to implement select.
       if (SrcTy == IceType_v4i1 || SrcTy == IceType_v4i32 ||
           SrcTy == IceType_v4f32) {
+        Operand *ConditionRM = legalize(Condition, Legal_Reg | Legal_Mem);
         Variable *xmm0 = makeReg(IceType_v4i32, Reg_xmm0);
-        _movp(xmm0, Condition);
+        _movp(xmm0, ConditionRM);
         _psll(xmm0, Ctx->getConstantInt(IceType_i8, 31));
-        _movp(T, SrcF);
-        _blendvps(T, LEGAL_HACK(SrcT), xmm0);
+        _movp(T, SrcFRM);
+        _blendvps(T, LEGAL_HACK(SrcTRM), xmm0);
         _movp(Dest, T);
       } else {
         assert(typeNumElements(SrcTy) == 8 || typeNumElements(SrcTy) == 16);
@@ -3596,8 +3614,8 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
             : IceType_v16i8;
         Variable *xmm0 = makeReg(SignExtTy, Reg_xmm0);
         lowerCast(InstCast::create(Func, InstCast::Sext, xmm0, Condition));
-        _movp(T, SrcF);
-        _pblendvb(T, LEGAL_HACK(SrcT), xmm0);
+        _movp(T, SrcFRM);
+        _pblendvb(T, LEGAL_HACK(SrcTRM), xmm0);
         _movp(Dest, T);
       }
       return;
@@ -3617,11 +3635,12 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     } else if (typeElementType(SrcTy) != IceType_i1) {
       lowerCast(InstCast::create(Func, InstCast::Sext, T, Condition));
     } else {
-      _movp(T, Condition);
+      Operand *ConditionRM = legalize(Condition, Legal_Reg | Legal_Mem);
+      _movp(T, ConditionRM);
     }
     _movp(T2, T);
-    _pand(T, LEGAL_HACK(SrcT));
-    _pandn(T2, LEGAL_HACK(SrcF));
+    _pand(T, LEGAL_HACK(SrcTRM));
+    _pandn(T2, LEGAL_HACK(SrcFRM));
     _por(T, T2);
     _movp(Dest, T);
 #undef LEGAL_HACK
@@ -3947,6 +3966,10 @@ OperandX8632Mem *TargetX8632::FormMemoryOperand(Operand *Operand, Type Ty) {
     Variable *Base = llvm::dyn_cast<Variable>(Operand);
     Constant *Offset = llvm::dyn_cast<Constant>(Operand);
     assert(Base || Offset);
+    if (Offset) {
+      assert(llvm::isa<ConstantInteger>(Offset) ||
+             llvm::isa<ConstantRelocatable>(Offset));
+    }
     Mem = OperandX8632Mem::create(Func, Ty, Base, Offset);
   }
   return llvm::cast<OperandX8632Mem>(legalize(Mem));
@@ -4044,6 +4067,10 @@ template <> void ConstantFloat::emit(GlobalContext *Ctx) const {
 template <> void ConstantDouble::emit(GlobalContext *Ctx) const {
   Ostream &Str = Ctx->getStrEmit();
   Str << "qword ptr [L$" << IceType_f64 << "$" << getPoolEntryID() << "]";
+}
+
+void ConstantUndef::emit(GlobalContext *) const {
+  llvm_unreachable("undef value encountered by emitter.");
 }
 
 TargetGlobalInitX8632::TargetGlobalInitX8632(GlobalContext *Ctx)

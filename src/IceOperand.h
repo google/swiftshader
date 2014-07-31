@@ -217,10 +217,8 @@ public:
   }
 
   using Constant::emit;
-  virtual void emit(GlobalContext *Ctx) const {
-    Ostream &Str = Ctx->getStrEmit();
-    Str << "undef";
-  }
+  // The target needs to implement this.
+  virtual void emit(GlobalContext *Ctx) const;
 
   using Constant::dump;
   virtual void dump(GlobalContext *Ctx) const {
