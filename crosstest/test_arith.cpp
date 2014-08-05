@@ -1,3 +1,16 @@
+//===- subzero/crosstest/test_arith.cpp - Arithmetic operator tests -------===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// Implementation for crosstesting arithmetic operations.
+//
+//===----------------------------------------------------------------------===//
+
 // This aims to test all the arithmetic bitcode instructions across
 // all PNaCl primitive data types.
 
@@ -19,7 +32,7 @@ UINTOP_TABLE
 
 #define X(inst, op, isdiv)                                                     \
   bool test##inst(bool a, bool b) { return a op b; }                           \
-  int8_t test##inst(int8_t a, int8_t b) { return a op b; }                     \
+  myint8_t test##inst(myint8_t a, myint8_t b) { return a op b; }               \
   int16_t test##inst(int16_t a, int16_t b) { return a op b; }                  \
   int32_t test##inst(int32_t a, int32_t b) { return a op b; }                  \
   int64_t test##inst(int64_t a, int64_t b) { return a op b; }                  \

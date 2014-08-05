@@ -1,3 +1,16 @@
+//===- subzero/crosstest/test_global.cpp - Global variable access tests ---===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// Implementation for crosstesting global variable access operations.
+//
+//===----------------------------------------------------------------------===//
+
 #include <stdint.h>
 #include <cstdlib>
 

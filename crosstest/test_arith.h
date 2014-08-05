@@ -31,7 +31,7 @@ UINTOP_TABLE
 
 #define X(inst, op, isdiv)                                                     \
   bool test##inst(bool a, bool b);                                             \
-  int8_t test##inst(int8_t a, int8_t b);                                       \
+  myint8_t test##inst(myint8_t a, myint8_t b);                                 \
   int16_t test##inst(int16_t a, int16_t b);                                    \
   int32_t test##inst(int32_t a, int32_t b);                                    \
   int64_t test##inst(int64_t a, int64_t b);                                    \

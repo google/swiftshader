@@ -16,7 +16,7 @@
 
 #define VECTOR_TYPE_TABLE                 \
 /* typename, element type,  cast type */  \
-X(v16si8,          int8_t,  int64_t)      \
+X(v16si8,        myint8_t,  int64_t)      \
 X(v16ui8,         uint8_t,  int64_t)      \
 X(v8si16,         int16_t,  int64_t)      \
 X(v8ui16,        uint16_t,  int64_t)      \

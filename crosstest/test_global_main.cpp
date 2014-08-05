@@ -1,3 +1,16 @@
+//===- subzero/crosstest/test_global_main.cpp - Driver for tests ----------===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// Driver for crosstesting global variable access operations.
+//
+//===----------------------------------------------------------------------===//
+
 /* crosstest.py --test=test_global.cpp \
    --driver=test_global_main.cpp --prefix=Subzero_ --output=test_global */
 
@@ -29,7 +42,7 @@ int main(int argc, char **argv) {
       ++Passes;
     } else {
       std::cout << i << ":LlcArrayLen=" << LlcArrayLen
-                << ", SzArrayLen=" << SzArrayLen << std::endl;
+                << ", SzArrayLen=" << SzArrayLen << "\n";
       ++Failures;
     }
 
@@ -41,7 +54,7 @@ int main(int argc, char **argv) {
         ++Failures;
         std::cout << i << ":LlcArray[" << i << "] = " << (int)LlcArray[i]
                   << ", SzArray[" << i << "] = " << (int)SzArray[i]
-                  << std::endl;
+                  << "\n";
       }
     }
   }

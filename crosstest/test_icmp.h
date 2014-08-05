@@ -28,7 +28,7 @@ ICMP_U_TABLE
 #undef X
 
 #define X(cmp, op)                                                             \
-  bool icmp##cmp(int8_t a, int8_t b);                                          \
+  bool icmp##cmp(myint8_t a, myint8_t b);                                      \
   bool icmp##cmp(int16_t a, int16_t b);                                        \
   bool icmp##cmp(int32_t a, int32_t b);                                        \
   bool icmp##cmp(int64_t a, int64_t b);                                        \

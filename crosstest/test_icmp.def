@@ -1,3 +1,16 @@
+//===- subzero/crosstest/test_icmp.def - macros for tests -----*- C++ -*---===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file defines macros for crosstesting the icmp instruction.
+//
+//===----------------------------------------------------------------------===//
+
 #ifndef TEST_ICMP_DEF
 #define TEST_ICMP_DEF
 

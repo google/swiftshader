@@ -81,7 +81,7 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
             std::cout << "icmp" << Funcs[f].Name
                       << (CHAR_BIT * sizeof(TypeUnsigned)) << "(" << Value1
                       << ", " << Value2 << "): sz=" << ResultSz
-                      << " llc=" << ResultLlc << std::endl;
+                      << " llc=" << ResultLlc << "\n";
           }
         }
       }
@@ -108,7 +108,7 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
                 std::cout << "icmp" << Funcs[f].Name
                           << (CHAR_BIT * sizeof(TypeUnsigned)) << "(" << Value1
                           << ", " << Value2 << "): sz=" << ResultSz
-                          << " llc=" << ResultLlc << std::endl;
+                          << " llc=" << ResultLlc << "\n";
               }
             }
           }
@@ -174,7 +174,7 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
                   << vectAsString<TypeUnsignedLabel>(Value2)
                   << "): sz=" << vectAsString<TypeUnsignedLabel>(ResultSz)
                   << " llc=" << vectAsString<TypeUnsignedLabel>(ResultLlc)
-                  << std::endl;
+                  << "\n";
       }
     }
   }
@@ -234,7 +234,7 @@ void testsVecI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
                       << vectAsString<T>(Value1) << ","
                       << vectAsString<T>(Value2)
                       << "): sz=" << vectAsString<T>(ResultSz)
-                      << " llc=" << vectAsString<T>(ResultLlc) << std::endl;
+                      << " llc=" << vectAsString<T>(ResultLlc) << "\n";
           }
         }
       }
@@ -260,7 +260,7 @@ void testsVecI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
           std::cout << "test" << Funcs[f].Name << Vectors<T>::TypeName << "("
                     << vectAsString<T>(Value1) << "," << vectAsString<T>(Value2)
                     << "): sz=" << vectAsString<T>(ResultSz)
-                    << " llc=" << vectAsString<T>(ResultLlc) << std::endl;
+                    << " llc=" << vectAsString<T>(ResultLlc) << "\n";
         }
       }
     }
@@ -272,7 +272,7 @@ int main(int argc, char **argv) {
   size_t Passes = 0;
   size_t Failures = 0;
 
-  testsInt<uint8_t, int8_t>(TotalTests, Passes, Failures);
+  testsInt<uint8_t, myint8_t>(TotalTests, Passes, Failures);
   testsInt<uint16_t, int16_t>(TotalTests, Passes, Failures);
   testsInt<uint32_t, int32_t>(TotalTests, Passes, Failures);
   testsInt<uint64_t, int64_t>(TotalTests, Passes, Failures);

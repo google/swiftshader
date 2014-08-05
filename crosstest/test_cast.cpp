@@ -1,3 +1,16 @@
+//===- subzero/crosstest/test_cast.cpp - Cast operator tests --------------===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// Implementation for crosstesting cast operations.
+//
+//===----------------------------------------------------------------------===//
+
 // This aims to test all the conversion bitcode instructions across
 // all PNaCl primitive data types.
 
@@ -19,7 +32,7 @@ ToType __attribute__((noinline)) castBits(FromType a) {
 // all <A,B>, so that they can be called from the driver.
 template <typename ToType> class Caster {
   static ToType f(bool a) { return cast<bool, ToType>(a); }
-  static ToType f(int8_t a) { return cast<int8_t, ToType>(a); }
+  static ToType f(myint8_t a) { return cast<myint8_t, ToType>(a); }
   static ToType f(uint8_t a) { return cast<uint8_t, ToType>(a); }
   static ToType f(int16_t a) { return cast<int16_t, ToType>(a); }
   static ToType f(uint16_t a) { return cast<uint16_t, ToType>(a); }
@@ -37,7 +50,7 @@ template <typename ToType> class Caster {
 
 // template class Caster<bool>;
 
-template class Caster<int8_t>;
+template class Caster<myint8_t>;
 template class Caster<uint8_t>;
 template class Caster<int16_t>;
 template class Caster<uint16_t>;

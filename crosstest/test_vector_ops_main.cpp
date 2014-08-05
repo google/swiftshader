@@ -53,7 +53,7 @@ typename VectorOps<T>::Ty *getTestVectors(size_t &NumTestVectors) {
   const size_t VECTOR_ALIGNMENT = 16;
   void *Dest;
   if (posix_memalign(&Dest, VECTOR_ALIGNMENT, sizeof(TestVectors))) {
-    std::cerr << "memory allocation error" << std::endl;
+    std::cerr << "memory allocation error\n";
     abort();
   }
 
@@ -89,9 +89,9 @@ void testInsertElement(size_t &TotalTests, size_t &Passes, size_t &Failures) {
           std::cout << "insertelement<" << VectorOps<T>::TypeName << ">(Vect=";
           std::cout << vectAsString<T>(Vect)
                     << ", Element=" << (typename VectorOps<T>::CastTy)Elt
-                    << ", Pos=" << I << ")" << std::endl;
-          std::cout << "llc=" << vectAsString<T>(ResultLlc) << std::endl;
-          std::cout << "sz =" << vectAsString<T>(ResultSz) << std::endl;
+                    << ", Pos=" << I << ")\n";
+          std::cout << "llc=" << vectAsString<T>(ResultLlc) << "\n";
+          std::cout << "sz =" << vectAsString<T>(ResultSz) << "\n";
         }
       }
     }
@@ -120,9 +120,9 @@ void testExtractElement(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       } else {
         ++Failures;
         std::cout << "extractelement<" << VectorOps<T>::TypeName << ">(Vect=";
-        std::cout << vectAsString<T>(Vect) << ", Pos=" << I << ")" << std::endl;
-        std::cout << "llc=" << ResultLlc << std::endl;
-        std::cout << "sz =" << ResultSz << std::endl;
+        std::cout << vectAsString<T>(Vect) << ", Pos=" << I << ")\n";
+        std::cout << "llc=" << ResultLlc << "\n";
+        std::cout << "sz =" << ResultSz << "\n";
       }
     }
   }
@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
 extern "C" {
 
 void ice_unreachable(void) {
-  std::cerr << "\"unreachable\" instruction encountered" << std::endl;
+  std::cerr << "\"unreachable\" instruction encountered\n";
   abort();
 }
 }

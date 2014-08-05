@@ -1,3 +1,16 @@
+//===- subzero/crosstest/test_arith.def - macros for tests ----*- C++ -*---===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file defines macros for crosstesting arithmetic operations.
+//
+//===----------------------------------------------------------------------===//
+
 #ifndef TEST_ARITH_DEF
 #define TEST_ARITH_DEF
 

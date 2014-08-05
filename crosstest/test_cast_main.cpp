@@ -1,3 +1,16 @@
+//===- subzero/crosstest/test_cast_main.cpp - Driver for tests ------------===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// Driver for crosstesting cast operations.
+//
+//===----------------------------------------------------------------------===//
+
 /* crosstest.py --test=test_cast.cpp --test=test_cast_to_u1.ll \
    --driver=test_cast_main.cpp --prefix=Subzero_ --output=test_cast */
 
@@ -36,7 +49,7 @@ void testValue(FromType Val, size_t &TotalTests, size_t &Passes,
                size_t &Failures) {
   COMPARE(cast, FromType, bool, Val);
   COMPARE(cast, FromType, uint8_t, Val);
-  COMPARE(cast, FromType, int8_t, Val);
+  COMPARE(cast, FromType, myint8_t, Val);
   COMPARE(cast, FromType, uint16_t, Val);
   COMPARE(cast, FromType, int16_t, Val);
   COMPARE(cast, FromType, uint32_t, Val);
@@ -57,7 +70,7 @@ int main(int argc, char **argv) {
   volatile uint8_t ValsUi8[] = { 0, 1, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff };
   static const size_t NumValsUi8 = sizeof(ValsUi8) / sizeof(*ValsUi8);
 
-  volatile int8_t ValsSi8[] = { 0, 1, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff };
+  volatile myint8_t ValsSi8[] = { 0, 1, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff };
   static const size_t NumValsSi8 = sizeof(ValsSi8) / sizeof(*ValsSi8);
 
   volatile uint16_t ValsUi16[] = { 0,      1,      0x7e,   0x7f,   0x80,
@@ -151,8 +164,8 @@ int main(int argc, char **argv) {
     testValue<uint8_t>(Val, TotalTests, Passes, Failures);
   }
   for (size_t i = 0; i < NumValsSi8; ++i) {
-    int8_t Val = ValsSi8[i];
-    testValue<int8_t>(Val, TotalTests, Passes, Failures);
+    myint8_t Val = ValsSi8[i];
+    testValue<myint8_t>(Val, TotalTests, Passes, Failures);
   }
   for (size_t i = 0; i < NumValsUi16; ++i) {
     uint16_t Val = ValsUi16[i];

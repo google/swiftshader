@@ -1,3 +1,17 @@
+//===- subzero/crosstest/test_vector_ops.def - test macros ----*- C++ -*---===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file defines macros for crosstesting the insertelement and
+// extractelement instruction.
+//
+//===----------------------------------------------------------------------===//
+
 #ifndef TEST_VECTOR_OPS_DEF
 
 #define VECTOR_TYPE_TABLE                 \
