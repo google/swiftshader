@@ -20,10 +20,11 @@ class ClFlags {
 public:
   ClFlags()
       : DisableInternal(false), SubzeroTimingEnabled(false),
-        DisableTranslation(false) {}
+        DisableTranslation(false), DisableGlobals(false) {}
   bool DisableInternal;
   bool SubzeroTimingEnabled;
   bool DisableTranslation;
+  bool DisableGlobals;
 };
 }
 

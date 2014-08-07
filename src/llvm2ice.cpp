@@ -88,6 +88,10 @@ DisableTranslation("notranslate", cl::desc("Disable Subzero translation"));
 static cl::opt<bool> SubzeroTimingEnabled(
     "timing", cl::desc("Enable breakdown timing of Subzero translation"));
 
+static cl::opt<bool>
+    DisableGlobals("disable-globals",
+                   cl::desc("Disable global initializer translation"));
+
 static cl::opt<NaClFileFormat> InputFileFormat(
     "bitcode-format", cl::desc("Define format of input file:"),
     cl::values(clEnumValN(LLVMFormat, "llvm", "LLVM file (default)"),
@@ -128,6 +132,7 @@ int main(int argc, char **argv) {
   Flags.DisableInternal = DisableInternal;
   Flags.SubzeroTimingEnabled = SubzeroTimingEnabled;
   Flags.DisableTranslation = DisableTranslation;
+  Flags.DisableGlobals = DisableGlobals;
 
   if (BuildOnRead) {
     Ice::PNaClTranslator Translator(&Ctx, Flags);

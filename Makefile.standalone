@@ -103,7 +103,7 @@ else
   CLANG_FORMAT_DIFF = /usr/lib/clang-format/clang-format-diff.py
 endif
 format-diff:
-	git diff -U0 HEAD^ | \
+	git diff -U0 `git merge-base HEAD master` | \
 	$(CLANG_FORMAT_DIFF) -p1 -style=LLVM -i
 
 clean:

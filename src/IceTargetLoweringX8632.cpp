@@ -1584,7 +1584,7 @@ void TargetX8632::lowerBr(const InstBr *Inst) {
   if (Inst->isUnconditional()) {
     _br(Inst->getTargetUnconditional());
   } else {
-    Operand *Src0 = legalize(Inst->getCondition());
+    Operand *Src0 = legalize(Inst->getCondition(), Legal_Reg | Legal_Mem);
     Constant *Zero = Ctx->getConstantZero(IceType_i32);
     _cmp(Src0, Zero);
     _br(InstX8632Br::Br_ne, Inst->getTargetTrue(), Inst->getTargetFalse());
@@ -2481,8 +2481,8 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   if (InstBr *NextBr = llvm::dyn_cast_or_null<InstBr>(Context.getNextInst())) {
     if (Src0->getType() != IceType_i64 && !NextBr->isUnconditional() &&
         Dest == NextBr->getSrc(0) && NextBr->isLastUse(Dest)) {
-      Operand *Src0New =
-          legalize(Src0, IsSrc1ImmOrReg ? Legal_All : Legal_Reg, true);
+      Operand *Src0New = legalize(
+          Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg, true);
       _cmp(Src0New, Src1);
       _br(getIcmp32Mapping(Inst->getCondition()), NextBr->getTargetTrue(),
           NextBr->getTargetFalse());

@@ -681,7 +681,8 @@ private:
 namespace Ice {
 
 void Converter::convertToIce(Module *Mod) {
-  convertGlobals(Mod);
+  if (!Flags.DisableGlobals)
+    convertGlobals(Mod);
   convertFunctions(Mod);
 }
 

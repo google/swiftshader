@@ -122,7 +122,7 @@ InstX8632Label::InstX8632Label(Cfg *Func, TargetX8632 *Target)
 IceString InstX8632Label::getName(const Cfg *Func) const {
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "%u", Number);
-  return ".L" + Func->getFunctionName() + "$__" + buf;
+  return ".L" + Func->getFunctionName() + "$local$__" + buf;
 }
 
 InstX8632Br::InstX8632Br(Cfg *Func, CfgNode *TargetTrue, CfgNode *TargetFalse,
