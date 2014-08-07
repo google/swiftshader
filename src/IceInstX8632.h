@@ -144,7 +144,7 @@ public:
     Bsr,
     Bswap,
     Call,
-    Cdq,
+    Cbwdq,
     Cmov,
     Cmpps,
     Cmpxchg,
@@ -689,22 +689,22 @@ private:
   virtual ~InstX8632Shrd() {}
 };
 
-// Cdq instruction - sign-extend eax into edx
-class InstX8632Cdq : public InstX8632 {
+// Cbdwq instruction - wrapper for cbw, cwd, or cdq
+class InstX8632Cbwdq : public InstX8632 {
 public:
-  static InstX8632Cdq *create(Cfg *Func, Variable *Dest, Operand *Source) {
-    return new (Func->allocate<InstX8632Cdq>())
-        InstX8632Cdq(Func, Dest, Source);
+  static InstX8632Cbwdq *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    return new (Func->allocate<InstX8632Cbwdq>())
+        InstX8632Cbwdq(Func, Dest, Source);
   }
   virtual void emit(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Cdq); }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Cbwdq); }
 
 private:
-  InstX8632Cdq(Cfg *Func, Variable *Dest, Operand *Source);
-  InstX8632Cdq(const InstX8632Cdq &) LLVM_DELETED_FUNCTION;
-  InstX8632Cdq &operator=(const InstX8632Cdq &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Cdq() {}
+  InstX8632Cbwdq(Cfg *Func, Variable *Dest, Operand *Source);
+  InstX8632Cbwdq(const InstX8632Cbwdq &) LLVM_DELETED_FUNCTION;
+  InstX8632Cbwdq &operator=(const InstX8632Cbwdq &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Cbwdq() {}
 };
 
 // Conditional move instruction.

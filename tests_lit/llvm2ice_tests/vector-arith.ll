@@ -56,7 +56,10 @@ entry:
   %res = frem <4 x float> %arg0, %arg1
   ret <4 x float> %res
 ; CHECK-LABEL: test_frem:
-; CHECK: Sz_frem_v4f32
+; CHECK: fmodf
+; CHECK: fmodf
+; CHECK: fmodf
+; CHECK: fmodf
 }
 
 define <16 x i8> @test_add_v16i8(<16 x i8> %arg0, <16 x i8> %arg1) {
@@ -104,7 +107,22 @@ entry:
   %res = mul <16 x i8> %arg0, %arg1
   ret <16 x i8> %res
 ; CHECK-LABEL: test_mul_v16i8:
-; CHECK: Sz_mul_v16i8
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
+; CHECK: imul
 }
 
 define <16 x i8> @test_shl_v16i8(<16 x i8> %arg0, <16 x i8> %arg1) {
@@ -112,7 +130,22 @@ entry:
   %res = shl <16 x i8> %arg0, %arg1
   ret <16 x i8> %res
 ; CHECK-LABEL: test_shl_v16i8:
-; CHECK: Sz_shl_v16i8
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
 }
 
 define <16 x i8> @test_lshr_v16i8(<16 x i8> %arg0, <16 x i8> %arg1) {
@@ -120,7 +153,22 @@ entry:
   %res = lshr <16 x i8> %arg0, %arg1
   ret <16 x i8> %res
 ; CHECK-LABEL: test_lshr_v16i8:
-; CHECK: Sz_lshr_v16i8
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
 }
 
 define <16 x i8> @test_ashr_v16i8(<16 x i8> %arg0, <16 x i8> %arg1) {
@@ -128,7 +176,22 @@ entry:
   %res = ashr <16 x i8> %arg0, %arg1
   ret <16 x i8> %res
 ; CHECK-LABEL: test_ashr_v16i8:
-; CHECK: Sz_ashr_v16i8
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
 }
 
 define <16 x i8> @test_udiv_v16i8(<16 x i8> %arg0, <16 x i8> %arg1) {
@@ -136,7 +199,22 @@ entry:
   %res = udiv <16 x i8> %arg0, %arg1
   ret <16 x i8> %res
 ; CHECK-LABEL: test_udiv_v16i8:
-; CHECK: Sz_udiv_v16i8
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
 }
 
 define <16 x i8> @test_sdiv_v16i8(<16 x i8> %arg0, <16 x i8> %arg1) {
@@ -144,7 +222,22 @@ entry:
   %res = sdiv <16 x i8> %arg0, %arg1
   ret <16 x i8> %res
 ; CHECK-LABEL: test_sdiv_v16i8:
-; CHECK: Sz_sdiv_v16i8
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
 }
 
 define <16 x i8> @test_urem_v16i8(<16 x i8> %arg0, <16 x i8> %arg1) {
@@ -152,7 +245,22 @@ entry:
   %res = urem <16 x i8> %arg0, %arg1
   ret <16 x i8> %res
 ; CHECK-LABEL: test_urem_v16i8:
-; CHECK: Sz_urem_v16i8
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
 }
 
 define <16 x i8> @test_srem_v16i8(<16 x i8> %arg0, <16 x i8> %arg1) {
@@ -160,7 +268,22 @@ entry:
   %res = srem <16 x i8> %arg0, %arg1
   ret <16 x i8> %res
 ; CHECK-LABEL: test_srem_v16i8:
-; CHECK: Sz_srem_v16i8
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
 }
 
 define <8 x i16> @test_add_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
@@ -216,7 +339,14 @@ entry:
   %res = shl <8 x i16> %arg0, %arg1
   ret <8 x i16> %res
 ; CHECK-LABEL: test_shl_v8i16:
-; CHECK: Sz_shl_v8i16
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
 }
 
 define <8 x i16> @test_lshr_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
@@ -224,7 +354,14 @@ entry:
   %res = lshr <8 x i16> %arg0, %arg1
   ret <8 x i16> %res
 ; CHECK-LABEL: test_lshr_v8i16:
-; CHECK: Sz_lshr_v8i16
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
 }
 
 define <8 x i16> @test_ashr_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
@@ -232,7 +369,14 @@ entry:
   %res = ashr <8 x i16> %arg0, %arg1
   ret <8 x i16> %res
 ; CHECK-LABEL: test_ashr_v8i16:
-; CHECK: Sz_ashr_v8i16
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
 }
 
 define <8 x i16> @test_udiv_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
@@ -240,7 +384,14 @@ entry:
   %res = udiv <8 x i16> %arg0, %arg1
   ret <8 x i16> %res
 ; CHECK-LABEL: test_udiv_v8i16:
-; CHECK: Sz_udiv_v8i16
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
 }
 
 define <8 x i16> @test_sdiv_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
@@ -248,7 +399,14 @@ entry:
   %res = sdiv <8 x i16> %arg0, %arg1
   ret <8 x i16> %res
 ; CHECK-LABEL: test_sdiv_v8i16:
-; CHECK: Sz_sdiv_v8i16
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
 }
 
 define <8 x i16> @test_urem_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
@@ -256,7 +414,14 @@ entry:
   %res = urem <8 x i16> %arg0, %arg1
   ret <8 x i16> %res
 ; CHECK-LABEL: test_urem_v8i16:
-; CHECK: Sz_urem_v8i16
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
 }
 
 define <8 x i16> @test_srem_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
@@ -264,7 +429,14 @@ entry:
   %res = srem <8 x i16> %arg0, %arg1
   ret <8 x i16> %res
 ; CHECK-LABEL: test_srem_v8i16:
-; CHECK: Sz_srem_v8i16
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
 }
 
 define <4 x i32> @test_add_v4i32(<4 x i32> %arg0, <4 x i32> %arg1) {
@@ -324,7 +496,10 @@ entry:
   %res = shl <4 x i32> %arg0, %arg1
   ret <4 x i32> %res
 ; CHECK-LABEL: test_shl_v4i32:
-; CHECK: Sz_shl_v4i32
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
+; CHECK: shl
 
 ; This line is to ensure that pmulld is generated in test_mul_v4i32 above.
 ; SSE41-LABEL: test_shl_v4i32:
@@ -335,7 +510,10 @@ entry:
   %res = lshr <4 x i32> %arg0, %arg1
   ret <4 x i32> %res
 ; CHECK-LABEL: test_lshr_v4i32:
-; CHECK: Sz_lshr_v4i32
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
+; CHECK: shr
 }
 
 define <4 x i32> @test_ashr_v4i32(<4 x i32> %arg0, <4 x i32> %arg1) {
@@ -343,7 +521,10 @@ entry:
   %res = ashr <4 x i32> %arg0, %arg1
   ret <4 x i32> %res
 ; CHECK-LABEL: test_ashr_v4i32:
-; CHECK: Sz_ashr_v4i32
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
+; CHECK: sar
 }
 
 define <4 x i32> @test_udiv_v4i32(<4 x i32> %arg0, <4 x i32> %arg1) {
@@ -351,7 +532,10 @@ entry:
   %res = udiv <4 x i32> %arg0, %arg1
   ret <4 x i32> %res
 ; CHECK-LABEL: test_udiv_v4i32:
-; CHECK: Sz_udiv_v4i32
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
 }
 
 define <4 x i32> @test_sdiv_v4i32(<4 x i32> %arg0, <4 x i32> %arg1) {
@@ -359,7 +543,10 @@ entry:
   %res = sdiv <4 x i32> %arg0, %arg1
   ret <4 x i32> %res
 ; CHECK-LABEL: test_sdiv_v4i32:
-; CHECK: Sz_sdiv_v4i32
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
 }
 
 define <4 x i32> @test_urem_v4i32(<4 x i32> %arg0, <4 x i32> %arg1) {
@@ -367,7 +554,10 @@ entry:
   %res = urem <4 x i32> %arg0, %arg1
   ret <4 x i32> %res
 ; CHECK-LABEL: test_urem_v4i32:
-; CHECK: Sz_urem_v4i32
+; CHECK: div
+; CHECK: div
+; CHECK: div
+; CHECK: div
 }
 
 define <4 x i32> @test_srem_v4i32(<4 x i32> %arg0, <4 x i32> %arg1) {
@@ -375,7 +565,10 @@ entry:
   %res = srem <4 x i32> %arg0, %arg1
   ret <4 x i32> %res
 ; CHECK-LABEL: test_srem_v4i32:
-; CHECK: Sz_srem_v4i32
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
+; CHECK: idiv
 }
 
 ; ERRORS-NOT: ICE translation error

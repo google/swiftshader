@@ -122,6 +122,9 @@ protected:
 
   void eliminateNextVectorSextInstruction(Variable *SignExtendedResult);
 
+  void scalarizeArithmetic(InstArithmetic::OpKind K, Variable *Dest,
+                           Operand *Src0, Operand *Src1);
+
   // Operand legalization helpers.  To deal with address mode
   // constraints, the helpers will create a new Operand and emit
   // instructions that guarantee that the Operand kind is one of those
@@ -220,8 +223,8 @@ protected:
   void _bswap(Variable *SrcDest) {
     Context.insert(InstX8632Bswap::create(Func, SrcDest));
   }
-  void _cdq(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Cdq::create(Func, Dest, Src0));
+  void _cbwdq(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Cbwdq::create(Func, Dest, Src0));
   }
   void _cmov(Variable *Dest, Operand *Src0, InstX8632::BrCond Condition) {
     Context.insert(InstX8632Cmov::create(Func, Dest, Src0, Condition));

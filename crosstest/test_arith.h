@@ -17,7 +17,7 @@
 
 #include "vectors.h"
 
-#define X(inst, op, isdiv)                                                     \
+#define X(inst, op, isdiv, isshift)                                            \
   bool test##inst(bool a, bool b);                                             \
   uint8_t test##inst(uint8_t a, uint8_t b);                                    \
   uint16_t test##inst(uint16_t a, uint16_t b);                                 \
@@ -29,7 +29,7 @@
 UINTOP_TABLE
 #undef X
 
-#define X(inst, op, isdiv)                                                     \
+#define X(inst, op, isdiv, isshift)                                            \
   bool test##inst(bool a, bool b);                                             \
   myint8_t test##inst(myint8_t a, myint8_t b);                                 \
   int16_t test##inst(int16_t a, int16_t b);                                    \

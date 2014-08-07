@@ -17,29 +17,29 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define UINTOP_TABLE \
-  /* inst, operator, div */ \
-  X(Add,   +,        0 )    \
-  X(Sub,   -,        0 )    \
-  X(Mul,   *,        0 )    \
-  X(Udiv,  /,        1 )    \
-  X(Urem,  %,        1 )    \
-  X(Shl,   <<,       0)     \
-  X(Lshr,  >>,       0)     \
-  X(And,   &,        0 )    \
-  X(Or,    |,        0 )    \
-  X(Xor,   ^,        0 )    \
-//#define X(inst, op, isdiv)
+#define UINTOP_TABLE                 \
+  /* inst, operator, div, shift */   \
+  X(Add,   +,        0,   0)         \
+  X(Sub,   -,        0,   0)         \
+  X(Mul,   *,        0,   0)         \
+  X(Udiv,  /,        1,   0)         \
+  X(Urem,  %,        1,   0)         \
+  X(Shl,   <<,       0,   1)         \
+  X(Lshr,  >>,       0,   1)         \
+  X(And,   &,        0,   0)         \
+  X(Or,    |,        0,   0)         \
+  X(Xor,   ^,        0,   0)         \
+//#define X(inst, op, isdiv, isshift)
 
-#define SINTOP_TABLE \
-  /* inst, operator, div */ \
-  X(Sdiv,  /,        1)     \
-  X(Srem,  %,        1)     \
-  X(Ashr,  >>,       0)     \
-//#define X(inst, op, isdiv)
+#define SINTOP_TABLE                 \
+  /* inst, operator, div, shift */   \
+  X(Sdiv,  /,        1,   0)         \
+  X(Srem,  %,        1,   0)         \
+  X(Ashr,  >>,       0,   1)         \
+//#define X(inst, op, isdiv, isshift)
 
 #define COMMA ,
-#define FPOP_TABLE \
+#define FPOP_TABLE           \
   /* inst, infix_op, func */ \
   X(Fadd,  +,              ) \
   X(Fsub,  -,              ) \

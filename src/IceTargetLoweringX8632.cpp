@@ -1296,78 +1296,18 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
         _movp(Dest, T4);
       } else {
         assert(Dest->getType() == IceType_v16i8);
-        // Sz_mul_v16i8
-        const IceString Helper = "Sz_mul_v16i8";
-        const SizeT MaxSrcs = 2;
-        InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
-        Call->addArg(Src0);
-        Call->addArg(Src1);
-        lowerCall(Call);
+        scalarizeArithmetic(Inst->getOp(), Dest, Src0, Src1);
       }
     } break;
-    case InstArithmetic::Shl: {
-      // Sz_shl_v4i32, Sz_shl_v8i16, Sz_shl_v16i8
-      const IceString Helper = "Sz_shl_" + typeIdentString(Dest->getType());
-      const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
-      Call->addArg(Src0);
-      Call->addArg(Src1);
-      lowerCall(Call);
-    } break;
-    case InstArithmetic::Lshr: {
-      // Sz_lshr_v4i32, Sz_lshr_v8i16, Sz_lshr_v16i8
-      const IceString Helper = "Sz_lshr_" + typeIdentString(Dest->getType());
-      const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
-      Call->addArg(Src0);
-      Call->addArg(Src1);
-      lowerCall(Call);
-    } break;
-    case InstArithmetic::Ashr: {
-      // Sz_ashr_v4i32, Sz_ashr_v8i16, Sz_ashr_v16i8
-      const IceString Helper = "Sz_ashr_" + typeIdentString(Dest->getType());
-      const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
-      Call->addArg(Src0);
-      Call->addArg(Src1);
-      lowerCall(Call);
-    } break;
-    case InstArithmetic::Udiv: {
-      // Sz_udiv_v4i32, Sz_udiv_v8i16, Sz_udiv_v16i8
-      const IceString Helper = "Sz_udiv_" + typeIdentString(Dest->getType());
-      const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
-      Call->addArg(Src0);
-      Call->addArg(Src1);
-      lowerCall(Call);
-    } break;
-    case InstArithmetic::Sdiv: {
-      // Sz_sdiv_v4i32, Sz_sdiv_v8i16, Sz_sdiv_v16i8
-      const IceString Helper = "Sz_sdiv_" + typeIdentString(Dest->getType());
-      const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
-      Call->addArg(Src0);
-      Call->addArg(Src1);
-      lowerCall(Call);
-    } break;
-    case InstArithmetic::Urem: {
-      // Sz_urem_v4i32, Sz_urem_v8i16, Sz_urem_v16i8
-      const IceString Helper = "Sz_urem_" + typeIdentString(Dest->getType());
-      const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
-      Call->addArg(Src0);
-      Call->addArg(Src1);
-      lowerCall(Call);
-    } break;
-    case InstArithmetic::Srem: {
-      // Sz_srem_v4i32, Sz_srem_v8i16, Sz_srem_v16i8
-      const IceString Helper = "Sz_srem_" + typeIdentString(Dest->getType());
-      const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(Helper, Dest, MaxSrcs);
-      Call->addArg(Src0);
-      Call->addArg(Src1);
-      lowerCall(Call);
-    } break;
+    case InstArithmetic::Shl:
+    case InstArithmetic::Lshr:
+    case InstArithmetic::Ashr:
+    case InstArithmetic::Udiv:
+    case InstArithmetic::Urem:
+    case InstArithmetic::Sdiv:
+    case InstArithmetic::Srem:
+      scalarizeArithmetic(Inst->getOp(), Dest, Src0, Src1);
+      break;
     case InstArithmetic::Fadd: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
@@ -1392,13 +1332,9 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       _divps(T, LEGAL_HACK(Src1));
       _movp(Dest, T);
     } break;
-    case InstArithmetic::Frem: {
-      const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall("Sz_frem_v4f32", Dest, MaxSrcs);
-      Call->addArg(Src0);
-      Call->addArg(Src1);
-      lowerCall(Call);
-    } break;
+    case InstArithmetic::Frem:
+      scalarizeArithmetic(Inst->getOp(), Dest, Src0, Src1);
+      break;
     }
 #undef LEGAL_HACK
   } else { // Dest->getType() is non-i64 scalar
@@ -1490,11 +1426,18 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       break;
     case InstArithmetic::Sdiv:
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-      T_edx = makeReg(IceType_i32, Reg_edx);
-      _mov(T, Src0, Reg_eax);
-      _cdq(T_edx, T);
-      _idiv(T, Src1, T_edx);
-      _mov(Dest, T);
+      if (Dest->getType() == IceType_i8) {
+        _mov(T, Src0, Reg_eax);
+        _cbwdq(T, T);
+        _idiv(T, Src1, T);
+        _mov(Dest, T);
+      } else {
+        T_edx = makeReg(IceType_i32, Reg_edx);
+        _mov(T, Src0, Reg_eax);
+        _cbwdq(T_edx, T);
+        _idiv(T, Src1, T_edx);
+        _mov(Dest, T);
+      }
       break;
     case InstArithmetic::Urem:
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
@@ -1515,11 +1458,20 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       break;
     case InstArithmetic::Srem:
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-      T_edx = makeReg(IceType_i32, Reg_edx);
-      _mov(T, Src0, Reg_eax);
-      _cdq(T_edx, T);
-      _idiv(T_edx, Src1, T);
-      _mov(Dest, T_edx);
+      if (Dest->getType() == IceType_i8) {
+        Variable *T_ah = makeReg(IceType_i8, Reg_ah);
+        _mov(T, Src0, Reg_eax);
+        _cbwdq(T, T);
+        Context.insert(InstFakeDef::create(Func, T_ah));
+        _idiv(T_ah, Src1, T);
+        _mov(Dest, T_ah);
+      } else {
+        T_edx = makeReg(IceType_i32, Reg_edx);
+        _mov(T, Src0, Reg_eax);
+        _cbwdq(T_edx, T);
+        _idiv(T_edx, Src1, T);
+        _mov(Dest, T_edx);
+      }
       break;
     case InstArithmetic::Fadd:
       _mov(T, Src0);
@@ -3742,6 +3694,39 @@ void TargetX8632::lowerSwitch(const InstSwitch *Inst) {
   }
 
   _br(Inst->getLabelDefault());
+}
+
+void TargetX8632::scalarizeArithmetic(InstArithmetic::OpKind Kind,
+                                      Variable *Dest, Operand *Src0,
+                                      Operand *Src1) {
+  assert(isVectorType(Dest->getType()));
+  Type Ty = Dest->getType();
+  Type ElementTy = typeElementType(Ty);
+  SizeT NumElements = typeNumElements(Ty);
+
+  Operand *T = Ctx->getConstantUndef(Ty);
+  for (SizeT I = 0; I < NumElements; ++I) {
+    Constant *Index = Ctx->getConstantInt(IceType_i32, I);
+
+    // Extract the next two inputs.
+    Variable *Op0 = Func->makeVariable(ElementTy, Context.getNode());
+    lowerExtractElement(InstExtractElement::create(Func, Op0, Src0, Index));
+    Variable *Op1 = Func->makeVariable(ElementTy, Context.getNode());
+    lowerExtractElement(InstExtractElement::create(Func, Op1, Src1, Index));
+
+    // Perform the arithmetic as a scalar operation.
+    Variable *Res = Func->makeVariable(ElementTy, Context.getNode());
+    lowerArithmetic(InstArithmetic::create(Func, Kind, Res, Op0, Op1));
+
+    // Insert the result into position.
+    Variable *DestT = Func->makeVariable(Ty, Context.getNode());
+    lowerInsertElement(InstInsertElement::create(Func, DestT, T, Res, Index));
+    T = DestT;
+    // TODO(stichnot): Use postLower() in -Om1 mode to avoid buildup of
+    // infinite weight temporaries.
+  }
+
+  lowerAssign(InstAssign::create(Func, Dest, T));
 }
 
 // The following pattern occurs often in lowered C and C++ code:

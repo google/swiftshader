@@ -61,12 +61,12 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     FuncTypeSigned FuncSzSigned;
     bool ExcludeDivExceptions; // for divide related tests
   } Funcs[] = {
-#define X(inst, op, isdiv)                                                     \
+#define X(inst, op, isdiv, isshift)                                            \
   { STR(inst), test##inst, Subzero_::test##inst, NULL, NULL, isdiv }           \
   ,
       UINTOP_TABLE
 #undef X
-#define X(inst, op, isdiv)                                                     \
+#define X(inst, op, isdiv, isshift)                                            \
   { STR(inst), NULL, NULL, test##inst, Subzero_::test##inst, isdiv }           \
   ,
       SINTOP_TABLE
@@ -172,17 +172,18 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     FuncTypeSigned FuncLlcSigned;
     FuncTypeSigned FuncSzSigned;
     bool ExcludeDivExceptions; // for divide related tests
+    bool MaskShiftOperations;  // for shift related tests
   } Funcs[] = {
-#define X(inst, op, isdiv)                                                     \
+#define X(inst, op, isdiv, isshift)                                            \
   {                                                                            \
-    STR(inst), test##inst, Subzero_::test##inst, NULL, NULL, isdiv             \
+    STR(inst), test##inst, Subzero_::test##inst, NULL, NULL, isdiv, isshift    \
   }                                                                            \
   ,
         UINTOP_TABLE
 #undef X
-#define X(inst, op, isdiv)                                                     \
+#define X(inst, op, isdiv, isshift)                                            \
   {                                                                            \
-    STR(inst), NULL, NULL, test##inst, Subzero_::test##inst, isdiv             \
+    STR(inst), NULL, NULL, test##inst, Subzero_::test##inst, isdiv, isshift    \
   }                                                                            \
   ,
         SINTOP_TABLE
@@ -201,6 +202,8 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         if (Funcs[f].ExcludeDivExceptions &&
             inputsMayTriggerException<ElementTypeSigned>(Element1, Element2))
           continue;
+        if (Funcs[f].MaskShiftOperations)
+          Element2 &= CHAR_BIT * sizeof(ElementTypeUnsigned) - 1;
         Value1[j] = Element1;
         Value2[j] = Element2;
         ++j;
@@ -360,37 +363,3 @@ int main(int argc, char **argv) {
   return Failures;
 }
 
-extern "C" {
-// Subzero helpers
-  v4si32 Sz_shl_v4i32(v4si32 a, v4si32 b) { return a << b; }
-  v4si32 Sz_ashr_v4i32(v4si32 a, v4si32 b) { return a >> b; }
-  v4ui32 Sz_lshr_v4i32(v4ui32 a, v4ui32 b) { return a >> b; }
-  v4si32 Sz_sdiv_v4i32(v4si32 a, v4si32 b) { return a / b; }
-  v4ui32 Sz_udiv_v4i32(v4ui32 a, v4ui32 b) { return a / b; }
-  v4si32 Sz_srem_v4i32(v4si32 a, v4si32 b) { return a % b; }
-  v4ui32 Sz_urem_v4i32(v4ui32 a, v4ui32 b) { return a % b; }
-
-  v8si16 Sz_shl_v8i16(v8si16 a, v8si16 b) { return a << b; }
-  v8si16 Sz_ashr_v8i16(v8si16 a, v8si16 b) { return a >> b; }
-  v8ui16 Sz_lshr_v8i16(v8ui16 a, v8ui16 b) { return a >> b; }
-  v8si16 Sz_sdiv_v8i16(v8si16 a, v8si16 b) { return a / b; }
-  v8ui16 Sz_udiv_v8i16(v8ui16 a, v8ui16 b) { return a / b; }
-  v8si16 Sz_srem_v8i16(v8si16 a, v8si16 b) { return a % b; }
-  v8ui16 Sz_urem_v8i16(v8ui16 a, v8ui16 b) { return a % b; }
-
-  v16ui8 Sz_mul_v16i8(v16ui8 a, v16ui8 b) { return a * b; }
-  v16si8 Sz_shl_v16i8(v16si8 a, v16si8 b) { return a << b; }
-  v16si8 Sz_ashr_v16i8(v16si8 a, v16si8 b) { return a >> b; }
-  v16ui8 Sz_lshr_v16i8(v16ui8 a, v16ui8 b) { return a >> b; }
-  v16si8 Sz_sdiv_v16i8(v16si8 a, v16si8 b) { return a / b; }
-  v16ui8 Sz_udiv_v16i8(v16ui8 a, v16ui8 b) { return a / b; }
-  v16si8 Sz_srem_v16i8(v16si8 a, v16si8 b) { return a % b; }
-  v16ui8 Sz_urem_v16i8(v16ui8 a, v16ui8 b) { return a % b; }
-
-  v4f32 Sz_frem_v4f32(v4f32 a, v4f32 b) {
-    v4f32 Result;
-    for (int i = 0; i < 4; ++i)
-      Result[i] = fmodf(a[i], b[i]);
-    return Result;
-  }
-}
