@@ -136,11 +136,6 @@ InstX8632Call::InstX8632Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
   addSource(CallTarget);
 }
 
-InstX8632Cbwdq::InstX8632Cbwdq(Cfg *Func, Variable *Dest, Operand *Source)
-    : InstX8632(Func, InstX8632::Cbwdq, 1, Dest) {
-  addSource(Source);
-}
-
 InstX8632Cmov::InstX8632Cmov(Cfg *Func, Variable *Dest, Operand *Source,
                              InstX8632::BrCond Condition)
     : InstX8632(Func, InstX8632::Cmov, 2, Dest), Condition(Condition) {
@@ -452,6 +447,7 @@ template <> const char *InstX8632Bsr::Opcode = "bsr";
 template <> const char *InstX8632Lea::Opcode = "lea";
 template <> const char *InstX8632Movd::Opcode = "movd";
 template <> const char *InstX8632Sqrtss::Opcode = "sqrtss";
+template <> const char *InstX8632Cbwdq::Opcode = "cbw/cwd/cdq";
 // Binary ops
 template <> const char *InstX8632Add::Opcode = "add";
 template <> const char *InstX8632Addps::Opcode = "addps";
@@ -647,6 +643,31 @@ template <> void InstX8632Imul::emit(const Cfg *Func) const {
   }
 }
 
+template <> void InstX8632Cbwdq::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  Operand *Src0 = getSrc(0);
+  assert(llvm::isa<Variable>(Src0));
+  assert(llvm::cast<Variable>(Src0)->getRegNum() == TargetX8632::Reg_eax);
+  switch (Src0->getType()) {
+  default:
+    llvm_unreachable("unexpected source type!");
+    break;
+  case IceType_i8:
+    assert(getDest()->getRegNum() == TargetX8632::Reg_eax);
+    Str << "\tcbw\n";
+    break;
+  case IceType_i16:
+    assert(getDest()->getRegNum() == TargetX8632::Reg_edx);
+    Str << "\tcwd\n";
+    break;
+  case IceType_i32:
+    assert(getDest()->getRegNum() == TargetX8632::Reg_edx);
+    Str << "\tcdq\n";
+    break;
+  }
+}
+
 void InstX8632Mul::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
@@ -715,38 +736,6 @@ void InstX8632Shrd::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = shrd." << getDest()->getType() << " ";
-  dumpSources(Func);
-}
-
-void InstX8632Cbwdq::emit(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrEmit();
-  assert(getSrcSize() == 1);
-  Operand *Src0 = getSrc(0);
-  assert(llvm::isa<Variable>(Src0));
-  assert(llvm::cast<Variable>(Src0)->getRegNum() == TargetX8632::Reg_eax);
-  switch (Src0->getType()) {
-  default:
-    llvm_unreachable("unexpected source type!");
-    break;
-  case IceType_i8:
-    assert(getDest()->getRegNum() == TargetX8632::Reg_eax);
-    Str << "\tcbw\n";
-    break;
-  case IceType_i16:
-    assert(getDest()->getRegNum() == TargetX8632::Reg_edx);
-    Str << "\tcwd\n";
-    break;
-  case IceType_i32:
-    assert(getDest()->getRegNum() == TargetX8632::Reg_edx);
-    Str << "\tcdq\n";
-    break;
-  }
-}
-
-void InstX8632Cbwdq::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
-  dumpDest(Func);
-  Str << " = cbw/cwd/cdq." << getSrc(0)->getType() << " ";
   dumpSources(Func);
 }
 

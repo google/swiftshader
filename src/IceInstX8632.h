@@ -556,6 +556,8 @@ typedef InstX8632Unaryop<InstX8632::Bsr> InstX8632Bsr;
 typedef InstX8632Unaryop<InstX8632::Lea> InstX8632Lea;
 typedef InstX8632Unaryop<InstX8632::Movd> InstX8632Movd;
 typedef InstX8632Unaryop<InstX8632::Sqrtss> InstX8632Sqrtss;
+// Cbwdq instruction - wrapper for cbw, cwd, and cdq
+typedef InstX8632Unaryop<InstX8632::Cbwdq> InstX8632Cbwdq;
 typedef InstX8632Binop<InstX8632::Add> InstX8632Add;
 typedef InstX8632Binop<InstX8632::Addps> InstX8632Addps;
 typedef InstX8632Binop<InstX8632::Adc> InstX8632Adc;
@@ -687,24 +689,6 @@ private:
   InstX8632Shrd(const InstX8632Shrd &) LLVM_DELETED_FUNCTION;
   InstX8632Shrd &operator=(const InstX8632Shrd &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Shrd() {}
-};
-
-// Cbdwq instruction - wrapper for cbw, cwd, or cdq
-class InstX8632Cbwdq : public InstX8632 {
-public:
-  static InstX8632Cbwdq *create(Cfg *Func, Variable *Dest, Operand *Source) {
-    return new (Func->allocate<InstX8632Cbwdq>())
-        InstX8632Cbwdq(Func, Dest, Source);
-  }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Cbwdq); }
-
-private:
-  InstX8632Cbwdq(Cfg *Func, Variable *Dest, Operand *Source);
-  InstX8632Cbwdq(const InstX8632Cbwdq &) LLVM_DELETED_FUNCTION;
-  InstX8632Cbwdq &operator=(const InstX8632Cbwdq &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Cbwdq() {}
 };
 
 // Conditional move instruction.
@@ -1195,6 +1179,7 @@ private:
 // possibility of ODR violations and link errors.
 template <> void InstX8632Addss::emit(const Cfg *Func) const;
 template <> void InstX8632Blendvps::emit(const Cfg *Func) const;
+template <> void InstX8632Cbwdq::emit(const Cfg *Func) const;
 template <> void InstX8632Div::emit(const Cfg *Func) const;
 template <> void InstX8632Divss::emit(const Cfg *Func) const;
 template <> void InstX8632Idiv::emit(const Cfg *Func) const;
