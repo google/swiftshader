@@ -21,6 +21,7 @@
 
 #include "IceDefs.h"
 #include "IceIntrinsics.h"
+#include "IceRNG.h"
 #include "IceTypes.h"
 
 namespace Ice {
@@ -95,6 +96,10 @@ public:
 
   const Intrinsics &getIntrinsicsInfo() const { return IntrinsicsInfo; }
 
+  // TODO(wala,stichnot): Make the RNG play nicely with multithreaded
+  // translation.
+  RandomNumberGenerator &getRNG() { return RNG; }
+
 private:
   Ostream *StrDump; // Stream for dumping / diagnostics
   Ostream *StrEmit; // Stream for code emission
@@ -108,6 +113,7 @@ private:
   const IceString TestPrefix;
   const ClFlags &Flags;
   bool HasEmittedFirstMethod;
+  RandomNumberGenerator RNG;
   GlobalContext(const GlobalContext &) LLVM_DELETED_FUNCTION;
   GlobalContext &operator=(const GlobalContext &) LLVM_DELETED_FUNCTION;
 
