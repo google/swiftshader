@@ -179,7 +179,7 @@ const struct IceIntrinsicsEntry_ {
   };
 const size_t IceIntrinsicsTableSize = llvm::array_lengthof(IceIntrinsicsTable);
 
-} // end of namespace
+} // end of anonymous namespace
 
 Intrinsics::Intrinsics() {
   for (size_t I = 0; I < IceIntrinsicsTableSize; ++I) {

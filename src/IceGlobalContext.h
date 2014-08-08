@@ -25,6 +25,8 @@
 
 namespace Ice {
 
+class ClFlags;
+
 // TODO: Accesses to all non-const fields of GlobalContext need to
 // be synchronized, especially the constant pool, the allocator, and
 // the output streams.
@@ -32,7 +34,7 @@ class GlobalContext {
 public:
   GlobalContext(llvm::raw_ostream *OsDump, llvm::raw_ostream *OsEmit,
                 VerboseMask Mask, TargetArch Arch, OptLevel Opt,
-                IceString TestPrefix);
+                IceString TestPrefix, const ClFlags &Flags);
   ~GlobalContext();
 
   // Returns true if any of the specified options in the verbose mask
@@ -86,6 +88,8 @@ public:
   // constants of a given type.
   ConstantList getConstantPool(Type Ty) const;
 
+  const ClFlags &getFlags() const { return Flags; }
+
   // Allocate data of type T using the global allocator.
   template <typename T> T *allocate() { return Allocator.Allocate<T>(); }
 
@@ -102,6 +106,7 @@ private:
   const TargetArch Arch;
   const OptLevel Opt;
   const IceString TestPrefix;
+  const ClFlags &Flags;
   bool HasEmittedFirstMethod;
   GlobalContext(const GlobalContext &) LLVM_DELETED_FUNCTION;
   GlobalContext &operator=(const GlobalContext &) LLVM_DELETED_FUNCTION;

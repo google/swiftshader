@@ -676,12 +676,12 @@ private:
   std::map<const BasicBlock *, Ice::CfgNode *> NodeMap;
 };
 
-} // end of anonymous namespace.
+} // end of anonymous namespace
 
 namespace Ice {
 
 void Converter::convertToIce(Module *Mod) {
-  if (!Flags.DisableGlobals)
+  if (!Ctx->getFlags().DisableGlobals)
     convertGlobals(Mod);
   convertFunctions(Mod);
 }
@@ -723,7 +723,8 @@ void Converter::convertGlobals(Module *Mod) {
     }
 
     GlobalLowering->lower(Name, Align, IsInternal, IsConst, IsZeroInitializer,
-                          NumElements, Data, Flags.DisableTranslation);
+                          NumElements, Data,
+                          Ctx->getFlags().DisableTranslation);
   }
   GlobalLowering.reset();
 }
@@ -736,7 +737,7 @@ void Converter::convertFunctions(Module *Mod) {
 
     Timer TConvert;
     Cfg *Fcn = FunctionConverter.convertFunction(I);
-    if (Flags.SubzeroTimingEnabled) {
+    if (Ctx->getFlags().SubzeroTimingEnabled) {
       std::cerr << "[Subzero timing] Convert function "
                 << Fcn->getFunctionName() << ": " << TConvert.getElapsedSec()
                 << " sec\n";
@@ -747,4 +748,4 @@ void Converter::convertFunctions(Module *Mod) {
   emitConstants();
 }
 
-} // end of Ice namespace.
+} // end of namespace Ice

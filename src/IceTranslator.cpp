@@ -26,14 +26,14 @@ Translator::~Translator() {}
 
 void Translator::translateFcn(Ice::Cfg *Fcn) {
   Func.reset(Fcn);
-  if (Flags.DisableInternal)
+  if (Ctx->getFlags().DisableInternal)
     Func->setInternal(false);
-  if (Flags.DisableTranslation) {
+  if (Ctx->getFlags().DisableTranslation) {
     Func->dump();
   } else {
     Ice::Timer TTranslate;
     Func->translate();
-    if (Flags.SubzeroTimingEnabled) {
+    if (Ctx->getFlags().SubzeroTimingEnabled) {
       std::cerr << "[Subzero timing] Translate function "
                 << Func->getFunctionName() << ": " << TTranslate.getElapsedSec()
                 << " sec\n";
@@ -45,7 +45,7 @@ void Translator::translateFcn(Ice::Cfg *Fcn) {
 
     Ice::Timer TEmit;
     Func->emit();
-    if (Flags.SubzeroTimingEnabled) {
+    if (Ctx->getFlags().SubzeroTimingEnabled) {
       std::cerr << "[Subzero timing] Emit function " << Func->getFunctionName()
                 << ": " << TEmit.getElapsedSec() << " sec\n";
     }
@@ -53,6 +53,6 @@ void Translator::translateFcn(Ice::Cfg *Fcn) {
 }
 
 void Translator::emitConstants() {
-  if (!Flags.DisableTranslation && Func)
+  if (!Ctx->getFlags().DisableTranslation && Func)
     Func->getTarget()->emitConstants();
 }

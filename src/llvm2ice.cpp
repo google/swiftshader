@@ -59,6 +59,9 @@ static cl::opt<Ice::TargetArch> TargetArch(
         clEnumValN(Ice::Target_ARM32, "arm", "arm32"),
         clEnumValN(Ice::Target_ARM32, "arm32", "arm32 (same as arm)"),
         clEnumValN(Ice::Target_ARM64, "arm64", "arm64"), clEnumValEnd));
+static cl::opt<bool>
+    FunctionSections("ffunction-sections",
+                     cl::desc("Emit functions into separate sections"));
 static cl::opt<Ice::OptLevel>
 OptLevel(cl::desc("Optimization level"), cl::init(Ice::Opt_m1),
          cl::value_desc("level"),
@@ -126,16 +129,18 @@ int main(int argc, char **argv) {
   raw_os_ostream *Ls = new raw_os_ostream(LogFilename == "-" ? std::cout : Lfs);
   Ls->SetUnbuffered();
 
-  Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix);
-
   Ice::ClFlags Flags;
   Flags.DisableInternal = DisableInternal;
   Flags.SubzeroTimingEnabled = SubzeroTimingEnabled;
   Flags.DisableTranslation = DisableTranslation;
   Flags.DisableGlobals = DisableGlobals;
+  Flags.FunctionSections = FunctionSections;
+
+  Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix,
+                         Flags);
 
   if (BuildOnRead) {
-    Ice::PNaClTranslator Translator(&Ctx, Flags);
+    Ice::PNaClTranslator Translator(&Ctx);
     Translator.translate(IRFilename);
     return Translator.getErrorStatus();
   } else {
@@ -155,7 +160,7 @@ int main(int argc, char **argv) {
       return 1;
     }
 
-    Ice::Converter Converter(&Ctx, Flags);
+    Ice::Converter Converter(&Ctx);
     Converter.convertToIce(Mod);
     return Converter.getErrorStatus();
   }

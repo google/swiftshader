@@ -18,6 +18,7 @@
 #include "IceDefs.h"
 #include "IceTypes.h"
 #include "IceCfg.h"
+#include "IceClFlags.h"
 #include "IceGlobalContext.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
@@ -116,10 +117,10 @@ public:
 GlobalContext::GlobalContext(llvm::raw_ostream *OsDump,
                              llvm::raw_ostream *OsEmit, VerboseMask Mask,
                              TargetArch Arch, OptLevel Opt,
-                             IceString TestPrefix)
+                             IceString TestPrefix, const ClFlags &Flags)
     : StrDump(OsDump), StrEmit(OsEmit), VMask(Mask),
       ConstPool(new ConstantPool()), Arch(Arch), Opt(Opt),
-      TestPrefix(TestPrefix), HasEmittedFirstMethod(false) {}
+      TestPrefix(TestPrefix), Flags(Flags), HasEmittedFirstMethod(false) {}
 
 // Scan a string for S[0-9A-Z]*_ patterns and replace them with
 // S<num>_ where <num> is the next base-36 value.  If a type name

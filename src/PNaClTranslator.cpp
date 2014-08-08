@@ -801,7 +801,7 @@ bool TopLevelParser::ParseBlock(unsigned BlockID) {
   return Parser.ParseThisBlock();
 }
 
-} // end of anonymous namespace.
+} // end of anonymous namespace
 
 namespace Ice {
 
@@ -856,4 +856,4 @@ void PNaClTranslator::translate(const std::string &IRFilename) {
   return;
 }
 
-} // end of anonymous namespace.
+} // end of namespace Ice

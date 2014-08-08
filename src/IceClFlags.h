@@ -20,12 +20,15 @@ class ClFlags {
 public:
   ClFlags()
       : DisableInternal(false), SubzeroTimingEnabled(false),
-        DisableTranslation(false), DisableGlobals(false) {}
+        DisableTranslation(false), DisableGlobals(false),
+        FunctionSections(false) {}
   bool DisableInternal;
   bool SubzeroTimingEnabled;
   bool DisableTranslation;
   bool DisableGlobals;
+  bool FunctionSections;
 };
-}
+
+} // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICECLFLAGS_H

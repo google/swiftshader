@@ -29,15 +29,13 @@ class GlobalContext;
 // machine instructions.
 class Translator {
 public:
-  Translator(GlobalContext *Ctx, ClFlags &Flags)
-      : Ctx(Ctx), Flags(Flags), ErrorStatus(0) {}
+  Translator(GlobalContext *Ctx) : Ctx(Ctx), ErrorStatus(0) {}
 
   ~Translator();
   bool getErrorStatus() const { return ErrorStatus; }
 
 protected:
   GlobalContext *Ctx;
-  ClFlags &Flags;
   // The exit status of the translation. False is successful. True
   // otherwise.
   bool ErrorStatus;

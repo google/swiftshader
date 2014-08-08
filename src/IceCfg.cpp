@@ -14,6 +14,7 @@
 
 #include "IceCfg.h"
 #include "IceCfgNode.h"
+#include "IceClFlags.h"
 #include "IceDefs.h"
 #include "IceInst.h"
 #include "IceLiveness.h"
@@ -300,8 +301,10 @@ void Cfg::emit() {
         << "\n\n";
   }
   Str << "\t.text\n";
+  IceString MangledName = getContext()->mangleName(getFunctionName());
+  if (Ctx->getFlags().FunctionSections)
+    Str << "\t.section\t.text." << MangledName << "\n";
   if (!getInternal()) {
-    IceString MangledName = getContext()->mangleName(getFunctionName());
     Str << "\t.globl\t" << MangledName << "\n";
     Str << "\t.type\t" << MangledName << ",@function\n";
   }

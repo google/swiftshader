@@ -24,7 +24,7 @@ namespace Ice {
 
 class Converter : public Translator {
 public:
-  Converter(GlobalContext *Ctx, Ice::ClFlags &Flags) : Translator(Ctx, Flags) {}
+  Converter(GlobalContext *Ctx) : Translator(Ctx) {}
   /// Converts the LLVM Module to ICE. Sets exit status to false if successful,
   /// true otherwise.
   void convertToIce(llvm::Module *Mod);
