@@ -3388,6 +3388,33 @@ void computeAddressOpt(Variable *&Base, Variable *&Index, uint16_t &Shift,
       }
     }
 
+    // Base is Base=Var+Const || Base is Base=Const+Var ==>
+    //   set Base=Var, Offset+=Const
+    // Base is Base=Var-Const ==>
+    //   set Base=Var, Offset-=Const
+    const InstArithmetic *ArithInst =
+        llvm::dyn_cast_or_null<const InstArithmetic>(BaseInst);
+    if (ArithInst && (ArithInst->getOp() == InstArithmetic::Add ||
+                      ArithInst->getOp() == InstArithmetic::Sub)) {
+      bool IsAdd = ArithInst->getOp() == InstArithmetic::Add;
+      Variable *Var = NULL;
+      ConstantInteger *Const = NULL;
+      if (Variable *VariableOperand =
+              llvm::dyn_cast<Variable>(ArithInst->getSrc(0))) {
+        Var = VariableOperand;
+        Const = llvm::dyn_cast<ConstantInteger>(ArithInst->getSrc(1));
+      } else if (IsAdd) {
+        Const = llvm::dyn_cast<ConstantInteger>(ArithInst->getSrc(0));
+        Var = llvm::dyn_cast<Variable>(ArithInst->getSrc(1));
+      }
+      if (!(Const && Var)) {
+        break;
+      }
+      Base = Var;
+      Offset += IsAdd ? Const->getValue() : -Const->getValue();
+      continue;
+    }
+
     // Index is Index=Var<<Const && Const+Shift<=3 ==>
     //   Index=Var, Shift+=Const
 
@@ -3397,15 +3424,6 @@ void computeAddressOpt(Variable *&Base, Variable *&Index, uint16_t &Shift,
     // Index && Shift==0 && Base is Base=Var*Const && log2(Const)+Shift<=3 ==>
     //   swap(Index,Base)
     // Similar for Base=Const*Var and Base=Var<<Const
-
-    // Base is Base=Var+Const ==>
-    //   set Base=Var, Offset+=Const
-
-    // Base is Base=Const+Var ==>
-    //   set Base=Var, Offset+=Const
-
-    // Base is Base=Var-Const ==>
-    //   set Base=Var, Offset-=Const
 
     // Index is Index=Var+Const ==>
     //   set Index=Var, Offset+=(Const<<Shift)
@@ -4039,7 +4057,7 @@ void TargetX8632::postLower() {
 
 template <> void ConstantInteger::emit(GlobalContext *Ctx) const {
   Ostream &Str = Ctx->getStrEmit();
-  Str << getValue();
+  Str << (int64_t) getValue();
 }
 
 template <> void ConstantFloat::emit(GlobalContext *Ctx) const {
