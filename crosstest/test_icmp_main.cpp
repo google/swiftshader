@@ -46,7 +46,7 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   } Funcs[] = {
 #define X(cmp, op)                                                             \
   {                                                                            \
-    STR(inst), (FuncTypeUnsigned)icmp##cmp,                                    \
+    STR(cmp), (FuncTypeUnsigned)icmp##cmp,                                     \
         (FuncTypeUnsigned)Subzero_::icmp##cmp                                  \
   }                                                                            \
   ,
@@ -54,7 +54,7 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 #undef X
 #define X(cmp, op)                                                             \
   {                                                                            \
-    STR(inst), (FuncTypeUnsigned)(FuncTypeSigned)icmp##cmp,                    \
+    STR(cmp), (FuncTypeUnsigned)(FuncTypeSigned)icmp##cmp,                     \
         (FuncTypeUnsigned)(FuncTypeSigned)Subzero_::icmp##cmp                  \
   }                                                                            \
   ,
@@ -133,7 +133,7 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   } Funcs[] = {
 #define X(cmp, op)                                                             \
   {                                                                            \
-    STR(inst), (FuncTypeUnsigned)icmp##cmp,                                    \
+    STR(cmp), (FuncTypeUnsigned)icmp##cmp,                                     \
         (FuncTypeUnsigned)Subzero_::icmp##cmp                                  \
   }                                                                            \
   ,
@@ -141,7 +141,7 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 #undef X
 #define X(cmp, op)                                                             \
   {                                                                            \
-    STR(inst), (FuncTypeUnsigned)(FuncTypeSigned)icmp##cmp,                    \
+    STR(cmp), (FuncTypeUnsigned)(FuncTypeSigned)icmp##cmp,                     \
         (FuncTypeUnsigned)(FuncTypeSigned)Subzero_::icmp##cmp                  \
   }                                                                            \
   ,
@@ -204,7 +204,7 @@ void testsVecI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     FuncType FuncSz;
   } Funcs[] = {
 #define X(cmp, op)                                                             \
-  { STR(inst), (FuncType)icmpi1##cmp, (FuncType)Subzero_::icmpi1##cmp }        \
+  { STR(cmp), (FuncType)icmpi1##cmp, (FuncType)Subzero_::icmpi1##cmp }         \
   ,
         ICMP_U_TABLE
         ICMP_S_TABLE
