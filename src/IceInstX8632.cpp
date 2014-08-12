@@ -219,16 +219,6 @@ InstX8632Store::InstX8632Store(Cfg *Func, Operand *Value, OperandX8632 *Mem)
   addSource(Mem);
 }
 
-InstX8632Mov::InstX8632Mov(Cfg *Func, Variable *Dest, Operand *Source)
-    : InstX8632(Func, InstX8632::Mov, 1, Dest) {
-  addSource(Source);
-}
-
-InstX8632Movp::InstX8632Movp(Cfg *Func, Variable *Dest, Operand *Source)
-    : InstX8632(Func, InstX8632::Movp, 1, Dest) {
-  addSource(Source);
-}
-
 InstX8632StoreP::InstX8632StoreP(Cfg *Func, Operand *Value, OperandX8632 *Mem)
     : InstX8632(Func, InstX8632::StoreP, 2, NULL) {
   addSource(Value);
@@ -239,11 +229,6 @@ InstX8632StoreQ::InstX8632StoreQ(Cfg *Func, Operand *Value, OperandX8632 *Mem)
     : InstX8632(Func, InstX8632::StoreQ, 2, NULL) {
   addSource(Value);
   addSource(Mem);
-}
-
-InstX8632Movq::InstX8632Movq(Cfg *Func, Variable *Dest, Operand *Source)
-    : InstX8632(Func, InstX8632::Movq, 1, Dest) {
-  addSource(Source);
 }
 
 InstX8632Movsx::InstX8632Movsx(Cfg *Func, Variable *Dest, Operand *Source)
@@ -272,51 +257,6 @@ InstX8632Push::InstX8632Push(Cfg *Func, Operand *Source,
     : InstX8632(Func, InstX8632::Push, 1, NULL),
       SuppressStackAdjustment(SuppressStackAdjustment) {
   addSource(Source);
-}
-
-bool InstX8632Mov::isRedundantAssign() const {
-  // TODO(stichnot): The isRedundantAssign() implementations for
-  // InstX8632Mov, InstX8632Movp, and InstX8632Movq are
-  // identical. Consolidate them.
-  Variable *Src = llvm::dyn_cast<Variable>(getSrc(0));
-  if (Src == NULL)
-    return false;
-  if (getDest()->hasReg() && getDest()->getRegNum() == Src->getRegNum()) {
-    // TODO: On x86-64, instructions like "mov eax, eax" are used to
-    // clear the upper 32 bits of rax.  We need to recognize and
-    // preserve these.
-    return true;
-  }
-  if (!getDest()->hasReg() && !Src->hasReg() &&
-      Dest->getStackOffset() == Src->getStackOffset())
-    return true;
-  return false;
-}
-
-bool InstX8632Movp::isRedundantAssign() const {
-  Variable *Src = llvm::dyn_cast<Variable>(getSrc(0));
-  if (Src == NULL)
-    return false;
-  if (getDest()->hasReg() && getDest()->getRegNum() == Src->getRegNum()) {
-    return true;
-  }
-  if (!getDest()->hasReg() && !Src->hasReg() &&
-      Dest->getStackOffset() == Src->getStackOffset())
-    return true;
-  return false;
-}
-
-bool InstX8632Movq::isRedundantAssign() const {
-  Variable *Src = llvm::dyn_cast<Variable>(getSrc(0));
-  if (Src == NULL)
-    return false;
-  if (getDest()->hasReg() && getDest()->getRegNum() == Src->getRegNum()) {
-    return true;
-  }
-  if (!getDest()->hasReg() && !Src->hasReg() &&
-      Dest->getStackOffset() == Src->getStackOffset())
-    return true;
-  return false;
 }
 
 InstX8632Ret::InstX8632Ret(Cfg *Func, Variable *Source)
@@ -446,6 +386,21 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
   Str << "\n";
 }
 
+bool checkForRedundantAssign(const Variable *Dest, const Operand *Source) {
+  const Variable *Src = llvm::dyn_cast<const Variable>(Source);
+  if (Src == NULL)
+    return false;
+  if (Dest->hasReg() && Dest->getRegNum() == Src->getRegNum()) {
+    // TODO: On x86-64, instructions like "mov eax, eax" are used to
+    // clear the upper 32 bits of rax.  We need to recognize and
+    // preserve these.
+    return true;
+  }
+  if (!Dest->hasReg() && !Src->hasReg() &&
+      Dest->getStackOffset() == Src->getStackOffset())
+    return true;
+  return false;
+}
 
 // In-place ops
 template <> const char *InstX8632Bswap::Opcode = "bswap";
@@ -457,6 +412,10 @@ template <> const char *InstX8632Lea::Opcode = "lea";
 template <> const char *InstX8632Movd::Opcode = "movd";
 template <> const char *InstX8632Sqrtss::Opcode = "sqrtss";
 template <> const char *InstX8632Cbwdq::Opcode = "cbw/cwd/cdq";
+// Mov-like ops
+template <> const char *InstX8632Mov::Opcode = "mov";
+template <> const char *InstX8632Movp::Opcode = "movups";
+template <> const char *InstX8632Movq::Opcode = "movq";
 // Binary ops
 template <> const char *InstX8632Add::Opcode = "add";
 template <> const char *InstX8632Addps::Opcode = "addps";
@@ -999,7 +958,7 @@ template <> void InstX8632Lea::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
-void InstX8632Mov::emit(const Cfg *Func) const {
+template <> void InstX8632Mov::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   Operand *Src = getSrc(0);
@@ -1035,15 +994,7 @@ void InstX8632Mov::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
-void InstX8632Mov::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
-  Str << "mov." << getDest()->getType() << " ";
-  dumpDest(Func);
-  Str << ", ";
-  dumpSources(Func);
-}
-
-void InstX8632Movp::emit(const Cfg *Func) const {
+template <> void InstX8632Movp::emit(const Cfg *Func) const {
   // TODO(wala,stichnot): movups works with all vector operands, but
   // there exist other instructions (movaps, movdqa, movdqu) that may
   // perform better, depending on the data type and alignment of the
@@ -1057,15 +1008,7 @@ void InstX8632Movp::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
-void InstX8632Movp::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
-  Str << "movups." << getDest()->getType() << " ";
-  dumpDest(Func);
-  Str << ", ";
-  dumpSources(Func);
-}
-
-void InstX8632Movq::emit(const Cfg *Func) const {
+template <> void InstX8632Movq::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   assert(getDest()->getType() == IceType_i64 ||
@@ -1075,14 +1018,6 @@ void InstX8632Movq::emit(const Cfg *Func) const {
   Str << ", ";
   getSrc(0)->emit(Func);
   Str << "\n";
-}
-
-void InstX8632Movq::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
-  Str << "movq." << getDest()->getType() << " ";
-  dumpDest(Func);
-  Str << ", ";
-  dumpSources(Func);
 }
 
 void InstX8632Movsx::emit(const Cfg *Func) const {

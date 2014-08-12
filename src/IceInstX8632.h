@@ -571,6 +571,41 @@ private:
   static const char *Opcode;
 };
 
+bool checkForRedundantAssign(const Variable *Dest, const Operand *Source);
+
+// Base class for assignment instructions
+template <InstX8632::InstKindX8632 K>
+class InstX8632Movlike : public InstX8632 {
+public:
+  static InstX8632Movlike *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    return new (Func->allocate<InstX8632Movlike>())
+        InstX8632Movlike(Func, Dest, Source);
+  }
+  virtual bool isRedundantAssign() const {
+    return checkForRedundantAssign(getDest(), getSrc(0));
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const {
+    Ostream &Str = Func->getContext()->getStrDump();
+    Str << Opcode << "." << getDest()->getType() << " ";
+    dumpDest(Func);
+    Str << ", ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstX8632Movlike(Cfg *Func, Variable *Dest, Operand *Source)
+      : InstX8632(Func, K, 1, Dest) {
+    addSource(Source);
+  }
+  InstX8632Movlike(const InstX8632Movlike &) LLVM_DELETED_FUNCTION;
+  InstX8632Movlike &operator=(const InstX8632Movlike &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Movlike() {}
+
+  static const char *Opcode;
+};
+
 typedef InstX8632Inplaceop<InstX8632::Bswap> InstX8632Bswap;
 typedef InstX8632Inplaceop<InstX8632::Neg> InstX8632Neg;
 typedef InstX8632Unaryop<InstX8632::Bsf> InstX8632Bsf;
@@ -580,6 +615,13 @@ typedef InstX8632Unaryop<InstX8632::Movd> InstX8632Movd;
 typedef InstX8632Unaryop<InstX8632::Sqrtss> InstX8632Sqrtss;
 // Cbwdq instruction - wrapper for cbw, cwd, and cdq
 typedef InstX8632Unaryop<InstX8632::Cbwdq> InstX8632Cbwdq;
+// Move/assignment instruction - wrapper for mov/movss/movsd.
+typedef InstX8632Movlike<InstX8632::Mov> InstX8632Mov;
+// Move packed - copy 128 bit values between XMM registers, or mem128
+// and XMM registers.
+typedef InstX8632Movlike<InstX8632::Movp> InstX8632Movp;
+// Movq - copy between XMM registers, or mem64 and XMM registers.
+typedef InstX8632Movlike<InstX8632::Movq> InstX8632Movq;
 typedef InstX8632Binop<InstX8632::Add> InstX8632Add;
 typedef InstX8632Binop<InstX8632::Addps> InstX8632Addps;
 typedef InstX8632Binop<InstX8632::Adc> InstX8632Adc;
@@ -943,45 +985,6 @@ private:
   virtual ~InstX8632Store() {}
 };
 
-// Move/assignment instruction - wrapper for mov/movss/movsd.
-class InstX8632Mov : public InstX8632 {
-public:
-  static InstX8632Mov *create(Cfg *Func, Variable *Dest, Operand *Source) {
-    return new (Func->allocate<InstX8632Mov>())
-        InstX8632Mov(Func, Dest, Source);
-  }
-  virtual bool isRedundantAssign() const;
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Mov); }
-
-private:
-  InstX8632Mov(Cfg *Func, Variable *Dest, Operand *Source);
-  InstX8632Mov(const InstX8632Mov &) LLVM_DELETED_FUNCTION;
-  InstX8632Mov &operator=(const InstX8632Mov &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Mov() {}
-};
-
-// Move packed - copy 128 bit values between XMM registers or mem128 and
-// XMM registers
-class InstX8632Movp : public InstX8632 {
-public:
-  static InstX8632Movp *create(Cfg *Func, Variable *Dest, Operand *Source) {
-    return new (Func->allocate<InstX8632Movp>())
-        InstX8632Movp(Func, Dest, Source);
-  }
-  virtual bool isRedundantAssign() const;
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Movp); }
-
-private:
-  InstX8632Movp(Cfg *Func, Variable *Dest, Operand *Source);
-  InstX8632Movp(const InstX8632Movp &) LLVM_DELETED_FUNCTION;
-  InstX8632Movp &operator=(const InstX8632Movp &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Movp() {}
-};
-
 class InstX8632StoreP : public InstX8632 {
 public:
   static InstX8632StoreP *create(Cfg *Func, Operand *Value, OperandX8632 *Mem) {
@@ -1017,25 +1020,6 @@ private:
   InstX8632StoreQ(const InstX8632StoreQ &) LLVM_DELETED_FUNCTION;
   InstX8632StoreQ &operator=(const InstX8632StoreQ &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632StoreQ() {}
-};
-
-// Movq - copy between XMM registers, or mem64 and XMM registers.
-class InstX8632Movq : public InstX8632 {
-public:
-  static InstX8632Movq *create(Cfg *Func, Variable *Dest, Operand *Source) {
-    return new (Func->allocate<InstX8632Movq>())
-        InstX8632Movq(Func, Dest, Source);
-  }
-  virtual bool isRedundantAssign() const;
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Movq); }
-
-private:
-  InstX8632Movq(Cfg *Func, Variable *Dest, Operand *Source);
-  InstX8632Movq(const InstX8632Movq &) LLVM_DELETED_FUNCTION;
-  InstX8632Movq &operator=(const InstX8632Movq &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Movq() {}
 };
 
 // Movsx - copy from a narrower integer type to a wider integer
