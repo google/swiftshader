@@ -121,9 +121,21 @@ Type getInVectorElementType(Type Ty) {
 }
 
 // The maximum number of arguments to pass in XMM registers
-const unsigned X86_MAX_XMM_ARGS = 4;
+const uint32_t X86_MAX_XMM_ARGS = 4;
 // The number of bits in a byte
-const unsigned X86_CHAR_BIT = 8;
+const uint32_t X86_CHAR_BIT = 8;
+// Stack alignment
+const uint32_t X86_STACK_ALIGNMENT_BYTES = 16;
+// Size of the return address on the stack
+const uint32_t X86_RET_IP_SIZE_BYTES = 4;
+
+// Value is a size in bytes.  Return Value adjusted to the next highest
+// multiple of the stack alignment.
+uint32_t applyStackAlignment(uint32_t Value) {
+  // power of 2
+  assert((X86_STACK_ALIGNMENT_BYTES & (X86_STACK_ALIGNMENT_BYTES - 1)) == 0);
+  return (Value + X86_STACK_ALIGNMENT_BYTES - 1) & -X86_STACK_ALIGNMENT_BYTES;
+}
 
 // Instruction set options
 namespace cl = ::llvm::cl;
@@ -248,8 +260,8 @@ void __attribute__((unused)) xMacroIntegrityCheck() {
 
 TargetX8632::TargetX8632(Cfg *Func)
     : TargetLowering(Func), InstructionSet(CLInstructionSet),
-      IsEbpBasedFrame(false), FrameSizeLocals(0), LocalsSizeBytes(0),
-      NextLabelNumber(0), ComputedLiveRanges(false),
+      IsEbpBasedFrame(false), NeedsStackAlignment(false), FrameSizeLocals(0),
+      LocalsSizeBytes(0), NextLabelNumber(0), ComputedLiveRanges(false),
       PhysicalRegisters(VarList(Reg_NUM)) {
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
@@ -543,6 +555,9 @@ void TargetX8632::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
     finishArgumentLowering(Hi, FramePtr, BasicFrameOffset, InArgsSizeBytes);
     return;
   }
+  if (isVectorType(Ty)) {
+    InArgsSizeBytes = applyStackAlignment(InArgsSizeBytes);
+  }
   Arg->setStackOffset(BasicFrameOffset + InArgsSizeBytes);
   InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
   if (Arg->hasReg()) {
@@ -570,7 +585,6 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // or B.
   const bool SimpleCoalescing = true;
   size_t InArgsSizeBytes = 0;
-  size_t RetIpSizeBytes = 4;
   size_t PreservedRegsSizeBytes = 0;
   LocalsSizeBytes = 0;
   Context.init(Node);
@@ -657,6 +671,13 @@ void TargetX8632::addProlog(CfgNode *Node) {
     _mov(ebp, esp);
   }
 
+  if (NeedsStackAlignment) {
+    uint32_t StackSize = applyStackAlignment(
+        X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes + LocalsSizeBytes);
+    LocalsSizeBytes =
+        StackSize - X86_RET_IP_SIZE_BYTES - PreservedRegsSizeBytes;
+  }
+
   // Generate "sub esp, LocalsSizeBytes"
   if (LocalsSizeBytes)
     _sub(getPhysicalRegister(Reg_esp),
@@ -668,7 +689,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // for those that were register-allocated.  Args are pushed right to
   // left, so Arg[0] is closest to the stack/frame pointer.
   Variable *FramePtr = getPhysicalRegister(getFrameOrStackReg());
-  size_t BasicFrameOffset = PreservedRegsSizeBytes + RetIpSizeBytes;
+  size_t BasicFrameOffset = PreservedRegsSizeBytes + X86_RET_IP_SIZE_BYTES;
   if (!IsEbpBasedFrame)
     BasicFrameOffset += LocalsSizeBytes;
 
@@ -959,12 +980,42 @@ llvm::SmallBitVector TargetX8632::getRegisterSet(RegSetMask Include,
 
 void TargetX8632::lowerAlloca(const InstAlloca *Inst) {
   IsEbpBasedFrame = true;
-  // TODO(sehr,stichnot): align allocated memory, keep stack aligned, minimize
-  // the number of adjustments of esp, etc.
+  // Conservatively require the stack to be aligned.  Some stack
+  // adjustment operations implemented below assume that the stack is
+  // aligned before the alloca.  All the alloca code ensures that the
+  // stack alignment is preserved after the alloca.  The stack alignment
+  // restriction can be relaxed in some cases.
+  NeedsStackAlignment = true;
+
+  // TODO(sehr,stichnot): minimize the number of adjustments of esp, etc.
   Variable *esp = getPhysicalRegister(Reg_esp);
   Operand *TotalSize = legalize(Inst->getSizeInBytes());
   Variable *Dest = Inst->getDest();
-  _sub(esp, TotalSize);
+  uint32_t AlignmentParam = Inst->getAlignInBytes();
+
+  // LLVM enforces power of 2 alignment.
+  assert((AlignmentParam & (AlignmentParam - 1)) == 0);
+  assert((X86_STACK_ALIGNMENT_BYTES & (X86_STACK_ALIGNMENT_BYTES - 1)) == 0);
+
+  uint32_t Alignment = std::max(AlignmentParam, X86_STACK_ALIGNMENT_BYTES);
+  if (Alignment > X86_STACK_ALIGNMENT_BYTES) {
+    _and(esp, Ctx->getConstantInt(IceType_i32, -Alignment));
+  }
+  if (ConstantInteger *ConstantTotalSize =
+          llvm::dyn_cast<ConstantInteger>(TotalSize)) {
+    uint32_t Value = ConstantTotalSize->getValue();
+    // Round Value up to the next highest multiple of the alignment.
+    Value = (Value + Alignment - 1) & -Alignment;
+    _sub(esp, Ctx->getConstantInt(IceType_i32, Value));
+  } else {
+    // Non-constant sizes need to be adjusted to the next highest
+    // multiple of the required alignment at runtime.
+    Variable *T = makeReg(IceType_i32);
+    _mov(T, TotalSize);
+    _add(T, Ctx->getConstantInt(IceType_i32, Alignment - 1));
+    _and(T, Ctx->getConstantInt(IceType_i32, -Alignment));
+    _sub(esp, T);
+  }
   _mov(Dest, esp);
 }
 
@@ -1544,51 +1595,78 @@ void TargetX8632::lowerBr(const InstBr *Inst) {
 }
 
 void TargetX8632::lowerCall(const InstCall *Instr) {
+  // x86-32 calling convention:
+  //
+  // * At the point before the call, the stack must be aligned to 16
+  // bytes.
+  //
+  // * The first four arguments of vector type, regardless of their
+  // position relative to the other arguments in the argument list, are
+  // placed in registers xmm0 - xmm3.
+  //
+  // * Other arguments are pushed onto the stack in right-to-left order,
+  // such that the left-most argument ends up on the top of the stack at
+  // the lowest memory address.
+  //
+  // * Stack arguments of vector type are aligned to start at the next
+  // highest multiple of 16 bytes.  Other stack arguments are aligned to
+  // 4 bytes.
+  //
+  // This intends to match the section "IA-32 Function Calling
+  // Convention" of the document "OS X ABI Function Call Guide" by
+  // Apple.
+  NeedsStackAlignment = true;
+
+  OperandList XmmArgs;
+  OperandList StackArgs, StackArgLocations;
+  uint32_t ParameterAreaSizeBytes = 0;
+
   // Classify each argument operand according to the location where the
   // argument is passed.
-  OperandList XmmArgs;
-  OperandList StackArgs;
   for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
     Operand *Arg = Instr->getArg(i);
-    if (isVectorType(Arg->getType()) && XmmArgs.size() < X86_MAX_XMM_ARGS) {
+    Type Ty = Arg->getType();
+    // The PNaCl ABI requires the width of arguments to be at least 32 bits.
+    assert(Ty == IceType_i32 || Ty == IceType_f32 || Ty == IceType_i64 ||
+           Ty == IceType_f64 || isVectorType(Ty));
+    if (isVectorType(Ty) && XmmArgs.size() < X86_MAX_XMM_ARGS) {
       XmmArgs.push_back(Arg);
     } else {
       StackArgs.push_back(Arg);
+      if (isVectorType(Arg->getType())) {
+        ParameterAreaSizeBytes = applyStackAlignment(ParameterAreaSizeBytes);
+      }
+      Variable *esp = Func->getTarget()->getPhysicalRegister(Reg_esp);
+      Constant *Loc = Ctx->getConstantInt(IceType_i32, ParameterAreaSizeBytes);
+      StackArgLocations.push_back(OperandX8632Mem::create(Func, Ty, esp, Loc));
+      ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
     }
   }
-  // For stack arguments, generate a sequence of push instructions,
-  // pushing right to left, keeping track of stack offsets in case a
-  // push involves a stack operand and we are using an esp-based frame.
-  uint32_t StackOffset = 0;
-  // TODO: Consolidate the stack adjustment for function calls by
-  // reserving enough space for the arguments only once.
+
+  // Adjust the parameter area so that the stack is aligned.  It is
+  // assumed that the stack is already aligned at the start of the
+  // calling sequence.
+  ParameterAreaSizeBytes = applyStackAlignment(ParameterAreaSizeBytes);
+
+  // Subtract the appropriate amount for the argument area.  This also
+  // takes care of setting the stack adjustment during emission.
   //
   // TODO: If for some reason the call instruction gets dead-code
   // eliminated after lowering, we would need to ensure that the
-  // pre-call push instructions and the post-call esp adjustment get
-  // eliminated as well.
-  for (OperandList::reverse_iterator I = StackArgs.rbegin(),
-           E = StackArgs.rend(); I != E; ++I) {
-    Operand *Arg = legalize(*I);
-    if (Arg->getType() == IceType_i64) {
-      _push(hiOperand(Arg));
-      _push(loOperand(Arg));
-    } else if (Arg->getType() == IceType_f64 || isVectorType(Arg->getType())) {
-      // If the Arg turns out to be a memory operand, more than one push
-      // instruction is required.  This ends up being somewhat clumsy in
-      // the current IR, so we use a workaround.  Force the operand into
-      // a (xmm) register, and then push the register.  An xmm register
-      // push is actually not possible in x86, but the Push instruction
-      // emitter handles this by decrementing the stack pointer and
-      // directly writing the xmm register value.
-      _push(legalize(Arg, Legal_Reg));
-    } else {
-      // Otherwise PNaCl requires parameter types to be at least 32-bits.
-      assert(Arg->getType() == IceType_f32 || Arg->getType() == IceType_i32);
-      _push(Arg);
-    }
-    StackOffset += typeWidthInBytesOnStack(Arg->getType());
+  // pre-call and the post-call esp adjustment get eliminated as well.
+  if (ParameterAreaSizeBytes) {
+    _adjust_stack(ParameterAreaSizeBytes);
   }
+
+  // Copy arguments that are passed on the stack to the appropriate
+  // stack locations.
+  for (SizeT i = 0, e = StackArgs.size(); i < e; ++i) {
+    lowerStore(InstStore::create(Func, StackArgs[i], StackArgLocations[i]));
+    // TODO: Consider calling postLower() here to reduce the register
+    // pressure associated with using too many infinite weight
+    // temporaries when lowering the call sequence in -Om1 mode.
+  }
+
   // Copy arguments to be passed in registers to the appropriate
   // registers.
   // TODO: Investigate the impact of lowering arguments passed in
@@ -1652,10 +1730,11 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   if (ReturnRegHi)
     Context.insert(InstFakeDef::create(Func, ReturnRegHi));
 
-  // Add the appropriate offset to esp.
-  if (StackOffset) {
+  // Add the appropriate offset to esp.  The call instruction takes care
+  // of resetting the stack offset during emission.
+  if (ParameterAreaSizeBytes) {
     Variable *esp = Func->getTarget()->getPhysicalRegister(Reg_esp);
-    _add(esp, Ctx->getConstantInt(IceType_i32, StackOffset));
+    _add(esp, Ctx->getConstantInt(IceType_i32, ParameterAreaSizeBytes));
   }
 
   // Insert a register-kill pseudo instruction.
@@ -2134,9 +2213,9 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
   } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
     // Use pshufd and movd/movss.
     //
-    // ALIGNHACK: Force vector operands to registers in instructions that
-    // require aligned memory operands until support for stack alignment
-    // is implemented.
+    // ALIGNHACK: Force vector operands to registers in instructions
+    // that require aligned memory operands until support for data
+    // alignment is implemented.
 #define ALIGN_HACK(Vect) legalizeToVar((Vect))
     Operand *SourceVectRM =
         legalize(SourceVectNotLegalized, Legal_Reg | Legal_Mem);
@@ -2221,8 +2300,8 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
 
-      // ALIGNHACK: Without support for stack alignment, both operands to
-      // cmpps need to be forced into registers.  Once support for stack
+      // ALIGNHACK: Without support for data alignment, both operands to
+      // cmpps need to be forced into registers.  Once support for data
       // alignment is implemented, remove LEGAL_HACK.
 #define LEGAL_HACK(Vect) legalizeToVar((Vect))
       switch (Condition) {
@@ -2362,8 +2441,8 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
     }
 
     // TODO: ALIGNHACK: Both operands to compare instructions need to be
-    // in registers until stack alignment support is implemented.  Once
-    // there is support for stack alignment, LEGAL_HACK can be removed.
+    // in registers until data alignment support is implemented.  Once
+    // there is support for data alignment, LEGAL_HACK can be removed.
 #define LEGAL_HACK(Vect) legalizeToVar((Vect))
     Variable *T = makeReg(Ty);
     switch (Condition) {
@@ -2583,9 +2662,9 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     Constant *Mask1Constant = Ctx->getConstantInt(IceType_i8, Mask1[Index - 1]);
     Constant *Mask2Constant = Ctx->getConstantInt(IceType_i8, Mask2[Index - 1]);
 
-    // ALIGNHACK: Force vector operands to registers in instructions that
-    // require aligned memory operands until support for stack alignment
-    // is implemented.
+    // ALIGNHACK: Force vector operands to registers in instructions
+    // that require aligned memory operands until support for data
+    // alignment is implemented.
 #define ALIGN_HACK(Vect) legalizeToVar((Vect))
     if (Index == 1) {
       SourceVectRM = ALIGN_HACK(SourceVectRM);
@@ -2873,7 +2952,8 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   }
   case Intrinsics::Memset: {
     // The value operand needs to be extended to a stack slot size
-    // because "push" only works for a specific operand size.
+    // because the PNaCl ABI requires arguments to be at least 32 bits
+    // wide.
     Operand *ValOp = Instr->getArg(1);
     assert(ValOp->getType() == IceType_i8);
     Variable *ValExt = Func->makeVariable(stackSlotType(), Context.getNode());
@@ -3560,9 +3640,9 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     Variable *T = makeReg(SrcTy);
     Operand *SrcTRM = legalize(SrcT, Legal_Reg | Legal_Mem);
     Operand *SrcFRM = legalize(SrcF, Legal_Reg | Legal_Mem);
-    // ALIGNHACK: Until stack alignment support is implemented, vector
+    // ALIGNHACK: Until data alignment support is implemented, vector
     // instructions need to have vector operands in registers.  Once
-    // there is support for stack alignment, LEGAL_HACK can be removed.
+    // there is support for data alignment, LEGAL_HACK can be removed.
 #define LEGAL_HACK(Vect) legalizeToVar((Vect))
     if (InstructionSet >= SSE4_1) {
       // TODO(wala): If the condition operand is a constant, use blendps
@@ -3657,13 +3737,16 @@ void TargetX8632::lowerStore(const InstStore *Inst) {
   Operand *Value = Inst->getData();
   Operand *Addr = Inst->getAddr();
   OperandX8632Mem *NewAddr = FormMemoryOperand(Addr, Value->getType());
+  Type Ty = NewAddr->getType();
 
-  if (NewAddr->getType() == IceType_i64) {
+  if (Ty == IceType_i64) {
     Value = legalize(Value);
     Operand *ValueHi = legalize(hiOperand(Value), Legal_Reg | Legal_Imm, true);
     Operand *ValueLo = legalize(loOperand(Value), Legal_Reg | Legal_Imm, true);
     _store(ValueHi, llvm::cast<OperandX8632Mem>(hiOperand(NewAddr)));
     _store(ValueLo, llvm::cast<OperandX8632Mem>(loOperand(NewAddr)));
+  } else if (isVectorType(Ty)) {
+    _storep(legalizeToVar(Value), NewAddr);
   } else {
     Value = legalize(Value, Legal_Reg | Legal_Imm, true);
     _store(Value, NewAddr);
@@ -4039,9 +4122,9 @@ void TargetX8632::postLower() {
         llvm::SmallBitVector AvailableTypedRegisters =
             AvailableRegisters & getRegisterSetForType(Var->getType());
         if (!AvailableTypedRegisters.any()) {
-          // This is a hack in case we run out of physical registers
-          // due to an excessive number of "push" instructions from
-          // lowering a call.
+          // This is a hack in case we run out of physical registers due
+          // to an excessively long code sequence, as might happen when
+          // lowering arguments in lowerCall().
           AvailableRegisters = WhiteList;
           AvailableTypedRegisters =
               AvailableRegisters & getRegisterSetForType(Var->getType());

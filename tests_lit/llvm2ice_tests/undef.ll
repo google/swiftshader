@@ -37,8 +37,7 @@ define float @undef_float() {
 entry:
   ret float undef
 ; CHECK-LABEL: undef_float:
-; CHECK-NOT: sub esp
-; CHECK: fld
+; CHECK: [L$float$
 }
 
 define <4 x i1> @undef_v4i1() {

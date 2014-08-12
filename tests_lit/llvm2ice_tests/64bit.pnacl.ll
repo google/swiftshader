@@ -33,40 +33,50 @@ entry:
   ret i32 %add3
 }
 ; CHECK: pass64BitArg:
-; CHECK:      push    123
-; CHECK-NEXT: push
-; CHECK-NEXT: push
-; CHECK-NEXT: call    ignore64BitArgNoInline
-; CHECK:      push
-; CHECK-NEXT: push
-; CHECK-NEXT: push    123
-; CHECK-NEXT: push
-; CHECK-NEXT: push
-; CHECK-NEXT: call    ignore64BitArgNoInline
-; CHECK:      push
-; CHECK-NEXT: push
-; CHECK-NEXT: push    123
-; CHECK-NEXT: push
-; CHECK-NEXT: push
-; CHECK-NEXT: call    ignore64BitArgNoInline
+; CHECK:      sub     esp
+; CHECK:      mov     dword ptr [esp+4]
+; CHECK:      mov     dword ptr [esp]
+; CHECK:      mov     dword ptr [esp+8], 123
+; CHECK:      mov     dword ptr [esp+16]
+; CHECK:      mov     dword ptr [esp+12]
+; CHECK:      call    ignore64BitArgNoInline
+; CHECK       sub     esp
+; CHECK:      mov     dword ptr [esp+4]
+; CHECK:      mov     dword ptr [esp]
+; CHECK:      mov     dword ptr [esp+8], 123
+; CHECK:      mov     dword ptr [esp+16]
+; CHECK:      mov     dword ptr [esp+12]
+; CHECK:      call    ignore64BitArgNoInline
+; CHECK:      sub     esp
+; CHECK:      mov     dword ptr [esp+4]
+; CHECK:      mov     dword ptr [esp]
+; CHECK:      mov     dword ptr [esp+8], 123
+; CHECK:      mov     dword ptr [esp+16]
+; CHECK:      mov     dword ptr [esp+12]
+; CHECK:      call    ignore64BitArgNoInline
 ;
 ; OPTM1: pass64BitArg:
-; OPTM1:      push    123
-; OPTM1-NEXT: push
-; OPTM1-NEXT: push
-; OPTM1-NEXT: call    ignore64BitArgNoInline
-; OPTM1:      push
-; OPTM1-NEXT: push
-; OPTM1-NEXT: push    123
-; OPTM1-NEXT: push
-; OPTM1-NEXT: push
-; OPTM1-NEXT: call    ignore64BitArgNoInline
-; OPTM1:      push
-; OPTM1-NEXT: push
-; OPTM1-NEXT: push    123
-; OPTM1-NEXT: push
-; OPTM1-NEXT: push
-; OPTM1-NEXT: call    ignore64BitArgNoInline
+; OPTM1:      sub     esp
+; OPTM1:      mov     dword ptr [esp+4]
+; OPTM1:      mov     dword ptr [esp]
+; OPTM1:      mov     dword ptr [esp+8], 123
+; OPTM1:      mov     dword ptr [esp+16]
+; OPTM1:      mov     dword ptr [esp+12]
+; OPTM1:      call    ignore64BitArgNoInline
+; OPTM1       sub     esp
+; OPTM1:      mov     dword ptr [esp+4]
+; OPTM1:      mov     dword ptr [esp]
+; OPTM1:      mov     dword ptr [esp+8], 123
+; OPTM1:      mov     dword ptr [esp+16]
+; OPTM1:      mov     dword ptr [esp+12]
+; OPTM1:      call    ignore64BitArgNoInline
+; OPTM1:      sub     esp
+; OPTM1:      mov     dword ptr [esp+4]
+; OPTM1:      mov     dword ptr [esp]
+; OPTM1:      mov     dword ptr [esp+8], 123
+; OPTM1:      mov     dword ptr [esp+16]
+; OPTM1:      mov     dword ptr [esp+12]
+; OPTM1:      call    ignore64BitArgNoInline
 
 declare i32 @ignore64BitArgNoInline(i64, i32, i64)
 
@@ -76,19 +86,21 @@ entry:
   ret i32 %call
 }
 ; CHECK: pass64BitConstArg:
-; CHECK:      push    3735928559
-; CHECK-NEXT: push    305419896
-; CHECK-NEXT: push    123
-; CHECK-NEXT: push    ecx
-; CHECK-NEXT: push    eax
+; CHECK:      sub     esp
+; CHECK:      mov     dword ptr [esp+4]
+; CHECK-NEXT: mov     dword ptr [esp]
+; CHECK-NEXT: mov     dword ptr [esp+8], 123
+; CHECK-NEXT: mov     dword ptr [esp+16], 3735928559
+; CHECK-NEXT: mov     dword ptr [esp+12], 305419896
 ; CHECK-NEXT: call    ignore64BitArgNoInline
 ;
 ; OPTM1: pass64BitConstArg:
-; OPTM1:      push    3735928559
-; OPTM1-NEXT: push    305419896
-; OPTM1-NEXT: push    123
-; OPTM1-NEXT: push    dword ptr [
-; OPTM1-NEXT: push    dword ptr [
+; OPTM1:      sub     esp
+; OPTM1:      mov     dword ptr [esp+4]
+; OPTM1-NEXT: mov     dword ptr [esp]
+; OPTM1-NEXT: mov     dword ptr [esp+8], 123
+; OPTM1-NEXT: mov     dword ptr [esp+16], 3735928559
+; OPTM1-NEXT: mov     dword ptr [esp+12], 305419896
 ; OPTM1-NEXT: call    ignore64BitArgNoInline
 
 define internal i64 @return64BitArg(i64 %a) {
@@ -240,14 +252,14 @@ entry:
   ret i64 %div
 }
 ; CHECK-LABEL: div64BitSignedConst:
-; CHECK: push 2874
-; CHECK: push 1942892530
+; CHECK: mov     dword ptr [esp+12], 2874
+; CHECK: mov     dword ptr [esp+8],  1942892530
 ; CHECK: call    __divdi3
 ; CHECK: ret
 ;
 ; OPTM1-LABEL: div64BitSignedConst:
-; OPTM1: push 2874
-; OPTM1: push 1942892530
+; OPTM1: mov     dword ptr [esp+12], 2874
+; OPTM1: mov     dword ptr [esp+8],  1942892530
 ; OPTM1: call    __divdi3
 ; OPTM1: ret
 

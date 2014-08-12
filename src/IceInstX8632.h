@@ -137,6 +137,7 @@ public:
     Add,
     Addps,
     Addss,
+    Adjuststack,
     And,
     Blendvps,
     Br,
@@ -204,6 +205,7 @@ public:
     Shufps,
     Sqrtss,
     Store,
+    StoreP,
     StoreQ,
     Sub,
     Subps,
@@ -338,6 +340,26 @@ private:
   CfgNode *TargetTrue;
   CfgNode *TargetFalse;
   InstX8632Label *Label; // Intra-block branch target
+};
+
+// AdjustStack instruction - subtracts esp by the given amount and
+// updates the stack offset during code emission.
+class InstX8632AdjustStack : public InstX8632 {
+public:
+  static InstX8632AdjustStack *create(Cfg *Func, SizeT Amount) {
+    return new (Func->allocate<InstX8632AdjustStack>())
+        InstX8632AdjustStack(Func, Amount);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Adjuststack); }
+
+private:
+  InstX8632AdjustStack(Cfg *Func, SizeT Amount);
+  InstX8632AdjustStack(const InstX8632AdjustStack &) LLVM_DELETED_FUNCTION;
+  InstX8632AdjustStack &operator=(const InstX8632AdjustStack &)
+      LLVM_DELETED_FUNCTION;
+  SizeT Amount;
 };
 
 // Call instruction.  Arguments should have already been pushed.
@@ -958,6 +980,23 @@ private:
   InstX8632Movp(const InstX8632Movp &) LLVM_DELETED_FUNCTION;
   InstX8632Movp &operator=(const InstX8632Movp &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Movp() {}
+};
+
+class InstX8632StoreP : public InstX8632 {
+public:
+  static InstX8632StoreP *create(Cfg *Func, Operand *Value, OperandX8632 *Mem) {
+    return new (Func->allocate<InstX8632StoreP>())
+        InstX8632StoreP(Func, Value, Mem);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, StoreP); }
+
+private:
+  InstX8632StoreP(Cfg *Func, Operand *Value, OperandX8632 *Mem);
+  InstX8632StoreP(const InstX8632StoreP &) LLVM_DELETED_FUNCTION;
+  InstX8632StoreP &operator=(const InstX8632StoreP &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632StoreP() {}
 };
 
 // This is essentially a "movq" instruction with an OperandX8632Mem

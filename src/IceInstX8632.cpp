@@ -92,6 +92,9 @@ OperandX8632Mem::OperandX8632Mem(Cfg *Func, Type Ty, Variable *Base,
   }
 }
 
+InstX8632AdjustStack::InstX8632AdjustStack(Cfg *Func, SizeT Amount)
+    : InstX8632(Func, InstX8632::Adjuststack, 0, NULL), Amount(Amount) {}
+
 InstX8632Mul::InstX8632Mul(Cfg *Func, Variable *Dest, Variable *Source1,
                            Operand *Source2)
     : InstX8632(Func, InstX8632::Mul, 2, Dest) {
@@ -224,6 +227,12 @@ InstX8632Mov::InstX8632Mov(Cfg *Func, Variable *Dest, Operand *Source)
 InstX8632Movp::InstX8632Movp(Cfg *Func, Variable *Dest, Operand *Source)
     : InstX8632(Func, InstX8632::Movp, 1, Dest) {
   addSource(Source);
+}
+
+InstX8632StoreP::InstX8632StoreP(Cfg *Func, Operand *Value, OperandX8632 *Mem)
+    : InstX8632(Func, InstX8632::StoreP, 2, NULL) {
+  addSource(Value);
+  addSource(Mem);
 }
 
 InstX8632StoreQ::InstX8632StoreQ(Cfg *Func, Operand *Value, OperandX8632 *Mem)
@@ -933,6 +942,24 @@ void InstX8632Store::dump(const Cfg *Func) const {
   getSrc(0)->dump(Func);
 }
 
+void InstX8632StoreP::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 2);
+  Str << "\tmovups\t";
+  getSrc(1)->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632StoreP::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "storep." << getSrc(0)->getType() << " ";
+  getSrc(1)->dump(Func);
+  Str << ", ";
+  getSrc(0)->dump(Func);
+}
+
 void InstX8632StoreQ::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
@@ -1234,6 +1261,17 @@ void InstX8632Pop::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = pop." << getDest()->getType() << " ";
+}
+
+void InstX8632AdjustStack::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\tsub\tesp, " << Amount << "\n";
+  Func->getTarget()->updateStackAdjustment(Amount);
+}
+
+void InstX8632AdjustStack::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "esp = sub.i32 esp, " << Amount;
 }
 
 void InstX8632Push::emit(const Cfg *Func) const {

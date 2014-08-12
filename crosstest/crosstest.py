@@ -134,7 +134,6 @@ if __name__ == '__main__':
             objs.append(bitcode)
 
     linker = 'clang' if os.path.splitext(args.driver)[1] == '.c' else 'clang++'
-    # TODO: Remove -mstackrealign after Subzero supports stack alignment.
-    shellcmd([os.path.join(llvm_bin_path, linker), '-g', '-m32',
-              '-mstackrealign', args.driver] + objs +
+    shellcmd([os.path.join(llvm_bin_path, linker), '-g', '-m32', args.driver] +
+             objs +
              ['-lm', '-lpthread', '-o', os.path.join(args.dir, args.output)])

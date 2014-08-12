@@ -188,6 +188,9 @@ protected:
   void _add(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Add::create(Func, Dest, Src0));
   }
+  void _adjust_stack(int32_t Amount) {
+    Context.insert(InstX8632AdjustStack::create(Func, Amount));
+  }
   void _addps(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Addps::create(Func, Dest, Src0));
   }
@@ -412,6 +415,9 @@ protected:
   void _store(Operand *Value, OperandX8632 *Mem) {
     Context.insert(InstX8632Store::create(Func, Value, Mem));
   }
+  void _storep(Operand *Value, OperandX8632 *Mem) {
+    Context.insert(InstX8632StoreP::create(Func, Value, Mem));
+  }
   void _storeq(Operand *Value, OperandX8632 *Mem) {
     Context.insert(InstX8632StoreQ::create(Func, Value, Mem));
   }
@@ -450,6 +456,7 @@ protected:
 
   const X86InstructionSet InstructionSet;
   bool IsEbpBasedFrame;
+  bool NeedsStackAlignment;
   size_t FrameSizeLocals;
   size_t LocalsSizeBytes;
   llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];

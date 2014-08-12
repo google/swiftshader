@@ -45,11 +45,11 @@ entry:
   ret i32 %add3
 }
 ; CHECK-LABEL: passFpArgs
-; CHECK: push 123
+; CHECK: mov dword ptr [esp+4], 123
 ; CHECK: call ignoreFpArgsNoInline
-; CHECK: push 123
+; CHECK: mov dword ptr [esp+4], 123
 ; CHECK: call ignoreFpArgsNoInline
-; CHECK: push 123
+; CHECK: mov dword ptr [esp+4], 123
 ; CHECK: call ignoreFpArgsNoInline
 
 declare i32 @ignoreFpArgsNoInline(float, i32, double)
@@ -60,7 +60,7 @@ entry:
   ret i32 %call
 }
 ; CHECK-LABEL: passFpConstArg
-; CHECK: push 123
+; CHECK: mov dword ptr [esp+4], 123
 ; CHECK: call ignoreFpArgsNoInline
 
 define internal i32 @passFp32ConstArg(float %a) {
@@ -69,8 +69,8 @@ entry:
   ret i32 %call
 }
 ; CHECK-LABEL: passFp32ConstArg
-; CHECK: push dword
-; CHECK: push 123
+; CHECK: mov dword ptr [esp+4], 123
+; CHECK: movss dword ptr [esp+8]
 ; CHECK: call ignoreFp32ArgsNoInline
 
 declare i32 @ignoreFp32ArgsNoInline(float, i32, float)
@@ -415,8 +415,8 @@ entry:
   ret double %conv
 }
 ; CHECK-LABEL: unsigned64ToDouble
-; CHECK: push 2874
-; CHECK: push 1942892530
+; CHECK: mov dword ptr [esp+4], 2874
+; CHECK: mov dword ptr [esp], 1942892530
 ; CHECK: call cvtui64tod
 ; CHECK: fstp
 
