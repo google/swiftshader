@@ -5,7 +5,7 @@
 ;
 ; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
 ; RUIN: %llvm2ice -O2 --verbose none %s \
-; RUIN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
+; RUIN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
 
 declare void @llvm.nacl.atomic.fence.all()
 declare i32 @llvm.nacl.atomic.load.i32(i32*, i32)

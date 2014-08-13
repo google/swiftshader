@@ -148,19 +148,6 @@ cl::opt<TargetX8632::X86InstructionSet> CLInstructionSet(
         clEnumValN(TargetX8632::SSE4_1, "sse4.1",
                    "Enable SSE 4.1 instructions"), clEnumValEnd));
 
-// Return a string representation of the type that is suitable for use
-// in an identifier.
-IceString typeIdentString(const Type Ty) {
-  IceString Str;
-  llvm::raw_string_ostream BaseOS(Str);
-  if (isVectorType(Ty)) {
-    BaseOS << "v" << typeNumElements(Ty) << typeElementType(Ty);
-  } else {
-    BaseOS << Ty;
-  }
-  return BaseOS.str();
-}
-
 // In some cases, there are x-macros tables for both high-level and
 // low-level instructions/operands that use the same enum key value.
 // The tables are kept separate to maintain a proper separation

@@ -4,9 +4,9 @@
 ; RUN: %llvm2ice --verbose none -ffunction-sections %s | FileCheck %s
 ; TODO: The following line causes this test to fail.
 ; RUIN: %llvm2ice --verbose none %s \
-; RUIN:                | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
+; RUIN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
 ; RUN: %llvm2ice --verbose none --prefix Subzero -ffunction-sections %s \
-; RUN:                 | FileCheck --check-prefix=MANGLE %s
+; RUN:      | FileCheck --check-prefix=MANGLE %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \

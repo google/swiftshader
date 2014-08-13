@@ -2,7 +2,7 @@
 
 ; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:               | llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj
+; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 
 define float @load_arg_plus_200000(float* %arg) {
