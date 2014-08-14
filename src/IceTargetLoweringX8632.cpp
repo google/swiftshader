@@ -4207,8 +4207,8 @@ void TargetGlobalInitX8632::lower(const IceString &Name, SizeT Align,
 
   // zeroinitializer (non-constant):
   //   (.section or .data as above)
-  //   .comm NAME, SIZE, ALIGN
   //   .local NAME
+  //   .comm NAME, SIZE, ALIGN
 
   IceString MangledName = Ctx->mangleName(Name);
   // Start a new section.
@@ -4218,6 +4218,8 @@ void TargetGlobalInitX8632::lower(const IceString &Name, SizeT Align,
     Str << "\t.type\t" << MangledName << ",@object\n";
     Str << "\t.data\n";
   }
+  Str << "\t" << (IsInternal ? ".local" : ".global") << "\t" << MangledName
+      << "\n";
   if (IsZeroInitializer) {
     if (IsConst) {
       Str << "\t.align\t" << Align << "\n";
@@ -4238,8 +4240,6 @@ void TargetGlobalInitX8632::lower(const IceString &Name, SizeT Align,
     }
     Str << "\t.size\t" << MangledName << ", " << Size << "\n";
   }
-  Str << "\t" << (IsInternal ? ".local" : ".global") << "\t" << MangledName
-      << "\n";
 }
 
 } // end of namespace Ice
