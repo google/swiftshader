@@ -24,6 +24,8 @@
 #include "IceTargetLoweringX8632.h"
 #include "llvm/Support/CommandLine.h"
 
+#include <strings.h>
+
 namespace Ice {
 
 namespace {
@@ -128,13 +130,23 @@ const uint32_t X86_CHAR_BIT = 8;
 const uint32_t X86_STACK_ALIGNMENT_BYTES = 16;
 // Size of the return address on the stack
 const uint32_t X86_RET_IP_SIZE_BYTES = 4;
+// The base 2 logarithm of the width in bytes of the smallest stack slot
+const uint32_t X86_LOG2_OF_MIN_STACK_SLOT_SIZE = 2;
+// The base 2 logarithm of the width in bytes of the largest stack slot
+const uint32_t X86_LOG2_OF_MAX_STACK_SLOT_SIZE = 4;
 
-// Value is a size in bytes.  Return Value adjusted to the next highest
-// multiple of the stack alignment.
-uint32_t applyStackAlignment(uint32_t Value) {
+// Value and Alignment are in bytes.  Return Value adjusted to the next
+// highest multiple of Alignment.
+uint32_t applyAlignment(uint32_t Value, uint32_t Alignment) {
   // power of 2
-  assert((X86_STACK_ALIGNMENT_BYTES & (X86_STACK_ALIGNMENT_BYTES - 1)) == 0);
-  return (Value + X86_STACK_ALIGNMENT_BYTES - 1) & -X86_STACK_ALIGNMENT_BYTES;
+  assert((Alignment & (Alignment - 1)) == 0);
+  return (Value + Alignment - 1) & -Alignment;
+}
+
+// Value is in bytes. Return Value adjusted to the next highest multiple
+// of the stack alignment.
+uint32_t applyStackAlignment(uint32_t Value) {
+  return applyAlignment(Value, X86_STACK_ALIGNMENT_BYTES);
 }
 
 // Instruction set options
@@ -248,7 +260,7 @@ void __attribute__((unused)) xMacroIntegrityCheck() {
 TargetX8632::TargetX8632(Cfg *Func)
     : TargetLowering(Func), InstructionSet(CLInstructionSet),
       IsEbpBasedFrame(false), NeedsStackAlignment(false), FrameSizeLocals(0),
-      LocalsSizeBytes(0), NextLabelNumber(0), ComputedLiveRanges(false),
+      SpillAreaSizeBytes(0), NextLabelNumber(0), ComputedLiveRanges(false),
       PhysicalRegisters(VarList(Reg_NUM)) {
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
@@ -520,6 +532,30 @@ void TargetX8632::lowerArguments() {
   }
 }
 
+void TargetX8632::sortByAlignment(VarList &Dest, const VarList &Source) const {
+  // Sort the variables into buckets according to the log of their width
+  // in bytes.
+  const SizeT NumBuckets =
+      X86_LOG2_OF_MAX_STACK_SLOT_SIZE - X86_LOG2_OF_MIN_STACK_SLOT_SIZE + 1;
+  VarList Buckets[NumBuckets];
+
+  for (VarList::const_iterator I = Source.begin(), E = Source.end(); I != E;
+       ++I) {
+    Variable *Var = *I;
+    uint32_t NaturalAlignment = typeWidthInBytesOnStack(Var->getType());
+    SizeT LogNaturalAlignment = ffs(NaturalAlignment) - 1;
+    assert(LogNaturalAlignment >= X86_LOG2_OF_MIN_STACK_SLOT_SIZE);
+    assert(LogNaturalAlignment <= X86_LOG2_OF_MAX_STACK_SLOT_SIZE);
+    SizeT BucketIndex = LogNaturalAlignment - X86_LOG2_OF_MIN_STACK_SLOT_SIZE;
+    Buckets[BucketIndex].push_back(Var);
+  }
+
+  for (SizeT I = 0, E = NumBuckets; I < E; ++I) {
+    VarList &List = Buckets[NumBuckets - I - 1];
+    Dest.insert(Dest.end(), List.begin(), List.end());
+  }
+}
+
 // Helper function for addProlog().
 //
 // This assumes Arg is an argument passed on the stack.  This sets the
@@ -563,6 +599,35 @@ void TargetX8632::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
 Type TargetX8632::stackSlotType() { return IceType_i32; }
 
 void TargetX8632::addProlog(CfgNode *Node) {
+  // Stack frame layout:
+  //
+  // +------------------------+
+  // | 1. return address      |
+  // +------------------------+
+  // | 2. preserved registers |
+  // +------------------------+
+  // | 3. padding             |
+  // +------------------------+
+  // | 4. global spill area   |
+  // +------------------------+
+  // | 5. padding             |
+  // +------------------------+
+  // | 6. local spill area    |
+  // +------------------------+
+  // | 7. padding             |
+  // +------------------------+
+  // | 8. allocas             |
+  // +------------------------+
+  //
+  // The following variables record the size in bytes of the given areas:
+  //  * X86_RET_IP_SIZE_BYTES:  area 1
+  //  * PreservedRegsSizeBytes: area 2
+  //  * SpillAreaPaddingBytes:  area 3
+  //  * GlobalsSize:            area 4
+  //  * GlobalsAndSubsequentPaddingSize: areas 4 - 5
+  //  * LocalsSpillAreaSize:    area 6
+  //  * SpillAreaSizeBytes:     areas 3 - 7
+
   // If SimpleCoalescing is false, each variable without a register
   // gets its own unique stack slot, which leads to large stack
   // frames.  If SimpleCoalescing is true, then each "global" variable
@@ -573,7 +638,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   const bool SimpleCoalescing = true;
   size_t InArgsSizeBytes = 0;
   size_t PreservedRegsSizeBytes = 0;
-  LocalsSizeBytes = 0;
+  SpillAreaSizeBytes = 0;
   Context.init(Node);
   Context.setInsertPoint(Context.getCur());
 
@@ -595,10 +660,19 @@ void TargetX8632::addProlog(CfgNode *Node) {
   std::vector<size_t> LocalsSize(Func->getNumNodes());
 
   // Prepass.  Compute RegsUsed, PreservedRegsSizeBytes, and
-  // LocalsSizeBytes.
+  // SpillAreaSizeBytes.
   RegsUsed = llvm::SmallBitVector(CalleeSaves.size());
   const VarList &Variables = Func->getVariables();
   const VarList &Args = Func->getArgs();
+  VarList SpilledVariables, SortedSpilledVariables,
+      VariablesLinkedToSpillSplots;
+
+  // If there is a separate locals area, this specifies the alignment
+  // for it.
+  uint32_t LocalsSlotsAlignmentBytes = 0;
+  // The entire spill locations area gets aligned to largest natural
+  // alignment of the variables that have a spill slot.
+  uint32_t SpillAreaAlignmentBytes = 0;
   for (VarList::const_iterator I = Variables.begin(), E = Variables.end();
        I != E; ++I) {
     Variable *Var = *I;
@@ -617,25 +691,42 @@ void TargetX8632::addProlog(CfgNode *Node) {
     // that stack slot.
     if (Var->getWeight() == RegWeight::Zero && Var->getRegisterOverlap()) {
       if (Variable *Linked = Var->getPreferredRegister()) {
-        if (!Linked->hasReg())
+        if (!Linked->hasReg()) {
+          VariablesLinkedToSpillSplots.push_back(Var);
           continue;
+        }
       }
     }
+    SpilledVariables.push_back(Var);
+  }
+
+  SortedSpilledVariables.reserve(SpilledVariables.size());
+  sortByAlignment(SortedSpilledVariables, SpilledVariables);
+  for (VarList::const_iterator I = SortedSpilledVariables.begin(),
+                               E = SortedSpilledVariables.end();
+       I != E; ++I) {
+    Variable *Var = *I;
     size_t Increment = typeWidthInBytesOnStack(Var->getType());
+    if (!SpillAreaAlignmentBytes)
+      SpillAreaAlignmentBytes = Increment;
     if (SimpleCoalescing) {
       if (Var->isMultiblockLife()) {
         GlobalsSize += Increment;
       } else {
         SizeT NodeIndex = Var->getLocalUseNode()->getIndex();
         LocalsSize[NodeIndex] += Increment;
-        if (LocalsSize[NodeIndex] > LocalsSizeBytes)
-          LocalsSizeBytes = LocalsSize[NodeIndex];
+        if (LocalsSize[NodeIndex] > SpillAreaSizeBytes)
+          SpillAreaSizeBytes = LocalsSize[NodeIndex];
+        if (!LocalsSlotsAlignmentBytes)
+          LocalsSlotsAlignmentBytes = Increment;
       }
     } else {
-      LocalsSizeBytes += Increment;
+      SpillAreaSizeBytes += Increment;
     }
   }
-  LocalsSizeBytes += GlobalsSize;
+  uint32_t LocalsSpillAreaSize = SpillAreaSizeBytes;
+
+  SpillAreaSizeBytes += GlobalsSize;
 
   // Add push instructions for preserved registers.
   for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
@@ -658,17 +749,40 @@ void TargetX8632::addProlog(CfgNode *Node) {
     _mov(ebp, esp);
   }
 
-  if (NeedsStackAlignment) {
-    uint32_t StackSize = applyStackAlignment(
-        X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes + LocalsSizeBytes);
-    LocalsSizeBytes =
-        StackSize - X86_RET_IP_SIZE_BYTES - PreservedRegsSizeBytes;
+  // Align the variables area. SpillAreaPaddingBytes is the size of
+  // the region after the preserved registers and before the spill
+  // areas.
+  uint32_t SpillAreaPaddingBytes = 0;
+  if (SpillAreaAlignmentBytes) {
+    assert(SpillAreaAlignmentBytes <= X86_STACK_ALIGNMENT_BYTES);
+    uint32_t PaddingStart = X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
+    uint32_t SpillAreaStart =
+        applyAlignment(PaddingStart, SpillAreaAlignmentBytes);
+    SpillAreaPaddingBytes = SpillAreaStart - PaddingStart;
+    SpillAreaSizeBytes += SpillAreaPaddingBytes;
   }
 
-  // Generate "sub esp, LocalsSizeBytes"
-  if (LocalsSizeBytes)
+  // If there are separate globals and locals areas, make sure the
+  // locals area is aligned by padding the end of the globals area.
+  uint32_t GlobalsAndSubsequentPaddingSize = GlobalsSize;
+  if (LocalsSlotsAlignmentBytes) {
+    assert(LocalsSlotsAlignmentBytes <= SpillAreaAlignmentBytes);
+    GlobalsAndSubsequentPaddingSize =
+        applyAlignment(GlobalsSize, LocalsSlotsAlignmentBytes);
+    SpillAreaSizeBytes += GlobalsAndSubsequentPaddingSize - GlobalsSize;
+  }
+
+  // Align esp if necessary.
+  if (NeedsStackAlignment) {
+    uint32_t StackOffset = X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
+    uint32_t StackSize = applyStackAlignment(StackOffset + SpillAreaSizeBytes);
+    SpillAreaSizeBytes = StackSize - StackOffset;
+  }
+
+  // Generate "sub esp, SpillAreaSizeBytes"
+  if (SpillAreaSizeBytes)
     _sub(getPhysicalRegister(Reg_esp),
-         Ctx->getConstantInt(IceType_i32, LocalsSizeBytes));
+         Ctx->getConstantInt(IceType_i32, SpillAreaSizeBytes));
 
   resetStackAdjustment();
 
@@ -678,7 +792,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   Variable *FramePtr = getPhysicalRegister(getFrameOrStackReg());
   size_t BasicFrameOffset = PreservedRegsSizeBytes + X86_RET_IP_SIZE_BYTES;
   if (!IsEbpBasedFrame)
-    BasicFrameOffset += LocalsSizeBytes;
+    BasicFrameOffset += SpillAreaSizeBytes;
 
   unsigned NumXmmArgs = 0;
   for (SizeT i = 0; i < Args.size(); ++i) {
@@ -692,40 +806,24 @@ void TargetX8632::addProlog(CfgNode *Node) {
   }
 
   // Fill in stack offsets for locals.
-  size_t TotalGlobalsSize = GlobalsSize;
-  GlobalsSize = 0;
+  size_t GlobalsSpaceUsed = SpillAreaPaddingBytes;
   LocalsSize.assign(LocalsSize.size(), 0);
-  size_t NextStackOffset = 0;
-  for (VarList::const_iterator I = Variables.begin(), E = Variables.end();
+  size_t NextStackOffset = GlobalsSpaceUsed;
+  for (VarList::const_iterator I = SortedSpilledVariables.begin(),
+                               E = SortedSpilledVariables.end();
        I != E; ++I) {
     Variable *Var = *I;
-    if (Var->hasReg()) {
-      RegsUsed[Var->getRegNum()] = true;
-      continue;
-    }
-    if (Var->getIsArg())
-      continue;
-    if (ComputedLiveRanges && Var->getLiveRange().isEmpty())
-      continue;
-    if (Var->getWeight() == RegWeight::Zero && Var->getRegisterOverlap()) {
-      if (Variable *Linked = Var->getPreferredRegister()) {
-        if (!Linked->hasReg()) {
-          // TODO: Make sure Linked has already been assigned a stack
-          // slot.
-          Var->setStackOffset(Linked->getStackOffset());
-          continue;
-        }
-      }
-    }
     size_t Increment = typeWidthInBytesOnStack(Var->getType());
     if (SimpleCoalescing) {
       if (Var->isMultiblockLife()) {
-        GlobalsSize += Increment;
-        NextStackOffset = GlobalsSize;
+        GlobalsSpaceUsed += Increment;
+        NextStackOffset = GlobalsSpaceUsed;
       } else {
         SizeT NodeIndex = Var->getLocalUseNode()->getIndex();
         LocalsSize[NodeIndex] += Increment;
-        NextStackOffset = TotalGlobalsSize + LocalsSize[NodeIndex];
+        NextStackOffset = SpillAreaPaddingBytes +
+                          GlobalsAndSubsequentPaddingSize +
+                          LocalsSize[NodeIndex];
       }
     } else {
       NextStackOffset += Increment;
@@ -733,18 +831,45 @@ void TargetX8632::addProlog(CfgNode *Node) {
     if (IsEbpBasedFrame)
       Var->setStackOffset(-NextStackOffset);
     else
-      Var->setStackOffset(LocalsSizeBytes - NextStackOffset);
+      Var->setStackOffset(SpillAreaSizeBytes - NextStackOffset);
   }
-  this->FrameSizeLocals = NextStackOffset;
+  this->FrameSizeLocals = NextStackOffset - SpillAreaPaddingBytes;
   this->HasComputedFrame = true;
 
+  // Assign stack offsets to variables that have been linked to spilled
+  // variables.
+  for (VarList::const_iterator I = VariablesLinkedToSpillSplots.begin(),
+                               E = VariablesLinkedToSpillSplots.end();
+       I != E; ++I) {
+    Variable *Var = *I;
+    Variable *Linked = Var->getPreferredRegister();
+    Var->setStackOffset(Linked->getStackOffset());
+  }
+
   if (Func->getContext()->isVerbose(IceV_Frame)) {
-    Func->getContext()->getStrDump() << "LocalsSizeBytes=" << LocalsSizeBytes
-                                     << "\n"
-                                     << "InArgsSizeBytes=" << InArgsSizeBytes
-                                     << "\n"
-                                     << "PreservedRegsSizeBytes="
-                                     << PreservedRegsSizeBytes << "\n";
+    Ostream &Str = Func->getContext()->getStrDump();
+
+    Str << "Stack layout:\n";
+    uint32_t EspAdjustmentPaddingSize =
+        SpillAreaSizeBytes - LocalsSpillAreaSize -
+        GlobalsAndSubsequentPaddingSize - SpillAreaPaddingBytes;
+    Str << " in-args = " << InArgsSizeBytes << " bytes\n"
+        << " return address = " << X86_RET_IP_SIZE_BYTES << " bytes\n"
+        << " preserved registers = " << PreservedRegsSizeBytes << " bytes\n"
+        << " spill area padding = " << SpillAreaPaddingBytes << " bytes\n"
+        << " globals spill area = " << GlobalsSize << " bytes\n"
+        << " globals-locals spill areas intermediate padding = "
+        << GlobalsAndSubsequentPaddingSize - GlobalsSize << " bytes\n"
+        << " locals spill area = " << LocalsSpillAreaSize << " bytes\n"
+        << " esp alignment padding = " << EspAdjustmentPaddingSize
+        << " bytes\n";
+
+    Str << "Stack details:\n"
+        << " esp adjustment = " << SpillAreaSizeBytes << " bytes\n"
+        << " spill area alignment = " << SpillAreaAlignmentBytes << " bytes\n"
+        << " locals spill area alignment = " << LocalsSlotsAlignmentBytes
+        << " bytes\n"
+        << " is ebp based = " << IsEbpBasedFrame << "\n";
   }
 }
 
@@ -771,9 +896,9 @@ void TargetX8632::addEpilog(CfgNode *Node) {
     _mov(esp, ebp);
     _pop(ebp);
   } else {
-    // add esp, LocalsSizeBytes
-    if (LocalsSizeBytes)
-      _add(esp, Ctx->getConstantInt(IceType_i32, LocalsSizeBytes));
+    // add esp, SpillAreaSizeBytes
+    if (SpillAreaSizeBytes)
+      _add(esp, Ctx->getConstantInt(IceType_i32, SpillAreaSizeBytes));
   }
 
   // Add pop instructions for preserved registers.
@@ -991,8 +1116,7 @@ void TargetX8632::lowerAlloca(const InstAlloca *Inst) {
   if (ConstantInteger *ConstantTotalSize =
           llvm::dyn_cast<ConstantInteger>(TotalSize)) {
     uint32_t Value = ConstantTotalSize->getValue();
-    // Round Value up to the next highest multiple of the alignment.
-    Value = (Value + Alignment - 1) & -Alignment;
+    Value = applyAlignment(Value, Alignment);
     _sub(esp, Ctx->getConstantInt(IceType_i32, Value));
   } else {
     // Non-constant sizes need to be adjusted to the next highest
@@ -1239,12 +1363,6 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
   } else if (isVectorType(Dest->getType())) {
     // TODO: Trap on integer divide and integer modulo by zero.
     // See: https://code.google.com/p/nativeclient/issues/detail?id=3899
-    //
-    // TODO(wala): ALIGNHACK: All vector arithmetic is currently done in
-    // registers.  This is a workaround of the fact that there is no
-    // support for aligning stack operands.  Once there is support,
-    // remove LEGAL_HACK.
-#define LEGAL_HACK(s) legalizeToVar((s))
     switch (Inst->getOp()) {
     case InstArithmetic::_num:
       llvm_unreachable("Unknown arithmetic operator");
@@ -1252,31 +1370,31 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
     case InstArithmetic::Add: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _padd(T, LEGAL_HACK(Src1));
+      _padd(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::And: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _pand(T, LEGAL_HACK(Src1));
+      _pand(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Or: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _por(T, LEGAL_HACK(Src1));
+      _por(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Xor: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _pxor(T, LEGAL_HACK(Src1));
+      _pxor(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Sub: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _psub(T, LEGAL_HACK(Src1));
+      _psub(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Mul: {
@@ -1287,7 +1405,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       if (TypesAreValidForPmull && InstructionSetIsValidForPmull) {
         Variable *T = makeReg(Dest->getType());
         _movp(T, Src0);
-        _pmull(T, LEGAL_HACK(Src1));
+        _pmull(T, Src1);
         _movp(Dest, T);
       } else if (Dest->getType() == IceType_v4i32) {
         // Lowering sequence:
@@ -1320,14 +1438,9 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
         Variable *T3 = makeReg(IceType_v4i32);
         Variable *T4 = makeReg(IceType_v4i32);
         _movp(T1, Src0);
-        // TODO(wala): ALIGHNHACK: Replace Src0R with Src0 and Src1R
-        // with Src1 after stack operand alignment support is
-        // implemented.
-        Variable *Src0R = LEGAL_HACK(Src0);
-        Variable *Src1R = LEGAL_HACK(Src1);
-        _pshufd(T2, Src0R, Mask1030);
-        _pshufd(T3, Src1R, Mask1030);
-        _pmuludq(T1, Src1R);
+        _pshufd(T2, Src0, Mask1030);
+        _pshufd(T3, Src1, Mask1030);
+        _pmuludq(T1, Src1);
         _pmuludq(T2, T3);
         _shufps(T1, T2, Ctx->getConstantInt(IceType_i8, Mask0202));
         _pshufd(T4, T1, Ctx->getConstantInt(IceType_i8, Mask0213));
@@ -1349,32 +1462,31 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
     case InstArithmetic::Fadd: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _addps(T, LEGAL_HACK(Src1));
+      _addps(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Fsub: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _subps(T, LEGAL_HACK(Src1));
+      _subps(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Fmul: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _mulps(T, LEGAL_HACK(Src1));
+      _mulps(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Fdiv: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _divps(T, LEGAL_HACK(Src1));
+      _divps(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Frem:
       scalarizeArithmetic(Inst->getOp(), Dest, Src0, Src1);
       break;
     }
-#undef LEGAL_HACK
   } else { // Dest->getType() is non-i64 scalar
     Variable *T_edx = NULL;
     Variable *T = NULL;
@@ -2199,22 +2311,15 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
     _pextr(ExtractedElementR, SourceVectR, Mask);
   } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
     // Use pshufd and movd/movss.
-    //
-    // ALIGNHACK: Force vector operands to registers in instructions
-    // that require aligned memory operands until support for data
-    // alignment is implemented.
-#define ALIGN_HACK(Vect) legalizeToVar((Vect))
-    Operand *SourceVectRM =
-        legalize(SourceVectNotLegalized, Legal_Reg | Legal_Mem);
     Variable *T = NULL;
     if (Index) {
       // The shuffle only needs to occur if the element to be extracted
       // is not at the lowest index.
       Constant *Mask = Ctx->getConstantInt(IceType_i8, Index);
       T = makeReg(Ty);
-      _pshufd(T, ALIGN_HACK(SourceVectRM), Mask);
+      _pshufd(T, legalize(SourceVectNotLegalized, Legal_Reg | Legal_Mem), Mask);
     } else {
-      T = ALIGN_HACK(SourceVectRM);
+      T = legalizeToVar(SourceVectNotLegalized);
     }
 
     if (InVectorElementTy == IceType_i32) {
@@ -2228,7 +2333,6 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
       Context.insert(InstFakeDef::create(Func, ExtractedElementR));
       _movss(ExtractedElementR, T);
     }
-#undef ALIGN_HACK
   } else {
     assert(Ty == IceType_v16i8 || Ty == IceType_v16i1);
     // Spill the value to a stack slot and do the extraction in memory.
@@ -2287,23 +2391,18 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
 
-      // ALIGNHACK: Without support for data alignment, both operands to
-      // cmpps need to be forced into registers.  Once support for data
-      // alignment is implemented, remove LEGAL_HACK.
-#define LEGAL_HACK(Vect) legalizeToVar((Vect))
       switch (Condition) {
       default: {
         InstX8632Cmpps::CmppsCond Predicate = TableFcmp[Index].Predicate;
         assert(Predicate != InstX8632Cmpps::Cmpps_Invalid);
         T = makeReg(Src0RM->getType());
         _movp(T, Src0RM);
-        _cmpps(T, LEGAL_HACK(Src1RM), Predicate);
+        _cmpps(T, Src1RM, Predicate);
       } break;
       case InstFcmp::One: {
         // Check both unequal and ordered.
         T = makeReg(Src0RM->getType());
         Variable *T2 = makeReg(Src0RM->getType());
-        Src1RM = LEGAL_HACK(Src1RM);
         _movp(T, Src0RM);
         _cmpps(T, Src1RM, InstX8632Cmpps::Cmpps_neq);
         _movp(T2, Src0RM);
@@ -2314,7 +2413,6 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
         // Check both equal or unordered.
         T = makeReg(Src0RM->getType());
         Variable *T2 = makeReg(Src0RM->getType());
-        Src1RM = LEGAL_HACK(Src1RM);
         _movp(T, Src0RM);
         _cmpps(T, Src1RM, InstX8632Cmpps::Cmpps_eq);
         _movp(T2, Src0RM);
@@ -2322,7 +2420,6 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
         _por(T, T2);
       } break;
       }
-#undef LEGAL_HACK
     }
 
     _movp(Dest, T);
@@ -2427,10 +2524,6 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
       Src1RM = T1;
     }
 
-    // TODO: ALIGNHACK: Both operands to compare instructions need to be
-    // in registers until data alignment support is implemented.  Once
-    // there is support for data alignment, LEGAL_HACK can be removed.
-#define LEGAL_HACK(Vect) legalizeToVar((Vect))
     Variable *T = makeReg(Ty);
     switch (Condition) {
     default:
@@ -2438,42 +2531,41 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
       break;
     case InstIcmp::Eq: {
       _movp(T, Src0RM);
-      _pcmpeq(T, LEGAL_HACK(Src1RM));
+      _pcmpeq(T, Src1RM);
     } break;
     case InstIcmp::Ne: {
       _movp(T, Src0RM);
-      _pcmpeq(T, LEGAL_HACK(Src1RM));
+      _pcmpeq(T, Src1RM);
       Variable *MinusOne = makeVectorOfMinusOnes(Ty);
       _pxor(T, MinusOne);
     } break;
     case InstIcmp::Ugt:
     case InstIcmp::Sgt: {
       _movp(T, Src0RM);
-      _pcmpgt(T, LEGAL_HACK(Src1RM));
+      _pcmpgt(T, Src1RM);
     } break;
     case InstIcmp::Uge:
     case InstIcmp::Sge: {
       // !(Src1RM > Src0RM)
       _movp(T, Src1RM);
-      _pcmpgt(T, LEGAL_HACK(Src0RM));
+      _pcmpgt(T, Src0RM);
       Variable *MinusOne = makeVectorOfMinusOnes(Ty);
       _pxor(T, MinusOne);
     } break;
     case InstIcmp::Ult:
     case InstIcmp::Slt: {
       _movp(T, Src1RM);
-      _pcmpgt(T, LEGAL_HACK(Src0RM));
+      _pcmpgt(T, Src0RM);
     } break;
     case InstIcmp::Ule:
     case InstIcmp::Sle: {
       // !(Src0RM > Src1RM)
       _movp(T, Src0RM);
-      _pcmpgt(T, LEGAL_HACK(Src1RM));
+      _pcmpgt(T, Src1RM);
       Variable *MinusOne = makeVectorOfMinusOnes(Ty);
       _pxor(T, MinusOne);
     } break;
     }
-#undef LEGAL_HACK
 
     _movp(Dest, T);
     eliminateNextVectorSextInstruction(Dest);
@@ -2649,12 +2741,7 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     Constant *Mask1Constant = Ctx->getConstantInt(IceType_i8, Mask1[Index - 1]);
     Constant *Mask2Constant = Ctx->getConstantInt(IceType_i8, Mask2[Index - 1]);
 
-    // ALIGNHACK: Force vector operands to registers in instructions
-    // that require aligned memory operands until support for data
-    // alignment is implemented.
-#define ALIGN_HACK(Vect) legalizeToVar((Vect))
     if (Index == 1) {
-      SourceVectRM = ALIGN_HACK(SourceVectRM);
       _shufps(ElementR, SourceVectRM, Mask1Constant);
       _shufps(ElementR, SourceVectRM, Mask2Constant);
       _movp(Inst->getDest(), ElementR);
@@ -2665,7 +2752,6 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
       _shufps(T, ElementR, Mask2Constant);
       _movp(Inst->getDest(), T);
     }
-#undef ALIGN_HACK
   } else {
     assert(Ty == IceType_v16i8 || Ty == IceType_v16i1);
     // Spill the value to a stack slot and perform the insertion in
@@ -3627,10 +3713,6 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     Variable *T = makeReg(SrcTy);
     Operand *SrcTRM = legalize(SrcT, Legal_Reg | Legal_Mem);
     Operand *SrcFRM = legalize(SrcF, Legal_Reg | Legal_Mem);
-    // ALIGNHACK: Until data alignment support is implemented, vector
-    // instructions need to have vector operands in registers.  Once
-    // there is support for data alignment, LEGAL_HACK can be removed.
-#define LEGAL_HACK(Vect) legalizeToVar((Vect))
     if (InstructionSet >= SSE4_1) {
       // TODO(wala): If the condition operand is a constant, use blendps
       // or pblendw.
@@ -3643,7 +3725,7 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
         _movp(xmm0, ConditionRM);
         _psll(xmm0, Ctx->getConstantInt(IceType_i8, 31));
         _movp(T, SrcFRM);
-        _blendvps(T, LEGAL_HACK(SrcTRM), xmm0);
+        _blendvps(T, SrcTRM, xmm0);
         _movp(Dest, T);
       } else {
         assert(typeNumElements(SrcTy) == 8 || typeNumElements(SrcTy) == 16);
@@ -3652,7 +3734,7 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
         Variable *xmm0 = makeReg(SignExtTy, Reg_xmm0);
         lowerCast(InstCast::create(Func, InstCast::Sext, xmm0, Condition));
         _movp(T, SrcFRM);
-        _pblendvb(T, LEGAL_HACK(SrcTRM), xmm0);
+        _pblendvb(T, SrcTRM, xmm0);
         _movp(Dest, T);
       }
       return;
@@ -3676,11 +3758,10 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
       _movp(T, ConditionRM);
     }
     _movp(T2, T);
-    _pand(T, LEGAL_HACK(SrcTRM));
-    _pandn(T2, LEGAL_HACK(SrcFRM));
+    _pand(T, SrcTRM);
+    _pandn(T2, SrcFRM);
     _por(T, T2);
     _movp(Dest, T);
-#undef LEGAL_HACK
 
     return;
   }

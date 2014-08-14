@@ -134,7 +134,7 @@ public:
 
   virtual bool hasFramePointer() const { return false; }
   virtual SizeT getFrameOrStackReg() const = 0;
-  virtual size_t typeWidthInBytesOnStack(Type Ty) = 0;
+  virtual size_t typeWidthInBytesOnStack(Type Ty) const = 0;
   bool hasComputedFrame() const { return HasComputedFrame; }
   int32_t getStackAdjustment() const { return StackAdjustment; }
   void updateStackAdjustment(int32_t Offset) { StackAdjustment += Offset; }

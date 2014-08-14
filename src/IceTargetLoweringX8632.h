@@ -40,7 +40,7 @@ public:
   virtual SizeT getFrameOrStackReg() const {
     return IsEbpBasedFrame ? Reg_ebp : Reg_esp;
   }
-  virtual size_t typeWidthInBytesOnStack(Type Ty) {
+  virtual size_t typeWidthInBytesOnStack(Type Ty) const {
     // Round up to the next multiple of 4 bytes.  In particular, i1,
     // i8, and i16 are rounded up to 4 bytes.
     return (typeWidthInBytes(Ty) + 3) & ~3;
@@ -124,6 +124,8 @@ protected:
 
   void scalarizeArithmetic(InstArithmetic::OpKind K, Variable *Dest,
                            Operand *Src0, Operand *Src1);
+
+  void sortByAlignment(VarList &Dest, const VarList &Source) const;
 
   // Operand legalization helpers.  To deal with address mode
   // constraints, the helpers will create a new Operand and emit
@@ -458,7 +460,7 @@ protected:
   bool IsEbpBasedFrame;
   bool NeedsStackAlignment;
   size_t FrameSizeLocals;
-  size_t LocalsSizeBytes;
+  size_t SpillAreaSizeBytes;
   llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
