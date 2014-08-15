@@ -134,6 +134,8 @@ const uint32_t X86_RET_IP_SIZE_BYTES = 4;
 const uint32_t X86_LOG2_OF_MIN_STACK_SLOT_SIZE = 2;
 // The base 2 logarithm of the width in bytes of the largest stack slot
 const uint32_t X86_LOG2_OF_MAX_STACK_SLOT_SIZE = 4;
+// The number of different NOP instructions
+const uint32_t X86_NUM_NOP_VARIANTS = 5;
 
 // Value and Alignment are in bytes.  Return Value adjusted to the next
 // highest multiple of Alignment.
@@ -391,6 +393,11 @@ void TargetX8632::translateO2() {
     return;
   T_genFrame.printElapsedUs(Context, "genFrame()");
   Func->dump("After stack frame mapping");
+
+  // Nop insertion
+  if (shouldDoNopInsertion()) {
+    Func->doNopInsertion();
+  }
 }
 
 void TargetX8632::translateOm1() {
@@ -429,6 +436,11 @@ void TargetX8632::translateOm1() {
     return;
   T_genFrame.printElapsedUs(Context, "genFrame()");
   Func->dump("After stack frame mapping");
+
+  // Nop insertion
+  if (shouldDoNopInsertion()) {
+    Func->doNopInsertion();
+  }
 }
 
 IceString TargetX8632::RegNames[] = {
@@ -3667,6 +3679,13 @@ void TargetX8632::doAddressOptLoad() {
                                    Shift, SegmentReg);
     Inst->setDeleted();
     Context.insert(InstLoad::create(Func, Dest, Addr));
+  }
+}
+
+void TargetX8632::randomlyInsertNop(float Probability) {
+  RandomNumberGeneratorWrapper RNG(Ctx->getRNG());
+  if (RNG.getTrueWithProbability(Probability)) {
+    _nop(RNG.next(X86_NUM_NOP_VARIANTS));
   }
 }
 

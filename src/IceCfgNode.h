@@ -55,6 +55,7 @@ public:
   void placePhiStores();
   void deletePhis();
   void doAddressOpt();
+  void doNopInsertion();
   void genCode();
   void livenessLightweight();
   bool liveness(Liveness *Liveness);

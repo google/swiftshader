@@ -88,6 +88,7 @@ public:
   void deletePhis();
   void doAddressOpt();
   void doArgLowering();
+  void doNopInsertion();
   void genCode();
   void genFrame();
   void livenessLightweight();

@@ -191,6 +191,24 @@ void CfgNode::doAddressOpt() {
   }
 }
 
+void CfgNode::doNopInsertion() {
+  TargetLowering *Target = Func->getTarget();
+  LoweringContext &Context = Target->getContext();
+  Context.init(this);
+  while (!Context.atEnd()) {
+    Target->doNopInsertion();
+    // Ensure Cur=Next, so that the nops are inserted before the current
+    // instruction rather than after.
+    Context.advanceNext();
+    Context.advanceCur();
+  }
+  // Insert before all instructions.
+  Context.setInsertPoint(getInsts().begin());
+  Context.advanceNext();
+  Context.advanceCur();
+  Target->doNopInsertion();
+}
+
 // Drives the target lowering.  Passes the current instruction and the
 // next non-deleted instruction for target lowering.
 void CfgNode::genCode() {

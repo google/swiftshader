@@ -121,6 +121,12 @@ void Cfg::doAddressOpt() {
   }
 }
 
+void Cfg::doNopInsertion() {
+  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
+    (*I)->doNopInsertion();
+  }
+}
+
 void Cfg::genCode() {
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     (*I)->genCode();

@@ -241,6 +241,9 @@ InstX8632Movzx::InstX8632Movzx(Cfg *Func, Variable *Dest, Operand *Source)
   addSource(Source);
 }
 
+InstX8632Nop::InstX8632Nop(Cfg *Func, InstX8632Nop::NopVariant Variant)
+    : InstX8632(Func, InstX8632::Nop, 0, NULL), Variant(Variant) {}
+
 InstX8632Fld::InstX8632Fld(Cfg *Func, Operand *Src)
     : InstX8632(Func, InstX8632::Fld, 1, NULL) {
   addSource(Src);
@@ -1056,6 +1059,17 @@ void InstX8632Movzx::dump(const Cfg *Func) const {
   dumpDest(Func);
   Str << ", ";
   dumpSources(Func);
+}
+
+void InstX8632Nop::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  // TODO: Emit the right code for each variant.
+  Str << "\tnop\t# variant = " << Variant << "\n";
+}
+
+void InstX8632Nop::dump(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "nop (variant = " << Variant << ")";
 }
 
 void InstX8632Fld::emit(const Cfg *Func) const {

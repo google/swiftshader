@@ -104,6 +104,7 @@ protected:
   virtual void lowerUnreachable(const InstUnreachable *Inst);
   virtual void doAddressOptLoad();
   virtual void doAddressOptStore();
+  virtual void randomlyInsertNop(float Probability);
 
   // Naive lowering of cmpxchg.
   void lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr, Operand *Expected,
@@ -326,6 +327,9 @@ protected:
   }
   void _neg(Variable *SrcDest) {
     Context.insert(InstX8632Neg::create(Func, SrcDest));
+  }
+  void _nop(SizeT Variant) {
+    Context.insert(InstX8632Nop::create(Func, Variant));
   }
   void _or(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Or::create(Func, Dest, Src0));

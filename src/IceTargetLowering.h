@@ -121,6 +121,8 @@ public:
 
   // Tries to do address mode optimization on a single instruction.
   void doAddressOpt();
+  // Randomly insert NOPs.
+  void doNopInsertion();
   // Lowers a single instruction.
   void lower();
 
@@ -136,6 +138,7 @@ public:
   virtual SizeT getFrameOrStackReg() const = 0;
   virtual size_t typeWidthInBytesOnStack(Type Ty) const = 0;
   bool hasComputedFrame() const { return HasComputedFrame; }
+  bool shouldDoNopInsertion() const;
   int32_t getStackAdjustment() const { return StackAdjustment; }
   void updateStackAdjustment(int32_t Offset) { StackAdjustment += Offset; }
   void resetStackAdjustment() { StackAdjustment = 0; }
@@ -193,6 +196,7 @@ protected:
 
   virtual void doAddressOptLoad() {}
   virtual void doAddressOptStore() {}
+  virtual void randomlyInsertNop(float Probability) = 0;
   // This gives the target an opportunity to post-process the lowered
   // expansion before returning.  The primary intention is to do some
   // Register Manager activity as necessary, specifically to eagerly

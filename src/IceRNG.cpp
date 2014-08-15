@@ -26,6 +26,8 @@ cl::opt<unsigned long long>
 RandomSeed("rng-seed", cl::desc("Seed the random number generator"),
            cl::init(time(0)));
 
+const unsigned MAX = 2147483647;
+
 } // end of anonymous namespace
 
 // TODO(wala,stichnot): Switch to RNG implementation from LLVM or C++11.
@@ -39,8 +41,12 @@ RandomNumberGenerator::RandomNumberGenerator(llvm::StringRef)
 
 uint64_t RandomNumberGenerator::next(uint64_t Max) {
   // Lewis, Goodman, and Miller (1969)
-  State = (16807 * State) % 2147483647;
+  State = (16807 * State) % MAX;
   return State % Max;
+}
+
+bool RandomNumberGeneratorWrapper::getTrueWithProbability(float Probability) {
+  return RNG.next(MAX) < Probability * MAX;
 }
 
 } // end of namespace Ice

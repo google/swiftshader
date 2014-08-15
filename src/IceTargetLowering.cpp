@@ -22,7 +22,24 @@
 #include "IceTargetLowering.h"
 #include "IceTargetLoweringX8632.h"
 
+#include "llvm/Support/CommandLine.h"
+
 namespace Ice {
+
+namespace {
+
+namespace cl = llvm::cl;
+cl::opt<bool> DoNopInsertion("nop-insertion", cl::desc("Randomly insert NOPs"),
+                             cl::init(false));
+
+cl::opt<int> MaxNopsPerInstruction(
+    "max-nops-per-instruction",
+    cl::desc("Max number of nops to insert per instruction"), cl::init(1));
+
+cl::opt<int> NopProbabilityAsPercentage(
+    "nop-insertion-percentage",
+    cl::desc("Nop insertion probability as percentage"), cl::init(10));
+} // end of anonymous namespace
 
 void LoweringContext::init(CfgNode *N) {
   Node = N;
@@ -88,6 +105,20 @@ void TargetLowering::doAddressOpt() {
     doAddressOptStore();
   Context.advanceCur();
   Context.advanceNext();
+}
+
+bool TargetLowering::shouldDoNopInsertion() const { return DoNopInsertion; }
+
+void TargetLowering::doNopInsertion() {
+  Inst *I = *Context.getCur();
+  bool ShouldSkip = llvm::isa<InstFakeUse>(I) || llvm::isa<InstFakeDef>(I) ||
+                    llvm::isa<InstFakeKill>(I) || I->isRedundantAssign() ||
+                    I->isDeleted();
+  if (!ShouldSkip) {
+    for (int I = 0; I < MaxNopsPerInstruction; ++I) {
+      randomlyInsertNop(NopProbabilityAsPercentage / 100.0);
+    }
+  }
 }
 
 // Lowers a single instruction according to the information in

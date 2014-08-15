@@ -175,6 +175,7 @@ public:
     Mulps,
     Mulss,
     Neg,
+    Nop,
     Or,
     Padd,
     Pand,
@@ -1058,6 +1059,28 @@ private:
   InstX8632Movzx(const InstX8632Movzx &) LLVM_DELETED_FUNCTION;
   InstX8632Movzx &operator=(const InstX8632Movzx &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Movzx() {}
+};
+
+// Nop instructions of varying length
+class InstX8632Nop : public InstX8632 {
+public:
+  // TODO: Replace with enum.
+  typedef unsigned NopVariant;
+
+  static InstX8632Nop *create(Cfg *Func, NopVariant Variant) {
+    return new (Func->allocate<InstX8632Nop>()) InstX8632Nop(Func, Variant);
+  }
+  virtual void emit(const Cfg *Func) const;
+  virtual void dump(const Cfg *Func) const;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Nop); }
+
+private:
+  InstX8632Nop(Cfg *Func, SizeT Length);
+  InstX8632Nop(const InstX8632Nop &) LLVM_DELETED_FUNCTION;
+  InstX8632Nop &operator=(const InstX8632Nop &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632Nop() {}
+
+  NopVariant Variant;
 };
 
 // Fld - load a value onto the x87 FP stack.
