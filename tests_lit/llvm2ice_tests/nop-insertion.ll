@@ -26,9 +26,9 @@ entry:
 ; PROB50: pmuludq xmm1, xmm2
 ; PROB50: nop # variant = 0
 ; PROB50: shufps xmm0, xmm1, 136
-; PROB50: pshufd xmm3, xmm0, 216
+; PROB50: pshufd xmm1, xmm0, 216
 ; PROB50: nop # variant = 2
-; PROB50: movups xmmword ptr [esp], xmm3
+; PROB50: movups xmmword ptr [esp], xmm1
 ; PROB50: movups xmm0, xmmword ptr [esp]
 ; PROB50: add esp, 60
 ; PROB50: nop # variant = 0
@@ -54,9 +54,9 @@ entry:
 ; PROB90: nop # variant = 3
 ; PROB90: shufps xmm0, xmm1, 136
 ; PROB90: nop # variant = 4
-; PROB90: pshufd xmm3, xmm0, 216
+; PROB90: pshufd xmm1, xmm0, 216
 ; PROB90: nop # variant = 2
-; PROB90: movups xmmword ptr [esp], xmm3
+; PROB90: movups xmmword ptr [esp], xmm1
 ; PROB90: nop # variant = 4
 ; PROB90: movups xmm0, xmmword ptr [esp]
 ; PROB90: nop # variant = 2
@@ -81,9 +81,9 @@ entry:
 ; MAXNOPS2: nop # variant = 3
 ; MAXNOPS2: pmuludq xmm1, xmm2
 ; MAXNOPS2: shufps xmm0, xmm1, 136
-; MAXNOPS2: pshufd xmm3, xmm0, 216
+; MAXNOPS2: pshufd xmm1, xmm0, 216
 ; MAXNOPS2: nop # variant = 3
-; MAXNOPS2: movups xmmword ptr [esp], xmm3
+; MAXNOPS2: movups xmmword ptr [esp], xmm1
 ; MAXNOPS2: nop # variant = 0
 ; MAXNOPS2: movups xmm0, xmmword ptr [esp]
 ; MAXNOPS2: nop # variant = 2

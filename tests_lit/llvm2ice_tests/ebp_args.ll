@@ -21,24 +21,23 @@ entry:
 ; and stack slot assignment code, and may need to be relaxed if the
 ; lowering code changes.
 
-; CHECK: memcpy_helper:
-; CHECK:  push     ebx
-; CHECK:  push     ebp
-; CHECK:  mov      ebp, esp
-; CHECK:  sub      esp, 20
-; CHECK:  mov      eax, dword ptr [ebp+16]
-; CHECK:  mov      dword ptr [ebp-4], eax
-; CHECK:  sub      esp, 128
-; CHECK:  mov      dword ptr [ebp-8], esp
-; CHECK:  mov      eax, dword ptr [ebp-8]
-; CHECK:  mov      dword ptr [ebp-12], eax
-; CHECK:  movzx    eax, byte ptr [ebp-4]
-; CHECK:  mov      dword ptr [ebp-16], eax
-; CHECK:  sub      esp, 16
-; CHECK:  mov      ecx, dword ptr [ebp+12]
-; CHECK:  mov      dword ptr [esp], ecx
-; CHECK:  mov      edx, dword ptr [ebp-12]
-; CHECK:  mov      dword ptr [esp+4], edx
-; CHECK:  mov      ebx, dword ptr [ebp-16]
-; CHECK:  mov      dword ptr [esp+8], ebx
-; CHECK:  call     memcpy_helper2
+; CHECK-LABEL: memcpy_helper:
+; CHECK:  push  ebp
+; CHECK:  mov   ebp, esp
+; CHECK:  sub   esp, 24
+; CHECK:  mov   eax, dword ptr [ebp+12]
+; CHECK:  mov   dword ptr [ebp-4], eax
+; CHECK:  sub   esp, 128
+; CHECK:  mov   dword ptr [ebp-8], esp
+; CHECK:  mov   eax, dword ptr [ebp-8]
+; CHECK:  mov   dword ptr [ebp-12], eax
+; CHECK:  movzx eax, byte ptr [ebp-4]
+; CHECK:  mov   dword ptr [ebp-16], eax
+; CHECK:  sub   esp, 16
+; CHECK:  mov   ecx, dword ptr [ebp+8]
+; CHECK:  mov   dword ptr [esp], ecx
+; CHECK:  mov   ecx, dword ptr [ebp-12]
+; CHECK:  mov   dword ptr [esp+4], ecx
+; CHECK:  mov   ecx, dword ptr [ebp-16]
+; CHECK:  mov   dword ptr [esp+8], ecx
+; CHECK:  call  memcpy_helper2
