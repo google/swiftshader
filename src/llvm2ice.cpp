@@ -59,6 +59,7 @@ static cl::opt<Ice::TargetArch> TargetArch(
         clEnumValN(Ice::Target_ARM32, "arm", "arm32"),
         clEnumValN(Ice::Target_ARM32, "arm32", "arm32 (same as arm)"),
         clEnumValN(Ice::Target_ARM64, "arm64", "arm64"), clEnumValEnd));
+static cl::opt<bool> UseSandboxing("sandbox", cl::desc("Use sandboxing"));
 static cl::opt<bool>
     FunctionSections("ffunction-sections",
                      cl::desc("Emit functions into separate sections"));
@@ -135,6 +136,7 @@ int main(int argc, char **argv) {
   Flags.DisableTranslation = DisableTranslation;
   Flags.DisableGlobals = DisableGlobals;
   Flags.FunctionSections = FunctionSections;
+  Flags.UseSandboxing = UseSandboxing;
 
   Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix,
                          Flags);

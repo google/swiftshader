@@ -21,12 +21,13 @@ public:
   ClFlags()
       : DisableInternal(false), SubzeroTimingEnabled(false),
         DisableTranslation(false), DisableGlobals(false),
-        FunctionSections(false) {}
+        FunctionSections(false), UseSandboxing(false) {}
   bool DisableInternal;
   bool SubzeroTimingEnabled;
   bool DisableTranslation;
   bool DisableGlobals;
   bool FunctionSections;
+  bool UseSandboxing;
 };
 
 } // end of namespace Ice
