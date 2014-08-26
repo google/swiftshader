@@ -1,12 +1,20 @@
 ; This tests the NaCl intrinsics not related to atomic operations.
 
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -O2 --verbose none -sandbox %s | FileCheck %s
+; RUN: %llvm2ice -Om1 --verbose none -sandbox %s | FileCheck %s
 
 ; Do another run w/ O2 and a different check-prefix (otherwise O2 and Om1
 ; share the same "CHECK" prefix). This separate run helps check that
 ; some code is optimized out.
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s --check-prefix=CHECKO2REM
+; RUN: %llvm2ice -O2 --verbose none -sandbox %s \
+; RUN:     | FileCheck %s --check-prefix=CHECKO2REM
+
+; Do O2 runs without -sandbox to make sure llvm.nacl.read.tp gets
+; lowered to __nacl_read_tp instead of gs:[0x0].
+; RUN: %llvm2ice -O2 --verbose none %s \
+; RUN:     | FileCheck --check-prefix=CHECKO2UNSANDBOXED %s
+; RUN: %llvm2ice -O2 --verbose none %s \
+; RUN:     | FileCheck --check-prefix=CHECKO2UNSANDBOXEDREM %s
 
 ; RUN: %llvm2ice -O2 --verbose none %s \
 ; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
@@ -48,6 +56,10 @@ entry:
 ; CHECK: mov e{{.*}}, dword ptr gs:[0]
 ; CHECKO2REM-LABEL: test_nacl_read_tp
 ; CHECKO2REM: mov e{{.*}}, dword ptr gs:[0]
+; CHECKO2UNSANDBOXED-LABEL: test_nacl_read_tp
+; CHECKO2UNSANDBOXED: call __nacl_read_tp
+; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp
+; CHECKO2UNSANDBOXEDREM: call __nacl_read_tp
 
 define i32 @test_nacl_read_tp_more_addressing() {
 entry:
@@ -69,6 +81,12 @@ entry:
 ; CHECKO2REM-LABEL: test_nacl_read_tp_more_addressing
 ; CHECKO2REM: mov e{{.*}}, dword ptr gs:[0]
 ; CHECKO2REM: mov e{{.*}}, dword ptr gs:[0]
+; CHECKO2UNSANDBOXED-LABEL: test_nacl_read_tp_more_addressing
+; CHECKO2UNSANDBOXED: call __nacl_read_tp
+; CHECKO2UNSANDBOXED: call __nacl_read_tp
+; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp_more_addressing
+; CHECKO2UNSANDBOXEDREM: call __nacl_read_tp
+; CHECKO2UNSANDBOXEDREM: call __nacl_read_tp
 
 define i32 @test_nacl_read_tp_dead(i32 %a) {
 entry:
@@ -80,6 +98,8 @@ entry:
 ; Consider nacl.read.tp side-effect free, so it can be eliminated.
 ; CHECKO2REM-LABEL: test_nacl_read_tp_dead
 ; CHECKO2REM-NOT: mov e{{.*}}, dword ptr gs:[0]
+; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp_dead
+; CHECKO2UNSANDBOXEDREM-NOT: call __nacl_read_tp
 
 define void @test_memcpy(i32 %iptr_dst, i32 %iptr_src, i32 %len) {
 entry:
@@ -91,6 +111,8 @@ entry:
 }
 ; CHECK-LABEL: test_memcpy
 ; CHECK: call memcpy
+; CHECKO2REM-LABEL: test_memcpy
+; CHECKO2UNSANDBOXEDREM-LABEL: test_memcpy
 
 ; TODO(jvoung) -- if we want to be clever, we can do this and the memmove,
 ; memset without a function call.
