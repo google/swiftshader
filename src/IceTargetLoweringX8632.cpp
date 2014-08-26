@@ -18,7 +18,6 @@
 #include "IceDefs.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
-#include "IceClFlags.h"
 #include "IceInstX8632.h"
 #include "IceOperand.h"
 #include "IceTargetLoweringX8632.def"
@@ -3053,19 +3052,13 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::NaClReadTP: {
-    if (Ctx->getFlags().UseSandboxing) {
-      Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      Operand *Src =
-        OperandX8632Mem::create(Func, IceType_i32, NULL, Zero, NULL,
-                                0, OperandX8632Mem::SegReg_GS);
-      Variable *Dest = Instr->getDest();
-      Variable *T = NULL;
-      _mov(T, Src);
-      _mov(Dest, T);
-    } else {
-      InstCall *Call = makeHelperCall("__nacl_read_tp", Instr->getDest(), 0);
-      lowerCall(Call);
-    }
+    Constant *Zero = Ctx->getConstantZero(IceType_i32);
+    Operand *Src = OperandX8632Mem::create(Func, IceType_i32, NULL, Zero, NULL,
+                                           0, OperandX8632Mem::SegReg_GS);
+    Variable *Dest = Instr->getDest();
+    Variable *T = NULL;
+    _mov(T, Src);
+    _mov(Dest, T);
     return;
   }
   case Intrinsics::Setjmp: {

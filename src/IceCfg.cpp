@@ -309,7 +309,7 @@ void Cfg::emit() {
   Str << "\t.text\n";
   IceString MangledName = getContext()->mangleName(getFunctionName());
   if (Ctx->getFlags().FunctionSections)
-    Str << "\t.section\t.text." << MangledName << ",\"ax\",@progbits\n";
+    Str << "\t.section\t.text." << MangledName << "\n";
   if (!getInternal()) {
     Str << "\t.globl\t" << MangledName << "\n";
     Str << "\t.type\t" << MangledName << ",@function\n";
