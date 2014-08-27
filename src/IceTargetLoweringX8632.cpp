@@ -1214,6 +1214,8 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       //   t4.hi += t1
       //   t4.hi += t2
       //   a.hi = t4.hi
+      // The mul instruction cannot take an immediate operand.
+      Src1Lo = legalize(Src1Lo, Legal_Reg | Legal_Mem);
       _mov(T_1, Src0Hi);
       _imul(T_1, Src1Lo);
       _mov(T_2, Src1Hi);
@@ -2605,9 +2607,9 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   if (InstBr *NextBr = llvm::dyn_cast_or_null<InstBr>(Context.getNextInst())) {
     if (Src0->getType() != IceType_i64 && !NextBr->isUnconditional() &&
         Dest == NextBr->getSrc(0) && NextBr->isLastUse(Dest)) {
-      Operand *Src0New = legalize(
+      Operand *Src0RM = legalize(
           Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg, true);
-      _cmp(Src0New, Src1);
+      _cmp(Src0RM, Src1);
       _br(getIcmp32Mapping(Inst->getCondition()), NextBr->getTargetTrue(),
           NextBr->getTargetFalse());
       // Skip over the following branch instruction.
@@ -2624,14 +2626,16 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
     InstIcmp::ICond Condition = Inst->getCondition();
     size_t Index = static_cast<size_t>(Condition);
     assert(Index < TableIcmp64Size);
+    Operand *Src0LoRM = legalize(loOperand(Src0), Legal_Reg | Legal_Mem);
+    Operand *Src0HiRM = legalize(hiOperand(Src0), Legal_Reg | Legal_Mem);
     Operand *Src1LoRI = legalize(loOperand(Src1), Legal_Reg | Legal_Imm);
     Operand *Src1HiRI = legalize(hiOperand(Src1), Legal_Reg | Legal_Imm);
     if (Condition == InstIcmp::Eq || Condition == InstIcmp::Ne) {
       InstX8632Label *Label = InstX8632Label::create(Func, this);
       _mov(Dest, (Condition == InstIcmp::Eq ? Zero : One));
-      _cmp(loOperand(Src0), Src1LoRI);
+      _cmp(Src0LoRM, Src1LoRI);
       _br(InstX8632Br::Br_ne, Label);
-      _cmp(hiOperand(Src0), Src1HiRI);
+      _cmp(Src0HiRM, Src1HiRI);
       _br(InstX8632Br::Br_ne, Label);
       Context.insert(InstFakeUse::create(Func, Dest));
       _mov(Dest, (Condition == InstIcmp::Eq ? One : Zero));
@@ -2640,10 +2644,10 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
       InstX8632Label *LabelFalse = InstX8632Label::create(Func, this);
       InstX8632Label *LabelTrue = InstX8632Label::create(Func, this);
       _mov(Dest, One);
-      _cmp(hiOperand(Src0), Src1HiRI);
+      _cmp(Src0HiRM, Src1HiRI);
       _br(TableIcmp64[Index].C1, LabelTrue);
       _br(TableIcmp64[Index].C2, LabelFalse);
-      _cmp(loOperand(Src0), Src1LoRI);
+      _cmp(Src0LoRM, Src1LoRI);
       _br(TableIcmp64[Index].C3, LabelTrue);
       Context.insert(LabelFalse);
       Context.insert(InstFakeUse::create(Func, Dest));
@@ -2654,10 +2658,10 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   }
 
   // cmp b, c
-  Operand *Src0New =
-      legalize(Src0, IsSrc1ImmOrReg ? Legal_All : Legal_Reg, true);
+  Operand *Src0RM = legalize(
+      Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg, true);
   InstX8632Label *Label = InstX8632Label::create(Func, this);
-  _cmp(Src0New, Src1);
+  _cmp(Src0RM, Src1);
   _mov(Dest, One);
   _br(getIcmp32Mapping(Inst->getCondition()), Label);
   Context.insert(InstFakeUse::create(Func, Dest));
@@ -3794,7 +3798,7 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
   }
 
   // a=d?b:c ==> cmp d,0; a=b; jne L1; FakeUse(a); a=c; L1:
-  Operand *ConditionRMI = legalize(Condition);
+  Operand *ConditionRM = legalize(Condition, Legal_Reg | Legal_Mem);
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   InstX8632Label *Label = InstX8632Label::create(Func, this);
 
@@ -3803,7 +3807,7 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     Operand *SrcLoRI = legalize(loOperand(SrcT), Legal_Reg | Legal_Imm, true);
     Operand *SrcHiRI = legalize(hiOperand(SrcT), Legal_Reg | Legal_Imm, true);
-    _cmp(ConditionRMI, Zero);
+    _cmp(ConditionRM, Zero);
     _mov(DestLo, SrcLoRI);
     _mov(DestHi, SrcHiRI);
     _br(InstX8632Br::Br_ne, Label);
@@ -3816,7 +3820,7 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     _mov(DestLo, SrcLoRI);
     _mov(DestHi, SrcHiRI);
   } else {
-    _cmp(ConditionRMI, Zero);
+    _cmp(ConditionRM, Zero);
     SrcT = legalize(SrcT, Legal_Reg | Legal_Imm, true);
     _mov(Dest, SrcT);
     _br(InstX8632Br::Br_ne, Label);
@@ -3882,7 +3886,7 @@ void TargetX8632::lowerSwitch(const InstSwitch *Inst) {
   if (NumCases >= 2)
     Src0 = legalizeToVar(Src0, true);
   else
-    Src0 = legalize(Src0, Legal_All, true);
+    Src0 = legalize(Src0, Legal_Reg | Legal_Mem, true);
   for (SizeT I = 0; I < NumCases; ++I) {
     Operand *Value = Ctx->getConstantInt(IceType_i32, Inst->getValue(I));
     _cmp(Src0, Value);

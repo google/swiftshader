@@ -37,6 +37,22 @@ sw.epilog:                                        ; preds = %sw.bb2, %sw.default
   ret i32 %result.1
 }
 
+; Check for a valid addressing mode when the switch operand is an
+; immediate.  It's important that there is exactly one case, because
+; for two or more cases the source operand is legalized into a
+; register.
+define i32 @testSwitchImm() {
+entry:
+  switch i32 10, label %sw.default [
+    i32 1, label %sw.default
+  ]
+
+sw.default:
+  ret i32 20
+}
+; CHECK-LABEL: testSwitchImm
+; CHECK-NOT: cmp {{[0-9]*}},
+
 ; CHECK-NOT: ICE translation error
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

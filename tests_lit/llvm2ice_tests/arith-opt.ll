@@ -111,5 +111,15 @@ entry:
   ret i32 %rem
 }
 
+; Check for a valid addressing mode in the x86-32 mul instruction when
+; the second source operand is an immediate.
+define i64 @MulImm() {
+entry:
+  %mul = mul i64 3, 4
+  ret i64 %mul
+}
+; CHECK-LABEL: MulImm
+; CHECK-NOT: mul {{[0-9]+}}
+
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

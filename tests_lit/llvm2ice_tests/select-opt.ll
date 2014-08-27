@@ -36,5 +36,26 @@ declare void @useInt(i32)
 ; CHECK:      call useInt
 ; CHECK:      ret
 
+; Check for valid addressing mode in the cmp instruction when the
+; operand is an immediate.
+define i32 @testSelectImm32(i32 %a, i32 %b) {
+entry:
+  %cond = select i1 0, i32 %a, i32 %b
+  ret i32 %cond
+}
+; CHECK-LABEL: testSelectImm32
+; CHECK-NOT: cmp {{[0-9]+}},
+
+; Check for valid addressing mode in the cmp instruction when the
+; operand is an immediate.  There is a different x86-32 lowering
+; sequence for 64-bit operands.
+define i64 @testSelectImm64(i64 %a, i64 %b) {
+entry:
+  %cond = select i1 1, i64 %a, i64 %b
+  ret i64 %cond
+}
+; CHECK-LABEL: testSelectImm64
+; CHECK-NOT: cmp {{[0-9]+}},
+
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ
