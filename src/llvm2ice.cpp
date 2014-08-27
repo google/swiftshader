@@ -45,6 +45,7 @@ static cl::list<Ice::VerboseItem> VerboseList(
         clEnumValN(Ice::IceV_LinearScan, "regalloc", "Linear scan details"),
         clEnumValN(Ice::IceV_Frame, "frame", "Stack frame layout details"),
         clEnumValN(Ice::IceV_Timing, "time", "Pass timing details"),
+        clEnumValN(Ice::IceV_AddrOpt, "addropt", "Address mode optimization"),
         clEnumValN(Ice::IceV_All, "all", "Use all verbose options"),
         clEnumValN(Ice::IceV_None, "none", "No verbosity"), clEnumValEnd));
 static cl::opt<Ice::TargetArch> TargetArch(

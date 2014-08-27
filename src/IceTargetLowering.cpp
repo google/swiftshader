@@ -136,6 +136,10 @@ void TargetLowering::doNopInsertion() {
 void TargetLowering::lower() {
   assert(!Context.atEnd());
   Inst *Inst = *Context.getCur();
+  // Mark the current instruction as deleted before lowering,
+  // otherwise the Dest variable will likely get marked as non-SSA.
+  // See Variable::setDefinition().
+  Inst->setDeleted();
   switch (Inst->getKind()) {
   case Inst::Alloca:
     lowerAlloca(llvm::dyn_cast<InstAlloca>(Inst));
@@ -200,7 +204,6 @@ void TargetLowering::lower() {
     Func->setError("Can't lower unsupported instruction type");
     break;
   }
-  Inst->setDeleted();
 
   postLower();
 

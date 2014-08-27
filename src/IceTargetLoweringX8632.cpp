@@ -2607,13 +2607,13 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   if (InstBr *NextBr = llvm::dyn_cast_or_null<InstBr>(Context.getNextInst())) {
     if (Src0->getType() != IceType_i64 && !NextBr->isUnconditional() &&
         Dest == NextBr->getSrc(0) && NextBr->isLastUse(Dest)) {
+      NextBr->setDeleted();
       Operand *Src0RM = legalize(
           Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg, true);
       _cmp(Src0RM, Src1);
       _br(getIcmp32Mapping(Inst->getCondition()), NextBr->getTargetTrue(),
           NextBr->getTargetFalse());
       // Skip over the following branch instruction.
-      NextBr->setDeleted();
       Context.advanceNext();
       return;
     }
@@ -3194,8 +3194,8 @@ bool TargetX8632::tryOptimizedCmpxchgCmpBr(Variable *Dest, Operand *PtrToMem,
           // Lower the phi assignments now, before the branch (same placement
           // as before).
           InstAssign *PhiAssign = PhiAssigns[i];
-          lowerAssign(PhiAssign);
           PhiAssign->setDeleted();
+          lowerAssign(PhiAssign);
           Context.advanceNext();
         }
         _br(InstX8632::Br_e, NextBr->getTargetTrue(), NextBr->getTargetFalse());
@@ -3482,8 +3482,35 @@ bool isAdd(const Inst *Inst) {
   return false;
 }
 
-void computeAddressOpt(Variable *&Base, Variable *&Index, uint16_t &Shift,
-                       int32_t &Offset) {
+void dumpAddressOpt(const Cfg *Func, const Variable *Base,
+                    const Variable *Index, uint16_t Shift, int32_t Offset,
+                    const Inst *Reason) {
+  if (!Func->getContext()->isVerbose(IceV_AddrOpt))
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "Instruction: ";
+  Reason->dumpDecorated(Func);
+  Str << "  results in Base=";
+  if (Base)
+    Base->dump(Func);
+  else
+    Str << "<null>";
+  Str << ", Index=";
+  if (Index)
+    Index->dump(Func);
+  else
+    Str << "<null>";
+  Str << ", Shift=" << Shift << ", Offset=" << Offset << "\n";
+}
+
+void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
+                       Variable *&Index, uint16_t &Shift, int32_t &Offset) {
+  Func->setCurrentNode(NULL);
+  if (Func->getContext()->isVerbose(IceV_AddrOpt)) {
+    Ostream &Str = Func->getContext()->getStrDump();
+    Str << "\nStarting computeAddressOpt for instruction:\n  ";
+    Instr->dumpDecorated(Func);
+  }
   (void)Offset; // TODO: pattern-match for non-zero offsets.
   if (Base == NULL)
     return;
@@ -3506,6 +3533,7 @@ void computeAddressOpt(Variable *&Base, Variable *&Index, uint16_t &Shift,
         // TODO: ensure BaseVariable0 stays single-BB
         true) {
       Base = BaseVariable0;
+      dumpAddressOpt(Func, Base, Index, Shift, Offset, BaseInst);
       continue;
     }
 
@@ -3523,6 +3551,7 @@ void computeAddressOpt(Variable *&Base, Variable *&Index, uint16_t &Shift,
       Base = BaseVariable0;
       Index = BaseVariable1;
       Shift = 0; // should already have been 0
+      dumpAddressOpt(Func, Base, Index, Shift, Offset, BaseInst);
       continue;
     }
 
@@ -3560,6 +3589,7 @@ void computeAddressOpt(Variable *&Base, Variable *&Index, uint16_t &Shift,
         if (Shift + LogMult <= 3) {
           Index = IndexVariable0;
           Shift += LogMult;
+          dumpAddressOpt(Func, Base, Index, Shift, Offset, IndexInst);
           continue;
         }
       }
@@ -3589,6 +3619,7 @@ void computeAddressOpt(Variable *&Base, Variable *&Index, uint16_t &Shift,
       }
       Base = Var;
       Offset += IsAdd ? Const->getValue() : -Const->getValue();
+      dumpAddressOpt(Func, Base, Index, Shift, Offset, BaseInst);
       continue;
     }
 
@@ -3684,12 +3715,12 @@ void TargetX8632::doAddressOptLoad() {
   const OperandX8632Mem::SegmentRegisters SegmentReg =
       OperandX8632Mem::DefaultSegment;
   Variable *Base = llvm::dyn_cast<Variable>(Addr);
-  computeAddressOpt(Base, Index, Shift, Offset);
+  computeAddressOpt(Func, Inst, Base, Index, Shift, Offset);
   if (Base && Addr != Base) {
+    Inst->setDeleted();
     Constant *OffsetOp = Ctx->getConstantInt(IceType_i32, Offset);
     Addr = OperandX8632Mem::create(Func, Dest->getType(), Base, OffsetOp, Index,
                                    Shift, SegmentReg);
-    Inst->setDeleted();
     Context.insert(InstLoad::create(Func, Dest, Addr));
   }
 }
@@ -3866,12 +3897,12 @@ void TargetX8632::doAddressOptStore() {
   // registers there either.
   const OperandX8632Mem::SegmentRegisters SegmentReg =
       OperandX8632Mem::DefaultSegment;
-  computeAddressOpt(Base, Index, Shift, Offset);
+  computeAddressOpt(Func, Inst, Base, Index, Shift, Offset);
   if (Base && Addr != Base) {
+    Inst->setDeleted();
     Constant *OffsetOp = Ctx->getConstantInt(IceType_i32, Offset);
     Addr = OperandX8632Mem::create(Func, Data->getType(), Base, OffsetOp, Index,
                                    Shift, SegmentReg);
-    Inst->setDeleted();
     Context.insert(InstStore::create(Func, Data, Addr));
   }
 }
@@ -3943,9 +3974,9 @@ TargetX8632::eliminateNextVectorSextInstruction(Variable *SignExtendedResult) {
           llvm::dyn_cast_or_null<InstCast>(Context.getNextInst())) {
     if (NextCast->getCastKind() == InstCast::Sext &&
         NextCast->getSrc(0) == SignExtendedResult) {
+      NextCast->setDeleted();
       _movp(NextCast->getDest(), legalizeToVar(SignExtendedResult));
       // Skip over the instruction.
-      NextCast->setDeleted();
       Context.advanceNext();
     }
   }

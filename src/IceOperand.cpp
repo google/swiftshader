@@ -146,9 +146,16 @@ void Variable::setUse(const Inst *Inst, const CfgNode *Node) {
 }
 
 void Variable::setDefinition(Inst *Inst, const CfgNode *Node) {
+  if (DefInst && !DefInst->isDeleted() && DefInst != Inst) {
+    // Detect when a variable is being defined multiple times,
+    // particularly for Phi instruction lowering.  If this happens, we
+    // need to lock DefInst to NULL.
+    DefInst = NULL;
+    DefNode = NULL;
+    return;
+  }
   if (DefNode == NULL)
     return;
-  // Can first check preexisting DefInst if we care about multi-def vars.
   DefInst = Inst;
   if (Node != DefNode)
     DefNode = NULL;
