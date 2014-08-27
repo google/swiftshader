@@ -203,6 +203,7 @@ public:
         InstArithmetic(Func, Op, Dest, Source1, Source2);
   }
   OpKind getOp() const { return Op; }
+  static const char *getOpName(OpKind Op);
   bool isCommutative() const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) {

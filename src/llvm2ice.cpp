@@ -143,7 +143,7 @@ int main(int argc, char **argv) {
                          Flags);
 
   if (BuildOnRead) {
-    Ice::PNaClTranslator Translator(&Ctx);
+    Ice::PNaClTranslator Translator(&Ctx, Flags);
     Translator.translate(IRFilename);
     return Translator.getErrorStatus();
   } else {
@@ -163,8 +163,8 @@ int main(int argc, char **argv) {
       return 1;
     }
 
-    Ice::Converter Converter(&Ctx);
-    Converter.convertToIce(Mod);
+    Ice::Converter Converter(Mod, &Ctx, Flags);
+    Converter.convertToIce();
     return Converter.getErrorStatus();
   }
 }

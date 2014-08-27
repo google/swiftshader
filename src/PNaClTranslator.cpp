@@ -14,6 +14,12 @@
 
 #include "PNaClTranslator.h"
 #include "IceCfg.h"
+#include "IceCfgNode.h"
+#include "IceClFlags.h"
+#include "IceDefs.h"
+#include "IceInst.h"
+#include "IceOperand.h"
+#include "IceTypeConverter.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDecoders.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeHeader.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeParser.h"
@@ -33,28 +39,42 @@ using namespace llvm;
 
 namespace {
 
+// TODO(kschimpf) Remove error recovery once implementation complete.
+static cl::opt<bool> AllowErrorRecovery(
+    "allow-pnacl-reader-error-recovery",
+    cl::desc("Allow error recovery when reading PNaCl bitcode."),
+    cl::init(false));
+
 // Top-level class to read PNaCl bitcode files, and translate to ICE.
 class TopLevelParser : public NaClBitcodeParser {
   TopLevelParser(const TopLevelParser &) LLVM_DELETED_FUNCTION;
   TopLevelParser &operator=(const TopLevelParser &) LLVM_DELETED_FUNCTION;
 
 public:
-  TopLevelParser(const std::string &InputName, NaClBitcodeHeader &Header,
-                 NaClBitstreamCursor &Cursor, bool &ErrorStatus)
-      : NaClBitcodeParser(Cursor),
+  TopLevelParser(Ice::Translator &Translator, const std::string &InputName,
+                 NaClBitcodeHeader &Header, NaClBitstreamCursor &Cursor,
+                 bool &ErrorStatus)
+      : NaClBitcodeParser(Cursor), Translator(Translator),
         Mod(new Module(InputName, getGlobalContext())), Header(Header),
-        ErrorStatus(ErrorStatus), NumErrors(0), NumFunctionIds(0),
-        GlobalVarPlaceHolderType(Type::getInt8Ty(getLLVMContext())) {
+        TypeConverter(getLLVMContext()), ErrorStatus(ErrorStatus), NumErrors(0),
+        NumFunctionIds(0), NumFunctionBlocks(0),
+        GlobalVarPlaceHolderType(convertToLLVMType(Ice::IceType_i8)) {
     Mod->setDataLayout(PNaClDataLayout);
   }
 
   virtual ~TopLevelParser() {}
   LLVM_OVERRIDE;
 
+  Ice::Translator &getTranslator() { return Translator; }
+
+  // Generates error with given Message. Always returns true.
   virtual bool Error(const std::string &Message) LLVM_OVERRIDE {
     ErrorStatus = true;
     ++NumErrors;
-    return NaClBitcodeParser::Error(Message);
+    NaClBitcodeParser::Error(Message);
+    if (!AllowErrorRecovery)
+      report_fatal_error("Unable to continue");
+    return true;
   }
 
   /// Returns the number of errors found while parsing the bitcode
@@ -104,10 +124,20 @@ public:
     DefiningFunctionsList.push_back(ValueIDValues.size());
   }
 
+  /// Returns the value id that should be associated with the the
+  /// current function block. Increments internal counters during call
+  /// so that it will be in correct position for next function block.
+  unsigned getNextFunctionBlockValueID() {
+    if (NumFunctionBlocks >= DefiningFunctionsList.size())
+      report_fatal_error(
+          "More function blocks than defined function addresses");
+    return DefiningFunctionsList[NumFunctionBlocks++];
+  }
+
   /// Returns the LLVM IR value associatd with the global value ID.
   Value *getGlobalValueByID(unsigned ID) const {
     if (ID >= ValueIDValues.size())
-      return 0;
+      return NULL;
     return ValueIDValues[ID];
   }
 
@@ -131,7 +161,7 @@ public:
   /// later.
   Constant *getOrCreateGlobalVarRef(unsigned ID) {
     if (ID >= ValueIDValues.size())
-      return 0;
+      return NULL;
     if (Value *C = ValueIDValues[ID])
       return dyn_cast<Constant>(C);
     Constant *C = new GlobalVariable(*Mod, GlobalVarPlaceHolderType, false,
@@ -147,7 +177,7 @@ public:
     if (ID < NumFunctionIds || ID >= ValueIDValues.size())
       return false;
     WeakVH &OldV = ValueIDValues[ID];
-    if (OldV == 0) {
+    if (OldV == NULL) {
       ValueIDValues[ID] = GV;
       return true;
     }
@@ -162,11 +192,46 @@ public:
     return true;
   }
 
+  /// Returns the corresponding ICE type for LLVMTy.
+  Ice::Type convertToIceType(Type *LLVMTy) {
+    Ice::Type IceTy = TypeConverter.convertToIceType(LLVMTy);
+    if (IceTy >= Ice::IceType_NUM) {
+      return convertToIceTypeError(LLVMTy);
+    }
+    return IceTy;
+  }
+
+  /// Returns the corresponding LLVM type for IceTy.
+  Type *convertToLLVMType(Ice::Type IceTy) const {
+    return TypeConverter.convertToLLVMType(IceTy);
+  }
+
+  /// Returns the LLVM integer type with the given number of Bits.  If
+  /// Bits is not a valid PNaCl type, returns NULL.
+  Type *getLLVMIntegerType(unsigned Bits) const {
+    return TypeConverter.getLLVMIntegerType(Bits);
+  }
+
+  /// Returns the LLVM vector with the given Size and Ty. If not a
+  /// valid PNaCl vector type, returns NULL.
+  Type *getLLVMVectorType(unsigned Size, Ice::Type Ty) const {
+    return TypeConverter.getLLVMVectorType(Size, Ty);
+  }
+
+  /// Returns the model for pointer types in ICE.
+  Ice::Type getIcePointerType() const {
+    return TypeConverter.getIcePointerType();
+  }
+
 private:
+  // The translator associated with the parser.
+  Ice::Translator &Translator;
   // The parsed module.
   OwningPtr<Module> Mod;
   // The bitcode header.
   NaClBitcodeHeader &Header;
+  // Converter between LLVM and ICE types.
+  Ice::TypeConverter TypeConverter;
   // The exit status that should be set to true if an error occurs.
   bool &ErrorStatus;
   // The number of errors reported.
@@ -177,6 +242,8 @@ private:
   std::vector<WeakVH> ValueIDValues;
   // The number of function IDs.
   unsigned NumFunctionIds;
+  // The number of function blocks (processed so far).
+  unsigned NumFunctionBlocks;
   // The list of value IDs (in the order found) of defining function
   // addresses.
   std::vector<unsigned> DefiningFunctionsList;
@@ -192,6 +259,10 @@ private:
 
   /// Reports error about bad call to setTypeID.
   void reportBadSetTypeID(unsigned ID, Type *Ty);
+
+  // Reports that there is no corresponding ICE type for LLVMTy, and
+  // returns ICE::IceType_void.
+  Ice::Type convertToIceTypeError(Type *LLVMTy);
 };
 
 Type *TopLevelParser::reportTypeIDAsUndefined(unsigned ID) {
@@ -199,7 +270,8 @@ Type *TopLevelParser::reportTypeIDAsUndefined(unsigned ID) {
   raw_string_ostream StrBuf(Buffer);
   StrBuf << "Can't find type for type id: " << ID;
   Error(StrBuf.str());
-  Type *Ty = Type::getVoidTy(getLLVMContext());
+  // TODO(kschimpf) Remove error recovery once implementation complete.
+  Type *Ty = TypeConverter.convertToLLVMType(Ice::IceType_void);
   // To reduce error messages, update type list if possible.
   if (ID < TypeIDValues.size())
     TypeIDValues[ID] = Ty;
@@ -217,6 +289,14 @@ void TopLevelParser::reportBadSetTypeID(unsigned ID, Type *Ty) {
            << " and " << *Ty << ".";
   }
   Error(StrBuf.str());
+}
+
+Ice::Type TopLevelParser::convertToIceTypeError(Type *LLVMTy) {
+  std::string Buffer;
+  raw_string_ostream StrBuf(Buffer);
+  StrBuf << "Invalid LLVM type: " << *LLVMTy;
+  Error(StrBuf.str());
+  return Ice::IceType_void;
 }
 
 // Base class for parsing blocks within the bitcode file.  Note:
@@ -240,6 +320,9 @@ protected:
       : NaClBitcodeParser(BlockID, EnclosingParser),
         Context(EnclosingParser->Context) {}
 
+  // Gets the translator associated with the bitcode parser.
+  Ice::Translator &getTranslator() { return Context->getTranslator(); }
+
   // Generates an error Message with the bit address prefixed to it.
   virtual bool Error(const std::string &Message) LLVM_OVERRIDE {
     uint64_t Bit = Record.GetStartBit() + Context->getHeaderSize() * 8;
@@ -258,65 +341,71 @@ protected:
   // understood.
   virtual void ProcessRecord() LLVM_OVERRIDE;
 
-  /// Checks if the size of the record is Size. If not, an error is
-  /// produced using the given RecordName. Return true if error was
-  /// reported. Otherwise false.
-  bool checkRecordSize(unsigned Size, const char *RecordName) {
+  // Checks if the size of the record is Size.  Return true if valid.
+  // Otherwise generates an error and returns false.
+  bool isValidRecordSize(unsigned Size, const char *RecordName) {
     const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
-    if (Values.size() != Size) {
-      return RecordSizeError(Size, RecordName, 0);
-    }
+    if (Values.size() == Size)
+      return true;
+    ReportRecordSizeError(Size, RecordName, NULL);
     return false;
   }
 
-  /// Checks if the size of the record is at least as large as the
-  /// LowerLimit.
-  bool checkRecordSizeAtLeast(unsigned LowerLimit, const char *RecordName) {
+  // Checks if the size of the record is at least as large as the
+  // LowerLimit. Returns true if valid.  Otherwise generates an error
+  // and returns false.
+  bool isValidRecordSizeAtLeast(unsigned LowerLimit, const char *RecordName) {
     const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
-    if (Values.size() < LowerLimit) {
-      return RecordSizeError(LowerLimit, RecordName, "at least");
-    }
+    if (Values.size() >= LowerLimit)
+      return true;
+    ReportRecordSizeError(LowerLimit, RecordName, "at least");
     return false;
   }
 
-  /// Checks if the size of the record is no larger than the
-  /// UpperLimit.
-  bool checkRecordSizeNoMoreThan(unsigned UpperLimit, const char *RecordName) {
+  // Checks if the size of the record is no larger than the
+  // UpperLimit.  Returns true if valid.  Otherwise generates an error
+  // and returns false.
+  bool isValidRecordSizeAtMost(unsigned UpperLimit, const char *RecordName) {
     const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
-    if (Values.size() > UpperLimit) {
-      return RecordSizeError(UpperLimit, RecordName, "no more than");
-    }
+    if (Values.size() <= UpperLimit)
+      return true;
+    ReportRecordSizeError(UpperLimit, RecordName, "no more than");
     return false;
   }
 
-  /// Checks if the size of the record is at least as large as the
-  /// LowerLimit, and no larger than the UpperLimit.
-  bool checkRecordSizeInRange(unsigned LowerLimit, unsigned UpperLimit,
-                              const char *RecordName) {
-    return checkRecordSizeAtLeast(LowerLimit, RecordName) ||
-           checkRecordSizeNoMoreThan(UpperLimit, RecordName);
+  // Checks if the size of the record is at least as large as the
+  // LowerLimit, and no larger than the UpperLimit.  Returns true if
+  // valid.  Otherwise generates an error and returns false.
+  bool isValidRecordSizeInRange(unsigned LowerLimit, unsigned UpperLimit,
+                                const char *RecordName) {
+    return isValidRecordSizeAtLeast(LowerLimit, RecordName) ||
+           isValidRecordSizeAtMost(UpperLimit, RecordName);
   }
 
 private:
   /// Generates a record size error. ExpectedSize is the number
   /// of elements expected. RecordName is the name of the kind of
-  /// record that has incorrect size. ContextMessage (if not 0)
+  /// record that has incorrect size. ContextMessage (if not NULL)
   /// is appended to "record expects" to describe how ExpectedSize
   /// should be interpreted.
-  bool RecordSizeError(unsigned ExpectedSize, const char *RecordName,
-                       const char *ContextMessage) {
-    std::string Buffer;
-    raw_string_ostream StrBuf(Buffer);
-    StrBuf << RecordName << " record expects";
-    if (ContextMessage)
-      StrBuf << " " << ContextMessage;
-    StrBuf << " " << ExpectedSize << " argument";
-    if (ExpectedSize > 1)
-      StrBuf << "s";
-    StrBuf << ". Found: " << Record.GetValues().size();
-    return Error(StrBuf.str());
-  }
+  void ReportRecordSizeError(unsigned ExpectedSize, const char *RecordName,
+                             const char *ContextMessage);
 };
+
+void BlockParserBaseClass::ReportRecordSizeError(unsigned ExpectedSize,
+                                                 const char *RecordName,
+                                                 const char *ContextMessage) {
+  std::string Buffer;
+  raw_string_ostream StrBuf(Buffer);
+  StrBuf << RecordName << " record expects";
+  if (ContextMessage)
+    StrBuf << " " << ContextMessage;
+  StrBuf << " " << ExpectedSize << " argument";
+  if (ExpectedSize > 1)
+    StrBuf << "s";
+  StrBuf << ". Found: " << Record.GetValues().size();
+  Error(StrBuf.str());
+}
 
 bool BlockParserBaseClass::ParseBlock(unsigned BlockID) {
   // If called, derived class doesn't know how to handle block.
@@ -325,6 +414,7 @@ bool BlockParserBaseClass::ParseBlock(unsigned BlockID) {
   raw_string_ostream StrBuf(Buffer);
   StrBuf << "Don't know how to parse block id: " << BlockID;
   Error(StrBuf.str());
+  // TODO(kschimpf) Remove error recovery once implementation complete.
   SkipBlock();
   return false;
 }
@@ -359,45 +449,64 @@ void TypesParser::ProcessRecord() {
   switch (Record.GetCode()) {
   case naclbitc::TYPE_CODE_NUMENTRY:
     // NUMENTRY: [numentries]
-    if (checkRecordSize(1, "Type count"))
+    if (!isValidRecordSize(1, "Type count"))
       return;
     Context->resizeTypeIDValues(Values[0]);
     return;
   case naclbitc::TYPE_CODE_VOID:
     // VOID
-    if (checkRecordSize(0, "Type void"))
-      break;
-    Ty = Type::getVoidTy(Context->getLLVMContext());
+    if (!isValidRecordSize(0, "Type void"))
+      return;
+    Ty = Context->convertToLLVMType(Ice::IceType_void);
     break;
   case naclbitc::TYPE_CODE_FLOAT:
     // FLOAT
-    if (checkRecordSize(0, "Type float"))
-      break;
-    Ty = Type::getFloatTy(Context->getLLVMContext());
+    if (!isValidRecordSize(0, "Type float"))
+      return;
+    Ty = Context->convertToLLVMType(Ice::IceType_f32);
     break;
   case naclbitc::TYPE_CODE_DOUBLE:
     // DOUBLE
-    if (checkRecordSize(0, "Type double"))
-      break;
-    Ty = Type::getDoubleTy(Context->getLLVMContext());
+    if (!isValidRecordSize(0, "Type double"))
+      return;
+    Ty = Context->convertToLLVMType(Ice::IceType_f64);
     break;
   case naclbitc::TYPE_CODE_INTEGER:
     // INTEGER: [width]
-    if (checkRecordSize(1, "Type integer"))
-      break;
-    Ty = IntegerType::get(Context->getLLVMContext(), Values[0]);
-    // TODO(kschimpf) Check if size is legal.
+    if (!isValidRecordSize(1, "Type integer"))
+      return;
+    Ty = Context->getLLVMIntegerType(Values[0]);
+    if (Ty == NULL) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Type integer record with invalid bitsize: " << Values[0];
+      Error(StrBuf.str());
+      // TODO(kschimpf) Remove error recovery once implementation complete.
+      // Fix type so that we can continue.
+      Ty = Context->convertToLLVMType(Ice::IceType_i32);
+    }
     break;
-  case naclbitc::TYPE_CODE_VECTOR:
+  case naclbitc::TYPE_CODE_VECTOR: {
     // VECTOR: [numelts, eltty]
-    if (checkRecordSize(2, "Type vector"))
-      break;
-    Ty = VectorType::get(Context->getTypeByID(Values[1]), Values[0]);
+    if (!isValidRecordSize(2, "Type vector"))
+      return;
+    Type *BaseTy = Context->getTypeByID(Values[1]);
+    Ty = Context->getLLVMVectorType(Values[0],
+                                    Context->convertToIceType(BaseTy));
+    if (Ty == NULL) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Invalid type vector record: <" << Values[0] << " x " << *BaseTy
+             << ">";
+      Error(StrBuf.str());
+      Ty = Context->convertToLLVMType(Ice::IceType_void);
+    }
     break;
+  }
   case naclbitc::TYPE_CODE_FUNCTION: {
     // FUNCTION: [vararg, retty, paramty x N]
-    if (checkRecordSizeAtLeast(2, "Type signature"))
-      break;
+    if (!isValidRecordSizeAtLeast(2, "Type signature"))
+      return;
     SmallVector<Type *, 8> ArgTys;
     for (unsigned i = 2, e = Values.size(); i != e; ++i) {
       ArgTys.push_back(Context->getTypeByID(Values[i]));
@@ -407,11 +516,11 @@ void TypesParser::ProcessRecord() {
   }
   default:
     BlockParserBaseClass::ProcessRecord();
-    break;
+    return;
   }
   // If Ty not defined, assume error. Use void as filler.
   if (Ty == NULL)
-    Ty = Type::getVoidTy(Context->getLLVMContext());
+    Ty = Context->convertToLLVMType(Ice::IceType_void);
   Context->setTypeID(NextTypeId++, Ty);
 }
 
@@ -474,6 +583,7 @@ private:
         StrBuf << "s";
       StrBuf << ". Found: " << Initializers.size();
       Error(StrBuf.str());
+      // TODO(kschimpf) Remove error recovery once implementation complete.
       // Fix up state so that we can continue.
       InitializersNeeded = Initializers.size();
       installGlobalVar();
@@ -530,7 +640,7 @@ void GlobalsParser::ProcessRecord() {
   switch (Record.GetCode()) {
   case naclbitc::GLOBALVAR_COUNT:
     // COUNT: [n]
-    if (checkRecordSize(1, "Globals count"))
+    if (!isValidRecordSize(1, "Globals count"))
       return;
     if (NextGlobalID != Context->getNumFunctionIDs()) {
       Error("Globals count record not first in block.");
@@ -541,7 +651,7 @@ void GlobalsParser::ProcessRecord() {
     return;
   case naclbitc::GLOBALVAR_VAR: {
     // VAR: [align, isconst]
-    if (checkRecordSize(2, "Globals variable"))
+    if (!isValidRecordSize(2, "Globals variable"))
       return;
     verifyNoMissingInitializers();
     InitializersNeeded = 1;
@@ -552,7 +662,7 @@ void GlobalsParser::ProcessRecord() {
   }
   case naclbitc::GLOBALVAR_COMPOUND:
     // COMPOUND: [size]
-    if (checkRecordSize(1, "globals compound"))
+    if (!isValidRecordSize(1, "globals compound"))
       return;
     if (Initializers.size() > 0 || InitializersNeeded != 1) {
       Error("Globals compound record not first initializer");
@@ -569,18 +679,18 @@ void GlobalsParser::ProcessRecord() {
     return;
   case naclbitc::GLOBALVAR_ZEROFILL: {
     // ZEROFILL: [size]
-    if (checkRecordSize(1, "Globals zerofill"))
+    if (!isValidRecordSize(1, "Globals zerofill"))
       return;
     reserveInitializer("Globals zerofill");
     Type *Ty =
-        ArrayType::get(Type::getInt8Ty(Context->getLLVMContext()), Values[0]);
+        ArrayType::get(Context->convertToLLVMType(Ice::IceType_i8), Values[0]);
     Constant *Zero = ConstantAggregateZero::get(Ty);
     Initializers.push_back(Zero);
     break;
   }
   case naclbitc::GLOBALVAR_DATA: {
     // DATA: [b0, b1, ...]
-    if (checkRecordSizeAtLeast(1, "Globals data"))
+    if (!isValidRecordSizeAtLeast(1, "Globals data"))
       return;
     reserveInitializer("Globals data");
     unsigned Size = Values.size();
@@ -594,17 +704,17 @@ void GlobalsParser::ProcessRecord() {
   }
   case naclbitc::GLOBALVAR_RELOC: {
     // RELOC: [val, [addend]]
-    if (checkRecordSizeInRange(1, 2, "Globals reloc"))
+    if (!isValidRecordSizeInRange(1, 2, "Globals reloc"))
       return;
     Constant *BaseVal = Context->getOrCreateGlobalVarRef(Values[0]);
-    if (BaseVal == 0) {
+    if (BaseVal == NULL) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Can't find global relocation value: " << Values[0];
       Error(StrBuf.str());
       return;
     }
-    Type *IntPtrType = IntegerType::get(Context->getLLVMContext(), 32);
+    Type *IntPtrType = Context->convertToLLVMType(Context->getIcePointerType());
     Constant *Val = ConstantExpr::getPtrToInt(BaseVal, IntPtrType);
     if (Values.size() == 2) {
       Val = ConstantExpr::getAdd(Val, ConstantInt::get(IntPtrType, Values[1]));
@@ -654,11 +764,11 @@ void ValuesymtabParser::ProcessRecord() {
   switch (Record.GetCode()) {
   case naclbitc::VST_CODE_ENTRY: {
     // VST_ENTRY: [ValueId, namechar x N]
-    if (checkRecordSizeAtLeast(2, "Valuesymtab value entry"))
+    if (!isValidRecordSizeAtLeast(2, "Valuesymtab value entry"))
       return;
     ConvertToString(ConvertedName);
     Value *V = Context->getGlobalValueByID(Values[0]);
-    if (V == 0) {
+    if (V == NULL) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Invalid global address ID in valuesymtab: " << Values[0];
@@ -683,6 +793,354 @@ void ValuesymtabParser::ProcessRecord() {
   // If reached, don't know how to handle record.
   BlockParserBaseClass::ProcessRecord();
   return;
+}
+
+/// Parses function blocks in the bitcode file.
+class FunctionParser : public BlockParserBaseClass {
+  FunctionParser(const FunctionParser &) LLVM_DELETED_FUNCTION;
+  FunctionParser &operator=(const FunctionParser &) LLVM_DELETED_FUNCTION;
+
+public:
+  FunctionParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
+      : BlockParserBaseClass(BlockID, EnclosingParser),
+        Func(new Ice::Cfg(getTranslator().getContext())), CurrentBbIndex(0),
+        FcnId(Context->getNextFunctionBlockValueID()),
+        LLVMFunc(cast<Function>(Context->getGlobalValueByID(FcnId))),
+        CachedNumGlobalValueIDs(Context->getNumGlobalValueIDs()),
+        InstIsTerminating(false) {
+    Func->setFunctionName(LLVMFunc->getName());
+    Func->setReturnType(Context->convertToIceType(LLVMFunc->getReturnType()));
+    Func->setInternal(LLVMFunc->hasInternalLinkage());
+    CurrentNode = InstallNextBasicBlock();
+    for (Function::const_arg_iterator ArgI = LLVMFunc->arg_begin(),
+                                      ArgE = LLVMFunc->arg_end();
+         ArgI != ArgE; ++ArgI) {
+      Func->addArg(NextInstVar(Context->convertToIceType(ArgI->getType())));
+    }
+  }
+
+  ~FunctionParser() LLVM_OVERRIDE;
+
+private:
+  // Timer for reading function bitcode and converting to ICE.
+  Ice::Timer TConvert;
+  // The corresponding ICE function defined by the function block.
+  Ice::Cfg *Func;
+  // The index to the current basic block being built.
+  uint32_t CurrentBbIndex;
+  // The basic block being built.
+  Ice::CfgNode *CurrentNode;
+  // The ID for the function.
+  unsigned FcnId;
+  // The corresponding LLVM function.
+  Function *LLVMFunc;
+  // Holds operands local to the function block, based on indices
+  // defined in the bitcode file.
+  std::vector<Ice::Operand *> LocalOperands;
+  // Holds the dividing point between local and global absolute value indices.
+  uint32_t CachedNumGlobalValueIDs;
+  // True if the last processed instruction was a terminating
+  // instruction.
+  bool InstIsTerminating;
+
+  virtual void ProcessRecord() LLVM_OVERRIDE;
+
+  virtual void ExitBlock() LLVM_OVERRIDE;
+
+  // Creates and appends a new basic block to the list of basic blocks.
+  Ice::CfgNode *InstallNextBasicBlock() { return Func->makeNode(); }
+
+  // Returns the Index-th basic block in the list of basic blocks.
+  Ice::CfgNode *GetBasicBlock(uint32_t Index) {
+    const Ice::NodeList &Nodes = Func->getNodes();
+    if (Index >= Nodes.size()) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Reference to basic block " << Index
+             << " not found. Must be less than " << Nodes.size();
+      Error(StrBuf.str());
+      // TODO(kschimpf) Remove error recovery once implementation complete.
+      Index = 0;
+    }
+    return Nodes[Index];
+  }
+
+  // Generates the next available local variable using the given
+  // type.  Note: if Ty is void, this function returns NULL.
+  Ice::Variable *NextInstVar(Ice::Type Ty) {
+    if (Ty == Ice::IceType_void)
+      return NULL;
+    Ice::Variable *Var = Func->makeVariable(Ty, CurrentNode);
+    LocalOperands.push_back(Var);
+    return Var;
+  }
+
+  // Converts a relative index (to the next instruction to be read) to
+  // an absolute value index.
+  uint32_t convertRelativeToAbsIndex(int32_t Id) {
+    int32_t AbsNextId = CachedNumGlobalValueIDs + LocalOperands.size();
+    if (Id > 0 && AbsNextId < static_cast<uint32_t>(Id)) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Invalid relative value id: " << Id
+             << " (must be <= " << AbsNextId << ")";
+      Error(StrBuf.str());
+      // TODO(kschimpf) Remove error recovery once implementation complete.
+      return 0;
+    }
+    return AbsNextId - Id;
+  }
+
+  // Returns the value referenced by the given value Index.
+  Ice::Operand *getOperand(uint32_t Index) {
+    if (Index < CachedNumGlobalValueIDs) {
+      // TODO(kschimpf): Define implementation.
+      report_fatal_error("getOperand of global addresses not implemented");
+    }
+    uint32_t LocalIndex = Index - CachedNumGlobalValueIDs;
+    if (LocalIndex >= LocalOperands.size()) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Value index " << Index << " out of range. Must be less than "
+             << (LocalOperands.size() + CachedNumGlobalValueIDs);
+      Error(StrBuf.str());
+      report_fatal_error("Unable to continue");
+    }
+    return LocalOperands[LocalIndex];
+  }
+
+  // Generates type error message for binary operator Op
+  // operating on Type OpTy.
+  void ReportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy);
+
+  // Validates if integer logical Op, for type OpTy, is valid.
+  // Returns true if valid. Otherwise generates error message and
+  // returns false.
+  bool isValidIntegerLogicalOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy) {
+    if (Ice::isIntegerType(OpTy))
+      return true;
+    ReportInvalidBinaryOp(Op, OpTy);
+    return false;
+  }
+
+  // Validates if integer (or vector of integers) arithmetic Op, for type
+  // OpTy, is valid.  Returns true if valid. Otherwise generates
+  // error message and returns false.
+  bool isValidIntegerArithOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy) {
+    if (Ice::isIntegerArithmeticType(OpTy))
+      return true;
+    ReportInvalidBinaryOp(Op, OpTy);
+    return false;
+  }
+
+  // Checks if floating arithmetic Op, for type OpTy, is valid.
+  // Returns false if valid. Otherwise generates an error message and
+  // returns true.
+  bool isValidFloatingArithOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy) {
+    if (Ice::isFloatingType(OpTy))
+      return true;
+    ReportInvalidBinaryOp(Op, OpTy);
+    return false;
+  }
+
+  // Reports that the given binary Opcode, for the given type Ty,
+  // is not understood.
+  void ReportInvalidBinopOpcode(unsigned Opcode, Ice::Type Ty);
+
+  // Takes the PNaCl bitcode binary operator Opcode, and the opcode
+  // type Ty, and sets Op to the corresponding ICE binary
+  // opcode. Returns true if able to convert, false otherwise.
+  bool convertBinopOpcode(unsigned Opcode, Ice::Type Ty,
+                          Ice::InstArithmetic::OpKind &Op) {
+    Instruction::BinaryOps LLVMOpcode;
+    if (!naclbitc::DecodeBinaryOpcode(Opcode, Context->convertToLLVMType(Ty),
+                                      LLVMOpcode)) {
+      ReportInvalidBinopOpcode(Opcode, Ty);
+      // TODO(kschimpf) Remove error recovery once implementation complete.
+      Op = Ice::InstArithmetic::Add;
+      return false;
+    }
+    switch (LLVMOpcode) {
+    default: {
+      ReportInvalidBinopOpcode(Opcode, Ty);
+      // TODO(kschimpf) Remove error recovery once implementation complete.
+      Op = Ice::InstArithmetic::Add;
+      return false;
+    }
+    case Instruction::Add:
+      Op = Ice::InstArithmetic::Add;
+      return isValidIntegerArithOp(Op, Ty);
+    case Instruction::FAdd:
+      Op = Ice::InstArithmetic::Fadd;
+      return isValidFloatingArithOp(Op, Ty);
+    case Instruction::Sub:
+      Op = Ice::InstArithmetic::Sub;
+      return isValidIntegerArithOp(Op, Ty);
+    case Instruction::FSub:
+      Op = Ice::InstArithmetic::Fsub;
+      return isValidFloatingArithOp(Op, Ty);
+    case Instruction::Mul:
+      Op = Ice::InstArithmetic::Mul;
+      return isValidIntegerArithOp(Op, Ty);
+    case Instruction::FMul:
+      Op = Ice::InstArithmetic::Fmul;
+      return isValidFloatingArithOp(Op, Ty);
+    case Instruction::UDiv:
+      Op = Ice::InstArithmetic::Udiv;
+      return isValidIntegerArithOp(Op, Ty);
+    case Instruction::SDiv:
+      Op = Ice::InstArithmetic::Sdiv;
+      return isValidIntegerArithOp(Op, Ty);
+    case Instruction::FDiv:
+      Op = Ice::InstArithmetic::Fdiv;
+      return isValidFloatingArithOp(Op, Ty);
+    case Instruction::URem:
+      Op = Ice::InstArithmetic::Urem;
+      return isValidIntegerArithOp(Op, Ty);
+    case Instruction::SRem:
+      Op = Ice::InstArithmetic::Srem;
+      return isValidIntegerArithOp(Op, Ty);
+    case Instruction::FRem:
+      Op = Ice::InstArithmetic::Frem;
+      return isValidFloatingArithOp(Op, Ty);
+    case Instruction::Shl:
+      Op = Ice::InstArithmetic::Shl;
+      return isValidIntegerArithOp(Op, Ty);
+    case Instruction::LShr:
+      Op = Ice::InstArithmetic::Lshr;
+      return isValidIntegerArithOp(Op, Ty);
+    case Instruction::AShr:
+      Op = Ice::InstArithmetic::Ashr;
+      return isValidIntegerArithOp(Op, Ty);
+    case Instruction::And:
+      Op = Ice::InstArithmetic::And;
+      return isValidIntegerLogicalOp(Op, Ty);
+    case Instruction::Or:
+      Op = Ice::InstArithmetic::Or;
+      return isValidIntegerLogicalOp(Op, Ty);
+    case Instruction::Xor:
+      Op = Ice::InstArithmetic::Xor;
+      return isValidIntegerLogicalOp(Op, Ty);
+    }
+  }
+};
+
+FunctionParser::~FunctionParser() {
+  if (getTranslator().getFlags().SubzeroTimingEnabled) {
+    errs() << "[Subzero timing] Convert function " << Func->getFunctionName()
+           << ": " << TConvert.getElapsedSec() << " sec\n";
+  }
+}
+
+void FunctionParser::ReportInvalidBinopOpcode(unsigned Opcode, Ice::Type Ty) {
+  std::string Buffer;
+  raw_string_ostream StrBuf(Buffer);
+  StrBuf << "Binary opcode " << Opcode << "not understood for type " << Ty;
+  Error(StrBuf.str());
+}
+
+void FunctionParser::ExitBlock() {
+  // Before translating, check for blocks without instructions, and
+  // insert unreachable. This shouldn't happen, but be safe.
+  unsigned Index = 0;
+  const Ice::NodeList &Nodes = Func->getNodes();
+  for (std::vector<Ice::CfgNode *>::const_iterator Iter = Nodes.begin(),
+                                                   IterEnd = Nodes.end();
+       Iter != IterEnd; ++Iter, ++Index) {
+    Ice::CfgNode *Node = *Iter;
+    if (Node->getInsts().size() == 0) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Basic block " << Index << " contains no instructions";
+      Error(StrBuf.str());
+      // TODO(kschimpf) Remove error recovery once implementation complete.
+      Node->appendInst(Ice::InstUnreachable::create(Func));
+    }
+  }
+  getTranslator().translateFcn(Func);
+}
+
+void FunctionParser::ReportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op,
+                                           Ice::Type OpTy) {
+  std::string Buffer;
+  raw_string_ostream StrBuf(Buffer);
+  StrBuf << "Invalid operator type for " << Ice::InstArithmetic::getOpName(Op)
+         << ". Found " << OpTy;
+  Error(StrBuf.str());
+}
+
+void FunctionParser::ProcessRecord() {
+  const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
+  if (InstIsTerminating) {
+    InstIsTerminating = false;
+    CurrentNode = GetBasicBlock(++CurrentBbIndex);
+  }
+  Ice::Inst *Inst = NULL;
+  switch (Record.GetCode()) {
+  case naclbitc::FUNC_CODE_DECLAREBLOCKS: {
+    // DECLAREBLOCKS: [n]
+    if (!isValidRecordSize(1, "function block count"))
+      break;
+    if (Func->getNodes().size() != 1) {
+      Error("Duplicate function block count record");
+      return;
+    }
+    uint32_t NumBbs = Values[0];
+    if (NumBbs == 0) {
+      Error("Functions must contain at least one basic block.");
+      // TODO(kschimpf) Remove error recovery once implementation complete.
+      NumBbs = 1;
+    }
+    // Install the basic blocks, skipping bb0 which was created in the
+    // constructor.
+    for (size_t i = 1; i < NumBbs; ++i)
+      InstallNextBasicBlock();
+    break;
+  }
+  case naclbitc::FUNC_CODE_INST_BINOP: {
+    // BINOP: [opval, opval, opcode]
+    if (!isValidRecordSize(3, "function block binop"))
+      break;
+    Ice::Operand *Op1 = getOperand(convertRelativeToAbsIndex(Values[0]));
+    Ice::Operand *Op2 = getOperand(convertRelativeToAbsIndex(Values[1]));
+    Ice::Type Type1 = Op1->getType();
+    Ice::Type Type2 = Op2->getType();
+    if (Type1 != Type2) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Binop argument types differ: " << Type1 << " and " << Type2;
+      Error(StrBuf.str());
+      // TODO(kschimpf) Remove error recovery once implementation complete.
+      Op2 = Op1;
+    }
+
+    Ice::InstArithmetic::OpKind Opcode;
+    if (!convertBinopOpcode(Values[2], Type1, Opcode))
+      break;
+    Ice::Variable *Dest = NextInstVar(Type1);
+    Inst = Ice::InstArithmetic::create(Func, Opcode, Dest, Op1, Op2);
+    break;
+  }
+  case naclbitc::FUNC_CODE_INST_RET: {
+    // RET: [opval?]
+    InstIsTerminating = true;
+    if (!isValidRecordSizeInRange(0, 1, "function block ret"))
+      break;
+    if (Values.size() == 0) {
+      Inst = Ice::InstRet::create(Func);
+    } else {
+      Inst = Ice::InstRet::create(
+          Func, getOperand(convertRelativeToAbsIndex(Values[0])));
+    }
+    break;
+  }
+  default:
+    // Generate error message!
+    BlockParserBaseClass::ProcessRecord();
+    break;
+  }
+  if (Inst)
+    CurrentNode->appendInst(Inst);
 }
 
 /// Parses the module block in the bitcode file.
@@ -716,9 +1174,8 @@ bool ModuleParser::ParseBlock(unsigned BlockID) LLVM_OVERRIDE {
     return Parser.ParseThisBlock();
   }
   case naclbitc::FUNCTION_BLOCK_ID: {
-    Error("Function block parser not yet implemented, skipping");
-    SkipBlock();
-    return false;
+    FunctionParser Parser(BlockID, this);
+    return Parser.ParseThisBlock();
   }
   default:
     return BlockParserBaseClass::ParseBlock(BlockID);
@@ -730,7 +1187,7 @@ void ModuleParser::ProcessRecord() {
   switch (Record.GetCode()) {
   case naclbitc::MODULE_CODE_VERSION: {
     // VERSION: [version#]
-    if (checkRecordSize(1, "Module version"))
+    if (!isValidRecordSize(1, "Module version"))
       return;
     unsigned Version = Values[0];
     if (Version != 1) {
@@ -743,11 +1200,11 @@ void ModuleParser::ProcessRecord() {
   }
   case naclbitc::MODULE_CODE_FUNCTION: {
     // FUNCTION:  [type, callingconv, isproto, linkage]
-    if (checkRecordSize(4, "Function heading"))
+    if (!isValidRecordSize(4, "Function heading"))
       return;
     Type *Ty = Context->getTypeByID(Values[0]);
     FunctionType *FTy = dyn_cast<FunctionType>(Ty);
-    if (FTy == 0) {
+    if (FTy == NULL) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Function heading expects function type. Found: " << Ty;
@@ -788,13 +1245,7 @@ void ModuleParser::ProcessRecord() {
 bool TopLevelParser::ParseBlock(unsigned BlockID) {
   if (BlockID == naclbitc::MODULE_BLOCK_ID) {
     ModuleParser Parser(BlockID, this);
-    bool ReturnValue = Parser.ParseThisBlock();
-    // TODO(kschimpf): Remove once translating function blocks.
-    errs() << "Global addresses:\n";
-    for (size_t i = 0; i < ValueIDValues.size(); ++i) {
-      errs() << "[" << i << "]: " << *ValueIDValues[i] << "\n";
-    }
-    return ReturnValue;
+    return Parser.ParseThisBlock();
   }
   // Generate error message by using default block implementation.
   BlockParserBaseClass Parser(BlockID, this);
@@ -836,8 +1287,8 @@ void PNaClTranslator::translate(const std::string &IRFilename) {
   NaClBitstreamReader InputStreamFile(BufPtr, EndBufPtr);
   NaClBitstreamCursor InputStream(InputStreamFile);
 
-  TopLevelParser Parser(MemBuf->getBufferIdentifier(), Header, InputStream,
-                        ErrorStatus);
+  TopLevelParser Parser(*this, MemBuf->getBufferIdentifier(), Header,
+                        InputStream, ErrorStatus);
   int TopLevelBlocks = 0;
   while (!InputStream.AtEndOfStream()) {
     if (Parser.Parse()) {

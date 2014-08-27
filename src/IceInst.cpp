@@ -33,8 +33,6 @@ const struct InstArithmeticAttributes_ {
     ICEINSTARITHMETIC_TABLE
 #undef X
   };
-const size_t InstArithmeticAttributesSize =
-    llvm::array_lengthof(InstArithmeticAttributes);
 
 // Using non-anonymous struct so that array_lengthof works.
 const struct InstCastAttributes_ {
@@ -46,7 +44,6 @@ const struct InstCastAttributes_ {
     ICEINSTCAST_TABLE
 #undef X
   };
-const size_t InstCastAttributesSize = llvm::array_lengthof(InstCastAttributes);
 
 // Using non-anonymous struct so that array_lengthof works.
 const struct InstFcmpAttributes_ {
@@ -58,7 +55,6 @@ const struct InstFcmpAttributes_ {
     ICEINSTFCMP_TABLE
 #undef X
   };
-const size_t InstFcmpAttributesSize = llvm::array_lengthof(InstFcmpAttributes);
 
 // Using non-anonymous struct so that array_lengthof works.
 const struct InstIcmpAttributes_ {
@@ -70,7 +66,6 @@ const struct InstIcmpAttributes_ {
     ICEINSTICMP_TABLE
 #undef X
   };
-const size_t InstIcmpAttributesSize = llvm::array_lengthof(InstIcmpAttributes);
 
 } // end of anonymous namespace
 
@@ -226,6 +221,13 @@ InstArithmetic::InstArithmetic(Cfg *Func, OpKind Op, Variable *Dest,
     : Inst(Func, Inst::Arithmetic, 2, Dest), Op(Op) {
   addSource(Source1);
   addSource(Source2);
+}
+
+const char *InstArithmetic::getOpName(OpKind Op) {
+  size_t OpIndex = static_cast<size_t>(Op);
+  return OpIndex < InstArithmetic::_num
+             ? InstArithmeticAttributes[OpIndex].DisplayString
+             : "???";
 }
 
 bool InstArithmetic::isCommutative() const {

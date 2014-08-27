@@ -22,7 +22,8 @@ namespace Ice {
 
 class PNaClTranslator : public Translator {
 public:
-  PNaClTranslator(GlobalContext *Ctx) : Translator(Ctx) {}
+  PNaClTranslator(GlobalContext *Ctx, const ClFlags &Flags)
+      : Translator(Ctx, Flags) {}
   // Reads the PNaCl bitcode file and translates to ICE, which is then
   // converted to machine code. Sets ErrorStatus to true if any
   // errors occurred.

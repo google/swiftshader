@@ -35,4 +35,28 @@
   X(IceType_v4f32, 16,  4,     4,      IceType_f32,  "<4 x float>")      \
 //#define X(tag, size, align, elts, elty, str)
 
+// Dictionary:
+//   V - Is vector type.
+//   I - Is integer value (scalar or vector).
+//   F - Is floating point value (scalar or vector).
+//   IA - Is integer arithmetic type
+#define ICETYPE_PROPS_TABLE                                              \
+  /* Enum Value    V  I  F IA */                                         \
+  X(IceType_void,  0, 0, 0, 0)                                           \
+  X(IceType_i1,    0, 1, 0, 0)                                           \
+  X(IceType_i8,    0, 1, 0, 1)                                           \
+  X(IceType_i16,   0, 1, 0, 1)                                           \
+  X(IceType_i32,   0, 1, 0, 1)                                           \
+  X(IceType_i64,   0, 1, 0, 1)                                           \
+  X(IceType_f32,   0, 0, 1, 0)                                           \
+  X(IceType_f64,   0, 0, 1, 0)                                           \
+  X(IceType_v4i1,  1, 1, 0, 0)                                           \
+  X(IceType_v8i1,  1, 1, 0, 0)                                           \
+  X(IceType_v16i1, 1, 1, 0, 0)                                           \
+  X(IceType_v16i8, 1, 1, 0, 1)                                           \
+  X(IceType_v8i16, 1, 1, 0, 1)                                           \
+  X(IceType_v4i32, 1, 1, 0, 1)                                           \
+  X(IceType_v4f32, 1, 0, 1, 0)                                           \
+//#define X(tag, IsVec, IsInt, IsFloat, IsIntArith)
+
 #endif // SUBZERO_SRC_ICETYPES_DEF

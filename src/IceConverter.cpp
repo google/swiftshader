@@ -22,6 +22,7 @@
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
 #include "IceTypes.h"
+#include "IceTypeConverter.h"
 
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
@@ -54,12 +55,8 @@ template <typename T> static std::string LLVMObjectAsString(const T *O) {
 //
 class LLVM2ICEConverter {
 public:
-  LLVM2ICEConverter(Ice::GlobalContext *Ctx)
-      : Ctx(Ctx), Func(NULL), CurrentNode(NULL) {
-    // All PNaCl pointer widths are 32 bits because of the sandbox
-    // model.
-    SubzeroPointerType = Ice::IceType_i32;
-  }
+  LLVM2ICEConverter(Ice::GlobalContext *Ctx, LLVMContext &LLVMContext)
+      : Ctx(Ctx), Func(NULL), CurrentNode(NULL), TypeConverter(LLVMContext) {}
 
   // Caller is expected to delete the returned Ice::Cfg object.
   Ice::Cfg *convertFunction(const Function *F) {
@@ -67,7 +64,7 @@ public:
     NodeMap.clear();
     Func = new Ice::Cfg(Ctx);
     Func->setFunctionName(F->getName());
-    Func->setReturnType(convertType(F->getReturnType()));
+    Func->setReturnType(convertToIceType(F->getReturnType()));
     Func->setInternal(F->hasInternalLinkage());
 
     // The initial definition/use of each arg is the entry node.
@@ -102,12 +99,13 @@ public:
   // global initializers.
   Ice::Constant *convertConstant(const Constant *Const) {
     if (const GlobalValue *GV = dyn_cast<GlobalValue>(Const)) {
-      return Ctx->getConstantSym(convertType(GV->getType()), 0, GV->getName());
+      return Ctx->getConstantSym(convertToIceType(GV->getType()), 0,
+                                 GV->getName());
     } else if (const ConstantInt *CI = dyn_cast<ConstantInt>(Const)) {
-      return Ctx->getConstantInt(convertIntegerType(CI->getType()),
+      return Ctx->getConstantInt(convertToIceType(CI->getType()),
                                  CI->getZExtValue());
     } else if (const ConstantFP *CFP = dyn_cast<ConstantFP>(Const)) {
-      Ice::Type Type = convertType(CFP->getType());
+      Ice::Type Type = convertToIceType(CFP->getType());
       if (Type == Ice::IceType_f32)
         return Ctx->getConstantFloat(CFP->getValueAPF().convertToFloat());
       else if (Type == Ice::IceType_f64)
@@ -115,7 +113,7 @@ public:
       llvm_unreachable("Unexpected floating point type");
       return NULL;
     } else if (const UndefValue *CU = dyn_cast<UndefValue>(Const)) {
-      return Ctx->getConstantUndef(convertType(CU->getType()));
+      return Ctx->getConstantUndef(convertToIceType(CU->getType()));
     } else {
       llvm_unreachable("Unhandled constant type");
       return NULL;
@@ -125,7 +123,7 @@ public:
 private:
   // LLVM values (instructions, etc.) are mapped directly to ICE variables.
   // mapValueToIceVar has a version that forces an ICE type on the variable,
-  // and a version that just uses convertType on V.
+  // and a version that just uses convertToIceType on V.
   Ice::Variable *mapValueToIceVar(const Value *V, Ice::Type IceTy) {
     if (IceTy == Ice::IceType_void)
       return NULL;
@@ -137,7 +135,7 @@ private:
   }
 
   Ice::Variable *mapValueToIceVar(const Value *V) {
-    return mapValueToIceVar(V, convertType(V->getType()));
+    return mapValueToIceVar(V, convertToIceType(V->getType()));
   }
 
   Ice::CfgNode *mapBasicBlockToNode(const BasicBlock *BB) {
@@ -147,85 +145,12 @@ private:
     return NodeMap[BB];
   }
 
-  Ice::Type convertIntegerType(const IntegerType *IntTy) const {
-    switch (IntTy->getBitWidth()) {
-    case 1:
-      return Ice::IceType_i1;
-    case 8:
-      return Ice::IceType_i8;
-    case 16:
-      return Ice::IceType_i16;
-    case 32:
-      return Ice::IceType_i32;
-    case 64:
-      return Ice::IceType_i64;
-    default:
-      report_fatal_error(std::string("Invalid PNaCl int type: ") +
-                         LLVMObjectAsString(IntTy));
-      return Ice::IceType_void;
-    }
-  }
-
-  Ice::Type convertVectorType(const VectorType *VecTy) const {
-    unsigned NumElements = VecTy->getNumElements();
-    const Type *ElementType = VecTy->getElementType();
-
-    if (ElementType->isFloatTy()) {
-      if (NumElements == 4)
-        return Ice::IceType_v4f32;
-    } else if (ElementType->isIntegerTy()) {
-      switch (cast<IntegerType>(ElementType)->getBitWidth()) {
-      case 1:
-        if (NumElements == 4)
-          return Ice::IceType_v4i1;
-        if (NumElements == 8)
-          return Ice::IceType_v8i1;
-        if (NumElements == 16)
-          return Ice::IceType_v16i1;
-        break;
-      case 8:
-        if (NumElements == 16)
-          return Ice::IceType_v16i8;
-        break;
-      case 16:
-        if (NumElements == 8)
-          return Ice::IceType_v8i16;
-        break;
-      case 32:
-        if (NumElements == 4)
-          return Ice::IceType_v4i32;
-        break;
-      }
-    }
-
-    report_fatal_error(std::string("Unhandled vector type: ") +
-                       LLVMObjectAsString(VecTy));
-    return Ice::IceType_void;
-  }
-
-  Ice::Type convertType(const Type *Ty) const {
-    switch (Ty->getTypeID()) {
-    case Type::VoidTyID:
-      return Ice::IceType_void;
-    case Type::IntegerTyID:
-      return convertIntegerType(cast<IntegerType>(Ty));
-    case Type::FloatTyID:
-      return Ice::IceType_f32;
-    case Type::DoubleTyID:
-      return Ice::IceType_f64;
-    case Type::PointerTyID:
-      return SubzeroPointerType;
-    case Type::FunctionTyID:
-      return SubzeroPointerType;
-    case Type::VectorTyID:
-      return convertVectorType(cast<VectorType>(Ty));
-    default:
-      report_fatal_error(std::string("Invalid PNaCl type: ") +
-                         LLVMObjectAsString(Ty));
-    }
-
-    llvm_unreachable("convertType");
-    return Ice::IceType_void;
+  Ice::Type convertToIceType(Type *LLVMTy) const {
+    Ice::Type IceTy = TypeConverter.convertToIceType(LLVMTy);
+    if (IceTy == Ice::IceType_NUM)
+      llvm::report_fatal_error(std::string("Invalid PNaCl type ") +
+                               LLVMObjectAsString(LLVMTy));
+    return IceTy;
   }
 
   // Given an LLVM instruction and an operand number, produce the
@@ -404,7 +329,8 @@ private:
 
   Ice::Inst *convertIntToPtrInstruction(const IntToPtrInst *Inst) {
     Ice::Operand *Src = convertOperand(Inst, 0);
-    Ice::Variable *Dest = mapValueToIceVar(Inst, SubzeroPointerType);
+    Ice::Variable *Dest =
+        mapValueToIceVar(Inst, TypeConverter.getIcePointerType());
     return Ice::InstAssign::create(Func, Dest, Src);
   }
 
@@ -622,7 +548,8 @@ private:
     // PNaCl bitcode only contains allocas of byte-granular objects.
     Ice::Operand *ByteCount = convertValue(Inst->getArraySize());
     uint32_t Align = Inst->getAlignment();
-    Ice::Variable *Dest = mapValueToIceVar(Inst, SubzeroPointerType);
+    Ice::Variable *Dest =
+        mapValueToIceVar(Inst, TypeConverter.getIcePointerType());
 
     return Ice::InstAlloca::create(Func, ByteCount, Align, Dest);
   }
@@ -671,22 +598,22 @@ private:
   Ice::GlobalContext *Ctx;
   Ice::Cfg *Func;
   Ice::CfgNode *CurrentNode;
-  Ice::Type SubzeroPointerType;
   std::map<const Value *, Ice::Variable *> VarMap;
   std::map<const BasicBlock *, Ice::CfgNode *> NodeMap;
+  Ice::TypeConverter TypeConverter;
 };
 
 } // end of anonymous namespace
 
 namespace Ice {
 
-void Converter::convertToIce(Module *Mod) {
+void Converter::convertToIce() {
   if (!Ctx->getFlags().DisableGlobals)
-    convertGlobals(Mod);
-  convertFunctions(Mod);
+    convertGlobals();
+  convertFunctions();
 }
 
-void Converter::convertGlobals(Module *Mod) {
+void Converter::convertGlobals() {
   OwningPtr<TargetGlobalInitLowering> GlobalLowering(
       TargetGlobalInitLowering::createLowering(Ctx->getTargetArch(), Ctx));
   for (Module::const_global_iterator I = Mod->global_begin(),
@@ -729,11 +656,11 @@ void Converter::convertGlobals(Module *Mod) {
   GlobalLowering.reset();
 }
 
-void Converter::convertFunctions(Module *Mod) {
+void Converter::convertFunctions() {
   for (Module::const_iterator I = Mod->begin(), E = Mod->end(); I != E; ++I) {
     if (I->empty())
       continue;
-    LLVM2ICEConverter FunctionConverter(Ctx);
+    LLVM2ICEConverter FunctionConverter(Ctx, Mod->getContext());
 
     Timer TConvert;
     Cfg *Fcn = FunctionConverter.convertFunction(I);

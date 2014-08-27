@@ -29,13 +29,27 @@ class GlobalContext;
 // machine instructions.
 class Translator {
 public:
-  Translator(GlobalContext *Ctx) : Ctx(Ctx), ErrorStatus(0) {}
+  Translator(GlobalContext *Ctx, const ClFlags &Flags)
+      : Ctx(Ctx), Flags(Flags), ErrorStatus(0) {}
 
   ~Translator();
   bool getErrorStatus() const { return ErrorStatus; }
 
+  GlobalContext *getContext() const { return Ctx; }
+
+  const ClFlags &getFlags() const { return Flags; }
+
+  /// Translates the constructed ICE function Fcn to machine code.
+  /// Takes ownership of Fcn. Note: As a side effect, Field Func is
+  /// set to Fcn.
+  void translateFcn(Cfg *Fcn);
+
+  /// Emits the constant pool.
+  void emitConstants();
+
 protected:
   GlobalContext *Ctx;
+  const ClFlags &Flags;
   // The exit status of the translation. False is successful. True
   // otherwise.
   bool ErrorStatus;
@@ -48,13 +62,6 @@ protected:
   // GlobalContext instead of Cfg, and then make emitConstantPool use
   // that.
   llvm::OwningPtr<Cfg> Func;
-
-  /// Translates the constructed ICE function Fcn to machine code.
-  /// Note: As a side effect, Field Func is set to Fcn.
-  void translateFcn(Cfg *Fcn);
-
-  /// Emits the constant pool.
-  void emitConstants();
 
 private:
   Translator(const Translator &) LLVM_DELETED_FUNCTION;

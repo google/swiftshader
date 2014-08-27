@@ -47,7 +47,16 @@ size_t typeNumElements(Type Ty);
 Type typeElementType(Type Ty);
 const char *typeString(Type Ty);
 
-inline bool isVectorType(Type Ty) { return typeNumElements(Ty) > 1; }
+bool isVectorType(Type Ty);
+
+bool isIntegerType(Type Ty); // scalar or vector
+bool isScalarIntegerType(Type Ty);
+bool isVectorIntegerType(Type Ty);
+bool isIntegerArithmeticType(Type Ty);
+
+bool isFloatingType(Type Ty); // scalar or vector
+bool isScalarFloatingType(Type Ty);
+bool isVectorFloatingType(Type Ty);
 
 template <typename StreamType>
 inline StreamType &operator<<(StreamType &Str, const Type &Ty) {

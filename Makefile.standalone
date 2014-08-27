@@ -61,6 +61,7 @@ SRCS= \
 	IceTargetLowering.cpp \
 	IceTargetLoweringX8632.cpp \
 	IceTranslator.cpp \
+	IceTypeConverter.cpp \
 	IceTypes.cpp \
 	llvm2ice.cpp \
 	PNaClTranslator.cpp
