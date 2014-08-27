@@ -34,7 +34,8 @@ $(info Using HOST_ARCH     = $(HOST_ARCH))
 $(info -----------------------------------------------)
 
 LLVM_CXXFLAGS := `$(LLVM_BIN_PATH)/llvm-config --cxxflags`
-LLVM_LDFLAGS := `$(LLVM_BIN_PATH)/llvm-config --ldflags --libs`
+LLVM_LDFLAGS := `$(LLVM_BIN_PATH)/llvm-config --libs` \
+                `$(LLVM_BIN_PATH)/llvm-config --ldflags`
 
 # It's recommended that CXX matches the compiler you used to build LLVM itself.
 OPTLEVEL := -O0
