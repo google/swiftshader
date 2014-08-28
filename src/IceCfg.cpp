@@ -314,6 +314,13 @@ void Cfg::emit() {
     Str << "\t.globl\t" << MangledName << "\n";
     Str << "\t.type\t" << MangledName << ",@function\n";
   }
+  Str << "\t.p2align " << getTarget()->getBundleAlignLog2Bytes() << ",0x";
+  llvm::ArrayRef<uint8_t> Pad = getTarget()->getNonExecBundlePadding();
+  for (llvm::ArrayRef<uint8_t>::iterator I = Pad.begin(), E = Pad.end();
+       I != E; ++I) {
+    Str.write_hex(*I);
+  }
+  Str << "\n";
   for (NodeList::const_iterator I = Nodes.begin(), E = Nodes.end(); I != E;
        ++I) {
     (*I)->emit(this);

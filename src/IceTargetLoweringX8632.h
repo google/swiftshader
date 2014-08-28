@@ -45,6 +45,11 @@ public:
     // i8, and i16 are rounded up to 4 bytes.
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
+  virtual SizeT getBundleAlignLog2Bytes() const { return 5; }
+  virtual llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const {
+    static const uint8_t Padding[] = { 0xF4 };
+    return llvm::ArrayRef<uint8_t>(Padding, 1);
+  }
   virtual void emitVariable(const Variable *Var, const Cfg *Func) const;
   virtual void lowerArguments();
   virtual void addProlog(CfgNode *Node);

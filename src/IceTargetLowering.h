@@ -137,6 +137,8 @@ public:
   virtual bool hasFramePointer() const { return false; }
   virtual SizeT getFrameOrStackReg() const = 0;
   virtual size_t typeWidthInBytesOnStack(Type Ty) const = 0;
+  virtual SizeT getBundleAlignLog2Bytes() const = 0;
+  virtual llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const = 0;
   bool hasComputedFrame() const { return HasComputedFrame; }
   bool shouldDoNopInsertion() const;
   int32_t getStackAdjustment() const { return StackAdjustment; }
