@@ -879,7 +879,7 @@ private:
   // an absolute value index.
   uint32_t convertRelativeToAbsIndex(int32_t Id) {
     int32_t AbsNextId = CachedNumGlobalValueIDs + LocalOperands.size();
-    if (Id > 0 && AbsNextId < static_cast<uint32_t>(Id)) {
+    if (Id > 0 && AbsNextId < Id) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Invalid relative value id: " << Id
