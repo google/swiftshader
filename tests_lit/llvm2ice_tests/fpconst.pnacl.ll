@@ -6,12 +6,12 @@
 ; number in a reasonable number of digits".  See
 ; http://llvm.org/docs/LangRef.html#simple-constants .
 
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -s -d -symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -s -d -symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
@@ -545,11 +545,15 @@ return:                                           ; preds = %entry, %sw.bb65, %s
 ; pick one value for each type, and make sure it appears exactly once.
 
 ; Check for float 0.5
-; CHECK:     .long   0x3f000000
-; CHECK-NOT: .long   0x3f000000
+; CHECK-LABEL: .rodata.cst4
+; CHECK:     0000003f
+; CHECK-NOT: 0000003f
+
 ; Check for double 0.5
-; CHECK:     .quad   0x3fe0000000000000
-; CHECK-NOT: .quad   0x3fe0000000000000
+; CHECK-LABEL: .rodata.cst8
+; CHECK:     00000000 0000e03f
+; CHECK-NOT: 00000000 0000e03f
+; CHECK-LABEL: .shstrtab
 
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

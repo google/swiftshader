@@ -1,11 +1,14 @@
 ; Simple test of signed and unsigned integer conversions.
 
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
+; TODO(jvoung): llvm-objdump doesn't symbolize global symbols well, so we
+; have [0] == i8v, [2] == i16v, [4] == i32v, [8] == i64v, etc.
+
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
@@ -35,7 +38,7 @@ entry:
   store i64 %v3, i64* %__7, align 1
   ret void
 }
-; CHECK: from_int8:
+; CHECK-LABEL: from_int8
 ; CHECK: mov {{.*}}, byte ptr [
 ; CHECK: movsx
 ; CHECK: mov word ptr [
@@ -43,7 +46,7 @@ entry:
 ; CHECK: mov dword ptr [
 ; CHECK: movsx
 ; CHECK: sar {{.*}}, 31
-; CHECK: i64v
+; CHECK: [8]
 
 define void @from_int16() {
 entry:
@@ -60,14 +63,14 @@ entry:
   store i64 %v3, i64* %__7, align 1
   ret void
 }
-; CHECK: from_int16:
+; CHECK-LABEL: from_int16
 ; CHECK: mov {{.*}}, word ptr [
-; CHECK: i8v
+; CHECK: [0]
 ; CHECK: movsx
-; CHECK: i32v
+; CHECK: [4]
 ; CHECK: movsx
 ; CHECK: sar {{.*}}, 31
-; CHECK: i64v
+; CHECK: [8]
 
 define void @from_int32() {
 entry:
@@ -84,12 +87,12 @@ entry:
   store i64 %v3, i64* %__7, align 1
   ret void
 }
-; CHECK: from_int32:
-; CHECK: i32v
-; CHECK: i8v
-; CHECK: i16v
+; CHECK-LABEL: from_int32
+; CHECK: [4]
+; CHECK: [0]
+; CHECK: [2]
 ; CHECK: sar {{.*}}, 31
-; CHECK: i64v
+; CHECK: [8]
 
 define void @from_int64() {
 entry:
@@ -106,11 +109,12 @@ entry:
   store i32 %v3, i32* %__7, align 1
   ret void
 }
-; CHECK: from_int64:
-; CHECK: i64v
-; CHECK: i8v
-; CHECK: i16v
-; CHECK: i32v
+; CHECK-LABEL: from_int64
+; CHECK: [8]
+; CHECK: [0]
+; CHECK: [2]
+; CHECK: [4]
+
 
 define void @from_uint8() {
 entry:
@@ -127,15 +131,15 @@ entry:
   store i64 %v3, i64* %__7, align 1
   ret void
 }
-; CHECK: from_uint8:
-; CHECK: u8v
+; CHECK-LABEL: from_uint8
+; CHECK: [16]
 ; CHECK: movzx
-; CHECK: i16v
+; CHECK: [2]
 ; CHECK: movzx
-; CHECK: i32v
+; CHECK: [4]
 ; CHECK: movzx
 ; CHECK: mov {{.*}}, 0
-; CHECK: i64v
+; CHECK: [8]
 
 define void @from_uint16() {
 entry:
@@ -152,14 +156,14 @@ entry:
   store i64 %v3, i64* %__7, align 1
   ret void
 }
-; CHECK: from_uint16:
-; CHECK: u16v
-; CHECK: i8v
+; CHECK-LABEL: from_uint16
+; CHECK: [18]
+; CHECK: [0]
 ; CHECK: movzx
-; CHECK: i32v
+; CHECK: [4]
 ; CHECK: movzx
 ; CHECK: mov {{.*}}, 0
-; CHECK: i64v
+; CHECK: [8]
 
 define void @from_uint32() {
 entry:
@@ -176,12 +180,12 @@ entry:
   store i64 %v3, i64* %__7, align 1
   ret void
 }
-; CHECK: from_uint32:
-; CHECK: u32v
-; CHECK: i8v
-; CHECK: i16v
+; CHECK-LABEL: from_uint32
+; CHECK: [20]
+; CHECK: [0]
+; CHECK: [2]
 ; CHECK: mov {{.*}}, 0
-; CHECK: i64v
+; CHECK: [8]
 
 define void @from_uint64() {
 entry:
@@ -198,11 +202,11 @@ entry:
   store i32 %v3, i32* %__7, align 1
   ret void
 }
-; CHECK: from_uint64:
-; CHECK: u64v
-; CHECK: i8v
-; CHECK: i16v
-; CHECK: i32v
+; CHECK-LABEL: from_uint64
+; CHECK: [24]
+; CHECK: [0]
+; CHECK: [2]
+; CHECK: [4]
 
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

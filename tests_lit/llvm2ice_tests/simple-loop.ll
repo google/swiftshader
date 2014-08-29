@@ -1,12 +1,13 @@
 ; This tests a simple loop that sums the elements of an input array.
 ; The O2 check patterns represent the best code currently achieved.
 
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck --check-prefix=OPTM1 %s
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
+; RUN:   | FileCheck --check-prefix=OPTM1 %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
@@ -34,11 +35,13 @@ for.end:
   ret i32 %sum.0.lcssa
 }
 
-; CHECK:      .globl simple_loop
-; CHECK:      mov ecx, dword ptr [esp+{{[0-9]+}}]
+; CHECK-LABEL: simple_loop
+; CHECK:      mov ecx, dword ptr [esp{{.*}}+{{.*}}{{[0-9]+}}]
 ; CHECK:      cmp ecx, 0
-; CHECK-NEXT: jg {{.*}}for.body
-; CHECK-NEXT: jmp {{.*}}for.end
+; CHECK-NEXT: jg {{[0-9]}}
+; NaCl bundle padding
+; CHECK-NEXT: nop
+; CHECK-NEXT: jmp {{[0-9]}}
 
 ; TODO: the mov from ebx to esi seems redundant here - so this may need to be
 ; modified later
@@ -46,11 +49,11 @@ for.end:
 ; CHECK:      add [[IREG:[a-z]+]], 1
 ; CHECK-NEXT: mov [[ICMPREG:[a-z]+]], [[IREG]]
 ; CHECK:      cmp [[ICMPREG]], ecx
-; CHECK-NEXT: jl {{.*}}for.body
+; CHECK-NEXT: jl -{{[0-9]}}
 ;
 ; There's nothing remarkable under Om1 to test for, since Om1 generates
 ; such atrocious code (by design).
-; OPTM1:      .globl simple_loop
+; OPTM1-LABEL: simple_loop
 ; OPTM1:      cmp {{.*}}, 0
 ; OPTM1:      jg
 ; OPTM1:      ret

@@ -1,8 +1,8 @@
 ; This file checks support for address mode optimization.
 
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 
 define float @load_arg_plus_200000(float* %arg) {
@@ -13,7 +13,7 @@ entry:
   %addr.load = load float* %addr.ptr, align 4
   ret float %addr.load
 ; CHECK-LABEL: load_arg_plus_200000:
-; CHECK: movss xmm0, dword ptr [eax+200000]
+; CHECK: movss xmm0, dword ptr [eax + 200000]
 }
 
 define float @load_200000_plus_arg(float* %arg) {
@@ -24,7 +24,7 @@ entry:
   %addr.load = load float* %addr.ptr, align 4
   ret float %addr.load
 ; CHECK-LABEL: load_200000_plus_arg:
-; CHECK: movss xmm0, dword ptr [eax+200000]
+; CHECK: movss xmm0, dword ptr [eax + 200000]
 }
 
 define float @load_arg_minus_200000(float* %arg) {
@@ -35,7 +35,7 @@ entry:
   %addr.load = load float* %addr.ptr, align 4
   ret float %addr.load
 ; CHECK-LABEL: load_arg_minus_200000:
-; CHECK: movss xmm0, dword ptr [eax-200000]
+; CHECK: movss xmm0, dword ptr [eax - 200000]
 }
 
 define float @load_200000_minus_arg(float* %arg) {
@@ -58,7 +58,7 @@ entry:
   %addr2.load = load float* %addr2.ptr, align 4
   ret float %addr2.load
 ; CHECK-LABEL: address_mode_opt_chaining:
-; CHECK: movss xmm0, dword ptr [eax+8]
+; CHECK: movss xmm0, dword ptr [eax + 8]
 }
 
 ; ERRORS-NOT: ICE translation error

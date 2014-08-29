@@ -1,12 +1,12 @@
 ; This is a test of C-level conversion operations that clang lowers
 ; into pairs of shifts.
 
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
@@ -26,7 +26,7 @@ entry:
   store i32 %v1, i32* %__4, align 1
   ret void
 }
-; CHECK: conv1:
+; CHECK-LABEL: conv1
 ; CHECK: shl {{.*}}, 24
 ; CHECK: sar {{.*}}, 24
 
@@ -40,7 +40,7 @@ entry:
   store i32 %v1, i32* %__4, align 1
   ret void
 }
-; CHECK: conv2:
+; CHECK-LABEL: conv2
 ; CHECK: shl {{.*}}, 16
 ; CHECK: sar {{.*}}, 16
 

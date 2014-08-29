@@ -1,17 +1,26 @@
 ; This tests each of the supported NaCl atomic instructions for every
 ; size allowed.
 
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s --check-prefix=CHECKO2
-; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %llvm2ice -O2 --verbose none %s \
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN:   | FileCheck --check-prefix=CHECKO2 %s
 ; RUN: %llvm2ice -Om1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
 ; RUN:                           | FileCheck --check-prefix=DUMP %s
+
+; TODO(jvoung): Uh... normally pnacl-llc is not supposed to separate the
+; lock from its instruction w/ bundle padding, but when processing .s
+; files with llvm-mc it seems be ocassionally wrong!
+; https://code.google.com/p/nativeclient/issues/detail?id=3929
+; That makes the current "lock" checks avoid using CHECK-NEXT.
 
 declare i8 @llvm.nacl.atomic.load.i8(i8*, i32)
 declare i16 @llvm.nacl.atomic.load.i16(i16*, i32)
@@ -201,7 +210,8 @@ entry:
   ret i32 %a_ext
 }
 ; CHECK-LABEL: test_atomic_rmw_add_8
-; CHECK: lock xadd byte {{.*}}, [[REG:.*]]
+; CHECK: lock
+; CHECK-NEXT: xadd byte {{.*}}, [[REG:.*]]
 ; CHECK: mov {{.*}}, [[REG]]
 
 define i32 @test_atomic_rmw_add_16(i32 %iptr, i32 %v) {
@@ -213,7 +223,9 @@ entry:
   ret i32 %a_ext
 }
 ; CHECK-LABEL: test_atomic_rmw_add_16
-; CHECK: lock xadd word {{.*}}, [[REG:.*]]
+; CHECK: lock
+; Should be using NEXT: see issue 3929
+; CHECK: xadd word {{.*}}, [[REG:.*]]
 ; CHECK: mov {{.*}}, [[REG]]
 
 define i32 @test_atomic_rmw_add_32(i32 %iptr, i32 %v) {
@@ -223,7 +235,8 @@ entry:
   ret i32 %a
 }
 ; CHECK-LABEL: test_atomic_rmw_add_32
-; CHECK: lock xadd dword {{.*}}, [[REG:.*]]
+; CHECK: lock
+; CHECK-NEXT: xadd dword {{.*}}, [[REG:.*]]
 ; CHECK: mov {{.*}}, [[REG]]
 
 define i64 @test_atomic_rmw_add_64(i32 %iptr, i64 %v) {
@@ -235,8 +248,7 @@ entry:
 ; CHECK-LABEL: test_atomic_rmw_add_64
 ; CHECK: push ebx
 ; CHECK: mov eax, dword ptr [{{.*}}]
-; CHECK: mov edx, dword ptr [{{.*}}+4]
-; CHECK: .L[[LABEL:.*]]:
+; CHECK: mov edx, dword ptr [{{.*}} + 4]
 ; CHECK: mov ebx, eax
 ; RHS of add cannot be any of the e[abcd]x regs because they are
 ; clobbered in the loop, and the RHS needs to be remain live.
@@ -246,12 +258,16 @@ entry:
 ; Ptr cannot be eax, ebx, ecx, or edx (used up for the expected and desired).
 ; It can be esi, edi, or ebp though, for example (so we need to be careful
 ; about rejecting eb* and ed*.)
-; CHECK: lock cmpxchg8b qword ptr [e{{.[^x]}}]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg8b qword ptr [e{{.[^x]}}]
+; CHECK: jne -{{[0-9]}}
 
 ; Test with some more register pressure. When we have an alloca, ebp is
 ; used to manage the stack frame, so it cannot be used as a register either.
-declare void @use_ptr(i32 %iptr)
+define void @use_ptr(i32 %iptr) {
+entry:
+  ret void
+}
 
 define i64 @test_atomic_rmw_add_64_alloca(i32 %iptr, i64 %v) {
 entry:
@@ -277,7 +293,8 @@ entry:
 ; not esp, since that's the stack pointer and mucking with it will break
 ; the later use_ptr function call.
 ; That pretty much leaves esi, or edi as the only viable registers.
-; CHECK: lock cmpxchg8b qword ptr [e{{[ds]}}i]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg8b qword ptr [e{{[ds]}}i]
 ; CHECK: call use_ptr
 
 define i32 @test_atomic_rmw_add_32_ignored(i32 %iptr, i32 %v) {
@@ -289,7 +306,8 @@ entry:
 ; Technically this could use "lock add" instead of "lock xadd", if liveness
 ; tells us that the destination variable is dead.
 ; CHECK-LABEL: test_atomic_rmw_add_32_ignored
-; CHECK: lock xadd dword {{.*}}, [[REG:.*]]
+; CHECK: lock
+; CHECK-NEXT: xadd dword {{.*}}, [[REG:.*]]
 
 ; Atomic RMW 64 needs to be expanded into its own loop.
 ; Make sure that works w/ non-trivial function bodies.
@@ -313,17 +331,15 @@ err:
 }
 ; CHECK-LABEL: test_atomic_rmw_add_64_loop
 ; CHECK: push ebx
-; CHECK-LABEL: .Ltest_atomic_rmw_add_64_loop{{.*}}loop
 ; CHECK: mov eax, dword ptr [{{.*}}]
-; CHECK: mov edx, dword ptr [{{.*}}+4]
-; CHECK: .L[[LABEL:.*]]:
+; CHECK: mov edx, dword ptr [{{.*}} + 4]
 ; CHECK: mov ebx, eax
 ; CHECK: add ebx, {{.*e.[^x]}}
 ; CHECK: mov ecx, edx
 ; CHECK: adc ecx, {{.*e.[^x]}}
-; CHECK: lock cmpxchg8b qword ptr [e{{.[^x]}}]
-; CHECK: jne .L[[LABEL]]
-; CHECK-LABEL: .Ltest_atomic_rmw_add_64_loop{{.*}}done
+; CHECK: lock
+; CHECK-NEXT: cmpxchg8b qword ptr [e{{.[^x]}}]
+; CHECK: jne -{{[0-9]}}
 
 ;; sub
 
@@ -337,7 +353,9 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_sub_8
 ; CHECK: neg [[REG:.*]]
-; CHECK: lock xadd byte {{.*}}, [[REG]]
+; CHECK: lock
+; Should be using NEXT: see issue 3929
+; CHECK: xadd byte {{.*}}, [[REG]]
 ; CHECK: mov {{.*}}, [[REG]]
 
 define i32 @test_atomic_rmw_sub_16(i32 %iptr, i32 %v) {
@@ -350,7 +368,8 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_sub_16
 ; CHECK: neg [[REG:.*]]
-; CHECK: lock xadd word {{.*}}, [[REG]]
+; CHECK: lock
+; CHECK-NEXT: xadd word {{.*}}, [[REG]]
 ; CHECK: mov {{.*}}, [[REG]]
 
 define i32 @test_atomic_rmw_sub_32(i32 %iptr, i32 %v) {
@@ -361,7 +380,8 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_sub_32
 ; CHECK: neg [[REG:.*]]
-; CHECK: lock xadd dword {{.*}}, [[REG]]
+; CHECK: lock
+; CHECK-NEXT: xadd dword {{.*}}, [[REG]]
 ; CHECK: mov {{.*}}, [[REG]]
 
 define i64 @test_atomic_rmw_sub_64(i32 %iptr, i64 %v) {
@@ -373,14 +393,15 @@ entry:
 ; CHECK-LABEL: test_atomic_rmw_sub_64
 ; CHECK: push ebx
 ; CHECK: mov eax, dword ptr [{{.*}}]
-; CHECK: mov edx, dword ptr [{{.*}}+4]
-; CHECK: .L[[LABEL:.*]]:
+; CHECK: mov edx, dword ptr [{{.*}} + 4]
 ; CHECK: mov ebx, eax
 ; CHECK: sub ebx, {{.*e.[^x]}}
 ; CHECK: mov ecx, edx
 ; CHECK: sbb ecx, {{.*e.[^x]}}
-; CHECK: lock cmpxchg8b qword ptr [e{{.[^x]}}]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; Should be using NEXT: see issue 3929
+; CHECK: cmpxchg8b qword ptr [e{{.[^x]}}]
+; CHECK: jne -{{[0-9]}}
 
 
 define i32 @test_atomic_rmw_sub_32_ignored(i32 %iptr, i32 %v) {
@@ -392,7 +413,8 @@ entry:
 ; Could use "lock sub" instead of "neg; lock xadd"
 ; CHECK-LABEL: test_atomic_rmw_sub_32_ignored
 ; CHECK: neg [[REG:.*]]
-; CHECK: lock xadd dword {{.*}}, [[REG]]
+; CHECK: lock
+; CHECK-NEXT: xadd dword {{.*}}, [[REG]]
 
 ;; or
 
@@ -406,12 +428,12 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_or_8
 ; CHECK: mov al, byte ptr
-; CHECK: .L[[LABEL:.*]]:
 ; Dest cannot be eax here, because eax is used for the old value. Also want
 ; to make sure that cmpxchg's source is the same register.
 ; CHECK: or [[REG:[^a].]]
-; CHECK: lock cmpxchg byte ptr [e{{[^a].}}], [[REG]]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg byte ptr [e{{[^a].}}], [[REG]]
+; CHECK: jne -{{[0-9]}}
 
 define i32 @test_atomic_rmw_or_16(i32 %iptr, i32 %v) {
 entry:
@@ -423,10 +445,10 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_or_16
 ; CHECK: mov ax, word ptr
-; CHECK: .L[[LABEL:.*]]:
 ; CHECK: or [[REG:[^a].]]
-; CHECK: lock cmpxchg word ptr [e{{[^a].}}], [[REG]]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg word ptr [e{{[^a].}}], [[REG]]
+; CHECK: jne -{{[0-9]}}
 
 define i32 @test_atomic_rmw_or_32(i32 %iptr, i32 %v) {
 entry:
@@ -436,10 +458,10 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_or_32
 ; CHECK: mov eax, dword ptr
-; CHECK: .L[[LABEL:.*]]:
 ; CHECK: or [[REG:e[^a].]]
-; CHECK: lock cmpxchg dword ptr [e{{[^a].}}], [[REG]]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg dword ptr [e{{[^a].}}], [[REG]]
+; CHECK: jne -{{[0-9]}}
 
 define i64 @test_atomic_rmw_or_64(i32 %iptr, i64 %v) {
 entry:
@@ -450,14 +472,14 @@ entry:
 ; CHECK-LABEL: test_atomic_rmw_or_64
 ; CHECK: push ebx
 ; CHECK: mov eax, dword ptr [{{.*}}]
-; CHECK: mov edx, dword ptr [{{.*}}+4]
-; CHECK: .L[[LABEL:.*]]:
+; CHECK: mov edx, dword ptr [{{.*}} + 4]
 ; CHECK: mov ebx, eax
 ; CHECK: or ebx, {{.*e.[^x]}}
 ; CHECK: mov ecx, edx
 ; CHECK: or ecx, {{.*e.[^x]}}
-; CHECK: lock cmpxchg8b qword ptr [e{{.[^x]}}]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg8b qword ptr [e{{.[^x]}}]
+; CHECK: jne -{{[0-9]}}
 
 define i32 @test_atomic_rmw_or_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -470,10 +492,10 @@ entry:
 ; Would also need a way to introduce "lock"'edness to binary
 ; operators without introducing overhead on the more common binary ops.
 ; CHECK: mov eax, dword ptr
-; CHECK: .L[[LABEL:.*]]:
 ; CHECK: or [[REG:e[^a].]]
-; CHECK: lock cmpxchg dword ptr [e{{[^a].}}], [[REG]]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg dword ptr [e{{[^a].}}], [[REG]]
+; CHECK: jne -{{[0-9]}}
 
 ;; and
 
@@ -487,10 +509,10 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_and_8
 ; CHECK: mov al, byte ptr
-; CHECK: .L[[LABEL:.*]]:
 ; CHECK: and [[REG:[^a].]]
-; CHECK: lock cmpxchg byte ptr [e{{[^a].}}], [[REG]]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg byte ptr [e{{[^a].}}], [[REG]]
+; CHECK: jne -{{[0-9]}}
 
 define i32 @test_atomic_rmw_and_16(i32 %iptr, i32 %v) {
 entry:
@@ -502,10 +524,10 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_and_16
 ; CHECK: mov ax, word ptr
-; CHECK: .L[[LABEL:.*]]:
 ; CHECK: and
-; CHECK: lock cmpxchg word ptr [e{{[^a].}}]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg word ptr [e{{[^a].}}]
+; CHECK: jne -{{[0-9]}}
 
 define i32 @test_atomic_rmw_and_32(i32 %iptr, i32 %v) {
 entry:
@@ -515,10 +537,10 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_and_32
 ; CHECK: mov eax, dword ptr
-; CHECK: .L[[LABEL:.*]]:
 ; CHECK: and
-; CHECK: lock cmpxchg dword ptr [e{{[^a].}}]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg dword ptr [e{{[^a].}}]
+; CHECK: jne -{{[0-9]}}
 
 define i64 @test_atomic_rmw_and_64(i32 %iptr, i64 %v) {
 entry:
@@ -529,14 +551,14 @@ entry:
 ; CHECK-LABEL: test_atomic_rmw_and_64
 ; CHECK: push ebx
 ; CHECK: mov eax, dword ptr [{{.*}}]
-; CHECK: mov edx, dword ptr [{{.*}}+4]
-; CHECK: .L[[LABEL:.*]]:
+; CHECK: mov edx, dword ptr [{{.*}} + 4]
 ; CHECK: mov ebx, eax
 ; CHECK: and ebx, {{.*e.[^x]}}
 ; CHECK: mov ecx, edx
 ; CHECK: and ecx, {{.*e.[^x]}}
-; CHECK: lock cmpxchg8b qword ptr [e{{.[^x]}}]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg8b qword ptr [e{{.[^x]}}]
+; CHECK: jne -{{[0-9]}}
 
 define i32 @test_atomic_rmw_and_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -547,10 +569,11 @@ entry:
 ; CHECK-LABEL: test_atomic_rmw_and_32_ignored
 ; Could just "lock and"
 ; CHECK: mov eax, dword ptr
-; CHECK: .L[[LABEL:.*]]:
 ; CHECK: and
-; CHECK: lock cmpxchg dword ptr [e{{[^a].}}]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; Should be using NEXT: see issue 3929
+; CHECK: cmpxchg dword ptr [e{{[^a].}}]
+; CHECK: jne -{{[0-9]}}
 
 ;; xor
 
@@ -564,10 +587,10 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_xor_8
 ; CHECK: mov al, byte ptr
-; CHECK: .L[[LABEL:.*]]:
 ; CHECK: xor [[REG:[^a].]]
-; CHECK: lock cmpxchg byte ptr [e{{[^a].}}], [[REG]]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg byte ptr [e{{[^a].}}], [[REG]]
+; CHECK: jne -{{[0-9]}}
 
 define i32 @test_atomic_rmw_xor_16(i32 %iptr, i32 %v) {
 entry:
@@ -579,10 +602,10 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_xor_16
 ; CHECK: mov ax, word ptr
-; CHECK: .L[[LABEL:.*]]:
 ; CHECK: xor
-; CHECK: lock cmpxchg word ptr [e{{[^a].}}]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg word ptr [e{{[^a].}}]
+; CHECK: jne -{{[0-9]}}
 
 
 define i32 @test_atomic_rmw_xor_32(i32 %iptr, i32 %v) {
@@ -593,10 +616,10 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_xor_32
 ; CHECK: mov eax, dword ptr
-; CHECK: .L[[LABEL:.*]]:
 ; CHECK: xor
-; CHECK: lock cmpxchg dword ptr [e{{[^a].}}]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg dword ptr [e{{[^a].}}]
+; CHECK: jne -{{[0-9]}}
 
 define i64 @test_atomic_rmw_xor_64(i32 %iptr, i64 %v) {
 entry:
@@ -607,14 +630,14 @@ entry:
 ; CHECK-LABEL: test_atomic_rmw_xor_64
 ; CHECK: push ebx
 ; CHECK: mov eax, dword ptr [{{.*}}]
-; CHECK: mov edx, dword ptr [{{.*}}+4]
-; CHECK: .L[[LABEL:.*]]:
+; CHECK: mov edx, dword ptr [{{.*}} + 4]
 ; CHECK: mov ebx, eax
 ; CHECK: or ebx, {{.*e.[^x]}}
 ; CHECK: mov ecx, edx
 ; CHECK: or ecx, {{.*e.[^x]}}
-; CHECK: lock cmpxchg8b qword ptr [e{{.[^x]}}]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg8b qword ptr [e{{.[^x]}}]
+; CHECK: jne -{{[0-9]}}
 
 define i32 @test_atomic_rmw_xor_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -624,10 +647,10 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_xor_32_ignored
 ; CHECK: mov eax, dword ptr
-; CHECK: .L[[LABEL:.*]]:
 ; CHECK: xor
-; CHECK: lock cmpxchg dword ptr [e{{[^a].}}]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg dword ptr [e{{[^a].}}]
+; CHECK: jne -{{[0-9]}}
 
 ;; exchange
 
@@ -674,9 +697,9 @@ entry:
 ; CHECK-DAG: mov eax
 ; CHECK-DAG: mov ecx
 ; CHECK-DAG: mov ebx
-; CHECK: .L[[LABEL:.*]]:
-; CHECK: lock cmpxchg8b qword ptr [{{e.[^x]}}]
-; CHECK: jne .L[[LABEL]]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg8b qword ptr [{{e.[^x]}}]
+; CHECK: jne -{{[0-9]}}
 
 define i32 @test_atomic_rmw_xchg_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -705,7 +728,8 @@ entry:
 ; CHECK: mov al, {{.*}}
 ; Need to check that eax isn't used as the address register or the desired.
 ; since it is already used as the *expected* register.
-; CHECK: lock cmpxchg byte ptr [e{{[^a].}}], {{[^a]}}
+; CHECK: lock
+; CHECK-NEXT: cmpxchg byte ptr [e{{[^a].}}], {{[^a]}}
 
 define i32 @test_atomic_cmpxchg_16(i32 %iptr, i32 %expected, i32 %desired) {
 entry:
@@ -719,7 +743,8 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_cmpxchg_16
 ; CHECK: mov ax, {{.*}}
-; CHECK: lock cmpxchg word ptr [e{{[^a].}}], {{[^a]}}
+; CHECK: lock
+; CHECK-NEXT: cmpxchg word ptr [e{{[^a].}}], {{[^a]}}
 
 define i32 @test_atomic_cmpxchg_32(i32 %iptr, i32 %expected, i32 %desired) {
 entry:
@@ -730,7 +755,8 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_cmpxchg_32
 ; CHECK: mov eax, {{.*}}
-; CHECK: lock cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
+; CHECK: lock
+; CHECK-NEXT: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
 
 define i64 @test_atomic_cmpxchg_64(i32 %iptr, i64 %expected, i64 %desired) {
 entry:
@@ -745,7 +771,9 @@ entry:
 ; CHECK-DAG: mov eax
 ; CHECK-DAG: mov ecx
 ; CHECK-DAG: mov ebx
-; CHECK: lock cmpxchg8b qword ptr [e{{.[^x]}}]
+; CHECK: lock
+; Should be using NEXT: see issue 3929
+; CHECK: cmpxchg8b qword ptr [e{{.[^x]}}]
 ; edx and eax are already the return registers, so they don't actually
 ; need to be reshuffled via movs. The next test stores the result
 ; somewhere, so in that case they do need to be mov'ed.
@@ -766,7 +794,8 @@ entry:
 ; CHECK-DAG: mov eax
 ; CHECK-DAG: mov ecx
 ; CHECK-DAG: mov ebx
-; CHECK: lock cmpxchg8b qword ptr [e{{.[^x]}}]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg8b qword ptr [e{{.[^x]}}]
 ; CHECK: mov {{.*}}, edx
 ; CHECK: mov {{.*}}, eax
 
@@ -797,7 +826,9 @@ entry:
 ; not esp, since that's the stack pointer and mucking with it will break
 ; the later use_ptr function call.
 ; That pretty much leaves esi, or edi as the only viable registers.
-; CHECK: lock cmpxchg8b qword ptr [e{{[ds]}}i]
+; CHECK: lock
+; Should be using NEXT: see issue 3929
+; CHECK: cmpxchg8b qword ptr [e{{[ds]}}i]
 ; CHECK: call use_ptr
 
 define i32 @test_atomic_cmpxchg_32_ignored(i32 %iptr, i32 %expected, i32 %desired) {
@@ -809,7 +840,8 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_cmpxchg_32_ignored
 ; CHECK: mov eax, {{.*}}
-; CHECK: lock cmpxchg dword ptr [e{{[^a].}}]
+; CHECK: lock
+; CHECK-NEXT: cmpxchg dword ptr [e{{[^a].}}]
 
 define i64 @test_atomic_cmpxchg_64_ignored(i32 %iptr, i64 %expected, i64 %desired) {
 entry:
@@ -824,7 +856,9 @@ entry:
 ; CHECK-DAG: mov eax
 ; CHECK-DAG: mov ecx
 ; CHECK-DAG: mov ebx
-; CHECK: lock cmpxchg8b qword ptr [e{{.[^x]}}]
+; CHECK: lock
+; Should be using NEXT: see issue 3929
+; CHECK: cmpxchg8b qword ptr [e{{.[^x]}}]
 
 ;;;; Fence and is-lock-free.
 

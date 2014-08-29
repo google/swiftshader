@@ -1,12 +1,13 @@
 ; This file checks that Subzero generates code in accordance with the
 ; calling convention for vectors.
 
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck --check-prefix=OPTM1 %s
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN:   | FileCheck --check-prefix=OPTM1 %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
@@ -71,7 +72,7 @@ define <4 x float> @test_returning_arg4(<4 x float> %arg0, <4 x float> %arg1, <4
 entry:
   ret <4 x float> %arg4
 ; CHECK-LABEL: test_returning_arg4:
-; CHECK: movups xmm0, xmmword ptr [esp+4]
+; CHECK: movups xmm0, xmmword ptr [esp + 4]
 ; CHECK: ret
 
 ; OPTM1-LABEL: test_returning_arg4:
@@ -139,7 +140,7 @@ define <4 x float> @test_returning_interspersed_arg4(i32 %i32arg0, double %doubl
 entry:
   ret <4 x float> %arg4
 ; CHECK-LABEL: test_returning_interspersed_arg4:
-; CHECK: movups xmm0, xmmword ptr [esp+52]
+; CHECK: movups xmm0, xmmword ptr [esp + 52]
 ; CHECK: ret
 
 ; OPTM1-LABEL: test_returning_interspersed_arg4:
@@ -162,15 +163,15 @@ entry:
   ret void
 ; CHECK-LABEL: test_passing_vectors:
 ; CHECK: sub esp, 32
-; CHECK: movups  [[ARG5:.*]], xmmword ptr [esp+64]
+; CHECK: movups  [[ARG5:.*]], xmmword ptr [esp + 64]
 ; CHECK: movups  xmmword ptr [esp], [[ARG5]]
-; CHECK: movups  [[ARG6:.*]], xmmword ptr [esp+48]
-; CHECK: movups  xmmword ptr [esp+16], [[ARG6]]
-; CHECK: movups  xmm0, xmmword ptr [esp+128]
-; CHECK: movups  xmm1, xmmword ptr [esp+112]
-; CHECK: movups  xmm2, xmmword ptr [esp+96]
-; CHECK: movups  xmm3, xmmword ptr [esp+80]
-; CHECK: call VectorArgs
+; CHECK: movups  [[ARG6:.*]], xmmword ptr [esp + 48]
+; CHECK: movups  xmmword ptr [esp + 16], [[ARG6]]
+; CHECK: movups  xmm0, xmmword ptr [esp + 128]
+; CHECK: movups  xmm1, xmmword ptr [esp + 112]
+; CHECK: movups  xmm2, xmmword ptr [esp + 96]
+; CHECK: movups  xmm3, xmmword ptr [esp + 80]
+; CHECK: call -4
 ; CHECK-NEXT: add esp, 32
 ; CHECK: ret
 
@@ -179,12 +180,12 @@ entry:
 ; OPTM1: movups  [[ARG5:.*]], xmmword ptr {{.*}}
 ; OPTM1: movups  xmmword ptr [esp], [[ARG5]]
 ; OPTM1: movups  [[ARG6:.*]], xmmword ptr {{.*}}
-; OPTM1: movups  xmmword ptr [esp+16], [[ARG6]]
+; OPTM1: movups  xmmword ptr [esp + 16], [[ARG6]]
 ; OPTM1: movups  xmm0, xmmword ptr {{.*}}
 ; OPTM1: movups  xmm1, xmmword ptr {{.*}}
 ; OPTM1: movups  xmm2, xmmword ptr {{.*}}
 ; OPTM1: movups  xmm3, xmmword ptr {{.*}}
-; OPTM1: call VectorArgs
+; OPTM1: call -4
 ; OPTM1-NEXT: add esp, 32
 ; OPTM1: ret
 }
@@ -200,29 +201,29 @@ entry:
   ret void
 ; CHECK-LABEL: test_passing_vectors_interspersed:
 ; CHECK: sub esp, 80
-; CHECK: movups  [[ARG9:.*]], xmmword ptr [esp+112]
-; CHECK: movups  xmmword ptr [esp+32], [[ARG9]]
-; CHECK: movups  [[ARG11:.*]], xmmword ptr [esp+96]
-; CHECK: movups  xmmword ptr [esp+64], [[ARG11]]
-; CHECK: movups  xmm0, xmmword ptr [esp+176]
-; CHECK: movups  xmm1, xmmword ptr [esp+160]
-; CHECK: movups  xmm2, xmmword ptr [esp+144]
-; CHECK: movups  xmm3, xmmword ptr [esp+128]
-; CHECK: call InterspersedVectorArgs
+; CHECK: movups  [[ARG9:.*]], xmmword ptr [esp + 112]
+; CHECK: movups  xmmword ptr [esp + 32], [[ARG9]]
+; CHECK: movups  [[ARG11:.*]], xmmword ptr [esp + 96]
+; CHECK: movups  xmmword ptr [esp + 64], [[ARG11]]
+; CHECK: movups  xmm0, xmmword ptr [esp + 176]
+; CHECK: movups  xmm1, xmmword ptr [esp + 160]
+; CHECK: movups  xmm2, xmmword ptr [esp + 144]
+; CHECK: movups  xmm3, xmmword ptr [esp + 128]
+; CHECK: call -4
 ; CHECK-NEXT: add esp, 80
 ; CHECK: ret
 
 ; OPTM1-LABEL: test_passing_vectors_interspersed:
 ; OPTM1: sub esp, 80
 ; OPTM1: movups  [[ARG9:.*]], xmmword ptr {{.*}}
-; OPTM1: movups  xmmword ptr [esp+32], [[ARG9]]
+; OPTM1: movups  xmmword ptr [esp + 32], [[ARG9]]
 ; OPTM1: movups  [[ARG11:.*]], xmmword ptr {{.*}}
-; OPTM1: movups  xmmword ptr [esp+64], [[ARG11]]
+; OPTM1: movups  xmmword ptr [esp + 64], [[ARG11]]
 ; OPTM1: movups  xmm0, xmmword ptr {{.*}}
 ; OPTM1: movups  xmm1, xmmword ptr {{.*}}
 ; OPTM1: movups  xmm2, xmmword ptr {{.*}}
 ; OPTM1: movups  xmm3, xmmword ptr {{.*}}
-; OPTM1: call InterspersedVectorArgs
+; OPTM1: call -4
 ; OPTM1-NEXT: add esp, 80
 ; OPTM1: ret
 }
@@ -238,16 +239,16 @@ entry:
   %result2 = call <4 x float> @VectorReturn(<4 x float> %result)
   ret void
 ; CHECK-LABEL: test_receiving_vectors:
-; CHECK: call VectorReturn
+; CHECK: call -4
 ; CHECK-NOT: movups xmm0
-; CHECK: call VectorReturn
+; CHECK: call -4
 ; CHECK: ret
 
 ; OPTM1-LABEL: test_receiving_vectors:
-; OPTM1: call VectorReturn
+; OPTM1: call -4
 ; OPTM1: movups {{.*}}, xmm0
 ; OPTM1: movups xmm0, {{.*}}
-; OPTM1: call VectorReturn
+; OPTM1: call -4
 ; OPTM1: ret
 }
 

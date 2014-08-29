@@ -1,19 +1,25 @@
 ; This test checks support for vector arithmetic.
 
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -O2 -mattr=sse4.1 --verbose none %s \
-; RUN:                | FileCheck %s --check-prefix=SSE41
-; RUN: %llvm2ice -Om1 -mattr=sse4.1 --verbose none %s \
-; RUN:                | FileCheck %s --check-prefix=SSE41
+; TODO(jvoung): fix extra "CALLTARGETS" run. The llvm-objdump symbolizer
+; doesn't know how to symbolize non-section-local functions.
+; The newer LLVM 3.6 one does work, but watch out for other bugs.
+
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | FileCheck --check-prefix=CALLTARGETS %s
+; RUN: %llvm2ice -O2 --verbose none %s \
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice -O2 -mattr=sse4.1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN:   | FileCheck --check-prefix=SSE41 %s
 ; RUN: %llvm2ice -Om1 -mattr=sse4.1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN:   | FileCheck --check-prefix=SSE41 %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
@@ -56,10 +62,15 @@ entry:
   %res = frem <4 x float> %arg0, %arg1
   ret <4 x float> %res
 ; CHECK-LABEL: test_frem:
-; CHECK: fmodf
-; CHECK: fmodf
-; CHECK: fmodf
-; CHECK: fmodf
+; CALLTARGETS-LABEL: test_frem:
+; CHECK: -4
+; CHECK: -4
+; CHECK: -4
+; CHECK: -4
+; CALLTARGETS: fmodf
+; CALLTARGETS: fmodf
+; CALLTARGETS: fmodf
+; CALLTARGETS: fmodf
 }
 
 define <16 x i8> @test_add_v16i8(<16 x i8> %arg0, <16 x i8> %arg1) {

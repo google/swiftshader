@@ -2,12 +2,19 @@
 ; particular the patterns for lowering i64 operations into constituent
 ; i32 operations on x86-32.
 
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck --check-prefix=OPTM1 %s
+; TODO(jvoung): fix extra "CALLTARGETS" run. The llvm-objdump symbolizer
+; doesn't know how to symbolize non-section-local functions.
+; The newer LLVM 3.6 one does work, but watch out for other bugs.
+
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | FileCheck --check-prefix=CALLTARGETS %s
+; RUN: %llvm2ice -O2 --verbose none %s \
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN:   | FileCheck --check-prefix=OPTM1 %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
@@ -33,50 +40,54 @@ entry:
   ret i32 %add3
 }
 ; CHECK-LABEL: pass64BitArg
+; CALLTARGETS-LABEL: pass64BitArg
 ; CHECK:      sub     esp
-; CHECK:      mov     dword ptr [esp+4]
+; CHECK:      mov     dword ptr [esp + 4]
 ; CHECK:      mov     dword ptr [esp]
-; CHECK:      mov     dword ptr [esp+8], 123
-; CHECK:      mov     dword ptr [esp+16]
-; CHECK:      mov     dword ptr [esp+12]
-; CHECK:      call    ignore64BitArgNoInline
-; CHECK       sub     esp
-; CHECK:      mov     dword ptr [esp+4]
-; CHECK:      mov     dword ptr [esp]
-; CHECK:      mov     dword ptr [esp+8], 123
-; CHECK:      mov     dword ptr [esp+16]
-; CHECK:      mov     dword ptr [esp+12]
-; CHECK:      call    ignore64BitArgNoInline
+; CHECK:      mov     dword ptr [esp + 8], 123
+; CHECK:      mov     dword ptr [esp + 16]
+; CHECK:      mov     dword ptr [esp + 12]
+; CHECK:      call    -4
+; CALLTARGETS: call ignore64BitArgNoInline
 ; CHECK:      sub     esp
-; CHECK:      mov     dword ptr [esp+4]
+; CHECK:      mov     dword ptr [esp + 4]
 ; CHECK:      mov     dword ptr [esp]
-; CHECK:      mov     dword ptr [esp+8], 123
-; CHECK:      mov     dword ptr [esp+16]
-; CHECK:      mov     dword ptr [esp+12]
-; CHECK:      call    ignore64BitArgNoInline
+; CHECK:      mov     dword ptr [esp + 8], 123
+; CHECK:      mov     dword ptr [esp + 16]
+; CHECK:      mov     dword ptr [esp + 12]
+; CHECK:      call    -4
+; CALLTARGETS: call ignore64BitArgNoInline
+; CHECK:      sub     esp
+; CHECK:      mov     dword ptr [esp + 4]
+; CHECK:      mov     dword ptr [esp]
+; CHECK:      mov     dword ptr [esp + 8], 123
+; CHECK:      mov     dword ptr [esp + 16]
+; CHECK:      mov     dword ptr [esp + 12]
+; CHECK:      call    -4
+; CALLTARGETS: call ignore64BitArgNoInline
 ;
 ; OPTM1-LABEL: pass64BitArg
 ; OPTM1:      sub     esp
-; OPTM1:      mov     dword ptr [esp+4]
+; OPTM1:      mov     dword ptr [esp + 4]
 ; OPTM1:      mov     dword ptr [esp]
-; OPTM1:      mov     dword ptr [esp+8], 123
-; OPTM1:      mov     dword ptr [esp+16]
-; OPTM1:      mov     dword ptr [esp+12]
-; OPTM1:      call    ignore64BitArgNoInline
-; OPTM1       sub     esp
-; OPTM1:      mov     dword ptr [esp+4]
-; OPTM1:      mov     dword ptr [esp]
-; OPTM1:      mov     dword ptr [esp+8], 123
-; OPTM1:      mov     dword ptr [esp+16]
-; OPTM1:      mov     dword ptr [esp+12]
-; OPTM1:      call    ignore64BitArgNoInline
+; OPTM1:      mov     dword ptr [esp + 8], 123
+; OPTM1:      mov     dword ptr [esp + 16]
+; OPTM1:      mov     dword ptr [esp + 12]
+; OPTM1:      call    -4
 ; OPTM1:      sub     esp
-; OPTM1:      mov     dword ptr [esp+4]
+; OPTM1:      mov     dword ptr [esp + 4]
 ; OPTM1:      mov     dword ptr [esp]
-; OPTM1:      mov     dword ptr [esp+8], 123
-; OPTM1:      mov     dword ptr [esp+16]
-; OPTM1:      mov     dword ptr [esp+12]
-; OPTM1:      call    ignore64BitArgNoInline
+; OPTM1:      mov     dword ptr [esp + 8], 123
+; OPTM1:      mov     dword ptr [esp + 16]
+; OPTM1:      mov     dword ptr [esp + 12]
+; OPTM1:      call    -4
+; OPTM1:      sub     esp
+; OPTM1:      mov     dword ptr [esp + 4]
+; OPTM1:      mov     dword ptr [esp]
+; OPTM1:      mov     dword ptr [esp + 8], 123
+; OPTM1:      mov     dword ptr [esp + 16]
+; OPTM1:      mov     dword ptr [esp + 12]
+; OPTM1:      call    -4
 
 declare i32 @ignore64BitArgNoInline(i64, i32, i64)
 
@@ -86,35 +97,41 @@ entry:
   ret i32 %call
 }
 ; CHECK-LABEL: pass64BitConstArg
+; CALLTARGETS-LABEL: pass64BitConstArg
 ; CHECK:      sub     esp
-; CHECK:      mov     dword ptr [esp+4]
+; CHECK:      mov     dword ptr [esp + 4]
 ; CHECK-NEXT: mov     dword ptr [esp]
-; CHECK-NEXT: mov     dword ptr [esp+8], 123
-; CHECK-NEXT: mov     dword ptr [esp+16], 3735928559
-; CHECK-NEXT: mov     dword ptr [esp+12], 305419896
-; CHECK-NEXT: call    ignore64BitArgNoInline
+; CHECK-NEXT: mov     dword ptr [esp + 8], 123
+; Bundle padding added by -triple=i686-none-nacl.
+; CHECK-NEXT: nop
+; CHECK-NEXT: mov     dword ptr [esp + 16], 3735928559
+; CHECK-NEXT: mov     dword ptr [esp + 12], 305419896
+; CHECK-NEXT: call    -4
+; CALLTARGETS: call ignore64BitArgNoInline
 ;
 ; OPTM1-LABEL: pass64BitConstArg
 ; OPTM1:      sub     esp
-; OPTM1:      mov     dword ptr [esp+4]
+; OPTM1:      mov     dword ptr [esp + 4]
 ; OPTM1-NEXT: mov     dword ptr [esp]
-; OPTM1-NEXT: mov     dword ptr [esp+8], 123
-; OPTM1-NEXT: mov     dword ptr [esp+16], 3735928559
-; OPTM1-NEXT: mov     dword ptr [esp+12], 305419896
-; OPTM1-NEXT: call    ignore64BitArgNoInline
+; OPTM1-NEXT: mov     dword ptr [esp + 8], 123
+; Bundle padding added by -triple=i686-none-nacl.
+; OPTM1-NEXT: nop
+; OPTM1-NEXT: mov     dword ptr [esp + 16], 3735928559
+; OPTM1-NEXT: mov     dword ptr [esp + 12], 305419896
+; OPTM1-NEXT: call    -4
 
 define internal i64 @return64BitArg(i64 %a) {
 entry:
   ret i64 %a
 }
 ; CHECK-LABEL: return64BitArg
-; CHECK: mov     {{.*}}, dword ptr [esp+4]
-; CHECK: mov     {{.*}}, dword ptr [esp+8]
+; CHECK: mov     {{.*}}, dword ptr [esp + 4]
+; CHECK: mov     {{.*}}, dword ptr [esp + 8]
 ; CHECK: ret
 ;
 ; OPTM1-LABEL: return64BitArg
-; OPTM1: mov     {{.*}}, dword ptr [esp+4]
-; OPTM1: mov     {{.*}}, dword ptr [esp+8]
+; OPTM1: mov     {{.*}}, dword ptr [esp + 4]
+; OPTM1: mov     {{.*}}, dword ptr [esp + 8]
 ; OPTM1: ret
 
 define internal i64 @return64BitConst() {
@@ -239,11 +256,13 @@ entry:
   ret i64 %div
 }
 ; CHECK-LABEL: div64BitSigned
-; CHECK: call    __divdi3
+; CALLTARGETS-LABEL: div64BitSigned
+; CHECK: call    -4
+; CALLTARGETS: call __divdi3
 ; CHECK: ret
-;
+
 ; OPTM1-LABEL: div64BitSigned
-; OPTM1: call    __divdi3
+; OPTM1: call    -4
 ; OPTM1: ret
 
 define internal i64 @div64BitSignedConst(i64 %a) {
@@ -252,15 +271,17 @@ entry:
   ret i64 %div
 }
 ; CHECK-LABEL: div64BitSignedConst
-; CHECK: mov     dword ptr [esp+12], 2874
-; CHECK: mov     dword ptr [esp+8],  1942892530
-; CHECK: call    __divdi3
+; CALLTARGETS-LABEL: div64BitSignedConst
+; CHECK: mov     dword ptr [esp + 12], 2874
+; CHECK: mov     dword ptr [esp + 8],  1942892530
+; CHECK: call    -4
+; CALLTARGETS: call __divdi3
 ; CHECK: ret
 ;
 ; OPTM1-LABEL: div64BitSignedConst
-; OPTM1: mov     dword ptr [esp+12], 2874
-; OPTM1: mov     dword ptr [esp+8],  1942892530
-; OPTM1: call    __divdi3
+; OPTM1: mov     dword ptr [esp + 12], 2874
+; OPTM1: mov     dword ptr [esp + 8],  1942892530
+; OPTM1: call    -4
 ; OPTM1: ret
 
 define internal i64 @div64BitUnsigned(i64 %a, i64 %b) {
@@ -269,11 +290,13 @@ entry:
   ret i64 %div
 }
 ; CHECK-LABEL: div64BitUnsigned
-; CHECK: call    __udivdi3
+; CALLTARGETS-LABEL: div64BitUnsigned
+; CHECK: call    -4
+; CALLTARGETS: call __udivdi3
 ; CHECK: ret
 ;
 ; OPTM1-LABEL: div64BitUnsigned
-; OPTM1: call    __udivdi3
+; OPTM1: call    -4
 ; OPTM1: ret
 
 define internal i64 @rem64BitSigned(i64 %a, i64 %b) {
@@ -282,11 +305,13 @@ entry:
   ret i64 %rem
 }
 ; CHECK-LABEL: rem64BitSigned
-; CHECK: call    __moddi3
+; CALLTARGETS-LABEL: rem64BitSigned
+; CHECK: call    -4
+; CALLTARGETS: call __moddi3
 ; CHECK: ret
 ;
 ; OPTM1-LABEL: rem64BitSigned
-; OPTM1: call    __moddi3
+; OPTM1: call    -4
 ; OPTM1: ret
 
 define internal i64 @rem64BitUnsigned(i64 %a, i64 %b) {
@@ -295,11 +320,13 @@ entry:
   ret i64 %rem
 }
 ; CHECK-LABEL: rem64BitUnsigned
-; CHECK: call    __umoddi3
+; CALLTARGETS-LABEL: rem64BitUnsigned
+; CHECK: call    -4
+; CALLTARGETS: call __umoddi3
 ; CHECK: ret
 ;
 ; OPTM1-LABEL: rem64BitUnsigned
-; OPTM1: call    __umoddi3
+; OPTM1: call    -4
 ; OPTM1: ret
 
 define internal i64 @shl64BitSigned(i64 %a, i64 %b) {
@@ -456,11 +483,11 @@ entry:
   ret i32 %conv
 }
 ; CHECK-LABEL: trunc64To32Signed
-; CHECK: mov     eax, dword ptr [esp+4]
+; CHECK: mov     eax, dword ptr [esp + 4]
 ; CHECK-NEXT: ret
 ;
 ; OPTM1-LABEL: trunc64To32Signed
-; OPTM1: mov     eax, dword ptr [esp+
+; OPTM1: mov     eax, dword ptr [esp +
 ; OPTM1: ret
 
 define internal i32 @trunc64To16Signed(i64 %a) {
@@ -470,12 +497,12 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: trunc64To16Signed
-; CHECK:      mov     eax, dword ptr [esp+4]
+; CHECK:      mov     eax, dword ptr [esp + 4]
 ; CHECK-NEXT: movsx  eax, ax
 ; CHECK-NEXT: ret
 ;
 ; OPTM1-LABEL: trunc64To16Signed
-; OPTM1:      mov     eax, dword ptr [esp+
+; OPTM1:      mov     eax, dword ptr [esp +
 ; OPTM1: movsx  eax,
 ; OPTM1: ret
 
@@ -486,12 +513,12 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: trunc64To8Signed
-; CHECK:      mov     eax, dword ptr [esp+4]
+; CHECK:      mov     eax, dword ptr [esp + 4]
 ; CHECK-NEXT: movsx  eax, al
 ; CHECK-NEXT: ret
 ;
 ; OPTM1-LABEL: trunc64To8Signed
-; OPTM1:      mov     eax, dword ptr [esp+
+; OPTM1:      mov     eax, dword ptr [esp +
 ; OPTM1: movsx  eax,
 ; OPTM1: ret
 
@@ -526,11 +553,11 @@ entry:
   ret i32 %conv
 }
 ; CHECK-LABEL: trunc64To32Unsigned
-; CHECK: mov     eax, dword ptr [esp+4]
+; CHECK: mov     eax, dword ptr [esp + 4]
 ; CHECK-NEXT: ret
 ;
 ; OPTM1-LABEL: trunc64To32Unsigned
-; OPTM1: mov     eax, dword ptr [esp+
+; OPTM1: mov     eax, dword ptr [esp +
 ; OPTM1: ret
 
 define internal i32 @trunc64To16Unsigned(i64 %a) {
@@ -540,12 +567,12 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: trunc64To16Unsigned
-; CHECK:      mov     eax, dword ptr [esp+4]
+; CHECK:      mov     eax, dword ptr [esp + 4]
 ; CHECK-NEXT: movzx  eax, ax
 ; CHECK-NEXT: ret
 ;
 ; OPTM1-LABEL: trunc64To16Unsigned
-; OPTM1:      mov     eax, dword ptr [esp+
+; OPTM1:      mov     eax, dword ptr [esp +
 ; OPTM1: movzx  eax,
 ; OPTM1: ret
 
@@ -556,12 +583,12 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: trunc64To8Unsigned
-; CHECK:      mov     eax, dword ptr [esp+4]
+; CHECK:      mov     eax, dword ptr [esp + 4]
 ; CHECK-NEXT: movzx  eax, al
 ; CHECK-NEXT: ret
 ;
 ; OPTM1-LABEL: trunc64To8Unsigned
-; OPTM1:      mov     eax, dword ptr [esp+
+; OPTM1: mov    eax, dword ptr [esp +
 ; OPTM1: movzx  eax,
 ; OPTM1: ret
 
@@ -573,12 +600,12 @@ entry:
   ret i32 %tobool.ret_ext
 }
 ; CHECK-LABEL: trunc64To1
-; CHECK:      mov     eax, dword ptr [esp+4]
+; CHECK:      mov     eax, dword ptr [esp + 4]
 ; CHECK:      and     eax, 1
 ; CHECK-NEXT: ret
 ;
 ; OPTM1-LABEL: trunc64To1
-; OPTM1:      mov     eax, dword ptr [esp+
+; OPTM1:      mov     eax, dword ptr [esp +
 ; OPTM1:      and     eax, 1
 ; OPTM1: ret
 
@@ -1107,13 +1134,13 @@ entry:
   ret i64 %v0
 }
 ; CHECK-LABEL: load64
-; CHECK: mov e[[REGISTER:[a-z]+]], dword ptr [esp+4]
+; CHECK: mov e[[REGISTER:[a-z]+]], dword ptr [esp + 4]
 ; CHECK-NEXT: mov {{.*}}, dword ptr [e[[REGISTER]]]
-; CHECK-NEXT: mov {{.*}}, dword ptr [e[[REGISTER]]+4]
+; CHECK-NEXT: mov {{.*}}, dword ptr [e[[REGISTER]] + 4]
 ;
 ; OPTM1-LABEL: load64
 ; OPTM1: mov e{{..}}, dword ptr [e{{..}}]
-; OPTM1: mov e{{..}}, dword ptr [e{{..}}+4]
+; OPTM1: mov e{{..}}, dword ptr [e{{..}} + 4]
 
 define internal void @store64(i32 %a, i64 %value) {
 entry:
@@ -1122,12 +1149,12 @@ entry:
   ret void
 }
 ; CHECK-LABEL: store64
-; CHECK: mov e[[REGISTER:[a-z]+]], dword ptr [esp+4]
-; CHECK: mov dword ptr [e[[REGISTER]]+4],
+; CHECK: mov e[[REGISTER:[a-z]+]], dword ptr [esp + 4]
+; CHECK: mov dword ptr [e[[REGISTER]] + 4],
 ; CHECK: mov dword ptr [e[[REGISTER]]],
 ;
 ; OPTM1-LABEL: store64
-; OPTM1: mov dword ptr [e[[REGISTER:[a-z]+]]+4],
+; OPTM1: mov dword ptr [e[[REGISTER:[a-z]+]] + 4],
 ; OPTM1: mov dword ptr [e[[REGISTER]]],
 
 define internal void @store64Const(i32 %a) {
@@ -1137,12 +1164,12 @@ entry:
   ret void
 }
 ; CHECK-LABEL: store64Const
-; CHECK: mov e[[REGISTER:[a-z]+]], dword ptr [esp+4]
-; CHECK: mov dword ptr [e[[REGISTER]]+4], 3735928559
+; CHECK: mov e[[REGISTER:[a-z]+]], dword ptr [esp + 4]
+; CHECK: mov dword ptr [e[[REGISTER]] + 4], 3735928559
 ; CHECK: mov dword ptr [e[[REGISTER]]], 305419896
 ;
 ; OPTM1-LABEL: store64Const
-; OPTM1: mov dword ptr [e[[REGISTER:[a-z]+]]+4], 3735928559
+; OPTM1: mov dword ptr [e[[REGISTER:[a-z]+]] + 4], 3735928559
 ; OPTM1: mov dword ptr [e[[REGISTER]]], 305419896
 
 define internal i64 @select64VarVar(i64 %a, i64 %b) {

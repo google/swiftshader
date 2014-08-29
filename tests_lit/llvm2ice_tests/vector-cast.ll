@@ -1,12 +1,18 @@
 ; This file tests casting / conversion operations that apply to vector types.
 ; bitcast operations are in vector-bitcast.ll.
 
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s
+; TODO(jvoung): fix extra "CALLTARGETS" run. The llvm-objdump symbolizer
+; doesn't know how to symbolize non-section-local functions.
+; The newer LLVM 3.6 one does work, but watch out for other bugs.
+
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | FileCheck --check-prefix=CALLTARGETS %s
+; RUN: %llvm2ice -O2 --verbose none %s \
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
@@ -141,7 +147,9 @@ entry:
   ret <4 x i32> %res
 
 ; CHECK-LABEL: test_fptoui_v4f32_to_v4i32:
-; CHECK: call Sz_fptoui_v4f32
+; CHECK: call -4
+; CALLTARGETS-LABEL: test_fptoui_v4f32_to_v4i32
+; CALLTARGETS: call Sz_fptoui_v4f32
 }
 
 ; [su]itofp operations
@@ -161,7 +169,9 @@ entry:
   ret <4 x float> %res
 
 ; CHECK-LABEL: test_uitofp_v4i32_to_v4f32:
-; CHECK: call Sz_uitofp_v4i32
+; CHECK: call -4
+; CALLTARGETS-LABEL: test_uitofp_v4i32_to_v4f32
+; CALLTARGETS: call Sz_uitofp_v4i32
 }
 
 ; ERRORS-NOT: ICE translation error

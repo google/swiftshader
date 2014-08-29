@@ -3,9 +3,13 @@
 ; (unlike the non-"all" variety of nacl.atomic.fence, which only
 ; applies to atomic load/stores).
 ;
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - | FileCheck %s
+
+; TODO(jvoung): llvm-objdump doesn't symbolize global symbols well, so we
+; have [0] == g32_a, [4] == g32_b, [8] == g32_c.
+; g32_d is also [0] because it's in the .data section instead of .bss.
 
 declare void @llvm.nacl.atomic.fence.all()
 declare i32 @llvm.nacl.atomic.load.i32(i32*, i32)
@@ -45,15 +49,15 @@ entry:
 ; CHECK: mov {{.*}}, esp
 ; CHECK: mov dword ptr {{.*}}, 999
 ;    atomic store (w/ its own mfence)
-; CHECK: lea {{.*}}, g32_a
+; CHECK: dword ptr [0]
 ; The load + add are optimized into one everywhere.
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
 ; CHECK: mfence
-; CHECK: lea {{.*}}, g32_b
+; CHECK: dword ptr [4]
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
-; CHECK: lea {{.*}}, g32_c
+; CHECK: dword ptr [8]
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mfence
 ; CHECK: mov dword ptr
@@ -88,14 +92,14 @@ entry:
 ; CHECK: mov {{.*}}, esp
 ; CHECK: mov dword ptr {{.*}}, 999
 ;    atomic store (w/ its own mfence)
-; CHECK: lea {{.*}}, g32_a
+; CHECK: dword ptr [0]
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
 ; CHECK: mfence
-; CHECK: lea {{.*}}, g32_b
+; CHECK: dword ptr [4]
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
-; CHECK: lea {{.*}}, g32_c
+; CHECK: dword ptr [8]
 ; CHECK: mfence
 ; Load + add can still be optimized into one instruction
 ; because it is not separated by a fence.
@@ -132,11 +136,11 @@ entry:
 ; CHECK: mov {{.*}}, esp
 ; CHECK: mov dword ptr {{.*}}, 999
 ;    atomic store (w/ its own mfence)
-; CHECK: lea {{.*}}, g32_a
+; CHECK: dword ptr [0]
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
 ; CHECK: mfence
-; CHECK: lea {{.*}}, g32_b
+; CHECK: dword ptr [4]
 ; This load + add are no longer optimized into one,
 ; though perhaps it should be legal as long as
 ; the load stays on the same side of the fence.
@@ -144,7 +148,7 @@ entry:
 ; CHECK: mfence
 ; CHECK: add {{.*}}, 1
 ; CHECK: mov dword ptr
-; CHECK: lea {{.*}}, g32_c
+; CHECK: dword ptr [8]
 ; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
 
@@ -184,7 +188,7 @@ entry:
   ret i32 %b1234
 }
 ; CHECK-LABEL: could_have_fused_loads
-; CHECK: lea {{.*}}, g32_d
+; CHECK: dword ptr [0]
 ; CHECK: mov {{.*}}, byte ptr
 ; CHECK: mov {{.*}}, byte ptr
 ; CHECK: mov {{.*}}, byte ptr
@@ -208,7 +212,7 @@ branch2:
   ret i32 %z
 }
 ; CHECK-LABEL: could_have_hoisted_loads
-; CHECK: lea {{.*}}, g32_d
+; CHECK: dword ptr [0]
 ; CHECK: je {{.*}}
 ; CHECK: jmp {{.*}}
 ; CHECK: mov {{.*}}, dword ptr

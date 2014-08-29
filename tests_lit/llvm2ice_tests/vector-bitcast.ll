@@ -1,12 +1,19 @@
 ; This file tests bitcasts of vector type. For most operations, these
 ; should be lowered to a no-op on -O2.
 
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck %s --check-prefix=OPTM1
+; TODO(jvoung): fix extra "CALLTARGETS" run. The llvm-objdump symbolizer
+; doesn't know how to symbolize non-section-local functions.
+; The newer LLVM 3.6 one does work, but watch out for other bugs.
+
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | FileCheck --check-prefix=CALLTARGETS %s
+; RUN: %llvm2ice -O2 --verbose none %s \
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
+; RUN:   | FileCheck --check-prefix=OPTM1 %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
@@ -17,8 +24,7 @@ entry:
   %res = bitcast <16 x i8> %arg to <16 x i8>
   ret <16 x i8> %res
 
-; CHECK-LABEL: test_bitcast_v16i8_to_v16i8:
-; CHECK: .L{{.*}}entry:
+; CHECK-LABEL: test_bitcast_v16i8_to_v16i8
 ; CHECK-NEXT: ret
 }
 
@@ -27,8 +33,7 @@ entry:
   %res = bitcast <16 x i8> %arg to <8 x i16>
   ret <8 x i16> %res
 
-; CHECK-LABEL: test_bitcast_v16i8_to_v8i16:
-; CHECK: .L{{.*}}entry:
+; CHECK-LABEL: test_bitcast_v16i8_to_v8i16
 ; CHECK-NEXT: ret
 }
 
@@ -38,7 +43,6 @@ entry:
   ret <4 x i32> %res
 
 ; CHECK-LABEL: test_bitcast_v16i8_to_v4i32:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -48,7 +52,6 @@ entry:
   ret <4 x float> %res
 
 ; CHECK-LABEL: test_bitcast_v16i8_to_v4f32:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -58,7 +61,6 @@ entry:
   ret <16 x i8> %res
 
 ; CHECK-LABEL: test_bitcast_v8i16_to_v16i8:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -68,7 +70,6 @@ entry:
   ret <8 x i16> %res
 
 ; CHECK-LABEL: test_bitcast_v8i16_to_v8i16:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -78,7 +79,6 @@ entry:
   ret <4 x i32> %res
 
 ; CHECK-LABEL: test_bitcast_v8i16_to_v4i32:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -88,7 +88,6 @@ entry:
   ret <4 x float> %res
 
 ; CHECK-LABEL: test_bitcast_v8i16_to_v4f32:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -98,7 +97,6 @@ entry:
   ret <16 x i8> %res
 
 ; CHECK-LABEL: test_bitcast_v4i32_to_v16i8:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -108,7 +106,6 @@ entry:
   ret <8 x i16> %res
 
 ; CHECK-LABEL: test_bitcast_v4i32_to_v8i16:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -118,7 +115,6 @@ entry:
   ret <4 x i32> %res
 
 ; CHECK-LABEL: test_bitcast_v4i32_to_v4i32:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -128,7 +124,6 @@ entry:
   ret <4 x float> %res
 
 ; CHECK-LABEL: test_bitcast_v4i32_to_v4f32:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -138,7 +133,6 @@ entry:
   ret <16 x i8> %res
 
 ; CHECK-LABEL: test_bitcast_v4f32_to_v16i8:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -148,7 +142,6 @@ entry:
   ret <8 x i16> %res
 
 ; CHECK-LABEL: test_bitcast_v4f32_to_v8i16:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -158,7 +151,6 @@ entry:
   ret <4 x i32> %res
 
 ; CHECK-LABEL: test_bitcast_v4f32_to_v4i32:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -168,7 +160,6 @@ entry:
   ret <4 x float> %res
 
 ; CHECK-LABEL: test_bitcast_v4f32_to_v4f32:
-; CHECK: .L{{.*}}entry:
 ; CHECK-NEXT: ret
 }
 
@@ -178,10 +169,12 @@ entry:
   ret i8 %res
 
 ; CHECK-LABEL: test_bitcast_v8i1_to_i8:
-; CHECK: call Sz_bitcast_v8i1_to_i8
+; CALLTARGETS-LABEL: test_bitcast_v8i1_to_i8:
+; CHECK: call -4
+; CALLTARGETS: call Sz_bitcast_v8i1_to_i8
 
 ; OPTM1-LABEL: test_bitcast_v8i1_to_i8:
-; OPMT1: call Sz_bitcast_v8i1_to_i8
+; OPMT1: call -4
 }
 
 define i16 @test_bitcast_v16i1_to_i16(<16 x i1> %arg) {
@@ -190,10 +183,12 @@ entry:
   ret i16 %res
 
 ; CHECK-LABEL: test_bitcast_v16i1_to_i16:
-; CHECK: call Sz_bitcast_v16i1_to_i16
+; CALLTARGETS-LABEL: test_bitcast_v16i1_to_i16:
+; CHECK: call -4
+; CALLTARGETS: call Sz_bitcast_v16i1_to_i16
 
 ; OPTM1-LABEL: test_bitcast_v16i1_to_i16:
-; OPMT1: call Sz_bitcast_v16i1_to_i16
+; OPMT1: call -4
 }
 
 define <8 x i1> @test_bitcast_i8_to_v8i1(i32 %arg) {
@@ -203,10 +198,12 @@ entry:
   ret <8 x i1> %res
 
 ; CHECK-LABEL: test_bitcast_i8_to_v8i1:
-; CHECK: call Sz_bitcast_i8_to_v8i1
+; CALLTARGETS-LABEL: test_bitcast_i8_to_v8i1
+; CHECK: call -4
+; CALLTARGETS: call Sz_bitcast_i8_to_v8i1
 
 ; OPTM1-LABEL: test_bitcast_i8_to_v8i1:
-; OPTM1: call Sz_bitcast_i8_to_v8i1
+; OPTM1: call -4
 }
 
 define <16 x i1> @test_bitcast_i16_to_v16i1(i32 %arg) {
@@ -216,10 +213,12 @@ entry:
   ret <16 x i1> %res
 
 ; CHECK-LABEL: test_bitcast_i16_to_v16i1:
-; CHECK: call Sz_bitcast_i16_to_v16i1
+; CALLTARGETS-LABEL: test_bitcast_i16_to_v16i1
+; CHECK: call -4
+; CALLTARGETS: call Sz_bitcast_i16_to_v16i1
 
 ; OPTM1-LABEL: test_bitcast_i16_to_v16i1:
-; OPTM1: call Sz_bitcast_i16_to_v16i1
+; OPTM1: call -4
 }
 
 ; ERRORS-NOT: ICE translation error

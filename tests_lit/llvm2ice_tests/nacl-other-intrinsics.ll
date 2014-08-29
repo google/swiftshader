@@ -1,25 +1,34 @@
 ; This tests the NaCl intrinsics not related to atomic operations.
 
-; RUN: %llvm2ice -O2 --verbose none -sandbox %s | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none -sandbox %s | FileCheck %s
+; TODO(jvoung): fix extra "CALLTARGETS" run. The llvm-objdump symbolizer
+; doesn't know how to symbolize non-section-local functions.
+; The newer LLVM 3.6 one does work, but watch out for other bugs.
+
+; RUN: %llvm2ice -O2 --verbose none %s \
+; RUN:   | FileCheck --check-prefix=CALLTARGETS %s
+; RUN: %llvm2ice -O2 --verbose none -sandbox %s \
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %llvm2ice -Om1 --verbose none -sandbox %s \
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 
 ; Do another run w/ O2 and a different check-prefix (otherwise O2 and Om1
 ; share the same "CHECK" prefix). This separate run helps check that
 ; some code is optimized out.
 ; RUN: %llvm2ice -O2 --verbose none -sandbox %s \
-; RUN:     | FileCheck %s --check-prefix=CHECKO2REM
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN:   | FileCheck --check-prefix=CHECKO2REM %s
 
 ; Do O2 runs without -sandbox to make sure llvm.nacl.read.tp gets
 ; lowered to __nacl_read_tp instead of gs:[0x0].
+; We also know that because it's O2, it'll have the O2REM optimizations.
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | FileCheck --check-prefix=CHECKO2UNSANDBOXED %s
-; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | FileCheck --check-prefix=CHECKO2UNSANDBOXEDREM %s
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN:   | FileCheck --check-prefix=CHECKO2UNSANDBOXEDREM %s
 
-; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
-; RUN: %llvm2ice -Om1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
@@ -56,10 +65,10 @@ entry:
 ; CHECK: mov e{{.*}}, dword ptr gs:[0]
 ; CHECKO2REM-LABEL: test_nacl_read_tp
 ; CHECKO2REM: mov e{{.*}}, dword ptr gs:[0]
-; CHECKO2UNSANDBOXED-LABEL: test_nacl_read_tp
-; CHECKO2UNSANDBOXED: call __nacl_read_tp
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp
-; CHECKO2UNSANDBOXEDREM: call __nacl_read_tp
+; CHECKO2UNSANDBOXEDREM: call -4
+; CALLTARGETS-LABEL: test_nacl_read_tp
+; CALLTARGETS: call __nacl_read_tp
 
 define i32 @test_nacl_read_tp_more_addressing() {
 entry:
@@ -81,12 +90,12 @@ entry:
 ; CHECKO2REM-LABEL: test_nacl_read_tp_more_addressing
 ; CHECKO2REM: mov e{{.*}}, dword ptr gs:[0]
 ; CHECKO2REM: mov e{{.*}}, dword ptr gs:[0]
-; CHECKO2UNSANDBOXED-LABEL: test_nacl_read_tp_more_addressing
-; CHECKO2UNSANDBOXED: call __nacl_read_tp
-; CHECKO2UNSANDBOXED: call __nacl_read_tp
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp_more_addressing
-; CHECKO2UNSANDBOXEDREM: call __nacl_read_tp
-; CHECKO2UNSANDBOXEDREM: call __nacl_read_tp
+; CHECKO2UNSANDBOXEDREM: call -4
+; CHECKO2UNSANDBOXEDREM: call -4
+; CALLTARGETS-LABEL: test_nacl_read_tp_more_addressing
+; CALLTARGETS: call __nacl_read_tp
+; CALLTARGETS: call __nacl_read_tp
 
 define i32 @test_nacl_read_tp_dead(i32 %a) {
 entry:
@@ -99,7 +108,9 @@ entry:
 ; CHECKO2REM-LABEL: test_nacl_read_tp_dead
 ; CHECKO2REM-NOT: mov e{{.*}}, dword ptr gs:[0]
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp_dead
-; CHECKO2UNSANDBOXEDREM-NOT: call __nacl_read_tp
+; CHECKO2UNSANDBOXEDREM-NOT: call -4
+; CALLTARGETS-LABEL: test_nacl_read_tp_dead
+; CALLTARGETS-NOT: call __nacl_read_tp
 
 define void @test_memcpy(i32 %iptr_dst, i32 %iptr_src, i32 %len) {
 entry:
@@ -110,7 +121,9 @@ entry:
   ret void
 }
 ; CHECK-LABEL: test_memcpy
-; CHECK: call memcpy
+; CHECK: call -4
+; CALLTARGETS-LABEL: test_memcpy
+; CALLTARGETS: call memcpy
 ; CHECKO2REM-LABEL: test_memcpy
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_memcpy
 
@@ -125,7 +138,9 @@ entry:
   ret void
 }
 ; CHECK-LABEL: test_memcpy_const_len_align
-; CHECK: call memcpy
+; CHECK: call -4
+; CALLTARGETS-LABEL: test_memcpy_const_len_align
+; CALLTARGETS: call memcpy
 
 define void @test_memmove(i32 %iptr_dst, i32 %iptr_src, i32 %len) {
 entry:
@@ -136,7 +151,9 @@ entry:
   ret void
 }
 ; CHECK-LABEL: test_memmove
-; CHECK: call memmove
+; CHECK: call -4
+; CALLTARGETS-LABEL: test_memmove
+; CALLTARGETS: call memmove
 
 define void @test_memmove_const_len_align(i32 %iptr_dst, i32 %iptr_src) {
 entry:
@@ -147,7 +164,9 @@ entry:
   ret void
 }
 ; CHECK-LABEL: test_memmove_const_len_align
-; CHECK: call memmove
+; CHECK: call -4
+; CALLTARGETS-LABEL: test_memmove_const_len_align
+; CALLTARGETS: call memmove
 
 define void @test_memset(i32 %iptr_dst, i32 %wide_val, i32 %len) {
 entry:
@@ -159,7 +178,9 @@ entry:
 }
 ; CHECK-LABEL: test_memset
 ; CHECK: movzx
-; CHECK: call memset
+; CHECK: call -4
+; CALLTARGETS-LABEL: test_memset
+; CALLTARGETS: call memset
 
 define void @test_memset_const_len_align(i32 %iptr_dst, i32 %wide_val) {
 entry:
@@ -171,7 +192,9 @@ entry:
 }
 ; CHECK-LABEL: test_memset_const_len_align
 ; CHECK: movzx
-; CHECK: call memset
+; CHECK: call -4
+; CALLTARGETS-LABEL: test_memset_const_len_align
+; CALLTARGETS: call memset
 
 define void @test_memset_const_val(i32 %iptr_dst, i32 %len) {
 entry:
@@ -182,7 +205,10 @@ entry:
 ; CHECK-LABEL: test_memset_const_val
 ; Make sure the argument is legalized (can't movzx reg, 0).
 ; CHECK: movzx {{.*}}, {{[^0]}}
-; CHECK: call memset
+; CHECK: call -4
+; CALLTARGETS-LABEL: test_memset_const_val
+; CALLTARGETS: call memset
+
 
 define i32 @test_setjmplongjmp(i32 %iptr_env) {
 entry:
@@ -199,11 +225,14 @@ NonZero:
   ret i32 1
 }
 ; CHECK-LABEL: test_setjmplongjmp
-; CHECK: call setjmp
-; CHECK: call longjmp
+; CHECK: call -4
+; CHECK: call -4
 ; CHECKO2REM-LABEL: test_setjmplongjmp
-; CHECKO2REM: call setjmp
-; CHECKO2REM: call longjmp
+; CHECKO2REM: call -4
+; CHECKO2REM: call -4
+; CALLTARGETS-LABEL: test_setjmplongjmp
+; CALLTARGETS: call setjmp
+; CALLTARGETS: call longjmp
 
 define i32 @test_setjmp_unused(i32 %iptr_env, i32 %i_other) {
 entry:
@@ -214,7 +243,9 @@ entry:
 ; Don't consider setjmp side-effect free, so it's not eliminated if
 ; result unused.
 ; CHECKO2REM-LABEL: test_setjmp_unused
-; CHECKO2REM: call setjmp
+; CHECKO2REM: call -4
+; CALLTARGETS-LABEL: test_setjmp_unused
+; CALLTARGETS: call setjmp
 
 define float @test_sqrt_float(float %x, i32 %iptr) {
 entry:
@@ -222,20 +253,22 @@ entry:
   %r2 = call float @llvm.sqrt.f32(float %r)
   %r3 = call float @llvm.sqrt.f32(float -0.0)
   %r4 = fadd float %r2, %r3
-  br label %next
-
-next:
-  %__6 = inttoptr i32 %iptr to float*
-  %y = load float* %__6, align 4
-  %r5 = call float @llvm.sqrt.f32(float %y)
-  %r6 = fadd float %r4, %r5
-  ret float %r6
+  ret float %r4
 }
 ; CHECK-LABEL: test_sqrt_float
 ; CHECK: sqrtss xmm{{.*}}
 ; CHECK: sqrtss xmm{{.*}}
 ; CHECK: sqrtss xmm{{.*}}, dword ptr
-; CHECK-LABEL: .L{{.*}}next
+
+define float @test_sqrt_float_mergeable_load(float %x, i32 %iptr) {
+entry:
+  %__2 = inttoptr i32 %iptr to float*
+  %y = load float* %__2, align 4
+  %r5 = call float @llvm.sqrt.f32(float %y)
+  %r6 = fadd float %x, %r5
+  ret float %r6
+}
+; CHECK-LABEL: test_sqrt_float_mergeable_load
 ; We could fold the load and the sqrt into one operation, but the
 ; current folding only handles load + arithmetic op. The sqrt inst
 ; is considered an intrinsic call and not an arithmetic op.
@@ -247,20 +280,22 @@ entry:
   %r2 = call double @llvm.sqrt.f64(double %r)
   %r3 = call double @llvm.sqrt.f64(double -0.0)
   %r4 = fadd double %r2, %r3
-  br label %next
-
-next:
-  %__6 = inttoptr i32 %iptr to double*
-  %y = load double* %__6, align 8
-  %r5 = call double @llvm.sqrt.f64(double %y)
-  %r6 = fadd double %r4, %r5
-  ret double %r6
+  ret double %r4
 }
 ; CHECK-LABEL: test_sqrt_double
 ; CHECK: sqrtsd xmm{{.*}}
 ; CHECK: sqrtsd xmm{{.*}}
 ; CHECK: sqrtsd xmm{{.*}}, qword ptr
-; CHECK-LABEL: .L{{.*}}next
+
+define double @test_sqrt_double_mergeable_load(double %x, i32 %iptr) {
+entry:
+  %__2 = inttoptr i32 %iptr to double*
+  %y = load double* %__2, align 8
+  %r5 = call double @llvm.sqrt.f64(double %y)
+  %r6 = fadd double %x, %r5
+  ret double %r6
+}
+; CHECK-LABEL: test_sqrt_double_mergeable_load
 ; CHECK: sqrtsd xmm{{.*}}
 
 define float @test_sqrt_ignored(float %x, double %y) {
@@ -414,7 +449,9 @@ entry:
   ret i32 %r
 }
 ; CHECK-LABEL: test_popcount_32
-; CHECK: call __popcountsi2
+; CHECK: call -4
+; CALLTARGETS-LABEL: test_popcount_32
+; CALLTARGETS: call __popcountsi2
 
 define i64 @test_popcount_64(i64 %x) {
 entry:
@@ -422,10 +459,13 @@ entry:
   ret i64 %r
 }
 ; CHECK-LABEL: test_popcount_64
-; CHECK: call __popcountdi2
+; CHECK: call -4
 ; __popcountdi2 only returns a 32-bit result, so clear the upper bits of
 ; the return value just in case.
 ; CHECK: mov {{.*}}, 0
+; CALLTARGETS-LABEL: test_popcount_64
+; CALLTARGETS: call __popcountdi2
+
 
 define i32 @test_popcount_64_ret_i32(i64 %x) {
 entry:
@@ -435,8 +475,10 @@ entry:
 }
 ; If there is a trunc, then the mov {{.*}}, 0 is dead and gets optimized out.
 ; CHECKO2REM-LABEL: test_popcount_64_ret_i32
-; CHECKO2REM: call __popcountdi2
+; CHECKO2REM: call -4
 ; CHECKO2REM-NOT: mov {{.*}}, 0
+; CALLTARGETS-LABEL: test_popcount_64_ret_i32
+; CALLTARGETS: call __popcountdi2
 
 define void @test_stacksave_noalloca() {
 entry:

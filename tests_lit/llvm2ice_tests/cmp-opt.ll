@@ -1,11 +1,12 @@
 ; Simple test of non-fused compare/branch.
 
-; RUN: %llvm2ice -O2 --verbose none %s | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none %s | FileCheck --check-prefix=OPTM1 %s
 ; RUN: %llvm2ice -O2 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %llvm2ice -Om1 --verbose none %s \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN:   | FileCheck --check-prefix=OPTM1 %s
 ; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
 ; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
@@ -36,7 +37,7 @@ if.end7:                                          ; preds = %if.then5, %if.end
 
 declare void @use(i32)
 
-; CHECK:      .globl testBool
+; CHECK-LABEL: testBool
 ; Two bool computations
 ; CHECK:      cmp
 ; CHECK:      cmp
@@ -48,7 +49,7 @@ declare void @use(i32)
 ; CHECK:      call
 ; CHECK:      ret
 ;
-; OPTM1:      .globl testBool
+; OPTM1-LABEL: testBool
 ; Two bool computations
 ; OPTM1:      cmp
 ; OPTM1:      cmp
