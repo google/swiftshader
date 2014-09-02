@@ -90,7 +90,7 @@ check-lit: llvm2ice
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit
 
 check: check-lit
-	(cd crosstest; LLVM_BIN_PATH=$(LLVM_BIN_PATH) ./runtests.sh)
+	(cd crosstest; ./runtests.sh)
 
 # TODO: Fix the use of wildcards.
 # Assumes clang-format is within $PATH.

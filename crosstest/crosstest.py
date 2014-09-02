@@ -9,6 +9,7 @@ import tempfile
 
 sys.path.insert(0, '../pydir')
 from utils import shellcmd
+from utils import FindBaseNaCl
 
 if __name__ == '__main__':
     """Builds a cross-test binary that allows functions translated by
@@ -55,11 +56,6 @@ if __name__ == '__main__':
     argparser.add_argument('--dir', required=False, default='.',
                            metavar='OUTPUT_DIR',
                            help='Output directory for all files')
-    argparser.add_argument('--llvm-bin-path', required=False,
-                           default=os.environ.get('LLVM_BIN_PATH'),
-                           metavar='PATH',
-                           help='Path to LLVM executables like llc ' +
-                                '(defaults to $LLVM_BIN_PATH)')
     argparser.add_argument('--crosstest-bitcode', required=False,
                            default=1, type=int,
                            help='Compile non-subzero crosstest object file ' +
@@ -67,10 +63,15 @@ if __name__ == '__main__':
                            'If 0, then compile it straight from source.')
     args = argparser.parse_args()
 
+    nacl_root = FindBaseNaCl()
+    # Prepend host_x86_32/bin to $PATH.
+    os.environ['PATH'] = nacl_root + \
+        '/toolchain/linux_x86/pnacl_newlib/host_x86_32/bin' + \
+        os.pathsep + os.environ['PATH']
+
     objs = []
     remove_internal = re.compile('^define internal ')
     fix_target = re.compile('le32-unknown-nacl')
-    llvm_bin_path = args.llvm_bin_path
     for arg in args.test:
         base, ext = os.path.splitext(arg)
         if ext == '.ll':
@@ -101,7 +102,7 @@ if __name__ == '__main__':
                   '--prefix=' + args.prefix,
                   '-o=' + asm_sz,
                   bitcode])
-        shellcmd([os.path.join(llvm_bin_path, 'llvm-mc'),
+        shellcmd(['llvm-mc',
                   '-arch=' + arch_map[args.target],
                   '-x86-asm-syntax=intel',
                   '-filetype=obj',
@@ -125,7 +126,7 @@ if __name__ == '__main__':
         if not args.crosstest_bitcode:
             objs.append(arg)
         elif use_llc:
-            shellcmd([os.path.join(llvm_bin_path, 'llc'),
+            shellcmd(['llc'
                       '-filetype=obj',
                       '-o=' + obj_llc,
                       bitcode])
@@ -134,6 +135,6 @@ if __name__ == '__main__':
             objs.append(bitcode)
 
     linker = 'clang' if os.path.splitext(args.driver)[1] == '.c' else 'clang++'
-    shellcmd([os.path.join(llvm_bin_path, linker), '-g', '-m32', args.driver] +
+    shellcmd([linker, '-g', '-m32', args.driver] +
              objs +
              ['-lm', '-lpthread', '-o', os.path.join(args.dir, args.output)])
