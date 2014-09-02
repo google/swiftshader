@@ -85,8 +85,8 @@ static cl::opt<std::string>
 TestPrefix("prefix", cl::desc("Prepend a prefix to symbol names for testing"),
            cl::init(""), cl::value_desc("prefix"));
 static cl::opt<bool>
-DisableInternal("external",
-                cl::desc("Disable 'internal' linkage type for testing"));
+DisableInternal("externalize",
+                cl::desc("Externalize all symbols"));
 static cl::opt<bool>
 DisableTranslation("notranslate", cl::desc("Disable Subzero translation"));
 
