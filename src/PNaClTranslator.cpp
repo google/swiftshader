@@ -1023,6 +1023,48 @@ private:
       return isValidIntegerLogicalOp(Op, Ty);
     }
   }
+
+  /// Converts an LLVM cast opcode LLVMCastOp to the corresponding Ice
+  /// cast opcode and assigns to CastKind. Returns true if successful,
+  /// false otherwise.
+  bool convertLLVMCastOpToIceOp(Instruction::CastOps LLVMCastOp,
+                                Ice::InstCast::OpKind &CastKind) {
+    switch (LLVMCastOp) {
+    case Instruction::ZExt:
+      CastKind = Ice::InstCast::Zext;
+      break;
+    case Instruction::SExt:
+      CastKind = Ice::InstCast::Sext;
+      break;
+    case Instruction::Trunc:
+      CastKind = Ice::InstCast::Trunc;
+      break;
+    case Instruction::FPTrunc:
+      CastKind = Ice::InstCast::Fptrunc;
+      break;
+    case Instruction::FPExt:
+      CastKind = Ice::InstCast::Fpext;
+      break;
+    case Instruction::FPToSI:
+      CastKind = Ice::InstCast::Fptosi;
+      break;
+    case Instruction::FPToUI:
+      CastKind = Ice::InstCast::Fptoui;
+      break;
+    case Instruction::SIToFP:
+      CastKind = Ice::InstCast::Sitofp;
+      break;
+    case Instruction::UIToFP:
+      CastKind = Ice::InstCast::Uitofp;
+      break;
+    case Instruction::BitCast:
+      CastKind = Ice::InstCast::Bitcast;
+      break;
+    default:
+      return false;
+    }
+    return true;
+  }
 };
 
 FunctionParser::~FunctionParser() {
@@ -1080,7 +1122,7 @@ void FunctionParser::ProcessRecord() {
   case naclbitc::FUNC_CODE_DECLAREBLOCKS: {
     // DECLAREBLOCKS: [n]
     if (!isValidRecordSize(1, "function block count"))
-      break;
+      return;
     if (Func->getNodes().size() != 1) {
       Error("Duplicate function block count record");
       return;
@@ -1100,7 +1142,7 @@ void FunctionParser::ProcessRecord() {
   case naclbitc::FUNC_CODE_INST_BINOP: {
     // BINOP: [opval, opval, opcode]
     if (!isValidRecordSize(3, "function block binop"))
-      break;
+      return;
     Ice::Operand *Op1 = getOperand(convertRelativeToAbsIndex(Values[0]));
     Ice::Operand *Op2 = getOperand(convertRelativeToAbsIndex(Values[1]));
     Ice::Type Type1 = Op1->getType();
@@ -1116,16 +1158,45 @@ void FunctionParser::ProcessRecord() {
 
     Ice::InstArithmetic::OpKind Opcode;
     if (!convertBinopOpcode(Values[2], Type1, Opcode))
-      break;
+      return;
     Ice::Variable *Dest = NextInstVar(Type1);
     Inst = Ice::InstArithmetic::create(Func, Opcode, Dest, Op1, Op2);
+    break;
+  }
+  case naclbitc::FUNC_CODE_INST_CAST: {
+    // CAST: [opval, destty, castopc]
+    if (!isValidRecordSize(3, "function block cast"))
+      return;
+    Ice::Operand *Src = getOperand(convertRelativeToAbsIndex(Values[0]));
+    Type *CastType = Context->getTypeByID(Values[1]);
+    Instruction::CastOps LLVMCastOp;
+    Ice::InstCast::OpKind CastKind;
+    if (!naclbitc::DecodeCastOpcode(Values[2], LLVMCastOp) ||
+        !convertLLVMCastOpToIceOp(LLVMCastOp, CastKind)) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Cast opcode not understood: " << Values[2];
+      Error(StrBuf.str());
+      return;
+    }
+    Type *SrcType = Context->convertToLLVMType(Src->getType());
+    if (!CastInst::castIsValid(LLVMCastOp, SrcType, CastType)) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Illegal cast: " << Instruction::getOpcodeName(LLVMCastOp)
+             << " " << *SrcType << " to " << *CastType;
+      Error(StrBuf.str());
+      return;
+    }
+    Ice::Variable *Dest = NextInstVar(Context->convertToIceType(CastType));
+    Inst = Ice::InstCast::create(Func, CastKind, Dest, Src);
     break;
   }
   case naclbitc::FUNC_CODE_INST_RET: {
     // RET: [opval?]
     InstIsTerminating = true;
     if (!isValidRecordSizeInRange(0, 1, "function block ret"))
-      break;
+      return;
     if (Values.size() == 0) {
       Inst = Ice::InstRet::create(Func);
     } else {
