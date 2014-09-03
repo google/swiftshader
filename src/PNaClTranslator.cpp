@@ -909,6 +909,12 @@ private:
     return LocalOperands[LocalIndex];
   }
 
+  // Returns the relative operand (wrt to next instruction) referenced by
+  // the given value index.
+  Ice::Operand *getRelativeOperand(uint32_t Index) {
+    return getOperand(convertRelativeToAbsIndex(Index));
+  }
+
   // Generates type error message for binary operator Op
   // operating on Type OpTy.
   void ReportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy);
@@ -1143,8 +1149,8 @@ void FunctionParser::ProcessRecord() {
     // BINOP: [opval, opval, opcode]
     if (!isValidRecordSize(3, "function block binop"))
       return;
-    Ice::Operand *Op1 = getOperand(convertRelativeToAbsIndex(Values[0]));
-    Ice::Operand *Op2 = getOperand(convertRelativeToAbsIndex(Values[1]));
+    Ice::Operand *Op1 = getRelativeOperand(Values[0]);
+    Ice::Operand *Op2 = getRelativeOperand(Values[1]);
     Ice::Type Type1 = Op1->getType();
     Ice::Type Type2 = Op2->getType();
     if (Type1 != Type2) {
@@ -1167,7 +1173,7 @@ void FunctionParser::ProcessRecord() {
     // CAST: [opval, destty, castopc]
     if (!isValidRecordSize(3, "function block cast"))
       return;
-    Ice::Operand *Src = getOperand(convertRelativeToAbsIndex(Values[0]));
+    Ice::Operand *Src = getRelativeOperand(Values[0]);
     Type *CastType = Context->getTypeByID(Values[1]);
     Instruction::CastOps LLVMCastOp;
     Ice::InstCast::OpKind CastKind;
@@ -1192,6 +1198,61 @@ void FunctionParser::ProcessRecord() {
     Inst = Ice::InstCast::create(Func, CastKind, Dest, Src);
     break;
   }
+  case naclbitc::FUNC_CODE_INST_EXTRACTELT: {
+    // EXTRACTELT: [opval, opval]
+    Ice::Operand *Vec = getRelativeOperand(Values[0]);
+    Ice::Type VecType = Vec->getType();
+    if (!Ice::isVectorType(VecType)) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Extractelement not on vector. Found: " << Vec;
+      Error(StrBuf.str());
+    }
+    Ice::Operand *Index = getRelativeOperand(Values[1]);
+    if (Index->getType() != Ice::IceType_i32) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Extractelement index not i32. Found: " << Index;
+      Error(StrBuf.str());
+    }
+    // TODO(kschimpf): Restrict index to a legal constant index (once
+    // constants can be defined).
+    Ice::Variable *Dest = NextInstVar(typeElementType(VecType));
+    Inst = Ice::InstExtractElement::create(Func, Dest, Vec, Index);
+    break;
+  }
+  case naclbitc::FUNC_CODE_INST_INSERTELT: {
+    // INSERTELT: [opval, opval, opval]
+    Ice::Operand *Vec = getRelativeOperand(Values[0]);
+    Ice::Type VecType = Vec->getType();
+    if (!Ice::isVectorType(VecType)) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Insertelement not on vector. Found: " << Vec;
+      Error(StrBuf.str());
+    }
+    Ice::Operand *Elt = getRelativeOperand(Values[1]);
+    Ice::Type EltType = Elt->getType();
+    if (EltType != typeElementType(VecType)) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Insertelement element not " << typeElementType(VecType)
+             << ". Found: " << Elt;
+      Error(StrBuf.str());
+    }
+    Ice::Operand *Index = getRelativeOperand(Values[2]);
+    if (Index->getType() != Ice::IceType_i32) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Insertelement index not i32. Found: " << Index;
+      Error(StrBuf.str());
+    }
+    // TODO(kschimpf): Restrict index to a legal constant index (once
+    // constants can be defined).
+    Ice::Variable *Dest = NextInstVar(EltType);
+    Inst = Ice::InstInsertElement::create(Func, Dest, Vec, Elt, Index);
+    break;
+  }
   case naclbitc::FUNC_CODE_INST_RET: {
     // RET: [opval?]
     InstIsTerminating = true;
@@ -1200,8 +1261,7 @@ void FunctionParser::ProcessRecord() {
     if (Values.size() == 0) {
       Inst = Ice::InstRet::create(Func);
     } else {
-      Inst = Ice::InstRet::create(
-          Func, getOperand(convertRelativeToAbsIndex(Values[0])));
+      Inst = Ice::InstRet::create(Func, getRelativeOperand(Values[0]));
     }
     break;
   }
