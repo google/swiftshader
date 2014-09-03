@@ -663,8 +663,8 @@ void InstSwitch::dump(const Cfg *Func) const {
   getSrc(0)->dump(Func);
   Str << ", label %" << getLabelDefault()->getName() << " [\n";
   for (SizeT I = 0; I < getNumCases(); ++I) {
-    Str << "    " << Ty << " " << getValue(I) << ", label %"
-        << getLabel(I)->getName() << "\n";
+    Str << "    " << Ty << " " << static_cast<int64_t>(getValue(I))
+        << ", label %" << getLabel(I)->getName() << "\n";
   }
   Str << "  ]";
 }

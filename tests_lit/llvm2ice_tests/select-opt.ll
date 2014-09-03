@@ -46,7 +46,7 @@ declare void @useIntHelper(i32)
 ; operand is an immediate.
 define i32 @testSelectImm32(i32 %a, i32 %b) {
 entry:
-  %cond = select i1 0, i32 %a, i32 %b
+  %cond = select i1 false, i32 %a, i32 %b
   ret i32 %cond
 }
 ; CHECK-LABEL: testSelectImm32
@@ -57,7 +57,7 @@ entry:
 ; sequence for 64-bit operands.
 define i64 @testSelectImm64(i64 %a, i64 %b) {
 entry:
-  %cond = select i1 1, i64 %a, i64 %b
+  %cond = select i1 true, i64 %a, i64 %b
   ret i64 %cond
 }
 ; CHECK-LABEL: testSelectImm64

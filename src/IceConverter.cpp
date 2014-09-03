@@ -103,7 +103,7 @@ public:
                                  GV->getName());
     } else if (const ConstantInt *CI = dyn_cast<ConstantInt>(Const)) {
       return Ctx->getConstantInt(convertToIceType(CI->getType()),
-                                 CI->getZExtValue());
+                                 CI->getSExtValue());
     } else if (const ConstantFP *CFP = dyn_cast<ConstantFP>(Const)) {
       Ice::Type Type = convertToIceType(CFP->getType());
       if (Type == Ice::IceType_f32)
@@ -497,7 +497,7 @@ private:
     unsigned CurrentCase = 0;
     for (SwitchInst::ConstCaseIt I = Inst->case_begin(), E = Inst->case_end();
          I != E; ++I, ++CurrentCase) {
-      uint64_t CaseValue = I.getCaseValue()->getZExtValue();
+      uint64_t CaseValue = I.getCaseValue()->getSExtValue();
       Ice::CfgNode *CaseSuccessor = mapBasicBlockToNode(I.getCaseSuccessor());
       Switch->addBranch(CurrentCase, CaseValue, CaseSuccessor);
     }

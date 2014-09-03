@@ -1159,8 +1159,8 @@ entry:
 
 define internal void @store64Const(i32 %a) {
 entry:
-  %a.asptr = inttoptr i32 %a to i64*
-  store i64 -2401053092306725256, i64* %a.asptr, align 1
+  %__1 = inttoptr i32 %a to i64*
+  store i64 -2401053092306725256, i64* %__1, align 1
   ret void
 }
 ; CHECK-LABEL: store64Const

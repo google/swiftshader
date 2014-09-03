@@ -3919,6 +3919,7 @@ void TargetX8632::lowerSwitch(const InstSwitch *Inst) {
   else
     Src0 = legalize(Src0, Legal_Reg | Legal_Mem, true);
   for (SizeT I = 0; I < NumCases; ++I) {
+    // TODO(stichnot): Correct lowering for IceType_i64.
     Operand *Value = Ctx->getConstantInt(IceType_i32, Inst->getValue(I));
     _cmp(Src0, Value);
     _br(InstX8632Br::Br_e, Inst->getLabel(I));

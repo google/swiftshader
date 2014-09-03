@@ -117,7 +117,7 @@ entry:
   %dst = inttoptr i32 %iptr_dst to i8*
   %src = inttoptr i32 %iptr_src to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst, i8* %src,
-                                       i32 %len, i32 1, i1 0)
+                                       i32 %len, i32 1, i1 false)
   ret void
 }
 ; CHECK-LABEL: test_memcpy
@@ -134,7 +134,7 @@ entry:
   %dst = inttoptr i32 %iptr_dst to i8*
   %src = inttoptr i32 %iptr_src to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst, i8* %src,
-                                       i32 8, i32 1, i1 0)
+                                       i32 8, i32 1, i1 false)
   ret void
 }
 ; CHECK-LABEL: test_memcpy_const_len_align
@@ -147,7 +147,7 @@ entry:
   %dst = inttoptr i32 %iptr_dst to i8*
   %src = inttoptr i32 %iptr_src to i8*
   call void @llvm.memmove.p0i8.p0i8.i32(i8* %dst, i8* %src,
-                                        i32 %len, i32 1, i1 0)
+                                        i32 %len, i32 1, i1 false)
   ret void
 }
 ; CHECK-LABEL: test_memmove
@@ -160,7 +160,7 @@ entry:
   %dst = inttoptr i32 %iptr_dst to i8*
   %src = inttoptr i32 %iptr_src to i8*
   call void @llvm.memmove.p0i8.p0i8.i32(i8* %dst, i8* %src,
-                                        i32 8, i32 1, i1 0)
+                                        i32 8, i32 1, i1 false)
   ret void
 }
 ; CHECK-LABEL: test_memmove_const_len_align
@@ -173,7 +173,7 @@ entry:
   %val = trunc i32 %wide_val to i8
   %dst = inttoptr i32 %iptr_dst to i8*
   call void @llvm.memset.p0i8.i32(i8* %dst, i8 %val,
-                                  i32 %len, i32 1, i1 0)
+                                  i32 %len, i32 1, i1 false)
   ret void
 }
 ; CHECK-LABEL: test_memset
@@ -187,7 +187,7 @@ entry:
   %val = trunc i32 %wide_val to i8
   %dst = inttoptr i32 %iptr_dst to i8*
   call void @llvm.memset.p0i8.i32(i8* %dst, i8 %val,
-                                  i32 8, i32 1, i1 0)
+                                  i32 8, i32 1, i1 false)
   ret void
 }
 ; CHECK-LABEL: test_memset_const_len_align
@@ -199,7 +199,7 @@ entry:
 define void @test_memset_const_val(i32 %iptr_dst, i32 %len) {
 entry:
   %dst = inttoptr i32 %iptr_dst to i8*
-  call void @llvm.memset.p0i8.i32(i8* %dst, i8 0, i32 %len, i32 1, i1 0)
+  call void @llvm.memset.p0i8.i32(i8* %dst, i8 0, i32 %len, i32 1, i1 false)
   ret void
 }
 ; CHECK-LABEL: test_memset_const_val
@@ -350,7 +350,7 @@ entry:
 
 define i32 @test_ctlz_32(i32 %x) {
 entry:
-  %r = call i32 @llvm.ctlz.i32(i32 %x, i1 0)
+  %r = call i32 @llvm.ctlz.i32(i32 %x, i1 false)
   ret i32 %r
 }
 ; CHECK-LABEL: test_ctlz_32
@@ -364,7 +364,7 @@ entry:
 
 define i32 @test_ctlz_32_const() {
 entry:
-  %r = call i32 @llvm.ctlz.i32(i32 123456, i1 0)
+  %r = call i32 @llvm.ctlz.i32(i32 123456, i1 false)
   ret i32 %r
 }
 ; Could potentially constant fold this, but the front-end should have done that.
@@ -375,7 +375,7 @@ entry:
 
 define i32 @test_ctlz_32_ignored(i32 %x) {
 entry:
-  %ignored = call i32 @llvm.ctlz.i32(i32 %x, i1 0)
+  %ignored = call i32 @llvm.ctlz.i32(i32 %x, i1 false)
   ret i32 1
 }
 ; CHECKO2REM-LABEL: test_ctlz_32_ignored
@@ -383,7 +383,7 @@ entry:
 
 define i64 @test_ctlz_64(i64 %x) {
 entry:
-  %r = call i64 @llvm.ctlz.i64(i64 %x, i1 0)
+  %r = call i64 @llvm.ctlz.i64(i64 %x, i1 false)
   ret i64 %r
 }
 ; CHECKO2REM-LABEL: test_ctlz_64
@@ -401,7 +401,7 @@ entry:
 
 define i32 @test_ctlz_64_const(i64 %x) {
 entry:
-  %r = call i64 @llvm.ctlz.i64(i64 123456789012, i1 0)
+  %r = call i64 @llvm.ctlz.i64(i64 123456789012, i1 false)
   %r2 = trunc i64 %r to i32
   ret i32 %r2
 }
@@ -412,7 +412,7 @@ entry:
 
 define i32 @test_ctlz_64_ignored(i64 %x) {
 entry:
-  %ignored = call i64 @llvm.ctlz.i64(i64 1234567890, i1 0)
+  %ignored = call i64 @llvm.ctlz.i64(i64 1234567890, i1 false)
   ret i32 2
 }
 ; CHECKO2REM-LABEL: test_ctlz_64_ignored
@@ -420,7 +420,7 @@ entry:
 
 define i32 @test_cttz_32(i32 %x) {
 entry:
-  %r = call i32 @llvm.cttz.i32(i32 %x, i1 0)
+  %r = call i32 @llvm.cttz.i32(i32 %x, i1 false)
   ret i32 %r
 }
 ; CHECK-LABEL: test_cttz_32
@@ -430,7 +430,7 @@ entry:
 
 define i64 @test_cttz_64(i64 %x) {
 entry:
-  %r = call i64 @llvm.cttz.i64(i64 %x, i1 0)
+  %r = call i64 @llvm.cttz.i64(i64 %x, i1 false)
   ret i64 %r
 }
 ; CHECK-LABEL: test_cttz_64

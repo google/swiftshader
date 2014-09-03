@@ -146,6 +146,14 @@ typedef ConstantPrimitive<uint64_t, Operand::kConstInteger> ConstantInteger;
 typedef ConstantPrimitive<float, Operand::kConstFloat> ConstantFloat;
 typedef ConstantPrimitive<double, Operand::kConstDouble> ConstantDouble;
 
+template <> inline void ConstantInteger::dump(GlobalContext *Ctx) const {
+  Ostream &Str = Ctx->getStrDump();
+  if (getType() == IceType_i1)
+    Str << (getValue() ? "true" : "false");
+  else
+    Str << static_cast<int64_t>(getValue());
+}
+
 // RelocatableTuple bundles the parameters that are used to
 // construct an ConstantRelocatable.  It is done this way so that
 // ConstantRelocatable can fit into the global constant pool

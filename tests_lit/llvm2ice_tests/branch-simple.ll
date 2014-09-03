@@ -29,7 +29,7 @@ Unequal:
 
 define internal i32 @test_br_const() {
 __0:
-  br i1 1, label %__1, label %__2
+  br i1 true, label %__1, label %__2
 __1:
   ret i32 21
 __2:

@@ -72,9 +72,8 @@ if __name__ == '__main__':
     lines_total = 0
     lines_diff = 0
     ignore_pattern = re.compile(
-        '|'.join([' -[0-9]',                 # negative constants
-                  ' (float|double) [-0-9]',  # FP constants
-                  ' (float|double) %\w+, [-0-9]',
+        '|'.join(['[ (](float|double) [-0-9]',  # FP constants
+                  '[ (](float|double) %\w+, [-0-9]',
                   ' @llvm\..*i\d+\*',        # intrinsic calls w/ pointer args
                   ' i\d+\* @llvm\.',         # intrinsic calls w/ pointer ret
                   ' inttoptr ',              # inttoptr pointer types
