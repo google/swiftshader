@@ -1198,6 +1198,44 @@ void FunctionParser::ProcessRecord() {
     Inst = Ice::InstCast::create(Func, CastKind, Dest, Src);
     break;
   }
+  case naclbitc::FUNC_CODE_INST_VSELECT: {
+    // VSELECT: [opval, opval, pred]
+    Ice::Operand *ThenVal = getOperand(convertRelativeToAbsIndex(Values[0]));
+    Ice::Type ThenType = ThenVal->getType();
+    Ice::Operand *ElseVal = getOperand(convertRelativeToAbsIndex(Values[1]));
+    Ice::Type ElseType = ElseVal->getType();
+    if (ThenType != ElseType) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Select operands not same type. Found " << ThenType << " and "
+             << ElseType;
+      Error(StrBuf.str());
+      return;
+    }
+    Ice::Operand *CondVal = getOperand(convertRelativeToAbsIndex(Values[2]));
+    Ice::Type CondType = CondVal->getType();
+    if (isVectorType(CondType)) {
+      if (!isVectorType(ThenType) ||
+          typeElementType(CondType) != Ice::IceType_i1 ||
+          typeNumElements(ThenType) != typeNumElements(CondType)) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Select condition " << CondType
+               << " not allowed for values of type " << ThenType;
+        Error(StrBuf.str());
+        return;
+      }
+    } else if (CondVal->getType() != Ice::IceType_i1) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Select condition not type i1. Found: " << CondVal->getType();
+      Error(StrBuf.str());
+      return;
+    }
+    Ice::Variable *DestVal = NextInstVar(ThenType);
+    Inst = Ice::InstSelect::create(Func, DestVal, CondVal, ThenVal, ElseVal);
+    break;
+  }
   case naclbitc::FUNC_CODE_INST_EXTRACTELT: {
     // EXTRACTELT: [opval, opval]
     Ice::Operand *Vec = getRelativeOperand(Values[0]);
