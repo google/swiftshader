@@ -1916,22 +1916,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     // but we're unlikely to see something like that in the bitcode that
     // the optimizer wouldn't have already taken care of.
     Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
-    if (Dest->getType() == IceType_i64) {
-      // t1=movsx src; t2=t1; t2=sar t2, 31; dst.lo=t1; dst.hi=t2
-      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-      Variable *T_Lo = makeReg(DestLo->getType());
-      if (Src0RM->getType() == IceType_i32)
-        _mov(T_Lo, Src0RM);
-      else
-        _movsx(T_Lo, Src0RM);
-      _mov(DestLo, T_Lo);
-      Variable *T_Hi = NULL;
-      Constant *Shift = Ctx->getConstantInt(IceType_i32, 31);
-      _mov(T_Hi, T_Lo);
-      _sar(T_Hi, Shift);
-      _mov(DestHi, T_Hi);
-    } else if (isVectorType(Dest->getType())) {
+    if (isVectorType(Dest->getType())) {
       Type DestTy = Dest->getType();
       if (DestTy == IceType_v16i8) {
         // onemask = materialize(1,1,...); dst = (src & onemask) > 0
@@ -1953,9 +1938,39 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
         _psra(T, ShiftConstant);
         _movp(Dest, T);
       }
+    } else if (Dest->getType() == IceType_i64) {
+      // t1=movsx src; t2=t1; t2=sar t2, 31; dst.lo=t1; dst.hi=t2
+      Constant *Shift = Ctx->getConstantInt(IceType_i32, 31);
+      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      Variable *T_Lo = makeReg(DestLo->getType());
+      if (Src0RM->getType() == IceType_i32) {
+        _mov(T_Lo, Src0RM);
+      } else if (Src0RM->getType() == IceType_i1) {
+        _mov(T_Lo, Src0RM);
+        _shl(T_Lo, Shift);
+        _sar(T_Lo, Shift);
+      } else {
+        _movsx(T_Lo, Src0RM);
+      }
+      _mov(DestLo, T_Lo);
+      Variable *T_Hi = NULL;
+      _mov(T_Hi, T_Lo);
+      _sar(T_Hi, Shift);
+      _mov(DestHi, T_Hi);
+    } else if (Src0RM->getType() == IceType_i1) {
+      // t1 = src
+      // shl t1, dst_bitwidth - 1
+      // sar t1, dst_bitwidth - 1
+      // dst = t1
+      size_t DestBits = X86_CHAR_BIT * typeWidthInBytes(Dest->getType());
+      Constant *ShiftAmount = Ctx->getConstantInt(IceType_i32, DestBits - 1);
+      Variable *T = NULL;
+      _mov(T, Src0RM);
+      _shl(T, ShiftAmount);
+      _sar(T, ShiftAmount);
+      _mov(Dest, T);
     } else {
-      // TODO: Sign-extend an i1 via "shl reg, 31; sar reg, 31", and
-      // also copy to the high operand of a 64-bit variable.
       // t1 = movsx src; dst = t1
       Variable *T = makeReg(Dest->getType());
       _movsx(T, Src0RM);
@@ -1965,26 +1980,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Zext: {
     Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
-    if (Dest->getType() == IceType_i64) {
-      // t1=movzx src; dst.lo=t1; dst.hi=0
-      Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-      Variable *Tmp = makeReg(DestLo->getType());
-      if (Src0RM->getType() == IceType_i32)
-        _mov(Tmp, Src0RM);
-      else
-        _movzx(Tmp, Src0RM);
-      _mov(DestLo, Tmp);
-      _mov(DestHi, Zero);
-    } else if (Src0RM->getType() == IceType_i1) {
-      // t = Src0RM; t &= 1; Dest = t
-      Operand *One = Ctx->getConstantInt(IceType_i32, 1);
-      Variable *T = makeReg(IceType_i32);
-      _movzx(T, Src0RM);
-      _and(T, One);
-      _mov(Dest, T);
-    } else if (isVectorType(Dest->getType())) {
+    if (isVectorType(Dest->getType())) {
       // onemask = materialize(1,1,...); dest = onemask & src
       Type DestTy = Dest->getType();
       Variable *OneMask = makeVectorOfOnes(DestTy);
@@ -1992,6 +1988,30 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _movp(T, Src0RM);
       _pand(T, OneMask);
       _movp(Dest, T);
+    } else if (Dest->getType() == IceType_i64) {
+      // t1=movzx src; dst.lo=t1; dst.hi=0
+      Constant *Zero = Ctx->getConstantZero(IceType_i32);
+      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      Variable *Tmp = makeReg(DestLo->getType());
+      if (Src0RM->getType() == IceType_i32) {
+        _mov(Tmp, Src0RM);
+      } else if (Src0RM->getType() == IceType_i1) {
+        Constant *One = Ctx->getConstantInt(IceType_i32, 1);
+        _mov(Tmp, Src0RM);
+        _and(Tmp, One);
+      } else {
+        _movzx(Tmp, Src0RM);
+      }
+      _mov(DestLo, Tmp);
+      _mov(DestHi, Zero);
+    } else if (Src0RM->getType() == IceType_i1) {
+      // t = Src0RM; t &= 1; Dest = t
+      Constant *One = Ctx->getConstantInt(IceType_i32, 1);
+      Variable *T = makeReg(IceType_i32);
+      _movzx(T, Src0RM);
+      _and(T, One);
+      _mov(Dest, T);
     } else {
       // t1 = movzx src; dst = t1
       Variable *T = makeReg(Dest->getType());
@@ -3920,7 +3940,7 @@ void TargetX8632::lowerSwitch(const InstSwitch *Inst) {
     Src0 = legalize(Src0, Legal_Reg | Legal_Mem, true);
   for (SizeT I = 0; I < NumCases; ++I) {
     // TODO(stichnot): Correct lowering for IceType_i64.
-    Operand *Value = Ctx->getConstantInt(IceType_i32, Inst->getValue(I));
+    Constant *Value = Ctx->getConstantInt(IceType_i32, Inst->getValue(I));
     _cmp(Src0, Value);
     _br(InstX8632Br::Br_e, Inst->getLabel(I));
   }

@@ -650,6 +650,24 @@ entry:
 ; OPTM1: movsx
 ; OPTM1: sar {{.*}}, 31
 
+define internal i64 @sext1To64(i32 %a) {
+entry:
+  %a.arg_trunc = trunc i32 %a to i1
+  %conv = sext i1 %a.arg_trunc to i64
+  ret i64 %conv
+}
+; CHECK-LABEL: sext1To64
+; CHECK: mov
+; CHECK: shl {{.*}}, 31
+; CHECK: sar {{.*}}, 31
+; CHECK: sar {{.*}}, 31
+;
+; OPTM1-LABEL: sext1To64
+; OPTM1: mov
+; OPTM1: shl {{.*}}, 31
+; OPTM1: sar {{.*}}, 31
+; OPTM1: sar {{.*}}, 31
+
 define internal i64 @zext32To64(i32 %a) {
 entry:
   %conv = zext i32 %a to i64
@@ -698,11 +716,11 @@ entry:
   ret i64 %conv
 }
 ; CHECK-LABEL: zext1To64
-; CHECK: movzx
+; CHECK: and {{.*}}, 1
 ; CHECK: mov {{.*}}, 0
 ;
 ; OPTM1-LABEL: zext1To64
-; OPTM1: movzx
+; OPTM1: and {{.*}}, 1
 ; OPTM1: mov {{.*}}, 0
 
 define internal void @icmpEq64(i64 %a, i64 %b, i64 %c, i64 %d) {
