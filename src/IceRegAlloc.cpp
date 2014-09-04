@@ -233,6 +233,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
                                                       : Variable::NoRegister;
     bool AllowedToOverlap = Cur.Var->getRegisterOverlap() &&
                             PreferReg != Variable::NoRegister &&
+                            RegMask[PreferReg] &&
                             !PrecoloredUnhandled[PreferReg];
     if (PreferReg != Variable::NoRegister &&
         (AllowedToOverlap || Free[PreferReg])) {
