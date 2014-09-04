@@ -968,16 +968,22 @@ template <> void InstX8632Mov::emit(const Cfg *Func) const {
   // The llvm-mc assembler using Intel syntax has a bug in which "mov
   // reg, RelocatableConstant" does not generate the right instruction
   // with a relocation.  To work around, we emit "lea reg,
-  // [RelocatableConstant]".  Also, the lowering and legalization is
+  // RelocatableConstant".  Also, the lowering and legalization is
   // changed to allow relocatable constants only in Assign and Call
   // instructions or in Mem operands.  TODO(stichnot): remove LEAHACK
   // once a proper emitter is used.
+  //
+  // In addition, llvm-mc doesn't like "lea eax, bp" or "lea eax, Sp"
+  // or "lea eax, flags" etc., when the relocatable constant name is a
+  // reserved word.  The hack-on-top-of-hack is to temporarily drop
+  // into AT&T syntax for this lea instruction.
   bool UseLeaHack = llvm::isa<ConstantRelocatable>(Src);
-  Str << "\t";
-  if (UseLeaHack)
-    Str << "lea";
-  else
-    Str << "mov" << TypeX8632Attributes[getDest()->getType()].SdSsString;
+  if (UseLeaHack) {
+    Str << ".att_syntax\n";
+    Str << "\tleal";
+  } else {
+    Str << "\tmov" << TypeX8632Attributes[getDest()->getType()].SdSsString;
+  }
   Str << "\t";
   // For an integer truncation operation, src is wider than dest.
   // Ideally, we use a mov instruction whose data width matches the
@@ -991,10 +997,18 @@ template <> void InstX8632Mov::emit(const Cfg *Func) const {
   // Clean this up.
   assert(Func->getTarget()->typeWidthInBytesOnStack(getDest()->getType()) ==
          Func->getTarget()->typeWidthInBytesOnStack(Src->getType()));
-  getDest()->asType(Src->getType()).emit(Func);
-  Str << ", ";
-  Src->emit(Func);
-  Str << "\n";
+  if (UseLeaHack) {
+    Src->emit(Func);
+    Str << ", %";
+    getDest()->emit(Func);
+    Str << "\n";
+    Str << ".intel_syntax\n";
+  } else {
+    getDest()->asType(Src->getType()).emit(Func);
+    Str << ", ";
+    Src->emit(Func);
+    Str << "\n";
+  }
 }
 
 template <> void InstX8632Movp::emit(const Cfg *Func) const {

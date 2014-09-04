@@ -92,7 +92,28 @@ entry:
   call void @use(i32 %expanded13)
   ret i32 0
 }
-; CHECK: entry:
+; CHECK-LABEL: main
+; CHECK: .att_syntax
+; CHECK: leal PrimitiveInit,
+; CHECK: .intel_syntax
+; CHECK: .att_syntax
+; CHECK: leal PrimitiveInitConst,
+; CHECK: .intel_syntax
+; CHECK: .att_syntax
+; CHECK: leal PrimitiveInitStatic,
+; CHECK: .intel_syntax
+; CHECK: .att_syntax
+; CHECK: leal PrimitiveUninit,
+; CHECK: .intel_syntax
+; CHECK: .att_syntax
+; CHECK: leal ArrayInit,
+; CHECK: .intel_syntax
+; CHECK: .att_syntax
+; CHECK: leal ArrayInitPartial,
+; CHECK: .intel_syntax
+; CHECK: .att_syntax
+; CHECK: leal ArrayUninit,
+; CHECK: .intel_syntax
 
 declare void @use(i32)
 
