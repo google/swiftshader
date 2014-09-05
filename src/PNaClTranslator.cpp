@@ -1034,7 +1034,7 @@ private:
   /// cast opcode and assigns to CastKind. Returns true if successful,
   /// false otherwise.
   bool convertLLVMCastOpToIceOp(Instruction::CastOps LLVMCastOp,
-                                Ice::InstCast::OpKind &CastKind) {
+                                Ice::InstCast::OpKind &CastKind) const {
     switch (LLVMCastOp) {
     case Instruction::ZExt:
       CastKind = Ice::InstCast::Zext;
@@ -1070,6 +1070,104 @@ private:
       return false;
     }
     return true;
+  }
+
+  // Converts PNaCl bitcode Icmp operator to corresponding ICE op.
+  // Returns true if able to convert, false otherwise.
+  bool convertNaClBitcICmpOpToIce(uint64_t Op,
+                                  Ice::InstIcmp::ICond &Cond) const {
+    switch (Op) {
+    case naclbitc::ICMP_EQ:
+      Cond = Ice::InstIcmp::Eq;
+      return true;
+    case naclbitc::ICMP_NE:
+      Cond = Ice::InstIcmp::Ne;
+      return true;
+    case naclbitc::ICMP_UGT:
+      Cond = Ice::InstIcmp::Ugt;
+      return true;
+    case naclbitc::ICMP_UGE:
+      Cond = Ice::InstIcmp::Uge;
+      return true;
+    case naclbitc::ICMP_ULT:
+      Cond = Ice::InstIcmp::Ult;
+      return true;
+    case naclbitc::ICMP_ULE:
+      Cond = Ice::InstIcmp::Ule;
+      return true;
+    case naclbitc::ICMP_SGT:
+      Cond = Ice::InstIcmp::Sgt;
+      return true;
+    case naclbitc::ICMP_SGE:
+      Cond = Ice::InstIcmp::Sge;
+      return true;
+    case naclbitc::ICMP_SLT:
+      Cond = Ice::InstIcmp::Slt;
+      return true;
+    case naclbitc::ICMP_SLE:
+      Cond = Ice::InstIcmp::Sle;
+      return true;
+    default:
+      return false;
+    }
+  }
+
+  // Converts PNaCl bitcode Fcmp operator to corresponding ICE op.
+  // Returns true if able to convert, false otherwise.
+  bool convertNaClBitcFCompOpToIce(uint64_t Op,
+                                   Ice::InstFcmp::FCond &Cond) const {
+    switch (Op) {
+    case naclbitc::FCMP_FALSE:
+      Cond = Ice::InstFcmp::False;
+      return true;
+    case naclbitc::FCMP_OEQ:
+      Cond = Ice::InstFcmp::Oeq;
+      return true;
+    case naclbitc::FCMP_OGT:
+      Cond = Ice::InstFcmp::Ogt;
+      return true;
+    case naclbitc::FCMP_OGE:
+      Cond = Ice::InstFcmp::Oge;
+      return true;
+    case naclbitc::FCMP_OLT:
+      Cond = Ice::InstFcmp::Olt;
+      return true;
+    case naclbitc::FCMP_OLE:
+      Cond = Ice::InstFcmp::Ole;
+      return true;
+    case naclbitc::FCMP_ONE:
+      Cond = Ice::InstFcmp::One;
+      return true;
+    case naclbitc::FCMP_ORD:
+      Cond = Ice::InstFcmp::Ord;
+      return true;
+    case naclbitc::FCMP_UNO:
+      Cond = Ice::InstFcmp::Uno;
+      return true;
+    case naclbitc::FCMP_UEQ:
+      Cond = Ice::InstFcmp::Ueq;
+      return true;
+    case naclbitc::FCMP_UGT:
+      Cond = Ice::InstFcmp::Ugt;
+      return true;
+    case naclbitc::FCMP_UGE:
+      Cond = Ice::InstFcmp::Uge;
+      return true;
+    case naclbitc::FCMP_ULT:
+      Cond = Ice::InstFcmp::Ult;
+      return true;
+    case naclbitc::FCMP_ULE:
+      Cond = Ice::InstFcmp::Ule;
+      return true;
+    case naclbitc::FCMP_UNE:
+      Cond = Ice::InstFcmp::Une;
+      return true;
+    case naclbitc::FCMP_TRUE:
+      Cond = Ice::InstFcmp::True;
+      return true;
+    default:
+      return false;
+    }
   }
 };
 
@@ -1238,6 +1336,8 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_EXTRACTELT: {
     // EXTRACTELT: [opval, opval]
+    if (!isValidRecordSize(2, "function block extract element"))
+      return;
     Ice::Operand *Vec = getRelativeOperand(Values[0]);
     Ice::Type VecType = Vec->getType();
     if (!Ice::isVectorType(VecType)) {
@@ -1261,6 +1361,8 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_INSERTELT: {
     // INSERTELT: [opval, opval, opval]
+    if (!isValidRecordSize(3, "function block insert element"))
+      return;
     Ice::Operand *Vec = getRelativeOperand(Values[0]);
     Ice::Type VecType = Vec->getType();
     if (!Ice::isVectorType(VecType)) {
@@ -1289,6 +1391,66 @@ void FunctionParser::ProcessRecord() {
     // constants can be defined).
     Ice::Variable *Dest = NextInstVar(EltType);
     Inst = Ice::InstInsertElement::create(Func, Dest, Vec, Elt, Index);
+    break;
+  }
+  case naclbitc::FUNC_CODE_INST_CMP2: {
+    // CMP2: [opval, opval, pred]
+    if (!isValidRecordSize(3, "function block compare"))
+      return;
+    Ice::Operand *Op1 = getRelativeOperand(Values[0]);
+    Ice::Operand *Op2 = getRelativeOperand(Values[1]);
+    Ice::Type Op1Type = Op1->getType();
+    Ice::Type Op2Type = Op2->getType();
+    if (Op1Type != Op2Type) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Compare argument types differ: " << Op1Type
+             << " and " << Op2Type;
+      Error(StrBuf.str());
+      // TODO(kschimpf) Remove error recovery once implementation complete.
+      Op2 = Op1;
+    }
+    Ice::Type DestType = getCompareResultType(Op1Type);
+    if (DestType == Ice::IceType_void) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Compare not defined for type " << Op1Type;
+      Error(StrBuf.str());
+      return;
+    }
+    Ice::Variable *Dest = NextInstVar(DestType);
+    if (isIntegerType(Op1Type)) {
+      Ice::InstIcmp::ICond Cond;
+      if (!convertNaClBitcICmpOpToIce(Values[2], Cond)) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Compare record contains unknown integer predicate index: "
+               << Values[2];
+        Error(StrBuf.str());
+        // TODO(kschimpf) Remove error recovery once implementation complete.
+        Cond = Ice::InstIcmp::Eq;
+      }
+      Inst = Ice::InstIcmp::create(Func, Cond,  Dest, Op1, Op2);
+    } else if (isFloatingType(Op1Type)){
+      Ice::InstFcmp::FCond Cond;
+      if (!convertNaClBitcFCompOpToIce(Values[2], Cond)) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Compare record contains unknown float predicate index: "
+               << Values[2];
+        Error(StrBuf.str());
+        // TODO(kschimpf) Remove error recovery once implementation complete.
+        Cond = Ice::InstFcmp::False;
+      }
+      Inst = Ice::InstFcmp::create(Func, Cond, Dest, Op1, Op2);
+    } else {
+      // Not sure this can happen, but be safe.
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Compare on type not understood: " << Op1Type;
+      Error(StrBuf.str());
+      return;
+    }
     break;
   }
   case naclbitc::FUNC_CODE_INST_RET: {
