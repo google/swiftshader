@@ -865,6 +865,18 @@ private:
     return Nodes[Index];
   }
 
+  // Returns the Index-th basic block in the list of basic blocks.
+  // Assumes Index corresponds to a branch instruction. Hence, if
+  // the branch references the entry block, it also generates a
+  // corresponding error.
+  Ice::CfgNode *getBranchBasicBlock(uint32_t Index) {
+    if (Index == 0) {
+      Error("Branch to entry block not allowed");
+      // TODO(kschimpf) Remove error recovery once implementation complete.
+    }
+    return GetBasicBlock(Index);
+  }
+
   // Generates the next available local variable using the given
   // type.  Note: if Ty is void, this function returns NULL.
   Ice::Variable *NextInstVar(Ice::Type Ty) {
@@ -1203,7 +1215,12 @@ void FunctionParser::ExitBlock() {
       Node->appendInst(Ice::InstUnreachable::create(Func));
     }
   }
-  getTranslator().translateFcn(Func);
+  // Note: Once any errors have been found, we turn off all
+  // translation of all remaining functions. This allows use to see
+  // multiple errors, without adding extra checks to the translator
+  // for such parsing errors.
+  if (Context->getNumErrors() == 0)
+    getTranslator().translateFcn(Func);
 }
 
 void FunctionParser::ReportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op,
@@ -1455,7 +1472,6 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_RET: {
     // RET: [opval?]
-    InstIsTerminating = true;
     if (!isValidRecordSizeInRange(0, 1, "function block ret"))
       return;
     if (Values.size() == 0) {
@@ -1463,6 +1479,35 @@ void FunctionParser::ProcessRecord() {
     } else {
       Inst = Ice::InstRet::create(Func, getRelativeOperand(Values[0]));
     }
+    InstIsTerminating = true;
+    break;
+  }
+  case naclbitc::FUNC_CODE_INST_BR: {
+    if (Values.size() == 1) {
+      // BR: [bb#]
+      Ice::CfgNode *Block = getBranchBasicBlock(Values[0]);
+      if (Block == NULL)
+        return;
+      Inst = Ice::InstBr::create(Func, Block);
+    } else {
+      // BR: [bb#, bb#, opval]
+      if (!isValidRecordSize(3, "function block branch"))
+        return;
+      Ice::Operand *Cond = getRelativeOperand(Values[2]);
+      if (Cond->getType() != Ice::IceType_i1) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Branch condition not i1";
+        Error(StrBuf.str());
+        return;
+      }
+      Ice::CfgNode *ThenBlock = getBranchBasicBlock(Values[0]);
+      Ice::CfgNode *ElseBlock = getBranchBasicBlock(Values[1]);
+      if (ThenBlock == NULL || ElseBlock == NULL)
+        return;
+      Inst = Ice::InstBr::create(Func, Cond, ThenBlock, ElseBlock);
+    }
+    InstIsTerminating = true;
     break;
   }
   default:
