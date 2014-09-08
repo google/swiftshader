@@ -347,6 +347,7 @@ int main(int argc, char **argv) {
   size_t Passes = 0;
   size_t Failures = 0;
 
+  testsInt<bool, bool>(TotalTests, Passes, Failures);
   testsInt<uint8_t, myint8_t>(TotalTests, Passes, Failures);
   testsInt<uint16_t, int16_t>(TotalTests, Passes, Failures);
   testsInt<uint32_t, int32_t>(TotalTests, Passes, Failures);

@@ -290,6 +290,8 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
 GlobalContext::~GlobalContext() {}
 
 Constant *GlobalContext::getConstantInt(Type Ty, uint64_t ConstantInt64) {
+  if (Ty == IceType_i1)
+    ConstantInt64 &= UINT64_C(1);
   return ConstPool->Integers.getOrAdd(this, Ty, ConstantInt64);
 }
 

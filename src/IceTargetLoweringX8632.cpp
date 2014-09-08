@@ -1947,7 +1947,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       if (Src0RM->getType() == IceType_i32) {
         _mov(T_Lo, Src0RM);
       } else if (Src0RM->getType() == IceType_i1) {
-        _mov(T_Lo, Src0RM);
+        _movzx(T_Lo, Src0RM);
         _shl(T_Lo, Shift);
         _sar(T_Lo, Shift);
       } else {
@@ -1956,7 +1956,9 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _mov(DestLo, T_Lo);
       Variable *T_Hi = NULL;
       _mov(T_Hi, T_Lo);
-      _sar(T_Hi, Shift);
+      if (Src0RM->getType() != IceType_i1)
+        // For i1, the sar instruction is already done above.
+        _sar(T_Hi, Shift);
       _mov(DestHi, T_Hi);
     } else if (Src0RM->getType() == IceType_i1) {
       // t1 = src
@@ -1965,8 +1967,15 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       // dst = t1
       size_t DestBits = X86_CHAR_BIT * typeWidthInBytes(Dest->getType());
       Constant *ShiftAmount = Ctx->getConstantInt(IceType_i32, DestBits - 1);
-      Variable *T = NULL;
-      _mov(T, Src0RM);
+      Variable *T = makeReg(Dest->getType());
+      if (typeWidthInBytes(Dest->getType()) <=
+          typeWidthInBytes(Src0RM->getType())) {
+        _mov(T, Src0RM);
+      } else {
+        // Widen the source using movsx or movzx.  (It doesn't matter
+        // which one, since the following shl/sar overwrite the bits.)
+        _movzx(T, Src0RM);
+      }
       _shl(T, ShiftAmount);
       _sar(T, ShiftAmount);
       _mov(Dest, T);
@@ -1996,12 +2005,12 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       Variable *Tmp = makeReg(DestLo->getType());
       if (Src0RM->getType() == IceType_i32) {
         _mov(Tmp, Src0RM);
-      } else if (Src0RM->getType() == IceType_i1) {
-        Constant *One = Ctx->getConstantInt(IceType_i32, 1);
-        _mov(Tmp, Src0RM);
-        _and(Tmp, One);
       } else {
         _movzx(Tmp, Src0RM);
+      }
+      if (Src0RM->getType() == IceType_i1) {
+        Constant *One = Ctx->getConstantInt(IceType_i32, 1);
+        _and(Tmp, One);
       }
       _mov(DestLo, Tmp);
       _mov(DestHi, Zero);
@@ -2038,6 +2047,8 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       // t1 = trunc Src0RM; Dest = t1
       Variable *T = NULL;
       _mov(T, Src0RM);
+      if (Dest->getType() == IceType_i1)
+        _and(T, Ctx->getConstantInt(IceType_i1, 1));
       _mov(Dest, T);
     }
     break;
@@ -2081,6 +2092,8 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       Variable *T_2 = makeReg(Dest->getType());
       _cvtt(T_1, Src0RM);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
+      if (Dest->getType() == IceType_i1)
+        _and(T_2, Ctx->getConstantInt(IceType_i1, 1));
       _mov(Dest, T_2);
       T_2->setPreferredRegister(T_1, true);
     }
@@ -2116,6 +2129,8 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       Variable *T_2 = makeReg(Dest->getType());
       _cvtt(T_1, Src0RM);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
+      if (Dest->getType() == IceType_i1)
+        _and(T_2, Ctx->getConstantInt(IceType_i1, 1));
       _mov(Dest, T_2);
       T_2->setPreferredRegister(T_1, true);
     }

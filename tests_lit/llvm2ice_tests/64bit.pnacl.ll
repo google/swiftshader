@@ -127,12 +127,10 @@ entry:
 ; CHECK-LABEL: return64BitArg
 ; CHECK: mov     {{.*}}, dword ptr [esp + 4]
 ; CHECK: mov     {{.*}}, dword ptr [esp + 8]
-; CHECK: ret
 ;
 ; OPTM1-LABEL: return64BitArg
 ; OPTM1: mov     {{.*}}, dword ptr [esp + 4]
 ; OPTM1: mov     {{.*}}, dword ptr [esp + 8]
-; OPTM1: ret
 
 define internal i64 @return64BitConst() {
 entry:
@@ -141,12 +139,10 @@ entry:
 ; CHECK-LABEL: return64BitConst
 ; CHECK: mov     eax, 305419896
 ; CHECK: mov     edx, 3735928559
-; CHECK: ret
 ;
 ; OPTM1-LABEL: return64BitConst
 ; OPTM1: mov     eax, 305419896
 ; OPTM1: mov     edx, 3735928559
-; OPTM1: ret
 
 define internal i64 @add64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -156,12 +152,10 @@ entry:
 ; CHECK-LABEL: add64BitSigned
 ; CHECK: add
 ; CHECK: adc
-; CHECK: ret
 ;
 ; OPTM1-LABEL: add64BitSigned
 ; OPTM1: add
 ; OPTM1: adc
-; OPTM1: ret
 
 define internal i64 @add64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -171,12 +165,10 @@ entry:
 ; CHECK-LABEL: add64BitUnsigned
 ; CHECK: add
 ; CHECK: adc
-; CHECK: ret
 ;
 ; OPTM1-LABEL: add64BitUnsigned
 ; OPTM1: add
 ; OPTM1: adc
-; OPTM1: ret
 
 define internal i64 @sub64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -186,12 +178,10 @@ entry:
 ; CHECK-LABEL: sub64BitSigned
 ; CHECK: sub
 ; CHECK: sbb
-; CHECK: ret
 ;
 ; OPTM1-LABEL: sub64BitSigned
 ; OPTM1: sub
 ; OPTM1: sbb
-; OPTM1: ret
 
 define internal i64 @sub64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -201,12 +191,10 @@ entry:
 ; CHECK-LABEL: sub64BitUnsigned
 ; CHECK: sub
 ; CHECK: sbb
-; CHECK: ret
 ;
 ; OPTM1-LABEL: sub64BitUnsigned
 ; OPTM1: sub
 ; OPTM1: sbb
-; OPTM1: ret
 
 define internal i64 @mul64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -219,7 +207,6 @@ entry:
 ; CHECK: mul
 ; CHECK: add
 ; CHECK: add
-; CHECK: ret
 ;
 ; OPTM1-LABEL: mul64BitSigned
 ; OPTM1: imul
@@ -227,7 +214,6 @@ entry:
 ; OPTM1: mul
 ; OPTM1: add
 ; OPTM1: add
-; OPTM1: ret
 
 define internal i64 @mul64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -240,7 +226,6 @@ entry:
 ; CHECK: mul
 ; CHECK: add
 ; CHECK: add
-; CHECK: ret
 ;
 ; OPTM1-LABEL: mul64BitUnsigned
 ; OPTM1: imul
@@ -248,7 +233,6 @@ entry:
 ; OPTM1: mul
 ; OPTM1: add
 ; OPTM1: add
-; OPTM1: ret
 
 define internal i64 @div64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -259,11 +243,9 @@ entry:
 ; CALLTARGETS-LABEL: div64BitSigned
 ; CHECK: call    -4
 ; CALLTARGETS: call __divdi3
-; CHECK: ret
 
 ; OPTM1-LABEL: div64BitSigned
 ; OPTM1: call    -4
-; OPTM1: ret
 
 define internal i64 @div64BitSignedConst(i64 %a) {
 entry:
@@ -276,13 +258,11 @@ entry:
 ; CHECK: mov     dword ptr [esp + 8],  1942892530
 ; CHECK: call    -4
 ; CALLTARGETS: call __divdi3
-; CHECK: ret
 ;
 ; OPTM1-LABEL: div64BitSignedConst
 ; OPTM1: mov     dword ptr [esp + 12], 2874
 ; OPTM1: mov     dword ptr [esp + 8],  1942892530
 ; OPTM1: call    -4
-; OPTM1: ret
 
 define internal i64 @div64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -293,11 +273,9 @@ entry:
 ; CALLTARGETS-LABEL: div64BitUnsigned
 ; CHECK: call    -4
 ; CALLTARGETS: call __udivdi3
-; CHECK: ret
 ;
 ; OPTM1-LABEL: div64BitUnsigned
 ; OPTM1: call    -4
-; OPTM1: ret
 
 define internal i64 @rem64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -308,11 +286,9 @@ entry:
 ; CALLTARGETS-LABEL: rem64BitSigned
 ; CHECK: call    -4
 ; CALLTARGETS: call __moddi3
-; CHECK: ret
 ;
 ; OPTM1-LABEL: rem64BitSigned
 ; OPTM1: call    -4
-; OPTM1: ret
 
 define internal i64 @rem64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -323,11 +299,9 @@ entry:
 ; CALLTARGETS-LABEL: rem64BitUnsigned
 ; CHECK: call    -4
 ; CALLTARGETS: call __umoddi3
-; CHECK: ret
 ;
 ; OPTM1-LABEL: rem64BitUnsigned
 ; OPTM1: call    -4
-; OPTM1: ret
 
 define internal i64 @shl64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -484,11 +458,9 @@ entry:
 }
 ; CHECK-LABEL: trunc64To32Signed
 ; CHECK: mov     eax, dword ptr [esp + 4]
-; CHECK-NEXT: ret
 ;
 ; OPTM1-LABEL: trunc64To32Signed
 ; OPTM1: mov     eax, dword ptr [esp +
-; OPTM1: ret
 
 define internal i32 @trunc64To16Signed(i64 %a) {
 entry:
@@ -499,12 +471,10 @@ entry:
 ; CHECK-LABEL: trunc64To16Signed
 ; CHECK:      mov     eax, dword ptr [esp + 4]
 ; CHECK-NEXT: movsx  eax, ax
-; CHECK-NEXT: ret
 ;
 ; OPTM1-LABEL: trunc64To16Signed
 ; OPTM1:      mov     eax, dword ptr [esp +
 ; OPTM1: movsx  eax,
-; OPTM1: ret
 
 define internal i32 @trunc64To8Signed(i64 %a) {
 entry:
@@ -515,12 +485,10 @@ entry:
 ; CHECK-LABEL: trunc64To8Signed
 ; CHECK:      mov     eax, dword ptr [esp + 4]
 ; CHECK-NEXT: movsx  eax, al
-; CHECK-NEXT: ret
 ;
 ; OPTM1-LABEL: trunc64To8Signed
 ; OPTM1:      mov     eax, dword ptr [esp +
 ; OPTM1: movsx  eax,
-; OPTM1: ret
 
 define internal i32 @trunc64To32SignedConst() {
 entry:
@@ -554,11 +522,9 @@ entry:
 }
 ; CHECK-LABEL: trunc64To32Unsigned
 ; CHECK: mov     eax, dword ptr [esp + 4]
-; CHECK-NEXT: ret
 ;
 ; OPTM1-LABEL: trunc64To32Unsigned
 ; OPTM1: mov     eax, dword ptr [esp +
-; OPTM1: ret
 
 define internal i32 @trunc64To16Unsigned(i64 %a) {
 entry:
@@ -569,12 +535,10 @@ entry:
 ; CHECK-LABEL: trunc64To16Unsigned
 ; CHECK:      mov     eax, dword ptr [esp + 4]
 ; CHECK-NEXT: movzx  eax, ax
-; CHECK-NEXT: ret
 ;
 ; OPTM1-LABEL: trunc64To16Unsigned
 ; OPTM1:      mov     eax, dword ptr [esp +
 ; OPTM1: movzx  eax,
-; OPTM1: ret
 
 define internal i32 @trunc64To8Unsigned(i64 %a) {
 entry:
@@ -585,12 +549,10 @@ entry:
 ; CHECK-LABEL: trunc64To8Unsigned
 ; CHECK:      mov     eax, dword ptr [esp + 4]
 ; CHECK-NEXT: movzx  eax, al
-; CHECK-NEXT: ret
 ;
 ; OPTM1-LABEL: trunc64To8Unsigned
 ; OPTM1: mov    eax, dword ptr [esp +
 ; OPTM1: movzx  eax,
-; OPTM1: ret
 
 define internal i32 @trunc64To1(i64 %a) {
 entry:
@@ -602,12 +564,12 @@ entry:
 ; CHECK-LABEL: trunc64To1
 ; CHECK:      mov     eax, dword ptr [esp + 4]
 ; CHECK:      and     eax, 1
-; CHECK-NEXT: ret
+; CHECK:      and     eax, 1
 ;
 ; OPTM1-LABEL: trunc64To1
 ; OPTM1:      mov     eax, dword ptr [esp +
 ; OPTM1:      and     eax, 1
-; OPTM1: ret
+; OPTM1:      and     eax, 1
 
 define internal i64 @sext32To64(i32 %a) {
 entry:
@@ -660,12 +622,10 @@ entry:
 ; CHECK: mov
 ; CHECK: shl {{.*}}, 31
 ; CHECK: sar {{.*}}, 31
-; CHECK: sar {{.*}}, 31
 ;
 ; OPTM1-LABEL: sext1To64
 ; OPTM1: mov
 ; OPTM1: shl {{.*}}, 31
-; OPTM1: sar {{.*}}, 31
 ; OPTM1: sar {{.*}}, 31
 
 define internal i64 @zext32To64(i32 %a) {
