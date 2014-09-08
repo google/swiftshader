@@ -182,8 +182,9 @@ InstX8632Cmpxchg8b::InstX8632Cmpxchg8b(Cfg *Func, OperandX8632 *Addr,
   addSource(Ebx);
 }
 
-InstX8632Cvt::InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source)
-    : InstX8632(Func, InstX8632::Cvt, 1, Dest) {
+InstX8632Cvt::InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source,
+                           bool Trunc)
+    : InstX8632(Func, InstX8632::Cvt, 1, Dest), Trunc(Trunc) {
   addSource(Source);
 }
 
@@ -798,7 +799,10 @@ void InstX8632Cmpxchg8b::dump(const Cfg *Func) const {
 void InstX8632Cvt::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
-  Str << "\tcvt" << TypeX8632Attributes[getSrc(0)->getType()].CvtString << "2"
+  Str << "\tcvt";
+  if (Trunc)
+    Str << "t";
+  Str << TypeX8632Attributes[getSrc(0)->getType()].CvtString << "2"
       << TypeX8632Attributes[getDest()->getType()].CvtString << "\t";
   getDest()->emit(Func);
   Str << ", ";
@@ -809,8 +813,11 @@ void InstX8632Cvt::emit(const Cfg *Func) const {
 void InstX8632Cvt::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
-  Str << " = cvt" << TypeX8632Attributes[getSrc(0)->getType()].CvtString
-      << "2" << TypeX8632Attributes[getDest()->getType()].CvtString << " ";
+  Str << " = cvt";
+  if (Trunc)
+    Str << "t";
+  Str << TypeX8632Attributes[getSrc(0)->getType()].CvtString << "2"
+      << TypeX8632Attributes[getDest()->getType()].CvtString << " ";
   dumpSources(Func);
 }
 

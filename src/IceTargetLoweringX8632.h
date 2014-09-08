@@ -264,7 +264,12 @@ protected:
     Context.insert(InstFakeDef::create(Func, Eax));
   }
   void _cvt(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Cvt::create(Func, Dest, Src0));
+    const bool Trunc = false;
+    Context.insert(InstX8632Cvt::create(Func, Dest, Src0, Trunc));
+  }
+  void _cvtt(Variable *Dest, Operand *Src0) {
+    const bool Trunc = true;
+    Context.insert(InstX8632Cvt::create(Func, Dest, Src0, Trunc));
   }
   void _div(Variable *Dest, Operand *Src0, Operand *Src1) {
     Context.insert(InstX8632Div::create(Func, Dest, Src0, Src1));

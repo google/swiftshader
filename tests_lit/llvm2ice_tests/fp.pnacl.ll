@@ -271,7 +271,7 @@ entry:
   ret i32 %conv
 }
 ; CHECK-LABEL: doubleToSigned32
-; CHECK: cvtsd2si
+; CHECK: cvttsd2si
 
 define internal i32 @floatToSigned32(float %a) {
 entry:
@@ -279,7 +279,7 @@ entry:
   ret i32 %conv
 }
 ; CHECK-LABEL: floatToSigned32
-; CHECK: cvtss2si
+; CHECK: cvttss2si
 
 define internal i32 @doubleToUnsigned32(double %a) {
 entry:
@@ -309,7 +309,7 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: doubleToSigned16
-; CHECK: cvtsd2si
+; CHECK: cvttsd2si
 ; CHECK: movsx
 
 define internal i32 @floatToSigned16(float %a) {
@@ -319,7 +319,7 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: floatToSigned16
-; CHECK: cvtss2si
+; CHECK: cvttss2si
 ; CHECK: movsx
 
 define internal i32 @doubleToUnsigned16(double %a) {
@@ -329,7 +329,7 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: doubleToUnsigned16
-; CHECK: cvtsd2si
+; CHECK: cvttsd2si
 ; CHECK: movzx
 
 define internal i32 @floatToUnsigned16(float %a) {
@@ -339,7 +339,7 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: floatToUnsigned16
-; CHECK: cvtss2si
+; CHECK: cvttss2si
 ; CHECK: movzx
 
 define internal i32 @doubleToSigned8(double %a) {
@@ -349,7 +349,7 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: doubleToSigned8
-; CHECK: cvtsd2si
+; CHECK: cvttsd2si
 ; CHECK: movsx
 
 define internal i32 @floatToSigned8(float %a) {
@@ -359,7 +359,7 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: floatToSigned8
-; CHECK: cvtss2si
+; CHECK: cvttss2si
 ; CHECK: movsx
 
 define internal i32 @doubleToUnsigned8(double %a) {
@@ -369,7 +369,7 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: doubleToUnsigned8
-; CHECK: cvtsd2si
+; CHECK: cvttsd2si
 ; CHECK: movzx
 
 define internal i32 @floatToUnsigned8(float %a) {
@@ -379,7 +379,7 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: floatToUnsigned8
-; CHECK: cvtss2si
+; CHECK: cvttss2si
 ; CHECK: movzx
 
 define internal i32 @doubleToUnsigned1(double %a) {
@@ -389,7 +389,7 @@ entry:
   ret i32 %tobool.ret_ext
 }
 ; CHECK-LABEL: doubleToUnsigned1
-; CHECK: cvtsd2si
+; CHECK: cvttsd2si
 ; CHECK: and eax, 1
 
 define internal i32 @floatToUnsigned1(float %a) {
@@ -399,7 +399,7 @@ entry:
   ret i32 %tobool.ret_ext
 }
 ; CHECK-LABEL: floatToUnsigned1
-; CHECK: cvtss2si
+; CHECK: cvttss2si
 ; CHECK: and eax, 1
 
 define internal double @signed64ToDouble(i64 %a) {

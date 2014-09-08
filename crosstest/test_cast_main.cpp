@@ -28,7 +28,7 @@ namespace Subzero_ {
 
 #define XSTR(s) STR(s)
 #define STR(s) #s
-#define COMPARE(Func, FromCName, ToCName, Input)                               \
+#define COMPARE(Func, FromCName, ToCName, Input, FromString)                   \
   do {                                                                         \
     ToCName ResultSz, ResultLlc;                                               \
     ResultLlc = Func<FromCName, ToCName>(Input);                               \
@@ -38,26 +38,30 @@ namespace Subzero_ {
       ++Passes;                                                                \
     } else {                                                                   \
       ++Failures;                                                              \
-      std::cout << std::fixed << XSTR(Func)                                    \
-                << "<" XSTR(FromCName) ", " XSTR(ToCName) ">(" << Input        \
-                << "): sz=" << ResultSz << " llc=" << ResultLlc << "\n";       \
+      std::cout << std::fixed << XSTR(Func) << "<" << FromString               \
+                << ", " XSTR(ToCName) ">(" << Input << "): ";                  \
+      if (sizeof(ToCName) == 1)                                                \
+        std::cout << "sz=" << (int)ResultSz << " llc=" << (int)ResultLlc;      \
+      else                                                                     \
+        std::cout << "sz=" << ResultSz << " llc=" << ResultLlc;                \
+      std::cout << "\n";                                                       \
     }                                                                          \
   } while (0)
 
 template <typename FromType>
 void testValue(FromType Val, size_t &TotalTests, size_t &Passes,
-               size_t &Failures) {
-  COMPARE(cast, FromType, bool, Val);
-  COMPARE(cast, FromType, uint8_t, Val);
-  COMPARE(cast, FromType, myint8_t, Val);
-  COMPARE(cast, FromType, uint16_t, Val);
-  COMPARE(cast, FromType, int16_t, Val);
-  COMPARE(cast, FromType, uint32_t, Val);
-  COMPARE(cast, FromType, int32_t, Val);
-  COMPARE(cast, FromType, uint64_t, Val);
-  COMPARE(cast, FromType, int64_t, Val);
-  COMPARE(cast, FromType, float, Val);
-  COMPARE(cast, FromType, double, Val);
+               size_t &Failures, const char *FromTypeString) {
+  COMPARE(cast, FromType, bool, Val, FromTypeString);
+  COMPARE(cast, FromType, uint8_t, Val, FromTypeString);
+  COMPARE(cast, FromType, myint8_t, Val, FromTypeString);
+  COMPARE(cast, FromType, uint16_t, Val, FromTypeString);
+  COMPARE(cast, FromType, int16_t, Val, FromTypeString);
+  COMPARE(cast, FromType, uint32_t, Val, FromTypeString);
+  COMPARE(cast, FromType, int32_t, Val, FromTypeString);
+  COMPARE(cast, FromType, uint64_t, Val, FromTypeString);
+  COMPARE(cast, FromType, int64_t, Val, FromTypeString);
+  COMPARE(cast, FromType, float, Val, FromTypeString);
+  COMPARE(cast, FromType, double, Val, FromTypeString);
 }
 
 int main(int argc, char **argv) {
@@ -128,7 +132,9 @@ int main(int argc, char **argv) {
   static const size_t NumValsSi64 = sizeof(ValsSi64) / sizeof(*ValsSi64);
 
   volatile float ValsF32[] = {
-    0,                    1,                    0x7e,
+    0,                    1,                    1.4,
+    1.5,                  1.6,                  -1.4,
+    -1.5,                 -1.6,                 0x7e,
     0x7f,                 0x80,                 0x81,
     0xfe,                 0xff,                 0x7ffe,
     0x7fff,               0x8000,               0x8001,
@@ -142,7 +148,9 @@ int main(int argc, char **argv) {
   static const size_t NumValsF32 = sizeof(ValsF32) / sizeof(*ValsF32);
 
   volatile double ValsF64[] = {
-    0,                    1,                    0x7e,
+    0,                    1,                    1.4,
+    1.5,                  1.6,                  -1.4,
+    -1.5,                 -1.6,                 0x7e,
     0x7f,                 0x80,                 0x81,
     0xfe,                 0xff,                 0x7ffe,
     0x7fff,               0x8000,               0x8001,
@@ -157,49 +165,49 @@ int main(int argc, char **argv) {
 
   for (size_t i = 0; i < NumValsUi1; ++i) {
     bool Val = ValsUi1[i];
-    testValue<bool>(Val, TotalTests, Passes, Failures);
+    testValue<bool>(Val, TotalTests, Passes, Failures, "bool");
   }
   for (size_t i = 0; i < NumValsUi8; ++i) {
     uint8_t Val = ValsUi8[i];
-    testValue<uint8_t>(Val, TotalTests, Passes, Failures);
+    testValue<uint8_t>(Val, TotalTests, Passes, Failures, "uint8_t");
   }
   for (size_t i = 0; i < NumValsSi8; ++i) {
     myint8_t Val = ValsSi8[i];
-    testValue<myint8_t>(Val, TotalTests, Passes, Failures);
+    testValue<myint8_t>(Val, TotalTests, Passes, Failures, "int8_t");
   }
   for (size_t i = 0; i < NumValsUi16; ++i) {
     uint16_t Val = ValsUi16[i];
-    testValue<uint16_t>(Val, TotalTests, Passes, Failures);
+    testValue<uint16_t>(Val, TotalTests, Passes, Failures, "uint16_t");
   }
   for (size_t i = 0; i < NumValsSi16; ++i) {
     int16_t Val = ValsSi16[i];
-    testValue<int16_t>(Val, TotalTests, Passes, Failures);
+    testValue<int16_t>(Val, TotalTests, Passes, Failures, "int16_t");
   }
   for (size_t i = 0; i < NumValsUi32; ++i) {
     uint32_t Val = ValsUi32[i];
-    testValue<uint32_t>(Val, TotalTests, Passes, Failures);
-    COMPARE(castBits, uint32_t, float, Val);
+    testValue<uint32_t>(Val, TotalTests, Passes, Failures, "uint32_t");
+    COMPARE(castBits, uint32_t, float, Val, "uint32_t");
   }
   for (size_t i = 0; i < NumValsSi32; ++i) {
     int32_t Val = ValsSi32[i];
-    testValue<int32_t>(Val, TotalTests, Passes, Failures);
+    testValue<int32_t>(Val, TotalTests, Passes, Failures, "int32_t");
   }
   for (size_t i = 0; i < NumValsUi64; ++i) {
     uint64_t Val = ValsUi64[i];
-    testValue<uint64_t>(Val, TotalTests, Passes, Failures);
-    COMPARE(castBits, uint64_t, double, Val);
+    testValue<uint64_t>(Val, TotalTests, Passes, Failures, "uint64_t");
+    COMPARE(castBits, uint64_t, double, Val, "uint64_t");
   }
   for (size_t i = 0; i < NumValsSi64; ++i) {
     int64_t Val = ValsSi64[i];
-    testValue<int64_t>(Val, TotalTests, Passes, Failures);
+    testValue<int64_t>(Val, TotalTests, Passes, Failures, "int64_t");
   }
   for (size_t i = 0; i < NumValsF32; ++i) {
     for (unsigned j = 0; j < 2; ++j) {
       float Val = ValsF32[i];
       if (j > 0)
         Val = -Val;
-      testValue<float>(Val, TotalTests, Passes, Failures);
-      COMPARE(castBits, float, uint32_t, Val);
+      testValue<float>(Val, TotalTests, Passes, Failures, "float");
+      COMPARE(castBits, float, uint32_t, Val, "float");
     }
   }
   for (size_t i = 0; i < NumValsF64; ++i) {
@@ -207,8 +215,8 @@ int main(int argc, char **argv) {
       double Val = ValsF64[i];
       if (j > 0)
         Val = -Val;
-      testValue<double>(Val, TotalTests, Passes, Failures);
-      COMPARE(castBits, double, uint64_t, Val);
+      testValue<double>(Val, TotalTests, Passes, Failures, "double");
+      COMPARE(castBits, double, uint64_t, Val, "double");
     }
   }
 

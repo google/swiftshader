@@ -138,7 +138,7 @@ entry:
   ret <4 x i32> %res
 
 ; CHECK-LABEL: test_fptosi_v4f32_to_v4i32:
-; CHECK: cvtps2dq
+; CHECK: cvttps2dq
 }
 
 define <4 x i32> @test_fptoui_v4f32_to_v4i32(<4 x float> %arg) {

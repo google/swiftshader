@@ -863,16 +863,18 @@ private:
 // operand needs to be done separately.
 class InstX8632Cvt : public InstX8632 {
 public:
-  static InstX8632Cvt *create(Cfg *Func, Variable *Dest, Operand *Source) {
+  static InstX8632Cvt *create(Cfg *Func, Variable *Dest, Operand *Source,
+                              bool Trunc) {
     return new (Func->allocate<InstX8632Cvt>())
-        InstX8632Cvt(Func, Dest, Source);
+        InstX8632Cvt(Func, Dest, Source, Trunc);
   }
   virtual void emit(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Cvt); }
 
 private:
-  InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source);
+  bool Trunc;
+  InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source, bool Trunc);
   InstX8632Cvt(const InstX8632Cvt &) LLVM_DELETED_FUNCTION;
   InstX8632Cvt &operator=(const InstX8632Cvt &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Cvt() {}

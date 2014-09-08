@@ -2057,7 +2057,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
              Inst->getSrc(0)->getType() == IceType_v4f32);
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       Variable *T = makeReg(Dest->getType());
-      _cvt(T, Src0RM);
+      _cvtt(T, Src0RM);
       _movp(Dest, T);
     } else if (Dest->getType() == IceType_i64) {
       // Use a helper for converting floating-point values to 64-bit
@@ -2079,7 +2079,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
       Variable *T_1 = makeReg(IceType_i32);
       Variable *T_2 = makeReg(Dest->getType());
-      _cvt(T_1, Src0RM);
+      _cvtt(T_1, Src0RM);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
       _mov(Dest, T_2);
       T_2->setPreferredRegister(T_1, true);
@@ -2114,7 +2114,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
       Variable *T_1 = makeReg(IceType_i32);
       Variable *T_2 = makeReg(Dest->getType());
-      _cvt(T_1, Src0RM);
+      _cvtt(T_1, Src0RM);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
       _mov(Dest, T_2);
       T_2->setPreferredRegister(T_1, true);
