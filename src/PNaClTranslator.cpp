@@ -821,6 +821,9 @@ public:
 
   ~FunctionParser() LLVM_OVERRIDE;
 
+  // Set the next constant ID to the given constant C.
+  void setNextConstantID(Ice::Constant *C) { LocalOperands.push_back(C); }
+
 private:
   // Timer for reading function bitcode and converting to ICE.
   Ice::Timer TConvert;
@@ -842,6 +845,8 @@ private:
   // True if the last processed instruction was a terminating
   // instruction.
   bool InstIsTerminating;
+
+  virtual bool ParseBlock(unsigned BlockID) LLVM_OVERRIDE;
 
   virtual void ProcessRecord() LLVM_OVERRIDE;
 
@@ -1517,6 +1522,130 @@ void FunctionParser::ProcessRecord() {
   }
   if (Inst)
     CurrentNode->appendInst(Inst);
+}
+
+/// Parses constants within a function block.
+class ConstantsParser : public BlockParserBaseClass {
+  ConstantsParser(const ConstantsParser &) LLVM_DELETED_FUNCTION;
+  ConstantsParser &operator=(const ConstantsParser &) LLVM_DELETED_FUNCTION;
+
+public:
+  ConstantsParser(unsigned BlockID, FunctionParser *FuncParser)
+      : BlockParserBaseClass(BlockID, FuncParser), FuncParser(FuncParser),
+        NextConstantType(Ice::IceType_void) {}
+
+  ~ConstantsParser() LLVM_OVERRIDE {}
+
+private:
+  // The parser of the function block this constants block appears in.
+  FunctionParser *FuncParser;
+  // The type to use for succeeding constants.
+  Ice::Type NextConstantType;
+
+  virtual void ProcessRecord() LLVM_OVERRIDE;
+
+  Ice::GlobalContext *getContext() { return getTranslator().getContext(); }
+
+  // Returns true if the type to use for succeeding constants is defined.
+  // If false, also generates an error message.
+  bool isValidNextConstantType() {
+    if (NextConstantType != Ice::IceType_void)
+      return true;
+    Error("Constant record not preceded by set type record");
+    return false;
+  }
+};
+
+void ConstantsParser::ProcessRecord() {
+  const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
+  switch (Record.GetCode()) {
+  case naclbitc::CST_CODE_SETTYPE: {
+    // SETTYPE: [typeid]
+    if (!isValidRecordSize(1, "constants block set type"))
+      return;
+    NextConstantType =
+        Context->convertToIceType(Context->getTypeByID(Values[0]));
+    if (NextConstantType == Ice::IceType_void)
+      Error("constants block set type not allowed for void type");
+    return;
+  }
+  case naclbitc::CST_CODE_UNDEF: {
+    // UNDEF
+    if (!isValidRecordSize(0, "constants block undef"))
+      return;
+    if (!isValidNextConstantType())
+      return;
+    FuncParser->setNextConstantID(
+        getContext()->getConstantUndef(NextConstantType));
+    return;
+  }
+  case naclbitc::CST_CODE_INTEGER: {
+    // INTEGER: [intval]
+    if (!isValidRecordSize(1, "constants block integer"))
+      return;
+    if (!isValidNextConstantType())
+      return;
+    if (IntegerType *IType = dyn_cast<IntegerType>(
+            Context->convertToLLVMType(NextConstantType))) {
+      APInt Value(IType->getBitWidth(), NaClDecodeSignRotatedValue(Values[0]));
+      Ice::Constant *C =
+          getContext()->getConstantInt(NextConstantType, Value.getSExtValue());
+      FuncParser->setNextConstantID(C);
+      return;
+    }
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << "constant block integer record for non-integer type "
+           << NextConstantType;
+    Error(StrBuf.str());
+    return;
+  }
+  case naclbitc::CST_CODE_FLOAT: {
+    // FLOAT: [fpval]
+    if (!isValidRecordSize(1, "constants block float"))
+      return;
+    if (!isValidNextConstantType())
+      return;
+    switch (NextConstantType) {
+    case Ice::IceType_f32: {
+      APFloat Value(APFloat::IEEEsingle,
+                    APInt(32, static_cast<uint32_t>(Values[0])));
+      FuncParser->setNextConstantID(
+          getContext()->getConstantFloat(Value.convertToFloat()));
+      return;
+    }
+    case Ice::IceType_f64: {
+      APFloat Value(APFloat::IEEEdouble, APInt(64, Values[0]));
+      FuncParser->setNextConstantID(
+          getContext()->getConstantDouble(Value.convertToDouble()));
+      return;
+    }
+    default: {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "constant block float record for non-floating type "
+             << NextConstantType;
+      Error(StrBuf.str());
+      return;
+    }
+    }
+  }
+  default:
+    // Generate error message!
+    BlockParserBaseClass::ProcessRecord();
+    return;
+  }
+}
+
+bool FunctionParser::ParseBlock(unsigned BlockID) {
+  switch (BlockID) {
+  case naclbitc::CONSTANTS_BLOCK_ID: {
+    ConstantsParser Parser(BlockID, this);
+    return Parser.ParseThisBlock();
+  }
+  default:
+    return BlockParserBaseClass::ParseBlock(BlockID);
+  }
 }
 
 /// Parses the module block in the bitcode file.
