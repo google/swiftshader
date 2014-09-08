@@ -5,6 +5,9 @@
 
 set -eux
 
+# TODO(stichnot): Use FindBaseNaCl so that the script can be run from
+# anywhere within the native_client directory.
+PATH="../pydir:${PATH}"
 OPTLEVELS="m1 2"
 ATTRIBUTES="sse2 sse4.1"
 OUTDIR=Output
@@ -15,7 +18,7 @@ mkdir -p "${OUTDIR}"
 for optlevel in ${OPTLEVELS} ; do
     for attribute in ${ATTRIBUTES} ; do
 
-        ./crosstest.py -O${optlevel} --mattr ${attribute} \
+        crosstest.py -O${optlevel} --mattr ${attribute} \
             --prefix=Subzero_ \
             --target=x8632 \
             --dir="${OUTDIR}" \
@@ -23,7 +26,7 @@ for optlevel in ${OPTLEVELS} ; do
             --driver=simple_loop_main.c \
             --output=simple_loop_O${optlevel}_${attribute}
 
-        ./crosstest.py -O${optlevel} --mattr ${attribute} \
+        crosstest.py -O${optlevel} --mattr ${attribute} \
             --prefix=Subzero_ \
             --target=x8632 \
             --dir="${OUTDIR}" \
@@ -31,7 +34,7 @@ for optlevel in ${OPTLEVELS} ; do
             --driver=mem_intrin_main.cpp \
             --output=mem_intrin_O${optlevel}_${attribute}
 
-        ./crosstest.py -O${optlevel} --mattr ${attribute} \
+        crosstest.py -O${optlevel} --mattr ${attribute} \
             --prefix=Subzero_ \
             --target=x8632 \
             --dir="${OUTDIR}" \
@@ -41,7 +44,7 @@ for optlevel in ${OPTLEVELS} ; do
             --driver=test_arith_main.cpp \
             --output=test_arith_O${optlevel}_${attribute}
 
-        ./crosstest.py -O${optlevel} --mattr ${attribute} \
+        crosstest.py -O${optlevel} --mattr ${attribute} \
             --prefix=Subzero_ \
             --target=x8632 \
             --dir="${OUTDIR}" \
@@ -49,14 +52,14 @@ for optlevel in ${OPTLEVELS} ; do
             --driver=test_bitmanip_main.cpp \
             --output=test_bitmanip_O${optlevel}_${attribute}
 
-        ./crosstest.py -O${optlevel} --mattr ${attribute} \
+        crosstest.py -O${optlevel} --mattr ${attribute} \
             --prefix=Subzero_ --target=x8632 \
             --dir="${OUTDIR}" \
             --test=test_calling_conv.cpp \
             --driver=test_calling_conv_main.cpp \
             --output=test_calling_conv_O${optlevel}_${attribute}
 
-        ./crosstest.py -O${optlevel} --mattr ${attribute} \
+        crosstest.py -O${optlevel} --mattr ${attribute} \
             --prefix=Subzero_ \
             --target=x8632 \
             --dir="${OUTDIR}" \
@@ -64,7 +67,7 @@ for optlevel in ${OPTLEVELS} ; do
             --driver=test_cast_main.cpp \
             --output=test_cast_O${optlevel}_${attribute}
 
-        ./crosstest.py -O${optlevel} --mattr ${attribute} \
+        crosstest.py -O${optlevel} --mattr ${attribute} \
             --prefix=Subzero_ \
             --target=x8632 \
             --dir="${OUTDIR}" \
@@ -72,7 +75,7 @@ for optlevel in ${OPTLEVELS} ; do
             --driver=test_fcmp_main.cpp \
             --output=test_fcmp_O${optlevel}_${attribute}
 
-        ./crosstest.py -O${optlevel} --mattr ${attribute} \
+        crosstest.py -O${optlevel} --mattr ${attribute} \
             --prefix=Subzero_ \
             --target=x8632 \
             --dir="${OUTDIR}" \
@@ -80,7 +83,7 @@ for optlevel in ${OPTLEVELS} ; do
             --driver=test_global_main.cpp \
             --output=test_global_O${optlevel}_${attribute}
 
-        ./crosstest.py -O${optlevel} --mattr ${attribute} \
+        crosstest.py -O${optlevel} --mattr ${attribute} \
             --prefix=Subzero_ \
             --target=x8632 \
             --dir="${OUTDIR}" \
@@ -88,7 +91,7 @@ for optlevel in ${OPTLEVELS} ; do
             --driver=test_icmp_main.cpp \
             --output=test_icmp_O${optlevel}_${attribute}
 
-        ./crosstest.py -O${optlevel} --mattr ${attribute} \
+        crosstest.py -O${optlevel} --mattr ${attribute} \
             --prefix=Subzero_ \
             --target=x8632 \
             --dir="${OUTDIR}" \
@@ -96,7 +99,7 @@ for optlevel in ${OPTLEVELS} ; do
             --driver=test_select_main.cpp \
             --output=test_select_O${optlevel}_${attribute}
 
-        ./crosstest.py -O${optlevel} --mattr ${attribute} \
+        crosstest.py -O${optlevel} --mattr ${attribute} \
             --prefix=Subzero_ \
             --target=x8632 \
             --dir="${OUTDIR}" \
@@ -107,7 +110,7 @@ for optlevel in ${OPTLEVELS} ; do
         # Compile the non-subzero object files straight from source
         # since the native LLVM backend does not understand how to
         # lower NaCl-specific intrinsics.
-        ./crosstest.py -O${optlevel} --mattr ${attribute} \
+        crosstest.py -O${optlevel} --mattr ${attribute} \
             --prefix=Subzero_ \
             --target=x8632 \
             --dir="${OUTDIR}" \
@@ -116,7 +119,7 @@ for optlevel in ${OPTLEVELS} ; do
             --driver=test_sync_atomic_main.cpp \
             --output=test_sync_atomic_O${optlevel}_${attribute}
 
-        ./crosstest.py -O${optlevel} --mattr ${attribute} \
+        crosstest.py -O${optlevel} --mattr ${attribute} \
             --prefix=Subzero_ --target=x8632 \
             --dir="${OUTDIR}" \
             --test=test_vector_ops.ll \

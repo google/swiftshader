@@ -7,8 +7,6 @@ import re
 import subprocess
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'pydir'))
-
 from utils import shellcmd
 
 if __name__ == '__main__':

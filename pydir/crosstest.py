@@ -7,7 +7,6 @@ import subprocess
 import sys
 import tempfile
 
-sys.path.insert(0, '../pydir')
 from utils import shellcmd
 from utils import FindBaseNaCl
 
