@@ -104,6 +104,19 @@ entry:
 ; CHECK:      mov     dword ptr [esp], eax
 ; CHECK:      call    f2
 
+; Test alloca with default (0) alignment.
+define void @align0(i32 %n) {
+entry:
+  %array = alloca i8, i32 %n
+  %__2 = ptrtoint i8* %array to i32
+  call void @f2(i32 %__2)
+  ret void
+}
+; CHECK-LABEL: align0
+; CHECK: add [[REG:.*]], 15
+; CHECK: and [[REG]], -16
+; CHECK: sub esp, [[REG]]
+
 define void @f2(i32 %ignored) {
 entry:
   ret void

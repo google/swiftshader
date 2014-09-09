@@ -1118,6 +1118,9 @@ void TargetX8632::lowerAlloca(const InstAlloca *Inst) {
   Operand *TotalSize = legalize(Inst->getSizeInBytes());
   Variable *Dest = Inst->getDest();
   uint32_t AlignmentParam = Inst->getAlignInBytes();
+  // For default align=0, set it to the real value 1, to avoid any
+  // bit-manipulation problems below.
+  AlignmentParam = std::max(AlignmentParam, 1u);
 
   // LLVM enforces power of 2 alignment.
   assert((AlignmentParam & (AlignmentParam - 1)) == 0);

@@ -534,7 +534,8 @@ void InstAlloca::dump(const Cfg *Func) const {
   dumpDest(Func);
   Str << " = alloca i8, i32 ";
   getSizeInBytes()->dump(Func);
-  Str << ", align " << getAlignInBytes();
+  if (getAlignInBytes())
+    Str << ", align " << getAlignInBytes();
 }
 
 void InstArithmetic::dump(const Cfg *Func) const {
