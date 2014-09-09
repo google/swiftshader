@@ -41,8 +41,8 @@ LLVM_LDFLAGS := `$(LLVM_BIN_PATH)/llvm-config --libs` \
 OPTLEVEL := -O0
 CXX := g++
 
-CXXFLAGS := -Wall -Wextra -Werror -fno-rtti -fno-exceptions \
-	$(OPTLEVEL) -g $(LLVM_CXXFLAGS) $(HOST_FLAGS) \
+CXXFLAGS := $(LLVM_CXXFLAGS) -Wall -Wextra -Werror -fno-rtti \
+	-fno-exceptions $(OPTLEVEL) -g $(HOST_FLAGS) \
 	-Wno-error=unused-parameter
 LDFLAGS := $(HOST_FLAGS)
 

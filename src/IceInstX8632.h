@@ -674,10 +674,6 @@ typedef InstX8632ThreeAddressop<InstX8632::Pshufd> InstX8632Pshufd;
 
 // Base class for a lockable x86-32 instruction (emits a locked prefix).
 class InstX8632Lockable : public InstX8632 {
-public:
-  virtual void emit(const Cfg *Func) const = 0;
-  virtual void dump(const Cfg *Func) const;
-
 protected:
   bool Locked;
 
