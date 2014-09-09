@@ -224,23 +224,3 @@ int main(int argc, char **argv) {
             << " Failures=" << Failures << "\n";
   return Failures;
 }
-
-////////////////////////////////////////////////////////////////
-
-// The following are helper definitions that should be part of the
-// Subzero runtime.
-
-extern "C" {
-uint32_t cvtdtoui32(double a) { return (uint32_t)a; }
-uint32_t cvtftoui32(float a) { return (uint32_t)a; }
-int64_t cvtdtosi64(double a) { return (int64_t)a; }
-int64_t cvtftosi64(float a) { return (int64_t)a; }
-uint64_t cvtdtoui64(double a) { return (uint64_t)a; }
-uint64_t cvtftoui64(float a) { return (uint64_t)a; }
-float cvtui64tof(uint64_t a) { return (float)a; }
-double cvtui64tod(uint64_t a) { return (double)a; }
-float cvtsi64tof(int64_t a) { return (float)a; }
-float cvtui32tof(uint32_t a) { return (float)a; }
-double cvtui32tod(uint32_t a) { return (double)a; }
-double cvtsi64tod(int64_t a) { return (double)a; }
-}

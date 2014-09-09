@@ -162,11 +162,3 @@ int main(int argc, char *argv[]) {
 
   return Failures;
 }
-
-extern "C" {
-
-void ice_unreachable(void) {
-  std::cerr << "\"unreachable\" instruction encountered\n";
-  abort();
-}
-}

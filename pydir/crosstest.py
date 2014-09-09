@@ -122,6 +122,7 @@ if __name__ == '__main__':
         # failures.  This behavior can be inspected by switching
         # use_llc between True and False.
         use_llc = False
+        pure_c = os.path.splitext(args.driver)[1] == '.c'
         if not args.crosstest_bitcode:
             objs.append(arg)
         elif use_llc:
@@ -133,7 +134,11 @@ if __name__ == '__main__':
         else:
             objs.append(bitcode)
 
-    linker = 'clang' if os.path.splitext(args.driver)[1] == '.c' else 'clang++'
+    # Use 'clang szrt.c'  -or-  'clang++ szrt.cpp'
+    objs.append((
+            '{root}/toolchain_build/src/subzero/runtime/szrt.{ext}'
+            ).format(root=nacl_root, ext='c' if pure_c else 'cpp'))
+    linker = 'clang' if pure_c else 'clang++'
     shellcmd([linker, '-g', '-m32', args.driver] +
              objs +
              ['-lm', '-lpthread', '-o', os.path.join(args.dir, args.output)])
