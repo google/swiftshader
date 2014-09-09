@@ -845,6 +845,8 @@ private:
   // True if the last processed instruction was a terminating
   // instruction.
   bool InstIsTerminating;
+  // Upper limit of alignment power allowed by LLVM
+  static const uint64_t AlignPowerLimit = 29;
 
   virtual bool ParseBlock(unsigned BlockID) LLVM_OVERRIDE;
 
@@ -1513,6 +1515,34 @@ void FunctionParser::ProcessRecord() {
       Inst = Ice::InstBr::create(Func, Cond, ThenBlock, ElseBlock);
     }
     InstIsTerminating = true;
+    break;
+  }
+  case naclbitc::FUNC_CODE_INST_ALLOCA: {
+    // ALLOCA: [Size, align]
+    if (!isValidRecordSize(2, "function block alloca"))
+      return;
+    Ice::Operand *ByteCount = getRelativeOperand(Values[0]);
+    if (ByteCount->getType() != Ice::IceType_i32) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Alloca on non-i32 value. Found: " << ByteCount;
+      Error(StrBuf.str());
+      return;
+    }
+    uint64_t AlignPower = Values[1];
+    unsigned Alignment = 1;
+    if (AlignPower <= AlignPowerLimit) {
+      Alignment = (1 << static_cast<unsigned>(AlignPower)) >> 1;
+    } else {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Alloca on alignment greater than 2**" << AlignPowerLimit
+             << ". Found: 2**" << AlignPower;
+      Error(StrBuf.str());
+      // TODO(kschimpf) Remove error recovery once implementation complete.
+    }
+    Ice::Variable *Dest = NextInstVar(Context->getIcePointerType());
+    Inst = Ice::InstAlloca::create(Func, ByteCount, Alignment, Dest);
     break;
   }
   default:
