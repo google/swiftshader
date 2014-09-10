@@ -481,7 +481,10 @@ private:
 // Load instruction.  The source address is captured in getSrc(0).
 class InstLoad : public Inst {
 public:
-  static InstLoad *create(Cfg *Func, Variable *Dest, Operand *SourceAddr) {
+  static InstLoad *create(Cfg *Func, Variable *Dest, Operand *SourceAddr,
+                          uint32_t align = 1) {
+    // TODO(kschimpf) Stop ignoring alignment specification.
+    (void)align;
     return new (Func->allocateInst<InstLoad>())
         InstLoad(Func, Dest, SourceAddr);
   }
@@ -577,7 +580,10 @@ private:
 // data operand to be stored into the address.
 class InstStore : public Inst {
 public:
-  static InstStore *create(Cfg *Func, Operand *Data, Operand *Addr) {
+  static InstStore *create(Cfg *Func, Operand *Data, Operand *Addr,
+                           uint32_t align = 1) {
+    // TODO(kschimpf) Stop ignoring alignment specification.
+    (void)align;
     return new (Func->allocateInst<InstStore>()) InstStore(Func, Data, Addr);
   }
   Operand *getAddr() const { return getSrc(1); }

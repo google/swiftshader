@@ -33,8 +33,8 @@ void __attribute__((unused)) xIceTypeMacroIntegrityCheck() {
   };
   // Define a temporary set of enum values based on ICETYPE_PROPS_TABLE
   enum {
-#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, CompareResult)               \
-    _props_table_tag_##tag,
+#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, CompareResult)  \
+  _props_table_tag_##tag,
     ICETYPE_PROPS_TABLE
 #undef X
         _enum_props_table_tag_Names
@@ -45,9 +45,9 @@ void __attribute__((unused)) xIceTypeMacroIntegrityCheck() {
   ICETYPE_TABLE;
 #undef X
 // Assert that tags in ICETYPE_PROPS_TABLE is in ICETYPE_TABLE.
-#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, CompareResult)               \
+#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, CompareResult)  \
   STATIC_ASSERT((unsigned)_table_tag_##tag == (unsigned)_props_table_tag_##tag);
-  ICETYPE_PROPS_TABLE;
+  ICETYPE_PROPS_TABLE
 #undef X
 
   // Show vector definitions match in ICETYPE_TABLE and
@@ -62,13 +62,13 @@ void __attribute__((unused)) xIceTypeMacroIntegrityCheck() {
   };
   // Define constants for boolean flag if vector in ICETYPE_PROPS_TABLE.
   enum {
-#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, CompareResult)               \
-    _props_table_IsVec_##tag = IsVec,
+#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, CompareResult)  \
+  _props_table_IsVec_##tag = IsVec,
     ICETYPE_PROPS_TABLE
 #undef X
   };
 // Verify that the number of vector elements is consistent with IsVec.
-#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, CompareResult)               \
+#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, CompareResult)  \
   STATIC_ASSERT((_table_elts_##tag > 1) == _props_table_IsVec_##tag);
   ICETYPE_PROPS_TABLE;
 #undef X
@@ -99,14 +99,15 @@ struct TypePropertyFields {
   bool TypeIsFloatingType;
   bool TypeIsScalarFloatingType;
   bool TypeIsVectorFloatingType;
+  bool TypeIsLoadStoreType;
   Type CompareResultType;
 };
 
 const TypePropertyFields TypePropertiesTable[] = {
-#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, CompareResult)               \
+#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, CompareResult)  \
   {                                                                            \
     IsVec, IsInt, IsInt && !IsVec, IsInt && IsVec, IsIntArith, IsFloat,        \
-    IsFloat && !IsVec, IsFloat && IsVec, CompareResult                         \
+        IsFloat && !IsVec, IsFloat && IsVec, IsLoadStore, CompareResult        \
   }                                                                            \
   ,
     ICETYPE_PROPS_TABLE
@@ -208,6 +209,14 @@ bool isVectorFloatingType(Type Ty) {
   if (Index < IceType_NUM)
     return TypePropertiesTable[Index].TypeIsVectorFloatingType;
   llvm_unreachable("Invalid type for isVectorFloatingType()");
+  return false;
+}
+
+bool isLoadStoreType(Type Ty) {
+  size_t Index = static_cast<size_t>(Ty);
+  if (Index < IceType_NUM)
+    return TypePropertiesTable[Index].TypeIsLoadStoreType;
+  llvm_unreachable("Invalid type for isLoadStoreType()");
   return false;
 }
 

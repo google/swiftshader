@@ -20,11 +20,13 @@
 #include "IceInst.h"
 #include "IceOperand.h"
 #include "IceTypeConverter.h"
+#include "llvm/Analysis/NaCl/PNaClABIProps.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDecoders.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeHeader.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeParser.h"
 #include "llvm/Bitcode/NaCl/NaClReaderWriter.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DataLayout.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Format.h"
@@ -55,9 +57,10 @@ public:
                  NaClBitcodeHeader &Header, NaClBitstreamCursor &Cursor,
                  bool &ErrorStatus)
       : NaClBitcodeParser(Cursor), Translator(Translator),
-        Mod(new Module(InputName, getGlobalContext())), Header(Header),
-        TypeConverter(getLLVMContext()), ErrorStatus(ErrorStatus), NumErrors(0),
-        NumFunctionIds(0), NumFunctionBlocks(0),
+        Mod(new Module(InputName, getGlobalContext())), DL(PNaClDataLayout),
+        Header(Header), TypeConverter(getLLVMContext()),
+        ErrorStatus(ErrorStatus), NumErrors(0), NumFunctionIds(0),
+        NumFunctionBlocks(0),
         GlobalVarPlaceHolderType(convertToLLVMType(Ice::IceType_i8)) {
     Mod->setDataLayout(PNaClDataLayout);
   }
@@ -83,6 +86,8 @@ public:
 
   /// Returns the LLVM module associated with the translation.
   Module *getModule() const { return Mod.get(); }
+
+  const DataLayout &getDataLayout() const { return DL; }
 
   /// Returns the number of bytes in the bitcode header.
   size_t getHeaderSize() const { return Header.getHeaderSize(); }
@@ -228,6 +233,8 @@ private:
   Ice::Translator &Translator;
   // The parsed module.
   OwningPtr<Module> Mod;
+  // The data layout to use.
+  DataLayout DL;
   // The bitcode header.
   NaClBitcodeHeader &Header;
   // Converter between LLVM and ICE types.
@@ -848,6 +855,24 @@ private:
   // Upper limit of alignment power allowed by LLVM
   static const uint64_t AlignPowerLimit = 29;
 
+  // Extracts the corresponding Alignment to use, given the AlignPower
+  // (i.e. 2**AlignPower, or 0 if AlignPower == 0). InstName is the
+  // name of the instruction the alignment appears in.
+  void extractAlignment(const char *InstName, uint64_t AlignPower,
+                        unsigned &Alignment) {
+    if (AlignPower <= AlignPowerLimit) {
+      Alignment = (1 << static_cast<unsigned>(AlignPower)) >> 1;
+      return;
+    }
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << InstName << " alignment greater than 2**" << AlignPowerLimit
+           << ". Found: 2**" << AlignPower;
+    Error(StrBuf.str());
+    // Error recover with value that is always acceptable.
+    Alignment = 1;
+  }
+
   virtual bool ParseBlock(unsigned BlockID) LLVM_OVERRIDE;
 
   virtual void ProcessRecord() LLVM_OVERRIDE;
@@ -959,12 +984,58 @@ private:
   }
 
   // Checks if floating arithmetic Op, for type OpTy, is valid.
-  // Returns false if valid. Otherwise generates an error message and
-  // returns true.
+  // Returns true if valid. Otherwise generates an error message and
+  // returns false;
   bool isValidFloatingArithOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy) {
     if (Ice::isFloatingType(OpTy))
       return true;
     ReportInvalidBinaryOp(Op, OpTy);
+    return false;
+  }
+
+  // Checks if the type of operand Op is the valid pointer type, for
+  // the given InstructionName. Returns true if valid. Otherwise
+  // generates an error message and returns false.
+  bool isValidPointerType(Ice::Operand *Op, const char *InstructionName) {
+    Ice::Type PtrType = Context->getIcePointerType();
+    if (Op->getType() == PtrType)
+      return true;
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << InstructionName << " address not " << PtrType
+           << ". Found: " << Op;
+    Error(StrBuf.str());
+    return false;
+  }
+
+  // Checks if loading/storing a value of type Ty is allowed.
+  // Returns true if Valid. Otherwise generates an error message and
+  // returns false.
+  bool isValidLoadStoreType(Ice::Type Ty, const char *InstructionName) {
+    if (isLoadStoreType(Ty))
+      return true;
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << InstructionName << " type not allowed: " << Ty << "*";
+    Error(StrBuf.str());
+    return false;
+  }
+
+  // Checks if loading/storing a value of type Ty is allowed for
+  // the given Alignment. Otherwise generates an error message and
+  // returns false.
+  bool isValidLoadStoreAlignment(unsigned Alignment, Ice::Type Ty,
+                                 const char *InstructionName) {
+    if (!isValidLoadStoreType(Ty, InstructionName))
+      return false;
+    if (PNaClABIProps::isAllowedAlignment(&Context->getDataLayout(), Alignment,
+                                          Context->convertToLLVMType(Ty)))
+      return true;
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << InstructionName << " " << Ty << "*: not allowed for alignment "
+           << Alignment;
+    Error(StrBuf.str());
     return false;
   }
 
@@ -1529,20 +1600,44 @@ void FunctionParser::ProcessRecord() {
       Error(StrBuf.str());
       return;
     }
-    uint64_t AlignPower = Values[1];
-    unsigned Alignment = 1;
-    if (AlignPower <= AlignPowerLimit) {
-      Alignment = (1 << static_cast<unsigned>(AlignPower)) >> 1;
-    } else {
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Alloca on alignment greater than 2**" << AlignPowerLimit
-             << ". Found: 2**" << AlignPower;
-      Error(StrBuf.str());
-      // TODO(kschimpf) Remove error recovery once implementation complete.
-    }
+    unsigned Alignment;
+    extractAlignment("Alloca", Values[1], Alignment);
     Ice::Variable *Dest = NextInstVar(Context->getIcePointerType());
     Inst = Ice::InstAlloca::create(Func, ByteCount, Alignment, Dest);
+    break;
+  }
+  case naclbitc::FUNC_CODE_INST_LOAD: {
+    // LOAD: [address, align, ty]
+    if (!isValidRecordSize(3, "function block load"))
+      return;
+    Ice::Operand *Address = getRelativeOperand(Values[0]);
+    if (!isValidPointerType(Address, "Load"))
+      return;
+    unsigned Alignment;
+    extractAlignment("Load", Values[1], Alignment);
+    Ice::Type Ty = Context->convertToIceType(Context->getTypeByID(Values[2]));
+    if (!isValidLoadStoreAlignment(Alignment, Ty, "Load"))
+      return;
+    Ice::Variable *Dest = NextInstVar(Ty);
+    Inst = Ice::InstLoad::create(Func, Dest, Address, Alignment);
+    break;
+  }
+  case naclbitc::FUNC_CODE_INST_STORE: {
+    // STORE: [address, value, align]
+    if (!isValidRecordSize(3, "function block store"))
+      return;
+    Ice::Operand *Address = getRelativeOperand(Values[0]);
+    if (!isValidPointerType(Address, "Store"))
+      return;
+    Ice::Operand *Value = getRelativeOperand(Values[1]);
+    unsigned Alignment;
+    if (!extractAlignment("Store", Values[2], Alignment)) {
+      // TODO(kschimpf) Remove error recovery once implementation complete.
+      Alignment = 1;
+    }
+    if (!isValidLoadStoreAlignment(Alignment, Value->getType(), "Store"))
+      return;
+    Inst = Ice::InstStore::create(Func, Value, Address, Alignment);
     break;
   }
   default:
