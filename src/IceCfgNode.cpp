@@ -115,20 +115,62 @@ void CfgNode::placePhiLoads() {
 // critical edges, add the assignments, and lower them.  This should
 // reduce the amount of shuffling at the end of each block.
 void CfgNode::placePhiStores() {
-  // Find the insertion point.  TODO: After branch/compare fusing is
-  // implemented, try not to insert Phi stores between the compare and
-  // conditional branch instructions, otherwise the branch/compare
-  // pattern matching may fail.  However, the branch/compare sequence
-  // will have to be broken if the compare result is read (by the
-  // assignment) before it is written (by the compare).
+  // Find the insertion point.
   InstList::iterator InsertionPoint = Insts.end();
-  // Every block must end in a terminator instruction.
+  // Every block must end in a terminator instruction, and therefore
+  // must have at least one instruction, so it's valid to decrement
+  // InsertionPoint (but assert just in case).
   assert(InsertionPoint != Insts.begin());
   --InsertionPoint;
   // Confirm that InsertionPoint is a terminator instruction.  Calling
   // getTerminatorEdges() on a non-terminator instruction will cause
   // an llvm_unreachable().
   (void)(*InsertionPoint)->getTerminatorEdges();
+  // SafeInsertionPoint is always immediately before the terminator
+  // instruction.  If the block ends in a compare and conditional
+  // branch, it's better to place the Phi store before the compare so
+  // as not to interfere with compare/branch fusing.  However, if the
+  // compare instruction's dest operand is the same as the new
+  // assignment statement's source operand, this can't be done due to
+  // data dependences, so we need to fall back to the
+  // SafeInsertionPoint.  To illustrate:
+  //   ; <label>:95
+  //   %97 = load i8* %96, align 1
+  //   %98 = icmp ne i8 %97, 0
+  //   br i1 %98, label %99, label %2132
+  //   ; <label>:99
+  //   %100 = phi i8 [ %97, %95 ], [ %110, %108 ]
+  //   %101 = phi i1 [ %98, %95 ], [ %111, %108 ]
+  // would be Phi-lowered as:
+  //   ; <label>:95
+  //   %97 = load i8* %96, align 1
+  //   %100_phi = %97 ; can be at InsertionPoint
+  //   %98 = icmp ne i8 %97, 0
+  //   %101_phi = %98 ; must be at SafeInsertionPoint
+  //   br i1 %98, label %99, label %2132
+  //   ; <label>:99
+  //   %100 = %100_phi
+  //   %101 = %101_phi
+  //
+  // TODO(stichnot): It may be possible to bypass this whole
+  // SafeInsertionPoint mechanism.  If a source basic block ends in a
+  // conditional branch:
+  //   labelSource:
+  //   ...
+  //   br i1 %foo, label %labelTrue, label %labelFalse
+  // and a branch target has a Phi involving the branch operand:
+  //   labelTrue:
+  //   %bar = phi i1 [ %foo, %labelSource ], ...
+  // then we actually know the constant i1 value of the Phi operand:
+  //   labelTrue:
+  //   %bar = phi i1 [ true, %labelSource ], ...
+  // It seems that this optimization should be done by clang or opt,
+  // but we could also do it here.
+  InstList::iterator SafeInsertionPoint = InsertionPoint;
+  // Keep track of the dest variable of a compare instruction, so that
+  // we insert the new instruction at the SafeInsertionPoint if the
+  // compare's dest matches the Phi-lowered assignment's source.
+  Variable *CmpInstDest = NULL;
   // If the current insertion point is at a conditional branch
   // instruction, and the previous instruction is a compare
   // instruction, then we move the insertion point before the compare
@@ -137,8 +179,10 @@ void CfgNode::placePhiStores() {
     if (!Branch->isUnconditional()) {
       if (InsertionPoint != Insts.begin()) {
         --InsertionPoint;
-        if (!llvm::isa<InstIcmp>(*InsertionPoint) &&
-            !llvm::isa<InstFcmp>(*InsertionPoint)) {
+        if (llvm::isa<InstIcmp>(*InsertionPoint) ||
+            llvm::isa<InstFcmp>(*InsertionPoint)) {
+          CmpInstDest = (*InsertionPoint)->getDest();
+        } else {
           ++InsertionPoint;
         }
       }
@@ -165,7 +209,10 @@ void CfgNode::placePhiStores() {
         Dest->setPreferredRegister(Src, AllowOverlap);
         Src->setPreferredRegister(Dest, AllowOverlap);
       }
-      Insts.insert(InsertionPoint, NewInst);
+      if (CmpInstDest == Operand)
+        Insts.insert(SafeInsertionPoint, NewInst);
+      else
+        Insts.insert(InsertionPoint, NewInst);
       NewInst->updateVars(this);
     }
   }

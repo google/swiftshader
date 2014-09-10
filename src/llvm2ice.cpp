@@ -97,6 +97,11 @@ static cl::opt<bool>
     DisableGlobals("disable-globals",
                    cl::desc("Disable global initializer translation"));
 
+// This is currently unused, and is a placeholder for lit tests.
+static cl::opt<bool>
+    DisablePhiEdgeSplit("no-phi-edge-split",
+                        cl::desc("Disable edge splitting for Phi lowering"));
+
 static cl::opt<NaClFileFormat> InputFileFormat(
     "bitcode-format", cl::desc("Define format of input file:"),
     cl::values(clEnumValN(LLVMFormat, "llvm", "LLVM file (default)"),
