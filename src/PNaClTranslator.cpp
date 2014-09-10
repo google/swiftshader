@@ -1631,10 +1631,7 @@ void FunctionParser::ProcessRecord() {
       return;
     Ice::Operand *Value = getRelativeOperand(Values[1]);
     unsigned Alignment;
-    if (!extractAlignment("Store", Values[2], Alignment)) {
-      // TODO(kschimpf) Remove error recovery once implementation complete.
-      Alignment = 1;
-    }
+    extractAlignment("Store", Values[2], Alignment);
     if (!isValidLoadStoreAlignment(Alignment, Value->getType(), "Store"))
       return;
     Inst = Ice::InstStore::create(Func, Value, Address, Alignment);
