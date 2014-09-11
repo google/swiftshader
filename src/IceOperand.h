@@ -335,6 +335,11 @@ public:
 
   SizeT getIndex() const { return Number; }
   IceString getName() const;
+  void setName(IceString &NewName) {
+    // Make sure that the name can only be set once.
+    assert(Name.empty());
+    Name = NewName;
+  }
 
   Inst *getDefinition() const { return DefInst; }
   void setDefinition(Inst *Inst, const CfgNode *Node);
@@ -427,7 +432,7 @@ private:
   // (bit)vector index for liveness analysis.
   const SizeT Number;
   // Name is optional.
-  const IceString Name;
+  IceString Name;
   // DefInst is the instruction that produces this variable as its
   // dest.
   Inst *DefInst;

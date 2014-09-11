@@ -739,21 +739,27 @@ void GlobalsParser::ProcessRecord() {
     installGlobalVar();
 }
 
-// Parses a valuesymtab block in the bitcode file.
+/// Base class for parsing a valuesymtab block in the bitcode file.
 class ValuesymtabParser : public BlockParserBaseClass {
-  typedef SmallString<128> StringType;
+  ValuesymtabParser(const ValuesymtabParser &) LLVM_DELETED_FUNCTION;
+  void operator=(const ValuesymtabParser &) LLVM_DELETED_FUNCTION;
 
 public:
-  ValuesymtabParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser,
-                    bool AllowBbEntries)
-      : BlockParserBaseClass(BlockID, EnclosingParser),
-        AllowBbEntries(AllowBbEntries) {}
+  ValuesymtabParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
+      : BlockParserBaseClass(BlockID, EnclosingParser) {}
 
   virtual ~ValuesymtabParser() LLVM_OVERRIDE {}
 
+protected:
+  typedef SmallString<128> StringType;
+
+  // Associates Name with the value defined by the given Index.
+  virtual void setValueName(uint64_t Index, StringType &Name) = 0;
+
+  // Associates Name with the value defined by the given Index;
+  virtual void setBbName(uint64_t Index, StringType &Name) = 0;
+
 private:
-  // True if entries to name basic blocks allowed.
-  bool AllowBbEntries;
 
   virtual void ProcessRecord() LLVM_OVERRIDE;
 
@@ -774,25 +780,16 @@ void ValuesymtabParser::ProcessRecord() {
     if (!isValidRecordSizeAtLeast(2, "Valuesymtab value entry"))
       return;
     ConvertToString(ConvertedName);
-    Value *V = Context->getGlobalValueByID(Values[0]);
-    if (V == NULL) {
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Invalid global address ID in valuesymtab: " << Values[0];
-      Error(StrBuf.str());
-      return;
-    }
-    V->setName(StringRef(ConvertedName.data(), ConvertedName.size()));
+    setValueName(Values[0], ConvertedName);
     return;
   }
   case naclbitc::VST_CODE_BBENTRY: {
     // VST_BBENTRY: [BbId, namechar x N]
-    // For now, since we aren't processing function blocks, don't handle.
-    if (AllowBbEntries) {
-      Error("Valuesymtab bb entry not implemented");
+    if (!isValidRecordSizeAtLeast(2, "Valuesymtab basic block entry"))
       return;
-    }
-    break;
+    ConvertToString(ConvertedName);
+    setBbName(Values[0], ConvertedName);
+    return;
   }
   default:
     break;
@@ -802,10 +799,13 @@ void ValuesymtabParser::ProcessRecord() {
   return;
 }
 
+class FunctionValuesymtabParser;
+
 /// Parses function blocks in the bitcode file.
 class FunctionParser : public BlockParserBaseClass {
   FunctionParser(const FunctionParser &) LLVM_DELETED_FUNCTION;
   FunctionParser &operator=(const FunctionParser &) LLVM_DELETED_FUNCTION;
+  friend class FunctionValuesymtabParser;
 
 public:
   FunctionParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
@@ -819,6 +819,7 @@ public:
     Func->setReturnType(Context->convertToIceType(LLVMFunc->getReturnType()));
     Func->setInternal(LLVMFunc->hasInternalLinkage());
     CurrentNode = InstallNextBasicBlock();
+    Func->setEntryNode(CurrentNode);
     for (Function::const_arg_iterator ArgI = LLVMFunc->arg_begin(),
                                       ArgE = LLVMFunc->arg_end();
          ArgI != ArgE; ++ArgI) {
@@ -1293,6 +1294,7 @@ void FunctionParser::ExitBlock() {
       Node->appendInst(Ice::InstUnreachable::create(Func));
     }
   }
+  Func->computePredecessors();
   // Note: Once any errors have been found, we turn off all
   // translation of all remaining functions. This allows use to see
   // multiple errors, without adding extra checks to the translator
@@ -1759,15 +1761,80 @@ void ConstantsParser::ProcessRecord() {
   }
 }
 
+// Parses valuesymtab blocks appearing in a function block.
+class FunctionValuesymtabParser : public ValuesymtabParser {
+  FunctionValuesymtabParser(const FunctionValuesymtabParser &)
+      LLVM_DELETED_FUNCTION;
+  void operator=(const FunctionValuesymtabParser &) LLVM_DELETED_FUNCTION;
+
+public:
+  FunctionValuesymtabParser(unsigned BlockID, FunctionParser *EnclosingParser)
+      : ValuesymtabParser(BlockID, EnclosingParser) {}
+
+private:
+  // Returns the enclosing function parser.
+  FunctionParser *getFunctionParser() const {
+    return reinterpret_cast<FunctionParser *>(GetEnclosingParser());
+  }
+
+  virtual void setValueName(uint64_t Index, StringType &Name) LLVM_OVERRIDE;
+  virtual void setBbName(uint64_t Index, StringType &Name) LLVM_OVERRIDE;
+
+  // Reports that the assignment of Name to the value associated with
+  // index is not possible, for the given Context.
+  void reportUnableToAssign(const char *Context, uint64_t Index,
+                            StringType &Name) {
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << "Function-local " << Context << " name '" << Name
+           << "' can't be associated with index " << Index;
+    Error(StrBuf.str());
+  }
+};
+
+void FunctionValuesymtabParser::setValueName(uint64_t Index, StringType &Name) {
+  // Note: We check when Index is too small, so that we can error recover
+  // (FP->getOperand will create fatal error).
+  if (Index < getFunctionParser()->CachedNumGlobalValueIDs) {
+    reportUnableToAssign("instruction", Index, Name);
+    // TODO(kschimpf) Remove error recovery once implementation complete.
+    return;
+  }
+  Ice::Operand *Op = getFunctionParser()->getOperand(Index);
+  if (Ice::Variable *V = dyn_cast<Ice::Variable>(Op)) {
+    std::string Nm(Name.data(), Name.size());
+    V->setName(Nm);
+  } else {
+    reportUnableToAssign("variable", Index, Name);
+  }
+}
+
+void FunctionValuesymtabParser::setBbName(uint64_t Index, StringType &Name) {
+  if (Index >= getFunctionParser()->Func->getNumNodes()) {
+    reportUnableToAssign("block", Index, Name);
+    return;
+  }
+  std::string Nm(Name.data(), Name.size());
+  getFunctionParser()->Func->getNodes()[Index]->setName(Nm);
+}
+
 bool FunctionParser::ParseBlock(unsigned BlockID) {
   switch (BlockID) {
   case naclbitc::CONSTANTS_BLOCK_ID: {
     ConstantsParser Parser(BlockID, this);
     return Parser.ParseThisBlock();
   }
-  default:
-    return BlockParserBaseClass::ParseBlock(BlockID);
+  case naclbitc::VALUE_SYMTAB_BLOCK_ID: {
+    if (PNaClAllowLocalSymbolTables) {
+      FunctionValuesymtabParser Parser(BlockID, this);
+      return Parser.ParseThisBlock();
+    }
+    break;
   }
+  default:
+    break;
+  }
+  return BlockParserBaseClass::ParseBlock(BlockID);
 }
 
 /// Parses the module block in the bitcode file.
@@ -1784,6 +1851,42 @@ protected:
   virtual void ProcessRecord() LLVM_OVERRIDE;
 };
 
+class ModuleValuesymtabParser : public ValuesymtabParser {
+  ModuleValuesymtabParser(const ModuleValuesymtabParser &)
+      LLVM_DELETED_FUNCTION;
+  void operator=(const ModuleValuesymtabParser &) LLVM_DELETED_FUNCTION;
+
+public:
+  ModuleValuesymtabParser(unsigned BlockID, ModuleParser *MP)
+      : ValuesymtabParser(BlockID, MP) {}
+
+  virtual ~ModuleValuesymtabParser() LLVM_OVERRIDE {}
+
+private:
+  virtual void setValueName(uint64_t Index, StringType &Name) LLVM_OVERRIDE;
+  virtual void setBbName(uint64_t Index, StringType &Name) LLVM_OVERRIDE;
+};
+
+void ModuleValuesymtabParser::setValueName(uint64_t Index, StringType &Name) {
+  Value *V = Context->getGlobalValueByID(Index);
+  if (V == NULL) {
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << "Invalid global address ID in valuesymtab: " << Index;
+    Error(StrBuf.str());
+    return;
+  }
+  V->setName(StringRef(Name.data(), Name.size()));
+}
+
+void ModuleValuesymtabParser::setBbName(uint64_t Index, StringType &Name) {
+  std::string Buffer;
+  raw_string_ostream StrBuf(Buffer);
+  StrBuf << "Can't define basic block name at global level: '" << Name
+         << "' -> " << Index;
+  Error(StrBuf.str());
+}
+
 bool ModuleParser::ParseBlock(unsigned BlockID) LLVM_OVERRIDE {
   switch (BlockID) {
   case naclbitc::BLOCKINFO_BLOCK_ID:
@@ -1797,7 +1900,7 @@ bool ModuleParser::ParseBlock(unsigned BlockID) LLVM_OVERRIDE {
     return Parser.ParseThisBlock();
   }
   case naclbitc::VALUE_SYMTAB_BLOCK_ID: {
-    ValuesymtabParser Parser(BlockID, this, false);
+    ModuleValuesymtabParser Parser(BlockID, this);
     return Parser.ParseThisBlock();
   }
   case naclbitc::FUNCTION_BLOCK_ID: {

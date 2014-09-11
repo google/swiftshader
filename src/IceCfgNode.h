@@ -29,6 +29,11 @@ public:
   // Access the label number and name for this node.
   SizeT getIndex() const { return Number; }
   IceString getName() const;
+  void setName(IceString &NewName) {
+    // Make sure that the name can only be set once.
+    assert(Name.empty());
+    Name = NewName;
+  }
   IceString getAsmName() const {
     return ".L" + Func->getFunctionName() + "$" + getName();
   }
