@@ -823,7 +823,7 @@ public:
     for (Function::const_arg_iterator ArgI = LLVMFunc->arg_begin(),
                                       ArgE = LLVMFunc->arg_end();
          ArgI != ArgE; ++ArgI) {
-      Func->addArg(NextInstVar(Context->convertToIceType(ArgI->getType())));
+      Func->addArg(getNextInstVar(Context->convertToIceType(ArgI->getType())));
     }
   }
 
@@ -884,7 +884,7 @@ private:
   Ice::CfgNode *InstallNextBasicBlock() { return Func->makeNode(); }
 
   // Returns the Index-th basic block in the list of basic blocks.
-  Ice::CfgNode *GetBasicBlock(uint32_t Index) {
+  Ice::CfgNode *getBasicBlock(uint32_t Index) {
     const Ice::NodeList &Nodes = Func->getNodes();
     if (Index >= Nodes.size()) {
       std::string Buffer;
@@ -907,33 +907,34 @@ private:
       Error("Branch to entry block not allowed");
       // TODO(kschimpf) Remove error recovery once implementation complete.
     }
-    return GetBasicBlock(Index);
+    return getBasicBlock(Index);
   }
 
-  // Generates the next available local variable using the given
-  // type.  Note: if Ty is void, this function returns NULL.
-  Ice::Variable *NextInstVar(Ice::Type Ty) {
-    if (Ty == Ice::IceType_void)
-      return NULL;
+  // Generates the next available local variable using the given type.
+  Ice::Variable *getNextInstVar(Ice::Type Ty) {
+    if (Ty == Ice::IceType_void) {
+      Error("Can't define instruction value using type void");
+      // Recover since we can't throw an exception.
+      Ty = Ice::IceType_i32;
+    }
     Ice::Variable *Var = Func->makeVariable(Ty, CurrentNode);
     LocalOperands.push_back(Var);
     return Var;
   }
 
-  // Converts a relative index (to the next instruction to be read) to
-  // an absolute value index.
-  uint32_t convertRelativeToAbsIndex(int32_t Id) {
-    int32_t AbsNextId = CachedNumGlobalValueIDs + LocalOperands.size();
-    if (Id > 0 && AbsNextId < Id) {
+  // Converts a relative index (wrt to BaseIndex) to an absolute value
+  // index.
+  uint32_t convertRelativeToAbsIndex(int32_t Id, int32_t BaseIndex) {
+    if (BaseIndex < Id) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Invalid relative value id: " << Id
-             << " (must be <= " << AbsNextId << ")";
+             << " (must be <= " << BaseIndex << ")";
       Error(StrBuf.str());
       // TODO(kschimpf) Remove error recovery once implementation complete.
       return 0;
     }
-    return AbsNextId - Id;
+    return BaseIndex - Id;
   }
 
   // Returns the value referenced by the given value Index.
@@ -954,10 +955,15 @@ private:
     return LocalOperands[LocalIndex];
   }
 
-  // Returns the relative operand (wrt to next instruction) referenced by
-  // the given value index.
-  Ice::Operand *getRelativeOperand(uint32_t Index) {
-    return getOperand(convertRelativeToAbsIndex(Index));
+  // Returns the relative operand (wrt to BaseIndex) referenced by
+  // the given value Index.
+  Ice::Operand *getRelativeOperand(int32_t Index, int32_t BaseIndex) {
+    return getOperand(convertRelativeToAbsIndex(Index, BaseIndex));
+  }
+
+  // Returns the absolute index of the next value generating instruction.
+  uint32_t getNextInstIndex() const {
+    return CachedNumGlobalValueIDs + LocalOperands.size();
   }
 
   // Generates type error message for binary operator Op
@@ -1316,9 +1322,10 @@ void FunctionParser::ProcessRecord() {
   const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
   if (InstIsTerminating) {
     InstIsTerminating = false;
-    CurrentNode = GetBasicBlock(++CurrentBbIndex);
+    CurrentNode = getBasicBlock(++CurrentBbIndex);
   }
-  Ice::Inst *Inst = NULL;
+  // The base index for relative indexing.
+  int32_t BaseIndex = getNextInstIndex();
   switch (Record.GetCode()) {
   case naclbitc::FUNC_CODE_DECLAREBLOCKS: {
     // DECLAREBLOCKS: [n]
@@ -1344,8 +1351,8 @@ void FunctionParser::ProcessRecord() {
     // BINOP: [opval, opval, opcode]
     if (!isValidRecordSize(3, "function block binop"))
       return;
-    Ice::Operand *Op1 = getRelativeOperand(Values[0]);
-    Ice::Operand *Op2 = getRelativeOperand(Values[1]);
+    Ice::Operand *Op1 = getRelativeOperand(Values[0], BaseIndex);
+    Ice::Operand *Op2 = getRelativeOperand(Values[1], BaseIndex);
     Ice::Type Type1 = Op1->getType();
     Ice::Type Type2 = Op2->getType();
     if (Type1 != Type2) {
@@ -1360,15 +1367,15 @@ void FunctionParser::ProcessRecord() {
     Ice::InstArithmetic::OpKind Opcode;
     if (!convertBinopOpcode(Values[2], Type1, Opcode))
       return;
-    Ice::Variable *Dest = NextInstVar(Type1);
-    Inst = Ice::InstArithmetic::create(Func, Opcode, Dest, Op1, Op2);
+    CurrentNode->appendInst(Ice::InstArithmetic::create(
+        Func, Opcode, getNextInstVar(Type1), Op1, Op2));
     break;
   }
   case naclbitc::FUNC_CODE_INST_CAST: {
     // CAST: [opval, destty, castopc]
     if (!isValidRecordSize(3, "function block cast"))
       return;
-    Ice::Operand *Src = getRelativeOperand(Values[0]);
+    Ice::Operand *Src = getRelativeOperand(Values[0], BaseIndex);
     Type *CastType = Context->getTypeByID(Values[1]);
     Instruction::CastOps LLVMCastOp;
     Ice::InstCast::OpKind CastKind;
@@ -1389,15 +1396,16 @@ void FunctionParser::ProcessRecord() {
       Error(StrBuf.str());
       return;
     }
-    Ice::Variable *Dest = NextInstVar(Context->convertToIceType(CastType));
-    Inst = Ice::InstCast::create(Func, CastKind, Dest, Src);
+    CurrentNode->appendInst(Ice::InstCast::create(
+        Func, CastKind, getNextInstVar(Context->convertToIceType(CastType)),
+        Src));
     break;
   }
   case naclbitc::FUNC_CODE_INST_VSELECT: {
     // VSELECT: [opval, opval, pred]
-    Ice::Operand *ThenVal = getOperand(convertRelativeToAbsIndex(Values[0]));
+    Ice::Operand *ThenVal = getRelativeOperand(Values[0], BaseIndex);
     Ice::Type ThenType = ThenVal->getType();
-    Ice::Operand *ElseVal = getOperand(convertRelativeToAbsIndex(Values[1]));
+    Ice::Operand *ElseVal = getRelativeOperand(Values[1], BaseIndex);
     Ice::Type ElseType = ElseVal->getType();
     if (ThenType != ElseType) {
       std::string Buffer;
@@ -1407,7 +1415,7 @@ void FunctionParser::ProcessRecord() {
       Error(StrBuf.str());
       return;
     }
-    Ice::Operand *CondVal = getOperand(convertRelativeToAbsIndex(Values[2]));
+    Ice::Operand *CondVal = getRelativeOperand(Values[2], BaseIndex);
     Ice::Type CondType = CondVal->getType();
     if (isVectorType(CondType)) {
       if (!isVectorType(ThenType) ||
@@ -1427,15 +1435,15 @@ void FunctionParser::ProcessRecord() {
       Error(StrBuf.str());
       return;
     }
-    Ice::Variable *DestVal = NextInstVar(ThenType);
-    Inst = Ice::InstSelect::create(Func, DestVal, CondVal, ThenVal, ElseVal);
+    CurrentNode->appendInst(Ice::InstSelect::create(
+        Func, getNextInstVar(ThenType), CondVal, ThenVal, ElseVal));
     break;
   }
   case naclbitc::FUNC_CODE_INST_EXTRACTELT: {
     // EXTRACTELT: [opval, opval]
     if (!isValidRecordSize(2, "function block extract element"))
       return;
-    Ice::Operand *Vec = getRelativeOperand(Values[0]);
+    Ice::Operand *Vec = getRelativeOperand(Values[0], BaseIndex);
     Ice::Type VecType = Vec->getType();
     if (!Ice::isVectorType(VecType)) {
       std::string Buffer;
@@ -1443,7 +1451,7 @@ void FunctionParser::ProcessRecord() {
       StrBuf << "Extractelement not on vector. Found: " << Vec;
       Error(StrBuf.str());
     }
-    Ice::Operand *Index = getRelativeOperand(Values[1]);
+    Ice::Operand *Index = getRelativeOperand(Values[1], BaseIndex);
     if (Index->getType() != Ice::IceType_i32) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
@@ -1452,15 +1460,15 @@ void FunctionParser::ProcessRecord() {
     }
     // TODO(kschimpf): Restrict index to a legal constant index (once
     // constants can be defined).
-    Ice::Variable *Dest = NextInstVar(typeElementType(VecType));
-    Inst = Ice::InstExtractElement::create(Func, Dest, Vec, Index);
+    CurrentNode->appendInst(Ice::InstExtractElement::create(
+        Func, getNextInstVar(typeElementType(VecType)), Vec, Index));
     break;
   }
   case naclbitc::FUNC_CODE_INST_INSERTELT: {
     // INSERTELT: [opval, opval, opval]
     if (!isValidRecordSize(3, "function block insert element"))
       return;
-    Ice::Operand *Vec = getRelativeOperand(Values[0]);
+    Ice::Operand *Vec = getRelativeOperand(Values[0], BaseIndex);
     Ice::Type VecType = Vec->getType();
     if (!Ice::isVectorType(VecType)) {
       std::string Buffer;
@@ -1468,7 +1476,7 @@ void FunctionParser::ProcessRecord() {
       StrBuf << "Insertelement not on vector. Found: " << Vec;
       Error(StrBuf.str());
     }
-    Ice::Operand *Elt = getRelativeOperand(Values[1]);
+    Ice::Operand *Elt = getRelativeOperand(Values[1], BaseIndex);
     Ice::Type EltType = Elt->getType();
     if (EltType != typeElementType(VecType)) {
       std::string Buffer;
@@ -1477,7 +1485,7 @@ void FunctionParser::ProcessRecord() {
              << ". Found: " << Elt;
       Error(StrBuf.str());
     }
-    Ice::Operand *Index = getRelativeOperand(Values[2]);
+    Ice::Operand *Index = getRelativeOperand(Values[2], BaseIndex);
     if (Index->getType() != Ice::IceType_i32) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
@@ -1486,16 +1494,16 @@ void FunctionParser::ProcessRecord() {
     }
     // TODO(kschimpf): Restrict index to a legal constant index (once
     // constants can be defined).
-    Ice::Variable *Dest = NextInstVar(EltType);
-    Inst = Ice::InstInsertElement::create(Func, Dest, Vec, Elt, Index);
+    CurrentNode->appendInst(Ice::InstInsertElement::create(
+        Func, getNextInstVar(EltType), Vec, Elt, Index));
     break;
   }
   case naclbitc::FUNC_CODE_INST_CMP2: {
     // CMP2: [opval, opval, pred]
     if (!isValidRecordSize(3, "function block compare"))
       return;
-    Ice::Operand *Op1 = getRelativeOperand(Values[0]);
-    Ice::Operand *Op2 = getRelativeOperand(Values[1]);
+    Ice::Operand *Op1 = getRelativeOperand(Values[0], BaseIndex);
+    Ice::Operand *Op2 = getRelativeOperand(Values[1], BaseIndex);
     Ice::Type Op1Type = Op1->getType();
     Ice::Type Op2Type = Op2->getType();
     if (Op1Type != Op2Type) {
@@ -1515,7 +1523,7 @@ void FunctionParser::ProcessRecord() {
       Error(StrBuf.str());
       return;
     }
-    Ice::Variable *Dest = NextInstVar(DestType);
+    Ice::Variable *Dest = getNextInstVar(DestType);
     if (isIntegerType(Op1Type)) {
       Ice::InstIcmp::ICond Cond;
       if (!convertNaClBitcICmpOpToIce(Values[2], Cond)) {
@@ -1527,7 +1535,8 @@ void FunctionParser::ProcessRecord() {
         // TODO(kschimpf) Remove error recovery once implementation complete.
         Cond = Ice::InstIcmp::Eq;
       }
-      Inst = Ice::InstIcmp::create(Func, Cond,  Dest, Op1, Op2);
+      CurrentNode->appendInst(
+          Ice::InstIcmp::create(Func, Cond, Dest, Op1, Op2));
     } else if (isFloatingType(Op1Type)){
       Ice::InstFcmp::FCond Cond;
       if (!convertNaClBitcFCompOpToIce(Values[2], Cond)) {
@@ -1539,7 +1548,8 @@ void FunctionParser::ProcessRecord() {
         // TODO(kschimpf) Remove error recovery once implementation complete.
         Cond = Ice::InstFcmp::False;
       }
-      Inst = Ice::InstFcmp::create(Func, Cond, Dest, Op1, Op2);
+      CurrentNode->appendInst(
+          Ice::InstFcmp::create(Func, Cond, Dest, Op1, Op2));
     } else {
       // Not sure this can happen, but be safe.
       std::string Buffer;
@@ -1555,9 +1565,10 @@ void FunctionParser::ProcessRecord() {
     if (!isValidRecordSizeInRange(0, 1, "function block ret"))
       return;
     if (Values.size() == 0) {
-      Inst = Ice::InstRet::create(Func);
+      CurrentNode->appendInst(Ice::InstRet::create(Func));
     } else {
-      Inst = Ice::InstRet::create(Func, getRelativeOperand(Values[0]));
+      CurrentNode->appendInst(
+          Ice::InstRet::create(Func, getRelativeOperand(Values[0], BaseIndex)));
     }
     InstIsTerminating = true;
     break;
@@ -1568,12 +1579,12 @@ void FunctionParser::ProcessRecord() {
       Ice::CfgNode *Block = getBranchBasicBlock(Values[0]);
       if (Block == NULL)
         return;
-      Inst = Ice::InstBr::create(Func, Block);
+      CurrentNode->appendInst(Ice::InstBr::create(Func, Block));
     } else {
       // BR: [bb#, bb#, opval]
       if (!isValidRecordSize(3, "function block branch"))
         return;
-      Ice::Operand *Cond = getRelativeOperand(Values[2]);
+      Ice::Operand *Cond = getRelativeOperand(Values[2], BaseIndex);
       if (Cond->getType() != Ice::IceType_i1) {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
@@ -1585,16 +1596,51 @@ void FunctionParser::ProcessRecord() {
       Ice::CfgNode *ElseBlock = getBranchBasicBlock(Values[1]);
       if (ThenBlock == NULL || ElseBlock == NULL)
         return;
-      Inst = Ice::InstBr::create(Func, Cond, ThenBlock, ElseBlock);
+      CurrentNode->appendInst(
+          Ice::InstBr::create(Func, Cond, ThenBlock, ElseBlock));
     }
     InstIsTerminating = true;
+    break;
+  }
+  case naclbitc::FUNC_CODE_INST_PHI: {
+    // PHI: [ty, val1, bb1, ..., valN, bbN] for n >= 2.
+    if (!isValidRecordSizeAtLeast(3, "function block phi"))
+      return;
+    if ((Values.size() & 0x1) == 0) {
+      // Not an odd number of values.
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "function block phi record size not valid: " << Values.size();
+      Error(StrBuf.str());
+      return;
+    }
+    Ice::Type Ty = Context->convertToIceType(Context->getTypeByID(Values[0]));
+    if (Ty == Ice::IceType_void) {
+      Error("Phi record using type void not allowed");
+      return;
+    }
+    Ice::Variable *Dest = getNextInstVar(Ty);
+    Ice::InstPhi *Phi = Ice::InstPhi::create(Func, Values.size() >> 1, Dest);
+    for (unsigned i = 1; i < Values.size(); i += 2) {
+      Ice::Operand *Op =
+          getRelativeOperand(NaClDecodeSignRotatedValue(Values[i]), BaseIndex);
+      if (Op->getType() != Ty) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Phi instruction expects type " << Ty << " but found: " << Op;
+        Error(StrBuf.str());
+        return;
+      }
+      Phi->addArgument(Op, getBasicBlock(Values[i + 1]));
+    }
+    CurrentNode->appendInst(Phi);
     break;
   }
   case naclbitc::FUNC_CODE_INST_ALLOCA: {
     // ALLOCA: [Size, align]
     if (!isValidRecordSize(2, "function block alloca"))
       return;
-    Ice::Operand *ByteCount = getRelativeOperand(Values[0]);
+    Ice::Operand *ByteCount = getRelativeOperand(Values[0], BaseIndex);
     if (ByteCount->getType() != Ice::IceType_i32) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
@@ -1604,15 +1650,16 @@ void FunctionParser::ProcessRecord() {
     }
     unsigned Alignment;
     extractAlignment("Alloca", Values[1], Alignment);
-    Ice::Variable *Dest = NextInstVar(Context->getIcePointerType());
-    Inst = Ice::InstAlloca::create(Func, ByteCount, Alignment, Dest);
+    CurrentNode->appendInst(
+        Ice::InstAlloca::create(Func, ByteCount, Alignment,
+                                getNextInstVar(Context->getIcePointerType())));
     break;
   }
   case naclbitc::FUNC_CODE_INST_LOAD: {
     // LOAD: [address, align, ty]
     if (!isValidRecordSize(3, "function block load"))
       return;
-    Ice::Operand *Address = getRelativeOperand(Values[0]);
+    Ice::Operand *Address = getRelativeOperand(Values[0], BaseIndex);
     if (!isValidPointerType(Address, "Load"))
       return;
     unsigned Alignment;
@@ -1620,23 +1667,24 @@ void FunctionParser::ProcessRecord() {
     Ice::Type Ty = Context->convertToIceType(Context->getTypeByID(Values[2]));
     if (!isValidLoadStoreAlignment(Alignment, Ty, "Load"))
       return;
-    Ice::Variable *Dest = NextInstVar(Ty);
-    Inst = Ice::InstLoad::create(Func, Dest, Address, Alignment);
+    CurrentNode->appendInst(
+        Ice::InstLoad::create(Func, getNextInstVar(Ty), Address, Alignment));
     break;
   }
   case naclbitc::FUNC_CODE_INST_STORE: {
     // STORE: [address, value, align]
     if (!isValidRecordSize(3, "function block store"))
       return;
-    Ice::Operand *Address = getRelativeOperand(Values[0]);
+    Ice::Operand *Address = getRelativeOperand(Values[0], BaseIndex);
     if (!isValidPointerType(Address, "Store"))
       return;
-    Ice::Operand *Value = getRelativeOperand(Values[1]);
+    Ice::Operand *Value = getRelativeOperand(Values[1], BaseIndex);
     unsigned Alignment;
     extractAlignment("Store", Values[2], Alignment);
     if (!isValidLoadStoreAlignment(Alignment, Value->getType(), "Store"))
       return;
-    Inst = Ice::InstStore::create(Func, Value, Address, Alignment);
+    CurrentNode->appendInst(
+        Ice::InstStore::create(Func, Value, Address, Alignment));
     break;
   }
   default:
@@ -1644,8 +1692,6 @@ void FunctionParser::ProcessRecord() {
     BlockParserBaseClass::ProcessRecord();
     break;
   }
-  if (Inst)
-    CurrentNode->appendInst(Inst);
 }
 
 /// Parses constants within a function block.
