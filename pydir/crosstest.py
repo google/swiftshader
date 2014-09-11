@@ -37,15 +37,18 @@ if __name__ == '__main__':
     argparser.add_argument('--target', required=False, default='x8632',
                            choices=arch_map.keys(),
                            metavar='TARGET',
-                           help='Translation target architecture')
+                           help='Translation target architecture.' +
+                                ' Default %(default)s.')
     argparser.add_argument('-O', required=False, default='2', dest='optlevel',
                            choices=['m1', '-1', '0', '1', '2'],
                            metavar='OPTLEVEL',
                            help='Optimization level ' +
-                                '(m1 and -1 are equivalent)')
+                                '(m1 and -1 are equivalent).' +
+                                ' Default %(default)s.')
     argparser.add_argument('--mattr',  required=False, default='sse2',
                            dest='attr', choices=['sse2', 'sse4.1'],
-                           metavar='ATTRIBUTE', help='Target attribute')
+                           metavar='ATTRIBUTE',
+                           help='Target attribute. Default %(default)s.')
     argparser.add_argument('--prefix', required=True,
                            metavar='SZ_PREFIX',
                            help='String prepended to Subzero symbol names')
@@ -54,12 +57,14 @@ if __name__ == '__main__':
                            help='Executable to produce')
     argparser.add_argument('--dir', required=False, default='.',
                            metavar='OUTPUT_DIR',
-                           help='Output directory for all files')
+                           help='Output directory for all files.' +
+                                ' Default "%(default)s".')
     argparser.add_argument('--crosstest-bitcode', required=False,
                            default=1, type=int,
                            help='Compile non-subzero crosstest object file ' +
                            'from the same bitcode as the subzero object. ' +
-                           'If 0, then compile it straight from source.')
+                           'If 0, then compile it straight from source.' +
+                           ' Default %(default)d.')
     args = argparser.parse_args()
 
     nacl_root = FindBaseNaCl()

@@ -11,7 +11,7 @@ if __name__ == '__main__':
     argparser.add_argument('cfile', nargs='+', type=str,
         help='C file(s) to convert')
     argparser.add_argument('--dir', nargs='?', type=str, default='.',
-                           help='Output directory')
+                           help='Output directory. Default "%(default)s".')
     argparser.add_argument('--disable-verify', action='store_true')
     args = argparser.parse_args()
 

@@ -108,11 +108,12 @@ def main():
                                 '(regex or line range)')
     argparser.add_argument('--output', '-o', default='a.out', dest='output',
                            action='store',
-                           help='Output executable (default a.out)')
+                           help='Output executable. Default %(default)s.')
     argparser.add_argument('-O', default='2', dest='optlevel',
                            choices=['m1', '-1', '0', '1', '2'],
                            help='Optimization level ' +
-                                '(m1 and -1 are equivalent)')
+                                '(m1 and -1 are equivalent).' +
+                                ' Default %(default)s.')
     argparser.add_argument('--verbose', '-v', dest='verbose',
                            action='store_true',
                            help='Display some extra debugging output')
