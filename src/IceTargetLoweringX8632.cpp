@@ -1900,9 +1900,12 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   } else if (Dest->getType() == IceType_f32 || Dest->getType() == IceType_f64) {
     // Special treatment for an FP function which returns its result in
     // st(0).
-    _fstp(Dest);
     // If Dest ends up being a physical xmm register, the fstp emit code
     // will route st(0) through a temporary stack slot.
+    _fstp(Dest);
+    // Create a fake use of Dest in case it actually isn't used,
+    // because st(0) still needs to be popped.
+    Context.insert(InstFakeUse::create(Func, Dest));
   }
 }
 
