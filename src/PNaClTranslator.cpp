@@ -1887,11 +1887,14 @@ bool FunctionParser::ParseBlock(unsigned BlockID) {
 class ModuleParser : public BlockParserBaseClass {
 public:
   ModuleParser(unsigned BlockID, TopLevelParser *Context)
-      : BlockParserBaseClass(BlockID, Context) {}
+      : BlockParserBaseClass(BlockID, Context), FoundFirstFunctionBlock(false) {
+  }
 
   virtual ~ModuleParser() LLVM_OVERRIDE {}
 
-protected:
+private:
+  // True if we have parsed a function block.
+  bool FoundFirstFunctionBlock;
   virtual bool ParseBlock(unsigned BlockID) LLVM_OVERRIDE;
 
   virtual void ProcessRecord() LLVM_OVERRIDE;
@@ -1950,6 +1953,10 @@ bool ModuleParser::ParseBlock(unsigned BlockID) LLVM_OVERRIDE {
     return Parser.ParseThisBlock();
   }
   case naclbitc::FUNCTION_BLOCK_ID: {
+    if (!FoundFirstFunctionBlock) {
+      getTranslator().nameUnnamedGlobalAddresses(Context->getModule());
+      FoundFirstFunctionBlock = true;
+    }
     FunctionParser Parser(BlockID, this);
     return Parser.ParseThisBlock();
   }

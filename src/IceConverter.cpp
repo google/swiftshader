@@ -608,6 +608,7 @@ private:
 namespace Ice {
 
 void Converter::convertToIce() {
+  nameUnnamedGlobalAddresses(Mod);
   if (!Ctx->getFlags().DisableGlobals)
     convertGlobals();
   convertFunctions();

@@ -109,6 +109,18 @@ static cl::opt<NaClFileFormat> InputFileFormat(
                clEnumValEnd),
     cl::init(LLVMFormat));
 
+static cl::opt<std::string>
+    DefaultGlobalPrefix("default-global-prefix",
+                        cl::desc("Define default global prefix for naming "
+                                 "unnamed globals"),
+                        cl::init("Global"));
+
+static cl::opt<std::string>
+    DefaultFunctionPrefix("default-function-prefix",
+                          cl::desc("Define default function prefix for naming "
+                                   "unnamed functions"),
+                          cl::init("Function"));
+
 static cl::opt<bool>
 BuildOnRead("build-on-read",
             cl::desc("Build ICE instructions when reading bitcode"),
@@ -143,6 +155,8 @@ int main(int argc, char **argv) {
   Flags.DisableGlobals = DisableGlobals;
   Flags.FunctionSections = FunctionSections;
   Flags.UseSandboxing = UseSandboxing;
+  Flags.DefaultGlobalPrefix = DefaultGlobalPrefix;
+  Flags.DefaultFunctionPrefix = DefaultFunctionPrefix;
 
   Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix,
                          Flags);

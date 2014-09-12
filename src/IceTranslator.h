@@ -17,6 +17,10 @@
 
 #include "llvm/ADT/OwningPtr.h"
 
+namespace llvm {
+class Module;
+}
+
 namespace Ice {
 
 class ClFlags;
@@ -46,6 +50,11 @@ public:
 
   /// Emits the constant pool.
   void emitConstants();
+
+  // Walks module and generates names for unnamed globals and
+  // functions using prefix getFlags().DefaultGlobalPrefix, if the
+  // prefix is non-empty.
+  void nameUnnamedGlobalAddresses(llvm::Module *Mod);
 
 protected:
   GlobalContext *Ctx;
