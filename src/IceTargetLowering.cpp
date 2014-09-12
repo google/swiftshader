@@ -171,9 +171,13 @@ void TargetLowering::lower() {
   case Inst::InsertElement:
     lowerInsertElement(llvm::dyn_cast<InstInsertElement>(Inst));
     break;
-  case Inst::IntrinsicCall:
-    lowerIntrinsicCall(llvm::dyn_cast<InstIntrinsicCall>(Inst));
+  case Inst::IntrinsicCall: {
+    InstIntrinsicCall *Call = llvm::dyn_cast<InstIntrinsicCall>(Inst);
+    if (Call->getIntrinsicInfo().ReturnsTwice)
+      setCallsReturnsTwice(true);
+    lowerIntrinsicCall(Call);
     break;
+  }
   case Inst::Load:
     lowerLoad(llvm::dyn_cast<InstLoad>(Inst));
     break;

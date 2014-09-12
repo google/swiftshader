@@ -647,9 +647,13 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // frames.  If SimpleCoalescing is true, then each "global" variable
   // without a register gets its own slot, but "local" variable slots
   // are reused across basic blocks.  E.g., if A and B are local to
-  // block 1 and C is local to block 2, then C may share a slot with A
-  // or B.
-  const bool SimpleCoalescing = true;
+  // block 1 and C is local to block 2, then C may share a slot with A or B.
+  //
+  // We cannot coalesce stack slots if this function calls a "returns twice"
+  // function. In that case, basic blocks may be revisited, and variables
+  // local to those basic blocks are actually live until after the
+  // called function returns a second time.
+  const bool SimpleCoalescing = !callsReturnsTwice();
   size_t InArgsSizeBytes = 0;
   size_t PreservedRegsSizeBytes = 0;
   SpillAreaSizeBytes = 0;

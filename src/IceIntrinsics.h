@@ -88,15 +88,24 @@ public:
 
   static bool VerifyMemoryOrder(uint64_t Order);
 
+  enum SideEffects {
+    SideEffects_F=0,
+    SideEffects_T=1
+  };
+
+  enum ReturnsTwice {
+    ReturnsTwice_F=0,
+    ReturnsTwice_T=1
+  };
+
   // Basic attributes related to each intrinsic, that are relevant to
-  // code generation. We will want to have more attributes (e.g., Setjmp
-  // returns twice and which affects stack coloring) once the lowering
-  // cares about such attributes. Perhaps the attributes representation
-  // can be shared with general function calls, though most functions
-  // will be opaque.
+  // code generation. Perhaps the attributes representation can be shared
+  // with general function calls, but PNaCl currently strips all
+  // attributes from functions.
   struct IntrinsicInfo {
-    IntrinsicID ID : 31;
-    bool HasSideEffects : 1;
+    enum IntrinsicID ID : 30;
+    enum SideEffects HasSideEffects : 1;
+    enum ReturnsTwice ReturnsTwice : 1;
   };
 
   // The complete set of information about an intrinsic.

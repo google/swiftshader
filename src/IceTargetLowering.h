@@ -141,6 +141,12 @@ public:
   virtual llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const = 0;
   bool hasComputedFrame() const { return HasComputedFrame; }
   bool shouldDoNopInsertion() const;
+  // Returns true if this function calls a function that has the
+  // "returns twice" attribute.
+  bool callsReturnsTwice() const { return CallsReturnsTwice; }
+  void setCallsReturnsTwice(bool RetTwice) {
+    CallsReturnsTwice = RetTwice;
+  }
   int32_t getStackAdjustment() const { return StackAdjustment; }
   void updateStackAdjustment(int32_t Offset) { StackAdjustment += Offset; }
   void resetStackAdjustment() { StackAdjustment = 0; }
@@ -176,7 +182,7 @@ public:
 protected:
   TargetLowering(Cfg *Func)
       : Func(Func), Ctx(Func->getContext()), HasComputedFrame(false),
-        StackAdjustment(0) {}
+        CallsReturnsTwice(false), StackAdjustment(0) {}
   virtual void lowerAlloca(const InstAlloca *Inst) = 0;
   virtual void lowerArithmetic(const InstArithmetic *Inst) = 0;
   virtual void lowerAssign(const InstAssign *Inst) = 0;
@@ -210,6 +216,7 @@ protected:
   Cfg *Func;
   GlobalContext *Ctx;
   bool HasComputedFrame;
+  bool CallsReturnsTwice;
   // StackAdjustment keeps track of the current stack offset from its
   // natural location, as arguments are pushed for a function call.
   int32_t StackAdjustment;
