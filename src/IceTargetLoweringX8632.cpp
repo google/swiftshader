@@ -24,9 +24,8 @@
 #include "IceTargetLoweringX8632.def"
 #include "IceTargetLoweringX8632.h"
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/Support/MathExtras.h"
 #include "llvm/Support/CommandLine.h"
-
-#include <strings.h>
 
 namespace Ice {
 
@@ -557,7 +556,7 @@ void TargetX8632::sortByAlignment(VarList &Dest, const VarList &Source) const {
        ++I) {
     Variable *Var = *I;
     uint32_t NaturalAlignment = typeWidthInBytesOnStack(Var->getType());
-    SizeT LogNaturalAlignment = ffs(NaturalAlignment) - 1;
+    SizeT LogNaturalAlignment = llvm::findFirstSet(NaturalAlignment);
     assert(LogNaturalAlignment >= X86_LOG2_OF_MIN_STACK_SLOT_SIZE);
     assert(LogNaturalAlignment <= X86_LOG2_OF_MAX_STACK_SLOT_SIZE);
     SizeT BucketIndex = LogNaturalAlignment - X86_LOG2_OF_MIN_STACK_SLOT_SIZE;
