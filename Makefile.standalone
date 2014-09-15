@@ -2,7 +2,8 @@
 # and how you built LLVM & Clang. They can be overridden in a command-line
 # invocation of make, like:
 #
-#   make LLVM_SRC_PATH=<path> LLVM_BIN_PATH=<path> ...
+#   make LLVM_SRC_PATH=<path> LLVM_BIN_PATH=<path> \
+#        LIBCXX_INSTALL_PATH=<path> CLANG_PATH=<path> ...
 #
 
 # LLVM_SRC_PATH is the path to the root of the checked out source code. This
@@ -18,18 +19,29 @@ LLVM_SRC_PATH ?= ../llvm
 LLVM_BIN_PATH ?= $(shell readlink -e \
 	../../out/llvm_i686_linux_work/Release+Asserts/bin)
 
+# LIBCXX_INSTALL_PATH is the directory where libc++ is located. It should
+# contain header files and corresponding libraries
+LIBCXX_INSTALL_PATH ?= $(shell readlink -e \
+	../../../toolchain/linux_x86/pnacl_newlib/host_x86_32)
+
+# CLANG_PATH is the location of the clang compiler to use.
+CLANG_PATH ?= $(shell readlink -e \
+	../../../../third_party/llvm-build/Release+Asserts/bin)
+
 HOST_ARCH ?= x86
 ifeq ($(HOST_ARCH),x86_64)
-  HOST_FLAGS = -m64
+  HOST_FLAGS = -m64 -stdlib=libc++
 else
   ifeq ($(HOST_ARCH),x86)
-    HOST_FLAGS = -m32
+    HOST_FLAGS = -m32 -stdlib=libc++
   endif
 endif
 
 $(info -----------------------------------------------)
 $(info Using LLVM_SRC_PATH = $(LLVM_SRC_PATH))
 $(info Using LLVM_BIN_PATH = $(LLVM_BIN_PATH))
+$(info Using LIBCXX_INSTALL_PATH = $(LIBCXX_INSTALL_PATH))
+$(info Using CLANG_PATH = $(CLANG_PATH))
 $(info Using HOST_ARCH     = $(HOST_ARCH))
 $(info -----------------------------------------------)
 
@@ -39,12 +51,12 @@ LLVM_LDFLAGS := `$(LLVM_BIN_PATH)/llvm-config --libs` \
 
 # It's recommended that CXX matches the compiler you used to build LLVM itself.
 OPTLEVEL := -O0
-CXX := g++
+CXX := $(CLANG_PATH)/clang++
 
 CXXFLAGS := $(LLVM_CXXFLAGS) -Wall -Wextra -Werror -fno-rtti \
 	-fno-exceptions $(OPTLEVEL) -g $(HOST_FLAGS) \
-	-Wno-error=unused-parameter
-LDFLAGS := $(HOST_FLAGS)
+	-Wno-error=unused-parameter -I$(LIBCXX_INSTALL_PATH)/include/c++/v1
+LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib
 
 SRCS= \
 	IceCfg.cpp \
@@ -74,7 +86,8 @@ all: llvm2ice
 .PHONY: all
 
 llvm2ice: $(OBJS)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) -ldl
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) -ldl \
+               -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
 
 # TODO: Be more precise than "*.h" here and elsewhere.
 $(OBJS): build/%.o: src/%.cpp src/*.h src/*.def
