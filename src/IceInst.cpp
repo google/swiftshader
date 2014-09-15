@@ -359,6 +359,7 @@ Inst *InstPhi::lower(Cfg *Func, CfgNode *Node) {
   assert(Dest);
   IceString PhiName = Dest->getName() + "_phi";
   Variable *NewSrc = Func->makeVariable(Dest->getType(), Node, PhiName);
+  NewSrc->setIsMultidef();
   this->Dest = NewSrc;
   InstAssign *NewInst = InstAssign::create(Func, Dest, NewSrc);
   // Set Dest and NewSrc to have affinity with each other, as a hint

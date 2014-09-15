@@ -58,3 +58,53 @@ target:
 
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ
+
+; Test that address mode inference doesn't extend past
+; multi-definition, non-SSA Phi temporaries.
+define internal i32 @testPhi3(i32 %arg) {
+entry:
+  br label %body
+body:
+  %merge = phi i32 [ %arg, %entry ], [ %elt, %body ]
+  %interior = add i32 %merge, 1000
+  %__4 = inttoptr i32 %interior to i32*
+  %elt = load i32* %__4, align 1
+  %cmp = icmp eq i32 %elt, 0
+  br i1 %cmp, label %exit, label %body
+exit:
+  %__6 = inttoptr i32 %interior to i32*
+  store i32 %arg, i32* %__6, align 1
+  ret i32 %arg
+}
+; I can't figure out how to reliably test this for correctness, so I
+; will just include patterns for the entire current O2 sequence.  This
+; may need to be changed when meaningful optimizations are added.
+; The key is to avoid the "bad" pattern like this:
+;
+; testPhi3:
+; .LtestPhi3$entry:
+;         mov     eax, dword ptr [esp+4]
+;         mov     ecx, eax
+; .LtestPhi3$body:
+;         mov     ecx, dword ptr [ecx+1000]
+;         cmp     ecx, 0
+;         jne     .LtestPhi3$body
+; .LtestPhi3$exit:
+;         mov     dword ptr [ecx+1000], eax
+;         ret
+;
+; This is bad because the final store address is supposed to be the
+; same as the load address in the loop, but it has clearly been
+; over-optimized into a null pointer dereference.
+
+; CHECK-LABEL: testPhi3
+; CHECK: push [[EBX:.*]]
+; CHECK: mov {{.*}}, dword ptr [esp
+; CHECK: jmp
+; CHECK: mov
+; CHECK: mov {{.*}}[[ADDR:.*1000]]
+; CHECK: cmp {{.*}}, 0
+; CHECK: je
+; CHECK: jmp
+; CHECK: mov {{.*}}[[ADDR]]
+; CHECK: pop [[EBX]]

@@ -349,6 +349,14 @@ public:
   bool isMultiblockLife() const { return (DefNode == NULL); }
   void setUse(const Inst *Inst, const CfgNode *Node);
 
+  // Multidef means a variable is non-SSA and has multiple defining
+  // instructions.  Currently this classification is limited to SSA
+  // lowering temporaries where the definitions are in different basic
+  // blocks, and it is not maintained during target lowering when the
+  // same temporary may be updated in consecutive instructions.
+  bool getIsMultidef() const { return IsMultidef; }
+  void setIsMultidef() { IsMultidef = true; }
+
   bool getIsArg() const { return IsArgument; }
   void setIsArg(Cfg *Func, bool IsArg = true);
 
@@ -419,9 +427,10 @@ public:
 private:
   Variable(Type Ty, const CfgNode *Node, SizeT Index, const IceString &Name)
       : Operand(kVariable, Ty), Number(Index), Name(Name), DefInst(NULL),
-        DefNode(Node), IsArgument(false), StackOffset(0), RegNum(NoRegister),
-        RegNumTmp(NoRegister), Weight(1), RegisterPreference(NULL),
-        AllowRegisterOverlap(false), LoVar(NULL), HiVar(NULL) {
+        DefNode(Node), IsMultidef(false), IsArgument(false), StackOffset(0),
+        RegNum(NoRegister), RegNumTmp(NoRegister), Weight(1),
+        RegisterPreference(NULL), AllowRegisterOverlap(false), LoVar(NULL),
+        HiVar(NULL) {
     Vars = VarsReal;
     Vars[0] = this;
     NumVars = 1;
@@ -443,6 +452,7 @@ private:
   // Cfg.  This saves space in the Variable, and removes the fragility
   // of incrementally computing and maintaining the information.
   const CfgNode *DefNode;
+  bool IsMultidef;
   bool IsArgument;
   // StackOffset is the canonical location on stack (only if
   // RegNum<0 || IsArgument).

@@ -3547,6 +3547,146 @@ void dumpAddressOpt(const Cfg *Func, const Variable *Base,
   Str << ", Shift=" << Shift << ", Offset=" << Offset << "\n";
 }
 
+bool matchTransitiveAssign(Variable *&Var, const Inst *&Reason) {
+  // Var originates from Var=SrcVar ==>
+  //   set Var:=SrcVar
+  if (Var == NULL)
+    return false;
+  if (const Inst *VarAssign = Var->getDefinition()) {
+    if (llvm::isa<InstAssign>(VarAssign)) {
+      Operand *SrcOp = VarAssign->getSrc(0);
+      assert(SrcOp);
+      if (Variable *SrcVar = llvm::dyn_cast<Variable>(SrcOp)) {
+        if (!SrcVar->getIsMultidef() &&
+            // TODO: ensure SrcVar stays single-BB
+            true) {
+          Var = SrcVar;
+          Reason = VarAssign;
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+bool matchCombinedBaseIndex(Variable *&Base, Variable *&Index, uint16_t &Shift,
+                            const Inst *&Reason) {
+  // Index==NULL && Base is Base=Var1+Var2 ==>
+  //   set Base=Var1, Index=Var2, Shift=0
+  if (Base == NULL)
+    return false;
+  if (Index != NULL)
+    return false;
+  const Inst *BaseInst = Base->getDefinition();
+  if (BaseInst == NULL)
+    return false;
+  if (BaseInst->getSrcSize() < 2)
+    return false;
+  if (Variable *Var1 = llvm::dyn_cast<Variable>(BaseInst->getSrc(0))) {
+    if (Var1->getIsMultidef())
+      return false;
+    if (Variable *Var2 = llvm::dyn_cast<Variable>(BaseInst->getSrc(1))) {
+      if (Var2->getIsMultidef())
+        return false;
+      if (isAdd(BaseInst) &&
+          // TODO: ensure Var1 and Var2 stay single-BB
+          true) {
+        Base = Var1;
+        Index = Var2;
+        Shift = 0; // should already have been 0
+        Reason = BaseInst;
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool matchShiftedIndex(Variable *&Index, uint16_t &Shift, const Inst *&Reason) {
+  // Index is Index=Var*Const && log2(Const)+Shift<=3 ==>
+  //   Index=Var, Shift+=log2(Const)
+  if (Index == NULL)
+    return false;
+  const Inst *IndexInst = Index->getDefinition();
+  if (IndexInst == NULL)
+    return false;
+  if (IndexInst->getSrcSize() < 2)
+    return false;
+  if (const InstArithmetic *ArithInst =
+          llvm::dyn_cast<InstArithmetic>(IndexInst)) {
+    if (Variable *Var = llvm::dyn_cast<Variable>(ArithInst->getSrc(0))) {
+      if (ConstantInteger *Const =
+              llvm::dyn_cast<ConstantInteger>(ArithInst->getSrc(1))) {
+        if (ArithInst->getOp() == InstArithmetic::Mul &&
+            !Var->getIsMultidef() && Const->getType() == IceType_i32) {
+          uint64_t Mult = Const->getValue();
+          uint32_t LogMult;
+          switch (Mult) {
+          case 1:
+            LogMult = 0;
+            break;
+          case 2:
+            LogMult = 1;
+            break;
+          case 4:
+            LogMult = 2;
+            break;
+          case 8:
+            LogMult = 3;
+            break;
+          default:
+            return false;
+          }
+          if (Shift + LogMult <= 3) {
+            Index = Var;
+            Shift += LogMult;
+            Reason = IndexInst;
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+bool matchOffsetBase(Variable *&Base, int32_t &Offset, const Inst *&Reason) {
+  // Base is Base=Var+Const || Base is Base=Const+Var ==>
+  //   set Base=Var, Offset+=Const
+  // Base is Base=Var-Const ==>
+  //   set Base=Var, Offset-=Const
+  if (Base == NULL)
+    return false;
+  const Inst *BaseInst = Base->getDefinition();
+  if (BaseInst == NULL)
+    return false;
+  if (const InstArithmetic *ArithInst =
+          llvm::dyn_cast<const InstArithmetic>(BaseInst)) {
+    if (ArithInst->getOp() != InstArithmetic::Add &&
+        ArithInst->getOp() != InstArithmetic::Sub)
+      return false;
+    bool IsAdd = ArithInst->getOp() == InstArithmetic::Add;
+    Variable *Var = NULL;
+    ConstantInteger *Const = NULL;
+    if (Variable *VariableOperand =
+            llvm::dyn_cast<Variable>(ArithInst->getSrc(0))) {
+      Var = VariableOperand;
+      Const = llvm::dyn_cast<ConstantInteger>(ArithInst->getSrc(1));
+    } else if (IsAdd) {
+      Const = llvm::dyn_cast<ConstantInteger>(ArithInst->getSrc(0));
+      Var = llvm::dyn_cast<Variable>(ArithInst->getSrc(1));
+    }
+    if (Var == NULL || Const == NULL || Var->getIsMultidef())
+      return false;
+    Base = Var;
+    Offset += IsAdd ? Const->getValue() : -Const->getValue();
+    Reason = BaseInst;
+    return true;
+  }
+  return false;
+}
+
 void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
                        Variable *&Index, uint16_t &Shift, int32_t &Offset) {
   Func->setCurrentNode(NULL);
@@ -3565,106 +3705,17 @@ void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
   if (Base->isMultiblockLife() /* || Base->getUseCount() > 1*/)
     return;
 
-  while (true) {
-    // Base is Base=Var ==>
-    //   set Base=Var
-    const Inst *BaseInst = Base->getDefinition();
-    Operand *BaseOperand0 = BaseInst ? BaseInst->getSrc(0) : NULL;
-    Variable *BaseVariable0 = llvm::dyn_cast_or_null<Variable>(BaseOperand0);
-    // TODO: Helper function for all instances of assignment
-    // transitivity.
-    if (BaseInst && llvm::isa<InstAssign>(BaseInst) && BaseVariable0 &&
-        // TODO: ensure BaseVariable0 stays single-BB
-        true) {
-      Base = BaseVariable0;
-      dumpAddressOpt(Func, Base, Index, Shift, Offset, BaseInst);
-      continue;
-    }
-
-    // Index is Index=Var ==>
-    //   set Index=Var
-
-    // Index==NULL && Base is Base=Var1+Var2 ==>
-    //   set Base=Var1, Index=Var2, Shift=0
-    Operand *BaseOperand1 =
-        BaseInst && BaseInst->getSrcSize() >= 2 ? BaseInst->getSrc(1) : NULL;
-    Variable *BaseVariable1 = llvm::dyn_cast_or_null<Variable>(BaseOperand1);
-    if (Index == NULL && isAdd(BaseInst) && BaseVariable0 && BaseVariable1 &&
-        // TODO: ensure BaseVariable0 and BaseVariable1 stay single-BB
-        true) {
-      Base = BaseVariable0;
-      Index = BaseVariable1;
-      Shift = 0; // should already have been 0
-      dumpAddressOpt(Func, Base, Index, Shift, Offset, BaseInst);
-      continue;
-    }
-
-    // Index is Index=Var*Const && log2(Const)+Shift<=3 ==>
-    //   Index=Var, Shift+=log2(Const)
-    const Inst *IndexInst = Index ? Index->getDefinition() : NULL;
-    if (const InstArithmetic *ArithInst =
-            llvm::dyn_cast_or_null<InstArithmetic>(IndexInst)) {
-      Operand *IndexOperand0 = ArithInst->getSrc(0);
-      Variable *IndexVariable0 = llvm::dyn_cast<Variable>(IndexOperand0);
-      Operand *IndexOperand1 = ArithInst->getSrc(1);
-      ConstantInteger *IndexConstant1 =
-          llvm::dyn_cast<ConstantInteger>(IndexOperand1);
-      if (ArithInst->getOp() == InstArithmetic::Mul && IndexVariable0 &&
-          IndexOperand1->getType() == IceType_i32 && IndexConstant1) {
-        uint64_t Mult = IndexConstant1->getValue();
-        uint32_t LogMult;
-        switch (Mult) {
-        case 1:
-          LogMult = 0;
-          break;
-        case 2:
-          LogMult = 1;
-          break;
-        case 4:
-          LogMult = 2;
-          break;
-        case 8:
-          LogMult = 3;
-          break;
-        default:
-          LogMult = 4;
-          break;
-        }
-        if (Shift + LogMult <= 3) {
-          Index = IndexVariable0;
-          Shift += LogMult;
-          dumpAddressOpt(Func, Base, Index, Shift, Offset, IndexInst);
-          continue;
-        }
-      }
-    }
-
-    // Base is Base=Var+Const || Base is Base=Const+Var ==>
-    //   set Base=Var, Offset+=Const
-    // Base is Base=Var-Const ==>
-    //   set Base=Var, Offset-=Const
-    const InstArithmetic *ArithInst =
-        llvm::dyn_cast_or_null<const InstArithmetic>(BaseInst);
-    if (ArithInst && (ArithInst->getOp() == InstArithmetic::Add ||
-                      ArithInst->getOp() == InstArithmetic::Sub)) {
-      bool IsAdd = ArithInst->getOp() == InstArithmetic::Add;
-      Variable *Var = NULL;
-      ConstantInteger *Const = NULL;
-      if (Variable *VariableOperand =
-              llvm::dyn_cast<Variable>(ArithInst->getSrc(0))) {
-        Var = VariableOperand;
-        Const = llvm::dyn_cast<ConstantInteger>(ArithInst->getSrc(1));
-      } else if (IsAdd) {
-        Const = llvm::dyn_cast<ConstantInteger>(ArithInst->getSrc(0));
-        Var = llvm::dyn_cast<Variable>(ArithInst->getSrc(1));
-      }
-      if (!(Const && Var)) {
-        break;
-      }
-      Base = Var;
-      Offset += IsAdd ? Const->getValue() : -Const->getValue();
-      dumpAddressOpt(Func, Base, Index, Shift, Offset, BaseInst);
-      continue;
+  bool Continue = true;
+  while (Continue) {
+    const Inst *Reason = NULL;
+    if (matchTransitiveAssign(Base, Reason) ||
+        matchTransitiveAssign(Index, Reason) ||
+        matchCombinedBaseIndex(Base, Index, Shift, Reason) ||
+        matchShiftedIndex(Index, Shift, Reason) ||
+        matchOffsetBase(Base, Offset, Reason)) {
+      dumpAddressOpt(Func, Base, Index, Shift, Offset, Reason);
+    } else {
+      Continue = false;
     }
 
     // Index is Index=Var<<Const && Const+Shift<=3 ==>
@@ -3688,7 +3739,6 @@ void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
 
     // TODO: consider overflow issues with respect to Offset.
     // TODO: handle symbolic constants.
-    break;
   }
 }
 
