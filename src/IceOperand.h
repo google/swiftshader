@@ -51,7 +51,14 @@ public:
     return Vars[I];
   }
   virtual void emit(const Cfg *Func) const = 0;
-  virtual void dump(const Cfg *Func) const = 0;
+  // The dump(Func,Str) implementation must be sure to handle the
+  // situation where Func==NULL.
+  virtual void dump(const Cfg *Func, Ostream &Str) const = 0;
+  void dump(const Cfg *Func) const {
+    assert(Func);
+    dump(Func, Func->getContext()->getStrDump());
+  }
+  void dump(Ostream &Str) const { dump(NULL, Str); }
 
   // Query whether this object was allocated in isolation, or added to
   // some higher-level pool.  This determines whether a containing
@@ -82,10 +89,10 @@ private:
 class Constant : public Operand {
 public:
   uint32_t getPoolEntryID() const { return PoolEntryID; }
+  using Operand::dump;
   virtual void emit(const Cfg *Func) const { emit(Func->getContext()); }
-  virtual void dump(const Cfg *Func) const { dump(Func->getContext()); }
   virtual void emit(GlobalContext *Ctx) const = 0;
-  virtual void dump(GlobalContext *Ctx) const = 0;
+  virtual void dump(const Cfg *Func, Ostream &Str) const = 0;
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
@@ -124,10 +131,7 @@ public:
   // specialization.
   virtual void emit(GlobalContext *Ctx) const;
   using Constant::dump;
-  virtual void dump(GlobalContext *Ctx) const {
-    Ostream &Str = Ctx->getStrDump();
-    Str << getValue();
-  }
+  virtual void dump(const Cfg *, Ostream &Str) const { Str << getValue(); }
 
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == K;
@@ -146,8 +150,7 @@ typedef ConstantPrimitive<uint64_t, Operand::kConstInteger> ConstantInteger;
 typedef ConstantPrimitive<float, Operand::kConstFloat> ConstantFloat;
 typedef ConstantPrimitive<double, Operand::kConstDouble> ConstantDouble;
 
-template <> inline void ConstantInteger::dump(GlobalContext *Ctx) const {
-  Ostream &Str = Ctx->getStrDump();
+template <> inline void ConstantInteger::dump(const Cfg *, Ostream &Str) const {
   if (getType() == IceType_i1)
     Str << (getValue() ? "true" : "false");
   else
@@ -193,7 +196,7 @@ public:
   using Constant::emit;
   using Constant::dump;
   virtual void emit(GlobalContext *Ctx) const;
-  virtual void dump(GlobalContext *Ctx) const;
+  virtual void dump(const Cfg *Func, Ostream &Str) const;
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
@@ -225,14 +228,10 @@ public:
   }
 
   using Constant::emit;
+  using Constant::dump;
   // The target needs to implement this.
   virtual void emit(GlobalContext *Ctx) const;
-
-  using Constant::dump;
-  virtual void dump(GlobalContext *Ctx) const {
-    Ostream &Str = Ctx->getStrEmit();
-    Str << "undef";
-  }
+  virtual void dump(const Cfg *, Ostream &Str) const { Str << "undef"; }
 
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == kConstUndef;
@@ -415,7 +414,8 @@ public:
   Variable asType(Type Ty);
 
   virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  using Operand::dump;
+  virtual void dump(const Cfg *Func, Ostream &Str) const;
 
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == kVariable;

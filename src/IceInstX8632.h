@@ -35,7 +35,10 @@ public:
     kSplit
   };
   virtual void emit(const Cfg *Func) const = 0;
-  void dump(const Cfg *Func) const;
+  using Operand::dump;
+  virtual void dump(const Cfg *, Ostream &Str) const {
+    Str << "<OperandX8632>";
+  }
 
 protected:
   OperandX8632(OperandKindX8632 Kind, Type Ty)
@@ -72,7 +75,8 @@ public:
   uint16_t getShift() const { return Shift; }
   SegmentRegisters getSegmentRegister() const { return SegmentReg; }
   virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  using OperandX8632::dump;
+  virtual void dump(const Cfg *Func, Ostream &Str) const;
 
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == static_cast<OperandKind>(kMem);
@@ -107,7 +111,8 @@ public:
     return new (Func->allocate<VariableSplit>()) VariableSplit(Func, Var, Part);
   }
   virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  using OperandX8632::dump;
+  virtual void dump(const Cfg *Func, Ostream &Str) const;
 
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == static_cast<OperandKind>(kSplit);

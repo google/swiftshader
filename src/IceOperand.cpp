@@ -201,8 +201,11 @@ void Variable::emit(const Cfg *Func) const {
   Func->getTarget()->emitVariable(this, Func);
 }
 
-void Variable::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
+void Variable::dump(const Cfg *Func, Ostream &Str) const {
+  if (Func == NULL) {
+    Str << "%" << getName();
+    return;
+  }
   const CfgNode *CurrentNode = Func->getCurrentNode();
   (void)CurrentNode; // used only in assert()
   assert(CurrentNode == NULL || DefNode == NULL || DefNode == CurrentNode);
@@ -241,8 +244,7 @@ void ConstantRelocatable::emit(GlobalContext *Ctx) const {
   }
 }
 
-void ConstantRelocatable::dump(GlobalContext *Ctx) const {
-  Ostream &Str = Ctx->getStrDump();
+void ConstantRelocatable::dump(const Cfg *, Ostream &Str) const {
   Str << "@" << Name;
   if (Offset)
     Str << "+" << Offset;

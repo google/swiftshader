@@ -1356,11 +1356,6 @@ void InstX8632Xchg::dump(const Cfg *Func) const {
   dumpSources(Func);
 }
 
-void OperandX8632::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
-  Str << "<OperandX8632>";
-}
-
 void OperandX8632Mem::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << TypeX8632Attributes[getType()].WidthString << " ";
@@ -1405,8 +1400,7 @@ void OperandX8632Mem::emit(const Cfg *Func) const {
   Str << "]";
 }
 
-void OperandX8632Mem::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
+void OperandX8632Mem::dump(const Cfg *Func, Ostream &Str) const {
   if (SegmentReg != DefaultSegment) {
     assert(SegmentReg >= 0 && SegmentReg < SegReg_NUM);
     Str << InstX8632SegmentRegNames[SegmentReg] << ":";
@@ -1414,7 +1408,10 @@ void OperandX8632Mem::dump(const Cfg *Func) const {
   bool Dumped = false;
   Str << "[";
   if (Base) {
-    Base->dump(Func);
+    if (Func)
+      Base->dump(Func);
+    else
+      Base->dump(Str);
     Dumped = true;
   }
   if (Index) {
@@ -1422,7 +1419,10 @@ void OperandX8632Mem::dump(const Cfg *Func) const {
     Str << "+";
     if (Shift > 0)
       Str << (1u << Shift) << "*";
-    Index->dump(Func);
+    if (Func)
+      Index->dump(Func);
+    else
+      Index->dump(Str);
     Dumped = true;
   }
   // Pretty-print the Offset.
@@ -1438,11 +1438,11 @@ void OperandX8632Mem::dump(const Cfg *Func) const {
     if (!OffsetIsZero) {     // Suppress if Offset is known to be 0
       if (!OffsetIsNegative) // Suppress if Offset is known to be negative
         Str << "+";
-      Offset->dump(Func);
+      Offset->dump(Func, Str);
     }
   } else {
     // There is only the offset.
-    Offset->dump(Func);
+    Offset->dump(Func, Str);
   }
   Str << "]";
 }
@@ -1468,8 +1468,7 @@ void VariableSplit::emit(const Cfg *Func) const {
   Str << "]";
 }
 
-void VariableSplit::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
+void VariableSplit::dump(const Cfg *Func, Ostream &Str) const {
   switch (Part) {
   case Low:
     Str << "low";
@@ -1482,7 +1481,10 @@ void VariableSplit::dump(const Cfg *Func) const {
     break;
   }
   Str << "(";
-  Var->dump(Func);
+  if (Func)
+    Var->dump(Func);
+  else
+    Var->dump(Str);
   Str << ")";
 }
 
