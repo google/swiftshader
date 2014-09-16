@@ -1010,7 +1010,7 @@ private:
     std::string Buffer;
     raw_string_ostream StrBuf(Buffer);
     StrBuf << InstructionName << " address not " << PtrType
-           << ". Found: " << Op;
+           << ". Found: " << *Op;
     Error(StrBuf.str());
     return false;
   }
@@ -1423,7 +1423,7 @@ void FunctionParser::ProcessRecord() {
           typeNumElements(ThenType) != typeNumElements(CondType)) {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Select condition " << CondType
+        StrBuf << "Select condition type " << CondType
                << " not allowed for values of type " << ThenType;
         Error(StrBuf.str());
         return;
@@ -1431,7 +1431,8 @@ void FunctionParser::ProcessRecord() {
     } else if (CondVal->getType() != Ice::IceType_i1) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Select condition not type i1. Found: " << CondVal->getType();
+      StrBuf << "Select condition " << CondVal << " not type i1. Found: "
+             << CondVal->getType();
       Error(StrBuf.str());
       return;
     }
@@ -1448,14 +1449,15 @@ void FunctionParser::ProcessRecord() {
     if (!Ice::isVectorType(VecType)) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Extractelement not on vector. Found: " << Vec;
+      StrBuf << "Extractelement not on vector. Found: " << *Vec;
       Error(StrBuf.str());
     }
     Ice::Operand *Index = getRelativeOperand(Values[1], BaseIndex);
     if (Index->getType() != Ice::IceType_i32) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Extractelement index not i32. Found: " << Index;
+      StrBuf << "Extractelement index " << *Index << " not i32. Found: "
+             << Index->getType();
       Error(StrBuf.str());
     }
     // TODO(kschimpf): Restrict index to a legal constant index (once
@@ -1473,7 +1475,7 @@ void FunctionParser::ProcessRecord() {
     if (!Ice::isVectorType(VecType)) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Insertelement not on vector. Found: " << Vec;
+      StrBuf << "Insertelement not on vector. Found: " << *Vec;
       Error(StrBuf.str());
     }
     Ice::Operand *Elt = getRelativeOperand(Values[1], BaseIndex);
@@ -1481,15 +1483,17 @@ void FunctionParser::ProcessRecord() {
     if (EltType != typeElementType(VecType)) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Insertelement element not " << typeElementType(VecType)
-             << ". Found: " << Elt;
+      StrBuf << "Insertelement element " << *Elt << " not type "
+             << typeElementType(VecType)
+             << ". Found: " << EltType;
       Error(StrBuf.str());
     }
     Ice::Operand *Index = getRelativeOperand(Values[2], BaseIndex);
     if (Index->getType() != Ice::IceType_i32) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Insertelement index not i32. Found: " << Index;
+      StrBuf << "Insertelement index " << *Index << " not i32. Found: "
+             << Index->getType();
       Error(StrBuf.str());
     }
     // TODO(kschimpf): Restrict index to a legal constant index (once
@@ -1588,7 +1592,8 @@ void FunctionParser::ProcessRecord() {
       if (Cond->getType() != Ice::IceType_i1) {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Branch condition not i1";
+        StrBuf << "Branch condition " << *Cond << " not i1. Found: "
+               << Cond->getType();
         Error(StrBuf.str());
         return;
       }
@@ -1599,6 +1604,15 @@ void FunctionParser::ProcessRecord() {
       CurrentNode->appendInst(
           Ice::InstBr::create(Func, Cond, ThenBlock, ElseBlock));
     }
+    InstIsTerminating = true;
+    break;
+  }
+  case naclbitc::FUNC_CODE_INST_UNREACHABLE: {
+    // UNREACHABLE: []
+    if (!isValidRecordSize(0, "function block unreachable"))
+      return;
+    CurrentNode->appendInst(
+        Ice::InstUnreachable::create(Func));
     InstIsTerminating = true;
     break;
   }
@@ -1627,7 +1641,8 @@ void FunctionParser::ProcessRecord() {
       if (Op->getType() != Ty) {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Phi instruction expects type " << Ty << " but found: " << Op;
+        StrBuf << "Value " << *Op << " not type " << Ty
+               << " in phi instruction. Found: " << Op->getType();
         Error(StrBuf.str());
         return;
       }
@@ -1644,7 +1659,7 @@ void FunctionParser::ProcessRecord() {
     if (ByteCount->getType() != Ice::IceType_i32) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Alloca on non-i32 value. Found: " << ByteCount;
+      StrBuf << "Alloca on non-i32 value. Found: " << *ByteCount;
       Error(StrBuf.str());
       return;
     }
@@ -1687,6 +1702,10 @@ void FunctionParser::ProcessRecord() {
         Ice::InstStore::create(Func, Value, Address, Alignment));
     break;
   }
+  case naclbitc::FUNC_CODE_INST_SWITCH:
+  case naclbitc::FUNC_CODE_INST_CALL:
+  case naclbitc::FUNC_CODE_INST_CALL_INDIRECT:
+  case naclbitc::FUNC_CODE_INST_FORWARDTYPEREF:
   default:
     // Generate error message!
     BlockParserBaseClass::ProcessRecord();

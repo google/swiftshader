@@ -84,6 +84,12 @@ private:
   Operand &operator=(const Operand &) LLVM_DELETED_FUNCTION;
 };
 
+template<class StreamType>
+inline StreamType &operator<<(StreamType &Str, const Operand &Op) {
+  Op.dump(Str);
+  return Str;
+}
+
 // Constant is the abstract base class for constants.  All
 // constants are allocated from a global arena and are pooled.
 class Constant : public Operand {
