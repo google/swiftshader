@@ -61,4 +61,66 @@ entry:
 ; CHECK: movss xmm0, dword ptr [eax + 8]
 }
 
+define float @address_mode_opt_chaining_overflow(float* %arg) {
+entry:
+  %arg.int = ptrtoint float* %arg to i32
+  %addr1.int = add i32 2147483640, %arg.int
+  %addr2.int = add i32 %addr1.int, 2147483643
+  %addr2.ptr = inttoptr i32 %addr2.int to float*
+  %addr2.load = load float* %addr2.ptr, align 4
+  ret float %addr2.load
+; CHECK-LABEL: address_mode_opt_chaining_overflow:
+; CHECK: 2147483640
+; CHECK: movss xmm0, dword ptr [{{.*}} + 2147483643]
+}
+
+define float @address_mode_opt_chaining_overflow_sub(float* %arg) {
+entry:
+  %arg.int = ptrtoint float* %arg to i32
+  %addr1.int = sub i32 %arg.int, 2147483640
+  %addr2.int = sub i32 %addr1.int, 2147483643
+  %addr2.ptr = inttoptr i32 %addr2.int to float*
+  %addr2.load = load float* %addr2.ptr, align 4
+  ret float %addr2.load
+; CHECK-LABEL: address_mode_opt_chaining_overflow_sub:
+; CHECK: 2147483640
+; CHECK: movss xmm0, dword ptr [{{.*}} - 2147483643]
+}
+
+define float @address_mode_opt_chaining_no_overflow(float* %arg) {
+entry:
+  %arg.int = ptrtoint float* %arg to i32
+  %addr1.int = sub i32 %arg.int, 2147483640
+  %addr2.int = add i32 %addr1.int, 2147483643
+  %addr2.ptr = inttoptr i32 %addr2.int to float*
+  %addr2.load = load float* %addr2.ptr, align 4
+  ret float %addr2.load
+; CHECK-LABEL: address_mode_opt_chaining_no_overflow:
+; CHECK: movss xmm0, dword ptr [{{.*}} + 3]
+}
+
+define float @address_mode_opt_add_pos_min_int(float* %arg) {
+entry:
+  %arg.int = ptrtoint float* %arg to i32
+  %addr1.int = add i32 %arg.int, 2147483648
+  %addr1.ptr = inttoptr i32 %addr1.int to float*
+  %addr1.load = load float* %addr1.ptr, align 4
+  ret float %addr1.load
+; CHECK-LABEL: address_mode_opt_add_pos_min_int:
+; CHECK: movss xmm0, dword ptr [{{.*}} - 2147483648]
+}
+
+define float @address_mode_opt_sub_min_int(float* %arg) {
+entry:
+  %arg.int = ptrtoint float* %arg to i32
+  %addr1.int = sub i32 %arg.int, 2147483648
+  %addr1.ptr = inttoptr i32 %addr1.int to float*
+  %addr1.load = load float* %addr1.ptr, align 4
+  ret float %addr1.load
+; CHECK-LABEL: address_mode_opt_sub_min_int:
+; CHECK: movss xmm0, dword ptr [{{.*}} - 2147483648]
+}
+
+
+
 ; ERRORS-NOT: ICE translation error

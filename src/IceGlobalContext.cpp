@@ -109,7 +109,8 @@ public:
   ConstantPool() {}
   TypePool<float, ConstantFloat, true> Floats;
   TypePool<double, ConstantDouble, true> Doubles;
-  TypePool<uint64_t, ConstantInteger> Integers;
+  TypePool<uint32_t, ConstantInteger32> Integers32;
+  TypePool<uint64_t, ConstantInteger64> Integers64;
   TypePool<RelocatableTuple, ConstantRelocatable> Relocatables;
   UndefPool Undefs;
 };
@@ -289,10 +290,15 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
 
 GlobalContext::~GlobalContext() {}
 
-Constant *GlobalContext::getConstantInt(Type Ty, uint64_t ConstantInt64) {
+Constant *GlobalContext::getConstantInt64(Type Ty, uint64_t ConstantInt64) {
+  assert(Ty == IceType_i64);
+  return ConstPool->Integers64.getOrAdd(this, Ty, ConstantInt64);
+}
+
+Constant *GlobalContext::getConstantInt32(Type Ty, uint32_t ConstantInt32) {
   if (Ty == IceType_i1)
-    ConstantInt64 &= UINT64_C(1);
-  return ConstPool->Integers.getOrAdd(this, Ty, ConstantInt64);
+    ConstantInt32 &= UINT32_C(1);
+  return ConstPool->Integers32.getOrAdd(this, Ty, ConstantInt32);
 }
 
 Constant *GlobalContext::getConstantFloat(float ConstantFloat) {
@@ -320,8 +326,9 @@ Constant *GlobalContext::getConstantZero(Type Ty) {
   case IceType_i8:
   case IceType_i16:
   case IceType_i32:
+    return getConstantInt32(Ty, 0);
   case IceType_i64:
-    return getConstantInt(Ty, 0);
+    return getConstantInt64(Ty, 0);
   case IceType_f32:
     return getConstantFloat(0);
   case IceType_f64:
@@ -351,8 +358,9 @@ ConstantList GlobalContext::getConstantPool(Type Ty) const {
   case IceType_i8:
   case IceType_i16:
   case IceType_i32:
+    return ConstPool->Integers32.getConstantPool();
   case IceType_i64:
-    return ConstPool->Integers.getConstantPool();
+    return ConstPool->Integers64.getConstantPool();
   case IceType_f32:
     return ConstPool->Floats.getConstantPool();
   case IceType_f64:

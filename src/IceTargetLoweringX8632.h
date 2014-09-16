@@ -509,7 +509,8 @@ private:
   virtual ~TargetGlobalInitX8632() {}
 };
 
-template <> void ConstantInteger::emit(GlobalContext *Ctx) const;
+template <> void ConstantInteger32::emit(GlobalContext *Ctx) const;
+template <> void ConstantInteger64::emit(GlobalContext *Ctx) const;
 template <> void ConstantFloat::emit(GlobalContext *Ctx) const;
 template <> void ConstantDouble::emit(GlobalContext *Ctx) const;
 

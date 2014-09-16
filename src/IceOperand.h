@@ -27,7 +27,8 @@ class Operand {
 public:
   enum OperandKind {
     kConst_Base,
-    kConstInteger,
+    kConstInteger32,
+    kConstInteger64,
     kConstFloat,
     kConstDouble,
     kConstRelocatable,
@@ -152,15 +153,21 @@ private:
   const T Value;
 };
 
-typedef ConstantPrimitive<uint64_t, Operand::kConstInteger> ConstantInteger;
+typedef ConstantPrimitive<uint32_t, Operand::kConstInteger32> ConstantInteger32;
+typedef ConstantPrimitive<uint64_t, Operand::kConstInteger64> ConstantInteger64;
 typedef ConstantPrimitive<float, Operand::kConstFloat> ConstantFloat;
 typedef ConstantPrimitive<double, Operand::kConstDouble> ConstantDouble;
 
-template <> inline void ConstantInteger::dump(const Cfg *, Ostream &Str) const {
+template <> inline void ConstantInteger32::dump(const Cfg *, Ostream &Str) const {
   if (getType() == IceType_i1)
     Str << (getValue() ? "true" : "false");
   else
-    Str << static_cast<int64_t>(getValue());
+    Str << static_cast<int32_t>(getValue());
+}
+
+template <> inline void ConstantInteger64::dump(const Cfg *, Ostream &Str) const {
+  assert(getType() == IceType_i64);
+  Str << static_cast<int64_t>(getValue());
 }
 
 // RelocatableTuple bundles the parameters that are used to

@@ -75,7 +75,8 @@ public:
   // Manage Constants.
   // getConstant*() functions are not const because they might add
   // something to the constant pool.
-  Constant *getConstantInt(Type Ty, uint64_t ConstantInt64);
+  Constant *getConstantInt32(Type Ty, uint32_t ConstantInt32);
+  Constant *getConstantInt64(Type Ty, uint64_t ConstantInt64);
   Constant *getConstantFloat(float Value);
   Constant *getConstantDouble(double Value);
   // Returns a symbolic constant.

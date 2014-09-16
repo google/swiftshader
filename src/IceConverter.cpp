@@ -102,8 +102,12 @@ public:
       return Ctx->getConstantSym(convertToIceType(GV->getType()), 0,
                                  GV->getName());
     } else if (const ConstantInt *CI = dyn_cast<ConstantInt>(Const)) {
-      return Ctx->getConstantInt(convertToIceType(CI->getType()),
-                                 CI->getSExtValue());
+      Ice::Type Ty = convertToIceType(CI->getType());
+      if (Ty == Ice::IceType_i64) {
+        return Ctx->getConstantInt64(Ty, CI->getSExtValue());
+      } else {
+        return Ctx->getConstantInt32(Ty, CI->getSExtValue());
+      }
     } else if (const ConstantFP *CFP = dyn_cast<ConstantFP>(Const)) {
       Ice::Type Type = convertToIceType(CFP->getType());
       if (Type == Ice::IceType_f32)

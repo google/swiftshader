@@ -600,7 +600,7 @@ void TargetX8632::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
     assert(Ty != IceType_i64);
     OperandX8632Mem *Mem = OperandX8632Mem::create(
         Func, Ty, FramePtr,
-        Ctx->getConstantInt(IceType_i32, Arg->getStackOffset()));
+        Ctx->getConstantInt32(IceType_i32, Arg->getStackOffset()));
     if (isVectorType(Arg->getType())) {
       _movp(Arg, Mem);
     } else {
@@ -799,7 +799,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // Generate "sub esp, SpillAreaSizeBytes"
   if (SpillAreaSizeBytes)
     _sub(getPhysicalRegister(Reg_esp),
-         Ctx->getConstantInt(IceType_i32, SpillAreaSizeBytes));
+         Ctx->getConstantInt32(IceType_i32, SpillAreaSizeBytes));
 
   resetStackAdjustment();
 
@@ -915,7 +915,7 @@ void TargetX8632::addEpilog(CfgNode *Node) {
   } else {
     // add esp, SpillAreaSizeBytes
     if (SpillAreaSizeBytes)
-      _add(esp, Ctx->getConstantInt(IceType_i32, SpillAreaSizeBytes));
+      _add(esp, Ctx->getConstantInt32(IceType_i32, SpillAreaSizeBytes));
   }
 
   // Add pop instructions for preserved registers.
@@ -1033,9 +1033,9 @@ Operand *TargetX8632::loOperand(Operand *Operand) {
     split64(Var);
     return Var->getLo();
   }
-  if (ConstantInteger *Const = llvm::dyn_cast<ConstantInteger>(Operand)) {
-    uint64_t Mask = (1ull << 32) - 1;
-    return Ctx->getConstantInt(IceType_i32, Const->getValue() & Mask);
+  if (ConstantInteger64 *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
+    return Ctx->getConstantInt32(IceType_i32,
+                                 static_cast<uint32_t>(Const->getValue()));
   }
   if (OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Operand)) {
     return OperandX8632Mem::create(Func, IceType_i32, Mem->getBase(),
@@ -1054,16 +1054,17 @@ Operand *TargetX8632::hiOperand(Operand *Operand) {
     split64(Var);
     return Var->getHi();
   }
-  if (ConstantInteger *Const = llvm::dyn_cast<ConstantInteger>(Operand)) {
-    return Ctx->getConstantInt(IceType_i32, Const->getValue() >> 32);
+  if (ConstantInteger64 *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
+    return Ctx->getConstantInt32(
+        IceType_i32, static_cast<uint32_t>(Const->getValue() >> 32));
   }
   if (OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Operand)) {
     Constant *Offset = Mem->getOffset();
     if (Offset == NULL)
-      Offset = Ctx->getConstantInt(IceType_i32, 4);
-    else if (ConstantInteger *IntOffset =
-                 llvm::dyn_cast<ConstantInteger>(Offset)) {
-      Offset = Ctx->getConstantInt(IceType_i32, 4 + IntOffset->getValue());
+      Offset = Ctx->getConstantInt32(IceType_i32, 4);
+    else if (ConstantInteger32 *IntOffset =
+                 llvm::dyn_cast<ConstantInteger32>(Offset)) {
+      Offset = Ctx->getConstantInt32(IceType_i32, 4 + IntOffset->getValue());
     } else if (ConstantRelocatable *SymOffset =
                    llvm::dyn_cast<ConstantRelocatable>(Offset)) {
       Offset = Ctx->getConstantSym(IceType_i32, 4 + SymOffset->getOffset(),
@@ -1131,20 +1132,20 @@ void TargetX8632::lowerAlloca(const InstAlloca *Inst) {
 
   uint32_t Alignment = std::max(AlignmentParam, X86_STACK_ALIGNMENT_BYTES);
   if (Alignment > X86_STACK_ALIGNMENT_BYTES) {
-    _and(esp, Ctx->getConstantInt(IceType_i32, -Alignment));
+    _and(esp, Ctx->getConstantInt32(IceType_i32, -Alignment));
   }
-  if (ConstantInteger *ConstantTotalSize =
-          llvm::dyn_cast<ConstantInteger>(TotalSize)) {
+  if (ConstantInteger32 *ConstantTotalSize =
+          llvm::dyn_cast<ConstantInteger32>(TotalSize)) {
     uint32_t Value = ConstantTotalSize->getValue();
     Value = applyAlignment(Value, Alignment);
-    _sub(esp, Ctx->getConstantInt(IceType_i32, Value));
+    _sub(esp, Ctx->getConstantInt32(IceType_i32, Value));
   } else {
     // Non-constant sizes need to be adjusted to the next highest
     // multiple of the required alignment at runtime.
     Variable *T = makeReg(IceType_i32);
     _mov(T, TotalSize);
-    _add(T, Ctx->getConstantInt(IceType_i32, Alignment - 1));
-    _and(T, Ctx->getConstantInt(IceType_i32, -Alignment));
+    _add(T, Ctx->getConstantInt32(IceType_i32, Alignment - 1));
+    _and(T, Ctx->getConstantInt32(IceType_i32, -Alignment));
     _sub(esp, T);
   }
   _mov(Dest, esp);
@@ -1254,7 +1255,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       //   a.lo = t2
       //   a.hi = t3
       Variable *T_1 = NULL, *T_2 = NULL, *T_3 = NULL;
-      Constant *BitTest = Ctx->getConstantInt(IceType_i32, 0x20);
+      Constant *BitTest = Ctx->getConstantInt32(IceType_i32, 0x20);
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
       InstX8632Label *Label = InstX8632Label::create(Func, this);
       _mov(T_1, Src1Lo, Reg_ecx);
@@ -1290,7 +1291,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       //   a.lo = t2
       //   a.hi = t3
       Variable *T_1 = NULL, *T_2 = NULL, *T_3 = NULL;
-      Constant *BitTest = Ctx->getConstantInt(IceType_i32, 0x20);
+      Constant *BitTest = Ctx->getConstantInt32(IceType_i32, 0x20);
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
       InstX8632Label *Label = InstX8632Label::create(Func, this);
       _mov(T_1, Src1Lo, Reg_ecx);
@@ -1326,8 +1327,8 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       //   a.lo = t2
       //   a.hi = t3
       Variable *T_1 = NULL, *T_2 = NULL, *T_3 = NULL;
-      Constant *BitTest = Ctx->getConstantInt(IceType_i32, 0x20);
-      Constant *SignExtend = Ctx->getConstantInt(IceType_i32, 0x1f);
+      Constant *BitTest = Ctx->getConstantInt32(IceType_i32, 0x20);
+      Constant *SignExtend = Ctx->getConstantInt32(IceType_i32, 0x1f);
       InstX8632Label *Label = InstX8632Label::create(Func, this);
       _mov(T_1, Src1Lo, Reg_ecx);
       _mov(T_2, Src0Lo);
@@ -1448,7 +1449,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
         // Mask that directs pshufd to create a vector with entries
         // Src[1, 0, 3, 0]
         const unsigned Constant1030 = 0x31;
-        Constant *Mask1030 = Ctx->getConstantInt(IceType_i8, Constant1030);
+        Constant *Mask1030 = Ctx->getConstantInt32(IceType_i8, Constant1030);
         // Mask that directs shufps to create a vector with entries
         // Dest[0, 2], Src[0, 2]
         const unsigned Mask0202 = 0x88;
@@ -1464,8 +1465,8 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
         _pshufd(T3, Src1, Mask1030);
         _pmuludq(T1, Src1);
         _pmuludq(T2, T3);
-        _shufps(T1, T2, Ctx->getConstantInt(IceType_i8, Mask0202));
-        _pshufd(T4, T1, Ctx->getConstantInt(IceType_i8, Mask0213));
+        _shufps(T1, T2, Ctx->getConstantInt32(IceType_i8, Mask0202));
+        _pshufd(T4, T1, Ctx->getConstantInt32(IceType_i8, Mask0213));
         _movp(Dest, T4);
       } else {
         assert(Dest->getType() == IceType_v16i8);
@@ -1758,7 +1759,8 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
         ParameterAreaSizeBytes = applyStackAlignment(ParameterAreaSizeBytes);
       }
       Variable *esp = Func->getTarget()->getPhysicalRegister(Reg_esp);
-      Constant *Loc = Ctx->getConstantInt(IceType_i32, ParameterAreaSizeBytes);
+      Constant *Loc =
+          Ctx->getConstantInt32(IceType_i32, ParameterAreaSizeBytes);
       StackArgLocations.push_back(OperandX8632Mem::create(Func, Ty, esp, Loc));
       ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
     }
@@ -1855,7 +1857,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   // of resetting the stack offset during emission.
   if (ParameterAreaSizeBytes) {
     Variable *esp = Func->getTarget()->getPhysicalRegister(Reg_esp);
-    _add(esp, Ctx->getConstantInt(IceType_i32, ParameterAreaSizeBytes));
+    _add(esp, Ctx->getConstantInt32(IceType_i32, ParameterAreaSizeBytes));
   }
 
   // Insert a register-kill pseudo instruction.
@@ -1940,7 +1942,8 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
         // width = width(elty) - 1; dest = (src << width) >> width
         SizeT ShiftAmount =
             X86_CHAR_BIT * typeWidthInBytes(typeElementType(DestTy)) - 1;
-        Constant *ShiftConstant = Ctx->getConstantInt(IceType_i8, ShiftAmount);
+        Constant *ShiftConstant =
+            Ctx->getConstantInt32(IceType_i8, ShiftAmount);
         Variable *T = makeReg(DestTy);
         _movp(T, Src0RM);
         _psll(T, ShiftConstant);
@@ -1949,7 +1952,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       }
     } else if (Dest->getType() == IceType_i64) {
       // t1=movsx src; t2=t1; t2=sar t2, 31; dst.lo=t1; dst.hi=t2
-      Constant *Shift = Ctx->getConstantInt(IceType_i32, 31);
+      Constant *Shift = Ctx->getConstantInt32(IceType_i32, 31);
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
       Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Variable *T_Lo = makeReg(DestLo->getType());
@@ -1975,7 +1978,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       // sar t1, dst_bitwidth - 1
       // dst = t1
       size_t DestBits = X86_CHAR_BIT * typeWidthInBytes(Dest->getType());
-      Constant *ShiftAmount = Ctx->getConstantInt(IceType_i32, DestBits - 1);
+      Constant *ShiftAmount = Ctx->getConstantInt32(IceType_i32, DestBits - 1);
       Variable *T = makeReg(Dest->getType());
       if (typeWidthInBytes(Dest->getType()) <=
           typeWidthInBytes(Src0RM->getType())) {
@@ -2018,14 +2021,14 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
         _movzx(Tmp, Src0RM);
       }
       if (Src0RM->getType() == IceType_i1) {
-        Constant *One = Ctx->getConstantInt(IceType_i32, 1);
+        Constant *One = Ctx->getConstantInt32(IceType_i32, 1);
         _and(Tmp, One);
       }
       _mov(DestLo, Tmp);
       _mov(DestHi, Zero);
     } else if (Src0RM->getType() == IceType_i1) {
       // t = Src0RM; t &= 1; Dest = t
-      Constant *One = Ctx->getConstantInt(IceType_i32, 1);
+      Constant *One = Ctx->getConstantInt32(IceType_i32, 1);
       Variable *T = makeReg(IceType_i32);
       _movzx(T, Src0RM);
       _and(T, One);
@@ -2057,7 +2060,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       Variable *T = NULL;
       _mov(T, Src0RM);
       if (Dest->getType() == IceType_i1)
-        _and(T, Ctx->getConstantInt(IceType_i1, 1));
+        _and(T, Ctx->getConstantInt32(IceType_i1, 1));
       _mov(Dest, T);
     }
     break;
@@ -2102,7 +2105,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _cvtt(T_1, Src0RM);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
       if (Dest->getType() == IceType_i1)
-        _and(T_2, Ctx->getConstantInt(IceType_i1, 1));
+        _and(T_2, Ctx->getConstantInt32(IceType_i1, 1));
       _mov(Dest, T_2);
       T_2->setPreferredRegister(T_1, true);
     }
@@ -2139,7 +2142,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       _cvtt(T_1, Src0RM);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
       if (Dest->getType() == IceType_i1)
-        _and(T_2, Ctx->getConstantInt(IceType_i1, 1));
+        _and(T_2, Ctx->getConstantInt32(IceType_i1, 1));
       _mov(Dest, T_2);
       T_2->setPreferredRegister(T_1, true);
     }
@@ -2350,8 +2353,8 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
 
 void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
   Operand *SourceVectNotLegalized = Inst->getSrc(0);
-  ConstantInteger *ElementIndex =
-      llvm::dyn_cast<ConstantInteger>(Inst->getSrc(1));
+  ConstantInteger32 *ElementIndex =
+      llvm::dyn_cast<ConstantInteger32>(Inst->getSrc(1));
   // Only constant indices are allowed in PNaCl IR.
   assert(ElementIndex);
 
@@ -2366,7 +2369,7 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
       Ty == IceType_v8i16 || Ty == IceType_v8i1 || InstructionSet >= SSE4_1;
   if (CanUsePextr && Ty != IceType_v4f32) {
     // Use pextrb, pextrw, or pextrd.
-    Constant *Mask = Ctx->getConstantInt(IceType_i8, Index);
+    Constant *Mask = Ctx->getConstantInt32(IceType_i8, Index);
     Variable *SourceVectR = legalizeToVar(SourceVectNotLegalized);
     _pextr(ExtractedElementR, SourceVectR, Mask);
   } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
@@ -2375,7 +2378,7 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
     if (Index) {
       // The shuffle only needs to occur if the element to be extracted
       // is not at the lowest index.
-      Constant *Mask = Ctx->getConstantInt(IceType_i8, Index);
+      Constant *Mask = Ctx->getConstantInt32(IceType_i8, Index);
       T = makeReg(Ty);
       _pshufd(T, legalize(SourceVectNotLegalized, Legal_Reg | Legal_Mem), Mask);
     } else {
@@ -2514,7 +2517,7 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
     _ucomiss(T, Src1RM);
   }
   Constant *Default =
-      Ctx->getConstantInt(IceType_i32, TableFcmp[Index].Default);
+      Ctx->getConstantInt32(IceType_i32, TableFcmp[Index].Default);
   _mov(Dest, Default);
   if (HasC1) {
     InstX8632Label *Label = InstX8632Label::create(Func, this);
@@ -2524,7 +2527,7 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
     }
     Context.insert(InstFakeUse::create(Func, Dest));
     Constant *NonDefault =
-        Ctx->getConstantInt(IceType_i32, !TableFcmp[Index].Default);
+        Ctx->getConstantInt32(IceType_i32, !TableFcmp[Index].Default);
     _mov(Dest, NonDefault);
     Context.insert(Label);
   }
@@ -2665,7 +2668,7 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
 
   // a=icmp cond, b, c ==> cmp b,c; a=1; br cond,L1; FakeUse(a); a=0; L1:
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
-  Constant *One = Ctx->getConstantInt(IceType_i32, 1);
+  Constant *One = Ctx->getConstantInt32(IceType_i32, 1);
   if (Src0->getType() == IceType_i64) {
     InstIcmp::ICond Condition = Inst->getCondition();
     size_t Index = static_cast<size_t>(Condition);
@@ -2716,8 +2719,8 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
 void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
   Operand *SourceVectNotLegalized = Inst->getSrc(0);
   Operand *ElementToInsertNotLegalized = Inst->getSrc(1);
-  ConstantInteger *ElementIndex =
-      llvm::dyn_cast<ConstantInteger>(Inst->getSrc(2));
+  ConstantInteger32 *ElementIndex =
+      llvm::dyn_cast<ConstantInteger32>(Inst->getSrc(2));
   // Only constant indices are allowed in PNaCl IR.
   assert(ElementIndex);
   unsigned Index = ElementIndex->getValue();
@@ -2747,9 +2750,9 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     Variable *T = makeReg(Ty);
     _movp(T, SourceVectRM);
     if (Ty == IceType_v4f32)
-      _insertps(T, ElementRM, Ctx->getConstantInt(IceType_i8, Index << 4));
+      _insertps(T, ElementRM, Ctx->getConstantInt32(IceType_i8, Index << 4));
     else
-      _pinsr(T, ElementRM, Ctx->getConstantInt(IceType_i8, Index));
+      _pinsr(T, ElementRM, Ctx->getConstantInt32(IceType_i8, Index));
     _movp(Inst->getDest(), T);
   } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
     // Use shufps or movss.
@@ -2800,8 +2803,10 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     const unsigned char Mask1[3] = {0, 192, 128};
     const unsigned char Mask2[3] = {227, 196, 52};
 
-    Constant *Mask1Constant = Ctx->getConstantInt(IceType_i8, Mask1[Index - 1]);
-    Constant *Mask2Constant = Ctx->getConstantInt(IceType_i8, Mask2[Index - 1]);
+    Constant *Mask1Constant =
+        Ctx->getConstantInt32(IceType_i8, Mask1[Index - 1]);
+    Constant *Mask2Constant =
+        Ctx->getConstantInt32(IceType_i8, Mask2[Index - 1]);
 
     if (Index == 1) {
       _shufps(ElementR, SourceVectRM, Mask1Constant);
@@ -2841,12 +2846,12 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   switch (Instr->getIntrinsicInfo().ID) {
   case Intrinsics::AtomicCmpxchg: {
     if (!Intrinsics::VerifyMemoryOrder(
-             llvm::cast<ConstantInteger>(Instr->getArg(3))->getValue())) {
+            llvm::cast<ConstantInteger32>(Instr->getArg(3))->getValue())) {
       Func->setError("Unexpected memory ordering (success) for AtomicCmpxchg");
       return;
     }
     if (!Intrinsics::VerifyMemoryOrder(
-             llvm::cast<ConstantInteger>(Instr->getArg(4))->getValue())) {
+            llvm::cast<ConstantInteger32>(Instr->getArg(4))->getValue())) {
       Func->setError("Unexpected memory ordering (failure) for AtomicCmpxchg");
       return;
     }
@@ -2861,7 +2866,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   }
   case Intrinsics::AtomicFence:
     if (!Intrinsics::VerifyMemoryOrder(
-             llvm::cast<ConstantInteger>(Instr->getArg(0))->getValue())) {
+            llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue())) {
       Func->setError("Unexpected memory ordering for AtomicFence");
       return;
     }
@@ -2879,7 +2884,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     // byte size, this opens up DCE opportunities.
     Operand *ByteSize = Instr->getArg(0);
     Variable *Dest = Instr->getDest();
-    if (ConstantInteger *CI = llvm::dyn_cast<ConstantInteger>(ByteSize)) {
+    if (ConstantInteger32 *CI = llvm::dyn_cast<ConstantInteger32>(ByteSize)) {
       Constant *Result;
       switch (CI->getValue()) {
       default:
@@ -2893,7 +2898,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       case 2:
       case 4:
       case 8:
-        Result = Ctx->getConstantInt(IceType_i32, 1);
+        Result = Ctx->getConstantInt32(IceType_i32, 1);
         break;
       }
       _mov(Dest, Result);
@@ -2907,7 +2912,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     // We require the memory address to be naturally aligned.
     // Given that is the case, then normal loads are atomic.
     if (!Intrinsics::VerifyMemoryOrder(
-             llvm::cast<ConstantInteger>(Instr->getArg(1))->getValue())) {
+            llvm::cast<ConstantInteger32>(Instr->getArg(1))->getValue())) {
       Func->setError("Unexpected memory ordering for AtomicLoad");
       return;
     }
@@ -2940,18 +2945,18 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   }
   case Intrinsics::AtomicRMW:
     if (!Intrinsics::VerifyMemoryOrder(
-             llvm::cast<ConstantInteger>(Instr->getArg(3))->getValue())) {
+            llvm::cast<ConstantInteger32>(Instr->getArg(3))->getValue())) {
       Func->setError("Unexpected memory ordering for AtomicRMW");
       return;
     }
     lowerAtomicRMW(Instr->getDest(),
-                   static_cast<uint32_t>(llvm::cast<ConstantInteger>(
-                       Instr->getArg(0))->getValue()),
+                   static_cast<uint32_t>(llvm::cast<ConstantInteger32>(
+                                             Instr->getArg(0))->getValue()),
                    Instr->getArg(1), Instr->getArg(2));
     return;
   case Intrinsics::AtomicStore: {
     if (!Intrinsics::VerifyMemoryOrder(
-             llvm::cast<ConstantInteger>(Instr->getArg(2))->getValue())) {
+            llvm::cast<ConstantInteger32>(Instr->getArg(2))->getValue())) {
       Func->setError("Unexpected memory ordering for AtomicStore");
       return;
     }
@@ -2999,7 +3004,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     } else {
       assert(Val->getType() == IceType_i16);
       Val = legalize(Val);
-      Constant *Eight = Ctx->getConstantInt(IceType_i16, 8);
+      Constant *Eight = Ctx->getConstantInt32(IceType_i16, 8);
       Variable *T = NULL;
       _mov(T, Val);
       _rol(T, Eight);
@@ -3482,12 +3487,12 @@ void TargetX8632::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
     _bsr(T, FirstValRM);
   }
   Variable *T_Dest = makeReg(IceType_i32);
-  Constant *ThirtyTwo = Ctx->getConstantInt(IceType_i32, 32);
-  Constant *ThirtyOne = Ctx->getConstantInt(IceType_i32, 31);
+  Constant *ThirtyTwo = Ctx->getConstantInt32(IceType_i32, 32);
+  Constant *ThirtyOne = Ctx->getConstantInt32(IceType_i32, 31);
   if (Cttz) {
     _mov(T_Dest, ThirtyTwo);
   } else {
-    Constant *SixtyThree = Ctx->getConstantInt(IceType_i32, 63);
+    Constant *SixtyThree = Ctx->getConstantInt32(IceType_i32, 63);
     _mov(T_Dest, SixtyThree);
   }
   _cmov(T_Dest, T, InstX8632::Br_ne);
@@ -3616,8 +3621,8 @@ bool matchShiftedIndex(Variable *&Index, uint16_t &Shift, const Inst *&Reason) {
   if (const InstArithmetic *ArithInst =
           llvm::dyn_cast<InstArithmetic>(IndexInst)) {
     if (Variable *Var = llvm::dyn_cast<Variable>(ArithInst->getSrc(0))) {
-      if (ConstantInteger *Const =
-              llvm::dyn_cast<ConstantInteger>(ArithInst->getSrc(1))) {
+      if (ConstantInteger32 *Const =
+              llvm::dyn_cast<ConstantInteger32>(ArithInst->getSrc(1))) {
         if (ArithInst->getOp() == InstArithmetic::Mul &&
             !Var->getIsMultidef() && Const->getType() == IceType_i32) {
           uint64_t Mult = Const->getValue();
@@ -3668,19 +3673,22 @@ bool matchOffsetBase(Variable *&Base, int32_t &Offset, const Inst *&Reason) {
       return false;
     bool IsAdd = ArithInst->getOp() == InstArithmetic::Add;
     Variable *Var = NULL;
-    ConstantInteger *Const = NULL;
+    ConstantInteger32 *Const = NULL;
     if (Variable *VariableOperand =
             llvm::dyn_cast<Variable>(ArithInst->getSrc(0))) {
       Var = VariableOperand;
-      Const = llvm::dyn_cast<ConstantInteger>(ArithInst->getSrc(1));
+      Const = llvm::dyn_cast<ConstantInteger32>(ArithInst->getSrc(1));
     } else if (IsAdd) {
-      Const = llvm::dyn_cast<ConstantInteger>(ArithInst->getSrc(0));
+      Const = llvm::dyn_cast<ConstantInteger32>(ArithInst->getSrc(0));
       Var = llvm::dyn_cast<Variable>(ArithInst->getSrc(1));
     }
     if (Var == NULL || Const == NULL || Var->getIsMultidef())
       return false;
+    int32_t MoreOffset = IsAdd ? Const->getValue() : -Const->getValue();
+    if (WouldOverflowAdd(Offset, MoreOffset))
+      return false;
     Base = Var;
-    Offset += IsAdd ? Const->getValue() : -Const->getValue();
+    Offset += MoreOffset;
     Reason = BaseInst;
     return true;
   }
@@ -3812,7 +3820,7 @@ void TargetX8632::doAddressOptLoad() {
   computeAddressOpt(Func, Inst, Base, Index, Shift, Offset);
   if (Base && Addr != Base) {
     Inst->setDeleted();
-    Constant *OffsetOp = Ctx->getConstantInt(IceType_i32, Offset);
+    Constant *OffsetOp = Ctx->getConstantInt32(IceType_i32, Offset);
     Addr = OperandX8632Mem::create(Func, Dest->getType(), Base, OffsetOp, Index,
                                    Shift, SegmentReg);
     Context.insert(InstLoad::create(Func, Dest, Addr));
@@ -3879,7 +3887,7 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
         Operand *ConditionRM = legalize(Condition, Legal_Reg | Legal_Mem);
         Variable *xmm0 = makeReg(IceType_v4i32, Reg_xmm0);
         _movp(xmm0, ConditionRM);
-        _psll(xmm0, Ctx->getConstantInt(IceType_i8, 31));
+        _psll(xmm0, Ctx->getConstantInt32(IceType_i8, 31));
         _movp(T, SrcFRM);
         _blendvps(T, SrcTRM, xmm0);
         _movp(Dest, T);
@@ -3994,7 +4002,7 @@ void TargetX8632::doAddressOptStore() {
   computeAddressOpt(Func, Inst, Base, Index, Shift, Offset);
   if (Base && Addr != Base) {
     Inst->setDeleted();
-    Constant *OffsetOp = Ctx->getConstantInt(IceType_i32, Offset);
+    Constant *OffsetOp = Ctx->getConstantInt32(IceType_i32, Offset);
     Addr = OperandX8632Mem::create(Func, Data->getType(), Base, OffsetOp, Index,
                                    Shift, SegmentReg);
     Context.insert(InstStore::create(Func, Data, Addr));
@@ -4014,7 +4022,7 @@ void TargetX8632::lowerSwitch(const InstSwitch *Inst) {
     Src0 = legalize(Src0, Legal_Reg | Legal_Mem, true);
   for (SizeT I = 0; I < NumCases; ++I) {
     // TODO(stichnot): Correct lowering for IceType_i64.
-    Constant *Value = Ctx->getConstantInt(IceType_i32, Inst->getValue(I));
+    Constant *Value = Ctx->getConstantInt32(IceType_i32, Inst->getValue(I));
     _cmp(Src0, Value);
     _br(InstX8632Br::Br_e, Inst->getLabel(I));
   }
@@ -4032,7 +4040,7 @@ void TargetX8632::scalarizeArithmetic(InstArithmetic::OpKind Kind,
 
   Operand *T = Ctx->getConstantUndef(Ty);
   for (SizeT I = 0; I < NumElements; ++I) {
-    Constant *Index = Ctx->getConstantInt(IceType_i32, I);
+    Constant *Index = Ctx->getConstantInt32(IceType_i32, I);
 
     // Extract the next two inputs.
     Variable *Op0 = Func->makeVariable(ElementTy, Context.getNode());
@@ -4121,13 +4129,13 @@ Variable *TargetX8632::makeVectorOfHighOrderBits(Type Ty, int32_t RegNum) {
   if (Ty == IceType_v4f32 || Ty == IceType_v4i32 || Ty == IceType_v8i16) {
     Variable *Reg = makeVectorOfOnes(Ty, RegNum);
     SizeT Shift = typeWidthInBytes(typeElementType(Ty)) * X86_CHAR_BIT - 1;
-    _psll(Reg, Ctx->getConstantInt(IceType_i8, Shift));
+    _psll(Reg, Ctx->getConstantInt32(IceType_i8, Shift));
     return Reg;
   } else {
     // SSE has no left shift operation for vectors of 8 bit integers.
     const uint32_t HIGH_ORDER_BITS_MASK = 0x80808080;
     Constant *ConstantMask =
-        Ctx->getConstantInt(IceType_i32, HIGH_ORDER_BITS_MASK);
+        Ctx->getConstantInt32(IceType_i32, HIGH_ORDER_BITS_MASK);
     Variable *Reg = makeReg(Ty, RegNum);
     _movd(Reg, legalize(ConstantMask, Legal_Reg | Legal_Mem));
     _pshufd(Reg, Reg, Ctx->getConstantZero(IceType_i8));
@@ -4148,7 +4156,7 @@ OperandX8632Mem *TargetX8632::getMemoryOperandForStackSlot(Type Ty,
   const Type PointerType = IceType_i32;
   Variable *Loc = makeReg(PointerType);
   _lea(Loc, Slot);
-  Constant *ConstantOffset = Ctx->getConstantInt(IceType_i32, Offset);
+  Constant *ConstantOffset = Ctx->getConstantInt32(IceType_i32, Offset);
   return OperandX8632Mem::create(Func, Ty, Loc, ConstantOffset);
 }
 
@@ -4278,7 +4286,7 @@ OperandX8632Mem *TargetX8632::FormMemoryOperand(Operand *Operand, Type Ty) {
     Constant *Offset = llvm::dyn_cast<Constant>(Operand);
     assert(Base || Offset);
     if (Offset) {
-      assert(llvm::isa<ConstantInteger>(Offset) ||
+      assert(llvm::isa<ConstantInteger32>(Offset) ||
              llvm::isa<ConstantRelocatable>(Offset));
     }
     Mem = OperandX8632Mem::create(Func, Ty, Base, Offset);
@@ -4402,9 +4410,13 @@ void TargetX8632::postLower() {
   }
 }
 
-template <> void ConstantInteger::emit(GlobalContext *Ctx) const {
+template <> void ConstantInteger32::emit(GlobalContext *Ctx) const {
   Ostream &Str = Ctx->getStrEmit();
-  Str << (int64_t) getValue();
+  Str << (int32_t)getValue();
+}
+
+template <> void ConstantInteger64::emit(GlobalContext *) const {
+  llvm_unreachable("Not expecting to emit 64-bit integers");
 }
 
 template <> void ConstantFloat::emit(GlobalContext *Ctx) const {

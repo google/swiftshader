@@ -1383,9 +1383,12 @@ void OperandX8632Mem::emit(const Cfg *Func) const {
   bool OffsetIsNegative = false;
   if (Offset == NULL) {
     OffsetIsZero = true;
-  } else if (ConstantInteger *CI = llvm::dyn_cast<ConstantInteger>(Offset)) {
+  } else if (ConstantInteger32 *CI =
+                 llvm::dyn_cast<ConstantInteger32>(Offset)) {
     OffsetIsZero = (CI->getValue() == 0);
-    OffsetIsNegative = (static_cast<int64_t>(CI->getValue()) < 0);
+    OffsetIsNegative = (static_cast<int32_t>(CI->getValue()) < 0);
+  } else {
+    assert(llvm::isa<ConstantRelocatable>(Offset));
   }
   if (Dumped) {
     if (!OffsetIsZero) {     // Suppress if Offset is known to be 0
@@ -1430,9 +1433,12 @@ void OperandX8632Mem::dump(const Cfg *Func, Ostream &Str) const {
   bool OffsetIsNegative = false;
   if (Offset == NULL) {
     OffsetIsZero = true;
-  } else if (ConstantInteger *CI = llvm::dyn_cast<ConstantInteger>(Offset)) {
+  } else if (ConstantInteger32 *CI =
+                 llvm::dyn_cast<ConstantInteger32>(Offset)) {
     OffsetIsZero = (CI->getValue() == 0);
-    OffsetIsNegative = (static_cast<int64_t>(CI->getValue()) < 0);
+    OffsetIsNegative = (static_cast<int32_t>(CI->getValue()) < 0);
+  } else {
+    assert(llvm::isa<ConstantRelocatable>(Offset));
   }
   if (Dumped) {
     if (!OffsetIsZero) {     // Suppress if Offset is known to be 0

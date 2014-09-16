@@ -21,6 +21,7 @@
 #include <cassert>
 #include <cstdio>     // snprintf
 #include <functional> // std::less
+#include <limits>
 #include <list>
 #include <map>
 #include <set>
@@ -127,6 +128,11 @@ private:
   Timer(const Timer &) LLVM_DELETED_FUNCTION;
   Timer &operator=(const Timer &) LLVM_DELETED_FUNCTION;
 };
+
+template <typename T> bool WouldOverflowAdd(T X, T Y) {
+  return ((X > 0 && Y > 0 && (X > std::numeric_limits<T>::max() - Y)) ||
+          (X < 0 && Y < 0 && (X < std::numeric_limits<T>::min() - Y)));
+}
 
 } // end of namespace Ice
 

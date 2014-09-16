@@ -1777,8 +1777,11 @@ void ConstantsParser::ProcessRecord() {
     if (IntegerType *IType = dyn_cast<IntegerType>(
             Context->convertToLLVMType(NextConstantType))) {
       APInt Value(IType->getBitWidth(), NaClDecodeSignRotatedValue(Values[0]));
-      Ice::Constant *C =
-          getContext()->getConstantInt(NextConstantType, Value.getSExtValue());
+      Ice::Constant *C = (NextConstantType == Ice::IceType_i64)
+                             ? getContext()->getConstantInt64(
+                                   NextConstantType, Value.getSExtValue())
+                             : getContext()->getConstantInt32(
+                                   NextConstantType, Value.getSExtValue());
       FuncParser->setNextConstantID(C);
       return;
     }
