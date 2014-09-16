@@ -9,6 +9,15 @@ import sys
 from utils import shellcmd
 from utils import FindBaseNaCl
 
+def NewerThanOrNotThere(old_path, new_path):
+    """Returns whether old_path is newer than new_path.
+
+    Also returns true if either path doesn't exist.
+    """
+    if not (os.path.exists(old_path) and os.path.exists(new_path)):
+        return True
+    return os.path.getmtime(old_path) > os.path.getmtime(new_path)
+
 def BuildRegex(patterns, syms):
     """Build a regular expression string for inclusion or exclusion.
 
@@ -79,14 +88,14 @@ def main():
     notation, so e.g. use '0:10' or ':10' for the first 10 lines of
     the file, or '1' for the second line of the file.
 
-    The --init argument does first-time initialization for the pexe,
-    including creation of the Subzero symbol file that is implicitly
-    used in the --include and --exclude arguments.  It can be removed
-    from the command line for subsequent executions if the pexe
-    doesn't change.
+    This script uses file modification timestamps to determine whether
+    llc and Subzero re-translation are needed.  It checks timestamps
+    of llc, llvm2ice, and the pexe against the translated object files
+    to determine the minimal work necessary.  The --force option
+    suppresses those checks and re-translates everything.
 
-    This scripts augments PATH so that various PNaCl and LLVM tools
-    can be run.  These extra paths are within the native_client tree.
+    This script augments PATH so that various PNaCl and LLVM tools can
+    be run.  These extra paths are within the native_client tree.
     When changes are made to these tools, copy them this way:
       cd native_client
       toolchain_build/toolchain_build_pnacl.py llvm_i686_linux \\
@@ -96,8 +105,8 @@ def main():
         description='    ' + main.__doc__,
         formatter_class=argparse.RawTextHelpFormatter)
     argparser.add_argument('pexe', help='Finalized pexe to translate')
-    argparser.add_argument('--init', dest='init', action='store_true',
-                           help='Perform first-time setup for the pexe')
+    argparser.add_argument('--force', dest='force', action='store_true',
+                           help='Force all re-translations of the pexe')
     argparser.add_argument('--include', '-i', default=[], dest='include',
                            action='append',
                            help='Subzero symbols to include ' +
@@ -145,9 +154,16 @@ def main():
     sym_sz_unescaped = pexe_base_unescaped + '.sym.sz.txt'
     whitelist_sz = pexe_base + '.wl.sz.txt'
     whitelist_sz_unescaped = pexe_base_unescaped + '.wl.sz.txt'
+    llvm2ice = (
+        '{root}/toolchain_build/src/subzero/llvm2ice'
+        ).format(root=nacl_root)
+    llcbin = (
+        '{root}/toolchain/linux_x86/pnacl_newlib/host_x86_32/bin/llc'
+        ).format(root=nacl_root)
+    opt_level = args.optlevel
 
-    if args.init:
-        opt_level = args.optlevel
+    if args.force or NewerThanOrNotThere(pexe, obj_llc) or \
+            NewerThanOrNotThere(llcbin, obj_llc):
         opt_level_map = { 'm1':'0', '-1':'0', '0':'0', '1':'1', '2':'2' }
         shellcmd((
             'pnacl-translate -ffunction-sections -c -arch x86-32-linux ' +
@@ -159,10 +175,14 @@ def main():
             'objcopy --redefine-sym _start=_user_start {obj}'
             ).format(obj=obj_llc), echo=args.verbose)
         shellcmd((
-            '{root}/toolchain_build/src/subzero/llvm2ice ' +
-            '-O{level} -bitcode-format=pnacl -disable-globals ' +
+            'nm {obj} | sed -n "s/.* [a-zA-Z] //p" > {sym}'
+            ).format(obj=obj_llc, sym=sym_llc), echo=args.verbose)
+    if args.force or NewerThanOrNotThere(pexe, obj_sz) or \
+            NewerThanOrNotThere(llvm2ice, obj_sz):
+        shellcmd((
+            '{l2i} -O{level} -bitcode-format=pnacl -disable-globals ' +
             '-externalize -ffunction-sections {pexe} -o {asm}'
-            ).format(root=nacl_root,level=opt_level, pexe=pexe, asm=asm_sz),
+            ).format(l2i=llvm2ice, level=opt_level, pexe=pexe, asm=asm_sz),
                  echo=args.verbose)
         shellcmd((
             'llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj -o {obj} ' +
@@ -174,9 +194,6 @@ def main():
         shellcmd((
             'nm {obj} | sed -n "s/.* [a-zA-Z] //p" > {sym}'
             ).format(obj=obj_sz, sym=sym_sz), echo=args.verbose)
-        shellcmd((
-            'nm {obj} | sed -n "s/.* [a-zA-Z] //p" > {sym}'
-            ).format(obj=obj_llc, sym=sym_llc), echo=args.verbose)
 
     with open(sym_sz_unescaped) as f:
         sz_syms = f.read().splitlines()
