@@ -102,6 +102,10 @@ static cl::opt<bool>
     DisablePhiEdgeSplit("no-phi-edge-split",
                         cl::desc("Disable edge splitting for Phi lowering"));
 
+static cl::opt<bool>
+DumpStats("stats",
+          cl::desc("Print statistics after translating each function"));
+
 static cl::opt<NaClFileFormat> InputFileFormat(
     "bitcode-format", cl::desc("Define format of input file:"),
     cl::values(clEnumValN(LLVMFormat, "llvm", "LLVM file (default)"),
@@ -155,6 +159,7 @@ int main(int argc, char **argv) {
   Flags.DisableGlobals = DisableGlobals;
   Flags.FunctionSections = FunctionSections;
   Flags.UseSandboxing = UseSandboxing;
+  Flags.DumpStats = DumpStats;
   Flags.DefaultGlobalPrefix = DefaultGlobalPrefix;
   Flags.DefaultFunctionPrefix = DefaultFunctionPrefix;
 

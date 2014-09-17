@@ -483,6 +483,21 @@ void CfgNode::emit(Cfg *Func) const {
     if (Inst->isRedundantAssign())
       continue;
     (*I)->emit(Func);
+    // Update emitted instruction count, plus fill/spill count for
+    // Variable operands without a physical register.
+    if (uint32_t Count = (*I)->getEmitInstCount()) {
+      Func->getContext()->statsUpdateEmitted(Count);
+      if (Variable *Dest = (*I)->getDest()) {
+        if (!Dest->hasReg())
+          Func->getContext()->statsUpdateFills();
+      }
+      for (SizeT S = 0; S < (*I)->getSrcSize(); ++S) {
+        if (Variable *Src = llvm::dyn_cast<Variable>((*I)->getSrc(S))) {
+          if (!Src->hasReg())
+            Func->getContext()->statsUpdateSpills();
+        }
+      }
+    }
   }
 }
 

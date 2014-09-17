@@ -71,6 +71,7 @@ void Translator::nameUnnamedGlobalAddresses(llvm::Module *Mod) {
 }
 
 void Translator::translateFcn(Cfg *Fcn) {
+  Ctx->resetStats();
   Func.reset(Fcn);
   if (Ctx->getFlags().DisableInternal)
     Func->setInternal(false);
@@ -95,6 +96,7 @@ void Translator::translateFcn(Cfg *Fcn) {
       std::cerr << "[Subzero timing] Emit function " << Func->getFunctionName()
                 << ": " << TEmit.getElapsedSec() << " sec\n";
     }
+    Ctx->dumpStats(Func->getFunctionName());
   }
 }
 

@@ -101,6 +101,12 @@ public:
   void livenessLightweight(llvm::BitVector &Live);
   void liveness(InstNumberT InstNumber, llvm::BitVector &Live,
                 Liveness *Liveness, const CfgNode *Node);
+
+  // Get the number of native instructions that this instruction
+  // ultimately emits.  By default, high-level instructions don't
+  // result in any native instructions, and a target-specific
+  // instruction results in a single native instruction.
+  virtual uint32_t getEmitInstCount() const { return 0; }
   virtual void emit(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   virtual void dumpExtras(const Cfg *Func) const;
@@ -744,6 +750,7 @@ private:
 // instructions.
 class InstTarget : public Inst {
 public:
+  virtual uint32_t getEmitInstCount() const { return 1; }
   virtual void emit(const Cfg *Func) const = 0;
   virtual void dump(const Cfg *Func) const;
   virtual void dumpExtras(const Cfg *Func) const;

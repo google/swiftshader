@@ -606,6 +606,11 @@ void TargetX8632::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
     } else {
       _mov(Arg, Mem);
     }
+    // This argument-copying instruction uses an explicit
+    // OperandX8632Mem operand instead of a Variable, so its
+    // fill-from-stack operation has to be tracked separately for
+    // statistics.
+    Ctx->statsUpdateFills();
   }
 }
 
@@ -746,13 +751,16 @@ void TargetX8632::addProlog(CfgNode *Node) {
   SpillAreaSizeBytes += GlobalsSize;
 
   // Add push instructions for preserved registers.
+  uint32_t NumCallee = 0;
   for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
     if (CalleeSaves[i] && RegsUsed[i]) {
+      ++NumCallee;
       PreservedRegsSizeBytes += 4;
       const bool SuppressStackAdjustment = true;
       _push(getPhysicalRegister(i), SuppressStackAdjustment);
     }
   }
+  Ctx->statsUpdateRegistersSaved(NumCallee);
 
   // Generate "push ebp; mov ebp, esp"
   if (IsEbpBasedFrame) {
@@ -800,6 +808,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   if (SpillAreaSizeBytes)
     _sub(getPhysicalRegister(Reg_esp),
          Ctx->getConstantInt32(IceType_i32, SpillAreaSizeBytes));
+  Ctx->statsUpdateFrameBytes(SpillAreaSizeBytes);
 
   resetStackAdjustment();
 

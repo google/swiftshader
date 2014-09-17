@@ -24,14 +24,15 @@ public:
   ClFlags()
       : DisableInternal(false), SubzeroTimingEnabled(false),
         DisableTranslation(false), DisableGlobals(false),
-        FunctionSections(false), UseSandboxing(false), DefaultGlobalPrefix(""),
-        DefaultFunctionPrefix("") {}
+        FunctionSections(false), UseSandboxing(false), DumpStats(false),
+        DefaultGlobalPrefix(""), DefaultFunctionPrefix("") {}
   bool DisableInternal;
   bool SubzeroTimingEnabled;
   bool DisableTranslation;
   bool DisableGlobals;
   bool FunctionSections;
   bool UseSandboxing;
+  bool DumpStats;
   IceString DefaultGlobalPrefix;
   IceString DefaultFunctionPrefix;
 };

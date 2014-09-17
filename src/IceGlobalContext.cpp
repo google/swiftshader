@@ -384,6 +384,13 @@ ConstantList GlobalContext::getConstantPool(Type Ty) const {
   llvm_unreachable("Unknown type");
 }
 
+void GlobalContext::dumpStats(const IceString &Name) {
+  if (Flags.DumpStats) {
+    StatsFunction.dump(Name, getStrDump());
+    StatsCumulative.dump("_TOTAL_", getStrDump());
+  }
+}
+
 void Timer::printElapsedUs(GlobalContext *Ctx, const IceString &Tag) const {
   if (Ctx->isVerbose(IceV_Timing)) {
     // Prefixing with '#' allows timing strings to be included

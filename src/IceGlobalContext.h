@@ -28,6 +28,35 @@ namespace Ice {
 
 class ClFlags;
 
+// This class collects rudimentary statistics during translation.
+class CodeStats {
+public:
+  CodeStats()
+      : InstructionsEmitted(0), RegistersSaved(0), FrameBytes(0), Spills(0),
+        Fills(0) {}
+  void reset() { *this = CodeStats(); }
+  void updateEmitted(uint32_t InstCount) { InstructionsEmitted += InstCount; }
+  void updateRegistersSaved(uint32_t Num) { RegistersSaved += Num; }
+  void updateFrameBytes(uint32_t Bytes) { FrameBytes += Bytes; }
+  void updateSpills() { ++Spills; }
+  void updateFills() { ++Fills; }
+  void dump(const IceString &Name, Ostream &Str) {
+    Str << "|" << Name << "|Inst Count  |" << InstructionsEmitted << "\n";
+    Str << "|" << Name << "|Regs Saved  |" << RegistersSaved << "\n";
+    Str << "|" << Name << "|Frame Bytes |" << FrameBytes << "\n";
+    Str << "|" << Name << "|Spills      |" << Spills << "\n";
+    Str << "|" << Name << "|Fills       |" << Fills << "\n";
+    Str << "|" << Name << "|Spills+Fills|" << Spills + Fills << "\n";
+  }
+
+private:
+  uint32_t InstructionsEmitted;
+  uint32_t RegistersSaved;
+  uint32_t FrameBytes;
+  uint32_t Spills;
+  uint32_t Fills;
+};
+
 // TODO: Accesses to all non-const fields of GlobalContext need to
 // be synchronized, especially the constant pool, the allocator, and
 // the output streams.
@@ -101,6 +130,30 @@ public:
   // translation.
   RandomNumberGenerator &getRNG() { return RNG; }
 
+  // Reset stats at the beginning of a function.
+  void resetStats() { StatsFunction.reset(); }
+  void dumpStats(const IceString &Name);
+  void statsUpdateEmitted(uint32_t InstCount) {
+    StatsFunction.updateEmitted(InstCount);
+    StatsCumulative.updateEmitted(InstCount);
+  }
+  void statsUpdateRegistersSaved(uint32_t Num) {
+    StatsFunction.updateRegistersSaved(Num);
+    StatsCumulative.updateRegistersSaved(Num);
+  }
+  void statsUpdateFrameBytes(uint32_t Bytes) {
+    StatsFunction.updateFrameBytes(Bytes);
+    StatsCumulative.updateFrameBytes(Bytes);
+  }
+  void statsUpdateSpills() {
+    StatsFunction.updateSpills();
+    StatsCumulative.updateSpills();
+  }
+  void statsUpdateFills() {
+    StatsFunction.updateFills();
+    StatsCumulative.updateFills();
+  }
+
 private:
   Ostream *StrDump; // Stream for dumping / diagnostics
   Ostream *StrEmit; // Stream for code emission
@@ -115,6 +168,8 @@ private:
   const ClFlags &Flags;
   bool HasEmittedFirstMethod;
   RandomNumberGenerator RNG;
+  CodeStats StatsFunction;
+  CodeStats StatsCumulative;
   GlobalContext(const GlobalContext &) LLVM_DELETED_FUNCTION;
   GlobalContext &operator=(const GlobalContext &) LLVM_DELETED_FUNCTION;
 

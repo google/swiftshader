@@ -290,6 +290,7 @@ public:
   static InstX8632Label *create(Cfg *Func, TargetX8632 *Target) {
     return new (Func->allocate<InstX8632Label>()) InstX8632Label(Func, Target);
   }
+  virtual uint32_t getEmitInstCount() const { return 0; }
   IceString getName(const Cfg *Func) const;
   virtual void emit(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
@@ -324,7 +325,7 @@ public:
         InstX8632Br(Func, Target, NULL, NULL, Condition);
   }
   // Create a conditional intra-block branch (or unconditional, if
-  // Condition==None) to a label in the current block.
+  // Condition==Br_None) to a label in the current block.
   static InstX8632Br *create(Cfg *Func, InstX8632Label *Label,
                              BrCond Condition) {
     return new (Func->allocate<InstX8632Br>())
@@ -332,6 +333,15 @@ public:
   }
   CfgNode *getTargetTrue() const { return TargetTrue; }
   CfgNode *getTargetFalse() const { return TargetFalse; }
+  virtual uint32_t getEmitInstCount() const {
+    if (Label)
+      return 1;
+    if (Condition == Br_None)
+      return 1;
+    if (getTargetFalse())
+      return 2;
+    return 1;
+  }
   virtual void emit(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Br); }
