@@ -61,6 +61,31 @@ def MatchSymbol(sym, re_include, re_exclude, default_match):
         return True
     return default_match
 
+def AddOptionalArgs(argparser):
+    argparser.add_argument('--force', dest='force', action='store_true',
+                           help='Force all re-translations of the pexe')
+    argparser.add_argument('--include', '-i', default=[], dest='include',
+                           action='append',
+                           help='Subzero symbols to include ' +
+                                '(regex or line range)')
+    argparser.add_argument('--exclude', '-e', default=[], dest='exclude',
+                           action='append',
+                           help='Subzero symbols to exclude ' +
+                                '(regex or line range)')
+    argparser.add_argument('--output', '-o', default='a.out', dest='output',
+                           action='store',
+                           help='Output executable. Default %(default)s.')
+    argparser.add_argument('-O', default='2', dest='optlevel',
+                           choices=['m1', '-1', '0', '1', '2'],
+                           help='Optimization level ' +
+                                '(m1 and -1 are equivalent).' +
+                                ' Default %(default)s.')
+    argparser.add_argument('--verbose', '-v', dest='verbose',
+                           action='store_true',
+                           help='Display some extra debugging output')
+    argparser.add_argument('--stats', dest='stats', action='store_true',
+                           help='Enable Subzero stats output')
+
 def main():
     """Create a hybrid translation from Subzero and llc.
 
@@ -104,38 +129,20 @@ def main():
     argparser = argparse.ArgumentParser(
         description='    ' + main.__doc__,
         formatter_class=argparse.RawTextHelpFormatter)
+    AddOptionalArgs(argparser)
     argparser.add_argument('pexe', help='Finalized pexe to translate')
-    argparser.add_argument('--force', dest='force', action='store_true',
-                           help='Force all re-translations of the pexe')
-    argparser.add_argument('--include', '-i', default=[], dest='include',
-                           action='append',
-                           help='Subzero symbols to include ' +
-                                '(regex or line range)')
-    argparser.add_argument('--exclude', '-e', default=[], dest='exclude',
-                           action='append',
-                           help='Subzero symbols to exclude ' +
-                                '(regex or line range)')
-    argparser.add_argument('--output', '-o', default='a.out', dest='output',
-                           action='store',
-                           help='Output executable. Default %(default)s.')
-    argparser.add_argument('-O', default='2', dest='optlevel',
-                           choices=['m1', '-1', '0', '1', '2'],
-                           help='Optimization level ' +
-                                '(m1 and -1 are equivalent).' +
-                                ' Default %(default)s.')
-    argparser.add_argument('--verbose', '-v', dest='verbose',
-                           action='store_true',
-                           help='Display some extra debugging output')
     args = argparser.parse_args()
-
     pexe = args.pexe
+    exe = args.output
+    ProcessPexe(args, pexe, exe)
+
+def ProcessPexe(args, pexe, exe):
     [pexe_base, ext] = os.path.splitext(pexe)
     if ext != '.pexe':
         pexe_base = pexe
     pexe_base_unescaped = pexe_base
     pexe_base = pipes.quote(pexe_base)
     pexe = pipes.quote(pexe)
-    exe = args.output
 
     nacl_root = FindBaseNaCl()
     os.environ['PATH'] = (
@@ -181,7 +188,8 @@ def main():
             NewerThanOrNotThere(llvm2ice, obj_sz):
         shellcmd((
             '{l2i} -O{level} -bitcode-format=pnacl -disable-globals ' +
-            '-externalize -ffunction-sections {pexe} -o {asm}'
+            '-externalize -ffunction-sections {pexe} -o {asm}' +
+            (' --stats' if args.stats else '')
             ).format(l2i=llvm2ice, level=opt_level, pexe=pexe, asm=asm_sz),
                  echo=args.verbose)
         shellcmd((
