@@ -1007,7 +1007,7 @@ private:
 
     // Must be forward reference, expand vector to accommodate.
     if (LocalIndex >= LocalOperands.size())
-      LocalOperands.resize(LocalIndex+1);
+      LocalOperands.resize(LocalIndex + 1);
 
     // If element not defined, set it.
     Ice::Operand *OldOp = LocalOperands[LocalIndex];
@@ -1023,8 +1023,8 @@ private:
     // Error has occurred.
     std::string Buffer;
     raw_string_ostream StrBuf(Buffer);
-    StrBuf << "Multiple definitions for index " << Index
-           << ": " << *Op << " and " << *OldOp;
+    StrBuf << "Multiple definitions for index " << Index << ": " << *Op
+           << " and " << *OldOp;
     Error(StrBuf.str());
     // TODO(kschimpf) Remove error recovery once implementation complete.
     LocalOperands[LocalIndex] = Op;
@@ -1037,9 +1037,7 @@ private:
   }
 
   // Returns the absolute index of the next value generating instruction.
-  uint32_t getNextInstIndex() const {
-    return NextLocalInstIndex;
-  }
+  uint32_t getNextInstIndex() const { return NextLocalInstIndex; }
 
   // Generates type error message for binary operator Op
   // operating on Type OpTy.
@@ -1682,6 +1680,65 @@ void FunctionParser::ProcessRecord() {
     InstIsTerminating = true;
     break;
   }
+  case naclbitc::FUNC_CODE_INST_SWITCH: {
+    // SWITCH: [Condty, Cond, BbIndex, NumCases Case ...]
+    // where Case = [1, 1, Value, BbIndex].
+    //
+    // Note: Unlike most instructions, we don't infer the type of
+    // Cond, but provide it as a separate field. There are also
+    // unnecesary data fields (i.e. constants 1).  These were not
+    // cleaned up in PNaCl bitcode because the bitcode format was
+    // already frozen when the problem was noticed.
+    if (!isValidRecordSizeAtLeast(4, "function block switch"))
+      return;
+    Ice::Type CondTy =
+        Context->convertToIceType(Context->getTypeByID(Values[0]));
+    if (!Ice::isScalarIntegerType(CondTy)) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Case condition must be non-wide integer. Found: " << CondTy;
+      Error(StrBuf.str());
+      return;
+    }
+    Ice::SizeT BitWidth = Ice::getScalarIntBitWidth(CondTy);
+    Ice::Operand *Cond = getRelativeOperand(Values[1], BaseIndex);
+    if (CondTy != Cond->getType()) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Case condition expects type " << CondTy
+             << ". Found: " << Cond->getType();
+      Error(StrBuf.str());
+      return;
+    }
+    Ice::CfgNode *DefaultLabel = getBranchBasicBlock(Values[2]);
+    unsigned NumCases = Values[3];
+
+    // Now recognize each of the cases.
+    if (!isValidRecordSize(4 + NumCases * 4, "Function block switch"))
+      return;
+    Ice::InstSwitch *Switch =
+        Ice::InstSwitch::create(Func, NumCases, Cond, DefaultLabel);
+    unsigned ValCaseIndex = 4;  // index to beginning of case entry.
+    for (unsigned CaseIndex = 0; CaseIndex < NumCases;
+         ++CaseIndex, ValCaseIndex += 4) {
+      if (Values[ValCaseIndex] != 1 || Values[ValCaseIndex+1] != 1) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Sequence [1, 1, value, label] expected for case entry "
+               << "in switch record. (at index" << ValCaseIndex << ")";
+        Error(StrBuf.str());
+        return;
+      }
+      APInt Value(BitWidth,
+                  NaClDecodeSignRotatedValue(Values[ValCaseIndex + 2]),
+                  true);
+      Ice::CfgNode *Label = getBranchBasicBlock(Values[ValCaseIndex + 3]);
+      Switch->addBranch(CaseIndex, Value.getSExtValue(), Label);
+    }
+    CurrentNode->appendInst(Switch);
+    InstIsTerminating = true;
+    break;
+  }
   case naclbitc::FUNC_CODE_INST_UNREACHABLE: {
     // UNREACHABLE: []
     if (!isValidRecordSize(0, "function block unreachable"))
@@ -1781,11 +1838,10 @@ void FunctionParser::ProcessRecord() {
     // FORWARDTYPEREF: [opval, ty]
     if (!isValidRecordSize(2, "function block forward type ref"))
       return;
-    setOperand(Values[0], createInstVar(
-        Context->convertToIceType(Context->getTypeByID(Values[1]))));
+    setOperand(Values[0], createInstVar(Context->convertToIceType(
+                              Context->getTypeByID(Values[1]))));
     break;
   }
-  case naclbitc::FUNC_CODE_INST_SWITCH:
   case naclbitc::FUNC_CODE_INST_CALL:
   case naclbitc::FUNC_CODE_INST_CALL_INDIRECT:
   default:

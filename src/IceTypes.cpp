@@ -228,6 +228,13 @@ Type getCompareResultType(Type Ty) {
   return IceType_void;
 }
 
+SizeT getScalarIntBitWidth(Type Ty) {
+  assert(isScalarIntegerType(Ty));
+  if (Ty == Ice::IceType_i1)
+    return 1;
+  return typeWidthInBytes(Ty) * CHAR_BIT;
+}
+
 // ======================== Dump routines ======================== //
 
 const char *typeString(Type Ty) {

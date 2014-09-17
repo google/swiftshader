@@ -66,6 +66,9 @@ bool isLoadStoreType(Type Ty);
 /// allowed.
 Type getCompareResultType(Type Ty);
 
+/// Returns the number of bits in a scalar integer type.
+SizeT getScalarIntBitWidth(Type Ty);
+
 template <typename StreamType>
 inline StreamType &operator<<(StreamType &Str, const Type &Ty) {
   Str << typeString(Ty);
