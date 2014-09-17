@@ -51,7 +51,8 @@ LLVM_LDFLAGS := `$(LLVM_BIN_PATH)/llvm-config --libs` \
 
 # It's recommended that CXX matches the compiler you used to build LLVM itself.
 OPTLEVEL := -O0
-CXX := $(CLANG_PATH)/clang++
+CCACHE := `command -v ccache`
+CXX := CCACHE_CPP2=yes $(CCACHE) $(CLANG_PATH)/clang++
 
 CXXFLAGS := $(LLVM_CXXFLAGS) -Wall -Wextra -Werror -fno-rtti \
 	-fno-exceptions $(OPTLEVEL) -g $(HOST_FLAGS) \
