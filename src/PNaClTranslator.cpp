@@ -814,6 +814,7 @@ public:
         FcnId(Context->getNextFunctionBlockValueID()),
         LLVMFunc(cast<Function>(Context->getGlobalValueByID(FcnId))),
         CachedNumGlobalValueIDs(Context->getNumGlobalValueIDs()),
+        NextLocalInstIndex(Context->getNumGlobalValueIDs()),
         InstIsTerminating(false) {
     Func->setFunctionName(LLVMFunc->getName());
     Func->setReturnType(Context->convertToIceType(LLVMFunc->getReturnType()));
@@ -830,7 +831,9 @@ public:
   ~FunctionParser() LLVM_OVERRIDE;
 
   // Set the next constant ID to the given constant C.
-  void setNextConstantID(Ice::Constant *C) { LocalOperands.push_back(C); }
+  void setNextConstantID(Ice::Constant *C) {
+    setOperand(NextLocalInstIndex++, C);
+  }
 
 private:
   // Timer for reading function bitcode and converting to ICE.
@@ -845,11 +848,14 @@ private:
   unsigned FcnId;
   // The corresponding LLVM function.
   Function *LLVMFunc;
+  // Holds the dividing point between local and global absolute value indices.
+  uint32_t CachedNumGlobalValueIDs;
   // Holds operands local to the function block, based on indices
   // defined in the bitcode file.
   std::vector<Ice::Operand *> LocalOperands;
-  // Holds the dividing point between local and global absolute value indices.
-  uint32_t CachedNumGlobalValueIDs;
+  // Holds the index within LocalOperands corresponding to the next
+  // instruction that generates a value.
+  uint32_t NextLocalInstIndex;
   // True if the last processed instruction was a terminating
   // instruction.
   bool InstIsTerminating;
@@ -910,15 +916,42 @@ private:
     return getBasicBlock(Index);
   }
 
-  // Generates the next available local variable using the given type.
-  Ice::Variable *getNextInstVar(Ice::Type Ty) {
+  // Generate an instruction variable with type Ty.
+  Ice::Variable *createInstVar(Ice::Type Ty) {
     if (Ty == Ice::IceType_void) {
       Error("Can't define instruction value using type void");
       // Recover since we can't throw an exception.
       Ty = Ice::IceType_i32;
     }
-    Ice::Variable *Var = Func->makeVariable(Ty, CurrentNode);
-    LocalOperands.push_back(Var);
+    return Func->makeVariable(Ty, CurrentNode);
+  }
+
+  // Generates the next available local variable using the given type.
+  Ice::Variable *getNextInstVar(Ice::Type Ty) {
+    assert(NextLocalInstIndex >= CachedNumGlobalValueIDs);
+    // Before creating one, see if a forwardtyperef has already defined it.
+    uint32_t LocalIndex = NextLocalInstIndex - CachedNumGlobalValueIDs;
+    if (LocalIndex < LocalOperands.size()) {
+      Ice::Operand *Op = LocalOperands[LocalIndex];
+      if (Op != NULL) {
+        if (Ice::Variable *Var = dyn_cast<Ice::Variable>(Op)) {
+          if (Var->getType() == Ty) {
+            ++NextLocalInstIndex;
+            return Var;
+          }
+        }
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Illegal forward referenced instruction ("
+               << NextLocalInstIndex << "): " << *Op;
+        Error(StrBuf.str());
+        // TODO(kschimpf) Remove error recovery once implementation complete.
+        ++NextLocalInstIndex;
+        return createInstVar(Ty);
+      }
+    }
+    Ice::Variable *Var = createInstVar(Ty);
+    setOperand(NextLocalInstIndex++, Var);
     return Var;
   }
 
@@ -947,12 +980,54 @@ private:
     if (LocalIndex >= LocalOperands.size()) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Value index " << Index << " out of range. Must be less than "
-             << (LocalOperands.size() + CachedNumGlobalValueIDs);
+      StrBuf << "Value index " << Index << " not defined!";
       Error(StrBuf.str());
       report_fatal_error("Unable to continue");
     }
-    return LocalOperands[LocalIndex];
+    Ice::Operand *Op = LocalOperands[LocalIndex];
+    if (Op == NULL) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Value index " << Index << " not defined!";
+      Error(StrBuf.str());
+      report_fatal_error("Unable to continue");
+    }
+    return Op;
+  }
+
+  // Sets element Index (in the local operands list) to Op.
+  void setOperand(uint32_t Index, Ice::Operand *Op) {
+    assert(Op);
+    // Check if simple push works.
+    uint32_t LocalIndex = Index - CachedNumGlobalValueIDs;
+    if (LocalIndex == LocalOperands.size()) {
+      LocalOperands.push_back(Op);
+      return;
+    }
+
+    // Must be forward reference, expand vector to accommodate.
+    if (LocalIndex >= LocalOperands.size())
+      LocalOperands.resize(LocalIndex+1);
+
+    // If element not defined, set it.
+    Ice::Operand *OldOp = LocalOperands[LocalIndex];
+    if (OldOp == NULL) {
+      LocalOperands[LocalIndex] = Op;
+      return;
+    }
+
+    // See if forward reference matches.
+    if (OldOp == Op)
+      return;
+
+    // Error has occurred.
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << "Multiple definitions for index " << Index
+           << ": " << *Op << " and " << *OldOp;
+    Error(StrBuf.str());
+    // TODO(kschimpf) Remove error recovery once implementation complete.
+    LocalOperands[LocalIndex] = Op;
   }
 
   // Returns the relative operand (wrt to BaseIndex) referenced by
@@ -963,7 +1038,7 @@ private:
 
   // Returns the absolute index of the next value generating instruction.
   uint32_t getNextInstIndex() const {
-    return CachedNumGlobalValueIDs + LocalOperands.size();
+    return NextLocalInstIndex;
   }
 
   // Generates type error message for binary operator Op
@@ -1702,10 +1777,17 @@ void FunctionParser::ProcessRecord() {
         Ice::InstStore::create(Func, Value, Address, Alignment));
     break;
   }
+  case naclbitc::FUNC_CODE_INST_FORWARDTYPEREF: {
+    // FORWARDTYPEREF: [opval, ty]
+    if (!isValidRecordSize(2, "function block forward type ref"))
+      return;
+    setOperand(Values[0], createInstVar(
+        Context->convertToIceType(Context->getTypeByID(Values[1]))));
+    break;
+  }
   case naclbitc::FUNC_CODE_INST_SWITCH:
   case naclbitc::FUNC_CODE_INST_CALL:
   case naclbitc::FUNC_CODE_INST_CALL_INDIRECT:
-  case naclbitc::FUNC_CODE_INST_FORWARDTYPEREF:
   default:
     // Generate error message!
     BlockParserBaseClass::ProcessRecord();
