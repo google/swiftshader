@@ -83,8 +83,10 @@ def AddOptionalArgs(argparser):
     argparser.add_argument('--verbose', '-v', dest='verbose',
                            action='store_true',
                            help='Display some extra debugging output')
-    argparser.add_argument('--stats', dest='stats', action='store_true',
-                           help='Enable Subzero stats output')
+    argparser.add_argument('--sz', dest='sz_args', action='append', default=[],
+                           help='Extra arguments for Subzero')
+    argparser.add_argument('--llc', dest='llc_args', action='append',
+                           default=[], help='Extra arguments for llc')
 
 def main():
     """Create a hybrid translation from Subzero and llc.
@@ -172,11 +174,15 @@ def ProcessPexe(args, pexe, exe):
     if args.force or NewerThanOrNotThere(pexe, obj_llc) or \
             NewerThanOrNotThere(llcbin, obj_llc):
         opt_level_map = { 'm1':'0', '-1':'0', '0':'0', '1':'1', '2':'2' }
-        shellcmd((
-            'pnacl-translate -ffunction-sections -c -arch x86-32-linux ' +
-            '-O{level} --pnacl-driver-append-LLC_FLAGS_EXTRA=-externalize ' +
-            '-o {obj} {pexe}'
-            ).format(level=opt_level_map[opt_level], obj=obj_llc, pexe=pexe),
+        shellcmd(['pnacl-translate',
+                  '-ffunction-sections',
+                  '-c',
+                  '-arch', 'x86-32-linux',
+                  '-O' + opt_level_map[opt_level],
+                  '--pnacl-driver-append-LLC_FLAGS_EXTRA=-externalize',
+                  '-o', obj_llc] +
+                 args.llc_args +
+                 [pexe],
                  echo=args.verbose)
         shellcmd((
             'objcopy --redefine-sym _start=_user_start {obj}'
@@ -186,11 +192,15 @@ def ProcessPexe(args, pexe, exe):
             ).format(obj=obj_llc, sym=sym_llc), echo=args.verbose)
     if args.force or NewerThanOrNotThere(pexe, obj_sz) or \
             NewerThanOrNotThere(llvm2ice, obj_sz):
-        shellcmd((
-            '{l2i} -O{level} -bitcode-format=pnacl -disable-globals ' +
-            '-externalize -ffunction-sections {pexe} -o {asm}' +
-            (' --stats' if args.stats else '')
-            ).format(l2i=llvm2ice, level=opt_level, pexe=pexe, asm=asm_sz),
+        shellcmd([llvm2ice,
+                  '-O' + opt_level,
+                  '-bitcode-format=pnacl',
+                  '-disable-globals',
+                  '-externalize',
+                  '-ffunction-sections',
+                  '-o', asm_sz] +
+                 args.sz_args +
+                 [pexe],
                  echo=args.verbose)
         shellcmd((
             'llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj -o {obj} ' +
