@@ -65,6 +65,7 @@ public:
   void livenessLightweight();
   bool liveness(Liveness *Liveness);
   void livenessPostprocess(LivenessMode Mode, Liveness *Liveness);
+  void doBranchOpt(const CfgNode *NextNode);
   void emit(Cfg *Func) const;
   void dump(Cfg *Func) const;
 

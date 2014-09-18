@@ -225,7 +225,7 @@ public:
   };
 
   enum BrCond {
-#define X(tag, dump, emit) tag,
+#define X(tag, opp, dump, emit) tag,
     ICEINSTX8632BR_TABLE
 #undef X
         Br_None
@@ -309,53 +309,62 @@ public:
   // Create a conditional branch to a node.
   static InstX8632Br *create(Cfg *Func, CfgNode *TargetTrue,
                              CfgNode *TargetFalse, BrCond Condition) {
+    const InstX8632Label *NoLabel = NULL;
     return new (Func->allocate<InstX8632Br>())
-        InstX8632Br(Func, TargetTrue, TargetFalse, NULL, Condition);
+        InstX8632Br(Func, TargetTrue, TargetFalse, NoLabel, Condition);
   }
   // Create an unconditional branch to a node.
   static InstX8632Br *create(Cfg *Func, CfgNode *Target) {
+    const CfgNode *NoCondTarget = NULL;
+    const InstX8632Label *NoLabel = NULL;
     return new (Func->allocate<InstX8632Br>())
-        InstX8632Br(Func, NULL, Target, NULL, Br_None);
+        InstX8632Br(Func, NoCondTarget, Target, NoLabel, Br_None);
   }
   // Create a non-terminator conditional branch to a node, with a
   // fallthrough to the next instruction in the current node.  This is
   // used for switch lowering.
   static InstX8632Br *create(Cfg *Func, CfgNode *Target, BrCond Condition) {
+    const CfgNode *NoUncondTarget = NULL;
+    const InstX8632Label *NoLabel = NULL;
     return new (Func->allocate<InstX8632Br>())
-        InstX8632Br(Func, Target, NULL, NULL, Condition);
+        InstX8632Br(Func, Target, NoUncondTarget, NoLabel, Condition);
   }
   // Create a conditional intra-block branch (or unconditional, if
   // Condition==Br_None) to a label in the current block.
   static InstX8632Br *create(Cfg *Func, InstX8632Label *Label,
                              BrCond Condition) {
+    const CfgNode *NoCondTarget = NULL;
+    const CfgNode *NoUncondTarget = NULL;
     return new (Func->allocate<InstX8632Br>())
-        InstX8632Br(Func, NULL, NULL, Label, Condition);
+        InstX8632Br(Func, NoCondTarget, NoUncondTarget, Label, Condition);
   }
-  CfgNode *getTargetTrue() const { return TargetTrue; }
-  CfgNode *getTargetFalse() const { return TargetFalse; }
+  const CfgNode *getTargetTrue() const { return TargetTrue; }
+  const CfgNode *getTargetFalse() const { return TargetFalse; }
+  bool optimizeBranch(const CfgNode *NextNode);
   virtual uint32_t getEmitInstCount() const {
+    uint32_t Sum = 0;
     if (Label)
-      return 1;
-    if (Condition == Br_None)
-      return 1;
+      ++Sum;
+    if (getTargetTrue())
+      ++Sum;
     if (getTargetFalse())
-      return 2;
-    return 1;
+      ++Sum;
+    return Sum;
   }
   virtual void emit(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Br); }
 
 private:
-  InstX8632Br(Cfg *Func, CfgNode *TargetTrue, CfgNode *TargetFalse,
-              InstX8632Label *Label, BrCond Condition);
+  InstX8632Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
+              const InstX8632Label *Label, BrCond Condition);
   InstX8632Br(const InstX8632Br &) LLVM_DELETED_FUNCTION;
   InstX8632Br &operator=(const InstX8632Br &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Br() {}
   BrCond Condition;
-  CfgNode *TargetTrue;
-  CfgNode *TargetFalse;
-  InstX8632Label *Label; // Intra-block branch target
+  const CfgNode *TargetTrue;
+  const CfgNode *TargetFalse;
+  const InstX8632Label *Label; // Intra-block branch target
 };
 
 // AdjustStack instruction - subtracts esp by the given amount and

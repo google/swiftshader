@@ -20,7 +20,7 @@ declare i32 @llvm.nacl.atomic.cmpxchg.i32(i32*, i32, i32, i32, i32)
 ; reuse the flags set by the cmpxchg instruction itself.
 ; This is only expected to work w/ O2, based on lightweight liveness.
 ; (Or if we had other means to detect the only use).
-declare void @use_value(i32);
+declare void @use_value(i32)
 
 define i32 @test_atomic_cmpxchg_loop(i32 %iptr, i32 %expected, i32 %desired) {
 entry:
@@ -46,7 +46,7 @@ done:
 ; Make sure the phi assignment for succeeded_first_try is still there.
 ; O2: mov {{.*}}, 2
 ; O2-NOT: cmp
-; O2: je
+; O2: jne
 ; Make sure the call isn't accidentally deleted.
 ; O2: call
 ;
@@ -78,7 +78,7 @@ done:
 ; O2: lock
 ; O2-NEXT: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
 ; O2-NOT: cmp
-; O2: je
+; O2: jne
 
 
 ; Still works if the compare operands are constants.
@@ -102,7 +102,7 @@ done:
 ; Should be using NEXT: see issue 3929
 ; O2: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
 ; O2-NOT: cmp
-; O2: je
+; O2: jne
 
 ; This is a case where the flags cannot be reused (compare is for some
 ; other condition).
@@ -126,7 +126,7 @@ done:
 ; O2-NEXT: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
 ; O2: mov {{.*}}
 ; O2: cmp
-; O2: jg
+; O2: jle
 
 ; Another case where the flags cannot be reused (the comparison result
 ; is used somewhere else).

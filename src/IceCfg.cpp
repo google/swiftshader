@@ -290,6 +290,14 @@ bool Cfg::validateLiveness() const {
   return Valid;
 }
 
+void Cfg::doBranchOpt() {
+  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
+    NodeList::iterator NextNode = I;
+    ++NextNode;
+    (*I)->doBranchOpt(*NextNode);
+  }
+}
+
 // ======================== Dump routines ======================== //
 
 void Cfg::emit() {

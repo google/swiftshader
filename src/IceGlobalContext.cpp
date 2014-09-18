@@ -384,10 +384,14 @@ ConstantList GlobalContext::getConstantPool(Type Ty) const {
   llvm_unreachable("Unknown type");
 }
 
-void GlobalContext::dumpStats(const IceString &Name) {
+void GlobalContext::dumpStats(const IceString &Name, bool Final) {
   if (Flags.DumpStats) {
-    StatsFunction.dump(Name, getStrDump());
-    StatsCumulative.dump("_TOTAL_", getStrDump());
+    if (Final) {
+      StatsCumulative.dump(Name, getStrDump());
+    } else {
+      StatsFunction.dump(Name, getStrDump());
+      StatsCumulative.dump("_TOTAL_", getStrDump());
+    }
   }
 }
 

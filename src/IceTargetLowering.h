@@ -125,6 +125,11 @@ public:
   void doNopInsertion();
   // Lowers a single instruction.
   void lower();
+  // Tries to do branch optimization on a single instruction.  Returns
+  // true if some optimization was done.
+  virtual bool doBranchOpt(Inst * /*I*/, const CfgNode * /*NextNode*/) {
+    return false;
+  }
 
   // Returns a variable pre-colored to the specified physical
   // register.  This is generally used to get very direct access to

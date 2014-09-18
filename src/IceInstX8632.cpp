@@ -24,11 +24,12 @@ namespace Ice {
 namespace {
 
 const struct InstX8632BrAttributes_ {
+  InstX8632::BrCond Opposite;
   const char *DisplayString;
   const char *EmitString;
 } InstX8632BrAttributes[] = {
-#define X(tag, dump, emit)                                                     \
-  { dump, emit }                                                               \
+#define X(tag, opp, dump, emit)                                                \
+  { InstX8632::opp, dump, emit }                                               \
   ,
     ICEINSTX8632BR_TABLE
 #undef X
@@ -128,10 +129,51 @@ IceString InstX8632Label::getName(const Cfg *Func) const {
   return ".L" + Func->getFunctionName() + "$local$__" + buf;
 }
 
-InstX8632Br::InstX8632Br(Cfg *Func, CfgNode *TargetTrue, CfgNode *TargetFalse,
-                         InstX8632Label *Label, InstX8632::BrCond Condition)
+InstX8632Br::InstX8632Br(Cfg *Func, const CfgNode *TargetTrue,
+                         const CfgNode *TargetFalse,
+                         const InstX8632Label *Label,
+                         InstX8632::BrCond Condition)
     : InstX8632(Func, InstX8632::Br, 0, NULL), Condition(Condition),
       TargetTrue(TargetTrue), TargetFalse(TargetFalse), Label(Label) {}
+
+bool InstX8632Br::optimizeBranch(const CfgNode *NextNode) {
+  // If there is no next block, then there can be no fallthrough to
+  // optimize.
+  if (NextNode == NULL)
+    return false;
+  // Intra-block conditional branches can't be optimized.
+  if (Label)
+    return false;
+  // If there is no fallthrough node, such as a non-default case label
+  // for a switch instruction, then there is no opportunity to
+  // optimize.
+  if (getTargetFalse() == NULL)
+    return false;
+
+  // Unconditional branch to the next node can be removed.
+  if (Condition == Br_None && getTargetFalse() == NextNode) {
+    assert(getTargetTrue() == NULL);
+    setDeleted();
+    return true;
+  }
+  // If the fallthrough is to the next node, set fallthrough to NULL
+  // to indicate.
+  if (getTargetFalse() == NextNode) {
+    TargetFalse = NULL;
+    return true;
+  }
+  // If TargetTrue is the next node, and TargetFalse is non-NULL
+  // (which was already tested above), then invert the branch
+  // condition, swap the targets, and set new fallthrough to NULL.
+  if (getTargetTrue() == NextNode) {
+    assert(Condition != Br_None);
+    Condition = InstX8632BrAttributes[Condition].Opposite;
+    TargetTrue = getTargetFalse();
+    TargetFalse = NULL;
+    return true;
+  }
+  return false;
+}
 
 InstX8632Call::InstX8632Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
     : InstX8632(Func, InstX8632::Call, 1, Dest) {

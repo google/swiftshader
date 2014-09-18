@@ -166,10 +166,11 @@ int main(int argc, char **argv) {
   Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix,
                          Flags);
 
+  int ErrorStatus = 0;
   if (BuildOnRead) {
     Ice::PNaClTranslator Translator(&Ctx, Flags);
     Translator.translate(IRFilename);
-    return Translator.getErrorStatus();
+    ErrorStatus = Translator.getErrorStatus();
   } else {
     // Parse the input LLVM IR file into a module.
     SMDiagnostic Err;
@@ -189,6 +190,9 @@ int main(int argc, char **argv) {
 
     Ice::Converter Converter(Mod, &Ctx, Flags);
     Converter.convertToIce();
-    return Converter.getErrorStatus();
+    ErrorStatus = Converter.getErrorStatus();
   }
+  const bool FinalStats = true;
+  Ctx.dumpStats("_FINAL_", FinalStats);
+  return ErrorStatus;
 }

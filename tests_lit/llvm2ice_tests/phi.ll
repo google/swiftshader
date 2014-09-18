@@ -30,10 +30,8 @@ target:
 ; CHECK: mov {{.*}}, 0
 ; CHECK: mov [[PHI:.*]],
 ; CHECK: cmp {{.*}}, 0
-; CHECK: jne
-; CHECK: :
+; CHECK: je
 ; CHECK: mov [[PHI]], 0
-; CHECK: :
 ; CHECK: movzx {{.*}}, [[PHI]]
 
 define internal i32 @testPhi2(i32 %arg) {
@@ -50,10 +48,8 @@ target:
 ; CHECK-LABEL: testPhi2
 ; CHECK: mov {{.*}}, 12345
 ; CHECK: cmp {{.*}}, 0
-; CHECK-NEXT: jg
-; CHECK: :
+; CHECK-NEXT: jle
 ; CHECK: mov [[PHI:.*]], 54321
-; CHECK: :
 ; CHECK: mov {{.*}}, [[PHI]]
 
 ; ERRORS-NOT: ICE translation error
@@ -100,11 +96,9 @@ exit:
 ; CHECK-LABEL: testPhi3
 ; CHECK: push [[EBX:.*]]
 ; CHECK: mov {{.*}}, dword ptr [esp
-; CHECK: jmp
 ; CHECK: mov
 ; CHECK: mov {{.*}}[[ADDR:.*1000]]
 ; CHECK: cmp {{.*}}, 0
-; CHECK: je
-; CHECK: jmp
+; CHECK: jne
 ; CHECK: mov {{.*}}[[ADDR]]
 ; CHECK: pop [[EBX]]

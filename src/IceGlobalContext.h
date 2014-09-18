@@ -132,7 +132,7 @@ public:
 
   // Reset stats at the beginning of a function.
   void resetStats() { StatsFunction.reset(); }
-  void dumpStats(const IceString &Name);
+  void dumpStats(const IceString &Name, bool Final = false);
   void statsUpdateEmitted(uint32_t InstCount) {
     StatsFunction.updateEmitted(InstCount);
     StatsCumulative.updateEmitted(InstCount);

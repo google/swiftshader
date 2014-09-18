@@ -2247,7 +2247,6 @@ void PNaClTranslator::translate(const std::string &IRFilename) {
            << "\n";
     ErrorStatus = true;
   }
-  return;
 }
 
 } // end of namespace Ice

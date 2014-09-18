@@ -51,20 +51,20 @@
 //#define X(val, name)
 
 #define ICEINSTX8632BR_TABLE   \
-  /* enum value, dump, emit */ \
-  X(Br_a,        "a",  "ja")   \
-  X(Br_ae,       "ae", "jae")  \
-  X(Br_b,        "b",  "jb")   \
-  X(Br_be,       "be", "jbe")  \
-  X(Br_e,        "e",  "je")   \
-  X(Br_g,        "g",  "jg")   \
-  X(Br_ge,       "ge", "jge")  \
-  X(Br_l,        "l",  "jl")   \
-  X(Br_le,       "le", "jle")  \
-  X(Br_ne,       "ne", "jne")  \
-  X(Br_np,       "np", "jnp")  \
-  X(Br_p,        "p",  "jp")   \
-//#define X(tag, dump, emit)
+  /* enum value, opposite, dump, emit */ \
+  X(Br_a,        Br_be,    "a",  "ja")                \
+  X(Br_ae,       Br_b,     "ae", "jae")               \
+  X(Br_b,        Br_ae,    "b",  "jb")                \
+  X(Br_be,       Br_a,     "be", "jbe")               \
+  X(Br_e,        Br_ne,    "e",  "je")                \
+  X(Br_g,        Br_le,    "g",  "jg")                \
+  X(Br_ge,       Br_l,     "ge", "jge")               \
+  X(Br_l,        Br_ge,    "l",  "jl")                \
+  X(Br_le,       Br_g,     "le", "jle")               \
+  X(Br_ne,       Br_e,     "ne", "jne")               \
+  X(Br_np,       Br_p,     "np", "jnp")               \
+  X(Br_p,        Br_np,    "p",  "jp")                \
+//#define X(tag, opp, dump, emit)
 
 #define ICEINSTX8632CMPPS_TABLE \
   /* enum value, emit */        \

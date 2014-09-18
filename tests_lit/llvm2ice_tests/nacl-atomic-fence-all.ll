@@ -213,8 +213,7 @@ branch2:
 }
 ; CHECK-LABEL: could_have_hoisted_loads
 ; CHECK: dword ptr [0]
-; CHECK: je {{.*}}
-; CHECK: jmp {{.*}}
+; CHECK: jne {{.*}}
 ; CHECK: mov {{.*}}, dword ptr
 ; CHECK: ret
 ; CHECK: mfence

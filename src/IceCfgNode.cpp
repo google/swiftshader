@@ -457,6 +457,19 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
   }
 }
 
+void CfgNode::doBranchOpt(const CfgNode *NextNode) {
+  TargetLowering *Target = Func->getTarget();
+  // Check every instruction for a branch optimization opportunity.
+  // It may be more efficient to iterate in reverse and stop after the
+  // first opportunity, unless there is some target lowering where we
+  // have the possibility of multiple such optimizations per block
+  // (currently not the case for x86 lowering).
+  for (InstList::const_iterator I = Insts.begin(), E = Insts.end(); I != E;
+       ++I) {
+    Target->doBranchOpt(*I, NextNode);
+  }
+}
+
 // ======================== Dump routines ======================== //
 
 void CfgNode::emit(Cfg *Func) const {

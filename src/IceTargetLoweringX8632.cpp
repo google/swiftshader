@@ -395,6 +395,14 @@ void TargetX8632::translateO2() {
   T_genFrame.printElapsedUs(Context, "genFrame()");
   Func->dump("After stack frame mapping");
 
+  // Branch optimization.  This needs to be done just before code
+  // emission.  In particular, no transformations that insert or
+  // reorder CfgNodes should be done after branch optimization.  We go
+  // ahead and do it before nop insertion to reduce the amount of work
+  // needed for searching for opportunities.
+  Func->doBranchOpt();
+  Func->dump("After branch optimization");
+
   // Nop insertion
   if (shouldDoNopInsertion()) {
     Func->doNopInsertion();
@@ -442,6 +450,13 @@ void TargetX8632::translateOm1() {
   if (shouldDoNopInsertion()) {
     Func->doNopInsertion();
   }
+}
+
+bool TargetX8632::doBranchOpt(Inst *I, const CfgNode *NextNode) {
+  if (InstX8632Br *Br = llvm::dyn_cast<InstX8632Br>(I)) {
+    return Br->optimizeBranch(NextNode);
+  }
+  return false;
 }
 
 IceString TargetX8632::RegNames[] = {

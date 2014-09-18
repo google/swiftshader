@@ -5,7 +5,7 @@
 
 ; RUN: %llvm2ice -Om1 --target=x8632 --verbose none %s | FileCheck %s
 
-declare i32 @memcpy_helper2(i32 %buf, i32 %buf2, i32 %n);
+declare i32 @memcpy_helper2(i32 %buf, i32 %buf2, i32 %n)
 
 define i32 @memcpy_helper(i32 %buf, i32 %n) {
 entry:

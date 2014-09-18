@@ -94,6 +94,7 @@ public:
   void livenessLightweight();
   void liveness(LivenessMode Mode);
   bool validateLiveness() const;
+  void doBranchOpt();
 
   // Manage the CurrentNode field, which is used for validating the
   // Variable::DefNode field during dumping/emitting.

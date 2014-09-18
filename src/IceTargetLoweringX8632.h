@@ -28,6 +28,7 @@ public:
 
   virtual void translateOm1();
   virtual void translateO2();
+  virtual bool doBranchOpt(Inst *I, const CfgNode *NextNode);
 
   virtual Variable *getPhysicalRegister(SizeT RegNum);
   virtual IceString getRegName(SizeT RegNum, Type Ty) const;
