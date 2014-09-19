@@ -19,6 +19,7 @@
 #include "IceDefs.h"
 #include "IceTargetLowering.h"
 #include "IceInstX8632.h"
+#include "IceRegistersX8632.h"
 
 namespace Ice {
 
@@ -39,7 +40,7 @@ public:
   }
   virtual bool hasFramePointer() const { return IsEbpBasedFrame; }
   virtual SizeT getFrameOrStackReg() const {
-    return IsEbpBasedFrame ? Reg_ebp : Reg_esp;
+    return IsEbpBasedFrame ? RegX8632::Reg_ebp : RegX8632::Reg_esp;
   }
   virtual size_t typeWidthInBytesOnStack(Type Ty) const {
     // Round up to the next multiple of 4 bytes.  In particular, i1,
@@ -67,15 +68,6 @@ public:
                               size_t BasicFrameOffset, size_t &InArgsSizeBytes);
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
-
-  enum Registers {
-#define X(val, init, name, name16, name8, scratch, preserved, stackptr,        \
-          frameptr, isI8, isInt, isFP)                                         \
-  val init,
-    REGX8632_TABLE
-#undef X
-        Reg_NUM
-  };
 
   enum X86InstructionSet {
     // SSE2 is the PNaCl baseline instruction set.
@@ -212,7 +204,7 @@ protected:
   void _blendvps(Variable *Dest, Operand *Src0, Operand *Src1) {
     Context.insert(InstX8632Blendvps::create(Func, Dest, Src0, Src1));
   }
-  void _br(InstX8632::BrCond Condition, CfgNode *TargetTrue,
+  void _br(CondX86::BrCond Condition, CfgNode *TargetTrue,
            CfgNode *TargetFalse) {
     Context.insert(
         InstX8632Br::create(Func, TargetTrue, TargetFalse, Condition));
@@ -220,10 +212,10 @@ protected:
   void _br(CfgNode *Target) {
     Context.insert(InstX8632Br::create(Func, Target));
   }
-  void _br(InstX8632::BrCond Condition, CfgNode *Target) {
+  void _br(CondX86::BrCond Condition, CfgNode *Target) {
     Context.insert(InstX8632Br::create(Func, Target, Condition));
   }
-  void _br(InstX8632::BrCond Condition, InstX8632Label *Label) {
+  void _br(CondX86::BrCond Condition, InstX8632Label *Label) {
     Context.insert(InstX8632Br::create(Func, Label, Condition));
   }
   void _bsf(Variable *Dest, Operand *Src0) {
@@ -238,14 +230,13 @@ protected:
   void _cbwdq(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Cbwdq::create(Func, Dest, Src0));
   }
-  void _cmov(Variable *Dest, Operand *Src0, InstX8632::BrCond Condition) {
+  void _cmov(Variable *Dest, Operand *Src0, CondX86::BrCond Condition) {
     Context.insert(InstX8632Cmov::create(Func, Dest, Src0, Condition));
   }
   void _cmp(Operand *Src0, Operand *Src1) {
     Context.insert(InstX8632Icmp::create(Func, Src0, Src1));
   }
-  void _cmpps(Variable *Dest, Operand *Src0,
-              InstX8632Cmpps::CmppsCond Condition) {
+  void _cmpps(Variable *Dest, Operand *Src0, CondX86::CmppsCond Condition) {
     Context.insert(InstX8632Cmpps::create(Func, Dest, Src0, Condition));
   }
   void _cmpxchg(Operand *DestOrAddr, Variable *Eax, Variable *Desired,

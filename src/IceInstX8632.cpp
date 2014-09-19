@@ -14,8 +14,10 @@
 
 #include "IceCfg.h"
 #include "IceCfgNode.h"
+#include "IceConditionCodesX8632.h"
 #include "IceInst.h"
 #include "IceInstX8632.h"
+#include "IceRegistersX8632.h"
 #include "IceTargetLoweringX8632.h"
 #include "IceOperand.h"
 
@@ -24,12 +26,12 @@ namespace Ice {
 namespace {
 
 const struct InstX8632BrAttributes_ {
-  InstX8632::BrCond Opposite;
+  CondX86::BrCond Opposite;
   const char *DisplayString;
   const char *EmitString;
 } InstX8632BrAttributes[] = {
-#define X(tag, opp, dump, emit)                                                \
-  { InstX8632::opp, dump, emit }                                               \
+#define X(tag, encode, opp, dump, emit)                                        \
+  { CondX86::opp, dump, emit }                                                 \
   ,
     ICEINSTX8632BR_TABLE
 #undef X
@@ -131,8 +133,7 @@ IceString InstX8632Label::getName(const Cfg *Func) const {
 
 InstX8632Br::InstX8632Br(Cfg *Func, const CfgNode *TargetTrue,
                          const CfgNode *TargetFalse,
-                         const InstX8632Label *Label,
-                         InstX8632::BrCond Condition)
+                         const InstX8632Label *Label, CondX86::BrCond Condition)
     : InstX8632(Func, InstX8632::Br, 0, NULL), Condition(Condition),
       TargetTrue(TargetTrue), TargetFalse(TargetFalse), Label(Label) {}
 
@@ -151,7 +152,7 @@ bool InstX8632Br::optimizeBranch(const CfgNode *NextNode) {
     return false;
 
   // Unconditional branch to the next node can be removed.
-  if (Condition == Br_None && getTargetFalse() == NextNode) {
+  if (Condition == CondX86::Br_None && getTargetFalse() == NextNode) {
     assert(getTargetTrue() == NULL);
     setDeleted();
     return true;
@@ -166,7 +167,7 @@ bool InstX8632Br::optimizeBranch(const CfgNode *NextNode) {
   // (which was already tested above), then invert the branch
   // condition, swap the targets, and set new fallthrough to NULL.
   if (getTargetTrue() == NextNode) {
-    assert(Condition != Br_None);
+    assert(Condition != CondX86::Br_None);
     Condition = InstX8632BrAttributes[Condition].Opposite;
     TargetTrue = getTargetFalse();
     TargetFalse = NULL;
@@ -182,7 +183,7 @@ InstX8632Call::InstX8632Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
 }
 
 InstX8632Cmov::InstX8632Cmov(Cfg *Func, Variable *Dest, Operand *Source,
-                             InstX8632::BrCond Condition)
+                             CondX86::BrCond Condition)
     : InstX8632(Func, InstX8632::Cmov, 2, Dest), Condition(Condition) {
   // The final result is either the original Dest, or Source, so mark
   // both as sources.
@@ -191,7 +192,7 @@ InstX8632Cmov::InstX8632Cmov(Cfg *Func, Variable *Dest, Operand *Source,
 }
 
 InstX8632Cmpps::InstX8632Cmpps(Cfg *Func, Variable *Dest, Operand *Source,
-                               InstX8632Cmpps::CmppsCond Condition)
+                               CondX86::CmppsCond Condition)
     : InstX8632(Func, InstX8632::Cmpps, 2, Dest), Condition(Condition) {
   addSource(Dest);
   addSource(Source);
@@ -202,7 +203,7 @@ InstX8632Cmpxchg::InstX8632Cmpxchg(Cfg *Func, Operand *DestOrAddr,
                                    bool Locked)
     : InstX8632Lockable(Func, InstX8632::Cmpxchg, 3,
                         llvm::dyn_cast<Variable>(DestOrAddr), Locked) {
-  assert(Eax->getRegNum() == TargetX8632::Reg_eax);
+  assert(Eax->getRegNum() == RegX8632::Reg_eax);
   addSource(DestOrAddr);
   addSource(Eax);
   addSource(Desired);
@@ -213,10 +214,10 @@ InstX8632Cmpxchg8b::InstX8632Cmpxchg8b(Cfg *Func, OperandX8632 *Addr,
                                        Variable *Ecx, Variable *Ebx,
                                        bool Locked)
     : InstX8632Lockable(Func, InstX8632::Cmpxchg, 5, NULL, Locked) {
-  assert(Edx->getRegNum() == TargetX8632::Reg_edx);
-  assert(Eax->getRegNum() == TargetX8632::Reg_eax);
-  assert(Ecx->getRegNum() == TargetX8632::Reg_ecx);
-  assert(Ebx->getRegNum() == TargetX8632::Reg_ebx);
+  assert(Edx->getRegNum() == RegX8632::Reg_edx);
+  assert(Eax->getRegNum() == RegX8632::Reg_eax);
+  assert(Ecx->getRegNum() == RegX8632::Reg_ecx);
+  assert(Ebx->getRegNum() == RegX8632::Reg_ebx);
   addSource(Addr);
   addSource(Edx);
   addSource(Eax);
@@ -347,7 +348,7 @@ void InstX8632Br::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t";
 
-  if (Condition == Br_None) {
+  if (Condition == CondX86::Br_None) {
     Str << "jmp";
   } else {
     Str << InstX8632BrAttributes[Condition].EmitString;
@@ -356,7 +357,7 @@ void InstX8632Br::emit(const Cfg *Func) const {
   if (Label) {
     Str << "\t" << Label->getName(Func) << "\n";
   } else {
-    if (Condition == Br_None) {
+    if (Condition == CondX86::Br_None) {
       Str << "\t" << getTargetFalse()->getAsmName() << "\n";
     } else {
       Str << "\t" << getTargetTrue()->getAsmName() << "\n";
@@ -371,7 +372,7 @@ void InstX8632Br::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "br ";
 
-  if (Condition == Br_None) {
+  if (Condition == CondX86::Br_None) {
     Str << "label %"
         << (Label ? Label->getName(Func) : getTargetFalse()->getName());
     return;
@@ -422,7 +423,7 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
   bool EmittedSrc1 = false;
   if (ShiftHack) {
     Variable *ShiftReg = llvm::dyn_cast<Variable>(Inst->getSrc(1));
-    if (ShiftReg && ShiftReg->getRegNum() == TargetX8632::Reg_ecx) {
+    if (ShiftReg && ShiftReg->getRegNum() == RegX8632::Reg_ecx) {
       Str << "cl";
       EmittedSrc1 = true;
     }
@@ -611,7 +612,7 @@ void emitVariableBlendInst(const char *Opcode, const Inst *Inst,
   assert(Inst->getSrcSize() == 3);
   assert(llvm::isa<Variable>(Inst->getSrc(2)));
   assert(llvm::cast<Variable>(Inst->getSrc(2))->getRegNum() ==
-         TargetX8632::Reg_xmm0);
+         RegX8632::Reg_xmm0);
   Str << "\t" << Opcode << "\t";
   Inst->getDest()->emit(Func);
   Str << ", ";
@@ -640,7 +641,7 @@ template <> void InstX8632Imul::emit(const Cfg *Func) const {
     // The 8-bit version of imul only allows the form "imul r/m8".
     Variable *Src0 = llvm::dyn_cast<Variable>(getSrc(0));
     (void)Src0;
-    assert(Src0 && Src0->getRegNum() == TargetX8632::Reg_eax);
+    assert(Src0 && Src0->getRegNum() == RegX8632::Reg_eax);
     Str << "\timul\t";
     getSrc(1)->emit(Func);
     Str << "\n";
@@ -662,21 +663,21 @@ template <> void InstX8632Cbwdq::emit(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   Operand *Src0 = getSrc(0);
   assert(llvm::isa<Variable>(Src0));
-  assert(llvm::cast<Variable>(Src0)->getRegNum() == TargetX8632::Reg_eax);
+  assert(llvm::cast<Variable>(Src0)->getRegNum() == RegX8632::Reg_eax);
   switch (Src0->getType()) {
   default:
     llvm_unreachable("unexpected source type!");
     break;
   case IceType_i8:
-    assert(getDest()->getRegNum() == TargetX8632::Reg_eax);
+    assert(getDest()->getRegNum() == RegX8632::Reg_eax);
     Str << "\tcbw\n";
     break;
   case IceType_i16:
-    assert(getDest()->getRegNum() == TargetX8632::Reg_edx);
+    assert(getDest()->getRegNum() == RegX8632::Reg_edx);
     Str << "\tcwd\n";
     break;
   case IceType_i32:
-    assert(getDest()->getRegNum() == TargetX8632::Reg_edx);
+    assert(getDest()->getRegNum() == RegX8632::Reg_edx);
     Str << "\tcdq\n";
     break;
   }
@@ -686,9 +687,8 @@ void InstX8632Mul::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   assert(llvm::isa<Variable>(getSrc(0)));
-  assert(llvm::dyn_cast<Variable>(getSrc(0))->getRegNum() ==
-         TargetX8632::Reg_eax);
-  assert(getDest()->getRegNum() == TargetX8632::Reg_eax); // TODO: allow edx?
+  assert(llvm::dyn_cast<Variable>(getSrc(0))->getRegNum() == RegX8632::Reg_eax);
+  assert(getDest()->getRegNum() == RegX8632::Reg_eax); // TODO: allow edx?
   Str << "\tmul\t";
   getSrc(1)->emit(Func);
   Str << "\n";
@@ -712,7 +712,7 @@ void InstX8632Shld::emit(const Cfg *Func) const {
   Str << ", ";
   if (Variable *ShiftReg = llvm::dyn_cast<Variable>(getSrc(2))) {
     (void)ShiftReg;
-    assert(ShiftReg->getRegNum() == TargetX8632::Reg_ecx);
+    assert(ShiftReg->getRegNum() == RegX8632::Reg_ecx);
     Str << "cl";
   } else {
     getSrc(2)->emit(Func);
@@ -738,7 +738,7 @@ void InstX8632Shrd::emit(const Cfg *Func) const {
   Str << ", ";
   if (Variable *ShiftReg = llvm::dyn_cast<Variable>(getSrc(2))) {
     (void)ShiftReg;
-    assert(ShiftReg->getRegNum() == TargetX8632::Reg_ecx);
+    assert(ShiftReg->getRegNum() == RegX8632::Reg_ecx);
     Str << "cl";
   } else {
     getSrc(2)->emit(Func);
@@ -756,7 +756,7 @@ void InstX8632Shrd::dump(const Cfg *Func) const {
 void InstX8632Cmov::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t";
-  assert(Condition != Br_None);
+  assert(Condition != CondX86::Br_None);
   assert(getDest()->hasReg());
   Str << "cmov" << InstX8632BrAttributes[Condition].DisplayString << "\t";
   getDest()->emit(Func);
@@ -777,7 +777,7 @@ void InstX8632Cmov::dump(const Cfg *Func) const {
 void InstX8632Cmpps::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
-  assert(Condition < Cmpps_Invalid);
+  assert(Condition < CondX86::Cmpps_Invalid);
   Str << "\t";
   Str << "cmp" << InstX8632CmppsAttributes[Condition].EmitString << "ps"
       << "\t";
@@ -789,7 +789,7 @@ void InstX8632Cmpps::emit(const Cfg *Func) const {
 
 void InstX8632Cmpps::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
-  assert(Condition < Cmpps_Invalid);
+  assert(Condition < CondX86::Cmpps_Invalid);
   dumpDest(Func);
   Str << " = cmp" << InstX8632CmppsAttributes[Condition].EmitString << "ps"
       << "\t";

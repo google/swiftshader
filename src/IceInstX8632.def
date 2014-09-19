@@ -16,8 +16,8 @@
 #define SUBZERO_SRC_ICEINSTX8632_DEF
 
 // NOTE: esp is not considered isInt, to avoid register allocating it.
-#define REGX8632_TABLE                                                  \
-  /* val, init, name, name16, name8, scratch, preserved, stackptr,      \
+#define REGX8632_GPR_TABLE                                              \
+  /* val, encode, name, name16, name8, scratch, preserved, stackptr,    \
      frameptr, isI8, isInt, isFP */                                     \
   X(Reg_eax, = 0,             "eax",  "ax", "al", 1, 0, 0, 0, 1, 1, 0)  \
   X(Reg_ecx, = Reg_eax + 1,   "ecx",  "cx", "cl", 1, 0, 0, 0, 1, 1, 0)  \
@@ -26,9 +26,10 @@
   X(Reg_esp, = Reg_eax + 4,   "esp",  "sp", ""  , 0, 0, 1, 0, 0, 0, 0)  \
   X(Reg_ebp, = Reg_eax + 5,   "ebp",  "bp", ""  , 0, 1, 0, 1, 0, 1, 0)  \
   X(Reg_esi, = Reg_eax + 6,   "esi",  "si", ""  , 0, 1, 0, 0, 0, 1, 0)  \
-  X(Reg_edi, = Reg_eax + 7,   "edi",  "di", ""  , 0, 1, 0, 0, 0, 1, 0)  \
-  X(Reg_ah,  = Reg_edi + 1,   "???",  ""  , "ah", 0, 0, 0, 0, 1, 0, 0)  \
-  X(Reg_xmm0, = Reg_ah + 1,   "xmm0", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
+  X(Reg_edi, = Reg_eax + 7,   "edi",  "di", ""  , 0, 1, 0, 0, 0, 1, 0)
+
+#define REGX8632_XMM_TABLE                                              \
+  X(Reg_xmm0, = 0,            "xmm0", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
   X(Reg_xmm1, = Reg_xmm0 + 1, "xmm1", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
   X(Reg_xmm2, = Reg_xmm0 + 2, "xmm2", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
   X(Reg_xmm3, = Reg_xmm0 + 3, "xmm3", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
@@ -36,8 +37,40 @@
   X(Reg_xmm5, = Reg_xmm0 + 5, "xmm5", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
   X(Reg_xmm6, = Reg_xmm0 + 6, "xmm6", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
   X(Reg_xmm7, = Reg_xmm0 + 7, "xmm7", ""  , ""  , 1, 0, 0, 0, 0, 0, 1)  \
-//#define X(val, init, name, name16, name8, scratch, preserved, stackptr,
+//#define X(val, encode, name, name16, name8, scratch, preserved, stackptr,
 //          frameptr, isI8, isInt, isFP)
+
+// We also provide a combined table, so that there is a namespace where
+// all of the registers are considered and have distinct numberings.
+// This is in contrast to the above, where the "encode" is based on how
+// the register numbers will be encoded in binaries and values can overlap.
+#define REGX8632_TABLE                                                  \
+  /* val, encode, name, name16, name8, scratch, preserved, stackptr,    \
+     frameptr, isI8, isInt, isFP */                                     \
+  REGX8632_GPR_TABLE                                                    \
+  X(Reg_ah,  = Reg_eax + 4,   "???",  ""  , "ah", 0, 0, 0, 0, 1, 0, 0)  \
+  REGX8632_XMM_TABLE
+//#define X(val, encode, name, name16, name8, scratch, preserved, stackptr,
+//          frameptr, isI8, isInt, isFP)
+
+#define REGX8632_TABLE_BOUNDS                                           \
+  /* val, init */                                                       \
+  X(Reg_GPR_First, = Reg_eax)                                           \
+  X(Reg_GPR_Last,  = Reg_edi)                                           \
+  X(Reg_XMM_First, = Reg_xmm0)                                          \
+  X(Reg_XMM_Last,  = Reg_xmm7)                                          \
+//define X(val, init)
+
+// We also need the encodings for the Byte registers (other info overlaps
+// what is in the REGX8632_GPR_TABLE).
+#define REGX8632_BYTEREG_TABLE                                          \
+  /* val, encode */                                                     \
+  X(Reg_al, = 0) \
+  X(Reg_cl, = 1) \
+  X(Reg_dl, = 2) \
+  X(Reg_bl, = 3) \
+  X(Reg_ah, = 4)
+//#define X(val, encode)
 
 // X86 segment registers.
 #define SEG_REGX8632_TABLE  \
@@ -51,20 +84,24 @@
 //#define X(val, name)
 
 #define ICEINSTX8632BR_TABLE   \
-  /* enum value, opposite, dump, emit */ \
-  X(Br_a,        Br_be,    "a",  "ja")                \
-  X(Br_ae,       Br_b,     "ae", "jae")               \
-  X(Br_b,        Br_ae,    "b",  "jb")                \
-  X(Br_be,       Br_a,     "be", "jbe")               \
-  X(Br_e,        Br_ne,    "e",  "je")                \
-  X(Br_g,        Br_le,    "g",  "jg")                \
-  X(Br_ge,       Br_l,     "ge", "jge")               \
-  X(Br_l,        Br_ge,    "l",  "jl")                \
-  X(Br_le,       Br_g,     "le", "jle")               \
-  X(Br_ne,       Br_e,     "ne", "jne")               \
-  X(Br_np,       Br_p,     "np", "jnp")               \
-  X(Br_p,        Br_np,    "p",  "jp")                \
-//#define X(tag, opp, dump, emit)
+  /* enum value, encode, opposite, dump, emit */ \
+  X(Br_o,  = 0,       Br_no,    "o",  "jo")                \
+  X(Br_no, = 1,       Br_o,     "no", "jno")               \
+  X(Br_b,  = 2,       Br_ae,    "b",  "jb")                \
+  X(Br_ae, = 3,       Br_b,     "ae", "jae")               \
+  X(Br_e,  = 4,       Br_ne,    "e",  "je")                \
+  X(Br_ne, = 5,       Br_e,     "ne", "jne")               \
+  X(Br_be, = 6,       Br_a,     "be", "jbe")               \
+  X(Br_a,  = 7,       Br_be,    "a",  "ja")                \
+  X(Br_s,  = 8,       Br_ns,    "s",  "js")                \
+  X(Br_ns, = 9,       Br_s,     "ns", "jns")               \
+  X(Br_p,  = 10,      Br_np,    "p",  "jp")                \
+  X(Br_np, = 11,      Br_p,     "np", "jnp")               \
+  X(Br_l,  = 12,      Br_ge,    "l",  "jl")                \
+  X(Br_ge, = 13,      Br_l,     "ge", "jge")               \
+  X(Br_le, = 14,      Br_g,     "le", "jle")               \
+  X(Br_g,  = 15,      Br_le,    "g",  "jg")                \
+//#define X(tag, encode, opp, dump, emit)
 
 #define ICEINSTX8632CMPPS_TABLE \
   /* enum value, emit */        \

@@ -18,6 +18,7 @@
 
 #include "IceDefs.h"
 #include "IceInst.h"
+#include "IceConditionCodesX8632.h"
 #include "IceInstX8632.def"
 #include "IceOperand.h"
 
@@ -224,13 +225,6 @@ public:
     Xor
   };
 
-  enum BrCond {
-#define X(tag, opp, dump, emit) tag,
-    ICEINSTX8632BR_TABLE
-#undef X
-        Br_None
-  };
-
   static const char *getWidthString(Type Ty);
   virtual void emit(const Cfg *Func) const = 0;
   virtual void dump(const Cfg *Func) const;
@@ -308,7 +302,7 @@ class InstX8632Br : public InstX8632 {
 public:
   // Create a conditional branch to a node.
   static InstX8632Br *create(Cfg *Func, CfgNode *TargetTrue,
-                             CfgNode *TargetFalse, BrCond Condition) {
+                             CfgNode *TargetFalse, CondX86::BrCond Condition) {
     const InstX8632Label *NoLabel = NULL;
     return new (Func->allocate<InstX8632Br>())
         InstX8632Br(Func, TargetTrue, TargetFalse, NoLabel, Condition);
@@ -318,12 +312,13 @@ public:
     const CfgNode *NoCondTarget = NULL;
     const InstX8632Label *NoLabel = NULL;
     return new (Func->allocate<InstX8632Br>())
-        InstX8632Br(Func, NoCondTarget, Target, NoLabel, Br_None);
+        InstX8632Br(Func, NoCondTarget, Target, NoLabel, CondX86::Br_None);
   }
   // Create a non-terminator conditional branch to a node, with a
   // fallthrough to the next instruction in the current node.  This is
   // used for switch lowering.
-  static InstX8632Br *create(Cfg *Func, CfgNode *Target, BrCond Condition) {
+  static InstX8632Br *create(Cfg *Func, CfgNode *Target,
+                             CondX86::BrCond Condition) {
     const CfgNode *NoUncondTarget = NULL;
     const InstX8632Label *NoLabel = NULL;
     return new (Func->allocate<InstX8632Br>())
@@ -332,7 +327,7 @@ public:
   // Create a conditional intra-block branch (or unconditional, if
   // Condition==Br_None) to a label in the current block.
   static InstX8632Br *create(Cfg *Func, InstX8632Label *Label,
-                             BrCond Condition) {
+                             CondX86::BrCond Condition) {
     const CfgNode *NoCondTarget = NULL;
     const CfgNode *NoUncondTarget = NULL;
     return new (Func->allocate<InstX8632Br>())
@@ -357,11 +352,11 @@ public:
 
 private:
   InstX8632Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
-              const InstX8632Label *Label, BrCond Condition);
+              const InstX8632Label *Label, CondX86::BrCond Condition);
   InstX8632Br(const InstX8632Br &) LLVM_DELETED_FUNCTION;
   InstX8632Br &operator=(const InstX8632Br &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Br() {}
-  BrCond Condition;
+  CondX86::BrCond Condition;
   const CfgNode *TargetTrue;
   const CfgNode *TargetFalse;
   const InstX8632Label *Label; // Intra-block branch target
@@ -780,7 +775,7 @@ private:
 class InstX8632Cmov : public InstX8632 {
 public:
   static InstX8632Cmov *create(Cfg *Func, Variable *Dest, Operand *Source,
-                               BrCond Cond) {
+                               CondX86::BrCond Cond) {
     return new (Func->allocate<InstX8632Cmov>())
         InstX8632Cmov(Func, Dest, Source, Cond);
   }
@@ -789,27 +784,21 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, Cmov); }
 
 private:
-  InstX8632Cmov(Cfg *Func, Variable *Dest, Operand *Source, BrCond Cond);
+  InstX8632Cmov(Cfg *Func, Variable *Dest, Operand *Source,
+                CondX86::BrCond Cond);
   InstX8632Cmov(const InstX8632Cmov &) LLVM_DELETED_FUNCTION;
   InstX8632Cmov &operator=(const InstX8632Cmov &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Cmov() {}
 
-  BrCond Condition;
+  CondX86::BrCond Condition;
 };
 
 // Cmpps instruction - compare packed singled-precision floating point
 // values
 class InstX8632Cmpps : public InstX8632 {
 public:
-  enum CmppsCond {
-#define X(tag, emit) tag,
-    ICEINSTX8632CMPPS_TABLE
-#undef X
-    Cmpps_Invalid
-  };
-
   static InstX8632Cmpps *create(Cfg *Func, Variable *Dest, Operand *Source,
-                                CmppsCond Condition) {
+                                CondX86::CmppsCond Condition) {
     return new (Func->allocate<InstX8632Cmpps>())
         InstX8632Cmpps(Func, Dest, Source, Condition);
   }
@@ -818,12 +807,13 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, Cmpps); }
 
 private:
-  InstX8632Cmpps(Cfg *Func, Variable *Dest, Operand *Source, CmppsCond Cond);
+  InstX8632Cmpps(Cfg *Func, Variable *Dest, Operand *Source,
+                 CondX86::CmppsCond Cond);
   InstX8632Cmpps(const InstX8632Cmpps &) LLVM_DELETED_FUNCTION;
   InstX8632Cmpps &operator=(const InstX8632Cmpps &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Cmpps() {}
 
-  CmppsCond Condition;
+  CondX86::CmppsCond Condition;
 };
 
 // Cmpxchg instruction - cmpxchg <dest>, <desired> will compare if <dest>
