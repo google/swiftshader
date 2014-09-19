@@ -161,7 +161,7 @@ protected:
     const Type FunctionPointerType = IceType_i32;
     Constant *CallTarget =
         Ctx->getConstantSym(FunctionPointerType, 0, Name, SuppressMangling);
-    InstCall *Call = InstCall::create(Func, MaxSrcs, Dest, CallTarget);
+    InstCall *Call = InstCall::create(Func, MaxSrcs, Dest, CallTarget, false);
     return Call;
   }
   static Type stackSlotType();

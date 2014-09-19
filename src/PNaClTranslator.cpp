@@ -63,6 +63,7 @@ public:
         NumFunctionBlocks(0),
         GlobalVarPlaceHolderType(convertToLLVMType(Ice::IceType_i8)) {
     Mod->setDataLayout(PNaClDataLayout);
+    setErrStream(Translator.getContext()->getStrDump());
   }
 
   virtual ~TopLevelParser() {}
@@ -144,6 +145,26 @@ public:
     if (ID >= ValueIDValues.size())
       return NULL;
     return ValueIDValues[ID];
+  }
+
+  /// Returns the corresponding constant associated with a global value
+  /// (i.e. relocatable).
+  Ice::Constant *getOrCreateGlobalConstantByID(unsigned ID) {
+    // TODO(kschimpf): Can this be built when creating global initializers?
+    if (ID >= ValueIDConstants.size()) {
+      if (ID >= ValueIDValues.size())
+        return NULL;
+      ValueIDConstants.resize(ValueIDValues.size());
+    }
+    Ice::Constant *C = ValueIDConstants[ID];
+    if (C != NULL)
+      return C;
+    Value *V = ValueIDValues[ID];
+    assert(isa<GlobalValue>(V));
+    C = getTranslator().getContext()->getConstantSym(getIcePointerType(), 0,
+                                                     V->getName());
+    ValueIDConstants[ID] = C;
+    return C;
   }
 
   /// Returns the number of function addresses (i.e. ID's) defined in
@@ -247,6 +268,8 @@ private:
   std::vector<Type *> TypeIDValues;
   // The (global) value IDs.
   std::vector<WeakVH> ValueIDValues;
+  // Relocatable constants associated with ValueIDValues.
+  std::vector<Ice::Constant *> ValueIDConstants;
   // The number of function IDs.
   unsigned NumFunctionIds;
   // The number of function blocks (processed so far).
@@ -973,8 +996,7 @@ private:
   // Returns the value referenced by the given value Index.
   Ice::Operand *getOperand(uint32_t Index) {
     if (Index < CachedNumGlobalValueIDs) {
-      // TODO(kschimpf): Define implementation.
-      report_fatal_error("getOperand of global addresses not implemented");
+      return Context->getOrCreateGlobalConstantByID(Index);
     }
     uint32_t LocalIndex = Index - CachedNumGlobalValueIDs;
     if (LocalIndex >= LocalOperands.size()) {
@@ -1122,6 +1144,18 @@ private:
   // Reports that the given binary Opcode, for the given type Ty,
   // is not understood.
   void ReportInvalidBinopOpcode(unsigned Opcode, Ice::Type Ty);
+
+  // Returns true if the Str begins with Prefix.
+  bool isStringPrefix(Ice::IceString &Str, Ice::IceString &Prefix) {
+    const size_t PrefixSize = Prefix.size();
+    if (Str.size() < PrefixSize)
+      return false;
+    for (size_t i = 0; i < PrefixSize; ++i) {
+      if (Str[i] != Prefix[i])
+        return false;
+    }
+    return true;
+  }
 
   // Takes the PNaCl bitcode binary operator Opcode, and the opcode
   // type Ty, and sets Op to the corresponding ICE binary
@@ -1834,6 +1868,143 @@ void FunctionParser::ProcessRecord() {
         Ice::InstStore::create(Func, Value, Address, Alignment));
     break;
   }
+  case naclbitc::FUNC_CODE_INST_CALL:
+  case naclbitc::FUNC_CODE_INST_CALL_INDIRECT: {
+    // CALL: [cc, fnid, arg0, arg1...]
+    // CALL_INDIRECT: [cc, fn, returnty, args...]
+    //
+    // Note: The difference between CALL and CALL_INDIRECT is that
+    // CALL has an explicit function address, while the CALL_INDIRECT
+    // is just an address. For CALL, we can infer the return type by
+    // looking up the type signature associated with the function
+    // address. For CALL_INDIRECT we can only infer the type signature
+    // via argument types, and the corresponding return type stored in
+    // CALL_INDIRECT record.
+    Ice::SizeT ParamsStartIndex = 2;
+    if (Record.GetCode() == naclbitc::FUNC_CODE_INST_CALL) {
+      if (!isValidRecordSizeAtLeast(2, "function block call"))
+        return;
+    } else {
+      if (!isValidRecordSizeAtLeast(3, "function block call indirect"))
+        return;
+      ParamsStartIndex = 3;
+    }
+
+    // Extract call information.
+    uint64_t CCInfo = Values[0];
+    CallingConv::ID CallingConv;
+    if (!naclbitc::DecodeCallingConv(CCInfo >> 1, CallingConv)) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Function call calling convention value " << (CCInfo >> 1)
+             << " not understood.";
+      Error(StrBuf.str());
+      return;
+    }
+    bool IsTailCall = static_cast<bool>(CCInfo & 1);
+
+    // Extract out the called function and its return type.
+    uint32_t CalleeIndex = convertRelativeToAbsIndex(Values[1], BaseIndex);
+    Ice::Operand *Callee = getOperand(CalleeIndex);
+    Ice::Type ReturnType = Ice::IceType_void;
+    const Ice::Intrinsics::FullIntrinsicInfo *IntrinsicInfo = NULL;
+    if (Record.GetCode() == naclbitc::FUNC_CODE_INST_CALL) {
+      Function *Fcn =
+          dyn_cast<Function>(Context->getGlobalValueByID(CalleeIndex));
+      if (Fcn == NULL) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Function call to non-function: " << *Callee;
+        Error(StrBuf.str());
+        return;
+      }
+
+      FunctionType *FcnTy = Fcn->getFunctionType();
+      ReturnType = Context->convertToIceType(FcnTy->getReturnType());
+
+      // Check if this direct call is to an Intrinsic (starts with "llvm.")
+      static Ice::IceString LLVMPrefix("llvm.");
+      Ice::IceString Name = Fcn->getName();
+      if (isStringPrefix(Name, LLVMPrefix)) {
+        Ice::IceString Suffix = Name.substr(LLVMPrefix.size());
+        IntrinsicInfo =
+            getTranslator().getContext()->getIntrinsicsInfo().find(Suffix);
+        if (!IntrinsicInfo) {
+          std::string Buffer;
+          raw_string_ostream StrBuf(Buffer);
+          StrBuf << "Invalid PNaCl intrinsic call to " << Name;
+          Error(StrBuf.str());
+          return;
+        }
+      }
+    } else {
+      ReturnType = Context->convertToIceType(Context->getTypeByID(Values[2]));
+    }
+
+    // Create the call instruction.
+    Ice::Variable *Dest =
+        (ReturnType == Ice::IceType_void) ? NULL : getNextInstVar(ReturnType);
+    Ice::SizeT NumParams = Values.size() - ParamsStartIndex;
+    Ice::InstCall *Inst = NULL;
+    if (IntrinsicInfo) {
+      Inst =
+          Ice::InstIntrinsicCall::create(Func, NumParams, Dest, Callee,
+                                         IntrinsicInfo->Info);
+    } else {
+      Inst = Ice::InstCall::create(Func, NumParams, Dest, Callee, IsTailCall);
+    }
+
+    // Add parameters.
+    for (Ice::SizeT ParamIndex = 0; ParamIndex < NumParams; ++ParamIndex) {
+      Inst->addArg(
+          getRelativeOperand(Values[ParamsStartIndex + ParamIndex], BaseIndex));
+    }
+
+    // If intrinsic call, validate call signature.
+    if (IntrinsicInfo) {
+      Ice::SizeT ArgIndex = 0;
+      switch (IntrinsicInfo->validateCall(Inst, ArgIndex)) {
+      default:
+        Error("Unknown validation error for intrinsic call");
+        // TODO(kschimpf) Remove error recovery once implementation complete.
+        break;
+      case Ice::Intrinsics::IsValidCall:
+        break;
+      case Ice::Intrinsics::BadReturnType: {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Intrinsic call expects return type "
+               << IntrinsicInfo->getReturnType()
+               << ". Found: " << Inst->getReturnType();
+        Error(StrBuf.str());
+        // TODO(kschimpf) Remove error recovery once implementation complete.
+        break;
+      }
+      case Ice::Intrinsics::WrongNumOfArgs: {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Intrinsic call expects " << IntrinsicInfo->getNumArgs()
+               << ". Found: " << Inst->getNumArgs();
+        Error(StrBuf.str());
+        // TODO(kschimpf) Remove error recovery once implementation complete.
+        break;
+      }
+      case Ice::Intrinsics::WrongCallArgType: {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Intrinsic call argument " << ArgIndex << " expects type "
+               << IntrinsicInfo->getArgType(ArgIndex)
+               << ". Found: " << Inst->getArg(ArgIndex)->getType();
+        Error(StrBuf.str());
+        // TODO(kschimpf) Remove error recovery once implementation complete.
+        break;
+      }
+      }
+    }
+
+    CurrentNode->appendInst(Inst);
+    return;
+  }
   case naclbitc::FUNC_CODE_INST_FORWARDTYPEREF: {
     // FORWARDTYPEREF: [opval, ty]
     if (!isValidRecordSize(2, "function block forward type ref"))
@@ -1842,8 +2013,6 @@ void FunctionParser::ProcessRecord() {
                               Context->getTypeByID(Values[1]))));
     break;
   }
-  case naclbitc::FUNC_CODE_INST_CALL:
-  case naclbitc::FUNC_CODE_INST_CALL_INDIRECT:
   default:
     // Generate error message!
     BlockParserBaseClass::ProcessRecord();

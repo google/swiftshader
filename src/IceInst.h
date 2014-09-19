@@ -296,32 +296,36 @@ private:
 class InstCall : public Inst {
 public:
   static InstCall *create(Cfg *Func, SizeT NumArgs, Variable *Dest,
-                          Operand *CallTarget) {
+                          Operand *CallTarget, bool HasTailCall) {
     // Set HasSideEffects to true so that the call instruction can't be
     // dead-code eliminated. IntrinsicCalls can override this if the
     // particular intrinsic is deletable and has no side-effects.
     const bool HasSideEffects = true;
     const InstKind Kind = Inst::Call;
-    return new (Func->allocateInst<InstCall>())
-        InstCall(Func, NumArgs, Dest, CallTarget, HasSideEffects, Kind);
+    return new (Func->allocateInst<InstCall>()) InstCall(
+        Func, NumArgs, Dest, CallTarget, HasTailCall, HasSideEffects, Kind);
   }
   void addArg(Operand *Arg) { addSource(Arg); }
   Operand *getCallTarget() const { return getSrc(0); }
   Operand *getArg(SizeT I) const { return getSrc(I + 1); }
   SizeT getNumArgs() const { return getSrcSize() - 1; }
+  bool isTailcall() const { return HasTailCall; }
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Call; }
+  Type getReturnType() const;
 
 protected:
   InstCall(Cfg *Func, SizeT NumArgs, Variable *Dest, Operand *CallTarget,
-           bool HasSideEff, InstKind Kind)
-      : Inst(Func, Kind, NumArgs + 1, Dest) {
+           bool HasTailCall, bool HasSideEff, InstKind Kind)
+      : Inst(Func, Kind, NumArgs + 1, Dest),
+        HasTailCall(HasTailCall) {
     HasSideEffects = HasSideEff;
     addSource(CallTarget);
   }
   virtual ~InstCall() {}
 
 private:
+  bool HasTailCall;
   InstCall(const InstCall &) LLVM_DELETED_FUNCTION;
   InstCall &operator=(const InstCall &) LLVM_DELETED_FUNCTION;
 };
@@ -475,7 +479,7 @@ public:
 private:
   InstIntrinsicCall(Cfg *Func, SizeT NumArgs, Variable *Dest,
                     Operand *CallTarget, const Intrinsics::IntrinsicInfo &Info)
-      : InstCall(Func, NumArgs, Dest, CallTarget, Info.HasSideEffects,
+      : InstCall(Func, NumArgs, Dest, CallTarget, false, Info.HasSideEffects,
                  Inst::IntrinsicCall),
         Info(Info) {}
   InstIntrinsicCall(const InstIntrinsicCall &) LLVM_DELETED_FUNCTION;

@@ -537,7 +537,8 @@ private:
 
     // Not an intrinsic call.
     if (NewInst == NULL) {
-      NewInst = Ice::InstCall::create(Func, NumArgs, Dest, CallTarget);
+      NewInst = Ice::InstCall::create(Func, NumArgs, Dest, CallTarget,
+                                      Inst->isTailCall());
     }
     for (unsigned i = 0; i < NumArgs; ++i) {
       NewInst->addArg(convertOperand(Inst, i));
@@ -574,26 +575,38 @@ private:
 
   void validateIntrinsicCall(const Ice::InstCall *Call,
                              const Ice::Intrinsics::FullIntrinsicInfo *I) {
-    assert(I->NumTypes >= 1);
-    if (I->Signature[0] == Ice::IceType_void) {
-      if (Call->getDest() != NULL) {
-        report_fatal_error(
-            "Return value for intrinsic func w/ void return type.");
-      }
-    } else {
-      if (I->Signature[0] != Call->getDest()->getType()) {
-        report_fatal_error("Mismatched return types.");
-      }
+    Ice::SizeT ArgIndex = 0;
+    switch (I->validateCall(Call, ArgIndex)) {
+    default:
+      report_fatal_error("Unknown validation error for intrinsic call");
+      break;
+    case Ice::Intrinsics::IsValidCall:
+      break;
+    case Ice::Intrinsics::BadReturnType: {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Intrinsic call expects return type " << I->getReturnType()
+             << ". Found: " << Call->getReturnType();
+      report_fatal_error(StrBuf.str());
+      break;
     }
-    if (Call->getNumArgs() + 1 != I->NumTypes) {
-      std::cerr << "Call->getNumArgs() " << (int)Call->getNumArgs()
-                << " I->NumTypes " << (int)I->NumTypes << "\n";
-      report_fatal_error("Mismatched # of args.");
+    case Ice::Intrinsics::WrongNumOfArgs: {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Intrinsic call expects " << I->getNumArgs()
+             << ". Found: " << Call->getNumArgs();
+      report_fatal_error(StrBuf.str());
+      break;
     }
-    for (size_t i = 1; i < I->NumTypes; ++i) {
-      if (Call->getArg(i - 1)->getType() != I->Signature[i]) {
-        report_fatal_error("Mismatched argument type.");
-      }
+    case Ice::Intrinsics::WrongCallArgType: {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Intrinsic call argument " << ArgIndex << " expects type "
+             << I->getArgType(ArgIndex)
+             << ". Found: " << Call->getArg(ArgIndex)->getType();
+      report_fatal_error(StrBuf.str());
+      break;
+    }
     }
   }
 

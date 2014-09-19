@@ -19,6 +19,8 @@
 
 namespace Ice {
 
+class InstCall;
+
 static const size_t kMaxIntrinsicParameters = 6;
 
 class Intrinsics {
@@ -108,6 +110,14 @@ public:
     enum ReturnsTwice ReturnsTwice : 1;
   };
 
+  // The types of validation values for FullIntrinsicInfo.validateCall.
+  enum ValidateCallValue {
+    IsValidCall,      // Valid use of instrinsic call.
+    BadReturnType,    // Return type invalid for intrinsic.
+    WrongNumOfArgs,   // Wrong number of arguments for intrinsic.
+    WrongCallArgType, // Argument of wrong type.
+  };
+
   // The complete set of information about an intrinsic.
   struct FullIntrinsicInfo {
     struct IntrinsicInfo Info; // Information that CodeGen would care about.
@@ -115,6 +125,27 @@ public:
     // Sanity check during parsing.
     Type Signature[kMaxIntrinsicParameters];
     uint8_t NumTypes;
+
+    // Validates that type signature of call matches intrinsic.
+    // If WrongArgumentType is returned, ArgIndex is set to corresponding
+    // argument index.
+    ValidateCallValue validateCall(const Ice::InstCall *Call,
+                                   SizeT &ArgIndex) const;
+
+    // Returns the return type of the intrinsic.
+    Type getReturnType() const {
+      assert(NumTypes > 1);
+      return Signature[0];
+    }
+
+    // Returns number of arguments expected.
+    SizeT getNumArgs() const {
+      assert(NumTypes > 1);
+      return NumTypes - 1;
+    }
+
+    // Returns type of Index-th argument.
+    Type getArgType(SizeT Index) const;
   };
 
   // Find the information about a given intrinsic, based on function name.

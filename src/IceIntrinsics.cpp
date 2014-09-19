@@ -14,6 +14,7 @@
 
 #include "IceCfg.h"
 #include "IceCfgNode.h"
+#include "IceInst.h"
 #include "IceIntrinsics.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
@@ -224,6 +225,35 @@ Intrinsics::find(const IceString &Name) const {
 bool Intrinsics::VerifyMemoryOrder(uint64_t Order) {
   // There is only one memory ordering for atomics allowed right now.
   return Order == Intrinsics::MemoryOrderSequentiallyConsistent;
+}
+
+Intrinsics::ValidateCallValue
+Intrinsics::FullIntrinsicInfo::validateCall(const Ice::InstCall *Call,
+                                            SizeT &ArgIndex) const {
+  assert(NumTypes >= 1);
+  Variable *Result = Call->getDest();
+  if (Result == NULL) {
+    if (Signature[0] != Ice::IceType_void)
+      return Intrinsics::BadReturnType;
+  } else if (Signature[0] != Result->getType()) {
+    return Intrinsics::BadReturnType;
+  }
+  if (Call->getNumArgs() + 1 != NumTypes) {
+    return Intrinsics::WrongNumOfArgs;
+  }
+  for (size_t i = 1; i < NumTypes; ++i) {
+    if (Call->getArg(i - 1)->getType() != Signature[i]) {
+      ArgIndex = i;
+      return Intrinsics::WrongCallArgType;
+    }
+  }
+  return Intrinsics::IsValidCall;
+}
+
+Type Intrinsics::FullIntrinsicInfo::getArgType(SizeT Index) const {
+  assert(NumTypes > 1);
+  assert(Index + 1 < NumTypes);
+  return Signature[Index + 1];
 }
 
 } // end of namespace Ice

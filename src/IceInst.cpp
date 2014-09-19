@@ -566,6 +566,12 @@ void InstBr::dump(const Cfg *Func) const {
   Str << "label %" << getTargetFalse()->getName();
 }
 
+Type InstCall::getReturnType() const {
+  if (Dest == NULL)
+    return IceType_void;
+  return Dest->getType();
+}
+
 void InstCall::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   if (getDest()) {
