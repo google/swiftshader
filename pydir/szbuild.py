@@ -125,7 +125,7 @@ def main():
     be run.  These extra paths are within the native_client tree.
     When changes are made to these tools, copy them this way:
       cd native_client
-      toolchain_build/toolchain_build_pnacl.py llvm_i686_linux \\
+      toolchain_build/toolchain_build_pnacl.py llvm_x86_64_linux \\
       --install=toolchain/linux_x86/pnacl_newlib
     """
     argparser = argparse.ArgumentParser(
@@ -149,7 +149,6 @@ def ProcessPexe(args, pexe, exe):
     nacl_root = FindBaseNaCl()
     os.environ['PATH'] = (
         '{root}/toolchain/linux_x86/pnacl_newlib/bin{sep}' +
-        '{root}/toolchain/linux_x86/pnacl_newlib/host_x86_32/bin{sep}' +
         '{path}'
         ).format(root=nacl_root, sep=os.pathsep, path=os.environ['PATH'])
     obj_llc = pexe_base + '.llc.o'
@@ -167,7 +166,7 @@ def ProcessPexe(args, pexe, exe):
         '{root}/toolchain_build/src/subzero/llvm2ice'
         ).format(root=nacl_root)
     llcbin = (
-        '{root}/toolchain/linux_x86/pnacl_newlib/host_x86_32/bin/llc'
+        '{root}/toolchain/linux_x86/pnacl_newlib/bin/llc'
         ).format(root=nacl_root)
     opt_level = args.optlevel
 

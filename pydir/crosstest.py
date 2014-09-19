@@ -68,9 +68,9 @@ if __name__ == '__main__':
     args = argparser.parse_args()
 
     nacl_root = FindBaseNaCl()
-    # Prepend host_x86_32/bin to $PATH.
+    # Prepend PNaCl bin to $PATH.
     os.environ['PATH'] = nacl_root + \
-        '/toolchain/linux_x86/pnacl_newlib/host_x86_32/bin' + \
+        '/toolchain/linux_x86/pnacl_newlib/bin' + \
         os.pathsep + os.environ['PATH']
 
     objs = []
