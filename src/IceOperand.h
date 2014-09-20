@@ -25,6 +25,7 @@ namespace Ice {
 
 class Operand {
 public:
+  static const size_t MaxTargetKinds = 10;
   enum OperandKind {
     kConst_Base,
     kConstInteger32,
@@ -33,8 +34,11 @@ public:
     kConstDouble,
     kConstRelocatable,
     kConstUndef,
-    kConst_Num,
+    kConst_Target, // leave space for target-specific constant kinds
+    kConst_Num = kConst_Target + MaxTargetKinds,
     kVariable,
+    kVariable_Target, // leave space for target-specific variable kinds
+    kVariable_Num = kVariable_Target + MaxTargetKinds,
     // Target-specific operand classes use kTarget as the starting
     // point for their Kind enum space.
     kTarget
@@ -339,10 +343,14 @@ Ostream &operator<<(Ostream &Str, const LiveRange &L);
 // stack-allocated.  If it is register-allocated, it will ultimately
 // have a non-negative RegNum field.
 class Variable : public Operand {
+  Variable(const Variable &) LLVM_DELETED_FUNCTION;
+  Variable &operator=(const Variable &) LLVM_DELETED_FUNCTION;
+
 public:
   static Variable *create(Cfg *Func, Type Ty, const CfgNode *Node, SizeT Index,
                           const IceString &Name) {
-    return new (Func->allocate<Variable>()) Variable(Ty, Node, Index, Name);
+    return new (Func->allocate<Variable>())
+        Variable(kVariable, Ty, Node, Index, Name);
   }
 
   SizeT getIndex() const { return Number; }
@@ -431,16 +439,18 @@ public:
   virtual void dump(const Cfg *Func, Ostream &Str) const;
 
   static bool classof(const Operand *Operand) {
-    return Operand->getKind() == kVariable;
+    OperandKind Kind = Operand->getKind();
+    return Kind >= kVariable && Kind <= kVariable_Num;
   }
 
   // The destructor is public because of the asType() method.
   virtual ~Variable() {}
 
-private:
-  Variable(Type Ty, const CfgNode *Node, SizeT Index, const IceString &Name)
-      : Operand(kVariable, Ty), Number(Index), Name(Name), DefInst(NULL),
-        DefNode(Node), IsMultidef(false), IsArgument(false), StackOffset(0),
+protected:
+  Variable(OperandKind K, Type Ty, const CfgNode *Node, SizeT Index,
+           const IceString &Name)
+      : Operand(K, Ty), Number(Index), Name(Name), DefInst(NULL), DefNode(Node),
+        IsMultidef(false), IsArgument(false), StackOffset(0),
         RegNum(NoRegister), RegNumTmp(NoRegister), Weight(1),
         RegisterPreference(NULL), AllowRegisterOverlap(false), LoVar(NULL),
         HiVar(NULL) {
@@ -448,8 +458,6 @@ private:
     Vars[0] = this;
     NumVars = 1;
   }
-  Variable(const Variable &) LLVM_DELETED_FUNCTION;
-  Variable &operator=(const Variable &) LLVM_DELETED_FUNCTION;
   // Number is unique across all variables, and is used as a
   // (bit)vector index for liveness analysis.
   const SizeT Number;

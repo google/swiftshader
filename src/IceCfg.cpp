@@ -45,13 +45,9 @@ CfgNode *Cfg::makeNode(const IceString &Name) {
   return Node;
 }
 
-// Create a new Variable with a particular type and an optional
-// name.  The Node argument is the node where the variable is defined.
 Variable *Cfg::makeVariable(Type Ty, const CfgNode *Node,
                             const IceString &Name) {
-  SizeT Index = Variables.size();
-  Variables.push_back(Variable::create(this, Ty, Node, Index, Name));
-  return Variables[Index];
+  return makeVariable<Variable>(Ty, Node, Name);
 }
 
 void Cfg::addArg(Variable *Arg) {
@@ -359,7 +355,7 @@ void Cfg::dump(const IceString &Message) {
     }
     Str << ") {\n";
   }
-  setCurrentNode(NULL);
+  resetCurrentNode();
   if (getContext()->isVerbose(IceV_Liveness)) {
     // Print summary info about variables
     for (VarList::const_iterator I = Variables.begin(), E = Variables.end();

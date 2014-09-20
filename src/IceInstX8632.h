@@ -135,6 +135,33 @@ private:
   Portion Part;
 };
 
+// SpillVariable decorates a Variable by linking it to another
+// Variable.  When stack frame offsets are computed, the SpillVariable
+// is given a distinct stack slot only if its linked Variable has a
+// register.  If the linked Variable has a stack slot, then the
+// Variable and SpillVariable share that slot.
+class SpillVariable : public Variable {
+public:
+  static SpillVariable *create(Cfg *Func, Type Ty, const CfgNode *Node,
+                               SizeT Index, const IceString &Name) {
+    return new (Func->allocate<SpillVariable>())
+        SpillVariable(Ty, Node, Index, Name);
+  }
+  const static OperandKind SpillVariableKind =
+      static_cast<OperandKind>(kVariable_Target);
+  static bool classof(const Operand *Operand) {
+    return Operand->getKind() == SpillVariableKind;
+  }
+  void setLinkedTo(Variable *Var) { LinkedTo = Var; }
+  Variable *getLinkedTo() const { return LinkedTo; }
+  // Inherit dump() and emit() from Variable.
+private:
+  SpillVariable(Type Ty, const CfgNode *Node, SizeT Index,
+                const IceString &Name)
+      : Variable(SpillVariableKind, Ty, Node, Index, Name), LinkedTo(NULL) {}
+  Variable *LinkedTo;
+};
+
 class InstX8632 : public InstTarget {
 public:
   enum InstKindX8632 {

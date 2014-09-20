@@ -351,7 +351,7 @@ bool CfgNode::liveness(Liveness *Liveness) {
     // This is a fatal liveness consistency error.  Print some
     // diagnostics and abort.
     Ostream &Str = Func->getContext()->getStrDump();
-    Func->setCurrentNode(NULL);
+    Func->resetCurrentNode();
     Str << "LiveOrig-Live =";
     for (SizeT i = Live.size(); i < LiveOrig.size(); ++i) {
       if (LiveOrig.test(i)) {

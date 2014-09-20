@@ -189,7 +189,9 @@ IceString Variable::getName() const {
 }
 
 Variable Variable::asType(Type Ty) {
-  Variable V(Ty, DefNode, Number, Name);
+  // Note: This returns a Variable, even if the "this" object is a
+  // subclass of Variable.
+  Variable V(kVariable, Ty, DefNode, Number, Name);
   V.RegNum = RegNum;
   V.StackOffset = StackOffset;
   return V;

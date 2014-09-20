@@ -61,6 +61,17 @@ public:
   InstNumberT newInstNumber() { return NextInstNumber++; }
 
   // Manage Variables.
+  // Create a new Variable with a particular type and an optional
+  // name.  The Node argument is the node where the variable is defined.
+  template <typename T>
+  T *makeVariable(Type Ty, const CfgNode *Node, const IceString &Name = "") {
+    SizeT Index = Variables.size();
+    T *Var = T::create(this, Ty, Node, Index, Name);
+    Variables.push_back(Var);
+    return Var;
+  }
+  // TODO(stichnot): Remove this function with C++11, and use default
+  // argument <typename T=Variable> above.
   Variable *makeVariable(Type Ty, const CfgNode *Node,
                          const IceString &Name = "");
   SizeT getNumVariables() const { return Variables.size(); }
@@ -99,6 +110,7 @@ public:
   // Manage the CurrentNode field, which is used for validating the
   // Variable::DefNode field during dumping/emitting.
   void setCurrentNode(const CfgNode *Node) { CurrentNode = Node; }
+  void resetCurrentNode() { setCurrentNode(NULL); }
   const CfgNode *getCurrentNode() const { return CurrentNode; }
 
   void emit();
@@ -155,8 +167,8 @@ private:
   // CurrentNode is maintained during dumping/emitting just for
   // validating Variable::DefNode.  Normally, a traversal over
   // CfgNodes maintains this, but before global operations like
-  // register allocation, setCurrentNode(NULL) should be called to
-  // avoid spurious validation failures.
+  // register allocation, resetCurrentNode() should be called to avoid
+  // spurious validation failures.
   const CfgNode *CurrentNode;
 
   Cfg(const Cfg &) LLVM_DELETED_FUNCTION;

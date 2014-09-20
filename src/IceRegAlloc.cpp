@@ -29,7 +29,7 @@ namespace Ice {
 // two interfering variables to share the same register in certain
 // cases.
 //
-// Requires running Cfg::liveness(Liveness_RangesFull) in
+// Requires running Cfg::liveness(Liveness_Intervals) in
 // preparation.  Results are assigned to Variable::RegNum for each
 // Variable.
 void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
@@ -39,7 +39,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   Inactive.clear();
   Active.clear();
   Ostream &Str = Func->getContext()->getStrDump();
-  Func->setCurrentNode(NULL);
+  Func->resetCurrentNode();
 
   // Gather the live ranges of all variables and add them to the
   // Unhandled set.  TODO: Unhandled is a set<> which is based on a
@@ -447,7 +447,7 @@ void LinearScan::dump(Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   if (!Func->getContext()->isVerbose(IceV_LinearScan))
     return;
-  Func->setCurrentNode(NULL);
+  Func->resetCurrentNode();
   Str << "**** Current regalloc state:\n";
   Str << "++++++ Handled:\n";
   for (UnorderedRanges::const_iterator I = Handled.begin(), E = Handled.end();

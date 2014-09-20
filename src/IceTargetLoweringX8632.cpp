@@ -700,8 +700,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   RegsUsed = llvm::SmallBitVector(CalleeSaves.size());
   const VarList &Variables = Func->getVariables();
   const VarList &Args = Func->getArgs();
-  VarList SpilledVariables, SortedSpilledVariables,
-      VariablesLinkedToSpillSplots;
+  VarList SpilledVariables, SortedSpilledVariables, VariablesLinkedToSpillSlots;
 
   // If there is a separate locals area, this specifies the alignment
   // for it.
@@ -725,12 +724,11 @@ void TargetX8632::addProlog(CfgNode *Node) {
       continue;
     // A spill slot linked to a variable with a stack slot should reuse
     // that stack slot.
-    if (Var->getWeight() == RegWeight::Zero && Var->getRegisterOverlap()) {
-      if (Variable *Linked = Var->getPreferredRegister()) {
-        if (!Linked->hasReg()) {
-          VariablesLinkedToSpillSplots.push_back(Var);
-          continue;
-        }
+    if (SpillVariable *SpillVar = llvm::dyn_cast<SpillVariable>(Var)) {
+      assert(Var->getWeight() == RegWeight::Zero);
+      if (!SpillVar->getLinkedTo()->hasReg()) {
+        VariablesLinkedToSpillSlots.push_back(Var);
+        continue;
       }
     }
     SpilledVariables.push_back(Var);
@@ -878,11 +876,11 @@ void TargetX8632::addProlog(CfgNode *Node) {
 
   // Assign stack offsets to variables that have been linked to spilled
   // variables.
-  for (VarList::const_iterator I = VariablesLinkedToSpillSplots.begin(),
-                               E = VariablesLinkedToSpillSplots.end();
+  for (VarList::const_iterator I = VariablesLinkedToSpillSlots.begin(),
+                               E = VariablesLinkedToSpillSlots.end();
        I != E; ++I) {
     Variable *Var = *I;
-    Variable *Linked = Var->getPreferredRegister();
+    Variable *Linked = (llvm::cast<SpillVariable>(Var))->getLinkedTo();
     Var->setStackOffset(Linked->getStackOffset());
   }
 
@@ -2278,9 +2276,11 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       Variable *T = NULL;
       // TODO: Should be able to force a spill setup by calling legalize() with
       // Legal_Mem and not Legal_Reg or Legal_Imm.
-      Variable *Spill = Func->makeVariable(SrcType, Context.getNode());
+      SpillVariable *SpillVar =
+          Func->makeVariable<SpillVariable>(SrcType, Context.getNode());
+      SpillVar->setLinkedTo(Dest);
+      Variable *Spill = SpillVar;
       Spill->setWeight(RegWeight::Zero);
-      Spill->setPreferredRegister(Dest, true);
       _mov(T, Src0RM);
       _mov(Spill, T);
       _mov(Dest, Spill);
@@ -2294,9 +2294,11 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       //   a_lo.i32 = t_lo.i32
       //   t_hi.i32 = hi(s.f64)
       //   a_hi.i32 = t_hi.i32
-      Variable *Spill = Func->makeVariable(IceType_f64, Context.getNode());
+      SpillVariable *SpillVar =
+          Func->makeVariable<SpillVariable>(IceType_f64, Context.getNode());
+      SpillVar->setLinkedTo(llvm::dyn_cast<Variable>(Src0RM));
+      Variable *Spill = SpillVar;
       Spill->setWeight(RegWeight::Zero);
-      Spill->setPreferredRegister(llvm::dyn_cast<Variable>(Src0RM), true);
       _movq(Spill, Src0RM);
 
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
@@ -2323,9 +2325,11 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       //   t_hi.i32 = b_hi.i32
       //   hi(s.f64) = t_hi.i32
       //   a.f64 = s.f64
-      Variable *Spill = Func->makeVariable(IceType_f64, Context.getNode());
+      SpillVariable *SpillVar =
+          Func->makeVariable<SpillVariable>(IceType_f64, Context.getNode());
+      SpillVar->setLinkedTo(Dest);
+      Variable *Spill = SpillVar;
       Spill->setWeight(RegWeight::Zero);
-      Spill->setPreferredRegister(Dest, true);
 
       Variable *T_Lo = NULL, *T_Hi = NULL;
       VariableSplit *SpillLo =
@@ -3720,7 +3724,7 @@ bool matchOffsetBase(Variable *&Base, int32_t &Offset, const Inst *&Reason) {
 
 void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
                        Variable *&Index, uint16_t &Shift, int32_t &Offset) {
-  Func->setCurrentNode(NULL);
+  Func->resetCurrentNode();
   if (Func->getContext()->isVerbose(IceV_AddrOpt)) {
     Ostream &Str = Func->getContext()->getStrDump();
     Str << "\nStarting computeAddressOpt for instruction:\n  ";
