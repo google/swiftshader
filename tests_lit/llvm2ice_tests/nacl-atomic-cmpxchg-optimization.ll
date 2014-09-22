@@ -99,8 +99,7 @@ done:
 }
 ; O2-LABEL: test_atomic_cmpxchg_loop_const
 ; O2: lock
-; Should be using NEXT: see issue 3929
-; O2: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
+; O2-NEXT: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
 ; O2-NOT: cmp
 ; O2: jne
 

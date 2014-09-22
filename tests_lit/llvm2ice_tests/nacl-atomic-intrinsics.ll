@@ -16,12 +16,6 @@
 ; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
 ; RUN:                           | FileCheck --check-prefix=DUMP %s
 
-; TODO(jvoung): Uh... normally pnacl-llc is not supposed to separate the
-; lock from its instruction w/ bundle padding, but when processing .s
-; files with llvm-mc it seems be ocassionally wrong!
-; https://code.google.com/p/nativeclient/issues/detail?id=3929
-; That makes the current "lock" checks avoid using CHECK-NEXT.
-
 declare i8 @llvm.nacl.atomic.load.i8(i8*, i32)
 declare i16 @llvm.nacl.atomic.load.i16(i16*, i32)
 declare i32 @llvm.nacl.atomic.load.i32(i32*, i32)
@@ -224,8 +218,7 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_add_16
 ; CHECK: lock
-; Should be using NEXT: see issue 3929
-; CHECK: xadd word {{.*}}, [[REG:.*]]
+; CHECK-NEXT: xadd word {{.*}}, [[REG:.*]]
 ; CHECK: mov {{.*}}, [[REG]]
 
 define i32 @test_atomic_rmw_add_32(i32 %iptr, i32 %v) {
@@ -354,8 +347,7 @@ entry:
 ; CHECK-LABEL: test_atomic_rmw_sub_8
 ; CHECK: neg [[REG:.*]]
 ; CHECK: lock
-; Should be using NEXT: see issue 3929
-; CHECK: xadd byte {{.*}}, [[REG]]
+; CHECK-NEXT: xadd byte {{.*}}, [[REG]]
 ; CHECK: mov {{.*}}, [[REG]]
 
 define i32 @test_atomic_rmw_sub_16(i32 %iptr, i32 %v) {
@@ -399,8 +391,7 @@ entry:
 ; CHECK: mov ecx, edx
 ; CHECK: sbb ecx, {{.*e.[^x]}}
 ; CHECK: lock
-; Should be using NEXT: see issue 3929
-; CHECK: cmpxchg8b qword ptr [e{{.[^x]}}]
+; CHECK-NEXT: cmpxchg8b qword ptr [e{{.[^x]}}]
 ; CHECK: jne -{{[0-9]}}
 
 
@@ -571,8 +562,7 @@ entry:
 ; CHECK: mov eax, dword ptr
 ; CHECK: and
 ; CHECK: lock
-; Should be using NEXT: see issue 3929
-; CHECK: cmpxchg dword ptr [e{{[^a].}}]
+; CHECK-NEXT: cmpxchg dword ptr [e{{[^a].}}]
 ; CHECK: jne -{{[0-9]}}
 
 ;; xor
@@ -772,8 +762,7 @@ entry:
 ; CHECK-DAG: mov ecx
 ; CHECK-DAG: mov ebx
 ; CHECK: lock
-; Should be using NEXT: see issue 3929
-; CHECK: cmpxchg8b qword ptr [e{{.[^x]}}]
+; CHECK-NEXT: cmpxchg8b qword ptr [e{{.[^x]}}]
 ; edx and eax are already the return registers, so they don't actually
 ; need to be reshuffled via movs. The next test stores the result
 ; somewhere, so in that case they do need to be mov'ed.
@@ -827,8 +816,7 @@ entry:
 ; the later use_ptr function call.
 ; That pretty much leaves esi, or edi as the only viable registers.
 ; CHECK: lock
-; Should be using NEXT: see issue 3929
-; CHECK: cmpxchg8b qword ptr [e{{[ds]}}i]
+; CHECK-NEXT: cmpxchg8b qword ptr [e{{[ds]}}i]
 ; CHECK: call use_ptr
 
 define i32 @test_atomic_cmpxchg_32_ignored(i32 %iptr, i32 %expected, i32 %desired) {
@@ -857,8 +845,7 @@ entry:
 ; CHECK-DAG: mov ecx
 ; CHECK-DAG: mov ebx
 ; CHECK: lock
-; Should be using NEXT: see issue 3929
-; CHECK: cmpxchg8b qword ptr [e{{.[^x]}}]
+; CHECK-NEXT: cmpxchg8b qword ptr [e{{.[^x]}}]
 
 ;;;; Fence and is-lock-free.
 
