@@ -347,10 +347,10 @@ class Variable : public Operand {
   Variable &operator=(const Variable &) LLVM_DELETED_FUNCTION;
 
 public:
-  static Variable *create(Cfg *Func, Type Ty, const CfgNode *Node, SizeT Index,
+  static Variable *create(Cfg *Func, Type Ty, SizeT Index,
                           const IceString &Name) {
     return new (Func->allocate<Variable>())
-        Variable(kVariable, Ty, Node, Index, Name);
+        Variable(kVariable, Ty, Index, Name);
   }
 
   SizeT getIndex() const { return Number; }
@@ -361,24 +361,10 @@ public:
     Name = NewName;
   }
 
-  Inst *getDefinition() const { return DefInst; }
-  void setDefinition(Inst *Inst, const CfgNode *Node);
-  void replaceDefinition(Inst *Inst, const CfgNode *Node);
-
-  const CfgNode *getLocalUseNode() const { return DefNode; }
-  bool isMultiblockLife() const { return (DefNode == NULL); }
-  void setUse(const Inst *Inst, const CfgNode *Node);
-
-  // Multidef means a variable is non-SSA and has multiple defining
-  // instructions.  Currently this classification is limited to SSA
-  // lowering temporaries where the definitions are in different basic
-  // blocks, and it is not maintained during target lowering when the
-  // same temporary may be updated in consecutive instructions.
-  bool getIsMultidef() const { return IsMultidef; }
-  void setIsMultidef() { IsMultidef = true; }
-
   bool getIsArg() const { return IsArgument; }
-  void setIsArg(Cfg *Func, bool IsArg = true);
+  void setIsArg(bool Val = true) { IsArgument = Val; }
+  bool getIsImplicitArg() const { return IsImplicitArgument; }
+  void setIsImplicitArg(bool Val = true) { IsImplicitArgument = Val; }
 
   int32_t getStackOffset() const { return StackOffset; }
   void setStackOffset(int32_t Offset) { StackOffset = Offset; }
@@ -447,13 +433,11 @@ public:
   virtual ~Variable() {}
 
 protected:
-  Variable(OperandKind K, Type Ty, const CfgNode *Node, SizeT Index,
-           const IceString &Name)
-      : Operand(K, Ty), Number(Index), Name(Name), DefInst(NULL), DefNode(Node),
-        IsMultidef(false), IsArgument(false), StackOffset(0),
-        RegNum(NoRegister), RegNumTmp(NoRegister), Weight(1),
-        RegisterPreference(NULL), AllowRegisterOverlap(false), LoVar(NULL),
-        HiVar(NULL) {
+  Variable(OperandKind K, Type Ty, SizeT Index, const IceString &Name)
+      : Operand(K, Ty), Number(Index), Name(Name), IsArgument(false),
+        IsImplicitArgument(false), StackOffset(0), RegNum(NoRegister),
+        RegNumTmp(NoRegister), Weight(1), RegisterPreference(NULL),
+        AllowRegisterOverlap(false), LoVar(NULL), HiVar(NULL) {
     Vars = VarsReal;
     Vars[0] = this;
     NumVars = 1;
@@ -463,18 +447,8 @@ protected:
   const SizeT Number;
   // Name is optional.
   IceString Name;
-  // DefInst is the instruction that produces this variable as its
-  // dest.
-  Inst *DefInst;
-  // DefNode is the node where this variable was produced, and is
-  // reset to NULL if it is used outside that node.  This is used for
-  // detecting isMultiblockLife().  TODO: Collapse this to a single
-  // bit and use a separate pass to calculate the values across the
-  // Cfg.  This saves space in the Variable, and removes the fragility
-  // of incrementally computing and maintaining the information.
-  const CfgNode *DefNode;
-  bool IsMultidef;
   bool IsArgument;
+  bool IsImplicitArgument;
   // StackOffset is the canonical location on stack (only if
   // RegNum<0 || IsArgument).
   int32_t StackOffset;
@@ -507,6 +481,60 @@ protected:
   // VarsReal (and Operand::Vars) are set up such that Vars[0] ==
   // this.
   Variable *VarsReal[1];
+};
+
+// VariableTracking tracks the metadata for a single variable.
+class VariableTracking {
+public:
+  enum MultiDefState {
+    // TODO(stichnot): Consider using just a simple counter.
+    MDS_Unknown,
+    MDS_SingleDef,
+    MDS_MultiDef
+  };
+  enum MultiBlockState {
+    MBS_Unknown,
+    MBS_SingleBlock,
+    MBS_MultiBlock
+  };
+  VariableTracking()
+      : MultiDef(MDS_Unknown), MultiBlock(MBS_Unknown), SingleUseNode(NULL),
+        SingleDefInst(NULL) {}
+  MultiDefState getMultiDef() const { return MultiDef; }
+  MultiBlockState getMultiBlock() const { return MultiBlock; }
+  const Inst *getDefinition() const { return SingleDefInst; }
+  const CfgNode *getNode() const { return SingleUseNode; }
+  void markUse(const Inst *Instr, const CfgNode *Node, bool IsFromDef,
+               bool IsImplicit);
+  void markDef(const Inst *Instr, const CfgNode *Node);
+
+private:
+  VariableTracking &operator=(const VariableTracking &) LLVM_DELETED_FUNCTION;
+  MultiDefState MultiDef;
+  MultiBlockState MultiBlock;
+  const CfgNode *SingleUseNode;
+  const Inst *SingleDefInst;
+};
+
+// VariablesMetadata analyzes and summarizes the metadata for the
+// complete set of Variables.
+class VariablesMetadata {
+public:
+  VariablesMetadata(const Cfg *Func) : Func(Func) {}
+  void init();
+  bool isTracked(const Variable *Var) const {
+    return Var->getIndex() < Metadata.size();
+  }
+  bool isMultiDef(const Variable *Var) const;
+  const Inst *getDefinition(const Variable *Var) const;
+  bool isMultiBlock(const Variable *Var) const;
+  const CfgNode *getLocalUseNode(const Variable *Var) const;
+
+private:
+  const Cfg *Func;
+  std::vector<VariableTracking> Metadata;
+  VariablesMetadata(const VariablesMetadata &) LLVM_DELETED_FUNCTION;
+  VariablesMetadata &operator=(const VariablesMetadata &) LLVM_DELETED_FUNCTION;
 };
 
 } // end of namespace Ice

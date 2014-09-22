@@ -92,13 +92,7 @@ public:
     return NodeList();
   }
 
-  // Updates the status of the Variables contained within the
-  // instruction.  In particular, it marks where the Dest variable is
-  // first assigned, and it tracks whether variables are live across
-  // basic blocks, i.e. used in a different block from their definition.
-  void updateVars(CfgNode *Node);
-
-  void livenessLightweight(llvm::BitVector &Live);
+  void livenessLightweight(Cfg *Func, llvm::BitVector &Live);
   void liveness(InstNumberT InstNumber, llvm::BitVector &Live,
                 Liveness *Liveness, const CfgNode *Node);
 
@@ -520,7 +514,7 @@ public:
   Operand *getOperandForTarget(CfgNode *Target) const;
   void livenessPhiOperand(llvm::BitVector &Live, CfgNode *Target,
                           Liveness *Liveness);
-  Inst *lower(Cfg *Func, CfgNode *Node);
+  Inst *lower(Cfg *Func);
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Phi; }
 

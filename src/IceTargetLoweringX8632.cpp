@@ -322,6 +322,7 @@ void TargetX8632::translateO2() {
 
   // Address mode optimization.
   Timer T_doAddressOpt;
+  Func->getVMetadata()->init();
   Func->doAddressOpt();
   T_doAddressOpt.printElapsedUs(Context, "doAddressOpt()");
 
@@ -470,10 +471,13 @@ Variable *TargetX8632::getPhysicalRegister(SizeT RegNum) {
   assert(RegNum < PhysicalRegisters.size());
   Variable *Reg = PhysicalRegisters[RegNum];
   if (Reg == NULL) {
-    CfgNode *Node = NULL; // NULL means multi-block lifetime
-    Reg = Func->makeVariable(IceType_i32, Node);
+    Reg = Func->makeVariable(IceType_i32);
     Reg->setRegNum(RegNum);
     PhysicalRegisters[RegNum] = Reg;
+    // Specially mark esp as an "argument" so that it is considered
+    // live upon function entry.
+    if (RegNum == RegX8632::Reg_esp)
+      Func->addImplicitArg(Reg);
   }
   return Reg;
 }
@@ -505,10 +509,8 @@ IceString TargetX8632::getRegName(SizeT RegNum, Type Ty) const {
   }
 }
 
-void TargetX8632::emitVariable(const Variable *Var, const Cfg *Func) const {
+void TargetX8632::emitVariable(const Variable *Var) const {
   Ostream &Str = Ctx->getStrEmit();
-  assert(Var->getLocalUseNode() == NULL ||
-         Var->getLocalUseNode() == Func->getCurrentNode());
   if (Var->hasReg()) {
     Str << getRegName(Var->getRegNum(), Var->getType());
     return;
@@ -548,11 +550,10 @@ void TargetX8632::lowerArguments() {
     int32_t RegNum = RegX8632::Reg_xmm0 + NumXmmArgs;
     ++NumXmmArgs;
     IceString Name = "home_reg:" + Arg->getName();
-    const CfgNode *DefNode = NULL;
-    Variable *RegisterArg = Func->makeVariable(Ty, DefNode, Name);
+    Variable *RegisterArg = Func->makeVariable(Ty, Name);
     RegisterArg->setRegNum(RegNum);
-    RegisterArg->setIsArg(Func);
-    Arg->setIsArg(Func, false);
+    RegisterArg->setIsArg();
+    Arg->setIsArg(false);
 
     Args[I] = RegisterArg;
     Context.insert(InstAssign::create(Func, Arg, RegisterArg));
@@ -675,6 +676,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   size_t InArgsSizeBytes = 0;
   size_t PreservedRegsSizeBytes = 0;
   SpillAreaSizeBytes = 0;
+  const VariablesMetadata *VMetadata = Func->getVMetadata();
   Context.init(Node);
   Context.setInsertPoint(Context.getCur());
 
@@ -743,11 +745,11 @@ void TargetX8632::addProlog(CfgNode *Node) {
     size_t Increment = typeWidthInBytesOnStack(Var->getType());
     if (!SpillAreaAlignmentBytes)
       SpillAreaAlignmentBytes = Increment;
-    if (SimpleCoalescing) {
-      if (Var->isMultiblockLife()) {
+    if (SimpleCoalescing && VMetadata->isTracked(Var)) {
+      if (VMetadata->isMultiBlock(Var)) {
         GlobalsSize += Increment;
       } else {
-        SizeT NodeIndex = Var->getLocalUseNode()->getIndex();
+        SizeT NodeIndex = VMetadata->getLocalUseNode(Var)->getIndex();
         LocalsSize[NodeIndex] += Increment;
         if (LocalsSize[NodeIndex] > SpillAreaSizeBytes)
           SpillAreaSizeBytes = LocalsSize[NodeIndex];
@@ -852,12 +854,12 @@ void TargetX8632::addProlog(CfgNode *Node) {
        I != E; ++I) {
     Variable *Var = *I;
     size_t Increment = typeWidthInBytesOnStack(Var->getType());
-    if (SimpleCoalescing) {
-      if (Var->isMultiblockLife()) {
+    if (SimpleCoalescing && VMetadata->isTracked(Var)) {
+      if (VMetadata->isMultiBlock(Var)) {
         GlobalsSpaceUsed += Increment;
         NextStackOffset = GlobalsSpaceUsed;
       } else {
-        SizeT NodeIndex = Var->getLocalUseNode()->getIndex();
+        SizeT NodeIndex = VMetadata->getLocalUseNode(Var)->getIndex();
         LocalsSize[NodeIndex] += Increment;
         NextStackOffset = SpillAreaPaddingBytes +
                           GlobalsAndSubsequentPaddingSize +
@@ -1035,14 +1037,12 @@ void TargetX8632::split64(Variable *Var) {
     return;
   }
   assert(Hi == NULL);
-  Lo = Func->makeVariable(IceType_i32, Context.getNode(),
-                          Var->getName() + "__lo");
-  Hi = Func->makeVariable(IceType_i32, Context.getNode(),
-                          Var->getName() + "__hi");
+  Lo = Func->makeVariable(IceType_i32, Var->getName() + "__lo");
+  Hi = Func->makeVariable(IceType_i32, Var->getName() + "__hi");
   Var->setLoHi(Lo, Hi);
   if (Var->getIsArg()) {
-    Lo->setIsArg(Func);
-    Hi->setIsArg(Func);
+    Lo->setIsArg();
+    Hi->setIsArg();
   }
 }
 
@@ -2276,8 +2276,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       Variable *T = NULL;
       // TODO: Should be able to force a spill setup by calling legalize() with
       // Legal_Mem and not Legal_Reg or Legal_Imm.
-      SpillVariable *SpillVar =
-          Func->makeVariable<SpillVariable>(SrcType, Context.getNode());
+      SpillVariable *SpillVar = Func->makeVariable<SpillVariable>(SrcType);
       SpillVar->setLinkedTo(Dest);
       Variable *Spill = SpillVar;
       Spill->setWeight(RegWeight::Zero);
@@ -2294,8 +2293,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       //   a_lo.i32 = t_lo.i32
       //   t_hi.i32 = hi(s.f64)
       //   a_hi.i32 = t_hi.i32
-      SpillVariable *SpillVar =
-          Func->makeVariable<SpillVariable>(IceType_f64, Context.getNode());
+      SpillVariable *SpillVar = Func->makeVariable<SpillVariable>(IceType_f64);
       SpillVar->setLinkedTo(llvm::dyn_cast<Variable>(Src0RM));
       Variable *Spill = SpillVar;
       Spill->setWeight(RegWeight::Zero);
@@ -2325,8 +2323,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       //   t_hi.i32 = b_hi.i32
       //   hi(s.f64) = t_hi.i32
       //   a.f64 = s.f64
-      SpillVariable *SpillVar =
-          Func->makeVariable<SpillVariable>(IceType_f64, Context.getNode());
+      SpillVariable *SpillVar = Func->makeVariable<SpillVariable>(IceType_f64);
       SpillVar->setLinkedTo(Dest);
       Variable *Spill = SpillVar;
       Spill->setWeight(RegWeight::Zero);
@@ -2349,8 +2346,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     case IceType_v8i1: {
       assert(Src0->getType() == IceType_i8);
       InstCall *Call = makeHelperCall("Sz_bitcast_i8_to_v8i1", Dest, 1);
-      Variable *Src0AsI32 = Func->makeVariable(stackSlotType(),
-                                               Context.getNode());
+      Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
       // Arguments to functions are required to be at least 32 bits wide.
       lowerCast(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
       Call->addArg(Src0AsI32);
@@ -2359,8 +2355,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     case IceType_v16i1: {
       assert(Src0->getType() == IceType_i16);
       InstCall *Call = makeHelperCall("Sz_bitcast_i16_to_v16i1", Dest, 1);
-      Variable *Src0AsI32 = Func->makeVariable(stackSlotType(),
-                                               Context.getNode());
+      Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
       // Arguments to functions are required to be at least 32 bits wide.
       lowerCast(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
       Call->addArg(Src0AsI32);
@@ -2429,7 +2424,7 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
     //
     // TODO(wala): use legalize(SourceVectNotLegalized, Legal_Mem) when
     // support for legalizing to mem is implemented.
-    Variable *Slot = Func->makeVariable(Ty, Context.getNode());
+    Variable *Slot = Func->makeVariable(Ty);
     Slot->setWeight(RegWeight::Zero);
     _movp(Slot, legalizeToVar(SourceVectNotLegalized));
 
@@ -2584,8 +2579,8 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
         NewTy = IceType_v16i8;
         break;
       }
-      Variable *NewSrc0 = Func->makeVariable(NewTy, Context.getNode());
-      Variable *NewSrc1 = Func->makeVariable(NewTy, Context.getNode());
+      Variable *NewSrc0 = Func->makeVariable(NewTy);
+      Variable *NewSrc1 = Func->makeVariable(NewTy);
       lowerCast(InstCast::create(Func, InstCast::Sext, NewSrc0, Src0));
       lowerCast(InstCast::create(Func, InstCast::Sext, NewSrc1, Src1));
       Src0 = NewSrc0;
@@ -2760,8 +2755,7 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
   if (ElementTy == IceType_i1) {
     // Expand the element to the appropriate size for it to be inserted
     // in the vector.
-    Variable *Expanded =
-        Func->makeVariable(InVectorElementTy, Context.getNode());
+    Variable *Expanded = Func->makeVariable(InVectorElementTy);
     InstCast *Cast = InstCast::create(Func, InstCast::Zext, Expanded,
                                       ElementToInsertNotLegalized);
     lowerCast(Cast);
@@ -2853,7 +2847,7 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     //
     // TODO(wala): use legalize(SourceVectNotLegalized, Legal_Mem) when
     // support for legalizing to mem is implemented.
-    Variable *Slot = Func->makeVariable(Ty, Context.getNode());
+    Variable *Slot = Func->makeVariable(Ty);
     Slot->setWeight(RegWeight::Zero);
     _movp(Slot, legalizeToVar(SourceVectNotLegalized));
 
@@ -3123,7 +3117,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     // wide.
     Operand *ValOp = Instr->getArg(1);
     assert(ValOp->getType() == IceType_i8);
-    Variable *ValExt = Func->makeVariable(stackSlotType(), Context.getNode());
+    Variable *ValExt = Func->makeVariable(stackSlotType());
     lowerCast(InstCast::create(Func, InstCast::Zext, ValExt, ValOp));
     InstCall *Call = makeHelperCall("memset", NULL, 3);
     Call->addArg(Instr->getArg(0));
@@ -3579,17 +3573,18 @@ void dumpAddressOpt(const Cfg *Func, const Variable *Base,
   Str << ", Shift=" << Shift << ", Offset=" << Offset << "\n";
 }
 
-bool matchTransitiveAssign(Variable *&Var, const Inst *&Reason) {
+bool matchTransitiveAssign(const VariablesMetadata *VMetadata, Variable *&Var,
+                           const Inst *&Reason) {
   // Var originates from Var=SrcVar ==>
   //   set Var:=SrcVar
   if (Var == NULL)
     return false;
-  if (const Inst *VarAssign = Var->getDefinition()) {
+  if (const Inst *VarAssign = VMetadata->getDefinition(Var)) {
     if (llvm::isa<InstAssign>(VarAssign)) {
       Operand *SrcOp = VarAssign->getSrc(0);
       assert(SrcOp);
       if (Variable *SrcVar = llvm::dyn_cast<Variable>(SrcOp)) {
-        if (!SrcVar->getIsMultidef() &&
+        if (!VMetadata->isMultiDef(SrcVar) &&
             // TODO: ensure SrcVar stays single-BB
             true) {
           Var = SrcVar;
@@ -3602,7 +3597,8 @@ bool matchTransitiveAssign(Variable *&Var, const Inst *&Reason) {
   return false;
 }
 
-bool matchCombinedBaseIndex(Variable *&Base, Variable *&Index, uint16_t &Shift,
+bool matchCombinedBaseIndex(const VariablesMetadata *VMetadata, Variable *&Base,
+                            Variable *&Index, uint16_t &Shift,
                             const Inst *&Reason) {
   // Index==NULL && Base is Base=Var1+Var2 ==>
   //   set Base=Var1, Index=Var2, Shift=0
@@ -3610,16 +3606,16 @@ bool matchCombinedBaseIndex(Variable *&Base, Variable *&Index, uint16_t &Shift,
     return false;
   if (Index != NULL)
     return false;
-  const Inst *BaseInst = Base->getDefinition();
+  const Inst *BaseInst = VMetadata->getDefinition(Base);
   if (BaseInst == NULL)
     return false;
   if (BaseInst->getSrcSize() < 2)
     return false;
   if (Variable *Var1 = llvm::dyn_cast<Variable>(BaseInst->getSrc(0))) {
-    if (Var1->getIsMultidef())
+    if (VMetadata->isMultiDef(Var1))
       return false;
     if (Variable *Var2 = llvm::dyn_cast<Variable>(BaseInst->getSrc(1))) {
-      if (Var2->getIsMultidef())
+      if (VMetadata->isMultiDef(Var2))
         return false;
       if (isAdd(BaseInst) &&
           // TODO: ensure Var1 and Var2 stay single-BB
@@ -3635,12 +3631,13 @@ bool matchCombinedBaseIndex(Variable *&Base, Variable *&Index, uint16_t &Shift,
   return false;
 }
 
-bool matchShiftedIndex(Variable *&Index, uint16_t &Shift, const Inst *&Reason) {
+bool matchShiftedIndex(const VariablesMetadata *VMetadata, Variable *&Index,
+                       uint16_t &Shift, const Inst *&Reason) {
   // Index is Index=Var*Const && log2(Const)+Shift<=3 ==>
   //   Index=Var, Shift+=log2(Const)
   if (Index == NULL)
     return false;
-  const Inst *IndexInst = Index->getDefinition();
+  const Inst *IndexInst = VMetadata->getDefinition(Index);
   if (IndexInst == NULL)
     return false;
   if (IndexInst->getSrcSize() < 2)
@@ -3651,7 +3648,7 @@ bool matchShiftedIndex(Variable *&Index, uint16_t &Shift, const Inst *&Reason) {
       if (ConstantInteger32 *Const =
               llvm::dyn_cast<ConstantInteger32>(ArithInst->getSrc(1))) {
         if (ArithInst->getOp() == InstArithmetic::Mul &&
-            !Var->getIsMultidef() && Const->getType() == IceType_i32) {
+            !VMetadata->isMultiDef(Var) && Const->getType() == IceType_i32) {
           uint64_t Mult = Const->getValue();
           uint32_t LogMult;
           switch (Mult) {
@@ -3683,14 +3680,15 @@ bool matchShiftedIndex(Variable *&Index, uint16_t &Shift, const Inst *&Reason) {
   return false;
 }
 
-bool matchOffsetBase(Variable *&Base, int32_t &Offset, const Inst *&Reason) {
+bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable *&Base,
+                     int32_t &Offset, const Inst *&Reason) {
   // Base is Base=Var+Const || Base is Base=Const+Var ==>
   //   set Base=Var, Offset+=Const
   // Base is Base=Var-Const ==>
   //   set Base=Var, Offset-=Const
   if (Base == NULL)
     return false;
-  const Inst *BaseInst = Base->getDefinition();
+  const Inst *BaseInst = VMetadata->getDefinition(Base);
   if (BaseInst == NULL)
     return false;
   if (const InstArithmetic *ArithInst =
@@ -3709,7 +3707,7 @@ bool matchOffsetBase(Variable *&Base, int32_t &Offset, const Inst *&Reason) {
       Const = llvm::dyn_cast<ConstantInteger32>(ArithInst->getSrc(0));
       Var = llvm::dyn_cast<Variable>(ArithInst->getSrc(1));
     }
-    if (Var == NULL || Const == NULL || Var->getIsMultidef())
+    if (Var == NULL || Const == NULL || VMetadata->isMultiDef(Var))
       return false;
     int32_t MoreOffset = IsAdd ? Const->getValue() : -Const->getValue();
     if (WouldOverflowAdd(Offset, MoreOffset))
@@ -3737,17 +3735,18 @@ void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
   // blocks, then don't go further.  Alternatively (?), never consider
   // a transformation that would change a variable that is currently
   // *not* live across basic block boundaries into one that *is*.
-  if (Base->isMultiblockLife() /* || Base->getUseCount() > 1*/)
+  if (Func->getVMetadata()->isMultiBlock(Base) /* || Base->getUseCount() > 1*/)
     return;
 
+  const VariablesMetadata *VMetadata = Func->getVMetadata();
   bool Continue = true;
   while (Continue) {
     const Inst *Reason = NULL;
-    if (matchTransitiveAssign(Base, Reason) ||
-        matchTransitiveAssign(Index, Reason) ||
-        matchCombinedBaseIndex(Base, Index, Shift, Reason) ||
-        matchShiftedIndex(Index, Shift, Reason) ||
-        matchOffsetBase(Base, Offset, Reason)) {
+    if (matchTransitiveAssign(VMetadata, Base, Reason) ||
+        matchTransitiveAssign(VMetadata, Index, Reason) ||
+        matchCombinedBaseIndex(VMetadata, Base, Index, Shift, Reason) ||
+        matchShiftedIndex(VMetadata, Index, Shift, Reason) ||
+        matchOffsetBase(VMetadata, Base, Offset, Reason)) {
       dumpAddressOpt(Func, Base, Index, Shift, Offset, Reason);
     } else {
       Continue = false;
@@ -3939,7 +3938,7 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     // Sign extend the condition operand if applicable.
     if (SrcTy == IceType_v4f32) {
       // The sext operation takes only integer arguments.
-      Variable *T3 = Func->makeVariable(IceType_v4i32, Context.getNode());
+      Variable *T3 = Func->makeVariable(IceType_v4i32);
       lowerCast(InstCast::create(Func, InstCast::Sext, T3, Condition));
       _movp(T, T3);
     } else if (typeElementType(SrcTy) != IceType_i1) {
@@ -4070,17 +4069,17 @@ void TargetX8632::scalarizeArithmetic(InstArithmetic::OpKind Kind,
     Constant *Index = Ctx->getConstantInt32(IceType_i32, I);
 
     // Extract the next two inputs.
-    Variable *Op0 = Func->makeVariable(ElementTy, Context.getNode());
+    Variable *Op0 = Func->makeVariable(ElementTy);
     lowerExtractElement(InstExtractElement::create(Func, Op0, Src0, Index));
-    Variable *Op1 = Func->makeVariable(ElementTy, Context.getNode());
+    Variable *Op1 = Func->makeVariable(ElementTy);
     lowerExtractElement(InstExtractElement::create(Func, Op1, Src1, Index));
 
     // Perform the arithmetic as a scalar operation.
-    Variable *Res = Func->makeVariable(ElementTy, Context.getNode());
+    Variable *Res = Func->makeVariable(ElementTy);
     lowerArithmetic(InstArithmetic::create(Func, Kind, Res, Op0, Op1));
 
     // Insert the result into position.
-    Variable *DestT = Func->makeVariable(Ty, Context.getNode());
+    Variable *DestT = Func->makeVariable(Ty);
     lowerInsertElement(InstInsertElement::create(Func, DestT, T, Res, Index));
     T = DestT;
     // TODO(stichnot): Use postLower() in -Om1 mode to avoid buildup of
@@ -4324,7 +4323,7 @@ OperandX8632Mem *TargetX8632::FormMemoryOperand(Operand *Operand, Type Ty) {
 Variable *TargetX8632::makeReg(Type Type, int32_t RegNum) {
   // There aren't any 64-bit integer registers for x86-32.
   assert(Type != IceType_i64);
-  Variable *Reg = Func->makeVariable(Type, Context.getNode());
+  Variable *Reg = Func->makeVariable(Type);
   if (RegNum == Variable::NoRegister)
     Reg->setWeightInfinite();
   else

@@ -47,7 +47,6 @@ void CfgNode::appendInst(Inst *Inst) {
   } else {
     Insts.push_back(Inst);
   }
-  Inst->updateVars(this);
 }
 
 // Renumbers the non-deleted instructions in the node.  This needs to
@@ -92,9 +91,8 @@ void CfgNode::computePredecessors() {
 // blocks.  Note that this transformation preserves SSA form.
 void CfgNode::placePhiLoads() {
   for (PhiList::iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    Inst *Inst = (*I)->lower(Func, this);
+    Inst *Inst = (*I)->lower(Func);
     Insts.insert(Insts.begin(), Inst);
-    Inst->updateVars(this);
   }
 }
 
@@ -213,7 +211,6 @@ void CfgNode::placePhiStores() {
         Insts.insert(SafeInsertionPoint, NewInst);
       else
         Insts.insert(InsertionPoint, NewInst);
-      NewInst->updateVars(this);
     }
   }
 }
@@ -281,12 +278,12 @@ void CfgNode::livenessLightweight() {
        I != E; ++I) {
     if ((*I)->isDeleted())
       continue;
-    (*I)->livenessLightweight(Live);
+    (*I)->livenessLightweight(Func, Live);
   }
   for (PhiList::const_iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
     if ((*I)->isDeleted())
       continue;
-    (*I)->livenessLightweight(Live);
+    (*I)->livenessLightweight(Func, Live);
   }
 }
 

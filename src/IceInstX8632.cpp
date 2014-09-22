@@ -95,8 +95,11 @@ OperandX8632Mem::OperandX8632Mem(Cfg *Func, Type Ty, Variable *Base,
   }
 }
 
-InstX8632AdjustStack::InstX8632AdjustStack(Cfg *Func, SizeT Amount)
-    : InstX8632(Func, InstX8632::Adjuststack, 0, NULL), Amount(Amount) {}
+InstX8632AdjustStack::InstX8632AdjustStack(Cfg *Func, SizeT Amount,
+                                           Variable *Esp)
+    : InstX8632(Func, InstX8632::Adjuststack, 1, Esp), Amount(Amount) {
+  addSource(Esp);
+}
 
 InstX8632Mul::InstX8632Mul(Cfg *Func, Variable *Dest, Variable *Source1,
                            Operand *Source2)
@@ -1497,8 +1500,6 @@ void OperandX8632Mem::dump(const Cfg *Func, Ostream &Str) const {
 
 void VariableSplit::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(Var->getLocalUseNode() == NULL ||
-         Var->getLocalUseNode() == Func->getCurrentNode());
   assert(!Var->hasReg());
   // The following is copied/adapted from TargetX8632::emitVariable().
   const TargetLowering *Target = Func->getTarget();

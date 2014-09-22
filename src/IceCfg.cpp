@@ -28,7 +28,7 @@ Cfg::Cfg(GlobalContext *Ctx)
       IsInternalLinkage(false), HasError(false), ErrorMessage(""), Entry(NULL),
       NextInstNumber(1), Live(NULL),
       Target(TargetLowering::createLowering(Ctx->getTargetArch(), this)),
-      CurrentNode(NULL) {}
+      VMetadata(new VariablesMetadata(this)), CurrentNode(NULL) {}
 
 Cfg::~Cfg() {}
 
@@ -45,14 +45,18 @@ CfgNode *Cfg::makeNode(const IceString &Name) {
   return Node;
 }
 
-Variable *Cfg::makeVariable(Type Ty, const CfgNode *Node,
-                            const IceString &Name) {
-  return makeVariable<Variable>(Ty, Node, Name);
+Variable *Cfg::makeVariable(Type Ty, const IceString &Name) {
+  return makeVariable<Variable>(Ty, Name);
 }
 
 void Cfg::addArg(Variable *Arg) {
-  Arg->setIsArg(this);
+  Arg->setIsArg();
   Args.push_back(Arg);
+}
+
+void Cfg::addImplicitArg(Variable *Arg) {
+  Arg->setIsImplicitArg();
+  ImplicitArgs.push_back(Arg);
 }
 
 // Returns whether the stack frame layout has been computed yet.  This
@@ -147,6 +151,7 @@ void Cfg::genFrame() {
 // completely with a single block.  It is a quick single pass and
 // doesn't need to iterate until convergence.
 void Cfg::livenessLightweight() {
+  getVMetadata()->init();
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     (*I)->livenessLightweight();
   }
@@ -154,6 +159,7 @@ void Cfg::livenessLightweight() {
 
 void Cfg::liveness(LivenessMode Mode) {
   Live.reset(new Liveness(this, Mode));
+  getVMetadata()->init();
   Live->init();
   // Initialize with all nodes needing to be processed.
   llvm::BitVector NeedToProcess(Nodes.size(), true);
@@ -361,9 +367,12 @@ void Cfg::dump(const IceString &Message) {
     for (VarList::const_iterator I = Variables.begin(), E = Variables.end();
          I != E; ++I) {
       Variable *Var = *I;
-      Str << "//"
-          << " multiblock=" << Var->isMultiblockLife() << " "
-          << " weight=" << Var->getWeight() << " ";
+      Str << "// multiblock=";
+      if (getVMetadata()->isTracked(Var))
+        Str << getVMetadata()->isMultiBlock(Var);
+      else
+        Str << "?";
+      Str << " weight=" << Var->getWeight() << " ";
       Var->dump(this);
       if (Variable *Pref = Var->getPreferredRegister()) {
         Str << " pref=";

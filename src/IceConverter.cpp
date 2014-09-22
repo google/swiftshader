@@ -56,7 +56,7 @@ template <typename T> static std::string LLVMObjectAsString(const T *O) {
 class LLVM2ICEConverter {
 public:
   LLVM2ICEConverter(Ice::GlobalContext *Ctx, LLVMContext &LLVMContext)
-      : Ctx(Ctx), Func(NULL), CurrentNode(NULL), TypeConverter(LLVMContext) {}
+      : Ctx(Ctx), Func(NULL), TypeConverter(LLVMContext) {}
 
   // Caller is expected to delete the returned Ice::Cfg object.
   Ice::Cfg *convertFunction(const Function *F) {
@@ -68,7 +68,6 @@ public:
     Func->setInternal(F->hasInternalLinkage());
 
     // The initial definition/use of each arg is the entry node.
-    CurrentNode = mapBasicBlockToNode(&F->getEntryBlock());
     for (Function::const_arg_iterator ArgI = F->arg_begin(),
                                       ArgE = F->arg_end();
          ArgI != ArgE; ++ArgI) {
@@ -85,7 +84,6 @@ public:
     }
     for (Function::const_iterator BBI = F->begin(), BBE = F->end(); BBI != BBE;
          ++BBI) {
-      CurrentNode = mapBasicBlockToNode(BBI);
       convertBasicBlock(BBI);
     }
     Func->setEntryNode(mapBasicBlockToNode(&F->getEntryBlock()));
@@ -132,8 +130,7 @@ private:
     if (IceTy == Ice::IceType_void)
       return NULL;
     if (VarMap.find(V) == VarMap.end()) {
-      assert(CurrentNode);
-      VarMap[V] = Func->makeVariable(IceTy, CurrentNode, V->getName());
+      VarMap[V] = Func->makeVariable(IceTy, V->getName());
     }
     return VarMap[V];
   }
@@ -614,7 +611,6 @@ private:
   // Data
   Ice::GlobalContext *Ctx;
   Ice::Cfg *Func;
-  Ice::CfgNode *CurrentNode;
   std::map<const Value *, Ice::Variable *> VarMap;
   std::map<const BasicBlock *, Ice::CfgNode *> NodeMap;
   Ice::TypeConverter TypeConverter;

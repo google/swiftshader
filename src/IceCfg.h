@@ -63,17 +63,15 @@ public:
   // Manage Variables.
   // Create a new Variable with a particular type and an optional
   // name.  The Node argument is the node where the variable is defined.
-  template <typename T>
-  T *makeVariable(Type Ty, const CfgNode *Node, const IceString &Name = "") {
+  template <typename T> T *makeVariable(Type Ty, const IceString &Name = "") {
     SizeT Index = Variables.size();
-    T *Var = T::create(this, Ty, Node, Index, Name);
+    T *Var = T::create(this, Ty, Index, Name);
     Variables.push_back(Var);
     return Var;
   }
   // TODO(stichnot): Remove this function with C++11, and use default
   // argument <typename T=Variable> above.
-  Variable *makeVariable(Type Ty, const CfgNode *Node,
-                         const IceString &Name = "");
+  Variable *makeVariable(Type Ty, const IceString &Name = "");
   SizeT getNumVariables() const { return Variables.size(); }
   const VarList &getVariables() const { return Variables; }
 
@@ -81,9 +79,12 @@ public:
   void addArg(Variable *Arg);
   const VarList &getArgs() const { return Args; }
   VarList &getArgs() { return Args; }
+  void addImplicitArg(Variable *Arg);
+  const VarList &getImplicitArgs() const { return ImplicitArgs; }
 
   // Miscellaneous accessors.
   TargetLowering *getTarget() const { return Target.get(); }
+  VariablesMetadata *getVMetadata() const { return VMetadata.get(); }
   Liveness *getLiveness() const { return Live.get(); }
   bool hasComputedFrame() const;
 
@@ -161,8 +162,10 @@ private:
   InstNumberT NextInstNumber;
   VarList Variables;
   VarList Args; // subset of Variables, in argument order
+  VarList ImplicitArgs; // subset of Variables
   llvm::OwningPtr<Liveness> Live;
   llvm::OwningPtr<TargetLowering> Target;
+  llvm::OwningPtr<VariablesMetadata> VMetadata;
 
   // CurrentNode is maintained during dumping/emitting just for
   // validating Variable::DefNode.  Normally, a traversal over

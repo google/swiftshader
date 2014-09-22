@@ -53,7 +53,6 @@ void LoweringContext::init(CfgNode *N) {
 
 void LoweringContext::insert(Inst *Inst) {
   getNode()->getInsts().insert(Next, Inst);
-  Inst->updateVars(getNode());
 }
 
 void LoweringContext::skipDeleted(InstList::iterator &I) const {

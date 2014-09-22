@@ -111,21 +111,7 @@ bool Inst::isLastUse(const Operand *TestSrc) const {
   return false;
 }
 
-void Inst::updateVars(CfgNode *Node) {
-  if (Dest)
-    Dest->setDefinition(this, Node);
-
-  for (SizeT I = 0; I < getSrcSize(); ++I) {
-    Operand *Src = getSrc(I);
-    SizeT NumVars = Src->getNumVars();
-    for (SizeT J = 0; J < NumVars; ++J) {
-      Variable *Var = Src->getVar(J);
-      Var->setUse(this, Node);
-    }
-  }
-}
-
-void Inst::livenessLightweight(llvm::BitVector &Live) {
+void Inst::livenessLightweight(Cfg *Func, llvm::BitVector &Live) {
   assert(!isDeleted());
   if (llvm::isa<InstFakeKill>(this))
     return;
@@ -136,7 +122,7 @@ void Inst::livenessLightweight(llvm::BitVector &Live) {
     SizeT NumVars = Src->getNumVars();
     for (SizeT J = 0; J < NumVars; ++J, ++VarIndex) {
       const Variable *Var = Src->getVar(J);
-      if (Var->isMultiblockLife())
+      if (Func->getVMetadata()->isMultiBlock(Var))
         continue;
       SizeT Index = Var->getIndex();
       if (Live[Index])
@@ -354,19 +340,17 @@ void InstPhi::livenessPhiOperand(llvm::BitVector &Live, CfgNode *Target,
 
 // Change "a=phi(...)" to "a_phi=phi(...)" and return a new
 // instruction "a=a_phi".
-Inst *InstPhi::lower(Cfg *Func, CfgNode *Node) {
+Inst *InstPhi::lower(Cfg *Func) {
   Variable *Dest = getDest();
   assert(Dest);
   IceString PhiName = Dest->getName() + "_phi";
-  Variable *NewSrc = Func->makeVariable(Dest->getType(), Node, PhiName);
-  NewSrc->setIsMultidef();
+  Variable *NewSrc = Func->makeVariable(Dest->getType(), PhiName);
   this->Dest = NewSrc;
   InstAssign *NewInst = InstAssign::create(Func, Dest, NewSrc);
   // Set Dest and NewSrc to have affinity with each other, as a hint
   // for register allocation.
   Dest->setPreferredRegister(NewSrc, false);
   NewSrc->setPreferredRegister(Dest, false);
-  Dest->replaceDefinition(NewInst, Node);
   return NewInst;
 }
 

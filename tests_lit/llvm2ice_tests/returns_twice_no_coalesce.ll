@@ -55,6 +55,9 @@ NonZero:
 ; CHECK: mov dword ptr [esp + [[OFF:.*]]], [[REG1]]
 ; CHECK: add [[REG2:.*]], 54321
 ; Now there should be sharing of the stack slot (OFF is the same).
-; CHECK: mov dword ptr [esp + [[OFF]]], [[REG2]]
+; Commenting out after disabling simple coalescing for -Om1.
+; TODO(stichnot): Add it back if/when we add a flag to enable simple
+; coalescing.
+; xCHECK: mov dword ptr [esp + [[OFF]]], [[REG2]]
 
 ; ERRORS-NOT: ICE translation error

@@ -41,10 +41,10 @@ void Liveness::init() {
   // block.
   for (SizeT i = 0; i < NumVars; ++i) {
     Variable *Var = Func->getVariables()[i];
-    if (Var->isMultiblockLife()) {
+    if (Func->getVMetadata()->isMultiBlock(Var)) {
       ++NumGlobals;
     } else {
-      SizeT Index = Var->getLocalUseNode()->getIndex();
+      SizeT Index = Func->getVMetadata()->getLocalUseNode(Var)->getIndex();
       ++Nodes[Index].NumLocals;
     }
   }
@@ -64,11 +64,11 @@ void Liveness::init() {
     Variable *Var = Func->getVariables()[i];
     SizeT VarIndex = Var->getIndex();
     SizeT LiveIndex;
-    if (Var->isMultiblockLife()) {
+    if (Func->getVMetadata()->isMultiBlock(Var)) {
       LiveIndex = TmpNumGlobals++;
       LiveToVarMap[LiveIndex] = Var;
     } else {
-      SizeT NodeIndex = Var->getLocalUseNode()->getIndex();
+      SizeT NodeIndex = Func->getVMetadata()->getLocalUseNode(Var)->getIndex();
       LiveIndex = Nodes[NodeIndex].NumLocals++;
       Nodes[NodeIndex].LiveToVarMap[LiveIndex] = Var;
       LiveIndex += NumGlobals;

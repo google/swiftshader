@@ -57,6 +57,7 @@ class Liveness;
 class Operand;
 class TargetLowering;
 class Variable;
+class VariablesMetadata;
 
 // TODO: Switch over to LLVM's ADT container classes.
 // http://llvm.org/docs/ProgrammersManual.html#picking-the-right-data-structure-for-a-task

@@ -142,10 +142,9 @@ private:
 // Variable and SpillVariable share that slot.
 class SpillVariable : public Variable {
 public:
-  static SpillVariable *create(Cfg *Func, Type Ty, const CfgNode *Node,
-                               SizeT Index, const IceString &Name) {
-    return new (Func->allocate<SpillVariable>())
-        SpillVariable(Ty, Node, Index, Name);
+  static SpillVariable *create(Cfg *Func, Type Ty, SizeT Index,
+                               const IceString &Name) {
+    return new (Func->allocate<SpillVariable>()) SpillVariable(Ty, Index, Name);
   }
   const static OperandKind SpillVariableKind =
       static_cast<OperandKind>(kVariable_Target);
@@ -156,9 +155,8 @@ public:
   Variable *getLinkedTo() const { return LinkedTo; }
   // Inherit dump() and emit() from Variable.
 private:
-  SpillVariable(Type Ty, const CfgNode *Node, SizeT Index,
-                const IceString &Name)
-      : Variable(SpillVariableKind, Ty, Node, Index, Name), LinkedTo(NULL) {}
+  SpillVariable(Type Ty, SizeT Index, const IceString &Name)
+      : Variable(SpillVariableKind, Ty, Index, Name), LinkedTo(NULL) {}
   Variable *LinkedTo;
 };
 
@@ -393,16 +391,16 @@ private:
 // updates the stack offset during code emission.
 class InstX8632AdjustStack : public InstX8632 {
 public:
-  static InstX8632AdjustStack *create(Cfg *Func, SizeT Amount) {
+  static InstX8632AdjustStack *create(Cfg *Func, SizeT Amount, Variable *Esp) {
     return new (Func->allocate<InstX8632AdjustStack>())
-        InstX8632AdjustStack(Func, Amount);
+        InstX8632AdjustStack(Func, Amount, Esp);
   }
   virtual void emit(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Adjuststack); }
 
 private:
-  InstX8632AdjustStack(Cfg *Func, SizeT Amount);
+  InstX8632AdjustStack(Cfg *Func, SizeT Amount, Variable *Esp);
   InstX8632AdjustStack(const InstX8632AdjustStack &) LLVM_DELETED_FUNCTION;
   InstX8632AdjustStack &operator=(const InstX8632AdjustStack &)
       LLVM_DELETED_FUNCTION;

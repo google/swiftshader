@@ -172,7 +172,7 @@ public:
   virtual const llvm::SmallBitVector &getRegisterSetForType(Type Ty) const = 0;
   void regAlloc();
 
-  virtual void emitVariable(const Variable *Var, const Cfg *Func) const = 0;
+  virtual void emitVariable(const Variable *Var) const = 0;
 
   // Performs target-specific argument lowering.
   virtual void lowerArguments() = 0;

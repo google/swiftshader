@@ -52,7 +52,7 @@ public:
     static const uint8_t Padding[] = { 0xF4 };
     return llvm::ArrayRef<uint8_t>(Padding, 1);
   }
-  virtual void emitVariable(const Variable *Var, const Cfg *Func) const;
+  virtual void emitVariable(const Variable *Var) const;
   virtual void lowerArguments();
   virtual void addProlog(CfgNode *Node);
   virtual void addEpilog(CfgNode *Node);
@@ -190,7 +190,8 @@ protected:
     Context.insert(InstX8632Add::create(Func, Dest, Src0));
   }
   void _adjust_stack(int32_t Amount) {
-    Context.insert(InstX8632AdjustStack::create(Func, Amount));
+    Context.insert(InstX8632AdjustStack::create(
+        Func, Amount, getPhysicalRegister(RegX8632::Reg_esp)));
   }
   void _addps(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Addps::create(Func, Dest, Src0));

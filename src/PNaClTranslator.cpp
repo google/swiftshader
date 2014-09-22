@@ -948,7 +948,7 @@ private:
       // Recover since we can't throw an exception.
       Ty = Ice::IceType_i32;
     }
-    return Func->makeVariable(Ty, CurrentNode);
+    return Func->makeVariable(Ty);
   }
 
   // Generates the next available local variable using the given type.

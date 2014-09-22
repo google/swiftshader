@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "IceCfg.h"
+#include "IceCfgNode.h"
 #include "IceInst.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h" // dumping stack/frame pointer register
@@ -138,48 +139,6 @@ bool LiveRange::containsValue(InstNumberT Value) const {
   return false;
 }
 
-void Variable::setUse(const Inst *Inst, const CfgNode *Node) {
-  if (DefNode == NULL)
-    return;
-  if (llvm::isa<InstPhi>(Inst) || Node != DefNode)
-    DefNode = NULL;
-}
-
-void Variable::setDefinition(Inst *Inst, const CfgNode *Node) {
-  if (DefInst && !DefInst->isDeleted() && DefInst != Inst) {
-    // Detect when a variable is being defined multiple times,
-    // particularly for Phi instruction lowering.  If this happens, we
-    // need to lock DefInst to NULL.
-    DefInst = NULL;
-    DefNode = NULL;
-    return;
-  }
-  if (DefNode == NULL)
-    return;
-  DefInst = Inst;
-  if (Node != DefNode)
-    DefNode = NULL;
-}
-
-void Variable::replaceDefinition(Inst *Inst, const CfgNode *Node) {
-  DefInst = NULL;
-  setDefinition(Inst, Node);
-}
-
-void Variable::setIsArg(Cfg *Func, bool IsArg) {
-  if (IsArg) {
-    IsArgument = true;
-    if (DefNode == NULL)
-      return;
-    CfgNode *Entry = Func->getEntryNode();
-    if (DefNode == Entry)
-      return;
-    DefNode = NULL;
-  } else {
-    IsArgument = false;
-  }
-}
-
 IceString Variable::getName() const {
   if (!Name.empty())
     return Name;
@@ -191,16 +150,156 @@ IceString Variable::getName() const {
 Variable Variable::asType(Type Ty) {
   // Note: This returns a Variable, even if the "this" object is a
   // subclass of Variable.
-  Variable V(kVariable, Ty, DefNode, Number, Name);
+  Variable V(kVariable, Ty, Number, Name);
   V.RegNum = RegNum;
   V.StackOffset = StackOffset;
   return V;
 }
 
+void VariableTracking::markUse(const Inst *Instr, const CfgNode *Node,
+                               bool IsFromDef, bool IsImplicit) {
+  // TODO(stichnot): If the use occurs as a source operand in the
+  // first instruction of the block, and its definition is in this
+  // block's only predecessor, we might consider not marking this as a
+  // separate use.  This may also apply if it's the first instruction
+  // of the block that actually uses a Variable.
+  assert(Node);
+  bool MakeMulti = false;
+  // A phi source variable conservatively needs to be marked as
+  // multi-block, even if its definition is in the same block.  This
+  // is because there can be additional control flow before branching
+  // back to this node, and the variable is live throughout those
+  // nodes.
+  if (IsImplicit)
+    MakeMulti = true;
+  if (!IsFromDef && Instr && llvm::isa<InstPhi>(Instr))
+    MakeMulti = true;
+
+  if (!MakeMulti) {
+    switch (MultiBlock) {
+    case MBS_Unknown:
+      MultiBlock = MBS_SingleBlock;
+      SingleUseNode = Node;
+      break;
+    case MBS_SingleBlock:
+      if (SingleUseNode != Node)
+        MakeMulti = true;
+      break;
+    case MBS_MultiBlock:
+      break;
+    }
+  }
+
+  if (MakeMulti) {
+    MultiBlock = MBS_MultiBlock;
+    SingleUseNode = NULL;
+  }
+}
+
+void VariableTracking::markDef(const Inst *Instr, const CfgNode *Node) {
+  // TODO(stichnot): If the definition occurs in the last instruction
+  // of the block, consider not marking this as a separate use.  But
+  // be careful not to omit all uses of the variable if markDef() and
+  // markUse() both use this optimization.
+  const bool IsFromDef = true;
+  const bool IsImplicit = false;
+  markUse(Instr, Node, IsFromDef, IsImplicit);
+  switch (MultiDef) {
+  case MDS_Unknown:
+    MultiDef = MDS_SingleDef;
+    SingleDefInst = Instr;
+    break;
+  case MDS_SingleDef:
+    MultiDef = MDS_MultiDef;
+    SingleDefInst = NULL;
+    break;
+  case MDS_MultiDef:
+    break;
+  }
+}
+
+void VariablesMetadata::init() {
+  Metadata.clear();
+  Metadata.resize(Func->getNumVariables());
+
+  // Mark implicit args as being used in the entry node.
+  const VarList &ImplicitArgList = Func->getImplicitArgs();
+  for (VarList::const_iterator I = ImplicitArgList.begin(),
+                               E = ImplicitArgList.end();
+       I != E; ++I) {
+    const Variable *Var = *I;
+    const Inst *NoInst = NULL;
+    const CfgNode *EntryNode = Func->getEntryNode();
+    const bool IsFromDef = false;
+    const bool IsImplicit = true;
+    Metadata[Var->getIndex()].markUse(NoInst, EntryNode, IsFromDef, IsImplicit);
+  }
+
+  SizeT NumNodes = Func->getNumNodes();
+  for (SizeT N = 0; N < NumNodes; ++N) {
+    CfgNode *Node = Func->getNodes()[N];
+    const InstList &Insts = Node->getInsts();
+    for (InstList::const_iterator I = Insts.begin(), E = Insts.end(); I != E;
+         ++I) {
+      if ((*I)->isDeleted())
+        continue;
+      if (Variable *Dest = (*I)->getDest()) {
+        SizeT DestNum = Dest->getIndex();
+        assert(DestNum < Metadata.size());
+        Metadata[DestNum].markDef(*I, Node);
+      }
+      for (SizeT SrcNum = 0; SrcNum < (*I)->getSrcSize(); ++SrcNum) {
+        Operand *Src = (*I)->getSrc(SrcNum);
+        SizeT NumVars = Src->getNumVars();
+        for (SizeT J = 0; J < NumVars; ++J) {
+          const Variable *Var = Src->getVar(J);
+          SizeT VarNum = Var->getIndex();
+          assert(VarNum < Metadata.size());
+          const bool IsFromDef = false;
+          const bool IsImplicit = false;
+          Metadata[VarNum].markUse(*I, Node, IsFromDef, IsImplicit);
+        }
+      }
+    }
+  }
+}
+
+bool VariablesMetadata::isMultiDef(const Variable *Var) const {
+  if (Var->getIsArg())
+    return false;
+  if (!isTracked(Var))
+    return true; // conservative answer
+  SizeT VarNum = Var->getIndex();
+  // Conservatively return true if the state is unknown.
+  return Metadata[VarNum].getMultiDef() != VariableTracking::MDS_SingleDef;
+}
+
+bool VariablesMetadata::isMultiBlock(const Variable *Var) const {
+  if (getDefinition(Var) == NULL)
+    return true;
+  SizeT VarNum = Var->getIndex();
+  // Conservatively return true if the state is unknown.
+  return Metadata[VarNum].getMultiBlock() != VariableTracking::MBS_SingleBlock;
+}
+
+const Inst *VariablesMetadata::getDefinition(const Variable *Var) const {
+  if (!isTracked(Var))
+    return NULL; // conservative answer
+  SizeT VarNum = Var->getIndex();
+  return Metadata[VarNum].getDefinition();
+}
+
+const CfgNode *VariablesMetadata::getLocalUseNode(const Variable *Var) const {
+  if (!isTracked(Var))
+    return NULL; // conservative answer
+  SizeT VarNum = Var->getIndex();
+  return Metadata[VarNum].getNode();
+}
+
 // ======================== dump routines ======================== //
 
 void Variable::emit(const Cfg *Func) const {
-  Func->getTarget()->emitVariable(this, Func);
+  Func->getTarget()->emitVariable(this);
 }
 
 void Variable::dump(const Cfg *Func, Ostream &Str) const {
@@ -208,9 +307,6 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
     Str << "%" << getName();
     return;
   }
-  const CfgNode *CurrentNode = Func->getCurrentNode();
-  (void)CurrentNode; // used only in assert()
-  assert(CurrentNode == NULL || DefNode == NULL || DefNode == CurrentNode);
   if (Func->getContext()->isVerbose(IceV_RegOrigins) ||
       (!hasReg() && !Func->getTarget()->hasComputedFrame()))
     Str << "%" << getName();
