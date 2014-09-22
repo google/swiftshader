@@ -627,51 +627,8 @@ namespace Ice {
 void Converter::convertToIce() {
   nameUnnamedGlobalAddresses(Mod);
   if (!Ctx->getFlags().DisableGlobals)
-    convertGlobals();
+    convertGlobals(Mod);
   convertFunctions();
-}
-
-void Converter::convertGlobals() {
-  OwningPtr<TargetGlobalInitLowering> GlobalLowering(
-      TargetGlobalInitLowering::createLowering(Ctx->getTargetArch(), Ctx));
-  for (Module::const_global_iterator I = Mod->global_begin(),
-                                     E = Mod->global_end();
-       I != E; ++I) {
-    if (!I->hasInitializer())
-      continue;
-    const llvm::Constant *Initializer = I->getInitializer();
-    IceString Name = I->getName();
-    unsigned Align = I->getAlignment();
-    uint64_t NumElements = 0;
-    const char *Data = NULL;
-    bool IsInternal = I->hasInternalLinkage();
-    bool IsConst = I->isConstant();
-    bool IsZeroInitializer = false;
-
-    if (const ConstantDataArray *CDA =
-            dyn_cast<ConstantDataArray>(Initializer)) {
-      NumElements = CDA->getNumElements();
-      assert(isa<IntegerType>(CDA->getElementType()) &&
-             cast<IntegerType>(CDA->getElementType())->getBitWidth() == 8);
-      Data = CDA->getRawDataValues().data();
-    } else if (isa<ConstantAggregateZero>(Initializer)) {
-      if (const ArrayType *AT = dyn_cast<ArrayType>(Initializer->getType())) {
-        assert(isa<IntegerType>(AT->getElementType()) &&
-               cast<IntegerType>(AT->getElementType())->getBitWidth() == 8);
-        NumElements = AT->getNumElements();
-        IsZeroInitializer = true;
-      } else {
-        llvm_unreachable("Unhandled constant aggregate zero type");
-      }
-    } else {
-      llvm_unreachable("Unhandled global initializer");
-    }
-
-    GlobalLowering->lower(Name, Align, IsInternal, IsConst, IsZeroInitializer,
-                          NumElements, Data,
-                          Ctx->getFlags().DisableTranslation);
-  }
-  GlobalLowering.reset();
 }
 
 void Converter::convertFunctions() {

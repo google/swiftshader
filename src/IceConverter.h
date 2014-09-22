@@ -32,8 +32,6 @@ public:
 
 private:
   llvm::Module *Mod;
-  // Converts globals to ICE, and then machine code.
-  void convertGlobals();
   // Converts functions to ICE, and then machine code.
   void convertFunctions();
   Converter(const Converter &) LLVM_DELETED_FUNCTION;

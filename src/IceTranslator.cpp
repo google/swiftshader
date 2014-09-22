@@ -19,6 +19,8 @@
 #include "IceDefs.h"
 #include "IceTargetLowering.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Constant.h"
+#include "llvm/IR/Constants.h"
 
 #include <iostream>
 
@@ -103,4 +105,50 @@ void Translator::translateFcn(Cfg *Fcn) {
 void Translator::emitConstants() {
   if (!Ctx->getFlags().DisableTranslation && Func)
     Func->getTarget()->emitConstants();
+}
+
+void Translator::convertGlobals(llvm::Module *Mod) {
+  llvm::OwningPtr<TargetGlobalInitLowering> GlobalLowering(
+      TargetGlobalInitLowering::createLowering(Ctx->getTargetArch(), Ctx));
+  for (llvm::Module::const_global_iterator I = Mod->global_begin(),
+                                           E = Mod->global_end();
+       I != E; ++I) {
+    if (!I->hasInitializer())
+      continue;
+    const llvm::Constant *Initializer = I->getInitializer();
+    IceString Name = I->getName();
+    unsigned Align = I->getAlignment();
+    uint64_t NumElements = 0;
+    const char *Data = NULL;
+    bool IsInternal = I->hasInternalLinkage();
+    bool IsConst = I->isConstant();
+    bool IsZeroInitializer = false;
+
+    if (const llvm::ConstantDataArray *CDA =
+            llvm::dyn_cast<llvm::ConstantDataArray>(Initializer)) {
+      NumElements = CDA->getNumElements();
+      assert(llvm::isa<llvm::IntegerType>(CDA->getElementType()) &&
+             (llvm::cast<llvm::IntegerType>(CDA->getElementType())
+                  ->getBitWidth() == 8));
+      Data = CDA->getRawDataValues().data();
+    } else if (llvm::isa<llvm::ConstantAggregateZero>(Initializer)) {
+      if (const llvm::ArrayType *AT =
+              llvm::dyn_cast<llvm::ArrayType>(Initializer->getType())) {
+        assert(llvm::isa<llvm::IntegerType>(AT->getElementType()) &&
+               (llvm::cast<llvm::IntegerType>(AT->getElementType())
+                    ->getBitWidth() == 8));
+        NumElements = AT->getNumElements();
+        IsZeroInitializer = true;
+      } else {
+        llvm_unreachable("Unhandled constant aggregate zero type");
+      }
+    } else {
+      llvm_unreachable("Unhandled global initializer");
+    }
+
+    GlobalLowering->lower(Name, Align, IsInternal, IsConst, IsZeroInitializer,
+                          NumElements, Data,
+                          Ctx->getFlags().DisableTranslation);
+  }
+  GlobalLowering.reset();
 }

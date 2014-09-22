@@ -56,6 +56,11 @@ public:
   // prefix is non-empty.
   void nameUnnamedGlobalAddresses(llvm::Module *Mod);
 
+  // Converts globals to ICE, and then machine code.
+  // TODO(kschimpf) Remove this once we have ported to PNaClTranslator,
+  // and PNaClTranslator generates initializers while parsing.
+  void convertGlobals(llvm::Module *Mod);
+
 protected:
   GlobalContext *Ctx;
   const ClFlags &Flags;

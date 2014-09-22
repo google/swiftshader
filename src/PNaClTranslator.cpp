@@ -351,7 +351,9 @@ protected:
         Context(EnclosingParser->Context) {}
 
   // Gets the translator associated with the bitcode parser.
-  Ice::Translator &getTranslator() { return Context->getTranslator(); }
+  Ice::Translator &getTranslator() const { return Context->getTranslator(); }
+
+  const Ice::ClFlags &getFlags() const { return getTranslator().getFlags(); }
 
   // Generates an error Message with the bit address prefixed to it.
   virtual bool Error(const std::string &Message) LLVM_OVERRIDE {
@@ -1376,7 +1378,7 @@ private:
 };
 
 FunctionParser::~FunctionParser() {
-  if (getTranslator().getFlags().SubzeroTimingEnabled) {
+  if (getFlags().SubzeroTimingEnabled) {
     errs() << "[Subzero timing] Convert function " << Func->getFunctionName()
            << ": " << TConvert.getElapsedSec() << " sec\n";
   }
@@ -2216,15 +2218,35 @@ bool FunctionParser::ParseBlock(unsigned BlockID) {
 class ModuleParser : public BlockParserBaseClass {
 public:
   ModuleParser(unsigned BlockID, TopLevelParser *Context)
-      : BlockParserBaseClass(BlockID, Context), FoundFirstFunctionBlock(false) {
-  }
+      : BlockParserBaseClass(BlockID, Context),
+        GlobalAddressNamesAndInitializersInstalled(false) {}
 
   virtual ~ModuleParser() LLVM_OVERRIDE {}
 
 private:
-  // True if we have parsed a function block.
-  bool FoundFirstFunctionBlock;
+  // True if we have already instaledl names for unnamed global addresses,
+  // and generated global constant initializers.
+  bool GlobalAddressNamesAndInitializersInstalled;
+
+  // Temporary hack to generate names for unnamed global addresses,
+  // and generate global constant initializers. May be called multiple
+  // times. Only the first call will do the installation.
+  // NOTE: Doesn't handle relocations for global constant initializers.
+  void InstallGlobalAddressNamesAndInitializers() {
+    if (!GlobalAddressNamesAndInitializersInstalled) {
+      getTranslator().nameUnnamedGlobalAddresses(Context->getModule());
+      if (!getFlags().DisableGlobals)
+        getTranslator().convertGlobals(Context->getModule());
+      GlobalAddressNamesAndInitializersInstalled = true;
+    }
+  }
+
   virtual bool ParseBlock(unsigned BlockID) LLVM_OVERRIDE;
+
+  virtual void ExitBlock() LLVM_OVERRIDE {
+    InstallGlobalAddressNamesAndInitializers();
+    getTranslator().emitConstants();
+  }
 
   virtual void ProcessRecord() LLVM_OVERRIDE;
 };
@@ -2282,10 +2304,7 @@ bool ModuleParser::ParseBlock(unsigned BlockID) LLVM_OVERRIDE {
     return Parser.ParseThisBlock();
   }
   case naclbitc::FUNCTION_BLOCK_ID: {
-    if (!FoundFirstFunctionBlock) {
-      getTranslator().nameUnnamedGlobalAddresses(Context->getModule());
-      FoundFirstFunctionBlock = true;
-    }
+    InstallGlobalAddressNamesAndInitializers();
     FunctionParser Parser(BlockID, this);
     return Parser.ParseThisBlock();
   }
