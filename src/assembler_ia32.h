@@ -541,8 +541,6 @@ public:
 
   void fincstp();
 
-  void xchgl(GPRRegister dst, GPRRegister src);
-
   void cmpl(GPRRegister reg, const Immediate &imm);
   void cmpl(GPRRegister reg0, GPRRegister reg1);
   void cmpl(GPRRegister reg, const Address &address);
@@ -582,6 +580,8 @@ public:
   void subl(GPRRegister reg, const Address &address);
   void subl(const Address &address, GPRRegister reg);
 
+  void cbw();
+  void cwd();
   void cdq();
 
   void idivl(GPRRegister reg);
@@ -645,11 +645,14 @@ public:
   void jmp(const ConstantRelocatable *label);
 
   void lock();
-  void cmpxchgl(const Address &address, GPRRegister reg);
+  void cmpxchg(Type Ty, const Address &address, GPRRegister reg);
+  void cmpxchg8b(const Address &address);
+  void xadd(Type Ty, const Address &address, GPRRegister reg);
+  void xchg(Type Ty, const Address &address, GPRRegister reg);
 
-  void LockCmpxchgl(const Address &address, GPRRegister reg) {
+  void LockCmpxchg(Type Ty, const Address &address, GPRRegister reg) {
     lock();
-    cmpxchgl(address, reg);
+    cmpxchg(Ty, address, reg);
   }
 
   intptr_t PreferredLoopAlignment() { return 16; }

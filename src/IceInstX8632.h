@@ -895,6 +895,7 @@ public:
         InstX8632Cmov(Func, Dest, Source, Cond);
   }
   virtual void emit(const Cfg *Func) const;
+  virtual void emitIAS(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Cmov); }
 
@@ -945,6 +946,7 @@ public:
         InstX8632Cmpxchg(Func, DestOrAddr, Eax, Desired, Locked);
   }
   virtual void emit(const Cfg *Func) const;
+  virtual void emitIAS(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Cmpxchg); }
 
@@ -964,18 +966,19 @@ private:
 // <m64> must be a memory operand.
 class InstX8632Cmpxchg8b : public InstX8632Lockable {
 public:
-  static InstX8632Cmpxchg8b *create(Cfg *Func, OperandX8632 *Dest,
+  static InstX8632Cmpxchg8b *create(Cfg *Func, OperandX8632Mem *Dest,
                                     Variable *Edx, Variable *Eax, Variable *Ecx,
                                     Variable *Ebx, bool Locked) {
     return new (Func->allocate<InstX8632Cmpxchg8b>())
         InstX8632Cmpxchg8b(Func, Dest, Edx, Eax, Ecx, Ebx, Locked);
   }
   virtual void emit(const Cfg *Func) const;
+  virtual void emitIAS(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Cmpxchg8b); }
 
 private:
-  InstX8632Cmpxchg8b(Cfg *Func, OperandX8632 *Dest, Variable *Edx,
+  InstX8632Cmpxchg8b(Cfg *Func, OperandX8632Mem *Dest, Variable *Edx,
                      Variable *Eax, Variable *Ecx, Variable *Ebx, bool Locked);
   InstX8632Cmpxchg8b(const InstX8632Cmpxchg8b &) LLVM_DELETED_FUNCTION;
   InstX8632Cmpxchg8b &
@@ -1319,6 +1322,7 @@ public:
         InstX8632Xadd(Func, Dest, Source, Locked);
   }
   virtual void emit(const Cfg *Func) const;
+  virtual void emitIAS(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Xadd); }
 
@@ -1342,6 +1346,7 @@ public:
         InstX8632Xchg(Func, Dest, Source);
   }
   virtual void emit(const Cfg *Func) const;
+  virtual void emitIAS(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Xchg); }
 
@@ -1377,6 +1382,8 @@ template <> void InstX8632Psra::emit(const Cfg *Func) const;
 template <> void InstX8632Psub::emit(const Cfg *Func) const;
 template <> void InstX8632Sqrtss::emit(const Cfg *Func) const;
 template <> void InstX8632Subss::emit(const Cfg *Func) const;
+
+template <> void InstX8632Cbwdq::emitIAS(const Cfg *Func) const;
 
 } // end of namespace Ice
 

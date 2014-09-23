@@ -213,7 +213,7 @@ InstX8632Cmpxchg::InstX8632Cmpxchg(Cfg *Func, Operand *DestOrAddr,
   addSource(Desired);
 }
 
-InstX8632Cmpxchg8b::InstX8632Cmpxchg8b(Cfg *Func, OperandX8632 *Addr,
+InstX8632Cmpxchg8b::InstX8632Cmpxchg8b(Cfg *Func, OperandX8632Mem *Addr,
                                        Variable *Edx, Variable *Eax,
                                        Variable *Ecx, Variable *Ebx,
                                        bool Locked)
@@ -810,6 +810,34 @@ template <> void InstX8632Cbwdq::emit(const Cfg *Func) const {
   }
 }
 
+template <> void InstX8632Cbwdq::emitIAS(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  assert(getSrcSize() == 1);
+  Operand *Src0 = getSrc(0);
+  assert(llvm::isa<Variable>(Src0));
+  assert(llvm::cast<Variable>(Src0)->getRegNum() == RegX8632::Reg_eax);
+  switch (Src0->getType()) {
+  default:
+    llvm_unreachable("unexpected source type!");
+    break;
+  case IceType_i8:
+    assert(getDest()->getRegNum() == RegX8632::Reg_eax);
+    Asm->cbw();
+    break;
+  case IceType_i16:
+    assert(getDest()->getRegNum() == RegX8632::Reg_edx);
+    Asm->cwd();
+    break;
+  case IceType_i32:
+    assert(getDest()->getRegNum() == RegX8632::Reg_edx);
+    Asm->cdq();
+    break;
+  }
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
 void InstX8632Mul::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
@@ -892,6 +920,23 @@ void InstX8632Cmov::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
+void InstX8632Cmov::emitIAS(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t";
+  assert(Condition != CondX86::Br_None);
+  assert(getDest()->hasReg());
+  assert(getSrcSize() == 2);
+  // Only need the reg/reg form now.
+  const Variable *Src = llvm::cast<Variable>(getSrc(1));
+  assert(Src->hasReg());
+  assert(Src->getType() == IceType_i32);
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  Asm->cmov(Condition, RegX8632::getEncodedGPR(getDest()->getRegNum()),
+            RegX8632::getEncodedGPR(Src->getRegNum()));
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
 void InstX8632Cmov::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "cmov" << InstX8632BrAttributes[Condition].DisplayString << ".";
@@ -958,6 +1003,26 @@ void InstX8632Cmpxchg::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
+void InstX8632Cmpxchg::emitIAS(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 3);
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  Type Ty = getSrc(0)->getType();
+  const OperandX8632Mem *Mem = llvm::cast<OperandX8632Mem>(getSrc(0));
+  const x86::Address Addr = Mem->toAsmAddress(Asm);
+  const Variable *VarReg = llvm::cast<Variable>(getSrc(2));
+  assert(VarReg->hasReg());
+  const RegX8632::GPRRegister Reg =
+      RegX8632::getEncodedGPR(VarReg->getRegNum());
+  if (Locked) {
+    Asm->LockCmpxchg(Ty, Addr, Reg);
+  } else {
+    Asm->cmpxchg(Ty, Addr, Reg);
+  }
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
 void InstX8632Cmpxchg::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   if (Locked) {
@@ -976,6 +1041,20 @@ void InstX8632Cmpxchg8b::emit(const Cfg *Func) const {
   Str << "\tcmpxchg8b\t";
   getSrc(0)->emit(Func);
   Str << "\n";
+}
+
+void InstX8632Cmpxchg8b::emitIAS(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 5);
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  const OperandX8632Mem *Mem = llvm::cast<OperandX8632Mem>(getSrc(0));
+  const x86::Address Addr = Mem->toAsmAddress(Asm);
+  if (Locked) {
+    Asm->lock();
+  }
+  Asm->cmpxchg8b(Addr);
+  emitIASBytes(Str, Asm, StartPosition);
 }
 
 void InstX8632Cmpxchg8b::dump(const Cfg *Func) const {
@@ -1573,6 +1652,25 @@ void InstX8632Xadd::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
+void InstX8632Xadd::emitIAS(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 2);
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  Type Ty = getSrc(0)->getType();
+  const OperandX8632Mem *Mem = llvm::cast<OperandX8632Mem>(getSrc(0));
+  const x86::Address Addr = Mem->toAsmAddress(Asm);
+  const Variable *VarReg = llvm::cast<Variable>(getSrc(1));
+  assert(VarReg->hasReg());
+  const RegX8632::GPRRegister Reg =
+      RegX8632::getEncodedGPR(VarReg->getRegNum());
+  if (Locked) {
+    Asm->lock();
+  }
+  Asm->xadd(Ty, Addr, Reg);
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
 void InstX8632Xadd::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   if (Locked) {
@@ -1590,6 +1688,22 @@ void InstX8632Xchg::emit(const Cfg *Func) const {
   Str << ", ";
   getSrc(1)->emit(Func);
   Str << "\n";
+}
+
+void InstX8632Xchg::emitIAS(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 2);
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  Type Ty = getSrc(0)->getType();
+  const OperandX8632Mem *Mem = llvm::cast<OperandX8632Mem>(getSrc(0));
+  const x86::Address Addr = Mem->toAsmAddress(Asm);
+  const Variable *VarReg = llvm::cast<Variable>(getSrc(1));
+  assert(VarReg->hasReg());
+  const RegX8632::GPRRegister Reg =
+      RegX8632::getEncodedGPR(VarReg->getRegNum());
+  Asm->xchg(Ty, Addr, Reg);
+  emitIASBytes(Str, Asm, StartPosition);
 }
 
 void InstX8632Xchg::dump(const Cfg *Func) const {

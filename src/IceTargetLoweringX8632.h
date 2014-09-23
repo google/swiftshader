@@ -250,7 +250,7 @@ protected:
     Context.insert(
         InstFakeDef::create(Func, Eax, llvm::dyn_cast<Variable>(DestOrAddr)));
   }
-  void _cmpxchg8b(OperandX8632 *Addr, Variable *Edx, Variable *Eax,
+  void _cmpxchg8b(OperandX8632Mem *Addr, Variable *Edx, Variable *Eax,
                   Variable *Ecx, Variable *Ebx, bool Locked) {
     Context.insert(
         InstX8632Cmpxchg8b::create(Func, Addr, Edx, Eax, Ecx, Ebx, Locked));

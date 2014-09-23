@@ -1110,12 +1110,6 @@ void AssemblerX86::fincstp() {
   EmitUint8(0xF7);
 }
 
-void AssemblerX86::xchgl(GPRRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x87);
-  EmitRegisterOperand(dst, src);
-}
-
 void AssemblerX86::cmpl(GPRRegister reg, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitComplex(7, Operand(reg), imm);
@@ -1305,6 +1299,18 @@ void AssemblerX86::subl(const Address &address, GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x29);
   EmitOperand(reg, address);
+}
+
+void AssemblerX86::cbw() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandSizeOverride();
+  EmitUint8(0x98);
+}
+
+void AssemblerX86::cwd() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandSizeOverride();
+  EmitUint8(0x99);
 }
 
 void AssemblerX86::cdq() {
@@ -1674,11 +1680,46 @@ void AssemblerX86::lock() {
   EmitUint8(0xF0);
 }
 
-void AssemblerX86::cmpxchgl(const Address &address, GPRRegister reg) {
+void AssemblerX86::cmpxchg(Type Ty, const Address &address, GPRRegister reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  EmitUint8(0x0F);
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0xB0);
+  else
+    EmitUint8(0xB1);
+  EmitOperand(reg, address);
+}
+
+void AssemblerX86::cmpxchg8b(const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
-  EmitUint8(0xB1);
-  EmitOperand(reg, address);
+  EmitUint8(0xC7);
+  EmitOperand(1, address);
+}
+
+void AssemblerX86::xadd(Type Ty, const Address &addr, GPRRegister reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  EmitUint8(0x0F);
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0xC0);
+  else
+    EmitUint8(0xC1);
+  EmitOperand(reg, addr);
+}
+
+void AssemblerX86::xchg(Type Ty, const Address &addr, GPRRegister reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x86);
+  else
+    EmitUint8(0x87);
+  EmitOperand(reg, addr);
 }
 
 void AssemblerX86::Align(intptr_t alignment, intptr_t offset) {
