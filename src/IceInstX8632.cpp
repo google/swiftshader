@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "assembler_ia32.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceConditionCodesX8632.h"
@@ -331,6 +332,47 @@ InstX8632Xchg::InstX8632Xchg(Cfg *Func, Operand *Dest, Variable *Source)
 
 // ======================== Dump routines ======================== //
 
+namespace {
+
+void emitIASBytes(Ostream &Str, const x86::AssemblerX86 *Asm,
+                  intptr_t StartPosition) {
+  intptr_t EndPosition = Asm->GetPosition();
+  intptr_t LastFixupLoc = -1;
+  AssemblerFixup *LastFixup = NULL;
+  if (Asm->GetLatestFixup()) {
+    LastFixup = Asm->GetLatestFixup();
+    LastFixupLoc = LastFixup->position();
+  }
+  if (LastFixupLoc < StartPosition) {
+    // The fixup doesn't apply to this current block.
+    for (intptr_t i = 0; i < EndPosition - StartPosition; ++i) {
+      Str << "\t.byte "
+          << static_cast<uint32_t>(Asm->LoadBuffer<uint8_t>(StartPosition + i))
+          << "\n";
+    }
+    return;
+  }
+  const intptr_t FixupSize = 4;
+  assert(LastFixupLoc + FixupSize <= EndPosition);
+  // The fixup does apply to this current block.
+  for (intptr_t i = 0; i < LastFixupLoc - StartPosition; ++i) {
+    Str << "\t.byte "
+        << static_cast<uint32_t>(Asm->LoadBuffer<uint8_t>(StartPosition + i))
+        << "\n";
+  }
+  Str << "\t.long " << LastFixup->value()->getName();
+  if (LastFixup->value()->getOffset()) {
+    Str << " + " << LastFixup->value()->getOffset();
+  }
+  Str << "\n";
+  for (intptr_t i = LastFixupLoc + FixupSize; i < EndPosition; ++i) {
+    Str << "\t.byte " << static_cast<uint32_t>(Asm->LoadBuffer<uint8_t>(i))
+        << "\n";
+  }
+}
+
+} // end of anonymous namespace
+
 void InstX8632::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "[X8632] ";
@@ -436,6 +478,38 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
   Str << "\n";
 }
 
+void
+emitIASVarOperandTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
+                       const Operand *Src,
+                       const x86::AssemblerX86::TypedXmmEmitters &Emitter) {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  assert(Var->hasReg());
+  RegX8632::XmmRegister VarReg = RegX8632::getEncodedXmm(Var->getRegNum());
+  if (const Variable *SrcVar = llvm::dyn_cast<Variable>(Src)) {
+    if (SrcVar->hasReg()) {
+      RegX8632::XmmRegister SrcReg =
+          RegX8632::getEncodedXmm(SrcVar->getRegNum());
+      (Asm->*(Emitter.XmmXmm))(Ty, VarReg, SrcReg);
+    } else {
+      x86::Address SrcStackAddr = static_cast<TargetX8632 *>(Func->getTarget())
+                                      ->stackVarToAsmOperand(SrcVar);
+      (Asm->*(Emitter.XmmAddr))(Ty, VarReg, SrcStackAddr);
+    }
+  } else if (const OperandX8632Mem *Mem =
+                 llvm::dyn_cast<OperandX8632Mem>(Src)) {
+    x86::Address SrcAddr = Mem->toAsmAddress(Asm);
+    (Asm->*(Emitter.XmmAddr))(Ty, VarReg, SrcAddr);
+  } else if (const Constant *Imm = llvm::dyn_cast<Constant>(Src)) {
+    (Asm->*(Emitter.XmmAddr))(
+        Ty, VarReg, x86::Address::ofConstPool(Func->getContext(), Asm, Imm));
+  } else {
+    llvm_unreachable("Unexpected operand type");
+  }
+  Ostream &Str = Func->getContext()->getStrEmit();
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
 bool checkForRedundantAssign(const Variable *Dest, const Operand *Source) {
   const Variable *Src = llvm::dyn_cast<const Variable>(Source);
   if (Src == NULL)
@@ -511,6 +585,56 @@ template <> const char *InstX8632Pblendvb::Opcode = "pblendvb";
 // Three address ops
 template <> const char *InstX8632Pextr::Opcode = "pextr";
 template <> const char *InstX8632Pshufd::Opcode = "pshufd";
+
+// Binary XMM ops
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Addss::Emitter = {
+    &x86::AssemblerX86::addss, &x86::AssemblerX86::addss, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Addps::Emitter = {
+    &x86::AssemblerX86::addps, &x86::AssemblerX86::addps, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Divss::Emitter = {
+    &x86::AssemblerX86::divss, &x86::AssemblerX86::divss, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Divps::Emitter = {
+    &x86::AssemblerX86::divps, &x86::AssemblerX86::divps, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Mulss::Emitter = {
+    &x86::AssemblerX86::mulss, &x86::AssemblerX86::mulss, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Mulps::Emitter = {
+    &x86::AssemblerX86::mulps, &x86::AssemblerX86::mulps, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Padd::Emitter = {
+    &x86::AssemblerX86::padd, &x86::AssemblerX86::padd, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Pand::Emitter = {
+    &x86::AssemblerX86::pand, &x86::AssemblerX86::pand, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Pandn::Emitter = {
+    &x86::AssemblerX86::pandn, &x86::AssemblerX86::pandn, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Pmuludq::Emitter = {
+    &x86::AssemblerX86::pmuludq, &x86::AssemblerX86::pmuludq, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Por::Emitter = {
+    &x86::AssemblerX86::por, &x86::AssemblerX86::por, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Psub::Emitter = {
+    &x86::AssemblerX86::psub, &x86::AssemblerX86::psub, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Pxor::Emitter = {
+    &x86::AssemblerX86::pxor, &x86::AssemblerX86::pxor, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Sqrtss::Emitter = {
+    &x86::AssemblerX86::sqrtss, &x86::AssemblerX86::sqrtss, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Subss::Emitter = {
+    &x86::AssemblerX86::subss, &x86::AssemblerX86::subss, NULL};
+template <>
+const x86::AssemblerX86::TypedXmmEmitters InstX8632Subps::Emitter = {
+    &x86::AssemblerX86::subps, &x86::AssemblerX86::subps, NULL};
 
 template <> void InstX8632Sqrtss::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -790,6 +914,28 @@ void InstX8632Cmpps::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
+void InstX8632Cmpps::emitIAS(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  assert(getSrcSize() == 2);
+  assert(Condition < CondX86::Cmpps_Invalid);
+  // Assuming there isn't any load folding for cmpps, and vector constants
+  // are not allowed in PNaCl.
+  assert(llvm::isa<Variable>(getSrc(1)));
+  const Variable *SrcVar = llvm::cast<Variable>(getSrc(1));
+  if (SrcVar->hasReg()) {
+    Asm->cmpps(RegX8632::getEncodedXmm(getDest()->getRegNum()),
+               RegX8632::getEncodedXmm(SrcVar->getRegNum()), Condition);
+  } else {
+    x86::Address SrcStackAddr = static_cast<TargetX8632 *>(Func->getTarget())
+                                    ->stackVarToAsmOperand(SrcVar);
+    Asm->cmpps(RegX8632::getEncodedXmm(getDest()->getRegNum()), SrcStackAddr,
+               Condition);
+  }
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
 void InstX8632Cmpps::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   assert(Condition < CondX86::Cmpps_Invalid);
@@ -891,6 +1037,18 @@ void InstX8632Ucomiss::emit(const Cfg *Func) const {
   Str << ", ";
   getSrc(1)->emit(Func);
   Str << "\n";
+}
+
+void InstX8632Ucomiss::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  // Currently src0 is always a variable by convention, to avoid having
+  // two memory operands.
+  assert(llvm::isa<Variable>(getSrc(0)));
+  const Variable *Src0 = llvm::cast<Variable>(getSrc(0));
+  Type Ty = Src0->getType();
+  const static x86::AssemblerX86::TypedXmmEmitters Emitter = {
+      &x86::AssemblerX86::ucomiss, &x86::AssemblerX86::ucomiss, NULL};
+  emitIASVarOperandTyXMM(Func, Ty, Src0, getSrc(1), Emitter);
 }
 
 void InstX8632Ucomiss::dump(const Cfg *Func) const {
@@ -1133,6 +1291,15 @@ void InstX8632Nop::emit(const Cfg *Func) const {
   Str << "\tnop\t# variant = " << Variant << "\n";
 }
 
+void InstX8632Nop::emitIAS(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  // TODO: Emit the right code for the variant.
+  Asm->nop();
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
 void InstX8632Nop::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "nop (variant = " << Variant << ")";
@@ -1272,6 +1439,20 @@ void InstX8632Pop::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
+void InstX8632Pop::emitIAS(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 0);
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  if (getDest()->hasReg()) {
+    Asm->popl(RegX8632::getEncodedGPR(getDest()->getRegNum()));
+  } else {
+    Asm->popl(static_cast<TargetX8632 *>(Func->getTarget())
+                  ->stackVarToAsmOperand(getDest()));
+  }
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
 void InstX8632Pop::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -1281,6 +1462,15 @@ void InstX8632Pop::dump(const Cfg *Func) const {
 void InstX8632AdjustStack::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\tsub\tesp, " << Amount << "\n";
+  Func->getTarget()->updateStackAdjustment(Amount);
+}
+
+void InstX8632AdjustStack::emitIAS(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  Asm->subl(RegX8632::Encoded_Reg_esp, x86::Immediate(Amount));
+  emitIASBytes(Str, Asm, StartPosition);
   Func->getTarget()->updateStackAdjustment(Amount);
 }
 
@@ -1354,6 +1544,14 @@ template <> void InstX8632Psra::emit(const Cfg *Func) const {
 void InstX8632Ret::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\tret\n";
+}
+
+void InstX8632Ret::emitIAS(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  Asm->ret();
+  emitIASBytes(Str, Asm, StartPosition);
 }
 
 void InstX8632Ret::dump(const Cfg *Func) const {
@@ -1496,6 +1694,41 @@ void OperandX8632Mem::dump(const Cfg *Func, Ostream &Str) const {
     Offset->dump(Func, Str);
   }
   Str << "]";
+}
+
+x86::Address OperandX8632Mem::toAsmAddress(Assembler *Asm) const {
+  int32_t Disp = 0;
+  AssemblerFixup *Fixup = NULL;
+  // Determine the offset (is it relocatable?)
+  if (getOffset()) {
+    if (ConstantInteger32 *CI =
+            llvm::dyn_cast<ConstantInteger32>(getOffset())) {
+      Disp = static_cast<int32_t>(CI->getValue());
+    } else if (ConstantRelocatable *CR =
+                   llvm::dyn_cast<ConstantRelocatable>(getOffset())) {
+      // TODO(jvoung): CR + non-zero-offset isn't really tested yet,
+      // since the addressing mode optimization doesn't try to combine
+      // ConstantRelocatable with something else.
+      assert(CR->getOffset() == 0);
+      Fixup = x86::DisplacementRelocation::create(Asm, FK_Abs_4, CR);
+    } else {
+      llvm_unreachable("Unexpected offset type");
+    }
+  }
+
+  // Now convert to the various possible forms.
+  if (getBase() && getIndex()) {
+    return x86::Address(RegX8632::getEncodedGPR(getBase()->getRegNum()),
+                        RegX8632::getEncodedGPR(getIndex()->getRegNum()),
+                        x86::ScaleFactor(getShift()), Disp);
+  } else if (getBase()) {
+    return x86::Address(RegX8632::getEncodedGPR(getBase()->getRegNum()), Disp);
+  } else if (getIndex()) {
+    return x86::Address(RegX8632::getEncodedGPR(getIndex()->getRegNum()),
+                        x86::ScaleFactor(getShift()), Disp);
+  } else {
+    return x86::Address::Absolute(Disp, Fixup);
+  }
 }
 
 void VariableSplit::emit(const Cfg *Func) const {

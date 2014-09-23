@@ -17,6 +17,9 @@
 
 #include "IceDefs.h"
 #include "IceTypes.h"
+
+#include "assembler.h"
+#include "IceClFlags.h"
 #include "IceGlobalContext.h"
 
 #include "llvm/ADT/OwningPtr.h"
@@ -86,6 +89,12 @@ public:
   TargetLowering *getTarget() const { return Target.get(); }
   VariablesMetadata *getVMetadata() const { return VMetadata.get(); }
   Liveness *getLiveness() const { return Live.get(); }
+  template <typename T> T *getAssembler() const {
+    return static_cast<T *>(TargetAssembler.get());
+  }
+  bool UseIntegratedAssembler() const {
+    return getContext()->getFlags().UseIntegratedAssembler;
+  }
   bool hasComputedFrame() const;
 
   // Passes over the CFG.
@@ -166,6 +175,7 @@ private:
   llvm::OwningPtr<Liveness> Live;
   llvm::OwningPtr<TargetLowering> Target;
   llvm::OwningPtr<VariablesMetadata> VMetadata;
+  llvm::OwningPtr<Assembler> TargetAssembler;
 
   // CurrentNode is maintained during dumping/emitting just for
   // validating Variable::DefNode.  Normally, a traversal over

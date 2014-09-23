@@ -458,6 +458,8 @@ void Inst::emit(const Cfg * /*Func*/) const {
   llvm_unreachable("emit() called on a non-lowered instruction");
 }
 
+void Inst::emitIAS(const Cfg *Func) const { emit(Func); }
+
 void Inst::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);

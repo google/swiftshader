@@ -24,6 +24,7 @@
 #include "IceRegistersX8632.h"
 #include "IceTargetLoweringX8632.def"
 #include "IceTargetLoweringX8632.h"
+#include "IceUtils.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/CommandLine.h"
@@ -526,6 +527,14 @@ void TargetX8632::emitVariable(const Variable *Var) const {
     Str << Offset;
   }
   Str << "]";
+}
+
+x86::Address TargetX8632::stackVarToAsmOperand(const Variable *Var) const {
+  assert(!Var->hasReg());
+  int32_t Offset = Var->getStackOffset();
+  if (!hasFramePointer())
+    Offset += getStackAdjustment();
+  return x86::Address(RegX8632::getEncodedGPR(getFrameOrStackReg()), Offset);
 }
 
 void TargetX8632::lowerArguments() {
@@ -3710,7 +3719,7 @@ bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable *&Base,
     if (Var == NULL || Const == NULL || VMetadata->isMultiDef(Var))
       return false;
     int32_t MoreOffset = IsAdd ? Const->getValue() : -Const->getValue();
-    if (WouldOverflowAdd(Offset, MoreOffset))
+    if (Utils::WouldOverflowAdd(Offset, MoreOffset))
       return false;
     Base = Var;
     Offset += MoreOffset;

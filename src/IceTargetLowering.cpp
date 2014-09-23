@@ -15,6 +15,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "assembler_ia32.h"
 #include "IceCfg.h" // setError()
 #include "IceCfgNode.h"
 #include "IceOperand.h"
@@ -93,6 +94,15 @@ TargetLowering *TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
   if (Target == Target_ARM64)
     return IceTargetARM64::create(Func);
 #endif
+  Func->setError("Unsupported target");
+  return NULL;
+}
+
+Assembler *TargetLowering::createAssembler(TargetArch Target, Cfg *Func) {
+  // These statements can be #ifdef'd to specialize the assembler
+  // to a subset of the available targets.  TODO: use CRTP.
+  if (Target == Target_X8632)
+    return new x86::AssemblerX86();
   Func->setError("Unsupported target");
   return NULL;
 }

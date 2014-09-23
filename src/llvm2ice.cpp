@@ -130,6 +130,11 @@ BuildOnRead("build-on-read",
             cl::desc("Build ICE instructions when reading bitcode"),
             cl::init(false));
 
+static cl::opt<bool>
+    UseIntegratedAssembler("integrated-as",
+                           cl::desc("Use integrated assembler (default yes)"),
+                           cl::init(true));
+
 int main(int argc, char **argv) {
 
   cl::ParseCommandLineOptions(argc, argv);
@@ -158,6 +163,7 @@ int main(int argc, char **argv) {
   Flags.DisableTranslation = DisableTranslation;
   Flags.DisableGlobals = DisableGlobals;
   Flags.FunctionSections = FunctionSections;
+  Flags.UseIntegratedAssembler = UseIntegratedAssembler;
   Flags.UseSandboxing = UseSandboxing;
   Flags.DumpStats = DumpStats;
   Flags.DefaultGlobalPrefix = DefaultGlobalPrefix;

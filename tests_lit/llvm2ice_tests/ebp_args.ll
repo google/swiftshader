@@ -3,7 +3,9 @@
 ; adjustment was incorrectly added to the stack/frame offset for
 ; ebp-based frames.
 
-; RUN: %llvm2ice -Om1 --target=x8632 --verbose none %s | FileCheck %s
+; RUN: %llvm2ice -Om1 --target=x8632 --verbose none %s \
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 
 declare i32 @memcpy_helper2(i32 %buf, i32 %buf2, i32 %n)
 
@@ -25,19 +27,19 @@ entry:
 ; CHECK:  push  ebp
 ; CHECK:  mov   ebp, esp
 ; CHECK:  sub   esp, 24
-; CHECK:  mov   eax, dword ptr [ebp+12]
-; CHECK:  mov   dword ptr [ebp-4], eax
+; CHECK:  mov   eax, dword ptr [ebp + 12]
+; CHECK:  mov   dword ptr [ebp - 4], eax
 ; CHECK:  sub   esp, 128
-; CHECK:  mov   dword ptr [ebp-8], esp
-; CHECK:  mov   eax, dword ptr [ebp-8]
-; CHECK:  mov   dword ptr [ebp-12], eax
-; CHECK:  movzx eax, byte ptr [ebp-4]
-; CHECK:  mov   dword ptr [ebp-16], eax
+; CHECK:  mov   dword ptr [ebp - 8], esp
+; CHECK:  mov   eax, dword ptr [ebp - 8]
+; CHECK:  mov   dword ptr [ebp - 12], eax
+; CHECK:  movzx eax, byte ptr [ebp - 4]
+; CHECK:  mov   dword ptr [ebp - 16], eax
 ; CHECK:  sub   esp, 16
-; CHECK:  mov   ecx, dword ptr [ebp+8]
+; CHECK:  mov   ecx, dword ptr [ebp + 8]
 ; CHECK:  mov   dword ptr [esp], ecx
-; CHECK:  mov   ecx, dword ptr [ebp-12]
-; CHECK:  mov   dword ptr [esp+4], ecx
-; CHECK:  mov   ecx, dword ptr [ebp-16]
-; CHECK:  mov   dword ptr [esp+8], ecx
-; CHECK:  call  memcpy_helper2
+; CHECK:  mov   ecx, dword ptr [ebp - 12]
+; CHECK:  mov   dword ptr [esp + 4], ecx
+; CHECK:  mov   ecx, dword ptr [ebp - 16]
+; CHECK:  mov   dword ptr [esp + 8], ecx
+; CHECK:  call  -4

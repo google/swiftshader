@@ -18,6 +18,7 @@
 
 #include "IceDefs.h"
 #include "IceTargetLowering.h"
+#include "assembler_ia32.h"
 #include "IceInstX8632.h"
 #include "IceRegistersX8632.h"
 
@@ -68,6 +69,7 @@ public:
                               size_t BasicFrameOffset, size_t &InArgsSizeBytes);
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
+  x86::Address stackVarToAsmOperand(const Variable *Var) const;
 
   enum X86InstructionSet {
     // SSE2 is the PNaCl baseline instruction set.

@@ -28,7 +28,10 @@ Cfg::Cfg(GlobalContext *Ctx)
       IsInternalLinkage(false), HasError(false), ErrorMessage(""), Entry(NULL),
       NextInstNumber(1), Live(NULL),
       Target(TargetLowering::createLowering(Ctx->getTargetArch(), this)),
-      VMetadata(new VariablesMetadata(this)), CurrentNode(NULL) {}
+      VMetadata(new VariablesMetadata(this)),
+      TargetAssembler(
+          TargetLowering::createAssembler(Ctx->getTargetArch(), this)),
+      CurrentNode(NULL) {}
 
 Cfg::~Cfg() {}
 

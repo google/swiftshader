@@ -60,6 +60,8 @@ CXXFLAGS := $(LLVM_CXXFLAGS) -Wall -Wextra -Werror -fno-rtti \
 LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib
 
 SRCS= \
+	assembler.cpp \
+	assembler_ia32.cpp \
 	IceCfg.cpp \
 	IceCfgNode.cpp \
 	IceConverter.cpp \
@@ -68,6 +70,7 @@ SRCS= \
 	IceInstX8632.cpp \
 	IceIntrinsics.cpp \
 	IceLiveness.cpp \
+	IceMemoryRegion.cpp \
 	IceOperand.cpp \
 	IceRegAlloc.cpp \
         IceRNG.cpp \

@@ -16,6 +16,7 @@
 #ifndef SUBZERO_SRC_ICEINSTX8632_H
 #define SUBZERO_SRC_ICEINSTX8632_H
 
+#include "assembler_ia32.h"
 #include "IceDefs.h"
 #include "IceInst.h"
 #include "IceConditionCodesX8632.h"
@@ -75,6 +76,7 @@ public:
   Variable *getIndex() const { return Index; }
   uint16_t getShift() const { return Shift; }
   SegmentRegisters getSegmentRegister() const { return SegmentReg; }
+  x86::Address toAsmAddress(Assembler *Asm) const;
   virtual void emit(const Cfg *Func) const;
   using OperandX8632::dump;
   virtual void dump(const Cfg *Func, Ostream &Str) const;
@@ -396,6 +398,7 @@ public:
         InstX8632AdjustStack(Func, Amount, Esp);
   }
   virtual void emit(const Cfg *Func) const;
+  virtual void emitIAS(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Adjuststack); }
 
@@ -478,6 +481,7 @@ public:
     getSrc(0)->emit(Func);
     Str << "\n";
   }
+  virtual void emitIAS(const Cfg *Func) const { emit(Func); }
   virtual void dump(const Cfg *Func) const {
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -495,6 +499,52 @@ private:
   InstX8632Unaryop &operator=(const InstX8632Unaryop &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Unaryop() {}
   static const char *Opcode;
+};
+
+void emitIASVarOperandTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
+                            const Operand *Src,
+                            const x86::AssemblerX86::TypedXmmEmitters &Emitter);
+
+template <InstX8632::InstKindX8632 K>
+class InstX8632UnaryopXmm : public InstX8632 {
+public:
+  static InstX8632UnaryopXmm *create(Cfg *Func, Variable *Dest, Operand *Src) {
+    return new (Func->allocate<InstX8632UnaryopXmm>())
+        InstX8632UnaryopXmm(Func, Dest, Src);
+  }
+  virtual void emit(const Cfg *Func) const {
+    Ostream &Str = Func->getContext()->getStrEmit();
+    assert(getSrcSize() == 1);
+    Str << "\t" << Opcode << "\t";
+    getDest()->emit(Func);
+    Str << ", ";
+    getSrc(0)->emit(Func);
+    Str << "\n";
+  }
+  virtual void emitIAS(const Cfg *Func) const {
+    Type Ty = getDest()->getType();
+    assert(getSrcSize() == 1);
+    emitIASVarOperandTyXMM(Func, Ty, getDest(), getSrc(0), Emitter);
+  }
+  virtual void dump(const Cfg *Func) const {
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = " << Opcode << "." << getDest()->getType() << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstX8632UnaryopXmm(Cfg *Func, Variable *Dest, Operand *Src)
+      : InstX8632(Func, K, 1, Dest) {
+    addSource(Src);
+  }
+  InstX8632UnaryopXmm(const InstX8632UnaryopXmm &) LLVM_DELETED_FUNCTION;
+  InstX8632UnaryopXmm &
+  operator=(const InstX8632UnaryopXmm &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632UnaryopXmm() {}
+  static const char *Opcode;
+  static const x86::AssemblerX86::TypedXmmEmitters Emitter;
 };
 
 // See the definition of emitTwoAddress() for a description of
@@ -531,6 +581,46 @@ private:
   InstX8632Binop &operator=(const InstX8632Binop &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632Binop() {}
   static const char *Opcode;
+};
+
+template <InstX8632::InstKindX8632 K, bool NeedsElementType>
+class InstX8632BinopXmm : public InstX8632 {
+public:
+  // Create an XMM binary-op instruction like addss or addps.
+  static InstX8632BinopXmm *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    return new (Func->allocate<InstX8632BinopXmm>())
+        InstX8632BinopXmm(Func, Dest, Source);
+  }
+  virtual void emit(const Cfg *Func) const {
+    const bool ShiftHack = false;
+    emitTwoAddress(Opcode, this, Func, ShiftHack);
+  }
+  virtual void emitIAS(const Cfg *Func) const {
+    Type Ty = getDest()->getType();
+    if (NeedsElementType)
+      Ty = typeElementType(Ty);
+    assert(getSrcSize() == 2);
+    emitIASVarOperandTyXMM(Func, Ty, getDest(), getSrc(1), Emitter);
+  }
+  virtual void dump(const Cfg *Func) const {
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = " << Opcode << "." << getDest()->getType() << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstX8632BinopXmm(Cfg *Func, Variable *Dest, Operand *Source)
+      : InstX8632(Func, K, 2, Dest) {
+    addSource(Dest);
+    addSource(Source);
+  }
+  InstX8632BinopXmm(const InstX8632BinopXmm &) LLVM_DELETED_FUNCTION;
+  InstX8632BinopXmm &operator=(const InstX8632BinopXmm &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632BinopXmm() {}
+  static const char *Opcode;
+  static const x86::AssemblerX86::TypedXmmEmitters Emitter;
 };
 
 template <InstX8632::InstKindX8632 K> class InstX8632Ternop : public InstX8632 {
@@ -657,7 +747,7 @@ typedef InstX8632Unaryop<InstX8632::Bsf> InstX8632Bsf;
 typedef InstX8632Unaryop<InstX8632::Bsr> InstX8632Bsr;
 typedef InstX8632Unaryop<InstX8632::Lea> InstX8632Lea;
 typedef InstX8632Unaryop<InstX8632::Movd> InstX8632Movd;
-typedef InstX8632Unaryop<InstX8632::Sqrtss> InstX8632Sqrtss;
+typedef InstX8632UnaryopXmm<InstX8632::Sqrtss> InstX8632Sqrtss;
 // Cbwdq instruction - wrapper for cbw, cwd, and cdq
 typedef InstX8632Unaryop<InstX8632::Cbwdq> InstX8632Cbwdq;
 // Move/assignment instruction - wrapper for mov/movss/movsd.
@@ -668,29 +758,29 @@ typedef InstX8632Movlike<InstX8632::Movp> InstX8632Movp;
 // Movq - copy between XMM registers, or mem64 and XMM registers.
 typedef InstX8632Movlike<InstX8632::Movq> InstX8632Movq;
 typedef InstX8632Binop<InstX8632::Add> InstX8632Add;
-typedef InstX8632Binop<InstX8632::Addps> InstX8632Addps;
+typedef InstX8632BinopXmm<InstX8632::Addps, true> InstX8632Addps;
 typedef InstX8632Binop<InstX8632::Adc> InstX8632Adc;
-typedef InstX8632Binop<InstX8632::Addss> InstX8632Addss;
-typedef InstX8632Binop<InstX8632::Padd> InstX8632Padd;
+typedef InstX8632BinopXmm<InstX8632::Addss, false> InstX8632Addss;
+typedef InstX8632BinopXmm<InstX8632::Padd, true> InstX8632Padd;
 typedef InstX8632Binop<InstX8632::Sub> InstX8632Sub;
-typedef InstX8632Binop<InstX8632::Subps> InstX8632Subps;
-typedef InstX8632Binop<InstX8632::Subss> InstX8632Subss;
+typedef InstX8632BinopXmm<InstX8632::Subps, true> InstX8632Subps;
+typedef InstX8632BinopXmm<InstX8632::Subss, false> InstX8632Subss;
 typedef InstX8632Binop<InstX8632::Sbb> InstX8632Sbb;
-typedef InstX8632Binop<InstX8632::Psub> InstX8632Psub;
+typedef InstX8632BinopXmm<InstX8632::Psub, true> InstX8632Psub;
 typedef InstX8632Binop<InstX8632::And> InstX8632And;
-typedef InstX8632Binop<InstX8632::Pand> InstX8632Pand;
-typedef InstX8632Binop<InstX8632::Pandn> InstX8632Pandn;
+typedef InstX8632BinopXmm<InstX8632::Pand, false> InstX8632Pand;
+typedef InstX8632BinopXmm<InstX8632::Pandn, false> InstX8632Pandn;
 typedef InstX8632Binop<InstX8632::Or> InstX8632Or;
-typedef InstX8632Binop<InstX8632::Por> InstX8632Por;
+typedef InstX8632BinopXmm<InstX8632::Por, false> InstX8632Por;
 typedef InstX8632Binop<InstX8632::Xor> InstX8632Xor;
-typedef InstX8632Binop<InstX8632::Pxor> InstX8632Pxor;
+typedef InstX8632BinopXmm<InstX8632::Pxor, false> InstX8632Pxor;
 typedef InstX8632Binop<InstX8632::Imul> InstX8632Imul;
-typedef InstX8632Binop<InstX8632::Mulps> InstX8632Mulps;
-typedef InstX8632Binop<InstX8632::Mulss> InstX8632Mulss;
+typedef InstX8632BinopXmm<InstX8632::Mulps, true> InstX8632Mulps;
+typedef InstX8632BinopXmm<InstX8632::Mulss, false> InstX8632Mulss;
 typedef InstX8632Binop<InstX8632::Pmull> InstX8632Pmull;
-typedef InstX8632Binop<InstX8632::Pmuludq> InstX8632Pmuludq;
-typedef InstX8632Binop<InstX8632::Divps> InstX8632Divps;
-typedef InstX8632Binop<InstX8632::Divss> InstX8632Divss;
+typedef InstX8632BinopXmm<InstX8632::Pmuludq, false> InstX8632Pmuludq;
+typedef InstX8632BinopXmm<InstX8632::Divps, true> InstX8632Divps;
+typedef InstX8632BinopXmm<InstX8632::Divss, false> InstX8632Divss;
 typedef InstX8632Binop<InstX8632::Rol, true> InstX8632Rol;
 typedef InstX8632Binop<InstX8632::Shl, true> InstX8632Shl;
 typedef InstX8632Binop<InstX8632::Psll> InstX8632Psll;
@@ -828,6 +918,7 @@ public:
         InstX8632Cmpps(Func, Dest, Source, Condition);
   }
   virtual void emit(const Cfg *Func) const;
+  virtual void emitIAS(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Cmpps); }
 
@@ -941,6 +1032,7 @@ public:
         InstX8632Ucomiss(Func, Src1, Src2);
   }
   virtual void emit(const Cfg *Func) const;
+  virtual void emitIAS(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Ucomiss); }
 
@@ -1108,6 +1200,7 @@ public:
     return new (Func->allocate<InstX8632Nop>()) InstX8632Nop(Func, Variant);
   }
   virtual void emit(const Cfg *Func) const;
+  virtual void emitIAS(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Nop); }
 
@@ -1160,6 +1253,7 @@ public:
     return new (Func->allocate<InstX8632Pop>()) InstX8632Pop(Func, Dest);
   }
   virtual void emit(const Cfg *Func) const;
+  virtual void emitIAS(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Pop); }
 
@@ -1199,6 +1293,7 @@ public:
     return new (Func->allocate<InstX8632Ret>()) InstX8632Ret(Func, Source);
   }
   virtual void emit(const Cfg *Func) const;
+  virtual void emitIAS(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Ret); }
 

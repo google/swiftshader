@@ -492,7 +492,11 @@ void CfgNode::emit(Cfg *Func) const {
     // suppress them.
     if (Inst->isRedundantAssign())
       continue;
-    (*I)->emit(Func);
+    if (Func->UseIntegratedAssembler()) {
+      (*I)->emitIAS(Func);
+    } else {
+      (*I)->emit(Func);
+    }
     // Update emitted instruction count, plus fill/spill count for
     // Variable operands without a physical register.
     if (uint32_t Count = (*I)->getEmitInstCount()) {

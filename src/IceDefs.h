@@ -130,11 +130,6 @@ private:
   Timer &operator=(const Timer &) LLVM_DELETED_FUNCTION;
 };
 
-template <typename T> bool WouldOverflowAdd(T X, T Y) {
-  return ((X > 0 && Y > 0 && (X > std::numeric_limits<T>::max() - Y)) ||
-          (X < 0 && Y < 0 && (X < std::numeric_limits<T>::min() - Y)));
-}
-
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICEDEFS_H

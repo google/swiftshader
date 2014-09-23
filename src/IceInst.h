@@ -102,6 +102,7 @@ public:
   // instruction results in a single native instruction.
   virtual uint32_t getEmitInstCount() const { return 0; }
   virtual void emit(const Cfg *Func) const;
+  virtual void emitIAS(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const;
   virtual void dumpExtras(const Cfg *Func) const;
   void dumpDecorated(const Cfg *Func) const;
