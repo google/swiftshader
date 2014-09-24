@@ -102,19 +102,30 @@ void testBitManip(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 
 template <typename Type>
 void testByteSwap(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-  for (size_t i = 0; i < NumValues; ++i) {
-    Type Value = static_cast<Type>(Values[i]);
-    ++TotalTests;
-    Type ResultSz = test_bswap(Value);
-    Type ResultLlc = Subzero_::test_bswap(Value);
-    if (ResultSz == ResultLlc) {
-      ++Passes;
-    } else {
-      ++Failures;
-      std::cout << "test_bswap" << (CHAR_BIT * sizeof(Type)) << "("
-                << static_cast<uint64_t>(Value)
-                << "): sz=" << static_cast<uint64_t>(ResultSz)
-                << " llc=" << static_cast<uint64_t>(ResultLlc) << "\n";
+  typedef Type (*FuncType)(Type);
+  static struct {
+    const char *Name;
+    FuncType FuncLlc;
+    FuncType FuncSz;
+  } Funcs[] = {
+        {"bswap", test_bswap, Subzero_::test_bswap},
+        {"bswap_alloca", test_bswap_alloca, Subzero_::test_bswap_alloca}};
+  const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
+  for (size_t f = 0; f < NumFuncs; ++f) {
+    for (size_t i = 0; i < NumValues; ++i) {
+      Type Value = static_cast<Type>(Values[i]);
+      ++TotalTests;
+      Type ResultSz = Funcs[f].FuncSz(Value);
+      Type ResultLlc = Funcs[f].FuncLlc(Value);
+      if (ResultSz == ResultLlc) {
+        ++Passes;
+      } else {
+        ++Failures;
+        std::cout << "test_" << Funcs[f].Name << (CHAR_BIT * sizeof(Type))
+                  << "(" << static_cast<uint64_t>(Value)
+                  << "): sz=" << static_cast<uint64_t>(ResultSz)
+                  << " llc=" << static_cast<uint64_t>(ResultLlc) << "\n";
+      }
     }
   }
 }

@@ -37,6 +37,7 @@ entry:
   %res = insertelement <4 x i32> %vec, i32 %elt, i32 0
   ret <4 x i32> %res
 ; CHECK-LABEL: insertelement_v4i32_0:
+; CHECK: movd xmm{{.*}},
 ; CHECK: movss
 
 ; SSE41-LABEL: insertelement_v4i32_0:
@@ -164,6 +165,7 @@ entry:
   ret i32 %res
 ; CHECK-LABEL: extractelement_v4i32:
 ; CHECK: pshufd
+; CHECK: movd {{.*}}, xmm
 
 ; SSE41-LABEL: extractelement_v4i32:
 ; SSE41: pextrd

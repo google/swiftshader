@@ -336,13 +336,32 @@ public:
   static const bool kNearJump = true;
   static const bool kFarJump = false;
 
+  // Operations to emit GPR instructions (and dispatch on operand type).
+  typedef void (AssemblerX86::*TypedEmitGPR)(Type, GPRRegister);
+  typedef void (AssemblerX86::*TypedEmitAddr)(Type, const Address &);
+  struct GPREmitterOneOp {
+    TypedEmitGPR Reg;
+    TypedEmitAddr Addr;
+  };
+
+  typedef void (AssemblerX86::*TypedEmitGPRGPR)(Type, GPRRegister, GPRRegister);
+  typedef void (AssemblerX86::*TypedEmitGPRAddr)(Type, GPRRegister,
+                                                 const Address &);
+  typedef void (AssemblerX86::*TypedEmitGPRImm)(Type, GPRRegister,
+                                                const Immediate &);
+  struct GPREmitterRegOp {
+    TypedEmitGPRGPR GPRGPR;
+    TypedEmitGPRAddr GPRAddr;
+    TypedEmitGPRImm GPRImm;
+  };
+
   // Operations to emit XMM instructions (and dispatch on operand type).
   typedef void (AssemblerX86::*TypedEmitXmmXmm)(Type, XmmRegister, XmmRegister);
   typedef void (AssemblerX86::*TypedEmitXmmAddr)(Type, XmmRegister,
                                                  const Address &);
   typedef void (AssemblerX86::*TypedEmitAddrXmm)(Type, const Address &,
                                                  XmmRegister);
-  struct TypedXmmEmitters {
+  struct XmmEmitterTwoOps {
     TypedEmitXmmXmm XmmXmm;
     TypedEmitXmmAddr XmmAddr;
     TypedEmitAddrXmm AddrXmm;
@@ -393,7 +412,7 @@ public:
   void movw(GPRRegister dst, const Address &src);
   void movw(const Address &dst, GPRRegister src);
 
-  void leal(GPRRegister dst, const Address &src);
+  void lea(Type Ty, GPRRegister dst, const Address &src);
 
   void cmov(CondX86::BrCond cond, GPRRegister dst, GPRRegister src);
 
@@ -404,7 +423,9 @@ public:
   void movss(XmmRegister dst, XmmRegister src);
 
   void movd(XmmRegister dst, GPRRegister src);
+  void movd(XmmRegister dst, const Address &src);
   void movd(GPRRegister dst, XmmRegister src);
+  void movd(const Address &dst, XmmRegister src);
 
   void movq(const Address &dst, XmmRegister src);
   void movq(XmmRegister dst, const Address &src);
@@ -622,10 +643,16 @@ public:
   void shrd(GPRRegister dst, GPRRegister src, const Immediate &imm);
   void shrd(const Address &dst, GPRRegister src);
 
-  void negl(GPRRegister reg);
+  void neg(Type Ty, GPRRegister reg);
+  void neg(Type Ty, const Address &addr);
   void notl(GPRRegister reg);
 
-  void bsrl(GPRRegister dst, GPRRegister src);
+  void bsf(Type Ty, GPRRegister dst, GPRRegister src);
+  void bsf(Type Ty, GPRRegister dst, const Address &src);
+  void bsr(Type Ty, GPRRegister dst, GPRRegister src);
+  void bsr(Type Ty, GPRRegister dst, const Address &src);
+
+  void bswap(Type Ty, GPRRegister reg);
 
   void bt(GPRRegister base, GPRRegister offset);
 

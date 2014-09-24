@@ -429,13 +429,17 @@ private:
   virtual ~InstX8632Call() {}
 };
 
+// Emit a one-operand (GPR) instruction.
+void emitIASVarTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
+                     const x86::AssemblerX86::GPREmitterOneOp &Emitter);
+
 // Instructions of the form x := op(x).
 template <InstX8632::InstKindX8632 K>
-class InstX8632Inplaceop : public InstX8632 {
+class InstX8632InplaceopGPR : public InstX8632 {
 public:
-  static InstX8632Inplaceop *create(Cfg *Func, Operand *SrcDest) {
-    return new (Func->allocate<InstX8632Inplaceop>())
-        InstX8632Inplaceop(Func, SrcDest);
+  static InstX8632InplaceopGPR *create(Cfg *Func, Operand *SrcDest) {
+    return new (Func->allocate<InstX8632InplaceopGPR>())
+        InstX8632InplaceopGPR(Func, SrcDest);
   }
   virtual void emit(const Cfg *Func) const {
     Ostream &Str = Func->getContext()->getStrEmit();
@@ -443,6 +447,12 @@ public:
     Str << "\t" << Opcode << "\t";
     getSrc(0)->emit(Func);
     Str << "\n";
+  }
+  virtual void emitIAS(const Cfg *Func) const {
+    assert(getSrcSize() == 1);
+    const Variable *Var = getDest();
+    Type Ty = Var->getType();
+    emitIASVarTyGPR(Func, Ty, Var, Emitter);
   }
   virtual void dump(const Cfg *Func) const {
     Ostream &Str = Func->getContext()->getStrDump();
@@ -453,24 +463,31 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 private:
-  InstX8632Inplaceop(Cfg *Func, Operand *SrcDest)
+  InstX8632InplaceopGPR(Cfg *Func, Operand *SrcDest)
       : InstX8632(Func, K, 1, llvm::dyn_cast<Variable>(SrcDest)) {
     addSource(SrcDest);
   }
-  InstX8632Inplaceop(const InstX8632Inplaceop &) LLVM_DELETED_FUNCTION;
-  InstX8632Inplaceop &
-  operator=(const InstX8632Inplaceop &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Inplaceop() {}
+  InstX8632InplaceopGPR(const InstX8632InplaceopGPR &) LLVM_DELETED_FUNCTION;
+  InstX8632InplaceopGPR &
+  operator=(const InstX8632InplaceopGPR &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632InplaceopGPR() {}
   static const char *Opcode;
+  static const x86::AssemblerX86::GPREmitterOneOp Emitter;
 };
+
+// Emit a two-operand (GPR) instruction, where the dest operand is a
+// Variable that's guaranteed to be a register.
+void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Dst,
+                       const Operand *Src,
+                       const x86::AssemblerX86::GPREmitterRegOp &Emitter);
 
 // Instructions of the form x := op(y)
 template <InstX8632::InstKindX8632 K>
-class InstX8632Unaryop : public InstX8632 {
+class InstX8632UnaryopGPR : public InstX8632 {
 public:
-  static InstX8632Unaryop *create(Cfg *Func, Variable *Dest, Operand *Src) {
-    return new (Func->allocate<InstX8632Unaryop>())
-        InstX8632Unaryop(Func, Dest, Src);
+  static InstX8632UnaryopGPR *create(Cfg *Func, Variable *Dest, Operand *Src) {
+    return new (Func->allocate<InstX8632UnaryopGPR>())
+        InstX8632UnaryopGPR(Func, Dest, Src);
   }
   virtual void emit(const Cfg *Func) const {
     Ostream &Str = Func->getContext()->getStrEmit();
@@ -481,7 +498,13 @@ public:
     getSrc(0)->emit(Func);
     Str << "\n";
   }
-  virtual void emitIAS(const Cfg *Func) const { emit(Func); }
+  virtual void emitIAS(const Cfg *Func) const {
+    assert(getSrcSize() == 1);
+    const Variable *Var = getDest();
+    Type Ty = Var->getType();
+    const Operand *Src = getSrc(0);
+    emitIASRegOpTyGPR(Func, Ty, Var, Src, Emitter);
+  }
   virtual void dump(const Cfg *Func) const {
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -491,19 +514,21 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 private:
-  InstX8632Unaryop(Cfg *Func, Variable *Dest, Operand *Src)
+  InstX8632UnaryopGPR(Cfg *Func, Variable *Dest, Operand *Src)
       : InstX8632(Func, K, 1, Dest) {
     addSource(Src);
   }
-  InstX8632Unaryop(const InstX8632Unaryop &) LLVM_DELETED_FUNCTION;
-  InstX8632Unaryop &operator=(const InstX8632Unaryop &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Unaryop() {}
+  InstX8632UnaryopGPR(const InstX8632UnaryopGPR &) LLVM_DELETED_FUNCTION;
+  InstX8632UnaryopGPR &
+  operator=(const InstX8632UnaryopGPR &) LLVM_DELETED_FUNCTION;
+  virtual ~InstX8632UnaryopGPR() {}
   static const char *Opcode;
+  static const x86::AssemblerX86::GPREmitterRegOp Emitter;
 };
 
 void emitIASVarOperandTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
                             const Operand *Src,
-                            const x86::AssemblerX86::TypedXmmEmitters &Emitter);
+                            const x86::AssemblerX86::XmmEmitterTwoOps &Emitter);
 
 template <InstX8632::InstKindX8632 K>
 class InstX8632UnaryopXmm : public InstX8632 {
@@ -544,7 +569,7 @@ private:
   operator=(const InstX8632UnaryopXmm &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632UnaryopXmm() {}
   static const char *Opcode;
-  static const x86::AssemblerX86::TypedXmmEmitters Emitter;
+  static const x86::AssemblerX86::XmmEmitterTwoOps Emitter;
 };
 
 // See the definition of emitTwoAddress() for a description of
@@ -620,7 +645,7 @@ private:
   InstX8632BinopXmm &operator=(const InstX8632BinopXmm &) LLVM_DELETED_FUNCTION;
   virtual ~InstX8632BinopXmm() {}
   static const char *Opcode;
-  static const x86::AssemblerX86::TypedXmmEmitters Emitter;
+  static const x86::AssemblerX86::XmmEmitterTwoOps Emitter;
 };
 
 template <InstX8632::InstKindX8632 K> class InstX8632Ternop : public InstX8632 {
@@ -741,15 +766,15 @@ private:
   static const char *Opcode;
 };
 
-typedef InstX8632Inplaceop<InstX8632::Bswap> InstX8632Bswap;
-typedef InstX8632Inplaceop<InstX8632::Neg> InstX8632Neg;
-typedef InstX8632Unaryop<InstX8632::Bsf> InstX8632Bsf;
-typedef InstX8632Unaryop<InstX8632::Bsr> InstX8632Bsr;
-typedef InstX8632Unaryop<InstX8632::Lea> InstX8632Lea;
-typedef InstX8632Unaryop<InstX8632::Movd> InstX8632Movd;
-typedef InstX8632UnaryopXmm<InstX8632::Sqrtss> InstX8632Sqrtss;
+typedef InstX8632InplaceopGPR<InstX8632::Bswap> InstX8632Bswap;
+typedef InstX8632InplaceopGPR<InstX8632::Neg> InstX8632Neg;
+typedef InstX8632UnaryopGPR<InstX8632::Bsf> InstX8632Bsf;
+typedef InstX8632UnaryopGPR<InstX8632::Bsr> InstX8632Bsr;
+typedef InstX8632UnaryopGPR<InstX8632::Lea> InstX8632Lea;
 // Cbwdq instruction - wrapper for cbw, cwd, and cdq
-typedef InstX8632Unaryop<InstX8632::Cbwdq> InstX8632Cbwdq;
+typedef InstX8632UnaryopGPR<InstX8632::Cbwdq> InstX8632Cbwdq;
+typedef InstX8632UnaryopXmm<InstX8632::Movd> InstX8632Movd;
+typedef InstX8632UnaryopXmm<InstX8632::Sqrtss> InstX8632Sqrtss;
 // Move/assignment instruction - wrapper for mov/movss/movsd.
 typedef InstX8632Movlike<InstX8632::Mov> InstX8632Mov;
 // Move packed - copy 128 bit values between XMM registers, or mem128
@@ -1384,6 +1409,7 @@ template <> void InstX8632Sqrtss::emit(const Cfg *Func) const;
 template <> void InstX8632Subss::emit(const Cfg *Func) const;
 
 template <> void InstX8632Cbwdq::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Movd::emitIAS(const Cfg *Func) const;
 
 } // end of namespace Ice
 

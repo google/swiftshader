@@ -23,6 +23,8 @@
 FOR_ALL_BMI_OP_TYPES(X)
 #undef X
 
-#define X(type, builtin_name) type test_bswap(type);
+#define X(type, builtin_name)                                                  \
+  type test_bswap(type);                                                       \
+  type test_bswap_alloca(type);
 BSWAP_TABLE
 #undef X

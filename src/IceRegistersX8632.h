@@ -16,6 +16,7 @@
 
 #include "IceDefs.h"
 #include "IceInstX8632.def"
+#include "IceTypes.h"
 
 namespace Ice {
 
@@ -81,6 +82,13 @@ static inline ByteRegister getEncodedByteReg(int32_t RegNum) {
   if (RegNum == Reg_ah)
     return Encoded_Reg_ah;
   return ByteRegister(RegNum - Reg_GPR_First);
+}
+
+static inline GPRRegister getEncodedByteRegOrGPR(Type Ty, int32_t RegNum) {
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    return GPRRegister(getEncodedByteReg(RegNum));
+  else
+    return getEncodedGPR(RegNum);
 }
 
 } // end of namespace RegX8632

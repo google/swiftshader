@@ -478,10 +478,66 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
   Str << "\n";
 }
 
+void emitIASVarTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
+                     const x86::AssemblerX86::GPREmitterOneOp &Emitter) {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  if (Var->hasReg()) {
+    // We cheat a little and use GPRRegister even for byte operations.
+    RegX8632::GPRRegister VarReg =
+        RegX8632::getEncodedByteRegOrGPR(Ty, Var->getRegNum());
+    (Asm->*(Emitter.Reg))(Ty, VarReg);
+  } else {
+    x86::Address StackAddr(static_cast<TargetX8632 *>(Func->getTarget())
+                               ->stackVarToAsmOperand(Var));
+    (Asm->*(Emitter.Addr))(Ty, StackAddr);
+  }
+  Ostream &Str = Func->getContext()->getStrEmit();
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
+void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
+                       const Operand *Src,
+                       const x86::AssemblerX86::GPREmitterRegOp &Emitter) {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  assert(Var->hasReg());
+  // We cheat a little and use GPRRegister even for byte operations.
+  RegX8632::GPRRegister VarReg =
+      RegX8632::getEncodedByteRegOrGPR(Ty, Var->getRegNum());
+  if (const Variable *SrcVar = llvm::dyn_cast<Variable>(Src)) {
+    if (SrcVar->hasReg()) {
+      RegX8632::GPRRegister SrcReg;
+      if (Ty == IceType_i8 || Ty == IceType_i1) {
+        SrcReg = static_cast<RegX8632::GPRRegister>(
+            RegX8632::getEncodedByteReg(SrcVar->getRegNum()));
+      } else {
+        SrcReg = RegX8632::getEncodedGPR(SrcVar->getRegNum());
+      }
+      (Asm->*(Emitter.GPRGPR))(Ty, VarReg, SrcReg);
+    } else {
+      x86::Address SrcStackAddr = static_cast<TargetX8632 *>(Func->getTarget())
+                                      ->stackVarToAsmOperand(SrcVar);
+      (Asm->*(Emitter.GPRAddr))(Ty, VarReg, SrcStackAddr);
+    }
+  } else if (const OperandX8632Mem *Mem =
+                 llvm::dyn_cast<OperandX8632Mem>(Src)) {
+    x86::Address SrcAddr = Mem->toAsmAddress(Asm);
+    (Asm->*(Emitter.GPRAddr))(Ty, VarReg, SrcAddr);
+  } else if (const ConstantInteger32 *Imm =
+                 llvm::dyn_cast<ConstantInteger32>(Src)) {
+    (Asm->*(Emitter.GPRImm))(Ty, VarReg, x86::Immediate(Imm->getValue()));
+  } else {
+    llvm_unreachable("Unexpected operand type");
+  }
+  Ostream &Str = Func->getContext()->getStrEmit();
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
 void
 emitIASVarOperandTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
                        const Operand *Src,
-                       const x86::AssemblerX86::TypedXmmEmitters &Emitter) {
+                       const x86::AssemblerX86::XmmEmitterTwoOps &Emitter) {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
   intptr_t StartPosition = Asm->GetPosition();
   assert(Var->hasReg());
@@ -586,54 +642,75 @@ template <> const char *InstX8632Pblendvb::Opcode = "pblendvb";
 template <> const char *InstX8632Pextr::Opcode = "pextr";
 template <> const char *InstX8632Pshufd::Opcode = "pshufd";
 
+// Inplace GPR ops
+template <>
+const x86::AssemblerX86::GPREmitterOneOp InstX8632Bswap::Emitter = {
+    &x86::AssemblerX86::bswap, NULL /* only a reg form exists */};
+template <>
+const x86::AssemblerX86::GPREmitterOneOp InstX8632Neg::Emitter = {
+    &x86::AssemblerX86::neg, &x86::AssemblerX86::neg};
+
+// Unary GPR ops
+template <>
+const x86::AssemblerX86::GPREmitterRegOp InstX8632Bsf::Emitter = {
+    &x86::AssemblerX86::bsf, &x86::AssemblerX86::bsf, NULL};
+template <>
+const x86::AssemblerX86::GPREmitterRegOp InstX8632Bsr::Emitter = {
+    &x86::AssemblerX86::bsr, &x86::AssemblerX86::bsr, NULL};
+template <>
+const x86::AssemblerX86::GPREmitterRegOp InstX8632Lea::Emitter = {
+    /* reg/reg and reg/imm are illegal */ NULL, &x86::AssemblerX86::lea, NULL};
+
+// Unary XMM ops
+template <>
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Sqrtss::Emitter = {
+    &x86::AssemblerX86::sqrtss, &x86::AssemblerX86::sqrtss, NULL};
+
 // Binary XMM ops
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Addss::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Addss::Emitter = {
     &x86::AssemblerX86::addss, &x86::AssemblerX86::addss, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Addps::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Addps::Emitter = {
     &x86::AssemblerX86::addps, &x86::AssemblerX86::addps, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Divss::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Divss::Emitter = {
     &x86::AssemblerX86::divss, &x86::AssemblerX86::divss, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Divps::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Divps::Emitter = {
     &x86::AssemblerX86::divps, &x86::AssemblerX86::divps, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Mulss::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Mulss::Emitter = {
     &x86::AssemblerX86::mulss, &x86::AssemblerX86::mulss, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Mulps::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Mulps::Emitter = {
     &x86::AssemblerX86::mulps, &x86::AssemblerX86::mulps, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Padd::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Padd::Emitter = {
     &x86::AssemblerX86::padd, &x86::AssemblerX86::padd, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Pand::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Pand::Emitter = {
     &x86::AssemblerX86::pand, &x86::AssemblerX86::pand, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Pandn::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Pandn::Emitter = {
     &x86::AssemblerX86::pandn, &x86::AssemblerX86::pandn, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Pmuludq::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Pmuludq::Emitter = {
     &x86::AssemblerX86::pmuludq, &x86::AssemblerX86::pmuludq, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Por::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Por::Emitter = {
     &x86::AssemblerX86::por, &x86::AssemblerX86::por, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Psub::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Psub::Emitter = {
     &x86::AssemblerX86::psub, &x86::AssemblerX86::psub, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Pxor::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Pxor::Emitter = {
     &x86::AssemblerX86::pxor, &x86::AssemblerX86::pxor, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Sqrtss::Emitter = {
-    &x86::AssemblerX86::sqrtss, &x86::AssemblerX86::sqrtss, NULL};
-template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Subss::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Subss::Emitter = {
     &x86::AssemblerX86::subss, &x86::AssemblerX86::subss, NULL};
 template <>
-const x86::AssemblerX86::TypedXmmEmitters InstX8632Subps::Emitter = {
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Subps::Emitter = {
     &x86::AssemblerX86::subps, &x86::AssemblerX86::subps, NULL};
 
 template <> void InstX8632Sqrtss::emit(const Cfg *Func) const {
@@ -1125,7 +1202,7 @@ void InstX8632Ucomiss::emitIAS(const Cfg *Func) const {
   assert(llvm::isa<Variable>(getSrc(0)));
   const Variable *Src0 = llvm::cast<Variable>(getSrc(0));
   Type Ty = Src0->getType();
-  const static x86::AssemblerX86::TypedXmmEmitters Emitter = {
+  const static x86::AssemblerX86::XmmEmitterTwoOps Emitter = {
       &x86::AssemblerX86::ucomiss, &x86::AssemblerX86::ucomiss, NULL};
   emitIASVarOperandTyXMM(Func, Ty, Src0, getSrc(1), Emitter);
 }
@@ -1298,6 +1375,42 @@ template <> void InstX8632Mov::emit(const Cfg *Func) const {
     Src->emit(Func);
     Str << "\n";
   }
+}
+
+template <> void InstX8632Movd::emitIAS(const Cfg *Func) const {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  assert(getSrcSize() == 1);
+  const Variable *Dest = getDest();
+  const Variable *Src = llvm::cast<Variable>(getSrc(0));
+  // For insert/extract element (one of Src/Dest is an Xmm vector and
+  // the other is an int type).
+  if (Src->getType() == IceType_i32) {
+    assert(isVectorType(Dest->getType()));
+    assert(Dest->hasReg());
+    RegX8632::XmmRegister DestReg = RegX8632::getEncodedXmm(Dest->getRegNum());
+    if (Src->hasReg()) {
+      Asm->movd(DestReg, RegX8632::getEncodedGPR(Src->getRegNum()));
+    } else {
+      x86::Address StackAddr(static_cast<TargetX8632 *>(Func->getTarget())
+                                 ->stackVarToAsmOperand(Src));
+      Asm->movd(DestReg, StackAddr);
+    }
+  } else {
+    assert(isVectorType(Src->getType()));
+    assert(Src->hasReg());
+    assert(Dest->getType() == IceType_i32);
+    RegX8632::XmmRegister SrcReg = RegX8632::getEncodedXmm(Src->getRegNum());
+    if (Dest->hasReg()) {
+      Asm->movd(RegX8632::getEncodedGPR(Dest->getRegNum()), SrcReg);
+    } else {
+      x86::Address StackAddr(static_cast<TargetX8632 *>(Func->getTarget())
+                                 ->stackVarToAsmOperand(Dest));
+      Asm->movd(StackAddr, SrcReg);
+    }
+  }
+  Ostream &Str = Func->getContext()->getStrEmit();
+  emitIASBytes(Str, Asm, StartPosition);
 }
 
 template <> void InstX8632Movp::emit(const Cfg *Func) const {

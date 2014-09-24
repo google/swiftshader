@@ -40,6 +40,18 @@ FOR_ALL_BMI_OP_TYPES(X)
 #undef X
 
 #define X(type, builtin_name)                                                  \
-  type test_bswap(type a) { return builtin_name(a); }
+  type test_bswap(type a) { return builtin_name(a); }                          \
+  type test_bswap_alloca(type a) {                                             \
+    const size_t buf_size = 8;                                                 \
+    type buf[buf_size];                                                        \
+    for (size_t i = 0; i < buf_size; ++i) {                                    \
+      buf[i] = builtin_name(a * i) + builtin_name(a + i);                      \
+    }                                                                          \
+    type sum = 0;                                                              \
+    for (size_t i = 0; i < buf_size; ++i) {                                    \
+      sum += buf[i];                                                           \
+    }                                                                          \
+    return sum;                                                                \
+  }
 BSWAP_TABLE
 #undef X
