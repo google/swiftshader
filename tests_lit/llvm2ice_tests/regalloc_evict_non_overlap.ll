@@ -2,7 +2,8 @@
 ; in register allocation.  See
 ; https://code.google.com/p/nativeclient/issues/detail?id=3903 .
 ;
-; RUN: %llvm2ice -O2 --verbose regalloc %s
+; TODO(kschimpf) Find out why lc2i is needed.
+; RUN: %lc2i -i %s --args -O2 --verbose regalloc
 
 ; ModuleID = 'bugpoint-reduced-simplified.ll'
 target datalayout = "e-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-p:32:32:32-v128:32:32"

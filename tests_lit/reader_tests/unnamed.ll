@@ -1,15 +1,10 @@
 ; Tests that we name unnamed global addresses.
 
-; RUN: llvm-as < %s | pnacl-freeze \
-; RUN:              | %llvm2ice -notranslate -verbose=inst -build-on-read \
-; RUN:                -allow-pnacl-reader-error-recovery \
-; RUN:              | FileCheck %s
+; RUN: %p2i --no-local-syms -i %s --insts | FileCheck %s
 
-; RUN: llvm-as < %s | pnacl-freeze \
-; RUN:              | %llvm2ice -notranslate -verbose=inst -build-on-read \
-; RUN:                -default-function-prefix=h -default-global-prefix=g \
-; RUN:                -allow-pnacl-reader-error-recovery \
-; RUN:              | FileCheck --check-prefix=BAD %s
+; RUN: %p2i --no-local-syms -i %s --insts --args \
+; RUN:      -default-function-prefix=h -default-global-prefix=g \
+; RUN:      | FileCheck --check-prefix=BAD %s
 
 ; TODO(kschimpf) Check global variable declarations, once generated.
 

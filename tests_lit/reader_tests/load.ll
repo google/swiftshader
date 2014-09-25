@@ -1,9 +1,6 @@
 ; Test if we can read load instructions.
 
-; RUN: llvm-as < %s | pnacl-freeze \
-; RUN:              | %llvm2ice -notranslate -verbose=inst -build-on-read \
-; RUN:                -allow-pnacl-reader-error-recovery \
-; RUN:              | FileCheck %s
+; RUN: %p2i --no-local-syms -i %s --insts | FileCheck %s
 
 define i32 @load_i8(i32 %addr) {
 entry:

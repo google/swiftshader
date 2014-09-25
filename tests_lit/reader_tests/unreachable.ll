@@ -1,10 +1,6 @@
 ; Test parsing unreachable instruction.
 
-; RUN: llvm-as < %s | pnacl-freeze -allow-local-symbol-tables \
-; RUN:              | %llvm2ice -notranslate -verbose=inst -build-on-read \
-; RUN:                -allow-pnacl-reader-error-recovery \
-; RUN:                -allow-local-symbol-tables \
-; RUN:              | FileCheck %s
+; RUN: %p2i -i %s --insts | FileCheck %s
 
 define internal i32 @divide(i32 %num, i32 %den) {
 entry:

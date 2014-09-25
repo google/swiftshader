@@ -1,10 +1,8 @@
 ; Simple test of functions returning one of its arguments.
 
-; RUN: %llvm2ice --verbose inst %s | FileCheck %s
-; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
-; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
-; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
-; RUN:                           | FileCheck --check-prefix=DUMP %s
+; RUN: %p2i -i %s --args --verbose inst | FileCheck %s
+; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
+; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define i32 @func_single_arg(i32 %a) {
 ; CHECK: define i32 @func_single_arg

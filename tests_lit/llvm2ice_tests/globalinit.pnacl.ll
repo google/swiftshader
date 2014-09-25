@@ -1,10 +1,11 @@
 ; Test of global initializers.
 
-; RUN: %llvm2ice --verbose inst %s | FileCheck %s
-; RUN: %llvm2ice --verbose none %s \
+; RUN: %p2i -i %s --args --verbose inst | FileCheck %s
+; RUN: %p2i -i %s --args --verbose none \
 ; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
-; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
-; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
+; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
+; TODO(kschimpf) Find out why lc2i is needed.
+; RUN: %lc2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 @PrimitiveInit = internal global [4 x i8] c"\1B\00\00\00", align 4
 ; CHECK: .data

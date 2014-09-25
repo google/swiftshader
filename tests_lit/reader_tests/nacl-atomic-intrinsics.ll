@@ -1,10 +1,6 @@
 ; Test parsing NaCl atomic instructions.
 
-; RUN: llvm-as < %s | pnacl-freeze -allow-local-symbol-tables \
-; RUN:              | %llvm2ice -notranslate -verbose=inst -build-on-read \
-; RUN:                -allow-pnacl-reader-error-recovery \
-; RUN:                -allow-local-symbol-tables \
-; RUN:              | FileCheck %s
+; RUN: %p2i -i %s --insts | FileCheck %s
 
 declare i8 @llvm.nacl.atomic.load.i8(i8*, i32)
 declare i16 @llvm.nacl.atomic.load.i16(i16*, i32)

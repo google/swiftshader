@@ -1,9 +1,6 @@
 ; Test if we can read store instructions.
 
-; RUN: llvm-as < %s | pnacl-freeze \
-; RUN:              | %llvm2ice -notranslate -verbose=inst -build-on-read \
-; RUN:                -allow-pnacl-reader-error-recovery \
-; RUN:              | FileCheck %s
+; RUN: %p2i -i %s --insts --no-local-syms | FileCheck %s
 
 define void @store_i8(i32 %addr) {
 entry:

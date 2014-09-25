@@ -1,16 +1,14 @@
 ; This checks the correctness of the lowering code for the small
 ; integer variants of sdiv and srem.
 
-; RUN: %llvm2ice -O2 --verbose none %s \
+; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %llvm2ice -Om1 --verbose none %s \
+; RUN: %p2i -i %s --args -Om1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
-; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
-; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
-; RUN:                           | FileCheck --check-prefix=DUMP %s
+; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
+; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define i32 @sdiv_i8(i32 %a.i32, i32 %b.i32) {
 entry:

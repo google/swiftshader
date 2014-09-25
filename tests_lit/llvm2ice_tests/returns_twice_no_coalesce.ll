@@ -1,10 +1,10 @@
 ; This file checks that SimpleCoalescing of local stack slots is not done
 ; when calling a function with the "returns twice" attribute.
 
-; RUN: %llvm2ice -Om1 --verbose none %s \
+; RUN: %p2i -i %s --args -Om1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 ; Setjmp is a function with the "returns twice" attribute.
 declare i32 @llvm.nacl.setjmp(i8*)

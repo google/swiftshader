@@ -1,16 +1,14 @@
 ; Tests the Subzero "name mangling" when using the "llvm2ice --prefix"
 ; option.  Also does a quick smoke test of -ffunction-sections.
 
-; RUN: %llvm2ice --verbose none -ffunction-sections %s | FileCheck %s
-; TODO: The following line causes this test to fail.
-; RUIN: %llvm2ice --verbose none %s \
+; RUN: %p2i -i %s --args --verbose none -ffunction-sections | FileCheck %s
+; TODO(stichnot): The following line causes this test to fail.
+; RUIN: %p2i -i %s --args --verbose none \
 ; RUIN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
-; RUN: %llvm2ice --verbose none --prefix Subzero -ffunction-sections %s \
+; RUN: %p2i -i %s --args --verbose none --prefix Subzero -ffunction-sections \
 ; RUN:      | FileCheck --check-prefix=MANGLE %s
-; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
-; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
-; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
-; RUN:                           | FileCheck --check-prefix=DUMP %s
+; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
+; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define internal void @FuncC(i32 %i) {
 entry:

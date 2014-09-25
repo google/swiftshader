@@ -1,10 +1,9 @@
 ; Simple test of the load instruction.
 
-; RUN: %llvm2ice --verbose inst %s | FileCheck %s
-; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
-; RUN: %llvm2iceinsts %s | %szdiff %s | FileCheck --check-prefix=DUMP %s
-; RUN: %llvm2iceinsts --pnacl %s | %szdiff %s \
-; RUN:                           | FileCheck --check-prefix=DUMP %s
+; TODO(kschimpf) Find out why lc2i is needed.
+; RUN: %lc2i -i %s --args --verbose inst | FileCheck %s
+; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
+; RUN: %lc2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define void @load_i64(i32 %addr_arg) {
 entry:

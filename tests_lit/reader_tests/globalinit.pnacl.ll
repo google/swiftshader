@@ -1,22 +1,14 @@
 ; Test of global initializers.
 
 ; Check that we generate proper global initializers.
-; RUN: llvm-as < %s | pnacl-freeze -allow-local-symbol-tables \
-; RUN:              | %llvm2ice -verbose inst -build-on-read \
-; RUN:                -allow-local-symbol-tables \
-; RUN:              | FileCheck %s
+; RUN: %p2i -i %s --args -verbose inst | FileCheck %s
 
 ; Check that what we generate is valid assembly
-; RUN: llvm-as < %s | pnacl-freeze -allow-local-symbol-tables \
-; RUN:              | %llvm2ice -verbose none -build-on-read \
-; RUN:                -allow-local-symbol-tables \
+; RUN: %p2i -i %s --args -verbose none \
 ; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
 
 ; Check that we don't generate errors
-; RUN: llvm-as < %s | pnacl-freeze -allow-local-symbol-tables \
-; RUN:              | %llvm2ice -verbose none -build-on-read \
-; RUN:                -allow-local-symbol-tables \
-; RUN:              | FileCheck --check-prefix=ERRORS %s
+; RUN: %p2i -i %s --args -verbose none | FileCheck --check-prefix=ERRORS %s
 
 @PrimitiveInit = internal global [4 x i8] c"\1B\00\00\00", align 4
 ; CHECK: .data

@@ -1,9 +1,9 @@
 ; This file checks support for address mode optimization.
 
-; RUN: %llvm2ice -O2 --verbose none %s \
+; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %llvm2ice --verbose none %s | FileCheck --check-prefix=ERRORS %s
+; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 define float @load_arg_plus_200000(float* %arg) {
 entry:

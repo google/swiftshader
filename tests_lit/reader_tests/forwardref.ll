@@ -1,10 +1,6 @@
 ; Test use forward type references in function blocks.
 
-; RUN: llvm-as < %s | pnacl-freeze -allow-local-symbol-tables \
-; RUN:              | %llvm2ice -notranslate -verbose=inst -build-on-read \
-; RUN:                -allow-pnacl-reader-error-recovery \
-; RUN:                -allow-local-symbol-tables \
-; RUN:              | FileCheck %s
+; RUN: %p2i -i %s --insts | FileCheck %s
 
 ; RUN: llvm-as < %s | pnacl-freeze | pnacl-bcdis -no-records \
 ; RUN:              | FileCheck --check-prefix=DUMP %s

@@ -3,7 +3,8 @@
 ; (unlike the non-"all" variety of nacl.atomic.fence, which only
 ; applies to atomic load/stores).
 ;
-; RUN: %llvm2ice -O2 --verbose none %s \
+; TODO(kschimpf) Find out why lc2i is needed.
+; RUN: %lc2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - | FileCheck %s
 

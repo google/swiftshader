@@ -1,11 +1,6 @@
 ; Tests insertelement and extractelement vector instructions.
 
-
-; RUN: llvm-as < %s | pnacl-freeze -allow-local-symbol-tables \
-; RUN:              | %llvm2ice -notranslate -verbose=inst -build-on-read \
-; RUN:                -allow-pnacl-reader-error-recovery \
-; RUN:                -allow-local-symbol-tables \
-; RUN:              | FileCheck %s
+; RUN: %p2i -i %s --insts | FileCheck %s
 
 ; TODO(kschimpf): Change index arguments to valid constant indices once
 ; we can handle constants.

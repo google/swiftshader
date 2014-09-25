@@ -1,9 +1,9 @@
 ; Tests that we name unnamed global addresses.
 
-; RUN: %llvm2ice -notranslate -verbose=inst < %s | FileCheck %s
+; RUN: %p2i -i %s --insts | FileCheck %s
 
-; RUN: %llvm2ice -notranslate -verbose=inst -default-function-prefix=h \
-; RUN:     -default-global-prefix=g < %s | FileCheck --check-prefix=BAD %s
+; RUN: %p2i -i %s --insts --args -default-function-prefix=h \
+; RUN:     -default-global-prefix=g | FileCheck --check-prefix=BAD %s
 
 @0 = internal global [4 x i8] zeroinitializer, align 4
 

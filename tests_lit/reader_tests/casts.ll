@@ -1,9 +1,6 @@
 ; Tests if we can read cast operations.
 
-; RUN: llvm-as < %s | pnacl-freeze \
-; RUN:              | %llvm2ice -notranslate -verbose=inst -build-on-read \
-; RUN:                -allow-pnacl-reader-error-recovery \
-; RUN:              | FileCheck %s
+; RUN: %p2i -i %s --insts --no-local-syms | FileCheck %s
 
 ; TODO(kschimpf) Find way to test pointer conversions (since they in general
 ; get removed by pnacl-freeze).

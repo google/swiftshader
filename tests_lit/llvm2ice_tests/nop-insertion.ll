@@ -2,14 +2,14 @@
 
 ; Don't use integrated-as because this currently depends on the # variant
 ; assembler comment.
-; RUN: %llvm2ice -rng-seed=1 -nop-insertion -nop-insertion-percentage=50 \
-; RUN:    -max-nops-per-instruction=1 -integrated-as=false %s \
+; RUN: %p2i -i %s -a -rng-seed=1 -nop-insertion -nop-insertion-percentage=50 \
+; RUN:    -max-nops-per-instruction=1 -integrated-as=false \
 ; RUN:    | FileCheck %s --check-prefix=PROB50
-; RUN: %llvm2ice -rng-seed=1 -nop-insertion -nop-insertion-percentage=90 \
-; RUN:    -max-nops-per-instruction=1 -integrated-as=false %s \
+; RUN: %p2i -i %s -a -rng-seed=1 -nop-insertion -nop-insertion-percentage=90 \
+; RUN:    -max-nops-per-instruction=1 -integrated-as=false \
 ; RUN:    | FileCheck %s --check-prefix=PROB90
-; RUN: %llvm2ice -rng-seed=1 -nop-insertion -nop-insertion-percentage=50 \
-; RUN:    -max-nops-per-instruction=2 -integrated-as=false %s \
+; RUN: %p2i -i %s -a -rng-seed=1 -nop-insertion -nop-insertion-percentage=50 \
+; RUN:    -max-nops-per-instruction=2 -integrated-as=false \
 ; RUN:    | FileCheck %s --check-prefix=MAXNOPS2
 
 define <4 x i32> @mul_v4i32(<4 x i32> %a, <4 x i32> %b) {

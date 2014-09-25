@@ -1,10 +1,6 @@
 ; Tests if we can read select instructions.
 
-; RUN: llvm-as < %s | pnacl-freeze -allow-local-symbol-tables \
-; RUN:              | %llvm2ice -notranslate -verbose=inst -build-on-read \
-; RUN:                -allow-pnacl-reader-error-recovery \
-; RUN:                -allow-local-symbol-tables \
-; RUN:              | FileCheck %s
+; RUN: %p2i -i %s --insts | FileCheck %s
 
 define void @Seli1(i32 %p) {
 entry:
