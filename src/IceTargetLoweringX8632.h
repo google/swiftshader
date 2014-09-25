@@ -147,10 +147,8 @@ protected:
   };
   typedef uint32_t LegalMask;
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_All & ~Legal_Reloc,
-                    bool AllowOverlap = false,
                     int32_t RegNum = Variable::NoRegister);
-  Variable *legalizeToVar(Operand *From, bool AllowOverlap = false,
-                          int32_t RegNum = Variable::NoRegister);
+  Variable *legalizeToVar(Operand *From, int32_t RegNum = Variable::NoRegister);
   // Turn a pointer operand into a memory operand that can be
   // used by a real load/store operation. Legalizes the operand as well.
   // This is a nop if the operand is already a legal memory operand.
@@ -297,11 +295,9 @@ protected:
   // in/out Dest argument.
   void _mov(Variable *&Dest, Operand *Src0,
             int32_t RegNum = Variable::NoRegister) {
-    if (Dest == NULL) {
-      Dest = legalizeToVar(Src0, false, RegNum);
-    } else {
-      Context.insert(InstX8632Mov::create(Func, Dest, Src0));
-    }
+    if (Dest == NULL)
+      Dest = makeReg(Src0->getType(), RegNum);
+    Context.insert(InstX8632Mov::create(Func, Dest, Src0));
   }
   void _movd(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Movd::create(Func, Dest, Src0));

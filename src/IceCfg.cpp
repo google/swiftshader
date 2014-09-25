@@ -377,13 +377,6 @@ void Cfg::dump(const IceString &Message) {
         Str << "?";
       Str << " weight=" << Var->getWeight() << " ";
       Var->dump(this);
-      if (Variable *Pref = Var->getPreferredRegister()) {
-        Str << " pref=";
-        Pref->dump(this);
-        if (Var->getRegisterOverlap())
-          Str << ",overlap";
-        Str << " ";
-      }
       Str << " LIVE=" << Var->getLiveRange() << "\n";
     }
   }

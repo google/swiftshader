@@ -21,6 +21,37 @@
 
 namespace Ice {
 
+namespace {
+
+// Returns true if Var has any definitions within Item's live range.
+bool overlapsDefs(const Cfg *Func, const LiveRangeWrapper &Item,
+                  const Variable *Var) {
+  const InstDefList &Defs = Func->getVMetadata()->getDefinitions(Var);
+  for (size_t i = 0; i < Defs.size(); ++i) {
+    if (Item.range().overlaps(Defs[i]->getNumber()))
+      return true;
+  }
+  return false;
+}
+
+void dumpDisableOverlap(const Cfg *Func, const Variable *Var,
+                        const char *Reason) {
+  if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+    Ostream &Str = Func->getContext()->getStrDump();
+    Str << "Disabling Overlap due to " << Reason << " " << *Var
+        << " LIVE=" << Var->getLiveRange() << " Defs=";
+    const InstDefList &Defs = Func->getVMetadata()->getDefinitions(Var);
+    for (size_t i = 0; i < Defs.size(); ++i) {
+      if (i > 0)
+        Str << ",";
+      Str << Defs[i]->getNumber();
+    }
+    Str << "\n";
+  }
+}
+
+} // end of anonymous namespace
+
 // Implements the linear-scan algorithm.  Based on "Linear Scan
 // Register Allocation in the Context of SSA Form and Register
 // Constraints" by Hanspeter Mössenböck and Michael Pfeiffer,
@@ -40,6 +71,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   Active.clear();
   Ostream &Str = Func->getContext()->getStrDump();
   Func->resetCurrentNode();
+  VariablesMetadata *VMetadata = Func->getVMetadata();
 
   // Gather the live ranges of all variables and add them to the
   // Unhandled set.  TODO: Unhandled is a set<> which is based on a
@@ -185,6 +217,58 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
         Free[i] = false;
     }
 
+    // Infer register preference and allowable overlap.  Only form a
+    // preference when the current Variable has an unambiguous "first"
+    // definition.  The preference is some source Variable of the
+    // defining instruction that either is assigned a register that is
+    // currently free, or that is assigned a register that is not free
+    // but overlap is allowed.  Overlap is allowed when the Variable
+    // under consideration is single-definition, and its definition is
+    // a simple assignment - i.e., the register gets copied/aliased
+    // but is never modified.  Furthermore, overlap is only allowed
+    // when preferred Variable definition instructions do not appear
+    // within the current Variable's live range.
+    Variable *Prefer = NULL;
+    int32_t PreferReg = Variable::NoRegister;
+    bool AllowOverlap = false;
+    if (const Inst *DefInst = VMetadata->getFirstDefinition(Cur.Var)) {
+      assert(DefInst->getDest() == Cur.Var);
+      bool IsAssign = DefInst->isSimpleAssign();
+      bool IsSingleDef = !VMetadata->isMultiDef(Cur.Var);
+      for (SizeT i = 0; i < DefInst->getSrcSize(); ++i) {
+        // TODO(stichnot): Iterate through the actual Variables of the
+        // instruction, not just the source operands.  This could
+        // capture Load instructions, including address mode
+        // optimization, for Prefer (but not for AllowOverlap).
+        if (Variable *SrcVar = llvm::dyn_cast<Variable>(DefInst->getSrc(i))) {
+          int32_t SrcReg = SrcVar->getRegNumTmp();
+          // Only consider source variables that have (so far) been
+          // assigned a register.  That register must be one in the
+          // RegMask set, e.g. don't try to prefer the stack pointer
+          // as a result of the stacksave intrinsic.
+          if (SrcVar->hasRegTmp() && RegMask[SrcReg]) {
+            if (!Free[SrcReg]) {
+              // Don't bother trying to enable AllowOverlap if the
+              // register is already free.
+              AllowOverlap =
+                  IsSingleDef && IsAssign && !overlapsDefs(Func, Cur, SrcVar);
+            }
+            if (AllowOverlap || Free[SrcReg]) {
+              Prefer = SrcVar;
+              PreferReg = SrcReg;
+            }
+          }
+        }
+      }
+    }
+    if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+      if (Prefer) {
+        Str << "Initial Prefer=" << *Prefer << " R=" << PreferReg
+            << " LIVE=" << Prefer->getLiveRange() << " Overlap=" << AllowOverlap
+            << "\n";
+      }
+    }
+
     // Remove registers from the Free[] list where an Inactive range
     // overlaps with the current range.
     for (UnorderedRanges::const_iterator I = Inactive.begin(),
@@ -198,6 +282,28 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
         // variables that were allowed marked with
         // AllowRegisterOverlap.
         Free[RegNum] = false;
+        // Disable AllowOverlap if an Inactive variable, which is not
+        // Prefer, shares Prefer's register, and has a definition
+        // within Cur's live range.
+        if (AllowOverlap && Item.Var != Prefer && RegNum == PreferReg &&
+            overlapsDefs(Func, Cur, Item.Var)) {
+          AllowOverlap = false;
+          dumpDisableOverlap(Func, Item.Var, "Inactive");
+        }
+      }
+    }
+
+    // Disable AllowOverlap if an Active variable, which is not
+    // Prefer, shares Prefer's register, and has a definition within
+    // Cur's live range.
+    for (UnorderedRanges::iterator I = Active.begin(), E = Active.end();
+         AllowOverlap && I != E; ++I) {
+      LiveRangeWrapper Item = *I;
+      int32_t RegNum = Item.Var->getRegNumTmp();
+      if (Item.Var != Prefer && RegNum == PreferReg &&
+          overlapsDefs(Func, Cur, Item.Var)) {
+        AllowOverlap = false;
+        dumpDisableOverlap(Func, Item.Var, "Active");
       }
     }
 
@@ -206,13 +312,21 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     // Cur.endsBefore(*I) is an early exit check that turns a
     // guaranteed O(N^2) algorithm into expected linear complexity.
     llvm::SmallBitVector PrecoloredUnhandled(RegMask.size());
+    // Note: PrecoloredUnhandled is only used for dumping.
     for (OrderedRanges::const_iterator I = Unhandled.begin(),
                                        E = Unhandled.end();
          I != E && !Cur.endsBefore(*I); ++I) {
       LiveRangeWrapper Item = *I;
       if (Item.Var->hasReg() && Item.overlaps(Cur)) {
-        Free[Item.Var->getRegNum()] = false; // Note: getRegNum not getRegNumTmp
-        PrecoloredUnhandled[Item.Var->getRegNum()] = true;
+        int32_t ItemReg = Item.Var->getRegNum(); // Note: not getRegNumTmp()
+        Free[ItemReg] = false;
+        PrecoloredUnhandled[ItemReg] = true;
+        // Disable AllowOverlap if the preferred register is one of
+        // these precolored unhandled overlapping ranges.
+        if (AllowOverlap && ItemReg == PreferReg) {
+          AllowOverlap = false;
+          dumpDisableOverlap(Func, Item.Var, "PrecoloredUnhandled");
+        }
       }
     }
 
@@ -228,15 +342,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       Str << "\n";
     }
 
-    Variable *Prefer = Cur.Var->getPreferredRegister();
-    int32_t PreferReg = Prefer && Prefer->hasRegTmp() ? Prefer->getRegNumTmp()
-                                                      : Variable::NoRegister;
-    bool AllowedToOverlap = Cur.Var->getRegisterOverlap() &&
-                            PreferReg != Variable::NoRegister &&
-                            RegMask[PreferReg] &&
-                            !PrecoloredUnhandled[PreferReg];
-    if (PreferReg != Variable::NoRegister &&
-        (AllowedToOverlap || Free[PreferReg])) {
+    if (Prefer && (AllowOverlap || Free[PreferReg])) {
       // First choice: a preferred register that is either free or is
       // allowed to overlap with its linked variable.
       Cur.Var->setRegNumTmp(PreferReg);

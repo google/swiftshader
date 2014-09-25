@@ -382,6 +382,7 @@ void TargetX8632::translateO2() {
   // associated cleanup, to make the dump cleaner and more useful.
   Func->dump("After initial x8632 codegen");
   Timer T_regAlloc;
+  Func->getVMetadata()->init();
   regAlloc();
   if (Func->hasError())
     return;
@@ -1590,21 +1591,21 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
     case InstArithmetic::Shl:
       _mov(T, Src0);
       if (!llvm::isa<Constant>(Src1))
-        Src1 = legalizeToVar(Src1, false, RegX8632::Reg_ecx);
+        Src1 = legalizeToVar(Src1, RegX8632::Reg_ecx);
       _shl(T, Src1);
       _mov(Dest, T);
       break;
     case InstArithmetic::Lshr:
       _mov(T, Src0);
       if (!llvm::isa<Constant>(Src1))
-        Src1 = legalizeToVar(Src1, false, RegX8632::Reg_ecx);
+        Src1 = legalizeToVar(Src1, RegX8632::Reg_ecx);
       _shr(T, Src1);
       _mov(Dest, T);
       break;
     case InstArithmetic::Ashr:
       _mov(T, Src0);
       if (!llvm::isa<Constant>(Src1))
-        Src1 = legalizeToVar(Src1, false, RegX8632::Reg_ecx);
+        Src1 = legalizeToVar(Src1, RegX8632::Reg_ecx);
       _sar(T, Src1);
       _mov(Dest, T);
       break;
@@ -1725,9 +1726,8 @@ void TargetX8632::lowerAssign(const InstAssign *Inst) {
     _mov(T_Hi, Src0Hi);
     _mov(DestHi, T_Hi);
   } else {
-    const bool AllowOverlap = true;
     // RI is either a physical register or an immediate.
-    Operand *RI = legalize(Src0, Legal_Reg | Legal_Imm, AllowOverlap);
+    Operand *RI = legalize(Src0, Legal_Reg | Legal_Imm);
     if (isVectorType(Dest->getType()))
       _movp(Dest, RI);
     else
@@ -1830,7 +1830,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   // code, as the memory operand displacements may end up being smaller
   // before any stack adjustment is done.
   for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
-    Variable *Reg = legalizeToVar(XmmArgs[i], false, RegX8632::Reg_xmm0 + i);
+    Variable *Reg = legalizeToVar(XmmArgs[i], RegX8632::Reg_xmm0 + i);
     // Generate a FakeUse of register arguments so that they do not get
     // dead code eliminated as a result of the FakeKill of scratch
     // registers after the call.
@@ -1914,15 +1914,12 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       split64(Dest);
       Variable *DestLo = Dest->getLo();
       Variable *DestHi = Dest->getHi();
-      DestLo->setPreferredRegister(ReturnReg, false);
-      DestHi->setPreferredRegister(ReturnRegHi, false);
       _mov(DestLo, ReturnReg);
       _mov(DestHi, ReturnRegHi);
     } else {
       assert(Dest->getType() == IceType_i32 || Dest->getType() == IceType_i16 ||
              Dest->getType() == IceType_i8 || Dest->getType() == IceType_i1 ||
              isVectorType(Dest->getType()));
-      Dest->setPreferredRegister(ReturnReg, false);
       if (isVectorType(Dest->getType())) {
         _movp(Dest, ReturnReg);
       } else {
@@ -2137,7 +2134,6 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       if (Dest->getType() == IceType_i1)
         _and(T_2, Ctx->getConstantInt32(IceType_i1, 1));
       _mov(Dest, T_2);
-      T_2->setPreferredRegister(T_1, true);
     }
     break;
   case InstCast::Fptoui:
@@ -2174,7 +2170,6 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       if (Dest->getType() == IceType_i1)
         _and(T_2, Ctx->getConstantInt32(IceType_i1, 1));
       _mov(Dest, T_2);
-      T_2->setPreferredRegister(T_1, true);
     }
     break;
   case InstCast::Sitofp:
@@ -2686,8 +2681,8 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
     if (Src0->getType() != IceType_i64 && !NextBr->isUnconditional() &&
         Dest == NextBr->getSrc(0) && NextBr->isLastUse(Dest)) {
       NextBr->setDeleted();
-      Operand *Src0RM = legalize(
-          Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg, true);
+      Operand *Src0RM =
+          legalize(Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg);
       _cmp(Src0RM, Src1);
       _br(getIcmp32Mapping(Inst->getCondition()), NextBr->getTargetTrue(),
           NextBr->getTargetFalse());
@@ -2736,8 +2731,8 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   }
 
   // cmp b, c
-  Operand *Src0RM = legalize(
-      Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg, true);
+  Operand *Src0RM =
+      legalize(Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg);
   InstX8632Label *Label = InstX8632Label::create(Func, this);
   _cmp(Src0RM, Src1);
   _mov(Dest, One);
@@ -3588,7 +3583,8 @@ bool matchTransitiveAssign(const VariablesMetadata *VMetadata, Variable *&Var,
   //   set Var:=SrcVar
   if (Var == NULL)
     return false;
-  if (const Inst *VarAssign = VMetadata->getDefinition(Var)) {
+  if (const Inst *VarAssign = VMetadata->getSingleDefinition(Var)) {
+    assert(!VMetadata->isMultiDef(Var));
     if (llvm::isa<InstAssign>(VarAssign)) {
       Operand *SrcOp = VarAssign->getSrc(0);
       assert(SrcOp);
@@ -3615,9 +3611,10 @@ bool matchCombinedBaseIndex(const VariablesMetadata *VMetadata, Variable *&Base,
     return false;
   if (Index != NULL)
     return false;
-  const Inst *BaseInst = VMetadata->getDefinition(Base);
+  const Inst *BaseInst = VMetadata->getSingleDefinition(Base);
   if (BaseInst == NULL)
     return false;
+  assert(!VMetadata->isMultiDef(Base));
   if (BaseInst->getSrcSize() < 2)
     return false;
   if (Variable *Var1 = llvm::dyn_cast<Variable>(BaseInst->getSrc(0))) {
@@ -3646,9 +3643,10 @@ bool matchShiftedIndex(const VariablesMetadata *VMetadata, Variable *&Index,
   //   Index=Var, Shift+=log2(Const)
   if (Index == NULL)
     return false;
-  const Inst *IndexInst = VMetadata->getDefinition(Index);
+  const Inst *IndexInst = VMetadata->getSingleDefinition(Index);
   if (IndexInst == NULL)
     return false;
+  assert(!VMetadata->isMultiDef(Index));
   if (IndexInst->getSrcSize() < 2)
     return false;
   if (const InstArithmetic *ArithInst =
@@ -3697,9 +3695,10 @@ bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable *&Base,
   //   set Base=Var, Offset-=Const
   if (Base == NULL)
     return false;
-  const Inst *BaseInst = VMetadata->getDefinition(Base);
+  const Inst *BaseInst = VMetadata->getSingleDefinition(Base);
   if (BaseInst == NULL)
     return false;
+  assert(!VMetadata->isMultiDef(Base));
   if (const InstArithmetic *ArithInst =
           llvm::dyn_cast<const InstArithmetic>(BaseInst)) {
     if (ArithInst->getOp() != InstArithmetic::Add &&
@@ -3878,15 +3877,15 @@ void TargetX8632::lowerRet(const InstRet *Inst) {
   if (Inst->hasRetValue()) {
     Operand *Src0 = legalize(Inst->getRetValue());
     if (Src0->getType() == IceType_i64) {
-      Variable *eax = legalizeToVar(loOperand(Src0), false, RegX8632::Reg_eax);
-      Variable *edx = legalizeToVar(hiOperand(Src0), false, RegX8632::Reg_edx);
+      Variable *eax = legalizeToVar(loOperand(Src0), RegX8632::Reg_eax);
+      Variable *edx = legalizeToVar(hiOperand(Src0), RegX8632::Reg_edx);
       Reg = eax;
       Context.insert(InstFakeUse::create(Func, edx));
     } else if (Src0->getType() == IceType_f32 ||
                Src0->getType() == IceType_f64) {
       _fld(Src0);
     } else if (isVectorType(Src0->getType())) {
-      Reg = legalizeToVar(Src0, false, RegX8632::Reg_xmm0);
+      Reg = legalizeToVar(Src0, RegX8632::Reg_xmm0);
     } else {
       _mov(Reg, Src0, RegX8632::Reg_eax);
     }
@@ -3973,8 +3972,8 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
   if (Dest->getType() == IceType_i64) {
     Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
     Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    Operand *SrcLoRI = legalize(loOperand(SrcT), Legal_Reg | Legal_Imm, true);
-    Operand *SrcHiRI = legalize(hiOperand(SrcT), Legal_Reg | Legal_Imm, true);
+    Operand *SrcLoRI = legalize(loOperand(SrcT), Legal_Reg | Legal_Imm);
+    Operand *SrcHiRI = legalize(hiOperand(SrcT), Legal_Reg | Legal_Imm);
     _cmp(ConditionRM, Zero);
     _mov(DestLo, SrcLoRI);
     _mov(DestHi, SrcHiRI);
@@ -3983,17 +3982,17 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     Context.insert(InstFakeUse::create(Func, DestHi));
     Operand *SrcFLo = loOperand(SrcF);
     Operand *SrcFHi = hiOperand(SrcF);
-    SrcLoRI = legalize(SrcFLo, Legal_Reg | Legal_Imm, true);
-    SrcHiRI = legalize(SrcFHi, Legal_Reg | Legal_Imm, true);
+    SrcLoRI = legalize(SrcFLo, Legal_Reg | Legal_Imm);
+    SrcHiRI = legalize(SrcFHi, Legal_Reg | Legal_Imm);
     _mov(DestLo, SrcLoRI);
     _mov(DestHi, SrcHiRI);
   } else {
     _cmp(ConditionRM, Zero);
-    SrcT = legalize(SrcT, Legal_Reg | Legal_Imm, true);
+    SrcT = legalize(SrcT, Legal_Reg | Legal_Imm);
     _mov(Dest, SrcT);
     _br(CondX86::Br_ne, Label);
     Context.insert(InstFakeUse::create(Func, Dest));
-    SrcF = legalize(SrcF, Legal_Reg | Legal_Imm, true);
+    SrcF = legalize(SrcF, Legal_Reg | Legal_Imm);
     _mov(Dest, SrcF);
   }
 
@@ -4008,14 +4007,14 @@ void TargetX8632::lowerStore(const InstStore *Inst) {
 
   if (Ty == IceType_i64) {
     Value = legalize(Value);
-    Operand *ValueHi = legalize(hiOperand(Value), Legal_Reg | Legal_Imm, true);
-    Operand *ValueLo = legalize(loOperand(Value), Legal_Reg | Legal_Imm, true);
+    Operand *ValueHi = legalize(hiOperand(Value), Legal_Reg | Legal_Imm);
+    Operand *ValueLo = legalize(loOperand(Value), Legal_Reg | Legal_Imm);
     _store(ValueHi, llvm::cast<OperandX8632Mem>(hiOperand(NewAddr)));
     _store(ValueLo, llvm::cast<OperandX8632Mem>(loOperand(NewAddr)));
   } else if (isVectorType(Ty)) {
     _storep(legalizeToVar(Value), NewAddr);
   } else {
-    Value = legalize(Value, Legal_Reg | Legal_Imm, true);
+    Value = legalize(Value, Legal_Reg | Legal_Imm);
     _store(Value, NewAddr);
   }
 }
@@ -4054,7 +4053,7 @@ void TargetX8632::lowerSwitch(const InstSwitch *Inst) {
   if (NumCases >= 2)
     Src0 = legalizeToVar(Src0, true);
   else
-    Src0 = legalize(Src0, Legal_Reg | Legal_Mem, true);
+    Src0 = legalize(Src0, Legal_Reg | Legal_Mem);
   for (SizeT I = 0; I < NumCases; ++I) {
     // TODO(stichnot): Correct lowering for IceType_i64.
     Constant *Value = Ctx->getConstantInt32(IceType_i32, Inst->getValue(I));
@@ -4209,7 +4208,7 @@ Variable *TargetX8632::copyToReg(Operand *Src, int32_t RegNum) {
 }
 
 Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
-                               bool AllowOverlap, int32_t RegNum) {
+                               int32_t RegNum) {
   // Assert that a physical register is allowed.  To date, all calls
   // to legalize() allow a physical register.  If a physical register
   // needs to be explicitly disallowed, then new code will need to be
@@ -4228,10 +4227,10 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
     Variable *RegBase = NULL;
     Variable *RegIndex = NULL;
     if (Base) {
-      RegBase = legalizeToVar(Base, true);
+      RegBase = legalizeToVar(Base);
     }
     if (Index) {
-      RegIndex = legalizeToVar(Index, true);
+      RegIndex = legalizeToVar(Index);
     }
     if (Base != RegBase || Index != RegIndex) {
       From = OperandX8632Mem::create(
@@ -4293,11 +4292,7 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
     //   RegNum is required and Var->getRegNum() doesn't match.
     if ((!(Allowed & Legal_Mem) && !MustHaveRegister) ||
         (RegNum != Variable::NoRegister && RegNum != Var->getRegNum())) {
-      Variable *Reg = copyToReg(From, RegNum);
-      if (RegNum == Variable::NoRegister) {
-        Reg->setPreferredRegister(Var, AllowOverlap);
-      }
-      From = Reg;
+      From = copyToReg(From, RegNum);
     }
     return From;
   }
@@ -4306,9 +4301,8 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
 }
 
 // Provide a trivial wrapper to legalize() for this common usage.
-Variable *TargetX8632::legalizeToVar(Operand *From, bool AllowOverlap,
-                                     int32_t RegNum) {
-  return llvm::cast<Variable>(legalize(From, Legal_Reg, AllowOverlap, RegNum));
+Variable *TargetX8632::legalizeToVar(Operand *From, int32_t RegNum) {
+  return llvm::cast<Variable>(legalize(From, Legal_Reg, RegNum));
 }
 
 OperandX8632Mem *TargetX8632::FormMemoryOperand(Operand *Operand, Type Ty) {

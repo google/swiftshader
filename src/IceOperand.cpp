@@ -165,13 +165,13 @@ void VariableTracking::markUse(const Inst *Instr, const CfgNode *Node,
   // of the block that actually uses a Variable.
   assert(Node);
   bool MakeMulti = false;
+  if (IsImplicit)
+    MakeMulti = true;
   // A phi source variable conservatively needs to be marked as
   // multi-block, even if its definition is in the same block.  This
   // is because there can be additional control flow before branching
   // back to this node, and the variable is live throughout those
   // nodes.
-  if (IsImplicit)
-    MakeMulti = true;
   if (!IsFromDef && Instr && llvm::isa<InstPhi>(Instr))
     MakeMulti = true;
 
@@ -201,20 +201,60 @@ void VariableTracking::markDef(const Inst *Instr, const CfgNode *Node) {
   // of the block, consider not marking this as a separate use.  But
   // be careful not to omit all uses of the variable if markDef() and
   // markUse() both use this optimization.
+  assert(Node);
+  Definitions.push_back(Instr);
   const bool IsFromDef = true;
   const bool IsImplicit = false;
   markUse(Instr, Node, IsFromDef, IsImplicit);
   switch (MultiDef) {
   case MDS_Unknown:
+    assert(SingleDefNode == NULL);
     MultiDef = MDS_SingleDef;
-    SingleDefInst = Instr;
+    SingleDefNode = Node;
     break;
   case MDS_SingleDef:
-    MultiDef = MDS_MultiDef;
-    SingleDefInst = NULL;
+    assert(SingleDefNode);
+    if (Node == SingleDefNode) {
+      MultiDef = MDS_MultiDefSingleBlock;
+    } else {
+      MultiDef = MDS_MultiDefMultiBlock;
+      SingleDefNode = NULL;
+    }
     break;
-  case MDS_MultiDef:
+  case MDS_MultiDefSingleBlock:
+    assert(SingleDefNode);
+    if (Node != SingleDefNode) {
+      MultiDef = MDS_MultiDefMultiBlock;
+      SingleDefNode = NULL;
+    }
     break;
+  case MDS_MultiDefMultiBlock:
+    assert(SingleDefNode == NULL);
+    break;
+  }
+}
+
+const Inst *VariableTracking::getFirstDefinition() const {
+  switch (MultiDef) {
+  case MDS_Unknown:
+  case MDS_MultiDefMultiBlock:
+    return NULL;
+  case MDS_SingleDef:
+  case MDS_MultiDefSingleBlock:
+    assert(!Definitions.empty());
+    return Definitions[0];
+  }
+}
+
+const Inst *VariableTracking::getSingleDefinition() const {
+  switch (MultiDef) {
+  case MDS_Unknown:
+  case MDS_MultiDefMultiBlock:
+  case MDS_MultiDefSingleBlock:
+    return NULL;
+  case MDS_SingleDef:
+    assert(!Definitions.empty());
+    return Definitions[0];
   }
 }
 
@@ -243,6 +283,18 @@ void VariablesMetadata::init() {
          ++I) {
       if ((*I)->isDeleted())
         continue;
+      if (InstFakeKill *Kill = llvm::dyn_cast<InstFakeKill>(*I)) {
+        // A FakeKill instruction indicates certain Variables (usually
+        // physical scratch registers) are redefined, so we register
+        // them as defs.
+        for (SizeT SrcNum = 0; SrcNum < (*I)->getSrcSize(); ++SrcNum) {
+          Variable *Var = llvm::cast<Variable>((*I)->getSrc(SrcNum));
+          SizeT VarNum = Var->getIndex();
+          assert(VarNum < Metadata.size());
+          Metadata[VarNum].markDef(Kill, Node);
+        }
+        continue; // no point in executing the rest
+      }
       if (Variable *Dest = (*I)->getDest()) {
         SizeT DestNum = Dest->getIndex();
         assert(DestNum < Metadata.size());
@@ -275,18 +327,35 @@ bool VariablesMetadata::isMultiDef(const Variable *Var) const {
 }
 
 bool VariablesMetadata::isMultiBlock(const Variable *Var) const {
-  if (getDefinition(Var) == NULL)
+  if (Var->getIsArg())
     return true;
+  if (!isTracked(Var))
+    return true; // conservative answer
   SizeT VarNum = Var->getIndex();
   // Conservatively return true if the state is unknown.
   return Metadata[VarNum].getMultiBlock() != VariableTracking::MBS_SingleBlock;
 }
 
-const Inst *VariablesMetadata::getDefinition(const Variable *Var) const {
+const Inst *VariablesMetadata::getFirstDefinition(const Variable *Var) const {
   if (!isTracked(Var))
     return NULL; // conservative answer
   SizeT VarNum = Var->getIndex();
-  return Metadata[VarNum].getDefinition();
+  return Metadata[VarNum].getFirstDefinition();
+}
+
+const Inst *VariablesMetadata::getSingleDefinition(const Variable *Var) const {
+  if (!isTracked(Var))
+    return NULL; // conservative answer
+  SizeT VarNum = Var->getIndex();
+  return Metadata[VarNum].getSingleDefinition();
+}
+
+const InstDefList &
+VariablesMetadata::getDefinitions(const Variable *Var) const {
+  if (!isTracked(Var))
+    return NoDefinitions;
+  SizeT VarNum = Var->getIndex();
+  return Metadata[VarNum].getDefinitions();
 }
 
 const CfgNode *VariablesMetadata::getLocalUseNode(const Variable *Var) const {
@@ -295,6 +364,8 @@ const CfgNode *VariablesMetadata::getLocalUseNode(const Variable *Var) const {
   SizeT VarNum = Var->getIndex();
   return Metadata[VarNum].getNode();
 }
+
+const InstDefList VariablesMetadata::NoDefinitions;
 
 // ======================== dump routines ======================== //
 

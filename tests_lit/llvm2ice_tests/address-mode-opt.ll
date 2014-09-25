@@ -46,7 +46,7 @@ entry:
   %addr.load = load float* %addr.ptr, align 4
   ret float %addr.load
 ; CHECK-LABEL: load_200000_minus_arg:
-; CHECK: movss xmm0, dword ptr [eax]
+; CHECK: movss xmm0, dword ptr [e{{..}}]
 }
 
 define float @address_mode_opt_chaining(float* %arg) {

@@ -105,7 +105,8 @@ enum VerboseItem {
   IceV_Frame = 1 << 9,
   IceV_Timing = 1 << 10,
   IceV_AddrOpt = 1 << 11,
-  IceV_All = ~IceV_None
+  IceV_All = ~IceV_None,
+  IceV_Most = IceV_All & ~(IceV_Timing | IceV_LinearScan)
 };
 typedef uint32_t VerboseMask;
 

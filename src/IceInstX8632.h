@@ -744,6 +744,7 @@ public:
   virtual bool isRedundantAssign() const {
     return checkForRedundantAssign(getDest(), getSrc(0));
   }
+  virtual bool isSimpleAssign() const { return true; }
   virtual void emit(const Cfg *Func) const;
   virtual void dump(const Cfg *Func) const {
     Ostream &Str = Func->getContext()->getStrDump();
@@ -1199,7 +1200,7 @@ private:
   virtual ~InstX8632Movsx() {}
 };
 
-// Movsx - copy from a narrower integer type to a wider integer
+// Movzx - copy from a narrower integer type to a wider integer
 // type, with zero extension.
 class InstX8632Movzx : public InstX8632 {
 public:

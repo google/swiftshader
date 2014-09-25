@@ -205,7 +205,7 @@ entry:
 ; CHECK-LABEL: test_atomic_rmw_add_8
 ; CHECK: lock
 ; CHECK-NEXT: xadd byte {{.*}}, [[REG:.*]]
-; CHECK: mov {{.*}}, [[REG]]
+; CHECK: {{mov|movzx}} {{.*}}, [[REG]]
 
 define i32 @test_atomic_rmw_add_16(i32 %iptr, i32 %v) {
 entry:
@@ -218,7 +218,7 @@ entry:
 ; CHECK-LABEL: test_atomic_rmw_add_16
 ; CHECK: lock
 ; CHECK-NEXT: xadd word {{.*}}, [[REG:.*]]
-; CHECK: mov {{.*}}, [[REG]]
+; CHECK: {{mov|movzx}} {{.*}}, [[REG]]
 
 define i32 @test_atomic_rmw_add_32(i32 %iptr, i32 %v) {
 entry:
@@ -347,7 +347,7 @@ entry:
 ; CHECK: neg [[REG:.*]]
 ; CHECK: lock
 ; CHECK-NEXT: xadd byte {{.*}}, [[REG]]
-; CHECK: mov {{.*}}, [[REG]]
+; CHECK: {{mov|movzx}} {{.*}}, [[REG]]
 
 define i32 @test_atomic_rmw_sub_16(i32 %iptr, i32 %v) {
 entry:
@@ -361,7 +361,7 @@ entry:
 ; CHECK: neg [[REG:.*]]
 ; CHECK: lock
 ; CHECK-NEXT: xadd word {{.*}}, [[REG]]
-; CHECK: mov {{.*}}, [[REG]]
+; CHECK: {{mov|movzx}} {{.*}}, [[REG]]
 
 define i32 @test_atomic_rmw_sub_32(i32 %iptr, i32 %v) {
 entry:

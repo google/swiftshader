@@ -385,13 +385,6 @@ public:
   void setWeight(uint32_t NewWeight) { Weight = NewWeight; }
   void setWeightInfinite() { Weight = RegWeight::Inf; }
 
-  Variable *getPreferredRegister() const { return RegisterPreference; }
-  bool getRegisterOverlap() const { return AllowRegisterOverlap; }
-  void setPreferredRegister(Variable *Prefer, bool Overlap) {
-    RegisterPreference = Prefer;
-    AllowRegisterOverlap = Overlap;
-  }
-
   const LiveRange &getLiveRange() const { return Live; }
   void setLiveRange(const LiveRange &Range) { Live = Range; }
   void resetLiveRange() { Live.reset(); }
@@ -416,8 +409,8 @@ public:
   // Creates a temporary copy of the variable with a different type.
   // Used primarily for syntactic correctness of textual assembly
   // emission.  Note that only basic information is copied, in
-  // particular not DefInst, IsArgument, Weight, RegisterPreference,
-  // AllowRegisterOverlap, LoVar, HiVar, VarsReal.
+  // particular not DefInst, IsArgument, Weight, LoVar, HiVar,
+  // VarsReal.
   Variable asType(Type Ty);
 
   virtual void emit(const Cfg *Func) const;
@@ -436,8 +429,7 @@ protected:
   Variable(OperandKind K, Type Ty, SizeT Index, const IceString &Name)
       : Operand(K, Ty), Number(Index), Name(Name), IsArgument(false),
         IsImplicitArgument(false), StackOffset(0), RegNum(NoRegister),
-        RegNumTmp(NoRegister), Weight(1), RegisterPreference(NULL),
-        AllowRegisterOverlap(false), LoVar(NULL), HiVar(NULL) {
+        RegNumTmp(NoRegister), Weight(1), LoVar(NULL), HiVar(NULL) {
     Vars = VarsReal;
     Vars[0] = this;
     NumVars = 1;
@@ -450,7 +442,7 @@ protected:
   bool IsArgument;
   bool IsImplicitArgument;
   // StackOffset is the canonical location on stack (only if
-  // RegNum<0 || IsArgument).
+  // RegNum==NoRegister || IsArgument).
   int32_t StackOffset;
   // RegNum is the allocated register, or NoRegister if it isn't
   // register-allocated.
@@ -458,16 +450,6 @@ protected:
   // RegNumTmp is the tentative assignment during register allocation.
   int32_t RegNumTmp;
   RegWeight Weight; // Register allocation priority
-  // RegisterPreference says that if possible, the register allocator
-  // should prefer the register that was assigned to this linked
-  // variable.  It also allows a spill slot to share its stack
-  // location with another variable, if that variable does not get
-  // register-allocated and therefore has a stack location.
-  Variable *RegisterPreference;
-  // AllowRegisterOverlap says that it is OK to honor
-  // RegisterPreference and "share" a register even if the two live
-  // ranges overlap.
-  bool AllowRegisterOverlap;
   LiveRange Live;
   // LoVar and HiVar are needed for lowering from 64 to 32 bits.  When
   // lowering from I64 to I32 on a 32-bit architecture, we split the
@@ -483,14 +465,18 @@ protected:
   Variable *VarsReal[1];
 };
 
-// VariableTracking tracks the metadata for a single variable.
+typedef std::vector<const Inst *> InstDefList;
+
+// VariableTracking tracks the metadata for a single variable.  It is
+// only meant to be used internally by VariablesMetadata.
 class VariableTracking {
 public:
   enum MultiDefState {
     // TODO(stichnot): Consider using just a simple counter.
     MDS_Unknown,
     MDS_SingleDef,
-    MDS_MultiDef
+    MDS_MultiDefSingleBlock,
+    MDS_MultiDefMultiBlock
   };
   enum MultiBlockState {
     MBS_Unknown,
@@ -499,10 +485,12 @@ public:
   };
   VariableTracking()
       : MultiDef(MDS_Unknown), MultiBlock(MBS_Unknown), SingleUseNode(NULL),
-        SingleDefInst(NULL) {}
+        SingleDefNode(NULL) {}
   MultiDefState getMultiDef() const { return MultiDef; }
   MultiBlockState getMultiBlock() const { return MultiBlock; }
-  const Inst *getDefinition() const { return SingleDefInst; }
+  const Inst *getFirstDefinition() const;
+  const Inst *getSingleDefinition() const;
+  const InstDefList &getDefinitions() const { return Definitions; }
   const CfgNode *getNode() const { return SingleUseNode; }
   void markUse(const Inst *Instr, const CfgNode *Node, bool IsFromDef,
                bool IsImplicit);
@@ -513,7 +501,12 @@ private:
   MultiDefState MultiDef;
   MultiBlockState MultiBlock;
   const CfgNode *SingleUseNode;
-  const Inst *SingleDefInst;
+  const CfgNode *SingleDefNode;
+  // All definitions of the variable are collected here, in the order
+  // encountered.  Definitions in the same basic block are in
+  // instruction order, but there's no guarantee for the basic block
+  // order.
+  InstDefList Definitions;
 };
 
 // VariablesMetadata analyzes and summarizes the metadata for the
@@ -521,18 +514,50 @@ private:
 class VariablesMetadata {
 public:
   VariablesMetadata(const Cfg *Func) : Func(Func) {}
+  // Initialize the state by traversing all instructions/variables in
+  // the CFG.
   void init();
+  // Returns whether the given Variable is tracked in this object.  It
+  // should only return false if changes were made to the CFG after
+  // running init(), in which case the state is stale and the results
+  // shouldn't be trusted (but it may be OK e.g. for dumping).
   bool isTracked(const Variable *Var) const {
     return Var->getIndex() < Metadata.size();
   }
+
+  // Returns whether the given Variable has multiple definitions.
   bool isMultiDef(const Variable *Var) const;
-  const Inst *getDefinition(const Variable *Var) const;
+  // Returns the first definition instruction of the given Variable.
+  // This is only valid for variables whose definitions are all within
+  // the same block, e.g. T after the lowered sequence "T=B; T+=C;
+  // A=T", for which getFirstDefinition(T) would return the "T=B"
+  // instruction.  For variables with definitions span multiple
+  // blocks, NULL is returned.
+  const Inst *getFirstDefinition(const Variable *Var) const;
+  // Returns the definition instruction of the given Variable, when
+  // the variable has exactly one definition.  Otherwise, NULL is
+  // returned.
+  const Inst *getSingleDefinition(const Variable *Var) const;
+  // Returns the list of all definition instructions of the given
+  // Variable.
+  const InstDefList &getDefinitions(const Variable *Var) const;
+
+  // Returns whether the given Variable is live across multiple
+  // blocks.  Mainly, this is used to partition Variables into
+  // single-block versus multi-block sets for leveraging sparsity in
+  // liveness analysis, and for implementing simple stack slot
+  // coalescing.  As a special case, function arguments are always
+  // considered multi-block because they are live coming into the
+  // entry block.
   bool isMultiBlock(const Variable *Var) const;
+  // Returns the node that the given Variable is used in, assuming
+  // isMultiBlock() returns false.  Otherwise, NULL is returned.
   const CfgNode *getLocalUseNode(const Variable *Var) const;
 
 private:
   const Cfg *Func;
   std::vector<VariableTracking> Metadata;
+  const static InstDefList NoDefinitions;
   VariablesMetadata(const VariablesMetadata &) LLVM_DELETED_FUNCTION;
   VariablesMetadata &operator=(const VariablesMetadata &) LLVM_DELETED_FUNCTION;
 };

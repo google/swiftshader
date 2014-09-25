@@ -346,12 +346,7 @@ Inst *InstPhi::lower(Cfg *Func) {
   IceString PhiName = Dest->getName() + "_phi";
   Variable *NewSrc = Func->makeVariable(Dest->getType(), PhiName);
   this->Dest = NewSrc;
-  InstAssign *NewInst = InstAssign::create(Func, Dest, NewSrc);
-  // Set Dest and NewSrc to have affinity with each other, as a hint
-  // for register allocation.
-  Dest->setPreferredRegister(NewSrc, false);
-  NewSrc->setPreferredRegister(Dest, false);
-  return NewInst;
+  return InstAssign::create(Func, Dest, NewSrc);
 }
 
 InstRet::InstRet(Cfg *Func, Operand *RetValue)

@@ -200,13 +200,6 @@ void CfgNode::placePhiStores() {
       Variable *Dest = (*I2)->getDest();
       assert(Dest);
       InstAssign *NewInst = InstAssign::create(Func, Dest, Operand);
-      // If Src is a variable, set the Src and Dest variables to
-      // prefer each other for register allocation.
-      if (Variable *Src = llvm::dyn_cast<Variable>(Operand)) {
-        bool AllowOverlap = false;
-        Dest->setPreferredRegister(Src, AllowOverlap);
-        Src->setPreferredRegister(Dest, AllowOverlap);
-      }
       if (CmpInstDest == Operand)
         Insts.insert(SafeInsertionPoint, NewInst);
       else

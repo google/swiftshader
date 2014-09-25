@@ -92,6 +92,8 @@ public:
     return NodeList();
   }
 
+  virtual bool isSimpleAssign() const { return false; }
+
   void livenessLightweight(Cfg *Func, llvm::BitVector &Live);
   void liveness(InstNumberT InstNumber, llvm::BitVector &Live,
                 Liveness *Liveness, const CfgNode *Node);
@@ -233,6 +235,7 @@ public:
     return new (Func->allocateInst<InstAssign>())
         InstAssign(Func, Dest, Source);
   }
+  virtual bool isSimpleAssign() const { return true; }
   virtual void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Assign; }
 

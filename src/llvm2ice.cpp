@@ -47,6 +47,8 @@ static cl::list<Ice::VerboseItem> VerboseList(
         clEnumValN(Ice::IceV_Timing, "time", "Pass timing details"),
         clEnumValN(Ice::IceV_AddrOpt, "addropt", "Address mode optimization"),
         clEnumValN(Ice::IceV_All, "all", "Use all verbose options"),
+        clEnumValN(Ice::IceV_Most, "most",
+                   "Use all verbose options except 'regalloc' and 'time'"),
         clEnumValN(Ice::IceV_None, "none", "No verbosity"), clEnumValEnd));
 static cl::opt<Ice::TargetArch> TargetArch(
     "target", cl::desc("Target architecture:"), cl::init(Ice::Target_X8632),
@@ -134,6 +136,8 @@ static cl::opt<bool>
     UseIntegratedAssembler("integrated-as",
                            cl::desc("Use integrated assembler (default yes)"),
                            cl::init(true));
+static cl::alias UseIas("ias", cl::desc("Alias for -integrated-as"),
+                        cl::NotHidden, cl::aliasopt(UseIntegratedAssembler));
 
 int main(int argc, char **argv) {
 
