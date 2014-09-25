@@ -100,7 +100,7 @@ entry:
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e = trunc i32 %pe to i1
 ; CHECK-NEXT:   %r = insertelement <4 x i1> %v, i1 %e, i32 %i
-; CHECK-NEXT:   ret i1 %r
+; CHECK-NEXT:   ret <4 x i1> %r
 ; CHECK-NEXT: }
 
 define <8 x i1> @InsertV8xi1(<8 x i1> %v, i32 %pe, i32 %i) {
@@ -114,7 +114,7 @@ entry:
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e = trunc i32 %pe to i1
 ; CHECK-NEXT:   %r = insertelement <8 x i1> %v, i1 %e, i32 %i
-; CHECK-NEXT:   ret i1 %r
+; CHECK-NEXT:   ret <8 x i1> %r
 ; CHECK-NEXT: }
 
 define <16 x i1> @InsertV16xi1(<16 x i1> %v, i32 %pe, i32 %i) {
@@ -128,7 +128,7 @@ entry:
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e = trunc i32 %pe to i1
 ; CHECK-NEXT:   %r = insertelement <16 x i1> %v, i1 %e, i32 %i
-; CHECK-NEXT:   ret i1 %r
+; CHECK-NEXT:   ret <16 x i1> %r
 ; CHECK-NEXT: }
 
 define <16 x i8> @InsertV16xi8(<16 x i8> %v, i32 %pe, i32 %i) {
@@ -142,7 +142,7 @@ entry:
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e = trunc i32 %pe to i8
 ; CHECK-NEXT:   %r = insertelement <16 x i8> %v, i8 %e, i32 %i
-; CHECK-NEXT:   ret i8 %r
+; CHECK-NEXT:   ret <16 x i8> %r
 ; CHECK-NEXT: }
 
 define <8 x i16> @InsertV8xi16(<8 x i16> %v, i32 %pe, i32 %i) {
@@ -156,7 +156,7 @@ entry:
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e = trunc i32 %pe to i16
 ; CHECK-NEXT:   %r = insertelement <8 x i16> %v, i16 %e, i32 %i
-; CHECK-NEXT:   ret i16 %r
+; CHECK-NEXT:   ret <8 x i16> %r
 ; CHECK-NEXT: }
 
 define <4 x i32> @InsertV4xi32(<4 x i32> %v, i32 %e, i32 %i) {
@@ -168,7 +168,7 @@ entry:
 ; CHECK-NEXT: define <4 x i32> @InsertV4xi32(<4 x i32> %v, i32 %e, i32 %i) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %r = insertelement <4 x i32> %v, i32 %e, i32 %i
-; CHECK-NEXT:   ret i32 %r
+; CHECK-NEXT:   ret <4 x i32> %r
 ; CHECK-NEXT: }
 
 define <4 x float> @InsertV4xfloat(<4 x float> %v, float %e, i32 %i) {
@@ -180,5 +180,5 @@ entry:
 ; CHECK-NEXT: define <4 x float> @InsertV4xfloat(<4 x float> %v, float %e, i32 %i) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %r = insertelement <4 x float> %v, float %e, i32 %i
-; CHECK-NEXT:   ret float %r
+; CHECK-NEXT:   ret <4 x float> %r
 ; CHECK-NEXT: }

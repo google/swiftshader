@@ -1,22 +1,21 @@
 ; This checks support for insertelement and extractelement.
 
-; TODO(kschimpf) Figure out why lc2i  is needed.
-; RUN: %lc2i -i %s --args -O2 --verbose none \
+; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %lc2i -i %s --args -Om1 --verbose none \
+; RUN: %p2i -i %s --args -Om1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %lc2i -i %s --args -O2 -mattr=sse4.1 --verbose none \
+; RUN: %p2i -i %s --args -O2 -mattr=sse4.1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=SSE41 %s
-; RUN: %lc2i -i %s --args -Om1 -mattr=sse4.1 --verbose none \
+; RUN: %p2i -i %s --args -Om1 -mattr=sse4.1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=SSE41 %s
-; RUN: %lc2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %lc2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
+; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
+; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 ; insertelement operations
 

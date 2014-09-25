@@ -1608,7 +1608,7 @@ void FunctionParser::ProcessRecord() {
     // TODO(kschimpf): Restrict index to a legal constant index (once
     // constants can be defined).
     CurrentNode->appendInst(Ice::InstInsertElement::create(
-        Func, getNextInstVar(EltType), Vec, Elt, Index));
+        Func, getNextInstVar(VecType), Vec, Elt, Index));
     break;
   }
   case naclbitc::FUNC_CODE_INST_CMP2: {
