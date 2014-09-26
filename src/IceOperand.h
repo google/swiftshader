@@ -77,6 +77,7 @@ public:
 protected:
   Operand(OperandKind Kind, Type Ty)
       : Ty(Ty), Kind(Kind), NumVars(0), Vars(NULL) {}
+  Operand(Operand &&O) = default;
 
   const Type Ty;
   const OperandKind Kind;
@@ -345,6 +346,7 @@ Ostream &operator<<(Ostream &Str, const LiveRange &L);
 class Variable : public Operand {
   Variable(const Variable &) LLVM_DELETED_FUNCTION;
   Variable &operator=(const Variable &) LLVM_DELETED_FUNCTION;
+  Variable(Variable &&V) = default;
 
 public:
   static Variable *create(Cfg *Func, Type Ty, SizeT Index,

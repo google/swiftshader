@@ -66,13 +66,12 @@ public:
     setErrStream(Translator.getContext()->getStrDump());
   }
 
-  virtual ~TopLevelParser() {}
-  LLVM_OVERRIDE;
+  ~TopLevelParser() override {}
 
   Ice::Translator &getTranslator() { return Translator; }
 
   // Generates error with given Message. Always returns true.
-  virtual bool Error(const std::string &Message) LLVM_OVERRIDE {
+  bool Error(const std::string &Message) override {
     ErrorStatus = true;
     ++NumErrors;
     NaClBitcodeParser::Error(Message);
@@ -281,7 +280,7 @@ private:
   // references to global variable addresses.
   Type *GlobalVarPlaceHolderType;
 
-  virtual bool ParseBlock(unsigned BlockID) LLVM_OVERRIDE;
+  bool ParseBlock(unsigned BlockID) override;
 
   /// Reports that type ID is undefined, and then returns
   /// the void type.
@@ -339,7 +338,7 @@ public:
   BlockParserBaseClass(unsigned BlockID, TopLevelParser *Context)
       : NaClBitcodeParser(BlockID, Context), Context(Context) {}
 
-  virtual ~BlockParserBaseClass() LLVM_OVERRIDE {}
+  ~BlockParserBaseClass() override {}
 
 protected:
   // The context parser that contains the decoded state.
@@ -356,7 +355,7 @@ protected:
   const Ice::ClFlags &getFlags() const { return getTranslator().getFlags(); }
 
   // Generates an error Message with the bit address prefixed to it.
-  virtual bool Error(const std::string &Message) LLVM_OVERRIDE {
+  bool Error(const std::string &Message) override {
     uint64_t Bit = Record.GetStartBit() + Context->getHeaderSize() * 8;
     std::string Buffer;
     raw_string_ostream StrBuf(Buffer);
@@ -367,11 +366,11 @@ protected:
 
   // Default implementation. Reports that block is unknown and skips
   // its contents.
-  virtual bool ParseBlock(unsigned BlockID) LLVM_OVERRIDE;
+  bool ParseBlock(unsigned BlockID) override;
 
   // Default implementation. Reports that the record is not
   // understood.
-  virtual void ProcessRecord() LLVM_OVERRIDE;
+  void ProcessRecord() override;
 
   // Checks if the size of the record is Size.  Return true if valid.
   // Otherwise generates an error and returns false.
@@ -465,14 +464,14 @@ public:
   TypesParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser), NextTypeId(0) {}
 
-  ~TypesParser() LLVM_OVERRIDE {}
+  ~TypesParser() override {}
 
 private:
   // The type ID that will be associated with the next type defining
   // record in the types block.
   unsigned NextTypeId;
 
-  virtual void ProcessRecord() LLVM_OVERRIDE;
+  void ProcessRecord() override;
 };
 
 void TypesParser::ProcessRecord() {
@@ -565,7 +564,7 @@ public:
     NextGlobalID = Context->getNumFunctionIDs();
   }
 
-  virtual ~GlobalsParser() LLVM_OVERRIDE {}
+  ~GlobalsParser() override {}
 
 private:
   // Holds the sequence of initializers for the global.
@@ -584,7 +583,7 @@ private:
   // The index of the next global variable.
   unsigned NextGlobalID;
 
-  virtual void ExitBlock() LLVM_OVERRIDE {
+  void ExitBlock() override {
     verifyNoMissingInitializers();
     unsigned NumIDs = Context->getNumGlobalValueIDs();
     if (NextGlobalID < NumIDs) {
@@ -598,7 +597,7 @@ private:
     BlockParserBaseClass::ExitBlock();
   }
 
-  virtual void ProcessRecord() LLVM_OVERRIDE;
+  void ProcessRecord() override;
 
   // Checks if the number of initializers needed is the same as the
   // number found in the bitcode file. If different, and error message
@@ -773,7 +772,7 @@ public:
   ValuesymtabParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser) {}
 
-  virtual ~ValuesymtabParser() LLVM_OVERRIDE {}
+  ~ValuesymtabParser() override {}
 
 protected:
   typedef SmallString<128> StringType;
@@ -786,7 +785,7 @@ protected:
 
 private:
 
-  virtual void ProcessRecord() LLVM_OVERRIDE;
+  void ProcessRecord() override;
 
   void ConvertToString(StringType &ConvertedName) {
     const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
@@ -853,7 +852,7 @@ public:
     }
   }
 
-  ~FunctionParser() LLVM_OVERRIDE;
+  ~FunctionParser() override;
 
   // Set the next constant ID to the given constant C.
   void setNextConstantID(Ice::Constant *C) {
@@ -905,11 +904,11 @@ private:
     Alignment = 1;
   }
 
-  virtual bool ParseBlock(unsigned BlockID) LLVM_OVERRIDE;
+  bool ParseBlock(unsigned BlockID) override;
 
-  virtual void ProcessRecord() LLVM_OVERRIDE;
+  void ProcessRecord() override;
 
-  virtual void ExitBlock() LLVM_OVERRIDE;
+  void ExitBlock() override;
 
   // Creates and appends a new basic block to the list of basic blocks.
   Ice::CfgNode *InstallNextBasicBlock() { return Func->makeNode(); }
@@ -2032,7 +2031,7 @@ public:
       : BlockParserBaseClass(BlockID, FuncParser), FuncParser(FuncParser),
         NextConstantType(Ice::IceType_void) {}
 
-  ~ConstantsParser() LLVM_OVERRIDE {}
+  ~ConstantsParser() override {}
 
 private:
   // The parser of the function block this constants block appears in.
@@ -2040,7 +2039,7 @@ private:
   // The type to use for succeeding constants.
   Ice::Type NextConstantType;
 
-  virtual void ProcessRecord() LLVM_OVERRIDE;
+  void ProcessRecord() override;
 
   Ice::GlobalContext *getContext() { return getTranslator().getContext(); }
 
@@ -2154,8 +2153,8 @@ private:
     return reinterpret_cast<FunctionParser *>(GetEnclosingParser());
   }
 
-  virtual void setValueName(uint64_t Index, StringType &Name) LLVM_OVERRIDE;
-  virtual void setBbName(uint64_t Index, StringType &Name) LLVM_OVERRIDE;
+  void setValueName(uint64_t Index, StringType &Name) override;
+  void setBbName(uint64_t Index, StringType &Name) override;
 
   // Reports that the assignment of Name to the value associated with
   // index is not possible, for the given Context.
@@ -2221,7 +2220,7 @@ public:
       : BlockParserBaseClass(BlockID, Context),
         GlobalAddressNamesAndInitializersInstalled(false) {}
 
-  virtual ~ModuleParser() LLVM_OVERRIDE {}
+  ~ModuleParser() override {}
 
 private:
   // True if we have already instaledl names for unnamed global addresses,
@@ -2241,14 +2240,14 @@ private:
     }
   }
 
-  virtual bool ParseBlock(unsigned BlockID) LLVM_OVERRIDE;
+  bool ParseBlock(unsigned BlockID) override;
 
-  virtual void ExitBlock() LLVM_OVERRIDE {
+  void ExitBlock() override {
     InstallGlobalAddressNamesAndInitializers();
     getTranslator().emitConstants();
   }
 
-  virtual void ProcessRecord() LLVM_OVERRIDE;
+  void ProcessRecord() override;
 };
 
 class ModuleValuesymtabParser : public ValuesymtabParser {
@@ -2260,11 +2259,11 @@ public:
   ModuleValuesymtabParser(unsigned BlockID, ModuleParser *MP)
       : ValuesymtabParser(BlockID, MP) {}
 
-  virtual ~ModuleValuesymtabParser() LLVM_OVERRIDE {}
+  ~ModuleValuesymtabParser() override {}
 
 private:
-  virtual void setValueName(uint64_t Index, StringType &Name) LLVM_OVERRIDE;
-  virtual void setBbName(uint64_t Index, StringType &Name) LLVM_OVERRIDE;
+  void setValueName(uint64_t Index, StringType &Name) override;
+  void setBbName(uint64_t Index, StringType &Name) override;
 };
 
 void ModuleValuesymtabParser::setValueName(uint64_t Index, StringType &Name) {
@@ -2287,7 +2286,7 @@ void ModuleValuesymtabParser::setBbName(uint64_t Index, StringType &Name) {
   Error(StrBuf.str());
 }
 
-bool ModuleParser::ParseBlock(unsigned BlockID) LLVM_OVERRIDE {
+bool ModuleParser::ParseBlock(unsigned BlockID) {
   switch (BlockID) {
   case naclbitc::BLOCKINFO_BLOCK_ID:
     return NaClBitcodeParser::ParseBlock(BlockID);

@@ -61,8 +61,6 @@ public:
   llvm::Type *getLLVMVectorType(unsigned Size, Type Ty) const;
 
 private:
-  // The LLVM context to use to build LLVM types.
-  llvm::LLVMContext &Context;
   // The list of allowable LLVM types. Indexed by ICE type.
   std::vector<llvm::Type *> LLVMTypes;
   // The inverse mapping of LLVMTypes.

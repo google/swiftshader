@@ -54,7 +54,7 @@ OPTLEVEL := -O0
 CCACHE := `command -v ccache`
 CXX := CCACHE_CPP2=yes $(CCACHE) $(CLANG_PATH)/clang++
 
-CXXFLAGS := $(LLVM_CXXFLAGS) -Wall -Wextra -Werror -fno-rtti \
+CXXFLAGS := $(LLVM_CXXFLAGS) -std=c++11 -Wall -Wextra -Werror -fno-rtti \
 	-fno-exceptions $(OPTLEVEL) -g $(HOST_FLAGS) \
 	-Wno-error=unused-parameter -I$(LIBCXX_INSTALL_PATH)/include/c++/v1
 LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib

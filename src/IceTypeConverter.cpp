@@ -17,7 +17,7 @@
 
 namespace Ice {
 
-TypeConverter::TypeConverter(llvm::LLVMContext &Context) : Context(Context) {
+TypeConverter::TypeConverter(llvm::LLVMContext &Context) {
   AddLLVMType(IceType_void, llvm::Type::getVoidTy(Context));
   AddLLVMType(IceType_i1, llvm::IntegerType::get(Context, 1));
   AddLLVMType(IceType_i8, llvm::IntegerType::get(Context, 8));

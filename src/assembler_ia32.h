@@ -157,7 +157,6 @@ protected:
 private:
   uint8_t length_;
   uint8_t encoding_[6];
-  uint8_t padding_;
   AssemblerFixup *fixup_;
 
   explicit Operand(GPRRegister reg) : fixup_(NULL) { SetModRM(3, reg); }
