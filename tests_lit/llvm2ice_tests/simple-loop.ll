@@ -36,8 +36,6 @@ for.end:
 ; CHECK:      mov ecx, dword ptr [esp{{.*}}+{{.*}}{{[0-9]+}}]
 ; CHECK:      cmp ecx, 0
 ; CHECK-NEXT: jle {{[0-9]}}
-; NaCl bundle padding
-; CHECK-NEXT: nop
 
 ; TODO: the mov from ebx to esi seems redundant here - so this may need to be
 ; modified later

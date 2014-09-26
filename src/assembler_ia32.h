@@ -571,40 +571,43 @@ public:
   void testl(GPRRegister reg1, GPRRegister reg2);
   void testl(GPRRegister reg, const Immediate &imm);
 
-  void andl(GPRRegister dst, const Immediate &imm);
-  void andl(GPRRegister dst, GPRRegister src);
-  void andl(GPRRegister dst, const Address &address);
+  void And(Type Ty, GPRRegister dst, GPRRegister src);
+  void And(Type Ty, GPRRegister dst, const Address &address);
+  void And(Type Ty, GPRRegister dst, const Immediate &imm);
 
-  void orl(GPRRegister dst, const Immediate &imm);
-  void orl(GPRRegister dst, GPRRegister src);
-  void orl(GPRRegister dst, const Address &address);
+  void Or(Type Ty, GPRRegister dst, GPRRegister src);
+  void Or(Type Ty, GPRRegister dst, const Address &address);
+  void Or(Type Ty, GPRRegister dst, const Immediate &imm);
 
-  void xorl(GPRRegister dst, const Immediate &imm);
-  void xorl(GPRRegister dst, GPRRegister src);
-  void xorl(GPRRegister dst, const Address &address);
+  void Xor(Type Ty, GPRRegister dst, GPRRegister src);
+  void Xor(Type Ty, GPRRegister dst, const Address &address);
+  void Xor(Type Ty, GPRRegister dst, const Immediate &imm);
 
-  void addl(GPRRegister dst, GPRRegister src);
-  void addl(GPRRegister reg, const Immediate &imm);
-  void addl(GPRRegister reg, const Address &address);
+  void add(Type Ty, GPRRegister dst, GPRRegister src);
+  void add(Type Ty, GPRRegister reg, const Address &address);
+  void add(Type Ty, GPRRegister reg, const Immediate &imm);
 
-  void addl(const Address &address, GPRRegister reg);
-  void addl(const Address &address, const Immediate &imm);
+  void adc(Type Ty, GPRRegister dst, GPRRegister src);
+  void adc(Type Ty, GPRRegister dst, const Address &address);
+  void adc(Type Ty, GPRRegister reg, const Immediate &imm);
 
-  void adcl(GPRRegister dst, GPRRegister src);
-  void adcl(GPRRegister reg, const Immediate &imm);
-  void adcl(GPRRegister dst, const Address &address);
-  void adcl(const Address &dst, GPRRegister src);
+  void sub(Type Ty, GPRRegister dst, GPRRegister src);
+  void sub(Type Ty, GPRRegister reg, const Address &address);
+  void sub(Type Ty, GPRRegister reg, const Immediate &imm);
 
-  void subl(GPRRegister dst, GPRRegister src);
-  void subl(GPRRegister reg, const Immediate &imm);
-  void subl(GPRRegister reg, const Address &address);
-  void subl(const Address &address, GPRRegister reg);
+  void sbb(Type Ty, GPRRegister dst, GPRRegister src);
+  void sbb(Type Ty, GPRRegister reg, const Address &address);
+  void sbb(Type Ty, GPRRegister reg, const Immediate &imm);
 
   void cbw();
   void cwd();
   void cdq();
 
-  void idivl(GPRRegister reg);
+  void div(Type Ty, GPRRegister reg);
+  void div(Type Ty, const Address &address);
+
+  void idiv(Type Ty, GPRRegister reg);
+  void idiv(Type Ty, const Address &address);
 
   void imull(GPRRegister dst, GPRRegister src);
   void imull(GPRRegister reg, const Immediate &imm);
@@ -613,13 +616,8 @@ public:
   void imull(GPRRegister reg);
   void imull(const Address &address);
 
-  void mull(GPRRegister reg);
-  void mull(const Address &address);
-
-  void sbbl(GPRRegister dst, GPRRegister src);
-  void sbbl(GPRRegister reg, const Immediate &imm);
-  void sbbl(GPRRegister reg, const Address &address);
-  void sbbl(const Address &address, GPRRegister reg);
+  void mul(Type Ty, GPRRegister reg);
+  void mul(Type Ty, const Address &address);
 
   void incl(GPRRegister reg);
   void incl(const Address &address);
@@ -669,6 +667,8 @@ public:
   void jmp(GPRRegister reg);
   void jmp(Label *label, bool near = kFarJump);
   void jmp(const ConstantRelocatable *label);
+
+  void mfence();
 
   void lock();
   void cmpxchg(Type Ty, const Address &address, GPRRegister reg);

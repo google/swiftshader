@@ -9,6 +9,28 @@
 ; RUN: %p2i -i %s -a --verbose none | FileCheck --check-prefix=ERRORS %s
 ; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
+; Test that and with true uses immediate 1, not -1.
+define internal i32 @testAndTrue(i32 %arg) {
+entry:
+  %arg_i1 = trunc i32 %arg to i1
+  %result_i1 = and i1 %arg_i1, true
+  %result = zext i1 %result_i1 to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testAndTrue
+; CHECK: and {{.*}}, 1
+
+; Test that or with true uses immediate 1, not -1.
+define internal i32 @testOrTrue(i32 %arg) {
+entry:
+  %arg_i1 = trunc i32 %arg to i1
+  %result_i1 = or i1 %arg_i1, true
+  %result = zext i1 %result_i1 to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testOrTrue
+; CHECK: or {{.*}}, 1
+
 ; Test that xor with true uses immediate 1, not -1.
 define internal i32 @testXorTrue(i32 %arg) {
 entry:

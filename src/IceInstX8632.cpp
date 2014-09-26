@@ -345,20 +345,20 @@ void emitIASBytes(Ostream &Str, const x86::AssemblerX86 *Asm,
   }
   if (LastFixupLoc < StartPosition) {
     // The fixup doesn't apply to this current block.
-    for (intptr_t i = 0; i < EndPosition - StartPosition; ++i) {
-      Str << "\t.byte "
-          << static_cast<uint32_t>(Asm->LoadBuffer<uint8_t>(StartPosition + i))
-          << "\n";
+    for (intptr_t i = StartPosition; i < EndPosition; ++i) {
+      Str << "\t.byte 0x";
+      Str.write_hex(Asm->LoadBuffer<uint8_t>(i));
+      Str << "\n";
     }
     return;
   }
   const intptr_t FixupSize = 4;
   assert(LastFixupLoc + FixupSize <= EndPosition);
   // The fixup does apply to this current block.
-  for (intptr_t i = 0; i < LastFixupLoc - StartPosition; ++i) {
-    Str << "\t.byte "
-        << static_cast<uint32_t>(Asm->LoadBuffer<uint8_t>(StartPosition + i))
-        << "\n";
+  for (intptr_t i = StartPosition; i < LastFixupLoc; ++i) {
+    Str << "\t.byte 0x";
+    Str.write_hex(Asm->LoadBuffer<uint8_t>(i));
+    Str << "\n";
   }
   Str << "\t.long " << LastFixup->value()->getName();
   if (LastFixup->value()->getOffset()) {
@@ -366,8 +366,9 @@ void emitIASBytes(Ostream &Str, const x86::AssemblerX86 *Asm,
   }
   Str << "\n";
   for (intptr_t i = LastFixupLoc + FixupSize; i < EndPosition; ++i) {
-    Str << "\t.byte " << static_cast<uint32_t>(Asm->LoadBuffer<uint8_t>(i))
-        << "\n";
+    Str << "\t.byte 0x";
+    Str.write_hex(Asm->LoadBuffer<uint8_t>(i));
+    Str << "\n";
   }
 }
 
@@ -478,19 +479,25 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
   Str << "\n";
 }
 
-void emitIASVarTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
-                     const x86::AssemblerX86::GPREmitterOneOp &Emitter) {
+void emitIASOpTyGPR(const Cfg *Func, Type Ty, const Operand *Op,
+                    const x86::AssemblerX86::GPREmitterOneOp &Emitter) {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
   intptr_t StartPosition = Asm->GetPosition();
-  if (Var->hasReg()) {
-    // We cheat a little and use GPRRegister even for byte operations.
-    RegX8632::GPRRegister VarReg =
-        RegX8632::getEncodedByteRegOrGPR(Ty, Var->getRegNum());
-    (Asm->*(Emitter.Reg))(Ty, VarReg);
+  if (const Variable *Var = llvm::dyn_cast<Variable>(Op)) {
+    if (Var->hasReg()) {
+      // We cheat a little and use GPRRegister even for byte operations.
+      RegX8632::GPRRegister VarReg =
+          RegX8632::getEncodedByteRegOrGPR(Ty, Var->getRegNum());
+      (Asm->*(Emitter.Reg))(Ty, VarReg);
+    } else {
+      x86::Address StackAddr(static_cast<TargetX8632 *>(Func->getTarget())
+                                 ->stackVarToAsmOperand(Var));
+      (Asm->*(Emitter.Addr))(Ty, StackAddr);
+    }
+  } else if (const OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Op)) {
+    (Asm->*(Emitter.Addr))(Ty, Mem->toAsmAddress(Asm));
   } else {
-    x86::Address StackAddr(static_cast<TargetX8632 *>(Func->getTarget())
-                               ->stackVarToAsmOperand(Var));
-    (Asm->*(Emitter.Addr))(Ty, StackAddr);
+    llvm_unreachable("Unexpected operand type");
   }
   Ostream &Str = Func->getContext()->getStrEmit();
   emitIASBytes(Str, Asm, StartPosition);
@@ -666,6 +673,29 @@ template <>
 const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Sqrtss::Emitter = {
     &x86::AssemblerX86::sqrtss, &x86::AssemblerX86::sqrtss, NULL};
 
+// Binary GPR ops
+template <>
+const x86::AssemblerX86::GPREmitterRegOp InstX8632Add::Emitter = {
+    &x86::AssemblerX86::add, &x86::AssemblerX86::add, &x86::AssemblerX86::add};
+template <>
+const x86::AssemblerX86::GPREmitterRegOp InstX8632Adc::Emitter = {
+    &x86::AssemblerX86::adc, &x86::AssemblerX86::adc, &x86::AssemblerX86::adc};
+template <>
+const x86::AssemblerX86::GPREmitterRegOp InstX8632And::Emitter = {
+    &x86::AssemblerX86::And, &x86::AssemblerX86::And, &x86::AssemblerX86::And};
+template <>
+const x86::AssemblerX86::GPREmitterRegOp InstX8632Or::Emitter = {
+    &x86::AssemblerX86::Or, &x86::AssemblerX86::Or, &x86::AssemblerX86::Or};
+template <>
+const x86::AssemblerX86::GPREmitterRegOp InstX8632Sbb::Emitter = {
+    &x86::AssemblerX86::sbb, &x86::AssemblerX86::sbb, &x86::AssemblerX86::sbb};
+template <>
+const x86::AssemblerX86::GPREmitterRegOp InstX8632Sub::Emitter = {
+    &x86::AssemblerX86::sub, &x86::AssemblerX86::sub, &x86::AssemblerX86::sub};
+template <>
+const x86::AssemblerX86::GPREmitterRegOp InstX8632Xor::Emitter = {
+    &x86::AssemblerX86::Xor, &x86::AssemblerX86::Xor, &x86::AssemblerX86::Xor};
+
 // Binary XMM ops
 template <>
 const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Addss::Emitter = {
@@ -798,6 +828,15 @@ template <> void InstX8632Div::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
+template <> void InstX8632Div::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 3);
+  const Operand *Src = getSrc(1);
+  Type Ty = Src->getType();
+  const static x86::AssemblerX86::GPREmitterOneOp Emitter = {
+      &x86::AssemblerX86::div, &x86::AssemblerX86::div};
+  emitIASOpTyGPR(Func, Ty, Src, Emitter);
+}
+
 template <> void InstX8632Idiv::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 3);
@@ -806,6 +845,14 @@ template <> void InstX8632Idiv::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
+template <> void InstX8632Idiv::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 3);
+  const Operand *Src = getSrc(1);
+  Type Ty = Src->getType();
+  const static x86::AssemblerX86::GPREmitterOneOp Emitter = {
+      &x86::AssemblerX86::idiv, &x86::AssemblerX86::idiv};
+  emitIASOpTyGPR(Func, Ty, Src, Emitter);
+}
 
 namespace {
 
@@ -924,6 +971,18 @@ void InstX8632Mul::emit(const Cfg *Func) const {
   Str << "\tmul\t";
   getSrc(1)->emit(Func);
   Str << "\n";
+}
+
+void InstX8632Mul::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  assert(llvm::isa<Variable>(getSrc(0)));
+  assert(llvm::dyn_cast<Variable>(getSrc(0))->getRegNum() == RegX8632::Reg_eax);
+  assert(getDest()->getRegNum() == RegX8632::Reg_eax); // TODO: allow edx?
+  const Operand *Src = getSrc(1);
+  Type Ty = Src->getType();
+  const static x86::AssemblerX86::GPREmitterOneOp Emitter = {
+      &x86::AssemblerX86::mul, &x86::AssemblerX86::mul};
+  emitIASOpTyGPR(Func, Ty, Src, Emitter);
 }
 
 void InstX8632Mul::dump(const Cfg *Func) const {
@@ -1244,6 +1303,14 @@ void InstX8632Mfence::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 0);
   Str << "\tmfence\n";
+}
+
+void InstX8632Mfence::emitIAS(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  Asm->mfence();
+  emitIASBytes(Str, Asm, StartPosition);
 }
 
 void InstX8632Mfence::dump(const Cfg *Func) const {
@@ -1661,7 +1728,7 @@ void InstX8632AdjustStack::emitIAS(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
   intptr_t StartPosition = Asm->GetPosition();
-  Asm->subl(RegX8632::Encoded_Reg_esp, x86::Immediate(Amount));
+  Asm->sub(IceType_i32, RegX8632::Encoded_Reg_esp, x86::Immediate(Amount));
   emitIASBytes(Str, Asm, StartPosition);
   Func->getTarget()->updateStackAdjustment(Amount);
 }

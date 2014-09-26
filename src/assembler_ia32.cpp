@@ -1146,18 +1146,6 @@ void AssemblerX86::cmpl(GPRRegister reg, const Address &address) {
   EmitOperand(reg, address);
 }
 
-void AssemblerX86::addl(GPRRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x03);
-  EmitRegisterOperand(dst, src);
-}
-
-void AssemblerX86::addl(GPRRegister reg, const Address &address) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x03);
-  EmitOperand(reg, address);
-}
-
 void AssemblerX86::cmpl(const Address &address, GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x39);
@@ -1207,117 +1195,235 @@ void AssemblerX86::testl(GPRRegister reg, const Immediate &immediate) {
   }
 }
 
-void AssemblerX86::andl(GPRRegister dst, GPRRegister src) {
+void AssemblerX86::And(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x23);
-  EmitOperand(dst, Operand(src));
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x22);
+  else
+    EmitUint8(0x23);
+  EmitRegisterOperand(dst, src);
 }
 
-void AssemblerX86::andl(GPRRegister dst, const Immediate &imm) {
+void AssemblerX86::And(Type Ty, GPRRegister dst, const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x22);
+  else
+    EmitUint8(0x23);
+  EmitOperand(dst, address);
+}
+
+void AssemblerX86::And(Type Ty, GPRRegister dst, const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i8 || Ty == IceType_i1) {
+    EmitComplexI8(4, Operand(dst), imm);
+    return;
+  }
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitComplex(4, Operand(dst), imm);
 }
 
-void AssemblerX86::andl(GPRRegister dst, const Address &address) {
+void AssemblerX86::Or(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x23);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x0A);
+  else
+    EmitUint8(0x0B);
+  EmitRegisterOperand(dst, src);
+}
+
+void AssemblerX86::Or(Type Ty, GPRRegister dst, const Address &address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x0A);
+  else
+    EmitUint8(0x0B);
   EmitOperand(dst, address);
 }
 
-void AssemblerX86::orl(GPRRegister dst, GPRRegister src) {
+void AssemblerX86::Or(Type Ty, GPRRegister dst, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x0B);
-  EmitOperand(dst, Operand(src));
-}
-
-void AssemblerX86::orl(GPRRegister dst, const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i8 || Ty == IceType_i1) {
+    EmitComplexI8(1, Operand(dst), imm);
+    return;
+  }
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitComplex(1, Operand(dst), imm);
 }
 
-void AssemblerX86::orl(GPRRegister dst, const Address &address) {
+void AssemblerX86::Xor(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x0B);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x32);
+  else
+    EmitUint8(0x33);
+  EmitRegisterOperand(dst, src);
+}
+
+void AssemblerX86::Xor(Type Ty, GPRRegister dst, const Address &address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x32);
+  else
+    EmitUint8(0x33);
   EmitOperand(dst, address);
 }
 
-void AssemblerX86::xorl(GPRRegister dst, GPRRegister src) {
+void AssemblerX86::Xor(Type Ty, GPRRegister dst, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x33);
-  EmitOperand(dst, Operand(src));
-}
-
-void AssemblerX86::xorl(GPRRegister dst, const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i8 || Ty == IceType_i1) {
+    EmitComplexI8(6, Operand(dst), imm);
+    return;
+  }
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitComplex(6, Operand(dst), imm);
 }
 
-void AssemblerX86::xorl(GPRRegister dst, const Address &address) {
+void AssemblerX86::add(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x33);
-  EmitOperand(dst, address);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x02);
+  else
+    EmitUint8(0x03);
+  EmitRegisterOperand(dst, src);
 }
 
-void AssemblerX86::addl(GPRRegister reg, const Immediate &imm) {
+void AssemblerX86::add(Type Ty, GPRRegister reg, const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x02);
+  else
+    EmitUint8(0x03);
+  EmitOperand(reg, address);
+}
+
+void AssemblerX86::add(Type Ty, GPRRegister reg, const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i8 || Ty == IceType_i1) {
+    EmitComplexI8(0, Operand(reg), imm);
+    return;
+  }
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitComplex(0, Operand(reg), imm);
 }
 
-void AssemblerX86::addl(const Address &address, GPRRegister reg) {
+void AssemblerX86::adc(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x01);
-  EmitOperand(reg, address);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x12);
+  else
+    EmitUint8(0x13);
+  EmitRegisterOperand(dst, src);
 }
 
-void AssemblerX86::addl(const Address &address, const Immediate &imm) {
+void AssemblerX86::adc(Type Ty, GPRRegister dst, const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(0, address, imm);
-}
-
-void AssemblerX86::adcl(GPRRegister reg, const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(2, Operand(reg), imm);
-}
-
-void AssemblerX86::adcl(GPRRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x13);
-  EmitOperand(dst, Operand(src));
-}
-
-void AssemblerX86::adcl(GPRRegister dst, const Address &address) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x13);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x12);
+  else
+    EmitUint8(0x13);
   EmitOperand(dst, address);
 }
 
-void AssemblerX86::adcl(const Address &address, GPRRegister reg) {
+void AssemblerX86::adc(Type Ty, GPRRegister reg, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x11);
+  if (Ty == IceType_i8 || Ty == IceType_i1) {
+    EmitComplexI8(2, Operand(reg), imm);
+    return;
+  }
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  EmitComplex(2, Operand(reg), imm);
+}
+
+void AssemblerX86::sub(Type Ty, GPRRegister dst, GPRRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x2A);
+  else
+    EmitUint8(0x2B);
+  EmitRegisterOperand(dst, src);
+}
+
+void AssemblerX86::sub(Type Ty, GPRRegister reg, const Address &address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x2A);
+  else
+    EmitUint8(0x2B);
   EmitOperand(reg, address);
 }
 
-void AssemblerX86::subl(GPRRegister dst, GPRRegister src) {
+void AssemblerX86::sub(Type Ty, GPRRegister reg, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x2B);
-  EmitOperand(dst, Operand(src));
-}
-
-void AssemblerX86::subl(GPRRegister reg, const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i8 || Ty == IceType_i1) {
+    EmitComplexI8(5, Operand(reg), imm);
+    return;
+  }
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitComplex(5, Operand(reg), imm);
 }
 
-void AssemblerX86::subl(GPRRegister reg, const Address &address) {
+void AssemblerX86::sbb(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x2B);
-  EmitOperand(reg, address);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x1A);
+  else
+    EmitUint8(0x1B);
+  EmitRegisterOperand(dst, src);
 }
 
-void AssemblerX86::subl(const Address &address, GPRRegister reg) {
+void AssemblerX86::sbb(Type Ty, GPRRegister dst, const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x29);
-  EmitOperand(reg, address);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0x1A);
+  else
+    EmitUint8(0x1B);
+  EmitOperand(dst, address);
+}
+
+void AssemblerX86::sbb(Type Ty, GPRRegister reg, const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i8 || Ty == IceType_i1) {
+    EmitComplexI8(3, Operand(reg), imm);
+    return;
+  }
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  EmitComplex(3, Operand(reg), imm);
 }
 
 void AssemblerX86::cbw() {
@@ -1337,10 +1443,48 @@ void AssemblerX86::cdq() {
   EmitUint8(0x99);
 }
 
-void AssemblerX86::idivl(GPRRegister reg) {
+void AssemblerX86::div(Type Ty, GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF7);
-  EmitUint8(0xF8 | reg);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0xF6);
+  else
+    EmitUint8(0xF7);
+  EmitRegisterOperand(6, reg);
+}
+
+void AssemblerX86::div(Type Ty, const Address &addr) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0xF6);
+  else
+    EmitUint8(0xF7);
+  EmitOperand(6, addr);
+}
+
+void AssemblerX86::idiv(Type Ty, GPRRegister reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0xF6);
+  else
+    EmitUint8(0xF7);
+  EmitRegisterOperand(7, reg);
+}
+
+void AssemblerX86::idiv(Type Ty, const Address &addr) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0xF6);
+  else
+    EmitUint8(0xF7);
+  EmitOperand(7, addr);
 }
 
 void AssemblerX86::imull(GPRRegister dst, GPRRegister src) {
@@ -1376,39 +1520,26 @@ void AssemblerX86::imull(const Address &address) {
   EmitOperand(5, address);
 }
 
-void AssemblerX86::mull(GPRRegister reg) {
+void AssemblerX86::mul(Type Ty, GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF7);
-  EmitOperand(4, Operand(reg));
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0xF6);
+  else
+    EmitUint8(0xF7);
+  EmitRegisterOperand(4, reg);
 }
 
-void AssemblerX86::mull(const Address &address) {
+void AssemblerX86::mul(Type Ty, const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF7);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (Ty == IceType_i8 || Ty == IceType_i1)
+    EmitUint8(0xF6);
+  else
+    EmitUint8(0xF7);
   EmitOperand(4, address);
-}
-
-void AssemblerX86::sbbl(GPRRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x1B);
-  EmitOperand(dst, Operand(src));
-}
-
-void AssemblerX86::sbbl(GPRRegister reg, const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(3, Operand(reg), imm);
-}
-
-void AssemblerX86::sbbl(GPRRegister dst, const Address &address) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x1B);
-  EmitOperand(dst, address);
-}
-
-void AssemblerX86::sbbl(const Address &address, GPRRegister dst) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x19);
-  EmitOperand(dst, address);
 }
 
 void AssemblerX86::incl(GPRRegister reg) {
@@ -1748,6 +1879,13 @@ void AssemblerX86::jmp(const ConstantRelocatable *label) {
   EmitUint8(0xE9);
   EmitFixup(DirectCallRelocation::create(this, FK_PcRel_4, label));
   EmitInt32(-4);
+}
+
+void AssemblerX86::mfence() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xAE);
+  EmitUint8(0xF0);
 }
 
 void AssemblerX86::lock() {

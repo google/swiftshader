@@ -428,8 +428,8 @@ private:
 };
 
 // Emit a one-operand (GPR) instruction.
-void emitIASVarTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
-                     const x86::AssemblerX86::GPREmitterOneOp &Emitter);
+void emitIASOpTyGPR(const Cfg *Func, Type Ty, const Operand *Var,
+                    const x86::AssemblerX86::GPREmitterOneOp &Emitter);
 
 // Instructions of the form x := op(x).
 template <InstX8632::InstKindX8632 K>
@@ -450,7 +450,7 @@ public:
     assert(getSrcSize() == 1);
     const Variable *Var = getDest();
     Type Ty = Var->getType();
-    emitIASVarTyGPR(Func, Ty, Var, Emitter);
+    emitIASOpTyGPR(Func, Ty, Var, Emitter);
   }
   void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
@@ -578,7 +578,7 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
 template <InstX8632::InstKindX8632 K, bool ShiftHack = false>
 class InstX8632Binop : public InstX8632 {
 public:
-  // Create an ordinary binary-op instruction like add or sub.
+  // Create a binary-op instruction like shifts.
   static InstX8632Binop *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX8632Binop>())
         InstX8632Binop(Func, Dest, Source);
@@ -604,6 +604,44 @@ private:
   InstX8632Binop &operator=(const InstX8632Binop &) LLVM_DELETED_FUNCTION;
   ~InstX8632Binop() override {}
   static const char *Opcode;
+};
+
+template <InstX8632::InstKindX8632 K>
+class InstX8632BinopGPR : public InstX8632 {
+public:
+  // Create an ordinary binary-op instruction like add or sub.
+  static InstX8632BinopGPR *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    return new (Func->allocate<InstX8632BinopGPR>())
+        InstX8632BinopGPR(Func, Dest, Source);
+  }
+  void emit(const Cfg *Func) const override {
+    const bool ShiftHack = false;
+    emitTwoAddress(Opcode, this, Func, ShiftHack);
+  }
+  void emitIAS(const Cfg *Func) const override {
+    Type Ty = getDest()->getType();
+    assert(getSrcSize() == 2);
+    emitIASRegOpTyGPR(Func, Ty, getDest(), getSrc(1), Emitter);
+  }
+  void dump(const Cfg *Func) const override {
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = " << Opcode << "." << getDest()->getType() << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstX8632BinopGPR(Cfg *Func, Variable *Dest, Operand *Source)
+      : InstX8632(Func, K, 2, Dest) {
+    addSource(Dest);
+    addSource(Source);
+  }
+  InstX8632BinopGPR(const InstX8632BinopGPR &) LLVM_DELETED_FUNCTION;
+  InstX8632BinopGPR &operator=(const InstX8632BinopGPR &) LLVM_DELETED_FUNCTION;
+  ~InstX8632BinopGPR() override {}
+  static const char *Opcode;
+  static const x86::AssemblerX86::GPREmitterRegOp Emitter;
 };
 
 template <InstX8632::InstKindX8632 K, bool NeedsElementType>
@@ -665,6 +703,7 @@ public:
     getSrc(2)->emit(Func);
     Str << "\n";
   }
+  void emitIAS(const Cfg *Func) const override { emit(Func); }
   void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -781,22 +820,22 @@ typedef InstX8632Movlike<InstX8632::Mov> InstX8632Mov;
 typedef InstX8632Movlike<InstX8632::Movp> InstX8632Movp;
 // Movq - copy between XMM registers, or mem64 and XMM registers.
 typedef InstX8632Movlike<InstX8632::Movq> InstX8632Movq;
-typedef InstX8632Binop<InstX8632::Add> InstX8632Add;
+typedef InstX8632BinopGPR<InstX8632::Add> InstX8632Add;
 typedef InstX8632BinopXmm<InstX8632::Addps, true> InstX8632Addps;
-typedef InstX8632Binop<InstX8632::Adc> InstX8632Adc;
+typedef InstX8632BinopGPR<InstX8632::Adc> InstX8632Adc;
 typedef InstX8632BinopXmm<InstX8632::Addss, false> InstX8632Addss;
 typedef InstX8632BinopXmm<InstX8632::Padd, true> InstX8632Padd;
-typedef InstX8632Binop<InstX8632::Sub> InstX8632Sub;
+typedef InstX8632BinopGPR<InstX8632::Sub> InstX8632Sub;
 typedef InstX8632BinopXmm<InstX8632::Subps, true> InstX8632Subps;
 typedef InstX8632BinopXmm<InstX8632::Subss, false> InstX8632Subss;
-typedef InstX8632Binop<InstX8632::Sbb> InstX8632Sbb;
+typedef InstX8632BinopGPR<InstX8632::Sbb> InstX8632Sbb;
 typedef InstX8632BinopXmm<InstX8632::Psub, true> InstX8632Psub;
-typedef InstX8632Binop<InstX8632::And> InstX8632And;
+typedef InstX8632BinopGPR<InstX8632::And> InstX8632And;
 typedef InstX8632BinopXmm<InstX8632::Pand, false> InstX8632Pand;
 typedef InstX8632BinopXmm<InstX8632::Pandn, false> InstX8632Pandn;
-typedef InstX8632Binop<InstX8632::Or> InstX8632Or;
+typedef InstX8632BinopGPR<InstX8632::Or> InstX8632Or;
 typedef InstX8632BinopXmm<InstX8632::Por, false> InstX8632Por;
-typedef InstX8632Binop<InstX8632::Xor> InstX8632Xor;
+typedef InstX8632BinopGPR<InstX8632::Xor> InstX8632Xor;
 typedef InstX8632BinopXmm<InstX8632::Pxor, false> InstX8632Pxor;
 typedef InstX8632Binop<InstX8632::Imul> InstX8632Imul;
 typedef InstX8632BinopXmm<InstX8632::Mulps, true> InstX8632Mulps;
@@ -858,6 +897,7 @@ public:
         InstX8632Mul(Func, Dest, Source1, Source2);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Mul); }
 
@@ -1112,6 +1152,7 @@ public:
     return new (Func->allocate<InstX8632Mfence>()) InstX8632Mfence(Func);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Mfence); }
 
@@ -1407,6 +1448,8 @@ template <> void InstX8632Psub::emit(const Cfg *Func) const;
 template <> void InstX8632Sqrtss::emit(const Cfg *Func) const;
 template <> void InstX8632Subss::emit(const Cfg *Func) const;
 
+template <> void InstX8632Div::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Idiv::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Cbwdq::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Movd::emitIAS(const Cfg *Func) const;
 
