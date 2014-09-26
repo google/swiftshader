@@ -219,9 +219,9 @@ def ProcessPexe(args, pexe, exe):
     re_include = re.compile(re_include_str)
     re_exclude = re.compile(re_exclude_str)
     # If a symbol doesn't explicitly match re_include or re_exclude,
-    # the default MatchSymbol() result is False, unless some --exclude
-    # args are provided and no --include args are provided.
-    default_match = len(args.exclude) and not len(args.include)
+    # the default MatchSymbol() result is True, unless some --include
+    # args are provided.
+    default_match = not len(args.include)
 
     whitelist_has_items = False
     with open(whitelist_sz_unescaped, 'w') as f:
