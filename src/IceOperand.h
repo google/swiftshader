@@ -102,9 +102,9 @@ class Constant : public Operand {
 public:
   uint32_t getPoolEntryID() const { return PoolEntryID; }
   using Operand::dump;
-  virtual void emit(const Cfg *Func) const { emit(Func->getContext()); }
+  void emit(const Cfg *Func) const override { emit(Func->getContext()); }
   virtual void emit(GlobalContext *Ctx) const = 0;
-  virtual void dump(const Cfg *Func, Ostream &Str) const = 0;
+  void dump(const Cfg *Func, Ostream &Str) const = 0;
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
@@ -117,7 +117,7 @@ protected:
     Vars = NULL;
     NumVars = 0;
   }
-  virtual ~Constant() {}
+  ~Constant() override {}
   // PoolEntryID is an integer that uniquely identifies the constant
   // within its constant pool.  It is used for building the constant
   // pool in the object code and for referencing its entries.
@@ -141,9 +141,9 @@ public:
   using Constant::emit;
   // The target needs to implement this for each ConstantPrimitive
   // specialization.
-  virtual void emit(GlobalContext *Ctx) const;
+  void emit(GlobalContext *Ctx) const override;
   using Constant::dump;
-  virtual void dump(const Cfg *, Ostream &Str) const { Str << getValue(); }
+  void dump(const Cfg *, Ostream &Str) const override { Str << getValue(); }
 
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == K;
@@ -154,7 +154,7 @@ private:
       : Constant(K, Ty, PoolEntryID), Value(Value) {}
   ConstantPrimitive(const ConstantPrimitive &) LLVM_DELETED_FUNCTION;
   ConstantPrimitive &operator=(const ConstantPrimitive &) LLVM_DELETED_FUNCTION;
-  virtual ~ConstantPrimitive() {}
+  ~ConstantPrimitive() override {}
   const T Value;
 };
 
@@ -213,8 +213,8 @@ public:
   bool getSuppressMangling() const { return SuppressMangling; }
   using Constant::emit;
   using Constant::dump;
-  virtual void emit(GlobalContext *Ctx) const;
-  virtual void dump(const Cfg *Func, Ostream &Str) const;
+  void emit(GlobalContext *Ctx) const override;
+  void dump(const Cfg *Func, Ostream &Str) const override;
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
@@ -229,7 +229,7 @@ private:
   ConstantRelocatable(const ConstantRelocatable &) LLVM_DELETED_FUNCTION;
   ConstantRelocatable &
   operator=(const ConstantRelocatable &) LLVM_DELETED_FUNCTION;
-  virtual ~ConstantRelocatable() {}
+  ~ConstantRelocatable() override {}
   const int64_t Offset; // fixed offset to add
   const IceString Name; // optional for debug/dump
   bool SuppressMangling;
@@ -248,8 +248,8 @@ public:
   using Constant::emit;
   using Constant::dump;
   // The target needs to implement this.
-  virtual void emit(GlobalContext *Ctx) const;
-  virtual void dump(const Cfg *, Ostream &Str) const { Str << "undef"; }
+  void emit(GlobalContext *Ctx) const override;
+  void dump(const Cfg *, Ostream &Str) const override { Str << "undef"; }
 
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == kConstUndef;
@@ -260,7 +260,7 @@ private:
       : Constant(kConstUndef, Ty, PoolEntryID) {}
   ConstantUndef(const ConstantUndef &) LLVM_DELETED_FUNCTION;
   ConstantUndef &operator=(const ConstantUndef &) LLVM_DELETED_FUNCTION;
-  virtual ~ConstantUndef() {}
+  ~ConstantUndef() override {}
 };
 
 // RegWeight is a wrapper for a uint32_t weight value, with a
@@ -415,9 +415,9 @@ public:
   // VarsReal.
   Variable asType(Type Ty);
 
-  virtual void emit(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
   using Operand::dump;
-  virtual void dump(const Cfg *Func, Ostream &Str) const;
+  void dump(const Cfg *Func, Ostream &Str) const override;
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
@@ -425,7 +425,7 @@ public:
   }
 
   // The destructor is public because of the asType() method.
-  virtual ~Variable() {}
+  ~Variable() override {}
 
 protected:
   Variable(OperandKind K, Type Ty, SizeT Index, const IceString &Name)

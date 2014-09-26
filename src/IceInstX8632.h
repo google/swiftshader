@@ -36,16 +36,15 @@ public:
     kMem,
     kSplit
   };
-  virtual void emit(const Cfg *Func) const = 0;
   using Operand::dump;
-  virtual void dump(const Cfg *, Ostream &Str) const {
+  void dump(const Cfg *, Ostream &Str) const override {
     Str << "<OperandX8632>";
   }
 
 protected:
   OperandX8632(OperandKindX8632 Kind, Type Ty)
       : Operand(static_cast<OperandKind>(Kind), Ty) {}
-  virtual ~OperandX8632() {}
+  ~OperandX8632() override {}
 
 private:
   OperandX8632(const OperandX8632 &) LLVM_DELETED_FUNCTION;
@@ -77,9 +76,9 @@ public:
   uint16_t getShift() const { return Shift; }
   SegmentRegisters getSegmentRegister() const { return SegmentReg; }
   x86::Address toAsmAddress(Assembler *Asm) const;
-  virtual void emit(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
   using OperandX8632::dump;
-  virtual void dump(const Cfg *Func, Ostream &Str) const;
+  void dump(const Cfg *Func, Ostream &Str) const override;
 
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == static_cast<OperandKind>(kMem);
@@ -90,7 +89,7 @@ private:
                   Variable *Index, uint16_t Shift, SegmentRegisters SegmentReg);
   OperandX8632Mem(const OperandX8632Mem &) LLVM_DELETED_FUNCTION;
   OperandX8632Mem &operator=(const OperandX8632Mem &) LLVM_DELETED_FUNCTION;
-  virtual ~OperandX8632Mem() {}
+  ~OperandX8632Mem() override {}
   Variable *Base;
   Constant *Offset;
   Variable *Index;
@@ -113,9 +112,9 @@ public:
   static VariableSplit *create(Cfg *Func, Variable *Var, Portion Part) {
     return new (Func->allocate<VariableSplit>()) VariableSplit(Func, Var, Part);
   }
-  virtual void emit(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
   using OperandX8632::dump;
-  virtual void dump(const Cfg *Func, Ostream &Str) const;
+  void dump(const Cfg *Func, Ostream &Str) const override;
 
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == static_cast<OperandKind>(kSplit);
@@ -131,7 +130,7 @@ private:
   }
   VariableSplit(const VariableSplit &) LLVM_DELETED_FUNCTION;
   VariableSplit &operator=(const VariableSplit &) LLVM_DELETED_FUNCTION;
-  virtual ~VariableSplit() { Func->deallocateArrayOf<Variable *>(Vars); }
+  ~VariableSplit() override { Func->deallocateArrayOf<Variable *>(Vars); }
   Cfg *Func; // Held only for the destructor.
   Variable *Var;
   Portion Part;
@@ -253,13 +252,12 @@ public:
   };
 
   static const char *getWidthString(Type Ty);
-  virtual void emit(const Cfg *Func) const = 0;
-  virtual void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
 
 protected:
   InstX8632(Cfg *Func, InstKindX8632 Kind, SizeT Maxsrcs, Variable *Dest)
       : InstTarget(Func, static_cast<InstKind>(Kind), Maxsrcs, Dest) {}
-  virtual ~InstX8632() {}
+  ~InstX8632() override {}
   static bool isClassof(const Inst *Inst, InstKindX8632 MyKind) {
     return Inst->getKind() == static_cast<InstKind>(MyKind);
   }
@@ -311,16 +309,16 @@ public:
   static InstX8632Label *create(Cfg *Func, TargetX8632 *Target) {
     return new (Func->allocate<InstX8632Label>()) InstX8632Label(Func, Target);
   }
-  virtual uint32_t getEmitInstCount() const { return 0; }
+  uint32_t getEmitInstCount() const override { return 0; }
   IceString getName(const Cfg *Func) const;
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
 
 private:
   InstX8632Label(Cfg *Func, TargetX8632 *Target);
   InstX8632Label(const InstX8632Label &) LLVM_DELETED_FUNCTION;
   InstX8632Label &operator=(const InstX8632Label &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Label() {}
+  ~InstX8632Label() override {}
   SizeT Number; // used only for unique label string generation
 };
 
@@ -363,7 +361,7 @@ public:
   const CfgNode *getTargetTrue() const { return TargetTrue; }
   const CfgNode *getTargetFalse() const { return TargetFalse; }
   bool optimizeBranch(const CfgNode *NextNode);
-  virtual uint32_t getEmitInstCount() const {
+  uint32_t getEmitInstCount() const override {
     uint32_t Sum = 0;
     if (Label)
       ++Sum;
@@ -373,8 +371,8 @@ public:
       ++Sum;
     return Sum;
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Br); }
 
 private:
@@ -382,7 +380,7 @@ private:
               const InstX8632Label *Label, CondX86::BrCond Condition);
   InstX8632Br(const InstX8632Br &) LLVM_DELETED_FUNCTION;
   InstX8632Br &operator=(const InstX8632Br &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Br() {}
+  ~InstX8632Br() override {}
   CondX86::BrCond Condition;
   const CfgNode *TargetTrue;
   const CfgNode *TargetFalse;
@@ -397,9 +395,9 @@ public:
     return new (Func->allocate<InstX8632AdjustStack>())
         InstX8632AdjustStack(Func, Amount, Esp);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void emitIAS(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Adjuststack); }
 
 private:
@@ -418,15 +416,15 @@ public:
         InstX8632Call(Func, Dest, CallTarget);
   }
   Operand *getCallTarget() const { return getSrc(0); }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Call); }
 
 private:
   InstX8632Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
   InstX8632Call(const InstX8632Call &) LLVM_DELETED_FUNCTION;
   InstX8632Call &operator=(const InstX8632Call &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Call() {}
+  ~InstX8632Call() override {}
 };
 
 // Emit a one-operand (GPR) instruction.
@@ -441,20 +439,20 @@ public:
     return new (Func->allocate<InstX8632InplaceopGPR>())
         InstX8632InplaceopGPR(Func, SrcDest);
   }
-  virtual void emit(const Cfg *Func) const {
+  void emit(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 1);
     Str << "\t" << Opcode << "\t";
     getSrc(0)->emit(Func);
     Str << "\n";
   }
-  virtual void emitIAS(const Cfg *Func) const {
+  void emitIAS(const Cfg *Func) const override {
     assert(getSrcSize() == 1);
     const Variable *Var = getDest();
     Type Ty = Var->getType();
     emitIASVarTyGPR(Func, Ty, Var, Emitter);
   }
-  virtual void dump(const Cfg *Func) const {
+  void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
     Str << " = " << Opcode << "." << getDest()->getType() << " ";
@@ -470,7 +468,7 @@ private:
   InstX8632InplaceopGPR(const InstX8632InplaceopGPR &) LLVM_DELETED_FUNCTION;
   InstX8632InplaceopGPR &
   operator=(const InstX8632InplaceopGPR &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632InplaceopGPR() {}
+  ~InstX8632InplaceopGPR() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::GPREmitterOneOp Emitter;
 };
@@ -489,7 +487,7 @@ public:
     return new (Func->allocate<InstX8632UnaryopGPR>())
         InstX8632UnaryopGPR(Func, Dest, Src);
   }
-  virtual void emit(const Cfg *Func) const {
+  void emit(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 1);
     Str << "\t" << Opcode << "\t";
@@ -498,14 +496,14 @@ public:
     getSrc(0)->emit(Func);
     Str << "\n";
   }
-  virtual void emitIAS(const Cfg *Func) const {
+  void emitIAS(const Cfg *Func) const override {
     assert(getSrcSize() == 1);
     const Variable *Var = getDest();
     Type Ty = Var->getType();
     const Operand *Src = getSrc(0);
     emitIASRegOpTyGPR(Func, Ty, Var, Src, Emitter);
   }
-  virtual void dump(const Cfg *Func) const {
+  void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
     Str << " = " << Opcode << "." << getDest()->getType() << " ";
@@ -521,7 +519,7 @@ private:
   InstX8632UnaryopGPR(const InstX8632UnaryopGPR &) LLVM_DELETED_FUNCTION;
   InstX8632UnaryopGPR &
   operator=(const InstX8632UnaryopGPR &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632UnaryopGPR() {}
+  ~InstX8632UnaryopGPR() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::GPREmitterRegOp Emitter;
 };
@@ -537,7 +535,7 @@ public:
     return new (Func->allocate<InstX8632UnaryopXmm>())
         InstX8632UnaryopXmm(Func, Dest, Src);
   }
-  virtual void emit(const Cfg *Func) const {
+  void emit(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 1);
     Str << "\t" << Opcode << "\t";
@@ -546,12 +544,12 @@ public:
     getSrc(0)->emit(Func);
     Str << "\n";
   }
-  virtual void emitIAS(const Cfg *Func) const {
+  void emitIAS(const Cfg *Func) const override {
     Type Ty = getDest()->getType();
     assert(getSrcSize() == 1);
     emitIASVarOperandTyXMM(Func, Ty, getDest(), getSrc(0), Emitter);
   }
-  virtual void dump(const Cfg *Func) const {
+  void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
     Str << " = " << Opcode << "." << getDest()->getType() << " ";
@@ -567,7 +565,7 @@ private:
   InstX8632UnaryopXmm(const InstX8632UnaryopXmm &) LLVM_DELETED_FUNCTION;
   InstX8632UnaryopXmm &
   operator=(const InstX8632UnaryopXmm &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632UnaryopXmm() {}
+  ~InstX8632UnaryopXmm() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::XmmEmitterTwoOps Emitter;
 };
@@ -585,10 +583,10 @@ public:
     return new (Func->allocate<InstX8632Binop>())
         InstX8632Binop(Func, Dest, Source);
   }
-  virtual void emit(const Cfg *Func) const {
+  void emit(const Cfg *Func) const override {
     emitTwoAddress(Opcode, this, Func, ShiftHack);
   }
-  virtual void dump(const Cfg *Func) const {
+  void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
     Str << " = " << Opcode << "." << getDest()->getType() << " ";
@@ -604,7 +602,7 @@ private:
   }
   InstX8632Binop(const InstX8632Binop &) LLVM_DELETED_FUNCTION;
   InstX8632Binop &operator=(const InstX8632Binop &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Binop() {}
+  ~InstX8632Binop() override {}
   static const char *Opcode;
 };
 
@@ -616,18 +614,18 @@ public:
     return new (Func->allocate<InstX8632BinopXmm>())
         InstX8632BinopXmm(Func, Dest, Source);
   }
-  virtual void emit(const Cfg *Func) const {
+  void emit(const Cfg *Func) const override {
     const bool ShiftHack = false;
     emitTwoAddress(Opcode, this, Func, ShiftHack);
   }
-  virtual void emitIAS(const Cfg *Func) const {
+  void emitIAS(const Cfg *Func) const override {
     Type Ty = getDest()->getType();
     if (NeedsElementType)
       Ty = typeElementType(Ty);
     assert(getSrcSize() == 2);
     emitIASVarOperandTyXMM(Func, Ty, getDest(), getSrc(1), Emitter);
   }
-  virtual void dump(const Cfg *Func) const {
+  void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
     Str << " = " << Opcode << "." << getDest()->getType() << " ";
@@ -643,7 +641,7 @@ private:
   }
   InstX8632BinopXmm(const InstX8632BinopXmm &) LLVM_DELETED_FUNCTION;
   InstX8632BinopXmm &operator=(const InstX8632BinopXmm &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632BinopXmm() {}
+  ~InstX8632BinopXmm() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::XmmEmitterTwoOps Emitter;
 };
@@ -656,7 +654,7 @@ public:
     return new (Func->allocate<InstX8632Ternop>())
         InstX8632Ternop(Func, Dest, Source1, Source2);
   }
-  virtual void emit(const Cfg *Func) const {
+  void emit(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 3);
     Str << "\t" << Opcode << "\t";
@@ -667,7 +665,7 @@ public:
     getSrc(2)->emit(Func);
     Str << "\n";
   }
-  virtual void dump(const Cfg *Func) const {
+  void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
     Str << " = " << Opcode << "." << getDest()->getType() << " ";
@@ -684,7 +682,7 @@ private:
   }
   InstX8632Ternop(const InstX8632Ternop &) LLVM_DELETED_FUNCTION;
   InstX8632Ternop &operator=(const InstX8632Ternop &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Ternop() {}
+  ~InstX8632Ternop() override {}
   static const char *Opcode;
 };
 
@@ -697,7 +695,7 @@ public:
     return new (Func->allocate<InstX8632ThreeAddressop>())
         InstX8632ThreeAddressop(Func, Dest, Source0, Source1);
   }
-  virtual void emit(const Cfg *Func) const {
+  void emit(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 2);
     Str << "\t" << Opcode << "\t";
@@ -708,7 +706,7 @@ public:
     getSrc(1)->emit(Func);
     Str << "\n";
   }
-  virtual void dump(const Cfg *Func) const {
+  void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
     Str << " = " << Opcode << "." << getDest()->getType() << " ";
@@ -727,7 +725,7 @@ private:
       LLVM_DELETED_FUNCTION;
   InstX8632ThreeAddressop &
   operator=(const InstX8632ThreeAddressop &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632ThreeAddressop() {}
+  ~InstX8632ThreeAddressop() override {}
   static const char *Opcode;
 };
 
@@ -741,12 +739,12 @@ public:
     return new (Func->allocate<InstX8632Movlike>())
         InstX8632Movlike(Func, Dest, Source);
   }
-  virtual bool isRedundantAssign() const {
+  bool isRedundantAssign() const override {
     return checkForRedundantAssign(getDest(), getSrc(0));
   }
-  virtual bool isSimpleAssign() const { return true; }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const {
+  bool isSimpleAssign() const override { return true; }
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     Str << Opcode << "." << getDest()->getType() << " ";
     dumpDest(Func);
@@ -762,7 +760,7 @@ private:
   }
   InstX8632Movlike(const InstX8632Movlike &) LLVM_DELETED_FUNCTION;
   InstX8632Movlike &operator=(const InstX8632Movlike &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Movlike() {}
+  ~InstX8632Movlike() override {}
 
   static const char *Opcode;
 };
@@ -844,7 +842,7 @@ protected:
     // with optimizations.
     HasSideEffects = Locked;
   }
-  virtual ~InstX8632Lockable() {}
+  ~InstX8632Lockable() override {}
 
 private:
   InstX8632Lockable(const InstX8632Lockable &) LLVM_DELETED_FUNCTION;
@@ -859,15 +857,15 @@ public:
     return new (Func->allocate<InstX8632Mul>())
         InstX8632Mul(Func, Dest, Source1, Source2);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Mul); }
 
 private:
   InstX8632Mul(Cfg *Func, Variable *Dest, Variable *Source1, Operand *Source2);
   InstX8632Mul(const InstX8632Mul &) LLVM_DELETED_FUNCTION;
   InstX8632Mul &operator=(const InstX8632Mul &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Mul() {}
+  ~InstX8632Mul() override {}
 };
 
 // Shld instruction - shift across a pair of operands.  TODO: Verify
@@ -879,8 +877,8 @@ public:
     return new (Func->allocate<InstX8632Shld>())
         InstX8632Shld(Func, Dest, Source1, Source2);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Shld); }
 
 private:
@@ -888,7 +886,7 @@ private:
                 Variable *Source2);
   InstX8632Shld(const InstX8632Shld &) LLVM_DELETED_FUNCTION;
   InstX8632Shld &operator=(const InstX8632Shld &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Shld() {}
+  ~InstX8632Shld() override {}
 };
 
 // Shrd instruction - shift across a pair of operands.  TODO: Verify
@@ -900,8 +898,8 @@ public:
     return new (Func->allocate<InstX8632Shrd>())
         InstX8632Shrd(Func, Dest, Source1, Source2);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Shrd); }
 
 private:
@@ -909,7 +907,7 @@ private:
                 Variable *Source2);
   InstX8632Shrd(const InstX8632Shrd &) LLVM_DELETED_FUNCTION;
   InstX8632Shrd &operator=(const InstX8632Shrd &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Shrd() {}
+  ~InstX8632Shrd() override {}
 };
 
 // Conditional move instruction.
@@ -920,9 +918,9 @@ public:
     return new (Func->allocate<InstX8632Cmov>())
         InstX8632Cmov(Func, Dest, Source, Cond);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void emitIAS(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Cmov); }
 
 private:
@@ -930,7 +928,7 @@ private:
                 CondX86::BrCond Cond);
   InstX8632Cmov(const InstX8632Cmov &) LLVM_DELETED_FUNCTION;
   InstX8632Cmov &operator=(const InstX8632Cmov &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Cmov() {}
+  ~InstX8632Cmov() override {}
 
   CondX86::BrCond Condition;
 };
@@ -944,9 +942,9 @@ public:
     return new (Func->allocate<InstX8632Cmpps>())
         InstX8632Cmpps(Func, Dest, Source, Condition);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void emitIAS(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Cmpps); }
 
 private:
@@ -954,7 +952,7 @@ private:
                  CondX86::CmppsCond Cond);
   InstX8632Cmpps(const InstX8632Cmpps &) LLVM_DELETED_FUNCTION;
   InstX8632Cmpps &operator=(const InstX8632Cmpps &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Cmpps() {}
+  ~InstX8632Cmpps() override {}
 
   CondX86::CmppsCond Condition;
 };
@@ -971,9 +969,9 @@ public:
     return new (Func->allocate<InstX8632Cmpxchg>())
         InstX8632Cmpxchg(Func, DestOrAddr, Eax, Desired, Locked);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void emitIAS(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Cmpxchg); }
 
 private:
@@ -981,7 +979,7 @@ private:
                    Variable *Desired, bool Locked);
   InstX8632Cmpxchg(const InstX8632Cmpxchg &) LLVM_DELETED_FUNCTION;
   InstX8632Cmpxchg &operator=(const InstX8632Cmpxchg &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Cmpxchg() {}
+  ~InstX8632Cmpxchg() override {}
 };
 
 // Cmpxchg8b instruction - cmpxchg8b <m64> will compare if <m64>
@@ -998,9 +996,9 @@ public:
     return new (Func->allocate<InstX8632Cmpxchg8b>())
         InstX8632Cmpxchg8b(Func, Dest, Edx, Eax, Ecx, Ebx, Locked);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void emitIAS(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Cmpxchg8b); }
 
 private:
@@ -1009,7 +1007,7 @@ private:
   InstX8632Cmpxchg8b(const InstX8632Cmpxchg8b &) LLVM_DELETED_FUNCTION;
   InstX8632Cmpxchg8b &
   operator=(const InstX8632Cmpxchg8b &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Cmpxchg8b() {}
+  ~InstX8632Cmpxchg8b() override {}
 };
 
 // Cvt instruction - wrapper for cvtsX2sY where X and Y are in {s,d,i}
@@ -1023,8 +1021,8 @@ public:
     return new (Func->allocate<InstX8632Cvt>())
         InstX8632Cvt(Func, Dest, Source, Trunc);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Cvt); }
 
 private:
@@ -1032,7 +1030,7 @@ private:
   InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source, bool Trunc);
   InstX8632Cvt(const InstX8632Cvt &) LLVM_DELETED_FUNCTION;
   InstX8632Cvt &operator=(const InstX8632Cvt &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Cvt() {}
+  ~InstX8632Cvt() override {}
 };
 
 // cmp - Integer compare instruction.
@@ -1042,15 +1040,15 @@ public:
     return new (Func->allocate<InstX8632Icmp>())
         InstX8632Icmp(Func, Src1, Src2);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Icmp); }
 
 private:
   InstX8632Icmp(Cfg *Func, Operand *Src1, Operand *Src2);
   InstX8632Icmp(const InstX8632Icmp &) LLVM_DELETED_FUNCTION;
   InstX8632Icmp &operator=(const InstX8632Icmp &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Icmp() {}
+  ~InstX8632Icmp() override {}
 };
 
 // ucomiss/ucomisd - floating-point compare instruction.
@@ -1060,16 +1058,16 @@ public:
     return new (Func->allocate<InstX8632Ucomiss>())
         InstX8632Ucomiss(Func, Src1, Src2);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void emitIAS(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Ucomiss); }
 
 private:
   InstX8632Ucomiss(Cfg *Func, Operand *Src1, Operand *Src2);
   InstX8632Ucomiss(const InstX8632Ucomiss &) LLVM_DELETED_FUNCTION;
   InstX8632Ucomiss &operator=(const InstX8632Ucomiss &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Ucomiss() {}
+  ~InstX8632Ucomiss() override {}
 };
 
 // UD2 instruction.
@@ -1078,15 +1076,15 @@ public:
   static InstX8632UD2 *create(Cfg *Func) {
     return new (Func->allocate<InstX8632UD2>()) InstX8632UD2(Func);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, UD2); }
 
 private:
   InstX8632UD2(Cfg *Func);
   InstX8632UD2(const InstX8632UD2 &) LLVM_DELETED_FUNCTION;
   InstX8632UD2 &operator=(const InstX8632UD2 &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632UD2() {}
+  ~InstX8632UD2() override {}
 };
 
 // Test instruction.
@@ -1096,15 +1094,15 @@ public:
     return new (Func->allocate<InstX8632Test>())
         InstX8632Test(Func, Source1, Source2);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Test); }
 
 private:
   InstX8632Test(Cfg *Func, Operand *Source1, Operand *Source2);
   InstX8632Test(const InstX8632Test &) LLVM_DELETED_FUNCTION;
   InstX8632Test &operator=(const InstX8632Test &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Test() {}
+  ~InstX8632Test() override {}
 };
 
 // Mfence instruction.
@@ -1113,15 +1111,15 @@ public:
   static InstX8632Mfence *create(Cfg *Func) {
     return new (Func->allocate<InstX8632Mfence>()) InstX8632Mfence(Func);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Mfence); }
 
 private:
   InstX8632Mfence(Cfg *Func);
   InstX8632Mfence(const InstX8632Mfence &) LLVM_DELETED_FUNCTION;
   InstX8632Mfence &operator=(const InstX8632Mfence &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Mfence() {}
+  ~InstX8632Mfence() override {}
 };
 
 // This is essentially a "mov" instruction with an OperandX8632Mem
@@ -1133,15 +1131,15 @@ public:
     return new (Func->allocate<InstX8632Store>())
         InstX8632Store(Func, Value, Mem);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Store); }
 
 private:
   InstX8632Store(Cfg *Func, Operand *Value, OperandX8632 *Mem);
   InstX8632Store(const InstX8632Store &) LLVM_DELETED_FUNCTION;
   InstX8632Store &operator=(const InstX8632Store &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Store() {}
+  ~InstX8632Store() override {}
 };
 
 class InstX8632StoreP : public InstX8632 {
@@ -1150,15 +1148,15 @@ public:
     return new (Func->allocate<InstX8632StoreP>())
         InstX8632StoreP(Func, Value, Mem);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, StoreP); }
 
 private:
   InstX8632StoreP(Cfg *Func, Operand *Value, OperandX8632 *Mem);
   InstX8632StoreP(const InstX8632StoreP &) LLVM_DELETED_FUNCTION;
   InstX8632StoreP &operator=(const InstX8632StoreP &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632StoreP() {}
+  ~InstX8632StoreP() override {}
 };
 
 // This is essentially a "movq" instruction with an OperandX8632Mem
@@ -1170,15 +1168,15 @@ public:
     return new (Func->allocate<InstX8632StoreQ>())
         InstX8632StoreQ(Func, Value, Mem);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, StoreQ); }
 
 private:
   InstX8632StoreQ(Cfg *Func, Operand *Value, OperandX8632 *Mem);
   InstX8632StoreQ(const InstX8632StoreQ &) LLVM_DELETED_FUNCTION;
   InstX8632StoreQ &operator=(const InstX8632StoreQ &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632StoreQ() {}
+  ~InstX8632StoreQ() override {}
 };
 
 // Movsx - copy from a narrower integer type to a wider integer
@@ -1189,15 +1187,15 @@ public:
     return new (Func->allocate<InstX8632Movsx>())
         InstX8632Movsx(Func, Dest, Source);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Movsx); }
 
 private:
   InstX8632Movsx(Cfg *Func, Variable *Dest, Operand *Source);
   InstX8632Movsx(const InstX8632Movsx &) LLVM_DELETED_FUNCTION;
   InstX8632Movsx &operator=(const InstX8632Movsx &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Movsx() {}
+  ~InstX8632Movsx() override {}
 };
 
 // Movzx - copy from a narrower integer type to a wider integer
@@ -1208,15 +1206,15 @@ public:
     return new (Func->allocate<InstX8632Movzx>())
         InstX8632Movzx(Func, Dest, Source);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Movzx); }
 
 private:
   InstX8632Movzx(Cfg *Func, Variable *Dest, Operand *Source);
   InstX8632Movzx(const InstX8632Movzx &) LLVM_DELETED_FUNCTION;
   InstX8632Movzx &operator=(const InstX8632Movzx &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Movzx() {}
+  ~InstX8632Movzx() override {}
 };
 
 // Nop instructions of varying length
@@ -1228,16 +1226,16 @@ public:
   static InstX8632Nop *create(Cfg *Func, NopVariant Variant) {
     return new (Func->allocate<InstX8632Nop>()) InstX8632Nop(Func, Variant);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void emitIAS(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Nop); }
 
 private:
   InstX8632Nop(Cfg *Func, SizeT Length);
   InstX8632Nop(const InstX8632Nop &) LLVM_DELETED_FUNCTION;
   InstX8632Nop &operator=(const InstX8632Nop &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Nop() {}
+  ~InstX8632Nop() override {}
 
   NopVariant Variant;
 };
@@ -1248,15 +1246,15 @@ public:
   static InstX8632Fld *create(Cfg *Func, Operand *Src) {
     return new (Func->allocate<InstX8632Fld>()) InstX8632Fld(Func, Src);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Fld); }
 
 private:
   InstX8632Fld(Cfg *Func, Operand *Src);
   InstX8632Fld(const InstX8632Fld &) LLVM_DELETED_FUNCTION;
   InstX8632Fld &operator=(const InstX8632Fld &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Fld() {}
+  ~InstX8632Fld() override {}
 };
 
 // Fstp - store x87 st(0) into memory and pop st(0).
@@ -1265,15 +1263,15 @@ public:
   static InstX8632Fstp *create(Cfg *Func, Variable *Dest) {
     return new (Func->allocate<InstX8632Fstp>()) InstX8632Fstp(Func, Dest);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Fstp); }
 
 private:
   InstX8632Fstp(Cfg *Func, Variable *Dest);
   InstX8632Fstp(const InstX8632Fstp &) LLVM_DELETED_FUNCTION;
   InstX8632Fstp &operator=(const InstX8632Fstp &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Fstp() {}
+  ~InstX8632Fstp() override {}
 };
 
 class InstX8632Pop : public InstX8632 {
@@ -1281,16 +1279,16 @@ public:
   static InstX8632Pop *create(Cfg *Func, Variable *Dest) {
     return new (Func->allocate<InstX8632Pop>()) InstX8632Pop(Func, Dest);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void emitIAS(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Pop); }
 
 private:
   InstX8632Pop(Cfg *Func, Variable *Dest);
   InstX8632Pop(const InstX8632Pop &) LLVM_DELETED_FUNCTION;
   InstX8632Pop &operator=(const InstX8632Pop &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Pop() {}
+  ~InstX8632Pop() override {}
 };
 
 class InstX8632Push : public InstX8632 {
@@ -1300,8 +1298,8 @@ public:
     return new (Func->allocate<InstX8632Push>())
         InstX8632Push(Func, Source, SuppressStackAdjustment);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Push); }
 
 private:
@@ -1309,7 +1307,7 @@ private:
   InstX8632Push(const InstX8632Push &) LLVM_DELETED_FUNCTION;
   InstX8632Push &operator=(const InstX8632Push &) LLVM_DELETED_FUNCTION;
   bool SuppressStackAdjustment;
-  virtual ~InstX8632Push() {}
+  ~InstX8632Push() override {}
 };
 
 // Ret instruction.  Currently only supports the "ret" version that
@@ -1321,16 +1319,16 @@ public:
   static InstX8632Ret *create(Cfg *Func, Variable *Source = NULL) {
     return new (Func->allocate<InstX8632Ret>()) InstX8632Ret(Func, Source);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void emitIAS(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Ret); }
 
 private:
   InstX8632Ret(Cfg *Func, Variable *Source);
   InstX8632Ret(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
   InstX8632Ret &operator=(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Ret() {}
+  ~InstX8632Ret() override {}
 };
 
 // Exchanging Add instruction.  Exchanges the first operand (destination
@@ -1347,16 +1345,16 @@ public:
     return new (Func->allocate<InstX8632Xadd>())
         InstX8632Xadd(Func, Dest, Source, Locked);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void emitIAS(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Xadd); }
 
 private:
   InstX8632Xadd(Cfg *Func, Operand *Dest, Variable *Source, bool Locked);
   InstX8632Xadd(const InstX8632Xadd &) LLVM_DELETED_FUNCTION;
   InstX8632Xadd &operator=(const InstX8632Xadd &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Xadd() {}
+  ~InstX8632Xadd() override {}
 };
 
 // Exchange instruction.  Exchanges the first operand (destination
@@ -1371,16 +1369,16 @@ public:
     return new (Func->allocate<InstX8632Xchg>())
         InstX8632Xchg(Func, Dest, Source);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void emitIAS(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Xchg); }
 
 private:
   InstX8632Xchg(Cfg *Func, Operand *Dest, Variable *Source);
   InstX8632Xchg(const InstX8632Xchg &) LLVM_DELETED_FUNCTION;
   InstX8632Xchg &operator=(const InstX8632Xchg &) LLVM_DELETED_FUNCTION;
-  virtual ~InstX8632Xchg() {}
+  ~InstX8632Xchg() override {}
 };
 
 // Declare partial template specializations of emit() methods that

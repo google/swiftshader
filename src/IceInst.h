@@ -30,6 +30,10 @@
 
 namespace Ice {
 
+// Base instruction class for ICE.  Inst has two subclasses:
+// InstHighLevel and InstTarget.  High-level ICE instructions inherit
+// from InstHighLevel, and low-level (target-specific) ICE
+// instructions inherit from InstTarget.
 class Inst {
 public:
   enum InstKind {
@@ -103,8 +107,8 @@ public:
   // result in any native instructions, and a target-specific
   // instruction results in a single native instruction.
   virtual uint32_t getEmitInstCount() const { return 0; }
-  virtual void emit(const Cfg *Func) const;
-  virtual void emitIAS(const Cfg *Func) const;
+  virtual void emit(const Cfg *Func) const = 0;
+  virtual void emitIAS(const Cfg *Func) const = 0;
   virtual void dump(const Cfg *Func) const;
   virtual void dumpExtras(const Cfg *Func) const;
   void dumpDecorated(const Cfg *Func) const;
@@ -165,10 +169,26 @@ private:
   Inst &operator=(const Inst &) LLVM_DELETED_FUNCTION;
 };
 
+class InstHighLevel : public Inst {
+  InstHighLevel(const InstHighLevel &) LLVM_DELETED_FUNCTION;
+  InstHighLevel &operator=(const InstHighLevel &) LLVM_DELETED_FUNCTION;
+
+protected:
+  InstHighLevel(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest)
+      : Inst(Func, Kind, MaxSrcs, Dest) {}
+  void emit(const Cfg * /*Func*/) const override {
+    llvm_unreachable("emit() called on a non-lowered instruction");
+  }
+  void emitIAS(const Cfg * /*Func*/) const override {
+    llvm_unreachable("emitIAS() called on a non-lowered instruction");
+  }
+  ~InstHighLevel() override {}
+};
+
 // Alloca instruction.  This captures the size in bytes as getSrc(0),
 // and the required alignment in bytes.  The alignment must be either
 // 0 (no alignment required) or a power of 2.
-class InstAlloca : public Inst {
+class InstAlloca : public InstHighLevel {
 public:
   static InstAlloca *create(Cfg *Func, Operand *ByteCount,
                             uint32_t AlignInBytes, Variable *Dest) {
@@ -177,7 +197,7 @@ public:
   }
   uint32_t getAlignInBytes() const { return AlignInBytes; }
   Operand *getSizeInBytes() const { return getSrc(0); }
-  virtual void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Alloca; }
 
 private:
@@ -185,13 +205,13 @@ private:
              Variable *Dest);
   InstAlloca(const InstAlloca &) LLVM_DELETED_FUNCTION;
   InstAlloca &operator=(const InstAlloca &) LLVM_DELETED_FUNCTION;
-  virtual ~InstAlloca() {}
+  ~InstAlloca() override {}
   const uint32_t AlignInBytes;
 };
 
 // Binary arithmetic instruction.  The source operands are captured in
 // getSrc(0) and getSrc(1).
-class InstArithmetic : public Inst {
+class InstArithmetic : public InstHighLevel {
 public:
   enum OpKind {
 #define X(tag, str, commutative) tag,
@@ -208,7 +228,7 @@ public:
   OpKind getOp() const { return Op; }
   static const char *getOpName(OpKind Op);
   bool isCommutative() const;
-  virtual void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) {
     return Inst->getKind() == Arithmetic;
   }
@@ -218,7 +238,7 @@ private:
                  Operand *Source2);
   InstArithmetic(const InstArithmetic &) LLVM_DELETED_FUNCTION;
   InstArithmetic &operator=(const InstArithmetic &) LLVM_DELETED_FUNCTION;
-  virtual ~InstArithmetic() {}
+  ~InstArithmetic() override {}
 
   const OpKind Op;
 };
@@ -229,26 +249,26 @@ private:
 // lowering happens before target lowering, or for representing an
 // Inttoptr instruction, or as an intermediate step for lowering a
 // Load instruction.
-class InstAssign : public Inst {
+class InstAssign : public InstHighLevel {
 public:
   static InstAssign *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocateInst<InstAssign>())
         InstAssign(Func, Dest, Source);
   }
-  virtual bool isSimpleAssign() const { return true; }
-  virtual void dump(const Cfg *Func) const;
+  bool isSimpleAssign() const override { return true; }
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Assign; }
 
 private:
   InstAssign(Cfg *Func, Variable *Dest, Operand *Source);
   InstAssign(const InstAssign &) LLVM_DELETED_FUNCTION;
   InstAssign &operator=(const InstAssign &) LLVM_DELETED_FUNCTION;
-  virtual ~InstAssign() {}
+  ~InstAssign() override {}
 };
 
 // Branch instruction.  This represents both conditional and
 // unconditional branches.
-class InstBr : public Inst {
+class InstBr : public InstHighLevel {
 public:
   // Create a conditional branch.  If TargetTrue==TargetFalse, it is
   // optimized to an unconditional branch.
@@ -272,8 +292,8 @@ public:
     assert(isUnconditional());
     return getTargetFalse();
   }
-  virtual NodeList getTerminatorEdges() const;
-  virtual void dump(const Cfg *Func) const;
+  NodeList getTerminatorEdges() const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Br; }
 
 private:
@@ -283,7 +303,7 @@ private:
   InstBr(Cfg *Func, CfgNode *Target);
   InstBr(const InstBr &) LLVM_DELETED_FUNCTION;
   InstBr &operator=(const InstBr &) LLVM_DELETED_FUNCTION;
-  virtual ~InstBr() {}
+  ~InstBr() override {}
 
   CfgNode *const TargetFalse; // Doubles as unconditional branch target
   CfgNode *const TargetTrue;  // NULL if unconditional branch
@@ -291,7 +311,7 @@ private:
 
 // Call instruction.  The call target is captured as getSrc(0), and
 // arg I is captured as getSrc(I+1).
-class InstCall : public Inst {
+class InstCall : public InstHighLevel {
 public:
   static InstCall *create(Cfg *Func, SizeT NumArgs, Variable *Dest,
                           Operand *CallTarget, bool HasTailCall) {
@@ -308,19 +328,18 @@ public:
   Operand *getArg(SizeT I) const { return getSrc(I + 1); }
   SizeT getNumArgs() const { return getSrcSize() - 1; }
   bool isTailcall() const { return HasTailCall; }
-  virtual void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Call; }
   Type getReturnType() const;
 
 protected:
   InstCall(Cfg *Func, SizeT NumArgs, Variable *Dest, Operand *CallTarget,
            bool HasTailCall, bool HasSideEff, InstKind Kind)
-      : Inst(Func, Kind, NumArgs + 1, Dest),
-        HasTailCall(HasTailCall) {
+      : InstHighLevel(Func, Kind, NumArgs + 1, Dest), HasTailCall(HasTailCall) {
     HasSideEffects = HasSideEff;
     addSource(CallTarget);
   }
-  virtual ~InstCall() {}
+  ~InstCall() override {}
 
 private:
   bool HasTailCall;
@@ -329,7 +348,7 @@ private:
 };
 
 // Cast instruction (a.k.a. conversion operation).
-class InstCast : public Inst {
+class InstCast : public InstHighLevel {
 public:
   enum OpKind {
 #define X(tag, str) tag,
@@ -344,19 +363,19 @@ public:
         InstCast(Func, CastKind, Dest, Source);
   }
   OpKind getCastKind() const { return CastKind; }
-  virtual void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Cast; }
 
 private:
   InstCast(Cfg *Func, OpKind CastKind, Variable *Dest, Operand *Source);
   InstCast(const InstCast &) LLVM_DELETED_FUNCTION;
   InstCast &operator=(const InstCast &) LLVM_DELETED_FUNCTION;
-  virtual ~InstCast() {}
+  ~InstCast() override {}
   const OpKind CastKind;
 };
 
 // ExtractElement instruction.
-class InstExtractElement : public Inst {
+class InstExtractElement : public InstHighLevel {
 public:
   static InstExtractElement *create(Cfg *Func, Variable *Dest, Operand *Source1,
                                     Operand *Source2) {
@@ -364,7 +383,7 @@ public:
         InstExtractElement(Func, Dest, Source1, Source2);
   }
 
-  virtual void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) {
     return Inst->getKind() == ExtractElement;
   }
@@ -375,12 +394,12 @@ private:
   InstExtractElement(const InstExtractElement &) LLVM_DELETED_FUNCTION;
   InstExtractElement &
   operator=(const InstExtractElement &) LLVM_DELETED_FUNCTION;
-  virtual ~InstExtractElement() {}
+  ~InstExtractElement() override {}
 };
 
 // Floating-point comparison instruction.  The source operands are
 // captured in getSrc(0) and getSrc(1).
-class InstFcmp : public Inst {
+class InstFcmp : public InstHighLevel {
 public:
   enum FCond {
 #define X(tag, str) tag,
@@ -395,7 +414,7 @@ public:
         InstFcmp(Func, Condition, Dest, Source1, Source2);
   }
   FCond getCondition() const { return Condition; }
-  virtual void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Fcmp; }
 
 private:
@@ -403,13 +422,13 @@ private:
            Operand *Source2);
   InstFcmp(const InstFcmp &) LLVM_DELETED_FUNCTION;
   InstFcmp &operator=(const InstFcmp &) LLVM_DELETED_FUNCTION;
-  virtual ~InstFcmp() {}
+  ~InstFcmp() override {}
   const FCond Condition;
 };
 
 // Integer comparison instruction.  The source operands are captured
 // in getSrc(0) and getSrc(1).
-class InstIcmp : public Inst {
+class InstIcmp : public InstHighLevel {
 public:
   enum ICond {
 #define X(tag, str) tag,
@@ -424,7 +443,7 @@ public:
         InstIcmp(Func, Condition, Dest, Source1, Source2);
   }
   ICond getCondition() const { return Condition; }
-  virtual void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Icmp; }
 
 private:
@@ -432,12 +451,12 @@ private:
            Operand *Source2);
   InstIcmp(const InstIcmp &) LLVM_DELETED_FUNCTION;
   InstIcmp &operator=(const InstIcmp &) LLVM_DELETED_FUNCTION;
-  virtual ~InstIcmp() {}
+  ~InstIcmp() override {}
   const ICond Condition;
 };
 
 // InsertElement instruction.
-class InstInsertElement : public Inst {
+class InstInsertElement : public InstHighLevel {
 public:
   static InstInsertElement *create(Cfg *Func, Variable *Dest, Operand *Source1,
                                    Operand *Source2, Operand *Source3) {
@@ -445,7 +464,7 @@ public:
         InstInsertElement(Func, Dest, Source1, Source2, Source3);
   }
 
-  virtual void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) {
     return Inst->getKind() == InsertElement;
   }
@@ -455,7 +474,7 @@ private:
                     Operand *Source2, Operand *Source3);
   InstInsertElement(const InstInsertElement &) LLVM_DELETED_FUNCTION;
   InstInsertElement &operator=(const InstInsertElement &) LLVM_DELETED_FUNCTION;
-  virtual ~InstInsertElement() {}
+  ~InstInsertElement() override {}
 };
 
 // Call to an intrinsic function.  The call target is captured as getSrc(0),
@@ -482,12 +501,12 @@ private:
         Info(Info) {}
   InstIntrinsicCall(const InstIntrinsicCall &) LLVM_DELETED_FUNCTION;
   InstIntrinsicCall &operator=(const InstIntrinsicCall &) LLVM_DELETED_FUNCTION;
-  virtual ~InstIntrinsicCall() {}
+  ~InstIntrinsicCall() override {}
   const Intrinsics::IntrinsicInfo Info;
 };
 
 // Load instruction.  The source address is captured in getSrc(0).
-class InstLoad : public Inst {
+class InstLoad : public InstHighLevel {
 public:
   static InstLoad *create(Cfg *Func, Variable *Dest, Operand *SourceAddr,
                           uint32_t align = 1) {
@@ -497,19 +516,19 @@ public:
         InstLoad(Func, Dest, SourceAddr);
   }
   Operand *getSourceAddress() const { return getSrc(0); }
-  virtual void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Load; }
 
 private:
   InstLoad(Cfg *Func, Variable *Dest, Operand *SourceAddr);
   InstLoad(const InstLoad &) LLVM_DELETED_FUNCTION;
   InstLoad &operator=(const InstLoad &) LLVM_DELETED_FUNCTION;
-  virtual ~InstLoad() {}
+  ~InstLoad() override {}
 };
 
 // Phi instruction.  For incoming edge I, the node is Labels[I] and
 // the Phi source operand is getSrc(I).
-class InstPhi : public Inst {
+class InstPhi : public InstHighLevel {
 public:
   static InstPhi *create(Cfg *Func, SizeT MaxSrcs, Variable *Dest) {
     return new (Func->allocateInst<InstPhi>()) InstPhi(Func, MaxSrcs, Dest);
@@ -519,18 +538,18 @@ public:
   void livenessPhiOperand(llvm::BitVector &Live, CfgNode *Target,
                           Liveness *Liveness);
   Inst *lower(Cfg *Func);
-  virtual void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Phi; }
 
 private:
   InstPhi(Cfg *Func, SizeT MaxSrcs, Variable *Dest);
   InstPhi(const InstPhi &) LLVM_DELETED_FUNCTION;
   InstPhi &operator=(const InstPhi &) LLVM_DELETED_FUNCTION;
-  virtual void destroy(Cfg *Func) {
+  void destroy(Cfg *Func) override {
     Func->deallocateArrayOf<CfgNode *>(Labels);
     Inst::destroy(Func);
   }
-  virtual ~InstPhi() {}
+  ~InstPhi() override {}
 
   // Labels[] duplicates the InEdges[] information in the enclosing
   // CfgNode, but the Phi instruction is created before InEdges[]
@@ -541,7 +560,7 @@ private:
 // Ret instruction.  The return value is captured in getSrc(0), but if
 // there is no return value (void-type function), then
 // getSrcSize()==0 and hasRetValue()==false.
-class InstRet : public Inst {
+class InstRet : public InstHighLevel {
 public:
   static InstRet *create(Cfg *Func, Operand *RetValue = NULL) {
     return new (Func->allocateInst<InstRet>()) InstRet(Func, RetValue);
@@ -551,19 +570,19 @@ public:
     assert(hasRetValue());
     return getSrc(0);
   }
-  virtual NodeList getTerminatorEdges() const { return NodeList(); }
-  virtual void dump(const Cfg *Func) const;
+  NodeList getTerminatorEdges() const override { return NodeList(); }
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Ret; }
 
 private:
   InstRet(Cfg *Func, Operand *RetValue);
   InstRet(const InstRet &) LLVM_DELETED_FUNCTION;
   InstRet &operator=(const InstRet &) LLVM_DELETED_FUNCTION;
-  virtual ~InstRet() {}
+  ~InstRet() override {}
 };
 
 // Select instruction.  The condition, true, and false operands are captured.
-class InstSelect : public Inst {
+class InstSelect : public InstHighLevel {
 public:
   static InstSelect *create(Cfg *Func, Variable *Dest, Operand *Condition,
                             Operand *SourceTrue, Operand *SourceFalse) {
@@ -573,7 +592,7 @@ public:
   Operand *getCondition() const { return getSrc(0); }
   Operand *getTrueOperand() const { return getSrc(1); }
   Operand *getFalseOperand() const { return getSrc(2); }
-  virtual void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Select; }
 
 private:
@@ -581,12 +600,12 @@ private:
              Operand *Source2);
   InstSelect(const InstSelect &) LLVM_DELETED_FUNCTION;
   InstSelect &operator=(const InstSelect &) LLVM_DELETED_FUNCTION;
-  virtual ~InstSelect() {}
+  ~InstSelect() override {}
 };
 
 // Store instruction.  The address operand is captured, along with the
 // data operand to be stored into the address.
-class InstStore : public Inst {
+class InstStore : public InstHighLevel {
 public:
   static InstStore *create(Cfg *Func, Operand *Data, Operand *Addr,
                            uint32_t align = 1) {
@@ -596,19 +615,19 @@ public:
   }
   Operand *getAddr() const { return getSrc(1); }
   Operand *getData() const { return getSrc(0); }
-  virtual void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Store; }
 
 private:
   InstStore(Cfg *Func, Operand *Data, Operand *Addr);
   InstStore(const InstStore &) LLVM_DELETED_FUNCTION;
   InstStore &operator=(const InstStore &) LLVM_DELETED_FUNCTION;
-  virtual ~InstStore() {}
+  ~InstStore() override {}
 };
 
 // Switch instruction.  The single source operand is captured as
 // getSrc(0).
-class InstSwitch : public Inst {
+class InstSwitch : public InstHighLevel {
 public:
   static InstSwitch *create(Cfg *Func, SizeT NumCases, Operand *Source,
                             CfgNode *LabelDefault) {
@@ -627,20 +646,20 @@ public:
     return Labels[I];
   }
   void addBranch(SizeT CaseIndex, uint64_t Value, CfgNode *Label);
-  virtual NodeList getTerminatorEdges() const;
-  virtual void dump(const Cfg *Func) const;
+  NodeList getTerminatorEdges() const override;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Switch; }
 
 private:
   InstSwitch(Cfg *Func, SizeT NumCases, Operand *Source, CfgNode *LabelDefault);
   InstSwitch(const InstSwitch &) LLVM_DELETED_FUNCTION;
   InstSwitch &operator=(const InstSwitch &) LLVM_DELETED_FUNCTION;
-  virtual void destroy(Cfg *Func) {
+  void destroy(Cfg *Func) override {
     Func->deallocateArrayOf<uint64_t>(Values);
     Func->deallocateArrayOf<CfgNode *>(Labels);
     Inst::destroy(Func);
   }
-  virtual ~InstSwitch() {}
+  ~InstSwitch() override {}
 
   CfgNode *LabelDefault;
   SizeT NumCases;   // not including the default case
@@ -650,13 +669,13 @@ private:
 
 // Unreachable instruction.  This is a terminator instruction with no
 // operands.
-class InstUnreachable : public Inst {
+class InstUnreachable : public InstHighLevel {
 public:
   static InstUnreachable *create(Cfg *Func) {
     return new (Func->allocateInst<InstUnreachable>()) InstUnreachable(Func);
   }
-  virtual NodeList getTerminatorEdges() const { return NodeList(); }
-  virtual void dump(const Cfg *Func) const;
+  NodeList getTerminatorEdges() const override { return NodeList(); }
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) {
     return Inst->getKind() == Unreachable;
   }
@@ -665,7 +684,7 @@ private:
   InstUnreachable(Cfg *Func);
   InstUnreachable(const InstUnreachable &) LLVM_DELETED_FUNCTION;
   InstUnreachable &operator=(const InstUnreachable &) LLVM_DELETED_FUNCTION;
-  virtual ~InstUnreachable() {}
+  ~InstUnreachable() override {}
 };
 
 // FakeDef instruction.  This creates a fake definition of a variable,
@@ -680,20 +699,21 @@ private:
 // dest.  Otherwise, the original instruction could be dead-code
 // eliminated if its dest operand is unused, and therefore the FakeDef
 // dest wouldn't be properly initialized.
-class InstFakeDef : public Inst {
+class InstFakeDef : public InstHighLevel {
 public:
   static InstFakeDef *create(Cfg *Func, Variable *Dest, Variable *Src = NULL) {
     return new (Func->allocateInst<InstFakeDef>()) InstFakeDef(Func, Dest, Src);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override { emit(Func); }
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == FakeDef; }
 
 private:
   InstFakeDef(Cfg *Func, Variable *Dest, Variable *Src);
   InstFakeDef(const InstFakeDef &) LLVM_DELETED_FUNCTION;
   InstFakeDef &operator=(const InstFakeDef &) LLVM_DELETED_FUNCTION;
-  virtual ~InstFakeDef() {}
+  ~InstFakeDef() override {}
 };
 
 // FakeUse instruction.  This creates a fake use of a variable, to
@@ -701,20 +721,21 @@ private:
 // dead-code eliminated.  This is useful in a variety of lowering
 // situations.  The FakeUse instruction has no dest, so it can itself
 // never be dead-code eliminated.
-class InstFakeUse : public Inst {
+class InstFakeUse : public InstHighLevel {
 public:
   static InstFakeUse *create(Cfg *Func, Variable *Src) {
     return new (Func->allocateInst<InstFakeUse>()) InstFakeUse(Func, Src);
   }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override { emit(Func); }
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == FakeUse; }
 
 private:
   InstFakeUse(Cfg *Func, Variable *Src);
   InstFakeUse(const InstFakeUse &) LLVM_DELETED_FUNCTION;
   InstFakeUse &operator=(const InstFakeUse &) LLVM_DELETED_FUNCTION;
-  virtual ~InstFakeUse() {}
+  ~InstFakeUse() override {}
 };
 
 // FakeKill instruction.  This "kills" a set of variables by adding a
@@ -726,7 +747,7 @@ private:
 // The FakeKill instruction also holds a pointer to the instruction
 // that kills the set of variables, so that if that linked instruction
 // gets dead-code eliminated, the FakeKill instruction will as well.
-class InstFakeKill : public Inst {
+class InstFakeKill : public InstHighLevel {
 public:
   static InstFakeKill *create(Cfg *Func, const VarList &KilledRegs,
                               const Inst *Linked) {
@@ -734,15 +755,16 @@ public:
         InstFakeKill(Func, KilledRegs, Linked);
   }
   const Inst *getLinked() const { return Linked; }
-  virtual void emit(const Cfg *Func) const;
-  virtual void dump(const Cfg *Func) const;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override { emit(Func); }
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == FakeKill; }
 
 private:
   InstFakeKill(Cfg *Func, const VarList &KilledRegs, const Inst *Linked);
   InstFakeKill(const InstFakeKill &) LLVM_DELETED_FUNCTION;
   InstFakeKill &operator=(const InstFakeKill &) LLVM_DELETED_FUNCTION;
-  virtual ~InstFakeKill() {}
+  ~InstFakeKill() override {}
 
   // This instruction is ignored if Linked->isDeleted() is true.
   const Inst *Linked;
@@ -751,11 +773,12 @@ private:
 // The Target instruction is the base class for all target-specific
 // instructions.
 class InstTarget : public Inst {
+  InstTarget(const InstTarget &) LLVM_DELETED_FUNCTION;
+  InstTarget &operator=(const InstTarget &) LLVM_DELETED_FUNCTION;
+
 public:
-  virtual uint32_t getEmitInstCount() const { return 1; }
-  virtual void emit(const Cfg *Func) const = 0;
-  virtual void dump(const Cfg *Func) const;
-  virtual void dumpExtras(const Cfg *Func) const;
+  uint32_t getEmitInstCount() const override { return 1; }
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() >= Target; }
 
 protected:
@@ -763,9 +786,8 @@ protected:
       : Inst(Func, Kind, MaxSrcs, Dest) {
     assert(Kind >= Target);
   }
-  InstTarget(const InstTarget &) LLVM_DELETED_FUNCTION;
-  InstTarget &operator=(const InstTarget &) LLVM_DELETED_FUNCTION;
-  virtual ~InstTarget() {}
+  void emitIAS(const Cfg *Func) const override { emit(Func); }
+  ~InstTarget() override {}
 };
 
 } // end of namespace Ice

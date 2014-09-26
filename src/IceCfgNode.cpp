@@ -470,11 +470,12 @@ void CfgNode::emit(Cfg *Func) const {
   }
   Str << getAsmName() << ":\n";
   for (PhiList::const_iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    InstPhi *Inst = *I;
-    if (Inst->isDeleted())
+    InstPhi *Phi = *I;
+    if (Phi->isDeleted())
       continue;
     // Emitting a Phi instruction should cause an error.
-    Inst->emit(Func);
+    Inst *Instr = Phi;
+    Instr->emit(Func);
   }
   for (InstList::const_iterator I = Insts.begin(), E = Insts.end(); I != E;
        ++I) {

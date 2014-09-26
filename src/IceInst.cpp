@@ -196,7 +196,7 @@ void Inst::liveness(InstNumberT InstNumber, llvm::BitVector &Live,
 
 InstAlloca::InstAlloca(Cfg *Func, Operand *ByteCount, uint32_t AlignInBytes,
                        Variable *Dest)
-    : Inst(Func, Inst::Alloca, 1, Dest), AlignInBytes(AlignInBytes) {
+    : InstHighLevel(Func, Inst::Alloca, 1, Dest), AlignInBytes(AlignInBytes) {
   // Verify AlignInBytes is 0 or a power of 2.
   assert(AlignInBytes == 0 || llvm::isPowerOf2_32(AlignInBytes));
   addSource(ByteCount);
@@ -204,7 +204,7 @@ InstAlloca::InstAlloca(Cfg *Func, Operand *ByteCount, uint32_t AlignInBytes,
 
 InstArithmetic::InstArithmetic(Cfg *Func, OpKind Op, Variable *Dest,
                                Operand *Source1, Operand *Source2)
-    : Inst(Func, Inst::Arithmetic, 2, Dest), Op(Op) {
+    : InstHighLevel(Func, Inst::Arithmetic, 2, Dest), Op(Op) {
   addSource(Source1);
   addSource(Source2);
 }
@@ -221,7 +221,7 @@ bool InstArithmetic::isCommutative() const {
 }
 
 InstAssign::InstAssign(Cfg *Func, Variable *Dest, Operand *Source)
-    : Inst(Func, Inst::Assign, 1, Dest) {
+    : InstHighLevel(Func, Inst::Assign, 1, Dest) {
   addSource(Source);
 }
 
@@ -230,7 +230,7 @@ InstAssign::InstAssign(Cfg *Func, Variable *Dest, Operand *Source)
 // semantics, there is at most one edge from one node to another.
 InstBr::InstBr(Cfg *Func, Operand *Source, CfgNode *TargetTrue,
                CfgNode *TargetFalse)
-    : Inst(Func, Inst::Br, 1, NULL), TargetFalse(TargetFalse),
+    : InstHighLevel(Func, Inst::Br, 1, NULL), TargetFalse(TargetFalse),
       TargetTrue(TargetTrue) {
   if (TargetTrue == TargetFalse) {
     TargetTrue = NULL; // turn into unconditional version
@@ -240,7 +240,8 @@ InstBr::InstBr(Cfg *Func, Operand *Source, CfgNode *TargetTrue,
 }
 
 InstBr::InstBr(Cfg *Func, CfgNode *Target)
-    : Inst(Func, Inst::Br, 0, NULL), TargetFalse(Target), TargetTrue(NULL) {}
+    : InstHighLevel(Func, Inst::Br, 0, NULL), TargetFalse(Target),
+      TargetTrue(NULL) {}
 
 NodeList InstBr::getTerminatorEdges() const {
   NodeList OutEdges;
@@ -251,27 +252,27 @@ NodeList InstBr::getTerminatorEdges() const {
 }
 
 InstCast::InstCast(Cfg *Func, OpKind CastKind, Variable *Dest, Operand *Source)
-    : Inst(Func, Inst::Cast, 1, Dest), CastKind(CastKind) {
+    : InstHighLevel(Func, Inst::Cast, 1, Dest), CastKind(CastKind) {
   addSource(Source);
 }
 
 InstExtractElement::InstExtractElement(Cfg *Func, Variable *Dest,
                                        Operand *Source1, Operand *Source2)
-    : Inst(Func, Inst::ExtractElement, 2, Dest) {
+    : InstHighLevel(Func, Inst::ExtractElement, 2, Dest) {
   addSource(Source1);
   addSource(Source2);
 }
 
 InstFcmp::InstFcmp(Cfg *Func, FCond Condition, Variable *Dest, Operand *Source1,
                    Operand *Source2)
-    : Inst(Func, Inst::Fcmp, 2, Dest), Condition(Condition) {
+    : InstHighLevel(Func, Inst::Fcmp, 2, Dest), Condition(Condition) {
   addSource(Source1);
   addSource(Source2);
 }
 
 InstIcmp::InstIcmp(Cfg *Func, ICond Condition, Variable *Dest, Operand *Source1,
                    Operand *Source2)
-    : Inst(Func, Inst::Icmp, 2, Dest), Condition(Condition) {
+    : InstHighLevel(Func, Inst::Icmp, 2, Dest), Condition(Condition) {
   addSource(Source1);
   addSource(Source2);
 }
@@ -279,19 +280,19 @@ InstIcmp::InstIcmp(Cfg *Func, ICond Condition, Variable *Dest, Operand *Source1,
 InstInsertElement::InstInsertElement(Cfg *Func, Variable *Dest,
                                      Operand *Source1, Operand *Source2,
                                      Operand *Source3)
-    : Inst(Func, Inst::InsertElement, 3, Dest) {
+    : InstHighLevel(Func, Inst::InsertElement, 3, Dest) {
   addSource(Source1);
   addSource(Source2);
   addSource(Source3);
 }
 
 InstLoad::InstLoad(Cfg *Func, Variable *Dest, Operand *SourceAddr)
-    : Inst(Func, Inst::Load, 1, Dest) {
+    : InstHighLevel(Func, Inst::Load, 1, Dest) {
   addSource(SourceAddr);
 }
 
 InstPhi::InstPhi(Cfg *Func, SizeT MaxSrcs, Variable *Dest)
-    : Inst(Func, Phi, MaxSrcs, Dest) {
+    : InstHighLevel(Func, Phi, MaxSrcs, Dest) {
   Labels = Func->allocateArrayOf<CfgNode *>(MaxSrcs);
 }
 
@@ -350,14 +351,14 @@ Inst *InstPhi::lower(Cfg *Func) {
 }
 
 InstRet::InstRet(Cfg *Func, Operand *RetValue)
-    : Inst(Func, Ret, RetValue ? 1 : 0, NULL) {
+    : InstHighLevel(Func, Ret, RetValue ? 1 : 0, NULL) {
   if (RetValue)
     addSource(RetValue);
 }
 
 InstSelect::InstSelect(Cfg *Func, Variable *Dest, Operand *Condition,
                        Operand *SourceTrue, Operand *SourceFalse)
-    : Inst(Func, Inst::Select, 3, Dest) {
+    : InstHighLevel(Func, Inst::Select, 3, Dest) {
   assert(typeElementType(Condition->getType()) == IceType_i1);
   addSource(Condition);
   addSource(SourceTrue);
@@ -365,14 +366,14 @@ InstSelect::InstSelect(Cfg *Func, Variable *Dest, Operand *Condition,
 }
 
 InstStore::InstStore(Cfg *Func, Operand *Data, Operand *Addr)
-    : Inst(Func, Inst::Store, 2, NULL) {
+    : InstHighLevel(Func, Inst::Store, 2, NULL) {
   addSource(Data);
   addSource(Addr);
 }
 
 InstSwitch::InstSwitch(Cfg *Func, SizeT NumCases, Operand *Source,
                        CfgNode *LabelDefault)
-    : Inst(Func, Inst::Switch, 1, NULL), LabelDefault(LabelDefault),
+    : InstHighLevel(Func, Inst::Switch, 1, NULL), LabelDefault(LabelDefault),
       NumCases(NumCases) {
   addSource(Source);
   Values = Func->allocateArrayOf<uint64_t>(NumCases);
@@ -400,24 +401,25 @@ NodeList InstSwitch::getTerminatorEdges() const {
 }
 
 InstUnreachable::InstUnreachable(Cfg *Func)
-    : Inst(Func, Inst::Unreachable, 0, NULL) {}
+    : InstHighLevel(Func, Inst::Unreachable, 0, NULL) {}
 
 InstFakeDef::InstFakeDef(Cfg *Func, Variable *Dest, Variable *Src)
-    : Inst(Func, Inst::FakeDef, Src ? 1 : 0, Dest) {
+    : InstHighLevel(Func, Inst::FakeDef, Src ? 1 : 0, Dest) {
   assert(Dest);
   if (Src)
     addSource(Src);
 }
 
 InstFakeUse::InstFakeUse(Cfg *Func, Variable *Src)
-    : Inst(Func, Inst::FakeUse, 1, NULL) {
+    : InstHighLevel(Func, Inst::FakeUse, 1, NULL) {
   assert(Src);
   addSource(Src);
 }
 
 InstFakeKill::InstFakeKill(Cfg *Func, const VarList &KilledRegs,
                            const Inst *Linked)
-    : Inst(Func, Inst::FakeKill, KilledRegs.size(), NULL), Linked(Linked) {
+    : InstHighLevel(Func, Inst::FakeKill, KilledRegs.size(), NULL),
+      Linked(Linked) {
   for (VarList::const_iterator I = KilledRegs.begin(), E = KilledRegs.end();
        I != E; ++I) {
     Variable *Var = *I;
@@ -448,12 +450,6 @@ void Inst::dumpDecorated(const Cfg *Func) const {
   dumpExtras(Func);
   Str << "\n";
 }
-
-void Inst::emit(const Cfg * /*Func*/) const {
-  llvm_unreachable("emit() called on a non-lowered instruction");
-}
-
-void Inst::emitIAS(const Cfg *Func) const { emit(Func); }
 
 void Inst::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
@@ -753,7 +749,5 @@ void InstTarget::dump(const Cfg *Func) const {
   Str << "[TARGET] ";
   Inst::dump(Func);
 }
-
-void InstTarget::dumpExtras(const Cfg *Func) const { Inst::dumpExtras(Func); }
 
 } // end of namespace Ice

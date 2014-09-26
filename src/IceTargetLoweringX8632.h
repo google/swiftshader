@@ -28,36 +28,36 @@ class TargetX8632 : public TargetLowering {
 public:
   static TargetX8632 *create(Cfg *Func) { return new TargetX8632(Func); }
 
-  virtual void translateOm1();
-  virtual void translateO2();
-  virtual bool doBranchOpt(Inst *I, const CfgNode *NextNode);
+  void translateOm1() override;
+  void translateO2() override;
+  bool doBranchOpt(Inst *I, const CfgNode *NextNode) override;
 
-  virtual Variable *getPhysicalRegister(SizeT RegNum);
-  virtual IceString getRegName(SizeT RegNum, Type Ty) const;
-  virtual llvm::SmallBitVector getRegisterSet(RegSetMask Include,
-                                              RegSetMask Exclude) const;
-  virtual const llvm::SmallBitVector &getRegisterSetForType(Type Ty) const {
+  Variable *getPhysicalRegister(SizeT RegNum) override;
+  IceString getRegName(SizeT RegNum, Type Ty) const override;
+  llvm::SmallBitVector getRegisterSet(RegSetMask Include,
+                                      RegSetMask Exclude) const override;
+  const llvm::SmallBitVector &getRegisterSetForType(Type Ty) const override {
     return TypeToRegisterSet[Ty];
   }
-  virtual bool hasFramePointer() const { return IsEbpBasedFrame; }
-  virtual SizeT getFrameOrStackReg() const {
+  bool hasFramePointer() const override { return IsEbpBasedFrame; }
+  SizeT getFrameOrStackReg() const override {
     return IsEbpBasedFrame ? RegX8632::Reg_ebp : RegX8632::Reg_esp;
   }
-  virtual size_t typeWidthInBytesOnStack(Type Ty) const {
+  size_t typeWidthInBytesOnStack(Type Ty) const override {
     // Round up to the next multiple of 4 bytes.  In particular, i1,
     // i8, and i16 are rounded up to 4 bytes.
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
-  virtual SizeT getBundleAlignLog2Bytes() const { return 5; }
-  virtual llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const {
+  SizeT getBundleAlignLog2Bytes() const override { return 5; }
+  llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const override {
     static const uint8_t Padding[] = { 0xF4 };
     return llvm::ArrayRef<uint8_t>(Padding, 1);
   }
-  virtual void emitVariable(const Variable *Var) const;
-  virtual void lowerArguments();
-  virtual void addProlog(CfgNode *Node);
-  virtual void addEpilog(CfgNode *Node);
-  virtual void emitConstants() const;
+  void emitVariable(const Variable *Var) const override;
+  void lowerArguments() override;
+  void addProlog(CfgNode *Node) override;
+  void addEpilog(CfgNode *Node) override;
+  void emitConstants() const override;
   SizeT makeNextLabelNumber() { return NextLabelNumber++; }
   // Ensure that a 64-bit Variable has been split into 2 32-bit
   // Variables, creating them if necessary.  This is needed for all
@@ -82,29 +82,29 @@ public:
 protected:
   TargetX8632(Cfg *Func);
 
-  virtual void postLower();
+  void postLower() override;
 
-  virtual void lowerAlloca(const InstAlloca *Inst);
-  virtual void lowerArithmetic(const InstArithmetic *Inst);
-  virtual void lowerAssign(const InstAssign *Inst);
-  virtual void lowerBr(const InstBr *Inst);
-  virtual void lowerCall(const InstCall *Inst);
-  virtual void lowerCast(const InstCast *Inst);
-  virtual void lowerExtractElement(const InstExtractElement *Inst);
-  virtual void lowerFcmp(const InstFcmp *Inst);
-  virtual void lowerIcmp(const InstIcmp *Inst);
-  virtual void lowerIntrinsicCall(const InstIntrinsicCall *Inst);
-  virtual void lowerInsertElement(const InstInsertElement *Inst);
-  virtual void lowerLoad(const InstLoad *Inst);
-  virtual void lowerPhi(const InstPhi *Inst);
-  virtual void lowerRet(const InstRet *Inst);
-  virtual void lowerSelect(const InstSelect *Inst);
-  virtual void lowerStore(const InstStore *Inst);
-  virtual void lowerSwitch(const InstSwitch *Inst);
-  virtual void lowerUnreachable(const InstUnreachable *Inst);
-  virtual void doAddressOptLoad();
-  virtual void doAddressOptStore();
-  virtual void randomlyInsertNop(float Probability);
+  void lowerAlloca(const InstAlloca *Inst) override;
+  void lowerArithmetic(const InstArithmetic *Inst) override;
+  void lowerAssign(const InstAssign *Inst) override;
+  void lowerBr(const InstBr *Inst) override;
+  void lowerCall(const InstCall *Inst) override;
+  void lowerCast(const InstCast *Inst) override;
+  void lowerExtractElement(const InstExtractElement *Inst) override;
+  void lowerFcmp(const InstFcmp *Inst) override;
+  void lowerIcmp(const InstIcmp *Inst) override;
+  void lowerIntrinsicCall(const InstIntrinsicCall *Inst) override;
+  void lowerInsertElement(const InstInsertElement *Inst) override;
+  void lowerLoad(const InstLoad *Inst) override;
+  void lowerPhi(const InstPhi *Inst) override;
+  void lowerRet(const InstRet *Inst) override;
+  void lowerSelect(const InstSelect *Inst) override;
+  void lowerStore(const InstStore *Inst) override;
+  void lowerSwitch(const InstSwitch *Inst) override;
+  void lowerUnreachable(const InstUnreachable *Inst) override;
+  void doAddressOptLoad() override;
+  void doAddressOptStore() override;
+  void randomlyInsertNop(float Probability) override;
 
   // Naive lowering of cmpxchg.
   void lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr, Operand *Expected,
@@ -477,7 +477,7 @@ protected:
 private:
   TargetX8632(const TargetX8632 &) LLVM_DELETED_FUNCTION;
   TargetX8632 &operator=(const TargetX8632 &) LLVM_DELETED_FUNCTION;
-  virtual ~TargetX8632() {}
+  ~TargetX8632() override {}
   template <typename T> void emitConstantPool() const;
 };
 
@@ -486,9 +486,9 @@ public:
   static TargetGlobalInitLowering *create(GlobalContext *Ctx) {
     return new TargetGlobalInitX8632(Ctx);
   }
-  virtual void lower(const IceString &Name, SizeT Align, bool IsInternal,
-                     bool IsConst, bool IsZeroInitializer, SizeT Size,
-                     const char *Data, bool DisableTranslation);
+  void lower(const IceString &Name, SizeT Align, bool IsInternal, bool IsConst,
+             bool IsZeroInitializer, SizeT Size, const char *Data,
+             bool DisableTranslation) override;
 
 protected:
   TargetGlobalInitX8632(GlobalContext *Ctx);
@@ -497,7 +497,7 @@ private:
   TargetGlobalInitX8632(const TargetGlobalInitX8632 &) LLVM_DELETED_FUNCTION;
   TargetGlobalInitX8632 &
   operator=(const TargetGlobalInitX8632 &) LLVM_DELETED_FUNCTION;
-  virtual ~TargetGlobalInitX8632() {}
+  ~TargetGlobalInitX8632() override {}
 };
 
 template <> void ConstantInteger32::emit(GlobalContext *Ctx) const;
