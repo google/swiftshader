@@ -30,8 +30,6 @@
 ; RUN:   | FileCheck --check-prefix=CHECKO2UNSANDBOXEDREM %s
 
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; TODO(kschimpf) Find out why lc2i is needed.
-; RUN: %lc2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 declare i8* @llvm.nacl.read.tp()
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
@@ -525,4 +523,3 @@ entry:
 ; CHECK: mov esp, {{.*}}
 
 ; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

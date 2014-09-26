@@ -1,9 +1,7 @@
 ; Simple test of the store instruction.
 
-; TODO(kschimpf) Find out why lc2i is needed, and fix.
-; RUN: %lc2i -i %s --args --verbose inst | FileCheck %s
-; RUN: %lc2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %lc2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
+; RUN: %p2i -i %s --args --verbose inst | FileCheck %s
+; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 define void @store_i64(i32 %addr_arg) {
 entry:
@@ -12,8 +10,8 @@ entry:
   ret void
 
 ; CHECK:       Initial CFG
-; CHECK:       %__1 = i32 %addr_arg
-; CHECK-NEXT:  store i64 1, {{.*}}, align 1
+; CHECK:     entry:
+; CHECK-NEXT:  store i64 1, i64* %addr_arg, align 1
 ; CHECK-NEXT:  ret void
 }
 
@@ -24,8 +22,8 @@ entry:
   ret void
 
 ; CHECK:       Initial CFG
-; CHECK:       %__1 = i32 %addr_arg
-; CHECK-NEXT:  store i32 1, {{.*}}, align 1
+; CHECK:     entry:
+; CHECK-NEXT:  store i32 1, i32* %addr_arg, align 1
 ; CHECK-NEXT:  ret void
 }
 
@@ -36,8 +34,8 @@ entry:
   ret void
 
 ; CHECK:       Initial CFG
-; CHECK:       %__1 = i32 %addr_arg
-; CHECK-NEXT:  store i16 1, {{.*}}, align 1
+; CHECK:     entry:
+; CHECK-NEXT:  store i16 1, i16* %addr_arg, align 1
 ; CHECK-NEXT:  ret void
 }
 
@@ -48,10 +46,9 @@ entry:
   ret void
 
 ; CHECK:       Initial CFG
-; CHECK:       %__1 = i32 %addr_arg
-; CHECK-NEXT:  store i8 1, {{.*}}, align 1
+; CHECK:     entry:
+; CHECK-NEXT:  store i8 1, i8* %addr_arg, align 1
 ; CHECK-NEXT:  ret void
 }
 
 ; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

@@ -13,7 +13,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %lc2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 declare i8 @llvm.nacl.atomic.load.i8(i8*, i32)
 declare i16 @llvm.nacl.atomic.load.i16(i16*, i32)
@@ -922,4 +921,3 @@ not_lock_free:
 ; CHECK: ret
 
 ; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

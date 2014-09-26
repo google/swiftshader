@@ -7,8 +7,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; TODO(kschimpf) Find out why lc2i is needed.
-; RUN: %lc2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define void @fixed_416_align_16(i32 %n) {
 entry:
@@ -122,4 +120,3 @@ entry:
 }
 
 ; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

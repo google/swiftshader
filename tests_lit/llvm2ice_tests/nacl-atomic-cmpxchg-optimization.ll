@@ -9,8 +9,6 @@
 ; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=OM1 %s
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; TODO(kschimpf) Find out why lc2i is needed.
-; RUN: %lc2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 declare i32 @llvm.nacl.atomic.cmpxchg.i32(i32*, i32, i32, i32, i32)
 
@@ -152,4 +150,3 @@ done:
 ; O2: je
 
 ; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

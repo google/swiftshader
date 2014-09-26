@@ -4,7 +4,6 @@
 ; TODO(kschimpf) find out why lc2i is needed.
 ; RUN: %lc2i -i %s --args --verbose inst | FileCheck %s
 ; RUN: %lc2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %lc2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 @intern_global = internal global [4 x i8] c"\00\00\00\0C", align 4
 @extern_global = external global [4 x i8]
@@ -26,4 +25,3 @@ entry:
 }
 
 ; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

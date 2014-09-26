@@ -4,7 +4,6 @@
 ; TODO(kschimpf) Find out why lc2i is needed.
 ; RUN: %lc2i -i %s --args --verbose inst | FileCheck %s
 ; RUN: %lc2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %lc2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define internal i32 @compute_important_function(i32 %v1, i32 %v2) {
 entry:
@@ -51,4 +50,3 @@ entry:
 }
 
 ; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

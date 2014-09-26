@@ -9,8 +9,6 @@
 ; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; TODO(kschimpf) Find out why lc2i is needed, and fix.
-; RUN: %lc2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define i32 @simple_loop(i32 %a, i32 %n) {
 entry:
@@ -57,4 +55,3 @@ for.end:
 ; OPTM1:      ret
 
 ; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ
