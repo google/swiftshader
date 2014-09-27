@@ -37,6 +37,14 @@ else
   endif
 endif
 
+ifdef DEBUG
+  OBJDIR = build/Debug
+  OPTLEVEL = -O0
+else
+  OBJDIR = build/Release
+  OPTLEVEL = -O2
+endif
+
 $(info -----------------------------------------------)
 $(info Using LLVM_SRC_PATH = $(LLVM_SRC_PATH))
 $(info Using LLVM_BIN_PATH = $(LLVM_BIN_PATH))
@@ -50,7 +58,6 @@ LLVM_LDFLAGS := `$(LLVM_BIN_PATH)/llvm-config --libs` \
                 `$(LLVM_BIN_PATH)/llvm-config --ldflags`
 
 # It's recommended that CXX matches the compiler you used to build LLVM itself.
-OPTLEVEL := -O0
 CCACHE := `command -v ccache`
 CXX := CCACHE_CPP2=yes $(CCACHE) $(CLANG_PATH)/clang++
 
@@ -82,24 +89,28 @@ SRCS= \
 	llvm2ice.cpp \
 	PNaClTranslator.cpp
 
-OBJS=$(patsubst %.cpp, build/%.o, $(SRCS))
+OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(SRCS))
 
 # Keep all the first target so it's the default.
-all: llvm2ice
+all: $(OBJDIR)/llvm2ice make_symlink
 
-.PHONY: all
+make_symlink: $(OBJDIR)/llvm2ice
+	rm -f llvm2ice
+	ln -s $(OBJDIR)/llvm2ice
 
-llvm2ice: $(OBJS)
+.PHONY: all make_symlink
+
+$(OBJDIR)/llvm2ice: $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) -ldl \
                -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
 
 # TODO: Be more precise than "*.h" here and elsewhere.
-$(OBJS): build/%.o: src/%.cpp src/*.h src/*.def
+$(OBJS): $(OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
-$(OBJS): | build
+$(OBJS): | $(OBJDIR)
 
-build:
+$(OBJDIR):
 	@mkdir -p $@
 
 check-lit: llvm2ice
