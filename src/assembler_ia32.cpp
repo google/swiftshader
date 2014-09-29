@@ -25,6 +25,8 @@
 namespace Ice {
 namespace x86 {
 
+const Type BrokenType = IceType_i32;
+
 class DirectCallRelocation : public AssemblerFixup {
 public:
   static DirectCallRelocation *create(Assembler *Asm, FixupKind Kind,
@@ -105,7 +107,7 @@ void AssemblerX86::pushl(const Address &address) {
 void AssemblerX86::pushl(const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x68);
-  EmitImmediate(imm);
+  EmitImmediate(BrokenType, imm);
 }
 
 void AssemblerX86::popl(GPRRegister reg) {
@@ -139,7 +141,7 @@ void AssemblerX86::setcc(CondX86::BrCond condition, ByteRegister dst) {
 void AssemblerX86::movl(GPRRegister dst, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xB8 + dst);
-  EmitImmediate(imm);
+  EmitImmediate(BrokenType, imm);
 }
 
 void AssemblerX86::movl(GPRRegister dst, GPRRegister src) {
@@ -164,7 +166,7 @@ void AssemblerX86::movl(const Address &dst, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xC7);
   EmitOperand(0, dst);
-  EmitImmediate(imm);
+  EmitImmediate(BrokenType, imm);
 }
 
 void AssemblerX86::movzxb(GPRRegister dst, ByteRegister src) {
@@ -1131,7 +1133,7 @@ void AssemblerX86::fincstp() {
 
 void AssemblerX86::cmpl(GPRRegister reg, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(7, Operand(reg), imm);
+  EmitComplex(BrokenType, 7, Operand(reg), imm);
 }
 
 void AssemblerX86::cmpl(GPRRegister reg0, GPRRegister reg1) {
@@ -1154,7 +1156,7 @@ void AssemblerX86::cmpl(const Address &address, GPRRegister reg) {
 
 void AssemblerX86::cmpl(const Address &address, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(7, address, imm);
+  EmitComplex(BrokenType, 7, address, imm);
 }
 
 void AssemblerX86::cmpb(const Address &address, const Immediate &imm) {
@@ -1187,11 +1189,11 @@ void AssemblerX86::testl(GPRRegister reg, const Immediate &immediate) {
   } else if (reg == RegX8632::Encoded_Reg_eax) {
     // Use short form if the destination is EAX.
     EmitUint8(0xA9);
-    EmitImmediate(immediate);
+    EmitImmediate(BrokenType, immediate);
   } else {
     EmitUint8(0xF7);
     EmitOperand(0, Operand(reg));
-    EmitImmediate(immediate);
+    EmitImmediate(BrokenType, immediate);
   }
 }
 
@@ -1225,7 +1227,7 @@ void AssemblerX86::And(Type Ty, GPRRegister dst, const Immediate &imm) {
   }
   if (Ty == IceType_i16)
     EmitOperandSizeOverride();
-  EmitComplex(4, Operand(dst), imm);
+  EmitComplex(Ty, 4, Operand(dst), imm);
 }
 
 void AssemblerX86::Or(Type Ty, GPRRegister dst, GPRRegister src) {
@@ -1258,7 +1260,7 @@ void AssemblerX86::Or(Type Ty, GPRRegister dst, const Immediate &imm) {
   }
   if (Ty == IceType_i16)
     EmitOperandSizeOverride();
-  EmitComplex(1, Operand(dst), imm);
+  EmitComplex(Ty, 1, Operand(dst), imm);
 }
 
 void AssemblerX86::Xor(Type Ty, GPRRegister dst, GPRRegister src) {
@@ -1291,7 +1293,7 @@ void AssemblerX86::Xor(Type Ty, GPRRegister dst, const Immediate &imm) {
   }
   if (Ty == IceType_i16)
     EmitOperandSizeOverride();
-  EmitComplex(6, Operand(dst), imm);
+  EmitComplex(Ty, 6, Operand(dst), imm);
 }
 
 void AssemblerX86::add(Type Ty, GPRRegister dst, GPRRegister src) {
@@ -1324,7 +1326,7 @@ void AssemblerX86::add(Type Ty, GPRRegister reg, const Immediate &imm) {
   }
   if (Ty == IceType_i16)
     EmitOperandSizeOverride();
-  EmitComplex(0, Operand(reg), imm);
+  EmitComplex(Ty, 0, Operand(reg), imm);
 }
 
 void AssemblerX86::adc(Type Ty, GPRRegister dst, GPRRegister src) {
@@ -1357,7 +1359,7 @@ void AssemblerX86::adc(Type Ty, GPRRegister reg, const Immediate &imm) {
   }
   if (Ty == IceType_i16)
     EmitOperandSizeOverride();
-  EmitComplex(2, Operand(reg), imm);
+  EmitComplex(Ty, 2, Operand(reg), imm);
 }
 
 void AssemblerX86::sub(Type Ty, GPRRegister dst, GPRRegister src) {
@@ -1390,7 +1392,7 @@ void AssemblerX86::sub(Type Ty, GPRRegister reg, const Immediate &imm) {
   }
   if (Ty == IceType_i16)
     EmitOperandSizeOverride();
-  EmitComplex(5, Operand(reg), imm);
+  EmitComplex(Ty, 5, Operand(reg), imm);
 }
 
 void AssemblerX86::sbb(Type Ty, GPRRegister dst, GPRRegister src) {
@@ -1423,7 +1425,7 @@ void AssemblerX86::sbb(Type Ty, GPRRegister reg, const Immediate &imm) {
   }
   if (Ty == IceType_i16)
     EmitOperandSizeOverride();
-  EmitComplex(3, Operand(reg), imm);
+  EmitComplex(Ty, 3, Operand(reg), imm);
 }
 
 void AssemblerX86::cbw() {
@@ -1498,7 +1500,7 @@ void AssemblerX86::imull(GPRRegister reg, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x69);
   EmitOperand(reg, Operand(reg));
-  EmitImmediate(imm);
+  EmitImmediate(BrokenType, imm);
 }
 
 void AssemblerX86::imull(GPRRegister reg, const Address &address) {
@@ -1987,8 +1989,11 @@ void AssemblerX86::EmitOperand(int rm, const Operand &operand) {
   }
 }
 
-void AssemblerX86::EmitImmediate(const Immediate &imm) {
-  EmitInt32(imm.value());
+void AssemblerX86::EmitImmediate(Type Ty, const Immediate &imm) {
+  if (Ty == IceType_i16)
+    EmitInt16(imm.value());
+  else
+    EmitInt32(imm.value());
 }
 
 void AssemblerX86::EmitComplexI8(int rm, const Operand &operand,
@@ -2007,7 +2012,7 @@ void AssemblerX86::EmitComplexI8(int rm, const Operand &operand,
   }
 }
 
-void AssemblerX86::EmitComplex(int rm, const Operand &operand,
+void AssemblerX86::EmitComplex(Type Ty, int rm, const Operand &operand,
                                const Immediate &immediate) {
   assert(rm >= 0 && rm < 8);
   if (immediate.is_int8()) {
@@ -2018,11 +2023,11 @@ void AssemblerX86::EmitComplex(int rm, const Operand &operand,
   } else if (operand.IsRegister(RegX8632::Encoded_Reg_eax)) {
     // Use short form if the destination is eax.
     EmitUint8(0x05 + (rm << 3));
-    EmitImmediate(immediate);
+    EmitImmediate(Ty, immediate);
   } else {
     EmitUint8(0x81);
     EmitOperand(rm, operand);
-    EmitImmediate(immediate);
+    EmitImmediate(Ty, immediate);
   }
 }
 

@@ -700,6 +700,7 @@ public:
 
 private:
   inline void EmitUint8(uint8_t value);
+  inline void EmitInt16(int16_t value);
   inline void EmitInt32(int32_t value);
   inline void EmitRegisterOperand(int rm, int reg);
   inline void EmitXmmRegisterOperand(int rm, XmmRegister reg);
@@ -707,10 +708,11 @@ private:
   inline void EmitOperandSizeOverride();
 
   void EmitOperand(int rm, const Operand &operand);
-  void EmitImmediate(const Immediate &imm);
+  void EmitImmediate(Type ty, const Immediate &imm);
   void EmitComplexI8(int rm, const Operand &operand,
                      const Immediate &immediate);
-  void EmitComplex(int rm, const Operand &operand, const Immediate &immediate);
+  void EmitComplex(Type Ty, int rm, const Operand &operand,
+                   const Immediate &immediate);
   void EmitLabel(Label *label, intptr_t instruction_size);
   void EmitLabelLink(Label *label);
   void EmitNearLabelLink(Label *label);
@@ -726,6 +728,10 @@ private:
 
 inline void AssemblerX86::EmitUint8(uint8_t value) {
   buffer_.Emit<uint8_t>(value);
+}
+
+inline void AssemblerX86::EmitInt16(int16_t value) {
+  buffer_.Emit<int16_t>(value);
 }
 
 inline void AssemblerX86::EmitInt32(int32_t value) {
