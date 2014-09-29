@@ -514,13 +514,8 @@ void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
       RegX8632::getEncodedByteRegOrGPR(Ty, Var->getRegNum());
   if (const Variable *SrcVar = llvm::dyn_cast<Variable>(Src)) {
     if (SrcVar->hasReg()) {
-      RegX8632::GPRRegister SrcReg;
-      if (Ty == IceType_i8 || Ty == IceType_i1) {
-        SrcReg = static_cast<RegX8632::GPRRegister>(
-            RegX8632::getEncodedByteReg(SrcVar->getRegNum()));
-      } else {
-        SrcReg = RegX8632::getEncodedGPR(SrcVar->getRegNum());
-      }
+      RegX8632::GPRRegister SrcReg =
+          RegX8632::getEncodedByteRegOrGPR(Ty, SrcVar->getRegNum());
       (Asm->*(Emitter.GPRGPR))(Ty, VarReg, SrcReg);
     } else {
       x86::Address SrcStackAddr = static_cast<TargetX8632 *>(Func->getTarget())
@@ -747,7 +742,7 @@ template <> void InstX8632Sqrtss::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   Type Ty = getSrc(0)->getType();
-  assert(Ty == IceType_f32 || Ty == IceType_f64);
+  assert(isScalarFloatingType(Ty));
   Str << "\tsqrt" << TypeX8632Attributes[Ty].SdSsString << "\t";
   getDest()->emit(Func);
   Str << ", ";
@@ -888,7 +883,7 @@ template <> void InstX8632Pblendvb::emit(const Cfg *Func) const {
 template <> void InstX8632Imul::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
-  if (getDest()->getType() == IceType_i8) {
+  if (isByteSizedArithType(getDest()->getType())) {
     // The 8-bit version of imul only allows the form "imul r/m8".
     Variable *Src0 = llvm::dyn_cast<Variable>(getSrc(0));
     (void)Src0;
@@ -1743,8 +1738,7 @@ void InstX8632Push::emit(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   Type Ty = getSrc(0)->getType();
   Variable *Var = llvm::dyn_cast<Variable>(getSrc(0));
-  if ((isVectorType(Ty) || Ty == IceType_f32 || Ty == IceType_f64) && Var &&
-      Var->hasReg()) {
+  if ((isVectorType(Ty) || isScalarFloatingType(Ty)) && Var && Var->hasReg()) {
     // The xmm registers can't be directly pushed, so we fake it by
     // decrementing esp and then storing to [esp].
     Str << "\tsub\tesp, " << typeWidthInBytes(Ty) << "\n";

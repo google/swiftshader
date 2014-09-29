@@ -1581,7 +1581,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       //
       // The 8-bit version of imul only allows the form "imul r/m8"
       // where T must be in eax.
-      if (Dest->getType() == IceType_i8)
+      if (isByteSizedArithType(Dest->getType()))
         _mov(T, Src0, RegX8632::Reg_eax);
       else
         _mov(T, Src0);
@@ -1613,7 +1613,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       // div and idiv are the few arithmetic operators that do not allow
       // immediates as the operand.
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-      if (Dest->getType() == IceType_i8) {
+      if (isByteSizedArithType(Dest->getType())) {
         Variable *T_ah = NULL;
         Constant *Zero = Ctx->getConstantZero(IceType_i8);
         _mov(T, Src0, RegX8632::Reg_eax);
@@ -1630,7 +1630,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       break;
     case InstArithmetic::Sdiv:
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-      if (Dest->getType() == IceType_i8) {
+      if (isByteSizedArithType(Dest->getType())) {
         _mov(T, Src0, RegX8632::Reg_eax);
         _cbwdq(T, T);
         _idiv(T, Src1, T);
@@ -1645,7 +1645,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       break;
     case InstArithmetic::Urem:
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-      if (Dest->getType() == IceType_i8) {
+      if (isByteSizedArithType(Dest->getType())) {
         Variable *T_ah = NULL;
         Constant *Zero = Ctx->getConstantZero(IceType_i8);
         _mov(T, Src0, RegX8632::Reg_eax);
@@ -1662,7 +1662,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       break;
     case InstArithmetic::Srem:
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-      if (Dest->getType() == IceType_i8) {
+      if (isByteSizedArithType(Dest->getType())) {
         Variable *T_ah = makeReg(IceType_i8, RegX8632::Reg_ah);
         _mov(T, Src0, RegX8632::Reg_eax);
         _cbwdq(T, T);
@@ -1700,8 +1700,8 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
     case InstArithmetic::Frem: {
       const SizeT MaxSrcs = 2;
       Type Ty = Dest->getType();
-      InstCall *Call =
-          makeHelperCall(Ty == IceType_f32 ? "fmodf" : "fmod", Dest, MaxSrcs);
+      InstCall *Call = makeHelperCall(
+          isFloat32Asserting32Or64(Ty) ? "fmodf" : "fmod", Dest, MaxSrcs);
       Call->addArg(Src0);
       Call->addArg(Src1);
       return lowerCall(Call);
@@ -1779,8 +1779,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     Operand *Arg = Instr->getArg(i);
     Type Ty = Arg->getType();
     // The PNaCl ABI requires the width of arguments to be at least 32 bits.
-    assert(Ty == IceType_i32 || Ty == IceType_f32 || Ty == IceType_i64 ||
-           Ty == IceType_f64 || isVectorType(Ty));
+    assert(typeWidthInBytes(Ty) >= 4);
     if (isVectorType(Ty) && XmmArgs.size() < X86_MAX_XMM_ARGS) {
       XmmArgs.push_back(Arg);
     } else {
@@ -1926,7 +1925,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
         _mov(Dest, ReturnReg);
       }
     }
-  } else if (Dest->getType() == IceType_f32 || Dest->getType() == IceType_f64) {
+  } else if (isScalarFloatingType(Dest->getType())) {
     // Special treatment for an FP function which returns its result in
     // st(0).
     // If Dest ends up being a physical xmm register, the fstp emit code
@@ -2120,7 +2119,8 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       const SizeT MaxSrcs = 1;
       Type SrcType = Inst->getSrc(0)->getType();
       InstCall *Call = makeHelperCall(
-          SrcType == IceType_f32 ? "cvtftosi64" : "cvtdtosi64", Dest, MaxSrcs);
+          isFloat32Asserting32Or64(SrcType) ? "cvtftosi64" : "cvtdtosi64", Dest,
+          MaxSrcs);
       // TODO: Call the correct compiler-rt helper function.
       Call->addArg(Inst->getSrc(0));
       lowerCall(Call);
@@ -2151,8 +2151,8 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
       Type SrcType = Inst->getSrc(0)->getType();
-      IceString DstSubstring = (DestType == IceType_i64 ? "64" : "32");
-      IceString SrcSubstring = (SrcType == IceType_f32 ? "f" : "d");
+      IceString DstSubstring = (isInt32Asserting32Or64(DestType) ? "32" : "64");
+      IceString SrcSubstring = (isFloat32Asserting32Or64(SrcType) ? "f" : "d");
       // Possibilities are cvtftoui32, cvtdtoui32, cvtftoui64, cvtdtoui64
       IceString TargetString = "cvt" + SrcSubstring + "toui" + DstSubstring;
       // TODO: Call the correct compiler-rt helper function.
@@ -2185,7 +2185,8 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
       InstCall *Call = makeHelperCall(
-          DestType == IceType_f32 ? "cvtsi64tof" : "cvtsi64tod", Dest, MaxSrcs);
+          isFloat32Asserting32Or64(DestType) ? "cvtsi64tof" : "cvtsi64tod",
+          Dest, MaxSrcs);
       // TODO: Call the correct compiler-rt helper function.
       Call->addArg(Inst->getSrc(0));
       lowerCall(Call);
@@ -2219,8 +2220,9 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       // i32 on x86-32.
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
-      IceString SrcSubstring = (Src0->getType() == IceType_i64 ? "64" : "32");
-      IceString DstSubstring = (DestType == IceType_f32 ? "f" : "d");
+      IceString SrcSubstring =
+          (isInt32Asserting32Or64(Src0->getType()) ? "32" : "64");
+      IceString DstSubstring = (isFloat32Asserting32Or64(DestType) ? "f" : "d");
       // Possibilities are cvtui32tof, cvtui32tod, cvtui64tof, cvtui64tod
       IceString TargetString = "cvtui" + SrcSubstring + "to" + DstSubstring;
       // TODO: Call the correct compiler-rt helper function.
@@ -2413,7 +2415,7 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
 
     if (InVectorElementTy == IceType_i32) {
       _movd(ExtractedElementR, T);
-    } else { // Ty == Icetype_f32
+    } else { // Ty == IceType_f32
       // TODO(wala): _movss is only used here because _mov does not
       // allow a vector source and a scalar destination.  _mov should be
       // able to be used here.
@@ -3040,8 +3042,10 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   case Intrinsics::Ctpop: {
     Variable *Dest = Instr->getDest();
     Operand *Val = Instr->getArg(0);
-    InstCall *Call = makeHelperCall(Val->getType() == IceType_i64 ?
-        "__popcountdi2" : "__popcountsi2", Dest, 1);
+    InstCall *Call =
+        makeHelperCall(isInt32Asserting32Or64(Val->getType()) ? "__popcountsi2"
+                                                              : "__popcountdi2",
+                       Dest, 1);
     Call->addArg(Val);
     lowerCall(Call);
     // The popcount helpers always return 32-bit values, while the intrinsic's
@@ -3881,8 +3885,7 @@ void TargetX8632::lowerRet(const InstRet *Inst) {
       Variable *edx = legalizeToVar(hiOperand(Src0), RegX8632::Reg_edx);
       Reg = eax;
       Context.insert(InstFakeUse::create(Func, edx));
-    } else if (Src0->getType() == IceType_f32 ||
-               Src0->getType() == IceType_f64) {
+    } else if (isScalarFloatingType(Src0->getType())) {
       _fld(Src0);
     } else if (isVectorType(Src0->getType())) {
       Reg = legalizeToVar(Src0, RegX8632::Reg_xmm0);
@@ -4271,8 +4274,7 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
     if (!(Allowed & Legal_Reloc) && llvm::isa<ConstantRelocatable>(From))
       // Relocatable specifically not allowed
       NeedsReg = true;
-    if (!(Allowed & Legal_Mem) &&
-        (From->getType() == IceType_f32 || From->getType() == IceType_f64))
+    if (!(Allowed & Legal_Mem) && isScalarFloatingType(From->getType()))
       // On x86, FP constants are lowered to mem operands.
       NeedsReg = true;
     if (NeedsReg) {

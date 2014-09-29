@@ -69,6 +69,34 @@ Type getCompareResultType(Type Ty);
 /// Returns the number of bits in a scalar integer type.
 SizeT getScalarIntBitWidth(Type Ty);
 
+// Check if a type is byte sized (slight optimization over typeWidthInBytes).
+inline bool isByteSizedType(Type Ty) {
+  bool result = Ty == IceType_i8 || Ty == IceType_i1;
+  assert(result == (1 == typeWidthInBytes(Ty)));
+  return result;
+}
+
+// Check if Ty is byte sized and specifically i8. Assert that it's not
+// byte sized due to being an i1.
+inline bool isByteSizedArithType(Type Ty) {
+  assert(Ty != IceType_i1);
+  return Ty == IceType_i8;
+}
+
+// Return true if Ty is i32. This asserts that Ty is either i32 or i64.
+inline bool isInt32Asserting32Or64(Type Ty) {
+  bool result = Ty == IceType_i32;
+  assert(result || Ty == IceType_i64);
+  return result;
+}
+
+// Return true if Ty is f32. This asserts that Ty is either f32 or f64.
+inline bool isFloat32Asserting32Or64(Type Ty) {
+  bool result = Ty == IceType_f32;
+  assert(result || Ty == IceType_f64);
+  return result;
+}
+
 template <typename StreamType>
 inline StreamType &operator<<(StreamType &Str, const Type &Ty) {
   Str << typeString(Ty);

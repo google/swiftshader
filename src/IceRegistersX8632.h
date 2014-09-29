@@ -85,7 +85,7 @@ static inline ByteRegister getEncodedByteReg(int32_t RegNum) {
 }
 
 static inline GPRRegister getEncodedByteRegOrGPR(Type Ty, int32_t RegNum) {
-  if (Ty == IceType_i8 || Ty == IceType_i1)
+  if (isByteSizedType(Ty))
     return GPRRegister(getEncodedByteReg(RegNum));
   else
     return getEncodedGPR(RegNum);

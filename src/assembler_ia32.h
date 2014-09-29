@@ -51,7 +51,7 @@ public:
         DisplacementRelocation(Kind, Sym);
   }
 
-  void Process(const MemoryRegion &region, intptr_t position) {
+  void Process(const MemoryRegion &region, intptr_t position) override {
     (void)region;
     (void)position;
     llvm_unreachable("We might not be using this Process() method later.");
