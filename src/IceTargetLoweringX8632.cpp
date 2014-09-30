@@ -1581,10 +1581,12 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       //
       // The 8-bit version of imul only allows the form "imul r/m8"
       // where T must be in eax.
-      if (isByteSizedArithType(Dest->getType()))
+      if (isByteSizedArithType(Dest->getType())) {
         _mov(T, Src0, RegX8632::Reg_eax);
-      else
+        Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
+      } else {
         _mov(T, Src0);
+      }
       _imul(T, Src1);
       _mov(Dest, T);
       break;

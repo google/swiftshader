@@ -535,7 +535,11 @@ public:
 
   void pextrd(GPRRegister dst, XmmRegister src, const Immediate &imm);
   void pmovsxdq(XmmRegister dst, XmmRegister src);
-  void pcmpeqq(XmmRegister dst, XmmRegister src);
+
+  void pcmpeq(Type Ty, XmmRegister dst, XmmRegister src);
+  void pcmpeq(Type Ty, XmmRegister dst, const Address &src);
+  void pcmpgt(Type Ty, XmmRegister dst, XmmRegister src);
+  void pcmpgt(Type Ty, XmmRegister dst, const Address &src);
 
   enum RoundingMode {
     kRoundToNearest = 0x0,
@@ -609,12 +613,12 @@ public:
   void idiv(Type Ty, GPRRegister reg);
   void idiv(Type Ty, const Address &address);
 
-  void imull(GPRRegister dst, GPRRegister src);
-  void imull(GPRRegister reg, const Immediate &imm);
-  void imull(GPRRegister reg, const Address &address);
+  void imul(Type Ty, GPRRegister dst, GPRRegister src);
+  void imul(Type Ty, GPRRegister reg, const Immediate &imm);
+  void imul(Type Ty, GPRRegister reg, const Address &address);
 
-  void imull(GPRRegister reg);
-  void imull(const Address &address);
+  void imul(Type Ty, GPRRegister reg);
+  void imul(Type Ty, const Address &address);
 
   void mul(Type Ty, GPRRegister reg);
   void mul(Type Ty, const Address &address);

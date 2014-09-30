@@ -1056,13 +1056,60 @@ void AssemblerX86::pmovsxdq(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX86::pcmpeqq(XmmRegister dst, XmmRegister src) {
+void AssemblerX86::pcmpeq(Type Ty, XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
   EmitUint8(0x0F);
-  EmitUint8(0x38);
-  EmitUint8(0x29);
+  if (isByteSizedArithType(Ty)) {
+    EmitUint8(0x74);
+  } else if (Ty == IceType_i16) {
+    EmitUint8(0x75);
+  } else {
+    EmitUint8(0x76);
+  }
   EmitXmmRegisterOperand(dst, src);
+}
+
+void AssemblerX86::pcmpeq(Type Ty, XmmRegister dst, const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (isByteSizedArithType(Ty)) {
+    EmitUint8(0x74);
+  } else if (Ty == IceType_i16) {
+    EmitUint8(0x75);
+  } else {
+    EmitUint8(0x76);
+  }
+  EmitOperand(dst, src);
+}
+
+void AssemblerX86::pcmpgt(Type Ty, XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (isByteSizedArithType(Ty)) {
+    EmitUint8(0x64);
+  } else if (Ty == IceType_i16) {
+    EmitUint8(0x65);
+  } else {
+    EmitUint8(0x66);
+  }
+  EmitXmmRegisterOperand(dst, src);
+}
+
+void AssemblerX86::pcmpgt(Type Ty, XmmRegister dst, const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (isByteSizedArithType(Ty)) {
+    EmitUint8(0x64);
+  } else if (Ty == IceType_i16) {
+    EmitUint8(0x65);
+  } else {
+    EmitUint8(0x66);
+  }
+  EmitOperand(dst, src);
 }
 
 void AssemblerX86::roundsd(XmmRegister dst, XmmRegister src,
@@ -1489,36 +1536,61 @@ void AssemblerX86::idiv(Type Ty, const Address &addr) {
   EmitOperand(7, addr);
 }
 
-void AssemblerX86::imull(GPRRegister dst, GPRRegister src) {
+void AssemblerX86::imul(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(Ty == IceType_i16 || Ty == IceType_i32);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitUint8(0x0F);
   EmitUint8(0xAF);
-  EmitOperand(dst, Operand(src));
+  EmitRegisterOperand(dst, src);
 }
 
-void AssemblerX86::imull(GPRRegister reg, const Immediate &imm) {
+void AssemblerX86::imul(Type Ty, GPRRegister reg, const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x69);
-  EmitOperand(reg, Operand(reg));
-  EmitImmediate(BrokenType, imm);
-}
-
-void AssemblerX86::imull(GPRRegister reg, const Address &address) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(Ty == IceType_i16 || Ty == IceType_i32);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitUint8(0x0F);
   EmitUint8(0xAF);
   EmitOperand(reg, address);
 }
 
-void AssemblerX86::imull(GPRRegister reg) {
+void AssemblerX86::imul(Type Ty, GPRRegister reg, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF7);
-  EmitOperand(5, Operand(reg));
+  assert(Ty == IceType_i16 || Ty == IceType_i32);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (imm.is_int8()) {
+    EmitUint8(0x6B);
+    EmitRegisterOperand(reg, reg);
+    EmitUint8(imm.value() & 0xFF);
+  } else {
+    EmitUint8(0x69);
+    EmitRegisterOperand(reg, reg);
+    EmitImmediate(Ty, imm);
+  }
 }
 
-void AssemblerX86::imull(const Address &address) {
+void AssemblerX86::imul(Type Ty, GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF7);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (isByteSizedArithType(Ty))
+    EmitUint8(0xF6);
+  else
+    EmitUint8(0xF7);
+  EmitRegisterOperand(5, reg);
+}
+
+void AssemblerX86::imul(Type Ty, const Address &address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (isByteSizedArithType(Ty))
+    EmitUint8(0xF6);
+  else
+    EmitUint8(0xF7);
   EmitOperand(5, address);
 }
 

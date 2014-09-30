@@ -171,5 +171,88 @@ entry:
 ; CHECK-LABEL: testSub8Imm8
 ; CHECK: 2c 7d  sub al, 125
 
+; imul has some shorter 8-bit immediate encodings.
+; It also has a shorter encoding for eax, but we don't do that yet.
+
+define internal i32 @testMul16Imm8(i32 %arg) {
+entry:
+  %arg_i16 = trunc i32 %arg to i16
+  %tmp = mul i16 %arg_i16, 99
+  %result_i16 = add i16 %tmp, 1
+  %result = zext i16 %result_i16 to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testMul16Imm8
+; CHECK: 66 6b c0 63  imul ax, ax, 99
+; CHECK-NEXT: add ax, 1
+
+define internal i32 @testMul16Imm8Neg(i32 %arg) {
+entry:
+  %arg_i16 = trunc i32 %arg to i16
+  %tmp = mul i16 %arg_i16, -111
+  %result_i16 = add i16 %tmp, 1
+  %result = zext i16 %result_i16 to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testMul16Imm8Neg
+; CHECK: 66 6b c0 91  imul ax, ax, 145
+; CHECK-NEXT: add ax, 1
+
+define internal i32 @testMul16Imm16(i32 %arg) {
+entry:
+  %arg_i16 = trunc i32 %arg to i16
+  %tmp = mul i16 %arg_i16, 1024
+  %result_i16 = add i16 %tmp, 1
+  %result = zext i16 %result_i16 to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testMul16Imm16
+; CHECK: 66 69 c0 00 04  imul ax, ax, 1024
+; CHECK-NEXT: add ax, 1
+
+define internal i32 @testMul16Imm16Neg(i32 %arg) {
+entry:
+  %arg_i16 = trunc i32 %arg to i16
+  %tmp = mul i16 %arg_i16, -256
+  %result_i16 = add i16 %tmp, 1
+  %result = zext i16 %result_i16 to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testMul16Imm16Neg
+; CHECK: 66 69 c0 00 ff  imul ax, ax, 65280
+; CHECK-NEXT: add ax, 1
+
+define internal i32 @testMul32Imm8(i32 %arg) {
+entry:
+  %result = mul i32 %arg, 99
+  ret i32 %result
+}
+; CHECK-LABEL: testMul32Imm8
+; CHECK: 6b c0 63  imul eax, eax, 99
+
+define internal i32 @testMul32Imm8Neg(i32 %arg) {
+entry:
+  %result = mul i32 %arg, -111
+  ret i32 %result
+}
+; CHECK-LABEL: testMul32Imm8Neg
+; CHECK: 6b c0 91  imul eax, eax, -111
+
+define internal i32 @testMul32Imm16(i32 %arg) {
+entry:
+  %result = mul i32 %arg, 1024
+  ret i32 %result
+}
+; CHECK-LABEL: testMul32Imm16
+; CHECK: 69 c0 00 04 00 00  imul eax, eax, 1024
+
+define internal i32 @testMul32Imm16Neg(i32 %arg) {
+entry:
+  %result = mul i32 %arg, -256
+  ret i32 %result
+}
+; CHECK-LABEL: testMul32Imm16Neg
+; CHECK: 69 c0 00 ff ff ff  imul eax, eax, 4294967040
+
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

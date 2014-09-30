@@ -720,6 +720,12 @@ template <>
 const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Pandn::Emitter = {
     &x86::AssemblerX86::pandn, &x86::AssemblerX86::pandn, NULL};
 template <>
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Pcmpeq::Emitter = {
+    &x86::AssemblerX86::pcmpeq, &x86::AssemblerX86::pcmpeq, NULL};
+template <>
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Pcmpgt::Emitter = {
+    &x86::AssemblerX86::pcmpgt, &x86::AssemblerX86::pcmpgt, NULL};
+template <>
 const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Pmuludq::Emitter = {
     &x86::AssemblerX86::pmuludq, &x86::AssemblerX86::pmuludq, NULL};
 template <>
@@ -901,6 +907,30 @@ template <> void InstX8632Imul::emit(const Cfg *Func) const {
     Str << "\n";
   } else {
     emitTwoAddress("imul", this, Func);
+  }
+}
+
+template <> void InstX8632Imul::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  const Variable *Var = getDest();
+  Type Ty = Var->getType();
+  const Operand *Src = getSrc(1);
+  if (isByteSizedArithType(Ty)) {
+    // The 8-bit version of imul only allows the form "imul r/m8".
+    Variable *Src0 = llvm::dyn_cast<Variable>(getSrc(0));
+    (void)Src0;
+    assert(Src0 && Src0->getRegNum() == RegX8632::Reg_eax);
+    const x86::AssemblerX86::GPREmitterOneOp Emitter = {
+        &x86::AssemblerX86::imul, &x86::AssemblerX86::imul};
+    emitIASOpTyGPR(Func, Ty, getSrc(1), Emitter);
+  } else {
+    // We only use imul as a two-address instruction even though
+    // there is a 3 operand version when one of the operands is a constant.
+    assert(Var == getSrc(0));
+    const x86::AssemblerX86::GPREmitterRegOp Emitter = {
+        &x86::AssemblerX86::imul, &x86::AssemblerX86::imul,
+        &x86::AssemblerX86::imul};
+    emitIASRegOpTyGPR(Func, Ty, Var, Src, Emitter);
   }
 }
 

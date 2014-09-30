@@ -837,7 +837,7 @@ typedef InstX8632BinopGPR<InstX8632::Or> InstX8632Or;
 typedef InstX8632BinopXmm<InstX8632::Por, false> InstX8632Por;
 typedef InstX8632BinopGPR<InstX8632::Xor> InstX8632Xor;
 typedef InstX8632BinopXmm<InstX8632::Pxor, false> InstX8632Pxor;
-typedef InstX8632Binop<InstX8632::Imul> InstX8632Imul;
+typedef InstX8632BinopGPR<InstX8632::Imul> InstX8632Imul;
 typedef InstX8632BinopXmm<InstX8632::Mulps, true> InstX8632Mulps;
 typedef InstX8632BinopXmm<InstX8632::Mulss, false> InstX8632Mulss;
 typedef InstX8632Binop<InstX8632::Pmull> InstX8632Pmull;
@@ -850,8 +850,8 @@ typedef InstX8632Binop<InstX8632::Psll> InstX8632Psll;
 typedef InstX8632Binop<InstX8632::Shr, true> InstX8632Shr;
 typedef InstX8632Binop<InstX8632::Sar, true> InstX8632Sar;
 typedef InstX8632Binop<InstX8632::Psra> InstX8632Psra;
-typedef InstX8632Binop<InstX8632::Pcmpeq> InstX8632Pcmpeq;
-typedef InstX8632Binop<InstX8632::Pcmpgt> InstX8632Pcmpgt;
+typedef InstX8632BinopXmm<InstX8632::Pcmpeq, true> InstX8632Pcmpeq;
+typedef InstX8632BinopXmm<InstX8632::Pcmpgt, true> InstX8632Pcmpgt;
 // TODO: movss is only a binary operation when the source and dest
 // operands are both registers.  In other cases, it behaves like a copy
 // (mov-like) operation.  Eventually, InstX8632Movss should assert that
@@ -1450,6 +1450,7 @@ template <> void InstX8632Subss::emit(const Cfg *Func) const;
 
 template <> void InstX8632Div::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Idiv::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Imul::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Cbwdq::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Movd::emitIAS(const Cfg *Func) const;
 
