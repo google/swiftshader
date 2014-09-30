@@ -122,9 +122,26 @@ bool LiveRange::overlaps(const LiveRange &Other) const {
 }
 
 bool LiveRange::overlaps(InstNumberT OtherBegin) const {
+  bool Result = false;
+  for (RangeType::const_iterator I = Range.begin(), E = Range.end(); I != E;
+       ++I) {
+    if (OtherBegin < I->first) {
+      Result = false;
+      break;
+    }
+    if (OtherBegin < I->second) {
+      Result = true;
+      break;
+    }
+  }
+#if 0
+  // An equivalent but less inefficient implementation:
   LiveRange Temp;
   Temp.addSegment(OtherBegin, OtherBegin + 1);
-  return overlaps(Temp);
+  bool Validation = overlaps(Temp);
+  assert(Result == Validation);
+#endif
+  return Result;
 }
 
 // Returns true if the live range contains the given instruction
@@ -259,6 +276,8 @@ const Inst *VariableTracking::getSingleDefinition() const {
 }
 
 void VariablesMetadata::init() {
+  static TimerIdT IDvmetadata = GlobalContext::getTimerID("vmetadata");
+  TimerMarker T(IDvmetadata, Func->getContext());
   Metadata.clear();
   Metadata.resize(Func->getNumVariables());
 

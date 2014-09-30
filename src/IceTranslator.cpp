@@ -12,12 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "IceTranslator.h"
-
 #include "IceCfg.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
 #include "IceTargetLowering.h"
+#include "IceTranslator.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
@@ -80,24 +79,13 @@ void Translator::translateFcn(Cfg *Fcn) {
   if (Ctx->getFlags().DisableTranslation) {
     Func->dump();
   } else {
-    Timer TTranslate;
     Func->translate();
-    if (Ctx->getFlags().SubzeroTimingEnabled) {
-      std::cerr << "[Subzero timing] Translate function "
-                << Func->getFunctionName() << ": " << TTranslate.getElapsedSec()
-                << " sec\n";
-    }
     if (Func->hasError()) {
       std::cerr << "ICE translation error: " << Func->getError() << "\n";
       ErrorStatus = true;
     }
 
-    Timer TEmit;
     Func->emit();
-    if (Ctx->getFlags().SubzeroTimingEnabled) {
-      std::cerr << "[Subzero timing] Emit function " << Func->getFunctionName()
-                << ": " << TEmit.getElapsedSec() << " sec\n";
-    }
     Ctx->dumpStats(Func->getFunctionName());
   }
 }

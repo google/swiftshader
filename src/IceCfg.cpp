@@ -69,14 +69,14 @@ bool Cfg::hasComputedFrame() const { return getTarget()->hasComputedFrame(); }
 void Cfg::translate() {
   if (hasError())
     return;
+  static TimerIdT IDtranslate = GlobalContext::getTimerID("translate");
+  TimerMarker T(IDtranslate, getContext());
 
   dump("Initial CFG");
 
-  Timer T_translate;
   // The set of translation passes and their order are determined by
   // the target.
   getTarget()->translate();
-  T_translate.printElapsedUs(getContext(), "translate()");
 
   dump("Final output");
 }
@@ -88,6 +88,9 @@ void Cfg::computePredecessors() {
 }
 
 void Cfg::renumberInstructions() {
+  static TimerIdT IDrenumberInstructions =
+      GlobalContext::getTimerID("renumberInstructions");
+  TimerMarker T(IDrenumberInstructions, getContext());
   NextInstNumber = 1;
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     (*I)->renumberInstructions();
@@ -96,6 +99,8 @@ void Cfg::renumberInstructions() {
 
 // placePhiLoads() must be called before placePhiStores().
 void Cfg::placePhiLoads() {
+  static TimerIdT IDplacePhiLoads = GlobalContext::getTimerID("placePhiLoads");
+  TimerMarker T(IDplacePhiLoads, getContext());
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     (*I)->placePhiLoads();
   }
@@ -103,34 +108,48 @@ void Cfg::placePhiLoads() {
 
 // placePhiStores() must be called after placePhiLoads().
 void Cfg::placePhiStores() {
+  static TimerIdT IDplacePhiStores =
+      GlobalContext::getTimerID("placePhiStores");
+  TimerMarker T(IDplacePhiStores, getContext());
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     (*I)->placePhiStores();
   }
 }
 
 void Cfg::deletePhis() {
+  static TimerIdT IDdeletePhis = GlobalContext::getTimerID("deletePhis");
+  TimerMarker T(IDdeletePhis, getContext());
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     (*I)->deletePhis();
   }
 }
 
 void Cfg::doArgLowering() {
+  static TimerIdT IDdoArgLowering = GlobalContext::getTimerID("doArgLowering");
+  TimerMarker T(IDdoArgLowering, getContext());
   getTarget()->lowerArguments();
 }
 
 void Cfg::doAddressOpt() {
+  static TimerIdT IDdoAddressOpt = GlobalContext::getTimerID("doAddressOpt");
+  TimerMarker T(IDdoAddressOpt, getContext());
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     (*I)->doAddressOpt();
   }
 }
 
 void Cfg::doNopInsertion() {
+  static TimerIdT IDdoNopInsertion =
+      GlobalContext::getTimerID("doNopInsertion");
+  TimerMarker T(IDdoNopInsertion, getContext());
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     (*I)->doNopInsertion();
   }
 }
 
 void Cfg::genCode() {
+  static TimerIdT IDgenCode = GlobalContext::getTimerID("genCode");
+  TimerMarker T(IDgenCode, getContext());
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     (*I)->genCode();
   }
@@ -138,6 +157,8 @@ void Cfg::genCode() {
 
 // Compute the stack frame layout.
 void Cfg::genFrame() {
+  static TimerIdT IDgenFrame = GlobalContext::getTimerID("genFrame");
+  TimerMarker T(IDgenFrame, getContext());
   getTarget()->addProlog(Entry);
   // TODO: Consider folding epilog generation into the final
   // emission/assembly pass to avoid an extra iteration over the node
@@ -154,6 +175,9 @@ void Cfg::genFrame() {
 // completely with a single block.  It is a quick single pass and
 // doesn't need to iterate until convergence.
 void Cfg::livenessLightweight() {
+  static TimerIdT IDlivenessLightweight =
+      GlobalContext::getTimerID("livenessLightweight");
+  TimerMarker T(IDlivenessLightweight, getContext());
   getVMetadata()->init();
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     (*I)->livenessLightweight();
@@ -161,6 +185,8 @@ void Cfg::livenessLightweight() {
 }
 
 void Cfg::liveness(LivenessMode Mode) {
+  static TimerIdT IDliveness = GlobalContext::getTimerID("liveness");
+  TimerMarker T(IDliveness, getContext());
   Live.reset(new Liveness(this, Mode));
   getVMetadata()->init();
   Live->init();
@@ -199,9 +225,10 @@ void Cfg::liveness(LivenessMode Mode) {
   // Collect timing for just the portion that constructs the live
   // range intervals based on the end-of-live-range computation, for a
   // finer breakdown of the cost.
-  Timer T_liveRange;
   // Make a final pass over instructions to delete dead instructions
   // and build each Variable's live range.
+  static TimerIdT IDliveRange = GlobalContext::getTimerID("liveRange");
+  TimerMarker T1(IDliveRange, getContext());
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     (*I)->livenessPostprocess(Mode, getLiveness());
   }
@@ -241,7 +268,6 @@ void Cfg::liveness(LivenessMode Mode) {
       if (Var->getWeight().isInf())
         Var->setLiveRangeInfiniteWeight();
     }
-    T_liveRange.printElapsedUs(getContext(), "live range construction");
     dump();
   }
 }
@@ -249,6 +275,9 @@ void Cfg::liveness(LivenessMode Mode) {
 // Traverse every Variable of every Inst and verify that it
 // appears within the Variable's computed live range.
 bool Cfg::validateLiveness() const {
+  static TimerIdT IDvalidateLiveness =
+      GlobalContext::getTimerID("validateLiveness");
+  TimerMarker T(IDvalidateLiveness, getContext());
   bool Valid = true;
   Ostream &Str = Ctx->getStrDump();
   for (NodeList::const_iterator I1 = Nodes.begin(), E1 = Nodes.end(); I1 != E1;
@@ -296,18 +325,21 @@ bool Cfg::validateLiveness() const {
 }
 
 void Cfg::doBranchOpt() {
+  static TimerIdT IDdoBranchOpt = GlobalContext::getTimerID("doBranchOpt");
+  TimerMarker T(IDdoBranchOpt, getContext());
   for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     NodeList::iterator NextNode = I;
     ++NextNode;
-    (*I)->doBranchOpt(*NextNode);
+    (*I)->doBranchOpt(NextNode == E ? NULL : *NextNode);
   }
 }
 
 // ======================== Dump routines ======================== //
 
 void Cfg::emit() {
+  static TimerIdT IDemit = GlobalContext::getTimerID("emit");
+  TimerMarker T(IDemit, getContext());
   Ostream &Str = Ctx->getStrEmit();
-  Timer T_emit;
   if (!Ctx->testAndSetHasEmittedFirstMethod()) {
     // Print a helpful command for assembling the output.
     // TODO: have the Target emit the header
@@ -339,7 +371,6 @@ void Cfg::emit() {
     (*I)->emit(this);
   }
   Str << "\n";
-  T_emit.printElapsedUs(Ctx, "emit()");
 }
 
 // Dumps the IR with an optional introductory message.

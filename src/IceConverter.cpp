@@ -11,11 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "IceConverter.h"
-
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
+#include "IceConverter.h"
 #include "IceDefs.h"
 #include "IceGlobalContext.h"
 #include "IceInst.h"
@@ -60,6 +59,9 @@ public:
 
   // Caller is expected to delete the returned Ice::Cfg object.
   Ice::Cfg *convertFunction(const Function *F) {
+    static Ice::TimerIdT IDllvmConvert =
+        Ice::GlobalContext::getTimerID("llvmConvert");
+    Ice::TimerMarker T(IDllvmConvert, Ctx);
     VarMap.clear();
     NodeMap.clear();
     Func = new Ice::Cfg(Ctx);
@@ -621,6 +623,8 @@ private:
 namespace Ice {
 
 void Converter::convertToIce() {
+  static TimerIdT IDconvertToIce = GlobalContext::getTimerID("convertToIce");
+  TimerMarker T(IDconvertToIce, Ctx);
   nameUnnamedGlobalAddresses(Mod);
   if (!Ctx->getFlags().DisableGlobals)
     convertGlobals(Mod);
@@ -635,11 +639,6 @@ void Converter::convertFunctions() {
 
     Timer TConvert;
     Cfg *Fcn = FunctionConverter.convertFunction(I);
-    if (Ctx->getFlags().SubzeroTimingEnabled) {
-      std::cerr << "[Subzero timing] Convert function "
-                << Fcn->getFunctionName() << ": " << TConvert.getElapsedSec()
-                << " sec\n";
-    }
     translateFcn(Fcn);
   }
 

@@ -80,9 +80,10 @@ SRCS= \
 	IceMemoryRegion.cpp \
 	IceOperand.cpp \
 	IceRegAlloc.cpp \
-        IceRNG.cpp \
+	IceRNG.cpp \
 	IceTargetLowering.cpp \
 	IceTargetLoweringX8632.cpp \
+	IceTimerTree.cpp \
 	IceTranslator.cpp \
 	IceTypeConverter.cpp \
 	IceTypes.cpp \
@@ -113,7 +114,7 @@ $(OBJS): | $(OBJDIR)
 $(OBJDIR):
 	@mkdir -p $@
 
-check-lit: llvm2ice
+check-lit: llvm2ice make_symlink
 	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit
 

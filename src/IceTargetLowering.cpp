@@ -229,6 +229,8 @@ void TargetLowering::lower() {
 // registers could potentially be parameterized if we want to restrict
 // registers e.g. for performance testing.
 void TargetLowering::regAlloc() {
+  static TimerIdT IDregAlloc = GlobalContext::getTimerID("regAlloc");
+  TimerMarker T(IDregAlloc, Ctx);
   LinearScan LinearScan(Func);
   RegSetMask RegInclude = RegSet_None;
   RegSetMask RegExclude = RegSet_None;

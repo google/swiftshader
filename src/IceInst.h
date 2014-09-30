@@ -509,9 +509,9 @@ private:
 class InstLoad : public InstHighLevel {
 public:
   static InstLoad *create(Cfg *Func, Variable *Dest, Operand *SourceAddr,
-                          uint32_t align = 1) {
+                          uint32_t Align = 1) {
     // TODO(kschimpf) Stop ignoring alignment specification.
-    (void)align;
+    (void)Align;
     return new (Func->allocateInst<InstLoad>())
         InstLoad(Func, Dest, SourceAddr);
   }

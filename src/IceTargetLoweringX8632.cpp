@@ -302,35 +302,27 @@ TargetX8632::TargetX8632(Cfg *Func)
 
 void TargetX8632::translateO2() {
   GlobalContext *Context = Func->getContext();
+  static TimerIdT IDO2 = GlobalContext::getTimerID("O2");
+  TimerMarker T(IDO2, Context);
 
   // Lower Phi instructions.
-  Timer T_placePhiLoads;
   Func->placePhiLoads();
   if (Func->hasError())
     return;
-  T_placePhiLoads.printElapsedUs(Context, "placePhiLoads()");
-  Timer T_placePhiStores;
   Func->placePhiStores();
   if (Func->hasError())
     return;
-  T_placePhiStores.printElapsedUs(Context, "placePhiStores()");
-  Timer T_deletePhis;
   Func->deletePhis();
   if (Func->hasError())
     return;
-  T_deletePhis.printElapsedUs(Context, "deletePhis()");
   Func->dump("After Phi lowering");
 
   // Address mode optimization.
-  Timer T_doAddressOpt;
   Func->getVMetadata()->init();
   Func->doAddressOpt();
-  T_doAddressOpt.printElapsedUs(Context, "doAddressOpt()");
 
   // Argument lowering
-  Timer T_argLowering;
   Func->doArgLowering();
-  T_argLowering.printElapsedUs(Context, "lowerArguments()");
 
   // Target lowering.  This requires liveness analysis for some parts
   // of the lowering decisions, such as compare/branch fusing.  If
@@ -338,40 +330,30 @@ void TargetX8632::translateO2() {
   // to be renumbered first.  TODO: This renumbering should only be
   // necessary if we're actually calculating live intervals, which we
   // only do for register allocation.
-  Timer T_renumber1;
   Func->renumberInstructions();
   if (Func->hasError())
     return;
-  T_renumber1.printElapsedUs(Context, "renumberInstructions()");
 
   // TODO: It should be sufficient to use the fastest liveness
   // calculation, i.e. livenessLightweight().  However, for some
   // reason that slows down the rest of the translation.  Investigate.
-  Timer T_liveness1;
   Func->liveness(Liveness_Basic);
   if (Func->hasError())
     return;
-  T_liveness1.printElapsedUs(Context, "liveness()");
   Func->dump("After x86 address mode opt");
 
-  Timer T_genCode;
   Func->genCode();
   if (Func->hasError())
     return;
-  T_genCode.printElapsedUs(Context, "genCode()");
 
   // Register allocation.  This requires instruction renumbering and
   // full liveness analysis.
-  Timer T_renumber2;
   Func->renumberInstructions();
   if (Func->hasError())
     return;
-  T_renumber2.printElapsedUs(Context, "renumberInstructions()");
-  Timer T_liveness2;
   Func->liveness(Liveness_Intervals);
   if (Func->hasError())
     return;
-  T_liveness2.printElapsedUs(Context, "liveness()");
   // Validate the live range computations.  Do it outside the timing
   // code.  TODO: Put this under a flag.
   bool ValidLiveness = Func->validateLiveness();
@@ -381,20 +363,16 @@ void TargetX8632::translateO2() {
   // The post-codegen dump is done here, after liveness analysis and
   // associated cleanup, to make the dump cleaner and more useful.
   Func->dump("After initial x8632 codegen");
-  Timer T_regAlloc;
   Func->getVMetadata()->init();
   regAlloc();
   if (Func->hasError())
     return;
-  T_regAlloc.printElapsedUs(Context, "regAlloc()");
   Func->dump("After linear scan regalloc");
 
   // Stack frame mapping.
-  Timer T_genFrame;
   Func->genFrame();
   if (Func->hasError())
     return;
-  T_genFrame.printElapsedUs(Context, "genFrame()");
   Func->dump("After stack frame mapping");
 
   // Branch optimization.  This needs to be done just before code
@@ -413,39 +391,29 @@ void TargetX8632::translateO2() {
 
 void TargetX8632::translateOm1() {
   GlobalContext *Context = Func->getContext();
-  Timer T_placePhiLoads;
+  static TimerIdT IDOm1 = GlobalContext::getTimerID("Om1");
+  TimerMarker T(IDOm1, Context);
   Func->placePhiLoads();
   if (Func->hasError())
     return;
-  T_placePhiLoads.printElapsedUs(Context, "placePhiLoads()");
-  Timer T_placePhiStores;
   Func->placePhiStores();
   if (Func->hasError())
     return;
-  T_placePhiStores.printElapsedUs(Context, "placePhiStores()");
-  Timer T_deletePhis;
   Func->deletePhis();
   if (Func->hasError())
     return;
-  T_deletePhis.printElapsedUs(Context, "deletePhis()");
   Func->dump("After Phi lowering");
 
-  Timer T_argLowering;
   Func->doArgLowering();
-  T_argLowering.printElapsedUs(Context, "lowerArguments()");
 
-  Timer T_genCode;
   Func->genCode();
   if (Func->hasError())
     return;
-  T_genCode.printElapsedUs(Context, "genCode()");
   Func->dump("After initial x8632 codegen");
 
-  Timer T_genFrame;
   Func->genFrame();
   if (Func->hasError())
     return;
-  T_genFrame.printElapsedUs(Context, "genFrame()");
   Func->dump("After stack frame mapping");
 
   // Nop insertion

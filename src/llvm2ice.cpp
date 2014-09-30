@@ -44,7 +44,6 @@ static cl::list<Ice::VerboseItem> VerboseList(
         clEnumValN(Ice::IceV_RegOrigins, "orig", "Physical register origins"),
         clEnumValN(Ice::IceV_LinearScan, "regalloc", "Linear scan details"),
         clEnumValN(Ice::IceV_Frame, "frame", "Stack frame layout details"),
-        clEnumValN(Ice::IceV_Timing, "time", "Pass timing details"),
         clEnumValN(Ice::IceV_AddrOpt, "addropt", "Address mode optimization"),
         clEnumValN(Ice::IceV_All, "all", "Use all verbose options"),
         clEnumValN(Ice::IceV_Most, "most",
@@ -175,6 +174,8 @@ int main(int argc, char **argv) {
 
   Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix,
                          Flags);
+  static Ice::TimerIdT IDszmain = Ice::GlobalContext::getTimerID("szmain");
+  Ice::TimerMarker T(IDszmain, &Ctx);
 
   int ErrorStatus = 0;
   if (BuildOnRead) {
@@ -184,14 +185,10 @@ int main(int argc, char **argv) {
   } else {
     // Parse the input LLVM IR file into a module.
     SMDiagnostic Err;
-    Ice::Timer T;
+    static Ice::TimerIdT IDparse = Ice::GlobalContext::getTimerID("parse");
+    Ice::TimerMarker T1(IDparse, &Ctx);
     Module *Mod =
         NaClParseIRFile(IRFilename, InputFileFormat, Err, getGlobalContext());
-
-    if (SubzeroTimingEnabled) {
-      std::cerr << "[Subzero timing] IR Parsing: " << T.getElapsedSec()
-                << " sec\n";
-    }
 
     if (!Mod) {
       Err.print(argv[0], errs());
@@ -202,6 +199,8 @@ int main(int argc, char **argv) {
     Converter.convertToIce();
     ErrorStatus = Converter.getErrorStatus();
   }
+  if (SubzeroTimingEnabled)
+    Ctx.dumpTimers();
   const bool FinalStats = true;
   Ctx.dumpStats("_FINAL_", FinalStats);
   return ErrorStatus;

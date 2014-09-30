@@ -64,12 +64,15 @@ void dumpDisableOverlap(const Cfg *Func, const Variable *Var,
 // preparation.  Results are assigned to Variable::RegNum for each
 // Variable.
 void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
+  static TimerIdT IDscan = GlobalContext::getTimerID("linearScan");
+  TimerMarker T(IDscan, Func->getContext());
   assert(RegMaskFull.any()); // Sanity check
   Unhandled.clear();
   Handled.clear();
   Inactive.clear();
   Active.clear();
   Ostream &Str = Func->getContext()->getStrDump();
+  bool Verbose = Func->getContext()->isVerbose(IceV_LinearScan);
   Func->resetCurrentNode();
   VariablesMetadata *VMetadata = Func->getVMetadata();
 
@@ -81,26 +84,32 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   // a result, it may be useful to design a better data structure for
   // storing Func->getVariables().
   const VarList &Vars = Func->getVariables();
-  for (VarList::const_iterator I = Vars.begin(), E = Vars.end(); I != E; ++I) {
-    Variable *Var = *I;
-    // Explicitly don't consider zero-weight variables, which are
-    // meant to be spill slots.
-    if (Var->getWeight() == RegWeight::Zero)
-      continue;
-    // Don't bother if the variable has a null live range, which means
-    // it was never referenced.
-    if (Var->getLiveRange().isEmpty())
-      continue;
-    Unhandled.insert(LiveRangeWrapper(Var));
-    if (Var->hasReg()) {
-      Var->setRegNumTmp(Var->getRegNum());
-      Var->setLiveRangeInfiniteWeight();
+  {
+    static TimerIdT IDinitUnhandled =
+        GlobalContext::getTimerID("initUnhandled");
+    TimerMarker T(IDinitUnhandled, Func->getContext());
+    for (VarList::const_iterator I = Vars.begin(), E = Vars.end(); I != E;
+         ++I) {
+      Variable *Var = *I;
+      // Explicitly don't consider zero-weight variables, which are
+      // meant to be spill slots.
+      if (Var->getWeight() == RegWeight::Zero)
+        continue;
+      // Don't bother if the variable has a null live range, which means
+      // it was never referenced.
+      if (Var->getLiveRange().isEmpty())
+        continue;
+      Unhandled.insert(LiveRangeWrapper(Var));
+      if (Var->hasReg()) {
+        Var->setRegNumTmp(Var->getRegNum());
+        Var->setLiveRangeInfiniteWeight();
+      }
     }
   }
 
   // RegUses[I] is the number of live ranges (variables) that register
   // I is currently assigned to.  It can be greater than 1 as a result
-  // of Variable::AllowRegisterOverlap.
+  // of AllowOverlap inference below.
   std::vector<int> RegUses(RegMaskFull.size());
   // Unhandled is already set to all ranges in increasing order of
   // start points.
@@ -112,7 +121,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   while (!Unhandled.empty()) {
     LiveRangeWrapper Cur = *Unhandled.begin();
     Unhandled.erase(Unhandled.begin());
-    if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+    if (Verbose) {
       Str << "\nConsidering  ";
       Cur.dump(Func);
       Str << "\n";
@@ -130,7 +139,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       int32_t RegNum = Cur.Var->getRegNum();
       // RegNumTmp should have already been set above.
       assert(Cur.Var->getRegNumTmp() == RegNum);
-      if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+      if (Verbose) {
         Str << "Precoloring  ";
         Cur.dump(Func);
         Str << "\n";
@@ -150,7 +159,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       bool Moved = false;
       if (Item.endsBefore(Cur)) {
         // Move Item from Active to Handled list.
-        if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+        if (Verbose) {
           Str << "Expiring     ";
           Item.dump(Func);
           Str << "\n";
@@ -160,7 +169,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
         Moved = true;
       } else if (!Item.overlapsStart(Cur)) {
         // Move Item from Active to Inactive list.
-        if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+        if (Verbose) {
           Str << "Inactivating ";
           Item.dump(Func);
           Str << "\n";
@@ -186,7 +195,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       LiveRangeWrapper Item = *I;
       if (Item.endsBefore(Cur)) {
         // Move Item from Inactive to Handled list.
-        if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+        if (Verbose) {
           Str << "Expiring     ";
           Item.dump(Func);
           Str << "\n";
@@ -195,7 +204,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
         Handled.push_back(Item);
       } else if (Item.overlapsStart(Cur)) {
         // Move Item from Inactive to Active list.
-        if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+        if (Verbose) {
           Str << "Reactivating ";
           Item.dump(Func);
           Str << "\n";
@@ -261,7 +270,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
         }
       }
     }
-    if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+    if (Verbose) {
       if (Prefer) {
         Str << "Initial Prefer=" << *Prefer << " R=" << PreferReg
             << " LIVE=" << Prefer->getLiveRange() << " Overlap=" << AllowOverlap
@@ -279,8 +288,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
         int32_t RegNum = Item.Var->getRegNumTmp();
         // Don't assert(Free[RegNum]) because in theory (though
         // probably never in practice) there could be two inactive
-        // variables that were allowed marked with
-        // AllowRegisterOverlap.
+        // variables that were marked with AllowOverlap.
         Free[RegNum] = false;
         // Disable AllowOverlap if an Inactive variable, which is not
         // Prefer, shares Prefer's register, and has a definition
@@ -331,7 +339,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     }
 
     // Print info about physical register availability.
-    if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+    if (Verbose) {
       for (SizeT i = 0; i < RegMask.size(); ++i) {
         if (RegMask[i]) {
           Str << Func->getTarget()->getRegName(i, IceType_i32)
@@ -346,7 +354,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       // First choice: a preferred register that is either free or is
       // allowed to overlap with its linked variable.
       Cur.Var->setRegNumTmp(PreferReg);
-      if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+      if (Verbose) {
         Str << "Preferring   ";
         Cur.dump(Func);
         Str << "\n";
@@ -360,7 +368,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       // picking the lowest-numbered available register?
       int32_t RegNum = Free.find_first();
       Cur.Var->setRegNumTmp(RegNum);
-      if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+      if (Verbose) {
         Str << "Allocating   ";
         Cur.dump(Func);
         Str << "\n";
@@ -434,7 +442,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           ++Next;
           LiveRangeWrapper Item = *I;
           if (Item.Var->getRegNumTmp() == MinWeightIndex) {
-            if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+            if (Verbose) {
               Str << "Evicting     ";
               Item.dump(Func);
               Str << "\n";
@@ -463,7 +471,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           // instructions.
           if (Item.Var->getRegNumTmp() == MinWeightIndex &&
               Item.overlaps(Cur)) {
-            if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+            if (Verbose) {
               Str << "Evicting     ";
               Item.dump(Func);
               Str << "\n";
@@ -478,7 +486,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
         assert(RegUses[MinWeightIndex] >= 0);
         ++RegUses[MinWeightIndex];
         Active.push_back(Cur);
-        if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+        if (Verbose) {
           Str << "Allocating   ";
           Cur.dump(Func);
           Str << "\n";
@@ -509,7 +517,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
        I != E; ++I) {
     LiveRangeWrapper Item = *I;
     int32_t RegNum = Item.Var->getRegNumTmp();
-    if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+    if (Verbose) {
       if (!Item.Var->hasRegTmp()) {
         Str << "Not assigning ";
         Item.Var->dump(Func);

@@ -78,6 +78,8 @@ typedef uint32_t SizeT;
 // numbers are used for representing Variable live ranges.
 typedef int32_t InstNumberT;
 
+typedef uint32_t TimerIdT;
+
 enum LivenessMode {
   // Basic version of live-range-end calculation.  Marks the last uses
   // of variables based on dataflow analysis.  Records the set of
@@ -103,33 +105,13 @@ enum VerboseItem {
   IceV_RegOrigins = 1 << 7,
   IceV_LinearScan = 1 << 8,
   IceV_Frame = 1 << 9,
-  IceV_Timing = 1 << 10,
-  IceV_AddrOpt = 1 << 11,
+  IceV_AddrOpt = 1 << 10,
   IceV_All = ~IceV_None,
-  IceV_Most = IceV_All & ~(IceV_Timing | IceV_LinearScan)
+  IceV_Most = IceV_All & ~IceV_LinearScan
 };
 typedef uint32_t VerboseMask;
 
 typedef llvm::raw_ostream Ostream;
-
-// TODO: Implement in terms of std::chrono after switching to C++11.
-class Timer {
-public:
-  Timer() : Start(llvm::TimeRecord::getCurrentTime(false)) {}
-  uint64_t getElapsedNs() const { return getElapsedSec() * 1000 * 1000 * 1000; }
-  uint64_t getElapsedUs() const { return getElapsedSec() * 1000 * 1000; }
-  uint64_t getElapsedMs() const { return getElapsedSec() * 1000; }
-  double getElapsedSec() const {
-    llvm::TimeRecord End = llvm::TimeRecord::getCurrentTime(false);
-    return End.getWallTime() - Start.getWallTime();
-  }
-  void printElapsedUs(GlobalContext *Ctx, const IceString &Tag) const;
-
-private:
-  const llvm::TimeRecord Start;
-  Timer(const Timer &) LLVM_DELETED_FUNCTION;
-  Timer &operator=(const Timer &) LLVM_DELETED_FUNCTION;
-};
 
 } // end of namespace Ice
 

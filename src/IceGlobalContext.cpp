@@ -1,4 +1,4 @@
-//===- subzero/src/IceGlobalContext.cpp - Global context defs ---*- C++ -*-===//
+//===- subzero/src/IceGlobalContext.cpp - Global context defs -------------===//
 //
 //                        The Subzero Code Generator
 //
@@ -22,6 +22,7 @@
 #include "IceGlobalContext.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
+#include "IceTimerTree.h"
 
 namespace Ice {
 
@@ -122,7 +123,7 @@ GlobalContext::GlobalContext(llvm::raw_ostream *OsDump,
     : StrDump(OsDump), StrEmit(OsEmit), VMask(Mask),
       ConstPool(new ConstantPool()), Arch(Arch), Opt(Opt),
       TestPrefix(TestPrefix), Flags(Flags), HasEmittedFirstMethod(false),
-      RNG("") {}
+      RNG(""), Timers(new TimerStack("main")) {}
 
 // Scan a string for S[0-9A-Z]*_ patterns and replace them with
 // S<num>_ where <num> is the next base-36 value.  If a type name
@@ -384,6 +385,14 @@ ConstantList GlobalContext::getConstantPool(Type Ty) const {
   llvm_unreachable("Unknown type");
 }
 
+TimerIdT GlobalContext::getTimerID(const IceString &Name) {
+  return TimerStack::getTimerID(Name);
+}
+
+void GlobalContext::pushTimer(TimerIdT ID) { Timers->push(ID); }
+
+void GlobalContext::popTimer(TimerIdT ID) { Timers->pop(ID); }
+
 void GlobalContext::dumpStats(const IceString &Name, bool Final) {
   if (Flags.DumpStats) {
     if (Final) {
@@ -395,12 +404,6 @@ void GlobalContext::dumpStats(const IceString &Name, bool Final) {
   }
 }
 
-void Timer::printElapsedUs(GlobalContext *Ctx, const IceString &Tag) const {
-  if (Ctx->isVerbose(IceV_Timing)) {
-    // Prefixing with '#' allows timing strings to be included
-    // without error in textual assembly output.
-    Ctx->getStrDump() << "# " << getElapsedUs() << " usec " << Tag << "\n";
-  }
-}
+void GlobalContext::dumpTimers() { Timers->dump(getStrDump()); }
 
 } // end of namespace Ice

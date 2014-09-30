@@ -69,12 +69,8 @@ public:
 
   // Returns true if any of the specified options in the verbose mask
   // are set.  If the argument is omitted, it checks if any verbose
-  // options at all are set.  IceV_Timing is treated specially, so
-  // that running with just IceV_Timing verbosity doesn't trigger an
-  // avalanche of extra output.
-  bool isVerbose(VerboseMask Mask = (IceV_All & ~IceV_Timing)) const {
-    return VMask & Mask;
-  }
+  // options at all are set.
+  bool isVerbose(VerboseMask Mask = IceV_All) const { return VMask & Mask; }
   void setVerbose(VerboseMask Mask) { VMask = Mask; }
   void addVerbose(VerboseMask Mask) { VMask |= Mask; }
   void subVerbose(VerboseMask Mask) { VMask &= ~Mask; }
@@ -154,6 +150,11 @@ public:
     StatsCumulative.updateFills();
   }
 
+  static TimerIdT getTimerID(const IceString &Name);
+  void pushTimer(TimerIdT ID);
+  void popTimer(TimerIdT ID);
+  void dumpTimers();
+
 private:
   Ostream *StrDump; // Stream for dumping / diagnostics
   Ostream *StrEmit; // Stream for code emission
@@ -170,12 +171,37 @@ private:
   RandomNumberGenerator RNG;
   CodeStats StatsFunction;
   CodeStats StatsCumulative;
+  llvm::OwningPtr<class TimerStack> Timers;
   GlobalContext(const GlobalContext &) LLVM_DELETED_FUNCTION;
   GlobalContext &operator=(const GlobalContext &) LLVM_DELETED_FUNCTION;
 
   // Private helpers for mangleName()
   typedef llvm::SmallVector<char, 32> ManglerVector;
   void incrementSubstitutions(ManglerVector &OldName) const;
+};
+
+// Helper class to push and pop a timer marker.  The constructor
+// pushes a marker, and the destructor pops it.  This is for
+// convenient timing of regions of code.
+class TimerMarker {
+  TimerMarker(const TimerMarker &) LLVM_DELETED_FUNCTION;
+  TimerMarker &operator=(const TimerMarker &) LLVM_DELETED_FUNCTION;
+
+public:
+  TimerMarker(TimerIdT ID, GlobalContext *Ctx)
+      : ID(ID), Ctx(Ctx), Active(Ctx->getFlags().SubzeroTimingEnabled) {
+    if (Active)
+      Ctx->pushTimer(ID);
+  }
+  ~TimerMarker() {
+    if (Active)
+      Ctx->popTimer(ID);
+  }
+
+private:
+  TimerIdT ID;
+  GlobalContext *const Ctx;
+  const bool Active;
 };
 
 } // end of namespace Ice

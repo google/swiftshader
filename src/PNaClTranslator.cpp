@@ -12,7 +12,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "PNaClTranslator.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
@@ -20,6 +19,7 @@
 #include "IceInst.h"
 #include "IceOperand.h"
 #include "IceTypeConverter.h"
+#include "PNaClTranslator.h"
 #include "llvm/Analysis/NaCl/PNaClABIProps.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDecoders.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeHeader.h"
@@ -852,7 +852,7 @@ public:
     }
   }
 
-  ~FunctionParser() override;
+  ~FunctionParser() override {};
 
   // Set the next constant ID to the given constant C.
   void setNextConstantID(Ice::Constant *C) {
@@ -860,8 +860,6 @@ public:
   }
 
 private:
-  // Timer for reading function bitcode and converting to ICE.
-  Ice::Timer TConvert;
   // The corresponding ICE function defined by the function block.
   Ice::Cfg *Func;
   // The index to the current basic block being built.
@@ -1375,13 +1373,6 @@ private:
     }
   }
 };
-
-FunctionParser::~FunctionParser() {
-  if (getFlags().SubzeroTimingEnabled) {
-    errs() << "[Subzero timing] Convert function " << Func->getFunctionName()
-           << ": " << TConvert.getElapsedSec() << " sec\n";
-  }
-}
 
 void FunctionParser::ReportInvalidBinopOpcode(unsigned Opcode, Ice::Type Ty) {
   std::string Buffer;
