@@ -16,9 +16,8 @@
 #ifndef SUBZERO_SRC_ICEDEFS_H
 #define SUBZERO_SRC_ICEDEFS_H
 
-#include <stdint.h> // TODO: <cstdint> with C++11
-
 #include <cassert>
+#include <cstdint>
 #include <cstdio>     // snprintf
 #include <functional> // std::less
 #include <limits>

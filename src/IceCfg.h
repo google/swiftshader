@@ -15,15 +15,15 @@
 #ifndef SUBZERO_SRC_ICECFG_H
 #define SUBZERO_SRC_ICECFG_H
 
-#include "IceDefs.h"
-#include "IceTypes.h"
+#include <memory>
+
+#include "llvm/Support/Allocator.h"
 
 #include "assembler.h"
 #include "IceClFlags.h"
+#include "IceDefs.h"
 #include "IceGlobalContext.h"
-
-#include "llvm/ADT/OwningPtr.h"
-#include "llvm/Support/Allocator.h"
+#include "IceTypes.h"
 
 namespace Ice {
 
@@ -172,10 +172,10 @@ private:
   VarList Variables;
   VarList Args; // subset of Variables, in argument order
   VarList ImplicitArgs; // subset of Variables
-  llvm::OwningPtr<Liveness> Live;
-  llvm::OwningPtr<TargetLowering> Target;
-  llvm::OwningPtr<VariablesMetadata> VMetadata;
-  llvm::OwningPtr<Assembler> TargetAssembler;
+  std::unique_ptr<Liveness> Live;
+  std::unique_ptr<TargetLowering> Target;
+  std::unique_ptr<VariablesMetadata> VMetadata;
+  std::unique_ptr<Assembler> TargetAssembler;
 
   // CurrentNode is maintained during dumping/emitting just for
   // validating Variable::DefNode.  Normally, a traversal over

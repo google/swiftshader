@@ -15,8 +15,9 @@
 #ifndef SUBZERO_SRC_PNACLTRANSLATOR_H
 #define SUBZERO_SRC_PNACLTRANSLATOR_H
 
-#include "IceTranslator.h"
 #include <string>
+
+#include "IceTranslator.h"
 
 namespace Ice {
 

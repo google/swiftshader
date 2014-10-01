@@ -15,14 +15,14 @@
 #include <ctype.h> // isdigit(), isupper()
 #include <locale>  // locale
 
-#include "IceDefs.h"
-#include "IceTypes.h"
 #include "IceCfg.h"
 #include "IceClFlags.h"
+#include "IceDefs.h"
 #include "IceGlobalContext.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
 #include "IceTimerTree.h"
+#include "IceTypes.h"
 
 namespace Ice {
 

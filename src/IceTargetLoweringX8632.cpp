@@ -15,19 +15,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "IceDefs.h"
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/Support/MathExtras.h"
+
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
+#include "IceDefs.h"
 #include "IceInstX8632.h"
 #include "IceOperand.h"
 #include "IceRegistersX8632.h"
 #include "IceTargetLoweringX8632.def"
 #include "IceTargetLoweringX8632.h"
 #include "IceUtils.h"
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/Support/MathExtras.h"
-#include "llvm/Support/CommandLine.h"
 
 namespace Ice {
 

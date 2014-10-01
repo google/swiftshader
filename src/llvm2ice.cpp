@@ -13,10 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "IceCfg.h"
-#include "IceClFlags.h"
-#include "IceConverter.h"
-#include "PNaClTranslator.h"
+#include <fstream>
+#include <iostream>
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IRReader/IRReader.h"
@@ -24,8 +22,10 @@
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/SourceMgr.h"
 
-#include <fstream>
-#include <iostream>
+#include "IceCfg.h"
+#include "IceClFlags.h"
+#include "IceConverter.h"
+#include "PNaClTranslator.h"
 
 using namespace llvm;
 

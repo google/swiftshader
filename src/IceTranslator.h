@@ -15,7 +15,7 @@
 #ifndef SUBZERO_SRC_ICETRANSLATOR_H
 #define SUBZERO_SRC_ICETRANSLATOR_H
 
-#include "llvm/ADT/OwningPtr.h"
+#include <memory>
 
 namespace llvm {
 class Module;
@@ -75,7 +75,7 @@ protected:
   // object, change all Constant related functions to use
   // GlobalContext instead of Cfg, and then make emitConstantPool use
   // that.
-  llvm::OwningPtr<Cfg> Func;
+  std::unique_ptr<Cfg> Func;
 
 private:
   Translator(const Translator &) LLVM_DELETED_FUNCTION;

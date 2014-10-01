@@ -12,14 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "IceCfg.h"
-#include "IceCfgNode.h"
-#include "IceClFlags.h"
-#include "IceDefs.h"
-#include "IceInst.h"
-#include "IceOperand.h"
-#include "IceTypeConverter.h"
-#include "PNaClTranslator.h"
+#include <cassert>
+#include <memory>
+#include <vector>
+
 #include "llvm/Analysis/NaCl/PNaClABIProps.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDecoders.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeHeader.h"
@@ -34,8 +30,14 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/ValueHandle.h"
 
-#include <vector>
-#include <cassert>
+#include "IceCfg.h"
+#include "IceCfgNode.h"
+#include "IceClFlags.h"
+#include "IceDefs.h"
+#include "IceInst.h"
+#include "IceOperand.h"
+#include "IceTypeConverter.h"
+#include "PNaClTranslator.h"
 
 using namespace llvm;
 
@@ -252,7 +254,7 @@ private:
   // The translator associated with the parser.
   Ice::Translator &Translator;
   // The parsed module.
-  OwningPtr<Module> Mod;
+  std::unique_ptr<Module> Mod;
   // The data layout to use.
   DataLayout DL;
   // The bitcode header.

@@ -19,9 +19,8 @@
 #define SUBZERO_SRC_ICETARGETLOWERING_H
 
 #include "IceDefs.h"
-#include "IceTypes.h"
-
 #include "IceInst.h" // for the names of the Inst subtypes
+#include "IceTypes.h"
 
 namespace Ice {
 

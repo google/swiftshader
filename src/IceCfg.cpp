@@ -26,7 +26,7 @@ namespace Ice {
 Cfg::Cfg(GlobalContext *Ctx)
     : Ctx(Ctx), FunctionName(""), ReturnType(IceType_void),
       IsInternalLinkage(false), HasError(false), ErrorMessage(""), Entry(NULL),
-      NextInstNumber(1), Live(NULL),
+      NextInstNumber(1), Live(nullptr),
       Target(TargetLowering::createLowering(Ctx->getTargetArch(), this)),
       VMetadata(new VariablesMetadata(this)),
       TargetAssembler(

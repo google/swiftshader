@@ -16,11 +16,11 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGX8632_H
 #define SUBZERO_SRC_ICETARGETLOWERINGX8632_H
 
-#include "IceDefs.h"
-#include "IceTargetLowering.h"
 #include "assembler_ia32.h"
+#include "IceDefs.h"
 #include "IceInstX8632.h"
 #include "IceRegistersX8632.h"
+#include "IceTargetLowering.h"
 
 namespace Ice {
 

@@ -15,7 +15,8 @@
 #ifndef SUBZERO_SRC_ICEGLOBALCONTEXT_H
 #define SUBZERO_SRC_ICEGLOBALCONTEXT_H
 
-#include "llvm/ADT/OwningPtr.h"
+#include <memory>
+
 #include "llvm/Support/Allocator.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -161,7 +162,7 @@ private:
 
   llvm::BumpPtrAllocator Allocator;
   VerboseMask VMask;
-  llvm::OwningPtr<class ConstantPool> ConstPool;
+  std::unique_ptr<class ConstantPool> ConstPool;
   Intrinsics IntrinsicsInfo;
   const TargetArch Arch;
   const OptLevel Opt;
@@ -171,7 +172,7 @@ private:
   RandomNumberGenerator RNG;
   CodeStats StatsFunction;
   CodeStats StatsCumulative;
-  llvm::OwningPtr<class TimerStack> Timers;
+  std::unique_ptr<class TimerStack> Timers;
   GlobalContext(const GlobalContext &) LLVM_DELETED_FUNCTION;
   GlobalContext &operator=(const GlobalContext &) LLVM_DELETED_FUNCTION;
 

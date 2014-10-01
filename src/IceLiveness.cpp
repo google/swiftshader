@@ -19,9 +19,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "IceDefs.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
+#include "IceDefs.h"
 #include "IceInst.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"

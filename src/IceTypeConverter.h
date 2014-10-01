@@ -15,9 +15,10 @@
 #ifndef SUBZERO_SRC_ICETYPECONVERTER_H
 #define SUBZERO_SRC_ICETYPECONVERTER_H
 
+#include "llvm/IR/DerivedTypes.h"
+
 #include "IceDefs.h"
 #include "IceTypes.h"
-#include "llvm/IR/DerivedTypes.h"
 
 namespace llvm {
 class LLVMContext;

@@ -12,16 +12,18 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <iostream>
+#include <memory>
+
+#include "llvm/IR/Constant.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Module.h"
+
 #include "IceCfg.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
 #include "IceTargetLowering.h"
 #include "IceTranslator.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Constant.h"
-#include "llvm/IR/Constants.h"
-
-#include <iostream>
 
 using namespace Ice;
 
@@ -96,7 +98,7 @@ void Translator::emitConstants() {
 }
 
 void Translator::convertGlobals(llvm::Module *Mod) {
-  llvm::OwningPtr<TargetGlobalInitLowering> GlobalLowering(
+  std::unique_ptr<TargetGlobalInitLowering> GlobalLowering(
       TargetGlobalInitLowering::createLowering(Ctx->getTargetArch(), Ctx));
   for (llvm::Module::const_global_iterator I = Mod->global_begin(),
                                            E = Mod->global_end();

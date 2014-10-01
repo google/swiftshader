@@ -15,6 +15,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "llvm/Support/CommandLine.h"
+
 #include "assembler_ia32.h"
 #include "IceCfg.h" // setError()
 #include "IceCfgNode.h"
@@ -22,8 +24,6 @@
 #include "IceRegAlloc.h"
 #include "IceTargetLowering.h"
 #include "IceTargetLoweringX8632.h"
-
-#include "llvm/Support/CommandLine.h"
 
 namespace Ice {
 
