@@ -71,8 +71,8 @@ public:
 
 private:
   CfgNode(Cfg *Func, SizeT LabelIndex, IceString Name);
-  CfgNode(const CfgNode &) LLVM_DELETED_FUNCTION;
-  CfgNode &operator=(const CfgNode &) LLVM_DELETED_FUNCTION;
+  CfgNode(const CfgNode &) = delete;
+  CfgNode &operator=(const CfgNode &) = delete;
   Cfg *const Func;
   const SizeT Number; // label index
   IceString Name;     // for dumping only

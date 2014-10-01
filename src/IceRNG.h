@@ -27,9 +27,8 @@ public:
   uint64_t next(uint64_t Max);
 
 private:
-  RandomNumberGenerator(const RandomNumberGenerator &) LLVM_DELETED_FUNCTION;
-  RandomNumberGenerator &
-  operator=(const RandomNumberGenerator &) LLVM_DELETED_FUNCTION;
+  RandomNumberGenerator(const RandomNumberGenerator &) = delete;
+  RandomNumberGenerator &operator=(const RandomNumberGenerator &) = delete;
 
   uint64_t State;
 };
@@ -44,10 +43,9 @@ public:
   RandomNumberGeneratorWrapper(RandomNumberGenerator &RNG) : RNG(RNG) {}
 
 private:
-  RandomNumberGeneratorWrapper(const RandomNumberGeneratorWrapper &)
-      LLVM_DELETED_FUNCTION;
+  RandomNumberGeneratorWrapper(const RandomNumberGeneratorWrapper &) = delete;
   RandomNumberGeneratorWrapper &
-  operator=(const RandomNumberGeneratorWrapper &) LLVM_DELETED_FUNCTION;
+  operator=(const RandomNumberGeneratorWrapper &) = delete;
 
   RandomNumberGenerator &RNG;
 };

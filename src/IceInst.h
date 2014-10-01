@@ -165,13 +165,13 @@ protected:
   LREndedBits LiveRangesEnded;
 
 private:
-  Inst(const Inst &) LLVM_DELETED_FUNCTION;
-  Inst &operator=(const Inst &) LLVM_DELETED_FUNCTION;
+  Inst(const Inst &) = delete;
+  Inst &operator=(const Inst &) = delete;
 };
 
 class InstHighLevel : public Inst {
-  InstHighLevel(const InstHighLevel &) LLVM_DELETED_FUNCTION;
-  InstHighLevel &operator=(const InstHighLevel &) LLVM_DELETED_FUNCTION;
+  InstHighLevel(const InstHighLevel &) = delete;
+  InstHighLevel &operator=(const InstHighLevel &) = delete;
 
 protected:
   InstHighLevel(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest)
@@ -203,8 +203,8 @@ public:
 private:
   InstAlloca(Cfg *Func, Operand *ByteCount, uint32_t AlignInBytes,
              Variable *Dest);
-  InstAlloca(const InstAlloca &) LLVM_DELETED_FUNCTION;
-  InstAlloca &operator=(const InstAlloca &) LLVM_DELETED_FUNCTION;
+  InstAlloca(const InstAlloca &) = delete;
+  InstAlloca &operator=(const InstAlloca &) = delete;
   ~InstAlloca() override {}
   const uint32_t AlignInBytes;
 };
@@ -236,8 +236,8 @@ public:
 private:
   InstArithmetic(Cfg *Func, OpKind Op, Variable *Dest, Operand *Source1,
                  Operand *Source2);
-  InstArithmetic(const InstArithmetic &) LLVM_DELETED_FUNCTION;
-  InstArithmetic &operator=(const InstArithmetic &) LLVM_DELETED_FUNCTION;
+  InstArithmetic(const InstArithmetic &) = delete;
+  InstArithmetic &operator=(const InstArithmetic &) = delete;
   ~InstArithmetic() override {}
 
   const OpKind Op;
@@ -261,8 +261,8 @@ public:
 
 private:
   InstAssign(Cfg *Func, Variable *Dest, Operand *Source);
-  InstAssign(const InstAssign &) LLVM_DELETED_FUNCTION;
-  InstAssign &operator=(const InstAssign &) LLVM_DELETED_FUNCTION;
+  InstAssign(const InstAssign &) = delete;
+  InstAssign &operator=(const InstAssign &) = delete;
   ~InstAssign() override {}
 };
 
@@ -301,8 +301,8 @@ private:
   InstBr(Cfg *Func, Operand *Source, CfgNode *TargetTrue, CfgNode *TargetFalse);
   // Unconditional branch
   InstBr(Cfg *Func, CfgNode *Target);
-  InstBr(const InstBr &) LLVM_DELETED_FUNCTION;
-  InstBr &operator=(const InstBr &) LLVM_DELETED_FUNCTION;
+  InstBr(const InstBr &) = delete;
+  InstBr &operator=(const InstBr &) = delete;
   ~InstBr() override {}
 
   CfgNode *const TargetFalse; // Doubles as unconditional branch target
@@ -343,8 +343,8 @@ protected:
 
 private:
   bool HasTailCall;
-  InstCall(const InstCall &) LLVM_DELETED_FUNCTION;
-  InstCall &operator=(const InstCall &) LLVM_DELETED_FUNCTION;
+  InstCall(const InstCall &) = delete;
+  InstCall &operator=(const InstCall &) = delete;
 };
 
 // Cast instruction (a.k.a. conversion operation).
@@ -368,8 +368,8 @@ public:
 
 private:
   InstCast(Cfg *Func, OpKind CastKind, Variable *Dest, Operand *Source);
-  InstCast(const InstCast &) LLVM_DELETED_FUNCTION;
-  InstCast &operator=(const InstCast &) LLVM_DELETED_FUNCTION;
+  InstCast(const InstCast &) = delete;
+  InstCast &operator=(const InstCast &) = delete;
   ~InstCast() override {}
   const OpKind CastKind;
 };
@@ -391,9 +391,8 @@ public:
 private:
   InstExtractElement(Cfg *Func, Variable *Dest, Operand *Source1,
                      Operand *Source2);
-  InstExtractElement(const InstExtractElement &) LLVM_DELETED_FUNCTION;
-  InstExtractElement &
-  operator=(const InstExtractElement &) LLVM_DELETED_FUNCTION;
+  InstExtractElement(const InstExtractElement &) = delete;
+  InstExtractElement &operator=(const InstExtractElement &) = delete;
   ~InstExtractElement() override {}
 };
 
@@ -420,8 +419,8 @@ public:
 private:
   InstFcmp(Cfg *Func, FCond Condition, Variable *Dest, Operand *Source1,
            Operand *Source2);
-  InstFcmp(const InstFcmp &) LLVM_DELETED_FUNCTION;
-  InstFcmp &operator=(const InstFcmp &) LLVM_DELETED_FUNCTION;
+  InstFcmp(const InstFcmp &) = delete;
+  InstFcmp &operator=(const InstFcmp &) = delete;
   ~InstFcmp() override {}
   const FCond Condition;
 };
@@ -449,8 +448,8 @@ public:
 private:
   InstIcmp(Cfg *Func, ICond Condition, Variable *Dest, Operand *Source1,
            Operand *Source2);
-  InstIcmp(const InstIcmp &) LLVM_DELETED_FUNCTION;
-  InstIcmp &operator=(const InstIcmp &) LLVM_DELETED_FUNCTION;
+  InstIcmp(const InstIcmp &) = delete;
+  InstIcmp &operator=(const InstIcmp &) = delete;
   ~InstIcmp() override {}
   const ICond Condition;
 };
@@ -472,8 +471,8 @@ public:
 private:
   InstInsertElement(Cfg *Func, Variable *Dest, Operand *Source1,
                     Operand *Source2, Operand *Source3);
-  InstInsertElement(const InstInsertElement &) LLVM_DELETED_FUNCTION;
-  InstInsertElement &operator=(const InstInsertElement &) LLVM_DELETED_FUNCTION;
+  InstInsertElement(const InstInsertElement &) = delete;
+  InstInsertElement &operator=(const InstInsertElement &) = delete;
   ~InstInsertElement() override {}
 };
 
@@ -499,8 +498,8 @@ private:
       : InstCall(Func, NumArgs, Dest, CallTarget, false, Info.HasSideEffects,
                  Inst::IntrinsicCall),
         Info(Info) {}
-  InstIntrinsicCall(const InstIntrinsicCall &) LLVM_DELETED_FUNCTION;
-  InstIntrinsicCall &operator=(const InstIntrinsicCall &) LLVM_DELETED_FUNCTION;
+  InstIntrinsicCall(const InstIntrinsicCall &) = delete;
+  InstIntrinsicCall &operator=(const InstIntrinsicCall &) = delete;
   ~InstIntrinsicCall() override {}
   const Intrinsics::IntrinsicInfo Info;
 };
@@ -521,8 +520,8 @@ public:
 
 private:
   InstLoad(Cfg *Func, Variable *Dest, Operand *SourceAddr);
-  InstLoad(const InstLoad &) LLVM_DELETED_FUNCTION;
-  InstLoad &operator=(const InstLoad &) LLVM_DELETED_FUNCTION;
+  InstLoad(const InstLoad &) = delete;
+  InstLoad &operator=(const InstLoad &) = delete;
   ~InstLoad() override {}
 };
 
@@ -543,8 +542,8 @@ public:
 
 private:
   InstPhi(Cfg *Func, SizeT MaxSrcs, Variable *Dest);
-  InstPhi(const InstPhi &) LLVM_DELETED_FUNCTION;
-  InstPhi &operator=(const InstPhi &) LLVM_DELETED_FUNCTION;
+  InstPhi(const InstPhi &) = delete;
+  InstPhi &operator=(const InstPhi &) = delete;
   void destroy(Cfg *Func) override {
     Func->deallocateArrayOf<CfgNode *>(Labels);
     Inst::destroy(Func);
@@ -576,8 +575,8 @@ public:
 
 private:
   InstRet(Cfg *Func, Operand *RetValue);
-  InstRet(const InstRet &) LLVM_DELETED_FUNCTION;
-  InstRet &operator=(const InstRet &) LLVM_DELETED_FUNCTION;
+  InstRet(const InstRet &) = delete;
+  InstRet &operator=(const InstRet &) = delete;
   ~InstRet() override {}
 };
 
@@ -598,8 +597,8 @@ public:
 private:
   InstSelect(Cfg *Func, Variable *Dest, Operand *Condition, Operand *Source1,
              Operand *Source2);
-  InstSelect(const InstSelect &) LLVM_DELETED_FUNCTION;
-  InstSelect &operator=(const InstSelect &) LLVM_DELETED_FUNCTION;
+  InstSelect(const InstSelect &) = delete;
+  InstSelect &operator=(const InstSelect &) = delete;
   ~InstSelect() override {}
 };
 
@@ -620,8 +619,8 @@ public:
 
 private:
   InstStore(Cfg *Func, Operand *Data, Operand *Addr);
-  InstStore(const InstStore &) LLVM_DELETED_FUNCTION;
-  InstStore &operator=(const InstStore &) LLVM_DELETED_FUNCTION;
+  InstStore(const InstStore &) = delete;
+  InstStore &operator=(const InstStore &) = delete;
   ~InstStore() override {}
 };
 
@@ -652,8 +651,8 @@ public:
 
 private:
   InstSwitch(Cfg *Func, SizeT NumCases, Operand *Source, CfgNode *LabelDefault);
-  InstSwitch(const InstSwitch &) LLVM_DELETED_FUNCTION;
-  InstSwitch &operator=(const InstSwitch &) LLVM_DELETED_FUNCTION;
+  InstSwitch(const InstSwitch &) = delete;
+  InstSwitch &operator=(const InstSwitch &) = delete;
   void destroy(Cfg *Func) override {
     Func->deallocateArrayOf<uint64_t>(Values);
     Func->deallocateArrayOf<CfgNode *>(Labels);
@@ -682,8 +681,8 @@ public:
 
 private:
   InstUnreachable(Cfg *Func);
-  InstUnreachable(const InstUnreachable &) LLVM_DELETED_FUNCTION;
-  InstUnreachable &operator=(const InstUnreachable &) LLVM_DELETED_FUNCTION;
+  InstUnreachable(const InstUnreachable &) = delete;
+  InstUnreachable &operator=(const InstUnreachable &) = delete;
   ~InstUnreachable() override {}
 };
 
@@ -711,8 +710,8 @@ public:
 
 private:
   InstFakeDef(Cfg *Func, Variable *Dest, Variable *Src);
-  InstFakeDef(const InstFakeDef &) LLVM_DELETED_FUNCTION;
-  InstFakeDef &operator=(const InstFakeDef &) LLVM_DELETED_FUNCTION;
+  InstFakeDef(const InstFakeDef &) = delete;
+  InstFakeDef &operator=(const InstFakeDef &) = delete;
   ~InstFakeDef() override {}
 };
 
@@ -733,8 +732,8 @@ public:
 
 private:
   InstFakeUse(Cfg *Func, Variable *Src);
-  InstFakeUse(const InstFakeUse &) LLVM_DELETED_FUNCTION;
-  InstFakeUse &operator=(const InstFakeUse &) LLVM_DELETED_FUNCTION;
+  InstFakeUse(const InstFakeUse &) = delete;
+  InstFakeUse &operator=(const InstFakeUse &) = delete;
   ~InstFakeUse() override {}
 };
 
@@ -762,8 +761,8 @@ public:
 
 private:
   InstFakeKill(Cfg *Func, const VarList &KilledRegs, const Inst *Linked);
-  InstFakeKill(const InstFakeKill &) LLVM_DELETED_FUNCTION;
-  InstFakeKill &operator=(const InstFakeKill &) LLVM_DELETED_FUNCTION;
+  InstFakeKill(const InstFakeKill &) = delete;
+  InstFakeKill &operator=(const InstFakeKill &) = delete;
   ~InstFakeKill() override {}
 
   // This instruction is ignored if Linked->isDeleted() is true.
@@ -773,8 +772,8 @@ private:
 // The Target instruction is the base class for all target-specific
 // instructions.
 class InstTarget : public Inst {
-  InstTarget(const InstTarget &) LLVM_DELETED_FUNCTION;
-  InstTarget &operator=(const InstTarget &) LLVM_DELETED_FUNCTION;
+  InstTarget(const InstTarget &) = delete;
+  InstTarget &operator=(const InstTarget &) = delete;
 
 public:
   uint32_t getEmitInstCount() const override { return 1; }

@@ -34,8 +34,8 @@ private:
   llvm::Module *Mod;
   // Converts functions to ICE, and then machine code.
   void convertFunctions();
-  Converter(const Converter &) LLVM_DELETED_FUNCTION;
-  Converter &operator=(const Converter &) LLVM_DELETED_FUNCTION;
+  Converter(const Converter &) = delete;
+  Converter &operator=(const Converter &) = delete;
 };
 }
 

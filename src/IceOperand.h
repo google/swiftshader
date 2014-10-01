@@ -86,8 +86,8 @@ protected:
   Variable **Vars;
 
 private:
-  Operand(const Operand &) LLVM_DELETED_FUNCTION;
-  Operand &operator=(const Operand &) LLVM_DELETED_FUNCTION;
+  Operand(const Operand &) = delete;
+  Operand &operator=(const Operand &) = delete;
 };
 
 template<class StreamType>
@@ -124,8 +124,8 @@ protected:
   const uint32_t PoolEntryID;
 
 private:
-  Constant(const Constant &) LLVM_DELETED_FUNCTION;
-  Constant &operator=(const Constant &) LLVM_DELETED_FUNCTION;
+  Constant(const Constant &) = delete;
+  Constant &operator=(const Constant &) = delete;
 };
 
 // ConstantPrimitive<> wraps a primitive type.
@@ -152,8 +152,8 @@ public:
 private:
   ConstantPrimitive(Type Ty, T Value, uint32_t PoolEntryID)
       : Constant(K, Ty, PoolEntryID), Value(Value) {}
-  ConstantPrimitive(const ConstantPrimitive &) LLVM_DELETED_FUNCTION;
-  ConstantPrimitive &operator=(const ConstantPrimitive &) LLVM_DELETED_FUNCTION;
+  ConstantPrimitive(const ConstantPrimitive &) = delete;
+  ConstantPrimitive &operator=(const ConstantPrimitive &) = delete;
   ~ConstantPrimitive() override {}
   const T Value;
 };
@@ -180,7 +180,7 @@ template <> inline void ConstantInteger64::dump(const Cfg *, Ostream &Str) const
 // ConstantRelocatable can fit into the global constant pool
 // template mechanism.
 class RelocatableTuple {
-  RelocatableTuple &operator=(const RelocatableTuple &) LLVM_DELETED_FUNCTION;
+  RelocatableTuple &operator=(const RelocatableTuple &) = delete;
 
 public:
   RelocatableTuple(const int64_t Offset, const IceString &Name,
@@ -226,9 +226,8 @@ private:
                       bool SuppressMangling, uint32_t PoolEntryID)
       : Constant(kConstRelocatable, Ty, PoolEntryID), Offset(Offset),
         Name(Name), SuppressMangling(SuppressMangling) {}
-  ConstantRelocatable(const ConstantRelocatable &) LLVM_DELETED_FUNCTION;
-  ConstantRelocatable &
-  operator=(const ConstantRelocatable &) LLVM_DELETED_FUNCTION;
+  ConstantRelocatable(const ConstantRelocatable &) = delete;
+  ConstantRelocatable &operator=(const ConstantRelocatable &) = delete;
   ~ConstantRelocatable() override {}
   const int64_t Offset; // fixed offset to add
   const IceString Name; // optional for debug/dump
@@ -258,8 +257,8 @@ public:
 private:
   ConstantUndef(Type Ty, uint32_t PoolEntryID)
       : Constant(kConstUndef, Ty, PoolEntryID) {}
-  ConstantUndef(const ConstantUndef &) LLVM_DELETED_FUNCTION;
-  ConstantUndef &operator=(const ConstantUndef &) LLVM_DELETED_FUNCTION;
+  ConstantUndef(const ConstantUndef &) = delete;
+  ConstantUndef &operator=(const ConstantUndef &) = delete;
   ~ConstantUndef() override {}
 };
 
@@ -344,8 +343,8 @@ Ostream &operator<<(Ostream &Str, const LiveRange &L);
 // stack-allocated.  If it is register-allocated, it will ultimately
 // have a non-negative RegNum field.
 class Variable : public Operand {
-  Variable(const Variable &) LLVM_DELETED_FUNCTION;
-  Variable &operator=(const Variable &) LLVM_DELETED_FUNCTION;
+  Variable(const Variable &) = delete;
+  Variable &operator=(const Variable &) = delete;
   Variable(Variable &&V) = default;
 
 public:
@@ -499,7 +498,7 @@ public:
   void markDef(const Inst *Instr, const CfgNode *Node);
 
 private:
-  VariableTracking &operator=(const VariableTracking &) LLVM_DELETED_FUNCTION;
+  VariableTracking &operator=(const VariableTracking &) = delete;
   MultiDefState MultiDef;
   MultiBlockState MultiBlock;
   const CfgNode *SingleUseNode;
@@ -560,8 +559,8 @@ private:
   const Cfg *Func;
   std::vector<VariableTracking> Metadata;
   const static InstDefList NoDefinitions;
-  VariablesMetadata(const VariablesMetadata &) LLVM_DELETED_FUNCTION;
-  VariablesMetadata &operator=(const VariablesMetadata &) LLVM_DELETED_FUNCTION;
+  VariablesMetadata(const VariablesMetadata &) = delete;
+  VariablesMetadata &operator=(const VariablesMetadata &) = delete;
 };
 
 } // end of namespace Ice

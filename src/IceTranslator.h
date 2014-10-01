@@ -78,8 +78,8 @@ protected:
   std::unique_ptr<Cfg> Func;
 
 private:
-  Translator(const Translator &) LLVM_DELETED_FUNCTION;
-  Translator &operator=(const Translator &) LLVM_DELETED_FUNCTION;
+  Translator(const Translator &) = delete;
+  Translator &operator=(const Translator &) = delete;
 };
 }
 

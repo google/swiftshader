@@ -60,9 +60,8 @@ public:
 private:
   DisplacementRelocation(FixupKind Kind, const ConstantRelocatable *Sym)
       : AssemblerFixup(Kind, Sym) {}
-  DisplacementRelocation(const DisplacementRelocation &) LLVM_DELETED_FUNCTION;
-  DisplacementRelocation &
-  operator=(const DisplacementRelocation &) LLVM_DELETED_FUNCTION;
+  DisplacementRelocation(const DisplacementRelocation &) = delete;
+  DisplacementRelocation &operator=(const DisplacementRelocation &) = delete;
 };
 
 class Immediate {
@@ -320,8 +319,8 @@ private:
   intptr_t unresolved_near_positions_[kMaxUnresolvedBranches];
 
   friend class AssemblerX86;
-  Label(const Label &) LLVM_DELETED_FUNCTION;
-  Label &operator=(const Label &) LLVM_DELETED_FUNCTION;
+  Label(const Label &) = delete;
+  Label &operator=(const Label &) = delete;
 };
 
 class AssemblerX86 : public Assembler {
@@ -727,8 +726,8 @@ private:
 
   AssemblerBuffer buffer_;
 
-  AssemblerX86(const AssemblerX86 &) LLVM_DELETED_FUNCTION;
-  AssemblerX86 &operator=(const AssemblerX86 &) LLVM_DELETED_FUNCTION;
+  AssemblerX86(const AssemblerX86 &) = delete;
+  AssemblerX86 &operator=(const AssemblerX86 &) = delete;
 };
 
 inline void AssemblerX86::EmitUint8(uint8_t value) {

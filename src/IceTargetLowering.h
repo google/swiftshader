@@ -86,8 +86,8 @@ private:
   void skipDeleted(InstList::iterator &I) const;
   void advanceForward(InstList::iterator &I) const;
   void advanceBackward(InstList::iterator &I) const;
-  LoweringContext(const LoweringContext &) LLVM_DELETED_FUNCTION;
-  LoweringContext &operator=(const LoweringContext &) LLVM_DELETED_FUNCTION;
+  LoweringContext(const LoweringContext &) = delete;
+  LoweringContext &operator=(const LoweringContext &) = delete;
 };
 
 class TargetLowering {
@@ -235,8 +235,8 @@ protected:
   LoweringContext Context;
 
 private:
-  TargetLowering(const TargetLowering &) LLVM_DELETED_FUNCTION;
-  TargetLowering &operator=(const TargetLowering &) LLVM_DELETED_FUNCTION;
+  TargetLowering(const TargetLowering &) = delete;
+  TargetLowering &operator=(const TargetLowering &) = delete;
 };
 
 // TargetGlobalInitLowering is used for "lowering" global
@@ -258,10 +258,9 @@ protected:
   GlobalContext *Ctx;
 
 private:
-  TargetGlobalInitLowering(const TargetGlobalInitLowering &)
-  LLVM_DELETED_FUNCTION;
-  TargetGlobalInitLowering &
-  operator=(const TargetGlobalInitLowering &) LLVM_DELETED_FUNCTION;
+  TargetGlobalInitLowering(const TargetGlobalInitLowering &) = delete;
+  TargetGlobalInitLowering &operator=(const TargetGlobalInitLowering &) =
+      delete;
 };
 
 } // end of namespace Ice

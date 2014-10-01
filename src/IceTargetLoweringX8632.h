@@ -475,8 +475,8 @@ protected:
   static IceString RegNames[];
 
 private:
-  TargetX8632(const TargetX8632 &) LLVM_DELETED_FUNCTION;
-  TargetX8632 &operator=(const TargetX8632 &) LLVM_DELETED_FUNCTION;
+  TargetX8632(const TargetX8632 &) = delete;
+  TargetX8632 &operator=(const TargetX8632 &) = delete;
   ~TargetX8632() override {}
   template <typename T> void emitConstantPool() const;
 };
@@ -494,9 +494,8 @@ protected:
   TargetGlobalInitX8632(GlobalContext *Ctx);
 
 private:
-  TargetGlobalInitX8632(const TargetGlobalInitX8632 &) LLVM_DELETED_FUNCTION;
-  TargetGlobalInitX8632 &
-  operator=(const TargetGlobalInitX8632 &) LLVM_DELETED_FUNCTION;
+  TargetGlobalInitX8632(const TargetGlobalInitX8632 &) = delete;
+  TargetGlobalInitX8632 &operator=(const TargetGlobalInitX8632 &) = delete;
   ~TargetGlobalInitX8632() override {}
 };
 

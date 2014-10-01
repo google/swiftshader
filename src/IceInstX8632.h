@@ -47,8 +47,8 @@ protected:
   ~OperandX8632() override {}
 
 private:
-  OperandX8632(const OperandX8632 &) LLVM_DELETED_FUNCTION;
-  OperandX8632 &operator=(const OperandX8632 &) LLVM_DELETED_FUNCTION;
+  OperandX8632(const OperandX8632 &) = delete;
+  OperandX8632 &operator=(const OperandX8632 &) = delete;
 };
 
 // OperandX8632Mem represents the m32 addressing mode, with optional
@@ -87,8 +87,8 @@ public:
 private:
   OperandX8632Mem(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
                   Variable *Index, uint16_t Shift, SegmentRegisters SegmentReg);
-  OperandX8632Mem(const OperandX8632Mem &) LLVM_DELETED_FUNCTION;
-  OperandX8632Mem &operator=(const OperandX8632Mem &) LLVM_DELETED_FUNCTION;
+  OperandX8632Mem(const OperandX8632Mem &) = delete;
+  OperandX8632Mem &operator=(const OperandX8632Mem &) = delete;
   ~OperandX8632Mem() override {}
   Variable *Base;
   Constant *Offset;
@@ -128,8 +128,8 @@ private:
     Vars[0] = Var;
     NumVars = 1;
   }
-  VariableSplit(const VariableSplit &) LLVM_DELETED_FUNCTION;
-  VariableSplit &operator=(const VariableSplit &) LLVM_DELETED_FUNCTION;
+  VariableSplit(const VariableSplit &) = delete;
+  VariableSplit &operator=(const VariableSplit &) = delete;
   ~VariableSplit() override { Func->deallocateArrayOf<Variable *>(Vars); }
   Cfg *Func; // Held only for the destructor.
   Variable *Var;
@@ -263,8 +263,8 @@ protected:
   }
 
 private:
-  InstX8632(const InstX8632 &) LLVM_DELETED_FUNCTION;
-  InstX8632 &operator=(const InstX8632 &) LLVM_DELETED_FUNCTION;
+  InstX8632(const InstX8632 &) = delete;
+  InstX8632 &operator=(const InstX8632 &) = delete;
 };
 
 // InstX8632Label represents an intra-block label that is the
@@ -316,8 +316,8 @@ public:
 
 private:
   InstX8632Label(Cfg *Func, TargetX8632 *Target);
-  InstX8632Label(const InstX8632Label &) LLVM_DELETED_FUNCTION;
-  InstX8632Label &operator=(const InstX8632Label &) LLVM_DELETED_FUNCTION;
+  InstX8632Label(const InstX8632Label &) = delete;
+  InstX8632Label &operator=(const InstX8632Label &) = delete;
   ~InstX8632Label() override {}
   SizeT Number; // used only for unique label string generation
 };
@@ -378,8 +378,8 @@ public:
 private:
   InstX8632Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
               const InstX8632Label *Label, CondX86::BrCond Condition);
-  InstX8632Br(const InstX8632Br &) LLVM_DELETED_FUNCTION;
-  InstX8632Br &operator=(const InstX8632Br &) LLVM_DELETED_FUNCTION;
+  InstX8632Br(const InstX8632Br &) = delete;
+  InstX8632Br &operator=(const InstX8632Br &) = delete;
   ~InstX8632Br() override {}
   CondX86::BrCond Condition;
   const CfgNode *TargetTrue;
@@ -402,9 +402,8 @@ public:
 
 private:
   InstX8632AdjustStack(Cfg *Func, SizeT Amount, Variable *Esp);
-  InstX8632AdjustStack(const InstX8632AdjustStack &) LLVM_DELETED_FUNCTION;
-  InstX8632AdjustStack &operator=(const InstX8632AdjustStack &)
-      LLVM_DELETED_FUNCTION;
+  InstX8632AdjustStack(const InstX8632AdjustStack &) = delete;
+  InstX8632AdjustStack &operator=(const InstX8632AdjustStack &) = delete;
   SizeT Amount;
 };
 
@@ -422,8 +421,8 @@ public:
 
 private:
   InstX8632Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
-  InstX8632Call(const InstX8632Call &) LLVM_DELETED_FUNCTION;
-  InstX8632Call &operator=(const InstX8632Call &) LLVM_DELETED_FUNCTION;
+  InstX8632Call(const InstX8632Call &) = delete;
+  InstX8632Call &operator=(const InstX8632Call &) = delete;
   ~InstX8632Call() override {}
 };
 
@@ -465,9 +464,8 @@ private:
       : InstX8632(Func, K, 1, llvm::dyn_cast<Variable>(SrcDest)) {
     addSource(SrcDest);
   }
-  InstX8632InplaceopGPR(const InstX8632InplaceopGPR &) LLVM_DELETED_FUNCTION;
-  InstX8632InplaceopGPR &
-  operator=(const InstX8632InplaceopGPR &) LLVM_DELETED_FUNCTION;
+  InstX8632InplaceopGPR(const InstX8632InplaceopGPR &) = delete;
+  InstX8632InplaceopGPR &operator=(const InstX8632InplaceopGPR &) = delete;
   ~InstX8632InplaceopGPR() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::GPREmitterOneOp Emitter;
@@ -516,9 +514,8 @@ private:
       : InstX8632(Func, K, 1, Dest) {
     addSource(Src);
   }
-  InstX8632UnaryopGPR(const InstX8632UnaryopGPR &) LLVM_DELETED_FUNCTION;
-  InstX8632UnaryopGPR &
-  operator=(const InstX8632UnaryopGPR &) LLVM_DELETED_FUNCTION;
+  InstX8632UnaryopGPR(const InstX8632UnaryopGPR &) = delete;
+  InstX8632UnaryopGPR &operator=(const InstX8632UnaryopGPR &) = delete;
   ~InstX8632UnaryopGPR() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::GPREmitterRegOp Emitter;
@@ -562,9 +559,8 @@ private:
       : InstX8632(Func, K, 1, Dest) {
     addSource(Src);
   }
-  InstX8632UnaryopXmm(const InstX8632UnaryopXmm &) LLVM_DELETED_FUNCTION;
-  InstX8632UnaryopXmm &
-  operator=(const InstX8632UnaryopXmm &) LLVM_DELETED_FUNCTION;
+  InstX8632UnaryopXmm(const InstX8632UnaryopXmm &) = delete;
+  InstX8632UnaryopXmm &operator=(const InstX8632UnaryopXmm &) = delete;
   ~InstX8632UnaryopXmm() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::XmmEmitterTwoOps Emitter;
@@ -600,8 +596,8 @@ private:
     addSource(Dest);
     addSource(Source);
   }
-  InstX8632Binop(const InstX8632Binop &) LLVM_DELETED_FUNCTION;
-  InstX8632Binop &operator=(const InstX8632Binop &) LLVM_DELETED_FUNCTION;
+  InstX8632Binop(const InstX8632Binop &) = delete;
+  InstX8632Binop &operator=(const InstX8632Binop &) = delete;
   ~InstX8632Binop() override {}
   static const char *Opcode;
 };
@@ -637,8 +633,8 @@ private:
     addSource(Dest);
     addSource(Source);
   }
-  InstX8632BinopGPR(const InstX8632BinopGPR &) LLVM_DELETED_FUNCTION;
-  InstX8632BinopGPR &operator=(const InstX8632BinopGPR &) LLVM_DELETED_FUNCTION;
+  InstX8632BinopGPR(const InstX8632BinopGPR &) = delete;
+  InstX8632BinopGPR &operator=(const InstX8632BinopGPR &) = delete;
   ~InstX8632BinopGPR() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::GPREmitterRegOp Emitter;
@@ -677,8 +673,8 @@ private:
     addSource(Dest);
     addSource(Source);
   }
-  InstX8632BinopXmm(const InstX8632BinopXmm &) LLVM_DELETED_FUNCTION;
-  InstX8632BinopXmm &operator=(const InstX8632BinopXmm &) LLVM_DELETED_FUNCTION;
+  InstX8632BinopXmm(const InstX8632BinopXmm &) = delete;
+  InstX8632BinopXmm &operator=(const InstX8632BinopXmm &) = delete;
   ~InstX8632BinopXmm() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::XmmEmitterTwoOps Emitter;
@@ -719,8 +715,8 @@ private:
     addSource(Source1);
     addSource(Source2);
   }
-  InstX8632Ternop(const InstX8632Ternop &) LLVM_DELETED_FUNCTION;
-  InstX8632Ternop &operator=(const InstX8632Ternop &) LLVM_DELETED_FUNCTION;
+  InstX8632Ternop(const InstX8632Ternop &) = delete;
+  InstX8632Ternop &operator=(const InstX8632Ternop &) = delete;
   ~InstX8632Ternop() override {}
   static const char *Opcode;
 };
@@ -760,10 +756,8 @@ private:
     addSource(Source0);
     addSource(Source1);
   }
-  InstX8632ThreeAddressop(const InstX8632ThreeAddressop &)
-      LLVM_DELETED_FUNCTION;
-  InstX8632ThreeAddressop &
-  operator=(const InstX8632ThreeAddressop &) LLVM_DELETED_FUNCTION;
+  InstX8632ThreeAddressop(const InstX8632ThreeAddressop &) = delete;
+  InstX8632ThreeAddressop &operator=(const InstX8632ThreeAddressop &) = delete;
   ~InstX8632ThreeAddressop() override {}
   static const char *Opcode;
 };
@@ -797,8 +791,8 @@ private:
       : InstX8632(Func, K, 1, Dest) {
     addSource(Source);
   }
-  InstX8632Movlike(const InstX8632Movlike &) LLVM_DELETED_FUNCTION;
-  InstX8632Movlike &operator=(const InstX8632Movlike &) LLVM_DELETED_FUNCTION;
+  InstX8632Movlike(const InstX8632Movlike &) = delete;
+  InstX8632Movlike &operator=(const InstX8632Movlike &) = delete;
   ~InstX8632Movlike() override {}
 
   static const char *Opcode;
@@ -884,8 +878,8 @@ protected:
   ~InstX8632Lockable() override {}
 
 private:
-  InstX8632Lockable(const InstX8632Lockable &) LLVM_DELETED_FUNCTION;
-  InstX8632Lockable &operator=(const InstX8632Lockable &) LLVM_DELETED_FUNCTION;
+  InstX8632Lockable(const InstX8632Lockable &) = delete;
+  InstX8632Lockable &operator=(const InstX8632Lockable &) = delete;
 };
 
 // Mul instruction - unsigned multiply.
@@ -903,8 +897,8 @@ public:
 
 private:
   InstX8632Mul(Cfg *Func, Variable *Dest, Variable *Source1, Operand *Source2);
-  InstX8632Mul(const InstX8632Mul &) LLVM_DELETED_FUNCTION;
-  InstX8632Mul &operator=(const InstX8632Mul &) LLVM_DELETED_FUNCTION;
+  InstX8632Mul(const InstX8632Mul &) = delete;
+  InstX8632Mul &operator=(const InstX8632Mul &) = delete;
   ~InstX8632Mul() override {}
 };
 
@@ -924,8 +918,8 @@ public:
 private:
   InstX8632Shld(Cfg *Func, Variable *Dest, Variable *Source1,
                 Variable *Source2);
-  InstX8632Shld(const InstX8632Shld &) LLVM_DELETED_FUNCTION;
-  InstX8632Shld &operator=(const InstX8632Shld &) LLVM_DELETED_FUNCTION;
+  InstX8632Shld(const InstX8632Shld &) = delete;
+  InstX8632Shld &operator=(const InstX8632Shld &) = delete;
   ~InstX8632Shld() override {}
 };
 
@@ -945,8 +939,8 @@ public:
 private:
   InstX8632Shrd(Cfg *Func, Variable *Dest, Variable *Source1,
                 Variable *Source2);
-  InstX8632Shrd(const InstX8632Shrd &) LLVM_DELETED_FUNCTION;
-  InstX8632Shrd &operator=(const InstX8632Shrd &) LLVM_DELETED_FUNCTION;
+  InstX8632Shrd(const InstX8632Shrd &) = delete;
+  InstX8632Shrd &operator=(const InstX8632Shrd &) = delete;
   ~InstX8632Shrd() override {}
 };
 
@@ -966,8 +960,8 @@ public:
 private:
   InstX8632Cmov(Cfg *Func, Variable *Dest, Operand *Source,
                 CondX86::BrCond Cond);
-  InstX8632Cmov(const InstX8632Cmov &) LLVM_DELETED_FUNCTION;
-  InstX8632Cmov &operator=(const InstX8632Cmov &) LLVM_DELETED_FUNCTION;
+  InstX8632Cmov(const InstX8632Cmov &) = delete;
+  InstX8632Cmov &operator=(const InstX8632Cmov &) = delete;
   ~InstX8632Cmov() override {}
 
   CondX86::BrCond Condition;
@@ -990,8 +984,8 @@ public:
 private:
   InstX8632Cmpps(Cfg *Func, Variable *Dest, Operand *Source,
                  CondX86::CmppsCond Cond);
-  InstX8632Cmpps(const InstX8632Cmpps &) LLVM_DELETED_FUNCTION;
-  InstX8632Cmpps &operator=(const InstX8632Cmpps &) LLVM_DELETED_FUNCTION;
+  InstX8632Cmpps(const InstX8632Cmpps &) = delete;
+  InstX8632Cmpps &operator=(const InstX8632Cmpps &) = delete;
   ~InstX8632Cmpps() override {}
 
   CondX86::CmppsCond Condition;
@@ -1017,8 +1011,8 @@ public:
 private:
   InstX8632Cmpxchg(Cfg *Func, Operand *DestOrAddr, Variable *Eax,
                    Variable *Desired, bool Locked);
-  InstX8632Cmpxchg(const InstX8632Cmpxchg &) LLVM_DELETED_FUNCTION;
-  InstX8632Cmpxchg &operator=(const InstX8632Cmpxchg &) LLVM_DELETED_FUNCTION;
+  InstX8632Cmpxchg(const InstX8632Cmpxchg &) = delete;
+  InstX8632Cmpxchg &operator=(const InstX8632Cmpxchg &) = delete;
   ~InstX8632Cmpxchg() override {}
 };
 
@@ -1044,9 +1038,8 @@ public:
 private:
   InstX8632Cmpxchg8b(Cfg *Func, OperandX8632Mem *Dest, Variable *Edx,
                      Variable *Eax, Variable *Ecx, Variable *Ebx, bool Locked);
-  InstX8632Cmpxchg8b(const InstX8632Cmpxchg8b &) LLVM_DELETED_FUNCTION;
-  InstX8632Cmpxchg8b &
-  operator=(const InstX8632Cmpxchg8b &) LLVM_DELETED_FUNCTION;
+  InstX8632Cmpxchg8b(const InstX8632Cmpxchg8b &) = delete;
+  InstX8632Cmpxchg8b &operator=(const InstX8632Cmpxchg8b &) = delete;
   ~InstX8632Cmpxchg8b() override {}
 };
 
@@ -1068,8 +1061,8 @@ public:
 private:
   bool Trunc;
   InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source, bool Trunc);
-  InstX8632Cvt(const InstX8632Cvt &) LLVM_DELETED_FUNCTION;
-  InstX8632Cvt &operator=(const InstX8632Cvt &) LLVM_DELETED_FUNCTION;
+  InstX8632Cvt(const InstX8632Cvt &) = delete;
+  InstX8632Cvt &operator=(const InstX8632Cvt &) = delete;
   ~InstX8632Cvt() override {}
 };
 
@@ -1086,8 +1079,8 @@ public:
 
 private:
   InstX8632Icmp(Cfg *Func, Operand *Src1, Operand *Src2);
-  InstX8632Icmp(const InstX8632Icmp &) LLVM_DELETED_FUNCTION;
-  InstX8632Icmp &operator=(const InstX8632Icmp &) LLVM_DELETED_FUNCTION;
+  InstX8632Icmp(const InstX8632Icmp &) = delete;
+  InstX8632Icmp &operator=(const InstX8632Icmp &) = delete;
   ~InstX8632Icmp() override {}
 };
 
@@ -1105,8 +1098,8 @@ public:
 
 private:
   InstX8632Ucomiss(Cfg *Func, Operand *Src1, Operand *Src2);
-  InstX8632Ucomiss(const InstX8632Ucomiss &) LLVM_DELETED_FUNCTION;
-  InstX8632Ucomiss &operator=(const InstX8632Ucomiss &) LLVM_DELETED_FUNCTION;
+  InstX8632Ucomiss(const InstX8632Ucomiss &) = delete;
+  InstX8632Ucomiss &operator=(const InstX8632Ucomiss &) = delete;
   ~InstX8632Ucomiss() override {}
 };
 
@@ -1122,8 +1115,8 @@ public:
 
 private:
   InstX8632UD2(Cfg *Func);
-  InstX8632UD2(const InstX8632UD2 &) LLVM_DELETED_FUNCTION;
-  InstX8632UD2 &operator=(const InstX8632UD2 &) LLVM_DELETED_FUNCTION;
+  InstX8632UD2(const InstX8632UD2 &) = delete;
+  InstX8632UD2 &operator=(const InstX8632UD2 &) = delete;
   ~InstX8632UD2() override {}
 };
 
@@ -1140,8 +1133,8 @@ public:
 
 private:
   InstX8632Test(Cfg *Func, Operand *Source1, Operand *Source2);
-  InstX8632Test(const InstX8632Test &) LLVM_DELETED_FUNCTION;
-  InstX8632Test &operator=(const InstX8632Test &) LLVM_DELETED_FUNCTION;
+  InstX8632Test(const InstX8632Test &) = delete;
+  InstX8632Test &operator=(const InstX8632Test &) = delete;
   ~InstX8632Test() override {}
 };
 
@@ -1158,8 +1151,8 @@ public:
 
 private:
   InstX8632Mfence(Cfg *Func);
-  InstX8632Mfence(const InstX8632Mfence &) LLVM_DELETED_FUNCTION;
-  InstX8632Mfence &operator=(const InstX8632Mfence &) LLVM_DELETED_FUNCTION;
+  InstX8632Mfence(const InstX8632Mfence &) = delete;
+  InstX8632Mfence &operator=(const InstX8632Mfence &) = delete;
   ~InstX8632Mfence() override {}
 };
 
@@ -1178,8 +1171,8 @@ public:
 
 private:
   InstX8632Store(Cfg *Func, Operand *Value, OperandX8632 *Mem);
-  InstX8632Store(const InstX8632Store &) LLVM_DELETED_FUNCTION;
-  InstX8632Store &operator=(const InstX8632Store &) LLVM_DELETED_FUNCTION;
+  InstX8632Store(const InstX8632Store &) = delete;
+  InstX8632Store &operator=(const InstX8632Store &) = delete;
   ~InstX8632Store() override {}
 };
 
@@ -1195,8 +1188,8 @@ public:
 
 private:
   InstX8632StoreP(Cfg *Func, Operand *Value, OperandX8632 *Mem);
-  InstX8632StoreP(const InstX8632StoreP &) LLVM_DELETED_FUNCTION;
-  InstX8632StoreP &operator=(const InstX8632StoreP &) LLVM_DELETED_FUNCTION;
+  InstX8632StoreP(const InstX8632StoreP &) = delete;
+  InstX8632StoreP &operator=(const InstX8632StoreP &) = delete;
   ~InstX8632StoreP() override {}
 };
 
@@ -1215,8 +1208,8 @@ public:
 
 private:
   InstX8632StoreQ(Cfg *Func, Operand *Value, OperandX8632 *Mem);
-  InstX8632StoreQ(const InstX8632StoreQ &) LLVM_DELETED_FUNCTION;
-  InstX8632StoreQ &operator=(const InstX8632StoreQ &) LLVM_DELETED_FUNCTION;
+  InstX8632StoreQ(const InstX8632StoreQ &) = delete;
+  InstX8632StoreQ &operator=(const InstX8632StoreQ &) = delete;
   ~InstX8632StoreQ() override {}
 };
 
@@ -1234,8 +1227,8 @@ public:
 
 private:
   InstX8632Movsx(Cfg *Func, Variable *Dest, Operand *Source);
-  InstX8632Movsx(const InstX8632Movsx &) LLVM_DELETED_FUNCTION;
-  InstX8632Movsx &operator=(const InstX8632Movsx &) LLVM_DELETED_FUNCTION;
+  InstX8632Movsx(const InstX8632Movsx &) = delete;
+  InstX8632Movsx &operator=(const InstX8632Movsx &) = delete;
   ~InstX8632Movsx() override {}
 };
 
@@ -1253,8 +1246,8 @@ public:
 
 private:
   InstX8632Movzx(Cfg *Func, Variable *Dest, Operand *Source);
-  InstX8632Movzx(const InstX8632Movzx &) LLVM_DELETED_FUNCTION;
-  InstX8632Movzx &operator=(const InstX8632Movzx &) LLVM_DELETED_FUNCTION;
+  InstX8632Movzx(const InstX8632Movzx &) = delete;
+  InstX8632Movzx &operator=(const InstX8632Movzx &) = delete;
   ~InstX8632Movzx() override {}
 };
 
@@ -1274,8 +1267,8 @@ public:
 
 private:
   InstX8632Nop(Cfg *Func, SizeT Length);
-  InstX8632Nop(const InstX8632Nop &) LLVM_DELETED_FUNCTION;
-  InstX8632Nop &operator=(const InstX8632Nop &) LLVM_DELETED_FUNCTION;
+  InstX8632Nop(const InstX8632Nop &) = delete;
+  InstX8632Nop &operator=(const InstX8632Nop &) = delete;
   ~InstX8632Nop() override {}
 
   NopVariant Variant;
@@ -1293,8 +1286,8 @@ public:
 
 private:
   InstX8632Fld(Cfg *Func, Operand *Src);
-  InstX8632Fld(const InstX8632Fld &) LLVM_DELETED_FUNCTION;
-  InstX8632Fld &operator=(const InstX8632Fld &) LLVM_DELETED_FUNCTION;
+  InstX8632Fld(const InstX8632Fld &) = delete;
+  InstX8632Fld &operator=(const InstX8632Fld &) = delete;
   ~InstX8632Fld() override {}
 };
 
@@ -1310,8 +1303,8 @@ public:
 
 private:
   InstX8632Fstp(Cfg *Func, Variable *Dest);
-  InstX8632Fstp(const InstX8632Fstp &) LLVM_DELETED_FUNCTION;
-  InstX8632Fstp &operator=(const InstX8632Fstp &) LLVM_DELETED_FUNCTION;
+  InstX8632Fstp(const InstX8632Fstp &) = delete;
+  InstX8632Fstp &operator=(const InstX8632Fstp &) = delete;
   ~InstX8632Fstp() override {}
 };
 
@@ -1327,8 +1320,8 @@ public:
 
 private:
   InstX8632Pop(Cfg *Func, Variable *Dest);
-  InstX8632Pop(const InstX8632Pop &) LLVM_DELETED_FUNCTION;
-  InstX8632Pop &operator=(const InstX8632Pop &) LLVM_DELETED_FUNCTION;
+  InstX8632Pop(const InstX8632Pop &) = delete;
+  InstX8632Pop &operator=(const InstX8632Pop &) = delete;
   ~InstX8632Pop() override {}
 };
 
@@ -1345,8 +1338,8 @@ public:
 
 private:
   InstX8632Push(Cfg *Func, Operand *Source, bool SuppressStackAdjustment);
-  InstX8632Push(const InstX8632Push &) LLVM_DELETED_FUNCTION;
-  InstX8632Push &operator=(const InstX8632Push &) LLVM_DELETED_FUNCTION;
+  InstX8632Push(const InstX8632Push &) = delete;
+  InstX8632Push &operator=(const InstX8632Push &) = delete;
   bool SuppressStackAdjustment;
   ~InstX8632Push() override {}
 };
@@ -1367,8 +1360,8 @@ public:
 
 private:
   InstX8632Ret(Cfg *Func, Variable *Source);
-  InstX8632Ret(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
-  InstX8632Ret &operator=(const InstX8632Ret &) LLVM_DELETED_FUNCTION;
+  InstX8632Ret(const InstX8632Ret &) = delete;
+  InstX8632Ret &operator=(const InstX8632Ret &) = delete;
   ~InstX8632Ret() override {}
 };
 
@@ -1393,8 +1386,8 @@ public:
 
 private:
   InstX8632Xadd(Cfg *Func, Operand *Dest, Variable *Source, bool Locked);
-  InstX8632Xadd(const InstX8632Xadd &) LLVM_DELETED_FUNCTION;
-  InstX8632Xadd &operator=(const InstX8632Xadd &) LLVM_DELETED_FUNCTION;
+  InstX8632Xadd(const InstX8632Xadd &) = delete;
+  InstX8632Xadd &operator=(const InstX8632Xadd &) = delete;
   ~InstX8632Xadd() override {}
 };
 
@@ -1417,8 +1410,8 @@ public:
 
 private:
   InstX8632Xchg(Cfg *Func, Operand *Dest, Variable *Source);
-  InstX8632Xchg(const InstX8632Xchg &) LLVM_DELETED_FUNCTION;
-  InstX8632Xchg &operator=(const InstX8632Xchg &) LLVM_DELETED_FUNCTION;
+  InstX8632Xchg(const InstX8632Xchg &) = delete;
+  InstX8632Xchg &operator=(const InstX8632Xchg &) = delete;
   ~InstX8632Xchg() override {}
 };
 

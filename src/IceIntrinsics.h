@@ -159,8 +159,8 @@ private:
   typedef std::map<IceString, FullIntrinsicInfo> IntrinsicMap;
   IntrinsicMap Map;
 
-  Intrinsics(const Intrinsics &) LLVM_DELETED_FUNCTION;
-  Intrinsics &operator=(const Intrinsics &) LLVM_DELETED_FUNCTION;
+  Intrinsics(const Intrinsics &) = delete;
+  Intrinsics &operator=(const Intrinsics &) = delete;
 };
 
 } // end of namespace Ice

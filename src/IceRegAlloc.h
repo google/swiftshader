@@ -43,8 +43,8 @@ public:
   void dump(const Cfg *Func) const;
 
 private:
-  // LiveRangeWrapper(const LiveRangeWrapper &) LLVM_DELETED_FUNCTION;
-  LiveRangeWrapper &operator=(const LiveRangeWrapper &) LLVM_DELETED_FUNCTION;
+  // LiveRangeWrapper(const LiveRangeWrapper &) = delete;
+  LiveRangeWrapper &operator=(const LiveRangeWrapper &) = delete;
 };
 
 class LinearScan {
@@ -72,8 +72,8 @@ private:
   typedef std::list<LiveRangeWrapper> UnorderedRanges;
   OrderedRanges Unhandled;
   UnorderedRanges Active, Inactive, Handled;
-  LinearScan(const LinearScan &) LLVM_DELETED_FUNCTION;
-  LinearScan &operator=(const LinearScan &) LLVM_DELETED_FUNCTION;
+  LinearScan(const LinearScan &) = delete;
+  LinearScan &operator=(const LinearScan &) = delete;
 };
 
 } // end of namespace Ice

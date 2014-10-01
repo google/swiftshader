@@ -35,8 +35,8 @@ namespace Ice {
 // KeyTypeHasFP with C++11.
 template <typename KeyType, typename ValueType, bool KeyTypeHasFP = false>
 class TypePool {
-  TypePool(const TypePool &) LLVM_DELETED_FUNCTION;
-  TypePool &operator=(const TypePool &) LLVM_DELETED_FUNCTION;
+  TypePool(const TypePool &) = delete;
+  TypePool &operator=(const TypePool &) = delete;
 
 public:
   TypePool() : NextPoolID(0) {}
@@ -75,8 +75,8 @@ private:
 
 // UndefPool maps ICE types to the corresponding ConstantUndef values.
 class UndefPool {
-  UndefPool(const UndefPool &) LLVM_DELETED_FUNCTION;
-  UndefPool &operator=(const UndefPool &) LLVM_DELETED_FUNCTION;
+  UndefPool(const UndefPool &) = delete;
+  UndefPool &operator=(const UndefPool &) = delete;
 
 public:
   UndefPool() : NextPoolID(0) {}
@@ -99,8 +99,8 @@ private:
 // The global constant pool bundles individual pools of each type of
 // interest.
 class ConstantPool {
-  ConstantPool(const ConstantPool &) LLVM_DELETED_FUNCTION;
-  ConstantPool &operator=(const ConstantPool &) LLVM_DELETED_FUNCTION;
+  ConstantPool(const ConstantPool &) = delete;
+  ConstantPool &operator=(const ConstantPool &) = delete;
 
 public:
   ConstantPool() {}

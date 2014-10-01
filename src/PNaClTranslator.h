@@ -31,8 +31,8 @@ public:
   void translate(const std::string &IRFilename);
 
 private:
-  PNaClTranslator(const PNaClTranslator &) LLVM_DELETED_FUNCTION;
-  PNaClTranslator &operator=(const PNaClTranslator &) LLVM_DELETED_FUNCTION;
+  PNaClTranslator(const PNaClTranslator &) = delete;
+  PNaClTranslator &operator=(const PNaClTranslator &) = delete;
 };
 }
 

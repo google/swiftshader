@@ -46,8 +46,8 @@ public:
 private:
   // TODO: Disable these constructors when Liveness::Nodes is no
   // longer an STL container.
-  // LivenessNode(const LivenessNode &) LLVM_DELETED_FUNCTION;
-  // LivenessNode &operator=(const LivenessNode &) LLVM_DELETED_FUNCTION;
+  // LivenessNode(const LivenessNode &) = delete;
+  // LivenessNode &operator=(const LivenessNode &) = delete;
 };
 
 class Liveness {
@@ -91,8 +91,8 @@ private:
   std::vector<Variable *> LiveToVarMap;
   // LiveRanges maps a Variable::Number to its live range.
   std::vector<LiveRange> LiveRanges;
-  Liveness(const Liveness &) LLVM_DELETED_FUNCTION;
-  Liveness &operator=(const Liveness &) LLVM_DELETED_FUNCTION;
+  Liveness(const Liveness &) = delete;
+  Liveness &operator=(const Liveness &) = delete;
 };
 
 } // end of namespace Ice

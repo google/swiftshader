@@ -51,8 +51,8 @@ static cl::opt<bool> AllowErrorRecovery(
 
 // Top-level class to read PNaCl bitcode files, and translate to ICE.
 class TopLevelParser : public NaClBitcodeParser {
-  TopLevelParser(const TopLevelParser &) LLVM_DELETED_FUNCTION;
-  TopLevelParser &operator=(const TopLevelParser &) LLVM_DELETED_FUNCTION;
+  TopLevelParser(const TopLevelParser &) = delete;
+  TopLevelParser &operator=(const TopLevelParser &) = delete;
 
 public:
   TopLevelParser(Ice::Translator &Translator, const std::string &InputName,
@@ -767,8 +767,8 @@ void GlobalsParser::ProcessRecord() {
 
 /// Base class for parsing a valuesymtab block in the bitcode file.
 class ValuesymtabParser : public BlockParserBaseClass {
-  ValuesymtabParser(const ValuesymtabParser &) LLVM_DELETED_FUNCTION;
-  void operator=(const ValuesymtabParser &) LLVM_DELETED_FUNCTION;
+  ValuesymtabParser(const ValuesymtabParser &) = delete;
+  void operator=(const ValuesymtabParser &) = delete;
 
 public:
   ValuesymtabParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
@@ -829,8 +829,8 @@ class FunctionValuesymtabParser;
 
 /// Parses function blocks in the bitcode file.
 class FunctionParser : public BlockParserBaseClass {
-  FunctionParser(const FunctionParser &) LLVM_DELETED_FUNCTION;
-  FunctionParser &operator=(const FunctionParser &) LLVM_DELETED_FUNCTION;
+  FunctionParser(const FunctionParser &) = delete;
+  FunctionParser &operator=(const FunctionParser &) = delete;
   friend class FunctionValuesymtabParser;
 
 public:
@@ -2012,8 +2012,8 @@ void FunctionParser::ProcessRecord() {
 
 /// Parses constants within a function block.
 class ConstantsParser : public BlockParserBaseClass {
-  ConstantsParser(const ConstantsParser &) LLVM_DELETED_FUNCTION;
-  ConstantsParser &operator=(const ConstantsParser &) LLVM_DELETED_FUNCTION;
+  ConstantsParser(const ConstantsParser &) = delete;
+  ConstantsParser &operator=(const ConstantsParser &) = delete;
 
 public:
   ConstantsParser(unsigned BlockID, FunctionParser *FuncParser)
@@ -2128,9 +2128,8 @@ void ConstantsParser::ProcessRecord() {
 
 // Parses valuesymtab blocks appearing in a function block.
 class FunctionValuesymtabParser : public ValuesymtabParser {
-  FunctionValuesymtabParser(const FunctionValuesymtabParser &)
-      LLVM_DELETED_FUNCTION;
-  void operator=(const FunctionValuesymtabParser &) LLVM_DELETED_FUNCTION;
+  FunctionValuesymtabParser(const FunctionValuesymtabParser &) = delete;
+  void operator=(const FunctionValuesymtabParser &) = delete;
 
 public:
   FunctionValuesymtabParser(unsigned BlockID, FunctionParser *EnclosingParser)
@@ -2240,9 +2239,8 @@ private:
 };
 
 class ModuleValuesymtabParser : public ValuesymtabParser {
-  ModuleValuesymtabParser(const ModuleValuesymtabParser &)
-      LLVM_DELETED_FUNCTION;
-  void operator=(const ModuleValuesymtabParser &) LLVM_DELETED_FUNCTION;
+  ModuleValuesymtabParser(const ModuleValuesymtabParser &) = delete;
+  void operator=(const ModuleValuesymtabParser &) = delete;
 
 public:
   ModuleValuesymtabParser(unsigned BlockID, ModuleParser *MP)

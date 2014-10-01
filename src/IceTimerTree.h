@@ -38,8 +38,8 @@ public:
 };
 
 class TimerStack {
-  TimerStack(const TimerStack &) LLVM_DELETED_FUNCTION;
-  TimerStack &operator=(const TimerStack &) LLVM_DELETED_FUNCTION;
+  TimerStack(const TimerStack &) = delete;
+  TimerStack &operator=(const TimerStack &) = delete;
 
 public:
   TimerStack(const IceString &TopLevelName);

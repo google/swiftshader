@@ -173,8 +173,8 @@ private:
   CodeStats StatsFunction;
   CodeStats StatsCumulative;
   std::unique_ptr<class TimerStack> Timers;
-  GlobalContext(const GlobalContext &) LLVM_DELETED_FUNCTION;
-  GlobalContext &operator=(const GlobalContext &) LLVM_DELETED_FUNCTION;
+  GlobalContext(const GlobalContext &) = delete;
+  GlobalContext &operator=(const GlobalContext &) = delete;
 
   // Private helpers for mangleName()
   typedef llvm::SmallVector<char, 32> ManglerVector;
@@ -185,8 +185,8 @@ private:
 // pushes a marker, and the destructor pops it.  This is for
 // convenient timing of regions of code.
 class TimerMarker {
-  TimerMarker(const TimerMarker &) LLVM_DELETED_FUNCTION;
-  TimerMarker &operator=(const TimerMarker &) LLVM_DELETED_FUNCTION;
+  TimerMarker(const TimerMarker &) = delete;
+  TimerMarker &operator=(const TimerMarker &) = delete;
 
 public:
   TimerMarker(TimerIdT ID, GlobalContext *Ctx)

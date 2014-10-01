@@ -184,8 +184,8 @@ private:
   // spurious validation failures.
   const CfgNode *CurrentNode;
 
-  Cfg(const Cfg &) LLVM_DELETED_FUNCTION;
-  Cfg &operator=(const Cfg &) LLVM_DELETED_FUNCTION;
+  Cfg(const Cfg &) = delete;
+  Cfg &operator=(const Cfg &) = delete;
 };
 
 } // end of namespace Ice

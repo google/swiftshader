@@ -64,8 +64,8 @@ private:
 
   void set_position(intptr_t position) { position_ = position; }
 
-  AssemblerFixup(const AssemblerFixup &) LLVM_DELETED_FUNCTION;
-  AssemblerFixup &operator=(const AssemblerFixup &) LLVM_DELETED_FUNCTION;
+  AssemblerFixup(const AssemblerFixup &) = delete;
+  AssemblerFixup &operator=(const AssemblerFixup &) = delete;
   friend class AssemblerBuffer;
 };
 
@@ -213,8 +213,8 @@ public:
 private:
   llvm::BumpPtrAllocator Allocator;
 
-  Assembler(const Assembler &) LLVM_DELETED_FUNCTION;
-  Assembler &operator=(const Assembler &) LLVM_DELETED_FUNCTION;
+  Assembler(const Assembler &) = delete;
+  Assembler &operator=(const Assembler &) = delete;
 };
 
 } // end of namespace Ice
