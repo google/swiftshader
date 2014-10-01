@@ -420,11 +420,8 @@ InstFakeKill::InstFakeKill(Cfg *Func, const VarList &KilledRegs,
                            const Inst *Linked)
     : InstHighLevel(Func, Inst::FakeKill, KilledRegs.size(), NULL),
       Linked(Linked) {
-  for (VarList::const_iterator I = KilledRegs.begin(), E = KilledRegs.end();
-       I != E; ++I) {
-    Variable *Var = *I;
+  for (Variable *Var : KilledRegs)
     addSource(Var);
-  }
 }
 
 // ======================== Dump routines ======================== //

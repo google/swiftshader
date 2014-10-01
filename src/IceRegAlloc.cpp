@@ -88,9 +88,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     static TimerIdT IDinitUnhandled =
         GlobalContext::getTimerID("initUnhandled");
     TimerMarker T(IDinitUnhandled, Func->getContext());
-    for (VarList::const_iterator I = Vars.begin(), E = Vars.end(); I != E;
-         ++I) {
-      Variable *Var = *I;
+    for (Variable *Var : Vars) {
       // Explicitly don't consider zero-weight variables, which are
       // meant to be spill slots.
       if (Var->getWeight() == RegWeight::Zero)
@@ -151,8 +149,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     }
 
     // Check for active ranges that have expired or become inactive.
-    for (UnorderedRanges::iterator I = Active.begin(), E = Active.end(); I != E;
-         I = Next) {
+    for (auto I = Active.begin(), E = Active.end(); I != E; I = Next) {
       Next = I;
       ++Next;
       LiveRangeWrapper Item = *I;
@@ -188,8 +185,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     }
 
     // Check for inactive ranges that have expired or reactivated.
-    for (UnorderedRanges::iterator I = Inactive.begin(), E = Inactive.end();
-         I != E; I = Next) {
+    for (auto I = Inactive.begin(), E = Inactive.end(); I != E; I = Next) {
       Next = I;
       ++Next;
       LiveRangeWrapper Item = *I;
@@ -280,10 +276,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
 
     // Remove registers from the Free[] list where an Inactive range
     // overlaps with the current range.
-    for (UnorderedRanges::const_iterator I = Inactive.begin(),
-                                         E = Inactive.end();
-         I != E; ++I) {
-      LiveRangeWrapper Item = *I;
+    for (const LiveRangeWrapper &Item : Inactive) {
       if (Item.overlaps(Cur)) {
         int32_t RegNum = Item.Var->getRegNumTmp();
         // Don't assert(Free[RegNum]) because in theory (though
@@ -304,9 +297,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     // Disable AllowOverlap if an Active variable, which is not
     // Prefer, shares Prefer's register, and has a definition within
     // Cur's live range.
-    for (UnorderedRanges::iterator I = Active.begin(), E = Active.end();
-         AllowOverlap && I != E; ++I) {
-      LiveRangeWrapper Item = *I;
+    for (const LiveRangeWrapper &Item : Active) {
       int32_t RegNum = Item.Var->getRegNumTmp();
       if (Item.Var != Prefer && RegNum == PreferReg &&
           overlapsDefs(Func, Cur, Item.Var)) {
@@ -317,14 +308,13 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
 
     // Remove registers from the Free[] list where an Unhandled range
     // overlaps with the current range and is precolored.
-    // Cur.endsBefore(*I) is an early exit check that turns a
+    // Cur.endsBefore(Item) is an early exit check that turns a
     // guaranteed O(N^2) algorithm into expected linear complexity.
     llvm::SmallBitVector PrecoloredUnhandled(RegMask.size());
     // Note: PrecoloredUnhandled is only used for dumping.
-    for (OrderedRanges::const_iterator I = Unhandled.begin(),
-                                       E = Unhandled.end();
-         I != E && !Cur.endsBefore(*I); ++I) {
-      LiveRangeWrapper Item = *I;
+    for (const LiveRangeWrapper &Item : Unhandled) {
+      if (Cur.endsBefore(Item))
+        break;
       if (Item.Var->hasReg() && Item.overlaps(Cur)) {
         int32_t ItemReg = Item.Var->getRegNum(); // Note: not getRegNumTmp()
         Free[ItemReg] = false;
@@ -381,19 +371,14 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       // lowest-weight register and see if Cur has higher weight.
       std::vector<RegWeight> Weights(RegMask.size());
       // Check Active ranges.
-      for (UnorderedRanges::const_iterator I = Active.begin(), E = Active.end();
-           I != E; ++I) {
-        LiveRangeWrapper Item = *I;
+      for (const LiveRangeWrapper &Item : Active) {
         assert(Item.overlaps(Cur));
         int32_t RegNum = Item.Var->getRegNumTmp();
         assert(Item.Var->hasRegTmp());
         Weights[RegNum].addWeight(Item.range().getWeight());
       }
       // Same as above, but check Inactive ranges instead of Active.
-      for (UnorderedRanges::const_iterator I = Inactive.begin(),
-                                           E = Inactive.end();
-           I != E; ++I) {
-        LiveRangeWrapper Item = *I;
+      for (const LiveRangeWrapper &Item : Inactive) {
         int32_t RegNum = Item.Var->getRegNumTmp();
         assert(Item.Var->hasRegTmp());
         if (Item.overlaps(Cur))
@@ -402,10 +387,9 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       // Check Unhandled ranges that overlap Cur and are precolored.
       // Cur.endsBefore(*I) is an early exit check that turns a
       // guaranteed O(N^2) algorithm into expected linear complexity.
-      for (OrderedRanges::const_iterator I = Unhandled.begin(),
-                                         E = Unhandled.end();
-           I != E && !Cur.endsBefore(*I); ++I) {
-        LiveRangeWrapper Item = *I;
+      for (const LiveRangeWrapper &Item : Unhandled) {
+        if (Cur.endsBefore(Item))
+          break;
         int32_t RegNum = Item.Var->getRegNumTmp();
         if (RegNum < 0)
           continue;
@@ -436,8 +420,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       } else {
         // Evict all live ranges in Active that register number
         // MinWeightIndex is assigned to.
-        for (UnorderedRanges::iterator I = Active.begin(), E = Active.end();
-             I != E; I = Next) {
+        for (auto I = Active.begin(), E = Active.end(); I != E; I = Next) {
           Next = I;
           ++Next;
           LiveRangeWrapper Item = *I;
@@ -455,8 +438,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           }
         }
         // Do the same for Inactive.
-        for (UnorderedRanges::iterator I = Inactive.begin(), E = Inactive.end();
-             I != E; I = Next) {
+        for (auto I = Inactive.begin(), E = Inactive.end(); I != E; I = Next) {
           Next = I;
           ++Next;
           LiveRangeWrapper Item = *I;
@@ -496,26 +478,16 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     dump(Func);
   }
   // Move anything Active or Inactive to Handled for easier handling.
-  for (UnorderedRanges::iterator I = Active.begin(), E = Active.end(); I != E;
-       I = Next) {
-    Next = I;
-    ++Next;
-    Handled.push_back(*I);
-    Active.erase(I);
-  }
-  for (UnorderedRanges::iterator I = Inactive.begin(), E = Inactive.end();
-       I != E; I = Next) {
-    Next = I;
-    ++Next;
-    Handled.push_back(*I);
-    Inactive.erase(I);
-  }
+  for (const LiveRangeWrapper &I : Active)
+    Handled.push_back(I);
+  Active.clear();
+  for (const LiveRangeWrapper &I : Inactive)
+    Handled.push_back(I);
+  Inactive.clear();
   dump(Func);
 
   // Finish up by assigning RegNumTmp->RegNum for each Variable.
-  for (UnorderedRanges::const_iterator I = Handled.begin(), E = Handled.end();
-       I != E; ++I) {
-    LiveRangeWrapper Item = *I;
+  for (const LiveRangeWrapper &Item : Handled) {
     int32_t RegNum = Item.Var->getRegNumTmp();
     if (Verbose) {
       if (!Item.Var->hasRegTmp()) {
@@ -564,27 +536,23 @@ void LinearScan::dump(Cfg *Func) const {
   Func->resetCurrentNode();
   Str << "**** Current regalloc state:\n";
   Str << "++++++ Handled:\n";
-  for (UnorderedRanges::const_iterator I = Handled.begin(), E = Handled.end();
-       I != E; ++I) {
-    I->dump(Func);
+  for (const LiveRangeWrapper &Item : Handled) {
+    Item.dump(Func);
     Str << "\n";
   }
   Str << "++++++ Unhandled:\n";
-  for (OrderedRanges::const_iterator I = Unhandled.begin(), E = Unhandled.end();
-       I != E; ++I) {
-    I->dump(Func);
+  for (const LiveRangeWrapper &Item : Unhandled) {
+    Item.dump(Func);
     Str << "\n";
   }
   Str << "++++++ Active:\n";
-  for (UnorderedRanges::const_iterator I = Active.begin(), E = Active.end();
-       I != E; ++I) {
-    I->dump(Func);
+  for (const LiveRangeWrapper &Item : Active) {
+    Item.dump(Func);
     Str << "\n";
   }
   Str << "++++++ Inactive:\n";
-  for (UnorderedRanges::const_iterator I = Inactive.begin(), E = Inactive.end();
-       I != E; ++I) {
-    I->dump(Func);
+  for (const LiveRangeWrapper &Item : Inactive) {
+    Item.dump(Func);
     Str << "\n";
   }
 }

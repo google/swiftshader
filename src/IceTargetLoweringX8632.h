@@ -49,9 +49,9 @@ public:
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
   SizeT getBundleAlignLog2Bytes() const override { return 5; }
-  llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const override {
-    static const uint8_t Padding[] = { 0xF4 };
-    return llvm::ArrayRef<uint8_t>(Padding, 1);
+  llvm::ArrayRef<AsmCodeByte> getNonExecBundlePadding() const override {
+    static const AsmCodeByte Padding[] = { 0xF4 };
+    return llvm::ArrayRef<AsmCodeByte>(Padding, 1);
   }
   void emitVariable(const Variable *Var) const override;
   void lowerArguments() override;

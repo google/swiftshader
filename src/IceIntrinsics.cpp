@@ -207,7 +207,7 @@ Intrinsics::Intrinsics() {
   for (size_t I = 0; I < IceIntrinsicsTableSize; ++I) {
     const struct IceIntrinsicsEntry_ &Entry = IceIntrinsicsTable[I];
     assert(Entry.Info.NumTypes <= kMaxIntrinsicParameters);
-    map.insert(std::make_pair(IceString(Entry.IntrinsicName), Entry.Info));
+    Map.insert(std::make_pair(IceString(Entry.IntrinsicName), Entry.Info));
   }
 }
 
@@ -215,8 +215,8 @@ Intrinsics::~Intrinsics() {}
 
 const Intrinsics::FullIntrinsicInfo *
 Intrinsics::find(const IceString &Name) const {
-  IntrinsicMap::const_iterator it = map.find(Name);
-  if (it == map.end())
+  auto it = Map.find(Name);
+  if (it == Map.end())
     return NULL;
   return &it->second;
 }

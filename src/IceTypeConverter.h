@@ -44,7 +44,7 @@ public:
   /// Converts LLVM type LLVMTy to an ICE type. Returns
   /// Ice::IceType_NUM if unable to convert.
   Type convertToIceType(llvm::Type *LLVMTy) const {
-    std::map<llvm::Type *, Type>::const_iterator Pos = LLVM2IceMap.find(LLVMTy);
+    auto Pos = LLVM2IceMap.find(LLVMTy);
     if (Pos == LLVM2IceMap.end())
       return convertToIceTypeOther(LLVMTy);
     return Pos->second;

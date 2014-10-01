@@ -847,8 +847,7 @@ public:
     Func->setInternal(LLVMFunc->hasInternalLinkage());
     CurrentNode = InstallNextBasicBlock();
     Func->setEntryNode(CurrentNode);
-    for (Function::const_arg_iterator ArgI = LLVMFunc->arg_begin(),
-                                      ArgE = LLVMFunc->arg_end();
+    for (auto ArgI = LLVMFunc->arg_begin(), ArgE = LLVMFunc->arg_end();
          ArgI != ArgE; ++ArgI) {
       Func->addArg(getNextInstVar(Context->convertToIceType(ArgI->getType())));
     }
@@ -1387,11 +1386,7 @@ void FunctionParser::ExitBlock() {
   // Before translating, check for blocks without instructions, and
   // insert unreachable. This shouldn't happen, but be safe.
   unsigned Index = 0;
-  const Ice::NodeList &Nodes = Func->getNodes();
-  for (std::vector<Ice::CfgNode *>::const_iterator Iter = Nodes.begin(),
-                                                   IterEnd = Nodes.end();
-       Iter != IterEnd; ++Iter, ++Index) {
-    Ice::CfgNode *Node = *Iter;
+  for (Ice::CfgNode *Node : Func->getNodes()) {
     if (Node->getInsts().size() == 0) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
@@ -1400,6 +1395,7 @@ void FunctionParser::ExitBlock() {
       // TODO(kschimpf) Remove error recovery once implementation complete.
       Node->appendInst(Ice::InstUnreachable::create(Func));
     }
+    ++Index;
   }
   Func->computePredecessors();
   // Note: Once any errors have been found, we turn off all

@@ -157,7 +157,7 @@ public:
 private:
   // TODO(jvoung): May want to switch to something like LLVM's StringMap.
   typedef std::map<IceString, FullIntrinsicInfo> IntrinsicMap;
-  IntrinsicMap map;
+  IntrinsicMap Map;
 
   Intrinsics(const Intrinsics &) LLVM_DELETED_FUNCTION;
   Intrinsics &operator=(const Intrinsics &) LLVM_DELETED_FUNCTION;

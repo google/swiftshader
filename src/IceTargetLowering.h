@@ -24,6 +24,8 @@
 
 namespace Ice {
 
+typedef uint8_t AsmCodeByte;
+
 class Assembler;
 
 // LoweringContext makes it easy to iterate through non-deleted
@@ -52,6 +54,9 @@ public:
   bool atEnd() const { return Cur == End; }
   InstList::iterator getCur() const { return Cur; }
   InstList::iterator getEnd() const { return End; }
+  // Adaptor to enable range-based for loops.
+  InstList::iterator begin() const { return getCur(); }
+  InstList::iterator end() const { return getEnd(); }
   void insert(Inst *Inst);
   Inst *getLastInserted() const;
   void advanceCur() { Cur = Next; }
@@ -145,7 +150,7 @@ public:
   virtual SizeT getFrameOrStackReg() const = 0;
   virtual size_t typeWidthInBytesOnStack(Type Ty) const = 0;
   virtual SizeT getBundleAlignLog2Bytes() const = 0;
-  virtual llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const = 0;
+  virtual llvm::ArrayRef<AsmCodeByte> getNonExecBundlePadding() const = 0;
   bool hasComputedFrame() const { return HasComputedFrame; }
   bool shouldDoNopInsertion() const;
   // Returns true if this function calls a function that has the

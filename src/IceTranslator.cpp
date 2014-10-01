@@ -58,19 +58,15 @@ void Translator::nameUnnamedGlobalAddresses(llvm::Module *Mod) {
   Ostream &errs = Ctx->getStrDump();
   if (!GlobalPrefix.empty()) {
     uint32_t NameIndex = 0;
-    for (llvm::Module::global_iterator I = Mod->global_begin(),
-                                       E = Mod->global_end();
-         I != E; ++I) {
+    for (auto I = Mod->global_begin(), E = Mod->global_end(); I != E; ++I)
       setValueName(I, "global", GlobalPrefix, NameIndex, errs);
-    }
   }
   const IceString &FunctionPrefix = Flags.DefaultFunctionPrefix;
   if (FunctionPrefix.empty())
     return;
   uint32_t NameIndex = 0;
-  for (llvm::Module::iterator I = Mod->begin(), E = Mod->end(); I != E; ++I) {
-    setValueName(I, "function", FunctionPrefix, NameIndex, errs);
-  }
+  for (llvm::Function &I : *Mod)
+    setValueName(&I, "function", FunctionPrefix, NameIndex, errs);
 }
 
 void Translator::translateFcn(Cfg *Fcn) {
@@ -100,9 +96,7 @@ void Translator::emitConstants() {
 void Translator::convertGlobals(llvm::Module *Mod) {
   std::unique_ptr<TargetGlobalInitLowering> GlobalLowering(
       TargetGlobalInitLowering::createLowering(Ctx->getTargetArch(), Ctx));
-  for (llvm::Module::const_global_iterator I = Mod->global_begin(),
-                                           E = Mod->global_end();
-       I != E; ++I) {
+  for (auto I = Mod->global_begin(), E = Mod->global_end(); I != E; ++I) {
     if (!I->hasInitializer())
       continue;
     const llvm::Constant *Initializer = I->getInitializer();

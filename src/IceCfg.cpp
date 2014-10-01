@@ -82,9 +82,8 @@ void Cfg::translate() {
 }
 
 void Cfg::computePredecessors() {
-  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
-    (*I)->computePredecessors();
-  }
+  for (CfgNode *Node : Nodes)
+    Node->computePredecessors();
 }
 
 void Cfg::renumberInstructions() {
@@ -92,18 +91,16 @@ void Cfg::renumberInstructions() {
       GlobalContext::getTimerID("renumberInstructions");
   TimerMarker T(IDrenumberInstructions, getContext());
   NextInstNumber = 1;
-  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
-    (*I)->renumberInstructions();
-  }
+  for (CfgNode *Node : Nodes)
+    Node->renumberInstructions();
 }
 
 // placePhiLoads() must be called before placePhiStores().
 void Cfg::placePhiLoads() {
   static TimerIdT IDplacePhiLoads = GlobalContext::getTimerID("placePhiLoads");
   TimerMarker T(IDplacePhiLoads, getContext());
-  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
-    (*I)->placePhiLoads();
-  }
+  for (CfgNode *Node : Nodes)
+    Node->placePhiLoads();
 }
 
 // placePhiStores() must be called after placePhiLoads().
@@ -111,17 +108,15 @@ void Cfg::placePhiStores() {
   static TimerIdT IDplacePhiStores =
       GlobalContext::getTimerID("placePhiStores");
   TimerMarker T(IDplacePhiStores, getContext());
-  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
-    (*I)->placePhiStores();
-  }
+  for (CfgNode *Node : Nodes)
+    Node->placePhiStores();
 }
 
 void Cfg::deletePhis() {
   static TimerIdT IDdeletePhis = GlobalContext::getTimerID("deletePhis");
   TimerMarker T(IDdeletePhis, getContext());
-  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
-    (*I)->deletePhis();
-  }
+  for (CfgNode *Node : Nodes)
+    Node->deletePhis();
 }
 
 void Cfg::doArgLowering() {
@@ -133,26 +128,23 @@ void Cfg::doArgLowering() {
 void Cfg::doAddressOpt() {
   static TimerIdT IDdoAddressOpt = GlobalContext::getTimerID("doAddressOpt");
   TimerMarker T(IDdoAddressOpt, getContext());
-  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
-    (*I)->doAddressOpt();
-  }
+  for (CfgNode *Node : Nodes)
+    Node->doAddressOpt();
 }
 
 void Cfg::doNopInsertion() {
   static TimerIdT IDdoNopInsertion =
       GlobalContext::getTimerID("doNopInsertion");
   TimerMarker T(IDdoNopInsertion, getContext());
-  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
-    (*I)->doNopInsertion();
-  }
+  for (CfgNode *Node : Nodes)
+    Node->doNopInsertion();
 }
 
 void Cfg::genCode() {
   static TimerIdT IDgenCode = GlobalContext::getTimerID("genCode");
   TimerMarker T(IDgenCode, getContext());
-  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
-    (*I)->genCode();
-  }
+  for (CfgNode *Node : Nodes)
+    Node->genCode();
 }
 
 // Compute the stack frame layout.
@@ -163,11 +155,9 @@ void Cfg::genFrame() {
   // TODO: Consider folding epilog generation into the final
   // emission/assembly pass to avoid an extra iteration over the node
   // list.  Or keep a separate list of exit nodes.
-  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
-    CfgNode *Node = *I;
+  for (CfgNode *Node : Nodes)
     if (Node->getHasReturn())
       getTarget()->addEpilog(Node);
-  }
 }
 
 // This is a lightweight version of live-range-end calculation.  Marks
@@ -179,9 +169,8 @@ void Cfg::livenessLightweight() {
       GlobalContext::getTimerID("livenessLightweight");
   TimerMarker T(IDlivenessLightweight, getContext());
   getVMetadata()->init();
-  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
-    (*I)->livenessLightweight();
-  }
+  for (CfgNode *Node : Nodes)
+    Node->livenessLightweight();
 }
 
 void Cfg::liveness(LivenessMode Mode) {
@@ -194,8 +183,8 @@ void Cfg::liveness(LivenessMode Mode) {
   llvm::BitVector NeedToProcess(Nodes.size(), true);
   while (NeedToProcess.any()) {
     // Iterate in reverse topological order to speed up convergence.
-    for (NodeList::reverse_iterator I = Nodes.rbegin(), E = Nodes.rend();
-         I != E; ++I) {
+    // TODO(stichnot): Use llvm::make_range with LLVM 3.5.
+    for (auto I = Nodes.rbegin(), E = Nodes.rend(); I != E; ++I) {
       CfgNode *Node = *I;
       if (NeedToProcess[Node->getIndex()]) {
         NeedToProcess[Node->getIndex()] = false;
@@ -203,24 +192,16 @@ void Cfg::liveness(LivenessMode Mode) {
         if (Changed) {
           // If the beginning-of-block liveness changed since the last
           // iteration, mark all in-edges as needing to be processed.
-          const NodeList &InEdges = Node->getInEdges();
-          for (NodeList::const_iterator I1 = InEdges.begin(),
-                                        E1 = InEdges.end();
-               I1 != E1; ++I1) {
-            CfgNode *Pred = *I1;
+          for (CfgNode *Pred : Node->getInEdges())
             NeedToProcess[Pred->getIndex()] = true;
-          }
         }
       }
     }
   }
   if (Mode == Liveness_Intervals) {
     // Reset each variable's live range.
-    for (VarList::const_iterator I = Variables.begin(), E = Variables.end();
-         I != E; ++I) {
-      if (Variable *Var = *I)
-        Var->resetLiveRange();
-    }
+    for (Variable *Var : Variables)
+      Var->resetLiveRange();
   }
   // Collect timing for just the portion that constructs the live
   // range intervals based on the end-of-live-range computation, for a
@@ -229,9 +210,8 @@ void Cfg::liveness(LivenessMode Mode) {
   // and build each Variable's live range.
   static TimerIdT IDliveRange = GlobalContext::getTimerID("liveRange");
   TimerMarker T1(IDliveRange, getContext());
-  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
-    (*I)->livenessPostprocess(Mode, getLiveness());
-  }
+  for (CfgNode *Node : Nodes)
+    Node->livenessPostprocess(Mode, getLiveness());
   if (Mode == Liveness_Intervals) {
     // Special treatment for live in-args.  Their liveness needs to
     // extend beyond the beginning of the function, otherwise an arg
@@ -280,13 +260,8 @@ bool Cfg::validateLiveness() const {
   TimerMarker T(IDvalidateLiveness, getContext());
   bool Valid = true;
   Ostream &Str = Ctx->getStrDump();
-  for (NodeList::const_iterator I1 = Nodes.begin(), E1 = Nodes.end(); I1 != E1;
-       ++I1) {
-    CfgNode *Node = *I1;
-    InstList &Insts = Node->getInsts();
-    for (InstList::const_iterator I2 = Insts.begin(), E2 = Insts.end();
-         I2 != E2; ++I2) {
-      Inst *Inst = *I2;
+  for (CfgNode *Node : Nodes) {
+    for (Inst *Inst : Node->getInsts()) {
       if (Inst->isDeleted())
         continue;
       if (llvm::isa<InstFakeKill>(Inst))
@@ -327,8 +302,8 @@ bool Cfg::validateLiveness() const {
 void Cfg::doBranchOpt() {
   static TimerIdT IDdoBranchOpt = GlobalContext::getTimerID("doBranchOpt");
   TimerMarker T(IDdoBranchOpt, getContext());
-  for (NodeList::iterator I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
-    NodeList::iterator NextNode = I;
+  for (auto I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
+    auto NextNode = I;
     ++NextNode;
     (*I)->doBranchOpt(NextNode == E ? NULL : *NextNode);
   }
@@ -360,16 +335,11 @@ void Cfg::emit() {
     Str << "\t.type\t" << MangledName << ",@function\n";
   }
   Str << "\t.p2align " << getTarget()->getBundleAlignLog2Bytes() << ",0x";
-  llvm::ArrayRef<uint8_t> Pad = getTarget()->getNonExecBundlePadding();
-  for (llvm::ArrayRef<uint8_t>::iterator I = Pad.begin(), E = Pad.end();
-       I != E; ++I) {
-    Str.write_hex(*I);
-  }
+  for (AsmCodeByte I : getTarget()->getNonExecBundlePadding())
+    Str.write_hex(I);
   Str << "\n";
-  for (NodeList::const_iterator I = Nodes.begin(), E = Nodes.end(); I != E;
-       ++I) {
-    (*I)->emit(this);
-  }
+  for (CfgNode *Node : Nodes)
+    Node->emit(this);
   Str << "\n";
 }
 
@@ -398,9 +368,7 @@ void Cfg::dump(const IceString &Message) {
   resetCurrentNode();
   if (getContext()->isVerbose(IceV_Liveness)) {
     // Print summary info about variables
-    for (VarList::const_iterator I = Variables.begin(), E = Variables.end();
-         I != E; ++I) {
-      Variable *Var = *I;
+    for (Variable *Var : Variables) {
       Str << "// multiblock=";
       if (getVMetadata()->isTracked(Var))
         Str << getVMetadata()->isMultiBlock(Var);
@@ -412,13 +380,10 @@ void Cfg::dump(const IceString &Message) {
     }
   }
   // Print each basic block
-  for (NodeList::const_iterator I = Nodes.begin(), E = Nodes.end(); I != E;
-       ++I) {
-    (*I)->dump(this);
-  }
-  if (getContext()->isVerbose(IceV_Instructions)) {
+  for (CfgNode *Node : Nodes)
+    Node->dump(this);
+  if (getContext()->isVerbose(IceV_Instructions))
     Str << "}\n";
-  }
 }
 
 } // end of namespace Ice

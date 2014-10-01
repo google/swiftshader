@@ -101,8 +101,8 @@ typedef std::multimap<double, IceString> DumpMapType;
 
 // Dump the Map items in reverse order of their time contribution.
 void dumpHelper(Ostream &Str, const DumpMapType &Map, double TotalTime) {
-  for (DumpMapType::const_reverse_iterator I = Map.rbegin(), E = Map.rend();
-       I != E; ++I) {
+  // TODO(stichnot): Use llvm::make_range with LLVM 3.5.
+  for (auto I = Map.rbegin(), E = Map.rend(); I != E; ++I) {
     char buf[80];
     snprintf(buf, llvm::array_lengthof(buf), "  %10.6f (%4.1f%%): ", I->first,
              I->first * 100 / TotalTime);

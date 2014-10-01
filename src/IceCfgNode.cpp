@@ -55,14 +55,10 @@ void CfgNode::appendInst(Inst *Inst) {
 // instruction numbers in a block, from lowest to highest, must not
 // overlap with the range of any other block.
 void CfgNode::renumberInstructions() {
-  for (PhiList::const_iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    (*I)->renumber(Func);
-  }
-  InstList::const_iterator I = Insts.begin(), E = Insts.end();
-  while (I != E) {
-    Inst *Inst = *I++;
-    Inst->renumber(Func);
-  }
+  for (InstPhi *I : Phis)
+    I->renumber(Func);
+  for (Inst *I : Insts)
+    I->renumber(Func);
 }
 
 // When a node is created, the OutEdges are immediately knows, but the
@@ -71,11 +67,8 @@ void CfgNode::renumberInstructions() {
 // creating the InEdges list.
 void CfgNode::computePredecessors() {
   OutEdges = (*Insts.rbegin())->getTerminatorEdges();
-  for (NodeList::const_iterator I = OutEdges.begin(), E = OutEdges.end();
-       I != E; ++I) {
-    CfgNode *Node = *I;
-    Node->InEdges.push_back(this);
-  }
+  for (CfgNode *Succ : OutEdges)
+    Succ->InEdges.push_back(this);
 }
 
 // This does part 1 of Phi lowering, by creating a new dest variable
@@ -90,10 +83,8 @@ void CfgNode::computePredecessors() {
 // instructions and appends assignment instructions to predecessor
 // blocks.  Note that this transformation preserves SSA form.
 void CfgNode::placePhiLoads() {
-  for (PhiList::iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    Inst *Inst = (*I)->lower(Func);
-    Insts.insert(Insts.begin(), Inst);
-  }
+  for (InstPhi *I : Phis)
+    Insts.insert(Insts.begin(), I->lower(Func));
 }
 
 // This does part 2 of Phi lowering.  For each Phi instruction at each
@@ -188,16 +179,12 @@ void CfgNode::placePhiStores() {
   }
 
   // Consider every out-edge.
-  for (NodeList::const_iterator I1 = OutEdges.begin(), E1 = OutEdges.end();
-       I1 != E1; ++I1) {
-    CfgNode *Target = *I1;
+  for (CfgNode *Succ : OutEdges) {
     // Consider every Phi instruction at the out-edge.
-    for (PhiList::const_iterator I2 = Target->Phis.begin(),
-                                 E2 = Target->Phis.end();
-         I2 != E2; ++I2) {
-      Operand *Operand = (*I2)->getOperandForTarget(this);
+    for (InstPhi *I : Succ->Phis) {
+      Operand *Operand = I->getOperandForTarget(this);
       assert(Operand);
-      Variable *Dest = (*I2)->getDest();
+      Variable *Dest = I->getDest();
       assert(Dest);
       InstAssign *NewInst = InstAssign::create(Func, Dest, Operand);
       if (CmpInstDest == Operand)
@@ -210,9 +197,8 @@ void CfgNode::placePhiStores() {
 
 // Deletes the phi instructions after the loads and stores are placed.
 void CfgNode::deletePhis() {
-  for (PhiList::iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    (*I)->setDeleted();
-  }
+  for (InstPhi *I : Phis)
+    I->setDeleted();
 }
 
 // Does address mode optimization.  Pass each instruction to the
@@ -267,16 +253,16 @@ void CfgNode::livenessLightweight() {
   SizeT NumVars = Func->getNumVariables();
   llvm::BitVector Live(NumVars);
   // Process regular instructions in reverse order.
-  for (InstList::const_reverse_iterator I = Insts.rbegin(), E = Insts.rend();
-       I != E; ++I) {
+  // TODO(stichnot): Use llvm::make_range with LLVM 3.5.
+  for (auto I = Insts.rbegin(), E = Insts.rend(); I != E; ++I) {
     if ((*I)->isDeleted())
       continue;
     (*I)->livenessLightweight(Func, Live);
   }
-  for (PhiList::const_iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    if ((*I)->isDeleted())
+  for (InstPhi *I : Phis) {
+    if (I->isDeleted())
       continue;
-    (*I)->livenessLightweight(Func, Live);
+    I->livenessLightweight(Func, Live);
   }
 }
 
@@ -295,21 +281,17 @@ bool CfgNode::liveness(Liveness *Liveness) {
   LiveBegin.assign(NumVars, Sentinel);
   LiveEnd.assign(NumVars, Sentinel);
   // Initialize Live to be the union of all successors' LiveIn.
-  for (NodeList::const_iterator I = OutEdges.begin(), E = OutEdges.end();
-       I != E; ++I) {
-    CfgNode *Succ = *I;
+  for (CfgNode *Succ : OutEdges) {
     Live |= Liveness->getLiveIn(Succ);
     // Mark corresponding argument of phis in successor as live.
-    for (PhiList::const_iterator I1 = Succ->Phis.begin(), E1 = Succ->Phis.end();
-         I1 != E1; ++I1) {
-      (*I1)->livenessPhiOperand(Live, this, Liveness);
-    }
+    for (InstPhi *I : Succ->Phis)
+      I->livenessPhiOperand(Live, this, Liveness);
   }
   Liveness->getLiveOut(this) = Live;
 
   // Process regular instructions in reverse order.
-  for (InstList::const_reverse_iterator I = Insts.rbegin(), E = Insts.rend();
-       I != E; ++I) {
+  // TODO(stichnot): Use llvm::make_range with LLVM 3.5.
+  for (auto I = Insts.rbegin(), E = Insts.rend(); I != E; ++I) {
     if ((*I)->isDeleted())
       continue;
     (*I)->liveness((*I)->getNumber(), Live, Liveness, this);
@@ -318,12 +300,12 @@ bool CfgNode::liveness(Liveness *Liveness) {
   // instruction number to be that of the earliest phi instruction in
   // the block.
   InstNumberT FirstPhiNumber = Inst::NumberSentinel;
-  for (PhiList::const_iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    if ((*I)->isDeleted())
+  for (InstPhi *I : Phis) {
+    if (I->isDeleted())
       continue;
     if (FirstPhiNumber == Inst::NumberSentinel)
-      FirstPhiNumber = (*I)->getNumber();
-    (*I)->liveness(FirstPhiNumber, Live, Liveness, this);
+      FirstPhiNumber = I->getNumber();
+    I->liveness(FirstPhiNumber, Live, Liveness, this);
   }
 
   // When using the sparse representation, after traversing the
@@ -376,36 +358,33 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
   InstNumberT FirstInstNum = Inst::NumberSentinel;
   InstNumberT LastInstNum = Inst::NumberSentinel;
   // Process phis in any order.  Process only Dest operands.
-  for (PhiList::const_iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    InstPhi *Inst = *I;
-    Inst->deleteIfDead();
-    if (Inst->isDeleted())
+  for (InstPhi *I : Phis) {
+    I->deleteIfDead();
+    if (I->isDeleted())
       continue;
     if (FirstInstNum == Inst::NumberSentinel)
-      FirstInstNum = Inst->getNumber();
-    assert(Inst->getNumber() > LastInstNum);
-    LastInstNum = Inst->getNumber();
+      FirstInstNum = I->getNumber();
+    assert(I->getNumber() > LastInstNum);
+    LastInstNum = I->getNumber();
   }
   // Process instructions
-  for (InstList::const_iterator I = Insts.begin(), E = Insts.end(); I != E;
-       ++I) {
-    Inst *Inst = *I;
-    Inst->deleteIfDead();
-    if (Inst->isDeleted())
+  for (Inst *I : Insts) {
+    I->deleteIfDead();
+    if (I->isDeleted())
       continue;
     if (FirstInstNum == Inst::NumberSentinel)
-      FirstInstNum = Inst->getNumber();
-    assert(Inst->getNumber() > LastInstNum);
-    LastInstNum = Inst->getNumber();
+      FirstInstNum = I->getNumber();
+    assert(I->getNumber() > LastInstNum);
+    LastInstNum = I->getNumber();
     // Create fake live ranges for a Kill instruction, but only if the
     // linked instruction is still alive.
     if (Mode == Liveness_Intervals) {
-      if (InstFakeKill *Kill = llvm::dyn_cast<InstFakeKill>(Inst)) {
+      if (InstFakeKill *Kill = llvm::dyn_cast<InstFakeKill>(I)) {
         if (!Kill->getLinked()->isDeleted()) {
-          SizeT NumSrcs = Inst->getSrcSize();
-          for (SizeT i = 0; i < NumSrcs; ++i) {
-            Variable *Var = llvm::cast<Variable>(Inst->getSrc(i));
-            InstNumberT InstNumber = Inst->getNumber();
+          SizeT NumSrcs = I->getSrcSize();
+          for (SizeT Src = 0; Src < NumSrcs; ++Src) {
+            Variable *Var = llvm::cast<Variable>(I->getSrc(Src));
+            InstNumberT InstNumber = I->getNumber();
             Liveness->addLiveRange(Var, InstNumber, InstNumber, 1);
           }
         }
@@ -454,10 +433,8 @@ void CfgNode::doBranchOpt(const CfgNode *NextNode) {
   // first opportunity, unless there is some target lowering where we
   // have the possibility of multiple such optimizations per block
   // (currently not the case for x86 lowering).
-  for (InstList::const_iterator I = Insts.begin(), E = Insts.end(); I != E;
-       ++I) {
-    Target->doBranchOpt(*I, NextNode);
-  }
+  for (Inst *I : Insts)
+    Target->doBranchOpt(I, NextNode);
 }
 
 // ======================== Dump routines ======================== //
@@ -469,38 +446,35 @@ void CfgNode::emit(Cfg *Func) const {
     Str << Func->getContext()->mangleName(Func->getFunctionName()) << ":\n";
   }
   Str << getAsmName() << ":\n";
-  for (PhiList::const_iterator I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    InstPhi *Phi = *I;
+  for (InstPhi *Phi : Phis) {
     if (Phi->isDeleted())
       continue;
     // Emitting a Phi instruction should cause an error.
     Inst *Instr = Phi;
     Instr->emit(Func);
   }
-  for (InstList::const_iterator I = Insts.begin(), E = Insts.end(); I != E;
-       ++I) {
-    Inst *Inst = *I;
-    if (Inst->isDeleted())
+  for (Inst *I : Insts) {
+    if (I->isDeleted())
       continue;
     // Here we detect redundant assignments like "mov eax, eax" and
     // suppress them.
-    if (Inst->isRedundantAssign())
+    if (I->isRedundantAssign())
       continue;
     if (Func->UseIntegratedAssembler()) {
-      (*I)->emitIAS(Func);
+      I->emitIAS(Func);
     } else {
-      (*I)->emit(Func);
+      I->emit(Func);
     }
     // Update emitted instruction count, plus fill/spill count for
     // Variable operands without a physical register.
-    if (uint32_t Count = (*I)->getEmitInstCount()) {
+    if (uint32_t Count = I->getEmitInstCount()) {
       Func->getContext()->statsUpdateEmitted(Count);
-      if (Variable *Dest = (*I)->getDest()) {
+      if (Variable *Dest = I->getDest()) {
         if (!Dest->hasReg())
           Func->getContext()->statsUpdateFills();
       }
-      for (SizeT S = 0; S < (*I)->getSrcSize(); ++S) {
-        if (Variable *Src = llvm::dyn_cast<Variable>((*I)->getSrc(S))) {
+      for (SizeT S = 0; S < I->getSrcSize(); ++S) {
+        if (Variable *Src = llvm::dyn_cast<Variable>(I->getSrc(S))) {
           if (!Src->hasReg())
             Func->getContext()->statsUpdateSpills();
         }
@@ -519,11 +493,12 @@ void CfgNode::dump(Cfg *Func) const {
   // Dump list of predecessor nodes.
   if (Func->getContext()->isVerbose(IceV_Preds) && !InEdges.empty()) {
     Str << "    // preds = ";
-    for (NodeList::const_iterator I = InEdges.begin(), E = InEdges.end();
-         I != E; ++I) {
-      if (I != InEdges.begin())
+    bool First = true;
+    for (CfgNode *I : InEdges) {
+      if (First)
         Str << ", ";
-      Str << "%" << (*I)->getName();
+      First = false;
+      Str << "%" << I->getName();
     }
     Str << "\n";
   }
@@ -542,16 +517,10 @@ void CfgNode::dump(Cfg *Func) const {
   }
   // Dump each instruction.
   if (Func->getContext()->isVerbose(IceV_Instructions)) {
-    for (PhiList::const_iterator I = Phis.begin(), E = Phis.end(); I != E;
-         ++I) {
-      const Inst *Inst = *I;
-      Inst->dumpDecorated(Func);
-    }
-    InstList::const_iterator I = Insts.begin(), E = Insts.end();
-    while (I != E) {
-      Inst *Inst = *I++;
-      Inst->dumpDecorated(Func);
-    }
+    for (InstPhi *I : Phis)
+      I->dumpDecorated(Func);
+    for (Inst *I : Insts)
+      I->dumpDecorated(Func);
   }
   // Dump the live-out variables.
   llvm::BitVector LiveOut;
@@ -569,11 +538,12 @@ void CfgNode::dump(Cfg *Func) const {
   // Dump list of successor nodes.
   if (Func->getContext()->isVerbose(IceV_Succs)) {
     Str << "    // succs = ";
-    for (NodeList::const_iterator I = OutEdges.begin(), E = OutEdges.end();
-         I != E; ++I) {
-      if (I != OutEdges.begin())
+    bool First = true;
+    for (CfgNode *I : OutEdges) {
+      if (First)
         Str << ", ";
-      Str << "%" << (*I)->getName();
+      First = false;
+      Str << "%" << I->getName();
     }
     Str << "\n";
   }

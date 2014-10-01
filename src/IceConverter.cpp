@@ -70,9 +70,8 @@ public:
     Func->setInternal(F->hasInternalLinkage());
 
     // The initial definition/use of each arg is the entry node.
-    for (Function::const_arg_iterator ArgI = F->arg_begin(),
-                                      ArgE = F->arg_end();
-         ArgI != ArgE; ++ArgI) {
+    for (auto ArgI = F->arg_begin(), ArgE = F->arg_end(); ArgI != ArgE;
+         ++ArgI) {
       Func->addArg(mapValueToIceVar(ArgI));
     }
 
@@ -80,14 +79,10 @@ public:
     // blocks in the original linearized order.  Otherwise the ICE
     // linearized order will be affected by branch targets in
     // terminator instructions.
-    for (Function::const_iterator BBI = F->begin(), BBE = F->end(); BBI != BBE;
-         ++BBI) {
-      mapBasicBlockToNode(BBI);
-    }
-    for (Function::const_iterator BBI = F->begin(), BBE = F->end(); BBI != BBE;
-         ++BBI) {
-      convertBasicBlock(BBI);
-    }
+    for (const BasicBlock &BBI : *F)
+      mapBasicBlockToNode(&BBI);
+    for (const BasicBlock &BBI : *F)
+      convertBasicBlock(&BBI);
     Func->setEntryNode(mapBasicBlockToNode(&F->getEntryBlock()));
     Func->computePredecessors();
 
@@ -564,9 +559,8 @@ private:
 
   Ice::CfgNode *convertBasicBlock(const BasicBlock *BB) {
     Ice::CfgNode *Node = mapBasicBlockToNode(BB);
-    for (BasicBlock::const_iterator II = BB->begin(), II_e = BB->end();
-         II != II_e; ++II) {
-      Ice::Inst *Inst = convertInstruction(II);
+    for (const Instruction &II : *BB) {
+      Ice::Inst *Inst = convertInstruction(&II);
       Node->appendInst(Inst);
     }
     return Node;
@@ -632,12 +626,12 @@ void Converter::convertToIce() {
 }
 
 void Converter::convertFunctions() {
-  for (Module::const_iterator I = Mod->begin(), E = Mod->end(); I != E; ++I) {
-    if (I->empty())
+  for (const Function &I : *Mod) {
+    if (I.empty())
       continue;
     LLVM2ICEConverter FunctionConverter(Ctx, Mod->getContext());
 
-    Cfg *Fcn = FunctionConverter.convertFunction(I);
+    Cfg *Fcn = FunctionConverter.convertFunction(&I);
     translateFcn(Fcn);
   }
 

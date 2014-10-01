@@ -555,9 +555,7 @@ void TargetX8632::sortByAlignment(VarList &Dest, const VarList &Source) const {
       X86_LOG2_OF_MAX_STACK_SLOT_SIZE - X86_LOG2_OF_MIN_STACK_SLOT_SIZE + 1;
   VarList Buckets[NumBuckets];
 
-  for (VarList::const_iterator I = Source.begin(), E = Source.end(); I != E;
-       ++I) {
-    Variable *Var = *I;
+  for (Variable *Var : Source) {
     uint32_t NaturalAlignment = typeWidthInBytesOnStack(Var->getType());
     SizeT LogNaturalAlignment = llvm::findFirstSet(NaturalAlignment);
     assert(LogNaturalAlignment >= X86_LOG2_OF_MIN_STACK_SLOT_SIZE);
@@ -698,9 +696,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // The entire spill locations area gets aligned to largest natural
   // alignment of the variables that have a spill slot.
   uint32_t SpillAreaAlignmentBytes = 0;
-  for (VarList::const_iterator I = Variables.begin(), E = Variables.end();
-       I != E; ++I) {
-    Variable *Var = *I;
+  for (Variable *Var : Variables) {
     if (Var->hasReg()) {
       RegsUsed[Var->getRegNum()] = true;
       continue;
@@ -726,10 +722,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
 
   SortedSpilledVariables.reserve(SpilledVariables.size());
   sortByAlignment(SortedSpilledVariables, SpilledVariables);
-  for (VarList::const_iterator I = SortedSpilledVariables.begin(),
-                               E = SortedSpilledVariables.end();
-       I != E; ++I) {
-    Variable *Var = *I;
+  for (Variable *Var : SortedSpilledVariables) {
     size_t Increment = typeWidthInBytesOnStack(Var->getType());
     if (!SpillAreaAlignmentBytes)
       SpillAreaAlignmentBytes = Increment;
@@ -837,10 +830,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   size_t GlobalsSpaceUsed = SpillAreaPaddingBytes;
   LocalsSize.assign(LocalsSize.size(), 0);
   size_t NextStackOffset = GlobalsSpaceUsed;
-  for (VarList::const_iterator I = SortedSpilledVariables.begin(),
-                               E = SortedSpilledVariables.end();
-       I != E; ++I) {
-    Variable *Var = *I;
+  for (Variable *Var : SortedSpilledVariables) {
     size_t Increment = typeWidthInBytesOnStack(Var->getType());
     if (SimpleCoalescing && VMetadata->isTracked(Var)) {
       if (VMetadata->isMultiBlock(Var)) {
@@ -866,10 +856,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
 
   // Assign stack offsets to variables that have been linked to spilled
   // variables.
-  for (VarList::const_iterator I = VariablesLinkedToSpillSlots.begin(),
-                               E = VariablesLinkedToSpillSlots.end();
-       I != E; ++I) {
-    Variable *Var = *I;
+  for (Variable *Var : VariablesLinkedToSpillSlots) {
     Variable *Linked = (llvm::cast<SpillVariable>(Var))->getLinkedTo();
     Var->setStackOffset(Linked->getStackOffset());
   }
@@ -904,6 +891,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
 void TargetX8632::addEpilog(CfgNode *Node) {
   InstList &Insts = Node->getInsts();
   InstList::reverse_iterator RI, E;
+  // TODO(stichnot): Use llvm::make_range with LLVM 3.5.
   for (RI = Insts.rbegin(), E = Insts.rend(); RI != E; ++RI) {
     if (llvm::isa<InstX8632Ret>(*RI))
       break;
@@ -979,9 +967,8 @@ template <typename T> void TargetX8632::emitConstantPool() const {
   Str << "\t.section\t.rodata.cst" << Align << ",\"aM\",@progbits," << Align
       << "\n";
   Str << "\t.align\t" << Align << "\n";
-  for (ConstantList::const_iterator I = Pool.begin(), E = Pool.end(); I != E;
-       ++I) {
-    typename T::IceType *Const = llvm::cast<typename T::IceType>(*I);
+  for (Constant *C : Pool) {
+    typename T::IceType *Const = llvm::cast<typename T::IceType>(C);
     typename T::PrimitiveFpType Value = Const->getValue();
     // Use memcpy() to copy bits from Value into RawValue in a way
     // that avoids breaking strict-aliasing rules.
@@ -4332,9 +4319,7 @@ void TargetX8632::postLower() {
   // The first pass also keeps track of which instruction is the last
   // use for each infinite-weight variable.  After the last use, the
   // variable is released to the free list.
-  for (InstList::iterator I = Context.getCur(), E = Context.getEnd(); I != E;
-       ++I) {
-    const Inst *Inst = *I;
+  for (Inst *Inst : Context) {
     if (Inst->isDeleted())
       continue;
     // Don't consider a FakeKill instruction, because (currently) it
@@ -4366,10 +4351,8 @@ void TargetX8632::postLower() {
   // The second pass colors infinite-weight variables.
   llvm::SmallBitVector AvailableRegisters = WhiteList;
   llvm::SmallBitVector FreedRegisters(WhiteList.size());
-  for (InstList::iterator I = Context.getCur(), E = Context.getEnd(); I != E;
-       ++I) {
+  for (Inst *Inst : Context) {
     FreedRegisters.reset();
-    const Inst *Inst = *I;
     if (Inst->isDeleted())
       continue;
     // Skip FakeKill instructions like above.

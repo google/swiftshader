@@ -42,7 +42,7 @@ public:
   TypePool() : NextPoolID(0) {}
   ValueType *getOrAdd(GlobalContext *Ctx, Type Ty, KeyType Key) {
     TupleType TupleKey = std::make_pair(Ty, Key);
-    typename ContainerType::const_iterator Iter = Pool.find(TupleKey);
+    auto Iter = Pool.find(TupleKey);
     if (Iter != Pool.end())
       return Iter->second;
     ValueType *Result = ValueType::create(Ctx, Ty, Key, NextPoolID++);
@@ -52,12 +52,8 @@ public:
   ConstantList getConstantPool() const {
     ConstantList Constants;
     Constants.reserve(Pool.size());
-    // TODO: replace the loop with std::transform + lambdas.
-    for (typename ContainerType::const_iterator I = Pool.begin(),
-                                                E = Pool.end();
-         I != E; ++I) {
-      Constants.push_back(I->second);
-    }
+    for (auto &I : Pool)
+      Constants.push_back(I.second);
     return Constants;
   }
 
@@ -86,7 +82,7 @@ public:
   UndefPool() : NextPoolID(0) {}
 
   ConstantUndef *getOrAdd(GlobalContext *Ctx, Type Ty) {
-    ContainerType::iterator I = Pool.find(Ty);
+    auto I = Pool.find(Ty);
     if (I != Pool.end())
       return I->second;
     ConstantUndef *Undef = ConstantUndef::create(Ctx, Ty, NextPoolID++);

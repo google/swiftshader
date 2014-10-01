@@ -123,13 +123,12 @@ bool LiveRange::overlaps(const LiveRange &Other) const {
 
 bool LiveRange::overlaps(InstNumberT OtherBegin) const {
   bool Result = false;
-  for (RangeType::const_iterator I = Range.begin(), E = Range.end(); I != E;
-       ++I) {
-    if (OtherBegin < I->first) {
+  for (const RangeElementType &I : Range) {
+    if (OtherBegin < I.first) {
       Result = false;
       break;
     }
-    if (OtherBegin < I->second) {
+    if (OtherBegin < I.second) {
       Result = true;
       break;
     }
@@ -148,9 +147,8 @@ bool LiveRange::overlaps(InstNumberT OtherBegin) const {
 // number.  This is only used for validating the live range
 // calculation.
 bool LiveRange::containsValue(InstNumberT Value) const {
-  for (RangeType::const_iterator I = Range.begin(), E = Range.end(); I != E;
-       ++I) {
-    if (I->first <= Value && Value <= I->second)
+  for (const RangeElementType &I : Range) {
+    if (I.first <= Value && Value <= I.second)
       return true;
   }
   return false;
@@ -282,11 +280,7 @@ void VariablesMetadata::init() {
   Metadata.resize(Func->getNumVariables());
 
   // Mark implicit args as being used in the entry node.
-  const VarList &ImplicitArgList = Func->getImplicitArgs();
-  for (VarList::const_iterator I = ImplicitArgList.begin(),
-                               E = ImplicitArgList.end();
-       I != E; ++I) {
-    const Variable *Var = *I;
+  for (Variable *Var : Func->getImplicitArgs()) {
     const Inst *NoInst = NULL;
     const CfgNode *EntryNode = Func->getEntryNode();
     const bool IsFromDef = false;
@@ -297,30 +291,28 @@ void VariablesMetadata::init() {
   SizeT NumNodes = Func->getNumNodes();
   for (SizeT N = 0; N < NumNodes; ++N) {
     CfgNode *Node = Func->getNodes()[N];
-    const InstList &Insts = Node->getInsts();
-    for (InstList::const_iterator I = Insts.begin(), E = Insts.end(); I != E;
-         ++I) {
-      if ((*I)->isDeleted())
+    for (Inst *I : Node->getInsts()) {
+      if (I->isDeleted())
         continue;
-      if (InstFakeKill *Kill = llvm::dyn_cast<InstFakeKill>(*I)) {
+      if (InstFakeKill *Kill = llvm::dyn_cast<InstFakeKill>(I)) {
         // A FakeKill instruction indicates certain Variables (usually
         // physical scratch registers) are redefined, so we register
         // them as defs.
-        for (SizeT SrcNum = 0; SrcNum < (*I)->getSrcSize(); ++SrcNum) {
-          Variable *Var = llvm::cast<Variable>((*I)->getSrc(SrcNum));
+        for (SizeT SrcNum = 0; SrcNum < I->getSrcSize(); ++SrcNum) {
+          Variable *Var = llvm::cast<Variable>(I->getSrc(SrcNum));
           SizeT VarNum = Var->getIndex();
           assert(VarNum < Metadata.size());
           Metadata[VarNum].markDef(Kill, Node);
         }
         continue; // no point in executing the rest
       }
-      if (Variable *Dest = (*I)->getDest()) {
+      if (Variable *Dest = I->getDest()) {
         SizeT DestNum = Dest->getIndex();
         assert(DestNum < Metadata.size());
-        Metadata[DestNum].markDef(*I, Node);
+        Metadata[DestNum].markDef(I, Node);
       }
-      for (SizeT SrcNum = 0; SrcNum < (*I)->getSrcSize(); ++SrcNum) {
-        Operand *Src = (*I)->getSrc(SrcNum);
+      for (SizeT SrcNum = 0; SrcNum < I->getSrcSize(); ++SrcNum) {
+        Operand *Src = I->getSrc(SrcNum);
         SizeT NumVars = Src->getNumVars();
         for (SizeT J = 0; J < NumVars; ++J) {
           const Variable *Var = Src->getVar(J);
@@ -328,7 +320,7 @@ void VariablesMetadata::init() {
           assert(VarNum < Metadata.size());
           const bool IsFromDef = false;
           const bool IsImplicit = false;
-          Metadata[VarNum].markUse(*I, Node, IsFromDef, IsImplicit);
+          Metadata[VarNum].markUse(I, Node, IsFromDef, IsImplicit);
         }
       }
     }
@@ -440,11 +432,12 @@ void ConstantRelocatable::dump(const Cfg *, Ostream &Str) const {
 
 void LiveRange::dump(Ostream &Str) const {
   Str << "(weight=" << Weight << ") ";
-  for (RangeType::const_iterator I = Range.begin(), E = Range.end(); I != E;
-       ++I) {
-    if (I != Range.begin())
+  bool First = true;
+  for (const RangeElementType &I : Range) {
+    if (First)
       Str << ", ";
-    Str << "[" << (*I).first << ":" << (*I).second << ")";
+    First = false;
+    Str << "[" << I.first << ":" << I.second << ")";
   }
 }
 
