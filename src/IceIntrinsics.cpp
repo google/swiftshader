@@ -23,11 +23,10 @@
 
 namespace Ice {
 
-namespace {
+static_assert(sizeof(Intrinsics::IntrinsicInfo) == 4,
+              "Unexpected sizeof(IntrinsicInfo)");
 
-void __attribute__((unused)) xIntrinsicInfoSizeCheck() {
-  STATIC_ASSERT(sizeof(Intrinsics::IntrinsicInfo) == 4);
-}
+namespace {
 
 #define INTRIN(ID, SE, RT) { Intrinsics::ID, Intrinsics::SE, Intrinsics::RT }
 

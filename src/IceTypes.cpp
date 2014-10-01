@@ -18,61 +18,61 @@ namespace Ice {
 
 namespace {
 
-// Dummy function to make sure the two type tables have the same
-// enumerated types.
-void __attribute__((unused)) xIceTypeMacroIntegrityCheck() {
+// Show tags match between ICETYPE_TABLE and ICETYPE_PROPS_TABLE.
 
-  // Show tags match between ICETYPE_TABLE and ICETYPE_PROPS_TABLE.
-
-  // Define a temporary set of enum values based on ICETYPE_TABLE
-  enum {
+// Define a temporary set of enum values based on ICETYPE_TABLE
+enum {
 #define X(tag, size, align, elts, elty, str) _table_tag_##tag,
-    ICETYPE_TABLE
+  ICETYPE_TABLE
 #undef X
-        _enum_table_tag_Names
-  };
-  // Define a temporary set of enum values based on ICETYPE_PROPS_TABLE
-  enum {
+      _enum_table_tag_Names
+};
+// Define a temporary set of enum values based on ICETYPE_PROPS_TABLE
+enum {
 #define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, CompareResult)  \
   _props_table_tag_##tag,
-    ICETYPE_PROPS_TABLE
+  ICETYPE_PROPS_TABLE
 #undef X
-        _enum_props_table_tag_Names
-  };
+      _enum_props_table_tag_Names
+};
 // Assert that tags in ICETYPE_TABLE are also in ICETYPE_PROPS_TABLE.
 #define X(tag, size, align, elts, elty, str)                                   \
-  STATIC_ASSERT((unsigned)_table_tag_##tag == (unsigned)_props_table_tag_##tag);
-  ICETYPE_TABLE;
+  static_assert(                                                               \
+      (unsigned)_table_tag_##tag == (unsigned)_props_table_tag_##tag,          \
+      "Inconsistency between ICETYPE_PROPS_TABLE and ICETYPE_TABLE");
+ICETYPE_TABLE;
 #undef X
 // Assert that tags in ICETYPE_PROPS_TABLE is in ICETYPE_TABLE.
 #define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, CompareResult)  \
-  STATIC_ASSERT((unsigned)_table_tag_##tag == (unsigned)_props_table_tag_##tag);
-  ICETYPE_PROPS_TABLE
+  static_assert(                                                               \
+      (unsigned)_table_tag_##tag == (unsigned)_props_table_tag_##tag,          \
+      "Inconsistency between ICETYPE_PROPS_TABLE and ICETYPE_TABLE");
+ICETYPE_PROPS_TABLE
 #undef X
 
-  // Show vector definitions match in ICETYPE_TABLE and
-  // ICETYPE_PROPS_TABLE.
+// Show vector definitions match in ICETYPE_TABLE and
+// ICETYPE_PROPS_TABLE.
 
-  // Define constants for each element size in ICETYPE_TABLE.
-  enum {
+// Define constants for each element size in ICETYPE_TABLE.
+enum {
 #define X(tag, size, align, elts, elty, str) _table_elts_##tag = elts,
-    ICETYPE_TABLE
+  ICETYPE_TABLE
 #undef X
-        _enum_table_elts_Elements = 0
-  };
-  // Define constants for boolean flag if vector in ICETYPE_PROPS_TABLE.
-  enum {
+      _enum_table_elts_Elements = 0
+};
+// Define constants for boolean flag if vector in ICETYPE_PROPS_TABLE.
+enum {
 #define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, CompareResult)  \
   _props_table_IsVec_##tag = IsVec,
-    ICETYPE_PROPS_TABLE
+  ICETYPE_PROPS_TABLE
 #undef X
-  };
+};
 // Verify that the number of vector elements is consistent with IsVec.
 #define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, CompareResult)  \
-  STATIC_ASSERT((_table_elts_##tag > 1) == _props_table_IsVec_##tag);
-  ICETYPE_PROPS_TABLE;
+  static_assert((_table_elts_##tag > 1) == _props_table_IsVec_##tag,           \
+                "Inconsistent vector specification in ICETYPE_PROPS_TABLE");
+ICETYPE_PROPS_TABLE;
 #undef X
-}
 
 struct TypeAttributeFields {
   size_t TypeWidthInBytes;
@@ -86,7 +86,7 @@ const struct TypeAttributeFields TypeAttributes[] = {
 #define X(tag, size, align, elts, elty, str)                                   \
   { size, align, elts, elty, str }                                             \
   ,
-    ICETYPE_TABLE
+  ICETYPE_TABLE
 #undef X
 };
 
@@ -110,7 +110,7 @@ const TypePropertyFields TypePropertiesTable[] = {
         IsFloat && !IsVec, IsFloat && IsVec, IsLoadStore, CompareResult        \
   }                                                                            \
   ,
-    ICETYPE_PROPS_TABLE
+  ICETYPE_PROPS_TABLE
 #undef X
 };
 

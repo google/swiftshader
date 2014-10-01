@@ -61,9 +61,9 @@ const struct TableFcmp_ {
 #define X(val, dflt, swapS, C1, C2, swapV, pred)                               \
   { dflt, swapS, CondX86::C1, CondX86::C2, swapV, CondX86::pred }              \
   ,
-      FCMPX8632_TABLE
+    FCMPX8632_TABLE
 #undef X
-};
+  };
 const size_t TableFcmpSize = llvm::array_lengthof(TableFcmp);
 
 // The following table summarizes the logic for lowering the icmp instruction
@@ -155,109 +155,120 @@ uint32_t applyStackAlignment(uint32_t Value) {
 
 // Instruction set options
 namespace cl = ::llvm::cl;
-cl::opt<TargetX8632::X86InstructionSet> CLInstructionSet(
-    "mattr", cl::desc("X86 target attributes"),
-    cl::init(TargetX8632::SSE2),
-    cl::values(
-        clEnumValN(TargetX8632::SSE2, "sse2",
-                   "Enable SSE2 instructions (default)"),
-        clEnumValN(TargetX8632::SSE4_1, "sse4.1",
-                   "Enable SSE 4.1 instructions"), clEnumValEnd));
+cl::opt<TargetX8632::X86InstructionSet>
+CLInstructionSet("mattr", cl::desc("X86 target attributes"),
+                 cl::init(TargetX8632::SSE2),
+                 cl::values(clEnumValN(TargetX8632::SSE2, "sse2",
+                                       "Enable SSE2 instructions (default)"),
+                            clEnumValN(TargetX8632::SSE4_1, "sse4.1",
+                                       "Enable SSE 4.1 instructions"),
+                            clEnumValEnd));
 
 // In some cases, there are x-macros tables for both high-level and
 // low-level instructions/operands that use the same enum key value.
 // The tables are kept separate to maintain a proper separation
-// between abstraction layers.  There is a risk that the tables
-// could get out of sync if enum values are reordered or if entries
-// are added or deleted.  This dummy function uses static_assert to
-// ensure everything is kept in sync.
-void __attribute__((unused)) xMacroIntegrityCheck() {
-  // Validate the enum values in FCMPX8632_TABLE.
-  {
-    // Define a temporary set of enum values based on low-level
-    // table entries.
-    enum _tmp_enum {
+// between abstraction layers.  There is a risk that the tables could
+// get out of sync if enum values are reordered or if entries are
+// added or deleted.  The following dummy namespaces use
+// static_asserts to ensure everything is kept in sync.
+
+// Validate the enum values in FCMPX8632_TABLE.
+namespace dummy1 {
+// Define a temporary set of enum values based on low-level table
+// entries.
+enum _tmp_enum {
 #define X(val, dflt, swapS, C1, C2, swapV, pred) _tmp_##val,
-      FCMPX8632_TABLE
+  FCMPX8632_TABLE
 #undef X
-          _num
-    };
+      _num
+};
 // Define a set of constants based on high-level table entries.
 #define X(tag, str) static const int _table1_##tag = InstFcmp::tag;
-    ICEINSTFCMP_TABLE;
+ICEINSTFCMP_TABLE;
 #undef X
-// Define a set of constants based on low-level table entries,
-// and ensure the table entry keys are consistent.
+// Define a set of constants based on low-level table entries, and
+// ensure the table entry keys are consistent.
 #define X(val, dflt, swapS, C1, C2, swapV, pred)                               \
   static const int _table2_##val = _tmp_##val;                                 \
-  STATIC_ASSERT(_table1_##val == _table2_##val);
-    FCMPX8632_TABLE;
+  static_assert(                                                               \
+      _table1_##val == _table2_##val,                                          \
+      "Inconsistency between FCMPX8632_TABLE and ICEINSTFCMP_TABLE");
+FCMPX8632_TABLE;
 #undef X
-// Repeat the static asserts with respect to the high-level
-// table entries in case the high-level table has extra entries.
-#define X(tag, str) STATIC_ASSERT(_table1_##tag == _table2_##tag);
-    ICEINSTFCMP_TABLE;
+// Repeat the static asserts with respect to the high-level table
+// entries in case the high-level table has extra entries.
+#define X(tag, str)                                                            \
+  static_assert(                                                               \
+      _table1_##tag == _table2_##tag,                                          \
+      "Inconsistency between FCMPX8632_TABLE and ICEINSTFCMP_TABLE");
+ICEINSTFCMP_TABLE;
 #undef X
-  }
+} // end of namespace dummy1
 
-  // Validate the enum values in ICMPX8632_TABLE.
-  {
-    // Define a temporary set of enum values based on low-level
-    // table entries.
-    enum _tmp_enum {
+// Validate the enum values in ICMPX8632_TABLE.
+namespace dummy2 {
+// Define a temporary set of enum values based on low-level table
+// entries.
+enum _tmp_enum {
 #define X(val, C_32, C1_64, C2_64, C3_64) _tmp_##val,
-      ICMPX8632_TABLE
+  ICMPX8632_TABLE
 #undef X
-          _num
-    };
+      _num
+};
 // Define a set of constants based on high-level table entries.
 #define X(tag, str) static const int _table1_##tag = InstIcmp::tag;
-    ICEINSTICMP_TABLE;
+ICEINSTICMP_TABLE;
 #undef X
-// Define a set of constants based on low-level table entries,
-// and ensure the table entry keys are consistent.
+// Define a set of constants based on low-level table entries, and
+// ensure the table entry keys are consistent.
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
   static const int _table2_##val = _tmp_##val;                                 \
-  STATIC_ASSERT(_table1_##val == _table2_##val);
-    ICMPX8632_TABLE;
+  static_assert(                                                               \
+      _table1_##val == _table2_##val,                                          \
+      "Inconsistency between ICMPX8632_TABLE and ICEINSTICMP_TABLE");
+ICMPX8632_TABLE;
 #undef X
-// Repeat the static asserts with respect to the high-level
-// table entries in case the high-level table has extra entries.
-#define X(tag, str) STATIC_ASSERT(_table1_##tag == _table2_##tag);
-    ICEINSTICMP_TABLE;
+// Repeat the static asserts with respect to the high-level table
+// entries in case the high-level table has extra entries.
+#define X(tag, str)                                                            \
+  static_assert(                                                               \
+      _table1_##tag == _table2_##tag,                                          \
+      "Inconsistency between ICMPX8632_TABLE and ICEINSTICMP_TABLE");
+ICEINSTICMP_TABLE;
 #undef X
-  }
+} // end of namespace dummy2
 
-  // Validate the enum values in ICETYPEX8632_TABLE.
-  {
-    // Define a temporary set of enum values based on low-level
-    // table entries.
-    enum _tmp_enum {
+// Validate the enum values in ICETYPEX8632_TABLE.
+namespace dummy3 {
+// Define a temporary set of enum values based on low-level table
+// entries.
+enum _tmp_enum {
 #define X(tag, elementty, cvt, sdss, pack, width) _tmp_##tag,
-      ICETYPEX8632_TABLE
+  ICETYPEX8632_TABLE
 #undef X
-          _num
-    };
+      _num
+};
 // Define a set of constants based on high-level table entries.
 #define X(tag, size, align, elts, elty, str)                                   \
   static const int _table1_##tag = tag;
-    ICETYPE_TABLE;
+ICETYPE_TABLE;
 #undef X
-// Define a set of constants based on low-level table entries,
-// and ensure the table entry keys are consistent.
+// Define a set of constants based on low-level table entries, and
+// ensure the table entry keys are consistent.
 #define X(tag, elementty, cvt, sdss, pack, width)                              \
   static const int _table2_##tag = _tmp_##tag;                                 \
-  STATIC_ASSERT(_table1_##tag == _table2_##tag);
-    ICETYPEX8632_TABLE;
+  static_assert(_table1_##tag == _table2_##tag,                                \
+                "Inconsistency between ICETYPEX8632_TABLE and ICETYPE_TABLE");
+ICETYPEX8632_TABLE;
 #undef X
-// Repeat the static asserts with respect to the high-level
-// table entries in case the high-level table has extra entries.
+// Repeat the static asserts with respect to the high-level table
+// entries in case the high-level table has extra entries.
 #define X(tag, size, align, elts, elty, str)                                   \
-  STATIC_ASSERT(_table1_##tag == _table2_##tag);
-    ICETYPE_TABLE;
+  static_assert(_table1_##tag == _table2_##tag,                                \
+                "Inconsistency between ICETYPEX8632_TABLE and ICETYPE_TABLE");
+ICETYPE_TABLE;
 #undef X
-  }
-}
+} // end of namespace dummy3
 
 } // end of anonymous namespace
 
@@ -2796,8 +2807,8 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     //   T := SourceVectRM
     //   ElementR := ElementR[0, 0] T[0, 2]
     //   T := T[0, 1] ElementR[3, 0]
-    const unsigned char Mask1[3] = {0, 192, 128};
-    const unsigned char Mask2[3] = {227, 196, 52};
+    const unsigned char Mask1[3] = { 0, 192, 128 };
+    const unsigned char Mask2[3] = { 227, 196, 52 };
 
     Constant *Mask1Constant =
         Ctx->getConstantInt32(IceType_i8, Mask1[Index - 1]);
@@ -2842,12 +2853,12 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   switch (Instr->getIntrinsicInfo().ID) {
   case Intrinsics::AtomicCmpxchg: {
     if (!Intrinsics::VerifyMemoryOrder(
-            llvm::cast<ConstantInteger32>(Instr->getArg(3))->getValue())) {
+             llvm::cast<ConstantInteger32>(Instr->getArg(3))->getValue())) {
       Func->setError("Unexpected memory ordering (success) for AtomicCmpxchg");
       return;
     }
     if (!Intrinsics::VerifyMemoryOrder(
-            llvm::cast<ConstantInteger32>(Instr->getArg(4))->getValue())) {
+             llvm::cast<ConstantInteger32>(Instr->getArg(4))->getValue())) {
       Func->setError("Unexpected memory ordering (failure) for AtomicCmpxchg");
       return;
     }
@@ -2862,7 +2873,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   }
   case Intrinsics::AtomicFence:
     if (!Intrinsics::VerifyMemoryOrder(
-            llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue())) {
+             llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue())) {
       Func->setError("Unexpected memory ordering for AtomicFence");
       return;
     }
@@ -2908,7 +2919,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     // We require the memory address to be naturally aligned.
     // Given that is the case, then normal loads are atomic.
     if (!Intrinsics::VerifyMemoryOrder(
-            llvm::cast<ConstantInteger32>(Instr->getArg(1))->getValue())) {
+             llvm::cast<ConstantInteger32>(Instr->getArg(1))->getValue())) {
       Func->setError("Unexpected memory ordering for AtomicLoad");
       return;
     }
@@ -2941,18 +2952,18 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   }
   case Intrinsics::AtomicRMW:
     if (!Intrinsics::VerifyMemoryOrder(
-            llvm::cast<ConstantInteger32>(Instr->getArg(3))->getValue())) {
+             llvm::cast<ConstantInteger32>(Instr->getArg(3))->getValue())) {
       Func->setError("Unexpected memory ordering for AtomicRMW");
       return;
     }
     lowerAtomicRMW(Instr->getDest(),
                    static_cast<uint32_t>(llvm::cast<ConstantInteger32>(
-                                             Instr->getArg(0))->getValue()),
+                       Instr->getArg(0))->getValue()),
                    Instr->getArg(1), Instr->getArg(2));
     return;
   case Intrinsics::AtomicStore: {
     if (!Intrinsics::VerifyMemoryOrder(
-            llvm::cast<ConstantInteger32>(Instr->getArg(2))->getValue())) {
+             llvm::cast<ConstantInteger32>(Instr->getArg(2))->getValue())) {
       Func->setError("Unexpected memory ordering for AtomicStore");
       return;
     }
@@ -3106,9 +3117,8 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   case Intrinsics::NaClReadTP: {
     if (Ctx->getFlags().UseSandboxing) {
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      Operand *Src =
-        OperandX8632Mem::create(Func, IceType_i32, NULL, Zero, NULL,
-                                0, OperandX8632Mem::SegReg_GS);
+      Operand *Src = OperandX8632Mem::create(
+          Func, IceType_i32, NULL, Zero, NULL, 0, OperandX8632Mem::SegReg_GS);
       Variable *Dest = Instr->getDest();
       Variable *T = NULL;
       _mov(T, Src);
@@ -3900,7 +3910,7 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
       } else {
         assert(typeNumElements(SrcTy) == 8 || typeNumElements(SrcTy) == 16);
         Type SignExtTy = Condition->getType() == IceType_v8i1 ? IceType_v8i16
-            : IceType_v16i8;
+                                                              : IceType_v16i8;
         Variable *xmm0 = makeReg(SignExtTy, RegX8632::Reg_xmm0);
         lowerCast(InstCast::create(Func, InstCast::Sext, xmm0, Condition));
         _movp(T, SrcFRM);

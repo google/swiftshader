@@ -32,14 +32,7 @@
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/Casting.h"
-#include "llvm/Support/Compiler.h" // LLVM_STATIC_ASSERT
 #include "llvm/Support/raw_ostream.h"
-
-// Roll our own static_assert<> in the absence of C++11.  TODO: change
-// to static_assert<> with C++11.
-template <bool> struct staticAssert;
-template <> struct staticAssert<true> {}; // only true is defined
-#define STATIC_ASSERT(x) staticAssert<(x)>()
 
 namespace Ice {
 
