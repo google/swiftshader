@@ -637,7 +637,6 @@ void Converter::convertFunctions() {
       continue;
     LLVM2ICEConverter FunctionConverter(Ctx, Mod->getContext());
 
-    Timer TConvert;
     Cfg *Fcn = FunctionConverter.convertFunction(I);
     translateFcn(Fcn);
   }

@@ -329,6 +329,7 @@ public:
   explicit AssemblerX86(bool use_far_branches = false) : buffer_(*this) {
     // This mode is only needed and implemented for MIPS and ARM.
     assert(!use_far_branches);
+    (void)use_far_branches;
   }
   ~AssemblerX86() {}
 

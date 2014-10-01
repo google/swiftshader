@@ -45,6 +45,13 @@ else
   OPTLEVEL = -O2
 endif
 
+ifdef NOASSERT
+  ASSERTIONS = -DNDEBUG
+else
+  ASSERTIONS =
+  OBJDIR := $(OBJDIR)+Asserts
+endif
+
 $(info -----------------------------------------------)
 $(info Using LLVM_SRC_PATH = $(LLVM_SRC_PATH))
 $(info Using LLVM_BIN_PATH = $(LLVM_BIN_PATH))
@@ -62,7 +69,7 @@ CCACHE := `command -v ccache`
 CXX := CCACHE_CPP2=yes $(CCACHE) $(CLANG_PATH)/clang++
 
 CXXFLAGS := $(LLVM_CXXFLAGS) -std=c++11 -Wall -Wextra -Werror -fno-rtti \
-	-fno-exceptions $(OPTLEVEL) -g $(HOST_FLAGS) \
+	-fno-exceptions $(OPTLEVEL) $(ASSERTIONS) -g $(HOST_FLAGS) \
 	-Wno-error=unused-parameter -I$(LIBCXX_INSTALL_PATH)/include/c++/v1
 LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib
 

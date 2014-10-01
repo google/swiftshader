@@ -91,6 +91,7 @@ void AssemblerX86::call(const ConstantRelocatable *label) {
   EmitFixup(DirectCallRelocation::create(this, FK_PcRel_4, label));
   EmitInt32(-4);
   assert((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
+  (void)call_start;
 }
 
 void AssemblerX86::pushl(GPRRegister reg) {
@@ -1749,6 +1750,7 @@ void AssemblerX86::notl(GPRRegister reg) {
 void AssemblerX86::bswap(Type Ty, GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   assert(Ty == IceType_i32);
+  (void)Ty;
   EmitUint8(0x0F);
   EmitUint8(0xC8 | reg);
 }
@@ -2145,6 +2147,7 @@ void AssemblerX86::EmitGenericShift(int rm, const Operand &operand,
                                     GPRRegister shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   assert(shifter == RegX8632::Encoded_Reg_ecx);
+  (void)shifter;
   EmitUint8(0xD3);
   EmitOperand(rm, Operand(operand));
 }

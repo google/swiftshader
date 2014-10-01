@@ -12,6 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "llvm/Support/Timer.h"
+
 #include "IceDefs.h"
 #include "IceTimerTree.h"
 
@@ -137,6 +139,11 @@ void TimerStack::dump(Ostream &Str) {
   }
   dumpHelper(Str, FlatMap, TotalTime);
   Str << "Number of timer updates: " << StateChangeCount << "\n";
+}
+
+double TimerStack::timestamp() {
+  // TODO: Implement in terms of std::chrono for C++11.
+  return llvm::TimeRecord::getCurrentTime(false).getWallTime();
 }
 
 } // end of namespace Ice

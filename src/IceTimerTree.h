@@ -50,10 +50,7 @@ public:
 
 private:
   void update();
-  static double timestamp() {
-    // TODO: Implement in terms of std::chrono for C++11.
-    return llvm::TimeRecord::getCurrentTime(false).getWallTime();
-  }
+  static double timestamp();
   const double FirstTimestamp;
   double LastTimestamp;
   uint64_t StateChangeCount;

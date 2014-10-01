@@ -355,11 +355,9 @@ void TargetX8632::translateO2() {
   Func->liveness(Liveness_Intervals);
   if (Func->hasError())
     return;
-  // Validate the live range computations.  Do it outside the timing
-  // code.  TODO: Put this under a flag.
-  bool ValidLiveness = Func->validateLiveness();
-  assert(ValidLiveness);
-  (void)ValidLiveness; // used only in assert()
+  // Validate the live range computations.  The expensive validation
+  // call is deliberately only made when assertions are enabled.
+  assert(Func->validateLiveness());
   ComputedLiveRanges = true;
   // The post-codegen dump is done here, after liveness analysis and
   // associated cleanup, to make the dump cleaner and more useful.
