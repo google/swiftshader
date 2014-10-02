@@ -71,6 +71,9 @@ private:
   typedef std::set<LiveRangeWrapper, RangeCompare> OrderedRanges;
   typedef std::list<LiveRangeWrapper> UnorderedRanges;
   OrderedRanges Unhandled;
+  // UnhandledPrecolored is a subset of Unhandled, specially collected
+  // for faster processing.
+  OrderedRanges UnhandledPrecolored;
   UnorderedRanges Active, Inactive, Handled;
   LinearScan(const LinearScan &) = delete;
   LinearScan &operator=(const LinearScan &) = delete;

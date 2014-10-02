@@ -68,6 +68,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   TimerMarker T(IDscan, Func->getContext());
   assert(RegMaskFull.any()); // Sanity check
   Unhandled.clear();
+  UnhandledPrecolored.clear();
   Handled.clear();
   Inactive.clear();
   Active.clear();
@@ -97,10 +98,12 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       // it was never referenced.
       if (Var->getLiveRange().isEmpty())
         continue;
-      Unhandled.insert(LiveRangeWrapper(Var));
+      LiveRangeWrapper R(Var);
+      Unhandled.insert(R);
       if (Var->hasReg()) {
         Var->setRegNumTmp(Var->getRegNum());
         Var->setLiveRangeInfiniteWeight();
+        UnhandledPrecolored.insert(R);
       }
     }
   }
@@ -145,6 +148,9 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       Active.push_back(Cur);
       assert(RegUses[RegNum] >= 0);
       ++RegUses[RegNum];
+      assert(!UnhandledPrecolored.empty());
+      assert(UnhandledPrecolored.begin()->Var == Cur.Var);
+      UnhandledPrecolored.erase(UnhandledPrecolored.begin());
       continue;
     }
 
@@ -306,19 +312,25 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       }
     }
 
-    // Remove registers from the Free[] list where an Unhandled range
-    // overlaps with the current range and is precolored.
-    // Cur.endsBefore(Item) is an early exit check that turns a
-    // guaranteed O(N^2) algorithm into expected linear complexity.
-    llvm::SmallBitVector PrecoloredUnhandled(RegMask.size());
-    // Note: PrecoloredUnhandled is only used for dumping.
-    for (const LiveRangeWrapper &Item : Unhandled) {
+    std::vector<RegWeight> Weights(RegMask.size());
+
+    // Remove registers from the Free[] list where an Unhandled
+    // precolored range overlaps with the current range, and set those
+    // registers to infinite weight so that they aren't candidates for
+    // eviction.  Cur.endsBefore(Item) is an early exit check that
+    // turns a guaranteed O(N^2) algorithm into expected linear
+    // complexity.
+    llvm::SmallBitVector PrecoloredUnhandledMask(RegMask.size());
+    // Note: PrecoloredUnhandledMask is only used for dumping.
+    for (const LiveRangeWrapper &Item : UnhandledPrecolored) {
+      assert(Item.Var->hasReg());
       if (Cur.endsBefore(Item))
         break;
-      if (Item.Var->hasReg() && Item.overlaps(Cur)) {
+      if (Item.overlaps(Cur)) {
         int32_t ItemReg = Item.Var->getRegNum(); // Note: not getRegNumTmp()
+        Weights[ItemReg].setWeight(RegWeight::Inf);
         Free[ItemReg] = false;
-        PrecoloredUnhandled[ItemReg] = true;
+        PrecoloredUnhandledMask[ItemReg] = true;
         // Disable AllowOverlap if the preferred register is one of
         // these precolored unhandled overlapping ranges.
         if (AllowOverlap && ItemReg == PreferReg) {
@@ -334,7 +346,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
         if (RegMask[i]) {
           Str << Func->getTarget()->getRegName(i, IceType_i32)
               << "(U=" << RegUses[i] << ",F=" << Free[i]
-              << ",P=" << PrecoloredUnhandled[i] << ") ";
+              << ",P=" << PrecoloredUnhandledMask[i] << ") ";
         }
       }
       Str << "\n";
@@ -369,7 +381,6 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     } else {
       // Fallback: there are no free registers, so we look for the
       // lowest-weight register and see if Cur has higher weight.
-      std::vector<RegWeight> Weights(RegMask.size());
       // Check Active ranges.
       for (const LiveRangeWrapper &Item : Active) {
         assert(Item.overlaps(Cur));
@@ -383,18 +394,6 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
         assert(Item.Var->hasRegTmp());
         if (Item.overlaps(Cur))
           Weights[RegNum].addWeight(Item.range().getWeight());
-      }
-      // Check Unhandled ranges that overlap Cur and are precolored.
-      // Cur.endsBefore(*I) is an early exit check that turns a
-      // guaranteed O(N^2) algorithm into expected linear complexity.
-      for (const LiveRangeWrapper &Item : Unhandled) {
-        if (Cur.endsBefore(Item))
-          break;
-        int32_t RegNum = Item.Var->getRegNumTmp();
-        if (RegNum < 0)
-          continue;
-        if (Item.overlaps(Cur))
-          Weights[RegNum].setWeight(RegWeight::Inf);
       }
 
       // All the weights are now calculated.  Find the register with

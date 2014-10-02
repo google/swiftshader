@@ -4305,6 +4305,8 @@ Variable *TargetX8632::makeReg(Type Type, int32_t RegNum) {
 void TargetX8632::postLower() {
   if (Ctx->getOptLevel() != Opt_m1)
     return;
+  static TimerIdT IDpostLower = GlobalContext::getTimerID("postLower");
+  TimerMarker T(IDpostLower, Ctx);
   // TODO: Avoid recomputing WhiteList every instruction.
   RegSetMask RegInclude = RegSet_All;
   RegSetMask RegExclude = RegSet_StackPointer;
