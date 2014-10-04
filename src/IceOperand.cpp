@@ -37,6 +37,8 @@ bool operator==(const RegWeight &A, const RegWeight &B) {
 }
 
 void LiveRange::addSegment(InstNumberT Start, InstNumberT End) {
+  if (End > Start)
+    IsNonpoints = true;
 #ifdef USE_SET
   RangeElementType Element(Start, End);
   RangeType::iterator Next = Range.lower_bound(Element);
@@ -122,6 +124,8 @@ bool LiveRange::overlaps(const LiveRange &Other) const {
 }
 
 bool LiveRange::overlaps(InstNumberT OtherBegin) const {
+  if (!IsNonpoints)
+    return false;
   bool Result = false;
   for (const RangeElementType &I : Range) {
     if (OtherBegin < I.first) {

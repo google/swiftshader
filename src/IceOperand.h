@@ -298,11 +298,12 @@ bool operator==(const RegWeight &A, const RegWeight &B);
 // inside a loop.
 class LiveRange {
 public:
-  LiveRange() : Weight(0) {}
+  LiveRange() : Weight(0), IsNonpoints(false) {}
 
   void reset() {
     Range.clear();
     Weight.setWeight(0);
+    IsNonpoints = false;
   }
   void addSegment(InstNumberT Start, InstNumberT End);
 
@@ -335,6 +336,11 @@ private:
 #endif
   RangeType Range;
   RegWeight Weight;
+  // IsNonpoints keeps track of whether the live range contains at
+  // least one interval where Start!=End.  If it is empty or has the
+  // form [x,x),[y,y),...,[z,z), then overlaps(InstNumberT) is
+  // trivially false.
+  bool IsNonpoints;
 };
 
 Ostream &operator<<(Ostream &Str, const LiveRange &L);
