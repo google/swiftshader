@@ -3,6 +3,10 @@
 ; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i -i %s --args -O2 -mattr=sse4.1 --verbose none \
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN:   | FileCheck --check-prefix=SSE41 %s
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 define float @load_arg_plus_200000(float* %arg) {
@@ -47,6 +51,32 @@ entry:
   ret float %addr.load
 ; CHECK-LABEL: load_200000_minus_arg:
 ; CHECK: movss xmm0, dword ptr [e{{..}}]
+}
+
+define <8 x i16> @load_mul_v8i16_mem(<8 x i16> %arg0, i32 %arg1_iptr) {
+entry:
+  %addr_sub = sub i32 %arg1_iptr, 200000
+  %addr_ptr = inttoptr i32 %addr_sub to <8 x i16>*
+  %arg1 = load <8 x i16>* %addr_ptr, align 2
+  %res_vec = mul <8 x i16> %arg0, %arg1
+  ret <8 x i16> %res_vec
+; CHECK-LABEL: load_mul_v8i16_mem:
+; CHECK: pmullw xmm{{.*}}, xmmword ptr [e{{.*}} - 200000]
+}
+
+define <4 x i32> @load_mul_v4i32_mem(<4 x i32> %arg0, i32 %arg1_iptr) {
+entry:
+  %addr_sub = sub i32 %arg1_iptr, 200000
+  %addr_ptr = inttoptr i32 %addr_sub to <4 x i32>*
+  %arg1 = load <4 x i32>* %addr_ptr, align 4
+  %res = mul <4 x i32> %arg0, %arg1
+  ret <4 x i32> %res
+; CHECK-LABEL: load_mul_v4i32_mem:
+; CHECK: pmuludq xmm{{.*}}, xmmword ptr [e{{.*}} - 200000]
+; CHECK: pmuludq
+;
+; SSE41-LABEL: load_mul_v4i32_mem:
+; SSE41: pmulld xmm{{.*}}, xmmword ptr [e{{.*}} - 200000]
 }
 
 define float @address_mode_opt_chaining(float* %arg) {

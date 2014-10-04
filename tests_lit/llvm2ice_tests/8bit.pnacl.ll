@@ -159,6 +159,69 @@ entry:
 ; CHECK-LABEL: srem8BitConst
 ; CHECK: idiv {{[abcd]l|byte ptr}}
 
+define internal i32 @shl8Bit(i32 %a, i32 %b) {
+entry:
+  %a_8 = trunc i32 %a to i8
+  %b_8 = trunc i32 %b to i8
+  %shl = shl i8 %b_8, %a_8
+  %ret = zext i8 %shl to i32
+  ret i32 %ret
+}
+; CHECK-LABEL: shl8Bit
+; CHECK: shl {{[abd]l|byte ptr}}, cl
+
+define internal i32 @shl8BitConst(i32 %a, i32 %b) {
+entry:
+  %a_8 = trunc i32 %a to i8
+  %shl = shl i8 %a_8, 6
+  %ret = zext i8 %shl to i32
+  ret i32 %ret
+}
+; CHECK-LABEL: shl8BitConst
+; CHECK: shl {{[abcd]l|byte ptr}}, 6
+
+define internal i32 @lshr8Bit(i32 %a, i32 %b) {
+entry:
+  %a_8 = trunc i32 %a to i8
+  %b_8 = trunc i32 %b to i8
+  %lshr = lshr i8 %b_8, %a_8
+  %ret = zext i8 %lshr to i32
+  ret i32 %ret
+}
+; CHECK-LABEL: lshr8Bit
+; CHECK: shr {{[abd]l|byte ptr}}, cl
+
+define internal i32 @lshr8BitConst(i32 %a, i32 %b) {
+entry:
+  %a_8 = trunc i32 %a to i8
+  %lshr = lshr i8 %a_8, 6
+  %ret = zext i8 %lshr to i32
+  ret i32 %ret
+}
+; CHECK-LABEL: lshr8BitConst
+; CHECK: shr {{[abcd]l|byte ptr}}, 6
+
+define internal i32 @ashr8Bit(i32 %a, i32 %b) {
+entry:
+  %a_8 = trunc i32 %a to i8
+  %b_8 = trunc i32 %b to i8
+  %ashr = ashr i8 %b_8, %a_8
+  %ret = zext i8 %ashr to i32
+  ret i32 %ret
+}
+; CHECK-LABEL: ashr8Bit
+; CHECK: sar {{[abd]l|byte ptr}}, cl
+
+define internal i32 @ashr8BitConst(i32 %a, i32 %b) {
+entry:
+  %a_8 = trunc i32 %a to i8
+  %ashr = ashr i8 %a_8, 6
+  %ret = zext i8 %ashr to i32
+  ret i32 %ret
+}
+; CHECK-LABEL: ashr8BitConst
+; CHECK: sar {{[abcd]l|byte ptr}}, 6
+
 
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

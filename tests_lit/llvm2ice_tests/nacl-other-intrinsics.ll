@@ -326,7 +326,9 @@ entry:
   ret i32 %r_zext
 }
 ; CHECK-LABEL: test_bswap_16
-; CHECK: rol {{.*}}, 8
+; Make sure this is the right operand size so that the most significant bit
+; to least significant bit rotation happens at the right boundary.
+; CHECK: rol {{[abcd]x|si|di|bp|word ptr}}, 8
 
 define i32 @test_bswap_32(i32 %x) {
 entry:

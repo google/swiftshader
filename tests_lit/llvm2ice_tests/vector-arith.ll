@@ -21,7 +21,6 @@
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=SSE41 %s
 ; RUN: %p2i -i %s -a --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define <4 x float> @test_fadd(<4 x float> %arg0, <4 x float> %arg1) {
 entry:

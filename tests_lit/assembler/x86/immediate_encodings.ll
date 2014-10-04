@@ -254,5 +254,27 @@ entry:
 ; CHECK-LABEL: testMul32Imm16Neg
 ; CHECK: 69 c0 00 ff ff ff  imul eax, eax, 4294967040
 
+; The GPR shift instructions either allow an 8-bit immediate or
+; have a special encoding for "1".
+define internal i32 @testShl16Imm8(i32 %arg) {
+entry:
+  %arg_i16 = trunc i32 %arg to i16
+  %tmp = shl i16 %arg_i16, 13
+  %result = zext i16 %tmp to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testShl16Imm8
+; CHECK: 66 c1 e0 0d shl ax, 13
+
+define internal i32 @testShl16Imm1(i32 %arg) {
+entry:
+  %arg_i16 = trunc i32 %arg to i16
+  %tmp = shl i16 %arg_i16, 1
+  %result = zext i16 %tmp to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testShl16Imm1
+; CHECK: 66 d1 e0 shl ax
+
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

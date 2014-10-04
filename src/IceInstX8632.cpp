@@ -536,6 +536,65 @@ void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
   emitIASBytes(Str, Asm, StartPosition);
 }
 
+void emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
+                     const Operand *Src,
+                     const x86::AssemblerX86::GPREmitterShiftOp &Emitter) {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  // Technically, the Dest Var can be mem as well, but we only use Reg.
+  // We can extend this to check Dest if we decide to use that form.
+  assert(Var->hasReg());
+  // We cheat a little and use GPRRegister even for byte operations.
+  RegX8632::GPRRegister VarReg =
+      RegX8632::getEncodedByteRegOrGPR(Ty, Var->getRegNum());
+  // Src must be reg == ECX or an Imm8.
+  // This is asserted by the assembler.
+  if (const Variable *SrcVar = llvm::dyn_cast<Variable>(Src)) {
+    assert(SrcVar->hasReg());
+    RegX8632::GPRRegister SrcReg =
+        RegX8632::getEncodedByteRegOrGPR(Ty, SrcVar->getRegNum());
+    (Asm->*(Emitter.GPRGPR))(Ty, VarReg, SrcReg);
+  } else if (const ConstantInteger32 *Imm =
+                 llvm::dyn_cast<ConstantInteger32>(Src)) {
+    (Asm->*(Emitter.GPRImm))(Ty, VarReg, x86::Immediate(Imm->getValue()));
+  } else {
+    llvm_unreachable("Unexpected operand type");
+  }
+  Ostream &Str = Func->getContext()->getStrEmit();
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
+void emitIASXmmShift(const Cfg *Func, Type Ty, const Variable *Var,
+                     const Operand *Src,
+                     const x86::AssemblerX86::XmmEmitterShiftOp &Emitter) {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  assert(Var->hasReg());
+  RegX8632::XmmRegister VarReg = RegX8632::getEncodedXmm(Var->getRegNum());
+  if (const Variable *SrcVar = llvm::dyn_cast<Variable>(Src)) {
+    if (SrcVar->hasReg()) {
+      RegX8632::XmmRegister SrcReg =
+          RegX8632::getEncodedXmm(SrcVar->getRegNum());
+      (Asm->*(Emitter.XmmXmm))(Ty, VarReg, SrcReg);
+    } else {
+      x86::Address SrcStackAddr = static_cast<TargetX8632 *>(Func->getTarget())
+                                      ->stackVarToAsmOperand(SrcVar);
+      (Asm->*(Emitter.XmmAddr))(Ty, VarReg, SrcStackAddr);
+    }
+  } else if (const OperandX8632Mem *Mem =
+                 llvm::dyn_cast<OperandX8632Mem>(Src)) {
+    x86::Address SrcAddr = Mem->toAsmAddress(Asm);
+    (Asm->*(Emitter.XmmAddr))(Ty, VarReg, SrcAddr);
+  } else if (const ConstantInteger32 *Imm =
+                 llvm::dyn_cast<ConstantInteger32>(Src)) {
+    (Asm->*(Emitter.XmmImm))(Ty, VarReg, x86::Immediate(Imm->getValue()));
+  } else {
+    llvm_unreachable("Unexpected operand type");
+  }
+  Ostream &Str = Func->getContext()->getStrEmit();
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
 void
 emitIASVarOperandTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
                        const Operand *Src,
@@ -691,6 +750,20 @@ template <>
 const x86::AssemblerX86::GPREmitterRegOp InstX8632Xor::Emitter = {
     &x86::AssemblerX86::Xor, &x86::AssemblerX86::Xor, &x86::AssemblerX86::Xor};
 
+// Binary Shift GPR ops
+template <>
+const x86::AssemblerX86::GPREmitterShiftOp InstX8632Rol::Emitter = {
+    &x86::AssemblerX86::rol, &x86::AssemblerX86::rol};
+template <>
+const x86::AssemblerX86::GPREmitterShiftOp InstX8632Sar::Emitter = {
+    &x86::AssemblerX86::sar, &x86::AssemblerX86::sar};
+template <>
+const x86::AssemblerX86::GPREmitterShiftOp InstX8632Shl::Emitter = {
+    &x86::AssemblerX86::shl, &x86::AssemblerX86::shl};
+template <>
+const x86::AssemblerX86::GPREmitterShiftOp InstX8632Shr::Emitter = {
+    &x86::AssemblerX86::shr, &x86::AssemblerX86::shr};
+
 // Binary XMM ops
 template <>
 const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Addss::Emitter = {
@@ -726,6 +799,9 @@ template <>
 const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Pcmpgt::Emitter = {
     &x86::AssemblerX86::pcmpgt, &x86::AssemblerX86::pcmpgt, NULL};
 template <>
+const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Pmull::Emitter = {
+    &x86::AssemblerX86::pmull, &x86::AssemblerX86::pmull, NULL};
+template <>
 const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Pmuludq::Emitter = {
     &x86::AssemblerX86::pmuludq, &x86::AssemblerX86::pmuludq, NULL};
 template <>
@@ -743,6 +819,16 @@ const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Subss::Emitter = {
 template <>
 const x86::AssemblerX86::XmmEmitterTwoOps InstX8632Subps::Emitter = {
     &x86::AssemblerX86::subps, &x86::AssemblerX86::subps, NULL};
+
+// Binary XMM Shift ops
+template <>
+const x86::AssemblerX86::XmmEmitterShiftOp InstX8632Psll::Emitter = {
+    &x86::AssemblerX86::psll, &x86::AssemblerX86::psll,
+    &x86::AssemblerX86::psll};
+template <>
+const x86::AssemblerX86::XmmEmitterShiftOp InstX8632Psra::Emitter = {
+    &x86::AssemblerX86::psra, &x86::AssemblerX86::psra,
+    &x86::AssemblerX86::psra};
 
 template <> void InstX8632Sqrtss::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -785,6 +871,22 @@ template <> void InstX8632Pmull::emit(const Cfg *Func) const {
   snprintf(buf, llvm::array_lengthof(buf), "pmull%s",
            TypeX8632Attributes[getDest()->getType()].PackString);
   emitTwoAddress(buf, this, Func);
+}
+
+template <> void InstX8632Pmull::emitIAS(const Cfg *Func) const {
+  Type Ty = getDest()->getType();
+  bool TypesAreValid = Ty == IceType_v4i32 || Ty == IceType_v8i16;
+  bool InstructionSetIsValid =
+      Ty == IceType_v8i16 ||
+      static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
+          TargetX8632::SSE4_1;
+  (void)TypesAreValid;
+  (void)InstructionSetIsValid;
+  assert(TypesAreValid);
+  assert(InstructionSetIsValid);
+  assert(getSrcSize() == 2);
+  Type ElementTy = typeElementType(Ty);
+  emitIASVarOperandTyXMM(Func, ElementTy, getDest(), getSrc(1), Emitter);
 }
 
 template <> void InstX8632Subss::emit(const Cfg *Func) const {

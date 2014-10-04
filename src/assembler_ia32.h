@@ -354,6 +354,13 @@ public:
     TypedEmitGPRImm GPRImm;
   };
 
+  struct GPREmitterShiftOp {
+    TypedEmitGPRGPR GPRGPR;
+    TypedEmitGPRImm GPRImm;
+    // Technically, Addr/GPR and Addr/Imm are also allowed, but */Addr are not.
+    // In practice, we always normalize the Dest to a Register first.
+  };
+
   // Operations to emit XMM instructions (and dispatch on operand type).
   typedef void (AssemblerX86::*TypedEmitXmmXmm)(Type, XmmRegister, XmmRegister);
   typedef void (AssemblerX86::*TypedEmitXmmAddr)(Type, XmmRegister,
@@ -364,6 +371,15 @@ public:
     TypedEmitXmmXmm XmmXmm;
     TypedEmitXmmAddr XmmAddr;
     TypedEmitAddrXmm AddrXmm;
+  };
+
+  typedef void (AssemblerX86::*TypedEmitXmmImm)(Type, XmmRegister,
+                                                const Immediate &);
+
+  struct XmmEmitterShiftOp {
+    TypedEmitXmmXmm XmmXmm;
+    TypedEmitXmmAddr XmmAddr;
+    TypedEmitXmmImm XmmImm;
   };
 
   /*
@@ -453,6 +469,8 @@ public:
   void pand(Type Ty, XmmRegister dst, const Address &src);
   void pandn(Type Ty, XmmRegister dst, XmmRegister src);
   void pandn(Type Ty, XmmRegister dst, const Address &src);
+  void pmull(Type Ty, XmmRegister dst, XmmRegister src);
+  void pmull(Type Ty, XmmRegister dst, const Address &src);
   void pmuludq(Type Ty, XmmRegister dst, XmmRegister src);
   void pmuludq(Type Ty, XmmRegister dst, const Address &src);
   void por(Type Ty, XmmRegister dst, XmmRegister src);
@@ -461,6 +479,14 @@ public:
   void psub(Type Ty, XmmRegister dst, const Address &src);
   void pxor(Type Ty, XmmRegister dst, XmmRegister src);
   void pxor(Type Ty, XmmRegister dst, const Address &src);
+
+  void psll(Type Ty, XmmRegister dst, XmmRegister src);
+  void psll(Type Ty, XmmRegister dst, const Address &src);
+  void psll(Type Ty, XmmRegister dst, const Immediate &src);
+
+  void psra(Type Ty, XmmRegister dst, XmmRegister src);
+  void psra(Type Ty, XmmRegister dst, const Address &src);
+  void psra(Type Ty, XmmRegister dst, const Immediate &src);
 
   void addps(Type Ty, XmmRegister dst, XmmRegister src);
   void addps(Type Ty, XmmRegister dst, const Address &src);
@@ -629,14 +655,22 @@ public:
   void decl(GPRRegister reg);
   void decl(const Address &address);
 
-  void shll(GPRRegister reg, const Immediate &imm);
-  void shll(GPRRegister operand, GPRRegister shifter);
-  void shll(const Address &operand, GPRRegister shifter);
-  void shrl(GPRRegister reg, const Immediate &imm);
-  void shrl(GPRRegister operand, GPRRegister shifter);
-  void sarl(GPRRegister reg, const Immediate &imm);
-  void sarl(GPRRegister operand, GPRRegister shifter);
-  void sarl(const Address &address, GPRRegister shifter);
+  void rol(Type Ty, GPRRegister reg, const Immediate &imm);
+  void rol(Type Ty, GPRRegister operand, GPRRegister shifter);
+  void rol(Type Ty, const Address &operand, GPRRegister shifter);
+
+  void shl(Type Ty, GPRRegister reg, const Immediate &imm);
+  void shl(Type Ty, GPRRegister operand, GPRRegister shifter);
+  void shl(Type Ty, const Address &operand, GPRRegister shifter);
+
+  void shr(Type Ty, GPRRegister reg, const Immediate &imm);
+  void shr(Type Ty, GPRRegister operand, GPRRegister shifter);
+  void shr(Type Ty, const Address &operand, GPRRegister shifter);
+
+  void sar(Type Ty, GPRRegister reg, const Immediate &imm);
+  void sar(Type Ty, GPRRegister operand, GPRRegister shifter);
+  void sar(Type Ty, const Address &address, GPRRegister shifter);
+
   void shld(GPRRegister dst, GPRRegister src);
   void shld(GPRRegister dst, GPRRegister src, const Immediate &imm);
   void shld(const Address &operand, GPRRegister src);
@@ -721,8 +755,9 @@ private:
   void EmitLabelLink(Label *label);
   void EmitNearLabelLink(Label *label);
 
-  void EmitGenericShift(int rm, GPRRegister reg, const Immediate &imm);
-  void EmitGenericShift(int rm, const Operand &operand, GPRRegister shifter);
+  void EmitGenericShift(int rm, Type Ty, GPRRegister reg, const Immediate &imm);
+  void EmitGenericShift(int rm, Type Ty, const Operand &operand,
+                        GPRRegister shifter);
 
   AssemblerBuffer buffer_;
 

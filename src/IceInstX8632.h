@@ -571,15 +571,15 @@ private:
 void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
                     bool ShiftHack = false);
 
-template <InstX8632::InstKindX8632 K, bool ShiftHack = false>
-class InstX8632Binop : public InstX8632 {
+template <InstX8632::InstKindX8632 K> class InstX8632Binop : public InstX8632 {
 public:
-  // Create a binary-op instruction like shifts.
+  // Create a binary-op instruction (not yet migrated to integrated assembler)
   static InstX8632Binop *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX8632Binop>())
         InstX8632Binop(Func, Dest, Source);
   }
   void emit(const Cfg *Func) const override {
+    const bool ShiftHack = false;
     emitTwoAddress(Opcode, this, Func, ShiftHack);
   }
   void dump(const Cfg *Func) const override {
@@ -600,6 +600,49 @@ private:
   InstX8632Binop &operator=(const InstX8632Binop &) = delete;
   ~InstX8632Binop() override {}
   static const char *Opcode;
+};
+
+void emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
+                     const Operand *Src,
+                     const x86::AssemblerX86::GPREmitterShiftOp &Emitter);
+
+template <InstX8632::InstKindX8632 K>
+class InstX8632BinopGPRShift : public InstX8632 {
+public:
+  // Create a binary-op GPR shift instruction.
+  static InstX8632BinopGPRShift *create(Cfg *Func, Variable *Dest,
+                                        Operand *Source) {
+    return new (Func->allocate<InstX8632BinopGPRShift>())
+        InstX8632BinopGPRShift(Func, Dest, Source);
+  }
+  void emit(const Cfg *Func) const override {
+    const bool ShiftHack = true;
+    emitTwoAddress(Opcode, this, Func, ShiftHack);
+  }
+  void emitIAS(const Cfg *Func) const override {
+    Type Ty = getDest()->getType();
+    assert(getSrcSize() == 2);
+    emitIASGPRShift(Func, Ty, getDest(), getSrc(1), Emitter);
+  }
+  void dump(const Cfg *Func) const override {
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = " << Opcode << "." << getDest()->getType() << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstX8632BinopGPRShift(Cfg *Func, Variable *Dest, Operand *Source)
+      : InstX8632(Func, K, 2, Dest) {
+    addSource(Dest);
+    addSource(Source);
+  }
+  InstX8632BinopGPRShift(const InstX8632BinopGPRShift &) = delete;
+  InstX8632BinopGPRShift &operator=(const InstX8632BinopGPRShift &) = delete;
+  ~InstX8632BinopGPRShift() override {}
+  static const char *Opcode;
+  static const x86::AssemblerX86::GPREmitterShiftOp Emitter;
 };
 
 template <InstX8632::InstKindX8632 K>
@@ -678,6 +721,52 @@ private:
   ~InstX8632BinopXmm() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::XmmEmitterTwoOps Emitter;
+};
+
+void emitIASXmmShift(const Cfg *Func, Type Ty, const Variable *Var,
+                     const Operand *Src,
+                     const x86::AssemblerX86::XmmEmitterShiftOp &Emitter);
+
+template <InstX8632::InstKindX8632 K>
+class InstX8632BinopXmmShift : public InstX8632 {
+public:
+  // Create an XMM binary-op shift operation.
+  static InstX8632BinopXmmShift *create(Cfg *Func, Variable *Dest,
+                                        Operand *Source) {
+    return new (Func->allocate<InstX8632BinopXmmShift>())
+        InstX8632BinopXmmShift(Func, Dest, Source);
+  }
+  void emit(const Cfg *Func) const override {
+    const bool ShiftHack = false;
+    emitTwoAddress(Opcode, this, Func, ShiftHack);
+  }
+  void emitIAS(const Cfg *Func) const override {
+    Type Ty = getDest()->getType();
+    assert(Ty == IceType_v8i16 || Ty == IceType_v8i1 || Ty == IceType_v4i32 ||
+           Ty == IceType_v4i1);
+    Type ElementTy = typeElementType(Ty);
+    assert(getSrcSize() == 2);
+    emitIASXmmShift(Func, ElementTy, getDest(), getSrc(1), Emitter);
+  }
+  void dump(const Cfg *Func) const override {
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = " << Opcode << "." << getDest()->getType() << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstX8632BinopXmmShift(Cfg *Func, Variable *Dest, Operand *Source)
+      : InstX8632(Func, K, 2, Dest) {
+    addSource(Dest);
+    addSource(Source);
+  }
+  InstX8632BinopXmmShift(const InstX8632BinopXmmShift &) = delete;
+  InstX8632BinopXmmShift &operator=(const InstX8632BinopXmmShift &) = delete;
+  ~InstX8632BinopXmmShift() override {}
+  static const char *Opcode;
+  static const x86::AssemblerX86::XmmEmitterShiftOp Emitter;
 };
 
 template <InstX8632::InstKindX8632 K> class InstX8632Ternop : public InstX8632 {
@@ -834,16 +923,16 @@ typedef InstX8632BinopXmm<InstX8632::Pxor, false> InstX8632Pxor;
 typedef InstX8632BinopGPR<InstX8632::Imul> InstX8632Imul;
 typedef InstX8632BinopXmm<InstX8632::Mulps, true> InstX8632Mulps;
 typedef InstX8632BinopXmm<InstX8632::Mulss, false> InstX8632Mulss;
-typedef InstX8632Binop<InstX8632::Pmull> InstX8632Pmull;
+typedef InstX8632BinopXmm<InstX8632::Pmull, true> InstX8632Pmull;
 typedef InstX8632BinopXmm<InstX8632::Pmuludq, false> InstX8632Pmuludq;
 typedef InstX8632BinopXmm<InstX8632::Divps, true> InstX8632Divps;
 typedef InstX8632BinopXmm<InstX8632::Divss, false> InstX8632Divss;
-typedef InstX8632Binop<InstX8632::Rol, true> InstX8632Rol;
-typedef InstX8632Binop<InstX8632::Shl, true> InstX8632Shl;
-typedef InstX8632Binop<InstX8632::Psll> InstX8632Psll;
-typedef InstX8632Binop<InstX8632::Shr, true> InstX8632Shr;
-typedef InstX8632Binop<InstX8632::Sar, true> InstX8632Sar;
-typedef InstX8632Binop<InstX8632::Psra> InstX8632Psra;
+typedef InstX8632BinopGPRShift<InstX8632::Rol> InstX8632Rol;
+typedef InstX8632BinopGPRShift<InstX8632::Shl> InstX8632Shl;
+typedef InstX8632BinopXmmShift<InstX8632::Psll> InstX8632Psll;
+typedef InstX8632BinopGPRShift<InstX8632::Shr> InstX8632Shr;
+typedef InstX8632BinopGPRShift<InstX8632::Sar> InstX8632Sar;
+typedef InstX8632BinopXmmShift<InstX8632::Psra> InstX8632Psra;
 typedef InstX8632BinopXmm<InstX8632::Pcmpeq, true> InstX8632Pcmpeq;
 typedef InstX8632BinopXmm<InstX8632::Pcmpgt, true> InstX8632Pcmpgt;
 // TODO: movss is only a binary operation when the source and dest
@@ -1446,6 +1535,7 @@ template <> void InstX8632Idiv::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Imul::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Cbwdq::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Movd::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Pmull::emitIAS(const Cfg *Func) const;
 
 } // end of namespace Ice
 

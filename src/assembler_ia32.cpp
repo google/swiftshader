@@ -537,6 +537,34 @@ void AssemblerX86::pandn(Type /* Ty */, XmmRegister dst, const Address &src) {
   EmitOperand(dst, src);
 }
 
+void AssemblerX86::pmull(Type Ty, XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (Ty == IceType_i16) {
+    EmitUint8(0xD5);
+  } else {
+    assert(Ty == IceType_i32);
+    EmitUint8(0x38);
+    EmitUint8(0x40);
+  }
+  EmitXmmRegisterOperand(dst, src);
+}
+
+void AssemblerX86::pmull(Type Ty, XmmRegister dst, const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (Ty == IceType_i16) {
+    EmitUint8(0xD5);
+  } else {
+    assert(Ty == IceType_i32);
+    EmitUint8(0x38);
+    EmitUint8(0x40);
+  }
+  EmitOperand(dst, src);
+}
+
 void AssemblerX86::pmuludq(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
@@ -611,6 +639,88 @@ void AssemblerX86::pxor(Type /* Ty */, XmmRegister dst, const Address &src) {
   EmitUint8(0x0F);
   EmitUint8(0xEF);
   EmitOperand(dst, src);
+}
+
+void AssemblerX86::psll(Type Ty, XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (Ty == IceType_i16) {
+    EmitUint8(0xF1);
+  } else {
+    assert(Ty == IceType_i32);
+    EmitUint8(0xF2);
+  }
+  EmitXmmRegisterOperand(dst, src);
+}
+
+void AssemblerX86::psll(Type Ty, XmmRegister dst, const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (Ty == IceType_i16) {
+    EmitUint8(0xF1);
+  } else {
+    assert(Ty == IceType_i32);
+    EmitUint8(0xF2);
+  }
+  EmitOperand(dst, src);
+}
+
+void AssemblerX86::psll(Type Ty, XmmRegister dst, const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(imm.is_int8());
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (Ty == IceType_i16) {
+    EmitUint8(0x71);
+  } else {
+    assert(Ty == IceType_i32);
+    EmitUint8(0x72);
+  }
+  EmitRegisterOperand(6, dst);
+  EmitUint8(imm.value() & 0xFF);
+}
+
+void AssemblerX86::psra(Type Ty, XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (Ty == IceType_i16) {
+    EmitUint8(0xE1);
+  } else {
+    assert(Ty == IceType_i32);
+    EmitUint8(0xE2);
+  }
+  EmitXmmRegisterOperand(dst, src);
+}
+
+void AssemblerX86::psra(Type Ty, XmmRegister dst, const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (Ty == IceType_i16) {
+    EmitUint8(0xE1);
+  } else {
+    assert(Ty == IceType_i32);
+    EmitUint8(0xE2);
+  }
+  EmitOperand(dst, src);
+}
+
+void AssemblerX86::psra(Type Ty, XmmRegister dst, const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(imm.is_int8());
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (Ty == IceType_i16) {
+    EmitUint8(0x71);
+  } else {
+    assert(Ty == IceType_i32);
+    EmitUint8(0x72);
+  }
+  EmitRegisterOperand(4, dst);
+  EmitUint8(imm.value() & 0xFF);
 }
 
 // {add,sub,mul,div}ps are given a Ty parameter for consistency with
@@ -1639,36 +1749,52 @@ void AssemblerX86::decl(const Address &address) {
   EmitOperand(1, address);
 }
 
-void AssemblerX86::shll(GPRRegister reg, const Immediate &imm) {
-  EmitGenericShift(4, reg, imm);
+void AssemblerX86::rol(Type Ty, GPRRegister reg, const Immediate &imm) {
+  EmitGenericShift(0, Ty, reg, imm);
 }
 
-void AssemblerX86::shll(GPRRegister operand, GPRRegister shifter) {
-  EmitGenericShift(4, Operand(operand), shifter);
+void AssemblerX86::rol(Type Ty, GPRRegister operand, GPRRegister shifter) {
+  EmitGenericShift(0, Ty, Operand(operand), shifter);
 }
 
-void AssemblerX86::shll(const Address &operand, GPRRegister shifter) {
-  EmitGenericShift(4, Operand(operand), shifter);
+void AssemblerX86::rol(Type Ty, const Address &operand, GPRRegister shifter) {
+  EmitGenericShift(0, Ty, operand, shifter);
 }
 
-void AssemblerX86::shrl(GPRRegister reg, const Immediate &imm) {
-  EmitGenericShift(5, reg, imm);
+void AssemblerX86::shl(Type Ty, GPRRegister reg, const Immediate &imm) {
+  EmitGenericShift(4, Ty, reg, imm);
 }
 
-void AssemblerX86::shrl(GPRRegister operand, GPRRegister shifter) {
-  EmitGenericShift(5, Operand(operand), shifter);
+void AssemblerX86::shl(Type Ty, GPRRegister operand, GPRRegister shifter) {
+  EmitGenericShift(4, Ty, Operand(operand), shifter);
 }
 
-void AssemblerX86::sarl(GPRRegister reg, const Immediate &imm) {
-  EmitGenericShift(7, reg, imm);
+void AssemblerX86::shl(Type Ty, const Address &operand, GPRRegister shifter) {
+  EmitGenericShift(4, Ty, operand, shifter);
 }
 
-void AssemblerX86::sarl(GPRRegister operand, GPRRegister shifter) {
-  EmitGenericShift(7, Operand(operand), shifter);
+void AssemblerX86::shr(Type Ty, GPRRegister reg, const Immediate &imm) {
+  EmitGenericShift(5, Ty, reg, imm);
 }
 
-void AssemblerX86::sarl(const Address &address, GPRRegister shifter) {
-  EmitGenericShift(7, Operand(address), shifter);
+void AssemblerX86::shr(Type Ty, GPRRegister operand, GPRRegister shifter) {
+  EmitGenericShift(5, Ty, Operand(operand), shifter);
+}
+
+void AssemblerX86::shr(Type Ty, const Address &operand, GPRRegister shifter) {
+  EmitGenericShift(5, Ty, operand, shifter);
+}
+
+void AssemblerX86::sar(Type Ty, GPRRegister reg, const Immediate &imm) {
+  EmitGenericShift(7, Ty, reg, imm);
+}
+
+void AssemblerX86::sar(Type Ty, GPRRegister operand, GPRRegister shifter) {
+  EmitGenericShift(7, Ty, Operand(operand), shifter);
+}
+
+void AssemblerX86::sar(Type Ty, const Address &address, GPRRegister shifter) {
+  EmitGenericShift(7, Ty, address, shifter);
 }
 
 void AssemblerX86::shld(GPRRegister dst, GPRRegister src) {
@@ -2129,27 +2255,31 @@ void AssemblerX86::EmitNearLabelLink(Label *label) {
   label->NearLinkTo(position);
 }
 
-void AssemblerX86::EmitGenericShift(int rm, GPRRegister reg,
+void AssemblerX86::EmitGenericShift(int rm, Type Ty, GPRRegister reg,
                                     const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   assert(imm.is_int8());
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   if (imm.value() == 1) {
-    EmitUint8(0xD1);
+    EmitUint8(isByteSizedArithType(Ty) ? 0xD0 : 0xD1);
     EmitOperand(rm, Operand(reg));
   } else {
-    EmitUint8(0xC1);
+    EmitUint8(isByteSizedArithType(Ty) ? 0xC0 : 0xC1);
     EmitOperand(rm, Operand(reg));
     EmitUint8(imm.value() & 0xFF);
   }
 }
 
-void AssemblerX86::EmitGenericShift(int rm, const Operand &operand,
+void AssemblerX86::EmitGenericShift(int rm, Type Ty, const Operand &operand,
                                     GPRRegister shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   assert(shifter == RegX8632::Encoded_Reg_ecx);
   (void)shifter;
-  EmitUint8(0xD3);
-  EmitOperand(rm, Operand(operand));
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  EmitUint8(isByteSizedArithType(Ty) ? 0xD2 : 0xD3);
+  EmitOperand(rm, operand);
 }
 
 } // end of namespace x86
