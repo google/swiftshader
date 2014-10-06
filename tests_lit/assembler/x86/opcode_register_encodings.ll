@@ -6,7 +6,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define <8 x i16> @test_mul_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
 entry:
@@ -83,5 +82,49 @@ entry:
 ; CHECK-DAG: 66 0f 38 40 8c 24 80 00 00 00 pmulld xmm1, xmmword ptr [esp + 128]
 }
 
+; Test movq, which is used by atomic stores.
+declare void @llvm.nacl.atomic.store.i64(i64, i64*, i32)
+
+define void @test_atomic_store_64(i32 %iptr, i32 %iptr2, i32 %iptr3, i64 %v) {
+entry:
+  %ptr = inttoptr i32 %iptr to i64*
+  %ptr2 = inttoptr i32 %iptr2 to i64*
+  %ptr3 = inttoptr i32 %iptr3 to i64*
+  call void @llvm.nacl.atomic.store.i64(i64 %v, i64* %ptr2, i32 6)
+  call void @llvm.nacl.atomic.store.i64(i64 1234567891024, i64* %ptr, i32 6)
+  call void @llvm.nacl.atomic.store.i64(i64 %v, i64* %ptr3, i32 6)
+  ret void
+}
+; CHECK-LABEL: test_atomic_store_64
+; CHECK-DAG: f3 0f 7e 04 24    movq xmm0, qword ptr [esp]
+; CHECK-DAG: f3 0f 7e 44 24 08 movq xmm0, qword ptr [esp + 8]
+; CHECK-DAG: 66 0f d6 0{{.*}}  movq qword ptr [e{{.*}}], xmm0
+
+; Test "movups" via vector stores and loads.
+define void @store_v16xI8(i32 %addr, i32 %addr2, i32 %addr3, <16 x i8> %v) {
+  %addr_v16xI8 = inttoptr i32 %addr to <16 x i8>*
+  %addr2_v16xI8 = inttoptr i32 %addr2 to <16 x i8>*
+  %addr3_v16xI8 = inttoptr i32 %addr3 to <16 x i8>*
+  store <16 x i8> %v, <16 x i8>* %addr2_v16xI8, align 1
+  store <16 x i8> %v, <16 x i8>* %addr_v16xI8, align 1
+  store <16 x i8> %v, <16 x i8>* %addr3_v16xI8, align 1
+  ret void
+}
+; CHECK-LABEL: store_v16xI8
+; CHECK: 0f 11 0{{.*}} movups xmmword ptr [e{{.*}}], xmm0
+
+define <16 x i8> @load_v16xI8(i32 %addr, i32 %addr2, i32 %addr3) {
+  %addr_v16xI8 = inttoptr i32 %addr to <16 x i8>*
+  %addr2_v16xI8 = inttoptr i32 %addr2 to <16 x i8>*
+  %addr3_v16xI8 = inttoptr i32 %addr3 to <16 x i8>*
+  %res1 = load <16 x i8>* %addr2_v16xI8, align 1
+  %res2 = load <16 x i8>* %addr_v16xI8, align 1
+  %res3 = load <16 x i8>* %addr3_v16xI8, align 1
+  %res12 = add <16 x i8> %res1, %res2
+  %res123 = add <16 x i8> %res12, %res3
+  ret <16 x i8> %res123
+}
+; CHECK-LABEL: load_v16xI8
+; CHECK: 0f 10 0{{.*}} movups xmm0, xmmword ptr [e{{.*}}]
+
 ; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

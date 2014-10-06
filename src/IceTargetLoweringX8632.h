@@ -308,8 +308,8 @@ protected:
   void _movq(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Movq::create(Func, Dest, Src0));
   }
-  void _movss(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Movss::create(Func, Dest, Src0));
+  void _movss(Variable *Dest, Variable *Src0) {
+    Context.insert(InstX8632MovssRegs::create(Func, Dest, Src0));
   }
   void _movsx(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Movsx::create(Func, Dest, Src0));
@@ -422,10 +422,10 @@ protected:
   void _store(Operand *Value, OperandX8632 *Mem) {
     Context.insert(InstX8632Store::create(Func, Value, Mem));
   }
-  void _storep(Operand *Value, OperandX8632 *Mem) {
+  void _storep(Variable *Value, OperandX8632Mem *Mem) {
     Context.insert(InstX8632StoreP::create(Func, Value, Mem));
   }
-  void _storeq(Operand *Value, OperandX8632 *Mem) {
+  void _storeq(Variable *Value, OperandX8632Mem *Mem) {
     Context.insert(InstX8632StoreQ::create(Func, Value, Mem));
   }
   void _sub(Variable *Dest, Operand *Src0) {

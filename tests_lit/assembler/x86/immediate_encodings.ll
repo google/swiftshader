@@ -276,5 +276,40 @@ entry:
 ; CHECK-LABEL: testShl16Imm1
 ; CHECK: 66 d1 e0 shl ax
 
+; Currently the "test" instruction is used for 64-bit shifts, and
+; for ctlz 64-bit, so we use those to test the "test" instruction.
+; One optimization for "test": the "test" instruction is essentially a
+; bitwise AND that doesn't modify the two source operands, so for immediates
+; under 8-bits and registers with 8-bit variants we can use the shorter form.
+
+define internal i64 @test_via_shl64Bit(i64 %a, i64 %b) {
+entry:
+  %shl = shl i64 %a, %b
+  ret i64 %shl
+}
+; CHECK-LABEL: test_via_shl64Bit
+; CHECK: 0f a5 c2  shld edx, eax, cl
+; CHECK: d3 e0     shl eax, cl
+; CHECK: f6 c1 20  test cl, 32
+
+; Test a few register encodings of "test".
+declare i64 @llvm.ctlz.i64(i64, i1)
+
+define i64 @test_via_ctlz_64(i64 %x, i64 %y, i64 %z, i64 %w) {
+entry:
+  %r = call i64 @llvm.ctlz.i64(i64 %x, i1 false)
+  %r2 = call i64 @llvm.ctlz.i64(i64 %y, i1 false)
+  %r3 = call i64 @llvm.ctlz.i64(i64 %z, i1 false)
+  %r4 = call i64 @llvm.ctlz.i64(i64 %w, i1 false)
+  %res1 = add i64 %r, %r2
+  %res2 = add i64 %r3, %r4
+  %res = add i64 %res1, %res2
+  ret i64 %res
+}
+; CHECK-LABEL: test_via_ctlz_64
+; CHECK-DAG: 85 c0 test eax, eax
+; CHECK-DAG: 85 db test ebx, ebx
+; CHECK-DAG: 85 f6 test esi, esi
+
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

@@ -7,7 +7,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define internal i32 @add8Bit(i32 %a, i32 %b) {
 entry:
@@ -20,7 +19,7 @@ entry:
 ; CHECK-LABEL: add8Bit
 ; CHECK: add {{[abcd]l}}
 
-define internal i32 @add8BitConst(i32 %a, i32 %b) {
+define internal i32 @add8BitConst(i32 %a) {
 entry:
   %a_8 = trunc i32 %a to i8
   %add = add i8 %a_8, 123
@@ -41,7 +40,7 @@ entry:
 ; CHECK-LABEL: sub8Bit
 ; XCHECK: sub {{[abcd]l}}
 
-define internal i32 @sub8BitConst(i32 %a, i32 %b) {
+define internal i32 @sub8BitConst(i32 %a) {
 entry:
   %a_8 = trunc i32 %a to i8
   %sub = sub i8 %a_8, 123
@@ -62,7 +61,7 @@ entry:
 ; CHECK-LABEL: mul8Bit
 ; CHECK: mul {{[abcd]l|byte ptr}}
 
-define internal i32 @mul8BitConst(i32 %a, i32 %b) {
+define internal i32 @mul8BitConst(i32 %a) {
 entry:
   %a_8 = trunc i32 %a to i8
   %mul = mul i8 %a_8, 56
@@ -85,7 +84,7 @@ entry:
 ; CHECK-LABEL: udiv8Bit
 ; CHECK: div {{[abcd]l|byte ptr}}
 
-define internal i32 @udiv8BitConst(i32 %a, i32 %b) {
+define internal i32 @udiv8BitConst(i32 %a) {
 entry:
   %a_8 = trunc i32 %a to i8
   %udiv = udiv i8 %a_8, 123
@@ -106,7 +105,7 @@ entry:
 ; CHECK-LABEL: urem8Bit
 ; CHECK: div {{[abcd]l|byte ptr}}
 
-define internal i32 @urem8BitConst(i32 %a, i32 %b) {
+define internal i32 @urem8BitConst(i32 %a) {
 entry:
   %a_8 = trunc i32 %a to i8
   %urem = urem i8 %a_8, 123
@@ -128,7 +127,7 @@ entry:
 ; CHECK-LABEL: sdiv8Bit
 ; CHECK: idiv {{[abcd]l|byte ptr}}
 
-define internal i32 @sdiv8BitConst(i32 %a, i32 %b) {
+define internal i32 @sdiv8BitConst(i32 %a) {
 entry:
   %a_8 = trunc i32 %a to i8
   %sdiv = sdiv i8 %a_8, 123
@@ -149,7 +148,7 @@ entry:
 ; CHECK-LABEL: srem8Bit
 ; CHECK: idiv {{[abcd]l|byte ptr}}
 
-define internal i32 @srem8BitConst(i32 %a, i32 %b) {
+define internal i32 @srem8BitConst(i32 %a) {
 entry:
   %a_8 = trunc i32 %a to i8
   %srem = srem i8 %a_8, 123
@@ -222,6 +221,60 @@ entry:
 ; CHECK-LABEL: ashr8BitConst
 ; CHECK: sar {{[abcd]l|byte ptr}}, 6
 
+define internal i32 @icmp8Bit(i32 %a, i32 %b) {
+entry:
+  %a_8 = trunc i32 %a to i8
+  %b_8 = trunc i32 %b to i8
+  %icmp = icmp ne i8 %b_8, %a_8
+  %ret = zext i1 %icmp to i32
+  ret i32 %ret
+}
+; CHECK-LABEL: icmp8Bit
+; CHECK: cmp {{[abcd]l|byte ptr}}
+
+define internal i32 @icmp8BitConst(i32 %a) {
+entry:
+  %a_8 = trunc i32 %a to i8
+  %icmp = icmp ne i8 %a_8, 123
+  %ret = zext i1 %icmp to i32
+  ret i32 %ret
+}
+; CHECK-LABEL: icmp8BitConst
+; CHECK: cmp {{[abcd]l|byte ptr}}
+
+define internal i32 @icmp8BitConstSwapped(i32 %a) {
+entry:
+  %a_8 = trunc i32 %a to i8
+  %icmp = icmp ne i8 123, %a_8
+  %ret = zext i1 %icmp to i32
+  ret i32 %ret
+}
+; CHECK-LABEL: icmp8BitConstSwapped
+; CHECK: cmp {{[abcd]l|byte ptr}}
+
+define internal i32 @icmp8BitMem(i32 %a, i32 %b_iptr) {
+entry:
+  %a_8 = trunc i32 %a to i8
+  %bptr = inttoptr i32 %b_iptr to i8*
+  %b_8 = load i8* %bptr, align 1
+  %icmp = icmp ne i8 %b_8, %a_8
+  %ret = zext i1 %icmp to i32
+  ret i32 %ret
+}
+; CHECK-LABEL: icmp8BitMem
+; CHECK: cmp {{[abcd]l|byte ptr}}
+
+define internal i32 @icmp8BitMemSwapped(i32 %a, i32 %b_iptr) {
+entry:
+  %a_8 = trunc i32 %a to i8
+  %bptr = inttoptr i32 %b_iptr to i8*
+  %b_8 = load i8* %bptr, align 1
+  %icmp = icmp ne i8 %a_8, %b_8
+  %ret = zext i1 %icmp to i32
+  ret i32 %ret
+}
+; CHECK-LABEL: icmp8BitMemSwapped
+; CHECK: cmp {{[abcd]l|byte ptr}}
 
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

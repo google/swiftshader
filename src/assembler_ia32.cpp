@@ -340,12 +340,20 @@ void AssemblerX86::movd(const Address &dst, XmmRegister src) {
   EmitOperand(src, dst);
 }
 
+void AssemblerX86::movq(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0x0F);
+  EmitUint8(0x7E);
+  EmitRegisterOperand(dst, src);
+}
+
 void AssemblerX86::movq(const Address &dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
   EmitUint8(0x0F);
   EmitUint8(0xD6);
-  EmitOperand(src, Operand(dst));
+  EmitOperand(src, dst);
 }
 
 void AssemblerX86::movq(XmmRegister dst, const Address &src) {
@@ -353,7 +361,7 @@ void AssemblerX86::movq(XmmRegister dst, const Address &src) {
   EmitUint8(0xF3);
   EmitUint8(0x0F);
   EmitUint8(0x7E);
-  EmitOperand(dst, Operand(src));
+  EmitOperand(dst, src);
 }
 
 void AssemblerX86::addss(Type Ty, XmmRegister dst, XmmRegister src) {
@@ -461,6 +469,13 @@ void AssemblerX86::movaps(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x0F);
   EmitUint8(0x28);
   EmitXmmRegisterOperand(dst, src);
+}
+
+void AssemblerX86::movups(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x10);
+  EmitRegisterOperand(dst, src);
 }
 
 void AssemblerX86::movups(XmmRegister dst, const Address &src) {
@@ -1289,52 +1304,90 @@ void AssemblerX86::fincstp() {
   EmitUint8(0xF7);
 }
 
-void AssemblerX86::cmpl(GPRRegister reg, const Immediate &imm) {
+void AssemblerX86::cmp(Type Ty, GPRRegister reg, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(BrokenType, 7, Operand(reg), imm);
+  if (isByteSizedType(Ty)) {
+    EmitComplexI8(7, Operand(reg), imm);
+    return;
+  }
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  EmitComplex(Ty, 7, Operand(reg), imm);
 }
 
-void AssemblerX86::cmpl(GPRRegister reg0, GPRRegister reg1) {
+void AssemblerX86::cmp(Type Ty, GPRRegister reg0, GPRRegister reg1) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x3B);
-  EmitOperand(reg0, Operand(reg1));
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (isByteSizedType(Ty))
+    EmitUint8(0x3A);
+  else
+    EmitUint8(0x3B);
+  EmitRegisterOperand(reg0, reg1);
 }
 
-void AssemblerX86::cmpl(GPRRegister reg, const Address &address) {
+void AssemblerX86::cmp(Type Ty, GPRRegister reg, const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x3B);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (isByteSizedType(Ty))
+    EmitUint8(0x3A);
+  else
+    EmitUint8(0x3B);
   EmitOperand(reg, address);
 }
 
-void AssemblerX86::cmpl(const Address &address, GPRRegister reg) {
+void AssemblerX86::cmp(Type Ty, const Address &address, GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x39);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (isByteSizedType(Ty))
+    EmitUint8(0x38);
+  else
+    EmitUint8(0x39);
   EmitOperand(reg, address);
 }
 
-void AssemblerX86::cmpl(const Address &address, const Immediate &imm) {
+void AssemblerX86::cmp(Type Ty, const Address &address, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(BrokenType, 7, address, imm);
+  if (isByteSizedType(Ty)) {
+    EmitComplexI8(7, address, imm);
+    return;
+  }
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  EmitComplex(Ty, 7, address, imm);
 }
 
-void AssemblerX86::cmpb(const Address &address, const Immediate &imm) {
-  assert(imm.is_int8());
+void AssemblerX86::test(Type Ty, GPRRegister reg1, GPRRegister reg2) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x80);
-  EmitOperand(7, address);
-  EmitUint8(imm.value() & 0xFF);
-}
-
-void AssemblerX86::testl(GPRRegister reg1, GPRRegister reg2) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x85);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (isByteSizedType(Ty))
+    EmitUint8(0x84);
+  else
+    EmitUint8(0x85);
   EmitRegisterOperand(reg1, reg2);
 }
 
-void AssemblerX86::testl(GPRRegister reg, const Immediate &immediate) {
+void AssemblerX86::test(Type Ty, const Address &addr, GPRRegister reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (isByteSizedType(Ty))
+    EmitUint8(0x84);
+  else
+    EmitUint8(0x85);
+  EmitOperand(reg, addr);
+}
+
+void AssemblerX86::test(Type Ty, GPRRegister reg, const Immediate &immediate) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   // For registers that have a byte variant (EAX, EBX, ECX, and EDX)
   // we only test the byte register to keep the encoding short.
+  // This is legal even if the register had high bits set since
+  // this only sets flags registers based on the "AND" of the two operands,
+  // and the immediate had zeros at those high bits.
   if (immediate.is_uint8() && reg < 4) {
     // Use zero-extended 8-bit immediate.
     if (reg == RegX8632::Encoded_Reg_eax) {
@@ -1346,12 +1399,35 @@ void AssemblerX86::testl(GPRRegister reg, const Immediate &immediate) {
     EmitUint8(immediate.value() & 0xFF);
   } else if (reg == RegX8632::Encoded_Reg_eax) {
     // Use short form if the destination is EAX.
+    if (Ty == IceType_i16)
+      EmitOperandSizeOverride();
     EmitUint8(0xA9);
-    EmitImmediate(BrokenType, immediate);
+    EmitImmediate(Ty, immediate);
   } else {
+    if (Ty == IceType_i16)
+      EmitOperandSizeOverride();
     EmitUint8(0xF7);
-    EmitOperand(0, Operand(reg));
-    EmitImmediate(BrokenType, immediate);
+    EmitRegisterOperand(0, reg);
+    EmitImmediate(Ty, immediate);
+  }
+}
+
+void AssemblerX86::test(Type Ty, const Address &addr,
+                        const Immediate &immediate) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  // If the immediate is short, we only test the byte addr to keep the
+  // encoding short.
+  if (immediate.is_uint8()) {
+    // Use zero-extended 8-bit immediate.
+    EmitUint8(0xF6);
+    EmitOperand(0, addr);
+    EmitUint8(immediate.value() & 0xFF);
+  } else {
+    if (Ty == IceType_i16)
+      EmitOperandSizeOverride();
+    EmitUint8(0xF7);
+    EmitOperand(0, addr);
+    EmitImmediate(Ty, immediate);
   }
 }
 
@@ -2011,6 +2087,12 @@ void AssemblerX86::int3() {
 void AssemblerX86::hlt() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF4);
+}
+
+void AssemblerX86::ud2() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x0B);
 }
 
 void AssemblerX86::j(CondX86::BrCond condition, Label *label, bool near) {

@@ -200,7 +200,7 @@ public:
     Movd,
     Movp,
     Movq,
-    Movss,
+    MovssRegs,
     Movsx,
     Movzx,
     Mul,
@@ -521,9 +521,9 @@ private:
   static const x86::AssemblerX86::GPREmitterRegOp Emitter;
 };
 
-void emitIASVarOperandTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
-                            const Operand *Src,
-                            const x86::AssemblerX86::XmmEmitterTwoOps &Emitter);
+void emitIASRegOpTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
+                       const Operand *Src,
+                       const x86::AssemblerX86::XmmEmitterRegOp &Emitter);
 
 template <InstX8632::InstKindX8632 K>
 class InstX8632UnaryopXmm : public InstX8632 {
@@ -544,7 +544,7 @@ public:
   void emitIAS(const Cfg *Func) const override {
     Type Ty = getDest()->getType();
     assert(getSrcSize() == 1);
-    emitIASVarOperandTyXMM(Func, Ty, getDest(), getSrc(0), Emitter);
+    emitIASRegOpTyXMM(Func, Ty, getDest(), getSrc(0), Emitter);
   }
   void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
@@ -563,44 +563,13 @@ private:
   InstX8632UnaryopXmm &operator=(const InstX8632UnaryopXmm &) = delete;
   ~InstX8632UnaryopXmm() override {}
   static const char *Opcode;
-  static const x86::AssemblerX86::XmmEmitterTwoOps Emitter;
+  static const x86::AssemblerX86::XmmEmitterRegOp Emitter;
 };
 
 // See the definition of emitTwoAddress() for a description of
 // ShiftHack.
 void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
                     bool ShiftHack = false);
-
-template <InstX8632::InstKindX8632 K> class InstX8632Binop : public InstX8632 {
-public:
-  // Create a binary-op instruction (not yet migrated to integrated assembler)
-  static InstX8632Binop *create(Cfg *Func, Variable *Dest, Operand *Source) {
-    return new (Func->allocate<InstX8632Binop>())
-        InstX8632Binop(Func, Dest, Source);
-  }
-  void emit(const Cfg *Func) const override {
-    const bool ShiftHack = false;
-    emitTwoAddress(Opcode, this, Func, ShiftHack);
-  }
-  void dump(const Cfg *Func) const override {
-    Ostream &Str = Func->getContext()->getStrDump();
-    dumpDest(Func);
-    Str << " = " << Opcode << "." << getDest()->getType() << " ";
-    dumpSources(Func);
-  }
-  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
-
-private:
-  InstX8632Binop(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX8632(Func, K, 2, Dest) {
-    addSource(Dest);
-    addSource(Source);
-  }
-  InstX8632Binop(const InstX8632Binop &) = delete;
-  InstX8632Binop &operator=(const InstX8632Binop &) = delete;
-  ~InstX8632Binop() override {}
-  static const char *Opcode;
-};
 
 void emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
                      const Operand *Src,
@@ -700,7 +669,7 @@ public:
     if (NeedsElementType)
       Ty = typeElementType(Ty);
     assert(getSrcSize() == 2);
-    emitIASVarOperandTyXMM(Func, Ty, getDest(), getSrc(1), Emitter);
+    emitIASRegOpTyXMM(Func, Ty, getDest(), getSrc(1), Emitter);
   }
   void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
@@ -720,7 +689,7 @@ private:
   InstX8632BinopXmm &operator=(const InstX8632BinopXmm &) = delete;
   ~InstX8632BinopXmm() override {}
   static const char *Opcode;
-  static const x86::AssemblerX86::XmmEmitterTwoOps Emitter;
+  static const x86::AssemblerX86::XmmEmitterRegOp Emitter;
 };
 
 void emitIASXmmShift(const Cfg *Func, Type Ty, const Variable *Var,
@@ -866,6 +835,7 @@ public:
   }
   bool isSimpleAssign() const override { return true; }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override { emit(Func); }
   void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     Str << Opcode << "." << getDest()->getType() << " ";
@@ -935,13 +905,14 @@ typedef InstX8632BinopGPRShift<InstX8632::Sar> InstX8632Sar;
 typedef InstX8632BinopXmmShift<InstX8632::Psra> InstX8632Psra;
 typedef InstX8632BinopXmm<InstX8632::Pcmpeq, true> InstX8632Pcmpeq;
 typedef InstX8632BinopXmm<InstX8632::Pcmpgt, true> InstX8632Pcmpgt;
-// TODO: movss is only a binary operation when the source and dest
-// operands are both registers.  In other cases, it behaves like a copy
-// (mov-like) operation.  Eventually, InstX8632Movss should assert that
-// both its source and dest operands are registers, and the lowering
-// code should use _mov instead of _movss in cases where a copy
-// operation is intended.
-typedef InstX8632Binop<InstX8632::Movss> InstX8632Movss;
+// movss is only a binary operation when the source and dest
+// operands are both registers (the high bits of dest are left untouched).
+// In other cases, it behaves like a copy (mov-like) operation (and the
+// high bits of dest are cleared).
+// InstX8632Movss will assert that both its source and dest operands are
+// registers, so the lowering code should use _mov instead of _movss
+// in cases where a copy operation is intended.
+typedef InstX8632BinopXmm<InstX8632::MovssRegs, false> InstX8632MovssRegs;
 typedef InstX8632Ternop<InstX8632::Idiv> InstX8632Idiv;
 typedef InstX8632Ternop<InstX8632::Div> InstX8632Div;
 typedef InstX8632Ternop<InstX8632::Insertps> InstX8632Insertps;
@@ -1163,6 +1134,7 @@ public:
         InstX8632Icmp(Func, Src1, Src2);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Icmp); }
 
@@ -1199,6 +1171,7 @@ public:
     return new (Func->allocate<InstX8632UD2>()) InstX8632UD2(Func);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, UD2); }
 
@@ -1217,6 +1190,7 @@ public:
         InstX8632Test(Func, Source1, Source2);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Test); }
 
@@ -1265,38 +1239,43 @@ private:
   ~InstX8632Store() override {}
 };
 
+// This is essentially a vector "mov" instruction with an OperandX8632Mem
+// operand instead of Variable as the destination.  It's important
+// for liveness that there is no Dest operand. The source must be an
+// Xmm register, since Dest is mem.
 class InstX8632StoreP : public InstX8632 {
 public:
-  static InstX8632StoreP *create(Cfg *Func, Operand *Value, OperandX8632 *Mem) {
+  static InstX8632StoreP *create(Cfg *Func, Variable *Value,
+                                 OperandX8632Mem *Mem) {
     return new (Func->allocate<InstX8632StoreP>())
         InstX8632StoreP(Func, Value, Mem);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, StoreP); }
 
 private:
-  InstX8632StoreP(Cfg *Func, Operand *Value, OperandX8632 *Mem);
+  InstX8632StoreP(Cfg *Func, Variable *Value, OperandX8632Mem *Mem);
   InstX8632StoreP(const InstX8632StoreP &) = delete;
   InstX8632StoreP &operator=(const InstX8632StoreP &) = delete;
   ~InstX8632StoreP() override {}
 };
 
-// This is essentially a "movq" instruction with an OperandX8632Mem
-// operand instead of Variable as the destination.  It's important
-// for liveness that there is no Dest operand.
 class InstX8632StoreQ : public InstX8632 {
 public:
-  static InstX8632StoreQ *create(Cfg *Func, Operand *Value, OperandX8632 *Mem) {
+  static InstX8632StoreQ *create(Cfg *Func, Variable *Value,
+                                 OperandX8632Mem *Mem) {
     return new (Func->allocate<InstX8632StoreQ>())
         InstX8632StoreQ(Func, Value, Mem);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, StoreQ); }
 
 private:
-  InstX8632StoreQ(Cfg *Func, Operand *Value, OperandX8632 *Mem);
+  InstX8632StoreQ(Cfg *Func, Variable *Value, OperandX8632Mem *Mem);
   InstX8632StoreQ(const InstX8632StoreQ &) = delete;
   InstX8632StoreQ &operator=(const InstX8632StoreQ &) = delete;
   ~InstX8632StoreQ() override {}
@@ -1535,6 +1514,9 @@ template <> void InstX8632Idiv::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Imul::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Cbwdq::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Movd::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Movp::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Movq::emitIAS(const Cfg *Func) const;
+template <> void InstX8632MovssRegs::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Pmull::emitIAS(const Cfg *Func) const;
 
 } // end of namespace Ice

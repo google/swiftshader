@@ -171,7 +171,6 @@ entry:
 ; CHECK: movups  xmm3, xmmword ptr [esp + 80]
 ; CHECK: call -4
 ; CHECK-NEXT: add esp, 32
-; CHECK: ret
 
 ; OPTM1-LABEL: test_passing_vectors:
 ; OPTM1: sub esp, 32
@@ -185,7 +184,6 @@ entry:
 ; OPTM1: movups  xmm3, xmmword ptr {{.*}}
 ; OPTM1: call -4
 ; OPTM1-NEXT: add esp, 32
-; OPTM1: ret
 }
 
 declare void @InterspersedVectorArgs(<4 x float>, i64, <4 x float>, i64, <4 x float>, float, <4 x float>, double, <4 x float>, i32, <4 x float>)

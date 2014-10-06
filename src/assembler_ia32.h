@@ -361,16 +361,31 @@ public:
     // In practice, we always normalize the Dest to a Register first.
   };
 
+  typedef void (AssemblerX86::*TypedEmitAddrGPR)(Type, const Address &,
+                                                 GPRRegister);
+  typedef void (AssemblerX86::*TypedEmitAddrImm)(Type, const Address &,
+                                                 const Immediate &);
+  struct GPREmitterAddrOp {
+    TypedEmitAddrGPR AddrGPR;
+    TypedEmitAddrImm AddrImm;
+  };
+
   // Operations to emit XMM instructions (and dispatch on operand type).
   typedef void (AssemblerX86::*TypedEmitXmmXmm)(Type, XmmRegister, XmmRegister);
   typedef void (AssemblerX86::*TypedEmitXmmAddr)(Type, XmmRegister,
                                                  const Address &);
-  typedef void (AssemblerX86::*TypedEmitAddrXmm)(Type, const Address &,
-                                                 XmmRegister);
-  struct XmmEmitterTwoOps {
+  struct XmmEmitterRegOp {
     TypedEmitXmmXmm XmmXmm;
     TypedEmitXmmAddr XmmAddr;
-    TypedEmitAddrXmm AddrXmm;
+  };
+
+  typedef void (AssemblerX86::*EmitXmmXmm)(XmmRegister, XmmRegister);
+  typedef void (AssemblerX86::*EmitXmmAddr)(XmmRegister, const Address &);
+  typedef void (AssemblerX86::*EmitAddrXmm)(const Address &, XmmRegister);
+  struct XmmEmitterMovOps {
+    EmitXmmXmm XmmXmm;
+    EmitXmmAddr XmmAddr;
+    EmitAddrXmm AddrXmm;
   };
 
   typedef void (AssemblerX86::*TypedEmitXmmImm)(Type, XmmRegister,
@@ -442,6 +457,7 @@ public:
   void movd(GPRRegister dst, XmmRegister src);
   void movd(const Address &dst, XmmRegister src);
 
+  void movq(XmmRegister dst, XmmRegister src);
   void movq(const Address &dst, XmmRegister src);
   void movq(XmmRegister dst, const Address &src);
 
@@ -460,6 +476,7 @@ public:
 
   void movaps(XmmRegister dst, XmmRegister src);
 
+  void movups(XmmRegister dst, XmmRegister src);
   void movups(XmmRegister dst, const Address &src);
   void movups(const Address &dst, XmmRegister src);
 
@@ -591,15 +608,16 @@ public:
 
   void fincstp();
 
-  void cmpl(GPRRegister reg, const Immediate &imm);
-  void cmpl(GPRRegister reg0, GPRRegister reg1);
-  void cmpl(GPRRegister reg, const Address &address);
-  void cmpl(const Address &address, GPRRegister reg);
-  void cmpl(const Address &address, const Immediate &imm);
-  void cmpb(const Address &address, const Immediate &imm);
+  void cmp(Type Ty, GPRRegister reg0, GPRRegister reg1);
+  void cmp(Type Ty, GPRRegister reg, const Address &address);
+  void cmp(Type Ty, GPRRegister reg, const Immediate &imm);
+  void cmp(Type Ty, const Address &address, GPRRegister reg);
+  void cmp(Type Ty, const Address &address, const Immediate &imm);
 
-  void testl(GPRRegister reg1, GPRRegister reg2);
-  void testl(GPRRegister reg, const Immediate &imm);
+  void test(Type Ty, GPRRegister reg0, GPRRegister reg1);
+  void test(Type Ty, GPRRegister reg, const Immediate &imm);
+  void test(Type Ty, const Address &address, GPRRegister reg);
+  void test(Type Ty, const Address &address, const Immediate &imm);
 
   void And(Type Ty, GPRRegister dst, GPRRegister src);
   void And(Type Ty, GPRRegister dst, const Address &address);
@@ -698,6 +716,7 @@ public:
   void nop(int size = 1);
   void int3();
   void hlt();
+  void ud2();
 
   void j(CondX86::BrCond condition, Label *label, bool near = kFarJump);
   void j(CondX86::BrCond condition, const ConstantRelocatable *label);
