@@ -34,10 +34,12 @@ public:
     return range().endsBefore(Other.range());
   }
   bool overlaps(const LiveRangeWrapper &Other) const {
-    return range().overlaps(Other.range());
+    const bool UseTrimmed = true;
+    return range().overlaps(Other.range(), UseTrimmed);
   }
   bool overlapsStart(const LiveRangeWrapper &Other) const {
-    return range().overlaps(Other.range().getStart());
+    const bool UseTrimmed = true;
+    return range().overlapsInst(Other.range().getStart(), UseTrimmed);
   }
   Variable *const Var;
   void dump(const Cfg *Func) const;

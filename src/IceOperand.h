@@ -303,18 +303,23 @@ public:
   void reset() {
     Range.clear();
     Weight.setWeight(0);
+    untrim();
     IsNonpoints = false;
   }
   void addSegment(InstNumberT Start, InstNumberT End);
 
   bool endsBefore(const LiveRange &Other) const;
-  bool overlaps(const LiveRange &Other) const;
-  bool overlaps(InstNumberT OtherBegin) const;
+  bool overlaps(const LiveRange &Other, bool UseTrimmed = false) const;
+  bool overlapsInst(InstNumberT OtherBegin, bool UseTrimmed = false) const;
   bool containsValue(InstNumberT Value) const;
   bool isEmpty() const { return Range.empty(); }
+  bool isNonpoints() const { return IsNonpoints; }
   InstNumberT getStart() const {
     return Range.empty() ? -1 : Range.begin()->first;
   }
+
+  void untrim() { TrimmedBegin = Range.begin(); }
+  void trim(InstNumberT Lower);
 
   RegWeight getWeight() const { return Weight; }
   void setWeight(const RegWeight &NewWeight) { Weight = NewWeight; }
@@ -336,6 +341,15 @@ private:
 #endif
   RangeType Range;
   RegWeight Weight;
+  // TrimmedBegin is an optimization for the overlaps() computation.
+  // Since the linear-scan algorithm always calls it as overlaps(Cur)
+  // and Cur advances monotonically according to live range start, we
+  // can optimize overlaps() by ignoring all segments that end before
+  // the start of Cur's range.  The linear-scan code enables this by
+  // calling trim() on the ranges of interest as Cur advances.  Note
+  // that linear-scan also has to initialize TrimmedBegin at the
+  // beginning by calling untrim().
+  RangeType::const_iterator TrimmedBegin;
   // IsNonpoints keeps track of whether the live range contains at
   // least one interval where Start!=End.  If it is empty or has the
   // form [x,x),[y,y),...,[z,z), then overlaps(InstNumberT) is
@@ -404,6 +418,8 @@ public:
       Live.addWeight(WeightDelta * Weight.getWeight());
   }
   void setLiveRangeInfiniteWeight() { Live.setWeight(RegWeight::Inf); }
+  void trimLiveRange(InstNumberT Start) { Live.trim(Start); }
+  void untrimLiveRange() { Live.untrim(); }
 
   Variable *getLo() const { return LoVar; }
   Variable *getHi() const { return HiVar; }
@@ -509,10 +525,8 @@ private:
   MultiBlockState MultiBlock;
   const CfgNode *SingleUseNode;
   const CfgNode *SingleDefNode;
-  // All definitions of the variable are collected here, in the order
-  // encountered.  Definitions in the same basic block are in
-  // instruction order, but there's no guarantee for the basic block
-  // order.
+  // All definitions of the variable are collected here, in increasing
+  // order of instruction number.
   InstDefList Definitions;
 };
 

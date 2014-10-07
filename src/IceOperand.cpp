@@ -105,10 +105,11 @@ bool LiveRange::endsBefore(const LiveRange &Other) const {
 }
 
 // Returns true if there is any overlap between the two live ranges.
-bool LiveRange::overlaps(const LiveRange &Other) const {
+bool LiveRange::overlaps(const LiveRange &Other, bool UseTrimmed) const {
   // Do a two-finger walk through the two sorted lists of segments.
-  RangeType::const_iterator I1 = Range.begin(), I2 = Other.Range.begin();
-  RangeType::const_iterator E1 = Range.end(), E2 = Other.Range.end();
+  auto I1 = (UseTrimmed ? TrimmedBegin : Range.begin()),
+       I2 = (UseTrimmed ? Other.TrimmedBegin : Other.Range.begin());
+  auto E1 = Range.end(), E2 = Other.Range.end();
   while (I1 != E1 && I2 != E2) {
     if (I1->second <= I2->first) {
       ++I1;
@@ -123,16 +124,17 @@ bool LiveRange::overlaps(const LiveRange &Other) const {
   return false;
 }
 
-bool LiveRange::overlaps(InstNumberT OtherBegin) const {
+bool LiveRange::overlapsInst(InstNumberT OtherBegin, bool UseTrimmed) const {
   if (!IsNonpoints)
     return false;
   bool Result = false;
-  for (const RangeElementType &I : Range) {
-    if (OtherBegin < I.first) {
+  for (auto I = (UseTrimmed ? TrimmedBegin : Range.begin()), E = Range.end();
+       I != E; ++I) {
+    if (OtherBegin < I->first) {
       Result = false;
       break;
     }
-    if (OtherBegin < I.second) {
+    if (OtherBegin < I->second) {
       Result = true;
       break;
     }
@@ -156,6 +158,11 @@ bool LiveRange::containsValue(InstNumberT Value) const {
       return true;
   }
   return false;
+}
+
+void LiveRange::trim(InstNumberT Lower) {
+  while (TrimmedBegin != Range.end() && TrimmedBegin->second <= Lower)
+    ++TrimmedBegin;
 }
 
 IceString Variable::getName() const {
@@ -221,6 +228,9 @@ void VariableTracking::markDef(const Inst *Instr, const CfgNode *Node) {
   // be careful not to omit all uses of the variable if markDef() and
   // markUse() both use this optimization.
   assert(Node);
+  // Verify that instructions are added in increasing order.
+  assert(Definitions.empty() ||
+         Instr->getNumber() >= Definitions.back()->getNumber());
   Definitions.push_back(Instr);
   const bool IsFromDef = true;
   const bool IsImplicit = false;

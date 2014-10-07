@@ -24,11 +24,18 @@ namespace Ice {
 namespace {
 
 // Returns true if Var has any definitions within Item's live range.
+// TODO(stichnot): Consider trimming the Definitions list similar to
+// how the live ranges are trimmed, since all the overlapsDefs() tests
+// are whether some variable's definitions overlap Cur, and trimming
+// is with respect Cur.start.  Initial tests show no measurable
+// performance difference, so we'll keep the code simple for now.
 bool overlapsDefs(const Cfg *Func, const LiveRangeWrapper &Item,
                   const Variable *Var) {
-  const InstDefList &Defs = Func->getVMetadata()->getDefinitions(Var);
+  const bool UseTrimmed = true;
+  VariablesMetadata *VMetadata = Func->getVMetadata();
+  const InstDefList &Defs = VMetadata->getDefinitions(Var);
   for (size_t i = 0; i < Defs.size(); ++i) {
-    if (Item.range().overlaps(Defs[i]->getNumber()))
+    if (Item.range().overlapsInst(Defs[i]->getNumber(), UseTrimmed))
       return true;
   }
   return false;
@@ -37,10 +44,11 @@ bool overlapsDefs(const Cfg *Func, const LiveRangeWrapper &Item,
 void dumpDisableOverlap(const Cfg *Func, const Variable *Var,
                         const char *Reason) {
   if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+    VariablesMetadata *VMetadata = Func->getVMetadata();
     Ostream &Str = Func->getContext()->getStrDump();
     Str << "Disabling Overlap due to " << Reason << " " << *Var
         << " LIVE=" << Var->getLiveRange() << " Defs=";
-    const InstDefList &Defs = Func->getVMetadata()->getDefinitions(Var);
+    const InstDefList &Defs = VMetadata->getDefinitions(Var);
     for (size_t i = 0; i < Defs.size(); ++i) {
       if (i > 0)
         Str << ",";
@@ -95,6 +103,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       // it was never referenced.
       if (Var->getLiveRange().isEmpty())
         continue;
+      Var->untrimLiveRange();
       LiveRangeWrapper R(Var);
       Unhandled.insert(R);
       if (Var->hasReg()) {
@@ -156,6 +165,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       Next = I;
       ++Next;
       LiveRangeWrapper Item = *I;
+      Item.Var->trimLiveRange(Cur.range().getStart());
       bool Moved = false;
       if (Item.endsBefore(Cur)) {
         // Move Item from Active to Handled list.
@@ -192,6 +202,16 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       Next = I;
       ++Next;
       LiveRangeWrapper Item = *I;
+      Item.Var->trimLiveRange(Cur.range().getStart());
+      // As an optimization, don't bother checking pure point-valued
+      // Inactive ranges, because the overlapsStart() test will never
+      // succeed, and the endsBefore() test will generally only
+      // succeed after the last call instruction, which statistically
+      // happens near the end.  TODO(stichnot): Consider suppressing
+      // this check every N iterations in case calls are only at the
+      // beginning of the function.
+      if (!Item.range().isNonpoints())
+        continue;
       if (Item.endsBefore(Cur)) {
         // Move Item from Inactive to Handled list.
         if (Verbose) {
