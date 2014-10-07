@@ -19,26 +19,28 @@
 
 namespace Ice {
 
-std::vector<IceString> TimerStack::IDs;
-
-TimerStack::TimerStack(const IceString &TopLevelName)
-    : FirstTimestamp(timestamp()), LastTimestamp(FirstTimestamp),
+TimerStack::TimerStack(const IceString &Name)
+    : Name(Name), FirstTimestamp(timestamp()), LastTimestamp(FirstTimestamp),
       StateChangeCount(0), StackTop(0) {
   Nodes.resize(1); // Reserve Nodes[0] for the root node.
-  push(getTimerID(TopLevelName));
+  IDs.resize(TT__num);
+#define STR(s) #s
+#define X(tag)                                                                 \
+  IDs[TT_##tag] = STR(tag);                                                    \
+  IDsIndex[STR(tag)] = TT_##tag;
+  TIMERTREE_TABLE;
+#undef X
+#undef STR
 }
 
 // Returns the unique timer ID for the given Name, creating a new ID
-// if needed.  For performance reasons, it's best to make only one
-// call per Name and cache the result, e.g. via a static initializer.
+// if needed.
 TimerIdT TimerStack::getTimerID(const IceString &Name) {
-  TimerIdT Size = IDs.size();
-  for (TimerIdT i = 0; i < Size; ++i) {
-    if (IDs[i] == Name)
-      return i;
+  if (IDsIndex.find(Name) == IDsIndex.end()) {
+    IDsIndex[Name] = IDs.size();
+    IDs.push_back(Name);
   }
-  IDs.push_back(Name);
-  return Size;
+  return IDsIndex[Name];
 }
 
 // Pushes a new marker onto the timer stack.
@@ -112,27 +114,29 @@ void dumpHelper(Ostream &Str, const DumpMapType &Map, double TotalTime) {
 
 } // end of anonymous namespace
 
-void TimerStack::dump(Ostream &Str) {
+void TimerStack::dump(Ostream &Str, bool DumpCumulative) {
   update();
   double TotalTime = LastTimestamp - FirstTimestamp;
   assert(TotalTime);
-  Str << "Cumulative function times:\n";
-  DumpMapType CumulativeMap;
-  for (TTindex i = 1; i < Nodes.size(); ++i) {
-    TTindex Prefix = i;
-    IceString Suffix = "";
-    while (Prefix) {
-      if (Suffix.empty())
-        Suffix = IDs[Nodes[Prefix].Interior];
-      else
-        Suffix = IDs[Nodes[Prefix].Interior] + "." + Suffix;
-      assert(Nodes[Prefix].Parent < Prefix);
-      Prefix = Nodes[Prefix].Parent;
+  if (DumpCumulative) {
+    Str << Name << " - Cumulative times:\n";
+    DumpMapType CumulativeMap;
+    for (TTindex i = 1; i < Nodes.size(); ++i) {
+      TTindex Prefix = i;
+      IceString Suffix = "";
+      while (Prefix) {
+        if (Suffix.empty())
+          Suffix = IDs[Nodes[Prefix].Interior];
+        else
+          Suffix = IDs[Nodes[Prefix].Interior] + "." + Suffix;
+        assert(Nodes[Prefix].Parent < Prefix);
+        Prefix = Nodes[Prefix].Parent;
+      }
+      CumulativeMap.insert(std::make_pair(Nodes[i].Time, Suffix));
     }
-    CumulativeMap.insert(std::make_pair(Nodes[i].Time, Suffix));
+    dumpHelper(Str, CumulativeMap, TotalTime);
   }
-  dumpHelper(Str, CumulativeMap, TotalTime);
-  Str << "Flat function times:\n";
+  Str << Name << " - Flat times:\n";
   DumpMapType FlatMap;
   for (TimerIdT i = 0; i < LeafTimes.size(); ++i) {
     FlatMap.insert(std::make_pair(LeafTimes[i], IDs[i]));

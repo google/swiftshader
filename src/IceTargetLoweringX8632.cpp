@@ -313,9 +313,7 @@ TargetX8632::TargetX8632(Cfg *Func)
 }
 
 void TargetX8632::translateO2() {
-  GlobalContext *Context = Func->getContext();
-  static TimerIdT IDO2 = GlobalContext::getTimerID("O2");
-  TimerMarker T(IDO2, Context);
+  TimerMarker T(TimerStack::TT_O2, Func);
 
   // Lower Phi instructions.
   Func->placePhiLoads();
@@ -400,9 +398,7 @@ void TargetX8632::translateO2() {
 }
 
 void TargetX8632::translateOm1() {
-  GlobalContext *Context = Func->getContext();
-  static TimerIdT IDOm1 = GlobalContext::getTimerID("Om1");
-  TimerMarker T(IDOm1, Context);
+  TimerMarker T(TimerStack::TT_Om1, Func);
   Func->placePhiLoads();
   if (Func->hasError())
     return;
@@ -4305,8 +4301,7 @@ Variable *TargetX8632::makeReg(Type Type, int32_t RegNum) {
 void TargetX8632::postLower() {
   if (Ctx->getOptLevel() != Opt_m1)
     return;
-  static TimerIdT IDpostLower = GlobalContext::getTimerID("postLower");
-  TimerMarker T(IDpostLower, Ctx);
+  TimerMarker T(TimerStack::TT_postLower, Func);
   // TODO: Avoid recomputing WhiteList every instruction.
   RegSetMask RegInclude = RegSet_All;
   RegSetMask RegExclude = RegSet_StackPointer;

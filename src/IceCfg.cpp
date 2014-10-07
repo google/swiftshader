@@ -25,8 +25,8 @@ namespace Ice {
 
 Cfg::Cfg(GlobalContext *Ctx)
     : Ctx(Ctx), FunctionName(""), ReturnType(IceType_void),
-      IsInternalLinkage(false), HasError(false), ErrorMessage(""), Entry(NULL),
-      NextInstNumber(1), Live(nullptr),
+      IsInternalLinkage(false), HasError(false), FocusedTiming(false),
+      ErrorMessage(""), Entry(NULL), NextInstNumber(1), Live(nullptr),
       Target(TargetLowering::createLowering(Ctx->getTargetArch(), this)),
       VMetadata(new VariablesMetadata(this)),
       TargetAssembler(
@@ -69,8 +69,15 @@ bool Cfg::hasComputedFrame() const { return getTarget()->hasComputedFrame(); }
 void Cfg::translate() {
   if (hasError())
     return;
-  static TimerIdT IDtranslate = GlobalContext::getTimerID("translate");
-  TimerMarker T(IDtranslate, getContext());
+  VerboseMask OldVerboseMask = getContext()->getVerbose();
+  const IceString &TimingFocusOn = getContext()->getFlags().TimingFocusOn;
+  if (TimingFocusOn == "*" || TimingFocusOn == getFunctionName())
+    setFocusedTiming();
+  bool VerboseFocus =
+      (getContext()->getFlags().VerboseFocusOn == getFunctionName());
+  if (VerboseFocus)
+    getContext()->setVerbose(IceV_All);
+  TimerMarker T(TimerStack::TT_translate, this);
 
   dump("Initial CFG");
 
@@ -79,6 +86,10 @@ void Cfg::translate() {
   getTarget()->translate();
 
   dump("Final output");
+  if (getFocusedTiming())
+    getContext()->dumpTimers();
+  if (VerboseFocus)
+    getContext()->setVerbose(OldVerboseMask);
 }
 
 void Cfg::computePredecessors() {
@@ -87,9 +98,7 @@ void Cfg::computePredecessors() {
 }
 
 void Cfg::renumberInstructions() {
-  static TimerIdT IDrenumberInstructions =
-      GlobalContext::getTimerID("renumberInstructions");
-  TimerMarker T(IDrenumberInstructions, getContext());
+  TimerMarker T(TimerStack::TT_renumberInstructions, this);
   NextInstNumber = 1;
   for (CfgNode *Node : Nodes)
     Node->renumberInstructions();
@@ -97,60 +106,50 @@ void Cfg::renumberInstructions() {
 
 // placePhiLoads() must be called before placePhiStores().
 void Cfg::placePhiLoads() {
-  static TimerIdT IDplacePhiLoads = GlobalContext::getTimerID("placePhiLoads");
-  TimerMarker T(IDplacePhiLoads, getContext());
+  TimerMarker T(TimerStack::TT_placePhiLoads, this);
   for (CfgNode *Node : Nodes)
     Node->placePhiLoads();
 }
 
 // placePhiStores() must be called after placePhiLoads().
 void Cfg::placePhiStores() {
-  static TimerIdT IDplacePhiStores =
-      GlobalContext::getTimerID("placePhiStores");
-  TimerMarker T(IDplacePhiStores, getContext());
+  TimerMarker T(TimerStack::TT_placePhiStores, this);
   for (CfgNode *Node : Nodes)
     Node->placePhiStores();
 }
 
 void Cfg::deletePhis() {
-  static TimerIdT IDdeletePhis = GlobalContext::getTimerID("deletePhis");
-  TimerMarker T(IDdeletePhis, getContext());
+  TimerMarker T(TimerStack::TT_deletePhis, this);
   for (CfgNode *Node : Nodes)
     Node->deletePhis();
 }
 
 void Cfg::doArgLowering() {
-  static TimerIdT IDdoArgLowering = GlobalContext::getTimerID("doArgLowering");
-  TimerMarker T(IDdoArgLowering, getContext());
+  TimerMarker T(TimerStack::TT_doArgLowering, this);
   getTarget()->lowerArguments();
 }
 
 void Cfg::doAddressOpt() {
-  static TimerIdT IDdoAddressOpt = GlobalContext::getTimerID("doAddressOpt");
-  TimerMarker T(IDdoAddressOpt, getContext());
+  TimerMarker T(TimerStack::TT_doAddressOpt, this);
   for (CfgNode *Node : Nodes)
     Node->doAddressOpt();
 }
 
 void Cfg::doNopInsertion() {
-  static TimerIdT IDdoNopInsertion =
-      GlobalContext::getTimerID("doNopInsertion");
-  TimerMarker T(IDdoNopInsertion, getContext());
+  TimerMarker T(TimerStack::TT_doNopInsertion, this);
   for (CfgNode *Node : Nodes)
     Node->doNopInsertion();
 }
 
 void Cfg::genCode() {
-  static TimerIdT IDgenCode = GlobalContext::getTimerID("genCode");
-  TimerMarker T(IDgenCode, getContext());
+  TimerMarker T(TimerStack::TT_genCode, this);
   for (CfgNode *Node : Nodes)
     Node->genCode();
 }
 
 // Compute the stack frame layout.
 void Cfg::genFrame() {
-  static TimerIdT IDgenFrame = GlobalContext::getTimerID("genFrame");
-  TimerMarker T(IDgenFrame, getContext());
+  TimerMarker T(TimerStack::TT_genFrame, this);
   getTarget()->addProlog(Entry);
   // TODO: Consider folding epilog generation into the final
   // emission/assembly pass to avoid an extra iteration over the node
@@ -165,17 +164,14 @@ void Cfg::genFrame() {
 // completely with a single block.  It is a quick single pass and
 // doesn't need to iterate until convergence.
 void Cfg::livenessLightweight() {
-  static TimerIdT IDlivenessLightweight =
-      GlobalContext::getTimerID("livenessLightweight");
-  TimerMarker T(IDlivenessLightweight, getContext());
+  TimerMarker T(TimerStack::TT_livenessLightweight, this);
   getVMetadata()->init();
   for (CfgNode *Node : Nodes)
     Node->livenessLightweight();
 }
 
 void Cfg::liveness(LivenessMode Mode) {
-  static TimerIdT IDliveness = GlobalContext::getTimerID("liveness");
-  TimerMarker T(IDliveness, getContext());
+  TimerMarker T(TimerStack::TT_liveness, this);
   Live.reset(new Liveness(this, Mode));
   getVMetadata()->init();
   Live->init();
@@ -208,8 +204,7 @@ void Cfg::liveness(LivenessMode Mode) {
   // finer breakdown of the cost.
   // Make a final pass over instructions to delete dead instructions
   // and build each Variable's live range.
-  static TimerIdT IDliveRange = GlobalContext::getTimerID("liveRange");
-  TimerMarker T1(IDliveRange, getContext());
+  TimerMarker T1(TimerStack::TT_liveRange, this);
   for (CfgNode *Node : Nodes)
     Node->livenessPostprocess(Mode, getLiveness());
   if (Mode == Liveness_Intervals) {
@@ -255,9 +250,7 @@ void Cfg::liveness(LivenessMode Mode) {
 // Traverse every Variable of every Inst and verify that it
 // appears within the Variable's computed live range.
 bool Cfg::validateLiveness() const {
-  static TimerIdT IDvalidateLiveness =
-      GlobalContext::getTimerID("validateLiveness");
-  TimerMarker T(IDvalidateLiveness, getContext());
+  TimerMarker T(TimerStack::TT_validateLiveness, this);
   bool Valid = true;
   Ostream &Str = Ctx->getStrDump();
   for (CfgNode *Node : Nodes) {
@@ -300,8 +293,7 @@ bool Cfg::validateLiveness() const {
 }
 
 void Cfg::doBranchOpt() {
-  static TimerIdT IDdoBranchOpt = GlobalContext::getTimerID("doBranchOpt");
-  TimerMarker T(IDdoBranchOpt, getContext());
+  TimerMarker T(TimerStack::TT_doBranchOpt, this);
   for (auto I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     auto NextNode = I;
     ++NextNode;
@@ -312,8 +304,7 @@ void Cfg::doBranchOpt() {
 // ======================== Dump routines ======================== //
 
 void Cfg::emit() {
-  static TimerIdT IDemit = GlobalContext::getTimerID("emit");
-  TimerMarker T(IDemit, getContext());
+  TimerMarker T(TimerStack::TT_emit, this);
   Ostream &Str = Ctx->getStrEmit();
   if (!Ctx->testAndSetHasEmittedFirstMethod()) {
     // Print a helpful command for assembling the output.

@@ -1,0 +1,49 @@
+//===- subzero/src/IceTimerTree.def - X-macros for timing -------*- C++ -*-===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file lists predefined timing tags.  New tags can be added to
+// avoid a runtime string lookup.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef SUBZERO_SRC_ICETIMERTREE_DEF
+
+#define TIMERTREE_TABLE    \
+  /* enum value */         \
+  X(O2)                    \
+  X(Om1)                   \
+  X(convertToIce)          \
+  X(deletePhis)            \
+  X(doAddressOpt)          \
+  X(doArgLowering)         \
+  X(doBranchOpt)           \
+  X(doNopInsertion)        \
+  X(emit)                  \
+  X(genCode)               \
+  X(genFrame)              \
+  X(initUnhandled)         \
+  X(linearScan)            \
+  X(liveRange)             \
+  X(liveness)              \
+  X(livenessLightweight)   \
+  X(llvmConvert)           \
+  X(parse)                 \
+  X(placePhiLoads)         \
+  X(placePhiStores)        \
+  X(postLower)             \
+  X(regAlloc)              \
+  X(renumberInstructions)  \
+  X(szmain)                \
+  X(translate)             \
+  X(validateLiveness)      \
+  X(vmetadata)
+//#define X(tag)
+
+#define SUBZERO_SRC_ICETIMERTREE_DEF
+#endif // SUBZERO_SRC_ICETIMERTREE_DEF

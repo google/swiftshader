@@ -843,6 +843,11 @@ public:
         NextLocalInstIndex(Context->getNumGlobalValueIDs()),
         InstIsTerminating(false) {
     Func->setFunctionName(LLVMFunc->getName());
+    if (getFlags().TimeEachFunction)
+      getTranslator().getContext()->pushTimer(
+          getTranslator().getContext()->getTimerID(
+              Ice::GlobalContext::TSK_Funcs, Func->getFunctionName()),
+          Ice::GlobalContext::TSK_Funcs);
     Func->setReturnType(Context->convertToIceType(LLVMFunc->getReturnType()));
     Func->setInternal(LLVMFunc->hasInternalLinkage());
     CurrentNode = InstallNextBasicBlock();
@@ -1404,6 +1409,11 @@ void FunctionParser::ExitBlock() {
   // for such parsing errors.
   if (Context->getNumErrors() == 0)
     getTranslator().translateFcn(Func);
+  if (getFlags().TimeEachFunction)
+    getTranslator().getContext()->popTimer(
+        getTranslator().getContext()->getTimerID(Ice::GlobalContext::TSK_Funcs,
+                                                 Func->getFunctionName()),
+        Ice::GlobalContext::TSK_Funcs);
 }
 
 void FunctionParser::ReportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op,

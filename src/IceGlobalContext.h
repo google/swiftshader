@@ -23,6 +23,7 @@
 #include "IceDefs.h"
 #include "IceIntrinsics.h"
 #include "IceRNG.h"
+#include "IceTimerTree.h"
 #include "IceTypes.h"
 
 namespace Ice {
@@ -71,6 +72,7 @@ public:
   // Returns true if any of the specified options in the verbose mask
   // are set.  If the argument is omitted, it checks if any verbose
   // options at all are set.
+  VerboseMask getVerbose() const { return VMask; }
   bool isVerbose(VerboseMask Mask = IceV_All) const { return VMask & Mask; }
   void setVerbose(VerboseMask Mask) { VMask = Mask; }
   void addVerbose(VerboseMask Mask) { VMask |= Mask; }
@@ -151,10 +153,19 @@ public:
     StatsCumulative.updateFills();
   }
 
-  static TimerIdT getTimerID(const IceString &Name);
-  void pushTimer(TimerIdT ID);
-  void popTimer(TimerIdT ID);
-  void dumpTimers();
+  // These are predefined TimerStackIdT values.
+  enum TimerStackKind {
+    TSK_Default = 0,
+    TSK_Funcs,
+    TSK_Num
+  };
+
+  TimerIdT getTimerID(TimerStackIdT StackID, const IceString &Name);
+  TimerStackIdT newTimerStackID(const IceString &Name);
+  void pushTimer(TimerIdT ID, TimerStackIdT StackID = TSK_Default);
+  void popTimer(TimerIdT ID, TimerStackIdT StackID = TSK_Default);
+  void dumpTimers(TimerStackIdT StackID = TSK_Default,
+                  bool DumpCumulative = true);
 
 private:
   Ostream *StrDump; // Stream for dumping / diagnostics
@@ -172,7 +183,7 @@ private:
   RandomNumberGenerator RNG;
   CodeStats StatsFunction;
   CodeStats StatsCumulative;
-  std::unique_ptr<class TimerStack> Timers;
+  std::vector<TimerStack> Timers;
   GlobalContext(const GlobalContext &) = delete;
   GlobalContext &operator=(const GlobalContext &) = delete;
 
@@ -194,6 +205,8 @@ public:
     if (Active)
       Ctx->pushTimer(ID);
   }
+  TimerMarker(TimerIdT ID, const Cfg *Func);
+
   ~TimerMarker() {
     if (Active)
       Ctx->popTimer(ID);

@@ -95,8 +95,22 @@ static cl::opt<bool> SubzeroTimingEnabled(
     "timing", cl::desc("Enable breakdown timing of Subzero translation"));
 
 static cl::opt<bool>
-    DisableGlobals("disable-globals",
-                   cl::desc("Disable global initializer translation"));
+TimeEachFunction("timing-funcs",
+                 cl::desc("Print total translation time for each function"));
+
+static cl::opt<std::string> TimingFocusOn(
+    "timing-focus",
+    cl::desc("Break down timing for a specific function (use '*' for all)"),
+    cl::init(""));
+
+static cl::opt<std::string> VerboseFocusOn(
+    "verbose-focus",
+    cl::desc("Temporarily enable full verbosity for a specific function"),
+    cl::init(""));
+
+static cl::opt<bool>
+DisableGlobals("disable-globals",
+               cl::desc("Disable global initializer translation"));
 
 // This is currently unused, and is a placeholder for lit tests.
 static cl::opt<bool>
@@ -169,13 +183,15 @@ int main(int argc, char **argv) {
   Flags.UseIntegratedAssembler = UseIntegratedAssembler;
   Flags.UseSandboxing = UseSandboxing;
   Flags.DumpStats = DumpStats;
+  Flags.TimeEachFunction = TimeEachFunction;
   Flags.DefaultGlobalPrefix = DefaultGlobalPrefix;
   Flags.DefaultFunctionPrefix = DefaultFunctionPrefix;
+  Flags.TimingFocusOn = TimingFocusOn;
+  Flags.VerboseFocusOn = VerboseFocusOn;
 
   Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix,
                          Flags);
-  static Ice::TimerIdT IDszmain = Ice::GlobalContext::getTimerID("szmain");
-  Ice::TimerMarker T(IDszmain, &Ctx);
+  Ice::TimerMarker T(Ice::TimerStack::TT_szmain, &Ctx);
 
   int ErrorStatus = 0;
   if (BuildOnRead) {
@@ -185,8 +201,7 @@ int main(int argc, char **argv) {
   } else {
     // Parse the input LLVM IR file into a module.
     SMDiagnostic Err;
-    static Ice::TimerIdT IDparse = Ice::GlobalContext::getTimerID("parse");
-    Ice::TimerMarker T1(IDparse, &Ctx);
+    Ice::TimerMarker T1(Ice::TimerStack::TT_parse, &Ctx);
     Module *Mod =
         NaClParseIRFile(IRFilename, InputFileFormat, Err, getGlobalContext());
 
@@ -198,6 +213,10 @@ int main(int argc, char **argv) {
     Ice::Converter Converter(Mod, &Ctx, Flags);
     Converter.convertToIce();
     ErrorStatus = Converter.getErrorStatus();
+  }
+  if (TimeEachFunction) {
+    const bool DumpCumulative = false;
+    Ctx.dumpTimers(Ice::GlobalContext::TSK_Funcs, DumpCumulative);
   }
   if (SubzeroTimingEnabled)
     Ctx.dumpTimers();

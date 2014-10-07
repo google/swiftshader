@@ -495,7 +495,7 @@ void CfgNode::dump(Cfg *Func) const {
     Str << "    // preds = ";
     bool First = true;
     for (CfgNode *I : InEdges) {
-      if (First)
+      if (!First)
         Str << ", ";
       First = false;
       Str << "%" << I->getName();
@@ -540,7 +540,7 @@ void CfgNode::dump(Cfg *Func) const {
     Str << "    // succs = ";
     bool First = true;
     for (CfgNode *I : OutEdges) {
-      if (First)
+      if (!First)
         Str << ", ";
       First = false;
       Str << "%" << I->getName();

@@ -59,15 +59,13 @@ public:
 
   // Caller is expected to delete the returned Ice::Cfg object.
   Ice::Cfg *convertFunction(const Function *F) {
-    static Ice::TimerIdT IDllvmConvert =
-        Ice::GlobalContext::getTimerID("llvmConvert");
-    Ice::TimerMarker T(IDllvmConvert, Ctx);
     VarMap.clear();
     NodeMap.clear();
     Func = new Ice::Cfg(Ctx);
     Func->setFunctionName(F->getName());
     Func->setReturnType(convertToIceType(F->getReturnType()));
     Func->setInternal(F->hasInternalLinkage());
+    Ice::TimerMarker T(Ice::TimerStack::TT_llvmConvert, Func);
 
     // The initial definition/use of each arg is the entry node.
     for (auto ArgI = F->arg_begin(), ArgE = F->arg_end(); ArgI != ArgE;
@@ -617,8 +615,7 @@ private:
 namespace Ice {
 
 void Converter::convertToIce() {
-  static TimerIdT IDconvertToIce = GlobalContext::getTimerID("convertToIce");
-  TimerMarker T(IDconvertToIce, Ctx);
+  TimerMarker T(TimerStack::TT_convertToIce, Ctx);
   nameUnnamedGlobalAddresses(Mod);
   if (!Ctx->getFlags().DisableGlobals)
     convertGlobals(Mod);
@@ -626,13 +623,21 @@ void Converter::convertToIce() {
 }
 
 void Converter::convertFunctions() {
+  TimerStackIdT StackID = GlobalContext::TSK_Funcs;
   for (const Function &I : *Mod) {
     if (I.empty())
       continue;
+    TimerIdT TimerID = 0;
+    if (Ctx->getFlags().TimeEachFunction) {
+      TimerID = Ctx->getTimerID(StackID, I.getName());
+      Ctx->pushTimer(TimerID, StackID);
+    }
     LLVM2ICEConverter FunctionConverter(Ctx, Mod->getContext());
 
     Cfg *Fcn = FunctionConverter.convertFunction(&I);
     translateFcn(Fcn);
+    if (Ctx->getFlags().TimeEachFunction)
+      Ctx->popTimer(TimerID, StackID);
   }
 
   emitConstants();

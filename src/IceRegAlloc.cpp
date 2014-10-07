@@ -64,8 +64,7 @@ void dumpDisableOverlap(const Cfg *Func, const Variable *Var,
 // preparation.  Results are assigned to Variable::RegNum for each
 // Variable.
 void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
-  static TimerIdT IDscan = GlobalContext::getTimerID("linearScan");
-  TimerMarker T(IDscan, Func->getContext());
+  TimerMarker T(TimerStack::TT_linearScan, Func);
   assert(RegMaskFull.any()); // Sanity check
   Unhandled.clear();
   UnhandledPrecolored.clear();
@@ -86,9 +85,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   // storing Func->getVariables().
   const VarList &Vars = Func->getVariables();
   {
-    static TimerIdT IDinitUnhandled =
-        GlobalContext::getTimerID("initUnhandled");
-    TimerMarker T(IDinitUnhandled, Func->getContext());
+    TimerMarker T(TimerStack::TT_initUnhandled, Func);
     for (Variable *Var : Vars) {
       // Explicitly don't consider zero-weight variables, which are
       // meant to be spill slots.

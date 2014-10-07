@@ -278,8 +278,7 @@ const Inst *VariableTracking::getSingleDefinition() const {
 }
 
 void VariablesMetadata::init() {
-  static TimerIdT IDvmetadata = GlobalContext::getTimerID("vmetadata");
-  TimerMarker T(IDvmetadata, Func->getContext());
+  TimerMarker T(TimerStack::TT_vmetadata, Func);
   Metadata.clear();
   Metadata.resize(Func->getNumVariables());
 
@@ -438,7 +437,7 @@ void LiveRange::dump(Ostream &Str) const {
   Str << "(weight=" << Weight << ") ";
   bool First = true;
   for (const RangeElementType &I : Range) {
-    if (First)
+    if (!First)
       Str << ", ";
     First = false;
     Str << "[" << I.first << ":" << I.second << ")";

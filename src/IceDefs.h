@@ -69,6 +69,7 @@ typedef uint32_t SizeT;
 // numbers are used for representing Variable live ranges.
 typedef int32_t InstNumberT;
 
+typedef uint32_t TimerStackIdT;
 typedef uint32_t TimerIdT;
 
 enum LivenessMode {

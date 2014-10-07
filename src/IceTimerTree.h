@@ -15,6 +15,8 @@
 #ifndef SUBZERO_SRC_ICETIMERTREE_H
 #define SUBZERO_SRC_ICETIMERTREE_H
 
+#include "IceTimerTree.def"
+
 namespace Ice {
 
 class TimerTreeNode;
@@ -38,23 +40,32 @@ public:
 };
 
 class TimerStack {
-  TimerStack(const TimerStack &) = delete;
+  // TimerStack(const TimerStack &) = delete;
   TimerStack &operator=(const TimerStack &) = delete;
 
 public:
-  TimerStack(const IceString &TopLevelName);
-  static TimerIdT getTimerID(const IceString &Name);
+  enum TimerTag {
+#define X(tag) TT_##tag,
+    TIMERTREE_TABLE
+#undef X
+        TT__num
+  };
+  TimerStack(const IceString &Name);
+  TimerIdT getTimerID(const IceString &Name);
   void push(TimerIdT ID);
   void pop(TimerIdT ID);
-  void dump(Ostream &Str);
+  void dump(Ostream &Str, bool DumpCumulative);
 
 private:
   void update();
   static double timestamp();
+  const IceString Name;
   const double FirstTimestamp;
   double LastTimestamp;
   uint64_t StateChangeCount;
-  static std::vector<IceString> IDs; // indexed by TimerIdT
+  // IDsIndex maps a symbolic timer name to its integer ID.
+  std::map<IceString, TimerIdT> IDsIndex;
+  std::vector<IceString> IDs;        // indexed by TimerIdT
   std::vector<TimerTreeNode> Nodes;  // indexed by TTindex
   std::vector<double> LeafTimes;     // indexed by TimerIdT
   TTindex StackTop;

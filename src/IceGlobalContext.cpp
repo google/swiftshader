@@ -119,7 +119,11 @@ GlobalContext::GlobalContext(llvm::raw_ostream *OsDump,
     : StrDump(OsDump), StrEmit(OsEmit), VMask(Mask),
       ConstPool(new ConstantPool()), Arch(Arch), Opt(Opt),
       TestPrefix(TestPrefix), Flags(Flags), HasEmittedFirstMethod(false),
-      RNG(""), Timers(new TimerStack("main")) {}
+      RNG("") {
+  // Pre-register built-in stack names.
+  newTimerStackID("Total across all functions");
+  newTimerStackID("Per-function summary");
+}
 
 // Scan a string for S[0-9A-Z]*_ patterns and replace them with
 // S<num>_ where <num> is the next base-36 value.  If a type name
@@ -381,13 +385,27 @@ ConstantList GlobalContext::getConstantPool(Type Ty) const {
   llvm_unreachable("Unknown type");
 }
 
-TimerIdT GlobalContext::getTimerID(const IceString &Name) {
-  return TimerStack::getTimerID(Name);
+TimerIdT GlobalContext::getTimerID(TimerStackIdT StackID,
+                                   const IceString &Name) {
+  assert(StackID < Timers.size());
+  return Timers[StackID].getTimerID(Name);
 }
 
-void GlobalContext::pushTimer(TimerIdT ID) { Timers->push(ID); }
+TimerStackIdT GlobalContext::newTimerStackID(const IceString &Name) {
+  TimerStackIdT NewID = Timers.size();
+  Timers.push_back(TimerStack(Name));
+  return NewID;
+}
 
-void GlobalContext::popTimer(TimerIdT ID) { Timers->pop(ID); }
+void GlobalContext::pushTimer(TimerIdT ID, TimerStackIdT StackID) {
+  assert(StackID < Timers.size());
+  Timers[StackID].push(ID);
+}
+
+void GlobalContext::popTimer(TimerIdT ID, TimerStackIdT StackID) {
+  assert(StackID < Timers.size());
+  Timers[StackID].pop(ID);
+}
 
 void GlobalContext::dumpStats(const IceString &Name, bool Final) {
   if (Flags.DumpStats) {
@@ -400,6 +418,16 @@ void GlobalContext::dumpStats(const IceString &Name, bool Final) {
   }
 }
 
-void GlobalContext::dumpTimers() { Timers->dump(getStrDump()); }
+void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
+  assert(Timers.size() > StackID);
+  Timers[StackID].dump(getStrDump(), DumpCumulative);
+}
+
+TimerMarker::TimerMarker(TimerIdT ID, const Cfg *Func)
+    : ID(ID), Ctx(Func->getContext()),
+      Active(Func->getFocusedTiming() || Ctx->getFlags().SubzeroTimingEnabled) {
+  if (Active)
+    Ctx->pushTimer(ID);
+}
 
 } // end of namespace Ice

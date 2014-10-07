@@ -96,6 +96,8 @@ public:
     return getContext()->getFlags().UseIntegratedAssembler;
   }
   bool hasComputedFrame() const;
+  bool getFocusedTiming() const { return FocusedTiming; }
+  void setFocusedTiming() { FocusedTiming = true; }
 
   // Passes over the CFG.
   void translate();
@@ -165,6 +167,7 @@ private:
   Type ReturnType;
   bool IsInternalLinkage;
   bool HasError;
+  bool FocusedTiming;
   IceString ErrorMessage;
   CfgNode *Entry; // entry basic block
   NodeList Nodes; // linearized node list; Entry should be first

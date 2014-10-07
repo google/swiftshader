@@ -25,8 +25,9 @@ public:
       : DisableInternal(false), SubzeroTimingEnabled(false),
         DisableTranslation(false), DisableGlobals(false),
         FunctionSections(false), UseIntegratedAssembler(false),
-        UseSandboxing(false), DumpStats(false), DefaultGlobalPrefix(""),
-        DefaultFunctionPrefix("") {}
+        UseSandboxing(false), DumpStats(false), TimeEachFunction(false),
+        DefaultGlobalPrefix(""), DefaultFunctionPrefix(""), TimingFocusOn(""),
+        VerboseFocusOn("") {}
   bool DisableInternal;
   bool SubzeroTimingEnabled;
   bool DisableTranslation;
@@ -35,8 +36,11 @@ public:
   bool UseIntegratedAssembler;
   bool UseSandboxing;
   bool DumpStats;
+  bool TimeEachFunction;
   IceString DefaultGlobalPrefix;
   IceString DefaultFunctionPrefix;
+  IceString TimingFocusOn;
+  IceString VerboseFocusOn;
 };
 
 } // end of namespace Ice
