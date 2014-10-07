@@ -26,6 +26,7 @@ class Converter : public Translator {
 public:
   Converter(llvm::Module *Mod, GlobalContext *Ctx, const Ice::ClFlags &Flags)
       : Translator(Ctx, Flags), Mod(Mod) {}
+
   /// Converts the LLVM Module to ICE. Sets exit status to false if successful,
   /// true otherwise.
   void convertToIce();
@@ -34,9 +35,14 @@ private:
   llvm::Module *Mod;
   // Converts functions to ICE, and then machine code.
   void convertFunctions();
+
+  // Converts globals to ICE, and then machine code.
+  void convertGlobals(llvm::Module *Mod);
+
   Converter(const Converter &) = delete;
   Converter &operator=(const Converter &) = delete;
 };
-}
+
+} // end of namespace ICE.
 
 #endif // SUBZERO_SRC_ICECONVERTER_H

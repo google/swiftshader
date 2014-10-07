@@ -23,6 +23,7 @@
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
+#include "IceGlobalInits.h"
 #include "IceInstX8632.h"
 #include "IceOperand.h"
 #include "IceRegistersX8632.h"
@@ -4428,38 +4429,10 @@ void ConstantUndef::emit(GlobalContext *) const {
 TargetGlobalInitX8632::TargetGlobalInitX8632(GlobalContext *Ctx)
     : TargetGlobalInitLowering(Ctx) {}
 
-namespace {
-char hexdigit(unsigned X) { return X < 10 ? '0' + X : 'A' + X - 10; }
-}
-
-void TargetGlobalInitX8632::lower(const IceString &Name, SizeT Align,
-                                  bool IsInternal, bool IsConst,
-                                  bool IsZeroInitializer, SizeT Size,
-                                  const char *Data, bool DisableTranslation) {
+void TargetGlobalInitX8632::lower(const GlobalAddress &Global,
+                                  bool DisableTranslation) {
   if (Ctx->isVerbose()) {
-    // TODO: Consider moving the dump output into the driver to be
-    // reused for all targets.
-    Ostream &Str = Ctx->getStrDump();
-    Str << "@" << Name << " = " << (IsInternal ? "internal" : "external");
-    Str << (IsConst ? " constant" : " global");
-    Str << " [" << Size << " x i8] ";
-    if (IsZeroInitializer) {
-      Str << "zeroinitializer";
-    } else {
-      Str << "c\"";
-      // Code taken from PrintEscapedString() in AsmWriter.cpp.  Keep
-      // the strings in the same format as the .ll file for practical
-      // diffing.
-      for (uint64_t i = 0; i < Size; ++i) {
-        unsigned char C = Data[i];
-        if (isprint(C) && C != '\\' && C != '"')
-          Str << C;
-        else
-          Str << '\\' << hexdigit(C >> 4) << hexdigit(C & 0x0F);
-      }
-      Str << "\"";
-    }
-    Str << ", align " << Align << "\n";
+    Global.dump(Ctx->getStrDump());
   }
 
   if (DisableTranslation)
@@ -4489,35 +4462,86 @@ void TargetGlobalInitX8632::lower(const IceString &Name, SizeT Align,
   //   .local NAME
   //   .comm NAME, SIZE, ALIGN
 
-  IceString MangledName = Ctx->mangleName(Name);
+  // TODO(kschimpf): Don't mangle name if external and uninitialized. This
+  // will allow us to cross test relocations for references to external
+  // global variables.
+
+  IceString MangledName = Ctx->mangleName(Global.getName());
   // Start a new section.
-  if (IsConst) {
+  if (Ctx->getFlags().DataSections) {
+    Str << "\t.section\t.rodata." << MangledName << ",\"a\",@progbits\n";
+  } else if (Global.getIsConstant()) {
     Str << "\t.section\t.rodata,\"a\",@progbits\n";
   } else {
     Str << "\t.type\t" << MangledName << ",@object\n";
     Str << "\t.data\n";
   }
-  Str << "\t" << (IsInternal ? ".local" : ".global") << "\t" << MangledName
-      << "\n";
-  if (IsZeroInitializer) {
-    if (IsConst) {
-      Str << "\t.align\t" << Align << "\n";
-      Str << MangledName << ":\n";
-      Str << "\t.zero\t" << Size << "\n";
-      Str << "\t.size\t" << MangledName << ", " << Size << "\n";
-    } else {
-      // TODO(stichnot): Put the appropriate non-constant
-      // zeroinitializers in a .bss section to reduce object size.
-      Str << "\t.comm\t" << MangledName << ", " << Size << ", " << Align
-          << "\n";
+
+  Str << "\t" << (Global.getIsInternal() ? ".local" : ".global") << "\t"
+      << MangledName << "\n";
+
+  const GlobalAddress::InitializerListType &Initializers =
+      Global.getInitializers();
+
+  // Note: Handle zero initializations specially when lowering, since
+  // we may be able to reduce object size.
+  GlobalAddress::ZeroInitializer *SimpleZeroInit = nullptr;
+  if (Initializers.size() == 1) {
+    GlobalAddress::Initializer *Init = Initializers[0];
+    if (const auto ZeroInit =
+        llvm::dyn_cast<GlobalAddress::ZeroInitializer>(Init)) {
+      SimpleZeroInit = ZeroInit;
     }
+  }
+
+  if (SimpleZeroInit && !Global.getIsConstant()) {
+    // TODO(stichnot): Put the appropriate non-constant
+    // zeroinitializers in a .bss section to reduce object size.
+    Str << "\t.comm\t" << MangledName << ", " << Global.getNumBytes() << ", "
+        << Global.getAlignment() << "\n";
+    // }
   } else {
-    Str << "\t.align\t" << Align << "\n";
+    Str << "\t.align\t" << Global.getAlignment() << "\n";
     Str << MangledName << ":\n";
-    for (SizeT i = 0; i < Size; ++i) {
-      Str << "\t.byte\t" << (((unsigned)Data[i]) & 0xff) << "\n";
+    for (GlobalAddress::Initializer *Init : Initializers) {
+      switch (Init->getKind()) {
+      case GlobalAddress::Initializer::DataInitializerKind: {
+        const auto Data =
+            llvm::cast<GlobalAddress::DataInitializer>(Init)->getContents();
+        for (SizeT i = 0; i < Init->getNumBytes(); ++i) {
+          Str << "\t.byte\t" << (((unsigned)Data[i]) & 0xff) << "\n";
+        }
+        break;
+      }
+      case GlobalAddress::Initializer::ZeroInitializerKind:
+        Str << "\t.zero\t" << Init->getNumBytes() << "\n";
+        break;
+      case GlobalAddress::Initializer::RelocInitializerKind: {
+        const auto Reloc = llvm::cast<GlobalAddress::RelocInitializer>(Init);
+        Str << "\t.long\t";
+        // TODO(kschimpf): Once the representation of a relocation has
+        // been modified to reference the corresponding global
+        // address, modify to not mangle the name if the global is
+        // external and uninitialized. This will allow us to better
+        // test cross test relocations.
+        Str << Ctx->mangleName(Reloc->getName());
+        if (GlobalAddress::RelocOffsetType Offset = Reloc->getOffset()) {
+          Str << " + " << Offset;
+        }
+        Str << "\n";
+        break;
+      }
+      default: {
+        std::string Buffer;
+        llvm::raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Unable to lower initializer: ";
+        Init->dump(StrBuf);
+        llvm::report_fatal_error(StrBuf.str());
+        break;
+      }
+      }
     }
-    Str << "\t.size\t" << MangledName << ", " << Size << "\n";
+    Str << "\t.size\t" << MangledName << ", " << Global.getNumBytes() << "\n";
   }
 }
 

@@ -16,63 +16,75 @@
 
 #include "test_global.h"
 
+// Note: The following take advantage of the fact that external global
+// names are not mangled with the --prefix CL argument. Hence, they
+// should have the same relocation value for both llc and Subzero.
+extern uint8_t *ExternName1;
+extern uint8_t *ExternName2;
+extern uint8_t *ExternName3;
+extern uint8_t *ExternName4;
+extern uint8_t *ExternName5;
+
 // Partially initialized array
-int ArrayInitPartial[10] = { 60, 70, 80, 90, 100 };
-int ArrayInitFull[] = { 10, 20, 30, 40, 50 };
-const int ArrayConst[] = { -10, -20, -30 };
+int ArrayInitPartial[10] = {60, 70, 80, 90, 100};
+int ArrayInitFull[] = {10, 20, 30, 40, 50};
+const int ArrayConst[] = {-10, -20, -30};
 static double ArrayDouble[10] = { 0.5, 1.5, 2.5, 3.5 };
 
 #if 0
+// TODO(kschimpf) Add this example once we know how to not mangle
+// uninitialized, external globals (so that we can compare that
+// the same, unmangled relocations are used). See comment in
+// TargetGlobalInitX8632::lower in IceTargetLoweringX8632.cpp for
+// details.
+static struct {
+  int Array1[5];
+  uint8_t *Pointer1;
+  double Array2[3];
+  uint8_t *Pointer2;
+  struct {
+    uint8_t *Pointer3;
+    int Array1[3];
+    uint8_t *Pointer4;
+  } NestedStuff;
+  uint8_t *Pointer5;
+} StructEx = {
+  { 10, 20, 30, 40, 50 },
+  ExternName1,
+  { 0.5, 1.5, 2.5 },
+  ExternName4,
+  { ExternName3, {1000, 1010, 1020}, ExternName2 },
+  ExternName5,
+};
+#endif
+
 #define ARRAY(a)                                                               \
   { (uint8_t *)(a), sizeof(a) }
 
+// Note: By embedding the array addresses in this table, we are indirectly
+// testing relocations (i.e. getArray would return the wrong address if
+// relocations are broken).
 struct {
   uint8_t *ArrayAddress;
   size_t ArraySizeInBytes;
 } Arrays[] = {
-  ARRAY(ArrayInitPartial),
-  ARRAY(ArrayInitFull),
-  ARRAY(ArrayConst),
-  ARRAY(ArrayDouble),
+      ARRAY(ArrayInitPartial),
+      ARRAY(ArrayInitFull),
+      ARRAY(ArrayConst),
+      ARRAY(ArrayDouble),
+      {(uint8_t *)(ArrayInitPartial + 2),
+       sizeof(ArrayInitPartial) - 2 * sizeof(int)},
+      // { (uint8_t*)(&StructEx), sizeof(StructEx) },
 };
 size_t NumArraysElements = sizeof(Arrays) / sizeof(*Arrays);
-#endif // 0
 
-size_t getNumArrays() {
-  return 4;
-  // return NumArraysElements;
-}
+size_t getNumArrays() { return NumArraysElements; }
 
 const uint8_t *getArray(size_t WhichArray, size_t &Len) {
-  // Using a switch statement instead of a table lookup because such a
-  // table is represented as a kind of initializer that Subzero
-  // doesn't yet support.  Specifically, the table becomes constant
-  // aggregate data, and it contains relocations.  TODO(stichnot):
-  // switch over to the cleaner table-based method when global
-  // initializers are fully implemented.
-  switch (WhichArray) {
-  default:
-    Len = -1;
-    return NULL;
-  case 0:
-    Len = sizeof(ArrayInitPartial);
-    return (uint8_t *)&ArrayInitPartial;
-  case 1:
-    Len = sizeof(ArrayInitFull);
-    return (uint8_t *)&ArrayInitFull;
-  case 2:
-    Len = sizeof(ArrayConst);
-    return (uint8_t *)&ArrayConst;
-  case 3:
-    Len = sizeof(ArrayDouble);
-    return (uint8_t *)&ArrayDouble;
-  }
-#if 0
   if (WhichArray >= NumArraysElements) {
     Len = -1;
     return NULL;
   }
   Len = Arrays[WhichArray].ArraySizeInBytes;
   return Arrays[WhichArray].ArrayAddress;
-#endif // 0
 }

@@ -80,6 +80,7 @@ SRCS= \
 	IceCfgNode.cpp \
 	IceConverter.cpp \
 	IceGlobalContext.cpp \
+	IceGlobalInits.cpp \
 	IceInst.cpp \
 	IceInstX8632.cpp \
 	IceIntrinsics.cpp \

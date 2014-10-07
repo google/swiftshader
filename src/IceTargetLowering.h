@@ -27,6 +27,7 @@ namespace Ice {
 typedef uint8_t AsmCodeByte;
 
 class Assembler;
+class GlobalAddress;
 
 // LoweringContext makes it easy to iterate through non-deleted
 // instructions in a node, and insert new (lowered) instructions at
@@ -248,10 +249,7 @@ public:
                                                   GlobalContext *Ctx);
   virtual ~TargetGlobalInitLowering();
 
-  // TODO: Allow relocations to be represented as part of the Data.
-  virtual void lower(const IceString &Name, SizeT Align, bool IsInternal,
-                     bool IsConst, bool IsZeroInitializer, SizeT Size,
-                     const char *Data, bool DisableTranslation) = 0;
+  virtual void lower(const GlobalAddress &Addr, bool DisableTranslation) = 0;
 
 protected:
   TargetGlobalInitLowering(GlobalContext *Ctx) : Ctx(Ctx) {}

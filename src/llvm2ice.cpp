@@ -65,6 +65,9 @@ static cl::opt<bool> UseSandboxing("sandbox", cl::desc("Use sandboxing"));
 static cl::opt<bool>
     FunctionSections("ffunction-sections",
                      cl::desc("Emit functions into separate sections"));
+static cl::opt<bool>
+    DataSections("fdata-sections",
+                 cl::desc("Emit (global) data into separate sections"));
 static cl::opt<Ice::OptLevel>
 OptLevel(cl::desc("Optimization level"), cl::init(Ice::Opt_m1),
          cl::value_desc("level"),
@@ -121,6 +124,11 @@ static cl::opt<bool>
 DumpStats("stats",
           cl::desc("Print statistics after translating each function"));
 
+// This is currently needed by crosstest.py.
+static cl::opt<bool> AllowUninitializedGlobals(
+    "allow-uninitialized-globals",
+    cl::desc("Allow global variables to be uninitialized"));
+
 static cl::opt<NaClFileFormat> InputFileFormat(
     "bitcode-format", cl::desc("Define format of input file:"),
     cl::values(clEnumValN(LLVMFormat, "llvm", "LLVM file (default)"),
@@ -149,8 +157,19 @@ static cl::opt<bool>
     UseIntegratedAssembler("integrated-as",
                            cl::desc("Use integrated assembler (default yes)"),
                            cl::init(true));
+
 static cl::alias UseIas("ias", cl::desc("Alias for -integrated-as"),
                         cl::NotHidden, cl::aliasopt(UseIntegratedAssembler));
+
+static cl::opt<bool> AlwaysExitSuccess(
+    "exit-success", cl::desc("Exit with success status, even if errors found"),
+    cl::init(false));
+
+static int GetReturnValue(int Val) {
+  if (AlwaysExitSuccess)
+    return 0;
+  return Val;
+}
 
 int main(int argc, char **argv) {
 
@@ -180,9 +199,11 @@ int main(int argc, char **argv) {
   Flags.DisableTranslation = DisableTranslation;
   Flags.DisableGlobals = DisableGlobals;
   Flags.FunctionSections = FunctionSections;
+  Flags.DataSections = DataSections;
   Flags.UseIntegratedAssembler = UseIntegratedAssembler;
   Flags.UseSandboxing = UseSandboxing;
   Flags.DumpStats = DumpStats;
+  Flags.AllowUninitializedGlobals = AllowUninitializedGlobals;
   Flags.TimeEachFunction = TimeEachFunction;
   Flags.DefaultGlobalPrefix = DefaultGlobalPrefix;
   Flags.DefaultFunctionPrefix = DefaultFunctionPrefix;
@@ -207,7 +228,7 @@ int main(int argc, char **argv) {
 
     if (!Mod) {
       Err.print(argv[0], errs());
-      return 1;
+      return GetReturnValue(1);
     }
 
     Ice::Converter Converter(Mod, &Ctx, Flags);
@@ -222,5 +243,5 @@ int main(int argc, char **argv) {
     Ctx.dumpTimers();
   const bool FinalStats = true;
   Ctx.dumpStats("_FINAL_", FinalStats);
-  return ErrorStatus;
+  return GetReturnValue(ErrorStatus);
 }

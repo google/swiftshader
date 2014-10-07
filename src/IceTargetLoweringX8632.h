@@ -486,9 +486,9 @@ public:
   static TargetGlobalInitLowering *create(GlobalContext *Ctx) {
     return new TargetGlobalInitX8632(Ctx);
   }
-  void lower(const IceString &Name, SizeT Align, bool IsInternal, bool IsConst,
-             bool IsZeroInitializer, SizeT Size, const char *Data,
-             bool DisableTranslation) override;
+
+  virtual void lower(const GlobalAddress &Addr,
+                     bool DisableTranslation) override;
 
 protected:
   TargetGlobalInitX8632(GlobalContext *Ctx);

@@ -12,10 +12,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <cassert>
-#include <memory>
-#include <vector>
-
 #include "llvm/Analysis/NaCl/PNaClABIProps.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDecoders.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeHeader.h"
@@ -34,6 +30,7 @@
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
+#include "IceGlobalInits.h"
 #include "IceInst.h"
 #include "IceOperand.h"
 #include "IceTypeConverter.h"
@@ -62,13 +59,12 @@ public:
         Mod(new Module(InputName, getGlobalContext())), DL(PNaClDataLayout),
         Header(Header), TypeConverter(getLLVMContext()),
         ErrorStatus(ErrorStatus), NumErrors(0), NumFunctionIds(0),
-        NumFunctionBlocks(0),
-        GlobalVarPlaceHolderType(convertToLLVMType(Ice::IceType_i8)) {
+        NumFunctionBlocks(0) {
     Mod->setDataLayout(PNaClDataLayout);
     setErrStream(Translator.getContext()->getStrDump());
   }
 
-  ~TopLevelParser() override {}
+  ~TopLevelParser() override { DeleteContainerPointers(GlobalIDAddresses); }
 
   Ice::Translator &getTranslator() { return Translator; }
 
@@ -103,8 +99,8 @@ public:
   /// Returns the type associated with the given index.
   Type *getTypeByID(unsigned ID) {
     // Note: method resizeTypeIDValues expands TypeIDValues
-    // to the specified size, and fills elements with NULL.
-    Type *Ty = ID < TypeIDValues.size() ? TypeIDValues[ID] : NULL;
+    // to the specified size, and fills elements with nullptr.
+    Type *Ty = ID < TypeIDValues.size() ? TypeIDValues[ID] : nullptr;
     if (Ty)
       return Ty;
     return reportTypeIDAsUndefined(ID);
@@ -112,7 +108,7 @@ public:
 
   /// Defines type for ID.
   void setTypeID(unsigned ID, Type *Ty) {
-    if (ID < TypeIDValues.size() && TypeIDValues[ID] == NULL) {
+    if (ID < TypeIDValues.size() && TypeIDValues[ID] == nullptr) {
       TypeIDValues[ID] = Ty;
       return;
     }
@@ -122,13 +118,13 @@ public:
   /// Sets the next function ID to the given LLVM function.
   void setNextFunctionID(Function *Fcn) {
     ++NumFunctionIds;
-    ValueIDValues.push_back(Fcn);
+    FunctionIDValues.push_back(Fcn);
   }
 
   /// Defines the next function ID as one that has an implementation
   /// (i.e a corresponding function block in the bitcode).
   void setNextValueIDAsImplementedFunction() {
-    DefiningFunctionsList.push_back(ValueIDValues.size());
+    DefiningFunctionsList.push_back(FunctionIDValues.size());
   }
 
   /// Returns the value id that should be associated with the the
@@ -142,28 +138,48 @@ public:
   }
 
   /// Returns the LLVM IR value associatd with the global value ID.
-  Value *getGlobalValueByID(unsigned ID) const {
-    if (ID >= ValueIDValues.size())
-      return NULL;
-    return ValueIDValues[ID];
+  Function *getFunctionByID(unsigned ID) const {
+    if (ID >= FunctionIDValues.size())
+      return nullptr;
+    Value *V = FunctionIDValues[ID];
+    return cast<Function>(V);
   }
 
   /// Returns the corresponding constant associated with a global value
   /// (i.e. relocatable).
   Ice::Constant *getOrCreateGlobalConstantByID(unsigned ID) {
     // TODO(kschimpf): Can this be built when creating global initializers?
+    Ice::Constant *C;
     if (ID >= ValueIDConstants.size()) {
-      if (ID >= ValueIDValues.size())
-        return NULL;
-      ValueIDConstants.resize(ValueIDValues.size());
+      C = nullptr;
+      unsigned ExpectedSize =
+          FunctionIDValues.size() + GlobalIDAddresses.size();
+      if (ID >= ExpectedSize)
+        ExpectedSize = ID;
+      ValueIDConstants.resize(ExpectedSize);
+    } else {
+      C = ValueIDConstants[ID];
     }
-    Ice::Constant *C = ValueIDConstants[ID];
-    if (C != NULL)
+    if (C != nullptr)
       return C;
-    Value *V = ValueIDValues[ID];
-    assert(isa<GlobalValue>(V));
-    C = getTranslator().getContext()->getConstantSym(getIcePointerType(), 0,
-                                                     V->getName());
+
+    // If reached, no such constant exists, create one.
+    std::string Name;
+    unsigned FcnIDSize = FunctionIDValues.size();
+    if (ID < FcnIDSize) {
+      Name = FunctionIDValues[ID]->getName();
+    } else if ((ID - FcnIDSize) < GlobalIDAddresses.size()) {
+      Name = GlobalIDAddresses[ID - FcnIDSize]->getName();
+    } else {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Reference to global not defined: " << ID;
+      Error(StrBuf.str());
+      Name = "??";
+    }
+    const uint64_t Offset = 0;
+    C = getTranslator().getContext()->getConstantSym(
+        getIcePointerType(), Offset, Name);
     ValueIDConstants[ID] = C;
     return C;
   }
@@ -172,51 +188,43 @@ public:
   /// the bitcode file.
   unsigned getNumFunctionIDs() const { return NumFunctionIds; }
 
-  /// Returns the number of global values defined in the bitcode
-  /// file.
-  unsigned getNumGlobalValueIDs() const { return ValueIDValues.size(); }
-
-  /// Resizes the list of value IDs to include Count global variable
-  /// IDs.
-  void resizeValueIDsForGlobalVarCount(unsigned Count) {
-    ValueIDValues.resize(ValueIDValues.size() + Count);
+  /// Returns the number of global IDs (function and global addresses)
+  /// defined in the bitcode file.
+  unsigned getNumGlobalIDs() const {
+    return FunctionIDValues.size() + GlobalIDAddresses.size();
   }
 
-  /// Returns the global variable address associated with the given
-  /// value ID. If the ID refers to a global variable address not yet
-  /// defined, a placeholder is created so that we can fix it up
-  /// later.
-  Constant *getOrCreateGlobalVarRef(unsigned ID) {
-    if (ID >= ValueIDValues.size())
-      return NULL;
-    if (Value *C = ValueIDValues[ID])
-      return dyn_cast<Constant>(C);
-    Constant *C = new GlobalVariable(*Mod, GlobalVarPlaceHolderType, false,
-                                     GlobalValue::ExternalLinkage, 0);
-    ValueIDValues[ID] = C;
-    return C;
-  }
-
-  /// Assigns the given global variable (address) to the given value
-  /// ID.  Returns true if ID is a valid global variable ID. Otherwise
-  /// returns false.
-  bool assignGlobalVariable(GlobalVariable *GV, unsigned ID) {
-    if (ID < NumFunctionIds || ID >= ValueIDValues.size())
-      return false;
-    WeakVH &OldV = ValueIDValues[ID];
-    if (OldV == NULL) {
-      ValueIDValues[ID] = GV;
-      return true;
+  /// Creates Count global addresses.
+  void CreateGlobalAddresses(size_t Count) {
+    assert(GlobalIDAddresses.empty());
+    for (size_t i = 0; i < Count; ++i) {
+      GlobalIDAddresses.push_back(new Ice::GlobalAddress());
     }
+  }
 
-    // If reached, there was a forward reference to this value. Replace it.
-    Value *PrevVal = OldV;
-    GlobalVariable *Placeholder = cast<GlobalVariable>(PrevVal);
-    Placeholder->replaceAllUsesWith(
-        ConstantExpr::getBitCast(GV, Placeholder->getType()));
-    Placeholder->eraseFromParent();
-    ValueIDValues[ID] = GV;
-    return true;
+  /// Returns the number of global addresses (i.e. ID's) defined in
+  /// the bitcode file.
+  Ice::SizeT getNumGlobalAddresses() const { return GlobalIDAddresses.size(); }
+
+  /// Returns the global address with the given index.
+  Ice::GlobalAddress *getGlobalAddress(size_t Index) {
+    if (Index < GlobalIDAddresses.size())
+      return GlobalIDAddresses[Index];
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << "Global index " << Index
+           << " not allowed. Out of range. Must be less than "
+           << GlobalIDAddresses.size();
+    Error(StrBuf.str());
+    // TODO(kschimpf) Remove error recovery once implementation complete.
+    if (!GlobalIDAddresses.empty())
+      return GlobalIDAddresses[0];
+    report_fatal_error("Unable to continue");
+  }
+
+  /// Returns the list of read global addresses.
+  const Ice::Translator::GlobalAddressList &getGlobalIDAddresses() {
+    return GlobalIDAddresses;
   }
 
   /// Returns the corresponding ICE type for LLVMTy.
@@ -234,13 +242,13 @@ public:
   }
 
   /// Returns the LLVM integer type with the given number of Bits.  If
-  /// Bits is not a valid PNaCl type, returns NULL.
+  /// Bits is not a valid PNaCl type, returns nullptr.
   Type *getLLVMIntegerType(unsigned Bits) const {
     return TypeConverter.getLLVMIntegerType(Bits);
   }
 
   /// Returns the LLVM vector with the given Size and Ty. If not a
-  /// valid PNaCl vector type, returns NULL.
+  /// valid PNaCl vector type, returns nullptr.
   Type *getLLVMVectorType(unsigned Size, Ice::Type Ty) const {
     return TypeConverter.getLLVMVectorType(Size, Ty);
   }
@@ -267,9 +275,12 @@ private:
   unsigned NumErrors;
   // The types associated with each type ID.
   std::vector<Type *> TypeIDValues;
-  // The (global) value IDs.
-  std::vector<WeakVH> ValueIDValues;
-  // Relocatable constants associated with ValueIDValues.
+  // The set of function value IDs.
+  std::vector<WeakVH> FunctionIDValues;
+  // The set of global addresses IDs.
+  Ice::Translator::GlobalAddressList GlobalIDAddresses;
+  // Relocatable constants associated with FunctionIDValues and
+  // GlobalIDAddresses.
   std::vector<Ice::Constant *> ValueIDConstants;
   // The number of function IDs.
   unsigned NumFunctionIds;
@@ -278,9 +289,6 @@ private:
   // The list of value IDs (in the order found) of defining function
   // addresses.
   std::vector<unsigned> DefiningFunctionsList;
-  // Cached global variable placeholder type. Used for all forward
-  // references to global variable addresses.
-  Type *GlobalVarPlaceHolderType;
 
   bool ParseBlock(unsigned BlockID) override;
 
@@ -380,7 +388,7 @@ protected:
     const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
     if (Values.size() == Size)
       return true;
-    ReportRecordSizeError(Size, RecordName, NULL);
+    ReportRecordSizeError(Size, RecordName, nullptr);
     return false;
   }
 
@@ -418,7 +426,7 @@ protected:
 private:
   /// Generates a record size error. ExpectedSize is the number
   /// of elements expected. RecordName is the name of the kind of
-  /// record that has incorrect size. ContextMessage (if not NULL)
+  /// record that has incorrect size. ContextMessage (if not nullptr)
   /// is appended to "record expects" to describe how ExpectedSize
   /// should be interpreted.
   void ReportRecordSizeError(unsigned ExpectedSize, const char *RecordName,
@@ -477,7 +485,7 @@ private:
 };
 
 void TypesParser::ProcessRecord() {
-  Type *Ty = NULL;
+  Type *Ty = nullptr;
   const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
   switch (Record.GetCode()) {
   case naclbitc::TYPE_CODE_NUMENTRY:
@@ -509,7 +517,7 @@ void TypesParser::ProcessRecord() {
     if (!isValidRecordSize(1, "Type integer"))
       return;
     Ty = Context->getLLVMIntegerType(Values[0]);
-    if (Ty == NULL) {
+    if (Ty == nullptr) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Type integer record with invalid bitsize: " << Values[0];
@@ -526,7 +534,7 @@ void TypesParser::ProcessRecord() {
     Type *BaseTy = Context->getTypeByID(Values[1]);
     Ty = Context->getLLVMVectorType(Values[0],
                                     Context->convertToIceType(BaseTy));
-    if (Ty == NULL) {
+    if (Ty == nullptr) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Invalid type vector record: <" << Values[0] << " x " << *BaseTy
@@ -552,7 +560,7 @@ void TypesParser::ProcessRecord() {
     return;
   }
   // If Ty not defined, assume error. Use void as filler.
-  if (Ty == NULL)
+  if (Ty == nullptr)
     Ty = Context->convertToLLVMType(Ice::IceType_void);
   Context->setTypeID(NextTypeId++, Ty);
 }
@@ -562,38 +570,33 @@ class GlobalsParser : public BlockParserBaseClass {
 public:
   GlobalsParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser), InitializersNeeded(0),
-        Alignment(1), IsConstant(false) {
-    NextGlobalID = Context->getNumFunctionIDs();
-  }
+        NextGlobalID(0), CurrentAddress(&DummyAddress) {}
 
   ~GlobalsParser() override {}
 
 private:
-  // Holds the sequence of initializers for the global.
-  SmallVector<Constant *, 10> Initializers;
-
-  // Keeps track of how many initializers are expected for
-  // the global variable being built.
+  // Keeps track of how many initializers are expected for the global variable
+  // being built.
   unsigned InitializersNeeded;
-
-  // The alignment assumed for the global variable being built.
-  unsigned Alignment;
-
-  // True if the global variable being built is a constant.
-  bool IsConstant;
 
   // The index of the next global variable.
   unsigned NextGlobalID;
 
+  // Holds the current global address whose initializer is being defined.
+  Ice::GlobalAddress *CurrentAddress;
+
+  // Dummy global address to guarantee CurrentAddress is always defined
+  // (allowing code to not need to check if CurrentAddress is nullptr).
+  Ice::GlobalAddress DummyAddress;
+
   void ExitBlock() override {
     verifyNoMissingInitializers();
-    unsigned NumIDs = Context->getNumGlobalValueIDs();
+    unsigned NumIDs = Context->getNumGlobalAddresses();
     if (NextGlobalID < NumIDs) {
-      unsigned NumFcnIDs = Context->getNumFunctionIDs();
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Globals block expects " << (NumIDs - NumFcnIDs)
-             << " global definitions. Found: " << (NextGlobalID - NumFcnIDs);
+      StrBuf << "Globals block expects " << NumIDs
+             << " global definitions. Found: " << NextGlobalID;
       Error(StrBuf.str());
     }
     BlockParserBaseClass::ExitBlock();
@@ -601,70 +604,22 @@ private:
 
   void ProcessRecord() override;
 
-  // Checks if the number of initializers needed is the same as the
-  // number found in the bitcode file. If different, and error message
-  // is generated, and the internal state of the parser is fixed so
-  // this condition is no longer violated.
+  // Checks if the number of initializers for the CurrentAddress is the same as
+  // the number found in the bitcode file. If different, and error message is
+  // generated, and the internal state of the parser is fixed so this condition
+  // is no longer violated.
   void verifyNoMissingInitializers() {
-    if (InitializersNeeded != Initializers.size()) {
+    size_t NumInits = CurrentAddress->getInitializers().size();
+    if (InitializersNeeded != NumInits) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Global variable @g"
-             << (NextGlobalID - Context->getNumFunctionIDs()) << " expected "
+      StrBuf << "Global variable @g" << NextGlobalID << " expected "
              << InitializersNeeded << " initializer";
       if (InitializersNeeded > 1)
         StrBuf << "s";
-      StrBuf << ". Found: " << Initializers.size();
-      Error(StrBuf.str());
-      // TODO(kschimpf) Remove error recovery once implementation complete.
-      // Fix up state so that we can continue.
-      InitializersNeeded = Initializers.size();
-      installGlobalVar();
-    }
-  }
-
-  // Reserves a slot in the list of initializers being built. If there
-  // isn't room for the slot, an error message is generated.
-  void reserveInitializer(const char *RecordName) {
-    if (InitializersNeeded <= Initializers.size()) {
-      Error(std::string(RecordName) +
-            " record: Too many initializers, ignoring.");
-    }
-  }
-
-  // Takes the initializers (and other parser state values) and
-  // installs a global variable (with the initializers) into the list
-  // of ValueIDs.
-  void installGlobalVar() {
-    Constant *Init = NULL;
-    switch (Initializers.size()) {
-    case 0:
-      Error("No initializer for global variable in global vars block");
-      return;
-    case 1:
-      Init = Initializers[0];
-      break;
-    default:
-      Init = ConstantStruct::getAnon(Context->getLLVMContext(), Initializers,
-                                     true);
-      break;
-    }
-    GlobalVariable *GV =
-        new GlobalVariable(*Context->getModule(), Init->getType(), IsConstant,
-                           GlobalValue::InternalLinkage, Init, "");
-    GV->setAlignment(Alignment);
-    if (!Context->assignGlobalVariable(GV, NextGlobalID)) {
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Defining global V[" << NextGlobalID
-             << "] not allowed. Out of range.";
+      StrBuf << ". Found: " << NumInits;
       Error(StrBuf.str());
     }
-    ++NextGlobalID;
-    Initializers.clear();
-    InitializersNeeded = 0;
-    Alignment = 1;
-    IsConstant = false;
   }
 };
 
@@ -675,12 +630,11 @@ void GlobalsParser::ProcessRecord() {
     // COUNT: [n]
     if (!isValidRecordSize(1, "Globals count"))
       return;
-    if (NextGlobalID != Context->getNumFunctionIDs()) {
+    if (NextGlobalID != Context->getNumGlobalAddresses()) {
       Error("Globals count record not first in block.");
       return;
     }
-    verifyNoMissingInitializers();
-    Context->resizeValueIDsForGlobalVarCount(Values[0]);
+    Context->CreateGlobalAddresses(Values[0]);
     return;
   case naclbitc::GLOBALVAR_VAR: {
     // VAR: [align, isconst]
@@ -688,16 +642,17 @@ void GlobalsParser::ProcessRecord() {
       return;
     verifyNoMissingInitializers();
     InitializersNeeded = 1;
-    Initializers.clear();
-    Alignment = (1 << Values[0]) >> 1;
-    IsConstant = Values[1] != 0;
+    CurrentAddress = Context->getGlobalAddress(NextGlobalID);
+    CurrentAddress->setAlignment((1 << Values[0]) >> 1);
+    CurrentAddress->setIsConstant(Values[1] != 0);
+    ++NextGlobalID;
     return;
   }
   case naclbitc::GLOBALVAR_COMPOUND:
     // COMPOUND: [size]
     if (!isValidRecordSize(1, "globals compound"))
       return;
-    if (Initializers.size() > 0 || InitializersNeeded != 1) {
+    if (!CurrentAddress->getInitializers().empty()) {
       Error("Globals compound record not first initializer");
       return;
     }
@@ -714,55 +669,44 @@ void GlobalsParser::ProcessRecord() {
     // ZEROFILL: [size]
     if (!isValidRecordSize(1, "Globals zerofill"))
       return;
-    reserveInitializer("Globals zerofill");
-    Type *Ty =
-        ArrayType::get(Context->convertToLLVMType(Ice::IceType_i8), Values[0]);
-    Constant *Zero = ConstantAggregateZero::get(Ty);
-    Initializers.push_back(Zero);
+    CurrentAddress->addInitializer(
+        new Ice::GlobalAddress::ZeroInitializer(Values[0]));
     break;
   }
   case naclbitc::GLOBALVAR_DATA: {
     // DATA: [b0, b1, ...]
     if (!isValidRecordSizeAtLeast(1, "Globals data"))
       return;
-    reserveInitializer("Globals data");
-    unsigned Size = Values.size();
-    SmallVector<uint8_t, 32> Buf;
-    for (unsigned i = 0; i < Size; ++i)
-      Buf.push_back(static_cast<uint8_t>(Values[i]));
-    Constant *Init = ConstantDataArray::get(
-        Context->getLLVMContext(), ArrayRef<uint8_t>(Buf.data(), Buf.size()));
-    Initializers.push_back(Init);
+    CurrentAddress->addInitializer(
+        new Ice::GlobalAddress::DataInitializer(Values));
     break;
   }
   case naclbitc::GLOBALVAR_RELOC: {
     // RELOC: [val, [addend]]
     if (!isValidRecordSizeInRange(1, 2, "Globals reloc"))
       return;
-    Constant *BaseVal = Context->getOrCreateGlobalVarRef(Values[0]);
-    if (BaseVal == NULL) {
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Can't find global relocation value: " << Values[0];
-      Error(StrBuf.str());
-      return;
+    unsigned Index = Values[0];
+    Ice::SizeT Offset = 0;
+    if (Values.size() == 2)
+      Offset = Values[1];
+    unsigned NumFunctions = Context->getNumFunctionIDs();
+    if (Index < NumFunctions) {
+      llvm::Function *Fcn = Context->getFunctionByID(Index);
+      Ice::GlobalAddress::RelocationAddress Addr(Fcn);
+      CurrentAddress->addInitializer(
+          new Ice::GlobalAddress::RelocInitializer(Addr, Offset));
+    } else {
+      Ice::GlobalAddress::RelocationAddress Addr(
+          Context->getGlobalAddress(Index - NumFunctions));
+      CurrentAddress->addInitializer(
+          new Ice::GlobalAddress::RelocInitializer(Addr, Offset));
     }
-    Type *IntPtrType = Context->convertToLLVMType(Context->getIcePointerType());
-    Constant *Val = ConstantExpr::getPtrToInt(BaseVal, IntPtrType);
-    if (Values.size() == 2) {
-      Val = ConstantExpr::getAdd(Val, ConstantInt::get(IntPtrType, Values[1]));
-    }
-    Initializers.push_back(Val);
     break;
   }
   default:
     BlockParserBaseClass::ProcessRecord();
     return;
   }
-  // If reached, just processed another initializer. See if time
-  // to install global.
-  if (InitializersNeeded == Initializers.size())
-    installGlobalVar();
 }
 
 /// Base class for parsing a valuesymtab block in the bitcode file.
@@ -838,9 +782,9 @@ public:
       : BlockParserBaseClass(BlockID, EnclosingParser),
         Func(new Ice::Cfg(getTranslator().getContext())), CurrentBbIndex(0),
         FcnId(Context->getNextFunctionBlockValueID()),
-        LLVMFunc(cast<Function>(Context->getGlobalValueByID(FcnId))),
-        CachedNumGlobalValueIDs(Context->getNumGlobalValueIDs()),
-        NextLocalInstIndex(Context->getNumGlobalValueIDs()),
+        LLVMFunc(Context->getFunctionByID(FcnId)),
+        CachedNumGlobalValueIDs(Context->getNumGlobalIDs()),
+        NextLocalInstIndex(Context->getNumGlobalIDs()),
         InstIsTerminating(false) {
     Func->setFunctionName(LLVMFunc->getName());
     if (getFlags().TimeEachFunction)
@@ -961,7 +905,7 @@ private:
     uint32_t LocalIndex = NextLocalInstIndex - CachedNumGlobalValueIDs;
     if (LocalIndex < LocalOperands.size()) {
       Ice::Operand *Op = LocalOperands[LocalIndex];
-      if (Op != NULL) {
+      if (Op != nullptr) {
         if (Ice::Variable *Var = dyn_cast<Ice::Variable>(Op)) {
           if (Var->getType() == Ty) {
             ++NextLocalInstIndex;
@@ -1012,7 +956,7 @@ private:
       report_fatal_error("Unable to continue");
     }
     Ice::Operand *Op = LocalOperands[LocalIndex];
-    if (Op == NULL) {
+    if (Op == nullptr) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Value index " << Index << " not defined!";
@@ -1038,7 +982,7 @@ private:
 
     // If element not defined, set it.
     Ice::Operand *OldOp = LocalOperands[LocalIndex];
-    if (OldOp == NULL) {
+    if (OldOp == nullptr) {
       LocalOperands[LocalIndex] = Op;
       return;
     }
@@ -1688,7 +1632,7 @@ void FunctionParser::ProcessRecord() {
     if (Values.size() == 1) {
       // BR: [bb#]
       Ice::CfgNode *Block = getBranchBasicBlock(Values[0]);
-      if (Block == NULL)
+      if (Block == nullptr)
         return;
       CurrentNode->appendInst(Ice::InstBr::create(Func, Block));
     } else {
@@ -1706,7 +1650,7 @@ void FunctionParser::ProcessRecord() {
       }
       Ice::CfgNode *ThenBlock = getBranchBasicBlock(Values[0]);
       Ice::CfgNode *ElseBlock = getBranchBasicBlock(Values[1]);
-      if (ThenBlock == NULL || ElseBlock == NULL)
+      if (ThenBlock == nullptr || ElseBlock == nullptr)
         return;
       CurrentNode->appendInst(
           Ice::InstBr::create(Func, Cond, ThenBlock, ElseBlock));
@@ -1907,11 +1851,10 @@ void FunctionParser::ProcessRecord() {
     uint32_t CalleeIndex = convertRelativeToAbsIndex(Values[1], BaseIndex);
     Ice::Operand *Callee = getOperand(CalleeIndex);
     Ice::Type ReturnType = Ice::IceType_void;
-    const Ice::Intrinsics::FullIntrinsicInfo *IntrinsicInfo = NULL;
+    const Ice::Intrinsics::FullIntrinsicInfo *IntrinsicInfo = nullptr;
     if (Record.GetCode() == naclbitc::FUNC_CODE_INST_CALL) {
-      Function *Fcn =
-          dyn_cast<Function>(Context->getGlobalValueByID(CalleeIndex));
-      if (Fcn == NULL) {
+      Function *Fcn = Context->getFunctionByID(CalleeIndex);
+      if (Fcn == nullptr) {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
         StrBuf << "Function call to non-function: " << *Callee;
@@ -1942,10 +1885,11 @@ void FunctionParser::ProcessRecord() {
     }
 
     // Create the call instruction.
-    Ice::Variable *Dest =
-        (ReturnType == Ice::IceType_void) ? NULL : getNextInstVar(ReturnType);
+    Ice::Variable *Dest = (ReturnType == Ice::IceType_void)
+                              ? nullptr
+                              : getNextInstVar(ReturnType);
     Ice::SizeT NumParams = Values.size() - ParamsStartIndex;
-    Ice::InstCall *Inst = NULL;
+    Ice::InstCall *Inst = nullptr;
     if (IntrinsicInfo) {
       Inst =
           Ice::InstIntrinsicCall::create(Func, NumParams, Dest, Callee,
@@ -2225,15 +2169,29 @@ private:
   // and generated global constant initializers.
   bool GlobalAddressNamesAndInitializersInstalled;
 
-  // Temporary hack to generate names for unnamed global addresses,
-  // and generate global constant initializers. May be called multiple
+  // Generates names for unnamed global addresses, and lowers global
+  // constant initializers to the target. May be called multiple
   // times. Only the first call will do the installation.
-  // NOTE: Doesn't handle relocations for global constant initializers.
   void InstallGlobalAddressNamesAndInitializers() {
     if (!GlobalAddressNamesAndInitializersInstalled) {
-      getTranslator().nameUnnamedGlobalAddresses(Context->getModule());
+      Ice::Translator &Trans = getTranslator();
+      const Ice::IceString &GlobalPrefix = getFlags().DefaultGlobalPrefix;
+      if (!GlobalPrefix.empty()) {
+        uint32_t NameIndex = 0;
+        for (Ice::GlobalAddress *Address : Context->getGlobalIDAddresses()) {
+          if (!Address->hasName()) {
+            Address->setName(Trans.createUnnamedName(GlobalPrefix, NameIndex));
+            ++NameIndex;
+          } else {
+            Trans.checkIfUnnamedNameSafe(Address->getName(), "global",
+                                         GlobalPrefix,
+                                         Trans.getContext()->getStrDump());
+          }
+        }
+      }
+      Trans.nameUnnamedFunctions(Context->getModule());
       if (!getFlags().DisableGlobals)
-        getTranslator().convertGlobals(Context->getModule());
+        getTranslator().lowerGlobals(Context->getGlobalIDAddresses());
       GlobalAddressNamesAndInitializersInstalled = true;
     }
   }
@@ -2264,15 +2222,26 @@ private:
 };
 
 void ModuleValuesymtabParser::setValueName(uint64_t Index, StringType &Name) {
-  Value *V = Context->getGlobalValueByID(Index);
-  if (V == NULL) {
-    std::string Buffer;
-    raw_string_ostream StrBuf(Buffer);
-    StrBuf << "Invalid global address ID in valuesymtab: " << Index;
-    Error(StrBuf.str());
+  if (Index < Context->getNumFunctionIDs()) {
+    Function *Fcn = Context->getFunctionByID(Index);
+    if (Fcn != nullptr) {
+      Fcn->setName(StringRef(Name.data(), Name.size()));
+      return;
+    }
+  } else {
+    unsigned NumFunctions = Context->getNumFunctionIDs();
+    if (Index >= NumFunctions) {
+      Context->getGlobalAddress(Index - NumFunctions)
+          ->setName(StringRef(Name.data(), Name.size()));
+    }
     return;
   }
-  V->setName(StringRef(Name.data(), Name.size()));
+
+  std::string Buffer;
+  raw_string_ostream StrBuf(Buffer);
+  StrBuf << "Invalid global address ID in valuesymtab: " << Index;
+  Error(StrBuf.str());
+  return;
 }
 
 void ModuleValuesymtabParser::setBbName(uint64_t Index, StringType &Name) {
@@ -2331,7 +2300,7 @@ void ModuleParser::ProcessRecord() {
       return;
     Type *Ty = Context->getTypeByID(Values[0]);
     FunctionType *FTy = dyn_cast<FunctionType>(Ty);
-    if (FTy == NULL) {
+    if (FTy == nullptr) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Function heading expects function type. Found: " << Ty;

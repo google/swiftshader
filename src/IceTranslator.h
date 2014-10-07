@@ -25,6 +25,7 @@ namespace Ice {
 
 class ClFlags;
 class Cfg;
+class GlobalAddress;
 class GlobalContext;
 
 // Base class for translating ICE to machine code.
@@ -33,6 +34,8 @@ class GlobalContext;
 // machine instructions.
 class Translator {
 public:
+  typedef std::vector<Ice::GlobalAddress *> GlobalAddressList;
+
   Translator(GlobalContext *Ctx, const ClFlags &Flags)
       : Ctx(Ctx), Flags(Flags), ErrorStatus(0) {}
 
@@ -51,15 +54,26 @@ public:
   /// Emits the constant pool.
   void emitConstants();
 
-  // Walks module and generates names for unnamed globals and
-  // functions using prefix getFlags().DefaultGlobalPrefix, if the
-  // prefix is non-empty.
+  /// Lowers the given list of global addresses to target.
+  void lowerGlobals(const GlobalAddressList &GlobalAddresses);
+
+  /// Creates a name using the given prefix and corresponding index.
+  std::string createUnnamedName(const IceString &Prefix, SizeT Index);
+
+  /// Reports if there is a (potential) conflict between Name, and using
+  /// Prefix to name unnamed names. Errors are put on Ostream.
+  /// Returns true if there isn't a potential conflict.
+  bool checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
+                              const IceString &Prefix, Ostream &Stream);
+
+  // Walks module and generates names for unnamed globals using prefix
+  // getFlags().DefaultGlobalPrefix, if the prefix is non-empty.
   void nameUnnamedGlobalAddresses(llvm::Module *Mod);
 
-  // Converts globals to ICE, and then machine code.
-  // TODO(kschimpf) Remove this once we have ported to PNaClTranslator,
-  // and PNaClTranslator generates initializers while parsing.
-  void convertGlobals(llvm::Module *Mod);
+  // Walks module and generates names for unnamed functions using
+  // prefix getFlags().DefaultFunctionPrefix, if the prefix is
+  // non-empty.
+  void nameUnnamedFunctions(llvm::Module *Mod);
 
 protected:
   GlobalContext *Ctx;

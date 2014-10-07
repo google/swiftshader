@@ -19,25 +19,25 @@
 namespace Ice {
 
 TypeConverter::TypeConverter(llvm::LLVMContext &Context) {
-  AddLLVMType(IceType_void, llvm::Type::getVoidTy(Context));
-  AddLLVMType(IceType_i1, llvm::IntegerType::get(Context, 1));
-  AddLLVMType(IceType_i8, llvm::IntegerType::get(Context, 8));
-  AddLLVMType(IceType_i16, llvm::IntegerType::get(Context, 16));
-  AddLLVMType(IceType_i32, llvm::IntegerType::get(Context, 32));
-  AddLLVMType(IceType_i64, llvm::IntegerType::get(Context, 64));
-  AddLLVMType(IceType_f32, llvm::Type::getFloatTy(Context));
-  AddLLVMType(IceType_f64, llvm::Type::getDoubleTy(Context));
-  AddLLVMType(IceType_v4i1, llvm::VectorType::get(LLVMTypes[IceType_i1], 4));
-  AddLLVMType(IceType_v8i1, llvm::VectorType::get(LLVMTypes[IceType_i1], 8));
-  AddLLVMType(IceType_v16i1, llvm::VectorType::get(LLVMTypes[IceType_i1], 16));
-  AddLLVMType(IceType_v16i8, llvm::VectorType::get(LLVMTypes[IceType_i8], 16));
-  AddLLVMType(IceType_v8i16, llvm::VectorType::get(LLVMTypes[IceType_i16], 8));
-  AddLLVMType(IceType_v4i32, llvm::VectorType::get(LLVMTypes[IceType_i32], 4));
-  AddLLVMType(IceType_v4f32, llvm::VectorType::get(LLVMTypes[IceType_f32], 4));
+  addLLVMType(IceType_void, llvm::Type::getVoidTy(Context));
+  addLLVMType(IceType_i1, llvm::IntegerType::get(Context, 1));
+  addLLVMType(IceType_i8, llvm::IntegerType::get(Context, 8));
+  addLLVMType(IceType_i16, llvm::IntegerType::get(Context, 16));
+  addLLVMType(IceType_i32, llvm::IntegerType::get(Context, 32));
+  addLLVMType(IceType_i64, llvm::IntegerType::get(Context, 64));
+  addLLVMType(IceType_f32, llvm::Type::getFloatTy(Context));
+  addLLVMType(IceType_f64, llvm::Type::getDoubleTy(Context));
+  addLLVMType(IceType_v4i1, llvm::VectorType::get(LLVMTypes[IceType_i1], 4));
+  addLLVMType(IceType_v8i1, llvm::VectorType::get(LLVMTypes[IceType_i1], 8));
+  addLLVMType(IceType_v16i1, llvm::VectorType::get(LLVMTypes[IceType_i1], 16));
+  addLLVMType(IceType_v16i8, llvm::VectorType::get(LLVMTypes[IceType_i8], 16));
+  addLLVMType(IceType_v8i16, llvm::VectorType::get(LLVMTypes[IceType_i16], 8));
+  addLLVMType(IceType_v4i32, llvm::VectorType::get(LLVMTypes[IceType_i32], 4));
+  addLLVMType(IceType_v4f32, llvm::VectorType::get(LLVMTypes[IceType_f32], 4));
   assert(LLVMTypes.size() == static_cast<size_t>(IceType_NUM));
 }
 
-void TypeConverter::AddLLVMType(Type Ty, llvm::Type *LLVMTy) {
+void TypeConverter::addLLVMType(Type Ty, llvm::Type *LLVMTy) {
   assert(static_cast<size_t>(Ty) == LLVMTypes.size());
   LLVMTypes.push_back(LLVMTy);
   LLVM2IceMap[LLVMTy] = Ty;

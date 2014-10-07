@@ -29,44 +29,61 @@ using namespace Ice;
 
 Translator::~Translator() {}
 
-namespace {
-void setValueName(llvm::Value *V, const char *Kind, const IceString &Prefix,
-                  uint32_t &NameIndex, Ostream &errs) {
-  if (V->hasName()) {
-    const std::string &Name(V->getName());
-    if (Name.find(Prefix) == 0) {
-      errs << "Warning: Default " << Kind << " prefix '" << Prefix
-           << "' conflicts with name '" << Name << "'.\n";
-    }
-    return;
-  }
-  if (NameIndex == 0) {
-    V->setName(Prefix);
-    ++NameIndex;
-    return;
-  }
+IceString Translator::createUnnamedName(const IceString &Prefix, SizeT Index) {
+  if (Index == 0)
+    return Prefix;
   std::string Buffer;
   llvm::raw_string_ostream StrBuf(Buffer);
-  StrBuf << Prefix << NameIndex;
-  V->setName(StrBuf.str());
-  ++NameIndex;
+  StrBuf << Prefix << Index;
+  return StrBuf.str();
 }
-} // end of anonymous namespace
+
+bool Translator::checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
+                                        const IceString &Prefix,
+                                        Ostream &Stream) {
+  if (Name.find(Prefix) == 0) {
+    for (size_t i = Prefix.size(); i < Name.size(); ++i) {
+      if (!isdigit(Name[i])) {
+        return false;
+      }
+    }
+    Stream << "Warning : Default " << Kind << " prefix '" << Prefix
+           << "' potentially conflicts with name '" << Name << "'.\n";
+    return true;
+  }
+  return false;
+}
 
 void Translator::nameUnnamedGlobalAddresses(llvm::Module *Mod) {
   const IceString &GlobalPrefix = Flags.DefaultGlobalPrefix;
+  if (GlobalPrefix.empty())
+    return;
+  uint32_t NameIndex = 0;
   Ostream &errs = Ctx->getStrDump();
-  if (!GlobalPrefix.empty()) {
-    uint32_t NameIndex = 0;
-    for (auto I = Mod->global_begin(), E = Mod->global_end(); I != E; ++I)
-      setValueName(I, "global", GlobalPrefix, NameIndex, errs);
+  for (auto V = Mod->global_begin(), E = Mod->global_end(); V != E; ++V) {
+    if (!V->hasName()) {
+      V->setName(createUnnamedName(GlobalPrefix, NameIndex));
+      ++NameIndex;
+    } else {
+      checkIfUnnamedNameSafe(V->getName(), "global", GlobalPrefix, errs);
+    }
   }
+}
+
+void Translator::nameUnnamedFunctions(llvm::Module *Mod) {
   const IceString &FunctionPrefix = Flags.DefaultFunctionPrefix;
   if (FunctionPrefix.empty())
     return;
   uint32_t NameIndex = 0;
-  for (llvm::Function &I : *Mod)
-    setValueName(&I, "function", FunctionPrefix, NameIndex, errs);
+  Ostream &errs = Ctx->getStrDump();
+  for (llvm::Function &F : *Mod) {
+    if (!F.hasName()) {
+      F.setName(createUnnamedName(FunctionPrefix, NameIndex));
+      ++NameIndex;
+    } else {
+      checkIfUnnamedNameSafe(F.getName(), "function", FunctionPrefix, errs);
+    }
+  }
 }
 
 void Translator::translateFcn(Cfg *Fcn) {
@@ -93,46 +110,12 @@ void Translator::emitConstants() {
     Func->getTarget()->emitConstants();
 }
 
-void Translator::convertGlobals(llvm::Module *Mod) {
-  std::unique_ptr<TargetGlobalInitLowering> GlobalLowering(
-      TargetGlobalInitLowering::createLowering(Ctx->getTargetArch(), Ctx));
-  for (auto I = Mod->global_begin(), E = Mod->global_end(); I != E; ++I) {
-    if (!I->hasInitializer())
-      continue;
-    const llvm::Constant *Initializer = I->getInitializer();
-    IceString Name = I->getName();
-    unsigned Align = I->getAlignment();
-    uint64_t NumElements = 0;
-    const char *Data = NULL;
-    bool IsInternal = I->hasInternalLinkage();
-    bool IsConst = I->isConstant();
-    bool IsZeroInitializer = false;
-
-    if (const llvm::ConstantDataArray *CDA =
-            llvm::dyn_cast<llvm::ConstantDataArray>(Initializer)) {
-      NumElements = CDA->getNumElements();
-      assert(llvm::isa<llvm::IntegerType>(CDA->getElementType()) &&
-             (llvm::cast<llvm::IntegerType>(CDA->getElementType())
-                  ->getBitWidth() == 8));
-      Data = CDA->getRawDataValues().data();
-    } else if (llvm::isa<llvm::ConstantAggregateZero>(Initializer)) {
-      if (const llvm::ArrayType *AT =
-              llvm::dyn_cast<llvm::ArrayType>(Initializer->getType())) {
-        assert(llvm::isa<llvm::IntegerType>(AT->getElementType()) &&
-               (llvm::cast<llvm::IntegerType>(AT->getElementType())
-                    ->getBitWidth() == 8));
-        NumElements = AT->getNumElements();
-        IsZeroInitializer = true;
-      } else {
-        llvm_unreachable("Unhandled constant aggregate zero type");
-      }
-    } else {
-      llvm_unreachable("Unhandled global initializer");
-    }
-
-    GlobalLowering->lower(Name, Align, IsInternal, IsConst, IsZeroInitializer,
-                          NumElements, Data,
-                          Ctx->getFlags().DisableTranslation);
+void Translator::lowerGlobals(const GlobalAddressList &GlobalAddresses) {
+  llvm::OwningPtr<Ice::TargetGlobalInitLowering> GlobalLowering(
+      Ice::TargetGlobalInitLowering::createLowering(Ctx->getTargetArch(), Ctx));
+  bool DisableTranslation = Ctx->getFlags().DisableTranslation;
+  for (const Ice::GlobalAddress *Addr : GlobalAddresses) {
+    GlobalLowering->lower(*Addr, DisableTranslation);
   }
   GlobalLowering.reset();
 }

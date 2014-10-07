@@ -27,6 +27,7 @@
 #include "IceConverter.h"
 #include "IceDefs.h"
 #include "IceGlobalContext.h"
+#include "IceGlobalInits.h"
 #include "IceInst.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
@@ -45,17 +46,34 @@ template <typename T> static std::string LLVMObjectAsString(const T *O) {
   return Stream.str();
 }
 
-// Converter from LLVM to ICE. The entry point is the convertFunction method.
-//
-// Note: this currently assumes that the given IR was verified to be valid PNaCl
-// bitcode:
-// https://developers.google.com/native-client/dev/reference/pnacl-bitcode-abi
-// If not, all kinds of assertions may fire.
-//
+// Base class for converting LLVM to ICE.
 class LLVM2ICEConverter {
+  LLVM2ICEConverter(const LLVM2ICEConverter &) = delete;
+  LLVM2ICEConverter &operator=(const LLVM2ICEConverter &) = delete;
+
 public:
   LLVM2ICEConverter(Ice::GlobalContext *Ctx, LLVMContext &LLVMContext)
-      : Ctx(Ctx), Func(NULL), TypeConverter(LLVMContext) {}
+      : Ctx(Ctx), TypeConverter(LLVMContext) {}
+
+protected:
+  // Data
+  Ice::GlobalContext *Ctx;
+  const Ice::TypeConverter TypeConverter;
+};
+
+// Converter from LLVM functions to ICE. The entry point is the
+// convertFunction method.
+//
+// Note: this currently assumes that the given IR was verified to be
+// valid PNaCl bitcode. Otherwise, the behavior is undefined.
+class LLVM2ICEFunctionConverter : LLVM2ICEConverter {
+  LLVM2ICEFunctionConverter(const LLVM2ICEFunctionConverter &) = delete;
+  LLVM2ICEFunctionConverter &
+  operator=(const LLVM2ICEFunctionConverter &) = delete;
+
+public:
+  LLVM2ICEFunctionConverter(Ice::GlobalContext *Ctx, LLVMContext &LLVMContext)
+      : LLVM2ICEConverter(Ctx, LLVMContext), Func(NULL) {}
 
   // Caller is expected to delete the returned Ice::Cfg object.
   Ice::Cfg *convertFunction(const Function *F) {
@@ -91,17 +109,17 @@ public:
   // Ice::Cfg pointer.  As such, it's suitable for e.g. constructing
   // global initializers.
   Ice::Constant *convertConstant(const Constant *Const) {
-    if (const GlobalValue *GV = dyn_cast<GlobalValue>(Const)) {
+    if (const auto GV = dyn_cast<GlobalValue>(Const)) {
       return Ctx->getConstantSym(convertToIceType(GV->getType()), 0,
                                  GV->getName());
-    } else if (const ConstantInt *CI = dyn_cast<ConstantInt>(Const)) {
+    } else if (const auto CI = dyn_cast<ConstantInt>(Const)) {
       Ice::Type Ty = convertToIceType(CI->getType());
       if (Ty == Ice::IceType_i64) {
         return Ctx->getConstantInt64(Ty, CI->getSExtValue());
       } else {
         return Ctx->getConstantInt32(Ty, CI->getSExtValue());
       }
-    } else if (const ConstantFP *CFP = dyn_cast<ConstantFP>(Const)) {
+    } else if (const auto CFP = dyn_cast<ConstantFP>(Const)) {
       Ice::Type Type = convertToIceType(CFP->getType());
       if (Type == Ice::IceType_f32)
         return Ctx->getConstantFloat(CFP->getValueAPF().convertToFloat());
@@ -109,7 +127,7 @@ public:
         return Ctx->getConstantDouble(CFP->getValueAPF().convertToDouble());
       llvm_unreachable("Unexpected floating point type");
       return NULL;
-    } else if (const UndefValue *CU = dyn_cast<UndefValue>(Const)) {
+    } else if (const auto CU = dyn_cast<UndefValue>(Const)) {
       return Ctx->getConstantUndef(convertToIceType(CU->getType()));
     } else {
       llvm_unreachable("Unhandled constant type");
@@ -144,8 +162,8 @@ private:
   Ice::Type convertToIceType(Type *LLVMTy) const {
     Ice::Type IceTy = TypeConverter.convertToIceType(LLVMTy);
     if (IceTy == Ice::IceType_NUM)
-      llvm::report_fatal_error(std::string("Invalid PNaCl type ") +
-                               LLVMObjectAsString(LLVMTy));
+      report_fatal_error(std::string("Invalid PNaCl type ") +
+                         LLVMObjectAsString(LLVMTy));
     return IceTy;
   }
 
@@ -161,7 +179,7 @@ private:
   }
 
   Ice::Operand *convertValue(const Value *Op) {
-    if (const Constant *Const = dyn_cast<Constant>(Op)) {
+    if (const auto Const = dyn_cast<Constant>(Op)) {
       return convertConstant(Const);
     } else {
       return mapValueToIceVar(Op);
@@ -291,7 +309,7 @@ private:
 
   Ice::Inst *convertArithInstruction(const Instruction *Inst,
                                      Ice::InstArithmetic::OpKind Opcode) {
-    const BinaryOperator *BinOp = cast<BinaryOperator>(Inst);
+    const auto BinOp = cast<BinaryOperator>(Inst);
     Ice::Operand *Src0 = convertOperand(Inst, 0);
     Ice::Operand *Src1 = convertOperand(Inst, 1);
     Ice::Variable *Dest = mapValueToIceVar(BinOp);
@@ -509,8 +527,7 @@ private:
     Ice::InstCall *NewInst = NULL;
     const Ice::Intrinsics::FullIntrinsicInfo *Info = NULL;
 
-    if (Ice::ConstantRelocatable *Target =
-            llvm::dyn_cast<Ice::ConstantRelocatable>(CallTarget)) {
+    if (const auto Target = dyn_cast<Ice::ConstantRelocatable>(CallTarget)) {
       // Check if this direct call is to an Intrinsic (starts with "llvm.")
       static const char LLVMPrefix[] = "llvm.";
       const size_t LLVMPrefixLen = strlen(LLVMPrefix);
@@ -603,12 +620,178 @@ private:
 
 private:
   // Data
-  Ice::GlobalContext *Ctx;
   Ice::Cfg *Func;
   std::map<const Value *, Ice::Variable *> VarMap;
   std::map<const BasicBlock *, Ice::CfgNode *> NodeMap;
-  Ice::TypeConverter TypeConverter;
 };
+
+// Converter from LLVM global variables to ICE. The entry point is the
+// convertGlobalsToIce method.
+//
+// Note: this currently assumes that the given IR was verified to be
+// valid PNaCl bitcode. Othewise, the behavior is undefined.
+class LLVM2ICEGlobalsConverter : public LLVM2ICEConverter {
+  LLVM2ICEGlobalsConverter(const LLVM2ICEGlobalsConverter &) = delete;
+  LLVM2ICEGlobalsConverter &
+  operator-(const LLVM2ICEGlobalsConverter &) = delete;
+
+public:
+  LLVM2ICEGlobalsConverter(Ice::GlobalContext *Ctx, LLVMContext &LLVMContext)
+      : LLVM2ICEConverter(Ctx, LLVMContext) {}
+
+  ~LLVM2ICEGlobalsConverter() { DeleteContainerSeconds(GlobalVarAddressMap); }
+
+  /// Converts global variables, and their initializers into ICE global
+  /// addresses, for module Mod. Puts corresponding converted global
+  /// addresses into GlobalAddresses.
+  void convertGlobalsToIce(Module *Mod,
+                           Ice::Translator::GlobalAddressList &GlobalAddresses);
+
+private:
+  typedef std::map<const GlobalVariable *, Ice::GlobalAddress *>
+      GlobalVarAddressMapType;
+  // Map from global variables to their corresponding global address.
+  GlobalVarAddressMapType GlobalVarAddressMap;
+
+  // Adds the Initializer to the list of initializers for Global address.
+  void addGlobalInitializer(Ice::GlobalAddress &Global,
+                            const Constant *Initializer) {
+    const bool HasOffset = false;
+    const Ice::GlobalAddress::RelocOffsetType Offset = 0;
+    addGlobalInitializer(Global, Initializer, HasOffset, Offset);
+  }
+
+  // Adds Initializer to the list of initializers for Global
+  // address. HasOffset is true only if Initializer is a relocation
+  // initializer and Offset should be added to the relocation.
+  void addGlobalInitializer(Ice::GlobalAddress &Global,
+                            const Constant *Initializer, bool HasOffset,
+                            Ice::GlobalAddress::RelocOffsetType Offset);
+
+  // Returns the global address associated with global variable GV.
+  Ice::GlobalAddress *getGlobalVarAddress(const GlobalVariable *GV) {
+    if (GlobalVarAddressMap.find(GV) == GlobalVarAddressMap.end())
+      GlobalVarAddressMap[GV] = new Ice::GlobalAddress();
+    return GlobalVarAddressMap[GV];
+  }
+
+  // Converts the given constant C to the corresponding integer
+  // literal it contains.
+  Ice::GlobalAddress::RelocOffsetType
+  getIntegerLiteralConstant(const Value *C) {
+    const auto CI = dyn_cast<ConstantInt>(C);
+    if (CI && CI->getType()->isIntegerTy(32))
+      return CI->getSExtValue();
+
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << "Constant not i32 literal: " << *C;
+    report_fatal_error(StrBuf.str());
+    return 0;
+  }
+};
+
+void LLVM2ICEGlobalsConverter::convertGlobalsToIce(
+    Module *Mod, Ice::Translator::GlobalAddressList &GlobalAddresses) {
+  for (Module::const_global_iterator I = Mod->global_begin(),
+                                     E = Mod->global_end();
+       I != E; ++I) {
+    if (!I->hasInitializer() && Ctx->getFlags().AllowUninitializedGlobals)
+      continue;
+
+    const auto GV = dyn_cast<GlobalVariable>(I);
+    assert(GV);
+    Ice::IceString Name = GV->getName();
+    if (!GV->hasInternalLinkage()) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Can't define external global address: " << Name;
+      report_fatal_error(StrBuf.str());
+    }
+
+    Ice::GlobalAddress *Addr = getGlobalVarAddress(GV);
+    GlobalAddresses.push_back(Addr);
+    Addr->setAlignment(GV->getAlignment());
+    Addr->setIsConstant(GV->isConstant());
+    // Note: We allow external for cross tests.
+    Addr->setIsInternal(!GV->isExternallyInitialized());
+    Addr->setName(Name);
+
+    const Constant *Initializer = GV->getInitializer();
+    if (const auto CompoundInit = dyn_cast<ConstantStruct>(Initializer)) {
+      for (ConstantStruct::const_op_iterator I = CompoundInit->op_begin(),
+                                             E = CompoundInit->op_end();
+           I != E; ++I) {
+        if (const auto Init = dyn_cast<Constant>(I)) {
+          addGlobalInitializer(*Addr, Init);
+        }
+      }
+    } else {
+      addGlobalInitializer(*Addr, Initializer);
+    }
+  }
+}
+
+void LLVM2ICEGlobalsConverter::addGlobalInitializer(
+    Ice::GlobalAddress &Global, const Constant *Initializer, bool HasOffset,
+    Ice::GlobalAddress::RelocOffsetType Offset) {
+  assert(HasOffset || Offset == 0);
+
+  if (const auto CDA = dyn_cast<ConstantDataArray>(Initializer)) {
+    assert(!HasOffset && isa<IntegerType>(CDA->getElementType()) &&
+           (cast<IntegerType>(CDA->getElementType())->getBitWidth() == 8));
+    Global.addInitializer(new Ice::GlobalAddress::DataInitializer(
+        CDA->getRawDataValues().data(), CDA->getNumElements()));
+    return;
+  }
+
+  if (isa<ConstantAggregateZero>(Initializer)) {
+    if (const auto AT = dyn_cast<ArrayType>(Initializer->getType())) {
+      assert(!HasOffset && isa<IntegerType>(AT->getElementType()) &&
+             (cast<IntegerType>(AT->getElementType())->getBitWidth() == 8));
+      Global.addInitializer(
+          new Ice::GlobalAddress::ZeroInitializer(AT->getNumElements()));
+    } else {
+      llvm_unreachable("Unhandled constant aggregate zero type");
+    }
+    return;
+  }
+
+  if (const auto Exp = dyn_cast<ConstantExpr>(Initializer)) {
+    switch (Exp->getOpcode()) {
+    case Instruction::Add:
+      assert(!HasOffset);
+      addGlobalInitializer(Global, Exp->getOperand(0), true,
+                           getIntegerLiteralConstant(Exp->getOperand(1)));
+      return;
+    case Instruction::PtrToInt: {
+      assert(TypeConverter.convertToIceType(Exp->getType()) ==
+             TypeConverter.getIcePointerType());
+      const auto GV = dyn_cast<GlobalValue>(Exp->getOperand(0));
+      assert(GV);
+      if (const auto Fcn = dyn_cast<Function>(GV)) {
+        Ice::GlobalAddress::RelocationAddress Addr(Fcn);
+        Global.addInitializer(
+            new Ice::GlobalAddress::RelocInitializer(Addr, Offset));
+        return;
+      } else if (const auto Var = dyn_cast<GlobalVariable>(GV)) {
+        Ice::GlobalAddress::RelocationAddress Addr(getGlobalVarAddress(Var));
+        Global.addInitializer(
+            new Ice::GlobalAddress::RelocInitializer(Addr, Offset));
+        return;
+      }
+      break;
+    }
+    default:
+      break;
+    }
+  }
+
+  std::string Buffer;
+  raw_string_ostream StrBuf(Buffer);
+  StrBuf << "Unhandled global initializer: " << Initializer;
+  report_fatal_error(StrBuf.str());
+}
 
 } // end of anonymous namespace
 
@@ -617,9 +800,17 @@ namespace Ice {
 void Converter::convertToIce() {
   TimerMarker T(TimerStack::TT_convertToIce, Ctx);
   nameUnnamedGlobalAddresses(Mod);
+  nameUnnamedFunctions(Mod);
   if (!Ctx->getFlags().DisableGlobals)
     convertGlobals(Mod);
   convertFunctions();
+}
+
+void Converter::convertGlobals(Module *Mod) {
+  LLVM2ICEGlobalsConverter GlobalsConverter(Ctx, Mod->getContext());
+  Translator::GlobalAddressList GlobalAddresses;
+  GlobalsConverter.convertGlobalsToIce(Mod, GlobalAddresses);
+  lowerGlobals(GlobalAddresses);
 }
 
 void Converter::convertFunctions() {
@@ -627,12 +818,13 @@ void Converter::convertFunctions() {
   for (const Function &I : *Mod) {
     if (I.empty())
       continue;
+
     TimerIdT TimerID = 0;
     if (Ctx->getFlags().TimeEachFunction) {
       TimerID = Ctx->getTimerID(StackID, I.getName());
       Ctx->pushTimer(TimerID, StackID);
     }
-    LLVM2ICEConverter FunctionConverter(Ctx, Mod->getContext());
+    LLVM2ICEFunctionConverter FunctionConverter(Ctx, Mod->getContext());
 
     Cfg *Fcn = FunctionConverter.convertFunction(&I);
     translateFcn(Fcn);

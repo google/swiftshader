@@ -68,7 +68,7 @@ private:
   std::map<llvm::Type *, Type> LLVM2IceMap;
 
   // Add LLVM/ICE pair to internal tables.
-  void AddLLVMType(Type Ty, llvm::Type *LLVMTy);
+  void addLLVMType(Type Ty, llvm::Type *LLVMTy);
 
   // Converts types not in LLVM2IceMap.
   Type convertToIceTypeOther(llvm::Type *LLVMTy) const;
