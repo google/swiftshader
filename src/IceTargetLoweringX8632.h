@@ -383,8 +383,8 @@ protected:
   void _psub(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Psub::create(Func, Dest, Src0));
   }
-  void _push(Operand *Src0, bool SuppressStackAdjustment = false) {
-    Context.insert(InstX8632Push::create(Func, Src0, SuppressStackAdjustment));
+  void _push(Variable *Src0) {
+    Context.insert(InstX8632Push::create(Func, Src0));
   }
   void _pxor(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pxor::create(Func, Dest, Src0));

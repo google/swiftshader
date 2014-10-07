@@ -305,10 +305,8 @@ InstX8632Fstp::InstX8632Fstp(Cfg *Func, Variable *Dest)
 InstX8632Pop::InstX8632Pop(Cfg *Func, Variable *Dest)
     : InstX8632(Func, InstX8632::Pop, 0, Dest) {}
 
-InstX8632Push::InstX8632Push(Cfg *Func, Operand *Source,
-                             bool SuppressStackAdjustment)
-    : InstX8632(Func, InstX8632::Push, 1, NULL),
-      SuppressStackAdjustment(SuppressStackAdjustment) {
+InstX8632Push::InstX8632Push(Cfg *Func, Variable *Source)
+    : InstX8632(Func, InstX8632::Push, 1, NULL) {
   addSource(Source);
 }
 
@@ -2074,34 +2072,24 @@ void InstX8632AdjustStack::dump(const Cfg *Func) const {
 void InstX8632Push::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
-  Type Ty = getSrc(0)->getType();
-  Variable *Var = llvm::dyn_cast<Variable>(getSrc(0));
-  if ((isVectorType(Ty) || isScalarFloatingType(Ty)) && Var && Var->hasReg()) {
-    // The xmm registers can't be directly pushed, so we fake it by
-    // decrementing esp and then storing to [esp].
-    Str << "\tsub\tesp, " << typeWidthInBytes(Ty) << "\n";
-    if (!SuppressStackAdjustment)
-      Func->getTarget()->updateStackAdjustment(typeWidthInBytes(Ty));
-    if (isVectorType(Ty)) {
-      Str << "\tmovups\txmmword ptr [esp], ";
-    } else {
-      Str << "\tmov" << TypeX8632Attributes[Ty].SdSsString << "\t"
-          << TypeX8632Attributes[Ty].WidthString << " [esp], ";
-    }
-    getSrc(0)->emit(Func);
-    Str << "\n";
-  } else if (Ty == IceType_f64 && (!Var || !Var->hasReg())) {
-    // A double on the stack has to be pushed as two halves.  Push the
-    // upper half followed by the lower half for little-endian.  TODO:
-    // implement.
-    llvm_unreachable("Missing support for pushing doubles from memory");
-  } else {
-    Str << "\tpush\t";
-    getSrc(0)->emit(Func);
-    Str << "\n";
-    if (!SuppressStackAdjustment)
-      Func->getTarget()->updateStackAdjustment(4);
-  }
+  // Push is currently only used for saving GPRs.
+  Variable *Var = llvm::cast<Variable>(getSrc(0));
+  assert(Var->hasReg());
+  Str << "\tpush\t";
+  Var->emit(Func);
+  Str << "\n";
+}
+
+void InstX8632Push::emitIAS(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  // Push is currently only used for saving GPRs.
+  Variable *Var = llvm::cast<Variable>(getSrc(0));
+  assert(Var->hasReg());
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  Asm->pushl(RegX8632::getEncodedGPR(Var->getRegNum()));
+  emitIASBytes(Str, Asm, StartPosition);
 }
 
 void InstX8632Push::dump(const Cfg *Func) const {

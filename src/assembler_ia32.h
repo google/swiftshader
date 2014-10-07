@@ -408,8 +408,6 @@ public:
   static const intptr_t kCallExternalLabelSize = 5;
 
   void pushl(GPRRegister reg);
-  void pushl(const Address &address);
-  void pushl(const Immediate &imm);
 
   void popl(GPRRegister reg);
   void popl(const Address &address);

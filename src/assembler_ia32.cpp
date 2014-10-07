@@ -99,18 +99,6 @@ void AssemblerX86::pushl(GPRRegister reg) {
   EmitUint8(0x50 + reg);
 }
 
-void AssemblerX86::pushl(const Address &address) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xFF);
-  EmitOperand(6, address);
-}
-
-void AssemblerX86::pushl(const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x68);
-  EmitImmediate(BrokenType, imm);
-}
-
 void AssemblerX86::popl(GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x58 + reg);

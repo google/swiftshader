@@ -748,8 +748,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     if (CalleeSaves[i] && RegsUsed[i]) {
       ++NumCallee;
       PreservedRegsSizeBytes += 4;
-      const bool SuppressStackAdjustment = true;
-      _push(getPhysicalRegister(i), SuppressStackAdjustment);
+      _push(getPhysicalRegister(i));
     }
   }
   Ctx->statsUpdateRegistersSaved(NumCallee);
@@ -761,8 +760,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     PreservedRegsSizeBytes += 4;
     Variable *ebp = getPhysicalRegister(RegX8632::Reg_ebp);
     Variable *esp = getPhysicalRegister(RegX8632::Reg_esp);
-    const bool SuppressStackAdjustment = true;
-    _push(ebp, SuppressStackAdjustment);
+    _push(ebp);
     _mov(ebp, esp);
   }
 

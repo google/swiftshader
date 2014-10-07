@@ -1395,20 +1395,19 @@ private:
 
 class InstX8632Push : public InstX8632 {
 public:
-  static InstX8632Push *create(Cfg *Func, Operand *Source,
-                               bool SuppressStackAdjustment) {
+  static InstX8632Push *create(Cfg *Func, Variable *Source) {
     return new (Func->allocate<InstX8632Push>())
-        InstX8632Push(Func, Source, SuppressStackAdjustment);
+        InstX8632Push(Func, Source);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Push); }
 
 private:
-  InstX8632Push(Cfg *Func, Operand *Source, bool SuppressStackAdjustment);
+  InstX8632Push(Cfg *Func, Variable *Source);
   InstX8632Push(const InstX8632Push &) = delete;
   InstX8632Push &operator=(const InstX8632Push &) = delete;
-  bool SuppressStackAdjustment;
   ~InstX8632Push() override {}
 };
 
