@@ -397,6 +397,15 @@ public:
     TypedEmitXmmImm XmmImm;
   };
 
+  // Cross Xmm/GPR cast instructions.
+  template <typename DReg_t, typename SReg_t> struct CastEmitterRegOp {
+    typedef void (AssemblerX86::*TypedEmitRegs)(Type, DReg_t, SReg_t);
+    typedef void (AssemblerX86::*TypedEmitAddr)(Type, DReg_t, const Address &);
+
+    TypedEmitRegs RegReg;
+    TypedEmitAddr RegAddr;
+  };
+
   /*
    * Emit Machine Instructions.
    */
@@ -537,23 +546,22 @@ public:
   void minpd(XmmRegister dst, XmmRegister src);
   void maxpd(XmmRegister dst, XmmRegister src);
   void sqrtpd(XmmRegister dst);
-  void cvtps2pd(XmmRegister dst, XmmRegister src);
-  void cvtpd2ps(XmmRegister dst, XmmRegister src);
   void shufpd(XmmRegister dst, XmmRegister src, const Immediate &mask);
 
-  void cvtsi2ss(XmmRegister dst, GPRRegister src);
-  void cvtsi2sd(XmmRegister dst, GPRRegister src);
+  void cvtdq2ps(Type, XmmRegister dst, XmmRegister src);
+  void cvtdq2ps(Type, XmmRegister dst, const Address &src);
 
-  void cvtss2si(GPRRegister dst, XmmRegister src);
-  void cvtss2sd(XmmRegister dst, XmmRegister src);
+  void cvttps2dq(Type, XmmRegister dst, XmmRegister src);
+  void cvttps2dq(Type, XmmRegister dst, const Address &src);
 
-  void cvtsd2si(GPRRegister dst, XmmRegister src);
-  void cvtsd2ss(XmmRegister dst, XmmRegister src);
+  void cvtsi2ss(Type DestTy, XmmRegister dst, GPRRegister src);
+  void cvtsi2ss(Type DestTy, XmmRegister dst, const Address &src);
 
-  void cvttss2si(GPRRegister dst, XmmRegister src);
-  void cvttsd2si(GPRRegister dst, XmmRegister src);
+  void cvtfloat2float(Type SrcTy, XmmRegister dst, XmmRegister src);
+  void cvtfloat2float(Type SrcTy, XmmRegister dst, const Address &src);
 
-  void cvtdq2pd(XmmRegister dst, XmmRegister src);
+  void cvttss2si(Type SrcTy, GPRRegister dst, XmmRegister src);
+  void cvttss2si(Type SrcTy, GPRRegister dst, const Address &src);
 
   void ucomiss(Type Ty, XmmRegister a, XmmRegister b);
   void ucomiss(Type Ty, XmmRegister a, const Address &b);

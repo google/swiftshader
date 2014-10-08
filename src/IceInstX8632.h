@@ -1109,18 +1109,21 @@ private:
 // operand needs to be done separately.
 class InstX8632Cvt : public InstX8632 {
 public:
+  enum CvtVariant { Si2ss, Tss2si, Float2float, Dq2ps, Tps2dq };
   static InstX8632Cvt *create(Cfg *Func, Variable *Dest, Operand *Source,
-                              bool Trunc) {
+                              CvtVariant Variant) {
     return new (Func->allocate<InstX8632Cvt>())
-        InstX8632Cvt(Func, Dest, Source, Trunc);
+        InstX8632Cvt(Func, Dest, Source, Variant);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Cvt); }
+  bool isTruncating() const { return Variant == Tss2si || Variant == Tps2dq; }
 
 private:
-  bool Trunc;
-  InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source, bool Trunc);
+  CvtVariant Variant;
+  InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source, CvtVariant Variant);
   InstX8632Cvt(const InstX8632Cvt &) = delete;
   InstX8632Cvt &operator=(const InstX8632Cvt &) = delete;
   ~InstX8632Cvt() override {}

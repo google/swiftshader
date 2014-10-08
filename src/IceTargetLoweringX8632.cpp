@@ -2058,7 +2058,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
     // t1 = cvt Src0RM; Dest = t1
     Variable *T = makeReg(Dest->getType());
-    _cvt(T, Src0RM);
+    _cvt(T, Src0RM, InstX8632Cvt::Float2float);
     _mov(Dest, T);
     break;
   }
@@ -2068,7 +2068,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
              Inst->getSrc(0)->getType() == IceType_v4f32);
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       Variable *T = makeReg(Dest->getType());
-      _cvtt(T, Src0RM);
+      _cvt(T, Src0RM, InstX8632Cvt::Tps2dq);
       _movp(Dest, T);
     } else if (Dest->getType() == IceType_i64) {
       // Use a helper for converting floating-point values to 64-bit
@@ -2091,7 +2091,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
       Variable *T_1 = makeReg(IceType_i32);
       Variable *T_2 = makeReg(Dest->getType());
-      _cvtt(T_1, Src0RM);
+      _cvt(T_1, Src0RM, InstX8632Cvt::Tss2si);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
       if (Dest->getType() == IceType_i1)
         _and(T_2, Ctx->getConstantInt32(IceType_i1, 1));
@@ -2127,7 +2127,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
       Variable *T_1 = makeReg(IceType_i32);
       Variable *T_2 = makeReg(Dest->getType());
-      _cvtt(T_1, Src0RM);
+      _cvt(T_1, Src0RM, InstX8632Cvt::Tss2si);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
       if (Dest->getType() == IceType_i1)
         _and(T_2, Ctx->getConstantInt32(IceType_i1, 1));
@@ -2140,7 +2140,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
              Inst->getSrc(0)->getType() == IceType_v4i32);
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       Variable *T = makeReg(Dest->getType());
-      _cvt(T, Src0RM);
+      _cvt(T, Src0RM, InstX8632Cvt::Dq2ps);
       _movp(Dest, T);
     } else if (Inst->getSrc(0)->getType() == IceType_i64) {
       // Use a helper for x86-32.
@@ -2163,7 +2163,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
         _mov(T_1, Src0RM);
       else
         _movsx(T_1, Src0RM);
-      _cvt(T_2, T_1);
+      _cvt(T_2, T_1, InstX8632Cvt::Si2ss);
       _mov(Dest, T_2);
     }
     break;
@@ -2202,7 +2202,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
         _mov(T_1, Src0RM);
       else
         _movzx(T_1, Src0RM);
-      _cvt(T_2, T_1);
+      _cvt(T_2, T_1, InstX8632Cvt::Si2ss);
       _mov(Dest, T_2);
     }
     break;

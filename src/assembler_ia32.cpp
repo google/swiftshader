@@ -948,21 +948,6 @@ void AssemblerX86::sqrtpd(XmmRegister dst) {
   EmitXmmRegisterOperand(dst, dst);
 }
 
-void AssemblerX86::cvtps2pd(XmmRegister dst, XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x0F);
-  EmitUint8(0x5A);
-  EmitXmmRegisterOperand(dst, src);
-}
-
-void AssemblerX86::cvtpd2ps(XmmRegister dst, XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x66);
-  EmitUint8(0x0F);
-  EmitUint8(0x5A);
-  EmitXmmRegisterOperand(dst, src);
-}
-
 void AssemblerX86::shufpd(XmmRegister dst, XmmRegister src,
                           const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -974,76 +959,89 @@ void AssemblerX86::shufpd(XmmRegister dst, XmmRegister src,
   EmitUint8(imm.value());
 }
 
-void AssemblerX86::cvtsi2ss(XmmRegister dst, GPRRegister src) {
+void AssemblerX86::cvtdq2ps(Type /* Ignore */, XmmRegister dst,
+                            XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF3);
   EmitUint8(0x0F);
-  EmitUint8(0x2A);
-  EmitOperand(dst, Operand(src));
-}
-
-void AssemblerX86::cvtsi2sd(XmmRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF2);
-  EmitUint8(0x0F);
-  EmitUint8(0x2A);
-  EmitOperand(dst, Operand(src));
-}
-
-void AssemblerX86::cvtss2si(GPRRegister dst, XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF3);
-  EmitUint8(0x0F);
-  EmitUint8(0x2D);
+  EmitUint8(0x5B);
   EmitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX86::cvtss2sd(XmmRegister dst, XmmRegister src) {
+void AssemblerX86::cvtdq2ps(Type /* Ignore */, XmmRegister dst,
+                            const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x5B);
+  EmitOperand(dst, src);
+}
+
+void AssemblerX86::cvttps2dq(Type /* Ignore */, XmmRegister dst,
+                             XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
+  EmitUint8(0x0F);
+  EmitUint8(0x5B);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+void AssemblerX86::cvttps2dq(Type /* Ignore */, XmmRegister dst,
+                             const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0x0F);
+  EmitUint8(0x5B);
+  EmitOperand(dst, src);
+}
+
+void AssemblerX86::cvtsi2ss(Type DestTy, XmmRegister dst, GPRRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(isFloat32Asserting32Or64(DestTy) ? 0xF3 : 0xF2);
+  EmitUint8(0x0F);
+  EmitUint8(0x2A);
+  EmitRegisterOperand(dst, src);
+}
+
+void AssemblerX86::cvtsi2ss(Type DestTy, XmmRegister dst, const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(isFloat32Asserting32Or64(DestTy) ? 0xF3 : 0xF2);
+  EmitUint8(0x0F);
+  EmitUint8(0x2A);
+  EmitOperand(dst, src);
+}
+
+void AssemblerX86::cvtfloat2float(Type SrcTy, XmmRegister dst,
+                                  XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  // ss2sd or sd2ss
+  EmitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
   EmitUint8(0x0F);
   EmitUint8(0x5A);
   EmitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX86::cvtsd2si(GPRRegister dst, XmmRegister src) {
+void AssemblerX86::cvtfloat2float(Type SrcTy, XmmRegister dst,
+                                  const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF2);
-  EmitUint8(0x0F);
-  EmitUint8(0x2D);
-  EmitXmmRegisterOperand(dst, src);
-}
-
-void AssemblerX86::cvttss2si(GPRRegister dst, XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF3);
-  EmitUint8(0x0F);
-  EmitUint8(0x2C);
-  EmitXmmRegisterOperand(dst, src);
-}
-
-void AssemblerX86::cvttsd2si(GPRRegister dst, XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF2);
-  EmitUint8(0x0F);
-  EmitUint8(0x2C);
-  EmitXmmRegisterOperand(dst, src);
-}
-
-void AssemblerX86::cvtsd2ss(XmmRegister dst, XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF2);
+  EmitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
   EmitUint8(0x0F);
   EmitUint8(0x5A);
+  EmitOperand(dst, src);
+}
+
+void AssemblerX86::cvttss2si(Type SrcTy, GPRRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
+  EmitUint8(0x0F);
+  EmitUint8(0x2C);
   EmitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX86::cvtdq2pd(XmmRegister dst, XmmRegister src) {
+void AssemblerX86::cvttss2si(Type SrcTy, GPRRegister dst, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF3);
+  EmitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
   EmitUint8(0x0F);
-  EmitUint8(0xE6);
-  EmitXmmRegisterOperand(dst, src);
+  EmitUint8(0x2C);
+  EmitOperand(dst, src);
 }
 
 void AssemblerX86::ucomiss(Type Ty, XmmRegister a, XmmRegister b) {

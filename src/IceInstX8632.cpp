@@ -230,8 +230,8 @@ InstX8632Cmpxchg8b::InstX8632Cmpxchg8b(Cfg *Func, OperandX8632Mem *Addr,
 }
 
 InstX8632Cvt::InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source,
-                           bool Trunc)
-    : InstX8632(Func, InstX8632::Cvt, 1, Dest), Trunc(Trunc) {
+                           CvtVariant Variant)
+    : InstX8632(Func, InstX8632::Cvt, 1, Dest), Variant(Variant) {
   addSource(Source);
 }
 
@@ -640,6 +640,35 @@ void emitIASRegOpTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
   } else if (const Constant *Imm = llvm::dyn_cast<Constant>(Src)) {
     (Asm->*(Emitter.XmmAddr))(
         Ty, VarReg, x86::Address::ofConstPool(Func->getContext(), Asm, Imm));
+  } else {
+    llvm_unreachable("Unexpected operand type");
+  }
+  Ostream &Str = Func->getContext()->getStrEmit();
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
+template <typename DReg_t, typename SReg_t, DReg_t (*destEnc)(int32_t),
+          SReg_t (*srcEnc)(int32_t)>
+void emitIASCastRegOp(
+    const Cfg *Func, Type DispatchTy, const Variable *Dest, const Operand *Src,
+    const x86::AssemblerX86::CastEmitterRegOp<DReg_t, SReg_t> Emitter) {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  assert(Dest->hasReg());
+  DReg_t DestReg = destEnc(Dest->getRegNum());
+  if (const Variable *SrcVar = llvm::dyn_cast<Variable>(Src)) {
+    if (SrcVar->hasReg()) {
+      SReg_t SrcReg = srcEnc(SrcVar->getRegNum());
+      (Asm->*(Emitter.RegReg))(DispatchTy, DestReg, SrcReg);
+    } else {
+      x86::Address SrcStackAddr = static_cast<TargetX8632 *>(Func->getTarget())
+                                      ->stackVarToAsmOperand(SrcVar);
+      (Asm->*(Emitter.RegAddr))(DispatchTy, DestReg, SrcStackAddr);
+    }
+  } else if (const OperandX8632Mem *Mem =
+                 llvm::dyn_cast<OperandX8632Mem>(Src)) {
+    x86::Address SrcAddr = Mem->toAsmAddress(Asm);
+    (Asm->*(Emitter.RegAddr))(DispatchTy, DestReg, SrcAddr);
   } else {
     llvm_unreachable("Unexpected operand type");
   }
@@ -1407,7 +1436,7 @@ void InstX8632Cvt::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   Str << "\tcvt";
-  if (Trunc)
+  if (isTruncating())
     Str << "t";
   Str << TypeX8632Attributes[getSrc(0)->getType()].CvtString << "2"
       << TypeX8632Attributes[getDest()->getType()].CvtString << "\t";
@@ -1417,11 +1446,70 @@ void InstX8632Cvt::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
+void InstX8632Cvt::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  const Variable *Dest = getDest();
+  const Operand *Src = getSrc(0);
+  Type DestTy = Dest->getType();
+  Type SrcTy = Src->getType();
+  switch (Variant) {
+  case Si2ss: {
+    assert(isScalarIntegerType(SrcTy));
+    assert(typeWidthInBytes(SrcTy) <= 4);
+    assert(isScalarFloatingType(DestTy));
+    static const x86::AssemblerX86::CastEmitterRegOp<
+        RegX8632::XmmRegister, RegX8632::GPRRegister> Emitter = {
+        &x86::AssemblerX86::cvtsi2ss, &x86::AssemblerX86::cvtsi2ss};
+    emitIASCastRegOp<RegX8632::XmmRegister, RegX8632::GPRRegister,
+                     RegX8632::getEncodedXmm, RegX8632::getEncodedGPR>(
+        Func, DestTy, Dest, Src, Emitter);
+    return;
+  }
+  case Tss2si: {
+    assert(isScalarFloatingType(SrcTy));
+    assert(isScalarIntegerType(DestTy));
+    assert(typeWidthInBytes(DestTy) <= 4);
+    static const x86::AssemblerX86::CastEmitterRegOp<
+        RegX8632::GPRRegister, RegX8632::XmmRegister> Emitter = {
+        &x86::AssemblerX86::cvttss2si, &x86::AssemblerX86::cvttss2si};
+    emitIASCastRegOp<RegX8632::GPRRegister, RegX8632::XmmRegister,
+                     RegX8632::getEncodedGPR, RegX8632::getEncodedXmm>(
+        Func, SrcTy, Dest, Src, Emitter);
+    return;
+  }
+  case Float2float: {
+    assert(isScalarFloatingType(SrcTy));
+    assert(isScalarFloatingType(DestTy));
+    assert(DestTy != SrcTy);
+    static const x86::AssemblerX86::XmmEmitterRegOp Emitter = {
+        &x86::AssemblerX86::cvtfloat2float, &x86::AssemblerX86::cvtfloat2float};
+    emitIASRegOpTyXMM(Func, SrcTy, Dest, Src, Emitter);
+    return;
+  }
+  case Dq2ps: {
+    assert(isVectorIntegerType(SrcTy));
+    assert(isVectorFloatingType(DestTy));
+    static const x86::AssemblerX86::XmmEmitterRegOp Emitter = {
+        &x86::AssemblerX86::cvtdq2ps, &x86::AssemblerX86::cvtdq2ps};
+    emitIASRegOpTyXMM(Func, DestTy, Dest, Src, Emitter);
+    return;
+  }
+  case Tps2dq: {
+    assert(isVectorFloatingType(SrcTy));
+    assert(isVectorIntegerType(DestTy));
+    static const x86::AssemblerX86::XmmEmitterRegOp Emitter = {
+        &x86::AssemblerX86::cvttps2dq, &x86::AssemblerX86::cvttps2dq};
+    emitIASRegOpTyXMM(Func, DestTy, Dest, Src, Emitter);
+    return;
+  }
+  }
+}
+
 void InstX8632Cvt::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = cvt";
-  if (Trunc)
+  if (isTruncating())
     Str << "t";
   Str << TypeX8632Attributes[getSrc(0)->getType()].CvtString << "2"
       << TypeX8632Attributes[getDest()->getType()].CvtString << " ";
