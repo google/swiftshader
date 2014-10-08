@@ -46,6 +46,114 @@ static cl::opt<bool> AllowErrorRecovery(
     cl::desc("Allow error recovery when reading PNaCl bitcode."),
     cl::init(false));
 
+// Models elements in the list of types defined in the types block.
+// These elements can be undefined, a (simple) type, or a function type
+// signature. Note that an extended type is undefined on construction.
+// Use methods setAsSimpleType and setAsFuncSigType to define
+// the extended type.
+class ExtendedType {
+  // ExtendedType(const ExtendedType &Ty) = delete;
+  ExtendedType &operator=(const ExtendedType &Ty) = delete;
+public:
+  /// Discriminator for LLVM-style RTTI.
+  enum TypeKind { Undefined, Simple, FuncSig };
+
+  ExtendedType() : Kind(Undefined) {}
+
+  virtual ~ExtendedType() {}
+
+  ExtendedType::TypeKind getKind() const { return Kind; }
+  void Dump(Ice::Ostream &Stream) const;
+
+  /// Changes the extended type to a simple type with the given
+  /// value.
+  void setAsSimpleType(Ice::Type Ty) {
+    assert(Kind == Undefined);
+    Kind = Simple;
+    Signature.setReturnType(Ty);
+  }
+
+  /// Changes the extended type to an (empty) function signature type.
+  void setAsFunctionType() {
+    assert(Kind == Undefined);
+    Kind = FuncSig;
+  }
+
+protected:
+  // Note: For simple types, the return type of the signature will
+  // be used to hold the simple type.
+  Ice::FuncSigType Signature;
+
+private:
+  ExtendedType::TypeKind Kind;
+};
+
+Ice::Ostream &operator<<(Ice::Ostream &Stream, const ExtendedType &Ty) {
+  Ty.Dump(Stream);
+  return Stream;
+}
+
+Ice::Ostream &operator<<(Ice::Ostream &Stream, ExtendedType::TypeKind Kind) {
+  Stream << "ExtendedType::";
+  switch (Kind) {
+  case ExtendedType::Undefined:
+    Stream << "Undefined";
+    break;
+  case ExtendedType::Simple:
+    Stream << "Simple";
+    break;
+  case ExtendedType::FuncSig:
+    Stream << "FuncSig";
+    break;
+  default:
+    Stream << "??";
+    break;
+  }
+  return Stream;
+}
+
+// Models an ICE type as an extended type.
+class SimpleExtendedType : public ExtendedType {
+  SimpleExtendedType(const SimpleExtendedType &) = delete;
+  SimpleExtendedType &operator=(const SimpleExtendedType &) = delete;
+public:
+  Ice::Type getType() const { return Signature.getReturnType(); }
+
+  static bool classof(const ExtendedType *Ty) {
+    return Ty->getKind() == Simple;
+  }
+};
+
+// Models a function signature as an extended type.
+class FuncSigExtendedType : public ExtendedType {
+  FuncSigExtendedType(const FuncSigExtendedType &) = delete;
+  FuncSigExtendedType &operator=(const FuncSigExtendedType &) = delete;
+public:
+  const Ice::FuncSigType &getSignature() const { return Signature; }
+  void setReturnType(Ice::Type ReturnType) {
+    Signature.setReturnType(ReturnType);
+  }
+  void appendArgType(Ice::Type ArgType) { Signature.appendArgType(ArgType); }
+  static bool classof(const ExtendedType *Ty) {
+    return Ty->getKind() == FuncSig;
+  }
+};
+
+void ExtendedType::Dump(Ice::Ostream &Stream) const {
+  Stream << Kind;
+  switch (Kind) {
+  case Simple: {
+    Stream << " " << Signature.getReturnType();
+    break;
+  }
+  case FuncSig: {
+    Stream << " " << Signature;
+  }
+  default:
+    break;
+  }
+}
+
 // Top-level class to read PNaCl bitcode files, and translate to ICE.
 class TopLevelParser : public NaClBitcodeParser {
   TopLevelParser(const TopLevelParser &) = delete;
@@ -96,23 +204,35 @@ public:
   /// Changes the size of the type list to the given size.
   void resizeTypeIDValues(unsigned NewSize) { TypeIDValues.resize(NewSize); }
 
-  /// Returns the type associated with the given index.
-  Type *getTypeByID(unsigned ID) {
-    // Note: method resizeTypeIDValues expands TypeIDValues
-    // to the specified size, and fills elements with nullptr.
-    Type *Ty = ID < TypeIDValues.size() ? TypeIDValues[ID] : nullptr;
+  /// Returns the undefined type associated with type ID.
+  /// Note: Returns extended type ready to be defined.
+  ExtendedType *getTypeByIDForDefining(unsigned ID) {
+    // Get corresponding element, verifying the value is still undefined
+    // (and hence allowed to be defined).
+    ExtendedType *Ty = getTypeByIDAsKind(ID, ExtendedType::Undefined);
     if (Ty)
       return Ty;
-    return reportTypeIDAsUndefined(ID);
+    if (ID >= TypeIDValues.size())
+      TypeIDValues.resize(ID+1);
+    return &TypeIDValues[ID];
   }
 
-  /// Defines type for ID.
-  void setTypeID(unsigned ID, Type *Ty) {
-    if (ID < TypeIDValues.size() && TypeIDValues[ID] == nullptr) {
-      TypeIDValues[ID] = Ty;
-      return;
-    }
-    reportBadSetTypeID(ID, Ty);
+  /// Returns the type associated with the given index.
+  Ice::Type getSimpleTypeByID(unsigned ID) {
+    const ExtendedType *Ty = getTypeByIDAsKind(ID, ExtendedType::Simple);
+    if (Ty == nullptr)
+      // Return error recovery value.
+      return Ice::IceType_void;
+    return cast<SimpleExtendedType>(Ty)->getType();
+  }
+
+  /// Returns the type signature associated with the given index.
+  const Ice::FuncSigType &getFuncSigTypeByID(unsigned ID) {
+    const ExtendedType *Ty = getTypeByIDAsKind(ID, ExtendedType::FuncSig);
+    if (Ty == nullptr)
+      // Return error recovery value.
+      return UndefinedFuncSigType;
+    return cast<FuncSigExtendedType>(Ty)->getSignature();
   }
 
   /// Sets the next function ID to the given LLVM function.
@@ -137,7 +257,7 @@ public:
     return DefiningFunctionsList[NumFunctionBlocks++];
   }
 
-  /// Returns the LLVM IR value associatd with the global value ID.
+  /// Returns the LLVM Function address associated with ID.
   Function *getFunctionByID(unsigned ID) const {
     if (ID >= FunctionIDValues.size())
       return nullptr;
@@ -241,18 +361,6 @@ public:
     return TypeConverter.convertToLLVMType(IceTy);
   }
 
-  /// Returns the LLVM integer type with the given number of Bits.  If
-  /// Bits is not a valid PNaCl type, returns nullptr.
-  Type *getLLVMIntegerType(unsigned Bits) const {
-    return TypeConverter.getLLVMIntegerType(Bits);
-  }
-
-  /// Returns the LLVM vector with the given Size and Ty. If not a
-  /// valid PNaCl vector type, returns nullptr.
-  Type *getLLVMVectorType(unsigned Size, Ice::Type Ty) const {
-    return TypeConverter.getLLVMVectorType(Size, Ty);
-  }
-
   /// Returns the model for pointer types in ICE.
   Ice::Type getIcePointerType() const {
     return TypeConverter.getIcePointerType();
@@ -274,7 +382,7 @@ private:
   // The number of errors reported.
   unsigned NumErrors;
   // The types associated with each type ID.
-  std::vector<Type *> TypeIDValues;
+  std::vector<ExtendedType> TypeIDValues;
   // The set of function value IDs.
   std::vector<WeakVH> FunctionIDValues;
   // The set of global addresses IDs.
@@ -289,43 +397,45 @@ private:
   // The list of value IDs (in the order found) of defining function
   // addresses.
   std::vector<unsigned> DefiningFunctionsList;
+  // Error recovery value to use when getFuncSigTypeByID fails.
+  Ice::FuncSigType UndefinedFuncSigType;
 
   bool ParseBlock(unsigned BlockID) override;
 
-  /// Reports that type ID is undefined, and then returns
-  /// the void type.
-  Type *reportTypeIDAsUndefined(unsigned ID);
+  // Gets extended type associated with the given index, assuming the
+  // extended type is of the WantedKind. Generates error message if
+  // corresponding extended type of WantedKind can't be found, and
+  // returns nullptr.
+  ExtendedType *getTypeByIDAsKind(unsigned ID,
+                                  ExtendedType::TypeKind WantedKind) {
+    ExtendedType *Ty = nullptr;
+    if (ID < TypeIDValues.size()) {
+      Ty = &TypeIDValues[ID];
+      if (Ty->getKind() == WantedKind)
+        return Ty;
+    }
+    // Generate an error message and set ErrorStatus.
+    this->reportBadTypeIDAs(ID, Ty, WantedKind);
+    return nullptr;
+  }
 
-  /// Reports error about bad call to setTypeID.
-  void reportBadSetTypeID(unsigned ID, Type *Ty);
+  // Reports that type ID is undefined, or not of the WantedType.
+  void reportBadTypeIDAs(unsigned ID, const ExtendedType *Ty,
+                         ExtendedType::TypeKind WantedType);
 
   // Reports that there is no corresponding ICE type for LLVMTy, and
   // returns ICE::IceType_void.
   Ice::Type convertToIceTypeError(Type *LLVMTy);
 };
 
-Type *TopLevelParser::reportTypeIDAsUndefined(unsigned ID) {
+void TopLevelParser::reportBadTypeIDAs(unsigned ID, const ExtendedType *Ty,
+                                       ExtendedType::TypeKind WantedType) {
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
-  StrBuf << "Can't find type for type id: " << ID;
-  Error(StrBuf.str());
-  // TODO(kschimpf) Remove error recovery once implementation complete.
-  Type *Ty = TypeConverter.convertToLLVMType(Ice::IceType_void);
-  // To reduce error messages, update type list if possible.
-  if (ID < TypeIDValues.size())
-    TypeIDValues[ID] = Ty;
-  return Ty;
-}
-
-void TopLevelParser::reportBadSetTypeID(unsigned ID, Type *Ty) {
-  std::string Buffer;
-  raw_string_ostream StrBuf(Buffer);
-  if (ID >= TypeIDValues.size()) {
-    StrBuf << "Type index " << ID << " out of range: can't install.";
+  if (Ty == nullptr) {
+    StrBuf << "Can't find extended type for type id: " << ID;
   } else {
-    // Must be case that index already defined.
-    StrBuf << "Type index " << ID << " defined as " << *TypeIDValues[ID]
-           << " and " << *Ty << ".";
+    StrBuf << "Type id " << ID << " not " << WantedType << ". Found: " << *Ty;
   }
   Error(StrBuf.str());
 }
@@ -482,10 +592,13 @@ private:
   unsigned NextTypeId;
 
   void ProcessRecord() override;
+
+  void setNextTypeIDAsSimpleType(Ice::Type Ty) {
+    Context->getTypeByIDForDefining(NextTypeId++)->setAsSimpleType(Ty);
+  }
 };
 
 void TypesParser::ProcessRecord() {
-  Type *Ty = nullptr;
   const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
   switch (Record.GetCode()) {
   case naclbitc::TYPE_CODE_NUMENTRY:
@@ -498,71 +611,140 @@ void TypesParser::ProcessRecord() {
     // VOID
     if (!isValidRecordSize(0, "Type void"))
       return;
-    Ty = Context->convertToLLVMType(Ice::IceType_void);
-    break;
+    setNextTypeIDAsSimpleType(Ice::IceType_void);
+    return;
   case naclbitc::TYPE_CODE_FLOAT:
     // FLOAT
     if (!isValidRecordSize(0, "Type float"))
       return;
-    Ty = Context->convertToLLVMType(Ice::IceType_f32);
-    break;
+    setNextTypeIDAsSimpleType(Ice::IceType_f32);
+    return;
   case naclbitc::TYPE_CODE_DOUBLE:
     // DOUBLE
     if (!isValidRecordSize(0, "Type double"))
       return;
-    Ty = Context->convertToLLVMType(Ice::IceType_f64);
-    break;
+    setNextTypeIDAsSimpleType(Ice::IceType_f64);
+    return;
   case naclbitc::TYPE_CODE_INTEGER:
     // INTEGER: [width]
     if (!isValidRecordSize(1, "Type integer"))
       return;
-    Ty = Context->getLLVMIntegerType(Values[0]);
-    if (Ty == nullptr) {
+    switch (Values[0]) {
+    case 1:
+      setNextTypeIDAsSimpleType(Ice::IceType_i1);
+      return;
+    case 8:
+      setNextTypeIDAsSimpleType(Ice::IceType_i8);
+      return;
+    case 16:
+      setNextTypeIDAsSimpleType(Ice::IceType_i16);
+      return;
+    case 32:
+      setNextTypeIDAsSimpleType(Ice::IceType_i32);
+      return;
+    case 64:
+      setNextTypeIDAsSimpleType(Ice::IceType_i64);
+      return;
+    default:
+      break;
+    }
+    {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Type integer record with invalid bitsize: " << Values[0];
       Error(StrBuf.str());
-      // TODO(kschimpf) Remove error recovery once implementation complete.
-      // Fix type so that we can continue.
-      Ty = Context->convertToLLVMType(Ice::IceType_i32);
     }
-    break;
+    return;
   case naclbitc::TYPE_CODE_VECTOR: {
     // VECTOR: [numelts, eltty]
     if (!isValidRecordSize(2, "Type vector"))
       return;
-    Type *BaseTy = Context->getTypeByID(Values[1]);
-    Ty = Context->getLLVMVectorType(Values[0],
-                                    Context->convertToIceType(BaseTy));
-    if (Ty == nullptr) {
+    Ice::Type BaseTy = Context->getSimpleTypeByID(Values[1]);
+    Ice::SizeT Size = Values[0];
+    switch (BaseTy) {
+    case Ice::IceType_i1:
+      switch (Size) {
+      case 4:
+        setNextTypeIDAsSimpleType(Ice::IceType_v4i1);
+        return;
+      case 8:
+        setNextTypeIDAsSimpleType(Ice::IceType_v8i1);
+        return;
+      case 16:
+        setNextTypeIDAsSimpleType(Ice::IceType_v16i1);
+        return;
+      default:
+        break;
+      }
+      break;
+    case Ice::IceType_i8:
+      if (Size == 16) {
+        setNextTypeIDAsSimpleType(Ice::IceType_v16i8);
+        return;
+      }
+      break;
+    case Ice::IceType_i16:
+      if (Size == 8) {
+        setNextTypeIDAsSimpleType(Ice::IceType_v8i16);
+        return;
+      }
+      break;
+    case Ice::IceType_i32:
+      if (Size == 4) {
+        setNextTypeIDAsSimpleType(Ice::IceType_v4i32);
+        return;
+      }
+      break;
+    case Ice::IceType_f32:
+      if (Size == 4) {
+        setNextTypeIDAsSimpleType(Ice::IceType_v4f32);
+        return;
+      }
+      break;
+    default:
+      break;
+    }
+    {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Invalid type vector record: <" << Values[0] << " x " << *BaseTy
+      StrBuf << "Invalid type vector record: <" << Values[0] << " x " << BaseTy
              << ">";
       Error(StrBuf.str());
-      Ty = Context->convertToLLVMType(Ice::IceType_void);
     }
-    break;
+    return;
   }
   case naclbitc::TYPE_CODE_FUNCTION: {
     // FUNCTION: [vararg, retty, paramty x N]
     if (!isValidRecordSizeAtLeast(2, "Type signature"))
       return;
-    SmallVector<Type *, 8> ArgTys;
+    if (Values[0])
+      Error("Function type can't define varargs");
+    ExtendedType *Ty = Context->getTypeByIDForDefining(NextTypeId++);
+    Ty->setAsFunctionType();
+    FuncSigExtendedType *FuncTy = cast<FuncSigExtendedType>(Ty);
+    FuncTy->setReturnType(Context->getSimpleTypeByID(Values[1]));
     for (unsigned i = 2, e = Values.size(); i != e; ++i) {
-      ArgTys.push_back(Context->getTypeByID(Values[i]));
+      // Check that type void not used as argument type.
+      // Note: PNaCl restrictions can't be checked until we
+      // know the name, because we have to check for intrinsic signatures.
+      Ice::Type ArgTy = Context->getSimpleTypeByID(Values[i]);
+      if (ArgTy == Ice::IceType_void) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Type for parameter " << (i - 1)
+               << " not valid. Found: " << ArgTy;
+        // TODO(kschimpf) Remove error recovery once implementation complete.
+        ArgTy = Ice::IceType_i32;
+      }
+      FuncTy->appendArgType(ArgTy);
     }
-    Ty = FunctionType::get(Context->getTypeByID(Values[1]), ArgTys, Values[0]);
-    break;
+    return;
   }
   default:
     BlockParserBaseClass::ProcessRecord();
     return;
   }
-  // If Ty not defined, assume error. Use void as filler.
-  if (Ty == nullptr)
-    Ty = Context->convertToLLVMType(Ice::IceType_void);
-  Context->setTypeID(NextTypeId++, Ty);
+  llvm_unreachable("Unknown type block record not processed!");
 }
 
 /// Parses the globals block (i.e. global variables).
@@ -1427,7 +1609,7 @@ void FunctionParser::ProcessRecord() {
     if (!isValidRecordSize(3, "function block cast"))
       return;
     Ice::Operand *Src = getRelativeOperand(Values[0], BaseIndex);
-    Type *CastType = Context->getTypeByID(Values[1]);
+    Ice::Type CastType = Context->getSimpleTypeByID(Values[1]);
     Instruction::CastOps LLVMCastOp;
     Ice::InstCast::OpKind CastKind;
     if (!naclbitc::DecodeCastOpcode(Values[2], LLVMCastOp) ||
@@ -1438,18 +1620,18 @@ void FunctionParser::ProcessRecord() {
       Error(StrBuf.str());
       return;
     }
-    Type *SrcType = Context->convertToLLVMType(Src->getType());
-    if (!CastInst::castIsValid(LLVMCastOp, SrcType, CastType)) {
+    Ice::Type SrcType = Src->getType();
+    if (!CastInst::castIsValid(LLVMCastOp, Context->convertToLLVMType(SrcType),
+                               Context->convertToLLVMType(CastType))) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Illegal cast: " << Instruction::getOpcodeName(LLVMCastOp)
-             << " " << *SrcType << " to " << *CastType;
+             << " " << SrcType << " to " << CastType;
       Error(StrBuf.str());
       return;
     }
-    CurrentNode->appendInst(Ice::InstCast::create(
-        Func, CastKind, getNextInstVar(Context->convertToIceType(CastType)),
-        Src));
+    CurrentNode->appendInst(
+        Ice::InstCast::create(Func, CastKind, getNextInstVar(CastType), Src));
     break;
   }
   case naclbitc::FUNC_CODE_INST_VSELECT: {
@@ -1669,8 +1851,7 @@ void FunctionParser::ProcessRecord() {
     // already frozen when the problem was noticed.
     if (!isValidRecordSizeAtLeast(4, "function block switch"))
       return;
-    Ice::Type CondTy =
-        Context->convertToIceType(Context->getTypeByID(Values[0]));
+    Ice::Type CondTy = Context->getSimpleTypeByID(Values[0]);
     if (!Ice::isScalarIntegerType(CondTy)) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
@@ -1738,7 +1919,7 @@ void FunctionParser::ProcessRecord() {
       Error(StrBuf.str());
       return;
     }
-    Ice::Type Ty = Context->convertToIceType(Context->getTypeByID(Values[0]));
+    Ice::Type Ty = Context->getSimpleTypeByID(Values[0]);
     if (Ty == Ice::IceType_void) {
       Error("Phi record using type void not allowed");
       return;
@@ -1789,7 +1970,7 @@ void FunctionParser::ProcessRecord() {
       return;
     unsigned Alignment;
     extractAlignment("Load", Values[1], Alignment);
-    Ice::Type Ty = Context->convertToIceType(Context->getTypeByID(Values[2]));
+    Ice::Type Ty = Context->getSimpleTypeByID(Values[2]);
     if (!isValidLoadStoreAlignment(Alignment, Ty, "Load"))
       return;
     CurrentNode->appendInst(
@@ -1881,7 +2062,7 @@ void FunctionParser::ProcessRecord() {
         }
       }
     } else {
-      ReturnType = Context->convertToIceType(Context->getTypeByID(Values[2]));
+      ReturnType = Context->getSimpleTypeByID(Values[2]);
     }
 
     // Create the call instruction.
@@ -1953,8 +2134,7 @@ void FunctionParser::ProcessRecord() {
     // FORWARDTYPEREF: [opval, ty]
     if (!isValidRecordSize(2, "function block forward type ref"))
       return;
-    setOperand(Values[0], createInstVar(Context->convertToIceType(
-                              Context->getTypeByID(Values[1]))));
+    setOperand(Values[0], createInstVar(Context->getSimpleTypeByID(Values[1])));
     break;
   }
   default:
@@ -2003,8 +2183,7 @@ void ConstantsParser::ProcessRecord() {
     // SETTYPE: [typeid]
     if (!isValidRecordSize(1, "constants block set type"))
       return;
-    NextConstantType =
-        Context->convertToIceType(Context->getTypeByID(Values[0]));
+    NextConstantType = Context->getSimpleTypeByID(Values[0]);
     if (NextConstantType == Ice::IceType_void)
       Error("constants block set type not allowed for void type");
     return;
@@ -2298,15 +2477,7 @@ void ModuleParser::ProcessRecord() {
     // FUNCTION:  [type, callingconv, isproto, linkage]
     if (!isValidRecordSize(4, "Function heading"))
       return;
-    Type *Ty = Context->getTypeByID(Values[0]);
-    FunctionType *FTy = dyn_cast<FunctionType>(Ty);
-    if (FTy == nullptr) {
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Function heading expects function type. Found: " << Ty;
-      Error(StrBuf.str());
-      return;
-    }
+    const Ice::FuncSigType &Ty = Context->getFuncSigTypeByID(Values[0]);
     CallingConv::ID CallingConv;
     if (!naclbitc::DecodeCallingConv(Values[1], CallingConv)) {
       std::string Buffer;
@@ -2324,7 +2495,14 @@ void ModuleParser::ProcessRecord() {
       Error(StrBuf.str());
       return;
     }
-    Function *Func = Function::Create(FTy, Linkage, "", Context->getModule());
+    SmallVector<Type *, 8> ArgTys;
+    for (Ice::Type ArgType : Ty.getArgList()) {
+      ArgTys.push_back(Context->convertToLLVMType(ArgType));
+    }
+    Function *Func = Function::Create(
+        FunctionType::get(Context->convertToLLVMType(Ty.getReturnType()),
+                          ArgTys, false),
+        Linkage, "", Context->getModule());
     Func->setCallingConv(CallingConv);
     if (Values[2] == 0)
       Context->setNextValueIDAsImplementedFunction();

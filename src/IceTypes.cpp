@@ -230,7 +230,7 @@ Type getCompareResultType(Type Ty) {
 
 SizeT getScalarIntBitWidth(Type Ty) {
   assert(isScalarIntegerType(Ty));
-  if (Ty == Ice::IceType_i1)
+  if (Ty == IceType_i1)
     return 1;
   return typeWidthInBytes(Ty) * CHAR_BIT;
 }
@@ -243,6 +243,20 @@ const char *typeString(Type Ty) {
     return TypeAttributes[Index].DisplayString;
   llvm_unreachable("Invalid type for typeString");
   return "???";
+}
+
+void FuncSigType::dump(Ostream &Stream) const {
+  Stream << ReturnType << " (";
+  bool IsFirst = true;
+  for (const Type ArgTy : ArgList) {
+    if (IsFirst) {
+      IsFirst = false;
+    } else {
+      Stream << ", ";
+    }
+    Stream << ArgTy;
+  }
+  Stream << ")";
 }
 
 } // end of namespace Ice

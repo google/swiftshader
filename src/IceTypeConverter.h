@@ -53,14 +53,6 @@ public:
   /// Returns ICE model of pointer type.
   Type getIcePointerType() const { return IceType_i32; }
 
-  /// Returns LLVM integer type with specified number of bits. Returns
-  /// NULL if not a valid PNaCl integer type.
-  llvm::Type *getLLVMIntegerType(unsigned NumBits) const;
-
-  /// Returns the LLVM vector type for Size and Ty arguments. Returns
-  /// NULL if not a valid PNaCl vector type.
-  llvm::Type *getLLVMVectorType(unsigned Size, Type Ty) const;
-
 private:
   // The list of allowable LLVM types. Indexed by ICE type.
   std::vector<llvm::Type *> LLVMTypes;

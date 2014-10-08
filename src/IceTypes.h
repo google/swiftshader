@@ -103,6 +103,43 @@ inline StreamType &operator<<(StreamType &Str, const Type &Ty) {
   return Str;
 }
 
+/// Models a type signature for a function.
+/// TODO(kschimpf): Consider using arena memory allocation for
+/// the contents of type signatures.
+class FuncSigType {
+  // FuncSigType(const FuncSigType &Ty) = delete;
+  FuncSigType &operator=(const FuncSigType &Ty) = delete;
+public:
+  typedef std::vector<Type> ArgListType;
+
+  // Creates a function signature type with the given return type.
+  // Parameter types should be added using calls to appendArgType.
+  FuncSigType() : ReturnType(IceType_void) {}
+
+  void appendArgType(Type ArgType) { ArgList.push_back(ArgType); }
+
+  Type getReturnType() const { return ReturnType; }
+  void setReturnType(Type NewType) { ReturnType = NewType; }
+  SizeT getNumArgs() const { return ArgList.size(); }
+  Type getArgType(SizeT Index) const {
+    assert(Index < ArgList.size());
+    return ArgList[Index];
+  }
+  const ArgListType &getArgList() const { return ArgList; }
+  void dump(Ostream &Stream) const;
+
+private:
+  // The return type.
+  Type ReturnType;
+  // The list of parameters.
+  ArgListType ArgList;
+};
+
+inline Ostream &operator<<(Ostream &Stream, const FuncSigType &Sig) {
+  Sig.dump(Stream);
+  return Stream;
+}
+
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICETYPES_H
