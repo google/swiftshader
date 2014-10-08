@@ -30,6 +30,7 @@
   X(initUnhandled)         \
   X(linearScan)            \
   X(liveRange)             \
+  X(liveRangeCtor)         \
   X(liveness)              \
   X(livenessLightweight)   \
   X(llvmConvert)           \

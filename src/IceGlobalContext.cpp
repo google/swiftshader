@@ -407,6 +407,17 @@ void GlobalContext::popTimer(TimerIdT ID, TimerStackIdT StackID) {
   Timers[StackID].pop(ID);
 }
 
+void GlobalContext::resetTimer(TimerStackIdT StackID) {
+  assert(StackID < Timers.size());
+  Timers[StackID].reset();
+}
+
+void GlobalContext::setTimerName(TimerStackIdT StackID,
+                                 const IceString &NewName) {
+  assert(StackID < Timers.size());
+  Timers[StackID].setName(NewName);
+}
+
 void GlobalContext::dumpStats(const IceString &Name, bool Final) {
   if (Flags.DumpStats) {
     if (Final) {

@@ -71,8 +71,11 @@ void Cfg::translate() {
     return;
   VerboseMask OldVerboseMask = getContext()->getVerbose();
   const IceString &TimingFocusOn = getContext()->getFlags().TimingFocusOn;
-  if (TimingFocusOn == "*" || TimingFocusOn == getFunctionName())
+  if (TimingFocusOn == "*" || TimingFocusOn == getFunctionName()) {
     setFocusedTiming();
+    getContext()->resetTimer(GlobalContext::TSK_Default);
+    getContext()->setTimerName(GlobalContext::TSK_Default, getFunctionName());
+  }
   bool VerboseFocus =
       (getContext()->getFlags().VerboseFocusOn == getFunctionName());
   if (VerboseFocus)

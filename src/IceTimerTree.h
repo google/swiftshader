@@ -52,15 +52,17 @@ public:
   };
   TimerStack(const IceString &Name);
   TimerIdT getTimerID(const IceString &Name);
+  void setName(const IceString &NewName) { Name = NewName; }
   void push(TimerIdT ID);
   void pop(TimerIdT ID);
+  void reset();
   void dump(Ostream &Str, bool DumpCumulative);
 
 private:
   void update();
   static double timestamp();
-  const IceString Name;
-  const double FirstTimestamp;
+  IceString Name;
+  double FirstTimestamp;
   double LastTimestamp;
   uint64_t StateChangeCount;
   // IDsIndex maps a symbolic timer name to its integer ID.

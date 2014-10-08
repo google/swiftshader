@@ -393,6 +393,7 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
   }
   if (Mode != Liveness_Intervals)
     return;
+  TimerMarker T1(TimerStack::TT_liveRangeCtor, Func);
 
   SizeT NumVars = Liveness->getNumVarsInNode(this);
   SizeT NumGlobals = Liveness->getNumGlobalVars();

@@ -164,6 +164,8 @@ public:
   TimerStackIdT newTimerStackID(const IceString &Name);
   void pushTimer(TimerIdT ID, TimerStackIdT StackID = TSK_Default);
   void popTimer(TimerIdT ID, TimerStackIdT StackID = TSK_Default);
+  void resetTimer(TimerStackIdT StackID);
+  void setTimerName(TimerStackIdT StackID, const IceString &NewName);
   void dumpTimers(TimerStackIdT StackID = TSK_Default,
                   bool DumpCumulative = true);
 

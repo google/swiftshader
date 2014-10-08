@@ -97,6 +97,15 @@ void TimerStack::update() {
   }
 }
 
+void TimerStack::reset() {
+  StateChangeCount = 0;
+  FirstTimestamp = LastTimestamp = timestamp();
+  LeafTimes.assign(LeafTimes.size(), 0);
+  for (TimerTreeNode &Node : Nodes) {
+    Node.Time = 0;
+  }
+}
+
 namespace {
 
 typedef std::multimap<double, IceString> DumpMapType;
