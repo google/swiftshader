@@ -169,10 +169,9 @@ def ProcessPexe(args, pexe, exe):
         '{root}/toolchain/linux_x86/pnacl_newlib/bin/llc'
         ).format(root=nacl_root)
     opt_level = args.optlevel
-
+    opt_level_map = { 'm1':'0', '-1':'0', '0':'0', '1':'1', '2':'2' }
     if args.force or NewerThanOrNotThere(pexe, obj_llc) or \
             NewerThanOrNotThere(llcbin, obj_llc):
-        opt_level_map = { 'm1':'0', '-1':'0', '0':'0', '1':'1', '2':'2' }
         shellcmd(['pnacl-translate',
                   '-ffunction-sections',
                   '-c',
@@ -252,15 +251,20 @@ def ProcessPexe(args, pexe, exe):
     shellcmd((
         'objcopy --globalize-symbol=_user_start {partial}'
         ).format(partial=obj_partial), echo=args.verbose)
+    linker = (
+        '{root}/../third_party/llvm-build/Release+Asserts/bin/clang'
+        ).format(root=nacl_root)
     shellcmd((
-        'gcc -m32 {partial} -o {exe} ' +
+        '{ld} -m32 {partial} -o {exe} -O{opt_level} ' +
         # Keep the rest of this command line (except szrt.c) in sync
         # with RunHostLD() in pnacl-translate.py.
         '{root}/toolchain/linux_x86/pnacl_newlib/translator/x86-32-linux/lib/' +
         '{{unsandboxed_irt,irt_query_list}}.o ' +
         '{root}/toolchain_build/src/subzero/runtime/szrt.c ' +
+        '{root}/toolchain_build/src/subzero/runtime/szrt_i686.ll ' +
         '-lpthread -lrt'
-        ).format(partial=obj_partial, exe=exe, root=nacl_root),
+        ).format(ld=linker, partial=obj_partial, exe=exe,
+                 opt_level=opt_level_map[opt_level], root=nacl_root),
              echo=args.verbose)
     # Put the extra verbose printing at the end.
     if args.verbose:

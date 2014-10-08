@@ -270,6 +270,14 @@ entry:
 ; CHECK-LABEL: doubleToSigned32
 ; CHECK: cvttsd2si
 
+define internal i32 @doubleToSigned32Const() {
+entry:
+  %conv = fptosi double 867.5309 to i32
+  ret i32 %conv
+}
+; CHECK-LABEL: doubleToSigned32Const
+; CHECK: cvttsd2si
+
 define internal i32 @floatToSigned32(float %a) {
 entry:
   %conv = fptosi float %a to i32
@@ -465,6 +473,15 @@ entry:
 ; CHECK: cvtsi2sd
 ; CHECK: fld
 
+define internal double @signed32ToDoubleConst() {
+entry:
+  %conv = sitofp i32 123 to double
+  ret double %conv
+}
+; CHECK-LABEL: signed32ToDoubleConst
+; CHECK: cvtsi2sd {{.*[^1]}}
+; CHECK: fld
+
 define internal float @signed32ToFloat(i32 %a) {
 entry:
   %conv = sitofp i32 %a to float
@@ -523,6 +540,15 @@ entry:
   ret double %conv
 }
 ; CHECK-LABEL: unsigned16ToDouble
+; CHECK: cvtsi2sd
+; CHECK: fld
+
+define internal double @unsigned16ToDoubleConst() {
+entry:
+  %conv = uitofp i16 12345 to double
+  ret double %conv
+}
+; CHECK-LABEL: unsigned16ToDoubleConst
 ; CHECK: cvtsi2sd
 ; CHECK: fld
 
@@ -595,6 +621,38 @@ entry:
 ; CHECK-LABEL: unsigned1ToFloat
 ; CHECK: cvtsi2ss
 ; CHECK: fld
+
+define internal float @int32BitcastToFloat(i32 %a) {
+entry:
+  %conv = bitcast i32 %a to float
+  ret float %conv
+}
+; CHECK-LABEL: int32BitcastToFloat
+; CHECK: mov
+
+define internal float @int32BitcastToFloatConst() {
+entry:
+  %conv = bitcast i32 8675309 to float
+  ret float %conv
+}
+; CHECK-LABEL: int32BitcastToFloatConst
+; CHECK: mov
+
+define internal double @int64BitcastToDouble(i64 %a) {
+entry:
+  %conv = bitcast i64 %a to double
+  ret double %conv
+}
+; CHECK-LABEL: int64BitcastToDouble
+; CHECK: mov
+
+define internal double @int64BitcastToDoubleConst() {
+entry:
+  %conv = bitcast i64 9035768 to double
+  ret double %conv
+}
+; CHECK-LABEL: int64BitcastToDoubleConst
+; CHECK: mov
 
 define internal void @fcmpEq(float %a, float %b, double %c, double %d) {
 entry:

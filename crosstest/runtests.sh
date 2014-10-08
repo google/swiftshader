@@ -64,6 +64,7 @@ for optlevel in ${OPTLEVELS} ; do
             --target=x8632 \
             --dir="${OUTDIR}" \
             --test=test_cast.cpp --test=test_cast_to_u1.ll \
+            --test=test_cast_vectors.ll \
             --driver=test_cast_main.cpp \
             --output=test_cast_O${optlevel}_${attribute}
 

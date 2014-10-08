@@ -68,8 +68,6 @@ double cvtui64tod(uint64_t value) {
 }
 
 /* TODO(stichnot):
-   Sz_fptoui_v4f32
-   Sz_uitofp_v4i32
    Sz_bitcast_v8i1_to_i8
    Sz_bitcast_v16i1_to_i16
    Sz_bitcast_i8_to_v8i1

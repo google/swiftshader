@@ -18,6 +18,7 @@
 #include <cstring>
 #include <iostream>
 
+#include "test_arith.def"
 #include "test_select.h"
 
 namespace Subzero_ {
@@ -72,21 +73,7 @@ testSelect<v4f32, v4i1>(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   static const float PosInf = 1.0 / 0.0;
   static const float Nan = 0.0 / 0.0;
   static const float NegNan = -0.0 / 0.0;
-  volatile float Values[] = {
-    0,                    1,                    0x7e,
-    0x7f,                 0x80,                 0x81,
-    0xfe,                 0xff,                 0x7ffe,
-    0x7fff,               0x8000,               0x8001,
-    0xfffe,               0xffff,               0x7ffffffe,
-    0x7fffffff,           0x80000000,           0x80000001,
-    0xfffffffe,           0xffffffff,           0x100000000ll,
-    0x100000001ll,        0x7ffffffffffffffell, 0x7fffffffffffffffll,
-    0x8000000000000000ll, 0x8000000000000001ll, 0xfffffffffffffffell,
-    0xffffffffffffffffll, NegInf,               PosInf,
-    Nan,                  NegNan,               -0.0,
-    FLT_MIN,              FLT_MAX,              DBL_MIN,
-    DBL_MAX
-  };
+  volatile float Values[] = FP_VALUE_ARRAY(NegInf, PosInf, NegNan, Nan);
   static const size_t NumValues = sizeof(Values) / sizeof(*Values);
   static const size_t NumElements = 4;
   PRNG Index;

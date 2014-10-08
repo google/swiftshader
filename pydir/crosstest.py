@@ -144,6 +144,9 @@ if __name__ == '__main__':
     objs.append((
             '{root}/toolchain_build/src/subzero/runtime/szrt.{ext}'
             ).format(root=nacl_root, ext='c' if pure_c else 'cpp'))
+    objs.append((
+            '{root}/toolchain_build/src/subzero/runtime/szrt_i686.ll'
+            ).format(root=nacl_root))
     linker = 'clang' if pure_c else 'clang++'
     shellcmd([linker, '-g', '-m32', args.driver] +
              objs +

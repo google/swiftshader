@@ -21,6 +21,7 @@
 #include <iostream>
 
 #include "vectors.h"
+#include "test_arith.def"
 #include "test_fcmp.def"
 
 #define X(cmp)                                                                 \
@@ -39,7 +40,6 @@ size_t NumValues;
 void initializeValues() {
   static const double NegInf = -1.0 / 0.0;
   static const double Zero = 0.0;
-  static const double Ten = 10.0;
   static const double PosInf = 1.0 / 0.0;
   static const double Nan = 0.0 / 0.0;
   static const double NegNan = -0.0 / 0.0;
@@ -50,9 +50,8 @@ void initializeValues() {
   assert(NegInf < Zero);
   assert(NegInf < PosInf);
   assert(Zero < PosInf);
-  static volatile double InitValues[] = {NegInf,  -Zero, Zero,    DBL_MIN,
-                                         FLT_MIN, Ten,   FLT_MAX, DBL_MAX,
-                                         PosInf,  Nan,   NegNan};
+  static volatile double InitValues[] =
+    FP_VALUE_ARRAY(NegInf, PosInf, NegNan, Nan);
   NumValues = sizeof(InitValues) / sizeof(*InitValues);
   Values = InitValues;
 }

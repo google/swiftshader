@@ -12,11 +12,16 @@
 //===----------------------------------------------------------------------===//
 
 /* crosstest.py --test=test_cast.cpp --test=test_cast_to_u1.ll \
+   --test=test_cast_vectors.ll \
    --driver=test_cast_main.cpp --prefix=Subzero_ --output=test_cast */
 
+#include <cfloat>
 #include <cstring>
 #include <iostream>
 #include <stdint.h>
+
+#include "test_arith.def"
+#include "vectors.h"
 
 // Include test_cast.h twice - once normally, and once within the
 // Subzero_ namespace, corresponding to the llc and Subzero translated
@@ -48,6 +53,25 @@ namespace Subzero_ {
     }                                                                          \
   } while (0)
 
+#define COMPARE_VEC(Func, FromCName, ToCName, Input, FromString, ToString)     \
+  do {                                                                         \
+    ToCName ResultSz, ResultLlc;                                               \
+    ResultLlc = Func<FromCName, ToCName>(Input);                               \
+    ResultSz = Subzero_::Func<FromCName, ToCName>(Input);                      \
+    ++TotalTests;                                                              \
+    if (!memcmp(&ResultLlc, &ResultSz, sizeof(ToCName))) {                     \
+      ++Passes;                                                                \
+    } else {                                                                   \
+      ++Failures;                                                              \
+      std::cout << std::fixed << XSTR(Func) << "<" << FromString << ", "       \
+                << ToString << ">(" << vectAsString<FromCName>(Input)          \
+                << "): ";                                                      \
+      std::cout << "sz=" << vectAsString<ToCName>(ResultSz)                    \
+                << " llc=" << vectAsString<ToCName>(ResultLlc);                \
+      std::cout << "\n";                                                       \
+    }                                                                          \
+  } while (0)
+
 template <typename FromType>
 void testValue(FromType Val, size_t &TotalTests, size_t &Passes,
                size_t &Failures, const char *FromTypeString) {
@@ -62,6 +86,28 @@ void testValue(FromType Val, size_t &TotalTests, size_t &Passes,
   COMPARE(cast, FromType, int64_t, Val, FromTypeString);
   COMPARE(cast, FromType, float, Val, FromTypeString);
   COMPARE(cast, FromType, double, Val, FromTypeString);
+}
+
+template <typename FromType, typename ToType>
+void testVector(size_t &TotalTests, size_t &Passes, size_t &Failures,
+                const char *FromTypeString, const char *ToTypeString) {
+  const static size_t NumElementsInType = Vectors<FromType>::NumElements;
+  PRNG Index;
+  static const float NegInf = -1.0 / 0.0;
+  static const float PosInf = 1.0 / 0.0;
+  static const float Nan = 0.0 / 0.0;
+  static const float NegNan = -0.0 / 0.0;
+  volatile float Values[] = FP_VALUE_ARRAY(NegInf, PosInf, NegNan, Nan);
+  static const size_t NumValues = sizeof(Values) / sizeof(*Values);
+  const size_t MaxTestsPerFunc = 20000;
+  for (size_t i = 0; i < MaxTestsPerFunc; ++i) {
+    // Initialize the test vectors.
+    FromType Value;
+    for (size_t j = 0; j < NumElementsInType; ++j) {
+      Value[j] = Values[Index() % NumValues];
+    }
+    COMPARE_VEC(cast, FromType, ToType, Value, FromTypeString, ToTypeString);
+  }
 }
 
 int main(int argc, char **argv) {
@@ -131,36 +177,14 @@ int main(int argc, char **argv) {
   };
   static const size_t NumValsSi64 = sizeof(ValsSi64) / sizeof(*ValsSi64);
 
-  volatile float ValsF32[] = {
-    0,                    1,                    1.4,
-    1.5,                  1.6,                  -1.4,
-    -1.5,                 -1.6,                 0x7e,
-    0x7f,                 0x80,                 0x81,
-    0xfe,                 0xff,                 0x7ffe,
-    0x7fff,               0x8000,               0x8001,
-    0xfffe,               0xffff,               0x7ffffffe,
-    0x7fffffff,           0x80000000,           0x80000001,
-    0xfffffffe,           0xffffffff,           0x100000000ll,
-    0x100000001ll,        0x7ffffffffffffffell, 0x7fffffffffffffffll,
-    0x8000000000000000ll, 0x8000000000000001ll, 0xfffffffffffffffell,
-    0xffffffffffffffffll
-  };
+  static const double NegInf = -1.0 / 0.0;
+  static const double PosInf = 1.0 / 0.0;
+  static const double Nan = 0.0 / 0.0;
+  static const double NegNan = -0.0 / 0.0;
+  volatile float ValsF32[] = FP_VALUE_ARRAY(NegInf, PosInf, NegNan, Nan);
   static const size_t NumValsF32 = sizeof(ValsF32) / sizeof(*ValsF32);
 
-  volatile double ValsF64[] = {
-    0,                    1,                    1.4,
-    1.5,                  1.6,                  -1.4,
-    -1.5,                 -1.6,                 0x7e,
-    0x7f,                 0x80,                 0x81,
-    0xfe,                 0xff,                 0x7ffe,
-    0x7fff,               0x8000,               0x8001,
-    0xfffe,               0xffff,               0x7ffffffe,
-    0x7fffffff,           0x80000000,           0x80000001,
-    0xfffffffe,           0xffffffff,           0x100000000ll,
-    0x100000001ll,        0x7ffffffffffffffell, 0x7fffffffffffffffll,
-    0x8000000000000000ll, 0x8000000000000001ll, 0xfffffffffffffffell,
-    0xffffffffffffffffll
-  };
+  volatile double ValsF64[] = FP_VALUE_ARRAY(NegInf, PosInf, NegNan, Nan);
   static const size_t NumValsF64 = sizeof(ValsF64) / sizeof(*ValsF64);
 
   for (size_t i = 0; i < NumValsUi1; ++i) {
@@ -219,6 +243,10 @@ int main(int argc, char **argv) {
       COMPARE(castBits, double, uint64_t, Val, "double");
     }
   }
+  testVector<v4ui32, v4f32>(TotalTests, Passes, Failures, "v4ui32", "v4f32");
+  testVector<v4si32, v4f32>(TotalTests, Passes, Failures, "v4si32", "v4f32");
+  testVector<v4f32, v4si32>(TotalTests, Passes, Failures, "v4f32", "v4si32");
+  testVector<v4f32, v4ui32>(TotalTests, Passes, Failures, "v4f32", "v4ui32");
 
   std::cout << "TotalTests=" << TotalTests << " Passes=" << Passes
             << " Failures=" << Failures << "\n";
