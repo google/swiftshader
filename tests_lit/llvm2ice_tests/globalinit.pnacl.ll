@@ -6,63 +6,63 @@
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 @PrimitiveInit = internal global [4 x i8] c"\1B\00\00\00", align 4
-; CHECK: .data
-; CHECK-NEXT: .local
+; CHECK: .type PrimitiveInit,@object
+; CHECK-NEXT: .section .data,"aw",@progbits
 ; CHECK-NEXT: .align 4
 ; CHECK-NEXT: PrimitiveInit:
 ; CHECK-NEXT: .byte
 ; CHECK: .size PrimitiveInit, 4
 
 @PrimitiveInitConst = internal constant [4 x i8] c"\0D\00\00\00", align 4
-; CHECK: .section .rodata,"a",@progbits
-; CHECK-NEXT: .local
+; CHECK: .type PrimitiveInitConst,@object
+; CHECK-NEXT: .section .rodata,"a",@progbits
 ; CHECK-NEXT: .align 4
 ; CHECK-NEXT: PrimitiveInitConst:
 ; CHECK-NEXT: .byte
 ; CHECK: .size PrimitiveInitConst, 4
 
 @ArrayInit = internal global [20 x i8] c"\0A\00\00\00\14\00\00\00\1E\00\00\00(\00\00\002\00\00\00", align 4
-; CHECK: .data
-; CHECK-NEXT: .local
+; CHECK: .type ArrayInit,@object
+; CHECK-NEXT: .section .data,"aw",@progbits
 ; CHECK-NEXT: .align 4
 ; CHECK-NEXT: ArrayInit:
 ; CHECK-NEXT: .byte
 ; CHECK: .size ArrayInit, 20
 
 @ArrayInitPartial = internal global [40 x i8] c"<\00\00\00F\00\00\00P\00\00\00Z\00\00\00d\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", align 4
-; CHECK: .data
-; CHECK-NEXT: .local
+; CHECK: .type ArrayInitPartial,@object
+; CHECK-NEXT: .section .data,"aw",@progbits
 ; CHECK-NEXT: .align 4
 ; CHECK-NEXT: ArrayInitPartial:
 ; CHECK-NEXT: .byte
 ; CHECK: .size ArrayInitPartial, 40
 
 @PrimitiveInitStatic = internal global [4 x i8] zeroinitializer, align 4
-; CHECK: .data
+; CHECK: .type PrimitiveInitStatic,@object
 ; CHECK-NEXT: .local PrimitiveInitStatic
-; CHECK-NEXT: .comm PrimitiveInitStatic, 4, 4
+; CHECK-NEXT: .comm PrimitiveInitStatic,4,4
 
 @PrimitiveUninit = internal global [4 x i8] zeroinitializer, align 4
-; CHECK: .data
+; CHECK: .type PrimitiveUninit,@object
 ; CHECK-NEXT: .local PrimitiveUninit
-; CHECK-NEXT: .comm PrimitiveUninit, 4, 4
+; CHECK-NEXT: .comm PrimitiveUninit,4,4
 
 @ArrayUninit = internal global [20 x i8] zeroinitializer, align 4
-; CHECK: .data
+; CHECK: .type ArrayUninit,@object
 ; CHECK-NEXT: .local ArrayUninit
-; CHECK-NEXT: .comm ArrayUninit, 20, 4
+; CHECK-NEXT: .comm ArrayUninit,20,4
 
 @ArrayUninitConstDouble = internal constant [200 x i8] zeroinitializer, align 8
-; CHECK: .section .rodata,"a",@progbits
-; CHECK-NEXT: .local
+; CHECK: .type ArrayUninitConstDouble,@object
+; CHECK-NEXT: .section .rodata,"a",@progbits
 ; CHECK-NEXT: .align 8
 ; CHECK-NEXT: ArrayUninitConstDouble:
 ; CHECK-NEXT: .zero 200
 ; CHECK-NEXT: .size ArrayUninitConstDouble, 200
 
 @ArrayUninitConstInt = internal constant [20 x i8] zeroinitializer, align 4
+; CHECK: .type ArrayUninitConstInt,@object
 ; CHECK: .section .rodata,"a",@progbits
-; CHECK-NEXT: .local
 ; CHECK-NEXT: .align 4
 ; CHECK-NEXT: ArrayUninitConstInt:
 ; CHECK-NEXT: .zero 20

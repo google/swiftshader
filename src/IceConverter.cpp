@@ -801,8 +801,7 @@ void Converter::convertToIce() {
   TimerMarker T(TimerStack::TT_convertToIce, Ctx);
   nameUnnamedGlobalAddresses(Mod);
   nameUnnamedFunctions(Mod);
-  if (!Ctx->getFlags().DisableGlobals)
-    convertGlobals(Mod);
+  convertGlobals(Mod);
   convertFunctions();
 }
 

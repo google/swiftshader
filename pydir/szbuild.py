@@ -174,6 +174,7 @@ def ProcessPexe(args, pexe, exe):
             NewerThanOrNotThere(llcbin, obj_llc):
         shellcmd(['pnacl-translate',
                   '-ffunction-sections',
+                  '-fdata-sections',
                   '-c',
                   '-arch', 'x86-32-linux',
                   '-O' + opt_level_map[opt_level],
@@ -193,9 +194,9 @@ def ProcessPexe(args, pexe, exe):
         shellcmd([llvm2ice,
                   '-O' + opt_level,
                   '-bitcode-format=pnacl',
-                  '-disable-globals',
                   '-externalize',
                   '-ffunction-sections',
+                  '-fdata-sections',
                   '-o', asm_sz] +
                  args.sz_args +
                  [pexe],

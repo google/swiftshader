@@ -23,16 +23,14 @@ class ClFlags {
 public:
   ClFlags()
       : DisableInternal(false), SubzeroTimingEnabled(false),
-        DisableTranslation(false), DisableGlobals(false),
-        FunctionSections(false), DataSections(false),
+        DisableTranslation(false), FunctionSections(false), DataSections(false),
         UseIntegratedAssembler(false), UseSandboxing(false), DumpStats(false),
         AllowUninitializedGlobals(false), TimeEachFunction(false),
-        DefaultGlobalPrefix(""), DefaultFunctionPrefix(""),TimingFocusOn(""),
+        DefaultGlobalPrefix(""), DefaultFunctionPrefix(""), TimingFocusOn(""),
         VerboseFocusOn("") {}
   bool DisableInternal;
   bool SubzeroTimingEnabled;
   bool DisableTranslation;
-  bool DisableGlobals;
   bool FunctionSections;
   bool DataSections;
   bool UseIntegratedAssembler;

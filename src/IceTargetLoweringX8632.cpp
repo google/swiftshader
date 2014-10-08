@@ -4437,70 +4437,52 @@ void TargetGlobalInitX8632::lower(const GlobalAddress &Global,
     return;
 
   Ostream &Str = Ctx->getStrEmit();
-  // constant:
-  //   .section .rodata,"a",@progbits
-  //   .align ALIGN
-  //   .byte ...
-  //   .size NAME, SIZE
-
-  // non-constant:
-  //   .data
-  //   .align ALIGN
-  //   .byte ...
-  //   .size NAME, SIZE
-
-  // zeroinitializer (constant):
-  //   (.section or .data as above)
-  //   .align ALIGN
-  //   .zero SIZE
-  //   .size NAME, SIZE
-
-  // zeroinitializer (non-constant):
-  //   (.section or .data as above)
-  //   .local NAME
-  //   .comm NAME, SIZE, ALIGN
 
   // TODO(kschimpf): Don't mangle name if external and uninitialized. This
   // will allow us to cross test relocations for references to external
   // global variables.
 
-  IceString MangledName = Ctx->mangleName(Global.getName());
-  // Start a new section.
-  if (Ctx->getFlags().DataSections) {
-    Str << "\t.section\t.rodata." << MangledName << ",\"a\",@progbits\n";
-  } else if (Global.getIsConstant()) {
-    Str << "\t.section\t.rodata,\"a\",@progbits\n";
-  } else {
-    Str << "\t.type\t" << MangledName << ",@object\n";
-    Str << "\t.data\n";
-  }
-
-  Str << "\t" << (Global.getIsInternal() ? ".local" : ".global") << "\t"
-      << MangledName << "\n";
-
   const GlobalAddress::InitializerListType &Initializers =
       Global.getInitializers();
+  assert(Initializers.size());
+  bool HasInitializer =
+      !(Initializers.size() == 1 &&
+        llvm::isa<GlobalAddress::ZeroInitializer>(Initializers[0]));
+  bool IsConstant = Global.getIsConstant();
+  bool IsExternal = !Global.getIsInternal();
+  uint32_t Align = Global.getAlignment();
+  SizeT Size = Global.getNumBytes();
+  IceString MangledName = Ctx->mangleName(Global.getName());
+  IceString SectionSuffix = "";
+  if (Ctx->getFlags().DataSections)
+    SectionSuffix = "." + MangledName;
 
-  // Note: Handle zero initializations specially when lowering, since
-  // we may be able to reduce object size.
-  GlobalAddress::ZeroInitializer *SimpleZeroInit = nullptr;
-  if (Initializers.size() == 1) {
-    GlobalAddress::Initializer *Init = Initializers[0];
-    if (const auto ZeroInit =
-        llvm::dyn_cast<GlobalAddress::ZeroInitializer>(Init)) {
-      SimpleZeroInit = ZeroInit;
-    }
-  }
+  Str << "\t.type\t" << MangledName << ",@object\n";
 
-  if (SimpleZeroInit && !Global.getIsConstant()) {
-    // TODO(stichnot): Put the appropriate non-constant
-    // zeroinitializers in a .bss section to reduce object size.
-    Str << "\t.comm\t" << MangledName << ", " << Global.getNumBytes() << ", "
-        << Global.getAlignment() << "\n";
-    // }
-  } else {
-    Str << "\t.align\t" << Global.getAlignment() << "\n";
+  if (IsConstant)
+    Str << "\t.section\t.rodata" << SectionSuffix << ",\"a\",@progbits\n";
+  else if (HasInitializer)
+    Str << "\t.section\t.data" << SectionSuffix << ",\"aw\",@progbits\n";
+  else if (IsExternal)
+    Str << "\t.section\t.bss" << SectionSuffix << ",\"aw\",@nobits\n";
+  // No .section for non-constant + zeroinitializer + internal
+
+  if (IsExternal)
+    Str << "\t.globl\t" << MangledName << "\n";
+  else if (!IsConstant && !HasInitializer)
+    Str << "\t.local\t" << MangledName << "\n";
+  // Internal symbols only get .local when using .comm.
+
+  if ((IsConstant || HasInitializer || IsExternal) && Align > 1)
+    Str << "\t.align\t" << Align << "\n";
+  // Alignment is part of .comm.
+
+  if (IsConstant || HasInitializer || IsExternal)
     Str << MangledName << ":\n";
+  else
+    Str << "\t.comm\t" << MangledName << "," << Size << "," << Align << "\n";
+
+  if (HasInitializer) {
     for (GlobalAddress::Initializer *Init : Initializers) {
       switch (Init->getKind()) {
       case GlobalAddress::Initializer::DataInitializerKind: {
@@ -4539,8 +4521,13 @@ void TargetGlobalInitX8632::lower(const GlobalAddress &Global,
       }
       }
     }
-    Str << "\t.size\t" << MangledName << ", " << Global.getNumBytes() << "\n";
-  }
+  } else if (IsConstant || IsExternal)
+    Str << "\t.zero\t" << Size << "\n";
+  // Size is part of .comm.
+
+  if (IsConstant || HasInitializer || IsExternal)
+    Str << "\t.size\t" << MangledName << ", " << Size << "\n";
+  // Size is part of .comm.
 }
 
 } // end of namespace Ice

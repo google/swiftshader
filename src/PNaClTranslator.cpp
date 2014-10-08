@@ -2369,8 +2369,7 @@ private:
         }
       }
       Trans.nameUnnamedFunctions(Context->getModule());
-      if (!getFlags().DisableGlobals)
-        getTranslator().lowerGlobals(Context->getGlobalIDAddresses());
+      getTranslator().lowerGlobals(Context->getGlobalIDAddresses());
       GlobalAddressNamesAndInitializersInstalled = true;
     }
   }

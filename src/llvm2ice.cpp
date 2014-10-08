@@ -111,10 +111,6 @@ static cl::opt<std::string> VerboseFocusOn(
     cl::desc("Temporarily enable full verbosity for a specific function"),
     cl::init(""));
 
-static cl::opt<bool>
-DisableGlobals("disable-globals",
-               cl::desc("Disable global initializer translation"));
-
 // This is currently unused, and is a placeholder for lit tests.
 static cl::opt<bool>
     DisablePhiEdgeSplit("no-phi-edge-split",
@@ -197,7 +193,6 @@ int main(int argc, char **argv) {
   Flags.DisableInternal = DisableInternal;
   Flags.SubzeroTimingEnabled = SubzeroTimingEnabled;
   Flags.DisableTranslation = DisableTranslation;
-  Flags.DisableGlobals = DisableGlobals;
   Flags.FunctionSections = FunctionSections;
   Flags.DataSections = DataSections;
   Flags.UseIntegratedAssembler = UseIntegratedAssembler;
