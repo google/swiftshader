@@ -1352,6 +1352,7 @@ public:
     return new (Func->allocate<InstX8632Fld>()) InstX8632Fld(Func, Src);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Fld); }
 
@@ -1369,6 +1370,7 @@ public:
     return new (Func->allocate<InstX8632Fstp>()) InstX8632Fstp(Func, Dest);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Fstp); }
 

@@ -416,7 +416,7 @@ entry:
 ; CALLTARGETS-LABEL: signed64ToDouble
 ; CHECK: call -4
 ; CALLTARGETS: call cvtsi64tod
-; CHECK: fstp
+; CHECK: fstp qword
 
 define internal float @signed64ToFloat(i64 %a) {
 entry:
@@ -427,7 +427,7 @@ entry:
 ; CALLTARGETS-LABEL: signed64ToFloat
 ; CHECK: call -4
 ; CALLTARGETS: call cvtsi64tof
-; CHECK: fstp
+; CHECK: fstp dword
 
 define internal double @unsigned64ToDouble(i64 %a) {
 entry:
@@ -500,7 +500,7 @@ entry:
 ; CALLTARGETS-LABEL: unsigned32ToDouble
 ; CHECK: call -4
 ; CALLTARGETS: call cvtui32tod
-; CHECK: fstp
+; CHECK: fstp qword
 
 define internal float @unsigned32ToFloat(i32 %a) {
 entry:
@@ -511,7 +511,7 @@ entry:
 ; CALLTARGETS-LABEL: unsigned32ToFloat
 ; CHECK: call -4
 ; CALLTARGETS: call cvtui32tof
-; CHECK: fstp
+; CHECK: fstp dword
 
 define internal double @signed16ToDouble(i32 %a) {
 entry:
@@ -521,7 +521,7 @@ entry:
 }
 ; CHECK-LABEL: signed16ToDouble
 ; CHECK: cvtsi2sd
-; CHECK: fld
+; CHECK: fld qword
 
 define internal float @signed16ToFloat(i32 %a) {
 entry:
@@ -531,7 +531,7 @@ entry:
 }
 ; CHECK-LABEL: signed16ToFloat
 ; CHECK: cvtsi2ss
-; CHECK: fld
+; CHECK: fld dword
 
 define internal double @unsigned16ToDouble(i32 %a) {
 entry:

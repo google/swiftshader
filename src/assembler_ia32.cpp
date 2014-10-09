@@ -272,25 +272,25 @@ void AssemblerX86::rep_movsb() {
   EmitUint8(0xA4);
 }
 
-void AssemblerX86::movss(XmmRegister dst, const Address &src) {
+void AssemblerX86::movss(Type Ty, XmmRegister dst, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF3);
+  EmitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
   EmitUint8(0x0F);
   EmitUint8(0x10);
   EmitOperand(dst, src);
 }
 
-void AssemblerX86::movss(const Address &dst, XmmRegister src) {
+void AssemblerX86::movss(Type Ty, const Address &dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF3);
+  EmitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
   EmitUint8(0x0F);
   EmitUint8(0x11);
   EmitOperand(src, dst);
 }
 
-void AssemblerX86::movss(XmmRegister dst, XmmRegister src) {
+void AssemblerX86::movss(Type Ty, XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF3);
+  EmitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
   EmitUint8(0x0F);
   EmitUint8(0x11);
   EmitXmmRegisterOperand(src, dst);
@@ -416,40 +416,22 @@ void AssemblerX86::divss(Type Ty, XmmRegister dst, const Address &src) {
   EmitOperand(dst, src);
 }
 
-void AssemblerX86::flds(const Address &src) {
+void AssemblerX86::fld(Type Ty, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xD9);
+  EmitUint8(isFloat32Asserting32Or64(Ty) ? 0xD9 : 0xDD);
   EmitOperand(0, src);
 }
 
-void AssemblerX86::fstps(const Address &dst) {
+void AssemblerX86::fstp(Type Ty, const Address &dst) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xD9);
+  EmitUint8(isFloat32Asserting32Or64(Ty) ? 0xD9 : 0xDD);
   EmitOperand(3, dst);
 }
 
-void AssemblerX86::movsd(XmmRegister dst, const Address &src) {
+void AssemblerX86::fstp(X87STRegister st) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF2);
-  EmitUint8(0x0F);
-  EmitUint8(0x10);
-  EmitOperand(dst, src);
-}
-
-void AssemblerX86::movsd(const Address &dst, XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF2);
-  EmitUint8(0x0F);
-  EmitUint8(0x11);
-  EmitOperand(src, dst);
-}
-
-void AssemblerX86::movsd(XmmRegister dst, XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF2);
-  EmitUint8(0x0F);
-  EmitUint8(0x11);
-  EmitXmmRegisterOperand(src, dst);
+  EmitUint8(0xDD);
+  EmitUint8(0xD8 + st);
 }
 
 void AssemblerX86::movaps(XmmRegister dst, XmmRegister src) {
@@ -1234,18 +1216,6 @@ void AssemblerX86::roundsd(XmmRegister dst, XmmRegister src,
   EmitXmmRegisterOperand(dst, src);
   // Mask precision exeption.
   EmitUint8(static_cast<uint8_t>(mode) | 0x8);
-}
-
-void AssemblerX86::fldl(const Address &src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xDD);
-  EmitOperand(0, src);
-}
-
-void AssemblerX86::fstpl(const Address &dst) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xDD);
-  EmitOperand(3, dst);
 }
 
 void AssemblerX86::fnstcw(const Address &dst) {

@@ -88,6 +88,21 @@
   X(SegReg_GS, "gs")        \
 //#define X(val, name)
 
+// X87 ST(n) registers.
+#define X87ST_REGX8632_TABLE         \
+  /* enum value, encode, name */     \
+  X(X87ST_First, = 0, "st(0)")       \
+  X(X87ST_0, = 0, "st(0)")           \
+  X(X87ST_1, = 1, "st(1)")           \
+  X(X87ST_2, = 2, "st(2)")           \
+  X(X87ST_3, = 3, "st(3)")           \
+  X(X87ST_4, = 4, "st(4)")           \
+  X(X87ST_5, = 5, "st(5)")           \
+  X(X87ST_6, = 6, "st(6)")           \
+  X(X87ST_7, = 7, "st(7)")           \
+  X(X87ST_Last, = 7, "st(7)")        \
+//#define X(val, encode, name)
+
 #define ICEINSTX8632BR_TABLE   \
   /* enum value, encode, opposite, dump, emit */ \
   X(Br_o,  = 0,       Br_no,    "o",  "jo")                \

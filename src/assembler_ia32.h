@@ -36,6 +36,7 @@ class ConstantRelocatable;
 using RegX8632::GPRRegister;
 using RegX8632::XmmRegister;
 using RegX8632::ByteRegister;
+using RegX8632::X87STRegister;
 
 namespace x86 {
 
@@ -455,9 +456,9 @@ public:
 
   void rep_movsb();
 
-  void movss(XmmRegister dst, const Address &src);
-  void movss(const Address &dst, XmmRegister src);
-  void movss(XmmRegister dst, XmmRegister src);
+  void movss(Type Ty, XmmRegister dst, const Address &src);
+  void movss(Type Ty, const Address &dst, XmmRegister src);
+  void movss(Type Ty, XmmRegister dst, XmmRegister src);
 
   void movd(XmmRegister dst, GPRRegister src);
   void movd(XmmRegister dst, const Address &src);
@@ -476,10 +477,6 @@ public:
   void mulss(Type Ty, XmmRegister dst, const Address &src);
   void divss(Type Ty, XmmRegister dst, XmmRegister src);
   void divss(Type Ty, XmmRegister dst, const Address &src);
-
-  void movsd(XmmRegister dst, const Address &src);
-  void movsd(const Address &dst, XmmRegister src);
-  void movsd(XmmRegister dst, XmmRegister src);
 
   void movaps(XmmRegister dst, XmmRegister src);
 
@@ -598,11 +595,9 @@ public:
   };
   void roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode);
 
-  void flds(const Address &src);
-  void fstps(const Address &dst);
-
-  void fldl(const Address &src);
-  void fstpl(const Address &dst);
+  void fld(Type Ty, const Address &src);
+  void fstp(Type Ty, const Address &dst);
+  void fstp(X87STRegister st);
 
   void fnstcw(const Address &dst);
   void fldcw(const Address &src);

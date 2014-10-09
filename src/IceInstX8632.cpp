@@ -1919,7 +1919,7 @@ template <> void InstX8632MovssRegs::emitIAS(const Cfg *Func) const {
   assert(Dest->hasReg() && Src->hasReg());
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
   intptr_t StartPosition = Asm->GetPosition();
-  Asm->movss(RegX8632::getEncodedXmm(Dest->getRegNum()),
+  Asm->movss(IceType_f32, RegX8632::getEncodedXmm(Dest->getRegNum()),
              RegX8632::getEncodedXmm(Src->getRegNum()));
   Ostream &Str = Func->getContext()->getStrEmit();
   emitIASBytes(Str, Asm, StartPosition);
@@ -2006,6 +2006,38 @@ void InstX8632Fld::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
+void InstX8632Fld::emitIAS(const Cfg *Func) const {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  assert(getSrcSize() == 1);
+  const Operand *Src = getSrc(0);
+  Type Ty = Src->getType();
+  if (const auto Var = llvm::dyn_cast<Variable>(Src)) {
+    if (Var->hasReg()) {
+      // This is a physical xmm register, so we need to spill it to a
+      // temporary stack slot.
+      x86::Immediate Width(typeWidthInBytes(Ty));
+      Asm->sub(IceType_i32, RegX8632::Encoded_Reg_esp, Width);
+      x86::Address StackSlot = x86::Address(RegX8632::Encoded_Reg_esp, 0);
+      Asm->movss(Ty, StackSlot, RegX8632::getEncodedXmm(Var->getRegNum()));
+      Asm->fld(Ty, StackSlot);
+      Asm->add(IceType_i32, RegX8632::Encoded_Reg_esp, Width);
+    } else {
+      x86::Address StackAddr(static_cast<TargetX8632 *>(Func->getTarget())
+                                 ->stackVarToAsmOperand(Var));
+      Asm->fld(Ty, StackAddr);
+    }
+  } else if (const auto Mem = llvm::dyn_cast<OperandX8632Mem>(Src)) {
+    Asm->fld(Ty, Mem->toAsmAddress(Asm));
+  } else if (const auto Imm = llvm::dyn_cast<Constant>(Src)) {
+    Asm->fld(Ty, x86::Address::ofConstPool(Func->getContext(), Asm, Imm));
+  } else {
+    llvm_unreachable("Unexpected operand type");
+  }
+  Ostream &Str = Func->getContext()->getStrEmit();
+  emitIASBytes(Str, Asm, StartPosition);
+}
+
 void InstX8632Fld::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "fld." << getSrc(0)->getType() << " ";
@@ -2015,6 +2047,10 @@ void InstX8632Fld::dump(const Cfg *Func) const {
 void InstX8632Fstp::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 0);
+  // TODO(jvoung,stichnot): Utilize this by setting Dest to NULL to
+  // "partially" delete the fstp if the Dest is unused.
+  // Even if Dest is unused, the fstp should be kept for the SideEffects
+  // of popping the stack.
   if (getDest() == NULL) {
     Str << "\tfstp\tst(0)\n";
     return;
@@ -2037,6 +2073,42 @@ void InstX8632Fstp::emit(const Cfg *Func) const {
   getDest()->emit(Func);
   Str << ", " << TypeX8632Attributes[Ty].WidthString << " [esp]\n";
   Str << "\tadd\tesp, " << Width << "\n";
+}
+
+void InstX8632Fstp::emitIAS(const Cfg *Func) const {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  assert(getSrcSize() == 0);
+  const Variable *Dest = getDest();
+  // TODO(jvoung,stichnot): Utilize this by setting Dest to NULL to
+  // "partially" delete the fstp if the Dest is unused.
+  // Even if Dest is unused, the fstp should be kept for the SideEffects
+  // of popping the stack.
+  if (Dest == NULL) {
+    Asm->fstp(RegX8632::getEncodedSTReg(0));
+    Ostream &Str = Func->getContext()->getStrEmit();
+    emitIASBytes(Str, Asm, StartPosition);
+    return;
+  }
+  Type Ty = Dest->getType();
+  if (!Dest->hasReg()) {
+    x86::Address StackAddr(static_cast<TargetX8632 *>(Func->getTarget())
+                               ->stackVarToAsmOperand(Dest));
+    Asm->fstp(Ty, StackAddr);
+  } else {
+    // Dest is a physical (xmm) register, so st(0) needs to go through
+    // memory.  Hack this by creating a temporary stack slot, spilling
+    // st(0) there, loading it into the xmm register, and deallocating
+    // the stack slot.
+    x86::Immediate Width(typeWidthInBytes(Ty));
+    Asm->sub(IceType_i32, RegX8632::Encoded_Reg_esp, Width);
+    x86::Address StackSlot = x86::Address(RegX8632::Encoded_Reg_esp, 0);
+    Asm->fstp(Ty, StackSlot);
+    Asm->movss(Ty, RegX8632::getEncodedXmm(Dest->getRegNum()), StackSlot);
+    Asm->add(IceType_i32, RegX8632::Encoded_Reg_esp, Width);
+  }
+  Ostream &Str = Func->getContext()->getStrEmit();
+  emitIASBytes(Str, Asm, StartPosition);
 }
 
 void InstX8632Fstp::dump(const Cfg *Func) const {

@@ -36,7 +36,7 @@ enum AllRegisters {
 #undef X
 };
 
-// An enum of GPR Registers. The enum value does match encoding used
+// An enum of GPR Registers. The enum value does match the encoding used
 // to binary encode register operands in instructions.
 enum GPRRegister {
 #define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
@@ -47,7 +47,7 @@ enum GPRRegister {
       Encoded_Not_GPR = -1
 };
 
-// An enum of XMM Registers. The enum value does match encoding used
+// An enum of XMM Registers. The enum value does match the encoding used
 // to binary encode register operands in instructions.
 enum XmmRegister {
 #define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
@@ -58,13 +58,22 @@ enum XmmRegister {
       Encoded_Not_Xmm = -1
 };
 
-// An enum of Byte Registers. The enum value does match encoding used
+// An enum of Byte Registers. The enum value does match the encoding used
 // to binary encode register operands in instructions.
 enum ByteRegister {
 #define X(val, encode) Encoded_##val encode,
   REGX8632_BYTEREG_TABLE
 #undef X
       Encoded_Not_ByteReg = -1
+};
+
+// An enum of X87 Stack Registers. The enum value does match the encoding used
+// to binary encode register operands in instructions.
+enum X87STRegister {
+#define X(val, encode, name) Encoded_##val encode,
+  X87ST_REGX8632_TABLE
+#undef X
+      Encoded_Not_X87STReg = -1
 };
 
 static inline GPRRegister getEncodedGPR(int32_t RegNum) {
@@ -89,6 +98,11 @@ static inline GPRRegister getEncodedByteRegOrGPR(Type Ty, int32_t RegNum) {
     return GPRRegister(getEncodedByteReg(RegNum));
   else
     return getEncodedGPR(RegNum);
+}
+
+static inline X87STRegister getEncodedSTReg(int32_t RegNum) {
+  assert(Encoded_X87ST_First <= RegNum && RegNum <= Encoded_X87ST_Last);
+  return X87STRegister(RegNum);
 }
 
 } // end of namespace RegX8632
