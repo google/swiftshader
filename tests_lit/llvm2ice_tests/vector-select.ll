@@ -27,7 +27,7 @@ entry:
 ; CHECK: por
 
 ; SSE41-LABEL: test_select_v16i8:
-; SSE41: pblendvb
+; SSE41: pblendvb xmm{{[0-7]}}, {{xmm[0-7]|xmmword}}
 }
 
 define <16 x i1> @test_select_v16i1(<16 x i1> %cond, <16 x i1> %arg1, <16 x i1> %arg2) {
@@ -40,7 +40,7 @@ entry:
 ; CHECK: por
 
 ; SSE41-LABEL: test_select_v16i1:
-; SSE41: pblendvb
+; SSE41: pblendvb xmm{{[0-7]}}, {{xmm[0-7]|xmmword}}
 }
 
 define <8 x i16> @test_select_v8i16(<8 x i1> %cond, <8 x i16> %arg1, <8 x i16> %arg2) {
@@ -53,7 +53,7 @@ entry:
 ; CHECK: por
 
 ; SSE41-LABEL: test_select_v8i16:
-; SSE41: pblendvb
+; SSE41: pblendvb xmm{{[0-7]}}, {{xmm[0-7]|xmmword}}
 }
 
 define <8 x i1> @test_select_v8i1(<8 x i1> %cond, <8 x i1> %arg1, <8 x i1> %arg2) {
@@ -66,7 +66,7 @@ entry:
 ; CHECK: por
 
 ; SSE41-LABEL: test_select_v8i1:
-; SSE41: pblendvb
+; SSE41: pblendvb xmm{{[0-7]}}, {{xmm[0-7]|xmmword}}
 }
 
 define <4 x i32> @test_select_v4i32(<4 x i1> %cond, <4 x i32> %arg1, <4 x i32> %arg2) {
@@ -80,7 +80,7 @@ entry:
 
 ; SSE41-LABEL: test_select_v4i32:
 ; SSE41: pslld xmm0, 31
-; SSE41: blendvps
+; SSE41: blendvps xmm{{[0-7]}}, {{xmm[0-7]|xmmword}}
 }
 
 define <4 x float> @test_select_v4f32(<4 x i1> %cond, <4 x float> %arg1, <4 x float> %arg2) {
@@ -94,7 +94,7 @@ entry:
 
 ; SSE41-LABEL: test_select_v4f32:
 ; SSE41: pslld xmm0, 31
-; SSE41: blendvps
+; SSE41: blendvps xmm{{[0-7]}}, {{xmm[0-7]|xmmword}}
 }
 
 define <4 x i1> @test_select_v4i1(<4 x i1> %cond, <4 x i1> %arg1, <4 x i1> %arg2) {
@@ -108,7 +108,7 @@ entry:
 
 ; SSE41-LABEL: test_select_v4i1:
 ; SSE41: pslld xmm0, 31
-; SSE41: blendvps
+; SSE41: blendvps xmm{{[0-7]}}, {{xmm[0-7]|xmmword}}
 }
 
 ; ERRORS-NOT: ICE translation error

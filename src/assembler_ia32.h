@@ -523,6 +523,11 @@ public:
   void andps(XmmRegister dst, const Address &src);
   void orps(XmmRegister dst, XmmRegister src);
 
+  void blendvps(Type Ty, XmmRegister dst, XmmRegister src);
+  void blendvps(Type Ty, XmmRegister dst, const Address &src);
+  void pblendvb(Type Ty, XmmRegister dst, XmmRegister src);
+  void pblendvb(Type Ty, XmmRegister dst, const Address &src);
+
   void cmpps(XmmRegister dst, XmmRegister src, CondX86::CmppsCond CmpCondition);
   void cmpps(XmmRegister dst, const Address &src,
              CondX86::CmppsCond CmpCondition);

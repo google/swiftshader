@@ -1067,7 +1067,6 @@ void emitVariableBlendInst(const char *Opcode, const Inst *Inst,
                            const Cfg *Func) {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Inst->getSrcSize() == 3);
-  assert(llvm::isa<Variable>(Inst->getSrc(2)));
   assert(llvm::cast<Variable>(Inst->getSrc(2))->getRegNum() ==
          RegX8632::Reg_xmm0);
   Str << "\t" << Opcode << "\t";
@@ -1075,6 +1074,17 @@ void emitVariableBlendInst(const char *Opcode, const Inst *Inst,
   Str << ", ";
   Inst->getSrc(1)->emit(Func);
   Str << "\n";
+}
+
+void
+emitIASVariableBlendInst(const Inst *Inst, const Cfg *Func,
+                         const x86::AssemblerX86::XmmEmitterRegOp &Emitter) {
+  assert(Inst->getSrcSize() == 3);
+  assert(llvm::cast<Variable>(Inst->getSrc(2))->getRegNum() ==
+         RegX8632::Reg_xmm0);
+  const Variable *Dest = Inst->getDest();
+  const Operand *Src = Inst->getSrc(1);
+  emitIASRegOpTyXMM(Func, Dest->getType(), Dest, Src, Emitter);
 }
 
 } // end anonymous namespace
@@ -1085,10 +1095,26 @@ template <> void InstX8632Blendvps::emit(const Cfg *Func) const {
   emitVariableBlendInst(Opcode, this, Func);
 }
 
+template <> void InstX8632Blendvps::emitIAS(const Cfg *Func) const {
+  assert(static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
+         TargetX8632::SSE4_1);
+  static const x86::AssemblerX86::XmmEmitterRegOp Emitter = {
+      &x86::AssemblerX86::blendvps, &x86::AssemblerX86::blendvps};
+  emitIASVariableBlendInst(this, Func, Emitter);
+}
+
 template <> void InstX8632Pblendvb::emit(const Cfg *Func) const {
   assert(static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
          TargetX8632::SSE4_1);
   emitVariableBlendInst(Opcode, this, Func);
+}
+
+template <> void InstX8632Pblendvb::emitIAS(const Cfg *Func) const {
+  assert(static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
+         TargetX8632::SSE4_1);
+  static const x86::AssemblerX86::XmmEmitterRegOp Emitter = {
+      &x86::AssemblerX86::pblendvb, &x86::AssemblerX86::pblendvb};
+  emitIASVariableBlendInst(this, Func, Emitter);
 }
 
 template <> void InstX8632Imul::emit(const Cfg *Func) const {

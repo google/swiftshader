@@ -803,6 +803,44 @@ void AssemblerX86::orps(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst, src);
 }
 
+void AssemblerX86::blendvps(Type /* Ty */, XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x38);
+  EmitUint8(0x14);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+void AssemblerX86::blendvps(Type /* Ty */, XmmRegister dst,
+                            const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x38);
+  EmitUint8(0x14);
+  EmitOperand(dst, src);
+}
+
+void AssemblerX86::pblendvb(Type /* Ty */, XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x38);
+  EmitUint8(0x10);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+void AssemblerX86::pblendvb(Type /* Ty */, XmmRegister dst,
+                            const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x38);
+  EmitUint8(0x10);
+  EmitOperand(dst, src);
+}
+
 void AssemblerX86::cmpps(XmmRegister dst, XmmRegister src,
                          CondX86::CmppsCond CmpCondition) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);

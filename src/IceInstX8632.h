@@ -1513,6 +1513,7 @@ template <> void InstX8632Psub::emit(const Cfg *Func) const;
 template <> void InstX8632Sqrtss::emit(const Cfg *Func) const;
 template <> void InstX8632Subss::emit(const Cfg *Func) const;
 
+template <> void InstX8632Blendvps::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Div::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Idiv::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Imul::emitIAS(const Cfg *Func) const;
@@ -1521,6 +1522,7 @@ template <> void InstX8632Movd::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Movp::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Movq::emitIAS(const Cfg *Func) const;
 template <> void InstX8632MovssRegs::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Pblendvb::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Pmull::emitIAS(const Cfg *Func) const;
 
 } // end of namespace Ice
