@@ -41,12 +41,12 @@ public:
     const bool UseTrimmed = true;
     return range().overlapsInst(Other.range().getStart(), UseTrimmed);
   }
-  Variable *const Var;
+  Variable *Var;
   void dump(const Cfg *Func) const;
 
 private:
   // LiveRangeWrapper(const LiveRangeWrapper &) = delete;
-  LiveRangeWrapper &operator=(const LiveRangeWrapper &) = delete;
+  // LiveRangeWrapper &operator=(const LiveRangeWrapper &) = delete;
 };
 
 class LinearScan {
@@ -57,20 +57,7 @@ public:
 
 private:
   Cfg *const Func;
-  // RangeCompare is the comparator for sorting an LiveRangeWrapper
-  // by starting point in a std::set<>.  Ties are broken by variable
-  // number so that sorting is stable.
-  struct RangeCompare {
-    bool operator()(const LiveRangeWrapper &L,
-                    const LiveRangeWrapper &R) const {
-      InstNumberT Lstart = L.Var->getLiveRange().getStart();
-      InstNumberT Rstart = R.Var->getLiveRange().getStart();
-      if (Lstart == Rstart)
-        return L.Var->getIndex() < R.Var->getIndex();
-      return Lstart < Rstart;
-    }
-  };
-  typedef std::set<LiveRangeWrapper, RangeCompare> OrderedRanges;
+  typedef std::vector<LiveRangeWrapper> OrderedRanges;
   typedef std::list<LiveRangeWrapper> UnorderedRanges;
   OrderedRanges Unhandled;
   // UnhandledPrecolored is a subset of Unhandled, specially collected

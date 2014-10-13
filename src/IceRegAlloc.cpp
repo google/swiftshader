@@ -58,6 +58,14 @@ void dumpDisableOverlap(const Cfg *Func, const Variable *Var,
   }
 }
 
+bool compareRanges(const LiveRangeWrapper &L, const LiveRangeWrapper &R) {
+  InstNumberT Lstart = L.Var->getLiveRange().getStart();
+  InstNumberT Rstart = R.Var->getLiveRange().getStart();
+  if (Lstart == Rstart)
+    return L.Var->getIndex() < R.Var->getIndex();
+  return Lstart < Rstart;
+}
+
 } // end of anonymous namespace
 
 // Implements the linear-scan algorithm.  Based on "Linear Scan
@@ -85,15 +93,11 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   VariablesMetadata *VMetadata = Func->getVMetadata();
 
   // Gather the live ranges of all variables and add them to the
-  // Unhandled set.  TODO: Unhandled is a set<> which is based on a
-  // balanced binary tree, so inserting live ranges for N variables is
-  // O(N log N) complexity.  N may be proportional to the number of
-  // instructions, thanks to temporary generation during lowering.  As
-  // a result, it may be useful to design a better data structure for
-  // storing Func->getVariables().
+  // Unhandled set.
   const VarList &Vars = Func->getVariables();
   {
     TimerMarker T(TimerStack::TT_initUnhandled, Func);
+    Unhandled.reserve(Vars.size());
     for (Variable *Var : Vars) {
       // Explicitly don't consider zero-weight variables, which are
       // meant to be spill slots.
@@ -105,13 +109,17 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
         continue;
       Var->untrimLiveRange();
       LiveRangeWrapper R(Var);
-      Unhandled.insert(R);
+      Unhandled.push_back(R);
       if (Var->hasReg()) {
         Var->setRegNumTmp(Var->getRegNum());
         Var->setLiveRangeInfiniteWeight();
-        UnhandledPrecolored.insert(R);
+        UnhandledPrecolored.push_back(R);
       }
     }
+    // Do a reverse sort so that erasing elements (from the end) is fast.
+    std::sort(Unhandled.rbegin(), Unhandled.rend(), compareRanges);
+    std::sort(UnhandledPrecolored.rbegin(), UnhandledPrecolored.rend(),
+              compareRanges);
   }
 
   // RegUses[I] is the number of live ranges (variables) that register
@@ -126,8 +134,8 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   UnorderedRanges::iterator Next;
 
   while (!Unhandled.empty()) {
-    LiveRangeWrapper Cur = *Unhandled.begin();
-    Unhandled.erase(Unhandled.begin());
+    LiveRangeWrapper Cur = Unhandled.back();
+    Unhandled.pop_back();
     if (Verbose) {
       Str << "\nConsidering  ";
       Cur.dump(Func);
@@ -155,8 +163,8 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       assert(RegUses[RegNum] >= 0);
       ++RegUses[RegNum];
       assert(!UnhandledPrecolored.empty());
-      assert(UnhandledPrecolored.begin()->Var == Cur.Var);
-      UnhandledPrecolored.erase(UnhandledPrecolored.begin());
+      assert(UnhandledPrecolored.back().Var == Cur.Var);
+      UnhandledPrecolored.pop_back();
       continue;
     }
 
@@ -174,8 +182,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           Item.dump(Func);
           Str << "\n";
         }
-        Active.erase(I);
-        Handled.push_back(Item);
+        Handled.splice(Handled.end(), Active, I);
         Moved = true;
       } else if (!Item.overlapsStart(Cur)) {
         // Move Item from Active to Inactive list.
@@ -184,8 +191,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           Item.dump(Func);
           Str << "\n";
         }
-        Active.erase(I);
-        Inactive.push_back(Item);
+        Inactive.splice(Inactive.end(), Active, I);
         Moved = true;
       }
       if (Moved) {
@@ -219,8 +225,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           Item.dump(Func);
           Str << "\n";
         }
-        Inactive.erase(I);
-        Handled.push_back(Item);
+        Handled.splice(Handled.end(), Inactive, I);
       } else if (Item.overlapsStart(Cur)) {
         // Move Item from Inactive to Active list.
         if (Verbose) {
@@ -228,8 +233,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           Item.dump(Func);
           Str << "\n";
         }
-        Inactive.erase(I);
-        Active.push_back(Item);
+        Active.splice(Active.end(), Inactive, I);
         // Increment Item in RegUses[].
         assert(Item.Var->hasRegTmp());
         int32_t RegNum = Item.Var->getRegNumTmp();
@@ -339,7 +343,9 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     // complexity.
     llvm::SmallBitVector PrecoloredUnhandledMask(RegMask.size());
     // Note: PrecoloredUnhandledMask is only used for dumping.
-    for (const LiveRangeWrapper &Item : UnhandledPrecolored) {
+    for (auto I = UnhandledPrecolored.rbegin(), E = UnhandledPrecolored.rend();
+         I != E; ++I) {
+      LiveRangeWrapper &Item = *I;
       assert(Item.Var->hasReg());
       if (Cur.endsBefore(Item))
         break;
@@ -449,8 +455,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
             --RegUses[MinWeightIndex];
             assert(RegUses[MinWeightIndex] >= 0);
             Item.Var->setRegNumTmp(Variable::NoRegister);
-            Active.erase(I);
-            Handled.push_back(Item);
+            Handled.splice(Handled.end(), Active, I);
           }
         }
         // Do the same for Inactive.
@@ -475,8 +480,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
               Str << "\n";
             }
             Item.Var->setRegNumTmp(Variable::NoRegister);
-            Inactive.erase(I);
-            Handled.push_back(Item);
+            Handled.splice(Handled.end(), Inactive, I);
           }
         }
         // Assign the register to Cur.
@@ -557,8 +561,8 @@ void LinearScan::dump(Cfg *Func) const {
     Str << "\n";
   }
   Str << "++++++ Unhandled:\n";
-  for (const LiveRangeWrapper &Item : Unhandled) {
-    Item.dump(Func);
+  for (auto I = Unhandled.rbegin(), E = Unhandled.rend(); I != E; ++I) {
+    I->dump(Func);
     Str << "\n";
   }
   Str << "++++++ Active:\n";
