@@ -22,6 +22,7 @@
 #include "IceCfg.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
+#include "IceGlobalInits.h"
 #include "IceTargetLowering.h"
 #include "IceTranslator.h"
 
@@ -54,38 +55,6 @@ bool Translator::checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
   return false;
 }
 
-void Translator::nameUnnamedGlobalAddresses(llvm::Module *Mod) {
-  const IceString &GlobalPrefix = Flags.DefaultGlobalPrefix;
-  if (GlobalPrefix.empty())
-    return;
-  uint32_t NameIndex = 0;
-  Ostream &errs = Ctx->getStrDump();
-  for (auto V = Mod->global_begin(), E = Mod->global_end(); V != E; ++V) {
-    if (!V->hasName()) {
-      V->setName(createUnnamedName(GlobalPrefix, NameIndex));
-      ++NameIndex;
-    } else {
-      checkIfUnnamedNameSafe(V->getName(), "global", GlobalPrefix, errs);
-    }
-  }
-}
-
-void Translator::nameUnnamedFunctions(llvm::Module *Mod) {
-  const IceString &FunctionPrefix = Flags.DefaultFunctionPrefix;
-  if (FunctionPrefix.empty())
-    return;
-  uint32_t NameIndex = 0;
-  Ostream &errs = Ctx->getStrDump();
-  for (llvm::Function &F : *Mod) {
-    if (!F.hasName()) {
-      F.setName(createUnnamedName(FunctionPrefix, NameIndex));
-      ++NameIndex;
-    } else {
-      checkIfUnnamedNameSafe(F.getName(), "function", FunctionPrefix, errs);
-    }
-  }
-}
-
 void Translator::translateFcn(Cfg *Fcn) {
   Ctx->resetStats();
   Func.reset(Fcn);
@@ -110,12 +79,18 @@ void Translator::emitConstants() {
     Func->getTarget()->emitConstants();
 }
 
-void Translator::lowerGlobals(const GlobalAddressList &GlobalAddresses) {
-  llvm::OwningPtr<Ice::TargetGlobalInitLowering> GlobalLowering(
-      Ice::TargetGlobalInitLowering::createLowering(Ctx->getTargetArch(), Ctx));
+void Translator::lowerGlobals(
+    const VariableDeclarationListType &VariableDeclarations) {
+  llvm::OwningPtr<TargetGlobalInitLowering> GlobalLowering(
+      TargetGlobalInitLowering::createLowering(Ctx->getTargetArch(), Ctx));
   bool DisableTranslation = Ctx->getFlags().DisableTranslation;
-  for (const Ice::GlobalAddress *Addr : GlobalAddresses) {
-    GlobalLowering->lower(*Addr, DisableTranslation);
+  bool DumpGlobalVariables = Ctx->isVerbose();
+  Ostream &Stream = Ctx->getStrDump();
+  for (const Ice::VariableDeclaration *Global : VariableDeclarations) {
+    if (DumpGlobalVariables)
+      Global->dump(Stream);
+    if(!DisableTranslation)
+      GlobalLowering->lower(*Global);
   }
   GlobalLowering.reset();
 }

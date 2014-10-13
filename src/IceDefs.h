@@ -26,7 +26,6 @@
 #include <set>
 #include <string>
 #include <vector>
-
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/SmallBitVector.h"
@@ -39,7 +38,9 @@ namespace Ice {
 class Cfg;
 class CfgNode;
 class Constant;
+class FunctionDeclaration;
 class GlobalContext;
+class GlobalDeclaration;
 class Inst;
 class InstPhi;
 class InstTarget;
@@ -48,6 +49,7 @@ class Liveness;
 class Operand;
 class TargetLowering;
 class Variable;
+class VariableDeclaration;
 class VariablesMetadata;
 
 // TODO: Switch over to LLVM's ADT container classes.

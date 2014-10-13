@@ -19,6 +19,7 @@
 #include "IceClFlags.h"
 #include "IceDefs.h"
 #include "IceGlobalContext.h"
+#include "IceGlobalInits.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
 #include "IceTimerTree.h"
@@ -289,7 +290,9 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
   return getTestPrefix() + Name;
 }
 
-GlobalContext::~GlobalContext() {}
+GlobalContext::~GlobalContext() {
+  llvm::DeleteContainerPointers(GlobalDeclarations);
+}
 
 Constant *GlobalContext::getConstantInt64(Type Ty, uint64_t ConstantInt64) {
   assert(Ty == IceType_i64);
@@ -383,6 +386,23 @@ ConstantList GlobalContext::getConstantPool(Type Ty) const {
     break;
   }
   llvm_unreachable("Unknown type");
+}
+
+FunctionDeclaration *
+GlobalContext::newFunctionDeclaration(const FuncSigType *Signature,
+                                      unsigned CallingConv, unsigned Linkage,
+                                      bool IsProto) {
+  FunctionDeclaration *Func = new FunctionDeclaration(
+      *Signature, static_cast<llvm::CallingConv::ID>(CallingConv),
+      static_cast<llvm::GlobalValue::LinkageTypes>(Linkage), IsProto);
+  GlobalDeclarations.push_back(Func);
+  return Func;
+}
+
+VariableDeclaration *GlobalContext::newVariableDeclaration() {
+  VariableDeclaration *Var = new VariableDeclaration();
+  GlobalDeclarations.push_back(Var);
+  return Var;
 }
 
 TimerIdT GlobalContext::getTimerID(TimerStackIdT StackID,

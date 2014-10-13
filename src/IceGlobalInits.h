@@ -1,4 +1,4 @@
-//===- subzero/src/IceGlobalInits.h - Global initializers -------*- C++ -*-===//
+//===- subzero/src/IceGlobalInits.h - Global declarations -------*- C++ -*-===//
 //
 //                        The Subzero Code Generator
 //
@@ -7,29 +7,117 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file declares the representation of global addresses and
-// initializers in Subzero. Global initializers are represented as a
-// sequence of simple initializers.
+// This file declares the representation of function declarations,
+// global variable declarations, and the corresponding variable
+// initializers in Subzero. Global variable initializers are
+// represented as a sequence of simple initializers.
 //
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEGLOBALINITS_H
 #define SUBZERO_SRC_ICEGLOBALINITS_H
 
-#include "IceDefs.h"
+#include "llvm/IR/CallingConv.h"
+#include "llvm/IR/GlobalValue.h" // for GlobalValue::LinkageTypes
 
-namespace llvm {
-// TODO(kschimpf): Remove this dependency on LLVM IR.
-class Value;
-}
+#include "IceDefs.h"
+#include "IceTypes.h"
+
+// TODO(kschimpf): Remove ourselves from using LLVM representation for calling
+// conventions and linkage types.
 
 namespace Ice {
 
-/// Models a global address, and its initializers.
-class GlobalAddress {
-  GlobalAddress(const GlobalAddress &) = delete;
-  GlobalAddress &operator=(const GlobalAddress &) = delete;
+/// Base class for global variable and function declarations.
+class GlobalDeclaration {
+  GlobalDeclaration(const GlobalDeclaration &) = delete;
+  GlobalDeclaration &operator=(const GlobalDeclaration &) = delete;
 
+public:
+  /// Discriminator for LLVM-style RTTI.
+  enum GlobalDeclarationKind {
+    FunctionDeclarationKind,
+    VariableDeclarationKind
+  };
+  GlobalDeclarationKind getKind() const { return Kind; }
+  const IceString &getName() const { return Name; }
+  void setName(const IceString &NewName) { Name = NewName; }
+  bool hasName() const { return !Name.empty(); }
+  virtual ~GlobalDeclaration() {}
+
+  /// Returns true if the declaration is external.
+  virtual bool getIsExternal() const = 0;
+
+  /// Prints out type of the global declaration.
+  virtual void dumpType(Ostream &Stream) const = 0;
+
+  /// Prints out the global declaration.
+  virtual void dump(Ostream &Stream) const = 0;
+
+  // Mangles name for cross tests, unless external and not defined locally
+  // (so that relocations accross llvm2ice and pnacl-llc will work).
+  virtual IceString mangleName(GlobalContext *Ctx) const = 0;
+
+protected:
+  GlobalDeclaration(GlobalDeclarationKind Kind) : Kind(Kind) {}
+
+  const GlobalDeclarationKind Kind;
+  IceString Name;
+};
+
+// Models a function declaration. This includes the type signature of
+// the function, its calling conventions, and its linkage.
+class FunctionDeclaration : public GlobalDeclaration {
+  FunctionDeclaration(const FunctionDeclaration &) = delete;
+  FunctionDeclaration &operator=(const FunctionDeclaration &) = delete;
+  friend class GlobalContext;
+
+public:
+  static FunctionDeclaration *create(GlobalContext *Ctx,
+                                     const FuncSigType &Signature,
+                                     llvm::CallingConv::ID CallingConv,
+                                     llvm::GlobalValue::LinkageTypes Linkage,
+                                     bool IsProto);
+  ~FunctionDeclaration() final {}
+  const FuncSigType &getSignature() const { return Signature; }
+  llvm::CallingConv::ID getCallingConv() const { return CallingConv; }
+  llvm::GlobalValue::LinkageTypes getLinkage() const { return Linkage; }
+  // isProto implies that there isn't a (local) definition for the function.
+  bool isProto() const { return IsProto; }
+  static bool classof(const GlobalDeclaration *Addr) {
+    return Addr->getKind() == FunctionDeclarationKind;
+  }
+  void dumpType(Ostream &Stream) const final;
+  void dump(Ostream &Stream) const final;
+  bool getIsExternal() const final {
+    return Linkage == llvm::GlobalValue::ExternalLinkage;
+  }
+
+  virtual IceString mangleName(GlobalContext *Ctx) const final {
+    return (getIsExternal() && IsProto) ? Name : Ctx->mangleName(Name);
+  }
+
+private:
+  const Ice::FuncSigType Signature;
+  llvm::CallingConv::ID CallingConv;
+  llvm::GlobalValue::LinkageTypes Linkage;
+  bool IsProto;
+
+  FunctionDeclaration(const FuncSigType &Signature,
+                      llvm::CallingConv::ID CallingConv,
+                      llvm::GlobalValue::LinkageTypes Linkage, bool IsProto)
+      : GlobalDeclaration(FunctionDeclarationKind), Signature(Signature),
+        CallingConv(CallingConv), Linkage(Linkage), IsProto(IsProto) {}
+};
+
+/// Models a global variable declaration, and its initializers.
+class VariableDeclaration : public GlobalDeclaration {
+  VariableDeclaration(const VariableDeclaration &) = delete;
+  VariableDeclaration &operator=(const VariableDeclaration &) = delete;
+  friend class GlobalContext;
+  // TODO(kschimpf) Factor out allocation of initializers into the
+  // global context, so that memory allocation/collection can be
+  // optimized.
 public:
   /// Base class for a global variable initializer.
   class Initializer {
@@ -81,8 +169,8 @@ public:
     }
     ~DataInitializer() override {}
     const DataVecType &getContents() const { return Contents; }
-    SizeT getNumBytes() const override { return Contents.size(); }
-    void dump(Ostream &Stream) const override;
+    SizeT getNumBytes() const final { return Contents.size(); }
+    void dump(Ostream &Stream) const final;
     static bool classof(const Initializer *D) {
       return D->getKind() == DataInitializerKind;
     }
@@ -101,8 +189,8 @@ public:
     explicit ZeroInitializer(SizeT Size)
         : Initializer(ZeroInitializerKind), Size(Size) {}
     ~ZeroInitializer() override {}
-    SizeT getNumBytes() const override { return Size; }
-    void dump(Ostream &Stream) const override;
+    SizeT getNumBytes() const final { return Size; }
+    void dump(Ostream &Stream) const final;
     static bool classof(const Initializer *Z) {
       return Z->getKind() == ZeroInitializerKind;
     }
@@ -112,76 +200,33 @@ public:
     SizeT Size;
   };
 
-  /// Defines the kind of relocation addresses allowed.
-  enum RelocationKind { FunctionRelocation, GlobalAddressRelocation };
-
-  /// Defines a relocation address (i.e. reference to a function
-  /// or global variable address).
-  class RelocationAddress {
-    RelocationAddress &operator=(const RelocationAddress &) = delete;
-
-  public:
-    explicit RelocationAddress(const RelocationAddress &Addr)
-        : Kind(Addr.Kind) {
-      switch (Kind) {
-      case FunctionRelocation:
-        Address.Function = Addr.Address.Function;
-        break;
-      case GlobalAddressRelocation:
-        Address.GlobalAddr = Addr.Address.GlobalAddr;
-      }
-    }
-    explicit RelocationAddress(llvm::Value *Function)
-        : Kind(FunctionRelocation) {
-      Address.Function = Function;
-    }
-    explicit RelocationAddress(GlobalAddress *GlobalAddr)
-        : Kind(GlobalAddressRelocation) {
-      Address.GlobalAddr = GlobalAddr;
-    }
-    RelocationKind getKind() const { return Kind; }
-    llvm::Value *getFunction() const {
-      assert(Kind == FunctionRelocation);
-      return Address.Function;
-    }
-    GlobalAddress *getGlobalAddr() const {
-      assert(Kind == GlobalAddressRelocation);
-      return Address.GlobalAddr;
-    }
-  private:
-    const RelocationKind Kind;
-    union {
-      // TODO(kschimpf) Integrate Functions into ICE model.
-      llvm::Value *Function;
-      GlobalAddress *GlobalAddr;
-    } Address;
-  };
-
   // Relocation address offsets must be 32 bit values.
   typedef int32_t RelocOffsetType;
   static const SizeT RelocAddrSize = 4;
 
-  /// Defines the relocation value of another address.
+  /// Defines the relocation value of another global declaration.
   class RelocInitializer : public Initializer {
     RelocInitializer(const RelocInitializer &) = delete;
     RelocInitializer &operator=(const RelocInitializer &) = delete;
 
   public:
-    RelocInitializer(const RelocationAddress &Address, RelocOffsetType Offset)
-        : Initializer(RelocInitializerKind), Address(Address), Offset(Offset) {}
+    RelocInitializer(const GlobalDeclaration *Declaration,
+                     RelocOffsetType Offset)
+        : Initializer(RelocInitializerKind), Declaration(Declaration),
+          Offset(Offset) {}
     ~RelocInitializer() override {}
     RelocOffsetType getOffset() const { return Offset; }
-    IceString getName() const;
-    SizeT getNumBytes() const override { return RelocAddrSize; }
-    void dump(Ostream &Stream) const override;
-    virtual void dumpType(Ostream &Stream) const;
+    const GlobalDeclaration *getDeclaration() const { return Declaration; }
+    SizeT getNumBytes() const final { return RelocAddrSize; }
+    void dump(Ostream &Stream) const final;
+    void dumpType(Ostream &Stream) const final;
     static bool classof(const Initializer *R) {
       return R->getKind() == RelocInitializerKind;
     }
 
   private:
-    // The global address used in the relocation.
-    const RelocationAddress Address;
+    // The global declaration used in the relocation.
+    const GlobalDeclaration *Declaration;
     // The offset to add to the relocation.
     const RelocOffsetType Offset;
   };
@@ -189,19 +234,21 @@ public:
   /// Models the list of initializers.
   typedef std::vector<Initializer *> InitializerListType;
 
-  GlobalAddress() : Alignment(0), IsConstant(false), IsInternal(true) {}
-  ~GlobalAddress();
+  static VariableDeclaration *create(GlobalContext *Ctx);
+  ~VariableDeclaration() final;
 
   const InitializerListType &getInitializers() const { return Initializers; }
-  bool hasName() const { return !Name.empty(); }
-  const IceString &getName() const { return Name; }
-  void setName(const IceString &NewName) { Name = NewName; }
   bool getIsConstant() const { return IsConstant; }
   void setIsConstant(bool NewValue) { IsConstant = NewValue; }
   uint32_t getAlignment() const { return Alignment; }
   void setAlignment(uint32_t NewAlignment) { Alignment = NewAlignment; }
   bool getIsInternal() const { return IsInternal; }
   void setIsInternal(bool NewValue) { IsInternal = NewValue; }
+  bool getIsExternal() const final { return !getIsInternal(); }
+  bool hasInitializer() const {
+    return !(Initializers.size() == 1 &&
+             llvm::isa<ZeroInitializer>(Initializers[0]));
+  }
 
   /// Returns the number of bytes for the initializer of the global
   /// address.
@@ -219,36 +266,49 @@ public:
     Initializers.push_back(Initializer);
   }
 
-  /// Prints out type for initializer associated with the global address
+  /// Prints out type for initializer associated with the declaration
   /// to Stream.
-  void dumpType(Ostream &Stream) const;
+  void dumpType(Ostream &Stream) const final;
 
-  /// Prints out the definition of the global address (including
-  /// initialization).
-  void dump(Ostream &Stream) const;
+  /// Prints out the definition of the global variable declaration
+  /// (including initialization).
+  void dump(Ostream &Stream) const final;
+
+  static bool classof(const GlobalDeclaration *Addr) {
+    return Addr->getKind() == VariableDeclarationKind;
+  }
+
+  IceString mangleName(GlobalContext *Ctx) const final {
+    return (getIsExternal() && !hasInitializer())
+        ? Name : Ctx->mangleName(Name);
+  }
+
 
 private:
-  // list of initializers associated with the global address.
+  // list of initializers for the declared variable.
   InitializerListType Initializers;
-  // The name for the global.
-  IceString Name;
-  // The alignment of the initializer.
+  // The alignment of the declared variable.
   uint32_t Alignment;
-  // True if a constant initializer.
+  // True if a declared (global) constant.
   bool IsConstant;
-  // True if the address is internal.
+  // True if the declaration is internal.
   bool IsInternal;
+
+  VariableDeclaration()
+      : GlobalDeclaration(VariableDeclarationKind), Alignment(0),
+        IsConstant(false), IsInternal(true) {}
 };
 
 template <class StreamType>
 inline StreamType &operator<<(StreamType &Stream,
-                              const GlobalAddress::Initializer &Init) {
+                              const VariableDeclaration::Initializer &Init) {
   Init.dump(Stream);
   return Stream;
 }
 
 template <class StreamType>
-inline StreamType &operator<<(StreamType &Stream, const GlobalAddress &Addr) {
+inline StreamType &operator<<(StreamType &Stream,
+                              const GlobalDeclaration &Addr) {
   Addr.dump(Stream);
   return Stream;
 }

@@ -24,7 +24,6 @@
 #include "llvm/Support/Format.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/Support/ValueHandle.h"
 
 #include "IceCfg.h"
 #include "IceCfgNode.h"
@@ -36,9 +35,8 @@
 #include "IceTypeConverter.h"
 #include "PNaClTranslator.h"
 
-using namespace llvm;
-
 namespace {
+using namespace llvm;
 
 // TODO(kschimpf) Remove error recovery once implementation complete.
 static cl::opt<bool> AllowErrorRecovery(
@@ -160,19 +158,21 @@ class TopLevelParser : public NaClBitcodeParser {
   TopLevelParser &operator=(const TopLevelParser &) = delete;
 
 public:
+  typedef std::vector<Ice::FunctionDeclaration *> FunctionDeclarationListType;
+
   TopLevelParser(Ice::Translator &Translator, const std::string &InputName,
                  NaClBitcodeHeader &Header, NaClBitstreamCursor &Cursor,
                  bool &ErrorStatus)
       : NaClBitcodeParser(Cursor), Translator(Translator),
         Mod(new Module(InputName, getGlobalContext())), DL(PNaClDataLayout),
-        Header(Header), TypeConverter(getLLVMContext()),
+        Header(Header), TypeConverter(Mod->getContext()),
         ErrorStatus(ErrorStatus), NumErrors(0), NumFunctionIds(0),
         NumFunctionBlocks(0) {
     Mod->setDataLayout(PNaClDataLayout);
     setErrStream(Translator.getContext()->getStrDump());
   }
 
-  ~TopLevelParser() override { DeleteContainerPointers(GlobalIDAddresses); }
+  ~TopLevelParser() override {}
 
   Ice::Translator &getTranslator() { return Translator; }
 
@@ -197,9 +197,6 @@ public:
 
   /// Returns the number of bytes in the bitcode header.
   size_t getHeaderSize() const { return Header.getHeaderSize(); }
-
-  /// Returns the llvm context to use.
-  LLVMContext &getLLVMContext() const { return Mod->getContext(); }
 
   /// Changes the size of the type list to the given size.
   void resizeTypeIDValues(unsigned NewSize) { TypeIDValues.resize(NewSize); }
@@ -236,36 +233,40 @@ public:
   }
 
   /// Sets the next function ID to the given LLVM function.
-  void setNextFunctionID(Function *Fcn) {
+  void setNextFunctionID(Ice::FunctionDeclaration *Fcn) {
     ++NumFunctionIds;
-    FunctionIDValues.push_back(Fcn);
+    FunctionDeclarationList.push_back(Fcn);
   }
 
   /// Defines the next function ID as one that has an implementation
   /// (i.e a corresponding function block in the bitcode).
   void setNextValueIDAsImplementedFunction() {
-    DefiningFunctionsList.push_back(FunctionIDValues.size());
+    DefiningFunctionDeclarationsList.push_back(FunctionDeclarationList.size());
   }
 
   /// Returns the value id that should be associated with the the
   /// current function block. Increments internal counters during call
   /// so that it will be in correct position for next function block.
   unsigned getNextFunctionBlockValueID() {
-    if (NumFunctionBlocks >= DefiningFunctionsList.size())
+    if (NumFunctionBlocks >= DefiningFunctionDeclarationsList.size())
       report_fatal_error(
           "More function blocks than defined function addresses");
-    return DefiningFunctionsList[NumFunctionBlocks++];
+    return DefiningFunctionDeclarationsList[NumFunctionBlocks++];
   }
 
-  /// Returns the LLVM Function address associated with ID.
-  Function *getFunctionByID(unsigned ID) const {
-    if (ID >= FunctionIDValues.size())
-      return nullptr;
-    Value *V = FunctionIDValues[ID];
-    return cast<Function>(V);
+  /// Returns the function associated with ID.
+  Ice::FunctionDeclaration *getFunctionByID(unsigned ID) {
+    if (ID < FunctionDeclarationList.size())
+      return FunctionDeclarationList[ID];
+    return reportGetFunctionByIDError(ID);
   }
 
-  /// Returns the corresponding constant associated with a global value
+  /// Returns the list of function declarations.
+  const FunctionDeclarationListType &getFunctionDeclarationList() const {
+    return FunctionDeclarationList;
+  }
+
+  /// Returns the corresponding constant associated with a global declaration.
   /// (i.e. relocatable).
   Ice::Constant *getOrCreateGlobalConstantByID(unsigned ID) {
     // TODO(kschimpf): Can this be built when creating global initializers?
@@ -273,7 +274,7 @@ public:
     if (ID >= ValueIDConstants.size()) {
       C = nullptr;
       unsigned ExpectedSize =
-          FunctionIDValues.size() + GlobalIDAddresses.size();
+          FunctionDeclarationList.size() + VariableDeclarations.size();
       if (ID >= ExpectedSize)
         ExpectedSize = ID;
       ValueIDConstants.resize(ExpectedSize);
@@ -284,12 +285,13 @@ public:
       return C;
 
     // If reached, no such constant exists, create one.
+    // TODO(kschimpf) Don't get addresses of intrinsic function declarations.
     std::string Name;
-    unsigned FcnIDSize = FunctionIDValues.size();
+    unsigned FcnIDSize = FunctionDeclarationList.size();
     if (ID < FcnIDSize) {
-      Name = FunctionIDValues[ID]->getName();
-    } else if ((ID - FcnIDSize) < GlobalIDAddresses.size()) {
-      Name = GlobalIDAddresses[ID - FcnIDSize]->getName();
+      Name = FunctionDeclarationList[ID]->getName();
+    } else if ((ID - FcnIDSize) < VariableDeclarations.size()) {
+      Name = VariableDeclarations[ID - FcnIDSize]->getName();
     } else {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
@@ -304,47 +306,49 @@ public:
     return C;
   }
 
-  /// Returns the number of function addresses (i.e. ID's) defined in
-  /// the bitcode file.
+  /// Returns the number of function declarations in the bitcode file.
   unsigned getNumFunctionIDs() const { return NumFunctionIds; }
 
-  /// Returns the number of global IDs (function and global addresses)
-  /// defined in the bitcode file.
+  /// Returns the number of global declarations (i.e. IDs) defined in
+  /// the bitcode file.
   unsigned getNumGlobalIDs() const {
-    return FunctionIDValues.size() + GlobalIDAddresses.size();
+    return FunctionDeclarationList.size() + VariableDeclarations.size();
   }
 
-  /// Creates Count global addresses.
-  void CreateGlobalAddresses(size_t Count) {
-    assert(GlobalIDAddresses.empty());
+  /// Creates Count global variable declarations.
+  void CreateGlobalVariables(size_t Count) {
+    assert(VariableDeclarations.empty());
+    Ice::GlobalContext *Context = getTranslator().getContext();
     for (size_t i = 0; i < Count; ++i) {
-      GlobalIDAddresses.push_back(new Ice::GlobalAddress());
+      VariableDeclarations.push_back(Ice::VariableDeclaration::create(Context));
     }
   }
 
-  /// Returns the number of global addresses (i.e. ID's) defined in
-  /// the bitcode file.
-  Ice::SizeT getNumGlobalAddresses() const { return GlobalIDAddresses.size(); }
-
-  /// Returns the global address with the given index.
-  Ice::GlobalAddress *getGlobalAddress(size_t Index) {
-    if (Index < GlobalIDAddresses.size())
-      return GlobalIDAddresses[Index];
-    std::string Buffer;
-    raw_string_ostream StrBuf(Buffer);
-    StrBuf << "Global index " << Index
-           << " not allowed. Out of range. Must be less than "
-           << GlobalIDAddresses.size();
-    Error(StrBuf.str());
-    // TODO(kschimpf) Remove error recovery once implementation complete.
-    if (!GlobalIDAddresses.empty())
-      return GlobalIDAddresses[0];
-    report_fatal_error("Unable to continue");
+  /// Returns the number of global variable declarations in the
+  /// bitcode file.
+  Ice::SizeT getNumGlobalVariables() const {
+    return VariableDeclarations.size();
   }
 
-  /// Returns the list of read global addresses.
-  const Ice::Translator::GlobalAddressList &getGlobalIDAddresses() {
-    return GlobalIDAddresses;
+  /// Returns the global variable declaration with the given index.
+  Ice::VariableDeclaration *getGlobalVariableByID(unsigned Index) {
+    if (Index < VariableDeclarations.size())
+      return VariableDeclarations[Index];
+    return reportGetGlobalVariableByIDError(Index);
+  }
+
+  /// Returns the global declaration (variable or function) with the
+  /// given Index.
+  Ice::GlobalDeclaration *getGlobalDeclarationByID(size_t Index) {
+    if (Index < NumFunctionIds)
+      return getFunctionByID(Index);
+    else
+      return getGlobalVariableByID(Index - NumFunctionIds);
+  }
+
+  /// Returns the list of parsed global variable declarations.
+  const Ice::Translator::VariableDeclarationListType &getGlobalVariables() {
+    return VariableDeclarations;
   }
 
   /// Returns the corresponding ICE type for LLVMTy.
@@ -383,20 +387,21 @@ private:
   unsigned NumErrors;
   // The types associated with each type ID.
   std::vector<ExtendedType> TypeIDValues;
-  // The set of function value IDs.
-  std::vector<WeakVH> FunctionIDValues;
-  // The set of global addresses IDs.
-  Ice::Translator::GlobalAddressList GlobalIDAddresses;
-  // Relocatable constants associated with FunctionIDValues and
-  // GlobalIDAddresses.
+  // The set of functions.
+  FunctionDeclarationListType FunctionDeclarationList;
+  // The set of global variables.
+  Ice::Translator::VariableDeclarationListType VariableDeclarations;
+  // Relocatable constants associated with global declarations.
   std::vector<Ice::Constant *> ValueIDConstants;
-  // The number of function IDs.
+  // The number of function declarations (i.e. IDs).
   unsigned NumFunctionIds;
   // The number of function blocks (processed so far).
   unsigned NumFunctionBlocks;
-  // The list of value IDs (in the order found) of defining function
-  // addresses.
-  std::vector<unsigned> DefiningFunctionsList;
+  // The list of function declaration IDs (in the order found) that
+  // aren't just proto declarations.
+  // TODO(kschimpf): Instead of using this list, just use
+  // FunctionDeclarationList, and the isProto member function.
+  std::vector<unsigned> DefiningFunctionDeclarationsList;
   // Error recovery value to use when getFuncSigTypeByID fails.
   Ice::FuncSigType UndefinedFuncSigType;
 
@@ -423,6 +428,14 @@ private:
   void reportBadTypeIDAs(unsigned ID, const ExtendedType *Ty,
                          ExtendedType::TypeKind WantedType);
 
+  // Reports that there is no function declaration for ID. Returns an
+  // error recovery value to use.
+  Ice::FunctionDeclaration *reportGetFunctionByIDError(unsigned ID);
+
+  // Reports that there is not global variable declaration for
+  // ID. Returns an error recovery value to use.
+  Ice::VariableDeclaration *reportGetGlobalVariableByIDError(unsigned Index);
+
   // Reports that there is no corresponding ICE type for LLVMTy, and
   // returns ICE::IceType_void.
   Ice::Type convertToIceTypeError(Type *LLVMTy);
@@ -438,6 +451,34 @@ void TopLevelParser::reportBadTypeIDAs(unsigned ID, const ExtendedType *Ty,
     StrBuf << "Type id " << ID << " not " << WantedType << ". Found: " << *Ty;
   }
   Error(StrBuf.str());
+}
+
+Ice::FunctionDeclaration *
+TopLevelParser::reportGetFunctionByIDError(unsigned ID) {
+  std::string Buffer;
+  raw_string_ostream StrBuf(Buffer);
+  StrBuf << "Function index " << ID
+         << " not allowed. Out of range. Must be less than "
+         << FunctionDeclarationList.size();
+  Error(StrBuf.str());
+  // TODO(kschimpf) Remove error recovery once implementation complete.
+  if (!FunctionDeclarationList.empty())
+    return FunctionDeclarationList[0];
+  report_fatal_error("Unable to continue");
+}
+
+Ice::VariableDeclaration *
+TopLevelParser::reportGetGlobalVariableByIDError(unsigned Index) {
+  std::string Buffer;
+  raw_string_ostream StrBuf(Buffer);
+  StrBuf << "Global index " << Index
+         << " not allowed. Out of range. Must be less than "
+         << VariableDeclarations.size();
+  Error(StrBuf.str());
+  // TODO(kschimpf) Remove error recovery once implementation complete.
+  if (!VariableDeclarations.empty())
+    return VariableDeclarations[0];
+  report_fatal_error("Unable to continue");
 }
 
 Ice::Type TopLevelParser::convertToIceTypeError(Type *LLVMTy) {
@@ -747,38 +788,40 @@ void TypesParser::ProcessRecord() {
   llvm_unreachable("Unknown type block record not processed!");
 }
 
-/// Parses the globals block (i.e. global variables).
+/// Parses the globals block (i.e. global variable declarations and
+/// corresponding initializers).
 class GlobalsParser : public BlockParserBaseClass {
 public:
   GlobalsParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser), InitializersNeeded(0),
-        NextGlobalID(0), CurrentAddress(&DummyAddress) {}
-
-  ~GlobalsParser() override {}
+        NextGlobalID(0), DummyGlobalVar(Ice::VariableDeclaration::create(
+                             getTranslator().getContext())),
+        CurGlobalVar(DummyGlobalVar) {}
 
 private:
   // Keeps track of how many initializers are expected for the global variable
-  // being built.
+  // declaration being built.
   unsigned InitializersNeeded;
 
-  // The index of the next global variable.
+  // The index of the next global variable declaration.
   unsigned NextGlobalID;
 
-  // Holds the current global address whose initializer is being defined.
-  Ice::GlobalAddress *CurrentAddress;
+  // Dummy global variable declaration to guarantee CurGlobalVar is
+  // always defined (allowing code to not need to check if
+  // CurGlobalVar is nullptr).
+  Ice::VariableDeclaration *DummyGlobalVar;
 
-  // Dummy global address to guarantee CurrentAddress is always defined
-  // (allowing code to not need to check if CurrentAddress is nullptr).
-  Ice::GlobalAddress DummyAddress;
+  // Holds the current global variable declaration being built.
+  Ice::VariableDeclaration *CurGlobalVar;
 
   void ExitBlock() override {
     verifyNoMissingInitializers();
-    unsigned NumIDs = Context->getNumGlobalAddresses();
+    unsigned NumIDs = Context->getNumGlobalVariables();
     if (NextGlobalID < NumIDs) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Globals block expects " << NumIDs
-             << " global definitions. Found: " << NextGlobalID;
+             << " global variable declarations. Found: " << NextGlobalID;
       Error(StrBuf.str());
     }
     BlockParserBaseClass::ExitBlock();
@@ -786,12 +829,12 @@ private:
 
   void ProcessRecord() override;
 
-  // Checks if the number of initializers for the CurrentAddress is the same as
+  // Checks if the number of initializers for the CurGlobalVar is the same as
   // the number found in the bitcode file. If different, and error message is
   // generated, and the internal state of the parser is fixed so this condition
   // is no longer violated.
   void verifyNoMissingInitializers() {
-    size_t NumInits = CurrentAddress->getInitializers().size();
+    size_t NumInits = CurGlobalVar->getInitializers().size();
     if (InitializersNeeded != NumInits) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
@@ -801,6 +844,7 @@ private:
         StrBuf << "s";
       StrBuf << ". Found: " << NumInits;
       Error(StrBuf.str());
+      InitializersNeeded = NumInits;
     }
   }
 };
@@ -812,11 +856,11 @@ void GlobalsParser::ProcessRecord() {
     // COUNT: [n]
     if (!isValidRecordSize(1, "Globals count"))
       return;
-    if (NextGlobalID != Context->getNumGlobalAddresses()) {
+    if (NextGlobalID != Context->getNumGlobalVariables()) {
       Error("Globals count record not first in block.");
       return;
     }
-    Context->CreateGlobalAddresses(Values[0]);
+    Context->CreateGlobalVariables(Values[0]);
     return;
   case naclbitc::GLOBALVAR_VAR: {
     // VAR: [align, isconst]
@@ -824,9 +868,9 @@ void GlobalsParser::ProcessRecord() {
       return;
     verifyNoMissingInitializers();
     InitializersNeeded = 1;
-    CurrentAddress = Context->getGlobalAddress(NextGlobalID);
-    CurrentAddress->setAlignment((1 << Values[0]) >> 1);
-    CurrentAddress->setIsConstant(Values[1] != 0);
+    CurGlobalVar = Context->getGlobalVariableByID(NextGlobalID);
+    CurGlobalVar->setAlignment((1 << Values[0]) >> 1);
+    CurGlobalVar->setIsConstant(Values[1] != 0);
     ++NextGlobalID;
     return;
   }
@@ -834,7 +878,7 @@ void GlobalsParser::ProcessRecord() {
     // COMPOUND: [size]
     if (!isValidRecordSize(1, "globals compound"))
       return;
-    if (!CurrentAddress->getInitializers().empty()) {
+    if (!CurGlobalVar->getInitializers().empty()) {
       Error("Globals compound record not first initializer");
       return;
     }
@@ -851,17 +895,17 @@ void GlobalsParser::ProcessRecord() {
     // ZEROFILL: [size]
     if (!isValidRecordSize(1, "Globals zerofill"))
       return;
-    CurrentAddress->addInitializer(
-        new Ice::GlobalAddress::ZeroInitializer(Values[0]));
-    break;
+    CurGlobalVar->addInitializer(
+        new Ice::VariableDeclaration::ZeroInitializer(Values[0]));
+    return;
   }
   case naclbitc::GLOBALVAR_DATA: {
     // DATA: [b0, b1, ...]
     if (!isValidRecordSizeAtLeast(1, "Globals data"))
       return;
-    CurrentAddress->addInitializer(
-        new Ice::GlobalAddress::DataInitializer(Values));
-    break;
+    CurGlobalVar->addInitializer(
+        new Ice::VariableDeclaration::DataInitializer(Values));
+    return;
   }
   case naclbitc::GLOBALVAR_RELOC: {
     // RELOC: [val, [addend]]
@@ -871,19 +915,9 @@ void GlobalsParser::ProcessRecord() {
     Ice::SizeT Offset = 0;
     if (Values.size() == 2)
       Offset = Values[1];
-    unsigned NumFunctions = Context->getNumFunctionIDs();
-    if (Index < NumFunctions) {
-      llvm::Function *Fcn = Context->getFunctionByID(Index);
-      Ice::GlobalAddress::RelocationAddress Addr(Fcn);
-      CurrentAddress->addInitializer(
-          new Ice::GlobalAddress::RelocInitializer(Addr, Offset));
-    } else {
-      Ice::GlobalAddress::RelocationAddress Addr(
-          Context->getGlobalAddress(Index - NumFunctions));
-      CurrentAddress->addInitializer(
-          new Ice::GlobalAddress::RelocInitializer(Addr, Offset));
-    }
-    break;
+    CurGlobalVar->addInitializer(new Ice::VariableDeclaration::RelocInitializer(
+        Context->getGlobalDeclarationByID(Index), Offset));
+    return;
   }
   default:
     BlockParserBaseClass::ProcessRecord();
@@ -964,23 +998,25 @@ public:
       : BlockParserBaseClass(BlockID, EnclosingParser),
         Func(new Ice::Cfg(getTranslator().getContext())), CurrentBbIndex(0),
         FcnId(Context->getNextFunctionBlockValueID()),
-        LLVMFunc(Context->getFunctionByID(FcnId)),
+        FuncDecl(Context->getFunctionByID(FcnId)),
         CachedNumGlobalValueIDs(Context->getNumGlobalIDs()),
         NextLocalInstIndex(Context->getNumGlobalIDs()),
         InstIsTerminating(false) {
-    Func->setFunctionName(LLVMFunc->getName());
+    Func->setFunctionName(FuncDecl->getName());
     if (getFlags().TimeEachFunction)
       getTranslator().getContext()->pushTimer(
           getTranslator().getContext()->getTimerID(
               Ice::GlobalContext::TSK_Funcs, Func->getFunctionName()),
           Ice::GlobalContext::TSK_Funcs);
-    Func->setReturnType(Context->convertToIceType(LLVMFunc->getReturnType()));
-    Func->setInternal(LLVMFunc->hasInternalLinkage());
+    // TODO(kschimpf) Clean up API to add a function signature to
+    // a CFG.
+    const Ice::FuncSigType &Signature = FuncDecl->getSignature();
+    Func->setReturnType(Signature.getReturnType());
+    Func->setInternal(FuncDecl->getLinkage() == GlobalValue::InternalLinkage);
     CurrentNode = InstallNextBasicBlock();
     Func->setEntryNode(CurrentNode);
-    for (auto ArgI = LLVMFunc->arg_begin(), ArgE = LLVMFunc->arg_end();
-         ArgI != ArgE; ++ArgI) {
-      Func->addArg(getNextInstVar(Context->convertToIceType(ArgI->getType())));
+    for (Ice::Type ArgType : Signature.getArgList()) {
+      Func->addArg(getNextInstVar(ArgType));
     }
   }
 
@@ -1000,8 +1036,8 @@ private:
   Ice::CfgNode *CurrentNode;
   // The ID for the function.
   unsigned FcnId;
-  // The corresponding LLVM function.
-  Function *LLVMFunc;
+  // The corresponding function declaration.
+  Ice::FunctionDeclaration *FuncDecl;
   // Holds the dividing point between local and global absolute value indices.
   uint32_t CachedNumGlobalValueIDs;
   // Holds operands local to the function block, based on indices
@@ -1999,12 +2035,12 @@ void FunctionParser::ProcessRecord() {
     // CALL_INDIRECT: [cc, fn, returnty, args...]
     //
     // Note: The difference between CALL and CALL_INDIRECT is that
-    // CALL has an explicit function address, while the CALL_INDIRECT
-    // is just an address. For CALL, we can infer the return type by
-    // looking up the type signature associated with the function
-    // address. For CALL_INDIRECT we can only infer the type signature
-    // via argument types, and the corresponding return type stored in
-    // CALL_INDIRECT record.
+    // CALL has a reference to an explicit function declaration, while
+    // the CALL_INDIRECT is just an address. For CALL, we can infer
+    // the return type by looking up the type signature associated
+    // with the function declaration. For CALL_INDIRECT we can only
+    // infer the type signature via argument types, and the
+    // corresponding return type stored in CALL_INDIRECT record.
     Ice::SizeT ParamsStartIndex = 2;
     if (Record.GetCode() == naclbitc::FUNC_CODE_INST_CALL) {
       if (!isValidRecordSizeAtLeast(2, "function block call"))
@@ -2034,17 +2070,9 @@ void FunctionParser::ProcessRecord() {
     Ice::Type ReturnType = Ice::IceType_void;
     const Ice::Intrinsics::FullIntrinsicInfo *IntrinsicInfo = nullptr;
     if (Record.GetCode() == naclbitc::FUNC_CODE_INST_CALL) {
-      Function *Fcn = Context->getFunctionByID(CalleeIndex);
-      if (Fcn == nullptr) {
-        std::string Buffer;
-        raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Function call to non-function: " << *Callee;
-        Error(StrBuf.str());
-        return;
-      }
-
-      FunctionType *FcnTy = Fcn->getFunctionType();
-      ReturnType = Context->convertToIceType(FcnTy->getReturnType());
+      Ice::FunctionDeclaration *Fcn = Context->getFunctionByID(CalleeIndex);
+      const Ice::FuncSigType &Signature = Fcn->getSignature();
+      ReturnType = Signature.getReturnType();
 
       // Check if this direct call is to an Intrinsic (starts with "llvm.")
       static Ice::IceString LLVMPrefix("llvm.");
@@ -2339,45 +2367,60 @@ class ModuleParser : public BlockParserBaseClass {
 public:
   ModuleParser(unsigned BlockID, TopLevelParser *Context)
       : BlockParserBaseClass(BlockID, Context),
-        GlobalAddressNamesAndInitializersInstalled(false) {}
+        GlobalDeclarationNamesAndInitializersInstalled(false) {}
 
   ~ModuleParser() override {}
 
 private:
-  // True if we have already instaledl names for unnamed global addresses,
-  // and generated global constant initializers.
-  bool GlobalAddressNamesAndInitializersInstalled;
+  // True if we have already installed names for unnamed global declarations,
+  // and have generated global constant initializers.
+  bool GlobalDeclarationNamesAndInitializersInstalled;
 
-  // Generates names for unnamed global addresses, and lowers global
-  // constant initializers to the target. May be called multiple
-  // times. Only the first call will do the installation.
-  void InstallGlobalAddressNamesAndInitializers() {
-    if (!GlobalAddressNamesAndInitializersInstalled) {
+  // Generates names for unnamed global addresses (i.e. functions and
+  // global variables). Then lowers global variable declaration
+  // initializers to the target. May be called multiple times. Only
+  // the first call will do the installation.
+  void InstallGlobalNamesAndGlobalVarInitializers() {
+    if (!GlobalDeclarationNamesAndInitializersInstalled) {
       Ice::Translator &Trans = getTranslator();
       const Ice::IceString &GlobalPrefix = getFlags().DefaultGlobalPrefix;
       if (!GlobalPrefix.empty()) {
         uint32_t NameIndex = 0;
-        for (Ice::GlobalAddress *Address : Context->getGlobalIDAddresses()) {
-          if (!Address->hasName()) {
-            Address->setName(Trans.createUnnamedName(GlobalPrefix, NameIndex));
-            ++NameIndex;
-          } else {
-            Trans.checkIfUnnamedNameSafe(Address->getName(), "global",
-                                         GlobalPrefix,
-                                         Trans.getContext()->getStrDump());
-          }
+        for (Ice::VariableDeclaration *Var : Context->getGlobalVariables()) {
+          installDeclarationName(Trans, Var, GlobalPrefix, "global", NameIndex);
         }
       }
-      Trans.nameUnnamedFunctions(Context->getModule());
-      getTranslator().lowerGlobals(Context->getGlobalIDAddresses());
-      GlobalAddressNamesAndInitializersInstalled = true;
+      const Ice::IceString &FunctionPrefix = getFlags().DefaultFunctionPrefix;
+      if (!FunctionPrefix.empty()) {
+        uint32_t NameIndex = 0;
+        for (Ice::FunctionDeclaration *Func :
+             Context->getFunctionDeclarationList()) {
+          installDeclarationName(Trans, Func, FunctionPrefix, "function",
+                                 NameIndex);
+        }
+      }
+      getTranslator().lowerGlobals(Context->getGlobalVariables());
+      GlobalDeclarationNamesAndInitializersInstalled = true;
+    }
+  }
+
+  void installDeclarationName(Ice::Translator &Trans,
+                              Ice::GlobalDeclaration *Decl,
+                              const Ice::IceString &Prefix, const char *Context,
+                              uint32_t &NameIndex) {
+    if (!Decl->hasName()) {
+      Decl->setName(Trans.createUnnamedName(Prefix, NameIndex));
+      ++NameIndex;
+    } else {
+      Trans.checkIfUnnamedNameSafe(Decl->getName(), Context, Prefix,
+                                   Trans.getContext()->getStrDump());
     }
   }
 
   bool ParseBlock(unsigned BlockID) override;
 
   void ExitBlock() override {
-    InstallGlobalAddressNamesAndInitializers();
+    InstallGlobalNamesAndGlobalVarInitializers();
     getTranslator().emitConstants();
   }
 
@@ -2400,26 +2443,8 @@ private:
 };
 
 void ModuleValuesymtabParser::setValueName(uint64_t Index, StringType &Name) {
-  if (Index < Context->getNumFunctionIDs()) {
-    Function *Fcn = Context->getFunctionByID(Index);
-    if (Fcn != nullptr) {
-      Fcn->setName(StringRef(Name.data(), Name.size()));
-      return;
-    }
-  } else {
-    unsigned NumFunctions = Context->getNumFunctionIDs();
-    if (Index >= NumFunctions) {
-      Context->getGlobalAddress(Index - NumFunctions)
-          ->setName(StringRef(Name.data(), Name.size()));
-    }
-    return;
-  }
-
-  std::string Buffer;
-  raw_string_ostream StrBuf(Buffer);
-  StrBuf << "Invalid global address ID in valuesymtab: " << Index;
-  Error(StrBuf.str());
-  return;
+  Context->getGlobalDeclarationByID(Index)
+      ->setName(StringRef(Name.data(), Name.size()));
 }
 
 void ModuleValuesymtabParser::setBbName(uint64_t Index, StringType &Name) {
@@ -2447,7 +2472,7 @@ bool ModuleParser::ParseBlock(unsigned BlockID) {
     return Parser.ParseThisBlock();
   }
   case naclbitc::FUNCTION_BLOCK_ID: {
-    InstallGlobalAddressNamesAndInitializers();
+    InstallGlobalNamesAndGlobalVarInitializers();
     FunctionParser Parser(BlockID, this);
     return Parser.ParseThisBlock();
   }
@@ -2476,7 +2501,7 @@ void ModuleParser::ProcessRecord() {
     // FUNCTION:  [type, callingconv, isproto, linkage]
     if (!isValidRecordSize(4, "Function heading"))
       return;
-    const Ice::FuncSigType &Ty = Context->getFuncSigTypeByID(Values[0]);
+    const Ice::FuncSigType &Signature = Context->getFuncSigTypeByID(Values[0]);
     CallingConv::ID CallingConv;
     if (!naclbitc::DecodeCallingConv(Values[1], CallingConv)) {
       std::string Buffer;
@@ -2494,19 +2519,12 @@ void ModuleParser::ProcessRecord() {
       Error(StrBuf.str());
       return;
     }
-    SmallVector<Type *, 8> ArgTys;
-    for (Ice::Type ArgType : Ty.getArgList()) {
-      ArgTys.push_back(Context->convertToLLVMType(ArgType));
-    }
-    Function *Func = Function::Create(
-        FunctionType::get(Context->convertToLLVMType(Ty.getReturnType()),
-                          ArgTys, false),
-        Linkage, "", Context->getModule());
-    Func->setCallingConv(CallingConv);
+    Ice::FunctionDeclaration *Func = Ice::FunctionDeclaration::create(
+        getTranslator().getContext(), Signature, CallingConv, Linkage,
+        Values[2] == 0);
     if (Values[2] == 0)
       Context->setNextValueIDAsImplementedFunction();
     Context->setNextFunctionID(Func);
-    // TODO(kschimpf) verify if Func matches PNaCl ABI.
     return;
   }
   default:

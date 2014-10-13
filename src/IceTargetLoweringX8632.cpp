@@ -4427,32 +4427,19 @@ void ConstantUndef::emit(GlobalContext *) const {
 TargetGlobalInitX8632::TargetGlobalInitX8632(GlobalContext *Ctx)
     : TargetGlobalInitLowering(Ctx) {}
 
-void TargetGlobalInitX8632::lower(const GlobalAddress &Global,
-                                  bool DisableTranslation) {
-  if (Ctx->isVerbose()) {
-    Global.dump(Ctx->getStrDump());
-  }
-
-  if (DisableTranslation)
-    return;
+void TargetGlobalInitX8632::lower(const VariableDeclaration &Var) {
 
   Ostream &Str = Ctx->getStrEmit();
 
-  // TODO(kschimpf): Don't mangle name if external and uninitialized. This
-  // will allow us to cross test relocations for references to external
-  // global variables.
-
-  const GlobalAddress::InitializerListType &Initializers =
-      Global.getInitializers();
+  const VariableDeclaration::InitializerListType &Initializers =
+      Var.getInitializers();
   assert(Initializers.size());
-  bool HasInitializer =
-      !(Initializers.size() == 1 &&
-        llvm::isa<GlobalAddress::ZeroInitializer>(Initializers[0]));
-  bool IsConstant = Global.getIsConstant();
-  bool IsExternal = !Global.getIsInternal();
-  uint32_t Align = Global.getAlignment();
-  SizeT Size = Global.getNumBytes();
-  IceString MangledName = Ctx->mangleName(Global.getName());
+  bool HasInitializer = Var.hasInitializer();
+  bool IsConstant = Var.getIsConstant();
+  bool IsExternal = Var.getIsExternal();
+  uint32_t Align = Var.getAlignment();
+  SizeT Size = Var.getNumBytes();
+  IceString MangledName = Var.mangleName(Ctx);
   IceString SectionSuffix = "";
   if (Ctx->getFlags().DataSections)
     SectionSuffix = "." + MangledName;
@@ -4483,30 +4470,29 @@ void TargetGlobalInitX8632::lower(const GlobalAddress &Global,
     Str << "\t.comm\t" << MangledName << "," << Size << "," << Align << "\n";
 
   if (HasInitializer) {
-    for (GlobalAddress::Initializer *Init : Initializers) {
+    for (VariableDeclaration::Initializer *Init : Initializers) {
       switch (Init->getKind()) {
-      case GlobalAddress::Initializer::DataInitializerKind: {
-        const auto Data =
-            llvm::cast<GlobalAddress::DataInitializer>(Init)->getContents();
+      case VariableDeclaration::Initializer::DataInitializerKind: {
+        const auto Data = llvm::cast<VariableDeclaration::DataInitializer>(Init)
+                              ->getContents();
         for (SizeT i = 0; i < Init->getNumBytes(); ++i) {
           Str << "\t.byte\t" << (((unsigned)Data[i]) & 0xff) << "\n";
         }
         break;
       }
-      case GlobalAddress::Initializer::ZeroInitializerKind:
+      case VariableDeclaration::Initializer::ZeroInitializerKind:
         Str << "\t.zero\t" << Init->getNumBytes() << "\n";
         break;
-      case GlobalAddress::Initializer::RelocInitializerKind: {
-        const auto Reloc = llvm::cast<GlobalAddress::RelocInitializer>(Init);
+      case VariableDeclaration::Initializer::RelocInitializerKind: {
+        const auto Reloc =
+            llvm::cast<VariableDeclaration::RelocInitializer>(Init);
         Str << "\t.long\t";
-        // TODO(kschimpf): Once the representation of a relocation has
-        // been modified to reference the corresponding global
-        // address, modify to not mangle the name if the global is
-        // external and uninitialized. This will allow us to better
-        // test cross test relocations.
-        Str << Ctx->mangleName(Reloc->getName());
-        if (GlobalAddress::RelocOffsetType Offset = Reloc->getOffset()) {
-          Str << " + " << Offset;
+        Str << Reloc->getDeclaration()->mangleName(Ctx);
+        if (VariableDeclaration::RelocOffsetType Offset = Reloc->getOffset()) {
+          if (Offset >= 0 || (Offset == INT32_MIN))
+            Str << " + " << Offset;
+          else
+            Str << " - " << -Offset;
         }
         Str << "\n";
         break;

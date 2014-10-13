@@ -1,4 +1,4 @@
-//===- subzero/src/IceGlobalInits.cpp - Global initializers ---------------===//
+//===- subzero/src/IceGlobalInits.cpp - Global declarations ---------------===//
 //
 //                        The Subzero Code Generator
 //
@@ -7,8 +7,9 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file implements the notion of global addresses and
-// initializers in Subzero.
+// This file implements the notion of function declarations, global
+// variable declarations, and the corresponding variable initializers
+// in Subzero.
 //
 //===----------------------------------------------------------------------===//
 
@@ -17,18 +18,82 @@
 #include "llvm/IR/Value.h"
 
 #include "IceDefs.h"
+#include "IceGlobalContext.h"
 #include "IceGlobalInits.h"
 #include "IceTypes.h"
 
 namespace {
 char hexdigit(unsigned X) { return X < 10 ? '0' + X : 'A' + X - 10; }
+
+void dumpLinkage(Ice::Ostream &Stream,
+                 llvm::GlobalValue::LinkageTypes Linkage) {
+  switch (Linkage) {
+  case llvm::GlobalValue::ExternalLinkage:
+    Stream << "external";
+    return;
+  case llvm::GlobalValue::InternalLinkage:
+    Stream << "internal";
+    return;
+  default:
+    break;
+  }
+  std::string Buffer;
+  llvm::raw_string_ostream StrBuf(Buffer);
+  StrBuf << "Unknown linkage value: " << Linkage;
+  llvm::report_fatal_error(StrBuf.str());
 }
+
+void dumpCallingConv(Ice::Ostream &, llvm::CallingConv::ID CallingConv) {
+  if (CallingConv == llvm::CallingConv::C)
+    return;
+  std::string Buffer;
+  llvm::raw_string_ostream StrBuf(Buffer);
+  StrBuf << "Unknown calling convention: " << CallingConv;
+  llvm::report_fatal_error(StrBuf.str());
+}
+
+} // end of anonymous namespace
 
 namespace Ice {
 
-GlobalAddress::~GlobalAddress() { llvm::DeleteContainerPointers(Initializers); }
+FunctionDeclaration *
+FunctionDeclaration::create(GlobalContext *Ctx, const FuncSigType &Signature,
+                            llvm::CallingConv::ID CallingConv,
+                            llvm::GlobalValue::LinkageTypes Linkage,
+                            bool IsProto) {
+  return Ctx->newFunctionDeclaration(&Signature, CallingConv, Linkage, IsProto);
+}
 
-void GlobalAddress::dumpType(Ostream &Stream) const {
+void FunctionDeclaration::dumpType(Ostream &Stream) const {
+  Stream << Signature;
+}
+
+void FunctionDeclaration::dump(Ostream &Stream) const {
+  if (IsProto)
+    Stream << "declare ";
+  ::dumpLinkage(Stream, Linkage);
+  ::dumpCallingConv(Stream, CallingConv);
+  Stream << Signature.getReturnType() << " @" << Name << "(";
+  bool IsFirst = true;
+  for (Type ArgTy : Signature.getArgList()) {
+    if (IsFirst)
+      IsFirst = false;
+    else
+      Stream << ", ";
+    Stream << ArgTy;
+  }
+  Stream << ")";
+}
+
+VariableDeclaration *VariableDeclaration::create(GlobalContext *Ctx) {
+  return Ctx->newVariableDeclaration();
+}
+
+VariableDeclaration::~VariableDeclaration() {
+  llvm::DeleteContainerPointers(Initializers);
+}
+
+void VariableDeclaration::dumpType(Ostream &Stream) const {
   if (Initializers.size() == 1) {
     Initializers.front()->dumpType(Stream);
   } else {
@@ -46,8 +111,8 @@ void GlobalAddress::dumpType(Ostream &Stream) const {
   }
 }
 
-void GlobalAddress::dump(Ostream &Stream) const {
-  Stream << "@" << getName() << " = internal "
+void VariableDeclaration::dump(Ostream &Stream) const {
+  Stream << "@" << Name << " = internal "
          << (IsConstant ? "constant" : "global") << " ";
 
   // Add initializer.
@@ -74,11 +139,11 @@ void GlobalAddress::dump(Ostream &Stream) const {
   Stream << "\n";
 }
 
-void GlobalAddress::Initializer::dumpType(Ostream &Stream) const {
+void VariableDeclaration::Initializer::dumpType(Ostream &Stream) const {
   Stream << "[" << getNumBytes() << " x " << Ice::IceType_i8 << "]";
 }
 
-void GlobalAddress::DataInitializer::dump(Ostream &Stream) const {
+void VariableDeclaration::DataInitializer::dump(Ostream &Stream) const {
   dumpType(Stream);
   Stream << " c\"";
   // Code taken from PrintEscapedString() in AsmWriter.cpp.  Keep
@@ -93,41 +158,24 @@ void GlobalAddress::DataInitializer::dump(Ostream &Stream) const {
   Stream << "\"";
 }
 
-void GlobalAddress::ZeroInitializer::dump(Ostream &Stream) const {
+void VariableDeclaration::ZeroInitializer::dump(Ostream &Stream) const {
   dumpType(Stream);
   Stream << " zeroinitializer";
 }
 
-IceString GlobalAddress::RelocInitializer::getName() const {
-  switch (Address.getKind()) {
-  case FunctionRelocation:
-    return Address.getFunction()->getName();
-  case GlobalAddressRelocation:
-    return Address.getGlobalAddr()->getName();
-  default:
-    llvm::report_fatal_error("Malformed relocation address!");
-  }
-}
-
-void GlobalAddress::RelocInitializer::dumpType(Ostream &Stream) const {
+void VariableDeclaration::RelocInitializer::dumpType(Ostream &Stream) const {
   Stream << Ice::IceType_i32;
 }
 
-void GlobalAddress::RelocInitializer::dump(Ostream &Stream) const {
+void VariableDeclaration::RelocInitializer::dump(Ostream &Stream) const {
   if (Offset != 0) {
     dumpType(Stream);
     Stream << " add (";
   }
   dumpType(Stream);
   Stream << " ptrtoint (";
-  if (Address.getKind() == FunctionRelocation) {
-    Stream << *Address.getFunction()->getType() << " @"
-           << Address.getFunction()->getName();
-  } else {
-    Address.getGlobalAddr()->dumpType(Stream);
-    Stream << "* @" << Address.getGlobalAddr()->getName();
-  }
-  Stream << " to ";
+  Declaration->dumpType(Stream);
+  Stream << "* @" << Declaration->getName() << " to ";
   dumpType(Stream);
   Stream << ")";
   if (Offset != 0) {
@@ -136,4 +184,5 @@ void GlobalAddress::RelocInitializer::dump(Ostream &Stream) const {
     Stream << " " << Offset << ")";
   }
 }
-}
+
+} // end of namespace Ice

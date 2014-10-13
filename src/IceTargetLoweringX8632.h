@@ -482,8 +482,7 @@ public:
     return new TargetGlobalInitX8632(Ctx);
   }
 
-  virtual void lower(const GlobalAddress &Addr,
-                     bool DisableTranslation) override;
+  virtual void lower(const VariableDeclaration &Var) final;
 
 protected:
   TargetGlobalInitX8632(GlobalContext *Ctx);

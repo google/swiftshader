@@ -25,16 +25,15 @@ namespace Ice {
 
 class ClFlags;
 class Cfg;
-class GlobalAddress;
+class VariableDeclaration;
 class GlobalContext;
 
-// Base class for translating ICE to machine code.
-// Derived classes convert other intermediate representations down to ICE,
-// and then call the appropriate (inherited) methods to convert ICE into
-// machine instructions.
+// Base class for translating ICE to machine code.  Derived classes convert
+// other intermediate representations down to ICE, and then call the appropriate
+// (inherited) methods to convert ICE into machine instructions.
 class Translator {
 public:
-  typedef std::vector<Ice::GlobalAddress *> GlobalAddressList;
+  typedef std::vector<VariableDeclaration *> VariableDeclarationListType;
 
   Translator(GlobalContext *Ctx, const ClFlags &Flags)
       : Ctx(Ctx), Flags(Flags), ErrorStatus(0) {}
@@ -54,8 +53,9 @@ public:
   /// Emits the constant pool.
   void emitConstants();
 
-  /// Lowers the given list of global addresses to target.
-  void lowerGlobals(const GlobalAddressList &GlobalAddresses);
+  /// Lowers the given list of global addresses to target. Generates
+  /// list of corresponding variable declarations.
+  void lowerGlobals(const VariableDeclarationListType &VariableDeclarations);
 
   /// Creates a name using the given prefix and corresponding index.
   std::string createUnnamedName(const IceString &Prefix, SizeT Index);
@@ -65,15 +65,6 @@ public:
   /// Returns true if there isn't a potential conflict.
   bool checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
                               const IceString &Prefix, Ostream &Stream);
-
-  // Walks module and generates names for unnamed globals using prefix
-  // getFlags().DefaultGlobalPrefix, if the prefix is non-empty.
-  void nameUnnamedGlobalAddresses(llvm::Module *Mod);
-
-  // Walks module and generates names for unnamed functions using
-  // prefix getFlags().DefaultFunctionPrefix, if the prefix is
-  // non-empty.
-  void nameUnnamedFunctions(llvm::Module *Mod);
 
 protected:
   GlobalContext *Ctx;

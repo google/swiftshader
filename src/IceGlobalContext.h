@@ -21,6 +21,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "IceDefs.h"
+#include "IceClFlags.h"
 #include "IceIntrinsics.h"
 #include "IceRNG.h"
 #include "IceTimerTree.h"
@@ -29,6 +30,7 @@
 namespace Ice {
 
 class ClFlags;
+class FuncSigType;
 
 // This class collects rudimentary statistics during translation.
 class CodeStats {
@@ -117,6 +119,17 @@ public:
   // getConstantPool() returns a copy of the constant pool for
   // constants of a given type.
   ConstantList getConstantPool(Type Ty) const;
+  // Returns a new function declaration, allocated in an internal
+  // memory pool.  Ownership of the function is maintained by this
+  // class instance.
+  FunctionDeclaration *newFunctionDeclaration(const FuncSigType *Signature,
+                                              unsigned CallingConv,
+                                              unsigned Linkage, bool IsProto);
+
+  // Returns a new global variable declaration, allocated in an
+  // internal memory pool.  Ownership of the function is maintained by
+  // this class instance.
+  VariableDeclaration *newVariableDeclaration();
 
   const ClFlags &getFlags() const { return Flags; }
 
@@ -186,6 +199,7 @@ private:
   CodeStats StatsFunction;
   CodeStats StatsCumulative;
   std::vector<TimerStack> Timers;
+  std::vector<GlobalDeclaration *> GlobalDeclarations;
   GlobalContext(const GlobalContext &) = delete;
   GlobalContext &operator=(const GlobalContext &) = delete;
 
