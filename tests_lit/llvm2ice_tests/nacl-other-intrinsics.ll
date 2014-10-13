@@ -74,11 +74,14 @@ entry:
   %x = add i32 %__1, %__1
   %__3 = inttoptr i32 %x to i32*
   %v = load i32* %__3, align 1
+  %v_add = add i32 %v, 1
+
   %ptr2 = call i8* @llvm.nacl.read.tp()
   %__6 = ptrtoint i8* %ptr2 to i32
   %y = add i32 %__6, 4
   %__8 = inttoptr i32 %y to i32*
-  store i32 %v, i32* %__8, align 1
+  %v_add2 = add i32 %v, 4
+  store i32 %v_add2, i32* %__8, align 1
   ret i32 %v
 }
 ; CHECK-LABEL: test_nacl_read_tp_more_addressing

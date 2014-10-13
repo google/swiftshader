@@ -1058,6 +1058,7 @@ Operand *TargetX8632::hiOperand(Operand *Operand) {
       Offset = Ctx->getConstantInt32(IceType_i32, 4 + IntOffset->getValue());
     } else if (ConstantRelocatable *SymOffset =
                    llvm::dyn_cast<ConstantRelocatable>(Offset)) {
+      assert(!Utils::WouldOverflowAdd(SymOffset->getOffset(), 4));
       Offset = Ctx->getConstantSym(IceType_i32, 4 + SymOffset->getOffset(),
                                    SymOffset->getName());
     }

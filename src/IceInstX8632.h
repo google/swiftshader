@@ -58,7 +58,7 @@ class OperandX8632Mem : public OperandX8632 {
 public:
   enum SegmentRegisters {
     DefaultSegment = -1,
-#define X(val, name) val,
+#define X(val, name, prefix) val,
     SEG_REGX8632_TABLE
 #undef X
         SegReg_NUM
@@ -75,6 +75,7 @@ public:
   Variable *getIndex() const { return Index; }
   uint16_t getShift() const { return Shift; }
   SegmentRegisters getSegmentRegister() const { return SegmentReg; }
+  void emitSegmentOverride(x86::AssemblerX86 *Asm) const;
   x86::Address toAsmAddress(Assembler *Asm) const;
   void emit(const Cfg *Func) const override;
   using OperandX8632::dump;
@@ -112,6 +113,9 @@ public:
   static VariableSplit *create(Cfg *Func, Variable *Var, Portion Part) {
     return new (Func->allocate<VariableSplit>()) VariableSplit(Func, Var, Part);
   }
+  int32_t getOffset() const { return Part == High ? 4 : 0; }
+
+  x86::Address toAsmAddress(const Cfg *Func) const;
   void emit(const Cfg *Func) const override;
   using OperandX8632::dump;
   void dump(const Cfg *Func, Ostream &Str) const override;
@@ -835,7 +839,7 @@ public:
   }
   bool isSimpleAssign() const override { return true; }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override { emit(Func); }
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     Str << Opcode << "." << getDest()->getType() << " ";
@@ -1519,8 +1523,6 @@ template <> void InstX8632Idiv::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Imul::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Cbwdq::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Movd::emitIAS(const Cfg *Func) const;
-template <> void InstX8632Movp::emitIAS(const Cfg *Func) const;
-template <> void InstX8632Movq::emitIAS(const Cfg *Func) const;
 template <> void InstX8632MovssRegs::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Pblendvb::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Pmull::emitIAS(const Cfg *Func) const;

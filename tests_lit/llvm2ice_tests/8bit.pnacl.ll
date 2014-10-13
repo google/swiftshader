@@ -276,5 +276,44 @@ entry:
 ; CHECK-LABEL: icmp8BitMemSwapped
 ; CHECK: cmp {{[abcd]l|byte ptr}}
 
+define internal i32 @testPhi8(i32 %arg, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7, i32 %arg8, i32 %arg9, i32 %arg10) {
+entry:
+  %trunc = trunc i32 %arg to i8
+  %trunc2 = trunc i32 %arg2 to i8
+  %trunc3 = trunc i32 %arg3 to i8
+  %trunc4 = trunc i32 %arg4 to i8
+  %trunc5 = trunc i32 %arg5 to i8
+  %cmp1 = icmp sgt i32 %arg, 0
+  br i1 %cmp1, label %next, label %target
+next:
+  %trunc6_16 = trunc i32 %arg6 to i16
+  %trunc7_16 = trunc i32 %arg7 to i16
+  %trunc8_16 = trunc i32 %arg8 to i16
+  %trunc9 = trunc i32 %arg9 to i8
+  %trunc10 = trunc i32 %arg10 to i8
+  %trunc7_8 = trunc i16 %trunc7_16 to i8
+  %trunc6_8 = trunc i16 %trunc6_16 to i8
+  %trunc8_8 = trunc i16 %trunc8_16 to i8
+  br label %target
+target:
+  %merge1 = phi i1 [ %cmp1, %entry ], [ false, %next ]
+  %merge2 = phi i8 [ %trunc, %entry ], [ %trunc6_8, %next ]
+  %merge3 = phi i8 [ %trunc2, %entry ], [ %trunc7_8, %next ]
+  %merge5 = phi i8 [ %trunc4, %entry ], [ %trunc9, %next ]
+  %merge6 = phi i8 [ %trunc5, %entry ], [ %trunc10, %next ]
+  %merge4 = phi i8 [ %trunc3, %entry ], [ %trunc8_8, %next ]
+  %res1 = select i1 %merge1, i8 %merge2, i8 %merge3
+  %res2 = select i1 %merge1, i8 %merge4, i8 %merge5
+  %res1_2 = select i1 %merge1, i8 %res1, i8 %res2
+  %res123 = select i1 %merge1, i8 %merge6, i8 %res1_2
+  %result = zext i8 %res123 to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testPhi8
+; This assumes there will be some copy from an 8-bit register / stack slot.
+; CHECK-DAG: mov {{.*}}, {{[a-d]}}l
+; CHECK-DAG: mov {{.*}}, byte ptr
+; CHECK-DAG: mov byte ptr {{.*}}
+
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

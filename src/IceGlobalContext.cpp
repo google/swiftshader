@@ -313,7 +313,7 @@ Constant *GlobalContext::getConstantDouble(double ConstantDouble) {
   return ConstPool->Doubles.getOrAdd(this, IceType_f64, ConstantDouble);
 }
 
-Constant *GlobalContext::getConstantSym(Type Ty, int64_t Offset,
+Constant *GlobalContext::getConstantSym(Type Ty, RelocOffsetT Offset,
                                         const IceString &Name,
                                         bool SuppressMangling) {
   return ConstPool->Relocatables.getOrAdd(

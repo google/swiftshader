@@ -74,6 +74,9 @@ typedef int32_t InstNumberT;
 typedef uint32_t TimerStackIdT;
 typedef uint32_t TimerIdT;
 
+// PNaCl is ILP32, so theoretically we should only need 32-bit offsets.
+typedef int32_t RelocOffsetT;
+
 enum LivenessMode {
   // Basic version of live-range-end calculation.  Marks the last uses
   // of variables based on dataflow analysis.  Records the set of

@@ -43,7 +43,10 @@ entry:
 ; CHECK: mov dword ptr [
 ; CHECK: movsx
 ; CHECK: sar {{.*}}, 31
-; CHECK: [8]
+; This appears to be a bug in llvm-mc. It should be [8] and [12] to represent
+; i64v and i64+4.
+; CHECK-DAG: [8]
+; CHECK-DAG: [8]
 
 define void @from_int16() {
 entry:

@@ -110,7 +110,8 @@ public:
   Constant *getConstantFloat(float Value);
   Constant *getConstantDouble(double Value);
   // Returns a symbolic constant.
-  Constant *getConstantSym(Type Ty, int64_t Offset, const IceString &Name = "",
+  Constant *getConstantSym(Type Ty, RelocOffsetT Offset,
+                           const IceString &Name = "",
                            bool SuppressMangling = false);
   // Returns an undef.
   Constant *getConstantUndef(Type Ty);

@@ -2,7 +2,7 @@
 ; those for pmull vary more wildly depending on operand size (rather than
 ; follow a usual pattern).
 
-; RUN: %p2i -i %s --args -O2 -mattr=sse4.1 --verbose none \
+; RUN: %p2i -i %s --args -O2 -mattr=sse4.1 -sandbox --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
@@ -126,5 +126,39 @@ define <16 x i8> @load_v16xI8(i32 %addr, i32 %addr2, i32 %addr3) {
 }
 ; CHECK-LABEL: load_v16xI8
 ; CHECK: 0f 10 0{{.*}} movups xmm0, xmmword ptr [e{{.*}}]
+
+; Test segment override prefix. This happens w/ nacl.read.tp.
+declare i8* @llvm.nacl.read.tp()
+
+; Also test more address complex operands via address-mode-optimization.
+define i32 @test_nacl_read_tp_more_addressing() {
+entry:
+  %ptr = call i8* @llvm.nacl.read.tp()
+  %__1 = ptrtoint i8* %ptr to i32
+  %x = add i32 %__1, %__1
+  %__3 = inttoptr i32 %x to i32*
+  %v = load i32* %__3, align 1
+  %v_add = add i32 %v, 1
+
+  %ptr2 = call i8* @llvm.nacl.read.tp()
+  %__6 = ptrtoint i8* %ptr2 to i32
+  %y = add i32 %__6, -128
+  %__8 = inttoptr i32 %y to i32*
+  %v_add2 = add i32 %v, 4
+  store i32 %v_add2, i32* %__8, align 1
+
+  %z = add i32 %__6, 256
+  %__9 = inttoptr i32 %z to i32*
+  %v_add3 = add i32 %v, 91
+  store i32 %v_add2, i32* %__9, align 1
+
+  ret i32 %v
+}
+; CHECK-LABEL: test_nacl_read_tp_more_addressing
+; CHECK: 65 8b 05 00 00 00 00  mov eax, dword ptr gs:[0]
+; CHECK: 8b 04 00              mov eax, dword ptr [eax + eax]
+; CHECK: 65 8b 0d 00 00 00 00  mov ecx, dword ptr gs:[0]
+; CHECK: 89 51 80              mov dword ptr [ecx - 128], edx
+; CHECK: 89 91 00 01 00 00     mov dword ptr [ecx + 256], edx
 
 ; ERRORS-NOT: ICE translation error

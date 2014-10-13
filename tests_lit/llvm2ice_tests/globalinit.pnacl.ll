@@ -1,8 +1,18 @@
 ; Test of global initializers.
 
-; RUN: %p2i -i %s --args --verbose inst | FileCheck %s
+; Test -ias=0 to test the lea "hack" until we are fully confident in -ias=1
+; RUN: %p2i -i %s --args --verbose none -ias=0 | FileCheck %s
+
+; Test -ias=1 and try to cross reference instructions w/ the symbol table.
 ; RUN: %p2i -i %s --args --verbose none \
-; RUN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d -r --symbolize -x86-asm-syntax=intel - \
+; RUN:   | FileCheck --check-prefix=IAS %s
+; RUN: %p2i -i %s --args --verbose none \
+; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-objdump -d -t --symbolize -x86-asm-syntax=intel - \
+; RUN:   | FileCheck --check-prefix=SYMTAB %s
+
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 @PrimitiveInit = internal global [4 x i8] c"\1B\00\00\00", align 4
@@ -113,6 +123,49 @@ entry:
 ; CHECK: .att_syntax
 ; CHECK: leal ArrayUninit,
 ; CHECK: .intel_syntax
+
+; llvm-objdump does not indicate what symbol the mov/relocation applies to
+; so we grep for "mov {{.*}}, OFFSET", along with "OFFSET {{.*}} symbol" in
+; the symbol table as a sanity check. NOTE: The symbol table sorting has no
+; relation to the code's references.
+; IAS-LABEL: main
+; SYMTAB-LABEL: SYMBOL TABLE
+
+; SYMTAB-DAG: 00000000 {{.*}} .data {{.*}} PrimitiveInit
+; IAS: mov {{.*}}, 0
+; IAS-NEXT: R_386_32
+; IAS: call
+
+; SYMTAB-DAG: 00000000 {{.*}} .rodata {{.*}} PrimitiveInitConst
+; IAS: mov {{.*}}, 0
+; IAS-NEXT: R_386_32
+; IAS: call
+
+; SYMTAB-DAG: 00000000 {{.*}} .bss {{.*}} PrimitiveInitStatic
+; IAS: mov {{.*}}, 0
+; IAS-NEXT: R_386_32
+; IAS: call
+
+; SYMTAB-DAG: 00000004 {{.*}} .bss {{.*}} PrimitiveUninit
+; IAS: mov {{.*}}, 4
+; IAS-NEXT: R_386_32
+; IAS: call
+
+; SYMTAB-DAG: 00000004{{.*}}.data{{.*}}ArrayInit
+; IAS: mov {{.*}}, 4
+; IAS-NEXT: R_386_32
+; IAS: call
+
+; SYMTAB-DAG: 00000018 {{.*}} .data {{.*}} ArrayInitPartial
+; IAS: mov {{.*}}, 24
+; IAS-NEXT: R_386_32
+; IAS: call
+
+; SYMTAB-DAG: 00000008 {{.*}} .bss {{.*}} ArrayUninit
+; IAS: mov {{.*}}, 8
+; IAS-NEXT: R_386_32
+; IAS: call
+
 
 declare void @use(i32)
 

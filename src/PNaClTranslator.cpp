@@ -299,7 +299,7 @@ public:
       Error(StrBuf.str());
       Name = "??";
     }
-    const uint64_t Offset = 0;
+    const Ice::RelocOffsetT Offset = 0;
     C = getTranslator().getContext()->getConstantSym(
         getIcePointerType(), Offset, Name);
     ValueIDConstants[ID] = C;

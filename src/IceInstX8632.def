@@ -78,15 +78,15 @@
 //#define X(val, encode)
 
 // X86 segment registers.
-#define SEG_REGX8632_TABLE  \
-  /* enum value, name */    \
-  X(SegReg_CS, "cs")        \
-  X(SegReg_DS, "ds")        \
-  X(SegReg_ES, "es")        \
-  X(SegReg_SS, "ss")        \
-  X(SegReg_FS, "fs")        \
-  X(SegReg_GS, "gs")        \
-//#define X(val, name)
+#define SEG_REGX8632_TABLE         \
+  /* enum value, name, prefix */   \
+  X(SegReg_CS, "cs", 0x2E)         \
+  X(SegReg_DS, "ds", 0x3E)         \
+  X(SegReg_ES, "es", 0x26)         \
+  X(SegReg_SS, "ss", 0x36)         \
+  X(SegReg_FS, "fs", 0x64)         \
+  X(SegReg_GS, "gs", 0x65)         \
+//#define X(val, name, prefix)
 
 // X87 ST(n) registers.
 #define X87ST_REGX8632_TABLE         \

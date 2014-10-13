@@ -18,7 +18,9 @@
 #ifndef SUBZERO_SRC_ICEOPERAND_H
 #define SUBZERO_SRC_ICEOPERAND_H
 
+#include "IceCfg.h"
 #include "IceDefs.h"
+#include "IceGlobalContext.h"
 #include "IceTypes.h"
 
 namespace Ice {
@@ -183,14 +185,14 @@ class RelocatableTuple {
   RelocatableTuple &operator=(const RelocatableTuple &) = delete;
 
 public:
-  RelocatableTuple(const int64_t Offset, const IceString &Name,
+  RelocatableTuple(const RelocOffsetT Offset, const IceString &Name,
                    bool SuppressMangling)
       : Offset(Offset), Name(Name), SuppressMangling(SuppressMangling) {}
   RelocatableTuple(const RelocatableTuple &Other)
       : Offset(Other.Offset), Name(Other.Name),
         SuppressMangling(Other.SuppressMangling) {}
 
-  const int64_t Offset;
+  const RelocOffsetT Offset;
   const IceString Name;
   bool SuppressMangling;
 };
@@ -207,7 +209,8 @@ public:
     return new (Ctx->allocate<ConstantRelocatable>()) ConstantRelocatable(
         Ty, Tuple.Offset, Tuple.Name, Tuple.SuppressMangling, PoolEntryID);
   }
-  int64_t getOffset() const { return Offset; }
+
+  RelocOffsetT getOffset() const { return Offset; }
   IceString getName() const { return Name; }
   void setSuppressMangling(bool Value) { SuppressMangling = Value; }
   bool getSuppressMangling() const { return SuppressMangling; }
@@ -222,14 +225,14 @@ public:
   }
 
 private:
-  ConstantRelocatable(Type Ty, int64_t Offset, const IceString &Name,
+  ConstantRelocatable(Type Ty, RelocOffsetT Offset, const IceString &Name,
                       bool SuppressMangling, uint32_t PoolEntryID)
       : Constant(kConstRelocatable, Ty, PoolEntryID), Offset(Offset),
         Name(Name), SuppressMangling(SuppressMangling) {}
   ConstantRelocatable(const ConstantRelocatable &) = delete;
   ConstantRelocatable &operator=(const ConstantRelocatable &) = delete;
   ~ConstantRelocatable() override {}
-  const int64_t Offset; // fixed offset to add
+  const RelocOffsetT Offset; // fixed offset to add
   const IceString Name; // optional for debug/dump
   bool SuppressMangling;
 };

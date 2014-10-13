@@ -20,8 +20,9 @@
 #ifndef SUBZERO_SRC_ASSEMBLER_IA32_H_
 #define SUBZERO_SRC_ASSEMBLER_IA32_H_
 
-#include "IceDefs.h"
 #include "IceConditionCodesX8632.h"
+#include "IceDefs.h"
+#include "IceOperand.h"
 #include "IceRegistersX8632.h"
 #include "IceTypes.h"
 #include "IceUtils.h"
@@ -31,7 +32,6 @@
 namespace Ice {
 
 class Assembler;
-class ConstantRelocatable;
 
 using RegX8632::GPRRegister;
 using RegX8632::XmmRegister;
@@ -67,18 +67,33 @@ private:
 
 class Immediate {
 public:
-  explicit Immediate(int32_t value) : value_(value) {}
+  explicit Immediate(int32_t value) : value_(value), fixup_(NULL) {}
 
-  Immediate(const Immediate &other) : value_(other.value_) {}
+  explicit Immediate(const Immediate &other)
+      : value_(other.value_), fixup_(other.fixup_) {}
+
+  explicit Immediate(AssemblerFixup *fixup)
+      : value_(fixup->value()->getOffset()), fixup_(fixup) {
+    // Use the Offset in the "value" for now. If the symbol is part of
+    // ".bss", then the relocation's symbol will be plain ".bss" and
+    // the value will need to be adjusted further to be sym's
+    // bss offset + Offset.
+  }
 
   int32_t value() const { return value_; }
+  AssemblerFixup *fixup() const { return fixup_; }
 
-  bool is_int8() const { return Utils::IsInt(8, value_); }
-  bool is_uint8() const { return Utils::IsUint(8, value_); }
-  bool is_uint16() const { return Utils::IsUint(16, value_); }
+  bool is_int8() const {
+    // We currently only allow 32-bit fixups, and they usually have value = 0,
+    // so if fixup_ != NULL, it shouldn't be classified as int8/16.
+    return fixup_ == NULL && Utils::IsInt(8, value_);
+  }
+  bool is_uint8() const { return fixup_ == NULL && Utils::IsUint(8, value_); }
+  bool is_uint16() const { return fixup_ == NULL && Utils::IsUint(16, value_); }
 
 private:
   const int32_t value_;
+  AssemblerFixup *fixup_;
 };
 
 class Operand {
@@ -228,10 +243,21 @@ public:
     return *this;
   }
 
-  static Address Absolute(const uintptr_t addr, AssemblerFixup *fixup) {
+  static Address Absolute(const uintptr_t addr) {
     Address result;
     result.SetModRM(0, RegX8632::Encoded_Reg_ebp);
     result.SetDisp32(addr);
+    return result;
+  }
+
+  static Address Absolute(AssemblerFixup *fixup) {
+    Address result;
+    result.SetModRM(0, RegX8632::Encoded_Reg_ebp);
+    // Use the Offset in the displacement for now. If the symbol is part of
+    // ".bss", then the relocation's symbol will be plain .bss and the
+    // displacement will need to be adjusted further to be sym's
+    // bss offset + Offset.
+    result.SetDisp32(fixup->value()->getOffset());
     result.SetFixup(fixup);
     return result;
   }
@@ -427,28 +453,22 @@ public:
 
   void setcc(CondX86::BrCond condition, ByteRegister dst);
 
-  void movl(GPRRegister dst, const Immediate &src);
-  void movl(GPRRegister dst, GPRRegister src);
+  void mov(Type Ty, GPRRegister dst, const Immediate &src);
+  void mov(Type Ty, GPRRegister dst, GPRRegister src);
 
-  void movl(GPRRegister dst, const Address &src);
-  void movl(const Address &dst, GPRRegister src);
-  void movl(const Address &dst, const Immediate &imm);
+  void mov(Type Ty, GPRRegister dst, const Address &src);
+  void mov(Type Ty, const Address &dst, GPRRegister src);
+  void mov(Type Ty, const Address &dst, const Immediate &imm);
 
   void movzxb(GPRRegister dst, ByteRegister src);
   void movzxb(GPRRegister dst, const Address &src);
   void movsxb(GPRRegister dst, ByteRegister src);
   void movsxb(GPRRegister dst, const Address &src);
 
-  void movb(ByteRegister dst, const Address &src);
-  void movb(const Address &dst, ByteRegister src);
-  void movb(const Address &dst, const Immediate &imm);
-
   void movzxw(GPRRegister dst, GPRRegister src);
   void movzxw(GPRRegister dst, const Address &src);
   void movsxw(GPRRegister dst, GPRRegister src);
   void movsxw(GPRRegister dst, const Address &src);
-  void movw(GPRRegister dst, const Address &src);
-  void movw(const Address &dst, GPRRegister src);
 
   void lea(Type Ty, GPRRegister dst, const Address &src);
 
@@ -743,6 +763,8 @@ public:
     lock();
     cmpxchg(Ty, address, reg);
   }
+
+  void EmitSegmentOverride(uint8_t prefix) { EmitUint8(prefix); }
 
   intptr_t PreferredLoopAlignment() { return 16; }
   void Align(intptr_t alignment, intptr_t offset);

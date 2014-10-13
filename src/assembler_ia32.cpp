@@ -25,8 +25,6 @@
 namespace Ice {
 namespace x86 {
 
-const Type BrokenType = IceType_i32;
-
 class DirectCallRelocation : public AssemblerFixup {
 public:
   static DirectCallRelocation *create(Assembler *Asm, FixupKind Kind,
@@ -56,13 +54,13 @@ Address Address::ofConstPool(GlobalContext *Ctx, Assembler *Asm,
   Type Ty = Imm->getType();
   assert(llvm::isa<ConstantFloat>(Imm) || llvm::isa<ConstantDouble>(Imm));
   StrBuf << "L$" << Ty << "$" << Imm->getPoolEntryID();
-  const int64_t Offset = 0;
+  const RelocOffsetT Offset = 0;
   const bool SuppressMangling = true;
   Constant *Sym =
       Ctx->getConstantSym(Ty, Offset, StrBuf.str(), SuppressMangling);
   AssemblerFixup *Fixup = x86::DisplacementRelocation::create(
       Asm, FK_Abs_4, llvm::cast<ConstantRelocatable>(Sym));
-  return x86::Address::Absolute(Offset, Fixup);
+  return x86::Address::Absolute(Fixup);
 }
 
 void AssemblerX86::call(GPRRegister reg) {
@@ -127,35 +125,68 @@ void AssemblerX86::setcc(CondX86::BrCond condition, ByteRegister dst) {
   EmitUint8(0xC0 + dst);
 }
 
-void AssemblerX86::movl(GPRRegister dst, const Immediate &imm) {
+void AssemblerX86::mov(Type Ty, GPRRegister dst, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (isByteSizedType(Ty)) {
+    EmitUint8(0xB0 + dst);
+    EmitUint8(imm.value() & 0xFF);
+    return;
+  }
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitUint8(0xB8 + dst);
-  EmitImmediate(BrokenType, imm);
+  EmitImmediate(Ty, imm);
 }
 
-void AssemblerX86::movl(GPRRegister dst, GPRRegister src) {
+void AssemblerX86::mov(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x89);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (isByteSizedType(Ty)) {
+    EmitUint8(0x88);
+  } else {
+    EmitUint8(0x89);
+  }
   EmitRegisterOperand(src, dst);
 }
 
-void AssemblerX86::movl(GPRRegister dst, const Address &src) {
+void AssemblerX86::mov(Type Ty, GPRRegister dst, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x8B);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (isByteSizedType(Ty)) {
+    EmitUint8(0x8A);
+  } else {
+    EmitUint8(0x8B);
+  }
   EmitOperand(dst, src);
 }
 
-void AssemblerX86::movl(const Address &dst, GPRRegister src) {
+void AssemblerX86::mov(Type Ty, const Address &dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x89);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (isByteSizedType(Ty)) {
+    EmitUint8(0x88);
+  } else {
+    EmitUint8(0x89);
+  }
   EmitOperand(src, dst);
 }
 
-void AssemblerX86::movl(const Address &dst, const Immediate &imm) {
+void AssemblerX86::mov(Type Ty, const Address &dst, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xC7);
-  EmitOperand(0, dst);
-  EmitImmediate(BrokenType, imm);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  if (isByteSizedType(Ty)) {
+    EmitUint8(0xC6);
+    EmitOperand(0, dst);
+    EmitUint8(imm.value() & 0xFF);
+  } else {
+    EmitUint8(0xC7);
+    EmitOperand(0, dst);
+    EmitImmediate(Ty, imm);
+  }
 }
 
 void AssemblerX86::movzxb(GPRRegister dst, ByteRegister src) {
@@ -186,27 +217,6 @@ void AssemblerX86::movsxb(GPRRegister dst, const Address &src) {
   EmitOperand(dst, src);
 }
 
-void AssemblerX86::movb(ByteRegister dst, const Address &src) {
-  (void)dst;
-  (void)src;
-  // FATAL
-  llvm_unreachable("Use movzxb or movsxb instead.");
-}
-
-void AssemblerX86::movb(const Address &dst, ByteRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x88);
-  EmitOperand(src, dst);
-}
-
-void AssemblerX86::movb(const Address &dst, const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xC6);
-  EmitOperand(RegX8632::Encoded_Reg_eax, dst);
-  assert(imm.is_int8());
-  EmitUint8(imm.value() & 0xFF);
-}
-
 void AssemblerX86::movzxw(GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
@@ -233,20 +243,6 @@ void AssemblerX86::movsxw(GPRRegister dst, const Address &src) {
   EmitUint8(0x0F);
   EmitUint8(0xBF);
   EmitOperand(dst, src);
-}
-
-void AssemblerX86::movw(GPRRegister dst, const Address &src) {
-  (void)dst;
-  (void)src;
-  // FATAL
-  llvm_unreachable("Use movzxw or movsxw instead.");
-}
-
-void AssemblerX86::movw(const Address &dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitOperandSizeOverride();
-  EmitUint8(0x89);
-  EmitOperand(src, dst);
 }
 
 void AssemblerX86::lea(Type Ty, GPRRegister dst, const Address &src) {
@@ -927,7 +923,7 @@ void AssemblerX86::unpckhpd(XmmRegister dst, XmmRegister src) {
 void AssemblerX86::set1ps(XmmRegister dst, GPRRegister tmp1,
                           const Immediate &imm) {
   // Load 32-bit immediate value into tmp1.
-  movl(tmp1, imm);
+  mov(IceType_i32, tmp1, imm);
   // Move value from tmp1 into dst.
   movd(dst, tmp1);
   // Broadcast low lane into other three lanes.
@@ -2266,10 +2262,15 @@ void AssemblerX86::EmitOperand(int rm, const Operand &operand) {
 }
 
 void AssemblerX86::EmitImmediate(Type Ty, const Immediate &imm) {
-  if (Ty == IceType_i16)
+  if (Ty == IceType_i16) {
+    assert(!imm.fixup());
     EmitInt16(imm.value());
-  else
+  } else {
+    if (imm.fixup()) {
+      EmitFixup(imm.fixup());
+    }
     EmitInt32(imm.value());
+  }
 }
 
 void AssemblerX86::EmitComplexI8(int rm, const Operand &operand,
