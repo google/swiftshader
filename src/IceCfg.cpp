@@ -205,9 +205,9 @@ void Cfg::liveness(LivenessMode Mode) {
   // Collect timing for just the portion that constructs the live
   // range intervals based on the end-of-live-range computation, for a
   // finer breakdown of the cost.
+  TimerMarker T1(TimerStack::TT_liveRange, this);
   // Make a final pass over instructions to delete dead instructions
   // and build each Variable's live range.
-  TimerMarker T1(TimerStack::TT_liveRange, this);
   for (CfgNode *Node : Nodes)
     Node->livenessPostprocess(Mode, getLiveness());
   if (Mode == Liveness_Intervals) {
@@ -246,7 +246,6 @@ void Cfg::liveness(LivenessMode Mode) {
       if (Var->getWeight().isInf())
         Var->setLiveRangeInfiniteWeight();
     }
-    dump();
   }
 }
 
@@ -257,24 +256,37 @@ bool Cfg::validateLiveness() const {
   bool Valid = true;
   Ostream &Str = Ctx->getStrDump();
   for (CfgNode *Node : Nodes) {
+    Inst *FirstInst = NULL;
     for (Inst *Inst : Node->getInsts()) {
       if (Inst->isDeleted())
         continue;
       if (llvm::isa<InstFakeKill>(Inst))
         continue;
+      if (FirstInst == NULL)
+        FirstInst = Inst;
       InstNumberT InstNumber = Inst->getNumber();
-      Variable *Dest = Inst->getDest();
-      if (Dest) {
-        // TODO: This instruction should actually begin Dest's live
-        // range, so we could probably test that this instruction is
-        // the beginning of some segment of Dest's live range.  But
-        // this wouldn't work with non-SSA temporaries during
-        // lowering.
-        if (!Dest->getLiveRange().containsValue(InstNumber)) {
-          Valid = false;
-          Str << "Liveness error: inst " << Inst->getNumber() << " dest ";
-          Dest->dump(this);
-          Str << " live range " << Dest->getLiveRange() << "\n";
+      if (Variable *Dest = Inst->getDest()) {
+        if (!Dest->getIgnoreLiveness()) {
+          bool Invalid = false;
+          const bool IsDest = true;
+          if (!Dest->getLiveRange().containsValue(InstNumber, IsDest))
+            Invalid = true;
+          // Check that this instruction actually *begins* Dest's live
+          // range, by checking that Dest is not live in the previous
+          // instruction.  As a special exception, we don't check this
+          // for the first instruction of the block, because a Phi
+          // temporary may be live at the end of the previous block,
+          // and if it is also assigned in the first instruction of
+          // this block, the adjacent live ranges get merged.
+          if (Inst != FirstInst && !Inst->isDestNonKillable() &&
+              Dest->getLiveRange().containsValue(InstNumber - 1, IsDest))
+            Invalid = true;
+          if (Invalid) {
+            Valid = false;
+            Str << "Liveness error: inst " << Inst->getNumber() << " dest ";
+            Dest->dump(this);
+            Str << " live range " << Dest->getLiveRange() << "\n";
+          }
         }
       }
       for (SizeT I = 0; I < Inst->getSrcSize(); ++I) {
@@ -282,7 +294,9 @@ bool Cfg::validateLiveness() const {
         SizeT NumVars = Src->getNumVars();
         for (SizeT J = 0; J < NumVars; ++J) {
           const Variable *Var = Src->getVar(J);
-          if (!Var->getLiveRange().containsValue(InstNumber)) {
+          const bool IsDest = false;
+          if (!Var->getIgnoreLiveness() &&
+              !Var->getLiveRange().containsValue(InstNumber, IsDest)) {
             Valid = false;
             Str << "Liveness error: inst " << Inst->getNumber() << " var ";
             Var->dump(this);

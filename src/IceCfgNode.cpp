@@ -22,7 +22,8 @@
 namespace Ice {
 
 CfgNode::CfgNode(Cfg *Func, SizeT LabelNumber, IceString Name)
-    : Func(Func), Number(LabelNumber), Name(Name), HasReturn(false) {}
+    : Func(Func), Number(LabelNumber), Name(Name), HasReturn(false),
+      InstCountEstimate(0) {}
 
 // Returns the name the node was created with.  If no name was given,
 // it synthesizes a (hopefully) unique name.
@@ -38,6 +39,7 @@ IceString CfgNode::getName() const {
 // instruction list.  Validates that all Phis are added before all
 // regular instructions.
 void CfgNode::appendInst(Inst *Inst) {
+  ++InstCountEstimate;
   if (InstPhi *Phi = llvm::dyn_cast<InstPhi>(Inst)) {
     if (!Insts.empty()) {
       Func->setError("Phi instruction added to the middle of a block");
@@ -55,10 +57,12 @@ void CfgNode::appendInst(Inst *Inst) {
 // instruction numbers in a block, from lowest to highest, must not
 // overlap with the range of any other block.
 void CfgNode::renumberInstructions() {
+  InstNumberT FirstNumber = Func->getNextInstNumber();
   for (InstPhi *I : Phis)
     I->renumber(Func);
   for (Inst *I : Insts)
     I->renumber(Func);
+  InstCountEstimate = Func->getNextInstNumber() - FirstNumber;
 }
 
 // When a node is created, the OutEdges are immediately knows, but the
@@ -251,7 +255,7 @@ void CfgNode::genCode() {
 
 void CfgNode::livenessLightweight() {
   SizeT NumVars = Func->getNumVariables();
-  llvm::BitVector Live(NumVars);
+  LivenessBV Live(NumVars);
   // Process regular instructions in reverse order.
   // TODO(stichnot): Use llvm::make_range with LLVM 3.5.
   for (auto I = Insts.rbegin(), E = Insts.rend(); I != E; ++I) {
@@ -272,14 +276,21 @@ void CfgNode::livenessLightweight() {
 // again.)
 bool CfgNode::liveness(Liveness *Liveness) {
   SizeT NumVars = Liveness->getNumVarsInNode(this);
-  llvm::BitVector Live(NumVars);
+  LivenessBV Live(NumVars);
+  LiveBeginEndMap *LiveBegin = NULL;
+  LiveBeginEndMap *LiveEnd = NULL;
   // Mark the beginning and ending of each variable's live range
   // with the sentinel instruction number 0.
-  std::vector<InstNumberT> &LiveBegin = Liveness->getLiveBegin(this);
-  std::vector<InstNumberT> &LiveEnd = Liveness->getLiveEnd(this);
-  InstNumberT Sentinel = Inst::NumberSentinel;
-  LiveBegin.assign(NumVars, Sentinel);
-  LiveEnd.assign(NumVars, Sentinel);
+  if (Liveness->getMode() == Liveness_Intervals) {
+    LiveBegin = Liveness->getLiveBegin(this);
+    LiveEnd = Liveness->getLiveEnd(this);
+    LiveBegin->clear();
+    LiveEnd->clear();
+    // Guess that the number of live ranges beginning is roughly the
+    // number of instructions, and same for live ranges ending.
+    LiveBegin->reserve(getInstCountEstimate());
+    LiveEnd->reserve(getInstCountEstimate());
+  }
   // Initialize Live to be the union of all successors' LiveIn.
   for (CfgNode *Succ : OutEdges) {
     Live |= Liveness->getLiveIn(Succ);
@@ -294,7 +305,7 @@ bool CfgNode::liveness(Liveness *Liveness) {
   for (auto I = Insts.rbegin(), E = Insts.rend(); I != E; ++I) {
     if ((*I)->isDeleted())
       continue;
-    (*I)->liveness((*I)->getNumber(), Live, Liveness, this);
+    (*I)->liveness((*I)->getNumber(), Live, Liveness, LiveBegin, LiveEnd);
   }
   // Process phis in forward order so that we can override the
   // instruction number to be that of the earliest phi instruction in
@@ -305,7 +316,7 @@ bool CfgNode::liveness(Liveness *Liveness) {
       continue;
     if (FirstPhiNumber == Inst::NumberSentinel)
       FirstPhiNumber = I->getNumber();
-    I->liveness(FirstPhiNumber, Live, Liveness, this);
+    I->liveness(FirstPhiNumber, Live, Liveness, LiveBegin, LiveEnd);
   }
 
   // When using the sparse representation, after traversing the
@@ -314,7 +325,7 @@ bool CfgNode::liveness(Liveness *Liveness) {
   // by shrinking the Live vector and then testing it against the
   // pre-shrunk version.  (The shrinking is required, but the
   // validation is not.)
-  llvm::BitVector LiveOrig = Live;
+  LivenessBV LiveOrig = Live;
   Live.resize(Liveness->getNumGlobalVars());
   // Non-global arguments in the entry node are allowed to be live on
   // entry.
@@ -336,7 +347,7 @@ bool CfgNode::liveness(Liveness *Liveness) {
   }
 
   bool Changed = false;
-  llvm::BitVector &LiveIn = Liveness->getLiveIn(this);
+  LivenessBV &LiveIn = Liveness->getLiveIn(this);
   // Add in current LiveIn
   Live |= LiveIn;
   // Check result, set LiveIn=Live
@@ -345,6 +356,16 @@ bool CfgNode::liveness(Liveness *Liveness) {
     LiveIn = Live;
   return Changed;
 }
+
+#ifndef NDEBUG
+namespace {
+
+bool comparePair(const LiveBeginEndMapEntry &A, const LiveBeginEndMapEntry &B) {
+  return A.first == B.first;
+}
+
+} // end of anonymous namespace
+#endif // NDEBUG
 
 // Now that basic liveness is complete, remove dead instructions that
 // were tentatively marked as dead, and compute actual live ranges.
@@ -396,34 +417,63 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
   TimerMarker T1(TimerStack::TT_liveRangeCtor, Func);
 
   SizeT NumVars = Liveness->getNumVarsInNode(this);
-  SizeT NumGlobals = Liveness->getNumGlobalVars();
-  llvm::BitVector &LiveIn = Liveness->getLiveIn(this);
-  llvm::BitVector &LiveOut = Liveness->getLiveOut(this);
-  std::vector<InstNumberT> &LiveBegin = Liveness->getLiveBegin(this);
-  std::vector<InstNumberT> &LiveEnd = Liveness->getLiveEnd(this);
-  for (SizeT i = 0; i < NumVars; ++i) {
-    // Deal with the case where the variable is both live-in and
-    // live-out, but LiveEnd comes before LiveBegin.  In this case, we
-    // need to add two segments to the live range because there is a
-    // hole in the middle.  This would typically happen as a result of
-    // phi lowering in the presence of loopback edges.
-    bool IsGlobal = (i < NumGlobals);
-    if (IsGlobal && LiveIn[i] && LiveOut[i] && LiveBegin[i] > LiveEnd[i]) {
-      Variable *Var = Liveness->getVariable(i, this);
-      Liveness->addLiveRange(Var, FirstInstNum, LiveEnd[i], 1);
-      Liveness->addLiveRange(Var, LiveBegin[i], LastInstNum + 1, 1);
-      continue;
-    }
-    InstNumberT Begin = (IsGlobal && LiveIn[i]) ? FirstInstNum : LiveBegin[i];
-    InstNumberT End = (IsGlobal && LiveOut[i]) ? LastInstNum + 1 : LiveEnd[i];
-    if (Begin == Inst::NumberSentinel && End == Inst::NumberSentinel)
-      continue;
-    if (Begin <= FirstInstNum)
-      Begin = FirstInstNum;
-    if (End == Inst::NumberSentinel)
-      End = LastInstNum + 1;
+  LivenessBV &LiveIn = Liveness->getLiveIn(this);
+  LivenessBV &LiveOut = Liveness->getLiveOut(this);
+  LiveBeginEndMap &MapBegin = *Liveness->getLiveBegin(this);
+  LiveBeginEndMap &MapEnd = *Liveness->getLiveEnd(this);
+  std::sort(MapBegin.begin(), MapBegin.end());
+  std::sort(MapEnd.begin(), MapEnd.end());
+  // Verify there are no duplicates.
+  assert(std::adjacent_find(MapBegin.begin(), MapBegin.end(), comparePair) ==
+         MapBegin.end());
+  assert(std::adjacent_find(MapEnd.begin(), MapEnd.end(), comparePair) ==
+         MapEnd.end());
+
+  LivenessBV LiveInAndOut = LiveIn;
+  LiveInAndOut &= LiveOut;
+
+  // Iterate in parallel across the sorted MapBegin[] and MapEnd[].
+  auto IBB = MapBegin.begin(), IEB = MapEnd.begin();
+  auto IBE = MapBegin.end(), IEE = MapEnd.end();
+  while (IBB != IBE || IEB != IEE) {
+    SizeT i1 = IBB == IBE ? NumVars : IBB->first;
+    SizeT i2 = IEB == IEE ? NumVars : IEB->first;
+    SizeT i = std::min(i1, i2);
+    // i1 is the Variable number of the next MapBegin entry, and i2 is
+    // the Variable number of the next MapEnd entry.  If i1==i2, then
+    // the Variable's live range begins and ends in this block.  If
+    // i1<i2, then i1's live range begins at instruction IBB->second
+    // and extends through the end of the block.  If i1>i2, then i2's
+    // live range begins at the first instruction of the block and
+    // ends at IEB->second.  In any case, we choose the lesser of i1
+    // and i2 and proceed accordingly.
+    InstNumberT LB = i == i1 ? IBB->second : FirstInstNum;
+    InstNumberT LE = i == i2 ? IEB->second : LastInstNum + 1;
+
     Variable *Var = Liveness->getVariable(i, this);
-    Liveness->addLiveRange(Var, Begin, End, 1);
+    if (!Var->getIgnoreLiveness()) {
+      if (LB > LE) {
+        Liveness->addLiveRange(Var, FirstInstNum, LE, 1);
+        Liveness->addLiveRange(Var, LB, LastInstNum + 1, 1);
+        // Assert that Var is a global variable by checking that its
+        // liveness index is less than the number of globals.  This
+        // ensures that the LiveInAndOut[] access is valid.
+        assert(i < Liveness->getNumGlobalVars());
+        LiveInAndOut[i] = false;
+      } else {
+        Liveness->addLiveRange(Var, LB, LE, 1);
+      }
+    }
+    if (i == i1)
+      ++IBB;
+    if (i == i2)
+      ++IEB;
+  }
+  // Process the variables that are live across the entire block.
+  for (int i = LiveInAndOut.find_first(); i != -1;
+       i = LiveInAndOut.find_next(i)) {
+    Variable *Var = Liveness->getVariable(i, this);
+    Liveness->addLiveRange(Var, FirstInstNum, LastInstNum + 1, 1);
   }
 }
 
@@ -504,7 +554,7 @@ void CfgNode::dump(Cfg *Func) const {
     Str << "\n";
   }
   // Dump the live-in variables.
-  llvm::BitVector LiveIn;
+  LivenessBV LiveIn;
   if (Liveness)
     LiveIn = Liveness->getLiveIn(this);
   if (Func->getContext()->isVerbose(IceV_Liveness) && !LiveIn.empty()) {
@@ -524,7 +574,7 @@ void CfgNode::dump(Cfg *Func) const {
       I->dumpDecorated(Func);
   }
   // Dump the live-out variables.
-  llvm::BitVector LiveOut;
+  LivenessBV LiveOut;
   if (Liveness)
     LiveOut = Liveness->getLiveOut(this);
   if (Func->getContext()->isVerbose(IceV_Liveness) && !LiveOut.empty()) {

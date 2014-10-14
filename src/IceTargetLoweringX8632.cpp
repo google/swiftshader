@@ -453,8 +453,10 @@ Variable *TargetX8632::getPhysicalRegister(SizeT RegNum) {
     PhysicalRegisters[RegNum] = Reg;
     // Specially mark esp as an "argument" so that it is considered
     // live upon function entry.
-    if (RegNum == RegX8632::Reg_esp)
+    if (RegNum == RegX8632::Reg_esp) {
       Func->addImplicitArg(Reg);
+      Reg->setIgnoreLiveness();
+    }
   }
   return Reg;
 }
@@ -1257,12 +1259,11 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       _shl(T_2, T_1);
       _test(T_1, BitTest);
       _br(CondX86::Br_e, Label);
-      // Because of the intra-block control flow, we need to fake a use
-      // of T_3 to prevent its earlier definition from being dead-code
-      // eliminated in the presence of its later definition.
-      Context.insert(InstFakeUse::create(Func, T_3));
-      _mov(T_3, T_2);
-      _mov(T_2, Zero);
+      // T_2 and T_3 are being assigned again because of the
+      // intra-block control flow, so we need the _mov_nonkillable
+      // variant to avoid liveness problems.
+      _mov_nonkillable(T_3, T_2);
+      _mov_nonkillable(T_2, Zero);
       Context.insert(Label);
       _mov(DestLo, T_2);
       _mov(DestHi, T_3);
@@ -1293,12 +1294,11 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       _shr(T_3, T_1);
       _test(T_1, BitTest);
       _br(CondX86::Br_e, Label);
-      // Because of the intra-block control flow, we need to fake a use
-      // of T_3 to prevent its earlier definition from being dead-code
-      // eliminated in the presence of its later definition.
-      Context.insert(InstFakeUse::create(Func, T_2));
-      _mov(T_2, T_3);
-      _mov(T_3, Zero);
+      // T_2 and T_3 are being assigned again because of the
+      // intra-block control flow, so we need the _mov_nonkillable
+      // variant to avoid liveness problems.
+      _mov_nonkillable(T_2, T_3);
+      _mov_nonkillable(T_3, Zero);
       Context.insert(Label);
       _mov(DestLo, T_2);
       _mov(DestHi, T_3);
@@ -1329,11 +1329,11 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       _sar(T_3, T_1);
       _test(T_1, BitTest);
       _br(CondX86::Br_e, Label);
-      // Because of the intra-block control flow, we need to fake a use
-      // of T_3 to prevent its earlier definition from being dead-code
-      // eliminated in the presence of its later definition.
-      Context.insert(InstFakeUse::create(Func, T_2));
-      _mov(T_2, T_3);
+      // T_2 and T_3 are being assigned again because of the
+      // intra-block control flow, so T_2 needs the _mov_nonkillable
+      // variant to avoid liveness problems.  T_3 doesn't need special
+      // treatment because it is reassigned via _sar instead of _mov.
+      _mov_nonkillable(T_2, T_3);
       _sar(T_3, SignExtend);
       Context.insert(Label);
       _mov(DestLo, T_2);
@@ -2516,10 +2516,9 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
     if (HasC2) {
       _br(TableFcmp[Index].C2, Label);
     }
-    Context.insert(InstFakeUse::create(Func, Dest));
     Constant *NonDefault =
         Ctx->getConstantInt32(IceType_i32, !TableFcmp[Index].Default);
-    _mov(Dest, NonDefault);
+    _mov_nonkillable(Dest, NonDefault);
     Context.insert(Label);
   }
 }
@@ -2675,8 +2674,7 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
       _br(CondX86::Br_ne, Label);
       _cmp(Src0HiRM, Src1HiRI);
       _br(CondX86::Br_ne, Label);
-      Context.insert(InstFakeUse::create(Func, Dest));
-      _mov(Dest, (Condition == InstIcmp::Eq ? One : Zero));
+      _mov_nonkillable(Dest, (Condition == InstIcmp::Eq ? One : Zero));
       Context.insert(Label);
     } else {
       InstX8632Label *LabelFalse = InstX8632Label::create(Func, this);
@@ -2688,8 +2686,7 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
       _cmp(Src0LoRM, Src1LoRI);
       _br(TableIcmp64[Index].C3, LabelTrue);
       Context.insert(LabelFalse);
-      Context.insert(InstFakeUse::create(Func, Dest));
-      _mov(Dest, Zero);
+      _mov_nonkillable(Dest, Zero);
       Context.insert(LabelTrue);
     }
     return;
@@ -2702,8 +2699,7 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   _cmp(Src0RM, Src1);
   _mov(Dest, One);
   _br(getIcmp32Mapping(Inst->getCondition()), Label);
-  Context.insert(InstFakeUse::create(Func, Dest));
-  _mov(Dest, Zero);
+  _mov_nonkillable(Dest, Zero);
   Context.insert(Label);
 }
 
@@ -3134,7 +3130,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   }
   case Intrinsics::Stackrestore: {
     Variable *esp = Func->getTarget()->getPhysicalRegister(RegX8632::Reg_esp);
-    _mov(esp, Instr->getArg(0));
+    _mov_nonkillable(esp, Instr->getArg(0));
     return;
   }
   case Intrinsics::Trap:
@@ -3943,22 +3939,19 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     _mov(DestLo, SrcLoRI);
     _mov(DestHi, SrcHiRI);
     _br(CondX86::Br_ne, Label);
-    Context.insert(InstFakeUse::create(Func, DestLo));
-    Context.insert(InstFakeUse::create(Func, DestHi));
     Operand *SrcFLo = loOperand(SrcF);
     Operand *SrcFHi = hiOperand(SrcF);
     SrcLoRI = legalize(SrcFLo, Legal_Reg | Legal_Imm);
     SrcHiRI = legalize(SrcFHi, Legal_Reg | Legal_Imm);
-    _mov(DestLo, SrcLoRI);
-    _mov(DestHi, SrcHiRI);
+    _mov_nonkillable(DestLo, SrcLoRI);
+    _mov_nonkillable(DestHi, SrcHiRI);
   } else {
     _cmp(ConditionRM, Zero);
     SrcT = legalize(SrcT, Legal_Reg | Legal_Imm);
     _mov(Dest, SrcT);
     _br(CondX86::Br_ne, Label);
-    Context.insert(InstFakeUse::create(Func, Dest));
     SrcF = legalize(SrcF, Legal_Reg | Legal_Imm);
-    _mov(Dest, SrcF);
+    _mov_nonkillable(Dest, SrcF);
   }
 
   Context.insert(Label);
@@ -4299,9 +4292,22 @@ Variable *TargetX8632::makeReg(Type Type, int32_t RegNum) {
 }
 
 void TargetX8632::postLower() {
-  if (Ctx->getOptLevel() != Opt_m1)
+  if (Ctx->getOptLevel() != Opt_m1) {
+    // Find two-address non-SSA instructions where Dest==Src0, and set
+    // the DestNonKillable flag to keep liveness analysis consistent.
+    for (Inst *Inst : Context) {
+      if (Inst->isDeleted())
+        continue;
+      if (Variable *Dest = Inst->getDest()) {
+        // TODO(stichnot): We may need to consider all source
+        // operands, not just the first one, if using 3-address
+        // instructions.
+        if (Inst->getSrcSize() > 0 && Inst->getSrc(0) == Dest)
+          Inst->setDestNonKillable();
+      }
+    }
     return;
-  TimerMarker T(TimerStack::TT_postLower, Func);
+  }
   // TODO: Avoid recomputing WhiteList every instruction.
   RegSetMask RegInclude = RegSet_All;
   RegSetMask RegExclude = RegSet_StackPointer;

@@ -37,11 +37,12 @@ public:
   // LiveIn and LiveOut track the in- and out-liveness of the global
   // variables.  The size of each vector is
   // LivenessNode::NumGlobals.
-  llvm::BitVector LiveIn, LiveOut;
+  LivenessBV LiveIn, LiveOut;
   // LiveBegin and LiveEnd track the instruction numbers of the start
   // and end of each variable's live range within this block.  The
-  // size of each vector is NumLocals + Liveness::NumGlobals.
-  std::vector<InstNumberT> LiveBegin, LiveEnd;
+  // index/key of each element is less than NumLocals +
+  // Liveness::NumGlobals.
+  LiveBeginEndMap LiveBegin, LiveEnd;
 
 private:
   // TODO: Disable these constructors when Liveness::Nodes is no
@@ -55,23 +56,25 @@ public:
   Liveness(Cfg *Func, LivenessMode Mode)
       : Func(Func), Mode(Mode), NumGlobals(0) {}
   void init();
+  Cfg *getFunc() const { return Func; }
+  LivenessMode getMode() const { return Mode; }
   Variable *getVariable(SizeT LiveIndex, const CfgNode *Node) const;
-  SizeT getLiveIndex(const Variable *Var) const;
+  SizeT getLiveIndex(SizeT VarIndex) const { return VarToLiveMap[VarIndex]; }
   SizeT getNumGlobalVars() const { return NumGlobals; }
   SizeT getNumVarsInNode(const CfgNode *Node) const {
     return NumGlobals + Nodes[Node->getIndex()].NumLocals;
   }
-  llvm::BitVector &getLiveIn(const CfgNode *Node) {
+  LivenessBV &getLiveIn(const CfgNode *Node) {
     return Nodes[Node->getIndex()].LiveIn;
   }
-  llvm::BitVector &getLiveOut(const CfgNode *Node) {
+  LivenessBV &getLiveOut(const CfgNode *Node) {
     return Nodes[Node->getIndex()].LiveOut;
   }
-  std::vector<InstNumberT> &getLiveBegin(const CfgNode *Node) {
-    return Nodes[Node->getIndex()].LiveBegin;
+  LiveBeginEndMap *getLiveBegin(const CfgNode *Node) {
+    return &Nodes[Node->getIndex()].LiveBegin;
   }
-  std::vector<InstNumberT> &getLiveEnd(const CfgNode *Node) {
-    return Nodes[Node->getIndex()].LiveEnd;
+  LiveBeginEndMap *getLiveEnd(const CfgNode *Node) {
+    return &Nodes[Node->getIndex()].LiveEnd;
   }
   LiveRange &getLiveRange(Variable *Var);
   void addLiveRange(Variable *Var, InstNumberT Start, InstNumberT End,

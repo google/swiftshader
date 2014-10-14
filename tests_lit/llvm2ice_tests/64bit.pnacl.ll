@@ -317,6 +317,24 @@ entry:
 ; OPTM1: test {{.*}}, 32
 ; OPTM1: je
 
+define internal i32 @shl64BitSignedTrunc(i64 %a, i64 %b) {
+entry:
+  %shl = shl i64 %a, %b
+  %result = trunc i64 %shl to i32
+  ret i32 %result
+}
+; CHECK-LABEL: shl64BitSignedTrunc
+; CHECK: mov
+; CHECK: shl e
+; CHECK: test {{.*}}, 32
+; CHECK: je
+;
+; OPTM1-LABEL: shl64BitSignedTrunc
+; OPTM1: shld
+; OPTM1: shl e
+; OPTM1: test {{.*}}, 32
+; OPTM1: je
+
 define internal i64 @shl64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %shl = shl i64 %a, %b
@@ -353,6 +371,25 @@ entry:
 ; OPTM1: je
 ; OPTM1: sar {{.*}}, 31
 
+define internal i32 @shr64BitSignedTrunc(i64 %a, i64 %b) {
+entry:
+  %shr = ashr i64 %a, %b
+  %result = trunc i64 %shr to i32
+  ret i32 %result
+}
+; CHECK-LABEL: shr64BitSignedTrunc
+; CHECK: shrd
+; CHECK: sar
+; CHECK: test {{.*}}, 32
+; CHECK: je
+;
+; OPTM1-LABEL: shr64BitSignedTrunc
+; OPTM1: shrd
+; OPTM1: sar
+; OPTM1: test {{.*}}, 32
+; OPTM1: je
+; OPTM1: sar {{.*}}, 31
+
 define internal i64 @shr64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %shr = lshr i64 %a, %b
@@ -365,6 +402,24 @@ entry:
 ; CHECK: je
 ;
 ; OPTM1-LABEL: shr64BitUnsigned
+; OPTM1: shrd
+; OPTM1: shr
+; OPTM1: test {{.*}}, 32
+; OPTM1: je
+
+define internal i32 @shr64BitUnsignedTrunc(i64 %a, i64 %b) {
+entry:
+  %shr = lshr i64 %a, %b
+  %result = trunc i64 %shr to i32
+  ret i32 %result
+}
+; CHECK-LABEL: shr64BitUnsignedTrunc
+; CHECK: shrd
+; CHECK: shr
+; CHECK: test {{.*}}, 32
+; CHECK: je
+;
+; OPTM1-LABEL: shr64BitUnsignedTrunc
 ; OPTM1: shrd
 ; OPTM1: shr
 ; OPTM1: test {{.*}}, 32

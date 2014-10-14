@@ -71,7 +71,8 @@ const struct InstIcmpAttributes_ {
 
 Inst::Inst(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest)
     : Kind(Kind), Number(Func->newInstNumber()), Deleted(false), Dead(false),
-      HasSideEffects(false), Dest(Dest), MaxSrcs(MaxSrcs), NumSrcs(0),
+      HasSideEffects(false), IsDestNonKillable(false), Dest(Dest),
+      MaxSrcs(MaxSrcs), NumSrcs(0),
       Srcs(Func->allocateArrayOf<Operand *>(MaxSrcs)), LiveRangesEnded(0) {}
 
 // Assign the instruction a new number.
@@ -111,18 +112,19 @@ bool Inst::isLastUse(const Operand *TestSrc) const {
   return false;
 }
 
-void Inst::livenessLightweight(Cfg *Func, llvm::BitVector &Live) {
+void Inst::livenessLightweight(Cfg *Func, LivenessBV &Live) {
   assert(!isDeleted());
   if (llvm::isa<InstFakeKill>(this))
     return;
   resetLastUses();
+  VariablesMetadata *VMetadata = Func->getVMetadata();
   SizeT VarIndex = 0;
   for (SizeT I = 0; I < getSrcSize(); ++I) {
     Operand *Src = getSrc(I);
     SizeT NumVars = Src->getNumVars();
     for (SizeT J = 0; J < NumVars; ++J, ++VarIndex) {
       const Variable *Var = Src->getVar(J);
-      if (Func->getVMetadata()->isMultiBlock(Var))
+      if (VMetadata->isMultiBlock(Var))
         continue;
       SizeT Index = Var->getIndex();
       if (Live[Index])
@@ -133,20 +135,23 @@ void Inst::livenessLightweight(Cfg *Func, llvm::BitVector &Live) {
   }
 }
 
-void Inst::liveness(InstNumberT InstNumber, llvm::BitVector &Live,
-                    Liveness *Liveness, const CfgNode *Node) {
+void Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
+                    Liveness *Liveness, LiveBeginEndMap *LiveBegin,
+                    LiveBeginEndMap *LiveEnd) {
   assert(!isDeleted());
   if (llvm::isa<InstFakeKill>(this))
     return;
 
-  std::vector<InstNumberT> &LiveBegin = Liveness->getLiveBegin(Node);
-  std::vector<InstNumberT> &LiveEnd = Liveness->getLiveEnd(Node);
   Dead = false;
   if (Dest) {
-    SizeT VarNum = Liveness->getLiveIndex(Dest);
+    SizeT VarNum = Liveness->getLiveIndex(Dest->getIndex());
     if (Live[VarNum]) {
-      Live[VarNum] = false;
-      LiveBegin[VarNum] = InstNumber;
+      if (!isDestNonKillable()) {
+        Live[VarNum] = false;
+        if (LiveBegin) {
+          LiveBegin->push_back(std::make_pair(VarNum, InstNumber));
+        }
+      }
     } else {
       if (!hasSideEffects())
         Dead = true;
@@ -164,7 +169,7 @@ void Inst::liveness(InstNumberT InstNumber, llvm::BitVector &Live,
     SizeT NumVars = Src->getNumVars();
     for (SizeT J = 0; J < NumVars; ++J, ++VarIndex) {
       const Variable *Var = Src->getVar(J);
-      SizeT VarNum = Liveness->getLiveIndex(Var);
+      SizeT VarNum = Liveness->getLiveIndex(Var->getIndex());
       if (!Live[VarNum]) {
         setLastUse(VarIndex);
         if (!IsPhi) {
@@ -185,8 +190,13 @@ void Inst::liveness(InstNumberT InstNumber, llvm::BitVector &Live,
           // setting it only when LiveEnd[VarNum]==0 (sentinel value).
           // Note that it's OK to set LiveBegin multiple times because
           // of the backwards traversal.
-          if (LiveEnd[VarNum] == 0) {
-            LiveEnd[VarNum] = InstNumber;
+          if (LiveEnd) {
+            // Ideally, we would verify that VarNum wasn't already
+            // added in this block, but this can't be done very
+            // efficiently with LiveEnd as a vector.  Instead,
+            // livenessPostprocess() verifies this after the vector
+            // has been sorted.
+            LiveEnd->push_back(std::make_pair(VarNum, InstNumber));
           }
         }
       }
@@ -320,14 +330,14 @@ Operand *InstPhi::getOperandForTarget(CfgNode *Target) const {
 // Updates liveness for a particular operand based on the given
 // predecessor edge.  Doesn't mark the operand as live if the Phi
 // instruction is dead or deleted.
-void InstPhi::livenessPhiOperand(llvm::BitVector &Live, CfgNode *Target,
+void InstPhi::livenessPhiOperand(LivenessBV &Live, CfgNode *Target,
                                  Liveness *Liveness) {
   if (isDeleted() || Dead)
     return;
   for (SizeT I = 0; I < getSrcSize(); ++I) {
     if (Labels[I] == Target) {
       if (Variable *Var = llvm::dyn_cast<Variable>(getSrc(I))) {
-        SizeT SrcIndex = Liveness->getLiveIndex(Var);
+        SizeT SrcIndex = Liveness->getLiveIndex(Var->getIndex());
         if (!Live[SrcIndex]) {
           setLastUse(I);
           Live[SrcIndex] = true;

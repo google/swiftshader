@@ -62,6 +62,7 @@ public:
 
   // Manage instruction numbering.
   InstNumberT newInstNumber() { return NextInstNumber++; }
+  InstNumberT getNextInstNumber() const { return NextInstNumber; }
 
   // Manage Variables.
   // Create a new Variable with a particular type and an optional

@@ -81,7 +81,6 @@ void TimerStack::update() {
   // elements and to the flat element for the top of the stack.
   double Current = timestamp();
   double Delta = Current - LastTimestamp;
-  LastTimestamp = Current;
   if (StackTop) {
     TimerIdT Leaf = Nodes[StackTop].Interior;
     if (Leaf >= LeafTimes.size())
@@ -95,6 +94,11 @@ void TimerStack::update() {
     assert(Next < Prefix);
     Prefix = Next;
   }
+  // Capture the next timestamp *after* the updates are finished.
+  // This minimizes how much the timer can perturb the reported
+  // timing.  The numbers may not sum to 100%, and the missing amount
+  // is indicative of the overhead of timing.
+  LastTimestamp = timestamp();
 }
 
 void TimerStack::reset() {

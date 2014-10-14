@@ -151,10 +151,13 @@ bool LiveRange::overlapsInst(InstNumberT OtherBegin, bool UseTrimmed) const {
 
 // Returns true if the live range contains the given instruction
 // number.  This is only used for validating the live range
-// calculation.
-bool LiveRange::containsValue(InstNumberT Value) const {
+// calculation.  The IsDest argument indicates whether the Variable
+// being tested is used in the Dest position (as opposed to a Src
+// position).
+bool LiveRange::containsValue(InstNumberT Value, bool IsDest) const {
   for (const RangeElementType &I : Range) {
-    if (I.first <= Value && Value <= I.second)
+    if (I.first <= Value &&
+        (Value < I.second || (!IsDest && Value == I.second)))
       return true;
   }
   return false;
@@ -184,6 +187,8 @@ Variable Variable::asType(Type Ty) {
 
 void VariableTracking::markUse(const Inst *Instr, const CfgNode *Node,
                                bool IsFromDef, bool IsImplicit) {
+  if (MultiBlock == MBS_MultiBlock)
+    return;
   // TODO(stichnot): If the use occurs as a source operand in the
   // first instruction of the block, and its definition is in this
   // block's only predecessor, we might consider not marking this as a
@@ -301,9 +306,7 @@ void VariablesMetadata::init() {
     Metadata[Var->getIndex()].markUse(NoInst, EntryNode, IsFromDef, IsImplicit);
   }
 
-  SizeT NumNodes = Func->getNumNodes();
-  for (SizeT N = 0; N < NumNodes; ++N) {
-    CfgNode *Node = Func->getNodes()[N];
+  for (CfgNode *Node : Func->getNodes()) {
     for (Inst *I : Node->getInsts()) {
       if (I->isDeleted())
         continue;

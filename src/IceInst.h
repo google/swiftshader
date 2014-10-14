@@ -66,14 +66,16 @@ public:
 
   InstNumberT getNumber() const { return Number; }
   void renumber(Cfg *Func);
-  static const InstNumberT NumberDeleted = -1;
-  static const InstNumberT NumberSentinel = 0;
+  enum { NumberDeleted = -1, NumberSentinel = 0 };
 
   bool isDeleted() const { return Deleted; }
   void setDeleted() { Deleted = true; }
   void deleteIfDead();
 
   bool hasSideEffects() const { return HasSideEffects; }
+
+  bool isDestNonKillable() const { return IsDestNonKillable; }
+  void setDestNonKillable() { IsDestNonKillable = true; }
 
   Variable *getDest() const { return Dest; }
 
@@ -98,9 +100,9 @@ public:
 
   virtual bool isSimpleAssign() const { return false; }
 
-  void livenessLightweight(Cfg *Func, llvm::BitVector &Live);
-  void liveness(InstNumberT InstNumber, llvm::BitVector &Live,
-                Liveness *Liveness, const CfgNode *Node);
+  void livenessLightweight(Cfg *Func, LivenessBV &Live);
+  void liveness(InstNumberT InstNumber, LivenessBV &Live, Liveness *Liveness,
+                LiveBeginEndMap *LiveBegin, LiveBeginEndMap *LiveEnd);
 
   // Get the number of native instructions that this instruction
   // ultimately emits.  By default, high-level instructions don't
@@ -146,6 +148,10 @@ protected:
   // call or a volatile load that can't be removed even if its Dest
   // variable is not live.
   bool HasSideEffects;
+  // IsDestNonKillable means that liveness analysis shouldn't consider
+  // this instruction to kill the Dest variable.  This is used when
+  // lowering produces two assignments to the same variable.
+  bool IsDestNonKillable;
 
   Variable *Dest;
   const SizeT MaxSrcs; // only used for assert
@@ -534,7 +540,7 @@ public:
   }
   void addArgument(Operand *Source, CfgNode *Label);
   Operand *getOperandForTarget(CfgNode *Target) const;
-  void livenessPhiOperand(llvm::BitVector &Live, CfgNode *Target,
+  void livenessPhiOperand(LivenessBV &Live, CfgNode *Target,
                           Liveness *Liveness);
   Inst *lower(Cfg *Func);
   void dump(const Cfg *Func) const override;

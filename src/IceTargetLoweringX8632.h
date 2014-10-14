@@ -247,6 +247,7 @@ protected:
     // Mark eax as possibly modified by cmpxchg.
     Context.insert(
         InstFakeDef::create(Func, Eax, llvm::dyn_cast<Variable>(DestOrAddr)));
+    _set_dest_nonkillable();
   }
   void _cmpxchg8b(OperandX8632Mem *Addr, Variable *Edx, Variable *Eax,
                   Variable *Ecx, Variable *Ebx, bool Locked) {
@@ -254,7 +255,9 @@ protected:
         InstX8632Cmpxchg8b::create(Func, Addr, Edx, Eax, Ecx, Ebx, Locked));
     // Mark edx, and eax as possibly modified by cmpxchg8b.
     Context.insert(InstFakeDef::create(Func, Edx));
+    _set_dest_nonkillable();
     Context.insert(InstFakeDef::create(Func, Eax));
+    _set_dest_nonkillable();
   }
   void _cvt(Variable *Dest, Operand *Src0, InstX8632Cvt::CvtVariant Variant) {
     Context.insert(InstX8632Cvt::create(Func, Dest, Src0, Variant));
@@ -293,6 +296,11 @@ protected:
     if (Dest == NULL)
       Dest = makeReg(Src0->getType(), RegNum);
     Context.insert(InstX8632Mov::create(Func, Dest, Src0));
+  }
+  void _mov_nonkillable(Variable *Dest, Operand *Src0) {
+    Inst *NewInst = InstX8632Mov::create(Func, Dest, Src0);
+    NewInst->setDestNonKillable();
+    Context.insert(NewInst);
   }
   void _movd(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Movd::create(Func, Dest, Src0));
@@ -445,15 +453,20 @@ protected:
     // Model that update with a FakeDef.
     Context.insert(
         InstFakeDef::create(Func, Src, llvm::dyn_cast<Variable>(Dest)));
+    _set_dest_nonkillable();
   }
   void _xchg(Operand *Dest, Variable *Src) {
     Context.insert(InstX8632Xchg::create(Func, Dest, Src));
     // The xchg modifies Dest and Src -- model that update with a FakeDef.
     Context.insert(
         InstFakeDef::create(Func, Src, llvm::dyn_cast<Variable>(Dest)));
+    _set_dest_nonkillable();
   }
   void _xor(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Xor::create(Func, Dest, Src0));
+  }
+  void _set_dest_nonkillable() {
+    Context.getLastInserted()->setDestNonKillable();
   }
 
   const X86InstructionSet InstructionSet;

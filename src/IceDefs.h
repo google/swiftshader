@@ -71,6 +71,13 @@ typedef uint32_t SizeT;
 // numbers are used for representing Variable live ranges.
 typedef int32_t InstNumberT;
 
+// A LiveBeginEndMapEntry maps a Variable::Number value to an
+// Inst::Number value, giving the instruction number that begins or
+// ends a variable's live range.
+typedef std::pair<SizeT, InstNumberT> LiveBeginEndMapEntry;
+typedef std::vector<LiveBeginEndMapEntry> LiveBeginEndMap;
+typedef llvm::BitVector LivenessBV;
+
 typedef uint32_t TimerStackIdT;
 typedef uint32_t TimerIdT;
 

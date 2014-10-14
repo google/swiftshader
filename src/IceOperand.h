@@ -314,7 +314,7 @@ public:
   bool endsBefore(const LiveRange &Other) const;
   bool overlaps(const LiveRange &Other, bool UseTrimmed = false) const;
   bool overlapsInst(InstNumberT OtherBegin, bool UseTrimmed = false) const;
-  bool containsValue(InstNumberT Value) const;
+  bool containsValue(InstNumberT Value, bool IsDest) const;
   bool isEmpty() const { return Range.empty(); }
   bool isNonpoints() const { return IsNonpoints; }
   InstNumberT getStart() const {
@@ -390,6 +390,9 @@ public:
   bool getIsImplicitArg() const { return IsImplicitArgument; }
   void setIsImplicitArg(bool Val = true) { IsImplicitArgument = Val; }
 
+  void setIgnoreLiveness() { IgnoreLiveness = true; }
+  bool getIgnoreLiveness() const { return IgnoreLiveness; }
+
   int32_t getStackOffset() const { return StackOffset; }
   void setStackOffset(int32_t Offset) { StackOffset = Offset; }
 
@@ -454,8 +457,9 @@ public:
 protected:
   Variable(OperandKind K, Type Ty, SizeT Index, const IceString &Name)
       : Operand(K, Ty), Number(Index), Name(Name), IsArgument(false),
-        IsImplicitArgument(false), StackOffset(0), RegNum(NoRegister),
-        RegNumTmp(NoRegister), Weight(1), LoVar(NULL), HiVar(NULL) {
+        IsImplicitArgument(false), IgnoreLiveness(false), StackOffset(0),
+        RegNum(NoRegister), RegNumTmp(NoRegister), Weight(1), LoVar(NULL),
+        HiVar(NULL) {
     Vars = VarsReal;
     Vars[0] = this;
     NumVars = 1;
@@ -467,6 +471,10 @@ protected:
   IceString Name;
   bool IsArgument;
   bool IsImplicitArgument;
+  // IgnoreLiveness means that the variable should be ignored when
+  // constructing and validating live ranges.  This is usually
+  // reserved for the stack pointer.
+  bool IgnoreLiveness;
   // StackOffset is the canonical location on stack (only if
   // RegNum==NoRegister || IsArgument).
   int32_t StackOffset;

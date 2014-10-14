@@ -37,7 +37,6 @@
   X(parse)                 \
   X(placePhiLoads)         \
   X(placePhiStores)        \
-  X(postLower)             \
   X(regAlloc)              \
   X(renumberInstructions)  \
   X(szmain)                \

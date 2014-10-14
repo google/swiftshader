@@ -51,6 +51,11 @@ public:
   InstList &getInsts() { return Insts; }
   void appendInst(Inst *Inst);
   void renumberInstructions();
+  // Rough and generally conservative estimate of the number of
+  // instructions in the block.  It is updated when an instruction is
+  // added, but not when deleted.  It is recomputed during
+  // renumberInstructions().
+  InstNumberT getInstCountEstimate() const { return InstCountEstimate; }
 
   // Add a predecessor edge to the InEdges list for each of this
   // node's successors.
@@ -77,6 +82,7 @@ private:
   const SizeT Number; // label index
   IceString Name;     // for dumping only
   bool HasReturn;     // does this block need an epilog?
+  InstNumberT InstCountEstimate; // rough instruction count estimate
   NodeList InEdges;   // in no particular order
   NodeList OutEdges;  // in no particular order
   PhiList Phis;       // unordered set of phi instructions
