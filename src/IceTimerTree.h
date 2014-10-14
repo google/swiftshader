@@ -32,11 +32,12 @@ typedef std::vector<TimerTreeNode>::size_type TTindex;
 // index.
 class TimerTreeNode {
 public:
-  TimerTreeNode() : Parent(0), Interior(0), Time(0) {}
+  TimerTreeNode() : Parent(0), Interior(0), Time(0), UpdateCount(0) {}
   std::vector<TTindex> Children; // indexed by TimerIdT
   TTindex Parent;
   TimerIdT Interior;
   double Time;
+  size_t UpdateCount;
 };
 
 class TimerStack {
@@ -59,7 +60,7 @@ public:
   void dump(Ostream &Str, bool DumpCumulative);
 
 private:
-  void update();
+  void update(bool UpdateCounts);
   static double timestamp();
   IceString Name;
   double FirstTimestamp;
@@ -70,6 +71,7 @@ private:
   std::vector<IceString> IDs;        // indexed by TimerIdT
   std::vector<TimerTreeNode> Nodes;  // indexed by TTindex
   std::vector<double> LeafTimes;     // indexed by TimerIdT
+  std::vector<size_t> LeafCounts;    // indexed by TimerIdT
   TTindex StackTop;
 };
 
