@@ -121,7 +121,7 @@ namespace sh
 		int readSwizzle(TIntermTyped *argument, int size);
 		bool trivial(TIntermTyped *expression, int budget);   // Fast to compute and no side effects
 		int cost(TIntermNode *expression, int budget);
-		const Function &findFunction(const TString &name);
+		const Function *findFunction(const TString &name);
 
 		int temporaryRegister(TIntermTyped *temporary);
 		int varyingRegister(TIntermTyped *varying);

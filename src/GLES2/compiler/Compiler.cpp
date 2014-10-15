@@ -121,7 +121,7 @@ bool TCompiler::compile(const char* const shaderStrings[],
             intermediate.outputTree(root);
 
         if (success && (compileOptions & SH_OBJECT_CODE))
-            translate(root);
+            success = translate(root);
     }
 
     // Cleanup memory.

@@ -28,7 +28,7 @@ public:
     TranslatorASM(gl::Shader *shaderObject, ShShaderType type, ShShaderSpec spec);
 
 protected:
-    virtual void translate(TIntermNode* root);
+    virtual bool translate(TIntermNode* root);
 
 private:
 	gl::Shader *const shaderObject;

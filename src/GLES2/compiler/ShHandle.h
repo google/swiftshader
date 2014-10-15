@@ -73,7 +73,7 @@ protected:
     // Collect info for all attribs and uniforms.
     void collectAttribsUniforms(TIntermNode *root);
     // Translate to object code.
-    virtual void translate(TIntermNode *root) = 0;
+    virtual bool translate(TIntermNode *root) = 0;
     // Get built-in extensions with default behavior.
     const TExtensionBehavior& getExtensionBehavior() const;
 

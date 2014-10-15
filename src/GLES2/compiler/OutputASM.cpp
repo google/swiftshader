@@ -670,9 +670,10 @@ namespace sh
 						Instruction *label = emit(sw::Shader::OPCODE_LABEL);
 						label->dst.type = sw::Shader::PARAMETER_LABEL;
 
-						const Function &function = findFunction(name);
-						label->dst.index = function.label;
-						currentFunction = function.label;
+						const Function *function = findFunction(name);
+						ASSERT(function);   // Should have been added during global pass
+						label->dst.index = function->label;
+						currentFunction = function->label;
 					}
 				}
 				else if(emitScope == GLOBAL)
@@ -706,8 +707,15 @@ namespace sh
 				if(node->isUserDefined())
 				{
 					const TString &name = node->getName();
-					const Function &function = findFunction(name);
-					TIntermSequence &arguments = *function.arg;
+					const Function *function = findFunction(name);
+
+					if(!function)
+					{
+						mContext.error(node->getLine(), "function definition not found", name.c_str());
+						return false;
+					}
+
+					TIntermSequence &arguments = *function->arg;
 
 					for(int i = 0; i < argumentCount; i++)
 					{
@@ -723,11 +731,11 @@ namespace sh
 
 					Instruction *call = emit(sw::Shader::OPCODE_CALL);
 					call->dst.type = sw::Shader::PARAMETER_LABEL;
-					call->dst.index = function.label;
+					call->dst.index = function->label;
 
-					if(function.ret && function.ret->getType().getBasicType() != EbtVoid)
+					if(function->ret && function->ret->getType().getBasicType() != EbtVoid)
 					{
-						copy(result, function.ret);
+						copy(result, function->ret);
 					}
 
 					for(int i = 0; i < argumentCount; i++)
@@ -1907,18 +1915,17 @@ namespace sh
 		return -1;
 	}
 
-	const Function &OutputASM::findFunction(const TString &name)
+	const Function *OutputASM::findFunction(const TString &name)
 	{
 		for(unsigned int f = 0; f < functionArray.size(); f++)
 		{
 			if(functionArray[f].name == name)
 			{
-				return functionArray[f];
+				return &functionArray[f];
 			}
 		}
 
-		UNREACHABLE();
-		return functionArray[0];
+		return 0;
 	}
 	
 	int OutputASM::temporaryRegister(TIntermTyped *temporary)

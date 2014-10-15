@@ -17,12 +17,14 @@ TranslatorASM::TranslatorASM(gl::Shader *shaderObject, ShShaderType type, ShShad
 {
 }
 
-void TranslatorASM::translate(TIntermNode* root)
+bool TranslatorASM::translate(TIntermNode* root)
 {
     TParseContext& parseContext = *GetGlobalParseContext();
     sh::OutputASM outputASM(parseContext, shaderObject);
 
 	outputASM.output();
+
+	return parseContext.numErrors() == 0;
 }
 
 //
