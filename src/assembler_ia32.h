@@ -483,15 +483,10 @@ public:
   void mov(Type Ty, const Address &dst, GPRRegister src);
   void mov(Type Ty, const Address &dst, const Immediate &imm);
 
-  void movzxb(GPRRegister dst, ByteRegister src);
-  void movzxb(GPRRegister dst, const Address &src);
-  void movsxb(GPRRegister dst, ByteRegister src);
-  void movsxb(GPRRegister dst, const Address &src);
-
-  void movzxw(GPRRegister dst, GPRRegister src);
-  void movzxw(GPRRegister dst, const Address &src);
-  void movsxw(GPRRegister dst, GPRRegister src);
-  void movsxw(GPRRegister dst, const Address &src);
+  void movzx(Type Ty, GPRRegister dst, GPRRegister src);
+  void movzx(Type Ty, GPRRegister dst, const Address &src);
+  void movsx(Type Ty, GPRRegister dst, GPRRegister src);
+  void movsx(Type Ty, GPRRegister dst, const Address &src);
 
   void lea(Type Ty, GPRRegister dst, const Address &src);
 

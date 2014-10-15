@@ -485,11 +485,12 @@ private:
 
 // Emit a two-operand (GPR) instruction, where the dest operand is a
 // Variable that's guaranteed to be a register.
+template <bool VarCanBeByte = true, bool SrcCanBeByte = true>
 void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Dst,
                        const Operand *Src,
                        const x86::AssemblerX86::GPREmitterRegOp &Emitter);
 
-// Instructions of the form x := op(y)
+// Instructions of the form x := op(y).
 template <InstX8632::InstKindX8632 K>
 class InstX8632UnaryopGPR : public InstX8632 {
   InstX8632UnaryopGPR(const InstX8632UnaryopGPR &) = delete;
@@ -519,7 +520,7 @@ public:
   void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
-    Str << " = " << Opcode << "." << getDest()->getType() << " ";
+    Str << " = " << Opcode << "." << getSrc(0)->getType() << " ";
     dumpSources(Func);
   }
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
@@ -886,6 +887,8 @@ typedef InstX8632UnaryopGPR<InstX8632::Bsr> InstX8632Bsr;
 typedef InstX8632UnaryopGPR<InstX8632::Lea> InstX8632Lea;
 // Cbwdq instruction - wrapper for cbw, cwd, and cdq
 typedef InstX8632UnaryopGPR<InstX8632::Cbwdq> InstX8632Cbwdq;
+typedef InstX8632UnaryopGPR<InstX8632::Movsx> InstX8632Movsx;
+typedef InstX8632UnaryopGPR<InstX8632::Movzx> InstX8632Movzx;
 typedef InstX8632UnaryopXmm<InstX8632::Movd> InstX8632Movd;
 typedef InstX8632UnaryopXmm<InstX8632::Sqrtss> InstX8632Sqrtss;
 // Move/assignment instruction - wrapper for mov/movss/movsd.
@@ -1323,46 +1326,6 @@ private:
   ~InstX8632StoreQ() override {}
 };
 
-// Movsx - copy from a narrower integer type to a wider integer
-// type, with sign extension.
-class InstX8632Movsx : public InstX8632 {
-  InstX8632Movsx(const InstX8632Movsx &) = delete;
-  InstX8632Movsx &operator=(const InstX8632Movsx &) = delete;
-
-public:
-  static InstX8632Movsx *create(Cfg *Func, Variable *Dest, Operand *Source) {
-    return new (Func->allocate<InstX8632Movsx>())
-        InstX8632Movsx(Func, Dest, Source);
-  }
-  void emit(const Cfg *Func) const override;
-  void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Movsx); }
-
-private:
-  InstX8632Movsx(Cfg *Func, Variable *Dest, Operand *Source);
-  ~InstX8632Movsx() override {}
-};
-
-// Movzx - copy from a narrower integer type to a wider integer
-// type, with zero extension.
-class InstX8632Movzx : public InstX8632 {
-  InstX8632Movzx(const InstX8632Movzx &) = delete;
-  InstX8632Movzx &operator=(const InstX8632Movzx &) = delete;
-
-public:
-  static InstX8632Movzx *create(Cfg *Func, Variable *Dest, Operand *Source) {
-    return new (Func->allocate<InstX8632Movzx>())
-        InstX8632Movzx(Func, Dest, Source);
-  }
-  void emit(const Cfg *Func) const override;
-  void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Movzx); }
-
-private:
-  InstX8632Movzx(Cfg *Func, Variable *Dest, Operand *Source);
-  ~InstX8632Movzx() override {}
-};
-
 // Nop instructions of varying length
 class InstX8632Nop : public InstX8632 {
   InstX8632Nop(const InstX8632Nop &) = delete;
@@ -1573,6 +1536,8 @@ template <> void InstX8632MovssRegs::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Pblendvb::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Pextr::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Pinsr::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Movsx::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Movzx::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Pmull::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Pshufd::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Shufps::emitIAS(const Cfg *Func) const;

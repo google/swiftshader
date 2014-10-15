@@ -63,8 +63,7 @@ entry:
 ; CHECK-LABEL: testZextI8
 ; match the trunc instruction
 ; CHECK: and {{.*}}, 1
-; match the zext i1 instruction
-; CHECK: movzx
+; match the zext i1 instruction (NOTE: no mov need between i1 and i8).
 ; CHECK: and {{.*}}, 1
 
 ; Test zext to i16.
@@ -78,9 +77,9 @@ entry:
 ; CHECK-LABEL: testZextI16
 ; match the trunc instruction
 ; CHECK: and {{.*}}, 1
-; match the zext i1 instruction
-; CHECK: movzx
-; CHECK: and {{.*}}, 1
+; match the zext i1 instruction (note 32-bit reg is used because it's shorter).
+; CHECK: movzx [[REG:e.*]], {{[a-d]l|byte ptr}}
+; CHECK: and [[REG]], 1
 
 ; Test zext to i32.
 define internal i32 @testZextI32(i32 %arg) {
@@ -138,7 +137,7 @@ entry:
 ; match the trunc instruction
 ; CHECK: and {{.*}}, 1
 ; match the sext i1 instruction
-; CHECK: movzx [[REG:.*]],
+; CHECK: movzx e[[REG:.*]], {{[a-d]l|byte ptr}}
 ; CHECK-NEXT: shl [[REG]], 15
 ; CHECK-NEXT: sar [[REG]], 15
 

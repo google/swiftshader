@@ -287,16 +287,6 @@ InstX8632StoreQ::InstX8632StoreQ(Cfg *Func, Variable *Value,
   addSource(Mem);
 }
 
-InstX8632Movsx::InstX8632Movsx(Cfg *Func, Variable *Dest, Operand *Source)
-    : InstX8632(Func, InstX8632::Movsx, 1, Dest) {
-  addSource(Source);
-}
-
-InstX8632Movzx::InstX8632Movzx(Cfg *Func, Variable *Dest, Operand *Source)
-    : InstX8632(Func, InstX8632::Movzx, 1, Dest) {
-  addSource(Source);
-}
-
 InstX8632Nop::InstX8632Nop(Cfg *Func, InstX8632Nop::NopVariant Variant)
     : InstX8632(Func, InstX8632::Nop, 0, NULL), Variant(Variant) {}
 
@@ -516,6 +506,7 @@ void emitIASOpTyGPR(const Cfg *Func, Type Ty, const Operand *Op,
   emitIASBytes(Func, Asm, StartPosition);
 }
 
+template <bool VarCanBeByte, bool SrcCanBeByte>
 void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
                        const Operand *Src,
                        const x86::AssemblerX86::GPREmitterRegOp &Emitter) {
@@ -524,11 +515,14 @@ void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
   assert(Var->hasReg());
   // We cheat a little and use GPRRegister even for byte operations.
   RegX8632::GPRRegister VarReg =
-      RegX8632::getEncodedByteRegOrGPR(Ty, Var->getRegNum());
+      VarCanBeByte ? RegX8632::getEncodedByteRegOrGPR(Ty, Var->getRegNum())
+                   : RegX8632::getEncodedGPR(Var->getRegNum());
   if (const auto SrcVar = llvm::dyn_cast<Variable>(Src)) {
     if (SrcVar->hasReg()) {
       RegX8632::GPRRegister SrcReg =
-          RegX8632::getEncodedByteRegOrGPR(Ty, SrcVar->getRegNum());
+          SrcCanBeByte
+              ? RegX8632::getEncodedByteRegOrGPR(Ty, SrcVar->getRegNum())
+              : RegX8632::getEncodedGPR(SrcVar->getRegNum());
       (Asm->*(Emitter.GPRGPR))(Ty, VarReg, SrcReg);
     } else {
       x86::Address SrcStackAddr = static_cast<TargetX8632 *>(Func->getTarget())
@@ -799,6 +793,8 @@ template <> const char *InstX8632Bsf::Opcode = "bsf";
 template <> const char *InstX8632Bsr::Opcode = "bsr";
 template <> const char *InstX8632Lea::Opcode = "lea";
 template <> const char *InstX8632Movd::Opcode = "movd";
+template <> const char *InstX8632Movsx::Opcode = "movsx";
+template <> const char *InstX8632Movzx::Opcode = "movzx";
 template <> const char *InstX8632Sqrtss::Opcode = "sqrtss";
 template <> const char *InstX8632Cbwdq::Opcode = "cbw/cwd/cdq";
 // Mov-like ops
@@ -869,6 +865,12 @@ const x86::AssemblerX86::GPREmitterRegOp InstX8632Bsr::Emitter = {
 template <>
 const x86::AssemblerX86::GPREmitterRegOp InstX8632Lea::Emitter = {
     /* reg/reg and reg/imm are illegal */ NULL, &x86::AssemblerX86::lea, NULL};
+template <>
+const x86::AssemblerX86::GPREmitterRegOp InstX8632Movsx::Emitter = {
+    &x86::AssemblerX86::movsx, &x86::AssemblerX86::movsx, NULL};
+template <>
+const x86::AssemblerX86::GPREmitterRegOp InstX8632Movzx::Emitter = {
+    &x86::AssemblerX86::movzx, &x86::AssemblerX86::movzx, NULL};
 
 // Unary XMM ops
 template <>
@@ -2117,42 +2119,27 @@ template <> void InstX8632MovssRegs::emitIAS(const Cfg *Func) const {
   emitIASBytes(Func, Asm, StartPosition);
 }
 
-void InstX8632Movsx::emit(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrEmit();
+template <> void InstX8632Movsx::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
-  Str << "\tmovsx\t";
-  getDest()->emit(Func);
-  Str << ", ";
-  getSrc(0)->emit(Func);
-  Str << "\n";
+  const Variable *Dest = getDest();
+  const Operand *Src = getSrc(0);
+  // Dest must be a > 8-bit register, but Src can be 8-bit. In practice
+  // we just use the full register for Dest to avoid having an
+  // OperandSizeOverride prefix. It also allows us to only dispatch on SrcTy.
+  Type SrcTy = Src->getType();
+  assert(typeWidthInBytes(Dest->getType()) > 1);
+  assert(typeWidthInBytes(Dest->getType()) > typeWidthInBytes(SrcTy));
+  emitIASRegOpTyGPR<false, true>(Func, SrcTy, Dest, Src, Emitter);
 }
 
-void InstX8632Movsx::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
-  Str << "movsx." << getDest()->getType() << "." << getSrc(0)->getType();
-  Str << " ";
-  dumpDest(Func);
-  Str << ", ";
-  dumpSources(Func);
-}
-
-void InstX8632Movzx::emit(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrEmit();
+template <> void InstX8632Movzx::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
-  Str << "\tmovzx\t";
-  getDest()->emit(Func);
-  Str << ", ";
-  getSrc(0)->emit(Func);
-  Str << "\n";
-}
-
-void InstX8632Movzx::dump(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrDump();
-  Str << "movzx." << getDest()->getType() << "." << getSrc(0)->getType();
-  Str << " ";
-  dumpDest(Func);
-  Str << ", ";
-  dumpSources(Func);
+  const Variable *Dest = getDest();
+  const Operand *Src = getSrc(0);
+  Type SrcTy = Src->getType();
+  assert(typeWidthInBytes(Dest->getType()) > 1);
+  assert(typeWidthInBytes(Dest->getType()) > typeWidthInBytes(SrcTy));
+  emitIASRegOpTyGPR<false, true>(Func, SrcTy, Dest, Src, Emitter);
 }
 
 void InstX8632Nop::emit(const Cfg *Func) const {

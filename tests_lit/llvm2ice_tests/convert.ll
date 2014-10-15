@@ -37,7 +37,7 @@ entry:
 }
 ; CHECK-LABEL: from_int8
 ; CHECK: mov {{.*}}, byte ptr [
-; CHECK: movsx
+; CHECK: movsx e{{.*}}, {{[a-d]l|byte ptr}}
 ; CHECK: mov word ptr [
 ; CHECK: movsx
 ; CHECK: mov dword ptr [
@@ -66,9 +66,9 @@ entry:
 ; CHECK-LABEL: from_int16
 ; CHECK: mov {{.*}}, word ptr [
 ; CHECK: [0]
-; CHECK: movsx
+; CHECK: movsx e{{.*}}, {{.*x|[ds]i|bp|word ptr}}
 ; CHECK: [4]
-; CHECK: movsx
+; CHECK: movsx e{{.*}}, {{.*x|[ds]i|bp|word ptr}}
 ; CHECK: sar {{.*}}, 31
 ; CHECK: [8]
 
@@ -133,7 +133,7 @@ entry:
 }
 ; CHECK-LABEL: from_uint8
 ; CHECK: [16]
-; CHECK: movzx
+; CHECK: movzx e{{.*}}, {{[a-d]l|byte ptr}}
 ; CHECK: [2]
 ; CHECK: movzx
 ; CHECK: [4]
@@ -159,9 +159,9 @@ entry:
 ; CHECK-LABEL: from_uint16
 ; CHECK: [18]
 ; CHECK: [0]
-; CHECK: movzx
+; CHECK: movzx e{{.*}}, {{.*x|[ds]i|bp|word ptr}}
 ; CHECK: [4]
-; CHECK: movzx
+; CHECK: movzx e{{.*}}, {{.*x|[ds]i|bp|word ptr}}
 ; CHECK: mov {{.*}}, 0
 ; CHECK: [8]
 

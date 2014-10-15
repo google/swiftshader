@@ -189,59 +189,39 @@ void AssemblerX86::mov(Type Ty, const Address &dst, const Immediate &imm) {
   }
 }
 
-void AssemblerX86::movzxb(GPRRegister dst, ByteRegister src) {
+void AssemblerX86::movzx(Type SrcTy, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  bool ByteSized = isByteSizedType(SrcTy);
+  assert(ByteSized || SrcTy == IceType_i16);
   EmitUint8(0x0F);
-  EmitUint8(0xB6);
+  EmitUint8(ByteSized ? 0xB6 : 0xB7);
   EmitRegisterOperand(dst, src);
 }
 
-void AssemblerX86::movzxb(GPRRegister dst, const Address &src) {
+void AssemblerX86::movzx(Type SrcTy, GPRRegister dst, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  bool ByteSized = isByteSizedType(SrcTy);
+  assert(ByteSized || SrcTy == IceType_i16);
   EmitUint8(0x0F);
-  EmitUint8(0xB6);
+  EmitUint8(ByteSized ? 0xB6 : 0xB7);
   EmitOperand(dst, src);
 }
 
-void AssemblerX86::movsxb(GPRRegister dst, ByteRegister src) {
+void AssemblerX86::movsx(Type SrcTy, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  bool ByteSized = isByteSizedType(SrcTy);
+  assert(ByteSized || SrcTy == IceType_i16);
   EmitUint8(0x0F);
-  EmitUint8(0xBE);
+  EmitUint8(ByteSized ? 0xBE : 0xBF);
   EmitRegisterOperand(dst, src);
 }
 
-void AssemblerX86::movsxb(GPRRegister dst, const Address &src) {
+void AssemblerX86::movsx(Type SrcTy, GPRRegister dst, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  bool ByteSized = isByteSizedType(SrcTy);
+  assert(ByteSized || SrcTy == IceType_i16);
   EmitUint8(0x0F);
-  EmitUint8(0xBE);
-  EmitOperand(dst, src);
-}
-
-void AssemblerX86::movzxw(GPRRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x0F);
-  EmitUint8(0xB7);
-  EmitRegisterOperand(dst, src);
-}
-
-void AssemblerX86::movzxw(GPRRegister dst, const Address &src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x0F);
-  EmitUint8(0xB7);
-  EmitOperand(dst, src);
-}
-
-void AssemblerX86::movsxw(GPRRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x0F);
-  EmitUint8(0xBF);
-  EmitRegisterOperand(dst, src);
-}
-
-void AssemblerX86::movsxw(GPRRegister dst, const Address &src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x0F);
-  EmitUint8(0xBF);
+  EmitUint8(ByteSized ? 0xBE : 0xBF);
   EmitOperand(dst, src);
 }
 

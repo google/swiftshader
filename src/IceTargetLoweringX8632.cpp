@@ -2018,8 +2018,16 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     } else if (Src0RM->getType() == IceType_i1) {
       // t = Src0RM; t &= 1; Dest = t
       Constant *One = Ctx->getConstantInt32(IceType_i32, 1);
-      Variable *T = makeReg(IceType_i32);
-      _movzx(T, Src0RM);
+      Type DestTy = Dest->getType();
+      Variable *T;
+      if (DestTy == IceType_i8) {
+        T = makeReg(DestTy);
+        _mov(T, Src0RM);
+      } else {
+        // Use 32-bit for both 16-bit and 32-bit, since 32-bit ops are shorter.
+        T = makeReg(IceType_i32);
+        _movzx(T, Src0RM);
+      }
       _and(T, One);
       _mov(Dest, T);
     } else {
