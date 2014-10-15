@@ -21,6 +21,9 @@
 namespace Ice {
 
 class CfgNode {
+  CfgNode(const CfgNode &) = delete;
+  CfgNode &operator=(const CfgNode &) = delete;
+
 public:
   static CfgNode *create(Cfg *Func, SizeT LabelIndex, IceString Name = "") {
     return new (Func->allocate<CfgNode>()) CfgNode(Func, LabelIndex, Name);
@@ -76,8 +79,6 @@ public:
 
 private:
   CfgNode(Cfg *Func, SizeT LabelIndex, IceString Name);
-  CfgNode(const CfgNode &) = delete;
-  CfgNode &operator=(const CfgNode &) = delete;
   Cfg *const Func;
   const SizeT Number; // label index
   IceString Name;     // for dumping only

@@ -32,6 +32,9 @@ class GlobalContext;
 // other intermediate representations down to ICE, and then call the appropriate
 // (inherited) methods to convert ICE into machine instructions.
 class Translator {
+  Translator(const Translator &) = delete;
+  Translator &operator=(const Translator &) = delete;
+
 public:
   typedef std::vector<VariableDeclaration *> VariableDeclarationListType;
 
@@ -81,11 +84,8 @@ protected:
   // GlobalContext instead of Cfg, and then make emitConstantPool use
   // that.
   std::unique_ptr<Cfg> Func;
-
-private:
-  Translator(const Translator &) = delete;
-  Translator &operator=(const Translator &) = delete;
 };
-}
+
+} // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICETRANSLATOR_H

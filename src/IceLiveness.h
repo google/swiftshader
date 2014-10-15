@@ -26,6 +26,11 @@
 namespace Ice {
 
 class LivenessNode {
+  // TODO: Disable these constructors when Liveness::Nodes is no
+  // longer an STL container.
+  // LivenessNode(const LivenessNode &) = delete;
+  // LivenessNode &operator=(const LivenessNode &) = delete;
+
 public:
   LivenessNode() : NumLocals(0) {}
   // NumLocals is the number of Variables local to this block.
@@ -43,12 +48,6 @@ public:
   // index/key of each element is less than NumLocals +
   // Liveness::NumGlobals.
   LiveBeginEndMap LiveBegin, LiveEnd;
-
-private:
-  // TODO: Disable these constructors when Liveness::Nodes is no
-  // longer an STL container.
-  // LivenessNode(const LivenessNode &) = delete;
-  // LivenessNode &operator=(const LivenessNode &) = delete;
 };
 
 class Liveness {

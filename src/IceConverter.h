@@ -25,6 +25,9 @@ class Module;
 namespace Ice {
 
 class Converter : public Translator {
+  Converter(const Converter &) = delete;
+  Converter &operator=(const Converter &) = delete;
+
 public:
   Converter(llvm::Module *Mod, GlobalContext *Ctx, const Ice::ClFlags &Flags)
       : Translator(Ctx, Flags), Mod(Mod) {}
@@ -64,9 +67,6 @@ private:
 
   // Installs global declarations into GlobalDeclarationMap.
   void installGlobalDeclarations(llvm::Module *Mod);
-
-  Converter(const Converter &) = delete;
-  Converter &operator=(const Converter &) = delete;
 };
 
 } // end of namespace ICE.

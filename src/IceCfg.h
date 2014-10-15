@@ -28,6 +28,9 @@
 namespace Ice {
 
 class Cfg {
+  Cfg(const Cfg &) = delete;
+  Cfg &operator=(const Cfg &) = delete;
+
 public:
   Cfg(GlobalContext *Ctx);
   ~Cfg();
@@ -67,15 +70,13 @@ public:
   // Manage Variables.
   // Create a new Variable with a particular type and an optional
   // name.  The Node argument is the node where the variable is defined.
-  template <typename T> T *makeVariable(Type Ty, const IceString &Name = "") {
+  template <typename T = Variable>
+  T *makeVariable(Type Ty, const IceString &Name = "") {
     SizeT Index = Variables.size();
     T *Var = T::create(this, Ty, Index, Name);
     Variables.push_back(Var);
     return Var;
   }
-  // TODO(stichnot): Remove this function with C++11, and use default
-  // argument <typename T=Variable> above.
-  Variable *makeVariable(Type Ty, const IceString &Name = "");
   SizeT getNumVariables() const { return Variables.size(); }
   const VarList &getVariables() const { return Variables; }
 
@@ -187,9 +188,6 @@ private:
   // register allocation, resetCurrentNode() should be called to avoid
   // spurious validation failures.
   const CfgNode *CurrentNode;
-
-  Cfg(const Cfg &) = delete;
-  Cfg &operator=(const Cfg &) = delete;
 };
 
 } // end of namespace Ice

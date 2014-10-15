@@ -22,6 +22,9 @@
 namespace Ice {
 
 class PNaClTranslator : public Translator {
+  PNaClTranslator(const PNaClTranslator &) = delete;
+  PNaClTranslator &operator=(const PNaClTranslator &) = delete;
+
 public:
   PNaClTranslator(GlobalContext *Ctx, const ClFlags &Flags)
       : Translator(Ctx, Flags) {}
@@ -29,11 +32,8 @@ public:
   // converted to machine code. Sets ErrorStatus to true if any
   // errors occurred.
   void translate(const std::string &IRFilename);
-
-private:
-  PNaClTranslator(const PNaClTranslator &) = delete;
-  PNaClTranslator &operator=(const PNaClTranslator &) = delete;
 };
-}
+
+} // end of namespace Ice
 
 #endif // SUBZERO_SRC_PNACLTRANSLATOR_H

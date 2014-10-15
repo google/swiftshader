@@ -34,6 +34,9 @@ class FuncSigType;
 
 // This class collects rudimentary statistics during translation.
 class CodeStats {
+  CodeStats(const CodeStats &) = delete;
+  // CodeStats &operator=(const CodeStats &) = delete;
+
 public:
   CodeStats()
       : InstructionsEmitted(0), RegistersSaved(0), FrameBytes(0), Spills(0),
@@ -65,6 +68,9 @@ private:
 // be synchronized, especially the constant pool, the allocator, and
 // the output streams.
 class GlobalContext {
+  GlobalContext(const GlobalContext &) = delete;
+  GlobalContext &operator=(const GlobalContext &) = delete;
+
 public:
   GlobalContext(llvm::raw_ostream *OsDump, llvm::raw_ostream *OsEmit,
                 VerboseMask Mask, TargetArch Arch, OptLevel Opt,
@@ -201,8 +207,6 @@ private:
   CodeStats StatsCumulative;
   std::vector<TimerStack> Timers;
   std::vector<GlobalDeclaration *> GlobalDeclarations;
-  GlobalContext(const GlobalContext &) = delete;
-  GlobalContext &operator=(const GlobalContext &) = delete;
 
   // Private helpers for mangleName()
   typedef llvm::SmallVector<char, 32> ManglerVector;

@@ -26,6 +26,9 @@
 namespace Ice {
 
 class Operand {
+  Operand(const Operand &) = delete;
+  Operand &operator=(const Operand &) = delete;
+
 public:
   static const size_t MaxTargetKinds = 10;
   enum OperandKind {
@@ -86,10 +89,6 @@ protected:
   // Vars and NumVars are initialized by the derived class.
   SizeT NumVars;
   Variable **Vars;
-
-private:
-  Operand(const Operand &) = delete;
-  Operand &operator=(const Operand &) = delete;
 };
 
 template<class StreamType>
@@ -101,6 +100,9 @@ inline StreamType &operator<<(StreamType &Str, const Operand &Op) {
 // Constant is the abstract base class for constants.  All
 // constants are allocated from a global arena and are pooled.
 class Constant : public Operand {
+  Constant(const Constant &) = delete;
+  Constant &operator=(const Constant &) = delete;
+
 public:
   uint32_t getPoolEntryID() const { return PoolEntryID; }
   using Operand::dump;
@@ -124,15 +126,14 @@ protected:
   // within its constant pool.  It is used for building the constant
   // pool in the object code and for referencing its entries.
   const uint32_t PoolEntryID;
-
-private:
-  Constant(const Constant &) = delete;
-  Constant &operator=(const Constant &) = delete;
 };
 
 // ConstantPrimitive<> wraps a primitive type.
 template <typename T, Operand::OperandKind K>
 class ConstantPrimitive : public Constant {
+  ConstantPrimitive(const ConstantPrimitive &) = delete;
+  ConstantPrimitive &operator=(const ConstantPrimitive &) = delete;
+
 public:
   static ConstantPrimitive *create(GlobalContext *Ctx, Type Ty, T Value,
                                    uint32_t PoolEntryID) {
@@ -154,8 +155,6 @@ public:
 private:
   ConstantPrimitive(Type Ty, T Value, uint32_t PoolEntryID)
       : Constant(K, Ty, PoolEntryID), Value(Value) {}
-  ConstantPrimitive(const ConstantPrimitive &) = delete;
-  ConstantPrimitive &operator=(const ConstantPrimitive &) = delete;
   ~ConstantPrimitive() override {}
   const T Value;
 };
@@ -182,15 +181,13 @@ template <> inline void ConstantInteger64::dump(const Cfg *, Ostream &Str) const
 // ConstantRelocatable can fit into the global constant pool
 // template mechanism.
 class RelocatableTuple {
+  // RelocatableTuple(const RelocatableTuple &) = delete;
   RelocatableTuple &operator=(const RelocatableTuple &) = delete;
 
 public:
   RelocatableTuple(const RelocOffsetT Offset, const IceString &Name,
                    bool SuppressMangling)
       : Offset(Offset), Name(Name), SuppressMangling(SuppressMangling) {}
-  RelocatableTuple(const RelocatableTuple &Other)
-      : Offset(Other.Offset), Name(Other.Name),
-        SuppressMangling(Other.SuppressMangling) {}
 
   const RelocOffsetT Offset;
   const IceString Name;
@@ -202,6 +199,9 @@ bool operator<(const RelocatableTuple &A, const RelocatableTuple &B);
 // ConstantRelocatable represents a symbolic constant combined with
 // a fixed offset.
 class ConstantRelocatable : public Constant {
+  ConstantRelocatable(const ConstantRelocatable &) = delete;
+  ConstantRelocatable &operator=(const ConstantRelocatable &) = delete;
+
 public:
   static ConstantRelocatable *create(GlobalContext *Ctx, Type Ty,
                                      const RelocatableTuple &Tuple,
@@ -229,8 +229,6 @@ private:
                       bool SuppressMangling, uint32_t PoolEntryID)
       : Constant(kConstRelocatable, Ty, PoolEntryID), Offset(Offset),
         Name(Name), SuppressMangling(SuppressMangling) {}
-  ConstantRelocatable(const ConstantRelocatable &) = delete;
-  ConstantRelocatable &operator=(const ConstantRelocatable &) = delete;
   ~ConstantRelocatable() override {}
   const RelocOffsetT Offset; // fixed offset to add
   const IceString Name; // optional for debug/dump
@@ -241,6 +239,9 @@ private:
 // legal to lower ConstantUndef to any value, backends should try to
 // make code generation deterministic by lowering ConstantUndefs to 0.
 class ConstantUndef : public Constant {
+  ConstantUndef(const ConstantUndef &) = delete;
+  ConstantUndef &operator=(const ConstantUndef &) = delete;
+
 public:
   static ConstantUndef *create(GlobalContext *Ctx, Type Ty,
                                uint32_t PoolEntryID) {
@@ -260,8 +261,6 @@ public:
 private:
   ConstantUndef(Type Ty, uint32_t PoolEntryID)
       : Constant(kConstUndef, Ty, PoolEntryID) {}
-  ConstantUndef(const ConstantUndef &) = delete;
-  ConstantUndef &operator=(const ConstantUndef &) = delete;
   ~ConstantUndef() override {}
 };
 
@@ -269,6 +268,9 @@ private:
 // special value that represents infinite weight, and an addWeight()
 // method that ensures that W+infinity=infinity.
 class RegWeight {
+  // RegWeight(const RegWeight &) = delete;
+  // RegWeight &operator=(const RegWeight &) = delete;
+
 public:
   RegWeight() : Weight(0) {}
   RegWeight(uint32_t Weight) : Weight(Weight) {}
@@ -300,6 +302,9 @@ bool operator==(const RegWeight &A, const RegWeight &B);
 // weight, in case e.g. we want a live range to have higher weight
 // inside a loop.
 class LiveRange {
+  // LiveRange(const LiveRange &) = delete;
+  // LiveRange &operator=(const LiveRange &) = delete;
+
 public:
   LiveRange() : Weight(0), IsNonpoints(false) {}
 
@@ -516,6 +521,9 @@ typedef std::vector<const Inst *> InstDefList;
 // VariableTracking tracks the metadata for a single variable.  It is
 // only meant to be used internally by VariablesMetadata.
 class VariableTracking {
+  // VariableTracking(const VariableTracking &) = delete;
+  VariableTracking &operator=(const VariableTracking &) = delete;
+
 public:
   enum MultiDefState {
     // TODO(stichnot): Consider using just a simple counter.
@@ -543,7 +551,6 @@ public:
   void markDef(const Inst *Instr, const CfgNode *Node);
 
 private:
-  VariableTracking &operator=(const VariableTracking &) = delete;
   MultiDefState MultiDef;
   MultiBlockState MultiBlock;
   const CfgNode *SingleUseNode;
@@ -556,6 +563,9 @@ private:
 // VariablesMetadata analyzes and summarizes the metadata for the
 // complete set of Variables.
 class VariablesMetadata {
+  VariablesMetadata(const VariablesMetadata &) = delete;
+  VariablesMetadata &operator=(const VariablesMetadata &) = delete;
+
 public:
   VariablesMetadata(const Cfg *Func) : Func(Func) {}
   // Initialize the state by traversing all instructions/variables in
@@ -602,8 +612,6 @@ private:
   const Cfg *Func;
   std::vector<VariableTracking> Metadata;
   const static InstDefList NoDefinitions;
-  VariablesMetadata(const VariablesMetadata &) = delete;
-  VariablesMetadata &operator=(const VariablesMetadata &) = delete;
 };
 
 } // end of namespace Ice

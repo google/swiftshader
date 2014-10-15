@@ -48,10 +48,6 @@ CfgNode *Cfg::makeNode(const IceString &Name) {
   return Node;
 }
 
-Variable *Cfg::makeVariable(Type Ty, const IceString &Name) {
-  return makeVariable<Variable>(Ty, Name);
-}
-
 void Cfg::addArg(Variable *Arg) {
   Arg->setIsArg();
   Args.push_back(Arg);

@@ -30,6 +30,9 @@ class TargetX8632;
 // OperandX8632 extends the Operand hierarchy.  Its subclasses are
 // OperandX8632Mem and VariableSplit.
 class OperandX8632 : public Operand {
+  OperandX8632(const OperandX8632 &) = delete;
+  OperandX8632 &operator=(const OperandX8632 &) = delete;
+
 public:
   enum OperandKindX8632 {
     k__Start = Operand::kTarget,
@@ -45,16 +48,15 @@ protected:
   OperandX8632(OperandKindX8632 Kind, Type Ty)
       : Operand(static_cast<OperandKind>(Kind), Ty) {}
   ~OperandX8632() override {}
-
-private:
-  OperandX8632(const OperandX8632 &) = delete;
-  OperandX8632 &operator=(const OperandX8632 &) = delete;
 };
 
 // OperandX8632Mem represents the m32 addressing mode, with optional
 // base and index registers, a constant offset, and a fixed shift
 // value for the index register.
 class OperandX8632Mem : public OperandX8632 {
+  OperandX8632Mem(const OperandX8632Mem &) = delete;
+  OperandX8632Mem &operator=(const OperandX8632Mem &) = delete;
+
 public:
   enum SegmentRegisters {
     DefaultSegment = -1,
@@ -88,8 +90,6 @@ public:
 private:
   OperandX8632Mem(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
                   Variable *Index, uint16_t Shift, SegmentRegisters SegmentReg);
-  OperandX8632Mem(const OperandX8632Mem &) = delete;
-  OperandX8632Mem &operator=(const OperandX8632Mem &) = delete;
   ~OperandX8632Mem() override {}
   Variable *Base;
   Constant *Offset;
@@ -105,6 +105,9 @@ private:
 // lowering forces the f64 to be spilled to the stack and then
 // accesses through the VariableSplit.
 class VariableSplit : public OperandX8632 {
+  VariableSplit(const VariableSplit &) = delete;
+  VariableSplit &operator=(const VariableSplit &) = delete;
+
 public:
   enum Portion {
     Low,
@@ -132,8 +135,6 @@ private:
     Vars[0] = Var;
     NumVars = 1;
   }
-  VariableSplit(const VariableSplit &) = delete;
-  VariableSplit &operator=(const VariableSplit &) = delete;
   ~VariableSplit() override { Func->deallocateArrayOf<Variable *>(Vars); }
   Cfg *Func; // Held only for the destructor.
   Variable *Var;
@@ -146,6 +147,9 @@ private:
 // register.  If the linked Variable has a stack slot, then the
 // Variable and SpillVariable share that slot.
 class SpillVariable : public Variable {
+  SpillVariable(const SpillVariable &) = delete;
+  SpillVariable &operator=(const SpillVariable &) = delete;
+
 public:
   static SpillVariable *create(Cfg *Func, Type Ty, SizeT Index,
                                const IceString &Name) {
@@ -166,6 +170,9 @@ private:
 };
 
 class InstX8632 : public InstTarget {
+  InstX8632(const InstX8632 &) = delete;
+  InstX8632 &operator=(const InstX8632 &) = delete;
+
 public:
   enum InstKindX8632 {
     k__Start = Inst::Target,
@@ -265,10 +272,6 @@ protected:
   static bool isClassof(const Inst *Inst, InstKindX8632 MyKind) {
     return Inst->getKind() == static_cast<InstKind>(MyKind);
   }
-
-private:
-  InstX8632(const InstX8632 &) = delete;
-  InstX8632 &operator=(const InstX8632 &) = delete;
 };
 
 // InstX8632Label represents an intra-block label that is the
@@ -309,6 +312,9 @@ private:
 // it may be prevented by running dead code elimination before
 // lowering.
 class InstX8632Label : public InstX8632 {
+  InstX8632Label(const InstX8632Label &) = delete;
+  InstX8632Label &operator=(const InstX8632Label &) = delete;
+
 public:
   static InstX8632Label *create(Cfg *Func, TargetX8632 *Target) {
     return new (Func->allocate<InstX8632Label>()) InstX8632Label(Func, Target);
@@ -320,14 +326,15 @@ public:
 
 private:
   InstX8632Label(Cfg *Func, TargetX8632 *Target);
-  InstX8632Label(const InstX8632Label &) = delete;
-  InstX8632Label &operator=(const InstX8632Label &) = delete;
   ~InstX8632Label() override {}
   SizeT Number; // used only for unique label string generation
 };
 
 // Conditional and unconditional branch instruction.
 class InstX8632Br : public InstX8632 {
+  InstX8632Br(const InstX8632Br &) = delete;
+  InstX8632Br &operator=(const InstX8632Br &) = delete;
+
 public:
   // Create a conditional branch to a node.
   static InstX8632Br *create(Cfg *Func, CfgNode *TargetTrue,
@@ -382,8 +389,6 @@ public:
 private:
   InstX8632Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
               const InstX8632Label *Label, CondX86::BrCond Condition);
-  InstX8632Br(const InstX8632Br &) = delete;
-  InstX8632Br &operator=(const InstX8632Br &) = delete;
   ~InstX8632Br() override {}
   CondX86::BrCond Condition;
   const CfgNode *TargetTrue;
@@ -394,6 +399,9 @@ private:
 // AdjustStack instruction - subtracts esp by the given amount and
 // updates the stack offset during code emission.
 class InstX8632AdjustStack : public InstX8632 {
+  InstX8632AdjustStack(const InstX8632AdjustStack &) = delete;
+  InstX8632AdjustStack &operator=(const InstX8632AdjustStack &) = delete;
+
 public:
   static InstX8632AdjustStack *create(Cfg *Func, SizeT Amount, Variable *Esp) {
     return new (Func->allocate<InstX8632AdjustStack>())
@@ -406,13 +414,14 @@ public:
 
 private:
   InstX8632AdjustStack(Cfg *Func, SizeT Amount, Variable *Esp);
-  InstX8632AdjustStack(const InstX8632AdjustStack &) = delete;
-  InstX8632AdjustStack &operator=(const InstX8632AdjustStack &) = delete;
   SizeT Amount;
 };
 
 // Call instruction.  Arguments should have already been pushed.
 class InstX8632Call : public InstX8632 {
+  InstX8632Call(const InstX8632Call &) = delete;
+  InstX8632Call &operator=(const InstX8632Call &) = delete;
+
 public:
   static InstX8632Call *create(Cfg *Func, Variable *Dest, Operand *CallTarget) {
     return new (Func->allocate<InstX8632Call>())
@@ -425,8 +434,6 @@ public:
 
 private:
   InstX8632Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
-  InstX8632Call(const InstX8632Call &) = delete;
-  InstX8632Call &operator=(const InstX8632Call &) = delete;
   ~InstX8632Call() override {}
 };
 
@@ -437,6 +444,9 @@ void emitIASOpTyGPR(const Cfg *Func, Type Ty, const Operand *Var,
 // Instructions of the form x := op(x).
 template <InstX8632::InstKindX8632 K>
 class InstX8632InplaceopGPR : public InstX8632 {
+  InstX8632InplaceopGPR(const InstX8632InplaceopGPR &) = delete;
+  InstX8632InplaceopGPR &operator=(const InstX8632InplaceopGPR &) = delete;
+
 public:
   static InstX8632InplaceopGPR *create(Cfg *Func, Operand *SrcDest) {
     return new (Func->allocate<InstX8632InplaceopGPR>())
@@ -468,8 +478,6 @@ private:
       : InstX8632(Func, K, 1, llvm::dyn_cast<Variable>(SrcDest)) {
     addSource(SrcDest);
   }
-  InstX8632InplaceopGPR(const InstX8632InplaceopGPR &) = delete;
-  InstX8632InplaceopGPR &operator=(const InstX8632InplaceopGPR &) = delete;
   ~InstX8632InplaceopGPR() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::GPREmitterOneOp Emitter;
@@ -484,6 +492,9 @@ void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Dst,
 // Instructions of the form x := op(y)
 template <InstX8632::InstKindX8632 K>
 class InstX8632UnaryopGPR : public InstX8632 {
+  InstX8632UnaryopGPR(const InstX8632UnaryopGPR &) = delete;
+  InstX8632UnaryopGPR &operator=(const InstX8632UnaryopGPR &) = delete;
+
 public:
   static InstX8632UnaryopGPR *create(Cfg *Func, Variable *Dest, Operand *Src) {
     return new (Func->allocate<InstX8632UnaryopGPR>())
@@ -518,8 +529,6 @@ private:
       : InstX8632(Func, K, 1, Dest) {
     addSource(Src);
   }
-  InstX8632UnaryopGPR(const InstX8632UnaryopGPR &) = delete;
-  InstX8632UnaryopGPR &operator=(const InstX8632UnaryopGPR &) = delete;
   ~InstX8632UnaryopGPR() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::GPREmitterRegOp Emitter;
@@ -531,6 +540,9 @@ void emitIASRegOpTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
 
 template <InstX8632::InstKindX8632 K>
 class InstX8632UnaryopXmm : public InstX8632 {
+  InstX8632UnaryopXmm(const InstX8632UnaryopXmm &) = delete;
+  InstX8632UnaryopXmm &operator=(const InstX8632UnaryopXmm &) = delete;
+
 public:
   static InstX8632UnaryopXmm *create(Cfg *Func, Variable *Dest, Operand *Src) {
     return new (Func->allocate<InstX8632UnaryopXmm>())
@@ -563,8 +575,6 @@ private:
       : InstX8632(Func, K, 1, Dest) {
     addSource(Src);
   }
-  InstX8632UnaryopXmm(const InstX8632UnaryopXmm &) = delete;
-  InstX8632UnaryopXmm &operator=(const InstX8632UnaryopXmm &) = delete;
   ~InstX8632UnaryopXmm() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::XmmEmitterRegOp Emitter;
@@ -581,6 +591,9 @@ void emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
 
 template <InstX8632::InstKindX8632 K>
 class InstX8632BinopGPRShift : public InstX8632 {
+  InstX8632BinopGPRShift(const InstX8632BinopGPRShift &) = delete;
+  InstX8632BinopGPRShift &operator=(const InstX8632BinopGPRShift &) = delete;
+
 public:
   // Create a binary-op GPR shift instruction.
   static InstX8632BinopGPRShift *create(Cfg *Func, Variable *Dest,
@@ -611,8 +624,6 @@ private:
     addSource(Dest);
     addSource(Source);
   }
-  InstX8632BinopGPRShift(const InstX8632BinopGPRShift &) = delete;
-  InstX8632BinopGPRShift &operator=(const InstX8632BinopGPRShift &) = delete;
   ~InstX8632BinopGPRShift() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::GPREmitterShiftOp Emitter;
@@ -620,6 +631,9 @@ private:
 
 template <InstX8632::InstKindX8632 K>
 class InstX8632BinopGPR : public InstX8632 {
+  InstX8632BinopGPR(const InstX8632BinopGPR &) = delete;
+  InstX8632BinopGPR &operator=(const InstX8632BinopGPR &) = delete;
+
 public:
   // Create an ordinary binary-op instruction like add or sub.
   static InstX8632BinopGPR *create(Cfg *Func, Variable *Dest, Operand *Source) {
@@ -649,8 +663,6 @@ private:
     addSource(Dest);
     addSource(Source);
   }
-  InstX8632BinopGPR(const InstX8632BinopGPR &) = delete;
-  InstX8632BinopGPR &operator=(const InstX8632BinopGPR &) = delete;
   ~InstX8632BinopGPR() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::GPREmitterRegOp Emitter;
@@ -658,6 +670,9 @@ private:
 
 template <InstX8632::InstKindX8632 K, bool NeedsElementType>
 class InstX8632BinopXmm : public InstX8632 {
+  InstX8632BinopXmm(const InstX8632BinopXmm &) = delete;
+  InstX8632BinopXmm &operator=(const InstX8632BinopXmm &) = delete;
+
 public:
   // Create an XMM binary-op instruction like addss or addps.
   static InstX8632BinopXmm *create(Cfg *Func, Variable *Dest, Operand *Source) {
@@ -689,8 +704,6 @@ private:
     addSource(Dest);
     addSource(Source);
   }
-  InstX8632BinopXmm(const InstX8632BinopXmm &) = delete;
-  InstX8632BinopXmm &operator=(const InstX8632BinopXmm &) = delete;
   ~InstX8632BinopXmm() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::XmmEmitterRegOp Emitter;
@@ -702,6 +715,9 @@ void emitIASXmmShift(const Cfg *Func, Type Ty, const Variable *Var,
 
 template <InstX8632::InstKindX8632 K>
 class InstX8632BinopXmmShift : public InstX8632 {
+  InstX8632BinopXmmShift(const InstX8632BinopXmmShift &) = delete;
+  InstX8632BinopXmmShift &operator=(const InstX8632BinopXmmShift &) = delete;
+
 public:
   // Create an XMM binary-op shift operation.
   static InstX8632BinopXmmShift *create(Cfg *Func, Variable *Dest,
@@ -735,14 +751,15 @@ private:
     addSource(Dest);
     addSource(Source);
   }
-  InstX8632BinopXmmShift(const InstX8632BinopXmmShift &) = delete;
-  InstX8632BinopXmmShift &operator=(const InstX8632BinopXmmShift &) = delete;
   ~InstX8632BinopXmmShift() override {}
   static const char *Opcode;
   static const x86::AssemblerX86::XmmEmitterShiftOp Emitter;
 };
 
 template <InstX8632::InstKindX8632 K> class InstX8632Ternop : public InstX8632 {
+  InstX8632Ternop(const InstX8632Ternop &) = delete;
+  InstX8632Ternop &operator=(const InstX8632Ternop &) = delete;
+
 public:
   // Create a ternary-op instruction like div or idiv.
   static InstX8632Ternop *create(Cfg *Func, Variable *Dest, Operand *Source1,
@@ -777,8 +794,6 @@ private:
     addSource(Source1);
     addSource(Source2);
   }
-  InstX8632Ternop(const InstX8632Ternop &) = delete;
-  InstX8632Ternop &operator=(const InstX8632Ternop &) = delete;
   ~InstX8632Ternop() override {}
   static const char *Opcode;
 };
@@ -786,6 +801,9 @@ private:
 // Instructions of the form x := y op z
 template <InstX8632::InstKindX8632 K>
 class InstX8632ThreeAddressop : public InstX8632 {
+  InstX8632ThreeAddressop(const InstX8632ThreeAddressop &) = delete;
+  InstX8632ThreeAddressop &operator=(const InstX8632ThreeAddressop &) = delete;
+
 public:
   static InstX8632ThreeAddressop *create(Cfg *Func, Variable *Dest,
                                          Operand *Source0, Operand *Source1) {
@@ -819,8 +837,6 @@ private:
     addSource(Source0);
     addSource(Source1);
   }
-  InstX8632ThreeAddressop(const InstX8632ThreeAddressop &) = delete;
-  InstX8632ThreeAddressop &operator=(const InstX8632ThreeAddressop &) = delete;
   ~InstX8632ThreeAddressop() override {}
   static const char *Opcode;
 };
@@ -830,6 +846,9 @@ bool checkForRedundantAssign(const Variable *Dest, const Operand *Source);
 // Base class for assignment instructions
 template <InstX8632::InstKindX8632 K>
 class InstX8632Movlike : public InstX8632 {
+  InstX8632Movlike(const InstX8632Movlike &) = delete;
+  InstX8632Movlike &operator=(const InstX8632Movlike &) = delete;
+
 public:
   static InstX8632Movlike *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX8632Movlike>())
@@ -855,8 +874,6 @@ private:
       : InstX8632(Func, K, 1, Dest) {
     addSource(Source);
   }
-  InstX8632Movlike(const InstX8632Movlike &) = delete;
-  InstX8632Movlike &operator=(const InstX8632Movlike &) = delete;
   ~InstX8632Movlike() override {}
 
   static const char *Opcode;
@@ -930,6 +947,9 @@ typedef InstX8632ThreeAddressop<InstX8632::Pshufd> InstX8632Pshufd;
 
 // Base class for a lockable x86-32 instruction (emits a locked prefix).
 class InstX8632Lockable : public InstX8632 {
+  InstX8632Lockable(const InstX8632Lockable &) = delete;
+  InstX8632Lockable &operator=(const InstX8632Lockable &) = delete;
+
 protected:
   bool Locked;
 
@@ -941,14 +961,13 @@ protected:
     HasSideEffects = Locked;
   }
   ~InstX8632Lockable() override {}
-
-private:
-  InstX8632Lockable(const InstX8632Lockable &) = delete;
-  InstX8632Lockable &operator=(const InstX8632Lockable &) = delete;
 };
 
 // Mul instruction - unsigned multiply.
 class InstX8632Mul : public InstX8632 {
+  InstX8632Mul(const InstX8632Mul &) = delete;
+  InstX8632Mul &operator=(const InstX8632Mul &) = delete;
+
 public:
   static InstX8632Mul *create(Cfg *Func, Variable *Dest, Variable *Source1,
                               Operand *Source2) {
@@ -962,14 +981,15 @@ public:
 
 private:
   InstX8632Mul(Cfg *Func, Variable *Dest, Variable *Source1, Operand *Source2);
-  InstX8632Mul(const InstX8632Mul &) = delete;
-  InstX8632Mul &operator=(const InstX8632Mul &) = delete;
   ~InstX8632Mul() override {}
 };
 
 // Shld instruction - shift across a pair of operands.  TODO: Verify
 // that the validator accepts the shld instruction.
 class InstX8632Shld : public InstX8632 {
+  InstX8632Shld(const InstX8632Shld &) = delete;
+  InstX8632Shld &operator=(const InstX8632Shld &) = delete;
+
 public:
   static InstX8632Shld *create(Cfg *Func, Variable *Dest, Variable *Source1,
                                Variable *Source2) {
@@ -984,14 +1004,15 @@ public:
 private:
   InstX8632Shld(Cfg *Func, Variable *Dest, Variable *Source1,
                 Variable *Source2);
-  InstX8632Shld(const InstX8632Shld &) = delete;
-  InstX8632Shld &operator=(const InstX8632Shld &) = delete;
   ~InstX8632Shld() override {}
 };
 
 // Shrd instruction - shift across a pair of operands.  TODO: Verify
 // that the validator accepts the shrd instruction.
 class InstX8632Shrd : public InstX8632 {
+  InstX8632Shrd(const InstX8632Shrd &) = delete;
+  InstX8632Shrd &operator=(const InstX8632Shrd &) = delete;
+
 public:
   static InstX8632Shrd *create(Cfg *Func, Variable *Dest, Variable *Source1,
                                Variable *Source2) {
@@ -1006,13 +1027,14 @@ public:
 private:
   InstX8632Shrd(Cfg *Func, Variable *Dest, Variable *Source1,
                 Variable *Source2);
-  InstX8632Shrd(const InstX8632Shrd &) = delete;
-  InstX8632Shrd &operator=(const InstX8632Shrd &) = delete;
   ~InstX8632Shrd() override {}
 };
 
 // Conditional move instruction.
 class InstX8632Cmov : public InstX8632 {
+  InstX8632Cmov(const InstX8632Cmov &) = delete;
+  InstX8632Cmov &operator=(const InstX8632Cmov &) = delete;
+
 public:
   static InstX8632Cmov *create(Cfg *Func, Variable *Dest, Operand *Source,
                                CondX86::BrCond Cond) {
@@ -1027,8 +1049,6 @@ public:
 private:
   InstX8632Cmov(Cfg *Func, Variable *Dest, Operand *Source,
                 CondX86::BrCond Cond);
-  InstX8632Cmov(const InstX8632Cmov &) = delete;
-  InstX8632Cmov &operator=(const InstX8632Cmov &) = delete;
   ~InstX8632Cmov() override {}
 
   CondX86::BrCond Condition;
@@ -1037,6 +1057,9 @@ private:
 // Cmpps instruction - compare packed singled-precision floating point
 // values
 class InstX8632Cmpps : public InstX8632 {
+  InstX8632Cmpps(const InstX8632Cmpps &) = delete;
+  InstX8632Cmpps &operator=(const InstX8632Cmpps &) = delete;
+
 public:
   static InstX8632Cmpps *create(Cfg *Func, Variable *Dest, Operand *Source,
                                 CondX86::CmppsCond Condition) {
@@ -1051,8 +1074,6 @@ public:
 private:
   InstX8632Cmpps(Cfg *Func, Variable *Dest, Operand *Source,
                  CondX86::CmppsCond Cond);
-  InstX8632Cmpps(const InstX8632Cmpps &) = delete;
-  InstX8632Cmpps &operator=(const InstX8632Cmpps &) = delete;
   ~InstX8632Cmpps() override {}
 
   CondX86::CmppsCond Condition;
@@ -1064,6 +1085,9 @@ private:
 // <dest> can be a register or memory, while <desired> must be a register.
 // It is the user's responsiblity to mark eax with a FakeDef.
 class InstX8632Cmpxchg : public InstX8632Lockable {
+  InstX8632Cmpxchg(const InstX8632Cmpxchg &) = delete;
+  InstX8632Cmpxchg &operator=(const InstX8632Cmpxchg &) = delete;
+
 public:
   static InstX8632Cmpxchg *create(Cfg *Func, Operand *DestOrAddr, Variable *Eax,
                                   Variable *Desired, bool Locked) {
@@ -1078,8 +1102,6 @@ public:
 private:
   InstX8632Cmpxchg(Cfg *Func, Operand *DestOrAddr, Variable *Eax,
                    Variable *Desired, bool Locked);
-  InstX8632Cmpxchg(const InstX8632Cmpxchg &) = delete;
-  InstX8632Cmpxchg &operator=(const InstX8632Cmpxchg &) = delete;
   ~InstX8632Cmpxchg() override {}
 };
 
@@ -1090,6 +1112,9 @@ private:
 // and eax as modified.
 // <m64> must be a memory operand.
 class InstX8632Cmpxchg8b : public InstX8632Lockable {
+  InstX8632Cmpxchg8b(const InstX8632Cmpxchg8b &) = delete;
+  InstX8632Cmpxchg8b &operator=(const InstX8632Cmpxchg8b &) = delete;
+
 public:
   static InstX8632Cmpxchg8b *create(Cfg *Func, OperandX8632Mem *Dest,
                                     Variable *Edx, Variable *Eax, Variable *Ecx,
@@ -1105,8 +1130,6 @@ public:
 private:
   InstX8632Cmpxchg8b(Cfg *Func, OperandX8632Mem *Dest, Variable *Edx,
                      Variable *Eax, Variable *Ecx, Variable *Ebx, bool Locked);
-  InstX8632Cmpxchg8b(const InstX8632Cmpxchg8b &) = delete;
-  InstX8632Cmpxchg8b &operator=(const InstX8632Cmpxchg8b &) = delete;
   ~InstX8632Cmpxchg8b() override {}
 };
 
@@ -1115,6 +1138,9 @@ private:
 // from dest/src types.  Sign and zero extension on the integer
 // operand needs to be done separately.
 class InstX8632Cvt : public InstX8632 {
+  InstX8632Cvt(const InstX8632Cvt &) = delete;
+  InstX8632Cvt &operator=(const InstX8632Cvt &) = delete;
+
 public:
   enum CvtVariant { Si2ss, Tss2si, Float2float, Dq2ps, Tps2dq };
   static InstX8632Cvt *create(Cfg *Func, Variable *Dest, Operand *Source,
@@ -1131,13 +1157,14 @@ public:
 private:
   CvtVariant Variant;
   InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source, CvtVariant Variant);
-  InstX8632Cvt(const InstX8632Cvt &) = delete;
-  InstX8632Cvt &operator=(const InstX8632Cvt &) = delete;
   ~InstX8632Cvt() override {}
 };
 
 // cmp - Integer compare instruction.
 class InstX8632Icmp : public InstX8632 {
+  InstX8632Icmp(const InstX8632Icmp &) = delete;
+  InstX8632Icmp &operator=(const InstX8632Icmp &) = delete;
+
 public:
   static InstX8632Icmp *create(Cfg *Func, Operand *Src1, Operand *Src2) {
     return new (Func->allocate<InstX8632Icmp>())
@@ -1150,13 +1177,14 @@ public:
 
 private:
   InstX8632Icmp(Cfg *Func, Operand *Src1, Operand *Src2);
-  InstX8632Icmp(const InstX8632Icmp &) = delete;
-  InstX8632Icmp &operator=(const InstX8632Icmp &) = delete;
   ~InstX8632Icmp() override {}
 };
 
 // ucomiss/ucomisd - floating-point compare instruction.
 class InstX8632Ucomiss : public InstX8632 {
+  InstX8632Ucomiss(const InstX8632Ucomiss &) = delete;
+  InstX8632Ucomiss &operator=(const InstX8632Ucomiss &) = delete;
+
 public:
   static InstX8632Ucomiss *create(Cfg *Func, Operand *Src1, Operand *Src2) {
     return new (Func->allocate<InstX8632Ucomiss>())
@@ -1169,13 +1197,14 @@ public:
 
 private:
   InstX8632Ucomiss(Cfg *Func, Operand *Src1, Operand *Src2);
-  InstX8632Ucomiss(const InstX8632Ucomiss &) = delete;
-  InstX8632Ucomiss &operator=(const InstX8632Ucomiss &) = delete;
   ~InstX8632Ucomiss() override {}
 };
 
 // UD2 instruction.
 class InstX8632UD2 : public InstX8632 {
+  InstX8632UD2(const InstX8632UD2 &) = delete;
+  InstX8632UD2 &operator=(const InstX8632UD2 &) = delete;
+
 public:
   static InstX8632UD2 *create(Cfg *Func) {
     return new (Func->allocate<InstX8632UD2>()) InstX8632UD2(Func);
@@ -1187,13 +1216,14 @@ public:
 
 private:
   InstX8632UD2(Cfg *Func);
-  InstX8632UD2(const InstX8632UD2 &) = delete;
-  InstX8632UD2 &operator=(const InstX8632UD2 &) = delete;
   ~InstX8632UD2() override {}
 };
 
 // Test instruction.
 class InstX8632Test : public InstX8632 {
+  InstX8632Test(const InstX8632Test &) = delete;
+  InstX8632Test &operator=(const InstX8632Test &) = delete;
+
 public:
   static InstX8632Test *create(Cfg *Func, Operand *Source1, Operand *Source2) {
     return new (Func->allocate<InstX8632Test>())
@@ -1206,13 +1236,14 @@ public:
 
 private:
   InstX8632Test(Cfg *Func, Operand *Source1, Operand *Source2);
-  InstX8632Test(const InstX8632Test &) = delete;
-  InstX8632Test &operator=(const InstX8632Test &) = delete;
   ~InstX8632Test() override {}
 };
 
 // Mfence instruction.
 class InstX8632Mfence : public InstX8632 {
+  InstX8632Mfence(const InstX8632Mfence &) = delete;
+  InstX8632Mfence &operator=(const InstX8632Mfence &) = delete;
+
 public:
   static InstX8632Mfence *create(Cfg *Func) {
     return new (Func->allocate<InstX8632Mfence>()) InstX8632Mfence(Func);
@@ -1224,8 +1255,6 @@ public:
 
 private:
   InstX8632Mfence(Cfg *Func);
-  InstX8632Mfence(const InstX8632Mfence &) = delete;
-  InstX8632Mfence &operator=(const InstX8632Mfence &) = delete;
   ~InstX8632Mfence() override {}
 };
 
@@ -1233,6 +1262,9 @@ private:
 // operand instead of Variable as the destination.  It's important
 // for liveness that there is no Dest operand.
 class InstX8632Store : public InstX8632 {
+  InstX8632Store(const InstX8632Store &) = delete;
+  InstX8632Store &operator=(const InstX8632Store &) = delete;
+
 public:
   static InstX8632Store *create(Cfg *Func, Operand *Value, OperandX8632 *Mem) {
     return new (Func->allocate<InstX8632Store>())
@@ -1244,8 +1276,6 @@ public:
 
 private:
   InstX8632Store(Cfg *Func, Operand *Value, OperandX8632 *Mem);
-  InstX8632Store(const InstX8632Store &) = delete;
-  InstX8632Store &operator=(const InstX8632Store &) = delete;
   ~InstX8632Store() override {}
 };
 
@@ -1254,6 +1284,9 @@ private:
 // for liveness that there is no Dest operand. The source must be an
 // Xmm register, since Dest is mem.
 class InstX8632StoreP : public InstX8632 {
+  InstX8632StoreP(const InstX8632StoreP &) = delete;
+  InstX8632StoreP &operator=(const InstX8632StoreP &) = delete;
+
 public:
   static InstX8632StoreP *create(Cfg *Func, Variable *Value,
                                  OperandX8632Mem *Mem) {
@@ -1267,12 +1300,13 @@ public:
 
 private:
   InstX8632StoreP(Cfg *Func, Variable *Value, OperandX8632Mem *Mem);
-  InstX8632StoreP(const InstX8632StoreP &) = delete;
-  InstX8632StoreP &operator=(const InstX8632StoreP &) = delete;
   ~InstX8632StoreP() override {}
 };
 
 class InstX8632StoreQ : public InstX8632 {
+  InstX8632StoreQ(const InstX8632StoreQ &) = delete;
+  InstX8632StoreQ &operator=(const InstX8632StoreQ &) = delete;
+
 public:
   static InstX8632StoreQ *create(Cfg *Func, Variable *Value,
                                  OperandX8632Mem *Mem) {
@@ -1286,14 +1320,15 @@ public:
 
 private:
   InstX8632StoreQ(Cfg *Func, Variable *Value, OperandX8632Mem *Mem);
-  InstX8632StoreQ(const InstX8632StoreQ &) = delete;
-  InstX8632StoreQ &operator=(const InstX8632StoreQ &) = delete;
   ~InstX8632StoreQ() override {}
 };
 
 // Movsx - copy from a narrower integer type to a wider integer
 // type, with sign extension.
 class InstX8632Movsx : public InstX8632 {
+  InstX8632Movsx(const InstX8632Movsx &) = delete;
+  InstX8632Movsx &operator=(const InstX8632Movsx &) = delete;
+
 public:
   static InstX8632Movsx *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX8632Movsx>())
@@ -1305,14 +1340,15 @@ public:
 
 private:
   InstX8632Movsx(Cfg *Func, Variable *Dest, Operand *Source);
-  InstX8632Movsx(const InstX8632Movsx &) = delete;
-  InstX8632Movsx &operator=(const InstX8632Movsx &) = delete;
   ~InstX8632Movsx() override {}
 };
 
 // Movzx - copy from a narrower integer type to a wider integer
 // type, with zero extension.
 class InstX8632Movzx : public InstX8632 {
+  InstX8632Movzx(const InstX8632Movzx &) = delete;
+  InstX8632Movzx &operator=(const InstX8632Movzx &) = delete;
+
 public:
   static InstX8632Movzx *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX8632Movzx>())
@@ -1324,13 +1360,14 @@ public:
 
 private:
   InstX8632Movzx(Cfg *Func, Variable *Dest, Operand *Source);
-  InstX8632Movzx(const InstX8632Movzx &) = delete;
-  InstX8632Movzx &operator=(const InstX8632Movzx &) = delete;
   ~InstX8632Movzx() override {}
 };
 
 // Nop instructions of varying length
 class InstX8632Nop : public InstX8632 {
+  InstX8632Nop(const InstX8632Nop &) = delete;
+  InstX8632Nop &operator=(const InstX8632Nop &) = delete;
+
 public:
   // TODO: Replace with enum.
   typedef unsigned NopVariant;
@@ -1345,8 +1382,6 @@ public:
 
 private:
   InstX8632Nop(Cfg *Func, SizeT Length);
-  InstX8632Nop(const InstX8632Nop &) = delete;
-  InstX8632Nop &operator=(const InstX8632Nop &) = delete;
   ~InstX8632Nop() override {}
 
   NopVariant Variant;
@@ -1354,6 +1389,9 @@ private:
 
 // Fld - load a value onto the x87 FP stack.
 class InstX8632Fld : public InstX8632 {
+  InstX8632Fld(const InstX8632Fld &) = delete;
+  InstX8632Fld &operator=(const InstX8632Fld &) = delete;
+
 public:
   static InstX8632Fld *create(Cfg *Func, Operand *Src) {
     return new (Func->allocate<InstX8632Fld>()) InstX8632Fld(Func, Src);
@@ -1365,13 +1403,14 @@ public:
 
 private:
   InstX8632Fld(Cfg *Func, Operand *Src);
-  InstX8632Fld(const InstX8632Fld &) = delete;
-  InstX8632Fld &operator=(const InstX8632Fld &) = delete;
   ~InstX8632Fld() override {}
 };
 
 // Fstp - store x87 st(0) into memory and pop st(0).
 class InstX8632Fstp : public InstX8632 {
+  InstX8632Fstp(const InstX8632Fstp &) = delete;
+  InstX8632Fstp &operator=(const InstX8632Fstp &) = delete;
+
 public:
   static InstX8632Fstp *create(Cfg *Func, Variable *Dest) {
     return new (Func->allocate<InstX8632Fstp>()) InstX8632Fstp(Func, Dest);
@@ -1383,12 +1422,13 @@ public:
 
 private:
   InstX8632Fstp(Cfg *Func, Variable *Dest);
-  InstX8632Fstp(const InstX8632Fstp &) = delete;
-  InstX8632Fstp &operator=(const InstX8632Fstp &) = delete;
   ~InstX8632Fstp() override {}
 };
 
 class InstX8632Pop : public InstX8632 {
+  InstX8632Pop(const InstX8632Pop &) = delete;
+  InstX8632Pop &operator=(const InstX8632Pop &) = delete;
+
 public:
   static InstX8632Pop *create(Cfg *Func, Variable *Dest) {
     return new (Func->allocate<InstX8632Pop>()) InstX8632Pop(Func, Dest);
@@ -1400,12 +1440,13 @@ public:
 
 private:
   InstX8632Pop(Cfg *Func, Variable *Dest);
-  InstX8632Pop(const InstX8632Pop &) = delete;
-  InstX8632Pop &operator=(const InstX8632Pop &) = delete;
   ~InstX8632Pop() override {}
 };
 
 class InstX8632Push : public InstX8632 {
+  InstX8632Push(const InstX8632Push &) = delete;
+  InstX8632Push &operator=(const InstX8632Push &) = delete;
+
 public:
   static InstX8632Push *create(Cfg *Func, Variable *Source) {
     return new (Func->allocate<InstX8632Push>())
@@ -1418,8 +1459,6 @@ public:
 
 private:
   InstX8632Push(Cfg *Func, Variable *Source);
-  InstX8632Push(const InstX8632Push &) = delete;
-  InstX8632Push &operator=(const InstX8632Push &) = delete;
   ~InstX8632Push() override {}
 };
 
@@ -1428,6 +1467,9 @@ private:
 // (for non-void returning functions) for liveness analysis, though
 // a FakeUse before the ret would do just as well.
 class InstX8632Ret : public InstX8632 {
+  InstX8632Ret(const InstX8632Ret &) = delete;
+  InstX8632Ret &operator=(const InstX8632Ret &) = delete;
+
 public:
   static InstX8632Ret *create(Cfg *Func, Variable *Source = NULL) {
     return new (Func->allocate<InstX8632Ret>()) InstX8632Ret(Func, Source);
@@ -1439,8 +1481,6 @@ public:
 
 private:
   InstX8632Ret(Cfg *Func, Variable *Source);
-  InstX8632Ret(const InstX8632Ret &) = delete;
-  InstX8632Ret &operator=(const InstX8632Ret &) = delete;
   ~InstX8632Ret() override {}
 };
 
@@ -1452,6 +1492,9 @@ private:
 // Both the dest and source are updated. The caller should then insert a
 // FakeDef to reflect the second udpate.
 class InstX8632Xadd : public InstX8632Lockable {
+  InstX8632Xadd(const InstX8632Xadd &) = delete;
+  InstX8632Xadd &operator=(const InstX8632Xadd &) = delete;
+
 public:
   static InstX8632Xadd *create(Cfg *Func, Operand *Dest, Variable *Source,
                                bool Locked) {
@@ -1465,8 +1508,6 @@ public:
 
 private:
   InstX8632Xadd(Cfg *Func, Operand *Dest, Variable *Source, bool Locked);
-  InstX8632Xadd(const InstX8632Xadd &) = delete;
-  InstX8632Xadd &operator=(const InstX8632Xadd &) = delete;
   ~InstX8632Xadd() override {}
 };
 
@@ -1477,6 +1518,9 @@ private:
 // then the instruction is automatically "locked" without the need for
 // a lock prefix.
 class InstX8632Xchg : public InstX8632 {
+  InstX8632Xchg(const InstX8632Xchg &) = delete;
+  InstX8632Xchg &operator=(const InstX8632Xchg &) = delete;
+
 public:
   static InstX8632Xchg *create(Cfg *Func, Operand *Dest, Variable *Source) {
     return new (Func->allocate<InstX8632Xchg>())
@@ -1489,8 +1533,6 @@ public:
 
 private:
   InstX8632Xchg(Cfg *Func, Operand *Dest, Variable *Source);
-  InstX8632Xchg(const InstX8632Xchg &) = delete;
-  InstX8632Xchg &operator=(const InstX8632Xchg &) = delete;
   ~InstX8632Xchg() override {}
 };
 

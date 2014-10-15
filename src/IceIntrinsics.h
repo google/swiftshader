@@ -24,6 +24,9 @@ class InstCall;
 static const size_t kMaxIntrinsicParameters = 6;
 
 class Intrinsics {
+  Intrinsics(const Intrinsics &) = delete;
+  Intrinsics &operator=(const Intrinsics &) = delete;
+
 public:
   Intrinsics();
   ~Intrinsics();
@@ -158,9 +161,6 @@ private:
   // TODO(jvoung): May want to switch to something like LLVM's StringMap.
   typedef std::map<IceString, FullIntrinsicInfo> IntrinsicMap;
   IntrinsicMap Map;
-
-  Intrinsics(const Intrinsics &) = delete;
-  Intrinsics &operator=(const Intrinsics &) = delete;
 };
 
 } // end of namespace Ice

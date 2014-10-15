@@ -35,6 +35,9 @@ class Assembler;
 // when inserting new instructions in order to track whether variables
 // are used as single-block or multi-block.
 class LoweringContext {
+  LoweringContext(const LoweringContext &) = delete;
+  LoweringContext &operator=(const LoweringContext &) = delete;
+
 public:
   LoweringContext() : Node(NULL) {}
   ~LoweringContext() {}
@@ -86,11 +89,12 @@ private:
   void skipDeleted(InstList::iterator &I) const;
   void advanceForward(InstList::iterator &I) const;
   void advanceBackward(InstList::iterator &I) const;
-  LoweringContext(const LoweringContext &) = delete;
-  LoweringContext &operator=(const LoweringContext &) = delete;
 };
 
 class TargetLowering {
+  TargetLowering(const TargetLowering &) = delete;
+  TargetLowering &operator=(const TargetLowering &) = delete;
+
 public:
   static TargetLowering *createLowering(TargetArch Target, Cfg *Func);
   static Assembler *createAssembler(TargetArch Target, Cfg *Func);
@@ -233,16 +237,16 @@ protected:
   // natural location, as arguments are pushed for a function call.
   int32_t StackAdjustment;
   LoweringContext Context;
-
-private:
-  TargetLowering(const TargetLowering &) = delete;
-  TargetLowering &operator=(const TargetLowering &) = delete;
 };
 
 // TargetGlobalInitLowering is used for "lowering" global
 // initializers.  It is separated out from TargetLowering because it
 // does not require a Cfg.
 class TargetGlobalInitLowering {
+  TargetGlobalInitLowering(const TargetGlobalInitLowering &) = delete;
+  TargetGlobalInitLowering &operator=(const TargetGlobalInitLowering &) =
+      delete;
+
 public:
   static TargetGlobalInitLowering *createLowering(TargetArch Target,
                                                   GlobalContext *Ctx);
@@ -253,11 +257,6 @@ public:
 protected:
   TargetGlobalInitLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
   GlobalContext *Ctx;
-
-private:
-  TargetGlobalInitLowering(const TargetGlobalInitLowering &) = delete;
-  TargetGlobalInitLowering &operator=(const TargetGlobalInitLowering &) =
-      delete;
 };
 
 } // end of namespace Ice

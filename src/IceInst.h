@@ -35,6 +35,9 @@ namespace Ice {
 // from InstHighLevel, and low-level (target-specific) ICE
 // instructions inherit from InstTarget.
 class Inst {
+  Inst(const Inst &) = delete;
+  Inst &operator=(const Inst &) = delete;
+
 public:
   enum InstKind {
     // Arbitrary (alphabetical) order, except put Unreachable first.
@@ -169,10 +172,6 @@ protected:
   // tracked this way.
   typedef uint32_t LREndedBits; // only first 32 src operands tracked, sorry
   LREndedBits LiveRangesEnded;
-
-private:
-  Inst(const Inst &) = delete;
-  Inst &operator=(const Inst &) = delete;
 };
 
 class InstHighLevel : public Inst {
@@ -195,6 +194,9 @@ protected:
 // and the required alignment in bytes.  The alignment must be either
 // 0 (no alignment required) or a power of 2.
 class InstAlloca : public InstHighLevel {
+  InstAlloca(const InstAlloca &) = delete;
+  InstAlloca &operator=(const InstAlloca &) = delete;
+
 public:
   static InstAlloca *create(Cfg *Func, Operand *ByteCount,
                             uint32_t AlignInBytes, Variable *Dest) {
@@ -209,8 +211,6 @@ public:
 private:
   InstAlloca(Cfg *Func, Operand *ByteCount, uint32_t AlignInBytes,
              Variable *Dest);
-  InstAlloca(const InstAlloca &) = delete;
-  InstAlloca &operator=(const InstAlloca &) = delete;
   ~InstAlloca() override {}
   const uint32_t AlignInBytes;
 };
@@ -218,6 +218,9 @@ private:
 // Binary arithmetic instruction.  The source operands are captured in
 // getSrc(0) and getSrc(1).
 class InstArithmetic : public InstHighLevel {
+  InstArithmetic(const InstArithmetic &) = delete;
+  InstArithmetic &operator=(const InstArithmetic &) = delete;
+
 public:
   enum OpKind {
 #define X(tag, str, commutative) tag,
@@ -242,8 +245,6 @@ public:
 private:
   InstArithmetic(Cfg *Func, OpKind Op, Variable *Dest, Operand *Source1,
                  Operand *Source2);
-  InstArithmetic(const InstArithmetic &) = delete;
-  InstArithmetic &operator=(const InstArithmetic &) = delete;
   ~InstArithmetic() override {}
 
   const OpKind Op;
@@ -256,6 +257,9 @@ private:
 // Inttoptr instruction, or as an intermediate step for lowering a
 // Load instruction.
 class InstAssign : public InstHighLevel {
+  InstAssign(const InstAssign &) = delete;
+  InstAssign &operator=(const InstAssign &) = delete;
+
 public:
   static InstAssign *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocateInst<InstAssign>())
@@ -267,14 +271,15 @@ public:
 
 private:
   InstAssign(Cfg *Func, Variable *Dest, Operand *Source);
-  InstAssign(const InstAssign &) = delete;
-  InstAssign &operator=(const InstAssign &) = delete;
   ~InstAssign() override {}
 };
 
 // Branch instruction.  This represents both conditional and
 // unconditional branches.
 class InstBr : public InstHighLevel {
+  InstBr(const InstBr &) = delete;
+  InstBr &operator=(const InstBr &) = delete;
+
 public:
   // Create a conditional branch.  If TargetTrue==TargetFalse, it is
   // optimized to an unconditional branch.
@@ -307,8 +312,6 @@ private:
   InstBr(Cfg *Func, Operand *Source, CfgNode *TargetTrue, CfgNode *TargetFalse);
   // Unconditional branch
   InstBr(Cfg *Func, CfgNode *Target);
-  InstBr(const InstBr &) = delete;
-  InstBr &operator=(const InstBr &) = delete;
   ~InstBr() override {}
 
   CfgNode *const TargetFalse; // Doubles as unconditional branch target
@@ -318,6 +321,9 @@ private:
 // Call instruction.  The call target is captured as getSrc(0), and
 // arg I is captured as getSrc(I+1).
 class InstCall : public InstHighLevel {
+  InstCall(const InstCall &) = delete;
+  InstCall &operator=(const InstCall &) = delete;
+
 public:
   static InstCall *create(Cfg *Func, SizeT NumArgs, Variable *Dest,
                           Operand *CallTarget, bool HasTailCall) {
@@ -349,12 +355,13 @@ protected:
 
 private:
   bool HasTailCall;
-  InstCall(const InstCall &) = delete;
-  InstCall &operator=(const InstCall &) = delete;
 };
 
 // Cast instruction (a.k.a. conversion operation).
 class InstCast : public InstHighLevel {
+  InstCast(const InstCast &) = delete;
+  InstCast &operator=(const InstCast &) = delete;
+
 public:
   enum OpKind {
 #define X(tag, str) tag,
@@ -374,14 +381,15 @@ public:
 
 private:
   InstCast(Cfg *Func, OpKind CastKind, Variable *Dest, Operand *Source);
-  InstCast(const InstCast &) = delete;
-  InstCast &operator=(const InstCast &) = delete;
   ~InstCast() override {}
   const OpKind CastKind;
 };
 
 // ExtractElement instruction.
 class InstExtractElement : public InstHighLevel {
+  InstExtractElement(const InstExtractElement &) = delete;
+  InstExtractElement &operator=(const InstExtractElement &) = delete;
+
 public:
   static InstExtractElement *create(Cfg *Func, Variable *Dest, Operand *Source1,
                                     Operand *Source2) {
@@ -397,14 +405,15 @@ public:
 private:
   InstExtractElement(Cfg *Func, Variable *Dest, Operand *Source1,
                      Operand *Source2);
-  InstExtractElement(const InstExtractElement &) = delete;
-  InstExtractElement &operator=(const InstExtractElement &) = delete;
   ~InstExtractElement() override {}
 };
 
 // Floating-point comparison instruction.  The source operands are
 // captured in getSrc(0) and getSrc(1).
 class InstFcmp : public InstHighLevel {
+  InstFcmp(const InstFcmp &) = delete;
+  InstFcmp &operator=(const InstFcmp &) = delete;
+
 public:
   enum FCond {
 #define X(tag, str) tag,
@@ -425,8 +434,6 @@ public:
 private:
   InstFcmp(Cfg *Func, FCond Condition, Variable *Dest, Operand *Source1,
            Operand *Source2);
-  InstFcmp(const InstFcmp &) = delete;
-  InstFcmp &operator=(const InstFcmp &) = delete;
   ~InstFcmp() override {}
   const FCond Condition;
 };
@@ -434,6 +441,9 @@ private:
 // Integer comparison instruction.  The source operands are captured
 // in getSrc(0) and getSrc(1).
 class InstIcmp : public InstHighLevel {
+  InstIcmp(const InstIcmp &) = delete;
+  InstIcmp &operator=(const InstIcmp &) = delete;
+
 public:
   enum ICond {
 #define X(tag, str) tag,
@@ -454,14 +464,15 @@ public:
 private:
   InstIcmp(Cfg *Func, ICond Condition, Variable *Dest, Operand *Source1,
            Operand *Source2);
-  InstIcmp(const InstIcmp &) = delete;
-  InstIcmp &operator=(const InstIcmp &) = delete;
   ~InstIcmp() override {}
   const ICond Condition;
 };
 
 // InsertElement instruction.
 class InstInsertElement : public InstHighLevel {
+  InstInsertElement(const InstInsertElement &) = delete;
+  InstInsertElement &operator=(const InstInsertElement &) = delete;
+
 public:
   static InstInsertElement *create(Cfg *Func, Variable *Dest, Operand *Source1,
                                    Operand *Source2, Operand *Source3) {
@@ -477,14 +488,15 @@ public:
 private:
   InstInsertElement(Cfg *Func, Variable *Dest, Operand *Source1,
                     Operand *Source2, Operand *Source3);
-  InstInsertElement(const InstInsertElement &) = delete;
-  InstInsertElement &operator=(const InstInsertElement &) = delete;
   ~InstInsertElement() override {}
 };
 
 // Call to an intrinsic function.  The call target is captured as getSrc(0),
 // and arg I is captured as getSrc(I+1).
 class InstIntrinsicCall : public InstCall {
+  InstIntrinsicCall(const InstIntrinsicCall &) = delete;
+  InstIntrinsicCall &operator=(const InstIntrinsicCall &) = delete;
+
 public:
   static InstIntrinsicCall *create(Cfg *Func, SizeT NumArgs, Variable *Dest,
                                    Operand *CallTarget,
@@ -504,14 +516,15 @@ private:
       : InstCall(Func, NumArgs, Dest, CallTarget, false, Info.HasSideEffects,
                  Inst::IntrinsicCall),
         Info(Info) {}
-  InstIntrinsicCall(const InstIntrinsicCall &) = delete;
-  InstIntrinsicCall &operator=(const InstIntrinsicCall &) = delete;
   ~InstIntrinsicCall() override {}
   const Intrinsics::IntrinsicInfo Info;
 };
 
 // Load instruction.  The source address is captured in getSrc(0).
 class InstLoad : public InstHighLevel {
+  InstLoad(const InstLoad &) = delete;
+  InstLoad &operator=(const InstLoad &) = delete;
+
 public:
   static InstLoad *create(Cfg *Func, Variable *Dest, Operand *SourceAddr,
                           uint32_t Align = 1) {
@@ -526,14 +539,15 @@ public:
 
 private:
   InstLoad(Cfg *Func, Variable *Dest, Operand *SourceAddr);
-  InstLoad(const InstLoad &) = delete;
-  InstLoad &operator=(const InstLoad &) = delete;
   ~InstLoad() override {}
 };
 
 // Phi instruction.  For incoming edge I, the node is Labels[I] and
 // the Phi source operand is getSrc(I).
 class InstPhi : public InstHighLevel {
+  InstPhi(const InstPhi &) = delete;
+  InstPhi &operator=(const InstPhi &) = delete;
+
 public:
   static InstPhi *create(Cfg *Func, SizeT MaxSrcs, Variable *Dest) {
     return new (Func->allocateInst<InstPhi>()) InstPhi(Func, MaxSrcs, Dest);
@@ -548,8 +562,6 @@ public:
 
 private:
   InstPhi(Cfg *Func, SizeT MaxSrcs, Variable *Dest);
-  InstPhi(const InstPhi &) = delete;
-  InstPhi &operator=(const InstPhi &) = delete;
   void destroy(Cfg *Func) override {
     Func->deallocateArrayOf<CfgNode *>(Labels);
     Inst::destroy(Func);
@@ -566,6 +578,9 @@ private:
 // there is no return value (void-type function), then
 // getSrcSize()==0 and hasRetValue()==false.
 class InstRet : public InstHighLevel {
+  InstRet(const InstRet &) = delete;
+  InstRet &operator=(const InstRet &) = delete;
+
 public:
   static InstRet *create(Cfg *Func, Operand *RetValue = NULL) {
     return new (Func->allocateInst<InstRet>()) InstRet(Func, RetValue);
@@ -581,13 +596,14 @@ public:
 
 private:
   InstRet(Cfg *Func, Operand *RetValue);
-  InstRet(const InstRet &) = delete;
-  InstRet &operator=(const InstRet &) = delete;
   ~InstRet() override {}
 };
 
 // Select instruction.  The condition, true, and false operands are captured.
 class InstSelect : public InstHighLevel {
+  InstSelect(const InstSelect &) = delete;
+  InstSelect &operator=(const InstSelect &) = delete;
+
 public:
   static InstSelect *create(Cfg *Func, Variable *Dest, Operand *Condition,
                             Operand *SourceTrue, Operand *SourceFalse) {
@@ -603,14 +619,15 @@ public:
 private:
   InstSelect(Cfg *Func, Variable *Dest, Operand *Condition, Operand *Source1,
              Operand *Source2);
-  InstSelect(const InstSelect &) = delete;
-  InstSelect &operator=(const InstSelect &) = delete;
   ~InstSelect() override {}
 };
 
 // Store instruction.  The address operand is captured, along with the
 // data operand to be stored into the address.
 class InstStore : public InstHighLevel {
+  InstStore(const InstStore &) = delete;
+  InstStore &operator=(const InstStore &) = delete;
+
 public:
   static InstStore *create(Cfg *Func, Operand *Data, Operand *Addr,
                            uint32_t align = 1) {
@@ -625,14 +642,15 @@ public:
 
 private:
   InstStore(Cfg *Func, Operand *Data, Operand *Addr);
-  InstStore(const InstStore &) = delete;
-  InstStore &operator=(const InstStore &) = delete;
   ~InstStore() override {}
 };
 
 // Switch instruction.  The single source operand is captured as
 // getSrc(0).
 class InstSwitch : public InstHighLevel {
+  InstSwitch(const InstSwitch &) = delete;
+  InstSwitch &operator=(const InstSwitch &) = delete;
+
 public:
   static InstSwitch *create(Cfg *Func, SizeT NumCases, Operand *Source,
                             CfgNode *LabelDefault) {
@@ -657,8 +675,6 @@ public:
 
 private:
   InstSwitch(Cfg *Func, SizeT NumCases, Operand *Source, CfgNode *LabelDefault);
-  InstSwitch(const InstSwitch &) = delete;
-  InstSwitch &operator=(const InstSwitch &) = delete;
   void destroy(Cfg *Func) override {
     Func->deallocateArrayOf<uint64_t>(Values);
     Func->deallocateArrayOf<CfgNode *>(Labels);
@@ -675,6 +691,9 @@ private:
 // Unreachable instruction.  This is a terminator instruction with no
 // operands.
 class InstUnreachable : public InstHighLevel {
+  InstUnreachable(const InstUnreachable &) = delete;
+  InstUnreachable &operator=(const InstUnreachable &) = delete;
+
 public:
   static InstUnreachable *create(Cfg *Func) {
     return new (Func->allocateInst<InstUnreachable>()) InstUnreachable(Func);
@@ -687,8 +706,6 @@ public:
 
 private:
   InstUnreachable(Cfg *Func);
-  InstUnreachable(const InstUnreachable &) = delete;
-  InstUnreachable &operator=(const InstUnreachable &) = delete;
   ~InstUnreachable() override {}
 };
 
@@ -705,6 +722,9 @@ private:
 // eliminated if its dest operand is unused, and therefore the FakeDef
 // dest wouldn't be properly initialized.
 class InstFakeDef : public InstHighLevel {
+  InstFakeDef(const InstFakeDef &) = delete;
+  InstFakeDef &operator=(const InstFakeDef &) = delete;
+
 public:
   static InstFakeDef *create(Cfg *Func, Variable *Dest, Variable *Src = NULL) {
     return new (Func->allocateInst<InstFakeDef>()) InstFakeDef(Func, Dest, Src);
@@ -716,8 +736,6 @@ public:
 
 private:
   InstFakeDef(Cfg *Func, Variable *Dest, Variable *Src);
-  InstFakeDef(const InstFakeDef &) = delete;
-  InstFakeDef &operator=(const InstFakeDef &) = delete;
   ~InstFakeDef() override {}
 };
 
@@ -727,6 +745,9 @@ private:
 // situations.  The FakeUse instruction has no dest, so it can itself
 // never be dead-code eliminated.
 class InstFakeUse : public InstHighLevel {
+  InstFakeUse(const InstFakeUse &) = delete;
+  InstFakeUse &operator=(const InstFakeUse &) = delete;
+
 public:
   static InstFakeUse *create(Cfg *Func, Variable *Src) {
     return new (Func->allocateInst<InstFakeUse>()) InstFakeUse(Func, Src);
@@ -738,8 +759,6 @@ public:
 
 private:
   InstFakeUse(Cfg *Func, Variable *Src);
-  InstFakeUse(const InstFakeUse &) = delete;
-  InstFakeUse &operator=(const InstFakeUse &) = delete;
   ~InstFakeUse() override {}
 };
 
@@ -753,6 +772,9 @@ private:
 // that kills the set of variables, so that if that linked instruction
 // gets dead-code eliminated, the FakeKill instruction will as well.
 class InstFakeKill : public InstHighLevel {
+  InstFakeKill(const InstFakeKill &) = delete;
+  InstFakeKill &operator=(const InstFakeKill &) = delete;
+
 public:
   static InstFakeKill *create(Cfg *Func, const VarList &KilledRegs,
                               const Inst *Linked) {
@@ -767,8 +789,6 @@ public:
 
 private:
   InstFakeKill(Cfg *Func, const VarList &KilledRegs, const Inst *Linked);
-  InstFakeKill(const InstFakeKill &) = delete;
-  InstFakeKill &operator=(const InstFakeKill &) = delete;
   ~InstFakeKill() override {}
 
   // This instruction is ignored if Linked->isDeleted() is true.

@@ -31,6 +31,9 @@ typedef std::vector<TimerTreeNode>::size_type TTindex;
 // the TimerTreeNode::Nodes array, and the parent is always at a lower
 // index.
 class TimerTreeNode {
+  // TimerTreeNode(const TimerTreeNode &) = delete;
+  TimerTreeNode &operator=(const TimerTreeNode &) = delete;
+
 public:
   TimerTreeNode() : Parent(0), Interior(0), Time(0), UpdateCount(0) {}
   std::vector<TTindex> Children; // indexed by TimerIdT
