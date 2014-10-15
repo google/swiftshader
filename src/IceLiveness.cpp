@@ -35,8 +35,6 @@ void Liveness::init() {
   VariablesMetadata *VMetadata = Func->getVMetadata();
   Nodes.resize(NumNodes);
   VarToLiveMap.resize(NumVars);
-  if (Mode == Liveness_Intervals)
-    LiveRanges.resize(NumVars);
 
   // Count the number of globals, and the number of locals for each
   // block.
@@ -96,18 +94,6 @@ Variable *Liveness::getVariable(SizeT LiveIndex, const CfgNode *Node) const {
     return LiveToVarMap[LiveIndex];
   SizeT NodeIndex = Node->getIndex();
   return Nodes[NodeIndex].LiveToVarMap[LiveIndex - NumGlobals];
-}
-
-void Liveness::addLiveRange(Variable *Var, InstNumberT Start, InstNumberT End,
-                            uint32_t WeightDelta) {
-  LiveRange &LiveRange = LiveRanges[Var->getIndex()];
-  assert(WeightDelta != RegWeight::Inf);
-  LiveRange.addSegment(Start, End);
-  LiveRange.addWeight(WeightDelta);
-}
-
-LiveRange &Liveness::getLiveRange(Variable *Var) {
-  return LiveRanges[Var->getIndex()];
 }
 
 } // end of namespace Ice

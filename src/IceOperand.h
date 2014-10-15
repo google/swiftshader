@@ -412,6 +412,7 @@ public:
   void setWeight(uint32_t NewWeight) { Weight = NewWeight; }
   void setWeightInfinite() { Weight = RegWeight::Inf; }
 
+  LiveRange &getLiveRange() { return Live; }
   const LiveRange &getLiveRange() const { return Live; }
   void setLiveRange(const LiveRange &Range) { Live = Range; }
   void resetLiveRange() { Live.reset(); }
@@ -426,6 +427,17 @@ public:
   void setLiveRangeInfiniteWeight() { Live.setWeight(RegWeight::Inf); }
   void trimLiveRange(InstNumberT Start) { Live.trim(Start); }
   void untrimLiveRange() { Live.untrim(); }
+  bool rangeEndsBefore(const Variable *Other) const {
+    return Live.endsBefore(Other->Live);
+  }
+  bool rangeOverlaps(const Variable *Other) const {
+    const bool UseTrimmed = true;
+    return Live.overlaps(Other->Live, UseTrimmed);
+  }
+  bool rangeOverlapsStart(const Variable *Other) const {
+    const bool UseTrimmed = true;
+    return Live.overlapsInst(Other->Live.getStart(), UseTrimmed);
+  }
 
   Variable *getLo() const { return LoVar; }
   Variable *getHi() const { return HiVar; }

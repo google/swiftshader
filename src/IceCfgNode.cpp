@@ -357,16 +357,6 @@ bool CfgNode::liveness(Liveness *Liveness) {
   return Changed;
 }
 
-#ifndef NDEBUG
-namespace {
-
-bool comparePair(const LiveBeginEndMapEntry &A, const LiveBeginEndMapEntry &B) {
-  return A.first == B.first;
-}
-
-} // end of anonymous namespace
-#endif // NDEBUG
-
 // Now that basic liveness is complete, remove dead instructions that
 // were tentatively marked as dead, and compute actual live ranges.
 // It is assumed that within a single basic block, a live range begins
@@ -406,7 +396,7 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
           for (SizeT Src = 0; Src < NumSrcs; ++Src) {
             Variable *Var = llvm::cast<Variable>(I->getSrc(Src));
             InstNumberT InstNumber = I->getNumber();
-            Liveness->addLiveRange(Var, InstNumber, InstNumber, 1);
+            Var->addLiveRange(InstNumber, InstNumber, 1);
           }
         }
       }
@@ -424,9 +414,15 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
   std::sort(MapBegin.begin(), MapBegin.end());
   std::sort(MapEnd.begin(), MapEnd.end());
   // Verify there are no duplicates.
-  assert(std::adjacent_find(MapBegin.begin(), MapBegin.end(), comparePair) ==
+  struct ComparePair {
+    bool operator()(const LiveBeginEndMapEntry &A,
+                    const LiveBeginEndMapEntry &B) {
+      return A.first == B.first;
+    }
+  };
+  assert(std::adjacent_find(MapBegin.begin(), MapBegin.end(), ComparePair()) ==
          MapBegin.end());
-  assert(std::adjacent_find(MapEnd.begin(), MapEnd.end(), comparePair) ==
+  assert(std::adjacent_find(MapEnd.begin(), MapEnd.end(), ComparePair()) ==
          MapEnd.end());
 
   LivenessBV LiveInAndOut = LiveIn;
@@ -453,15 +449,15 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
     Variable *Var = Liveness->getVariable(i, this);
     if (!Var->getIgnoreLiveness()) {
       if (LB > LE) {
-        Liveness->addLiveRange(Var, FirstInstNum, LE, 1);
-        Liveness->addLiveRange(Var, LB, LastInstNum + 1, 1);
+        Var->addLiveRange(FirstInstNum, LE, 1);
+        Var->addLiveRange(LB, LastInstNum + 1, 1);
         // Assert that Var is a global variable by checking that its
         // liveness index is less than the number of globals.  This
         // ensures that the LiveInAndOut[] access is valid.
         assert(i < Liveness->getNumGlobalVars());
         LiveInAndOut[i] = false;
       } else {
-        Liveness->addLiveRange(Var, LB, LE, 1);
+        Var->addLiveRange(LB, LE, 1);
       }
     }
     if (i == i1)
@@ -473,7 +469,7 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
   for (int i = LiveInAndOut.find_first(); i != -1;
        i = LiveInAndOut.find_next(i)) {
     Variable *Var = Liveness->getVariable(i, this);
-    Liveness->addLiveRange(Var, FirstInstNum, LastInstNum + 1, 1);
+    Var->addLiveRange(FirstInstNum, LastInstNum + 1, 1);
   }
 }
 

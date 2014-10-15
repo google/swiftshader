@@ -219,32 +219,21 @@ void Cfg::liveness(LivenessMode Mode) {
     // "r=arg1+arg2", both args may be assigned the same register.
     for (SizeT I = 0; I < Args.size(); ++I) {
       Variable *Arg = Args[I];
-      if (!Live->getLiveRange(Arg).isEmpty()) {
+      if (!Arg->getLiveRange().isEmpty()) {
         // Add live range [-1,0) with weight 0.  TODO: Here and below,
         // use better symbolic constants along the lines of
         // Inst::NumberDeleted and Inst::NumberSentinel instead of -1
         // and 0.
-        Live->addLiveRange(Arg, -1, 0, 0);
+        Arg->addLiveRange(-1, 0, 0);
       }
       // Do the same for i64 args that may have been lowered into i32
       // Lo and Hi components.
       Variable *Lo = Arg->getLo();
-      if (Lo && !Live->getLiveRange(Lo).isEmpty())
-        Live->addLiveRange(Lo, -1, 0, 0);
+      if (Lo && !Lo->getLiveRange().isEmpty())
+        Lo->addLiveRange(-1, 0, 0);
       Variable *Hi = Arg->getHi();
-      if (Hi && !Live->getLiveRange(Hi).isEmpty())
-        Live->addLiveRange(Hi, -1, 0, 0);
-    }
-    // Copy Liveness::LiveRanges into individual variables.  TODO:
-    // Remove Variable::LiveRange and redirect to
-    // Liveness::LiveRanges.  TODO: make sure Variable weights
-    // are applied properly.
-    SizeT NumVars = Variables.size();
-    for (SizeT i = 0; i < NumVars; ++i) {
-      Variable *Var = Variables[i];
-      Var->setLiveRange(Live->getLiveRange(Var));
-      if (Var->getWeight().isInf())
-        Var->setLiveRangeInfiniteWeight();
+      if (Hi && !Hi->getLiveRange().isEmpty())
+        Hi->addLiveRange(-1, 0, 0);
     }
   }
 }

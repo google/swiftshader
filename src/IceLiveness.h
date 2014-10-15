@@ -52,6 +52,9 @@ private:
 };
 
 class Liveness {
+  Liveness(const Liveness &) = delete;
+  Liveness &operator=(const Liveness &) = delete;
+
 public:
   Liveness(Cfg *Func, LivenessMode Mode)
       : Func(Func), Mode(Mode), NumGlobals(0) {}
@@ -76,9 +79,6 @@ public:
   LiveBeginEndMap *getLiveEnd(const CfgNode *Node) {
     return &Nodes[Node->getIndex()].LiveEnd;
   }
-  LiveRange &getLiveRange(Variable *Var);
-  void addLiveRange(Variable *Var, InstNumberT Start, InstNumberT End,
-                    uint32_t WeightDelta);
 
 private:
   Cfg *Func;
@@ -92,10 +92,6 @@ private:
   // LiveToVarMap is analogous to LivenessNode::LiveToVarMap, but for
   // non-local variables.
   std::vector<Variable *> LiveToVarMap;
-  // LiveRanges maps a Variable::Number to its live range.
-  std::vector<LiveRange> LiveRanges;
-  Liveness(const Liveness &) = delete;
-  Liveness &operator=(const Liveness &) = delete;
 };
 
 } // end of namespace Ice
