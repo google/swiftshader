@@ -602,6 +602,30 @@ void emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
   emitIASBytes(Func, Asm, StartPosition);
 }
 
+void emitIASGPRShiftDouble(const Cfg *Func, const Variable *Dest,
+                           const Operand *Src1Op, const Operand *Src2Op,
+                           const x86::AssemblerX86::GPREmitterShiftD &Emitter) {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  // Dest can be reg or mem, but we only use the reg variant.
+  assert(Dest->hasReg());
+  RegX8632::GPRRegister DestReg = RegX8632::getEncodedGPR(Dest->getRegNum());
+  // Src1 must be reg.
+  const auto Src1 = llvm::cast<Variable>(Src1Op);
+  assert(Src1->hasReg());
+  RegX8632::GPRRegister SrcReg = RegX8632::getEncodedGPR(Src1->getRegNum());
+  Type Ty = Src1->getType();
+  // Src2 can be the implicit CL register or an immediate.
+  if (const auto Imm = llvm::dyn_cast<ConstantInteger32>(Src2Op)) {
+    (Asm->*(Emitter.GPRGPRImm))(Ty, DestReg, SrcReg,
+                                x86::Immediate(Imm->getValue()));
+  } else {
+    assert(llvm::cast<Variable>(Src2Op)->getRegNum() == RegX8632::Reg_ecx);
+    (Asm->*(Emitter.GPRGPR))(Ty, DestReg, SrcReg);
+  }
+  emitIASBytes(Func, Asm, StartPosition);
+}
+
 void emitIASXmmShift(const Cfg *Func, Type Ty, const Variable *Var,
                      const Operand *Src,
                      const x86::AssemblerX86::XmmEmitterShiftOp &Emitter) {
@@ -680,6 +704,37 @@ void emitIASCastRegOp(
   } else if (const auto Mem = llvm::dyn_cast<OperandX8632Mem>(Src)) {
     Mem->emitSegmentOverride(Asm);
     (Asm->*(Emitter.RegAddr))(DispatchTy, DestReg, Mem->toAsmAddress(Asm));
+  } else {
+    llvm_unreachable("Unexpected operand type");
+  }
+  emitIASBytes(Func, Asm, StartPosition);
+}
+
+template <typename DReg_t, typename SReg_t, DReg_t (*destEnc)(int32_t),
+          SReg_t (*srcEnc)(int32_t)>
+void emitIASThreeOpImmOps(
+    const Cfg *Func, Type DispatchTy, const Variable *Dest, const Operand *Src0,
+    const Operand *Src1,
+    const x86::AssemblerX86::ThreeOpImmEmitter<DReg_t, SReg_t> Emitter) {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  // This only handles Dest being a register, and Src1 being an immediate.
+  assert(Dest->hasReg());
+  DReg_t DestReg = destEnc(Dest->getRegNum());
+  x86::Immediate Imm(llvm::cast<ConstantInteger32>(Src1)->getValue());
+  if (const auto SrcVar = llvm::dyn_cast<Variable>(Src0)) {
+    if (SrcVar->hasReg()) {
+      SReg_t SrcReg = srcEnc(SrcVar->getRegNum());
+      (Asm->*(Emitter.RegRegImm))(DispatchTy, DestReg, SrcReg, Imm);
+    } else {
+      x86::Address SrcStackAddr = static_cast<TargetX8632 *>(Func->getTarget())
+                                      ->stackVarToAsmOperand(SrcVar);
+      (Asm->*(Emitter.RegAddrImm))(DispatchTy, DestReg, SrcStackAddr, Imm);
+    }
+  } else if (const auto Mem = llvm::dyn_cast<OperandX8632Mem>(Src0)) {
+    Mem->emitSegmentOverride(Asm);
+    (Asm->*(Emitter.RegAddrImm))(DispatchTy, DestReg, Mem->toAsmAddress(Asm),
+                                 Imm);
   } else {
     llvm_unreachable("Unexpected operand type");
   }
@@ -1174,6 +1229,21 @@ template <> void InstX8632Imul::emitIAS(const Cfg *Func) const {
   }
 }
 
+template <> void InstX8632Insertps::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 3);
+  assert(static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
+         TargetX8632::SSE4_1);
+  const Variable *Dest = getDest();
+  assert(Dest == getSrc(0));
+  Type Ty = Dest->getType();
+  static const x86::AssemblerX86::ThreeOpImmEmitter<
+      RegX8632::XmmRegister, RegX8632::XmmRegister> Emitter = {
+      &x86::AssemblerX86::insertps, &x86::AssemblerX86::insertps};
+  emitIASThreeOpImmOps<RegX8632::XmmRegister, RegX8632::XmmRegister,
+                       RegX8632::getEncodedXmm, RegX8632::getEncodedXmm>(
+      Func, Ty, Dest, getSrc(1), getSrc(2), Emitter);
+}
+
 template <> void InstX8632Cbwdq::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
@@ -1275,6 +1345,17 @@ void InstX8632Shld::emit(const Cfg *Func) const {
   Str << "\n";
 }
 
+void InstX8632Shld::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 3);
+  assert(getDest() == getSrc(0));
+  const Variable *Dest = getDest();
+  const Operand *Src1 = getSrc(1);
+  const Operand *Src2 = getSrc(2);
+  static const x86::AssemblerX86::GPREmitterShiftD Emitter = {
+      &x86::AssemblerX86::shld, &x86::AssemblerX86::shld};
+  emitIASGPRShiftDouble(Func, Dest, Src1, Src2, Emitter);
+}
+
 void InstX8632Shld::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -1299,6 +1380,17 @@ void InstX8632Shrd::emit(const Cfg *Func) const {
     getSrc(2)->emit(Func);
   }
   Str << "\n";
+}
+
+void InstX8632Shrd::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 3);
+  assert(getDest() == getSrc(0));
+  const Variable *Dest = getDest();
+  const Operand *Src1 = getSrc(1);
+  const Operand *Src2 = getSrc(2);
+  static const x86::AssemblerX86::GPREmitterShiftD Emitter = {
+      &x86::AssemblerX86::shrd, &x86::AssemblerX86::shrd};
+  emitIASGPRShiftDouble(Func, Dest, Src1, Src2, Emitter);
 }
 
 void InstX8632Shrd::dump(const Cfg *Func) const {
@@ -2240,14 +2332,38 @@ template <> void InstX8632Pextr::emit(const Cfg *Func) const {
   Str << "\t" << Opcode
       << TypeX8632Attributes[getSrc(0)->getType()].PackString << "\t";
   Variable *Dest = getDest();
-  // pextrw must take a register dest.
-  assert(Dest->getType() != IceType_i16 || Dest->hasReg());
+  // pextrw must take a register dest. There is an SSE4.1 version that takes
+  // a memory dest, but we aren't using it. For uniformity, just restrict
+  // them all to have a register dest for now.
+  assert(Dest->hasReg());
   Dest->asType(IceType_i32).emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
   Str << "\n";
+}
+
+template <> void InstX8632Pextr::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  // pextrb and pextrd are SSE4.1 instructions.
+  const Variable *Dest = getDest();
+  Type DispatchTy = Dest->getType();
+  assert(DispatchTy == IceType_i16 ||
+         static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
+             TargetX8632::SSE4_1);
+  // pextrw must take a register dest. There is an SSE4.1 version that takes
+  // a memory dest, but we aren't using it. For uniformity, just restrict
+  // them all to have a register dest for now.
+  assert(Dest->hasReg());
+  // pextrw's Src(0) must be a register (both SSE4.1 and SSE2).
+  assert(llvm::cast<Variable>(getSrc(0))->hasReg());
+  static const x86::AssemblerX86::ThreeOpImmEmitter<
+      RegX8632::GPRRegister, RegX8632::XmmRegister> Emitter = {
+      &x86::AssemblerX86::pextr, NULL};
+  emitIASThreeOpImmOps<RegX8632::GPRRegister, RegX8632::XmmRegister,
+                       RegX8632::getEncodedGPR, RegX8632::getEncodedXmm>(
+      Func, DispatchTy, Dest, getSrc(0), getSrc(1), Emitter);
 }
 
 template <> void InstX8632Pinsr::emit(const Cfg *Func) const {
@@ -2276,6 +2392,52 @@ template <> void InstX8632Pinsr::emit(const Cfg *Func) const {
   Str << ", ";
   getSrc(2)->emit(Func);
   Str << "\n";
+}
+
+template <> void InstX8632Pinsr::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 3);
+  assert(getDest() == getSrc(0));
+  // pinsrb and pinsrd are SSE4.1 instructions.
+  const Operand *Src0 = getSrc(1);
+  Type DispatchTy = Src0->getType();
+  assert(DispatchTy == IceType_i16 ||
+         static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
+             TargetX8632::SSE4_1);
+  // If src1 is a register, it should always be r32 (this should fall out
+  // from the encodings for ByteRegs overlapping the encodings for r32),
+  // but we have to trust the regalloc to not choose "ah", where it
+  // doesn't overlap.
+  static const x86::AssemblerX86::ThreeOpImmEmitter<
+      RegX8632::XmmRegister, RegX8632::GPRRegister> Emitter = {
+      &x86::AssemblerX86::pinsr, &x86::AssemblerX86::pinsr};
+  emitIASThreeOpImmOps<RegX8632::XmmRegister, RegX8632::GPRRegister,
+                       RegX8632::getEncodedXmm, RegX8632::getEncodedGPR>(
+      Func, DispatchTy, getDest(), Src0, getSrc(2), Emitter);
+}
+
+template <> void InstX8632Pshufd::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  const Variable *Dest = getDest();
+  Type Ty = Dest->getType();
+  static const x86::AssemblerX86::ThreeOpImmEmitter<
+      RegX8632::XmmRegister, RegX8632::XmmRegister> Emitter = {
+      &x86::AssemblerX86::pshufd, &x86::AssemblerX86::pshufd};
+  emitIASThreeOpImmOps<RegX8632::XmmRegister, RegX8632::XmmRegister,
+                       RegX8632::getEncodedXmm, RegX8632::getEncodedXmm>(
+      Func, Ty, Dest, getSrc(0), getSrc(1), Emitter);
+}
+
+template <> void InstX8632Shufps::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 3);
+  const Variable *Dest = getDest();
+  assert(Dest == getSrc(0));
+  Type Ty = Dest->getType();
+  static const x86::AssemblerX86::ThreeOpImmEmitter<
+      RegX8632::XmmRegister, RegX8632::XmmRegister> Emitter = {
+      &x86::AssemblerX86::shufps, &x86::AssemblerX86::shufps};
+  emitIASThreeOpImmOps<RegX8632::XmmRegister, RegX8632::XmmRegister,
+                       RegX8632::getEncodedXmm, RegX8632::getEncodedXmm>(
+      Func, Ty, Dest, getSrc(1), getSrc(2), Emitter);
 }
 
 void InstX8632Pop::emit(const Cfg *Func) const {

@@ -382,10 +382,20 @@ public:
   };
 
   struct GPREmitterShiftOp {
-    TypedEmitGPRGPR GPRGPR;
-    TypedEmitGPRImm GPRImm;
     // Technically, Addr/GPR and Addr/Imm are also allowed, but */Addr are not.
     // In practice, we always normalize the Dest to a Register first.
+    TypedEmitGPRGPR GPRGPR;
+    TypedEmitGPRImm GPRImm;
+  };
+
+  typedef void (AssemblerX86::*TypedEmitGPRGPRImm)(Type, GPRRegister,
+                                                   GPRRegister,
+                                                   const Immediate &);
+  struct GPREmitterShiftD {
+    // Technically AddrGPR and AddrGPRImm are also allowed, but in practice
+    // we always normalize Dest to a Register first.
+    TypedEmitGPRGPR GPRGPR;
+    TypedEmitGPRGPRImm GPRGPRImm;
   };
 
   typedef void (AssemblerX86::*TypedEmitAddrGPR)(Type, const Address &,
@@ -431,6 +441,19 @@ public:
 
     TypedEmitRegs RegReg;
     TypedEmitAddr RegAddr;
+  };
+
+  // Three operand (potentially) cross Xmm/GPR instructions.
+  // The last operand must be an immediate.
+  template <typename DReg_t, typename SReg_t> struct ThreeOpImmEmitter {
+    typedef void (AssemblerX86::*TypedEmitRegRegImm)(Type, DReg_t, SReg_t,
+                                                     const Immediate &);
+    typedef void (AssemblerX86::*TypedEmitRegAddrImm)(Type, DReg_t,
+                                                      const Address &,
+                                                      const Immediate &);
+
+    TypedEmitRegRegImm RegRegImm;
+    TypedEmitRegAddrImm RegAddrImm;
   };
 
   /*
@@ -570,6 +593,13 @@ public:
   void sqrtpd(XmmRegister dst);
   void shufpd(XmmRegister dst, XmmRegister src, const Immediate &mask);
 
+  void pshufd(Type Ty, XmmRegister dst, XmmRegister src, const Immediate &mask);
+  void pshufd(Type Ty, XmmRegister dst, const Address &src,
+              const Immediate &mask);
+  void shufps(Type Ty, XmmRegister dst, XmmRegister src, const Immediate &mask);
+  void shufps(Type Ty, XmmRegister dst, const Address &src,
+              const Immediate &mask);
+
   void cvtdq2ps(Type, XmmRegister dst, XmmRegister src);
   void cvtdq2ps(Type, XmmRegister dst, const Address &src);
 
@@ -604,7 +634,19 @@ public:
 
   void orpd(XmmRegister dst, XmmRegister src);
 
-  void pextrd(GPRRegister dst, XmmRegister src, const Immediate &imm);
+  void insertps(Type Ty, XmmRegister dst, XmmRegister src,
+                const Immediate &imm);
+  void insertps(Type Ty, XmmRegister dst, const Address &src,
+                const Immediate &imm);
+
+  void pinsr(Type Ty, XmmRegister dst, GPRRegister src, const Immediate &imm);
+  void pinsr(Type Ty, XmmRegister dst, const Address &src,
+             const Immediate &imm);
+
+  void pextr(Type Ty, GPRRegister dst, XmmRegister src, const Immediate &imm);
+  void pextr(Type Ty, GPRRegister dst, const Address &src,
+             const Immediate &imm);
+
   void pmovsxdq(XmmRegister dst, XmmRegister src);
 
   void pcmpeq(Type Ty, XmmRegister dst, XmmRegister src);
@@ -715,12 +757,12 @@ public:
   void sar(Type Ty, GPRRegister operand, GPRRegister shifter);
   void sar(Type Ty, const Address &address, GPRRegister shifter);
 
-  void shld(GPRRegister dst, GPRRegister src);
-  void shld(GPRRegister dst, GPRRegister src, const Immediate &imm);
-  void shld(const Address &operand, GPRRegister src);
-  void shrd(GPRRegister dst, GPRRegister src);
-  void shrd(GPRRegister dst, GPRRegister src, const Immediate &imm);
-  void shrd(const Address &dst, GPRRegister src);
+  void shld(Type Ty, GPRRegister dst, GPRRegister src);
+  void shld(Type Ty, GPRRegister dst, GPRRegister src, const Immediate &imm);
+  void shld(Type Ty, const Address &operand, GPRRegister src);
+  void shrd(Type Ty, GPRRegister dst, GPRRegister src);
+  void shrd(Type Ty, GPRRegister dst, GPRRegister src, const Immediate &imm);
+  void shrd(Type Ty, const Address &dst, GPRRegister src);
 
   void neg(Type Ty, GPRRegister reg);
   void neg(Type Ty, const Address &addr);

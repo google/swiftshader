@@ -761,7 +761,7 @@ public:
     getSrc(2)->emit(Func);
     Str << "\n";
   }
-  void emitIAS(const Cfg *Func) const override { emit(Func); }
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -803,6 +803,7 @@ public:
     getSrc(1)->emit(Func);
     Str << "\n";
   }
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -976,6 +977,7 @@ public:
         InstX8632Shld(Func, Dest, Source1, Source2);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Shld); }
 
@@ -997,6 +999,7 @@ public:
         InstX8632Shrd(Func, Dest, Source1, Source2);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Shrd); }
 
@@ -1518,14 +1521,19 @@ template <> void InstX8632Sqrtss::emit(const Cfg *Func) const;
 template <> void InstX8632Subss::emit(const Cfg *Func) const;
 
 template <> void InstX8632Blendvps::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Cbwdq::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Div::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Idiv::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Imul::emitIAS(const Cfg *Func) const;
-template <> void InstX8632Cbwdq::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Insertps::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Movd::emitIAS(const Cfg *Func) const;
 template <> void InstX8632MovssRegs::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Pblendvb::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Pextr::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Pinsr::emitIAS(const Cfg *Func) const;
 template <> void InstX8632Pmull::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Pshufd::emitIAS(const Cfg *Func) const;
+template <> void InstX8632Shufps::emitIAS(const Cfg *Func) const;
 
 } // end of namespace Ice
 

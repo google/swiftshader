@@ -940,6 +940,48 @@ void AssemblerX86::shufps(XmmRegister dst, XmmRegister src,
   EmitUint8(imm.value());
 }
 
+void AssemblerX86::pshufd(Type /* Ty */, XmmRegister dst, XmmRegister src,
+                          const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x70);
+  EmitXmmRegisterOperand(dst, src);
+  assert(imm.is_uint8());
+  EmitUint8(imm.value());
+}
+
+void AssemblerX86::pshufd(Type /* Ty */, XmmRegister dst, const Address &src,
+                          const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x70);
+  EmitOperand(dst, src);
+  assert(imm.is_uint8());
+  EmitUint8(imm.value());
+}
+
+void AssemblerX86::shufps(Type /* Ty */, XmmRegister dst, XmmRegister src,
+                          const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xC6);
+  EmitXmmRegisterOperand(dst, src);
+  assert(imm.is_uint8());
+  EmitUint8(imm.value());
+}
+
+void AssemblerX86::shufps(Type /* Ty */, XmmRegister dst, const Address &src,
+                          const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xC6);
+  EmitOperand(dst, src);
+  assert(imm.is_uint8());
+  EmitUint8(imm.value());
+}
+
 void AssemblerX86::minpd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
@@ -1163,16 +1205,94 @@ void AssemblerX86::andpd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX86::pextrd(GPRRegister dst, XmmRegister src,
-                          const Immediate &imm) {
+void AssemblerX86::insertps(Type Ty, XmmRegister dst, XmmRegister src,
+                            const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(imm.is_uint8());
+  assert(isVectorFloatingType(Ty));
+  (void)Ty;
   EmitUint8(0x66);
   EmitUint8(0x0F);
   EmitUint8(0x3A);
-  EmitUint8(0x16);
-  EmitOperand(src, Operand(dst));
-  assert(imm.is_uint8());
+  EmitUint8(0x21);
+  EmitXmmRegisterOperand(dst, src);
   EmitUint8(imm.value());
+}
+
+void AssemblerX86::insertps(Type Ty, XmmRegister dst, const Address &src,
+                            const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(imm.is_uint8());
+  assert(isVectorFloatingType(Ty));
+  (void)Ty;
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x3A);
+  EmitUint8(0x21);
+  EmitOperand(dst, src);
+  EmitUint8(imm.value());
+}
+
+void AssemblerX86::pinsr(Type Ty, XmmRegister dst, GPRRegister src,
+                         const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(imm.is_uint8());
+  if (Ty == IceType_i16) {
+    EmitUint8(0x66);
+    EmitUint8(0x0F);
+    EmitUint8(0xC4);
+    EmitXmmRegisterOperand(dst, XmmRegister(src));
+    EmitUint8(imm.value());
+  } else {
+    EmitUint8(0x66);
+    EmitUint8(0x0F);
+    EmitUint8(0x3A);
+    EmitUint8(isByteSizedType(Ty) ? 0x20 : 0x22);
+    EmitXmmRegisterOperand(dst, XmmRegister(src));
+    EmitUint8(imm.value());
+  }
+}
+
+void AssemblerX86::pinsr(Type Ty, XmmRegister dst, const Address &src,
+                         const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(imm.is_uint8());
+  if (Ty == IceType_i16) {
+    EmitUint8(0x66);
+    EmitUint8(0x0F);
+    EmitUint8(0xC4);
+    EmitOperand(dst, src);
+    EmitUint8(imm.value());
+  } else {
+    EmitUint8(0x66);
+    EmitUint8(0x0F);
+    EmitUint8(0x3A);
+    EmitUint8(isByteSizedType(Ty) ? 0x20 : 0x22);
+    EmitOperand(dst, src);
+    EmitUint8(imm.value());
+  }
+}
+
+void AssemblerX86::pextr(Type Ty, GPRRegister dst, XmmRegister src,
+                         const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(imm.is_uint8());
+  if (Ty == IceType_i16) {
+    EmitUint8(0x66);
+    EmitUint8(0x0F);
+    EmitUint8(0xC5);
+    EmitXmmRegisterOperand(XmmRegister(dst), src);
+    EmitUint8(imm.value());
+  } else {
+    EmitUint8(0x66);
+    EmitUint8(0x0F);
+    EmitUint8(0x3A);
+    EmitUint8(isByteSizedType(Ty) ? 0x14 : 0x16);
+    // SSE 4.1 versions are "MRI" because dst can be mem, while
+    // pextrw (SSE2) is RMI because dst must be reg.
+    EmitXmmRegisterOperand(src, XmmRegister(dst));
+    EmitUint8(imm.value());
+  }
 }
 
 void AssemblerX86::pmovsxdq(XmmRegister dst, XmmRegister src) {
@@ -1863,52 +1983,70 @@ void AssemblerX86::sar(Type Ty, const Address &address, GPRRegister shifter) {
   EmitGenericShift(7, Ty, address, shifter);
 }
 
-void AssemblerX86::shld(GPRRegister dst, GPRRegister src) {
+void AssemblerX86::shld(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(Ty == IceType_i16 || Ty == IceType_i32);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitUint8(0x0F);
   EmitUint8(0xA5);
   EmitRegisterOperand(src, dst);
 }
 
-void AssemblerX86::shld(GPRRegister dst, GPRRegister src,
+void AssemblerX86::shld(Type Ty, GPRRegister dst, GPRRegister src,
                         const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(Ty == IceType_i16 || Ty == IceType_i32);
   assert(imm.is_int8());
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitUint8(0x0F);
   EmitUint8(0xA4);
   EmitRegisterOperand(src, dst);
   EmitUint8(imm.value() & 0xFF);
 }
 
-void AssemblerX86::shld(const Address &operand, GPRRegister src) {
+void AssemblerX86::shld(Type Ty, const Address &operand, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(Ty == IceType_i16 || Ty == IceType_i32);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitUint8(0x0F);
   EmitUint8(0xA5);
-  EmitOperand(src, Operand(operand));
+  EmitOperand(src, operand);
 }
 
-void AssemblerX86::shrd(GPRRegister dst, GPRRegister src) {
+void AssemblerX86::shrd(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(Ty == IceType_i16 || Ty == IceType_i32);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitUint8(0x0F);
   EmitUint8(0xAD);
   EmitRegisterOperand(src, dst);
 }
 
-void AssemblerX86::shrd(GPRRegister dst, GPRRegister src,
+void AssemblerX86::shrd(Type Ty, GPRRegister dst, GPRRegister src,
                         const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(Ty == IceType_i16 || Ty == IceType_i32);
   assert(imm.is_int8());
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitUint8(0x0F);
   EmitUint8(0xAC);
   EmitRegisterOperand(src, dst);
   EmitUint8(imm.value() & 0xFF);
 }
 
-void AssemblerX86::shrd(const Address &dst, GPRRegister src) {
+void AssemblerX86::shrd(Type Ty, const Address &dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(Ty == IceType_i16 || Ty == IceType_i32);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
   EmitUint8(0x0F);
   EmitUint8(0xAD);
-  EmitOperand(src, Operand(dst));
+  EmitOperand(src, dst);
 }
 
 void AssemblerX86::neg(Type Ty, GPRRegister reg) {

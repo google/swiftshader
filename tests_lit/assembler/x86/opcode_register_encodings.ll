@@ -161,4 +161,138 @@ entry:
 ; CHECK: 89 51 80              mov dword ptr [ecx - 128], edx
 ; CHECK: 89 91 00 01 00 00     mov dword ptr [ecx + 256], edx
 
+; The 16-bit pinsrw/pextrw (SSE2) are quite different from
+; the pinsr{b,d}/pextr{b,d} (SSE4.1).
+
+define <4 x i32> @test_pinsrd(<4 x i32> %vec, i32 %elt1, i32 %elt2, i32 %elt3, i32 %elt4) {
+entry:
+  %elt12 = add i32 %elt1, %elt2
+  %elt34 = add i32 %elt3, %elt4
+  %res1 = insertelement <4 x i32> %vec, i32 %elt12, i32 1
+  %res2 = insertelement <4 x i32> %res1, i32 %elt34, i32 2
+  %res3 = insertelement <4 x i32> %res2, i32 %elt1, i32 3
+  ret <4 x i32> %res3
+}
+; CHECK-LABEL: test_pinsrd:
+; CHECK-DAG: 66 0f 3a 22 c{{.*}} 01 pinsrd xmm0, e{{.*}}, 1
+; CHECK-DAG: 66 0f 3a 22 c{{.*}} 02 pinsrd xmm0, e{{.*}}, 2
+; CHECK-DAG: 66 0f 3a 22 c{{.*}} 03 pinsrd xmm0, e{{.*}}, 3
+
+define <16 x i8> @test_pinsrb(<16 x i8> %vec, i32 %elt1_w, i32 %elt2_w, i32 %elt3_w, i32 %elt4_w) {
+entry:
+  %elt1 = trunc i32 %elt1_w to i8
+  %elt2 = trunc i32 %elt2_w to i8
+  %elt3 = trunc i32 %elt3_w to i8
+  %elt4 = trunc i32 %elt4_w to i8
+  %elt12 = add i8 %elt1, %elt2
+  %elt34 = add i8 %elt3, %elt4
+  %res1 = insertelement <16 x i8> %vec, i8 %elt12, i32 1
+  %res2 = insertelement <16 x i8> %res1, i8 %elt34, i32 7
+  %res3 = insertelement <16 x i8> %res2, i8 %elt1, i32 15
+  ret <16 x i8> %res3
+}
+; CHECK-LABEL: test_pinsrb:
+; CHECK-DAG: 66 0f 3a 20 c{{.*}} 01 pinsrb xmm0, e{{.*}}, 1
+; CHECK-DAG: 66 0f 3a 20 c{{.*}} 07 pinsrb xmm0, e{{.*}}, 7
+; CHECK-DAG: 66 0f 3a 20 {{.*}} 0f pinsrb xmm0, byte ptr {{.*}}, 15
+
+define <8 x i16> @test_pinsrw(<8 x i16> %vec, i32 %elt1_w, i32 %elt2_w, i32 %elt3_w, i32 %elt4_w) {
+entry:
+  %elt1 = trunc i32 %elt1_w to i16
+  %elt2 = trunc i32 %elt2_w to i16
+  %elt3 = trunc i32 %elt3_w to i16
+  %elt4 = trunc i32 %elt4_w to i16
+  %elt12 = add i16 %elt1, %elt2
+  %elt34 = add i16 %elt3, %elt4
+  %res1 = insertelement <8 x i16> %vec, i16 %elt12, i32 1
+  %res2 = insertelement <8 x i16> %res1, i16 %elt34, i32 4
+  %res3 = insertelement <8 x i16> %res2, i16 %elt1, i32 7
+  ret <8 x i16> %res3
+}
+; CHECK-LABEL: test_pinsrw:
+; CHECK-DAG: 66 0f c4 c{{.*}} 01 pinsrw xmm0, e{{.*}}, 1
+; CHECK-DAG: 66 0f c4 c{{.*}} 04 pinsrw xmm0, e{{.*}}, 4
+; CHECK-DAG: 66 0f c4 c{{.*}} 07 pinsrw xmm0, e{{.*}}, 7
+
+define i32 @test_pextrd(i32 %c, <4 x i32> %vec1, <4 x i32> %vec2, <4 x i32> %vec3, <4 x i32> %vec4) {
+entry:
+  switch i32 %c, label %three [i32 0, label %zero
+                               i32 1, label %one
+                               i32 2, label %two]
+zero:
+  %res0 = extractelement <4 x i32> %vec1, i32 0
+  ret i32 %res0
+one:
+  %res1 = extractelement <4 x i32> %vec2, i32 1
+  ret i32 %res1
+two:
+  %res2 = extractelement <4 x i32> %vec3, i32 2
+  ret i32 %res2
+three:
+  %res3 = extractelement <4 x i32> %vec4, i32 3
+  ret i32 %res3
+}
+; CHECK-LABEL: test_pextrd
+; CHECK-DAG: 66 0f 3a 16 c0 00 pextrd eax, xmm0, 0
+; CHECK-DAG: 66 0f 3a 16 c8 01 pextrd eax, xmm1, 1
+; CHECK-DAG: 66 0f 3a 16 d0 02 pextrd eax, xmm2, 2
+; CHECK-DAG: 66 0f 3a 16 d8 03 pextrd eax, xmm3, 3
+
+define i32 @test_pextrb(i32 %c, <16 x i8> %vec1, <16 x i8> %vec2, <16 x i8> %vec3, <16 x i8> %vec4) {
+entry:
+  switch i32 %c, label %three [i32 0, label %zero
+                               i32 1, label %one
+                               i32 2, label %two]
+zero:
+  %res0 = extractelement <16 x i8> %vec1, i32 0
+  %res0_ext = zext i8 %res0 to i32
+  ret i32 %res0_ext
+one:
+  %res1 = extractelement <16 x i8> %vec2, i32 6
+  %res1_ext = zext i8 %res1 to i32
+  ret i32 %res1_ext
+two:
+  %res2 = extractelement <16 x i8> %vec3, i32 12
+  %res2_ext = zext i8 %res2 to i32
+  ret i32 %res2_ext
+three:
+  %res3 = extractelement <16 x i8> %vec4, i32 15
+  %res3_ext = zext i8 %res3 to i32
+  ret i32 %res3_ext
+}
+; CHECK-LABEL: test_pextrb
+; CHECK-DAG: 66 0f 3a 14 c0 00 pextrb eax, xmm0, 0
+; CHECK-DAG: 66 0f 3a 14 c8 06 pextrb eax, xmm1, 6
+; CHECK-DAG: 66 0f 3a 14 d0 0c pextrb eax, xmm2, 12
+; CHECK-DAG: 66 0f 3a 14 d8 0f pextrb eax, xmm3, 15
+
+define i32 @test_pextrw(i32 %c, <8 x i16> %vec1, <8 x i16> %vec2, <8 x i16> %vec3, <8 x i16> %vec4) {
+entry:
+  switch i32 %c, label %three [i32 0, label %zero
+                               i32 1, label %one
+                               i32 2, label %two]
+zero:
+  %res0 = extractelement <8 x i16> %vec1, i32 0
+  %res0_ext = zext i16 %res0 to i32
+  ret i32 %res0_ext
+one:
+  %res1 = extractelement <8 x i16> %vec2, i32 2
+  %res1_ext = zext i16 %res1 to i32
+  ret i32 %res1_ext
+two:
+  %res2 = extractelement <8 x i16> %vec3, i32 5
+  %res2_ext = zext i16 %res2 to i32
+  ret i32 %res2_ext
+three:
+  %res3 = extractelement <8 x i16> %vec4, i32 7
+  %res3_ext = zext i16 %res3 to i32
+  ret i32 %res3_ext
+}
+; CHECK-LABEL: test_pextrw
+; CHECK-DAG: 66 0f c5 c0 00 pextrw eax, xmm0, 0
+; CHECK-DAG: 66 0f c5 c1 02 pextrw eax, xmm1, 2
+; CHECK-DAG: 66 0f c5 c2 05 pextrw eax, xmm2, 5
+; CHECK-DAG: 66 0f c5 c3 07 pextrw eax, xmm3, 7
+
+
 ; ERRORS-NOT: ICE translation error
