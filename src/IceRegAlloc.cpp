@@ -32,7 +32,10 @@ namespace {
 bool overlapsDefs(const Cfg *Func, const Variable *Item, const Variable *Var) {
   const bool UseTrimmed = true;
   VariablesMetadata *VMetadata = Func->getVMetadata();
-  const InstDefList &Defs = VMetadata->getDefinitions(Var);
+  if (const Inst *FirstDef = VMetadata->getFirstDefinition(Var))
+    if (Item->getLiveRange().overlapsInst(FirstDef->getNumber(), UseTrimmed))
+      return true;
+  const InstDefList &Defs = VMetadata->getLatterDefinitions(Var);
   for (size_t i = 0; i < Defs.size(); ++i) {
     if (Item->getLiveRange().overlapsInst(Defs[i]->getNumber(), UseTrimmed))
       return true;
@@ -47,11 +50,11 @@ void dumpDisableOverlap(const Cfg *Func, const Variable *Var,
     Ostream &Str = Func->getContext()->getStrDump();
     Str << "Disabling Overlap due to " << Reason << " " << *Var
         << " LIVE=" << Var->getLiveRange() << " Defs=";
-    const InstDefList &Defs = VMetadata->getDefinitions(Var);
+    if (const Inst *FirstDef = VMetadata->getFirstDefinition(Var))
+      Str << FirstDef->getNumber();
+    const InstDefList &Defs = VMetadata->getLatterDefinitions(Var);
     for (size_t i = 0; i < Defs.size(); ++i) {
-      if (i > 0)
-        Str << ",";
-      Str << Defs[i]->getNumber();
+      Str << "," << Defs[i]->getNumber();
     }
     Str << "\n";
   }

@@ -516,6 +516,11 @@ protected:
   Variable *VarsReal[1];
 };
 
+enum MetadataKind {
+  VMK_Uses,       // Track only uses, not defs
+  VMK_SingleDefs, // Track uses+defs, but only record single def
+  VMK_All         // Track uses+defs, including full def list
+};
 typedef std::vector<const Inst *> InstDefList;
 
 // VariableTracking tracks the metadata for a single variable.  It is
@@ -539,16 +544,17 @@ public:
   };
   VariableTracking()
       : MultiDef(MDS_Unknown), MultiBlock(MBS_Unknown), SingleUseNode(NULL),
-        SingleDefNode(NULL) {}
+        SingleDefNode(NULL), FirstOrSingleDefinition(NULL) {}
   MultiDefState getMultiDef() const { return MultiDef; }
   MultiBlockState getMultiBlock() const { return MultiBlock; }
   const Inst *getFirstDefinition() const;
   const Inst *getSingleDefinition() const;
-  const InstDefList &getDefinitions() const { return Definitions; }
+  const InstDefList &getLatterDefinitions() const { return Definitions; }
   const CfgNode *getNode() const { return SingleUseNode; }
-  void markUse(const Inst *Instr, const CfgNode *Node, bool IsFromDef,
-               bool IsImplicit);
-  void markDef(const Inst *Instr, const CfgNode *Node);
+  void markUse(MetadataKind TrackingKind, const Inst *Instr,
+               const CfgNode *Node, bool IsFromDef, bool IsImplicit);
+  void markDef(MetadataKind TrackingKind, const Inst *Instr,
+               const CfgNode *Node);
 
 private:
   MultiDefState MultiDef;
@@ -557,7 +563,8 @@ private:
   const CfgNode *SingleDefNode;
   // All definitions of the variable are collected here, in increasing
   // order of instruction number.
-  InstDefList Definitions;
+  InstDefList Definitions;             // Only used if Kind==VMK_All
+  const Inst *FirstOrSingleDefinition; // == Definitions[0] if Kind==VMK_All
 };
 
 // VariablesMetadata analyzes and summarizes the metadata for the
@@ -570,7 +577,7 @@ public:
   VariablesMetadata(const Cfg *Func) : Func(Func) {}
   // Initialize the state by traversing all instructions/variables in
   // the CFG.
-  void init();
+  void init(MetadataKind TrackingKind);
   // Returns whether the given Variable is tracked in this object.  It
   // should only return false if changes were made to the CFG after
   // running init(), in which case the state is stale and the results
@@ -594,7 +601,7 @@ public:
   const Inst *getSingleDefinition(const Variable *Var) const;
   // Returns the list of all definition instructions of the given
   // Variable.
-  const InstDefList &getDefinitions(const Variable *Var) const;
+  const InstDefList &getLatterDefinitions(const Variable *Var) const;
 
   // Returns whether the given Variable is live across multiple
   // blocks.  Mainly, this is used to partition Variables into
@@ -610,6 +617,7 @@ public:
 
 private:
   const Cfg *Func;
+  MetadataKind Kind;
   std::vector<VariableTracking> Metadata;
   const static InstDefList NoDefinitions;
 };

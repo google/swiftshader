@@ -329,7 +329,7 @@ void TargetX8632::translateO2() {
   Func->dump("After Phi lowering");
 
   // Address mode optimization.
-  Func->getVMetadata()->init();
+  Func->getVMetadata()->init(VMK_SingleDefs);
   Func->doAddressOpt();
 
   // Argument lowering
@@ -372,7 +372,7 @@ void TargetX8632::translateO2() {
   // The post-codegen dump is done here, after liveness analysis and
   // associated cleanup, to make the dump cleaner and more useful.
   Func->dump("After initial x8632 codegen");
-  Func->getVMetadata()->init();
+  Func->getVMetadata()->init(VMK_All);
   regAlloc();
   if (Func->hasError())
     return;

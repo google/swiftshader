@@ -164,7 +164,7 @@ void Cfg::genFrame() {
 // doesn't need to iterate until convergence.
 void Cfg::livenessLightweight() {
   TimerMarker T(TimerStack::TT_livenessLightweight, this);
-  getVMetadata()->init();
+  getVMetadata()->init(VMK_Uses);
   for (CfgNode *Node : Nodes)
     Node->livenessLightweight();
 }
@@ -172,7 +172,7 @@ void Cfg::livenessLightweight() {
 void Cfg::liveness(LivenessMode Mode) {
   TimerMarker T(TimerStack::TT_liveness, this);
   Live.reset(new Liveness(this, Mode));
-  getVMetadata()->init();
+  getVMetadata()->init(VMK_Uses);
   Live->init();
   // Initialize with all nodes needing to be processed.
   llvm::BitVector NeedToProcess(Nodes.size(), true);
