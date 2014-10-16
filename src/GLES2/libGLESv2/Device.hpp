@@ -88,9 +88,9 @@ namespace gl
 		sw::VertexShader *vertexShader;
 
 		bool pixelShaderDirty;
-		int pixelShaderConstantsFDirty;
+		unsigned int pixelShaderConstantsFDirty;
 		bool vertexShaderDirty;
-		int vertexShaderConstantsFDirty;
+		unsigned int vertexShaderConstantsFDirty;
 
 		float pixelShaderConstantF[224][4];
 		float vertexShaderConstantF[256][4];

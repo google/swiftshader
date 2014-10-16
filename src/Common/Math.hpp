@@ -29,64 +29,16 @@ namespace sw
 	#undef min
 	#undef max
 
-	inline float max(float a, float b)
+	template<class T>
+	inline T max(T a, T b)
 	{
 		return a > b ? a : b;
 	}
 
-	inline float min(float a, float b)
+	template<class T>
+	inline T min(T a, T b)
 	{
 		return a < b ? a : b;
-	}
-
-	inline float max(float a, float b, float c)
-	{
-		return max(max(a, b), c);
-	}
-
-	inline float min(float a, float b, float c)
-	{
-		return min(min(a, b), c);
-	}
-
-	inline float max(float a, float b, float c, float d)
-	{
-		return max(max(a, b), max(c, d));
-	}
-
-	inline float min(float a, float b, float c, float d)
-	{
-		return min(min(a, b), min(c, d));
-	}
-
-	inline int max(int a, int b)
-	{
-		return a > b ? a : b;
-	}
-
-	inline int min(int a, int b)
-	{
-		return a < b ? a : b;
-	}
-
-	inline int max(int a, int b, int c)
-	{
-		return max(max(a, b), c);
-	}
-
-	inline int min(int a, int b, int c)
-	{
-		return min(min(a, b), c);
-	}
-
-	inline int max(int a, int b, int c, int d)
-	{
-		return max(max(a, b), max(c, d));
-	}
-
-	inline int min(int a, int b, int c, int d)
-	{
-		return min(min(a, b), min(c, d));
 	}
 
 	template<class T>
