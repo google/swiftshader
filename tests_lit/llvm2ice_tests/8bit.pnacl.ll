@@ -276,6 +276,20 @@ entry:
 ; CHECK-LABEL: icmp8BitMemSwapped
 ; CHECK: cmp {{[abcd]l|byte ptr}}
 
+define internal i32 @selectI8Var(i32 %a, i32 %b) {
+entry:
+  %a_8 = trunc i32 %a to i8
+  %b_8 = trunc i32 %b to i8
+  %cmp = icmp slt i8 %a_8, %b_8
+  %ret = select i1 %cmp, i8 %a_8, i8 %b_8
+  %ret_ext = zext i8 %ret to i32
+  ret i32 %ret_ext
+}
+; CHECK-LABEL: selectI8Var
+; CHECK: cmp
+; CHECK: jl
+; CHECK: mov {{[a-d]l}}
+
 define internal i32 @testPhi8(i32 %arg, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7, i32 %arg8, i32 %arg9, i32 %arg10) {
 entry:
   %trunc = trunc i32 %arg to i8
@@ -314,6 +328,47 @@ target:
 ; CHECK-DAG: mov {{.*}}, {{[a-d]}}l
 ; CHECK-DAG: mov {{.*}}, byte ptr
 ; CHECK-DAG: mov byte ptr {{.*}}
+
+@global8 = internal global [1 x i8] c"\01", align 4
+
+define i32 @load_i8(i32 %addr_arg) {
+entry:
+  %addr = inttoptr i32 %addr_arg to i8*
+  %ret = load i8* %addr, align 1
+  %ret_ext = zext i8 %ret to i32
+  ret i32 %ret_ext
+}
+; CHECK-LABEL: load_i8
+; CHECK: mov {{[a-d]l}}, byte ptr
+
+define i32 @load_i8_global(i32 %addr_arg) {
+entry:
+  %addr = bitcast [1 x i8]* @global8 to i8*
+  %ret = load i8* %addr, align 1
+  %ret_ext = zext i8 %ret to i32
+  ret i32 %ret_ext
+}
+; CHECK-LABEL: load_i8_global
+; CHECK: mov {{[a-d]l}}, byte ptr
+
+define void @store_i8(i32 %addr_arg, i32 %val) {
+entry:
+  %val_trunc = trunc i32 %val to i8
+  %addr = inttoptr i32 %addr_arg to i8*
+  store i8 %val_trunc, i8* %addr, align 1
+  ret void
+}
+; CHECK-LABEL: store_i8
+; CHECK: mov byte ptr {{.*}}, {{[a-d]l}}
+
+define void @store_i8_const(i32 %addr_arg) {
+entry:
+  %addr = inttoptr i32 %addr_arg to i8*
+  store i8 123, i8* %addr, align 1
+  ret void
+}
+; CHECK-LABEL: store_i8_const
+; CHECK: mov byte ptr {{.*}}, 123
 
 ; ERRORS-NOT: ICE translation error
 ; DUMP-NOT: SZ

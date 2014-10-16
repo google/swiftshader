@@ -26,16 +26,56 @@ entry:
   call void %__1()
   ret void
 }
+; CHECK-LABEL: CallIndirect
 ; CHECK: call [[REGISTER:[a-z]+]]
 ; CHECK: call [[REGISTER]]
 ; CHECK: call [[REGISTER]]
 ; CHECK: call [[REGISTER]]
 ; CHECK: call [[REGISTER]]
 ;
+; OPTM1-LABEL: CallIndirect
 ; OPTM1: call [[TARGET:.+]]
 ; OPTM1: call [[TARGET]]
 ; OPTM1: call [[TARGET]]
 ; OPTM1: call [[TARGET]]
 ; OPTM1: call [[TARGET]]
+
+@fp_v = internal global [4 x i8] zeroinitializer, align 4
+
+define internal void @CallIndirectGlobal() {
+entry:
+  %fp_ptr_i32 = bitcast [4 x i8]* @fp_v to i32*
+  %fp_ptr = load i32* %fp_ptr_i32, align 1
+  %fp = inttoptr i32 %fp_ptr to void ()*
+  call void %fp()
+  call void %fp()
+  call void %fp()
+  call void %fp()
+  ret void
+}
+; CHECK-LABEL: CallIndirectGlobal
+; CHECK: call [[REGISTER:[a-z]+]]
+; CHECK: call [[REGISTER]]
+; CHECK: call [[REGISTER]]
+; CHECK: call [[REGISTER]]
+;
+; OPTM1-LABEL: CallIndirectGlobal
+; OPTM1: call [[TARGET:.+]]
+; OPTM1: call [[TARGET]]
+; OPTM1: call [[TARGET]]
+; OPTM1: call [[TARGET]]
+
+; Calling an absolute address is used for non-IRT PNaCl pexes to directly
+; access syscall trampolines. Do we need to support this?
+; define internal void @CallIndirectConst() {
+; entry:
+;   %__1 = inttoptr i32 66496 to void ()*
+;   call void %__1()
+;   call void %__1()
+;   call void %__1()
+;   call void %__1()
+;   call void %__1()
+;   ret void
+; }
 
 ; ERRORS-NOT: ICE translation error

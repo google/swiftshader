@@ -461,7 +461,6 @@ public:
    */
   void call(GPRRegister reg);
   void call(const Address &address);
-  void call(Label *label);
   void call(const ConstantRelocatable *label);
 
   static const intptr_t kCallExternalLabelSize = 5;

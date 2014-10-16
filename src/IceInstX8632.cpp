@@ -447,6 +447,52 @@ void InstX8632Call::emit(const Cfg *Func) const {
   Func->getTarget()->resetStackAdjustment();
 }
 
+void InstX8632Call::emitIAS(const Cfg *Func) const {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  Operand *Target = getCallTarget();
+  bool NeedsFallback = false;
+  if (const auto Var = llvm::dyn_cast<Variable>(Target)) {
+    if (Var->hasReg()) {
+      Asm->call(RegX8632::getEncodedGPR(Var->getRegNum()));
+    } else {
+      Asm->call(static_cast<TargetX8632 *>(Func->getTarget())
+                    ->stackVarToAsmOperand(Var));
+    }
+  } else if (const auto Mem = llvm::dyn_cast<OperandX8632Mem>(Target)) {
+    assert(Mem->getSegmentRegister() == OperandX8632Mem::DefaultSegment);
+    Asm->call(Mem->toAsmAddress(Asm));
+  } else if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(Target)) {
+    assert(CR->getOffset() == 0 && "We only support calling a function");
+    Asm->call(CR);
+    NeedsFallback = true;
+  } else if (const auto Imm = llvm::dyn_cast<ConstantInteger32>(Target)) {
+    // NaCl trampoline calls refer to an address within the sandbox directly.
+    // This is usually only needed for non-IRT builds and otherwise not
+    // very portable or stable. For this, we would use the 0xE8 opcode
+    // (relative version of call) and there should be a PC32 reloc too.
+    // The PC32 reloc will have symbol index 0, and the absolute address
+    // would be encoded as an offset relative to the next instruction.
+    // TODO(jvoung): Do we need to support this?
+    (void)Imm;
+    llvm_unreachable("Unexpected call to absolute address");
+  } else {
+    llvm_unreachable("Unexpected operand type");
+  }
+  if (NeedsFallback) {
+    // TODO(jvoung): The ".long sym" hack doesn't work, since we need
+    // a pc-rel relocation and not an absolute relocation.
+    //
+    // Still, we have at least filled the assembler buffer so that the
+    // instruction sizes/positions are correct for jumps.
+    // For now, fall back to the regular .s emission, after filling the buffer.
+    emit(Func);
+  } else {
+    emitIASBytes(Func, Asm, StartPosition);
+  }
+  Func->getTarget()->resetStackAdjustment();
+}
+
 void InstX8632Call::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   if (getDest()) {
@@ -539,8 +585,7 @@ void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
         x86::DisplacementRelocation::create(Asm, FK_Abs_4, Reloc);
     (Asm->*(Emitter.GPRImm))(Ty, VarReg, x86::Immediate(Fixup));
   } else if (const auto Split = llvm::dyn_cast<VariableSplit>(Src)) {
-    x86::Address SrcAddr = Split->toAsmAddress(Func);
-    (Asm->*(Emitter.GPRAddr))(Ty, VarReg, SrcAddr);
+    (Asm->*(Emitter.GPRAddr))(Ty, VarReg, Split->toAsmAddress(Func));
   } else {
     llvm_unreachable("Unexpected operand type");
   }
@@ -568,6 +613,25 @@ void emitIASAddrOpTyGPR(const Cfg *Func, Type Ty, const x86::Address &Addr,
     llvm_unreachable("Unexpected operand type");
   }
   emitIASBytes(Func, Asm, StartPosition);
+}
+
+void emitIASAsAddrOpTyGPR(const Cfg *Func, Type Ty, const Operand *Op0,
+                          const Operand *Op1,
+                          const x86::AssemblerX86::GPREmitterAddrOp &Emitter) {
+  if (const auto Op0Var = llvm::dyn_cast<Variable>(Op0)) {
+    assert(!Op0Var->hasReg());
+    x86::Address StackAddr(static_cast<TargetX8632 *>(Func->getTarget())
+                               ->stackVarToAsmOperand(Op0Var));
+    emitIASAddrOpTyGPR(Func, Ty, StackAddr, Op1, Emitter);
+  } else if (const auto Op0Mem = llvm::dyn_cast<OperandX8632Mem>(Op0)) {
+    x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+    Op0Mem->emitSegmentOverride(Asm);
+    emitIASAddrOpTyGPR(Func, Ty, Op0Mem->toAsmAddress(Asm), Op1, Emitter);
+  } else if (const auto Split = llvm::dyn_cast<VariableSplit>(Op0)) {
+    emitIASAddrOpTyGPR(Func, Ty, Split->toAsmAddress(Func), Op1, Emitter);
+  } else {
+    llvm_unreachable("Unexpected operand type");
+  }
 }
 
 void emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
@@ -1662,20 +1726,13 @@ void InstX8632Icmp::emitIAS(const Cfg *Func) const {
   static const x86::AssemblerX86::GPREmitterAddrOp AddrEmitter = {
     &x86::AssemblerX86::cmp, &x86::AssemblerX86::cmp
   };
-  if (const Variable *SrcVar0 = llvm::dyn_cast<Variable>(Src0)) {
+  if (const auto SrcVar0 = llvm::dyn_cast<Variable>(Src0)) {
     if (SrcVar0->hasReg()) {
       emitIASRegOpTyGPR(Func, Ty, SrcVar0, Src1, RegEmitter);
-    } else {
-      x86::Address StackAddr(static_cast<TargetX8632 *>(Func->getTarget())
-                                 ->stackVarToAsmOperand(SrcVar0));
-      emitIASAddrOpTyGPR(Func, Ty, StackAddr, Src1, AddrEmitter);
+      return;
     }
-  } else if (const OperandX8632Mem *SrcMem0 =
-                 llvm::dyn_cast<OperandX8632Mem>(Src0)) {
-    x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-    SrcMem0->emitSegmentOverride(Asm);
-    emitIASAddrOpTyGPR(Func, Ty, SrcMem0->toAsmAddress(Asm), Src1, AddrEmitter);
   }
+  emitIASAsAddrOpTyGPR(Func, Ty, Src0, Src1, AddrEmitter);
 }
 
 void InstX8632Icmp::dump(const Cfg *Func) const {
@@ -1754,22 +1811,14 @@ void InstX8632Test::emitIAS(const Cfg *Func) const {
   static const x86::AssemblerX86::GPREmitterAddrOp AddrEmitter = {
     &x86::AssemblerX86::test, &x86::AssemblerX86::test
   };
-  if (const Variable *SrcVar0 = llvm::dyn_cast<Variable>(Src0)) {
+  if (const auto SrcVar0 = llvm::dyn_cast<Variable>(Src0)) {
     if (SrcVar0->hasReg()) {
       emitIASRegOpTyGPR(Func, Ty, SrcVar0, Src1, RegEmitter);
-    } else {
-      llvm_unreachable("Nothing actually generates this so it's untested");
-      x86::Address StackAddr(static_cast<TargetX8632 *>(Func->getTarget())
-                                 ->stackVarToAsmOperand(SrcVar0));
-      emitIASAddrOpTyGPR(Func, Ty, StackAddr, Src1, AddrEmitter);
+      return;
     }
-  } else if (const OperandX8632Mem *SrcMem0 =
-                 llvm::dyn_cast<OperandX8632Mem>(Src0)) {
-    llvm_unreachable("Nothing actually generates this so it's untested");
-    x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-    SrcMem0->emitSegmentOverride(Asm);
-    emitIASAddrOpTyGPR(Func, Ty, SrcMem0->toAsmAddress(Asm), Src1, AddrEmitter);
   }
+  llvm_unreachable("Nothing actually generates this so it's untested");
+  emitIASAsAddrOpTyGPR(Func, Ty, Src0, Src1, AddrEmitter);
 }
 
 void InstX8632Test::dump(const Cfg *Func) const {
@@ -1805,6 +1854,38 @@ void InstX8632Store::emit(const Cfg *Func) const {
   Str << ", ";
   getSrc(0)->emit(Func);
   Str << "\n";
+}
+
+void InstX8632Store::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  const Operand *Dest = getSrc(1);
+  const Operand *Src = getSrc(0);
+  Type DestTy = Dest->getType();
+  if (isScalarFloatingType(DestTy)) {
+    // Src must be a register, since Dest is a Mem operand of some kind.
+    const Variable *SrcVar = llvm::cast<Variable>(Src);
+    assert(SrcVar->hasReg());
+    RegX8632::XmmRegister SrcReg = RegX8632::getEncodedXmm(SrcVar->getRegNum());
+    x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+    intptr_t StartPosition = Asm->GetPosition();
+    if (const auto DestVar = llvm::dyn_cast<Variable>(Dest)) {
+      assert(!DestVar->hasReg());
+      x86::Address StackAddr(static_cast<TargetX8632 *>(Func->getTarget())
+                                 ->stackVarToAsmOperand(DestVar));
+      Asm->movss(DestTy, StackAddr, SrcReg);
+    } else {
+      const auto DestMem = llvm::cast<OperandX8632Mem>(Dest);
+      assert(DestMem->getSegmentRegister() == OperandX8632Mem::DefaultSegment);
+      Asm->movss(DestTy, DestMem->toAsmAddress(Asm), SrcReg);
+    }
+    emitIASBytes(Func, Asm, StartPosition);
+    return;
+  } else {
+    assert(isScalarIntegerType(DestTy));
+    static const x86::AssemblerX86::GPREmitterAddrOp GPRAddrEmitter = {
+        &x86::AssemblerX86::mov, &x86::AssemblerX86::mov};
+    emitIASAsAddrOpTyGPR(Func, DestTy, Dest, Src, GPRAddrEmitter);
+  }
 }
 
 void InstX8632Store::dump(const Cfg *Func) const {

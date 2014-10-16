@@ -322,6 +322,8 @@ public:
   uint32_t getEmitInstCount() const override { return 0; }
   IceString getName(const Cfg *Func) const;
   void emit(const Cfg *Func) const override;
+  // TODO(jvoung): Filler in.
+  void emitIAS(const Cfg *Func) const override { emit(Func); }
   void dump(const Cfg *Func) const override;
 
 private:
@@ -383,6 +385,8 @@ public:
     return Sum;
   }
   void emit(const Cfg *Func) const override;
+  // TODO(jvoung): Filler in.
+  void emitIAS(const Cfg *Func) const override { emit(Func); }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Br); }
 
@@ -429,6 +433,7 @@ public:
   }
   Operand *getCallTarget() const { return getSrc(0); }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Call); }
 
@@ -1274,6 +1279,7 @@ public:
         InstX8632Store(Func, Value, Mem);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Store); }
 

@@ -730,7 +730,7 @@ public:
     return new (Func->allocateInst<InstFakeDef>()) InstFakeDef(Func, Dest, Src);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override { emit(Func); }
+  void emitIAS(const Cfg * /* Func */) const override {}
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == FakeDef; }
 
@@ -753,7 +753,7 @@ public:
     return new (Func->allocateInst<InstFakeUse>()) InstFakeUse(Func, Src);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override { emit(Func); }
+  void emitIAS(const Cfg * /* Func */) const override {}
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == FakeUse; }
 
@@ -783,7 +783,7 @@ public:
   }
   const Inst *getLinked() const { return Linked; }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override { emit(Func); }
+  void emitIAS(const Cfg * /* Func */) const override {}
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == FakeKill; }
 
@@ -811,7 +811,6 @@ protected:
       : Inst(Func, Kind, MaxSrcs, Dest) {
     assert(Kind >= Target);
   }
-  void emitIAS(const Cfg *Func) const override { emit(Func); }
   ~InstTarget() override {}
 };
 

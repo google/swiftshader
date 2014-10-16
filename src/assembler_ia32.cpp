@@ -75,13 +75,6 @@ void AssemblerX86::call(const Address &address) {
   EmitOperand(2, address);
 }
 
-void AssemblerX86::call(Label *label) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xE8);
-  static const int kSize = 5;
-  EmitLabel(label, kSize);
-}
-
 void AssemblerX86::call(const ConstantRelocatable *label) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   intptr_t call_start = buffer_.GetPosition();

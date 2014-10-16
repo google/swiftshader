@@ -99,9 +99,8 @@ entry:
 ; CHECK:      mov     dword ptr [esp + 4]
 ; CHECK-NEXT: mov     dword ptr [esp]
 ; CHECK-NEXT: mov     dword ptr [esp + 8], 123
-; Bundle padding added by -triple=i686-none-nacl.
-; CHECK-NEXT: nop
-; CHECK-NEXT: mov     dword ptr [esp + 16], 3735928559
+; Bundle padding might be added (so not using -NEXT).
+; CHECK:      mov     dword ptr [esp + 16], 3735928559
 ; CHECK-NEXT: mov     dword ptr [esp + 12], 305419896
 ; CHECK-NEXT: call    -4
 ; CALLTARGETS: call ignore64BitArgNoInline
@@ -111,9 +110,8 @@ entry:
 ; OPTM1:      mov     dword ptr [esp + 4]
 ; OPTM1-NEXT: mov     dword ptr [esp]
 ; OPTM1-NEXT: mov     dword ptr [esp + 8], 123
-; Bundle padding added by -triple=i686-none-nacl.
-; OPTM1-NEXT: nop
-; OPTM1-NEXT: mov     dword ptr [esp + 16], 3735928559
+; Bundle padding might be added (so not using -NEXT).
+; OPTM1:      mov     dword ptr [esp + 16], 3735928559
 ; OPTM1-NEXT: mov     dword ptr [esp + 12], 305419896
 ; OPTM1-NEXT: call    -4
 
