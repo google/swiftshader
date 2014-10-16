@@ -89,17 +89,12 @@ namespace sw
 
 		Float4 f;
 
-		Vector4i &current = r.ri[0];
-		Vector4i &diffuse = r.vi[0];
-		Vector4i &specular = r.vi[1];
-
 		Float4 (&z)[4] = r.z;
 		Float4 &w = r.w;
 		Float4 &rhw = r.rhw;
 		Float4 rhwCentroid;
 
 		Float4 xxxx = Float4(Float(x)) + *Pointer<Float4>(r.primitive + OFFSET(Primitive,xQuad), 16);
-		Float4 yyyy = Float4(Float(y)) + *Pointer<Float4>(r.primitive + OFFSET(Primitive,yQuad), 16);
 
 		if(interpolateZ())
 		{
@@ -131,6 +126,8 @@ namespace sw
 			#if PERF_PROFILE
 				Long interpTime = Ticks();
 			#endif
+
+			Float4 yyyy = Float4(Float(y)) + *Pointer<Float4>(r.primitive + OFFSET(Primitive, yQuad), 16);
 
 			// Centroid locations
 			Float4 XXXX = Float4(0.0f);
@@ -214,15 +211,15 @@ namespace sw
 
 			if(integerPipeline)
 			{
-				if(state.color[0].component & 0x1) diffuse.x = convertFixed12(r.vf[0].x); else diffuse.x = Short4(0x1000);
-				if(state.color[0].component & 0x2) diffuse.y = convertFixed12(r.vf[0].y); else diffuse.y = Short4(0x1000);
-				if(state.color[0].component & 0x4) diffuse.z = convertFixed12(r.vf[0].z); else diffuse.z = Short4(0x1000);
-				if(state.color[0].component & 0x8) diffuse.w = convertFixed12(r.vf[0].w); else diffuse.w = Short4(0x1000);
+				if(state.color[0].component & 0x1) r.diffuse.x = convertFixed12(r.vf[0].x); else r.diffuse.x = Short4(0x1000);
+				if(state.color[0].component & 0x2) r.diffuse.y = convertFixed12(r.vf[0].y); else r.diffuse.y = Short4(0x1000);
+				if(state.color[0].component & 0x4) r.diffuse.z = convertFixed12(r.vf[0].z); else r.diffuse.z = Short4(0x1000);
+				if(state.color[0].component & 0x8) r.diffuse.w = convertFixed12(r.vf[0].w); else r.diffuse.w = Short4(0x1000);
 
-				if(state.color[1].component & 0x1) specular.x = convertFixed12(r.vf[1].x); else specular.x = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-				if(state.color[1].component & 0x2) specular.y = convertFixed12(r.vf[1].y); else specular.y = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-				if(state.color[1].component & 0x4) specular.z = convertFixed12(r.vf[1].z); else specular.z = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-				if(state.color[1].component & 0x8) specular.w = convertFixed12(r.vf[1].w); else specular.w = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+				if(state.color[1].component & 0x1) r.specular.x = convertFixed12(r.vf[1].x); else r.specular.x = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+				if(state.color[1].component & 0x2) r.specular.y = convertFixed12(r.vf[1].y); else r.specular.y = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+				if(state.color[1].component & 0x4) r.specular.z = convertFixed12(r.vf[1].z); else r.specular.z = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+				if(state.color[1].component & 0x8) r.specular.w = convertFixed12(r.vf[1].w); else r.specular.w = Short4(0x0000, 0x0000, 0x0000, 0x0000);
 			}
 			else if(shaderVersion() >= 0x0300)
 			{
@@ -285,7 +282,7 @@ namespace sw
 				}
 				else
 				{
-					current = diffuse;
+					r.current = r.diffuse;
 					Vector4i temp(0x0000, 0x0000, 0x0000, 0x0000);
 
 					for(int stage = 0; stage < 8; stage++)
@@ -302,10 +299,10 @@ namespace sw
 							sampleTexture(r, texture, stage, stage);
 						}
 
-						blendTexture(r, current, temp, texture, stage);
+						blendTexture(r, temp, texture, stage);
 					}
 
-					specularPixel(current, specular);
+					specularPixel(r.current, r.specular);
 				}
 
 				#if PERF_PROFILE
@@ -314,12 +311,12 @@ namespace sw
 
 				if(integerPipeline)
 				{
-					current.x = Min(current.x, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); current.x = Max(current.x, Short4(0x0000, 0x0000, 0x0000, 0x0000));
-					current.y = Min(current.y, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); current.y = Max(current.y, Short4(0x0000, 0x0000, 0x0000, 0x0000));
-					current.z = Min(current.z, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); current.z = Max(current.z, Short4(0x0000, 0x0000, 0x0000, 0x0000));
-					current.w = Min(current.w, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); current.w = Max(current.w, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+					r.current.x = Min(r.current.x, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); r.current.x = Max(r.current.x, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+					r.current.y = Min(r.current.y, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); r.current.y = Max(r.current.y, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+					r.current.z = Min(r.current.z, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); r.current.z = Max(r.current.z, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+					r.current.w = Min(r.current.w, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); r.current.w = Max(r.current.w, Short4(0x0000, 0x0000, 0x0000, 0x0000));
 
-					alphaPass = alphaTest(r, cMask, current);
+					alphaPass = alphaTest(r, cMask, r.current);
 				}
 				else
 				{
@@ -375,7 +372,7 @@ namespace sw
 
 						if(integerPipeline)
 						{
-							rasterOperation(current, r, f, cBuffer[0], x, sMask, zMask, cMask);
+							rasterOperation(r.current, r, f, cBuffer[0], x, sMask, zMask, cMask);
 						}
 						else
 						{
@@ -663,7 +660,7 @@ namespace sw
 		return zMask != 0;
 	}
 
-	void PixelRoutine::blendTexture(Registers &r, Vector4i &current, Vector4i &temp, Vector4i &texture, int stage)
+	void PixelRoutine::blendTexture(Registers &r, Vector4i &temp, Vector4i &texture, int stage)
 	{
 		Vector4i *arg1;
 		Vector4i *arg2;
@@ -706,14 +703,14 @@ namespace sw
 		{
 			if(state.textureStage[stage - 1].stageOperation == TextureStage::STAGE_PREMODULATE)
 			{
-				current.x = MulHigh(current.x, texture.x) << 4;
-				current.y = MulHigh(current.y, texture.y) << 4;
-				current.z = MulHigh(current.z, texture.z) << 4;
+				r.current.x = MulHigh(r.current.x, texture.x) << 4;
+				r.current.y = MulHigh(r.current.y, texture.y) << 4;
+				r.current.z = MulHigh(r.current.z, texture.z) << 4;
 			}
 
 			if(state.textureStage[stage - 1].stageOperationAlpha == TextureStage::STAGE_PREMODULATE)
 			{
-				current.w = MulHigh(current.w, texture.w) << 4;
+				r.current.w = MulHigh(r.current.w, texture.w) << 4;
 			}
 		}
 
@@ -730,7 +727,7 @@ namespace sw
 		{
 		case TextureStage::SOURCE_TEXTURE:	arg1 = &texture;		break;
 		case TextureStage::SOURCE_CONSTANT:	arg1 = &constant;		break;
-		case TextureStage::SOURCE_CURRENT:	arg1 = &current;		break;
+		case TextureStage::SOURCE_CURRENT:	arg1 = &r.current;		break;
 		case TextureStage::SOURCE_DIFFUSE:	arg1 = &r.diffuse;		break;
 		case TextureStage::SOURCE_SPECULAR:	arg1 = &r.specular;		break;
 		case TextureStage::SOURCE_TEMP:		arg1 = &temp;			break;
@@ -743,7 +740,7 @@ namespace sw
 		{
 		case TextureStage::SOURCE_TEXTURE:	arg2 = &texture;		break;
 		case TextureStage::SOURCE_CONSTANT:	arg2 = &constant;		break;
-		case TextureStage::SOURCE_CURRENT:	arg2 = &current;		break;
+		case TextureStage::SOURCE_CURRENT:	arg2 = &r.current;		break;
 		case TextureStage::SOURCE_DIFFUSE:	arg2 = &r.diffuse;		break;
 		case TextureStage::SOURCE_SPECULAR:	arg2 = &r.specular;		break;
 		case TextureStage::SOURCE_TEMP:		arg2 = &temp;			break;
@@ -756,7 +753,7 @@ namespace sw
 		{
 		case TextureStage::SOURCE_TEXTURE:	arg3 = &texture;		break;
 		case TextureStage::SOURCE_CONSTANT:	arg3 = &constant;		break;
-		case TextureStage::SOURCE_CURRENT:	arg3 = &current;		break;
+		case TextureStage::SOURCE_CURRENT:	arg3 = &r.current;		break;
 		case TextureStage::SOURCE_DIFFUSE:	arg3 = &r.diffuse;		break;
 		case TextureStage::SOURCE_SPECULAR:	arg3 = &r.specular;		break;
 		case TextureStage::SOURCE_TEMP:		arg3 = &temp;			break;
@@ -1018,9 +1015,9 @@ namespace sw
 			break;
 		case TextureStage::STAGE_BLENDCURRENTALPHA:			// Alpha * (Arg1 - Arg2) + Arg2
 			{
-				res.x = SubSat(arg1->x, arg2->x); res.x = MulHigh(res.x, current.w) << 4; res.x = AddSat(res.x, arg2->x);
-				res.y = SubSat(arg1->y, arg2->y); res.y = MulHigh(res.y, current.w) << 4; res.y = AddSat(res.y, arg2->y);
-				res.z = SubSat(arg1->z, arg2->z); res.z = MulHigh(res.z, current.w) << 4; res.z = AddSat(res.z, arg2->z);
+				res.x = SubSat(arg1->x, arg2->x); res.x = MulHigh(res.x, r.current.w) << 4; res.x = AddSat(res.x, arg2->x);
+				res.y = SubSat(arg1->y, arg2->y); res.y = MulHigh(res.y, r.current.w) << 4; res.y = AddSat(res.y, arg2->y);
+				res.z = SubSat(arg1->z, arg2->z); res.z = MulHigh(res.z, r.current.w) << 4; res.z = AddSat(res.z, arg2->z);
 			}
 			break;
 		case TextureStage::STAGE_BLENDDIFFUSEALPHA:			// Alpha * (Arg1 - Arg2) + Arg2
@@ -1160,7 +1157,7 @@ namespace sw
 			{
 			case TextureStage::SOURCE_TEXTURE:	arg1 = &texture;		break;
 			case TextureStage::SOURCE_CONSTANT:	arg1 = &constant;		break;
-			case TextureStage::SOURCE_CURRENT:	arg1 = &current;		break;
+			case TextureStage::SOURCE_CURRENT:	arg1 = &r.current;		break;
 			case TextureStage::SOURCE_DIFFUSE:	arg1 = &r.diffuse;		break;
 			case TextureStage::SOURCE_SPECULAR:	arg1 = &r.specular;		break;
 			case TextureStage::SOURCE_TEMP:		arg1 = &temp;			break;
@@ -1173,7 +1170,7 @@ namespace sw
 			{
 			case TextureStage::SOURCE_TEXTURE:	arg2 = &texture;		break;
 			case TextureStage::SOURCE_CONSTANT:	arg2 = &constant;		break;
-			case TextureStage::SOURCE_CURRENT:	arg2 = &current;		break;
+			case TextureStage::SOURCE_CURRENT:	arg2 = &r.current;		break;
 			case TextureStage::SOURCE_DIFFUSE:	arg2 = &r.diffuse;		break;
 			case TextureStage::SOURCE_SPECULAR:	arg2 = &r.specular;		break;
 			case TextureStage::SOURCE_TEMP:		arg2 = &temp;			break;
@@ -1186,7 +1183,7 @@ namespace sw
 			{
 			case TextureStage::SOURCE_TEXTURE:	arg3 = &texture;		break;
 			case TextureStage::SOURCE_CONSTANT:	arg3 = &constant;		break;
-			case TextureStage::SOURCE_CURRENT:	arg3 = &current;		break;
+			case TextureStage::SOURCE_CURRENT:	arg3 = &r.current;		break;
 			case TextureStage::SOURCE_DIFFUSE:	arg3 = &r.diffuse;		break;
 			case TextureStage::SOURCE_SPECULAR:	arg3 = &r.specular;		break;
 			case TextureStage::SOURCE_TEMP:		arg3 = &temp;			break;
@@ -1354,7 +1351,7 @@ namespace sw
 				break;   // Already computed in color channel
 			case TextureStage::STAGE_BLENDCURRENTALPHA:			// Alpha * (Arg1 - Arg2) + Arg2
 				{
-					res.w = SubSat(arg1->w, arg2->w); res.w = MulHigh(res.w, current.w) << 4; res.w = AddSat(res.w, arg2->w);
+					res.w = SubSat(arg1->w, arg2->w); res.w = MulHigh(res.w, r.current.w) << 4; res.w = AddSat(res.w, arg2->w);
 				}
 				break;
 			case TextureStage::STAGE_BLENDDIFFUSEALPHA:			// Arg1 * (Alpha) + Arg2 * (1 - Alpha)
@@ -1553,10 +1550,10 @@ namespace sw
 		switch(textureStage.destinationArgument)
 		{
 		case TextureStage::DESTINATION_CURRENT:
-			current.x = res.x;
-			current.y = res.y;
-			current.z = res.z;
-			current.w = res.w;
+			r.current.x = res.x;
+			r.current.y = res.y;
+			r.current.z = res.z;
+			r.current.w = res.w;
 			break;
 		case TextureStage::DESTINATION_TEMP:
 			temp.x = res.x;

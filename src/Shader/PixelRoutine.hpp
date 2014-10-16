@@ -157,7 +157,7 @@ namespace sw
 		void stencilOperation(Registers &r, Byte8 &newValue, Byte8 &bufferValue, Context::StencilOperation stencilPassOperation, Context::StencilOperation stencilZFailOperation, Context::StencilOperation stencilFailOperation, bool CCW, Int &zMask, Int &sMask);
 		void stencilOperation(Registers &r, Byte8 &output, Byte8 &bufferValue, Context::StencilOperation operation, bool CCW);
 		Bool depthTest(Registers &r, Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask);
-		void blendTexture(Registers &r, Vector4i &current, Vector4i &temp, Vector4i &texture, int stage);
+		void blendTexture(Registers &r, Vector4i &temp, Vector4i &texture, int stage);
 		void alphaTest(Registers &r, Int &aMask, Short4 &alpha);
 		void alphaToCoverage(Registers &r, Int cMask[4], Float4 &alpha);
 		Bool alphaTest(Registers &r, Int cMask[4], Vector4i &current);
