@@ -1,10 +1,11 @@
+//===- subzero/src/assembler_ia32.cpp - Assembler for x86-32  -------------===//
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
 // Modified by the Subzero authors.
 //
-//===- subzero/src/assembler_ia32.cpp - Assembler for x86-32  -------------===//
+//===----------------------------------------------------------------------===//
 //
 //                        The Subzero Code Generator
 //
@@ -26,6 +27,9 @@ namespace Ice {
 namespace x86 {
 
 class DirectCallRelocation : public AssemblerFixup {
+  DirectCallRelocation(const DirectCallRelocation &) = delete;
+  DirectCallRelocation &operator=(const DirectCallRelocation &) = delete;
+
 public:
   static DirectCallRelocation *create(Assembler *Asm, FixupKind Kind,
                                       const ConstantRelocatable *Sym) {
@@ -2318,6 +2322,11 @@ void AssemblerX86::xchg(Type Ty, const Address &addr, GPRRegister reg) {
   else
     EmitUint8(0x87);
   EmitOperand(reg, addr);
+}
+
+void AssemblerX86::EmitSegmentOverride(uint8_t prefix) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(prefix);
 }
 
 void AssemblerX86::Align(intptr_t alignment, intptr_t offset) {

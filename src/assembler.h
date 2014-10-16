@@ -1,10 +1,11 @@
+//===- subzero/src/assembler.h - Integrated assembler -----------*- C++ -*-===//
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
 // Modified by the Subzero authors.
 //
-//===- subzero/src/assembler.h - Integrated assembler -----------*- C++ -*-===//
+//===----------------------------------------------------------------------===//
 //
 //                        The Subzero Code Generator
 //
@@ -40,6 +41,9 @@ class MemoryRegion;
 // information that needs to be processed before finalizing the code
 // into executable memory.
 class AssemblerFixup {
+  AssemblerFixup(const AssemblerFixup &) = delete;
+  AssemblerFixup &operator=(const AssemblerFixup &) = delete;
+
 public:
   virtual void Process(const MemoryRegion &region, intptr_t position) = 0;
 
@@ -64,13 +68,14 @@ private:
 
   void set_position(intptr_t position) { position_ = position; }
 
-  AssemblerFixup(const AssemblerFixup &) = delete;
-  AssemblerFixup &operator=(const AssemblerFixup &) = delete;
   friend class AssemblerBuffer;
 };
 
 // Assembler buffers are used to emit binary code. They grow on demand.
 class AssemblerBuffer {
+  AssemblerBuffer(const AssemblerBuffer &) = delete;
+  AssemblerBuffer &operator=(const AssemblerBuffer &) = delete;
+
 public:
   AssemblerBuffer(Assembler &);
   ~AssemblerBuffer();
@@ -118,8 +123,11 @@ public:
 //     AssemblerBuffer::EnsureCapacity ensured(&buffer);
 //     ... emit bytes for single instruction ...
 
-#if defined(DEBUG)
+#ifndef NDEBUG
   class EnsureCapacity {
+    EnsureCapacity(const EnsureCapacity &) = delete;
+    EnsureCapacity &operator=(const EnsureCapacity &) = delete;
+
   public:
     explicit EnsureCapacity(AssemblerBuffer *buffer);
     ~EnsureCapacity();
@@ -133,8 +141,11 @@ public:
 
   bool has_ensured_capacity_;
   bool HasEnsuredCapacity() const { return has_ensured_capacity_; }
-#else
+#else  // NDEBUG
   class EnsureCapacity {
+    EnsureCapacity(const EnsureCapacity &) = delete;
+    EnsureCapacity &operator=(const EnsureCapacity &) = delete;
+
   public:
     explicit EnsureCapacity(AssemblerBuffer *buffer) {
       if (buffer->cursor() >= buffer->limit())
@@ -146,7 +157,7 @@ public:
   // asserting that the user of the assembler buffer has ensured the
   // capacity needed for emitting, we add a dummy method in non-debug mode.
   bool HasEnsuredCapacity() const { return true; }
-#endif
+#endif // NDEBUG
 
   // Returns the position in the instruction stream.
   intptr_t GetPosition() const { return cursor_ - contents_; }
@@ -165,9 +176,9 @@ private:
   uintptr_t limit_;
   Assembler &assembler_;
   std::vector<AssemblerFixup *> fixups_;
-#if defined(DEBUG)
+#ifndef NDEBUG
   bool fixups_processed_;
-#endif
+#endif // !NDEBUG
 
   uintptr_t cursor() const { return cursor_; }
   uintptr_t limit() const { return limit_; }
@@ -191,6 +202,9 @@ private:
 };
 
 class Assembler {
+  Assembler(const Assembler &) = delete;
+  Assembler &operator=(const Assembler &) = delete;
+
 public:
   Assembler() {}
   ~Assembler() {}
@@ -212,9 +226,6 @@ public:
 
 private:
   llvm::BumpPtrAllocator Allocator;
-
-  Assembler(const Assembler &) = delete;
-  Assembler &operator=(const Assembler &) = delete;
 };
 
 } // end of namespace Ice

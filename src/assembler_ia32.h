@@ -1,10 +1,11 @@
+//===- subzero/src/assembler_ia32.h - Assembler for x86-32 ------*- C++ -*-===//
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
 // Modified by the Subzero authors.
 //
-//===- subzero/src/assembler_ia32.h - Assembler for x86-32 ----------------===//
+//===----------------------------------------------------------------------===//
 //
 //                        The Subzero Code Generator
 //
@@ -45,6 +46,9 @@ const int MAX_NOP_SIZE = 8;
 enum ScaleFactor { TIMES_1 = 0, TIMES_2 = 1, TIMES_4 = 2, TIMES_8 = 3 };
 
 class DisplacementRelocation : public AssemblerFixup {
+  DisplacementRelocation(const DisplacementRelocation &) = delete;
+  DisplacementRelocation &operator=(const DisplacementRelocation &) = delete;
+
 public:
   static DisplacementRelocation *create(Assembler *Asm, FixupKind Kind,
                                         const ConstantRelocatable *Sym) {
@@ -61,16 +65,14 @@ public:
 private:
   DisplacementRelocation(FixupKind Kind, const ConstantRelocatable *Sym)
       : AssemblerFixup(Kind, Sym) {}
-  DisplacementRelocation(const DisplacementRelocation &) = delete;
-  DisplacementRelocation &operator=(const DisplacementRelocation &) = delete;
 };
 
 class Immediate {
+  Immediate(const Immediate &) = delete;
+  Immediate &operator=(const Immediate &) = delete;
+
 public:
   explicit Immediate(int32_t value) : value_(value), fixup_(NULL) {}
-
-  explicit Immediate(const Immediate &other)
-      : value_(other.value_), fixup_(other.fixup_) {}
 
   explicit Immediate(AssemblerFixup *fixup)
       : value_(fixup->value()->getOffset()), fixup_(fixup) {
@@ -98,6 +100,17 @@ private:
 
 class Operand {
 public:
+  Operand(const Operand &other) : length_(other.length_), fixup_(other.fixup_) {
+    memmove(&encoding_[0], &other.encoding_[0], other.length_);
+  }
+
+  Operand &operator=(const Operand &other) {
+    length_ = other.length_;
+    fixup_ = other.fixup_;
+    memmove(&encoding_[0], &other.encoding_[0], other.length_);
+    return *this;
+  }
+
   uint8_t mod() const { return (encoding_at(0) >> 6) & 3; }
 
   GPRRegister rm() const {
@@ -127,17 +140,6 @@ public:
   }
 
   AssemblerFixup *fixup() const { return fixup_; }
-
-  Operand(const Operand &other) : length_(other.length_), fixup_(other.fixup_) {
-    memmove(&encoding_[0], &other.encoding_[0], other.length_);
-  }
-
-  Operand &operator=(const Operand &other) {
-    length_ = other.length_;
-    fixup_ = other.fixup_;
-    memmove(&encoding_[0], &other.encoding_[0], other.length_);
-    return *this;
-  }
 
 protected:
   Operand() : length_(0), fixup_(NULL) {} // Needed by subclass Address.
@@ -194,6 +196,13 @@ private:
 
 class Address : public Operand {
 public:
+  Address(const Address &other) : Operand(other) {}
+
+  Address &operator=(const Address &other) {
+    Operand::operator=(other);
+    return *this;
+  }
+
   Address(GPRRegister base, int32_t disp) {
     if (disp == 0 && base != RegX8632::Encoded_Reg_ebp) {
       SetModRM(0, base);
@@ -236,13 +245,6 @@ public:
     }
   }
 
-  Address(const Address &other) : Operand(other) {}
-
-  Address &operator=(const Address &other) {
-    Operand::operator=(other);
-    return *this;
-  }
-
   static Address Absolute(const uintptr_t addr) {
     Address result;
     result.SetModRM(0, RegX8632::Encoded_Reg_ebp);
@@ -270,13 +272,16 @@ private:
 };
 
 class Label {
+  Label(const Label &) = delete;
+  Label &operator=(const Label &) = delete;
+
 public:
   Label() : position_(0), num_unresolved_(0) {
-#ifdef DEBUG
+#ifndef NDEBUG
     for (int i = 0; i < kMaxUnresolvedBranches; i++) {
       unresolved_near_positions_[i] = -1;
     }
-#endif // DEBUG
+#endif // !NDEBUG
   }
 
   ~Label() {
@@ -346,11 +351,12 @@ private:
   intptr_t unresolved_near_positions_[kMaxUnresolvedBranches];
 
   friend class AssemblerX86;
-  Label(const Label &) = delete;
-  Label &operator=(const Label &) = delete;
 };
 
 class AssemblerX86 : public Assembler {
+  AssemblerX86(const AssemblerX86 &) = delete;
+  AssemblerX86 &operator=(const AssemblerX86 &) = delete;
+
 public:
   explicit AssemblerX86(bool use_far_branches = false) : buffer_(*this) {
     // This mode is only needed and implemented for MIPS and ARM.
@@ -800,7 +806,7 @@ public:
     cmpxchg(Ty, address, reg);
   }
 
-  void EmitSegmentOverride(uint8_t prefix) { EmitUint8(prefix); }
+  void EmitSegmentOverride(uint8_t prefix);
 
   intptr_t PreferredLoopAlignment() { return 16; }
   void Align(intptr_t alignment, intptr_t offset);
@@ -843,9 +849,6 @@ private:
                         GPRRegister shifter);
 
   AssemblerBuffer buffer_;
-
-  AssemblerX86(const AssemblerX86 &) = delete;
-  AssemblerX86 &operator=(const AssemblerX86 &) = delete;
 };
 
 inline void AssemblerX86::EmitUint8(uint8_t value) {

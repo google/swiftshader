@@ -1,10 +1,11 @@
+//===- subzero/src/assembler.cpp - Assembler base class -------------------===//
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
 // Modified by the Subzero authors.
 //
-//===- subzero/src/assembler.cpp - Assembler base class -------------------===//
+//===----------------------------------------------------------------------===//
 //
 //                        The Subzero Code Generator
 //
@@ -27,7 +28,7 @@ static uintptr_t NewContents(Assembler &assembler, intptr_t capacity) {
   return result;
 }
 
-#if defined(DEBUG)
+#ifndef NDEBUG
 AssemblerBuffer::EnsureCapacity::EnsureCapacity(AssemblerBuffer *buffer) {
   if (buffer->cursor() >= buffer->limit())
     buffer->ExtendCapacity();
@@ -53,7 +54,7 @@ AssemblerBuffer::EnsureCapacity::~EnsureCapacity() {
   intptr_t delta = gap_ - ComputeGap();
   assert(delta <= kMinimumGap);
 }
-#endif
+#endif // !NDEBUG
 
 AssemblerBuffer::AssemblerBuffer(Assembler &assembler) : assembler_(assembler) {
   const intptr_t OneKB = 1024;
@@ -61,10 +62,10 @@ AssemblerBuffer::AssemblerBuffer(Assembler &assembler) : assembler_(assembler) {
   contents_ = NewContents(assembler_, kInitialBufferCapacity);
   cursor_ = contents_;
   limit_ = ComputeLimit(contents_, kInitialBufferCapacity);
-#if defined(DEBUG)
+#ifndef NDEBUG
   has_ensured_capacity_ = false;
   fixups_processed_ = false;
-#endif
+#endif // !NDEBUG
 
   // Verify internal state.
   assert(Capacity() == kInitialBufferCapacity);
@@ -93,9 +94,9 @@ void AssemblerBuffer::FinalizeInstructions(const MemoryRegion &instructions) {
 
   // Process fixups in the instructions.
   ProcessFixups(instructions);
-#if defined(DEBUG)
+#ifndef NDEBUG
   fixups_processed_ = true;
-#endif
+#endif // !NDEBUG
 }
 
 void AssemblerBuffer::ExtendCapacity() {

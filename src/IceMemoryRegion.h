@@ -1,10 +1,11 @@
+//===- subzero/src/IceMemoryRegion.h - Memory region ------------*- C++ -*-===//
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
 // Modified by the Subzero authors.
 //
-//===- subzero/src/IceMemoryRegion.h - Memory region ------------*- C++ -*-===//
+//===----------------------------------------------------------------------===//
 //
 //                        The Subzero Code Generator
 //
@@ -30,14 +31,10 @@ namespace Ice {
 // of the region.
 class MemoryRegion {
 public:
+  MemoryRegion(const MemoryRegion &other) = default;
+  MemoryRegion &operator=(const MemoryRegion &other) = default;
   MemoryRegion() : pointer_(NULL), size_(0) {}
   MemoryRegion(void *pointer, size_t size) : pointer_(pointer), size_(size) {}
-  MemoryRegion(const MemoryRegion &other) { *this = other; }
-  MemoryRegion &operator=(const MemoryRegion &other) {
-    pointer_ = other.pointer_;
-    size_ = other.size_;
-    return *this;
-  }
 
   void *pointer() const { return pointer_; }
   size_t size() const { return size_; }
