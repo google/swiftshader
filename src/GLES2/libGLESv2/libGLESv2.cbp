@@ -171,8 +171,6 @@
 		<Unit filename="../compiler/PoolAlloc.cpp" />
 		<Unit filename="../compiler/PoolAlloc.h" />
 		<Unit filename="../compiler/Pragma.h" />
-		<Unit filename="../compiler/QualifierAlive.cpp" />
-		<Unit filename="../compiler/QualifierAlive.h" />
 		<Unit filename="../compiler/RemoveTree.cpp" />
 		<Unit filename="../compiler/RemoveTree.h" />
 		<Unit filename="../compiler/ShHandle.h" />
@@ -184,8 +182,6 @@
 		<Unit filename="../compiler/Types.h" />
 		<Unit filename="../compiler/ValidateLimitations.cpp" />
 		<Unit filename="../compiler/ValidateLimitations.h" />
-		<Unit filename="../compiler/VariableInfo.cpp" />
-		<Unit filename="../compiler/VariableInfo.h" />
 		<Unit filename="../compiler/debug.cpp" />
 		<Unit filename="../compiler/debug.h" />
 		<Unit filename="../compiler/glslang.h" />

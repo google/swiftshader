@@ -18,58 +18,6 @@
 #include <limits.h>
 
 //
-// This is the platform independent interface between an OGL driver
-// and the shading language compiler.
-//
-
-static bool checkActiveUniformAndAttribMaxLengths(const ShHandle handle,
-                                                  int expectedValue)
-{
-    int activeUniformLimit = 0;
-    ShGetInfo(handle, SH_ACTIVE_UNIFORM_MAX_LENGTH, &activeUniformLimit);
-    int activeAttribLimit = 0;
-    ShGetInfo(handle, SH_ACTIVE_ATTRIBUTE_MAX_LENGTH, &activeAttribLimit);
-    return (expectedValue == activeUniformLimit && expectedValue == activeAttribLimit);
-}
-
-static void getVariableInfo(ShShaderInfo varType,
-                            const ShHandle handle,
-                            int index,
-                            int* length,
-                            int* size,
-                            ShDataType* type,
-                            char* name)
-{
-    if (!handle || !size || !type || !name)
-        return;
-    ASSERT((varType == SH_ACTIVE_ATTRIBUTES) ||
-           (varType == SH_ACTIVE_UNIFORMS));
-
-    TShHandleBase* base = reinterpret_cast<TShHandleBase*>(handle);
-    TCompiler* compiler = base->getAsCompiler();
-    if (compiler == 0)
-        return;
-
-    const TVariableInfoList& varList = varType == SH_ACTIVE_ATTRIBUTES ?
-        compiler->getAttribs() : compiler->getUniforms();
-    if (index < 0 || index >= static_cast<int>(varList.size()))
-        return;
-
-    const TVariableInfo& varInfo = varList[index];
-    if (length) *length = varInfo.name.size();
-    *size = varInfo.size;
-    *type = varInfo.type;
-
-    // This size must match that queried by
-    // SH_ACTIVE_UNIFORM_MAX_LENGTH and SH_ACTIVE_ATTRIBUTE_MAX_LENGTH
-    // in ShGetInfo, below.
-    int activeUniformAndAttribLength = 1 + MAX_SYMBOL_NAME_LEN;
-    ASSERT(checkActiveUniformAndAttribMaxLengths(handle, activeUniformAndAttribLength));
-    strncpy(name, varInfo.name.c_str(), activeUniformAndAttribLength);
-    name[activeUniformAndAttribLength - 1] = 0;
-}
-
-//
 // Driver must call this first, once, before doing any other
 // compiler operations.
 //
@@ -194,14 +142,8 @@ void ShGetInfo(const ShHandle handle, ShShaderInfo pname, int* params)
     case SH_OBJECT_CODE_LENGTH:
         *params = compiler->getInfoSink().obj.size() + 1;
         break;
-    case SH_ACTIVE_UNIFORMS:
-        *params = compiler->getUniforms().size();
-        break;
     case SH_ACTIVE_UNIFORM_MAX_LENGTH:
         *params = 1 +  MAX_SYMBOL_NAME_LEN;
-        break;
-    case SH_ACTIVE_ATTRIBUTES:
-        *params = compiler->getAttribs().size();
         break;
     case SH_ACTIVE_ATTRIBUTE_MAX_LENGTH:
         *params = 1 + MAX_SYMBOL_NAME_LEN;
@@ -240,26 +182,4 @@ void ShGetObjectCode(const ShHandle handle, char* objCode)
 
     TInfoSink& infoSink = compiler->getInfoSink();
     strcpy(objCode, infoSink.obj.c_str());
-}
-
-void ShGetActiveAttrib(const ShHandle handle,
-                       int index,
-                       int* length,
-                       int* size,
-                       ShDataType* type,
-                       char* name)
-{
-    getVariableInfo(SH_ACTIVE_ATTRIBUTES,
-                    handle, index, length, size, type, name);
-}
-
-void ShGetActiveUniform(const ShHandle handle,
-                        int index,
-                        int* length,
-                        int* size,
-                        ShDataType* type,
-                        char* name)
-{
-    getVariableInfo(SH_ACTIVE_UNIFORMS,
-                    handle, index, length, size, type, name);
 }

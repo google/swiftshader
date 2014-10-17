@@ -36,33 +36,9 @@ typedef enum {
 } ShShaderSpec;
 
 typedef enum {
-  SH_NONE           = 0,
-  SH_INT            = 0x1404,
-  SH_FLOAT          = 0x1406,
-  SH_FLOAT_VEC2     = 0x8B50,
-  SH_FLOAT_VEC3     = 0x8B51,
-  SH_FLOAT_VEC4     = 0x8B52,
-  SH_INT_VEC2       = 0x8B53,
-  SH_INT_VEC3       = 0x8B54,
-  SH_INT_VEC4       = 0x8B55,
-  SH_BOOL           = 0x8B56,
-  SH_BOOL_VEC2      = 0x8B57,
-  SH_BOOL_VEC3      = 0x8B58,
-  SH_BOOL_VEC4      = 0x8B59,
-  SH_FLOAT_MAT2     = 0x8B5A,
-  SH_FLOAT_MAT3     = 0x8B5B,
-  SH_FLOAT_MAT4     = 0x8B5C,
-  SH_SAMPLER_2D     = 0x8B5E,
-  SH_SAMPLER_CUBE   = 0x8B60,
-  SH_SAMPLER_EXTERNAL_OES = 0x8D66
-} ShDataType;
-
-typedef enum {
   SH_INFO_LOG_LENGTH             =  0x8B84,
   SH_OBJECT_CODE_LENGTH          =  0x8B88,  // GL_SHADER_SOURCE_LENGTH
-  SH_ACTIVE_UNIFORMS             =  0x8B86,
   SH_ACTIVE_UNIFORM_MAX_LENGTH   =  0x8B87,
-  SH_ACTIVE_ATTRIBUTES           =  0x8B89,
   SH_ACTIVE_ATTRIBUTE_MAX_LENGTH =  0x8B8A
 } ShShaderInfo;
 
@@ -215,60 +191,6 @@ void ShGetInfoLog(const ShHandle handle, char* infoLog);
 //          store the returned object code can be obtained by calling
 //          ShGetInfo with SH_OBJECT_CODE_LENGTH.
 void ShGetObjectCode(const ShHandle handle, char* objCode);
-
-// Returns information about an active attribute variable.
-// Parameters:
-// handle: Specifies the compiler
-// index: Specifies the index of the attribute variable to be queried.
-// length: Returns the number of characters actually written in the string
-//         indicated by name (excluding the null terminator) if a value other
-//         than NULL is passed.
-// size: Returns the size of the attribute variable.
-// type: Returns the data type of the attribute variable.
-// name: Returns a null terminated string containing the name of the
-//       attribute variable. It is assumed that name has enough memory to
-//       accomodate the attribute variable name. The size of the buffer
-//       required to store the attribute variable name can be obtained by
-//       calling ShGetInfo with SH_ACTIVE_ATTRIBUTE_MAX_LENGTH.
-// mappedName: Returns a null terminated string containing the mapped name of
-//             the attribute variable, It is assumed that mappedName has enough
-//             memory (SH_MAPPED_NAME_MAX_LENGTH), or NULL if don't care
-//             about the mapped name. If the name is not mapped, then name and
-//             mappedName are the same.
-void ShGetActiveAttrib(const ShHandle handle,
-                       int index,
-                       int* length,
-                       int* size,
-                       ShDataType* type,
-                       char* name,
-                       char* mappedName);
-
-// Returns information about an active uniform variable.
-// Parameters:
-// handle: Specifies the compiler
-// index: Specifies the index of the uniform variable to be queried.
-// length: Returns the number of characters actually written in the string
-//         indicated by name (excluding the null terminator) if a value
-//         other than NULL is passed.
-// size: Returns the size of the uniform variable.
-// type: Returns the data type of the uniform variable.
-// name: Returns a null terminated string containing the name of the
-//       uniform variable. It is assumed that name has enough memory to
-//       accomodate the uniform variable name. The size of the buffer required
-//       to store the uniform variable name can be obtained by calling
-//       ShGetInfo with SH_ACTIVE_UNIFORMS_MAX_LENGTH.
-// mappedName: Returns a null terminated string containing the mapped name of
-//             the uniform variable, It is assumed that mappedName has enough
-//             memory (SH_MAPPED_NAME_MAX_LENGTH), or NULL if don't care
-//             about the mapped name. If the name is not mapped, then name and
-//             mappedName are the same.
-void ShGetActiveUniform(const ShHandle handle,
-                        int index,
-                        int* length,
-                        int* size,
-                        ShDataType* type,
-                        char* name,
-                        char* mappedName);
 
 #ifdef __cplusplus
 }

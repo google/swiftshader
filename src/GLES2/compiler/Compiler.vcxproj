@@ -123,14 +123,12 @@
     <ClCompile Include="parseConst.cpp" />
     <ClCompile Include="ParseHelper.cpp" />
     <ClCompile Include="PoolAlloc.cpp" />
-    <ClCompile Include="QualifierAlive.cpp" />
     <ClCompile Include="RemoveTree.cpp" />
     <ClCompile Include="ShaderLang.cpp" />
     <ClCompile Include="SymbolTable.cpp" />
     <ClCompile Include="TranslatorASM.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="ValidateLimitations.cpp" />
-    <ClCompile Include="VariableInfo.cpp" />
     <ClCompile Include="glslang_lex.cpp" />
     <ClCompile Include="glslang_tab.cpp" />
   </ItemGroup>
@@ -194,7 +192,6 @@
     <ClInclude Include="ParseHelper.h" />
     <ClInclude Include="PoolAlloc.h" />
     <ClInclude Include="Pragma.h" />
-    <ClInclude Include="QualifierAlive.h" />
     <ClInclude Include="RemoveTree.h" />
     <ClInclude Include="ShHandle.h" />
     <ClInclude Include="SymbolTable.h" />
@@ -202,7 +199,6 @@
     <ClInclude Include="Types.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="ValidateLimitations.h" />
-    <ClInclude Include="VariableInfo.h" />
     <ClInclude Include="glslang_tab.h" />
   </ItemGroup>
   <ItemGroup>

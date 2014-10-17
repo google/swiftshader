@@ -13,7 +13,6 @@
 #include <algorithm>
 
 #include "compiler/localintermediate.h"
-#include "compiler/QualifierAlive.h"
 #include "compiler/RemoveTree.h"
 #include "compiler/SymbolTable.h"
 

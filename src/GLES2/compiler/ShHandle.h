@@ -19,7 +19,6 @@
 #include "compiler/ExtensionBehavior.h"
 #include "compiler/InfoSink.h"
 #include "compiler/SymbolTable.h"
-#include "compiler/VariableInfo.h"
 
 class TCompiler;
 
@@ -55,8 +54,6 @@ public:
 
     // Get results of the last compilation.
     TInfoSink& getInfoSink() { return infoSink; }
-    const TVariableInfoList& getAttribs() const { return attribs; }
-    const TVariableInfoList& getUniforms() const { return uniforms; }
 
 protected:
     ShShaderType getShaderType() const { return shaderType; }
@@ -70,8 +67,6 @@ protected:
     // Returns true if the given shader does not exceed the minimum
     // functionality mandated in GLSL 1.0 spec Appendix A.
     bool validateLimitations(TIntermNode *root);
-    // Collect info for all attribs and uniforms.
-    void collectAttribsUniforms(TIntermNode *root);
     // Translate to object code.
     virtual bool translate(TIntermNode *root) = 0;
     // Get built-in extensions with default behavior.
@@ -91,8 +86,6 @@ private:
 
     // Results of compilation.
     TInfoSink infoSink;  // Output sink.
-    TVariableInfoList attribs;  // Active attributes in the compiled shader.
-    TVariableInfoList uniforms;  // Active uniforms in the compiled shader.
 };
 
 //

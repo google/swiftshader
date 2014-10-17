@@ -114,9 +114,6 @@ bool TCompiler::compile(const char* const shaderStrings[],
         if (success && (compileOptions & SH_VALIDATE_LOOP_INDEXING))
             success = validateLimitations(root);
 
-        if (success && (compileOptions & SH_ATTRIBUTES_UNIFORMS))
-            collectAttribsUniforms(root);
-
         if (success && (compileOptions & SH_INTERMEDIATE_TREE))
             intermediate.outputTree(root);
 
@@ -181,9 +178,6 @@ void TCompiler::clearResults()
     infoSink.info.erase();
     infoSink.obj.erase();
     infoSink.debug.erase();
-
-    attribs.clear();
-    uniforms.clear();
 }
 
 bool TCompiler::validateCallDepth(TIntermNode *root, TInfoSink &infoSink)
@@ -218,12 +212,6 @@ bool TCompiler::validateLimitations(TIntermNode* root) {
     ValidateLimitations validate(shaderType, infoSink.info);
     root->traverse(&validate);
     return validate.numErrors() == 0;
-}
-
-void TCompiler::collectAttribsUniforms(TIntermNode* root)
-{
-    CollectAttribsUniforms collect(attribs, uniforms);
-    root->traverse(&collect);
 }
 
 const TExtensionBehavior& TCompiler::getExtensionBehavior() const
