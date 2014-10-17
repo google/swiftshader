@@ -284,8 +284,8 @@ namespace sh
 					for(int index = 0; index < result->totalRegisterCount(); index++)
 					{
 						Instruction *mov = emit(sw::Shader::OPCODE_MOV, result, left);
-
 						mov->dst.index += index;
+						mov->dst.mask = writeMask(result, index);
 						argument(mov->src[0], left, index);
 
 						if(left->totalRegisterCount() > 1)
