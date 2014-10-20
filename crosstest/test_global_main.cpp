@@ -26,11 +26,16 @@ namespace Subzero_ {
 int ExternName1 = 36363;
 float ExternName2 = 357.05e-10;
 char ExternName3[] = {'a', 'b', 'c'};
-struct {
+struct Data {
   int a;
   float b;
   double d;
-} ExternName4 = {-111, 2.69, 55.19};
+};
+
+struct Data SimpleData = {-111, 2.69, 55.19};
+
+struct Data *ExternName4 = &SimpleData;
+
 double ExternName5 = 3.44e26;
 
 int main(int argc, char **argv) {
