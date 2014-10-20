@@ -349,7 +349,7 @@ void Cfg::dump(const IceString &Message) {
     Str << "define ";
     if (getInternal())
       Str << "internal ";
-    Str << ReturnType << " @" << getFunctionName() << "(";
+    Str << ReturnType << " @" << Ctx->mangleName(getFunctionName()) << "(";
     for (SizeT i = 0; i < Args.size(); ++i) {
       if (i > 0)
         Str << ", ";

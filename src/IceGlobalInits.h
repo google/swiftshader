@@ -43,26 +43,45 @@ public:
   const IceString &getName() const { return Name; }
   void setName(const IceString &NewName) { Name = NewName; }
   bool hasName() const { return !Name.empty(); }
+  bool isInternal() const {
+    return Linkage == llvm::GlobalValue::InternalLinkage;
+  }
+  llvm::GlobalValue::LinkageTypes getLinkage() const { return Linkage; }
+  bool isExternal() const {
+    return Linkage == llvm::GlobalValue::ExternalLinkage;
+  }
+  void setLinkage(llvm::GlobalValue::LinkageTypes NewLinkage) {
+    Linkage = NewLinkage;
+  }
   virtual ~GlobalDeclaration() {}
-
-  /// Returns true if the declaration is external.
-  virtual bool getIsExternal() const = 0;
 
   /// Prints out type of the global declaration.
   virtual void dumpType(Ostream &Stream) const = 0;
 
   /// Prints out the global declaration.
-  virtual void dump(Ostream &Stream) const = 0;
+  virtual void dump(GlobalContext *Ctx, Ostream &Stream) const = 0;
+  void dump(Ostream &Stream) const {
+    GlobalContext *const Ctx = nullptr;
+    dump(Ctx, Stream);
+  }
+
+  /// Returns true if when emitting names, we should suppress mangling.
+  virtual bool getSuppressMangling() const = 0;
 
   // Mangles name for cross tests, unless external and not defined locally
   // (so that relocations accross llvm2ice and pnacl-llc will work).
-  virtual IceString mangleName(GlobalContext *Ctx) const = 0;
+  virtual IceString mangleName(GlobalContext *Ctx) const {
+    return getSuppressMangling() ? Name : Ctx->mangleName(Name);
+  }
 
 protected:
-  GlobalDeclaration(GlobalDeclarationKind Kind) : Kind(Kind) {}
+  GlobalDeclaration(GlobalDeclarationKind Kind,
+                    llvm::GlobalValue::LinkageTypes Linkage)
+      : Kind(Kind), Linkage(Linkage) {}
 
   const GlobalDeclarationKind Kind;
   IceString Name;
+  llvm::GlobalValue::LinkageTypes Linkage;
 };
 
 // Models a function declaration. This includes the type signature of
@@ -81,33 +100,27 @@ public:
   ~FunctionDeclaration() final {}
   const FuncSigType &getSignature() const { return Signature; }
   llvm::CallingConv::ID getCallingConv() const { return CallingConv; }
-  llvm::GlobalValue::LinkageTypes getLinkage() const { return Linkage; }
   // isProto implies that there isn't a (local) definition for the function.
   bool isProto() const { return IsProto; }
   static bool classof(const GlobalDeclaration *Addr) {
     return Addr->getKind() == FunctionDeclarationKind;
   }
   void dumpType(Ostream &Stream) const final;
-  void dump(Ostream &Stream) const final;
-  bool getIsExternal() const final {
-    return Linkage == llvm::GlobalValue::ExternalLinkage;
-  }
-
-  virtual IceString mangleName(GlobalContext *Ctx) const final {
-    return (getIsExternal() && IsProto) ? Name : Ctx->mangleName(Name);
+  void dump(GlobalContext *Ctx, Ostream &Stream) const final;
+  bool getSuppressMangling() const final {
+    return isExternal() && IsProto;
   }
 
 private:
   const Ice::FuncSigType Signature;
   llvm::CallingConv::ID CallingConv;
-  llvm::GlobalValue::LinkageTypes Linkage;
   bool IsProto;
 
   FunctionDeclaration(const FuncSigType &Signature,
                       llvm::CallingConv::ID CallingConv,
                       llvm::GlobalValue::LinkageTypes Linkage, bool IsProto)
-      : GlobalDeclaration(FunctionDeclarationKind), Signature(Signature),
-        CallingConv(CallingConv), Linkage(Linkage), IsProto(IsProto) {}
+      : GlobalDeclaration(FunctionDeclarationKind, Linkage),
+        Signature(Signature), CallingConv(CallingConv), IsProto(IsProto) {}
 };
 
 /// Models a global variable declaration, and its initializers.
@@ -134,7 +147,10 @@ public:
     InitializerKind getKind() const { return Kind; }
     virtual ~Initializer() {}
     virtual SizeT getNumBytes() const = 0;
-    virtual void dump(Ostream &Stream) const = 0;
+    virtual void dump(GlobalContext *Ctx, Ostream &Stream) const = 0;
+    void dump(Ostream &Stream) const {
+      dump(nullptr, Stream);
+    }
     virtual void dumpType(Ostream &Stream) const;
 
   protected:
@@ -170,7 +186,7 @@ public:
     ~DataInitializer() override {}
     const DataVecType &getContents() const { return Contents; }
     SizeT getNumBytes() const final { return Contents.size(); }
-    void dump(Ostream &Stream) const final;
+    void dump(GlobalContext *Ctx, Ostream &Stream) const final;
     static bool classof(const Initializer *D) {
       return D->getKind() == DataInitializerKind;
     }
@@ -190,7 +206,7 @@ public:
         : Initializer(ZeroInitializerKind), Size(Size) {}
     ~ZeroInitializer() override {}
     SizeT getNumBytes() const final { return Size; }
-    void dump(Ostream &Stream) const final;
+    void dump(GlobalContext *Ctx, Ostream &Stream) const final;
     static bool classof(const Initializer *Z) {
       return Z->getKind() == ZeroInitializerKind;
     }
@@ -218,7 +234,7 @@ public:
     RelocOffsetType getOffset() const { return Offset; }
     const GlobalDeclaration *getDeclaration() const { return Declaration; }
     SizeT getNumBytes() const final { return RelocAddrSize; }
-    void dump(Ostream &Stream) const final;
+    void dump(GlobalContext *Ctx, Ostream &Stream) const final;
     void dumpType(Ostream &Stream) const final;
     static bool classof(const Initializer *R) {
       return R->getKind() == RelocInitializerKind;
@@ -242,10 +258,8 @@ public:
   void setIsConstant(bool NewValue) { IsConstant = NewValue; }
   uint32_t getAlignment() const { return Alignment; }
   void setAlignment(uint32_t NewAlignment) { Alignment = NewAlignment; }
-  bool getIsInternal() const { return IsInternal; }
-  void setIsInternal(bool NewValue) { IsInternal = NewValue; }
-  bool getIsExternal() const final { return !getIsInternal(); }
-  bool hasInitializer() const {
+  bool hasInitializer() const { return !Initializers.empty(); }
+  bool hasNonzeroInitializer() const {
     return !(Initializers.size() == 1 &&
              llvm::isa<ZeroInitializer>(Initializers[0]));
   }
@@ -272,17 +286,15 @@ public:
 
   /// Prints out the definition of the global variable declaration
   /// (including initialization).
-  void dump(Ostream &Stream) const final;
+  void dump(GlobalContext *Ctx, Ostream &Stream) const final;
 
   static bool classof(const GlobalDeclaration *Addr) {
     return Addr->getKind() == VariableDeclarationKind;
   }
 
-  IceString mangleName(GlobalContext *Ctx) const final {
-    return (getIsExternal() && !hasInitializer())
-        ? Name : Ctx->mangleName(Name);
+  bool getSuppressMangling() const final {
+    return isExternal() && !hasInitializer();
   }
-
 
 private:
   // list of initializers for the declared variable.
@@ -291,12 +303,11 @@ private:
   uint32_t Alignment;
   // True if a declared (global) constant.
   bool IsConstant;
-  // True if the declaration is internal.
-  bool IsInternal;
 
   VariableDeclaration()
-      : GlobalDeclaration(VariableDeclarationKind), Alignment(0),
-        IsConstant(false), IsInternal(true) {}
+      : GlobalDeclaration(VariableDeclarationKind,
+                          llvm::GlobalValue::InternalLinkage),
+        Alignment(0), IsConstant(false) {}
 };
 
 template <class StreamType>

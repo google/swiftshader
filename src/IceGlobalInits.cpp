@@ -68,12 +68,13 @@ void FunctionDeclaration::dumpType(Ostream &Stream) const {
   Stream << Signature;
 }
 
-void FunctionDeclaration::dump(Ostream &Stream) const {
+void FunctionDeclaration::dump(GlobalContext *Ctx, Ostream &Stream) const {
   if (IsProto)
     Stream << "declare ";
   ::dumpLinkage(Stream, Linkage);
   ::dumpCallingConv(Stream, CallingConv);
-  Stream << Signature.getReturnType() << " @" << Name << "(";
+  Stream << Signature.getReturnType() << " @"
+         << (Ctx ? Ctx->mangleName(Name) : Name) << "(";
   bool IsFirst = true;
   for (Type ArgTy : Signature.getArgList()) {
     if (IsFirst)
@@ -111,9 +112,11 @@ void VariableDeclaration::dumpType(Ostream &Stream) const {
   }
 }
 
-void VariableDeclaration::dump(Ostream &Stream) const {
-  Stream << "@" << Name << " = internal "
-         << (IsConstant ? "constant" : "global") << " ";
+void VariableDeclaration::dump(GlobalContext *Ctx, Ostream &Stream) const {
+  Stream << "@" << ((Ctx && !getSuppressMangling())
+                    ? Ctx->mangleName(Name) : Name) << " = ";
+  ::dumpLinkage(Stream, Linkage);
+  Stream << " " << (IsConstant ? "constant" : "global") << " ";
 
   // Add initializer.
   if (Initializers.size() == 1) {
@@ -128,7 +131,7 @@ void VariableDeclaration::dump(Ostream &Stream) const {
       } else {
         Stream << ", ";
       }
-      Init->dump(Stream);
+      Init->dump(Ctx, Stream);
     }
     Stream << " }>";
   }
@@ -143,7 +146,8 @@ void VariableDeclaration::Initializer::dumpType(Ostream &Stream) const {
   Stream << "[" << getNumBytes() << " x " << Ice::IceType_i8 << "]";
 }
 
-void VariableDeclaration::DataInitializer::dump(Ostream &Stream) const {
+void VariableDeclaration::DataInitializer::dump(
+    GlobalContext *, Ostream &Stream) const {
   dumpType(Stream);
   Stream << " c\"";
   // Code taken from PrintEscapedString() in AsmWriter.cpp.  Keep
@@ -158,7 +162,8 @@ void VariableDeclaration::DataInitializer::dump(Ostream &Stream) const {
   Stream << "\"";
 }
 
-void VariableDeclaration::ZeroInitializer::dump(Ostream &Stream) const {
+void VariableDeclaration::ZeroInitializer::dump(
+    GlobalContext *, Ostream &Stream) const {
   dumpType(Stream);
   Stream << " zeroinitializer";
 }
@@ -167,7 +172,8 @@ void VariableDeclaration::RelocInitializer::dumpType(Ostream &Stream) const {
   Stream << Ice::IceType_i32;
 }
 
-void VariableDeclaration::RelocInitializer::dump(Ostream &Stream) const {
+void VariableDeclaration::RelocInitializer::dump(
+    GlobalContext *Ctx, Ostream &Stream) const {
   if (Offset != 0) {
     dumpType(Stream);
     Stream << " add (";
@@ -175,7 +181,12 @@ void VariableDeclaration::RelocInitializer::dump(Ostream &Stream) const {
   dumpType(Stream);
   Stream << " ptrtoint (";
   Declaration->dumpType(Stream);
-  Stream << "* @" << Declaration->getName() << " to ";
+  Stream << "* @";
+  if (Ctx)
+    Stream << Ctx->mangleName(Declaration->getName());
+  else
+    Stream << Declaration->getName();
+  Stream << " to ";
   dumpType(Stream);
   Stream << ")";
   if (Offset != 0) {

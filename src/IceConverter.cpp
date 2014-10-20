@@ -114,8 +114,11 @@ public:
   // global initializers.
   Ice::Constant *convertConstant(const Constant *Const) {
     if (const auto GV = dyn_cast<GlobalValue>(Const)) {
-      return Ctx->getConstantSym(convertToIceType(GV->getType()), 0,
-                                 GV->getName());
+      Ice::GlobalDeclaration *Decl = getConverter().getGlobalDeclaration(GV);
+      const Ice::RelocOffsetT Offset = 0;
+      return Ctx->getConstantSym(TypeConverter.getIcePointerType(),
+                                 Offset, Decl->getName(),
+                                 Decl->getSuppressMangling());
     } else if (const auto CI = dyn_cast<ConstantInt>(Const)) {
       Ice::Type Ty = convertToIceType(CI->getType());
       if (Ty == Ice::IceType_i64) {
@@ -690,21 +693,30 @@ void LLVM2ICEGlobalsConverter::convertGlobalsToIce(
   for (Module::const_global_iterator I = Mod->global_begin(),
                                      E = Mod->global_end();
        I != E; ++I) {
-    if (!I->hasInitializer() && Ctx->getFlags().AllowUninitializedGlobals)
-      continue;
 
     const GlobalVariable *GV = I;
-    Ice::IceString Name = GV->getName();
-    if (!GV->hasInternalLinkage()) {
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Can't define external global declaration: " << Name;
-      report_fatal_error(StrBuf.str());
-    }
 
     Ice::GlobalDeclaration *Var = getConverter().getGlobalDeclaration(GV);
     Ice::VariableDeclaration* VarDecl = cast<Ice::VariableDeclaration>(Var);
     VariableDeclarations.push_back(VarDecl);
+
+    if (!GV->hasInternalLinkage() && GV->hasInitializer()) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Can't define external global declaration: " << GV->getName();
+      report_fatal_error(StrBuf.str());
+    }
+
+    if (!GV->hasInitializer()) {
+      if (Ctx->getFlags().AllowUninitializedGlobals)
+        continue;
+      else {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Global declaration missing initializer: " << GV->getName();
+        report_fatal_error(StrBuf.str());
+      }
+    }
 
     const Constant *Initializer = GV->getInitializer();
     if (const auto CompoundInit = dyn_cast<ConstantStruct>(Initializer)) {
@@ -858,9 +870,7 @@ void Converter::installGlobalDeclarations(Module *Mod) {
     Var->setName(GV->getName());
     Var->setAlignment(GV->getAlignment());
     Var->setIsConstant(GV->isConstant());
-    // Note: We allow external for cross tests.
-    // TODO(kschimpf) Put behind flag AllowUninitializedGlobals.
-    Var->setIsInternal(!GV->isExternallyInitialized());
+    Var->setLinkage(GV->getLinkage());
     GlobalDeclarationMap[GV] = Var;
   }
 }

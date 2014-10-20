@@ -460,8 +460,13 @@ void ConstantRelocatable::emit(GlobalContext *Ctx) const {
   }
 }
 
-void ConstantRelocatable::dump(const Cfg *, Ostream &Str) const {
-  Str << "@" << Name;
+void ConstantRelocatable::dump(const Cfg *Func, Ostream &Str) const {
+  Str << "@";
+  if (Func && !SuppressMangling) {
+    Str << Func->getContext()->mangleName(Name);
+  } else {
+    Str << Name;
+  }
   if (Offset)
     Str << "+" << Offset;
 }

@@ -4448,10 +4448,14 @@ void TargetGlobalInitX8632::lower(const VariableDeclaration &Var) {
 
   const VariableDeclaration::InitializerListType &Initializers =
       Var.getInitializers();
-  assert(Initializers.size());
-  bool HasInitializer = Var.hasInitializer();
+
+  // If external and not initialized, this must be a cross test.
+  // Don't generate a declaration for such cases.
+  bool IsExternal = Var.isExternal();
+  if (IsExternal && !Var.hasInitializer()) return;
+
+  bool HasNonzeroInitializer = Var.hasNonzeroInitializer();
   bool IsConstant = Var.getIsConstant();
-  bool IsExternal = Var.getIsExternal();
   uint32_t Align = Var.getAlignment();
   SizeT Size = Var.getNumBytes();
   IceString MangledName = Var.mangleName(Ctx);
@@ -4463,7 +4467,7 @@ void TargetGlobalInitX8632::lower(const VariableDeclaration &Var) {
 
   if (IsConstant)
     Str << "\t.section\t.rodata" << SectionSuffix << ",\"a\",@progbits\n";
-  else if (HasInitializer)
+  else if (HasNonzeroInitializer)
     Str << "\t.section\t.data" << SectionSuffix << ",\"aw\",@progbits\n";
   else if (IsExternal)
     Str << "\t.section\t.bss" << SectionSuffix << ",\"aw\",@nobits\n";
@@ -4471,20 +4475,20 @@ void TargetGlobalInitX8632::lower(const VariableDeclaration &Var) {
 
   if (IsExternal)
     Str << "\t.globl\t" << MangledName << "\n";
-  else if (!IsConstant && !HasInitializer)
+  else if (!IsConstant && !HasNonzeroInitializer)
     Str << "\t.local\t" << MangledName << "\n";
   // Internal symbols only get .local when using .comm.
 
-  if ((IsConstant || HasInitializer || IsExternal) && Align > 1)
+  if ((IsConstant || HasNonzeroInitializer || IsExternal) && Align > 1)
     Str << "\t.align\t" << Align << "\n";
   // Alignment is part of .comm.
 
-  if (IsConstant || HasInitializer || IsExternal)
+  if (IsConstant || HasNonzeroInitializer || IsExternal)
     Str << MangledName << ":\n";
   else
     Str << "\t.comm\t" << MangledName << "," << Size << "," << Align << "\n";
 
-  if (HasInitializer) {
+  if (HasNonzeroInitializer) {
     for (VariableDeclaration::Initializer *Init : Initializers) {
       switch (Init->getKind()) {
       case VariableDeclaration::Initializer::DataInitializerKind: {
@@ -4526,7 +4530,7 @@ void TargetGlobalInitX8632::lower(const VariableDeclaration &Var) {
     Str << "\t.zero\t" << Size << "\n";
   // Size is part of .comm.
 
-  if (IsConstant || HasInitializer || IsExternal)
+  if (IsConstant || HasNonzeroInitializer || IsExternal)
     Str << "\t.size\t" << MangledName << ", " << Size << "\n";
   // Size is part of .comm.
 }

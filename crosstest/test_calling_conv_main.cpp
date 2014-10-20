@@ -45,9 +45,9 @@ namespace Subzero_ {
 // functions receive arguments from the caller in the same way.  The
 // caller is compiled by llc.
 
-size_t ArgNum, Subzero_ArgNum;
-CalleePtrTy Callee, Subzero_Callee;
-char *Buf, *Subzero_Buf;
+size_t ArgNum;
+CalleePtrTy Callee;
+char *Buf;
 
 const static size_t BUF_SIZE = 16;
 
@@ -83,13 +83,13 @@ void testCaller(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 
   for (size_t f = 0; f < NumFuncs; ++f) {
     char BufLlc[BUF_SIZE], BufSz[BUF_SIZE];
-    Callee = Subzero_Callee = Funcs[f].Callee;
+    Callee = Funcs[f].Callee;
 
     for (size_t i = 0; i < Funcs[f].Args; ++i) {
       memset(BufLlc, 0xff, sizeof(BufLlc));
       memset(BufSz, 0xff, sizeof(BufSz));
 
-      ArgNum = Subzero_ArgNum = i;
+      ArgNum = i;
 
       Buf = BufLlc;
       Funcs[f].Caller();
@@ -133,18 +133,18 @@ void testCallee(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 
   for (size_t f = 0; f < NumFuncs; ++f) {
     char BufLlc[BUF_SIZE], BufSz[BUF_SIZE];
-    Buf = BufLlc;
-    Subzero_Buf = BufSz;
 
     for (size_t i = 0; i < Funcs[f].Args; ++i) {
       memset(BufLlc, 0xff, sizeof(BufLlc));
       memset(BufSz, 0xff, sizeof(BufSz));
 
-      ArgNum = Subzero_ArgNum = i;
+      ArgNum = i;
 
+      Buf = BufLlc;
       Callee = Funcs[f].Callee;
       Funcs[f].Caller();
 
+      Buf = BufSz;
       Callee = Funcs[f].Subzero_Callee;
       Funcs[f].Caller();
 

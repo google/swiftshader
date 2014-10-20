@@ -88,7 +88,7 @@ void Translator::lowerGlobals(
   Ostream &Stream = Ctx->getStrDump();
   for (const Ice::VariableDeclaration *Global : VariableDeclarations) {
     if (DumpGlobalVariables)
-      Global->dump(Stream);
+      Global->dump(getContext(), Stream);
     if(!DisableTranslation)
       GlobalLowering->lower(*Global);
   }

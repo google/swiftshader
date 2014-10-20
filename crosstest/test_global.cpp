@@ -31,12 +31,6 @@ int ArrayInitFull[] = {10, 20, 30, 40, 50};
 const int ArrayConst[] = {-10, -20, -30};
 static double ArrayDouble[10] = { 0.5, 1.5, 2.5, 3.5 };
 
-#if 0
-// TODO(kschimpf) Add this example once we know how to not mangle
-// uninitialized, external globals (so that we can compare that
-// the same, unmangled relocations are used). See comment in
-// TargetGlobalInitX8632::lower in IceTargetLoweringX8632.cpp for
-// details.
 static struct {
   int Array1[5];
   uint8_t *Pointer1;
@@ -56,7 +50,6 @@ static struct {
   { ExternName3, {1000, 1010, 1020}, ExternName2 },
   ExternName5,
 };
-#endif
 
 #define ARRAY(a)                                                               \
   { (uint8_t *)(a), sizeof(a) }
@@ -74,7 +67,7 @@ struct {
       ARRAY(ArrayDouble),
       {(uint8_t *)(ArrayInitPartial + 2),
        sizeof(ArrayInitPartial) - 2 * sizeof(int)},
-      // { (uint8_t*)(&StructEx), sizeof(StructEx) },
+      { (uint8_t*)(&StructEx), sizeof(StructEx) },
 };
 size_t NumArraysElements = sizeof(Arrays) / sizeof(*Arrays);
 

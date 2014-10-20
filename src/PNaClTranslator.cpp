@@ -286,22 +286,30 @@ public:
 
     // If reached, no such constant exists, create one.
     // TODO(kschimpf) Don't get addresses of intrinsic function declarations.
-    std::string Name;
+    Ice::GlobalDeclaration *Decl = nullptr;
     unsigned FcnIDSize = FunctionDeclarationList.size();
     if (ID < FcnIDSize) {
-      Name = FunctionDeclarationList[ID]->getName();
+      Decl = FunctionDeclarationList[ID];
     } else if ((ID - FcnIDSize) < VariableDeclarations.size()) {
-      Name = VariableDeclarations[ID - FcnIDSize]->getName();
+      Decl = VariableDeclarations[ID - FcnIDSize];
+    }
+    std::string Name;
+    bool SuppressMangling;
+    if (Decl) {
+      Name = Decl->getName();
+      SuppressMangling = Decl->getSuppressMangling();
     } else {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Reference to global not defined: " << ID;
       Error(StrBuf.str());
+      // TODO(kschimpf) Remove error recovery once implementation complete.
       Name = "??";
+      SuppressMangling = false;
     }
     const Ice::RelocOffsetT Offset = 0;
     C = getTranslator().getContext()->getConstantSym(
-        getIcePointerType(), Offset, Name);
+        getIcePointerType(), Offset, Name, SuppressMangling);
     ValueIDConstants[ID] = C;
     return C;
   }
