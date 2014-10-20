@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3072e491_1d65b7b9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-10-20T04:50:57Z",
+      "side": 1,
+      "message": "Set the message to a short description of the patch, add a blank line after that, and then \"BUG\u003d17893069\".\n\nFor patches that require more explanation, the convention is to add a paragraph between the short description and the bug line. Unfortunately some tools don\u0027t wrap the lines automatically, so feel free to manually wrap to 80 characters.\n\nNote that you can change the patch message from within Gerrit, but remember to pull the change when doing more code edits afterwards or you\u0027ll get a conflict on push.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 39
+      },
+      "revId": "17d30633c66af382edc1ce0b51ad5ae6cfb882b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3072e491_bd4683eb",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-10-20T04:50:57Z",
+      "side": 1,
+      "message": "Nice catch, thanks!\n\nHistorically I\u0027ve used the namespace_filename_extension format. So in this case sw_Reactor_hpp.",
+      "range": {
+        "startLine": 12,
+        "startChar": 8,
+        "endLine": 12,
+        "endChar": 29
+      },
+      "revId": "17d30633c66af382edc1ce0b51ad5ae6cfb882b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3072e491_fd40fbd0",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-10-20T04:50:57Z",
+      "side": 1,
+      "message": "I use matching bracket indents, so this goes on the next line. Same for several more cases below.",
+      "range": {
+        "startLine": 20,
+        "startChar": 19,
+        "endLine": 20,
+        "endChar": 21
+      },
+      "revId": "17d30633c66af382edc1ce0b51ad5ae6cfb882b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3072e491_3d5353ad",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-10-20T04:50:57Z",
+      "side": 1,
+      "message": "I don\u0027t find \u0027Container\u0027 a very good name for these classes as it suggests some sort of storage. For lack of a better suggestion, how about \u0027Handler\u0027?",
+      "range": {
+        "startLine": 20,
+        "startChar": 7,
+        "endLine": 20,
+        "endChar": 19
+      },
+      "revId": "17d30633c66af382edc1ce0b51ad5ae6cfb882b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3072e491_5d500f9e",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-10-20T04:50:57Z",
+      "side": 1,
+      "message": "I tend to put the pointer modifier next to the variable name. The (debatable) justification is because that\u0027s how the C type system works. \"int* p, q;\" declares only one pointer, and is therefore confusing. It also makes it easier to interpret complex declarations with the right-to-left rule.",
+      "range": {
+        "startLine": 37,
+        "startChar": 18,
+        "endLine": 37,
+        "endChar": 20
+      },
+      "revId": "17d30633c66af382edc1ce0b51ad5ae6cfb882b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3072e491_dd3b3f62",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-10-20T04:50:57Z",
+      "side": 1,
+      "message": "For endifs that are not near their corresponding ifdef, I add a comment containing the condition:\n#endif   // sw_Reactor_hpp",
+      "range": {
+        "startLine": 114,
+        "startChar": 0,
+        "endLine": 114,
+        "endChar": 6
+      },
+      "revId": "17d30633c66af382edc1ce0b51ad5ae6cfb882b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
