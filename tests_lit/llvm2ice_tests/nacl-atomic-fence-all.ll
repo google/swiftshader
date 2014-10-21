@@ -3,14 +3,12 @@
 ; (unlike the non-"all" variety of nacl.atomic.fence, which only
 ; applies to atomic load/stores).
 ;
-; TODO(kschimpf) Find out why lc2i is needed.
-; RUN: %lc2i -i %s --args -O2 --verbose none \
+; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d -r -symbolize -x86-asm-syntax=intel - | FileCheck %s
 
 ; TODO(jvoung): llvm-objdump doesn't symbolize global symbols well, so we
-; have 0 == g32_a, 4 == g32_b, 8 == g32_c.
-; g32_d is also 0 because it's in the .data section instead of .bss.
+; have 0 == g32_a, 4 == g32_b, 8 == g32_c, 12 == g32_d
 
 declare void @llvm.nacl.atomic.fence.all()
 declare i32 @llvm.nacl.atomic.load.i32(i32*, i32)
@@ -19,7 +17,7 @@ declare void @llvm.nacl.atomic.store.i32(i32, i32*, i32)
 @g32_a = internal global [4 x i8] zeroinitializer, align 4
 @g32_b = internal global [4 x i8] zeroinitializer, align 4
 @g32_c = internal global [4 x i8] zeroinitializer, align 4
-@g32_d = internal global [4 x i8] c"\02\00\00\00", align 4
+@g32_d = internal global [4 x i8] zeroinitializer, align 4
 
 define i32 @test_fused_load_add_a() {
 entry:
@@ -33,12 +31,12 @@ entry:
   call void @llvm.nacl.atomic.store.i32(i32 %l_a2, i32* %p_a, i32 6)
 
   %p_b = bitcast [4 x i8]* @g32_b to i32*
-  %l_b = load i32* %p_b
+  %l_b = load i32* %p_b, align 1
   %l_b2 = add i32 %l_b, 1
   store i32 %l_b2, i32* %p_b, align 1
 
   %p_c = bitcast [4 x i8]* @g32_c to i32*
-  %l_c = load i32* %p_c
+  %l_c = load i32* %p_c, align 1
   %l_c2 = add i32 %l_c, 1
   call void @llvm.nacl.atomic.fence.all()
   store i32 %l_c2, i32* %p_c, align 1
@@ -50,19 +48,16 @@ entry:
 ; CHECK: mov {{.*}}, esp
 ; CHECK: mov dword ptr {{.*}}, 999
 ;    atomic store (w/ its own mfence)
-; CHECK: mov {{.*}}, 0
-; CHECK-NEXT:  R_386_32
 ; The load + add are optimized into one everywhere.
-; CHECK: add {{.*}}, dword ptr
+; CHECK: add {{.*}}, dword ptr [0]
+; CHECK-NEXT:  R_386_32
 ; CHECK: mov dword ptr
 ; CHECK: mfence
-; CHECK: mov {{.*}}, 4
+; CHECK: add {{.*}}, dword ptr [4]
 ; CHECK-NEXT:  R_386_32
-; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
-; CHECK: mov {{.*}}, 8
+; CHECK: add {{.*}}, dword ptr [8]
 ; CHECK-NEXT:  R_386_32
-; CHECK: add {{.*}}, dword ptr
 ; CHECK: mfence
 ; CHECK: mov dword ptr
 
@@ -79,13 +74,13 @@ entry:
   call void @llvm.nacl.atomic.store.i32(i32 %l_a2, i32* %p_a, i32 6)
 
   %p_b = bitcast [4 x i8]* @g32_b to i32*
-  %l_b = load i32* %p_b
+  %l_b = load i32* %p_b, align 1
   %l_b2 = add i32 %l_b, 1
   store i32 %l_b2, i32* %p_b, align 1
 
   %p_c = bitcast [4 x i8]* @g32_c to i32*
   call void @llvm.nacl.atomic.fence.all()
-  %l_c = load i32* %p_c
+  %l_c = load i32* %p_c, align 1
   %l_c2 = add i32 %l_c, 1
   store i32 %l_c2, i32* %p_c, align 1
 
@@ -96,21 +91,18 @@ entry:
 ; CHECK: mov {{.*}}, esp
 ; CHECK: mov dword ptr {{.*}}, 999
 ;    atomic store (w/ its own mfence)
-; CHECK: mov {{.*}}, 0
+; CHECK: add {{.*}}, dword ptr [0]
 ; CHECK-NEXT:  R_386_32
-; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
 ; CHECK: mfence
-; CHECK: mov {{.*}}, 4
+; CHECK: add {{.*}}, dword ptr [4]
 ; CHECK-NEXT:  R_386_32
-; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
-; CHECK: mov {{.*}}, 8
-; CHECK-NEXT:  R_386_32
 ; CHECK: mfence
 ; Load + add can still be optimized into one instruction
 ; because it is not separated by a fence.
-; CHECK: add {{.*}}, dword ptr
+; CHECK: add {{.*}}, dword ptr [8]
+; CHECK-NEXT:  R_386_32
 ; CHECK: mov dword ptr
 
 ; Test with the fence splitting a load/add.
@@ -126,13 +118,13 @@ entry:
   call void @llvm.nacl.atomic.store.i32(i32 %l_a2, i32* %p_a, i32 6)
 
   %p_b = bitcast [4 x i8]* @g32_b to i32*
-  %l_b = load i32* %p_b
+  %l_b = load i32* %p_b, align 1
   call void @llvm.nacl.atomic.fence.all()
   %l_b2 = add i32 %l_b, 1
   store i32 %l_b2, i32* %p_b, align 1
 
   %p_c = bitcast [4 x i8]* @g32_c to i32*
-  %l_c = load i32* %p_c
+  %l_c = load i32* %p_c, align 1
   %l_c2 = add i32 %l_c, 1
   store i32 %l_c2, i32* %p_c, align 1
 
@@ -143,23 +135,20 @@ entry:
 ; CHECK: mov {{.*}}, esp
 ; CHECK: mov dword ptr {{.*}}, 999
 ;    atomic store (w/ its own mfence)
-; CHECK: mov {{.*}}, 0
+; CHECK: add {{.*}}, dword ptr [0]
 ; CHECK-NEXT:  R_386_32
-; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
 ; CHECK: mfence
-; CHECK: mov {{.*}}, 4
-; CHECK-NEXT:  R_386_32
 ; This load + add are no longer optimized into one,
 ; though perhaps it should be legal as long as
 ; the load stays on the same side of the fence.
-; CHECK: mov {{.*}}, dword ptr
+; CHECK: mov {{.*}}, dword ptr [4]
+; CHECK-NEXT:  R_386_32
 ; CHECK: mfence
 ; CHECK: add {{.*}}, 1
 ; CHECK: mov dword ptr
-; CHECK: mov {{.*}}, 8
+; CHECK: add {{.*}}, dword ptr [8]
 ; CHECK-NEXT:  R_386_32
-; CHECK: add {{.*}}, dword ptr
 ; CHECK: mov dword ptr
 
 
@@ -168,22 +157,22 @@ entry:
 define i32 @could_have_fused_loads() {
 entry:
   %ptr1 = bitcast [4 x i8]* @g32_d to i8*
-  %b1 = load i8* %ptr1
+  %b1 = load i8* %ptr1, align 1
 
   %int_ptr2 = ptrtoint [4 x i8]* @g32_d to i32
   %int_ptr_bump2 = add i32 %int_ptr2, 1
   %ptr2 = inttoptr i32 %int_ptr_bump2 to i8*
-  %b2 = load i8* %ptr2
+  %b2 = load i8* %ptr2, align 1
 
   %int_ptr_bump3 = add i32 %int_ptr2, 2
   %ptr3 = inttoptr i32 %int_ptr_bump3 to i8*
-  %b3 = load i8* %ptr3
+  %b3 = load i8* %ptr3, align 1
 
   call void @llvm.nacl.atomic.fence.all()
 
   %int_ptr_bump4 = add i32 %int_ptr2, 3
   %ptr4 = inttoptr i32 %int_ptr_bump4 to i8*
-  %b4 = load i8* %ptr4
+  %b4 = load i8* %ptr4, align 1
 
   %b1.ext = zext i8 %b1 to i32
   %b2.ext = zext i8 %b2 to i32
@@ -198,9 +187,8 @@ entry:
   ret i32 %b1234
 }
 ; CHECK-LABEL: could_have_fused_loads
-; CHECK: mov {{.*}}, 0
+; CHECK: mov {{.*}}, byte ptr [12]
 ; CHECK-NEXT:  R_386_32
-; CHECK: mov {{.*}}, byte ptr
 ; CHECK: mov {{.*}}, byte ptr
 ; CHECK: mov {{.*}}, byte ptr
 ; CHECK: mfence
@@ -215,19 +203,19 @@ entry:
   %cmp = icmp eq i32 %x, 1
   br i1 %cmp, label %branch1, label %branch2
 branch1:
-  %y = load i32* %ptr
+  %y = load i32* %ptr, align 1
   ret i32 %y
 branch2:
   call void @llvm.nacl.atomic.fence.all()
-  %z = load i32* %ptr
+  %z = load i32* %ptr, align 1
   ret i32 %z
 }
 ; CHECK-LABEL: could_have_hoisted_loads
-; CHECK: mov {{.*}}, 0
-; CHECK-NEXT:  R_386_32
 ; CHECK: jne {{.*}}
-; CHECK: mov {{.*}}, dword ptr
+; CHECK: mov {{.*}}, dword ptr [12]
+; CHECK-NEXT:  R_386_32
 ; CHECK: ret
 ; CHECK: mfence
-; CHECK: mov {{.*}}, dword ptr
+; CHECK: mov {{.*}}, dword ptr [12]
+; CHECK-NEXT:  R_386_32
 ; CHECK: ret
