@@ -292,7 +292,7 @@ namespace sw
 		context->fogEnable = fogEnable;
 	}
 
-	void VertexProcessor::setVertexFogMode(Context::FogMode fogMode)
+	void VertexProcessor::setVertexFogMode(FogMode fogMode)
 	{
 		context->vertexFogMode = fogMode;
 	}
@@ -302,22 +302,22 @@ namespace sw
 		context->setColorVertexEnable(colorVertexEnable);
 	}
 
-	void VertexProcessor::setDiffuseMaterialSource(Context::MaterialSource diffuseMaterialSource)
+	void VertexProcessor::setDiffuseMaterialSource(MaterialSource diffuseMaterialSource)
 	{
 		context->setDiffuseMaterialSource(diffuseMaterialSource);
 	}
 
-	void VertexProcessor::setSpecularMaterialSource(Context::MaterialSource specularMaterialSource)
+	void VertexProcessor::setSpecularMaterialSource(MaterialSource specularMaterialSource)
 	{
 		context->setSpecularMaterialSource(specularMaterialSource);
 	}
 
-	void VertexProcessor::setAmbientMaterialSource(Context::MaterialSource ambientMaterialSource)
+	void VertexProcessor::setAmbientMaterialSource(MaterialSource ambientMaterialSource)
 	{
 		context->setAmbientMaterialSource(ambientMaterialSource);
 	}
 
-	void VertexProcessor::setEmissiveMaterialSource(Context::MaterialSource emissiveMaterialSource)
+	void VertexProcessor::setEmissiveMaterialSource(MaterialSource emissiveMaterialSource)
 	{
 		context->setEmissiveMaterialSource(emissiveMaterialSource);
 	}
@@ -414,7 +414,7 @@ namespace sw
 		}
 	}
 
-	void VertexProcessor::setTexGen(unsigned int stage, Context::TexGen texGen)
+	void VertexProcessor::setTexGen(unsigned int stage, TexGen texGen)
 	{
 		if(stage < 8)
 		{

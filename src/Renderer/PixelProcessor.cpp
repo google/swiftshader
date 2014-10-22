@@ -24,7 +24,7 @@
 namespace sw
 {
 	extern bool complementaryDepthBuffer;
-	extern Context::TransparencyAntialiasing transparencyAntialiasing;
+	extern TransparencyAntialiasing transparencyAntialiasing;
 	extern bool perspectiveCorrection;
 
 	bool precachePixel = false;
@@ -425,12 +425,12 @@ namespace sw
 		context->setDepthBufferEnable(depthBufferEnable);
 	}
 
-	void PixelProcessor::setDepthCompare(Context::DepthCompareMode depthCompareMode)
+	void PixelProcessor::setDepthCompare(DepthCompareMode depthCompareMode)
 	{
 		context->depthCompareMode = depthCompareMode;
 	}
 
-	void PixelProcessor::setAlphaCompare(Context::AlphaCompareMode alphaCompareMode)
+	void PixelProcessor::setAlphaCompare(AlphaCompareMode alphaCompareMode)
 	{
 		context->alphaCompareMode = alphaCompareMode;
 	}
@@ -445,7 +445,7 @@ namespace sw
 		context->alphaTestEnable = alphaTestEnable;
 	}
 
-	void PixelProcessor::setCullMode(Context::CullMode cullMode)
+	void PixelProcessor::setCullMode(CullMode cullMode)
 	{
 		context->cullMode = cullMode;
 	}
@@ -460,7 +460,7 @@ namespace sw
 		context->stencilEnable = stencilEnable;
 	}
 
-	void PixelProcessor::setStencilCompare(Context::StencilCompareMode stencilCompareMode)
+	void PixelProcessor::setStencilCompare(StencilCompareMode stencilCompareMode)
 	{
 		context->stencilCompareMode = stencilCompareMode;
 	}
@@ -489,17 +489,17 @@ namespace sw
 		stencilCCW.set(context->stencilReferenceCCW, stencilMaskCCW, context->stencilWriteMaskCCW);
 	}
 
-	void PixelProcessor::setStencilFailOperation(Context::StencilOperation stencilFailOperation)
+	void PixelProcessor::setStencilFailOperation(StencilOperation stencilFailOperation)
 	{
 		context->stencilFailOperation = stencilFailOperation;
 	}
 
-	void PixelProcessor::setStencilPassOperation(Context::StencilOperation stencilPassOperation)
+	void PixelProcessor::setStencilPassOperation(StencilOperation stencilPassOperation)
 	{
 		context->stencilPassOperation = stencilPassOperation;
 	}
 
-	void PixelProcessor::setStencilZFailOperation(Context::StencilOperation stencilZFailOperation)
+	void PixelProcessor::setStencilZFailOperation(StencilOperation stencilZFailOperation)
 	{
 		context->stencilZFailOperation = stencilZFailOperation;
 	}
@@ -521,22 +521,22 @@ namespace sw
 		context->twoSidedStencil = enable;
 	}
 
-	void PixelProcessor::setStencilCompareCCW(Context::StencilCompareMode stencilCompareMode)
+	void PixelProcessor::setStencilCompareCCW(StencilCompareMode stencilCompareMode)
 	{
 		context->stencilCompareModeCCW = stencilCompareMode;
 	}
 
-	void PixelProcessor::setStencilFailOperationCCW(Context::StencilOperation stencilFailOperation)
+	void PixelProcessor::setStencilFailOperationCCW(StencilOperation stencilFailOperation)
 	{
 		context->stencilFailOperationCCW = stencilFailOperation;
 	}
 
-	void PixelProcessor::setStencilPassOperationCCW(Context::StencilOperation stencilPassOperation)
+	void PixelProcessor::setStencilPassOperationCCW(StencilOperation stencilPassOperation)
 	{
 		context->stencilPassOperationCCW = stencilPassOperation;
 	}
 
-	void PixelProcessor::setStencilZFailOperationCCW(Context::StencilOperation stencilZFailOperation)
+	void PixelProcessor::setStencilZFailOperationCCW(StencilOperation stencilZFailOperation)
 	{
 		context->stencilZFailOperationCCW = stencilZFailOperation;
 	}
@@ -665,12 +665,12 @@ namespace sw
 		factor.invBlendConstant4F[3][3] = 1 - blendConstant.a;
 	}
 
-	void PixelProcessor::setFillMode(Context::FillMode fillMode)
+	void PixelProcessor::setFillMode(FillMode fillMode)
 	{
 		context->fillMode = fillMode;
 	}
 
-	void PixelProcessor::setShadingMode(Context::ShadingMode shadingMode)
+	void PixelProcessor::setShadingMode(ShadingMode shadingMode)
 	{
 		context->shadingMode = shadingMode;
 	}
@@ -680,17 +680,17 @@ namespace sw
 		context->setAlphaBlendEnable(alphaBlendEnable);
 	}
 
-	void PixelProcessor::setSourceBlendFactor(Context::BlendFactor sourceBlendFactor)
+	void PixelProcessor::setSourceBlendFactor(BlendFactor sourceBlendFactor)
 	{
 		context->setSourceBlendFactor(sourceBlendFactor);
 	}
 
-	void PixelProcessor::setDestBlendFactor(Context::BlendFactor destBlendFactor)
+	void PixelProcessor::setDestBlendFactor(BlendFactor destBlendFactor)
 	{
 		context->setDestBlendFactor(destBlendFactor);
 	}
 
-	void PixelProcessor::setBlendOperation(Context::BlendOperation blendOperation)
+	void PixelProcessor::setBlendOperation(BlendOperation blendOperation)
 	{
 		context->setBlendOperation(blendOperation);
 	}
@@ -700,17 +700,17 @@ namespace sw
 		context->setSeparateAlphaBlendEnable(separateAlphaBlendEnable);
 	}
 
-	void PixelProcessor::setSourceBlendFactorAlpha(Context::BlendFactor sourceBlendFactorAlpha)
+	void PixelProcessor::setSourceBlendFactorAlpha(BlendFactor sourceBlendFactorAlpha)
 	{
 		context->setSourceBlendFactorAlpha(sourceBlendFactorAlpha);
 	}
 
-	void PixelProcessor::setDestBlendFactorAlpha(Context::BlendFactor destBlendFactorAlpha)
+	void PixelProcessor::setDestBlendFactorAlpha(BlendFactor destBlendFactorAlpha)
 	{
 		context->setDestBlendFactorAlpha(destBlendFactorAlpha);
 	}
 
-	void PixelProcessor::setBlendOperationAlpha(Context::BlendOperation blendOperationAlpha)
+	void PixelProcessor::setBlendOperationAlpha(BlendOperation blendOperationAlpha)
 	{
 		context->setBlendOperationAlpha(blendOperationAlpha);
 	}
@@ -773,7 +773,7 @@ namespace sw
 		fog.densityE2 = replicate(fogDensity * 1.201122f);   // 1/e^(x^2) = 2^(-(x*1.20)^2)
 	}
 
-	void PixelProcessor::setPixelFogMode(Context::FogMode fogMode)
+	void PixelProcessor::setPixelFogMode(FogMode fogMode)
 	{
 		context->pixelFogMode = fogMode;
 	}
@@ -831,7 +831,7 @@ namespace sw
 		{
 			state.alphaCompareMode = context->alphaCompareMode;
 
-			state.transparencyAntialiasing = context->getMultiSampleCount() > 1 ? transparencyAntialiasing : Context::TRANSPARENCY_NONE;
+			state.transparencyAntialiasing = context->getMultiSampleCount() > 1 ? transparencyAntialiasing : TRANSPARENCY_NONE;
 		}
 
 		state.depthWriteEnable = context->depthWriteActive();
@@ -870,7 +870,7 @@ namespace sw
 
 		state.fogActive = context->fogActive();
 		state.pixelFogMode = context->pixelFogActive();
-		state.wBasedFog = context->wBasedFog && context->pixelFogActive() != Context::FOG_NONE;
+		state.wBasedFog = context->wBasedFog && context->pixelFogActive() != FOG_NONE;
 		state.perspective = context->perspectiveActive();
 
 		if(context->alphaBlendActive())
@@ -934,7 +934,7 @@ namespace sw
 
 		const bool point = context->isDrawPoint(true);
 		const bool sprite = context->pointSpriteActive();
-		const bool flatShading = (context->shadingMode == Context::SHADING_FLAT) || point;
+		const bool flatShading = (context->shadingMode == SHADING_FLAT) || point;
 
 		if(context->pixelShaderVersion() < 0x0300)
 		{

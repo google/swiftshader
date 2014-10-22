@@ -297,18 +297,18 @@ namespace sw
 
 					Vector4f diff;
 
-					if(state.vertexDiffuseMaterialSourceActive == Context::MATERIAL)
+					if(state.vertexDiffuseMaterialSourceActive == MATERIAL_MATERIAL)
 					{
 						diff.x = diff.y = diff.z = *Pointer<Float4>(r.data + OFFSET(DrawData,ff.materialDiffuse));   // FIXME: Unpack
 						diff.x = diff.x.xxxx;
 						diff.y = diff.y.yyyy;
 						diff.z = diff.z.zzzz;
 					}
-					else if(state.vertexDiffuseMaterialSourceActive == Context::COLOR1)
+					else if(state.vertexDiffuseMaterialSourceActive == MATERIAL_COLOR1)
 					{
 						diff = r.v[Color0];
 					}
-					else if(state.vertexDiffuseMaterialSourceActive == Context::COLOR2)
+					else if(state.vertexDiffuseMaterialSourceActive == MATERIAL_COLOR2)
 					{
 						diff = r.v[Color1];
 					}
@@ -347,7 +347,7 @@ namespace sw
 
 					Vector4f spec;
 
-					if(state.vertexSpecularMaterialSourceActive == Context::MATERIAL)
+					if(state.vertexSpecularMaterialSourceActive == MATERIAL_MATERIAL)
 					{
 						Float4 materialSpecular = *Pointer<Float4>(r.data + OFFSET(DrawData,ff.materialSpecular));   // FIXME: Unpack
 
@@ -355,11 +355,11 @@ namespace sw
 						spec.y = materialSpecular.y;
 						spec.z = materialSpecular.z;
 					}
-					else if(state.vertexSpecularMaterialSourceActive == Context::COLOR1)
+					else if(state.vertexSpecularMaterialSourceActive == MATERIAL_COLOR1)
 					{
 						spec = r.v[Color0];
 					}
-					else if(state.vertexSpecularMaterialSourceActive == Context::COLOR2)
+					else if(state.vertexSpecularMaterialSourceActive == MATERIAL_COLOR2)
 					{
 						spec = r.v[Color1];
 					}
@@ -391,7 +391,7 @@ namespace sw
 			r.o[D0].y = r.o[D0].y + globalAmbient.y;
 			r.o[D0].z = r.o[D0].z + globalAmbient.z;
 
-			if(state.vertexAmbientMaterialSourceActive == Context::MATERIAL)
+			if(state.vertexAmbientMaterialSourceActive == MATERIAL_MATERIAL)
 			{
 				Float4 materialAmbient = *Pointer<Float4>(r.data + OFFSET(DrawData,ff.materialAmbient));   // FIXME: Unpack
 
@@ -399,7 +399,7 @@ namespace sw
 				r.o[D0].y = r.o[D0].y * materialAmbient.y;
 				r.o[D0].z = r.o[D0].z * materialAmbient.z;
 			}
-			else if(state.vertexAmbientMaterialSourceActive == Context::COLOR1)
+			else if(state.vertexAmbientMaterialSourceActive == MATERIAL_COLOR1)
 			{
 				Vector4f materialDiffuse = r.v[Color0];
 
@@ -407,7 +407,7 @@ namespace sw
 				r.o[D0].y = r.o[D0].y * materialDiffuse.y;
 				r.o[D0].z = r.o[D0].z * materialDiffuse.z;
 			}
-			else if(state.vertexAmbientMaterialSourceActive == Context::COLOR2)
+			else if(state.vertexAmbientMaterialSourceActive == MATERIAL_COLOR2)
 			{
 				Vector4f materialSpecular = r.v[Color1];
 
@@ -422,7 +422,7 @@ namespace sw
 			r.o[D0].z = r.o[D0].z + diffuseSum.z;
 
 			// Emissive
-			if(state.vertexEmissiveMaterialSourceActive == Context::MATERIAL)
+			if(state.vertexEmissiveMaterialSourceActive == MATERIAL_MATERIAL)
 			{
 				Float4 materialEmission = *Pointer<Float4>(r.data + OFFSET(DrawData,ff.materialEmission));   // FIXME: Unpack
 
@@ -430,7 +430,7 @@ namespace sw
 				r.o[D0].y = r.o[D0].y + materialEmission.y;
 				r.o[D0].z = r.o[D0].z + materialEmission.z;
 			}
-			else if(state.vertexEmissiveMaterialSourceActive == Context::COLOR1)
+			else if(state.vertexEmissiveMaterialSourceActive == MATERIAL_COLOR1)
 			{
 				Vector4f materialSpecular = r.v[Color0];
 
@@ -438,7 +438,7 @@ namespace sw
 				r.o[D0].y = r.o[D0].y + materialSpecular.y;
 				r.o[D0].z = r.o[D0].z + materialSpecular.z;
 			}
-			else if(state.vertexEmissiveMaterialSourceActive == Context::COLOR2)
+			else if(state.vertexEmissiveMaterialSourceActive == MATERIAL_COLOR2)
 			{
 				Vector4f materialSpecular = r.v[Color1];
 
@@ -449,16 +449,16 @@ namespace sw
 			else ASSERT(false);
 
 			// Diffuse alpha component
-			if(state.vertexDiffuseMaterialSourceActive == Context::MATERIAL)
+			if(state.vertexDiffuseMaterialSourceActive == MATERIAL_MATERIAL)
 			{
 				r.o[D0].w = Float4(*Pointer<Float4>(r.data + OFFSET(DrawData,ff.materialDiffuse[0]))).wwww;   // FIXME: Unpack
 			}
-			else if(state.vertexDiffuseMaterialSourceActive == Context::COLOR1)
+			else if(state.vertexDiffuseMaterialSourceActive == MATERIAL_COLOR1)
 			{
 				Vector4f alpha = r.v[Color0];
 				r.o[D0].w = alpha.w;
 			}
-			else if(state.vertexDiffuseMaterialSourceActive == Context::COLOR2)
+			else if(state.vertexDiffuseMaterialSourceActive == MATERIAL_COLOR2)
 			{
 				Vector4f alpha = r.v[Color1];
 				r.o[D0].w = alpha.w;
@@ -468,16 +468,16 @@ namespace sw
 			if(state.vertexSpecularActive)
 			{
 				// Specular alpha component
-				if(state.vertexSpecularMaterialSourceActive == Context::MATERIAL)
+				if(state.vertexSpecularMaterialSourceActive == MATERIAL_MATERIAL)
 				{
 					r.o[D1].w = Float4(*Pointer<Float4>(r.data + OFFSET(DrawData,ff.materialSpecular[3]))).wwww;   // FIXME: Unpack
 				}
-				else if(state.vertexSpecularMaterialSourceActive == Context::COLOR1)
+				else if(state.vertexSpecularMaterialSourceActive == MATERIAL_COLOR1)
 				{
 					Vector4f alpha = r.v[Color0];
 					r.o[D1].w = alpha.w;
 				}
-				else if(state.vertexSpecularMaterialSourceActive == Context::COLOR2)
+				else if(state.vertexSpecularMaterialSourceActive == MATERIAL_COLOR2)
 				{
 					Vector4f alpha = r.v[Color1];
 					r.o[D1].w = alpha.w;
@@ -490,7 +490,7 @@ namespace sw
 		{
 			switch(state.vertexFogMode)
 			{
-			case Context::FOG_NONE:
+			case FOG_NONE:
 				if(state.specularActive)
 				{
 					r.o[Fog].x = r.o[D1].w;
@@ -500,9 +500,9 @@ namespace sw
 					r.o[Fog].x = Float4(0.0f);
 				}
 				break;
-			case Context::FOG_LINEAR:
-			case Context::FOG_EXP:
-			case Context::FOG_EXP2:
+			case FOG_LINEAR:
+			case FOG_EXP:
+			case FOG_EXP2:
 				if(!state.rangeFogActive)
 				{
 					r.o[Fog].x = r.o[Pos].z;
@@ -542,7 +542,7 @@ namespace sw
 
 			switch(state.textureState[stage].texGenActive)
 			{
-			case Context::TEXGEN_PASSTHRU:
+			case TEXGEN_PASSTHRU:
 				{
 					Vector4f v = r.v[TexCoord0 + i];
 
@@ -575,7 +575,7 @@ namespace sw
 					}
 				}
 				break;
-			case Context::TEXGEN_NORMAL:
+			case TEXGEN_NORMAL:
 				{
 					Vector4f Nc;   // Normal vector in camera space
 
@@ -598,7 +598,7 @@ namespace sw
 					r.o[T0 + stage].w = Nc.w;
 				}
 				break;
-			case Context::TEXGEN_POSITION:
+			case TEXGEN_POSITION:
 				{
 					Vector4f Pn = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);   // Position in camera space
 
@@ -610,7 +610,7 @@ namespace sw
 					r.o[T0 + stage].w = Pn.w;
 				}
 				break;
-			case Context::TEXGEN_REFLECTION:
+			case TEXGEN_REFLECTION:
 				{
 					Vector4f R;   // Reflection vector
 
@@ -661,7 +661,7 @@ namespace sw
 					r.o[T0 + stage].w = R.w;
 				}
 				break;
-			case Context::TEXGEN_SPHEREMAP:
+			case TEXGEN_SPHEREMAP:
 				{
 					Vector4f R;   // Reflection vector
 

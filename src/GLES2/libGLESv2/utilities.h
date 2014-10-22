@@ -55,14 +55,14 @@ namespace gl
 
 namespace es2sw
 {
-	sw::Context::DepthCompareMode ConvertDepthComparison(GLenum comparison);
-	sw::Context::StencilCompareMode ConvertStencilComparison(GLenum comparison);
+	sw::DepthCompareMode ConvertDepthComparison(GLenum comparison);
+	sw::StencilCompareMode ConvertStencilComparison(GLenum comparison);
 	sw::Color<float> ConvertColor(gl::Color color);
-	sw::Context::BlendFactor ConvertBlendFunc(GLenum blend);
-	sw::Context::BlendOperation ConvertBlendOp(GLenum blendOp);
-	sw::Context::StencilOperation ConvertStencilOp(GLenum stencilOp);
+	sw::BlendFactor ConvertBlendFunc(GLenum blend);
+	sw::BlendOperation ConvertBlendOp(GLenum blendOp);
+	sw::StencilOperation ConvertStencilOp(GLenum stencilOp);
 	sw::AddressingMode ConvertTextureWrap(GLenum wrap);
-	sw::Context::CullMode ConvertCullMode(GLenum cullFace, GLenum frontFace);
+	sw::CullMode ConvertCullMode(GLenum cullFace, GLenum frontFace);
 	unsigned int ConvertColorMask(bool red, bool green, bool blue, bool alpha);
 	sw::FilterType ConvertMagFilter(GLenum magFilter);
 	void ConvertMinFilter(GLenum texFilter, sw::FilterType *minFilter, sw::MipmapType *mipFilter, float maxAnisotropy);

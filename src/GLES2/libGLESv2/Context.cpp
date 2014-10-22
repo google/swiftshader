@@ -1725,7 +1725,7 @@ void Context::applyState(GLenum drawMode)
     }
     else
     {
-		device->setCullMode(sw::Context::CULL_NONE);
+		device->setCullMode(sw::CULL_NONE);
     }
 
     if(mDepthStateDirty)
@@ -1874,11 +1874,11 @@ void Context::applyState(GLenum drawMode)
     {
         if(mState.sampleAlphaToCoverage)
         {
-            device->setTransparencyAntialiasing(sw::Context::TRANSPARENCY_ALPHA_TO_COVERAGE);
+            device->setTransparencyAntialiasing(sw::TRANSPARENCY_ALPHA_TO_COVERAGE);
         }
 		else
 		{
-			device->setTransparencyAntialiasing(sw::Context::TRANSPARENCY_NONE);
+			device->setTransparencyAntialiasing(sw::TRANSPARENCY_NONE);
 		}
 
         if(mState.sampleCoverage)

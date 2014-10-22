@@ -31,54 +31,54 @@ namespace sw
 
 			int shaderID;
 
-			unsigned int depthOverride            : 1;
-			unsigned int shaderContainsKill       : 1;
+			bool depthOverride                        : 1;
+			bool shaderContainsKill                   : 1;
 
-			unsigned int depthCompareMode         : BITS(Context::DEPTH_LAST);
-			unsigned int alphaCompareMode         : BITS(Context::ALPHA_LAST);
-			unsigned int depthWriteEnable         : 1;
-			unsigned int quadLayoutDepthBuffer    : 1;
+			DepthCompareMode depthCompareMode         : BITS(DEPTH_LAST);
+			AlphaCompareMode alphaCompareMode         : BITS(ALPHA_LAST);
+			bool depthWriteEnable                     : 1;
+			bool quadLayoutDepthBuffer                : 1;
 
-			unsigned int stencilActive            : 1;
-			unsigned int stencilCompareMode       : BITS(Context::STENCIL_LAST);
-			unsigned int stencilFailOperation     : BITS(Context::OPERATION_LAST);
-			unsigned int stencilPassOperation     : BITS(Context::OPERATION_LAST);
-			unsigned int stencilZFailOperation    : BITS(Context::OPERATION_LAST);
-			unsigned int noStencilMask            : 1;
-			unsigned int noStencilWriteMask       : 1;
-			unsigned int stencilWriteMasked       : 1;
-			unsigned int twoSidedStencil          : 1;
-			unsigned int stencilCompareModeCCW    : BITS(Context::STENCIL_LAST);
-			unsigned int stencilFailOperationCCW  : BITS(Context::OPERATION_LAST);
-			unsigned int stencilPassOperationCCW  : BITS(Context::OPERATION_LAST);
-			unsigned int stencilZFailOperationCCW : BITS(Context::OPERATION_LAST);
-			unsigned int noStencilMaskCCW         : 1;
-			unsigned int noStencilWriteMaskCCW    : 1;
-			unsigned int stencilWriteMaskedCCW    : 1;
+			bool stencilActive                        : 1;
+			StencilCompareMode stencilCompareMode     : BITS(STENCIL_LAST);
+			StencilOperation stencilFailOperation     : BITS(OPERATION_LAST);
+			StencilOperation stencilPassOperation     : BITS(OPERATION_LAST);
+			StencilOperation stencilZFailOperation    : BITS(OPERATION_LAST);
+			bool noStencilMask                        : 1;
+			bool noStencilWriteMask                   : 1;
+			bool stencilWriteMasked                   : 1;
+			bool twoSidedStencil                      : 1;
+			StencilCompareMode stencilCompareModeCCW  : BITS(STENCIL_LAST);
+			StencilOperation stencilFailOperationCCW  : BITS(OPERATION_LAST);
+			StencilOperation stencilPassOperationCCW  : BITS(OPERATION_LAST);
+			StencilOperation stencilZFailOperationCCW : BITS(OPERATION_LAST);
+			bool noStencilMaskCCW                     : 1;
+			bool noStencilWriteMaskCCW                : 1;
+			bool stencilWriteMaskedCCW                : 1;
 
-			unsigned int depthTestActive          : 1;
-			unsigned int fogActive                : 1;
-			unsigned int pixelFogMode             : BITS(Context::FOG_LAST);
-			unsigned int specularAdd              : 1;
-			unsigned int occlusionEnabled         : 1;
-			unsigned int wBasedFog                : 1;
-			unsigned int perspective              : 1;
+			bool depthTestActive                      : 1;
+			bool fogActive                            : 1;
+			FogMode pixelFogMode                      : BITS(FOG_LAST);
+			bool specularAdd                          : 1;
+			bool occlusionEnabled                     : 1;
+			bool wBasedFog                            : 1;
+			bool perspective                          : 1;
 
-			unsigned int alphaBlendActive         : 1;
-			unsigned int sourceBlendFactor        : BITS(Context::BLEND_LAST);
-			unsigned int destBlendFactor          : BITS(Context::BLEND_LAST);
-			unsigned int blendOperation           : BITS(Context::BLENDOP_LAST);
-			unsigned int sourceBlendFactorAlpha   : BITS(Context::BLEND_LAST);
-			unsigned int destBlendFactorAlpha     : BITS(Context::BLEND_LAST);
-			unsigned int blendOperationAlpha      : BITS(Context::BLENDOP_LAST);
+			bool alphaBlendActive                     : 1;
+			BlendFactor sourceBlendFactor             : BITS(BLEND_LAST);
+			BlendFactor destBlendFactor               : BITS(BLEND_LAST);
+			BlendOperation blendOperation             : BITS(BLENDOP_LAST);
+			BlendFactor sourceBlendFactorAlpha        : BITS(BLEND_LAST);
+			BlendFactor destBlendFactorAlpha          : BITS(BLEND_LAST);
+			BlendOperation blendOperationAlpha        : BITS(BLENDOP_LAST);
 			
-			unsigned int colorWriteMask           : 16;   // (four times four component bit mask)
-			unsigned char targetFormat[4];
-			unsigned int writeSRGB                : 1;
-			unsigned int multiSample              : 3;
-			unsigned int multiSampleMask          : 4;
-			unsigned int transparencyAntialiasing : BITS(Context::TRANSPARENCY_LAST);
-			unsigned int centroid                 : 1;
+			unsigned int colorWriteMask                       : 16;   // (four times four component bit mask)
+			Format targetFormat[4];
+			bool writeSRGB                                    : 1;
+			unsigned int multiSample                          : 3;
+			unsigned int multiSampleMask                      : 4;
+			TransparencyAntialiasing transparencyAntialiasing : BITS(TRANSPARENCY_LAST);
+			bool centroid                                     : 1;
 
 			Sampler::State sampler[16];
 			TextureStage::State textureStage[8];
@@ -88,7 +88,7 @@ namespace sw
 				unsigned char component : 4;
 				unsigned char flat : 4;
 				unsigned char project : 2;
-				unsigned char centroid : 1;
+				bool centroid : 1;
 			};
 
 			union
@@ -117,12 +117,12 @@ namespace sw
 
 			bool alphaTestActive() const
 			{
-				return alphaCompareMode != Context::ALPHA_ALWAYS;
+				return alphaCompareMode != ALPHA_ALWAYS;
 			}
 
 			bool pixelFogActive() const
 			{
-				return pixelFogMode != Context::FOG_NONE;
+				return pixelFogMode != FOG_NONE;
 			}
 
 			unsigned int hash;
@@ -225,45 +225,45 @@ namespace sw
 
 		virtual void setWriteSRGB(bool sRGB);
 		virtual void setDepthBufferEnable(bool depthBufferEnable);
-		virtual void setDepthCompare(Context::DepthCompareMode depthCompareMode);
-		virtual void setAlphaCompare(Context::AlphaCompareMode alphaCompareMode);
+		virtual void setDepthCompare(DepthCompareMode depthCompareMode);
+		virtual void setAlphaCompare(AlphaCompareMode alphaCompareMode);
 		virtual void setDepthWriteEnable(bool depthWriteEnable);
 		virtual void setAlphaTestEnable(bool alphaTestEnable);
-		virtual void setCullMode(Context::CullMode cullMode);
+		virtual void setCullMode(CullMode cullMode);
 		virtual void setColorWriteMask(int index, int rgbaMask);
 
 		virtual void setStencilEnable(bool stencilEnable);
-		virtual void setStencilCompare(Context::StencilCompareMode stencilCompareMode);
+		virtual void setStencilCompare(StencilCompareMode stencilCompareMode);
 		virtual void setStencilReference(int stencilReference);
 		virtual void setStencilMask(int stencilMask);
-		virtual void setStencilFailOperation(Context::StencilOperation stencilFailOperation);
-		virtual void setStencilPassOperation(Context::StencilOperation stencilPassOperation);
-		virtual void setStencilZFailOperation(Context::StencilOperation stencilZFailOperation);
+		virtual void setStencilFailOperation(StencilOperation stencilFailOperation);
+		virtual void setStencilPassOperation(StencilOperation stencilPassOperation);
+		virtual void setStencilZFailOperation(StencilOperation stencilZFailOperation);
 		virtual void setStencilWriteMask(int stencilWriteMask);
 		virtual void setTwoSidedStencil(bool enable);
-		virtual void setStencilCompareCCW(Context::StencilCompareMode stencilCompareMode);
+		virtual void setStencilCompareCCW(StencilCompareMode stencilCompareMode);
 		virtual void setStencilReferenceCCW(int stencilReference);
 		virtual void setStencilMaskCCW(int stencilMask);
-		virtual void setStencilFailOperationCCW(Context::StencilOperation stencilFailOperation);
-		virtual void setStencilPassOperationCCW(Context::StencilOperation stencilPassOperation);
-		virtual void setStencilZFailOperationCCW(Context::StencilOperation stencilZFailOperation);
+		virtual void setStencilFailOperationCCW(StencilOperation stencilFailOperation);
+		virtual void setStencilPassOperationCCW(StencilOperation stencilPassOperation);
+		virtual void setStencilZFailOperationCCW(StencilOperation stencilZFailOperation);
 		virtual void setStencilWriteMaskCCW(int stencilWriteMask);
 
 		virtual void setTextureFactor(const Color<float> &textureFactor);
 		virtual void setBlendConstant(const Color<float> &blendConstant);
 
-		virtual void setFillMode(Context::FillMode fillMode);
-		virtual void setShadingMode(Context::ShadingMode shadingMode);
+		virtual void setFillMode(FillMode fillMode);
+		virtual void setShadingMode(ShadingMode shadingMode);
 		
 		virtual void setAlphaBlendEnable(bool alphaBlendEnable);
-		virtual void setSourceBlendFactor(Context::BlendFactor sourceBlendFactor);
-		virtual void setDestBlendFactor(Context::BlendFactor destBlendFactor);
-		virtual void setBlendOperation(Context::BlendOperation blendOperation);
+		virtual void setSourceBlendFactor(BlendFactor sourceBlendFactor);
+		virtual void setDestBlendFactor(BlendFactor destBlendFactor);
+		virtual void setBlendOperation(BlendOperation blendOperation);
 
 		virtual void setSeparateAlphaBlendEnable(bool separateAlphaBlendEnable);
-		virtual void setSourceBlendFactorAlpha(Context::BlendFactor sourceBlendFactorAlpha);
-		virtual void setDestBlendFactorAlpha(Context::BlendFactor destBlendFactorAlpha);
-		virtual void setBlendOperationAlpha(Context::BlendOperation blendOperationAlpha);
+		virtual void setSourceBlendFactorAlpha(BlendFactor sourceBlendFactorAlpha);
+		virtual void setDestBlendFactorAlpha(BlendFactor destBlendFactorAlpha);
+		virtual void setBlendOperationAlpha(BlendOperation blendOperationAlpha);
 
 		virtual void setAlphaReference(int alphaReference);
 
@@ -273,7 +273,7 @@ namespace sw
 		virtual void setFogEnd(float end);
 		virtual void setFogColor(Color<float> fogColor);
 		virtual void setFogDensity(float fogDensity);
-		virtual void setPixelFogMode(Context::FogMode fogMode);
+		virtual void setPixelFogMode(FogMode fogMode);
 
 		virtual void setPerspectiveCorrection(bool perspectiveCorrection);
 

@@ -34,27 +34,27 @@ namespace sw
 		{
 			unsigned int computeHash();
 
-			unsigned int isDrawPoint         : 1;
-			unsigned int isDrawLine          : 1;
-			unsigned int isDrawTriangle      : 1;
-			unsigned int isDrawSolidTriangle : 1;
-			unsigned int interpolateZ        : 1;
-			unsigned int interpolateW        : 1;
-			unsigned int perspective         : 1;
-			unsigned int pointSprite         : 1;
-			unsigned int positionRegister    : 4;
-			unsigned int pointSizeRegister   : 4;
-			unsigned int cullMode            : BITS(Context::CULL_LAST);
-			unsigned int twoSidedStencil     : 1;
-			unsigned int slopeDepthBias      : 1;
-			unsigned int vFace               : 1;
-			unsigned int multiSample         : 3;   // 1, 2 or 4
+			bool isDrawPoint               : 1;
+			bool isDrawLine                : 1;
+			bool isDrawTriangle            : 1;
+			bool isDrawSolidTriangle       : 1;
+			bool interpolateZ              : 1;
+			bool interpolateW              : 1;
+			bool perspective               : 1;
+			bool pointSprite               : 1;
+			unsigned int positionRegister  : 4;
+			unsigned int pointSizeRegister : 4;
+			CullMode cullMode              : BITS(CULL_LAST);
+			bool twoSidedStencil           : 1;
+			bool slopeDepthBias            : 1;
+			bool vFace                     : 1;
+			unsigned int multiSample       : 3;   // 1, 2 or 4
 
 			struct Gradient
 			{
 				unsigned char attribute : 6;
-				unsigned char flat : 1;
-				unsigned char wrap : 1;
+				bool flat               : 1;
+				bool wrap               : 1;
 			};
 
 			union

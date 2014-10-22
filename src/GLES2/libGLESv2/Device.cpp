@@ -37,48 +37,48 @@ namespace gl
 		renderTarget = 0;
 
 		setDepthBufferEnable(true);
-		setFillMode(Context::FILL_SOLID);
-		setShadingMode(Context::SHADING_GOURAUD);
+		setFillMode(FILL_SOLID);
+		setShadingMode(SHADING_GOURAUD);
 		setDepthWriteEnable(true);
 		setAlphaTestEnable(false);
-		setSourceBlendFactor(Context::BLEND_ONE);
-		setDestBlendFactor(Context::BLEND_ZERO);
-		setCullMode(Context::CULL_COUNTERCLOCKWISE);
-		setDepthCompare(Context::DEPTH_LESSEQUAL);
+		setSourceBlendFactor(BLEND_ONE);
+		setDestBlendFactor(BLEND_ZERO);
+		setCullMode(CULL_COUNTERCLOCKWISE);
+		setDepthCompare(DEPTH_LESSEQUAL);
 		setAlphaReference(0);
-		setAlphaCompare(Context::ALPHA_ALWAYS);
+		setAlphaCompare(ALPHA_ALWAYS);
 		setAlphaBlendEnable(false);
 		setFogEnable(false);
 		setSpecularEnable(false);
 		setFogColor(0);
-		setPixelFogMode(Context::FOG_NONE);
+		setPixelFogMode(FOG_NONE);
 		setFogStart(0.0f);
 		setFogEnd(1.0f);
 		setFogDensity(1.0f);
 		setRangeFogEnable(false);
 		setStencilEnable(false);
-		setStencilFailOperation(Context::OPERATION_KEEP);
-		setStencilZFailOperation(Context::OPERATION_KEEP);
-		setStencilPassOperation(Context::OPERATION_KEEP);
-		setStencilCompare(Context::STENCIL_ALWAYS);
+		setStencilFailOperation(OPERATION_KEEP);
+		setStencilZFailOperation(OPERATION_KEEP);
+		setStencilPassOperation(OPERATION_KEEP);
+		setStencilCompare(STENCIL_ALWAYS);
 		setStencilReference(0);
 		setStencilMask(0xFFFFFFFF);
 		setStencilWriteMask(0xFFFFFFFF);
-		setVertexFogMode(Context::FOG_NONE);
+		setVertexFogMode(FOG_NONE);
 		setClipFlags(0);
 		setPointSize(1.0f);
 		setPointSizeMin(0.125f);
 		setPointSpriteEnable(false);
         setPointSizeMax(8192.0f);
 		setColorWriteMask(0, 0x0000000F);
-		setBlendOperation(Context::BLENDOP_ADD);
+		setBlendOperation(BLENDOP_ADD);
 		scissorEnable = false;
 		setSlopeDepthBias(0.0f);
 		setTwoSidedStencil(false);
-		setStencilFailOperationCCW(Context::OPERATION_KEEP);
-		setStencilZFailOperationCCW(Context::OPERATION_KEEP);
-		setStencilPassOperationCCW(Context::OPERATION_KEEP);
-		setStencilCompareCCW(Context::STENCIL_ALWAYS);
+		setStencilFailOperationCCW(OPERATION_KEEP);
+		setStencilZFailOperationCCW(OPERATION_KEEP);
+		setStencilPassOperationCCW(OPERATION_KEEP);
+		setStencilCompareCCW(STENCIL_ALWAYS);
 		setColorWriteMask(1, 0x0000000F);
 		setColorWriteMask(2, 0x0000000F);
 		setColorWriteMask(3, 0x0000000F);
@@ -86,9 +86,9 @@ namespace gl
 		setWriteSRGB(false);
 		setDepthBias(0.0f);
 		setSeparateAlphaBlendEnable(false);
-		setSourceBlendFactorAlpha(Context::BLEND_ONE);
-		setDestBlendFactorAlpha(Context::BLEND_ZERO);
-		setBlendOperationAlpha(Context::BLENDOP_ADD);
+		setSourceBlendFactorAlpha(BLEND_ONE);
+		setDestBlendFactorAlpha(BLEND_ZERO);
+		setBlendOperationAlpha(BLENDOP_ADD);
 
 		for(int i = 0; i < 16; i++)
 		{
@@ -313,19 +313,19 @@ namespace gl
 			return;
 		}
 
-		Context::DrawType drawType;
+		DrawType drawType;
 
 		if(indexSize == 4)
 		{
 			switch(type)
 			{
-			case DRAW_POINTLIST:     drawType = Context::DRAW_INDEXEDPOINTLIST32;     break;
-			case DRAW_LINELIST:      drawType = Context::DRAW_INDEXEDLINELIST32;      break;
-			case DRAW_LINESTRIP:     drawType = Context::DRAW_INDEXEDLINESTRIP32;     break;
-			case DRAW_LINELOOP:      drawType = Context::DRAW_INDEXEDLINELOOP32;      break;
-			case DRAW_TRIANGLELIST:  drawType = Context::DRAW_INDEXEDTRIANGLELIST32;  break;
-			case DRAW_TRIANGLESTRIP: drawType = Context::DRAW_INDEXEDTRIANGLESTRIP32; break;
-			case DRAW_TRIANGLEFAN:   drawType = Context::DRAW_INDEXEDTRIANGLEFAN32;	  break;
+			case DRAW_POINTLIST:     drawType = sw::DRAW_INDEXEDPOINTLIST32;     break;
+			case DRAW_LINELIST:      drawType = sw::DRAW_INDEXEDLINELIST32;      break;
+			case DRAW_LINESTRIP:     drawType = sw::DRAW_INDEXEDLINESTRIP32;     break;
+			case DRAW_LINELOOP:      drawType = sw::DRAW_INDEXEDLINELOOP32;      break;
+			case DRAW_TRIANGLELIST:  drawType = sw::DRAW_INDEXEDTRIANGLELIST32;  break;
+			case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_INDEXEDTRIANGLESTRIP32; break;
+			case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_INDEXEDTRIANGLEFAN32;	  break;
 			default: UNREACHABLE();
 			}
 		}
@@ -333,13 +333,13 @@ namespace gl
 		{
 			switch(type)
 			{
-			case DRAW_POINTLIST:     drawType = Context::DRAW_INDEXEDPOINTLIST16;     break;
-			case DRAW_LINELIST:      drawType = Context::DRAW_INDEXEDLINELIST16;      break;
-			case DRAW_LINESTRIP:     drawType = Context::DRAW_INDEXEDLINESTRIP16;     break;
-			case DRAW_LINELOOP:      drawType = Context::DRAW_INDEXEDLINELOOP16;      break;
-			case DRAW_TRIANGLELIST:  drawType = Context::DRAW_INDEXEDTRIANGLELIST16;  break;
-			case DRAW_TRIANGLESTRIP: drawType = Context::DRAW_INDEXEDTRIANGLESTRIP16; break;
-			case DRAW_TRIANGLEFAN:   drawType = Context::DRAW_INDEXEDTRIANGLEFAN16;   break;
+			case DRAW_POINTLIST:     drawType = sw::DRAW_INDEXEDPOINTLIST16;     break;
+			case DRAW_LINELIST:      drawType = sw::DRAW_INDEXEDLINELIST16;      break;
+			case DRAW_LINESTRIP:     drawType = sw::DRAW_INDEXEDLINESTRIP16;     break;
+			case DRAW_LINELOOP:      drawType = sw::DRAW_INDEXEDLINELOOP16;      break;
+			case DRAW_TRIANGLELIST:  drawType = sw::DRAW_INDEXEDTRIANGLELIST16;  break;
+			case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_INDEXEDTRIANGLESTRIP16; break;
+			case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_INDEXEDTRIANGLEFAN16;   break;
 			default: UNREACHABLE();
 			}
 		}
@@ -347,13 +347,13 @@ namespace gl
 		{
 			switch(type)
 			{
-			case DRAW_POINTLIST:     drawType = Context::DRAW_INDEXEDPOINTLIST8;     break;
-			case DRAW_LINELIST:      drawType = Context::DRAW_INDEXEDLINELIST8;      break;
-			case DRAW_LINESTRIP:     drawType = Context::DRAW_INDEXEDLINESTRIP8;     break;
-			case DRAW_LINELOOP:      drawType = Context::DRAW_INDEXEDLINELOOP8;      break;
-			case DRAW_TRIANGLELIST:  drawType = Context::DRAW_INDEXEDTRIANGLELIST8;  break;
-			case DRAW_TRIANGLESTRIP: drawType = Context::DRAW_INDEXEDTRIANGLESTRIP8; break;
-			case DRAW_TRIANGLEFAN:   drawType = Context::DRAW_INDEXEDTRIANGLEFAN8;   break;
+			case DRAW_POINTLIST:     drawType = sw::DRAW_INDEXEDPOINTLIST8;     break;
+			case DRAW_LINELIST:      drawType = sw::DRAW_INDEXEDLINELIST8;      break;
+			case DRAW_LINESTRIP:     drawType = sw::DRAW_INDEXEDLINESTRIP8;     break;
+			case DRAW_LINELOOP:      drawType = sw::DRAW_INDEXEDLINELOOP8;      break;
+			case DRAW_TRIANGLELIST:  drawType = sw::DRAW_INDEXEDTRIANGLELIST8;  break;
+			case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_INDEXEDTRIANGLESTRIP8; break;
+			case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_INDEXEDTRIANGLEFAN8;   break;
 			default: UNREACHABLE();
 			}
 		}
@@ -373,17 +373,17 @@ namespace gl
 
 		setIndexBuffer(0);
 		
-		Context::DrawType drawType;
+		DrawType drawType;
 
 		switch(primitiveType)
 		{
-		case DRAW_POINTLIST:     drawType = Context::DRAW_POINTLIST;     break;
-		case DRAW_LINELIST:      drawType = Context::DRAW_LINELIST;      break;
-		case DRAW_LINESTRIP:     drawType = Context::DRAW_LINESTRIP;     break;
-		case DRAW_LINELOOP:      drawType = Context::DRAW_LINELOOP;      break;
-		case DRAW_TRIANGLELIST:  drawType = Context::DRAW_TRIANGLELIST;  break;
-		case DRAW_TRIANGLESTRIP: drawType = Context::DRAW_TRIANGLESTRIP; break;
-		case DRAW_TRIANGLEFAN:   drawType = Context::DRAW_TRIANGLEFAN;   break;
+		case DRAW_POINTLIST:     drawType = sw::DRAW_POINTLIST;     break;
+		case DRAW_LINELIST:      drawType = sw::DRAW_LINELIST;      break;
+		case DRAW_LINESTRIP:     drawType = sw::DRAW_LINESTRIP;     break;
+		case DRAW_LINELOOP:      drawType = sw::DRAW_LINELOOP;      break;
+		case DRAW_TRIANGLELIST:  drawType = sw::DRAW_TRIANGLELIST;  break;
+		case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_TRIANGLESTRIP; break;
+		case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_TRIANGLEFAN;   break;
 		default: UNREACHABLE();
 		}
 

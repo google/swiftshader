@@ -72,7 +72,7 @@ namespace sw
 		SAMPLER_VERTEX
 	};
 
-	enum TextureType
+	enum TextureType : unsigned int
 	{
 		TEXTURE_NULL,
 		TEXTURE_2D,
@@ -82,7 +82,7 @@ namespace sw
 		TEXTURE_LAST = TEXTURE_3D
 	};
 
-	enum FilterType
+	enum FilterType : unsigned int
 	{
 		FILTER_POINT,
 		FILTER_GATHER,
@@ -92,7 +92,7 @@ namespace sw
 		FILTER_LAST = FILTER_ANISOTROPIC
 	};
 
-	enum MipmapType
+	enum MipmapType : unsigned int
 	{
 		MIPMAP_NONE,
 		MIPMAP_POINT,
@@ -101,7 +101,7 @@ namespace sw
 		MIPMAP_LAST = MIPMAP_LINEAR
 	};
 
-	enum AddressingMode
+	enum AddressingMode : unsigned int
 	{
 		ADDRESSING_WRAP,
 		ADDRESSING_CLAMP,
@@ -119,18 +119,18 @@ namespace sw
 		{
 			State();
 
-			unsigned int textureType     : BITS(TEXTURE_LAST);
-			unsigned int textureFormat   : BITS(FORMAT_LAST);
-			unsigned int textureFilter   : BITS(FILTER_LAST);
-			unsigned int addressingModeU : BITS(ADDRESSING_LAST);
-			unsigned int addressingModeV : BITS(ADDRESSING_LAST);
-			unsigned int addressingModeW : BITS(ADDRESSING_LAST);
-			unsigned int mipmapFilter    : BITS(FILTER_LAST);
-			unsigned int hasNPOTTexture	 : 1;
-			unsigned int sRGB            : 1;
+			TextureType textureType        : BITS(TEXTURE_LAST);
+			Format textureFormat           : BITS(FORMAT_LAST);
+			FilterType textureFilter       : BITS(FILTER_LAST);
+			AddressingMode addressingModeU : BITS(ADDRESSING_LAST);
+			AddressingMode addressingModeV : BITS(ADDRESSING_LAST);
+			AddressingMode addressingModeW : BITS(ADDRESSING_LAST);
+			MipmapType mipmapFilter        : BITS(FILTER_LAST);
+			bool hasNPOTTexture	           : 1;
+			bool sRGB                      : 1;
 
 			#if PERF_PROFILE
-			bool compressedFormat        : 1;
+			bool compressedFormat          : 1;
 			#endif
 		};
 

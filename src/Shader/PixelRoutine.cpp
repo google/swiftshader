@@ -459,7 +459,7 @@ namespace sw
 			value &= *Pointer<Byte8>(r.data + OFFSET(DrawData,stencil[0].testMaskQ));
 		}
 
-		stencilTest(r, value, (Context::StencilCompareMode)state.stencilCompareMode, false);
+		stencilTest(r, value, state.stencilCompareMode, false);
 
 		if(state.twoSidedStencil)
 		{
@@ -468,7 +468,7 @@ namespace sw
 				valueCCW &= *Pointer<Byte8>(r.data + OFFSET(DrawData,stencil[1].testMaskQ));
 			}
 
-			stencilTest(r, valueCCW, (Context::StencilCompareMode)state.stencilCompareModeCCW, true);
+			stencilTest(r, valueCCW, state.stencilCompareModeCCW, true);
 
 			value &= *Pointer<Byte8>(r.primitive + OFFSET(Primitive,clockwiseMask));
 			valueCCW &= *Pointer<Byte8>(r.primitive + OFFSET(Primitive,invClockwiseMask));
@@ -478,43 +478,43 @@ namespace sw
 		sMask = SignMask(value) & cMask;
 	}
 
-	void PixelRoutine::stencilTest(Registers &r, Byte8 &value, Context::StencilCompareMode stencilCompareMode, bool CCW)
+	void PixelRoutine::stencilTest(Registers &r, Byte8 &value, StencilCompareMode stencilCompareMode, bool CCW)
 	{
 		Byte8 equal;
 
 		switch(stencilCompareMode)
 		{
-		case Context::STENCIL_ALWAYS:
+		case STENCIL_ALWAYS:
 			value = Byte8(0xFFFFFFFFFFFFFFFF);
 			break;
-		case Context::STENCIL_NEVER:
+		case STENCIL_NEVER:
 			value = Byte8(0x0000000000000000);
 			break;
-		case Context::STENCIL_LESS:			// a < b ~ b > a
+		case STENCIL_LESS:			// a < b ~ b > a
 			value += Byte8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
 			value = CmpGT(As<SByte8>(value), *Pointer<SByte8>(r.data + OFFSET(DrawData,stencil[CCW].referenceMaskedSignedQ)));
 			break;
-		case Context::STENCIL_EQUAL:
+		case STENCIL_EQUAL:
 			value = CmpEQ(value, *Pointer<Byte8>(r.data + OFFSET(DrawData,stencil[CCW].referenceMaskedQ)));
 			break;
-		case Context::STENCIL_NOTEQUAL:		// a != b ~ !(a == b)
+		case STENCIL_NOTEQUAL:		// a != b ~ !(a == b)
 			value = CmpEQ(value, *Pointer<Byte8>(r.data + OFFSET(DrawData,stencil[CCW].referenceMaskedQ)));
 			value ^= Byte8(0xFFFFFFFFFFFFFFFF);
 			break;
-		case Context::STENCIL_LESSEQUAL:	// a <= b ~ (b > a) || (a == b)
+		case STENCIL_LESSEQUAL:	// a <= b ~ (b > a) || (a == b)
 			equal = value;
 			equal = CmpEQ(equal, *Pointer<Byte8>(r.data + OFFSET(DrawData,stencil[CCW].referenceMaskedQ)));
 			value += Byte8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
 			value = CmpGT(As<SByte8>(value), *Pointer<SByte8>(r.data + OFFSET(DrawData,stencil[CCW].referenceMaskedSignedQ)));
 			value |= equal;
 			break;
-		case Context::STENCIL_GREATER:		// a > b
+		case STENCIL_GREATER:		// a > b
 			equal = *Pointer<Byte8>(r.data + OFFSET(DrawData,stencil[CCW].referenceMaskedSignedQ));
 			value += Byte8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
 			equal = CmpGT(As<SByte8>(equal), As<SByte8>(value));
 			value = equal;
 			break;
-		case Context::STENCIL_GREATEREQUAL:	// a >= b ~ !(a < b) ~ !(b > a)
+		case STENCIL_GREATEREQUAL:	// a >= b ~ !(a < b) ~ !(b > a)
 			value += Byte8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
 			value = CmpGT(As<SByte8>(value), *Pointer<SByte8>(r.data + OFFSET(DrawData,stencil[CCW].referenceMaskedSignedQ)));
 			value ^= Byte8(0xFFFFFFFFFFFFFFFF);
@@ -565,7 +565,7 @@ namespace sw
 
 		Float4 zValue;
 
-		if(state.depthCompareMode != Context::DEPTH_NEVER || (state.depthCompareMode != Context::DEPTH_ALWAYS && !state.depthWriteEnable))
+		if(state.depthCompareMode != DEPTH_NEVER || (state.depthCompareMode != DEPTH_ALWAYS && !state.depthWriteEnable))
 		{
 			if(!state.quadLayoutDepthBuffer)
 			{
@@ -583,19 +583,19 @@ namespace sw
 
 		switch(state.depthCompareMode)
 		{
-		case Context::DEPTH_ALWAYS:
+		case DEPTH_ALWAYS:
 			// Optimized
 			break;
-		case Context::DEPTH_NEVER:
+		case DEPTH_NEVER:
 			// Optimized
 			break;
-		case Context::DEPTH_EQUAL:
+		case DEPTH_EQUAL:
 			zTest = CmpEQ(zValue, Z);
 			break;
-		case Context::DEPTH_NOTEQUAL:
+		case DEPTH_NOTEQUAL:
 			zTest = CmpNEQ(zValue, Z);
 			break;
-		case Context::DEPTH_LESS:
+		case DEPTH_LESS:
 			if(complementaryDepthBuffer)
 			{
 				zTest = CmpLT(zValue, Z);
@@ -605,7 +605,7 @@ namespace sw
 				zTest = CmpNLE(zValue, Z);
 			}
 			break;
-		case Context::DEPTH_GREATEREQUAL:
+		case DEPTH_GREATEREQUAL:
 			if(complementaryDepthBuffer)
 			{
 				zTest = CmpNLT(zValue, Z);
@@ -615,7 +615,7 @@ namespace sw
 				zTest = CmpLE(zValue, Z);
 			}
 			break;
-		case Context::DEPTH_LESSEQUAL:
+		case DEPTH_LESSEQUAL:
 			if(complementaryDepthBuffer)
 			{
 				zTest = CmpLE(zValue, Z);
@@ -625,7 +625,7 @@ namespace sw
 				zTest = CmpNLT(zValue, Z);
 			}
 			break;
-		case Context::DEPTH_GREATER:
+		case DEPTH_GREATER:
 			if(complementaryDepthBuffer)
 			{
 				zTest = CmpNLE(zValue, Z);
@@ -641,10 +641,10 @@ namespace sw
 
 		switch(state.depthCompareMode)
 		{
-		case Context::DEPTH_ALWAYS:
+		case DEPTH_ALWAYS:
 			zMask = cMask;
 			break;
-		case Context::DEPTH_NEVER:
+		case DEPTH_NEVER:
 			zMask = 0x0;
 			break;
 		default:
@@ -1573,35 +1573,35 @@ namespace sw
 
 		switch(state.alphaCompareMode)
 		{
-		case Context::ALPHA_ALWAYS:
+		case ALPHA_ALWAYS:
 			aMask = 0xF;
 			break;
-		case Context::ALPHA_NEVER:
+		case ALPHA_NEVER:
 			aMask = 0x0;
 			break;
-		case Context::ALPHA_EQUAL:
+		case ALPHA_EQUAL:
 			cmp = CmpEQ(alpha, *Pointer<Short4>(r.data + OFFSET(DrawData,factor.alphaReference4)));
 			aMask = SignMask(Pack(cmp, Short4(0x0000, 0x0000, 0x0000, 0x0000)));
 			break;
-		case Context::ALPHA_NOTEQUAL:		// a != b ~ !(a == b)
+		case ALPHA_NOTEQUAL:		// a != b ~ !(a == b)
 			cmp = CmpEQ(alpha, *Pointer<Short4>(r.data + OFFSET(DrawData,factor.alphaReference4))) ^ Short4((short)0xFFFF, (short)0xFFFF, (short)0xFFFF, (short)0xFFFF);   // FIXME
 			aMask = SignMask(Pack(cmp, Short4(0x0000, 0x0000, 0x0000, 0x0000)));
 			break;
-		case Context::ALPHA_LESS:			// a < b ~ b > a
+		case ALPHA_LESS:			// a < b ~ b > a
 			cmp = CmpGT(*Pointer<Short4>(r.data + OFFSET(DrawData,factor.alphaReference4)), alpha);
 			aMask = SignMask(Pack(cmp, Short4(0x0000, 0x0000, 0x0000, 0x0000)));
 			break;
-		case Context::ALPHA_GREATEREQUAL:	// a >= b ~ (a > b) || (a == b) ~ !(b > a)   // TODO: Approximate
+		case ALPHA_GREATEREQUAL:	// a >= b ~ (a > b) || (a == b) ~ !(b > a)   // TODO: Approximate
 			equal = CmpEQ(alpha, *Pointer<Short4>(r.data + OFFSET(DrawData,factor.alphaReference4)));
 			cmp = CmpGT(alpha, *Pointer<Short4>(r.data + OFFSET(DrawData,factor.alphaReference4)));
 			cmp |= equal;
 			aMask = SignMask(Pack(cmp, Short4(0x0000, 0x0000, 0x0000, 0x0000)));
 			break;
-		case Context::ALPHA_LESSEQUAL:		// a <= b ~ !(a > b)
+		case ALPHA_LESSEQUAL:		// a <= b ~ !(a > b)
 			cmp = CmpGT(alpha, *Pointer<Short4>(r.data + OFFSET(DrawData,factor.alphaReference4))) ^ Short4((short)0xFFFF, (short)0xFFFF, (short)0xFFFF, (short)0xFFFF);   // FIXME
 			aMask = SignMask(Pack(cmp, Short4(0x0000, 0x0000, 0x0000, 0x0000)));
 			break;
-		case Context::ALPHA_GREATER:			// a > b
+		case ALPHA_GREATER:			// a > b
 			cmp = CmpGT(alpha, *Pointer<Short4>(r.data + OFFSET(DrawData,factor.alphaReference4)));
 			aMask = SignMask(Pack(cmp, Short4(0x0000, 0x0000, 0x0000, 0x0000)));
 			break;
@@ -1637,7 +1637,7 @@ namespace sw
 
 		Int aMask;
 
-		if(state.transparencyAntialiasing == Context::TRANSPARENCY_NONE)
+		if(state.transparencyAntialiasing == TRANSPARENCY_NONE)
 		{
 			alphaTest(r, aMask, current.w);
 
@@ -1646,7 +1646,7 @@ namespace sw
 				cMask[q] &= aMask;
 			}
 		}
-		else if(state.transparencyAntialiasing == Context::TRANSPARENCY_ALPHA_TO_COVERAGE)
+		else if(state.transparencyAntialiasing == TRANSPARENCY_ALPHA_TO_COVERAGE)
 		{
 			Float4 alpha = Float4(current.w) * Float4(1.0f / 0x1000);
 
@@ -1673,7 +1673,7 @@ namespace sw
 
 		Int aMask;
 
-		if(state.transparencyAntialiasing == Context::TRANSPARENCY_NONE)
+		if(state.transparencyAntialiasing == TRANSPARENCY_NONE)
 		{
 			Short4 alpha = RoundShort4(c0.w * Float4(0x1000));
 
@@ -1684,7 +1684,7 @@ namespace sw
 				cMask[q] &= aMask;
 			}
 		}
-		else if(state.transparencyAntialiasing == Context::TRANSPARENCY_ALPHA_TO_COVERAGE)
+		else if(state.transparencyAntialiasing == TRANSPARENCY_ALPHA_TO_COVERAGE)
 		{
 			alphaToCoverage(r, cMask, c0.w);
 		}
@@ -1707,7 +1707,7 @@ namespace sw
 			return;
 		}
 
-		if(state.pixelFogMode != Context::FOG_NONE)
+		if(state.pixelFogMode != FOG_NONE)
 		{
 			pixelFog(r, f, z, rhw);
 		}
@@ -1732,7 +1732,7 @@ namespace sw
 			return;
 		}
 
-		if(state.pixelFogMode != Context::FOG_NONE)
+		if(state.pixelFogMode != FOG_NONE)
 		{
 			pixelFog(r, fog, z, rhw);
 
@@ -1757,7 +1757,7 @@ namespace sw
 	{
 		Float4 &zw = visibility;
 
-		if(state.pixelFogMode != Context::FOG_NONE)
+		if(state.pixelFogMode != FOG_NONE)
 		{
 			if(state.wBasedFog)
 			{
@@ -1778,17 +1778,17 @@ namespace sw
 
 		switch(state.pixelFogMode)
 		{
-		case Context::FOG_NONE:
+		case FOG_NONE:
 			break;
-		case Context::FOG_LINEAR:
+		case FOG_LINEAR:
 			zw *= *Pointer<Float4>(r.data + OFFSET(DrawData,fog.scale));
 			zw += *Pointer<Float4>(r.data + OFFSET(DrawData,fog.offset));
 			break;
-		case Context::FOG_EXP:
+		case FOG_EXP:
 			zw *= *Pointer<Float4>(r.data + OFFSET(DrawData,fog.densityE));
 			zw = exponential2(zw, true);
 			break;
-		case Context::FOG_EXP2:
+		case FOG_EXP2:
 			zw *= *Pointer<Float4>(r.data + OFFSET(DrawData,fog.densityE2));
 			zw *= zw;
 			zw = exponential2(zw, true);
@@ -1852,7 +1852,7 @@ namespace sw
 
 		Float4 zValue;
 
-		if(state.depthCompareMode != Context::DEPTH_NEVER || (state.depthCompareMode != Context::DEPTH_ALWAYS && !state.depthWriteEnable))
+		if(state.depthCompareMode != DEPTH_NEVER || (state.depthCompareMode != DEPTH_ALWAYS && !state.depthWriteEnable))
 		{
 			if(!state.quadLayoutDepthBuffer)
 			{
@@ -1889,9 +1889,9 @@ namespace sw
 			return;
 		}
 
-		if(state.stencilPassOperation == Context::OPERATION_KEEP && state.stencilZFailOperation == Context::OPERATION_KEEP && state.stencilFailOperation == Context::OPERATION_KEEP)
+		if(state.stencilPassOperation == OPERATION_KEEP && state.stencilZFailOperation == OPERATION_KEEP && state.stencilFailOperation == OPERATION_KEEP)
 		{
-			if(!state.twoSidedStencil || (state.stencilPassOperationCCW == Context::OPERATION_KEEP && state.stencilZFailOperationCCW == Context::OPERATION_KEEP && state.stencilFailOperationCCW == Context::OPERATION_KEEP))
+			if(!state.twoSidedStencil || (state.stencilPassOperationCCW == OPERATION_KEEP && state.stencilZFailOperationCCW == OPERATION_KEEP && state.stencilFailOperationCCW == OPERATION_KEEP))
 			{
 				return;
 			}
@@ -1912,7 +1912,7 @@ namespace sw
 		Byte8 bufferValue = As<Byte8>(Long1(*Pointer<UInt>(buffer)));
 	
 		Byte8 newValue;
-		stencilOperation(r, newValue, bufferValue, (Context::StencilOperation)state.stencilPassOperation, (Context::StencilOperation)state.stencilZFailOperation, (Context::StencilOperation)state.stencilFailOperation, false, zMask, sMask);
+		stencilOperation(r, newValue, bufferValue, state.stencilPassOperation, state.stencilZFailOperation, state.stencilFailOperation, false, zMask, sMask);
 
 		if(!state.noStencilWriteMask)
 		{
@@ -1926,7 +1926,7 @@ namespace sw
 		{
 			Byte8 newValueCCW;
 
-			stencilOperation(r, newValueCCW, bufferValue, (Context::StencilOperation)state.stencilPassOperationCCW, (Context::StencilOperation)state.stencilZFailOperationCCW, (Context::StencilOperation)state.stencilFailOperationCCW, true, zMask, sMask);
+			stencilOperation(r, newValueCCW, bufferValue, state.stencilPassOperationCCW, state.stencilZFailOperationCCW, state.stencilFailOperationCCW, true, zMask, sMask);
 
 			if(!state.noStencilWriteMaskCCW)
 			{
@@ -1948,7 +1948,7 @@ namespace sw
 		*Pointer<UInt>(buffer) = UInt(As<Long>(newValue));
 	}
 
-	void PixelRoutine::stencilOperation(Registers &r, Byte8 &newValue, Byte8 &bufferValue, Context::StencilOperation stencilPassOperation, Context::StencilOperation stencilZFailOperation, Context::StencilOperation stencilFailOperation, bool CCW, Int &zMask, Int &sMask)
+	void PixelRoutine::stencilOperation(Registers &r, Byte8 &newValue, Byte8 &bufferValue, StencilOperation stencilPassOperation, StencilOperation stencilZFailOperation, StencilOperation stencilFailOperation, bool CCW, Int &zMask, Int &sMask)
 	{
 		Byte8 &pass = newValue;
 		Byte8 fail;
@@ -1981,32 +1981,32 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::stencilOperation(Registers &r, Byte8 &output, Byte8 &bufferValue, Context::StencilOperation operation, bool CCW)
+	void PixelRoutine::stencilOperation(Registers &r, Byte8 &output, Byte8 &bufferValue, StencilOperation operation, bool CCW)
 	{
 		switch(operation)
 		{
-		case Context::OPERATION_KEEP:
+		case OPERATION_KEEP:
 			output = bufferValue;
 			break;
-		case Context::OPERATION_ZERO:
+		case OPERATION_ZERO:
 			output = Byte8(0x0000000000000000);
 			break;
-		case Context::OPERATION_REPLACE:
+		case OPERATION_REPLACE:
 			output = *Pointer<Byte8>(r.data + OFFSET(DrawData,stencil[CCW].referenceQ));
 			break;
-		case Context::OPERATION_INCRSAT:
+		case OPERATION_INCRSAT:
 			output = AddSat(bufferValue, Byte8(1, 1, 1, 1, 1, 1, 1, 1));
 			break;
-		case Context::OPERATION_DECRSAT:
+		case OPERATION_DECRSAT:
 			output = SubSat(bufferValue, Byte8(1, 1, 1, 1, 1, 1, 1, 1));
 			break;
-		case Context::OPERATION_INVERT:
+		case OPERATION_INVERT:
 			output = bufferValue ^ Byte8(0xFFFFFFFFFFFFFFFF);
 			break;
-		case Context::OPERATION_INCR:
+		case OPERATION_INCR:
 			output = bufferValue + Byte8(1, 1, 1, 1, 1, 1, 1, 1);
 			break;
-		case Context::OPERATION_DECR:
+		case OPERATION_DECR:
 			output = bufferValue - Byte8(1, 1, 1, 1, 1, 1, 1, 1);
 			break;
 		default:
@@ -2284,78 +2284,78 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactor(Registers &r, const Vector4i &blendFactor, const Vector4i &current, const Vector4i &pixel, Context::BlendFactor blendFactorActive)
+	void PixelRoutine::blendFactor(Registers &r, const Vector4i &blendFactor, const Vector4i &current, const Vector4i &pixel, BlendFactor blendFactorActive)
 	{
 		switch(blendFactorActive)
 		{
-		case Context::BLEND_ZERO:
+		case BLEND_ZERO:
 			// Optimized
 			break;
-		case Context::BLEND_ONE:
+		case BLEND_ONE:
 			// Optimized
 			break;
-		case Context::BLEND_SOURCE:
+		case BLEND_SOURCE:
 			blendFactor.x = current.x;
 			blendFactor.y = current.y;
 			blendFactor.z = current.z;
 			break;
-		case Context::BLEND_INVSOURCE:
+		case BLEND_INVSOURCE:
 			blendFactor.x = Short4(0xFFFFu) - current.x;
 			blendFactor.y = Short4(0xFFFFu) - current.y;
 			blendFactor.z = Short4(0xFFFFu) - current.z;
 			break;
-		case Context::BLEND_DEST:
+		case BLEND_DEST:
 			blendFactor.x = pixel.x;
 			blendFactor.y = pixel.y;
 			blendFactor.z = pixel.z;
 			break;
-		case Context::BLEND_INVDEST:
+		case BLEND_INVDEST:
 			blendFactor.x = Short4(0xFFFFu) - pixel.x;
 			blendFactor.y = Short4(0xFFFFu) - pixel.y;
 			blendFactor.z = Short4(0xFFFFu) - pixel.z;
 			break;
-		case Context::BLEND_SOURCEALPHA:
+		case BLEND_SOURCEALPHA:
 			blendFactor.x = current.w;
 			blendFactor.y = current.w;
 			blendFactor.z = current.w;
 			break;
-		case Context::BLEND_INVSOURCEALPHA:
+		case BLEND_INVSOURCEALPHA:
 			blendFactor.x = Short4(0xFFFFu) - current.w;
 			blendFactor.y = Short4(0xFFFFu) - current.w;
 			blendFactor.z = Short4(0xFFFFu) - current.w;
 			break;
-		case Context::BLEND_DESTALPHA:
+		case BLEND_DESTALPHA:
 			blendFactor.x = pixel.w;
 			blendFactor.y = pixel.w;
 			blendFactor.z = pixel.w;
 			break;
-		case Context::BLEND_INVDESTALPHA:
+		case BLEND_INVDESTALPHA:
 			blendFactor.x = Short4(0xFFFFu) - pixel.w;
 			blendFactor.y = Short4(0xFFFFu) - pixel.w;
 			blendFactor.z = Short4(0xFFFFu) - pixel.w;
 			break;
-		case Context::BLEND_SRCALPHASAT:
+		case BLEND_SRCALPHASAT:
 			blendFactor.x = Short4(0xFFFFu) - pixel.w;
 			blendFactor.x = Min(As<UShort4>(blendFactor.x), As<UShort4>(current.w));
 			blendFactor.y = blendFactor.x;
 			blendFactor.z = blendFactor.x;
 			break;
-		case Context::BLEND_CONSTANT:
+		case BLEND_CONSTANT:
 			blendFactor.x = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.blendConstant4W[0]));
 			blendFactor.y = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.blendConstant4W[1]));
 			blendFactor.z = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.blendConstant4W[2]));
 			break;
-		case Context::BLEND_INVCONSTANT:
+		case BLEND_INVCONSTANT:
 			blendFactor.x = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.invBlendConstant4W[0]));
 			blendFactor.y = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.invBlendConstant4W[1]));
 			blendFactor.z = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.invBlendConstant4W[2]));
 			break;
-		case Context::BLEND_CONSTANTALPHA:
+		case BLEND_CONSTANTALPHA:
 			blendFactor.x = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.blendConstant4W[3]));
 			blendFactor.y = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.blendConstant4W[3]));
 			blendFactor.z = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.blendConstant4W[3]));
 			break;
-		case Context::BLEND_INVCONSTANTALPHA:
+		case BLEND_INVCONSTANTALPHA:
 			blendFactor.x = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.invBlendConstant4W[3]));
 			blendFactor.y = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.invBlendConstant4W[3]));
 			blendFactor.z = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.invBlendConstant4W[3]));
@@ -2365,49 +2365,49 @@ namespace sw
 		}
 	}
 	
-	void PixelRoutine::blendFactorAlpha(Registers &r, const Vector4i &blendFactor, const Vector4i &current, const Vector4i &pixel, Context::BlendFactor blendFactorAlphaActive)
+	void PixelRoutine::blendFactorAlpha(Registers &r, const Vector4i &blendFactor, const Vector4i &current, const Vector4i &pixel, BlendFactor blendFactorAlphaActive)
 	{
 		switch(blendFactorAlphaActive)
 		{
-		case Context::BLEND_ZERO:
+		case BLEND_ZERO:
 			// Optimized
 			break;
-		case Context::BLEND_ONE:
+		case BLEND_ONE:
 			// Optimized
 			break;
-		case Context::BLEND_SOURCE:
+		case BLEND_SOURCE:
 			blendFactor.w = current.w;
 			break;
-		case Context::BLEND_INVSOURCE:
+		case BLEND_INVSOURCE:
 			blendFactor.w = Short4(0xFFFFu) - current.w;
 			break;
-		case Context::BLEND_DEST:
+		case BLEND_DEST:
 			blendFactor.w = pixel.w;
 			break;
-		case Context::BLEND_INVDEST:
+		case BLEND_INVDEST:
 			blendFactor.w = Short4(0xFFFFu) - pixel.w;
 			break;
-		case Context::BLEND_SOURCEALPHA:
+		case BLEND_SOURCEALPHA:
 			blendFactor.w = current.w;
 			break;
-		case Context::BLEND_INVSOURCEALPHA:
+		case BLEND_INVSOURCEALPHA:
 			blendFactor.w = Short4(0xFFFFu) - current.w;
 			break;
-		case Context::BLEND_DESTALPHA:
+		case BLEND_DESTALPHA:
 			blendFactor.w = pixel.w;
 			break;
-		case Context::BLEND_INVDESTALPHA:
+		case BLEND_INVDESTALPHA:
 			blendFactor.w = Short4(0xFFFFu) - pixel.w;
 			break;
-		case Context::BLEND_SRCALPHASAT:
+		case BLEND_SRCALPHASAT:
 			blendFactor.w = Short4(0xFFFFu);
 			break;
-		case Context::BLEND_CONSTANT:
-		case Context::BLEND_CONSTANTALPHA:
+		case BLEND_CONSTANT:
+		case BLEND_CONSTANTALPHA:
 			blendFactor.w = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.blendConstant4W[3]));
 			break;
-		case Context::BLEND_INVCONSTANT:
-		case Context::BLEND_INVCONSTANTALPHA:
+		case BLEND_INVCONSTANT:
+		case BLEND_INVCONSTANTALPHA:
 			blendFactor.w = *Pointer<Short4>(r.data + OFFSET(DrawData,factor.invBlendConstant4W[3]));
 			break;
 		default:
@@ -2528,17 +2528,17 @@ namespace sw
 		Vector4i sourceFactor;
 		Vector4i destFactor;
 
-		blendFactor(r, sourceFactor, current, pixel, (Context::BlendFactor)state.sourceBlendFactor);
-		blendFactor(r, destFactor, current, pixel, (Context::BlendFactor)state.destBlendFactor);
+		blendFactor(r, sourceFactor, current, pixel, state.sourceBlendFactor);
+		blendFactor(r, destFactor, current, pixel, state.destBlendFactor);
 
-		if(state.sourceBlendFactor != Context::BLEND_ONE && state.sourceBlendFactor != Context::BLEND_ZERO)
+		if(state.sourceBlendFactor != BLEND_ONE && state.sourceBlendFactor != BLEND_ZERO)
 		{
 			current.x = MulHigh(As<UShort4>(current.x), As<UShort4>(sourceFactor.x));
 			current.y = MulHigh(As<UShort4>(current.y), As<UShort4>(sourceFactor.y));
 			current.z = MulHigh(As<UShort4>(current.z), As<UShort4>(sourceFactor.z));
 		}
 	
-		if(state.destBlendFactor != Context::BLEND_ONE && state.destBlendFactor != Context::BLEND_ZERO)
+		if(state.destBlendFactor != BLEND_ONE && state.destBlendFactor != BLEND_ZERO)
 		{
 			pixel.x = MulHigh(As<UShort4>(pixel.x), As<UShort4>(destFactor.x));
 			pixel.y = MulHigh(As<UShort4>(pixel.y), As<UShort4>(destFactor.y));
@@ -2547,40 +2547,40 @@ namespace sw
 
 		switch(state.blendOperation)
 		{
-		case Context::BLENDOP_ADD:
+		case BLENDOP_ADD:
 			current.x = AddSat(As<UShort4>(current.x), As<UShort4>(pixel.x));
 			current.y = AddSat(As<UShort4>(current.y), As<UShort4>(pixel.y));
 			current.z = AddSat(As<UShort4>(current.z), As<UShort4>(pixel.z));
 			break;
-		case Context::BLENDOP_SUB:
+		case BLENDOP_SUB:
 			current.x = SubSat(As<UShort4>(current.x), As<UShort4>(pixel.x));
 			current.y = SubSat(As<UShort4>(current.y), As<UShort4>(pixel.y));
 			current.z = SubSat(As<UShort4>(current.z), As<UShort4>(pixel.z));
 			break;
-		case Context::BLENDOP_INVSUB:
+		case BLENDOP_INVSUB:
 			current.x = SubSat(As<UShort4>(pixel.x), As<UShort4>(current.x));
 			current.y = SubSat(As<UShort4>(pixel.y), As<UShort4>(current.y));
 			current.z = SubSat(As<UShort4>(pixel.z), As<UShort4>(current.z));
 			break;
-		case Context::BLENDOP_MIN:
+		case BLENDOP_MIN:
 			current.x = Min(As<UShort4>(current.x), As<UShort4>(pixel.x));
 			current.y = Min(As<UShort4>(current.y), As<UShort4>(pixel.y));
 			current.z = Min(As<UShort4>(current.z), As<UShort4>(pixel.z));
 			break;
-		case Context::BLENDOP_MAX:
+		case BLENDOP_MAX:
 			current.x = Max(As<UShort4>(current.x), As<UShort4>(pixel.x));
 			current.y = Max(As<UShort4>(current.y), As<UShort4>(pixel.y));
 			current.z = Max(As<UShort4>(current.z), As<UShort4>(pixel.z));
 			break;
-		case Context::BLENDOP_SOURCE:
+		case BLENDOP_SOURCE:
 			// No operation
 			break;
-		case Context::BLENDOP_DEST:
+		case BLENDOP_DEST:
 			current.x = pixel.x;
 			current.y = pixel.y;
 			current.z = pixel.z;
 			break;
-		case Context::BLENDOP_NULL:
+		case BLENDOP_NULL:
 			current.x = Short4(0x0000, 0x0000, 0x0000, 0x0000);
 			current.y = Short4(0x0000, 0x0000, 0x0000, 0x0000);
 			current.z = Short4(0x0000, 0x0000, 0x0000, 0x0000);
@@ -2589,43 +2589,43 @@ namespace sw
 			ASSERT(false);
 		}
 
-		blendFactorAlpha(r, sourceFactor, current, pixel, (Context::BlendFactor)state.sourceBlendFactorAlpha);
-		blendFactorAlpha(r, destFactor, current, pixel, (Context::BlendFactor)state.destBlendFactorAlpha);
+		blendFactorAlpha(r, sourceFactor, current, pixel, state.sourceBlendFactorAlpha);
+		blendFactorAlpha(r, destFactor, current, pixel, state.destBlendFactorAlpha);
 
-		if(state.sourceBlendFactorAlpha != Context::BLEND_ONE && state.sourceBlendFactorAlpha != Context::BLEND_ZERO)
+		if(state.sourceBlendFactorAlpha != BLEND_ONE && state.sourceBlendFactorAlpha != BLEND_ZERO)
 		{
 			current.w = MulHigh(As<UShort4>(current.w), As<UShort4>(sourceFactor.w));
 		}
 	
-		if(state.destBlendFactorAlpha != Context::BLEND_ONE && state.destBlendFactorAlpha != Context::BLEND_ZERO)
+		if(state.destBlendFactorAlpha != BLEND_ONE && state.destBlendFactorAlpha != BLEND_ZERO)
 		{
 			pixel.w = MulHigh(As<UShort4>(pixel.w), As<UShort4>(destFactor.w));
 		}
 
 		switch(state.blendOperationAlpha)
 		{
-		case Context::BLENDOP_ADD:
+		case BLENDOP_ADD:
 			current.w = AddSat(As<UShort4>(current.w), As<UShort4>(pixel.w));
 			break;
-		case Context::BLENDOP_SUB:
+		case BLENDOP_SUB:
 			current.w = SubSat(As<UShort4>(current.w), As<UShort4>(pixel.w));
 			break;
-		case Context::BLENDOP_INVSUB:
+		case BLENDOP_INVSUB:
 			current.w = SubSat(As<UShort4>(pixel.w), As<UShort4>(current.w));
 			break;
-		case Context::BLENDOP_MIN:
+		case BLENDOP_MIN:
 			current.w = Min(As<UShort4>(current.w), As<UShort4>(pixel.w));
 			break;
-		case Context::BLENDOP_MAX:
+		case BLENDOP_MAX:
 			current.w = Max(As<UShort4>(current.w), As<UShort4>(pixel.w));
 			break;
-		case Context::BLENDOP_SOURCE:
+		case BLENDOP_SOURCE:
 			// No operation
 			break;
-		case Context::BLENDOP_DEST:
+		case BLENDOP_DEST:
 			current.w = pixel.w;
 			break;
-		case Context::BLENDOP_NULL:
+		case BLENDOP_NULL:
 			current.w = Short4(0x0000, 0x0000, 0x0000, 0x0000);
 			break;
 		default:
@@ -2984,68 +2984,68 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactor(Registers &r, const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, Context::BlendFactor blendFactorActive) 
+	void PixelRoutine::blendFactor(Registers &r, const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorActive) 
 	{
 		switch(blendFactorActive)
 		{
-		case Context::BLEND_ZERO:
+		case BLEND_ZERO:
 			// Optimized
 			break;
-		case Context::BLEND_ONE:
+		case BLEND_ONE:
 			// Optimized
 			break;
-		case Context::BLEND_SOURCE:
+		case BLEND_SOURCE:
 			blendFactor.x = oC.x;
 			blendFactor.y = oC.y;
 			blendFactor.z = oC.z;
 			break;
-		case Context::BLEND_INVSOURCE:
+		case BLEND_INVSOURCE:
 			blendFactor.x = Float4(1.0f) - oC.x;
 			blendFactor.y = Float4(1.0f) - oC.y;
 			blendFactor.z = Float4(1.0f) - oC.z;
 			break;
-		case Context::BLEND_DEST:
+		case BLEND_DEST:
 			blendFactor.x = pixel.x;
 			blendFactor.y = pixel.y;
 			blendFactor.z = pixel.z;
 			break;
-		case Context::BLEND_INVDEST:
+		case BLEND_INVDEST:
 			blendFactor.x = Float4(1.0f) - pixel.x;
 			blendFactor.y = Float4(1.0f) - pixel.y;
 			blendFactor.z = Float4(1.0f) - pixel.z;
 			break;
-		case Context::BLEND_SOURCEALPHA:
+		case BLEND_SOURCEALPHA:
 			blendFactor.x = oC.w;
 			blendFactor.y = oC.w;
 			blendFactor.z = oC.w;
 			break;
-		case Context::BLEND_INVSOURCEALPHA:
+		case BLEND_INVSOURCEALPHA:
 			blendFactor.x = Float4(1.0f) - oC.w;
 			blendFactor.y = Float4(1.0f) - oC.w;
 			blendFactor.z = Float4(1.0f) - oC.w;
 			break;
-		case Context::BLEND_DESTALPHA:
+		case BLEND_DESTALPHA:
 			blendFactor.x = pixel.w;
 			blendFactor.y = pixel.w;
 			blendFactor.z = pixel.w;
 			break;
-		case Context::BLEND_INVDESTALPHA:
+		case BLEND_INVDESTALPHA:
 			blendFactor.x = Float4(1.0f) - pixel.w;
 			blendFactor.y = Float4(1.0f) - pixel.w;
 			blendFactor.z = Float4(1.0f) - pixel.w;
 			break;
-		case Context::BLEND_SRCALPHASAT:
+		case BLEND_SRCALPHASAT:
 			blendFactor.x = Float4(1.0f) - pixel.w;
 			blendFactor.x = Min(blendFactor.x, oC.w);
 			blendFactor.y = blendFactor.x;
 			blendFactor.z = blendFactor.x;
 			break;
-		case Context::BLEND_CONSTANT:
+		case BLEND_CONSTANT:
 			blendFactor.x = *Pointer<Float4>(r.data + OFFSET(DrawData,factor.blendConstant4F[0]));
 			blendFactor.y = *Pointer<Float4>(r.data + OFFSET(DrawData,factor.blendConstant4F[1]));
 			blendFactor.z = *Pointer<Float4>(r.data + OFFSET(DrawData,factor.blendConstant4F[2]));
 			break;
-		case Context::BLEND_INVCONSTANT:
+		case BLEND_INVCONSTANT:
 			blendFactor.x = *Pointer<Float4>(r.data + OFFSET(DrawData,factor.invBlendConstant4F[0]));
 			blendFactor.y = *Pointer<Float4>(r.data + OFFSET(DrawData,factor.invBlendConstant4F[1]));
 			blendFactor.z = *Pointer<Float4>(r.data + OFFSET(DrawData,factor.invBlendConstant4F[2]));
@@ -3055,47 +3055,47 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactorAlpha(Registers &r, const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, Context::BlendFactor blendFactorAlphaActive) 
+	void PixelRoutine::blendFactorAlpha(Registers &r, const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorAlphaActive) 
 	{
 		switch(blendFactorAlphaActive)
 		{
-		case Context::BLEND_ZERO:
+		case BLEND_ZERO:
 			// Optimized
 			break;
-		case Context::BLEND_ONE:
+		case BLEND_ONE:
 			// Optimized
 			break;
-		case Context::BLEND_SOURCE:
+		case BLEND_SOURCE:
 			blendFactor.w = oC.w;
 			break;
-		case Context::BLEND_INVSOURCE:
+		case BLEND_INVSOURCE:
 			blendFactor.w = Float4(1.0f) - oC.w;
 			break;
-		case Context::BLEND_DEST:
+		case BLEND_DEST:
 			blendFactor.w = pixel.w;
 			break;
-		case Context::BLEND_INVDEST:
+		case BLEND_INVDEST:
 			blendFactor.w = Float4(1.0f) - pixel.w;
 			break;
-		case Context::BLEND_SOURCEALPHA:
+		case BLEND_SOURCEALPHA:
 			blendFactor.w = oC.w;
 			break;
-		case Context::BLEND_INVSOURCEALPHA:
+		case BLEND_INVSOURCEALPHA:
 			blendFactor.w = Float4(1.0f) - oC.w;
 			break;
-		case Context::BLEND_DESTALPHA:
+		case BLEND_DESTALPHA:
 			blendFactor.w = pixel.w;
 			break;
-		case Context::BLEND_INVDESTALPHA:
+		case BLEND_INVDESTALPHA:
 			blendFactor.w = Float4(1.0f) - pixel.w;
 			break;
-		case Context::BLEND_SRCALPHASAT:
+		case BLEND_SRCALPHASAT:
 			blendFactor.w = Float4(1.0f);
 			break;
-		case Context::BLEND_CONSTANT:
+		case BLEND_CONSTANT:
 			blendFactor.w = *Pointer<Float4>(r.data + OFFSET(DrawData,factor.blendConstant4F[3]));
 			break;
-		case Context::BLEND_INVCONSTANT:
+		case BLEND_INVCONSTANT:
 			blendFactor.w = *Pointer<Float4>(r.data + OFFSET(DrawData,factor.invBlendConstant4F[3]));
 			break;
 		default:
@@ -3271,17 +3271,17 @@ namespace sw
 		Vector4f sourceFactor;
 		Vector4f destFactor;
 
-		blendFactor(r, sourceFactor, oC, pixel, (Context::BlendFactor)state.sourceBlendFactor);
-		blendFactor(r, destFactor, oC, pixel, (Context::BlendFactor)state.destBlendFactor);
+		blendFactor(r, sourceFactor, oC, pixel, state.sourceBlendFactor);
+		blendFactor(r, destFactor, oC, pixel, state.destBlendFactor);
 
-		if(state.sourceBlendFactor != Context::BLEND_ONE && state.sourceBlendFactor != Context::BLEND_ZERO)
+		if(state.sourceBlendFactor != BLEND_ONE && state.sourceBlendFactor != BLEND_ZERO)
 		{
 			oC.x *= sourceFactor.x;
 			oC.y *= sourceFactor.y;
 			oC.z *= sourceFactor.z;
 		}
 	
-		if(state.destBlendFactor != Context::BLEND_ONE && state.destBlendFactor != Context::BLEND_ZERO)
+		if(state.destBlendFactor != BLEND_ONE && state.destBlendFactor != BLEND_ZERO)
 		{
 			pixel.x *= destFactor.x;
 			pixel.y *= destFactor.y;
@@ -3290,40 +3290,40 @@ namespace sw
 
 		switch(state.blendOperation)
 		{
-		case Context::BLENDOP_ADD:
+		case BLENDOP_ADD:
 			oC.x += pixel.x;
 			oC.y += pixel.y;
 			oC.z += pixel.z;
 			break;
-		case Context::BLENDOP_SUB:
+		case BLENDOP_SUB:
 			oC.x -= pixel.x;
 			oC.y -= pixel.y;
 			oC.z -= pixel.z;
 			break;
-		case Context::BLENDOP_INVSUB:
+		case BLENDOP_INVSUB:
 			oC.x = pixel.x - oC.x;
 			oC.y = pixel.y - oC.y;
 			oC.z = pixel.z - oC.z;
 			break;
-		case Context::BLENDOP_MIN:
+		case BLENDOP_MIN:
 			oC.x = Min(oC.x, pixel.x);
 			oC.y = Min(oC.y, pixel.y);
 			oC.z = Min(oC.z, pixel.z);
 			break;
-		case Context::BLENDOP_MAX:
+		case BLENDOP_MAX:
 			oC.x = Max(oC.x, pixel.x);
 			oC.y = Max(oC.y, pixel.y);
 			oC.z = Max(oC.z, pixel.z);
 			break;
-		case Context::BLENDOP_SOURCE:
+		case BLENDOP_SOURCE:
 			// No operation
 			break;
-		case Context::BLENDOP_DEST:
+		case BLENDOP_DEST:
 			oC.x = pixel.x;
 			oC.y = pixel.y;
 			oC.z = pixel.z;
 			break;
-		case Context::BLENDOP_NULL:
+		case BLENDOP_NULL:
 			oC.x = Float4(0.0f);
 			oC.y = Float4(0.0f);
 			oC.z = Float4(0.0f);
@@ -3332,44 +3332,44 @@ namespace sw
 			ASSERT(false);
 		}
 
-		blendFactorAlpha(r, sourceFactor, oC, pixel, (Context::BlendFactor)state.sourceBlendFactorAlpha);
-		blendFactorAlpha(r, destFactor, oC, pixel, (Context::BlendFactor)state.destBlendFactorAlpha);
+		blendFactorAlpha(r, sourceFactor, oC, pixel, state.sourceBlendFactorAlpha);
+		blendFactorAlpha(r, destFactor, oC, pixel, state.destBlendFactorAlpha);
 
-		if(state.sourceBlendFactorAlpha != Context::BLEND_ONE && state.sourceBlendFactorAlpha != Context::BLEND_ZERO)
+		if(state.sourceBlendFactorAlpha != BLEND_ONE && state.sourceBlendFactorAlpha != BLEND_ZERO)
 		{
 			oC.w *= sourceFactor.w;
 		}
 	
-		if(state.destBlendFactorAlpha != Context::BLEND_ONE && state.destBlendFactorAlpha != Context::BLEND_ZERO)
+		if(state.destBlendFactorAlpha != BLEND_ONE && state.destBlendFactorAlpha != BLEND_ZERO)
 		{
 			pixel.w *= destFactor.w;
 		}
 
 		switch(state.blendOperationAlpha)
 		{
-		case Context::BLENDOP_ADD:
+		case BLENDOP_ADD:
 			oC.w += pixel.w;
 			break;
-		case Context::BLENDOP_SUB:
+		case BLENDOP_SUB:
 			oC.w -= pixel.w;
 			break;
-		case Context::BLENDOP_INVSUB:
+		case BLENDOP_INVSUB:
 			pixel.w -= oC.w;
 			oC.w = pixel.w;
 			break;
-		case Context::BLENDOP_MIN:	
+		case BLENDOP_MIN:	
 			oC.w = Min(oC.w, pixel.w);
 			break;
-		case Context::BLENDOP_MAX:	
+		case BLENDOP_MAX:	
 			oC.w = Max(oC.w, pixel.w);
 			break;
-		case Context::BLENDOP_SOURCE:
+		case BLENDOP_SOURCE:
 			// No operation
 			break;
-		case Context::BLENDOP_DEST:
+		case BLENDOP_DEST:
 			oC.w = pixel.w;
 			break;
-		case Context::BLENDOP_NULL:
+		case BLENDOP_NULL:
 			oC.w = Float4(0.0f);
 			break;
 		default:
@@ -4140,7 +4140,7 @@ namespace sw
 
 		for(int i = 0; i < 4; i++)
 		{
-			if((Format)state.targetFormat[i] != FORMAT_NULL)
+			if(state.targetFormat[i] != FORMAT_NULL)
 			{
 				if(!out[i][0]) r.oC[i].x = Float4(0.0f);
 				if(!out[i][1]) r.oC[i].y = Float4(0.0f);

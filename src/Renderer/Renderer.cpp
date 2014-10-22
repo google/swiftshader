@@ -51,7 +51,7 @@ namespace sw
 	extern bool complementaryDepthBuffer;
 	extern bool postBlendSRGB;
 	extern bool exactColorRounding;
-	extern Context::TransparencyAntialiasing transparencyAntialiasing;
+	extern TransparencyAntialiasing transparencyAntialiasing;
 	extern bool forceClearRegisters;
 
 	extern bool precacheVertex;
@@ -191,7 +191,7 @@ namespace sw
 		blitter.blit(source, sRect, dest, dRect, filter);
 	}
 
-	void Renderer::draw(Context::DrawType drawType, unsigned int indexOffset, unsigned int count, bool update)
+	void Renderer::draw(DrawType drawType, unsigned int indexOffset, unsigned int count, bool update)
 	{
 		#ifndef NDEBUG
 			if(count < minPrimitives || count > maxPrimitives)
@@ -237,14 +237,14 @@ namespace sw
 			{
 				switch(context->fillMode)
 				{
-				case Context::FILL_SOLID:
+				case FILL_SOLID:
 					setupPrimitives = setupSolidTriangles;
 					break;
-				case Context::FILL_WIREFRAME:
+				case FILL_WIREFRAME:
 					setupPrimitives = setupWireframeTriangle;
 					batch = 1;
 					break;
-				case Context::FILL_VERTEX:
+				case FILL_VERTEX:
 					setupPrimitives = setupVertexTriangle;
 					batch = 1;
 					break;
@@ -440,7 +440,7 @@ namespace sw
 
 			data->factor = factor;
 
-			if(pixelState.transparencyAntialiasing == Context::TRANSPARENCY_ALPHA_TO_COVERAGE)
+			if(pixelState.transparencyAntialiasing == TRANSPARENCY_ALPHA_TO_COVERAGE)
 			{
 				float ref = (float)context->alphaReference * (1.0f / 255.0f);
 				float margin = sw::min(ref, 1.0f - ref);
@@ -954,7 +954,7 @@ namespace sw
 
 		switch(draw->drawType)
 		{
-		case Context::DRAW_POINTLIST:
+		case DRAW_POINTLIST:
 			{
 				unsigned int index = start;
 
@@ -968,7 +968,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_LINELIST:
+		case DRAW_LINELIST:
 			{
 				unsigned int index = 2 * start;
 
@@ -982,7 +982,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_LINESTRIP:
+		case DRAW_LINESTRIP:
 			{
 				unsigned int index = start;
 
@@ -996,7 +996,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_LINELOOP:
+		case DRAW_LINELOOP:
 			{
 				unsigned int index = start;
 
@@ -1010,7 +1010,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_TRIANGLELIST:
+		case DRAW_TRIANGLELIST:
 			{
 				unsigned int index = 3 * start;
 
@@ -1024,7 +1024,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_TRIANGLESTRIP:
+		case DRAW_TRIANGLESTRIP:
 			{
 				unsigned int index = start;
 
@@ -1038,7 +1038,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_TRIANGLEFAN:
+		case DRAW_TRIANGLEFAN:
 			{
 				unsigned int index = start;
 
@@ -1052,7 +1052,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDPOINTLIST8:
+		case DRAW_INDEXEDPOINTLIST8:
 			{
 				const unsigned char *index = (const unsigned char*)indices + start;
 
@@ -1066,7 +1066,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDPOINTLIST16:
+		case DRAW_INDEXEDPOINTLIST16:
 			{
 				const unsigned short *index = (const unsigned short*)indices + start;
 
@@ -1080,7 +1080,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDPOINTLIST32:
+		case DRAW_INDEXEDPOINTLIST32:
 			{
 				const unsigned int *index = (const unsigned int*)indices + start;
 
@@ -1094,7 +1094,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDLINELIST8:
+		case DRAW_INDEXEDLINELIST8:
 			{
 				const unsigned char *index = (const unsigned char*)indices + 2 * start;
 
@@ -1108,7 +1108,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDLINELIST16:
+		case DRAW_INDEXEDLINELIST16:
 			{
 				const unsigned short *index = (const unsigned short*)indices + 2 * start;
 
@@ -1122,7 +1122,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDLINELIST32:
+		case DRAW_INDEXEDLINELIST32:
 			{
 				const unsigned int *index = (const unsigned int*)indices + 2 * start;
 
@@ -1136,7 +1136,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDLINESTRIP8:
+		case DRAW_INDEXEDLINESTRIP8:
 			{
 				const unsigned char *index = (const unsigned char*)indices + start;
 
@@ -1150,7 +1150,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDLINESTRIP16:
+		case DRAW_INDEXEDLINESTRIP16:
 			{
 				const unsigned short *index = (const unsigned short*)indices + start;
 
@@ -1164,7 +1164,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDLINESTRIP32:
+		case DRAW_INDEXEDLINESTRIP32:
 			{
 				const unsigned int *index = (const unsigned int*)indices + start;
 
@@ -1178,7 +1178,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDLINELOOP8:
+		case DRAW_INDEXEDLINELOOP8:
 			{
 				const unsigned char *index = (const unsigned char*)indices;
 
@@ -1190,7 +1190,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDLINELOOP16:
+		case DRAW_INDEXEDLINELOOP16:
 			{
 				const unsigned short *index = (const unsigned short*)indices;
 
@@ -1202,7 +1202,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDLINELOOP32:
+		case DRAW_INDEXEDLINELOOP32:
 			{
 				const unsigned int *index = (const unsigned int*)indices;
 
@@ -1214,7 +1214,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDTRIANGLELIST8:
+		case DRAW_INDEXEDTRIANGLELIST8:
 			{
 				const unsigned char *index = (const unsigned char*)indices + 3 * start;
 
@@ -1228,7 +1228,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDTRIANGLELIST16:
+		case DRAW_INDEXEDTRIANGLELIST16:
 			{
 				const unsigned short *index = (const unsigned short*)indices + 3 * start;
 
@@ -1242,7 +1242,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDTRIANGLELIST32:
+		case DRAW_INDEXEDTRIANGLELIST32:
 			{
 				const unsigned int *index = (const unsigned int*)indices + 3 * start;
 
@@ -1256,7 +1256,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDTRIANGLESTRIP8:
+		case DRAW_INDEXEDTRIANGLESTRIP8:
 			{
 				const unsigned char *index = (const unsigned char*)indices + start;
 
@@ -1270,7 +1270,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDTRIANGLESTRIP16:
+		case DRAW_INDEXEDTRIANGLESTRIP16:
 			{
 				const unsigned short *index = (const unsigned short*)indices + start;
 
@@ -1284,7 +1284,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDTRIANGLESTRIP32:
+		case DRAW_INDEXEDTRIANGLESTRIP32:
 			{
 				const unsigned int *index = (const unsigned int*)indices + start;
 
@@ -1298,7 +1298,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDTRIANGLEFAN8:
+		case DRAW_INDEXEDTRIANGLEFAN8:
 			{
 				const unsigned char *index = (const unsigned char*)indices;
 
@@ -1310,7 +1310,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDTRIANGLEFAN16:
+		case DRAW_INDEXEDTRIANGLEFAN16:
 			{
 				const unsigned short *index = (const unsigned short*)indices;
 
@@ -1322,7 +1322,7 @@ namespace sw
 				}
 			}
 			break;
-		case Context::DRAW_INDEXEDTRIANGLEFAN32:
+		case DRAW_INDEXEDTRIANGLEFAN32:
 			{
 				const unsigned int *index = (const unsigned int*)indices;
 
@@ -1403,11 +1403,11 @@ namespace sw
 
 		float d = (v0.y * v1.x - v0.x * v1.y) * v2.w + (v0.x * v2.y - v0.y * v2.x) * v1.w + (v2.x * v1.y - v1.x * v2.y) * v0.w;
 
-		if(state.cullMode == Context::CULL_CLOCKWISE)
+		if(state.cullMode == CULL_CLOCKWISE)
 		{
 			if(d >= 0) return 0;
 		}
-		else if(state.cullMode == Context::CULL_COUNTERCLOCKWISE)
+		else if(state.cullMode == CULL_COUNTERCLOCKWISE)
 		{
 			if(d <= 0) return 0;
 		}
@@ -1460,11 +1460,11 @@ namespace sw
 
 		float d = (v0.y * v1.x - v0.x * v1.y) * v2.w + (v0.x * v2.y - v0.y * v2.x) * v1.w + (v2.x * v1.y - v1.x * v2.y) * v0.w;
 
-		if(state.cullMode == Context::CULL_CLOCKWISE)
+		if(state.cullMode == CULL_CLOCKWISE)
 		{
 			if(d >= 0) return 0;
 		}
-		else if(state.cullMode == Context::CULL_COUNTERCLOCKWISE)
+		else if(state.cullMode == CULL_COUNTERCLOCKWISE)
 		{
 			if(d <= 0) return 0;
 		}
@@ -1997,7 +1997,7 @@ namespace sw
 		context->sampleMask = mask;
 	}
 
-	void Renderer::setTransparencyAntialiasing(Context::TransparencyAntialiasing transparencyAntialiasing)
+	void Renderer::setTransparencyAntialiasing(TransparencyAntialiasing transparencyAntialiasing)
 	{
 		sw::transparencyAntialiasing = transparencyAntialiasing;
 	}
@@ -2488,9 +2488,9 @@ namespace sw
 
 			switch(configuration.transparencyAntialiasing)
 			{
-			case 0:  transparencyAntialiasing = Context::TRANSPARENCY_NONE;              break;
-			case 1:  transparencyAntialiasing = Context::TRANSPARENCY_ALPHA_TO_COVERAGE; break;
-			default: transparencyAntialiasing = Context::TRANSPARENCY_NONE;              break;
+			case 0:  transparencyAntialiasing = TRANSPARENCY_NONE;              break;
+			case 1:  transparencyAntialiasing = TRANSPARENCY_ALPHA_TO_COVERAGE; break;
+			default: transparencyAntialiasing = TRANSPARENCY_NONE;              break;
 			}
 
 			switch(configuration.threadCount)

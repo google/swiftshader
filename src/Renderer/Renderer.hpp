@@ -165,7 +165,7 @@ namespace sw
 
 		~DrawCall();
 
-		Context::DrawType drawType;
+		DrawType drawType;
 		int batchSize;
 
 		Routine *vertexRoutine;
@@ -270,12 +270,12 @@ namespace sw
 		virtual ~Renderer();
 
 		virtual void blit(Surface *source, const Rect &sRect, Surface *dest, const Rect &dRect, bool filter);
-		virtual void draw(Context::DrawType drawType, unsigned int indexOffset, unsigned int count, bool update = true);
+		virtual void draw(DrawType drawType, unsigned int indexOffset, unsigned int count, bool update = true);
 
 		virtual void setIndexBuffer(Resource *indexBuffer);
 
 		virtual void setMultiSampleMask(unsigned int mask);
-		virtual void setTransparencyAntialiasing(Context::TransparencyAntialiasing transparencyAntialiasing);
+		virtual void setTransparencyAntialiasing(TransparencyAntialiasing transparencyAntialiasing);
 
 		virtual void setTextureResource(unsigned int sampler, Resource *resource);
 		virtual void setTextureLevel(unsigned int sampler, unsigned int face, unsigned int level, Surface *surface, TextureType type);

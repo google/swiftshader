@@ -420,7 +420,7 @@ namespace sw
 
 		Short4 borderMask;
 
-		if((AddressingMode)state.addressingModeU == ADDRESSING_BORDER)
+		if(state.addressingModeU == ADDRESSING_BORDER)
 		{
 			Short4 u0;
 			
@@ -429,13 +429,13 @@ namespace sw
 			borderMask = u0;
 		}
 
-		if((AddressingMode)state.addressingModeV == ADDRESSING_BORDER)
+		if(state.addressingModeV == ADDRESSING_BORDER)
 		{
 			Short4 v0;
 			
 			border(v0, v);
 
-			if((AddressingMode)state.addressingModeU == ADDRESSING_BORDER)
+			if(state.addressingModeU == ADDRESSING_BORDER)
 			{
 				borderMask &= v0;
 			}
@@ -445,14 +445,14 @@ namespace sw
 			}
 		}
 
-		if((AddressingMode)state.addressingModeW == ADDRESSING_BORDER && volumeTexture)
+		if(state.addressingModeW == ADDRESSING_BORDER && volumeTexture)
 		{
 			Short4 s0;
 
 			border(s0, w);
 
-			if((AddressingMode)state.addressingModeU == ADDRESSING_BORDER ||
-			   (AddressingMode)state.addressingModeV == ADDRESSING_BORDER)
+			if(state.addressingModeU == ADDRESSING_BORDER ||
+			   state.addressingModeV == ADDRESSING_BORDER)
 			{
 				borderMask &= s0;
 			}
@@ -462,9 +462,9 @@ namespace sw
 			}
 		}
 
-		if((AddressingMode)state.addressingModeU == ADDRESSING_BORDER ||
-		   (AddressingMode)state.addressingModeV == ADDRESSING_BORDER ||
-		   ((AddressingMode)state.addressingModeW == ADDRESSING_BORDER && volumeTexture))
+		if(state.addressingModeU == ADDRESSING_BORDER ||
+		   state.addressingModeV == ADDRESSING_BORDER ||
+		   (state.addressingModeW == ADDRESSING_BORDER && volumeTexture))
 		{
 			Short4 b;
 
@@ -556,8 +556,8 @@ namespace sw
 		Short4 uuuu;
 		Short4 vvvv;
 
-		address(uuuu, u, (AddressingMode)state.addressingModeU);
-		address(vvvv, v, (AddressingMode)state.addressingModeV);
+		address(uuuu, u, state.addressingModeU);
+		address(vvvv, v, state.addressingModeV);
 
 		if(state.textureFilter == FILTER_POINT)
 		{
@@ -570,10 +570,10 @@ namespace sw
 			Vector4i c2;
 			Vector4i c3;
 
-			Short4 uuuu0 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), (AddressingMode)state.addressingModeU == ADDRESSING_WRAP, gather ? 0 : -1);
-			Short4 vvvv0 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), (AddressingMode)state.addressingModeV == ADDRESSING_WRAP, gather ? 0 : -1);
-			Short4 uuuu1 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), (AddressingMode)state.addressingModeU == ADDRESSING_WRAP, gather ? 2 : +1);
-			Short4 vvvv1 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), (AddressingMode)state.addressingModeV == ADDRESSING_WRAP, gather ? 2 : +1);
+			Short4 uuuu0 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, gather ? 0 : -1);
+			Short4 vvvv0 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, gather ? 0 : -1);
+			Short4 uuuu1 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, gather ? 2 : +1);
+			Short4 vvvv1 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, gather ? 2 : +1);
 
 			sampleTexel(c0, uuuu0, vvvv0, vvvv0, mipmap, buffer);
 			sampleTexel(c1, uuuu1, vvvv0, vvvv0, mipmap, buffer);
@@ -764,9 +764,9 @@ namespace sw
 		Short4 vvvv;
 		Short4 wwww;
 
-		address(uuuu, u_, (AddressingMode)state.addressingModeU);
-		address(vvvv, v_, (AddressingMode)state.addressingModeV);
-		address(wwww, w_, (AddressingMode)state.addressingModeW);
+		address(uuuu, u_, state.addressingModeU);
+		address(vvvv, v_, state.addressingModeV);
+		address(wwww, w_, state.addressingModeW);
 
 		if(state.textureFilter <= FILTER_POINT)
 		{
@@ -786,9 +786,9 @@ namespace sw
 				{
 					for(int k = 0; k < 2; k++)
 					{
-						u[i][j][k] = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), (AddressingMode)state.addressingModeU == ADDRESSING_WRAP, i * 2 - 1);
-						v[i][j][k] = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), (AddressingMode)state.addressingModeV == ADDRESSING_WRAP, j * 2 - 1);
-						s[i][j][k] = offsetSample(wwww, mipmap, OFFSET(Mipmap,wHalf), (AddressingMode)state.addressingModeW == ADDRESSING_WRAP, k * 2 - 1);
+						u[i][j][k] = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, i * 2 - 1);
+						v[i][j][k] = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, j * 2 - 1);
+						s[i][j][k] = offsetSample(wwww, mipmap, OFFSET(Mipmap,wHalf), state.addressingModeW == ADDRESSING_WRAP, k * 2 - 1);
 					}
 				}
 			}
@@ -914,7 +914,7 @@ namespace sw
 
 		Int4 borderMask;
 
-		if((AddressingMode)state.addressingModeU == ADDRESSING_BORDER)
+		if(state.addressingModeU == ADDRESSING_BORDER)
 		{
 			Int4 u0;
 			
@@ -923,13 +923,13 @@ namespace sw
 			borderMask = u0;
 		}
 
-		if((AddressingMode)state.addressingModeV == ADDRESSING_BORDER)
+		if(state.addressingModeV == ADDRESSING_BORDER)
 		{
 			Int4 v0;
 			
 			border(v0, v);
 
-			if((AddressingMode)state.addressingModeU == ADDRESSING_BORDER)
+			if(state.addressingModeU == ADDRESSING_BORDER)
 			{
 				borderMask &= v0;
 			}
@@ -939,14 +939,14 @@ namespace sw
 			}
 		}
 
-		if((AddressingMode)state.addressingModeW == ADDRESSING_BORDER && volumeTexture)
+		if(state.addressingModeW == ADDRESSING_BORDER && volumeTexture)
 		{
 			Int4 s0;
 
 			border(s0, w);
 
-			if((AddressingMode)state.addressingModeU == ADDRESSING_BORDER ||
-			   (AddressingMode)state.addressingModeV == ADDRESSING_BORDER)
+			if(state.addressingModeU == ADDRESSING_BORDER ||
+			   state.addressingModeV == ADDRESSING_BORDER)
 			{
 				borderMask &= s0;
 			}
@@ -956,9 +956,9 @@ namespace sw
 			}
 		}
 
-		if((AddressingMode)state.addressingModeU == ADDRESSING_BORDER ||
-		   (AddressingMode)state.addressingModeV == ADDRESSING_BORDER ||
-		   ((AddressingMode)state.addressingModeW == ADDRESSING_BORDER && volumeTexture))
+		if(state.addressingModeU == ADDRESSING_BORDER ||
+		   state.addressingModeV == ADDRESSING_BORDER ||
+		   (state.addressingModeW == ADDRESSING_BORDER && volumeTexture))
 		{
 			Int4 b;
 
@@ -1048,8 +1048,8 @@ namespace sw
 		Short4 uuuu;
 		Short4 vvvv;
 
-		address(uuuu, u, (AddressingMode)state.addressingModeU);
-		address(vvvv, v, (AddressingMode)state.addressingModeV);
+		address(uuuu, u, state.addressingModeU);
+		address(vvvv, v, state.addressingModeV);
 
 		if(state.textureFilter == FILTER_POINT)
 		{
@@ -1062,10 +1062,10 @@ namespace sw
 			Vector4f c2;
 			Vector4f c3;
 
-			Short4 uuuu0 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), (AddressingMode)state.addressingModeU == ADDRESSING_WRAP, gather ? 0 : -1);
-			Short4 vvvv0 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), (AddressingMode)state.addressingModeV == ADDRESSING_WRAP, gather ? 0 : -1);
-			Short4 uuuu1 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), (AddressingMode)state.addressingModeU == ADDRESSING_WRAP, gather ? 2 : +1);
-			Short4 vvvv1 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), (AddressingMode)state.addressingModeV == ADDRESSING_WRAP, gather ? 2 : +1);
+			Short4 uuuu0 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, gather ? 0 : -1);
+			Short4 vvvv0 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, gather ? 0 : -1);
+			Short4 uuuu1 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, gather ? 2 : +1);
+			Short4 vvvv1 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, gather ? 2 : +1);
 
 			sampleTexel(c0, uuuu0, vvvv0, vvvv0, z, mipmap, buffer);		
 			sampleTexel(c1, uuuu1, vvvv0, vvvv0, z, mipmap, buffer);
@@ -1117,9 +1117,9 @@ namespace sw
 		Short4 vvvv;
 		Short4 wwww;
 
-		address(uuuu, u, (AddressingMode)state.addressingModeU);
-		address(vvvv, v, (AddressingMode)state.addressingModeV);
-		address(wwww, w, (AddressingMode)state.addressingModeW);
+		address(uuuu, u, state.addressingModeU);
+		address(vvvv, v, state.addressingModeV);
+		address(wwww, w, state.addressingModeW);
 
 		if(state.textureFilter <= FILTER_POINT)
 		{
@@ -1136,12 +1136,12 @@ namespace sw
 			Vector4f c6;
 			Vector4f c7;
 
-			Short4 uuuu0 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), (AddressingMode)state.addressingModeU == ADDRESSING_WRAP, -1);
-			Short4 vvvv0 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), (AddressingMode)state.addressingModeV == ADDRESSING_WRAP, -1);
-			Short4 wwww0 = offsetSample(wwww, mipmap, OFFSET(Mipmap,wHalf), (AddressingMode)state.addressingModeW == ADDRESSING_WRAP, -1);
-			Short4 uuuu1 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), (AddressingMode)state.addressingModeU == ADDRESSING_WRAP, +1);
-			Short4 vvvv1 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), (AddressingMode)state.addressingModeV == ADDRESSING_WRAP, +1);
-			Short4 wwww1 = offsetSample(wwww, mipmap, OFFSET(Mipmap,wHalf), (AddressingMode)state.addressingModeW == ADDRESSING_WRAP, +1);
+			Short4 uuuu0 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, -1);
+			Short4 vvvv0 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, -1);
+			Short4 wwww0 = offsetSample(wwww, mipmap, OFFSET(Mipmap,wHalf), state.addressingModeW == ADDRESSING_WRAP, -1);
+			Short4 uuuu1 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, +1);
+			Short4 vvvv1 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, +1);
+			Short4 wwww1 = offsetSample(wwww, mipmap, OFFSET(Mipmap,wHalf), state.addressingModeW == ADDRESSING_WRAP, +1);
 
 			sampleTexel(c0, uuuu0, vvvv0, wwww0, w, mipmap, buffer);
 			sampleTexel(c1, uuuu1, vvvv0, wwww0, w, mipmap, buffer);
@@ -1792,17 +1792,17 @@ namespace sw
 
 	bool SamplerCore::hasFloatTexture() const
 	{
-		return Surface::isFloatFormat((Format)state.textureFormat);
+		return Surface::isFloatFormat(state.textureFormat);
 	}
 
 	bool SamplerCore::hasUnsignedTextureComponent(int component) const
 	{
-		return Surface::isUnsignedComponent((Format)state.textureFormat, component);
+		return Surface::isUnsignedComponent(state.textureFormat, component);
 	}
 
 	int SamplerCore::textureComponentCount() const
 	{
-		return Surface::componentCount((Format)state.textureFormat);
+		return Surface::componentCount(state.textureFormat);
 	}
 
 	bool SamplerCore::has16bitTexture() const

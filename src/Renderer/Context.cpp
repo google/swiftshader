@@ -37,7 +37,7 @@ namespace sw
 	bool complementaryDepthBuffer = false;
 	bool postBlendSRGB = false;
 	bool exactColorRounding = false;
-	Context::TransparencyAntialiasing transparencyAntialiasing = Context::TRANSPARENCY_NONE;
+	TransparencyAntialiasing transparencyAntialiasing = TRANSPARENCY_NONE;
 	bool forceClearRegisters = false;
 
 	Context::Context()
@@ -266,10 +266,10 @@ namespace sw
 		colorWriteMask[2] = 0x0000000F;
 		colorWriteMask[3] = 0x0000000F;
 
-		ambientMaterialSource = MATERIAL;
-		diffuseMaterialSource = COLOR1;
-		specularMaterialSource = COLOR2;
-		emissiveMaterialSource = MATERIAL;
+		ambientMaterialSource = MATERIAL_MATERIAL;
+		diffuseMaterialSource = MATERIAL_COLOR1;
+		specularMaterialSource = MATERIAL_COLOR2;
+		emissiveMaterialSource = MATERIAL_MATERIAL;
 		colorVertexEnable = true;
 
 		fogEnable = false;
@@ -459,7 +459,7 @@ namespace sw
 		return isDrawPoint(true) && (input[PointSize] || (!preTransformed && pointScaleActive()));
 	}
 
-	Context::FogMode Context::pixelFogActive()
+	FogMode Context::pixelFogActive()
 	{
 		if(fogActive())
 		{
@@ -620,69 +620,69 @@ namespace sw
 		return lightingEnable && lightEnable[i];
 	}
 
-	Context::MaterialSource Context::vertexDiffuseMaterialSourceActive()
+	MaterialSource Context::vertexDiffuseMaterialSourceActive()
 	{
 		if(vertexShader)
 		{
-			return MATERIAL;
+			return MATERIAL_MATERIAL;
 		}
 
-		if(diffuseMaterialSource == MATERIAL || !colorVertexEnable ||
-		   (diffuseMaterialSource == COLOR1 && !input[Color0]) ||
-		   (diffuseMaterialSource == COLOR2 && !input[Color1]))
+		if(diffuseMaterialSource == MATERIAL_MATERIAL || !colorVertexEnable ||
+		   (diffuseMaterialSource == MATERIAL_COLOR1 && !input[Color0]) ||
+		   (diffuseMaterialSource == MATERIAL_COLOR2 && !input[Color1]))
 		{
-			return MATERIAL;
+			return MATERIAL_MATERIAL;
 		}
 		
 		return diffuseMaterialSource;
 	}
 
-	Context::MaterialSource Context::vertexSpecularMaterialSourceActive()
+	MaterialSource Context::vertexSpecularMaterialSourceActive()
 	{
 		if(vertexShader)
 		{
-			return MATERIAL;
+			return MATERIAL_MATERIAL;
 		}
 
-		if(specularMaterialSource == MATERIAL || !colorVertexEnable ||
-		   (specularMaterialSource == COLOR1 && !input[Color0]) ||
-		   (specularMaterialSource == COLOR2 && !input[Color1]))
+		if(specularMaterialSource == MATERIAL_MATERIAL || !colorVertexEnable ||
+		   (specularMaterialSource == MATERIAL_COLOR1 && !input[Color0]) ||
+		   (specularMaterialSource == MATERIAL_COLOR2 && !input[Color1]))
 		{
-			return MATERIAL;
+			return MATERIAL_MATERIAL;
 		}
 		
 		return specularMaterialSource;
 	}
 
-	Context::MaterialSource Context::vertexAmbientMaterialSourceActive()
+	MaterialSource Context::vertexAmbientMaterialSourceActive()
 	{
 		if(vertexShader)
 		{
-			return MATERIAL;
+			return MATERIAL_MATERIAL;
 		}
 
-		if(ambientMaterialSource == MATERIAL || !colorVertexEnable ||
-		   (ambientMaterialSource == COLOR1 && !input[Color0]) ||
-		   (ambientMaterialSource == COLOR2 && !input[Color1]))
+		if(ambientMaterialSource == MATERIAL_MATERIAL || !colorVertexEnable ||
+		   (ambientMaterialSource == MATERIAL_COLOR1 && !input[Color0]) ||
+		   (ambientMaterialSource == MATERIAL_COLOR2 && !input[Color1]))
 		{
-			return MATERIAL;
+			return MATERIAL_MATERIAL;
 		}
 		
 		return ambientMaterialSource;
 	}
 
-	Context::MaterialSource Context::vertexEmissiveMaterialSourceActive()
+	MaterialSource Context::vertexEmissiveMaterialSourceActive()
 	{
 		if(vertexShader)
 		{
-			return MATERIAL;
+			return MATERIAL_MATERIAL;
 		}
 
-		if(emissiveMaterialSource == MATERIAL || !colorVertexEnable ||
-		   (emissiveMaterialSource == COLOR1 && !input[Color0]) ||
-		   (emissiveMaterialSource == COLOR2 && !input[Color1]))
+		if(emissiveMaterialSource == MATERIAL_MATERIAL || !colorVertexEnable ||
+		   (emissiveMaterialSource == MATERIAL_COLOR1 && !input[Color0]) ||
+		   (emissiveMaterialSource == MATERIAL_COLOR2 && !input[Color1]))
 		{
-			return MATERIAL;
+			return MATERIAL_MATERIAL;
 		}
 		
 		return emissiveMaterialSource;
@@ -721,7 +721,7 @@ namespace sw
 		return colorBlend || alphaBlend;
 	}
 
-	Context::BlendFactor Context::sourceBlendFactor()
+	BlendFactor Context::sourceBlendFactor()
 	{
 		if(!alphaBlendEnable) return BLEND_ONE;
 
@@ -742,7 +742,7 @@ namespace sw
 		return sourceBlendFactorState;
 	}
 
-	Context::BlendFactor Context::destBlendFactor()
+	BlendFactor Context::destBlendFactor()
 	{
 		if(!alphaBlendEnable) return BLEND_ZERO;
 
@@ -763,7 +763,7 @@ namespace sw
 		return destBlendFactorState;
 	}
 
-	Context::BlendOperation Context::blendOperation()
+	BlendOperation Context::blendOperation()
 	{
 		if(!alphaBlendEnable) return BLENDOP_SOURCE;
 
@@ -875,7 +875,7 @@ namespace sw
 		return blendOperationState;
 	}
 
-	Context::BlendFactor Context::sourceBlendFactorAlpha()
+	BlendFactor Context::sourceBlendFactorAlpha()
 	{
 		if(!separateAlphaBlendEnable)
 		{
@@ -901,7 +901,7 @@ namespace sw
 		}
 	}
 
-	Context::BlendFactor Context::destBlendFactorAlpha()
+	BlendFactor Context::destBlendFactorAlpha()
 	{
 		if(!separateAlphaBlendEnable)
 		{
@@ -927,7 +927,7 @@ namespace sw
 		}
 	}
 
-	Context::BlendOperation Context::blendOperationAlpha()
+	BlendOperation Context::blendOperationAlpha()
 	{
 		if(!separateAlphaBlendEnable)
 		{
@@ -1084,7 +1084,7 @@ namespace sw
 		return normalizeNormals;
 	}
 
-	Context::FogMode Context::vertexFogModeActive()
+	FogMode Context::vertexFogModeActive()
 	{
 		if(vertexShader || !fogActive())
 		{
@@ -1104,7 +1104,7 @@ namespace sw
 		return rangeFogEnable;
 	}
 
-	Context::TexGen Context::texGenActive(int stage)
+	TexGen Context::texGenActive(int stage)
 	{
 		if(vertexShader || !texCoordActive(stage))
 		{

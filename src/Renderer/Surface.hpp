@@ -30,7 +30,7 @@ namespace sw
 		int y1;   // Exclusive
 	};
 
-	enum Format
+	enum Format : unsigned char
 	{
 		FORMAT_NULL,
 

@@ -95,11 +95,11 @@ namespace sw
 
 				A = IfThenElse(w0w1w2 < 0, -A, A);
 
-				if(state.cullMode == Context::CULL_CLOCKWISE)
+				if(state.cullMode == CULL_CLOCKWISE)
 				{
 					If(A >= 0.0f) Return(false);
 				}
-				else if(state.cullMode == Context::CULL_COUNTERCLOCKWISE)
+				else if(state.cullMode == CULL_COUNTERCLOCKWISE)
 				{
 					If(A <= 0.0f) Return(false);
 				}

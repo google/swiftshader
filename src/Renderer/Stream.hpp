@@ -18,7 +18,7 @@ namespace sw
 {
 	class Resource;
 
-	enum StreamType
+	enum StreamType : unsigned int
 	{
 		STREAMTYPE_COLOR,     // 4 normalized unsigned bytes, ZYXW order
 		STREAMTYPE_UDEC3,     // 3 unsigned 10-bit fields

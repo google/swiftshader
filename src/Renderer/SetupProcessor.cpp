@@ -76,7 +76,7 @@ namespace sw
 		state.isDrawLine = context->isDrawLine(true);
 		state.isDrawTriangle = context->isDrawTriangle(false);
 		state.isDrawSolidTriangle = context->isDrawTriangle(true);
-		state.interpolateZ = context->depthBufferActive() || context->pixelFogActive() != Context::FOG_NONE || vPosZW;
+		state.interpolateZ = context->depthBufferActive() || context->pixelFogActive() != FOG_NONE || vPosZW;
 		state.interpolateW = context->perspectiveActive() || vPosZW;
 		state.perspective = context->perspectiveActive();
 		state.pointSprite = context->pointSpriteActive();
@@ -114,7 +114,7 @@ namespace sw
 
 		const bool point = context->isDrawPoint(true);
 		const bool sprite = context->pointSpriteActive();
-		const bool flatShading = (context->shadingMode == Context::SHADING_FLAT) || point;
+		const bool flatShading = (context->shadingMode == SHADING_FLAT) || point;
 
 		if(context->vertexShader && context->pixelShader)
 		{

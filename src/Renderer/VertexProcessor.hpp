@@ -45,40 +45,40 @@ namespace sw
 
 			uint64_t shaderID;
 
-			unsigned int fixedFunction						: 1;
-			unsigned int shaderContainsTexldl				: 1;
-			unsigned int positionRegister					: 4;
-			unsigned int pointSizeRegister					: 4;   // 0xF signifies no vertex point size
+			bool fixedFunction             : 1;
+			bool shaderContainsTexldl      : 1;
+			unsigned int positionRegister  : 4;
+			unsigned int pointSizeRegister : 4;   // 0xF signifies no vertex point size
 				
-			unsigned int vertexBlendMatrixCount				: 3;
-			unsigned int indexedVertexBlendEnable			: 1;
-			unsigned int vertexNormalActive					: 1;
-			unsigned int normalizeNormals					: 1;
-			unsigned int vertexLightingActive				: 1;
-			unsigned int diffuseActive						: 1;
-			unsigned int specularActive						: 1;
-			unsigned int vertexSpecularActive				: 1;
-			unsigned int vertexLightActive					: 8;
-			unsigned int vertexDiffuseMaterialSourceActive	: BITS(Context::MATERIAL_LAST);
-			unsigned int vertexSpecularMaterialSourceActive	: BITS(Context::MATERIAL_LAST);
-			unsigned int vertexAmbientMaterialSourceActive	: BITS(Context::MATERIAL_LAST);
-			unsigned int vertexEmissiveMaterialSourceActive	: BITS(Context::MATERIAL_LAST);
-			unsigned int fogActive							: 1;
-			unsigned int vertexFogMode						: BITS(Context::FOG_LAST);
-			unsigned int rangeFogActive						: 1;
-			unsigned int localViewerActive					: 1;
-			unsigned int pointSizeActive					: 1;
-			unsigned int pointScaleActive					: 1;
+			unsigned int vertexBlendMatrixCount               : 3;
+			bool indexedVertexBlendEnable                     : 1;
+			bool vertexNormalActive                           : 1;
+			bool normalizeNormals                             : 1;
+			bool vertexLightingActive                         : 1;
+			bool diffuseActive                                : 1;
+			bool specularActive                               : 1;
+			bool vertexSpecularActive                         : 1;
+			unsigned int vertexLightActive                    : 8;
+			MaterialSource vertexDiffuseMaterialSourceActive  : BITS(MATERIAL_LAST);
+			MaterialSource vertexSpecularMaterialSourceActive : BITS(MATERIAL_LAST);
+			MaterialSource vertexAmbientMaterialSourceActive  : BITS(MATERIAL_LAST);
+			MaterialSource vertexEmissiveMaterialSourceActive : BITS(MATERIAL_LAST);
+			bool fogActive                                    : 1;
+			FogMode vertexFogMode                             : BITS(FOG_LAST);
+			bool rangeFogActive                               : 1;
+			bool localViewerActive                            : 1;
+			bool pointSizeActive                              : 1;
+			bool pointScaleActive                             : 1;
 
-			unsigned int preTransformed						: 1;
-			unsigned int superSampling						: 1;
-			unsigned int multiSampling						: 1;
+			bool preTransformed : 1;
+			bool superSampling  : 1;
+			bool multiSampling  : 1;
 
 			struct TextureState
 			{
-				unsigned char texGenActive : BITS(Context::TEXGEN_LAST);
+				TexGen texGenActive                       : BITS(TEXGEN_LAST);
 				unsigned char textureTransformCountActive : 3;
-				unsigned char texCoordIndexActive : 3;
+				unsigned char texCoordIndexActive         : 3;
 			};
 
 			TextureState textureState[8];
@@ -92,9 +92,9 @@ namespace sw
 					return count != 0;
 				}
 
-				unsigned int type       : BITS(STREAMTYPE_LAST);
-				unsigned int count      : 3;
-				unsigned int normalized : 1;
+				StreamType type    : BITS(STREAMTYPE_LAST);
+				unsigned int count : 3;
+				bool normalized    : 1;
 			};
 
 			struct Output
@@ -206,14 +206,14 @@ namespace sw
 		virtual void setLightRange(unsigned int light, float lightRange);
 
 		virtual void setFogEnable(bool fogEnable);
-		virtual void setVertexFogMode(Context::FogMode fogMode);
+		virtual void setVertexFogMode(FogMode fogMode);
 		virtual void setRangeFogEnable(bool enable);
 
 		virtual void setColorVertexEnable(bool colorVertexEnable);
-		virtual void setDiffuseMaterialSource(Context::MaterialSource diffuseMaterialSource);
-		virtual void setSpecularMaterialSource(Context::MaterialSource specularMaterialSource);
-		virtual void setAmbientMaterialSource(Context::MaterialSource ambientMaterialSource);
-		virtual void setEmissiveMaterialSource(Context::MaterialSource emissiveMaterialSource);
+		virtual void setDiffuseMaterialSource(MaterialSource diffuseMaterialSource);
+		virtual void setSpecularMaterialSource(MaterialSource specularMaterialSource);
+		virtual void setAmbientMaterialSource(MaterialSource ambientMaterialSource);
+		virtual void setEmissiveMaterialSource(MaterialSource emissiveMaterialSource);
 
 		virtual void setMaterialEmission(const Color<float> &emission);
 		virtual void setMaterialAmbient(const Color<float> &materialAmbient);
@@ -225,7 +225,7 @@ namespace sw
 		virtual void setVertexBlendMatrixCount(unsigned int vertexBlendMatrixCount);
 
 		virtual void setTextureWrap(unsigned int stage, int mask);
-		virtual void setTexGen(unsigned int stage, Context::TexGen texGen);
+		virtual void setTexGen(unsigned int stage, TexGen texGen);
 		virtual void setLocalViewer(bool localViewer);
 		virtual void setNormalizeNormals(bool normalizeNormals);
 		virtual void setTextureMatrix(int stage, const Matrix &T);
