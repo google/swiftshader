@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "950f0224_cbbfd5a1",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-10-22T19:54:06Z",
+      "side": 1,
+      "message": "This doesn\u0027t really provide any useful abstraction, in my opinion. I mean, without reading all of ForHandlerImpl, there is no way to even remotely understand how the macro below works.\n\nI\u0027d like to keep it fairly explicit how the blocks and branches are created, but just get rid of the onceBB__ and branch() returning true hacks. I would keep attempts to make other improvements in separate patches.",
+      "range": {
+        "startLine": 25,
+        "startChar": 2,
+        "endLine": 26,
+        "endChar": 20
+      },
+      "revId": "795bcf69514f570d3c6a1d9f21aa27ff2f02451a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
