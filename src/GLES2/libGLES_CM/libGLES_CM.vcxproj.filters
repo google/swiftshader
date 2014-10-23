@@ -32,9 +32,6 @@
     <ClCompile Include="IndexDataManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="libGLESv2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -69,6 +66,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Query.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libGLES_CM.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -147,9 +147,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="libGLESv2.rc" />
+    <ResourceCompile Include="libGLES_CM.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="libGLESv2.def" />
+    <None Include="libGLES_CM.def" />
   </ItemGroup>
 </Project>
