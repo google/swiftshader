@@ -16,8 +16,6 @@
 #ifndef INCLUDE_SURFACE_H_
 #define INCLUDE_SURFACE_H_
 
-#include "libGLESv2/Image.hpp"
-#include "libGLESv2/Texture.h"
 #include "Main/FrameBuffer.hpp"
 
 #define EGLAPI

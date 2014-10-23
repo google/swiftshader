@@ -18,10 +18,14 @@
 
 #include "Config.h"
 #include "Surface.h"
-#include "libGLESv2/Context.h"
-#include "libGLESv2/Device.hpp"
 
 #include <set>
+
+namespace gl
+{
+class Context;
+class Device;
+}
 
 namespace egl
 {

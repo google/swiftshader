@@ -17,6 +17,7 @@
 
 #include "main.h"
 #include "libGLESv2/mathutil.h"
+#include "libGLESv2/Context.h"
 #include "libGLESv2/Device.hpp"
 #include "common/debug.h"
 
