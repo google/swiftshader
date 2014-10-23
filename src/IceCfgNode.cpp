@@ -30,9 +30,7 @@ CfgNode::CfgNode(Cfg *Func, SizeT LabelNumber, IceString Name)
 IceString CfgNode::getName() const {
   if (!Name.empty())
     return Name;
-  char buf[30];
-  snprintf(buf, llvm::array_lengthof(buf), "__%u", getIndex());
-  return buf;
+  return "__" + std::to_string(getIndex());
 }
 
 // Adds an instruction to either the Phi list or the regular
@@ -65,7 +63,7 @@ void CfgNode::renumberInstructions() {
   InstCountEstimate = Func->getNextInstNumber() - FirstNumber;
 }
 
-// When a node is created, the OutEdges are immediately knows, but the
+// When a node is created, the OutEdges are immediately known, but the
 // InEdges have to be built up incrementally.  After the CFG has been
 // constructed, the computePredecessors() pass finalizes it by
 // creating the InEdges list.
@@ -557,7 +555,12 @@ void CfgNode::dump(Cfg *Func) const {
     Str << "    // LiveIn:";
     for (SizeT i = 0; i < LiveIn.size(); ++i) {
       if (LiveIn[i]) {
-        Str << " %" << Liveness->getVariable(i, this)->getName();
+        Variable *Var = Liveness->getVariable(i, this);
+        Str << " %" << Var->getName();
+        if (Func->getContext()->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
+          Str << ":" << Func->getTarget()->getRegName(Var->getRegNum(),
+                                                      Var->getType());
+        }
       }
     }
     Str << "\n";
@@ -577,7 +580,12 @@ void CfgNode::dump(Cfg *Func) const {
     Str << "    // LiveOut:";
     for (SizeT i = 0; i < LiveOut.size(); ++i) {
       if (LiveOut[i]) {
-        Str << " %" << Liveness->getVariable(i, this)->getName();
+        Variable *Var = Liveness->getVariable(i, this);
+        Str << " %" << Var->getName();
+        if (Func->getContext()->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
+          Str << ":" << Func->getTarget()->getRegName(Var->getRegNum(),
+                                                      Var->getType());
+        }
       }
     }
     Str << "\n";

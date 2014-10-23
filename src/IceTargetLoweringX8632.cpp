@@ -4451,7 +4451,7 @@ void TargetGlobalInitX8632::lower(const VariableDeclaration &Var) {
 
   // If external and not initialized, this must be a cross test.
   // Don't generate a declaration for such cases.
-  bool IsExternal = Var.isExternal();
+  bool IsExternal = Var.isExternal() || Ctx->getFlags().DisableInternal;
   if (IsExternal && !Var.hasInitializer()) return;
 
   bool HasNonzeroInitializer = Var.hasNonzeroInitializer();

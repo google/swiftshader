@@ -35,6 +35,7 @@ public:
   bool DataSections;
   bool UseIntegratedAssembler;
   bool UseSandboxing;
+  bool PhiEdgeSplit;
   bool DumpStats;
   bool AllowUninitializedGlobals;
   bool TimeEachFunction;
@@ -42,6 +43,7 @@ public:
   IceString DefaultFunctionPrefix;
   IceString TimingFocusOn;
   IceString VerboseFocusOn;
+  IceString TranslateOnly;
 };
 
 } // end of namespace Ice

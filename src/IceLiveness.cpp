@@ -77,10 +77,8 @@ void Liveness::init() {
   assert(NumGlobals == TmpNumGlobals);
 
   // Process each node.
-  const NodeList &LNodes = Func->getNodes();
-  SizeT NumLNodes = LNodes.size();
-  for (SizeT i = 0; i < NumLNodes; ++i) {
-    LivenessNode &Node = Nodes[LNodes[i]->getIndex()];
+  for (const CfgNode *LNode : Func->getNodes()) {
+    LivenessNode &Node = Nodes[LNode->getIndex()];
     // NumLocals, LiveToVarMap already initialized
     Node.LiveIn.resize(NumGlobals);
     Node.LiveOut.resize(NumGlobals);

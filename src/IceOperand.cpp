@@ -171,9 +171,7 @@ void LiveRange::trim(InstNumberT Lower) {
 IceString Variable::getName() const {
   if (!Name.empty())
     return Name;
-  char buf[30];
-  snprintf(buf, llvm::array_lengthof(buf), "__%u", getIndex());
-  return buf;
+  return "__" + std::to_string(getIndex());
 }
 
 Variable Variable::asType(Type Ty) {

@@ -93,6 +93,9 @@ DisableInternal("externalize",
                 cl::desc("Externalize all symbols"));
 static cl::opt<bool>
 DisableTranslation("notranslate", cl::desc("Disable Subzero translation"));
+static cl::opt<std::string>
+TranslateOnly("translate-only", cl::desc("Translate only the given function"),
+              cl::init(""));
 
 static cl::opt<bool> SubzeroTimingEnabled(
     "timing", cl::desc("Enable breakdown timing of Subzero translation"));
@@ -111,10 +114,10 @@ static cl::opt<std::string> VerboseFocusOn(
     cl::desc("Temporarily enable full verbosity for a specific function"),
     cl::init(""));
 
-// This is currently unused, and is a placeholder for lit tests.
 static cl::opt<bool>
-    DisablePhiEdgeSplit("no-phi-edge-split",
-                        cl::desc("Disable edge splitting for Phi lowering"));
+EnablePhiEdgeSplit("phi-edge-split",
+                   cl::desc("Enable edge splitting for Phi lowering"),
+                   cl::init(true));
 
 static cl::opt<bool>
 DumpStats("stats",
@@ -197,6 +200,7 @@ int main(int argc, char **argv) {
   Flags.DataSections = DataSections;
   Flags.UseIntegratedAssembler = UseIntegratedAssembler;
   Flags.UseSandboxing = UseSandboxing;
+  Flags.PhiEdgeSplit = EnablePhiEdgeSplit;
   Flags.DumpStats = DumpStats;
   Flags.AllowUninitializedGlobals = AllowUninitializedGlobals;
   Flags.TimeEachFunction = TimeEachFunction;
@@ -204,6 +208,7 @@ int main(int argc, char **argv) {
   Flags.DefaultFunctionPrefix = DefaultFunctionPrefix;
   Flags.TimingFocusOn = TimingFocusOn;
   Flags.VerboseFocusOn = VerboseFocusOn;
+  Flags.TranslateOnly = TranslateOnly;
 
   Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix,
                          Flags);

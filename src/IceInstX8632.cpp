@@ -136,9 +136,7 @@ InstX8632Label::InstX8632Label(Cfg *Func, TargetX8632 *Target)
       Number(Target->makeNextLabelNumber()) {}
 
 IceString InstX8632Label::getName(const Cfg *Func) const {
-  char buf[30];
-  snprintf(buf, llvm::array_lengthof(buf), "%u", Number);
-  return ".L" + Func->getFunctionName() + "$local$__" + buf;
+  return ".L" + Func->getFunctionName() + "$local$__" + std::to_string(Number);
 }
 
 InstX8632Br::InstX8632Br(Cfg *Func, const CfgNode *TargetTrue,

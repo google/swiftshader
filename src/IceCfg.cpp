@@ -65,17 +65,12 @@ bool Cfg::hasComputedFrame() const { return getTarget()->hasComputedFrame(); }
 void Cfg::translate() {
   if (hasError())
     return;
-  VerboseMask OldVerboseMask = getContext()->getVerbose();
   const IceString &TimingFocusOn = getContext()->getFlags().TimingFocusOn;
   if (TimingFocusOn == "*" || TimingFocusOn == getFunctionName()) {
     setFocusedTiming();
     getContext()->resetTimer(GlobalContext::TSK_Default);
     getContext()->setTimerName(GlobalContext::TSK_Default, getFunctionName());
   }
-  bool VerboseFocus =
-      (getContext()->getFlags().VerboseFocusOn == getFunctionName());
-  if (VerboseFocus)
-    getContext()->setVerbose(IceV_All);
   TimerMarker T(TimerStack::TT_translate, this);
 
   dump("Initial CFG");
@@ -87,8 +82,6 @@ void Cfg::translate() {
   dump("Final output");
   if (getFocusedTiming())
     getContext()->dumpTimers();
-  if (VerboseFocus)
-    getContext()->setVerbose(OldVerboseMask);
 }
 
 void Cfg::computePredecessors() {
@@ -150,9 +143,6 @@ void Cfg::genCode() {
 void Cfg::genFrame() {
   TimerMarker T(TimerStack::TT_genFrame, this);
   getTarget()->addProlog(Entry);
-  // TODO: Consider folding epilog generation into the final
-  // emission/assembly pass to avoid an extra iteration over the node
-  // list.  Or keep a separate list of exit nodes.
   for (CfgNode *Node : Nodes)
     if (Node->getHasReturn())
       getTarget()->addEpilog(Node);
@@ -323,7 +313,7 @@ void Cfg::emit() {
   IceString MangledName = getContext()->mangleName(getFunctionName());
   if (Ctx->getFlags().FunctionSections)
     Str << "\t.section\t.text." << MangledName << ",\"ax\",@progbits\n";
-  if (!getInternal()) {
+  if (!getInternal() || Ctx->getFlags().DisableInternal) {
     Str << "\t.globl\t" << MangledName << "\n";
     Str << "\t.type\t" << MangledName << ",@function\n";
   }
@@ -347,7 +337,7 @@ void Cfg::dump(const IceString &Message) {
   // Print function name+args
   if (getContext()->isVerbose(IceV_Instructions)) {
     Str << "define ";
-    if (getInternal())
+    if (getInternal() && !Ctx->getFlags().DisableInternal)
       Str << "internal ";
     Str << ReturnType << " @" << Ctx->mangleName(getFunctionName()) << "(";
     for (SizeT i = 0; i < Args.size(); ++i) {

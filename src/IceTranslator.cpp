@@ -28,6 +28,16 @@
 
 using namespace Ice;
 
+namespace {
+
+// Match a symbol name against a match string.  An empty match string
+// means match everything.  Returns true if there is a match.
+bool matchSymbolName(const IceString &SymbolName, const IceString &Match) {
+  return Match.empty() || Match == SymbolName;
+}
+
+} // end of anonymous namespace
+
 Translator::~Translator() {}
 
 IceString Translator::createUnnamedName(const IceString &Prefix, SizeT Index) {
@@ -58,9 +68,13 @@ bool Translator::checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
 void Translator::translateFcn(Cfg *Fcn) {
   Ctx->resetStats();
   Func.reset(Fcn);
-  if (Ctx->getFlags().DisableInternal)
-    Func->setInternal(false);
-  if (Ctx->getFlags().DisableTranslation) {
+  VerboseMask OldVerboseMask = Ctx->getVerbose();
+  if (!matchSymbolName(Func->getFunctionName(), Ctx->getFlags().VerboseFocusOn))
+    Ctx->setVerbose(IceV_None);
+
+  if (Ctx->getFlags().DisableTranslation ||
+      !matchSymbolName(Func->getFunctionName(),
+                       Ctx->getFlags().TranslateOnly)) {
     Func->dump();
   } else {
     Func->translate();
@@ -72,6 +86,8 @@ void Translator::translateFcn(Cfg *Fcn) {
     Func->emit();
     Ctx->dumpStats(Func->getFunctionName());
   }
+
+  Ctx->setVerbose(OldVerboseMask);
 }
 
 void Translator::emitConstants() {
@@ -84,12 +100,15 @@ void Translator::lowerGlobals(
   llvm::OwningPtr<TargetGlobalInitLowering> GlobalLowering(
       TargetGlobalInitLowering::createLowering(Ctx->getTargetArch(), Ctx));
   bool DisableTranslation = Ctx->getFlags().DisableTranslation;
-  bool DumpGlobalVariables = Ctx->isVerbose();
+  bool DumpGlobalVariables =
+      Ctx->isVerbose() && Ctx->getFlags().VerboseFocusOn.empty();
   Ostream &Stream = Ctx->getStrDump();
+  const IceString &TranslateOnly = Ctx->getFlags().TranslateOnly;
   for (const Ice::VariableDeclaration *Global : VariableDeclarations) {
     if (DumpGlobalVariables)
       Global->dump(getContext(), Stream);
-    if(!DisableTranslation)
+    if (!DisableTranslation &&
+        matchSymbolName(Global->getName(), TranslateOnly))
       GlobalLowering->lower(*Global);
   }
   GlobalLowering.reset();
