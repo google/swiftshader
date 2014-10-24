@@ -102,7 +102,9 @@ entry:
 ; Bundle padding might be added (so not using -NEXT).
 ; CHECK:      mov     dword ptr [esp + 16], 3735928559
 ; CHECK-NEXT: mov     dword ptr [esp + 12], 305419896
-; CHECK-NEXT: call    -4
+; Bundle padding will push the call down.
+; CHECK-NOT:  mov
+; CHECK:      call    -4
 ; CALLTARGETS: call ignore64BitArgNoInline
 ;
 ; OPTM1-LABEL: pass64BitConstArg
@@ -113,7 +115,8 @@ entry:
 ; Bundle padding might be added (so not using -NEXT).
 ; OPTM1:      mov     dword ptr [esp + 16], 3735928559
 ; OPTM1-NEXT: mov     dword ptr [esp + 12], 305419896
-; OPTM1-NEXT: call    -4
+; OPTM1-NOT:  mov
+; OPTM1:      call    -4
 
 define internal i64 @return64BitArg(i64 %a) {
 entry:

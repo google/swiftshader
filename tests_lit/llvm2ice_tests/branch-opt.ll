@@ -25,12 +25,15 @@ next:
 }
 ; O2-LABEL: testUncondToNextBlock
 ; O2: call
-; O2-NEXT: call
+; There will be nops for bundle align to end (for NaCl), but there should
+; not be a branch.
+; O2-NOT: j
+; O2: call
 
 ; OM1-LABEL: testUncondToNextBlock
 ; OM1: call
 ; OM1-NEXT: jmp
-; OM1-NEXT: call
+; OM1: call
 
 ; For a conditional branch with a fallthrough to the next block, the
 ; fallthrough branch should be removed.
@@ -48,7 +51,8 @@ target:
 ; O2-LABEL: testCondFallthroughToNextBlock
 ; O2: cmp {{.*}}, 123
 ; O2-NEXT: jge
-; O2-NEXT: call
+; O2-NOT: j
+; O2: call
 ; O2: ret
 ; O2: call
 ; O2: ret
@@ -82,7 +86,8 @@ target:
 ; O2-LABEL: testCondTargetNextBlock
 ; O2: cmp {{.*}}, 123
 ; O2-NEXT: jl
-; O2-NEXT: call
+; O2-NOT: j
+; O2: call
 ; O2: ret
 ; O2: call
 ; O2: ret
