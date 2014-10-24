@@ -20,7 +20,8 @@ namespace gl
 {
 	static void output(const char *format, va_list vararg)
 	{
-		#if 0
+		if(false)
+		{
 			FILE* file = fopen(TRACE_OUTPUT_FILE, "a");
 
 			if(file)
@@ -28,7 +29,7 @@ namespace gl
 				vfprintf(file, format, vararg);
 				fclose(file);
 			}
-		#endif
+		}
 	}
 
 	void trace(const char *format, ...)
