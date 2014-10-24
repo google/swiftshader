@@ -14,8 +14,8 @@
 
 #include "Renderer/Surface.hpp"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define GL_API
+#include <GLES/gl.h>
 
 namespace gl
 {

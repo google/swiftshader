@@ -179,7 +179,7 @@ void error(GLenum errorCode)
             context->recordOutOfMemory();
             TRACE("\t! Error generated: out of memory\n");
             break;
-        case GL_INVALID_FRAMEBUFFER_OPERATION:
+        case GL_INVALID_FRAMEBUFFER_OPERATION_OES:
             context->recordInvalidFramebufferOperation();
             TRACE("\t! Error generated: invalid framebuffer operation\n");
             break;

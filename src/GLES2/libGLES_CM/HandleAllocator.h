@@ -12,11 +12,11 @@
 // HandleAllocator.h: Defines the HandleAllocator class, which is used to
 // allocate GL handles.
 
-#ifndef LIBGLESV2_HANDLEALLOCATOR_H_
-#define LIBGLESV2_HANDLEALLOCATOR_H_
+#ifndef LIBGLES_CM_HANDLEALLOCATOR_H_
+#define LIBGLES_CM_HANDLEALLOCATOR_H_
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define GL_API
+#include <GLES/gl.h>
 
 #include <vector>
 
@@ -43,4 +43,4 @@ class HandleAllocator
 
 }
 
-#endif   // LIBGLESV2_HANDLEALLOCATOR_H_
+#endif   // LIBGLES_CM_HANDLEALLOCATOR_H_

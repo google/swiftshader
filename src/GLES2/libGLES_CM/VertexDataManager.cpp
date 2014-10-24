@@ -15,9 +15,10 @@
 #include "VertexDataManager.h"
 
 #include "Buffer.h"
-#include "Program.h"
 #include "IndexDataManager.h"
 #include "common/debug.h"
+
+#include <algorithm>
 
 namespace
 {
@@ -116,12 +117,11 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
     }
 
     const VertexAttributeArray &attribs = mContext->getVertexAttributes();
-    Program *program = mContext->getCurrentProgram();
 
     // Determine the required storage size per used buffer
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
-        if(program->getAttributeStream(i) != -1 && attribs[i].mArrayEnabled)
+        if(attribs[i].mArrayEnabled)
         {
             if(!attribs[i].mBoundBuffer)
             {
@@ -135,71 +135,68 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
     // Perform the vertex data translations
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
-        if(program->getAttributeStream(i) != -1)
+        if(attribs[i].mArrayEnabled)
         {
-            if(attribs[i].mArrayEnabled)
+            Buffer *buffer = attribs[i].mBoundBuffer.get();
+
+            if(!buffer && attribs[i].mPointer == NULL)
             {
-                Buffer *buffer = attribs[i].mBoundBuffer.get();
+                // This is an application error that would normally result in a crash, but we catch it and return an error
+                ERR("An enabled vertex array has no buffer and no pointer.");
+                return GL_INVALID_OPERATION;
+            }
 
-                if(!buffer && attribs[i].mPointer == NULL)
-                {
-                    // This is an application error that would normally result in a crash, but we catch it and return an error
-                    ERR("An enabled vertex array has no buffer and no pointer.");
-                    return GL_INVALID_OPERATION;
-                }
+            sw::Resource *staticBuffer = buffer ? buffer->getResource() : NULL;
 
-                sw::Resource *staticBuffer = buffer ? buffer->getResource() : NULL;
-
-                if(staticBuffer)
-                {
-					translated[i].vertexBuffer = staticBuffer;
-					translated[i].offset = start * attribs[i].stride() + attribs[i].mOffset;
-					translated[i].stride = attribs[i].stride();
-                }
-                else
-                {
-                    unsigned int streamOffset = writeAttributeData(mStreamingBuffer, start, count, attribs[i]);
-
-					if(streamOffset == -1)
-					{
-						return GL_OUT_OF_MEMORY;
-					}
-
-					translated[i].vertexBuffer = mStreamingBuffer->getResource();
-					translated[i].offset = streamOffset;
-					translated[i].stride = attribs[i].typeSize();
-                }
-
-				switch(attribs[i].mType)
-				{
-				case GL_BYTE:           translated[i].type = sw::STREAMTYPE_SBYTE;  break;
-				case GL_UNSIGNED_BYTE:  translated[i].type = sw::STREAMTYPE_BYTE;   break;
-				case GL_SHORT:          translated[i].type = sw::STREAMTYPE_SHORT;  break;
-				case GL_UNSIGNED_SHORT: translated[i].type = sw::STREAMTYPE_USHORT; break;
-				case GL_FIXED:          translated[i].type = sw::STREAMTYPE_FIXED;  break;
-				case GL_FLOAT:          translated[i].type = sw::STREAMTYPE_FLOAT;  break;
-				default: UNREACHABLE(); translated[i].type = sw::STREAMTYPE_FLOAT;  break;
-				}
-
-				translated[i].count = attribs[i].mSize;
-				translated[i].normalized = attribs[i].mNormalized;
+            if(staticBuffer)
+            {
+				translated[i].vertexBuffer = staticBuffer;
+				translated[i].offset = start * attribs[i].stride() + attribs[i].mOffset;
+				translated[i].stride = attribs[i].stride();
             }
             else
             {
-                if(mDirtyCurrentValue[i])
-                {
-                    delete mCurrentValueBuffer[i];
-                    mCurrentValueBuffer[i] = new ConstantVertexBuffer(attribs[i].mCurrentValue[0], attribs[i].mCurrentValue[1], attribs[i].mCurrentValue[2], attribs[i].mCurrentValue[3]);
-                    mDirtyCurrentValue[i] = false;
-                }
+                unsigned int streamOffset = writeAttributeData(mStreamingBuffer, start, count, attribs[i]);
 
-                translated[i].vertexBuffer = mCurrentValueBuffer[i]->getResource();
+				if(streamOffset == -1)
+				{
+					return GL_OUT_OF_MEMORY;
+				}
 
-                translated[i].type = sw::STREAMTYPE_FLOAT;
-				translated[i].count = 4;
-                translated[i].stride = 0;
-                translated[i].offset = 0;
+				translated[i].vertexBuffer = mStreamingBuffer->getResource();
+				translated[i].offset = streamOffset;
+				translated[i].stride = attribs[i].typeSize();
             }
+
+			switch(attribs[i].mType)
+			{
+			case GL_BYTE:           translated[i].type = sw::STREAMTYPE_SBYTE;  break;
+			case GL_UNSIGNED_BYTE:  translated[i].type = sw::STREAMTYPE_BYTE;   break;
+			case GL_SHORT:          translated[i].type = sw::STREAMTYPE_SHORT;  break;
+			case GL_UNSIGNED_SHORT: translated[i].type = sw::STREAMTYPE_USHORT; break;
+			case GL_FIXED:          translated[i].type = sw::STREAMTYPE_FIXED;  break;
+			case GL_FLOAT:          translated[i].type = sw::STREAMTYPE_FLOAT;  break;
+			default: UNREACHABLE(); translated[i].type = sw::STREAMTYPE_FLOAT;  break;
+			}
+
+			translated[i].count = attribs[i].mSize;
+			translated[i].normalized = attribs[i].mNormalized;
+        }
+        else
+        {
+            if(mDirtyCurrentValue[i])
+            {
+                delete mCurrentValueBuffer[i];
+                mCurrentValueBuffer[i] = new ConstantVertexBuffer(attribs[i].mCurrentValue[0], attribs[i].mCurrentValue[1], attribs[i].mCurrentValue[2], attribs[i].mCurrentValue[3]);
+                mDirtyCurrentValue[i] = false;
+            }
+
+            translated[i].vertexBuffer = mCurrentValueBuffer[i]->getResource();
+
+            translated[i].type = sw::STREAMTYPE_FLOAT;
+			translated[i].count = 4;
+            translated[i].stride = 0;
+            translated[i].offset = 0;
         }
     }
 

@@ -49,10 +49,6 @@ void copyIndices(GLenum type, const void *input, GLsizei count, void *output)
     {
         memcpy(output, input, count * sizeof(GLubyte));
     }
-    else if(type == GL_UNSIGNED_INT)
-    {
-        memcpy(output, input, count * sizeof(GLuint));
-    }
     else if(type == GL_UNSIGNED_SHORT)
     {
         memcpy(output, input, count * sizeof(GLushort));
@@ -79,10 +75,6 @@ void computeRange(GLenum type, const void *indices, GLsizei count, GLuint *minIn
     {
         computeRange(static_cast<const GLubyte*>(indices), count, minIndex, maxIndex);
     }
-    else if(type == GL_UNSIGNED_INT)
-    {
-        computeRange(static_cast<const GLuint*>(indices), count, minIndex, maxIndex);
-    }
     else if(type == GL_UNSIGNED_SHORT)
     {
         computeRange(static_cast<const GLushort*>(indices), count, minIndex, maxIndex);
@@ -106,7 +98,6 @@ GLenum IndexDataManager::prepareIndexData(GLenum type, GLsizei count, Buffer *bu
         {
           case GL_UNSIGNED_BYTE:  alignedOffset = (offset % sizeof(GLubyte) == 0);  break;
           case GL_UNSIGNED_SHORT: alignedOffset = (offset % sizeof(GLushort) == 0); break;
-          case GL_UNSIGNED_INT:   alignedOffset = (offset % sizeof(GLuint) == 0);   break;
           default: UNREACHABLE(); alignedOffset = false;
         }
 
@@ -159,7 +150,6 @@ std::size_t IndexDataManager::typeSize(GLenum type)
 {
     switch(type)
     {
-    case GL_UNSIGNED_INT:   return sizeof(GLuint);
     case GL_UNSIGNED_SHORT: return sizeof(GLushort);
     case GL_UNSIGNED_BYTE:  return sizeof(GLubyte);
     default: UNREACHABLE(); return sizeof(GLushort);

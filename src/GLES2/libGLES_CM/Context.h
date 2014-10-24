@@ -12,8 +12,8 @@
 // Context.h: Defines the Context class, managing all GL state and performing
 // rendering operations. It is the GLES2 specific implementation of EGLContext.
 
-#ifndef LIBGLESV2_CONTEXT_H_
-#define LIBGLESV2_CONTEXT_H_
+#ifndef LIBGLES_CM_CONTEXT_H_
+#define LIBGLES_CM_CONTEXT_H_
 
 #include "ResourceManager.h"
 #include "HandleAllocator.h"
@@ -21,9 +21,8 @@
 #include "Image.hpp"
 #include "Renderer/Sampler.hpp"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#define GL_API
+#include <GLES/gl.h>
 #define EGLAPI
 #include <EGL/egl.h>
 
@@ -43,11 +42,8 @@ struct TranslatedAttribute;
 struct TranslatedIndexData;
 
 class Buffer;
-class Shader;
-class Program;
 class Texture;
 class Texture2D;
-class TextureCubeMap;
 class TextureExternal;
 class Framebuffer;
 class Renderbuffer;
@@ -59,8 +55,6 @@ class Stencilbuffer;
 class DepthStencilbuffer;
 class VertexDataManager;
 class IndexDataManager;
-class Fence;
-class Query;
 
 enum
 {
@@ -170,7 +164,6 @@ struct State
     GLenum destBlendAlpha;
     GLenum blendEquationRGB;
     GLenum blendEquationAlpha;
-    Color blendColor;
     bool stencilTest;
     GLenum stencilFunc;
     GLint stencilRef;
@@ -179,13 +172,6 @@ struct State
     GLenum stencilPassDepthFail;
     GLenum stencilPassDepthPass;
     GLuint stencilWritemask;
-    GLenum stencilBackFunc;
-    GLint stencilBackRef;
-    GLuint stencilBackMask;
-    GLenum stencilBackFail;
-    GLenum stencilBackPassDepthFail;
-    GLenum stencilBackPassDepthPass;
-    GLuint stencilBackWritemask;
     bool polygonOffsetFill;
     GLfloat polygonOffsetFactor;
     GLfloat polygonOffsetUnits;
@@ -199,7 +185,6 @@ struct State
     GLfloat lineWidth;
 
     GLenum generateMipmapHint;
-    GLenum fragmentShaderDerivativeHint;
 
     GLint viewportX;
     GLint viewportY;
@@ -222,14 +207,11 @@ struct State
     unsigned int activeSampler;   // Active texture unit selector - GL_TEXTURE0
     BindingPointer<Buffer> arrayBuffer;
     BindingPointer<Buffer> elementArrayBuffer;
-    GLuint readFramebuffer;
-    GLuint drawFramebuffer;
+    GLuint framebuffer;
     BindingPointer<Renderbuffer> renderbuffer;
-    GLuint currentProgram;
 
     VertexAttribute vertexAttribute[MAX_VERTEX_ATTRIBS];
     BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
-	BindingPointer<Query> activeQuery[QUERY_TYPE_COUNT];
 
     GLint unpackAlignment;
     GLint packAlignment;
@@ -264,18 +246,14 @@ class Context
     void setBlend(bool enabled);
     bool isBlendEnabled() const;
     void setBlendFactors(GLenum sourceRGB, GLenum destRGB, GLenum sourceAlpha, GLenum destAlpha);
-    void setBlendColor(float red, float green, float blue, float alpha);
     void setBlendEquation(GLenum rgbEquation, GLenum alphaEquation);
 
     void setStencilTest(bool enabled);
     bool isStencilTestEnabled() const;
     void setStencilParams(GLenum stencilFunc, GLint stencilRef, GLuint stencilMask);
-    void setStencilBackParams(GLenum stencilBackFunc, GLint stencilBackRef, GLuint stencilBackMask);
     void setStencilWritemask(GLuint stencilWritemask);
-    void setStencilBackWritemask(GLuint stencilBackWritemask);
     void setStencilOperations(GLenum stencilFail, GLenum stencilPassDepthFail, GLenum stencilPassDepthPass);
-    void setStencilBackOperations(GLenum stencilBackFail, GLenum stencilBackPassDepthFail, GLenum stencilBackPassDepthPass);
-
+    
     void setPolygonOffsetFill(bool enabled);
     bool isPolygonOffsetFillEnabled() const;
     void setPolygonOffsetParams(GLfloat factor, GLfloat units);
@@ -292,7 +270,6 @@ class Context
     void setLineWidth(GLfloat width);
 
     void setGenerateMipmapHint(GLenum hint);
-    void setFragmentShaderDerivativeHint(GLenum hint);
 
     void setViewportParams(GLint x, GLint y, GLsizei width, GLsizei height);
 
@@ -305,11 +282,8 @@ class Context
 
     void setActiveSampler(unsigned int active);
 
-    GLuint getReadFramebufferHandle() const;
-    GLuint getDrawFramebufferHandle() const;
+    GLuint getFramebufferHandle() const;
     GLuint getRenderbufferHandle() const;
-
-	GLuint getActiveQuery(GLenum target) const;
 
     GLuint getArrayBufferHandle() const;
 
@@ -330,14 +304,10 @@ class Context
     // These create  and destroy methods are merely pass-throughs to 
     // ResourceManager, which owns these object types
     GLuint createBuffer();
-    GLuint createShader(GLenum type);
-    GLuint createProgram();
     GLuint createTexture();
     GLuint createRenderbuffer();
 
     void deleteBuffer(GLuint buffer);
-    void deleteShader(GLuint shader);
-    void deleteProgram(GLuint program);
     void deleteTexture(GLuint texture);
     void deleteRenderbuffer(GLuint renderbuffer);
 
@@ -345,26 +315,12 @@ class Context
     GLuint createFramebuffer();
     void deleteFramebuffer(GLuint framebuffer);
 
-    // Fences are owned by the Context
-    GLuint createFence();
-    void deleteFence(GLuint fence);
-
-	// Queries are owned by the Context
-    GLuint createQuery();
-    void deleteQuery(GLuint query);
-
     void bindArrayBuffer(GLuint buffer);
     void bindElementArrayBuffer(GLuint buffer);
     void bindTexture2D(GLuint texture);
-    void bindTextureCubeMap(GLuint texture);
     void bindTextureExternal(GLuint texture);
-    void bindReadFramebuffer(GLuint framebuffer);
-    void bindDrawFramebuffer(GLuint framebuffer);
+    void bindFramebuffer(GLuint framebuffer);
     void bindRenderbuffer(GLuint renderbuffer);
-    void useProgram(GLuint program);
-
-	void beginQuery(GLenum target, GLuint query);
-    void endQuery(GLenum target);
 
     void setFramebufferZero(Framebuffer *framebuffer);
 
@@ -373,29 +329,25 @@ class Context
     void setVertexAttrib(GLuint index, const GLfloat *values);
 
     Buffer *getBuffer(GLuint handle);
-    Fence *getFence(GLuint handle);
-    Shader *getShader(GLuint handle);
-    Program *getProgram(GLuint handle);
     virtual Texture *getTexture(GLuint handle);
     Framebuffer *getFramebuffer(GLuint handle);
     virtual Renderbuffer *getRenderbuffer(GLuint handle);
-	Query *getQuery(GLuint handle, bool create, GLenum type);
 
     Buffer *getArrayBuffer();
     Buffer *getElementArrayBuffer();
-    Program *getCurrentProgram();
     Texture2D *getTexture2D();
-    TextureCubeMap *getTextureCubeMap();
     TextureExternal *getTextureExternal();
     Texture *getSamplerTexture(unsigned int sampler, TextureType type);
-    Framebuffer *getReadFramebuffer();
-    Framebuffer *getDrawFramebuffer();
+    Framebuffer *getFramebuffer();
 
     bool getFloatv(GLenum pname, GLfloat *params);
     bool getIntegerv(GLenum pname, GLint *params);
     bool getBooleanv(GLenum pname, GLboolean *params);
 
-    bool getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *numParams);
+    int getQueryParameterNum(GLenum pname);
+	bool isQueryParameterInt(GLenum pname);
+	bool isQueryParameterFloat(GLenum pname);
+	bool isQueryParameterBool(GLenum pname);
 
     void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
     void clear(GLbitfield mask);
@@ -413,20 +365,14 @@ class Context
     GLenum getError();
 
     static int getSupportedMultiSampleDepth(sw::Format format, int requested);
-    
-    void blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, 
-                         GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
-                         GLbitfield mask);
 
   private:
     bool applyRenderTarget();
     void applyState(GLenum drawMode);
     GLenum applyVertexBuffer(GLint base, GLint first, GLsizei count);
     GLenum applyIndexBuffer(const void *indices, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo);
-    void applyShaders();
     void applyTextures();
-    void applyTextures(sw::SamplerType type);
-	void applyTexture(sw::SamplerType type, int sampler, Texture *texture);
+	void applyTexture(int sampler, Texture *texture);
 
     void detachBuffer(GLuint buffer);
     void detachTexture(GLuint texture);
@@ -441,20 +387,11 @@ class Context
     State mState;
 
     BindingPointer<Texture2D> mTexture2DZero;
-    BindingPointer<TextureCubeMap> mTextureCubeMapZero;
     BindingPointer<TextureExternal> mTextureExternalZero;
 
     typedef std::map<GLint, Framebuffer*> FramebufferMap;
     FramebufferMap mFramebufferMap;
     HandleAllocator mFramebufferHandleAllocator;
-
-    typedef std::map<GLint, Fence*> FenceMap;
-    FenceMap mFenceMap;
-    HandleAllocator mFenceHandleAllocator;
-
-	typedef std::map<GLint, Query*> QueryMap;
-    QueryMap mQueryMap;
-    HandleAllocator mQueryHandleAllocator;
 
     VertexDataManager *mVertexDataManager;
     IndexDataManager *mIndexDataManager;
@@ -467,8 +404,6 @@ class Context
     bool mInvalidFramebufferOperation;
 
     bool mHasBeenCurrent;
-
-    unsigned int mAppliedProgramSerial;
     
     // state caching flags
     bool mDepthStateDirty;

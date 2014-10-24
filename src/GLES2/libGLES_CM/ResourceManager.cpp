@@ -15,9 +15,7 @@
 #include "ResourceManager.h"
 
 #include "Buffer.h"
-#include "Program.h"
 #include "Renderbuffer.h"
-#include "Shader.h"
 #include "Texture.h"
 
 namespace gl
@@ -32,16 +30,6 @@ ResourceManager::~ResourceManager()
     while(!mBufferMap.empty())
     {
         deleteBuffer(mBufferMap.begin()->first);
-    }
-
-    while(!mProgramMap.empty())
-    {
-        deleteProgram(mProgramMap.begin()->first);
-    }
-
-    while(!mShaderMap.empty())
-    {
-        deleteShader(mShaderMap.begin()->first);
     }
 
     while(!mRenderbufferMap.empty())
@@ -78,34 +66,6 @@ GLuint ResourceManager::createBuffer()
     return handle;
 }
 
-// Returns an unused shader/program name
-GLuint ResourceManager::createShader(GLenum type)
-{
-    GLuint handle = mProgramShaderHandleAllocator.allocate();
-
-    if(type == GL_VERTEX_SHADER)
-    {
-        mShaderMap[handle] = new VertexShader(this, handle);
-    }
-    else if(type == GL_FRAGMENT_SHADER)
-    {
-        mShaderMap[handle] = new FragmentShader(this, handle);
-    }
-    else UNREACHABLE();
-
-    return handle;
-}
-
-// Returns an unused program/shader name
-GLuint ResourceManager::createProgram()
-{
-    GLuint handle = mProgramShaderHandleAllocator.allocate();
-
-    mProgramMap[handle] = new Program(this, handle);
-
-    return handle;
-}
-
 // Returns an unused texture name
 GLuint ResourceManager::createTexture()
 {
@@ -135,44 +95,6 @@ void ResourceManager::deleteBuffer(GLuint buffer)
         mBufferHandleAllocator.release(bufferObject->first);
         if(bufferObject->second) bufferObject->second->release();
         mBufferMap.erase(bufferObject);
-    }
-}
-
-void ResourceManager::deleteShader(GLuint shader)
-{
-    ShaderMap::iterator shaderObject = mShaderMap.find(shader);
-
-    if(shaderObject != mShaderMap.end())
-    {
-        if(shaderObject->second->getRefCount() == 0)
-        {
-            mProgramShaderHandleAllocator.release(shaderObject->first);
-            delete shaderObject->second;
-            mShaderMap.erase(shaderObject);
-        }
-        else
-        {
-            shaderObject->second->flagForDeletion();
-        }
-    }
-}
-
-void ResourceManager::deleteProgram(GLuint program)
-{
-    ProgramMap::iterator programObject = mProgramMap.find(program);
-
-    if(programObject != mProgramMap.end())
-    {
-        if(programObject->second->getRefCount() == 0)
-        {
-            mProgramShaderHandleAllocator.release(programObject->first);
-            delete programObject->second;
-            mProgramMap.erase(programObject);
-        }
-        else
-        { 
-            programObject->second->flagForDeletion();
-        }
     }
 }
 
@@ -214,20 +136,6 @@ Buffer *ResourceManager::getBuffer(unsigned int handle)
     }
 }
 
-Shader *ResourceManager::getShader(unsigned int handle)
-{
-    ShaderMap::iterator shader = mShaderMap.find(handle);
-
-    if(shader == mShaderMap.end())
-    {
-        return NULL;
-    }
-    else
-    {
-        return shader->second;
-    }
-}
-
 Texture *ResourceManager::getTexture(unsigned int handle)
 {
     if(handle == 0) return NULL;
@@ -241,20 +149,6 @@ Texture *ResourceManager::getTexture(unsigned int handle)
     else
     {
         return texture->second;
-    }
-}
-
-Program *ResourceManager::getProgram(unsigned int handle)
-{
-    ProgramMap::iterator program = mProgramMap.find(handle);
-
-    if(program == mProgramMap.end())
-    {
-        return NULL;
-    }
-    else
-    {
-        return program->second;
     }
 }
 
@@ -297,10 +191,6 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
         {
             textureObject = new Texture2D(texture);
         }
-        else if(type == TEXTURE_CUBE)
-        {
-            textureObject = new TextureCubeMap(texture);
-        }
         else if(type == TEXTURE_EXTERNAL)
         {
             textureObject = new TextureExternal(texture);
@@ -320,7 +210,7 @@ void ResourceManager::checkRenderbufferAllocation(GLuint renderbuffer)
 {
     if(renderbuffer != 0 && !getRenderbuffer(renderbuffer))
     {
-        Renderbuffer *renderbufferObject = new Renderbuffer(renderbuffer, new Colorbuffer(0, 0, GL_RGBA4, 0));
+        Renderbuffer *renderbufferObject = new Renderbuffer(renderbuffer, new Colorbuffer(0, 0, GL_RGBA4_OES, 0));
         mRenderbufferMap[renderbuffer] = renderbufferObject;
         renderbufferObject->addRef();
     }

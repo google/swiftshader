@@ -11,8 +11,8 @@
 
 // mathutil.h: Math and bit manipulation functions.
 
-#ifndef LIBGLESV2_MATHUTIL_H_
-#define LIBGLESV2_MATHUTIL_H_
+#ifndef LIBGLES_CM_MATHUTIL_H_
+#define LIBGLES_CM_MATHUTIL_H_
 
 #include "common/debug.h"
 
@@ -76,4 +76,4 @@ inline unsigned int unorm(float x)
 }
 }
 
-#endif   // LIBGLESV2_MATHUTIL_H_
+#endif   // LIBGLES_CM_MATHUTIL_H_

@@ -118,28 +118,6 @@ namespace gl
 
 			setClipPlane(i, plane);
 		}
-
-		pixelShader = 0;
-		vertexShader = 0;
-
-		pixelShaderDirty = true;
-		pixelShaderConstantsFDirty = 0;
-		vertexShaderDirty = true;
-		vertexShaderConstantsFDirty = 0;
-
-		for(int i = 0; i < 224; i++)
-		{
-			float zero[4] = {0, 0, 0, 0};
-
-			setPixelShaderConstantF(i, zero, 1);
-		}
-
-		for(int i = 0; i < 256; i++)
-		{
-			float zero[4] = {0, 0, 0, 0};
-
-			setVertexShaderConstantF(i, zero, 1);
-		}
 	}
 
 	Device::~Device()
@@ -272,7 +250,7 @@ namespace gl
 			UNREACHABLE();
 		}
 
-		Image *surface = new Image(0, width, height, format, GL_NONE, GL_NONE, multiSampleDepth, lockable, true);
+		Image *surface = new Image(0, width, height, format, GL_NONE_OES, GL_NONE_OES, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{
@@ -293,7 +271,7 @@ namespace gl
 			return 0;
 		}
 
-		Image *surface = new Image(0, width, height, format, GL_NONE, GL_NONE, multiSampleDepth, lockable, true);
+		Image *surface = new Image(0, width, height, format, GL_NONE_OES, GL_NONE_OES, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{
@@ -414,30 +392,6 @@ namespace gl
 		setDepthStencil(depthStencil);
 	}
 
-	void Device::setPixelShader(PixelShader *pixelShader)
-	{
-		TRACE("PixelShader *shader = 0x%0.8p", pixelShader);
-
-		this->pixelShader = pixelShader;
-		pixelShaderDirty = true;
-	}
-
-	void Device::setPixelShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count)
-	{
-		TRACE("unsigned int startRegister = %d, const int *constantData = 0x%0.8p, unsigned int count = %d", startRegister, constantData, count);
-
-		for(unsigned int i = 0; i < count && startRegister + i < 224; i++)
-		{
-			pixelShaderConstantF[startRegister + i][0] = constantData[i * 4 + 0];
-			pixelShaderConstantF[startRegister + i][1] = constantData[i * 4 + 1];
-			pixelShaderConstantF[startRegister + i][2] = constantData[i * 4 + 2];
-			pixelShaderConstantF[startRegister + i][3] = constantData[i * 4 + 3];
-		}
-
-		pixelShaderConstantsFDirty = max(startRegister + count, pixelShaderConstantsFDirty);
-		pixelShaderDirty = true;   // Reload DEF constants
-	}
-
 	void Device::setScissorEnable(bool enable)
 	{
 		scissorEnable = enable;
@@ -467,30 +421,6 @@ namespace gl
 		TRACE("const sw::Rect *rect = 0x%0.8p", rect);
 
 		scissorRect = rect;
-	}
-
-	void Device::setVertexShader(VertexShader *vertexShader)
-	{
-		TRACE("VertexShader *shader = 0x%0.8p", vertexShader);
-
-		this->vertexShader = vertexShader;
-		vertexShaderDirty = true;
-	}
-
-	void Device::setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count)
-	{
-		TRACE("unsigned int startRegister = %d, const int *constantData = 0x%0.8p, unsigned int count = %d", startRegister, constantData, count);
-
-		for(unsigned int i = 0; i < count && startRegister + i < 256; i++)
-		{
-			vertexShaderConstantF[startRegister + i][0] = constantData[i * 4 + 0];
-			vertexShaderConstantF[startRegister + i][1] = constantData[i * 4 + 1];
-			vertexShaderConstantF[startRegister + i][2] = constantData[i * 4 + 2];
-			vertexShaderConstantF[startRegister + i][3] = constantData[i * 4 + 3];
-		}
-			
-		vertexShaderConstantsFDirty = max(startRegister + count, vertexShaderConstantsFDirty);
-		vertexShaderDirty = true;   // Reload DEF constants
 	}
 
 	void Device::setViewport(const Viewport &viewport)
@@ -643,52 +573,7 @@ namespace gl
 			return false;   // Zero-area target region
 		}
 
-		bindShaderConstants();
-
 		return true;
-	}
-
-	void Device::bindShaderConstants()
-	{
-		if(pixelShaderDirty)
-		{
-			if(pixelShader)
-			{
-				if(pixelShaderConstantsFDirty)
-				{
-					Renderer::setPixelShaderConstantF(0, pixelShaderConstantF[0], pixelShaderConstantsFDirty);
-				}
-
-				Renderer::setPixelShader(pixelShader);   // Loads shader constants set with DEF
-				pixelShaderConstantsFDirty = pixelShader->dirtyConstantsF;   // Shader DEF'ed constants are dirty
-			}
-			else
-			{
-				setPixelShader(0);
-			}
-
-			pixelShaderDirty = false;
-		}
-
-		if(vertexShaderDirty)
-		{
-			if(vertexShader)
-			{
-				if(vertexShaderConstantsFDirty)
-				{
-					Renderer::setVertexShaderConstantF(0, vertexShaderConstantF[0], vertexShaderConstantsFDirty);
-				}
-		
-				Renderer::setVertexShader(vertexShader);   // Loads shader constants set with DEF
-				vertexShaderConstantsFDirty = vertexShader->dirtyConstantsF;   // Shader DEF'ed constants are dirty
-			}
-			else
-			{
-				setVertexShader(0);
-			}
-
-			vertexShaderDirty = false;
-		}
 	}
 	
 	bool Device::bindViewport()

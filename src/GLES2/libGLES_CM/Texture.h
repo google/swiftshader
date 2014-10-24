@@ -13,16 +13,16 @@
 // classes Texture2D and TextureCubeMap. Implements GL texture objects and
 // related functionality. [OpenGL ES 2.0.24] section 3.7 page 63.
 
-#ifndef LIBGLESV2_TEXTURE_H_
-#define LIBGLESV2_TEXTURE_H_
+#ifndef LIBGLES_CM_TEXTURE_H_
+#define LIBGLES_CM_TEXTURE_H_
 
 #include "Renderbuffer.h"
 #include "RefCountObject.h"
 #include "utilities.h"
 #include "common/debug.h"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define GL_API
+#include <GLES/gl.h>
 
 #include <vector>
 
@@ -165,63 +165,6 @@ protected:
     unsigned int mProxyRefs;
 };
 
-class TextureCubeMap : public Texture
-{
-public:
-    explicit TextureCubeMap(GLuint id);
-
-    virtual ~TextureCubeMap();
-
-	void addProxyRef(const Renderbuffer *proxy);
-    void releaseProxy(const Renderbuffer *proxy);
-
-    virtual GLenum getTarget() const;
-    
-    virtual GLsizei getWidth(GLenum target, GLint level) const;
-    virtual GLsizei getHeight(GLenum target, GLint level) const;
-    virtual GLenum getFormat(GLenum target, GLint level) const;
-    virtual GLenum getType(GLenum target, GLint level) const;
-    virtual sw::Format getInternalFormat(GLenum target, GLint level) const;
-	virtual int getLevelCount() const;
-
-	void setImage(GLenum target, GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels);
-    void setCompressedImage(GLenum target, GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels);
-
-    void subImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels);
-    void subImageCompressed(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels);
-    void copyImage(GLenum target, GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source);
-    virtual void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source);
-
-    virtual bool isSamplerComplete() const;
-    virtual bool isCompressed(GLenum target, GLint level) const;
-	virtual bool isDepth(GLenum target, GLint level) const;
-
-    virtual void generateMipmaps();
-
-    virtual Renderbuffer *getRenderbuffer(GLenum target);
-	virtual Image *getRenderTarget(GLenum target, unsigned int level);
-	virtual bool isShared(GLenum target, unsigned int level) const;
-
-	Image *getImage(int face, unsigned int level);
-
-private:
-	bool isCubeComplete() const;
-	bool isMipmapCubeComplete() const;
-
-    // face is one of the GL_TEXTURE_CUBE_MAP_* enumerants. Returns NULL on failure.
-    Image *getImage(GLenum face, unsigned int level);
-
-    Image *image[6][IMPLEMENTATION_MAX_TEXTURE_LEVELS];
-	
-	// A specific internal reference count is kept for colorbuffer proxy references,
-    // because, as the renderbuffer acting as proxy will maintain a binding pointer
-    // back to this texture, there would be a circular reference if we used a binding
-    // pointer here. This reference count will cause the pointer to be set to NULL if
-    // the count drops to zero, but will not cause deletion of the Renderbuffer.
-    Renderbuffer *mFaceProxies[6];
-	unsigned int mFaceProxyRefs[6];
-};
-
 class TextureExternal : public Texture2D
 {
 public:
@@ -235,4 +178,4 @@ public:
 };
 }
 
-#endif   // LIBGLESV2_TEXTURE_H_
+#endif   // LIBGLES_CM_TEXTURE_H_

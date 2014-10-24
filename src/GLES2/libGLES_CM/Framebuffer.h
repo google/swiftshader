@@ -12,14 +12,14 @@
 // Framebuffer.h: Defines the Framebuffer class. Implements GL framebuffer
 // objects and related functionality. [OpenGL ES 2.0.24] section 4.4 page 105.
 
-#ifndef LIBGLESV2_FRAMEBUFFER_H_
-#define LIBGLESV2_FRAMEBUFFER_H_
+#ifndef LIBGLES_CM_FRAMEBUFFER_H_
+#define LIBGLES_CM_FRAMEBUFFER_H_
 
 #include "RefCountObject.h"
 #include "Image.hpp"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define GL_API
+#include <GLES/gl.h>
 
 namespace gl
 {
@@ -87,4 +87,4 @@ public:
 
 }
 
-#endif   // LIBGLESV2_FRAMEBUFFER_H_
+#endif   // LIBGLES_CM_FRAMEBUFFER_H_

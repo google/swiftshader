@@ -11,17 +11,18 @@
 
 // main.h: Management of thread-local data.
 
-#ifndef LIBGLESV2_MAIN_H_
-#define LIBGLESV2_MAIN_H_
+#ifndef LIBGLES_CM_MAIN_H_
+#define LIBGLES_CM_MAIN_H_
 
 #include "Context.h"
 #include "Device.hpp"
 #include "common/debug.h"
 #include "libEGL/Display.h"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#define GL_API
+#include <GLES/gl.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GLES/glext.h>
 
 namespace gl
 {
@@ -49,4 +50,4 @@ const T &error(GLenum errorCode, const T &returnValue)
     return returnValue;
 }
 
-#endif   // LIBGLESV2_MAIN_H_
+#endif   // LIBGLES_CM_MAIN_H_

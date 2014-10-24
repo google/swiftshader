@@ -59,13 +59,9 @@ namespace gl
 		virtual void drawIndexedPrimitive(PrimitiveType type, unsigned int indexOffset, unsigned int primitiveCount, int indexSize);
 		virtual void drawPrimitive(PrimitiveType primitiveType, unsigned int primiveCount);
 		virtual void setDepthStencilSurface(Image *newDepthStencil);
-		virtual void setPixelShader(sw::PixelShader *shader);
-		virtual void setPixelShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		virtual void setScissorEnable(bool enable);
 		virtual void setRenderTarget(Image *renderTarget);
 		virtual void setScissorRect(const sw::Rect &rect);
-		virtual void setVertexShader(sw::VertexShader *shader);
-		virtual void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		virtual void setViewport(const Viewport &viewport);
 
 		virtual bool stretchRect(Image *sourceSurface, const sw::Rect *sourceRect, Image *destSurface, const sw::Rect *destRect, bool filter);
@@ -75,7 +71,6 @@ namespace gl
 		sw::Context *const context;
 
 		bool bindResources();
-		void bindShaderConstants();
 		bool bindViewport();   // Also adjusts for scissoring
 
 		bool validRectangle(const sw::Rect *rect, Image *surface);
@@ -83,17 +78,6 @@ namespace gl
 		Viewport viewport;
 		sw::Rect scissorRect;
 		bool scissorEnable;
-
-		sw::PixelShader *pixelShader;
-		sw::VertexShader *vertexShader;
-
-		bool pixelShaderDirty;
-		unsigned int pixelShaderConstantsFDirty;
-		bool vertexShaderDirty;
-		unsigned int vertexShaderConstantsFDirty;
-
-		float pixelShaderConstantF[224][4];
-		float vertexShaderConstantF[256][4];
 
 		Image *renderTarget;
 		Image *depthStencil;

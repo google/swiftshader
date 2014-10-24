@@ -16,7 +16,8 @@
 #include "../common/debug.h"
 #include "Common/Thread.hpp"
 
-#include <GLES2/gl2ext.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GLES/glext.h>
 
 namespace gl
 {
@@ -150,23 +151,11 @@ namespace gl
 		{
 			return sw::FORMAT_DXT1;
 		}
-		else if(format == GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE)
-		{
-			return sw::FORMAT_DXT3;
-		}
-		else if(format == GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE)
-		{
-			return sw::FORMAT_DXT5;
-		}
 		else
 		#endif
 		if(type == GL_FLOAT)
 		{
 			return sw::FORMAT_A32B32G32R32F;
-		}
-		else if(type == GL_HALF_FLOAT_OES)
-		{
-			return sw::FORMAT_A16B16G16R16F;
 		}
 		else if(type == GL_UNSIGNED_BYTE)
 		{
@@ -189,14 +178,6 @@ namespace gl
 			else if(format == GL_ALPHA)
 			{
 				return sw::FORMAT_A8;
-			}
-			else UNREACHABLE();
-		}
-		else if(type == GL_UNSIGNED_SHORT || type == GL_UNSIGNED_INT)
-		{
-			if(format == GL_DEPTH_COMPONENT)
-			{
-				return sw::FORMAT_D32FS8_TEXTURE;
 			}
 			else UNREACHABLE();
 		}
@@ -308,28 +289,6 @@ namespace gl
 					break;
 				case GL_RGBA:
 					loadRGBAFloatImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
-					break;
-				default: UNREACHABLE();
-				}
-				break;
-			  case GL_HALF_FLOAT_OES:
-				switch(format)
-				{
-				// float textures are converted to RGBA, not BGRA
-				case GL_ALPHA:
-					loadAlphaHalfFloatImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
-					break;
-				case GL_LUMINANCE:
-					loadLuminanceHalfFloatImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
-					break;
-				case GL_LUMINANCE_ALPHA:
-					loadLuminanceAlphaHalfFloatImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
-					break;
-				case GL_RGB:
-					loadRGBHalfFloatImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
-					break;
-				case GL_RGBA:
-					loadRGBAHalfFloatImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
 					break;
 				default: UNREACHABLE();
 				}

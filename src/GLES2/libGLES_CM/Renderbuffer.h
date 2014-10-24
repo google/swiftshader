@@ -14,19 +14,18 @@
 // DepthStencilbuffer, Depthbuffer and Stencilbuffer. Implements GL renderbuffer
 // objects and related functionality. [OpenGL ES 2.0.24] section 4.4.3 page 108.
 
-#ifndef LIBGLESV2_RENDERBUFFER_H_
-#define LIBGLESV2_RENDERBUFFER_H_
+#ifndef LIBGLES_CM_RENDERBUFFER_H_
+#define LIBGLES_CM_RENDERBUFFER_H_
 
 #include "RefCountObject.h"
 #include "Image.hpp"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define GL_API
+#include <GLES/gl.h>
 
 namespace gl
 {
 class Texture2D;
-class TextureCubeMap;
 class Renderbuffer;
 class Colorbuffer;
 class DepthStencilbuffer;
@@ -81,31 +80,6 @@ public:
 
 private:
 	BindingPointer<Texture2D> mTexture2D;
-};
-
-class RenderbufferTextureCubeMap : public RenderbufferInterface
-{
-public:
-	RenderbufferTextureCubeMap(TextureCubeMap *texture, GLenum target);
-
-	virtual ~RenderbufferTextureCubeMap();
-
-	virtual void addProxyRef(const Renderbuffer *proxy);
-    virtual void releaseProxy(const Renderbuffer *proxy);
-
-	virtual Image *getRenderTarget();
-    virtual Image *createSharedImage();
-    virtual bool isShared() const;
-
-	virtual GLsizei getWidth() const;
-	virtual GLsizei getHeight() const;
-	virtual GLenum getFormat() const;
-	virtual sw::Format getInternalFormat() const;
-	virtual GLsizei getSamples() const;
-
-private:
-	BindingPointer<TextureCubeMap> mTextureCubeMap;
-	GLenum mTarget;
 };
 
 // A class derived from RenderbufferStorage is created whenever glRenderbufferStorage
@@ -226,4 +200,4 @@ public:
 };
 }
 
-#endif   // LIBGLESV2_RENDERBUFFER_H_
+#endif   // LIBGLES_CM_RENDERBUFFER_H_

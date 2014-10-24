@@ -12,13 +12,13 @@
 // IndexDataManager.h: Defines the IndexDataManager, a class that
 // runs the Buffer translation process for index buffers.
 
-#ifndef LIBGLESV2_INDEXDATAMANAGER_H_
-#define LIBGLESV2_INDEXDATAMANAGER_H_
+#ifndef LIBGLES_CM_INDEXDATAMANAGER_H_
+#define LIBGLES_CM_INDEXDATAMANAGER_H_
 
 #include "Context.h"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define GL_API
+#include <GLES/gl.h>
 
 namespace gl
 {
@@ -66,4 +66,4 @@ class IndexDataManager
 
 }
 
-#endif   // LIBGLESV2_INDEXDATAMANAGER_H_
+#endif   // LIBGLES_CM_INDEXDATAMANAGER_H_

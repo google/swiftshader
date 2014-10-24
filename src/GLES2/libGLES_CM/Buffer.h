@@ -13,14 +13,14 @@
 // index data. Implements GL buffer objects and related functionality.
 // [OpenGL ES 2.0.24] section 2.9 page 21.
 
-#ifndef LIBGLESV2_BUFFER_H_
-#define LIBGLESV2_BUFFER_H_
+#ifndef LIBGLES_CM_BUFFER_H_
+#define LIBGLES_CM_BUFFER_H_
 
 #include "RefCountObject.h"
 #include "Common/Resource.hpp"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define GL_API
+#include <GLES/gl.h>
 
 #include <cstddef>
 #include <vector>
@@ -51,4 +51,4 @@ class Buffer : public RefCountObject
 
 }
 
-#endif   // LIBGLESV2_BUFFER_H_
+#endif   // LIBGLES_CM_BUFFER_H_

@@ -12,21 +12,19 @@
 // ResourceManager.h : Defines the ResourceManager class, which tracks objects
 // shared by multiple GL contexts.
 
-#ifndef LIBGLESV2_RESOURCEMANAGER_H_
-#define LIBGLESV2_RESOURCEMANAGER_H_
+#ifndef LIBGLES_CM_RESOURCEMANAGER_H_
+#define LIBGLES_CM_RESOURCEMANAGER_H_
 
 #include "HandleAllocator.h"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define GL_API
+#include <GLES/gl.h>
 
 #include <map>
 
 namespace gl
 {
 class Buffer;
-class Shader;
-class Program;
 class Texture;
 class Renderbuffer;
 
@@ -50,20 +48,14 @@ class ResourceManager
     void release();
 
     GLuint createBuffer();
-    GLuint createShader(GLenum type);
-    GLuint createProgram();
     GLuint createTexture();
     GLuint createRenderbuffer();
 
     void deleteBuffer(GLuint buffer);
-    void deleteShader(GLuint shader);
-    void deleteProgram(GLuint program);
     void deleteTexture(GLuint texture);
     void deleteRenderbuffer(GLuint renderbuffer);
 
     Buffer *getBuffer(GLuint handle);
-    Shader *getShader(GLuint handle);
-    Program *getProgram(GLuint handle);
     Texture *getTexture(GLuint handle);
     Renderbuffer *getRenderbuffer(GLuint handle);
     
@@ -79,14 +71,7 @@ class ResourceManager
     typedef std::map<GLint, Buffer*> BufferMap;
     BufferMap mBufferMap;
     HandleAllocator mBufferHandleAllocator;
-
-    typedef std::map<GLint, Shader*> ShaderMap;
-    ShaderMap mShaderMap;
-
-    typedef std::map<GLint, Program*> ProgramMap;
-    ProgramMap mProgramMap;
-    HandleAllocator mProgramShaderHandleAllocator;
-
+	
     typedef std::map<GLint, Texture*> TextureMap;
     TextureMap mTextureMap;
     HandleAllocator mTextureHandleAllocator;
@@ -98,4 +83,4 @@ class ResourceManager
 
 }
 
-#endif // LIBGLESV2_RESOURCEMANAGER_H_
+#endif // LIBGLES_CM_RESOURCEMANAGER_H_

@@ -11,30 +11,23 @@
 
 // utilities.h: Conversion functions and other utility routines.
 
-#ifndef LIBGLESV2_UTILITIES_H
-#define LIBGLESV2_UTILITIES_H
+#ifndef LIBGLES_CM_UTILITIES_H
+#define LIBGLES_CM_UTILITIES_H
 
 #include "Device.hpp"
 #include "Image.hpp"
 #include "Texture.h"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#define GL_API
+#include <GLES/gl.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GLES/glext.h>
 
 #include <string>
 
 namespace gl
 {
 	struct Color;
-
-	int UniformComponentCount(GLenum type);
-	GLenum UniformComponentType(GLenum type);
-	size_t UniformTypeSize(GLenum type);
-	int VariableRowCount(GLenum type);
-	int VariableColumnCount(GLenum type);
-
-	int AllocateFirstFreeBits(unsigned int *bits, unsigned int allocationSize, unsigned int bitsSize);
 
 	int ComputePixelSize(GLenum format, GLenum type);
 	GLsizei ComputePitch(GLsizei width, GLenum format, GLenum type, GLint alignment);
@@ -83,4 +76,4 @@ namespace sw2es
 	GLenum ConvertDepthStencilFormat(sw::Format format);
 }
 
-#endif  // LIBGLESV2_UTILITIES_H
+#endif  // LIBGLES_CM_UTILITIES_H

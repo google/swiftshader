@@ -14,13 +14,13 @@
 // that need to be reference counted for correct cross-context deletion.
 // (Concretely, textures, buffers and renderbuffers.)
 
-#ifndef LIBGLESV2_REFCOUNTOBJECT_H_
-#define LIBGLESV2_REFCOUNTOBJECT_H_
+#ifndef LIBGLES_CM_REFCOUNTOBJECT_H_
+#define LIBGLES_CM_REFCOUNTOBJECT_H_
 
 #include "common/debug.h"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define GL_APIL
+#include <GLES/gl.h>
 
 #include <cstddef>
 
@@ -72,4 +72,4 @@ class BindingPointer : public RefCountObjectBindingPointer
 
 }
 
-#endif   // LIBGLESV2_REFCOUNTOBJECT_H_
+#endif   // LIBGLES_CM_REFCOUNTOBJECT_H_
