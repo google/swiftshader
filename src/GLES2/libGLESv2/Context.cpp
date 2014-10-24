@@ -228,8 +228,6 @@ void Context::destroy()
 
 void Context::makeCurrent(egl::Display *display, egl::Surface *surface)
 {
-    Device *device = display->getDevice();
-
     if(!mHasBeenCurrent)
     {
         mVertexDataManager = new VertexDataManager(this);

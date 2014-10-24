@@ -845,12 +845,6 @@ EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurfac
     {
         egl::Display *display = static_cast<egl::Display*>(dpy);
         gl::Context *context = static_cast<gl::Context*>(ctx);
-        gl::Device *device = display->getDevice();
-
-        if(!device)
-        {
-            return error(EGL_CONTEXT_LOST, EGL_FALSE);
-        }
 
         if(ctx != EGL_NO_CONTEXT && !validateContext(display, context))
         {
