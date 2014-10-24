@@ -3408,6 +3408,7 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
             return (GLubyte*)
                 "GL_OES_depth_texture "
                 "GL_OES_depth_texture_cube_map "
+                "GL_OES_EGL_image "
                 "GL_OES_EGL_image_external "
                 "GL_OES_element_index_uint "
                 "GL_OES_packed_depth_stencil "
