@@ -94,7 +94,7 @@ public:
   template <typename T> T *getAssembler() const {
     return static_cast<T *>(TargetAssembler.get());
   }
-  bool UseIntegratedAssembler() const {
+  bool useIntegratedAssembler() const {
     return getContext()->getFlags().UseIntegratedAssembler;
   }
   bool hasComputedFrame() const;

@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "assembler.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceInst.h"
@@ -491,6 +492,10 @@ void CfgNode::emit(Cfg *Func) const {
     Str << Func->getContext()->mangleName(Func->getFunctionName()) << ":\n";
   }
   Str << getAsmName() << ":\n";
+  if (Func->useIntegratedAssembler()) {
+    Assembler *Asm = Func->getAssembler<Assembler>();
+    Asm->BindCfgNodeLabel(getIndex());
+  }
   for (InstPhi *Phi : Phis) {
     if (Phi->isDeleted())
       continue;
@@ -505,7 +510,7 @@ void CfgNode::emit(Cfg *Func) const {
     // suppress them.
     if (I->isRedundantAssign())
       continue;
-    if (Func->UseIntegratedAssembler()) {
+    if (Func->useIntegratedAssembler()) {
       I->emitIAS(Func);
     } else {
       I->emit(Func);

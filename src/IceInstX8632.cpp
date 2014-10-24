@@ -373,6 +373,33 @@ void emitIASBytes(const Cfg *Func, const x86::AssemblerX86 *Asm,
   }
 }
 
+void emitIASBytesBranch(const Cfg *Func, const x86::AssemblerX86 *Asm,
+                        intptr_t StartPosition, const x86::Label *Label,
+                        const IceString &LabelName, bool Near) {
+  // If this is a backward branch (label is bound), we're good and know
+  // the offset. If this is a forward branch, then we can't actually emit
+  // the thing as text in a streaming manner, because the fixup hasn't
+  // happened yet. Instead, emit .long ($BranchLabel) - (. + 4), in that
+  // case and let the external assembler take care of that fixup.
+  if (Label->IsBound()) {
+    emitIASBytes(Func, Asm, StartPosition);
+    return;
+  }
+  const intptr_t FwdBranchSize = Near ? 1 : 4;
+  const IceString FwdBranchDirective = Near ? ".byte" : ".long";
+  Ostream &Str = Func->getContext()->getStrEmit();
+  intptr_t EndPosition = Asm->GetPosition();
+  assert(EndPosition - StartPosition > FwdBranchSize);
+  for (intptr_t i = StartPosition; i < EndPosition - FwdBranchSize; ++i) {
+    Str << "\t.byte 0x";
+    Str.write_hex(Asm->LoadBuffer<uint8_t>(i));
+    Str << "\n";
+  }
+  Str << "\t" << FwdBranchDirective << " " << LabelName << " - (. + "
+      << FwdBranchSize << ")\n";
+  return;
+}
+
 } // end of anonymous namespace
 
 void InstX8632::dump(const Cfg *Func) const {
@@ -382,6 +409,15 @@ void InstX8632::dump(const Cfg *Func) const {
 }
 
 void InstX8632Label::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << getName(Func) << ":\n";
+}
+
+void InstX8632Label::emitIAS(const Cfg *Func) const {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  Asm->BindLocalLabel(Number);
+  // TODO(jvoung): remove the the textual label once forward branch
+  // fixups are used (and text assembler is not used).
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << getName(Func) << ":\n";
 }
@@ -410,6 +446,47 @@ void InstX8632Br::emit(const Cfg *Func) const {
       Str << "\t" << getTargetTrue()->getAsmName() << "\n";
       if (getTargetFalse()) {
         Str << "\tjmp\t" << getTargetFalse()->getAsmName() << "\n";
+      }
+    }
+  }
+}
+
+void InstX8632Br::emitIAS(const Cfg *Func) const {
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  intptr_t StartPosition = Asm->GetPosition();
+  if (Label) {
+    x86::Label *L = Asm->GetOrCreateLocalLabel(Label->getNumber());
+    // In all these cases, local Labels should only be used for Near.
+    const bool Near = true;
+    if (Condition == CondX86::Br_None) {
+      Asm->jmp(L, Near);
+    } else {
+      Asm->j(Condition, L, Near);
+    }
+    emitIASBytesBranch(Func, Asm, StartPosition, L, Label->getName(Func), Near);
+  } else {
+    // Pessimistically assume it's far. This only affects Labels that
+    // are not Bound.
+    const bool Near = false;
+    if (Condition == CondX86::Br_None) {
+      x86::Label *L =
+          Asm->GetOrCreateCfgNodeLabel(getTargetFalse()->getIndex());
+      assert(!getTargetTrue());
+      Asm->jmp(L, Near);
+      emitIASBytesBranch(Func, Asm, StartPosition, L,
+                         getTargetFalse()->getAsmName(), Near);
+    } else {
+      x86::Label *L = Asm->GetOrCreateCfgNodeLabel(getTargetTrue()->getIndex());
+      Asm->j(Condition, L, Near);
+      emitIASBytesBranch(Func, Asm, StartPosition, L,
+                         getTargetTrue()->getAsmName(), Near);
+      StartPosition = Asm->GetPosition();
+      if (getTargetFalse()) {
+        x86::Label *L2 =
+            Asm->GetOrCreateCfgNodeLabel(getTargetFalse()->getIndex());
+        Asm->jmp(L2, Near);
+        emitIASBytesBranch(Func, Asm, StartPosition, L2,
+                           getTargetFalse()->getAsmName(), Near);
       }
     }
   }

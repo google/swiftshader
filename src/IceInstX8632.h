@@ -274,13 +274,14 @@ protected:
   }
 };
 
-// InstX8632Label represents an intra-block label that is the
-// target of an intra-block branch.  These are used for lowering i1
-// calculations, Select instructions, and 64-bit compares on a 32-bit
-// architecture, without basic block splitting.  Basic block splitting
-// is not so desirable for several reasons, one of which is the impact
-// on decisions based on whether a variable's live range spans
-// multiple basic blocks.
+// InstX8632Label represents an intra-block label that is the target
+// of an intra-block branch.  The offset between the label and the
+// branch must be fit into one byte (considered "near").  These are
+// used for lowering i1 calculations, Select instructions, and 64-bit
+// compares on a 32-bit architecture, without basic block splitting.
+// Basic block splitting is not so desirable for several reasons, one
+// of which is the impact on decisions based on whether a variable's
+// live range spans multiple basic blocks.
 //
 // Intra-block control flow must be used with caution.  Consider the
 // sequence for "c = (a >= b ? x : y)".
@@ -321,15 +322,15 @@ public:
   }
   uint32_t getEmitInstCount() const override { return 0; }
   IceString getName(const Cfg *Func) const;
+  SizeT getNumber() const { return Number; }
   void emit(const Cfg *Func) const override;
-  // TODO(jvoung): Filler in.
-  void emitIAS(const Cfg *Func) const override { emit(Func); }
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
 
 private:
   InstX8632Label(Cfg *Func, TargetX8632 *Target);
   ~InstX8632Label() override {}
-  SizeT Number; // used only for unique label string generation
+  SizeT Number; // used for unique label generation.
 };
 
 // Conditional and unconditional branch instruction.
@@ -385,8 +386,7 @@ public:
     return Sum;
   }
   void emit(const Cfg *Func) const override;
-  // TODO(jvoung): Filler in.
-  void emitIAS(const Cfg *Func) const override { emit(Func); }
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Br); }
 

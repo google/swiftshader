@@ -284,7 +284,9 @@ public:
 #endif // !NDEBUG
   }
 
-  ~Label() {
+  ~Label() {}
+
+  void FinalCheck() const {
     // Assert if label is being destroyed with unresolved branches pending.
     assert(!IsLinked());
     assert(!HasNear());
@@ -363,10 +365,15 @@ public:
     assert(!use_far_branches);
     (void)use_far_branches;
   }
-  ~AssemblerX86() {}
+  ~AssemblerX86() override;
 
   static const bool kNearJump = true;
   static const bool kFarJump = false;
+
+  Label *GetOrCreateCfgNodeLabel(SizeT NodeNumber);
+  void BindCfgNodeLabel(SizeT NodeNumber) override;
+  Label *GetOrCreateLocalLabel(SizeT Number);
+  void BindLocalLabel(SizeT Number);
 
   // Operations to emit GPR instructions (and dispatch on operand type).
   typedef void (AssemblerX86::*TypedEmitGPR)(Type, GPRRegister);
@@ -847,6 +854,14 @@ private:
   void EmitGenericShift(int rm, Type Ty, GPRRegister reg, const Immediate &imm);
   void EmitGenericShift(int rm, Type Ty, const Operand &operand,
                         GPRRegister shifter);
+
+  typedef std::vector<Label *> LabelVector;
+  // A vector of pool-allocated x86 labels for CFG nodes.
+  LabelVector CfgNodeLabels;
+  // A vector of pool-allocated x86 labels for Local labels.
+  LabelVector LocalLabels;
+
+  Label *GetOrCreateLabel(SizeT Number, LabelVector &Labels);
 
   AssemblerBuffer buffer_;
 };

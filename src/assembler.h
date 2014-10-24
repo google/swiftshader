@@ -207,7 +207,7 @@ class Assembler {
 
 public:
   Assembler() {}
-  ~Assembler() {}
+  virtual ~Assembler() {}
 
   // Allocate a chunk of bytes using the per-Assembler allocator.
   uintptr_t AllocateBytes(size_t bytes) {
@@ -223,6 +223,8 @@ public:
 
   // Allocate data of type T using the per-Assembler allocator.
   template <typename T> T *Allocate() { return Allocator.Allocate<T>(); }
+
+  virtual void BindCfgNodeLabel(SizeT NodeNumber) = 0;
 
 private:
   llvm::BumpPtrAllocator Allocator;

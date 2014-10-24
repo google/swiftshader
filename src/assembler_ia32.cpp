@@ -67,6 +67,53 @@ Address Address::ofConstPool(GlobalContext *Ctx, Assembler *Asm,
   return x86::Address::Absolute(Fixup);
 }
 
+AssemblerX86::~AssemblerX86() {
+#ifndef NDEBUG
+  for (const Label *Label : CfgNodeLabels) {
+    Label->FinalCheck();
+  }
+  for (const Label *Label : LocalLabels) {
+    Label->FinalCheck();
+  }
+#endif
+}
+
+Label *AssemblerX86::GetOrCreateLabel(SizeT Number, LabelVector &Labels) {
+  Label *L = nullptr;
+  if (Number == Labels.size()) {
+    L = new (this->Allocate<Label>()) Label();
+    Labels.push_back(L);
+    return L;
+  }
+  if (Number > Labels.size()) {
+    Labels.resize(Number + 1);
+  }
+  L = Labels[Number];
+  if (!L) {
+    L = new (this->Allocate<Label>()) Label();
+    Labels[Number] = L;
+  }
+  return L;
+}
+
+Label *AssemblerX86::GetOrCreateCfgNodeLabel(SizeT NodeNumber) {
+  return GetOrCreateLabel(NodeNumber, CfgNodeLabels);
+}
+
+Label *AssemblerX86::GetOrCreateLocalLabel(SizeT Number) {
+  return GetOrCreateLabel(Number, LocalLabels);
+}
+
+void AssemblerX86::BindCfgNodeLabel(SizeT NodeNumber) {
+  Label *L = GetOrCreateCfgNodeLabel(NodeNumber);
+  this->Bind(L);
+}
+
+void AssemblerX86::BindLocalLabel(SizeT Number) {
+  Label *L = GetOrCreateLocalLabel(Number);
+  this->Bind(L);
+}
+
 void AssemblerX86::call(GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xFF);
