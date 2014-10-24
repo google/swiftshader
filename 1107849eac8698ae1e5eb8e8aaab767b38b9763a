@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7529ae84_ff16c03b",
+        "filename": "src/GLES2/libEGL/libEGL.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 842,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-10-24T16:55:24Z",
+      "side": 0,
+      "message": "This will require testing on Linux, because it ensures that the device gets created at eglMakeCurrent(), and Chrome starts the sandbox right after, if I recall correctly.",
+      "range": {
+        "startLine": 842,
+        "startChar": 29,
+        "endLine": 842,
+        "endChar": 50
+      },
+      "revId": "1107849eac8698ae1e5eb8e8aaab767b38b9763a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
