@@ -2231,9 +2231,4 @@ extern "C"
 	{
 		gl::makeCurrent(context, display, surface);
 	}
-
-	gl::Context *glGetCurrentContext()
-	{
-		return gl::getContext();
-	}
 }

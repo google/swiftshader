@@ -25,6 +25,7 @@ namespace egl
 		EGLint error;
 		EGLenum API;
 		EGLDisplay display;
+		EGLContext context;
 		EGLSurface drawSurface;
 		EGLSurface readSurface;
 	};
@@ -37,6 +38,9 @@ namespace egl
 
 	void setCurrentDisplay(EGLDisplay dpy);
 	EGLDisplay getCurrentDisplay();
+
+	void setCurrentContext(EGLContext ctx);
+	EGLContext getCurrentContext();
 
 	void setCurrentDrawSurface(EGLSurface surface);
 	EGLSurface getCurrentDrawSurface();
@@ -86,7 +90,6 @@ namespace gl
 	extern Context *(*createContext)(const egl::Config *config, const Context *shareContext);
 	extern void (*bindTexImage)(egl::Surface *surface);
 	extern void (*makeCurrent)(Context *context, egl::Display *display, egl::Surface *surface);
-	extern Context *(*getCurrentContext)();
 	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);
 	extern Image *(*createBackBuffer)(int width, int height, const egl::Config *config);
 	extern sw::FrameBuffer *(*createFrameBuffer)(EGLNativeDisplayType display, EGLNativeWindowType window, int width, int height);

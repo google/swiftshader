@@ -91,7 +91,6 @@ CONSTRUCTOR static bool eglAttachProcess()
     gl::createDevice = (gl::Device*(*)())getProcAddress(libGLESv2, "createDevice");
     gl::createContext = (gl::Context *(*)(const egl::Config*, const gl::Context*))getProcAddress(libGLESv2, "glCreateContext");
     gl::makeCurrent = (void (*)(gl::Context*, egl::Display*, egl::Surface*))getProcAddress(libGLESv2, "glMakeCurrent");
-    gl::getCurrentContext = (gl::Context *(*)())getProcAddress(libGLESv2, "glGetCurrentContext");
     gl::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLESv2, "glGetProcAddress");
     gl::createBackBuffer = (gl::Image *(*)(int, int, const egl::Config*))getProcAddress(libGLESv2, "createBackBuffer");
     gl::createFrameBuffer = (sw::FrameBuffer *(*)(EGLNativeDisplayType, EGLNativeWindowType, int, int))getProcAddress(libGLESv2, "createFrameBuffer");
@@ -188,6 +187,20 @@ EGLDisplay getCurrentDisplay()
     Current *current = eglGetCurrent();
 
     return current->display;
+}
+
+void setCurrentContext(EGLContext ctx)
+{
+    Current *current = eglGetCurrent();
+
+    current->context = ctx;
+}
+
+EGLDisplay getCurrentContext()
+{
+    Current *current = eglGetCurrent();
+
+    return current->context;
 }
 
 void setCurrentDrawSurface(EGLSurface surface)

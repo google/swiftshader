@@ -148,7 +148,6 @@ EXPORTS
     ; EGL dependencies
     glCreateContext                 @144
     glMakeCurrent                   @146
-    glGetCurrentContext             @147
     glGetProcAddress                @148
     glBindTexImage                  @158
 

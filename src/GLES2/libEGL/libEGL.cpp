@@ -884,7 +884,7 @@ EGLContext EGLAPIENTRY eglGetCurrentContext(void)
 
     try
     {
-		EGLContext context = gl::getCurrentContext();
+		EGLContext context = egl::getCurrentContext();
 
 		return success(context);
     }
