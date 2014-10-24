@@ -6182,31 +6182,6 @@ __eglMustCastToProperFunctionPointerType glGetProcAddress(const char *procname)
     return NULL;
 }
 
-void glBindTexImage(egl::Surface *surface)
-{
-    TRACE("(egl::Surface* surface = 0x%0.8p)",
-          surface);
-
-    try
-    {
-        gl::Context *context = gl::getContext();
-
-        if(context)
-        {
-            gl::Texture2D *textureObject = context->getTexture2D();
-
-            if(textureObject)
-            {
-                textureObject->bindTexImage(surface);
-            }
-        }
-    }
-    catch(std::bad_alloc&)
-    {
-        return error(GL_OUT_OF_MEMORY);
-    }
-}
-
 void GL_APIENTRY Register(const char *licenseKey)
 {
 	RegisterLicenseKey(licenseKey);

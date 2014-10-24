@@ -161,6 +161,7 @@ copy "$(OutDir)libEGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     <ClInclude Include="..\include\EGL\eglext.h" />
     <ClInclude Include="..\include\EGL\eglplatform.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Context.hpp" />
     <ClInclude Include="Display.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="resource.h" />

@@ -72,6 +72,7 @@ namespace egl
 	class Config;
 	class Surface;
 	class Display;
+	class Context;
 }
 
 namespace sw
@@ -87,8 +88,7 @@ namespace gl
 	class Image;
 
 	extern Device *(*createDevice)();
-	extern Context *(*createContext)(const egl::Config *config, const Context *shareContext);
-	extern void (*bindTexImage)(egl::Surface *surface);
+	extern egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext);
 	extern void (*makeCurrent)(Context *context, egl::Display *display, egl::Surface *surface);
 	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);
 	extern Image *(*createBackBuffer)(int width, int height, const egl::Config *config);

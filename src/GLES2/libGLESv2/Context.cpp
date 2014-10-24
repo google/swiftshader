@@ -29,6 +29,7 @@
 #include "VertexDataManager.h"
 #include "IndexDataManager.h"
 #include "libEGL/Display.h"
+#include "libEGL/Surface.h"
 #include "Common/Half.hpp"
 
 #undef near
@@ -3028,6 +3029,16 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
             }
         }
     }
+}
+
+void Context::bindTexImage(egl::Surface *surface)
+{
+	gl::Texture2D *textureObject = getTexture2D();
+
+    if(textureObject)
+    {
+		textureObject->bindTexImage(surface);
+	}
 }
 
 }

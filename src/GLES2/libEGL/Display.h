@@ -17,18 +17,19 @@
 #define INCLUDE_DISPLAY_H_
 
 #include "Config.h"
-#include "Surface.h"
 
 #include <set>
 
 namespace gl
 {
-class Context;
 class Device;
 }
 
 namespace egl
 {
+	class Surface;
+	class Context;
+
 	class Display
 	{
 	public:
@@ -44,15 +45,15 @@ namespace egl
 
 		EGLSurface createWindowSurface(EGLNativeWindowType window, EGLConfig config, const EGLint *attribList);
 		EGLSurface createOffscreenSurface(EGLConfig config, const EGLint *attribList);
-		EGLContext createContext(EGLConfig configHandle, const gl::Context *shareContext);
+		EGLContext createContext(EGLConfig configHandle, const Context *shareContext);
 
-		void destroySurface(egl::Surface *surface);
-		void destroyContext(gl::Context *context);
+		void destroySurface(Surface *surface);
+		void destroyContext(Context *context);
 
 		bool isInitialized() const;
 		bool isValidConfig(EGLConfig config);
-		bool isValidContext(gl::Context *context);
-		bool isValidSurface(egl::Surface *surface);
+		bool isValidContext(Context *context);
+		bool isValidSurface(Surface *surface);
 		bool isValidWindow(EGLNativeWindowType window);
 		bool hasExistingWindowSurface(EGLNativeWindowType window);
 
@@ -80,7 +81,7 @@ namespace egl
 
 		ConfigSet mConfigSet;
 
-		typedef std::set<gl::Context*> ContextSet;
+		typedef std::set<Context*> ContextSet;
 		ContextSet mContextSet;
 
 		bool createDevice();

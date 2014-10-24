@@ -26,6 +26,7 @@
 #include "VertexDataManager.h"
 #include "IndexDataManager.h"
 #include "libEGL/Display.h"
+#include "libEGL/Surface.h"
 #include "Common/Half.hpp"
 
 #undef near
@@ -2215,6 +2216,16 @@ void Context::setVertexAttrib(GLuint index, const GLfloat *values)
     mState.vertexAttribute[index].mCurrentValue[3] = values[3];
 
     mVertexDataManager->dirtyCurrentValue(index);
+}
+
+void Context::bindTexImage(egl::Surface *surface)
+{
+	gl::Texture2D *textureObject = getTexture2D();
+
+    if(textureObject)
+    {
+		textureObject->bindTexImage(surface);
+	}
 }
 
 }

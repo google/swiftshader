@@ -13,6 +13,7 @@
 
 #include "main.h"
 #include "Display.h"
+#include "Surface.h"
 #include "libGLESv2/Context.h"
 #include "libGLESv2/Texture.h"
 #include "common/debug.h"
@@ -50,7 +51,7 @@ static bool validateConfig(egl::Display *display, EGLConfig config)
     return true;
 }
 
-static bool validateContext(egl::Display *display, gl::Context *context)
+static bool validateContext(egl::Display *display, egl::Context *context)
 {
     if(!validateDisplay(display))
     {
@@ -661,7 +662,12 @@ EGLBoolean EGLAPIENTRY eglBindTexImage(EGLDisplay dpy, EGLSurface surface, EGLin
             return error(EGL_BAD_MATCH, EGL_FALSE);
         }
 
-        gl::bindTexImage(eglSurface);
+		egl::Context *context = static_cast<egl::Context*>(egl::getCurrentContext());
+
+		if(context)
+		{
+			context->bindTexImage(eglSurface);
+		}
 
         return success(EGL_TRUE);
     }
@@ -787,7 +793,7 @@ EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLCon
             return EGL_NO_CONTEXT;
         }
 
-        EGLContext context = display->createContext(config, static_cast<gl::Context*>(share_context));
+        EGLContext context = display->createContext(config, static_cast<egl::Context*>(share_context));
 
         return success(context);
     }
@@ -806,7 +812,7 @@ EGLBoolean EGLAPIENTRY eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
     try
     {
         egl::Display *display = static_cast<egl::Display*>(dpy);
-        gl::Context *context = static_cast<gl::Context*>(ctx);
+        egl::Context *context = static_cast<egl::Context*>(ctx);
 
         if(!validateContext(display, context))
         {

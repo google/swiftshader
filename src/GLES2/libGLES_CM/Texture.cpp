@@ -20,6 +20,7 @@
 #include "Framebuffer.h"
 #include "Device.hpp"
 #include "libEGL/Display.h"
+#include "libEGL/Surface.h"
 #include "common/debug.h"
 
 #include <algorithm>

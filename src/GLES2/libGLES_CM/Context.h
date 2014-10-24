@@ -15,6 +15,7 @@
 #ifndef LIBGLES_CM_CONTEXT_H_
 #define LIBGLES_CM_CONTEXT_H_
 
+#include "libEGL/Context.hpp"
 #include "ResourceManager.h"
 #include "HandleAllocator.h"
 #include "RefCountObject.h"
@@ -217,7 +218,7 @@ struct State
     GLint packAlignment;
 };
 
-class Context
+class Context : public egl::Context
 {
 public:
     Context(const egl::Config *config, const Context *shareContext);
@@ -365,6 +366,8 @@ public:
     GLenum getError();
 
     static int getSupportedMultiSampleDepth(sw::Format format, int requested);
+
+	virtual void bindTexImage(egl::Surface *surface);
 
 private:
 	virtual ~Context();

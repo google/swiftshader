@@ -17,8 +17,9 @@
 
 #include "main.h"
 #include "libGLESv2/mathutil.h"
-#include "libGLESv2/Context.h"
 #include "libGLESv2/Device.hpp"
+#include "libEGL/Surface.h"
+#include "libEGL/Context.hpp"
 #include "common/debug.h"
 
 #include <algorithm>
@@ -404,7 +405,7 @@ EGLSurface Display::createOffscreenSurface(EGLConfig config, const EGLint *attri
     return success(surface);
 }
 
-EGLContext Display::createContext(EGLConfig configHandle, const gl::Context *shareContext)
+EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *shareContext)
 {
     if(!mDevice)
     {
@@ -416,7 +417,7 @@ EGLContext Display::createContext(EGLConfig configHandle, const gl::Context *sha
 
     const egl::Config *config = mConfigSet.get(configHandle);
 
-    gl::Context *context = gl::createContext(config, shareContext);
+    egl::Context *context = gl::createContext(config, shareContext);
     mContextSet.insert(context);
 
     return context;
@@ -428,7 +429,7 @@ void Display::destroySurface(egl::Surface *surface)
     mSurfaceSet.erase(surface);
 }
 
-void Display::destroyContext(gl::Context *context)
+void Display::destroyContext(egl::Context *context)
 {
     context->destroy();
     mContextSet.erase(context);
@@ -444,7 +445,7 @@ bool Display::isValidConfig(EGLConfig config)
     return mConfigSet.get(config) != NULL;
 }
 
-bool Display::isValidContext(gl::Context *context)
+bool Display::isValidContext(egl::Context *context)
 {
     return mContextSet.find(context) != mContextSet.end();
 }

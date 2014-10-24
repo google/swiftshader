@@ -15,6 +15,7 @@
 #ifndef LIBGLESV2_CONTEXT_H_
 #define LIBGLESV2_CONTEXT_H_
 
+#include "libEGL/Context.hpp"
 #include "ResourceManager.h"
 #include "HandleAllocator.h"
 #include "RefCountObject.h"
@@ -235,7 +236,7 @@ struct State
     GLint packAlignment;
 };
 
-class Context
+class Context : public egl::Context
 {
 public:
     Context(const egl::Config *config, const Context *shareContext);
@@ -417,6 +418,8 @@ public:
     void blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, 
                          GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
                          GLbitfield mask);
+
+	virtual void bindTexImage(egl::Surface *surface);
 
 private:
 	virtual ~Context();

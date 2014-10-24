@@ -149,7 +149,6 @@ EXPORTS
     glCreateContext                 @144
     glMakeCurrent                   @146
     glGetProcAddress                @148
-    glBindTexImage                  @158
 
 	createFrameBuffer               @172
 	createBackBuffer                @173
