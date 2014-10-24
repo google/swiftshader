@@ -140,8 +140,6 @@ namespace gl
 
 	void Device::clearColor(unsigned int color, unsigned int rgbaMask)
 	{
-		TRACE("unsigned long color = 0x%0.8X", color);
-
 		if(!renderTarget)
 		{
 			return;
@@ -165,8 +163,6 @@ namespace gl
 
 	void Device::clearDepth(float z)
 	{
-		TRACE("float z = %f", z);
-
 		if(!depthStencil)
 		{
 			return;
@@ -193,8 +189,6 @@ namespace gl
 
 	void Device::clearStencil(unsigned int stencil, unsigned int mask)
 	{
-		TRACE("unsigned long stencil = %d", stencil);
-
 		if(!depthStencil)
 		{
 			return;
@@ -218,8 +212,6 @@ namespace gl
 
 	Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
 	{
-		TRACE("unsigned int width = %d, unsigned int height = %d, sw::Format format = %d, int multiSampleDepth = %d, bool discard = %d", width, height, format, multiSampleDepth, discard);
-
 		if(width == 0 || height == 0 || height > OUTLINE_RESOLUTION)
 		{
 			ERR("Invalid parameters");
@@ -264,8 +256,6 @@ namespace gl
 
 	Image *Device::createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable)
 	{
-		TRACE("unsigned int width = %d, unsigned int height = %d, sw::Format format = %d, int multiSampleDepth = %d, bool lockable = %d", width, height, format, multiSampleDepth, lockable);
-
 		if(height > OUTLINE_RESOLUTION)
 		{
 			ERR("Invalid parameters");
@@ -285,8 +275,6 @@ namespace gl
 
 	void Device::drawIndexedPrimitive(PrimitiveType type, unsigned int indexOffset, unsigned int primitiveCount, int indexSize)
 	{
-		TRACE("");
-
 		if(!bindResources() || !primitiveCount)
 		{
 			return;
@@ -343,8 +331,6 @@ namespace gl
 
 	void Device::drawPrimitive(PrimitiveType primitiveType, unsigned int primitiveCount)
 	{
-		TRACE("");
-
 		if(!bindResources() || !primitiveCount)
 		{
 			return;
@@ -371,8 +357,6 @@ namespace gl
 
 	void Device::setDepthStencilSurface(Image *depthStencil)
 	{
-		TRACE("Image *newDepthStencil = 0x%0.8p", depthStencil);
-
 		if(this->depthStencil == depthStencil)
 		{
 			return;
@@ -400,8 +384,6 @@ namespace gl
 
 	void Device::setRenderTarget(Image *renderTarget)
 	{
-		TRACE("Image *newRenderTarget = 0x%0.8p", renderTarget);
-
 		if(renderTarget)
 		{
 			renderTarget->addRef();
@@ -419,22 +401,16 @@ namespace gl
 
 	void Device::setScissorRect(const sw::Rect &rect)
 	{
-		TRACE("const sw::Rect *rect = 0x%0.8p", rect);
-
 		scissorRect = rect;
 	}
 
 	void Device::setViewport(const Viewport &viewport)
 	{
-		TRACE("const Viewport *viewport = 0x%0.8p", viewport);
-
 		this->viewport = viewport;
 	}
 
 	bool Device::stretchRect(Image *source, const sw::Rect *sourceRect, Image *dest, const sw::Rect *destRect, bool filter)
 	{
-		TRACE("Image *sourceSurface = 0x%0.8p, const sw::Rect *sourceRect = 0x%0.8p, Image *destSurface = 0x%0.8p, const sw::Rect *destRect = 0x%0.8p, bool filter = %d", source, sourceRect, dest, destRect, filter);
-
 		if(!source || !dest || !validRectangle(sourceRect, source) || !validRectangle(destRect, dest))
 		{
 			ERR("Invalid parameters");
