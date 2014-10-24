@@ -284,6 +284,19 @@ bool Cfg::validateLiveness() const {
   return Valid;
 }
 
+// Deletes redundant assignments like "var=var".  This includes
+// architecturally redundant moves like "var1:eax=var2:eax".  As such,
+// this needs to be done very late in the translation to avoid
+// liveness inconsistencies.
+void Cfg::deleteRedundantAssignments() {
+  for (CfgNode *Node : Nodes) {
+    // Ignore Phi instructions.
+    for (Inst *I : Node->getInsts())
+      if (I->isRedundantAssign())
+        I->setDeleted();
+  }
+}
+
 void Cfg::doBranchOpt() {
   TimerMarker T(TimerStack::TT_doBranchOpt, this);
   for (auto I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {

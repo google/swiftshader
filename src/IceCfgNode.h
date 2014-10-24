@@ -52,6 +52,7 @@ public:
 
   // Manage the instruction list.
   InstList &getInsts() { return Insts; }
+  PhiList &getPhis() { return Phis; }
   void appendInst(Inst *Inst);
   void renumberInstructions();
   // Rough and generally conservative estimate of the number of

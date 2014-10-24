@@ -554,6 +554,7 @@ public:
   }
   void addArgument(Operand *Source, CfgNode *Label);
   Operand *getOperandForTarget(CfgNode *Target) const;
+  CfgNode *getLabel(SizeT Index) const { return Labels[Index]; }
   void livenessPhiOperand(LivenessBV &Live, CfgNode *Target,
                           Liveness *Liveness);
   Inst *lower(Cfg *Func);

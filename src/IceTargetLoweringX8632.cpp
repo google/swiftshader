@@ -384,6 +384,8 @@ void TargetX8632::translateO2() {
     return;
   Func->dump("After stack frame mapping");
 
+  Func->deleteRedundantAssignments();
+
   // Branch optimization.  This needs to be done just before code
   // emission.  In particular, no transformations that insert or
   // reorder CfgNodes should be done after branch optimization.  We go
@@ -423,6 +425,8 @@ void TargetX8632::translateOm1() {
     return;
   Func->dump("After stack frame mapping");
 
+  Func->deleteRedundantAssignments();
+
   // Nop insertion
   if (shouldDoNopInsertion()) {
     Func->doNopInsertion();
@@ -444,11 +448,13 @@ IceString TargetX8632::RegNames[] = {
 #undef X
 };
 
-Variable *TargetX8632::getPhysicalRegister(SizeT RegNum) {
+Variable *TargetX8632::getPhysicalRegister(SizeT RegNum, Type Ty) {
+  if (Ty == IceType_void)
+    Ty = IceType_i32;
   assert(RegNum < PhysicalRegisters.size());
   Variable *Reg = PhysicalRegisters[RegNum];
   if (Reg == NULL) {
-    Reg = Func->makeVariable(IceType_i32);
+    Reg = Func->makeVariable(Ty);
     Reg->setRegNum(RegNum);
     PhysicalRegisters[RegNum] = Reg;
     // Specially mark esp as an "argument" so that it is considered

@@ -506,10 +506,6 @@ void CfgNode::emit(Cfg *Func) const {
   for (Inst *I : Insts) {
     if (I->isDeleted())
       continue;
-    // Here we detect redundant assignments like "mov eax, eax" and
-    // suppress them.
-    if (I->isRedundantAssign())
-      continue;
     if (Func->useIntegratedAssembler()) {
       I->emitIAS(Func);
     } else {

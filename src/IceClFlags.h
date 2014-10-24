@@ -27,7 +27,7 @@ public:
         UseIntegratedAssembler(false), UseSandboxing(false), DumpStats(false),
         AllowUninitializedGlobals(false), TimeEachFunction(false),
         DefaultGlobalPrefix(""), DefaultFunctionPrefix(""), TimingFocusOn(""),
-        VerboseFocusOn("") {}
+        VerboseFocusOn(""), TranslateOnly("") {}
   bool DisableInternal;
   bool SubzeroTimingEnabled;
   bool DisableTranslation;

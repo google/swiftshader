@@ -54,6 +54,7 @@ void LoweringContext::init(CfgNode *N) {
 
 void LoweringContext::insert(Inst *Inst) {
   getNode()->getInsts().insert(Next, Inst);
+  LastInserted = Inst;
 }
 
 void LoweringContext::skipDeleted(InstList::iterator &I) const {
@@ -68,17 +69,9 @@ void LoweringContext::advanceForward(InstList::iterator &I) const {
   }
 }
 
-void LoweringContext::advanceBackward(InstList::iterator &I) const {
-  assert(I != Begin);
-  do {
-    --I;
-  } while (I != Begin && (*I)->isDeleted());
-}
-
 Inst *LoweringContext::getLastInserted() const {
-  InstList::iterator Cursor = Next;
-  advanceBackward(Cursor);
-  return *Cursor;
+  assert(LastInserted);
+  return LastInserted;
 }
 
 TargetLowering *TargetLowering::createLowering(TargetArch Target, Cfg *Func) {

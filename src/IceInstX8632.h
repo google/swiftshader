@@ -342,6 +342,7 @@ public:
   // Create a conditional branch to a node.
   static InstX8632Br *create(Cfg *Func, CfgNode *TargetTrue,
                              CfgNode *TargetFalse, CondX86::BrCond Condition) {
+    assert(Condition != CondX86::Br_None);
     const InstX8632Label *NoLabel = NULL;
     return new (Func->allocate<InstX8632Br>())
         InstX8632Br(Func, TargetTrue, TargetFalse, NoLabel, Condition);
@@ -358,6 +359,7 @@ public:
   // used for switch lowering.
   static InstX8632Br *create(Cfg *Func, CfgNode *Target,
                              CondX86::BrCond Condition) {
+    assert(Condition != CondX86::Br_None);
     const CfgNode *NoUncondTarget = NULL;
     const InstX8632Label *NoLabel = NULL;
     return new (Func->allocate<InstX8632Br>())

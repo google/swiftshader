@@ -39,7 +39,7 @@ class LoweringContext {
   LoweringContext &operator=(const LoweringContext &) = delete;
 
 public:
-  LoweringContext() : Node(NULL) {}
+  LoweringContext() : Node(NULL), LastInserted(NULL) {}
   ~LoweringContext() {}
   void init(CfgNode *Node);
   Inst *getNextInst() const {
@@ -69,6 +69,7 @@ public:
 private:
   // Node is the argument to Inst::updateVars().
   CfgNode *Node;
+  Inst *LastInserted;
   // Cur points to the current instruction being considered.  It is
   // guaranteed to point to a non-deleted instruction, or to be End.
   InstList::iterator Cur;
@@ -88,7 +89,6 @@ private:
 
   void skipDeleted(InstList::iterator &I) const;
   void advanceForward(InstList::iterator &I) const;
-  void advanceBackward(InstList::iterator &I) const;
 };
 
 class TargetLowering {
@@ -145,8 +145,10 @@ public:
   // Returns a variable pre-colored to the specified physical
   // register.  This is generally used to get very direct access to
   // the register such as in the prolog or epilog or for marking
-  // scratch registers as killed by a call.
-  virtual Variable *getPhysicalRegister(SizeT RegNum) = 0;
+  // scratch registers as killed by a call.  If a Type is not
+  // provided, a target-specific default type is used.
+  virtual Variable *getPhysicalRegister(SizeT RegNum,
+                                        Type Ty = IceType_void) = 0;
   // Returns a printable name for the register.
   virtual IceString getRegName(SizeT RegNum, Type Ty) const = 0;
 

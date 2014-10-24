@@ -35,7 +35,7 @@ public:
   void translateO2() override;
   bool doBranchOpt(Inst *I, const CfgNode *NextNode) override;
 
-  Variable *getPhysicalRegister(SizeT RegNum) override;
+  Variable *getPhysicalRegister(SizeT RegNum, Type Ty = IceType_void) override;
   IceString getRegName(SizeT RegNum, Type Ty) const override;
   llvm::SmallBitVector getRegisterSet(RegSetMask Include,
                                       RegSetMask Exclude) const override;

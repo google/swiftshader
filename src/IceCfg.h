@@ -119,6 +119,7 @@ public:
   void livenessLightweight();
   void liveness(LivenessMode Mode);
   bool validateLiveness() const;
+  void deleteRedundantAssignments();
   void doBranchOpt();
 
   // Manage the CurrentNode field, which is used for validating the
