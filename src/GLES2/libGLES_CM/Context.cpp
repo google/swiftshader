@@ -167,6 +167,16 @@ Context::~Context()
     mResourceManager->release();
 }
 
+void Context::destroy()
+{
+	if(this == gl::getContext())
+	{
+		gl::makeCurrent(NULL, NULL, NULL);
+	}
+
+	delete this;
+}
+
 void Context::makeCurrent(egl::Display *display, egl::Surface *surface)
 {
     Device *device = display->getDevice();
@@ -2215,16 +2225,6 @@ extern "C"
 	gl::Context *glCreateContext(const egl::Config *config, const gl::Context *shareContext)
 	{
 		return new gl::Context(config, shareContext);
-	}
-
-	void glDestroyContext(gl::Context *context)
-	{
-		delete context;
-
-		if(context == gl::getContext())
-		{
-			gl::makeCurrent(NULL, NULL, NULL);
-		}
 	}
 
 	void glMakeCurrent(gl::Context *context, egl::Display *display, egl::Surface *surface)

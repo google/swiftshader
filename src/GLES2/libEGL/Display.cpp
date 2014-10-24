@@ -430,7 +430,7 @@ void Display::destroySurface(egl::Surface *surface)
 
 void Display::destroyContext(gl::Context *context)
 {
-    gl::destroyContext(context);
+    context->destroy();
     mContextSet.erase(context);
 }
 

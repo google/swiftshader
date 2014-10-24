@@ -170,7 +170,6 @@ EXPORTS
 
     ; EGL dependencies
     glCreateContext                 @144
-    glDestroyContext                @145
     glMakeCurrent                   @146
     glGetCurrentContext             @147
     glGetProcAddress                @148

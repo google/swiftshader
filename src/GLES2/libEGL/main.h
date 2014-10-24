@@ -84,7 +84,6 @@ namespace gl
 
 	extern Device *(*createDevice)();
 	extern Context *(*createContext)(const egl::Config *config, const Context *shareContext);
-	extern void (*destroyContext)(Context *context);
 	extern void (*bindTexImage)(egl::Surface *surface);
 	extern void (*makeCurrent)(Context *context, egl::Display *display, egl::Surface *surface);
 	extern Context *(*getCurrentContext)();

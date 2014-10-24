@@ -90,7 +90,6 @@ CONSTRUCTOR static bool eglAttachProcess()
     libGLESv2 = loadLibrary(libGLESv2_lib);
     gl::createDevice = (gl::Device*(*)())getProcAddress(libGLESv2, "createDevice");
     gl::createContext = (gl::Context *(*)(const egl::Config*, const gl::Context*))getProcAddress(libGLESv2, "glCreateContext");
-    gl::destroyContext = (void (*)(gl::Context*))getProcAddress(libGLESv2, "glDestroyContext");
     gl::makeCurrent = (void (*)(gl::Context*, egl::Display*, egl::Surface*))getProcAddress(libGLESv2, "glMakeCurrent");
     gl::getCurrentContext = (gl::Context *(*)())getProcAddress(libGLESv2, "glGetCurrentContext");
     gl::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLESv2, "glGetProcAddress");
@@ -249,7 +248,6 @@ namespace gl
 {
 	Device *(*createDevice)() = 0;
 	Context *(*createContext)(const egl::Config *config, const Context *shareContext) = 0;
-	void (*destroyContext)(Context *context) = 0;
 	void (*bindTexImage)(egl::Surface *surface) = 0;
 	void (*makeCurrent)(Context *context, egl::Display *display, egl::Surface *surface) = 0;
 	Context *(*getCurrentContext)() = 0;

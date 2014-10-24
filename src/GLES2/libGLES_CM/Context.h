@@ -219,10 +219,10 @@ struct State
 
 class Context
 {
-  public:
+public:
     Context(const egl::Config *config, const Context *shareContext);
 
-    virtual ~Context();
+	virtual void destroy();
 
     void makeCurrent(egl::Display *display, egl::Surface *surface);
 
@@ -366,7 +366,9 @@ class Context
 
     static int getSupportedMultiSampleDepth(sw::Format format, int requested);
 
-  private:
+private:
+	virtual ~Context();
+
     bool applyRenderTarget();
     void applyState(GLenum drawMode);
     GLenum applyVertexBuffer(GLint base, GLint first, GLsizei count);

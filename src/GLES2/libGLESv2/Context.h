@@ -237,10 +237,10 @@ struct State
 
 class Context
 {
-  public:
+public:
     Context(const egl::Config *config, const Context *shareContext);
 
-    virtual ~Context();
+	virtual void destroy();
 
     void makeCurrent(egl::Display *display, egl::Surface *surface);
 
@@ -418,7 +418,9 @@ class Context
                          GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
                          GLbitfield mask);
 
-  private:
+private:
+	virtual ~Context();
+
     bool applyRenderTarget();
     void applyState(GLenum drawMode);
     GLenum applyVertexBuffer(GLint base, GLint first, GLsizei count);
