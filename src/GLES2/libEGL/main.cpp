@@ -42,6 +42,7 @@ static void eglAttachThread()
         current->display = EGL_NO_DISPLAY;
         current->drawSurface = EGL_NO_SURFACE;
         current->readSurface = EGL_NO_SURFACE;
+		current->context = EGL_NO_CONTEXT;
 	}
 }
 

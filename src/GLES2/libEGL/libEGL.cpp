@@ -871,6 +871,7 @@ EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurfac
         egl::setCurrentDisplay(dpy);
         egl::setCurrentDrawSurface(draw);
         egl::setCurrentReadSurface(read);
+		egl::setCurrentContext(ctx);
 
         gl::makeCurrent(context, display, static_cast<egl::Surface*>(draw));
 
