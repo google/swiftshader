@@ -45,6 +45,18 @@ else
   OPTLEVEL = -O2
 endif
 
+# The list of CXX defines that are dependent on build parameters.
+CXX_DEFINES =
+
+ifdef MINIMAL
+  OBJDIR := $(OBJDIR)+Min
+  CXX_DEFINES += -DALLOW_TEXT_ASM=0 -DALLOW_DUMP=0 -DALLOW_LLVM_CL=0 \
+                 -DALLOW_LLVM_IR=0 -DALLOW_LLVM_IR_AS_INPUT=0
+else
+  CXX_DEFINES += -DALLOW_TEXT_ASM=1 -DALLOW_DUMP=1 -DALLOW_LLVM_CL=1 \
+                 -DALLOW_LLVM_IR=1 -DALLOW_LLVM_IR_AS_INPUT=1
+endif
+
 ifdef NOASSERT
   ASSERTIONS = -DNDEBUG
 else
@@ -69,8 +81,9 @@ CCACHE := `command -v ccache`
 CXX := CCACHE_CPP2=yes $(CCACHE) $(CLANG_PATH)/clang++
 
 CXXFLAGS := $(LLVM_CXXFLAGS) -std=c++11 -Wall -Wextra -Werror -fno-rtti \
-	-fno-exceptions $(OPTLEVEL) $(ASSERTIONS) -g $(HOST_FLAGS) \
-	-Wno-error=unused-parameter -I$(LIBCXX_INSTALL_PATH)/include/c++/v1
+	-fno-exceptions $(OPTLEVEL) $(ASSERTIONS) $(CXX_DEFINES) -g \
+	$(HOST_FLAGS) -Wno-error=unused-parameter \
+	-I$(LIBCXX_INSTALL_PATH)/include/c++/v1
 LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib
 
 SRCS= \
@@ -103,15 +116,19 @@ OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(SRCS))
 # Keep all the first target so it's the default.
 all: $(OBJDIR)/llvm2ice make_symlink
 
-make_symlink: $(OBJDIR)/llvm2ice
-	rm -f llvm2ice
+make_symlink: $(OBJDIR)/llvm2ice $(OBJDIR)/llvm2ice.build_atts
+	rm -rf llvm2ice llvm2ice.build_atts
 	ln -s $(OBJDIR)/llvm2ice
+	ln -s $(OBJDIR)/llvm2ice.build_atts
 
 .PHONY: all make_symlink
 
+# TODO(kschimpf): Fix python scripts to directly get build attributes
+# rather than generating $(OBJDIR)/llvm2ice.build_atts.
 $(OBJDIR)/llvm2ice: $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) -ldl \
                -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
+	$@ --build-atts > $@.build_atts
 
 # TODO: Be more precise than "*.h" here and elsewhere.
 $(OBJS): $(OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
@@ -149,4 +166,7 @@ format-diff:
 	$(CLANG_FORMAT_DIFF) -p1 -style=LLVM -i
 
 clean:
-	rm -rf llvm2ice *.o build/
+	rm -rf llvm2ice llvm2ice.build_atts *.o $(OBJDIR)
+
+clean-all: clean
+	rm -rf build/

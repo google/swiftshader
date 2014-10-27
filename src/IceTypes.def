@@ -15,6 +15,14 @@
 #ifndef SUBZERO_SRC_ICETYPES_DEF
 #define SUBZERO_SRC_ICETYPES_DEF
 
+#define TARGETARCH_TABLE                                                 \
+  /* enum value, printable string */                                     \
+  X(Target_X8632, "x86-32")                                              \
+  X(Target_X8664, "x86-64")                                              \
+  X(Target_ARM32, "arm32")                                               \
+  X(Target_ARM64, "arm64")                                               \
+//#define X(tag, str)
+
 #define ICETYPE_TABLE                                                    \
   /* enum value,  size, align, # elts, element type, printable string */ \
   /*   (size and alignment in bytes) */                                  \

@@ -18,6 +18,12 @@ namespace Ice {
 
 namespace {
 
+const char *TargetArchName[] = {
+#define X(tag, str)  str ,
+  TARGETARCH_TABLE
+#undef X
+};
+
 // Show tags match between ICETYPE_TABLE and ICETYPE_PROPS_TABLE.
 
 // Define a temporary set of enum values based on ICETYPE_TABLE
@@ -115,6 +121,14 @@ const TypePropertyFields TypePropertiesTable[] = {
 };
 
 } // end anonymous namespace
+
+const char *targetArchString(const TargetArch Arch) {
+  size_t Index = static_cast<size_t>(Arch);
+  if (Index < TargetArch_NUM)
+    return TargetArchName[Index];
+  llvm_unreachable("Invalid target arch for targetArchString");
+  return "???";
+}
 
 size_t typeWidthInBytes(Type Ty) {
   size_t Index = static_cast<size_t>(Ty);

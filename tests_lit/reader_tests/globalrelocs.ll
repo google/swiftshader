@@ -1,10 +1,8 @@
 ; Tests if we handle global variables with relocation initializers.
 
-; Test that we handle it in the ICE converter.
-; RUN: %lc2i -i %s --insts | FileCheck %s
-
-; Test that we handle it using Subzero's bitcode reader.
 ; RUN: %p2i -i %s --insts | FileCheck %s
+; RUN: %l2i -i %s --insts | %ifl FileCheck %s
+; RUN: %lc2i -i %s --insts | %iflc FileCheck %s
 
 @bytes = internal global [7 x i8] c"abcdefg"
 ; CHECK: @bytes = internal global [7 x i8] c"abcdefg"

@@ -3,6 +3,7 @@
 ; compare/branch fusing.
 
 ; TODO(kschimpf) Find out why lc2i must be used.
+; REQUIRES: allow_llvm_ir_as_input
 ; RUN: %lc2i -i %s --args -O2 --verbose none --phi-edge-split=0 \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - | FileCheck %s

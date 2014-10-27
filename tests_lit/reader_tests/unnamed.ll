@@ -1,14 +1,12 @@
 ; Tests that we name unnamed global addresses.
 
-; Check that the ICE converter handles renaming correctly.
-; RUN: %l2i --no-local-syms -i %s --insts | FileCheck %s
+; Check that Subzero's bitcode reader handles renaming correctly.
+; RUN: %p2i --no-local-syms -i %s --insts | FileCheck %s
+; RUN: %l2i --no-local-syms -i %s --insts | %ifl FileCheck %s
 
 ; RUN: %l2i --no-local-syms -i %s --insts --args --exit-success \
 ; RUN:      -default-function-prefix=h -default-global-prefix=g \
-; RUN:      | FileCheck --check-prefix=BAD %s
-
-; Check that Subzero's bitcode reader handles renaming correctly.
-; RUN: %p2i --no-local-syms -i %s --insts | FileCheck %s
+; RUN:      | %ifl FileCheck --check-prefix=BAD %s
 
 ; RUN: %p2i --no-local-syms -i %s --insts --args --exit-success \
 ; RUN:      -default-function-prefix=h -default-global-prefix=g \

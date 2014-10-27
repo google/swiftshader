@@ -1,6 +1,7 @@
 ; This checks to ensure that Subzero aligns spill slots.
 
 ; TODO(kschimpf) Find out why lc2i needed.
+; REQUIRES: allow_llvm_ir_as_input
 ; RUN: %lc2i -i %s --args --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s

@@ -7,6 +7,7 @@
 ; allow externally defined global variables. Hence, this test can only
 ; work if we read LLVM IR source, and convert to to ICE.
 
+; REQUIRES: allow_llvm_ir_as_input
 ; RUN: %lc2i -i %s --insts --args --allow-uninitialized-globals | FileCheck %s
 ; RUN: %lc2i -i %s --insts --args --allow-uninitialized-globals \
 ; RUN:       -prefix Subzero_ | FileCheck --check-prefix=CROSS %s

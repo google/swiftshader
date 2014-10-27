@@ -16,6 +16,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/CommandLine.h"
@@ -164,10 +165,55 @@ static cl::opt<bool> AlwaysExitSuccess(
     "exit-success", cl::desc("Exit with success status, even if errors found"),
     cl::init(false));
 
+static cl::opt<bool> GenerateBuildAtts(
+    "build-atts", cl::desc("Generate list of build attributes associated with "
+                           "this executable."),
+    cl::init(false));
+
 static int GetReturnValue(int Val) {
   if (AlwaysExitSuccess)
     return 0;
   return Val;
+}
+
+static struct {
+  const char *FlagName;
+  int FlagValue;
+} ConditionalBuildAttributes[] = {
+  { "text_asm", ALLOW_TEXT_ASM },
+  { "dump", ALLOW_DUMP },
+  { "llvm_cl", ALLOW_LLVM_CL },
+  { "llvm_ir", ALLOW_LLVM_IR },
+  { "llvm_ir_as_input", ALLOW_LLVM_IR_AS_INPUT }
+};
+
+// Validates values of build attributes. Prints them to Stream if
+// Stream is non-null.
+static void ValidateAndGenerateBuildAttributes(raw_os_ostream *Stream) {
+
+  if (Stream)
+    *Stream << TargetArch << "\n";
+
+  for (size_t i = 0; i < array_lengthof(ConditionalBuildAttributes); ++i) {
+    switch (ConditionalBuildAttributes[i].FlagValue) {
+    case 0:
+      if (Stream)
+        *Stream << "no_" << ConditionalBuildAttributes[i].FlagName << "\n";
+      break;
+    case 1:
+      if (Stream)
+        *Stream << "allow_" << ConditionalBuildAttributes[i].FlagName << "\n";
+      break;
+    default: {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Flag " << ConditionalBuildAttributes[i].FlagName
+             << " must be defined as 0/1. Found: "
+             << ConditionalBuildAttributes[i].FlagValue;
+      report_fatal_error(StrBuf.str());
+    }
+    }
+  }
 }
 
 int main(int argc, char **argv) {
@@ -185,6 +231,11 @@ int main(int argc, char **argv) {
   raw_os_ostream *Os =
       new raw_os_ostream(OutputFilename == "-" ? std::cout : Ofs);
   Os->SetUnbuffered();
+
+  ValidateAndGenerateBuildAttributes(GenerateBuildAtts ? Os : nullptr);
+  if (GenerateBuildAtts)
+    return GetReturnValue(0);
+
   std::ofstream Lfs;
   if (LogFilename != "-") {
     Lfs.open(LogFilename.c_str(), std::ofstream::out);
@@ -212,6 +263,7 @@ int main(int argc, char **argv) {
 
   Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix,
                          Flags);
+
   Ice::TimerMarker T(Ice::TimerStack::TT_szmain, &Ctx);
 
   int ErrorStatus = 0;

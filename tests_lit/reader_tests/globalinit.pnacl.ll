@@ -1,8 +1,8 @@
 ; Test of global initializers.
 
-; Check that we generate proper global initializers.
-; RUN: %l2i -i %s --insts | FileCheck %s
 ; RUN: %p2i -i %s --insts | FileCheck %s
+; RUN: %l2i -i %s --insts | %ifl FileCheck %s
+; RUN: %lc2i -i %s --insts | %iflc FileCheck %s
 
 @PrimitiveInit = internal global [4 x i8] c"\1B\00\00\00", align 4
 ; CHECK: @PrimitiveInit = internal global [4 x i8] c"\1B\00\00\00", align 4

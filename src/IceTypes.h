@@ -28,11 +28,17 @@ enum Type {
 };
 
 enum TargetArch {
-  Target_X8632,
-  Target_X8664,
-  Target_ARM32,
-  Target_ARM64
+#define X(tag, str) tag,
+  TARGETARCH_TABLE
+#undef X
+  TargetArch_NUM
 };
+
+const char *targetArchString(TargetArch Arch);
+
+inline Ostream &operator<<(Ostream &Stream, TargetArch Arch) {
+  return Stream << targetArchString(Arch);
+}
 
 enum OptLevel {
   Opt_m1,

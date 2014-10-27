@@ -2,7 +2,8 @@
 ; variables.
 
 ; TODO(kschimpf) find out why lc2i is needed.
-; RUN: %lc2i -i %s --args --verbose inst | FileCheck %s
+; REQUIRES: allow_llvm_ir_as_input
+; RUN: %lc2i -i %s --args --verbose inst | %iflc FileCheck %s
 ; RUN: %lc2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 ; Note: PNaCl ABI Doesn't allow external globals. Hence, not tested.

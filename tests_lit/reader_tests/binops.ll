@@ -1,6 +1,8 @@
 ; Tests if we can read binary operators.
 
 ; RUN: %p2i -i %s --insts | FileCheck %s
+; RUN: %l2i -i %s --insts | %ifl FileCheck %s
+; RUN: %lc2i -i %s --insts | %iflc FileCheck %s
 
 ; TODO(kschimpf): add i8/i16. Needs bitcasts.
 

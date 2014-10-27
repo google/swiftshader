@@ -4,15 +4,18 @@
 ; TODO(kschimpf) Find out why lc2i is needed.
 ; RUN: %lc2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN:   | %iflc FileCheck %s
 ; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=CHECKO2 %s
 ; RUN: %lc2i -i %s --args -Om1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
+; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN:   | %iflc FileCheck %s
+; RUN: %p2i -i %s --args --verbose none \
+; RUN:   | FileCheck --check-prefix=ERRORS %s
 
 declare i8 @llvm.nacl.atomic.load.i8(i8*, i32)
 declare i16 @llvm.nacl.atomic.load.i16(i16*, i32)
