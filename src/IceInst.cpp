@@ -709,7 +709,6 @@ void InstFakeDef::emit(const Cfg *Func) const {
   getDest()->emit(Func);
   Str << " = def.pseudo ";
   emitSources(Func);
-  Str << "\n";
 }
 
 void InstFakeDef::dump(const Cfg *Func) const {
@@ -724,7 +723,6 @@ void InstFakeUse::emit(const Cfg *Func) const {
   Str << "\t# ";
   Str << "use.pseudo ";
   emitSources(Func);
-  Str << "\n";
 }
 
 void InstFakeUse::dump(const Cfg *Func) const {
@@ -740,7 +738,6 @@ void InstFakeKill::emit(const Cfg *Func) const {
     Str << "// ";
   Str << "kill.pseudo ";
   emitSources(Func);
-  Str << "\n";
 }
 
 void InstFakeKill::dump(const Cfg *Func) const {

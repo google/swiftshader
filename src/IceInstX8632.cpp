@@ -410,7 +410,7 @@ void InstX8632::dump(const Cfg *Func) const {
 
 void InstX8632Label::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
-  Str << getName(Func) << ":\n";
+  Str << getName(Func) << ":";
 }
 
 void InstX8632Label::emitIAS(const Cfg *Func) const {
@@ -438,14 +438,14 @@ void InstX8632Br::emit(const Cfg *Func) const {
   }
 
   if (Label) {
-    Str << "\t" << Label->getName(Func) << "\n";
+    Str << "\t" << Label->getName(Func);
   } else {
     if (Condition == CondX86::Br_None) {
-      Str << "\t" << getTargetFalse()->getAsmName() << "\n";
+      Str << "\t" << getTargetFalse()->getAsmName();
     } else {
-      Str << "\t" << getTargetTrue()->getAsmName() << "\n";
+      Str << "\t" << getTargetTrue()->getAsmName();
       if (getTargetFalse()) {
-        Str << "\tjmp\t" << getTargetFalse()->getAsmName() << "\n";
+        Str << "\n\tjmp\t" << getTargetFalse()->getAsmName();
       }
     }
   }
@@ -518,7 +518,6 @@ void InstX8632Call::emit(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   Str << "\tcall\t";
   getCallTarget()->emit(Func);
-  Str << "\n";
   Func->getTarget()->resetStackAdjustment();
 }
 
@@ -562,6 +561,7 @@ void InstX8632Call::emitIAS(const Cfg *Func) const {
     // instruction sizes/positions are correct for jumps.
     // For now, fall back to the regular .s emission, after filling the buffer.
     emit(Func);
+    Func->getContext()->getStrEmit() << "\n";
   } else {
     emitIASBytes(Func, Asm, StartPosition);
   }
@@ -600,7 +600,6 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
   }
   if (!EmittedSrc1)
     Inst->getSrc(1)->emit(Func);
-  Str << "\n";
 }
 
 void emitIASOpTyGPR(const Cfg *Func, Type Ty, const Operand *Op,
@@ -1147,7 +1146,6 @@ template <> void InstX8632Sqrtss::emit(const Cfg *Func) const {
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
-  Str << "\n";
 }
 
 template <> void InstX8632Addss::emit(const Cfg *Func) const {
@@ -1236,7 +1234,6 @@ template <> void InstX8632Div::emit(const Cfg *Func) const {
   assert(getSrcSize() == 3);
   Str << "\t" << Opcode << "\t";
   getSrc(1)->emit(Func);
-  Str << "\n";
 }
 
 template <> void InstX8632Div::emitIAS(const Cfg *Func) const {
@@ -1253,7 +1250,6 @@ template <> void InstX8632Idiv::emit(const Cfg *Func) const {
   assert(getSrcSize() == 3);
   Str << "\t" << Opcode << "\t";
   getSrc(1)->emit(Func);
-  Str << "\n";
 }
 
 template <> void InstX8632Idiv::emitIAS(const Cfg *Func) const {
@@ -1278,7 +1274,6 @@ void emitVariableBlendInst(const char *Opcode, const Inst *Inst,
   Inst->getDest()->emit(Func);
   Str << ", ";
   Inst->getSrc(1)->emit(Func);
-  Str << "\n";
 }
 
 void
@@ -1332,7 +1327,6 @@ template <> void InstX8632Imul::emit(const Cfg *Func) const {
     assert(Src0 && Src0->getRegNum() == RegX8632::Reg_eax);
     Str << "\timul\t";
     getSrc(1)->emit(Func);
-    Str << "\n";
   } else if (llvm::isa<Constant>(getSrc(1))) {
     Str << "\timul\t";
     getDest()->emit(Func);
@@ -1340,7 +1334,6 @@ template <> void InstX8632Imul::emit(const Cfg *Func) const {
     getSrc(0)->emit(Func);
     Str << ", ";
     getSrc(1)->emit(Func);
-    Str << "\n";
   } else {
     emitTwoAddress("imul", this, Func);
   }
@@ -1397,15 +1390,15 @@ template <> void InstX8632Cbwdq::emit(const Cfg *Func) const {
     break;
   case IceType_i8:
     assert(getDest()->getRegNum() == RegX8632::Reg_eax);
-    Str << "\tcbw\n";
+    Str << "\tcbw";
     break;
   case IceType_i16:
     assert(getDest()->getRegNum() == RegX8632::Reg_edx);
-    Str << "\tcwd\n";
+    Str << "\tcwd";
     break;
   case IceType_i32:
     assert(getDest()->getRegNum() == RegX8632::Reg_edx);
-    Str << "\tcdq\n";
+    Str << "\tcdq";
     break;
   }
 }
@@ -1445,7 +1438,6 @@ void InstX8632Mul::emit(const Cfg *Func) const {
   assert(getDest()->getRegNum() == RegX8632::Reg_eax); // TODO: allow edx?
   Str << "\tmul\t";
   getSrc(1)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Mul::emitIAS(const Cfg *Func) const {
@@ -1483,7 +1475,6 @@ void InstX8632Shld::emit(const Cfg *Func) const {
   } else {
     getSrc(2)->emit(Func);
   }
-  Str << "\n";
 }
 
 void InstX8632Shld::emitIAS(const Cfg *Func) const {
@@ -1520,7 +1511,6 @@ void InstX8632Shrd::emit(const Cfg *Func) const {
   } else {
     getSrc(2)->emit(Func);
   }
-  Str << "\n";
 }
 
 void InstX8632Shrd::emitIAS(const Cfg *Func) const {
@@ -1550,7 +1540,6 @@ void InstX8632Cmov::emit(const Cfg *Func) const {
   getDest()->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Cmov::emitIAS(const Cfg *Func) const {
@@ -1587,7 +1576,6 @@ void InstX8632Cmpps::emit(const Cfg *Func) const {
   getDest()->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Cmpps::emitIAS(const Cfg *Func) const {
@@ -1630,7 +1618,6 @@ void InstX8632Cmpxchg::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(2)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Cmpxchg::emitIAS(const Cfg *Func) const {
@@ -1670,7 +1657,6 @@ void InstX8632Cmpxchg8b::emit(const Cfg *Func) const {
   }
   Str << "\tcmpxchg8b\t";
   getSrc(0)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Cmpxchg8b::emitIAS(const Cfg *Func) const {
@@ -1707,7 +1693,6 @@ void InstX8632Cvt::emit(const Cfg *Func) const {
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Cvt::emitIAS(const Cfg *Func) const {
@@ -1787,7 +1772,6 @@ void InstX8632Icmp::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Icmp::emitIAS(const Cfg *Func) const {
@@ -1824,7 +1808,6 @@ void InstX8632Ucomiss::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Ucomiss::emitIAS(const Cfg *Func) const {
@@ -1849,7 +1832,7 @@ void InstX8632Ucomiss::dump(const Cfg *Func) const {
 void InstX8632UD2::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 0);
-  Str << "\tud2\n";
+  Str << "\tud2";
 }
 
 void InstX8632UD2::emitIAS(const Cfg *Func) const {
@@ -1871,7 +1854,6 @@ void InstX8632Test::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Test::emitIAS(const Cfg *Func) const {
@@ -1905,7 +1887,7 @@ void InstX8632Test::dump(const Cfg *Func) const {
 void InstX8632Mfence::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 0);
-  Str << "\tmfence\n";
+  Str << "\tmfence";
 }
 
 void InstX8632Mfence::emitIAS(const Cfg *Func) const {
@@ -1928,7 +1910,6 @@ void InstX8632Store::emit(const Cfg *Func) const {
   getSrc(1)->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Store::emitIAS(const Cfg *Func) const {
@@ -1978,7 +1959,6 @@ void InstX8632StoreP::emit(const Cfg *Func) const {
   getSrc(1)->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632StoreP::emitIAS(const Cfg *Func) const {
@@ -2011,7 +1991,6 @@ void InstX8632StoreQ::emit(const Cfg *Func) const {
   getSrc(1)->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632StoreQ::emitIAS(const Cfg *Func) const {
@@ -2051,7 +2030,6 @@ template <> void InstX8632Lea::emit(const Cfg *Func) const {
   } else {
     Src0->emit(Func);
   }
-  Str << "\n";
 }
 
 template <> void InstX8632Mov::emit(const Cfg *Func) const {
@@ -2095,12 +2073,11 @@ template <> void InstX8632Mov::emit(const Cfg *Func) const {
     Str << ", %";
     getDest()->emit(Func);
     Str << "\n";
-    Str << ".intel_syntax\n";
+    Str << ".intel_syntax";
   } else {
     getDest()->asType(Src->getType()).emit(Func);
     Str << ", ";
     Src->emit(Func);
-    Str << "\n";
   }
 }
 
@@ -2221,7 +2198,6 @@ template <> void InstX8632Movp::emit(const Cfg *Func) const {
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
-  Str << "\n";
 }
 
 template <> void InstX8632Movp::emitIAS(const Cfg *Func) const {
@@ -2245,7 +2221,6 @@ template <> void InstX8632Movq::emit(const Cfg *Func) const {
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
-  Str << "\n";
 }
 
 template <> void InstX8632Movq::emitIAS(const Cfg *Func) const {
@@ -2301,7 +2276,7 @@ template <> void InstX8632Movzx::emitIAS(const Cfg *Func) const {
 void InstX8632Nop::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   // TODO: Emit the right code for each variant.
-  Str << "\tnop\t# variant = " << Variant << "\n";
+  Str << "\tnop\t# variant = " << Variant;
 }
 
 void InstX8632Nop::emitIAS(const Cfg *Func) const {
@@ -2332,12 +2307,11 @@ void InstX8632Fld::emit(const Cfg *Func) const {
     Var->emit(Func);
     Str << "\n";
     Str << "\tfld\t" << TypeX8632Attributes[Ty].WidthString << " [esp]\n";
-    Str << "\tadd\tesp, " << Width << "\n";
+    Str << "\tadd\tesp, " << Width;
     return;
   }
   Str << "\tfld\t";
   getSrc(0)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Fld::emitIAS(const Cfg *Func) const {
@@ -2386,13 +2360,12 @@ void InstX8632Fstp::emit(const Cfg *Func) const {
   // Even if Dest is unused, the fstp should be kept for the SideEffects
   // of popping the stack.
   if (getDest() == NULL) {
-    Str << "\tfstp\tst(0)\n";
+    Str << "\tfstp\tst(0)";
     return;
   }
   if (!getDest()->hasReg()) {
     Str << "\tfstp\t";
     getDest()->emit(Func);
-    Str << "\n";
     return;
   }
   // Dest is a physical (xmm) register, so st(0) needs to go through
@@ -2406,7 +2379,7 @@ void InstX8632Fstp::emit(const Cfg *Func) const {
   Str << "\tmov" << TypeX8632Attributes[Ty].SdSsString << "\t";
   getDest()->emit(Func);
   Str << ", " << TypeX8632Attributes[Ty].WidthString << " [esp]\n";
-  Str << "\tadd\tesp, " << Width << "\n";
+  Str << "\tadd\tesp, " << Width;
 }
 
 void InstX8632Fstp::emitIAS(const Cfg *Func) const {
@@ -2484,7 +2457,6 @@ template <> void InstX8632Pextr::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
-  Str << "\n";
 }
 
 template <> void InstX8632Pextr::emitIAS(const Cfg *Func) const {
@@ -2534,7 +2506,6 @@ template <> void InstX8632Pinsr::emit(const Cfg *Func) const {
   }
   Str << ", ";
   getSrc(2)->emit(Func);
-  Str << "\n";
 }
 
 template <> void InstX8632Pinsr::emitIAS(const Cfg *Func) const {
@@ -2588,7 +2559,6 @@ void InstX8632Pop::emit(const Cfg *Func) const {
   assert(getSrcSize() == 0);
   Str << "\tpop\t";
   getDest()->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Pop::emitIAS(const Cfg *Func) const {
@@ -2612,7 +2582,7 @@ void InstX8632Pop::dump(const Cfg *Func) const {
 
 void InstX8632AdjustStack::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
-  Str << "\tsub\tesp, " << Amount << "\n";
+  Str << "\tsub\tesp, " << Amount;
   Func->getTarget()->updateStackAdjustment(Amount);
 }
 
@@ -2637,7 +2607,6 @@ void InstX8632Push::emit(const Cfg *Func) const {
   assert(Var->hasReg());
   Str << "\tpush\t";
   Var->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Push::emitIAS(const Cfg *Func) const {
@@ -2681,7 +2650,7 @@ template <> void InstX8632Psra::emit(const Cfg *Func) const {
 
 void InstX8632Ret::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
-  Str << "\tret\n";
+  Str << "\tret";
 }
 
 void InstX8632Ret::emitIAS(const Cfg *Func) const {
@@ -2707,7 +2676,6 @@ void InstX8632Xadd::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Xadd::emitIAS(const Cfg *Func) const {
@@ -2745,7 +2713,6 @@ void InstX8632Xchg::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
-  Str << "\n";
 }
 
 void InstX8632Xchg::emitIAS(const Cfg *Func) const {

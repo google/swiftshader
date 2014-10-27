@@ -510,6 +510,7 @@ void CfgNode::emit(Cfg *Func) const {
       I->emitIAS(Func);
     } else {
       I->emit(Func);
+      Str << "\n";
     }
     // Update emitted instruction count, plus fill/spill count for
     // Variable operands without a physical register.

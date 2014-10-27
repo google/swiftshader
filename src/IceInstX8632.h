@@ -464,7 +464,6 @@ public:
     assert(getSrcSize() == 1);
     Str << "\t" << Opcode << "\t";
     getSrc(0)->emit(Func);
-    Str << "\n";
   }
   void emitIAS(const Cfg *Func) const override {
     assert(getSrcSize() == 1);
@@ -515,7 +514,6 @@ public:
     getDest()->emit(Func);
     Str << ", ";
     getSrc(0)->emit(Func);
-    Str << "\n";
   }
   void emitIAS(const Cfg *Func) const override {
     assert(getSrcSize() == 1);
@@ -563,7 +561,6 @@ public:
     getDest()->emit(Func);
     Str << ", ";
     getSrc(0)->emit(Func);
-    Str << "\n";
   }
   void emitIAS(const Cfg *Func) const override {
     Type Ty = getDest()->getType();
@@ -784,7 +781,6 @@ public:
     getSrc(1)->emit(Func);
     Str << ", ";
     getSrc(2)->emit(Func);
-    Str << "\n";
   }
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
@@ -827,7 +823,6 @@ public:
     getSrc(0)->emit(Func);
     Str << ", ";
     getSrc(1)->emit(Func);
-    Str << "\n";
   }
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
