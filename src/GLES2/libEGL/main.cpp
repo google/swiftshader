@@ -94,6 +94,7 @@ CONSTRUCTOR static bool eglAttachProcess()
     gl::makeCurrent = (void (*)(egl::Context*, egl::Display*, egl::Surface*))getProcAddress(libGLESv2, "glMakeCurrent");
     gl::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLESv2, "glGetProcAddress");
     gl::createBackBuffer = (gl::Image *(*)(int, int, const egl::Config*))getProcAddress(libGLESv2, "createBackBuffer");
+	gl::createDepthStencil = (gl::Image *(*)(unsigned int, unsigned int, sw::Format, int, bool))getProcAddress(libGLESv2, "createDepthStencil");
     gl::createFrameBuffer = (sw::FrameBuffer *(*)(EGLNativeDisplayType, EGLNativeWindowType, int, int))getProcAddress(libGLESv2, "createFrameBuffer");
 
 	return libGLESv2 != 0;
@@ -267,6 +268,7 @@ namespace gl
 	egl::Context *(*getCurrentContext)() = 0;
 	__eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname) = 0;
 	Image *(*createBackBuffer)(int width, int height, const egl::Config *config) = 0;
+	Image *(*createDepthStencil)(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard) = 0;
 	sw::FrameBuffer *(*createFrameBuffer)(EGLNativeDisplayType display, EGLNativeWindowType window, int width, int height) = 0;
 }
 

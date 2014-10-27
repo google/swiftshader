@@ -19,7 +19,6 @@
 #include "Display.h"
 #include "Texture2D.hpp"
 #include "libGLESv2/Image.hpp"
-#include "libGLESv2/Device.hpp"
 #include "common/debug.h"
 #include "Main/FrameBuffer.hpp"
 
@@ -128,13 +127,6 @@ bool Surface::reset()
 
 bool Surface::reset(int backBufferWidth, int backBufferHeight)
 {
-    gl::Device *device = mDisplay->getDevice();
-
-    if(device == NULL)
-    {
-        return false;
-    }
-
     release();
 
     if(mWindow)
@@ -160,7 +152,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 
     if(mConfig->mDepthStencilFormat != sw::FORMAT_NULL)
     {
-        mDepthStencil = device->createDepthStencilSurface(backBufferWidth, backBufferHeight, mConfig->mDepthStencilFormat, 1, false);
+        mDepthStencil = gl::createDepthStencil(backBufferWidth, backBufferHeight, mConfig->mDepthStencilFormat, 1, false);
 
 		if(!mDepthStencil)
 		{

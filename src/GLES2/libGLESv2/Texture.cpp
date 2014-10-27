@@ -1165,4 +1165,48 @@ extern "C"
 
 		return 0;
 	}
+
+	gl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
+	{
+		if(width == 0 || height == 0 || height > OUTLINE_RESOLUTION)
+		{
+			ERR("Invalid parameters");
+			return 0;
+		}
+		
+		bool lockable = true;
+
+		switch(format)
+		{
+	//	case sw::FORMAT_D15S1:
+		case sw::FORMAT_D24S8:
+		case sw::FORMAT_D24X8:
+	//	case sw::FORMAT_D24X4S4:
+		case sw::FORMAT_D24FS8:
+		case sw::FORMAT_D32:
+		case sw::FORMAT_D16:
+			lockable = false;
+			break;
+	//	case sw::FORMAT_S8_LOCKABLE:
+	//	case sw::FORMAT_D16_LOCKABLE:
+		case sw::FORMAT_D32F_LOCKABLE:
+	//	case sw::FORMAT_D32_LOCKABLE:
+		case sw::FORMAT_DF24S8:
+		case sw::FORMAT_DF16S8:
+			lockable = true;
+			break;
+		default:
+			UNREACHABLE();
+		}
+
+		gl::Image *surface = new gl::Image(0, width, height, format, GL_NONE, GL_NONE, multiSampleDepth, lockable, true);
+
+		if(!surface)
+		{
+			ERR("Out of memory");
+			return 0;
+		}
+
+		return surface;
+	}
 }

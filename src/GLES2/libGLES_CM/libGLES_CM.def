@@ -153,5 +153,6 @@ EXPORTS
 	createFrameBuffer               @172
 	createBackBuffer                @173
 	createDevice                    @174
+	createDepthStencil              @175
 
 	Register
