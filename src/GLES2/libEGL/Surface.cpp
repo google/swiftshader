@@ -17,7 +17,8 @@
 
 #include "main.h"
 #include "Display.h"
-#include "libGLESv2/Texture.h"
+#include "Texture2D.hpp"
+#include "libGLESv2/Image.hpp"
 #include "libGLESv2/Device.hpp"
 #include "common/debug.h"
 #include "Main/FrameBuffer.hpp"
@@ -268,12 +269,12 @@ EGLenum Surface::getTextureTarget() const
     return mTextureTarget;
 }
 
-void Surface::setBoundTexture(gl::Texture2D *texture)
+void Surface::setBoundTexture(egl::Texture2D *texture)
 {
     mTexture = texture;
 }
 
-gl::Texture2D *Surface::getBoundTexture() const
+egl::Texture2D *Surface::getBoundTexture() const
 {
     return mTexture;
 }

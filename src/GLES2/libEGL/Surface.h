@@ -24,13 +24,13 @@
 namespace gl
 {
 class Image;
-class Texture2D;
 }
 
 namespace egl
 {
 class Display;
 class Config;
+class Texture2D;
 
 class Surface
 {
@@ -60,8 +60,8 @@ public:
     virtual EGLenum getTextureTarget() const;
     virtual sw::Format getInternalFormat() const;
 
-    virtual void setBoundTexture(gl::Texture2D *texture);
-    virtual gl::Texture2D *getBoundTexture() const;
+    virtual void setBoundTexture(egl::Texture2D *texture);
+    virtual egl::Texture2D *getBoundTexture() const;
 
 	bool checkForResize();   // Returns true if surface changed due to resize
 
@@ -73,6 +73,7 @@ private:
     gl::Image *mDepthStencil;
 	sw::FrameBuffer *frameBuffer;
 	gl::Image *backBuffer;
+	egl::Texture2D *mTexture;
 
 	bool reset(int backbufferWidth, int backbufferHeight);
     
@@ -95,7 +96,6 @@ private:
 //  EGLenum vgAlphaFormat;               // Alpha format for OpenVG
 //  EGLenum vgColorSpace;                // Color space for OpenVG
     EGLint mSwapInterval;
-    gl::Texture2D *mTexture;
 };
 }
 

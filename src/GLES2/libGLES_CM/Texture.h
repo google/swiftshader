@@ -19,6 +19,7 @@
 #include "Renderbuffer.h"
 #include "RefCountObject.h"
 #include "utilities.h"
+#include "libEGL/Texture2D.hpp"
 #include "common/debug.h"
 
 #define GL_API
@@ -109,7 +110,7 @@ protected:
 	sw::Resource *resource;
 };
 
-class Texture2D : public Texture
+class Texture2D : public Texture, public egl::Texture2D
 {
 public:
     explicit Texture2D(GLuint id);

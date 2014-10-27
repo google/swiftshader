@@ -14,6 +14,7 @@
 #include "main.h"
 #include "Display.h"
 #include "Surface.h"
+#include "Texture2D.hpp"
 #include "libGLESv2/Context.h"
 #include "libGLESv2/Texture.h"
 #include "common/debug.h"
@@ -708,7 +709,7 @@ EGLBoolean EGLAPIENTRY eglReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EG
             return error(EGL_BAD_MATCH, EGL_FALSE);
         }
 
-        gl::Texture2D *texture = eglSurface->getBoundTexture();
+        egl::Texture2D *texture = eglSurface->getBoundTexture();
 
         if(texture)
         {
