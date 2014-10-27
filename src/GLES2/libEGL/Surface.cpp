@@ -312,7 +312,7 @@ bool Surface::checkForResize()
 
         if(static_cast<egl::Surface*>(getCurrentDrawSurface()) == this)
         {
-            gl::makeCurrent(static_cast<gl::Context*>(getCurrentContext()), static_cast<egl::Display*>(getCurrentDisplay()), this);
+            gl::makeCurrent(static_cast<egl::Context*>(getCurrentContext()), static_cast<egl::Display*>(getCurrentDisplay()), this);
         }
 
         return true;

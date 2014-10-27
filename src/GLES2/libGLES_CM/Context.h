@@ -368,6 +368,8 @@ public:
     static int getSupportedMultiSampleDepth(sw::Format format, int requested);
 
 	virtual void bindTexImage(egl::Surface *surface);
+	virtual EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
+	virtual Image *createSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
 
 private:
 	virtual ~Context();

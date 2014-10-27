@@ -16,7 +16,6 @@
 #include "Display.h"
 
 #include "main.h"
-#include "libGLESv2/mathutil.h"
 #include "libGLESv2/Device.hpp"
 #include "libEGL/Surface.h"
 #include "libEGL/Context.hpp"

@@ -420,6 +420,8 @@ public:
                          GLbitfield mask);
 
 	virtual void bindTexImage(egl::Surface *surface);
+	virtual EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
+	virtual gl::Image *createSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
 
 private:
 	virtual ~Context();

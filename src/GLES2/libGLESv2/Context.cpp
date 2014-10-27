@@ -32,6 +32,8 @@
 #include "libEGL/Surface.h"
 #include "Common/Half.hpp"
 
+#include <EGL/eglext.h>
+
 #undef near
 #undef far
 
@@ -3037,6 +3039,109 @@ void Context::bindTexImage(egl::Surface *surface)
     {
 		textureObject->bindTexImage(surface);
 	}
+}
+
+EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel)
+{
+    GLenum textureTarget = GL_NONE;
+
+    switch(target)
+    {
+    case EGL_GL_TEXTURE_2D_KHR:
+        textureTarget = GL_TEXTURE_2D;
+        break;
+    case EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_X_KHR:
+    case EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_X_KHR:
+    case EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_Y_KHR:
+    case EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_KHR:
+    case EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_Z_KHR:
+    case EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_KHR:
+        textureTarget = GL_TEXTURE_CUBE_MAP;
+        break;
+    case EGL_GL_RENDERBUFFER_KHR:
+        break;
+    default:
+        return EGL_BAD_PARAMETER;
+    }
+	
+    if(textureLevel >= gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+    {
+        return EGL_BAD_MATCH;
+    }
+
+    if(textureTarget != GL_NONE)
+    {
+        gl::Texture *texture = getTexture(name);
+
+        if(!texture || texture->getTarget() != textureTarget)
+        {
+            return EGL_BAD_PARAMETER;
+        }
+
+        if(texture->isShared(textureTarget, textureLevel))   // Bound to an EGLSurface or already an EGLImage sibling
+        {
+            return EGL_BAD_ACCESS;
+        }
+
+        if(textureLevel != 0 && !texture->isSamplerComplete())
+        {
+            return EGL_BAD_PARAMETER;
+        }
+
+        if(textureLevel == 0 && !(texture->isSamplerComplete() && texture->getLevelCount() == 1))
+        {
+            return EGL_BAD_PARAMETER;
+        }
+    }
+    else if(target == EGL_GL_RENDERBUFFER_KHR)
+    {
+        gl::Renderbuffer *renderbuffer = getRenderbuffer(name);
+
+        if(!renderbuffer)
+        {
+            return EGL_BAD_PARAMETER;
+        }
+
+        if(renderbuffer->isShared())   // Already an EGLImage sibling
+        {
+            return EGL_BAD_ACCESS;
+        }
+    }
+    else UNREACHABLE();
+
+	return EGL_SUCCESS;
+}
+
+Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textureLevel)
+{
+	GLenum textureTarget = GL_NONE;
+
+    switch(target)
+    {
+    case EGL_GL_TEXTURE_2D_KHR:                  textureTarget = GL_TEXTURE_2D;                  break;
+    case EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_X_KHR: textureTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X; break;
+    case EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_X_KHR: textureTarget = GL_TEXTURE_CUBE_MAP_NEGATIVE_X; break;
+    case EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_Y_KHR: textureTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_Y; break;
+    case EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_KHR: textureTarget = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y; break;
+    case EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_Z_KHR: textureTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_Z; break;
+    case EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_KHR: textureTarget = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; break;
+    }
+
+    if(textureTarget != GL_NONE)
+    {
+        gl::Texture *texture = getTexture(name);
+
+        return texture->createSharedImage(textureTarget, textureLevel);
+    }
+    else if(target == EGL_GL_RENDERBUFFER_KHR)
+    {
+        gl::Renderbuffer *renderbuffer = getRenderbuffer(name);
+
+        return renderbuffer->createSharedImage();
+    }
+    else UNREACHABLE();
+
+	return 0;
 }
 
 }

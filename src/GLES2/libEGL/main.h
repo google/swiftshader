@@ -84,12 +84,11 @@ namespace sw
 namespace gl
 {
 	class Device;
-	class Context;
 	class Image;
 
 	extern Device *(*createDevice)();
 	extern egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext);
-	extern void (*makeCurrent)(Context *context, egl::Display *display, egl::Surface *surface);
+	extern void (*makeCurrent)(egl::Context *context, egl::Display *display, egl::Surface *surface);
 	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);
 	extern Image *(*createBackBuffer)(int width, int height, const egl::Config *config);
 	extern sw::FrameBuffer *(*createFrameBuffer)(EGLNativeDisplayType display, EGLNativeWindowType window, int width, int height);

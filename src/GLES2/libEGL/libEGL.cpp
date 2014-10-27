@@ -15,8 +15,8 @@
 #include "Display.h"
 #include "Surface.h"
 #include "Texture2D.hpp"
-#include "libGLESv2/Context.h"
-#include "libGLESv2/Texture.h"
+#include "Context.hpp"
+#include "libGLESv2/Image.hpp"
 #include "common/debug.h"
 #include "Common/Version.h"
 
@@ -845,7 +845,7 @@ EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurfac
     try
     {
         egl::Display *display = static_cast<egl::Display*>(dpy);
-        gl::Context *context = static_cast<gl::Context*>(ctx);
+        egl::Context *context = static_cast<egl::Context*>(ctx);
 
         if(ctx != EGL_NO_CONTEXT && !validateContext(display, context))
         {
@@ -953,7 +953,7 @@ EGLBoolean EGLAPIENTRY eglQueryContext(EGLDisplay dpy, EGLContext ctx, EGLint at
     try
     {
         egl::Display *display = static_cast<egl::Display*>(dpy);
-        gl::Context *context = static_cast<gl::Context*>(ctx);
+        egl::Context *context = static_cast<egl::Context*>(ctx);
 
         if(!validateContext(display, context))
         {
@@ -1070,7 +1070,7 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
     try
     {
         egl::Display *display = static_cast<egl::Display*>(dpy);
-        gl::Context *context = static_cast<gl::Context*>(ctx);
+        egl::Context *context = static_cast<egl::Context*>(ctx);
 
         if(!validateDisplay(display))
         {
@@ -1080,27 +1080,6 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
         if(context != EGL_NO_CONTEXT && !display->isValidContext(context))
         {
             return error(EGL_BAD_CONTEXT, EGL_NO_IMAGE_KHR);
-        }
-
-        GLenum textureTarget = GL_NONE;
-
-        switch(target)
-        {
-        case EGL_GL_TEXTURE_2D_KHR:
-            textureTarget = GL_TEXTURE_2D;
-            break;
-        case EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_X_KHR:
-        case EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_X_KHR:
-        case EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_Y_KHR:
-        case EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_KHR:
-        case EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_Z_KHR:
-        case EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_KHR:
-            textureTarget = GL_TEXTURE_CUBE_MAP;
-            break;
-        case EGL_GL_RENDERBUFFER_KHR:
-            break;
-        default:
-            return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
         }
 
         EGLenum imagePreserved = EGL_FALSE;
@@ -1124,11 +1103,6 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
             }
         }
 
-        if(textureLevel >= gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
-        {
-            return error(EGL_BAD_MATCH, EGL_NO_IMAGE_KHR);
-        }
-
         GLuint name = reinterpret_cast<intptr_t>(buffer);
 
         if(name == 0)
@@ -1136,51 +1110,14 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
             return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
         }
 
-        gl::Image *image = 0;
+		EGLenum validationResult = context->validateSharedImage(target, name, textureLevel);
 
-        if(textureTarget != GL_NONE)
-        {
-            gl::Texture *texture = context->getTexture(name);
+		if(validationResult != EGL_SUCCESS)
+		{
+			return error(validationResult, EGL_NO_IMAGE_KHR);
+		}
 
-            if(!texture || texture->getTarget() != textureTarget)
-            {
-                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-            }
-
-            if(texture->isShared(textureTarget, textureLevel))   // Bound to an EGLSurface or already an EGLImage sibling
-            {
-                return error(EGL_BAD_ACCESS, EGL_NO_IMAGE_KHR);
-            }
-
-            if(textureLevel != 0 && !texture->isSamplerComplete())
-            {
-                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-            }
-
-            if(textureLevel == 0 && !(texture->isSamplerComplete() && texture->getLevelCount() == 1))
-            {
-                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-            }
-
-            image = texture->createSharedImage(textureTarget, textureLevel);
-        }
-        else if(target == EGL_GL_RENDERBUFFER_KHR)
-        {
-            gl::Renderbuffer *renderbuffer = context->getRenderbuffer(name);
-
-            if(!renderbuffer)
-            {
-                return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
-            }
-
-            if(renderbuffer->isShared())   // Already an EGLImage sibling
-            {
-                return error(EGL_BAD_ACCESS, EGL_NO_IMAGE_KHR);
-            }
-
-            image = renderbuffer->createSharedImage();
-        }
-        else UNREACHABLE();
+        gl::Image *image = context->createSharedImage(target, name, textureLevel);
 
         if(!image)
         {
