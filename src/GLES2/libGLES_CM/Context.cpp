@@ -40,6 +40,8 @@ Device *Context::device = 0;
 
 Context::Context(const egl::Config *config, const Context *shareContext) : mConfig(config)
 {
+	device = getDevice();
+
     setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     mState.depthClearValue = 1.0f;
@@ -1293,7 +1295,6 @@ bool Context::isQueryParameterBool(GLenum pname)
 // Applies the render target surface, depth stencil surface, viewport rectangle and scissor rectangle
 bool Context::applyRenderTarget()
 {
-    Device *device = getDevice();
     Framebuffer *framebuffer = getFramebuffer();
 	int width, height, samples;
 
@@ -1342,7 +1343,6 @@ bool Context::applyRenderTarget()
 // Applies the fixed-function state (culling, depth test, alpha blending, stenciling, etc)
 void Context::applyState(GLenum drawMode)
 {
-    Device *device = getDevice();
     Framebuffer *framebuffer = getFramebuffer();
 
     if(mState.cullFace)
@@ -1526,9 +1526,7 @@ GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count)
     {
         return err;
     }
-
-    Device *device = getDevice();
-
+	
 	device->resetInputStreams(false);
 
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
@@ -1555,7 +1553,6 @@ GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count)
 // Applies the indices and element array bindings
 GLenum Context::applyIndexBuffer(const void *indices, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo)
 {
-    Device *device = getDevice();
     GLenum err = mIndexDataManager->prepareIndexData(type, count, mState.elementArrayBuffer.get(), indices, indexInfo);
 
     if(err == GL_NO_ERROR)
@@ -1568,8 +1565,6 @@ GLenum Context::applyIndexBuffer(const void *indices, GLsizei count, GLenum mode
 
 void Context::applyTextures()
 {
-    Device *device = getDevice();
-
     for(int samplerIndex = 0; samplerIndex < MAX_TEXTURE_IMAGE_UNITS; samplerIndex++)
     {
 		UNIMPLEMENTED();
@@ -1609,8 +1604,6 @@ void Context::applyTextures()
 
 void Context::applyTexture(int index, Texture *baseTexture)
 {
-	Device *device = getDevice();
-
 	sw::Resource *resource = 0;
 
 	if(baseTexture)
@@ -1877,8 +1870,6 @@ void Context::clear(GLbitfield mask)
         return;
     }
 
-	Device *device = getDevice();
-
 	unsigned int color = (unorm<8>(mState.colorClearValue.alpha) << 24) |
                          (unorm<8>(mState.colorClearValue.red) << 16) |
                          (unorm<8>(mState.colorClearValue.green) << 8) | 
@@ -1918,7 +1909,6 @@ void Context::clear(GLbitfield mask)
 
 void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
 {
-    Device *device = getDevice();
     PrimitiveType primitiveType;
     int primitiveCount;
 
@@ -1958,7 +1948,6 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
         return error(GL_INVALID_OPERATION);
     }
 
-    Device *device = getDevice();
     PrimitiveType primitiveType;
     int primitiveCount;
 
@@ -2001,8 +1990,6 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
 
 void Context::finish()
 {
-	Device *device = getDevice();
-
 	device->finish();
 }
 

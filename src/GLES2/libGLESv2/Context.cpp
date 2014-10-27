@@ -43,6 +43,8 @@ Device *Context::device = 0;
 
 Context::Context(const egl::Config *config, const Context *shareContext) : mConfig(config)
 {
+	device = getDevice();
+
     mFenceHandleAllocator.setBaseHandle(0);
 
     setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -1670,7 +1672,6 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
 // Applies the render target surface, depth stencil surface, viewport rectangle and scissor rectangle
 bool Context::applyRenderTarget()
 {
-    Device *device = getDevice();
     Framebuffer *framebuffer = getDrawFramebuffer();
 	int width, height, samples;
 
@@ -1729,7 +1730,6 @@ bool Context::applyRenderTarget()
 // Applies the fixed-function state (culling, depth test, alpha blending, stenciling, etc)
 void Context::applyState(GLenum drawMode)
 {
-    Device *device = getDevice();
     Framebuffer *framebuffer = getDrawFramebuffer();
 
     if(mState.cullFace)
@@ -1949,7 +1949,6 @@ GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count)
         return err;
     }
 
-    Device *device = getDevice();
 	Program *program = getCurrentProgram();
 
 	device->resetInputStreams(false);
@@ -1984,7 +1983,6 @@ GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count)
 // Applies the indices and element array bindings
 GLenum Context::applyIndexBuffer(const void *indices, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo)
 {
-    Device *device = getDevice();
     GLenum err = mIndexDataManager->prepareIndexData(type, count, mState.elementArrayBuffer.get(), indices, indexInfo);
 
     if(err == GL_NO_ERROR)
@@ -1998,7 +1996,6 @@ GLenum Context::applyIndexBuffer(const void *indices, GLsizei count, GLenum mode
 // Applies the shaders and shader constants
 void Context::applyShaders()
 {
-    Device *device = getDevice();
     Program *programObject = getCurrentProgram();
     sw::VertexShader *vertexShader = programObject->getVertexShader();
 	sw::PixelShader *pixelShader = programObject->getPixelShader();
@@ -2023,7 +2020,6 @@ void Context::applyTextures()
 
 void Context::applyTextures(sw::SamplerType samplerType)
 {
-    Device *device = getDevice();
     Program *programObject = getCurrentProgram();
 
     int samplerCount = (samplerType == sw::SAMPLER_PIXEL) ? MAX_TEXTURE_IMAGE_UNITS : MAX_VERTEX_TEXTURE_IMAGE_UNITS;   // Range of samplers of given sampler type
@@ -2075,7 +2071,6 @@ void Context::applyTextures(sw::SamplerType samplerType)
 
 void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture)
 {
-	Device *device = getDevice();
 	Program *program = getCurrentProgram();
 	int sampler = (type == sw::SAMPLER_PIXEL) ? index : 16 + index;
 	bool textureUsed = false;
@@ -2379,9 +2374,7 @@ void Context::clear(GLbitfield mask)
     {
         return;
     }
-
-	Device *device = getDevice();
-
+	
 	unsigned int color = (unorm<8>(mState.colorClearValue.alpha) << 24) |
                          (unorm<8>(mState.colorClearValue.red) << 16) |
                          (unorm<8>(mState.colorClearValue.green) << 8) | 
@@ -2426,7 +2419,6 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
         return error(GL_INVALID_OPERATION);
     }
 
-    Device *device = getDevice();
     PrimitiveType primitiveType;
     int primitiveCount;
 
@@ -2477,7 +2469,6 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
         return error(GL_INVALID_OPERATION);
     }
 
-    Device *device = getDevice();
     PrimitiveType primitiveType;
     int primitiveCount;
 
@@ -2526,8 +2517,6 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
 
 void Context::finish()
 {
-	Device *device = getDevice();
-
 	device->finish();
 }
 
@@ -2766,8 +2755,6 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
                               GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
                               GLbitfield mask)
 {
-    Device *device = getDevice();
-
     Framebuffer *readFramebuffer = getReadFramebuffer();
     Framebuffer *drawFramebuffer = getDrawFramebuffer();
 
