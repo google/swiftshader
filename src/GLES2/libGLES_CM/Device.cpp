@@ -89,6 +89,7 @@ namespace gl
 		setSourceBlendFactorAlpha(BLEND_ONE);
 		setDestBlendFactorAlpha(BLEND_ZERO);
 		setBlendOperationAlpha(BLENDOP_ADD);
+		setPointSpriteEnable(true);
 
 		for(int i = 0; i < 16; i++)
 		{
@@ -666,21 +667,5 @@ namespace gl
 	void Device::finish()
 	{
 		synchronize();
-	}
-}
-
-// Exported functions for use by EGL
-extern "C"
-{
-	gl::Device *createDevice()
-	{
-		sw::Context *context = new sw::Context();
-
-		if(context)
-		{
-			return new gl::Device(context);
-		}
-
-		return 0;
 	}
 }

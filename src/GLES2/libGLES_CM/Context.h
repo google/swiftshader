@@ -42,6 +42,7 @@ namespace gl
 struct TranslatedAttribute;
 struct TranslatedIndexData;
 
+class Device;
 class Buffer;
 class Texture;
 class Texture2D;
@@ -371,6 +372,8 @@ public:
 	virtual EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
 	virtual Image *createSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
 
+	Device *getDevice();
+
 private:
 	virtual ~Context();
 
@@ -424,6 +427,8 @@ private:
     bool mDitherStateDirty;
 
     ResourceManager *mResourceManager;
+
+	static Device *device;
 };
 }
 

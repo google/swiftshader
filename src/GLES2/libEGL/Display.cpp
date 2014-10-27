@@ -16,7 +16,6 @@
 #include "Display.h"
 
 #include "main.h"
-#include "libGLESv2/Device.hpp"
 #include "libEGL/Surface.h"
 #include "libEGL/Context.hpp"
 #include "common/debug.h"
@@ -56,8 +55,6 @@ egl::Display *Display::getDisplay(EGLNativeDisplayType displayId)
 
 Display::Display(EGLNativeDisplayType displayId) : displayId(displayId)
 {
-    mDevice = NULL;
-
     mMinSwapInterval = 1;
     mMaxSwapInterval = 1;
 }
@@ -180,9 +177,6 @@ void Display::terminate()
     {
         destroyContext(*mContextSet.begin());
     }
-
-    delete mDevice;
-    mDevice = NULL;
 }
 
 bool Display::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint configSize, EGLint *numConfig)
@@ -232,21 +226,6 @@ bool Display::getConfigAttrib(EGLConfig config, EGLint attribute, EGLint *value)
       default:
         return false;
     }
-
-    return true;
-}
-
-bool Display::createDevice()
-{
-    mDevice = gl::createDevice();
-
-    if(!mDevice)
-    {
-        return error(EGL_BAD_ALLOC, false);
-    }
-
-    // Permanent non-default states
-	mDevice->setPointSpriteEnable(true);
 
     return true;
 }
@@ -406,14 +385,6 @@ EGLSurface Display::createOffscreenSurface(EGLConfig config, const EGLint *attri
 
 EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *shareContext)
 {
-    if(!mDevice)
-    {
-        if(!createDevice())
-        {
-            return NULL;
-        }
-    }
-
     const egl::Config *config = mConfigSet.get(configHandle);
 
     egl::Context *context = gl::createContext(config, shareContext);
@@ -487,19 +458,6 @@ EGLint Display::getMinSwapInterval()
 EGLint Display::getMaxSwapInterval()
 {
     return mMaxSwapInterval;
-}
-
-gl::Device *Display::getDevice()
-{
-    if(!mDevice)
-    {
-        if(!createDevice())
-        {
-            return NULL;
-        }
-    }
-
-    return mDevice;
 }
 
 EGLNativeDisplayType Display::getNativeDisplay() const

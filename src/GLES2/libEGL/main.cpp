@@ -89,7 +89,6 @@ CONSTRUCTOR static bool eglAttachProcess()
 	#endif
 	
     libGLESv2 = loadLibrary(libGLESv2_lib);
-    gl::createDevice = (gl::Device*(*)())getProcAddress(libGLESv2, "createDevice");
     gl::createContext = (egl::Context *(*)(const egl::Config*, const egl::Context*))getProcAddress(libGLESv2, "glCreateContext");
     gl::makeCurrent = (void (*)(egl::Context*, egl::Display*, egl::Surface*))getProcAddress(libGLESv2, "glMakeCurrent");
     gl::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLESv2, "glGetProcAddress");
@@ -261,11 +260,8 @@ void error(EGLint errorCode)
 
 namespace gl
 {
-	Device *(*createDevice)() = 0;
 	egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext) = 0;
-	void (*bindTexImage)(egl::Surface *surface) = 0;
 	void (*makeCurrent)(egl::Context *context, egl::Display *display, egl::Surface *surface) = 0;
-	egl::Context *(*getCurrentContext)() = 0;
 	__eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname) = 0;
 	Image *(*createBackBuffer)(int width, int height, const egl::Config *config) = 0;
 	Image *(*createDepthStencil)(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard) = 0;

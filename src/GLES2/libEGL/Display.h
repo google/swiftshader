@@ -20,11 +20,6 @@
 
 #include <set>
 
-namespace gl
-{
-class Device;
-}
-
 namespace egl
 {
 	class Surface;
@@ -60,8 +55,6 @@ namespace egl
 		EGLint getMinSwapInterval();
 		EGLint getMaxSwapInterval();
 
-		virtual gl::Device *getDevice();
-
 		EGLNativeDisplayType getNativeDisplay() const;
 		const char *getExtensionString() const;
 
@@ -71,7 +64,6 @@ namespace egl
 		DisplayMode getDisplayMode() const;
 
 		const EGLNativeDisplayType displayId;
-		gl::Device *mDevice;
 
 		EGLint mMaxSwapInterval;
 		EGLint mMinSwapInterval;
@@ -83,8 +75,6 @@ namespace egl
 
 		typedef std::set<Context*> ContextSet;
 		ContextSet mContextSet;
-
-		bool createDevice();
 	};
 }
 

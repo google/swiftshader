@@ -84,10 +84,8 @@ namespace sw
 // libGLESv2 dependencies
 namespace gl
 {
-	class Device;
 	class Image;
 
-	extern Device *(*createDevice)();
 	extern egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext);
 	extern void (*makeCurrent)(egl::Context *context, egl::Display *display, egl::Surface *surface);
 	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);

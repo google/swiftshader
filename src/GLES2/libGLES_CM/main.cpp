@@ -148,9 +148,9 @@ egl::Display *getDisplay()
 
 Device *getDevice()
 {
-    egl::Display *display = getDisplay();
+    Context *context = getContext();
 
-    return display->getDevice();
+    return context ? context->getDevice() : 0;
 }
 }
 

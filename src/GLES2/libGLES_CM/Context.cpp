@@ -36,6 +36,8 @@
 
 namespace gl
 {
+Device *Context::device = 0;
+
 Context::Context(const egl::Config *config, const Context *shareContext) : mConfig(config)
 {
     setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -2305,6 +2307,17 @@ Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textureLev
     else UNREACHABLE();
 
 	return 0;
+}
+
+Device *Context::getDevice()
+{
+	if(!device)
+	{
+		sw::Context *context = new sw::Context();
+		device = new gl::Device(context);
+	}
+
+	return device;
 }
 
 }
