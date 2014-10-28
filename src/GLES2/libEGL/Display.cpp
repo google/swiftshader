@@ -383,14 +383,38 @@ EGLSurface Display::createOffscreenSurface(EGLConfig config, const EGLint *attri
     return success(surface);
 }
 
-EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *shareContext)
+EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *shareContext, EGLint clientVersion)
 {
     const egl::Config *config = mConfigSet.get(configHandle);
+	egl::Context *context = 0;
 
-    egl::Context *context = gl2::createContext(config, shareContext);
-    mContextSet.insert(context);
+	if(clientVersion == 1 && config->mRenderableType & EGL_OPENGL_ES_BIT)
+	{
+		if(gl::createContext != 0)
+		{
+			context = gl::createContext(config, shareContext);
+		}
+	}
+	else if(clientVersion == 2 && config->mRenderableType & EGL_OPENGL_ES2_BIT)
+	{
+		if(gl2::createContext != 0)
+		{
+			context = gl2::createContext(config, shareContext);
+		}
+	}
+	else
+	{
+		return error(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
+	}
 
-    return context;
+	if(!context)
+	{
+		return error(EGL_BAD_ALLOC, EGL_NO_CONTEXT);
+	}
+
+	mContextSet.insert(context);
+
+    return success(context);;
 }
 
 void Display::destroySurface(egl::Surface *surface)

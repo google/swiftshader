@@ -83,6 +83,19 @@ CONSTRUCTOR static bool eglAttachProcess()
 	eglAttachThread();
 
 	#if defined(_WIN32)
+	const char *libGLES_CM_lib = "libGLES_CM.dll";
+	#else
+	const char *libGLES_CM_lib = "libGLES_CM.so.1";
+	#endif
+	
+    libGLES_CM = loadLibrary(libGLES_CM_lib);
+    gl::createContext = (egl::Context *(*)(const egl::Config*, const egl::Context*))getProcAddress(libGLES_CM, "glCreateContext");
+    gl::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLES_CM, "glGetProcAddress");
+    gl::createBackBuffer = (egl::Image *(*)(int, int, const egl::Config*))getProcAddress(libGLES_CM, "createBackBuffer");
+	gl::createDepthStencil = (egl::Image *(*)(unsigned int, unsigned int, sw::Format, int, bool))getProcAddress(libGLES_CM, "createDepthStencil");
+    gl::createFrameBuffer = (sw::FrameBuffer *(*)(EGLNativeDisplayType, EGLNativeWindowType, int, int))getProcAddress(libGLES_CM, "createFrameBuffer");
+
+	#if defined(_WIN32)
 	const char *libGLESv2_lib = "libGLESv2.dll";
 	#else
 	const char *libGLESv2_lib = "libGLESv2.so.2";
@@ -95,7 +108,7 @@ CONSTRUCTOR static bool eglAttachProcess()
 	gl2::createDepthStencil = (egl::Image *(*)(unsigned int, unsigned int, sw::Format, int, bool))getProcAddress(libGLESv2, "createDepthStencil");
     gl2::createFrameBuffer = (sw::FrameBuffer *(*)(EGLNativeDisplayType, EGLNativeWindowType, int, int))getProcAddress(libGLESv2, "createFrameBuffer");
 
-	return libGLESv2 != 0;
+	return libGLES_CM != 0 || libGLESv2 != 0;
 }
 
 DESTRUCTOR static void eglDetachProcess()
@@ -257,6 +270,15 @@ void error(EGLint errorCode)
     }
 }
 
+namespace gl
+{
+	egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext) = 0;
+	__eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname) = 0;
+	egl::Image *(*createBackBuffer)(int width, int height, const egl::Config *config) = 0;
+	egl::Image *(*createDepthStencil)(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard) = 0;
+	sw::FrameBuffer *(*createFrameBuffer)(EGLNativeDisplayType display, EGLNativeWindowType window, int width, int height) = 0;
+}
+
 namespace gl2
 {
 	egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext) = 0;
@@ -266,4 +288,5 @@ namespace gl2
 	sw::FrameBuffer *(*createFrameBuffer)(EGLNativeDisplayType display, EGLNativeWindowType window, int width, int height) = 0;
 }
 
+void *libGLES_CM = 0;   // Handle to the libGLES_CM module
 void *libGLESv2 = 0;   // Handle to the libGLESv2 module

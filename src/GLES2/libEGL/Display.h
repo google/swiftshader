@@ -40,7 +40,7 @@ namespace egl
 
 		EGLSurface createWindowSurface(EGLNativeWindowType window, EGLConfig config, const EGLint *attribList);
 		EGLSurface createOffscreenSurface(EGLConfig config, const EGLint *attribList);
-		EGLContext createContext(EGLConfig configHandle, const Context *shareContext);
+		EGLContext createContext(EGLConfig configHandle, const Context *shareContext, EGLint clientVersion);
 
 		void destroySurface(Surface *surface);
 		void destroyContext(Context *context);

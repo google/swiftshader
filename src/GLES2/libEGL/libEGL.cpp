@@ -765,15 +765,14 @@ EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLCon
 
     try
     {
-        // Get the requested client version (default is 1) and check it is two.
-        EGLint client_version = 1;
+        EGLint clientVersion = 1;
         if(attrib_list)
         {
             for(const EGLint* attribute = attrib_list; attribute[0] != EGL_NONE; attribute += 2)
             {
                 if(attribute[0] == EGL_CONTEXT_CLIENT_VERSION)
                 {
-                    client_version = attribute[1];
+                    clientVersion = attribute[1];
                 }
                 else
                 {
@@ -781,12 +780,7 @@ EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLCon
                 }
             }
         }
-
-        if(client_version != 2)
-        {
-            return error(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
-        }
-
+		
         egl::Display *display = static_cast<egl::Display*>(dpy);
 
         if(!validateConfig(display, config))
@@ -794,9 +788,7 @@ EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLCon
             return EGL_NO_CONTEXT;
         }
 
-        EGLContext context = display->createContext(config, static_cast<egl::Context*>(share_context));
-
-        return success(context);
+        return display->createContext(config, static_cast<egl::Context*>(share_context), clientVersion);
     }
     catch(std::bad_alloc&)
     {
