@@ -242,9 +242,9 @@ class Context : public egl::Context
 public:
     Context(const egl::Config *config, const Context *shareContext);
 
+	virtual void makeCurrent(egl::Surface *surface);
 	virtual void destroy();
-
-    void makeCurrent(egl::Display *display, egl::Surface *surface);
+	virtual int getClientVersion();
 
     void markAllStateDirty();
 

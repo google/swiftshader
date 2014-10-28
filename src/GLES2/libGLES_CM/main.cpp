@@ -16,9 +16,8 @@
 #include "Framebuffer.h"
 #include "libEGL/Surface.h"
 #include "Common/Thread.hpp"
+#include "Common/SharedLibrary.hpp"
 #include "common/debug.h"
-
-static sw::Thread::LocalStorageKey currentTLS = TLS_OUT_OF_INDEXES;
 
 #if !defined(_MSC_VER)
 #define CONSTRUCTOR __attribute__((constructor))
@@ -31,44 +30,30 @@ static sw::Thread::LocalStorageKey currentTLS = TLS_OUT_OF_INDEXES;
 static void glAttachThread()
 {
     TRACE("()");
-
-	gl::Current *current = new gl::Current;
-
-    if(current)
-    {
-		sw::Thread::setLocalStorage(currentTLS, current);
-
-        current->context = NULL;
-        current->display = NULL;
-    }
 }
 
 static void glDetachThread()
 {
     TRACE("()");
-
-	gl::Current *current = (gl::Current*)sw::Thread::getLocalStorage(currentTLS);
-
-    if(current)
-    {
-        delete current;
-    }
 }
 
 CONSTRUCTOR static bool glAttachProcess()
 {
     TRACE("()");
 
-	currentTLS = sw::Thread::allocateLocalStorageKey();
-
-    if(currentTLS == TLS_OUT_OF_INDEXES)
-    {
-        return false;
-    }
-
     glAttachThread();
 
-    return true;
+	#if defined(_WIN32)
+	const char *libEGL_lib = "libEGL.dll";
+	#else
+	const char *libEGL_lib = "libEGL.so.1";
+	#endif
+
+	libEGL = loadLibrary(libEGL_lib);
+	egl::getCurrentContext = (egl::Context *(*)())getProcAddress(libEGL, "eglGetCurrentContext");
+	egl::getCurrentDisplay = (egl::Display *(*)())getProcAddress(libEGL, "eglGetCurrentDisplay");
+
+    return libEGL != 0;
 }
 
 DESTRUCTOR static void glDetachProcess()
@@ -76,8 +61,7 @@ DESTRUCTOR static void glDetachProcess()
     TRACE("()");
 
 	glDetachThread();
-
-    sw::Thread::freeLocalStorageKey(currentTLS);
+	freeLibrary(libEGL);
 }
 
 #if defined(_WIN32)
@@ -107,43 +91,21 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
 
 namespace gl
 {
-static gl::Current *getCurrent(void)
+gl::Context *getContext()
 {
-	Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
-
-	if(!current)
+	egl::Context *context = egl::getCurrentContext();
+	
+	if(context && context->getClientVersion() == 1)
 	{
-		glAttachThread();
+		return static_cast<gl::Context*>(context);
 	}
-
-	return (Current*)sw::Thread::getLocalStorage(currentTLS);
-}
-
-void makeCurrent(Context *context, egl::Display *display, egl::Surface *surface)
-{
-    Current *current = getCurrent();
-
-    current->context = context;
-    current->display = display;
-
-    if(context && display && surface)
-    {
-        context->makeCurrent(display, surface);
-    }
-}
-
-Context *getContext()
-{
-    Current *current = getCurrent();
-
-    return current->context;
+	
+	return 0;
 }
 
 egl::Display *getDisplay()
 {
-    Current *current = getCurrent();
-
-    return current->display;
+    return egl::getCurrentDisplay();
 }
 
 Device *getDevice()
@@ -187,3 +149,11 @@ void error(GLenum errorCode)
         }
     }
 }
+
+namespace egl
+{
+	egl::Context *(*getCurrentContext)() = 0;
+	egl::Display *(*getCurrentDisplay)() = 0;
+}
+
+void *libEGL = 0;   // Handle to the libEGL module

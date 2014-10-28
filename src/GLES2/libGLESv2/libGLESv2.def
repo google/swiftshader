@@ -170,7 +170,6 @@ EXPORTS
 
     ; EGL dependencies
     glCreateContext                 @144
-    glMakeCurrent                   @146
     glGetProcAddress                @148
 
 	createFrameBuffer               @172

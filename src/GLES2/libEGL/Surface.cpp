@@ -19,6 +19,7 @@
 #include "Display.h"
 #include "Texture2D.hpp"
 #include "Image.hpp"
+#include "Context.hpp"
 #include "common/debug.h"
 #include "Main/FrameBuffer.hpp"
 
@@ -304,7 +305,7 @@ bool Surface::checkForResize()
 
         if(static_cast<egl::Surface*>(getCurrentDrawSurface()) == this)
         {
-            gl2::makeCurrent(static_cast<egl::Context*>(getCurrentContext()), static_cast<egl::Display*>(getCurrentDisplay()), this);
+			static_cast<egl::Context*>(getCurrentContext())->makeCurrent(this);
         }
 
         return true;

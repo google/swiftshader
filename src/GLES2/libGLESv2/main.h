@@ -25,17 +25,8 @@
 
 namespace gl2
 {
-	struct Current
-	{
-		Context *context;
-		egl::Display *display;
-	};
-
-	void makeCurrent(Context *context, egl::Display *display, egl::Surface *surface);
-
 	Context *getContext();
 	egl::Display *getDisplay();
-
 	Device *getDevice();
 }
 
@@ -48,5 +39,14 @@ const T &error(GLenum errorCode, const T &returnValue)
 
     return returnValue;
 }
+
+// libEGL dependencies
+namespace egl
+{
+	extern egl::Context *(*getCurrentContext)();
+	extern egl::Display *(*getCurrentDisplay)();
+}
+
+extern void *libEGL;   // Handle to the libEGL module
 
 #endif   // LIBGLESV2_MAIN_H_

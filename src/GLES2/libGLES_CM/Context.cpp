@@ -174,17 +174,7 @@ Context::~Context()
     mResourceManager->release();
 }
 
-void Context::destroy()
-{
-	if(this == gl::getContext())
-	{
-		gl::makeCurrent(NULL, NULL, NULL);
-	}
-
-	delete this;
-}
-
-void Context::makeCurrent(egl::Display *display, egl::Surface *surface)
+void Context::makeCurrent(egl::Surface *surface)
 {
     if(!mHasBeenCurrent)
     {
@@ -225,6 +215,21 @@ void Context::makeCurrent(egl::Display *display, egl::Surface *surface)
     }
     
     markAllStateDirty();
+}
+
+void Context::destroy()
+{
+	if(this == getContext())
+	{
+		makeCurrent(0);
+	}
+
+	delete this;
+}
+
+int Context::getClientVersion()
+{
+	return 1;
 }
 
 // This function will set all of the state-related dirty flags, so that all state is set during next pre-draw.
@@ -2315,10 +2320,5 @@ extern "C"
 	gl::Context *glCreateContext(const egl::Config *config, const gl::Context *shareContext)
 	{
 		return new gl::Context(config, shareContext);
-	}
-
-	void glMakeCurrent(gl::Context *context, egl::Display *display, egl::Surface *surface)
-	{
-		gl::makeCurrent(context, display, surface);
 	}
 }
