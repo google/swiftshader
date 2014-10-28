@@ -26,31 +26,16 @@ namespace gl
 	{
 	public:
 		Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type);
-		Image(Texture *parentTexture, GLsizei width, GLsizei height, sw::Format internalFormat, GLenum format, GLenum type, int multiSampleDepth, bool lockable, bool renderTarget);
+		Image(Texture *parentTexture, GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable, bool renderTarget);
 
 		void loadImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *input);
 		void loadCompressedData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels);
-
-		void *lock(unsigned int left, unsigned int top, sw::Lock lock);
-		unsigned int getPitch() const;
-		void unlock();
-		
-		int getWidth();
-		int getHeight();
-		GLenum getFormat();
-		GLenum getType();
-		virtual sw::Format getInternalFormat();
-		virtual int getMultiSampleDepth();
 
 		virtual void addRef();
 		virtual void release();
 		void unbind();   // Break parent ownership and release
 
-		virtual bool isShared() const;
-		void markShared();
-
 		static sw::Format selectInternalFormat(GLenum format, GLenum type);
-		static int bytes(sw::Format format);
 
 	private:
 		virtual ~Image();
@@ -79,14 +64,6 @@ namespace gl
 		void loadD24S8ImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer);
 
 		Texture *parentTexture;
-		bool shared;   // Used as an EGLImage
-
-		const GLsizei width;
-		const GLsizei height;
-		const GLenum format;
-		const GLenum type;
-		const sw::Format internalFormat;
-		const int multiSampleDepth;
 
 		volatile int referenceCount;
 	};

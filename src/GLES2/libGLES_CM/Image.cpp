@@ -32,70 +32,22 @@ namespace gl
 	}
 
 	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
-		: parentTexture(parentTexture), width(width), height(height), format(format), type(type)
-		, internalFormat(selectInternalFormat(format, type)), multiSampleDepth(1)
-		, egl::Image(getParentResource(parentTexture), width, height, 1, selectInternalFormat(format, type), true, true)
+		: parentTexture(parentTexture)
+		, egl::Image(getParentResource(parentTexture), width, height, format, type, selectInternalFormat(format, type))
 	{
-        shared = false;
 		referenceCount = 1;
 	}
 
-	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, sw::Format internalFormat, GLenum format, GLenum type, int multiSampleDepth, bool lockable, bool renderTarget)
-		: parentTexture(parentTexture), width(width), height(height), internalFormat(internalFormat), format(format), type(type), multiSampleDepth(multiSampleDepth)
+	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable, bool renderTarget)
+		: parentTexture(parentTexture)
 		, egl::Image(getParentResource(parentTexture), width, height, multiSampleDepth, internalFormat, lockable, renderTarget)
 	{
-        shared = false;
 		referenceCount = 1;
 	}
 
 	Image::~Image()
 	{
 		ASSERT(referenceCount == 0);
-	}
-
-	void *Image::lock(unsigned int left, unsigned int top, sw::Lock lock)
-	{
-		return lockExternal(left, top, 0, lock, sw::PUBLIC);
-	}
-
-	unsigned int Image::getPitch() const
-	{
-		return getExternalPitchB();
-	}
-
-	void Image::unlock()
-	{
-		unlockExternal();
-	}
-
-	int Image::getWidth()
-	{
-		return width;
-	}
-	
-	int Image::getHeight()
-	{
-		return height;
-	}
-
-	GLenum Image::getFormat()
-	{
-		return format;
-	}
-	
-	GLenum Image::getType()
-	{
-		return type;
-	}
-	
-	sw::Format Image::getInternalFormat()
-	{
-		return internalFormat;
-	}
-	
-	int Image::getMultiSampleDepth()
-	{
-		return multiSampleDepth;
 	}
 
 	void Image::addRef()
@@ -132,16 +84,6 @@ namespace gl
 
 		release();
 	}
-
-    bool Image::isShared() const
-    {
-        return shared;
-    }
-
-    void Image::markShared()
-    {
-        shared = true;
-    }
 
 	sw::Format Image::selectInternalFormat(GLenum format, GLenum type)
 	{
@@ -204,11 +146,6 @@ namespace gl
 		else UNREACHABLE();
 
 		return sw::FORMAT_A8R8G8B8;
-	}
-
-	int Image::bytes(sw::Format format)
-	{
-		return sw::Surface::bytes(format);
 	}
 
 	void Image::loadImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *input)
@@ -337,23 +274,6 @@ namespace gl
 		}
 	}
 
-	void Image::loadAlphaHalfFloatImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const
-	{
-		for(int y = 0; y < height; y++)
-		{
-			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
-			unsigned short *dest = reinterpret_cast<unsigned short*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 8);
-			
-			for(int x = 0; x < width; x++)
-			{
-				dest[4 * x + 0] = 0;
-				dest[4 * x + 1] = 0;
-				dest[4 * x + 2] = 0;
-				dest[4 * x + 3] = source[x];
-			}
-		}
-	}
-
 	void Image::loadLuminanceImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const
 	{
 		for(int y = 0; y < height; y++)
@@ -382,23 +302,6 @@ namespace gl
 		}
 	}
 
-	void Image::loadLuminanceHalfFloatImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const
-	{
-		for(int y = 0; y < height; y++)
-		{
-			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
-			unsigned short *dest = reinterpret_cast<unsigned short*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 8);
-			
-			for(int x = 0; x < width; x++)
-			{
-				dest[4 * x + 0] = source[x];
-				dest[4 * x + 1] = source[x];
-				dest[4 * x + 2] = source[x];
-				dest[4 * x + 3] = 0x3C00; // SEEEEEMMMMMMMMMM, S = 0, E = 15, M = 0: 16bit flpt representation of 1
-			}
-		}
-	}
-
 	void Image::loadLuminanceAlphaImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const
 	{
 		for(int y = 0; y < height; y++)
@@ -416,23 +319,6 @@ namespace gl
 		{
 			const float *source = reinterpret_cast<const float*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			float *dest = reinterpret_cast<float*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 16);
-			
-			for(int x = 0; x < width; x++)
-			{
-				dest[4 * x + 0] = source[2*x+0];
-				dest[4 * x + 1] = source[2*x+0];
-				dest[4 * x + 2] = source[2*x+0];
-				dest[4 * x + 3] = source[2*x+1];
-			}
-		}
-	}
-
-	void Image::loadLuminanceAlphaHalfFloatImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const
-	{
-		for(int y = 0; y < height; y++)
-		{
-			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
-			unsigned short *dest = reinterpret_cast<unsigned short*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 8);
 			
 			for(int x = 0; x < width; x++)
 			{
@@ -496,23 +382,6 @@ namespace gl
 		}
 	}
 
-	void Image::loadRGBHalfFloatImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const
-	{
-		for(int y = 0; y < height; y++)
-		{
-			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
-			unsigned short *dest = reinterpret_cast<unsigned short*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 8);
-			
-			for(int x = 0; x < width; x++)
-			{
-				dest[4 * x + 0] = source[x * 3 + 0];
-				dest[4 * x + 1] = source[x * 3 + 1];
-				dest[4 * x + 2] = source[x * 3 + 2];
-				dest[4 * x + 3] = 0x3C00; // SEEEEEMMMMMMMMMM, S = 0, E = 15, M = 0: 16bit flpt representation of 1
-			}
-		}
-	}
-
 	void Image::loadRGBAUByteImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const
 	{
 		for(int y = 0; y < height; y++)
@@ -572,17 +441,6 @@ namespace gl
 			float *dest = reinterpret_cast<float*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 16);
 			
 			memcpy(dest, source, width * 16);
-		}
-	}
-
-	void Image::loadRGBAHalfFloatImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const
-	{
-		for(int y = 0; y < height; y++)
-		{
-			const unsigned char *source = static_cast<const unsigned char*>(input) + y * inputPitch;
-			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 8;
-			
-			memcpy(dest, source, width * 8);
 		}
 	}
 

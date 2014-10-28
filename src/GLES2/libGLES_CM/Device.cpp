@@ -243,7 +243,7 @@ namespace gl
 			UNREACHABLE();
 		}
 
-		Image *surface = new Image(0, width, height, format, GL_NONE_OES, GL_NONE_OES, multiSampleDepth, lockable, true);
+		Image *surface = new Image(0, width, height, format, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{
@@ -262,7 +262,7 @@ namespace gl
 			return 0;
 		}
 
-		Image *surface = new Image(0, width, height, format, GL_NONE_OES, GL_NONE_OES, multiSampleDepth, lockable, true);
+		Image *surface = new Image(0, width, height, format, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{

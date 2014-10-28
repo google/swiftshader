@@ -31,70 +31,22 @@ namespace gl
 	}
 
 	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
-		: parentTexture(parentTexture), width(width), height(height), format(format), type(type)
-		, internalFormat(selectInternalFormat(format, type)), multiSampleDepth(1)
-		, egl::Image(getParentResource(parentTexture), width, height, 1, selectInternalFormat(format, type), true, true)
+		: parentTexture(parentTexture)
+		, egl::Image(getParentResource(parentTexture), width, height, format, type, selectInternalFormat(format, type))
 	{
-        shared = false;
 		referenceCount = 1;
 	}
 
-	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, sw::Format internalFormat, GLenum format, GLenum type, int multiSampleDepth, bool lockable, bool renderTarget)
-		: parentTexture(parentTexture), width(width), height(height), internalFormat(internalFormat), format(format), type(type), multiSampleDepth(multiSampleDepth)
+	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable, bool renderTarget)
+		: parentTexture(parentTexture)
 		, egl::Image(getParentResource(parentTexture), width, height, multiSampleDepth, internalFormat, lockable, renderTarget)
 	{
-        shared = false;
 		referenceCount = 1;
 	}
 
 	Image::~Image()
 	{
 		ASSERT(referenceCount == 0);
-	}
-
-	void *Image::lock(unsigned int left, unsigned int top, sw::Lock lock)
-	{
-		return lockExternal(left, top, 0, lock, sw::PUBLIC);
-	}
-
-	unsigned int Image::getPitch() const
-	{
-		return getExternalPitchB();
-	}
-
-	void Image::unlock()
-	{
-		unlockExternal();
-	}
-
-	int Image::getWidth()
-	{
-		return width;
-	}
-	
-	int Image::getHeight()
-	{
-		return height;
-	}
-
-	GLenum Image::getFormat()
-	{
-		return format;
-	}
-	
-	GLenum Image::getType()
-	{
-		return type;
-	}
-	
-	sw::Format Image::getInternalFormat()
-	{
-		return internalFormat;
-	}
-	
-	int Image::getMultiSampleDepth()
-	{
-		return multiSampleDepth;
 	}
 
 	void Image::addRef()
@@ -131,16 +83,6 @@ namespace gl
 
 		release();
 	}
-
-    bool Image::isShared() const
-    {
-        return shared;
-    }
-
-    void Image::markShared()
-    {
-        shared = true;
-    }
 
 	sw::Format Image::selectInternalFormat(GLenum format, GLenum type)
 	{
@@ -223,11 +165,6 @@ namespace gl
 		else UNREACHABLE();
 
 		return sw::FORMAT_A8R8G8B8;
-	}
-
-	int Image::bytes(sw::Format format)
-	{
-		return sw::Surface::bytes(format);
 	}
 
 	void Image::loadImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *input)

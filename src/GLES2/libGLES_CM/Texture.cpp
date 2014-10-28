@@ -766,7 +766,7 @@ extern "C"
 			UNREACHABLE();
 		}
 
-		gl::Image *surface = new gl::Image(0, width, height, format, GL_NONE_OES, GL_NONE_OES, multiSampleDepth, lockable, true);
+		gl::Image *surface = new gl::Image(0, width, height, format, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{
