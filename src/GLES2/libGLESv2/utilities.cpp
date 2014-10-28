@@ -244,7 +244,7 @@ namespace gl
 
 	bool IsStencilTexture(GLenum format)
 	{
-		if(format == GL_STENCIL_INDEX ||
+		if(format == GL_STENCIL_INDEX_OES ||
 		   format == GL_DEPTH_STENCIL_OES)
 		{
 			return true;

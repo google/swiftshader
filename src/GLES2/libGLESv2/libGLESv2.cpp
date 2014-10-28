@@ -4545,7 +4545,7 @@ void GL_APIENTRY glShaderBinary(GLsizei n, const GLuint* shaders, GLenum binaryf
     }
 }
 
-void GL_APIENTRY glShaderSource(GLuint shader, GLsizei count, const GLchar** string, const GLint* length)
+void GL_APIENTRY glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length)
 {
     TRACE("(GLuint shader = %d, GLsizei count = %d, const GLchar** string = 0x%0.8p, const GLint* length = 0x%0.8p)",
           shader, count, string, length);
