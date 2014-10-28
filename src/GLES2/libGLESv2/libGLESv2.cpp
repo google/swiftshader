@@ -6088,7 +6088,7 @@ void GL_APIENTRY glTexImage3DOES(GLenum target, GLint level, GLenum internalform
 
     try
     {
-        UNIMPLEMENTED();   // FIXME
+		UNIMPLEMENTED();   // FIXME
     }
     catch(std::bad_alloc&)
     {
@@ -6098,6 +6098,12 @@ void GL_APIENTRY glTexImage3DOES(GLenum target, GLint level, GLenum internalform
 
 void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
 {
+	if(egl::getClientVersion() == 1)
+	{
+		static PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEGLImageTargetTexture2DOES = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)gl::getProcAddress("glEGLImageTargetTexture2DOES");
+		return glEGLImageTargetTexture2DOES(target, image);
+	}
+
     TRACE("(GLenum target = 0x%X, GLeglImageOES image = 0x%0.8p)", target, image);
 
     try

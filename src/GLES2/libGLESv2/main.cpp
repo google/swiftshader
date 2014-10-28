@@ -53,6 +53,15 @@ CONSTRUCTOR static bool glAttachProcess()
 	egl::getCurrentContext = (egl::Context *(*)())getProcAddress(libEGL, "eglGetCurrentContext");
 	egl::getCurrentDisplay = (egl::Display *(*)())getProcAddress(libEGL, "eglGetCurrentDisplay");
 
+	#if defined(_WIN32)
+	const char *libGLES_CM_lib = "libGLES_CM.dll";
+	#else
+	const char *libGLES_CM_lib = "libGLES_CM.so.1";
+	#endif
+
+	libGLES_CM = loadLibrary(libGLES_CM_lib);
+	gl::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLES_CM, "glGetProcAddress");
+
     return libEGL != 0;
 }
 
@@ -62,6 +71,7 @@ DESTRUCTOR static void glDetachProcess()
 
 	glDetachThread();
 	freeLibrary(libEGL);
+	freeLibrary(libGLES_CM);
 }
 
 #if defined(_WIN32)
@@ -116,6 +126,16 @@ Device *getDevice()
 }
 }
 
+namespace egl
+{
+GLint getClientVersion()
+{
+	Context *context = egl::getCurrentContext();
+
+    return context ? context->getClientVersion() : 0;
+}
+}
+
 // Records an error code
 void error(GLenum errorCode)
 {
@@ -156,4 +176,10 @@ namespace egl
 	egl::Display *(*getCurrentDisplay)() = 0;
 }
 
+namespace gl
+{
+	__eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname) = 0;
+}
+
 void *libEGL = 0;   // Handle to the libEGL module
+void *libGLES_CM = 0;   // Handle to the libGLES_CM module

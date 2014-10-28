@@ -1189,7 +1189,17 @@ __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const cha
             }
         }
 
-		return gl2::getProcAddress(procname);
+		if(gl2::getProcAddress != 0)
+		{
+			__eglMustCastToProperFunctionPointerType proc = gl2::getProcAddress(procname);
+			if(proc) return proc;
+		}
+
+		if(gl::getProcAddress != 0)
+		{
+			__eglMustCastToProperFunctionPointerType proc =  gl::getProcAddress(procname);
+			if(proc) return proc;
+		}
     }
     catch(std::bad_alloc&)
     {
