@@ -205,8 +205,8 @@ void Context::makeCurrent(egl::Display *display, egl::Surface *surface)
     }
 
     // Wrap the existing resources into GL objects and assign them to the '0' names
-    Image *defaultRenderTarget = surface->getRenderTarget();
-    Image *depthStencil = surface->getDepthStencil();
+    egl::Image *defaultRenderTarget = surface->getRenderTarget();
+    egl::Image *depthStencil = surface->getDepthStencil();
 
     Colorbuffer *colorbufferZero = new Colorbuffer(defaultRenderTarget);
     DepthStencilbuffer *depthStencilbufferZero = new DepthStencilbuffer(depthStencil);
@@ -1303,11 +1303,11 @@ bool Context::applyRenderTarget()
         return error(GL_INVALID_FRAMEBUFFER_OPERATION_OES, false);
     }
 
-    Image *renderTarget = framebuffer->getRenderTarget();
+    egl::Image *renderTarget = framebuffer->getRenderTarget();
 	device->setRenderTarget(renderTarget);
 	if(renderTarget) renderTarget->release();
 
-    Image *depthStencil = framebuffer->getDepthStencil();
+    egl::Image *depthStencil = framebuffer->getDepthStencil();
     device->setDepthStencilSurface(depthStencil);
 	if(depthStencil) depthStencil->release();
 
@@ -1634,7 +1634,7 @@ void Context::applyTexture(int index, Texture *baseTexture)
 					surfaceLevel = levelCount - 1;
 				}
 
-				Image *surface = texture->getImage(surfaceLevel);
+				egl::Image *surface = texture->getImage(surfaceLevel);
 				device->setTextureLevel(index, 0, mipmapLevel, surface, sw::TEXTURE_2D);
 			}
 		}
@@ -1674,7 +1674,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
         }
     }
 
-    Image *renderTarget = framebuffer->getRenderTarget();
+    egl::Image *renderTarget = framebuffer->getRenderTarget();
 
     if(!renderTarget)
     {
@@ -2277,7 +2277,7 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
 	return EGL_SUCCESS;
 }
 
-Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textureLevel)
+egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textureLevel)
 {
     if(target == EGL_GL_TEXTURE_2D_KHR)
     {

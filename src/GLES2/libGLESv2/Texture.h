@@ -84,20 +84,20 @@ public:
 	virtual bool isDepth(GLenum target, GLint level) const = 0;
 
     virtual Renderbuffer *getRenderbuffer(GLenum target) = 0;
-    virtual Image *getRenderTarget(GLenum target, unsigned int level) = 0;
-    virtual Image *createSharedImage(GLenum target, unsigned int level);
+    virtual egl::Image *getRenderTarget(GLenum target, unsigned int level) = 0;
+    virtual egl::Image *createSharedImage(GLenum target, unsigned int level);
     virtual bool isShared(GLenum target, unsigned int level) const = 0;
 
     virtual void generateMipmaps() = 0;
     virtual void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source) = 0;
 
 protected:
-    void setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image);
-    void subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image);
-    void setCompressedImage(GLsizei imageSize, const void *pixels, Image *image);
-    void subImageCompressed(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels, Image *image);
+    void setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, egl::Image *image);
+    void subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, egl::Image *image);
+    void setCompressedImage(GLsizei imageSize, const void *pixels, egl::Image *image);
+    void subImageCompressed(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels, egl::Image *image);
 
-	bool copy(Image *source, const sw::Rect &sourceRect, GLenum destFormat, GLint xoffset, GLint yoffset, Image *dest);
+	bool copy(egl::Image *source, const sw::Rect &sourceRect, GLenum destFormat, GLint xoffset, GLint yoffset, egl::Image *dest);
 
 	bool isMipmapFiltered() const;
 
@@ -145,15 +145,15 @@ public:
     virtual void generateMipmaps();
 
 	virtual Renderbuffer *getRenderbuffer(GLenum target);
-    virtual Image *getRenderTarget(GLenum target, unsigned int level);
+    virtual egl::Image *getRenderTarget(GLenum target, unsigned int level);
 	virtual bool isShared(GLenum target, unsigned int level) const;
 
-    Image *getImage(unsigned int level);
+    egl::Image *getImage(unsigned int level);
 
 protected:
 	bool isMipmapComplete() const;
 
-	Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS];
+	egl::Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS];
     
     egl::Surface *mSurface;
     

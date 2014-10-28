@@ -21,16 +21,12 @@
 #define EGLAPI
 #include <EGL/egl.h>
 
-namespace gl
-{
-class Image;
-}
-
 namespace egl
 {
 class Display;
 class Config;
 class Texture2D;
+class Image;
 
 class Surface
 {
@@ -45,8 +41,8 @@ public:
 
 	EGLNativeWindowType getWindowHandle();
     
-    virtual gl::Image *getRenderTarget();
-    virtual gl::Image *getDepthStencil();
+    virtual egl::Image *getRenderTarget();
+    virtual egl::Image *getDepthStencil();
 
     void setSwapInterval(EGLint interval);
 
@@ -70,9 +66,9 @@ private:
     bool reset();
 
     Display *const mDisplay;
-    gl::Image *mDepthStencil;
+    egl::Image *mDepthStencil;
 	sw::FrameBuffer *frameBuffer;
-	gl::Image *backBuffer;
+	egl::Image *backBuffer;
 	egl::Texture2D *mTexture;
 
 	bool reset(int backbufferWidth, int backbufferHeight);

@@ -355,7 +355,7 @@ namespace gl
 		draw(drawType, 0, primitiveCount);
 	}
 
-	void Device::setDepthStencilSurface(Image *depthStencil)
+	void Device::setDepthStencilSurface(egl::Image *depthStencil)
 	{
 		if(this->depthStencil == depthStencil)
 		{
@@ -382,7 +382,7 @@ namespace gl
 		scissorEnable = enable;
 	}
 
-	void Device::setRenderTarget(Image *renderTarget)
+	void Device::setRenderTarget(egl::Image *renderTarget)
 	{
 		if(renderTarget)
 		{
@@ -409,7 +409,7 @@ namespace gl
 		this->viewport = viewport;
 	}
 
-	bool Device::stretchRect(Image *source, const sw::Rect *sourceRect, Image *dest, const sw::Rect *destRect, bool filter)
+	bool Device::stretchRect(egl::Image *source, const sw::Rect *sourceRect, egl::Image *dest, const sw::Rect *destRect, bool filter)
 	{
 		if(!source || !dest || !validRectangle(sourceRect, source) || !validRectangle(destRect, dest))
 		{
@@ -615,7 +615,7 @@ namespace gl
 		return true;
 	}
 
-	bool Device::validRectangle(const sw::Rect *rect, Image *surface)
+	bool Device::validRectangle(const sw::Rect *rect, egl::Image *surface)
 	{
 		if(!rect)
 		{

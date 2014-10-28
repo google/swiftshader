@@ -169,9 +169,9 @@ GLfloat Texture::getMaxAnisotropy() const
     return mMaxAnisotropy;
 }
 
-Image *Texture::createSharedImage(GLenum target, unsigned int level)
+egl::Image *Texture::createSharedImage(GLenum target, unsigned int level)
 {
-    Image *image = getRenderTarget(target, level);   // Increments reference count
+    egl::Image *image = getRenderTarget(target, level);   // Increments reference count
 
     if(image)
     {
@@ -181,7 +181,7 @@ Image *Texture::createSharedImage(GLenum target, unsigned int level)
     return image;
 }
 
-void Texture::setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image)
+void Texture::setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, egl::Image *image)
 {
     if(pixels && image)
     {
@@ -189,7 +189,7 @@ void Texture::setImage(GLenum format, GLenum type, GLint unpackAlignment, const 
     }
 }
 
-void Texture::setCompressedImage(GLsizei imageSize, const void *pixels, Image *image)
+void Texture::setCompressedImage(GLsizei imageSize, const void *pixels, egl::Image *image)
 {
     if(pixels && image)
     {
@@ -197,7 +197,7 @@ void Texture::setCompressedImage(GLsizei imageSize, const void *pixels, Image *i
     }
 }
 
-void Texture::subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image)
+void Texture::subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, egl::Image *image)
 {
 	if(!image)
 	{
@@ -225,7 +225,7 @@ void Texture::subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei heig
     }
 }
 
-void Texture::subImageCompressed(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels, Image *image)
+void Texture::subImageCompressed(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels, egl::Image *image)
 {
 	if(!image)
 	{
@@ -248,7 +248,7 @@ void Texture::subImageCompressed(GLint xoffset, GLint yoffset, GLsizei width, GL
     }
 }
 
-bool Texture::copy(Image *source, const sw::Rect &sourceRect, GLenum destFormat, GLint xoffset, GLint yoffset, Image *dest)
+bool Texture::copy(egl::Image *source, const sw::Rect &sourceRect, GLenum destFormat, GLint xoffset, GLint yoffset, egl::Image *dest)
 {
     Device *device = getDevice();
 	
@@ -477,7 +477,7 @@ void Texture2D::subImageCompressed(GLint level, GLint xoffset, GLint yoffset, GL
 
 void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source)
 {
-    Image *renderTarget = source->getRenderTarget();
+    egl::Image *renderTarget = source->getRenderTarget();
 
     if(!renderTarget)
     {
@@ -520,7 +520,7 @@ void Texture2D::copySubImage(GLenum target, GLint level, GLint xoffset, GLint yo
         return error(GL_INVALID_VALUE);
     }
 
-    Image *renderTarget = source->getRenderTarget();
+    egl::Image *renderTarget = source->getRenderTarget();
 
     if(!renderTarget)
     {
@@ -639,7 +639,7 @@ void Texture2D::generateMipmaps()
     }
 }
 
-Image *Texture2D::getImage(unsigned int level)
+egl::Image *Texture2D::getImage(unsigned int level)
 {
 	return image[level];
 }
@@ -659,7 +659,7 @@ Renderbuffer *Texture2D::getRenderbuffer(GLenum target)
     return mColorbufferProxy;
 }
 
-Image *Texture2D::getRenderTarget(GLenum target, unsigned int level)
+egl::Image *Texture2D::getRenderTarget(GLenum target, unsigned int level)
 {
     ASSERT(target == GL_TEXTURE_2D);
 	ASSERT(level < IMPLEMENTATION_MAX_TEXTURE_LEVELS);

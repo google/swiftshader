@@ -123,7 +123,7 @@ void Framebuffer::detachRenderbuffer(GLuint renderbuffer)
 
 // Increments refcount on surface.
 // caller must Release() the returned surface
-Image *Framebuffer::getRenderTarget()
+egl::Image *Framebuffer::getRenderTarget()
 {
 	Renderbuffer *colorbuffer = mColorbufferPointer.get();
 
@@ -137,7 +137,7 @@ Image *Framebuffer::getRenderTarget()
 
 // Increments refcount on surface.
 // caller must Release() the returned surface
-Image *Framebuffer::getDepthStencil()
+egl::Image *Framebuffer::getDepthStencil()
 {
 	Renderbuffer *depthstencilbuffer = mDepthbufferPointer.get();
 	

@@ -16,7 +16,6 @@
 #include "Config.h"
 
 #include "common/debug.h"
-#include "libGLESv2/Image.hpp"
 
 #include <algorithm>
 #include <vector>

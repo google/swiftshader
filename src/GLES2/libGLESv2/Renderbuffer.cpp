@@ -92,14 +92,14 @@ void RenderbufferTexture2D::releaseProxy(const Renderbuffer *proxy)
 
 // Increments refcount on image.
 // caller must release() the returned image
-Image *RenderbufferTexture2D::getRenderTarget()
+egl::Image *RenderbufferTexture2D::getRenderTarget()
 {
 	return mTexture2D->getRenderTarget(GL_TEXTURE_2D, 0);
 }
 
 // Increments refcount on image.
 // caller must release() the returned image
-Image *RenderbufferTexture2D::createSharedImage()
+egl::Image *RenderbufferTexture2D::createSharedImage()
 {
     return mTexture2D->createSharedImage(GL_TEXTURE_2D, 0);
 }
@@ -167,7 +167,7 @@ Image *RenderbufferTextureCubeMap::getRenderTarget()
 
 // Increments refcount on image.
 // caller must release() the returned image
-Image *RenderbufferTextureCubeMap::createSharedImage()
+egl::Image *RenderbufferTextureCubeMap::createSharedImage()
 {
     return mTextureCubeMap->createSharedImage(mTarget, 0);
 }
@@ -233,14 +233,14 @@ void Renderbuffer::release()
 
 // Increments refcount on image.
 // caller must Release() the returned image
-Image *Renderbuffer::getRenderTarget()
+egl::Image *Renderbuffer::getRenderTarget()
 {
 	return mInstance->getRenderTarget();
 }
 
 // Increments refcount on image.
 // caller must Release() the returned image
-Image *Renderbuffer::createSharedImage()
+egl::Image *Renderbuffer::createSharedImage()
 {
     return mInstance->createSharedImage();
 }
@@ -351,7 +351,7 @@ GLsizei RenderbufferStorage::getSamples() const
 	return mSamples;
 }
 
-Colorbuffer::Colorbuffer(Image *renderTarget) : mRenderTarget(renderTarget)
+Colorbuffer::Colorbuffer(egl::Image *renderTarget) : mRenderTarget(renderTarget)
 {
 	if(renderTarget)
 	{
@@ -400,7 +400,7 @@ Colorbuffer::~Colorbuffer()
 
 // Increments refcount on image.
 // caller must release() the returned image
-Image *Colorbuffer::getRenderTarget()
+egl::Image *Colorbuffer::getRenderTarget()
 {
 	if(mRenderTarget)
 	{
@@ -412,7 +412,7 @@ Image *Colorbuffer::getRenderTarget()
 
 // Increments refcount on image.
 // caller must release() the returned image
-Image *Colorbuffer::createSharedImage()
+egl::Image *Colorbuffer::createSharedImage()
 {
     if(mRenderTarget)
     {
@@ -428,7 +428,7 @@ bool Colorbuffer::isShared() const
     return mRenderTarget->isShared();
 }
 
-DepthStencilbuffer::DepthStencilbuffer(Image *depthStencil) : mDepthStencil(depthStencil)
+DepthStencilbuffer::DepthStencilbuffer(egl::Image *depthStencil) : mDepthStencil(depthStencil)
 {
 	if(depthStencil)
 	{
@@ -478,7 +478,7 @@ DepthStencilbuffer::~DepthStencilbuffer()
 
 // Increments refcount on image.
 // caller must release() the returned image
-Image *DepthStencilbuffer::getRenderTarget()
+egl::Image *DepthStencilbuffer::getRenderTarget()
 {
 	if(mDepthStencil)
 	{
@@ -490,7 +490,7 @@ Image *DepthStencilbuffer::getRenderTarget()
 
 // Increments refcount on image.
 // caller must release() the returned image
-Image *DepthStencilbuffer::createSharedImage()
+egl::Image *DepthStencilbuffer::createSharedImage()
 {
     if(mDepthStencil)
     {
@@ -506,7 +506,7 @@ bool DepthStencilbuffer::isShared() const
     return mDepthStencil->isShared();
 }
 
-Depthbuffer::Depthbuffer(Image *depthStencil) : DepthStencilbuffer(depthStencil)
+Depthbuffer::Depthbuffer(egl::Image *depthStencil) : DepthStencilbuffer(depthStencil)
 {
 	if(depthStencil)
 	{
@@ -530,7 +530,7 @@ Depthbuffer::~Depthbuffer()
 {
 }
 
-Stencilbuffer::Stencilbuffer(Image *depthStencil) : DepthStencilbuffer(depthStencil)
+Stencilbuffer::Stencilbuffer(egl::Image *depthStencil) : DepthStencilbuffer(depthStencil)
 {
 	if(depthStencil)
 	{

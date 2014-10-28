@@ -370,7 +370,7 @@ public:
 
 	virtual void bindTexImage(egl::Surface *surface);
 	virtual EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
-	virtual Image *createSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
+	virtual egl::Image *createSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
 
 	Device *getDevice();
 

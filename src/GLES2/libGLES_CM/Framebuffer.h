@@ -43,8 +43,8 @@ public:
     void detachTexture(GLuint texture);
     void detachRenderbuffer(GLuint renderbuffer);
 
-    Image *getRenderTarget();
-    Image *getDepthStencil();
+    egl::Image *getRenderTarget();
+    egl::Image *getDepthStencil();
 
     Renderbuffer *getColorbuffer();
     Renderbuffer *getDepthbuffer();

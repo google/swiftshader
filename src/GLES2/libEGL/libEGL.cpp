@@ -16,7 +16,7 @@
 #include "Surface.h"
 #include "Texture2D.hpp"
 #include "Context.hpp"
-#include "libGLESv2/Image.hpp"
+#include "Image.hpp"
 #include "common/debug.h"
 #include "Common/Version.h"
 
@@ -1117,7 +1117,7 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
 			return error(validationResult, EGL_NO_IMAGE_KHR);
 		}
 
-        gl::Image *image = context->createSharedImage(target, name, textureLevel);
+        egl::Image *image = context->createSharedImage(target, name, textureLevel);
 
         if(!image)
         {
@@ -1155,7 +1155,7 @@ EGLBoolean EGLAPIENTRY eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
             return error(EGL_BAD_PARAMETER, EGL_FALSE);
         }
 
-        gl::Image *glImage = static_cast<gl::Image*>(image);
+        egl::Image *glImage = static_cast<egl::Image*>(image);
         glImage->release();
 
         return success(EGL_TRUE);

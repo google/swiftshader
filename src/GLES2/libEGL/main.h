@@ -73,6 +73,7 @@ namespace egl
 	class Surface;
 	class Display;
 	class Context;
+	class Image;
 }
 
 namespace sw
@@ -84,13 +85,11 @@ namespace sw
 // libGLESv2 dependencies
 namespace gl
 {
-	class Image;
-
 	extern egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext);
 	extern void (*makeCurrent)(egl::Context *context, egl::Display *display, egl::Surface *surface);
 	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);
-	extern Image *(*createBackBuffer)(int width, int height, const egl::Config *config);
-	extern Image *(*createDepthStencil)(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
+	extern egl::Image *(*createBackBuffer)(int width, int height, const egl::Config *config);
+	extern egl::Image *(*createDepthStencil)(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
 	extern sw::FrameBuffer *(*createFrameBuffer)(EGLNativeDisplayType display, EGLNativeWindowType window, int width, int height);
 }
 

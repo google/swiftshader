@@ -34,7 +34,7 @@ namespace gl
 	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
 		: parentTexture(parentTexture), width(width), height(height), format(format), type(type)
 		, internalFormat(selectInternalFormat(format, type)), multiSampleDepth(1)
-		, sw::Surface(getParentResource(parentTexture), width, height, 1, selectInternalFormat(format, type), true, true)
+		, egl::Image(getParentResource(parentTexture), width, height, 1, selectInternalFormat(format, type), true, true)
 	{
         shared = false;
 		referenceCount = 1;
@@ -42,7 +42,7 @@ namespace gl
 
 	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, sw::Format internalFormat, GLenum format, GLenum type, int multiSampleDepth, bool lockable, bool renderTarget)
 		: parentTexture(parentTexture), width(width), height(height), internalFormat(internalFormat), format(format), type(type), multiSampleDepth(multiSampleDepth)
-		, sw::Surface(getParentResource(parentTexture), width, height, multiSampleDepth, internalFormat, lockable, renderTarget)
+		, egl::Image(getParentResource(parentTexture), width, height, multiSampleDepth, internalFormat, lockable, renderTarget)
 	{
         shared = false;
 		referenceCount = 1;

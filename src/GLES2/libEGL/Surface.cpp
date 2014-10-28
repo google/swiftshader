@@ -18,7 +18,7 @@
 #include "main.h"
 #include "Display.h"
 #include "Texture2D.hpp"
-#include "libGLESv2/Image.hpp"
+#include "Image.hpp"
 #include "common/debug.h"
 #include "Main/FrameBuffer.hpp"
 
@@ -189,7 +189,7 @@ void Surface::swap()
 	}
 }
 
-gl::Image *Surface::getRenderTarget()
+egl::Image *Surface::getRenderTarget()
 {
     if(backBuffer)
     {
@@ -199,7 +199,7 @@ gl::Image *Surface::getRenderTarget()
     return backBuffer;
 }
 
-gl::Image *Surface::getDepthStencil()
+egl::Image *Surface::getDepthStencil()
 {
     if(mDepthStencil)
     {

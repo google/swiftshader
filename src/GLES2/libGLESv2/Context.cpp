@@ -253,8 +253,8 @@ void Context::makeCurrent(egl::Display *display, egl::Surface *surface)
     }
 
     // Wrap the existing resources into GL objects and assign them to the '0' names
-    Image *defaultRenderTarget = surface->getRenderTarget();
-    Image *depthStencil = surface->getDepthStencil();
+    egl::Image *defaultRenderTarget = surface->getRenderTarget();
+    egl::Image *depthStencil = surface->getDepthStencil();
 
     Colorbuffer *colorbufferZero = new Colorbuffer(defaultRenderTarget);
     DepthStencilbuffer *depthStencilbufferZero = new DepthStencilbuffer(depthStencil);
@@ -1680,11 +1680,11 @@ bool Context::applyRenderTarget()
         return error(GL_INVALID_FRAMEBUFFER_OPERATION, false);
     }
 
-    Image *renderTarget = framebuffer->getRenderTarget();
+    egl::Image *renderTarget = framebuffer->getRenderTarget();
 	device->setRenderTarget(renderTarget);
 	if(renderTarget) renderTarget->release();
 
-    Image *depthStencil = framebuffer->getDepthStencil();
+    egl::Image *depthStencil = framebuffer->getDepthStencil();
     device->setDepthStencilSurface(depthStencil);
 	if(depthStencil) depthStencil->release();
 
@@ -2115,7 +2115,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 					surfaceLevel = levelCount - 1;
 				}
 
-				Image *surface = texture->getImage(surfaceLevel);
+				egl::Image *surface = texture->getImage(surfaceLevel);
 				device->setTextureLevel(sampler, 0, mipmapLevel, surface, sw::TEXTURE_2D);
 			}
 		}
@@ -2138,7 +2138,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 						surfaceLevel = levelCount - 1;
 					}
 
-					Image *surface = cubeTexture->getImage(face, surfaceLevel);
+					egl::Image *surface = cubeTexture->getImage(face, surfaceLevel);
 					device->setTextureLevel(sampler, face, mipmapLevel, surface, sw::TEXTURE_CUBE);
 				}
 			}
@@ -2179,7 +2179,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
         }
     }
 
-    Image *renderTarget = framebuffer->getRenderTarget();
+    egl::Image *renderTarget = framebuffer->getRenderTarget();
 
     if(!renderTarget)
     {
@@ -2992,8 +2992,8 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
     {
         if(blitRenderTarget)
         {
-            Image *readRenderTarget = readFramebuffer->getRenderTarget();
-            Image *drawRenderTarget = drawFramebuffer->getRenderTarget();
+            egl::Image *readRenderTarget = readFramebuffer->getRenderTarget();
+            egl::Image *drawRenderTarget = drawFramebuffer->getRenderTarget();
  
             bool success = device->stretchRect(readRenderTarget, &sourceRect, drawRenderTarget, &destRect, false);
 
@@ -3101,7 +3101,7 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
 	return EGL_SUCCESS;
 }
 
-Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textureLevel)
+egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textureLevel)
 {
 	GLenum textureTarget = GL_NONE;
 

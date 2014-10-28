@@ -13,6 +13,7 @@
 #define gl_Image_hpp
 
 #include "Renderer/Surface.hpp"
+#include "libEGL/Image.hpp"
 
 #define GL_APICALL
 #include <GLES2/gl2.h>
@@ -21,7 +22,7 @@ namespace gl
 {
 	class Texture;
 
-	class Image : public sw::Surface
+	class Image : public egl::Image
 	{
 	public:
 		Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type);

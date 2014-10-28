@@ -163,6 +163,7 @@ copy "$(OutDir)libEGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     <ClInclude Include="Config.h" />
     <ClInclude Include="Context.hpp" />
     <ClInclude Include="Display.h" />
+    <ClInclude Include="Image.hpp" />
     <ClInclude Include="main.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Surface.h" />
