@@ -24,7 +24,7 @@
 #include <string>
 #include <stdlib.h>
 
-namespace gl
+namespace gl2
 {
 	unsigned int Program::currentSerial = 1;
 

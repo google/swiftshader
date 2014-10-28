@@ -24,7 +24,7 @@
 
 #include <cstddef>
 
-namespace gl
+namespace gl2
 {
 
 class RefCountObject

@@ -32,7 +32,7 @@ static void glAttachThread()
 {
     TRACE("()");
 
-	gl::Current *current = new gl::Current;
+	gl2::Current *current = new gl2::Current;
 
     if(current)
     {
@@ -47,7 +47,7 @@ static void glDetachThread()
 {
     TRACE("()");
 
-	gl::Current *current = (gl::Current*)sw::Thread::getLocalStorage(currentTLS);
+	gl2::Current *current = (gl2::Current*)sw::Thread::getLocalStorage(currentTLS);
 
     if(current)
     {
@@ -105,9 +105,9 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
 }
 #endif
 
-namespace gl
+namespace gl2
 {
-static gl::Current *getCurrent(void)
+static gl2::Current *getCurrent(void)
 {
 	Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
 
@@ -157,7 +157,7 @@ Device *getDevice()
 // Records an error code
 void error(GLenum errorCode)
 {
-    gl::Context *context = gl::getContext();
+    gl2::Context *context = gl2::getContext();
 
     if(context)
     {

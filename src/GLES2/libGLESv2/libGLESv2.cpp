@@ -35,7 +35,7 @@
 
 static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 {
-    if(level < 0 || level >= gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS || width < 0 || height < 0)
+    if(level < 0 || level >= gl2::IMPLEMENTATION_MAX_TEXTURE_LEVELS || width < 0 || height < 0)
     {
         return false;
     }
@@ -43,7 +43,7 @@ static bool validImageSize(GLint level, GLsizei width, GLsizei height)
     return true;
 }
 
-static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLint xoffset, GLint yoffset, GLenum target, GLint level, GLenum format, gl::Texture *texture)
+static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLint xoffset, GLint yoffset, GLenum target, GLint level, GLenum format, gl2::Texture *texture)
 {
     if(!texture)
     {
@@ -103,10 +103,10 @@ static bool validReadFormatType(GLenum format, GLenum type)
             return false;
         }
         break;
-    case gl::IMPLEMENTATION_COLOR_READ_FORMAT:
+    case gl2::IMPLEMENTATION_COLOR_READ_FORMAT:
         switch (type)
         {
-        case gl::IMPLEMENTATION_COLOR_READ_TYPE:
+        case gl2::IMPLEMENTATION_COLOR_READ_TYPE:
             break;
         default:
             return false;
@@ -128,11 +128,11 @@ void GL_APIENTRY glActiveTexture(GLenum texture)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            if(texture < GL_TEXTURE0 || texture > GL_TEXTURE0 + gl::MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+            if(texture < GL_TEXTURE0 || texture > GL_TEXTURE0 + gl2::MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
             {
                 return error(GL_INVALID_ENUM);
             }
@@ -152,12 +152,12 @@ void GL_APIENTRY glAttachShader(GLuint program, GLuint shader)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *programObject = context->getProgram(program);
-            gl::Shader *shaderObject = context->getShader(shader);
+            gl2::Program *programObject = context->getProgram(program);
+            gl2::Shader *shaderObject = context->getShader(shader);
 
             if(!programObject)
             {
@@ -215,7 +215,7 @@ void GL_APIENTRY glBeginQueryEXT(GLenum target, GLuint id)
             return error(GL_INVALID_OPERATION);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -234,16 +234,16 @@ void GL_APIENTRY glBindAttribLocation(GLuint program, GLuint index, const GLchar
 
     try
     {
-        if(index >= gl::MAX_VERTEX_ATTRIBS)
+        if(index >= gl2::MAX_VERTEX_ATTRIBS)
         {
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject)
             {
@@ -277,7 +277,7 @@ void GL_APIENTRY glBindBuffer(GLenum target, GLuint buffer)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -311,7 +311,7 @@ void GL_APIENTRY glBindFramebuffer(GLenum target, GLuint framebuffer)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -343,7 +343,7 @@ void GL_APIENTRY glBindRenderbuffer(GLenum target, GLuint renderbuffer)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -362,11 +362,11 @@ void GL_APIENTRY glBindTexture(GLenum target, GLuint texture)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Texture *textureObject = context->getTexture(texture);
+            gl2::Texture *textureObject = context->getTexture(texture);
 
             if(textureObject && textureObject->getTarget() != target && texture != 0)
             {
@@ -402,11 +402,11 @@ void GL_APIENTRY glBlendColor(GLclampf red, GLclampf green, GLclampf blue, GLcla
 
     try
     {
-        gl::Context* context = gl::getContext();
+        gl2::Context* context = gl2::getContext();
 
         if(context)
         {
-            context->setBlendColor(gl::clamp01(red), gl::clamp01(green), gl::clamp01(blue), gl::clamp01(alpha));
+            context->setBlendColor(gl2::clamp01(red), gl2::clamp01(green), gl2::clamp01(blue), gl2::clamp01(alpha));
         }
     }
     catch(std::bad_alloc&)
@@ -450,7 +450,7 @@ void GL_APIENTRY glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -561,7 +561,7 @@ void GL_APIENTRY glBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlp
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -596,11 +596,11 @@ void GL_APIENTRY glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Buffer *buffer;
+            gl2::Buffer *buffer;
 
             switch(target)
             {
@@ -645,11 +645,11 @@ void GL_APIENTRY glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Buffer *buffer;
+            gl2::Buffer *buffer;
 
             switch(target)
             {
@@ -693,11 +693,11 @@ GLenum GL_APIENTRY glCheckFramebufferStatus(GLenum target)
             return error(GL_INVALID_ENUM, 0);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Framebuffer *framebuffer = NULL;
+            gl2::Framebuffer *framebuffer = NULL;
             if(target == GL_READ_FRAMEBUFFER_ANGLE)
             {
                 framebuffer = context->getReadFramebuffer();
@@ -729,7 +729,7 @@ void GL_APIENTRY glClear(GLbitfield mask)
 			return error(GL_INVALID_VALUE);
 		}
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -749,7 +749,7 @@ void GL_APIENTRY glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLcla
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -768,7 +768,7 @@ void GL_APIENTRY glClearDepthf(GLclampf depth)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -787,7 +787,7 @@ void GL_APIENTRY glClearStencil(GLint s)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -807,7 +807,7 @@ void GL_APIENTRY glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLb
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -826,11 +826,11 @@ void GL_APIENTRY glCompileShader(GLuint shader)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Shader *shaderObject = context->getShader(shader);
+            gl2::Shader *shaderObject = context->getShader(shader);
 
             if(!shaderObject)
             {
@@ -893,11 +893,11 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-			if(level > gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+			if(level > gl2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
             {
                 return error(GL_INVALID_VALUE);
             }
@@ -905,8 +905,8 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
             switch(target)
             {
               case GL_TEXTURE_2D:
-                if(width > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
-                    height > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
+                if(width > (gl2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
+                    height > (gl2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
                 {
                     return error(GL_INVALID_VALUE);
                 }
@@ -922,8 +922,8 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
                     return error(GL_INVALID_VALUE);
                 }
 
-                if(width > (gl::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level) ||
-                   height > (gl::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level))
+                if(width > (gl2::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level) ||
+                   height > (gl2::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level))
                 {
                     return error(GL_INVALID_VALUE);
                 }
@@ -932,14 +932,14 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
                 return error(GL_INVALID_ENUM);
             }
 
-            if(imageSize != gl::ComputeCompressedSize(width, height, internalformat))
+            if(imageSize != gl2::ComputeCompressedSize(width, height, internalformat))
             {
                 return error(GL_INVALID_VALUE);
             }
 
             if(target == GL_TEXTURE_2D)
             {
-                gl::Texture2D *texture = context->getTexture2D();
+                gl2::Texture2D *texture = context->getTexture2D();
 
                 if(!texture)
                 {
@@ -950,7 +950,7 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
             }
             else
             {
-                gl::TextureCubeMap *texture = context->getTextureCubeMap();
+                gl2::TextureCubeMap *texture = context->getTextureCubeMap();
 
                 if(!texture)
                 {
@@ -988,7 +988,7 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
 
     try
     {
-        if(!gl::IsTextureTarget(target))
+        if(!gl2::IsTextureTarget(target))
         {
             return error(GL_INVALID_ENUM);
         }
@@ -1018,16 +1018,16 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            if(level > gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+            if(level > gl2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
             {
                 return error(GL_INVALID_VALUE);
             }
 
-            if(imageSize != gl::ComputeCompressedSize(width, height, format))
+            if(imageSize != gl2::ComputeCompressedSize(width, height, format))
             {
                 return error(GL_INVALID_VALUE);
             }
@@ -1040,16 +1040,16 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
 
             if(target == GL_TEXTURE_2D)
             {
-                gl::Texture2D *texture = context->getTexture2D();
+                gl2::Texture2D *texture = context->getTexture2D();
 
                 if(validateSubImageParams(true, width, height, xoffset, yoffset, target, level, format, texture))
 				{
 					texture->subImageCompressed(level, xoffset, yoffset, width, height, format, imageSize, data);
 				}
             }
-            else if(gl::IsCubemapTextureTarget(target))
+            else if(gl2::IsCubemapTextureTarget(target))
             {
-                gl::TextureCubeMap *texture = context->getTextureCubeMap();
+                gl2::TextureCubeMap *texture = context->getTextureCubeMap();
 
                 if(validateSubImageParams(true, width, height, xoffset, yoffset, target, level, format, texture))
 				{
@@ -1086,15 +1086,15 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
             switch(target)
             {
               case GL_TEXTURE_2D:
-                if(width > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
-                   height > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
+                if(width > (gl2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
+                   height > (gl2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
                 {
                     return error(GL_INVALID_VALUE);
                 }
@@ -1110,8 +1110,8 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
                     return error(GL_INVALID_VALUE);
                 }
 
-                if(width > (gl::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level) ||
-                   height > (gl::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level))
+                if(width > (gl2::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level) ||
+                   height > (gl2::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level))
                 {
                     return error(GL_INVALID_VALUE);
                 }
@@ -1120,7 +1120,7 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
                 return error(GL_INVALID_ENUM);
             }
 
-            gl::Framebuffer *framebuffer = context->getReadFramebuffer();
+            gl2::Framebuffer *framebuffer = context->getReadFramebuffer();
 
             if(framebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE)
             {
@@ -1132,7 +1132,7 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
                 return error(GL_INVALID_OPERATION);
             }
 
-            gl::Renderbuffer *source = framebuffer->getColorbuffer();
+            gl2::Renderbuffer *source = framebuffer->getColorbuffer();
             GLenum colorbufferFormat = source->getFormat();
 
             // [OpenGL ES 2.0.24] table 3.9
@@ -1190,7 +1190,7 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 
             if(target == GL_TEXTURE_2D)
             {
-                gl::Texture2D *texture = context->getTexture2D();
+                gl2::Texture2D *texture = context->getTexture2D();
 
                 if(!texture)
                 {
@@ -1199,9 +1199,9 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 
                 texture->copyImage(level, internalformat, x, y, width, height, framebuffer);
             }
-            else if(gl::IsCubemapTextureTarget(target))
+            else if(gl2::IsCubemapTextureTarget(target))
             {
-                gl::TextureCubeMap *texture = context->getTextureCubeMap();
+                gl2::TextureCubeMap *texture = context->getTextureCubeMap();
 
                 if(!texture)
                 {
@@ -1227,7 +1227,7 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 
     try
     {
-        if(!gl::IsTextureTarget(target))
+        if(!gl2::IsTextureTarget(target))
         {
             return error(GL_INVALID_ENUM);
         }
@@ -1247,16 +1247,16 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            if(level > gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+            if(level > gl2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
             {
                 return error(GL_INVALID_VALUE);
             }
 
-            gl::Framebuffer *framebuffer = context->getReadFramebuffer();
+            gl2::Framebuffer *framebuffer = context->getReadFramebuffer();
 
             if(framebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE)
             {
@@ -1268,15 +1268,15 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
                 return error(GL_INVALID_OPERATION);
             }
 
-            gl::Renderbuffer *source = framebuffer->getColorbuffer();
+            gl2::Renderbuffer *source = framebuffer->getColorbuffer();
             GLenum colorbufferFormat = source->getFormat();
-            gl::Texture *texture = NULL;
+            gl2::Texture *texture = NULL;
 
             if(target == GL_TEXTURE_2D)
             {
                 texture = context->getTexture2D();
             }
-            else if(gl::IsCubemapTextureTarget(target))
+            else if(gl2::IsCubemapTextureTarget(target))
             {
                 texture = context->getTextureCubeMap();
             }
@@ -1353,7 +1353,7 @@ GLuint GL_APIENTRY glCreateProgram(void)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1374,7 +1374,7 @@ GLuint GL_APIENTRY glCreateShader(GLenum type)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1408,7 +1408,7 @@ void GL_APIENTRY glCullFace(GLenum mode)
           case GL_BACK:
           case GL_FRONT_AND_BACK:
             {
-                gl::Context *context = gl::getContext();
+                gl2::Context *context = gl2::getContext();
 
                 if(context)
                 {
@@ -1437,7 +1437,7 @@ void GL_APIENTRY glDeleteBuffers(GLsizei n, const GLuint* buffers)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1464,7 +1464,7 @@ void GL_APIENTRY glDeleteFencesNV(GLsizei n, const GLuint* fences)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1491,7 +1491,7 @@ void GL_APIENTRY glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1521,7 +1521,7 @@ void GL_APIENTRY glDeleteProgram(GLuint program)
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1557,7 +1557,7 @@ void GL_APIENTRY glDeleteQueriesEXT(GLsizei n, const GLuint *ids)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1584,7 +1584,7 @@ void GL_APIENTRY glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1611,7 +1611,7 @@ void GL_APIENTRY glDeleteShader(GLuint shader)
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1647,7 +1647,7 @@ void GL_APIENTRY glDeleteTextures(GLsizei n, const GLuint* textures)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1687,7 +1687,7 @@ void GL_APIENTRY glDepthFunc(GLenum func)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1706,7 +1706,7 @@ void GL_APIENTRY glDepthMask(GLboolean flag)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1725,7 +1725,7 @@ void GL_APIENTRY glDepthRangef(GLclampf zNear, GLclampf zFar)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1744,17 +1744,17 @@ void GL_APIENTRY glDetachShader(GLuint program, GLuint shader)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
 
-            gl::Program *programObject = context->getProgram(program);
-            gl::Shader *shaderObject = context->getShader(shader);
+            gl2::Program *programObject = context->getProgram(program);
+            gl2::Shader *shaderObject = context->getShader(shader);
             
             if(!programObject)
             {
-                gl::Shader *shaderByProgramHandle;
+                gl2::Shader *shaderByProgramHandle;
                 shaderByProgramHandle = context->getShader(program);
                 if(!shaderByProgramHandle)
                 {
@@ -1768,7 +1768,7 @@ void GL_APIENTRY glDetachShader(GLuint program, GLuint shader)
 
             if(!shaderObject)
             {
-                gl::Program *programByShaderHandle = context->getProgram(shader);
+                gl2::Program *programByShaderHandle = context->getProgram(shader);
                 if(!programByShaderHandle)
                 {
                     return error(GL_INVALID_VALUE);
@@ -1797,7 +1797,7 @@ void GL_APIENTRY glDisable(GLenum cap)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1829,12 +1829,12 @@ void GL_APIENTRY glDisableVertexAttribArray(GLuint index)
 
     try
     {
-        if(index >= gl::MAX_VERTEX_ATTRIBS)
+        if(index >= gl2::MAX_VERTEX_ATTRIBS)
         {
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1858,7 +1858,7 @@ void GL_APIENTRY glDrawArrays(GLenum mode, GLint first, GLsizei count)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1883,7 +1883,7 @@ void GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum type, const G
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1912,7 +1912,7 @@ void GL_APIENTRY glEnable(GLenum cap)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1944,12 +1944,12 @@ void GL_APIENTRY glEnableVertexAttribArray(GLuint index)
 
     try
     {
-        if(index >= gl::MAX_VERTEX_ATTRIBS)
+        if(index >= gl2::MAX_VERTEX_ATTRIBS)
         {
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1977,7 +1977,7 @@ void GL_APIENTRY glEndQueryEXT(GLenum target)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -1996,11 +1996,11 @@ void GL_APIENTRY glFinishFenceNV(GLuint fence)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Fence* fenceObject = context->getFence(fence);
+            gl2::Fence* fenceObject = context->getFence(fence);
 
             if(fenceObject == NULL)
             {
@@ -2022,7 +2022,7 @@ void GL_APIENTRY glFinish(void)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -2041,7 +2041,7 @@ void GL_APIENTRY glFlush(void)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -2067,11 +2067,11 @@ void GL_APIENTRY glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLe
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Framebuffer *framebuffer = NULL;
+            gl2::Framebuffer *framebuffer = NULL;
             GLuint framebufferHandle = 0;
             if(target == GL_READ_FRAMEBUFFER_ANGLE)
             {
@@ -2133,7 +2133,7 @@ void GL_APIENTRY glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -2143,7 +2143,7 @@ void GL_APIENTRY glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum
             }
             else
             {
-                gl::Texture *tex = context->getTexture(texture);
+                gl2::Texture *tex = context->getTexture(texture);
 
                 if(tex == NULL)
                 {
@@ -2186,7 +2186,7 @@ void GL_APIENTRY glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum
                 }
             }
 
-            gl::Framebuffer *framebuffer = NULL;
+            gl2::Framebuffer *framebuffer = NULL;
             GLuint framebufferHandle = 0;
             if(target == GL_READ_FRAMEBUFFER_ANGLE)
             {
@@ -2229,7 +2229,7 @@ void GL_APIENTRY glFrontFace(GLenum mode)
           case GL_CW:
           case GL_CCW:
             {
-                gl::Context *context = gl::getContext();
+                gl2::Context *context = gl2::getContext();
 
                 if(context)
                 {
@@ -2258,7 +2258,7 @@ void GL_APIENTRY glGenBuffers(GLsizei n, GLuint* buffers)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -2280,11 +2280,11 @@ void GL_APIENTRY glGenerateMipmap(GLenum target)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Texture *texture;
+            gl2::Texture *texture;
 
             switch(target)
             {
@@ -2323,7 +2323,7 @@ void GL_APIENTRY glGenFencesNV(GLsizei n, GLuint* fences)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -2350,7 +2350,7 @@ void GL_APIENTRY glGenFramebuffers(GLsizei n, GLuint* framebuffers)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -2377,7 +2377,7 @@ void GL_APIENTRY glGenQueriesEXT(GLsizei n, GLuint* ids)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -2404,7 +2404,7 @@ void GL_APIENTRY glGenRenderbuffers(GLsizei n, GLuint* renderbuffers)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -2431,7 +2431,7 @@ void GL_APIENTRY glGenTextures(GLsizei n, GLuint* textures)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -2460,11 +2460,11 @@ void GL_APIENTRY glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufsize
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject)
             {
@@ -2505,11 +2505,11 @@ void GL_APIENTRY glGetActiveUniform(GLuint program, GLuint index, GLsizei bufsiz
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject)
             {
@@ -2549,11 +2549,11 @@ void GL_APIENTRY glGetAttachedShaders(GLuint program, GLsizei maxcount, GLsizei*
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject)
             {
@@ -2582,12 +2582,12 @@ int GL_APIENTRY glGetAttribLocation(GLuint program, const GLchar* name)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
 
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject)
             {
@@ -2623,7 +2623,7 @@ void GL_APIENTRY glGetBooleanv(GLenum pname, GLboolean* params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -2686,11 +2686,11 @@ void GL_APIENTRY glGetBufferParameteriv(GLenum target, GLenum pname, GLint* para
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Buffer *buffer;
+            gl2::Buffer *buffer;
 
             switch(target)
             {
@@ -2731,7 +2731,7 @@ GLenum GL_APIENTRY glGetError(void)
 {
     TRACE("()");
 
-    gl::Context *context = gl::getContext();
+    gl2::Context *context = gl2::getContext();
 
     if(context)
     {
@@ -2747,11 +2747,11 @@ void GL_APIENTRY glGetFenceivNV(GLuint fence, GLenum pname, GLint *params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Fence *fenceObject = context->getFence(fence);
+            gl2::Fence *fenceObject = context->getFence(fence);
 
             if(fenceObject == NULL)
             {
@@ -2773,7 +2773,7 @@ void GL_APIENTRY glGetFloatv(GLenum pname, GLfloat* params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -2834,7 +2834,7 @@ void GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum att
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -2843,7 +2843,7 @@ void GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum att
                 return error(GL_INVALID_ENUM);
             }
 
-            gl::Framebuffer *framebuffer = NULL;
+            gl2::Framebuffer *framebuffer = NULL;
             if(target == GL_READ_FRAMEBUFFER_ANGLE)
             {
                 if(context->getReadFramebufferHandle() == 0)
@@ -2887,7 +2887,7 @@ void GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum att
             {
                 attachmentObjectType = attachmentType;
             }
-            else if(gl::IsTextureTarget(attachmentType))
+            else if(gl2::IsTextureTarget(attachmentType))
             {
                 attachmentObjectType = GL_TEXTURE;
             }
@@ -2921,7 +2921,7 @@ void GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum att
               case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE:
                 if(attachmentObjectType == GL_TEXTURE)
                 {
-                    if(gl::IsCubemapTextureTarget(attachmentType))
+                    if(gl2::IsCubemapTextureTarget(attachmentType))
                     {
                         *params = attachmentType;
                     }
@@ -2959,7 +2959,7 @@ void GL_APIENTRY glGetIntegerv(GLenum pname, GLint* params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -3024,11 +3024,11 @@ void GL_APIENTRY glGetProgramiv(GLuint program, GLenum pname, GLint* params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject)
             {
@@ -3087,11 +3087,11 @@ void GL_APIENTRY glGetProgramInfoLog(GLuint program, GLsizei bufsize, GLsizei* l
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject)
             {
@@ -3121,7 +3121,7 @@ void GL_APIENTRY glGetQueryivEXT(GLenum target, GLenum pname, GLint *params)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -3149,11 +3149,11 @@ void GL_APIENTRY glGetQueryObjectuivEXT(GLuint id, GLenum pname, GLuint *params)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Query *queryObject = context->getQuery(id, false, GL_NONE);
+            gl2::Query *queryObject = context->getQuery(id, false, GL_NONE);
 
             if(!queryObject)
             {
@@ -3190,7 +3190,7 @@ void GL_APIENTRY glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -3204,7 +3204,7 @@ void GL_APIENTRY glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint
                 return error(GL_INVALID_OPERATION);
             }
 
-            gl::Renderbuffer *renderbuffer = context->getRenderbuffer(context->getRenderbufferHandle());
+            gl2::Renderbuffer *renderbuffer = context->getRenderbuffer(context->getRenderbufferHandle());
 
             switch(pname)
             {
@@ -3235,11 +3235,11 @@ void GL_APIENTRY glGetShaderiv(GLuint shader, GLenum pname, GLint* params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Shader *shaderObject = context->getShader(shader);
+            gl2::Shader *shaderObject = context->getShader(shader);
 
             if(!shaderObject)
             {
@@ -3286,11 +3286,11 @@ void GL_APIENTRY glGetShaderInfoLog(GLuint shader, GLsizei bufsize, GLsizei* len
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Shader *shaderObject = context->getShader(shader);
+            gl2::Shader *shaderObject = context->getShader(shader);
 
             if(!shaderObject)
             {
@@ -3362,11 +3362,11 @@ void GL_APIENTRY glGetShaderSource(GLuint shader, GLsizei bufsize, GLsizei* leng
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Shader *shaderObject = context->getShader(shader);
+            gl2::Shader *shaderObject = context->getShader(shader);
 
             if(!shaderObject)
             {
@@ -3388,7 +3388,7 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         switch(name)
         {
@@ -3450,11 +3450,11 @@ void GL_APIENTRY glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* param
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Texture *texture;
+            gl2::Texture *texture;
 
             switch(target)
             {
@@ -3508,11 +3508,11 @@ void GL_APIENTRY glGetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Texture *texture;
+            gl2::Texture *texture;
 
             switch(target)
             {
@@ -3572,7 +3572,7 @@ void GL_APIENTRY glGetnUniformfvEXT(GLuint program, GLint location, GLsizei bufS
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -3581,7 +3581,7 @@ void GL_APIENTRY glGetnUniformfvEXT(GLuint program, GLint location, GLsizei bufS
                 return error(GL_INVALID_VALUE);
             }
 
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject || !programObject->isLinked())
             {
@@ -3606,7 +3606,7 @@ void GL_APIENTRY glGetUniformfv(GLuint program, GLint location, GLfloat* params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -3615,7 +3615,7 @@ void GL_APIENTRY glGetUniformfv(GLuint program, GLint location, GLfloat* params)
                 return error(GL_INVALID_VALUE);
             }
 
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject || !programObject->isLinked())
             {
@@ -3646,7 +3646,7 @@ void GL_APIENTRY glGetnUniformivEXT(GLuint program, GLint location, GLsizei bufS
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -3655,7 +3655,7 @@ void GL_APIENTRY glGetnUniformivEXT(GLuint program, GLint location, GLsizei bufS
                 return error(GL_INVALID_VALUE);
             }
 
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject || !programObject->isLinked())
             {
@@ -3685,7 +3685,7 @@ void GL_APIENTRY glGetUniformiv(GLuint program, GLint location, GLint* params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -3694,7 +3694,7 @@ void GL_APIENTRY glGetUniformiv(GLuint program, GLint location, GLint* params)
                 return error(GL_INVALID_VALUE);
             }
 
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject || !programObject->isLinked())
             {
@@ -3724,7 +3724,7 @@ int GL_APIENTRY glGetUniformLocation(GLuint program, const GLchar* name)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(strstr(name, "gl_") == name)
         {
@@ -3733,7 +3733,7 @@ int GL_APIENTRY glGetUniformLocation(GLuint program, const GLchar* name)
 
         if(context)
         {
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject)
             {
@@ -3769,16 +3769,16 @@ void GL_APIENTRY glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            if(index >= gl::MAX_VERTEX_ATTRIBS)
+            if(index >= gl2::MAX_VERTEX_ATTRIBS)
             {
                 return error(GL_INVALID_VALUE);
             }
 
-            const gl::VertexAttribute &attribState = context->getVertexAttribState(index);
+            const gl2::VertexAttribute &attribState = context->getVertexAttribState(index);
 
             switch(pname)
             {
@@ -3822,16 +3822,16 @@ void GL_APIENTRY glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            if(index >= gl::MAX_VERTEX_ATTRIBS)
+            if(index >= gl2::MAX_VERTEX_ATTRIBS)
             {
                 return error(GL_INVALID_VALUE);
             }
 
-            const gl::VertexAttribute &attribState = context->getVertexAttribState(index);
+            const gl2::VertexAttribute &attribState = context->getVertexAttribState(index);
 
             switch(pname)
             {
@@ -3876,11 +3876,11 @@ void GL_APIENTRY glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** 
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            if(index >= gl::MAX_VERTEX_ATTRIBS)
+            if(index >= gl2::MAX_VERTEX_ATTRIBS)
             {
                 return error(GL_INVALID_VALUE);
             }
@@ -3915,7 +3915,7 @@ void GL_APIENTRY glHint(GLenum target, GLenum mode)
             return error(GL_INVALID_ENUM); 
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
         switch(target)
         {
           case GL_GENERATE_MIPMAP_HINT:
@@ -3940,11 +3940,11 @@ GLboolean GL_APIENTRY glIsBuffer(GLuint buffer)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context && buffer)
         {
-            gl::Buffer *bufferObject = context->getBuffer(buffer);
+            gl2::Buffer *bufferObject = context->getBuffer(buffer);
 
             if(bufferObject)
             {
@@ -3966,7 +3966,7 @@ GLboolean GL_APIENTRY glIsEnabled(GLenum cap)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -4000,11 +4000,11 @@ GLboolean GL_APIENTRY glIsFenceNV(GLuint fence)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Fence *fenceObject = context->getFence(fence);
+            gl2::Fence *fenceObject = context->getFence(fence);
 
             if(fenceObject == NULL)
             {
@@ -4028,11 +4028,11 @@ GLboolean GL_APIENTRY glIsFramebuffer(GLuint framebuffer)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context && framebuffer)
         {
-            gl::Framebuffer *framebufferObject = context->getFramebuffer(framebuffer);
+            gl2::Framebuffer *framebufferObject = context->getFramebuffer(framebuffer);
 
             if(framebufferObject)
             {
@@ -4054,11 +4054,11 @@ GLboolean GL_APIENTRY glIsProgram(GLuint program)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context && program)
         {
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(programObject)
             {
@@ -4085,11 +4085,11 @@ GLboolean GL_APIENTRY glIsQueryEXT(GLuint id)
             return GL_FALSE;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Query *queryObject = context->getQuery(id, false, GL_NONE);
+            gl2::Query *queryObject = context->getQuery(id, false, GL_NONE);
 
             if(queryObject)
             {
@@ -4111,11 +4111,11 @@ GLboolean GL_APIENTRY glIsRenderbuffer(GLuint renderbuffer)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context && renderbuffer)
         {
-            gl::Renderbuffer *renderbufferObject = context->getRenderbuffer(renderbuffer);
+            gl2::Renderbuffer *renderbufferObject = context->getRenderbuffer(renderbuffer);
 
             if(renderbufferObject)
             {
@@ -4137,11 +4137,11 @@ GLboolean GL_APIENTRY glIsShader(GLuint shader)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context && shader)
         {
-            gl::Shader *shaderObject = context->getShader(shader);
+            gl2::Shader *shaderObject = context->getShader(shader);
 
             if(shaderObject)
             {
@@ -4163,11 +4163,11 @@ GLboolean GL_APIENTRY glIsTexture(GLuint texture)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context && texture)
         {
-            gl::Texture *textureObject = context->getTexture(texture);
+            gl2::Texture *textureObject = context->getTexture(texture);
 
             if(textureObject)
             {
@@ -4194,7 +4194,7 @@ void GL_APIENTRY glLineWidth(GLfloat width)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -4213,11 +4213,11 @@ void GL_APIENTRY glLinkProgram(GLuint program)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject)
             {
@@ -4246,7 +4246,7 @@ void GL_APIENTRY glPixelStorei(GLenum pname, GLint param)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -4287,7 +4287,7 @@ void GL_APIENTRY glPolygonOffset(GLfloat factor, GLfloat units)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -4320,7 +4320,7 @@ void GL_APIENTRY glReadnPixelsEXT(GLint x, GLint y, GLsizei width, GLsizei heigh
             return error(GL_INVALID_OPERATION);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -4351,7 +4351,7 @@ void GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, G
             return error(GL_INVALID_OPERATION);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -4370,7 +4370,7 @@ void GL_APIENTRY glReleaseShaderCompiler(void)
 
     try
     {
-        gl::Shader::releaseCompiler();
+        gl2::Shader::releaseCompiler();
     }
     catch(std::bad_alloc&)
     {
@@ -4393,7 +4393,7 @@ void GL_APIENTRY glRenderbufferStorageMultisampleANGLE(GLenum target, GLsizei sa
             return error(GL_INVALID_ENUM);
         }
 
-        if(!gl::IsColorRenderable(internalformat) && !gl::IsDepthRenderable(internalformat) && !gl::IsStencilRenderable(internalformat))
+        if(!gl2::IsColorRenderable(internalformat) && !gl2::IsDepthRenderable(internalformat) && !gl2::IsStencilRenderable(internalformat))
         {
             return error(GL_INVALID_ENUM);
         }
@@ -4403,13 +4403,13 @@ void GL_APIENTRY glRenderbufferStorageMultisampleANGLE(GLenum target, GLsizei sa
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            if(width > gl::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || 
-               height > gl::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
-               samples > gl::IMPLEMENTATION_MAX_SAMPLES)
+            if(width > gl2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || 
+               height > gl2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
+               samples > gl2::IMPLEMENTATION_MAX_SAMPLES)
             {
                 return error(GL_INVALID_VALUE);
             }
@@ -4423,20 +4423,20 @@ void GL_APIENTRY glRenderbufferStorageMultisampleANGLE(GLenum target, GLsizei sa
             switch(internalformat)
             {
               case GL_DEPTH_COMPONENT16:
-                context->setRenderbufferStorage(new gl::Depthbuffer(width, height, samples));
+                context->setRenderbufferStorage(new gl2::Depthbuffer(width, height, samples));
                 break;
               case GL_RGBA4:
               case GL_RGB5_A1:
               case GL_RGB565:
               case GL_RGB8_OES:
               case GL_RGBA8_OES:
-                context->setRenderbufferStorage(new gl::Colorbuffer(width, height, internalformat, samples));
+                context->setRenderbufferStorage(new gl2::Colorbuffer(width, height, internalformat, samples));
                 break;
               case GL_STENCIL_INDEX8:
-                context->setRenderbufferStorage(new gl::Stencilbuffer(width, height, samples));
+                context->setRenderbufferStorage(new gl2::Stencilbuffer(width, height, samples));
                 break;
               case GL_DEPTH24_STENCIL8_OES:
-                context->setRenderbufferStorage(new gl::DepthStencilbuffer(width, height, samples));
+                context->setRenderbufferStorage(new gl2::DepthStencilbuffer(width, height, samples));
                 break;
               default:
                 return error(GL_INVALID_ENUM);
@@ -4460,11 +4460,11 @@ void GL_APIENTRY glSampleCoverage(GLclampf value, GLboolean invert)
 
     try
     {
-        gl::Context* context = gl::getContext();
+        gl2::Context* context = gl2::getContext();
 
         if(context)
         {
-            context->setSampleCoverageParams(gl::clamp01(value), invert == GL_TRUE);
+            context->setSampleCoverageParams(gl2::clamp01(value), invert == GL_TRUE);
         }
     }
     catch(std::bad_alloc&)
@@ -4484,11 +4484,11 @@ void GL_APIENTRY glSetFenceNV(GLuint fence, GLenum condition)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Fence *fenceObject = context->getFence(fence);
+            gl2::Fence *fenceObject = context->getFence(fence);
 
             if(fenceObject == NULL)
             {
@@ -4515,7 +4515,7 @@ void GL_APIENTRY glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context* context = gl::getContext();
+        gl2::Context* context = gl2::getContext();
 
         if(context)
         {
@@ -4557,11 +4557,11 @@ void GL_APIENTRY glShaderSource(GLuint shader, GLsizei count, const GLchar *cons
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Shader *shaderObject = context->getShader(shader);
+            gl2::Shader *shaderObject = context->getShader(shader);
 
             if(!shaderObject)
             {
@@ -4620,7 +4620,7 @@ void GL_APIENTRY glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLui
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -4662,7 +4662,7 @@ void GL_APIENTRY glStencilMaskSeparate(GLenum face, GLuint mask)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -4750,7 +4750,7 @@ void GL_APIENTRY glStencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLe
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -4777,11 +4777,11 @@ GLboolean GL_APIENTRY glTestFenceNV(GLuint fence)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Fence *fenceObject = context->getFence(fence);
+            gl2::Fence *fenceObject = context->getFence(fence);
 
             if(fenceObject == NULL)
             {
@@ -4900,15 +4900,15 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
             switch(target)
             {
               case GL_TEXTURE_2D:
-                if(width > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
-                   height > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
+                if(width > (gl2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
+                   height > (gl2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
                 {
                     return error(GL_INVALID_VALUE);
                 }
@@ -4924,8 +4924,8 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
                     return error(GL_INVALID_VALUE);
                 }
 
-                if(width > (gl::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level) ||
-                   height > (gl::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level))
+                if(width > (gl2::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level) ||
+                   height > (gl2::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level))
                 {
                     return error(GL_INVALID_VALUE);
                 }
@@ -4951,7 +4951,7 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 			
             if(target == GL_TEXTURE_2D)
             {
-                gl::Texture2D *texture = context->getTexture2D();
+                gl2::Texture2D *texture = context->getTexture2D();
 
                 if(!texture)
                 {
@@ -4962,7 +4962,7 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
             }
             else
             {
-                gl::TextureCubeMap *texture = context->getTextureCubeMap();
+                gl2::TextureCubeMap *texture = context->getTextureCubeMap();
 
                 if(!texture)
                 {
@@ -4985,11 +4985,11 @@ void GL_APIENTRY glTexParameterf(GLenum target, GLenum pname, GLfloat param)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Texture *texture;
+            gl2::Texture *texture;
 
             switch(target)
             {
@@ -5060,11 +5060,11 @@ void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Texture *texture;
+            gl2::Texture *texture;
 
             switch(target)
             {
@@ -5139,7 +5139,7 @@ void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
 
     try
     {
-        if(!gl::IsTextureTarget(target))
+        if(!gl2::IsTextureTarget(target))
         {
             return error(GL_INVALID_ENUM);
         }
@@ -5154,7 +5154,7 @@ void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
             return error(GL_INVALID_VALUE);
         }
 
-        if(!gl::CheckTextureFormatType(format, type))
+        if(!gl2::CheckTextureFormatType(format, type))
         {
             return error(GL_INVALID_ENUM);
         }
@@ -5164,27 +5164,27 @@ void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            if(level > gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+            if(level > gl2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
             {
                 return error(GL_INVALID_VALUE);
             }
 
             if(target == GL_TEXTURE_2D)
             {
-                gl::Texture2D *texture = context->getTexture2D();
+                gl2::Texture2D *texture = context->getTexture2D();
 
                 if(validateSubImageParams(false, width, height, xoffset, yoffset, target, level, format, texture))
 				{
 					texture->subImage(level, xoffset, yoffset, width, height, format, type, context->getUnpackAlignment(), pixels);
 				}
             }
-            else if(gl::IsCubemapTextureTarget(target))
+            else if(gl2::IsCubemapTextureTarget(target))
             {
-                gl::TextureCubeMap *texture = context->getTextureCubeMap();
+                gl2::TextureCubeMap *texture = context->getTextureCubeMap();
 				
 				if(validateSubImageParams(false, width, height, xoffset, yoffset, target, level, format, texture))
 				{
@@ -5224,11 +5224,11 @@ void GL_APIENTRY glUniform1fv(GLint location, GLsizei count, const GLfloat* v)
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *program = context->getCurrentProgram();
+            gl2::Program *program = context->getCurrentProgram();
 
             if(!program)
             {
@@ -5268,11 +5268,11 @@ void GL_APIENTRY glUniform1iv(GLint location, GLsizei count, const GLint* v)
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *program = context->getCurrentProgram();
+            gl2::Program *program = context->getCurrentProgram();
 
             if(!program)
             {
@@ -5314,11 +5314,11 @@ void GL_APIENTRY glUniform2fv(GLint location, GLsizei count, const GLfloat* v)
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *program = context->getCurrentProgram();
+            gl2::Program *program = context->getCurrentProgram();
 
             if(!program)
             {
@@ -5360,11 +5360,11 @@ void GL_APIENTRY glUniform2iv(GLint location, GLsizei count, const GLint* v)
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *program = context->getCurrentProgram();
+            gl2::Program *program = context->getCurrentProgram();
 
             if(!program)
             {
@@ -5406,11 +5406,11 @@ void GL_APIENTRY glUniform3fv(GLint location, GLsizei count, const GLfloat* v)
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *program = context->getCurrentProgram();
+            gl2::Program *program = context->getCurrentProgram();
 
             if(!program)
             {
@@ -5452,11 +5452,11 @@ void GL_APIENTRY glUniform3iv(GLint location, GLsizei count, const GLint* v)
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *program = context->getCurrentProgram();
+            gl2::Program *program = context->getCurrentProgram();
 
             if(!program)
             {
@@ -5498,11 +5498,11 @@ void GL_APIENTRY glUniform4fv(GLint location, GLsizei count, const GLfloat* v)
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *program = context->getCurrentProgram();
+            gl2::Program *program = context->getCurrentProgram();
 
             if(!program)
             {
@@ -5544,11 +5544,11 @@ void GL_APIENTRY glUniform4iv(GLint location, GLsizei count, const GLint* v)
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *program = context->getCurrentProgram();
+            gl2::Program *program = context->getCurrentProgram();
 
             if(!program)
             {
@@ -5584,11 +5584,11 @@ void GL_APIENTRY glUniformMatrix2fv(GLint location, GLsizei count, GLboolean tra
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *program = context->getCurrentProgram();
+            gl2::Program *program = context->getCurrentProgram();
 
             if(!program)
             {
@@ -5624,11 +5624,11 @@ void GL_APIENTRY glUniformMatrix3fv(GLint location, GLsizei count, GLboolean tra
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *program = context->getCurrentProgram();
+            gl2::Program *program = context->getCurrentProgram();
 
             if(!program)
             {
@@ -5664,11 +5664,11 @@ void GL_APIENTRY glUniformMatrix4fv(GLint location, GLsizei count, GLboolean tra
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *program = context->getCurrentProgram();
+            gl2::Program *program = context->getCurrentProgram();
 
             if(!program)
             {
@@ -5693,11 +5693,11 @@ void GL_APIENTRY glUseProgram(GLuint program)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject && program != 0)
             {
@@ -5731,11 +5731,11 @@ void GL_APIENTRY glValidateProgram(GLuint program)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::Program *programObject = context->getProgram(program);
+            gl2::Program *programObject = context->getProgram(program);
 
             if(!programObject)
             {
@@ -5764,12 +5764,12 @@ void GL_APIENTRY glVertexAttrib1f(GLuint index, GLfloat x)
 
     try
     {
-        if(index >= gl::MAX_VERTEX_ATTRIBS)
+        if(index >= gl2::MAX_VERTEX_ATTRIBS)
         {
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -5789,12 +5789,12 @@ void GL_APIENTRY glVertexAttrib1fv(GLuint index, const GLfloat* values)
 
     try
     {
-        if(index >= gl::MAX_VERTEX_ATTRIBS)
+        if(index >= gl2::MAX_VERTEX_ATTRIBS)
         {
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -5814,12 +5814,12 @@ void GL_APIENTRY glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
 
     try
     {
-        if(index >= gl::MAX_VERTEX_ATTRIBS)
+        if(index >= gl2::MAX_VERTEX_ATTRIBS)
         {
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -5839,12 +5839,12 @@ void GL_APIENTRY glVertexAttrib2fv(GLuint index, const GLfloat* values)
 
     try
     {
-        if(index >= gl::MAX_VERTEX_ATTRIBS)
+        if(index >= gl2::MAX_VERTEX_ATTRIBS)
         {
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -5864,12 +5864,12 @@ void GL_APIENTRY glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z)
 
     try
     {
-        if(index >= gl::MAX_VERTEX_ATTRIBS)
+        if(index >= gl2::MAX_VERTEX_ATTRIBS)
         {
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -5889,12 +5889,12 @@ void GL_APIENTRY glVertexAttrib3fv(GLuint index, const GLfloat* values)
 
     try
     {
-        if(index >= gl::MAX_VERTEX_ATTRIBS)
+        if(index >= gl2::MAX_VERTEX_ATTRIBS)
         {
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -5914,12 +5914,12 @@ void GL_APIENTRY glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z,
 
     try
     {
-        if(index >= gl::MAX_VERTEX_ATTRIBS)
+        if(index >= gl2::MAX_VERTEX_ATTRIBS)
         {
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -5939,12 +5939,12 @@ void GL_APIENTRY glVertexAttrib4fv(GLuint index, const GLfloat* values)
 
     try
     {
-        if(index >= gl::MAX_VERTEX_ATTRIBS)
+        if(index >= gl2::MAX_VERTEX_ATTRIBS)
         {
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -5965,7 +5965,7 @@ void GL_APIENTRY glVertexAttribPointer(GLuint index, GLint size, GLenum type, GL
 
     try
     {
-        if(index >= gl::MAX_VERTEX_ATTRIBS)
+        if(index >= gl2::MAX_VERTEX_ATTRIBS)
         {
             return error(GL_INVALID_VALUE);
         }
@@ -5993,7 +5993,7 @@ void GL_APIENTRY glVertexAttribPointer(GLuint index, GLint size, GLenum type, GL
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -6017,7 +6017,7 @@ void GL_APIENTRY glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -6059,7 +6059,7 @@ void GL_APIENTRY glBlitFramebufferANGLE(GLint srcX0, GLint srcY0, GLint srcX1, G
             return error(GL_INVALID_OPERATION);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
@@ -6115,18 +6115,18 @@ void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image
             return error(GL_INVALID_OPERATION);
         }
 
-        gl::Context *context = gl::getContext();
+        gl2::Context *context = gl2::getContext();
 
         if(context)
         {
-            gl::TextureExternal *texture = context->getTextureExternal();
+            gl2::TextureExternal *texture = context->getTextureExternal();
 
             if(!texture)
             {
                 return error(GL_INVALID_OPERATION);
             }
 
-            gl::Image *glImage = static_cast<gl::Image*>(image);
+            gl2::Image *glImage = static_cast<gl2::Image*>(image);
 
             texture->setImage(glImage);
         }

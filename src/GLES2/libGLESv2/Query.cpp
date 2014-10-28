@@ -9,14 +9,14 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// Query.cpp: Implements the gl::Query class
+// Query.cpp: Implements the gl2::Query class
 
 #include "Query.h"
 
 #include "main.h"
 #include "Common/Thread.hpp"
 
-namespace gl
+namespace gl2
 {
 
 Query::Query(GLuint id, GLenum type) : RefCountObject(id)

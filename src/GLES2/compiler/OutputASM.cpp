@@ -99,7 +99,7 @@ namespace sh
 		this->registerIndex = registerIndex;
 	}
 
-	OutputASM::OutputASM(TParseContext &context, gl::Shader *shaderObject) : TIntermTraverser(true, true, true), mContext(context), shaderObject(shaderObject)
+	OutputASM::OutputASM(TParseContext &context, gl2::Shader *shaderObject) : TIntermTraverser(true, true, true), mContext(context), shaderObject(shaderObject)
 	{
 		shader = 0;
 		pixelShader = 0;
@@ -2003,10 +2003,10 @@ namespace sh
 		{
 			const TType &type = varying->getType();
 			const char *name = varying->getAsSymbolNode()->getSymbol().c_str();
-			gl::VaryingList &activeVaryings = shaderObject->varyings;
+			gl2::VaryingList &activeVaryings = shaderObject->varyings;
 			
 			// Check if this varying has been declared before without having a register assigned
-			for(gl::VaryingList::iterator v = activeVaryings.begin(); v != activeVaryings.end(); v++)
+			for(gl2::VaryingList::iterator v = activeVaryings.begin(); v != activeVaryings.end(); v++)
 			{
 				if(v->name == name)
 				{
@@ -2020,7 +2020,7 @@ namespace sh
 				}
 			}
 			
-			activeVaryings.push_back(gl::Varying(glVariableType(type), name, varying->getArraySize(), reg, 0));
+			activeVaryings.push_back(gl2::Varying(glVariableType(type), name, varying->getArraySize(), reg, 0));
 		}
 	}
 

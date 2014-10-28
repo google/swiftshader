@@ -24,7 +24,7 @@
 #include <set>
 #include <map>
 
-namespace gl
+namespace gl2
 {
 	class Shader;
 }
@@ -81,7 +81,7 @@ namespace sh
 	class OutputASM : public TIntermTraverser
 	{
 	public:
-		explicit OutputASM(TParseContext &context, gl::Shader *shaderObject);
+		explicit OutputASM(TParseContext &context, gl2::Shader *shaderObject);
 		~OutputASM();
 
 		void output();
@@ -144,7 +144,7 @@ namespace sh
 		static int dim2(TIntermNode *m);
 		static unsigned int loopCount(TIntermLoop *node);
 
-		gl::Shader *const shaderObject;
+		gl2::Shader *const shaderObject;
 		sw::Shader *shader;
 		sw::PixelShader *pixelShader;
 		sw::VertexShader *vertexShader;

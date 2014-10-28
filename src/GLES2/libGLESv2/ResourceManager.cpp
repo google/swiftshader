@@ -20,7 +20,7 @@
 #include "Shader.h"
 #include "Texture.h"
 
-namespace gl
+namespace gl2
 {
 ResourceManager::ResourceManager()
 {

@@ -868,7 +868,7 @@ EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurfac
         egl::setCurrentReadSurface(read);
 		egl::setCurrentContext(ctx);
 
-        gl::makeCurrent(context, display, static_cast<egl::Surface*>(draw));
+        gl2::makeCurrent(context, display, static_cast<egl::Surface*>(draw));
 
         return success(EGL_TRUE);
     }
@@ -1194,7 +1194,7 @@ __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const cha
             }
         }
 
-		return gl::getProcAddress(procname);
+		return gl2::getProcAddress(procname);
     }
     catch(std::bad_alloc&)
     {

@@ -9,7 +9,7 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// Context.cpp: Implements the gl::Context class, managing all GL state and performing
+// Context.cpp: Implements the gl2::Context class, managing all GL state and performing
 // rendering operations. It is the GLES2 specific implementation of EGLContext.
 
 #include "Context.h"
@@ -37,7 +37,7 @@
 #undef near
 #undef far
 
-namespace gl
+namespace gl2
 {
 Device *Context::device = 0;
 
@@ -224,9 +224,9 @@ Context::~Context()
 
 void Context::destroy()
 {
-	if(this == gl::getContext())
+	if(this == gl2::getContext())
 	{
-		gl::makeCurrent(NULL, NULL, NULL);
+		gl2::makeCurrent(NULL, NULL, NULL);
 	}
 
 	delete this;
@@ -3022,7 +3022,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
 void Context::bindTexImage(egl::Surface *surface)
 {
-	gl::Texture2D *textureObject = getTexture2D();
+	gl2::Texture2D *textureObject = getTexture2D();
 
     if(textureObject)
     {
@@ -3053,14 +3053,14 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
         return EGL_BAD_PARAMETER;
     }
 	
-    if(textureLevel >= gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+    if(textureLevel >= gl2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
     {
         return EGL_BAD_MATCH;
     }
 
     if(textureTarget != GL_NONE)
     {
-        gl::Texture *texture = getTexture(name);
+        gl2::Texture *texture = getTexture(name);
 
         if(!texture || texture->getTarget() != textureTarget)
         {
@@ -3084,7 +3084,7 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
     }
     else if(target == EGL_GL_RENDERBUFFER_KHR)
     {
-        gl::Renderbuffer *renderbuffer = getRenderbuffer(name);
+        gl2::Renderbuffer *renderbuffer = getRenderbuffer(name);
 
         if(!renderbuffer)
         {
@@ -3118,13 +3118,13 @@ egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textu
 
     if(textureTarget != GL_NONE)
     {
-        gl::Texture *texture = getTexture(name);
+        gl2::Texture *texture = getTexture(name);
 
         return texture->createSharedImage(textureTarget, textureLevel);
     }
     else if(target == EGL_GL_RENDERBUFFER_KHR)
     {
-        gl::Renderbuffer *renderbuffer = getRenderbuffer(name);
+        gl2::Renderbuffer *renderbuffer = getRenderbuffer(name);
 
         return renderbuffer->createSharedImage();
     }
@@ -3138,7 +3138,7 @@ Device *Context::getDevice()
 	if(!device)
 	{
 		sw::Context *context = new sw::Context();
-		device = new gl::Device(context);
+		device = new gl2::Device(context);
 	}
 
 	return device;
@@ -3149,13 +3149,13 @@ Device *Context::getDevice()
 // Exported functions for use by EGL
 extern "C"
 {
-	gl::Context *glCreateContext(const egl::Config *config, const gl::Context *shareContext)
+	gl2::Context *glCreateContext(const egl::Config *config, const gl2::Context *shareContext)
 	{
-		return new gl::Context(config, shareContext);
+		return new gl2::Context(config, shareContext);
 	}
 
-	void glMakeCurrent(gl::Context *context, egl::Display *display, egl::Surface *surface)
+	void glMakeCurrent(gl2::Context *context, egl::Display *display, egl::Surface *surface)
 	{
-		gl::makeCurrent(context, display, surface);
+		gl2::makeCurrent(context, display, surface);
 	}
 }

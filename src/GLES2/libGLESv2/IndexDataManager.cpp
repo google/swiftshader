@@ -25,7 +25,7 @@ namespace
     enum { INITIAL_INDEX_BUFFER_SIZE = 4096 * sizeof(GLuint) };
 }
 
-namespace gl
+namespace gl2
 {
 
 IndexDataManager::IndexDataManager()

@@ -17,7 +17,7 @@
 #include "Shader/PixelShader.hpp"
 #include "Shader/VertexShader.hpp"
 
-namespace gl
+namespace gl2
 {
 	class Shader;
 }
@@ -25,13 +25,13 @@ namespace gl
 class TranslatorASM : public TCompiler
 {
 public:
-    TranslatorASM(gl::Shader *shaderObject, ShShaderType type, ShShaderSpec spec);
+    TranslatorASM(gl2::Shader *shaderObject, ShShaderType type, ShShaderSpec spec);
 
 protected:
     virtual bool translate(TIntermNode* root);
 
 private:
-	gl::Shader *const shaderObject;
+	gl2::Shader *const shaderObject;
 };
 
 #endif  // COMPILER_TRANSLATORASM_H_

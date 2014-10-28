@@ -387,7 +387,7 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
 {
     const egl::Config *config = mConfigSet.get(configHandle);
 
-    egl::Context *context = gl::createContext(config, shareContext);
+    egl::Context *context = gl2::createContext(config, shareContext);
     mContextSet.insert(context);
 
     return context;

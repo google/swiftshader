@@ -17,7 +17,7 @@
 #define GL_APICALL
 #include <GLES2/gl2.h>
 
-namespace gl
+namespace gl2
 {
 
 class Fence

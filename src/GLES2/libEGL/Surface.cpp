@@ -131,7 +131,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 
     if(mWindow)
     {
-		frameBuffer = gl::createFrameBuffer(mDisplay->getNativeDisplay(), mWindow, backBufferWidth, backBufferHeight);
+		frameBuffer = gl2::createFrameBuffer(mDisplay->getNativeDisplay(), mWindow, backBufferWidth, backBufferHeight);
 
 		if(!frameBuffer)
 		{
@@ -141,7 +141,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 		}
     }
 
-	backBuffer = gl::createBackBuffer(backBufferWidth, backBufferHeight, mConfig);
+	backBuffer = gl2::createBackBuffer(backBufferWidth, backBufferHeight, mConfig);
 	
     if(!backBuffer)
     {
@@ -152,7 +152,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 
     if(mConfig->mDepthStencilFormat != sw::FORMAT_NULL)
     {
-        mDepthStencil = gl::createDepthStencil(backBufferWidth, backBufferHeight, mConfig->mDepthStencilFormat, 1, false);
+        mDepthStencil = gl2::createDepthStencil(backBufferWidth, backBufferHeight, mConfig->mDepthStencilFormat, 1, false);
 
 		if(!mDepthStencil)
 		{
@@ -304,7 +304,7 @@ bool Surface::checkForResize()
 
         if(static_cast<egl::Surface*>(getCurrentDrawSurface()) == this)
         {
-            gl::makeCurrent(static_cast<egl::Context*>(getCurrentContext()), static_cast<egl::Display*>(getCurrentDisplay()), this);
+            gl2::makeCurrent(static_cast<egl::Context*>(getCurrentContext()), static_cast<egl::Display*>(getCurrentDisplay()), this);
         }
 
         return true;

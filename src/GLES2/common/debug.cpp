@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-namespace gl
+namespace gl2
 {
 	static void output(const char *format, va_list vararg)
 	{

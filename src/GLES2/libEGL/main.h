@@ -83,7 +83,7 @@ namespace sw
 }
 
 // libGLESv2 dependencies
-namespace gl
+namespace gl2
 {
 	extern egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext);
 	extern void (*makeCurrent)(egl::Context *context, egl::Display *display, egl::Surface *surface);

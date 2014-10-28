@@ -23,7 +23,7 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
-namespace gl
+namespace gl2
 {
 	struct Current
 	{
