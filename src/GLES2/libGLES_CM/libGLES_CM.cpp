@@ -951,6 +951,55 @@ void GL_APIENTRY glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLb
     }
 }
 
+void GL_APIENTRY glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* ptr)
+{
+    TRACE("(GLuint index = %d, GLint size = %d, GLenum type = 0x%X, "
+          "GLboolean normalized = %d, GLsizei stride = %d, const GLvoid* ptr = 0x%0.8p)",
+          index, size, type, normalized, stride, ptr);
+
+    try
+    {
+        if(index >= es1::MAX_VERTEX_ATTRIBS)
+        {
+            return error(GL_INVALID_VALUE);
+        }
+
+        if(size < 1 || size > 4)
+        {
+            return error(GL_INVALID_VALUE);
+        }
+
+        switch(type)
+        {
+        case GL_BYTE:
+        case GL_UNSIGNED_BYTE:
+        case GL_SHORT:
+        case GL_UNSIGNED_SHORT:
+        case GL_FIXED:
+        case GL_FLOAT:
+            break;
+        default:
+            return error(GL_INVALID_ENUM);
+        }
+
+        if(stride < 0)
+        {
+            return error(GL_INVALID_VALUE);
+        }
+
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+            context->setVertexAttribState(index, context->getArrayBuffer(), size, type, (normalized == GL_TRUE), stride, ptr);
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
+}
+
 void GL_APIENTRY glColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
 {
 	UNIMPLEMENTED();
@@ -3186,7 +3235,9 @@ void GL_APIENTRY glNormal3x(GLfixed nx, GLfixed ny, GLfixed nz)
 
 void GL_APIENTRY glNormalPointer(GLenum type, GLsizei stride, const GLvoid *pointer)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum type = 0x%X, GLsizei stride = %d, const GLvoid *pointer = 0x%0.8p)", type, stride, pointer);
+
+	glVertexAttribPointer(sw::Normal, 3, type, false, stride, pointer);
 }
 
 void GL_APIENTRY glOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar)
@@ -3672,7 +3723,23 @@ void GL_APIENTRY glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 
 void GL_APIENTRY glTexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLint size = %d, GLenum type = 0x%X, GLsizei stride = %d, const GLvoid *pointer = 0x%0.8p)", size, type, stride, pointer);
+
+	try
+    {
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+            GLenum texture = context->getClientActiveTexture();
+
+			glVertexAttribPointer(sw::TexCoord0 + (texture - GL_TEXTURE0), size, type, false, stride, pointer);
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glTexEnvf(GLenum target, GLenum pname, GLfloat param)
@@ -4083,7 +4150,9 @@ void GL_APIENTRY glTranslatex(GLfixed x, GLfixed y, GLfixed z)
 
 void GL_APIENTRY glVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLint size = %d, GLenum type = 0x%X, GLsizei stride = %d, const GLvoid *pointer = 0x%0.8p)", size, type, stride, pointer);
+
+    glVertexAttribPointer(sw::Position, size, type, false, stride, pointer);
 }
 
 void GL_APIENTRY glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
