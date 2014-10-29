@@ -116,10 +116,14 @@ OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(SRCS))
 # Keep all the first target so it's the default.
 all: $(OBJDIR)/llvm2ice make_symlink
 
-make_symlink: $(OBJDIR)/llvm2ice $(OBJDIR)/llvm2ice.build_atts
-	rm -rf llvm2ice llvm2ice.build_atts
+# Creates symbolic link so that testing is easier. Also runs
+# llvm2ice to verify that the defines flags have valid values,
+# as well as describe the corresponding build attributes.
+make_symlink: $(OBJDIR)/llvm2ice
+	rm -rf llvm2ice
 	ln -s $(OBJDIR)/llvm2ice
-	ln -s $(OBJDIR)/llvm2ice.build_atts
+	@echo "Build Attributes:"
+	@$(OBJDIR)/llvm2ice --build-atts
 
 .PHONY: all make_symlink
 
@@ -128,7 +132,6 @@ make_symlink: $(OBJDIR)/llvm2ice $(OBJDIR)/llvm2ice.build_atts
 $(OBJDIR)/llvm2ice: $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) -ldl \
                -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
-	$@ --build-atts > $@.build_atts
 
 # TODO: Be more precise than "*.h" here and elsewhere.
 $(OBJS): $(OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
@@ -166,7 +169,7 @@ format-diff:
 	$(CLANG_FORMAT_DIFF) -p1 -style=LLVM -i
 
 clean:
-	rm -rf llvm2ice llvm2ice.build_atts *.o $(OBJDIR)
+	rm -rf llvm2ice *.o $(OBJDIR)
 
 clean-all: clean
 	rm -rf build/
