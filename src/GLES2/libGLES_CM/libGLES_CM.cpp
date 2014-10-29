@@ -351,7 +351,7 @@ void GL_APIENTRY glActiveTexture(GLenum texture)
 
         if(context)
         {
-            if(texture < GL_TEXTURE0 || texture > GL_TEXTURE0 + es1::MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+            if(texture < GL_TEXTURE0 || texture > GL_TEXTURE0 + es1::MAX_TEXTURE_IMAGE_UNITS - 1)
             {
                 return error(GL_INVALID_ENUM);
             }
@@ -3009,12 +3009,40 @@ void GL_APIENTRY glLineWidthx(GLfixed width)
 
 void GL_APIENTRY glLoadIdentity(void)
 {
-	UNIMPLEMENTED();
+	TRACE("()");
+
+    try
+    {
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+            context->loadIdentity();
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glLoadMatrixf(const GLfloat *m)
 {
-	UNIMPLEMENTED();
+	TRACE("(const GLfloat *m)");
+
+    try
+    {
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+            context->load(m);
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glLoadMatrixx(const GLfixed *m)
@@ -3049,12 +3077,40 @@ void GL_APIENTRY glMaterialxv(GLenum face, GLenum pname, const GLfixed *params)
 
 void GL_APIENTRY glMatrixMode(GLenum mode)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum mode = 0x%X)", mode);
+
+    try
+    {
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+            context->setMatrixMode(mode);
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glMultMatrixf(const GLfloat *m)
 {
-	UNIMPLEMENTED();
+	TRACE("(const GLfloat *m)");
+
+    try
+    {
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+            context->multiply(m);
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glMultMatrixx(const GLfixed *m)
@@ -3089,7 +3145,21 @@ void GL_APIENTRY glNormalPointer(GLenum type, GLsizei stride, const GLvoid *poin
 
 void GL_APIENTRY glOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLfloat left = %f, GLfloat right = %f, GLfloat bottom = %f, GLfloat top = %f, GLfloat zNear = %f, GLfloat zFar = %f)", left, right, bottom, top, zNear, zFar);
+
+    try
+    {
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+            context->ortho(left, right, bottom, top, zNear, zFar);
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glOrthox(GLfixed left, GLfixed right, GLfixed bottom, GLfixed top, GLfixed zNear, GLfixed zFar)
@@ -3199,12 +3269,40 @@ void GL_APIENTRY glPolygonOffsetx(GLfixed factor, GLfixed units)
 
 void GL_APIENTRY glPopMatrix(void)
 {
-	UNIMPLEMENTED();
+	TRACE("()");
+    
+    try
+    {
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+            context->popMatrix();
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glPushMatrix(void)
 {
-	UNIMPLEMENTED();
+	TRACE("()");
+    
+    try
+    {
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+            context->pushMatrix();
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels)
@@ -3310,7 +3408,21 @@ void GL_APIENTRY glRenderbufferStorageOES(GLenum target, GLenum internalformat, 
 
 void GL_APIENTRY glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLfloat angle = %f, GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)", angle, x, y, z);
+    
+    try
+    {
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+            context->rotate(angle, x, y, z);
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glRotatex(GLfixed angle, GLfixed x, GLfixed y, GLfixed z)
@@ -3344,7 +3456,21 @@ void GL_APIENTRY glSampleCoveragex(GLclampx value, GLboolean invert)
 
 void GL_APIENTRY glScalef(GLfloat x, GLfloat y, GLfloat z)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)", x, y, z);
+    
+    try
+    {
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+            context->scale(x, y, z);
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glScalex(GLfixed x, GLfixed y, GLfixed z)
@@ -3887,7 +4013,21 @@ void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
 
 void GL_APIENTRY glTranslatef(GLfloat x, GLfloat y, GLfloat z)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)", x, y, z);
+    
+    try
+    {
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+            context->translate(x, y, z);
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glTranslatex(GLfixed x, GLfixed y, GLfixed z)

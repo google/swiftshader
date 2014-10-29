@@ -21,6 +21,7 @@
 #include "RefCountObject.h"
 #include "Image.hpp"
 #include "Renderer/Sampler.hpp"
+#include "MatrixStack.hpp"
 
 #define GL_API
 #include <GLES/gl.h>
@@ -61,15 +62,14 @@ class IndexDataManager;
 enum
 {
     MAX_VERTEX_ATTRIBS = 16,
-	MAX_UNIFORM_VECTORS = 256,   // Device limit
-    MAX_VERTEX_UNIFORM_VECTORS = 256 - 3,   // Reserve space for gl_DepthRange
     MAX_VARYING_VECTORS = 10,
     MAX_TEXTURE_IMAGE_UNITS = 16,
-    MAX_VERTEX_TEXTURE_IMAGE_UNITS = 4,
-    MAX_COMBINED_TEXTURE_IMAGE_UNITS = MAX_TEXTURE_IMAGE_UNITS + MAX_VERTEX_TEXTURE_IMAGE_UNITS,
-    MAX_FRAGMENT_UNIFORM_VECTORS = 224 - 3,    // Reserve space for gl_DepthRange
     MAX_DRAW_BUFFERS = 1,
 	MAX_LIGHTS = 8,
+
+	MAX_MODELVIEW_STACK_DEPTH = 32,
+	MAX_PROJECTION_STACK_DEPTH = 2,
+	MAX_TEXTURE_STACK_DEPTH = 2,
 
     IMPLEMENTATION_COLOR_READ_FORMAT = GL_RGB,
     IMPLEMENTATION_COLOR_READ_TYPE = GL_UNSIGNED_SHORT_5_6_5
@@ -247,7 +247,7 @@ struct State
     BindingPointer<Renderbuffer> renderbuffer;
 
     VertexAttribute vertexAttribute[MAX_VERTEX_ATTRIBS];
-    BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
+    BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_TEXTURE_IMAGE_UNITS];
 
     GLint unpackAlignment;
     GLint packAlignment;
@@ -418,6 +418,17 @@ public:
 
 	Device *getDevice();
 
+    void setMatrixMode(GLenum mode);
+    void loadIdentity();
+	void load(const GLfloat *m);
+    void pushMatrix();
+    void popMatrix();
+    void rotate(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
+    void translate(GLfloat x, GLfloat y, GLfloat z);
+	void scale(GLfloat x, GLfloat y, GLfloat z);
+    void multiply(const GLfloat *m);
+    void ortho(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar);
+
 private:
 	virtual ~Context();
 
@@ -435,8 +446,6 @@ private:
 
     bool cullSkipsDraw(GLenum drawMode);
     bool isTriangleMode(GLenum drawMode);
-
-    const egl::Config *const mConfig;
 
     State mState;
 
@@ -477,6 +486,13 @@ private:
     bool mSampleStateDirty;
     bool mFrontFaceDirty;
     bool mDitherStateDirty;
+
+	sw::MatrixStack &currentMatrixStack();
+	GLenum matrixMode;
+    sw::MatrixStack modelViewStack;
+	sw::MatrixStack projectionStack;
+	sw::MatrixStack textureStack0;
+	sw::MatrixStack textureStack1;
 
     ResourceManager *mResourceManager;
 
