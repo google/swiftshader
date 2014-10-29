@@ -89,15 +89,15 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
 }
 #endif
 
-namespace gl
+namespace es1
 {
-gl::Context *getContext()
+es1::Context *getContext()
 {
 	egl::Context *context = egl::getCurrentContext();
 	
 	if(context && context->getClientVersion() == 1)
 	{
-		return static_cast<gl::Context*>(context);
+		return static_cast<es1::Context*>(context);
 	}
 	
 	return 0;
@@ -119,7 +119,7 @@ Device *getDevice()
 // Records an error code
 void error(GLenum errorCode)
 {
-    gl::Context *context = gl::getContext();
+    es1::Context *context = es1::getContext();
 
     if(context)
     {

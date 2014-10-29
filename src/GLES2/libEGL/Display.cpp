@@ -390,16 +390,16 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
 
 	if(clientVersion == 1 && config->mRenderableType & EGL_OPENGL_ES_BIT)
 	{
-		if(gl::createContext != 0)
+		if(es1::createContext != 0)
 		{
-			context = gl::createContext(config, shareContext);
+			context = es1::createContext(config, shareContext);
 		}
 	}
 	else if(clientVersion == 2 && config->mRenderableType & EGL_OPENGL_ES2_BIT)
 	{
-		if(gl2::createContext != 0)
+		if(es2::createContext != 0)
 		{
-			context = gl2::createContext(config, shareContext);
+			context = es2::createContext(config, shareContext);
 		}
 	}
 	else

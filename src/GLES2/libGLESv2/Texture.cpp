@@ -25,7 +25,7 @@
 
 #include <algorithm>
 
-namespace gl2
+namespace es2
 {
 
 Texture::Texture(GLuint id) : RefCountObject(id)
@@ -1156,17 +1156,17 @@ void TextureExternal::setImage(Image *sharedImage)
 // Exported functions for use by EGL
 extern "C"
 {
-	gl2::Image *createBackBuffer(int width, int height, const egl::Config *config)
+	es2::Image *createBackBuffer(int width, int height, const egl::Config *config)
 	{
 		if(config)
 		{
-			return new gl2::Image(0, width, height, config->mAlphaSize ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE);
+			return new es2::Image(0, width, height, config->mAlphaSize ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE);
 		}
 
 		return 0;
 	}
 
-	gl2::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
+	es2::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
 	{
 		if(width == 0 || height == 0 || height > OUTLINE_RESOLUTION)
 		{
@@ -1199,7 +1199,7 @@ extern "C"
 			UNREACHABLE();
 		}
 
-		gl2::Image *surface = new gl2::Image(0, width, height, format, multiSampleDepth, lockable, true);
+		es2::Image *surface = new es2::Image(0, width, height, format, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{

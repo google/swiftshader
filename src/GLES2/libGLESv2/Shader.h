@@ -32,7 +32,7 @@ namespace sh
 	class OutputASM;
 }
 
-namespace gl2
+namespace es2
 {
 struct Varying
 {
@@ -46,7 +46,7 @@ struct Varying
 		return arraySize >= 1;
 	}
 
-	int size() const   // Unify with gl2::Uniform?
+	int size() const   // Unify with es2::Uniform?
 	{
 		return arraySize > 0 ? arraySize : 1;
 	}

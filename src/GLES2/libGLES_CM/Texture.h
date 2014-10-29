@@ -33,7 +33,7 @@ class Surface;
 class Config;
 }
 
-namespace gl
+namespace es1
 {
 class Framebuffer;
 

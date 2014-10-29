@@ -22,7 +22,7 @@
 
 #include <map>
 
-namespace gl
+namespace es1
 {
 class Buffer;
 class Texture;

@@ -83,7 +83,7 @@ namespace sw
 }
 
 // libGLES_CM dependencies
-namespace gl
+namespace es1
 {
 	extern egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext);
 	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);
@@ -93,7 +93,7 @@ namespace gl
 }
 
 // libGLESv2 dependencies
-namespace gl2
+namespace es2
 {
 	extern egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext);
 	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);

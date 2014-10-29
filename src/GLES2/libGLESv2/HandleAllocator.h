@@ -20,7 +20,7 @@
 
 #include <vector>
 
-namespace gl2
+namespace es2
 {
 
 class HandleAllocator

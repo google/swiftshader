@@ -60,7 +60,7 @@ CONSTRUCTOR static bool glAttachProcess()
 	#endif
 
 	libGLES_CM = loadLibrary(libGLES_CM_lib);
-	gl::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLES_CM, "glGetProcAddress");
+	es1::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLES_CM, "glGetProcAddress");
 
     return libEGL != 0;
 }
@@ -99,15 +99,15 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
 }
 #endif
 
-namespace gl2
+namespace es2
 {
-gl2::Context *getContext()
+es2::Context *getContext()
 {
 	egl::Context *context = egl::getCurrentContext();
 	
 	if(context && context->getClientVersion() == 2)
 	{
-		return static_cast<gl2::Context*>(context);
+		return static_cast<es2::Context*>(context);
 	}
 	
 	return 0;
@@ -139,7 +139,7 @@ GLint getClientVersion()
 // Records an error code
 void error(GLenum errorCode)
 {
-    gl2::Context *context = gl2::getContext();
+    es2::Context *context = es2::getContext();
 
     if(context)
     {
@@ -176,7 +176,7 @@ namespace egl
 	egl::Display *(*getCurrentDisplay)() = 0;
 }
 
-namespace gl
+namespace es1
 {
 	__eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname) = 0;
 }

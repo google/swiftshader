@@ -18,7 +18,7 @@
 
 #include "Common/Thread.hpp"
 
-namespace gl
+namespace es1
 {
 
 RefCountObject::RefCountObject(GLuint id)

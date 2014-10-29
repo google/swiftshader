@@ -27,7 +27,7 @@
 
 bool localShaderConstants = false;
 
-namespace gl2
+namespace es2
 {
 	using namespace sw;
 

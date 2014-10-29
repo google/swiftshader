@@ -33,7 +33,7 @@
 
 static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 {
-    if(level < 0 || level >= gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS || width < 0 || height < 0)
+    if(level < 0 || level >= es1::IMPLEMENTATION_MAX_TEXTURE_LEVELS || width < 0 || height < 0)
     {
         return false;
     }
@@ -41,7 +41,7 @@ static bool validImageSize(GLint level, GLsizei width, GLsizei height)
     return true;
 }
 
-static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLint xoffset, GLint yoffset, GLenum target, GLint level, GLenum format, gl::Texture *texture)
+static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLint xoffset, GLint yoffset, GLenum target, GLint level, GLenum format, es1::Texture *texture)
 {
     if(!texture)
     {
@@ -101,10 +101,10 @@ static bool validReadFormatType(GLenum format, GLenum type)
             return false;
         }
         break;
-    case gl::IMPLEMENTATION_COLOR_READ_FORMAT:
+    case es1::IMPLEMENTATION_COLOR_READ_FORMAT:
         switch (type)
         {
-        case gl::IMPLEMENTATION_COLOR_READ_TYPE:
+        case es1::IMPLEMENTATION_COLOR_READ_TYPE:
             break;
         default:
             return false;
@@ -126,11 +126,11 @@ void GL_APIENTRY glActiveTexture(GLenum texture)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            if(texture < GL_TEXTURE0 || texture > GL_TEXTURE0 + gl::MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+            if(texture < GL_TEXTURE0 || texture > GL_TEXTURE0 + es1::MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
             {
                 return error(GL_INVALID_ENUM);
             }
@@ -160,7 +160,7 @@ void GL_APIENTRY glBindBuffer(GLenum target, GLuint buffer)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -194,7 +194,7 @@ void GL_APIENTRY glBindFramebuffer(GLenum target, GLuint framebuffer)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -218,7 +218,7 @@ void GL_APIENTRY glBindFramebufferOES(GLenum target, GLuint framebuffer)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -242,7 +242,7 @@ void GL_APIENTRY glBindRenderbufferOES(GLenum target, GLuint renderbuffer)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -262,11 +262,11 @@ void GL_APIENTRY glBindTexture(GLenum target, GLuint texture)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            gl::Texture *textureObject = context->getTexture(texture);
+            es1::Texture *textureObject = context->getTexture(texture);
 
             if(textureObject && textureObject->getTarget() != target && texture != 0)
             {
@@ -322,7 +322,7 @@ void GL_APIENTRY glBlendEquationSeparateOES(GLenum modeRGB, GLenum modeAlpha)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -417,7 +417,7 @@ void GL_APIENTRY glBlendFuncSeparateOES(GLenum srcRGB, GLenum dstRGB, GLenum src
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -451,11 +451,11 @@ void GL_APIENTRY glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            gl::Buffer *buffer;
+            es1::Buffer *buffer;
 
             switch(target)
             {
@@ -500,11 +500,11 @@ void GL_APIENTRY glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            gl::Buffer *buffer;
+            es1::Buffer *buffer;
 
             switch(target)
             {
@@ -548,11 +548,11 @@ GLenum GL_APIENTRY glCheckFramebufferStatusOES(GLenum target)
             return error(GL_INVALID_ENUM, 0);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            gl::Framebuffer *framebuffer = context->getFramebuffer();
+            es1::Framebuffer *framebuffer = context->getFramebuffer();
 
             return framebuffer->completeness();
         }
@@ -576,7 +576,7 @@ void GL_APIENTRY glClear(GLbitfield mask)
 			return error(GL_INVALID_VALUE);
 		}
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -596,7 +596,7 @@ void GL_APIENTRY glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLcla
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -620,7 +620,7 @@ void GL_APIENTRY glClearDepthf(GLclampf depth)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -644,7 +644,7 @@ void GL_APIENTRY glClearStencil(GLint s)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -694,7 +694,7 @@ void GL_APIENTRY glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLb
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -749,11 +749,11 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-			if(level > gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+			if(level > es1::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
             {
                 return error(GL_INVALID_VALUE);
             }
@@ -761,8 +761,8 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
             switch(target)
             {
               case GL_TEXTURE_2D:
-                if(width > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
-                    height > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
+                if(width > (es1::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
+                    height > (es1::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
                 {
                     return error(GL_INVALID_VALUE);
                 }
@@ -771,14 +771,14 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
                 return error(GL_INVALID_ENUM);
             }
 
-            if(imageSize != gl::ComputeCompressedSize(width, height, internalformat))
+            if(imageSize != es1::ComputeCompressedSize(width, height, internalformat))
             {
                 return error(GL_INVALID_VALUE);
             }
 
             if(target == GL_TEXTURE_2D)
             {
-                gl::Texture2D *texture = context->getTexture2D();
+                es1::Texture2D *texture = context->getTexture2D();
 
                 if(!texture)
                 {
@@ -806,7 +806,7 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
 
     try
     {
-        if(!gl::IsTextureTarget(target))
+        if(!es1::IsTextureTarget(target))
         {
             return error(GL_INVALID_ENUM);
         }
@@ -834,16 +834,16 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            if(level > gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+            if(level > es1::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
             {
                 return error(GL_INVALID_VALUE);
             }
 
-            if(imageSize != gl::ComputeCompressedSize(width, height, format))
+            if(imageSize != es1::ComputeCompressedSize(width, height, format))
             {
                 return error(GL_INVALID_VALUE);
             }
@@ -856,7 +856,7 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
 
             if(target == GL_TEXTURE_2D)
             {
-                gl::Texture2D *texture = context->getTexture2D();
+                es1::Texture2D *texture = context->getTexture2D();
 
                 if(validateSubImageParams(true, width, height, xoffset, yoffset, target, level, format, texture))
 				{
@@ -890,15 +890,15 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
             switch(target)
             {
               case GL_TEXTURE_2D:
-                if(width > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
-                   height > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
+                if(width > (es1::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
+                   height > (es1::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
                 {
                     return error(GL_INVALID_VALUE);
                 }
@@ -907,7 +907,7 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
                 return error(GL_INVALID_ENUM);
             }
 
-            gl::Framebuffer *framebuffer = context->getFramebuffer();
+            es1::Framebuffer *framebuffer = context->getFramebuffer();
 
             if(framebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE_OES)
             {
@@ -919,7 +919,7 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
                 return error(GL_INVALID_OPERATION);
             }
 
-            gl::Renderbuffer *source = framebuffer->getColorbuffer();
+            es1::Renderbuffer *source = framebuffer->getColorbuffer();
             GLenum colorbufferFormat = source->getFormat();
 
             // [OpenGL ES 2.0.24] table 3.9
@@ -975,7 +975,7 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 
             if(target == GL_TEXTURE_2D)
             {
-                gl::Texture2D *texture = context->getTexture2D();
+                es1::Texture2D *texture = context->getTexture2D();
 
                 if(!texture)
                 {
@@ -1001,7 +1001,7 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 
     try
     {
-        if(!gl::IsTextureTarget(target))
+        if(!es1::IsTextureTarget(target))
         {
             return error(GL_INVALID_ENUM);
         }
@@ -1021,16 +1021,16 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            if(level > gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+            if(level > es1::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
             {
                 return error(GL_INVALID_VALUE);
             }
 
-            gl::Framebuffer *framebuffer = context->getFramebuffer();
+            es1::Framebuffer *framebuffer = context->getFramebuffer();
 
             if(framebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE_OES)
             {
@@ -1042,9 +1042,9 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
                 return error(GL_INVALID_OPERATION);
             }
 
-            gl::Renderbuffer *source = framebuffer->getColorbuffer();
+            es1::Renderbuffer *source = framebuffer->getColorbuffer();
             GLenum colorbufferFormat = source->getFormat();
-            gl::Texture *texture = NULL;
+            es1::Texture *texture = NULL;
 
             if(target == GL_TEXTURE_2D)
             {
@@ -1126,7 +1126,7 @@ void GL_APIENTRY glCullFace(GLenum mode)
           case GL_BACK:
           case GL_FRONT_AND_BACK:
             {
-                gl::Context *context = gl::getContext();
+                es1::Context *context = es1::getContext();
 
                 if(context)
                 {
@@ -1155,7 +1155,7 @@ void GL_APIENTRY glDeleteBuffers(GLsizei n, const GLuint* buffers)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1182,7 +1182,7 @@ void GL_APIENTRY glDeleteFramebuffersOES(GLsizei n, const GLuint* framebuffers)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1212,7 +1212,7 @@ void GL_APIENTRY glDeleteRenderbuffersOES(GLsizei n, const GLuint* renderbuffers
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1239,7 +1239,7 @@ void GL_APIENTRY glDeleteTextures(GLsizei n, const GLuint* textures)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1279,7 +1279,7 @@ void GL_APIENTRY glDepthFunc(GLenum func)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1298,7 +1298,7 @@ void GL_APIENTRY glDepthMask(GLboolean flag)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1322,7 +1322,7 @@ void GL_APIENTRY glDepthRangef(GLclampf zNear, GLclampf zFar)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1341,7 +1341,7 @@ void GL_APIENTRY glDisable(GLenum cap)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1383,7 +1383,7 @@ void GL_APIENTRY glDrawArrays(GLenum mode, GLint first, GLsizei count)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1408,7 +1408,7 @@ void GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum type, const G
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1437,7 +1437,7 @@ void GL_APIENTRY glEnable(GLenum cap)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1474,7 +1474,7 @@ void GL_APIENTRY glFinish(void)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1493,7 +1493,7 @@ void GL_APIENTRY glFlush(void)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1518,11 +1518,11 @@ void GL_APIENTRY glFramebufferRenderbufferOES(GLenum target, GLenum attachment, 
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            gl::Framebuffer *framebuffer = context->getFramebuffer();
+            es1::Framebuffer *framebuffer = context->getFramebuffer();
             GLuint framebufferHandle = context->getFramebufferHandle();
             
             if(!framebuffer || (framebufferHandle == 0 && renderbuffer != 0))
@@ -1574,7 +1574,7 @@ void GL_APIENTRY glFramebufferTexture2DOES(GLenum target, GLenum attachment, GLe
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1584,7 +1584,7 @@ void GL_APIENTRY glFramebufferTexture2DOES(GLenum target, GLenum attachment, GLe
             }
             else
             {
-                gl::Texture *tex = context->getTexture(texture);
+                es1::Texture *tex = context->getTexture(texture);
 
                 if(tex == NULL)
                 {
@@ -1614,7 +1614,7 @@ void GL_APIENTRY glFramebufferTexture2DOES(GLenum target, GLenum attachment, GLe
                 }
             }
 
-            gl::Framebuffer *framebuffer = context->getFramebuffer();
+            es1::Framebuffer *framebuffer = context->getFramebuffer();
             GLuint framebufferHandle = context->getFramebufferHandle();
 
             if(framebufferHandle == 0 || !framebuffer)
@@ -1667,7 +1667,7 @@ void GL_APIENTRY glFrontFace(GLenum mode)
           case GL_CW:
           case GL_CCW:
             {
-                gl::Context *context = gl::getContext();
+                es1::Context *context = es1::getContext();
 
                 if(context)
                 {
@@ -1701,11 +1701,11 @@ void GL_APIENTRY glGenerateMipmapOES(GLenum target)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            gl::Texture *texture;
+            es1::Texture *texture;
 
             switch(target)
             {
@@ -1741,7 +1741,7 @@ void GL_APIENTRY glGenBuffers(GLsizei n, GLuint* buffers)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1768,7 +1768,7 @@ void GL_APIENTRY glGenFramebuffersOES(GLsizei n, GLuint* framebuffers)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1795,7 +1795,7 @@ void GL_APIENTRY glGenRenderbuffersOES(GLsizei n, GLuint* renderbuffers)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1822,7 +1822,7 @@ void GL_APIENTRY glGenTextures(GLsizei n, GLuint* textures)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1844,7 +1844,7 @@ void GL_APIENTRY glGetRenderbufferParameterivOES(GLenum target, GLenum pname, GL
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1858,7 +1858,7 @@ void GL_APIENTRY glGetRenderbufferParameterivOES(GLenum target, GLenum pname, GL
                 return error(GL_INVALID_OPERATION);
             }
 
-            gl::Renderbuffer *renderbuffer = context->getRenderbuffer(context->getRenderbufferHandle());
+            es1::Renderbuffer *renderbuffer = context->getRenderbuffer(context->getRenderbufferHandle());
 
             switch(pname)
             {
@@ -1888,7 +1888,7 @@ void GL_APIENTRY glGetBooleanv(GLenum pname, GLboolean* params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -1955,11 +1955,11 @@ void GL_APIENTRY glGetBufferParameteriv(GLenum target, GLenum pname, GLint* para
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            gl::Buffer *buffer;
+            es1::Buffer *buffer;
 
             switch(target)
             {
@@ -2010,7 +2010,7 @@ GLenum GL_APIENTRY glGetError(void)
 {
     TRACE("()");
 
-    gl::Context *context = gl::getContext();
+    es1::Context *context = es1::getContext();
 
     if(context)
     {
@@ -2031,7 +2031,7 @@ void GL_APIENTRY glGetFloatv(GLenum pname, GLfloat* params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -2096,7 +2096,7 @@ void GL_APIENTRY glGetFramebufferAttachmentParameterivOES(GLenum target, GLenum 
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -2110,7 +2110,7 @@ void GL_APIENTRY glGetFramebufferAttachmentParameterivOES(GLenum target, GLenum 
                 return error(GL_INVALID_OPERATION);
             }
 
-            gl::Framebuffer *framebuffer = context->getFramebuffer();
+            es1::Framebuffer *framebuffer = context->getFramebuffer();
             
             GLenum attachmentType;
             GLuint attachmentHandle;
@@ -2137,7 +2137,7 @@ void GL_APIENTRY glGetFramebufferAttachmentParameterivOES(GLenum target, GLenum 
             {
                 attachmentObjectType = attachmentType;
             }
-            else if(gl::IsTextureTarget(attachmentType))
+            else if(es1::IsTextureTarget(attachmentType))
             {
                 attachmentObjectType = GL_TEXTURE;
             }
@@ -2185,7 +2185,7 @@ void GL_APIENTRY glGetIntegerv(GLenum pname, GLint* params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -2279,7 +2279,7 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         switch(name)
         {
@@ -2340,11 +2340,11 @@ void GL_APIENTRY glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* param
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            gl::Texture *texture;
+            es1::Texture *texture;
 
             switch(target)
             {
@@ -2395,11 +2395,11 @@ void GL_APIENTRY glGetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            gl::Texture *texture;
+            es1::Texture *texture;
 
             switch(target)
             {
@@ -2480,7 +2480,7 @@ void GL_APIENTRY glHint(GLenum target, GLenum mode)
             return error(GL_INVALID_ENUM); 
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
         switch(target)
         {
           case GL_GENERATE_MIPMAP_HINT:
@@ -2502,11 +2502,11 @@ GLboolean GL_APIENTRY glIsBuffer(GLuint buffer)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context && buffer)
         {
-            gl::Buffer *bufferObject = context->getBuffer(buffer);
+            es1::Buffer *bufferObject = context->getBuffer(buffer);
 
             if(bufferObject)
             {
@@ -2528,7 +2528,7 @@ GLboolean GL_APIENTRY glIsEnabled(GLenum cap)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -2562,11 +2562,11 @@ GLboolean GL_APIENTRY glIsFramebufferOES(GLuint framebuffer)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context && framebuffer)
         {
-            gl::Framebuffer *framebufferObject = context->getFramebuffer(framebuffer);
+            es1::Framebuffer *framebufferObject = context->getFramebuffer(framebuffer);
 
             if(framebufferObject)
             {
@@ -2588,11 +2588,11 @@ GLboolean GL_APIENTRY glIsTexture(GLuint texture)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context && texture)
         {
-            gl::Texture *textureObject = context->getTexture(texture);
+            es1::Texture *textureObject = context->getTexture(texture);
 
             if(textureObject)
             {
@@ -2614,11 +2614,11 @@ GLboolean GL_APIENTRY glIsRenderbufferOES(GLuint renderbuffer)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context && renderbuffer)
         {
-            gl::Renderbuffer *renderbufferObject = context->getRenderbuffer(renderbuffer);
+            es1::Renderbuffer *renderbufferObject = context->getRenderbuffer(renderbuffer);
 
             if(renderbufferObject)
             {
@@ -2685,7 +2685,7 @@ void GL_APIENTRY glLineWidth(GLfloat width)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -2799,7 +2799,7 @@ void GL_APIENTRY glPixelStorei(GLenum pname, GLint param)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -2870,7 +2870,7 @@ void GL_APIENTRY glPolygonOffset(GLfloat factor, GLfloat units)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -2916,7 +2916,7 @@ void GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, G
             return error(GL_INVALID_OPERATION);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -2944,7 +2944,7 @@ void GL_APIENTRY glRenderbufferStorageOES(GLenum target, GLenum internalformat, 
             return error(GL_INVALID_ENUM);
         }
 
-        if(!gl::IsColorRenderable(internalformat) && !gl::IsDepthRenderable(internalformat) && !gl::IsStencilRenderable(internalformat))
+        if(!es1::IsColorRenderable(internalformat) && !es1::IsDepthRenderable(internalformat) && !es1::IsStencilRenderable(internalformat))
         {
             return error(GL_INVALID_ENUM);
         }
@@ -2954,12 +2954,12 @@ void GL_APIENTRY glRenderbufferStorageOES(GLenum target, GLenum internalformat, 
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            if(width > gl::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || 
-               height > gl::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE)
+            if(width > es1::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || 
+               height > es1::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE)
             {
                 return error(GL_INVALID_VALUE);
             }
@@ -2973,20 +2973,20 @@ void GL_APIENTRY glRenderbufferStorageOES(GLenum target, GLenum internalformat, 
             switch(internalformat)
             {
             case GL_DEPTH_COMPONENT16_OES:
-                context->setRenderbufferStorage(new gl::Depthbuffer(width, height, 0));
+                context->setRenderbufferStorage(new es1::Depthbuffer(width, height, 0));
                 break;
             case GL_RGBA4_OES:
             case GL_RGB5_A1_OES:
             case GL_RGB565_OES:
             case GL_RGB8_OES:
             case GL_RGBA8_OES:
-                context->setRenderbufferStorage(new gl::Colorbuffer(width, height, internalformat, 0));
+                context->setRenderbufferStorage(new es1::Colorbuffer(width, height, internalformat, 0));
                 break;
             case GL_STENCIL_INDEX8_OES:
-                context->setRenderbufferStorage(new gl::Stencilbuffer(width, height, 0));
+                context->setRenderbufferStorage(new es1::Stencilbuffer(width, height, 0));
                 break;
             case GL_DEPTH24_STENCIL8_OES:
-                context->setRenderbufferStorage(new gl::DepthStencilbuffer(width, height, 0));
+                context->setRenderbufferStorage(new es1::DepthStencilbuffer(width, height, 0));
                 break;
             default:
                 return error(GL_INVALID_ENUM);
@@ -3015,11 +3015,11 @@ void GL_APIENTRY glSampleCoverage(GLclampf value, GLboolean invert)
 
     try
     {
-        gl::Context* context = gl::getContext();
+        es1::Context* context = es1::getContext();
 
         if(context)
         {
-            context->setSampleCoverageParams(gl::clamp01(value), invert == GL_TRUE);
+            context->setSampleCoverageParams(es1::clamp01(value), invert == GL_TRUE);
         }
     }
     catch(std::bad_alloc&)
@@ -3054,7 +3054,7 @@ void GL_APIENTRY glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context* context = gl::getContext();
+        es1::Context* context = es1::getContext();
 
         if(context)
         {
@@ -3093,7 +3093,7 @@ void GL_APIENTRY glStencilFunc(GLenum func, GLint ref, GLuint mask)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -3112,7 +3112,7 @@ void GL_APIENTRY glStencilMask(GLuint mask)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -3176,7 +3176,7 @@ void GL_APIENTRY glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
             return error(GL_INVALID_ENUM);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -3310,15 +3310,15 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
             switch(target)
             {
               case GL_TEXTURE_2D:
-                if(width > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
-                   height > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
+                if(width > (es1::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
+                   height > (es1::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
                 {
                     return error(GL_INVALID_VALUE);
                 }
@@ -3342,7 +3342,7 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 			
             if(target == GL_TEXTURE_2D)
             {
-                gl::Texture2D *texture = context->getTexture2D();
+                es1::Texture2D *texture = context->getTexture2D();
 
                 if(!texture)
                 {
@@ -3366,11 +3366,11 @@ void GL_APIENTRY glTexParameterf(GLenum target, GLenum pname, GLfloat param)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            gl::Texture *texture;
+            es1::Texture *texture;
 
             switch(target)
             {
@@ -3438,11 +3438,11 @@ void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 
     try
     {
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            gl::Texture *texture;
+            es1::Texture *texture;
 
             switch(target)
             {
@@ -3524,7 +3524,7 @@ void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
 
     try
     {
-        if(!gl::IsTextureTarget(target))
+        if(!es1::IsTextureTarget(target))
         {
             return error(GL_INVALID_ENUM);
         }
@@ -3539,7 +3539,7 @@ void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
             return error(GL_INVALID_VALUE);
         }
 
-        if(!gl::CheckTextureFormatType(format, type))
+        if(!es1::CheckTextureFormatType(format, type))
         {
             return error(GL_INVALID_ENUM);
         }
@@ -3549,18 +3549,18 @@ void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
             return;
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            if(level > gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+            if(level > es1::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
             {
                 return error(GL_INVALID_VALUE);
             }
 
             if(target == GL_TEXTURE_2D)
             {
-                gl::Texture2D *texture = context->getTexture2D();
+                es1::Texture2D *texture = context->getTexture2D();
 
                 if(validateSubImageParams(false, width, height, xoffset, yoffset, target, level, format, texture))
 				{
@@ -3602,7 +3602,7 @@ void GL_APIENTRY glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
             return error(GL_INVALID_VALUE);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
@@ -3634,18 +3634,18 @@ void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image
             return error(GL_INVALID_OPERATION);
         }
 
-        gl::Context *context = gl::getContext();
+        es1::Context *context = es1::getContext();
 
         if(context)
         {
-            gl::TextureExternal *texture = context->getTextureExternal();
+            es1::TextureExternal *texture = context->getTextureExternal();
 
             if(!texture)
             {
                 return error(GL_INVALID_OPERATION);
             }
 
-            gl::Image *glImage = static_cast<gl::Image*>(image);
+            es1::Image *glImage = static_cast<es1::Image*>(image);
 
             texture->setImage(glImage);
         }

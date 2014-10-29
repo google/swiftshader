@@ -21,7 +21,7 @@
 #define TRACE_OUTPUT_FILE "debug.txt"
 #endif
 
-namespace gl2
+namespace es
 {
     // Outputs text to the debugging log
     void trace(const char *format, ...);
@@ -31,21 +31,21 @@ namespace gl2
 #if defined(ANGLE_DISABLE_TRACE)
 #define TRACE(message, ...) (void(0))
 #else
-#define TRACE(message, ...) gl2::trace("trace: %s(%d): "message"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define TRACE(message, ...) es::trace("trace: %s(%d): "message"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__)
 #endif
 
 // A macro to output a function call and its arguments to the debugging log, to denote an item in need of fixing.
 #if defined(ANGLE_DISABLE_TRACE)
 #define FIXME(message, ...) (void(0))
 #else
-#define FIXME(message, ...) do {gl2::trace("fixme: %s(%d): "message"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); assert(false);} while(false)
+#define FIXME(message, ...) do {es::trace("fixme: %s(%d): "message"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); assert(false);} while(false)
 #endif
 
 // A macro to output a function call and its arguments to the debugging log, in case of error.
 #if defined(ANGLE_DISABLE_TRACE)
 #define ERR(message, ...) (void(0))
 #else
-#define ERR(message, ...) do {gl2::trace("err: %s(%d): "message"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); assert(false);} while(false)
+#define ERR(message, ...) do {es::trace("err: %s(%d): "message"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); assert(false);} while(false)
 #endif
 
 // A macro asserting a condition and outputting failures to the debug log

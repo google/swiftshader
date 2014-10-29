@@ -23,7 +23,7 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
-namespace gl2
+namespace es2
 {
 	Context *getContext();
 	egl::Display *getDisplay();
@@ -53,7 +53,7 @@ namespace egl
 }
 
 // libGLES_CM dependencies
-namespace gl
+namespace es1
 {
 	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);
 }

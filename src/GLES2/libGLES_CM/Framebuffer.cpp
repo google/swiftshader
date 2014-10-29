@@ -19,7 +19,7 @@
 #include "Texture.h"
 #include "utilities.h"
 
-namespace gl
+namespace es1
 {
 
 Framebuffer::Framebuffer()
@@ -245,7 +245,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 		if(mColorbufferType == GL_RENDERBUFFER_OES)
 		{
-			if(!gl::IsColorRenderable(colorbuffer->getFormat()))
+			if(!es1::IsColorRenderable(colorbuffer->getFormat()))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_OES;
 			}
@@ -262,7 +262,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 				return GL_FRAMEBUFFER_UNSUPPORTED_OES;
 			}
 
-			if(gl::IsDepthTexture(format) || gl::IsStencilTexture(format))
+			if(es1::IsDepthTexture(format) || es1::IsStencilTexture(format))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_OES;
 			}
@@ -297,14 +297,14 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 		if(mDepthbufferType == GL_RENDERBUFFER_OES)
 		{
-			if(!gl::IsDepthRenderable(depthbuffer->getFormat()))
+			if(!es1::IsDepthRenderable(depthbuffer->getFormat()))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_OES;
 			}
 		}
 		else if(IsTextureTarget(mDepthbufferType))
 		{
-			if(!gl::IsDepthTexture(depthbuffer->getFormat()))
+			if(!es1::IsDepthTexture(depthbuffer->getFormat()))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_OES;
 			}
@@ -347,7 +347,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 		if(mStencilbufferType == GL_RENDERBUFFER_OES)
 		{
-			if(!gl::IsStencilRenderable(stencilbuffer->getFormat()))
+			if(!es1::IsStencilRenderable(stencilbuffer->getFormat()))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_OES;
 			}
@@ -356,7 +356,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		{
 			GLenum internalformat = stencilbuffer->getFormat();
 
-			if(!gl::IsStencilTexture(internalformat))
+			if(!es1::IsStencilTexture(internalformat))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_OES;
 			}

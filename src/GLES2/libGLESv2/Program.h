@@ -24,7 +24,7 @@
 #include <vector>
 #include <set>
 
-namespace gl2
+namespace es2
 {
 	class Device;
 	class ResourceManager;
@@ -163,7 +163,7 @@ namespace gl2
 		static unsigned int issueSerial();
 
 	private:
-		gl2::Device *device;
+		es2::Device *device;
 		FragmentShader *fragmentShader;
 		VertexShader *vertexShader;
 

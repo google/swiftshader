@@ -19,7 +19,7 @@
 #include "VertexDataManager.h"
 #include "IndexDataManager.h"
 
-namespace gl
+namespace es1
 {
 
 Buffer::Buffer(GLuint id) : RefCountObject(id)

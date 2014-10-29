@@ -9,7 +9,7 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// Context.cpp: Implements the gl::Context class, managing all GL state and performing
+// Context.cpp: Implements the es1::Context class, managing all GL state and performing
 // rendering operations. It is the GLES2 specific implementation of EGLContext.
 
 #include "Context.h"
@@ -34,7 +34,7 @@
 #undef near
 #undef far
 
-namespace gl
+namespace es1
 {
 Device *Context::device = 0;
 
@@ -2214,7 +2214,7 @@ void Context::setVertexAttrib(GLuint index, const GLfloat *values)
 
 void Context::bindTexImage(egl::Surface *surface)
 {
-	gl::Texture2D *textureObject = getTexture2D();
+	es1::Texture2D *textureObject = getTexture2D();
 
     if(textureObject)
     {
@@ -2286,13 +2286,13 @@ egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textu
 {
     if(target == EGL_GL_TEXTURE_2D_KHR)
     {
-        gl::Texture *texture = getTexture(name);
+        es1::Texture *texture = getTexture(name);
 
         return texture->createSharedImage(GL_TEXTURE_2D, textureLevel);
     }
     else if(target == EGL_GL_RENDERBUFFER_KHR)
     {
-        gl::Renderbuffer *renderbuffer = getRenderbuffer(name);
+        es1::Renderbuffer *renderbuffer = getRenderbuffer(name);
 
         return renderbuffer->createSharedImage();
     }
@@ -2306,7 +2306,7 @@ Device *Context::getDevice()
 	if(!device)
 	{
 		sw::Context *context = new sw::Context();
-		device = new gl::Device(context);
+		device = new es1::Device(context);
 	}
 
 	return device;
@@ -2317,8 +2317,8 @@ Device *Context::getDevice()
 // Exported functions for use by EGL
 extern "C"
 {
-	gl::Context *glCreateContext(const egl::Config *config, const gl::Context *shareContext)
+	es1::Context *glCreateContext(const egl::Config *config, const es1::Context *shareContext)
 	{
-		return new gl::Context(config, shareContext);
+		return new es1::Context(config, shareContext);
 	}
 }

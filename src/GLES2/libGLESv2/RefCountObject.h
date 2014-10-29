@@ -24,7 +24,7 @@
 
 #include <cstddef>
 
-namespace gl2
+namespace es2
 {
 
 class RefCountObject

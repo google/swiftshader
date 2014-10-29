@@ -19,7 +19,7 @@ namespace egl
 	class Image;
 }
 
-namespace gl2
+namespace es2
 {
 	class Texture;
 	class Image;

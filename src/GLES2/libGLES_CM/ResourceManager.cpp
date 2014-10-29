@@ -18,7 +18,7 @@
 #include "Renderbuffer.h"
 #include "Texture.h"
 
-namespace gl
+namespace es1
 {
 ResourceManager::ResourceManager()
 {

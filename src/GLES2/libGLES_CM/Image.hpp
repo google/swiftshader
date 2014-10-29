@@ -18,7 +18,7 @@
 #define GL_API
 #include <GLES/gl.h>
 
-namespace gl
+namespace es1
 {
 	class Texture;
 

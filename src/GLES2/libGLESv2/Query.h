@@ -9,7 +9,7 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// Query.h: Defines the gl2::Query class
+// Query.h: Defines the es2::Query class
 
 #ifndef LIBGLESV2_QUERY_H_
 #define LIBGLESV2_QUERY_H_
@@ -20,7 +20,7 @@
 #define GL_APICALL
 #include <GLES2/gl2.h>
 
-namespace gl2
+namespace es2
 {
 
 class Query : public RefCountObject

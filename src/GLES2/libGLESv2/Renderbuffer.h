@@ -23,7 +23,7 @@
 #define GL_APICALL
 #include <GLES2/gl2.h>
 
-namespace gl2
+namespace es2
 {
 class Texture2D;
 class TextureCubeMap;

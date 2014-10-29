@@ -19,7 +19,7 @@
 #define GL_GLEXT_PROTOTYPES
 #include <GLES/glext.h>
 
-namespace gl
+namespace es1
 {
 	static sw::Resource *getParentResource(Texture *texture)
 	{

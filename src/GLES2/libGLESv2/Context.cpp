@@ -9,7 +9,7 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// Context.cpp: Implements the gl2::Context class, managing all GL state and performing
+// Context.cpp: Implements the es2::Context class, managing all GL state and performing
 // rendering operations. It is the GLES2 specific implementation of EGLContext.
 
 #include "Context.h"
@@ -37,7 +37,7 @@
 #undef near
 #undef far
 
-namespace gl2
+namespace es2
 {
 Device *Context::device = 0;
 
@@ -3027,7 +3027,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
 void Context::bindTexImage(egl::Surface *surface)
 {
-	gl2::Texture2D *textureObject = getTexture2D();
+	es2::Texture2D *textureObject = getTexture2D();
 
     if(textureObject)
     {
@@ -3058,14 +3058,14 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
         return EGL_BAD_PARAMETER;
     }
 	
-    if(textureLevel >= gl2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+    if(textureLevel >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
     {
         return EGL_BAD_MATCH;
     }
 
     if(textureTarget != GL_NONE)
     {
-        gl2::Texture *texture = getTexture(name);
+        es2::Texture *texture = getTexture(name);
 
         if(!texture || texture->getTarget() != textureTarget)
         {
@@ -3089,7 +3089,7 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
     }
     else if(target == EGL_GL_RENDERBUFFER_KHR)
     {
-        gl2::Renderbuffer *renderbuffer = getRenderbuffer(name);
+        es2::Renderbuffer *renderbuffer = getRenderbuffer(name);
 
         if(!renderbuffer)
         {
@@ -3123,13 +3123,13 @@ egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textu
 
     if(textureTarget != GL_NONE)
     {
-        gl2::Texture *texture = getTexture(name);
+        es2::Texture *texture = getTexture(name);
 
         return texture->createSharedImage(textureTarget, textureLevel);
     }
     else if(target == EGL_GL_RENDERBUFFER_KHR)
     {
-        gl2::Renderbuffer *renderbuffer = getRenderbuffer(name);
+        es2::Renderbuffer *renderbuffer = getRenderbuffer(name);
 
         return renderbuffer->createSharedImage();
     }
@@ -3143,7 +3143,7 @@ Device *Context::getDevice()
 	if(!device)
 	{
 		sw::Context *context = new sw::Context();
-		device = new gl2::Device(context);
+		device = new es2::Device(context);
 	}
 
 	return device;
@@ -3154,8 +3154,8 @@ Device *Context::getDevice()
 // Exported functions for use by EGL
 extern "C"
 {
-	gl2::Context *glCreateContext(const egl::Config *config, const gl2::Context *shareContext)
+	es2::Context *glCreateContext(const egl::Config *config, const es2::Context *shareContext)
 	{
-		return new gl2::Context(config, shareContext);
+		return new es2::Context(config, shareContext);
 	}
 }
