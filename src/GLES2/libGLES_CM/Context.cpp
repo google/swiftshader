@@ -136,6 +136,28 @@ Context::Context(const egl::Config *config, const Context *shareContext) : mConf
     mOutOfMemory = false;
     mInvalidFramebufferOperation = false;
 
+	lighting = false;
+
+	for(int i = 0; i < MAX_LIGHTS; i++)
+	{
+		light[i].enable = false;
+		light[i].ambient = {0.0f, 0.0f, 0.0f, 1.0f};
+		light[i].diffuse = {0.0f, 0.0f, 0.0f, 1.0f};
+		light[i].specular = {0.0f, 0.0f, 0.0f, 1.0f};
+		light[i].position = {0.0f, 0.0f, 1.0f, 0.0f};
+		light[i].direction = {0.0f, 0.0f, -1.0f};
+		light[i].attenuation = {1.0f, 0.0f, 0.0f};
+	}
+
+	light[0].diffuse = {1.0f, 1.0f, 1.0f, 1.0f};
+	light[0].specular = {1.0f, 1.0f, 1.0f, 1.0f};
+
+	globalAmbient = {0.2f, 0.2f, 0.2f, 1.0f};
+	materialAmbient = {0.2f, 0.2f, 0.2f, 1.0f};
+	materialDiffuse = {0.8f, 0.8f, 0.8f, 1.0f};
+	materialSpecular = {0.0f, 0.0f, 0.0f, 1.0f};
+	materialEmission = {0.0f, 0.0f, 0.0f, 1.0f};
+
     mHasBeenCurrent = false;
 
     markAllStateDirty();
@@ -491,6 +513,56 @@ void Context::setDither(bool enabled)
 bool Context::isDitherEnabled() const
 {
     return mState.dither;
+}
+
+void Context::setLighting(bool enable)
+{
+    lighting = enable;
+}
+
+void Context::setLight(int index, bool enable)
+{
+    light[index].enable = enable;
+}
+
+void Context::setLightAmbient(int index, float r, float g, float b, float a)
+{
+	light[index].ambient = {r, g, b, a};
+}
+
+void Context::setLightDiffuse(int index, float r, float g, float b, float a)
+{
+	light[index].diffuse = {r, g, b, a};
+}
+
+void Context::setLightSpecular(int index, float r, float g, float b, float a)
+{
+	light[index].specular = {r, g, b, a};
+}
+
+void Context::setLightPosition(int index, float x, float y, float z, float w)
+{
+	light[index].position = {x, y, z, w};
+}
+
+void Context::setLightDirection(int index, float x, float y, float z)
+{
+	light[index].direction = {x, y, z};
+}
+
+void Context::setLightAttenuationConstant(int index, float constant)
+{
+	light[index].attenuation.constant = constant;
+}
+
+void Context::setLightAttenuationLinear(int index, float linear)
+{
+	light[index].attenuation.linear = linear;
+}
+
+void Context::setLightAttenuationQuadratic(int index, float quadratic)
+{
+	light[index].attenuation.quadratic = quadratic;
 }
 
 void Context::setLineWidth(GLfloat width)
@@ -1076,6 +1148,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
             *params = mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler].id();
         }
         break;
+	case GL_MAX_LIGHTS: *params = MAX_LIGHTS; break;
     default:
         return false;
     }
@@ -1171,6 +1244,7 @@ int Context::getQueryParameterNum(GLenum pname)
     case GL_COLOR_CLEAR_VALUE:
         return 4;
 	case GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT:
+	case GL_MAX_LIGHTS:
         return 1;
 	default:
 		UNREACHABLE();
@@ -1236,6 +1310,7 @@ bool Context::isQueryParameterInt(GLenum pname)
     case GL_MAX_VIEWPORT_DIMS:
     case GL_VIEWPORT:
     case GL_SCISSOR_BOX:
+	case GL_MAX_LIGHTS:
         return true;
 	default:
 		ASSERT(isQueryParameterFloat(pname) || isQueryParameterBool(pname));
@@ -1520,6 +1595,37 @@ void Context::applyState(GLenum drawMode)
 
         mDitherStateDirty = false;
     }
+
+	device->setLightingEnable(lighting);
+	device->setGlobalAmbient(sw::Color<float>(globalAmbient.red, globalAmbient.green, globalAmbient.blue, globalAmbient.alpha));
+
+	for(int i = 0; i < MAX_LIGHTS; i++)
+	{
+		device->setLightEnable(i, light[i].enable);
+		device->setLightAmbient(i, sw::Color<float>(light[i].ambient.red, light[i].ambient.green, light[i].ambient.blue, light[i].ambient.alpha));
+		device->setLightDiffuse(i, sw::Color<float>(light[i].diffuse.red, light[i].diffuse.green, light[i].diffuse.blue, light[i].diffuse.alpha));
+		device->setLightSpecular(i, sw::Color<float>(light[i].specular.red, light[i].specular.green, light[i].specular.blue, light[i].specular.alpha));
+		device->setLightAttenuation(i, light[i].attenuation.constant, light[i].attenuation.linear, light[i].attenuation.quadratic);
+
+		if(light[i].position.w != 0.0f)
+		{
+			device->setLightPosition(i, sw::Point(light[i].position.x / light[i].position.w, light[i].position.y / light[i].position.w, light[i].position.z / light[i].position.w));
+		}
+		else   // Hack: set the position far way
+		{
+			device->setLightPosition(i, sw::Point(1e10f * light[i].position.x, 1e10f * light[i].position.y, 1e10f * light[i].position.z));
+		}
+	}
+
+	device->setMaterialAmbient(sw::Color<float>(materialAmbient.red, materialAmbient.green, materialAmbient.blue, materialAmbient.alpha));
+	device->setMaterialDiffuse(sw::Color<float>(materialDiffuse.red, materialDiffuse.green, materialDiffuse.blue, materialDiffuse.alpha));
+	device->setMaterialSpecular(sw::Color<float>(materialSpecular.red, materialSpecular.green, materialSpecular.blue, materialSpecular.alpha));
+	device->setMaterialEmission(sw::Color<float>(materialEmission.red, materialEmission.green, materialEmission.blue, materialEmission.alpha));
+
+    device->setDiffuseMaterialSource(sw::MATERIAL_MATERIAL);
+	device->setSpecularMaterialSource(sw::MATERIAL_MATERIAL);
+	device->setAmbientMaterialSource(sw::MATERIAL_MATERIAL);
+	device->setEmissiveMaterialSource(sw::MATERIAL_MATERIAL);
 }
 
 GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count)

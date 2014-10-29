@@ -69,6 +69,7 @@ enum
     MAX_COMBINED_TEXTURE_IMAGE_UNITS = MAX_TEXTURE_IMAGE_UNITS + MAX_VERTEX_TEXTURE_IMAGE_UNITS,
     MAX_FRAGMENT_UNIFORM_VECTORS = 224 - 3,    // Reserve space for gl_DepthRange
     MAX_DRAW_BUFFERS = 1,
+	MAX_LIGHTS = 8,
 
     IMPLEMENTATION_COLOR_READ_FORMAT = GL_RGB,
     IMPLEMENTATION_COLOR_READ_TYPE = GL_UNSIGNED_SHORT_5_6_5
@@ -94,6 +95,39 @@ struct Color
     float green;
     float blue;
     float alpha;
+};
+
+struct Point
+{
+	float x;
+	float y;
+	float z;
+	float w;
+};
+
+struct Vector
+{
+	float x;
+	float y;
+	float z;
+};
+
+struct Attenuation
+{
+	float constant;
+	float linear;
+	float quadratic;
+};
+
+struct Light
+{
+	bool enable;
+	Color ambient;
+	Color diffuse;
+	Color specular;
+	Point position;
+	Vector direction;
+	Attenuation attenuation;
 };
 
 // Helper structure describing a single vertex attribute
@@ -268,6 +302,16 @@ public:
 
     void setDither(bool enabled);
     bool isDitherEnabled() const;
+	void setLighting(bool enabled);
+	void setLight(int index, bool enable);
+	void setLightAmbient(int index, float r, float g, float b, float a);
+	void setLightDiffuse(int index, float r, float g, float b, float a);
+	void setLightSpecular(int index, float r, float g, float b, float a);
+	void setLightPosition(int index, float x, float y, float z, float w);
+	void setLightDirection(int index, float x, float y, float z);
+	void setLightAttenuationConstant(int index, float constant);
+	void setLightAttenuationLinear(int index, float linear);
+	void setLightAttenuationQuadratic(int index, float quadratic);
 
     void setLineWidth(GLfloat width);
 
@@ -405,6 +449,14 @@ private:
 
     VertexDataManager *mVertexDataManager;
     IndexDataManager *mIndexDataManager;
+
+	bool lighting;
+	Light light[MAX_LIGHTS];
+	Color globalAmbient;
+	Color materialAmbient;
+	Color materialDiffuse;
+	Color materialSpecular;
+	Color materialEmission;
 
     // Recorded errors
     bool mInvalidEnum;

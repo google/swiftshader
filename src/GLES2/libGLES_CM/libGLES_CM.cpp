@@ -1568,16 +1568,40 @@ void GL_APIENTRY glDisable(GLenum cap)
         {
             switch(cap)
             {
-              case GL_CULL_FACE:                context->setCullFace(false);              break;
-              case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFill(false);     break;
-              case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverage(false); break;
-              case GL_SAMPLE_COVERAGE:          context->setSampleCoverage(false);        break;
-              case GL_SCISSOR_TEST:             context->setScissorTest(false);           break;
-              case GL_STENCIL_TEST:             context->setStencilTest(false);           break;
-              case GL_DEPTH_TEST:               context->setDepthTest(false);             break;
-              case GL_BLEND:                    context->setBlend(false);                 break;
-              case GL_DITHER:                   context->setDither(false);                break;
-              default:
+            case GL_CULL_FACE:                context->setCullFace(false);              break;
+            case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFill(false);     break;
+            case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverage(false); break;
+            case GL_SAMPLE_COVERAGE:          context->setSampleCoverage(false);        break;
+            case GL_SCISSOR_TEST:             context->setScissorTest(false);           break;
+            case GL_STENCIL_TEST:             context->setStencilTest(false);           break;
+            case GL_DEPTH_TEST:               context->setDepthTest(false);             break;
+            case GL_BLEND:                    context->setBlend(false);                 break;
+            case GL_DITHER:                   context->setDither(false);                break;
+			case GL_LIGHTING:                 context->setLighting(false);              break;
+			case GL_LIGHT0:                   context->setLight(0, false);              break;
+			case GL_LIGHT1:                   context->setLight(1, false);              break;
+		    case GL_LIGHT2:                   context->setLight(2, false);              break;
+			case GL_LIGHT3:                   context->setLight(3, false);              break;
+			case GL_LIGHT4:                   context->setLight(4, false);              break;
+			case GL_LIGHT5:                   context->setLight(5, false);              break;
+			case GL_LIGHT6:                   context->setLight(6, false);              break;
+			case GL_LIGHT7:                   context->setLight(7, false);              break;
+			case GL_FOG:                      UNIMPLEMENTED(); break;
+			case GL_TEXTURE_2D:               UNIMPLEMENTED(); break;
+			case GL_ALPHA_TEST:               UNIMPLEMENTED(); break;
+			case GL_COLOR_LOGIC_OP:           UNIMPLEMENTED(); break;
+			case GL_POINT_SMOOTH:             UNIMPLEMENTED(); break;
+			case GL_LINE_SMOOTH:              UNIMPLEMENTED(); break;
+			case GL_COLOR_MATERIAL:           UNIMPLEMENTED(); break;
+			case GL_NORMALIZE:                UNIMPLEMENTED(); break;
+			case GL_RESCALE_NORMAL:           UNIMPLEMENTED(); break;
+			case GL_VERTEX_ARRAY:             UNIMPLEMENTED(); break;
+			case GL_NORMAL_ARRAY:             UNIMPLEMENTED(); break;
+			case GL_COLOR_ARRAY:              UNIMPLEMENTED(); break;
+			case GL_TEXTURE_COORD_ARRAY:      UNIMPLEMENTED(); break;
+			case GL_MULTISAMPLE:              UNIMPLEMENTED(); break;
+			case GL_SAMPLE_ALPHA_TO_ONE:      UNIMPLEMENTED(); break;
+            default:
                 return error(GL_INVALID_ENUM);
             }
         }
@@ -1664,16 +1688,40 @@ void GL_APIENTRY glEnable(GLenum cap)
         {
             switch(cap)
             {
-              case GL_CULL_FACE:                context->setCullFace(true);              break;
-              case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFill(true);     break;
-              case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverage(true); break;
-              case GL_SAMPLE_COVERAGE:          context->setSampleCoverage(true);        break;
-              case GL_SCISSOR_TEST:             context->setScissorTest(true);           break;
-              case GL_STENCIL_TEST:             context->setStencilTest(true);           break;
-              case GL_DEPTH_TEST:               context->setDepthTest(true);             break;
-              case GL_BLEND:                    context->setBlend(true);                 break;
-              case GL_DITHER:                   context->setDither(true);                break;
-              default:
+            case GL_CULL_FACE:                context->setCullFace(true);              break;
+            case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFill(true);     break;
+            case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverage(true); break;
+            case GL_SAMPLE_COVERAGE:          context->setSampleCoverage(true);        break;
+            case GL_SCISSOR_TEST:             context->setScissorTest(true);           break;
+            case GL_STENCIL_TEST:             context->setStencilTest(true);           break;
+            case GL_DEPTH_TEST:               context->setDepthTest(true);             break;
+            case GL_BLEND:                    context->setBlend(true);                 break;
+            case GL_DITHER:                   context->setDither(true);                break;
+			case GL_LIGHTING:                 context->setLighting(true);              break;
+			case GL_LIGHT0:                   context->setLight(0, true);              break;
+			case GL_LIGHT1:                   context->setLight(1, true);              break;
+		    case GL_LIGHT2:                   context->setLight(2, true);              break;
+			case GL_LIGHT3:                   context->setLight(3, true);              break;
+			case GL_LIGHT4:                   context->setLight(4, true);              break;
+			case GL_LIGHT5:                   context->setLight(5, true);              break;
+			case GL_LIGHT6:                   context->setLight(6, true);              break;
+			case GL_LIGHT7:                   context->setLight(7, true);              break;
+			case GL_FOG:                      UNIMPLEMENTED(); break;
+			case GL_TEXTURE_2D:               UNIMPLEMENTED(); break;
+			case GL_ALPHA_TEST:               UNIMPLEMENTED(); break;
+			case GL_COLOR_LOGIC_OP:           UNIMPLEMENTED(); break;
+			case GL_POINT_SMOOTH:             UNIMPLEMENTED(); break;
+			case GL_LINE_SMOOTH:              UNIMPLEMENTED(); break;
+			case GL_COLOR_MATERIAL:           UNIMPLEMENTED(); break;
+			case GL_NORMALIZE:                UNIMPLEMENTED(); break;
+			case GL_RESCALE_NORMAL:           UNIMPLEMENTED(); break;
+			case GL_VERTEX_ARRAY:             UNIMPLEMENTED(); break;
+			case GL_NORMAL_ARRAY:             UNIMPLEMENTED(); break;
+			case GL_COLOR_ARRAY:              UNIMPLEMENTED(); break;
+			case GL_TEXTURE_COORD_ARRAY:      UNIMPLEMENTED(); break;
+			case GL_MULTISAMPLE:              UNIMPLEMENTED(); break;
+			case GL_SAMPLE_ALPHA_TO_ONE:      UNIMPLEMENTED(); break;
+			default:
                 return error(GL_INVALID_ENUM);
             }
         }
@@ -2882,7 +2930,42 @@ void GL_APIENTRY glLightf(GLenum light, GLenum pname, GLfloat param)
 
 void GL_APIENTRY glLightfv(GLenum light, GLenum pname, const GLfloat *params)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum light = 0x%X, GLenum pname = 0x%X, const GLint *params)", light, pname);
+    
+	try
+    {
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+			int index = light - GL_LIGHT0;
+
+			if(index < 0 || index > es1::MAX_LIGHTS)
+			{
+				return error(GL_INVALID_ENUM);
+			}
+
+            switch(pname)
+			{
+			case GL_AMBIENT:               context->setLightAmbient(index, params[0], params[1], params[2], params[3]);  break;
+			case GL_DIFFUSE:               context->setLightDiffuse(index, params[0], params[1], params[2], params[3]);  break;
+			case GL_SPECULAR:              context->setLightSpecular(index, params[0], params[1], params[2], params[3]); break;
+			case GL_POSITION:              context->setLightPosition(index, params[0], params[1], params[2], params[3]); break;
+			case GL_SPOT_DIRECTION:        context->setLightDirection(index, params[0], params[1], params[2]);           break;
+			case GL_SPOT_EXPONENT:         UNIMPLEMENTED(); break;
+			case GL_SPOT_CUTOFF:           UNIMPLEMENTED(); break;
+			case GL_CONSTANT_ATTENUATION:  context->setLightAttenuationConstant(index, params[0]);                       break;
+			case GL_LINEAR_ATTENUATION:    context->setLightAttenuationLinear(index, params[0]);                         break;
+			case GL_QUADRATIC_ATTENUATION: context->setLightAttenuationQuadratic(index, params[0]);                      break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glLightx(GLenum light, GLenum pname, GLfixed param)
