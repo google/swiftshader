@@ -105,6 +105,7 @@ if __name__ == '__main__':
                   '--target=' + args.target,
                   '--prefix=' + args.prefix,
                   '-allow-uninitialized-globals',
+                  '-build-on-read=0',
                   '-o=' + asm_sz,
                   bitcode])
         shellcmd(['llvm-mc',

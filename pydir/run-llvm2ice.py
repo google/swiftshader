@@ -74,8 +74,10 @@ def main():
       cmd += ['--bitcode-format=pnacl']
       if not args.no_local_syms:
         cmd += ['--allow-local-symbol-tables']
-    if not (args.llvm or args.llvm_source):
-      cmd += ['--build-on-read']
+    if args.llvm or args.llvm_source:
+      cmd += ['--build-on-read=0']
+    else:
+      cmd += ['--build-on-read=1']
     if args.args:
       cmd += args.args
     if args.llvm_source:

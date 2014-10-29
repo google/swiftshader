@@ -86,12 +86,11 @@ CXXFLAGS := $(LLVM_CXXFLAGS) -std=c++11 -Wall -Wextra -Werror -fno-rtti \
 	-I$(LIBCXX_INSTALL_PATH)/include/c++/v1
 LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib
 
-SRCS= \
+SRCS = \
 	assembler.cpp \
 	assembler_ia32.cpp \
 	IceCfg.cpp \
 	IceCfgNode.cpp \
-	IceConverter.cpp \
 	IceGlobalContext.cpp \
 	IceGlobalInits.cpp \
 	IceInst.cpp \
@@ -110,6 +109,10 @@ SRCS= \
 	IceTypes.cpp \
 	llvm2ice.cpp \
 	PNaClTranslator.cpp
+
+ifndef MINIMAL
+  SRCS += IceConverter.cpp
+endif
 
 OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(SRCS))
 
@@ -146,8 +149,13 @@ check-lit: llvm2ice make_symlink
 	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit
 
+ifdef MINIMAL
+check: check-lit
+	@echo "Crosstests ignored, minimal build"
+else
 check: check-lit
 	(cd crosstest; ./runtests.sh)
+endif
 
 # TODO: Fix the use of wildcards.
 # Assumes clang-format is within $PATH.

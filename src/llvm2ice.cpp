@@ -148,10 +148,14 @@ static cl::opt<std::string>
                                    "unnamed functions"),
                           cl::init("Function"));
 
+// Note: While this flag isn't used in the minimal build, we keep this
+// flag so that tests can set this command-line flag without concern
+// to the type of build. We double check that this flag at runtime
+// to make sure the consistency is maintained.
 static cl::opt<bool>
-BuildOnRead("build-on-read",
-            cl::desc("Build ICE instructions when reading bitcode"),
-            cl::init(false));
+    BuildOnRead("build-on-read",
+                cl::desc("Build ICE instructions when reading bitcode"),
+                cl::init(true));
 
 static cl::opt<bool>
     UseIntegratedAssembler("integrated-as",
@@ -271,7 +275,7 @@ int main(int argc, char **argv) {
     Ice::PNaClTranslator Translator(&Ctx, Flags);
     Translator.translate(IRFilename);
     ErrorStatus = Translator.getErrorStatus();
-  } else {
+  } else if (ALLOW_LLVM_IR) {
     // Parse the input LLVM IR file into a module.
     SMDiagnostic Err;
     Ice::TimerMarker T1(Ice::TimerStack::TT_parse, &Ctx);
@@ -286,6 +290,10 @@ int main(int argc, char **argv) {
     Ice::Converter Converter(Mod, &Ctx, Flags);
     Converter.convertToIce();
     ErrorStatus = Converter.getErrorStatus();
+  } else {
+    *Ls << "Error: Build doesn't allow LLVM IR, "
+        << "--build-on-read=0 not allowed\n";
+    return GetReturnValue(1);
   }
   if (TimeEachFunction) {
     const bool DumpCumulative = false;
