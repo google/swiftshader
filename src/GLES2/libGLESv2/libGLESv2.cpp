@@ -6100,7 +6100,7 @@ void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image
 {
 	if(egl::getClientVersion() == 1)
 	{
-		static PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEGLImageTargetTexture2DOES = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)es1::getProcAddress("glEGLImageTargetTexture2DOES");
+		static auto glEGLImageTargetTexture2DOES = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)es1::getProcAddress("glEGLImageTargetTexture2DOES");
 		return glEGLImageTargetTexture2DOES(target, image);
 	}
 

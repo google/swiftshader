@@ -169,11 +169,11 @@ EXPORTS
     glGetQueryObjectuivEXT          @171
 
     ; EGL dependencies
-    glCreateContext                 @144
-    glGetProcAddress                @148
+    glCreateContext
+    glGetProcAddress
 
-	createFrameBuffer               @172
-	createBackBuffer                @173
-	createDepthStencil              @175
+	createFrameBuffer
+	createBackBuffer
+	createDepthStencil
 
 	Register
