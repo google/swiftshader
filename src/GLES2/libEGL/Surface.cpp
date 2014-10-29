@@ -132,7 +132,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 
     if(mWindow)
     {
-		frameBuffer = es2::createFrameBuffer(mDisplay->getNativeDisplay(), mWindow, backBufferWidth, backBufferHeight);
+		frameBuffer = es::createFrameBuffer(mDisplay->getNativeDisplay(), mWindow, backBufferWidth, backBufferHeight);
 
 		if(!frameBuffer)
 		{
@@ -142,8 +142,8 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 		}
     }
 
-	backBuffer = es2::createBackBuffer(backBufferWidth, backBufferHeight, mConfig);
-	
+	backBuffer = es::createBackBuffer(backBufferWidth, backBufferHeight, mConfig);
+
     if(!backBuffer)
     {
         ERR("Could not create back buffer");
@@ -153,7 +153,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 
     if(mConfig->mDepthStencilFormat != sw::FORMAT_NULL)
     {
-        mDepthStencil = es2::createDepthStencil(backBufferWidth, backBufferHeight, mConfig->mDepthStencilFormat, 1, false);
+        mDepthStencil = es::createDepthStencil(backBufferWidth, backBufferHeight, mConfig->mDepthStencilFormat, 1, false);
 
 		if(!mDepthStencil)
 		{
