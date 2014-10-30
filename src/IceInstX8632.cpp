@@ -184,6 +184,17 @@ bool InstX8632Br::optimizeBranch(const CfgNode *NextNode) {
   return false;
 }
 
+bool InstX8632Br::repointEdge(CfgNode *OldNode, CfgNode *NewNode) {
+  if (TargetFalse == OldNode) {
+    TargetFalse = NewNode;
+    return true;
+  } else if (TargetTrue == OldNode) {
+    TargetTrue = NewNode;
+    return true;
+  }
+  return false;
+}
+
 InstX8632Call::InstX8632Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
     : InstX8632(Func, InstX8632::Call, 1, Dest) {
   HasSideEffects = true;

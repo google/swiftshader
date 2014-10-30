@@ -135,12 +135,12 @@ void Inst::livenessLightweight(Cfg *Func, LivenessBV &Live) {
   }
 }
 
-void Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
+bool Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
                     Liveness *Liveness, LiveBeginEndMap *LiveBegin,
                     LiveBeginEndMap *LiveEnd) {
   assert(!isDeleted());
   if (llvm::isa<InstFakeKill>(this))
-    return;
+    return true;
 
   Dead = false;
   if (Dest) {
@@ -158,7 +158,7 @@ void Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
     }
   }
   if (Dead)
-    return;
+    return false;
   // Phi arguments only get added to Live in the predecessor node, but
   // we still need to update LiveRangesEnded.
   bool IsPhi = llvm::isa<InstPhi>(this);
@@ -202,6 +202,7 @@ void Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
       }
     }
   }
+  return true;
 }
 
 InstAlloca::InstAlloca(Cfg *Func, Operand *ByteCount, uint32_t AlignInBytes,
@@ -259,6 +260,17 @@ NodeList InstBr::getTerminatorEdges() const {
   if (TargetTrue)
     OutEdges.push_back(TargetTrue);
   return OutEdges;
+}
+
+bool InstBr::repointEdge(CfgNode *OldNode, CfgNode *NewNode) {
+  if (TargetFalse == OldNode) {
+    TargetFalse = NewNode;
+    return true;
+  } else if (TargetTrue == OldNode) {
+    TargetTrue = NewNode;
+    return true;
+  }
+  return false;
 }
 
 InstCast::InstCast(Cfg *Func, OpKind CastKind, Variable *Dest, Operand *Source)
@@ -408,6 +420,20 @@ NodeList InstSwitch::getTerminatorEdges() const {
     OutEdges.push_back(Labels[I]);
   }
   return OutEdges;
+}
+
+bool InstSwitch::repointEdge(CfgNode *OldNode, CfgNode *NewNode) {
+  if (LabelDefault == OldNode) {
+    LabelDefault = NewNode;
+    return true;
+  }
+  for (SizeT I = 0; I < NumCases; ++I) {
+    if (Labels[I] == OldNode) {
+      Labels[I] = NewNode;
+      return true;
+    }
+  }
+  return false;
 }
 
 InstUnreachable::InstUnreachable(Cfg *Func)

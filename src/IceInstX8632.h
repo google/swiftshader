@@ -387,6 +387,10 @@ public:
       ++Sum;
     return Sum;
   }
+  bool isUnconditionalBranch() const override {
+    return !Label && Condition == CondX86::Br_None;
+  }
+  bool repointEdge(CfgNode *OldNode, CfgNode *NewNode) override;
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;

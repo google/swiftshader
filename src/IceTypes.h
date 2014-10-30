@@ -31,7 +31,7 @@ enum TargetArch {
 #define X(tag, str) tag,
   TARGETARCH_TABLE
 #undef X
-  TargetArch_NUM
+      TargetArch_NUM
 };
 
 const char *targetArchString(TargetArch Arch);

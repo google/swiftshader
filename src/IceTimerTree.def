@@ -18,6 +18,7 @@
   /* enum value */         \
   X(O2)                    \
   X(Om1)                   \
+  X(advancedPhiLowering)   \
   X(convertToIce)          \
   X(deletePhis)            \
   X(doAddressOpt)          \

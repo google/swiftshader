@@ -116,6 +116,87 @@ void Cfg::deletePhis() {
     Node->deletePhis();
 }
 
+void Cfg::advancedPhiLowering() {
+  TimerMarker T(TimerStack::TT_advancedPhiLowering, this);
+  // This splits edges and appends new nodes to the end of the node
+  // list.  This can invalidate iterators, so don't use an iterator.
+  SizeT NumNodes = getNumNodes();
+  for (SizeT I = 0; I < NumNodes; ++I)
+    Nodes[I]->advancedPhiLowering();
+}
+
+// Find a reasonable placement for nodes that have not yet been
+// placed, while maintaining the same relative ordering among already
+// placed nodes.
+void Cfg::reorderNodes() {
+  typedef std::list<CfgNode *> PlacedList;
+  PlacedList Placed;      // Nodes with relative placement locked down
+  PlacedList Unreachable; // Unreachable nodes
+  PlacedList::iterator NoPlace = Placed.end();
+  // Keep track of where each node has been tentatively placed so that
+  // we can manage insertions into the middle.
+  std::vector<PlacedList::iterator> PlaceIndex(Nodes.size(), NoPlace);
+  for (CfgNode *Node : Nodes) {
+    // The "do ... while(0);" construct is to factor out the
+    // --PlaceIndex and assert() statements before moving to the next
+    // node.
+    do {
+      if (!Node->needsPlacement()) {
+        // Add to the end of the Placed list.
+        Placed.push_back(Node);
+        PlaceIndex[Node->getIndex()] = Placed.end();
+        continue;
+      }
+      Node->setNeedsPlacement(false);
+      if (Node != getEntryNode() && Node->getInEdges().size() == 0) {
+        // The node has essentially been deleted since it is not a
+        // successor of any other node.
+        Unreachable.push_back(Node);
+        PlaceIndex[Node->getIndex()] = Unreachable.end();
+        continue;
+      }
+      // Assume for now that the unplaced node is from edge-splitting
+      // and therefore has 1 in-edge and 1 out-edge (actually, possibly
+      // more than 1 in-edge if the predecessor node was contracted).
+      // If this changes in the future, rethink the strategy.
+      assert(Node->getInEdges().size() >= 1);
+      assert(Node->getOutEdges().size() == 1);
+
+      // If it's a (non-critical) edge where the successor has a single
+      // in-edge, then place it before the successor.
+      CfgNode *Succ = Node->getOutEdges()[0];
+      if (Succ->getInEdges().size() == 1 &&
+          PlaceIndex[Succ->getIndex()] != NoPlace) {
+        Placed.insert(PlaceIndex[Succ->getIndex()], Node);
+        PlaceIndex[Node->getIndex()] = PlaceIndex[Succ->getIndex()];
+        continue;
+      }
+
+      // Otherwise, place it after the (first) predecessor.
+      CfgNode *Pred = Node->getInEdges()[0];
+      auto PredPosition = PlaceIndex[Pred->getIndex()];
+      // It shouldn't be the case that PredPosition==NoPlace, but if
+      // that somehow turns out to be true, we just insert Node before
+      // PredPosition=NoPlace=Placed.end() .
+      if (PredPosition != NoPlace)
+        ++PredPosition;
+      Placed.insert(PredPosition, Node);
+      PlaceIndex[Node->getIndex()] = PredPosition;
+    } while (0);
+
+    --PlaceIndex[Node->getIndex()];
+    assert(*PlaceIndex[Node->getIndex()] == Node);
+  }
+
+  // Reorder Nodes according to the built-up lists.
+  SizeT Cur = 0;
+  for (CfgNode *Node : Placed)
+    Nodes[Cur++] = Node;
+  for (CfgNode *Node : Unreachable)
+    Nodes[Cur++] = Node;
+  assert(Cur == Nodes.size());
+}
+
 void Cfg::doArgLowering() {
   TimerMarker T(TimerStack::TT_doArgLowering, this);
   getTarget()->lowerArguments();
@@ -294,6 +375,12 @@ void Cfg::deleteRedundantAssignments() {
     for (Inst *I : Node->getInsts())
       if (I->isRedundantAssign())
         I->setDeleted();
+  }
+}
+
+void Cfg::contractEmptyNodes() {
+  for (CfgNode *Node : Nodes) {
+    Node->contractIfEmpty();
   }
 }
 

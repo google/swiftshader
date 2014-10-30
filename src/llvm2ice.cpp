@@ -169,10 +169,11 @@ static cl::opt<bool> AlwaysExitSuccess(
     "exit-success", cl::desc("Exit with success status, even if errors found"),
     cl::init(false));
 
-static cl::opt<bool> GenerateBuildAtts(
-    "build-atts", cl::desc("Generate list of build attributes associated with "
+static cl::opt<bool>
+GenerateBuildAtts("build-atts",
+                  cl::desc("Generate list of build attributes associated with "
                            "this executable."),
-    cl::init(false));
+                  cl::init(false));
 
 static int GetReturnValue(int Val) {
   if (AlwaysExitSuccess)
@@ -183,13 +184,12 @@ static int GetReturnValue(int Val) {
 static struct {
   const char *FlagName;
   int FlagValue;
-} ConditionalBuildAttributes[] = {
-  { "text_asm", ALLOW_TEXT_ASM },
-  { "dump", ALLOW_DUMP },
-  { "llvm_cl", ALLOW_LLVM_CL },
-  { "llvm_ir", ALLOW_LLVM_IR },
-  { "llvm_ir_as_input", ALLOW_LLVM_IR_AS_INPUT }
-};
+} ConditionalBuildAttributes[] = { { "text_asm", ALLOW_TEXT_ASM },
+                                   { "dump", ALLOW_DUMP },
+                                   { "llvm_cl", ALLOW_LLVM_CL },
+                                   { "llvm_ir", ALLOW_LLVM_IR },
+                                   { "llvm_ir_as_input",
+                                     ALLOW_LLVM_IR_AS_INPUT } };
 
 // Validates values of build attributes. Prints them to Stream if
 // Stream is non-null.

@@ -24,7 +24,7 @@ namespace Ice {
 
 CfgNode::CfgNode(Cfg *Func, SizeT LabelNumber, IceString Name)
     : Func(Func), Number(LabelNumber), Name(Name), HasReturn(false),
-      InstCountEstimate(0) {}
+      NeedsPlacement(false), InstCountEstimate(0) {}
 
 // Returns the name the node was created with.  If no name was given,
 // it synthesizes a (hopefully) unique name.
@@ -204,6 +204,276 @@ void CfgNode::deletePhis() {
     I->setDeleted();
 }
 
+// Splits the edge from Pred to this node by creating a new node and
+// hooking up the in and out edges appropriately.  (The EdgeIndex
+// parameter is only used to make the new node's name unique when
+// there are multiple edges between the same pair of nodes.)  The new
+// node's instruction list is initialized to the empty list, with no
+// terminator instruction.  If there are multiple edges from Pred to
+// this node, only one edge is split, and the particular choice of
+// edge is undefined.  This could happen with a switch instruction, or
+// a conditional branch that weirdly has both branches to the same
+// place.  TODO(stichnot,kschimpf): Figure out whether this is legal
+// in the LLVM IR or the PNaCl bitcode, and if so, we need to
+// establish a strong relationship among the ordering of Pred's
+// out-edge list, this node's in-edge list, and the Phi instruction's
+// operand list.
+CfgNode *CfgNode::splitIncomingEdge(CfgNode *Pred, SizeT EdgeIndex) {
+  CfgNode *NewNode =
+      Func->makeNode("split_" + Pred->getName() + "_" + getName() + "_" +
+                     std::to_string(EdgeIndex));
+  // The new node is added to the end of the node list, and will later
+  // need to be sorted into a reasonable topological order.
+  NewNode->setNeedsPlacement(true);
+  // Repoint Pred's out-edge.
+  bool Found = false;
+  for (auto I = Pred->OutEdges.begin(), E = Pred->OutEdges.end();
+       !Found && I != E; ++I) {
+    if (*I == this) {
+      *I = NewNode;
+      NewNode->InEdges.push_back(Pred);
+      Found = true;
+    }
+  }
+  assert(Found);
+  // Repoint this node's in-edge.
+  Found = false;
+  for (auto I = InEdges.begin(), E = InEdges.end(); !Found && I != E; ++I) {
+    if (*I == Pred) {
+      *I = NewNode;
+      NewNode->OutEdges.push_back(this);
+      Found = true;
+    }
+  }
+  assert(Found);
+  // Repoint a suitable branch instruction's target.
+  Found = false;
+  for (auto I = Pred->getInsts().rbegin(), E = Pred->getInsts().rend();
+       !Found && I != E; ++I) {
+    if (!(*I)->isDeleted()) {
+      Found = (*I)->repointEdge(this, NewNode);
+    }
+  }
+  assert(Found);
+  return NewNode;
+}
+
+namespace {
+
+// Helper function used by advancedPhiLowering().
+bool sameVarOrReg(const Variable *Var, const Operand *Opnd) {
+  if (Var == Opnd)
+    return true;
+  if (const auto Var2 = llvm::dyn_cast<Variable>(Opnd)) {
+    if (Var->hasReg() && Var->getRegNum() == Var2->getRegNum())
+      return true;
+  }
+  return false;
+}
+
+} // end of anonymous namespace
+
+// This the "advanced" version of Phi lowering for a basic block, in
+// contrast to the simple version that lowers through assignments
+// involving temporaries.
+//
+// All Phi instructions in a basic block are conceptually executed in
+// parallel.  However, if we lower Phis early and commit to a
+// sequential ordering, we may end up creating unnecessary
+// interferences which lead to worse register allocation.  Delaying
+// Phi scheduling until after register allocation can help unless
+// there are no free registers for shuffling registers or stack slots
+// and spilling becomes necessary.
+//
+// The advanced Phi lowering starts by finding a topological sort of
+// the Phi instructions, where "A=B" comes before "B=C" due to the
+// anti-dependence on B.  If a topological sort is not possible due to
+// a cycle, the cycle is broken by introducing a non-parallel
+// temporary.  For example, a cycle arising from a permutation like
+// "A=B;B=C;C=A" can become "T=A;A=B;B=C;C=T".  All else being equal,
+// prefer to schedule assignments with register-allocated Src operands
+// earlier, in case that register becomes free afterwards, and prefer
+// to schedule assignments with register-allocated Dest variables
+// later, to keep that register free for longer.
+//
+// Once the ordering is determined, the Cfg edge is split and the
+// assignment list is lowered by the target lowering layer.  The
+// specific placement of the new node within the Cfg node list is
+// deferred until later, including after empty node contraction.
+void CfgNode::advancedPhiLowering() {
+  if (getPhis().empty())
+    return;
+
+  // Count the number of non-deleted Phi instructions.
+  struct {
+    InstPhi *Phi;
+    Variable *Dest;
+    Operand *Src;
+    bool Processed;
+    size_t NumPred; // number of entries whose Src is this Dest
+    int32_t Weight; // preference for topological order
+  } Desc[getPhis().size()];
+
+  size_t NumPhis = 0;
+  for (InstPhi *Inst : getPhis()) {
+    if (!Inst->isDeleted()) {
+      Desc[NumPhis].Phi = Inst;
+      Desc[NumPhis].Dest = Inst->getDest();
+      ++NumPhis;
+    }
+  }
+  if (NumPhis == 0)
+    return;
+
+  SizeT InEdgeIndex = 0;
+  for (CfgNode *Pred : InEdges) {
+    CfgNode *Split = splitIncomingEdge(Pred, InEdgeIndex++);
+    AssignList Assignments;
+    SizeT Remaining = NumPhis;
+
+    // First pass computes Src and initializes NumPred.
+    for (size_t I = 0; I < NumPhis; ++I) {
+      Variable *Dest = Desc[I].Dest;
+      Operand *Src = Desc[I].Phi->getOperandForTarget(Pred);
+      Desc[I].Src = Src;
+      Desc[I].Processed = false;
+      Desc[I].NumPred = 0;
+      // Cherry-pick any trivial assignments, so that they don't
+      // contribute to the running complexity of the topological sort.
+      if (sameVarOrReg(Dest, Src)) {
+        Desc[I].Processed = true;
+        --Remaining;
+        if (Dest != Src)
+          // If Dest and Src are syntactically the same, don't bother
+          // adding the assignment, because in all respects it would
+          // be redundant, and if Dest/Src are on the stack, the
+          // target lowering may naively decide to lower it using a
+          // temporary register.
+          Assignments.push_back(InstAssign::create(Func, Dest, Src));
+      }
+    }
+    // Second pass computes NumPred by comparing every pair of Phi
+    // instructions.
+    for (size_t I = 0; I < NumPhis; ++I) {
+      if (Desc[I].Processed)
+        continue;
+      const Variable *Dest = Desc[I].Dest;
+      for (size_t J = 0; J < NumPhis; ++J) {
+        if (Desc[J].Processed)
+          continue;
+        if (I != J) {
+          // There shouldn't be two Phis with the same Dest variable
+          // or register.
+          assert(!sameVarOrReg(Dest, Desc[J].Dest));
+        }
+        const Operand *Src = Desc[J].Src;
+        if (sameVarOrReg(Dest, Src))
+          ++Desc[I].NumPred;
+      }
+    }
+
+    // Another pass to compute initial Weight values.
+
+    // Always pick NumPred=0 over NumPred>0.
+    const int32_t WeightNoPreds = 4;
+    // Prefer Src as a register because the register might free up.
+    const int32_t WeightSrcIsReg = 2;
+    // Prefer Dest not as a register because the register stays free
+    // longer.
+    const int32_t WeightDestNotReg = 1;
+
+    for (size_t I = 0; I < NumPhis; ++I) {
+      if (Desc[I].Processed)
+        continue;
+      int32_t Weight = 0;
+      if (Desc[I].NumPred == 0)
+        Weight += WeightNoPreds;
+      if (auto Var = llvm::dyn_cast<Variable>(Desc[I].Src))
+        if (Var->hasReg())
+          Weight += WeightSrcIsReg;
+      if (!Desc[I].Dest->hasReg())
+        Weight += WeightDestNotReg;
+      Desc[I].Weight = Weight;
+    }
+
+    // Repeatedly choose and process the best candidate in the
+    // topological sort, until no candidates remain.  This
+    // implementation is O(N^2) where N is the number of Phi
+    // instructions, but with a small constant factor compared to a
+    // likely implementation of O(N) topological sort.
+    for (; Remaining; --Remaining) {
+      size_t BestIndex = 0;
+      int32_t BestWeight = -1;
+      // Find the best candidate.
+      for (size_t I = 0; I < NumPhis; ++I) {
+        if (Desc[I].Processed)
+          continue;
+        int32_t Weight = 0;
+        Weight = Desc[I].Weight;
+        if (Weight > BestWeight) {
+          BestIndex = I;
+          BestWeight = Weight;
+        }
+      }
+      assert(BestWeight >= 0);
+      assert(Desc[BestIndex].NumPred <= 1);
+      Variable *Dest = Desc[BestIndex].Dest;
+      Operand *Src = Desc[BestIndex].Src;
+      assert(!sameVarOrReg(Dest, Src));
+      // Break a cycle by introducing a temporary.
+      if (Desc[BestIndex].NumPred) {
+        bool Found = false;
+        // If the target instruction "A=B" is part of a cycle, find
+        // the "X=A" assignment in the cycle because it will have to
+        // be rewritten as "X=tmp".
+        for (size_t J = 0; !Found && J < NumPhis; ++J) {
+          if (Desc[J].Processed)
+            continue;
+          Operand *OtherSrc = Desc[J].Src;
+          if (Desc[J].NumPred && sameVarOrReg(Dest, OtherSrc)) {
+            SizeT VarNum = Func->getNumVariables();
+            Variable *Tmp = Func->makeVariable(
+                OtherSrc->getType(), "__split_" + std::to_string(VarNum));
+            Tmp->setNeedsStackSlot();
+            Assignments.push_back(InstAssign::create(Func, Tmp, OtherSrc));
+            Desc[J].Src = Tmp;
+            Found = true;
+          }
+        }
+        assert(Found);
+      }
+      // Now that a cycle (if any) has been broken, create the actual
+      // assignment.
+      Assignments.push_back(InstAssign::create(Func, Dest, Src));
+      // Update NumPred for all Phi assignments using this Phi's Src
+      // as their Dest variable.  Also update Weight if NumPred
+      // dropped from 1 to 0.
+      if (auto Var = llvm::dyn_cast<Variable>(Src)) {
+        for (size_t I = 0; I < NumPhis; ++I) {
+          if (Desc[I].Processed)
+            continue;
+          if (sameVarOrReg(Var, Desc[I].Dest)) {
+            if (--Desc[I].NumPred == 0)
+              Desc[I].Weight += WeightNoPreds;
+          }
+        }
+      }
+      Desc[BestIndex].Processed = true;
+    }
+
+    Func->getTarget()->lowerPhiAssignments(Split, Assignments);
+
+    // Renumber the instructions to be monotonically increasing so
+    // that addNode() doesn't assert when multi-definitions are added
+    // out of order.
+    Split->renumberInstructions();
+    Func->getVMetadata()->addNode(Split);
+  }
+
+  for (InstPhi *Inst : getPhis())
+    Inst->setDeleted();
+}
+
 // Does address mode optimization.  Pass each instruction to the
 // TargetLowering object.  If it returns a new instruction
 // (representing the optimized address mode), then insert the new
@@ -240,7 +510,7 @@ void CfgNode::doNopInsertion() {
 void CfgNode::genCode() {
   TargetLowering *Target = Func->getTarget();
   LoweringContext &Context = Target->getContext();
-  // Lower only the regular instructions.  Defer the Phi instructions.
+  // Lower the regular instructions.
   Context.init(this);
   while (!Context.atEnd()) {
     InstList::iterator Orig = Context.getCur();
@@ -250,6 +520,8 @@ void CfgNode::genCode() {
     // Ensure target lowering actually moved the cursor.
     assert(Context.getCur() != Orig);
   }
+  // Do preliminary lowering of the Phi instructions.
+  Target->prelowerPhis();
 }
 
 void CfgNode::livenessLightweight() {
@@ -300,7 +572,6 @@ bool CfgNode::liveness(Liveness *Liveness) {
   Liveness->getLiveOut(this) = Live;
 
   // Process regular instructions in reverse order.
-  // TODO(stichnot): Use llvm::make_range with LLVM 3.5.
   for (auto I = Insts.rbegin(), E = Insts.rend(); I != E; ++I) {
     if ((*I)->isDeleted())
       continue;
@@ -309,13 +580,15 @@ bool CfgNode::liveness(Liveness *Liveness) {
   // Process phis in forward order so that we can override the
   // instruction number to be that of the earliest phi instruction in
   // the block.
+  SizeT NumNonDeadPhis = 0;
   InstNumberT FirstPhiNumber = Inst::NumberSentinel;
   for (InstPhi *I : Phis) {
     if (I->isDeleted())
       continue;
     if (FirstPhiNumber == Inst::NumberSentinel)
       FirstPhiNumber = I->getNumber();
-    I->liveness(FirstPhiNumber, Live, Liveness, LiveBegin, LiveEnd);
+    if (I->liveness(FirstPhiNumber, Live, Liveness, LiveBegin, LiveEnd))
+      ++NumNonDeadPhis;
   }
 
   // When using the sparse representation, after traversing the
@@ -350,9 +623,12 @@ bool CfgNode::liveness(Liveness *Liveness) {
   // Add in current LiveIn
   Live |= LiveIn;
   // Check result, set LiveIn=Live
-  Changed = (Live != LiveIn);
-  if (Changed)
+  SizeT &PrevNumNonDeadPhis = Liveness->getNumNonDeadPhis(this);
+  bool LiveInChanged = (Live != LiveIn);
+  Changed = (NumNonDeadPhis != PrevNumNonDeadPhis || LiveInChanged);
+  if (LiveInChanged)
     LiveIn = Live;
+  PrevNumNonDeadPhis = NumNonDeadPhis;
   return Changed;
 }
 
@@ -472,6 +748,40 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
   }
 }
 
+// If this node contains only deleted instructions, and ends in an
+// unconditional branch, contract the node by repointing all its
+// in-edges to its successor.
+void CfgNode::contractIfEmpty() {
+  if (InEdges.size() == 0)
+    return;
+  Inst *Branch = NULL;
+  for (Inst *I : Insts) {
+    if (!I->isDeleted() && !I->isUnconditionalBranch())
+      return;
+    Branch = I;
+  }
+  Branch->setDeleted();
+  assert(OutEdges.size() == 1);
+  // Repoint all this node's in-edges to this node's successor.
+  for (CfgNode *Pred : InEdges) {
+    for (auto I = Pred->OutEdges.begin(), E = Pred->OutEdges.end(); I != E;
+         ++I) {
+      if (*I == this) {
+        *I = OutEdges[0];
+        OutEdges[0]->InEdges.push_back(Pred);
+      }
+    }
+    for (Inst *I : Pred->getInsts()) {
+      if (!I->isDeleted())
+        I->repointEdge(this, OutEdges[0]);
+    }
+  }
+  InEdges.clear();
+  // Don't bother removing the single out-edge, which would also
+  // require finding the corresponding in-edge in the successor and
+  // removing it.
+}
+
 void CfgNode::doBranchOpt(const CfgNode *NextNode) {
   TargetLowering *Target = Func->getTarget();
   // Check every instruction for a branch optimization opportunity.
@@ -479,8 +789,11 @@ void CfgNode::doBranchOpt(const CfgNode *NextNode) {
   // first opportunity, unless there is some target lowering where we
   // have the possibility of multiple such optimizations per block
   // (currently not the case for x86 lowering).
-  for (Inst *I : Insts)
-    Target->doBranchOpt(I, NextNode);
+  for (Inst *I : Insts) {
+    if (!I->isDeleted()) {
+      Target->doBranchOpt(I, NextNode);
+    }
+  }
 }
 
 // ======================== Dump routines ======================== //

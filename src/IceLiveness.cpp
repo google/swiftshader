@@ -53,6 +53,7 @@ void Liveness::init() {
   for (SizeT i = 0; i < NumNodes; ++i) {
     Nodes[i].LiveToVarMap.assign(Nodes[i].NumLocals, NULL);
     Nodes[i].NumLocals = 0;
+    Nodes[i].NumNonDeadPhis = 0;
   }
   LiveToVarMap.assign(NumGlobals, NULL);
 

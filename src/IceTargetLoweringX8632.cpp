@@ -25,6 +25,7 @@
 #include "IceDefs.h"
 #include "IceGlobalInits.h"
 #include "IceInstX8632.h"
+#include "IceLiveness.h"
 #include "IceOperand.h"
 #include "IceRegistersX8632.h"
 #include "IceTargetLoweringX8632.def"
@@ -276,8 +277,7 @@ ICETYPE_TABLE;
 TargetX8632::TargetX8632(Cfg *Func)
     : TargetLowering(Func), InstructionSet(CLInstructionSet),
       IsEbpBasedFrame(false), NeedsStackAlignment(false), FrameSizeLocals(0),
-      SpillAreaSizeBytes(0), NextLabelNumber(0), ComputedLiveRanges(false),
-      PhysicalRegisters(VarList(RegX8632::Reg_NUM)) {
+      SpillAreaSizeBytes(0), NextLabelNumber(0), ComputedLiveRanges(false) {
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
   // class.
@@ -316,17 +316,19 @@ TargetX8632::TargetX8632(Cfg *Func)
 void TargetX8632::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
-  // Lower Phi instructions.
-  Func->placePhiLoads();
-  if (Func->hasError())
-    return;
-  Func->placePhiStores();
-  if (Func->hasError())
-    return;
-  Func->deletePhis();
-  if (Func->hasError())
-    return;
-  Func->dump("After Phi lowering");
+  if (!Ctx->getFlags().PhiEdgeSplit) {
+    // Lower Phi instructions.
+    Func->placePhiLoads();
+    if (Func->hasError())
+      return;
+    Func->placePhiStores();
+    if (Func->hasError())
+      return;
+    Func->deletePhis();
+    if (Func->hasError())
+      return;
+    Func->dump("After Phi lowering");
+  }
 
   // Address mode optimization.
   Func->getVMetadata()->init(VMK_SingleDefs);
@@ -356,6 +358,7 @@ void TargetX8632::translateO2() {
   Func->genCode();
   if (Func->hasError())
     return;
+  Func->dump("After x86 codegen");
 
   // Register allocation.  This requires instruction renumbering and
   // full liveness analysis.
@@ -378,6 +381,11 @@ void TargetX8632::translateO2() {
     return;
   Func->dump("After linear scan regalloc");
 
+  if (Ctx->getFlags().PhiEdgeSplit) {
+    Func->advancedPhiLowering();
+    Func->dump("After advanced Phi lowering");
+  }
+
   // Stack frame mapping.
   Func->genFrame();
   if (Func->hasError())
@@ -385,6 +393,8 @@ void TargetX8632::translateO2() {
   Func->dump("After stack frame mapping");
 
   Func->deleteRedundantAssignments();
+  Func->contractEmptyNodes();
+  Func->reorderNodes();
 
   // Branch optimization.  This needs to be done just before code
   // emission.  In particular, no transformations that insert or
@@ -451,12 +461,14 @@ IceString TargetX8632::RegNames[] = {
 Variable *TargetX8632::getPhysicalRegister(SizeT RegNum, Type Ty) {
   if (Ty == IceType_void)
     Ty = IceType_i32;
-  assert(RegNum < PhysicalRegisters.size());
-  Variable *Reg = PhysicalRegisters[RegNum];
+  if (PhysicalRegisters[Ty].empty())
+    PhysicalRegisters[Ty].resize(RegX8632::Reg_NUM);
+  assert(RegNum < PhysicalRegisters[Ty].size());
+  Variable *Reg = PhysicalRegisters[Ty][RegNum];
   if (Reg == NULL) {
     Reg = Func->makeVariable(Ty);
     Reg->setRegNum(RegNum);
-    PhysicalRegisters[RegNum] = Reg;
+    PhysicalRegisters[Ty][RegNum] = Reg;
     // Specially mark esp as an "argument" so that it is considered
     // live upon function entry.
     if (RegNum == RegX8632::Reg_esp) {
@@ -711,7 +723,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     if (Var->getIsArg())
       continue;
     // An unreferenced variable doesn't need a stack slot.
-    if (ComputedLiveRanges && Var->getLiveRange().isEmpty())
+    if (ComputedLiveRanges && !Var->needsStackSlot())
       continue;
     // A spill slot linked to a variable with a stack slot should reuse
     // that stack slot.
@@ -1695,8 +1707,10 @@ void TargetX8632::lowerAssign(const InstAssign *Inst) {
     _mov(T_Hi, Src0Hi);
     _mov(DestHi, T_Hi);
   } else {
-    // RI is either a physical register or an immediate.
-    Operand *RI = legalize(Src0, Legal_Reg | Legal_Imm);
+    // If Dest is in memory, then RI is either a physical register or
+    // an immediate, otherwise RI can be anything.
+    Operand *RI =
+        legalize(Src0, Dest->hasReg() ? Legal_All : Legal_Reg | Legal_Imm);
     if (isVectorType(Dest->getType()))
       _movp(Dest, RI);
     else
@@ -4098,6 +4112,168 @@ void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) {
   lowerCall(Call);
 }
 
+// Turn an i64 Phi instruction into a pair of i32 Phi instructions, to
+// preserve integrity of liveness analysis.  Undef values are also
+// turned into zeroes, since loOperand() and hiOperand() don't expect
+// Undef input.
+void TargetX8632::prelowerPhis() {
+  CfgNode *Node = Context.getNode();
+  for (InstPhi *Phi : Node->getPhis()) {
+    if (Phi->isDeleted())
+      continue;
+    Variable *Dest = Phi->getDest();
+    if (Dest->getType() == IceType_i64) {
+      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      InstPhi *PhiLo = InstPhi::create(Func, Phi->getSrcSize(), DestLo);
+      InstPhi *PhiHi = InstPhi::create(Func, Phi->getSrcSize(), DestHi);
+      for (SizeT I = 0; I < Phi->getSrcSize(); ++I) {
+        Operand *Src = Phi->getSrc(I);
+        CfgNode *Label = Phi->getLabel(I);
+        if (llvm::isa<ConstantUndef>(Src))
+          Src = Ctx->getConstantZero(Dest->getType());
+        PhiLo->addArgument(loOperand(Src), Label);
+        PhiHi->addArgument(hiOperand(Src), Label);
+      }
+      Node->getPhis().push_back(PhiLo);
+      Node->getPhis().push_back(PhiHi);
+      Phi->setDeleted();
+    }
+  }
+}
+
+namespace {
+
+bool isMemoryOperand(const Operand *Opnd) {
+  if (const auto Var = llvm::dyn_cast<Variable>(Opnd))
+    return !Var->hasReg();
+  if (llvm::isa<Constant>(Opnd))
+    return isScalarFloatingType(Opnd->getType());
+  return true;
+}
+
+} // end of anonymous namespace
+
+// Lower the pre-ordered list of assignments into mov instructions.
+// Also has to do some ad-hoc register allocation as necessary.
+void TargetX8632::lowerPhiAssignments(CfgNode *Node,
+                                      const AssignList &Assignments) {
+  // Check that this is a properly initialized shell of a node.
+  assert(Node->getOutEdges().size() == 1);
+  assert(Node->getInsts().empty());
+  assert(Node->getPhis().empty());
+  CfgNode *Succ = Node->getOutEdges()[0];
+  getContext().init(Node);
+  // Register set setup similar to regAlloc() and postLower().
+  RegSetMask RegInclude = RegSet_All;
+  RegSetMask RegExclude = RegSet_StackPointer;
+  if (hasFramePointer())
+    RegExclude |= RegSet_FramePointer;
+  llvm::SmallBitVector Available = getRegisterSet(RegInclude, RegExclude);
+  bool NeedsRegs = false;
+  // Initialize the set of available registers to the set of what is
+  // available (not live) at the beginning of the successor block,
+  // minus all registers used as Dest operands in the Assignments.  To
+  // do this, we start off assuming all registers are available, then
+  // iterate through the Assignments and remove Dest registers.
+  // During this iteration, we also determine whether we will actually
+  // need any extra registers for memory-to-memory copies.  If so, we
+  // do the actual work of removing the live-in registers from the
+  // set.  TODO(stichnot): This work is being repeated for every split
+  // edge to the successor, so consider updating LiveIn just once
+  // after all the edges are split.
+  for (InstAssign *Assign : Assignments) {
+    Variable *Dest = Assign->getDest();
+    if (Dest->hasReg()) {
+      Available[Dest->getRegNum()] = false;
+    } else if (isMemoryOperand(Assign->getSrc(0))) {
+      NeedsRegs = true; // Src and Dest are both in memory
+    }
+  }
+  if (NeedsRegs) {
+    LivenessBV &LiveIn = Func->getLiveness()->getLiveIn(Succ);
+    for (int i = LiveIn.find_first(); i != -1; i = LiveIn.find_next(i)) {
+      Variable *Var = Func->getLiveness()->getVariable(i, Succ);
+      if (Var->hasReg())
+        Available[Var->getRegNum()] = false;
+    }
+  }
+  // Iterate backwards through the Assignments.  After lowering each
+  // assignment, add Dest to the set of available registers, and
+  // remove Src from the set of available registers.  Iteration is
+  // done backwards to enable incremental updates of the available
+  // register set, and the lowered instruction numbers may be out of
+  // order, but that can be worked around by renumbering the block
+  // afterwards if necessary.
+  for (auto I = Assignments.rbegin(), E = Assignments.rend(); I != E; ++I) {
+    Context.rewind();
+    InstAssign *Assign = *I;
+    Variable *Dest = Assign->getDest();
+    Operand *Src = Assign->getSrc(0);
+    Variable *SrcVar = llvm::dyn_cast<Variable>(Src);
+    // Use normal assignment lowering, except lower mem=mem specially
+    // so we can register-allocate at the same time.
+    if (!isMemoryOperand(Dest) || !isMemoryOperand(Src)) {
+      lowerAssign(Assign);
+    } else {
+      assert(Dest->getType() == Src->getType());
+      const llvm::SmallBitVector &RegsForType =
+          getRegisterSetForType(Dest->getType());
+      llvm::SmallBitVector AvailRegsForType = RegsForType & Available;
+      Variable *SpillLoc = NULL;
+      Variable *Preg = NULL;
+      // TODO(stichnot): Opportunity for register randomization.
+      int32_t RegNum = AvailRegsForType.find_first();
+      bool IsVector = isVectorType(Dest->getType());
+      bool NeedSpill = (RegNum == -1);
+      if (NeedSpill) {
+        // Pick some register to spill and update RegNum.
+        // TODO(stichnot): Opportunity for register randomization.
+        RegNum = RegsForType.find_first();
+        Preg = getPhysicalRegister(RegNum, Dest->getType());
+        SpillLoc = Func->makeVariable(Dest->getType());
+        SpillLoc->setNeedsStackSlot();
+        if (IsVector)
+          _movp(SpillLoc, Preg);
+        else
+          _mov(SpillLoc, Preg);
+      }
+      assert(RegNum >= 0);
+      if (llvm::isa<ConstantUndef>(Src))
+        // Materialize an actual constant instead of undef.  RegNum is
+        // passed in for vector types because undef vectors are
+        // lowered to vector register of zeroes.
+        Src =
+            legalize(Src, Legal_All, IsVector ? RegNum : Variable::NoRegister);
+      Variable *Tmp = makeReg(Dest->getType(), RegNum);
+      if (IsVector) {
+        _movp(Tmp, Src);
+        _movp(Dest, Tmp);
+      } else {
+        _mov(Tmp, Src);
+        _mov(Dest, Tmp);
+      }
+      if (NeedSpill) {
+        // Restore the spilled register.
+        if (IsVector)
+          _movp(Preg, SpillLoc);
+        else
+          _mov(Preg, SpillLoc);
+      }
+    }
+    // Update register availability before moving to the previous
+    // instruction on the Assignments list.
+    if (Dest->hasReg())
+      Available[Dest->getRegNum()] = true;
+    if (SrcVar && SrcVar->hasReg())
+      Available[SrcVar->getRegNum()] = false;
+  }
+
+  // Add the terminator branch instruction to the end.
+  Context.setInsertPoint(Context.end());
+  _br(Succ);
+}
+
 // There is no support for loading or emitting vector constants, so the
 // vector values returned from makeVectorOfZeros, makeVectorOfOnes,
 // etc. are initialized with register operations.
@@ -4229,7 +4405,7 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
       // then the result should be split and the lo and hi components will
       // need to go in uninitialized registers.
       if (isVectorType(From->getType()))
-        return makeVectorOfZeros(From->getType());
+        return makeVectorOfZeros(From->getType(), RegNum);
       From = Ctx->getConstantZero(From->getType());
     }
     // There should be no constants of vector type (other than undef).

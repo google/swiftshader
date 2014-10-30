@@ -46,6 +46,9 @@ public:
   void setHasReturn() { HasReturn = true; }
   bool getHasReturn() const { return HasReturn; }
 
+  void setNeedsPlacement(bool Value) { NeedsPlacement = Value; }
+  bool needsPlacement() const { return NeedsPlacement; }
+
   // Access predecessor and successor edge lists.
   const NodeList &getInEdges() const { return InEdges; }
   const NodeList &getOutEdges() const { return OutEdges; }
@@ -64,16 +67,19 @@ public:
   // Add a predecessor edge to the InEdges list for each of this
   // node's successors.
   void computePredecessors();
+  CfgNode *splitIncomingEdge(CfgNode *Pred, SizeT InEdgeIndex);
 
   void placePhiLoads();
   void placePhiStores();
   void deletePhis();
+  void advancedPhiLowering();
   void doAddressOpt();
   void doNopInsertion();
   void genCode();
   void livenessLightweight();
   bool liveness(Liveness *Liveness);
   void livenessPostprocess(LivenessMode Mode, Liveness *Liveness);
+  void contractIfEmpty();
   void doBranchOpt(const CfgNode *NextNode);
   void emit(Cfg *Func) const;
   void dump(Cfg *Func) const;
@@ -84,6 +90,7 @@ private:
   const SizeT Number; // label index
   IceString Name;     // for dumping only
   bool HasReturn;     // does this block need an epilog?
+  bool NeedsPlacement;
   InstNumberT InstCountEstimate; // rough instruction count estimate
   NodeList InEdges;   // in no particular order
   NodeList OutEdges;  // in no particular order

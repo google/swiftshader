@@ -100,11 +100,27 @@ public:
         "getTerminatorEdges() called on a non-terminator instruction");
     return NodeList();
   }
+  virtual bool isUnconditionalBranch() const { return false; }
+  // If the instruction is a branch-type instruction with OldNode as a
+  // target, repoint it to NewNode and return true, otherwise return
+  // false.  Only repoint one instance, even if the instruction has
+  // multiple instances of OldNode as a target.
+  virtual bool repointEdge(CfgNode *OldNode, CfgNode *NewNode) {
+    (void)OldNode;
+    (void)NewNode;
+    return false;
+  }
 
   virtual bool isSimpleAssign() const { return false; }
 
   void livenessLightweight(Cfg *Func, LivenessBV &Live);
-  void liveness(InstNumberT InstNumber, LivenessBV &Live, Liveness *Liveness,
+  // Calculates liveness for this instruction.  Returns true if this
+  // instruction is (tentatively) still live and should be retained,
+  // and false if this instruction is (tentatively) dead and should be
+  // deleted.  The decision is tentative until the liveness dataflow
+  // algorithm has converged, and then a separate pass permanently
+  // deletes dead instructions.
+  bool liveness(InstNumberT InstNumber, LivenessBV &Live, Liveness *Liveness,
                 LiveBeginEndMap *LiveBegin, LiveBeginEndMap *LiveEnd);
 
   // Get the number of native instructions that this instruction
@@ -304,6 +320,8 @@ public:
     return getTargetFalse();
   }
   NodeList getTerminatorEdges() const override;
+  bool isUnconditionalBranch() const override { return isUnconditional(); }
+  bool repointEdge(CfgNode *OldNode, CfgNode *NewNode) override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Br; }
 
@@ -314,8 +332,8 @@ private:
   InstBr(Cfg *Func, CfgNode *Target);
   ~InstBr() override {}
 
-  CfgNode *const TargetFalse; // Doubles as unconditional branch target
-  CfgNode *const TargetTrue;  // NULL if unconditional branch
+  CfgNode *TargetFalse; // Doubles as unconditional branch target
+  CfgNode *TargetTrue;  // NULL if unconditional branch
 };
 
 // Call instruction.  The call target is captured as getSrc(0), and
@@ -671,6 +689,7 @@ public:
   }
   void addBranch(SizeT CaseIndex, uint64_t Value, CfgNode *Label);
   NodeList getTerminatorEdges() const override;
+  bool repointEdge(CfgNode *OldNode, CfgNode *NewNode) override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Switch; }
 

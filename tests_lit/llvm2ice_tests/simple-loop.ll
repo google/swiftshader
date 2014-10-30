@@ -35,14 +35,15 @@ for.end:
 ; CHECK-LABEL: simple_loop
 ; CHECK:      mov ecx, dword ptr [esp{{.*}}+{{.*}}{{[0-9]+}}]
 ; CHECK:      cmp ecx, 0
-; CHECK-NEXT: jle {{[0-9]}}
+; CHECK-NEXT: j{{le|g}} {{[0-9]}}
 
-; TODO: the mov from ebx to esi seems redundant here - so this may need to be
-; modified later
-
-; CHECK:      add [[IREG:[a-z]+]], 1
-; CHECK-NEXT: mov [[ICMPREG:[a-z]+]], [[IREG]]
-; CHECK:      cmp [[ICMPREG]], ecx
+; Check for the combination of address mode inference, register
+; allocation, and load/arithmetic fusing.
+; CHECK:      add e{{..}}, dword ptr [e{{..}} + 4*[[IREG:e..]]]
+; Check for incrementing of the register-allocated induction variable.
+; CHECK-NEXT: add [[IREG]], 1
+; Check for comparing the induction variable against the loop size.
+; CHECK-NEXT: cmp [[IREG]],
 ; CHECK-NEXT: jl -{{[0-9]}}
 ;
 ; There's nothing remarkable under Om1 to test for, since Om1 generates

@@ -111,6 +111,8 @@ public:
   void placePhiLoads();
   void placePhiStores();
   void deletePhis();
+  void advancedPhiLowering();
+  void reorderNodes();
   void doAddressOpt();
   void doArgLowering();
   void doNopInsertion();
@@ -120,6 +122,7 @@ public:
   void liveness(LivenessMode Mode);
   bool validateLiveness() const;
   void deleteRedundantAssignments();
+  void contractEmptyNodes();
   void doBranchOpt();
 
   // Manage the CurrentNode field, which is used for validating the

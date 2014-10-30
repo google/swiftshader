@@ -39,11 +39,7 @@ done:
 ; O2-LABEL: test_atomic_cmpxchg_loop
 ; O2: lock
 ; O2-NEXT: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
-; O2-NOT: cmp
-; Make sure the phi assignment for succeeded_first_try is still there.
-; O2: mov {{.*}}, 2
-; O2-NOT: cmp
-; O2: jne
+; O2-NEXT: j{{e|ne}}
 ; Make sure the call isn't accidentally deleted.
 ; O2: call
 ;
@@ -97,8 +93,7 @@ done:
 ; O2-LABEL: test_atomic_cmpxchg_loop_const
 ; O2: lock
 ; O2-NEXT: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
-; O2-NOT: cmp
-; O2: jne
+; O2-NEXT: j{{e|ne}}
 
 ; This is a case where the flags cannot be reused (compare is for some
 ; other condition).
@@ -120,7 +115,6 @@ done:
 ; O2-LABEL: test_atomic_cmpxchg_no_opt
 ; O2: lock
 ; O2-NEXT: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
-; O2: mov {{.*}}
 ; O2: cmp
 ; O2: jle
 

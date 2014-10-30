@@ -44,12 +44,16 @@ cl::opt<int> NopProbabilityAsPercentage(
 
 void LoweringContext::init(CfgNode *N) {
   Node = N;
+  End = getNode()->getInsts().end();
+  rewind();
+  advanceForward(Next);
+}
+
+void LoweringContext::rewind() {
   Begin = getNode()->getInsts().begin();
   Cur = Begin;
-  End = getNode()->getInsts().end();
   skipDeleted(Cur);
   Next = Cur;
-  advanceForward(Next);
 }
 
 void LoweringContext::insert(Inst *Inst) {

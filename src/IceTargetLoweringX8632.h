@@ -105,6 +105,9 @@ protected:
   void lowerStore(const InstStore *Inst) override;
   void lowerSwitch(const InstSwitch *Inst) override;
   void lowerUnreachable(const InstUnreachable *Inst) override;
+  void prelowerPhis() override;
+  void lowerPhiAssignments(CfgNode *Node,
+                           const AssignList &Assignments) override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
   void randomlyInsertNop(float Probability) override;
@@ -482,7 +485,7 @@ protected:
   llvm::SmallBitVector RegsUsed;
   SizeT NextLabelNumber;
   bool ComputedLiveRanges;
-  VarList PhysicalRegisters;
+  VarList PhysicalRegisters[IceType_NUM];
   static IceString RegNames[];
 
 private:

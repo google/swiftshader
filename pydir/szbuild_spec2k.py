@@ -16,10 +16,11 @@ def main():
     './run_all.sh RunBenchmarks SetupGccX8632Opt {train|ref} ...'
     """
     nacl_root = FindBaseNaCl()
-    components = [ '164.gzip', '175.vpr', '176.gcc', '177.mesa', '179.art', 
-                   '181.mcf', '183.equake', '186.crafty', '188.ammp',
-                   '197.parser', '252.eon', '253.perlbmk', '254.gap',
-                   '255.vortex', '256.bzip2', '300.twolf' ]
+    # Use the same default ordering as spec2k/run_all.sh.
+    components = [ '177.mesa', '179.art', '183.equake', '188.ammp', '164.gzip',
+                   '175.vpr', '176.gcc', '181.mcf', '186.crafty', '197.parser',
+                   '253.perlbmk', '254.gap', '255.vortex', '256.bzip2',
+                   '300.twolf', '252.eon' ]
     
     argparser = argparse.ArgumentParser(description=main.__doc__)
     szbuild.AddOptionalArgs(argparser)

@@ -32,9 +32,14 @@ class LivenessNode {
   // LivenessNode &operator=(const LivenessNode &) = delete;
 
 public:
-  LivenessNode() : NumLocals(0) {}
+  LivenessNode() : NumLocals(0), NumNonDeadPhis(0) {}
   // NumLocals is the number of Variables local to this block.
   SizeT NumLocals;
+  // NumNonDeadPhis tracks the number of Phi instructions that
+  // Inst::liveness() identified as tentatively live.  If
+  // NumNonDeadPhis changes from the last liveness pass, then liveness
+  // has not yet converged.
+  SizeT NumNonDeadPhis;
   // LiveToVarMap maps a liveness bitvector index to a Variable.  This
   // is generally just for printing/dumping.  The index should be less
   // than NumLocals + Liveness::NumGlobals.
@@ -66,20 +71,36 @@ public:
   SizeT getNumVarsInNode(const CfgNode *Node) const {
     return NumGlobals + Nodes[Node->getIndex()].NumLocals;
   }
+  SizeT &getNumNonDeadPhis(const CfgNode *Node) {
+    return Nodes[Node->getIndex()].NumNonDeadPhis;
+  }
   LivenessBV &getLiveIn(const CfgNode *Node) {
-    return Nodes[Node->getIndex()].LiveIn;
+    SizeT Index = Node->getIndex();
+    resize(Index);
+    return Nodes[Index].LiveIn;
   }
   LivenessBV &getLiveOut(const CfgNode *Node) {
-    return Nodes[Node->getIndex()].LiveOut;
+    SizeT Index = Node->getIndex();
+    resize(Index);
+    return Nodes[Index].LiveOut;
   }
   LiveBeginEndMap *getLiveBegin(const CfgNode *Node) {
-    return &Nodes[Node->getIndex()].LiveBegin;
+    SizeT Index = Node->getIndex();
+    resize(Index);
+    return &Nodes[Index].LiveBegin;
   }
   LiveBeginEndMap *getLiveEnd(const CfgNode *Node) {
-    return &Nodes[Node->getIndex()].LiveEnd;
+    SizeT Index = Node->getIndex();
+    resize(Index);
+    return &Nodes[Index].LiveEnd;
   }
 
 private:
+  // Resize Nodes so that Nodes[Index] is valid.
+  void resize(SizeT Index) {
+    if (Index >= Nodes.size())
+      Nodes.resize(Index + 1);
+  }
   Cfg *Func;
   LivenessMode Mode;
   SizeT NumGlobals;

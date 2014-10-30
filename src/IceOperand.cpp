@@ -320,38 +320,63 @@ void VariablesMetadata::init(MetadataKind TrackingKind) {
         .markUse(Kind, NoInst, EntryNode, IsFromDef, IsImplicit);
   }
 
-  for (CfgNode *Node : Func->getNodes()) {
-    for (Inst *I : Node->getInsts()) {
-      if (I->isDeleted())
-        continue;
-      if (InstFakeKill *Kill = llvm::dyn_cast<InstFakeKill>(I)) {
-        // A FakeKill instruction indicates certain Variables (usually
-        // physical scratch registers) are redefined, so we register
-        // them as defs.
-        for (SizeT SrcNum = 0; SrcNum < I->getSrcSize(); ++SrcNum) {
-          Variable *Var = llvm::cast<Variable>(I->getSrc(SrcNum));
-          SizeT VarNum = Var->getIndex();
-          assert(VarNum < Metadata.size());
-          Metadata[VarNum].markDef(Kind, Kill, Node);
-        }
-        continue; // no point in executing the rest
+  for (CfgNode *Node : Func->getNodes())
+    addNode(Node);
+}
+
+void VariablesMetadata::addNode(CfgNode *Node) {
+  if (Func->getNumVariables() >= Metadata.size())
+    Metadata.resize(Func->getNumVariables());
+
+  for (InstPhi *I : Node->getPhis()) {
+    if (I->isDeleted())
+      continue;
+    if (Variable *Dest = I->getDest()) {
+      SizeT DestNum = Dest->getIndex();
+      assert(DestNum < Metadata.size());
+      Metadata[DestNum].markDef(Kind, I, Node);
+    }
+    for (SizeT SrcNum = 0; SrcNum < I->getSrcSize(); ++SrcNum) {
+      if (const Variable *Var = llvm::dyn_cast<Variable>(I->getSrc(SrcNum))) {
+        SizeT VarNum = Var->getIndex();
+        assert(VarNum < Metadata.size());
+        const bool IsFromDef = false;
+        const bool IsImplicit = false;
+        Metadata[VarNum].markUse(Kind, I, Node, IsFromDef, IsImplicit);
       }
-      if (Variable *Dest = I->getDest()) {
-        SizeT DestNum = Dest->getIndex();
-        assert(DestNum < Metadata.size());
-        Metadata[DestNum].markDef(Kind, I, Node);
-      }
+    }
+  }
+
+  for (Inst *I : Node->getInsts()) {
+    if (I->isDeleted())
+      continue;
+    if (InstFakeKill *Kill = llvm::dyn_cast<InstFakeKill>(I)) {
+      // A FakeKill instruction indicates certain Variables (usually
+      // physical scratch registers) are redefined, so we register
+      // them as defs.
       for (SizeT SrcNum = 0; SrcNum < I->getSrcSize(); ++SrcNum) {
-        Operand *Src = I->getSrc(SrcNum);
-        SizeT NumVars = Src->getNumVars();
-        for (SizeT J = 0; J < NumVars; ++J) {
-          const Variable *Var = Src->getVar(J);
-          SizeT VarNum = Var->getIndex();
-          assert(VarNum < Metadata.size());
-          const bool IsFromDef = false;
-          const bool IsImplicit = false;
-          Metadata[VarNum].markUse(Kind, I, Node, IsFromDef, IsImplicit);
-        }
+        Variable *Var = llvm::cast<Variable>(I->getSrc(SrcNum));
+        SizeT VarNum = Var->getIndex();
+        assert(VarNum < Metadata.size());
+        Metadata[VarNum].markDef(Kind, Kill, Node);
+      }
+      continue; // no point in executing the rest
+    }
+    if (Variable *Dest = I->getDest()) {
+      SizeT DestNum = Dest->getIndex();
+      assert(DestNum < Metadata.size());
+      Metadata[DestNum].markDef(Kind, I, Node);
+    }
+    for (SizeT SrcNum = 0; SrcNum < I->getSrcSize(); ++SrcNum) {
+      Operand *Src = I->getSrc(SrcNum);
+      SizeT NumVars = Src->getNumVars();
+      for (SizeT J = 0; J < NumVars; ++J) {
+        const Variable *Var = Src->getVar(J);
+        SizeT VarNum = Var->getIndex();
+        assert(VarNum < Metadata.size());
+        const bool IsFromDef = false;
+        const bool IsImplicit = false;
+        Metadata[VarNum].markUse(Kind, I, Node, IsFromDef, IsImplicit);
       }
     }
   }

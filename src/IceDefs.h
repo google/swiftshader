@@ -42,6 +42,7 @@ class FunctionDeclaration;
 class GlobalContext;
 class GlobalDeclaration;
 class Inst;
+class InstAssign;
 class InstPhi;
 class InstTarget;
 class LiveRange;
@@ -56,6 +57,7 @@ class VariablesMetadata;
 // http://llvm.org/docs/ProgrammersManual.html#picking-the-right-data-structure-for-a-task
 typedef std::string IceString;
 typedef std::list<Inst *> InstList;
+typedef std::list<InstAssign *> AssignList;
 typedef std::list<InstPhi *> PhiList;
 typedef std::vector<Variable *> VarList;
 typedef std::vector<Operand *> OperandList;
