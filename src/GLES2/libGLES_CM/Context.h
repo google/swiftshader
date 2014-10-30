@@ -314,6 +314,9 @@ public:
 	void setLightAttenuationQuadratic(int index, float quadratic);
 
     void setTexture2D(bool enabled);
+    void clientActiveTexture(GLenum texture);
+	GLenum getClientActiveTexture() const;
+	unsigned int getActiveTexture() const;
 
     void setLineWidth(GLfloat width);
 
@@ -497,6 +500,7 @@ private:
 	sw::MatrixStack textureStack1;
 
 	bool texture2D;
+	GLenum clientTexture;
 
     ResourceManager *mResourceManager;
 

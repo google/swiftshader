@@ -880,7 +880,30 @@ void GL_APIENTRY glClearStencil(GLint s)
 
 void GL_APIENTRY glClientActiveTexture(GLenum texture)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum texture = 0x%X)", texture);
+	
+	try
+    {
+		switch(texture)
+		{
+		case GL_TEXTURE0:
+		case GL_TEXTURE1:
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+            context->clientActiveTexture(texture);
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glClipPlanef(GLenum plane, const GLfloat *equation)
@@ -1734,7 +1757,30 @@ void GL_APIENTRY glEnable(GLenum cap)
 
 void GL_APIENTRY glEnableClientState(GLenum array)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum array = 0x%X)", array);
+    
+    try
+    {
+        es1::Context *context = es1::getContext();
+
+        if(context)
+        {
+			GLenum texture = context->getClientActiveTexture();
+
+            switch(array)
+            {
+            case GL_VERTEX_ARRAY:        context->setEnableVertexAttribArray(sw::Position, true);                            break;
+            case GL_COLOR_ARRAY:         context->setEnableVertexAttribArray(sw::Color0, true);                              break;
+            case GL_TEXTURE_COORD_ARRAY: context->setEnableVertexAttribArray(sw::TexCoord0 + (texture - GL_TEXTURE0), true); break;
+			case GL_NORMAL_ARRAY:        context->setEnableVertexAttribArray(sw::Normal, true);                              break;
+            default:                     UNIMPLEMENTED();
+            }
+        }
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(GL_OUT_OF_MEMORY);
+    }
 }
 
 void GL_APIENTRY glFinish(void)

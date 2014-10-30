@@ -168,6 +168,7 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 
     matrixMode = GL_MODELVIEW;
     texture2D = false;
+	clientTexture = GL_TEXTURE0;
 }
 
 Context::~Context()
@@ -2536,6 +2537,21 @@ void Context::multiply(const GLfloat *m)
 void Context::ortho(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar)
 {
 	currentMatrixStack().ortho(left, right, bottom, top, zNear, zFar);
+}
+
+void Context::clientActiveTexture(GLenum texture)
+{
+	clientTexture = texture;
+}
+
+GLenum Context::getClientActiveTexture() const
+{
+	return clientTexture;
+}
+
+unsigned int Context::getActiveTexture() const
+{
+	return mState.activeSampler;
 }
 
 }
