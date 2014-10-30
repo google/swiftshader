@@ -46,6 +46,9 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 {
 	device = getDevice();
 
+	mVertexDataManager = new VertexDataManager(this);
+    mIndexDataManager = new IndexDataManager();
+
     setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     mState.depthClearValue = 1.0f;
@@ -131,9 +134,6 @@ Context::Context(const egl::Config *config, const Context *shareContext)
     mState.packAlignment = 4;
     mState.unpackAlignment = 4;
 
-    mVertexDataManager = NULL;
-    mIndexDataManager = NULL;
-
     mInvalidEnum = false;
     mInvalidValue = false;
     mInvalidOperation = false;
@@ -162,13 +162,22 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 	materialSpecular = {0.0f, 0.0f, 0.0f, 1.0f};
 	materialEmission = {0.0f, 0.0f, 0.0f, 1.0f};
 
+	matrixMode = GL_MODELVIEW;
+    texture2D = false;
+	clientTexture = GL_TEXTURE0;
+
+	setVertexAttrib(sw::Color0, 1.0f, 1.0f, 1.0f, 1.0f);
+
+	for(int i = 0; i < MAX_TEXTURE_UNITS; i++)
+	{
+		setVertexAttrib(sw::TexCoord0 + i, 0.0f, 0.0f, 0.0f, 1.0f);
+	}
+	
+	setVertexAttrib(sw::Normal, 0.0f, 0.0f, 1.0f, 1.0f);
+
     mHasBeenCurrent = false;
 
     markAllStateDirty();
-
-    matrixMode = GL_MODELVIEW;
-    texture2D = false;
-	clientTexture = GL_TEXTURE0;
 }
 
 Context::~Context()
@@ -208,9 +217,6 @@ void Context::makeCurrent(egl::Surface *surface)
 {
     if(!mHasBeenCurrent)
     {
-        mVertexDataManager = new VertexDataManager(this);
-        mIndexDataManager = new IndexDataManager();
-
         mState.viewportX = 0;
         mState.viewportY = 0;
         mState.viewportWidth = surface->getWidth();
@@ -1722,12 +1728,9 @@ void Context::applyTextures()
 {
     for(int samplerIndex = 0; samplerIndex < MAX_TEXTURE_UNITS; samplerIndex++)
     {
-		UNIMPLEMENTED();
-        TextureType textureType = TEXTURE_2D;
+        Texture *texture = getSamplerTexture(samplerIndex, TEXTURE_2D);
 
-        Texture *texture = getSamplerTexture(samplerIndex, textureType);
-
-		if(texture->isSamplerComplete())
+		if(texture2D && texture->isSamplerComplete())
         {
             GLenum wrapS = texture->getWrapS();
             GLenum wrapT = texture->getWrapT();
@@ -1749,10 +1752,26 @@ void Context::applyTextures()
 			device->setMaxAnisotropy(sw::SAMPLER_PIXEL, samplerIndex, maxAnisotropy);                
 
 			applyTexture(samplerIndex, texture);
+
+			device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+            device->setFirstArgument(samplerIndex, sw::TextureStage::SOURCE_TEXTURE);
+            device->setSecondArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+
+            device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+            device->setFirstArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_TEXTURE);
+            device->setSecondArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
         }
         else
         {
             applyTexture(samplerIndex, 0);
+
+			device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
+            device->setFirstArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+            device->setSecondArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+
+            device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
+            device->setFirstArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+            device->setSecondArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
         }
     }
 }
@@ -2350,14 +2369,14 @@ bool Context::isTriangleMode(GLenum drawMode)
     return false;
 }
 
-void Context::setVertexAttrib(GLuint index, const GLfloat *values)
+void Context::setVertexAttrib(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
     ASSERT(index < MAX_VERTEX_ATTRIBS);
 
-    mState.vertexAttribute[index].mCurrentValue[0] = values[0];
-    mState.vertexAttribute[index].mCurrentValue[1] = values[1];
-    mState.vertexAttribute[index].mCurrentValue[2] = values[2];
-    mState.vertexAttribute[index].mCurrentValue[3] = values[3];
+    mState.vertexAttribute[index].mCurrentValue[0] = x;
+    mState.vertexAttribute[index].mCurrentValue[1] = y;
+    mState.vertexAttribute[index].mCurrentValue[2] = z;
+    mState.vertexAttribute[index].mCurrentValue[3] = w;
 
     mVertexDataManager->dirtyCurrentValue(index);
 }
