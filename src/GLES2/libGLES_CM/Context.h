@@ -63,7 +63,7 @@ enum
 {
     MAX_VERTEX_ATTRIBS = 16,
     MAX_VARYING_VECTORS = 10,
-    MAX_TEXTURE_IMAGE_UNITS = 16,
+    MAX_TEXTURE_UNITS = 2,
     MAX_DRAW_BUFFERS = 1,
 	MAX_LIGHTS = 8,
 
@@ -247,7 +247,7 @@ struct State
     BindingPointer<Renderbuffer> renderbuffer;
 
     VertexAttribute vertexAttribute[MAX_VERTEX_ATTRIBS];
-    BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_TEXTURE_IMAGE_UNITS];
+    BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_TEXTURE_UNITS];
 
     GLint unpackAlignment;
     GLint packAlignment;
@@ -312,6 +312,8 @@ public:
 	void setLightAttenuationConstant(int index, float constant);
 	void setLightAttenuationLinear(int index, float linear);
 	void setLightAttenuationQuadratic(int index, float quadratic);
+
+    void setTexture2D(bool enabled);
 
     void setLineWidth(GLfloat width);
 
@@ -493,6 +495,8 @@ private:
 	sw::MatrixStack projectionStack;
 	sw::MatrixStack textureStack0;
 	sw::MatrixStack textureStack1;
+
+	bool texture2D;
 
     ResourceManager *mResourceManager;
 
