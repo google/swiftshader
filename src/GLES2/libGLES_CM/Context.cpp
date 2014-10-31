@@ -2412,7 +2412,7 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
     {
         Texture *texture = getTexture(name);
 
-        if(!texture || texture->getTarget() != target)
+        if(!texture || texture->getTarget() != GL_TEXTURE_2D)
         {
             return EGL_BAD_PARAMETER;
         }
