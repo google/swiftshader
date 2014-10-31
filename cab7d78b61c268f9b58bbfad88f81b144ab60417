@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "75760e14_aff7996b",
+        "filename": "src/GLES2/libEGL/main.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-10-31T21:32:48Z",
+      "side": 1,
+      "message": "Just to make you aware of this feature. Very useful for debugging Chrome, and with this patch you no longer have to manually close the dialog box that pops up (unlike --gpu-startup-dialog).",
+      "range": {
+        "startLine": 172,
+        "startChar": 5,
+        "endLine": 172,
+        "endChar": 10
+      },
+      "revId": "cab7d78b61c268f9b58bbfad88f81b144ab60417",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
