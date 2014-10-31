@@ -229,7 +229,7 @@ EGLBoolean EGLAPIENTRY eglGetConfigs(EGLDisplay dpy, EGLConfig *configs, EGLint 
             return error(EGL_BAD_PARAMETER, EGL_FALSE);
         }
 
-        const EGLint attribList[] =    {EGL_NONE};
+        const EGLint attribList[] = {EGL_NONE};
 
         if(!display->getConfigs(configs, attribList, config_size, num_config))
         {
@@ -266,7 +266,7 @@ EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list
             return error(EGL_BAD_PARAMETER, EGL_FALSE);
         }
 
-        const EGLint attribList[] =    {EGL_NONE};
+        const EGLint attribList[] = {EGL_NONE};
 
         if(!attrib_list)
         {
