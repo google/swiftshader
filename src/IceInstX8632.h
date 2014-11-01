@@ -993,8 +993,7 @@ private:
   ~InstX8632Mul() override {}
 };
 
-// Shld instruction - shift across a pair of operands.  TODO: Verify
-// that the validator accepts the shld instruction.
+// Shld instruction - shift across a pair of operands.
 class InstX8632Shld : public InstX8632 {
   InstX8632Shld(const InstX8632Shld &) = delete;
   InstX8632Shld &operator=(const InstX8632Shld &) = delete;
@@ -1016,8 +1015,7 @@ private:
   ~InstX8632Shld() override {}
 };
 
-// Shrd instruction - shift across a pair of operands.  TODO: Verify
-// that the validator accepts the shrd instruction.
+// Shrd instruction - shift across a pair of operands.
 class InstX8632Shrd : public InstX8632 {
   InstX8632Shrd(const InstX8632Shrd &) = delete;
   InstX8632Shrd &operator=(const InstX8632Shrd &) = delete;
