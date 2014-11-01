@@ -18,13 +18,13 @@
 
 namespace Ice {
 
-// TODO(stichnot) Move more command line flags into ClFlags.
 class ClFlags {
 public:
   ClFlags()
       : DisableInternal(false), SubzeroTimingEnabled(false),
         DisableTranslation(false), FunctionSections(false), DataSections(false),
-        UseIntegratedAssembler(false), UseSandboxing(false), DumpStats(false),
+        UseIntegratedAssembler(false), UseSandboxing(false),
+        PhiEdgeSplit(false), DecorateAsm(false), DumpStats(false),
         AllowUninitializedGlobals(false), TimeEachFunction(false),
         DefaultGlobalPrefix(""), DefaultFunctionPrefix(""), TimingFocusOn(""),
         VerboseFocusOn(""), TranslateOnly("") {}
@@ -36,6 +36,7 @@ public:
   bool UseIntegratedAssembler;
   bool UseSandboxing;
   bool PhiEdgeSplit;
+  bool DecorateAsm;
   bool DumpStats;
   bool AllowUninitializedGlobals;
   bool TimeEachFunction;

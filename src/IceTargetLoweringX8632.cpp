@@ -392,7 +392,6 @@ void TargetX8632::translateO2() {
     return;
   Func->dump("After stack frame mapping");
 
-  Func->deleteRedundantAssignments();
   Func->contractEmptyNodes();
   Func->reorderNodes();
 
@@ -434,8 +433,6 @@ void TargetX8632::translateOm1() {
   if (Func->hasError())
     return;
   Func->dump("After stack frame mapping");
-
-  Func->deleteRedundantAssignments();
 
   // Nop insertion
   if (shouldDoNopInsertion()) {

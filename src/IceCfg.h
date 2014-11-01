@@ -121,7 +121,6 @@ public:
   void livenessLightweight();
   void liveness(LivenessMode Mode);
   bool validateLiveness() const;
-  void deleteRedundantAssignments();
   void contractEmptyNodes();
   void doBranchOpt();
 

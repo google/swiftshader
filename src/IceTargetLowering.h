@@ -153,6 +153,7 @@ public:
     return false;
   }
 
+  virtual SizeT getNumRegisters() const = 0;
   // Returns a variable pre-colored to the specified physical
   // register.  This is generally used to get very direct access to
   // the register such as in the prolog or epilog or for marking

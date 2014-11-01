@@ -756,9 +756,12 @@ void CfgNode::contractIfEmpty() {
     return;
   Inst *Branch = NULL;
   for (Inst *I : Insts) {
-    if (!I->isDeleted() && !I->isUnconditionalBranch())
+    if (I->isDeleted())
+      continue;
+    if (I->isUnconditionalBranch())
+      Branch = I;
+    else if (!I->isRedundantAssign())
       return;
-    Branch = I;
   }
   Branch->setDeleted();
   assert(OutEdges.size() == 1);
@@ -798,9 +801,73 @@ void CfgNode::doBranchOpt(const CfgNode *NextNode) {
 
 // ======================== Dump routines ======================== //
 
+namespace {
+
+// Helper functions for emit().
+
+void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
+                       bool IsLiveIn, std::vector<SizeT> &LiveRegCount) {
+  Liveness *Liveness = Func->getLiveness();
+  const LivenessBV *Live;
+  if (IsLiveIn) {
+    Live = &Liveness->getLiveIn(Node);
+    Str << "\t\t\t\t# LiveIn=";
+  } else {
+    Live = &Liveness->getLiveOut(Node);
+    Str << "\t\t\t\t# LiveOut=";
+  }
+  if (!Live->empty()) {
+    bool First = true;
+    for (SizeT i = 0; i < Live->size(); ++i) {
+      if ((*Live)[i]) {
+        Variable *Var = Liveness->getVariable(i, Node);
+        if (Var->hasReg()) {
+          if (IsLiveIn)
+            ++LiveRegCount[Var->getRegNum()];
+          if (!First)
+            Str << ",";
+          First = false;
+          Var->emit(Func);
+        }
+      }
+    }
+  }
+  Str << "\n";
+}
+
+void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
+                         std::vector<SizeT> &LiveRegCount) {
+  bool First = true;
+  Variable *Dest = Instr->getDest();
+  if (Dest && Dest->hasReg())
+    ++LiveRegCount[Dest->getRegNum()];
+  for (SizeT I = 0; I < Instr->getSrcSize(); ++I) {
+    Operand *Src = Instr->getSrc(I);
+    SizeT NumVars = Src->getNumVars();
+    for (SizeT J = 0; J < NumVars; ++J) {
+      const Variable *Var = Src->getVar(J);
+      if (Var->hasReg()) {
+        if (Instr->isLastUse(Var) &&
+            --LiveRegCount[Var->getRegNum()] == 0) {
+          if (First)
+            Str << " \t# END=";
+          else
+            Str << ",";
+          Var->emit(Func);
+          First = false;
+        }
+      }
+    }
+  }
+}
+
+} // end of anonymous namespace
+
 void CfgNode::emit(Cfg *Func) const {
   Func->setCurrentNode(this);
   Ostream &Str = Func->getContext()->getStrEmit();
+  Liveness *Liveness = Func->getLiveness();
+  bool DecorateAsm = Liveness && Func->getContext()->getFlags().DecorateAsm;
   if (Func->getEntryNode() == this) {
     Str << Func->getContext()->mangleName(Func->getFunctionName()) << ":\n";
   }
@@ -809,6 +876,10 @@ void CfgNode::emit(Cfg *Func) const {
     Assembler *Asm = Func->getAssembler<Assembler>();
     Asm->BindCfgNodeLabel(getIndex());
   }
+  std::vector<SizeT> LiveRegCount(Func->getTarget()->getNumRegisters());
+  if (DecorateAsm)
+    emitRegisterUsage(Str, Func, this, true, LiveRegCount);
+
   for (InstPhi *Phi : Phis) {
     if (Phi->isDeleted())
       continue;
@@ -819,10 +890,18 @@ void CfgNode::emit(Cfg *Func) const {
   for (Inst *I : Insts) {
     if (I->isDeleted())
       continue;
+    if (I->isRedundantAssign()) {
+      Variable *Dest = I->getDest();
+      if (DecorateAsm && Dest->hasReg() && !I->isLastUse(I->getSrc(0)))
+        ++LiveRegCount[Dest->getRegNum()];
+      continue;
+    }
     if (Func->useIntegratedAssembler()) {
       I->emitIAS(Func);
     } else {
       I->emit(Func);
+      if (DecorateAsm)
+        emitLiveRangesEnded(Str, Func, I, LiveRegCount);
       Str << "\n";
     }
     // Update emitted instruction count, plus fill/spill count for
@@ -841,6 +920,8 @@ void CfgNode::emit(Cfg *Func) const {
       }
     }
   }
+  if (DecorateAsm)
+    emitRegisterUsage(Str, Func, this, false, LiveRegCount);
 }
 
 void CfgNode::dump(Cfg *Func) const {

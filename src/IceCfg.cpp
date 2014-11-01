@@ -365,20 +365,15 @@ bool Cfg::validateLiveness() const {
   return Valid;
 }
 
-// Deletes redundant assignments like "var=var".  This includes
-// architecturally redundant moves like "var1:eax=var2:eax".  As such,
-// this needs to be done very late in the translation to avoid
-// liveness inconsistencies.
-void Cfg::deleteRedundantAssignments() {
-  for (CfgNode *Node : Nodes) {
-    // Ignore Phi instructions.
-    for (Inst *I : Node->getInsts())
-      if (I->isRedundantAssign())
-        I->setDeleted();
-  }
-}
-
 void Cfg::contractEmptyNodes() {
+  // If we're decorating the asm output with register liveness info,
+  // this information may become corrupted or incorrect after
+  // contracting nodes that contain only redundant assignments.  As
+  // such, we disable this pass when DecorateAsm is specified.  This
+  // may make the resulting code look more branchy, but it should have
+  // no effect on the register assignments.
+  if (Ctx->getFlags().DecorateAsm)
+    return;
   for (CfgNode *Node : Nodes) {
     Node->contractIfEmpty();
   }
@@ -397,6 +392,12 @@ void Cfg::doBranchOpt() {
 
 void Cfg::emit() {
   TimerMarker T(TimerStack::TT_emit, this);
+  if (Ctx->getFlags().DecorateAsm) {
+    renumberInstructions();
+    getVMetadata()->init(VMK_Uses);
+    liveness(Liveness_Basic);
+    dump("After recomputing liveness for -decorate-asm");
+  }
   Ostream &Str = Ctx->getStrEmit();
   if (!Ctx->testAndSetHasEmittedFirstMethod()) {
     // Print a helpful command for assembling the output.

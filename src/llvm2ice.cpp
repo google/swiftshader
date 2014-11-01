@@ -120,6 +120,10 @@ EnablePhiEdgeSplit("phi-edge-split",
                    cl::desc("Enable edge splitting for Phi lowering"),
                    cl::init(true));
 
+static cl::opt<bool> DecorateAsm(
+    "asm-verbose",
+    cl::desc("Decorate textual asm output with register liveness info"));
+
 static cl::opt<bool>
 DumpStats("stats",
           cl::desc("Print statistics after translating each function"));
@@ -256,6 +260,7 @@ int main(int argc, char **argv) {
   Flags.UseIntegratedAssembler = UseIntegratedAssembler;
   Flags.UseSandboxing = UseSandboxing;
   Flags.PhiEdgeSplit = EnablePhiEdgeSplit;
+  Flags.DecorateAsm = DecorateAsm;
   Flags.DumpStats = DumpStats;
   Flags.AllowUninitializedGlobals = AllowUninitializedGlobals;
   Flags.TimeEachFunction = TimeEachFunction;
