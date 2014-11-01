@@ -405,7 +405,6 @@ void Cfg::emit() {
     // TODO: need a per-file emit in addition to per-CFG
     Str << "# $LLVM_BIN_PATH/llvm-mc"
         << " -arch=x86"
-        << " -x86-asm-syntax=intel"
         << " -filetype=obj"
         << " -o=MyObj.o"
         << "\n\n";

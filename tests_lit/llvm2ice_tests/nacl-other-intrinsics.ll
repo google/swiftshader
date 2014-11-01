@@ -7,17 +7,17 @@
 ; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | FileCheck --check-prefix=CALLTARGETS %s
 ; RUN: %p2i -i %s --args -O2 --verbose none -sandbox \
-; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %p2i -i %s --args -Om1 --verbose none -sandbox \
-; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 
 ; Do another run w/ O2 and a different check-prefix (otherwise O2 and Om1
 ; share the same "CHECK" prefix). This separate run helps check that
 ; some code is optimized out.
 ; RUN: %p2i -i %s --args -O2 --verbose none -sandbox \
-; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=CHECKO2REM %s
 
@@ -25,7 +25,7 @@
 ; lowered to __nacl_read_tp instead of gs:[0x0].
 ; We also know that because it's O2, it'll have the O2REM optimizations.
 ; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=CHECKO2UNSANDBOXEDREM %s
 

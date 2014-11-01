@@ -107,7 +107,7 @@ CondX86::BrCond getIcmp32Mapping(InstIcmp::ICond Cond) {
 const struct TableTypeX8632Attributes_ {
   Type InVectorElementType;
 } TableTypeX8632Attributes[] = {
-#define X(tag, elementty, cvt, sdss, pack, width)                              \
+#define X(tag, elementty, cvt, sdss, pack, width, fld)                         \
   { elementty }                                                                \
   ,
     ICETYPEX8632_TABLE
@@ -245,7 +245,7 @@ namespace dummy3 {
 // Define a temporary set of enum values based on low-level table
 // entries.
 enum _tmp_enum {
-#define X(tag, elementty, cvt, sdss, pack, width) _tmp_##tag,
+#define X(tag, elementty, cvt, sdss, pack, width, fld) _tmp_##tag,
   ICETYPEX8632_TABLE
 #undef X
       _num
@@ -257,7 +257,7 @@ ICETYPE_TABLE;
 #undef X
 // Define a set of constants based on low-level table entries, and
 // ensure the table entry keys are consistent.
-#define X(tag, elementty, cvt, sdss, pack, width)                              \
+#define X(tag, elementty, cvt, sdss, pack, width, fld)                         \
   static const int _table2_##tag = _tmp_##tag;                                 \
   static_assert(_table1_##tag == _table2_##tag,                                \
                 "Inconsistency between ICETYPEX8632_TABLE and ICETYPE_TABLE");
@@ -506,20 +506,16 @@ IceString TargetX8632::getRegName(SizeT RegNum, Type Ty) const {
 void TargetX8632::emitVariable(const Variable *Var) const {
   Ostream &Str = Ctx->getStrEmit();
   if (Var->hasReg()) {
-    Str << getRegName(Var->getRegNum(), Var->getType());
+    Str << "%" << getRegName(Var->getRegNum(), Var->getType());
     return;
   }
-  Str << InstX8632::getWidthString(Var->getType());
-  Str << " [" << getRegName(getFrameOrStackReg(), IceType_i32);
+  const Type Ty = IceType_i32;
   int32_t Offset = Var->getStackOffset();
   if (!hasFramePointer())
     Offset += getStackAdjustment();
-  if (Offset) {
-    if (Offset > 0)
-      Str << "+";
+  if (Offset)
     Str << Offset;
-  }
-  Str << "]";
+  Str << "(%" << getRegName(getFrameOrStackReg(), Ty) << ")";
 }
 
 x86::Address TargetX8632::stackVarToAsmOperand(const Variable *Var) const {
@@ -992,7 +988,7 @@ template <typename T> void TargetX8632::emitConstantPool() const {
     assert(CharsPrinted >= 0 &&
            (size_t)CharsPrinted < llvm::array_lengthof(buf));
     (void)CharsPrinted; // avoid warnings if asserts are disabled
-    Str << "L$" << Ty << "$" << Const->getPoolEntryID() << ":\n";
+    Str << ".L$" << Ty << "$" << Const->getPoolEntryID() << ":\n";
     Str << "\t" << T::AsmTag << "\t" << buf << "\t# " << T::TypeName << " "
         << Value << "\n";
   }
@@ -4595,7 +4591,7 @@ void TargetX8632::postLower() {
 
 template <> void ConstantInteger32::emit(GlobalContext *Ctx) const {
   Ostream &Str = Ctx->getStrEmit();
-  Str << (int32_t)getValue();
+  Str << "$" << (int32_t)getValue();
 }
 
 template <> void ConstantInteger64::emit(GlobalContext *) const {
@@ -4604,14 +4600,12 @@ template <> void ConstantInteger64::emit(GlobalContext *) const {
 
 template <> void ConstantFloat::emit(GlobalContext *Ctx) const {
   Ostream &Str = Ctx->getStrEmit();
-  // It would be better to prefix with ".L$" instead of "L$", but
-  // llvm-mc doesn't parse "dword ptr [.L$foo]".
-  Str << "dword ptr [L$" << IceType_f32 << "$" << getPoolEntryID() << "]";
+  Str << ".L$" << IceType_f32 << "$" << getPoolEntryID();
 }
 
 template <> void ConstantDouble::emit(GlobalContext *Ctx) const {
   Ostream &Str = Ctx->getStrEmit();
-  Str << "qword ptr [L$" << IceType_f64 << "$" << getPoolEntryID() << "]";
+  Str << ".L$" << IceType_f64 << "$" << getPoolEntryID();
 }
 
 void ConstantUndef::emit(GlobalContext *) const {

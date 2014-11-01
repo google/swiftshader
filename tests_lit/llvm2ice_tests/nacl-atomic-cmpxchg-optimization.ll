@@ -1,11 +1,11 @@
 ; This tests the optimization of atomic cmpxchg w/ following cmp + branches.
 
 ; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=O2 %s
 ; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=OM1 %s
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s

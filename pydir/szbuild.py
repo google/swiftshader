@@ -202,8 +202,7 @@ def ProcessPexe(args, pexe, exe):
                  [pexe],
                  echo=args.verbose)
         shellcmd((
-            'llvm-mc -arch=x86 -x86-asm-syntax=intel -filetype=obj -o {obj} ' +
-            '{asm}'
+            'llvm-mc -arch=x86 -filetype=obj -o {obj} {asm}'
             ).format(asm=asm_sz, obj=obj_sz), echo=args.verbose)
         shellcmd((
             'objcopy --redefine-sym _start=_user_start {obj}'

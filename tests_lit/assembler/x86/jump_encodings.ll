@@ -3,7 +3,7 @@
 
 ; Use -ffunction-sections so that the offsets reset for each function.
 ; RUN: %p2i -i %s --args -O2 --verbose none -ffunction-sections \
-; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 

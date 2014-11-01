@@ -1,10 +1,10 @@
 ; Tests various aspects of i1 related lowering.
 
 ; RUN: %p2i -i %s -a -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %p2i -i %s -a -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
 ; RUN: %p2i -i %s -a --verbose none | FileCheck --check-prefix=ERRORS %s
 ; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s

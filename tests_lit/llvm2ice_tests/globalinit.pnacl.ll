@@ -5,11 +5,11 @@
 
 ; Test -ias=1 and try to cross reference instructions w/ the symbol table.
 ; RUN: %p2i -i %s --args --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d -r --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=IAS %s
 ; RUN: %p2i -i %s --args --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d -t --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=SYMTAB %s
 
@@ -102,27 +102,13 @@ entry:
   ret i32 0
 }
 ; CHECK-LABEL: main
-; CHECK: .att_syntax
-; CHECK: leal PrimitiveInit,
-; CHECK: .intel_syntax
-; CHECK: .att_syntax
-; CHECK: leal PrimitiveInitConst,
-; CHECK: .intel_syntax
-; CHECK: .att_syntax
-; CHECK: leal PrimitiveInitStatic,
-; CHECK: .intel_syntax
-; CHECK: .att_syntax
-; CHECK: leal PrimitiveUninit,
-; CHECK: .intel_syntax
-; CHECK: .att_syntax
-; CHECK: leal ArrayInit,
-; CHECK: .intel_syntax
-; CHECK: .att_syntax
-; CHECK: leal ArrayInitPartial,
-; CHECK: .intel_syntax
-; CHECK: .att_syntax
-; CHECK: leal ArrayUninit,
-; CHECK: .intel_syntax
+; CHECK: movl $PrimitiveInit,
+; CHECK: movl $PrimitiveInitConst,
+; CHECK: movl $PrimitiveInitStatic,
+; CHECK: movl $PrimitiveUninit,
+; CHECK: movl $ArrayInit,
+; CHECK: movl $ArrayInitPartial,
+; CHECK: movl $ArrayUninit,
 
 ; llvm-objdump does not indicate what symbol the mov/relocation applies to
 ; so we grep for "mov {{.*}}, OFFSET", along with "OFFSET {{.*}} symbol" in

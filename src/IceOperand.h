@@ -217,6 +217,7 @@ public:
   using Constant::emit;
   using Constant::dump;
   void emit(GlobalContext *Ctx) const override;
+  void emitWithoutDollar(GlobalContext *Ctx) const;
   void dump(const Cfg *Func, Ostream &Str) const override;
 
   static bool classof(const Operand *Operand) {

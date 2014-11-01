@@ -57,7 +57,7 @@ Address Address::ofConstPool(GlobalContext *Ctx, Assembler *Asm,
   llvm::raw_string_ostream StrBuf(Buffer);
   Type Ty = Imm->getType();
   assert(llvm::isa<ConstantFloat>(Imm) || llvm::isa<ConstantDouble>(Imm));
-  StrBuf << "L$" << Ty << "$" << Imm->getPoolEntryID();
+  StrBuf << ".L$" << Ty << "$" << Imm->getPoolEntryID();
   const RelocOffsetT Offset = 0;
   const bool SuppressMangling = true;
   Constant *Sym =

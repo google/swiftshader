@@ -470,7 +470,7 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
   }
 }
 
-void ConstantRelocatable::emit(GlobalContext *Ctx) const {
+void ConstantRelocatable::emitWithoutDollar(GlobalContext *Ctx) const {
   Ostream &Str = Ctx->getStrEmit();
   if (SuppressMangling)
     Str << Name;
@@ -481,6 +481,12 @@ void ConstantRelocatable::emit(GlobalContext *Ctx) const {
       Str << "+";
     Str << Offset;
   }
+}
+
+void ConstantRelocatable::emit(GlobalContext *Ctx) const {
+  Ostream &Str = Ctx->getStrEmit();
+  Str << "$";
+  emitWithoutDollar(Ctx);
 }
 
 void ConstantRelocatable::dump(const Cfg *Func, Ostream &Str) const {

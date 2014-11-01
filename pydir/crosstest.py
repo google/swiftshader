@@ -110,7 +110,6 @@ if __name__ == '__main__':
                   bitcode])
         shellcmd(['llvm-mc',
                   '-arch=' + arch_map[args.target],
-                  '-x86-asm-syntax=intel',
                   '-filetype=obj',
                   '-o=' + obj_sz,
                   asm_sz])

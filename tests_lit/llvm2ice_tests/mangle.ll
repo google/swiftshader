@@ -4,7 +4,7 @@
 ; RUN: %p2i -i %s --args --verbose none -ffunction-sections | FileCheck %s
 ; TODO(stichnot): The following line causes this test to fail.
 ; RUIN: %p2i -i %s --args --verbose none \
-; RUIN:     | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj
+; RUIN:     | llvm-mc -triple=i686-none-nacl -filetype=obj
 ; RUN: %p2i -i %s --args --verbose none --prefix Subzero -ffunction-sections \
 ; RUN:      | FileCheck --check-prefix=MANGLE %s
 ; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s

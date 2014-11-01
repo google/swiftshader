@@ -263,6 +263,7 @@ public:
   };
 
   static const char *getWidthString(Type Ty);
+  static const char *getFldString(Type Ty);
   void dump(const Cfg *Func) const override;
 
 protected:
@@ -514,10 +515,18 @@ public:
   void emit(const Cfg *Func) const override {
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 1);
-    Str << "\t" << Opcode << "\t";
-    getDest()->emit(Func);
-    Str << ", ";
+    Type SrcTy = getSrc(0)->getType();
+    Type DestTy = getDest()->getType();
+    Str << "\t" << Opcode << getWidthString(SrcTy);
+    // Movsx and movzx need both the source and dest type width letter
+    // to define the operation.  The other unary operations have the
+    // same source and dest type and as a result need only one letter.
+    if (SrcTy != DestTy)
+      Str << getWidthString(DestTy);
+    Str << "\t";
     getSrc(0)->emit(Func);
+    Str << ", ";
+    getDest()->emit(Func);
   }
   void emitIAS(const Cfg *Func) const override {
     assert(getSrcSize() == 1);
@@ -562,9 +571,9 @@ public:
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 1);
     Str << "\t" << Opcode << "\t";
-    getDest()->emit(Func);
-    Str << ", ";
     getSrc(0)->emit(Func);
+    Str << ", ";
+    getDest()->emit(Func);
   }
   void emitIAS(const Cfg *Func) const override {
     Type Ty = getDest()->getType();
@@ -780,11 +789,11 @@ public:
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 3);
     Str << "\t" << Opcode << "\t";
-    getDest()->emit(Func);
+    getSrc(2)->emit(Func);
     Str << ", ";
     getSrc(1)->emit(Func);
     Str << ", ";
-    getSrc(2)->emit(Func);
+    getDest()->emit(Func);
   }
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
@@ -822,11 +831,11 @@ public:
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 2);
     Str << "\t" << Opcode << "\t";
-    getDest()->emit(Func);
+    getSrc(1)->emit(Func);
     Str << ", ";
     getSrc(0)->emit(Func);
     Str << ", ";
-    getSrc(1)->emit(Func);
+    getDest()->emit(Func);
   }
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {

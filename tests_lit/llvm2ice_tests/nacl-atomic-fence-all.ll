@@ -4,7 +4,7 @@
 ; applies to atomic load/stores).
 ;
 ; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -x86-asm-syntax=intel -filetype=obj \
+; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d -r -symbolize -x86-asm-syntax=intel - | FileCheck %s
 
 ; TODO(jvoung): llvm-objdump doesn't symbolize global symbols well, so we
