@@ -839,6 +839,19 @@ EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurfac
         egl::Display *display = static_cast<egl::Display*>(dpy);
         egl::Context *context = static_cast<egl::Context*>(ctx);
 
+		if(ctx != EGL_NO_CONTEXT || draw != EGL_NO_SURFACE || read != EGL_NO_SURFACE)
+		{
+			if(!validateDisplay(display))
+			{
+				return EGL_FALSE;
+			}
+		}
+
+		if(ctx == EGL_NO_CONTEXT && (draw != EGL_NO_SURFACE || read != EGL_NO_SURFACE))
+		{
+			return error(EGL_BAD_MATCH, EGL_FALSE);
+		}
+
         if(ctx != EGL_NO_CONTEXT && !validateContext(display, context))
         {
             return EGL_FALSE;
@@ -849,6 +862,11 @@ EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurfac
         {
             return EGL_FALSE;
         }
+
+		if((draw != EGL_NO_SURFACE) ^ (read != EGL_NO_SURFACE))
+		{
+			return error(EGL_BAD_MATCH, EGL_FALSE);
+		}
 
         if(draw != read)
         {

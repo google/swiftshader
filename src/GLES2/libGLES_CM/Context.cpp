@@ -255,11 +255,6 @@ void Context::makeCurrent(egl::Surface *surface)
 
 void Context::destroy()
 {
-	if(this == getContext())
-	{
-		makeCurrent(0);
-	}
-
 	delete this;
 }
 
