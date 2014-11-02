@@ -509,6 +509,8 @@ void TargetX8632::emitVariable(const Variable *Var) const {
     Str << "%" << getRegName(Var->getRegNum(), Var->getType());
     return;
   }
+  if (Var->getWeight().isInf())
+    llvm_unreachable("Infinite-weight Variable has no register assigned");
   const Type Ty = IceType_i32;
   int32_t Offset = Var->getStackOffset();
   if (!hasFramePointer())
@@ -519,7 +521,10 @@ void TargetX8632::emitVariable(const Variable *Var) const {
 }
 
 x86::Address TargetX8632::stackVarToAsmOperand(const Variable *Var) const {
-  assert(!Var->hasReg());
+  if (Var->hasReg())
+    llvm_unreachable("Stack Variable has a register assigned");
+  if (Var->getWeight().isInf())
+    llvm_unreachable("Infinite-weight Variable has no register assigned");
   int32_t Offset = Var->getStackOffset();
   if (!hasFramePointer())
     Offset += getStackAdjustment();
@@ -1850,9 +1855,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       break;
     }
   }
-  // TODO(stichnot): LEAHACK: remove Legal_All (and use default) once
-  // a proper emitter is used.
-  Operand *CallTarget = legalize(Instr->getCallTarget(), Legal_All);
+  Operand *CallTarget = legalize(Instr->getCallTarget());
   Inst *NewCall = InstX8632Call::create(Func, ReturnReg, CallTarget);
   Context.insert(NewCall);
   if (ReturnRegHi)
@@ -4406,11 +4409,6 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
     bool NeedsReg = false;
     if (!(Allowed & Legal_Imm))
       // Immediate specifically not allowed
-      NeedsReg = true;
-    // TODO(stichnot): LEAHACK: remove Legal_Reloc once a proper
-    // emitter is used.
-    if (!(Allowed & Legal_Reloc) && llvm::isa<ConstantRelocatable>(From))
-      // Relocatable specifically not allowed
       NeedsReg = true;
     if (!(Allowed & Legal_Mem) && isScalarFloatingType(From->getType()))
       // On x86, FP constants are lowered to mem operands.

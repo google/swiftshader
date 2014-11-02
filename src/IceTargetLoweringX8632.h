@@ -147,13 +147,10 @@ protected:
     Legal_Reg = 1 << 0, // physical register, not stack location
     Legal_Imm = 1 << 1,
     Legal_Mem = 1 << 2, // includes [eax+4*ecx] as well as [esp+12]
-    // TODO(stichnot): LEAHACK: remove Legal_Reloc once a proper
-    // emitter is used.
-    Legal_Reloc = 1 << 3,
     Legal_All = ~Legal_None
   };
   typedef uint32_t LegalMask;
-  Operand *legalize(Operand *From, LegalMask Allowed = Legal_All & ~Legal_Reloc,
+  Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
                     int32_t RegNum = Variable::NoRegister);
   Variable *legalizeToVar(Operand *From, int32_t RegNum = Variable::NoRegister);
   // Turn a pointer operand into a memory operand that can be
