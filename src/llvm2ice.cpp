@@ -300,12 +300,12 @@ int main(int argc, char **argv) {
         << "--build-on-read=0 not allowed\n";
     return GetReturnValue(1);
   }
+  if (SubzeroTimingEnabled)
+    Ctx.dumpTimers();
   if (TimeEachFunction) {
     const bool DumpCumulative = false;
     Ctx.dumpTimers(Ice::GlobalContext::TSK_Funcs, DumpCumulative);
   }
-  if (SubzeroTimingEnabled)
-    Ctx.dumpTimers();
   const bool FinalStats = true;
   Ctx.dumpStats("_FINAL_", FinalStats);
   return GetReturnValue(ErrorStatus);

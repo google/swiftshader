@@ -14,35 +14,42 @@
 
 #ifndef SUBZERO_SRC_ICETIMERTREE_DEF
 
-#define TIMERTREE_TABLE    \
-  /* enum value */         \
-  X(O2)                    \
-  X(Om1)                   \
-  X(advancedPhiLowering)   \
-  X(convertToIce)          \
-  X(deletePhis)            \
-  X(doAddressOpt)          \
-  X(doArgLowering)         \
-  X(doBranchOpt)           \
-  X(doNopInsertion)        \
-  X(emit)                  \
-  X(genCode)               \
-  X(genFrame)              \
-  X(initUnhandled)         \
-  X(linearScan)            \
-  X(liveRange)             \
-  X(liveRangeCtor)         \
-  X(liveness)              \
-  X(livenessLightweight)   \
-  X(llvmConvert)           \
-  X(parse)                 \
-  X(placePhiLoads)         \
-  X(placePhiStores)        \
-  X(regAlloc)              \
-  X(renumberInstructions)  \
-  X(szmain)                \
-  X(translate)             \
-  X(validateLiveness)      \
+#define TIMERTREE_TABLE        \
+  /* enum value */             \
+  X(O2)                        \
+  X(Om1)                       \
+  X(advancedPhiLowering)       \
+  X(convertToIce)              \
+  X(deletePhis)                \
+  X(doAddressOpt)              \
+  X(doArgLowering)             \
+  X(doBranchOpt)               \
+  X(doNopInsertion)            \
+  X(emit)                      \
+  X(genCode)                   \
+  X(genFrame)                  \
+  X(initUnhandled)             \
+  X(linearScan)                \
+  X(liveRange)                 \
+  X(liveRangeCtor)             \
+  X(liveness)                  \
+  X(livenessLightweight)       \
+  X(llvmConvert)               \
+  X(parse)                     \
+  X(parseConstants)            \
+  X(parseFunctions)            \
+  X(parseFunctionValuesymtabs) \
+  X(parseGlobals)              \
+  X(parseModule)               \
+  X(parseModuleValuesymtabs)   \
+  X(parseTypes)                \
+  X(placePhiLoads)             \
+  X(placePhiStores)            \
+  X(regAlloc)                  \
+  X(renumberInstructions)      \
+  X(szmain)                    \
+  X(translate)                 \
+  X(validateLiveness)          \
   X(vmetadata)
 //#define X(tag)
 

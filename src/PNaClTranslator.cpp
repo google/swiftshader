@@ -631,11 +631,14 @@ void BlockParserBaseClass::ProcessRecord() {
 class TypesParser : public BlockParserBaseClass {
 public:
   TypesParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
-      : BlockParserBaseClass(BlockID, EnclosingParser), NextTypeId(0) {}
+      : BlockParserBaseClass(BlockID, EnclosingParser),
+        Timer(Ice::TimerStack::TT_parseTypes, getTranslator().getContext()),
+        NextTypeId(0) {}
 
   ~TypesParser() override {}
 
 private:
+  Ice::TimerMarker Timer;
   // The type ID that will be associated with the next type defining
   // record in the types block.
   unsigned NextTypeId;
@@ -801,12 +804,15 @@ void TypesParser::ProcessRecord() {
 class GlobalsParser : public BlockParserBaseClass {
 public:
   GlobalsParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
-      : BlockParserBaseClass(BlockID, EnclosingParser), InitializersNeeded(0),
-        NextGlobalID(0), DummyGlobalVar(Ice::VariableDeclaration::create(
-                             getTranslator().getContext())),
+      : BlockParserBaseClass(BlockID, EnclosingParser),
+        Timer(Ice::TimerStack::TT_parseGlobals, getTranslator().getContext()),
+        InitializersNeeded(0), NextGlobalID(0),
+        DummyGlobalVar(
+            Ice::VariableDeclaration::create(getTranslator().getContext())),
         CurGlobalVar(DummyGlobalVar) {}
 
 private:
+  Ice::TimerMarker Timer;
   // Keeps track of how many initializers are expected for the global variable
   // declaration being built.
   unsigned InitializersNeeded;
@@ -1004,6 +1010,7 @@ class FunctionParser : public BlockParserBaseClass {
 public:
   FunctionParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser),
+        Timer(Ice::TimerStack::TT_parseFunctions, getTranslator().getContext()),
         Func(new Ice::Cfg(getTranslator().getContext())), CurrentBbIndex(0),
         FcnId(Context->getNextFunctionBlockValueID()),
         FuncDecl(Context->getFunctionByID(FcnId)),
@@ -1036,6 +1043,7 @@ public:
   }
 
 private:
+  Ice::TimerMarker Timer;
   // The corresponding ICE function defined by the function block.
   Ice::Cfg *Func;
   // The index to the current basic block being built.
@@ -2251,12 +2259,14 @@ class ConstantsParser : public BlockParserBaseClass {
 
 public:
   ConstantsParser(unsigned BlockID, FunctionParser *FuncParser)
-      : BlockParserBaseClass(BlockID, FuncParser), FuncParser(FuncParser),
-        NextConstantType(Ice::IceType_void) {}
+      : BlockParserBaseClass(BlockID, FuncParser),
+        Timer(Ice::TimerStack::TT_parseConstants, getTranslator().getContext()),
+        FuncParser(FuncParser), NextConstantType(Ice::IceType_void) {}
 
   ~ConstantsParser() override {}
 
 private:
+  Ice::TimerMarker Timer;
   // The parser of the function block this constants block appears in.
   FunctionParser *FuncParser;
   // The type to use for succeeding constants.
@@ -2366,9 +2376,12 @@ class FunctionValuesymtabParser : public ValuesymtabParser {
 
 public:
   FunctionValuesymtabParser(unsigned BlockID, FunctionParser *EnclosingParser)
-      : ValuesymtabParser(BlockID, EnclosingParser) {}
+      : ValuesymtabParser(BlockID, EnclosingParser),
+        Timer(Ice::TimerStack::TT_parseFunctionValuesymtabs,
+              getTranslator().getContext()) {}
 
 private:
+  Ice::TimerMarker Timer;
   // Returns the enclosing function parser.
   FunctionParser *getFunctionParser() const {
     return reinterpret_cast<FunctionParser *>(GetEnclosingParser());
@@ -2439,11 +2452,14 @@ class ModuleParser : public BlockParserBaseClass {
 public:
   ModuleParser(unsigned BlockID, TopLevelParser *Context)
       : BlockParserBaseClass(BlockID, Context),
+        Timer(Ice::TimerStack::TT_parseModule,
+              Context->getTranslator().getContext()),
         GlobalDeclarationNamesAndInitializersInstalled(false) {}
 
   ~ModuleParser() override {}
 
 private:
+  Ice::TimerMarker Timer;
   // True if we have already installed names for unnamed global declarations,
   // and have generated global constant initializers.
   bool GlobalDeclarationNamesAndInitializersInstalled;
@@ -2505,11 +2521,14 @@ class ModuleValuesymtabParser : public ValuesymtabParser {
 
 public:
   ModuleValuesymtabParser(unsigned BlockID, ModuleParser *MP)
-      : ValuesymtabParser(BlockID, MP) {}
+      : ValuesymtabParser(BlockID, MP),
+        Timer(Ice::TimerStack::TT_parseModuleValuesymtabs,
+              getTranslator().getContext()) {}
 
   ~ModuleValuesymtabParser() override {}
 
 private:
+  Ice::TimerMarker Timer;
   void setValueName(uint64_t Index, StringType &Name) override;
   void setBbName(uint64_t Index, StringType &Name) override;
 };
