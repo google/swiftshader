@@ -12,7 +12,7 @@
 
 
 
-#include "rad.h"
+#include <RAD/rad.h>
 
 PFNRADCREATEDEVICEPROC radCreateDevice;
 PFNRADREFERENCEDEVICEPROC radReferenceDevice;

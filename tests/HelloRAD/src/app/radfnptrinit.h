@@ -15,7 +15,7 @@
 #ifndef __radfnptrinit_h_
 #define __radfnptrinit_h_
 
-#include "rad.h"
+#include <RAD/rad.h>
 
 #ifdef __cplusplus
 extern "C" {

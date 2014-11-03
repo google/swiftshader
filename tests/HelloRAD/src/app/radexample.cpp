@@ -1,6 +1,5 @@
 
 #include "stdlib.h"
-#include "rad.h"
 #include "radfnptrinit.h"
 #include "string.h"
 #ifdef _WIN32
@@ -11,6 +10,9 @@
 #endif
 #include <stdio.h>
 #include <time.h>
+
+#include <RAD/rad.h>
+#include <EGL/egl.h>
 
 RADdevice device;
 RADqueue queue;
@@ -86,11 +88,7 @@ bool benchmark = false;
 void InitRAD()
 {
     // obfuscated string for radGetProcAddress
-#ifdef _WIN32
-    PFNRADGETPROCADDRESSPROC getProc = (PFNRADGETPROCADDRESSPROC)wglGetProcAddress("fs932040fd");
-#elif __linux__
-    PFNRADGETPROCADDRESSPROC getProc = (PFNRADGETPROCADDRESSPROC)glXGetProcAddressARB((const GLubyte *)"fs932040fd");
-#endif
+	PFNRADGETPROCADDRESSPROC getProc = (PFNRADGETPROCADDRESSPROC)eglGetProcAddress("radGetProcAddress");
     radLoadProcs(getProc);
 
     // Create the "global" device and one queue
