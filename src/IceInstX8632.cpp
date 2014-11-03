@@ -349,13 +349,8 @@ void emitIASBytes(const Cfg *Func, const x86::AssemblerX86 *Asm,
   GlobalContext *Ctx = Func->getContext();
   Ostream &Str = Ctx->getStrEmit();
   intptr_t EndPosition = Asm->GetPosition();
-  intptr_t LastFixupLoc = -1;
-  AssemblerFixup *LastFixup = NULL;
-  if (Asm->GetLatestFixup()) {
-    LastFixup = Asm->GetLatestFixup();
-    LastFixupLoc = LastFixup->position();
-  }
-  if (LastFixupLoc < StartPosition) {
+  AssemblerFixup *LastFixup = Asm->GetLatestFixup(StartPosition);
+  if (LastFixup == NULL) {
     // The fixup doesn't apply to this current block.
     for (intptr_t i = StartPosition; i < EndPosition; ++i) {
       Str << "\t.byte 0x";
@@ -364,25 +359,32 @@ void emitIASBytes(const Cfg *Func, const x86::AssemblerX86 *Asm,
     }
     return;
   }
+  intptr_t LastFixupLoc = LastFixup->position();
   const intptr_t FixupSize = 4;
-  assert(LastFixupLoc + FixupSize <= EndPosition);
   // The fixup does apply to this current block.
   for (intptr_t i = StartPosition; i < LastFixupLoc; ++i) {
     Str << "\t.byte 0x";
     Str.write_hex(Asm->LoadBuffer<uint8_t>(i));
     Str << "\n";
   }
-  Str << "\t.long ";
-  const ConstantRelocatable *Reloc = LastFixup->value();
-  if (Reloc->getSuppressMangling())
-    Str << Reloc->getName();
-  else
-    Str << Ctx->mangleName(Reloc->getName());
-  if (LastFixup->value()->getOffset()) {
-    Str << " + " << LastFixup->value()->getOffset();
+  while (LastFixup) {
+    Str << "\t.long ";
+    const ConstantRelocatable *Reloc = LastFixup->value();
+    if (Reloc->getSuppressMangling())
+      Str << Reloc->getName();
+    else
+      Str << Ctx->mangleName(Reloc->getName());
+    if (LastFixup->value()->getOffset()) {
+      Str << " + " << LastFixup->value()->getOffset();
+    }
+    Str << "\n";
+    LastFixupLoc += FixupSize;
+    assert(LastFixupLoc <= EndPosition);
+    LastFixup = Asm->GetLatestFixup(LastFixupLoc);
+    // Assume multi-fixups are adjacent in the instruction encoding.
+    assert(LastFixup == NULL || LastFixup->position() == LastFixupLoc);
   }
-  Str << "\n";
-  for (intptr_t i = LastFixupLoc + FixupSize; i < EndPosition; ++i) {
+  for (intptr_t i = LastFixupLoc; i < EndPosition; ++i) {
     Str << "\t.byte 0x";
     Str.write_hex(Asm->LoadBuffer<uint8_t>(i));
     Str << "\n";

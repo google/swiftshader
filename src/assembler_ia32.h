@@ -830,7 +830,9 @@ public:
   template <typename T> T LoadBuffer(intptr_t position) const {
     return buffer_.Load<T>(position);
   }
-  AssemblerFixup *GetLatestFixup() const { return buffer_.GetLatestFixup(); }
+  AssemblerFixup *GetLatestFixup(intptr_t position) const {
+    return buffer_.GetLatestFixup(position);
+  }
 
 private:
   inline void EmitUint8(uint8_t value);

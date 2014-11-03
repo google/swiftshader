@@ -163,7 +163,7 @@ public:
   intptr_t GetPosition() const { return cursor_ - contents_; }
 
   // For bringup only.
-  AssemblerFixup *GetLatestFixup() const;
+  AssemblerFixup *GetLatestFixup(intptr_t position) const;
 
 private:
   // The limit is set to kMinimumGap bytes before the end of the data area.

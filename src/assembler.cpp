@@ -74,10 +74,16 @@ AssemblerBuffer::AssemblerBuffer(Assembler &assembler) : assembler_(assembler) {
 
 AssemblerBuffer::~AssemblerBuffer() {}
 
-AssemblerFixup *AssemblerBuffer::GetLatestFixup() const {
-  if (fixups_.empty())
-    return NULL;
-  return fixups_.back();
+// Returns the latest fixup at or after the given position, or NULL if
+// there is none.  Assumes fixups were added in increasing order.
+AssemblerFixup *AssemblerBuffer::GetLatestFixup(intptr_t position) const {
+  AssemblerFixup *latest_fixup = NULL;
+  for (auto I = fixups_.rbegin(), E = fixups_.rend(); I != E; ++I) {
+    if ((*I)->position() < position)
+      return latest_fixup;
+    latest_fixup = *I;
+  }
+  return latest_fixup;
 }
 
 void AssemblerBuffer::ProcessFixups(const MemoryRegion &region) {
