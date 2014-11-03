@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -196,6 +196,7 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     <ClInclude Include="IndexDataManager.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="mathutil.h" />
+    <ClInclude Include="Object.hpp" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Query.h" />
     <ClInclude Include="RefCountObject.h" />

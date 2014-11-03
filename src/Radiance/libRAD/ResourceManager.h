@@ -22,7 +22,7 @@
 
 #include <map>
 
-namespace rad
+namespace es2
 {
 class Buffer;
 class Shader;

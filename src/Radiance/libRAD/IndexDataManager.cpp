@@ -25,7 +25,7 @@ namespace
     enum { INITIAL_INDEX_BUFFER_SIZE = 4096 * sizeof(GLuint) };
 }
 
-namespace rad
+namespace es2
 {
 
 IndexDataManager::IndexDataManager()

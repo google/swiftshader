@@ -24,7 +24,7 @@ namespace
     enum {INITIAL_STREAM_BUFFER_SIZE = 1024 * 1024};
 }
 
-namespace rad
+namespace es2
 {
 
 VertexDataManager::VertexDataManager(Context *context) : mContext(context)

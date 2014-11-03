@@ -22,7 +22,7 @@
 
 #include <string>
 
-namespace rad
+namespace es2
 {
 bool Shader::compilerInitialized = false;
 

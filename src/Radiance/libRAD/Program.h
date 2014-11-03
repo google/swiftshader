@@ -24,7 +24,7 @@
 #include <vector>
 #include <set>
 
-namespace rad
+namespace es2
 {
 	class Device;
 	class ResourceManager;
@@ -163,7 +163,7 @@ namespace rad
 		static unsigned int issueSerial();
 
 	private:
-		rad::Device *device;
+		es2::Device *device;
 		FragmentShader *fragmentShader;
 		VertexShader *vertexShader;
 

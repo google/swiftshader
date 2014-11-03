@@ -25,7 +25,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace rad
+namespace es2
 {
 class Buffer : public RefCountObject
 {
@@ -43,7 +43,7 @@ class Buffer : public RefCountObject
 
 	sw::Resource *getResource();
 
-  private:
+  public:
     sw::Resource *mContents;
     size_t mSize;
     GLenum mUsage;

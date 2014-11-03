@@ -20,7 +20,7 @@
 
 #include <vector>
 
-namespace rad
+namespace es2
 {
 
 class HandleAllocator

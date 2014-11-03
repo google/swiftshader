@@ -28,8 +28,8 @@
 #define	WINDOW_CLASS _T("PVRShellClass")
 
 // Width and height of the window
-#define WINDOW_WIDTH	640
-#define WINDOW_HEIGHT	480
+#define WINDOW_WIDTH	500
+#define WINDOW_HEIGHT	500
 
 // Index to bind the attributes to vertex shaders
 #define VERTEX_ARRAY	0
@@ -158,10 +158,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR *lpCmdLin
 
 	// Create the eglWindow
 	RECT	sRect;
-	SetRect(&sRect, 0, 0, nWidth, nHeight);
-	AdjustWindowRectEx(&sRect, WS_CAPTION | WS_SYSMENU, false, 0);
-	hWnd = CreateWindow( WINDOW_CLASS, _T("HelloAPI"), WS_VISIBLE | WS_SYSMENU,
-						 0, 0, nWidth, nHeight, NULL, NULL, hInstance, NULL);
+	SetRect(&sRect, 100, 100, 100 + nWidth, 100 + nHeight);
+	AdjustWindowRect(&sRect, WS_CAPTION | WS_SYSMENU, false);
+	hWnd = CreateWindow( WINDOW_CLASS, _T("RAD Test App"), WS_VISIBLE | WS_CAPTION | WS_SYSMENU,
+						 sRect.left, sRect.top, sRect.right - sRect.left, sRect.bottom - sRect.top, NULL, NULL, hInstance, NULL);
 	eglWindow = hWnd;
 
 	// Get the associated device context
@@ -311,11 +311,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR *lpCmdLin
 			Swap Buffers.
 			Brings to the native display the current render surface.
 		*/
-		eglSwapBuffers(eglDisplay, eglSurface);
-		if (!TestEGLError(hWnd, "eglSwapBuffers"))
-		{
-			goto cleanup;
-		}
+		//eglSwapBuffers(eglDisplay, eglSurface);
+		//if (!TestEGLError(hWnd, "eglSwapBuffers"))
+		//{
+		//	goto cleanup;
+		//}
 
 		// Managing the window messages
 		MSG msg;
@@ -327,6 +327,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR *lpCmdLin
 
 	
 cleanup:
+	void CleanRAD();
+	CleanRAD();
+
 	eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 	eglTerminate(eglDisplay);
 

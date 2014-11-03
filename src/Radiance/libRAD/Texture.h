@@ -33,7 +33,7 @@ class Surface;
 class Config;
 }
 
-namespace rad
+namespace es2
 {
 class Framebuffer;
 

@@ -89,15 +89,15 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
 }
 #endif
 
-namespace rad
+namespace es2
 {
-rad::Context *getContext()
+es2::Context *getContext()
 {
 	egl::Context *context = egl::getCurrentContext();
 	
 	if(context && context->getClientVersion() == 2)
 	{
-		return static_cast<rad::Context*>(context);
+		return static_cast<es2::Context*>(context);
 	}
 	
 	return 0;
@@ -129,7 +129,7 @@ GLint getClientVersion()
 // Records an error code
 void error(GLenum errorCode)
 {
-    rad::Context *context = rad::getContext();
+    es2::Context *context = es2::getContext();
 
     if(context)
     {

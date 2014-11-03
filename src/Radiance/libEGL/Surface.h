@@ -61,7 +61,7 @@ public:
 
 	bool checkForResize();   // Returns true if surface changed due to resize
 
-private:
+public:
     void release();
     bool reset();
 

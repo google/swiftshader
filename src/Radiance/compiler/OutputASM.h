@@ -24,7 +24,7 @@
 #include <set>
 #include <map>
 
-namespace rad
+namespace es2
 {
 	class Shader;
 }
@@ -81,7 +81,7 @@ namespace sh
 	class OutputASM : public TIntermTraverser
 	{
 	public:
-		explicit OutputASM(TParseContext &context, rad::Shader *shaderObject);
+		explicit OutputASM(TParseContext &context, es2::Shader *shaderObject);
 		~OutputASM();
 
 		void output();
@@ -145,7 +145,7 @@ namespace sh
 		static unsigned int loopCount(TIntermLoop *node);
 		static bool isSamplerRegister(TIntermTyped *operand);
 
-		rad::Shader *const shaderObject;
+		es2::Shader *const shaderObject;
 		sw::Shader *shader;
 		sw::PixelShader *pixelShader;
 		sw::VertexShader *vertexShader;

@@ -137,6 +137,7 @@ typedef enum {
 } RADtextureTarget;
 
 typedef enum {
+	RAD_FORMAT_NONE = 0x000,
     RAD_RGBA8 = 0x8058,
     RAD_DEPTH24_STENCIL8 = 0x88F0,
 } RADinternalFormat;
@@ -321,6 +322,7 @@ typedef enum {
 } RADpolygonMode;
 
 typedef enum {
+	RAD_POLYGON_OFFSET_NONE = 0x0000,
     RAD_POLYGON_OFFSET_POINT = 0x0001,
     RAD_POLYGON_OFFSET_LINE = 0x0002,
     RAD_POLYGON_OFFSET_FILL = 0x0004,

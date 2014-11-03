@@ -21,7 +21,7 @@
 #define GL_APICALL
 #include <GLES2/gl2.h>
 
-namespace rad
+namespace es2
 {
 
 struct TranslatedAttribute

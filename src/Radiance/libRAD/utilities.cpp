@@ -20,7 +20,7 @@
 #include <limits>
 #include <stdio.h>
 
-namespace rad
+namespace es2
 {
 	int UniformComponentCount(GLenum type)
 	{
@@ -478,7 +478,7 @@ namespace rad2sw
 		return sw::STENCIL_ALWAYS;
 	}
 
-	sw::Color<float> ConvertColor(rad::Color color)
+	sw::Color<float> ConvertColor(es2::Color color)
 	{
 		return sw::Color<float>(color.red, color.green, color.blue, color.alpha);
 	}
@@ -630,36 +630,36 @@ namespace rad2sw
 		}
 	}
 
-	bool ConvertPrimitiveType(GLenum primitiveType, GLsizei elementCount,  rad::PrimitiveType &swPrimitiveType, int &primitiveCount)
+	bool ConvertPrimitiveType(GLenum primitiveType, GLsizei elementCount,  es2::PrimitiveType &swPrimitiveType, int &primitiveCount)
 	{
 		switch(primitiveType)
 		{
 		case GL_POINTS:
-			swPrimitiveType = rad::DRAW_POINTLIST;
+			swPrimitiveType = es2::DRAW_POINTLIST;
 			primitiveCount = elementCount;
 			break;
 		case GL_LINES:
-			swPrimitiveType = rad::DRAW_LINELIST;
+			swPrimitiveType = es2::DRAW_LINELIST;
 			primitiveCount = elementCount / 2;
 			break;
 		case GL_LINE_LOOP:
-			swPrimitiveType = rad::DRAW_LINELOOP;
+			swPrimitiveType = es2::DRAW_LINELOOP;
 			primitiveCount = elementCount;
 			break;
 		case GL_LINE_STRIP:
-			swPrimitiveType = rad::DRAW_LINESTRIP;
+			swPrimitiveType = es2::DRAW_LINESTRIP;
 			primitiveCount = elementCount - 1;
 			break;
 		case GL_TRIANGLES:
-			swPrimitiveType = rad::DRAW_TRIANGLELIST;
+			swPrimitiveType = es2::DRAW_TRIANGLELIST;
 			primitiveCount = elementCount / 3;
 			break;
 		case GL_TRIANGLE_STRIP:
-			swPrimitiveType = rad::DRAW_TRIANGLESTRIP;
+			swPrimitiveType = es2::DRAW_TRIANGLESTRIP;
 			primitiveCount = elementCount - 2;
 			break;
 		case GL_TRIANGLE_FAN:
-			swPrimitiveType = rad::DRAW_TRIANGLEFAN;
+			swPrimitiveType = es2::DRAW_TRIANGLEFAN;
 			primitiveCount = elementCount - 2;
 			break;
 		default:

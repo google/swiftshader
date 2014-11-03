@@ -13,7 +13,7 @@
 
 #include "InitializeParseContext.h"
 
-TranslatorASM::TranslatorASM(rad::Shader *shaderObject, ShShaderType type, ShShaderSpec spec) : TCompiler(type, spec), shaderObject(shaderObject)
+TranslatorASM::TranslatorASM(es2::Shader *shaderObject, ShShaderType type, ShShaderSpec spec) : TCompiler(type, spec), shaderObject(shaderObject)
 {
 }
 

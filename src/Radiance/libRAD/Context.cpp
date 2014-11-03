@@ -9,7 +9,7 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// Context.cpp: Implements the rad::Context class, managing all GL state and performing
+// Context.cpp: Implements the es2::Context class, managing all GL state and performing
 // rendering operations. It is the GLES2 specific implementation of EGLContext.
 
 #include "Context.h"
@@ -37,7 +37,7 @@
 #undef near
 #undef far
 
-namespace rad
+namespace es2
 {
 Device *Context::device = 0;
 
@@ -1157,7 +1157,8 @@ Buffer *Context::getElementArrayBuffer()
 
 Program *Context::getCurrentProgram()
 {
-    return mResourceManager->getProgram(mState.currentProgram);
+	return mState.program;
+    //return mResourceManager->getProgram(mState.currentProgram);
 }
 
 Texture2D *Context::getTexture2D()
@@ -1678,13 +1679,13 @@ bool Context::applyRenderTarget()
         return error(GL_INVALID_FRAMEBUFFER_OPERATION, false);
     }
 
-    egl::Image *renderTarget = framebuffer->getRenderTarget();
+    egl::Image *renderTarget = mState.colorBuffer;//framebuffer->getRenderTarget();
 	device->setRenderTarget(renderTarget);
-	if(renderTarget) renderTarget->release();
+	//if(renderTarget) renderTarget->release();
 
-    egl::Image *depthStencil = framebuffer->getDepthStencil();
+    egl::Image *depthStencil = mState.depthBuffer;//framebuffer->getDepthStencil();
     device->setDepthStencilSurface(depthStencil);
-	if(depthStencil) depthStencil->release();
+	//if(depthStencil) depthStencil->release();
 
     Viewport viewport;
     float zNear = clamp01(mState.zNear);
@@ -2069,19 +2070,38 @@ void Context::applyTextures(sw::SamplerType samplerType)
 
 void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture)
 {
-	Program *program = getCurrentProgram();
+	//Program *program = getCurrentProgram();
 	int sampler = (type == sw::SAMPLER_PIXEL) ? index : 16 + index;
-	bool textureUsed = false;
+	bool textureUsed = true;
 
-	if(type == sw::SAMPLER_PIXEL)
-	{
-		textureUsed = program->getPixelShader()->usesSampler(index);
-	}
-	else if(type == sw::SAMPLER_VERTEX)
-	{
-		textureUsed = program->getVertexShader()->usesSampler(index);
-	}
-	else UNREACHABLE();
+	//if(type == sw::SAMPLER_PIXEL)
+	//{
+	//	textureUsed = program->getPixelShader()->usesSampler(index);
+	//}
+	//else if(type == sw::SAMPLER_VERTEX)
+	//{
+	//	textureUsed = program->getVertexShader()->usesSampler(index);
+	//}
+	//else UNREACHABLE();
+
+//	GLenum wrapS = baseTexture->getWrapS();
+//    GLenum wrapT = baseTexture->getWrapT();
+//    GLenum texFilter = baseTexture->getMinFilter();
+//    GLenum magFilter = baseTexture->getMagFilter();
+//	GLenum maxAnisotropy = baseTexture->getMaxAnisotropy();
+//
+//	device->setAddressingModeU(type, index, rad2sw::ConvertTextureWrap(wrapS));
+//    device->setAddressingModeV(type, index, rad2sw::ConvertTextureWrap(wrapT));
+//
+//	sw::FilterType minFilter;
+//	sw::MipmapType mipFilter;
+//    rad2sw::ConvertMinFilter(texFilter, &minFilter, &mipFilter, maxAnisotropy);
+////	ASSERT(minFilter == rad2sw::ConvertMagFilter(magFilter));
+
+	device->setTextureFilter(type, index, sw::FILTER_LINEAR);
+//	device->setTextureFilter(type, index, rad2sw::ConvertMagFilter(magFilter));
+	device->setMipmapFilter(type, index, sw::MIPMAP_NONE);
+	device->setMaxAnisotropy(type, index, 1.0f);   
 
 	sw::Resource *resource = 0;
 
@@ -2457,7 +2477,7 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
 
 void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices)
 {
-    if(!mState.currentProgram)
+    if(!mState.currentProgram && !mState.program)
     {
         return error(GL_INVALID_OPERATION);
     }
@@ -2500,7 +2520,7 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
     }
 
     applyShaders();
-    applyTextures();
+    //applyTextures();
 
     if(!getCurrentProgram()->validateSamplers(false))
     {
@@ -3020,7 +3040,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
 void Context::bindTexImage(egl::Surface *surface)
 {
-	rad::Texture2D *textureObject = getTexture2D();
+	es2::Texture2D *textureObject = getTexture2D();
 
     if(textureObject)
     {
@@ -3051,14 +3071,14 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
         return EGL_BAD_PARAMETER;
     }
 	
-    if(textureLevel >= rad::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+    if(textureLevel >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
     {
         return EGL_BAD_MATCH;
     }
 
     if(textureTarget != GL_NONE)
     {
-        rad::Texture *texture = getTexture(name);
+        es2::Texture *texture = getTexture(name);
 
         if(!texture || texture->getTarget() != textureTarget)
         {
@@ -3082,7 +3102,7 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
     }
     else if(target == EGL_GL_RENDERBUFFER_KHR)
     {
-        rad::Renderbuffer *renderbuffer = getRenderbuffer(name);
+        es2::Renderbuffer *renderbuffer = getRenderbuffer(name);
 
         if(!renderbuffer)
         {
@@ -3116,13 +3136,13 @@ egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textu
 
     if(textureTarget != GL_NONE)
     {
-        rad::Texture *texture = getTexture(name);
+        es2::Texture *texture = getTexture(name);
 
         return texture->createSharedImage(textureTarget, textureLevel);
     }
     else if(target == EGL_GL_RENDERBUFFER_KHR)
     {
-        rad::Renderbuffer *renderbuffer = getRenderbuffer(name);
+        es2::Renderbuffer *renderbuffer = getRenderbuffer(name);
 
         return renderbuffer->createSharedImage();
     }
@@ -3136,7 +3156,7 @@ Device *Context::getDevice()
 	if(!device)
 	{
 		sw::Context *context = new sw::Context();
-		device = new rad::Device(context);
+		device = new es2::Device(context);
 	}
 
 	return device;
@@ -3147,8 +3167,8 @@ Device *Context::getDevice()
 // Exported functions for use by EGL
 extern "C"
 {
-	rad::Context *glCreateContext(const egl::Config *config, const rad::Context *shareContext)
+	es2::Context *glCreateContext(const egl::Config *config, const es2::Context *shareContext)
 	{
-		return new rad::Context(config, shareContext);
+		return new es2::Context(config, shareContext);
 	}
 }

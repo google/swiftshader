@@ -27,7 +27,7 @@
 
 bool localShaderConstants = false;
 
-namespace rad
+namespace es2
 {
 	using namespace sw;
 

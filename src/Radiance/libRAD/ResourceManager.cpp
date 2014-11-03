@@ -20,7 +20,7 @@
 #include "Shader.h"
 #include "Texture.h"
 
-namespace rad
+namespace es2
 {
 ResourceManager::ResourceManager()
 {

@@ -24,7 +24,7 @@
 
 #include <cstddef>
 
-namespace rad
+namespace es2
 {
 
 class RefCountObject

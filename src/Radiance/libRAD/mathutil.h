@@ -18,7 +18,7 @@
 
 #include <math.h>
 
-namespace rad
+namespace es2
 {
 inline bool isPow2(int x)
 {

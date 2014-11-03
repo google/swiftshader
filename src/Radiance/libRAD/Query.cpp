@@ -9,14 +9,14 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// Query.cpp: Implements the rad::Query class
+// Query.cpp: Implements the es2::Query class
 
 #include "Query.h"
 
 #include "main.h"
 #include "Common/Thread.hpp"
 
-namespace rad
+namespace es2
 {
 
 Query::Query(GLuint id, GLenum type) : RefCountObject(id)

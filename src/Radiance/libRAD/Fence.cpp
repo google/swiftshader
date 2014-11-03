@@ -16,7 +16,7 @@
 #include "main.h"
 #include "Common/Thread.hpp"
 
-namespace rad
+namespace es2
 {
 
 Fence::Fence()

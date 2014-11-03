@@ -38,7 +38,7 @@ class Surface;
 class Config;
 }
 
-namespace rad
+namespace es2
 {
 struct TranslatedAttribute;
 struct TranslatedIndexData;
@@ -228,6 +228,10 @@ struct State
     GLuint drawFramebuffer;
     BindingPointer<Renderbuffer> renderbuffer;
     GLuint currentProgram;
+	
+	Program *program;
+	egl::Image *colorBuffer;
+	egl::Image *depthBuffer;
 
     VertexAttribute vertexAttribute[MAX_VERTEX_ATTRIBS];
     BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
@@ -426,7 +430,7 @@ public:
 
 	Device *getDevice();
 
-private:
+public:
 	virtual ~Context();
 
     bool applyRenderTarget();

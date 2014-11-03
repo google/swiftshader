@@ -19,7 +19,7 @@
 #include "Texture.h"
 #include "utilities.h"
 
-namespace rad
+namespace es2
 {
 RenderbufferInterface::RenderbufferInterface()
 {

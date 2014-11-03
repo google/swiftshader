@@ -18,7 +18,7 @@
 
 #include <GLES2/gl2ext.h>
 
-namespace rad
+namespace es2
 {
 	static sw::Resource *getParentResource(Texture *texture)
 	{

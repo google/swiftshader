@@ -58,7 +58,7 @@ namespace egl
 		EGLNativeDisplayType getNativeDisplay() const;
 		const char *getExtensionString() const;
 
-	private:
+	public:
 		Display(EGLNativeDisplayType displayId);
 
 		DisplayMode getDisplayMode() const;
