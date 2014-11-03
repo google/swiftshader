@@ -4230,26 +4230,30 @@ __eglMustCastToProperFunctionPointerType glGetProcAddress(const char *procname)
 
     static const Extension glExtensions[] =
     {
-        {"glEGLImageTargetTexture2DOES", (__eglMustCastToProperFunctionPointerType)glEGLImageTargetTexture2DOES},
-		{"glIsRenderbufferOES", (__eglMustCastToProperFunctionPointerType)glIsRenderbufferOES},
-		{"glBindRenderbufferOES", (__eglMustCastToProperFunctionPointerType)glBindRenderbufferOES},
-		{"glDeleteRenderbuffersOES", (__eglMustCastToProperFunctionPointerType)glDeleteRenderbuffersOES},
-		{"glGenRenderbuffersOES", (__eglMustCastToProperFunctionPointerType)glGenRenderbuffersOES},
-		{"glRenderbufferStorageOES", (__eglMustCastToProperFunctionPointerType)glRenderbufferStorageOES},
-		{"glGetRenderbufferParameterivOES", (__eglMustCastToProperFunctionPointerType)glGetRenderbufferParameterivOES},
-		{"glIsFramebufferOES", (__eglMustCastToProperFunctionPointerType)glIsFramebufferOES},
-		{"glBindFramebufferOES", (__eglMustCastToProperFunctionPointerType)glBindFramebufferOES},
-		{"glDeleteFramebuffersOES", (__eglMustCastToProperFunctionPointerType)glDeleteFramebuffersOES},
-		{"glGenFramebuffersOES", (__eglMustCastToProperFunctionPointerType)glGenFramebuffersOES},
-		{"glCheckFramebufferStatusOES", (__eglMustCastToProperFunctionPointerType)glCheckFramebufferStatusOES},
-		{"glFramebufferRenderbufferOES", (__eglMustCastToProperFunctionPointerType)glFramebufferRenderbufferOES},
-		{"glFramebufferTexture2DOES", (__eglMustCastToProperFunctionPointerType)glFramebufferTexture2DOES},
-		{"glGetFramebufferAttachmentParameterivOES", (__eglMustCastToProperFunctionPointerType)glGetFramebufferAttachmentParameterivOES},
-		{"glGenerateMipmapOES", (__eglMustCastToProperFunctionPointerType)glGenerateMipmapOES},
-		{"glBlendEquationSeparateOES", (__eglMustCastToProperFunctionPointerType)glBlendEquationSeparateOES},
-		{"glBlendFuncSeparateOES", (__eglMustCastToProperFunctionPointerType)glBlendFuncSeparateOES},
-		{"glPointSizePointerOES", (__eglMustCastToProperFunctionPointerType)glPointSizePointerOES}
-    };
+		#define EXTENSION(name) {#name, (__eglMustCastToProperFunctionPointerType)name}
+
+        EXTENSION(glEGLImageTargetTexture2DOES),
+ 		EXTENSION(glIsRenderbufferOES),
+ 		EXTENSION(glBindRenderbufferOES),
+ 		EXTENSION(glDeleteRenderbuffersOES),
+ 		EXTENSION(glGenRenderbuffersOES),
+ 		EXTENSION(glRenderbufferStorageOES),
+ 		EXTENSION(glGetRenderbufferParameterivOES),
+ 		EXTENSION(glIsFramebufferOES),
+ 		EXTENSION(glBindFramebufferOES),
+ 		EXTENSION(glDeleteFramebuffersOES),
+ 		EXTENSION(glGenFramebuffersOES),
+ 		EXTENSION(glCheckFramebufferStatusOES),
+ 		EXTENSION(glFramebufferRenderbufferOES),
+ 		EXTENSION(glFramebufferTexture2DOES),
+ 		EXTENSION(glGetFramebufferAttachmentParameterivOES),
+ 		EXTENSION(glGenerateMipmapOES),
+ 		EXTENSION(glBlendEquationSeparateOES),
+ 		EXTENSION(glBlendFuncSeparateOES),
+ 		EXTENSION(glPointSizePointerOES),
+
+		#undef EXTENSION
+     };
 
     for(int ext = 0; ext < sizeof(glExtensions) / sizeof(Extension); ext++)
     {

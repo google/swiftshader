@@ -168,6 +168,8 @@ EXPORTS
     glGetQueryivEXT                 @170
     glGetQueryObjectuivEXT          @171
 
+	radGetProcAddress
+
     ; EGL dependencies
     glCreateContext
     glGetProcAddress

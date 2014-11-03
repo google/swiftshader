@@ -91,7 +91,7 @@ CONSTRUCTOR static bool eglAttachProcess()
 	
     libRAD = loadLibrary(libRAD_lib);
     rad::createContext = (egl::Context *(*)(const egl::Config*, const egl::Context*))getProcAddress(libRAD, "glCreateContext");
-    rad::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libRAD, "glGetProcAddress");
+    rad::getProcAddress = (__eglMustCastToProperFunctionPointerType (RADAPIENTRY *)(const char*))getProcAddress(libRAD, "radGetProcAddress");
 	rad::createBackBuffer = (egl::Image *(*)(int, int, const egl::Config*))getProcAddress(libRAD, "createBackBuffer");
 	rad::createDepthStencil = (egl::Image *(*)(unsigned int, unsigned int, sw::Format, int, bool))getProcAddress(libRAD, "createDepthStencil");
     rad::createFrameBuffer = (sw::FrameBuffer *(*)(EGLNativeDisplayType, EGLNativeWindowType, int, int))getProcAddress(libRAD, "createFrameBuffer");
@@ -303,7 +303,7 @@ void error(EGLint errorCode)
 namespace rad
 {
 	egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext) = 0;
-	__eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname) = 0;
+	__eglMustCastToProperFunctionPointerType (RADAPIENTRY *getProcAddress)(const char *procname) = 0;
 
 	egl::Image *(*createBackBuffer)(int width, int height, const egl::Config *config) = 0;
 	egl::Image *(*createDepthStencil)(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard) = 0;

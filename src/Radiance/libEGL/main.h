@@ -17,6 +17,7 @@
 #define EGLAPI
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <RAD/rad.h>
 
 namespace egl
 {
@@ -86,7 +87,7 @@ namespace sw
 namespace rad
 {
 	extern egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext);
-	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);
+	extern __eglMustCastToProperFunctionPointerType (RADAPIENTRY *getProcAddress)(const char *procname);
 
 	extern egl::Image *(*createBackBuffer)(int width, int height, const egl::Config *config);
 	extern egl::Image *(*createDepthStencil)(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);

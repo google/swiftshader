@@ -6153,28 +6153,32 @@ __eglMustCastToProperFunctionPointerType glGetProcAddress(const char *procname)
 
     static const Extension glExtensions[] =
     {
-        {"glTexImage3DOES", (__eglMustCastToProperFunctionPointerType)glTexImage3DOES},
-        {"glBlitFramebufferANGLE", (__eglMustCastToProperFunctionPointerType)glBlitFramebufferANGLE},
-        {"glRenderbufferStorageMultisampleANGLE", (__eglMustCastToProperFunctionPointerType)glRenderbufferStorageMultisampleANGLE},
-        {"glDeleteFencesNV", (__eglMustCastToProperFunctionPointerType)glDeleteFencesNV},
-        {"glGenFencesNV", (__eglMustCastToProperFunctionPointerType)glGenFencesNV},
-        {"glIsFenceNV", (__eglMustCastToProperFunctionPointerType)glIsFenceNV},
-        {"glTestFenceNV", (__eglMustCastToProperFunctionPointerType)glTestFenceNV},
-        {"glGetFenceivNV", (__eglMustCastToProperFunctionPointerType)glGetFenceivNV},
-        {"glFinishFenceNV", (__eglMustCastToProperFunctionPointerType)glFinishFenceNV},
-        {"glSetFenceNV", (__eglMustCastToProperFunctionPointerType)glSetFenceNV},
-		{"glGetGraphicsResetStatusEXT", (__eglMustCastToProperFunctionPointerType)glGetGraphicsResetStatusEXT},
-        {"glReadnPixelsEXT", (__eglMustCastToProperFunctionPointerType)glReadnPixelsEXT},
-        {"glGetnUniformfvEXT", (__eglMustCastToProperFunctionPointerType)glGetnUniformfvEXT},
-        {"glGetnUniformivEXT", (__eglMustCastToProperFunctionPointerType)glGetnUniformivEXT},
-		{"glGenQueriesEXT", (__eglMustCastToProperFunctionPointerType)glGenQueriesEXT},
-        {"glDeleteQueriesEXT", (__eglMustCastToProperFunctionPointerType)glDeleteQueriesEXT},
-        {"glIsQueryEXT", (__eglMustCastToProperFunctionPointerType)glIsQueryEXT},
-        {"glBeginQueryEXT", (__eglMustCastToProperFunctionPointerType)glBeginQueryEXT},
-        {"glEndQueryEXT", (__eglMustCastToProperFunctionPointerType)glEndQueryEXT},
-        {"glGetQueryivEXT", (__eglMustCastToProperFunctionPointerType)glGetQueryivEXT},
-        {"glGetQueryObjectuivEXT", (__eglMustCastToProperFunctionPointerType)glGetQueryObjectuivEXT},
-        {"glEGLImageTargetTexture2DOES", (__eglMustCastToProperFunctionPointerType)glEGLImageTargetTexture2DOES}
+		#define EXTENSION(name) {#name, (__eglMustCastToProperFunctionPointerType)name}
+
+        EXTENSION(glTexImage3DOES),
+        EXTENSION(glBlitFramebufferANGLE),
+        EXTENSION(glRenderbufferStorageMultisampleANGLE),
+        EXTENSION(glDeleteFencesNV),
+        EXTENSION(glGenFencesNV),
+        EXTENSION(glIsFenceNV),
+        EXTENSION(glTestFenceNV),
+        EXTENSION(glGetFenceivNV),
+        EXTENSION(glFinishFenceNV),
+        EXTENSION(glSetFenceNV),
+		EXTENSION(glGetGraphicsResetStatusEXT),
+        EXTENSION(glReadnPixelsEXT),
+        EXTENSION(glGetnUniformfvEXT),
+        EXTENSION(glGetnUniformivEXT),
+		EXTENSION(glGenQueriesEXT),
+        EXTENSION(glDeleteQueriesEXT),
+        EXTENSION(glIsQueryEXT),
+        EXTENSION(glBeginQueryEXT),
+        EXTENSION(glEndQueryEXT),
+        EXTENSION(glGetQueryivEXT),
+        EXTENSION(glGetQueryObjectuivEXT),
+        EXTENSION(glEGLImageTargetTexture2DOES),
+
+		#undef EXTENSION
     };
 
     for(int ext = 0; ext < sizeof(glExtensions) / sizeof(Extension); ext++)
