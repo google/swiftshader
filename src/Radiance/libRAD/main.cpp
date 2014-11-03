@@ -53,15 +53,6 @@ CONSTRUCTOR static bool glAttachProcess()
 	egl::getCurrentContext = (egl::Context *(*)())getProcAddress(libEGL, "eglGetCurrentContext");
 	egl::getCurrentDisplay = (egl::Display *(*)())getProcAddress(libEGL, "eglGetCurrentDisplay");
 
-	#if defined(_WIN32)
-	const char *libGLES_CM_lib = "libGLES_CM.dll";
-	#else
-	const char *libGLES_CM_lib = "libGLES_CM.so.1";
-	#endif
-
-	libGLES_CM = loadLibrary(libGLES_CM_lib);
-	es1::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLES_CM, "glGetProcAddress");
-
     return libEGL != 0;
 }
 
@@ -71,7 +62,6 @@ DESTRUCTOR static void glDetachProcess()
 
 	glDetachThread();
 	freeLibrary(libEGL);
-	freeLibrary(libGLES_CM);
 }
 
 #if defined(_WIN32)
@@ -99,15 +89,15 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
 }
 #endif
 
-namespace es2
+namespace rad
 {
-es2::Context *getContext()
+rad::Context *getContext()
 {
 	egl::Context *context = egl::getCurrentContext();
 	
 	if(context && context->getClientVersion() == 2)
 	{
-		return static_cast<es2::Context*>(context);
+		return static_cast<rad::Context*>(context);
 	}
 	
 	return 0;
@@ -139,7 +129,7 @@ GLint getClientVersion()
 // Records an error code
 void error(GLenum errorCode)
 {
-    es2::Context *context = es2::getContext();
+    rad::Context *context = rad::getContext();
 
     if(context)
     {
@@ -176,10 +166,4 @@ namespace egl
 	egl::Display *(*getCurrentDisplay)() = 0;
 }
 
-namespace es1
-{
-	__eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname) = 0;
-}
-
 void *libEGL = 0;   // Handle to the libEGL module
-void *libGLES_CM = 0;   // Handle to the libGLES_CM module

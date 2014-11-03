@@ -19,7 +19,7 @@
 #include "Texture.h"
 #include "utilities.h"
 
-namespace es2
+namespace rad
 {
 
 Framebuffer::Framebuffer()
@@ -245,7 +245,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 		if(mColorbufferType == GL_RENDERBUFFER)
 		{
-			if(!es2::IsColorRenderable(colorbuffer->getFormat()))
+			if(!rad::IsColorRenderable(colorbuffer->getFormat()))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
@@ -262,7 +262,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 				return GL_FRAMEBUFFER_UNSUPPORTED;
 			}
 
-			if(es2::IsDepthTexture(format) || es2::IsStencilTexture(format))
+			if(rad::IsDepthTexture(format) || rad::IsStencilTexture(format))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
@@ -297,14 +297,14 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 		if(mDepthbufferType == GL_RENDERBUFFER)
 		{
-			if(!es2::IsDepthRenderable(depthbuffer->getFormat()))
+			if(!rad::IsDepthRenderable(depthbuffer->getFormat()))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
 		}
 		else if(IsTextureTarget(mDepthbufferType))
 		{
-			if(!es2::IsDepthTexture(depthbuffer->getFormat()))
+			if(!rad::IsDepthTexture(depthbuffer->getFormat()))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
@@ -347,7 +347,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 		if(mStencilbufferType == GL_RENDERBUFFER)
 		{
-			if(!es2::IsStencilRenderable(stencilbuffer->getFormat()))
+			if(!rad::IsStencilRenderable(stencilbuffer->getFormat()))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
@@ -356,7 +356,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		{
 			GLenum internalformat = stencilbuffer->getFormat();
 
-			if(!es2::IsStencilTexture(internalformat))
+			if(!rad::IsStencilTexture(internalformat))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}

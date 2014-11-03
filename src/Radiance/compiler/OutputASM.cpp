@@ -14,7 +14,7 @@
 #include "common/debug.h"
 #include "compiler/InfoSink.h"
 
-#include "libGLESv2/Shader.h"
+#include "libRAD/Shader.h"
 
 #define GL_APICALL
 #include <GLES2/gl2.h>
@@ -99,7 +99,7 @@ namespace sh
 		this->registerIndex = registerIndex;
 	}
 
-	OutputASM::OutputASM(TParseContext &context, es2::Shader *shaderObject) : TIntermTraverser(true, true, true), mContext(context), shaderObject(shaderObject)
+	OutputASM::OutputASM(TParseContext &context, rad::Shader *shaderObject) : TIntermTraverser(true, true, true), mContext(context), shaderObject(shaderObject)
 	{
 		shader = 0;
 		pixelShader = 0;
@@ -2003,10 +2003,10 @@ namespace sh
 		{
 			const TType &type = varying->getType();
 			const char *name = varying->getAsSymbolNode()->getSymbol().c_str();
-			es2::VaryingList &activeVaryings = shaderObject->varyings;
+			rad::VaryingList &activeVaryings = shaderObject->varyings;
 			
 			// Check if this varying has been declared before without having a register assigned
-			for(es2::VaryingList::iterator v = activeVaryings.begin(); v != activeVaryings.end(); v++)
+			for(rad::VaryingList::iterator v = activeVaryings.begin(); v != activeVaryings.end(); v++)
 			{
 				if(v->name == name)
 				{
@@ -2020,7 +2020,7 @@ namespace sh
 				}
 			}
 			
-			activeVaryings.push_back(es2::Varying(glVariableType(type), name, varying->getArraySize(), reg, 0));
+			activeVaryings.push_back(rad::Varying(glVariableType(type), name, varying->getArraySize(), reg, 0));
 		}
 	}
 

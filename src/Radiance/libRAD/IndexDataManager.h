@@ -20,7 +20,7 @@
 #define GL_APICALL
 #include <GLES2/gl2.h>
 
-namespace es2
+namespace rad
 {
 
 struct TranslatedIndexData

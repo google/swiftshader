@@ -18,7 +18,7 @@
 
 #include "Common/Thread.hpp"
 
-namespace es2
+namespace rad
 {
 
 RefCountObject::RefCountObject(GLuint id)

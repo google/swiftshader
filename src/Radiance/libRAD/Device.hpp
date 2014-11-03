@@ -19,7 +19,7 @@ namespace egl
 	class Image;
 }
 
-namespace es2
+namespace rad
 {
 	class Texture;
 	class Image;

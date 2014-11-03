@@ -1207,15 +1207,9 @@ __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const cha
             }
         }
 
-		if(es2::getProcAddress != 0)
+		if(rad::getProcAddress != 0)
 		{
-			__eglMustCastToProperFunctionPointerType proc = es2::getProcAddress(procname);
-			if(proc) return proc;
-		}
-
-		if(es1::getProcAddress != 0)
-		{
-			__eglMustCastToProperFunctionPointerType proc =  es1::getProcAddress(procname);
+			__eglMustCastToProperFunctionPointerType proc = rad::getProcAddress(procname);
 			if(proc) return proc;
 		}
     }

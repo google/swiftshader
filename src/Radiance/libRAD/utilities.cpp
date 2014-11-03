@@ -20,7 +20,7 @@
 #include <limits>
 #include <stdio.h>
 
-namespace es2
+namespace rad
 {
 	int UniformComponentCount(GLenum type)
 	{
@@ -440,7 +440,7 @@ namespace es2
 	}
 }
 
-namespace es2sw
+namespace rad2sw
 {
 	sw::DepthCompareMode ConvertDepthComparison(GLenum comparison)
 	{
@@ -478,7 +478,7 @@ namespace es2sw
 		return sw::STENCIL_ALWAYS;
 	}
 
-	sw::Color<float> ConvertColor(es2::Color color)
+	sw::Color<float> ConvertColor(rad::Color color)
 	{
 		return sw::Color<float>(color.red, color.green, color.blue, color.alpha);
 	}
@@ -630,36 +630,36 @@ namespace es2sw
 		}
 	}
 
-	bool ConvertPrimitiveType(GLenum primitiveType, GLsizei elementCount,  es2::PrimitiveType &swPrimitiveType, int &primitiveCount)
+	bool ConvertPrimitiveType(GLenum primitiveType, GLsizei elementCount,  rad::PrimitiveType &swPrimitiveType, int &primitiveCount)
 	{
 		switch(primitiveType)
 		{
 		case GL_POINTS:
-			swPrimitiveType = es2::DRAW_POINTLIST;
+			swPrimitiveType = rad::DRAW_POINTLIST;
 			primitiveCount = elementCount;
 			break;
 		case GL_LINES:
-			swPrimitiveType = es2::DRAW_LINELIST;
+			swPrimitiveType = rad::DRAW_LINELIST;
 			primitiveCount = elementCount / 2;
 			break;
 		case GL_LINE_LOOP:
-			swPrimitiveType = es2::DRAW_LINELOOP;
+			swPrimitiveType = rad::DRAW_LINELOOP;
 			primitiveCount = elementCount;
 			break;
 		case GL_LINE_STRIP:
-			swPrimitiveType = es2::DRAW_LINESTRIP;
+			swPrimitiveType = rad::DRAW_LINESTRIP;
 			primitiveCount = elementCount - 1;
 			break;
 		case GL_TRIANGLES:
-			swPrimitiveType = es2::DRAW_TRIANGLELIST;
+			swPrimitiveType = rad::DRAW_TRIANGLELIST;
 			primitiveCount = elementCount / 3;
 			break;
 		case GL_TRIANGLE_STRIP:
-			swPrimitiveType = es2::DRAW_TRIANGLESTRIP;
+			swPrimitiveType = rad::DRAW_TRIANGLESTRIP;
 			primitiveCount = elementCount - 2;
 			break;
 		case GL_TRIANGLE_FAN:
-			swPrimitiveType = es2::DRAW_TRIANGLEFAN;
+			swPrimitiveType = rad::DRAW_TRIANGLEFAN;
 			primitiveCount = elementCount - 2;
 			break;
 		default:
@@ -686,7 +686,7 @@ namespace es2sw
 	}
 }
 
-namespace sw2es
+namespace sw2rad
 {
 	unsigned int GetStencilSize(sw::Format stencilFormat)
 	{

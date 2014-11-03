@@ -388,18 +388,11 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
     const egl::Config *config = mConfigSet.get(configHandle);
 	egl::Context *context = 0;
 
-	if(clientVersion == 1 && config->mRenderableType & EGL_OPENGL_ES_BIT)
+	if(clientVersion == 2 && config->mRenderableType & EGL_OPENGL_ES2_BIT)
 	{
-		if(es1::createContext != 0)
+		if(rad::createContext != 0)
 		{
-			context = es1::createContext(config, shareContext);
-		}
-	}
-	else if(clientVersion == 2 && config->mRenderableType & EGL_OPENGL_ES2_BIT)
-	{
-		if(es2::createContext != 0)
-		{
-			context = es2::createContext(config, shareContext);
+			context = rad::createContext(config, shareContext);
 		}
 	}
 	else

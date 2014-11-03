@@ -15,7 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5B3A6DB8-1E7E-40D7-92B9-DA8AAE619FAD}</ProjectGuid>
+    <ProjectGuid>{5AEBF8B8-3454-4984-9D77-A8F13BC0377B}</ProjectGuid>
     <RootNamespace>compiler</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <ProjectName>Compiler</ProjectName>
@@ -203,8 +203,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="preprocessor\preprocessor.vcxproj">
-      <Project>{92940255-ab4b-42fb-a2c4-0fab19c3c48a}</Project>
-      <Private>true</Private>
+      <Project>{6303975e-7060-4ce7-8090-cb2de0b840b4}</Project>
+      <Private>false</Private>
       <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
       <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>

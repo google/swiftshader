@@ -19,7 +19,7 @@
 #include "Texture.h"
 #include "utilities.h"
 
-namespace es2
+namespace rad
 {
 RenderbufferInterface::RenderbufferInterface()
 {
@@ -38,32 +38,32 @@ void RenderbufferInterface::releaseProxy(const Renderbuffer *proxy)
 
 GLuint RenderbufferInterface::getRedSize() const
 {
-	return sw2es::GetRedSize(getInternalFormat());
+	return sw2rad::GetRedSize(getInternalFormat());
 }
 
 GLuint RenderbufferInterface::getGreenSize() const
 {
-	return sw2es::GetGreenSize(getInternalFormat());
+	return sw2rad::GetGreenSize(getInternalFormat());
 }
 
 GLuint RenderbufferInterface::getBlueSize() const
 {
-	return sw2es::GetBlueSize(getInternalFormat());
+	return sw2rad::GetBlueSize(getInternalFormat());
 }
 
 GLuint RenderbufferInterface::getAlphaSize() const
 {
-	return sw2es::GetAlphaSize(getInternalFormat());
+	return sw2rad::GetAlphaSize(getInternalFormat());
 }
 
 GLuint RenderbufferInterface::getDepthSize() const
 {
-	return sw2es::GetDepthSize(getInternalFormat());
+	return sw2rad::GetDepthSize(getInternalFormat());
 }
 
 GLuint RenderbufferInterface::getStencilSize() const
 {
-	return sw2es::GetStencilSize(getInternalFormat());
+	return sw2rad::GetStencilSize(getInternalFormat());
 }
 
 ///// RenderbufferTexture2D Implementation ////////
@@ -360,7 +360,7 @@ Colorbuffer::Colorbuffer(egl::Image *renderTarget) : mRenderTarget(renderTarget)
 		mWidth = renderTarget->getWidth();
 		mHeight = renderTarget->getHeight();
 		internalFormat = renderTarget->getInternalFormat();
-		format = sw2es::ConvertBackBufferFormat(internalFormat);
+		format = sw2rad::ConvertBackBufferFormat(internalFormat);
 		mSamples = renderTarget->getMultiSampleDepth() & ~1;
 	}
 }
@@ -369,7 +369,7 @@ Colorbuffer::Colorbuffer(int width, int height, GLenum format, GLsizei samples) 
 {
 	Device *device = getDevice();
 
-	sw::Format requestedFormat = es2sw::ConvertRenderbufferFormat(format);
+	sw::Format requestedFormat = rad2sw::ConvertRenderbufferFormat(format);
 	int supportedSamples = Context::getSupportedMultiSampleDepth(requestedFormat, samples);
 
 	if(width > 0 && height > 0)
@@ -437,7 +437,7 @@ DepthStencilbuffer::DepthStencilbuffer(egl::Image *depthStencil) : mDepthStencil
 		mWidth = depthStencil->getWidth();
 		mHeight = depthStencil->getHeight();
 		internalFormat = depthStencil->getInternalFormat();
-		format = sw2es::ConvertDepthStencilFormat(internalFormat);
+		format = sw2rad::ConvertDepthStencilFormat(internalFormat);
 		mSamples = depthStencil->getMultiSampleDepth() & ~1;
 	}
 }

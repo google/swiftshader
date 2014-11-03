@@ -23,7 +23,7 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
-namespace es2
+namespace rad
 {
 	Context *getContext();
 	egl::Display *getDisplay();
@@ -52,13 +52,6 @@ namespace egl
 	extern egl::Display *(*getCurrentDisplay)();
 }
 
-// libGLES_CM dependencies
-namespace es1
-{
-	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);
-}
-
 extern void *libEGL;       // Handle to the libEGL module
-extern void *libGLES_CM;   // Handle to the libGLES_CM module
 
 #endif   // LIBGLESV2_MAIN_H_

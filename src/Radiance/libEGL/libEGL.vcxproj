@@ -15,7 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E746FCA9-64C3-433E-85E8-9A5A67AB7ED6}</ProjectGuid>
+    <ProjectGuid>{2F6770B5-F168-4FCD-8A56-4DD95BEC8893}</ProjectGuid>
     <RootNamespace>libEGL</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>

@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{92940255-AB4B-42FB-A2C4-0FAB19C3C48A}</ProjectGuid>
+    <ProjectGuid>{6303975E-7060-4CE7-8090-CB2DE0B840B4}</ProjectGuid>
     <RootNamespace>preprocessor</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

@@ -16,7 +16,7 @@
 
 #include "main.h"
 
-namespace es2
+namespace rad
 {
 
 HandleAllocator::HandleAllocator() : mBaseValue(1), mNextValue(1)

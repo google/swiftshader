@@ -32,7 +32,7 @@ namespace sh
 	class OutputASM;
 }
 
-namespace es2
+namespace rad
 {
 struct Varying
 {
@@ -46,7 +46,7 @@ struct Varying
 		return arraySize >= 1;
 	}
 
-	int size() const   // Unify with es2::Uniform?
+	int size() const   // Unify with rad::Uniform?
 	{
 		return arraySize > 0 ? arraySize : 1;
 	}
