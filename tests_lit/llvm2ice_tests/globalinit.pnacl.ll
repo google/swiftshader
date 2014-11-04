@@ -13,8 +13,6 @@
 ; RUN:   | llvm-objdump -d -t --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=SYMTAB %s
 
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-
 @PrimitiveInit = internal global [4 x i8] c"\1B\00\00\00", align 4
 ; CHECK: .type PrimitiveInit,@object
 ; CHECK-NEXT: .section .data,"aw",@progbits
@@ -165,5 +163,3 @@ entry:
   %result = sub i32 0, %size
   ret i32 %result
 }
-
-; ERRORS-NOT: ICE translation error

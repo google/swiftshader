@@ -14,8 +14,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=SSE41 %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 ; insertelement operations
 
@@ -232,6 +230,3 @@ entry:
 ; SSE41-LABEL: extractelement_v16i1:
 ; SSE41: pextrb
 }
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

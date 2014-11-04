@@ -8,7 +8,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=OM1 %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 declare i32 @llvm.nacl.atomic.cmpxchg.i32(i32*, i32, i32, i32, i32)
 
@@ -142,5 +141,3 @@ done:
 ; O2: mov {{.*}}
 ; O2: cmp
 ; O2: je
-
-; ERRORS-NOT: ICE translation error

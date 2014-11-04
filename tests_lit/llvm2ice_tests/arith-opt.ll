@@ -2,8 +2,6 @@
 ; arithmetic instructions.  No assembly tests are done.
 
 ; RUN: %p2i -i %s --args --verbose inst | FileCheck %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define i32 @Add(i32 %a, i32 %b) {
 ; CHECK: define i32 @Add
@@ -118,6 +116,3 @@ entry:
 }
 ; CHECK-LABEL: MulImm
 ; CHECK-NOT: mul {{[0-9]+}}
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

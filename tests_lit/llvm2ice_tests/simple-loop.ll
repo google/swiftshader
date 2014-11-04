@@ -8,7 +8,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 define i32 @simple_loop(i32 %a, i32 %n) {
 entry:
@@ -52,5 +51,3 @@ for.end:
 ; OPTM1:      cmp {{.*}}, 0
 ; OPTM1:      jg
 ; OPTM1:      ret
-
-; ERRORS-NOT: ICE translation error

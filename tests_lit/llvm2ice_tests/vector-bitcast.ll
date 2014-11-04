@@ -14,8 +14,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define <16 x i8> @test_bitcast_v16i8_to_v16i8(<16 x i8> %arg) {
 entry:
@@ -218,6 +216,3 @@ entry:
 ; OPTM1-LABEL: test_bitcast_i16_to_v16i1:
 ; OPTM1: call -4
 }
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

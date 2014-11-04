@@ -7,8 +7,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define void @testBool(i32 %a, i32 %b) {
 entry:
@@ -58,6 +56,3 @@ declare void @use(i32)
 ; OPTM1:      cmp
 ; OPTM1:      call
 ; OPTM1:      ret
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

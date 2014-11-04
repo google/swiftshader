@@ -1,7 +1,6 @@
 ; Simple test of the store instruction.
 
 ; RUN: %p2i -i %s --args --verbose inst | FileCheck %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 define void @store_i64(i32 %addr_arg) {
 entry:
@@ -50,5 +49,3 @@ entry:
 ; CHECK-NEXT:  store i8 1, i8* %addr_arg, align 1
 ; CHECK-NEXT:  ret void
 }
-
-; ERRORS-NOT: ICE translation error

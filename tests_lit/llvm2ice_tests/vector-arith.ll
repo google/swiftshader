@@ -20,7 +20,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=SSE41 %s
-; RUN: %p2i -i %s -a --verbose none | FileCheck --check-prefix=ERRORS %s
 
 define <4 x float> @test_fadd(<4 x float> %arg0, <4 x float> %arg1) {
 entry:
@@ -578,6 +577,3 @@ entry:
 ; CHECK: idiv
 ; CHECK: idiv
 }
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

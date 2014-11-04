@@ -29,8 +29,6 @@
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=CHECKO2UNSANDBOXEDREM %s
 
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-
 declare i8* @llvm.nacl.read.tp()
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
 declare void @llvm.memmove.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
@@ -526,5 +524,3 @@ entry:
 ; CHECK: mov {{.*}}, esp
 ; CHECK: mov {{.*}}, esp
 ; CHECK: mov esp, {{.*}}
-
-; ERRORS-NOT: ICE translation error

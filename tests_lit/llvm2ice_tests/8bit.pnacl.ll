@@ -6,7 +6,6 @@
 ; RUN: %p2i -i %s --args -Om1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 define internal i32 @add8Bit(i32 %a, i32 %b) {
 entry:
@@ -369,6 +368,3 @@ entry:
 }
 ; CHECK-LABEL: store_i8_const
 ; CHECK: mov byte ptr {{.*}}, 123
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

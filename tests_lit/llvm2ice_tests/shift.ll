@@ -7,8 +7,6 @@
 ; RUN: %p2i -i %s --no-local-syms --args -Om1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --no-local-syms --args --verbose none \
-; RUN:   | FileCheck --check-prefix=ERRORS %s
 
 @i1 = internal global [4 x i8] zeroinitializer, align 4
 @i2 = internal global [4 x i8] zeroinitializer, align 4
@@ -41,5 +39,3 @@ entry:
 ; CHECK-LABEL: conv2
 ; CHECK: shl {{.*}}, 16
 ; CHECK: sar {{.*}}, 16
-
-; ERRORS-NOT: ICE translation error

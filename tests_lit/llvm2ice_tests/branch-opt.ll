@@ -9,8 +9,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=OM1 %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 declare void @dummy()
 
@@ -102,6 +100,3 @@ target:
 ; OM1: ret
 ; OM1: call
 ; OM1: ret
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

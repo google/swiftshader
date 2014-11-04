@@ -5,7 +5,6 @@
 ; RUN: %p2i -i %s --args -O2 -mattr=sse4.1 -sandbox --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 define <8 x i16> @test_mul_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
 entry:
@@ -293,6 +292,3 @@ three:
 ; CHECK-DAG: 66 0f c5 c1 02 pextrw eax, xmm1, 2
 ; CHECK-DAG: 66 0f c5 c2 05 pextrw eax, xmm2, 5
 ; CHECK-DAG: 66 0f c5 c3 07 pextrw eax, xmm3, 7
-
-
-; ERRORS-NOT: ICE translation error

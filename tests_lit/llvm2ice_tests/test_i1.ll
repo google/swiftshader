@@ -6,8 +6,6 @@
 ; RUN: %p2i -i %s -a -Om1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s -a --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 ; Test that and with true uses immediate 1, not -1.
 define internal i32 @testAndTrue(i32 %arg) {
@@ -198,6 +196,3 @@ entry:
 ; CHECK: movzx [[REG:.*]],
 ; CHECK-NEXT: shl [[REG]], 31
 ; CHECK-NEXT: sar [[REG]], 31
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

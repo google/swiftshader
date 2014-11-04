@@ -15,7 +15,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
@@ -1328,5 +1327,3 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; CHECK-NOT: cmp {{[0-9]+}},
 ; OPTM1-LABEL: icmpLt64Imm
 ; OPTM1-NOT: cmp {{[0-9]+}},
-
-; ERRORS-NOT: ICE translation error

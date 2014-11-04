@@ -13,8 +13,6 @@
 ; RUN: %p2i -i %s --args -Om1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 ; sext operations
 
@@ -171,6 +169,3 @@ entry:
 ; CALLTARGETS-LABEL: test_uitofp_v4i32_to_v4f32
 ; CALLTARGETS: call Sz_uitofp_v4i32
 }
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

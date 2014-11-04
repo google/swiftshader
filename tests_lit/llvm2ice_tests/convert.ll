@@ -9,7 +9,6 @@
 ; RUN: %p2i -i %s --args -Om1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 @i8v = internal global [1 x i8] zeroinitializer, align 1
 @i16v = internal global [2 x i8] zeroinitializer, align 2
@@ -207,5 +206,3 @@ entry:
 ; CHECK: [0]
 ; CHECK: [2]
 ; CHECK: [4]
-
-; ERRORS-NOT: ICE translation error

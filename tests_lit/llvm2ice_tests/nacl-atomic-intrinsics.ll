@@ -14,8 +14,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | %iflc FileCheck %s
-; RUN: %p2i -i %s --args --verbose none \
-; RUN:   | FileCheck --check-prefix=ERRORS %s
 
 declare i8 @llvm.nacl.atomic.load.i8(i8*, i32)
 declare i16 @llvm.nacl.atomic.load.i16(i16*, i32)
@@ -922,5 +920,3 @@ not_lock_free:
 ; CHECK: ret
 ; CHECK: add
 ; CHECK: ret
-
-; ERRORS-NOT: ICE translation error

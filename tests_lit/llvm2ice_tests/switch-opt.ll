@@ -5,8 +5,6 @@
 ; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s -a --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define i32 @testSwitch(i32 %a) {
 entry:
@@ -114,7 +112,3 @@ sw.default:
 ; CHECK-NEXT: jne
 ; CHECK-NEXT: cmp {{.*}}, 0
 ; CHECK-NEXT: je
-
-; CHECK-NOT: ICE translation error
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

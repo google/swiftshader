@@ -7,8 +7,6 @@
 ; RUIN:     | llvm-mc -triple=i686-none-nacl -filetype=obj
 ; RUN: %p2i -i %s --args --verbose none --prefix Subzero -ffunction-sections \
 ; RUN:      | FileCheck --check-prefix=MANGLE %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define internal void @FuncC(i32 %i) {
 entry:
@@ -144,6 +142,3 @@ define internal void @foo_S_S0_SZ_S() {
 entry:
   ret void
 }
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

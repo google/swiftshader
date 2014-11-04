@@ -12,8 +12,6 @@
 ; RUN: %p2i -i %s -a -Om1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s -a --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define internal i32 @divide(i32 %num, i32 %den) {
 entry:
@@ -36,6 +34,3 @@ return:                                           ; preds = %entry
 ; CHECK: cdq
 ; CHECK: idiv
 ; CHECK: ret
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

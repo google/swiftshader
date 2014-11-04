@@ -4,7 +4,6 @@
 ; RUN: %p2i -i %s --args -Om1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 ; Setjmp is a function with the "returns twice" attribute.
 declare i32 @llvm.nacl.setjmp(i8*)
@@ -59,5 +58,3 @@ NonZero:
 ; TODO(stichnot): Add it back if/when we add a flag to enable simple
 ; coalescing.
 ; xCHECK: mov dword ptr [esp + [[OFF]]], [[REG2]]
-
-; ERRORS-NOT: ICE translation error

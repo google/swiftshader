@@ -5,8 +5,6 @@
 ; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define internal i32 @testXor8Imm8(i32 %arg) {
 entry:
@@ -310,6 +308,3 @@ entry:
 ; CHECK-DAG: 85 c0 test eax, eax
 ; CHECK-DAG: 85 db test ebx, ebx
 ; CHECK-DAG: 85 f6 test esi, esi
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

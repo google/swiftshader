@@ -7,8 +7,6 @@
 ; RUN: %p2i -i %s --args -Om1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define i32 @sdiv_i8(i32 %a.i32, i32 %b.i32) {
 entry:
@@ -75,6 +73,3 @@ entry:
 ; CHECK: cdq
 ; CHECK: idiv
 }
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

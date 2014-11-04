@@ -5,7 +5,6 @@
 ; RUN: %p2i -i %s --args -O2 --verbose none -ffunction-sections \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 ; Use atomic ops as filler, which shouldn't get optimized out.
 declare void @llvm.nacl.atomic.store.i32(i32, i32*, i32)
@@ -214,5 +213,3 @@ next2:
 ; CHECK-NEXT: 13: 75 f6 jne -10
 ; (0x1c + 2) - 21 == 0x9
 ; CHECK:      1c: 74 eb je -21
-
-; ERRORS-NOT: ICE translation error

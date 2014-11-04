@@ -7,7 +7,6 @@
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=SSE41 %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 define float @load_arg_plus_200000(float* %arg) {
 entry:
@@ -150,7 +149,3 @@ entry:
 ; CHECK-LABEL: address_mode_opt_sub_min_int:
 ; CHECK: movss xmm0, dword ptr [{{.*}} - 2147483648]
 }
-
-
-
-; ERRORS-NOT: ICE translation error

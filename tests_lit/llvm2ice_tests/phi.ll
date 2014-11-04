@@ -7,8 +7,6 @@
 ; RUN: %lc2i -i %s --args -O2 --verbose none --phi-edge-split=0 \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %lc2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %lc2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define internal i32 @testPhi1(i32 %arg) {
 entry:
@@ -51,9 +49,6 @@ target:
 ; CHECK-NEXT: jle
 ; CHECK: mov [[PHI:.*]], 54321
 ; CHECK: mov {{.*}}, [[PHI]]
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ
 
 ; Test that address mode inference doesn't extend past
 ; multi-definition, non-SSA Phi temporaries.

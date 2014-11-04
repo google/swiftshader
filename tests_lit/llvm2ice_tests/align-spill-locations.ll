@@ -8,7 +8,6 @@
 ; RUN: %lc2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %lc2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
 
 ; The location of the stack slot for a variable is inferred from the
 ; return sequence.
@@ -92,5 +91,3 @@ block:
 
 declare void @ForceXmmSpillsAndUseAlloca(i8*)
 declare void @ForceXmmSpillsAndUseFloat(float)
-
-; ERRORS-NOT: ICE translation error

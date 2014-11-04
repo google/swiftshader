@@ -6,8 +6,6 @@
 
 ; RUN: %p2i -i %s --args -O2 --verbose inst | FileCheck %s
 ; RUN: %p2i -i %s --args -Om1 --verbose inst | FileCheck %s
-; RUN: %p2i -i %s --args --verbose none | FileCheck --check-prefix=ERRORS %s
-; RUN: %p2i -i %s --insts | %szdiff %s | FileCheck --check-prefix=DUMP %s
 
 define i32 @simple_cond_branch(i32 %foo, i32 %bar) {
 entry:
@@ -35,6 +33,3 @@ __2:
 }
 ; CHECK-LABEL: test_br_const
 ; CHECK-NOT: cmp {{[0-9]*}},
-
-; ERRORS-NOT: ICE translation error
-; DUMP-NOT: SZ

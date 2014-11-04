@@ -74,5 +74,3 @@ entry:
   %result = sub i32 0, %size
   ret i32 %result
 }
-
-; ERRORS-NOT: ICE translation error
