@@ -74,10 +74,10 @@ AssemblerBuffer::AssemblerBuffer(Assembler &assembler) : assembler_(assembler) {
 
 AssemblerBuffer::~AssemblerBuffer() {}
 
-// Returns the latest fixup at or after the given position, or NULL if
+// Returns the latest fixup at or after the given position, or nullptr if
 // there is none.  Assumes fixups were added in increasing order.
 AssemblerFixup *AssemblerBuffer::GetLatestFixup(intptr_t position) const {
-  AssemblerFixup *latest_fixup = NULL;
+  AssemblerFixup *latest_fixup = nullptr;
   for (auto I = fixups_.rbegin(), E = fixups_.rend(); I != E; ++I) {
     if ((*I)->position() < position)
       return latest_fixup;

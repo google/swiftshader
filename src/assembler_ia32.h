@@ -72,7 +72,7 @@ class Immediate {
   Immediate &operator=(const Immediate &) = delete;
 
 public:
-  explicit Immediate(int32_t value) : value_(value), fixup_(NULL) {}
+  explicit Immediate(int32_t value) : value_(value), fixup_(nullptr) {}
 
   explicit Immediate(AssemblerFixup *fixup)
       : value_(fixup->value()->getOffset()), fixup_(fixup) {
@@ -87,11 +87,15 @@ public:
 
   bool is_int8() const {
     // We currently only allow 32-bit fixups, and they usually have value = 0,
-    // so if fixup_ != NULL, it shouldn't be classified as int8/16.
-    return fixup_ == NULL && Utils::IsInt(8, value_);
+    // so if fixup_ != nullptr, it shouldn't be classified as int8/16.
+    return fixup_ == nullptr && Utils::IsInt(8, value_);
   }
-  bool is_uint8() const { return fixup_ == NULL && Utils::IsUint(8, value_); }
-  bool is_uint16() const { return fixup_ == NULL && Utils::IsUint(16, value_); }
+  bool is_uint8() const {
+    return fixup_ == nullptr && Utils::IsUint(8, value_);
+  }
+  bool is_uint16() const {
+    return fixup_ == nullptr && Utils::IsUint(16, value_);
+  }
 
 private:
   const int32_t value_;
@@ -142,7 +146,7 @@ public:
   AssemblerFixup *fixup() const { return fixup_; }
 
 protected:
-  Operand() : length_(0), fixup_(NULL) {} // Needed by subclass Address.
+  Operand() : length_(0), fixup_(nullptr) {} // Needed by subclass Address.
 
   void SetModRM(int mod, GPRRegister rm) {
     assert((mod & ~3) == 0);
@@ -176,7 +180,7 @@ private:
   uint8_t encoding_[6];
   AssemblerFixup *fixup_;
 
-  explicit Operand(GPRRegister reg) : fixup_(NULL) { SetModRM(3, reg); }
+  explicit Operand(GPRRegister reg) : fixup_(nullptr) { SetModRM(3, reg); }
 
   // Get the operand encoding byte at the given index.
   uint8_t encoding_at(intptr_t index) const {
