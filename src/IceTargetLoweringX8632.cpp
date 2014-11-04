@@ -4030,14 +4030,38 @@ void TargetX8632::lowerSwitch(const InstSwitch *Inst) {
   // cmp a,val[0]; jeq label[0]; cmp a,val[1]; jeq label[1]; ... jmp default
   Operand *Src0 = Inst->getComparison();
   SizeT NumCases = Inst->getNumCases();
+  if (Src0->getType() == IceType_i64) {
+    Src0 = legalize(Src0); // get Base/Index into physical registers
+    Operand *Src0Lo = loOperand(Src0);
+    Operand *Src0Hi = hiOperand(Src0);
+    if (NumCases >= 2) {
+      Src0Lo = legalizeToVar(Src0Lo);
+      Src0Hi = legalizeToVar(Src0Hi);
+    } else {
+      Src0Lo = legalize(Src0Lo, Legal_Reg | Legal_Mem);
+      Src0Hi = legalize(Src0Hi, Legal_Reg | Legal_Mem);
+    }
+    for (SizeT I = 0; I < NumCases; ++I) {
+      Constant *ValueLo = Ctx->getConstantInt32(IceType_i32, Inst->getValue(I));
+      Constant *ValueHi =
+          Ctx->getConstantInt32(IceType_i32, Inst->getValue(I) >> 32);
+      InstX8632Label *Label = InstX8632Label::create(Func, this);
+      _cmp(Src0Lo, ValueLo);
+      _br(CondX86::Br_ne, Label);
+      _cmp(Src0Hi, ValueHi);
+      _br(CondX86::Br_e, Inst->getLabel(I));
+      Context.insert(Label);
+    }
+    _br(Inst->getLabelDefault());
+    return;
+  }
   // OK, we'll be slightly less naive by forcing Src into a physical
   // register if there are 2 or more uses.
   if (NumCases >= 2)
-    Src0 = legalizeToVar(Src0, true);
+    Src0 = legalizeToVar(Src0);
   else
     Src0 = legalize(Src0, Legal_Reg | Legal_Mem);
   for (SizeT I = 0; I < NumCases; ++I) {
-    // TODO(stichnot): Correct lowering for IceType_i64.
     Constant *Value = Ctx->getConstantInt32(IceType_i32, Inst->getValue(I));
     _cmp(Src0, Value);
     _br(CondX86::Br_e, Inst->getLabel(I));
