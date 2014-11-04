@@ -316,8 +316,6 @@ bool Cfg::validateLiveness() const {
     for (Inst *Inst : Node->getInsts()) {
       if (Inst->isDeleted())
         continue;
-      if (llvm::isa<InstFakeKill>(Inst))
-        continue;
       if (FirstInst == NULL)
         FirstInst = Inst;
       InstNumberT InstNumber = Inst->getNumber();

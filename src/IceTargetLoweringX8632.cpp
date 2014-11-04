@@ -316,6 +316,8 @@ TargetX8632::TargetX8632(Cfg *Func)
 void TargetX8632::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
+  initFakeKilledScratchRegisters();
+
   if (!Ctx->getFlags().PhiEdgeSplit) {
     // Lower Phi instructions.
     Func->placePhiLoads();
@@ -411,6 +413,9 @@ void TargetX8632::translateO2() {
 
 void TargetX8632::translateOm1() {
   TimerMarker T(TimerStack::TT_Om1, Func);
+
+  initFakeKilledScratchRegisters();
+
   Func->placePhiLoads();
   if (Func->hasError())
     return;
@@ -1869,12 +1874,9 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   }
 
   // Insert a register-kill pseudo instruction.
-  VarList KilledRegs;
-  for (SizeT i = 0; i < ScratchRegs.size(); ++i) {
-    if (ScratchRegs[i])
-      KilledRegs.push_back(Func->getTarget()->getPhysicalRegister(i));
-  }
-  Context.insert(InstFakeKill::create(Func, KilledRegs, NewCall));
+  assert(!FakeKilledScratchRegisters.empty());
+  Context.insert(
+      InstFakeKill::create(Func, FakeKilledScratchRegisters, NewCall));
 
   // Generate a FakeUse to keep the call live if necessary.
   if (Instr->hasSideEffects() && ReturnReg) {
@@ -4540,8 +4542,7 @@ void TargetX8632::postLower() {
     // allocator, for example compute live ranges only for pre-colored
     // and infinite-weight variables and run the existing linear-scan
     // allocator.
-    if (llvm::isa<InstFakeKill>(Inst))
-      continue;
+    assert(!llvm::isa<InstFakeKill>(Inst) || Inst->getSrcSize() == 0);
     for (SizeT SrcNum = 0; SrcNum < Inst->getSrcSize(); ++SrcNum) {
       Operand *Src = Inst->getSrc(SrcNum);
       SizeT NumVars = Src->getNumVars();
@@ -4563,9 +4564,6 @@ void TargetX8632::postLower() {
     FreedRegisters.reset();
     if (Inst->isDeleted())
       continue;
-    // Skip FakeKill instructions like above.
-    if (llvm::isa<InstFakeKill>(Inst))
-      continue;
     // Iterate over all variables referenced in the instruction,
     // including the Dest variable (if any).  If the variable is
     // marked as infinite-weight, find it a register.  If this
@@ -4579,6 +4577,8 @@ void TargetX8632::postLower() {
     SizeT NumSrcs = Inst->getSrcSize();
     if (Dest)
       ++NumSrcs;
+    if (NumSrcs == 0)
+      continue;
     OperandList Srcs(NumSrcs);
     for (SizeT i = 0; i < Inst->getSrcSize(); ++i)
       Srcs[i] = Inst->getSrc(i);

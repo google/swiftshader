@@ -454,11 +454,8 @@ InstFakeUse::InstFakeUse(Cfg *Func, Variable *Src)
 
 InstFakeKill::InstFakeKill(Cfg *Func, const VarList &KilledRegs,
                            const Inst *Linked)
-    : InstHighLevel(Func, Inst::FakeKill, KilledRegs.size(), NULL),
-      Linked(Linked) {
-  for (Variable *Var : KilledRegs)
-    addSource(Var);
-}
+    : InstHighLevel(Func, Inst::FakeKill, 0, NULL), KilledRegs(KilledRegs),
+      Linked(Linked) {}
 
 // ======================== Dump routines ======================== //
 
@@ -730,6 +727,8 @@ void InstUnreachable::dump(const Cfg *Func) const {
 }
 
 void InstFakeDef::emit(const Cfg *Func) const {
+  // Go ahead and "emit" these for now, since they are relatively
+  // rare.
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t# ";
   getDest()->emit(Func);
@@ -744,12 +743,7 @@ void InstFakeDef::dump(const Cfg *Func) const {
   dumpSources(Func);
 }
 
-void InstFakeUse::emit(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrEmit();
-  Str << "\t# ";
-  Str << "use.pseudo ";
-  emitSources(Func);
-}
+void InstFakeUse::emit(const Cfg *Func) const { (void)Func; }
 
 void InstFakeUse::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
@@ -757,21 +751,20 @@ void InstFakeUse::dump(const Cfg *Func) const {
   dumpSources(Func);
 }
 
-void InstFakeKill::emit(const Cfg *Func) const {
-  Ostream &Str = Func->getContext()->getStrEmit();
-  Str << "\t# ";
-  if (Linked->isDeleted())
-    Str << "// ";
-  Str << "kill.pseudo ";
-  emitSources(Func);
-}
+void InstFakeKill::emit(const Cfg *Func) const { (void)Func; }
 
 void InstFakeKill::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   if (Linked->isDeleted())
     Str << "// ";
   Str << "kill.pseudo ";
-  dumpSources(Func);
+  bool First = true;
+  for (Variable *Var : KilledRegs) {
+    if (!First)
+      Str << ", ";
+    First = false;
+    Var->dump(Func);
+  }
 }
 
 void InstTarget::dump(const Cfg *Func) const {

@@ -667,9 +667,7 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
     if (Mode == Liveness_Intervals) {
       if (InstFakeKill *Kill = llvm::dyn_cast<InstFakeKill>(I)) {
         if (!Kill->getLinked()->isDeleted()) {
-          SizeT NumSrcs = I->getSrcSize();
-          for (SizeT Src = 0; Src < NumSrcs; ++Src) {
-            Variable *Var = llvm::cast<Variable>(I->getSrc(Src));
+          for (Variable *Var : Kill->getKilledRegs()) {
             InstNumberT InstNumber = I->getNumber();
             Var->addLiveRange(InstNumber, InstNumber, 1);
           }

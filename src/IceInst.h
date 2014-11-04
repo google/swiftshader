@@ -801,6 +801,7 @@ public:
     return new (Func->allocateInst<InstFakeKill>())
         InstFakeKill(Func, KilledRegs, Linked);
   }
+  const VarList &getKilledRegs() const { return KilledRegs; }
   const Inst *getLinked() const { return Linked; }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
@@ -811,6 +812,7 @@ private:
   InstFakeKill(Cfg *Func, const VarList &KilledRegs, const Inst *Linked);
   ~InstFakeKill() override {}
 
+  const VarList &KilledRegs;
   // This instruction is ignored if Linked->isDeleted() is true.
   const Inst *Linked;
 };
