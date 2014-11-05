@@ -230,7 +230,7 @@ void GL_APIENTRY glBeginQueryEXT(GLenum target, GLuint id)
 
 void GL_APIENTRY glBindAttribLocation(GLuint program, GLuint index, const GLchar* name)
 {
-    TRACE("(GLuint program = %d, GLuint index = %d, const GLchar* name = 0x%0.8p)", program, index, name);
+    TRACE("(GLuint program = %d, GLuint index = %d, const GLchar* name = %s)", program, index, name);
 
     try
     {
@@ -2422,7 +2422,7 @@ void GL_APIENTRY glGenRenderbuffers(GLsizei n, GLuint* renderbuffers)
 
 void GL_APIENTRY glGenTextures(GLsizei n, GLuint* textures)
 {
-    TRACE("(GLsizei n = %d, GLuint* textures =  0x%0.8p)", n, textures);
+    TRACE("(GLsizei n = %d, GLuint* textures = 0x%0.8p)", n, textures);
 
     try
     {
@@ -2495,7 +2495,7 @@ void GL_APIENTRY glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufsize
 void GL_APIENTRY glGetActiveUniform(GLuint program, GLuint index, GLsizei bufsize, GLsizei* length, GLint* size, GLenum* type, GLchar* name)
 {
     TRACE("(GLuint program = %d, GLuint index = %d, GLsizei bufsize = %d, "
-          "GLsizei* length = 0x%0.8p, GLint* size = 0x%0.8p, GLenum* type = 0x%0.8p, GLchar* name = 0x%0.8p)",
+          "GLsizei* length = 0x%0.8p, GLint* size = 0x%0.8p, GLenum* type = 0x%0.8p, GLchar* name = %s)",
           program, index, bufsize, length, size, type, name);
 
     try
@@ -3020,7 +3020,7 @@ void GL_APIENTRY glGetIntegerv(GLenum pname, GLint* params)
 
 void GL_APIENTRY glGetProgramiv(GLuint program, GLenum pname, GLint* params)
 {
-    TRACE("(GLuint program = %d, GLenum pname = %d, GLint* params = 0x%0.8p)", program, pname, params);
+    TRACE("(GLuint program = %d, GLenum pname = 0x%X, GLint* params = 0x%0.8p)", program, pname, params);
 
     try
     {
@@ -3720,7 +3720,7 @@ void GL_APIENTRY glGetUniformiv(GLuint program, GLint location, GLint* params)
 
 int GL_APIENTRY glGetUniformLocation(GLuint program, const GLchar* name)
 {
-    TRACE("(GLuint program = %d, const GLchar* name = 0x%0.8p)", program, name);
+    TRACE("(GLuint program = %d, const GLchar* name = %s)", program, name);
 
     try
     {
@@ -6143,6 +6143,13 @@ void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image
     }
 }
 
+void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target, GLeglImageOES image)
+{
+	TRACE("(GLenum target = 0x%X, GLeglImageOES image = 0x%0.8p)", target, image);
+
+	UNIMPLEMENTED();
+}
+
 __eglMustCastToProperFunctionPointerType glGetProcAddress(const char *procname)
 {
     struct Extension
@@ -6177,6 +6184,7 @@ __eglMustCastToProperFunctionPointerType glGetProcAddress(const char *procname)
         EXTENSION(glGetQueryivEXT),
         EXTENSION(glGetQueryObjectuivEXT),
         EXTENSION(glEGLImageTargetTexture2DOES),
+		EXTENSION(glEGLImageTargetRenderbufferStorageOES),
 
 		#undef EXTENSION
     };

@@ -137,7 +137,6 @@ EXPORTS
     glPointParameterx    @166
     glPointParameterxv    @167
     glPointSize    @101
-    glPointSizePointerOES    @168
     glPointSizex    @102
     glPolygonOffset    @103
     glPolygonOffsetx    @104
@@ -174,6 +173,11 @@ EXPORTS
     glTranslatex    @129
     glVertexPointer    @130
     glViewport    @131
+
+	; Extensions
+	glPointSizePointerOES    @168
+    glEGLImageTargetTexture2DOES
+    glEGLImageTargetRenderbufferStorageOES
 
     ; EGL dependencies
     glCreateContext

@@ -4220,6 +4220,13 @@ void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image
     }
 }
 
+void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target, GLeglImageOES image)
+{
+	TRACE("(GLenum target = 0x%X, GLeglImageOES image = 0x%0.8p)", target, image);
+
+	UNIMPLEMENTED();
+}
+
 __eglMustCastToProperFunctionPointerType glGetProcAddress(const char *procname)
 {
     struct Extension
@@ -4232,28 +4239,30 @@ __eglMustCastToProperFunctionPointerType glGetProcAddress(const char *procname)
     {
 		#define EXTENSION(name) {#name, (__eglMustCastToProperFunctionPointerType)name}
 
-        EXTENSION(glEGLImageTargetTexture2DOES),
- 		EXTENSION(glIsRenderbufferOES),
- 		EXTENSION(glBindRenderbufferOES),
- 		EXTENSION(glDeleteRenderbuffersOES),
- 		EXTENSION(glGenRenderbuffersOES),
- 		EXTENSION(glRenderbufferStorageOES),
- 		EXTENSION(glGetRenderbufferParameterivOES),
- 		EXTENSION(glIsFramebufferOES),
- 		EXTENSION(glBindFramebufferOES),
- 		EXTENSION(glDeleteFramebuffersOES),
- 		EXTENSION(glGenFramebuffersOES),
- 		EXTENSION(glCheckFramebufferStatusOES),
- 		EXTENSION(glFramebufferRenderbufferOES),
- 		EXTENSION(glFramebufferTexture2DOES),
- 		EXTENSION(glGetFramebufferAttachmentParameterivOES),
- 		EXTENSION(glGenerateMipmapOES),
- 		EXTENSION(glBlendEquationSeparateOES),
- 		EXTENSION(glBlendFuncSeparateOES),
- 		EXTENSION(glPointSizePointerOES),
+		EXTENSION(glEGLImageTargetTexture2DOES),
+		EXTENSION(glEGLImageTargetRenderbufferStorageOES),
+		EXTENSION(glIsRenderbufferOES),
+		EXTENSION(glBindRenderbufferOES),
+		EXTENSION(glDeleteRenderbuffersOES),
+		EXTENSION(glGenRenderbuffersOES),
+		EXTENSION(glRenderbufferStorageOES),
+		EXTENSION(glGetRenderbufferParameterivOES),
+		EXTENSION(glIsFramebufferOES),
+		EXTENSION(glBindFramebufferOES),
+		EXTENSION(glDeleteFramebuffersOES),
+		EXTENSION(glGenFramebuffersOES),
+		EXTENSION(glCheckFramebufferStatusOES),
+		EXTENSION(glFramebufferRenderbufferOES),
+		EXTENSION(glFramebufferTexture2DOES),
+		EXTENSION(glGetFramebufferAttachmentParameterivOES),
+		EXTENSION(glGenerateMipmapOES),
+		EXTENSION(glBlendEquationOES),
+		EXTENSION(glBlendEquationSeparateOES),
+		EXTENSION(glBlendFuncSeparateOES),
+		EXTENSION(glPointSizePointerOES),
 
 		#undef EXTENSION
-     };
+	};
 
     for(int ext = 0; ext < sizeof(glExtensions) / sizeof(Extension); ext++)
     {
