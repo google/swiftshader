@@ -34,3 +34,7 @@ EXPORTS
 	eglWaitClient                   @16
 	eglWaitGL                       @30
 	eglWaitNative                   @31
+
+	; Functions that don't change the error code, for use by client APIs
+	clientGetCurrentContext
+	clientGetCurrentDisplay

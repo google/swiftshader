@@ -1198,10 +1198,10 @@ __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const cha
 			#define EXTENSION(name) {#name, (__eglMustCastToProperFunctionPointerType)name}
 
 			EXTENSION(eglCreateImageKHR),
-            EXTENSION(eglDestroyImageKHR),
+			EXTENSION(eglDestroyImageKHR),
 
 			#undef EXTENSION
-        };
+		};
 
         for(int ext = 0; ext < sizeof(eglExtensions) / sizeof(Extension); ext++)
         {

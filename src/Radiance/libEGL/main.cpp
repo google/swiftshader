@@ -237,7 +237,7 @@ void setCurrentContext(EGLContext ctx)
     current->context = ctx;
 }
 
-EGLDisplay getCurrentContext()
+EGLContext getCurrentContext()
 {
     Current *current = eglGetCurrent();
 
@@ -298,6 +298,19 @@ void error(EGLint errorCode)
 		default:                      TRACE("\t! Error generated: <0x%X>\n", errorCode);   break;
 		}
 	}
+}
+
+extern "C"
+{
+EGLContext clientGetCurrentContext()
+{
+    return egl::getCurrentContext();
+}
+
+EGLContext clientGetCurrentDisplay()
+{
+    return egl::getCurrentDisplay();
+}
 }
 
 namespace rad
