@@ -43,10 +43,10 @@ CONSTRUCTOR static bool glAttachProcess()
 
     glAttachThread();
 
-    #if defined(_WIN32)
-	const char *libEGL_lib = "libEGL.dll";
+	#if defined(_WIN32)
+	const char *libEGL_lib[] = {"libEGL.dll", "libEGL_translator.dll"};
 	#else
-	const char *libEGL_lib = "libEGL.so.1";
+	const char *libEGL_lib[] = {"libEGL.so.1", "libEGL.so"};
 	#endif
 
 	libEGL = loadLibrary(libEGL_lib);
@@ -54,9 +54,9 @@ CONSTRUCTOR static bool glAttachProcess()
 	egl::getCurrentDisplay = (egl::Display *(*)())getProcAddress(libEGL, "eglGetCurrentDisplay");
 
 	#if defined(_WIN32)
-	const char *libGLES_CM_lib = "libGLES_CM.dll";
+	const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "libGLES_CM_translator.dll"};
 	#else
-	const char *libGLES_CM_lib = "libGLES_CM.so.1";
+	const char *libGLES_CM_lib[] = {"libGLES_CM.so.1", "libGLES_CM.so"};
 	#endif
 
 	libGLES_CM = loadLibrary(libGLES_CM_lib);

@@ -15,10 +15,43 @@
 	#include <dlfcn.h>
 #endif
 
+template<int n>
+void *loadLibrary(const char *(&names)[n])
+{
+	for(int i = 0; i < n; i++)
+	{
+		void *library = getLibraryHandle(names[i]);
+
+		if(library)
+		{
+			return library;
+		}
+	}
+
+	for(int i = 0; i < n; i++)
+	{
+		void *library = loadLibrary(names[i]);
+
+		if(library)
+		{
+			return library;
+		}
+	}
+
+	return 0;
+}
+
 #if defined(_WIN32)
 	inline void *loadLibrary(const char *path)
 	{
 		return (void*)LoadLibrary(path);
+	}
+
+	inline void *getLibraryHandle(const char *path)
+	{
+		HMODULE module = 0;
+		GetModuleHandleEx(0, path, &module);
+		return (void*)module;
 	}
 
 	inline void freeLibrary(void *library)
@@ -34,6 +67,18 @@
 	inline void *loadLibrary(const char *path)
 	{
 		return dlopen(path, RTLD_LAZY);
+	}
+
+	inline void *getLibraryHandle(const char *path)
+	{
+		bool resident = (dlopen(names[i], RTLD_NOLOAD) != 0);
+
+		if(resident)
+		{
+			return dlopen(path, RTLD_LAZY);   // Increment reference count
+		}
+
+		return 0;
 	}
 
 	inline void freeLibrary(void *library)

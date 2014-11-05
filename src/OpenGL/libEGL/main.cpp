@@ -84,21 +84,21 @@ CONSTRUCTOR static bool eglAttachProcess()
 	eglAttachThread();
 
 	#if defined(_WIN32)
-	const char *libGLES_CM_lib = "libGLES_CM.dll";
+	const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "libGLES_CM_translator.dll"};
 	#else
-	const char *libGLES_CM_lib = "libGLES_CM.so.1";
+	const char *libGLES_CM_lib[] = {"libGLES_CM.so.1", "libGLES_CM.so"};
 	#endif
-	
+
     libGLES_CM = loadLibrary(libGLES_CM_lib);
     es1::createContext = (egl::Context *(*)(const egl::Config*, const egl::Context*))getProcAddress(libGLES_CM, "glCreateContext");
     es1::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLES_CM, "glGetProcAddress");
 
 	#if defined(_WIN32)
-	const char *libGLESv2_lib = "libGLESv2.dll";
+	const char *libGLESv2_lib[] = {"libGLESv2.dll", "libGLES_V2_translator.dll"};
 	#else
-	const char *libGLESv2_lib = "libGLESv2.so.2";
+	const char *libGLESv2_lib[] = {"libGLESv2.so.2", "libGLESv2.so"};
 	#endif
-	
+
     libGLESv2 = loadLibrary(libGLESv2_lib);
     es2::createContext = (egl::Context *(*)(const egl::Config*, const egl::Context*))getProcAddress(libGLESv2, "glCreateContext");
     es2::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLESv2, "glGetProcAddress");

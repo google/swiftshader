@@ -44,9 +44,9 @@ CONSTRUCTOR static bool glAttachProcess()
     glAttachThread();
 
 	#if defined(_WIN32)
-	const char *libEGL_lib = "libEGL.dll";
+	const char *libEGL_lib[] = {"libEGL.dll", "libEGL_translator.dll"};
 	#else
-	const char *libEGL_lib = "libEGL.so.1";
+	const char *libEGL_lib[] = {"libEGL.so.1", "libEGL.so"};
 	#endif
 
 	libEGL = loadLibrary(libEGL_lib);
