@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "75752e3d_7192b262",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-05T20:00:22Z",
+      "side": 1,
+      "message": "Note that you can set the indentation level in Gerrit by clicking on the gear in the upper right corner. The default of 8 spaces looks really bad. That said there shouldn\u0027t be mixed indentation in this CL so I\u0027ll fix it.",
+      "parentUuid": "3551f6a8_c25726c9",
+      "range": {
+        "startLine": 26,
+        "startChar": 8,
+        "endLine": 26,
+        "endChar": 9
+      },
+      "revId": "c3d97d0c18a13861a17754ec284177c7ebb8a4b2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3551f6a8_624df234",
         "filename": "src/Common/SharedLibrary.hpp",
         "patchSetId": 5
