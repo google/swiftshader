@@ -45,6 +45,29 @@
       "revId": "c3d97d0c18a13861a17754ec284177c7ebb8a4b2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "75752e3d_31850a2c",
+        "filename": "src/OpenGL/libEGL/main.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-05T19:54:52Z",
+      "side": 1,
+      "message": "Is it readily clear that this loads just one DLL from a list of possible names? I couldn\u0027t find a concise function name that expresses that. But maybe it\u0027s not necessary to change the name.",
+      "range": {
+        "startLine": 86,
+        "startChar": 1,
+        "endLine": 92,
+        "endChar": 45
+      },
+      "revId": "c3d97d0c18a13861a17754ec284177c7ebb8a4b2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
