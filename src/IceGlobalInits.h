@@ -216,22 +216,17 @@ public:
     SizeT Size;
   };
 
-  // Relocation address offsets must be 32 bit values.
-  typedef int32_t RelocOffsetType;
-  static const SizeT RelocAddrSize = 4;
-
   /// Defines the relocation value of another global declaration.
   class RelocInitializer : public Initializer {
     RelocInitializer(const RelocInitializer &) = delete;
     RelocInitializer &operator=(const RelocInitializer &) = delete;
 
   public:
-    RelocInitializer(const GlobalDeclaration *Declaration,
-                     RelocOffsetType Offset)
+    RelocInitializer(const GlobalDeclaration *Declaration, RelocOffsetT Offset)
         : Initializer(RelocInitializerKind), Declaration(Declaration),
           Offset(Offset) {}
     ~RelocInitializer() override {}
-    RelocOffsetType getOffset() const { return Offset; }
+    RelocOffsetT getOffset() const { return Offset; }
     const GlobalDeclaration *getDeclaration() const { return Declaration; }
     SizeT getNumBytes() const final { return RelocAddrSize; }
     void dump(GlobalContext *Ctx, Ostream &Stream) const final;
@@ -244,7 +239,7 @@ public:
     // The global declaration used in the relocation.
     const GlobalDeclaration *Declaration;
     // The offset to add to the relocation.
-    const RelocOffsetType Offset;
+    const RelocOffsetT Offset;
   };
 
   /// Models the list of initializers.

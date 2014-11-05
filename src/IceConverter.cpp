@@ -659,7 +659,7 @@ private:
   void addGlobalInitializer(Ice::VariableDeclaration &Global,
                             const Constant *Initializer) {
     const bool HasOffset = false;
-    const Ice::VariableDeclaration::RelocOffsetType Offset = 0;
+    const Ice::RelocOffsetT Offset = 0;
     addGlobalInitializer(Global, Initializer, HasOffset, Offset);
   }
 
@@ -669,12 +669,11 @@ private:
   // relocation.
   void addGlobalInitializer(Ice::VariableDeclaration &Global,
                             const Constant *Initializer, bool HasOffset,
-                            Ice::VariableDeclaration::RelocOffsetType Offset);
+                            Ice::RelocOffsetT Offset);
 
   // Converts the given constant C to the corresponding integer
   // literal it contains.
-  Ice::VariableDeclaration::RelocOffsetType
-  getIntegerLiteralConstant(const Value *C) {
+  Ice::RelocOffsetT getIntegerLiteralConstant(const Value *C) {
     const auto CI = dyn_cast<ConstantInt>(C);
     if (CI && CI->getType()->isIntegerTy(32))
       return CI->getSExtValue();
@@ -735,7 +734,7 @@ void LLVM2ICEGlobalsConverter::convertGlobalsToIce(
 
 void LLVM2ICEGlobalsConverter::addGlobalInitializer(
     Ice::VariableDeclaration &Global, const Constant *Initializer,
-    bool HasOffset, Ice::VariableDeclaration::RelocOffsetType Offset) {
+    bool HasOffset, Ice::RelocOffsetT Offset) {
   (void)HasOffset;
   assert(HasOffset || Offset == 0);
 

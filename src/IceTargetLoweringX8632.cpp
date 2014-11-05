@@ -4702,7 +4702,7 @@ void TargetGlobalInitX8632::lower(const VariableDeclaration &Var) {
             llvm::cast<VariableDeclaration::RelocInitializer>(Init);
         Str << "\t.long\t";
         Str << Reloc->getDeclaration()->mangleName(Ctx);
-        if (VariableDeclaration::RelocOffsetType Offset = Reloc->getOffset()) {
+        if (RelocOffsetT Offset = Reloc->getOffset()) {
           if (Offset >= 0 || (Offset == INT32_MIN))
             Str << " + " << Offset;
           else
