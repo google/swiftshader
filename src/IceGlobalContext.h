@@ -140,6 +140,10 @@ public:
 
   const ClFlags &getFlags() const { return Flags; }
 
+  bool isIRGenerationDisabled() const {
+    return ALLOW_DISABLE_IR_GEN ? getFlags().DisableIRGeneration : false;
+  }
+
   // Allocate data of type T using the global allocator.
   template <typename T> T *allocate() { return Allocator.Allocate<T>(); }
 

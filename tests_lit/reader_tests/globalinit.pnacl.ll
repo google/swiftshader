@@ -3,6 +3,10 @@
 ; RUN: %p2i -i %s --insts | FileCheck %s
 ; RUN: %l2i -i %s --insts | %ifl FileCheck %s
 ; RUN: %lc2i -i %s --insts | %iflc FileCheck %s
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
 
 @PrimitiveInit = internal global [4 x i8] c"\1B\00\00\00", align 4
 ; CHECK: @PrimitiveInit = internal global [4 x i8] c"\1B\00\00\00", align 4
@@ -74,3 +78,5 @@ entry:
   %result = sub i32 0, %size
   ret i32 %result
 }
+
+; NOIR: Total across all functions

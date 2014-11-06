@@ -26,8 +26,9 @@ public:
         UseIntegratedAssembler(false), UseSandboxing(false),
         PhiEdgeSplit(false), DecorateAsm(false), DumpStats(false),
         AllowUninitializedGlobals(false), TimeEachFunction(false),
-        DefaultGlobalPrefix(""), DefaultFunctionPrefix(""), TimingFocusOn(""),
-        VerboseFocusOn(""), TranslateOnly("") {}
+        DisableIRGeneration(false), DefaultGlobalPrefix(""),
+        DefaultFunctionPrefix(""), TimingFocusOn(""), VerboseFocusOn(""),
+        TranslateOnly("") {}
   bool DisableInternal;
   bool SubzeroTimingEnabled;
   bool DisableTranslation;
@@ -40,6 +41,7 @@ public:
   bool DumpStats;
   bool AllowUninitializedGlobals;
   bool TimeEachFunction;
+  bool DisableIRGeneration;
   IceString DefaultGlobalPrefix;
   IceString DefaultFunctionPrefix;
   IceString TimingFocusOn;

@@ -1,6 +1,10 @@
 ; Test if we can read compare instructions.
 
 ; RUN: %p2i -i %s --insts | FileCheck %s
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
 
 define i1 @IcmpI1(i32 %p1, i32 %p2) {
 entry:
@@ -469,3 +473,5 @@ entry:
 ; CHECK-NEXT:   %vtrue = fcmp true <4 x float> %a1, %a2
 ; CHECK-NEXT:   ret <4 x i1> %voeq
 ; CHECK-NEXT: }
+
+; NOIR: Total across all functions

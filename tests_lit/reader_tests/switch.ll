@@ -1,6 +1,10 @@
 ; Test switch instructions.
 
 ; RUN: %p2i -i %s --insts | FileCheck %s
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
 
 define void @testDefaultSwitch(i32 %a) {
 entry:
@@ -490,3 +494,4 @@ exit:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
+; NOIR: Total across all functions

@@ -47,6 +47,7 @@ def main():
                            action='store_true',
                            help='Trace command that generates ICE instructions')
     argparser.add_argument('--args', '-a', nargs=argparse.REMAINDER,
+                           default=[],
                            help='Remaining arguments are passed to llvm2ice')
 
     args = argparser.parse_args()
@@ -78,8 +79,7 @@ def main():
       cmd += ['--build-on-read=0']
     else:
       cmd += ['--build-on-read=1']
-    if args.args:
-      cmd += args.args
+    cmd += args.args
     if args.llvm_source:
       cmd += [llfile]
 

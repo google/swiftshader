@@ -1,6 +1,10 @@
 ; Tests if we handle a branch instructions.
 
 ; RUN: %p2i -i %s --insts | FileCheck %s
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
 
 define void @SimpleBranch() {
 entry:
@@ -43,3 +47,5 @@ b2:
 ; CHECK-NEXT: b2:
 ; CHECK-NEXT:   br i1 %test, label %b2, label %b1
 ; CHECK-NEXT: }
+
+; NOIR: Total across all functions

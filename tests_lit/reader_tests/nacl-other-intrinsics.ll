@@ -1,6 +1,10 @@
 ; This tests parsing NaCl intrinsics not related to atomic operations.
 
 ; RUN: %p2i -i %s --insts | FileCheck %s
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
 
 declare i8* @llvm.nacl.read.tp()
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
@@ -339,3 +343,4 @@ entry:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
+; NOIR: Total across all functions

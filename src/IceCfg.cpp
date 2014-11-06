@@ -31,7 +31,10 @@ Cfg::Cfg(GlobalContext *Ctx)
       VMetadata(new VariablesMetadata(this)),
       TargetAssembler(
           TargetLowering::createAssembler(Ctx->getTargetArch(), this)),
-      CurrentNode(NULL) {}
+      CurrentNode(NULL) {
+  assert(!Ctx->isIRGenerationDisabled() &&
+         "Attempt to build cfg when IR generation disabled");
+}
 
 Cfg::~Cfg() {}
 

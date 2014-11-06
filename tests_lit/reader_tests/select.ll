@@ -1,6 +1,10 @@
 ; Tests if we can read select instructions.
 
 ; RUN: %p2i -i %s --insts | FileCheck %s
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
 
 define void @Seli1(i32 %p) {
 entry:
@@ -293,3 +297,5 @@ entry:
 ; CHECK-NEXT:   %r = select <4 x i1> %pc, <4 x float> %pt, <4 x float> %pe
 ; CHECK-NEXT:   ret <4 x float> %r
 ; CHECK-NEXT: }
+
+; NOIR: Total across all functions

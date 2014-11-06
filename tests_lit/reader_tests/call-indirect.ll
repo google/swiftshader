@@ -1,6 +1,10 @@
 ; Test parsing indirect calls in Subzero.
 
 ; RUN: %p2i -i %s --insts | FileCheck %s
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
 
 define internal void @CallIndirectVoid(i32 %f_addr) {
 entry:
@@ -27,3 +31,5 @@ entry:
 ; CHECK-NEXT:   %r = call i32 %f_addr(i8 1, i1 false)
 ; CHECK-NEXT:   ret i32 %r
 ; CHECK-NEXT: }
+
+; NOIR: Total across all functions

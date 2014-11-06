@@ -94,6 +94,10 @@ DisableInternal("externalize",
                 cl::desc("Externalize all symbols"));
 static cl::opt<bool>
 DisableTranslation("notranslate", cl::desc("Disable Subzero translation"));
+// Note: Modifiable only if ALLOW_DISABLE_IR_GEN.
+static cl::opt<bool>
+    DisableIRGeneration("no-ir-gen",
+                        cl::desc("Disable generating Subzero IR."));
 static cl::opt<std::string>
 TranslateOnly("translate-only", cl::desc("Translate only the given function"),
               cl::init(""));
@@ -188,12 +192,12 @@ static int GetReturnValue(int Val) {
 static struct {
   const char *FlagName;
   int FlagValue;
-} ConditionalBuildAttributes[] = { { "text_asm", ALLOW_TEXT_ASM },
-                                   { "dump", ALLOW_DUMP },
-                                   { "llvm_cl", ALLOW_LLVM_CL },
-                                   { "llvm_ir", ALLOW_LLVM_IR },
-                                   { "llvm_ir_as_input",
-                                     ALLOW_LLVM_IR_AS_INPUT } };
+} ConditionalBuildAttributes[] = {{"text_asm", ALLOW_TEXT_ASM},
+                                  {"dump", ALLOW_DUMP},
+                                  {"llvm_cl", ALLOW_LLVM_CL},
+                                  {"llvm_ir", ALLOW_LLVM_IR},
+                                  {"llvm_ir_as_input", ALLOW_LLVM_IR_AS_INPUT},
+                                  {"disable_ir_gen", ALLOW_DISABLE_IR_GEN}};
 
 // Validates values of build attributes. Prints them to Stream if
 // Stream is non-null.
@@ -228,6 +232,9 @@ int main(int argc, char **argv) {
 
   cl::ParseCommandLineOptions(argc, argv);
 
+  if (DisableIRGeneration)
+    DisableTranslation = true;
+
   Ice::VerboseMask VMask = Ice::IceV_None;
   for (unsigned i = 0; i != VerboseList.size(); ++i)
     VMask |= VerboseList[i];
@@ -251,6 +258,12 @@ int main(int argc, char **argv) {
   raw_os_ostream *Ls = new raw_os_ostream(LogFilename == "-" ? std::cout : Lfs);
   Ls->SetUnbuffered();
 
+  if (!ALLOW_DISABLE_IR_GEN && DisableIRGeneration) {
+    *Ls << "Error: Build doesn't allow --no-ir-gen when not "
+        << "ALLOW_DISABLE_IR_GEN!\n";
+    return GetReturnValue(1);
+  }
+
   Ice::ClFlags Flags;
   Flags.DisableInternal = DisableInternal;
   Flags.SubzeroTimingEnabled = SubzeroTimingEnabled;
@@ -269,6 +282,7 @@ int main(int argc, char **argv) {
   Flags.TimingFocusOn = TimingFocusOn;
   Flags.VerboseFocusOn = VerboseFocusOn;
   Flags.TranslateOnly = TranslateOnly;
+  Flags.DisableIRGeneration = DisableIRGeneration;
 
   Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix,
                          Flags);

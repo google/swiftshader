@@ -1,9 +1,12 @@
 ; Test use forward type references in function blocks.
 
 ; RUN: %p2i -i %s --insts | FileCheck %s
-
 ; RUN: llvm-as < %s | pnacl-freeze | pnacl-bcdis -no-records \
 ; RUN:              | FileCheck --check-prefix=DUMP %s
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
 
 define void @LoopCarriedDep() {
 b0:
@@ -116,3 +119,5 @@ b6:
 ; DUMP-NEXT:   %b6:
 ; DUMP-NEXT:     ret void; <@a3>
 ; DUMP-NEXT:   }
+
+; NOIR: Total across all functions

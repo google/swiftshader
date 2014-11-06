@@ -1,6 +1,10 @@
 ; Test if we can read store instructions.
 
 ; RUN: %p2i -i %s --insts --no-local-syms | FileCheck %s
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
 
 define void @store_i8(i32 %addr) {
 entry:
@@ -133,3 +137,5 @@ define void @store_v4xFloat(i32 %addr, <4 x float> %v) {
 ; CHECK-NEXT:   store <4 x float> %__1, <4 x float>* %__0, align 4
 ; CHECK-NEXT:   ret void
 }
+
+; NOIR: Total across all functions

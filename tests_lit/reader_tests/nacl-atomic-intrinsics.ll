@@ -1,6 +1,10 @@
 ; Test parsing NaCl atomic instructions.
 
 ; RUN: %p2i -i %s --insts | FileCheck %s
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
 
 declare i8 @llvm.nacl.atomic.load.i8(i8*, i32)
 declare i16 @llvm.nacl.atomic.load.i16(i16*, i32)
@@ -638,3 +642,4 @@ entry:
 ; CHECK-NEXT:   ret i32 %r
 ; CHECK-NEXT: }
 
+; NOIR: Total across all functions

@@ -12,6 +12,11 @@
 ; RUN:      -default-function-prefix=h -default-global-prefix=g \
 ; RUN:      | FileCheck --check-prefix=BAD %s
 
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
+
 ; TODO(kschimpf) Check global variable declarations, once generated.
 
 @0 = internal global [4 x i8] zeroinitializer, align 4
@@ -57,3 +62,5 @@ define void @h5() {
 
 ; BAD: Warning : Default global prefix 'g' potentially conflicts with name 'g'.
 ; BAD: Warning : Default function prefix 'h' potentially conflicts with name 'h5'.
+
+; NOIR: Total across all functions

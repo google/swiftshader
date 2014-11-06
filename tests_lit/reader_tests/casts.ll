@@ -1,6 +1,10 @@
 ; Tests if we can read cast operations.
 
 ; RUN: %p2i -i %s --insts --no-local-syms | FileCheck %s
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
 
 ; TODO(kschimpf) Find way to test pointer conversions (since they in general
 ; get removed by pnacl-freeze).
@@ -532,3 +536,5 @@ define void @BitcastV16xi8(<16 x i8> %v) {
 ; CHECK-NEXT:   %__3 = bitcast <16 x i8> %__0 to <8 x i16>
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
+
+; NOIR: Total across all functions

@@ -201,6 +201,12 @@ public:
   /// Changes the size of the type list to the given size.
   void resizeTypeIDValues(unsigned NewSize) { TypeIDValues.resize(NewSize); }
 
+  /// Returns true if generation of Subzero IR is disabled.
+  bool isIRGenerationDisabled() const {
+    return ALLOW_DISABLE_IR_GEN ? Translator.getFlags().DisableIRGeneration
+                                : false;
+  }
+
   /// Returns the undefined type associated with type ID.
   /// Note: Returns extended type ready to be defined.
   ExtendedType *getTypeByIDForDefining(unsigned ID) {
@@ -283,6 +289,11 @@ public:
     }
     if (C != nullptr)
       return C;
+
+    if (isIRGenerationDisabled()) {
+      ValueIDConstants[ID] = nullptr;
+      return nullptr;
+    }
 
     // If reached, no such constant exists, create one.
     // TODO(kschimpf) Don't get addresses of intrinsic function declarations.
@@ -522,6 +533,11 @@ protected:
   Ice::Translator &getTranslator() const { return Context->getTranslator(); }
 
   const Ice::ClFlags &getFlags() const { return getTranslator().getFlags(); }
+
+  bool isIRGenerationDisabled() const {
+    return ALLOW_DISABLE_IR_GEN ? getTranslator().getFlags().DisableIRGeneration
+                                : false;
+  }
 
   // Generates an error Message with the bit address prefixed to it.
   bool Error(const std::string &Message) override {
@@ -811,6 +827,8 @@ public:
             Ice::VariableDeclaration::create(getTranslator().getContext())),
         CurGlobalVar(DummyGlobalVar) {}
 
+  ~GlobalsParser() final {}
+
 private:
   Ice::TimerMarker Timer;
   // Keeps track of how many initializers are expected for the global variable
@@ -881,10 +899,12 @@ void GlobalsParser::ProcessRecord() {
     if (!isValidRecordSize(2, "Globals variable"))
       return;
     verifyNoMissingInitializers();
-    InitializersNeeded = 1;
-    CurGlobalVar = Context->getGlobalVariableByID(NextGlobalID);
-    CurGlobalVar->setAlignment((1 << Values[0]) >> 1);
-    CurGlobalVar->setIsConstant(Values[1] != 0);
+    if (!isIRGenerationDisabled()) {
+      InitializersNeeded = 1;
+      CurGlobalVar = Context->getGlobalVariableByID(NextGlobalID);
+      CurGlobalVar->setAlignment((1 << Values[0]) >> 1);
+      CurGlobalVar->setIsConstant(Values[1] != 0);
+    }
     ++NextGlobalID;
     return;
   }
@@ -903,11 +923,15 @@ void GlobalsParser::ProcessRecord() {
       Error(StrBuf.str());
       return;
     }
+    if (isIRGenerationDisabled())
+      return;
     InitializersNeeded = Values[0];
     return;
   case naclbitc::GLOBALVAR_ZEROFILL: {
     // ZEROFILL: [size]
     if (!isValidRecordSize(1, "Globals zerofill"))
+      return;
+    if (isIRGenerationDisabled())
       return;
     CurGlobalVar->addInitializer(
         new Ice::VariableDeclaration::ZeroInitializer(Values[0]));
@@ -917,6 +941,8 @@ void GlobalsParser::ProcessRecord() {
     // DATA: [b0, b1, ...]
     if (!isValidRecordSizeAtLeast(1, "Globals data"))
       return;
+    if (isIRGenerationDisabled())
+      return;
     CurGlobalVar->addInitializer(
         new Ice::VariableDeclaration::DataInitializer(Values));
     return;
@@ -924,6 +950,8 @@ void GlobalsParser::ProcessRecord() {
   case naclbitc::GLOBALVAR_RELOC: {
     // RELOC: [val, [addend]]
     if (!isValidRecordSizeInRange(1, 2, "Globals reloc"))
+      return;
+    if (isIRGenerationDisabled())
       return;
     unsigned Index = Values[0];
     Ice::SizeT Offset = 0;
@@ -1011,36 +1039,48 @@ public:
   FunctionParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser),
         Timer(Ice::TimerStack::TT_parseFunctions, getTranslator().getContext()),
-        Func(new Ice::Cfg(getTranslator().getContext())), CurrentBbIndex(0),
-        FcnId(Context->getNextFunctionBlockValueID()),
+        Func(isIRGenerationDisabled()
+                 ? nullptr
+                 : new Ice::Cfg(getTranslator().getContext())),
+        CurrentBbIndex(0), FcnId(Context->getNextFunctionBlockValueID()),
         FuncDecl(Context->getFunctionByID(FcnId)),
         CachedNumGlobalValueIDs(Context->getNumGlobalIDs()),
         NextLocalInstIndex(Context->getNumGlobalIDs()),
         InstIsTerminating(false) {
-    Func->setFunctionName(FuncDecl->getName());
     if (getFlags().TimeEachFunction)
       getTranslator().getContext()->pushTimer(
           getTranslator().getContext()->getTimerID(
-              Ice::GlobalContext::TSK_Funcs, Func->getFunctionName()),
+              Ice::GlobalContext::TSK_Funcs, FuncDecl->getName()),
           Ice::GlobalContext::TSK_Funcs);
     // TODO(kschimpf) Clean up API to add a function signature to
     // a CFG.
     const Ice::FuncSigType &Signature = FuncDecl->getSignature();
-    Func->setReturnType(Signature.getReturnType());
-    Func->setInternal(FuncDecl->getLinkage() == GlobalValue::InternalLinkage);
-    CurrentNode = InstallNextBasicBlock();
-    Func->setEntryNode(CurrentNode);
-    for (Ice::Type ArgType : Signature.getArgList()) {
-      Func->addArg(getNextInstVar(ArgType));
+    if (isIRGenerationDisabled()) {
+      CurrentNode = nullptr;
+      for (Ice::Type ArgType : Signature.getArgList()) {
+        (void)ArgType;
+        setNextLocalInstIndex(nullptr);
+      }
+    } else {
+      Func->setFunctionName(FuncDecl->getName());
+      Func->setReturnType(Signature.getReturnType());
+      Func->setInternal(FuncDecl->getLinkage() == GlobalValue::InternalLinkage);
+      CurrentNode = InstallNextBasicBlock();
+      Func->setEntryNode(CurrentNode);
+      for (Ice::Type ArgType : Signature.getArgList()) {
+        Func->addArg(getNextInstVar(ArgType));
+      }
     }
   }
 
-  ~FunctionParser() override {};
+  ~FunctionParser() final {}
+
+  void setNextLocalInstIndex(Ice::Operand *Op) {
+    setOperand(NextLocalInstIndex++, Op);
+  }
 
   // Set the next constant ID to the given constant C.
-  void setNextConstantID(Ice::Constant *C) {
-    setOperand(NextLocalInstIndex++, C);
-  }
+  void setNextConstantID(Ice::Constant *C) { setNextLocalInstIndex(C); }
 
 private:
   Ice::TimerMarker Timer;
@@ -1068,6 +1108,15 @@ private:
   // Upper limit of alignment power allowed by LLVM
   static const uint64_t AlignPowerLimit = 29;
 
+  void popTimerIfTimingEachFunction() const {
+    if (getFlags().TimeEachFunction) {
+      getTranslator().getContext()->popTimer(
+          getTranslator().getContext()->getTimerID(
+              Ice::GlobalContext::TSK_Funcs, Func->getFunctionName()),
+          Ice::GlobalContext::TSK_Funcs);
+    }
+  }
+
   // Extracts the corresponding Alignment to use, given the AlignPower
   // (i.e. 2**AlignPower, or 0 if AlignPower == 0). InstName is the
   // name of the instruction the alignment appears in.
@@ -1093,10 +1142,14 @@ private:
   void ExitBlock() override;
 
   // Creates and appends a new basic block to the list of basic blocks.
-  Ice::CfgNode *InstallNextBasicBlock() { return Func->makeNode(); }
+  Ice::CfgNode *InstallNextBasicBlock() {
+    assert(!isIRGenerationDisabled());
+    return Func->makeNode();
+  }
 
   // Returns the Index-th basic block in the list of basic blocks.
   Ice::CfgNode *getBasicBlock(uint32_t Index) {
+    assert(!isIRGenerationDisabled());
     const Ice::NodeList &Nodes = Func->getNodes();
     if (Index >= Nodes.size()) {
       std::string Buffer;
@@ -1115,6 +1168,7 @@ private:
   // the branch references the entry block, it also generates a
   // corresponding error.
   Ice::CfgNode *getBranchBasicBlock(uint32_t Index) {
+    assert(!isIRGenerationDisabled());
     if (Index == 0) {
       Error("Branch to entry block not allowed");
       // TODO(kschimpf) Remove error recovery once implementation complete.
@@ -1124,6 +1178,7 @@ private:
 
   // Generate an instruction variable with type Ty.
   Ice::Variable *createInstVar(Ice::Type Ty) {
+    assert(!isIRGenerationDisabled());
     if (Ty == Ice::IceType_void) {
       Error("Can't define instruction value using type void");
       // Recover since we can't throw an exception.
@@ -1134,6 +1189,7 @@ private:
 
   // Generates the next available local variable using the given type.
   Ice::Variable *getNextInstVar(Ice::Type Ty) {
+    assert(!isIRGenerationDisabled());
     assert(NextLocalInstIndex >= CachedNumGlobalValueIDs);
     // Before creating one, see if a forwardtyperef has already defined it.
     uint32_t LocalIndex = NextLocalInstIndex - CachedNumGlobalValueIDs;
@@ -1191,6 +1247,8 @@ private:
     }
     Ice::Operand *Op = LocalOperands[LocalIndex];
     if (Op == nullptr) {
+      if (isIRGenerationDisabled())
+        return nullptr;
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Value index " << Index << " not defined!";
@@ -1202,7 +1260,7 @@ private:
 
   // Sets element Index (in the local operands list) to Op.
   void setOperand(uint32_t Index, Ice::Operand *Op) {
-    assert(Op);
+    assert(Op || isIRGenerationDisabled());
     // Check if simple push works.
     uint32_t LocalIndex = Index - CachedNumGlobalValueIDs;
     if (LocalIndex == LocalOperands.size()) {
@@ -1633,6 +1691,10 @@ void FunctionParser::ReportInvalidBinopOpcode(unsigned Opcode, Ice::Type Ty) {
 }
 
 void FunctionParser::ExitBlock() {
+  if (isIRGenerationDisabled()) {
+    popTimerIfTimingEachFunction();
+    return;
+  }
   // Before translating, check for blocks without instructions, and
   // insert unreachable. This shouldn't happen, but be safe.
   unsigned Index = 0;
@@ -1654,11 +1716,7 @@ void FunctionParser::ExitBlock() {
   // for such parsing errors.
   if (Context->getNumErrors() == 0)
     getTranslator().translateFcn(Func);
-  if (getFlags().TimeEachFunction)
-    getTranslator().getContext()->popTimer(
-        getTranslator().getContext()->getTimerID(Ice::GlobalContext::TSK_Funcs,
-                                                 Func->getFunctionName()),
-        Ice::GlobalContext::TSK_Funcs);
+  popTimerIfTimingEachFunction();
 }
 
 void FunctionParser::ReportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op,
@@ -1671,10 +1729,15 @@ void FunctionParser::ReportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op,
 }
 
 void FunctionParser::ProcessRecord() {
+  // Note: To better separate parse/IR generation times, when IR generation
+  // is disabled we do the following:
+  // 1) Delay exiting until after we extract operands.
+  // 2) return before we access operands, since all operands will be a nullptr.
   const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
   if (InstIsTerminating) {
     InstIsTerminating = false;
-    CurrentNode = getBasicBlock(++CurrentBbIndex);
+    if (!isIRGenerationDisabled())
+      CurrentNode = getBasicBlock(++CurrentBbIndex);
   }
   // The base index for relative indexing.
   int32_t BaseIndex = getNextInstIndex();
@@ -1683,15 +1746,17 @@ void FunctionParser::ProcessRecord() {
     // DECLAREBLOCKS: [n]
     if (!isValidRecordSize(1, "function block count"))
       return;
-    if (Func->getNodes().size() != 1) {
-      Error("Duplicate function block count record");
-      return;
-    }
     uint32_t NumBbs = Values[0];
     if (NumBbs == 0) {
       Error("Functions must contain at least one basic block.");
       // TODO(kschimpf) Remove error recovery once implementation complete.
       NumBbs = 1;
+    }
+    if (isIRGenerationDisabled())
+      return;
+    if (Func->getNodes().size() != 1) {
+      Error("Duplicate function block count record");
+      return;
     }
     // Install the basic blocks, skipping bb0 which was created in the
     // constructor.
@@ -1705,6 +1770,11 @@ void FunctionParser::ProcessRecord() {
       return;
     Ice::Operand *Op1 = getRelativeOperand(Values[0], BaseIndex);
     Ice::Operand *Op2 = getRelativeOperand(Values[1], BaseIndex);
+    if (isIRGenerationDisabled()) {
+      assert(Op1 == nullptr && Op2 == nullptr);
+      setNextLocalInstIndex(nullptr);
+      return;
+    }
     Ice::Type Type1 = Op1->getType();
     Ice::Type Type2 = Op2->getType();
     if (Type1 != Type2) {
@@ -1740,6 +1810,11 @@ void FunctionParser::ProcessRecord() {
       appendErrorInstruction(CastType);
       return;
     }
+    if (isIRGenerationDisabled()) {
+      assert(Src == nullptr);
+      setNextLocalInstIndex(nullptr);
+      return;
+    }
     Ice::Type SrcType = Src->getType();
     if (!CastInst::castIsValid(LLVMCastOp, Context->convertToLLVMType(SrcType),
                                Context->convertToLLVMType(CastType))) {
@@ -1757,9 +1832,17 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_VSELECT: {
     // VSELECT: [opval, opval, pred]
+    if (!isValidRecordSize(3, "function block select"))
+      return;
     Ice::Operand *ThenVal = getRelativeOperand(Values[0], BaseIndex);
-    Ice::Type ThenType = ThenVal->getType();
     Ice::Operand *ElseVal = getRelativeOperand(Values[1], BaseIndex);
+    Ice::Operand *CondVal = getRelativeOperand(Values[2], BaseIndex);
+    if (isIRGenerationDisabled()) {
+      assert(ThenVal == nullptr && ElseVal == nullptr && CondVal == nullptr);
+      setNextLocalInstIndex(nullptr);
+      return;
+    }
+    Ice::Type ThenType = ThenVal->getType();
     Ice::Type ElseType = ElseVal->getType();
     if (ThenType != ElseType) {
       std::string Buffer;
@@ -1770,7 +1853,6 @@ void FunctionParser::ProcessRecord() {
       appendErrorInstruction(ThenType);
       return;
     }
-    Ice::Operand *CondVal = getRelativeOperand(Values[2], BaseIndex);
     Ice::Type CondType = CondVal->getType();
     if (isVectorType(CondType)) {
       if (!isVectorType(ThenType) ||
@@ -1802,8 +1884,13 @@ void FunctionParser::ProcessRecord() {
     if (!isValidRecordSize(2, "function block extract element"))
       return;
     Ice::Operand *Vec = getRelativeOperand(Values[0], BaseIndex);
-    Ice::Type VecType = Vec->getType();
     Ice::Operand *Index = getRelativeOperand(Values[1], BaseIndex);
+    if (isIRGenerationDisabled()) {
+      assert(Vec == nullptr && Index == nullptr);
+      setNextLocalInstIndex(nullptr);
+      return;
+    }
+    Ice::Type VecType = Vec->getType();
     VectorIndexCheckValue IndexCheckValue = validateVectorIndex(Vec, Index);
     if (IndexCheckValue != VectorIndexValid) {
       std::string Buffer;
@@ -1824,9 +1911,14 @@ void FunctionParser::ProcessRecord() {
     if (!isValidRecordSize(3, "function block insert element"))
       return;
     Ice::Operand *Vec = getRelativeOperand(Values[0], BaseIndex);
-    Ice::Type VecType = Vec->getType();
     Ice::Operand *Elt = getRelativeOperand(Values[1], BaseIndex);
     Ice::Operand *Index = getRelativeOperand(Values[2], BaseIndex);
+    if (isIRGenerationDisabled()) {
+      assert(Vec == nullptr && Elt == nullptr && Index == nullptr);
+      setNextLocalInstIndex(nullptr);
+      return;
+    }
+    Ice::Type VecType = Vec->getType();
     VectorIndexCheckValue IndexCheckValue = validateVectorIndex(Vec, Index);
     if (IndexCheckValue != VectorIndexValid) {
       std::string Buffer;
@@ -1849,6 +1941,11 @@ void FunctionParser::ProcessRecord() {
       return;
     Ice::Operand *Op1 = getRelativeOperand(Values[0], BaseIndex);
     Ice::Operand *Op2 = getRelativeOperand(Values[1], BaseIndex);
+    if (isIRGenerationDisabled()) {
+      assert(Op1 == nullptr && Op2 == nullptr);
+      setNextLocalInstIndex(nullptr);
+      return;
+    }
     Ice::Type Op1Type = Op1->getType();
     Ice::Type Op2Type = Op2->getType();
     Ice::Type DestType = getCompareResultType(Op1Type);
@@ -1909,10 +2006,16 @@ void FunctionParser::ProcessRecord() {
     if (!isValidRecordSizeInRange(0, 1, "function block ret"))
       return;
     if (Values.empty()) {
+      if (isIRGenerationDisabled())
+        return;
       CurrentNode->appendInst(Ice::InstRet::create(Func));
     } else {
-      CurrentNode->appendInst(
-          Ice::InstRet::create(Func, getRelativeOperand(Values[0], BaseIndex)));
+      Ice::Operand *RetVal = getRelativeOperand(Values[0], BaseIndex);
+      if (isIRGenerationDisabled()) {
+        assert(RetVal == nullptr);
+        return;
+      }
+      CurrentNode->appendInst(Ice::InstRet::create(Func, RetVal));
     }
     InstIsTerminating = true;
     return;
@@ -1920,6 +2023,8 @@ void FunctionParser::ProcessRecord() {
   case naclbitc::FUNC_CODE_INST_BR: {
     if (Values.size() == 1) {
       // BR: [bb#]
+      if (isIRGenerationDisabled())
+        return;
       Ice::CfgNode *Block = getBranchBasicBlock(Values[0]);
       if (Block == nullptr)
         return;
@@ -1929,6 +2034,10 @@ void FunctionParser::ProcessRecord() {
       if (!isValidRecordSize(3, "function block branch"))
         return;
       Ice::Operand *Cond = getRelativeOperand(Values[2], BaseIndex);
+      if (isIRGenerationDisabled()) {
+        assert(Cond == nullptr);
+        return;
+      }
       if (Cond->getType() != Ice::IceType_i1) {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
@@ -1958,6 +2067,7 @@ void FunctionParser::ProcessRecord() {
     // already frozen when the problem was noticed.
     if (!isValidRecordSizeAtLeast(4, "function block switch"))
       return;
+
     Ice::Type CondTy = Context->getSimpleTypeByID(Values[0]);
     if (!Ice::isScalarIntegerType(CondTy)) {
       std::string Buffer;
@@ -1968,7 +2078,11 @@ void FunctionParser::ProcessRecord() {
     }
     Ice::SizeT BitWidth = Ice::getScalarIntBitWidth(CondTy);
     Ice::Operand *Cond = getRelativeOperand(Values[1], BaseIndex);
-    if (CondTy != Cond->getType()) {
+
+    const bool isIRGenDisabled = isIRGenerationDisabled();
+    if (isIRGenDisabled) {
+      assert(Cond == nullptr);
+    } else if (CondTy != Cond->getType()) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Case condition expects type " << CondTy
@@ -1976,14 +2090,16 @@ void FunctionParser::ProcessRecord() {
       Error(StrBuf.str());
       return;
     }
-    Ice::CfgNode *DefaultLabel = getBranchBasicBlock(Values[2]);
+    Ice::CfgNode *DefaultLabel =
+        isIRGenDisabled ? nullptr : getBranchBasicBlock(Values[2]);
     unsigned NumCases = Values[3];
 
     // Now recognize each of the cases.
     if (!isValidRecordSize(4 + NumCases * 4, "Function block switch"))
       return;
     Ice::InstSwitch *Switch =
-        Ice::InstSwitch::create(Func, NumCases, Cond, DefaultLabel);
+        isIRGenDisabled ? nullptr : Ice::InstSwitch::create(Func, NumCases,
+                                                            Cond, DefaultLabel);
     unsigned ValCaseIndex = 4;  // index to beginning of case entry.
     for (unsigned CaseIndex = 0; CaseIndex < NumCases;
          ++CaseIndex, ValCaseIndex += 4) {
@@ -1998,9 +2114,13 @@ void FunctionParser::ProcessRecord() {
       APInt Value(BitWidth,
                   NaClDecodeSignRotatedValue(Values[ValCaseIndex + 2]),
                   true);
+      if (isIRGenDisabled)
+        continue;
       Ice::CfgNode *Label = getBranchBasicBlock(Values[ValCaseIndex + 3]);
       Switch->addBranch(CaseIndex, Value.getSExtValue(), Label);
     }
+    if (isIRGenDisabled)
+      return;
     CurrentNode->appendInst(Switch);
     InstIsTerminating = true;
     return;
@@ -2008,6 +2128,8 @@ void FunctionParser::ProcessRecord() {
   case naclbitc::FUNC_CODE_INST_UNREACHABLE: {
     // UNREACHABLE: []
     if (!isValidRecordSize(0, "function block unreachable"))
+      return;
+    if (isIRGenerationDisabled())
       return;
     CurrentNode->appendInst(
         Ice::InstUnreachable::create(Func));
@@ -2030,6 +2152,15 @@ void FunctionParser::ProcessRecord() {
     }
     if (Ty == Ice::IceType_void) {
       Error("Phi record using type void not allowed");
+      return;
+    }
+    if (isIRGenerationDisabled()) {
+      // Verify arguments are defined before quitting.
+      for (unsigned i = 1; i < Values.size(); i += 2) {
+        assert(getRelativeOperand(NaClDecodeSignRotatedValue(Values[i]),
+                                  BaseIndex) == nullptr);
+      }
+      setNextLocalInstIndex(nullptr);
       return;
     }
     Ice::Variable *Dest = getNextInstVar(Ty);
@@ -2056,6 +2187,13 @@ void FunctionParser::ProcessRecord() {
     if (!isValidRecordSize(2, "function block alloca"))
       return;
     Ice::Operand *ByteCount = getRelativeOperand(Values[0], BaseIndex);
+    unsigned Alignment;
+    extractAlignment("Alloca", Values[1], Alignment);
+    if (isIRGenerationDisabled()) {
+      assert(ByteCount == nullptr);
+      setNextLocalInstIndex(nullptr);
+      return;
+    }
     Ice::Type PtrTy = Context->getIcePointerType();
     if (ByteCount->getType() != Ice::IceType_i32) {
       std::string Buffer;
@@ -2065,8 +2203,6 @@ void FunctionParser::ProcessRecord() {
       appendErrorInstruction(PtrTy);
       return;
     }
-    unsigned Alignment;
-    extractAlignment("Alloca", Values[1], Alignment);
     CurrentNode->appendInst(Ice::InstAlloca::create(Func, ByteCount, Alignment,
                                                     getNextInstVar(PtrTy)));
     return;
@@ -2077,12 +2213,17 @@ void FunctionParser::ProcessRecord() {
       return;
     Ice::Operand *Address = getRelativeOperand(Values[0], BaseIndex);
     Ice::Type Ty = Context->getSimpleTypeByID(Values[2]);
+    unsigned Alignment;
+    extractAlignment("Load", Values[1], Alignment);
+    if (isIRGenerationDisabled()) {
+      assert(Address == nullptr);
+      setNextLocalInstIndex(nullptr);
+      return;
+    }
     if (!isValidPointerType(Address, "Load")) {
       appendErrorInstruction(Ty);
       return;
     }
-    unsigned Alignment;
-    extractAlignment("Load", Values[1], Alignment);
     if (!isValidLoadStoreAlignment(Alignment, Ty, "Load")) {
       appendErrorInstruction(Ty);
       return;
@@ -2096,11 +2237,15 @@ void FunctionParser::ProcessRecord() {
     if (!isValidRecordSize(3, "function block store"))
       return;
     Ice::Operand *Address = getRelativeOperand(Values[0], BaseIndex);
-    if (!isValidPointerType(Address, "Store"))
-      return;
     Ice::Operand *Value = getRelativeOperand(Values[1], BaseIndex);
     unsigned Alignment;
     extractAlignment("Store", Values[2], Alignment);
+    if (isIRGenerationDisabled()) {
+      assert(Address == nullptr && Value == nullptr);
+      return;
+    }
+    if (!isValidPointerType(Address, "Store"))
+      return;
     if (!isValidLoadStoreAlignment(Alignment, Value->getType(), "Store"))
       return;
     CurrentNode->appendInst(
@@ -2172,12 +2317,25 @@ void FunctionParser::ProcessRecord() {
       return;
     }
     bool IsTailCall = static_cast<bool>(CCInfo & 1);
+    Ice::SizeT NumParams = Values.size() - ParamsStartIndex;
+
+    if (isIRGenerationDisabled()) {
+      assert(Callee == nullptr);
+      // Check that parameters are defined.
+      for (Ice::SizeT ParamIndex = 0; ParamIndex < NumParams; ++ParamIndex) {
+        assert(getRelativeOperand(Values[ParamsStartIndex + ParamIndex],
+                                  BaseIndex) == nullptr);
+      }
+      // Define value slot only if value returned.
+      if (ReturnType != Ice::IceType_void)
+        setNextLocalInstIndex(nullptr);
+      return;
+    }
 
     // Create the call instruction.
     Ice::Variable *Dest = (ReturnType == Ice::IceType_void)
                               ? nullptr
                               : getNextInstVar(ReturnType);
-    Ice::SizeT NumParams = Values.size() - ParamsStartIndex;
     Ice::InstCall *Inst = nullptr;
     if (IntrinsicInfo) {
       Inst =
@@ -2242,7 +2400,9 @@ void FunctionParser::ProcessRecord() {
     // FORWARDTYPEREF: [opval, ty]
     if (!isValidRecordSize(2, "function block forward type ref"))
       return;
-    setOperand(Values[0], createInstVar(Context->getSimpleTypeByID(Values[1])));
+    Ice::Type OpType = Context->getSimpleTypeByID(Values[1]);
+    setOperand(Values[0],
+               isIRGenerationDisabled() ? nullptr : createInstVar(OpType));
     return;
   }
   default:
@@ -2304,6 +2464,10 @@ void ConstantsParser::ProcessRecord() {
       return;
     if (!isValidNextConstantType())
       return;
+    if (isIRGenerationDisabled()) {
+      FuncParser->setNextConstantID(nullptr);
+      return;
+    }
     FuncParser->setNextConstantID(
         getContext()->getConstantUndef(NextConstantType));
     return;
@@ -2314,6 +2478,10 @@ void ConstantsParser::ProcessRecord() {
       return;
     if (!isValidNextConstantType())
       return;
+    if (isIRGenerationDisabled()) {
+      FuncParser->setNextConstantID(nullptr);
+      return;
+    }
     if (IntegerType *IType = dyn_cast<IntegerType>(
             Context->convertToLLVMType(NextConstantType))) {
       APInt Value(IType->getBitWidth(), NaClDecodeSignRotatedValue(Values[0]));
@@ -2338,6 +2506,10 @@ void ConstantsParser::ProcessRecord() {
       return;
     if (!isValidNextConstantType())
       return;
+    if (isIRGenerationDisabled()) {
+      FuncParser->setNextConstantID(nullptr);
+      return;
+    }
     switch (NextConstantType) {
     case Ice::IceType_f32: {
       APFloat Value(APFloat::IEEEsingle,
@@ -2410,6 +2582,8 @@ void FunctionValuesymtabParser::setValueName(uint64_t Index, StringType &Name) {
     // TODO(kschimpf) Remove error recovery once implementation complete.
     return;
   }
+  if (isIRGenerationDisabled())
+    return;
   Ice::Operand *Op = getFunctionParser()->getOperand(Index);
   if (Ice::Variable *V = dyn_cast<Ice::Variable>(Op)) {
     std::string Nm(Name.data(), Name.size());
@@ -2420,6 +2594,8 @@ void FunctionValuesymtabParser::setValueName(uint64_t Index, StringType &Name) {
 }
 
 void FunctionValuesymtabParser::setBbName(uint64_t Index, StringType &Name) {
+  if (isIRGenerationDisabled())
+    return;
   if (Index >= getFunctionParser()->Func->getNumNodes()) {
     reportUnableToAssign("block", Index, Name);
     return;

@@ -137,6 +137,8 @@ class ConstantPrimitive : public Constant {
 public:
   static ConstantPrimitive *create(GlobalContext *Ctx, Type Ty, T Value,
                                    uint32_t PoolEntryID) {
+    assert(!Ctx->isIRGenerationDisabled() &&
+           "Attempt to build primitive constant when IR generation disabled");
     return new (Ctx->allocate<ConstantPrimitive>())
         ConstantPrimitive(Ty, Value, PoolEntryID);
   }
@@ -206,6 +208,8 @@ public:
   static ConstantRelocatable *create(GlobalContext *Ctx, Type Ty,
                                      const RelocatableTuple &Tuple,
                                      uint32_t PoolEntryID) {
+    assert(!Ctx->isIRGenerationDisabled() &&
+           "Attempt to build relocatable constant when IR generation disabled");
     return new (Ctx->allocate<ConstantRelocatable>()) ConstantRelocatable(
         Ty, Tuple.Offset, Tuple.Name, Tuple.SuppressMangling, PoolEntryID);
   }
@@ -246,6 +250,8 @@ class ConstantUndef : public Constant {
 public:
   static ConstantUndef *create(GlobalContext *Ctx, Type Ty,
                                uint32_t PoolEntryID) {
+    assert(!Ctx->isIRGenerationDisabled() &&
+           "Attempt to build undefined constant when IR generation disabled");
     return new (Ctx->allocate<ConstantUndef>()) ConstantUndef(Ty, PoolEntryID);
   }
 

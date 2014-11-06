@@ -1,6 +1,10 @@
 ; Test if we can read load instructions.
 
 ; RUN: %p2i --no-local-syms -i %s --insts | FileCheck %s
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
 
 define i32 @load_i8(i32 %addr) {
 entry:
@@ -144,3 +148,4 @@ entry:
 ; CHECK-NEXT:   ret <4 x float> %__1
 }
 
+; NOIR: Total across all functions

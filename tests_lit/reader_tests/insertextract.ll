@@ -3,6 +3,10 @@
 ; RUN: %p2i -i %s --insts | FileCheck %s
 ; RUN: %l2i -i %s --insts | %ifl FileCheck %s
 ; RUN: %lc2i -i %s --insts | %iflc FileCheck %s
+; RUN: %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   FileCheck --check-prefix=NOIR %s
 
 define void @ExtractV4xi1(<4 x i1> %v) {
 entry:
@@ -377,3 +381,5 @@ entry:
 ; CHECK-NEXT:   %r3 = insertelement <4 x float> %v, float %e, i32 3
 ; CHECK-NEXT:   ret <4 x float> %r3
 ; CHECK-NEXT: }
+
+; NOIR: Total across all functions
