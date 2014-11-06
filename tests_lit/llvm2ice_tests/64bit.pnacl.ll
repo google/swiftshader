@@ -44,7 +44,7 @@ entry:
 ; CHECK:      mov     dword ptr [esp + 16]
 ; CHECK:      mov     dword ptr [esp + 12]
 ; CHECK:      call    -4
-; CALLTARGETS: call ignore64BitArgNoInline
+; CALLTARGETS: .long ignore64BitArgNoInline
 ; CHECK:      sub     esp
 ; CHECK:      mov     dword ptr [esp + 4]
 ; CHECK:      mov     dword ptr [esp]
@@ -52,7 +52,7 @@ entry:
 ; CHECK:      mov     dword ptr [esp + 16]
 ; CHECK:      mov     dword ptr [esp + 12]
 ; CHECK:      call    -4
-; CALLTARGETS: call ignore64BitArgNoInline
+; CALLTARGETS: .long ignore64BitArgNoInline
 ; CHECK:      sub     esp
 ; CHECK:      mov     dword ptr [esp + 4]
 ; CHECK:      mov     dword ptr [esp]
@@ -60,7 +60,7 @@ entry:
 ; CHECK:      mov     dword ptr [esp + 16]
 ; CHECK:      mov     dword ptr [esp + 12]
 ; CHECK:      call    -4
-; CALLTARGETS: call ignore64BitArgNoInline
+; CALLTARGETS: .long ignore64BitArgNoInline
 ;
 ; OPTM1-LABEL: pass64BitArg
 ; OPTM1:      sub     esp
@@ -104,7 +104,7 @@ entry:
 ; Bundle padding will push the call down.
 ; CHECK-NOT:  mov
 ; CHECK:      call    -4
-; CALLTARGETS: call ignore64BitArgNoInline
+; CALLTARGETS: .long ignore64BitArgNoInline
 ;
 ; OPTM1-LABEL: pass64BitConstArg
 ; OPTM1:      sub     esp
@@ -239,7 +239,7 @@ entry:
 ; CHECK-LABEL: div64BitSigned
 ; CALLTARGETS-LABEL: div64BitSigned
 ; CHECK: call    -4
-; CALLTARGETS: call __divdi3
+; CALLTARGETS: .long __divdi3
 
 ; OPTM1-LABEL: div64BitSigned
 ; OPTM1: call    -4
@@ -254,7 +254,7 @@ entry:
 ; CHECK: mov     dword ptr [esp + 12], 2874
 ; CHECK: mov     dword ptr [esp + 8],  1942892530
 ; CHECK: call    -4
-; CALLTARGETS: call __divdi3
+; CALLTARGETS: .long __divdi3
 ;
 ; OPTM1-LABEL: div64BitSignedConst
 ; OPTM1: mov     dword ptr [esp + 12], 2874
@@ -269,7 +269,7 @@ entry:
 ; CHECK-LABEL: div64BitUnsigned
 ; CALLTARGETS-LABEL: div64BitUnsigned
 ; CHECK: call    -4
-; CALLTARGETS: call __udivdi3
+; CALLTARGETS: .long __udivdi3
 ;
 ; OPTM1-LABEL: div64BitUnsigned
 ; OPTM1: call    -4
@@ -282,7 +282,7 @@ entry:
 ; CHECK-LABEL: rem64BitSigned
 ; CALLTARGETS-LABEL: rem64BitSigned
 ; CHECK: call    -4
-; CALLTARGETS: call __moddi3
+; CALLTARGETS: .long __moddi3
 ;
 ; OPTM1-LABEL: rem64BitSigned
 ; OPTM1: call    -4
@@ -295,7 +295,7 @@ entry:
 ; CHECK-LABEL: rem64BitUnsigned
 ; CALLTARGETS-LABEL: rem64BitUnsigned
 ; CHECK: call    -4
-; CALLTARGETS: call __umoddi3
+; CALLTARGETS: .long __umoddi3
 ;
 ; OPTM1-LABEL: rem64BitUnsigned
 ; OPTM1: call    -4

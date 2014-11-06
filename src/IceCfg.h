@@ -94,9 +94,6 @@ public:
   template <typename T> T *getAssembler() const {
     return static_cast<T *>(TargetAssembler.get());
   }
-  bool useIntegratedAssembler() const {
-    return getContext()->getFlags().UseIntegratedAssembler;
-  }
   bool hasComputedFrame() const;
   bool getFocusedTiming() const { return FocusedTiming; }
   void setFocusedTiming() { FocusedTiming = true; }
@@ -131,6 +128,8 @@ public:
   const CfgNode *getCurrentNode() const { return CurrentNode; }
 
   void emit();
+  void emitIAS();
+  void emitTextHeader(const IceString &MangledName);
   void dump(const IceString &Message = "");
 
   // Allocate data of type T using the per-Cfg allocator.

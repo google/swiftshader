@@ -162,8 +162,10 @@ public:
   // Returns the position in the instruction stream.
   intptr_t GetPosition() const { return cursor_ - contents_; }
 
-  // For bringup only.
-  AssemblerFixup *GetLatestFixup(intptr_t position) const;
+  // List of pool-allocated fixups.
+  typedef std::vector<AssemblerFixup *> FixupList;
+  FixupList::const_iterator fixups_begin() const { return fixups_.begin(); }
+  FixupList::const_iterator fixups_end() const { return fixups_.end(); }
 
 private:
   // The limit is set to kMinimumGap bytes before the end of the data area.
@@ -175,7 +177,7 @@ private:
   uintptr_t cursor_;
   uintptr_t limit_;
   Assembler &assembler_;
-  std::vector<AssemblerFixup *> fixups_;
+  FixupList fixups_;
 #ifndef NDEBUG
   bool fixups_processed_;
 #endif // !NDEBUG
@@ -206,7 +208,7 @@ class Assembler {
   Assembler &operator=(const Assembler &) = delete;
 
 public:
-  Assembler() {}
+  Assembler() : buffer_(*this) {}
   virtual ~Assembler() {}
 
   // Allocate a chunk of bytes using the per-Assembler allocator.
@@ -226,8 +228,13 @@ public:
 
   virtual void BindCfgNodeLabel(SizeT NodeNumber) = 0;
 
+  void emitIASBytes(GlobalContext *Ctx) const;
+
 private:
   llvm::BumpPtrAllocator Allocator;
+
+protected:
+  AssemblerBuffer buffer_;
 };
 
 } // end of namespace Ice

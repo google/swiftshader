@@ -83,7 +83,11 @@ void Translator::translateFcn(Cfg *Fcn) {
       ErrorStatus = true;
     }
 
-    Func->emit();
+    if (Ctx->getFlags().UseIntegratedAssembler) {
+      Func->emitIAS();
+    } else {
+      Func->emit();
+    }
     Ctx->dumpStats(Func->getFunctionName());
   }
 

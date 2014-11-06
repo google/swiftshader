@@ -30,7 +30,7 @@ return:                                           ; preds = %entry
 ; CALLTARGETS-LABEL: divide
 ; CHECK: cmp
 ; CHECK: call -4
-; CALLTARGETS: call ice_unreachable
+; CALLTARGETS: .long ice_unreachable
 ; CHECK: cdq
 ; CHECK: idiv
 ; CHECK: ret

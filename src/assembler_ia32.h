@@ -364,7 +364,7 @@ class AssemblerX86 : public Assembler {
   AssemblerX86 &operator=(const AssemblerX86 &) = delete;
 
 public:
-  explicit AssemblerX86(bool use_far_branches = false) : buffer_(*this) {
+  explicit AssemblerX86(bool use_far_branches = false) : Assembler() {
     // This mode is only needed and implemented for MIPS and ARM.
     assert(!use_far_branches);
     (void)use_far_branches;
@@ -829,15 +829,6 @@ public:
     buffer_.FinalizeInstructions(region);
   }
 
-  // Expose the buffer, for bringup...
-  intptr_t GetPosition() const { return buffer_.GetPosition(); }
-  template <typename T> T LoadBuffer(intptr_t position) const {
-    return buffer_.Load<T>(position);
-  }
-  AssemblerFixup *GetLatestFixup(intptr_t position) const {
-    return buffer_.GetLatestFixup(position);
-  }
-
 private:
   inline void EmitUint8(uint8_t value);
   inline void EmitInt16(int16_t value);
@@ -868,8 +859,6 @@ private:
   LabelVector LocalLabels;
 
   Label *GetOrCreateLabel(SizeT Number, LabelVector &Labels);
-
-  AssemblerBuffer buffer_;
 };
 
 inline void AssemblerX86::EmitUint8(uint8_t value) {

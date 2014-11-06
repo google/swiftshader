@@ -167,7 +167,7 @@ entry:
 ; CHECK-LABEL: test_bitcast_v8i1_to_i8:
 ; CALLTARGETS-LABEL: test_bitcast_v8i1_to_i8:
 ; CHECK: call -4
-; CALLTARGETS: call Sz_bitcast_v8i1_to_i8
+; CALLTARGETS: .long Sz_bitcast_v8i1_to_i8
 
 ; OPTM1-LABEL: test_bitcast_v8i1_to_i8:
 ; OPMT1: call -4
@@ -181,7 +181,7 @@ entry:
 ; CHECK-LABEL: test_bitcast_v16i1_to_i16:
 ; CALLTARGETS-LABEL: test_bitcast_v16i1_to_i16:
 ; CHECK: call -4
-; CALLTARGETS: call Sz_bitcast_v16i1_to_i16
+; CALLTARGETS: .long Sz_bitcast_v16i1_to_i16
 
 ; OPTM1-LABEL: test_bitcast_v16i1_to_i16:
 ; OPMT1: call -4
@@ -196,7 +196,7 @@ entry:
 ; CHECK-LABEL: test_bitcast_i8_to_v8i1:
 ; CALLTARGETS-LABEL: test_bitcast_i8_to_v8i1
 ; CHECK: call -4
-; CALLTARGETS: call Sz_bitcast_i8_to_v8i1
+; CALLTARGETS: .long Sz_bitcast_i8_to_v8i1
 
 ; OPTM1-LABEL: test_bitcast_i8_to_v8i1:
 ; OPTM1: call -4
@@ -211,7 +211,7 @@ entry:
 ; CHECK-LABEL: test_bitcast_i16_to_v16i1:
 ; CALLTARGETS-LABEL: test_bitcast_i16_to_v16i1
 ; CHECK: call -4
-; CALLTARGETS: call Sz_bitcast_i16_to_v16i1
+; CALLTARGETS: .long Sz_bitcast_i16_to_v16i1
 
 ; OPTM1-LABEL: test_bitcast_i16_to_v16i1:
 ; OPTM1: call -4

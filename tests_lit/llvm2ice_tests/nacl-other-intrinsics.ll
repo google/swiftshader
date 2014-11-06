@@ -63,7 +63,7 @@ entry:
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp
 ; CHECKO2UNSANDBOXEDREM: call -4
 ; CALLTARGETS-LABEL: test_nacl_read_tp
-; CALLTARGETS: call __nacl_read_tp
+; CALLTARGETS: .long __nacl_read_tp
 
 define i32 @test_nacl_read_tp_more_addressing() {
 entry:
@@ -92,8 +92,8 @@ entry:
 ; CHECKO2UNSANDBOXEDREM: call -4
 ; CHECKO2UNSANDBOXEDREM: call -4
 ; CALLTARGETS-LABEL: test_nacl_read_tp_more_addressing
-; CALLTARGETS: call __nacl_read_tp
-; CALLTARGETS: call __nacl_read_tp
+; CALLTARGETS: .long __nacl_read_tp
+; CALLTARGETS: .long __nacl_read_tp
 
 define i32 @test_nacl_read_tp_dead(i32 %a) {
 entry:
@@ -121,7 +121,7 @@ entry:
 ; CHECK-LABEL: test_memcpy
 ; CHECK: call -4
 ; CALLTARGETS-LABEL: test_memcpy
-; CALLTARGETS: call memcpy
+; CALLTARGETS: .long memcpy
 ; CHECKO2REM-LABEL: test_memcpy
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_memcpy
 
@@ -138,7 +138,7 @@ entry:
 ; CHECK-LABEL: test_memcpy_const_len_align
 ; CHECK: call -4
 ; CALLTARGETS-LABEL: test_memcpy_const_len_align
-; CALLTARGETS: call memcpy
+; CALLTARGETS: .long memcpy
 
 define void @test_memmove(i32 %iptr_dst, i32 %iptr_src, i32 %len) {
 entry:
@@ -151,7 +151,7 @@ entry:
 ; CHECK-LABEL: test_memmove
 ; CHECK: call -4
 ; CALLTARGETS-LABEL: test_memmove
-; CALLTARGETS: call memmove
+; CALLTARGETS: .long memmove
 
 define void @test_memmove_const_len_align(i32 %iptr_dst, i32 %iptr_src) {
 entry:
@@ -164,7 +164,7 @@ entry:
 ; CHECK-LABEL: test_memmove_const_len_align
 ; CHECK: call -4
 ; CALLTARGETS-LABEL: test_memmove_const_len_align
-; CALLTARGETS: call memmove
+; CALLTARGETS: .long memmove
 
 define void @test_memset(i32 %iptr_dst, i32 %wide_val, i32 %len) {
 entry:
@@ -178,7 +178,7 @@ entry:
 ; CHECK: movzx
 ; CHECK: call -4
 ; CALLTARGETS-LABEL: test_memset
-; CALLTARGETS: call memset
+; CALLTARGETS: .long memset
 
 define void @test_memset_const_len_align(i32 %iptr_dst, i32 %wide_val) {
 entry:
@@ -192,7 +192,7 @@ entry:
 ; CHECK: movzx
 ; CHECK: call -4
 ; CALLTARGETS-LABEL: test_memset_const_len_align
-; CALLTARGETS: call memset
+; CALLTARGETS: .long memset
 
 define void @test_memset_const_val(i32 %iptr_dst, i32 %len) {
 entry:
@@ -205,7 +205,7 @@ entry:
 ; CHECK: movzx {{.*}}, {{[^0]}}
 ; CHECK: call -4
 ; CALLTARGETS-LABEL: test_memset_const_val
-; CALLTARGETS: call memset
+; CALLTARGETS: .long memset
 
 
 define i32 @test_setjmplongjmp(i32 %iptr_env) {
@@ -229,8 +229,8 @@ NonZero:
 ; CHECKO2REM: call -4
 ; CHECKO2REM: call -4
 ; CALLTARGETS-LABEL: test_setjmplongjmp
-; CALLTARGETS: call setjmp
-; CALLTARGETS: call longjmp
+; CALLTARGETS: .long setjmp
+; CALLTARGETS: .long longjmp
 
 define i32 @test_setjmp_unused(i32 %iptr_env, i32 %i_other) {
 entry:
@@ -243,7 +243,7 @@ entry:
 ; CHECKO2REM-LABEL: test_setjmp_unused
 ; CHECKO2REM: call -4
 ; CALLTARGETS-LABEL: test_setjmp_unused
-; CALLTARGETS: call setjmp
+; CALLTARGETS: .long setjmp
 
 define float @test_sqrt_float(float %x, i32 %iptr) {
 entry:
@@ -451,7 +451,7 @@ entry:
 ; CHECK-LABEL: test_popcount_32
 ; CHECK: call -4
 ; CALLTARGETS-LABEL: test_popcount_32
-; CALLTARGETS: call __popcountsi2
+; CALLTARGETS: .long __popcountsi2
 
 define i64 @test_popcount_64(i64 %x) {
 entry:
@@ -464,7 +464,7 @@ entry:
 ; the return value just in case.
 ; CHECK: mov {{.*}}, 0
 ; CALLTARGETS-LABEL: test_popcount_64
-; CALLTARGETS: call __popcountdi2
+; CALLTARGETS: .long __popcountdi2
 
 
 define i32 @test_popcount_64_ret_i32(i64 %x) {
@@ -478,7 +478,7 @@ entry:
 ; CHECKO2REM: call -4
 ; CHECKO2REM-NOT: mov {{.*}}, 0
 ; CALLTARGETS-LABEL: test_popcount_64_ret_i32
-; CALLTARGETS: call __popcountdi2
+; CALLTARGETS: .long __popcountdi2
 
 define void @test_stacksave_noalloca() {
 entry:

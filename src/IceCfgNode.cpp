@@ -864,6 +864,24 @@ void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
   }
 }
 
+void updateStats(Cfg *Func, const Inst *I) {
+  // Update emitted instruction count, plus fill/spill count for
+  // Variable operands without a physical register.
+  if (uint32_t Count = I->getEmitInstCount()) {
+    Func->getContext()->statsUpdateEmitted(Count);
+    if (Variable *Dest = I->getDest()) {
+      if (!Dest->hasReg())
+        Func->getContext()->statsUpdateFills();
+    }
+    for (SizeT S = 0; S < I->getSrcSize(); ++S) {
+      if (Variable *Src = llvm::dyn_cast<Variable>(I->getSrc(S))) {
+        if (!Src->hasReg())
+          Func->getContext()->statsUpdateSpills();
+      }
+    }
+  }
+}
+
 } // end of anonymous namespace
 
 void CfgNode::emit(Cfg *Func) const {
@@ -871,14 +889,7 @@ void CfgNode::emit(Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Liveness *Liveness = Func->getLiveness();
   bool DecorateAsm = Liveness && Func->getContext()->getFlags().DecorateAsm;
-  if (Func->getEntryNode() == this) {
-    Str << Func->getContext()->mangleName(Func->getFunctionName()) << ":\n";
-  }
   Str << getAsmName() << ":\n";
-  if (Func->useIntegratedAssembler()) {
-    Assembler *Asm = Func->getAssembler<Assembler>();
-    Asm->BindCfgNodeLabel(getIndex());
-  }
   std::vector<SizeT> LiveRegCount(Func->getTarget()->getNumRegisters());
   if (DecorateAsm)
     emitRegisterUsage(Str, Func, this, true, LiveRegCount);
@@ -899,32 +910,35 @@ void CfgNode::emit(Cfg *Func) const {
         ++LiveRegCount[Dest->getRegNum()];
       continue;
     }
-    if (Func->useIntegratedAssembler()) {
-      I->emitIAS(Func);
-    } else {
-      I->emit(Func);
-      if (DecorateAsm)
-        emitLiveRangesEnded(Str, Func, I, LiveRegCount);
-      Str << "\n";
-    }
-    // Update emitted instruction count, plus fill/spill count for
-    // Variable operands without a physical register.
-    if (uint32_t Count = I->getEmitInstCount()) {
-      Func->getContext()->statsUpdateEmitted(Count);
-      if (Variable *Dest = I->getDest()) {
-        if (!Dest->hasReg())
-          Func->getContext()->statsUpdateFills();
-      }
-      for (SizeT S = 0; S < I->getSrcSize(); ++S) {
-        if (Variable *Src = llvm::dyn_cast<Variable>(I->getSrc(S))) {
-          if (!Src->hasReg())
-            Func->getContext()->statsUpdateSpills();
-        }
-      }
-    }
+    I->emit(Func);
+    if (DecorateAsm)
+      emitLiveRangesEnded(Str, Func, I, LiveRegCount);
+    Str << "\n";
+    updateStats(Func, I);
   }
   if (DecorateAsm)
     emitRegisterUsage(Str, Func, this, false, LiveRegCount);
+}
+
+void CfgNode::emitIAS(Cfg *Func) const {
+  Func->setCurrentNode(this);
+  Assembler *Asm = Func->getAssembler<Assembler>();
+  Asm->BindCfgNodeLabel(getIndex());
+  for (InstPhi *Phi : Phis) {
+    if (Phi->isDeleted())
+      continue;
+    // Emitting a Phi instruction should cause an error.
+    Inst *Instr = Phi;
+    Instr->emitIAS(Func);
+  }
+  for (Inst *I : Insts) {
+    if (I->isDeleted())
+      continue;
+    if (I->isRedundantAssign())
+      continue;
+    I->emitIAS(Func);
+    updateStats(Func, I);
+  }
 }
 
 void CfgNode::dump(Cfg *Func) const {

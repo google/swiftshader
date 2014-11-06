@@ -12,7 +12,7 @@
 
 @global_char = internal global [1 x i8] zeroinitializer, align 1
 @p_global_char = internal global [4 x i8] zeroinitializer, align 4
-declare void @dummy(i32)
+declare void @dummy()
 
 define internal void @store_immediate_to_global() {
 entry:
@@ -48,8 +48,7 @@ entry:
   br i1 %cmp, label %if.then, label %if.end
 
 if.then:                                          ; preds = %entry
-  %dummy.bc = bitcast void (i32)* @dummy to void ()*
-  tail call void %dummy.bc()
+  tail call void @dummy()
   br label %if.end
 
 if.end:                                           ; preds = %if.then, %entry
@@ -58,4 +57,4 @@ if.end:                                           ; preds = %if.then, %entry
 ; CHECK-LABEL: cmp_global_immediate
 ; CHECK: .long p_global_char
 ; CHECK: .long global_char
-; CHECK: call dummy
+; CHECK: .long dummy

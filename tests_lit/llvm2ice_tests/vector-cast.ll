@@ -145,7 +145,7 @@ entry:
 ; CHECK-LABEL: test_fptoui_v4f32_to_v4i32:
 ; CHECK: call -4
 ; CALLTARGETS-LABEL: test_fptoui_v4f32_to_v4i32
-; CALLTARGETS: call Sz_fptoui_v4f32
+; CALLTARGETS: .long Sz_fptoui_v4f32
 }
 
 ; [su]itofp operations
@@ -167,5 +167,5 @@ entry:
 ; CHECK-LABEL: test_uitofp_v4i32_to_v4f32:
 ; CHECK: call -4
 ; CALLTARGETS-LABEL: test_uitofp_v4i32_to_v4f32
-; CALLTARGETS: call Sz_uitofp_v4i32
+; CALLTARGETS: .long Sz_uitofp_v4i32
 }

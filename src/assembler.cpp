@@ -19,7 +19,9 @@
 //===----------------------------------------------------------------------===//
 
 #include "assembler.h"
+#include "IceGlobalContext.h"
 #include "IceMemoryRegion.h"
+#include "IceOperand.h"
 
 namespace Ice {
 
@@ -74,18 +76,6 @@ AssemblerBuffer::AssemblerBuffer(Assembler &assembler) : assembler_(assembler) {
 
 AssemblerBuffer::~AssemblerBuffer() {}
 
-// Returns the latest fixup at or after the given position, or nullptr if
-// there is none.  Assumes fixups were added in increasing order.
-AssemblerFixup *AssemblerBuffer::GetLatestFixup(intptr_t position) const {
-  AssemblerFixup *latest_fixup = nullptr;
-  for (auto I = fixups_.rbegin(), E = fixups_.rend(); I != E; ++I) {
-    if ((*I)->position() < position)
-      return latest_fixup;
-    latest_fixup = *I;
-  }
-  return latest_fixup;
-}
-
 void AssemblerBuffer::ProcessFixups(const MemoryRegion &region) {
   for (SizeT I = 0; I < fixups_.size(); ++I) {
     AssemblerFixup *fixup = fixups_[I];
@@ -131,6 +121,45 @@ void AssemblerBuffer::ExtendCapacity() {
   // Verify internal state.
   assert(Capacity() == new_capacity);
   assert(Size() == old_size);
+}
+
+void Assembler::emitIASBytes(GlobalContext *Ctx) const {
+  Ostream &Str = Ctx->getStrEmit();
+  intptr_t EndPosition = buffer_.Size();
+  intptr_t CurPosition = 0;
+  const intptr_t FixupSize = 4;
+  for (AssemblerBuffer::FixupList::const_iterator
+           FixupI = buffer_.fixups_begin(),
+           FixupE = buffer_.fixups_end(); FixupI != FixupE; ++FixupI) {
+    AssemblerFixup *NextFixup = *FixupI;
+    intptr_t NextFixupLoc = NextFixup->position();
+    for (intptr_t i = CurPosition; i < NextFixupLoc; ++i) {
+      Str << "\t.byte 0x";
+      Str.write_hex(buffer_.Load<uint8_t>(i));
+      Str << "\n";
+    }
+    Str << "\t.long ";
+    const ConstantRelocatable *Reloc = NextFixup->value();
+    if (Reloc->getSuppressMangling())
+      Str << Reloc->getName();
+    else
+      Str << Ctx->mangleName(Reloc->getName());
+    if (Reloc->getOffset()) {
+      Str << " + " << Reloc->getOffset();
+    }
+    bool IsPCRel = NextFixup->kind() == FK_PcRel_4;
+    if (IsPCRel)
+      Str << " - (. + " << FixupSize << ")";
+    Str << "\n";
+    CurPosition = NextFixupLoc + FixupSize;
+    assert(CurPosition <= EndPosition);
+  }
+  // Handle any bytes that are not prefixed by a fixup.
+  for (intptr_t i = CurPosition; i < EndPosition; ++i) {
+    Str << "\t.byte 0x";
+    Str.write_hex(buffer_.Load<uint8_t>(i));
+    Str << "\n";
+  }
 }
 
 } // end of namespace Ice

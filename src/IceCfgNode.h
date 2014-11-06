@@ -82,6 +82,7 @@ public:
   void contractIfEmpty();
   void doBranchOpt(const CfgNode *NextNode);
   void emit(Cfg *Func) const;
+  void emitIAS(Cfg *Func) const;
   void dump(Cfg *Func) const;
 
 private:

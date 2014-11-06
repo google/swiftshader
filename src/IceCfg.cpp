@@ -390,6 +390,22 @@ void Cfg::doBranchOpt() {
 
 // ======================== Dump routines ======================== //
 
+void Cfg::emitTextHeader(const IceString &MangledName) {
+  Ostream &Str = Ctx->getStrEmit();
+  Str << "\t.text\n";
+  if (Ctx->getFlags().FunctionSections)
+    Str << "\t.section\t.text." << MangledName << ",\"ax\",@progbits\n";
+  if (!getInternal() || Ctx->getFlags().DisableInternal) {
+    Str << "\t.globl\t" << MangledName << "\n";
+    Str << "\t.type\t" << MangledName << ",@function\n";
+  }
+  Str << "\t.p2align " << getTarget()->getBundleAlignLog2Bytes() << ",0x";
+  for (AsmCodeByte I : getTarget()->getNonExecBundlePadding())
+    Str.write_hex(I);
+  Str << "\n";
+  Str << MangledName << ":\n";
+}
+
 void Cfg::emit() {
   TimerMarker T(TimerStack::TT_emit, this);
   if (Ctx->getFlags().DecorateAsm) {
@@ -409,21 +425,21 @@ void Cfg::emit() {
         << " -o=MyObj.o"
         << "\n\n";
   }
-  Str << "\t.text\n";
   IceString MangledName = getContext()->mangleName(getFunctionName());
-  if (Ctx->getFlags().FunctionSections)
-    Str << "\t.section\t.text." << MangledName << ",\"ax\",@progbits\n";
-  if (!getInternal() || Ctx->getFlags().DisableInternal) {
-    Str << "\t.globl\t" << MangledName << "\n";
-    Str << "\t.type\t" << MangledName << ",@function\n";
-  }
-  Str << "\t.p2align " << getTarget()->getBundleAlignLog2Bytes() << ",0x";
-  for (AsmCodeByte I : getTarget()->getNonExecBundlePadding())
-    Str.write_hex(I);
-  Str << "\n";
+  emitTextHeader(MangledName);
   for (CfgNode *Node : Nodes)
     Node->emit(this);
   Str << "\n";
+}
+
+void Cfg::emitIAS() {
+  TimerMarker T(TimerStack::TT_emit, this);
+  assert(!Ctx->getFlags().DecorateAsm);
+  IceString MangledName = getContext()->mangleName(getFunctionName());
+  emitTextHeader(MangledName);
+  for (CfgNode *Node : Nodes)
+    Node->emitIAS(this);
+  getAssembler<Assembler>()->emitIASBytes(Ctx);
 }
 
 // Dumps the IR with an optional introductory message.

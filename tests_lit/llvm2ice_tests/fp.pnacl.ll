@@ -47,17 +47,18 @@ entry:
   ret i32 %add3
 }
 ; CHECK-LABEL: passFpArgs
+; CALLTARGETS-LABEL: passFpArgs
 ; CHECK: mov dword ptr [esp + 4], 123
-; CHECK: call ignoreFpArgsNoInline
+; CHECK: call -4
+; CALLTARGETS: .long ignoreFpArgsNoInline
 ; CHECK: mov dword ptr [esp + 4], 123
-; CHECK: call ignoreFpArgsNoInline
+; CHECK: call -4
+; CALLTARGETS: .long ignoreFpArgsNoInline
 ; CHECK: mov dword ptr [esp + 4], 123
-; CHECK: call ignoreFpArgsNoInline
+; CHECK: call -4
+; CALLTARGETS: .long ignoreFpArgsNoInline
 
-define i32 @ignoreFpArgsNoInline(float %x, i32 %y, double %z) {
-entry:
-  ret i32 %y
-}
+declare i32 @ignoreFpArgsNoInline(float %x, i32 %y, double %z)
 
 define internal i32 @passFpConstArg(float %a, double %b) {
 entry:
@@ -65,8 +66,10 @@ entry:
   ret i32 %call
 }
 ; CHECK-LABEL: passFpConstArg
+; CALLTARGETS-LABEL: passFpConstArg
 ; CHECK: mov dword ptr [esp + 4], 123
-; CHECK: call ignoreFpArgsNoInline
+; CHECK: call -4
+; CALLTARGETS: .long ignoreFpArgsNoInline
 
 define internal i32 @passFp32ConstArg(float %a) {
 entry:
@@ -191,7 +194,7 @@ entry:
 ; CHECK-LABEL: remFloat
 ; CALLTARGETS-LABEL: remFloat
 ; CHECK: call -4
-; CALLTARGETS: call fmodf
+; CALLTARGETS: .long fmodf
 
 define internal double @remDouble(double %a, double %b) {
 entry:
@@ -201,7 +204,7 @@ entry:
 ; CHECK-LABEL: remDouble
 ; CALLTARGETS-LABEL: remDouble
 ; CHECK: call -4
-; CALLTARGETS: call fmod
+; CALLTARGETS: .long fmod
 
 define internal float @fptrunc(double %a) {
 entry:
@@ -229,7 +232,7 @@ entry:
 ; CHECK-LABEL: doubleToSigned64
 ; CALLTARGETS-LABEL: doubleToSigned64
 ; CHECK: call -4
-; CALLTARGETS: call cvtdtosi64
+; CALLTARGETS: .long cvtdtosi64
 
 define internal i64 @floatToSigned64(float %a) {
 entry:
@@ -239,7 +242,7 @@ entry:
 ; CHECK-LABEL: floatToSigned64
 ; CALLTARGETS-LABEL: floatToSigned64
 ; CHECK: call -4
-; CALLTARGETS: call cvtftosi64
+; CALLTARGETS: .long cvtftosi64
 
 define internal i64 @doubleToUnsigned64(double %a) {
 entry:
@@ -249,7 +252,7 @@ entry:
 ; CHECK-LABEL: doubleToUnsigned64
 ; CALLTARGETS-LABEL: doubleToUnsigned64
 ; CHECK: call -4
-; CALLTARGETS: call cvtdtoui64
+; CALLTARGETS: .long cvtdtoui64
 
 define internal i64 @floatToUnsigned64(float %a) {
 entry:
@@ -259,7 +262,7 @@ entry:
 ; CHECK-LABEL: floatToUnsigned64
 ; CALLTARGETS-LABEL: floatToUnsigned64
 ; CHECK: call -4
-; CALLTARGETS: call cvtftoui64
+; CALLTARGETS: .long cvtftoui64
 
 define internal i32 @doubleToSigned32(double %a) {
 entry:
@@ -293,7 +296,7 @@ entry:
 ; CHECK-LABEL: doubleToUnsigned32
 ; CALLTARGETS-LABEL: doubleToUnsigned32
 ; CHECK: call -4
-; CALLTARGETS: call cvtdtoui32
+; CALLTARGETS: .long cvtdtoui32
 
 define internal i32 @floatToUnsigned32(float %a) {
 entry:
@@ -303,7 +306,7 @@ entry:
 ; CHECK-LABEL: floatToUnsigned32
 ; CALLTARGETS-LABEL: floatToUnsigned32
 ; CHECK: call -4
-; CALLTARGETS: call cvtftoui32
+; CALLTARGETS: .long cvtftoui32
 
 
 define internal i32 @doubleToSigned16(double %a) {
@@ -414,7 +417,7 @@ entry:
 ; CHECK-LABEL: signed64ToDouble
 ; CALLTARGETS-LABEL: signed64ToDouble
 ; CHECK: call -4
-; CALLTARGETS: call cvtsi64tod
+; CALLTARGETS: .long cvtsi64tod
 ; CHECK: fstp qword
 
 define internal float @signed64ToFloat(i64 %a) {
@@ -425,7 +428,7 @@ entry:
 ; CHECK-LABEL: signed64ToFloat
 ; CALLTARGETS-LABEL: signed64ToFloat
 ; CHECK: call -4
-; CALLTARGETS: call cvtsi64tof
+; CALLTARGETS: .long cvtsi64tof
 ; CHECK: fstp dword
 
 define internal double @unsigned64ToDouble(i64 %a) {
@@ -436,7 +439,7 @@ entry:
 ; CHECK-LABEL: unsigned64ToDouble
 ; CALLTARGETS-LABEL: unsigned64ToDouble
 ; CHECK: call -4
-; CALLTARGETS: call cvtui64tod
+; CALLTARGETS: .long cvtui64tod
 ; CHECK: fstp
 
 define internal float @unsigned64ToFloat(i64 %a) {
@@ -447,7 +450,7 @@ entry:
 ; CHECK-LABEL: unsigned64ToFloat
 ; CALLTARGETS-LABEL: unsigned64ToFloat
 ; CHECK: call -4
-; CALLTARGETS: call cvtui64tof
+; CALLTARGETS: .long cvtui64tof
 ; CHECK: fstp
 
 define internal double @unsigned64ToDoubleConst() {
@@ -460,7 +463,7 @@ entry:
 ; CHECK: mov dword ptr [esp + 4], 2874
 ; CHECK: mov dword ptr [esp], 1942892530
 ; CHECK: call -4
-; CALLTARGETS: call cvtui64tod
+; CALLTARGETS: .long cvtui64tod
 ; CHECK: fstp
 
 define internal double @signed32ToDouble(i32 %a) {
@@ -498,7 +501,7 @@ entry:
 ; CHECK-LABEL: unsigned32ToDouble
 ; CALLTARGETS-LABEL: unsigned32ToDouble
 ; CHECK: call -4
-; CALLTARGETS: call cvtui32tod
+; CALLTARGETS: .long cvtui32tod
 ; CHECK: fstp qword
 
 define internal float @unsigned32ToFloat(i32 %a) {
@@ -509,7 +512,7 @@ entry:
 ; CHECK-LABEL: unsigned32ToFloat
 ; CALLTARGETS-LABEL: unsigned32ToFloat
 ; CHECK: call -4
-; CALLTARGETS: call cvtui32tof
+; CALLTARGETS: .long cvtui32tof
 ; CHECK: fstp dword
 
 define internal double @signed16ToDouble(i32 %a) {

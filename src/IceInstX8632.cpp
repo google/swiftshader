@@ -342,84 +342,6 @@ InstX8632Xchg::InstX8632Xchg(Cfg *Func, Operand *Dest, Variable *Source)
 
 // ======================== Dump routines ======================== //
 
-namespace {
-
-void emitIASBytes(const Cfg *Func, const x86::AssemblerX86 *Asm,
-                  intptr_t StartPosition) {
-  GlobalContext *Ctx = Func->getContext();
-  Ostream &Str = Ctx->getStrEmit();
-  intptr_t EndPosition = Asm->GetPosition();
-  AssemblerFixup *LastFixup = Asm->GetLatestFixup(StartPosition);
-  if (!LastFixup) {
-    // The fixup doesn't apply to this current block.
-    for (intptr_t i = StartPosition; i < EndPosition; ++i) {
-      Str << "\t.byte 0x";
-      Str.write_hex(Asm->LoadBuffer<uint8_t>(i));
-      Str << "\n";
-    }
-    return;
-  }
-  intptr_t LastFixupLoc = LastFixup->position();
-  const intptr_t FixupSize = 4;
-  // The fixup does apply to this current block.
-  for (intptr_t i = StartPosition; i < LastFixupLoc; ++i) {
-    Str << "\t.byte 0x";
-    Str.write_hex(Asm->LoadBuffer<uint8_t>(i));
-    Str << "\n";
-  }
-  while (LastFixup) {
-    Str << "\t.long ";
-    const ConstantRelocatable *Reloc = LastFixup->value();
-    if (Reloc->getSuppressMangling())
-      Str << Reloc->getName();
-    else
-      Str << Ctx->mangleName(Reloc->getName());
-    if (LastFixup->value()->getOffset()) {
-      Str << " + " << LastFixup->value()->getOffset();
-    }
-    Str << "\n";
-    LastFixupLoc += FixupSize;
-    assert(LastFixupLoc <= EndPosition);
-    LastFixup = Asm->GetLatestFixup(LastFixupLoc);
-    // Assume multi-fixups are adjacent in the instruction encoding.
-    assert(!LastFixup || LastFixup->position() == LastFixupLoc);
-  }
-  for (intptr_t i = LastFixupLoc; i < EndPosition; ++i) {
-    Str << "\t.byte 0x";
-    Str.write_hex(Asm->LoadBuffer<uint8_t>(i));
-    Str << "\n";
-  }
-}
-
-void emitIASBytesBranch(const Cfg *Func, const x86::AssemblerX86 *Asm,
-                        intptr_t StartPosition, const x86::Label *Label,
-                        const IceString &LabelName, bool Near) {
-  // If this is a backward branch (label is bound), we're good and know
-  // the offset. If this is a forward branch, then we can't actually emit
-  // the thing as text in a streaming manner, because the fixup hasn't
-  // happened yet. Instead, emit .long ($BranchLabel) - (. + 4), in that
-  // case and let the external assembler take care of that fixup.
-  if (Label->IsBound()) {
-    emitIASBytes(Func, Asm, StartPosition);
-    return;
-  }
-  const intptr_t FwdBranchSize = Near ? 1 : 4;
-  const IceString FwdBranchDirective = Near ? ".byte" : ".long";
-  Ostream &Str = Func->getContext()->getStrEmit();
-  intptr_t EndPosition = Asm->GetPosition();
-  assert(EndPosition - StartPosition > FwdBranchSize);
-  for (intptr_t i = StartPosition; i < EndPosition - FwdBranchSize; ++i) {
-    Str << "\t.byte 0x";
-    Str.write_hex(Asm->LoadBuffer<uint8_t>(i));
-    Str << "\n";
-  }
-  Str << "\t" << FwdBranchDirective << " " << LabelName << " - (. + "
-      << FwdBranchSize << ")\n";
-  return;
-}
-
-} // end of anonymous namespace
-
 void InstX8632::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "[X8632] ";
@@ -434,10 +356,6 @@ void InstX8632Label::emit(const Cfg *Func) const {
 void InstX8632Label::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
   Asm->BindLocalLabel(Number);
-  // TODO(jvoung): remove the the textual label once forward branch
-  // fixups are used (and text assembler is not used).
-  Ostream &Str = Func->getContext()->getStrEmit();
-  Str << getName(Func) << ":\n";
 }
 
 void InstX8632Label::dump(const Cfg *Func) const {
@@ -471,7 +389,6 @@ void InstX8632Br::emit(const Cfg *Func) const {
 
 void InstX8632Br::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   if (Label) {
     x86::Label *L = Asm->GetOrCreateLocalLabel(Label->getNumber());
     // In all these cases, local Labels should only be used for Near.
@@ -481,7 +398,6 @@ void InstX8632Br::emitIAS(const Cfg *Func) const {
     } else {
       Asm->j(Condition, L, Near);
     }
-    emitIASBytesBranch(Func, Asm, StartPosition, L, Label->getName(Func), Near);
   } else {
     // Pessimistically assume it's far. This only affects Labels that
     // are not Bound.
@@ -491,20 +407,13 @@ void InstX8632Br::emitIAS(const Cfg *Func) const {
           Asm->GetOrCreateCfgNodeLabel(getTargetFalse()->getIndex());
       assert(!getTargetTrue());
       Asm->jmp(L, Near);
-      emitIASBytesBranch(Func, Asm, StartPosition, L,
-                         getTargetFalse()->getAsmName(), Near);
     } else {
       x86::Label *L = Asm->GetOrCreateCfgNodeLabel(getTargetTrue()->getIndex());
       Asm->j(Condition, L, Near);
-      emitIASBytesBranch(Func, Asm, StartPosition, L,
-                         getTargetTrue()->getAsmName(), Near);
-      StartPosition = Asm->GetPosition();
       if (getTargetFalse()) {
         x86::Label *L2 =
             Asm->GetOrCreateCfgNodeLabel(getTargetFalse()->getIndex());
         Asm->jmp(L2, Near);
-        emitIASBytesBranch(Func, Asm, StartPosition, L2,
-                           getTargetFalse()->getAsmName(), Near);
       }
     }
   }
@@ -549,9 +458,7 @@ void InstX8632Call::emit(const Cfg *Func) const {
 
 void InstX8632Call::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   Operand *Target = getCallTarget();
-  bool NeedsFallback = false;
   if (const auto Var = llvm::dyn_cast<Variable>(Target)) {
     if (Var->hasReg()) {
       Asm->call(RegX8632::getEncodedGPR(Var->getRegNum()));
@@ -565,7 +472,6 @@ void InstX8632Call::emitIAS(const Cfg *Func) const {
   } else if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(Target)) {
     assert(CR->getOffset() == 0 && "We only support calling a function");
     Asm->call(CR);
-    NeedsFallback = true;
   } else if (const auto Imm = llvm::dyn_cast<ConstantInteger32>(Target)) {
     // NaCl trampoline calls refer to an address within the sandbox directly.
     // This is usually only needed for non-IRT builds and otherwise not
@@ -578,18 +484,6 @@ void InstX8632Call::emitIAS(const Cfg *Func) const {
     llvm_unreachable("Unexpected call to absolute address");
   } else {
     llvm_unreachable("Unexpected operand type");
-  }
-  if (NeedsFallback) {
-    // TODO(jvoung): The ".long sym" hack doesn't work, since we need
-    // a pc-rel relocation and not an absolute relocation.
-    //
-    // Still, we have at least filled the assembler buffer so that the
-    // instruction sizes/positions are correct for jumps.
-    // For now, fall back to the regular .s emission, after filling the buffer.
-    emit(Func);
-    Func->getContext()->getStrEmit() << "\n";
-  } else {
-    emitIASBytes(Func, Asm, StartPosition);
   }
   Func->getTarget()->resetStackAdjustment();
 }
@@ -628,7 +522,6 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
 void emitIASOpTyGPR(const Cfg *Func, Type Ty, const Operand *Op,
                     const x86::AssemblerX86::GPREmitterOneOp &Emitter) {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   if (const auto Var = llvm::dyn_cast<Variable>(Op)) {
     if (Var->hasReg()) {
       // We cheat a little and use GPRRegister even for byte operations.
@@ -646,7 +539,6 @@ void emitIASOpTyGPR(const Cfg *Func, Type Ty, const Operand *Op,
   } else {
     llvm_unreachable("Unexpected operand type");
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 template <bool VarCanBeByte, bool SrcCanBeByte>
@@ -654,7 +546,6 @@ void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
                        const Operand *Src,
                        const x86::AssemblerX86::GPREmitterRegOp &Emitter) {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   assert(Var->hasReg());
   // We cheat a little and use GPRRegister even for byte operations.
   RegX8632::GPRRegister VarReg =
@@ -686,14 +577,12 @@ void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
   } else {
     llvm_unreachable("Unexpected operand type");
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void emitIASAddrOpTyGPR(const Cfg *Func, Type Ty, const x86::Address &Addr,
                         const Operand *Src,
                         const x86::AssemblerX86::GPREmitterAddrOp &Emitter) {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   // Src can only be Reg or Immediate.
   if (const auto SrcVar = llvm::dyn_cast<Variable>(Src)) {
     assert(SrcVar->hasReg());
@@ -709,7 +598,6 @@ void emitIASAddrOpTyGPR(const Cfg *Func, Type Ty, const x86::Address &Addr,
   } else {
     llvm_unreachable("Unexpected operand type");
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void emitIASAsAddrOpTyGPR(const Cfg *Func, Type Ty, const Operand *Op0,
@@ -735,7 +623,6 @@ void emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
                      const Operand *Src,
                      const x86::AssemblerX86::GPREmitterShiftOp &Emitter) {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   // Technically, the Dest Var can be mem as well, but we only use Reg.
   // We can extend this to check Dest if we decide to use that form.
   assert(Var->hasReg());
@@ -754,14 +641,12 @@ void emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
   } else {
     llvm_unreachable("Unexpected operand type");
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void emitIASGPRShiftDouble(const Cfg *Func, const Variable *Dest,
                            const Operand *Src1Op, const Operand *Src2Op,
                            const x86::AssemblerX86::GPREmitterShiftD &Emitter) {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   // Dest can be reg or mem, but we only use the reg variant.
   assert(Dest->hasReg());
   RegX8632::GPRRegister DestReg = RegX8632::getEncodedGPR(Dest->getRegNum());
@@ -778,14 +663,12 @@ void emitIASGPRShiftDouble(const Cfg *Func, const Variable *Dest,
     assert(llvm::cast<Variable>(Src2Op)->getRegNum() == RegX8632::Reg_ecx);
     (Asm->*(Emitter.GPRGPR))(Ty, DestReg, SrcReg);
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void emitIASXmmShift(const Cfg *Func, Type Ty, const Variable *Var,
                      const Operand *Src,
                      const x86::AssemblerX86::XmmEmitterShiftOp &Emitter) {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   assert(Var->hasReg());
   RegX8632::XmmRegister VarReg = RegX8632::getEncodedXmm(Var->getRegNum());
   if (const auto SrcVar = llvm::dyn_cast<Variable>(Src)) {
@@ -806,14 +689,12 @@ void emitIASXmmShift(const Cfg *Func, Type Ty, const Variable *Var,
   } else {
     llvm_unreachable("Unexpected operand type");
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void emitIASRegOpTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
                        const Operand *Src,
                        const x86::AssemblerX86::XmmEmitterRegOp &Emitter) {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   assert(Var->hasReg());
   RegX8632::XmmRegister VarReg = RegX8632::getEncodedXmm(Var->getRegNum());
   if (const auto SrcVar = llvm::dyn_cast<Variable>(Src)) {
@@ -835,7 +716,6 @@ void emitIASRegOpTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
   } else {
     llvm_unreachable("Unexpected operand type");
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 template <typename DReg_t, typename SReg_t, DReg_t (*destEnc)(int32_t),
@@ -844,7 +724,6 @@ void emitIASCastRegOp(
     const Cfg *Func, Type DispatchTy, const Variable *Dest, const Operand *Src,
     const x86::AssemblerX86::CastEmitterRegOp<DReg_t, SReg_t> Emitter) {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   assert(Dest->hasReg());
   DReg_t DestReg = destEnc(Dest->getRegNum());
   if (const auto SrcVar = llvm::dyn_cast<Variable>(Src)) {
@@ -862,7 +741,6 @@ void emitIASCastRegOp(
   } else {
     llvm_unreachable("Unexpected operand type");
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 template <typename DReg_t, typename SReg_t, DReg_t (*destEnc)(int32_t),
@@ -872,7 +750,6 @@ void emitIASThreeOpImmOps(
     const Operand *Src1,
     const x86::AssemblerX86::ThreeOpImmEmitter<DReg_t, SReg_t> Emitter) {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   // This only handles Dest being a register, and Src1 being an immediate.
   assert(Dest->hasReg());
   DReg_t DestReg = destEnc(Dest->getRegNum());
@@ -893,14 +770,12 @@ void emitIASThreeOpImmOps(
   } else {
     llvm_unreachable("Unexpected operand type");
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void emitIASMovlikeXMM(const Cfg *Func, const Variable *Dest,
                        const Operand *Src,
                        const x86::AssemblerX86::XmmEmitterMovOps Emitter) {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   if (Dest->hasReg()) {
     RegX8632::XmmRegister DestReg = RegX8632::getEncodedXmm(Dest->getRegNum());
     if (const auto SrcVar = llvm::dyn_cast<Variable>(Src)) {
@@ -927,7 +802,6 @@ void emitIASMovlikeXMM(const Cfg *Func, const Variable *Dest,
     (Asm->*(Emitter.AddrXmm))(StackAddr,
                               RegX8632::getEncodedXmm(SrcVar->getRegNum()));
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 bool checkForRedundantAssign(const Variable *Dest, const Operand *Source) {
@@ -1432,7 +1306,6 @@ template <> void InstX8632Cbwdq::emit(const Cfg *Func) const {
 
 template <> void InstX8632Cbwdq::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   assert(getSrcSize() == 1);
   Operand *Src0 = getSrc(0);
   assert(llvm::isa<Variable>(Src0));
@@ -1454,7 +1327,6 @@ template <> void InstX8632Cbwdq::emitIAS(const Cfg *Func) const {
     Asm->cdq();
     break;
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Mul::emit(const Cfg *Func) const {
@@ -1582,10 +1454,8 @@ void InstX8632Cmov::emitIAS(const Cfg *Func) const {
   assert(SrcVar->hasReg());
   assert(SrcVar->getType() == IceType_i32);
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   Asm->cmov(Condition, RegX8632::getEncodedGPR(getDest()->getRegNum()),
             RegX8632::getEncodedGPR(SrcVar->getRegNum()));
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Cmov::dump(const Cfg *Func) const {
@@ -1611,7 +1481,6 @@ void InstX8632Cmpps::emit(const Cfg *Func) const {
 
 void InstX8632Cmpps::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   assert(getSrcSize() == 2);
   assert(Condition < CondX86::Cmpps_Invalid);
   // Assuming there isn't any load folding for cmpps, and vector constants
@@ -1627,7 +1496,6 @@ void InstX8632Cmpps::emitIAS(const Cfg *Func) const {
     Asm->cmpps(RegX8632::getEncodedXmm(getDest()->getRegNum()), SrcStackAddr,
                Condition);
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Cmpps::dump(const Cfg *Func) const {
@@ -1654,7 +1522,6 @@ void InstX8632Cmpxchg::emit(const Cfg *Func) const {
 void InstX8632Cmpxchg::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 3);
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   Type Ty = getSrc(0)->getType();
   const auto Mem = llvm::cast<OperandX8632Mem>(getSrc(0));
   assert(Mem->getSegmentRegister() == OperandX8632Mem::DefaultSegment);
@@ -1668,7 +1535,6 @@ void InstX8632Cmpxchg::emitIAS(const Cfg *Func) const {
   } else {
     Asm->cmpxchg(Ty, Addr, Reg);
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Cmpxchg::dump(const Cfg *Func) const {
@@ -1693,7 +1559,6 @@ void InstX8632Cmpxchg8b::emit(const Cfg *Func) const {
 void InstX8632Cmpxchg8b::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 5);
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   const auto Mem = llvm::cast<OperandX8632Mem>(getSrc(0));
   assert(Mem->getSegmentRegister() == OperandX8632Mem::DefaultSegment);
   const x86::Address Addr = Mem->toAsmAddress(Asm);
@@ -1701,7 +1566,6 @@ void InstX8632Cmpxchg8b::emitIAS(const Cfg *Func) const {
     Asm->lock();
   }
   Asm->cmpxchg8b(Addr);
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Cmpxchg8b::dump(const Cfg *Func) const {
@@ -1868,9 +1732,7 @@ void InstX8632UD2::emit(const Cfg *Func) const {
 
 void InstX8632UD2::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   Asm->ud2();
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632UD2::dump(const Cfg *Func) const {
@@ -1922,9 +1784,7 @@ void InstX8632Mfence::emit(const Cfg *Func) const {
 
 void InstX8632Mfence::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   Asm->mfence();
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Mfence::dump(const Cfg *Func) const {
@@ -1954,7 +1814,6 @@ void InstX8632Store::emitIAS(const Cfg *Func) const {
     assert(SrcVar->hasReg());
     RegX8632::XmmRegister SrcReg = RegX8632::getEncodedXmm(SrcVar->getRegNum());
     x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-    intptr_t StartPosition = Asm->GetPosition();
     if (const auto DestVar = llvm::dyn_cast<Variable>(Dest)) {
       assert(!DestVar->hasReg());
       x86::Address StackAddr(static_cast<TargetX8632 *>(Func->getTarget())
@@ -1965,7 +1824,6 @@ void InstX8632Store::emitIAS(const Cfg *Func) const {
       assert(DestMem->getSegmentRegister() == OperandX8632Mem::DefaultSegment);
       Asm->movss(DestTy, DestMem->toAsmAddress(Asm), SrcReg);
     }
-    emitIASBytes(Func, Asm, StartPosition);
     return;
   } else {
     assert(isScalarIntegerType(DestTy));
@@ -1994,7 +1852,6 @@ void InstX8632StoreP::emit(const Cfg *Func) const {
 
 void InstX8632StoreP::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   assert(getSrcSize() == 2);
   const auto SrcVar = llvm::cast<Variable>(getSrc(0));
   const auto DestMem = llvm::cast<OperandX8632Mem>(getSrc(1));
@@ -2002,7 +1859,6 @@ void InstX8632StoreP::emitIAS(const Cfg *Func) const {
   assert(SrcVar->hasReg());
   Asm->movups(DestMem->toAsmAddress(Asm),
               RegX8632::getEncodedXmm(SrcVar->getRegNum()));
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632StoreP::dump(const Cfg *Func) const {
@@ -2026,7 +1882,6 @@ void InstX8632StoreQ::emit(const Cfg *Func) const {
 
 void InstX8632StoreQ::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   assert(getSrcSize() == 2);
   const auto SrcVar = llvm::cast<Variable>(getSrc(0));
   const auto DestMem = llvm::cast<OperandX8632Mem>(getSrc(1));
@@ -2034,7 +1889,6 @@ void InstX8632StoreQ::emitIAS(const Cfg *Func) const {
   assert(SrcVar->hasReg());
   Asm->movq(DestMem->toAsmAddress(Asm),
             RegX8632::getEncodedXmm(SrcVar->getRegNum()));
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632StoreQ::dump(const Cfg *Func) const {
@@ -2145,10 +1999,8 @@ template <> void InstX8632Mov::emitIAS(const Cfg *Func) const {
       const auto SrcVar = llvm::cast<Variable>(Src);
       assert(SrcVar->hasReg());
       x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-      intptr_t StartPosition = Asm->GetPosition();
       Asm->movss(SrcTy, StackAddr,
                  RegX8632::getEncodedXmm(SrcVar->getRegNum()));
-      emitIASBytes(Func, Asm, StartPosition);
       return;
     } else {
       // Src can be a register or immediate.
@@ -2162,7 +2014,6 @@ template <> void InstX8632Mov::emitIAS(const Cfg *Func) const {
 
 template <> void InstX8632Movd::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   assert(getSrcSize() == 1);
   const Variable *Dest = getDest();
   const auto SrcVar = llvm::cast<Variable>(getSrc(0));
@@ -2192,7 +2043,6 @@ template <> void InstX8632Movd::emitIAS(const Cfg *Func) const {
       Asm->movd(StackAddr, SrcReg);
     }
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 template <> void InstX8632Movp::emit(const Cfg *Func) const {
@@ -2252,10 +2102,8 @@ template <> void InstX8632MovssRegs::emitIAS(const Cfg *Func) const {
   const auto SrcVar = llvm::cast<Variable>(getSrc(1));
   assert(Dest->hasReg() && SrcVar->hasReg());
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   Asm->movss(IceType_f32, RegX8632::getEncodedXmm(Dest->getRegNum()),
              RegX8632::getEncodedXmm(SrcVar->getRegNum()));
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 template <> void InstX8632Movsx::emitIAS(const Cfg *Func) const {
@@ -2289,10 +2137,8 @@ void InstX8632Nop::emit(const Cfg *Func) const {
 
 void InstX8632Nop::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   // TODO: Emit the right code for the variant.
   Asm->nop();
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Nop::dump(const Cfg *Func) const {
@@ -2325,7 +2171,6 @@ void InstX8632Fld::emit(const Cfg *Func) const {
 
 void InstX8632Fld::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   assert(getSrcSize() == 1);
   const Operand *Src = getSrc(0);
   Type Ty = Src->getType();
@@ -2352,7 +2197,6 @@ void InstX8632Fld::emitIAS(const Cfg *Func) const {
   } else {
     llvm_unreachable("Unexpected operand type");
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Fld::dump(const Cfg *Func) const {
@@ -2395,7 +2239,6 @@ void InstX8632Fstp::emit(const Cfg *Func) const {
 
 void InstX8632Fstp::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   assert(getSrcSize() == 0);
   const Variable *Dest = getDest();
   // TODO(jvoung,stichnot): Utilize this by setting Dest to nullptr to
@@ -2404,7 +2247,6 @@ void InstX8632Fstp::emitIAS(const Cfg *Func) const {
   // of popping the stack.
   if (!Dest) {
     Asm->fstp(RegX8632::getEncodedSTReg(0));
-    emitIASBytes(Func, Asm, StartPosition);
     return;
   }
   Type Ty = Dest->getType();
@@ -2424,7 +2266,6 @@ void InstX8632Fstp::emitIAS(const Cfg *Func) const {
     Asm->movss(Ty, RegX8632::getEncodedXmm(Dest->getRegNum()), StackSlot);
     Asm->add(IceType_i32, RegX8632::Encoded_Reg_esp, Width);
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Fstp::dump(const Cfg *Func) const {
@@ -2575,14 +2416,12 @@ void InstX8632Pop::emit(const Cfg *Func) const {
 void InstX8632Pop::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 0);
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   if (getDest()->hasReg()) {
     Asm->popl(RegX8632::getEncodedGPR(getDest()->getRegNum()));
   } else {
     Asm->popl(static_cast<TargetX8632 *>(Func->getTarget())
                   ->stackVarToAsmOperand(getDest()));
   }
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Pop::dump(const Cfg *Func) const {
@@ -2599,9 +2438,7 @@ void InstX8632AdjustStack::emit(const Cfg *Func) const {
 
 void InstX8632AdjustStack::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   Asm->sub(IceType_i32, RegX8632::Encoded_Reg_esp, x86::Immediate(Amount));
-  emitIASBytes(Func, Asm, StartPosition);
   Func->getTarget()->updateStackAdjustment(Amount);
 }
 
@@ -2626,9 +2463,7 @@ void InstX8632Push::emitIAS(const Cfg *Func) const {
   const auto Var = llvm::cast<Variable>(getSrc(0));
   assert(Var->hasReg());
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   Asm->pushl(RegX8632::getEncodedGPR(Var->getRegNum()));
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Push::dump(const Cfg *Func) const {
@@ -2666,9 +2501,7 @@ void InstX8632Ret::emit(const Cfg *Func) const {
 
 void InstX8632Ret::emitIAS(const Cfg *Func) const {
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   Asm->ret();
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Ret::dump(const Cfg *Func) const {
@@ -2692,7 +2525,6 @@ void InstX8632Xadd::emit(const Cfg *Func) const {
 void InstX8632Xadd::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 2);
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   Type Ty = getSrc(0)->getType();
   const auto Mem = llvm::cast<OperandX8632Mem>(getSrc(0));
   assert(Mem->getSegmentRegister() == OperandX8632Mem::DefaultSegment);
@@ -2705,7 +2537,6 @@ void InstX8632Xadd::emitIAS(const Cfg *Func) const {
     Asm->lock();
   }
   Asm->xadd(Ty, Addr, Reg);
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Xadd::dump(const Cfg *Func) const {
@@ -2729,7 +2560,6 @@ void InstX8632Xchg::emit(const Cfg *Func) const {
 void InstX8632Xchg::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 2);
   x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
-  intptr_t StartPosition = Asm->GetPosition();
   Type Ty = getSrc(0)->getType();
   const auto Mem = llvm::cast<OperandX8632Mem>(getSrc(0));
   assert(Mem->getSegmentRegister() == OperandX8632Mem::DefaultSegment);
@@ -2739,7 +2569,6 @@ void InstX8632Xchg::emitIAS(const Cfg *Func) const {
   const RegX8632::GPRRegister Reg =
       RegX8632::getEncodedGPR(VarReg->getRegNum());
   Asm->xchg(Ty, Addr, Reg);
-  emitIASBytes(Func, Asm, StartPosition);
 }
 
 void InstX8632Xchg::dump(const Cfg *Func) const {
