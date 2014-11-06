@@ -45,13 +45,13 @@ public:
   Inst *getNextInst() const {
     if (Next == End)
       return NULL;
-    return *Next;
+    return Next;
   }
   Inst *getNextInst(InstList::iterator &Iter) const {
     advanceForward(Iter);
     if (Iter == End)
       return NULL;
-    return *Iter;
+    return Iter;
   }
   CfgNode *getNode() const { return Node; }
   bool atEnd() const { return Cur == End; }

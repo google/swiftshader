@@ -34,7 +34,7 @@ namespace Ice {
 // InstHighLevel and InstTarget.  High-level ICE instructions inherit
 // from InstHighLevel, and low-level (target-specific) ICE
 // instructions inherit from InstTarget.
-class Inst {
+class Inst : public llvm::ilist_node<Inst> {
   Inst(const Inst &) = delete;
   Inst &operator=(const Inst &) = delete;
 
@@ -837,5 +837,23 @@ protected:
 };
 
 } // end of namespace Ice
+
+// Override the default ilist traits so that Inst's private ctor and
+// deleted dtor aren't invoked.
+template <>
+struct llvm::ilist_traits<Ice::Inst> : public llvm::ilist_default_traits<
+                                           Ice::Inst> {
+  Ice::Inst *createSentinel() const {
+    return static_cast<Ice::Inst *>(&Sentinel);
+  }
+  static void destroySentinel(Ice::Inst *) {}
+  Ice::Inst *provideInitialHead() const { return createSentinel(); }
+  Ice::Inst *ensureHead(Ice::Inst *) const { return createSentinel(); }
+  static void noteHead(Ice::Inst *, Ice::Inst *) {}
+  void deleteNode(Ice::Inst *) {}
+
+private:
+  mutable ilist_half_node<Ice::Inst> Sentinel;
+};
 
 #endif // SUBZERO_SRC_ICEINST_H

@@ -3826,7 +3826,7 @@ void TargetX8632::lowerLoad(const InstLoad *Inst) {
 }
 
 void TargetX8632::doAddressOptLoad() {
-  Inst *Inst = *Context.getCur();
+  Inst *Inst = Context.getCur();
   Variable *Dest = Inst->getDest();
   Operand *Addr = Inst->getSrc(0);
   Variable *Index = NULL;
@@ -4004,7 +4004,7 @@ void TargetX8632::lowerStore(const InstStore *Inst) {
 }
 
 void TargetX8632::doAddressOptStore() {
-  InstStore *Inst = llvm::cast<InstStore>(*Context.getCur());
+  InstStore *Inst = llvm::cast<InstStore>(Context.getCur());
   Operand *Data = Inst->getData();
   Operand *Addr = Inst->getAddr();
   Variable *Index = NULL;
@@ -4502,7 +4502,7 @@ void TargetX8632::postLower() {
   if (Ctx->getOptLevel() != Opt_m1) {
     // Find two-address non-SSA instructions where Dest==Src0, and set
     // the DestNonKillable flag to keep liveness analysis consistent.
-    for (Inst *Inst : Context) {
+    for (auto Inst = Context.begin(), E = Context.end(); Inst != E; ++Inst) {
       if (Inst->isDeleted())
         continue;
       if (Variable *Dest = Inst->getDest()) {
@@ -4529,7 +4529,7 @@ void TargetX8632::postLower() {
   // The first pass also keeps track of which instruction is the last
   // use for each infinite-weight variable.  After the last use, the
   // variable is released to the free list.
-  for (Inst *Inst : Context) {
+  for (auto Inst = Context.begin(), E = Context.end(); Inst != E; ++Inst) {
     if (Inst->isDeleted())
       continue;
     // Don't consider a FakeKill instruction, because (currently) it
@@ -4560,7 +4560,7 @@ void TargetX8632::postLower() {
   // The second pass colors infinite-weight variables.
   llvm::SmallBitVector AvailableRegisters = WhiteList;
   llvm::SmallBitVector FreedRegisters(WhiteList.size());
-  for (Inst *Inst : Context) {
+  for (auto Inst = Context.begin(), E = Context.end(); Inst != E; ++Inst) {
     FreedRegisters.reset();
     if (Inst->isDeleted())
       continue;

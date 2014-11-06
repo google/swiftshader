@@ -28,6 +28,8 @@
 #include <vector>
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/BitVector.h"
+#include "llvm/ADT/ilist.h"
+#include "llvm/ADT/ilist_node.h"
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/Casting.h"
@@ -56,7 +58,7 @@ class VariablesMetadata;
 // TODO: Switch over to LLVM's ADT container classes.
 // http://llvm.org/docs/ProgrammersManual.html#picking-the-right-data-structure-for-a-task
 typedef std::string IceString;
-typedef std::list<Inst *> InstList;
+typedef llvm::ilist<Inst> InstList;
 typedef std::list<InstAssign *> AssignList;
 typedef std::list<InstPhi *> PhiList;
 typedef std::vector<Variable *> VarList;

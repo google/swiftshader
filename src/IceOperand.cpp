@@ -347,7 +347,8 @@ void VariablesMetadata::addNode(CfgNode *Node) {
     }
   }
 
-  for (Inst *I : Node->getInsts()) {
+  for (auto I = Node->getInsts().begin(), E = Node->getInsts().end(); I != E;
+       ++I) {
     if (I->isDeleted())
       continue;
     // Note: The implicit definitions (and uses) from InstFakeKill are

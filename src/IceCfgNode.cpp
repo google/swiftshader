@@ -59,7 +59,7 @@ void CfgNode::renumberInstructions() {
   InstNumberT FirstNumber = Func->getNextInstNumber();
   for (InstPhi *I : Phis)
     I->renumber(Func);
-  for (Inst *I : Insts)
+  for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I)
     I->renumber(Func);
   InstCountEstimate = Func->getNextInstNumber() - FirstNumber;
 }
@@ -69,7 +69,7 @@ void CfgNode::renumberInstructions() {
 // constructed, the computePredecessors() pass finalizes it by
 // creating the InEdges list.
 void CfgNode::computePredecessors() {
-  OutEdges = (*Insts.rbegin())->getTerminatorEdges();
+  OutEdges = Insts.rbegin()->getTerminatorEdges();
   for (CfgNode *Succ : OutEdges)
     Succ->InEdges.push_back(this);
 }
@@ -117,7 +117,7 @@ void CfgNode::placePhiStores() {
   // Confirm that InsertionPoint is a terminator instruction.  Calling
   // getTerminatorEdges() on a non-terminator instruction will cause
   // an llvm_unreachable().
-  (void)(*InsertionPoint)->getTerminatorEdges();
+  (void)InsertionPoint->getTerminatorEdges();
   // SafeInsertionPoint is always immediately before the terminator
   // instruction.  If the block ends in a compare and conditional
   // branch, it's better to place the Phi store before the compare so
@@ -167,13 +167,13 @@ void CfgNode::placePhiStores() {
   // instruction, and the previous instruction is a compare
   // instruction, then we move the insertion point before the compare
   // instruction so as not to interfere with compare/branch fusing.
-  if (InstBr *Branch = llvm::dyn_cast<InstBr>(*InsertionPoint)) {
+  if (InstBr *Branch = llvm::dyn_cast<InstBr>(InsertionPoint)) {
     if (!Branch->isUnconditional()) {
       if (InsertionPoint != Insts.begin()) {
         --InsertionPoint;
-        if (llvm::isa<InstIcmp>(*InsertionPoint) ||
-            llvm::isa<InstFcmp>(*InsertionPoint)) {
-          CmpInstDest = (*InsertionPoint)->getDest();
+        if (llvm::isa<InstIcmp>(InsertionPoint) ||
+            llvm::isa<InstFcmp>(InsertionPoint)) {
+          CmpInstDest = InsertionPoint->getDest();
         } else {
           ++InsertionPoint;
         }
@@ -250,8 +250,8 @@ CfgNode *CfgNode::splitIncomingEdge(CfgNode *Pred, SizeT EdgeIndex) {
   Found = false;
   for (auto I = Pred->getInsts().rbegin(), E = Pred->getInsts().rend();
        !Found && I != E; ++I) {
-    if (!(*I)->isDeleted()) {
-      Found = (*I)->repointEdge(this, NewNode);
+    if (!I->isDeleted()) {
+      Found = I->repointEdge(this, NewNode);
     }
   }
   assert(Found);
@@ -530,9 +530,9 @@ void CfgNode::livenessLightweight() {
   // Process regular instructions in reverse order.
   // TODO(stichnot): Use llvm::make_range with LLVM 3.5.
   for (auto I = Insts.rbegin(), E = Insts.rend(); I != E; ++I) {
-    if ((*I)->isDeleted())
+    if (I->isDeleted())
       continue;
-    (*I)->livenessLightweight(Func, Live);
+    I->livenessLightweight(Func, Live);
   }
   for (InstPhi *I : Phis) {
     if (I->isDeleted())
@@ -573,9 +573,9 @@ bool CfgNode::liveness(Liveness *Liveness) {
 
   // Process regular instructions in reverse order.
   for (auto I = Insts.rbegin(), E = Insts.rend(); I != E; ++I) {
-    if ((*I)->isDeleted())
+    if (I->isDeleted())
       continue;
-    (*I)->liveness((*I)->getNumber(), Live, Liveness, LiveBegin, LiveEnd);
+    I->liveness(I->getNumber(), Live, Liveness, LiveBegin, LiveEnd);
   }
   // Process phis in forward order so that we can override the
   // instruction number to be that of the earliest phi instruction in
@@ -654,7 +654,7 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
     LastInstNum = I->getNumber();
   }
   // Process instructions
-  for (Inst *I : Insts) {
+  for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I) {
     I->deleteIfDead();
     if (I->isDeleted())
       continue;
@@ -753,7 +753,7 @@ void CfgNode::contractIfEmpty() {
   if (InEdges.empty())
     return;
   Inst *Branch = NULL;
-  for (Inst *I : Insts) {
+  for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I) {
     if (I->isDeleted())
       continue;
     if (I->isUnconditionalBranch())
@@ -776,7 +776,8 @@ void CfgNode::contractIfEmpty() {
           OutEdges.front()->InEdges.push_back(Pred);
         }
       }
-      for (Inst *I : Pred->getInsts()) {
+      for (auto I = Pred->getInsts().begin(), E = Pred->getInsts().end();
+           I != E; ++I) {
         if (!I->isDeleted())
           I->repointEdge(this, OutEdges.front());
       }
@@ -795,7 +796,7 @@ void CfgNode::doBranchOpt(const CfgNode *NextNode) {
   // first opportunity, unless there is some target lowering where we
   // have the possibility of multiple such optimizations per block
   // (currently not the case for x86 lowering).
-  for (Inst *I : Insts) {
+  for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I) {
     if (!I->isDeleted()) {
       Target->doBranchOpt(I, NextNode);
     }
@@ -901,7 +902,7 @@ void CfgNode::emit(Cfg *Func) const {
     Inst *Instr = Phi;
     Instr->emit(Func);
   }
-  for (Inst *I : Insts) {
+  for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I) {
     if (I->isDeleted())
       continue;
     if (I->isRedundantAssign()) {
@@ -931,7 +932,7 @@ void CfgNode::emitIAS(Cfg *Func) const {
     Inst *Instr = Phi;
     Instr->emitIAS(Func);
   }
-  for (Inst *I : Insts) {
+  for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I) {
     if (I->isDeleted())
       continue;
     if (I->isRedundantAssign())
@@ -982,7 +983,7 @@ void CfgNode::dump(Cfg *Func) const {
   if (Func->getContext()->isVerbose(IceV_Instructions)) {
     for (InstPhi *I : Phis)
       I->dumpDecorated(Func);
-    for (Inst *I : Insts)
+    for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I)
       I->dumpDecorated(Func);
   }
   // Dump the live-out variables.

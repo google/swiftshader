@@ -17,6 +17,7 @@
 #define SUBZERO_SRC_ICECFGNODE_H
 
 #include "IceDefs.h"
+#include "IceInst.h" // InstList traits
 
 namespace Ice {
 

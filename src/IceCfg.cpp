@@ -318,7 +318,8 @@ bool Cfg::validateLiveness() const {
   Ostream &Str = Ctx->getStrDump();
   for (CfgNode *Node : Nodes) {
     Inst *FirstInst = NULL;
-    for (Inst *Inst : Node->getInsts()) {
+    for (auto Inst = Node->getInsts().begin(), E = Node->getInsts().end();
+         Inst != E; ++Inst) {
       if (Inst->isDeleted())
         continue;
       if (FirstInst == NULL)
@@ -337,7 +338,8 @@ bool Cfg::validateLiveness() const {
           // temporary may be live at the end of the previous block,
           // and if it is also assigned in the first instruction of
           // this block, the adjacent live ranges get merged.
-          if (Inst != FirstInst && !Inst->isDestNonKillable() &&
+          if (static_cast<class Inst *>(Inst) != FirstInst &&
+              !Inst->isDestNonKillable() &&
               Dest->getLiveRange().containsValue(InstNumber - 1, IsDest))
             Invalid = true;
           if (Invalid) {

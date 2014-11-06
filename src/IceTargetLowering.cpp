@@ -62,7 +62,7 @@ void LoweringContext::insert(Inst *Inst) {
 }
 
 void LoweringContext::skipDeleted(InstList::iterator &I) const {
-  while (I != End && (*I)->isDeleted())
+  while (I != End && I->isDeleted())
     ++I;
 }
 
@@ -116,7 +116,7 @@ void TargetLowering::doAddressOpt() {
 bool TargetLowering::shouldDoNopInsertion() const { return DoNopInsertion; }
 
 void TargetLowering::doNopInsertion() {
-  Inst *I = *Context.getCur();
+  Inst *I = Context.getCur();
   bool ShouldSkip = llvm::isa<InstFakeUse>(I) || llvm::isa<InstFakeDef>(I) ||
                     llvm::isa<InstFakeKill>(I) || I->isRedundantAssign() ||
                     I->isDeleted();
@@ -141,7 +141,7 @@ void TargetLowering::doNopInsertion() {
 // instructions it consumes.
 void TargetLowering::lower() {
   assert(!Context.atEnd());
-  Inst *Inst = *Context.getCur();
+  Inst *Inst = Context.getCur();
   // Mark the current instruction as deleted before lowering,
   // otherwise the Dest variable will likely get marked as non-SSA.
   // See Variable::setDefinition().
