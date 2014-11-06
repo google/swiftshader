@@ -148,7 +148,7 @@ void Cfg::reorderNodes() {
         continue;
       }
       Node->setNeedsPlacement(false);
-      if (Node != getEntryNode() && Node->getInEdges().size() == 0) {
+      if (Node != getEntryNode() && Node->getInEdges().empty()) {
         // The node has essentially been deleted since it is not a
         // successor of any other node.
         Unreachable.push_back(Node);
@@ -164,7 +164,7 @@ void Cfg::reorderNodes() {
 
       // If it's a (non-critical) edge where the successor has a single
       // in-edge, then place it before the successor.
-      CfgNode *Succ = Node->getOutEdges()[0];
+      CfgNode *Succ = Node->getOutEdges().front();
       if (Succ->getInEdges().size() == 1 &&
           PlaceIndex[Succ->getIndex()] != NoPlace) {
         Placed.insert(PlaceIndex[Succ->getIndex()], Node);
@@ -173,7 +173,7 @@ void Cfg::reorderNodes() {
       }
 
       // Otherwise, place it after the (first) predecessor.
-      CfgNode *Pred = Node->getInEdges()[0];
+      CfgNode *Pred = Node->getInEdges().front();
       auto PredPosition = PlaceIndex[Pred->getIndex()];
       // It shouldn't be the case that PredPosition==NoPlace, but if
       // that somehow turns out to be true, we just insert Node before
@@ -189,12 +189,14 @@ void Cfg::reorderNodes() {
   }
 
   // Reorder Nodes according to the built-up lists.
-  SizeT Cur = 0;
+  SizeT OldSize = Nodes.size();
+  (void)OldSize;
+  Nodes.clear();
   for (CfgNode *Node : Placed)
-    Nodes[Cur++] = Node;
+    Nodes.push_back(Node);
   for (CfgNode *Node : Unreachable)
-    Nodes[Cur++] = Node;
-  assert(Cur == Nodes.size());
+    Nodes.push_back(Node);
+  assert(Nodes.size() == OldSize);
 }
 
 void Cfg::doArgLowering() {

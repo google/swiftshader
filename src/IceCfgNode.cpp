@@ -750,7 +750,7 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
 // unconditional branch, contract the node by repointing all its
 // in-edges to its successor.
 void CfgNode::contractIfEmpty() {
-  if (InEdges.size() == 0)
+  if (InEdges.empty())
     return;
   Inst *Branch = NULL;
   for (Inst *I : Insts) {
@@ -763,18 +763,23 @@ void CfgNode::contractIfEmpty() {
   }
   Branch->setDeleted();
   assert(OutEdges.size() == 1);
-  // Repoint all this node's in-edges to this node's successor.
-  for (CfgNode *Pred : InEdges) {
-    for (auto I = Pred->OutEdges.begin(), E = Pred->OutEdges.end(); I != E;
-         ++I) {
-      if (*I == this) {
-        *I = OutEdges[0];
-        OutEdges[0]->InEdges.push_back(Pred);
+  // Repoint all this node's in-edges to this node's successor, unless
+  // this node's successor is actually itself (in which case the
+  // statement "OutEdges.front()->InEdges.push_back(Pred)" could
+  // invalidate the iterator over this->InEdges).
+  if (OutEdges.front() != this) {
+    for (CfgNode *Pred : InEdges) {
+      for (auto I = Pred->OutEdges.begin(), E = Pred->OutEdges.end(); I != E;
+           ++I) {
+        if (*I == this) {
+          *I = OutEdges.front();
+          OutEdges.front()->InEdges.push_back(Pred);
+        }
       }
-    }
-    for (Inst *I : Pred->getInsts()) {
-      if (!I->isDeleted())
-        I->repointEdge(this, OutEdges[0]);
+      for (Inst *I : Pred->getInsts()) {
+        if (!I->isDeleted())
+          I->repointEdge(this, OutEdges.front());
+      }
     }
   }
   InEdges.clear();

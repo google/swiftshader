@@ -4184,7 +4184,7 @@ void TargetX8632::lowerPhiAssignments(CfgNode *Node,
   assert(Node->getOutEdges().size() == 1);
   assert(Node->getInsts().empty());
   assert(Node->getPhis().empty());
-  CfgNode *Succ = Node->getOutEdges()[0];
+  CfgNode *Succ = Node->getOutEdges().front();
   getContext().init(Node);
   // Register set setup similar to regAlloc() and postLower().
   RegSetMask RegInclude = RegSet_All;

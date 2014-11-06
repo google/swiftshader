@@ -1637,7 +1637,7 @@ void FunctionParser::ExitBlock() {
   // insert unreachable. This shouldn't happen, but be safe.
   unsigned Index = 0;
   for (Ice::CfgNode *Node : Func->getNodes()) {
-    if (Node->getInsts().size() == 0) {
+    if (Node->getInsts().empty()) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Basic block " << Index << " contains no instructions";
@@ -1908,7 +1908,7 @@ void FunctionParser::ProcessRecord() {
     // RET: [opval?]
     if (!isValidRecordSizeInRange(0, 1, "function block ret"))
       return;
-    if (Values.size() == 0) {
+    if (Values.empty()) {
       CurrentNode->appendInst(Ice::InstRet::create(Func));
     } else {
       CurrentNode->appendInst(
