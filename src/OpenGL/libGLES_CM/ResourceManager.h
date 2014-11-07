@@ -63,7 +63,6 @@ class ResourceManager
 
     void checkBufferAllocation(unsigned int buffer);
     void checkTextureAllocation(GLuint texture, TextureType type);
-    void checkRenderbufferAllocation(GLuint renderbuffer);
 
   private:
     std::size_t mRefCount;
