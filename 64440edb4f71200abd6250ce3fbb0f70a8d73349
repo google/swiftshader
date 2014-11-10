@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a97db02_1e0f2d25",
+        "filename": "src/OpenGL/libEGL/libEGL.vcxproj",
+        "patchSetId": 3
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-10T20:48:53Z",
+      "side": 1,
+      "message": "We should probably have them be copied into different directories. You can use the $(Platform) macro for this.",
+      "range": {
+        "startLine": 142,
+        "startChar": 50,
+        "endLine": 142,
+        "endChar": 70
+      },
+      "revId": "64440edb4f71200abd6250ce3fbb0f70a8d73349",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
