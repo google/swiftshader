@@ -178,6 +178,24 @@ EXPORTS
 	glPointSizePointerOES    @168
     glEGLImageTargetTexture2DOES
     glEGLImageTargetRenderbufferStorageOES
+    glIsRenderbufferOES
+    glBindRenderbufferOES
+    glDeleteRenderbuffersOES
+    glGenRenderbuffersOES
+    glRenderbufferStorageOES
+    glGetRenderbufferParameterivOES
+    glIsFramebufferOES
+    glBindFramebufferOES
+    glDeleteFramebuffersOES
+    glGenFramebuffersOES
+    glCheckFramebufferStatusOES
+    glFramebufferRenderbufferOES
+    glFramebufferTexture2DOES
+    glGetFramebufferAttachmentParameterivOES
+    glGenerateMipmapOES
+    glBlendEquationOES
+    glBlendEquationSeparateOES
+    glBlendFuncSeparateOES
 
     ; EGL dependencies
     glCreateContext

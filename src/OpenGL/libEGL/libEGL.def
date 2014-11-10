@@ -35,6 +35,10 @@ EXPORTS
 	eglWaitGL                       @30
 	eglWaitNative                   @31
 
+	; Extensions
+	eglCreateImageKHR
+	eglDestroyImageKHR
+
 	; Functions that don't change the error code, for use by client APIs
 	clientGetCurrentContext
 	clientGetCurrentDisplay

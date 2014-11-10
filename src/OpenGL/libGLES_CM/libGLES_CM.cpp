@@ -513,6 +513,13 @@ void GL_APIENTRY glBindTexture(GLenum target, GLuint texture)
     }
 }
 
+void GL_APIENTRY glBlendEquationSeparateOES(GLenum modeRGB, GLenum modeAlpha);
+
+void GL_APIENTRY glBlendEquationOES(GLenum mode)
+{
+    glBlendEquationSeparateOES(mode, mode);
+}
+
 void GL_APIENTRY glBlendEquationSeparateOES(GLenum modeRGB, GLenum modeAlpha)
 {
     TRACE("(GLenum modeRGB = 0x%X, GLenum modeAlpha = 0x%X)", modeRGB, modeAlpha);
@@ -555,6 +562,8 @@ void GL_APIENTRY glBlendEquationSeparateOES(GLenum modeRGB, GLenum modeAlpha)
         return error(GL_OUT_OF_MEMORY);
     }
 }
+
+void GL_APIENTRY glBlendFuncSeparateOES(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
 
 void GL_APIENTRY glBlendFunc(GLenum sfactor, GLenum dfactor)
 {
