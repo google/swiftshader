@@ -3,6 +3,8 @@
 
 #include "Renderer/Surface.hpp"
 
+#include <assert.h>
+
 namespace egl
 {
 // Types common between gl.h and gl2.h
@@ -58,27 +60,27 @@ public:
 		return multiSampleDepth;
 	}
 
-	bool Image::isShared() const
+	bool isShared() const
     {
         return shared;
     }
 
-    void Image::markShared()
+    void markShared()
     {
         shared = true;
     }
 
-	void *Image::lock(unsigned int left, unsigned int top, sw::Lock lock)
+	void *lock(unsigned int left, unsigned int top, sw::Lock lock)
 	{
 		return lockExternal(left, top, 0, lock, sw::PUBLIC);
 	}
 
-	unsigned int Image::getPitch() const
+	unsigned int getPitch() const
 	{
 		return getExternalPitchB();
 	}
 
-	void Image::unlock()
+	void unlock()
 	{
 		unlockExternal();
 	}
@@ -87,10 +89,21 @@ public:
 	virtual void release() = 0;
 	virtual void unbind() = 0;   // Break parent ownership and release
 
+	void destroyShared()   // Release a shared image
+    {
+		assert(shared);
+        shared = false;
+		release();
+    }
+
 	virtual void loadImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *input) = 0;
 	virtual void loadCompressedData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels) = 0;
 
 protected:
+	virtual ~Image() = 0
+	{
+	}
+
 	const GLsizei width;
 	const GLsizei height;
 	const GLenum format;
@@ -98,7 +111,6 @@ protected:
 	const sw::Format internalFormat;
 	const int multiSampleDepth;
 
-private:
 	bool shared;   // Used as an EGLImage
 };
 }

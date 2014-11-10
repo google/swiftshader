@@ -1080,6 +1080,8 @@ EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface, EGLNat
 
 EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list)
 {
+	TRACE("(EGLDisplay dpy = 0x%0.8p, EGLContext ctx = 0x%0.8p, EGLenum target = 0x%X, buffer = 0x%0.8p, const EGLint attrib_list = 0x%0.8p)", dpy, ctx, target, buffer, attrib_list);
+
     try
     {
         egl::Display *display = static_cast<egl::Display*>(dpy);
@@ -1154,6 +1156,8 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
 
 EGLBoolean EGLAPIENTRY eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
 {
+	TRACE("(EGLDisplay dpy = 0x%0.8p, EGLImageKHR image = 0x%0.8p)", dpy, image);
+
     try
     {
         egl::Display *display = static_cast<egl::Display*>(dpy);
@@ -1169,7 +1173,7 @@ EGLBoolean EGLAPIENTRY eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
         }
 
         egl::Image *glImage = static_cast<egl::Image*>(image);
-        glImage->release();
+        glImage->destroyShared();
 
         return success(EGL_TRUE);
     }

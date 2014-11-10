@@ -72,7 +72,7 @@ namespace es1
 			sw::atomicDecrement(&referenceCount);
 		}
 
-		if(referenceCount == 0)
+		if(referenceCount == 0 && !shared)
 		{
 			delete this;
 		}
