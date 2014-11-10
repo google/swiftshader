@@ -136,6 +136,8 @@ public:
     void copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source);
     void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source);
 
+	void setImage(egl::Image *image);
+
     virtual bool isSamplerComplete() const;
     virtual bool isCompressed(GLenum target, GLint level) const;
 	virtual bool isDepth(GLenum target, GLint level) const;
@@ -174,8 +176,6 @@ public:
     virtual ~TextureExternal();
 
     virtual GLenum getTarget() const;
-
-    void setImage(Image *image);
 };
 }
 

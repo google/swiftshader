@@ -4196,6 +4196,7 @@ void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image
     {
         switch(target)
         {
+		case GL_TEXTURE_2D:
         case GL_TEXTURE_EXTERNAL_OES:
             break;
         default:
@@ -4211,14 +4212,21 @@ void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image
 
         if(context)
         {
-            es1::TextureExternal *texture = context->getTextureExternal();
+            es1::Texture2D *texture = 0;
+			
+			switch(target)
+			{
+			case GL_TEXTURE_2D:           texture = context->getTexture2D();       break;
+			case GL_TEXTURE_EXTERNAL_OES: texture = context->getTextureExternal(); break;
+			default:                      UNREACHABLE();
+			}
 
             if(!texture)
             {
                 return error(GL_INVALID_OPERATION);
             }
 
-            es1::Image *glImage = static_cast<es1::Image*>(image);
+            egl::Image *glImage = static_cast<egl::Image*>(image);
 
             texture->setImage(glImage);
         }

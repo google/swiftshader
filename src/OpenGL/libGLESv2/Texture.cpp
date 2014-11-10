@@ -536,6 +536,18 @@ void Texture2D::copySubImage(GLenum target, GLint level, GLint xoffset, GLint yo
 	renderTarget->release();
 }
 
+void Texture2D::setImage(egl::Image *sharedImage)
+{
+	sharedImage->addRef();
+
+    if(image[0])
+    {
+        image[0]->unbind();
+    }
+
+    image[0] = sharedImage;
+}
+
 // Tests for 2D texture sampling completeness. [OpenGL ES 2.0.24] section 3.8.2 page 85.
 bool Texture2D::isSamplerComplete() const
 {
@@ -1140,23 +1152,12 @@ GLenum TextureExternal::getTarget() const
     return GL_TEXTURE_EXTERNAL_OES;
 }
 
-void TextureExternal::setImage(Image *sharedImage)
-{
-    if(image[0])
-    {
-        image[0]->release();
-    }
-
-    sharedImage->addRef();
-    image[0] = sharedImage;
-}
-
 }
 
 // Exported functions for use by EGL
 extern "C"
 {
-	es2::Image *createBackBuffer(int width, int height, const egl::Config *config)
+	egl::Image *createBackBuffer(int width, int height, const egl::Config *config)
 	{
 		if(config)
 		{
@@ -1166,7 +1167,7 @@ extern "C"
 		return 0;
 	}
 
-	es2::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
+	egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
 	{
 		if(width == 0 || height == 0 || height > OUTLINE_RESOLUTION)
 		{
