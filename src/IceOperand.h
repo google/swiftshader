@@ -405,8 +405,6 @@ public:
   void setIgnoreLiveness() { IgnoreLiveness = true; }
   bool getIgnoreLiveness() const { return IgnoreLiveness; }
 
-  bool needsStackSlot() const { return NeedsStackSlot; }
-  void setNeedsStackSlot() { NeedsStackSlot = true; }
   int32_t getStackOffset() const { return StackOffset; }
   void setStackOffset(int32_t Offset) { StackOffset = Offset; }
 
@@ -483,9 +481,9 @@ public:
 protected:
   Variable(OperandKind K, Type Ty, SizeT Index, const IceString &Name)
       : Operand(K, Ty), Number(Index), Name(Name), IsArgument(false),
-        IsImplicitArgument(false), IgnoreLiveness(false), NeedsStackSlot(false),
-        StackOffset(0), RegNum(NoRegister), RegNumTmp(NoRegister), Weight(1),
-        LoVar(NULL), HiVar(NULL) {
+        IsImplicitArgument(false), IgnoreLiveness(false), StackOffset(0),
+        RegNum(NoRegister), RegNumTmp(NoRegister), Weight(1), LoVar(NULL),
+        HiVar(NULL) {
     Vars = VarsReal;
     Vars[0] = this;
     NumVars = 1;
@@ -501,9 +499,6 @@ protected:
   // constructing and validating live ranges.  This is usually
   // reserved for the stack pointer.
   bool IgnoreLiveness;
-  // NeedsStackSlot starts out false, and is set to true once we know
-  // for sure that the variable needs a stack slot.
-  bool NeedsStackSlot;
   // StackOffset is the canonical location on stack (only if
   // RegNum==NoRegister || IsArgument).
   int32_t StackOffset;

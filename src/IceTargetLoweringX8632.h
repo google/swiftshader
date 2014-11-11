@@ -482,7 +482,6 @@ protected:
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   SizeT NextLabelNumber;
-  bool ComputedLiveRanges;
   VarList PhysicalRegisters[IceType_NUM];
   VarList FakeKilledScratchRegisters;
   static IceString RegNames[];

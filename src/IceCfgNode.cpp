@@ -434,7 +434,6 @@ void CfgNode::advancedPhiLowering() {
             SizeT VarNum = Func->getNumVariables();
             Variable *Tmp = Func->makeVariable(
                 OtherSrc->getType(), "__split_" + std::to_string(VarNum));
-            Tmp->setNeedsStackSlot();
             Assignments.push_back(InstAssign::create(Func, Tmp, OtherSrc));
             Desc[J].Src = Tmp;
             Found = true;

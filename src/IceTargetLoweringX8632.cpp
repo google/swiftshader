@@ -277,7 +277,7 @@ ICETYPE_TABLE;
 TargetX8632::TargetX8632(Cfg *Func)
     : TargetLowering(Func), InstructionSet(CLInstructionSet),
       IsEbpBasedFrame(false), NeedsStackAlignment(false), FrameSizeLocals(0),
-      SpillAreaSizeBytes(0), NextLabelNumber(0), ComputedLiveRanges(false) {
+      SpillAreaSizeBytes(0), NextLabelNumber(0) {
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
   // class.
@@ -373,7 +373,6 @@ void TargetX8632::translateO2() {
   // Validate the live range computations.  The expensive validation
   // call is deliberately only made when assertions are enabled.
   assert(Func->validateLiveness());
-  ComputedLiveRanges = true;
   // The post-codegen dump is done here, after liveness analysis and
   // associated cleanup, to make the dump cleaner and more useful.
   Func->dump("After initial x8632 codegen");
@@ -667,6 +666,27 @@ void TargetX8632::addProlog(CfgNode *Node) {
   //  * LocalsSpillAreaSize:    area 6
   //  * SpillAreaSizeBytes:     areas 3 - 7
 
+  // Make a final pass over the Cfg to determine which variables need
+  // stack slots.
+  llvm::BitVector IsVarReferenced(Func->getNumVariables());
+  for (CfgNode *Node : Func->getNodes()) {
+    for (auto Inst = Node->getInsts().begin(), E = Node->getInsts().end();
+         Inst != E; ++Inst) {
+      if (Inst->isDeleted())
+        continue;
+      if (const Variable *Var = Inst->getDest())
+        IsVarReferenced[Var->getIndex()] = true;
+      for (SizeT I = 0; I < Inst->getSrcSize(); ++I) {
+        Operand *Src = Inst->getSrc(I);
+        SizeT NumVars = Src->getNumVars();
+        for (SizeT J = 0; J < NumVars; ++J) {
+          const Variable *Var = Src->getVar(J);
+          IsVarReferenced[Var->getIndex()] = true;
+        }
+      }
+    }
+  }
+
   // If SimpleCoalescing is false, each variable without a register
   // gets its own unique stack slot, which leads to large stack
   // frames.  If SimpleCoalescing is true, then each "global" variable
@@ -726,7 +746,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     if (Var->getIsArg())
       continue;
     // An unreferenced variable doesn't need a stack slot.
-    if (ComputedLiveRanges && !Var->needsStackSlot())
+    if (!IsVarReferenced[Var->getIndex()])
       continue;
     // A spill slot linked to a variable with a stack slot should reuse
     // that stack slot.
@@ -4254,7 +4274,6 @@ void TargetX8632::lowerPhiAssignments(CfgNode *Node,
         RegNum = RegsForType.find_first();
         Preg = getPhysicalRegister(RegNum, Dest->getType());
         SpillLoc = Func->makeVariable(Dest->getType());
-        SpillLoc->setNeedsStackSlot();
         if (IsVector)
           _movp(SpillLoc, Preg);
         else

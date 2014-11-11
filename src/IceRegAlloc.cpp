@@ -105,15 +105,12 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     for (Variable *Var : Vars) {
       // Explicitly don't consider zero-weight variables, which are
       // meant to be spill slots.
-      if (Var->getWeight() == RegWeight::Zero) {
-        Var->setNeedsStackSlot();
+      if (Var->getWeight() == RegWeight::Zero)
         continue;
-      }
       // Don't bother if the variable has a null live range, which means
       // it was never referenced.
       if (Var->getLiveRange().isEmpty())
         continue;
-      Var->setNeedsStackSlot();
       Var->untrimLiveRange();
       Unhandled.push_back(Var);
       if (Var->hasReg()) {
