@@ -1,0 +1,164 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a97db02_c7eed496",
+        "filename": "src/SwiftShader.sln",
+        "patchSetId": 2
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-11T16:06:36Z",
+      "side": 1,
+      "message": "These 2 lines should change Win32 to x64",
+      "revId": "5162866fee9a0bb18f639138ac639b879cf712b6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a97db02_670fc0d6",
+        "filename": "src/SwiftShader.sln",
+        "patchSetId": 2
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-11T16:06:36Z",
+      "side": 1,
+      "message": "These 2 lines should change Win32 to x64",
+      "range": {
+        "startLine": 287,
+        "startChar": 51,
+        "endLine": 287,
+        "endChar": 60
+      },
+      "revId": "5162866fee9a0bb18f639138ac639b879cf712b6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a97db02_87144ce6",
+        "filename": "src/SwiftShader.sln",
+        "patchSetId": 2
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-11T16:06:36Z",
+      "side": 1,
+      "message": "These 2 lines should change Win32 to x64",
+      "range": {
+        "startLine": 299,
+        "startChar": 51,
+        "endLine": 299,
+        "endChar": 60
+      },
+      "revId": "5162866fee9a0bb18f639138ac639b879cf712b6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a97db02_2719b81c",
+        "filename": "src/SwiftShader.sln",
+        "patchSetId": 2
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-11T16:06:36Z",
+      "side": 1,
+      "message": "These 2 lines should change Win32 to x64",
+      "range": {
+        "startLine": 311,
+        "startChar": 51,
+        "endLine": 311,
+        "endChar": 60
+      },
+      "revId": "5162866fee9a0bb18f639138ac639b879cf712b6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a97db02_e702f0a7",
+        "filename": "src/SwiftShader.sln",
+        "patchSetId": 2
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-11T16:06:36Z",
+      "side": 1,
+      "message": "These 2 lines should change Win32 to x64",
+      "range": {
+        "startLine": 539,
+        "startChar": 41,
+        "endLine": 539,
+        "endChar": 46
+      },
+      "revId": "5162866fee9a0bb18f639138ac639b879cf712b6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a97db02_07003c9d",
+        "filename": "src/SwiftShader.sln",
+        "patchSetId": 2
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-11T16:06:36Z",
+      "side": 1,
+      "message": "These 2 lines should change Win32 to x64",
+      "revId": "5162866fee9a0bb18f639138ac639b879cf712b6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a97db02_a70ce8db",
+        "filename": "src/SwiftShader.sln",
+        "patchSetId": 2
+      },
+      "lineNbr": 575,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-11T16:06:36Z",
+      "side": 1,
+      "message": "These 2 lines should change Win32 to x64",
+      "revId": "5162866fee9a0bb18f639138ac639b879cf712b6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a97db02_c709f4ca",
+        "filename": "src/SwiftShader.sln",
+        "patchSetId": 2
+      },
+      "lineNbr": 587,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-11T16:06:36Z",
+      "side": 1,
+      "message": "These 2 lines should change Win32 to x64",
+      "revId": "5162866fee9a0bb18f639138ac639b879cf712b6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
