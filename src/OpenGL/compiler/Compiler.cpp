@@ -92,7 +92,7 @@ bool TCompiler::compile(const char* const shaderStrings[],
     TParseContext parseContext(symbolTable, extensionBehavior, intermediate,
                                shaderType, shaderSpec, compileOptions, true,
                                sourcePath, infoSink);
-    GlobalParseContext = &parseContext;
+    SetGlobalParseContext(&parseContext);
 
     // We preserve symbols at the built-in level from compile-to-compile.
     // Start pushing the user-defined symbols at global level.

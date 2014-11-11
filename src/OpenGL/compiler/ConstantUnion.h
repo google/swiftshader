@@ -11,6 +11,7 @@
 
 class ConstantUnion {
 public:
+	POOL_ALLOCATOR_NEW_DELETE();
     ConstantUnion()
     {
         iConst = 0;

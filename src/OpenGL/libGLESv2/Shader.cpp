@@ -24,6 +24,8 @@
 
 namespace es2
 {
+bool Shader::compilerInitialized = false;
+
 Shader::Shader(ResourceManager *manager, GLuint handle) : mHandle(handle), mResourceManager(manager)
 {
     mSource = NULL;
@@ -154,7 +156,11 @@ void Shader::getSource(GLsizei bufSize, GLsizei *length, char *source)
 
 TranslatorASM *Shader::createCompiler(ShShaderType type)
 {
-	ShInitialize();
+	if(!compilerInitialized)
+	{
+		ShInitialize();
+		compilerInitialized = true;
+	}
 
 	TranslatorASM *assembler = new TranslatorASM(this, type, SH_GLES2_SPEC);
 
@@ -233,6 +239,7 @@ void Shader::flagForDeletion()
 void Shader::releaseCompiler()
 {
     ShFinalize();
+	compilerInitialized = false;
 }
 
 GLenum Shader::parseType(const std::string &type)

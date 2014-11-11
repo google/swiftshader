@@ -97,6 +97,7 @@ public:
     static void releaseCompiler();
 
 protected:
+	static bool compilerInitialized;
 	TranslatorASM *createCompiler(ShShaderType type);
 	void clear();
 

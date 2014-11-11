@@ -27,7 +27,7 @@ typedef TVector<TTypeLine> TTypeList;
 
 inline TTypeList* NewPoolTTypeList()
 {
-    void* memory = GlobalPoolAllocator.allocate(sizeof(TTypeList));
+    void* memory = GetGlobalPoolAllocator()->allocate(sizeof(TTypeList));
     return new(memory) TTypeList;
 }
 
@@ -37,7 +37,7 @@ inline TTypeList* NewPoolTTypeList()
 class TType
 {
 public:
-    POOL_ALLOCATOR_NEW_DELETE(GlobalPoolAllocator)
+    POOL_ALLOCATOR_NEW_DELETE();
     TType() {}
     TType(TBasicType t, TPrecision p, TQualifier q = EvqTemporary, int s = 1, bool m = false, bool a = false) :
             type(t), precision(p), qualifier(q), size(s), matrix(m), array(a), arraySize(0),
