@@ -40,6 +40,11 @@ GLboolean Fence::isFence()
 
 void Fence::setFence(GLenum condition)
 {
+    if(condition != GL_ALL_COMPLETED_NV)
+    {
+        return error(GL_INVALID_VALUE);
+    }
+
     mQuery = true;
     mCondition = condition;
     mStatus = GL_FALSE;
@@ -52,7 +57,9 @@ GLboolean Fence::testFence()
         return error(GL_INVALID_OPERATION, GL_TRUE);
     }
 
-	UNIMPLEMENTED();
+    // The current assumtion is that no matter where the fence is placed, it is
+    // done by the time it is tested, which is similar to Context::flush(), since
+    // we don't queue anything without processing it as fast as possible.
     mStatus = GL_TRUE;
 
     return mStatus;
