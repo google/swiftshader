@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dab9a7d9_5fe8833e",
+        "filename": "src/OpenGL/libGLESv2/Fence.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-13T17:58:04Z",
+      "side": 1,
+      "message": "Style nit: I don\u0027t add a space between the if and the parenthesis. Debatable justification: otherwise it feels \u0027detached\u0027 to me, and too much like trying to mimic Visual Basic or other languages that read like English. The common argument that without the space it looks like a function call isn\u0027t very convincing to me. If someone confuses an if() for a function call, they have a major problem understanding the code that a space is unlikely to solve. Also, when you properly format the code it should be possible to discern conditional blocks and function calls at a glance. Also, the vast majority of tools have color schemes. Furthermore, I\u0027ve seen code that uses a space after function names (e.g. the GL headers), and there\u0027s confusion about using it with other keywords like typeof that aren\u0027t function calls but look like them. So adding the space feels very arbitrary.\n\nHaving said all that, ANGLE and Chrome and tons of other projects add the space so I\u0027m quite accustomed to seeing it.",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 43,
+        "endChar": 8
+      },
+      "revId": "c7cace1be780671ba978018fdbed72ef897222ce",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dab9a7d9_bfdeff90",
+        "filename": "src/OpenGL/libGLESv2/Fence.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-13T17:58:04Z",
+      "side": 1,
+      "message": "called -\u003e tested?",
+      "range": {
+        "startLine": 61,
+        "startChar": 30,
+        "endLine": 61,
+        "endChar": 36
+      },
+      "revId": "c7cace1be780671ba978018fdbed72ef897222ce",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
