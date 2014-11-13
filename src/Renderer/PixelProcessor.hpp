@@ -221,7 +221,7 @@ namespace sw
 		virtual void setReadSRGB(unsigned int sampler, bool sRGB);
 		virtual void setMipmapLOD(unsigned int sampler, float bias);
 		virtual void setBorderColor(unsigned int sampler, const Color<float> &borderColor);
-		virtual void setMaxAnisotropy(unsigned int sampler, unsigned int maxAnisotropy);
+		virtual void setMaxAnisotropy(unsigned int sampler, float maxAnisotropy);
 
 		virtual void setWriteSRGB(bool sRGB);
 		virtual void setDepthBufferEnable(bool depthBufferEnable);

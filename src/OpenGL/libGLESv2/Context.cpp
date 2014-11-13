@@ -2040,7 +2040,7 @@ void Context::applyTextures(sw::SamplerType samplerType)
                 GLenum wrapT = texture->getWrapT();
                 GLenum texFilter = texture->getMinFilter();
                 GLenum magFilter = texture->getMagFilter();
-				GLenum maxAnisotropy = texture->getMaxAnisotropy();
+				GLfloat maxAnisotropy = texture->getMaxAnisotropy();
 
 				device->setAddressingModeU(samplerType, samplerIndex, es2sw::ConvertTextureWrap(wrapS));
                 device->setAddressingModeV(samplerType, samplerIndex, es2sw::ConvertTextureWrap(wrapT));

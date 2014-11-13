@@ -240,7 +240,7 @@ namespace sw
 		virtual void setReadSRGB(unsigned int sampler, bool sRGB);
 		virtual void setMipmapLOD(unsigned int sampler, float bias);
 		virtual void setBorderColor(unsigned int sampler, const Color<float> &borderColor);
-		virtual void setMaxAnisotropy(unsigned int stage, unsigned int maxAnisotropy);
+		virtual void setMaxAnisotropy(unsigned int stage, float maxAnisotropy);
 
 		virtual void setPointSize(float pointSize);
 		virtual void setPointSizeMin(float pointSizeMin);

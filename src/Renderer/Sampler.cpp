@@ -270,9 +270,9 @@ namespace sw
 		texture.borderColorF[3][0] = texture.borderColorF[3][1] = texture.borderColorF[3][2] = texture.borderColorF[3][3] = borderColor.a;
 	}
 
-	void Sampler::setMaxAnisotropy(unsigned int maxAnisotropy)
+	void Sampler::setMaxAnisotropy(float maxAnisotropy)
 	{
-		texture.maxAnisotropy = (float)maxAnisotropy;
+		texture.maxAnisotropy = maxAnisotropy;
 	}
 
 	void Sampler::setFilterQuality(FilterType maximumFilterQuality)

@@ -55,7 +55,7 @@ struct Allocation
 	unsigned char *block;
 };
 
-void *allocate(size_t bytes, int alignment)
+void *allocate(size_t bytes, size_t alignment)
 {
 	unsigned char *block = new unsigned char[bytes + sizeof(Allocation) + alignment];
 	unsigned char *aligned = 0;
@@ -72,7 +72,7 @@ void *allocate(size_t bytes, int alignment)
 	return aligned;
 }
 
-void *allocateZero(size_t bytes, int alignment)
+void *allocateZero(size_t bytes, size_t alignment)
 {
 	void *memory = allocate(bytes, alignment);
 

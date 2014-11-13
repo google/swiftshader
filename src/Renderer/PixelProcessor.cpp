@@ -406,7 +406,7 @@ namespace sw
 		else ASSERT(false);
 	}
 
-	void PixelProcessor::setMaxAnisotropy(unsigned int sampler, unsigned int maxAnisotropy)
+	void PixelProcessor::setMaxAnisotropy(unsigned int sampler, float maxAnisotropy)
 	{
 		if(sampler < 16)
 		{

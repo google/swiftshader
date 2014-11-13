@@ -150,7 +150,7 @@ namespace sw
 		void setAddressingModeW(AddressingMode addressingMode);
 		void setReadSRGB(bool sRGB);
 		void setBorderColor(const Color<float> &borderColor);
-		void setMaxAnisotropy(unsigned int maxAnisotropy);
+		void setMaxAnisotropy(float maxAnisotropy);
 
 		static void setFilterQuality(FilterType maximumFilterQuality);
 		static void setMipmapQuality(MipmapType maximumFilterQuality);

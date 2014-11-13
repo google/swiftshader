@@ -16,8 +16,8 @@
 
 size_t memoryPageSize();
 
-void *allocate(size_t bytes, int alignment = 16);
-void *allocateZero(size_t bytes, int alignment = 16);
+void *allocate(size_t bytes, size_t alignment = 16);
+void *allocateZero(size_t bytes, size_t alignment = 16);
 void deallocate(void *memory);
 
 void *allocateExecutable(size_t bytes);   // Allocates memory that can be made executable using markExecutable()

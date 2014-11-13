@@ -349,7 +349,7 @@ bool ConfigSet::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint 
     }
     else
     {
-        *numConfig = passed.size();
+        *numConfig = static_cast<EGLint>(passed.size());
     }
 
     return true;

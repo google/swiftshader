@@ -2171,7 +2171,7 @@ namespace sw
 		}
 	}
 
-	void Renderer::setMaxAnisotropy(SamplerType type, int sampler, unsigned int maxAnisotropy)
+	void Renderer::setMaxAnisotropy(SamplerType type, int sampler, float maxAnisotropy)
 	{
 		if(type == SAMPLER_PIXEL)
 		{

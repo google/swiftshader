@@ -289,7 +289,7 @@ namespace sw
 		virtual void setReadSRGB(SamplerType type, int sampler, bool sRGB);
 		virtual void setMipmapLOD(SamplerType type, int sampler, float bias);
 		virtual void setBorderColor(SamplerType type, int sampler, const Color<float> &borderColor);
-		virtual void setMaxAnisotropy(SamplerType type, int sampler, unsigned int maxAnisotropy);
+		virtual void setMaxAnisotropy(SamplerType type, int sampler, float maxAnisotropy);
 		
 		virtual void setPointSpriteEnable(bool pointSpriteEnable);
 		virtual void setPointScaleEnable(bool pointScaleEnable);

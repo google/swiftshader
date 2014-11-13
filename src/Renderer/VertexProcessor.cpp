@@ -531,7 +531,7 @@ namespace sw
 		else ASSERT(false);
 	}
 
-	void VertexProcessor::setMaxAnisotropy(unsigned int sampler, unsigned int maxAnisotropy)
+	void VertexProcessor::setMaxAnisotropy(unsigned int sampler, float maxAnisotropy)
 	{
 		if(sampler < 4)
 		{
