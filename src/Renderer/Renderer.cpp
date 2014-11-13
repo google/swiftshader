@@ -1903,7 +1903,7 @@ namespace sw
 	{
 		if(!vertexShader) return;
 
-		int count = vertexShader->getLength();
+		size_t count = vertexShader->getLength();
 
 		for(int i = 0; i < count; i++)
 		{
@@ -1947,7 +1947,7 @@ namespace sw
 	{
 		if(!pixelShader) return;
 
-		int count = pixelShader->getLength();
+		size_t count = pixelShader->getLength();
 
 		for(int i = 0; i < count; i++)
 		{

@@ -311,6 +311,7 @@
     <ClCompile Include="..\Common\Socket.cpp" />
     <ClCompile Include="..\Common\Thread.cpp" />
     <ClCompile Include="..\Main\Config.cpp" />
+    <ClCompile Include="..\Main\crc.cpp" />
     <ClCompile Include="..\Main\FrameBufferWin.cpp" />
     <ClCompile Include="..\Main\Register.cpp" />
     <ClCompile Include="..\Shader\Constants.cpp" />
@@ -360,7 +361,6 @@
     <ClCompile Include="..\Renderer\TextureStage.cpp" />
     <ClCompile Include="..\Renderer\Vector.cpp" />
     <ClCompile Include="..\Renderer\VertexProcessor.cpp" />
-    <ClCompile Include="..\Main\crc.c" />
     <ClCompile Include="..\Main\FrameBuffer.cpp" />
     <ClCompile Include="..\Main\FrameBufferDD.cpp" />
     <ClCompile Include="..\Main\FrameBufferGDI.cpp" />

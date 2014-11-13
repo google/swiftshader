@@ -119,9 +119,6 @@
     <ClCompile Include="..\Renderer\VertexProcessor.cpp">
       <Filter>Source Files\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="..\Main\crc.c">
-      <Filter>Source Files\Main</Filter>
-    </ClCompile>
     <ClCompile Include="..\Main\FrameBuffer.cpp">
       <Filter>Source Files\Main</Filter>
     </ClCompile>
@@ -177,6 +174,9 @@
       <Filter>Source Files\Common</Filter>
     </ClCompile>
     <ClCompile Include="..\Main\FrameBufferWin.cpp">
+      <Filter>Source Files\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Main\crc.cpp">
       <Filter>Source Files\Main</Filter>
     </ClCompile>
   </ItemGroup>

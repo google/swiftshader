@@ -1327,7 +1327,7 @@ namespace sw
 		return serialID;
 	}
 
-	int Shader::getLength() const
+	size_t Shader::getLength() const
 	{
 		return instruction.size();
 	}

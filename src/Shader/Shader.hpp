@@ -477,7 +477,7 @@ namespace sw
 		~Shader();
 
 		int getSerialID() const;
-		int getLength() const;
+		size_t getLength() const;
 		ShaderType getShaderType() const;
 		unsigned short getVersion() const;
 

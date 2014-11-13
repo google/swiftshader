@@ -16,6 +16,8 @@
 #ifndef _crc_h
 #define _crc_h
 
+#include <stddef.h>
+
 /*
  * Select the CRC standard from the list that follows.
  */
@@ -68,8 +70,8 @@ typedef unsigned long  crc;
 extern "C" {
 #endif
 void  crcInit(void);
-crc   crcSlow(unsigned char const message[], int nBytes);
-crc   crcFast(unsigned char const message[], int nBytes);
+crc   crcSlow(unsigned char const message[], size_t nBytes);
+crc   crcFast(unsigned char const message[], size_t nBytes);
 #ifdef __cplusplus
 }
 #endif

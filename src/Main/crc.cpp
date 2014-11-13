@@ -92,17 +92,14 @@ reflect(unsigned long data, unsigned char nBits)
  *
  *********************************************************************/
 crc
-crcSlow(unsigned char const message[], int nBytes)
+crcSlow(unsigned char const message[], size_t nBytes)
 {
     crc            remainder = INITIAL_REMAINDER;
-	int            byte;
-	unsigned char  bit;
-
 
     /*
      * Perform modulo-2 division, a byte at a time.
      */
-    for (byte = 0; byte < nBytes; ++byte)
+    for (size_t byte = 0; byte < nBytes; ++byte)
     {
         /*
          * Bring the next byte into the remainder.
@@ -112,7 +109,7 @@ crcSlow(unsigned char const message[], int nBytes)
         /*
          * Perform modulo-2 division, a bit at a time.
          */
-        for (bit = 8; bit > 0; --bit)
+        for (unsigned char bit = 8; bit > 0; --bit)
         {
             /*
              * Try to divide the current data bit.
@@ -155,25 +152,20 @@ crc  crcTable[256];
 void
 crcInit(void)
 {
-    crc			   remainder;
-	int			   dividend;
-	unsigned char  bit;
-
-
     /*
      * Compute the remainder of each possible dividend.
      */
-    for (dividend = 0; dividend < 256; ++dividend)
+    for (int dividend = 0; dividend < 256; ++dividend)
     {
         /*
          * Start with the dividend followed by zeros.
          */
-        remainder = dividend << (WIDTH - 8);
+        crc remainder = dividend << (WIDTH - 8);
 
         /*
          * Perform modulo-2 division, a bit at a time.
          */
-        for (bit = 8; bit > 0; --bit)
+        for (unsigned char bit = 8; bit > 0; --bit)
         {
             /*
              * Try to divide the current data bit.
@@ -209,19 +201,16 @@ crcInit(void)
  *
  *********************************************************************/
 crc
-crcFast(unsigned char const message[], int nBytes)
+crcFast(unsigned char const message[], size_t nBytes)
 {
     crc	           remainder = INITIAL_REMAINDER;
-    unsigned char  data;
-	int            byte;
-
 
     /*
      * Divide the message by the polynomial, a byte at a time.
      */
-    for (byte = 0; byte < nBytes; ++byte)
+    for (size_t byte = 0; byte < nBytes; ++byte)
     {
-        data = REFLECT_DATA(message[byte]) ^ (remainder >> (WIDTH - 8));
+        unsigned char data = REFLECT_DATA(message[byte]) ^ (remainder >> (WIDTH - 8));
   		remainder = crcTable[data] ^ (remainder << 8);
     }
 
