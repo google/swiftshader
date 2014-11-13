@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dab9a7d9_22e494bb",
+        "filename": "src/LLVM/include/llvm/ADT/APInt.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-13T19:31:46Z",
+      "side": 1,
+      "message": "Making changes in LLVM isn\u0027t that useful because it will be updated sooner or later. Instead we could just suppress the warnings in the project settings.",
+      "range": {
+        "startLine": 427,
+        "startChar": 26,
+        "endLine": 427,
+        "endChar": 35
+      },
+      "revId": "bf26620644bea043e00b6b0438ac30e62dda6150",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
