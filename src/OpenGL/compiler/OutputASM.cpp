@@ -114,6 +114,7 @@ namespace sh
 
 		functionArray.push_back(Function(0, "main(", 0, 0));
 		currentFunction = 0;
+		outputQualifier = EvqOutput; // Set outputQualifier to any value other than EvqFragColor or EvqFragData
 	}
 
 	OutputASM::~OutputASM()
@@ -1266,7 +1267,7 @@ namespace sh
 
 	Instruction *OutputASM::emit(sw::Shader::Opcode op, TIntermTyped *dst, TIntermNode *src0, TIntermNode *src1, TIntermNode *src2, int index)
 	{
-		if(dst && registerType(dst) == sw::Shader::PARAMETER_SAMPLER)
+		if(dst && IsSampler(dst->getBasicType()))
 		{
 			op = sw::Shader::OPCODE_NULL;   // Can't assign to a sampler, but this is hit when indexing sampler arrays
 		}
@@ -1463,7 +1464,7 @@ namespace sh
 			{
 				parameter.index = registerIndex(arg) + index;
 
-				if(registerType(arg) == sw::Shader::PARAMETER_SAMPLER)
+				if(IsSampler(arg->getBasicType()))
 				{
 					TIntermBinary *binary = argument->getAsBinaryNode();
 
@@ -1740,12 +1741,23 @@ namespace sh
 
 	sw::Shader::ParameterType OutputASM::registerType(TIntermTyped *operand)
 	{
-		if(IsSampler(operand->getBasicType()) && (operand->getQualifier() == EvqUniform || operand->getQualifier() == EvqTemporary))   // Function parameters are temporaries
+		if(IsSampler(operand->getBasicType()))
 		{
 			return sw::Shader::PARAMETER_SAMPLER;
 		}
 
-		switch(operand->getQualifier())
+		const TQualifier qualifier = operand->getQualifier();
+		if((EvqFragColor == qualifier) || (EvqFragData == qualifier))
+		{
+			if(((EvqFragData == qualifier) && (EvqFragColor == outputQualifier)) ||
+			   ((EvqFragColor == qualifier) && (EvqFragData == outputQualifier)))
+			{
+				mContext.error(operand->getLine(), "static assignment to both gl_FragData and gl_FragColor", "");
+			}
+			outputQualifier = qualifier;
+		}
+
+		switch(qualifier)
 		{
 		case EvqTemporary:           return sw::Shader::PARAMETER_TEMP;
 		case EvqGlobal:              return sw::Shader::PARAMETER_TEMP;
@@ -1775,7 +1787,7 @@ namespace sh
 
 	int OutputASM::registerIndex(TIntermTyped *operand)
 	{
-		if(registerType(operand) == sw::Shader::PARAMETER_SAMPLER)
+		if(IsSampler(operand->getBasicType()))
 		{
 			return samplerRegister(operand);
 		}
@@ -2375,7 +2387,7 @@ namespace sh
 			default: UNREACHABLE();
 			}
 		}
-		else if (type.getBasicType() == EbtInt)
+		else if(type.getBasicType() == EbtInt)
 		{
 			switch (type.getPrecision())
 			{

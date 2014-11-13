@@ -161,6 +161,8 @@ namespace sh
 		int currentFunction;
 		std::vector<Function> functionArray;
 
+		TQualifier outputQualifier;
+
 		TParseContext &mContext;
 	};
 
