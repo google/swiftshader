@@ -483,20 +483,10 @@ protected:
   llvm::SmallBitVector RegsUsed;
   SizeT NextLabelNumber;
   VarList PhysicalRegisters[IceType_NUM];
-  VarList FakeKilledScratchRegisters;
   static IceString RegNames[];
 
 private:
   ~TargetX8632() override {}
-  // Ideally, this initialization would be done in the constructor,
-  // but we need to defer it until after the initial CFG is built,
-  // because some of the bitcode reader tests rely on the order that
-  // Variables are created and their default printable names.
-  void initFakeKilledScratchRegisters() {
-    for (SizeT I = 0; I < ScratchRegs.size(); ++I)
-      if (ScratchRegs[I])
-        FakeKilledScratchRegisters.push_back(getPhysicalRegister(I));
-  }
   template <typename T> void emitConstantPool() const;
 };
 

@@ -37,8 +37,6 @@ bool operator==(const RegWeight &A, const RegWeight &B) {
 }
 
 void LiveRange::addSegment(InstNumberT Start, InstNumberT End) {
-  if (End > Start)
-    IsNonpoints = true;
 #ifdef USE_SET
   RangeElementType Element(Start, End);
   RangeType::iterator Next = Range.lower_bound(Element);
@@ -125,8 +123,6 @@ bool LiveRange::overlaps(const LiveRange &Other, bool UseTrimmed) const {
 }
 
 bool LiveRange::overlapsInst(InstNumberT OtherBegin, bool UseTrimmed) const {
-  if (!IsNonpoints)
-    return false;
   bool Result = false;
   for (auto I = (UseTrimmed ? TrimmedBegin : Range.begin()), E = Range.end();
        I != E; ++I) {

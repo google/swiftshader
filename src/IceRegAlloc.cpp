@@ -14,6 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "IceCfg.h"
+#include "IceCfgNode.h"
 #include "IceInst.h"
 #include "IceOperand.h"
 #include "IceRegAlloc.h"
@@ -72,6 +73,63 @@ void dumpLiveRange(const Variable *Var, const Cfg *Func) {
 
 } // end of anonymous namespace
 
+void LinearScan::initForGlobalAlloc() {
+  TimerMarker T(TimerStack::TT_initUnhandled, Func);
+  Unhandled.clear();
+  UnhandledPrecolored.clear();
+  Handled.clear();
+  Inactive.clear();
+  Active.clear();
+  // Gather the live ranges of all variables and add them to the
+  // Unhandled set.
+  const VarList &Vars = Func->getVariables();
+  Unhandled.reserve(Vars.size());
+  for (Variable *Var : Vars) {
+    // Explicitly don't consider zero-weight variables, which are
+    // meant to be spill slots.
+    if (Var->getWeight() == RegWeight::Zero)
+      continue;
+    // Don't bother if the variable has a null live range, which means
+    // it was never referenced.
+    if (Var->getLiveRange().isEmpty())
+      continue;
+    Var->untrimLiveRange();
+    Unhandled.push_back(Var);
+    if (Var->hasReg()) {
+      Var->setRegNumTmp(Var->getRegNum());
+      Var->setLiveRangeInfiniteWeight();
+      UnhandledPrecolored.push_back(Var);
+    }
+  }
+  struct CompareRanges {
+    bool operator()(const Variable *L, const Variable *R) {
+      InstNumberT Lstart = L->getLiveRange().getStart();
+      InstNumberT Rstart = R->getLiveRange().getStart();
+      if (Lstart == Rstart)
+        return L->getIndex() < R->getIndex();
+      return Lstart < Rstart;
+    }
+  };
+  // Do a reverse sort so that erasing elements (from the end) is fast.
+  std::sort(Unhandled.rbegin(), Unhandled.rend(), CompareRanges());
+  std::sort(UnhandledPrecolored.rbegin(), UnhandledPrecolored.rend(),
+            CompareRanges());
+
+  // Build the (ordered) list of FakeKill instruction numbers.
+  Kills.clear();
+  for (CfgNode *Node : Func->getNodes()) {
+    for (auto I = Node->getInsts().begin(), E = Node->getInsts().end(); I != E;
+         ++I) {
+      if (I->isDeleted())
+        continue;
+      if (auto Kill = llvm::dyn_cast<InstFakeKill>(I)) {
+        if (!Kill->getLinked()->isDeleted())
+          Kills.push_back(I->getNumber());
+      }
+    }
+  }
+}
+
 // Implements the linear-scan algorithm.  Based on "Linear Scan
 // Register Allocation in the Context of SSA Form and Register
 // Constraints" by Hanspeter Mössenböck and Michael Pfeiffer,
@@ -86,53 +144,16 @@ void dumpLiveRange(const Variable *Var, const Cfg *Func) {
 void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   TimerMarker T(TimerStack::TT_linearScan, Func);
   assert(RegMaskFull.any()); // Sanity check
-  Unhandled.clear();
-  UnhandledPrecolored.clear();
-  Handled.clear();
-  Inactive.clear();
-  Active.clear();
   Ostream &Str = Func->getContext()->getStrDump();
   bool Verbose = Func->getContext()->isVerbose(IceV_LinearScan);
   Func->resetCurrentNode();
   VariablesMetadata *VMetadata = Func->getVMetadata();
 
-  // Gather the live ranges of all variables and add them to the
-  // Unhandled set.
-  const VarList &Vars = Func->getVariables();
-  {
-    TimerMarker T(TimerStack::TT_initUnhandled, Func);
-    Unhandled.reserve(Vars.size());
-    for (Variable *Var : Vars) {
-      // Explicitly don't consider zero-weight variables, which are
-      // meant to be spill slots.
-      if (Var->getWeight() == RegWeight::Zero)
-        continue;
-      // Don't bother if the variable has a null live range, which means
-      // it was never referenced.
-      if (Var->getLiveRange().isEmpty())
-        continue;
-      Var->untrimLiveRange();
-      Unhandled.push_back(Var);
-      if (Var->hasReg()) {
-        Var->setRegNumTmp(Var->getRegNum());
-        Var->setLiveRangeInfiniteWeight();
-        UnhandledPrecolored.push_back(Var);
-      }
-    }
-    struct CompareRanges {
-      bool operator()(const Variable *L, const Variable *R) {
-        InstNumberT Lstart = L->getLiveRange().getStart();
-        InstNumberT Rstart = R->getLiveRange().getStart();
-        if (Lstart == Rstart)
-          return L->getIndex() < R->getIndex();
-        return Lstart < Rstart;
-      }
-    };
-    // Do a reverse sort so that erasing elements (from the end) is fast.
-    std::sort(Unhandled.rbegin(), Unhandled.rend(), CompareRanges());
-    std::sort(UnhandledPrecolored.rbegin(), UnhandledPrecolored.rend(),
-              CompareRanges());
-  }
+  // Build a LiveRange representing the Kills list.
+  LiveRange KillsRange;
+  for (InstNumberT I : Kills)
+    KillsRange.addSegment(I, I);
+  KillsRange.untrim();
 
   // RegUses[I] is the number of live ranges (variables) that register
   // I is currently assigned to.  It can be greater than 1 as a result
@@ -144,6 +165,11 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   assert(Inactive.empty());
   assert(Handled.empty());
   UnorderedRanges::iterator Next;
+  const TargetLowering::RegSetMask RegsInclude =
+      TargetLowering::RegSet_CallerSave;
+  const TargetLowering::RegSetMask RegsExclude = TargetLowering::RegSet_None;
+  const llvm::SmallBitVector KillsMask =
+      Func->getTarget()->getRegisterSet(RegsInclude, RegsExclude);
 
   while (!Unhandled.empty()) {
     Variable *Cur = Unhandled.back();
@@ -155,6 +181,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     }
     const llvm::SmallBitVector RegMask =
         RegMaskFull & Func->getTarget()->getRegisterSetForType(Cur->getType());
+    KillsRange.trim(Cur->getLiveRange().getStart());
 
     // Check for precolored ranges.  If Cur is precolored, it
     // definitely gets that register.  Previously processed live
@@ -220,15 +247,6 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       ++Next;
       Variable *Item = *I;
       Item->trimLiveRange(Cur->getLiveRange().getStart());
-      // As an optimization, don't bother checking pure point-valued
-      // Inactive ranges, because the overlapsStart() test will never
-      // succeed, and the rangeEndsBefore() test will generally only
-      // succeed after the last call instruction, which statistically
-      // happens near the end.  TODO(stichnot): Consider suppressing
-      // this check every N iterations in case calls are only at the
-      // beginning of the function.
-      if (!Item->getLiveRange().isNonpoints())
-        continue;
       if (Item->rangeEndsBefore(Cur)) {
         // Move Item from Inactive to Handled list.
         if (Verbose) {
@@ -371,6 +389,19 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           AllowOverlap = false;
           dumpDisableOverlap(Func, Item, "PrecoloredUnhandled");
         }
+      }
+    }
+
+    // Remove scratch registers from the Free[] list, and mark their
+    // Weights[] as infinite, if KillsRange overlaps Cur's live range.
+    const bool UseTrimmed = true;
+    if (Cur->getLiveRange().overlaps(KillsRange, UseTrimmed)) {
+      Free.reset(KillsMask);
+      for (int i = KillsMask.find_first(); i != -1;
+           i = KillsMask.find_next(i)) {
+        Weights[i].setWeight(RegWeight::Inf);
+        if (PreferReg == i)
+          AllowOverlap = false;
       }
     }
 

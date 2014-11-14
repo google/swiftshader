@@ -782,11 +782,12 @@ private:
   ~InstFakeUse() override {}
 };
 
-// FakeKill instruction.  This "kills" a set of variables by adding a
-// trivial live range at this instruction to each variable.  The
-// primary use is to indicate that scratch registers are killed after
-// a call, so that the register allocator won't assign a scratch
-// register to a variable whose live range spans a call.
+// FakeKill instruction.  This "kills" a set of variables by modeling
+// a trivial live range at this instruction for each (implicit)
+// variable.  The primary use is to indicate that scratch registers
+// are killed after a call, so that the register allocator won't
+// assign a scratch register to a variable whose live range spans a
+// call.
 //
 // The FakeKill instruction also holds a pointer to the instruction
 // that kills the set of variables, so that if that linked instruction
@@ -796,12 +797,9 @@ class InstFakeKill : public InstHighLevel {
   InstFakeKill &operator=(const InstFakeKill &) = delete;
 
 public:
-  static InstFakeKill *create(Cfg *Func, const VarList &KilledRegs,
-                              const Inst *Linked) {
-    return new (Func->allocateInst<InstFakeKill>())
-        InstFakeKill(Func, KilledRegs, Linked);
+  static InstFakeKill *create(Cfg *Func, const Inst *Linked) {
+    return new (Func->allocateInst<InstFakeKill>()) InstFakeKill(Func, Linked);
   }
-  const VarList &getKilledRegs() const { return KilledRegs; }
   const Inst *getLinked() const { return Linked; }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
@@ -809,10 +807,9 @@ public:
   static bool classof(const Inst *Inst) { return Inst->getKind() == FakeKill; }
 
 private:
-  InstFakeKill(Cfg *Func, const VarList &KilledRegs, const Inst *Linked);
+  InstFakeKill(Cfg *Func, const Inst *Linked);
   ~InstFakeKill() override {}
 
-  const VarList &KilledRegs;
   // This instruction is ignored if Linked->isDeleted() is true.
   const Inst *Linked;
 };

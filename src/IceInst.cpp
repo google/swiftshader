@@ -114,8 +114,6 @@ bool Inst::isLastUse(const Operand *TestSrc) const {
 
 void Inst::livenessLightweight(Cfg *Func, LivenessBV &Live) {
   assert(!isDeleted());
-  if (llvm::isa<InstFakeKill>(this))
-    return;
   resetLastUses();
   VariablesMetadata *VMetadata = Func->getVMetadata();
   SizeT VarIndex = 0;
@@ -139,8 +137,6 @@ bool Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
                     Liveness *Liveness, LiveBeginEndMap *LiveBegin,
                     LiveBeginEndMap *LiveEnd) {
   assert(!isDeleted());
-  if (llvm::isa<InstFakeKill>(this))
-    return true;
 
   Dead = false;
   if (Dest) {
@@ -181,15 +177,13 @@ bool Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
           // twice.  ICE only allows a variable to have a single
           // liveness interval in a basic block (except for blocks
           // where a variable is live-in and live-out but there is a
-          // gap in the middle, and except for the special
-          // InstFakeKill instruction that can appear multiple
-          // times in the same block).  Therefore, this lowered
-          // sequence needs to represent a single conservative live
-          // range for t.  Since the instructions are being traversed
-          // backwards, we make sure LiveEnd is only set once by
-          // setting it only when LiveEnd[VarNum]==0 (sentinel value).
-          // Note that it's OK to set LiveBegin multiple times because
-          // of the backwards traversal.
+          // gap in the middle).  Therefore, this lowered sequence
+          // needs to represent a single conservative live range for
+          // t.  Since the instructions are being traversed backwards,
+          // we make sure LiveEnd is only set once by setting it only
+          // when LiveEnd[VarNum]==0 (sentinel value).  Note that it's
+          // OK to set LiveBegin multiple times because of the
+          // backwards traversal.
           if (LiveEnd) {
             // Ideally, we would verify that VarNum wasn't already
             // added in this block, but this can't be done very
@@ -452,10 +446,8 @@ InstFakeUse::InstFakeUse(Cfg *Func, Variable *Src)
   addSource(Src);
 }
 
-InstFakeKill::InstFakeKill(Cfg *Func, const VarList &KilledRegs,
-                           const Inst *Linked)
-    : InstHighLevel(Func, Inst::FakeKill, 0, NULL), KilledRegs(KilledRegs),
-      Linked(Linked) {}
+InstFakeKill::InstFakeKill(Cfg *Func, const Inst *Linked)
+    : InstHighLevel(Func, Inst::FakeKill, 0, NULL), Linked(Linked) {}
 
 // ======================== Dump routines ======================== //
 
@@ -757,14 +749,7 @@ void InstFakeKill::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   if (Linked->isDeleted())
     Str << "// ";
-  Str << "kill.pseudo ";
-  bool First = true;
-  for (Variable *Var : KilledRegs) {
-    if (!First)
-      Str << ", ";
-    First = false;
-    Var->dump(Func);
-  }
+  Str << "kill.pseudo scratch_regs";
 }
 
 void InstTarget::dump(const Cfg *Func) const {

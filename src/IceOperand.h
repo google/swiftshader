@@ -309,17 +309,15 @@ bool operator==(const RegWeight &A, const RegWeight &B);
 // weight, in case e.g. we want a live range to have higher weight
 // inside a loop.
 class LiveRange {
-  // LiveRange(const LiveRange &) = delete;
-  // LiveRange &operator=(const LiveRange &) = delete;
-
 public:
-  LiveRange() : Weight(0), IsNonpoints(false) {}
+  LiveRange() : Weight(0) {}
+  LiveRange(const LiveRange &) = default;
+  LiveRange &operator=(const LiveRange &) = default;
 
   void reset() {
     Range.clear();
     Weight.setWeight(0);
     untrim();
-    IsNonpoints = false;
   }
   void addSegment(InstNumberT Start, InstNumberT End);
 
@@ -328,7 +326,6 @@ public:
   bool overlapsInst(InstNumberT OtherBegin, bool UseTrimmed = false) const;
   bool containsValue(InstNumberT Value, bool IsDest) const;
   bool isEmpty() const { return Range.empty(); }
-  bool isNonpoints() const { return IsNonpoints; }
   InstNumberT getStart() const {
     return Range.empty() ? -1 : Range.begin()->first;
   }
@@ -365,11 +362,6 @@ private:
   // that linear-scan also has to initialize TrimmedBegin at the
   // beginning by calling untrim().
   RangeType::const_iterator TrimmedBegin;
-  // IsNonpoints keeps track of whether the live range contains at
-  // least one interval where Start!=End.  If it is empty or has the
-  // form [x,x),[y,y),...,[z,z), then overlaps(InstNumberT) is
-  // trivially false.
-  bool IsNonpoints;
 };
 
 Ostream &operator<<(Ostream &Str, const LiveRange &L);

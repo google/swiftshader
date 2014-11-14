@@ -661,18 +661,6 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
       FirstInstNum = I->getNumber();
     assert(I->getNumber() > LastInstNum);
     LastInstNum = I->getNumber();
-    // Create fake live ranges for a Kill instruction, but only if the
-    // linked instruction is still alive.
-    if (Mode == Liveness_Intervals) {
-      if (InstFakeKill *Kill = llvm::dyn_cast<InstFakeKill>(I)) {
-        if (!Kill->getLinked()->isDeleted()) {
-          for (Variable *Var : Kill->getKilledRegs()) {
-            InstNumberT InstNumber = I->getNumber();
-            Var->addLiveRange(InstNumber, InstNumber, 1);
-          }
-        }
-      }
-    }
   }
   if (Mode != Liveness_Intervals)
     return;

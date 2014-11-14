@@ -27,6 +27,7 @@ class LinearScan {
 
 public:
   LinearScan(Cfg *Func) : Func(Func) {}
+  void initForGlobalAlloc();
   void scan(const llvm::SmallBitVector &RegMask);
   void dump(Cfg *Func) const;
 
@@ -39,6 +40,7 @@ private:
   // for faster processing.
   OrderedRanges UnhandledPrecolored;
   UnorderedRanges Active, Inactive, Handled;
+  std::vector<InstNumberT> Kills;
 };
 
 } // end of namespace Ice

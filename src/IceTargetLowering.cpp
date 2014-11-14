@@ -234,6 +234,7 @@ void TargetLowering::regAlloc() {
   RegInclude |= RegSet_CalleeSave;
   if (hasFramePointer())
     RegExclude |= RegSet_FramePointer;
+  LinearScan.initForGlobalAlloc();
   llvm::SmallBitVector RegMask = getRegisterSet(RegInclude, RegExclude);
   LinearScan.scan(RegMask);
 }

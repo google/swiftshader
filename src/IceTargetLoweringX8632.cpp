@@ -316,8 +316,6 @@ TargetX8632::TargetX8632(Cfg *Func)
 void TargetX8632::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
-  initFakeKilledScratchRegisters();
-
   if (!Ctx->getFlags().PhiEdgeSplit) {
     // Lower Phi instructions.
     Func->placePhiLoads();
@@ -412,8 +410,6 @@ void TargetX8632::translateO2() {
 
 void TargetX8632::translateOm1() {
   TimerMarker T(TimerStack::TT_Om1, Func);
-
-  initFakeKilledScratchRegisters();
 
   Func->placePhiLoads();
   if (Func->hasError())
@@ -1894,9 +1890,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   }
 
   // Insert a register-kill pseudo instruction.
-  assert(!FakeKilledScratchRegisters.empty());
-  Context.insert(
-      InstFakeKill::create(Func, FakeKilledScratchRegisters, NewCall));
+  Context.insert(InstFakeKill::create(Func, NewCall));
 
   // Generate a FakeUse to keep the call live if necessary.
   if (Instr->hasSideEffects() && ReturnReg) {
