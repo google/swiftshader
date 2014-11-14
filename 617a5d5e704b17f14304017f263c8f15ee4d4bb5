@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dab9a7d9_6e8cb3c7",
+        "filename": "src/LLVM/include/llvm/ADT/APInt.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-14T15:24:32Z",
+      "side": 1,
+      "message": "This broke GCC compilation. Can we use ~0ULL instead?",
+      "range": {
+        "startLine": 427,
+        "startChar": 26,
+        "endLine": 427,
+        "endChar": 35
+      },
+      "revId": "617a5d5e704b17f14304017f263c8f15ee4d4bb5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
