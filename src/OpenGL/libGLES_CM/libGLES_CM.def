@@ -196,6 +196,14 @@ EXPORTS
     glBlendEquationOES
     glBlendEquationSeparateOES
     glBlendFuncSeparateOES
+    glDrawTexsOES
+    glDrawTexiOES
+    glDrawTexxOES
+    glDrawTexsvOES
+    glDrawTexivOES
+    glDrawTexxvOES
+    glDrawTexfOES
+    glDrawTexfvOES
 
     ; EGL dependencies
     glCreateContext

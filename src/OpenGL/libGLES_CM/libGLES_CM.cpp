@@ -4054,6 +4054,9 @@ void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
                     return error(GL_INVALID_VALUE);
                 }
                 break;
+			case GL_TEXTURE_CROP_RECT_OES:
+				UNIMPLEMENTED();
+				break;
             default:
                 return error(GL_INVALID_ENUM);
             }
@@ -4081,7 +4084,7 @@ void GL_APIENTRY glTexParameterxv(GLenum target, GLenum pname, const GLfixed *pa
 }
 
 void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
-                               GLenum format, GLenum type, const GLvoid* pixels)
+                                 GLenum format, GLenum type, const GLvoid* pixels)
 {
     TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
           "GLsizei width = %d, GLsizei height = %d, GLenum format = 0x%X, GLenum type = 0x%X, "
@@ -4251,6 +4254,46 @@ void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target, GLeglImag
 	TRACE("(GLenum target = 0x%X, GLeglImageOES image = 0x%0.8p)", target, image);
 
 	UNIMPLEMENTED();
+}
+
+void GL_APIENTRY glDrawTexsOES(GLshort x, GLshort y, GLshort z, GLshort width, GLshort height)
+{
+    UNIMPLEMENTED();
+}
+
+void GL_APIENTRY glDrawTexiOES(GLint x, GLint y, GLint z, GLint width, GLint height)
+{
+    UNIMPLEMENTED();
+}
+
+void GL_APIENTRY glDrawTexxOES(GLfixed x, GLfixed y, GLfixed z, GLfixed width, GLfixed height)
+{
+    UNIMPLEMENTED();
+}
+
+void GL_APIENTRY glDrawTexsvOES(const GLshort *coords)
+{
+    UNIMPLEMENTED();
+}
+
+void GL_APIENTRY glDrawTexivOES(const GLint *coords)
+{
+    UNIMPLEMENTED();
+}
+
+void GL_APIENTRY glDrawTexxvOES(const GLfixed *coords)
+{
+    UNIMPLEMENTED();
+}
+
+void GL_APIENTRY glDrawTexfOES(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height)
+{
+    UNIMPLEMENTED();
+}
+
+void GL_APIENTRY glDrawTexfvOES(const GLfloat *coords)
+{
+    UNIMPLEMENTED();
 }
 
 __eglMustCastToProperFunctionPointerType glGetProcAddress(const char *procname)
