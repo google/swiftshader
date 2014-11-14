@@ -424,7 +424,7 @@ public:
   /// @returns the all-ones value for an APInt of the specified bit-width.
   /// @brief Get the all-ones value.
   static APInt getAllOnesValue(unsigned numBits) {
-    return APInt(numBits, _UI64_MAX, true);
+    return APInt(numBits, ~0ULL, true);
   }
 
   /// @returns the '0' value for an APInt of the specified bit-width.
@@ -495,7 +495,7 @@ public:
     if (loBitsSet == 0)
       return APInt(numBits, 0);
     if (loBitsSet == APINT_BITS_PER_WORD)
-      return APInt(numBits, _UI64_MAX);
+      return APInt(numBits, ~0ULL);
     // For small values, return quickly.
     if (numBits < APINT_BITS_PER_WORD)
       return APInt(numBits, (1ULL << loBitsSet) - 1);
@@ -1062,11 +1062,11 @@ public:
   /// @brief Set every bit to 1.
   void setAllBits() {
     if (isSingleWord())
-      VAL = _UI64_MAX;
+      VAL = ~0ULL;
     else {
       // Set all the bits in all the words.
       for (unsigned i = 0; i < getNumWords(); ++i)
-        pVal[i] = _UI64_MAX;
+        pVal[i] = ~0ULL;
     }
     // Clear the unused ones
     clearUnusedBits();
@@ -1091,10 +1091,10 @@ public:
   /// @brief Toggle every bit to its opposite value.
   void flipAllBits() {
     if (isSingleWord())
-      VAL ^= _UI64_MAX;
+      VAL ^= ~0ULL;
     else {
       for (unsigned i = 0; i < getNumWords(); ++i)
-        pVal[i] ^= _UI64_MAX;
+        pVal[i] ^= ~0ULL;
     }
     clearUnusedBits();
   }

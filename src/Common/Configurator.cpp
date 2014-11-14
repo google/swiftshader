@@ -20,6 +20,10 @@ using namespace std;
 #include <stdarg.h>
 #include <ctype.h>
 
+#if defined(__unix__)
+#include <unistd.h>
+#endif
+
 namespace sw
 {
 	Configurator::Configurator(string iniPath)

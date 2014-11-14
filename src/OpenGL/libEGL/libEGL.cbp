@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug x86">
-				<Option output="./../../bin/x86/Debug/libEGL.so.1" prefix_auto="0" extension_auto="0" />
+				<Option output="./../../../lib/Debug_x86/libEGL.so.1" prefix_auto="0" extension_auto="0" />
 				<Option object_output="obj/x86/Debug/" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -22,7 +22,7 @@
 				</Linker>
 			</Target>
 			<Target title="Release x86">
-				<Option output="./../../bin/x86/Release/libEGL.so.1" prefix_auto="0" extension_auto="0" />
+				<Option output="./../../../lib/Release_x86/libEGL.so.1" prefix_auto="0" extension_auto="0" />
 				<Option object_output="obj/x86/Release/" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -40,7 +40,7 @@
 				</Linker>
 			</Target>
 			<Target title="Debug x64">
-				<Option output="./../../bin/x64/Debug/libEGL.so.1" prefix_auto="0" extension_auto="0" />
+				<Option output="./../../../lib/Debug_x64/libEGL.so.1" prefix_auto="0" extension_auto="0" />
 				<Option object_output="obj/x64/Debug/" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -56,7 +56,7 @@
 				</Linker>
 			</Target>
 			<Target title="Release x64">
-				<Option output="./../../bin/x64/Release/libEGL.so.1" prefix_auto="0" extension_auto="0" />
+				<Option output="./../../../lib/Release_x64/libEGL.so.1" prefix_auto="0" extension_auto="0" />
 				<Option object_output="obj/x64/Release/" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -86,16 +86,18 @@
 		<Linker>
 			<Add library="pthread" />
 		</Linker>
+		<Unit filename="../../Common/SharedLibrary.hpp" />
 		<Unit filename="../common/debug.cpp" />
-		<Unit filename="./Config.cpp" />
-		<Unit filename="./Config.h" />
-		<Unit filename="./Display.cpp" />
-		<Unit filename="./Display.h" />
-		<Unit filename="./Surface.cpp" />
-		<Unit filename="./Surface.h" />
-		<Unit filename="./libEGL.cpp" />
-		<Unit filename="./main.cpp" />
-		<Unit filename="./main.h" />
+		<Unit filename="Config.cpp" />
+		<Unit filename="Config.h" />
+		<Unit filename="Display.cpp" />
+		<Unit filename="Display.h" />
+		<Unit filename="Image.hpp" />
+		<Unit filename="Surface.cpp" />
+		<Unit filename="Surface.h" />
+		<Unit filename="libEGL.cpp" />
+		<Unit filename="main.cpp" />
+		<Unit filename="main.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

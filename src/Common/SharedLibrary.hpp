@@ -15,6 +15,9 @@
 	#include <dlfcn.h>
 #endif
 
+void *getLibraryHandle(const char *path);
+void *loadLibrary(const char *path);
+
 template<int n>
 void *loadLibrary(const char *(&names)[n])
 {
@@ -71,7 +74,7 @@ void *loadLibrary(const char *(&names)[n])
 
 	inline void *getLibraryHandle(const char *path)
 	{
-		bool resident = (dlopen(names[i], RTLD_NOLOAD) != 0);
+		bool resident = (dlopen(path, RTLD_NOLOAD) != 0);
 
 		if(resident)
 		{

@@ -40,12 +40,12 @@ public:
 		return height;
 	}
 
-	GLenum Image::getFormat()
+	GLenum getFormat()
 	{
 		return format;
 	}
-	
-	GLenum Image::getType()
+
+	GLenum getType()
 	{
 		return type;
 	}
@@ -100,7 +100,7 @@ public:
 	virtual void loadCompressedData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels) = 0;
 
 protected:
-	virtual ~Image() = 0
+	virtual ~Image()
 	{
 	}
 
