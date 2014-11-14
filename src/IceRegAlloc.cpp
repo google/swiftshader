@@ -73,17 +73,16 @@ void dumpLiveRange(const Variable *Var, const Cfg *Func) {
 
 } // end of anonymous namespace
 
-void LinearScan::initForGlobalAlloc() {
+// Prepare for full register allocation of all variables.  We depend
+// on liveness analysis to have calculated live ranges.
+void LinearScan::initForGlobal() {
   TimerMarker T(TimerStack::TT_initUnhandled, Func);
-  Unhandled.clear();
-  UnhandledPrecolored.clear();
-  Handled.clear();
-  Inactive.clear();
-  Active.clear();
-  // Gather the live ranges of all variables and add them to the
-  // Unhandled set.
+  FindPreference = true;
+  FindOverlap = true;
   const VarList &Vars = Func->getVariables();
   Unhandled.reserve(Vars.size());
+  // Gather the live ranges of all variables and add them to the
+  // Unhandled set.
   for (Variable *Var : Vars) {
     // Explicitly don't consider zero-weight variables, which are
     // meant to be spill slots.
@@ -101,6 +100,128 @@ void LinearScan::initForGlobalAlloc() {
       UnhandledPrecolored.push_back(Var);
     }
   }
+
+  // Build the (ordered) list of FakeKill instruction numbers.
+  Kills.clear();
+  for (CfgNode *Node : Func->getNodes()) {
+    for (auto I = Node->getInsts().begin(), E = Node->getInsts().end(); I != E;
+         ++I) {
+      if (auto Kill = llvm::dyn_cast<InstFakeKill>(I)) {
+        if (!Kill->isDeleted() && !Kill->getLinked()->isDeleted())
+          Kills.push_back(I->getNumber());
+      }
+    }
+  }
+}
+
+// Prepare for very simple register allocation of only infinite-weight
+// Variables while respecting pre-colored Variables.  Some properties
+// we take advantage of:
+//
+// * Live ranges of interest consist of a single segment.
+//
+// * Live ranges of interest never span a call instruction.
+//
+// * Phi instructions are not considered because either phis have
+//   already been lowered, or they don't contain any pre-colored or
+//   infinite-weight Variables.
+//
+// * We don't need to renumber instructions before computing live
+//   ranges because all the high-level ICE instructions are deleted
+//   prior to lowering, and the low-level instructions are added in
+//   monotonically increasing order.
+//
+// * There are no opportunities for register preference or allowing
+//   overlap.
+//
+// Some properties we aren't (yet) taking advantage of:
+//
+// * Because live ranges are a single segment, the Unhandled set will
+//   always be empty, and the live range trimming operation is
+//   unnecessary.
+//
+// * Calculating overlap of single-segment live ranges could be
+//   optimized a bit.
+void LinearScan::initForInfOnly() {
+  TimerMarker T(TimerStack::TT_initUnhandled, Func);
+  FindPreference = false;
+  FindOverlap = false;
+  SizeT NumVars = 0;
+  const VarList &Vars = Func->getVariables();
+
+  // Iterate across all instructions and record the begin and end of
+  // the live range for each variable that is pre-colored or infinite
+  // weight.
+  std::vector<InstNumberT> LRBegin(Vars.size(), Inst::NumberSentinel);
+  std::vector<InstNumberT> LREnd(Vars.size(), Inst::NumberSentinel);
+  for (CfgNode *Node : Func->getNodes()) {
+    for (auto Inst = Node->getInsts().begin(), E = Node->getInsts().end();
+         Inst != E; ++Inst) {
+      if (Inst->isDeleted())
+        continue;
+      if (const Variable *Var = Inst->getDest()) {
+        if (Var->hasReg() || Var->getWeight() == RegWeight::Inf) {
+          if (LRBegin[Var->getIndex()] == Inst::NumberSentinel) {
+            LRBegin[Var->getIndex()] = Inst->getNumber();
+            ++NumVars;
+          }
+        }
+      }
+      for (SizeT I = 0; I < Inst->getSrcSize(); ++I) {
+        Operand *Src = Inst->getSrc(I);
+        SizeT NumVars = Src->getNumVars();
+        for (SizeT J = 0; J < NumVars; ++J) {
+          const Variable *Var = Src->getVar(J);
+          if (Var->hasReg() || Var->getWeight() == RegWeight::Inf)
+            LREnd[Var->getIndex()] = Inst->getNumber();
+        }
+      }
+    }
+  }
+
+  Unhandled.reserve(NumVars);
+  for (SizeT i = 0; i < Vars.size(); ++i) {
+    Variable *Var = Vars[i];
+    if (LRBegin[i] != Inst::NumberSentinel) {
+      assert(LREnd[i] != Inst::NumberSentinel);
+      Unhandled.push_back(Var);
+      Var->resetLiveRange();
+      const uint32_t WeightDelta = 1;
+      Var->addLiveRange(LRBegin[i], LREnd[i], WeightDelta);
+      Var->untrimLiveRange();
+      if (Var->hasReg()) {
+        Var->setRegNumTmp(Var->getRegNum());
+        Var->setLiveRangeInfiniteWeight();
+        UnhandledPrecolored.push_back(Var);
+      }
+      --NumVars;
+    }
+  }
+  // This isn't actually a fatal condition, but it would be nice to
+  // know if we somehow pre-calculated Unhandled's size wrong.
+  assert(NumVars == 0);
+
+  // Don't build up the list of Kills because we know that no
+  // infinite-weight Variable has a live range spanning a call.
+  Kills.clear();
+}
+
+void LinearScan::init(RegAllocKind Kind) {
+  Unhandled.clear();
+  UnhandledPrecolored.clear();
+  Handled.clear();
+  Inactive.clear();
+  Active.clear();
+
+  switch (Kind) {
+  case RAK_Global:
+    initForGlobal();
+    break;
+  case RAK_InfOnly:
+    initForInfOnly();
+    break;
+  }
+
   struct CompareRanges {
     bool operator()(const Variable *L, const Variable *R) {
       InstNumberT Lstart = L->getLiveRange().getStart();
@@ -114,20 +235,6 @@ void LinearScan::initForGlobalAlloc() {
   std::sort(Unhandled.rbegin(), Unhandled.rend(), CompareRanges());
   std::sort(UnhandledPrecolored.rbegin(), UnhandledPrecolored.rend(),
             CompareRanges());
-
-  // Build the (ordered) list of FakeKill instruction numbers.
-  Kills.clear();
-  for (CfgNode *Node : Func->getNodes()) {
-    for (auto I = Node->getInsts().begin(), E = Node->getInsts().end(); I != E;
-         ++I) {
-      if (I->isDeleted())
-        continue;
-      if (auto Kill = llvm::dyn_cast<InstFakeKill>(I)) {
-        if (!Kill->getLinked()->isDeleted())
-          Kills.push_back(I->getNumber());
-      }
-    }
-  }
 }
 
 // Implements the linear-scan algorithm.  Based on "Linear Scan
@@ -292,41 +399,41 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     Variable *Prefer = NULL;
     int32_t PreferReg = Variable::NoRegister;
     bool AllowOverlap = false;
-    if (const Inst *DefInst = VMetadata->getFirstDefinition(Cur)) {
-      assert(DefInst->getDest() == Cur);
-      bool IsAssign = DefInst->isSimpleAssign();
-      bool IsSingleDef = !VMetadata->isMultiDef(Cur);
-      for (SizeT i = 0; i < DefInst->getSrcSize(); ++i) {
-        // TODO(stichnot): Iterate through the actual Variables of the
-        // instruction, not just the source operands.  This could
-        // capture Load instructions, including address mode
-        // optimization, for Prefer (but not for AllowOverlap).
-        if (Variable *SrcVar = llvm::dyn_cast<Variable>(DefInst->getSrc(i))) {
-          int32_t SrcReg = SrcVar->getRegNumTmp();
-          // Only consider source variables that have (so far) been
-          // assigned a register.  That register must be one in the
-          // RegMask set, e.g. don't try to prefer the stack pointer
-          // as a result of the stacksave intrinsic.
-          if (SrcVar->hasRegTmp() && RegMask[SrcReg]) {
-            if (!Free[SrcReg]) {
-              // Don't bother trying to enable AllowOverlap if the
-              // register is already free.
-              AllowOverlap =
-                  IsSingleDef && IsAssign && !overlapsDefs(Func, Cur, SrcVar);
-            }
-            if (AllowOverlap || Free[SrcReg]) {
-              Prefer = SrcVar;
-              PreferReg = SrcReg;
+    if (FindPreference) {
+      if (const Inst *DefInst = VMetadata->getFirstDefinition(Cur)) {
+        assert(DefInst->getDest() == Cur);
+        bool IsAssign = DefInst->isSimpleAssign();
+        bool IsSingleDef = !VMetadata->isMultiDef(Cur);
+        for (SizeT i = 0; i < DefInst->getSrcSize(); ++i) {
+          // TODO(stichnot): Iterate through the actual Variables of the
+          // instruction, not just the source operands.  This could
+          // capture Load instructions, including address mode
+          // optimization, for Prefer (but not for AllowOverlap).
+          if (Variable *SrcVar = llvm::dyn_cast<Variable>(DefInst->getSrc(i))) {
+            int32_t SrcReg = SrcVar->getRegNumTmp();
+            // Only consider source variables that have (so far) been
+            // assigned a register.  That register must be one in the
+            // RegMask set, e.g. don't try to prefer the stack pointer
+            // as a result of the stacksave intrinsic.
+            if (SrcVar->hasRegTmp() && RegMask[SrcReg]) {
+              if (FindOverlap && !Free[SrcReg]) {
+                // Don't bother trying to enable AllowOverlap if the
+                // register is already free.
+                AllowOverlap =
+                    IsSingleDef && IsAssign && !overlapsDefs(Func, Cur, SrcVar);
+              }
+              if (AllowOverlap || Free[SrcReg]) {
+                Prefer = SrcVar;
+                PreferReg = SrcReg;
+              }
             }
           }
         }
-      }
-    }
-    if (Verbose) {
-      if (Prefer) {
-        Str << "Initial Prefer=" << *Prefer << " R=" << PreferReg
-            << " LIVE=" << Prefer->getLiveRange() << " Overlap=" << AllowOverlap
-            << "\n";
+        if (Verbose && Prefer) {
+          Str << "Initial Prefer=" << *Prefer << " R=" << PreferReg
+              << " LIVE=" << Prefer->getLiveRange()
+              << " Overlap=" << AllowOverlap << "\n";
+        }
       }
     }
 
@@ -353,12 +460,14 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     // Disable AllowOverlap if an Active variable, which is not
     // Prefer, shares Prefer's register, and has a definition within
     // Cur's live range.
-    for (const Variable *Item : Active) {
-      int32_t RegNum = Item->getRegNumTmp();
-      if (Item != Prefer && RegNum == PreferReg &&
-          overlapsDefs(Func, Cur, Item)) {
-        AllowOverlap = false;
-        dumpDisableOverlap(Func, Item, "Active");
+    if (AllowOverlap) {
+      for (const Variable *Item : Active) {
+        int32_t RegNum = Item->getRegNumTmp();
+        if (Item != Prefer && RegNum == PreferReg &&
+            overlapsDefs(Func, Cur, Item)) {
+          AllowOverlap = false;
+          dumpDisableOverlap(Func, Item, "Active");
+        }
       }
     }
 

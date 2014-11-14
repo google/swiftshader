@@ -225,7 +225,7 @@ void TargetLowering::lower() {
 // perhaps for the frame pointer) to be allocated.  This set of
 // registers could potentially be parameterized if we want to restrict
 // registers e.g. for performance testing.
-void TargetLowering::regAlloc() {
+void TargetLowering::regAlloc(RegAllocKind Kind) {
   TimerMarker T(TimerStack::TT_regAlloc, Func);
   LinearScan LinearScan(Func);
   RegSetMask RegInclude = RegSet_None;
@@ -234,7 +234,7 @@ void TargetLowering::regAlloc() {
   RegInclude |= RegSet_CalleeSave;
   if (hasFramePointer())
     RegExclude |= RegSet_FramePointer;
-  LinearScan.initForGlobalAlloc();
+  LinearScan.init(Kind);
   llvm::SmallBitVector RegMask = getRegisterSet(RegInclude, RegExclude);
   LinearScan.scan(RegMask);
 }

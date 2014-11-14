@@ -9,9 +9,7 @@
 //
 // This file implements the TargetLoweringX8632 class, which
 // consists almost entirely of the lowering sequence for each
-// high-level instruction.  It also implements
-// TargetX8632Fast::postLower() which does the simplest possible
-// register allocation for the "fast" target.
+// high-level instruction.
 //
 //===----------------------------------------------------------------------===//
 
@@ -375,7 +373,7 @@ void TargetX8632::translateO2() {
   // associated cleanup, to make the dump cleaner and more useful.
   Func->dump("After initial x8632 codegen");
   Func->getVMetadata()->init(VMK_All);
-  regAlloc();
+  regAlloc(RAK_Global);
   if (Func->hasError())
     return;
   Func->dump("After linear scan regalloc");
@@ -428,6 +426,11 @@ void TargetX8632::translateOm1() {
   if (Func->hasError())
     return;
   Func->dump("After initial x8632 codegen");
+
+  regAlloc(RAK_InfOnly);
+  if (Func->hasError())
+    return;
+  Func->dump("After regalloc of infinite-weight variables");
 
   Func->genFrame();
   if (Func->hasError())
@@ -1816,9 +1819,6 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   // stack locations.
   for (SizeT i = 0, e = StackArgs.size(); i < e; ++i) {
     lowerStore(InstStore::create(Func, StackArgs[i], StackArgLocations[i]));
-    // TODO: Consider calling postLower() here to reduce the register
-    // pressure associated with using too many infinite weight
-    // temporaries when lowering the call sequence in -Om1 mode.
   }
 
   // Copy arguments to be passed in registers to the appropriate
@@ -4112,8 +4112,6 @@ void TargetX8632::scalarizeArithmetic(InstArithmetic::OpKind Kind,
     Variable *DestT = Func->makeVariable(Ty);
     lowerInsertElement(InstInsertElement::create(Func, DestT, T, Res, Index));
     T = DestT;
-    // TODO(stichnot): Use postLower() in -Om1 mode to avoid buildup of
-    // infinite weight temporaries.
   }
 
   lowerAssign(InstAssign::create(Func, Dest, T));
@@ -4200,7 +4198,7 @@ void TargetX8632::lowerPhiAssignments(CfgNode *Node,
   assert(Node->getPhis().empty());
   CfgNode *Succ = Node->getOutEdges().front();
   getContext().init(Node);
-  // Register set setup similar to regAlloc() and postLower().
+  // Register set setup similar to regAlloc().
   RegSetMask RegInclude = RegSet_All;
   RegSetMask RegExclude = RegSet_StackPointer;
   if (hasFramePointer())
@@ -4512,115 +4510,20 @@ Variable *TargetX8632::makeReg(Type Type, int32_t RegNum) {
 }
 
 void TargetX8632::postLower() {
-  if (Ctx->getOptLevel() != Opt_m1) {
-    // Find two-address non-SSA instructions where Dest==Src0, and set
-    // the DestNonKillable flag to keep liveness analysis consistent.
-    for (auto Inst = Context.begin(), E = Context.end(); Inst != E; ++Inst) {
-      if (Inst->isDeleted())
-        continue;
-      if (Variable *Dest = Inst->getDest()) {
-        // TODO(stichnot): We may need to consider all source
-        // operands, not just the first one, if using 3-address
-        // instructions.
-        if (Inst->getSrcSize() > 0 && Inst->getSrc(0) == Dest)
-          Inst->setDestNonKillable();
-      }
-    }
+  if (Ctx->getOptLevel() == Opt_m1)
     return;
-  }
-  // TODO: Avoid recomputing WhiteList every instruction.
-  RegSetMask RegInclude = RegSet_All;
-  RegSetMask RegExclude = RegSet_StackPointer;
-  if (hasFramePointer())
-    RegExclude |= RegSet_FramePointer;
-  llvm::SmallBitVector WhiteList = getRegisterSet(RegInclude, RegExclude);
-  // Make one pass to black-list pre-colored registers.  TODO: If
-  // there was some prior register allocation pass that made register
-  // assignments, those registers need to be black-listed here as
-  // well.
-  llvm::DenseMap<const Variable *, const Inst *> LastUses;
-  // The first pass also keeps track of which instruction is the last
-  // use for each infinite-weight variable.  After the last use, the
-  // variable is released to the free list.
+  // Find two-address non-SSA instructions where Dest==Src0, and set
+  // the DestNonKillable flag to keep liveness analysis consistent.
   for (auto Inst = Context.begin(), E = Context.end(); Inst != E; ++Inst) {
     if (Inst->isDeleted())
       continue;
-    // Don't consider a FakeKill instruction, because (currently) it
-    // is only used to kill all scratch registers at a call site, and
-    // we don't want to black-list all scratch registers during the
-    // call lowering.  This could become a problem since it relies on
-    // the lowering sequence not keeping any infinite-weight variables
-    // live across a call.  TODO(stichnot): Consider replacing this
-    // whole postLower() implementation with a robust local register
-    // allocator, for example compute live ranges only for pre-colored
-    // and infinite-weight variables and run the existing linear-scan
-    // allocator.
-    assert(!llvm::isa<InstFakeKill>(Inst) || Inst->getSrcSize() == 0);
-    for (SizeT SrcNum = 0; SrcNum < Inst->getSrcSize(); ++SrcNum) {
-      Operand *Src = Inst->getSrc(SrcNum);
-      SizeT NumVars = Src->getNumVars();
-      for (SizeT J = 0; J < NumVars; ++J) {
-        const Variable *Var = Src->getVar(J);
-        // Track last uses of all variables, regardless of whether
-        // they are pre-colored or infinite-weight.
-        LastUses[Var] = Inst;
-        if (!Var->hasReg())
-          continue;
-        WhiteList[Var->getRegNum()] = false;
-      }
+    if (Variable *Dest = Inst->getDest()) {
+      // TODO(stichnot): We may need to consider all source
+      // operands, not just the first one, if using 3-address
+      // instructions.
+      if (Inst->getSrcSize() > 0 && Inst->getSrc(0) == Dest)
+        Inst->setDestNonKillable();
     }
-  }
-  // The second pass colors infinite-weight variables.
-  llvm::SmallBitVector AvailableRegisters = WhiteList;
-  llvm::SmallBitVector FreedRegisters(WhiteList.size());
-  for (auto Inst = Context.begin(), E = Context.end(); Inst != E; ++Inst) {
-    FreedRegisters.reset();
-    if (Inst->isDeleted())
-      continue;
-    // Iterate over all variables referenced in the instruction,
-    // including the Dest variable (if any).  If the variable is
-    // marked as infinite-weight, find it a register.  If this
-    // instruction is the last use of the variable in the lowered
-    // sequence, release the register to the free list after this
-    // instruction is completely processed.  Note that the first pass
-    // ignores the Dest operand, under the assumption that a
-    // pre-colored Dest will appear as a source operand in some
-    // subsequent instruction in the lowered sequence.
-    Variable *Dest = Inst->getDest();
-    SizeT NumSrcs = Inst->getSrcSize();
-    if (Dest)
-      ++NumSrcs;
-    if (NumSrcs == 0)
-      continue;
-    OperandList Srcs(NumSrcs);
-    for (SizeT i = 0; i < Inst->getSrcSize(); ++i)
-      Srcs[i] = Inst->getSrc(i);
-    if (Dest)
-      Srcs[NumSrcs - 1] = Dest;
-    for (SizeT SrcNum = 0; SrcNum < NumSrcs; ++SrcNum) {
-      Operand *Src = Srcs[SrcNum];
-      SizeT NumVars = Src->getNumVars();
-      for (SizeT J = 0; J < NumVars; ++J) {
-        Variable *Var = Src->getVar(J);
-        if (!Var->hasReg() && Var->getWeight().isInf()) {
-          llvm::SmallBitVector AvailableTypedRegisters =
-              AvailableRegisters & getRegisterSetForType(Var->getType());
-          assert(AvailableTypedRegisters.any());
-          int32_t RegNum = AvailableTypedRegisters.find_first();
-          Var->setRegNum(RegNum);
-          AvailableRegisters[RegNum] = false;
-        }
-        if (Var->hasReg()) {
-          int32_t RegNum = Var->getRegNum();
-          assert(!AvailableRegisters[RegNum]);
-          if (LastUses[Var] == Inst) {
-            if (WhiteList[RegNum])
-              FreedRegisters[RegNum] = true;
-          }
-        }
-      }
-    }
-    AvailableRegisters |= FreedRegisters;
   }
 }
 

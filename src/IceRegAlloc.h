@@ -26,12 +26,16 @@ class LinearScan {
   LinearScan &operator=(const LinearScan &) = delete;
 
 public:
-  LinearScan(Cfg *Func) : Func(Func) {}
-  void initForGlobalAlloc();
+  LinearScan(Cfg *Func)
+      : Func(Func), FindPreference(false), FindOverlap(false) {}
+  void init(RegAllocKind Kind);
   void scan(const llvm::SmallBitVector &RegMask);
   void dump(Cfg *Func) const;
 
 private:
+  void initForGlobal();
+  void initForInfOnly();
+
   Cfg *const Func;
   typedef std::vector<Variable *> OrderedRanges;
   typedef std::list<Variable *> UnorderedRanges;
@@ -41,6 +45,12 @@ private:
   OrderedRanges UnhandledPrecolored;
   UnorderedRanges Active, Inactive, Handled;
   std::vector<InstNumberT> Kills;
+  bool FindPreference;
+  bool FindOverlap;
+  // TODO(stichnot): We're not really using FindOverlap yet, but we
+  // may want a flavor of register allocation where FindPreference is
+  // useful but we didn't want to initialize VMetadata with VMK_All
+  // and therefore we can't safely allow overlap.
 };
 
 } // end of namespace Ice

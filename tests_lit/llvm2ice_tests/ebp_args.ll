@@ -38,10 +38,10 @@ entry:
 ; CHECK:  movzx eax, byte ptr [ebp - 4]
 ; CHECK:  mov   dword ptr [ebp - 16], eax
 ; CHECK:  sub   esp, 16
-; CHECK:  mov   ecx, dword ptr [ebp + 8]
-; CHECK:  mov   dword ptr [esp], ecx
-; CHECK:  mov   ecx, dword ptr [ebp - 12]
-; CHECK:  mov   dword ptr [esp + 4], ecx
-; CHECK:  mov   ecx, dword ptr [ebp - 16]
-; CHECK:  mov   dword ptr [esp + 8], ecx
+; CHECK:  mov   eax, dword ptr [ebp + 8]
+; CHECK:  mov   dword ptr [esp], eax
+; CHECK:  mov   eax, dword ptr [ebp - 12]
+; CHECK:  mov   dword ptr [esp + 4], eax
+; CHECK:  mov   eax, dword ptr [ebp - 16]
+; CHECK:  mov   dword ptr [esp + 8], eax
 ; CHECK:  call  -4

@@ -31,9 +31,9 @@ entry:
 ; PROB50: pmuludq %xmm2, %xmm1
 ; PROB50: nop # variant = 0
 ; PROB50: shufps $136, %xmm1, %xmm0
-; PROB50: pshufd $216, %xmm0, %xmm1
+; PROB50: pshufd $216, %xmm0, %xmm0
 ; PROB50: nop # variant = 2
-; PROB50: movups %xmm1, (%esp)
+; PROB50: movups %xmm0, (%esp)
 ; PROB50: movups (%esp), %xmm0
 ; PROB50: addl $60, %esp
 ; PROB50: nop # variant = 0
@@ -59,9 +59,9 @@ entry:
 ; PROB90: nop # variant = 3
 ; PROB90: shufps $136, %xmm1, %xmm0
 ; PROB90: nop # variant = 4
-; PROB90: pshufd $216, %xmm0, %xmm1
+; PROB90: pshufd $216, %xmm0, %xmm0
 ; PROB90: nop # variant = 2
-; PROB90: movups %xmm1, (%esp)
+; PROB90: movups %xmm0, (%esp)
 ; PROB90: nop # variant = 4
 ; PROB90: movups (%esp), %xmm0
 ; PROB90: nop # variant = 2
@@ -86,9 +86,9 @@ entry:
 ; MAXNOPS2: nop # variant = 3
 ; MAXNOPS2: pmuludq %xmm2, %xmm1
 ; MAXNOPS2: shufps $136, %xmm1, %xmm0
-; MAXNOPS2: pshufd $216, %xmm0, %xmm1
+; MAXNOPS2: pshufd $216, %xmm0, %xmm0
 ; MAXNOPS2: nop # variant = 3
-; MAXNOPS2: movups %xmm1, (%esp)
+; MAXNOPS2: movups %xmm0, (%esp)
 ; MAXNOPS2: nop # variant = 0
 ; MAXNOPS2: movups (%esp), %xmm0
 ; MAXNOPS2: nop # variant = 2

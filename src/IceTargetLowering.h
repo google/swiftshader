@@ -195,7 +195,7 @@ public:
   virtual llvm::SmallBitVector getRegisterSet(RegSetMask Include,
                                               RegSetMask Exclude) const = 0;
   virtual const llvm::SmallBitVector &getRegisterSetForType(Type Ty) const = 0;
-  void regAlloc();
+  void regAlloc(RegAllocKind Kind);
 
   virtual void emitVariable(const Variable *Var) const = 0;
 
@@ -236,11 +236,7 @@ protected:
   virtual void doAddressOptStore() {}
   virtual void randomlyInsertNop(float Probability) = 0;
   // This gives the target an opportunity to post-process the lowered
-  // expansion before returning.  The primary intention is to do some
-  // Register Manager activity as necessary, specifically to eagerly
-  // allocate registers based on affinity and other factors.  The
-  // simplest lowering does nothing here and leaves it all to a
-  // subsequent global register allocation pass.
+  // expansion before returning.
   virtual void postLower() {}
 
   Cfg *Func;

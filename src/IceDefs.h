@@ -102,6 +102,11 @@ enum LivenessMode {
   Liveness_Intervals
 };
 
+enum RegAllocKind {
+  RAK_Global, // full, global register allocation
+  RAK_InfOnly // allocation only for infinite-weight Variables
+};
+
 enum VerboseItem {
   IceV_None = 0,
   IceV_Instructions = 1 << 0,
