@@ -4,7 +4,7 @@
 ;                currently because run-llvm2ice.py raises exception on error,
 ;                and output is lost.
 ; RUN: llvm-as < %s | pnacl-freeze -allow-local-symbol-tables \
-; RUN:              | not %llvm2ice -notranslate -verbose=inst -build-on-read \
+; RUN:              | not %llvm2ice -notranslate -verbose=inst \
 ; RUN:                -allow-pnacl-reader-error-recovery \
 ; RUN:                -allow-local-symbol-tables \
 ; RUN:              | FileCheck %s

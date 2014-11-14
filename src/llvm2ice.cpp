@@ -284,6 +284,13 @@ int main(int argc, char **argv) {
   Flags.TranslateOnly = TranslateOnly;
   Flags.DisableIRGeneration = DisableIRGeneration;
 
+  // Force -build-on-read=0 for .ll files.
+  const std::string LLSuffix = ".ll";
+  if (IRFilename.length() >= LLSuffix.length() &&
+      IRFilename.compare(IRFilename.length() - LLSuffix.length(),
+                         LLSuffix.length(), LLSuffix) == 0)
+    BuildOnRead = false;
+
   Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix,
                          Flags);
 
