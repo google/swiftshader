@@ -21,6 +21,9 @@
 					<Add option="-m32" />
 					<Add library="./../../LLVM/bin/x86/Debug/libLLVM.a" />
 				</Linker>
+				<ExtraCommands>
+					<Add after="ln -s -f ./libGLESv2.so.2 ./../../../lib/Debug_x86/libGLESv2.so" />
+				</ExtraCommands>
 			</Target>
 			<Target title="Release x86">
 				<Option output="./../../../lib/Release_x86/libGLESv2.so.2" prefix_auto="0" extension_auto="0" />
@@ -45,6 +48,9 @@
 					<Add option="-Wl,--gc-sections" />
 					<Add library="./../../LLVM/bin/x86/Release/libLLVM.a" />
 				</Linker>
+				<ExtraCommands>
+					<Add after="ln -s -f ./libGLESv2.so.2 ./../../../lib/Release_x86/libGLESv2.so" />
+				</ExtraCommands>
 			</Target>
 			<Target title="Debug x64">
 				<Option output="./../../../lib/Debug_x64/libGLESv2.so.2" prefix_auto="0" extension_auto="0" />
@@ -62,6 +68,9 @@
 					<Add option="-m64" />
 					<Add library="./../../LLVM/bin/x64/Debug/libLLVM.a" />
 				</Linker>
+				<ExtraCommands>
+					<Add after="ln -s -f ./libGLESv2.so.2 ./../../../lib/Debug_x64/libGLESv2.so" />
+				</ExtraCommands>
 			</Target>
 			<Target title="Release x64">
 				<Option output="./../../../lib/Release_x64/libGLESv2.so.2" prefix_auto="0" extension_auto="0" />
@@ -87,6 +96,9 @@
 					<Add option="-Wl,--gc-sections" />
 					<Add library="./../../LLVM/bin/x64/Release/libLLVM.a" />
 				</Linker>
+				<ExtraCommands>
+					<Add after="ln -s -f ./libGLESv2.so.2 ./../../../lib/Release_x64/libGLESv2.so" />
+				</ExtraCommands>
 			</Target>
 		</Build>
 		<Compiler>

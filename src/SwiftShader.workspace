@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="SwiftShader">
-		<Project filename="./OpenGL/libEGL/libEGL.cbp" />
-		<Project filename="./OpenGL/libGLESv2/libGLESv2.cbp">
-			<Depends filename="./LLVM/LLVM.cbp" />
+		<Project filename="OpenGL/libEGL/libEGL.cbp" />
+		<Project filename="OpenGL/libGLESv2/libGLESv2.cbp">
+			<Depends filename="LLVM/LLVM.cbp" />
 		</Project>
-		<Project filename="./LLVM/LLVM.cbp" />
+		<Project filename="LLVM/LLVM.cbp" />
+		<Project filename="../tests/third_party/PowerVR/Examples/Beginner/01_HelloAPI/OGLES2/Build/OGLES2HelloAPI.cbp">
+			<Depends filename="OpenGL/libEGL/libEGL.cbp" />
+			<Depends filename="OpenGL/libGLESv2/libGLESv2.cbp" />
+		</Project>
 	</Workspace>
 </CodeBlocks_workspace_file>

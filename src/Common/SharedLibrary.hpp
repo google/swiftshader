@@ -74,7 +74,7 @@ void *loadLibrary(const char *(&names)[n])
 
 	inline void *getLibraryHandle(const char *path)
 	{
-		bool resident = (dlopen(path, RTLD_NOLOAD) != 0);
+		void *resident = dlopen(path, RTLD_LAZY | RTLD_NOLOAD);
 
 		if(resident)
 		{
