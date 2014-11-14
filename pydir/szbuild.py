@@ -273,7 +273,7 @@ def ProcessPexe(args, pexe, exe):
         # Keep the rest of this command line (except szrt.c) in sync
         # with RunHostLD() in pnacl-translate.py.
         '{root}/toolchain/linux_x86/pnacl_newlib/translator/x86-32-linux/lib/' +
-        '{{unsandboxed_irt,irt_query_list}}.o ' +
+        '{{unsandboxed_irt,irt_random,irt_query_list}}.o ' +
         '{root}/toolchain_build/src/subzero/runtime/szrt.c ' +
         '{root}/toolchain_build/src/subzero/runtime/szrt_i686.ll ' +
         '-lpthread -lrt'
