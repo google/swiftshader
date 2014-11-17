@@ -27,6 +27,8 @@ char hexdigit(unsigned X) { return X < 10 ? '0' + X : 'A' + X - 10; }
 
 void dumpLinkage(Ice::Ostream &Stream,
                  llvm::GlobalValue::LinkageTypes Linkage) {
+  if (!ALLOW_DUMP)
+    return;
   switch (Linkage) {
   case llvm::GlobalValue::ExternalLinkage:
     Stream << "external";
@@ -44,6 +46,8 @@ void dumpLinkage(Ice::Ostream &Stream,
 }
 
 void dumpCallingConv(Ice::Ostream &, llvm::CallingConv::ID CallingConv) {
+  if (!ALLOW_DUMP)
+    return;
   if (CallingConv == llvm::CallingConv::C)
     return;
   std::string Buffer;
@@ -65,10 +69,14 @@ FunctionDeclaration::create(GlobalContext *Ctx, const FuncSigType &Signature,
 }
 
 void FunctionDeclaration::dumpType(Ostream &Stream) const {
+  if (!ALLOW_DUMP)
+    return;
   Stream << Signature;
 }
 
 void FunctionDeclaration::dump(GlobalContext *Ctx, Ostream &Stream) const {
+  if (!ALLOW_DUMP)
+    return;
   if (IsProto)
     Stream << "declare ";
   ::dumpLinkage(Stream, Linkage);
@@ -95,6 +103,8 @@ VariableDeclaration::~VariableDeclaration() {
 }
 
 void VariableDeclaration::dumpType(Ostream &Stream) const {
+  if (!ALLOW_DUMP)
+    return;
   if (Initializers.size() == 1) {
     Initializers.front()->dumpType(Stream);
   } else {
@@ -113,6 +123,8 @@ void VariableDeclaration::dumpType(Ostream &Stream) const {
 }
 
 void VariableDeclaration::dump(GlobalContext *Ctx, Ostream &Stream) const {
+  if (!ALLOW_DUMP)
+    return;
   Stream << "@" << ((Ctx && !getSuppressMangling())
                     ? Ctx->mangleName(Name) : Name) << " = ";
   ::dumpLinkage(Stream, Linkage);
@@ -143,11 +155,15 @@ void VariableDeclaration::dump(GlobalContext *Ctx, Ostream &Stream) const {
 }
 
 void VariableDeclaration::Initializer::dumpType(Ostream &Stream) const {
+  if (!ALLOW_DUMP)
+    return;
   Stream << "[" << getNumBytes() << " x " << Ice::IceType_i8 << "]";
 }
 
 void VariableDeclaration::DataInitializer::dump(
     GlobalContext *, Ostream &Stream) const {
+  if (!ALLOW_DUMP)
+    return;
   dumpType(Stream);
   Stream << " c\"";
   // Code taken from PrintEscapedString() in AsmWriter.cpp.  Keep
@@ -164,16 +180,22 @@ void VariableDeclaration::DataInitializer::dump(
 
 void VariableDeclaration::ZeroInitializer::dump(
     GlobalContext *, Ostream &Stream) const {
+  if (!ALLOW_DUMP)
+    return;
   dumpType(Stream);
   Stream << " zeroinitializer";
 }
 
 void VariableDeclaration::RelocInitializer::dumpType(Ostream &Stream) const {
+  if (!ALLOW_DUMP)
+    return;
   Stream << Ice::IceType_i32;
 }
 
 void VariableDeclaration::RelocInitializer::dump(
     GlobalContext *Ctx, Ostream &Stream) const {
+  if (!ALLOW_DUMP)
+    return;
   if (Offset != 0) {
     dumpType(Stream);
     Stream << " add (";

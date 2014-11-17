@@ -439,6 +439,8 @@ void GlobalContext::setTimerName(TimerStackIdT StackID,
 }
 
 void GlobalContext::dumpStats(const IceString &Name, bool Final) {
+  if (!ALLOW_DUMP)
+    return;
   if (Flags.DumpStats) {
     if (Final) {
       StatsCumulative.dump(Name, getStrDump());
@@ -450,6 +452,8 @@ void GlobalContext::dumpStats(const IceString &Name, bool Final) {
 }
 
 void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
+  if (!ALLOW_DUMP)
+    return;
   assert(Timers.size() > StackID);
   Timers[StackID].dump(getStrDump(), DumpCumulative);
 }

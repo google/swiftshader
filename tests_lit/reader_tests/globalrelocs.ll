@@ -1,5 +1,7 @@
 ; Tests if we handle global variables with relocation initializers.
 
+; REQUIRES: allow_dump
+
 ; RUN: %p2i -i %s --insts | FileCheck %s
 ; RUN: %l2i -i %s --insts | %ifl FileCheck %s
 ; RUN: %lc2i -i %s --insts | %iflc FileCheck %s

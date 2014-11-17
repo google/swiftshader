@@ -4,6 +4,8 @@
 ; we don't lower to a cmp instructions with an immediate as the first
 ; source operand.
 
+; REQUIRES: allow_dump
+
 ; RUN: %p2i -i %s --args -O2 --verbose inst | FileCheck %s
 ; RUN: %p2i -i %s --args -Om1 --verbose inst | FileCheck %s
 

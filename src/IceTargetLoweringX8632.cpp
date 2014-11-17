@@ -898,7 +898,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     Var->setStackOffset(Linked->getStackOffset());
   }
 
-  if (Func->getContext()->isVerbose(IceV_Frame)) {
+  if (ALLOW_DUMP && Func->getContext()->isVerbose(IceV_Frame)) {
     Ostream &Str = Func->getContext()->getStrDump();
 
     Str << "Stack layout:\n";
@@ -996,6 +996,7 @@ const char *PoolTypeConverter<double>::AsmTag = ".quad";
 const char *PoolTypeConverter<double>::PrintfString = "0x%llx";
 
 template <typename T> void TargetX8632::emitConstantPool() const {
+  // Note: Still used by emit IAS.
   Ostream &Str = Ctx->getStrEmit();
   Type Ty = T::Ty;
   SizeT Align = typeAlignInBytes(Ty);
@@ -1024,6 +1025,7 @@ template <typename T> void TargetX8632::emitConstantPool() const {
 }
 
 void TargetX8632::emitConstants() const {
+  // Note: Still used by emit IAS.
   emitConstantPool<PoolTypeConverter<float> >();
   emitConstantPool<PoolTypeConverter<double> >();
 
@@ -3561,6 +3563,8 @@ bool isAdd(const Inst *Inst) {
 void dumpAddressOpt(const Cfg *Func, const Variable *Base,
                     const Variable *Index, uint16_t Shift, int32_t Offset,
                     const Inst *Reason) {
+  if (!ALLOW_DUMP)
+    return;
   if (!Func->getContext()->isVerbose(IceV_AddrOpt))
     return;
   Ostream &Str = Func->getContext()->getStrDump();
@@ -4528,6 +4532,8 @@ void TargetX8632::postLower() {
 }
 
 template <> void ConstantInteger32::emit(GlobalContext *Ctx) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Ctx->getStrEmit();
   Str << "$" << (int32_t)getValue();
 }
@@ -4537,11 +4543,15 @@ template <> void ConstantInteger64::emit(GlobalContext *) const {
 }
 
 template <> void ConstantFloat::emit(GlobalContext *Ctx) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Ctx->getStrEmit();
   Str << ".L$" << IceType_f32 << "$" << getPoolEntryID();
 }
 
 template <> void ConstantDouble::emit(GlobalContext *Ctx) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Ctx->getStrEmit();
   Str << ".L$" << IceType_f64 << "$" << getPoolEntryID();
 }

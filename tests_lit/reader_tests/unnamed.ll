@@ -1,5 +1,7 @@
 ; Tests that we name unnamed global addresses.
 
+; REQUIRES: allow_dump
+
 ; Check that Subzero's bitcode reader handles renaming correctly.
 ; RUN: %p2i --no-local-syms -i %s --insts | FileCheck %s
 ; RUN: %l2i --no-local-syms -i %s --insts | %ifl FileCheck %s

@@ -192,8 +192,7 @@ static int GetReturnValue(int Val) {
 static struct {
   const char *FlagName;
   int FlagValue;
-} ConditionalBuildAttributes[] = {{"text_asm", ALLOW_TEXT_ASM},
-                                  {"dump", ALLOW_DUMP},
+} ConditionalBuildAttributes[] = {{"dump", ALLOW_DUMP},
                                   {"llvm_cl", ALLOW_LLVM_CL},
                                   {"llvm_ir", ALLOW_LLVM_IR},
                                   {"llvm_ir_as_input", ALLOW_LLVM_IR_AS_INPUT},
@@ -236,8 +235,12 @@ int main(int argc, char **argv) {
     DisableTranslation = true;
 
   Ice::VerboseMask VMask = Ice::IceV_None;
-  for (unsigned i = 0; i != VerboseList.size(); ++i)
-    VMask |= VerboseList[i];
+  // Don't generate verbose messages if routines
+  // to dump messages are not available.
+  if (ALLOW_DUMP) {
+    for (unsigned i = 0; i != VerboseList.size(); ++i)
+      VMask |= VerboseList[i];
+  }
 
   std::ofstream Ofs;
   if (OutputFilename != "-") {

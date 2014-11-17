@@ -260,6 +260,8 @@ const char *typeString(Type Ty) {
 }
 
 void FuncSigType::dump(Ostream &Stream) const {
+  if (!ALLOW_DUMP)
+    return;
   Stream << ReturnType << " (";
   bool IsFirst = true;
   for (const Type ArgTy : ArgList) {

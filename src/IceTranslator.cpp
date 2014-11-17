@@ -106,8 +106,8 @@ void Translator::lowerGlobals(
   llvm::OwningPtr<TargetGlobalInitLowering> GlobalLowering(
       TargetGlobalInitLowering::createLowering(Ctx->getTargetArch(), Ctx));
   bool DisableTranslation = Ctx->getFlags().DisableTranslation;
-  bool DumpGlobalVariables =
-      Ctx->isVerbose() && Ctx->getFlags().VerboseFocusOn.empty();
+  const bool DumpGlobalVariables =
+      ALLOW_DUMP && Ctx->isVerbose() && Ctx->getFlags().VerboseFocusOn.empty();
   Ostream &Stream = Ctx->getStrDump();
   const IceString &TranslateOnly = Ctx->getFlags().TranslateOnly;
   for (const Ice::VariableDeclaration *Global : VariableDeclarations) {

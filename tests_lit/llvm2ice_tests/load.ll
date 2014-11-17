@@ -1,5 +1,7 @@
 ; Simple test of the load instruction.
 
+; REQUIRES: allow_dump
+
 ; RUN: %p2i -i %s --args --verbose inst | FileCheck %s
 
 define void @load_i64(i32 %addr_arg) {

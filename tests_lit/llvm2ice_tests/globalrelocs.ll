@@ -1,5 +1,7 @@
 ; Tests if we handle global variables with relocation initializers.
 
+; REQUIRES: allow_dump
+
 ; Test that we handle it in the ICE converter.
 ; RUN: %lc2i -i %s --args -verbose inst | %iflc FileCheck %s
 

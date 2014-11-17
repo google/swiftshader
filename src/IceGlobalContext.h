@@ -48,6 +48,8 @@ public:
   void updateSpills() { ++Spills; }
   void updateFills() { ++Fills; }
   void dump(const IceString &Name, Ostream &Str) {
+    if (!ALLOW_DUMP)
+      return;
     Str << "|" << Name << "|Inst Count  |" << InstructionsEmitted << "\n";
     Str << "|" << Name << "|Regs Saved  |" << RegistersSaved << "\n";
     Str << "|" << Name << "|Frame Bytes |" << FrameBytes << "\n";

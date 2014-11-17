@@ -65,10 +65,15 @@ public:
   // situation where Func==NULL.
   virtual void dump(const Cfg *Func, Ostream &Str) const = 0;
   void dump(const Cfg *Func) const {
+    if (!ALLOW_DUMP)
+      return;
     assert(Func);
     dump(Func, Func->getContext()->getStrDump());
   }
-  void dump(Ostream &Str) const { dump(NULL, Str); }
+  void dump(Ostream &Str) const {
+    if (ALLOW_DUMP)
+      dump(NULL, Str);
+  }
 
   // Query whether this object was allocated in isolation, or added to
   // some higher-level pool.  This determines whether a containing
@@ -148,7 +153,10 @@ public:
   // specialization.
   void emit(GlobalContext *Ctx) const override;
   using Constant::dump;
-  void dump(const Cfg *, Ostream &Str) const override { Str << getValue(); }
+  void dump(const Cfg *, Ostream &Str) const override {
+    if (ALLOW_DUMP)
+      Str << getValue();
+  }
 
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == K;
@@ -167,6 +175,8 @@ typedef ConstantPrimitive<float, Operand::kConstFloat> ConstantFloat;
 typedef ConstantPrimitive<double, Operand::kConstDouble> ConstantDouble;
 
 template <> inline void ConstantInteger32::dump(const Cfg *, Ostream &Str) const {
+  if (!ALLOW_DUMP)
+    return;
   if (getType() == IceType_i1)
     Str << (getValue() ? "true" : "false");
   else
@@ -174,6 +184,8 @@ template <> inline void ConstantInteger32::dump(const Cfg *, Ostream &Str) const
 }
 
 template <> inline void ConstantInteger64::dump(const Cfg *, Ostream &Str) const {
+  if (!ALLOW_DUMP)
+    return;
   assert(getType() == IceType_i64);
   Str << static_cast<int64_t>(getValue());
 }
@@ -259,7 +271,10 @@ public:
   using Constant::dump;
   // The target needs to implement this.
   void emit(GlobalContext *Ctx) const override;
-  void dump(const Cfg *, Ostream &Str) const override { Str << "undef"; }
+  void dump(const Cfg *, Ostream &Str) const override {
+    if (ALLOW_DUMP)
+      Str << "undef";
+  }
 
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == kConstUndef;

@@ -1,6 +1,8 @@
 ; This is a very early test that just checks the representation of i32
 ; arithmetic instructions.  No assembly tests are done.
 
+; REQUIRES: allow_dump
+
 ; RUN: %p2i -i %s --args --verbose inst -ias=0 | FileCheck %s
 
 define i32 @Add(i32 %a, i32 %b) {

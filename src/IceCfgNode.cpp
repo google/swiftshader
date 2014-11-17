@@ -798,6 +798,8 @@ namespace {
 
 void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
                        bool IsLiveIn, std::vector<SizeT> &LiveRegCount) {
+  if (!ALLOW_DUMP)
+    return;
   Liveness *Liveness = Func->getLiveness();
   const LivenessBV *Live;
   if (IsLiveIn) {
@@ -828,6 +830,8 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
 
 void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
                          std::vector<SizeT> &LiveRegCount) {
+  if (!ALLOW_DUMP)
+    return;
   bool First = true;
   Variable *Dest = Instr->getDest();
   if (Dest && Dest->hasReg())
@@ -873,6 +877,8 @@ void updateStats(Cfg *Func, const Inst *I) {
 } // end of anonymous namespace
 
 void CfgNode::emit(Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Func->setCurrentNode(this);
   Ostream &Str = Func->getContext()->getStrEmit();
   Liveness *Liveness = Func->getLiveness();
@@ -930,6 +936,8 @@ void CfgNode::emitIAS(Cfg *Func) const {
 }
 
 void CfgNode::dump(Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Func->setCurrentNode(this);
   Ostream &Str = Func->getContext()->getStrDump();
   Liveness *Liveness = Func->getLiveness();

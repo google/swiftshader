@@ -396,6 +396,7 @@ void Cfg::doBranchOpt() {
 // ======================== Dump routines ======================== //
 
 void Cfg::emitTextHeader(const IceString &MangledName) {
+  // Note: Still used by emit IAS.
   Ostream &Str = Ctx->getStrEmit();
   Str << "\t.text\n";
   if (Ctx->getFlags().FunctionSections)
@@ -412,6 +413,8 @@ void Cfg::emitTextHeader(const IceString &MangledName) {
 }
 
 void Cfg::emit() {
+  if (!ALLOW_DUMP)
+    return;
   TimerMarker T(TimerStack::TT_emit, this);
   if (Ctx->getFlags().DecorateAsm) {
     renumberInstructions();
@@ -449,6 +452,8 @@ void Cfg::emitIAS() {
 
 // Dumps the IR with an optional introductory message.
 void Cfg::dump(const IceString &Message) {
+  if (!ALLOW_DUMP)
+    return;
   if (!Ctx->isVerbose())
     return;
   Ostream &Str = Ctx->getStrDump();

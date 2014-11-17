@@ -1,5 +1,7 @@
 ; Test of global initializers.
 
+; REQUIRES: allow_dump
+
 ; Test -ias=0 to test the lea "hack" until we are fully confident in -ias=1
 ; RUN: %p2i -i %s --args --verbose none -ias=0 | FileCheck %s
 

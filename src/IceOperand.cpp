@@ -427,10 +427,13 @@ const InstDefList VariablesMetadata::NoDefinitions;
 // ======================== dump routines ======================== //
 
 void Variable::emit(const Cfg *Func) const {
-  Func->getTarget()->emitVariable(this);
+  if (ALLOW_DUMP)
+    Func->getTarget()->emitVariable(this);
 }
 
 void Variable::dump(const Cfg *Func, Ostream &Str) const {
+  if (!ALLOW_DUMP)
+    return;
   if (Func == NULL) {
     Str << "%" << getName();
     return;
@@ -458,6 +461,8 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
 }
 
 void ConstantRelocatable::emitWithoutDollar(GlobalContext *Ctx) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Ctx->getStrEmit();
   if (SuppressMangling)
     Str << Name;
@@ -471,12 +476,16 @@ void ConstantRelocatable::emitWithoutDollar(GlobalContext *Ctx) const {
 }
 
 void ConstantRelocatable::emit(GlobalContext *Ctx) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Ctx->getStrEmit();
   Str << "$";
   emitWithoutDollar(Ctx);
 }
 
 void ConstantRelocatable::dump(const Cfg *Func, Ostream &Str) const {
+  if (!ALLOW_DUMP)
+    return;
   Str << "@";
   if (Func && !SuppressMangling) {
     Str << Func->getContext()->mangleName(Name);
@@ -488,6 +497,8 @@ void ConstantRelocatable::dump(const Cfg *Func, Ostream &Str) const {
 }
 
 void LiveRange::dump(Ostream &Str) const {
+  if (!ALLOW_DUMP)
+    return;
   Str << "(weight=" << Weight << ") ";
   bool First = true;
   for (const RangeElementType &I : Range) {
@@ -499,11 +510,15 @@ void LiveRange::dump(Ostream &Str) const {
 }
 
 Ostream &operator<<(Ostream &Str, const LiveRange &L) {
+  if (!ALLOW_DUMP)
+    return Str;
   L.dump(Str);
   return Str;
 }
 
 Ostream &operator<<(Ostream &Str, const RegWeight &W) {
+  if (!ALLOW_DUMP)
+    return Str;
   if (W.getWeight() == RegWeight::Inf)
     Str << "Inf";
   else

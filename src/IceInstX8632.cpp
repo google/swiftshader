@@ -343,12 +343,16 @@ InstX8632Xchg::InstX8632Xchg(Cfg *Func, Operand *Dest, Variable *Source)
 // ======================== Dump routines ======================== //
 
 void InstX8632::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "[X8632] ";
   Inst::dump(Func);
 }
 
 void InstX8632Label::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << getName(Func) << ":";
 }
@@ -359,11 +363,15 @@ void InstX8632Label::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Label::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << getName(Func) << ":";
 }
 
 void InstX8632Br::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t";
 
@@ -420,6 +428,8 @@ void InstX8632Br::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Br::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "br ";
 
@@ -441,6 +451,8 @@ void InstX8632Br::dump(const Cfg *Func) const {
 }
 
 void InstX8632Call::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   Str << "\tcall\t";
@@ -489,6 +501,8 @@ void InstX8632Call::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Call::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   if (getDest()) {
     dumpDest(Func);
@@ -504,6 +518,8 @@ void InstX8632Call::dump(const Cfg *Func) const {
 // template issues.
 void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
                     bool ShiftHack) {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Inst->getSrcSize() == 2);
   Variable *Dest = Inst->getDest();
@@ -1036,6 +1052,8 @@ const x86::AssemblerX86::XmmEmitterShiftOp InstX8632Psra::Emitter = {
     &x86::AssemblerX86::psra};
 
 template <> void InstX8632Sqrtss::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   Type Ty = getSrc(0)->getType();
@@ -1047,6 +1065,8 @@ template <> void InstX8632Sqrtss::emit(const Cfg *Func) const {
 }
 
 template <> void InstX8632Addss::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "add%s",
            TypeX8632Attributes[getDest()->getType()].SdSsString);
@@ -1054,6 +1074,8 @@ template <> void InstX8632Addss::emit(const Cfg *Func) const {
 }
 
 template <> void InstX8632Padd::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "padd%s",
            TypeX8632Attributes[getDest()->getType()].PackString);
@@ -1061,6 +1083,8 @@ template <> void InstX8632Padd::emit(const Cfg *Func) const {
 }
 
 template <> void InstX8632Pmull::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   char buf[30];
   bool TypesAreValid = getDest()->getType() == IceType_v4i32 ||
                        getDest()->getType() == IceType_v8i16;
@@ -1094,6 +1118,8 @@ template <> void InstX8632Pmull::emitIAS(const Cfg *Func) const {
 }
 
 template <> void InstX8632Subss::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "sub%s",
            TypeX8632Attributes[getDest()->getType()].SdSsString);
@@ -1101,6 +1127,8 @@ template <> void InstX8632Subss::emit(const Cfg *Func) const {
 }
 
 template <> void InstX8632Psub::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "psub%s",
            TypeX8632Attributes[getDest()->getType()].PackString);
@@ -1108,6 +1136,8 @@ template <> void InstX8632Psub::emit(const Cfg *Func) const {
 }
 
 template <> void InstX8632Mulss::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "mul%s",
            TypeX8632Attributes[getDest()->getType()].SdSsString);
@@ -1115,12 +1145,16 @@ template <> void InstX8632Mulss::emit(const Cfg *Func) const {
 }
 
 template <> void InstX8632Pmuludq::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   assert(getSrc(0)->getType() == IceType_v4i32 &&
          getSrc(1)->getType() == IceType_v4i32);
   emitTwoAddress(Opcode, this, Func);
 }
 
 template <> void InstX8632Divss::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "div%s",
            TypeX8632Attributes[getDest()->getType()].SdSsString);
@@ -1128,6 +1162,8 @@ template <> void InstX8632Divss::emit(const Cfg *Func) const {
 }
 
 template <> void InstX8632Div::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 3);
   Operand *Src1 = getSrc(1);
@@ -1145,6 +1181,8 @@ template <> void InstX8632Div::emitIAS(const Cfg *Func) const {
 }
 
 template <> void InstX8632Idiv::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 3);
   Operand *Src1 = getSrc(1);
@@ -1166,6 +1204,8 @@ namespace {
 // pblendvb and blendvps take xmm0 as a final implicit argument.
 void emitVariableBlendInst(const char *Opcode, const Inst *Inst,
                            const Cfg *Func) {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Inst->getSrcSize() == 3);
   assert(llvm::cast<Variable>(Inst->getSrc(2))->getRegNum() ==
@@ -1190,6 +1230,8 @@ emitIASVariableBlendInst(const Inst *Inst, const Cfg *Func,
 } // end anonymous namespace
 
 template <> void InstX8632Blendvps::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   assert(static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
          TargetX8632::SSE4_1);
   emitVariableBlendInst(Opcode, this, Func);
@@ -1204,6 +1246,8 @@ template <> void InstX8632Blendvps::emitIAS(const Cfg *Func) const {
 }
 
 template <> void InstX8632Pblendvb::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   assert(static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
          TargetX8632::SSE4_1);
   emitVariableBlendInst(Opcode, this, Func);
@@ -1218,6 +1262,8 @@ template <> void InstX8632Pblendvb::emitIAS(const Cfg *Func) const {
 }
 
 template <> void InstX8632Imul::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   Variable *Dest = getDest();
@@ -1280,6 +1326,8 @@ template <> void InstX8632Insertps::emitIAS(const Cfg *Func) const {
 }
 
 template <> void InstX8632Cbwdq::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   Operand *Src0 = getSrc(0);
@@ -1330,6 +1378,8 @@ template <> void InstX8632Cbwdq::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Mul::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   assert(llvm::isa<Variable>(getSrc(0)));
@@ -1352,6 +1402,8 @@ void InstX8632Mul::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Mul::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = mul." << getDest()->getType() << " ";
@@ -1359,6 +1411,8 @@ void InstX8632Mul::dump(const Cfg *Func) const {
 }
 
 void InstX8632Shld::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Variable *Dest = getDest();
   assert(getSrcSize() == 3);
@@ -1389,6 +1443,8 @@ void InstX8632Shld::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Shld::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = shld." << getDest()->getType() << " ";
@@ -1396,6 +1452,8 @@ void InstX8632Shld::dump(const Cfg *Func) const {
 }
 
 void InstX8632Shrd::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Variable *Dest = getDest();
   assert(getSrcSize() == 3);
@@ -1426,6 +1484,8 @@ void InstX8632Shrd::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Shrd::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = shrd." << getDest()->getType() << " ";
@@ -1433,6 +1493,8 @@ void InstX8632Shrd::dump(const Cfg *Func) const {
 }
 
 void InstX8632Cmov::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Variable *Dest = getDest();
   Str << "\t";
@@ -1459,6 +1521,8 @@ void InstX8632Cmov::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Cmov::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "cmov" << InstX8632BrAttributes[Condition].DisplayString << ".";
   Str << getDest()->getType() << " ";
@@ -1468,6 +1532,8 @@ void InstX8632Cmov::dump(const Cfg *Func) const {
 }
 
 void InstX8632Cmpps::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   assert(Condition < CondX86::Cmpps_Invalid);
@@ -1499,6 +1565,8 @@ void InstX8632Cmpps::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Cmpps::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   assert(Condition < CondX86::Cmpps_Invalid);
   dumpDest(Func);
@@ -1508,6 +1576,8 @@ void InstX8632Cmpps::dump(const Cfg *Func) const {
 }
 
 void InstX8632Cmpxchg::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 3);
   if (Locked) {
@@ -1538,6 +1608,8 @@ void InstX8632Cmpxchg::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Cmpxchg::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   if (Locked) {
     Str << "lock ";
@@ -1547,6 +1619,8 @@ void InstX8632Cmpxchg::dump(const Cfg *Func) const {
 }
 
 void InstX8632Cmpxchg8b::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 5);
   if (Locked) {
@@ -1569,6 +1643,8 @@ void InstX8632Cmpxchg8b::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Cmpxchg8b::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   if (Locked) {
     Str << "lock ";
@@ -1578,6 +1654,8 @@ void InstX8632Cmpxchg8b::dump(const Cfg *Func) const {
 }
 
 void InstX8632Cvt::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   Str << "\tcvt";
@@ -1650,6 +1728,8 @@ void InstX8632Cvt::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Cvt::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = cvt";
@@ -1661,6 +1741,8 @@ void InstX8632Cvt::dump(const Cfg *Func) const {
 }
 
 void InstX8632Icmp::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   Str << "\tcmp" << getWidthString(getSrc(0)->getType()) << "\t";
@@ -1690,12 +1772,16 @@ void InstX8632Icmp::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Icmp::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "cmp." << getSrc(0)->getType() << " ";
   dumpSources(Func);
 }
 
 void InstX8632Ucomiss::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   Str << "\tucomi" << TypeX8632Attributes[getSrc(0)->getType()].SdSsString
@@ -1719,12 +1805,16 @@ void InstX8632Ucomiss::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Ucomiss::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "ucomiss." << getSrc(0)->getType() << " ";
   dumpSources(Func);
 }
 
 void InstX8632UD2::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 0);
   Str << "\tud2";
@@ -1736,11 +1826,15 @@ void InstX8632UD2::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632UD2::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "ud2\n";
 }
 
 void InstX8632Test::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   Str << "\ttest" << getWidthString(getSrc(0)->getType()) << "\t";
@@ -1771,12 +1865,16 @@ void InstX8632Test::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Test::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "test." << getSrc(0)->getType() << " ";
   dumpSources(Func);
 }
 
 void InstX8632Mfence::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 0);
   Str << "\tmfence";
@@ -1788,11 +1886,15 @@ void InstX8632Mfence::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Mfence::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "mfence\n";
 }
 
 void InstX8632Store::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   Type Ty = getSrc(0)->getType();
@@ -1834,6 +1936,8 @@ void InstX8632Store::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Store::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "mov." << getSrc(0)->getType() << " ";
   getSrc(1)->dump(Func);
@@ -1842,6 +1946,8 @@ void InstX8632Store::dump(const Cfg *Func) const {
 }
 
 void InstX8632StoreP::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   Str << "\tmovups\t";
@@ -1862,6 +1968,8 @@ void InstX8632StoreP::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632StoreP::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "storep." << getSrc(0)->getType() << " ";
   getSrc(1)->dump(Func);
@@ -1870,6 +1978,8 @@ void InstX8632StoreP::dump(const Cfg *Func) const {
 }
 
 void InstX8632StoreQ::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   assert(getSrc(1)->getType() == IceType_i64 ||
@@ -1892,6 +2002,8 @@ void InstX8632StoreQ::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632StoreQ::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "storeq." << getSrc(0)->getType() << " ";
   getSrc(1)->dump(Func);
@@ -1900,6 +2012,8 @@ void InstX8632StoreQ::dump(const Cfg *Func) const {
 }
 
 template <> void InstX8632Lea::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   assert(getDest()->hasReg());
@@ -1918,6 +2032,8 @@ template <> void InstX8632Lea::emit(const Cfg *Func) const {
 }
 
 template <> void InstX8632Mov::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   Operand *Src = getSrc(0);
@@ -2046,6 +2162,8 @@ template <> void InstX8632Movd::emitIAS(const Cfg *Func) const {
 }
 
 template <> void InstX8632Movp::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   // TODO(wala,stichnot): movups works with all vector operands, but
   // there exist other instructions (movaps, movdqa, movdqu) that may
   // perform better, depending on the data type and alignment of the
@@ -2071,6 +2189,8 @@ template <> void InstX8632Movp::emitIAS(const Cfg *Func) const {
 }
 
 template <> void InstX8632Movq::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   assert(getDest()->getType() == IceType_i64 ||
@@ -2130,6 +2250,8 @@ template <> void InstX8632Movzx::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Nop::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   // TODO: Emit the right code for each variant.
   Str << "\tnop\t# variant = " << Variant;
@@ -2142,11 +2264,15 @@ void InstX8632Nop::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Nop::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "nop (variant = " << Variant << ")";
 }
 
 void InstX8632Fld::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   Type Ty = getSrc(0)->getType();
@@ -2200,12 +2326,16 @@ void InstX8632Fld::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Fld::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "fld." << getSrc(0)->getType() << " ";
   dumpSources(Func);
 }
 
 void InstX8632Fstp::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 0);
   // TODO(jvoung,stichnot): Utilize this by setting Dest to nullptr to
@@ -2269,6 +2399,8 @@ void InstX8632Fstp::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Fstp::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = fstp." << getDest()->getType() << ", st(0)";
@@ -2276,6 +2408,8 @@ void InstX8632Fstp::dump(const Cfg *Func) const {
 }
 
 template <> void InstX8632Pcmpeq::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "pcmpeq%s",
            TypeX8632Attributes[getDest()->getType()].PackString);
@@ -2283,6 +2417,8 @@ template <> void InstX8632Pcmpeq::emit(const Cfg *Func) const {
 }
 
 template <> void InstX8632Pcmpgt::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "pcmpgt%s",
            TypeX8632Attributes[getDest()->getType()].PackString);
@@ -2290,6 +2426,8 @@ template <> void InstX8632Pcmpgt::emit(const Cfg *Func) const {
 }
 
 template <> void InstX8632Pextr::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   // pextrb and pextrd are SSE4.1 instructions.
@@ -2334,6 +2472,8 @@ template <> void InstX8632Pextr::emitIAS(const Cfg *Func) const {
 }
 
 template <> void InstX8632Pinsr::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 3);
   // pinsrb and pinsrd are SSE4.1 instructions.
@@ -2407,6 +2547,8 @@ template <> void InstX8632Shufps::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Pop::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 0);
   Str << "\tpop\t";
@@ -2425,12 +2567,16 @@ void InstX8632Pop::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Pop::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = pop." << getDest()->getType() << " ";
 }
 
 void InstX8632AdjustStack::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\tsubl\t$" << Amount << ", %esp";
   Func->getTarget()->updateStackAdjustment(Amount);
@@ -2443,11 +2589,15 @@ void InstX8632AdjustStack::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632AdjustStack::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "esp = sub.i32 esp, " << Amount;
 }
 
 void InstX8632Push::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   // Push is currently only used for saving GPRs.
@@ -2467,12 +2617,16 @@ void InstX8632Push::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Push::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "push." << getSrc(0)->getType() << " ";
   dumpSources(Func);
 }
 
 template <> void InstX8632Psll::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   assert(getDest()->getType() == IceType_v8i16 ||
          getDest()->getType() == IceType_v8i1 ||
          getDest()->getType() == IceType_v4i32 ||
@@ -2484,6 +2638,8 @@ template <> void InstX8632Psll::emit(const Cfg *Func) const {
 }
 
 template <> void InstX8632Psra::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   assert(getDest()->getType() == IceType_v8i16 ||
          getDest()->getType() == IceType_v8i1 ||
          getDest()->getType() == IceType_v4i32 ||
@@ -2495,6 +2651,8 @@ template <> void InstX8632Psra::emit(const Cfg *Func) const {
 }
 
 void InstX8632Ret::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\tret";
 }
@@ -2505,6 +2663,8 @@ void InstX8632Ret::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Ret::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = (getSrcSize() == 0 ? IceType_void : getSrc(0)->getType());
   Str << "ret." << Ty << " ";
@@ -2512,6 +2672,8 @@ void InstX8632Ret::dump(const Cfg *Func) const {
 }
 
 void InstX8632Xadd::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   if (Locked) {
     Str << "\tlock";
@@ -2540,6 +2702,8 @@ void InstX8632Xadd::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Xadd::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   if (Locked) {
     Str << "lock ";
@@ -2550,6 +2714,8 @@ void InstX8632Xadd::dump(const Cfg *Func) const {
 }
 
 void InstX8632Xchg::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\txchg" << getWidthString(getSrc(0)->getType()) << "\t";
   getSrc(1)->emit(Func);
@@ -2572,6 +2738,8 @@ void InstX8632Xchg::emitIAS(const Cfg *Func) const {
 }
 
 void InstX8632Xchg::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = getSrc(0)->getType();
   Str << "xchg." << Ty << " ";
@@ -2579,6 +2747,8 @@ void InstX8632Xchg::dump(const Cfg *Func) const {
 }
 
 void OperandX8632Mem::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   if (SegmentReg != DefaultSegment) {
     assert(SegmentReg >= 0 && SegmentReg < SegReg_NUM);
@@ -2613,6 +2783,8 @@ void OperandX8632Mem::emit(const Cfg *Func) const {
 }
 
 void OperandX8632Mem::dump(const Cfg *Func, Ostream &Str) const {
+  if (!ALLOW_DUMP)
+    return;
   if (SegmentReg != DefaultSegment) {
     assert(SegmentReg >= 0 && SegmentReg < SegReg_NUM);
     Str << InstX8632SegmentRegNames[SegmentReg] << ":";
@@ -2712,6 +2884,8 @@ x86::Address VariableSplit::toAsmAddress(const Cfg *Func) const {
 }
 
 void VariableSplit::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(!Var->hasReg());
   // The following is copied/adapted from TargetX8632::emitVariable().
@@ -2725,6 +2899,8 @@ void VariableSplit::emit(const Cfg *Func) const {
 }
 
 void VariableSplit::dump(const Cfg *Func, Ostream &Str) const {
+  if (!ALLOW_DUMP)
+    return;
   switch (Part) {
   case Low:
     Str << "low";

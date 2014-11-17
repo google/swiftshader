@@ -2,7 +2,9 @@
 ; errors when malformed. Note: We can only test literal indexing since
 ; llvm-as will not allow other bad forms of these instructions.
 
-; RUN: llvm-as < %s | pnacl-freeze | not %llvm2ice -notranslate \
+; REQUIRES: allow_dump
+; RUN: llvm-as < %s | pnacl-freeze \
+; RUN:   | not %llvm2ice -notranslate -build-on-read \
 ; RUN:     -allow-pnacl-reader-error-recovery | FileCheck %s
 
 define void @ExtractV4xi1(<4 x i1> %v, i32 %i) {

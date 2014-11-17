@@ -838,8 +838,8 @@ protected:
 // Override the default ilist traits so that Inst's private ctor and
 // deleted dtor aren't invoked.
 template <>
-struct llvm::ilist_traits<Ice::Inst> : public llvm::ilist_default_traits<
-                                           Ice::Inst> {
+struct llvm::ilist_traits<Ice::Inst>
+    : public llvm::ilist_default_traits<Ice::Inst> {
   Ice::Inst *createSentinel() const {
     return static_cast<Ice::Inst *>(&Sentinel);
   }

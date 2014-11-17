@@ -87,11 +87,15 @@ private:
 };
 
 Ice::Ostream &operator<<(Ice::Ostream &Stream, const ExtendedType &Ty) {
+  if (!ALLOW_DUMP)
+    return Stream;
   Ty.dump(Stream);
   return Stream;
 }
 
 Ice::Ostream &operator<<(Ice::Ostream &Stream, ExtendedType::TypeKind Kind) {
+  if (!ALLOW_DUMP)
+    return Stream;
   Stream << "ExtendedType::";
   switch (Kind) {
   case ExtendedType::Undefined:
@@ -138,6 +142,8 @@ public:
 };
 
 void ExtendedType::dump(Ice::Ostream &Stream) const {
+  if (!ALLOW_DUMP)
+    return;
   Stream << Kind;
   switch (Kind) {
   case Simple: {
@@ -545,7 +551,13 @@ protected:
     std::string Buffer;
     raw_string_ostream StrBuf(Buffer);
     StrBuf << "(" << format("%" PRIu64 ":%u", (Bit / 8),
-                            static_cast<unsigned>(Bit % 8)) << ") " << Message;
+                            static_cast<unsigned>(Bit % 8)) << ") ";
+    // Note: If dump routines have been turned off, the error messages
+    // will not be readable. Hence, replace with simple error.
+    if (ALLOW_DUMP)
+      StrBuf << Message;
+    else
+      StrBuf << "Invalid input record";
     return Context->Error(StrBuf.str());
   }
 
@@ -1394,6 +1406,8 @@ private:
 
   void dumpVectorIndexCheckValue(raw_ostream &Stream,
                                  VectorIndexCheckValue Value) const {
+    if (!ALLOW_DUMP)
+      return;
     switch (Value) {
     default:
       report_fatal_error("Unknown VectorIndexCheckValue");

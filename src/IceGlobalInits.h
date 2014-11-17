@@ -61,6 +61,8 @@ public:
   /// Prints out the global declaration.
   virtual void dump(GlobalContext *Ctx, Ostream &Stream) const = 0;
   void dump(Ostream &Stream) const {
+    if (!ALLOW_DUMP)
+      return;
     GlobalContext *const Ctx = nullptr;
     dump(Ctx, Stream);
   }
@@ -149,7 +151,8 @@ public:
     virtual SizeT getNumBytes() const = 0;
     virtual void dump(GlobalContext *Ctx, Ostream &Stream) const = 0;
     void dump(Ostream &Stream) const {
-      dump(nullptr, Stream);
+      if (ALLOW_DUMP)
+        dump(nullptr, Stream);
     }
     virtual void dumpType(Ostream &Stream) const;
 

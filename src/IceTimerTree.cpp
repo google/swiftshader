@@ -127,6 +127,8 @@ typedef std::multimap<double, IceString> DumpMapType;
 
 // Dump the Map items in reverse order of their time contribution.
 void dumpHelper(Ostream &Str, const DumpMapType &Map, double TotalTime) {
+  if (!ALLOW_DUMP)
+    return;
   // TODO(stichnot): Use llvm::make_range with LLVM 3.5.
   for (auto I = Map.rbegin(), E = Map.rend(); I != E; ++I) {
     char buf[80];
@@ -142,6 +144,8 @@ void dumpHelper(Ostream &Str, const DumpMapType &Map, double TotalTime) {
 //   MaxVal=5     ==> "[%1lu] "
 //   MaxVal=9876  ==> "[%4lu] "
 void makePrintfFormatString(char *Buf, size_t BufLen, size_t MaxVal) {
+  if (!ALLOW_DUMP)
+    return;
   int NumDigits = 0;
   do {
     ++NumDigits;
@@ -153,6 +157,8 @@ void makePrintfFormatString(char *Buf, size_t BufLen, size_t MaxVal) {
 } // end of anonymous namespace
 
 void TimerStack::dump(Ostream &Str, bool DumpCumulative) {
+  if (!ALLOW_DUMP)
+    return;
   const bool UpdateCounts = true;
   update(UpdateCounts);
   double TotalTime = LastTimestamp - FirstTimestamp;

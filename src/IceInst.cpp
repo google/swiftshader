@@ -449,9 +449,17 @@ InstFakeUse::InstFakeUse(Cfg *Func, Variable *Src)
 InstFakeKill::InstFakeKill(Cfg *Func, const Inst *Linked)
     : InstHighLevel(Func, Inst::FakeKill, 0, NULL), Linked(Linked) {}
 
+Type InstCall::getReturnType() const {
+  if (Dest == NULL)
+    return IceType_void;
+  return Dest->getType();
+}
+
 // ======================== Dump routines ======================== //
 
 void Inst::dumpDecorated(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   if (!Func->getContext()->isVerbose(IceV_Deleted) &&
       (isDeleted() || isRedundantAssign()))
@@ -474,6 +482,8 @@ void Inst::dumpDecorated(const Cfg *Func) const {
 }
 
 void Inst::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " =~ ";
@@ -481,6 +491,8 @@ void Inst::dump(const Cfg *Func) const {
 }
 
 void Inst::dumpExtras(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   bool First = true;
   // Print "LIVEEND={a,b,c}" for all source operands whose live ranges
@@ -507,6 +519,8 @@ void Inst::dumpExtras(const Cfg *Func) const {
 }
 
 void Inst::dumpSources(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   for (SizeT I = 0; I < getSrcSize(); ++I) {
     if (I > 0)
@@ -516,6 +530,8 @@ void Inst::dumpSources(const Cfg *Func) const {
 }
 
 void Inst::emitSources(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   for (SizeT I = 0; I < getSrcSize(); ++I) {
     if (I > 0)
@@ -525,11 +541,15 @@ void Inst::emitSources(const Cfg *Func) const {
 }
 
 void Inst::dumpDest(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   if (getDest())
     getDest()->dump(Func);
 }
 
 void InstAlloca::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = alloca i8, i32 ";
@@ -539,6 +559,8 @@ void InstAlloca::dump(const Cfg *Func) const {
 }
 
 void InstArithmetic::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = " << InstArithmeticAttributes[getOp()].DisplayString << " "
@@ -547,6 +569,8 @@ void InstArithmetic::dump(const Cfg *Func) const {
 }
 
 void InstAssign::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = " << getDest()->getType() << " ";
@@ -554,6 +578,8 @@ void InstAssign::dump(const Cfg *Func) const {
 }
 
 void InstBr::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << "br ";
@@ -565,13 +591,9 @@ void InstBr::dump(const Cfg *Func) const {
   Str << "label %" << getTargetFalse()->getName();
 }
 
-Type InstCall::getReturnType() const {
-  if (Dest == NULL)
-    return IceType_void;
-  return Dest->getType();
-}
-
 void InstCall::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   if (getDest()) {
     dumpDest(Func);
@@ -595,6 +617,8 @@ void InstCall::dump(const Cfg *Func) const {
 }
 
 void InstCast::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = " << InstCastAttributes[getCastKind()].DisplayString << " "
@@ -604,6 +628,8 @@ void InstCast::dump(const Cfg *Func) const {
 }
 
 void InstIcmp::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = icmp " << InstIcmpAttributes[getCondition()].DisplayString << " "
@@ -612,6 +638,8 @@ void InstIcmp::dump(const Cfg *Func) const {
 }
 
 void InstExtractElement::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = extractelement ";
@@ -623,6 +651,8 @@ void InstExtractElement::dump(const Cfg *Func) const {
 }
 
 void InstInsertElement::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = insertelement ";
@@ -637,6 +667,8 @@ void InstInsertElement::dump(const Cfg *Func) const {
 }
 
 void InstFcmp::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = fcmp " << InstFcmpAttributes[getCondition()].DisplayString << " "
@@ -645,6 +677,8 @@ void InstFcmp::dump(const Cfg *Func) const {
 }
 
 void InstLoad::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Type Ty = getDest()->getType();
@@ -654,6 +688,8 @@ void InstLoad::dump(const Cfg *Func) const {
 }
 
 void InstStore::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = getData()->getType();
   Str << "store " << Ty << " ";
@@ -664,6 +700,8 @@ void InstStore::dump(const Cfg *Func) const {
 }
 
 void InstSwitch::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = getComparison()->getType();
   Str << "switch " << Ty << " ";
@@ -677,6 +715,8 @@ void InstSwitch::dump(const Cfg *Func) const {
 }
 
 void InstPhi::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = phi " << getDest()->getType() << " ";
@@ -690,6 +730,8 @@ void InstPhi::dump(const Cfg *Func) const {
 }
 
 void InstRet::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = hasRetValue() ? getRetValue()->getType() : IceType_void;
   Str << "ret " << Ty;
@@ -700,6 +742,8 @@ void InstRet::dump(const Cfg *Func) const {
 }
 
 void InstSelect::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Operand *Condition = getCondition();
@@ -714,11 +758,15 @@ void InstSelect::dump(const Cfg *Func) const {
 }
 
 void InstUnreachable::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "unreachable";
 }
 
 void InstFakeDef::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   // Go ahead and "emit" these for now, since they are relatively
   // rare.
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -729,6 +777,8 @@ void InstFakeDef::emit(const Cfg *Func) const {
 }
 
 void InstFakeDef::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = def.pseudo ";
@@ -738,6 +788,8 @@ void InstFakeDef::dump(const Cfg *Func) const {
 void InstFakeUse::emit(const Cfg *Func) const { (void)Func; }
 
 void InstFakeUse::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "use.pseudo ";
   dumpSources(Func);
@@ -746,6 +798,8 @@ void InstFakeUse::dump(const Cfg *Func) const {
 void InstFakeKill::emit(const Cfg *Func) const { (void)Func; }
 
 void InstFakeKill::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   if (Linked->isDeleted())
     Str << "// ";
@@ -753,6 +807,8 @@ void InstFakeKill::dump(const Cfg *Func) const {
 }
 
 void InstTarget::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "[TARGET] ";
   Inst::dump(Func);

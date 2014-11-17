@@ -1,5 +1,7 @@
 ; This is a smoke test of nop insertion.
 
+; REQUIRES: allow_dump
+
 ; Don't use integrated-as because this currently depends on the # variant
 ; assembler comment.
 ; RUN: %p2i -i %s -a -rng-seed=1 -nop-insertion -nop-insertion-percentage=50 \
