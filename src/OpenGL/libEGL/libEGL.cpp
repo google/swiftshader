@@ -178,6 +178,11 @@ const char *EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name)
 
     try
     {
+        if(dpy == EGL_NO_DISPLAY && name == EGL_EXTENSIONS)
+        {
+            return success("EGL_EXT_client_extensions");
+        }
+
         egl::Display *display = static_cast<egl::Display*>(dpy);
 
         if(!validateDisplay(display))
