@@ -31,23 +31,21 @@ DisplayMap displays;
 
 egl::Display *Display::getDisplay(EGLNativeDisplayType displayId)
 {
+    if(displayId == EGL_DEFAULT_DISPLAY)
+    {
+        #if defined(__unix__)
+            displayId = XOpenDisplay(NULL);
+        #endif
+    }
+
     if(displays.find(displayId) != displays.end())
     {
         return displays[displayId];
     }
 
-    egl::Display *display = NULL;
+    // FIXME: Check if displayId is a valid display device context
 
-    if(displayId == EGL_DEFAULT_DISPLAY)
-    {
-        display = new egl::Display(displayId);
-    }
-    else
-    {
-        // FIXME: Check if displayId is a valid display device context
-
-        display = new egl::Display(displayId);
-    }
+    egl::Display *display = new egl::Display(displayId);
 
     displays[displayId] = display;
     return display;
@@ -98,7 +96,7 @@ bool Display::initialize()
 
 	if(!detectSSE())
 	{
-		 return false;
+        return false;
 	}
 		
     mMinSwapInterval = 0;
