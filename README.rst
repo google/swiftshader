@@ -4,38 +4,64 @@ Subzero - Fast code generator for PNaCl bitcode
 Building
 --------
 
-You must have LLVM trunk source code available and built.  See
-http://llvm.org/docs/GettingStarted.html#getting-started-quickly-a-summary for
-guidance.
+Subzero is set up to be built within the Native Client tree.  Follow the
+`Developing PNaCl
+<https://sites.google.com/a/chromium.org/dev/nativeclient/pnacl/developing-pnacl>`_
+instructions, in particular the section on building PNaCl sources.  This will
+prepare the necessary external headers and libraries that Subzero needs.
+Checking out the Native Client project also gets the pre-built clang and LLVM
+tools in ``native_client/../third_party/llvm-build/Release+Asserts/bin`` which
+are used for building Subzero.
 
-Set variables ``LLVM_SRC_PATH`` and ``LLVM_BIN_PATH`` to point to the
-appropriate directories in the LLVM source and build directories.  These can be
-set as environment variables, or you can modify the top-level Makefile.
+The Subzero source is in ``native_client/toolchain_build/src/subzero``.  From
+within that directory, ``git checkout master && git pull`` to get the latest
+version of Subzero source code.
 
-Run ``make`` at the top level to build the main target ``llvm2ice``.
+The Makefile is designed to be used as part of the higher level LLVM build
+system.  To build manually, use the ``Makefile.standalone``.  There are several
+build configurations from the command line::
+
+    make -f Makefile.standalone
+    make -f Makefile.standalone DEBUG=1
+    make -f Makefile.standalone NOASSERT=1
+    make -f Makefile.standalone DEBUG=1 NOASSERT=1
+    make -f Makefile.standalone MINIMAL=1
+
+``DEBUG=1`` builds without optimizations and is good when running the translator
+inside a debugger.  ``NOASSERT=1`` disables assertions and is the preferred
+configuration for performance testing the translator.  ``MINIMAL=1`` attempts to
+minimize the size of the translator by compiling out everything unnecessary.
+
+The result of the ``make`` command is the target ``llvm2ice`` in the current
+directory.
 
 ``llvm2ice``
 ------------
 
-The ``llvm2ice`` program uses the LLVM infrastructure to parse an LLVM bitcode
-file and translate it into ICE.  It then invokes ICE's translate method to lower
-it to target-specific machine code, dumping the IR at various stages of the
-translation.
+The ``llvm2ice`` program parses a pexe or an LLVM bitcode file and translates it
+into ICE (Subzero's intermediate representation).  It then invokes the ICE
+translate method to lower it to target-specific machine code, optionally dumping
+the intermediate representation at various stages of the translation.
 
 The program can be run as follows::
 
-    ../llvm2ice ./ir_samples/<file>.ll
+    ../llvm2ice ./path/to/<file>.pexe
     ../llvm2ice ./tests_lit/llvm2ice_tests/<file>.ll
 
-At this time, ``llvm2ice`` accepts a few arguments:
+At this time, ``llvm2ice`` accepts a number of arguments, including the
+following:
 
-    ``-help`` -- Show available arguments and possible values.
+    ``-help`` -- Show available arguments and possible values.  (Note: this
+    unfortunately also pulls in some LLVM-specific options that are reported but
+    that Subzero doesn't use.)
 
     ``-notranslate`` -- Suppress the ICE translation phase, which is useful if
     ICE is missing some support.
 
     ``-target=<TARGET>`` -- Set the target architecture.  The default is x8632.
     Future targets include x8664, arm32, and arm64.
+
+    ``-integrated-as=0|1`` -- Disable/enable the integrated assembler.
 
     ``-O<LEVEL>`` -- Set the optimization level.  Valid levels are ``2``, ``1``,
     ``0``, ``-1``, and ``m1``.  Levels ``-1`` and ``m1`` are synonyms, and
@@ -52,29 +78,94 @@ At this time, ``llvm2ice`` accepts a few arguments:
     ``-log <FILE>`` -- Set the file name for diagnostic output (whose level is
     controlled by ``-verbose``).  Default is stdout.
 
-See ir_samples/README.rst for more details.
+    ``-timing`` -- Dump some pass timing information after translating the input
+    file.
 
 Running the test suite
 ----------------------
 
-Subzero uses the LLVM ``lit`` testing tool for its test suite, which lives in
-``tests_lit``. To execute the test suite, first build Subzero, and then run::
+Subzero uses the LLVM ``lit`` testing tool for part of its test suite, which
+lives in ``tests_lit``. To execute the test suite, first build Subzero, and then
+run::
 
-    python <path_to_lit.py> -sv tests_lit
+    make -f Makefile.standalone check-lit
 
-``path_to_lit`` is the direct path to the lit script in the LLVM source
-(``$LLVM_SRC_PATH/utils/lit/lit.py``).
+There is also a suite of cross tests in the ``crosstest`` directory.  A cross
+test takes a test bitcode file implementing some unit tests, and translates it
+twice, once with Subzero and once with LLVM's known-good ``llc`` translator.
+The Subzero-translated symbols are specially mangled to avoid multiple
+definition errors from the linker.  Both translated versions are linked together
+with a driver program that calls each version of each unit test with a variety
+of interesting inputs and compares the results for equality.  The cross tests
+are currently invoked by running the ``runtests.sh`` script.
 
-The above ``lit`` execution also needs the LLVM binary path in the
-``LLVM_BIN_PATH`` env var.
+A convenient way to run both the lit tests and the cross tests is::
 
-Assuming the LLVM paths are set up, ``make check`` is a convenient way to run
-the test suite.
+    make -f Makefile.standalone check
 
 Assembling ``llvm2ice`` output
 ------------------------------
 
 Currently ``llvm2ice`` produces textual assembly code in a structure suitable
-for input to ``llvm-mc`` and currently using "intel" assembly syntax.  The first
-line of output is a convenient comment indicating how to pipe the output to
-``llvm-mc`` to produce object code.
+for input to ``llvm-mc``.  An object file can be produced using the command::
+
+    llvm-mc -arch=x86 -filetype=obj -o=MyObj.o
+
+In the future, the integrated assembler will directly produce ELF object files.
+
+Building a translated binary
+----------------------------
+
+There is a helper script, ``pydir/szbuild.py``, that translates a finalized pexe
+into a fully linked executable.  Run it with ``-help`` for extensive
+documentation.
+
+By default, ``szbuild.py`` builds an executable using only Subzero translation,
+but it can also be used to produce hybrid Subzero/``llc`` binaries (``llc`` is
+the name of the LLVM translator) for bisection-based debugging.  In bisection
+debugging mode, the pexe is translated using both Subzero and ``llc``, and the
+resulting object files are combined into a single executable using symbol
+weakening and other linker tricks to control which Subzero symbols and which
+``llc`` symbols take precedence.  This is controlled by the ``-include`` and
+``-exclude`` arguments.  These can be used to rapidly find a single function
+that Subzero translates incorrectly leading to incorrect output.
+
+There is another helper script, ``pydir/szbuild_spec2k.py``, that runs
+``szbuild.py`` on one or more components of the Spec2K suite.  This assumes that
+Spec2K is set up in the usual place in the Native Client tree, and the finalized
+pexe files have been built.  (Note: for working with Spec2K and other pexes,
+it's helpful to finalize the pexe using ``--no-strip-syms``, to preserve the
+original function and global variable names.)
+
+Status
+------
+
+Subzero currently translates only for the x86-32 architecture.  Native Client
+sandboxing is not yet implemented.  Two optimization levels, ``-Om1`` and
+``-O2``, are implemented.
+
+The ``-Om1`` configuration is designed to be the simplest and fastest possible,
+with a minimal set of passes and transformations.
+
+* Simple Phi lowering before target lowering, by generating temporaries and
+  adding assignments to the end of predecessor blocks.
+
+* Simple register allocation limited to pre-colored and infinite-weight
+  Variables.
+
+The ``-O2`` configuration is designed to use all optimizations available and
+produce the best code.
+
+* Address mode inference to leverage the complex x86 addressing modes.
+
+* Compare/branch fusing based on liveness/last-use analysis.
+
+* Global, linear-scan register allocation.
+
+* Advanced phi lowering after target lowering and global register allocation,
+  via edge splitting, topological sorting of the parallel moves, and final local
+  register allocation.
+
+* Stack slot coalescing to reduce frame size.
+
+* Branch optimization to reduce the number of branches to the following block.
