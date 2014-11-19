@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bab7934b_10278454",
+        "filename": "src/Radiance/compiler/OutputASM.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1737,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-19T18:56:55Z",
+      "side": 1,
+      "message": "Could you check what other qualifiers these operands can have? I don\u0027t quite remember why this extra test was here. That will probably reveal an important distinction which we can reflect in this function name so we also avoid the name clash and confusion.",
+      "range": {
+        "startLine": 1737,
+        "startChar": 50,
+        "endLine": 1737,
+        "endChar": 130
+      },
+      "revId": "bec08d96fdcf367be6cd418300f33171f87e12d6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
