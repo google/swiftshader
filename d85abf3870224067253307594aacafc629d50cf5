@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a69ef76_dbedb351",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-19T15:25:33Z",
+      "side": 1,
+      "message": "Needs a hard break. Unfortunately Gerrit and many other tools don\u0027t wrap the commit message.",
+      "range": {
+        "startLine": 9,
+        "startChar": 95,
+        "endLine": 9,
+        "endChar": 101
+      },
+      "revId": "d85abf3870224067253307594aacafc629d50cf5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
