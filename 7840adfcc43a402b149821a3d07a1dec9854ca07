@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bab7934b_50ef4c92",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-19T18:50:18Z",
+      "side": 1,
+      "message": "I think the issue might be that \u0027cond\u0027 gets evaluated here, before beginLoop() gets called to create the header where the test should actually take place.",
+      "range": {
+        "startLine": 47,
+        "startChar": 20,
+        "endLine": 47,
+        "endChar": 24
+      },
+      "revId": "7840adfcc43a402b149821a3d07a1dec9854ca07",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
