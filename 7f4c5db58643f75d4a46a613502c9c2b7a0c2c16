@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a69ef76_bb1a3fd7",
+        "filename": "src/OpenGL/compiler/debug.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-19T15:23:10Z",
+      "side": 1,
+      "message": "The shader compiler\u0027s debug macros output to the compiler context, which gets appended to the compilation log. That way an application developer can see that a shader failed to compile because of an internal error instead of a syntax/semantic error. The \u0027common\u0027 debug macros output only to a file (when not sandboxed).",
+      "range": {
+        "startLine": 13,
+        "startChar": 10,
+        "endLine": 13,
+        "endChar": 24
+      },
+      "revId": "7f4c5db58643f75d4a46a613502c9c2b7a0c2c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
