@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a69ef76_dbaa9319",
+        "filename": "src/Common/Math.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-19T15:14:02Z",
+      "side": 1,
+      "message": "This wouldn\u0027t behave as expected (a smooth function).",
+      "range": {
+        "startLine": 114,
+        "startChar": 2,
+        "endLine": 114,
+        "endChar": 54
+      },
+      "revId": "c78e71504d251a176127ea4c45e99007fb740e9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a69ef76_db9133df",
+        "filename": "src/Main/crc.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-19T15:14:02Z",
+      "side": 1,
+      "message": "Please also rename this file to crc.cpp. I encountered an issue on Linux with compiler flags that are not accepted for .c files.",
+      "range": {
+        "startLine": 3,
+        "startChar": 16,
+        "endLine": 3,
+        "endChar": 21
+      },
+      "revId": "c78e71504d251a176127ea4c45e99007fb740e9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a69ef76_1b134bca",
+        "filename": "src/Main/crc.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-19T15:14:02Z",
+      "side": 1,
+      "message": "No need to comment what it\u0027s for.",
+      "range": {
+        "startLine": 19,
+        "startChar": 17,
+        "endLine": 19,
+        "endChar": 31
+      },
+      "revId": "c78e71504d251a176127ea4c45e99007fb740e9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a69ef76_7b06078d",
+        "filename": "src/Main/crc.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-19T15:14:02Z",
+      "side": 1,
+      "message": "stddef.h seems more appropriate.",
+      "range": {
+        "startLine": 19,
+        "startChar": 10,
+        "endLine": 19,
+        "endChar": 16
+      },
+      "revId": "c78e71504d251a176127ea4c45e99007fb740e9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
