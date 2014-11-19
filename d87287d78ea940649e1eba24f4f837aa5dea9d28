@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a69ef76_db729386",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-19T14:58:03Z",
+      "side": 1,
+      "message": "Please make this more descriptive. If one short sentence doesn\u0027t suffice, use a summary line on top and a detailed description in a paragraph below it (separated by a blank line).",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 30
+      },
+      "revId": "d87287d78ea940649e1eba24f4f837aa5dea9d28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a69ef76_bb58fff8",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1771,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-19T14:58:03Z",
+      "side": 1,
+      "message": "Let\u0027s move this outside of the switch statement, so we get separation of concerns.",
+      "range": {
+        "startLine": 1767,
+        "startChar": 31,
+        "endLine": 1771,
+        "endChar": 35
+      },
+      "revId": "d87287d78ea940649e1eba24f4f837aa5dea9d28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a69ef76_9bddfbea",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1773,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-19T14:58:03Z",
+      "side": 1,
+      "message": "This doesn\u0027t have to be treated as a flag. It only has to check that the same register is written, or none was written before.",
+      "range": {
+        "startLine": 1773,
+        "startChar": 31,
+        "endLine": 1773,
+        "endChar": 59
+      },
+      "revId": "d87287d78ea940649e1eba24f4f837aa5dea9d28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a69ef76_9b2f3b2f",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-19T14:58:03Z",
+      "side": 1,
+      "message": "You could reuse TQualifier for this instead.",
+      "range": {
+        "startLine": 98,
+        "startChar": 2,
+        "endLine": 103,
+        "endChar": 4
+      },
+      "revId": "d87287d78ea940649e1eba24f4f837aa5dea9d28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a69ef76_1bdb4bfb",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-19T14:58:03Z",
+      "side": 1,
+      "message": "This isn\u0027t a very descriptive name, and it doesn\u0027t have to be treated as a bitfield. We just need to know the last used frag output register.",
+      "range": {
+        "startLine": 173,
+        "startChar": 2,
+        "endLine": 173,
+        "endChar": 18
+      },
+      "revId": "d87287d78ea940649e1eba24f4f837aa5dea9d28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
