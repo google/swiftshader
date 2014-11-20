@@ -113,7 +113,7 @@ namespace sh
 		void emitCmp(sw::Shader::Control cmpOp, TIntermTyped *dst, TIntermNode *left, TIntermNode *right, int index = 0);
 		void argument(sw::Shader::SourceParameter &parameter, TIntermNode *argument, int index = 0);
 		void copy(TIntermTyped *dst, TIntermNode *src, int offset = 0);
-		void assignLvalue(TIntermTyped *dst, TIntermNode *src);
+		void assignLvalue(TIntermTyped *dst, TIntermTyped *src);
 		int lvalue(sw::Shader::DestinationParameter &dst, Temporary &address, TIntermTyped *node);
 		sw::Shader::ParameterType registerType(TIntermTyped *operand);
 		int registerIndex(TIntermTyped *operand);

@@ -1432,7 +1432,7 @@ namespace sh
 			TIntermTyped *arg = argument->getAsTyped();
 			const TType &type = arg->getType();
 			const TTypeList *structure = type.getStruct();
-			ASSERT(index < arg->totalRegisterCount());
+			index = (index >= arg->totalRegisterCount()) ? arg->totalRegisterCount() - 1 : index;
 
 			int size = registerSize(type, index);
 
@@ -1522,8 +1522,15 @@ namespace sh
 		       (swizzleElement(leftSwizzle, swizzleElement(rightSwizzle, 3)) << 6);
 	}
 
-	void OutputASM::assignLvalue(TIntermTyped *dst, TIntermNode *src)
+	void OutputASM::assignLvalue(TIntermTyped *dst, TIntermTyped *src)
 	{
+		if(src &&
+			((src->isVector() && (!dst->isVector() || (dst->getNominalSize() != dst->getNominalSize()))) ||
+			 (src->isMatrix() && (!dst->isMatrix() || (src->getNominalSize() != dst->getNominalSize())))))
+		{
+			return mContext.error(src->getLine(), "Result type should match the l-value type in compound assignment", src->isVector() ? "vector" : "matrix");
+		}
+
 		TIntermBinary *binary = dst->getAsBinaryNode();
 
 		if(binary && binary->getOp() == EOpIndexIndirect && dst->isScalar())
