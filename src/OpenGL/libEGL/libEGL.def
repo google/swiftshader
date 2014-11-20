@@ -38,6 +38,9 @@ EXPORTS
 	; Extensions
 	eglCreateImageKHR
 	eglDestroyImageKHR
+	eglGetPlatformDisplayEXT
+    eglCreatePlatformWindowSurfaceEXT
+    eglCreatePlatformPixmapSurfaceEXT
 
 	; Functions that don't change the error code, for use by client APIs
 	clientGetCurrentContext

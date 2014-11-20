@@ -105,7 +105,7 @@ EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id)
 
     try
     {
-        return egl::Display::getDisplay(display_id);
+        return egl::Display::getPlatformDisplay(EGL_UNKNOWN, display_id);
     }
     catch(std::bad_alloc&)
     {
@@ -180,7 +180,10 @@ const char *EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name)
     {
         if(dpy == EGL_NO_DISPLAY && name == EGL_EXTENSIONS)
         {
-            return success("EGL_EXT_client_extensions");
+            return success("EGL_KHR_platform_gbm "
+                           "EGL_KHR_platform_x11 "
+                           "EGL_EXT_client_extensions "
+                           "EGL_EXT_platform_base");
         }
 
         egl::Display *display = static_cast<egl::Display*>(dpy);
@@ -1191,6 +1194,32 @@ EGLBoolean EGLAPIENTRY eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
     return EGL_FALSE;
 }
 
+EGLDisplay EGLAPIENTRY eglGetPlatformDisplayEXT(EGLenum platform, void *native_display, const EGLint *attrib_list)
+{
+    TRACE("(EGLenum platform = 0x%X, void *native_display = 0x%0.8p, const EGLint *attrib_list = 0x%0.8p)", platform, native_display, attrib_list);
+
+    try
+    {
+        return egl::Display::getPlatformDisplay(platform, (EGLNativeDisplayType)native_display);
+    }
+    catch(std::bad_alloc&)
+    {
+        return error(EGL_BAD_ALLOC, EGL_NO_DISPLAY);
+    }
+
+    return EGL_NO_DISPLAY;
+}
+
+EGLSurface EGLAPIENTRY eglCreatePlatformWindowSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLint *attrib_list)
+{
+    return eglCreateWindowSurface(dpy, config, (EGLNativeWindowType)native_window, attrib_list);
+}
+
+EGLSurface EGLAPIENTRY eglCreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_pixmap, const EGLint *attrib_list)
+{
+    return eglCreatePixmapSurface(dpy, config, (EGLNativePixmapType)native_pixmap, attrib_list);
+}
+
 __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const char *procname)
 {
     TRACE("(const char *procname = \"%s\")", procname);
@@ -1209,6 +1238,9 @@ __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const cha
 
 			EXTENSION(eglCreateImageKHR),
 			EXTENSION(eglDestroyImageKHR),
+            EXTENSION(eglGetPlatformDisplayEXT),
+            EXTENSION(eglCreatePlatformWindowSurfaceEXT),
+            EXTENSION(eglCreatePlatformPixmapSurfaceEXT),
 
 			#undef EXTENSION
 		};

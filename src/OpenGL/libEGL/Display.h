@@ -30,7 +30,7 @@ namespace egl
 	public:
 		~Display();
 
-		static egl::Display *getDisplay(EGLNativeDisplayType displayId);
+		static egl::Display *getPlatformDisplay(EGLenum platform, EGLNativeDisplayType displayId);
 
 		bool initialize();
 		void terminate();
@@ -59,10 +59,11 @@ namespace egl
 		const char *getExtensionString() const;
 
 	private:
-		Display(EGLNativeDisplayType displayId);
+		Display(EGLenum platform, EGLNativeDisplayType displayId);
 
 		DisplayMode getDisplayMode() const;
 
+        const EGLenum platform;
 		const EGLNativeDisplayType displayId;
 
 		EGLint mMaxSwapInterval;

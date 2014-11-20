@@ -29,13 +29,29 @@ namespace egl
 typedef std::map<EGLNativeDisplayType, Display*> DisplayMap; 
 DisplayMap displays;
 
-egl::Display *Display::getDisplay(EGLNativeDisplayType displayId)
+egl::Display *Display::getPlatformDisplay(EGLenum platform, EGLNativeDisplayType displayId)
 {
-    if(displayId == EGL_DEFAULT_DISPLAY)
+    if(platform == EGL_UNKNOWN)   // Default
     {
         #if defined(__unix__)
-            displayId = XOpenDisplay(NULL);
+            platform = EGL_PLATFORM_X11_EXT;
         #endif
+    }
+
+    if(displayId == EGL_DEFAULT_DISPLAY)
+    {
+        if(platform == EGL_PLATFORM_X11_EXT)
+        {
+            #if defined(__unix__)
+                displayId = XOpenDisplay(NULL);
+            #else
+                return error(EGL_BAD_PARAMETER, (egl::Display*)EGL_NO_DISPLAY);
+            #endif
+        }
+    }
+    else
+    {
+        // FIXME: Check if displayId is a valid display device context for <platform>
     }
 
     if(displays.find(displayId) != displays.end())
@@ -43,15 +59,13 @@ egl::Display *Display::getDisplay(EGLNativeDisplayType displayId)
         return displays[displayId];
     }
 
-    // FIXME: Check if displayId is a valid display device context
-
-    egl::Display *display = new egl::Display(displayId);
+    egl::Display *display = new egl::Display(platform, displayId);
 
     displays[displayId] = display;
     return display;
 }
 
-Display::Display(EGLNativeDisplayType displayId) : displayId(displayId)
+Display::Display(EGLenum platform, EGLNativeDisplayType displayId) : platform(platform), displayId(displayId)
 {
     mMinSwapInterval = 1;
     mMaxSwapInterval = 1;
@@ -449,14 +463,19 @@ bool Display::isValidSurface(egl::Surface *surface)
 
 bool Display::isValidWindow(EGLNativeWindowType window)
 {
-	#if defined(_WIN32)
-		return IsWindow(window) == TRUE;
-	#else
-		XWindowAttributes windowAttributes;
-		Status status = XGetWindowAttributes(displayId, window, &windowAttributes);
-			
-		return status == True;
+    #if defined(_WIN32)
+        return IsWindow(window) == TRUE;
+    #else
+        if(platform == EGL_PLATFORM_X11_EXT)
+        {
+            XWindowAttributes windowAttributes;
+            Status status = XGetWindowAttributes(displayId, window, &windowAttributes);
+
+            return status == True;
+        }
 	#endif
+
+    return false;
 }
 
 bool Display::hasExistingWindowSurface(EGLNativeWindowType window)
@@ -509,19 +528,29 @@ DisplayMode Display::getDisplayMode() const
 	
 		ReleaseDC(0, deviceContext);
 	#else
-		Screen *screen = XDefaultScreenOfDisplay(displayId);
-		displayMode.width = XWidthOfScreen(screen);
-		displayMode.height = XHeightOfScreen(screen);
-		unsigned int bpp = XPlanesOfScreen(screen);
+        if(platform == EGL_PLATFORM_X11_EXT)
+        {
+            Screen *screen = XDefaultScreenOfDisplay(displayId);
+            displayMode.width = XWidthOfScreen(screen);
+            displayMode.height = XHeightOfScreen(screen);
+            unsigned int bpp = XPlanesOfScreen(screen);
 
-		switch(bpp)
-		{
-		case 32: displayMode.format = sw::FORMAT_X8R8G8B8; break;
-		case 24: displayMode.format = sw::FORMAT_R8G8B8;   break;
-		case 16: displayMode.format = sw::FORMAT_R5G6B5;   break;
-		default:
-			ASSERT(false);   // Unexpected display mode color depth
-		}
+            switch(bpp)
+            {
+            case 32: displayMode.format = sw::FORMAT_X8R8G8B8; break;
+            case 24: displayMode.format = sw::FORMAT_R8G8B8;   break;
+            case 16: displayMode.format = sw::FORMAT_R5G6B5;   break;
+            default:
+                ASSERT(false);   // Unexpected display mode color depth
+            }
+        }
+        else if(platform == EGL_PLATFORM_GBM_MESA)
+        {
+            displayMode.width = 0;
+            displayMode.height = 0;
+            displayMode.format = sw::FORMAT_X8R8G8B8;
+        }
+        else UNREACHABLE();
 	#endif
 
 	return displayMode;
