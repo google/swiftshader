@@ -121,8 +121,6 @@ bool TCompiler::compile(const char* const shaderStrings[],
             success = translate(root);
     }
 
-    // Cleanup memory.
-    intermediate.remove(parseContext.treeRoot);
     // Ensure symbol table is returned to the built-in level,
     // throwing away all but the built-ins.
     while (!symbolTable.atBuiltInLevel())

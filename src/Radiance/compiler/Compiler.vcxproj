@@ -123,7 +123,6 @@
     <ClCompile Include="parseConst.cpp" />
     <ClCompile Include="ParseHelper.cpp" />
     <ClCompile Include="PoolAlloc.cpp" />
-    <ClCompile Include="RemoveTree.cpp" />
     <ClCompile Include="ShaderLang.cpp" />
     <ClCompile Include="SymbolTable.cpp" />
     <ClCompile Include="TranslatorASM.cpp" />
@@ -192,7 +191,6 @@
     <ClInclude Include="ParseHelper.h" />
     <ClInclude Include="PoolAlloc.h" />
     <ClInclude Include="Pragma.h" />
-    <ClInclude Include="RemoveTree.h" />
     <ClInclude Include="ShHandle.h" />
     <ClInclude Include="SymbolTable.h" />
     <ClInclude Include="TranslatorASM.h" />

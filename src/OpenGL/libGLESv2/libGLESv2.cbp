@@ -272,8 +272,6 @@
 		<Unit filename="../compiler/PoolAlloc.cpp" />
 		<Unit filename="../compiler/PoolAlloc.h" />
 		<Unit filename="../compiler/Pragma.h" />
-		<Unit filename="../compiler/RemoveTree.cpp" />
-		<Unit filename="../compiler/RemoveTree.h" />
 		<Unit filename="../compiler/ShHandle.h" />
 		<Unit filename="../compiler/ShaderLang.cpp" />
 		<Unit filename="../compiler/SymbolTable.cpp" />
