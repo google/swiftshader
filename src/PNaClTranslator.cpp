@@ -325,8 +325,8 @@ public:
       SuppressMangling = false;
     }
     const Ice::RelocOffsetT Offset = 0;
-    C = getTranslator().getContext()->getConstantSym(
-        getIcePointerType(), Offset, Name, SuppressMangling);
+    C = getTranslator().getContext()->getConstantSym(Offset, Name,
+                                                     SuppressMangling);
     ValueIDConstants[ID] = C;
     return C;
   }
@@ -1440,7 +1440,7 @@ private:
     const auto *C = dyn_cast<Ice::ConstantInteger32>(Index);
     if (C == nullptr)
       return VectorIndexNotConstant;
-    if (C->getValue() >= typeNumElements(VecType))
+    if (static_cast<size_t>(C->getValue()) >= typeNumElements(VecType))
       return VectorIndexNotInRange;
     if (Index->getType() != Ice::IceType_i32)
       return VectorIndexNotI32;
@@ -2496,16 +2496,14 @@ void ConstantsParser::ProcessRecord() {
       FuncParser->setNextConstantID(nullptr);
       return;
     }
-    if (IntegerType *IType = dyn_cast<IntegerType>(
+    if (auto IType = dyn_cast<IntegerType>(
             Context->convertToLLVMType(NextConstantType))) {
       APInt Value(IType->getBitWidth(), NaClDecodeSignRotatedValue(Values[0]));
-      Ice::Constant *C = (NextConstantType == Ice::IceType_i64)
-                             ? getContext()->getConstantInt64(
-                                   NextConstantType, Value.getSExtValue())
-                             : getContext()->getConstantInt32(
-                                   NextConstantType, Value.getSExtValue());
-      FuncParser->setNextConstantID(C);
-      return;
+      if (Ice::Constant *C = getContext()->getConstantInt(
+              NextConstantType, Value.getSExtValue())) {
+        FuncParser->setNextConstantID(C);
+        return;
+      }
     }
     std::string Buffer;
     raw_string_ostream StrBuf(Buffer);

@@ -113,14 +113,17 @@ public:
   // Manage Constants.
   // getConstant*() functions are not const because they might add
   // something to the constant pool.
-  Constant *getConstantInt32(Type Ty, uint32_t ConstantInt32);
-  Constant *getConstantInt64(Type Ty, uint64_t ConstantInt64);
+  Constant *getConstantInt(Type Ty, int64_t Value);
+  Constant *getConstantInt1(int8_t ConstantInt1);
+  Constant *getConstantInt8(int8_t ConstantInt8);
+  Constant *getConstantInt16(int16_t ConstantInt16);
+  Constant *getConstantInt32(int32_t ConstantInt32);
+  Constant *getConstantInt64(int64_t ConstantInt64);
   Constant *getConstantFloat(float Value);
   Constant *getConstantDouble(double Value);
   // Returns a symbolic constant.
-  Constant *getConstantSym(Type Ty, RelocOffsetT Offset,
-                           const IceString &Name = "",
-                           bool SuppressMangling = false);
+  Constant *getConstantSym(RelocOffsetT Offset, const IceString &Name,
+                           bool SuppressMangling);
   // Returns an undef.
   Constant *getConstantUndef(Type Ty);
   // Returns a zero value.

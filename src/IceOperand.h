@@ -169,8 +169,8 @@ private:
   const T Value;
 };
 
-typedef ConstantPrimitive<uint32_t, Operand::kConstInteger32> ConstantInteger32;
-typedef ConstantPrimitive<uint64_t, Operand::kConstInteger64> ConstantInteger64;
+typedef ConstantPrimitive<int32_t, Operand::kConstInteger32> ConstantInteger32;
+typedef ConstantPrimitive<int64_t, Operand::kConstInteger64> ConstantInteger64;
 typedef ConstantPrimitive<float, Operand::kConstFloat> ConstantFloat;
 typedef ConstantPrimitive<double, Operand::kConstDouble> ConstantDouble;
 
@@ -195,20 +195,20 @@ template <> inline void ConstantInteger64::dump(const Cfg *, Ostream &Str) const
 // ConstantRelocatable can fit into the global constant pool
 // template mechanism.
 class RelocatableTuple {
-  // RelocatableTuple(const RelocatableTuple &) = delete;
   RelocatableTuple &operator=(const RelocatableTuple &) = delete;
 
 public:
   RelocatableTuple(const RelocOffsetT Offset, const IceString &Name,
                    bool SuppressMangling)
       : Offset(Offset), Name(Name), SuppressMangling(SuppressMangling) {}
+  RelocatableTuple(const RelocatableTuple &) = default;
 
   const RelocOffsetT Offset;
   const IceString Name;
   bool SuppressMangling;
 };
 
-bool operator<(const RelocatableTuple &A, const RelocatableTuple &B);
+bool operator==(const RelocatableTuple &A, const RelocatableTuple &B);
 
 // ConstantRelocatable represents a symbolic constant combined with
 // a fixed offset.

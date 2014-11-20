@@ -116,16 +116,11 @@ public:
     if (const auto GV = dyn_cast<GlobalValue>(Const)) {
       Ice::GlobalDeclaration *Decl = getConverter().getGlobalDeclaration(GV);
       const Ice::RelocOffsetT Offset = 0;
-      return Ctx->getConstantSym(TypeConverter.getIcePointerType(),
-                                 Offset, Decl->getName(),
+      return Ctx->getConstantSym(Offset, Decl->getName(),
                                  Decl->getSuppressMangling());
     } else if (const auto CI = dyn_cast<ConstantInt>(Const)) {
       Ice::Type Ty = convertToIceType(CI->getType());
-      if (Ty == Ice::IceType_i64) {
-        return Ctx->getConstantInt64(Ty, CI->getSExtValue());
-      } else {
-        return Ctx->getConstantInt32(Ty, CI->getSExtValue());
-      }
+      return Ctx->getConstantInt(Ty, CI->getSExtValue());
     } else if (const auto CFP = dyn_cast<ConstantFP>(Const)) {
       Ice::Type Type = convertToIceType(CFP->getType());
       if (Type == Ice::IceType_f32)

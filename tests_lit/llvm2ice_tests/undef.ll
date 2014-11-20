@@ -33,7 +33,7 @@ define float @undef_float() {
 entry:
   ret float undef
 ; CHECK-LABEL: undef_float
-; CHECK: fld dword ptr [0]
+; CHECK: fld dword ptr [4]
 }
 
 define <4 x i1> @undef_v4i1() {
@@ -186,7 +186,7 @@ entry:
   %val = insertelement <4 x float> %arg, float undef, i32 0
   ret <4 x float> %val
 ; CHECK-LABEL: vector_insertelement_arg2
-; CHECK: movss {{.*}}, dword ptr [0]
+; CHECK: movss {{.*}}, dword ptr [4]
 }
 
 define float @vector_extractelement_v4f32_index_0() {

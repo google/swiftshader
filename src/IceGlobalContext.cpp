@@ -14,6 +14,7 @@
 
 #include <ctype.h> // isdigit(), isupper()
 #include <locale>  // locale
+#include <unordered_map>
 
 #include "IceCfg.h"
 #include "IceClFlags.h"
@@ -25,29 +26,29 @@
 #include "IceTimerTree.h"
 #include "IceTypes.h"
 
+template <> struct std::hash<Ice::RelocatableTuple> {
+  std::size_t operator()(const Ice::RelocatableTuple &Key) const {
+    return std::hash<Ice::IceString>()(Key.Name) +
+           std::hash<Ice::RelocOffsetT>()(Key.Offset);
+  }
+};
+
 namespace Ice {
 
 // TypePool maps constants of type KeyType (e.g. float) to pointers to
-// type ValueType (e.g. ConstantFloat).  KeyType values are compared
-// using memcmp() because of potential NaN values in KeyType values.
-// KeyTypeHasFP indicates whether KeyType is a floating-point type
-// whose values need to be compared using memcmp() for NaN
-// correctness.  TODO: use std::is_floating_point<KeyType> instead of
-// KeyTypeHasFP with C++11.
-template <typename KeyType, typename ValueType, bool KeyTypeHasFP = false>
-class TypePool {
+// type ValueType (e.g. ConstantFloat).
+template <Type Ty, typename KeyType, typename ValueType> class TypePool {
   TypePool(const TypePool &) = delete;
   TypePool &operator=(const TypePool &) = delete;
 
 public:
   TypePool() : NextPoolID(0) {}
-  ValueType *getOrAdd(GlobalContext *Ctx, Type Ty, KeyType Key) {
-    TupleType TupleKey = std::make_pair(Ty, Key);
-    auto Iter = Pool.find(TupleKey);
+  ValueType *getOrAdd(GlobalContext *Ctx, KeyType Key) {
+    auto Iter = Pool.find(Key);
     if (Iter != Pool.end())
       return Iter->second;
     ValueType *Result = ValueType::create(Ctx, Ty, Key, NextPoolID++);
-    Pool[TupleKey] = Result;
+    Pool[Key] = Result;
     return Result;
   }
   ConstantList getConstantPool() const {
@@ -59,17 +60,7 @@ public:
   }
 
 private:
-  typedef std::pair<Type, KeyType> TupleType;
-  struct TupleCompare {
-    bool operator()(const TupleType &A, const TupleType &B) const {
-      if (A.first != B.first)
-        return A.first < B.first;
-      if (KeyTypeHasFP)
-        return memcmp(&A.second, &B.second, sizeof(KeyType)) < 0;
-      return A.second < B.second;
-    }
-  };
-  typedef std::map<const TupleType, ValueType *, TupleCompare> ContainerType;
+  typedef std::unordered_map<KeyType, ValueType *> ContainerType;
   ContainerType Pool;
   uint32_t NextPoolID;
 };
@@ -80,21 +71,17 @@ class UndefPool {
   UndefPool &operator=(const UndefPool &) = delete;
 
 public:
-  UndefPool() : NextPoolID(0) {}
+  UndefPool() : NextPoolID(0), Pool(IceType_NUM) {}
 
   ConstantUndef *getOrAdd(GlobalContext *Ctx, Type Ty) {
-    auto I = Pool.find(Ty);
-    if (I != Pool.end())
-      return I->second;
-    ConstantUndef *Undef = ConstantUndef::create(Ctx, Ty, NextPoolID++);
-    Pool[Ty] = Undef;
-    return Undef;
+    if (Pool[Ty] == NULL)
+      Pool[Ty] = ConstantUndef::create(Ctx, Ty, NextPoolID++);
+    return Pool[Ty];
   }
 
 private:
   uint32_t NextPoolID;
-  typedef std::map<Type, ConstantUndef *> ContainerType;
-  ContainerType Pool;
+  std::vector<ConstantUndef *> Pool;
 };
 
 // The global constant pool bundles individual pools of each type of
@@ -105,11 +92,14 @@ class ConstantPool {
 
 public:
   ConstantPool() {}
-  TypePool<float, ConstantFloat, true> Floats;
-  TypePool<double, ConstantDouble, true> Doubles;
-  TypePool<uint32_t, ConstantInteger32> Integers32;
-  TypePool<uint64_t, ConstantInteger64> Integers64;
-  TypePool<RelocatableTuple, ConstantRelocatable> Relocatables;
+  TypePool<IceType_f32, float, ConstantFloat> Floats;
+  TypePool<IceType_f64, double, ConstantDouble> Doubles;
+  TypePool<IceType_i1, int8_t, ConstantInteger32> Integers1;
+  TypePool<IceType_i8, int8_t, ConstantInteger32> Integers8;
+  TypePool<IceType_i16, int16_t, ConstantInteger32> Integers16;
+  TypePool<IceType_i32, int32_t, ConstantInteger32> Integers32;
+  TypePool<IceType_i64, int64_t, ConstantInteger64> Integers64;
+  TypePool<IceType_i32, RelocatableTuple, ConstantRelocatable> Relocatables;
   UndefPool Undefs;
 };
 
@@ -294,30 +284,58 @@ GlobalContext::~GlobalContext() {
   llvm::DeleteContainerPointers(GlobalDeclarations);
 }
 
-Constant *GlobalContext::getConstantInt64(Type Ty, uint64_t ConstantInt64) {
-  assert(Ty == IceType_i64);
-  return ConstPool->Integers64.getOrAdd(this, Ty, ConstantInt64);
+Constant *GlobalContext::getConstantInt(Type Ty, int64_t Value) {
+  switch (Ty) {
+  case IceType_i1:
+    return getConstantInt1(Value);
+  case IceType_i8:
+    return getConstantInt8(Value);
+  case IceType_i16:
+    return getConstantInt16(Value);
+  case IceType_i32:
+    return getConstantInt32(Value);
+  case IceType_i64:
+    return getConstantInt64(Value);
+  default:
+    llvm_unreachable("Bad integer type for getConstant");
+  }
+  return NULL;
 }
 
-Constant *GlobalContext::getConstantInt32(Type Ty, uint32_t ConstantInt32) {
-  if (Ty == IceType_i1)
-    ConstantInt32 &= UINT32_C(1);
-  return ConstPool->Integers32.getOrAdd(this, Ty, ConstantInt32);
+Constant *GlobalContext::getConstantInt1(int8_t ConstantInt1) {
+  ConstantInt1 &= INT8_C(1);
+  return ConstPool->Integers1.getOrAdd(this, ConstantInt1);
+}
+
+Constant *GlobalContext::getConstantInt8(int8_t ConstantInt8) {
+  return ConstPool->Integers8.getOrAdd(this, ConstantInt8);
+}
+
+Constant *GlobalContext::getConstantInt16(int16_t ConstantInt16) {
+  return ConstPool->Integers16.getOrAdd(this, ConstantInt16);
+}
+
+Constant *GlobalContext::getConstantInt32(int32_t ConstantInt32) {
+  return ConstPool->Integers32.getOrAdd(this, ConstantInt32);
+}
+
+Constant *GlobalContext::getConstantInt64(int64_t ConstantInt64) {
+  return ConstPool->Integers64.getOrAdd(this, ConstantInt64);
 }
 
 Constant *GlobalContext::getConstantFloat(float ConstantFloat) {
-  return ConstPool->Floats.getOrAdd(this, IceType_f32, ConstantFloat);
+  return ConstPool->Floats.getOrAdd(this, ConstantFloat);
 }
 
 Constant *GlobalContext::getConstantDouble(double ConstantDouble) {
-  return ConstPool->Doubles.getOrAdd(this, IceType_f64, ConstantDouble);
+  return ConstPool->Doubles.getOrAdd(this, ConstantDouble);
 }
 
-Constant *GlobalContext::getConstantSym(Type Ty, RelocOffsetT Offset,
+Constant *GlobalContext::getConstantSym(RelocOffsetT Offset,
                                         const IceString &Name,
                                         bool SuppressMangling) {
   return ConstPool->Relocatables.getOrAdd(
-      this, Ty, RelocatableTuple(Offset, Name, SuppressMangling));
+      this, RelocatableTuple(Offset, Name, SuppressMangling));
 }
 
 Constant *GlobalContext::getConstantUndef(Type Ty) {
@@ -327,12 +345,15 @@ Constant *GlobalContext::getConstantUndef(Type Ty) {
 Constant *GlobalContext::getConstantZero(Type Ty) {
   switch (Ty) {
   case IceType_i1:
+    return getConstantInt1(0);
   case IceType_i8:
+    return getConstantInt8(0);
   case IceType_i16:
+    return getConstantInt16(0);
   case IceType_i32:
-    return getConstantInt32(Ty, 0);
+    return getConstantInt32(0);
   case IceType_i64:
-    return getConstantInt64(Ty, 0);
+    return getConstantInt64(0);
   case IceType_f32:
     return getConstantFloat(0);
   case IceType_f64:

@@ -60,8 +60,7 @@ Address Address::ofConstPool(GlobalContext *Ctx, Assembler *Asm,
   StrBuf << ".L$" << Ty << "$" << Imm->getPoolEntryID();
   const RelocOffsetT Offset = 0;
   const bool SuppressMangling = true;
-  Constant *Sym =
-      Ctx->getConstantSym(Ty, Offset, StrBuf.str(), SuppressMangling);
+  Constant *Sym = Ctx->getConstantSym(Offset, StrBuf.str(), SuppressMangling);
   AssemblerFixup *Fixup = x86::DisplacementRelocation::create(
       Asm, FK_Abs_4, llvm::cast<ConstantRelocatable>(Sym));
   return x86::Address::Absolute(Fixup);

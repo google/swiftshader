@@ -161,11 +161,12 @@ protected:
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
   InstCall *makeHelperCall(const IceString &Name, Variable *Dest,
                            SizeT MaxSrcs) {
-    bool SuppressMangling = true;
-    const Type FunctionPointerType = IceType_i32;
-    Constant *CallTarget =
-        Ctx->getConstantSym(FunctionPointerType, 0, Name, SuppressMangling);
-    InstCall *Call = InstCall::create(Func, MaxSrcs, Dest, CallTarget, false);
+    const bool SuppressMangling = true;
+    const bool HasTailCall = false;
+    const RelocOffsetT Offset = 0;
+    Constant *CallTarget = Ctx->getConstantSym(Offset, Name, SuppressMangling);
+    InstCall *Call =
+        InstCall::create(Func, MaxSrcs, Dest, CallTarget, HasTailCall);
     return Call;
   }
   static Type stackSlotType();
