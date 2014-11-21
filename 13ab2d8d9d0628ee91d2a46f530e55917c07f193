@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f1e355a_f7f27aaa",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-21T14:40:59Z",
+      "side": 1,
+      "message": "Can you summarize what kind of warnings this fixes?",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 19
+      },
+      "revId": "13ab2d8d9d0628ee91d2a46f530e55917c07f193",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f1e355a_57048eef",
+        "filename": "src/Common/Math.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-21T14:40:59Z",
+      "side": 1,
+      "message": "This changes the behavior of the existing code where we call exp2. It might be more correct, but let\u0027s move that to another patch so this one is a pure refactoring.",
+      "range": {
+        "startLine": 114,
+        "startChar": 2,
+        "endLine": 114,
+        "endChar": 23
+      },
+      "revId": "13ab2d8d9d0628ee91d2a46f530e55917c07f193",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
