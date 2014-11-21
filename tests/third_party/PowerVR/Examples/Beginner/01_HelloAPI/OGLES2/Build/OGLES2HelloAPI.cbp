@@ -13,8 +13,10 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-m32" />
 				</Compiler>
 				<Linker>
+					<Add option="-m32" />
 					<Add directory="../../../../../../../../lib/Debug_x86" />
 				</Linker>
 			</Target>
@@ -25,9 +27,11 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-m32" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-m32" />
 					<Add directory="../../../../../../../../lib/Release_x86" />
 				</Linker>
 			</Target>
