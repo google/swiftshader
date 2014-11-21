@@ -103,7 +103,7 @@ void Translator::emitConstants() {
 
 void Translator::lowerGlobals(
     const VariableDeclarationListType &VariableDeclarations) {
-  llvm::OwningPtr<TargetGlobalInitLowering> GlobalLowering(
+  std::unique_ptr<TargetGlobalInitLowering> GlobalLowering(
       TargetGlobalInitLowering::createLowering(Ctx->getTargetArch(), Ctx));
   bool DisableTranslation = Ctx->getFlags().DisableTranslation;
   const bool DumpGlobalVariables =

@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "llvm/ADT/SmallString.h"
 #include "llvm/Analysis/NaCl/PNaClABIProps.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDecoders.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeHeader.h"
@@ -34,6 +35,8 @@
 #include "IceOperand.h"
 #include "IceTypeConverter.h"
 #include "PNaClTranslator.h"
+
+#include <memory>
 
 namespace {
 using namespace llvm;
@@ -2827,14 +2830,15 @@ bool TopLevelParser::ParseBlock(unsigned BlockID) {
 namespace Ice {
 
 void PNaClTranslator::translate(const std::string &IRFilename) {
-  OwningPtr<MemoryBuffer> MemBuf;
-  if (error_code ec =
-          MemoryBuffer::getFileOrSTDIN(IRFilename.c_str(), MemBuf)) {
-    errs() << "Error reading '" << IRFilename << "': " << ec.message() << "\n";
+  ErrorOr<std::unique_ptr<MemoryBuffer>> ErrOrFile =
+      MemoryBuffer::getFileOrSTDIN(IRFilename);
+  if (std::error_code EC = ErrOrFile.getError()) {
+    errs() << "Error reading '" << IRFilename << "': " << EC.message() << "\n";
     ErrorStatus = true;
     return;
   }
 
+  std::unique_ptr<MemoryBuffer> MemBuf(ErrOrFile.get().release());
   if (MemBuf->getBufferSize() % 4 != 0) {
     errs() << IRFilename
            << ": Bitcode stream should be a multiple of 4 bytes in length.\n";
