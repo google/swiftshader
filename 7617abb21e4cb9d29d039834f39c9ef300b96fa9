@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3f1e355a_9735861a",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1292,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-21T17:33:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3f1e355a_37623288",
+      "range": {
+        "startLine": 1284,
+        "startChar": 2,
+        "endLine": 1292,
+        "endChar": 3
+      },
+      "revId": "7617abb21e4cb9d29d039834f39c9ef300b96fa9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3f1e355a_f72a7a1b",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "3f1e355a_7acc11c8",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1533,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-21T17:33:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3f1e355a_f72a7a1b",
+      "range": {
+        "startLine": 1533,
+        "startChar": 2,
+        "endLine": 1533,
+        "endChar": 49
+      },
+      "revId": "7617abb21e4cb9d29d039834f39c9ef300b96fa9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3f1e355a_37311291",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2014-11-21T15:23:43Z",
       "side": 1,
       "message": "This isn\u0027t a type, but an AST node that has a type (variables, functions, etc).\n\nAnyway, check if we can actually make the src parameter a TIntermTyped (like dst). Logically assigning to an lvalue should be with a typed variable...",
+      "range": {
+        "startLine": 1534,
+        "startChar": 16,
+        "endLine": 1534,
+        "endChar": 23
+      },
+      "revId": "7617abb21e4cb9d29d039834f39c9ef300b96fa9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f1e355a_1acbdd2e",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1534,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-21T17:33:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3f1e355a_37311291",
       "range": {
         "startLine": 1534,
         "startChar": 16,
