@@ -1943,8 +1943,14 @@ namespace sh
 			int componentCount = varying->getNominalSize();
 			int registerCount = varying->totalRegisterCount();
 
-			if(pixelShader && (var + registerCount) <= sw::PixelShader::MAX_INPUT_VARYINGS)
+			if(pixelShader)
 			{
+				if((var + registerCount) > sw::PixelShader::MAX_INPUT_VARYINGS)
+				{
+					mContext.error(varying->getLine(), "Varyings packing failed: Too many varyings", "fragment shader");
+					return 0;
+				}
+
 				if(varying->getQualifier() == EvqPointCoord)
 				{
 					ASSERT(varying->isRegister());
@@ -1964,8 +1970,14 @@ namespace sh
 					}
 				}
 			}
-			else if(vertexShader && (var + registerCount) <= sw::VertexShader::MAX_OUTPUT_VARYINGS)
+			else if(vertexShader)
 			{
+				if((var + registerCount) > sw::VertexShader::MAX_OUTPUT_VARYINGS)
+				{
+					mContext.error(varying->getLine(), "Varyings packing failed: Too many varyings", "vertex shader");
+					return 0;
+				}
+
 				if(varying->getQualifier() == EvqPosition)
 				{
 					ASSERT(varying->isRegister());
