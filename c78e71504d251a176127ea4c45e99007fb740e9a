@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "ba2cf37b_4e3a27bb",
+        "filename": "src/Main/crc.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-21T16:28:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a69ef76_db9133df",
+      "range": {
+        "startLine": 3,
+        "startChar": 16,
+        "endLine": 3,
+        "endChar": 21
+      },
+      "revId": "c78e71504d251a176127ea4c45e99007fb740e9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a69ef76_1b134bca",
         "filename": "src/Main/crc.h",
         "patchSetId": 1
@@ -82,6 +106,54 @@
       "writtenOn": "2014-11-19T15:14:02Z",
       "side": 1,
       "message": "stddef.h seems more appropriate.",
+      "range": {
+        "startLine": 19,
+        "startChar": 10,
+        "endLine": 19,
+        "endChar": 16
+      },
+      "revId": "c78e71504d251a176127ea4c45e99007fb740e9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba2cf37b_8e87bff3",
+        "filename": "src/Main/crc.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-21T16:28:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a69ef76_1b134bca",
+      "range": {
+        "startLine": 19,
+        "startChar": 17,
+        "endLine": 19,
+        "endChar": 31
+      },
+      "revId": "c78e71504d251a176127ea4c45e99007fb740e9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba2cf37b_ae8c8318",
+        "filename": "src/Main/crc.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-11-21T16:28:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a69ef76_7b06078d",
       "range": {
         "startLine": 19,
         "startChar": 10,
