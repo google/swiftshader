@@ -46,6 +46,30 @@
       "revId": "bec08d96fdcf367be6cd418300f33171f87e12d6",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f1e355a_3de0d3dd",
+        "filename": "src/Radiance/compiler/OutputASM.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1737,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-21T19:43:54Z",
+      "side": 1,
+      "message": "Due to short-circuiting behavior those cases should not be hit. So I\u0027m wondering if there are operands for which the basic type is a sampler but the qualifier is not uniform or temporary. I can\u0027t recall why I added the testing of the qualifier. Seems like a good time to figure that out and document it by changing this function\u0027s name, or just getting rid of it if it serves no purpose.",
+      "parentUuid": "3f1e355a_7d51ab25",
+      "range": {
+        "startLine": 1737,
+        "startChar": 50,
+        "endLine": 1737,
+        "endChar": 130
+      },
+      "revId": "bec08d96fdcf367be6cd418300f33171f87e12d6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
