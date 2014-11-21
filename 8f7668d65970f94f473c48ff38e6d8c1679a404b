@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f1e355a_b7964220",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-21T15:02:59Z",
+      "side": 1,
+      "message": "\"Simply returned\" -\u003e \"Return an\"\nOtherwise it looks as if we previously returned an error. Also words like \"simply\" are typically not adding any value to a patch description.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 15
+      },
+      "revId": "8f7668d65970f94f473c48ff38e6d8c1679a404b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f1e355a_37c6b228",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1965,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-21T15:02:59Z",
+      "side": 1,
+      "message": "Add a blank line below to separate error checking from regular logic.",
+      "range": {
+        "startLine": 1965,
+        "startChar": 4,
+        "endLine": 1965,
+        "endChar": 5
+      },
+      "revId": "8f7668d65970f94f473c48ff38e6d8c1679a404b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f1e355a_17cbb62e",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1991,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-11-21T15:02:59Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 1991,
+        "startChar": 4,
+        "endLine": 1991,
+        "endChar": 5
+      },
+      "revId": "8f7668d65970f94f473c48ff38e6d8c1679a404b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
