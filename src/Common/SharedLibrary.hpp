@@ -84,10 +84,13 @@ void *loadLibrary(const char *(&names)[n])
 		return 0;
 	}
 
-	inline void freeLibrary(void *library)
-	{
-		dlclose(library);
-	}
+    inline void freeLibrary(void *library)
+    {
+        if(library)
+        {
+            dlclose(library);
+        }
+    }
 
 	inline void *getProcAddress(void *library, const char *name)
 	{
