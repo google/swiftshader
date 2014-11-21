@@ -4,14 +4,14 @@
 	<Project>
 		<Option title="LLVM" />
 		<Option pch_mode="2" />
-		<Option compiler="gcc" />
+		<Option compiler="clang" />
 		<Build>
 			<Target title="Debug x86">
 				<Option output="bin/x86/Debug/LLVM" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="obj/x86/Debug/" />
 				<Option type="2" />
-				<Option compiler="gcc" />
+				<Option compiler="clang" />
 				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-Wall" />
@@ -27,7 +27,7 @@
 				<Option working_dir="" />
 				<Option object_output="obj/x86/Release/" />
 				<Option type="2" />
-				<Option compiler="gcc" />
+				<Option compiler="clang" />
 				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-march=i686" />
@@ -49,7 +49,7 @@
 				<Option working_dir="" />
 				<Option object_output="obj/x64/Debug/" />
 				<Option type="2" />
-				<Option compiler="gcc" />
+				<Option compiler="clang" />
 				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-Wall" />
@@ -66,7 +66,7 @@
 				<Option working_dir="" />
 				<Option object_output="obj/x64/Release/" />
 				<Option type="2" />
-				<Option compiler="gcc" />
+				<Option compiler="clang" />
 				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-march=core2" />
@@ -86,8 +86,8 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-std=c++11" />
 			<Add option="-Wall" />
+			<Add option="-std=c++11" />
 			<Add option="-fexceptions" />
 			<Add option="-fno-operator-names" />
 			<Add option="-msse2" />

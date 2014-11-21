@@ -4,13 +4,13 @@
 	<Project>
 		<Option title="libGLESv2" />
 		<Option pch_mode="2" />
-		<Option compiler="gcc" />
+		<Option compiler="clang" />
 		<Build>
 			<Target title="Debug x86">
 				<Option output="./../../../lib/Debug_x86/libGLESv2.so.2" prefix_auto="0" extension_auto="0" />
 				<Option object_output="obj/x86/Debug/" />
 				<Option type="3" />
-				<Option compiler="gcc" />
+				<Option compiler="clang" />
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
@@ -29,7 +29,7 @@
 				<Option output="./../../../lib/Release_x86/libGLESv2.so.2" prefix_auto="0" extension_auto="0" />
 				<Option object_output="obj/x86/Release/" />
 				<Option type="3" />
-				<Option compiler="gcc" />
+				<Option compiler="clang" />
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
@@ -56,7 +56,7 @@
 				<Option output="./../../../lib/Debug_x64/libGLESv2.so.2" prefix_auto="0" extension_auto="0" />
 				<Option object_output="obj/x64/Debug/" />
 				<Option type="3" />
-				<Option compiler="gcc" />
+				<Option compiler="clang" />
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
@@ -76,7 +76,7 @@
 				<Option output="./../../../lib/Release_x64/libGLESv2.so.2" prefix_auto="0" extension_auto="0" />
 				<Option object_output="obj/x64/Release/" />
 				<Option type="3" />
-				<Option compiler="gcc" />
+				<Option compiler="clang" />
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
@@ -102,8 +102,8 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-std=c++11" />
 			<Add option="-Wall" />
+			<Add option="-std=c++11" />
 			<Add option="-fexceptions" />
 			<Add option="-fno-operator-names" />
 			<Add option="-msse2" />

@@ -21,7 +21,7 @@
 void trace(const char *format, ...);
 
 #ifndef NDEBUG
-	#define TRACE(format, ...) trace("[0x%0.8X]%s("format")\n", this, __FUNCTION__, ##__VA_ARGS__)
+	#define TRACE(format, ...) trace("[0x%0.8X]%s(" format ")\n", this, __FUNCTION__, ##__VA_ARGS__)
 #else
 	#define TRACE(...) ((void)0)
 #endif
@@ -33,7 +33,7 @@ void trace(const char *format, ...);
 #endif
 
 #ifndef NDEBUG
-	#define ASSERT(expression) {if(!(expression)) trace("\t! Assert failed in %s(%d): "#expression"\n", __FUNCTION__, __LINE__); assert(expression);}
+	#define ASSERT(expression) {if(!(expression)) trace("\t! Assert failed in %s(%d): " #expression "\n", __FUNCTION__, __LINE__); assert(expression);}
 #else
 	#define ASSERT assert
 #endif
