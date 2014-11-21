@@ -62,7 +62,7 @@ static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei heigh
 
     if(compressed)
     {
-        if((width % 4 != 0 && width != texture->getWidth(target, 0)) || 
+        if((width % 4 != 0 && width != texture->getWidth(target, 0)) ||
            (height % 4 != 0 && height != texture->getHeight(target, 0)))
         {
             return error(GL_INVALID_OPERATION, false);
@@ -203,10 +203,10 @@ void GL_APIENTRY glBeginQueryEXT(GLenum target, GLuint id)
     {
         switch(target)
         {
-        case GL_ANY_SAMPLES_PASSED_EXT: 
+        case GL_ANY_SAMPLES_PASSED_EXT:
         case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
             break;
-        default: 
+        default:
             return error(GL_INVALID_ENUM);
         }
 
@@ -319,7 +319,7 @@ void GL_APIENTRY glBindFramebuffer(GLenum target, GLuint framebuffer)
             {
                 context->bindReadFramebuffer(framebuffer);
             }
-            
+
             if(target == GL_DRAW_FRAMEBUFFER_ANGLE || target == GL_FRAMEBUFFER)
             {
                 context->bindDrawFramebuffer(framebuffer);
@@ -862,10 +862,10 @@ void GL_APIENTRY glCompileShader(GLuint shader)
     }
 }
 
-void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, 
+void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height,
                                         GLint border, GLsizei imageSize, const GLvoid* data)
 {
-    TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum internalformat = 0x%X, GLsizei width = %d, " 
+    TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum internalformat = 0x%X, GLsizei width = %d, "
           "GLsizei height = %d, GLint border = %d, GLsizei imageSize = %d, const GLvoid* data = 0x%0.8p)",
           target, level, internalformat, width, height, border, imageSize, data);
 
@@ -1760,7 +1760,7 @@ void GL_APIENTRY glDetachShader(GLuint program, GLuint shader)
 
             es2::Program *programObject = context->getProgram(program);
             es2::Shader *shaderObject = context->getShader(shader);
-            
+
             if(!programObject)
             {
                 es2::Shader *shaderByProgramHandle;
@@ -1905,7 +1905,7 @@ void GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum type, const G
               default:
                 return error(GL_INVALID_ENUM);
             }
-        
+
             context->drawElements(mode, count, type, indices);
         }
     }
@@ -1979,10 +1979,10 @@ void GL_APIENTRY glEndQueryEXT(GLenum target)
     {
         switch(target)
         {
-        case GL_ANY_SAMPLES_PASSED_EXT: 
+        case GL_ANY_SAMPLES_PASSED_EXT:
         case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
             break;
-        default: 
+        default:
             return error(GL_INVALID_ENUM);
         }
 
@@ -2862,7 +2862,7 @@ void GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum att
 
                 framebuffer = context->getReadFramebuffer();
             }
-            else 
+            else
             {
                 if(context->getDrawFramebufferHandle() == 0)
                 {
@@ -2876,15 +2876,15 @@ void GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum att
             GLuint attachmentHandle;
             switch(attachment)
             {
-              case GL_COLOR_ATTACHMENT0:    
+              case GL_COLOR_ATTACHMENT0:
                 attachmentType = framebuffer->getColorbufferType();
-                attachmentHandle = framebuffer->getColorbufferHandle(); 
+                attachmentHandle = framebuffer->getColorbufferHandle();
                 break;
-              case GL_DEPTH_ATTACHMENT:     
+              case GL_DEPTH_ATTACHMENT:
                 attachmentType = framebuffer->getDepthbufferType();
                 attachmentHandle = framebuffer->getDepthbufferHandle();
                 break;
-              case GL_STENCIL_ATTACHMENT:   
+              case GL_STENCIL_ATTACHMENT:
                 attachmentType = framebuffer->getStencilbufferType();
                 attachmentHandle = framebuffer->getStencilbufferHandle();
                 break;
@@ -3406,9 +3406,9 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
         case GL_RENDERER:
             return (GLubyte*)"SwiftShader";
         case GL_VERSION:
-            return (GLubyte*)"OpenGL ES 2.0 SwiftShader "VERSION_STRING;
+            return (GLubyte*)"OpenGL ES 2.0 SwiftShader " VERSION_STRING;
         case GL_SHADING_LANGUAGE_VERSION:
-            return (GLubyte*)"OpenGL ES GLSL ES 1.00 SwiftShader "VERSION_STRING;
+            return (GLubyte*)"OpenGL ES GLSL ES 1.00 SwiftShader " VERSION_STRING;
         case GL_EXTENSIONS:
             // Keep list sorted in following order:
 	        // OES extensions
@@ -3645,7 +3645,7 @@ void GL_APIENTRY glGetUniformfv(GLuint program, GLint location, GLfloat* params)
 
 void GL_APIENTRY glGetnUniformivEXT(GLuint program, GLint location, GLsizei bufSize, GLint* params)
 {
-    TRACE("(GLuint program = %d, GLint location = %d, GLsizei bufSize = %d, GLint* params = 0x%0.8p)", 
+    TRACE("(GLuint program = %d, GLint location = %d, GLsizei bufSize = %d, GLint* params = 0x%0.8p)",
           program, location, bufSize, params);
 
     try
@@ -3921,7 +3921,7 @@ void GL_APIENTRY glHint(GLenum target, GLenum mode)
           case GL_DONT_CARE:
             break;
           default:
-            return error(GL_INVALID_ENUM); 
+            return error(GL_INVALID_ENUM);
         }
 
         es2::Context *context = es2::getContext();
@@ -4416,7 +4416,7 @@ void GL_APIENTRY glRenderbufferStorageMultisampleANGLE(GLenum target, GLsizei sa
 
         if(context)
         {
-            if(width > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || 
+            if(width > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
                height > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
                samples > es2::IMPLEMENTATION_MAX_SAMPLES)
             {
@@ -4504,7 +4504,7 @@ void GL_APIENTRY glSetFenceNV(GLuint fence, GLenum condition)
                 return error(GL_INVALID_OPERATION);
             }
 
-            fenceObject->setFence(condition);    
+            fenceObject->setFence(condition);
         }
     }
     catch(std::bad_alloc&)
@@ -4804,7 +4804,7 @@ GLboolean GL_APIENTRY glTestFenceNV(GLuint fence)
     {
         error(GL_OUT_OF_MEMORY);
     }
-    
+
     return GL_TRUE;
 }
 
@@ -4957,7 +4957,7 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
                     return error(GL_INVALID_ENUM);
                 }
             }
-			
+
             if(target == GL_TEXTURE_2D)
             {
                 es2::Texture2D *texture = context->getTexture2D();
@@ -5194,7 +5194,7 @@ void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
             else if(es2::IsCubemapTextureTarget(target))
             {
                 es2::TextureCubeMap *texture = context->getTextureCubeMap();
-				
+
 				if(validateSubImageParams(false, width, height, xoffset, yoffset, target, level, format, texture))
 				{
 					texture->subImage(target, level, xoffset, yoffset, width, height, format, type, context->getUnpackAlignment(), pixels);
@@ -5317,7 +5317,7 @@ void GL_APIENTRY glUniform2fv(GLint location, GLsizei count, const GLfloat* v)
         {
             return error(GL_INVALID_VALUE);
         }
-        
+
         if(location == -1)
         {
             return;
@@ -6136,7 +6136,7 @@ void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image
         if(context)
         {
             es2::Texture2D *texture = 0;
-			
+
 			switch(target)
 			{
 			case GL_TEXTURE_2D:           texture = context->getTexture2D();       break;

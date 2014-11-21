@@ -205,7 +205,7 @@ const char *EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name)
         case EGL_VENDOR:
             return success("TransGaming Inc.");
         case EGL_VERSION:
-            return success("1.4 SwiftShader "VERSION_STRING);
+            return success("1.4 SwiftShader " VERSION_STRING);
         }
 
         return error(EGL_BAD_PARAMETER, (const char*)NULL);
@@ -789,7 +789,7 @@ EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLCon
                 }
             }
         }
-		
+
         egl::Display *display = static_cast<egl::Display*>(dpy);
 
         if(!validateConfig(display, config))

@@ -106,7 +106,6 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 			<Add option="-fno-operator-names" />
-			<Add option="-ffriend-injection" />
 			<Add option="-msse2" />
 			<Add option="-D__STDC_LIMIT_MACROS" />
 			<Add option="-D__STDC_CONSTANT_MACROS" />
@@ -163,9 +162,7 @@
 		<Unit filename="../../Main/Register.hpp" />
 		<Unit filename="../../Main/SwiftConfig.cpp" />
 		<Unit filename="../../Main/SwiftConfig.hpp" />
-		<Unit filename="../../Main/crc.c">
-			<Option compilerVar="CC" />
-		</Unit>
+		<Unit filename="../../Main/crc.cpp" />
 		<Unit filename="../../Main/crc.h" />
 		<Unit filename="../../Main/serialcommon.h" />
 		<Unit filename="../../Main/serialvalid.cpp" />

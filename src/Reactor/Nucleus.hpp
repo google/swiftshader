@@ -280,7 +280,7 @@ namespace sw
 		llvm::Value *storeValue(llvm::Value *value, unsigned int alignment = 0) const;
 		llvm::Value *getAddress(llvm::Value *index) const;
 
-	private:
+	protected:
 		llvm::Value *address;
 	};
 
@@ -385,12 +385,12 @@ namespace sw
 		RValue<Bool> operator=(const Bool &rhs) const;
 		RValue<Bool> operator=(const Reference<Bool> &rhs) const;
 
-		friend RValue<Bool> operator!(RValue<Bool> val);
-		friend RValue<Bool> operator&&(RValue<Bool> lhs, RValue<Bool> rhs);
-		friend RValue<Bool> operator||(RValue<Bool> lhs, RValue<Bool> rhs);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<Bool> operator!(RValue<Bool> val);
+	RValue<Bool> operator&&(RValue<Bool> lhs, RValue<Bool> rhs);
+	RValue<Bool> operator||(RValue<Bool> lhs, RValue<Bool> rhs);
 
 	class Byte : public Variable<Byte>
 	{
@@ -411,42 +411,42 @@ namespace sw
 		RValue<Byte> operator=(const Byte &rhs) const;
 		RValue<Byte> operator=(const Reference<Byte> &rhs) const;
 
-		friend RValue<Byte> operator+(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator-(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator*(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator/(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator%(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator&(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator|(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator^(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator<<(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator>>(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator+=(const Byte &lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator-=(const Byte &lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator*=(const Byte &lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator/=(const Byte &lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator%=(const Byte &lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator&=(const Byte &lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator|=(const Byte &lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator^=(const Byte &lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator<<=(const Byte &lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator>>=(const Byte &lhs, RValue<Byte> rhs);
-		friend RValue<Byte> operator+(RValue<Byte> val);
-		friend RValue<Byte> operator-(RValue<Byte> val);
-		friend RValue<Byte> operator~(RValue<Byte> val);
-		friend RValue<Byte> operator++(const Byte &val, int);   // Post-increment
-		friend const Byte &operator++(const Byte &val);   // Pre-increment
-		friend RValue<Byte> operator--(const Byte &val, int);   // Post-decrement
-		friend const Byte &operator--(const Byte &val);   // Pre-decrement
-		friend RValue<Bool> operator<(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Bool> operator<=(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Bool> operator>(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Bool> operator>=(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Bool> operator!=(RValue<Byte> lhs, RValue<Byte> rhs);
-		friend RValue<Bool> operator==(RValue<Byte> lhs, RValue<Byte> rhs);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<Byte> operator+(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Byte> operator-(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Byte> operator*(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Byte> operator/(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Byte> operator%(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Byte> operator&(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Byte> operator|(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Byte> operator^(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Byte> operator<<(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Byte> operator>>(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Byte> operator+=(const Byte &lhs, RValue<Byte> rhs);
+	RValue<Byte> operator-=(const Byte &lhs, RValue<Byte> rhs);
+	RValue<Byte> operator*=(const Byte &lhs, RValue<Byte> rhs);
+	RValue<Byte> operator/=(const Byte &lhs, RValue<Byte> rhs);
+	RValue<Byte> operator%=(const Byte &lhs, RValue<Byte> rhs);
+	RValue<Byte> operator&=(const Byte &lhs, RValue<Byte> rhs);
+	RValue<Byte> operator|=(const Byte &lhs, RValue<Byte> rhs);
+	RValue<Byte> operator^=(const Byte &lhs, RValue<Byte> rhs);
+	RValue<Byte> operator<<=(const Byte &lhs, RValue<Byte> rhs);
+	RValue<Byte> operator>>=(const Byte &lhs, RValue<Byte> rhs);
+	RValue<Byte> operator+(RValue<Byte> val);
+	RValue<Byte> operator-(RValue<Byte> val);
+	RValue<Byte> operator~(RValue<Byte> val);
+	RValue<Byte> operator++(const Byte &val, int);   // Post-increment
+	const Byte &operator++(const Byte &val);   // Pre-increment
+	RValue<Byte> operator--(const Byte &val, int);   // Post-decrement
+	const Byte &operator--(const Byte &val);   // Pre-decrement
+	RValue<Bool> operator<(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Bool> operator<=(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Bool> operator>(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Bool> operator>=(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Bool> operator!=(RValue<Byte> lhs, RValue<Byte> rhs);
+	RValue<Bool> operator==(RValue<Byte> lhs, RValue<Byte> rhs);
 
 	class SByte : public Variable<SByte>
 	{
@@ -464,42 +464,42 @@ namespace sw
 		RValue<SByte> operator=(const SByte &rhs) const;
 		RValue<SByte> operator=(const Reference<SByte> &rhs) const;
 
-		friend RValue<SByte> operator+(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator-(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator*(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator/(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator%(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator&(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator|(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator^(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator<<(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator>>(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator+=(const SByte &lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator-=(const SByte &lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator*=(const SByte &lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator/=(const SByte &lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator%=(const SByte &lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator&=(const SByte &lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator|=(const SByte &lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator^=(const SByte &lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator<<=(const SByte &lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator>>=(const SByte &lhs, RValue<SByte> rhs);
-		friend RValue<SByte> operator+(RValue<SByte> val);
-		friend RValue<SByte> operator-(RValue<SByte> val);
-		friend RValue<SByte> operator~(RValue<SByte> val);
-		friend RValue<SByte> operator++(const SByte &val, int);   // Post-increment
-		friend const SByte &operator++(const SByte &val);   // Pre-increment
-		friend RValue<SByte> operator--(const SByte &val, int);   // Post-decrement
-		friend const SByte &operator--(const SByte &val);   // Pre-decrement
-		friend RValue<Bool> operator<(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<Bool> operator<=(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<Bool> operator>(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<Bool> operator>=(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<Bool> operator!=(RValue<SByte> lhs, RValue<SByte> rhs);
-		friend RValue<Bool> operator==(RValue<SByte> lhs, RValue<SByte> rhs);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<SByte> operator+(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<SByte> operator-(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<SByte> operator*(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<SByte> operator/(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<SByte> operator%(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<SByte> operator&(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<SByte> operator|(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<SByte> operator^(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<SByte> operator<<(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<SByte> operator>>(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<SByte> operator+=(const SByte &lhs, RValue<SByte> rhs);
+	RValue<SByte> operator-=(const SByte &lhs, RValue<SByte> rhs);
+	RValue<SByte> operator*=(const SByte &lhs, RValue<SByte> rhs);
+	RValue<SByte> operator/=(const SByte &lhs, RValue<SByte> rhs);
+	RValue<SByte> operator%=(const SByte &lhs, RValue<SByte> rhs);
+	RValue<SByte> operator&=(const SByte &lhs, RValue<SByte> rhs);
+	RValue<SByte> operator|=(const SByte &lhs, RValue<SByte> rhs);
+	RValue<SByte> operator^=(const SByte &lhs, RValue<SByte> rhs);
+	RValue<SByte> operator<<=(const SByte &lhs, RValue<SByte> rhs);
+	RValue<SByte> operator>>=(const SByte &lhs, RValue<SByte> rhs);
+	RValue<SByte> operator+(RValue<SByte> val);
+	RValue<SByte> operator-(RValue<SByte> val);
+	RValue<SByte> operator~(RValue<SByte> val);
+	RValue<SByte> operator++(const SByte &val, int);   // Post-increment
+	const SByte &operator++(const SByte &val);   // Pre-increment
+	RValue<SByte> operator--(const SByte &val, int);   // Post-decrement
+	const SByte &operator--(const SByte &val);   // Pre-decrement
+	RValue<Bool> operator<(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<Bool> operator<=(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<Bool> operator>(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<Bool> operator>=(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<Bool> operator!=(RValue<SByte> lhs, RValue<SByte> rhs);
+	RValue<Bool> operator==(RValue<SByte> lhs, RValue<SByte> rhs);
 
 	class Short : public Variable<Short>
 	{
@@ -519,42 +519,42 @@ namespace sw
 		RValue<Short> operator=(const Short &rhs) const;
 		RValue<Short> operator=(const Reference<Short> &rhs) const;
 
-		friend RValue<Short> operator+(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Short> operator-(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Short> operator*(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Short> operator/(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Short> operator%(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Short> operator&(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Short> operator|(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Short> operator^(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Short> operator<<(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Short> operator>>(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Short> operator+=(const Short &lhs, RValue<Short> rhs);
-		friend RValue<Short> operator-=(const Short &lhs, RValue<Short> rhs);
-		friend RValue<Short> operator*=(const Short &lhs, RValue<Short> rhs);
-		friend RValue<Short> operator/=(const Short &lhs, RValue<Short> rhs);
-		friend RValue<Short> operator%=(const Short &lhs, RValue<Short> rhs);
-		friend RValue<Short> operator&=(const Short &lhs, RValue<Short> rhs);
-		friend RValue<Short> operator|=(const Short &lhs, RValue<Short> rhs);
-		friend RValue<Short> operator^=(const Short &lhs, RValue<Short> rhs);
-		friend RValue<Short> operator<<=(const Short &lhs, RValue<Short> rhs);
-		friend RValue<Short> operator>>=(const Short &lhs, RValue<Short> rhs);
-		friend RValue<Short> operator+(RValue<Short> val);
-		friend RValue<Short> operator-(RValue<Short> val);
-		friend RValue<Short> operator~(RValue<Short> val);
-		friend RValue<Short> operator++(const Short &val, int);   // Post-increment
-		friend const Short &operator++(const Short &val);   // Pre-increment
-		friend RValue<Short> operator--(const Short &val, int);   // Post-decrement
-		friend const Short &operator--(const Short &val);   // Pre-decrement
-		friend RValue<Bool> operator<(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Bool> operator<=(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Bool> operator>(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Bool> operator>=(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Bool> operator!=(RValue<Short> lhs, RValue<Short> rhs);
-		friend RValue<Bool> operator==(RValue<Short> lhs, RValue<Short> rhs);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<Short> operator+(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Short> operator-(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Short> operator*(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Short> operator/(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Short> operator%(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Short> operator&(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Short> operator|(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Short> operator^(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Short> operator<<(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Short> operator>>(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Short> operator+=(const Short &lhs, RValue<Short> rhs);
+	RValue<Short> operator-=(const Short &lhs, RValue<Short> rhs);
+	RValue<Short> operator*=(const Short &lhs, RValue<Short> rhs);
+	RValue<Short> operator/=(const Short &lhs, RValue<Short> rhs);
+	RValue<Short> operator%=(const Short &lhs, RValue<Short> rhs);
+	RValue<Short> operator&=(const Short &lhs, RValue<Short> rhs);
+	RValue<Short> operator|=(const Short &lhs, RValue<Short> rhs);
+	RValue<Short> operator^=(const Short &lhs, RValue<Short> rhs);
+	RValue<Short> operator<<=(const Short &lhs, RValue<Short> rhs);
+	RValue<Short> operator>>=(const Short &lhs, RValue<Short> rhs);
+	RValue<Short> operator+(RValue<Short> val);
+	RValue<Short> operator-(RValue<Short> val);
+	RValue<Short> operator~(RValue<Short> val);
+	RValue<Short> operator++(const Short &val, int);   // Post-increment
+	const Short &operator++(const Short &val);   // Pre-increment
+	RValue<Short> operator--(const Short &val, int);   // Post-decrement
+	const Short &operator--(const Short &val);   // Pre-decrement
+	RValue<Bool> operator<(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Bool> operator<=(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Bool> operator>(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Bool> operator>=(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Bool> operator!=(RValue<Short> lhs, RValue<Short> rhs);
+	RValue<Bool> operator==(RValue<Short> lhs, RValue<Short> rhs);
 
 	class UShort : public Variable<UShort>
 	{
@@ -572,42 +572,42 @@ namespace sw
 		RValue<UShort> operator=(const UShort &rhs) const;
 		RValue<UShort> operator=(const Reference<UShort> &rhs) const;
 
-		friend RValue<UShort> operator+(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator-(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator*(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator/(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator%(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator&(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator|(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator^(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator<<(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator>>(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator+=(const UShort &lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator-=(const UShort &lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator*=(const UShort &lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator/=(const UShort &lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator%=(const UShort &lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator&=(const UShort &lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator|=(const UShort &lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator^=(const UShort &lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator<<=(const UShort &lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator>>=(const UShort &lhs, RValue<UShort> rhs);
-		friend RValue<UShort> operator+(RValue<UShort> val);
-		friend RValue<UShort> operator-(RValue<UShort> val);
-		friend RValue<UShort> operator~(RValue<UShort> val);
-		friend RValue<UShort> operator++(const UShort &val, int);   // Post-increment
-		friend const UShort &operator++(const UShort &val);   // Pre-increment
-		friend RValue<UShort> operator--(const UShort &val, int);   // Post-decrement
-		friend const UShort &operator--(const UShort &val);   // Pre-decrement
-		friend RValue<Bool> operator<(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<Bool> operator<=(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<Bool> operator>(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<Bool> operator>=(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<Bool> operator!=(RValue<UShort> lhs, RValue<UShort> rhs);
-		friend RValue<Bool> operator==(RValue<UShort> lhs, RValue<UShort> rhs);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<UShort> operator+(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<UShort> operator-(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<UShort> operator*(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<UShort> operator/(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<UShort> operator%(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<UShort> operator&(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<UShort> operator|(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<UShort> operator^(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<UShort> operator<<(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<UShort> operator>>(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<UShort> operator+=(const UShort &lhs, RValue<UShort> rhs);
+	RValue<UShort> operator-=(const UShort &lhs, RValue<UShort> rhs);
+	RValue<UShort> operator*=(const UShort &lhs, RValue<UShort> rhs);
+	RValue<UShort> operator/=(const UShort &lhs, RValue<UShort> rhs);
+	RValue<UShort> operator%=(const UShort &lhs, RValue<UShort> rhs);
+	RValue<UShort> operator&=(const UShort &lhs, RValue<UShort> rhs);
+	RValue<UShort> operator|=(const UShort &lhs, RValue<UShort> rhs);
+	RValue<UShort> operator^=(const UShort &lhs, RValue<UShort> rhs);
+	RValue<UShort> operator<<=(const UShort &lhs, RValue<UShort> rhs);
+	RValue<UShort> operator>>=(const UShort &lhs, RValue<UShort> rhs);
+	RValue<UShort> operator+(RValue<UShort> val);
+	RValue<UShort> operator-(RValue<UShort> val);
+	RValue<UShort> operator~(RValue<UShort> val);
+	RValue<UShort> operator++(const UShort &val, int);   // Post-increment
+	const UShort &operator++(const UShort &val);   // Pre-increment
+	RValue<UShort> operator--(const UShort &val, int);   // Post-decrement
+	const UShort &operator--(const UShort &val);   // Pre-decrement
+	RValue<Bool> operator<(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<Bool> operator<=(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<Bool> operator>(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<Bool> operator>=(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<Bool> operator!=(RValue<UShort> lhs, RValue<UShort> rhs);
+	RValue<Bool> operator==(RValue<UShort> lhs, RValue<UShort> rhs);
 
 	class Byte4 : public Variable<Byte4>
 	{
@@ -622,36 +622,36 @@ namespace sw
 	//	RValue<Byte4> operator=(const Byte4 &rhs) const;
 	//	RValue<Byte4> operator=(const Reference<Byte4> &rhs) const;
 
-	//	friend RValue<Byte4> operator+(RValue<Byte4> lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator-(RValue<Byte4> lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator*(RValue<Byte4> lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator/(RValue<Byte4> lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator%(RValue<Byte4> lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator&(RValue<Byte4> lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator|(RValue<Byte4> lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator^(RValue<Byte4> lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator<<(RValue<Byte4> lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator>>(RValue<Byte4> lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator+=(const Byte4 &lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator-=(const Byte4 &lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator*=(const Byte4 &lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator/=(const Byte4 &lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator%=(const Byte4 &lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator&=(const Byte4 &lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator|=(const Byte4 &lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator^=(const Byte4 &lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator<<=(const Byte4 &lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator>>=(const Byte4 &lhs, RValue<Byte4> rhs);
-	//	friend RValue<Byte4> operator+(RValue<Byte4> val);
-	//	friend RValue<Byte4> operator-(RValue<Byte4> val);
-	//	friend RValue<Byte4> operator~(RValue<Byte4> val);
-	//	friend RValue<Byte4> operator++(const Byte4 &val, int);   // Post-increment
-	//	friend const Byte4 &operator++(const Byte4 &val);   // Pre-increment
-	//	friend RValue<Byte4> operator--(const Byte4 &val, int);   // Post-decrement
-	//	friend const Byte4 &operator--(const Byte4 &val);   // Pre-decrement
-
 		static llvm::Type *getType();
 	};
+
+//	RValue<Byte4> operator+(RValue<Byte4> lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator-(RValue<Byte4> lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator*(RValue<Byte4> lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator/(RValue<Byte4> lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator%(RValue<Byte4> lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator&(RValue<Byte4> lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator|(RValue<Byte4> lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator^(RValue<Byte4> lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator<<(RValue<Byte4> lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator>>(RValue<Byte4> lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator+=(const Byte4 &lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator-=(const Byte4 &lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator*=(const Byte4 &lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator/=(const Byte4 &lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator%=(const Byte4 &lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator&=(const Byte4 &lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator|=(const Byte4 &lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator^=(const Byte4 &lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator<<=(const Byte4 &lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator>>=(const Byte4 &lhs, RValue<Byte4> rhs);
+//	RValue<Byte4> operator+(RValue<Byte4> val);
+//	RValue<Byte4> operator-(RValue<Byte4> val);
+//	RValue<Byte4> operator~(RValue<Byte4> val);
+//	RValue<Byte4> operator++(const Byte4 &val, int);   // Post-increment
+//	const Byte4 &operator++(const Byte4 &val);   // Pre-increment
+//	RValue<Byte4> operator--(const Byte4 &val, int);   // Post-decrement
+//	const Byte4 &operator--(const Byte4 &val);   // Pre-decrement
 
 	class SByte4 : public Variable<SByte4>
 	{
@@ -666,36 +666,36 @@ namespace sw
 	//	RValue<SByte4> operator=(const SByte4 &rhs) const;
 	//	RValue<SByte4> operator=(const Reference<SByte4> &rhs) const;
 
-	//	friend RValue<SByte4> operator+(RValue<SByte4> lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator-(RValue<SByte4> lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator*(RValue<SByte4> lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator/(RValue<SByte4> lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator%(RValue<SByte4> lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator&(RValue<SByte4> lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator|(RValue<SByte4> lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator^(RValue<SByte4> lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator<<(RValue<SByte4> lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator>>(RValue<SByte4> lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator+=(const SByte4 &lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator-=(const SByte4 &lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator*=(const SByte4 &lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator/=(const SByte4 &lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator%=(const SByte4 &lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator&=(const SByte4 &lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator|=(const SByte4 &lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator^=(const SByte4 &lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator<<=(const SByte4 &lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator>>=(const SByte4 &lhs, RValue<SByte4> rhs);
-	//	friend RValue<SByte4> operator+(RValue<SByte4> val);
-	//	friend RValue<SByte4> operator-(RValue<SByte4> val);
-	//	friend RValue<SByte4> operator~(RValue<SByte4> val);
-	//	friend RValue<SByte4> operator++(const SByte4 &val, int);   // Post-increment
-	//	friend const SByte4 &operator++(const SByte4 &val);   // Pre-increment
-	//	friend RValue<SByte4> operator--(const SByte4 &val, int);   // Post-decrement
-	//	friend const SByte4 &operator--(const SByte4 &val);   // Pre-decrement
-
 		static llvm::Type *getType();
 	};
+
+//	RValue<SByte4> operator+(RValue<SByte4> lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator-(RValue<SByte4> lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator*(RValue<SByte4> lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator/(RValue<SByte4> lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator%(RValue<SByte4> lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator&(RValue<SByte4> lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator|(RValue<SByte4> lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator^(RValue<SByte4> lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator<<(RValue<SByte4> lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator>>(RValue<SByte4> lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator+=(const SByte4 &lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator-=(const SByte4 &lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator*=(const SByte4 &lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator/=(const SByte4 &lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator%=(const SByte4 &lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator&=(const SByte4 &lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator|=(const SByte4 &lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator^=(const SByte4 &lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator<<=(const SByte4 &lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator>>=(const SByte4 &lhs, RValue<SByte4> rhs);
+//	RValue<SByte4> operator+(RValue<SByte4> val);
+//	RValue<SByte4> operator-(RValue<SByte4> val);
+//	RValue<SByte4> operator~(RValue<SByte4> val);
+//	RValue<SByte4> operator++(const SByte4 &val, int);   // Post-increment
+//	const SByte4 &operator++(const SByte4 &val);   // Pre-increment
+//	RValue<SByte4> operator--(const SByte4 &val, int);   // Post-decrement
+//	const SByte4 &operator--(const SByte4 &val);   // Pre-decrement
 
 	class Byte8 : public Variable<Byte8>
 	{
@@ -711,47 +711,45 @@ namespace sw
 		RValue<Byte8> operator=(const Byte8 &rhs) const;
 		RValue<Byte8> operator=(const Reference<Byte8> &rhs) const;
 
-		friend RValue<Byte8> operator+(RValue<Byte8> lhs, RValue<Byte8> rhs);
-		friend RValue<Byte8> operator-(RValue<Byte8> lhs, RValue<Byte8> rhs);
-	//	friend RValue<Byte8> operator*(RValue<Byte8> lhs, RValue<Byte8> rhs);
-	//	friend RValue<Byte8> operator/(RValue<Byte8> lhs, RValue<Byte8> rhs);
-	//	friend RValue<Byte8> operator%(RValue<Byte8> lhs, RValue<Byte8> rhs);
-		friend RValue<Byte8> operator&(RValue<Byte8> lhs, RValue<Byte8> rhs);
-		friend RValue<Byte8> operator|(RValue<Byte8> lhs, RValue<Byte8> rhs);
-		friend RValue<Byte8> operator^(RValue<Byte8> lhs, RValue<Byte8> rhs);
-	//	friend RValue<Byte8> operator<<(RValue<Byte8> lhs, RValue<Byte8> rhs);
-	//	friend RValue<Byte8> operator>>(RValue<Byte8> lhs, RValue<Byte8> rhs);
-		friend RValue<Byte8> operator+=(const Byte8 &lhs, RValue<Byte8> rhs);
-		friend RValue<Byte8> operator-=(const Byte8 &lhs, RValue<Byte8> rhs);
-	//	friend RValue<Byte8> operator*=(const Byte8 &lhs, RValue<Byte8> rhs);
-	//	friend RValue<Byte8> operator/=(const Byte8 &lhs, RValue<Byte8> rhs);
-	//	friend RValue<Byte8> operator%=(const Byte8 &lhs, RValue<Byte8> rhs);
-		friend RValue<Byte8> operator&=(const Byte8 &lhs, RValue<Byte8> rhs);
-		friend RValue<Byte8> operator|=(const Byte8 &lhs, RValue<Byte8> rhs);
-		friend RValue<Byte8> operator^=(const Byte8 &lhs, RValue<Byte8> rhs);
-	//	friend RValue<Byte8> operator<<=(const Byte8 &lhs, RValue<Byte8> rhs);
-	//	friend RValue<Byte8> operator>>=(const Byte8 &lhs, RValue<Byte8> rhs);
-	//	friend RValue<Byte8> operator+(RValue<Byte8> val);
-	//	friend RValue<Byte8> operator-(RValue<Byte8> val);
-		friend RValue<Byte8> operator~(RValue<Byte8> val);
-	//	friend RValue<Byte8> operator++(const Byte8 &val, int);   // Post-increment
-	//	friend const Byte8 &operator++(const Byte8 &val);   // Pre-increment
-	//	friend RValue<Byte8> operator--(const Byte8 &val, int);   // Post-decrement
-	//	friend const Byte8 &operator--(const Byte8 &val);   // Pre-decrement
-
-		friend RValue<Byte8> AddSat(RValue<Byte8> x, RValue<Byte8> y);
-		friend RValue<Byte8> SubSat(RValue<Byte8> x, RValue<Byte8> y);
-
-		friend RValue<Short4> Unpack(RValue<Byte4> x);
-		friend RValue<Short4> UnpackLow(RValue<Byte8> x, RValue<Byte8> y);
-		friend RValue<Short4> UnpackHigh(RValue<Byte8> x, RValue<Byte8> y);
-		friend RValue<Int> SignMask(RValue<Byte8> x);
-
-	//	friend RValue<Byte8> CmpGT(RValue<Byte8> x, RValue<Byte8> y);
-		friend RValue<Byte8> CmpEQ(RValue<Byte8> x, RValue<Byte8> y);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<Byte8> operator+(RValue<Byte8> lhs, RValue<Byte8> rhs);
+	RValue<Byte8> operator-(RValue<Byte8> lhs, RValue<Byte8> rhs);
+//	RValue<Byte8> operator*(RValue<Byte8> lhs, RValue<Byte8> rhs);
+//	RValue<Byte8> operator/(RValue<Byte8> lhs, RValue<Byte8> rhs);
+//	RValue<Byte8> operator%(RValue<Byte8> lhs, RValue<Byte8> rhs);
+	RValue<Byte8> operator&(RValue<Byte8> lhs, RValue<Byte8> rhs);
+	RValue<Byte8> operator|(RValue<Byte8> lhs, RValue<Byte8> rhs);
+	RValue<Byte8> operator^(RValue<Byte8> lhs, RValue<Byte8> rhs);
+//	RValue<Byte8> operator<<(RValue<Byte8> lhs, RValue<Byte8> rhs);
+//	RValue<Byte8> operator>>(RValue<Byte8> lhs, RValue<Byte8> rhs);
+	RValue<Byte8> operator+=(const Byte8 &lhs, RValue<Byte8> rhs);
+	RValue<Byte8> operator-=(const Byte8 &lhs, RValue<Byte8> rhs);
+//	RValue<Byte8> operator*=(const Byte8 &lhs, RValue<Byte8> rhs);
+//	RValue<Byte8> operator/=(const Byte8 &lhs, RValue<Byte8> rhs);
+//	RValue<Byte8> operator%=(const Byte8 &lhs, RValue<Byte8> rhs);
+	RValue<Byte8> operator&=(const Byte8 &lhs, RValue<Byte8> rhs);
+	RValue<Byte8> operator|=(const Byte8 &lhs, RValue<Byte8> rhs);
+	RValue<Byte8> operator^=(const Byte8 &lhs, RValue<Byte8> rhs);
+//	RValue<Byte8> operator<<=(const Byte8 &lhs, RValue<Byte8> rhs);
+//	RValue<Byte8> operator>>=(const Byte8 &lhs, RValue<Byte8> rhs);
+//	RValue<Byte8> operator+(RValue<Byte8> val);
+//	RValue<Byte8> operator-(RValue<Byte8> val);
+	RValue<Byte8> operator~(RValue<Byte8> val);
+//	RValue<Byte8> operator++(const Byte8 &val, int);   // Post-increment
+//	const Byte8 &operator++(const Byte8 &val);   // Pre-increment
+//	RValue<Byte8> operator--(const Byte8 &val, int);   // Post-decrement
+//	const Byte8 &operator--(const Byte8 &val);   // Pre-decrement
+
+	RValue<Byte8> AddSat(RValue<Byte8> x, RValue<Byte8> y);
+	RValue<Byte8> SubSat(RValue<Byte8> x, RValue<Byte8> y);
+	RValue<Short4> Unpack(RValue<Byte4> x);
+	RValue<Short4> UnpackLow(RValue<Byte8> x, RValue<Byte8> y);
+	RValue<Short4> UnpackHigh(RValue<Byte8> x, RValue<Byte8> y);
+	RValue<Int> SignMask(RValue<Byte8> x);
+//	RValue<Byte8> CmpGT(RValue<Byte8> x, RValue<Byte8> y);
+	RValue<Byte8> CmpEQ(RValue<Byte8> x, RValue<Byte8> y);
 
 	class SByte8 : public Variable<SByte8>
 	{
@@ -767,46 +765,44 @@ namespace sw
 		RValue<SByte8> operator=(const SByte8 &rhs) const;
 		RValue<SByte8> operator=(const Reference<SByte8> &rhs) const;
 
-		friend RValue<SByte8> operator+(RValue<SByte8> lhs, RValue<SByte8> rhs);
-		friend RValue<SByte8> operator-(RValue<SByte8> lhs, RValue<SByte8> rhs);
-	//	friend RValue<SByte8> operator*(RValue<SByte8> lhs, RValue<SByte8> rhs);
-	//	friend RValue<SByte8> operator/(RValue<SByte8> lhs, RValue<SByte8> rhs);
-	//	friend RValue<SByte8> operator%(RValue<SByte8> lhs, RValue<SByte8> rhs);
-		friend RValue<SByte8> operator&(RValue<SByte8> lhs, RValue<SByte8> rhs);
-		friend RValue<SByte8> operator|(RValue<SByte8> lhs, RValue<SByte8> rhs);
-		friend RValue<SByte8> operator^(RValue<SByte8> lhs, RValue<SByte8> rhs);
-	//	friend RValue<SByte8> operator<<(RValue<SByte8> lhs, RValue<SByte8> rhs);
-	//	friend RValue<SByte8> operator>>(RValue<SByte8> lhs, RValue<SByte8> rhs);
-		friend RValue<SByte8> operator+=(const SByte8 &lhs, RValue<SByte8> rhs);
-		friend RValue<SByte8> operator-=(const SByte8 &lhs, RValue<SByte8> rhs);
-	//	friend RValue<SByte8> operator*=(const SByte8 &lhs, RValue<SByte8> rhs);
-	//	friend RValue<SByte8> operator/=(const SByte8 &lhs, RValue<SByte8> rhs);
-	//	friend RValue<SByte8> operator%=(const SByte8 &lhs, RValue<SByte8> rhs);
-		friend RValue<SByte8> operator&=(const SByte8 &lhs, RValue<SByte8> rhs);
-		friend RValue<SByte8> operator|=(const SByte8 &lhs, RValue<SByte8> rhs);
-		friend RValue<SByte8> operator^=(const SByte8 &lhs, RValue<SByte8> rhs);
-	//	friend RValue<SByte8> operator<<=(const SByte8 &lhs, RValue<SByte8> rhs);
-	//	friend RValue<SByte8> operator>>=(const SByte8 &lhs, RValue<SByte8> rhs);
-	//	friend RValue<SByte8> operator+(RValue<SByte8> val);
-	//	friend RValue<SByte8> operator-(RValue<SByte8> val);
-		friend RValue<SByte8> operator~(RValue<SByte8> val);
-	//	friend RValue<SByte8> operator++(const SByte8 &val, int);   // Post-increment
-	//	friend const SByte8 &operator++(const SByte8 &val);   // Pre-increment
-	//	friend RValue<SByte8> operator--(const SByte8 &val, int);   // Post-decrement
-	//	friend const SByte8 &operator--(const SByte8 &val);   // Pre-decrement
-
-		friend RValue<SByte8> AddSat(RValue<SByte8> x, RValue<SByte8> y);
-		friend RValue<SByte8> SubSat(RValue<SByte8> x, RValue<SByte8> y);
-
-		friend RValue<Short4> UnpackLow(RValue<SByte8> x, RValue<SByte8> y);
-		friend RValue<Short4> UnpackHigh(RValue<SByte8> x, RValue<SByte8> y);
-		friend RValue<Int> SignMask(RValue<SByte8> x);
-
-		friend RValue<Byte8> CmpGT(RValue<SByte8> x, RValue<SByte8> y);
-		friend RValue<Byte8> CmpEQ(RValue<SByte8> x, RValue<SByte8> y);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<SByte8> operator+(RValue<SByte8> lhs, RValue<SByte8> rhs);
+	RValue<SByte8> operator-(RValue<SByte8> lhs, RValue<SByte8> rhs);
+//	RValue<SByte8> operator*(RValue<SByte8> lhs, RValue<SByte8> rhs);
+//	RValue<SByte8> operator/(RValue<SByte8> lhs, RValue<SByte8> rhs);
+//	RValue<SByte8> operator%(RValue<SByte8> lhs, RValue<SByte8> rhs);
+	RValue<SByte8> operator&(RValue<SByte8> lhs, RValue<SByte8> rhs);
+	RValue<SByte8> operator|(RValue<SByte8> lhs, RValue<SByte8> rhs);
+	RValue<SByte8> operator^(RValue<SByte8> lhs, RValue<SByte8> rhs);
+//	RValue<SByte8> operator<<(RValue<SByte8> lhs, RValue<SByte8> rhs);
+//	RValue<SByte8> operator>>(RValue<SByte8> lhs, RValue<SByte8> rhs);
+	RValue<SByte8> operator+=(const SByte8 &lhs, RValue<SByte8> rhs);
+	RValue<SByte8> operator-=(const SByte8 &lhs, RValue<SByte8> rhs);
+//	RValue<SByte8> operator*=(const SByte8 &lhs, RValue<SByte8> rhs);
+//	RValue<SByte8> operator/=(const SByte8 &lhs, RValue<SByte8> rhs);
+//	RValue<SByte8> operator%=(const SByte8 &lhs, RValue<SByte8> rhs);
+	RValue<SByte8> operator&=(const SByte8 &lhs, RValue<SByte8> rhs);
+	RValue<SByte8> operator|=(const SByte8 &lhs, RValue<SByte8> rhs);
+	RValue<SByte8> operator^=(const SByte8 &lhs, RValue<SByte8> rhs);
+//	RValue<SByte8> operator<<=(const SByte8 &lhs, RValue<SByte8> rhs);
+//	RValue<SByte8> operator>>=(const SByte8 &lhs, RValue<SByte8> rhs);
+//	RValue<SByte8> operator+(RValue<SByte8> val);
+//	RValue<SByte8> operator-(RValue<SByte8> val);
+	RValue<SByte8> operator~(RValue<SByte8> val);
+//	RValue<SByte8> operator++(const SByte8 &val, int);   // Post-increment
+//	const SByte8 &operator++(const SByte8 &val);   // Pre-increment
+//	RValue<SByte8> operator--(const SByte8 &val, int);   // Post-decrement
+//	const SByte8 &operator--(const SByte8 &val);   // Pre-decrement
+
+    RValue<SByte8> AddSat(RValue<SByte8> x, RValue<SByte8> y);
+	RValue<SByte8> SubSat(RValue<SByte8> x, RValue<SByte8> y);
+	RValue<Short4> UnpackLow(RValue<SByte8> x, RValue<SByte8> y);
+	RValue<Short4> UnpackHigh(RValue<SByte8> x, RValue<SByte8> y);
+	RValue<Int> SignMask(RValue<SByte8> x);
+	RValue<Byte8> CmpGT(RValue<SByte8> x, RValue<SByte8> y);
+	RValue<Byte8> CmpEQ(RValue<SByte8> x, RValue<SByte8> y);
 
 	class Byte16 : public Variable<Byte16>
 	{
@@ -821,36 +817,36 @@ namespace sw
 		RValue<Byte16> operator=(const Byte16 &rhs) const;
 		RValue<Byte16> operator=(const Reference<Byte16> &rhs) const;
 
-	//	friend RValue<Byte16> operator+(RValue<Byte16> lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator-(RValue<Byte16> lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator*(RValue<Byte16> lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator/(RValue<Byte16> lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator%(RValue<Byte16> lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator&(RValue<Byte16> lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator|(RValue<Byte16> lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator^(RValue<Byte16> lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator<<(RValue<Byte16> lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator>>(RValue<Byte16> lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator+=(const Byte16 &lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator-=(const Byte16 &lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator*=(const Byte16 &lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator/=(const Byte16 &lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator%=(const Byte16 &lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator&=(const Byte16 &lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator|=(const Byte16 &lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator^=(const Byte16 &lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator<<=(const Byte16 &lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator>>=(const Byte16 &lhs, RValue<Byte16> rhs);
-	//	friend RValue<Byte16> operator+(RValue<Byte16> val);
-	//	friend RValue<Byte16> operator-(RValue<Byte16> val);
-	//	friend RValue<Byte16> operator~(RValue<Byte16> val);
-	//	friend RValue<Byte16> operator++(const Byte16 &val, int);   // Post-increment
-	//	friend const Byte16 &operator++(const Byte16 &val);   // Pre-increment
-	//	friend RValue<Byte16> operator--(const Byte16 &val, int);   // Post-decrement
-	//	friend const Byte16 &operator--(const Byte16 &val);   // Pre-decrement
-
 		static llvm::Type *getType();
 	};
+
+//	RValue<Byte16> operator+(RValue<Byte16> lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator-(RValue<Byte16> lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator*(RValue<Byte16> lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator/(RValue<Byte16> lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator%(RValue<Byte16> lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator&(RValue<Byte16> lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator|(RValue<Byte16> lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator^(RValue<Byte16> lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator<<(RValue<Byte16> lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator>>(RValue<Byte16> lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator+=(const Byte16 &lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator-=(const Byte16 &lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator*=(const Byte16 &lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator/=(const Byte16 &lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator%=(const Byte16 &lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator&=(const Byte16 &lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator|=(const Byte16 &lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator^=(const Byte16 &lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator<<=(const Byte16 &lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator>>=(const Byte16 &lhs, RValue<Byte16> rhs);
+//	RValue<Byte16> operator+(RValue<Byte16> val);
+//	RValue<Byte16> operator-(RValue<Byte16> val);
+//	RValue<Byte16> operator~(RValue<Byte16> val);
+//	RValue<Byte16> operator++(const Byte16 &val, int);   // Post-increment
+//	const Byte16 &operator++(const Byte16 &val);   // Pre-increment
+//	RValue<Byte16> operator--(const Byte16 &val, int);   // Post-decrement
+//	const Byte16 &operator--(const Byte16 &val);   // Pre-decrement
 
 	class SByte16 : public Variable<SByte16>
 	{
@@ -865,36 +861,36 @@ namespace sw
 	//	RValue<SByte16> operator=(const SByte16 &rhs) const;
 	//	RValue<SByte16> operator=(const Reference<SByte16> &rhs) const;
 
-	//	friend RValue<SByte16> operator+(RValue<SByte16> lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator-(RValue<SByte16> lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator*(RValue<SByte16> lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator/(RValue<SByte16> lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator%(RValue<SByte16> lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator&(RValue<SByte16> lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator|(RValue<SByte16> lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator^(RValue<SByte16> lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator<<(RValue<SByte16> lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator>>(RValue<SByte16> lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator+=(const SByte16 &lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator-=(const SByte16 &lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator*=(const SByte16 &lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator/=(const SByte16 &lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator%=(const SByte16 &lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator&=(const SByte16 &lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator|=(const SByte16 &lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator^=(const SByte16 &lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator<<=(const SByte16 &lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator>>=(const SByte16 &lhs, RValue<SByte16> rhs);
-	//	friend RValue<SByte16> operator+(RValue<SByte16> val);
-	//	friend RValue<SByte16> operator-(RValue<SByte16> val);
-	//	friend RValue<SByte16> operator~(RValue<SByte16> val);
-	//	friend RValue<SByte16> operator++(const SByte16 &val, int);   // Post-increment
-	//	friend const SByte16 &operator++(const SByte16 &val);   // Pre-increment
-	//	friend RValue<SByte16> operator--(const SByte16 &val, int);   // Post-decrement
-	//	friend const SByte16 &operator--(const SByte16 &val);   // Pre-decrement
-
 		static llvm::Type *getType();
 	};
+
+//	RValue<SByte16> operator+(RValue<SByte16> lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator-(RValue<SByte16> lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator*(RValue<SByte16> lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator/(RValue<SByte16> lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator%(RValue<SByte16> lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator&(RValue<SByte16> lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator|(RValue<SByte16> lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator^(RValue<SByte16> lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator<<(RValue<SByte16> lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator>>(RValue<SByte16> lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator+=(const SByte16 &lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator-=(const SByte16 &lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator*=(const SByte16 &lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator/=(const SByte16 &lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator%=(const SByte16 &lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator&=(const SByte16 &lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator|=(const SByte16 &lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator^=(const SByte16 &lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator<<=(const SByte16 &lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator>>=(const SByte16 &lhs, RValue<SByte16> rhs);
+//	RValue<SByte16> operator+(RValue<SByte16> val);
+//	RValue<SByte16> operator-(RValue<SByte16> val);
+//	RValue<SByte16> operator~(RValue<SByte16> val);
+//	RValue<SByte16> operator++(const SByte16 &val, int);   // Post-increment
+//	const SByte16 &operator++(const SByte16 &val);   // Pre-increment
+//	RValue<SByte16> operator--(const SByte16 &val, int);   // Post-decrement
+//	const SByte16 &operator--(const SByte16 &val);   // Pre-decrement
 
 	class Short4 : public Variable<Short4>
 	{
@@ -921,65 +917,62 @@ namespace sw
 		RValue<Short4> operator=(const UShort4 &rhs) const;
 		RValue<Short4> operator=(const Reference<UShort4> &rhs) const;
 
-		friend RValue<Short4> operator+(RValue<Short4> lhs, RValue<Short4> rhs);
-		friend RValue<Short4> operator-(RValue<Short4> lhs, RValue<Short4> rhs);
-		friend RValue<Short4> operator*(RValue<Short4> lhs, RValue<Short4> rhs);
-	//	friend RValue<Short4> operator/(RValue<Short4> lhs, RValue<Short4> rhs);
-	//	friend RValue<Short4> operator%(RValue<Short4> lhs, RValue<Short4> rhs);
-		friend RValue<Short4> operator&(RValue<Short4> lhs, RValue<Short4> rhs);
-		friend RValue<Short4> operator|(RValue<Short4> lhs, RValue<Short4> rhs);
-		friend RValue<Short4> operator^(RValue<Short4> lhs, RValue<Short4> rhs);
-		friend RValue<Short4> operator<<(RValue<Short4> lhs, unsigned char rhs);
-		friend RValue<Short4> operator>>(RValue<Short4> lhs, unsigned char rhs);
-		friend RValue<Short4> operator<<(RValue<Short4> lhs, RValue<Long1> rhs);
-		friend RValue<Short4> operator>>(RValue<Short4> lhs, RValue<Long1> rhs);
-		friend RValue<Short4> operator+=(const Short4 &lhs, RValue<Short4> rhs);
-		friend RValue<Short4> operator-=(const Short4 &lhs, RValue<Short4> rhs);
-		friend RValue<Short4> operator*=(const Short4 &lhs, RValue<Short4> rhs);
-	//	friend RValue<Short4> operator/=(const Short4 &lhs, RValue<Short4> rhs);
-	//	friend RValue<Short4> operator%=(const Short4 &lhs, RValue<Short4> rhs);
-		friend RValue<Short4> operator&=(const Short4 &lhs, RValue<Short4> rhs);
-		friend RValue<Short4> operator|=(const Short4 &lhs, RValue<Short4> rhs);
-		friend RValue<Short4> operator^=(const Short4 &lhs, RValue<Short4> rhs);
-		friend RValue<Short4> operator<<=(const Short4 &lhs, unsigned char rhs);
-		friend RValue<Short4> operator>>=(const Short4 &lhs, unsigned char rhs);
-		friend RValue<Short4> operator<<=(const Short4 &lhs, RValue<Long1> rhs);
-		friend RValue<Short4> operator>>=(const Short4 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Short4> operator+(RValue<Short4> val);
-		friend RValue<Short4> operator-(RValue<Short4> val);
-		friend RValue<Short4> operator~(RValue<Short4> val);
-	//	friend RValue<Short4> operator++(const Short4 &val, int);   // Post-increment
-	//	friend const Short4 &operator++(const Short4 &val);   // Pre-increment
-	//	friend RValue<Short4> operator--(const Short4 &val, int);   // Post-decrement
-	//	friend const Short4 &operator--(const Short4 &val);   // Pre-decrement
-	//	friend RValue<Bool> operator<(RValue<Short4> lhs, RValue<Short4> rhs);
-	//	friend RValue<Bool> operator<=(RValue<Short4> lhs, RValue<Short4> rhs);
-	//	friend RValue<Bool> operator>(RValue<Short4> lhs, RValue<Short4> rhs);
-	//	friend RValue<Bool> operator>=(RValue<Short4> lhs, RValue<Short4> rhs);
-	//	friend RValue<Bool> operator!=(RValue<Short4> lhs, RValue<Short4> rhs);
-	//	friend RValue<Bool> operator==(RValue<Short4> lhs, RValue<Short4> rhs);
-
-		friend RValue<Short4> RoundShort4(RValue<Float4> cast);
-
-		friend RValue<Short4> Max(RValue<Short4> x, RValue<Short4> y);
-		friend RValue<Short4> Min(RValue<Short4> x, RValue<Short4> y);
-		friend RValue<Short4> AddSat(RValue<Short4> x, RValue<Short4> y);
-		friend RValue<Short4> SubSat(RValue<Short4> x, RValue<Short4> y);
-		friend RValue<Short4> MulHigh(RValue<Short4> x, RValue<Short4> y);
-		friend RValue<Int2> MulAdd(RValue<Short4> x, RValue<Short4> y);
-
-		friend RValue<SByte8> Pack(RValue<Short4> x, RValue<Short4> y);
-		friend RValue<Int2> UnpackLow(RValue<Short4> x, RValue<Short4> y);
-		friend RValue<Int2> UnpackHigh(RValue<Short4> x, RValue<Short4> y);
-		friend RValue<Short4> Swizzle(RValue<Short4> x, unsigned char select);
-		friend RValue<Short4> Insert(RValue<Short4> val, RValue<Short> element, int i);
-		friend RValue<Short> Extract(RValue<Short4> val, int i);
-
-		friend RValue<Short4> CmpGT(RValue<Short4> x, RValue<Short4> y);
-		friend RValue<Short4> CmpEQ(RValue<Short4> x, RValue<Short4> y);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<Short4> operator+(RValue<Short4> lhs, RValue<Short4> rhs);
+	RValue<Short4> operator-(RValue<Short4> lhs, RValue<Short4> rhs);
+	RValue<Short4> operator*(RValue<Short4> lhs, RValue<Short4> rhs);
+//	RValue<Short4> operator/(RValue<Short4> lhs, RValue<Short4> rhs);
+//	RValue<Short4> operator%(RValue<Short4> lhs, RValue<Short4> rhs);
+	RValue<Short4> operator&(RValue<Short4> lhs, RValue<Short4> rhs);
+	RValue<Short4> operator|(RValue<Short4> lhs, RValue<Short4> rhs);
+	RValue<Short4> operator^(RValue<Short4> lhs, RValue<Short4> rhs);
+	RValue<Short4> operator<<(RValue<Short4> lhs, unsigned char rhs);
+	RValue<Short4> operator>>(RValue<Short4> lhs, unsigned char rhs);
+	RValue<Short4> operator<<(RValue<Short4> lhs, RValue<Long1> rhs);
+	RValue<Short4> operator>>(RValue<Short4> lhs, RValue<Long1> rhs);
+	RValue<Short4> operator+=(const Short4 &lhs, RValue<Short4> rhs);
+	RValue<Short4> operator-=(const Short4 &lhs, RValue<Short4> rhs);
+	RValue<Short4> operator*=(const Short4 &lhs, RValue<Short4> rhs);
+//	RValue<Short4> operator/=(const Short4 &lhs, RValue<Short4> rhs);
+//	RValue<Short4> operator%=(const Short4 &lhs, RValue<Short4> rhs);
+	RValue<Short4> operator&=(const Short4 &lhs, RValue<Short4> rhs);
+	RValue<Short4> operator|=(const Short4 &lhs, RValue<Short4> rhs);
+	RValue<Short4> operator^=(const Short4 &lhs, RValue<Short4> rhs);
+	RValue<Short4> operator<<=(const Short4 &lhs, unsigned char rhs);
+	RValue<Short4> operator>>=(const Short4 &lhs, unsigned char rhs);
+	RValue<Short4> operator<<=(const Short4 &lhs, RValue<Long1> rhs);
+	RValue<Short4> operator>>=(const Short4 &lhs, RValue<Long1> rhs);
+//	RValue<Short4> operator+(RValue<Short4> val);
+	RValue<Short4> operator-(RValue<Short4> val);
+	RValue<Short4> operator~(RValue<Short4> val);
+//	RValue<Short4> operator++(const Short4 &val, int);   // Post-increment
+//	const Short4 &operator++(const Short4 &val);   // Pre-increment
+//	RValue<Short4> operator--(const Short4 &val, int);   // Post-decrement
+//	const Short4 &operator--(const Short4 &val);   // Pre-decrement
+//	RValue<Bool> operator<(RValue<Short4> lhs, RValue<Short4> rhs);
+//	RValue<Bool> operator<=(RValue<Short4> lhs, RValue<Short4> rhs);
+//	RValue<Bool> operator>(RValue<Short4> lhs, RValue<Short4> rhs);
+//	RValue<Bool> operator>=(RValue<Short4> lhs, RValue<Short4> rhs);
+//	RValue<Bool> operator!=(RValue<Short4> lhs, RValue<Short4> rhs);
+//	RValue<Bool> operator==(RValue<Short4> lhs, RValue<Short4> rhs);
+
+	RValue<Short4> RoundShort4(RValue<Float4> cast);
+	RValue<Short4> Max(RValue<Short4> x, RValue<Short4> y);
+	RValue<Short4> Min(RValue<Short4> x, RValue<Short4> y);
+	RValue<Short4> AddSat(RValue<Short4> x, RValue<Short4> y);
+	RValue<Short4> SubSat(RValue<Short4> x, RValue<Short4> y);
+	RValue<Short4> MulHigh(RValue<Short4> x, RValue<Short4> y);
+	RValue<Int2> MulAdd(RValue<Short4> x, RValue<Short4> y);
+	RValue<SByte8> Pack(RValue<Short4> x, RValue<Short4> y);
+	RValue<Int2> UnpackLow(RValue<Short4> x, RValue<Short4> y);
+	RValue<Int2> UnpackHigh(RValue<Short4> x, RValue<Short4> y);
+	RValue<Short4> Swizzle(RValue<Short4> x, unsigned char select);
+	RValue<Short4> Insert(RValue<Short4> val, RValue<Short> element, int i);
+	RValue<Short> Extract(RValue<Short4> val, int i);
+	RValue<Short4> CmpGT(RValue<Short4> x, RValue<Short4> y);
+	RValue<Short4> CmpEQ(RValue<Short4> x, RValue<Short4> y);
 
 	class UShort4 : public Variable<UShort4>
 	{
@@ -1003,50 +996,48 @@ namespace sw
 		RValue<UShort4> operator=(const Short4 &rhs) const;
 		RValue<UShort4> operator=(const Reference<Short4> &rhs) const;
 
-		friend RValue<UShort4> operator+(RValue<UShort4> lhs, RValue<UShort4> rhs);
-		friend RValue<UShort4> operator-(RValue<UShort4> lhs, RValue<UShort4> rhs);
-		friend RValue<UShort4> operator*(RValue<UShort4> lhs, RValue<UShort4> rhs);
-	//	friend RValue<UShort4> operator/(RValue<UShort4> lhs, RValue<UShort4> rhs);
-	//	friend RValue<UShort4> operator%(RValue<UShort4> lhs, RValue<UShort4> rhs);
-	//	friend RValue<UShort4> operator&(RValue<UShort4> lhs, RValue<UShort4> rhs);
-	//	friend RValue<UShort4> operator|(RValue<UShort4> lhs, RValue<UShort4> rhs);
-	//	friend RValue<UShort4> operator^(RValue<UShort4> lhs, RValue<UShort4> rhs);
-		friend RValue<UShort4> operator<<(RValue<UShort4> lhs, unsigned char rhs);
-		friend RValue<UShort4> operator>>(RValue<UShort4> lhs, unsigned char rhs);
-		friend RValue<UShort4> operator<<(RValue<UShort4> lhs, RValue<Long1> rhs);
-		friend RValue<UShort4> operator>>(RValue<UShort4> lhs, RValue<Long1> rhs);
-	//	friend RValue<UShort4> operator+=(const UShort4 &lhs, RValue<UShort4> rhs);
-	//	friend RValue<UShort4> operator-=(const UShort4 &lhs, RValue<UShort4> rhs);
-	//	friend RValue<UShort4> operator*=(const UShort4 &lhs, RValue<UShort4> rhs);
-	//	friend RValue<UShort4> operator/=(const UShort4 &lhs, RValue<UShort4> rhs);
-	//	friend RValue<UShort4> operator%=(const UShort4 &lhs, RValue<UShort4> rhs);
-	//	friend RValue<UShort4> operator&=(const UShort4 &lhs, RValue<UShort4> rhs);
-	//	friend RValue<UShort4> operator|=(const UShort4 &lhs, RValue<UShort4> rhs);
-	//	friend RValue<UShort4> operator^=(const UShort4 &lhs, RValue<UShort4> rhs);
-		friend RValue<UShort4> operator<<=(const UShort4 &lhs, unsigned char rhs);
-		friend RValue<UShort4> operator>>=(const UShort4 &lhs, unsigned char rhs);
-		friend RValue<UShort4> operator<<=(const UShort4 &lhs, RValue<Long1> rhs);
-		friend RValue<UShort4> operator>>=(const UShort4 &lhs, RValue<Long1> rhs);
-	//	friend RValue<UShort4> operator+(RValue<UShort4> val);
-	//	friend RValue<UShort4> operator-(RValue<UShort4> val);
-		friend RValue<UShort4> operator~(RValue<UShort4> val);
-	//	friend RValue<UShort4> operator++(const UShort4 &val, int);   // Post-increment
-	//	friend const UShort4 &operator++(const UShort4 &val);   // Pre-increment
-	//	friend RValue<UShort4> operator--(const UShort4 &val, int);   // Post-decrement
-	//	friend const UShort4 &operator--(const UShort4 &val);   // Pre-decrement
-
-		friend RValue<UShort4> Max(RValue<UShort4> x, RValue<UShort4> y);
-		friend RValue<UShort4> Min(RValue<UShort4> x, RValue<UShort4> y);
-		friend RValue<UShort4> AddSat(RValue<UShort4> x, RValue<UShort4> y);
-		friend RValue<UShort4> SubSat(RValue<UShort4> x, RValue<UShort4> y);
-		friend RValue<UShort4> MulHigh(RValue<UShort4> x, RValue<UShort4> y);
-
-		friend RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y);
-
-		friend RValue<Byte8> Pack(RValue<UShort4> x, RValue<UShort4> y);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<UShort4> operator+(RValue<UShort4> lhs, RValue<UShort4> rhs);
+	RValue<UShort4> operator-(RValue<UShort4> lhs, RValue<UShort4> rhs);
+	RValue<UShort4> operator*(RValue<UShort4> lhs, RValue<UShort4> rhs);
+//	RValue<UShort4> operator/(RValue<UShort4> lhs, RValue<UShort4> rhs);
+//	RValue<UShort4> operator%(RValue<UShort4> lhs, RValue<UShort4> rhs);
+//	RValue<UShort4> operator&(RValue<UShort4> lhs, RValue<UShort4> rhs);
+//	RValue<UShort4> operator|(RValue<UShort4> lhs, RValue<UShort4> rhs);
+//	RValue<UShort4> operator^(RValue<UShort4> lhs, RValue<UShort4> rhs);
+	RValue<UShort4> operator<<(RValue<UShort4> lhs, unsigned char rhs);
+	RValue<UShort4> operator>>(RValue<UShort4> lhs, unsigned char rhs);
+	RValue<UShort4> operator<<(RValue<UShort4> lhs, RValue<Long1> rhs);
+	RValue<UShort4> operator>>(RValue<UShort4> lhs, RValue<Long1> rhs);
+//	RValue<UShort4> operator+=(const UShort4 &lhs, RValue<UShort4> rhs);
+//	RValue<UShort4> operator-=(const UShort4 &lhs, RValue<UShort4> rhs);
+//	RValue<UShort4> operator*=(const UShort4 &lhs, RValue<UShort4> rhs);
+//	RValue<UShort4> operator/=(const UShort4 &lhs, RValue<UShort4> rhs);
+//	RValue<UShort4> operator%=(const UShort4 &lhs, RValue<UShort4> rhs);
+//	RValue<UShort4> operator&=(const UShort4 &lhs, RValue<UShort4> rhs);
+//	RValue<UShort4> operator|=(const UShort4 &lhs, RValue<UShort4> rhs);
+//	RValue<UShort4> operator^=(const UShort4 &lhs, RValue<UShort4> rhs);
+	RValue<UShort4> operator<<=(const UShort4 &lhs, unsigned char rhs);
+	RValue<UShort4> operator>>=(const UShort4 &lhs, unsigned char rhs);
+	RValue<UShort4> operator<<=(const UShort4 &lhs, RValue<Long1> rhs);
+	RValue<UShort4> operator>>=(const UShort4 &lhs, RValue<Long1> rhs);
+//	RValue<UShort4> operator+(RValue<UShort4> val);
+//	RValue<UShort4> operator-(RValue<UShort4> val);
+	RValue<UShort4> operator~(RValue<UShort4> val);
+//	RValue<UShort4> operator++(const UShort4 &val, int);   // Post-increment
+//	const UShort4 &operator++(const UShort4 &val);   // Pre-increment
+//	RValue<UShort4> operator--(const UShort4 &val, int);   // Post-decrement
+//	const UShort4 &operator--(const UShort4 &val);   // Pre-decrement
+
+	RValue<UShort4> Max(RValue<UShort4> x, RValue<UShort4> y);
+	RValue<UShort4> Min(RValue<UShort4> x, RValue<UShort4> y);
+	RValue<UShort4> AddSat(RValue<UShort4> x, RValue<UShort4> y);
+	RValue<UShort4> SubSat(RValue<UShort4> x, RValue<UShort4> y);
+	RValue<UShort4> MulHigh(RValue<UShort4> x, RValue<UShort4> y);
+	RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y);
+	RValue<Byte8> Pack(RValue<UShort4> x, RValue<UShort4> y);
 
 	class Short8 : public Variable<Short8>
 	{
@@ -1061,49 +1052,48 @@ namespace sw
 	//	RValue<Short8> operator=(const Short8 &rhs) const;
 	//	RValue<Short8> operator=(const Reference<Short8> &rhs) const;
 
-		friend RValue<Short8> operator+(RValue<Short8> lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator-(RValue<Short8> lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator*(RValue<Short8> lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator/(RValue<Short8> lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator%(RValue<Short8> lhs, RValue<Short8> rhs);
-		friend RValue<Short8> operator&(RValue<Short8> lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator|(RValue<Short8> lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator^(RValue<Short8> lhs, RValue<Short8> rhs);
-		friend RValue<Short8> operator<<(RValue<Short8> lhs, unsigned char rhs);
-		friend RValue<Short8> operator>>(RValue<Short8> lhs, unsigned char rhs);
-	//	friend RValue<Short8> operator<<(RValue<Short8> lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator>>(RValue<Short8> lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator+=(const Short8 &lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator-=(const Short8 &lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator*=(const Short8 &lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator/=(const Short8 &lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator%=(const Short8 &lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator&=(const Short8 &lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator|=(const Short8 &lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator^=(const Short8 &lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator<<=(const Short8 &lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator>>=(const Short8 &lhs, RValue<Short8> rhs);
-	//	friend RValue<Short8> operator+(RValue<Short8> val);
-	//	friend RValue<Short8> operator-(RValue<Short8> val);
-	//	friend RValue<Short8> operator~(RValue<Short8> val);
-	//	friend RValue<Short8> operator++(const Short8 &val, int);   // Post-increment
-	//	friend const Short8 &operator++(const Short8 &val);   // Pre-increment
-	//	friend RValue<Short8> operator--(const Short8 &val, int);   // Post-decrement
-	//	friend const Short8 &operator--(const Short8 &val);   // Pre-decrement
-	//	friend RValue<Bool> operator<(RValue<Short8> lhs, RValue<Short8> rhs);
-	//	friend RValue<Bool> operator<=(RValue<Short8> lhs, RValue<Short8> rhs);
-	//	friend RValue<Bool> operator>(RValue<Short8> lhs, RValue<Short8> rhs);
-	//	friend RValue<Bool> operator>=(RValue<Short8> lhs, RValue<Short8> rhs);
-	//	friend RValue<Bool> operator!=(RValue<Short8> lhs, RValue<Short8> rhs);
-	//	friend RValue<Bool> operator==(RValue<Short8> lhs, RValue<Short8> rhs);
-
-		friend RValue<Short8> Concatenate(RValue<Short4> lo, RValue<Short4> hi);
-
-		friend RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y);
-		friend RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<Short8> operator+(RValue<Short8> lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator-(RValue<Short8> lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator*(RValue<Short8> lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator/(RValue<Short8> lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator%(RValue<Short8> lhs, RValue<Short8> rhs);
+	RValue<Short8> operator&(RValue<Short8> lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator|(RValue<Short8> lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator^(RValue<Short8> lhs, RValue<Short8> rhs);
+	RValue<Short8> operator<<(RValue<Short8> lhs, unsigned char rhs);
+	RValue<Short8> operator>>(RValue<Short8> lhs, unsigned char rhs);
+//	RValue<Short8> operator<<(RValue<Short8> lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator>>(RValue<Short8> lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator+=(const Short8 &lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator-=(const Short8 &lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator*=(const Short8 &lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator/=(const Short8 &lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator%=(const Short8 &lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator&=(const Short8 &lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator|=(const Short8 &lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator^=(const Short8 &lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator<<=(const Short8 &lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator>>=(const Short8 &lhs, RValue<Short8> rhs);
+//	RValue<Short8> operator+(RValue<Short8> val);
+//	RValue<Short8> operator-(RValue<Short8> val);
+//	RValue<Short8> operator~(RValue<Short8> val);
+//	RValue<Short8> operator++(const Short8 &val, int);   // Post-increment
+//	const Short8 &operator++(const Short8 &val);   // Pre-increment
+//	RValue<Short8> operator--(const Short8 &val, int);   // Post-decrement
+//	const Short8 &operator--(const Short8 &val);   // Pre-decrement
+//	RValue<Bool> operator<(RValue<Short8> lhs, RValue<Short8> rhs);
+//	RValue<Bool> operator<=(RValue<Short8> lhs, RValue<Short8> rhs);
+//	RValue<Bool> operator>(RValue<Short8> lhs, RValue<Short8> rhs);
+//	RValue<Bool> operator>=(RValue<Short8> lhs, RValue<Short8> rhs);
+//	RValue<Bool> operator!=(RValue<Short8> lhs, RValue<Short8> rhs);
+//	RValue<Bool> operator==(RValue<Short8> lhs, RValue<Short8> rhs);
+
+	RValue<Short8> Concatenate(RValue<Short4> lo, RValue<Short4> hi);
+	RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y);
+	RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y);
 
 	class UShort8 : public Variable<UShort8>
 	{
@@ -1118,49 +1108,48 @@ namespace sw
 		RValue<UShort8> operator=(const UShort8 &rhs) const;
 		RValue<UShort8> operator=(const Reference<UShort8> &rhs) const;
 
-		friend RValue<UShort8> operator+(RValue<UShort8> lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator-(RValue<UShort8> lhs, RValue<UShort8> rhs);
-		friend RValue<UShort8> operator*(RValue<UShort8> lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator/(RValue<UShort8> lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator%(RValue<UShort8> lhs, RValue<UShort8> rhs);
-		friend RValue<UShort8> operator&(RValue<UShort8> lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator|(RValue<UShort8> lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator^(RValue<UShort8> lhs, RValue<UShort8> rhs);
-		friend RValue<UShort8> operator<<(RValue<UShort8> lhs, unsigned char rhs);
-		friend RValue<UShort8> operator>>(RValue<UShort8> lhs, unsigned char rhs);
-	//	friend RValue<UShort8> operator<<(RValue<UShort8> lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator>>(RValue<UShort8> lhs, RValue<UShort8> rhs);
-		friend RValue<UShort8> operator+=(const UShort8 &lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator-=(const UShort8 &lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator*=(const UShort8 &lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator/=(const UShort8 &lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator%=(const UShort8 &lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator&=(const UShort8 &lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator|=(const UShort8 &lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator^=(const UShort8 &lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator<<=(const UShort8 &lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator>>=(const UShort8 &lhs, RValue<UShort8> rhs);
-	//	friend RValue<UShort8> operator+(RValue<UShort8> val);
-	//	friend RValue<UShort8> operator-(RValue<UShort8> val);
-		friend RValue<UShort8> operator~(RValue<UShort8> val);
-	//	friend RValue<UShort8> operator++(const UShort8 &val, int);   // Post-increment
-	//	friend const UShort8 &operator++(const UShort8 &val);   // Pre-increment
-	//	friend RValue<UShort8> operator--(const UShort8 &val, int);   // Post-decrement
-	//	friend const UShort8 &operator--(const UShort8 &val);   // Pre-decrement
-	//	friend RValue<Bool> operator<(RValue<UShort8> lhs, RValue<UShort8> rhs);
-	//	friend RValue<Bool> operator<=(RValue<UShort8> lhs, RValue<UShort8> rhs);
-	//	friend RValue<Bool> operator>(RValue<UShort8> lhs, RValue<UShort8> rhs);
-	//	friend RValue<Bool> operator>=(RValue<UShort8> lhs, RValue<UShort8> rhs);
-	//	friend RValue<Bool> operator!=(RValue<UShort8> lhs, RValue<UShort8> rhs);
-	//	friend RValue<Bool> operator==(RValue<UShort8> lhs, RValue<UShort8> rhs);
-
-		friend RValue<UShort8> Swizzle(RValue<UShort8> x, char select0, char select1, char select2, char select3, char select4, char select5, char select6, char select7);
-		friend RValue<UShort8> Concatenate(RValue<UShort4> lo, RValue<UShort4> hi);
-
-		friend RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<UShort8> operator+(RValue<UShort8> lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator-(RValue<UShort8> lhs, RValue<UShort8> rhs);
+	RValue<UShort8> operator*(RValue<UShort8> lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator/(RValue<UShort8> lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator%(RValue<UShort8> lhs, RValue<UShort8> rhs);
+	RValue<UShort8> operator&(RValue<UShort8> lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator|(RValue<UShort8> lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator^(RValue<UShort8> lhs, RValue<UShort8> rhs);
+	RValue<UShort8> operator<<(RValue<UShort8> lhs, unsigned char rhs);
+	RValue<UShort8> operator>>(RValue<UShort8> lhs, unsigned char rhs);
+//	RValue<UShort8> operator<<(RValue<UShort8> lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator>>(RValue<UShort8> lhs, RValue<UShort8> rhs);
+	RValue<UShort8> operator+=(const UShort8 &lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator-=(const UShort8 &lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator*=(const UShort8 &lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator/=(const UShort8 &lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator%=(const UShort8 &lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator&=(const UShort8 &lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator|=(const UShort8 &lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator^=(const UShort8 &lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator<<=(const UShort8 &lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator>>=(const UShort8 &lhs, RValue<UShort8> rhs);
+//	RValue<UShort8> operator+(RValue<UShort8> val);
+//	RValue<UShort8> operator-(RValue<UShort8> val);
+	RValue<UShort8> operator~(RValue<UShort8> val);
+//	RValue<UShort8> operator++(const UShort8 &val, int);   // Post-increment
+//	const UShort8 &operator++(const UShort8 &val);   // Pre-increment
+//	RValue<UShort8> operator--(const UShort8 &val, int);   // Post-decrement
+//	const UShort8 &operator--(const UShort8 &val);   // Pre-decrement
+//	RValue<Bool> operator<(RValue<UShort8> lhs, RValue<UShort8> rhs);
+//	RValue<Bool> operator<=(RValue<UShort8> lhs, RValue<UShort8> rhs);
+//	RValue<Bool> operator>(RValue<UShort8> lhs, RValue<UShort8> rhs);
+//	RValue<Bool> operator>=(RValue<UShort8> lhs, RValue<UShort8> rhs);
+//	RValue<Bool> operator!=(RValue<UShort8> lhs, RValue<UShort8> rhs);
+//	RValue<Bool> operator==(RValue<UShort8> lhs, RValue<UShort8> rhs);
+
+    RValue<UShort8> Swizzle(RValue<UShort8> x, char select0, char select1, char select2, char select3, char select4, char select5, char select6, char select7);
+	RValue<UShort8> Concatenate(RValue<UShort4> lo, RValue<UShort4> hi);
+    RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y);
 
 	class Int : public Variable<Int>
 	{
@@ -1192,48 +1181,47 @@ namespace sw
 		RValue<Int> operator=(const Reference<Int> &rhs) const;
 		RValue<Int> operator=(const Reference<UInt> &rhs) const;
 
-		friend RValue<Int> operator+(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Int> operator-(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Int> operator*(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Int> operator/(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Int> operator%(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Int> operator&(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Int> operator|(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Int> operator^(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Int> operator<<(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Int> operator>>(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Int> operator+=(const Int &lhs, RValue<Int> rhs);
-		friend RValue<Int> operator-=(const Int &lhs, RValue<Int> rhs);
-		friend RValue<Int> operator*=(const Int &lhs, RValue<Int> rhs);
-		friend RValue<Int> operator/=(const Int &lhs, RValue<Int> rhs);
-		friend RValue<Int> operator%=(const Int &lhs, RValue<Int> rhs);
-		friend RValue<Int> operator&=(const Int &lhs, RValue<Int> rhs);
-		friend RValue<Int> operator|=(const Int &lhs, RValue<Int> rhs);
-		friend RValue<Int> operator^=(const Int &lhs, RValue<Int> rhs);
-		friend RValue<Int> operator<<=(const Int &lhs, RValue<Int> rhs);
-		friend RValue<Int> operator>>=(const Int &lhs, RValue<Int> rhs);
-		friend RValue<Int> operator+(RValue<Int> val);
-		friend RValue<Int> operator-(RValue<Int> val);
-		friend RValue<Int> operator~(RValue<Int> val);
-		friend RValue<Int> operator++(const Int &val, int);   // Post-increment
-		friend const Int &operator++(const Int &val);   // Pre-increment
-		friend RValue<Int> operator--(const Int &val, int);   // Post-decrement
-		friend const Int &operator--(const Int &val);   // Pre-decrement
-		friend RValue<Bool> operator<(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Bool> operator<=(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Bool> operator>(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Bool> operator>=(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Bool> operator!=(RValue<Int> lhs, RValue<Int> rhs);
-		friend RValue<Bool> operator==(RValue<Int> lhs, RValue<Int> rhs);
-
-		friend RValue<Int> Max(RValue<Int> x, RValue<Int> y);
-		friend RValue<Int> Min(RValue<Int> x, RValue<Int> y);
-		friend RValue<Int> Clamp(RValue<Int> x, RValue<Int> min, RValue<Int> max);
-
-		friend RValue<Int> RoundInt(RValue<Float> cast);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<Int> operator+(RValue<Int> lhs, RValue<Int> rhs);
+    RValue<Int> operator-(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Int> operator*(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Int> operator/(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Int> operator%(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Int> operator&(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Int> operator|(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Int> operator^(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Int> operator<<(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Int> operator>>(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Int> operator+=(const Int &lhs, RValue<Int> rhs);
+	RValue<Int> operator-=(const Int &lhs, RValue<Int> rhs);
+	RValue<Int> operator*=(const Int &lhs, RValue<Int> rhs);
+	RValue<Int> operator/=(const Int &lhs, RValue<Int> rhs);
+	RValue<Int> operator%=(const Int &lhs, RValue<Int> rhs);
+	RValue<Int> operator&=(const Int &lhs, RValue<Int> rhs);
+	RValue<Int> operator|=(const Int &lhs, RValue<Int> rhs);
+	RValue<Int> operator^=(const Int &lhs, RValue<Int> rhs);
+	RValue<Int> operator<<=(const Int &lhs, RValue<Int> rhs);
+	RValue<Int> operator>>=(const Int &lhs, RValue<Int> rhs);
+	RValue<Int> operator+(RValue<Int> val);
+	RValue<Int> operator-(RValue<Int> val);
+	RValue<Int> operator~(RValue<Int> val);
+	RValue<Int> operator++(const Int &val, int);   // Post-increment
+	const Int &operator++(const Int &val);   // Pre-increment
+	RValue<Int> operator--(const Int &val, int);   // Post-decrement
+	const Int &operator--(const Int &val);   // Pre-decrement
+	RValue<Bool> operator<(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Bool> operator<=(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Bool> operator>(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Bool> operator>=(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Bool> operator!=(RValue<Int> lhs, RValue<Int> rhs);
+	RValue<Bool> operator==(RValue<Int> lhs, RValue<Int> rhs);
+
+	RValue<Int> Max(RValue<Int> x, RValue<Int> y);
+	RValue<Int> Min(RValue<Int> x, RValue<Int> y);
+	RValue<Int> Clamp(RValue<Int> x, RValue<Int> min, RValue<Int> max);
+    RValue<Int> RoundInt(RValue<Float> cast);
 
 	class Long : public Variable<Long>
 	{
@@ -1263,46 +1251,45 @@ namespace sw
 	//	RValue<Long> operator=(const ULong &rhs) const;
 	//	RValue<Long> operator=(const Reference<ULong> &rhs) const;
 
-		friend RValue<Long> operator+(RValue<Long> lhs, RValue<Long> rhs);
-		friend RValue<Long> operator-(RValue<Long> lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator*(RValue<Long> lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator/(RValue<Long> lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator%(RValue<Long> lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator&(RValue<Long> lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator|(RValue<Long> lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator^(RValue<Long> lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator<<(RValue<Long> lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator>>(RValue<Long> lhs, RValue<Long> rhs);
-		friend RValue<Long> operator+=(const Long &lhs, RValue<Long> rhs);
-		friend RValue<Long> operator-=(const Long &lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator*=(const Long &lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator/=(const Long &lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator%=(const Long &lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator&=(const Long &lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator|=(const Long &lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator^=(const Long &lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator<<=(const Long &lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator>>=(const Long &lhs, RValue<Long> rhs);
-	//	friend RValue<Long> operator+(RValue<Long> val);
-	//	friend RValue<Long> operator-(RValue<Long> val);
-	//	friend RValue<Long> operator~(RValue<Long> val);
-	//	friend RValue<Long> operator++(const Long &val, int);   // Post-increment
-	//	friend const Long &operator++(const Long &val);   // Pre-increment
-	//	friend RValue<Long> operator--(const Long &val, int);   // Post-decrement
-	//	friend const Long &operator--(const Long &val);   // Pre-decrement
-	//	friend RValue<Bool> operator<(RValue<Long> lhs, RValue<Long> rhs);
-	//	friend RValue<Bool> operator<=(RValue<Long> lhs, RValue<Long> rhs);
-	//	friend RValue<Bool> operator>(RValue<Long> lhs, RValue<Long> rhs);
-	//	friend RValue<Bool> operator>=(RValue<Long> lhs, RValue<Long> rhs);
-	//	friend RValue<Bool> operator!=(RValue<Long> lhs, RValue<Long> rhs);
-	//	friend RValue<Bool> operator==(RValue<Long> lhs, RValue<Long> rhs);
-
-	//	friend RValue<Long> RoundLong(RValue<Float> cast);
-
-		friend RValue<Long> AddAtomic( RValue<Pointer<Long> > x, RValue<Long> y);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<Long> operator+(RValue<Long> lhs, RValue<Long> rhs);
+	RValue<Long> operator-(RValue<Long> lhs, RValue<Long> rhs);
+//	RValue<Long> operator*(RValue<Long> lhs, RValue<Long> rhs);
+//	RValue<Long> operator/(RValue<Long> lhs, RValue<Long> rhs);
+//	RValue<Long> operator%(RValue<Long> lhs, RValue<Long> rhs);
+//	RValue<Long> operator&(RValue<Long> lhs, RValue<Long> rhs);
+//	RValue<Long> operator|(RValue<Long> lhs, RValue<Long> rhs);
+//	RValue<Long> operator^(RValue<Long> lhs, RValue<Long> rhs);
+//	RValue<Long> operator<<(RValue<Long> lhs, RValue<Long> rhs);
+//	RValue<Long> operator>>(RValue<Long> lhs, RValue<Long> rhs);
+	RValue<Long> operator+=(const Long &lhs, RValue<Long> rhs);
+	RValue<Long> operator-=(const Long &lhs, RValue<Long> rhs);
+//	RValue<Long> operator*=(const Long &lhs, RValue<Long> rhs);
+//	RValue<Long> operator/=(const Long &lhs, RValue<Long> rhs);
+//	RValue<Long> operator%=(const Long &lhs, RValue<Long> rhs);
+//	RValue<Long> operator&=(const Long &lhs, RValue<Long> rhs);
+//	RValue<Long> operator|=(const Long &lhs, RValue<Long> rhs);
+//	RValue<Long> operator^=(const Long &lhs, RValue<Long> rhs);
+//	RValue<Long> operator<<=(const Long &lhs, RValue<Long> rhs);
+//	RValue<Long> operator>>=(const Long &lhs, RValue<Long> rhs);
+//	RValue<Long> operator+(RValue<Long> val);
+//	RValue<Long> operator-(RValue<Long> val);
+//	RValue<Long> operator~(RValue<Long> val);
+//	RValue<Long> operator++(const Long &val, int);   // Post-increment
+//	const Long &operator++(const Long &val);   // Pre-increment
+//	RValue<Long> operator--(const Long &val, int);   // Post-decrement
+//	const Long &operator--(const Long &val);   // Pre-decrement
+//	RValue<Bool> operator<(RValue<Long> lhs, RValue<Long> rhs);
+//	RValue<Bool> operator<=(RValue<Long> lhs, RValue<Long> rhs);
+//	RValue<Bool> operator>(RValue<Long> lhs, RValue<Long> rhs);
+//	RValue<Bool> operator>=(RValue<Long> lhs, RValue<Long> rhs);
+//	RValue<Bool> operator!=(RValue<Long> lhs, RValue<Long> rhs);
+//	RValue<Bool> operator==(RValue<Long> lhs, RValue<Long> rhs);
+
+//	RValue<Long> RoundLong(RValue<Float> cast);
+    RValue<Long> AddAtomic( RValue<Pointer<Long> > x, RValue<Long> y);
 
 	class Long1 : public Variable<Long1>
 	{
@@ -1334,44 +1321,45 @@ namespace sw
 	//	RValue<Long1> operator=(const ULong1 &rhs) const;
 	//	RValue<Long1> operator=(const Reference<ULong1> &rhs) const;
 
-	//	friend RValue<Long1> operator+(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator-(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator*(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator/(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator%(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator&(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator|(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator^(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator<<(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator>>(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator+=(const Long1 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator-=(const Long1 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator*=(const Long1 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator/=(const Long1 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator%=(const Long1 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator&=(const Long1 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator|=(const Long1 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator^=(const Long1 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator<<=(const Long1 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator>>=(const Long1 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Long1> operator+(RValue<Long1> val);
-	//	friend RValue<Long1> operator-(RValue<Long1> val);
-	//	friend RValue<Long1> operator~(RValue<Long1> val);
-	//	friend RValue<Long1> operator++(const Long1 &val, int);   // Post-increment
-	//	friend const Long1 &operator++(const Long1 &val);   // Pre-increment
-	//	friend RValue<Long1> operator--(const Long1 &val, int);   // Post-decrement
-	//	friend const Long1 &operator--(const Long1 &val);   // Pre-decrement
-	//	friend RValue<Bool> operator<(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Bool> operator<=(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Bool> operator>(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Bool> operator>=(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Bool> operator!=(RValue<Long1> lhs, RValue<Long1> rhs);
-	//	friend RValue<Bool> operator==(RValue<Long1> lhs, RValue<Long1> rhs);
-
-	//	friend RValue<Long1> RoundLong1(RValue<Float> cast);
-
 		static llvm::Type *getType();
 	};
+
+//	RValue<Long1> operator+(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator-(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator*(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator/(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator%(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator&(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator|(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator^(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator<<(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator>>(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator+=(const Long1 &lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator-=(const Long1 &lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator*=(const Long1 &lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator/=(const Long1 &lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator%=(const Long1 &lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator&=(const Long1 &lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator|=(const Long1 &lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator^=(const Long1 &lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator<<=(const Long1 &lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator>>=(const Long1 &lhs, RValue<Long1> rhs);
+//	RValue<Long1> operator+(RValue<Long1> val);
+//	RValue<Long1> operator-(RValue<Long1> val);
+//	RValue<Long1> operator~(RValue<Long1> val);
+//	RValue<Long1> operator++(const Long1 &val, int);   // Post-increment
+//	const Long1 &operator++(const Long1 &val);   // Pre-increment
+//	RValue<Long1> operator--(const Long1 &val, int);   // Post-decrement
+//	const Long1 &operator--(const Long1 &val);   // Pre-decrement
+//	RValue<Bool> operator<(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Bool> operator<=(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Bool> operator>(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Bool> operator>=(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Bool> operator!=(RValue<Long1> lhs, RValue<Long1> rhs);
+//	RValue<Bool> operator==(RValue<Long1> lhs, RValue<Long1> rhs);
+
+
+//	RValue<Long1> RoundLong1(RValue<Float> cast);
 
 	class Long2 : public Variable<Long2>
 	{
@@ -1389,53 +1377,52 @@ namespace sw
 	//	RValue<Long2> operator=(const Long2 &rhs) const;
 	//	RValue<Long2> operator=(const Reference<Long2 &rhs) const;
 
-	//	friend RValue<Long2> operator+(RValue<Long2> lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator-(RValue<Long2> lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator*(RValue<Long2> lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator/(RValue<Long2> lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator%(RValue<Long2> lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator&(RValue<Long2> lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator|(RValue<Long2> lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator^(RValue<Long2> lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator<<(RValue<Long2> lhs, unsigned char rhs);
-	//	friend RValue<Long2> operator>>(RValue<Long2> lhs, unsigned char rhs);
-	//	friend RValue<Long2> operator<<(RValue<Long2> lhs, RValue<Long1> rhs);
-	//	friend RValue<Long2> operator>>(RValue<Long2> lhs, RValue<Long1> rhs);
-	//	friend RValue<Long2> operator+=(const Long2 &lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator-=(const Long2 &lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator*=(const Long2 &lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator/=(const Long2 &lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator%=(const Long2 &lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator&=(const Long2 &lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator|=(const Long2 &lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator^=(const Long2 &lhs, RValue<Long2> rhs);
-	//	friend RValue<Long2> operator<<=(const Long2 &lhs, unsigned char rhs);
-	//	friend RValue<Long2> operator>>=(const Long2 &lhs, unsigned char rhs);
-	//	friend RValue<Long2> operator<<=(const Long2 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Long2> operator>>=(const Long2 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Long2> operator+(RValue<Long2> val);
-	//	friend RValue<Long2> operator-(RValue<Long2> val);
-	//	friend RValue<Long2> operator~(RValue<Long2> val);
-	//	friend RValue<Long2> operator++(const Long2 &val, int);   // Post-increment
-	//	friend const Long2 &operator++(const Long2 &val);   // Pre-increment
-	//	friend RValue<Long2> operator--(const Long2 &val, int);   // Post-decrement
-	//	friend const Long2 &operator--(const Long2 &val);   // Pre-decrement
-	//	friend RValue<Bool> operator<(RValue<Long2> lhs, RValue<Long2> rhs);
-	//	friend RValue<Bool> operator<=(RValue<Long2> lhs, RValue<Long2> rhs);
-	//	friend RValue<Bool> operator>(RValue<Long2> lhs, RValue<Long2> rhs);
-	//	friend RValue<Bool> operator>=(RValue<Long2> lhs, RValue<Long2> rhs);
-	//	friend RValue<Bool> operator!=(RValue<Long2> lhs, RValue<Long2> rhs);
-	//	friend RValue<Bool> operator==(RValue<Long2> lhs, RValue<Long2> rhs);
-
-	//	friend RValue<Long2> RoundInt(RValue<Float4> cast);
-
-	//	friend RValue<Long2> UnpackLow(RValue<Long2> x, RValue<Long2> y);
-		friend RValue<Long2> UnpackHigh(RValue<Long2> x, RValue<Long2> y);
-	//	friend RValue<Int> Extract(RValue<Long2> val, int i);
-	//	friend RValue<Long2> Insert(RValue<Long2> val, RValue<Int> element, int i);
-
 		static llvm::Type *getType();
 	};
+
+//	RValue<Long2> operator+(RValue<Long2> lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator-(RValue<Long2> lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator*(RValue<Long2> lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator/(RValue<Long2> lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator%(RValue<Long2> lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator&(RValue<Long2> lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator|(RValue<Long2> lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator^(RValue<Long2> lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator<<(RValue<Long2> lhs, unsigned char rhs);
+//	RValue<Long2> operator>>(RValue<Long2> lhs, unsigned char rhs);
+//	RValue<Long2> operator<<(RValue<Long2> lhs, RValue<Long1> rhs);
+//	RValue<Long2> operator>>(RValue<Long2> lhs, RValue<Long1> rhs);
+//	RValue<Long2> operator+=(const Long2 &lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator-=(const Long2 &lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator*=(const Long2 &lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator/=(const Long2 &lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator%=(const Long2 &lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator&=(const Long2 &lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator|=(const Long2 &lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator^=(const Long2 &lhs, RValue<Long2> rhs);
+//	RValue<Long2> operator<<=(const Long2 &lhs, unsigned char rhs);
+//	RValue<Long2> operator>>=(const Long2 &lhs, unsigned char rhs);
+//	RValue<Long2> operator<<=(const Long2 &lhs, RValue<Long1> rhs);
+//	RValue<Long2> operator>>=(const Long2 &lhs, RValue<Long1> rhs);
+//	RValue<Long2> operator+(RValue<Long2> val);
+//	RValue<Long2> operator-(RValue<Long2> val);
+//	RValue<Long2> operator~(RValue<Long2> val);
+//	RValue<Long2> operator++(const Long2 &val, int);   // Post-increment
+//	const Long2 &operator++(const Long2 &val);   // Pre-increment
+//	RValue<Long2> operator--(const Long2 &val, int);   // Post-decrement
+//	const Long2 &operator--(const Long2 &val);   // Pre-decrement
+//	RValue<Bool> operator<(RValue<Long2> lhs, RValue<Long2> rhs);
+//	RValue<Bool> operator<=(RValue<Long2> lhs, RValue<Long2> rhs);
+//	RValue<Bool> operator>(RValue<Long2> lhs, RValue<Long2> rhs);
+//	RValue<Bool> operator>=(RValue<Long2> lhs, RValue<Long2> rhs);
+//	RValue<Bool> operator!=(RValue<Long2> lhs, RValue<Long2> rhs);
+//	RValue<Bool> operator==(RValue<Long2> lhs, RValue<Long2> rhs);
+
+//	RValue<Long2> RoundInt(RValue<Float4> cast);
+//	RValue<Long2> UnpackLow(RValue<Long2> x, RValue<Long2> y);
+	RValue<Long2> UnpackHigh(RValue<Long2> x, RValue<Long2> y);
+//	RValue<Int> Extract(RValue<Long2> val, int i);
+//	RValue<Long2> Insert(RValue<Long2> val, RValue<Int> element, int i);
 
 	class UInt : public Variable<UInt>
 	{
@@ -1464,48 +1451,47 @@ namespace sw
 		RValue<UInt> operator=(const Reference<UInt> &rhs) const;
 		RValue<UInt> operator=(const Reference<Int> &rhs) const;
 
-		friend RValue<UInt> operator+(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator-(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator*(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator/(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator%(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator&(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator|(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator^(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator<<(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator>>(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator+=(const UInt &lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator-=(const UInt &lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator*=(const UInt &lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator/=(const UInt &lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator%=(const UInt &lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator&=(const UInt &lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator|=(const UInt &lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator^=(const UInt &lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator<<=(const UInt &lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator>>=(const UInt &lhs, RValue<UInt> rhs);
-		friend RValue<UInt> operator+(RValue<UInt> val);
-		friend RValue<UInt> operator-(RValue<UInt> val);
-		friend RValue<UInt> operator~(RValue<UInt> val);
-		friend RValue<UInt> operator++(const UInt &val, int);   // Post-increment
-		friend const UInt &operator++(const UInt &val);   // Pre-increment
-		friend RValue<UInt> operator--(const UInt &val, int);   // Post-decrement
-		friend const UInt &operator--(const UInt &val);   // Pre-decrement
-		friend RValue<Bool> operator<(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<Bool> operator<=(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<Bool> operator>(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<Bool> operator>=(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<Bool> operator!=(RValue<UInt> lhs, RValue<UInt> rhs);
-		friend RValue<Bool> operator==(RValue<UInt> lhs, RValue<UInt> rhs);
-
-		friend RValue<UInt> Max(RValue<UInt> x, RValue<UInt> y);
-		friend RValue<UInt> Min(RValue<UInt> x, RValue<UInt> y);
-		friend RValue<UInt> Clamp(RValue<UInt> x, RValue<UInt> min, RValue<UInt> max);
-
-	//	friend RValue<UInt> RoundUInt(RValue<Float> cast);
-
 		static llvm::Type *getType();
 	};
+
+	RValue<UInt> operator+(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<UInt> operator-(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<UInt> operator*(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<UInt> operator/(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<UInt> operator%(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<UInt> operator&(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<UInt> operator|(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<UInt> operator^(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<UInt> operator<<(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<UInt> operator>>(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<UInt> operator+=(const UInt &lhs, RValue<UInt> rhs);
+	RValue<UInt> operator-=(const UInt &lhs, RValue<UInt> rhs);
+	RValue<UInt> operator*=(const UInt &lhs, RValue<UInt> rhs);
+	RValue<UInt> operator/=(const UInt &lhs, RValue<UInt> rhs);
+	RValue<UInt> operator%=(const UInt &lhs, RValue<UInt> rhs);
+	RValue<UInt> operator&=(const UInt &lhs, RValue<UInt> rhs);
+	RValue<UInt> operator|=(const UInt &lhs, RValue<UInt> rhs);
+	RValue<UInt> operator^=(const UInt &lhs, RValue<UInt> rhs);
+	RValue<UInt> operator<<=(const UInt &lhs, RValue<UInt> rhs);
+	RValue<UInt> operator>>=(const UInt &lhs, RValue<UInt> rhs);
+	RValue<UInt> operator+(RValue<UInt> val);
+	RValue<UInt> operator-(RValue<UInt> val);
+	RValue<UInt> operator~(RValue<UInt> val);
+	RValue<UInt> operator++(const UInt &val, int);   // Post-increment
+	const UInt &operator++(const UInt &val);   // Pre-increment
+	RValue<UInt> operator--(const UInt &val, int);   // Post-decrement
+	const UInt &operator--(const UInt &val);   // Pre-decrement
+	RValue<Bool> operator<(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<Bool> operator<=(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<Bool> operator>(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<Bool> operator>=(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<Bool> operator!=(RValue<UInt> lhs, RValue<UInt> rhs);
+	RValue<Bool> operator==(RValue<UInt> lhs, RValue<UInt> rhs);
+
+	RValue<UInt> Max(RValue<UInt> x, RValue<UInt> y);
+	RValue<UInt> Min(RValue<UInt> x, RValue<UInt> y);
+	RValue<UInt> Clamp(RValue<UInt> x, RValue<UInt> min, RValue<UInt> max);
+//	RValue<UInt> RoundUInt(RValue<Float> cast);
 
 	class Int2 : public Variable<Int2>
 	{
@@ -1523,53 +1509,53 @@ namespace sw
 		RValue<Int2> operator=(const Int2 &rhs) const;
 		RValue<Int2> operator=(const Reference<Int2> &rhs) const;
 
-		friend RValue<Int2> operator+(RValue<Int2> lhs, RValue<Int2> rhs);
-		friend RValue<Int2> operator-(RValue<Int2> lhs, RValue<Int2> rhs);
-	//	friend RValue<Int2> operator*(RValue<Int2> lhs, RValue<Int2> rhs);
-	//	friend RValue<Int2> operator/(RValue<Int2> lhs, RValue<Int2> rhs);
-	//	friend RValue<Int2> operator%(RValue<Int2> lhs, RValue<Int2> rhs);
-		friend RValue<Int2> operator&(RValue<Int2> lhs, RValue<Int2> rhs);
-		friend RValue<Int2> operator|(RValue<Int2> lhs, RValue<Int2> rhs);
-		friend RValue<Int2> operator^(RValue<Int2> lhs, RValue<Int2> rhs);
-		friend RValue<Int2> operator<<(RValue<Int2> lhs, unsigned char rhs);
-		friend RValue<Int2> operator>>(RValue<Int2> lhs, unsigned char rhs);
-		friend RValue<Int2> operator<<(RValue<Int2> lhs, RValue<Long1> rhs);
-		friend RValue<Int2> operator>>(RValue<Int2> lhs, RValue<Long1> rhs);
-		friend RValue<Int2> operator+=(const Int2 &lhs, RValue<Int2> rhs);
-		friend RValue<Int2> operator-=(const Int2 &lhs, RValue<Int2> rhs);
-	//	friend RValue<Int2> operator*=(const Int2 &lhs, RValue<Int2> rhs);
-	//	friend RValue<Int2> operator/=(const Int2 &lhs, RValue<Int2> rhs);
-	//	friend RValue<Int2> operator%=(const Int2 &lhs, RValue<Int2> rhs);
-		friend RValue<Int2> operator&=(const Int2 &lhs, RValue<Int2> rhs);
-		friend RValue<Int2> operator|=(const Int2 &lhs, RValue<Int2> rhs);
-		friend RValue<Int2> operator^=(const Int2 &lhs, RValue<Int2> rhs);
-		friend RValue<Int2> operator<<=(const Int2 &lhs, unsigned char rhs);
-		friend RValue<Int2> operator>>=(const Int2 &lhs, unsigned char rhs);
-		friend RValue<Int2> operator<<=(const Int2 &lhs, RValue<Long1> rhs);
-		friend RValue<Int2> operator>>=(const Int2 &lhs, RValue<Long1> rhs);
-	//	friend RValue<Int2> operator+(RValue<Int2> val);
-	//	friend RValue<Int2> operator-(RValue<Int2> val);
-		friend RValue<Int2> operator~(RValue<Int2> val);
-	//	friend RValue<Int2> operator++(const Int2 &val, int);   // Post-increment
-	//	friend const Int2 &operator++(const Int2 &val);   // Pre-increment
-	//	friend RValue<Int2> operator--(const Int2 &val, int);   // Post-decrement
-	//	friend const Int2 &operator--(const Int2 &val);   // Pre-decrement
-	//	friend RValue<Bool> operator<(RValue<Int2> lhs, RValue<Int2> rhs);
-	//	friend RValue<Bool> operator<=(RValue<Int2> lhs, RValue<Int2> rhs);
-	//	friend RValue<Bool> operator>(RValue<Int2> lhs, RValue<Int2> rhs);
-	//	friend RValue<Bool> operator>=(RValue<Int2> lhs, RValue<Int2> rhs);
-	//	friend RValue<Bool> operator!=(RValue<Int2> lhs, RValue<Int2> rhs);
-	//	friend RValue<Bool> operator==(RValue<Int2> lhs, RValue<Int2> rhs);
-
-	//	friend RValue<Int2> RoundInt(RValue<Float4> cast);
-
-		friend RValue<Long1> UnpackLow(RValue<Int2> x, RValue<Int2> y);
-		friend RValue<Long1> UnpackHigh(RValue<Int2> x, RValue<Int2> y);
-		friend RValue<Int> Extract(RValue<Int2> val, int i);
-	//	friend RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i);
-
 		static llvm::Type *getType();
 	};
+
+
+    RValue<Int2> operator+(RValue<Int2> lhs, RValue<Int2> rhs);
+    RValue<Int2> operator-(RValue<Int2> lhs, RValue<Int2> rhs);
+//	RValue<Int2> operator*(RValue<Int2> lhs, RValue<Int2> rhs);
+//	RValue<Int2> operator/(RValue<Int2> lhs, RValue<Int2> rhs);
+//	RValue<Int2> operator%(RValue<Int2> lhs, RValue<Int2> rhs);
+    RValue<Int2> operator&(RValue<Int2> lhs, RValue<Int2> rhs);
+    RValue<Int2> operator|(RValue<Int2> lhs, RValue<Int2> rhs);
+    RValue<Int2> operator^(RValue<Int2> lhs, RValue<Int2> rhs);
+    RValue<Int2> operator<<(RValue<Int2> lhs, unsigned char rhs);
+    RValue<Int2> operator>>(RValue<Int2> lhs, unsigned char rhs);
+    RValue<Int2> operator<<(RValue<Int2> lhs, RValue<Long1> rhs);
+    RValue<Int2> operator>>(RValue<Int2> lhs, RValue<Long1> rhs);
+    RValue<Int2> operator+=(const Int2 &lhs, RValue<Int2> rhs);
+    RValue<Int2> operator-=(const Int2 &lhs, RValue<Int2> rhs);
+//	RValue<Int2> operator*=(const Int2 &lhs, RValue<Int2> rhs);
+//	RValue<Int2> operator/=(const Int2 &lhs, RValue<Int2> rhs);
+//	RValue<Int2> operator%=(const Int2 &lhs, RValue<Int2> rhs);
+    RValue<Int2> operator&=(const Int2 &lhs, RValue<Int2> rhs);
+    RValue<Int2> operator|=(const Int2 &lhs, RValue<Int2> rhs);
+    RValue<Int2> operator^=(const Int2 &lhs, RValue<Int2> rhs);
+    RValue<Int2> operator<<=(const Int2 &lhs, unsigned char rhs);
+    RValue<Int2> operator>>=(const Int2 &lhs, unsigned char rhs);
+    RValue<Int2> operator<<=(const Int2 &lhs, RValue<Long1> rhs);
+    RValue<Int2> operator>>=(const Int2 &lhs, RValue<Long1> rhs);
+//	RValue<Int2> operator+(RValue<Int2> val);
+//	RValue<Int2> operator-(RValue<Int2> val);
+    RValue<Int2> operator~(RValue<Int2> val);
+//	RValue<Int2> operator++(const Int2 &val, int);   // Post-increment
+//	const Int2 &operator++(const Int2 &val);   // Pre-increment
+//	RValue<Int2> operator--(const Int2 &val, int);   // Post-decrement
+//	const Int2 &operator--(const Int2 &val);   // Pre-decrement
+//	RValue<Bool> operator<(RValue<Int2> lhs, RValue<Int2> rhs);
+//	RValue<Bool> operator<=(RValue<Int2> lhs, RValue<Int2> rhs);
+//	RValue<Bool> operator>(RValue<Int2> lhs, RValue<Int2> rhs);
+//	RValue<Bool> operator>=(RValue<Int2> lhs, RValue<Int2> rhs);
+//	RValue<Bool> operator!=(RValue<Int2> lhs, RValue<Int2> rhs);
+//	RValue<Bool> operator==(RValue<Int2> lhs, RValue<Int2> rhs);
+
+//	RValue<Int2> RoundInt(RValue<Float4> cast);
+	RValue<Long1> UnpackLow(RValue<Int2> x, RValue<Int2> y);
+	RValue<Long1> UnpackHigh(RValue<Int2> x, RValue<Int2> y);
+	RValue<Int> Extract(RValue<Int2> val, int i);
+//	RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i);
 
 	class UInt2 : public Variable<UInt2>
 	{
@@ -1584,48 +1570,48 @@ namespace sw
 		RValue<UInt2> operator=(const UInt2 &rhs) const;
 		RValue<UInt2> operator=(const Reference<UInt2> &rhs) const;
 
-		friend RValue<UInt2> operator+(RValue<UInt2> lhs, RValue<UInt2> rhs);
-		friend RValue<UInt2> operator-(RValue<UInt2> lhs, RValue<UInt2> rhs);
-	//	friend RValue<UInt2> operator*(RValue<UInt2> lhs, RValue<UInt2> rhs);
-	//	friend RValue<UInt2> operator/(RValue<UInt2> lhs, RValue<UInt2> rhs);
-	//	friend RValue<UInt2> operator%(RValue<UInt2> lhs, RValue<UInt2> rhs);
-		friend RValue<UInt2> operator&(RValue<UInt2> lhs, RValue<UInt2> rhs);
-		friend RValue<UInt2> operator|(RValue<UInt2> lhs, RValue<UInt2> rhs);
-		friend RValue<UInt2> operator^(RValue<UInt2> lhs, RValue<UInt2> rhs);
-		friend RValue<UInt2> operator<<(RValue<UInt2> lhs, unsigned char rhs);
-		friend RValue<UInt2> operator>>(RValue<UInt2> lhs, unsigned char rhs);
-		friend RValue<UInt2> operator<<(RValue<UInt2> lhs, RValue<Long1> rhs);
-		friend RValue<UInt2> operator>>(RValue<UInt2> lhs, RValue<Long1> rhs);
-		friend RValue<UInt2> operator+=(const UInt2 &lhs, RValue<UInt2> rhs);
-		friend RValue<UInt2> operator-=(const UInt2 &lhs, RValue<UInt2> rhs);
-	//	friend RValue<UInt2> operator*=(const UInt2 &lhs, RValue<UInt2> rhs);
-	//	friend RValue<UInt2> operator/=(const UInt2 &lhs, RValue<UInt2> rhs);
-	//	friend RValue<UInt2> operator%=(const UInt2 &lhs, RValue<UInt2> rhs);
-		friend RValue<UInt2> operator&=(const UInt2 &lhs, RValue<UInt2> rhs);
-		friend RValue<UInt2> operator|=(const UInt2 &lhs, RValue<UInt2> rhs);
-		friend RValue<UInt2> operator^=(const UInt2 &lhs, RValue<UInt2> rhs);
-		friend RValue<UInt2> operator<<=(const UInt2 &lhs, unsigned char rhs);
-		friend RValue<UInt2> operator>>=(const UInt2 &lhs, unsigned char rhs);
-		friend RValue<UInt2> operator<<=(const UInt2 &lhs, RValue<Long1> rhs);
-		friend RValue<UInt2> operator>>=(const UInt2 &lhs, RValue<Long1> rhs);
-	//	friend RValue<UInt2> operator+(RValue<UInt2> val);
-	//	friend RValue<UInt2> operator-(RValue<UInt2> val);
-		friend RValue<UInt2> operator~(RValue<UInt2> val);
-	//	friend RValue<UInt2> operator++(const UInt2 &val, int);   // Post-increment
-	//	friend const UInt2 &operator++(const UInt2 &val);   // Pre-increment
-	//	friend RValue<UInt2> operator--(const UInt2 &val, int);   // Post-decrement
-	//	friend const UInt2 &operator--(const UInt2 &val);   // Pre-decrement
-	//	friend RValue<Bool> operator<(RValue<UInt2> lhs, RValue<UInt2> rhs);
-	//	friend RValue<Bool> operator<=(RValue<UInt2> lhs, RValue<UInt2> rhs);
-	//	friend RValue<Bool> operator>(RValue<UInt2> lhs, RValue<UInt2> rhs);
-	//	friend RValue<Bool> operator>=(RValue<UInt2> lhs, RValue<UInt2> rhs);
-	//	friend RValue<Bool> operator!=(RValue<UInt2> lhs, RValue<UInt2> rhs);
-	//	friend RValue<Bool> operator==(RValue<UInt2> lhs, RValue<UInt2> rhs);
-
-	//	friend RValue<UInt2> RoundInt(RValue<Float4> cast);
-
 		static llvm::Type *getType();
 	};
+
+    RValue<UInt2> operator+(RValue<UInt2> lhs, RValue<UInt2> rhs);
+    RValue<UInt2> operator-(RValue<UInt2> lhs, RValue<UInt2> rhs);
+//	RValue<UInt2> operator*(RValue<UInt2> lhs, RValue<UInt2> rhs);
+//	RValue<UInt2> operator/(RValue<UInt2> lhs, RValue<UInt2> rhs);
+//	RValue<UInt2> operator%(RValue<UInt2> lhs, RValue<UInt2> rhs);
+    RValue<UInt2> operator&(RValue<UInt2> lhs, RValue<UInt2> rhs);
+    RValue<UInt2> operator|(RValue<UInt2> lhs, RValue<UInt2> rhs);
+    RValue<UInt2> operator^(RValue<UInt2> lhs, RValue<UInt2> rhs);
+    RValue<UInt2> operator<<(RValue<UInt2> lhs, unsigned char rhs);
+    RValue<UInt2> operator>>(RValue<UInt2> lhs, unsigned char rhs);
+    RValue<UInt2> operator<<(RValue<UInt2> lhs, RValue<Long1> rhs);
+    RValue<UInt2> operator>>(RValue<UInt2> lhs, RValue<Long1> rhs);
+    RValue<UInt2> operator+=(const UInt2 &lhs, RValue<UInt2> rhs);
+    RValue<UInt2> operator-=(const UInt2 &lhs, RValue<UInt2> rhs);
+//	RValue<UInt2> operator*=(const UInt2 &lhs, RValue<UInt2> rhs);
+//	RValue<UInt2> operator/=(const UInt2 &lhs, RValue<UInt2> rhs);
+//	RValue<UInt2> operator%=(const UInt2 &lhs, RValue<UInt2> rhs);
+    RValue<UInt2> operator&=(const UInt2 &lhs, RValue<UInt2> rhs);
+    RValue<UInt2> operator|=(const UInt2 &lhs, RValue<UInt2> rhs);
+    RValue<UInt2> operator^=(const UInt2 &lhs, RValue<UInt2> rhs);
+    RValue<UInt2> operator<<=(const UInt2 &lhs, unsigned char rhs);
+    RValue<UInt2> operator>>=(const UInt2 &lhs, unsigned char rhs);
+    RValue<UInt2> operator<<=(const UInt2 &lhs, RValue<Long1> rhs);
+    RValue<UInt2> operator>>=(const UInt2 &lhs, RValue<Long1> rhs);
+//	RValue<UInt2> operator+(RValue<UInt2> val);
+//	RValue<UInt2> operator-(RValue<UInt2> val);
+    RValue<UInt2> operator~(RValue<UInt2> val);
+//	RValue<UInt2> operator++(const UInt2 &val, int);   // Post-increment
+//	const UInt2 &operator++(const UInt2 &val);   // Pre-increment
+//	RValue<UInt2> operator--(const UInt2 &val, int);   // Post-decrement
+//	const UInt2 &operator--(const UInt2 &val);   // Pre-decrement
+//	RValue<Bool> operator<(RValue<UInt2> lhs, RValue<UInt2> rhs);
+//	RValue<Bool> operator<=(RValue<UInt2> lhs, RValue<UInt2> rhs);
+//	RValue<Bool> operator>(RValue<UInt2> lhs, RValue<UInt2> rhs);
+//	RValue<Bool> operator>=(RValue<UInt2> lhs, RValue<UInt2> rhs);
+//	RValue<Bool> operator!=(RValue<UInt2> lhs, RValue<UInt2> rhs);
+//	RValue<Bool> operator==(RValue<UInt2> lhs, RValue<UInt2> rhs);
+
+//	RValue<UInt2> RoundInt(RValue<Float4> cast);
 
 	class Int4 : public Variable<Int4>
 	{
@@ -1648,63 +1634,61 @@ namespace sw
 		RValue<Int4> operator=(const Int4 &rhs) const;
 		RValue<Int4> operator=(const Reference<Int4> &rhs) const;
 
-		friend RValue<Int4> operator+(RValue<Int4> lhs, RValue<Int4> rhs);
-		friend RValue<Int4> operator-(RValue<Int4> lhs, RValue<Int4> rhs);
-		friend RValue<Int4> operator*(RValue<Int4> lhs, RValue<Int4> rhs);
-	//	friend RValue<Int4> operator/(RValue<Int4> lhs, RValue<Int4> rhs);
-	//	friend RValue<Int4> operator%(RValue<Int4> lhs, RValue<Int4> rhs);
-		friend RValue<Int4> operator&(RValue<Int4> lhs, RValue<Int4> rhs);
-		friend RValue<Int4> operator|(RValue<Int4> lhs, RValue<Int4> rhs);
-		friend RValue<Int4> operator^(RValue<Int4> lhs, RValue<Int4> rhs);
-		friend RValue<Int4> operator<<(RValue<Int4> lhs, unsigned char rhs);
-		friend RValue<Int4> operator>>(RValue<Int4> lhs, unsigned char rhs);
-		friend RValue<Int4> operator+=(const Int4 &lhs, RValue<Int4> rhs);
-		friend RValue<Int4> operator-=(const Int4 &lhs, RValue<Int4> rhs);
-		friend RValue<Int4> operator*=(const Int4 &lhs, RValue<Int4> rhs);
-	//	friend RValue<Int4> operator/=(const Int4 &lhs, RValue<Int4> rhs);
-	//	friend RValue<Int4> operator%=(const Int4 &lhs, RValue<Int4> rhs);
-		friend RValue<Int4> operator&=(const Int4 &lhs, RValue<Int4> rhs);
-		friend RValue<Int4> operator|=(const Int4 &lhs, RValue<Int4> rhs);
-		friend RValue<Int4> operator^=(const Int4 &lhs, RValue<Int4> rhs);
-		friend RValue<Int4> operator<<=(const Int4 &lhs, unsigned char rhs);
-		friend RValue<Int4> operator>>=(const Int4 &lhs, unsigned char rhs);
-		friend RValue<Int4> operator+(RValue<Int4> val);
-		friend RValue<Int4> operator-(RValue<Int4> val);
-		friend RValue<Int4> operator~(RValue<Int4> val);
-	//	friend RValue<Int4> operator++(const Int4 &val, int);   // Post-increment
-	//	friend const Int4 &operator++(const Int4 &val);   // Pre-increment
-	//	friend RValue<Int4> operator--(const Int4 &val, int);   // Post-decrement
-	//	friend const Int4 &operator--(const Int4 &val);   // Pre-decrement
-	//	friend RValue<Bool> operator<(RValue<Int4> lhs, RValue<Int4> rhs);
-	//	friend RValue<Bool> operator<=(RValue<Int4> lhs, RValue<Int4> rhs);
-	//	friend RValue<Bool> operator>(RValue<Int4> lhs, RValue<Int4> rhs);
-	//	friend RValue<Bool> operator>=(RValue<Int4> lhs, RValue<Int4> rhs);
-	//	friend RValue<Bool> operator!=(RValue<Int4> lhs, RValue<Int4> rhs);
-	//	friend RValue<Bool> operator==(RValue<Int4> lhs, RValue<Int4> rhs);
-
-		friend RValue<Int4> CmpEQ(RValue<Int4> x, RValue<Int4> y);
-		friend RValue<Int4> CmpLT(RValue<Int4> x, RValue<Int4> y);
-		friend RValue<Int4> CmpLE(RValue<Int4> x, RValue<Int4> y);
-		friend RValue<Int4> CmpNEQ(RValue<Int4> x, RValue<Int4> y);
-		friend RValue<Int4> CmpNLT(RValue<Int4> x, RValue<Int4> y);
-		friend RValue<Int4> CmpNLE(RValue<Int4> x, RValue<Int4> y);
-
-		friend RValue<Int4> Max(RValue<Int4> x, RValue<Int4> y);
-		friend RValue<Int4> Min(RValue<Int4> x, RValue<Int4> y);
-
-		friend RValue<Int4> RoundInt(RValue<Float4> cast);
-		friend RValue<Short8> Pack(RValue<Int4> x, RValue<Int4> y);
-		friend RValue<Int4> Concatenate(RValue<Int2> lo, RValue<Int2> hi);
-		friend RValue<Int> Extract(RValue<Int4> x, int i);
-		friend RValue<Int4> Insert(RValue<Int4> val, RValue<Int> element, int i);
-		friend RValue<Int> SignMask(RValue<Int4> x);
-		friend RValue<Int4> Swizzle(RValue<Int4> x, unsigned char select);
-
 		static llvm::Type *getType();
 
 	private:
 		void constant(int x, int y, int z, int w);
 	};
+
+    RValue<Int4> operator+(RValue<Int4> lhs, RValue<Int4> rhs);
+    RValue<Int4> operator-(RValue<Int4> lhs, RValue<Int4> rhs);
+    RValue<Int4> operator*(RValue<Int4> lhs, RValue<Int4> rhs);
+//	RValue<Int4> operator/(RValue<Int4> lhs, RValue<Int4> rhs);
+//	RValue<Int4> operator%(RValue<Int4> lhs, RValue<Int4> rhs);
+    RValue<Int4> operator&(RValue<Int4> lhs, RValue<Int4> rhs);
+    RValue<Int4> operator|(RValue<Int4> lhs, RValue<Int4> rhs);
+    RValue<Int4> operator^(RValue<Int4> lhs, RValue<Int4> rhs);
+    RValue<Int4> operator<<(RValue<Int4> lhs, unsigned char rhs);
+    RValue<Int4> operator>>(RValue<Int4> lhs, unsigned char rhs);
+    RValue<Int4> operator+=(const Int4 &lhs, RValue<Int4> rhs);
+    RValue<Int4> operator-=(const Int4 &lhs, RValue<Int4> rhs);
+    RValue<Int4> operator*=(const Int4 &lhs, RValue<Int4> rhs);
+//	RValue<Int4> operator/=(const Int4 &lhs, RValue<Int4> rhs);
+//	RValue<Int4> operator%=(const Int4 &lhs, RValue<Int4> rhs);
+    RValue<Int4> operator&=(const Int4 &lhs, RValue<Int4> rhs);
+    RValue<Int4> operator|=(const Int4 &lhs, RValue<Int4> rhs);
+    RValue<Int4> operator^=(const Int4 &lhs, RValue<Int4> rhs);
+    RValue<Int4> operator<<=(const Int4 &lhs, unsigned char rhs);
+    RValue<Int4> operator>>=(const Int4 &lhs, unsigned char rhs);
+    RValue<Int4> operator+(RValue<Int4> val);
+    RValue<Int4> operator-(RValue<Int4> val);
+    RValue<Int4> operator~(RValue<Int4> val);
+//	RValue<Int4> operator++(const Int4 &val, int);   // Post-increment
+//	const Int4 &operator++(const Int4 &val);   // Pre-increment
+//	RValue<Int4> operator--(const Int4 &val, int);   // Post-decrement
+//	const Int4 &operator--(const Int4 &val);   // Pre-decrement
+//	RValue<Bool> operator<(RValue<Int4> lhs, RValue<Int4> rhs);
+//	RValue<Bool> operator<=(RValue<Int4> lhs, RValue<Int4> rhs);
+//	RValue<Bool> operator>(RValue<Int4> lhs, RValue<Int4> rhs);
+//	RValue<Bool> operator>=(RValue<Int4> lhs, RValue<Int4> rhs);
+//	RValue<Bool> operator!=(RValue<Int4> lhs, RValue<Int4> rhs);
+//	RValue<Bool> operator==(RValue<Int4> lhs, RValue<Int4> rhs);
+
+	RValue<Int4> CmpEQ(RValue<Int4> x, RValue<Int4> y);
+	RValue<Int4> CmpLT(RValue<Int4> x, RValue<Int4> y);
+	RValue<Int4> CmpLE(RValue<Int4> x, RValue<Int4> y);
+	RValue<Int4> CmpNEQ(RValue<Int4> x, RValue<Int4> y);
+	RValue<Int4> CmpNLT(RValue<Int4> x, RValue<Int4> y);
+	RValue<Int4> CmpNLE(RValue<Int4> x, RValue<Int4> y);
+	RValue<Int4> Max(RValue<Int4> x, RValue<Int4> y);
+	RValue<Int4> Min(RValue<Int4> x, RValue<Int4> y);
+	RValue<Int4> RoundInt(RValue<Float4> cast);
+	RValue<Short8> Pack(RValue<Int4> x, RValue<Int4> y);
+	RValue<Int4> Concatenate(RValue<Int2> lo, RValue<Int2> hi);
+	RValue<Int> Extract(RValue<Int4> x, int i);
+	RValue<Int4> Insert(RValue<Int4> val, RValue<Int> element, int i);
+	RValue<Int> SignMask(RValue<Int4> x);
+	RValue<Int4> Swizzle(RValue<Int4> x, unsigned char select);
 
 	class UInt4 : public Variable<UInt4>
 	{
@@ -1728,59 +1712,57 @@ namespace sw
 		RValue<UInt4> operator=(const UInt4 &rhs) const;
 		RValue<UInt4> operator=(const Reference<UInt4> &rhs) const;
 
-		friend RValue<UInt4> operator+(RValue<UInt4> lhs, RValue<UInt4> rhs);
-		friend RValue<UInt4> operator-(RValue<UInt4> lhs, RValue<UInt4> rhs);
-		friend RValue<UInt4> operator*(RValue<UInt4> lhs, RValue<UInt4> rhs);
-	//	friend RValue<UInt4> operator/(RValue<UInt4> lhs, RValue<UInt4> rhs);
-	//	friend RValue<UInt4> operator%(RValue<UInt4> lhs, RValue<UInt4> rhs);
-		friend RValue<UInt4> operator&(RValue<UInt4> lhs, RValue<UInt4> rhs);
-		friend RValue<UInt4> operator|(RValue<UInt4> lhs, RValue<UInt4> rhs);
-		friend RValue<UInt4> operator^(RValue<UInt4> lhs, RValue<UInt4> rhs);
-		friend RValue<UInt4> operator<<(RValue<UInt4> lhs, unsigned char rhs);
-		friend RValue<UInt4> operator>>(RValue<UInt4> lhs, unsigned char rhs);
-		friend RValue<UInt4> operator+=(const UInt4 &lhs, RValue<UInt4> rhs);
-		friend RValue<UInt4> operator-=(const UInt4 &lhs, RValue<UInt4> rhs);
-		friend RValue<UInt4> operator*=(const UInt4 &lhs, RValue<UInt4> rhs);
-	//	friend RValue<UInt4> operator/=(const UInt4 &lhs, RValue<UInt4> rhs);
-	//	friend RValue<UInt4> operator%=(const UInt4 &lhs, RValue<UInt4> rhs);
-		friend RValue<UInt4> operator&=(const UInt4 &lhs, RValue<UInt4> rhs);
-		friend RValue<UInt4> operator|=(const UInt4 &lhs, RValue<UInt4> rhs);
-		friend RValue<UInt4> operator^=(const UInt4 &lhs, RValue<UInt4> rhs);
-		friend RValue<UInt4> operator<<=(const UInt4 &lhs, unsigned char rhs);
-		friend RValue<UInt4> operator>>=(const UInt4 &lhs, unsigned char rhs);
-		friend RValue<UInt4> operator+(RValue<UInt4> val);
-		friend RValue<UInt4> operator-(RValue<UInt4> val);
-		friend RValue<UInt4> operator~(RValue<UInt4> val);
-	//	friend RValue<UInt4> operator++(const UInt4 &val, int);   // Post-increment
-	//	friend const UInt4 &operator++(const UInt4 &val);   // Pre-increment
-	//	friend RValue<UInt4> operator--(const UInt4 &val, int);   // Post-decrement
-	//	friend const UInt4 &operator--(const UInt4 &val);   // Pre-decrement
-	//	friend RValue<Bool> operator<(RValue<UInt4> lhs, RValue<UInt4> rhs);
-	//	friend RValue<Bool> operator<=(RValue<UInt4> lhs, RValue<UInt4> rhs);
-	//	friend RValue<Bool> operator>(RValue<UInt4> lhs, RValue<UInt4> rhs);
-	//	friend RValue<Bool> operator>=(RValue<UInt4> lhs, RValue<UInt4> rhs);
-	//	friend RValue<Bool> operator!=(RValue<UInt4> lhs, RValue<UInt4> rhs);
-	//	friend RValue<Bool> operator==(RValue<UInt4> lhs, RValue<UInt4> rhs);
-
-		friend RValue<UInt4> CmpEQ(RValue<UInt4> x, RValue<UInt4> y);
-		friend RValue<UInt4> CmpLT(RValue<UInt4> x, RValue<UInt4> y);
-		friend RValue<UInt4> CmpLE(RValue<UInt4> x, RValue<UInt4> y);
-		friend RValue<UInt4> CmpNEQ(RValue<UInt4> x, RValue<UInt4> y);
-		friend RValue<UInt4> CmpNLT(RValue<UInt4> x, RValue<UInt4> y);
-		friend RValue<UInt4> CmpNLE(RValue<UInt4> x, RValue<UInt4> y);
-
-		friend RValue<UInt4> Max(RValue<UInt4> x, RValue<UInt4> y);
-		friend RValue<UInt4> Min(RValue<UInt4> x, RValue<UInt4> y);
-
-	//	friend RValue<UInt4> RoundInt(RValue<Float4> cast);
-		friend RValue<UShort8> Pack(RValue<UInt4> x, RValue<UInt4> y);
-		friend RValue<UInt4> Concatenate(RValue<UInt2> lo, RValue<UInt2> hi);
-
 		static llvm::Type *getType();
 
 	private:
 		void constant(int x, int y, int z, int w);
 	};
+
+    RValue<UInt4> operator+(RValue<UInt4> lhs, RValue<UInt4> rhs);
+    RValue<UInt4> operator-(RValue<UInt4> lhs, RValue<UInt4> rhs);
+    RValue<UInt4> operator*(RValue<UInt4> lhs, RValue<UInt4> rhs);
+//	RValue<UInt4> operator/(RValue<UInt4> lhs, RValue<UInt4> rhs);
+//	RValue<UInt4> operator%(RValue<UInt4> lhs, RValue<UInt4> rhs);
+    RValue<UInt4> operator&(RValue<UInt4> lhs, RValue<UInt4> rhs);
+    RValue<UInt4> operator|(RValue<UInt4> lhs, RValue<UInt4> rhs);
+    RValue<UInt4> operator^(RValue<UInt4> lhs, RValue<UInt4> rhs);
+    RValue<UInt4> operator<<(RValue<UInt4> lhs, unsigned char rhs);
+    RValue<UInt4> operator>>(RValue<UInt4> lhs, unsigned char rhs);
+    RValue<UInt4> operator+=(const UInt4 &lhs, RValue<UInt4> rhs);
+    RValue<UInt4> operator-=(const UInt4 &lhs, RValue<UInt4> rhs);
+    RValue<UInt4> operator*=(const UInt4 &lhs, RValue<UInt4> rhs);
+//	RValue<UInt4> operator/=(const UInt4 &lhs, RValue<UInt4> rhs);
+//	RValue<UInt4> operator%=(const UInt4 &lhs, RValue<UInt4> rhs);
+    RValue<UInt4> operator&=(const UInt4 &lhs, RValue<UInt4> rhs);
+    RValue<UInt4> operator|=(const UInt4 &lhs, RValue<UInt4> rhs);
+    RValue<UInt4> operator^=(const UInt4 &lhs, RValue<UInt4> rhs);
+    RValue<UInt4> operator<<=(const UInt4 &lhs, unsigned char rhs);
+    RValue<UInt4> operator>>=(const UInt4 &lhs, unsigned char rhs);
+    RValue<UInt4> operator+(RValue<UInt4> val);
+    RValue<UInt4> operator-(RValue<UInt4> val);
+    RValue<UInt4> operator~(RValue<UInt4> val);
+//	RValue<UInt4> operator++(const UInt4 &val, int);   // Post-increment
+//	const UInt4 &operator++(const UInt4 &val);   // Pre-increment
+//	RValue<UInt4> operator--(const UInt4 &val, int);   // Post-decrement
+//	const UInt4 &operator--(const UInt4 &val);   // Pre-decrement
+//	RValue<Bool> operator<(RValue<UInt4> lhs, RValue<UInt4> rhs);
+//	RValue<Bool> operator<=(RValue<UInt4> lhs, RValue<UInt4> rhs);
+//	RValue<Bool> operator>(RValue<UInt4> lhs, RValue<UInt4> rhs);
+//	RValue<Bool> operator>=(RValue<UInt4> lhs, RValue<UInt4> rhs);
+//	RValue<Bool> operator!=(RValue<UInt4> lhs, RValue<UInt4> rhs);
+//	RValue<Bool> operator==(RValue<UInt4> lhs, RValue<UInt4> rhs);
+
+	RValue<UInt4> CmpEQ(RValue<UInt4> x, RValue<UInt4> y);
+	RValue<UInt4> CmpLT(RValue<UInt4> x, RValue<UInt4> y);
+	RValue<UInt4> CmpLE(RValue<UInt4> x, RValue<UInt4> y);
+	RValue<UInt4> CmpNEQ(RValue<UInt4> x, RValue<UInt4> y);
+	RValue<UInt4> CmpNLT(RValue<UInt4> x, RValue<UInt4> y);
+	RValue<UInt4> CmpNLE(RValue<UInt4> x, RValue<UInt4> y);
+	RValue<UInt4> Max(RValue<UInt4> x, RValue<UInt4> y);
+	RValue<UInt4> Min(RValue<UInt4> x, RValue<UInt4> y);
+//	RValue<UInt4> RoundInt(RValue<Float4> cast);
+	RValue<UShort8> Pack(RValue<UInt4> x, RValue<UInt4> y);
+	RValue<UInt4> Concatenate(RValue<UInt2> lo, RValue<UInt2> hi);
 
 	template<int T>
 	class Swizzle2Float4
@@ -1870,39 +1852,37 @@ namespace sw
 		template<int T>
 		RValue<Float> operator=(const SwizzleMask1Float4<T> &rhs) const;
 
-		friend RValue<Float> operator+(RValue<Float> lhs, RValue<Float> rhs);
-		friend RValue<Float> operator-(RValue<Float> lhs, RValue<Float> rhs);
-		friend RValue<Float> operator*(RValue<Float> lhs, RValue<Float> rhs);
-		friend RValue<Float> operator/(RValue<Float> lhs, RValue<Float> rhs);
-		friend RValue<Float> operator+=(const Float &lhs, RValue<Float> rhs);
-		friend RValue<Float> operator-=(const Float &lhs, RValue<Float> rhs);
-		friend RValue<Float> operator*=(const Float &lhs, RValue<Float> rhs);
-		friend RValue<Float> operator/=(const Float &lhs, RValue<Float> rhs);
-		friend RValue<Float> operator+(RValue<Float> val);
-		friend RValue<Float> operator-(RValue<Float> val);
-		friend RValue<Bool> operator<(RValue<Float> lhs, RValue<Float> rhs);
-		friend RValue<Bool> operator<=(RValue<Float> lhs, RValue<Float> rhs);
-		friend RValue<Bool> operator>(RValue<Float> lhs, RValue<Float> rhs);
-		friend RValue<Bool> operator>=(RValue<Float> lhs, RValue<Float> rhs);
-		friend RValue<Bool> operator!=(RValue<Float> lhs, RValue<Float> rhs);
-		friend RValue<Bool> operator==(RValue<Float> lhs, RValue<Float> rhs);
-
-		friend RValue<Float> Abs(RValue<Float> x);
-		friend RValue<Float> Max(RValue<Float> x, RValue<Float> y);
-		friend RValue<Float> Min(RValue<Float> x, RValue<Float> y);
-
-		friend RValue<Float> Rcp_pp(RValue<Float> val);
-		friend RValue<Float> RcpSqrt_pp(RValue<Float> val);
-		friend RValue<Float> Sqrt(RValue<Float> x);
-
-		friend RValue<Float> Round(RValue<Float> val);
-		friend RValue<Float> Trunc(RValue<Float> val);
-		friend RValue<Float> Frac(RValue<Float> val);
-		friend RValue<Float> Floor(RValue<Float> val);
-		friend RValue<Float> Ceil(RValue<Float> val);
-
 		static llvm::Type *getType();
 	};
+
+    RValue<Float> operator+(RValue<Float> lhs, RValue<Float> rhs);
+    RValue<Float> operator-(RValue<Float> lhs, RValue<Float> rhs);
+    RValue<Float> operator*(RValue<Float> lhs, RValue<Float> rhs);
+    RValue<Float> operator/(RValue<Float> lhs, RValue<Float> rhs);
+    RValue<Float> operator+=(const Float &lhs, RValue<Float> rhs);
+    RValue<Float> operator-=(const Float &lhs, RValue<Float> rhs);
+    RValue<Float> operator*=(const Float &lhs, RValue<Float> rhs);
+    RValue<Float> operator/=(const Float &lhs, RValue<Float> rhs);
+    RValue<Float> operator+(RValue<Float> val);
+    RValue<Float> operator-(RValue<Float> val);
+    RValue<Bool> operator<(RValue<Float> lhs, RValue<Float> rhs);
+    RValue<Bool> operator<=(RValue<Float> lhs, RValue<Float> rhs);
+    RValue<Bool> operator>(RValue<Float> lhs, RValue<Float> rhs);
+    RValue<Bool> operator>=(RValue<Float> lhs, RValue<Float> rhs);
+    RValue<Bool> operator!=(RValue<Float> lhs, RValue<Float> rhs);
+    RValue<Bool> operator==(RValue<Float> lhs, RValue<Float> rhs);
+
+	RValue<Float> Abs(RValue<Float> x);
+	RValue<Float> Max(RValue<Float> x, RValue<Float> y);
+	RValue<Float> Min(RValue<Float> x, RValue<Float> y);
+	RValue<Float> Rcp_pp(RValue<Float> val);
+	RValue<Float> RcpSqrt_pp(RValue<Float> val);
+	RValue<Float> Sqrt(RValue<Float> x);
+	RValue<Float> Round(RValue<Float> val);
+	RValue<Float> Trunc(RValue<Float> val);
+	RValue<Float> Frac(RValue<Float> val);
+	RValue<Float> Floor(RValue<Float> val);
+	RValue<Float> Ceil(RValue<Float> val);
 
 	class Float2 : public Variable<Float2>
 	{
@@ -1937,28 +1917,27 @@ namespace sw
 	//	template<int T>
 	//	RValue<Float2> operator=(const SwizzleMask1Float4<T> &rhs);
 
-	//	friend RValue<Float2> operator+(RValue<Float2> lhs, RValue<Float2> rhs);
-	//	friend RValue<Float2> operator-(RValue<Float2> lhs, RValue<Float2> rhs);
-	//	friend RValue<Float2> operator*(RValue<Float2> lhs, RValue<Float2> rhs);
-	//	friend RValue<Float2> operator/(RValue<Float2> lhs, RValue<Float2> rhs);
-	//	friend RValue<Float2> operator%(RValue<Float2> lhs, RValue<Float2> rhs);
-	//	friend RValue<Float2> operator+=(const Float2 &lhs, RValue<Float2> rhs);
-	//	friend RValue<Float2> operator-=(const Float2 &lhs, RValue<Float2> rhs);
-	//	friend RValue<Float2> operator*=(const Float2 &lhs, RValue<Float2> rhs);
-	//	friend RValue<Float2> operator/=(const Float2 &lhs, RValue<Float2> rhs);
-	//	friend RValue<Float2> operator%=(const Float2 &lhs, RValue<Float2> rhs);
-	//	friend RValue<Float2> operator+(RValue<Float2> val);
-	//	friend RValue<Float2> operator-(RValue<Float2> val);
-
-	//	friend RValue<Float2> Abs(RValue<Float2> x);
-	//	friend RValue<Float2> Max(RValue<Float2> x, RValue<Float2> y);
-	//	friend RValue<Float2> Min(RValue<Float2> x, RValue<Float2> y);
-
-	//	friend RValue<Float2> Swizzle(RValue<Float2> x, unsigned char select);
-	//	friend RValue<Float2> Mask(Float2 &lhs, RValue<Float2> rhs, unsigned char select);
-
 		static llvm::Type *getType();
 	};
+
+//	RValue<Float2> operator+(RValue<Float2> lhs, RValue<Float2> rhs);
+//	RValue<Float2> operator-(RValue<Float2> lhs, RValue<Float2> rhs);
+//	RValue<Float2> operator*(RValue<Float2> lhs, RValue<Float2> rhs);
+//	RValue<Float2> operator/(RValue<Float2> lhs, RValue<Float2> rhs);
+//	RValue<Float2> operator%(RValue<Float2> lhs, RValue<Float2> rhs);
+//	RValue<Float2> operator+=(const Float2 &lhs, RValue<Float2> rhs);
+//	RValue<Float2> operator-=(const Float2 &lhs, RValue<Float2> rhs);
+//	RValue<Float2> operator*=(const Float2 &lhs, RValue<Float2> rhs);
+//	RValue<Float2> operator/=(const Float2 &lhs, RValue<Float2> rhs);
+//	RValue<Float2> operator%=(const Float2 &lhs, RValue<Float2> rhs);
+//	RValue<Float2> operator+(RValue<Float2> val);
+//	RValue<Float2> operator-(RValue<Float2> val);
+
+//	RValue<Float2> Abs(RValue<Float2> x);
+//	RValue<Float2> Max(RValue<Float2> x, RValue<Float2> y);
+//	RValue<Float2> Min(RValue<Float2> x, RValue<Float2> y);
+//	RValue<Float2> Swizzle(RValue<Float2> x, unsigned char select);
+//	RValue<Float2> Mask(Float2 &lhs, RValue<Float2> rhs, unsigned char select);
 
 	class Float4 : public Variable<Float4>
 	{
@@ -2007,49 +1986,6 @@ namespace sw
 		RValue<Float4> operator=(const SwizzleMask1Float4<T> &rhs);
 		template<int T>
 		RValue<Float4> operator=(const SwizzleFloat4<T> &rhs);
-
-		friend RValue<Float4> operator+(RValue<Float4> lhs, RValue<Float4> rhs);
-		friend RValue<Float4> operator-(RValue<Float4> lhs, RValue<Float4> rhs);
-		friend RValue<Float4> operator*(RValue<Float4> lhs, RValue<Float4> rhs);
-		friend RValue<Float4> operator/(RValue<Float4> lhs, RValue<Float4> rhs);
-		friend RValue<Float4> operator%(RValue<Float4> lhs, RValue<Float4> rhs);
-		friend RValue<Float4> operator+=(const Float4 &lhs, RValue<Float4> rhs);
-		friend RValue<Float4> operator-=(const Float4 &lhs, RValue<Float4> rhs);
-		friend RValue<Float4> operator*=(const Float4 &lhs, RValue<Float4> rhs);
-		friend RValue<Float4> operator/=(const Float4 &lhs, RValue<Float4> rhs);
-		friend RValue<Float4> operator%=(const Float4 &lhs, RValue<Float4> rhs);
-		friend RValue<Float4> operator+(RValue<Float4> val);
-		friend RValue<Float4> operator-(RValue<Float4> val);
-
-		friend RValue<Float4> Abs(RValue<Float4> x);
-		friend RValue<Float4> Max(RValue<Float4> x, RValue<Float4> y);
-		friend RValue<Float4> Min(RValue<Float4> x, RValue<Float4> y);
-
-		friend RValue<Float4> Rcp_pp(RValue<Float4> val);
-		friend RValue<Float4> RcpSqrt_pp(RValue<Float4> val);
-		friend RValue<Float4> Sqrt(RValue<Float4> x);
-
-		friend RValue<Float4> Insert(const Float4 &val, RValue<Float> element, int i);
-		friend RValue<Float> Extract(RValue<Float4> x, int i);
-		friend RValue<Float4> Swizzle(RValue<Float4> x, unsigned char select);
-		friend RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, unsigned char imm);
-		friend RValue<Float4> UnpackLow(RValue<Float4> x, RValue<Float4> y);
-		friend RValue<Float4> UnpackHigh(RValue<Float4> x, RValue<Float4> y);
-		friend RValue<Float4> Mask(Float4 &lhs, RValue<Float4> rhs, unsigned char select);
-		friend RValue<Int> SignMask(RValue<Float4> x);
-
-		friend RValue<Int4> CmpEQ(RValue<Float4> x, RValue<Float4> y);
-		friend RValue<Int4> CmpLT(RValue<Float4> x, RValue<Float4> y);
-		friend RValue<Int4> CmpLE(RValue<Float4> x, RValue<Float4> y);
-		friend RValue<Int4> CmpNEQ(RValue<Float4> x, RValue<Float4> y);
-		friend RValue<Int4> CmpNLT(RValue<Float4> x, RValue<Float4> y);
-		friend RValue<Int4> CmpNLE(RValue<Float4> x, RValue<Float4> y);
-
-		friend RValue<Float4> Round(RValue<Float4> x);
-		friend RValue<Float4> Trunc(RValue<Float4> x);
-		friend RValue<Float4> Frac(RValue<Float4> x);
-		friend RValue<Float4> Floor(RValue<Float4> x);
-		friend RValue<Float4> Ceil(RValue<Float4> x);
 
 		static llvm::Type *getType();
 
@@ -2401,6 +2337,45 @@ namespace sw
 		void constant(float x, float y, float z, float w);
 	};
 
+	RValue<Float4> operator+(RValue<Float4> lhs, RValue<Float4> rhs);
+	RValue<Float4> operator-(RValue<Float4> lhs, RValue<Float4> rhs);
+	RValue<Float4> operator*(RValue<Float4> lhs, RValue<Float4> rhs);
+	RValue<Float4> operator/(RValue<Float4> lhs, RValue<Float4> rhs);
+	RValue<Float4> operator%(RValue<Float4> lhs, RValue<Float4> rhs);
+	RValue<Float4> operator+=(const Float4 &lhs, RValue<Float4> rhs);
+	RValue<Float4> operator-=(const Float4 &lhs, RValue<Float4> rhs);
+	RValue<Float4> operator*=(const Float4 &lhs, RValue<Float4> rhs);
+	RValue<Float4> operator/=(const Float4 &lhs, RValue<Float4> rhs);
+	RValue<Float4> operator%=(const Float4 &lhs, RValue<Float4> rhs);
+	RValue<Float4> operator+(RValue<Float4> val);
+	RValue<Float4> operator-(RValue<Float4> val);
+
+	RValue<Float4> Abs(RValue<Float4> x);
+	RValue<Float4> Max(RValue<Float4> x, RValue<Float4> y);
+	RValue<Float4> Min(RValue<Float4> x, RValue<Float4> y);
+	RValue<Float4> Rcp_pp(RValue<Float4> val);
+	RValue<Float4> RcpSqrt_pp(RValue<Float4> val);
+	RValue<Float4> Sqrt(RValue<Float4> x);
+	RValue<Float4> Insert(const Float4 &val, RValue<Float> element, int i);
+	RValue<Float> Extract(RValue<Float4> x, int i);
+	RValue<Float4> Swizzle(RValue<Float4> x, unsigned char select);
+	RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, unsigned char imm);
+	RValue<Float4> UnpackLow(RValue<Float4> x, RValue<Float4> y);
+	RValue<Float4> UnpackHigh(RValue<Float4> x, RValue<Float4> y);
+	RValue<Float4> Mask(Float4 &lhs, RValue<Float4> rhs, unsigned char select);
+	RValue<Int> SignMask(RValue<Float4> x);
+	RValue<Int4> CmpEQ(RValue<Float4> x, RValue<Float4> y);
+	RValue<Int4> CmpLT(RValue<Float4> x, RValue<Float4> y);
+	RValue<Int4> CmpLE(RValue<Float4> x, RValue<Float4> y);
+	RValue<Int4> CmpNEQ(RValue<Float4> x, RValue<Float4> y);
+	RValue<Int4> CmpNLT(RValue<Float4> x, RValue<Float4> y);
+	RValue<Int4> CmpNLE(RValue<Float4> x, RValue<Float4> y);
+	RValue<Float4> Round(RValue<Float4> x);
+	RValue<Float4> Trunc(RValue<Float4> x);
+	RValue<Float4> Frac(RValue<Float4> x);
+	RValue<Float4> Floor(RValue<Float4> x);
+	RValue<Float4> Ceil(RValue<Float4> x);
+
 	template<class T>
 	class Pointer : public Variable<Pointer<T> >
 	{
@@ -2434,25 +2409,25 @@ namespace sw
 
 		Reference<T> operator*();
 
-		friend RValue<Pointer<Byte> > operator+(RValue<Pointer<Byte> > lhs, int offset);
-		friend RValue<Pointer<Byte> > operator+(RValue<Pointer<Byte> > lhs, RValue<Int> offset);
-		friend RValue<Pointer<Byte> > operator+(RValue<Pointer<Byte> > lhs, RValue<UInt> offset);
-		friend RValue<Pointer<Byte> > operator+=(const Pointer<Byte> &lhs, int offset);
-		friend RValue<Pointer<Byte> > operator+=(const Pointer<Byte> &lhs, RValue<Int> offset);
-		friend RValue<Pointer<Byte> > operator+=(const Pointer<Byte> &lhs, RValue<UInt> offset);
-
-		friend RValue<Pointer<Byte> > operator-(RValue<Pointer<Byte> > lhs, int offset);
-		friend RValue<Pointer<Byte> > operator-(RValue<Pointer<Byte> > lhs, RValue<Int> offset);
-		friend RValue<Pointer<Byte> > operator-(RValue<Pointer<Byte> > lhs, RValue<UInt> offset);
-		friend RValue<Pointer<Byte> > operator-=(const Pointer<Byte> &lhs, int offset);
-		friend RValue<Pointer<Byte> > operator-=(const Pointer<Byte> &lhs, RValue<Int> offset);
-		friend RValue<Pointer<Byte> > operator-=(const Pointer<Byte> &lhs, RValue<UInt> offset);
-
 		static llvm::Type *getType();
 
 	private:
 		const int alignment;
 	};
+
+    RValue<Pointer<Byte> > operator+(RValue<Pointer<Byte> > lhs, int offset);
+    RValue<Pointer<Byte> > operator+(RValue<Pointer<Byte> > lhs, RValue<Int> offset);
+    RValue<Pointer<Byte> > operator+(RValue<Pointer<Byte> > lhs, RValue<UInt> offset);
+    RValue<Pointer<Byte> > operator+=(const Pointer<Byte> &lhs, int offset);
+    RValue<Pointer<Byte> > operator+=(const Pointer<Byte> &lhs, RValue<Int> offset);
+    RValue<Pointer<Byte> > operator+=(const Pointer<Byte> &lhs, RValue<UInt> offset);
+
+    RValue<Pointer<Byte> > operator-(RValue<Pointer<Byte> > lhs, int offset);
+    RValue<Pointer<Byte> > operator-(RValue<Pointer<Byte> > lhs, RValue<Int> offset);
+    RValue<Pointer<Byte> > operator-(RValue<Pointer<Byte> > lhs, RValue<UInt> offset);
+    RValue<Pointer<Byte> > operator-=(const Pointer<Byte> &lhs, int offset);
+    RValue<Pointer<Byte> > operator-=(const Pointer<Byte> &lhs, RValue<Int> offset);
+    RValue<Pointer<Byte> > operator-=(const Pointer<Byte> &lhs, RValue<UInt> offset);
 
 	template<class T, int S = 1>
 	class Array : public Variable<T>
@@ -2463,12 +2438,12 @@ namespace sw
 		Reference<T> operator[](int index);
 		Reference<T> operator[](RValue<Int> index);
 		Reference<T> operator[](RValue<UInt> index);
-
-	//	friend RValue<Array<T> > operator++(const Array<T> &val, int);   // Post-increment
-	//	friend const Array<T> &operator++(const Array<T> &val);   // Pre-increment
-	//	friend RValue<Array<T> > operator--(const Array<T> &val, int);   // Post-decrement
-	//	friend const Array<T> &operator--(const Array<T> &val);   // Pre-decrement
 	};
+
+//	RValue<Array<T> > operator++(const Array<T> &val, int);   // Post-increment
+//	const Array<T> &operator++(const Array<T> &val);   // Pre-increment
+//	RValue<Array<T> > operator--(const Array<T> &val, int);   // Post-decrement
+//	const Array<T> &operator--(const Array<T> &val);   // Pre-decrement
 
 	llvm::BasicBlock *beginLoop();
 	bool branch(RValue<Bool> cmp, llvm::BasicBlock *bodyBB, llvm::BasicBlock *endBB);
