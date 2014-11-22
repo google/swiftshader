@@ -82,11 +82,11 @@ namespace sw
 		return 0;
 	}
 
-	void RoutineManager::endExceptionTable(const llvm::Function *F, uint8_t *TableStart, uint8_t *TableEnd, uint8_t* FrameRegister) 
+	void RoutineManager::endExceptionTable(const llvm::Function *F, uint8_t *TableStart, uint8_t *TableEnd, uint8_t* FrameRegister)
 	{
 		UNIMPLEMENTED();
 	}
-    
+
 	uint8_t *RoutineManager::getGOTBase() const
 	{
 		ASSERT(!HasGOT);
@@ -113,7 +113,10 @@ namespace sw
 
 	void RoutineManager::deallocateExceptionTable(void *ET)
 	{
-		UNIMPLEMENTED();
+        if(ET)
+        {
+            UNIMPLEMENTED();
+        }
 	}
 
 	void RoutineManager::setMemoryWritable()

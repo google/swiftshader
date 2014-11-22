@@ -158,27 +158,25 @@ global:
     glReadnPixelsEXT;
     glGetnUniformfvEXT;
     glGetnUniformivEXT;
-    glGenQueriesEXT;
+	glGenQueriesEXT;
     glDeleteQueriesEXT;
     glIsQueryEXT;
     glBeginQueryEXT;
     glEndQueryEXT;
     glGetQueryivEXT;
     glGetQueryObjectuivEXT;
+	glEGLImageTargetTexture2DOES;
+	glEGLImageTargetRenderbufferStorageOES;
 
     # EGL dependencies
     glCreateContext;
-    glDestroyContext;
-    glMakeCurrent;
-    glGetCurrentContext;
     glGetProcAddress;
-    glBindTexImage;
 
-    createFrameBuffer;
-    createBackBuffer;
-    createDevice;
+	createFrameBuffer;
+	createBackBuffer;
+	createDepthStencil;
 
-    Register;
+	Register;
 
 local:
     *;

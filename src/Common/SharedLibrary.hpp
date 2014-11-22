@@ -94,6 +94,6 @@ void *loadLibrary(const char *(&names)[n])
 
 	inline void *getProcAddress(void *library, const char *name)
 	{
-		return dlsym(library, name);
+		return library ? dlsym(library, name) : 0;
 	}
 #endif

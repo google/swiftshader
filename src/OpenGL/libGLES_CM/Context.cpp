@@ -20,7 +20,6 @@
 #include "ResourceManager.h"
 #include "Buffer.h"
 #include "Framebuffer.h"
-#include "Query.h"
 #include "Renderbuffer.h"
 #include "Texture.h"
 #include "VertexDataManager.h"
@@ -172,7 +171,7 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 	{
 		setVertexAttrib(sw::TexCoord0 + i, 0.0f, 0.0f, 0.0f, 1.0f);
 	}
-	
+
 	setVertexAttrib(sw::Normal, 0.0f, 0.0f, 1.0f, 1.0f);
 
     mHasBeenCurrent = false;
@@ -186,7 +185,7 @@ Context::~Context()
     {
         deleteFramebuffer(mFramebufferMap.begin()->first);
     }
-	
+
     for(int type = 0; type < TEXTURE_TYPE_COUNT; type++)
     {
         for(int sampler = 0; sampler < MAX_TEXTURE_UNITS; sampler++)
@@ -199,7 +198,7 @@ Context::~Context()
     {
         mState.vertexAttribute[i].mBoundBuffer.set(NULL);
     }
-	
+
     mState.arrayBuffer.set(NULL);
     mState.elementArrayBuffer.set(NULL);
     mState.renderbuffer.set(NULL);
@@ -249,7 +248,7 @@ void Context::makeCurrent(egl::Surface *surface)
     {
         depthStencil->release();
     }
-    
+
     markAllStateDirty();
 }
 
@@ -729,7 +728,7 @@ void Context::deleteBuffer(GLuint buffer)
     {
         detachBuffer(buffer);
     }
-    
+
     mResourceManager->deleteBuffer(buffer);
 }
 
@@ -749,7 +748,7 @@ void Context::deleteRenderbuffer(GLuint renderbuffer)
     {
         detachRenderbuffer(renderbuffer);
     }
-    
+
     mResourceManager->deleteRenderbuffer(renderbuffer);
 }
 
@@ -979,7 +978,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
     // Please note: DEPTH_CLEAR_VALUE is not included in our internal getIntegerv implementation
     // because it is stored as a float, despite the fact that the GL ES 2.0 spec names
     // GetIntegerv as its native query function. As it would require conversion in any
-    // case, this should make no difference to the calling application. You may find it in 
+    // case, this should make no difference to the calling application. You may find it in
     // Context::getFloatv.
     switch (pname)
     {
@@ -1008,7 +1007,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
     case GL_STENCIL_CLEAR_VALUE:              *params = mState.stencilClearValue;             break;
     case GL_SUBPIXEL_BITS:                    *params = 4;                                    break;
 	case GL_MAX_TEXTURE_SIZE:                 *params = IMPLEMENTATION_MAX_TEXTURE_SIZE;      break;
-    case GL_NUM_COMPRESSED_TEXTURE_FORMATS:   
+    case GL_NUM_COMPRESSED_TEXTURE_FORMATS:
         {
             if(S3TC_SUPPORT)
             {
@@ -1022,7 +1021,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
             }
         }
         break;
-	case GL_SAMPLE_BUFFERS:                   
+	case GL_SAMPLE_BUFFERS:
     case GL_SAMPLES:
         {
             Framebuffer *framebuffer = getFramebuffer();
@@ -1189,7 +1188,7 @@ int Context::getQueryParameterNum(GLenum pname)
     // Please note: the query type returned for DEPTH_CLEAR_VALUE in this implementation
     // is FLOAT rather than INT, as would be suggested by the GL ES 2.0 spec. This is due
     // to the fact that it is stored internally as a float, and so would require conversion
-    // if returned from Context::getIntegerv. Since this conversion is already implemented 
+    // if returned from Context::getIntegerv. Since this conversion is already implemented
     // in the case that one calls glGetIntegerv to retrieve a float-typed state variable, we
     // place DEPTH_CLEAR_VALUE with the floats. This should make no difference to the calling
     // application.
@@ -1290,7 +1289,7 @@ bool Context::isQueryParameterInt(GLenum pname)
     // Please note: the query type returned for DEPTH_CLEAR_VALUE in this implementation
     // is FLOAT rather than INT, as would be suggested by the GL ES 2.0 spec. This is due
     // to the fact that it is stored internally as a float, and so would require conversion
-    // if returned from Context::getIntegerv. Since this conversion is already implemented 
+    // if returned from Context::getIntegerv. Since this conversion is already implemented
     // in the case that one calls glGetIntegerv to retrieve a float-typed state variable, we
     // place DEPTH_CLEAR_VALUE with the floats. This should make no difference to the calling
     // application.
@@ -1360,7 +1359,7 @@ bool Context::isQueryParameterFloat(GLenum pname)
     // Please note: the query type returned for DEPTH_CLEAR_VALUE in this implementation
     // is FLOAT rather than INT, as would be suggested by the GL ES 2.0 spec. This is due
     // to the fact that it is stored internally as a float, and so would require conversion
-    // if returned from Context::getIntegerv. Since this conversion is already implemented 
+    // if returned from Context::getIntegerv. Since this conversion is already implemented
     // in the case that one calls glGetIntegerv to retrieve a float-typed state variable, we
     // place DEPTH_CLEAR_VALUE with the floats. This should make no difference to the calling
     // application.
@@ -1444,7 +1443,7 @@ bool Context::applyRenderTarget()
     {
 		sw::Rect scissor = {mState.scissorX, mState.scissorY, mState.scissorX + mState.scissorWidth, mState.scissorY + mState.scissorHeight};
 		scissor.clip(0, 0, width, height);
-        
+
 		device->setScissorRect(scissor);
         device->setScissorEnable(true);
     }
@@ -1514,7 +1513,7 @@ void Context::applyState(GLenum drawMode)
         {
 			device->setStencilEnable(true);
 			device->setTwoSidedStencil(true);
-			
+
             // get the maximum size of the stencil ref
             Renderbuffer *stencilbuffer = framebuffer->getStencilbuffer();
             GLuint maxStencil = (1 << stencilbuffer->getStencilSize()) - 1;
@@ -1609,7 +1608,7 @@ void Context::applyState(GLenum drawMode)
                     }
                 }
             }
-            
+
             if(mState.sampleCoverageInvert)
             {
                 mask = ~mask;
@@ -1680,14 +1679,14 @@ GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count)
     {
         return err;
     }
-	
+
 	device->resetInputStreams(false);
 
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
 	{
 		sw::Resource *resource = attributes[i].vertexBuffer;
 		const void *buffer = (char*)resource->getBuffer() + attributes[i].offset;
-			
+
 		int stride = attributes[i].stride;
 
 		buffer = (char*)buffer + stride * base;
@@ -1742,7 +1741,7 @@ void Context::applyTextures()
 			device->setTextureFilter(sw::SAMPLER_PIXEL, samplerIndex, minFilter);
 		//	device->setTextureFilter(sw::SAMPLER_PIXEL, samplerIndex, es2sw::ConvertMagFilter(magFilter));
 			device->setMipmapFilter(sw::SAMPLER_PIXEL, samplerIndex, mipFilter);
-			device->setMaxAnisotropy(sw::SAMPLER_PIXEL, samplerIndex, maxAnisotropy);                
+			device->setMaxAnisotropy(sw::SAMPLER_PIXEL, samplerIndex, maxAnisotropy);
 
 			applyTexture(samplerIndex, texture);
 
@@ -1779,7 +1778,7 @@ void Context::applyTexture(int index, Texture *baseTexture)
 	}
 
 	device->setTextureResource(index, resource);
-			
+
 	if(baseTexture)
 	{
 		int levelCount = baseTexture->getLevelCount();
@@ -1830,7 +1829,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
     }
 
 	GLsizei outputPitch = ComputePitch(width, format, type, mState.packAlignment);
-    
+
 	// Sized query sanity check
     if(bufSize)
     {
@@ -2005,7 +2004,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 					switch(type)
 					{
 					case GL_UNSIGNED_SHORT_5_6_5:   // IMPLEMENTATION_COLOR_READ_TYPE
-						dest16[i + j * outputPitch / sizeof(unsigned short)] = 
+						dest16[i + j * outputPitch / sizeof(unsigned short)] =
 							((unsigned short)(31 * b + 0.5f) << 0) |
 							((unsigned short)(63 * g + 0.5f) << 5) |
 							((unsigned short)(31 * r + 0.5f) << 11);
@@ -2039,7 +2038,7 @@ void Context::clear(GLbitfield mask)
 
 	unsigned int color = (unorm<8>(mState.colorClearValue.alpha) << 24) |
                          (unorm<8>(mState.colorClearValue.red) << 16) |
-                         (unorm<8>(mState.colorClearValue.green) << 8) | 
+                         (unorm<8>(mState.colorClearValue.green) << 8) |
                          (unorm<8>(mState.colorClearValue.blue) << 0);
     float depth = clamp01(mState.depthClearValue);
     int stencil = mState.stencilClearValue & 0x000000FF;
@@ -2047,7 +2046,7 @@ void Context::clear(GLbitfield mask)
 	if(mask & GL_COLOR_BUFFER_BIT)
 	{
 		unsigned int rgbaMask = (mState.colorMaskRed ? 0x1 : 0) |
-		                        (mState.colorMaskGreen ? 0x2 : 0) | 
+		                        (mState.colorMaskGreen ? 0x2 : 0) |
 		                        (mState.colorMaskBlue ? 0x4 : 0) |
 		                        (mState.colorMaskAlpha ? 0x8 : 0);
 
@@ -2238,12 +2237,12 @@ int Context::getSupportedMultiSampleDepth(sw::Format format, int requested)
     {
         return 1;
     }
-	
+
 	if(requested == 2)
 	{
 		return 2;
 	}
-	
+
 	return 4;
 }
 
@@ -2483,7 +2482,7 @@ sw::MatrixStack &Context::currentMatrixStack()
 {
 	switch(matrixMode)
 	{
-	case GL_MODELVIEW: 
+	case GL_MODELVIEW:
 		return modelViewStack;
 	case GL_PROJECTION:
 		return projectionStack;
@@ -2493,7 +2492,7 @@ sw::MatrixStack &Context::currentMatrixStack()
 		case 0: return textureStack0;
 		case 1: return textureStack1;
 		}
-		break;    
+		break;
 	}
 
 	UNREACHABLE();
@@ -2533,7 +2532,7 @@ void Context::rotate(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 
 void Context::translate(GLfloat x, GLfloat y, GLfloat z)
 {
-    currentMatrixStack().translate(x, y, z);  
+    currentMatrixStack().translate(x, y, z);
 }
 
 void Context::scale(GLfloat x, GLfloat y, GLfloat z)

@@ -18,7 +18,6 @@
 #include "Framebuffer.h"
 #include "Renderbuffer.h"
 #include "Texture.h"
-#include "Query.h"
 #include "common/debug.h"
 #include "Common/SharedLibrary.hpp"
 #include "Common/Version.h"
@@ -65,7 +64,7 @@ static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei heigh
 
     if(compressed)
     {
-        if((width % 4 != 0 && width != texture->getWidth(target, 0)) || 
+        if((width % 4 != 0 && width != texture->getWidth(target, 0)) ||
            (height % 4 != 0 && height != texture->getHeight(target, 0)))
         {
             return error(GL_INVALID_OPERATION, false);
@@ -899,7 +898,7 @@ void GL_APIENTRY glClearStencil(GLint s)
 void GL_APIENTRY glClientActiveTexture(GLenum texture)
 {
 	TRACE("(GLenum texture = 0x%X)", texture);
-	
+
 	try
     {
 		switch(texture)
@@ -1023,10 +1022,10 @@ void GL_APIENTRY glColorPointer(GLint size, GLenum type, GLsizei stride, const G
 	UNIMPLEMENTED();
 }
 
-void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, 
+void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height,
                                         GLint border, GLsizei imageSize, const GLvoid* data)
 {
-    TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum internalformat = 0x%X, GLsizei width = %d, " 
+    TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum internalformat = 0x%X, GLsizei width = %d, "
           "GLsizei height = %d, GLint border = %d, GLsizei imageSize = %d, const GLvoid* data = 0x%0.8p)",
           target, level, internalformat, width, height, border, imageSize, data);
 
@@ -1756,7 +1755,7 @@ void GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum type, const G
               default:
                 return error(GL_INVALID_ENUM);
             }
-        
+
             context->drawElements(mode, count, type, indices);
         }
     }
@@ -1825,7 +1824,7 @@ void GL_APIENTRY glEnable(GLenum cap)
 void GL_APIENTRY glEnableClientState(GLenum array)
 {
 	TRACE("(GLenum array = 0x%X)", array);
-    
+
     try
     {
         es1::Context *context = es1::getContext();
@@ -1906,7 +1905,7 @@ void GL_APIENTRY glFramebufferRenderbufferOES(GLenum target, GLenum attachment, 
         {
             es1::Framebuffer *framebuffer = context->getFramebuffer();
             GLuint framebufferHandle = context->getFramebufferHandle();
-            
+
             if(!framebuffer || (framebufferHandle == 0 && renderbuffer != 0))
             {
                 return error(GL_INVALID_OPERATION);
@@ -2277,7 +2276,7 @@ void GL_APIENTRY glGetBooleanv(GLenum pname, GLboolean* params)
             if(!(context->getBooleanv(pname, params)))
             {
                 unsigned int numParams = context->getQueryParameterNum(pname);
-				
+
 				if(numParams < 0)
 				{
 					return error(GL_INVALID_ENUM);
@@ -2420,7 +2419,7 @@ void GL_APIENTRY glGetFloatv(GLenum pname, GLfloat* params)
             if(!(context->getFloatv(pname, params)))
             {
                 unsigned int numParams = context->getQueryParameterNum(pname);
-				
+
 				if(numParams < 0)
 				{
 					return error(GL_INVALID_ENUM);
@@ -2486,21 +2485,21 @@ void GL_APIENTRY glGetFramebufferAttachmentParameterivOES(GLenum target, GLenum 
             {
                 return error(GL_INVALID_ENUM);
             }
-            
+
             if(context->getFramebufferHandle() == 0)
             {
                 return error(GL_INVALID_OPERATION);
             }
 
             es1::Framebuffer *framebuffer = context->getFramebuffer();
-            
+
             GLenum attachmentType;
             GLuint attachmentHandle;
             switch(attachment)
             {
-            case GL_COLOR_ATTACHMENT0_OES:    
+            case GL_COLOR_ATTACHMENT0_OES:
                 attachmentType = framebuffer->getColorbufferType();
-                attachmentHandle = framebuffer->getColorbufferHandle(); 
+                attachmentHandle = framebuffer->getColorbufferHandle();
                 break;
             case GL_DEPTH_ATTACHMENT_OES:
                 attachmentType = framebuffer->getDepthbufferType();
@@ -2574,7 +2573,7 @@ void GL_APIENTRY glGetIntegerv(GLenum pname, GLint* params)
             if(!(context->getIntegerv(pname, params)))
             {
                 unsigned int numParams = context->getQueryParameterNum(pname);
-				
+
 				if(numParams < 0)
 				{
 					return error(GL_INVALID_ENUM);
@@ -2670,7 +2669,7 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
         case GL_RENDERER:
             return (GLubyte*)"SwiftShader";
         case GL_VERSION:
-            return (GLubyte*)"OpenGL ES 1.1 SwiftShader "VERSION_STRING;
+            return (GLubyte*)"OpenGL ES 1.1 SwiftShader " VERSION_STRING;
         case GL_EXTENSIONS:
             // Keep list sorted in following order:
 	        // OES extensions
@@ -2859,7 +2858,7 @@ void GL_APIENTRY glHint(GLenum target, GLenum mode)
           case GL_DONT_CARE:
             break;
           default:
-            return error(GL_INVALID_ENUM); 
+            return error(GL_INVALID_ENUM);
         }
 
         es1::Context *context = es1::getContext();
@@ -3044,7 +3043,7 @@ void GL_APIENTRY glLightf(GLenum light, GLenum pname, GLfloat param)
 void GL_APIENTRY glLightfv(GLenum light, GLenum pname, const GLfloat *params)
 {
 	TRACE("(GLenum light = 0x%X, GLenum pname = 0x%X, const GLint *params)", light, pname);
-    
+
 	try
     {
         es1::Context *context = es1::getContext();
@@ -3385,7 +3384,7 @@ void GL_APIENTRY glPolygonOffsetx(GLfixed factor, GLfixed units)
 void GL_APIENTRY glPopMatrix(void)
 {
 	TRACE("()");
-    
+
     try
     {
         es1::Context *context = es1::getContext();
@@ -3404,7 +3403,7 @@ void GL_APIENTRY glPopMatrix(void)
 void GL_APIENTRY glPushMatrix(void)
 {
 	TRACE("()");
-    
+
     try
     {
         es1::Context *context = es1::getContext();
@@ -3480,7 +3479,7 @@ void GL_APIENTRY glRenderbufferStorageOES(GLenum target, GLenum internalformat, 
 
         if(context)
         {
-            if(width > es1::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || 
+            if(width > es1::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
                height > es1::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE)
             {
                 return error(GL_INVALID_VALUE);
@@ -3524,7 +3523,7 @@ void GL_APIENTRY glRenderbufferStorageOES(GLenum target, GLenum internalformat, 
 void GL_APIENTRY glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
 	TRACE("(GLfloat angle = %f, GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)", angle, x, y, z);
-    
+
     try
     {
         es1::Context *context = es1::getContext();
@@ -3572,7 +3571,7 @@ void GL_APIENTRY glSampleCoveragex(GLclampx value, GLboolean invert)
 void GL_APIENTRY glScalef(GLfloat x, GLfloat y, GLfloat z)
 {
 	TRACE("(GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)", x, y, z);
-    
+
     try
     {
         es1::Context *context = es1::getContext();
@@ -3905,7 +3904,7 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
                     return error(GL_INVALID_ENUM);
                 }
             }
-			
+
             if(target == GL_TEXTURE_2D)
             {
                 es1::Texture2D *texture = context->getTexture2D();
@@ -4148,7 +4147,7 @@ void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
 void GL_APIENTRY glTranslatef(GLfloat x, GLfloat y, GLfloat z)
 {
 	TRACE("(GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)", x, y, z);
-    
+
     try
     {
         es1::Context *context = es1::getContext();
@@ -4225,7 +4224,7 @@ void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image
         if(context)
         {
             es1::Texture2D *texture = 0;
-			
+
 			switch(target)
 			{
 			case GL_TEXTURE_2D:           texture = context->getTexture2D();       break;
