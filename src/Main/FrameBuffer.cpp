@@ -185,7 +185,7 @@ namespace sw
 		{
 			copyLocked();
 		}
-	
+
 		unlock();
 	}
 
@@ -347,7 +347,7 @@ namespace sw
 					For(Int x = x0, x < width, x++)
 					{
 						Int c;
-							
+
 						if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
 						{
 							c = *Pointer<Int>(s);
@@ -425,7 +425,7 @@ namespace sw
 						{
 							blend(state, d, s, c);
 						}
-						
+
 						c += 4;
 						s += sBytes;
 						d += dBytes;
@@ -443,7 +443,7 @@ namespace sw
 		Short4 c2;
 
 		c1 = UnpackLow(As<Byte8>(c1), *Pointer<Byte8>(c));
-		
+
 		if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
 		{
 			c2 = UnpackLow(As<Byte8>(c2), *Pointer<Byte8>(s));

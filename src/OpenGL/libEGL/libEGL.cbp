@@ -98,6 +98,7 @@
 		</Compiler>
 		<Linker>
 			<Add option="-Wl,--version-script=./exports.map" />
+			<Add option="-Wl,--hash-style=both" />
 			<Add library="pthread" />
 		</Linker>
 		<Unit filename="../../Common/SharedLibrary.hpp" />
