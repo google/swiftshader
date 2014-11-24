@@ -143,6 +143,7 @@ namespace sh
 		static int dim(TIntermNode *v);
 		static int dim2(TIntermNode *m);
 		static unsigned int loopCount(TIntermLoop *node);
+		static bool isSamplerRegister(TIntermTyped *operand);
 
 		es2::Shader *const shaderObject;
 		sw::Shader *shader;

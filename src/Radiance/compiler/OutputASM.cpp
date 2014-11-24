@@ -1265,9 +1265,19 @@ namespace sh
 		return true;
 	}
 
+	bool OutputASM::isSamplerRegister(TIntermTyped *operand)
+	{
+		// A sampler register's qualifiers can be:
+		// - EvqUniform: The sampler uniform is used as is in the code (default case).
+		// - EvqTemporary: The sampler is indexed. It's still a sampler register.
+		// - EvqIn (and other similar types): The sampler has been passed as a function argument. At this point,
+		//                                    the sampler has been copied and is no longer a sampler register.
+		return IsSampler(operand->getBasicType()) && (operand->getQualifier() == EvqUniform || operand->getQualifier() == EvqTemporary);
+	}
+
 	Instruction *OutputASM::emit(sw::Shader::Opcode op, TIntermTyped *dst, TIntermNode *src0, TIntermNode *src1, TIntermNode *src2, int index)
 	{
-		if(dst && IsSampler(dst))
+		if(dst && isSamplerRegister(dst))
 		{
 			op = sw::Shader::OPCODE_NULL;   // Can't assign to a sampler, but this is hit when indexing sampler arrays
 		}
@@ -1464,7 +1474,7 @@ namespace sh
 			{
 				parameter.index = registerIndex(arg) + index;
 
-				if(IsSampler(arg))
+				if(isSamplerRegister(arg))
 				{
 					TIntermBinary *binary = argument->getAsBinaryNode();
 
@@ -1741,7 +1751,7 @@ namespace sh
 
 	sw::Shader::ParameterType OutputASM::registerType(TIntermTyped *operand)
 	{
-		if(IsSampler(operand))
+		if(isSamplerRegister(operand))
 		{
 			return sw::Shader::PARAMETER_SAMPLER;
 		}
@@ -1787,7 +1797,7 @@ namespace sh
 
 	int OutputASM::registerIndex(TIntermTyped *operand)
 	{
-		if(IsSampler(operand))
+		if(isSamplerRegister(operand))
 		{
 			return samplerRegister(operand);
 		}
