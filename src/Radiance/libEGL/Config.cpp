@@ -24,13 +24,8 @@ using namespace std;
 
 namespace egl
 {
-Config::Config(DisplayMode displayMode, EGLint minInterval, EGLint maxInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample)
+Config::Config(const DisplayMode &displayMode, EGLint minInterval, EGLint maxInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample)
     : mDisplayMode(displayMode), mRenderTargetFormat(renderTargetFormat), mDepthStencilFormat(depthStencilFormat), mMultiSample(multiSample)
-{
-    set(displayMode, minInterval, maxInterval, renderTargetFormat, depthStencilFormat, multiSample);
-}
-
-void Config::set(DisplayMode displayMode, EGLint minInterval, EGLint maxInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample)
 {
     mBindToTextureRGB = EGL_FALSE;
     mBindToTextureRGBA = EGL_FALSE;
@@ -81,7 +76,7 @@ void Config::set(DisplayMode displayMode, EGLint minInterval, EGLint maxInterval
     mLuminanceSize = 0;
     mAlphaMaskSize = 0;
     mColorBufferType = EGL_RGB_BUFFER;
-    mConfigCaveat = (displayMode.format == renderTargetFormat) ? EGL_NONE : EGL_SLOW_CONFIG;
+    mConfigCaveat = isSlowConfig() ? EGL_SLOW_CONFIG : EGL_NONE;
     mConfigID = 0;
     mConformant = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT;
 
@@ -154,6 +149,16 @@ void Config::set(DisplayMode displayMode, EGLint minInterval, EGLint maxInterval
 EGLConfig Config::getHandle() const
 {
     return (EGLConfig)(size_t)mConfigID;
+}
+
+bool Config::isSlowConfig() const
+{
+    if(mDisplayMode.format == sw::FORMAT_X8R8G8B8 && mRenderTargetFormat == sw::FORMAT_A8R8G8B8)
+	{
+		return false;
+	}
+
+    return mDisplayMode.format != mRenderTargetFormat;
 }
 
 SortConfig::SortConfig(const EGLint *attribList)
@@ -349,7 +354,7 @@ bool ConfigSet::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint 
     }
     else
     {
-        *numConfig = passed.size();
+        *numConfig = static_cast<EGLint>(passed.size());
     }
 
     return true;

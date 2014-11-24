@@ -37,10 +37,10 @@ struct DisplayMode
 class Config
 {
   public:
-    Config(DisplayMode displayMode, EGLint minSwapInterval, EGLint maxSwapInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample);
+    Config(const DisplayMode &displayMode, EGLint minSwapInterval, EGLint maxSwapInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample);
 
-    void set(DisplayMode displayMode, EGLint minSwapInterval, EGLint maxSwapInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample);
     EGLConfig getHandle() const;
+	bool isSlowConfig() const;
 
     const DisplayMode mDisplayMode;
     const sw::Format mRenderTargetFormat;
