@@ -74,7 +74,8 @@ $(info -----------------------------------------------)
 
 LLVM_CXXFLAGS := `$(LLVM_BIN_PATH)/llvm-config --cxxflags`
 LLVM_LDFLAGS := `$(LLVM_BIN_PATH)/llvm-config --libs` \
-                `$(LLVM_BIN_PATH)/llvm-config --ldflags`
+                `$(LLVM_BIN_PATH)/llvm-config --ldflags` \
+                `$(LLVM_BIN_PATH)/llvm-config --system-libs`
 
 # It's recommended that CXX matches the compiler you used to build LLVM itself.
 CCACHE := `command -v ccache`
@@ -133,7 +134,7 @@ make_symlink: $(OBJDIR)/llvm2ice
 # TODO(kschimpf): Fix python scripts to directly get build attributes
 # rather than generating $(OBJDIR)/llvm2ice.build_atts.
 $(OBJDIR)/llvm2ice: $(OBJS)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) -ldl \
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
                -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
 
 # TODO: Be more precise than "*.h" here and elsewhere.

@@ -2,12 +2,6 @@
 ; particular the patterns for lowering i64 operations into constituent
 ; i32 operations on x86-32.
 
-; TODO(jvoung): fix extra "CALLTARGETS" run. The llvm-objdump symbolizer
-; doesn't know how to symbolize non-section-local functions.
-; The newer LLVM 3.6 one does work, but watch out for other bugs.
-
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | FileCheck --check-prefix=CALLTARGETS %s
 ; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
@@ -36,31 +30,27 @@ entry:
   ret i32 %add3
 }
 ; CHECK-LABEL: pass64BitArg
-; CALLTARGETS-LABEL: pass64BitArg
 ; CHECK:      sub     esp
 ; CHECK:      mov     dword ptr [esp + 4]
 ; CHECK:      mov     dword ptr [esp]
 ; CHECK:      mov     dword ptr [esp + 8], 123
 ; CHECK:      mov     dword ptr [esp + 16]
 ; CHECK:      mov     dword ptr [esp + 12]
-; CHECK:      call    -4
-; CALLTARGETS: .long ignore64BitArgNoInline
+; CHECK:      call    ignore64BitArgNoInline
 ; CHECK:      sub     esp
 ; CHECK:      mov     dword ptr [esp + 4]
 ; CHECK:      mov     dword ptr [esp]
 ; CHECK:      mov     dword ptr [esp + 8], 123
 ; CHECK:      mov     dword ptr [esp + 16]
 ; CHECK:      mov     dword ptr [esp + 12]
-; CHECK:      call    -4
-; CALLTARGETS: .long ignore64BitArgNoInline
+; CHECK:      call    ignore64BitArgNoInline
 ; CHECK:      sub     esp
 ; CHECK:      mov     dword ptr [esp + 4]
 ; CHECK:      mov     dword ptr [esp]
 ; CHECK:      mov     dword ptr [esp + 8], 123
 ; CHECK:      mov     dword ptr [esp + 16]
 ; CHECK:      mov     dword ptr [esp + 12]
-; CHECK:      call    -4
-; CALLTARGETS: .long ignore64BitArgNoInline
+; CHECK:      call    ignore64BitArgNoInline
 ;
 ; OPTM1-LABEL: pass64BitArg
 ; OPTM1:      sub     esp
@@ -69,21 +59,21 @@ entry:
 ; OPTM1:      mov     dword ptr [esp + 8], 123
 ; OPTM1:      mov     dword ptr [esp + 16]
 ; OPTM1:      mov     dword ptr [esp + 12]
-; OPTM1:      call    -4
+; OPTM1:      call    ignore64BitArgNoInline
 ; OPTM1:      sub     esp
 ; OPTM1:      mov     dword ptr [esp + 4]
 ; OPTM1:      mov     dword ptr [esp]
 ; OPTM1:      mov     dword ptr [esp + 8], 123
 ; OPTM1:      mov     dword ptr [esp + 16]
 ; OPTM1:      mov     dword ptr [esp + 12]
-; OPTM1:      call    -4
+; OPTM1:      call    ignore64BitArgNoInline
 ; OPTM1:      sub     esp
 ; OPTM1:      mov     dword ptr [esp + 4]
 ; OPTM1:      mov     dword ptr [esp]
 ; OPTM1:      mov     dword ptr [esp + 8], 123
 ; OPTM1:      mov     dword ptr [esp + 16]
 ; OPTM1:      mov     dword ptr [esp + 12]
-; OPTM1:      call    -4
+; OPTM1:      call    ignore64BitArgNoInline
 
 declare i32 @ignore64BitArgNoInline(i64, i32, i64)
 
@@ -93,7 +83,6 @@ entry:
   ret i32 %call
 }
 ; CHECK-LABEL: pass64BitConstArg
-; CALLTARGETS-LABEL: pass64BitConstArg
 ; CHECK:      sub     esp
 ; CHECK:      mov     dword ptr [esp + 4]
 ; CHECK-NEXT: mov     dword ptr [esp]
@@ -103,8 +92,7 @@ entry:
 ; CHECK-NEXT: mov     dword ptr [esp + 12], 305419896
 ; Bundle padding will push the call down.
 ; CHECK-NOT:  mov
-; CHECK:      call    -4
-; CALLTARGETS: .long ignore64BitArgNoInline
+; CHECK:      call    ignore64BitArgNoInline
 ;
 ; OPTM1-LABEL: pass64BitConstArg
 ; OPTM1:      sub     esp
@@ -115,7 +103,7 @@ entry:
 ; OPTM1:      mov     dword ptr [esp + 16], 3735928559
 ; OPTM1-NEXT: mov     dword ptr [esp + 12], 305419896
 ; OPTM1-NOT:  mov
-; OPTM1:      call    -4
+; OPTM1:      call    ignore64BitArgNoInline
 
 define internal i64 @return64BitArg(i64 %a) {
 entry:
@@ -237,12 +225,10 @@ entry:
   ret i64 %div
 }
 ; CHECK-LABEL: div64BitSigned
-; CALLTARGETS-LABEL: div64BitSigned
-; CHECK: call    -4
-; CALLTARGETS: .long __divdi3
+; CHECK: call    __divdi3
 
 ; OPTM1-LABEL: div64BitSigned
-; OPTM1: call    -4
+; OPTM1: call    __divdi3
 
 define internal i64 @div64BitSignedConst(i64 %a) {
 entry:
@@ -250,16 +236,14 @@ entry:
   ret i64 %div
 }
 ; CHECK-LABEL: div64BitSignedConst
-; CALLTARGETS-LABEL: div64BitSignedConst
 ; CHECK: mov     dword ptr [esp + 12], 2874
 ; CHECK: mov     dword ptr [esp + 8],  1942892530
-; CHECK: call    -4
-; CALLTARGETS: .long __divdi3
+; CHECK: call    __divdi3
 ;
 ; OPTM1-LABEL: div64BitSignedConst
 ; OPTM1: mov     dword ptr [esp + 12], 2874
 ; OPTM1: mov     dword ptr [esp + 8],  1942892530
-; OPTM1: call    -4
+; OPTM1: call    __divdi3
 
 define internal i64 @div64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -267,12 +251,10 @@ entry:
   ret i64 %div
 }
 ; CHECK-LABEL: div64BitUnsigned
-; CALLTARGETS-LABEL: div64BitUnsigned
-; CHECK: call    -4
-; CALLTARGETS: .long __udivdi3
+; CHECK: call    __udivdi3
 ;
 ; OPTM1-LABEL: div64BitUnsigned
-; OPTM1: call    -4
+; OPTM1: call    __udivdi3
 
 define internal i64 @rem64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -280,12 +262,10 @@ entry:
   ret i64 %rem
 }
 ; CHECK-LABEL: rem64BitSigned
-; CALLTARGETS-LABEL: rem64BitSigned
-; CHECK: call    -4
-; CALLTARGETS: .long __moddi3
+; CHECK: call    __moddi3
 ;
 ; OPTM1-LABEL: rem64BitSigned
-; OPTM1: call    -4
+; OPTM1: call    __moddi3
 
 define internal i64 @rem64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -293,12 +273,10 @@ entry:
   ret i64 %rem
 }
 ; CHECK-LABEL: rem64BitUnsigned
-; CALLTARGETS-LABEL: rem64BitUnsigned
-; CHECK: call    -4
-; CALLTARGETS: .long __umoddi3
+; CHECK: call    __umoddi3
 ;
 ; OPTM1-LABEL: rem64BitUnsigned
-; OPTM1: call    -4
+; OPTM1: call    __umoddi3
 
 define internal i64 @shl64BitSigned(i64 %a, i64 %b) {
 entry:

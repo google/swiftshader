@@ -22,8 +22,11 @@ namespace Ice {
 namespace {
 namespace cl = llvm::cl;
 
+// TODO(stichnot): See if we can easily use LLVM's -rng-seed option
+// and implementation.  I expect the implementation is different and
+// therefore the tests would need to be changed.
 cl::opt<unsigned long long>
-RandomSeed("rng-seed", cl::desc("Seed the random number generator"),
+RandomSeed("sz-seed", cl::desc("Seed the random number generator"),
            cl::init(time(0)));
 
 const unsigned MAX = 2147483647;

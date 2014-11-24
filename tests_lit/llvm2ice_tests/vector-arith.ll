@@ -1,11 +1,5 @@
 ; This test checks support for vector arithmetic.
 
-; TODO(jvoung): fix extra "CALLTARGETS" run. The llvm-objdump symbolizer
-; doesn't know how to symbolize non-section-local functions.
-; The newer LLVM 3.6 one does work, but watch out for other bugs.
-
-; RUN: %p2i -i %s -a -O2 --verbose none\
-; RUN:   | FileCheck --check-prefix=CALLTARGETS %s
 ; RUN: %p2i -i %s -a -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
@@ -58,15 +52,10 @@ entry:
   %res = frem <4 x float> %arg0, %arg1
   ret <4 x float> %res
 ; CHECK-LABEL: test_frem:
-; CALLTARGETS-LABEL: test_frem:
-; CHECK: -4
-; CHECK: -4
-; CHECK: -4
-; CHECK: -4
-; CALLTARGETS: fmodf
-; CALLTARGETS: fmodf
-; CALLTARGETS: fmodf
-; CALLTARGETS: fmodf
+; CHECK: fmodf
+; CHECK: fmodf
+; CHECK: fmodf
+; CHECK: fmodf
 }
 
 define <16 x i8> @test_add_v16i8(<16 x i8> %arg0, <16 x i8> %arg1) {

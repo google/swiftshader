@@ -60,7 +60,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXor16Imm8Neg
-; CHECK: 66 83 f0 80  xor ax, 128
+; CHECK: 66 83 f0 80  xor ax, -128
 
 define internal i32 @testXor16Imm16Eax(i32 %arg) {
 entry:
@@ -193,7 +193,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testMul16Imm8Neg
-; CHECK: 66 6b c0 91  imul ax, ax, 145
+; CHECK: 66 6b c0 91  imul ax, ax, -111
 ; CHECK-NEXT: add ax, 1
 
 define internal i32 @testMul16Imm16(i32 %arg) {

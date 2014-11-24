@@ -167,7 +167,7 @@ entry:
 ; CHECK: movups  xmm1, xmmword ptr [esp + 112]
 ; CHECK: movups  xmm2, xmmword ptr [esp + 96]
 ; CHECK: movups  xmm3, xmmword ptr [esp + 80]
-; CHECK: call -4
+; CHECK: call VectorArgs
 ; CHECK-NEXT: add esp, 32
 
 ; OPTM1-LABEL: test_passing_vectors:
@@ -180,7 +180,7 @@ entry:
 ; OPTM1: movups  xmm1, xmmword ptr {{.*}}
 ; OPTM1: movups  xmm2, xmmword ptr {{.*}}
 ; OPTM1: movups  xmm3, xmmword ptr {{.*}}
-; OPTM1: call -4
+; OPTM1: call VectorArgs
 ; OPTM1-NEXT: add esp, 32
 }
 
@@ -203,7 +203,7 @@ entry:
 ; CHECK: movups  xmm1, xmmword ptr [esp + 160]
 ; CHECK: movups  xmm2, xmmword ptr [esp + 144]
 ; CHECK: movups  xmm3, xmmword ptr [esp + 128]
-; CHECK: call -4
+; CHECK: call InterspersedVectorArgs
 ; CHECK-NEXT: add esp, 80
 ; CHECK: ret
 
@@ -217,7 +217,7 @@ entry:
 ; OPTM1: movups  xmm1, xmmword ptr {{.*}}
 ; OPTM1: movups  xmm2, xmmword ptr {{.*}}
 ; OPTM1: movups  xmm3, xmmword ptr {{.*}}
-; OPTM1: call -4
+; OPTM1: call InterspersedVectorArgs
 ; OPTM1-NEXT: add esp, 80
 ; OPTM1: ret
 }
@@ -233,15 +233,15 @@ entry:
   %result2 = call <4 x float> @VectorReturn(<4 x float> %result)
   ret void
 ; CHECK-LABEL: test_receiving_vectors:
-; CHECK: call -4
+; CHECK: call VectorReturn
 ; CHECK-NOT: movups xmm0
-; CHECK: call -4
+; CHECK: call VectorReturn
 ; CHECK: ret
 
 ; OPTM1-LABEL: test_receiving_vectors:
-; OPTM1: call -4
+; OPTM1: call VectorReturn
 ; OPTM1: movups {{.*}}, xmm0
 ; OPTM1: movups xmm0, {{.*}}
-; OPTM1: call -4
+; OPTM1: call VectorReturn
 ; OPTM1: ret
 }

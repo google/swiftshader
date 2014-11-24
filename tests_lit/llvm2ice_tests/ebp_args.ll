@@ -44,4 +44,4 @@ entry:
 ; CHECK:  mov   dword ptr [esp + 4], eax
 ; CHECK:  mov   eax, dword ptr [ebp - 16]
 ; CHECK:  mov   dword ptr [esp + 8], eax
-; CHECK:  call  -4
+; CHECK:  call  memcpy_helper2

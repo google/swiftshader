@@ -1,11 +1,5 @@
 ; This tests the basic structure of the Unreachable instruction.
 
-; TODO(jvoung): fix extra "CALLTARGETS" run. The llvm-objdump symbolizer
-; doesn't know how to symbolize non-section-local functions.
-; The newer LLVM 3.6 one does work, but watch out for other bugs.
-
-; RUN: %p2i -i %s -a -O2 --verbose none \
-; RUN:   | FileCheck --check-prefix=CALLTARGETS %s
 ; RUN: %p2i -i %s -a -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
@@ -27,10 +21,8 @@ return:                                           ; preds = %entry
 }
 
 ; CHECK-LABEL: divide
-; CALLTARGETS-LABEL: divide
 ; CHECK: cmp
-; CHECK: call -4
-; CALLTARGETS: .long ice_unreachable
+; CHECK: call ice_unreachable
 ; CHECK: cdq
 ; CHECK: idiv
 ; CHECK: ret

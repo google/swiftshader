@@ -42,10 +42,9 @@ entry:
 ; CHECK: mov dword ptr [
 ; CHECK: movsx
 ; CHECK: sar {{.*}}, 31
-; This appears to be a bug in llvm-mc. It should be [8] and [12] to represent
-; i64v and i64+4.
-; CHECK-DAG: [8]
-; CHECK-DAG: [8]
+; This appears to be a bug in llvm-mc. It should be i64v and i64+4.
+; CHECK-DAG: [.bss]
+; CHECK-DAG: [.bss]
 
 define void @from_int16() {
 entry:
@@ -64,12 +63,12 @@ entry:
 }
 ; CHECK-LABEL: from_int16
 ; CHECK: mov {{.*}}, word ptr [
-; CHECK: [0]
+; CHECK: [.bss]
 ; CHECK: movsx e{{.*}}, {{.*x|[ds]i|bp|word ptr}}
-; CHECK: [4]
+; CHECK: [.bss]
 ; CHECK: movsx e{{.*}}, {{.*x|[ds]i|bp|word ptr}}
 ; CHECK: sar {{.*}}, 31
-; CHECK: [8]
+; CHECK: [.bss]
 
 define void @from_int32() {
 entry:
@@ -87,11 +86,11 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_int32
-; CHECK: [4]
-; CHECK: [0]
-; CHECK: [2]
+; CHECK: [.bss]
+; CHECK: [.bss]
+; CHECK: [.bss]
 ; CHECK: sar {{.*}}, 31
-; CHECK: [8]
+; CHECK: [.bss]
 
 define void @from_int64() {
 entry:
@@ -109,10 +108,10 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_int64
-; CHECK: [8]
-; CHECK: [0]
-; CHECK: [2]
-; CHECK: [4]
+; CHECK: [.bss]
+; CHECK: [.bss]
+; CHECK: [.bss]
+; CHECK: [.bss]
 
 
 define void @from_uint8() {
@@ -131,14 +130,14 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint8
-; CHECK: [16]
+; CHECK: [.bss]
 ; CHECK: movzx e{{.*}}, {{[a-d]l|byte ptr}}
-; CHECK: [2]
+; CHECK: [.bss]
 ; CHECK: movzx
-; CHECK: [4]
+; CHECK: [.bss]
 ; CHECK: movzx
 ; CHECK: mov {{.*}}, 0
-; CHECK: [8]
+; CHECK: [.bss]
 
 define void @from_uint16() {
 entry:
@@ -156,13 +155,13 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint16
-; CHECK: [18]
-; CHECK: [0]
+; CHECK: [.bss]
+; CHECK: [.bss]
 ; CHECK: movzx e{{.*}}, {{.*x|[ds]i|bp|word ptr}}
-; CHECK: [4]
+; CHECK: [.bss]
 ; CHECK: movzx e{{.*}}, {{.*x|[ds]i|bp|word ptr}}
 ; CHECK: mov {{.*}}, 0
-; CHECK: [8]
+; CHECK: [.bss]
 
 define void @from_uint32() {
 entry:
@@ -180,11 +179,11 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint32
-; CHECK: [20]
-; CHECK: [0]
-; CHECK: [2]
+; CHECK: [.bss]
+; CHECK: [.bss]
+; CHECK: [.bss]
 ; CHECK: mov {{.*}}, 0
-; CHECK: [8]
+; CHECK: [.bss]
 
 define void @from_uint64() {
 entry:
@@ -202,7 +201,7 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint64
-; CHECK: [24]
-; CHECK: [0]
-; CHECK: [2]
-; CHECK: [4]
+; CHECK: [.bss]
+; CHECK: [.bss]
+; CHECK: [.bss]
+; CHECK: [.bss]

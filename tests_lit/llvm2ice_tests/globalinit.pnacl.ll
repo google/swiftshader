@@ -118,37 +118,37 @@ entry:
 ; SYMTAB-LABEL: SYMBOL TABLE
 
 ; SYMTAB-DAG: 00000000 {{.*}} .data {{.*}} PrimitiveInit
-; IAS: mov {{.*}}, 0
+; IAS: mov {{.*}}, .data
 ; IAS-NEXT: R_386_32
 ; IAS: call
 
 ; SYMTAB-DAG: 00000000 {{.*}} .rodata {{.*}} PrimitiveInitConst
-; IAS: mov {{.*}}, 0
+; IAS: mov {{.*}}, .rodata
 ; IAS-NEXT: R_386_32
 ; IAS: call
 
 ; SYMTAB-DAG: 00000000 {{.*}} .bss {{.*}} PrimitiveInitStatic
-; IAS: mov {{.*}}, 0
+; IAS: mov {{.*}}, .bss
 ; IAS-NEXT: R_386_32
 ; IAS: call
 
 ; SYMTAB-DAG: 00000004 {{.*}} .bss {{.*}} PrimitiveUninit
-; IAS: mov {{.*}}, 4
+; IAS: mov {{.*}}, .bss
 ; IAS-NEXT: R_386_32
 ; IAS: call
 
 ; SYMTAB-DAG: 00000004{{.*}}.data{{.*}}ArrayInit
-; IAS: mov {{.*}}, 4
+; IAS: mov {{.*}}, .data
 ; IAS-NEXT: R_386_32
 ; IAS: call
 
 ; SYMTAB-DAG: 00000018 {{.*}} .data {{.*}} ArrayInitPartial
-; IAS: mov {{.*}}, 24
+; IAS: mov {{.*}}, .data
 ; IAS-NEXT: R_386_32
 ; IAS: call
 
 ; SYMTAB-DAG: 00000008 {{.*}} .bss {{.*}} ArrayUninit
-; IAS: mov {{.*}}, 8
+; IAS: mov {{.*}}, .bss
 ; IAS-NEXT: R_386_32
 ; IAS: call
 

@@ -49,14 +49,14 @@ entry:
 ; CHECK: mov dword ptr {{.*}}, 999
 ;    atomic store (w/ its own mfence)
 ; The load + add are optimized into one everywhere.
-; CHECK: add {{.*}}, dword ptr [0]
+; CHECK: add {{.*}}, dword ptr [.bss]
 ; CHECK-NEXT:  R_386_32
 ; CHECK: mov dword ptr
 ; CHECK: mfence
-; CHECK: add {{.*}}, dword ptr [4]
+; CHECK: add {{.*}}, dword ptr [.bss]
 ; CHECK-NEXT:  R_386_32
 ; CHECK: mov dword ptr
-; CHECK: add {{.*}}, dword ptr [8]
+; CHECK: add {{.*}}, dword ptr [.bss]
 ; CHECK-NEXT:  R_386_32
 ; CHECK: mfence
 ; CHECK: mov dword ptr
@@ -91,17 +91,17 @@ entry:
 ; CHECK: mov {{.*}}, esp
 ; CHECK: mov dword ptr {{.*}}, 999
 ;    atomic store (w/ its own mfence)
-; CHECK: add {{.*}}, dword ptr [0]
+; CHECK: add {{.*}}, dword ptr [.bss]
 ; CHECK-NEXT:  R_386_32
 ; CHECK: mov dword ptr
 ; CHECK: mfence
-; CHECK: add {{.*}}, dword ptr [4]
+; CHECK: add {{.*}}, dword ptr [.bss]
 ; CHECK-NEXT:  R_386_32
 ; CHECK: mov dword ptr
 ; CHECK: mfence
 ; Load + add can still be optimized into one instruction
 ; because it is not separated by a fence.
-; CHECK: add {{.*}}, dword ptr [8]
+; CHECK: add {{.*}}, dword ptr [.bss]
 ; CHECK-NEXT:  R_386_32
 ; CHECK: mov dword ptr
 
@@ -135,19 +135,19 @@ entry:
 ; CHECK: mov {{.*}}, esp
 ; CHECK: mov dword ptr {{.*}}, 999
 ;    atomic store (w/ its own mfence)
-; CHECK: add {{.*}}, dword ptr [0]
+; CHECK: add {{.*}}, dword ptr [.bss]
 ; CHECK-NEXT:  R_386_32
 ; CHECK: mov dword ptr
 ; CHECK: mfence
 ; This load + add are no longer optimized into one,
 ; though perhaps it should be legal as long as
 ; the load stays on the same side of the fence.
-; CHECK: mov {{.*}}, dword ptr [4]
+; CHECK: mov {{.*}}, dword ptr [.bss]
 ; CHECK-NEXT:  R_386_32
 ; CHECK: mfence
 ; CHECK: add {{.*}}, 1
 ; CHECK: mov dword ptr
-; CHECK: add {{.*}}, dword ptr [8]
+; CHECK: add {{.*}}, dword ptr [.bss]
 ; CHECK-NEXT:  R_386_32
 ; CHECK: mov dword ptr
 
@@ -187,7 +187,7 @@ entry:
   ret i32 %b1234
 }
 ; CHECK-LABEL: could_have_fused_loads
-; CHECK: mov {{.*}}, byte ptr [12]
+; CHECK: mov {{.*}}, byte ptr
 ; CHECK-NEXT:  R_386_32
 ; CHECK: mov {{.*}}, byte ptr
 ; CHECK: mov {{.*}}, byte ptr
@@ -212,10 +212,10 @@ branch2:
 }
 ; CHECK-LABEL: could_have_hoisted_loads
 ; CHECK: jne {{.*}}
-; CHECK: mov {{.*}}, dword ptr [12]
+; CHECK: mov {{.*}}, dword ptr [.bss]
 ; CHECK-NEXT:  R_386_32
 ; CHECK: ret
 ; CHECK: mfence
-; CHECK: mov {{.*}}, dword ptr [12]
+; CHECK: mov {{.*}}, dword ptr [.bss]
 ; CHECK-NEXT:  R_386_32
 ; CHECK: ret

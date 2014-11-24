@@ -1,12 +1,6 @@
 ; This file tests bitcasts of vector type. For most operations, these
 ; should be lowered to a no-op on -O2.
 
-; TODO(jvoung): fix extra "CALLTARGETS" run. The llvm-objdump symbolizer
-; doesn't know how to symbolize non-section-local functions.
-; The newer LLVM 3.6 one does work, but watch out for other bugs.
-
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | FileCheck --check-prefix=CALLTARGETS %s
 ; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - | FileCheck %s
@@ -165,9 +159,7 @@ entry:
   ret i8 %res
 
 ; CHECK-LABEL: test_bitcast_v8i1_to_i8:
-; CALLTARGETS-LABEL: test_bitcast_v8i1_to_i8:
-; CHECK: call -4
-; CALLTARGETS: .long Sz_bitcast_v8i1_to_i8
+; CHECK: call Sz_bitcast_v8i1_to_i8
 
 ; OPTM1-LABEL: test_bitcast_v8i1_to_i8:
 ; OPMT1: call -4
@@ -179,9 +171,7 @@ entry:
   ret i16 %res
 
 ; CHECK-LABEL: test_bitcast_v16i1_to_i16:
-; CALLTARGETS-LABEL: test_bitcast_v16i1_to_i16:
-; CHECK: call -4
-; CALLTARGETS: .long Sz_bitcast_v16i1_to_i16
+; CHECK: call Sz_bitcast_v16i1_to_i16
 
 ; OPTM1-LABEL: test_bitcast_v16i1_to_i16:
 ; OPMT1: call -4
@@ -194,12 +184,10 @@ entry:
   ret <8 x i1> %res
 
 ; CHECK-LABEL: test_bitcast_i8_to_v8i1:
-; CALLTARGETS-LABEL: test_bitcast_i8_to_v8i1
-; CHECK: call -4
-; CALLTARGETS: .long Sz_bitcast_i8_to_v8i1
+; CHECK: call Sz_bitcast_i8_to_v8i1
 
 ; OPTM1-LABEL: test_bitcast_i8_to_v8i1:
-; OPTM1: call -4
+; OPTM1: call Sz_bitcast_i8_to_v8i1
 }
 
 define <16 x i1> @test_bitcast_i16_to_v16i1(i32 %arg) {
@@ -209,10 +197,8 @@ entry:
   ret <16 x i1> %res
 
 ; CHECK-LABEL: test_bitcast_i16_to_v16i1:
-; CALLTARGETS-LABEL: test_bitcast_i16_to_v16i1
-; CHECK: call -4
-; CALLTARGETS: .long Sz_bitcast_i16_to_v16i1
+; CHECK: call Sz_bitcast_i16_to_v16i1
 
 ; OPTM1-LABEL: test_bitcast_i16_to_v16i1:
-; OPTM1: call -4
+; OPTM1: call Sz_bitcast_i16_to_v16i1
 }

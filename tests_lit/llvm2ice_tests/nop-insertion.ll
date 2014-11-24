@@ -4,13 +4,13 @@
 
 ; Don't use integrated-as because this currently depends on the # variant
 ; assembler comment.
-; RUN: %p2i -i %s -a -rng-seed=1 -nop-insertion -nop-insertion-percentage=50 \
+; RUN: %p2i -i %s -a -sz-seed=1 -nop-insertion -nop-insertion-percentage=50 \
 ; RUN:    -max-nops-per-instruction=1 -integrated-as=false \
 ; RUN:    | FileCheck %s --check-prefix=PROB50
-; RUN: %p2i -i %s -a -rng-seed=1 -nop-insertion -nop-insertion-percentage=90 \
+; RUN: %p2i -i %s -a -sz-seed=1 -nop-insertion -nop-insertion-percentage=90 \
 ; RUN:    -max-nops-per-instruction=1 -integrated-as=false \
 ; RUN:    | FileCheck %s --check-prefix=PROB90
-; RUN: %p2i -i %s -a -rng-seed=1 -nop-insertion -nop-insertion-percentage=50 \
+; RUN: %p2i -i %s -a -sz-seed=1 -nop-insertion -nop-insertion-percentage=50 \
 ; RUN:    -max-nops-per-instruction=2 -integrated-as=false \
 ; RUN:    | FileCheck %s --check-prefix=MAXNOPS2
 

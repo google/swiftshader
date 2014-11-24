@@ -1,12 +1,6 @@
 ; This file tests casting / conversion operations that apply to vector types.
 ; bitcast operations are in vector-bitcast.ll.
 
-; TODO(jvoung): fix extra "CALLTARGETS" run. The llvm-objdump symbolizer
-; doesn't know how to symbolize non-section-local functions.
-; The newer LLVM 3.6 one does work, but watch out for other bugs.
-
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | FileCheck --check-prefix=CALLTARGETS %s
 ; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
@@ -143,9 +137,7 @@ entry:
   ret <4 x i32> %res
 
 ; CHECK-LABEL: test_fptoui_v4f32_to_v4i32:
-; CHECK: call -4
-; CALLTARGETS-LABEL: test_fptoui_v4f32_to_v4i32
-; CALLTARGETS: .long Sz_fptoui_v4f32
+; CHECK: call Sz_fptoui_v4f32
 }
 
 ; [su]itofp operations
@@ -165,7 +157,5 @@ entry:
   ret <4 x float> %res
 
 ; CHECK-LABEL: test_uitofp_v4i32_to_v4f32:
-; CHECK: call -4
-; CALLTARGETS-LABEL: test_uitofp_v4i32_to_v4f32
-; CALLTARGETS: .long Sz_uitofp_v4i32
+; CHECK: call Sz_uitofp_v4i32
 }

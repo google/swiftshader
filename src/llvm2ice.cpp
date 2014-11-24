@@ -129,7 +129,7 @@ static cl::opt<bool> DecorateAsm(
     cl::desc("Decorate textual asm output with register liveness info"));
 
 static cl::opt<bool>
-DumpStats("stats",
+DumpStats("szstats",
           cl::desc("Print statistics after translating each function"));
 
 // This is currently needed by crosstest.py.
