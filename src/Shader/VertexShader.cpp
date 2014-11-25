@@ -31,7 +31,7 @@ namespace sw
 
 		if(vs)   // Make a copy
 		{
-			for(int i = 0; i < vs->getLength(); i++)
+			for(size_t i = 0; i < vs->getLength(); i++)
 			{
 				append(new sw::Shader::Instruction(*vs->getInstruction(i)));
 			}

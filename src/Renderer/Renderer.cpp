@@ -1905,7 +1905,7 @@ namespace sw
 
 		size_t count = vertexShader->getLength();
 
-		for(int i = 0; i < count; i++)
+		for(size_t i = 0; i < count; i++)
 		{
 			const Shader::Instruction *instruction = vertexShader->getInstruction(i);
 
@@ -1949,7 +1949,7 @@ namespace sw
 
 		size_t count = pixelShader->getLength();
 
-		for(int i = 0; i < count; i++)
+		for(size_t i = 0; i < count; i++)
 		{
 			const Shader::Instruction *instruction = pixelShader->getInstruction(i);
 

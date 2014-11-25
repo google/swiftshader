@@ -76,7 +76,7 @@ namespace sw
 		}
 
 		// Create all call site return blocks up front
-		for(int i = 0; i < shader->getLength(); i++)
+		for(size_t i = 0; i < shader->getLength(); i++)
 		{
 			const Shader::Instruction *instruction = shader->getInstruction(i);
 			Shader::Opcode opcode = instruction->opcode;
@@ -90,7 +90,7 @@ namespace sw
 			}
 		}
 	
-		for(int i = 0; i < shader->getLength(); i++)
+		for(size_t i = 0; i < shader->getLength(); i++)
 		{
 			const Shader::Instruction *instruction = shader->getInstruction(i);
 			Shader::Opcode opcode = instruction->opcode;
@@ -726,7 +726,7 @@ namespace sw
 
 			if(localShaderConstants)   // Constant may be known at compile time
 			{
-				for(int j = 0; j < shader->getLength(); j++)
+				for(size_t j = 0; j < shader->getLength(); j++)
 				{
 					const Shader::Instruction &instruction = *shader->getInstruction(j);
 

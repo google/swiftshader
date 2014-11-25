@@ -1457,7 +1457,7 @@ namespace sw
 				instruction[0]->opcode = OPCODE_NULL;
 				instruction[1]->opcode = OPCODE_NULL;
 
-				for(int i = 2; i < instruction.size(); i++)
+				for(size_t i = 2; i < instruction.size(); i++)
 				{
 					if(instruction[i]->opcode == OPCODE_LABEL || instruction[i]->opcode == OPCODE_RET)
 					{
@@ -1470,8 +1470,8 @@ namespace sw
 
 	void Shader::removeNull()
 	{
-		int size = 0;
-		for(int i = 0; i < instruction.size(); i++)
+		size_t size = 0;
+		for(size_t i = 0; i < instruction.size(); i++)
 		{
 			if(instruction[i]->opcode != OPCODE_NULL)
 			{
