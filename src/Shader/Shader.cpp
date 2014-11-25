@@ -1595,16 +1595,16 @@ namespace sw
 			{
 				breakDepth++;
 			}
-			else if(instruction[i]->isEndLoop())
-			{
-				breakDepth--;
-			}
 
 			if(breakDepth > 0)
 			{
 				if(instruction[i]->isLoop())   // Nested loop, don't make the end of it disable the break execution mask
 				{
 					breakDepth++;
+				}
+				else if(instruction[i]->isEndLoop())
+				{
+					breakDepth--;
 				}
 
 				instruction[i]->analysisBreak = true;
@@ -1620,16 +1620,16 @@ namespace sw
 			{
 				continueDepth++;
 			}
-			else if(instruction[i]->isEndLoop())
-			{
-				continueDepth--;
-			}
 
 			if(continueDepth > 0)
 			{
 				if(instruction[i]->isLoop())   // Nested loop, don't make the end of it disable the break execution mask
 				{
 					continueDepth++;
+				}
+				else if(instruction[i]->isEndLoop())
+				{
+					continueDepth--;
 				}
 
 				instruction[i]->analysisContinue = true;
