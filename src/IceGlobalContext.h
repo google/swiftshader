@@ -202,7 +202,7 @@ private:
   Ostream *StrDump; // Stream for dumping / diagnostics
   Ostream *StrEmit; // Stream for code emission
 
-  llvm::BumpPtrAllocator Allocator;
+  llvm::BumpPtrAllocatorImpl<llvm::MallocAllocator, 1024 * 1024> Allocator;
   VerboseMask VMask;
   std::unique_ptr<class ConstantPool> ConstPool;
   Intrinsics IntrinsicsInfo;

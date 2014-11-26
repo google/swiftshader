@@ -164,7 +164,7 @@ private:
   // order to use a "Recycler" to preserve memory. If we keep all allocation
   // requests from the Cfg exposed via methods, we can always switch the
   // implementation over at a later point.
-  llvm::BumpPtrAllocator Allocator;
+  llvm::BumpPtrAllocatorImpl<llvm::MallocAllocator, 1024 * 1024> Allocator;
 
   GlobalContext *Ctx;
   IceString FunctionName;

@@ -250,6 +250,7 @@ InstBr::InstBr(Cfg *Func, CfgNode *Target)
 
 NodeList InstBr::getTerminatorEdges() const {
   NodeList OutEdges;
+  OutEdges.reserve(TargetTrue ? 2 : 1);
   OutEdges.push_back(TargetFalse);
   if (TargetTrue)
     OutEdges.push_back(TargetTrue);
@@ -409,6 +410,7 @@ void InstSwitch::addBranch(SizeT CaseIndex, uint64_t Value, CfgNode *Label) {
 
 NodeList InstSwitch::getTerminatorEdges() const {
   NodeList OutEdges;
+  OutEdges.reserve(NumCases + 1);
   OutEdges.push_back(LabelDefault);
   for (SizeT I = 0; I < NumCases; ++I) {
     OutEdges.push_back(Labels[I]);
