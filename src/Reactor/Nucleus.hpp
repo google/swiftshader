@@ -1358,7 +1358,6 @@ namespace sw
 //	RValue<Bool> operator!=(RValue<Long1> lhs, RValue<Long1> rhs);
 //	RValue<Bool> operator==(RValue<Long1> lhs, RValue<Long1> rhs);
 
-
 //	RValue<Long1> RoundLong1(RValue<Float> cast);
 
 	class Long2 : public Variable<Long2>
@@ -1511,7 +1510,6 @@ namespace sw
 
 		static llvm::Type *getType();
 	};
-
 
     RValue<Int2> operator+(RValue<Int2> lhs, RValue<Int2> rhs);
     RValue<Int2> operator-(RValue<Int2> lhs, RValue<Int2> rhs);
