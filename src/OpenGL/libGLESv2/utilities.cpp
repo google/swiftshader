@@ -207,6 +207,7 @@ namespace es2
 		{
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+        case GL_ETC1_RGB8_OES:
 			return 8 * (GLsizei)ceil((float)width / 4.0f) * (GLsizei)ceil((float)height / 4.0f);
 		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
 		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
@@ -218,39 +219,23 @@ namespace es2
 
 	bool IsCompressed(GLenum format)
 	{
-		if(format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
-		   format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ||
-		   format == GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE ||
-		   format == GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		return format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
+		       format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ||
+               format == GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE ||
+               format == GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE ||
+               format == GL_ETC1_RGB8_OES;
 	}
 
 	bool IsDepthTexture(GLenum format)
 	{
-		if(format == GL_DEPTH_COMPONENT ||
-		   format == GL_DEPTH_STENCIL_OES)
-		{
-			return true;
-		}
-
-		return false;
+		return format == GL_DEPTH_COMPONENT ||
+		       format == GL_DEPTH_STENCIL_OES;
 	}
 
 	bool IsStencilTexture(GLenum format)
 	{
-		if(format == GL_STENCIL_INDEX_OES ||
-		   format == GL_DEPTH_STENCIL_OES)
-		{
-			return true;
-		}
-
-		return false;
+		return format == GL_STENCIL_INDEX_OES ||
+		       format == GL_DEPTH_STENCIL_OES;
 	}
 
 	// Returns the size, in bytes, of a single texel in an Image

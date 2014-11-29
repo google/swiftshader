@@ -736,6 +736,8 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
 
 	switch(internalformat)
 	{
+	case GL_ETC1_RGB8_OES:
+		break;
 	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
@@ -860,6 +862,8 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
 
 	switch(format)
 	{
+	case GL_ETC1_RGB8_OES:
+		break;
 	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
@@ -1024,6 +1028,8 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 				return error(GL_INVALID_OPERATION);
 			}
 			break;
+		case GL_ETC1_RGB8_OES:
+			return error(GL_INVALID_OPERATION);
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
@@ -1036,7 +1042,6 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 			{
 				return error(GL_INVALID_ENUM);
 			}
-			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -1171,16 +1176,25 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 				return error(GL_INVALID_OPERATION);
 			}
 			break;
+		case GL_ETC1_RGB8_OES:
+			return error(GL_INVALID_OPERATION);
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
 		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
-			return error(GL_INVALID_OPERATION);
+			if(S3TC_SUPPORT)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			else
+			{
+				return error(GL_INVALID_ENUM);
+			}
 		case GL_DEPTH_COMPONENT:
 		case GL_DEPTH_STENCIL_OES:
 			return error(GL_INVALID_OPERATION);
 		default:
-			return error(GL_INVALID_OPERATION);
+			return error(GL_INVALID_ENUM);
 		}
 
 		texture->copySubImage(target, level, xoffset, yoffset, x, y, width, height, framebuffer);
@@ -2869,6 +2883,7 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
 		// EXT extensions
 		// Vendor extensions
 		return (GLubyte*)
+			"GL_OES_compressed_ETC1_RGB8_texture "
 			"GL_OES_depth_texture "
 			"GL_OES_depth_texture_cube_map "
 			"GL_OES_EGL_image "
@@ -2885,15 +2900,17 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
 			"GL_EXT_blend_minmax "
 			"GL_EXT_occlusion_query_boolean "
 			"GL_EXT_read_format_bgra "
-				#if (S3TC_SUPPORT)
+			#if (S3TC_SUPPORT)
 			"GL_EXT_texture_compression_dxt1 "
-			"GL_ANGLE_texture_compression_dxt3 "
-			"GL_ANGLE_texture_compression_dxt5 "
-				#endif
+			#endif
 			"GL_EXT_texture_filter_anisotropic "
 			"GL_EXT_texture_format_BGRA8888 "
 			"GL_ANGLE_framebuffer_blit "
 			"GL_ANGLE_framebuffer_multisample "
+			#if (S3TC_SUPPORT)
+			"GL_ANGLE_texture_compression_dxt3 "
+			"GL_ANGLE_texture_compression_dxt5 "
+			#endif
 			"GL_NV_fence";
 	default:
 		return error(GL_INVALID_ENUM, (GLubyte*)NULL);
@@ -4057,11 +4074,20 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 			return error(GL_INVALID_ENUM);
 		}
 		break;
-	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:  // error cases for compressed textures are handled below
+	case GL_ETC1_RGB8_OES:
+		return error(GL_INVALID_OPERATION);
+	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
 	case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
-		break;
+		if(S3TC_SUPPORT)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+		else
+		{
+			return error(GL_INVALID_ENUM);
+		}
 	case GL_DEPTH_COMPONENT:
 		switch(type)
 		{
@@ -4096,19 +4122,19 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 	{
 		switch(target)
 		{
-			case GL_TEXTURE_2D:
+		case GL_TEXTURE_2D:
 			if(width > (es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
 			   height > (es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
 			{
 				return error(GL_INVALID_VALUE);
 			}
 			break;
-			case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
-			case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
-			case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
-			case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
-			case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
-			case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
+		case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
+		case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
+		case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
+		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
+		case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
+		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
 			if(width != height)
 			{
 				return error(GL_INVALID_VALUE);
@@ -4120,23 +4146,8 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 				return error(GL_INVALID_VALUE);
 			}
 			break;
-			default:
+		default:
 			return error(GL_INVALID_ENUM);
-		}
-
-		if(format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
-		   format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ||
-		   format == GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE ||
-		   format == GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE)
-		{
-			if(S3TC_SUPPORT)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			else
-			{
-				return error(GL_INVALID_ENUM);
-			}
 		}
 
 		if(target == GL_TEXTURE_2D)

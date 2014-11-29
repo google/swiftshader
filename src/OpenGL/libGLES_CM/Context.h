@@ -25,6 +25,7 @@
 
 #define GL_API
 #include <GLES/gl.h>
+#include <GLES/glext.h>
 #define EGLAPI
 #include <EGL/egl.h>
 
@@ -75,13 +76,16 @@ enum
     IMPLEMENTATION_COLOR_READ_TYPE = GL_UNSIGNED_SHORT_5_6_5
 };
 
-enum QueryType
+const GLenum compressedTextureFormats[] =
 {
-    QUERY_ANY_SAMPLES_PASSED,
-    QUERY_ANY_SAMPLES_PASSED_CONSERVATIVE,
-
-    QUERY_TYPE_COUNT
+	GL_ETC1_RGB8_OES,
+#if (S3TC_SUPPORT)
+	GL_COMPRESSED_RGB_S3TC_DXT1_EXT,
+	GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
+#endif
 };
+
+const GLint NUM_COMPRESSED_TEXTURE_FORMATS = sizeof(compressedTextureFormats) / sizeof(compressedTextureFormats[0]);
 
 const float ALIASED_LINE_WIDTH_RANGE_MIN = 1.0f;
 const float ALIASED_LINE_WIDTH_RANGE_MAX = 1.0f;

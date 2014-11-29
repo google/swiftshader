@@ -909,6 +909,8 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
 
 	switch(internalformat)
 	{
+	case GL_ETC1_RGB8_OES:
+		break;
 	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 		if(!S3TC_SUPPORT)
@@ -992,6 +994,8 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
 
 	switch(format)
 	{
+	case GL_ETC1_RGB8_OES:
+		break;
 	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 		if(!S3TC_SUPPORT)
@@ -1125,6 +1129,8 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 				return error(GL_INVALID_OPERATION);
 			}
 			break;
+		case GL_ETC1_RGB8_OES:
+			return error(GL_INVALID_OPERATION);
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 			if(S3TC_SUPPORT)
@@ -1135,7 +1141,6 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 			{
 				return error(GL_INVALID_ENUM);
 			}
-			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -1255,13 +1260,22 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 				return error(GL_INVALID_OPERATION);
 			}
 			break;
+		case GL_ETC1_RGB8_OES:
+			return error(GL_INVALID_OPERATION);
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-			return error(GL_INVALID_OPERATION);
+			if(S3TC_SUPPORT)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			else
+			{
+				return error(GL_INVALID_ENUM);
+			}
 		case GL_DEPTH_STENCIL_OES:
 			return error(GL_INVALID_OPERATION);
 		default:
-			return error(GL_INVALID_OPERATION);
+			return error(GL_INVALID_ENUM);
 		}
 
 		texture->copySubImage(target, level, xoffset, yoffset, x, y, width, height, framebuffer);
@@ -2320,6 +2334,7 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
 			"GL_OES_blend_equation_separate "
 			"GL_OES_blend_func_separate "
 			"GL_OES_blend_subtract "
+			"GL_OES_compressed_ETC1_RGB8_texture "
 			"GL_OES_depth_texture "
 			"GL_OES_EGL_image "
 			"GL_OES_EGL_image_external "
@@ -3287,9 +3302,18 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 			return error(GL_INVALID_ENUM);
 		}
 		break;
-	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:  // error cases for compressed textures are handled below
+	case GL_ETC1_RGB8_OES:
+		return error(GL_INVALID_OPERATION);
+	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-		break;
+		if(S3TC_SUPPORT)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+		else
+		{
+			return error(GL_INVALID_ENUM);
+		}
 	case GL_DEPTH_STENCIL_OES:
 		switch(type)
 		{
@@ -3314,28 +3338,15 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 	{
 		switch(target)
 		{
-			case GL_TEXTURE_2D:
+		case GL_TEXTURE_2D:
 			if(width > (es1::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
 			   height > (es1::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
 			{
 				return error(GL_INVALID_VALUE);
 			}
 			break;
-			default:
+		default:
 			return error(GL_INVALID_ENUM);
-		}
-
-		if(format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
-		   format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT)
-		{
-			if(S3TC_SUPPORT)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			else
-			{
-				return error(GL_INVALID_ENUM);
-			}
 		}
 
 		if(target == GL_TEXTURE_2D)

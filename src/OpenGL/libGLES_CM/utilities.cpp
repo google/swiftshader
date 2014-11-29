@@ -39,6 +39,7 @@ namespace es1
 	{
 		switch(format)
 		{
+		case GL_ETC1_RGB8_OES:
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 			return 8 * (GLsizei)ceil((float)width / 4.0f) * (GLsizei)ceil((float)height / 4.0f);
@@ -49,35 +50,19 @@ namespace es1
 
 	bool IsCompressed(GLenum format)
 	{
-		if(format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
-		   format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		return format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
+		       format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ||
+               format == GL_ETC1_RGB8_OES;
 	}
 
 	bool IsDepthTexture(GLenum format)
 	{
-		if(format == GL_DEPTH_STENCIL_OES)
-		{
-			return true;
-		}
-
-		return false;
+		return format == GL_DEPTH_STENCIL_OES;
 	}
 
 	bool IsStencilTexture(GLenum format)
 	{
-		if(format == GL_DEPTH_STENCIL_OES)
-		{
-			return true;
-		}
-
-		return false;
+		return format == GL_DEPTH_STENCIL_OES;
 	}
 
 	// Returns the size, in bytes, of a single texel in an Image

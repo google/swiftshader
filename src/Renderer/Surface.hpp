@@ -62,6 +62,7 @@ namespace sw
 		FORMAT_DXT5,
 		FORMAT_ATI1,
 		FORMAT_ATI2,
+        FORMAT_ETC1,
 		// Floating-point formats
 		FORMAT_R16F,
 		FORMAT_G16R16F,
@@ -271,6 +272,7 @@ namespace sw
 			word c1;
 			dword clut;
 		};
+		#endif
 
 		struct ATI2
 		{
@@ -310,7 +312,6 @@ namespace sw
 				qword rlut;   // Skip first 16 bit
 			};
 		};
-		#endif
 
 		static void decodeR8G8B8(Buffer &destination, const Buffer &source);
 		static void decodeX8B8G8R8(Buffer &destination, const Buffer &source);
@@ -326,9 +327,10 @@ namespace sw
 		static void decodeDXT1(Buffer &internal, const Buffer &external);
 		static void decodeDXT3(Buffer &internal, const Buffer &external);
 		static void decodeDXT5(Buffer &internal, const Buffer &external);
+		#endif
 		static void decodeATI1(Buffer &internal, const Buffer &external);
 		static void decodeATI2(Buffer &internal, const Buffer &external);
-		#endif
+		static void decodeETC1(Buffer &internal, const Buffer &external);
 
 		static void update(Buffer &destination, Buffer &source);
 		static void genericUpdate(Buffer &destination, Buffer &source);

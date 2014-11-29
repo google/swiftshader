@@ -1007,20 +1007,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
     case GL_STENCIL_CLEAR_VALUE:              *params = mState.stencilClearValue;             break;
     case GL_SUBPIXEL_BITS:                    *params = 4;                                    break;
 	case GL_MAX_TEXTURE_SIZE:                 *params = IMPLEMENTATION_MAX_TEXTURE_SIZE;      break;
-    case GL_NUM_COMPRESSED_TEXTURE_FORMATS:
-        {
-            if(S3TC_SUPPORT)
-            {
-                // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
-                // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
-                *params = 2;
-            }
-            else
-            {
-                *params = 0;
-            }
-        }
-        break;
+	case GL_NUM_COMPRESSED_TEXTURE_FORMATS:   *params = NUM_COMPRESSED_TEXTURE_FORMATS;       break;
 	case GL_SAMPLE_BUFFERS:
     case GL_SAMPLES:
         {
@@ -1063,11 +1050,10 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
         break;
     case GL_COMPRESSED_TEXTURE_FORMATS:
         {
-            if(S3TC_SUPPORT)
-            {
-                params[0] = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-                params[1] = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-            }
+			for(int i = 0; i < NUM_COMPRESSED_TEXTURE_FORMATS; i++)
+			{
+				params[i] = compressedTextureFormats[i];
+			}
         }
         break;
     case GL_VIEWPORT:
@@ -1195,7 +1181,7 @@ int Context::getQueryParameterNum(GLenum pname)
     switch (pname)
     {
     case GL_COMPRESSED_TEXTURE_FORMATS:
-		return S3TC_SUPPORT ? 2 : 0;
+		return NUM_COMPRESSED_TEXTURE_FORMATS;
     case GL_NUM_COMPRESSED_TEXTURE_FORMATS:
     case GL_ARRAY_BUFFER_BINDING:
     case GL_FRAMEBUFFER_BINDING_OES:

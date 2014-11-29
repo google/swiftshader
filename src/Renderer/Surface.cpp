@@ -38,10 +38,10 @@ namespace sw
 
 	void Rect::clip(int minX, int minY, int maxX, int maxY)
 	{
-		x0 = sw::clamp(x0, minX, maxX);
-		y0 = sw::clamp(y0, minY, maxY);
-		x1 = sw::clamp(x1, minX, maxX);
-		y1 = sw::clamp(y1, minY, maxY);
+		x0 = clamp(x0, minX, maxX);
+		y0 = clamp(y0, minY, maxY);
+		x1 = clamp(x1, minX, maxX);
+		y1 = clamp(y1, minY, maxY);
 	}
 
 	void Surface::Buffer::write(int x, int y, int z, const Color<float> &color)
@@ -659,6 +659,7 @@ namespace sw
 			case FORMAT_DXT1:
 			#endif
 			case FORMAT_ATI1:
+			case FORMAT_ETC1:
 				return (unsigned char*)buffer + 8 * (x / 4) + (y / 4) * pitchB + z * sliceB;
 			#if S3TC_SUPPORT
 			case FORMAT_DXT3:
@@ -941,6 +942,7 @@ namespace sw
 		#endif
 		case FORMAT_ATI1:				return 2;   // Column of four pixels
 		case FORMAT_ATI2:				return 4;   // Column of four pixels
+		case FORMAT_ETC1:				return 2;   // Column of four pixels
 		// Bumpmap formats
 		case FORMAT_V8U8:				return 2;
 		case FORMAT_L6V5U5:				return 2;
@@ -995,7 +997,10 @@ namespace sw
 		{
 		#if S3TC_SUPPORT
 		case FORMAT_DXT1:
+		#endif
+		case FORMAT_ETC1:
 			return 8 * ((width + 3) / 4);    // 64 bit per 4x4 block, computed per 4 rows
+		#if S3TC_SUPPORT
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
 			return 16 * ((width + 3) / 4);   // 128 bit per 4x4 block, computed per 4 rows
@@ -1029,12 +1034,13 @@ namespace sw
 		case FORMAT_DXT1:
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
-			return pitchB(width, format, target) * ((height + 3) / 4);   // Pitch computed per 4 rows
 		#endif
-		case FORMAT_ATI1:   // Pitch computed per row
-		case FORMAT_ATI2:   // Pitch computed per row
+		case FORMAT_ETC1:
+			return pitchB(width, format, target) * ((height + 3) / 4);   // Pitch computed per 4 rows
+		case FORMAT_ATI1:
+		case FORMAT_ATI2:
 		default:
-			return pitchB(width, format, target) * height;
+			return pitchB(width, format, target) * height;   // Pitch computed per row
 		}
 	}
 
@@ -1069,9 +1075,10 @@ namespace sw
 			case FORMAT_DXT1:		decodeDXT1(destination, source);		break;   // FIXME: Check destination format
 			case FORMAT_DXT3:		decodeDXT3(destination, source);		break;   // FIXME: Check destination format
 			case FORMAT_DXT5:		decodeDXT5(destination, source);		break;   // FIXME: Check destination format
+			#endif
 			case FORMAT_ATI1:		decodeATI1(destination, source);		break;   // FIXME: Check destination format
 			case FORMAT_ATI2:		decodeATI2(destination, source);		break;   // FIXME: Check destination format
-			#endif
+			case FORMAT_ETC1:		decodeETC1(destination, source);		break;   // FIXME: Check destination format
 			default:				genericUpdate(destination, source);		break;
 			}
 		}
@@ -1466,7 +1473,7 @@ namespace sw
 	void Surface::decodeDXT1(Buffer &internal, const Buffer &external)
 	{
 		unsigned int *destSlice = (unsigned int*)internal.buffer;
-		DXT1 *source = (DXT1*)external.buffer;
+		const DXT1 *source = (const DXT1*)external.buffer;
 
 		for(int z = 0; z < external.depth; z++)
 		{
@@ -1528,7 +1535,7 @@ namespace sw
 	void Surface::decodeDXT3(Buffer &internal, const Buffer &external)
 	{
 		unsigned int *destSlice = (unsigned int*)internal.buffer;
-		DXT3 *source = (DXT3*)external.buffer;
+		const DXT3 *source = (const DXT3*)external.buffer;
 
 		for(int z = 0; z < external.depth; z++)
 		{
@@ -1575,7 +1582,7 @@ namespace sw
 	void Surface::decodeDXT5(Buffer &internal, const Buffer &external)
 	{
 		unsigned int *destSlice = (unsigned int*)internal.buffer;
-		DXT5 *source = (DXT5*)external.buffer;
+		const DXT5 *source = (const DXT5*)external.buffer;
 
 		for(int z = 0; z < external.depth; z++)
 		{
@@ -1642,11 +1649,12 @@ namespace sw
 			(byte*&)destSlice += internal.sliceB;
 		}
 	}
+#endif
 
 	void Surface::decodeATI1(Buffer &internal, const Buffer &external)
 	{
 		byte *destSlice = (byte*)internal.buffer;
-		ATI1 *source = (ATI1*)external.buffer;
+		const ATI1 *source = (const ATI1*)external.buffer;
 
 		for(int z = 0; z < external.depth; z++)
 		{
@@ -1699,7 +1707,7 @@ namespace sw
 	void Surface::decodeATI2(Buffer &internal, const Buffer &external)
 	{
 		word *destSlice = (word*)internal.buffer;
-		ATI2 *source = (ATI2*)external.buffer;
+		const ATI2 *source = (const ATI2*)external.buffer;
 
 		for(int z = 0; z < external.depth; z++)
 		{
@@ -1775,7 +1783,198 @@ namespace sw
 			(byte*&)destSlice += internal.sliceB;
 		}
 	}
-#endif
+
+	struct bgrx8
+	{
+		byte b;
+		byte g;
+		byte r;
+		byte x;
+
+		inline bgrx8()
+		{
+		}
+
+		inline void set(int red, int green, int blue)
+		{
+			r = static_cast<byte>(clamp(red, 0, 255));
+			g = static_cast<byte>(clamp(green, 0, 255));
+			b = static_cast<byte>(clamp(blue, 0, 255));
+			x = 255;
+		}
+	};
+
+	struct ETC1
+	{
+		struct
+		{
+			union
+			{
+				struct   // Individual colors
+				{
+					byte R2 : 4;
+					byte R1 : 4;
+					byte G2 : 4;
+					byte G1 : 4;
+					byte B2 : 4;
+					byte B1 : 4;
+				};
+
+				struct   // Differential colors
+				{
+					sbyte dR : 3;
+					byte R : 5;
+					sbyte dG : 3;
+					byte G : 5;
+					sbyte dB : 3;
+					byte B : 5;
+				};
+			};
+
+			bool flipbit : 1;
+			bool diffbit : 1;
+			byte cw2 : 3;
+			byte cw1 : 3;
+
+			byte pixelIndexMSB[2];
+			byte pixelIndexLSB[2];
+		};
+
+		inline int getIndex(int x, int y) const
+		{
+			int bitIndex = x * 4 + y;
+			int bitOffset = bitIndex & 7;
+			int lsb = (pixelIndexLSB[1 - (bitIndex >> 3)] >> bitOffset) & 1;
+			int msb = (pixelIndexMSB[1 - (bitIndex >> 3)] >> bitOffset) & 1;
+
+			return (msb << 1) | lsb;
+		}
+	};
+
+	inline int extend_4to8bits(int x)
+	{
+		return (x << 4) | x;
+	}
+
+	inline int extend_5to8bits(int x)
+	{
+		return (x << 3) | (x >> 2);
+	}
+
+	void Surface::decodeETC1(Buffer &internal, const Buffer &external)
+	{
+		unsigned int *destSlice = (unsigned int*)internal.buffer;
+		const ETC1 *source = (const ETC1*)external.buffer;
+
+		for(int z = 0; z < external.depth; z++)
+		{
+			unsigned int *dest = destSlice;
+
+			for(int y = 0; y < external.height; y += 4)
+			{
+				for(int x = 0; x < external.width; x += 4)
+				{
+					bgrx8 *color = reinterpret_cast<bgrx8*>(&dest[x + y * internal.width]);
+
+					int r1, g1, b1;
+					int r2, g2, b2;
+
+					if(source->diffbit)
+					{
+						b1 = extend_5to8bits(source->B);
+						g1 = extend_5to8bits(source->G);
+						r1 = extend_5to8bits(source->R);
+
+						r2 = extend_5to8bits(source->R + source->dR);
+						g2 = extend_5to8bits(source->G + source->dG);
+						b2 = extend_5to8bits(source->B + source->dB);
+					}
+					else
+					{
+						r1 = extend_4to8bits(source->R1);
+						g1 = extend_4to8bits(source->G1);
+						b1 = extend_4to8bits(source->B1);
+
+						r2 = extend_4to8bits(source->R2);
+						g2 = extend_4to8bits(source->G2);
+						b2 = extend_4to8bits(source->B2);
+					}
+
+					bgrx8 subblockColors0[4];
+					bgrx8 subblockColors1[4];
+
+					// Table 3.17.2 sorted according to table 3.17.3
+					static const int intensityModifier[8][4] =
+					{
+						{2, 8, -2, -8},
+						{5, 17, -5, -17},
+						{9, 29, -9, -29},
+						{13, 42, -13, -42},
+						{18, 60, -18, -60},
+						{24, 80, -24, -80},
+						{33, 106, -33, -106},
+						{47, 183, -47, -183}
+					};
+
+					const int i10 = intensityModifier[source->cw1][0];
+					const int i11 = intensityModifier[source->cw1][1];
+					const int i12 = intensityModifier[source->cw1][2];
+					const int i13 = intensityModifier[source->cw1][3];
+
+					subblockColors0[0].set(r1 + i10, g1 + i10, b1 + i10);
+					subblockColors0[1].set(r1 + i11, g1 + i11, b1 + i11);
+					subblockColors0[2].set(r1 + i12, g1 + i12, b1 + i12);
+					subblockColors0[3].set(r1 + i13, g1 + i13, b1 + i13);
+
+					const int i20 = intensityModifier[source->cw2][0];
+					const int i21 = intensityModifier[source->cw2][1];
+					const int i22 = intensityModifier[source->cw2][2];
+					const int i23 = intensityModifier[source->cw2][3];
+
+					subblockColors1[0].set(r2 + i20, g2 + i20, b2 + i20);
+					subblockColors1[1].set(r2 + i21, g2 + i21, b2 + i21);
+					subblockColors1[2].set(r2 + i22, g2 + i22, b2 + i22);
+					subblockColors1[3].set(r2 + i23, g2 + i23, b2 + i23);
+
+					if(source->flipbit)
+					{
+						for(int y = 0; y < 2; y++)
+						{
+							color[0] = subblockColors0[source->getIndex(0, y)];
+							color[1] = subblockColors0[source->getIndex(1, y)];
+							color[2] = subblockColors0[source->getIndex(2, y)];
+							color[3] = subblockColors0[source->getIndex(3, y)];
+							color += internal.width;
+						}
+
+						for(int y = 2; y < 4; y++)
+						{
+							color[0] = subblockColors1[source->getIndex(0, y)];
+							color[1] = subblockColors1[source->getIndex(1, y)];
+							color[2] = subblockColors1[source->getIndex(2, y)];
+							color[3] = subblockColors1[source->getIndex(3, y)];
+							color += internal.width;
+						}
+					}
+					else
+					{
+						for(int y = 0; y < 4; y++)
+						{
+							color[0] = subblockColors0[source->getIndex(0, y)];
+							color[1] = subblockColors0[source->getIndex(1, y)];
+							color[2] = subblockColors1[source->getIndex(2, y)];
+							color[3] = subblockColors1[source->getIndex(3, y)];
+							color += internal.width;
+						}
+					}
+
+					source++;
+				}
+			}
+
+			(byte*&)destSlice += internal.sliceB;
+		}
+	}
 
 	unsigned int Surface::size(int width, int height, int depth, Format format)
 	{
@@ -1789,6 +1988,7 @@ namespace sw
 		case FORMAT_DXT1:
 		#endif
 		case FORMAT_ATI1:
+		case FORMAT_ETC1:
 			return width4 * height4 * depth / 2;
 		#if S3TC_SUPPORT
 		case FORMAT_DXT3:
@@ -2032,6 +2232,7 @@ namespace sw
 		#endif
 		case FORMAT_ATI1:
 		case FORMAT_ATI2:
+		case FORMAT_ETC1:
 			return true;
 		default:
 			return false;
@@ -2836,10 +3037,10 @@ namespace sw
 	{
 		return external.format == internal.format &&
 		       external.width  == internal.width &&
-			   external.height == internal.height &&
-			   external.depth  == internal.depth &&
-			   external.pitchB == internal.pitchB &&
-			   external.sliceB == internal.sliceB;
+		       external.height == internal.height &&
+		       external.depth  == internal.depth &&
+		       external.pitchB == internal.pitchB &&
+		       external.sliceB == internal.sliceB;
 	}
 
 	Format Surface::selectInternalFormat(Format format) const
@@ -2902,6 +3103,8 @@ namespace sw
 			return FORMAT_R8;
 		case FORMAT_ATI2:
 			return FORMAT_G8R8;
+		case FORMAT_ETC1:
+			return FORMAT_X8R8G8B8;
 		// Bumpmap formats
 		case FORMAT_V8U8:			return FORMAT_V8U8;
 		case FORMAT_L6V5U5:			return FORMAT_X8L8V8U8;
