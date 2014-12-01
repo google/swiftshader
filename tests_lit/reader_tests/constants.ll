@@ -1,7 +1,5 @@
 ; Test handling of constants in function blocks.
 
-; REQUIRES: allow_dump
-
 ; RUN: %p2i -i %s --insts | FileCheck %s
 ; RUN: %if --need=allow_disable_ir_gen --command \
 ; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \

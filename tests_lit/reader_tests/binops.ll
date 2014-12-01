@@ -1,7 +1,5 @@
 ; Tests if we can read binary operators.
 
-; REQUIRES: allow_dump
-
 ; RUN: %p2i -i %s --insts | FileCheck %s
 ; RUN: %l2i -i %s --insts | %ifl FileCheck %s
 ; RUN: %lc2i -i %s --insts | %iflc FileCheck %s

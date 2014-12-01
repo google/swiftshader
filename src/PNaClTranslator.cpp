@@ -161,6 +161,8 @@ void ExtendedType::dump(Ice::Ostream &Stream) const {
   }
 }
 
+class BlockParserBaseClass;
+
 // Top-level class to read PNaCl bitcode files, and translate to ICE.
 class TopLevelParser : public NaClBitcodeParser {
   TopLevelParser(const TopLevelParser &) = delete;
@@ -176,7 +178,7 @@ public:
         Mod(new Module(InputName, getGlobalContext())), DL(PNaClDataLayout),
         Header(Header), TypeConverter(Mod->getContext()),
         ErrorStatus(ErrorStatus), NumErrors(0), NumFunctionIds(0),
-        NumFunctionBlocks(0) {
+        NumFunctionBlocks(0), BlockParser(nullptr) {
     Mod->setDataLayout(PNaClDataLayout);
     setErrStream(Translator.getContext()->getStrDump());
   }
@@ -185,15 +187,15 @@ public:
 
   Ice::Translator &getTranslator() { return Translator; }
 
-  // Generates error with given Message. Always returns true.
-  bool Error(const std::string &Message) override {
-    ErrorStatus = true;
-    ++NumErrors;
-    NaClBitcodeParser::Error(Message);
-    if (!AllowErrorRecovery)
-      report_fatal_error("Unable to continue");
-    return true;
+  void setBlockParser(BlockParserBaseClass *NewBlockParser) {
+    BlockParser = NewBlockParser;
   }
+
+  // Generates error with given Message. Always returns true.
+  bool Error(const std::string &Message) override;
+
+  // Generates error message with respect to the current block parser.
+  bool BlockError(const std::string &Message);
 
   /// Returns the number of errors found while parsing the bitcode
   /// file.
@@ -322,7 +324,7 @@ public:
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Reference to global not defined: " << ID;
-      Error(StrBuf.str());
+      BlockError(StrBuf.str());
       // TODO(kschimpf) Remove error recovery once implementation complete.
       Name = "??";
       SuppressMangling = false;
@@ -432,6 +434,9 @@ private:
   std::vector<unsigned> DefiningFunctionDeclarationsList;
   // Error recovery value to use when getFuncSigTypeByID fails.
   Ice::FuncSigType UndefinedFuncSigType;
+  // The block parser currently being applied. Used for error
+  // reporting.
+  BlockParserBaseClass *BlockParser;
 
   bool ParseBlock(unsigned BlockID) override;
 
@@ -469,6 +474,15 @@ private:
   Ice::Type convertToIceTypeError(Type *LLVMTy);
 };
 
+bool TopLevelParser::Error(const std::string &Message) {
+  ErrorStatus = true;
+  ++NumErrors;
+  NaClBitcodeParser::Error(Message);
+  if (!AllowErrorRecovery)
+    report_fatal_error("Unable to continue");
+  return true;
+}
+
 void TopLevelParser::reportBadTypeIDAs(unsigned ID, const ExtendedType *Ty,
                                        ExtendedType::TypeKind WantedType) {
   std::string Buffer;
@@ -478,7 +492,7 @@ void TopLevelParser::reportBadTypeIDAs(unsigned ID, const ExtendedType *Ty,
   } else {
     StrBuf << "Type id " << ID << " not " << WantedType << ". Found: " << *Ty;
   }
-  Error(StrBuf.str());
+  BlockError(StrBuf.str());
 }
 
 Ice::FunctionDeclaration *
@@ -488,7 +502,7 @@ TopLevelParser::reportGetFunctionByIDError(unsigned ID) {
   StrBuf << "Function index " << ID
          << " not allowed. Out of range. Must be less than "
          << FunctionDeclarationList.size();
-  Error(StrBuf.str());
+  BlockError(StrBuf.str());
   // TODO(kschimpf) Remove error recovery once implementation complete.
   if (!FunctionDeclarationList.empty())
     return FunctionDeclarationList[0];
@@ -502,7 +516,7 @@ TopLevelParser::reportGetGlobalVariableByIDError(unsigned Index) {
   StrBuf << "Global index " << Index
          << " not allowed. Out of range. Must be less than "
          << VariableDeclarations.size();
-  Error(StrBuf.str());
+  BlockError(StrBuf.str());
   // TODO(kschimpf) Remove error recovery once implementation complete.
   if (!VariableDeclarations.empty())
     return VariableDeclarations[0];
@@ -522,12 +536,26 @@ Ice::Type TopLevelParser::convertToIceTypeError(Type *LLVMTy) {
 // messages if ParseBlock or ParseRecord is not overridden in derived
 // classes.
 class BlockParserBaseClass : public NaClBitcodeParser {
+  BlockParserBaseClass(const BlockParserBaseClass &) = delete;
+  BlockParserBaseClass &operator=(const BlockParserBaseClass &) = delete;
+
 public:
   // Constructor for the top-level module block parser.
   BlockParserBaseClass(unsigned BlockID, TopLevelParser *Context)
-      : NaClBitcodeParser(BlockID, Context), Context(Context) {}
+      : NaClBitcodeParser(BlockID, Context), Context(Context) {
+    Context->setBlockParser(this);
+  }
 
-  ~BlockParserBaseClass() override {}
+  ~BlockParserBaseClass() override { Context->setBlockParser(nullptr); }
+
+  // Returns the printable name of the type of block being parsed.
+  virtual const char *getBlockName() const {
+    // If this class is used, it is parsing an unknown block.
+    return "unknown";
+  }
+
+  // Generates an error Message with the bit address prefixed to it.
+  bool Error(const std::string &Message) override;
 
 protected:
   // The context parser that contains the decoded state.
@@ -546,22 +574,6 @@ protected:
   bool isIRGenerationDisabled() const {
     return ALLOW_DISABLE_IR_GEN ? getTranslator().getFlags().DisableIRGeneration
                                 : false;
-  }
-
-  // Generates an error Message with the bit address prefixed to it.
-  bool Error(const std::string &Message) override {
-    uint64_t Bit = Record.GetStartBit() + Context->getHeaderSize() * 8;
-    std::string Buffer;
-    raw_string_ostream StrBuf(Buffer);
-    StrBuf << "(" << format("%" PRIu64 ":%u", (Bit / 8),
-                            static_cast<unsigned>(Bit % 8)) << ") ";
-    // Note: If dump routines have been turned off, the error messages
-    // will not be readable. Hence, replace with simple error.
-    if (ALLOW_DUMP)
-      StrBuf << Message;
-    else
-      StrBuf << "Invalid input record";
-    return Context->Error(StrBuf.str());
   }
 
   // Default implementation. Reports that block is unknown and skips
@@ -623,12 +635,43 @@ private:
                              const char *ContextMessage);
 };
 
+bool TopLevelParser::BlockError(const std::string &Message) {
+  if (BlockParser)
+    return BlockParser->Error(Message);
+  else
+    return Error(Message);
+}
+
+// Generates an error Message with the bit address prefixed to it.
+bool BlockParserBaseClass::Error(const std::string &Message) {
+  uint64_t Bit = Record.GetStartBit() + Context->getHeaderSize() * 8;
+  std::string Buffer;
+  raw_string_ostream StrBuf(Buffer);
+  StrBuf << "(" << format("%" PRIu64 ":%u", (Bit / 8),
+                          static_cast<unsigned>(Bit % 8)) << ") ";
+  // Note: If dump routines have been turned off, the error messages
+  // will not be readable. Hence, replace with simple error.
+  if (ALLOW_DUMP)
+    StrBuf << Message;
+  else {
+    StrBuf << "Invalid " << getBlockName() << " record: <" << Record.GetCode();
+    for (const uint64_t Val : Record.GetValues()) {
+      StrBuf << " " << Val;
+    }
+    StrBuf << ">";
+  }
+  return Context->Error(StrBuf.str());
+}
+
 void BlockParserBaseClass::ReportRecordSizeError(unsigned ExpectedSize,
                                                  const char *RecordName,
                                                  const char *ContextMessage) {
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
-  StrBuf << RecordName << " record expects";
+  const char *BlockName = getBlockName();
+  const char FirstChar = toupper(*BlockName);
+  StrBuf << FirstChar << (BlockName + 1) << " " << RecordName
+         << " record expects";
   if (ContextMessage)
     StrBuf << " " << ContextMessage;
   StrBuf << " " << ExpectedSize << " argument";
@@ -654,7 +697,8 @@ void BlockParserBaseClass::ProcessRecord() {
   // If called, derived class doesn't know how to handle.
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
-  StrBuf << "Don't know how to process record: " << Record;
+  StrBuf << "Don't know how to process " << getBlockName()
+         << " record:" << Record;
   Error(StrBuf.str());
 }
 
@@ -676,6 +720,8 @@ private:
 
   void ProcessRecord() override;
 
+  const char *getBlockName() const override { return "type"; }
+
   void setNextTypeIDAsSimpleType(Ice::Type Ty) {
     Context->getTypeByIDForDefining(NextTypeId++)->setAsSimpleType(Ty);
   }
@@ -686,31 +732,31 @@ void TypesParser::ProcessRecord() {
   switch (Record.GetCode()) {
   case naclbitc::TYPE_CODE_NUMENTRY:
     // NUMENTRY: [numentries]
-    if (!isValidRecordSize(1, "Type count"))
+    if (!isValidRecordSize(1, "count"))
       return;
     Context->resizeTypeIDValues(Values[0]);
     return;
   case naclbitc::TYPE_CODE_VOID:
     // VOID
-    if (!isValidRecordSize(0, "Type void"))
+    if (!isValidRecordSize(0, "void"))
       return;
     setNextTypeIDAsSimpleType(Ice::IceType_void);
     return;
   case naclbitc::TYPE_CODE_FLOAT:
     // FLOAT
-    if (!isValidRecordSize(0, "Type float"))
+    if (!isValidRecordSize(0, "float"))
       return;
     setNextTypeIDAsSimpleType(Ice::IceType_f32);
     return;
   case naclbitc::TYPE_CODE_DOUBLE:
     // DOUBLE
-    if (!isValidRecordSize(0, "Type double"))
+    if (!isValidRecordSize(0, "double"))
       return;
     setNextTypeIDAsSimpleType(Ice::IceType_f64);
     return;
   case naclbitc::TYPE_CODE_INTEGER:
     // INTEGER: [width]
-    if (!isValidRecordSize(1, "Type integer"))
+    if (!isValidRecordSize(1, "integer"))
       return;
     switch (Values[0]) {
     case 1:
@@ -740,7 +786,7 @@ void TypesParser::ProcessRecord() {
     return;
   case naclbitc::TYPE_CODE_VECTOR: {
     // VECTOR: [numelts, eltty]
-    if (!isValidRecordSize(2, "Type vector"))
+    if (!isValidRecordSize(2, "vector"))
       return;
     Ice::Type BaseTy = Context->getSimpleTypeByID(Values[1]);
     Ice::SizeT Size = Values[0];
@@ -798,7 +844,7 @@ void TypesParser::ProcessRecord() {
   }
   case naclbitc::TYPE_CODE_FUNCTION: {
     // FUNCTION: [vararg, retty, paramty x N]
-    if (!isValidRecordSizeAtLeast(2, "Type signature"))
+    if (!isValidRecordSizeAtLeast(2, "signature"))
       return;
     if (Values[0])
       Error("Function type can't define varargs");
@@ -844,6 +890,8 @@ public:
 
   ~GlobalsParser() final {}
 
+  const char *getBlockName() const override { return "globals"; }
+
 private:
   Ice::TimerMarker Timer;
   // Keeps track of how many initializers are expected for the global variable
@@ -867,7 +915,7 @@ private:
     if (NextGlobalID < NumIDs) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Globals block expects " << NumIDs
+      StrBuf << getBlockName() << " block expects " << NumIDs
              << " global variable declarations. Found: " << NextGlobalID;
       Error(StrBuf.str());
     }
@@ -901,7 +949,7 @@ void GlobalsParser::ProcessRecord() {
   switch (Record.GetCode()) {
   case naclbitc::GLOBALVAR_COUNT:
     // COUNT: [n]
-    if (!isValidRecordSize(1, "Globals count"))
+    if (!isValidRecordSize(1, "count"))
       return;
     if (NextGlobalID != Context->getNumGlobalVariables()) {
       Error("Globals count record not first in block.");
@@ -911,7 +959,7 @@ void GlobalsParser::ProcessRecord() {
     return;
   case naclbitc::GLOBALVAR_VAR: {
     // VAR: [align, isconst]
-    if (!isValidRecordSize(2, "Globals variable"))
+    if (!isValidRecordSize(2, "variable"))
       return;
     verifyNoMissingInitializers();
     if (!isIRGenerationDisabled()) {
@@ -925,7 +973,7 @@ void GlobalsParser::ProcessRecord() {
   }
   case naclbitc::GLOBALVAR_COMPOUND:
     // COMPOUND: [size]
-    if (!isValidRecordSize(1, "globals compound"))
+    if (!isValidRecordSize(1, "compound"))
       return;
     if (!CurGlobalVar->getInitializers().empty()) {
       Error("Globals compound record not first initializer");
@@ -934,7 +982,8 @@ void GlobalsParser::ProcessRecord() {
     if (Values[0] < 2) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Globals compound record size invalid. Found: " << Values[0];
+      StrBuf << getBlockName()
+             << " compound record size invalid. Found: " << Values[0];
       Error(StrBuf.str());
       return;
     }
@@ -944,7 +993,7 @@ void GlobalsParser::ProcessRecord() {
     return;
   case naclbitc::GLOBALVAR_ZEROFILL: {
     // ZEROFILL: [size]
-    if (!isValidRecordSize(1, "Globals zerofill"))
+    if (!isValidRecordSize(1, "zerofill"))
       return;
     if (isIRGenerationDisabled())
       return;
@@ -954,7 +1003,7 @@ void GlobalsParser::ProcessRecord() {
   }
   case naclbitc::GLOBALVAR_DATA: {
     // DATA: [b0, b1, ...]
-    if (!isValidRecordSizeAtLeast(1, "Globals data"))
+    if (!isValidRecordSizeAtLeast(1, "data"))
       return;
     if (isIRGenerationDisabled())
       return;
@@ -964,7 +1013,7 @@ void GlobalsParser::ProcessRecord() {
   }
   case naclbitc::GLOBALVAR_RELOC: {
     // RELOC: [val, [addend]]
-    if (!isValidRecordSizeInRange(1, 2, "Globals reloc"))
+    if (!isValidRecordSizeInRange(1, 2, "reloc"))
       return;
     if (isIRGenerationDisabled())
       return;
@@ -993,6 +1042,8 @@ public:
 
   ~ValuesymtabParser() override {}
 
+  const char *getBlockName() const override { return "valuesymtab"; }
+
 protected:
   typedef SmallString<128> StringType;
 
@@ -1020,7 +1071,7 @@ void ValuesymtabParser::ProcessRecord() {
   switch (Record.GetCode()) {
   case naclbitc::VST_CODE_ENTRY: {
     // VST_ENTRY: [ValueId, namechar x N]
-    if (!isValidRecordSizeAtLeast(2, "Valuesymtab value entry"))
+    if (!isValidRecordSizeAtLeast(2, "value entry"))
       return;
     ConvertToString(ConvertedName);
     setValueName(Values[0], ConvertedName);
@@ -1028,7 +1079,7 @@ void ValuesymtabParser::ProcessRecord() {
   }
   case naclbitc::VST_CODE_BBENTRY: {
     // VST_BBENTRY: [BbId, namechar x N]
-    if (!isValidRecordSizeAtLeast(2, "Valuesymtab basic block entry"))
+    if (!isValidRecordSizeAtLeast(2, "basic block entry"))
       return;
     ConvertToString(ConvertedName);
     setBbName(Values[0], ConvertedName);
@@ -1048,7 +1099,6 @@ class FunctionValuesymtabParser;
 class FunctionParser : public BlockParserBaseClass {
   FunctionParser(const FunctionParser &) = delete;
   FunctionParser &operator=(const FunctionParser &) = delete;
-  friend class FunctionValuesymtabParser;
 
 public:
   FunctionParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
@@ -1090,12 +1140,48 @@ public:
 
   ~FunctionParser() final {}
 
+  const char *getBlockName() const override { return "function"; }
+
+  Ice::Cfg *getFunc() const {
+    return Func;
+  }
+
+  uint32_t getNumGlobalIDs() const {
+    return CachedNumGlobalValueIDs;
+  }
+
   void setNextLocalInstIndex(Ice::Operand *Op) {
     setOperand(NextLocalInstIndex++, Op);
   }
 
   // Set the next constant ID to the given constant C.
   void setNextConstantID(Ice::Constant *C) { setNextLocalInstIndex(C); }
+
+  // Returns the value referenced by the given value Index.
+  Ice::Operand *getOperand(uint32_t Index) {
+    if (Index < CachedNumGlobalValueIDs) {
+      return Context->getOrCreateGlobalConstantByID(Index);
+    }
+    uint32_t LocalIndex = Index - CachedNumGlobalValueIDs;
+    if (LocalIndex >= LocalOperands.size()) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Value index " << Index << " not defined!";
+      Error(StrBuf.str());
+      report_fatal_error("Unable to continue");
+    }
+    Ice::Operand *Op = LocalOperands[LocalIndex];
+    if (Op == nullptr) {
+      if (isIRGenerationDisabled())
+        return nullptr;
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Value index " << Index << " not defined!";
+      Error(StrBuf.str());
+      report_fatal_error("Unable to continue");
+    }
+    return Op;
+  }
 
 private:
   Ice::TimerMarker Timer;
@@ -1245,32 +1331,6 @@ private:
       return 0;
     }
     return BaseIndex - Id;
-  }
-
-  // Returns the value referenced by the given value Index.
-  Ice::Operand *getOperand(uint32_t Index) {
-    if (Index < CachedNumGlobalValueIDs) {
-      return Context->getOrCreateGlobalConstantByID(Index);
-    }
-    uint32_t LocalIndex = Index - CachedNumGlobalValueIDs;
-    if (LocalIndex >= LocalOperands.size()) {
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Value index " << Index << " not defined!";
-      Error(StrBuf.str());
-      report_fatal_error("Unable to continue");
-    }
-    Ice::Operand *Op = LocalOperands[LocalIndex];
-    if (Op == nullptr) {
-      if (isIRGenerationDisabled())
-        return nullptr;
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Value index " << Index << " not defined!";
-      Error(StrBuf.str());
-      report_fatal_error("Unable to continue");
-    }
-    return Op;
   }
 
   // Sets element Index (in the local operands list) to Op.
@@ -1761,7 +1821,7 @@ void FunctionParser::ProcessRecord() {
   switch (Record.GetCode()) {
   case naclbitc::FUNC_CODE_DECLAREBLOCKS: {
     // DECLAREBLOCKS: [n]
-    if (!isValidRecordSize(1, "function block count"))
+    if (!isValidRecordSize(1, "count"))
       return;
     uint32_t NumBbs = Values[0];
     if (NumBbs == 0) {
@@ -1783,7 +1843,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_BINOP: {
     // BINOP: [opval, opval, opcode]
-    if (!isValidRecordSize(3, "function block binop"))
+    if (!isValidRecordSize(3, "binop"))
       return;
     Ice::Operand *Op1 = getRelativeOperand(Values[0], BaseIndex);
     Ice::Operand *Op2 = getRelativeOperand(Values[1], BaseIndex);
@@ -1812,7 +1872,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_CAST: {
     // CAST: [opval, destty, castopc]
-    if (!isValidRecordSize(3, "function block cast"))
+    if (!isValidRecordSize(3, "cast"))
       return;
     Ice::Operand *Src = getRelativeOperand(Values[0], BaseIndex);
     Ice::Type CastType = Context->getSimpleTypeByID(Values[1]);
@@ -1849,7 +1909,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_VSELECT: {
     // VSELECT: [opval, opval, pred]
-    if (!isValidRecordSize(3, "function block select"))
+    if (!isValidRecordSize(3, "select"))
       return;
     Ice::Operand *ThenVal = getRelativeOperand(Values[0], BaseIndex);
     Ice::Operand *ElseVal = getRelativeOperand(Values[1], BaseIndex);
@@ -1898,7 +1958,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_EXTRACTELT: {
     // EXTRACTELT: [opval, opval]
-    if (!isValidRecordSize(2, "function block extract element"))
+    if (!isValidRecordSize(2, "extract element"))
       return;
     Ice::Operand *Vec = getRelativeOperand(Values[0], BaseIndex);
     Ice::Operand *Index = getRelativeOperand(Values[1], BaseIndex);
@@ -1925,7 +1985,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_INSERTELT: {
     // INSERTELT: [opval, opval, opval]
-    if (!isValidRecordSize(3, "function block insert element"))
+    if (!isValidRecordSize(3, "insert element"))
       return;
     Ice::Operand *Vec = getRelativeOperand(Values[0], BaseIndex);
     Ice::Operand *Elt = getRelativeOperand(Values[1], BaseIndex);
@@ -1954,7 +2014,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_CMP2: {
     // CMP2: [opval, opval, pred]
-    if (!isValidRecordSize(3, "function block compare"))
+    if (!isValidRecordSize(3, "compare"))
       return;
     Ice::Operand *Op1 = getRelativeOperand(Values[0], BaseIndex);
     Ice::Operand *Op2 = getRelativeOperand(Values[1], BaseIndex);
@@ -2020,7 +2080,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_RET: {
     // RET: [opval?]
-    if (!isValidRecordSizeInRange(0, 1, "function block ret"))
+    if (!isValidRecordSizeInRange(0, 1, "return"))
       return;
     if (Values.empty()) {
       if (isIRGenerationDisabled())
@@ -2048,7 +2108,7 @@ void FunctionParser::ProcessRecord() {
       CurrentNode->appendInst(Ice::InstBr::create(Func, Block));
     } else {
       // BR: [bb#, bb#, opval]
-      if (!isValidRecordSize(3, "function block branch"))
+      if (!isValidRecordSize(3, "branch"))
         return;
       Ice::Operand *Cond = getRelativeOperand(Values[2], BaseIndex);
       if (isIRGenerationDisabled()) {
@@ -2082,7 +2142,7 @@ void FunctionParser::ProcessRecord() {
     // unnecesary data fields (i.e. constants 1).  These were not
     // cleaned up in PNaCl bitcode because the bitcode format was
     // already frozen when the problem was noticed.
-    if (!isValidRecordSizeAtLeast(4, "function block switch"))
+    if (!isValidRecordSizeAtLeast(4, "switch"))
       return;
 
     Ice::Type CondTy = Context->getSimpleTypeByID(Values[0]);
@@ -2112,7 +2172,7 @@ void FunctionParser::ProcessRecord() {
     unsigned NumCases = Values[3];
 
     // Now recognize each of the cases.
-    if (!isValidRecordSize(4 + NumCases * 4, "Function block switch"))
+    if (!isValidRecordSize(4 + NumCases * 4, "switch"))
       return;
     Ice::InstSwitch *Switch =
         isIRGenDisabled ? nullptr : Ice::InstSwitch::create(Func, NumCases,
@@ -2144,7 +2204,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_UNREACHABLE: {
     // UNREACHABLE: []
-    if (!isValidRecordSize(0, "function block unreachable"))
+    if (!isValidRecordSize(0, "unreachable"))
       return;
     if (isIRGenerationDisabled())
       return;
@@ -2155,7 +2215,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_PHI: {
     // PHI: [ty, val1, bb1, ..., valN, bbN] for n >= 2.
-    if (!isValidRecordSizeAtLeast(3, "function block phi"))
+    if (!isValidRecordSizeAtLeast(3, "phi"))
       return;
     Ice::Type Ty = Context->getSimpleTypeByID(Values[0]);
     if ((Values.size() & 0x1) == 0) {
@@ -2201,7 +2261,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_ALLOCA: {
     // ALLOCA: [Size, align]
-    if (!isValidRecordSize(2, "function block alloca"))
+    if (!isValidRecordSize(2, "alloca"))
       return;
     Ice::Operand *ByteCount = getRelativeOperand(Values[0], BaseIndex);
     unsigned Alignment;
@@ -2226,7 +2286,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_LOAD: {
     // LOAD: [address, align, ty]
-    if (!isValidRecordSize(3, "function block load"))
+    if (!isValidRecordSize(3, "load"))
       return;
     Ice::Operand *Address = getRelativeOperand(Values[0], BaseIndex);
     Ice::Type Ty = Context->getSimpleTypeByID(Values[2]);
@@ -2251,7 +2311,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_STORE: {
     // STORE: [address, value, align]
-    if (!isValidRecordSize(3, "function block store"))
+    if (!isValidRecordSize(3, "store"))
       return;
     Ice::Operand *Address = getRelativeOperand(Values[0], BaseIndex);
     Ice::Operand *Value = getRelativeOperand(Values[1], BaseIndex);
@@ -2283,10 +2343,10 @@ void FunctionParser::ProcessRecord() {
     // corresponding return type stored in CALL_INDIRECT record.
     Ice::SizeT ParamsStartIndex = 2;
     if (Record.GetCode() == naclbitc::FUNC_CODE_INST_CALL) {
-      if (!isValidRecordSizeAtLeast(2, "function block call"))
+      if (!isValidRecordSizeAtLeast(2, "call"))
         return;
     } else {
-      if (!isValidRecordSizeAtLeast(3, "function block call indirect"))
+      if (!isValidRecordSizeAtLeast(3, "call indirect"))
         return;
       ParamsStartIndex = 3;
     }
@@ -2415,7 +2475,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_FORWARDTYPEREF: {
     // FORWARDTYPEREF: [opval, ty]
-    if (!isValidRecordSize(2, "function block forward type ref"))
+    if (!isValidRecordSize(2, "forward type ref"))
       return;
     Ice::Type OpType = Context->getSimpleTypeByID(Values[1]);
     setOperand(Values[0],
@@ -2441,6 +2501,8 @@ public:
         FuncParser(FuncParser), NextConstantType(Ice::IceType_void) {}
 
   ~ConstantsParser() override {}
+
+  const char *getBlockName() const override { return "constants"; }
 
 private:
   Ice::TimerMarker Timer;
@@ -2468,7 +2530,7 @@ void ConstantsParser::ProcessRecord() {
   switch (Record.GetCode()) {
   case naclbitc::CST_CODE_SETTYPE: {
     // SETTYPE: [typeid]
-    if (!isValidRecordSize(1, "constants block set type"))
+    if (!isValidRecordSize(1, "set type"))
       return;
     NextConstantType = Context->getSimpleTypeByID(Values[0]);
     if (NextConstantType == Ice::IceType_void)
@@ -2477,7 +2539,7 @@ void ConstantsParser::ProcessRecord() {
   }
   case naclbitc::CST_CODE_UNDEF: {
     // UNDEF
-    if (!isValidRecordSize(0, "constants block undef"))
+    if (!isValidRecordSize(0, "undef"))
       return;
     if (!isValidNextConstantType())
       return;
@@ -2491,7 +2553,7 @@ void ConstantsParser::ProcessRecord() {
   }
   case naclbitc::CST_CODE_INTEGER: {
     // INTEGER: [intval]
-    if (!isValidRecordSize(1, "constants block integer"))
+    if (!isValidRecordSize(1, "integer"))
       return;
     if (!isValidNextConstantType())
       return;
@@ -2517,7 +2579,7 @@ void ConstantsParser::ProcessRecord() {
   }
   case naclbitc::CST_CODE_FLOAT: {
     // FLOAT: [fpval]
-    if (!isValidRecordSize(1, "constants block float"))
+    if (!isValidRecordSize(1, "float"))
       return;
     if (!isValidNextConstantType())
       return;
@@ -2592,7 +2654,7 @@ private:
 void FunctionValuesymtabParser::setValueName(uint64_t Index, StringType &Name) {
   // Note: We check when Index is too small, so that we can error recover
   // (FP->getOperand will create fatal error).
-  if (Index < getFunctionParser()->CachedNumGlobalValueIDs) {
+  if (Index < getFunctionParser()->getNumGlobalIDs()) {
     reportUnableToAssign("instruction", Index, Name);
     // TODO(kschimpf) Remove error recovery once implementation complete.
     return;
@@ -2611,12 +2673,12 @@ void FunctionValuesymtabParser::setValueName(uint64_t Index, StringType &Name) {
 void FunctionValuesymtabParser::setBbName(uint64_t Index, StringType &Name) {
   if (isIRGenerationDisabled())
     return;
-  if (Index >= getFunctionParser()->Func->getNumNodes()) {
+  if (Index >= getFunctionParser()->getFunc()->getNumNodes()) {
     reportUnableToAssign("block", Index, Name);
     return;
   }
   std::string Nm(Name.data(), Name.size());
-  getFunctionParser()->Func->getNodes()[Index]->setName(Nm);
+  getFunctionParser()->getFunc()->getNodes()[Index]->setName(Nm);
 }
 
 bool FunctionParser::ParseBlock(unsigned BlockID) {
@@ -2648,6 +2710,8 @@ public:
         GlobalDeclarationNamesAndInitializersInstalled(false) {}
 
   ~ModuleParser() override {}
+
+  const char *getBlockName() const override { return "module"; }
 
 private:
   Ice::TimerMarker Timer;
@@ -2768,7 +2832,7 @@ void ModuleParser::ProcessRecord() {
   switch (Record.GetCode()) {
   case naclbitc::MODULE_CODE_VERSION: {
     // VERSION: [version#]
-    if (!isValidRecordSize(1, "Module version"))
+    if (!isValidRecordSize(1, "version"))
       return;
     unsigned Version = Values[0];
     if (Version != 1) {
@@ -2781,14 +2845,14 @@ void ModuleParser::ProcessRecord() {
   }
   case naclbitc::MODULE_CODE_FUNCTION: {
     // FUNCTION:  [type, callingconv, isproto, linkage]
-    if (!isValidRecordSize(4, "Function heading"))
+    if (!isValidRecordSize(4, "address"))
       return;
     const Ice::FuncSigType &Signature = Context->getFuncSigTypeByID(Values[0]);
     CallingConv::ID CallingConv;
     if (!naclbitc::DecodeCallingConv(Values[1], CallingConv)) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Function heading has unknown calling convention: "
+      StrBuf << "Function address has unknown calling convention: "
              << Values[1];
       Error(StrBuf.str());
       return;
@@ -2797,7 +2861,7 @@ void ModuleParser::ProcessRecord() {
     if (!naclbitc::DecodeLinkage(Values[3], Linkage)) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Function heading has unknown linkage. Found " << Values[3];
+      StrBuf << "Function address has unknown linkage. Found " << Values[3];
       Error(StrBuf.str());
       return;
     }

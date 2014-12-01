@@ -1,7 +1,5 @@
 ; Test use forward type references in function blocks.
 
-; REQUIRES: allow_dump
-
 ; RUN: %p2i -i %s --insts | FileCheck %s
 ; RUN: llvm-as < %s | pnacl-freeze | pnacl-bcdis -no-records \
 ; RUN:              | FileCheck --check-prefix=DUMP %s

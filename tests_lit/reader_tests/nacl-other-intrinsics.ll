@@ -1,7 +1,5 @@
 ; This tests parsing NaCl intrinsics not related to atomic operations.
 
-; REQUIRES: allow_dump
-
 ; RUN: %p2i -i %s --insts | FileCheck %s
 ; RUN: %if --need=allow_disable_ir_gen --command \
 ; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
