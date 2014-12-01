@@ -56,10 +56,8 @@ public:
   CfgNode *getNode() const { return Node; }
   bool atEnd() const { return Cur == End; }
   InstList::iterator getCur() const { return Cur; }
+  InstList::iterator getNext() const { return Next; }
   InstList::iterator getEnd() const { return End; }
-  // Adaptor to enable range-based for loops.
-  InstList::iterator begin() const { return getCur(); }
-  InstList::iterator end() const { return getEnd(); }
   void insert(Inst *Inst);
   Inst *getLastInserted() const;
   void advanceCur() { Cur = Next; }

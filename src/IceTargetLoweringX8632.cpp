@@ -4299,7 +4299,7 @@ void TargetX8632::lowerPhiAssignments(CfgNode *Node,
   }
 
   // Add the terminator branch instruction to the end.
-  Context.setInsertPoint(Context.end());
+  Context.setInsertPoint(Context.getEnd());
   _br(Succ);
 }
 
@@ -4509,7 +4509,7 @@ void TargetX8632::postLower() {
     return;
   // Find two-address non-SSA instructions where Dest==Src0, and set
   // the DestNonKillable flag to keep liveness analysis consistent.
-  for (auto Inst = Context.begin(), E = Context.end(); Inst != E; ++Inst) {
+  for (auto Inst = Context.getCur(), E = Context.getNext(); Inst != E; ++Inst) {
     if (Inst->isDeleted())
       continue;
     if (Variable *Dest = Inst->getDest()) {
