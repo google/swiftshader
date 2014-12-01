@@ -39,11 +39,10 @@
 
 namespace es2
 {
-Device *Context::device = 0;
-
 Context::Context(const egl::Config *config, const Context *shareContext) : mConfig(config)
 {
-	device = getDevice();
+	sw::Context *context = new sw::Context();
+	device = new es2::Device(context);
 
     mFenceHandleAllocator.setBaseHandle(0);
 
@@ -220,6 +219,7 @@ Context::~Context()
     delete mIndexDataManager;
 
     mResourceManager->release();
+	delete device;
 }
 
 void Context::makeCurrent(egl::Surface *surface)
@@ -3133,12 +3133,6 @@ egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textu
 
 Device *Context::getDevice()
 {
-	if(!device)
-	{
-		sw::Context *context = new sw::Context();
-		device = new es2::Device(context);
-	}
-
 	return device;
 }
 

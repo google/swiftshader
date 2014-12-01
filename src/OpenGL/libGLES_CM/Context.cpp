@@ -35,15 +35,14 @@
 
 namespace es1
 {
-Device *Context::device = 0;
-
 Context::Context(const egl::Config *config, const Context *shareContext)
     : modelViewStack(MAX_MODELVIEW_STACK_DEPTH),
       projectionStack(MAX_PROJECTION_STACK_DEPTH),
 	  textureStack0(MAX_TEXTURE_STACK_DEPTH),
 	  textureStack1(MAX_TEXTURE_STACK_DEPTH)
 {
-	device = getDevice();
+	sw::Context *context = new sw::Context();
+	device = new es1::Device(context);
 
 	mVertexDataManager = new VertexDataManager(this);
     mIndexDataManager = new IndexDataManager();
@@ -210,6 +209,7 @@ Context::~Context()
     delete mIndexDataManager;
 
     mResourceManager->release();
+	delete device;
 }
 
 void Context::makeCurrent(egl::Surface *surface)
@@ -2464,12 +2464,6 @@ egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textu
 
 Device *Context::getDevice()
 {
-	if(!device)
-	{
-		sw::Context *context = new sw::Context();
-		device = new es1::Device(context);
-	}
-
 	return device;
 }
 
