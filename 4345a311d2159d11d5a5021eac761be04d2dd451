@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9fa641d2_ff2c1f8d",
+        "filename": "src/OpenGL/libGLESv2/Shader.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2014-12-01T21:41:43Z",
+      "side": 1,
+      "message": "Minor detail: indentation could be made uniform in that function.",
+      "range": {
+        "startLine": 191,
+        "startChar": 1,
+        "endLine": 191,
+        "endChar": 15
+      },
+      "revId": "4345a311d2159d11d5a5021eac761be04d2dd451",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
