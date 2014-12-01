@@ -184,10 +184,11 @@ TranslatorASM *Shader::createCompiler(ShShaderType type)
 
 void Shader::clear()
 {
-    delete[] mInfoLog;
-    mInfoLog = NULL;
+	delete[] mInfoLog;
+	mInfoLog = NULL;
 
-    varyings.clear();
+	varyings.clear();
+	activeUniforms.clear();
 	activeAttributes.clear();
 }
 
