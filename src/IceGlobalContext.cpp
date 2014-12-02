@@ -103,17 +103,20 @@ public:
   UndefPool Undefs;
 };
 
-GlobalContext::GlobalContext(llvm::raw_ostream *OsDump,
-                             llvm::raw_ostream *OsEmit, VerboseMask Mask,
+GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
+                             ELFStreamer *ELFStr, VerboseMask Mask,
                              TargetArch Arch, OptLevel Opt,
                              IceString TestPrefix, const ClFlags &Flags)
     : StrDump(OsDump), StrEmit(OsEmit), VMask(Mask),
       ConstPool(new ConstantPool()), Arch(Arch), Opt(Opt),
       TestPrefix(TestPrefix), Flags(Flags), HasEmittedFirstMethod(false),
-      RNG("") {
+      RNG(""), ObjectWriter() {
   // Pre-register built-in stack names.
   newTimerStackID("Total across all functions");
   newTimerStackID("Per-function summary");
+  if (Flags.UseELFWriter) {
+    ObjectWriter.reset(new ELFObjectWriter(*this, *ELFStr));
+  }
 }
 
 // Scan a string for S[0-9A-Z]*_ patterns and replace them with

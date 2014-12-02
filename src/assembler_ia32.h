@@ -56,12 +56,6 @@ public:
         DisplacementRelocation(Kind, Sym);
   }
 
-  void Process(const MemoryRegion &region, intptr_t position) override {
-    (void)region;
-    (void)position;
-    llvm_unreachable("We might not be using this Process() method later.");
-  }
-
 private:
   DisplacementRelocation(FixupKind Kind, const ConstantRelocatable *Sym)
       : AssemblerFixup(Kind, Sym) {}
@@ -373,6 +367,15 @@ public:
 
   static const bool kNearJump = true;
   static const bool kFarJump = false;
+
+  void alignFunction() override;
+
+  SizeT getBundleAlignLog2Bytes() const override { return 5; }
+
+  llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const override {
+    static const uint8_t Padding[] = {0xF4};
+    return llvm::ArrayRef<uint8_t>(Padding, 1);
+  }
 
   Label *GetOrCreateCfgNodeLabel(SizeT NodeNumber);
   void BindCfgNodeLabel(SizeT NodeNumber) override;
@@ -824,10 +827,6 @@ public:
   void Bind(Label *label);
 
   intptr_t CodeSize() const { return buffer_.Size(); }
-
-  void FinalizeInstructions(const MemoryRegion &region) {
-    buffer_.FinalizeInstructions(region);
-  }
 
 private:
   inline void EmitUint8(uint8_t value);

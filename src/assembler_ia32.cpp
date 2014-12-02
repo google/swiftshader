@@ -20,7 +20,6 @@
 
 #include "assembler_ia32.h"
 #include "IceCfg.h"
-#include "IceMemoryRegion.h"
 #include "IceOperand.h"
 
 namespace Ice {
@@ -35,13 +34,6 @@ public:
                                       const ConstantRelocatable *Sym) {
     return new (Asm->Allocate<DirectCallRelocation>())
         DirectCallRelocation(Kind, Sym);
-  }
-
-  void Process(const MemoryRegion &region, intptr_t position) override {
-    // Direct calls are relative to the following instruction on x86.
-    int32_t pointer = region.Load<int32_t>(position);
-    int32_t delta = region.start() + position + sizeof(int32_t);
-    region.Store<int32_t>(position, pointer - delta);
   }
 
 private:
@@ -75,6 +67,22 @@ AssemblerX86::~AssemblerX86() {
     Label->FinalCheck();
   }
 #endif
+}
+
+void AssemblerX86::alignFunction() {
+  intptr_t Pos = buffer_.GetPosition();
+  SizeT Align = 1 << getBundleAlignLog2Bytes();
+  intptr_t Mod = Pos & (Align - 1);
+  if (Mod == 0) {
+    return;
+  }
+  SizeT BytesNeeded = Align - Mod;
+  const SizeT HltSize = 1;
+  while (BytesNeeded > 0) {
+    hlt();
+    BytesNeeded -= HltSize;
+  }
+  assert((buffer_.GetPosition() & (Align - 1)) == 0);
 }
 
 Label *AssemblerX86::GetOrCreateLabel(SizeT Number, LabelVector &Labels) {

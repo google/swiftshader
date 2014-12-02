@@ -15,13 +15,18 @@
 #ifndef SUBZERO_SRC_ICETYPES_DEF
 #define SUBZERO_SRC_ICETYPES_DEF
 
-#define TARGETARCH_TABLE                                                 \
-  /* enum value, printable string */                                     \
-  X(Target_X8632, "x86-32")                                              \
-  X(Target_X8664, "x86-64")                                              \
-  X(Target_ARM32, "arm32")                                               \
-  X(Target_ARM64, "arm64")                                               \
-//#define X(tag, str)
+// Attributes of each target architecture.
+// NOTE on is_elf64 -- At some point NaCl would like to use ELF32 for all
+// ILP32 sandboxes, but for now the 64-bit architectures use ELF64:
+// https://code.google.com/p/nativeclient/issues/detail?id=349
+// TODO: Whoever adds AArch64 will need to set ABI e_flags.
+#define TARGETARCH_TABLE                                                \
+  /* enum value, printable string, is_elf64, e_machine, e_flags */      \
+  X(Target_X8632, "x86-32", false, EM_386,    0)                        \
+  X(Target_X8664, "x86-64", true,  EM_X86_64, 0)                        \
+  X(Target_ARM32, "arm32",  false, EM_ARM,    EF_ARM_EABI_VER5)         \
+  X(Target_ARM64, "arm64",  true,  EM_AARCH64, 0)                       \
+  //#define X(tag, str, is_elf64, e_machine, e_flags)
 
 #define ICETYPE_TABLE                                                    \
   /* enum value,  size, align, # elts, element type, printable string */ \

@@ -92,13 +92,14 @@ SRCS = \
 	assembler_ia32.cpp \
 	IceCfg.cpp \
 	IceCfgNode.cpp \
+	IceELFObjectWriter.cpp \
+	IceELFSection.cpp \
 	IceGlobalContext.cpp \
 	IceGlobalInits.cpp \
 	IceInst.cpp \
 	IceInstX8632.cpp \
 	IceIntrinsics.cpp \
 	IceLiveness.cpp \
-	IceMemoryRegion.cpp \
 	IceOperand.cpp \
 	IceRegAlloc.cpp \
 	IceRNG.cpp \
@@ -116,6 +117,12 @@ ifndef MINIMAL
 endif
 
 OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(SRCS))
+
+UNITTEST_SRCS = \
+	IceELFSectionTest.cpp
+
+UNITTEST_OBJS = $(patsubst %.cpp, $(OBJDIR)/unittest/%.o, $(UNITTEST_SRCS))
+UNITTEST_LIB_OBJS = $(filter-out $(OBJDIR)/llvm2ice.o,$(OBJS))
 
 # Keep all the first target so it's the default.
 all: $(OBJDIR)/llvm2ice make_symlink
@@ -141,20 +148,39 @@ $(OBJDIR)/llvm2ice: $(OBJS)
 $(OBJS): $(OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
+$(OBJDIR)/run_unittests: $(UNITTEST_OBJS) $(UNITTEST_LIB_OBJS)
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) -lgtest -lgtest_main -ldl \
+               -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
+
+$(UNITTEST_OBJS): $(OBJDIR)/unittest/%.o: unittest/%.cpp
+	$(CXX) -c $(CXXFLAGS) \
+		-Isrc/ \
+		-I$(LLVM_SRC_PATH)/utils/unittest/googletest/include \
+		-DGTEST_HAS_RTTI=0 -DGTEST_USE_OWN_TR1_TUPLE \
+		$< -o $@
+
 $(OBJS): | $(OBJDIR)
 
+$(UNITTEST_OBJS): | $(OBJDIR)/unittest
+
 $(OBJDIR):
+	@mkdir -p $@
+
+$(OBJDIR)/unittest: $(OBJDIR)
 	@mkdir -p $@
 
 check-lit: llvm2ice make_symlink
 	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit
 
+check-unit: $(OBJDIR)/run_unittests
+	$(OBJDIR)/run_unittests
+
 ifdef MINIMAL
-check: check-lit
+check: check-lit check-unit
 	@echo "Crosstests ignored, minimal build"
 else
-check: check-lit
+check: check-lit check-unit
 	(cd crosstest; ./runtests.sh)
 endif
 

@@ -19,8 +19,8 @@ namespace Ice {
 namespace {
 
 const char *TargetArchName[] = {
-#define X(tag, str) str,
-  TARGETARCH_TABLE
+#define X(tag, str, is_elf64, e_machine, e_flags) str,
+    TARGETARCH_TABLE
 #undef X
 };
 

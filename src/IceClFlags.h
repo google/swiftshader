@@ -23,17 +23,18 @@ public:
   ClFlags()
       : DisableInternal(false), SubzeroTimingEnabled(false),
         DisableTranslation(false), FunctionSections(false), DataSections(false),
-        UseIntegratedAssembler(false), UseSandboxing(false),
-        PhiEdgeSplit(false), DecorateAsm(false), DumpStats(false),
-        AllowUninitializedGlobals(false), TimeEachFunction(false),
-        DisableIRGeneration(false), DefaultGlobalPrefix(""),
-        DefaultFunctionPrefix(""), TimingFocusOn(""), VerboseFocusOn(""),
-        TranslateOnly("") {}
+        UseELFWriter(false), UseIntegratedAssembler(false),
+        UseSandboxing(false), PhiEdgeSplit(false), DecorateAsm(false),
+        DumpStats(false), AllowUninitializedGlobals(false),
+        TimeEachFunction(false), DisableIRGeneration(false),
+        DefaultGlobalPrefix(""), DefaultFunctionPrefix(""), TimingFocusOn(""),
+        VerboseFocusOn(""), TranslateOnly("") {}
   bool DisableInternal;
   bool SubzeroTimingEnabled;
   bool DisableTranslation;
   bool FunctionSections;
   bool DataSections;
+  bool UseELFWriter;
   bool UseIntegratedAssembler;
   bool UseSandboxing;
   bool PhiEdgeSplit;

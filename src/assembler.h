@@ -35,7 +35,6 @@ class Assembler;
 class AssemblerFixup;
 class AssemblerBuffer;
 class ConstantRelocatable;
-class MemoryRegion;
 
 // Assembler fixups are positions in generated code that hold relocation
 // information that needs to be processed before finalizing the code
@@ -45,7 +44,6 @@ class AssemblerFixup {
   AssemblerFixup &operator=(const AssemblerFixup &) = delete;
 
 public:
-  virtual void Process(const MemoryRegion &region, intptr_t position) = 0;
 
   // It would be ideal if the destructor method could be made private,
   // but the g++ compiler complains when this is subclassed.
@@ -108,12 +106,6 @@ public:
   // Get the size of the emitted code.
   intptr_t Size() const { return cursor_ - contents_; }
   uintptr_t contents() const { return contents_; }
-
-  // Copy the assembled instructions into the specified memory block
-  // and apply all fixups.
-  // TODO(jvoung): This will be different. We'll be writing the text
-  // and reloc section to a file?
-  void FinalizeInstructions(const MemoryRegion &region);
 
 // To emit an instruction to the assembler buffer, the EnsureCapacity helper
 // must be used to guarantee that the underlying data area is big enough to
@@ -189,9 +181,6 @@ private:
     return (limit_ - contents_) + kMinimumGap;
   }
 
-  // Process the fixup chain.
-  void ProcessFixups(const MemoryRegion &region);
-
   // Compute the limit based on the data area and the capacity. See
   // description of kMinimumGap for the reasoning behind the value.
   static uintptr_t ComputeLimit(uintptr_t data, intptr_t capacity) {
@@ -226,7 +215,19 @@ public:
   // Allocate data of type T using the per-Assembler allocator.
   template <typename T> T *Allocate() { return Allocator.Allocate<T>(); }
 
+  // Align the tail end of the function to the required target alignment.
+  virtual void alignFunction() = 0;
+
+  virtual SizeT getBundleAlignLog2Bytes() const = 0;
+
+  virtual llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const = 0;
+
+  // Mark the current text location as the start of a CFG node
+  // (represented by NodeNumber).
   virtual void BindCfgNodeLabel(SizeT NodeNumber) = 0;
+
+  // Return a view of all the bytes of code for the current function.
+  llvm::StringRef getBufferView() const;
 
   void emitIASBytes(GlobalContext *Ctx) const;
 

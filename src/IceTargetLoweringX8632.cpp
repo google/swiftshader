@@ -4555,6 +4555,9 @@ TargetGlobalInitX8632::TargetGlobalInitX8632(GlobalContext *Ctx)
     : TargetGlobalInitLowering(Ctx) {}
 
 void TargetGlobalInitX8632::lower(const VariableDeclaration &Var) {
+  // TODO(jvoung): handle this without text.
+  if (Ctx->getFlags().UseELFWriter)
+    return;
 
   Ostream &Str = Ctx->getStrEmit();
 

@@ -20,7 +20,6 @@
 
 #include "assembler.h"
 #include "IceGlobalContext.h"
-#include "IceMemoryRegion.h"
 #include "IceOperand.h"
 
 namespace Ice {
@@ -76,25 +75,6 @@ AssemblerBuffer::AssemblerBuffer(Assembler &assembler) : assembler_(assembler) {
 
 AssemblerBuffer::~AssemblerBuffer() {}
 
-void AssemblerBuffer::ProcessFixups(const MemoryRegion &region) {
-  for (SizeT I = 0; I < fixups_.size(); ++I) {
-    AssemblerFixup *fixup = fixups_[I];
-    fixup->Process(region, fixup->position());
-  }
-}
-
-void AssemblerBuffer::FinalizeInstructions(const MemoryRegion &instructions) {
-  // Copy the instructions from the buffer.
-  MemoryRegion from(reinterpret_cast<void *>(contents()), Size());
-  instructions.CopyFrom(0, from);
-
-  // Process fixups in the instructions.
-  ProcessFixups(instructions);
-#ifndef NDEBUG
-  fixups_processed_ = true;
-#endif // !NDEBUG
-}
-
 void AssemblerBuffer::ExtendCapacity() {
   intptr_t old_size = Size();
   intptr_t old_capacity = Capacity();
@@ -121,6 +101,11 @@ void AssemblerBuffer::ExtendCapacity() {
   // Verify internal state.
   assert(Capacity() == new_capacity);
   assert(Size() == old_size);
+}
+
+llvm::StringRef Assembler::getBufferView() const {
+  return llvm::StringRef(reinterpret_cast<const char *>(buffer_.contents()),
+                         buffer_.Size());
 }
 
 void Assembler::emitIASBytes(GlobalContext *Ctx) const {

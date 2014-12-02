@@ -52,11 +52,6 @@ public:
     // i8, and i16 are rounded up to 4 bytes.
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
-  SizeT getBundleAlignLog2Bytes() const override { return 5; }
-  llvm::ArrayRef<AsmCodeByte> getNonExecBundlePadding() const override {
-    static const AsmCodeByte Padding[] = { 0xF4 };
-    return llvm::ArrayRef<AsmCodeByte>(Padding, 1);
-  }
   void emitVariable(const Variable *Var) const override;
   void lowerArguments() override;
   void addProlog(CfgNode *Node) override;

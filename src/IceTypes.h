@@ -28,7 +28,7 @@ enum Type {
 };
 
 enum TargetArch {
-#define X(tag, str) tag,
+#define X(tag, str, is_elf64, e_machine, e_flags) tag,
   TARGETARCH_TABLE
 #undef X
       TargetArch_NUM

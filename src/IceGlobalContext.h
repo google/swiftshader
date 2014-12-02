@@ -18,10 +18,10 @@
 #include <memory>
 
 #include "llvm/Support/Allocator.h"
-#include "llvm/Support/raw_ostream.h"
 
 #include "IceDefs.h"
 #include "IceClFlags.h"
+#include "IceELFObjectWriter.h"
 #include "IceIntrinsics.h"
 #include "IceRNG.h"
 #include "IceTimerTree.h"
@@ -74,7 +74,7 @@ class GlobalContext {
   GlobalContext &operator=(const GlobalContext &) = delete;
 
 public:
-  GlobalContext(llvm::raw_ostream *OsDump, llvm::raw_ostream *OsEmit,
+  GlobalContext(Ostream *OsDump, Ostream *OsEmit, ELFStreamer *ELFStreamer,
                 VerboseMask Mask, TargetArch Arch, OptLevel Opt,
                 IceString TestPrefix, const ClFlags &Flags);
   ~GlobalContext();
@@ -158,6 +158,8 @@ public:
   // translation.
   RandomNumberGenerator &getRNG() { return RNG; }
 
+  ELFObjectWriter *getObjectWriter() const { return ObjectWriter.get(); }
+
   // Reset stats at the beginning of a function.
   void resetStats() { StatsFunction.reset(); }
   void dumpStats(const IceString &Name, bool Final = false);
@@ -212,6 +214,7 @@ private:
   const ClFlags &Flags;
   bool HasEmittedFirstMethod;
   RandomNumberGenerator RNG;
+  std::unique_ptr<ELFObjectWriter> ObjectWriter;
   CodeStats StatsFunction;
   CodeStats StatsCumulative;
   std::vector<TimerStack> Timers;

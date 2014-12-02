@@ -20,6 +20,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/CommandLine.h"
+#include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/SourceMgr.h"
 
@@ -173,6 +174,11 @@ static cl::opt<bool>
 static cl::alias UseIas("ias", cl::desc("Alias for -integrated-as"),
                         cl::NotHidden, cl::aliasopt(UseIntegratedAssembler));
 
+static cl::opt<bool>
+    UseELFWriter("elf-writer",
+                 cl::desc("Use ELF writer with the integrated assembler"),
+                 cl::init(false));
+
 static cl::opt<bool> AlwaysExitSuccess(
     "exit-success", cl::desc("Exit with success status, even if errors found"),
     cl::init(false));
@@ -200,7 +206,7 @@ static struct {
 
 // Validates values of build attributes. Prints them to Stream if
 // Stream is non-null.
-static void ValidateAndGenerateBuildAttributes(raw_os_ostream *Stream) {
+static void ValidateAndGenerateBuildAttributes(Ice::Ostream *Stream) {
 
   if (Stream)
     *Stream << TargetArch << "\n";
@@ -242,24 +248,19 @@ int main(int argc, char **argv) {
       VMask |= VerboseList[i];
   }
 
-  std::ofstream Ofs;
-  if (OutputFilename != "-") {
-    Ofs.open(OutputFilename.c_str(), std::ofstream::out);
-  }
-  raw_os_ostream *Os =
-      new raw_os_ostream(OutputFilename == "-" ? std::cout : Ofs);
-  Os->SetUnbuffered();
-
-  ValidateAndGenerateBuildAttributes(GenerateBuildAtts ? Os : nullptr);
-  if (GenerateBuildAtts)
-    return GetReturnValue(0);
-
   std::ofstream Lfs;
+  std::unique_ptr<Ice::Ostream> Ls;
   if (LogFilename != "-") {
     Lfs.open(LogFilename.c_str(), std::ofstream::out);
+    Ls.reset(new raw_os_ostream(Lfs));
+  } else {
+    Ls.reset(new raw_os_ostream(std::cout));
   }
-  raw_os_ostream *Ls = new raw_os_ostream(LogFilename == "-" ? std::cout : Lfs);
   Ls->SetUnbuffered();
+
+  ValidateAndGenerateBuildAttributes(GenerateBuildAtts ? Ls.get() : nullptr);
+  if (GenerateBuildAtts)
+    return GetReturnValue(0);
 
   if (!ALLOW_DISABLE_IR_GEN && DisableIRGeneration) {
     *Ls << "Error: Build doesn't allow --no-ir-gen when not "
@@ -274,6 +275,7 @@ int main(int argc, char **argv) {
   Flags.FunctionSections = FunctionSections;
   Flags.DataSections = DataSections;
   Flags.UseIntegratedAssembler = UseIntegratedAssembler;
+  Flags.UseELFWriter = UseELFWriter;
   Flags.UseSandboxing = UseSandboxing;
   Flags.PhiEdgeSplit = EnablePhiEdgeSplit;
   Flags.DecorateAsm = DecorateAsm;
@@ -294,10 +296,44 @@ int main(int argc, char **argv) {
                          LLSuffix.length(), LLSuffix) == 0)
     BuildOnRead = false;
 
-  Ice::GlobalContext Ctx(Ls, Os, VMask, TargetArch, OptLevel, TestPrefix,
-                         Flags);
+  // With the ELF writer, use a raw_fd_ostream to allow seeking.
+  // Also don't buffer, otherwise it gets pretty slow.
+  std::unique_ptr<Ice::Ostream> Os;
+  std::unique_ptr<Ice::ELFStreamer> ELFStr;
+  std::ofstream Ofs;
+  if (UseELFWriter) {
+    if (OutputFilename == "-") {
+      *Ls << "Error: writing binary ELF to stdout is unsupported\n";
+      return GetReturnValue(1);
+    }
+    std::string ErrorInfo;
+    raw_fd_ostream *FdOs =
+        new raw_fd_ostream(OutputFilename.c_str(), ErrorInfo, sys::fs::F_None);
+    Os.reset(FdOs);
+    if (!ErrorInfo.empty()) {
+      *Ls << "Failed to open output file: " << OutputFilename << ":\n"
+          << ErrorInfo << "\n";
+      return GetReturnValue(1);
+    }
+    ELFStr.reset(new Ice::ELFStreamer(*FdOs));
+  } else {
+    if (OutputFilename != "-") {
+      Ofs.open(OutputFilename.c_str(), std::ofstream::out);
+      Os.reset(new raw_os_ostream(Ofs));
+    } else {
+      Os.reset(new raw_os_ostream(std::cout));
+    }
+    Os->SetUnbuffered();
+  }
+
+  Ice::GlobalContext Ctx(Ls.get(), Os.get(), ELFStr.get(), VMask, TargetArch,
+                         OptLevel, TestPrefix, Flags);
 
   Ice::TimerMarker T(Ice::TimerStack::TT_szmain, &Ctx);
+
+  if (UseELFWriter) {
+    Ctx.getObjectWriter()->writeInitialELFHeader();
+  }
 
   int ErrorStatus = 0;
   if (BuildOnRead) {
@@ -323,6 +359,9 @@ int main(int argc, char **argv) {
     *Ls << "Error: Build doesn't allow LLVM IR, "
         << "--build-on-read=0 not allowed\n";
     return GetReturnValue(1);
+  }
+  if (UseELFWriter) {
+    Ctx.getObjectWriter()->writeNonUserSections();
   }
   if (SubzeroTimingEnabled)
     Ctx.dumpTimers();
