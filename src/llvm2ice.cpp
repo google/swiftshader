@@ -166,6 +166,14 @@ static cl::opt<bool>
                 cl::desc("Build ICE instructions when reading bitcode"),
                 cl::init(true));
 
+
+static cl::opt<bool>
+LLVMVerboseErrors(
+    "verbose-llvm-parse-errors",
+    cl::desc("Print out more descriptive PNaCl bitcode parse errors when "
+             "building LLVM IR first"),
+    cl::init(false));
+
 static cl::opt<bool>
     UseIntegratedAssembler("integrated-as",
                            cl::desc("Use integrated assembler (default yes)"),
@@ -344,8 +352,10 @@ int main(int argc, char **argv) {
     // Parse the input LLVM IR file into a module.
     SMDiagnostic Err;
     Ice::TimerMarker T1(Ice::TimerStack::TT_parse, &Ctx);
+    raw_ostream *Verbose = LLVMVerboseErrors ? &errs() : nullptr;
     Module *Mod =
-        NaClParseIRFile(IRFilename, InputFileFormat, Err, getGlobalContext());
+        NaClParseIRFile(IRFilename, InputFileFormat, Err, Verbose,
+                        getGlobalContext());
 
     if (!Mod) {
       Err.print(argv[0], errs());
