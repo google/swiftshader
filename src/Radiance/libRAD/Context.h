@@ -60,7 +60,6 @@ class DepthStencilbuffer;
 class VertexDataManager;
 class IndexDataManager;
 class Fence;
-class Query;
 
 enum
 {
@@ -76,14 +75,6 @@ enum
 
     IMPLEMENTATION_COLOR_READ_FORMAT = GL_RGB,
     IMPLEMENTATION_COLOR_READ_TYPE = GL_UNSIGNED_SHORT_5_6_5
-};
-
-enum QueryType
-{
-    QUERY_ANY_SAMPLES_PASSED,
-    QUERY_ANY_SAMPLES_PASSED_CONSERVATIVE,
-
-    QUERY_TYPE_COUNT
 };
 
 const float ALIASED_LINE_WIDTH_RANGE_MIN = 1.0f;
@@ -221,7 +212,6 @@ struct State
 	egl::Image *stencilBuffer;
 
     VertexAttribute vertexAttribute[MAX_VERTEX_ATTRIBS];
-    BindingPointer<Query> activeQuery[QUERY_TYPE_COUNT];
 
     GLint unpackAlignment;
     GLint packAlignment;
@@ -296,8 +286,6 @@ public:
     void setDepthMask(bool mask);
 
     void setActiveSampler(unsigned int active);
-
-	GLuint getActiveQuery(GLenum target) const;
 
     void setEnableVertexAttribArray(unsigned int attribNum, bool enabled);
     const VertexAttribute &getVertexAttribState(unsigned int attribNum);

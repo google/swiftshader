@@ -19,7 +19,6 @@
 #include "utilities.h"
 #include "Fence.h"
 #include "Program.h"
-#include "Query.h"
 #include "Renderbuffer.h"
 #include "Shader.h"
 #include "Texture.h"
@@ -535,30 +534,6 @@ void Context::setDepthMask(bool mask)
 void Context::setActiveSampler(unsigned int active)
 {
     mState.activeSampler = active;
-}
-
-GLuint Context::getActiveQuery(GLenum target) const
-{
-    Query *queryObject = NULL;
-    
-    switch(target)
-    {
-    case GL_ANY_SAMPLES_PASSED_EXT:
-        queryObject = mState.activeQuery[QUERY_ANY_SAMPLES_PASSED].get();
-        break;
-    case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
-        queryObject = mState.activeQuery[QUERY_ANY_SAMPLES_PASSED_CONSERVATIVE].get();
-        break;
-    default:
-        ASSERT(false);
-    }
-
-    if(queryObject)
-    {
-        return queryObject->id();
-    }
-    
-	return 0;
 }
 
 void Context::setEnableVertexAttribArray(unsigned int attribNum, bool enabled)
