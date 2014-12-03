@@ -26,7 +26,7 @@ namespace es2
 {
 bool Shader::compilerInitialized = false;
 
-Shader::Shader(ResourceManager *manager, GLuint handle) : mHandle(handle), mResourceManager(manager)
+Shader::Shader(GLuint handle) : mHandle(handle)
 {
     mSource = NULL;
     mInfoLog = NULL;
@@ -216,10 +216,10 @@ void Shader::release()
 {
     mRefCount--;
 
-    if(mRefCount == 0 && mDeleteStatus)
-    {
-        mResourceManager->deleteShader(mHandle);
-    }
+	if(mRefCount == 0)
+	{
+		delete this;
+	}
 }
 
 unsigned int Shader::getRefCount() const
@@ -361,7 +361,7 @@ bool Shader::compareVarying(const Varying &x, const Varying &y)
     return false;
 }
 
-VertexShader::VertexShader(ResourceManager *manager, GLuint handle) : Shader(manager, handle)
+VertexShader::VertexShader(GLuint handle) : Shader(handle)
 {
 	vertexShader = 0;
 }
@@ -447,7 +447,7 @@ sw::VertexShader *VertexShader::getVertexShader() const
 	return vertexShader;
 }
 
-FragmentShader::FragmentShader(ResourceManager *manager, GLuint handle) : Shader(manager, handle)
+FragmentShader::FragmentShader(GLuint handle) : Shader(handle)
 {
 	pixelShader = 0;
 }

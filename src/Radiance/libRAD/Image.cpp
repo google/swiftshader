@@ -53,7 +53,7 @@ namespace es2
 	{
 		if(parentTexture)
 		{
-			parentTexture->addRef();
+			return parentTexture->addRef();
 		}
 
 		sw::atomicIncrement(&referenceCount);
@@ -63,7 +63,7 @@ namespace es2
 	{
 		if(parentTexture)
 		{
-			parentTexture->release();
+			return parentTexture->release();
 		}
 
 		if(referenceCount > 0)

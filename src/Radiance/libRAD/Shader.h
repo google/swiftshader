@@ -17,8 +17,6 @@
 #ifndef LIBGLESV2_SHADER_H_
 #define LIBGLESV2_SHADER_H_
 
-#include "ResourceManager.h"
-
 #include "compiler/TranslatorASM.h"
 
 #define GL_APICALL
@@ -67,7 +65,7 @@ class Shader
 	friend class sh::OutputASM;
 
 public:
-    Shader(ResourceManager *manager, GLuint handle);
+    Shader(GLuint handle);
 
     virtual ~Shader();
 
@@ -115,8 +113,6 @@ private:
 	const GLuint mHandle;
     unsigned int mRefCount;     // Number of program objects this shader is attached to
     bool mDeleteStatus;         // Flag to indicate that the shader can be deleted when no longer in use
-
-	ResourceManager *mResourceManager;
 };
 
 class VertexShader : public Shader
@@ -124,7 +120,7 @@ class VertexShader : public Shader
     friend class Program;
 
 public:
-    VertexShader(ResourceManager *manager, GLuint handle);
+    VertexShader(GLuint handle);
 
     ~VertexShader();
 
@@ -142,7 +138,7 @@ private:
 class FragmentShader : public Shader
 {
 public:
-    FragmentShader(ResourceManager *manager, GLuint handle);
+    FragmentShader(GLuint handle);
 
     ~FragmentShader();
 

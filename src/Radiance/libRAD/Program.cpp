@@ -70,7 +70,7 @@ namespace es2
 	{
 	}
 
-	Program::Program(ResourceManager *manager, GLuint handle) : resourceManager(manager), handle(handle), serial(issueSerial())
+	Program::Program(GLuint handle) : handle(handle), serial(issueSerial())
 	{
 		device = getDevice();
 
@@ -1965,9 +1965,9 @@ namespace es2
 	{
 		referenceCount--;
 
-		if(referenceCount == 0 && orphaned)
+		if(referenceCount == 0)
 		{
-			resourceManager->deleteProgram(handle);
+			delete this;
 		}
 	}
 

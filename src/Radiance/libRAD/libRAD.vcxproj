@@ -175,7 +175,6 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     <ClCompile Include="Query.cpp" />
     <ClCompile Include="RefCountObject.cpp" />
     <ClCompile Include="Renderbuffer.cpp" />
-    <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="utilities.cpp" />
@@ -201,7 +200,6 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     <ClInclude Include="RefCountObject.h" />
     <ClInclude Include="Renderbuffer.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="utilities.h" />

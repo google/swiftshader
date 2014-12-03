@@ -27,7 +27,6 @@
 namespace es2
 {
 	class Device;
-	class ResourceManager;
 	class FragmentShader;
 	class VertexShader;
 
@@ -64,10 +63,20 @@ namespace es2
 		unsigned int index;
 	};
 
+	enum TextureType
+	{
+		TEXTURE_2D,
+		TEXTURE_CUBE,
+		TEXTURE_EXTERNAL,
+
+		TEXTURE_TYPE_COUNT,
+		TEXTURE_UNKNOWN
+	};
+
 	class Program
 	{
 	public:
-		Program(ResourceManager *manager, GLuint handle);
+		Program(GLuint handle);
 
 		~Program();
 
@@ -199,7 +208,6 @@ namespace es2
 
 		static unsigned int currentSerial;
 
-		ResourceManager *resourceManager;
 		const GLuint handle;
 	};
 }

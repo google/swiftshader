@@ -16,7 +16,6 @@
 #define LIBGLESV2_CONTEXT_H_
 
 #include "libEGL/Context.hpp"
-#include "ResourceManager.h"
 #include "HandleAllocator.h"
 #include "RefCountObject.h"
 #include "Image.hpp"
@@ -216,15 +215,14 @@ struct State
     GLuint readFramebuffer;
     GLuint drawFramebuffer;
     BindingPointer<Renderbuffer> renderbuffer;
-    GLuint currentProgram;
 	
 	Program *program;
 	egl::Image *colorBuffer;
 	egl::Image *depthBuffer;
+	egl::Image *stencilBuffer;
 
     VertexAttribute vertexAttribute[MAX_VERTEX_ATTRIBS];
-    BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
-	BindingPointer<Query> activeQuery[QUERY_TYPE_COUNT];
+    BindingPointer<Query> activeQuery[QUERY_TYPE_COUNT];
 
     GLint unpackAlignment;
     GLint packAlignment;
@@ -300,10 +298,6 @@ public:
 
     void setActiveSampler(unsigned int active);
 
-    GLuint getReadFramebufferHandle() const;
-    GLuint getDrawFramebufferHandle() const;
-    GLuint getRenderbufferHandle() const;
-
 	GLuint getActiveQuery(GLenum target) const;
 
     void setEnableVertexAttribArray(unsigned int attribNum, bool enabled);
@@ -318,64 +312,9 @@ public:
 
     void setPackAlignment(GLint alignment);
     GLint getPackAlignment() const;
-
-    // These create  and destroy methods are merely pass-throughs to 
-    // ResourceManager, which owns these object types
-    GLuint createShader(GLenum type);
-    GLuint createProgram();
-    GLuint createTexture();
-    GLuint createRenderbuffer();
-
-    void deleteShader(GLuint shader);
-    void deleteProgram(GLuint program);
-    void deleteTexture(GLuint texture);
-    void deleteRenderbuffer(GLuint renderbuffer);
-
-    // Framebuffers are owned by the Context, so these methods do not pass through
-    GLuint createFramebuffer();
-    void deleteFramebuffer(GLuint framebuffer);
-
-    // Fences are owned by the Context
-    GLuint createFence();
-    void deleteFence(GLuint fence);
-
-	// Queries are owned by the Context
-    GLuint createQuery();
-    void deleteQuery(GLuint query);
-
-    void bindTexture2D(GLuint texture);
-    void bindTextureCubeMap(GLuint texture);
-    void bindTextureExternal(GLuint texture);
-    void bindReadFramebuffer(GLuint framebuffer);
-    void bindDrawFramebuffer(GLuint framebuffer);
-    void bindRenderbuffer(GLuint renderbuffer);
-    void useProgram(GLuint program);
-
-	void beginQuery(GLenum target, GLuint query);
-    void endQuery(GLenum target);
-
-    void setFramebufferZero(Framebuffer *framebuffer);
-
+	
     void setRenderbufferStorage(RenderbufferStorage *renderbuffer);
-
-    Fence *getFence(GLuint handle);
-    Shader *getShader(GLuint handle);
-    Program *getProgram(GLuint handle);
-    virtual Texture *getTexture(GLuint handle);
-    Framebuffer *getFramebuffer(GLuint handle);
-    virtual Renderbuffer *getRenderbuffer(GLuint handle);
-	Query *getQuery(GLuint handle, bool create, GLenum type);
-
-    Program *getCurrentProgram();
-    Texture2D *getTexture2D();
-    TextureCubeMap *getTextureCubeMap();
-    TextureExternal *getTextureExternal();
-    Texture *getSamplerTexture(unsigned int sampler, TextureType type);
-    Framebuffer *getReadFramebuffer();
-    Framebuffer *getDrawFramebuffer();
-
-    void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
-    void clear(GLbitfield mask);
+	
     void drawArrays(GLenum mode, GLint first, GLsizei count);
     void drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices);
     void finish();
@@ -390,15 +329,7 @@ public:
     GLenum getError();
 
     static int getSupportedMultiSampleDepth(sw::Format format, int requested);
-    
-    void blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, 
-                         GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
-                         GLbitfield mask);
-
-	virtual void bindTexImage(egl::Surface *surface);
-	virtual EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
-	virtual egl::Image *createSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
-
+    	
 	Device *getDevice();
 
 public:
@@ -409,13 +340,7 @@ public:
     GLenum applyVertexBuffer(GLint base, GLint first, GLsizei count);
     GLenum applyIndexBuffer(const void *indices, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo);
     void applyShaders();
-    void applyTextures();
-    void applyTextures(sw::SamplerType type);
 	void applyTexture(sw::SamplerType type, int sampler, Texture *texture);
-
-    void detachTexture(GLuint texture);
-    void detachFramebuffer(GLuint framebuffer);
-    void detachRenderbuffer(GLuint renderbuffer);
 
     bool cullSkipsDraw(GLenum drawMode);
     bool isTriangleMode(GLenum drawMode);
@@ -423,10 +348,6 @@ public:
     const egl::Config *const mConfig;
 
     State mState;
-
-    BindingPointer<Texture2D> mTexture2DZero;
-    BindingPointer<TextureCubeMap> mTextureCubeMapZero;
-    BindingPointer<TextureExternal> mTextureExternalZero;
 
     typedef std::map<GLint, Framebuffer*> FramebufferMap;
     FramebufferMap mFramebufferMap;
@@ -464,10 +385,8 @@ public:
     bool mSampleStateDirty;
     bool mFrontFaceDirty;
     bool mDitherStateDirty;
-
-    ResourceManager *mResourceManager;
-
-	static Device *device;
+	
+	Device *device;
 };
 }
 

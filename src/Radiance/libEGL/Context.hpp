@@ -16,9 +16,6 @@ class Context
 public:
 	virtual void destroy() = 0;
 	virtual void makeCurrent(Surface *surface) = 0;
-	virtual void bindTexImage(Surface *surface) = 0;
-	virtual EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel) = 0;
-	virtual Image *createSharedImage(EGLenum target, GLuint name, GLuint textureLevel) = 0;
 	virtual int getClientVersion() = 0;
 };
 }

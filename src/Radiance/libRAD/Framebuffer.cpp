@@ -47,11 +47,11 @@ Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle) const
 	}
 	else if(type == GL_RENDERBUFFER)
 	{
-		buffer = context->getRenderbuffer(handle);
+		//buffer = context->getRenderbuffer(handle);
 	}
 	else if(IsTextureTarget(type))
 	{
-		buffer = context->getTexture(handle)->getRenderbuffer(type);
+		//buffer = context->getTexture(handle)->getRenderbuffer(type);
 	}
 	else
 	{

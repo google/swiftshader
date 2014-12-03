@@ -88,13 +88,7 @@ void Surface::release()
         mDepthStencil->release();
         mDepthStencil = NULL;
     }
-
-    if(mTexture)
-    {
-        mTexture->releaseTexImage();
-        mTexture = NULL;
-    }
-
+	
 	if(backBuffer)
 	{
 		backBuffer->release();

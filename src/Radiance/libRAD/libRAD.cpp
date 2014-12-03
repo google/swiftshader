@@ -322,7 +322,8 @@ class Program : public Object
 public:
 	Program(Device *device) : Object(device)
 	{
-		program = new es2::Program(nullptr, 0);
+		program = new es2::Program(0);
+		program->addRef();
 	}
 
 	virtual ~Program()
@@ -829,6 +830,7 @@ public:
 		}
 
 		image->unlock();
+		image->release();
 	}
 
 	Buffer *buffer;
@@ -1391,8 +1393,10 @@ void RADAPIENTRY radProgramSource(RADprogram program, RADprogramFormat format, R
 	GLint vertexLength = strlen(vertexSource);
 	GLint fragmentLength = strlen(fragmentSource);
 
-	es2::VertexShader *vertexShader = new es2::VertexShader(nullptr, 0);
-	es2::FragmentShader *fragmentShader = new es2::FragmentShader(nullptr, 0);
+	es2::VertexShader *vertexShader = new es2::VertexShader(0);
+	vertexShader->addRef();
+	es2::FragmentShader *fragmentShader = new es2::FragmentShader(0);
+	fragmentShader->addRef();
 
 	vertexShader->setSource(1, &vertexSource, &vertexLength);
 	fragmentShader->setSource(1, &fragmentSource, &fragmentLength);
@@ -1572,7 +1576,9 @@ RADrenderTargetHandle RADAPIENTRY radGetTextureRenderTargetHandle(RADtexture tex
 	default:
 		UNREACHABLE();
 	}
-	return reinterpret_cast<RADrenderTargetHandle>(radTexture->texture->getRenderTarget(glTarget, level));
+	egl::Image *image = radTexture->texture->getRenderTarget(glTarget, level);
+	image->release();   // FIXME: Handles are weak pointers
+	return reinterpret_cast<RADrenderTargetHandle>(image);
 }
 
 RADsampler RADAPIENTRY radCreateSampler(RADdevice device)

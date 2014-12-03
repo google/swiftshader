@@ -404,50 +404,6 @@ void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLenum form
     Texture::setImage(format, type, unpackAlignment, pixels, image[level]);
 }
 
-void Texture2D::bindTexImage(egl::Surface *surface)
-{
-    GLenum format;
-
-    switch(surface->getInternalFormat())
-    {
-    case sw::FORMAT_A8R8G8B8:
-        format = GL_RGBA;
-        break;
-    case sw::FORMAT_X8R8G8B8:
-        format = GL_RGB;
-        break;
-    default:
-        UNIMPLEMENTED();
-        return;
-    }
-
-	for(int level = 0; level < MIPMAP_LEVELS; level++)
-	{
-		if(image[level])
-		{
-			image[level]->unbind();
-			image[level] = 0;
-		}
-	}
-
-	image[0] = surface->getRenderTarget();
-
-    mSurface = surface;
-    mSurface->setBoundTexture(this);
-}
-
-void Texture2D::releaseTexImage()
-{
-    for(int level = 0; level < MIPMAP_LEVELS; level++)
-	{
-		if(image[level])
-		{
-			image[level]->unbind();
-			image[level] = 0;
-		}
-	}
-}
-
 void Texture2D::setCompressedImage(GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels)
 {
 	if(image[level])

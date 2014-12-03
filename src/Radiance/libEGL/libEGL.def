@@ -1,7 +1,6 @@
 LIBRARY	libEGL
 EXPORTS
 	eglBindAPI                      @14
-	eglBindTexImage                 @20
 	eglChooseConfig                 @7
 	eglCopyBuffers                  @33
 	eglCreateContext                @23
@@ -25,7 +24,6 @@ EXPORTS
 	eglQueryContext                 @29
 	eglQueryString                  @5
 	eglQuerySurface                 @13
-	eglReleaseTexImage              @21
 	eglReleaseThread                @17
 	eglSurfaceAttrib                @19
 	eglSwapBuffers                  @32

@@ -139,8 +139,6 @@ public:
     virtual bool isSamplerComplete() const;
     virtual bool isCompressed(GLenum target, GLint level) const;
 	virtual bool isDepth(GLenum target, GLint level) const;
-    virtual void bindTexImage(egl::Surface *surface);
-    virtual void releaseTexImage();
 
     virtual void generateMipmaps();
 

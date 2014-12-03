@@ -6,7 +6,6 @@ namespace egl
 class Texture2D
 {
 public:
-	virtual void releaseTexImage() = 0;
 };
 }
 

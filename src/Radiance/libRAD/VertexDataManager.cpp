@@ -33,7 +33,7 @@ VertexDataManager::~VertexDataManager()
 GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, TranslatedAttribute *translated)
 {
     const VertexAttributeArray &attribs = mContext->getVertexAttributes();
-    Program *program = mContext->getCurrentProgram();
+    Program *program = mContext->mState.program;
     
     // Perform the vertex data translations
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
