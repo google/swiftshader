@@ -18,7 +18,6 @@
 #include "mathutil.h"
 #include "utilities.h"
 #include "Fence.h"
-#include "Framebuffer.h"
 #include "Program.h"
 #include "Query.h"
 #include "Renderbuffer.h"

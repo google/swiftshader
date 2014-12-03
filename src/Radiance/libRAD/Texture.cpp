@@ -17,7 +17,6 @@
 
 #include "main.h"
 #include "mathutil.h"
-#include "Framebuffer.h"
 #include "Device.hpp"
 #include "libEGL/Display.h"
 #include "libEGL/Surface.h"
@@ -429,67 +428,6 @@ void Texture2D::subImage(GLint level, GLint xoffset, GLint yoffset, GLsizei widt
 void Texture2D::subImageCompressed(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels)
 {
     Texture::subImageCompressed(xoffset, yoffset, width, height, format, imageSize, pixels, image[level]);
-}
-
-void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source)
-{
-    egl::Image *renderTarget = source->getRenderTarget();
-
-    if(!renderTarget)
-    {
-        ERR("Failed to retrieve the render target.");
-        return error(GL_OUT_OF_MEMORY);
-    }
-
-	if(image[level])
-	{
-		image[level]->unbind();
-	}
-
-	image[level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
-
-	if(!image[level])
-	{
-		return error(GL_OUT_OF_MEMORY);
-	}
-
-    if(width != 0 && height != 0)
-    {
-		sw::Rect sourceRect = {x, y, x + width, y + height};
-		sourceRect.clip(0, 0, source->getColorbuffer()->getWidth(), source->getColorbuffer()->getHeight());
-
-        copy(renderTarget, sourceRect, format, 0, 0, image[level]);
-    }
-
-	renderTarget->release();
-}
-
-void Texture2D::copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source)
-{
-	if(!image[level])
-	{
-		return error(GL_INVALID_OPERATION);
-	}
-
-    if(xoffset + width > image[level]->getWidth() || yoffset + height > image[level]->getHeight())
-    {
-        return error(GL_INVALID_VALUE);
-    }
-
-	egl::Image *renderTarget = source->getRenderTarget();
-
-    if(!renderTarget)
-    {
-        ERR("Failed to retrieve the render target.");
-        return error(GL_OUT_OF_MEMORY);
-    }
-
-	sw::Rect sourceRect = {x, y, x + width, y + height};
-	sourceRect.clip(0, 0, source->getColorbuffer()->getWidth(), source->getColorbuffer()->getHeight());
-
-	copy(renderTarget, sourceRect, image[level]->getFormat(), xoffset, yoffset, image[level]);
-
-	renderTarget->release();
 }
 
 // Tests for 2D texture sampling completeness. [OpenGL ES 2.0.24] section 3.8.2 page 85.
@@ -925,41 +863,6 @@ void TextureCubeMap::setImage(GLenum target, GLint level, GLsizei width, GLsizei
     Texture::setImage(format, type, unpackAlignment, pixels, image[face][level]);
 }
 
-void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source)
-{
-	egl::Image *renderTarget = source->getRenderTarget();
-
-    if(!renderTarget)
-    {
-        ERR("Failed to retrieve the render target.");
-        return error(GL_OUT_OF_MEMORY);
-    }
-
-	int face = CubeFaceIndex(target);
-
-	if(image[face][level])
-	{
-		image[face][level]->unbind();
-	}
-
-	image[face][level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
-
-	if(!image[face][level])
-	{
-		return error(GL_OUT_OF_MEMORY);
-	}
-
-    if(width != 0 && height != 0)
-    {
-		sw::Rect sourceRect = {x, y, x + width, y + height};
-		sourceRect.clip(0, 0, source->getColorbuffer()->getWidth(), source->getColorbuffer()->getHeight());
-        
-        copy(renderTarget, sourceRect, format, 0, 0, image[face][level]);
-    }
-
-	renderTarget->release();
-}
-
 Image *TextureCubeMap::getImage(int face, unsigned int level)
 {
 	return image[face][level];
@@ -968,38 +871,6 @@ Image *TextureCubeMap::getImage(int face, unsigned int level)
 Image *TextureCubeMap::getImage(GLenum face, unsigned int level)
 {
     return image[CubeFaceIndex(face)][level];
-}
-
-void TextureCubeMap::copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source)
-{
-	int face = CubeFaceIndex(target);
-
-	if(!image[face][level])
-	{
-		return error(GL_INVALID_OPERATION);
-	}
-
-    GLsizei size = image[face][level]->getWidth();
-
-    if(xoffset + width > size || yoffset + height > size)
-    {
-        return error(GL_INVALID_VALUE);
-    }
-
-    egl::Image *renderTarget = source->getRenderTarget();
-
-    if(!renderTarget)
-    {
-        ERR("Failed to retrieve the render target.");
-        return error(GL_OUT_OF_MEMORY);
-    }
-
-	sw::Rect sourceRect = {x, y, x + width, y + height};
-	sourceRect.clip(0, 0, source->getColorbuffer()->getWidth(), source->getColorbuffer()->getHeight());
-
-	copy(renderTarget, sourceRect, image[face][level]->getFormat(), xoffset, yoffset, image[face][level]);
-
-	renderTarget->release();
 }
 
 void TextureCubeMap::generateMipmaps()

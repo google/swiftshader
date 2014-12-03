@@ -13,7 +13,6 @@
 
 #include "main.h"
 
-#include "Framebuffer.h"
 #include "libEGL/Surface.h"
 #include "Common/Thread.hpp"
 #include "Common/SharedLibrary.hpp"

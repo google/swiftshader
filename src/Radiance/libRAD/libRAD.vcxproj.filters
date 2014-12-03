@@ -20,9 +20,6 @@
     <ClCompile Include="Fence.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Framebuffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="HandleAllocator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -65,9 +62,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Fence.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Framebuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HandleAllocator.h">
