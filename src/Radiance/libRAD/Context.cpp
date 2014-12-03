@@ -32,6 +32,20 @@
 
 namespace es2
 {
+int VertexAttribute::typeSize() const
+{
+	switch (mType)
+    {
+    case GL_BYTE:           return mSize * sizeof(GLbyte);
+    case GL_UNSIGNED_BYTE:  return mSize * sizeof(GLubyte);
+    case GL_SHORT:          return mSize * sizeof(GLshort);
+    case GL_UNSIGNED_SHORT: return mSize * sizeof(GLushort);
+    case GL_FIXED:          return mSize * sizeof(GLfixed);
+    case GL_FLOAT:          return mSize * sizeof(GLfloat);
+    default: UNREACHABLE(); return mSize * sizeof(GLfloat);
+    }
+}
+
 Context::Context(const egl::Config *config, const Context *shareContext) : mConfig(config)
 {
 	sw::Context *context = new sw::Context();

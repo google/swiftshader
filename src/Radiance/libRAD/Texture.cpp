@@ -27,7 +27,7 @@
 namespace es2
 {
 
-Texture::Texture(GLuint id) : RefCountObject(id)
+Texture::Texture()
 {
     mMinFilter = GL_NEAREST_MIPMAP_LINEAR;
     mMagFilter = GL_LINEAR;
@@ -36,11 +36,33 @@ Texture::Texture(GLuint id) : RefCountObject(id)
 	mMaxAnisotropy = 1.0f;
 
 	resource = new sw::Resource(0);
+	referenceCount = 0;
 }
 
 Texture::~Texture()
 {
+	ASSERT(referenceCount == 0);
 	resource->destruct();
+}
+
+void Texture::addRef()
+{
+	sw::atomicIncrement(&referenceCount);
+}
+
+void Texture::release()
+{
+    ASSERT(referenceCount > 0);
+
+    if(referenceCount > 0)
+	{
+		sw::atomicDecrement(&referenceCount);
+	}
+
+	if(referenceCount == 0)
+	{
+		delete this;
+	}
 }
 
 sw::Resource *Texture::getResource() const
@@ -280,7 +302,7 @@ bool Texture::isMipmapFiltered() const
 	return false;
 }
 
-Texture2D::Texture2D(GLuint id) : Texture(id)
+Texture2D::Texture2D()
 {
 	for(int i = 0; i < MIPMAP_LEVELS; i++)
 	{
@@ -543,7 +565,7 @@ bool Texture2D::isShared(GLenum target, unsigned int level) const
     return image[level]->isShared();
 }
 
-TextureCubeMap::TextureCubeMap(GLuint id) : Texture(id)
+TextureCubeMap::TextureCubeMap()
 {
 	for(int f = 0; f < 6; f++)
 	{
@@ -844,34 +866,6 @@ bool TextureCubeMap::isShared(GLenum target, unsigned int level) const
     }
 
     return image[face][level]->isShared();
-}
-
-TextureExternal::TextureExternal(GLuint id) : Texture2D(id)
-{
-    mMinFilter = GL_LINEAR;
-    mMagFilter = GL_LINEAR;
-    mWrapS = GL_CLAMP_TO_EDGE;
-    mWrapT = GL_CLAMP_TO_EDGE;
-}
-
-TextureExternal::~TextureExternal()
-{
-}
-
-GLenum TextureExternal::getTarget() const
-{
-    return GL_TEXTURE_EXTERNAL_OES;
-}
-
-void TextureExternal::setImage(Image *sharedImage)
-{
-    if(image[0])
-    {
-        image[0]->release();
-    }
-
-    sharedImage->addRef();
-    image[0] = sharedImage;
 }
 
 }

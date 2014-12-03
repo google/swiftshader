@@ -16,7 +16,6 @@
 #ifndef LIBGLESV2_TEXTURE_H_
 #define LIBGLESV2_TEXTURE_H_
 
-#include "RefCountObject.h"
 #include "utilities.h"
 #include "libEGL/Texture2D.hpp"
 #include "common/debug.h"
@@ -45,12 +44,15 @@ enum
 	IMPLEMENTATION_MAX_SAMPLES = 4
 };
 
-class Texture : public RefCountObject
+class Texture
 {
 public:
-    explicit Texture(GLuint id);
+    explicit Texture();
 
     virtual ~Texture();
+
+	virtual void addRef();
+	virtual void release();
 
 	sw::Resource *getResource() const;
 	
@@ -102,12 +104,13 @@ protected:
 	GLfloat mMaxAnisotropy;
 
 	sw::Resource *resource;
+	volatile int referenceCount;
 };
 
 class Texture2D : public Texture, public egl::Texture2D
 {
 public:
-    explicit Texture2D(GLuint id);
+    explicit Texture2D();
 
     virtual ~Texture2D();
 	
@@ -147,7 +150,7 @@ protected:
 class TextureCubeMap : public Texture
 {
 public:
-    explicit TextureCubeMap(GLuint id);
+    explicit TextureCubeMap();
 
     virtual ~TextureCubeMap();
 
@@ -187,17 +190,6 @@ private:
     Image *image[6][IMPLEMENTATION_MAX_TEXTURE_LEVELS];
 };
 
-class TextureExternal : public Texture2D
-{
-public:
-    explicit TextureExternal(GLuint id);
-
-    virtual ~TextureExternal();
-
-    virtual GLenum getTarget() const;
-
-    void setImage(Image *image);
-};
 }
 
 #endif   // LIBGLESV2_TEXTURE_H_

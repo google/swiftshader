@@ -16,7 +16,6 @@
 #define LIBGLESV2_CONTEXT_H_
 
 #include "libEGL/Context.hpp"
-#include "RefCountObject.h"
 #include "Image.hpp"
 #include "Renderer/Sampler.hpp"
 
@@ -85,19 +84,7 @@ class VertexAttribute
     {
     }
 
-    int typeSize() const
-    {
-        switch (mType)
-        {
-        case GL_BYTE:           return mSize * sizeof(GLbyte);
-        case GL_UNSIGNED_BYTE:  return mSize * sizeof(GLubyte);
-        case GL_SHORT:          return mSize * sizeof(GLshort);
-        case GL_UNSIGNED_SHORT: return mSize * sizeof(GLushort);
-        case GL_FIXED:          return mSize * sizeof(GLfixed);
-        case GL_FLOAT:          return mSize * sizeof(GLfloat);
-        default: UNREACHABLE(); return mSize * sizeof(GLfloat);
-        }
-    }
+    int typeSize() const;
 
     GLsizei stride() const
     {

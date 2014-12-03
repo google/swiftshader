@@ -1536,7 +1536,7 @@ void RADAPIENTRY radTextureStorage(RADtexture texture, RADtextureTarget target, 
 	{
 	case RAD_TEXTURE_2D:
 		{
-			es2::Texture2D *tex = new es2::Texture2D(0);
+			es2::Texture2D *tex = new es2::Texture2D();
 			for(int level = 0; level < levels; level++)
 			{
 				tex->setImage(level, width >> level, height >> level, format, type, 1, nullptr);
