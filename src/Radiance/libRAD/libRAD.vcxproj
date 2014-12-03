@@ -164,7 +164,6 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     <ClCompile Include="..\common\debug.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Fence.cpp" />
-    <ClCompile Include="HandleAllocator.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="libRAD.cpp" />
     <ClCompile Include="main.cpp" />
@@ -184,7 +183,6 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     <ClInclude Include="Context.h" />
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="Fence.h" />
-    <ClInclude Include="HandleAllocator.h" />
     <ClInclude Include="Image.hpp" />
     <ClInclude Include="main.h" />
     <ClInclude Include="mathutil.h" />

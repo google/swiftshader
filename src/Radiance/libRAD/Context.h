@@ -16,7 +16,6 @@
 #define LIBGLESV2_CONTEXT_H_
 
 #include "libEGL/Context.hpp"
-#include "HandleAllocator.h"
 #include "RefCountObject.h"
 #include "Image.hpp"
 #include "Renderer/Sampler.hpp"
@@ -346,18 +345,6 @@ public:
     const egl::Config *const mConfig;
 
     State mState;
-
-    typedef std::map<GLint, Framebuffer*> FramebufferMap;
-    FramebufferMap mFramebufferMap;
-    HandleAllocator mFramebufferHandleAllocator;
-
-    typedef std::map<GLint, Fence*> FenceMap;
-    FenceMap mFenceMap;
-    HandleAllocator mFenceHandleAllocator;
-
-	typedef std::map<GLint, Query*> QueryMap;
-    QueryMap mQueryMap;
-    HandleAllocator mQueryHandleAllocator;
 
     // Recorded errors
     bool mInvalidEnum;
