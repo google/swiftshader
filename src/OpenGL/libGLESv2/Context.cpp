@@ -1941,7 +1941,7 @@ GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count)
 		}
 
 		sw::Resource *resource = attributes[i].vertexBuffer;
-		const void *buffer = (char*)resource->getBuffer() + attributes[i].offset;
+		const void *buffer = (char*)resource->data() + attributes[i].offset;
 			
 		int stride = attributes[i].stride;
 

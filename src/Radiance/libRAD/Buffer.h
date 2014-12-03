@@ -27,27 +27,7 @@
 
 namespace es2
 {
-class Buffer : public RefCountObject
-{
-  public:
-    explicit Buffer(GLuint id);
 
-    virtual ~Buffer();
-
-    void bufferData(const void *data, GLsizeiptr size, GLenum usage);
-    void bufferSubData(const void *data, GLsizeiptr size, GLintptr offset);
-
-	const void *data() { return mContents ? mContents->getBuffer() : 0; }
-    size_t size() const { return mSize; }
-    GLenum usage() const { return mUsage; }
-
-	sw::Resource *getResource();
-
-  public:
-    sw::Resource *mContents;
-    size_t mSize;
-    GLenum mUsage;
-};
 
 }
 

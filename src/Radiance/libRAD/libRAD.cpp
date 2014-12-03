@@ -156,17 +156,15 @@ public:
 	{
 		if(buffer)
 		{
-			buffer->release();
+			buffer->destruct();
 		}
 	}
 
 	void storage(RADsizei size)
 	{
 		ASSERT(!buffer);
-		buffer = new es2::Buffer(0);
-		buffer->addRef();
-		buffer->mContents = new sw::Resource(size);
-		buffer->mSize = size;
+		const int padding = 1024;   // For SIMD processing of vertices
+		buffer = new sw::Resource(size + padding);
 	}
 
 	void *map()
@@ -175,7 +173,7 @@ public:
 		return const_cast<void*>(buffer->data());
 	}
 
-	es2::Buffer *buffer;
+	sw::Resource *buffer;
 
 	RADbitfield access;
 	RADbitfield mapAccess;
@@ -1005,7 +1003,7 @@ public:
 class DrawElements : public Command
 {
 public:
-	DrawElements(RADprimitiveType mode, RADindexType type, RADsizei count, es2::Buffer *indexBuffer, RADuint offset)
+	DrawElements(RADprimitiveType mode, RADindexType type, RADsizei count, sw::Resource *indexBuffer, RADuint offset)
 	{
 		this->mode = mode;
 		this->type = type;
@@ -1060,21 +1058,21 @@ public:
 		default: UNREACHABLE();
 		}
 
-		context->mState.elementArrayBuffer.set(indexBuffer);
+		context->mState.elementArrayBuffer = indexBuffer;
 		context->drawElements(glMode, count, glType, 0);
 	}
 
 	RADprimitiveType mode;
 	RADindexType type;
 	RADsizei count;
-	es2::Buffer *indexBuffer;
+	sw::Resource *indexBuffer;
 	RADuint offset;
 };
 
 class BindGroup : public Command
 {
 public:
-	BindGroup(RADbitfield stages, RADuint group, RADuint count, es2::Buffer *buffer, RADuint offset)
+	BindGroup(RADbitfield stages, RADuint group, RADuint count, sw::Resource *buffer, RADuint offset)
 	{
 		this->stages = stages;
 		this->group = group;
@@ -1096,19 +1094,19 @@ public:
 		// FIXME: Should parse the layout out of the shaders
 		es2::Program *program = pipeline->vertexProgram->program;
 
-		es2::Buffer *element0 = reinterpret_cast<es2::Buffer*>(groupElements[0].handle);
-		void *offset0 = reinterpret_cast<void*>(static_cast<uintptr_t>(groupElements[0].offset));
+		sw::Resource *element0 = reinterpret_cast<sw::Resource*>(groupElements[0].handle);
+		uintptr_t offset0 = static_cast<uintptr_t>(groupElements[0].offset);
 		int position = program->getAttributeLocation("position");
 		context->setVertexAttribState(position, element0, 3, GL_FLOAT, GL_TRUE, 0, offset0);
 		context->setEnableVertexAttribArray(position, true);
 
-		es2::Buffer *element1 = reinterpret_cast<es2::Buffer*>(groupElements[1].handle);
-		void *offset1 = reinterpret_cast<void*>(static_cast<uintptr_t>(groupElements[1].offset));
+		sw::Resource *element1 = reinterpret_cast<sw::Resource*>(groupElements[1].handle);
+		uintptr_t offset1 = static_cast<uintptr_t>(groupElements[1].offset);
 		int tc = program->getAttributeLocation("tc");
 		context->setVertexAttribState(tc, element1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, offset1);
 		context->setEnableVertexAttribArray(tc, true);
 
-		es2::Buffer *element2 = reinterpret_cast<es2::Buffer*>(groupElements[2].handle);
+		sw::Resource *element2 = reinterpret_cast<sw::Resource*>(groupElements[2].handle);
 		const void *uniform = static_cast<const uint8_t*>(element2->data()) + groupElements[2].offset;
 		int scale = program->getUniformLocation("scale");
 		program->setUniform4fv(scale, 1, (const GLfloat*)uniform);
@@ -1123,7 +1121,7 @@ public:
 	RADbitfield stages;
 	RADuint group;
 	RADuint count;
-	es2::Buffer *buffer;
+	sw::Resource *buffer;
 	RADuint offset;
 };
 
@@ -1319,7 +1317,7 @@ void RADAPIENTRY radQueueDrawArrays(RADqueue queue, RADprimitiveType mode, RADin
 void RADAPIENTRY radQueueDrawElements(RADqueue queue, RADprimitiveType mode, RADindexType type, RADsizei count, RADindexHandle indexHandle, RADuint offset)
 {
 	rad::Queue *radQueue = reinterpret_cast<rad::Queue*>(queue);
-	es2::Buffer *indexBuffer = reinterpret_cast<es2::Buffer*>(indexHandle);
+	sw::Resource *indexBuffer = reinterpret_cast<sw::Resource*>(indexHandle);
 	rad::DrawElements *command = new rad::DrawElements(mode, type, count, indexBuffer, offset);
 	radQueue->submit(command);
 }
@@ -1334,7 +1332,7 @@ void RADAPIENTRY radQueueBindPipeline(RADqueue queue, RADpipelineType pipelineTy
 void RADAPIENTRY radQueueBindGroup(RADqueue queue, RADbitfield stages, RADuint group, RADuint count, RADbindGroupHandle groupHandle, RADuint offset)
 {
 	rad::Queue *radQueue = reinterpret_cast<rad::Queue*>(queue);
-	es2::Buffer *groupBuffer = reinterpret_cast<es2::Buffer*>(groupHandle);
+	sw::Resource *groupBuffer = reinterpret_cast<sw::Resource*>(groupHandle);
 	rad::BindGroup *command = new rad::BindGroup(stages, group, count, groupBuffer, offset);
 	radQueue->submit(command);
 }

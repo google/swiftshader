@@ -32,36 +32,15 @@ struct TranslatedIndexData
     sw::Resource *indexBuffer;
 };
 
-class StreamingIndexBuffer
-{
-  public:
-    StreamingIndexBuffer(unsigned int initialSize);
-    virtual ~StreamingIndexBuffer();
-
-    void *map(unsigned int requiredSpace, unsigned int *offset);
-	void unmap();
-    void reserveSpace(unsigned int requiredSpace, GLenum type);
-
-	sw::Resource *getResource() const;
-
-  private:
-    sw::Resource *mIndexBuffer;
-    unsigned int mBufferSize;
-    unsigned int mWritePosition;
-};
-
 class IndexDataManager
 {
   public:
     IndexDataManager();
     virtual ~IndexDataManager();
 
-    GLenum prepareIndexData(GLenum type, GLsizei count, Buffer *arrayElementBuffer, const void *indices, TranslatedIndexData *translated);
+    GLenum prepareIndexData(GLenum type, GLsizei count, sw::Resource *arrayElementBuffer, const void *indices, TranslatedIndexData *translated);
 
 	static std::size_t typeSize(GLenum type);
-
-  private:
-    StreamingIndexBuffer *mStreamingBuffer;
 };
 
 }

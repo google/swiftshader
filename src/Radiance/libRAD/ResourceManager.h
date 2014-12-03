@@ -24,7 +24,6 @@
 
 namespace es2
 {
-class Buffer;
 class Shader;
 class Program;
 class Texture;
@@ -55,13 +54,11 @@ class ResourceManager
     GLuint createTexture();
     GLuint createRenderbuffer();
 
-    void deleteBuffer(GLuint buffer);
     void deleteShader(GLuint shader);
     void deleteProgram(GLuint program);
     void deleteTexture(GLuint texture);
     void deleteRenderbuffer(GLuint renderbuffer);
 
-    Buffer *getBuffer(GLuint handle);
     Shader *getShader(GLuint handle);
     Program *getProgram(GLuint handle);
     Texture *getTexture(GLuint handle);
@@ -69,16 +66,11 @@ class ResourceManager
     
     void setRenderbuffer(GLuint handle, Renderbuffer *renderbuffer);
 
-    void checkBufferAllocation(unsigned int buffer);
     void checkTextureAllocation(GLuint texture, TextureType type);
 
   private:
     std::size_t mRefCount;
-
-    typedef std::map<GLint, Buffer*> BufferMap;
-    BufferMap mBufferMap;
-    HandleAllocator mBufferHandleAllocator;
-
+	
     typedef std::map<GLint, Shader*> ShaderMap;
     ShaderMap mShaderMap;
 

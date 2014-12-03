@@ -196,7 +196,6 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     <ClInclude Include="IndexDataManager.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="mathutil.h" />
-    <ClInclude Include="Object.hpp" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Query.h" />
     <ClInclude Include="RefCountObject.h" />

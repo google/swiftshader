@@ -15,7 +15,7 @@
 
 namespace sw
 {
-	Resource::Resource(int bytes)
+	Resource::Resource(size_t bytes) : size(bytes)
 	{
 		blocked = 0;
 
@@ -171,7 +171,7 @@ namespace sw
 		criticalSection.unlock();
 	}
 
-	const void *Resource::getBuffer() const
+	const void *Resource::data() const
 	{
 		return buffer;
 	}

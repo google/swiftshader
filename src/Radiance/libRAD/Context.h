@@ -106,12 +106,8 @@ struct Color
 class VertexAttribute
 {
   public:
-    VertexAttribute() : mType(GL_FLOAT), mSize(0), mNormalized(false), mStride(0), mPointer(NULL), mArrayEnabled(false)
+    VertexAttribute() : mType(GL_FLOAT), mSize(0), mNormalized(false), mStride(0), mOffset(0), mArrayEnabled(false)
     {
-        mCurrentValue[0] = 0.0f;
-        mCurrentValue[1] = 0.0f;
-        mCurrentValue[2] = 0.0f;
-        mCurrentValue[3] = 1.0f;
     }
 
     int typeSize() const
@@ -138,17 +134,11 @@ class VertexAttribute
     GLint mSize;
     bool mNormalized;
     GLsizei mStride;   // 0 means natural stride
+    intptr_t mOffset;
 
-    union
-    {
-        const void *mPointer;
-        intptr_t mOffset;
-    };
-
-    BindingPointer<Buffer> mBoundBuffer;   // Captured when glVertexAttribPointer is called.
+    sw::Resource *buffer;
 
     bool mArrayEnabled;   // From glEnable/DisableVertexAttribArray
-    float mCurrentValue[4];   // From glVertexAttrib
 };
 
 typedef VertexAttribute VertexAttributeArray[MAX_VERTEX_ATTRIBS];
@@ -222,8 +212,7 @@ struct State
     bool depthMask;
 
     unsigned int activeSampler;   // Active texture unit selector - GL_TEXTURE0
-    BindingPointer<Buffer> arrayBuffer;
-    BindingPointer<Buffer> elementArrayBuffer;
+    sw::Resource *elementArrayBuffer;
     GLuint readFramebuffer;
     GLuint drawFramebuffer;
     BindingPointer<Renderbuffer> renderbuffer;
@@ -317,14 +306,11 @@ public:
 
 	GLuint getActiveQuery(GLenum target) const;
 
-    GLuint getArrayBufferHandle() const;
-
     void setEnableVertexAttribArray(unsigned int attribNum, bool enabled);
     const VertexAttribute &getVertexAttribState(unsigned int attribNum);
-    void setVertexAttribState(unsigned int attribNum, Buffer *boundBuffer, GLint size, GLenum type,
-                              bool normalized, GLsizei stride, const void *pointer);
-    const void *getVertexAttribPointer(unsigned int attribNum) const;
-
+    void setVertexAttribState(unsigned int attribNum, sw::Resource *buffer, GLint size, GLenum type,
+                              bool normalized, GLsizei stride, intptr_t offset);
+    
     const VertexAttributeArray &getVertexAttributes();
 
     void setUnpackAlignment(GLint alignment);
@@ -335,13 +321,11 @@ public:
 
     // These create  and destroy methods are merely pass-throughs to 
     // ResourceManager, which owns these object types
-    GLuint createBuffer();
     GLuint createShader(GLenum type);
     GLuint createProgram();
     GLuint createTexture();
     GLuint createRenderbuffer();
 
-    void deleteBuffer(GLuint buffer);
     void deleteShader(GLuint shader);
     void deleteProgram(GLuint program);
     void deleteTexture(GLuint texture);
@@ -359,8 +343,6 @@ public:
     GLuint createQuery();
     void deleteQuery(GLuint query);
 
-    void bindArrayBuffer(GLuint buffer);
-    void bindElementArrayBuffer(GLuint buffer);
     void bindTexture2D(GLuint texture);
     void bindTextureCubeMap(GLuint texture);
     void bindTextureExternal(GLuint texture);
@@ -376,9 +358,6 @@ public:
 
     void setRenderbufferStorage(RenderbufferStorage *renderbuffer);
 
-    void setVertexAttrib(GLuint index, const GLfloat *values);
-
-    Buffer *getBuffer(GLuint handle);
     Fence *getFence(GLuint handle);
     Shader *getShader(GLuint handle);
     Program *getProgram(GLuint handle);
@@ -387,8 +366,6 @@ public:
     virtual Renderbuffer *getRenderbuffer(GLuint handle);
 	Query *getQuery(GLuint handle, bool create, GLenum type);
 
-    Buffer *getArrayBuffer();
-    Buffer *getElementArrayBuffer();
     Program *getCurrentProgram();
     Texture2D *getTexture2D();
     TextureCubeMap *getTextureCubeMap();
@@ -396,12 +373,6 @@ public:
     Texture *getSamplerTexture(unsigned int sampler, TextureType type);
     Framebuffer *getReadFramebuffer();
     Framebuffer *getDrawFramebuffer();
-
-    bool getFloatv(GLenum pname, GLfloat *params);
-    bool getIntegerv(GLenum pname, GLint *params);
-    bool getBooleanv(GLenum pname, GLboolean *params);
-
-    bool getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *numParams);
 
     void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
     void clear(GLbitfield mask);
@@ -442,7 +413,6 @@ public:
     void applyTextures(sw::SamplerType type);
 	void applyTexture(sw::SamplerType type, int sampler, Texture *texture);
 
-    void detachBuffer(GLuint buffer);
     void detachTexture(GLuint texture);
     void detachFramebuffer(GLuint framebuffer);
     void detachRenderbuffer(GLuint renderbuffer);

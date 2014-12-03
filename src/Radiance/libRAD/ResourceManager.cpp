@@ -29,11 +29,6 @@ ResourceManager::ResourceManager()
 
 ResourceManager::~ResourceManager()
 {
-    while(!mBufferMap.empty())
-    {
-        deleteBuffer(mBufferMap.begin()->first);
-    }
-
     while(!mProgramMap.empty())
     {
         deleteProgram(mProgramMap.begin()->first);
@@ -66,16 +61,6 @@ void ResourceManager::release()
     {
         delete this;
     }
-}
-
-// Returns an unused buffer name
-GLuint ResourceManager::createBuffer()
-{
-    GLuint handle = mBufferHandleAllocator.allocate();
-
-    mBufferMap[handle] = NULL;
-
-    return handle;
 }
 
 // Returns an unused shader/program name
@@ -124,18 +109,6 @@ GLuint ResourceManager::createRenderbuffer()
     mRenderbufferMap[handle] = NULL;
 
     return handle;
-}
-
-void ResourceManager::deleteBuffer(GLuint buffer)
-{
-    BufferMap::iterator bufferObject = mBufferMap.find(buffer);
-
-    if(bufferObject != mBufferMap.end())
-    {
-        mBufferHandleAllocator.release(bufferObject->first);
-        if(bufferObject->second) bufferObject->second->release();
-        mBufferMap.erase(bufferObject);
-    }
 }
 
 void ResourceManager::deleteShader(GLuint shader)
@@ -197,20 +170,6 @@ void ResourceManager::deleteRenderbuffer(GLuint renderbuffer)
         mRenderbufferHandleAllocator.release(renderbufferObject->first);
         if(renderbufferObject->second) renderbufferObject->second->release();
         mRenderbufferMap.erase(renderbufferObject);
-    }
-}
-
-Buffer *ResourceManager::getBuffer(unsigned int handle)
-{
-    BufferMap::iterator buffer = mBufferMap.find(handle);
-
-    if(buffer == mBufferMap.end())
-    {
-        return NULL;
-    }
-    else
-    {
-        return buffer->second;
     }
 }
 
@@ -281,16 +240,6 @@ Renderbuffer *ResourceManager::getRenderbuffer(unsigned int handle)
 void ResourceManager::setRenderbuffer(GLuint handle, Renderbuffer *buffer)
 {
     mRenderbufferMap[handle] = buffer;
-}
-
-void ResourceManager::checkBufferAllocation(unsigned int buffer)
-{
-    if(buffer != 0 && !getBuffer(buffer))
-    {
-        Buffer *bufferObject = new Buffer(buffer);
-        mBufferMap[buffer] = bufferObject;
-        bufferObject->addRef();
-    }
 }
 
 void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)

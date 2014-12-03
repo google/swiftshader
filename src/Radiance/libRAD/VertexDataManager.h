@@ -36,62 +36,16 @@ struct TranslatedAttribute
     sw::Resource *vertexBuffer;
 };
 
-class VertexBuffer
-{
-  public:
-    VertexBuffer(unsigned int size);
-    virtual ~VertexBuffer();
-
-    void unmap();
-
-    sw::Resource *getResource() const;
-
-  protected:
-    sw::Resource *mVertexBuffer;
-};
-
-class ConstantVertexBuffer : public VertexBuffer
-{
-  public:
-    ConstantVertexBuffer(float x, float y, float z, float w);
-    ~ConstantVertexBuffer();
-};
-
-class StreamingVertexBuffer : public VertexBuffer
-{
-  public:
-    StreamingVertexBuffer(unsigned int size);
-    ~StreamingVertexBuffer();
-
-    void *map(const VertexAttribute &attribute, unsigned int requiredSpace, unsigned int *streamOffset);
-    void reserveRequiredSpace();
-    void addRequiredSpace(unsigned int requiredSpace);
-
-  protected:
-    unsigned int mBufferSize;
-    unsigned int mWritePosition;
-    unsigned int mRequiredSpace;
-};
-
 class VertexDataManager
 {
   public:
     VertexDataManager(Context *context);
     virtual ~VertexDataManager();
 
-    void dirtyCurrentValue(int index) { mDirtyCurrentValue[index] = true; }
-
     GLenum prepareVertexData(GLint start, GLsizei count, TranslatedAttribute *outAttribs);
 
   private:
-    unsigned int writeAttributeData(StreamingVertexBuffer *vertexBuffer, GLint start, GLsizei count, const VertexAttribute &attribute);
-
     Context *const mContext;
-
-    StreamingVertexBuffer *mStreamingBuffer;
-
-    bool mDirtyCurrentValue[MAX_VERTEX_ATTRIBS];
-    ConstantVertexBuffer *mCurrentValueBuffer[MAX_VERTEX_ATTRIBS];
 };
 
 }

@@ -37,7 +37,7 @@ class Buffer : public RefCountObject
     void bufferData(const void *data, GLsizeiptr size, GLenum usage);
     void bufferSubData(const void *data, GLsizeiptr size, GLintptr offset);
 
-	const void *data() { return mContents ? mContents->getBuffer() : 0; }
+	const void *data() { return mContents ? mContents->data() : 0; }
     size_t size() const { return mSize; }
     GLenum usage() const { return mUsage; }
 

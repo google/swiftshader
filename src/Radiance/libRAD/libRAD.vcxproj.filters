@@ -145,9 +145,6 @@
     <ClInclude Include="..\common\debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Object.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="libRAD.rc" />
