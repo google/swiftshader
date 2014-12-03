@@ -160,7 +160,6 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="..\common\debug.cpp" />
     <ClCompile Include="Device.cpp" />
@@ -168,7 +167,6 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="HandleAllocator.cpp" />
     <ClCompile Include="Image.cpp" />
-    <ClCompile Include="IndexDataManager.cpp" />
     <ClCompile Include="libRAD.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Program.cpp" />
@@ -178,21 +176,18 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="utilities.cpp" />
-    <ClCompile Include="VertexDataManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\debug.h" />
     <ClInclude Include="..\include\GLES2\gl2.h" />
     <ClInclude Include="..\include\GLES2\gl2ext.h" />
     <ClInclude Include="..\include\GLES2\gl2platform.h" />
-    <ClInclude Include="Buffer.h" />
     <ClInclude Include="Context.h" />
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="Fence.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="HandleAllocator.h" />
     <ClInclude Include="Image.hpp" />
-    <ClInclude Include="IndexDataManager.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="mathutil.h" />
     <ClInclude Include="Program.h" />
@@ -203,7 +198,6 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="utilities.h" />
-    <ClInclude Include="VertexDataManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libRAD.def" />

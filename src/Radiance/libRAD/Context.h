@@ -305,8 +305,6 @@ public:
     void setVertexAttribState(unsigned int attribNum, sw::Resource *buffer, GLint size, GLenum type,
                               bool normalized, GLsizei stride, intptr_t offset);
     
-    const VertexAttributeArray &getVertexAttributes();
-
     void setUnpackAlignment(GLint alignment);
     GLint getUnpackAlignment() const;
 
@@ -316,7 +314,7 @@ public:
     void setRenderbufferStorage(RenderbufferStorage *renderbuffer);
 	
     void drawArrays(GLenum mode, GLint first, GLsizei count);
-    void drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices);
+    void drawElements(GLenum mode, GLsizei count, GLenum type, intptr_t offset);
     void finish();
     void flush();
 
@@ -337,8 +335,8 @@ public:
 
     bool applyRenderTarget();
     void applyState(GLenum drawMode);
-    GLenum applyVertexBuffer(GLint base, GLint first, GLsizei count);
-    GLenum applyIndexBuffer(const void *indices, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo);
+    GLenum applyVertexBuffer(GLint base, GLint first);
+    void applyIndexBuffer();
     void applyShaders();
 	void applyTexture(sw::SamplerType type, int sampler, Texture *texture);
 
@@ -360,9 +358,6 @@ public:
 	typedef std::map<GLint, Query*> QueryMap;
     QueryMap mQueryMap;
     HandleAllocator mQueryHandleAllocator;
-
-    VertexDataManager *mVertexDataManager;
-    IndexDataManager *mIndexDataManager;
 
     // Recorded errors
     bool mInvalidEnum;

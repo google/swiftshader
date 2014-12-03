@@ -11,7 +11,6 @@
 // libRAD.cpp: Implements the exported Radiance functions.
 
 #include "main.h"
-#include "Buffer.h"
 #include "Context.h"
 #include "Program.h"
 #include "Shader.h"
