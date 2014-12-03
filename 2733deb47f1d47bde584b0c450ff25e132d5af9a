@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9fa641d2_48190e96",
+        "filename": "src/Common/CPUID.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-12-03T16:34:13Z",
+      "side": 1,
+      "message": "Does this also work for x86-64? We might be able to use __get_cpuid from the cpuid.h header instead.",
+      "range": {
+        "startLine": 171,
+        "startChar": 29,
+        "endLine": 171,
+        "endChar": 77
+      },
+      "revId": "2733deb47f1d47bde584b0c450ff25e132d5af9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9fa641d2_a83bfaed",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2014-12-03T16:34:13Z",
+      "side": 1,
+      "message": "Is there a reason why getting the handle of an already resident library doesn\u0027t work? I\u0027m working on a patch which will delay loading the libraries and thus increase the chance they\u0027re already resident.",
+      "range": {
+        "startLine": 77,
+        "startChar": 2,
+        "endLine": 77,
+        "endChar": 34
+      },
+      "revId": "2733deb47f1d47bde584b0c450ff25e132d5af9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
