@@ -233,7 +233,7 @@ void ELFObjectWriter::writeDataInitializer(const IceString &VarName,
 
 void ELFObjectWriter::writeInitialELFHeader() {
   assert(!SectionNumbersAssigned);
-  const size_t DummySHOffset = 0;
+  const Elf64_Off DummySHOffset = 0;
   const SizeT DummySHStrIndex = 0;
   const SizeT DummyNumSections = 0;
   if (isELF64(Ctx.getTargetArch())) {
@@ -246,7 +246,7 @@ void ELFObjectWriter::writeInitialELFHeader() {
 }
 
 template <bool IsELF64>
-void ELFObjectWriter::writeELFHeaderInternal(size_t SectionHeaderOffset,
+void ELFObjectWriter::writeELFHeaderInternal(Elf64_Off SectionHeaderOffset,
                                              SizeT SectHeaderStrIndex,
                                              SizeT NumSections) {
   // Write the e_ident: magic number, class, etc.

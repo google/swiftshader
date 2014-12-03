@@ -116,7 +116,7 @@ private:
 
   // Write the ELF file header with the given information about sections.
   template <bool IsELF64>
-  void writeELFHeaderInternal(uint64_t SectionHeaderOffset,
+  void writeELFHeaderInternal(Elf64_Off SectionHeaderOffset,
                               SizeT SectHeaderStrIndex, SizeT NumSections);
 };
 
