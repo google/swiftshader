@@ -38,27 +38,13 @@ class Config;
 
 namespace es2
 {
-struct TranslatedAttribute;
-struct TranslatedIndexData;
-
 class Device;
-class Buffer;
 class Shader;
 class Program;
 class Texture;
 class Texture2D;
 class TextureCubeMap;
 class TextureExternal;
-class Framebuffer;
-class Renderbuffer;
-class RenderbufferStorage;
-class Colorbuffer;
-class Depthbuffer;
-class StreamingIndexBuffer;
-class Stencilbuffer;
-class DepthStencilbuffer;
-class VertexDataManager;
-class IndexDataManager;
 class Fence;
 
 enum
@@ -204,7 +190,6 @@ struct State
     sw::Resource *elementArrayBuffer;
     GLuint readFramebuffer;
     GLuint drawFramebuffer;
-    BindingPointer<Renderbuffer> renderbuffer;
 	
 	Program *program;
 	egl::Image *colorBuffer;
@@ -297,8 +282,6 @@ public:
 
     void setPackAlignment(GLint alignment);
     GLint getPackAlignment() const;
-	
-    void setRenderbufferStorage(RenderbufferStorage *renderbuffer);
 	
     void drawArrays(GLenum mode, GLint first, GLsizei count);
     void drawElements(GLenum mode, GLsizei count, GLenum type, intptr_t offset);

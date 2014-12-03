@@ -19,7 +19,6 @@
 #include "utilities.h"
 #include "Fence.h"
 #include "Program.h"
-#include "Renderbuffer.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "libEGL/Display.h"
@@ -575,12 +574,6 @@ void Context::setUnpackAlignment(GLint alignment)
 GLint Context::getUnpackAlignment() const
 {
     return mState.unpackAlignment;
-}
-
-void Context::setRenderbufferStorage(RenderbufferStorage *renderbuffer)
-{
-    Renderbuffer *renderbufferObject = mState.renderbuffer.get();
-    renderbufferObject->setStorage(renderbuffer);
 }
 
 // Applies the render target surface, depth stencil surface, viewport rectangle and scissor rectangle

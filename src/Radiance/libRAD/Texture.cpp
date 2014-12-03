@@ -288,9 +288,6 @@ Texture2D::Texture2D(GLuint id) : Texture(id)
 	}
 
     mSurface = NULL;
-
-	mColorbufferProxy = NULL;
-	mProxyRefs = 0;
 }
 
 Texture2D::~Texture2D()
@@ -313,29 +310,6 @@ Texture2D::~Texture2D()
         mSurface->setBoundTexture(NULL);
         mSurface = NULL;
     }
-
-	mColorbufferProxy = NULL;
-}
-
-// We need to maintain a count of references to renderbuffers acting as 
-// proxies for this texture, so that we do not attempt to use a pointer 
-// to a renderbuffer proxy which has been deleted.
-void Texture2D::addProxyRef(const Renderbuffer *proxy)
-{
-    mProxyRefs++;
-}
-
-void Texture2D::releaseProxy(const Renderbuffer *proxy)
-{
-    if(mProxyRefs > 0)
-	{
-        mProxyRefs--;
-	}
-
-    if(mProxyRefs == 0)
-	{
-		mColorbufferProxy = NULL;
-	}
 }
 
 GLenum Texture2D::getTarget() const
@@ -538,21 +512,6 @@ egl::Image *Texture2D::getImage(unsigned int level)
 	return image[level];
 }
 
-Renderbuffer *Texture2D::getRenderbuffer(GLenum target)
-{
-    if(target != GL_TEXTURE_2D)
-    {
-        return error(GL_INVALID_OPERATION, (Renderbuffer *)NULL);
-    }
-
-    if(mColorbufferProxy == NULL)
-    {
-        mColorbufferProxy = new Renderbuffer(id(), new RenderbufferTexture2D(this));
-    }
-
-    return mColorbufferProxy;
-}
-
 egl::Image *Texture2D::getRenderTarget(GLenum target, unsigned int level)
 {
     ASSERT(target == GL_TEXTURE_2D);
@@ -593,12 +552,6 @@ TextureCubeMap::TextureCubeMap(GLuint id) : Texture(id)
 			image[f][i] = 0;
 		}
 	}
-
-	for(int f = 0; f < 6; f++)
-    {
-        mFaceProxies[f] = NULL;
-        mFaceProxyRefs[f] = 0;
-	}
 }
 
 TextureCubeMap::~TextureCubeMap()
@@ -618,46 +571,6 @@ TextureCubeMap::~TextureCubeMap()
 	}
 
 	resource->unlock();
-
-    for(int i = 0; i < 6; i++)
-    {
-        mFaceProxies[i] = NULL;
-    }
-}
-
-// We need to maintain a count of references to renderbuffers acting as 
-// proxies for this texture, so that the texture is not deleted while 
-// proxy references still exist. If the reference count drops to zero,
-// we set our proxy pointer NULL, so that a new attempt at referencing
-// will cause recreation.
-void TextureCubeMap::addProxyRef(const Renderbuffer *proxy)
-{
-    for(int f = 0; f < 6; f++)
-    {
-        if(mFaceProxies[f] == proxy)
-        {
-			mFaceProxyRefs[f]++;
-		}
-	}
-}
-
-void TextureCubeMap::releaseProxy(const Renderbuffer *proxy)
-{
-    for(int f = 0; f < 6; f++)
-    {
-        if(mFaceProxies[f] == proxy)
-        {
-            if(mFaceProxyRefs[f] > 0)
-			{
-				mFaceProxyRefs[f]--;
-			}
-
-            if(mFaceProxyRefs[f] == 0)
-			{
-				mFaceProxies[f] = NULL;
-			}
-		}
-    }
 }
 
 GLenum TextureCubeMap::getTarget() const
@@ -901,23 +814,6 @@ void TextureCubeMap::generateMipmaps()
 			getDevice()->stretchRect(image[f][i - 1], 0, image[f][i], 0, true);
 		}
 	}
-}
-
-Renderbuffer *TextureCubeMap::getRenderbuffer(GLenum target)
-{
-    if(!IsCubemapTextureTarget(target))
-    {
-        return error(GL_INVALID_OPERATION, (Renderbuffer *)NULL);
-    }
-
-    int face = CubeFaceIndex(target);
-
-    if(mFaceProxies[face] == NULL)
-    {
-        mFaceProxies[face] = new Renderbuffer(id(), new RenderbufferTextureCubeMap(this, target));
-    }
-
-    return mFaceProxies[face];
 }
 
 Image *TextureCubeMap::getRenderTarget(GLenum target, unsigned int level)

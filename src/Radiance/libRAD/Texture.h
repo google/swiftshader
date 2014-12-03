@@ -16,7 +16,6 @@
 #ifndef LIBGLESV2_TEXTURE_H_
 #define LIBGLESV2_TEXTURE_H_
 
-#include "Renderbuffer.h"
 #include "RefCountObject.h"
 #include "utilities.h"
 #include "libEGL/Texture2D.hpp"
@@ -54,10 +53,7 @@ public:
     virtual ~Texture();
 
 	sw::Resource *getResource() const;
-
-	virtual void addProxyRef(const Renderbuffer *proxy) = 0;
-    virtual void releaseProxy(const Renderbuffer *proxy) = 0;
-
+	
     virtual GLenum getTarget() const = 0;
 
     bool setMinFilter(GLenum filter);
@@ -83,7 +79,6 @@ public:
     virtual bool isCompressed(GLenum target, GLint level) const = 0;
 	virtual bool isDepth(GLenum target, GLint level) const = 0;
 
-    virtual Renderbuffer *getRenderbuffer(GLenum target) = 0;
     virtual egl::Image *getRenderTarget(GLenum target, unsigned int level) = 0;
     virtual egl::Image *createSharedImage(GLenum target, unsigned int level);
     virtual bool isShared(GLenum target, unsigned int level) const = 0;
@@ -115,10 +110,7 @@ public:
     explicit Texture2D(GLuint id);
 
     virtual ~Texture2D();
-
-	void addProxyRef(const Renderbuffer *proxy);
-    void releaseProxy(const Renderbuffer *proxy);
-
+	
     virtual GLenum getTarget() const;
 
     virtual GLsizei getWidth(GLenum target, GLint level) const;
@@ -139,7 +131,6 @@ public:
 
     virtual void generateMipmaps();
 
-	virtual Renderbuffer *getRenderbuffer(GLenum target);
     virtual egl::Image *getRenderTarget(GLenum target, unsigned int level);
 	virtual bool isShared(GLenum target, unsigned int level) const;
 
@@ -151,14 +142,6 @@ protected:
 	egl::Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS];
     
     egl::Surface *mSurface;
-    
-	// A specific internal reference count is kept for colorbuffer proxy references,
-    // because, as the renderbuffer acting as proxy will maintain a binding pointer
-    // back to this texture, there would be a circular reference if we used a binding
-    // pointer here. This reference count will cause the pointer to be set to NULL if
-    // the count drops to zero, but will not cause deletion of the Renderbuffer.
-    Renderbuffer *mColorbufferProxy;
-    unsigned int mProxyRefs;
 };
 
 class TextureCubeMap : public Texture
@@ -167,9 +150,6 @@ public:
     explicit TextureCubeMap(GLuint id);
 
     virtual ~TextureCubeMap();
-
-	void addProxyRef(const Renderbuffer *proxy);
-    void releaseProxy(const Renderbuffer *proxy);
 
     virtual GLenum getTarget() const;
     
@@ -192,7 +172,6 @@ public:
 
     virtual void generateMipmaps();
 
-    virtual Renderbuffer *getRenderbuffer(GLenum target);
 	virtual Image *getRenderTarget(GLenum target, unsigned int level);
 	virtual bool isShared(GLenum target, unsigned int level) const;
 
@@ -206,14 +185,6 @@ private:
     Image *getImage(GLenum face, unsigned int level);
 
     Image *image[6][IMPLEMENTATION_MAX_TEXTURE_LEVELS];
-	
-	// A specific internal reference count is kept for colorbuffer proxy references,
-    // because, as the renderbuffer acting as proxy will maintain a binding pointer
-    // back to this texture, there would be a circular reference if we used a binding
-    // pointer here. This reference count will cause the pointer to be set to NULL if
-    // the count drops to zero, but will not cause deletion of the Renderbuffer.
-    Renderbuffer *mFaceProxies[6];
-	unsigned int mFaceProxyRefs[6];
 };
 
 class TextureExternal : public Texture2D
