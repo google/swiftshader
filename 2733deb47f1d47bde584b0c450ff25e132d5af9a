@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7f47cdec_4119d495",
+        "filename": "src/Common/CPUID.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2014-12-03T20:03:55Z",
+      "side": 1,
+      "message": "This probably wouldn\u0027t work for x86_64 so yes this would need some fixing. I haven\u0027t investigated much yet but there\u0027s a discrepancy between Android source build toolchain and the NDK. If building with Android source (not NDK) then it might be a bit trickier to get access to cpuid.h.",
+      "parentUuid": "9fa641d2_48190e96",
+      "range": {
+        "startLine": 171,
+        "startChar": 29,
+        "endLine": 171,
+        "endChar": 77
+      },
+      "revId": "2733deb47f1d47bde584b0c450ff25e132d5af9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9fa641d2_a83bfaed",
         "filename": "src/Common/SharedLibrary.hpp",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2014-12-03T16:34:13Z",
       "side": 1,
       "message": "Is there a reason why getting the handle of an already resident library doesn\u0027t work? I\u0027m working on a patch which will delay loading the libraries and thus increase the chance they\u0027re already resident.",
+      "range": {
+        "startLine": 77,
+        "startChar": 2,
+        "endLine": 77,
+        "endChar": 34
+      },
+      "revId": "2733deb47f1d47bde584b0c450ff25e132d5af9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7f47cdec_fef3e130",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2014-12-03T20:03:55Z",
+      "side": 1,
+      "message": "RTLD_NOLOAD is not available in bionic (Android\u0027s glibc) on KitKat so I\u0027m just loading it again. The same file handle should be returned. Although the ref count would be incremented which might cause some issue... I believe RTLD_NOLOAD is available on L so this won\u0027t be needed.",
+      "parentUuid": "9fa641d2_a83bfaed",
       "range": {
         "startLine": 77,
         "startChar": 2,
