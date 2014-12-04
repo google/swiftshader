@@ -85,6 +85,7 @@ void LinearScan::initForGlobal() {
   FindOverlap = true;
   const VarList &Vars = Func->getVariables();
   Unhandled.reserve(Vars.size());
+  UnhandledPrecolored.reserve(Vars.size());
   // Gather the live ranges of all variables and add them to the
   // Unhandled set.
   for (Variable *Var : Vars) {
@@ -184,6 +185,7 @@ void LinearScan::initForInfOnly() {
   }
 
   Unhandled.reserve(NumVars);
+  UnhandledPrecolored.reserve(NumVars);
   for (SizeT i = 0; i < Vars.size(); ++i) {
     Variable *Var = Vars[i];
     if (LRBegin[i] != Inst::NumberSentinel) {
@@ -239,6 +241,10 @@ void LinearScan::init(RegAllocKind Kind) {
   std::sort(Unhandled.rbegin(), Unhandled.rend(), CompareRanges());
   std::sort(UnhandledPrecolored.rbegin(), UnhandledPrecolored.rend(),
             CompareRanges());
+
+  Handled.reserve(Unhandled.size());
+  Inactive.reserve(Unhandled.size());
+  Active.reserve(Unhandled.size());
 }
 
 // Implements the linear-scan algorithm.  Based on "Linear Scan
@@ -276,7 +282,6 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   assert(Active.empty());
   assert(Inactive.empty());
   assert(Handled.empty());
-  UnorderedRanges::iterator Next;
   const TargetLowering::RegSetMask RegsInclude =
       TargetLowering::RegSet_CallerSave;
   const TargetLowering::RegSetMask RegsExclude = TargetLowering::RegSet_None;
@@ -319,10 +324,9 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     }
 
     // Check for active ranges that have expired or become inactive.
-    for (auto I = Active.begin(), E = Active.end(); I != E; I = Next) {
-      Next = I;
-      ++Next;
-      Variable *Item = *I;
+    for (SizeT I = Active.size(); I > 0; --I) {
+      const SizeT Index = I - 1;
+      Variable *Item = Active[Index];
       Item->trimLiveRange(Cur->getLiveRange().getStart());
       bool Moved = false;
       if (Item->rangeEndsBefore(Cur)) {
@@ -332,7 +336,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           dumpLiveRange(Item, Func);
           Str << "\n";
         }
-        Handled.splice(Handled.end(), Active, I);
+        moveItem(Active, Index, Handled);
         Moved = true;
       } else if (!Item->rangeOverlapsStart(Cur)) {
         // Move Item from Active to Inactive list.
@@ -341,7 +345,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           dumpLiveRange(Item, Func);
           Str << "\n";
         }
-        Inactive.splice(Inactive.end(), Active, I);
+        moveItem(Active, Index, Inactive);
         Moved = true;
       }
       if (Moved) {
@@ -354,10 +358,9 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
     }
 
     // Check for inactive ranges that have expired or reactivated.
-    for (auto I = Inactive.begin(), E = Inactive.end(); I != E; I = Next) {
-      Next = I;
-      ++Next;
-      Variable *Item = *I;
+    for (SizeT I = Inactive.size(); I > 0; --I) {
+      const SizeT Index = I - 1;
+      Variable *Item = Inactive[Index];
       Item->trimLiveRange(Cur->getLiveRange().getStart());
       if (Item->rangeEndsBefore(Cur)) {
         // Move Item from Inactive to Handled list.
@@ -366,7 +369,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           dumpLiveRange(Item, Func);
           Str << "\n";
         }
-        Handled.splice(Handled.end(), Inactive, I);
+        moveItem(Inactive, Index, Handled);
       } else if (Item->rangeOverlapsStart(Cur)) {
         // Move Item from Inactive to Active list.
         if (Verbose) {
@@ -374,7 +377,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           dumpLiveRange(Item, Func);
           Str << "\n";
         }
-        Active.splice(Active.end(), Inactive, I);
+        moveItem(Inactive, Index, Active);
         // Increment Item in RegUses[].
         assert(Item->hasRegTmp());
         int32_t RegNum = Item->getRegNumTmp();
@@ -598,10 +601,9 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       } else {
         // Evict all live ranges in Active that register number
         // MinWeightIndex is assigned to.
-        for (auto I = Active.begin(), E = Active.end(); I != E; I = Next) {
-          Next = I;
-          ++Next;
-          Variable *Item = *I;
+        for (SizeT I = Active.size(); I > 0; --I) {
+          const SizeT Index = I - 1;
+          Variable *Item = Active[Index];
           if (Item->getRegNumTmp() == MinWeightIndex) {
             if (Verbose) {
               Str << "Evicting     ";
@@ -611,14 +613,13 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
             --RegUses[MinWeightIndex];
             assert(RegUses[MinWeightIndex] >= 0);
             Item->setRegNumTmp(Variable::NoRegister);
-            Handled.splice(Handled.end(), Active, I);
+            moveItem(Active, Index, Handled);
           }
         }
         // Do the same for Inactive.
-        for (auto I = Inactive.begin(), E = Inactive.end(); I != E; I = Next) {
-          Next = I;
-          ++Next;
-          Variable *Item = *I;
+        for (SizeT I = Inactive.size(); I > 0; --I) {
+          const SizeT Index = I - 1;
+          Variable *Item = Inactive[Index];
           // Note: The Item->rangeOverlaps(Cur) clause is not part of the
           // description of AssignMemLoc() in the original paper.  But
           // there doesn't seem to be any need to evict an inactive
@@ -636,7 +637,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
               Str << "\n";
             }
             Item->setRegNumTmp(Variable::NoRegister);
-            Handled.splice(Handled.end(), Inactive, I);
+            moveItem(Inactive, Index, Handled);
           }
         }
         // Assign the register to Cur.

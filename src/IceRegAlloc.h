@@ -33,12 +33,24 @@ public:
   void dump(Cfg *Func) const;
 
 private:
+  typedef std::vector<Variable *> OrderedRanges;
+  typedef std::vector<Variable *> UnorderedRanges;
+
   void initForGlobal();
   void initForInfOnly();
+  // Move an item from the From set to the To set.  From[Index] is
+  // pushed onto the end of To[], then the item is efficiently removed
+  // from From[] by effectively swapping it with the last item in
+  // From[] and then popping it from the back.  As such, the caller is
+  // best off iterating over From[] in reverse order to avoid the need
+  // for special handling of the iterator.
+  void moveItem(UnorderedRanges &From, SizeT Index, UnorderedRanges &To) {
+    To.push_back(From[Index]);
+    From[Index] = From.back();
+    From.pop_back();
+  }
 
   Cfg *const Func;
-  typedef std::vector<Variable *> OrderedRanges;
-  typedef std::list<Variable *> UnorderedRanges;
   OrderedRanges Unhandled;
   // UnhandledPrecolored is a subset of Unhandled, specially collected
   // for faster processing.
