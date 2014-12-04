@@ -33,37 +33,6 @@ bool operator==(const RegWeight &A, const RegWeight &B) {
 }
 
 void LiveRange::addSegment(InstNumberT Start, InstNumberT End) {
-#ifdef USE_SET
-  RangeElementType Element(Start, End);
-  RangeType::iterator Next = Range.lower_bound(Element);
-  assert(Next == Range.upper_bound(Element)); // Element not already present
-
-  // Beginning of code that merges contiguous segments.  TODO: change
-  // "if(true)" to "if(false)" to see if this extra optimization code
-  // gives any performance gain, or is just destabilizing.
-  if (true) {
-    RangeType::iterator FirstDelete = Next;
-    RangeType::iterator Prev = Next;
-    bool hasPrev = (Next != Range.begin());
-    bool hasNext = (Next != Range.end());
-    if (hasPrev)
-      --Prev;
-    // See if Element and Next should be joined.
-    if (hasNext && End == Next->first) {
-      Element.second = Next->second;
-      ++Next;
-    }
-    // See if Prev and Element should be joined.
-    if (hasPrev && Prev->second == Start) {
-      Element.first = Prev->first;
-      FirstDelete = Prev;
-    }
-    Range.erase(FirstDelete, Next);
-  }
-  // End of code that merges contiguous segments.
-
-  Range.insert(Next, Element);
-#else
   if (Range.empty()) {
     Range.push_back(RangeElementType(Start, End));
     return;
@@ -71,7 +40,10 @@ void LiveRange::addSegment(InstNumberT Start, InstNumberT End) {
   // Special case for faking in-arg liveness.
   if (End < Range.front().first) {
     assert(Start < 0);
-    Range.push_front(RangeElementType(Start, End));
+    // This is inefficient with Range as a std::vector, but there are
+    // generally very few arguments compared to the total number of
+    // variables with non-empty live ranges.
+    Range.insert(Range.begin(), RangeElementType(Start, End));
     return;
   }
   InstNumberT CurrentEnd = Range.back().second;
@@ -82,7 +54,6 @@ void LiveRange::addSegment(InstNumberT Start, InstNumberT End) {
     return;
   }
   Range.push_back(RangeElementType(Start, End));
-#endif
 }
 
 // Returns true if this live range ends before Other's live range

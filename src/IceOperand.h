@@ -326,6 +326,13 @@ bool operator==(const RegWeight &A, const RegWeight &B);
 class LiveRange {
 public:
   LiveRange() : Weight(0) {}
+  // Special constructor for building a kill set.  The advantage is
+  // that we can reserve the right amount of space in advance.
+  LiveRange(const std::vector<InstNumberT> &Kills) : Weight(0) {
+    Range.reserve(Kills.size());
+    for (InstNumberT I : Kills)
+      addSegment(I, I);
+  }
   LiveRange(const LiveRange &) = default;
   LiveRange &operator=(const LiveRange &) = default;
 
@@ -353,19 +360,9 @@ public:
   void addWeight(uint32_t Delta) { Weight.addWeight(Delta); }
   void dump(Ostream &Str) const;
 
-  // Defining USE_SET uses std::set to hold the segments instead of
-  // std::list.  Using std::list will be slightly faster, but is more
-  // restrictive because new segments cannot be added in the middle.
-
-  //#define USE_SET
-
 private:
   typedef std::pair<InstNumberT, InstNumberT> RangeElementType;
-#ifdef USE_SET
-  typedef std::set<RangeElementType> RangeType;
-#else
-  typedef std::list<RangeElementType> RangeType;
-#endif
+  typedef std::vector<RangeElementType> RangeType;
   RangeType Range;
   RegWeight Weight;
   // TrimmedBegin is an optimization for the overlaps() computation.

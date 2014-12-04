@@ -23,7 +23,6 @@
 #include <limits>
 #include <list>
 #include <map>
-#include <set>
 #include <string>
 #include <vector>
 #include "llvm/ADT/ArrayRef.h"

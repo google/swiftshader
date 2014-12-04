@@ -268,9 +268,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   VariablesMetadata *VMetadata = Func->getVMetadata();
 
   // Build a LiveRange representing the Kills list.
-  LiveRange KillsRange;
-  for (InstNumberT I : Kills)
-    KillsRange.addSegment(I, I);
+  LiveRange KillsRange(Kills);
   KillsRange.untrim();
 
   // RegUses[I] is the number of live ranges (variables) that register
