@@ -29,12 +29,12 @@ namespace sw
 	{
 	public:
 		FrameBufferX11(Display *display, Window window, int width, int height);
-		
+
 		~FrameBufferX11();
-		
+
 		virtual void flip(void *source, Format format) {blit(source, 0, 0, format);};
 		virtual void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format format);
-		
+
 		virtual void *lock();
 		virtual void unlock();
 
@@ -44,10 +44,11 @@ namespace sw
 		Window x_window;
 		XImage *x_image;
 		GC x_gc;
-		
+		XVisualInfo x_visual;
+
 		bool mit_shm;
 		XShmSegmentInfo shminfo;
-		
+
 		char *buffer;
 	};
 }

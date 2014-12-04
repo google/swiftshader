@@ -18,6 +18,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <string.h>
+#include <assert.h>
 
 namespace sw
 {
@@ -47,14 +48,17 @@ namespace sw
 
 		int screen = DefaultScreen(x_display);
 		x_gc = XDefaultGC(x_display, screen);
-		Visual *x_visual = XDefaultVisual(x_display, screen);
 		int depth = XDefaultDepth(x_display, screen);
+
+		Status status = XMatchVisualInfo(x_display, screen, 32, TrueColor, &x_visual);
+		assert(status != 0 && x_visual.blue_mask == 0xFF);   // Only X8R8G8B8 implemented
+		Visual *visual = x_visual.visual;
 
 		mit_shm = (XShmQueryExtension(x_display) == True);
 
 		if(mit_shm)
 		{
-			x_image = XShmCreateImage(x_display, x_visual, depth, ZPixmap, 0, &shminfo, width, height);
+			x_image = XShmCreateImage(x_display, visual, depth, ZPixmap, 0, &shminfo, width, height);
 
 			shminfo.shmid = shmget(IPC_PRIVATE, x_image->bytes_per_line * x_image->height, IPC_CREAT | SHM_R | SHM_W);
 			shminfo.shmaddr = x_image->data = buffer = (char*)shmat(shminfo.shmid, 0, 0);
@@ -80,17 +84,17 @@ namespace sw
 		if(!mit_shm)
 		{
 			buffer = new char[width * height * 4];
-			x_image = XCreateImage(x_display, x_visual, depth, ZPixmap, 0, buffer, width, height, 32, width * 4);
+			x_image = XCreateImage(x_display, visual, depth, ZPixmap, 0, buffer, width, height, 32, width * 4);
 		}
 	}
-	
+
 	FrameBufferX11::~FrameBufferX11()
 	{
 		if(!mit_shm)
 		{
 			x_image->data = 0;
 			XDestroyImage(x_image);
-			
+
 			delete[] buffer;
 			buffer = 0;
 		}
@@ -101,30 +105,30 @@ namespace sw
 			shmdt(shminfo.shmaddr);
 			shmctl(shminfo.shmid, IPC_RMID, 0);
 		}
-		
+
 		if(ownX11)
 		{
 			XCloseDisplay(x_display);
 		}
 	}
-	
+
 	void *FrameBufferX11::lock()
 	{
 		stride = x_image->bytes_per_line;
 		locked = buffer;
-		
+
 		return locked;
 	}
-	
+
 	void FrameBufferX11::unlock()
 	{
 		locked = 0;
 	}
-		
+
 	void FrameBufferX11::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format format)
 	{
 		copy(source, format);
-	
+
 		if(!mit_shm)
 		{
 			XPutImage(x_display, x_window, x_gc, x_image, 0, 0, 0, 0, width, height);
@@ -133,7 +137,7 @@ namespace sw
 		{
 			XShmPutImage(x_display, x_window, x_gc, x_image, 0, 0, 0, 0, width, height, False);
 		}
-	
+
 		XSync(x_display, False);
 	}
 }

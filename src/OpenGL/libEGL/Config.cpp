@@ -156,12 +156,7 @@ EGLConfig Config::getHandle() const
 
 bool Config::isSlowConfig() const
 {
-    if(mDisplayMode.format == sw::FORMAT_X8R8G8B8 && mRenderTargetFormat == sw::FORMAT_A8R8G8B8)
-	{
-		return false;
-	}
-
-    return mDisplayMode.format != mRenderTargetFormat;
+	return mRenderTargetFormat != sw::FORMAT_X8R8G8B8 && mRenderTargetFormat != sw::FORMAT_A8R8G8B8;
 }
 
 SortConfig::SortConfig(const EGLint *attribList)
