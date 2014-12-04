@@ -26,12 +26,14 @@
 #include "IceTimerTree.h"
 #include "IceTypes.h"
 
-template <> struct std::hash<Ice::RelocatableTuple> {
-  std::size_t operator()(const Ice::RelocatableTuple &Key) const {
-    return std::hash<Ice::IceString>()(Key.Name) +
-           std::hash<Ice::RelocOffsetT>()(Key.Offset);
+namespace std {
+template <> struct hash<Ice::RelocatableTuple> {
+  size_t operator()(const Ice::RelocatableTuple &Key) const {
+    return hash<Ice::IceString>()(Key.Name) +
+           hash<Ice::RelocOffsetT>()(Key.Offset);
   }
 };
+} // end of namespace std
 
 namespace Ice {
 

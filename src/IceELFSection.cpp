@@ -55,6 +55,7 @@ void ELFSymbolTableSection::createDefinedSym(const IceString &Name,
   else
     Unique = GlobalSymbols.insert(std::make_pair(Key, NewSymbol)).second;
   assert(Unique);
+  (void)Unique;
 }
 
 void ELFSymbolTableSection::noteUndefinedSym(const IceString &Name,

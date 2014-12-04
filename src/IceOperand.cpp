@@ -253,6 +253,7 @@ const Inst *VariableTracking::getFirstDefinition() const {
     assert(FirstOrSingleDefinition);
     return FirstOrSingleDefinition;
   }
+  return NULL;
 }
 
 const Inst *VariableTracking::getSingleDefinition() const {
@@ -265,6 +266,7 @@ const Inst *VariableTracking::getSingleDefinition() const {
     assert(FirstOrSingleDefinition);
     return FirstOrSingleDefinition;
   }
+  return NULL;
 }
 
 void VariablesMetadata::init(MetadataKind TrackingKind) {

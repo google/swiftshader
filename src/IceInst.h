@@ -128,8 +128,17 @@ public:
   // result in any native instructions, and a target-specific
   // instruction results in a single native instruction.
   virtual uint32_t getEmitInstCount() const { return 0; }
-  virtual void emit(const Cfg *Func) const = 0;
-  virtual void emitIAS(const Cfg *Func) const = 0;
+  // TODO(stichnot): Change Inst back to abstract once the g++ build
+  // issue is fixed.  llvm::ilist<Ice::Inst> doesn't work under g++
+  // because the resize(size_t, Ice::Inst) method is incorrectly
+  // declared and thus doesn't allow the abstract class Ice::Inst.
+  // The method should be declared resize(size_t, const Ice::Inst &).
+  // virtual void emit(const Cfg *Func) const = 0;
+  // virtual void emitIAS(const Cfg *Func) const = 0;
+  virtual void emit(const Cfg *) const {
+    llvm_unreachable("emit on abstract class");
+  }
+  virtual void emitIAS(const Cfg *Func) const { emit(Func); }
   virtual void dump(const Cfg *Func) const;
   virtual void dumpExtras(const Cfg *Func) const;
   void dumpDecorated(const Cfg *Func) const;
@@ -835,11 +844,12 @@ protected:
 
 } // end of namespace Ice
 
+namespace llvm {
+
 // Override the default ilist traits so that Inst's private ctor and
 // deleted dtor aren't invoked.
 template <>
-struct llvm::ilist_traits<Ice::Inst>
-    : public llvm::ilist_default_traits<Ice::Inst> {
+struct ilist_traits<Ice::Inst> : public ilist_default_traits<Ice::Inst> {
   Ice::Inst *createSentinel() const {
     return static_cast<Ice::Inst *>(&Sentinel);
   }
@@ -852,5 +862,7 @@ struct llvm::ilist_traits<Ice::Inst>
 private:
   mutable ilist_half_node<Ice::Inst> Sentinel;
 };
+
+} // end of namespace llvm
 
 #endif // SUBZERO_SRC_ICEINST_H

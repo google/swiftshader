@@ -1681,6 +1681,8 @@ private:
       Cond = Ice::InstIcmp::Sle;
       return true;
     default:
+      // Make sure Cond is always initialized.
+      Cond = static_cast<Ice::InstIcmp::ICond>(0);
       return false;
     }
   }
@@ -1739,6 +1741,8 @@ private:
       Cond = Ice::InstFcmp::True;
       return true;
     default:
+      // Make sure Cond is always initialized.
+      Cond = static_cast<Ice::InstFcmp::FCond>(0);
       return false;
     }
   }
