@@ -18,8 +18,8 @@
 #include "main.h"
 #include "mathutil.h"
 #include "Device.hpp"
-#include "libEGL/Display.h"
-#include "libEGL/Surface.h"
+#include "Display.h"
+#include "Surface.h"
 #include "common/debug.h"
 
 #include <algorithm>
@@ -222,22 +222,22 @@ void Texture::subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei heig
 {
 	if(!image)
 	{
-		return error(GL_INVALID_OPERATION);
+		return rad::error(GL_INVALID_OPERATION);
 	}
 
     if(width + xoffset > image->getWidth() || height + yoffset > image->getHeight())
     {
-        return error(GL_INVALID_VALUE);
+        return rad::error(GL_INVALID_VALUE);
     }
 
     if(IsCompressed(image->getFormat()))
     {
-        return error(GL_INVALID_OPERATION);
+        return rad::error(GL_INVALID_OPERATION);
     }
 
     if(format != image->getFormat())
     {
-        return error(GL_INVALID_OPERATION);
+        return rad::error(GL_INVALID_OPERATION);
     }
 
     if(pixels)
@@ -250,17 +250,17 @@ void Texture::subImageCompressed(GLint xoffset, GLint yoffset, GLsizei width, GL
 {
 	if(!image)
 	{
-		return error(GL_INVALID_OPERATION);
+		return rad::error(GL_INVALID_OPERATION);
 	}
 
     if(width + xoffset > image->getWidth() || height + yoffset > image->getHeight())
     {
-        return error(GL_INVALID_VALUE);
+        return rad::error(GL_INVALID_VALUE);
     }
 
     if(format != image->getFormat())
     {
-        return error(GL_INVALID_OPERATION);
+        return rad::error(GL_INVALID_OPERATION);
     }
 
     if(pixels)
@@ -278,7 +278,7 @@ bool Texture::copy(egl::Image *source, const sw::Rect &sourceRect, GLenum destFo
 
     if(!success)
     {
-        return error(GL_OUT_OF_MEMORY, false);
+        return rad::error(GL_OUT_OF_MEMORY, false);
     }
 
     return true;
@@ -393,7 +393,7 @@ void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLenum form
 
 	if(!image[level])
 	{
-		return error(GL_OUT_OF_MEMORY);
+		return rad::error(GL_OUT_OF_MEMORY);
 	}
 
     Texture::setImage(format, type, unpackAlignment, pixels, image[level]);
@@ -410,7 +410,7 @@ void Texture2D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 
 	if(!image[level])
 	{
-		return error(GL_OUT_OF_MEMORY);
+		return rad::error(GL_OUT_OF_MEMORY);
 	}
 
     Texture::setCompressedImage(imageSize, pixels, image[level]);
@@ -522,7 +522,7 @@ void Texture2D::generateMipmaps()
 
 		if(!image[i])
 		{
-			return error(GL_OUT_OF_MEMORY);
+			return rad::error(GL_OUT_OF_MEMORY);
 		}
 
 		getDevice()->stretchRect(image[i - 1], 0, image[i], 0, true);
@@ -656,7 +656,7 @@ void TextureCubeMap::setCompressedImage(GLenum target, GLint level, GLenum forma
 
 	if(!image[face][level])
 	{
-		return error(GL_OUT_OF_MEMORY);
+		return rad::error(GL_OUT_OF_MEMORY);
 	}
 
     Texture::setCompressedImage(imageSize, pixels, image[face][level]);
@@ -792,7 +792,7 @@ void TextureCubeMap::setImage(GLenum target, GLint level, GLsizei width, GLsizei
 
 	if(!image[face][level])
 	{
-		return error(GL_OUT_OF_MEMORY);
+		return rad::error(GL_OUT_OF_MEMORY);
 	}
 
     Texture::setImage(format, type, unpackAlignment, pixels, image[face][level]);
@@ -812,7 +812,7 @@ void TextureCubeMap::generateMipmaps()
 {
     if(!isCubeComplete())
     {
-        return error(GL_INVALID_OPERATION);
+        return rad::error(GL_INVALID_OPERATION);
     }
 
     unsigned int q = log2(image[0][0]->getWidth());
@@ -830,7 +830,7 @@ void TextureCubeMap::generateMipmaps()
 
 			if(!image[f][i])
 			{
-				return error(GL_OUT_OF_MEMORY);
+				return rad::error(GL_OUT_OF_MEMORY);
 			}
 
 			getDevice()->stretchRect(image[f][i - 1], 0, image[f][i], 0, true);

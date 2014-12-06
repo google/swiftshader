@@ -18,7 +18,7 @@
 #include "common/debug.h"
 #include "Common/Version.h"
 #include "Main/Register.hpp"
-#include "../libEGL/Surface.h"
+#include "Surface.h"
 
 #define GL_APICALL
 #include <RAD/rad.h>

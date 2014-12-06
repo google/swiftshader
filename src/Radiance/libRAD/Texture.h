@@ -17,7 +17,7 @@
 #define LIBGLESV2_TEXTURE_H_
 
 #include "utilities.h"
-#include "libEGL/Texture2D.hpp"
+#include "Texture2D.hpp"
 #include "common/debug.h"
 
 #define GL_APICALL

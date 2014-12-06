@@ -49,7 +49,7 @@ GLboolean Fence::testFence()
 {
     if(!mQuery)
     {
-        return error(GL_INVALID_OPERATION, GL_TRUE);
+        return rad::error(GL_INVALID_OPERATION, GL_TRUE);
     }
 
 	UNIMPLEMENTED();
@@ -62,7 +62,7 @@ void Fence::finishFence()
 {
     if(!mQuery)
     {
-        return error(GL_INVALID_OPERATION);
+        return rad::error(GL_INVALID_OPERATION);
     }
 
     while(!testFence())
@@ -75,7 +75,7 @@ void Fence::getFenceiv(GLenum pname, GLint *params)
 {
     if(!mQuery)
     {
-        return error(GL_INVALID_OPERATION);
+        return rad::error(GL_INVALID_OPERATION);
     }
 
     switch (pname)
@@ -100,7 +100,7 @@ void Fence::getFenceiv(GLenum pname, GLint *params)
         params[0] = mCondition;
         break;
     default:
-        return error(GL_INVALID_ENUM);
+        return rad::error(GL_INVALID_ENUM);
         break;
     }
 }

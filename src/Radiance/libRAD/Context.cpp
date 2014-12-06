@@ -21,8 +21,8 @@
 #include "Program.h"
 #include "Shader.h"
 #include "Texture.h"
-#include "libEGL/Display.h"
-#include "libEGL/Surface.h"
+#include "Display.h"
+#include "Surface.h"
 #include "Common/Half.hpp"
 
 #include <EGL/eglext.h>
@@ -704,7 +704,7 @@ void Context::applyState(GLenum drawMode)
                mState.stencilMask != mState.stencilBackMask)
             {
 				ERR("Separate front/back stencil writemasks, reference values, or stencil mask values are invalid under WebGL.");
-                return error(GL_INVALID_OPERATION);
+                return rad::error(GL_INVALID_OPERATION);
             }
 
             // get the maximum size of the stencil ref
@@ -1047,14 +1047,14 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
 {
     if(!mState.program)
     {
-        return error(GL_INVALID_OPERATION);
+        return rad::error(GL_INVALID_OPERATION);
     }
 
     PrimitiveType primitiveType;
     int primitiveCount;
 
     if(!rad2sw::ConvertPrimitiveType(mode, count, primitiveType, primitiveCount))
-        return error(GL_INVALID_ENUM);
+        return rad::error(GL_INVALID_ENUM);
 
     if(primitiveCount <= 0)
     {
@@ -1071,14 +1071,14 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
     GLenum err = applyVertexBuffer(0, first);
     if(err != GL_NO_ERROR)
     {
-        return error(err);
+        return rad::error(err);
     }
 
     applyShaders();
 
     if(!mState.program->validateSamplers(false))
     {
-        return error(GL_INVALID_OPERATION);
+        return rad::error(GL_INVALID_OPERATION);
     }
 
     if(!cullSkipsDraw(mode))
@@ -1091,14 +1091,14 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, intptr_t off
 {
     if(!mState.program || !mState.elementArrayBuffer)
     {
-        return error(GL_INVALID_OPERATION);
+        return rad::error(GL_INVALID_OPERATION);
     }
 
     PrimitiveType primitiveType;
     int primitiveCount;
 
     if(!rad2sw::ConvertPrimitiveType(mode, count, primitiveType, primitiveCount))
-        return error(GL_INVALID_ENUM);
+        return rad::error(GL_INVALID_ENUM);
 
     if(primitiveCount <= 0)
     {
@@ -1117,7 +1117,7 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, intptr_t off
     GLenum err = applyVertexBuffer(0, 0);
     if(err != GL_NO_ERROR)
     {
-        return error(err);
+        return rad::error(err);
     }
 
     applyShaders();
@@ -1125,7 +1125,7 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, intptr_t off
 
     if(!mState.program->validateSamplers(false))
     {
-        return error(GL_INVALID_OPERATION);
+        return rad::error(GL_INVALID_OPERATION);
     }
 
     if(!cullSkipsDraw(mode))
@@ -1255,13 +1255,4 @@ Device *Context::getDevice()
 	return device;
 }
 
-}
-
-// Exported functions for use by EGL
-extern "C"
-{
-	es2::Context *glCreateContext(const egl::Config *config, const es2::Context *shareContext)
-	{
-		return new es2::Context(config, shareContext);
-	}
 }

@@ -105,7 +105,6 @@ bool benchmark = false;
 
 void InitRAD()
 {
-    // obfuscated string for radGetProcAddress
 	PFNRADGETPROCADDRESSPROC getProc = (PFNRADGETPROCADDRESSPROC)eglGetProcAddress("radGetProcAddress");
     radLoadProcs(getProc);
 

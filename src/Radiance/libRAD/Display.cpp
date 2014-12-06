@@ -16,8 +16,8 @@
 #include "Display.h"
 
 #include "main.h"
-#include "libEGL/Surface.h"
-#include "libEGL/Context.hpp"
+#include "Surface.h"
+#include "Context.hpp"
 #include "common/debug.h"
 
 #include <algorithm>
@@ -390,10 +390,7 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
 
 	if(clientVersion == 2 && config->mRenderableType & EGL_OPENGL_ES2_BIT)
 	{
-		if(es2::createContext != 0)
-		{
-			context = es2::createContext(config, shareContext);
-		}
+		context = new es2::Context(config, static_cast<const es2::Context*>(shareContext));
 	}
 	else
 	{

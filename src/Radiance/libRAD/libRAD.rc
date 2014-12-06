@@ -14,13 +14,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -70,13 +68,13 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "FileDescription", "SwiftShader libGLESv2 Dynamic Link Library"
+            VALUE "FileDescription", "SwiftShader libRAD Dynamic Link Library"
             VALUE "FileVersion", VERSION_STRING
-            VALUE "InternalName", "libGLESv2"
-            VALUE "LegalCopyright", "Copyright (C) 2012 TransGaming Inc."
-            VALUE "OriginalFilename", "libGLESv2.dll"
+            VALUE "InternalName", "libRAD"
+            VALUE "LegalCopyright", "Copyright (C) 2014 Google Inc."
+            VALUE "OriginalFilename", "libRAD.dll"
             VALUE "PrivateBuild", VERSION_STRING
-            VALUE "ProductName", "SwiftShader libGLESv2 Dynamic Link Library"
+            VALUE "ProductName", "SwiftShader libRAD Dynamic Link Library"
             VALUE "ProductVersion", VERSION_STRING
         END
     END
@@ -86,7 +84,41 @@ BEGIN
     END
 END
 
-#endif    // English (U.S.) resources
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG1 DIALOGEX 0, 0, 129, 47
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Waiting for debugger"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,72,26,50,14
+    LTEXT           "Attach a debugger or ESC to cancel",IDC_STATIC,7,7,115,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_DIALOG1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 122
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 40
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -100,3 +132,5 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
+
+

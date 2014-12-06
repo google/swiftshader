@@ -29,6 +29,13 @@
 
 #include <algorithm>
 
+extern "C"
+{
+	es2::Image *createBackBuffer(int width, int height, const egl::Config *config);
+	es2::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
+	sw::FrameBuffer *createFrameBuffer(HDC display, HWND window, int width, int height);
+}
+
 namespace egl
 {
 
@@ -126,7 +133,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 
     if(mWindow)
     {
-		frameBuffer = es2::createFrameBuffer(mDisplay->getNativeDisplay(), mWindow, backBufferWidth, backBufferHeight);
+		frameBuffer = createFrameBuffer(mDisplay->getNativeDisplay(), mWindow, backBufferWidth, backBufferHeight);
 
 		if(!frameBuffer)
 		{
@@ -136,7 +143,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 		}
     }
 
-	backBuffer = es2::createBackBuffer(backBufferWidth, backBufferHeight, mConfig);
+	backBuffer = createBackBuffer(backBufferWidth, backBufferHeight, mConfig);
 
     if(!backBuffer)
     {
@@ -147,7 +154,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 
     if(mConfig->mDepthStencilFormat != sw::FORMAT_NULL)
     {
-        mDepthStencil = es2::createDepthStencil(backBufferWidth, backBufferHeight, mConfig->mDepthStencilFormat, 1, false);
+        mDepthStencil = createDepthStencil(backBufferWidth, backBufferHeight, mConfig->mDepthStencilFormat, 1, false);
 
 		if(!mDepthStencil)
 		{

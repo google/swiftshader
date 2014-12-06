@@ -2,11 +2,15 @@ LIBRARY libRAD
 EXPORTS
 	radGetProcAddress
 
-    ; EGL dependencies
-    glCreateContext
-
-	createFrameBuffer
-	createBackBuffer
-	createDepthStencil
+	eglBindAPI
+	eglChooseConfig
+	eglCreateContext
+	eglCreateWindowSurface
+	eglGetDisplay
+	eglGetError
+	eglGetProcAddress
+	eglInitialize
+	eglMakeCurrent
+	eglTerminate
 
 	Register

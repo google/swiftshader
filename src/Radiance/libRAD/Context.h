@@ -15,7 +15,7 @@
 #ifndef LIBGLESV2_CONTEXT_H_
 #define LIBGLESV2_CONTEXT_H_
 
-#include "libEGL/Context.hpp"
+#include "Context.hpp"
 #include "Image.hpp"
 #include "Renderer/Sampler.hpp"
 

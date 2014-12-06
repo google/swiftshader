@@ -109,9 +109,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Radiance\libEGL\libEGL.vcxproj">
-      <Project>{2f6770b5-f168-4fcd-8a56-4dd95bec8893}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\src\Radiance\libRAD\libRAD.vcxproj">
       <Project>{a08dd1a8-998c-4fbb-8710-89b80d0bc3ad}</Project>
     </ProjectReference>

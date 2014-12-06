@@ -17,7 +17,7 @@
 #include "Context.h"
 #include "Device.hpp"
 #include "common/debug.h"
-#include "libEGL/Display.h"
+#include "Display.h"
 
 #define GL_APICALL
 #include <GLES2/gl2.h>
@@ -35,6 +35,8 @@ namespace egl
 	GLint getClientVersion();
 }
 
+namespace rad
+{
 void error(GLenum errorCode);
 
 template<class T>
@@ -44,14 +46,66 @@ const T &error(GLenum errorCode, const T &returnValue)
 
     return returnValue;
 }
-
-// libEGL dependencies
-namespace egl
-{
-	extern egl::Context *(*getCurrentContext)();
-	extern egl::Display *(*getCurrentDisplay)();
 }
 
-extern void *libEGL;       // Handle to the libEGL module
+#define EGLAPI
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <RAD/rad.h>
+
+namespace egl
+{
+	struct Current
+	{
+		EGLint error;
+		EGLenum API;
+		EGLDisplay display;
+		EGLContext context;
+		EGLSurface drawSurface;
+		EGLSurface readSurface;
+	};
+
+	void setCurrentError(EGLint error);
+	EGLint getCurrentError();
+
+	void setCurrentAPI(EGLenum API);
+	EGLenum getCurrentAPI();
+
+	void setCurrentDisplay(EGLDisplay dpy);
+	EGLDisplay getCurrentDisplay();
+
+	void setCurrentContext(EGLContext ctx);
+	EGLContext getCurrentContext();
+
+	void setCurrentDrawSurface(EGLSurface surface);
+	EGLSurface getCurrentDrawSurface();
+
+	void setCurrentReadSurface(EGLSurface surface);
+	EGLSurface getCurrentReadSurface();
+
+	void error(EGLint errorCode);
+
+	template<class T>
+	const T &error(EGLint errorCode, const T &returnValue)
+	{
+		error(errorCode);
+
+		return returnValue;
+	}
+
+	template<class T>
+	const T &success(const T &returnValue)
+	{
+		egl::setCurrentError(EGL_SUCCESS);
+
+		return returnValue;
+	}
+
+	class Config;
+	class Surface;
+	class Display;
+	class Context;
+	class Image;
+}
 
 #endif   // LIBGLESV2_MAIN_H_
