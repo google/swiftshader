@@ -51,8 +51,8 @@ namespace sw
 		int depth = XDefaultDepth(x_display, screen);
 
 		Status status = XMatchVisualInfo(x_display, screen, 32, TrueColor, &x_visual);
-		assert(status != 0 && x_visual.blue_mask == 0xFF);   // Only X8R8G8B8 implemented
-		Visual *visual = x_visual.visual;
+		bool match = (status != 0 && x_visual.blue_mask == 0xFF);   // Prefer X8R8G8B8
+		Visual *visual = match ? x_visual.visual : XDefaultVisual(x_display, screen);
 
 		mit_shm = (XShmQueryExtension(x_display) == True);
 
