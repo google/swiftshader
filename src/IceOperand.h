@@ -362,7 +362,8 @@ public:
 
 private:
   typedef std::pair<InstNumberT, InstNumberT> RangeElementType;
-  typedef std::vector<RangeElementType> RangeType;
+  // Assume a common case of 2 or fewer segments per live range.
+  typedef llvm::SmallVector<RangeElementType, 2> RangeType;
   RangeType Range;
   RegWeight Weight;
   // TrimmedBegin is an optimization for the overlaps() computation.
