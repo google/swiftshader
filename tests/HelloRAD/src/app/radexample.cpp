@@ -352,7 +352,7 @@ void TestRAD()
     radQueueScissor(queue, 0, 0, offscreenWidth, offscreenHeight);
     radQueueViewport(queue, 0, 0, offscreenWidth, offscreenHeight);
 
-    RADbindGroupElement b[4] = {{vboHandle, 0, ~0}, {vboHandle, sizeof(vertexData), ~0}, {uboHandle, 0, 4*sizeof(float)}, {texHandle, 0, ~0}};
+    RADbindGroupElement b[4] = {{vboHandle, 0, 0}, {vboHandle, sizeof(vertexData), 0}, {uboHandle, 0, 4*sizeof(float)}, {texHandle, 0, 0}};
     RADbuffer bindGroup = AllocAndFillBuffer(device, b, sizeof(b), RAD_BINDGROUP_ACCESS_BIT, false);
 
     RADbindGroupHandle bindGroupHandle = radGetBindGroupHandle(bindGroup);

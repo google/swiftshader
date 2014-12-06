@@ -38,12 +38,12 @@ public:
 		return height;
 	}
 
-	GLenum Image::getFormat()
+	GLenum getFormat()
 	{
 		return format;
 	}
 	
-	GLenum Image::getType()
+	GLenum getType()
 	{
 		return type;
 	}
@@ -58,27 +58,27 @@ public:
 		return multiSampleDepth;
 	}
 
-	bool Image::isShared() const
+	bool isShared() const
     {
         return shared;
     }
 
-    void Image::markShared()
+    void markShared()
     {
         shared = true;
     }
 
-	void *Image::lock(unsigned int left, unsigned int top, sw::Lock lock)
+	void *lock(unsigned int left, unsigned int top, sw::Lock lock)
 	{
 		return lockExternal(left, top, 0, lock, sw::PUBLIC);
 	}
 
-	unsigned int Image::getPitch() const
+	unsigned int getPitch() const
 	{
 		return getExternalPitchB();
 	}
 
-	void Image::unlock()
+	void unlock()
 	{
 		unlockExternal();
 	}

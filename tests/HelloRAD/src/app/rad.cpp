@@ -1,8 +1,8 @@
 /******************************************************************************
 
- @File         OGLES2HelloAPI_Windows.cpp
+ @File         rad.cpp
 
- @Title        OpenGL ES 2.0 HelloAPI Tutorial
+ @Title        Radiance HelloAPI Tutorial
 
  @Version      
 
@@ -346,6 +346,6 @@ cleanup:
 }
 
 /******************************************************************************
- End of file (OGLES2HelloAPI_Windows.cpp)
+ End of file (rad.cpp)
 ******************************************************************************/
 

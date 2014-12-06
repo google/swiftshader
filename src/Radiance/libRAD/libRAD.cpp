@@ -183,14 +183,14 @@ class Sampler : public Object
 public:
 	Sampler(Device *device) : Object(device)
 	{
-		default();
+		defaults();
 	}
 
 	virtual ~Sampler()
 	{
 	}
 
-	void default()
+	void defaults()
 	{
 		minFilter = RAD_MIN_FILTER_NEAREST_MIPMAP_LINEAR;   // FIXME: default?
 		magFilter = RAD_MAG_FILTER_LINEAR;                  // FIXME: default?
@@ -236,7 +236,7 @@ struct TextureSampler
 {
 	TextureSampler(Texture *texture, Sampler *sampler, RADtextureTarget target, RADinternalFormat internalFormat, RADuint minLevel, RADuint numLevels, RADuint minLayer, RADuint numLayers);
 
-	virtual TextureSampler::~TextureSampler();
+	virtual ~TextureSampler();
 
 	Texture *texture;
 	Sampler *sampler;
@@ -345,16 +345,16 @@ struct ColorState : public Object
 {
 	ColorState(Device *device) : Object(device)
 	{
-		default();
+		defaults();
 	}
 
-	void default()
+	void defaults()
 	{
 		enable = RAD_FALSE;
 
 		for(size_t i = 0; i < arraySize(blend); i++)
 		{
-			blend[i].default();
+			blend[i].defaults();
 		}
 
 		numTargets = 1;
@@ -373,10 +373,10 @@ struct ColorState : public Object
 	{
 		Blend()
 		{
-			default();
+			defaults();
 		}
 
-		void default()
+		void defaults()
 		{
 			enable = RAD_FALSE;
 			srcFunc = RAD_BLEND_FUNC_ONE;
@@ -414,10 +414,10 @@ struct RasterState : public Object
 {
 	RasterState(Device *device) : Object(device)
 	{
-		default();
+		defaults();
 	}
 
-	void default()
+	void defaults()
 	{
 		pointSize = 1.0f;
 		lineWidth = 1.0f;
@@ -459,10 +459,10 @@ struct DepthStencilState : public Object
 {
 	DepthStencilState(Device *device) : Object(device)
 	{
-		default();
+		defaults();
 	}
 
-	void default()
+	void defaults()
 	{
 		depthTestEnable = RAD_FALSE;
 		depthWriteEnable = RAD_FALSE;
@@ -521,19 +521,19 @@ struct VertexState : public Object
 {
 	VertexState(Device *device) : Object(device)
 	{
-		default();
+		defaults();
 	}
 
-	void default()
+	void defaults()
 	{
 		for(size_t i = 0; i < arraySize(attrib); i++)
 		{
-			attrib[i].default();
+			attrib[i].defaults();
 		}
 
 		for(size_t i = 0; i < arraySize(binding); i++)
 		{
-			binding[i].default();
+			binding[i].defaults();
 		}
 	}
 
@@ -541,10 +541,10 @@ struct VertexState : public Object
 	{
 		Attribute()
 		{
-			default();
+			defaults();
 		}
 
-		void default()
+		void defaults()
 		{
 			enable = RAD_FALSE;
 			bindingIndex = 0;
@@ -570,10 +570,10 @@ struct VertexState : public Object
 	{
 		Binding()
 		{
-			default();
+			defaults();
 		}
 
-		void default()
+		void defaults()
 		{
 			group = 0;
 			index = 0;
@@ -593,10 +593,10 @@ struct FormatState : public Object
 {
 	FormatState(Device *device) : Object(device)
 	{
-		default();
+		defaults();
 	}
 
-	void default()
+	void defaults()
 	{
 		for(size_t i = 0; i < arraySize(colorFormat); i++)
 		{
@@ -659,7 +659,7 @@ class Pass : public Object
 public:
 	Pass(Device *device) : Object(device)
 	{
-		default();
+		defaults();
 	}
 
 	virtual ~Pass()
@@ -683,7 +683,7 @@ public:
 		}
 	}
 
-	void default()
+	void defaults()
 	{
 		numColors = 0;
 
@@ -1602,7 +1602,7 @@ void RADAPIENTRY radReleaseSampler(RADsampler sampler)
 void RADAPIENTRY radSamplerDefault(RADsampler sampler)
 {
 	rad::Sampler *radSampler = reinterpret_cast<rad::Sampler*>(sampler);
-	radSampler->default();
+	radSampler->defaults();
 }
 
 void RADAPIENTRY radSamplerMinMagFilter(RADsampler sampler, RADminFilter min, RADmagFilter mag)
@@ -1680,7 +1680,7 @@ void RADAPIENTRY radReleaseColorState(RADcolorState color)
 void RADAPIENTRY radColorDefault(RADcolorState color)
 {
 	rad::ColorState *colorState = reinterpret_cast<rad::ColorState*>(color);
-	colorState->default();
+	colorState->defaults();
 }
 
 void RADAPIENTRY radColorBlendEnable(RADcolorState color, RADuint index, RADboolean enable)
@@ -1771,7 +1771,7 @@ void RADAPIENTRY radReleaseRasterState(RADrasterState raster)
 void RADAPIENTRY radRasterDefault(RADrasterState raster)
 {
 	rad::RasterState *rasterState = reinterpret_cast<rad::RasterState*>(raster);
-	rasterState->default();
+	rasterState->defaults();
 }
 
 void RADAPIENTRY radRasterPointSize(RADrasterState raster, RADfloat pointSize)
@@ -1869,7 +1869,7 @@ void RADAPIENTRY radReleaseDepthStencilState(RADdepthStencilState depthStencil)
 void RADAPIENTRY radDepthStencilDefault(RADdepthStencilState depthStencil)
 {
 	rad::DepthStencilState *depthStencilState = reinterpret_cast<rad::DepthStencilState*>(depthStencil);
-	depthStencilState->default();
+	depthStencilState->defaults();
 }
 
 void RADAPIENTRY radDepthStencilDepthTestEnable(RADdepthStencilState depthStencil, RADboolean enable)
@@ -2037,7 +2037,7 @@ void RADAPIENTRY radReleaseRtFormatState(RADrtFormatState rtFormat)
 void RADAPIENTRY radRtFormatDefault(RADrtFormatState rtFormat)
 {
 	rad::FormatState *formatState = reinterpret_cast<rad::FormatState*>(rtFormat);
-	formatState->default();
+	formatState->defaults();
 }
 
 void RADAPIENTRY radRtFormatColorFormat(RADrtFormatState rtFormat, RADuint index, RADinternalFormat format)
@@ -2241,7 +2241,7 @@ void RADAPIENTRY radReleasePass(RADpass pass)
 void RADAPIENTRY radPassDefault(RADpass pass)
 {
 	rad::Pass *radPass = reinterpret_cast<rad::Pass*>(pass);
-	radPass->default();
+	radPass->defaults();
 }
 
 void RADAPIENTRY radCompilePass(RADpass pass)

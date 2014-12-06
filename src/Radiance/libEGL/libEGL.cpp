@@ -196,7 +196,7 @@ const char *EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name)
         case EGL_VENDOR:
             return success("TransGaming Inc.");
         case EGL_VERSION:
-            return success("1.4 SwiftShader "VERSION_STRING);
+            return success("1.4 SwiftShader " VERSION_STRING);
         }
 
         return error(EGL_BAD_PARAMETER, (const char*)NULL);
@@ -683,7 +683,7 @@ EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLCon
                 }
             }
         }
-		
+
         egl::Display *display = static_cast<egl::Display*>(dpy);
 
         if(!validateConfig(display, config))
@@ -984,7 +984,7 @@ EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface, EGLNat
 __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const char *procname)
 {
     TRACE("(const char *procname = \"%s\")", procname);
-	
+
 	if(rad::getProcAddress != 0)
 	{
 		__eglMustCastToProperFunctionPointerType proc = rad::getProcAddress(procname);
