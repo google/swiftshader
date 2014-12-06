@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="rad" />
+		<Option pch_mode="2" />
+		<Option compiler="clang" />
+		<Build>
+			<Target title="Debug x86">
+				<Option output="rad" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../lib/Debug_x86" />
+				<Option object_output="obj/Debug_x86" />
+				<Option type="1" />
+				<Option compiler="clang" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-m32" />
+				</Compiler>
+				<Linker>
+					<Add option="-m32" />
+					<Add directory="../../lib/Debug_x86" />
+				</Linker>
+			</Target>
+			<Target title="Release x86">
+				<Option output="rad" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../lib/Release_x86" />
+				<Option object_output="obj/Release_x86" />
+				<Option type="1" />
+				<Option compiler="clang" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-m32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-DANGLE_DISABLE_TRACE" />
+					<Add directory="./src/GL" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="./src/GL" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-m32" />
+					<Add directory="../../lib/Release_x86" />
+				</Linker>
+			</Target>
+			<Target title="Debug x64">
+				<Option output="rad" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../lib/Debug_x64" />
+				<Option object_output="obj/Debug_x64" />
+				<Option type="1" />
+				<Option compiler="clang" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-m64" />
+				</Compiler>
+				<Linker>
+					<Add option="-m64" />
+					<Add directory="../../lib/Debug_x64" />
+				</Linker>
+			</Target>
+			<Target title="Release x64">
+				<Option output="rad" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../lib/Release_x64" />
+				<Option object_output="obj/Release_x64" />
+				<Option type="1" />
+				<Option compiler="clang" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-march=core2" />
+					<Add option="-m64" />
+					<Add option="-fPIC" />
+					<Add option="-DNDEBUG" />
+					<Add option="-DANGLE_DISABLE_TRACE" />
+					<Add directory="./src/GL" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="./src/GL" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-m64" />
+					<Add directory="../../lib/Release_x64" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add directory="./src/include/" />
+		</Compiler>
+		<Linker>
+			<Add library="X11" />
+			<Add library="RAD" />
+		</Linker>
+		<Unit filename="src/app/rad_LinuxX11.cpp" />
+		<Unit filename="src/app/radexample.cpp" />
+		<Unit filename="src/app/radfnptrinit.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/app/radfnptrinit.h" />
+		<Unit filename="src/include/RAD/rad.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

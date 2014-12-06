@@ -13,5 +13,11 @@
 			<Depends filename="OpenGL/libEGL/libEGL.cbp" />
 			<Depends filename="OpenGL/libGLESv2/libGLESv2.cbp" />
 		</Project>
+		<Project filename="Radiance/libRAD/libRAD.cbp">
+			<Depends filename="LLVM/LLVM.cbp" />
+		</Project>
+		<Project filename="../tests/HelloRAD/rad.cbp">
+			<Depends filename="Radiance/libRAD/libRAD.cbp" />
+		</Project>
 	</Workspace>
 </CodeBlocks_workspace_file>
