@@ -42,7 +42,7 @@ ifdef DEBUG
   OPTLEVEL = -O0
 else
   OBJDIR = build/Release
-  OPTLEVEL = -O2
+  OPTLEVEL = -O2 -ffunction-sections -fdata-sections
 endif
 
 # The list of CXX defines that are dependent on build parameters.
@@ -86,7 +86,7 @@ CXXFLAGS := $(LLVM_CXXFLAGS) -std=c++11 -Wall -Wextra -Werror -fno-rtti \
 	-fno-exceptions $(OPTLEVEL) $(ASSERTIONS) $(CXX_DEFINES) -g \
 	$(HOST_FLAGS) -Wno-error=unused-parameter \
 	-I$(LIBCXX_INSTALL_PATH)/include/c++/v1
-LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib
+LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib -Wl,--gc-sections
 
 SRCS = \
 	assembler.cpp \
