@@ -161,25 +161,38 @@ public:
   ELFObjectWriter *getObjectWriter() const { return ObjectWriter.get(); }
 
   // Reset stats at the beginning of a function.
-  void resetStats() { StatsFunction.reset(); }
+  void resetStats() {
+    if (ALLOW_DUMP)
+      StatsFunction.reset();
+  }
   void dumpStats(const IceString &Name, bool Final = false);
   void statsUpdateEmitted(uint32_t InstCount) {
+    if (!ALLOW_DUMP)
+      return;
     StatsFunction.updateEmitted(InstCount);
     StatsCumulative.updateEmitted(InstCount);
   }
   void statsUpdateRegistersSaved(uint32_t Num) {
+    if (!ALLOW_DUMP)
+      return;
     StatsFunction.updateRegistersSaved(Num);
     StatsCumulative.updateRegistersSaved(Num);
   }
   void statsUpdateFrameBytes(uint32_t Bytes) {
+    if (!ALLOW_DUMP)
+      return;
     StatsFunction.updateFrameBytes(Bytes);
     StatsCumulative.updateFrameBytes(Bytes);
   }
   void statsUpdateSpills() {
+    if (!ALLOW_DUMP)
+      return;
     StatsFunction.updateSpills();
     StatsCumulative.updateSpills();
   }
   void statsUpdateFills() {
+    if (!ALLOW_DUMP)
+      return;
     StatsFunction.updateFills();
     StatsCumulative.updateFills();
   }
@@ -234,21 +247,24 @@ class TimerMarker {
 
 public:
   TimerMarker(TimerIdT ID, GlobalContext *Ctx)
-      : ID(ID), Ctx(Ctx), Active(Ctx->getFlags().SubzeroTimingEnabled) {
-    if (Active)
-      Ctx->pushTimer(ID);
+      : ID(ID), Ctx(Ctx), Active(false) {
+    if (ALLOW_DUMP) {
+      Active = Ctx->getFlags().SubzeroTimingEnabled;
+      if (Active)
+        Ctx->pushTimer(ID);
+    }
   }
   TimerMarker(TimerIdT ID, const Cfg *Func);
 
   ~TimerMarker() {
-    if (Active)
+    if (ALLOW_DUMP && Active)
       Ctx->popTimer(ID);
   }
 
 private:
   TimerIdT ID;
   GlobalContext *const Ctx;
-  const bool Active;
+  bool Active;
 };
 
 } // end of namespace Ice

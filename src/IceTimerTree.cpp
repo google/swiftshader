@@ -22,6 +22,8 @@ namespace Ice {
 TimerStack::TimerStack(const IceString &Name)
     : Name(Name), FirstTimestamp(timestamp()), LastTimestamp(FirstTimestamp),
       StateChangeCount(0), StackTop(0) {
+  if (!ALLOW_DUMP)
+    return;
   Nodes.resize(1); // Reserve Nodes[0] for the root node.
   IDs.resize(TT__num);
 #define STR(s) #s
@@ -36,6 +38,8 @@ TimerStack::TimerStack(const IceString &Name)
 // Returns the unique timer ID for the given Name, creating a new ID
 // if needed.
 TimerIdT TimerStack::getTimerID(const IceString &Name) {
+  if (!ALLOW_DUMP)
+    return 0;
   if (IDsIndex.find(Name) == IDsIndex.end()) {
     IDsIndex[Name] = IDs.size();
     IDs.push_back(Name);
@@ -45,6 +49,8 @@ TimerIdT TimerStack::getTimerID(const IceString &Name) {
 
 // Pushes a new marker onto the timer stack.
 void TimerStack::push(TimerIdT ID) {
+  if (!ALLOW_DUMP)
+    return;
   const bool UpdateCounts = false;
   update(UpdateCounts);
   if (Nodes[StackTop].Children.size() <= ID)
@@ -62,6 +68,8 @@ void TimerStack::push(TimerIdT ID) {
 // Pop the top marker from the timer stack.  Validates via assert()
 // that the expected marker is popped.
 void TimerStack::pop(TimerIdT ID) {
+  if (!ALLOW_DUMP)
+    return;
   const bool UpdateCounts = true;
   update(UpdateCounts);
   assert(StackTop);
@@ -77,6 +85,8 @@ void TimerStack::pop(TimerIdT ID) {
 // At a state change (e.g. push or pop), updates the flat and
 // cumulative timings for everything on the timer stack.
 void TimerStack::update(bool UpdateCounts) {
+  if (!ALLOW_DUMP)
+    return;
   ++StateChangeCount;
   // Whenever the stack is about to change, we grab the time delta
   // since the last change and add it to all active cumulative
@@ -111,6 +121,8 @@ void TimerStack::update(bool UpdateCounts) {
 }
 
 void TimerStack::reset() {
+  if (!ALLOW_DUMP)
+    return;
   StateChangeCount = 0;
   FirstTimestamp = LastTimestamp = timestamp();
   LeafTimes.assign(LeafTimes.size(), 0);

@@ -68,11 +68,13 @@ bool Cfg::hasComputedFrame() const { return getTarget()->hasComputedFrame(); }
 void Cfg::translate() {
   if (hasError())
     return;
-  const IceString &TimingFocusOn = getContext()->getFlags().TimingFocusOn;
-  if (TimingFocusOn == "*" || TimingFocusOn == getFunctionName()) {
-    setFocusedTiming();
-    getContext()->resetTimer(GlobalContext::TSK_Default);
-    getContext()->setTimerName(GlobalContext::TSK_Default, getFunctionName());
+  if (ALLOW_DUMP) {
+    const IceString &TimingFocusOn = getContext()->getFlags().TimingFocusOn;
+    if (TimingFocusOn == "*" || TimingFocusOn == getFunctionName()) {
+      setFocusedTiming();
+      getContext()->resetTimer(GlobalContext::TSK_Default);
+      getContext()->setTimerName(GlobalContext::TSK_Default, getFunctionName());
+    }
   }
   TimerMarker T(TimerStack::TT_translate, this);
 

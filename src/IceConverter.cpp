@@ -883,7 +883,7 @@ void Converter::convertFunctions() {
       continue;
 
     TimerIdT TimerID = 0;
-    if (Ctx->getFlags().TimeEachFunction) {
+    if (ALLOW_DUMP && Ctx->getFlags().TimeEachFunction) {
       TimerID = Ctx->getTimerID(StackID, I.getName());
       Ctx->pushTimer(TimerID, StackID);
     }
@@ -891,7 +891,7 @@ void Converter::convertFunctions() {
 
     Cfg *Fcn = FunctionConverter.convertFunction(&I);
     translateFcn(Fcn);
-    if (Ctx->getFlags().TimeEachFunction)
+    if (ALLOW_DUMP && Ctx->getFlags().TimeEachFunction)
       Ctx->popTimer(TimerID, StackID);
   }
 

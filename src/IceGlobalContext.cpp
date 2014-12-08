@@ -114,8 +114,10 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
       TestPrefix(TestPrefix), Flags(Flags), HasEmittedFirstMethod(false),
       RNG(""), ObjectWriter() {
   // Pre-register built-in stack names.
-  newTimerStackID("Total across all functions");
-  newTimerStackID("Per-function summary");
+  if (ALLOW_DUMP) {
+    newTimerStackID("Total across all functions");
+    newTimerStackID("Per-function summary");
+  }
   if (Flags.UseELFWriter) {
     ObjectWriter.reset(new ELFObjectWriter(*this, *ELFStr));
   }
@@ -221,7 +223,7 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
   //   _Z3barxyz ==> ZN6Prefix3barExyz
   // An unmangled, extern "C" style name, gets a simple prefix:
   //   bar ==> Prefixbar
-  if (getTestPrefix().empty())
+  if (!ALLOW_DUMP || getTestPrefix().empty())
     return Name;
 
   unsigned PrefixLength = getTestPrefix().length();
@@ -438,6 +440,8 @@ TimerIdT GlobalContext::getTimerID(TimerStackIdT StackID,
 }
 
 TimerStackIdT GlobalContext::newTimerStackID(const IceString &Name) {
+  if (!ALLOW_DUMP)
+    return 0;
   TimerStackIdT NewID = Timers.size();
   Timers.push_back(TimerStack(Name));
   return NewID;
@@ -485,10 +489,12 @@ void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
 }
 
 TimerMarker::TimerMarker(TimerIdT ID, const Cfg *Func)
-    : ID(ID), Ctx(Func->getContext()),
-      Active(Func->getFocusedTiming() || Ctx->getFlags().SubzeroTimingEnabled) {
-  if (Active)
-    Ctx->pushTimer(ID);
+    : ID(ID), Ctx(Func->getContext()), Active(false) {
+  if (ALLOW_DUMP) {
+    Active = Func->getFocusedTiming() || Ctx->getFlags().SubzeroTimingEnabled;
+    if (Active)
+      Ctx->pushTimer(ID);
+  }
 }
 
 } // end of namespace Ice
