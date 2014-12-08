@@ -23,6 +23,8 @@
 				</Linker>
 				<ExtraCommands>
 					<Add after="ln -s -f ./libGLESv2.so.2 ./../../../lib/Debug_x86/libGLESv2.so" />
+					<Add after="mkdir -p ./../../../lib/Debug_x86/translator/" />
+					<Add after="cp ./../../../lib/Debug_x86/libGLESv2.so.2 ./../../../lib/Debug_x86/translator/libGLES_V2_translator.so" />
 				</ExtraCommands>
 			</Target>
 			<Target title="Release x86">
@@ -33,9 +35,9 @@
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
-					<Add option="-march=i686" />
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-O2" />
+					<Add option="-march=i686" />
 					<Add option="-m32" />
 					<Add option="-ffunction-sections" />
 					<Add option="-fdata-sections" />
@@ -50,6 +52,8 @@
 				</Linker>
 				<ExtraCommands>
 					<Add after="ln -s -f ./libGLESv2.so.2 ./../../../lib/Release_x86/libGLESv2.so" />
+					<Add after="mkdir -p ./../../../lib/Release_x86/translator/" />
+					<Add after="cp ./../../../lib/Release_x86/libGLESv2.so.2 ./../../../lib/Release_x86/translator/libGLES_V2_translator.so" />
 				</ExtraCommands>
 			</Target>
 			<Target title="Debug x64">
@@ -70,6 +74,8 @@
 				</Linker>
 				<ExtraCommands>
 					<Add after="ln -s -f ./libGLESv2.so.2 ./../../../lib/Debug_x64/libGLESv2.so" />
+					<Add after="mkdir -p ./../../../lib/Debug_x64/translator/" />
+					<Add after="cp ./../../../lib/Debug_x64/libGLESv2.so.2 ./../../../lib/Debug_x64/translator/lib64GLES_V2_translator.so" />
 				</ExtraCommands>
 			</Target>
 			<Target title="Release x64">
@@ -80,9 +86,9 @@
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
-					<Add option="-march=core2" />
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-O2" />
+					<Add option="-march=core2" />
 					<Add option="-m64" />
 					<Add option="-fPIC" />
 					<Add option="-ffunction-sections" />
@@ -98,6 +104,8 @@
 				</Linker>
 				<ExtraCommands>
 					<Add after="ln -s -f ./libGLESv2.so.2 ./../../../lib/Release_x64/libGLESv2.so" />
+					<Add after="mkdir -p ./../../../lib/Release_x64/translator/" />
+					<Add after="cp ./../../../lib/Release_x64/libGLESv2.so.2 ./../../../lib/Release_x64/translator/lib64GLES_V2_translator.so" />
 				</ExtraCommands>
 			</Target>
 		</Build>
@@ -144,6 +152,7 @@
 		<Unit filename="../../Common/MutexLock.hpp" />
 		<Unit filename="../../Common/Resource.cpp" />
 		<Unit filename="../../Common/Resource.hpp" />
+		<Unit filename="../../Common/SharedLibrary.hpp" />
 		<Unit filename="../../Common/Socket.cpp" />
 		<Unit filename="../../Common/Socket.hpp" />
 		<Unit filename="../../Common/Thread.cpp" />

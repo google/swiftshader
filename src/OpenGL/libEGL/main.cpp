@@ -86,7 +86,7 @@ CONSTRUCTOR static bool eglAttachProcess()
 	#if defined(_WIN32)
 	const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "libGLES_CM_translator.dll"};
 	#else
-	const char *libGLES_CM_lib[] = {"libGLES_CM.so.1", "libGLES_CM.so"};
+	const char *libGLES_CM_lib[] = {"libGLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
 	#endif
 
     libGLES_CM = loadLibrary(libGLES_CM_lib);
@@ -96,7 +96,7 @@ CONSTRUCTOR static bool eglAttachProcess()
 	#if defined(_WIN32)
 	const char *libGLESv2_lib[] = {"libGLESv2.dll", "libGLES_V2_translator.dll"};
 	#else
-	const char *libGLESv2_lib[] = {"libGLESv2.so.2", "libGLESv2.so"};
+	const char *libGLESv2_lib[] = {"libGLES_V2_translator.so", "libGLESv2.so.2", "libGLESv2.so"};
 	#endif
 
     libGLESv2 = loadLibrary(libGLESv2_lib);

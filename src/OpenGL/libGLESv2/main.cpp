@@ -46,7 +46,7 @@ CONSTRUCTOR static bool glAttachProcess()
 	#if defined(_WIN32)
 	const char *libEGL_lib[] = {"libEGL.dll", "libEGL_translator.dll"};
 	#else
-	const char *libEGL_lib[] = {"libEGL.so.1", "libEGL.so"};
+	const char *libEGL_lib[] = {"libEGL_translator.so", "libEGL.so.1", "libEGL.so"};
 	#endif
 
 	libEGL = loadLibrary(libEGL_lib);
@@ -56,7 +56,7 @@ CONSTRUCTOR static bool glAttachProcess()
 	#if defined(_WIN32)
 	const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "libGLES_CM_translator.dll"};
 	#else
-	const char *libGLES_CM_lib[] = {"libGLES_CM.so.1", "libGLES_CM.so"};
+	const char *libGLES_CM_lib[] = {"libGLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
 	#endif
 
 	libGLES_CM = loadLibrary(libGLES_CM_lib);
@@ -104,12 +104,12 @@ namespace es2
 es2::Context *getContext()
 {
 	egl::Context *context = egl::getCurrentContext();
-	
+
 	if(context && context->getClientVersion() == 2)
 	{
 		return static_cast<es2::Context*>(context);
 	}
-	
+
 	return 0;
 }
 
