@@ -13,13 +13,11 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/ADT/SmallString.h"
-#include "llvm/Analysis/NaCl/PNaClABIProps.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDecoders.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeHeader.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeParser.h"
 #include "llvm/Bitcode/NaCl/NaClReaderWriter.h"
 #include "llvm/IR/Constants.h"
-#include "llvm/IR/DataLayout.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Format.h"
@@ -175,11 +173,10 @@ public:
                  NaClBitcodeHeader &Header, NaClBitstreamCursor &Cursor,
                  bool &ErrorStatus)
       : NaClBitcodeParser(Cursor), Translator(Translator),
-        Mod(new Module(InputName, getGlobalContext())), DL(PNaClDataLayout),
-        Header(Header), TypeConverter(Mod->getContext()),
-        ErrorStatus(ErrorStatus), NumErrors(0), NumFunctionIds(0),
-        NumFunctionBlocks(0), BlockParser(nullptr) {
-    Mod->setDataLayout(PNaClDataLayout);
+        Mod(new Module(InputName, getGlobalContext())), Header(Header),
+        TypeConverter(Mod->getContext()), ErrorStatus(ErrorStatus),
+        NumErrors(0), NumFunctionIds(0), NumFunctionBlocks(0),
+        BlockParser(nullptr) {
     setErrStream(Translator.getContext()->getStrDump());
   }
 
@@ -203,8 +200,6 @@ public:
 
   /// Returns the LLVM module associated with the translation.
   Module *getModule() const { return Mod.get(); }
-
-  const DataLayout &getDataLayout() const { return DL; }
 
   /// Returns the number of bytes in the bitcode header.
   size_t getHeaderSize() const { return Header.getHeaderSize(); }
@@ -405,8 +400,6 @@ private:
   Ice::Translator &Translator;
   // The parsed module.
   std::unique_ptr<Module> Mod;
-  // The data layout to use.
-  DataLayout DL;
   // The bitcode header.
   NaClBitcodeHeader &Header;
   // Converter between LLVM and ICE types.
@@ -1207,7 +1200,7 @@ private:
   // instruction.
   bool InstIsTerminating;
   // Upper limit of alignment power allowed by LLVM
-  static const uint64_t AlignPowerLimit = 29;
+  static const uint32_t AlignPowerLimit = 29;
 
   void popTimerIfTimingEachFunction() const {
     if (ALLOW_DUMP && getFlags().TimeEachFunction) {
@@ -1221,10 +1214,10 @@ private:
   // Extracts the corresponding Alignment to use, given the AlignPower
   // (i.e. 2**AlignPower, or 0 if AlignPower == 0). InstName is the
   // name of the instruction the alignment appears in.
-  void extractAlignment(const char *InstName, uint64_t AlignPower,
-                        unsigned &Alignment) {
+  void extractAlignment(const char *InstName, uint32_t AlignPower,
+                        uint32_t &Alignment) {
     if (AlignPower <= AlignPowerLimit) {
-      Alignment = (1 << static_cast<unsigned>(AlignPower)) >> 1;
+      Alignment = (1 << AlignPower) >> 1;
       return;
     }
     std::string Buffer;
@@ -1442,12 +1435,11 @@ private:
   // Checks if loading/storing a value of type Ty is allowed for
   // the given Alignment. Otherwise generates an error message and
   // returns false.
-  bool isValidLoadStoreAlignment(unsigned Alignment, Ice::Type Ty,
+  bool isValidLoadStoreAlignment(size_t Alignment, Ice::Type Ty,
                                  const char *InstructionName) {
     if (!isValidLoadStoreType(Ty, InstructionName))
       return false;
-    if (PNaClABIProps::isAllowedAlignment(&Context->getDataLayout(), Alignment,
-                                          Context->convertToLLVMType(Ty)))
+    if (isAllowedAlignment(Alignment, Ty))
       return true;
     std::string Buffer;
     raw_string_ostream StrBuf(Buffer);
@@ -1455,6 +1447,14 @@ private:
            << Alignment;
     Error(StrBuf.str());
     return false;
+  }
+
+  // Defines if the given alignment is valid for the given type. Simplified
+  // version of PNaClABIProps::isAllowedAlignment, based on API's offered
+  // for Ice::Type.
+  bool isAllowedAlignment(size_t Alignment, Ice::Type Ty) const {
+    return Alignment == typeAlignInBytes(Ty) ||
+           (Alignment == 1 && !isVectorType(Ty));
   }
 
   // Types of errors that can occur for insertelement and extractelement
@@ -2268,7 +2268,7 @@ void FunctionParser::ProcessRecord() {
     if (!isValidRecordSize(2, "alloca"))
       return;
     Ice::Operand *ByteCount = getRelativeOperand(Values[0], BaseIndex);
-    unsigned Alignment;
+    uint32_t Alignment;
     extractAlignment("Alloca", Values[1], Alignment);
     if (isIRGenerationDisabled()) {
       assert(ByteCount == nullptr);
@@ -2294,7 +2294,7 @@ void FunctionParser::ProcessRecord() {
       return;
     Ice::Operand *Address = getRelativeOperand(Values[0], BaseIndex);
     Ice::Type Ty = Context->getSimpleTypeByID(Values[2]);
-    unsigned Alignment;
+    uint32_t Alignment;
     extractAlignment("Load", Values[1], Alignment);
     if (isIRGenerationDisabled()) {
       assert(Address == nullptr);
@@ -2319,7 +2319,7 @@ void FunctionParser::ProcessRecord() {
       return;
     Ice::Operand *Address = getRelativeOperand(Values[0], BaseIndex);
     Ice::Operand *Value = getRelativeOperand(Values[1], BaseIndex);
-    unsigned Alignment;
+    uint32_t Alignment;
     extractAlignment("Store", Values[2], Alignment);
     if (isIRGenerationDisabled()) {
       assert(Address == nullptr && Value == nullptr);
