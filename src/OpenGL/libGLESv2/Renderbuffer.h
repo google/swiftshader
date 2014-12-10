@@ -17,7 +17,7 @@
 #ifndef LIBGLESV2_RENDERBUFFER_H_
 #define LIBGLESV2_RENDERBUFFER_H_
 
-#include "RefCountObject.h"
+#include "common/Object.hpp"
 #include "Image.hpp"
 
 #define GL_APICALL
@@ -80,7 +80,7 @@ public:
 	virtual GLsizei getSamples() const;
 
 private:
-	BindingPointer<Texture2D> mTexture2D;
+	gl::BindingPointer<Texture2D> mTexture2D;
 };
 
 class RenderbufferTextureCubeMap : public RenderbufferInterface
@@ -104,7 +104,7 @@ public:
 	virtual GLsizei getSamples() const;
 
 private:
-	BindingPointer<TextureCubeMap> mTextureCubeMap;
+	gl::BindingPointer<TextureCubeMap> mTextureCubeMap;
 	GLenum mTarget;
 };
 
@@ -139,7 +139,7 @@ protected:
 // Renderbuffer implements the GL renderbuffer object.
 // It's only a proxy for a RenderbufferInterface instance; the internal object
 // can change whenever glRenderbufferStorage is called.
-class Renderbuffer : public RefCountObject
+class Renderbuffer : public gl::RefCountObject
 {
 public:
 	Renderbuffer(GLuint id, RenderbufferInterface *storage);

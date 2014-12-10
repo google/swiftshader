@@ -28,7 +28,7 @@
 namespace es2
 {
 
-Texture::Texture(GLuint id) : RefCountObject(id)
+Texture::Texture(GLuint id) : egl::Texture(id)
 {
     mMinFilter = GL_NEAREST_MIPMAP_LINEAR;
     mMagFilter = GL_LINEAR;
@@ -302,7 +302,7 @@ Texture2D::~Texture2D()
 	{
 		if(image[i])
 		{
-			image[i]->unbind();
+			image[i]->unbind(this);
 			image[i] = 0;
 		}
 	}
@@ -391,7 +391,7 @@ void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLenum form
 {
 	if(image[level])
 	{
-		image[level]->unbind();
+		image[level]->unbind(this);
 	}
 
 	image[level] = new Image(this, width, height, format, type);
@@ -425,7 +425,7 @@ void Texture2D::bindTexImage(egl::Surface *surface)
 	{
 		if(image[level])
 		{
-			image[level]->unbind();
+			image[level]->unbind(this);
 			image[level] = 0;
 		}
 	}
@@ -442,7 +442,7 @@ void Texture2D::releaseTexImage()
 	{
 		if(image[level])
 		{
-			image[level]->unbind();
+			image[level]->unbind(this);
 			image[level] = 0;
 		}
 	}
@@ -452,7 +452,7 @@ void Texture2D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 {
 	if(image[level])
 	{
-		image[level]->unbind();
+		image[level]->unbind(this);
 	}
 
 	image[level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
@@ -487,7 +487,7 @@ void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei 
 
 	if(image[level])
 	{
-		image[level]->unbind();
+		image[level]->unbind(this);
 	}
 
 	image[level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
@@ -542,7 +542,7 @@ void Texture2D::setImage(egl::Image *sharedImage)
 
     if(image[0])
     {
-        image[0]->unbind();
+        image[0]->unbind(this);
     }
 
     image[0] = sharedImage;
@@ -637,7 +637,7 @@ void Texture2D::generateMipmaps()
     {
 		if(image[i])
 		{
-			image[i]->unbind();
+			image[i]->unbind(this);
 		}
 
 		image[i] = new Image(this, std::max(image[0]->getWidth() >> i, 1), std::max(image[0]->getHeight() >> i, 1), image[0]->getFormat(), image[0]->getType());
@@ -729,7 +729,7 @@ TextureCubeMap::~TextureCubeMap()
 		{
 			if(image[f][i])
 			{
-				image[f][i]->unbind();
+				image[f][i]->unbind(this);
 				image[f][i] = 0;
 			}
 		}
@@ -832,7 +832,7 @@ void TextureCubeMap::setCompressedImage(GLenum target, GLint level, GLenum forma
 
 	if(image[face][level])
 	{
-		image[face][level]->unbind();
+		image[face][level]->unbind(this);
 	}
 
 	image[face][level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
@@ -962,13 +962,18 @@ bool TextureCubeMap::isDepth(GLenum target, GLint level) const
     return IsDepthTexture(getFormat(target, level));
 }
 
+void TextureCubeMap::releaseTexImage()
+{
+    UNREACHABLE();   // Cube maps cannot have an EGL surface bound as an image
+}
+
 void TextureCubeMap::setImage(GLenum target, GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels)
 {
 	int face = CubeFaceIndex(target);
 
 	if(image[face][level])
 	{
-		image[face][level]->unbind();
+		image[face][level]->unbind(this);
 	}
 
 	image[face][level] = new Image(this, width, height, format, type);
@@ -995,7 +1000,7 @@ void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint 
 
 	if(image[face][level])
 	{
-		image[face][level]->unbind();
+		image[face][level]->unbind(this);
 	}
 
 	image[face][level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
@@ -1073,7 +1078,7 @@ void TextureCubeMap::generateMipmaps()
 		{
 			if(image[f][i])
 			{
-				image[f][i]->unbind();
+				image[f][i]->unbind(this);
 			}
 
 			image[f][i] = new Image(this, std::max(image[0][0]->getWidth() >> i, 1), std::max(image[0][0]->getHeight() >> i, 1), image[0][0]->getFormat(), image[0][0]->getType());

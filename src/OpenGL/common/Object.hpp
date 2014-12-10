@@ -9,7 +9,7 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// RefCountObject.h: Defines the RefCountObject base class that provides
+// Object.hpp: Defines the RefCountObject base class that provides
 // lifecycle support for GL objects using the traditional BindObject scheme, but
 // that need to be reference counted for correct cross-context deletion.
 // (Concretely, textures, buffers and renderbuffers.)
@@ -24,7 +24,7 @@
 
 #include <cstddef>
 
-namespace es2
+namespace gl
 {
 
 class RefCountObject

@@ -312,6 +312,7 @@ copy "$(OutDir)libGLES_CM.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Pla
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\Object.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="..\common\debug.cpp" />
@@ -323,7 +324,6 @@ copy "$(OutDir)libGLES_CM.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Pla
     <ClCompile Include="libGLES_CM.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MatrixStack.cpp" />
-    <ClCompile Include="RefCountObject.cpp" />
     <ClCompile Include="Renderbuffer.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -332,6 +332,7 @@ copy "$(OutDir)libGLES_CM.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Pla
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\debug.h" />
+    <ClInclude Include="..\common\Object.hpp" />
     <ClInclude Include="..\include\GLES\egl.h" />
     <ClInclude Include="..\include\GLES\gl.h" />
     <ClInclude Include="..\include\GLES\glext.h" />
@@ -346,7 +347,6 @@ copy "$(OutDir)libGLES_CM.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Pla
     <ClInclude Include="main.h" />
     <ClInclude Include="mathutil.h" />
     <ClInclude Include="MatrixStack.hpp" />
-    <ClInclude Include="RefCountObject.h" />
     <ClInclude Include="Renderbuffer.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceManager.h" />

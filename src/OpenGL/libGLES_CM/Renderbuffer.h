@@ -17,7 +17,7 @@
 #ifndef LIBGLES_CM_RENDERBUFFER_H_
 #define LIBGLES_CM_RENDERBUFFER_H_
 
-#include "RefCountObject.h"
+#include "common/Object.hpp"
 #include "Image.hpp"
 
 #define GL_API
@@ -79,7 +79,7 @@ public:
 	virtual GLsizei getSamples() const;
 
 private:
-	BindingPointer<Texture2D> mTexture2D;
+	gl::BindingPointer<Texture2D> mTexture2D;
 };
 
 // A class derived from RenderbufferStorage is created whenever glRenderbufferStorage
@@ -113,7 +113,7 @@ protected:
 // Renderbuffer implements the GL renderbuffer object.
 // It's only a proxy for a RenderbufferInterface instance; the internal object
 // can change whenever glRenderbufferStorage is called.
-class Renderbuffer : public RefCountObject
+class Renderbuffer : public gl::RefCountObject
 {
 public:
 	Renderbuffer(GLuint id, RenderbufferInterface *storage);

@@ -17,7 +17,7 @@
 #define LIBGLESV2_TEXTURE_H_
 
 #include "utilities.h"
-#include "Texture2D.hpp"
+#include "TextureEGL.hpp"
 #include "common/debug.h"
 
 #define GL_APICALL
@@ -44,7 +44,7 @@ enum
 	IMPLEMENTATION_MAX_SAMPLES = 4
 };
 
-class Texture
+class Texture : public egl::Texture
 {
 public:
     explicit Texture();
@@ -107,7 +107,7 @@ protected:
 	volatile int referenceCount;
 };
 
-class Texture2D : public Texture, public egl::Texture2D
+class Texture2D : public Texture
 {
 public:
     explicit Texture2D();

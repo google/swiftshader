@@ -14,11 +14,11 @@
 // that need to be reference counted for correct cross-context deletion.
 // (Concretely, textures, buffers and renderbuffers.)
 
-#include "RefCountObject.h"
+#include "Object.hpp"
 
 #include "Common/Thread.hpp"
 
-namespace es2
+namespace gl
 {
 
 RefCountObject::RefCountObject(GLuint id)

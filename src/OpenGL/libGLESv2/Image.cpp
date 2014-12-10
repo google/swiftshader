@@ -53,7 +53,7 @@ namespace es2
 	{
 		if(parentTexture)
 		{
-			parentTexture->addRef();
+			return parentTexture->addRef();
 		}
 
 		sw::atomicIncrement(&referenceCount);
@@ -63,7 +63,7 @@ namespace es2
 	{
 		if(parentTexture)
 		{
-			parentTexture->release();
+			return parentTexture->release();
 		}
 
 		if(referenceCount > 0)
@@ -71,15 +71,19 @@ namespace es2
 			sw::atomicDecrement(&referenceCount);
 		}
 
-		if(referenceCount == 0 && !shared)
+		if(referenceCount == 0)
 		{
+			ASSERT(!shared);   // Should still hold a reference if eglDestroyImage hasn't been called
 			delete this;
 		}
 	}
 
-	void Image::unbind()
+	void Image::unbind(const egl::Texture *parent)
 	{
-		parentTexture = 0;
+		if(parentTexture == parent)
+		{
+			parentTexture = 0;
+		}
 
 		release();
 	}

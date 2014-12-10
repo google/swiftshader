@@ -14,7 +14,7 @@
 #include "main.h"
 #include "Display.h"
 #include "Surface.h"
-#include "Texture2D.hpp"
+#include "TextureEGL.hpp"
 #include "Context.hpp"
 #include "Image.hpp"
 #include "common/debug.h"

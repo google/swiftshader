@@ -288,6 +288,7 @@ copy "$(OutDir)libEGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platfor
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\Object.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="..\Common\debug.cpp" />
     <ClCompile Include="Display.cpp" />
@@ -297,6 +298,7 @@ copy "$(OutDir)libEGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platfor
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\debug.h" />
+    <ClInclude Include="..\common\Object.hpp" />
     <ClInclude Include="..\include\EGL\egl.h" />
     <ClInclude Include="..\include\EGL\eglext.h" />
     <ClInclude Include="..\include\EGL\eglplatform.h" />
@@ -307,7 +309,7 @@ copy "$(OutDir)libEGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platfor
     <ClInclude Include="main.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Surface.h" />
-    <ClInclude Include="Texture2D.hpp" />
+    <ClInclude Include="Texture.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libEGL.def" />

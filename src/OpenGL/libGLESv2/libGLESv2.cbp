@@ -247,6 +247,8 @@
 		<Unit filename="../../Shader/VertexRoutine.hpp" />
 		<Unit filename="../../Shader/VertexShader.cpp" />
 		<Unit filename="../../Shader/VertexShader.hpp" />
+		<Unit filename="../common/Object.cpp" />
+		<Unit filename="../common/Object.hpp" />
 		<Unit filename="../common/debug.cpp" />
 		<Unit filename="../common/debug.h" />
 		<Unit filename="../compiler/AnalyzeCallDepth.cpp" />
@@ -356,8 +358,6 @@
 		<Unit filename="Program.h" />
 		<Unit filename="Query.cpp" />
 		<Unit filename="Query.h" />
-		<Unit filename="RefCountObject.cpp" />
-		<Unit filename="RefCountObject.h" />
 		<Unit filename="Renderbuffer.cpp" />
 		<Unit filename="Renderbuffer.h" />
 		<Unit filename="ResourceManager.cpp" />
@@ -366,9 +366,9 @@
 		<Unit filename="Shader.h" />
 		<Unit filename="Texture.cpp" />
 		<Unit filename="Texture.h" />
-		<Unit filename="Unknown.hpp" />
 		<Unit filename="VertexDataManager.cpp" />
 		<Unit filename="VertexDataManager.h" />
+		<Unit filename="exports.map" />
 		<Unit filename="libGLESv2.cpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="main.h" />
@@ -376,7 +376,6 @@
 		<Unit filename="resource.h" />
 		<Unit filename="utilities.cpp" />
 		<Unit filename="utilities.h" />
-		<Unit filename="vertexconversion.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

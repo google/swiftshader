@@ -341,7 +341,7 @@
 		<Unit filename="Surface.h" />
 		<Unit filename="Texture.cpp" />
 		<Unit filename="Texture.h" />
-		<Unit filename="Texture2D.hpp" />
+		<Unit filename="TextureEGL.hpp" />
 		<Unit filename="exports.map" />
 		<Unit filename="libEGL.cpp" />
 		<Unit filename="libRAD.cpp" />

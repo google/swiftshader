@@ -17,9 +17,9 @@
 #define LIBGLESV2_TEXTURE_H_
 
 #include "Renderbuffer.h"
-#include "RefCountObject.h"
+#include "common/Object.hpp"
 #include "utilities.h"
-#include "libEGL/Texture2D.hpp"
+#include "libEGL/Texture.hpp"
 #include "common/debug.h"
 
 #define GL_APICALL
@@ -46,7 +46,7 @@ enum
 	IMPLEMENTATION_MAX_SAMPLES = 4
 };
 
-class Texture : public RefCountObject
+class Texture : public egl::Texture
 {
 public:
     explicit Texture(GLuint id);
@@ -110,7 +110,7 @@ protected:
 	sw::Resource *resource;
 };
 
-class Texture2D : public Texture, public egl::Texture2D
+class Texture2D : public Texture
 {
 public:
     explicit Texture2D(GLuint id);
@@ -198,6 +198,7 @@ public:
     virtual bool isSamplerComplete() const;
     virtual bool isCompressed(GLenum target, GLint level) const;
 	virtual bool isDepth(GLenum target, GLint level) const;
+	virtual void releaseTexImage();
 
     virtual void generateMipmaps();
 

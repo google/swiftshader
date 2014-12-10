@@ -13,6 +13,8 @@ typedef unsigned int GLenum;
 typedef int GLint;
 typedef int GLsizei;
 
+class Texture;
+
 class Image : public sw::Surface
 {
 public:
@@ -87,7 +89,7 @@ public:
 
 	virtual void addRef() = 0;
 	virtual void release() = 0;
-	virtual void unbind() = 0;   // Break parent ownership and release
+	virtual void unbind(const Texture *parent) = 0;   // Break parent ownership and release
 
 	void destroyShared()   // Release a shared image
     {

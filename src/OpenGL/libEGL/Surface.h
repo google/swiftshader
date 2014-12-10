@@ -25,7 +25,7 @@ namespace egl
 {
 class Display;
 class Config;
-class Texture2D;
+class Texture;
 class Image;
 
 class Surface
@@ -56,8 +56,8 @@ public:
     virtual EGLenum getTextureTarget() const;
     virtual sw::Format getInternalFormat() const;
 
-    virtual void setBoundTexture(egl::Texture2D *texture);
-    virtual egl::Texture2D *getBoundTexture() const;
+    virtual void setBoundTexture(egl::Texture *texture);
+    virtual egl::Texture *getBoundTexture() const;
 
 	bool checkForResize();   // Returns true if surface changed due to resize
 
@@ -69,7 +69,7 @@ private:
     egl::Image *mDepthStencil;
 	sw::FrameBuffer *frameBuffer;
 	egl::Image *backBuffer;
-	egl::Texture2D *mTexture;
+	egl::Texture *mTexture;
 
 	bool reset(int backbufferWidth, int backbufferHeight);
     

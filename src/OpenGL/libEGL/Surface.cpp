@@ -17,7 +17,7 @@
 
 #include "main.h"
 #include "Display.h"
-#include "Texture2D.hpp"
+#include "Texture.hpp"
 #include "Image.hpp"
 #include "Context.hpp"
 #include "common/debug.h"
@@ -262,12 +262,12 @@ EGLenum Surface::getTextureTarget() const
     return mTextureTarget;
 }
 
-void Surface::setBoundTexture(egl::Texture2D *texture)
+void Surface::setBoundTexture(egl::Texture *texture)
 {
     mTexture = texture;
 }
 
-egl::Texture2D *Surface::getBoundTexture() const
+egl::Texture *Surface::getBoundTexture() const
 {
     return mTexture;
 }

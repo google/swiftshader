@@ -247,6 +247,8 @@
 		<Unit filename="../../Shader/VertexRoutine.hpp" />
 		<Unit filename="../../Shader/VertexShader.cpp" />
 		<Unit filename="../../Shader/VertexShader.hpp" />
+		<Unit filename="../common/Object.cpp" />
+		<Unit filename="../common/Object.hpp" />
 		<Unit filename="../common/debug.cpp" />
 		<Unit filename="../common/debug.h" />
 		<Unit filename="../include/EGL/egl.h" />
@@ -273,8 +275,6 @@
 		<Unit filename="IndexDataManager.h" />
 		<Unit filename="MatrixStack.cpp" />
 		<Unit filename="MatrixStack.hpp" />
-		<Unit filename="RefCountObject.cpp" />
-		<Unit filename="RefCountObject.h" />
 		<Unit filename="Renderbuffer.cpp" />
 		<Unit filename="Renderbuffer.h" />
 		<Unit filename="ResourceManager.cpp" />
@@ -283,6 +283,7 @@
 		<Unit filename="Texture.h" />
 		<Unit filename="VertexDataManager.cpp" />
 		<Unit filename="VertexDataManager.h" />
+		<Unit filename="exports.map" />
 		<Unit filename="libGLES_CM.cpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="main.h" />

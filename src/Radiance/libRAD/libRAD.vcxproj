@@ -197,7 +197,7 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Surface.h" />
     <ClInclude Include="Texture.h" />
-    <ClInclude Include="Texture2D.hpp" />
+    <ClInclude Include="TextureEGL.hpp" />
     <ClInclude Include="utilities.h" />
   </ItemGroup>
   <ItemGroup>

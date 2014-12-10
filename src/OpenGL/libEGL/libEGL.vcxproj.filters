@@ -29,6 +29,9 @@
     <ClCompile Include="Surface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\Object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h">
@@ -61,10 +64,13 @@
     <ClInclude Include="Context.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Texture2D.hpp">
+    <ClInclude Include="Image.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Image.hpp">
+    <ClInclude Include="Texture.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\Object.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

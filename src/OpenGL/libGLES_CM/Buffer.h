@@ -16,7 +16,7 @@
 #ifndef LIBGLES_CM_BUFFER_H_
 #define LIBGLES_CM_BUFFER_H_
 
-#include "RefCountObject.h"
+#include "common/Object.hpp"
 #include "Common/Resource.hpp"
 
 #define GL_API
@@ -27,7 +27,7 @@
 
 namespace es1
 {
-class Buffer : public RefCountObject
+class Buffer : public gl::RefCountObject
 {
   public:
     explicit Buffer(GLuint id);

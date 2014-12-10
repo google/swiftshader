@@ -312,6 +312,7 @@ copy "$(OutDir)libGLESv2.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Plat
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\Object.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="..\common\debug.cpp" />
@@ -325,7 +326,6 @@ copy "$(OutDir)libGLESv2.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Plat
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Query.cpp" />
-    <ClCompile Include="RefCountObject.cpp" />
     <ClCompile Include="Renderbuffer.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Shader.cpp" />
@@ -335,6 +335,7 @@ copy "$(OutDir)libGLESv2.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Plat
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\debug.h" />
+    <ClInclude Include="..\common\Object.hpp" />
     <ClInclude Include="..\include\GLES2\gl2.h" />
     <ClInclude Include="..\include\GLES2\gl2ext.h" />
     <ClInclude Include="..\include\GLES2\gl2platform.h" />
@@ -350,7 +351,6 @@ copy "$(OutDir)libGLESv2.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Plat
     <ClInclude Include="mathutil.h" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Query.h" />
-    <ClInclude Include="RefCountObject.h" />
     <ClInclude Include="Renderbuffer.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceManager.h" />

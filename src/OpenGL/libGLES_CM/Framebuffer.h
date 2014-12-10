@@ -15,7 +15,7 @@
 #ifndef LIBGLES_CM_FRAMEBUFFER_H_
 #define LIBGLES_CM_FRAMEBUFFER_H_
 
-#include "RefCountObject.h"
+#include "common/Object.hpp"
 #include "Image.hpp"
 
 #define GL_API
@@ -65,13 +65,13 @@ public:
 
 protected:
     GLenum mColorbufferType;
-    BindingPointer<Renderbuffer> mColorbufferPointer;
+    gl::BindingPointer<Renderbuffer> mColorbufferPointer;
 
     GLenum mDepthbufferType;
-    BindingPointer<Renderbuffer> mDepthbufferPointer;
+    gl::BindingPointer<Renderbuffer> mDepthbufferPointer;
 
     GLenum mStencilbufferType;
-    BindingPointer<Renderbuffer> mStencilbufferPointer;
+    gl::BindingPointer<Renderbuffer> mStencilbufferPointer;
 
 private:
     Renderbuffer *lookupRenderbuffer(GLenum type, GLuint handle) const;

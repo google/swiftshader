@@ -33,7 +33,7 @@ namespace es1
 
 		virtual void addRef();
 		virtual void release();
-		void unbind();   // Break parent ownership and release
+		virtual void unbind(const egl::Texture *parent);   // Break parent ownership and release
 
 		static sw::Format selectInternalFormat(GLenum format, GLenum type);
 
@@ -58,7 +58,7 @@ namespace es1
 		void loadD32ImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const;
 		void loadD24S8ImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer);
 
-		Texture *parentTexture;
+		egl::Texture *parentTexture;
 
 		volatile int referenceCount;
 	};

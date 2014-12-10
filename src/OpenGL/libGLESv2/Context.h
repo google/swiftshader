@@ -18,7 +18,7 @@
 #include "libEGL/Context.hpp"
 #include "ResourceManager.h"
 #include "HandleAllocator.h"
-#include "RefCountObject.h"
+#include "common/Object.hpp"
 #include "Image.hpp"
 #include "Renderer/Sampler.hpp"
 
@@ -158,7 +158,7 @@ class VertexAttribute
         intptr_t mOffset;
     };
 
-    BindingPointer<Buffer> mBoundBuffer;   // Captured when glVertexAttribPointer is called.
+    gl::BindingPointer<Buffer> mBoundBuffer;   // Captured when glVertexAttribPointer is called.
 
     bool mArrayEnabled;   // From glEnable/DisableVertexAttribArray
     float mCurrentValue[4];   // From glVertexAttrib
@@ -235,16 +235,16 @@ struct State
     bool depthMask;
 
     unsigned int activeSampler;   // Active texture unit selector - GL_TEXTURE0
-    BindingPointer<Buffer> arrayBuffer;
-    BindingPointer<Buffer> elementArrayBuffer;
+    gl::BindingPointer<Buffer> arrayBuffer;
+    gl::BindingPointer<Buffer> elementArrayBuffer;
     GLuint readFramebuffer;
     GLuint drawFramebuffer;
-    BindingPointer<Renderbuffer> renderbuffer;
+    gl::BindingPointer<Renderbuffer> renderbuffer;
     GLuint currentProgram;
 
     VertexAttribute vertexAttribute[MAX_VERTEX_ATTRIBS];
-    BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
-	BindingPointer<Query> activeQuery[QUERY_TYPE_COUNT];
+    gl::BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
+	gl::BindingPointer<Query> activeQuery[QUERY_TYPE_COUNT];
 
     GLint unpackAlignment;
     GLint packAlignment;
@@ -463,9 +463,9 @@ private:
 
     State mState;
 
-    BindingPointer<Texture2D> mTexture2DZero;
-    BindingPointer<TextureCubeMap> mTextureCubeMapZero;
-    BindingPointer<TextureExternal> mTextureExternalZero;
+    gl::BindingPointer<Texture2D> mTexture2DZero;
+    gl::BindingPointer<TextureCubeMap> mTextureCubeMapZero;
+    gl::BindingPointer<TextureExternal> mTextureExternalZero;
 
     typedef std::map<GLint, Framebuffer*> FramebufferMap;
     FramebufferMap mFramebufferMap;

@@ -41,9 +41,6 @@
     <ClCompile Include="Program.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RefCountObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Renderbuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -69,6 +66,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Query.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -98,9 +98,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Program.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RefCountObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Renderbuffer.h">
@@ -143,6 +140,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\debug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\Object.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

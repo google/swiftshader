@@ -14,7 +14,7 @@
 #ifndef LIBGLESV2_QUERY_H_
 #define LIBGLESV2_QUERY_H_
 
-#include "RefCountObject.h"
+#include "common/Object.hpp"
 #include "Renderer/Renderer.hpp"
 
 #define GL_APICALL
@@ -23,7 +23,7 @@
 namespace es2
 {
 
-class Query : public RefCountObject
+class Query : public gl::RefCountObject
 {
   public:
     Query(GLuint id, GLenum type);

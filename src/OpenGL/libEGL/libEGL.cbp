@@ -111,6 +111,8 @@
 			<Add library="X11" />
 		</Linker>
 		<Unit filename="../../Common/SharedLibrary.hpp" />
+		<Unit filename="../common/Object.cpp" />
+		<Unit filename="../common/Object.hpp" />
 		<Unit filename="../common/debug.cpp" />
 		<Unit filename="Config.cpp" />
 		<Unit filename="Config.h" />
@@ -119,6 +121,7 @@
 		<Unit filename="Image.hpp" />
 		<Unit filename="Surface.cpp" />
 		<Unit filename="Surface.h" />
+		<Unit filename="exports.map" />
 		<Unit filename="libEGL.cpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="main.h" />

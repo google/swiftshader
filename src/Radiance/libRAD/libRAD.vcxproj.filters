@@ -121,7 +121,7 @@
     <ClInclude Include="Surface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Texture2D.hpp">
+    <ClInclude Include="TextureEGL.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
