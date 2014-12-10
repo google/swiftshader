@@ -1,6 +1,7 @@
 ; Tests the Subzero "name mangling" when using the "llvm2ice --prefix"
 ; option.  Also does a quick smoke test of -ffunction-sections.
 
+; REQUIRES: allow_dump
 ; RUN: %p2i -i %s --args --verbose none -ffunction-sections | FileCheck %s
 ; TODO(stichnot): The following line causes this test to fail.
 ; RUIN: %p2i -i %s --args --verbose none \

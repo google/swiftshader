@@ -1510,10 +1510,6 @@ private:
     return VectorIndexValid;
   }
 
-  // Reports that the given binary Opcode, for the given type Ty,
-  // is not understood.
-  void ReportInvalidBinopOpcode(unsigned Opcode, Ice::Type Ty);
-
   // Returns true if the Str begins with Prefix.
   bool isStringPrefix(Ice::IceString &Str, Ice::IceString &Prefix) {
     const size_t PrefixSize = Prefix.size();
@@ -1531,73 +1527,78 @@ private:
   // opcode. Returns true if able to convert, false otherwise.
   bool convertBinopOpcode(unsigned Opcode, Ice::Type Ty,
                           Ice::InstArithmetic::OpKind &Op) {
-    Instruction::BinaryOps LLVMOpcode;
-    if (!naclbitc::DecodeBinaryOpcode(Opcode, Context->convertToLLVMType(Ty),
-                                      LLVMOpcode)) {
-      ReportInvalidBinopOpcode(Opcode, Ty);
-      // TODO(kschimpf) Remove error recovery once implementation complete.
-      Op = Ice::InstArithmetic::Add;
-      return false;
-    }
-    switch (LLVMOpcode) {
+    switch (Opcode) {
     default: {
-      ReportInvalidBinopOpcode(Opcode, Ty);
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Binary opcode " << Opcode << "not understood for type " << Ty;
+      Error(StrBuf.str());
       // TODO(kschimpf) Remove error recovery once implementation complete.
       Op = Ice::InstArithmetic::Add;
       return false;
     }
-    case Instruction::Add:
-      Op = Ice::InstArithmetic::Add;
-      return isValidIntegerArithOp(Op, Ty);
-    case Instruction::FAdd:
-      Op = Ice::InstArithmetic::Fadd;
-      return isValidFloatingArithOp(Op, Ty);
-    case Instruction::Sub:
-      Op = Ice::InstArithmetic::Sub;
-      return isValidIntegerArithOp(Op, Ty);
-    case Instruction::FSub:
-      Op = Ice::InstArithmetic::Fsub;
-      return isValidFloatingArithOp(Op, Ty);
-    case Instruction::Mul:
-      Op = Ice::InstArithmetic::Mul;
-      return isValidIntegerArithOp(Op, Ty);
-    case Instruction::FMul:
-      Op = Ice::InstArithmetic::Fmul;
-      return isValidFloatingArithOp(Op, Ty);
-    case Instruction::UDiv:
+    case naclbitc::BINOP_ADD:
+      if (Ice::isIntegerType(Ty)) {
+        Op = Ice::InstArithmetic::Add;
+        return isValidIntegerArithOp(Op, Ty);
+      } else {
+        Op = Ice::InstArithmetic::Fadd;
+        return isValidFloatingArithOp(Op, Ty);
+      }
+    case naclbitc::BINOP_SUB:
+      if (Ice::isIntegerType(Ty)) {
+        Op = Ice::InstArithmetic::Sub;
+        return isValidIntegerArithOp(Op, Ty);
+      } else {
+        Op = Ice::InstArithmetic::Fsub;
+        return isValidFloatingArithOp(Op, Ty);
+      }
+    case naclbitc::BINOP_MUL:
+      if (Ice::isIntegerType(Ty)) {
+        Op = Ice::InstArithmetic::Mul;
+        return isValidIntegerArithOp(Op, Ty);
+      } else {
+        Op = Ice::InstArithmetic::Fmul;
+        return isValidFloatingArithOp(Op, Ty);
+      }
+    case naclbitc::BINOP_UDIV:
       Op = Ice::InstArithmetic::Udiv;
       return isValidIntegerArithOp(Op, Ty);
-    case Instruction::SDiv:
-      Op = Ice::InstArithmetic::Sdiv;
-      return isValidIntegerArithOp(Op, Ty);
-    case Instruction::FDiv:
-      Op = Ice::InstArithmetic::Fdiv;
-      return isValidFloatingArithOp(Op, Ty);
-    case Instruction::URem:
+    case naclbitc::BINOP_SDIV:
+      if (Ice::isIntegerType(Ty)) {
+        Op = Ice::InstArithmetic::Sdiv;
+        return isValidIntegerArithOp(Op, Ty);
+      } else {
+        Op = Ice::InstArithmetic::Fdiv;
+        return isValidFloatingArithOp(Op, Ty);
+      }
+    case naclbitc::BINOP_UREM:
       Op = Ice::InstArithmetic::Urem;
       return isValidIntegerArithOp(Op, Ty);
-    case Instruction::SRem:
-      Op = Ice::InstArithmetic::Srem;
-      return isValidIntegerArithOp(Op, Ty);
-    case Instruction::FRem:
-      Op = Ice::InstArithmetic::Frem;
-      return isValidFloatingArithOp(Op, Ty);
-    case Instruction::Shl:
+    case naclbitc::BINOP_SREM:
+      if (Ice::isIntegerType(Ty)) {
+        Op = Ice::InstArithmetic::Srem;
+        return isValidIntegerArithOp(Op, Ty);
+      } else {
+        Op = Ice::InstArithmetic::Frem;
+        return isValidFloatingArithOp(Op, Ty);
+      }
+    case naclbitc::BINOP_SHL:
       Op = Ice::InstArithmetic::Shl;
       return isValidIntegerArithOp(Op, Ty);
-    case Instruction::LShr:
+    case naclbitc::BINOP_LSHR:
       Op = Ice::InstArithmetic::Lshr;
       return isValidIntegerArithOp(Op, Ty);
-    case Instruction::AShr:
+    case naclbitc::BINOP_ASHR:
       Op = Ice::InstArithmetic::Ashr;
       return isValidIntegerArithOp(Op, Ty);
-    case Instruction::And:
+    case naclbitc::BINOP_AND:
       Op = Ice::InstArithmetic::And;
       return isValidIntegerLogicalOp(Op, Ty);
-    case Instruction::Or:
+    case naclbitc::BINOP_OR:
       Op = Ice::InstArithmetic::Or;
       return isValidIntegerLogicalOp(Op, Ty);
-    case Instruction::Xor:
+    case naclbitc::BINOP_XOR:
       Op = Ice::InstArithmetic::Xor;
       return isValidIntegerLogicalOp(Op, Ty);
     }
@@ -1764,13 +1765,6 @@ private:
   }
 };
 
-void FunctionParser::ReportInvalidBinopOpcode(unsigned Opcode, Ice::Type Ty) {
-  std::string Buffer;
-  raw_string_ostream StrBuf(Buffer);
-  StrBuf << "Binary opcode " << Opcode << "not understood for type " << Ty;
-  Error(StrBuf.str());
-}
-
 void FunctionParser::ExitBlock() {
   if (isIRGenerationDisabled()) {
     popTimerIfTimingEachFunction();
@@ -1868,8 +1862,10 @@ void FunctionParser::ProcessRecord() {
     }
 
     Ice::InstArithmetic::OpKind Opcode;
-    if (!convertBinopOpcode(Values[2], Type1, Opcode))
+    if (!convertBinopOpcode(Values[2], Type1, Opcode)) {
+      appendErrorInstruction(Type1);
       return;
+    }
     CurrentNode->appendInst(Ice::InstArithmetic::create(
         Func, Opcode, getNextInstVar(Type1), Op1, Op2));
     return;
