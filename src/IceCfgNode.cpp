@@ -22,15 +22,15 @@
 
 namespace Ice {
 
-CfgNode::CfgNode(Cfg *Func, SizeT LabelNumber, IceString Name)
-    : Func(Func), Number(LabelNumber), Name(Name), HasReturn(false),
+CfgNode::CfgNode(Cfg *Func, SizeT LabelNumber)
+    : Func(Func), Number(LabelNumber), NameIndex(-1), HasReturn(false),
       NeedsPlacement(false), InstCountEstimate(0) {}
 
 // Returns the name the node was created with.  If no name was given,
 // it synthesizes a (hopefully) unique name.
 IceString CfgNode::getName() const {
-  if (!Name.empty())
-    return Name;
+  if (NameIndex >= 0)
+    return Func->getNodeName(NameIndex);
   return "__" + std::to_string(getIndex());
 }
 
@@ -219,8 +219,9 @@ void CfgNode::deletePhis() {
 // out-edge list, this node's in-edge list, and the Phi instruction's
 // operand list.
 CfgNode *CfgNode::splitIncomingEdge(CfgNode *Pred, SizeT EdgeIndex) {
-  CfgNode *NewNode =
-      Func->makeNode("split_" + Pred->getName() + "_" + getName() + "_" +
+  CfgNode *NewNode = Func->makeNode();
+  if (ALLOW_DUMP)
+    NewNode->setName("split_" + Pred->getName() + "_" + getName() + "_" +
                      std::to_string(EdgeIndex));
   // The new node is added to the end of the node list, and will later
   // need to be sorted into a reasonable topological order.

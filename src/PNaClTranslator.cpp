@@ -2678,7 +2678,8 @@ void FunctionValuesymtabParser::setBbName(uint64_t Index, StringType &Name) {
     return;
   }
   std::string Nm(Name.data(), Name.size());
-  getFunctionParser()->getFunc()->getNodes()[Index]->setName(Nm);
+  if (ALLOW_DUMP)
+    getFunctionParser()->getFunc()->getNodes()[Index]->setName(Nm);
 }
 
 bool FunctionParser::ParseBlock(unsigned BlockID) {

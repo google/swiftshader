@@ -59,9 +59,17 @@ public:
   void setEntryNode(CfgNode *EntryNode) { Entry = EntryNode; }
   CfgNode *getEntryNode() const { return Entry; }
   // Create a node and append it to the end of the linearized list.
-  CfgNode *makeNode(const IceString &Name = "");
+  CfgNode *makeNode();
   SizeT getNumNodes() const { return Nodes.size(); }
   const NodeList &getNodes() const { return Nodes; }
+  // Adds a name to the list and returns its index, suitable for the
+  // argument to getNodeName().  No checking for duplicates is done.
+  int32_t addNodeName(const IceString &Name) {
+    int32_t Index = NodeNames.size();
+    NodeNames.push_back(Name);
+    return Index;
+  }
+  const IceString &getNodeName(int32_t Index) const { return NodeNames[Index]; }
 
   // Manage instruction numbering.
   InstNumberT newInstNumber() { return NextInstNumber++; }
@@ -175,6 +183,7 @@ private:
   IceString ErrorMessage;
   CfgNode *Entry; // entry basic block
   NodeList Nodes; // linearized node list; Entry should be first
+  std::vector<IceString> NodeNames;
   InstNumberT NextInstNumber;
   VarList Variables;
   VarList Args; // subset of Variables, in argument order

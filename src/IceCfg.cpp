@@ -44,9 +44,9 @@ void Cfg::setError(const IceString &Message) {
   Ctx->getStrDump() << "ICE translation error: " << ErrorMessage << "\n";
 }
 
-CfgNode *Cfg::makeNode(const IceString &Name) {
+CfgNode *Cfg::makeNode() {
   SizeT LabelIndex = Nodes.size();
-  CfgNode *Node = CfgNode::create(this, LabelIndex, Name);
+  CfgNode *Node = CfgNode::create(this, LabelIndex);
   Nodes.push_back(Node);
   return Node;
 }

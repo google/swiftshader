@@ -26,17 +26,18 @@ class CfgNode {
   CfgNode &operator=(const CfgNode &) = delete;
 
 public:
-  static CfgNode *create(Cfg *Func, SizeT LabelIndex, IceString Name = "") {
-    return new (Func->allocate<CfgNode>()) CfgNode(Func, LabelIndex, Name);
+  static CfgNode *create(Cfg *Func, SizeT LabelIndex) {
+    return new (Func->allocate<CfgNode>()) CfgNode(Func, LabelIndex);
   }
 
   // Access the label number and name for this node.
   SizeT getIndex() const { return Number; }
   IceString getName() const;
-  void setName(IceString &NewName) {
+  void setName(const IceString &NewName) {
     // Make sure that the name can only be set once.
-    assert(Name.empty());
-    Name = NewName;
+    assert(NameIndex < 0);
+    if (!NewName.empty())
+      NameIndex = Func->addNodeName(NewName);
   }
   IceString getAsmName() const {
     return ".L" + Func->getFunctionName() + "$" + getName();
@@ -87,10 +88,10 @@ public:
   void dump(Cfg *Func) const;
 
 private:
-  CfgNode(Cfg *Func, SizeT LabelIndex, IceString Name);
+  CfgNode(Cfg *Func, SizeT LabelIndex);
   Cfg *const Func;
   const SizeT Number; // label index
-  IceString Name;     // for dumping only
+  int32_t NameIndex;  // index into Cfg::NodeNames table
   bool HasReturn;     // does this block need an epilog?
   bool NeedsPlacement;
   InstNumberT InstCountEstimate; // rough instruction count estimate

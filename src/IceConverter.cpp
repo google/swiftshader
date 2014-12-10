@@ -156,7 +156,9 @@ private:
 
   Ice::CfgNode *mapBasicBlockToNode(const BasicBlock *BB) {
     if (NodeMap.find(BB) == NodeMap.end()) {
-      NodeMap[BB] = Func->makeNode(BB->getName());
+      NodeMap[BB] = Func->makeNode();
+      if (ALLOW_DUMP)
+        NodeMap[BB]->setName(BB->getName());
     }
     return NodeMap[BB];
   }
