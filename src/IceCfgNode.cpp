@@ -57,7 +57,7 @@ void CfgNode::appendInst(Inst *Inst) {
 // overlap with the range of any other block.
 void CfgNode::renumberInstructions() {
   InstNumberT FirstNumber = Func->getNextInstNumber();
-  for (InstPhi *I : Phis)
+  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I)
     I->renumber(Func);
   for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I)
     I->renumber(Func);
@@ -86,8 +86,10 @@ void CfgNode::computePredecessors() {
 // instructions and appends assignment instructions to predecessor
 // blocks.  Note that this transformation preserves SSA form.
 void CfgNode::placePhiLoads() {
-  for (InstPhi *I : Phis)
-    Insts.insert(Insts.begin(), I->lower(Func));
+  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
+    auto Phi = llvm::dyn_cast<InstPhi>(I);
+    Insts.insert(Insts.begin(), Phi->lower(Func));
+  }
 }
 
 // This does part 2 of Phi lowering.  For each Phi instruction at each
@@ -184,8 +186,9 @@ void CfgNode::placePhiStores() {
   // Consider every out-edge.
   for (CfgNode *Succ : OutEdges) {
     // Consider every Phi instruction at the out-edge.
-    for (InstPhi *I : Succ->Phis) {
-      Operand *Operand = I->getOperandForTarget(this);
+    for (auto I = Succ->Phis.begin(), E = Succ->Phis.end(); I != E; ++I) {
+      auto Phi = llvm::dyn_cast<InstPhi>(I);
+      Operand *Operand = Phi->getOperandForTarget(this);
       assert(Operand);
       Variable *Dest = I->getDest();
       assert(Dest);
@@ -200,7 +203,7 @@ void CfgNode::placePhiStores() {
 
 // Deletes the phi instructions after the loads and stores are placed.
 void CfgNode::deletePhis() {
-  for (InstPhi *I : Phis)
+  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I)
     I->setDeleted();
 }
 
@@ -316,7 +319,8 @@ void CfgNode::advancedPhiLowering() {
   } Desc[getPhis().size()];
 
   size_t NumPhis = 0;
-  for (InstPhi *Inst : getPhis()) {
+  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
+    auto Inst = llvm::dyn_cast<InstPhi>(I);
     if (!Inst->isDeleted()) {
       Desc[NumPhis].Phi = Inst;
       Desc[NumPhis].Dest = Inst->getDest();
@@ -470,8 +474,8 @@ void CfgNode::advancedPhiLowering() {
     Func->getVMetadata()->addNode(Split);
   }
 
-  for (InstPhi *Inst : getPhis())
-    Inst->setDeleted();
+  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I)
+    I->setDeleted();
 }
 
 // Does address mode optimization.  Pass each instruction to the
@@ -534,7 +538,7 @@ void CfgNode::livenessLightweight() {
       continue;
     I->livenessLightweight(Func, Live);
   }
-  for (InstPhi *I : Phis) {
+  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
     if (I->isDeleted())
       continue;
     I->livenessLightweight(Func, Live);
@@ -566,8 +570,10 @@ bool CfgNode::liveness(Liveness *Liveness) {
   for (CfgNode *Succ : OutEdges) {
     Live |= Liveness->getLiveIn(Succ);
     // Mark corresponding argument of phis in successor as live.
-    for (InstPhi *I : Succ->Phis)
-      I->livenessPhiOperand(Live, this, Liveness);
+    for (auto I = Succ->Phis.begin(), E = Succ->Phis.end(); I != E; ++I) {
+      auto Phi = llvm::dyn_cast<InstPhi>(I);
+      Phi->livenessPhiOperand(Live, this, Liveness);
+    }
   }
   Liveness->getLiveOut(this) = Live;
 
@@ -582,7 +588,7 @@ bool CfgNode::liveness(Liveness *Liveness) {
   // the block.
   SizeT NumNonDeadPhis = 0;
   InstNumberT FirstPhiNumber = Inst::NumberSentinel;
-  for (InstPhi *I : Phis) {
+  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
     if (I->isDeleted())
       continue;
     if (FirstPhiNumber == Inst::NumberSentinel)
@@ -644,7 +650,7 @@ void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
   InstNumberT FirstInstNum = Inst::NumberSentinel;
   InstNumberT LastInstNum = Inst::NumberSentinel;
   // Process phis in any order.  Process only Dest operands.
-  for (InstPhi *I : Phis) {
+  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
     I->deleteIfDead();
     if (I->isDeleted())
       continue;
@@ -889,12 +895,11 @@ void CfgNode::emit(Cfg *Func) const {
   if (DecorateAsm)
     emitRegisterUsage(Str, Func, this, true, LiveRegCount);
 
-  for (InstPhi *Phi : Phis) {
-    if (Phi->isDeleted())
+  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
+    if (I->isDeleted())
       continue;
     // Emitting a Phi instruction should cause an error.
-    Inst *Instr = Phi;
-    Instr->emit(Func);
+    I->emit(Func);
   }
   for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I) {
     if (I->isDeleted())
@@ -919,12 +924,11 @@ void CfgNode::emitIAS(Cfg *Func) const {
   Func->setCurrentNode(this);
   Assembler *Asm = Func->getAssembler<Assembler>();
   Asm->BindCfgNodeLabel(getIndex());
-  for (InstPhi *Phi : Phis) {
-    if (Phi->isDeleted())
+  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
+    if (I->isDeleted())
       continue;
     // Emitting a Phi instruction should cause an error.
-    Inst *Instr = Phi;
-    Instr->emitIAS(Func);
+    I->emitIAS(Func);
   }
   for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I) {
     if (I->isDeleted())
@@ -977,7 +981,7 @@ void CfgNode::dump(Cfg *Func) const {
   }
   // Dump each instruction.
   if (Func->getContext()->isVerbose(IceV_Instructions)) {
-    for (InstPhi *I : Phis)
+    for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I)
       I->dumpDecorated(Func);
     for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I)
       I->dumpDecorated(Func);

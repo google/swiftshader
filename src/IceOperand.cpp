@@ -293,7 +293,8 @@ void VariablesMetadata::addNode(CfgNode *Node) {
   if (Func->getNumVariables() >= Metadata.size())
     Metadata.resize(Func->getNumVariables());
 
-  for (InstPhi *I : Node->getPhis()) {
+  for (auto I = Node->getPhis().begin(), E = Node->getPhis().end(); I != E;
+       ++I) {
     if (I->isDeleted())
       continue;
     if (Variable *Dest = I->getDest()) {

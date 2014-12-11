@@ -60,10 +60,11 @@ class VariablesMetadata;
 // http://llvm.org/docs/ProgrammersManual.html#picking-the-right-data-structure-for-a-task
 typedef std::string IceString;
 typedef llvm::ilist<Inst> InstList;
-typedef std::list<InstAssign *> AssignList;
-typedef std::list<InstPhi *> PhiList;
+// Ideally PhiList would be llvm::ilist<InstPhi>, and similar for
+// AssignList, but this runs into issues with SFINAE.
+typedef InstList PhiList;
+typedef InstList AssignList;
 typedef std::vector<Variable *> VarList;
-typedef std::vector<Operand *> OperandList;
 typedef std::vector<CfgNode *> NodeList;
 typedef std::vector<Constant *> ConstantList;
 

@@ -1775,6 +1775,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   // Apple.
   NeedsStackAlignment = true;
 
+  typedef std::vector<Operand *> OperandList;
   OperandList XmmArgs;
   OperandList StackArgs, StackArgLocations;
   uint32_t ParameterAreaSizeBytes = 0;
@@ -4148,7 +4149,9 @@ void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) {
 // Undef input.
 void TargetX8632::prelowerPhis() {
   CfgNode *Node = Context.getNode();
-  for (InstPhi *Phi : Node->getPhis()) {
+  for (auto I = Node->getPhis().begin(), E = Node->getPhis().end(); I != E;
+       ++I) {
+    auto Phi = llvm::dyn_cast<InstPhi>(I);
     if (Phi->isDeleted())
       continue;
     Variable *Dest = Phi->getDest();
@@ -4212,11 +4215,11 @@ void TargetX8632::lowerPhiAssignments(CfgNode *Node,
   // set.  TODO(stichnot): This work is being repeated for every split
   // edge to the successor, so consider updating LiveIn just once
   // after all the edges are split.
-  for (InstAssign *Assign : Assignments) {
-    Variable *Dest = Assign->getDest();
+  for (auto I = Assignments.begin(), E = Assignments.end(); I != E; ++I) {
+    Variable *Dest = I->getDest();
     if (Dest->hasReg()) {
       Available[Dest->getRegNum()] = false;
-    } else if (isMemoryOperand(Assign->getSrc(0))) {
+    } else if (isMemoryOperand(I->getSrc(0))) {
       NeedsRegs = true; // Src and Dest are both in memory
     }
   }
@@ -4237,7 +4240,7 @@ void TargetX8632::lowerPhiAssignments(CfgNode *Node,
   // afterwards if necessary.
   for (auto I = Assignments.rbegin(), E = Assignments.rend(); I != E; ++I) {
     Context.rewind();
-    InstAssign *Assign = *I;
+    auto Assign = llvm::dyn_cast<InstAssign>(&*I);
     Variable *Dest = Assign->getDest();
     Operand *Src = Assign->getSrc(0);
     Variable *SrcVar = llvm::dyn_cast<Variable>(Src);
