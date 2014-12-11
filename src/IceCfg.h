@@ -62,14 +62,24 @@ public:
   CfgNode *makeNode();
   SizeT getNumNodes() const { return Nodes.size(); }
   const NodeList &getNodes() const { return Nodes; }
+
+  typedef int32_t IdentifierIndexType;
   // Adds a name to the list and returns its index, suitable for the
-  // argument to getNodeName().  No checking for duplicates is done.
-  int32_t addNodeName(const IceString &Name) {
-    int32_t Index = NodeNames.size();
-    NodeNames.push_back(Name);
+  // argument to getIdentifierName().  No checking for duplicates is
+  // done.  This is generally used for node names and variable names
+  // to avoid embedding a std::string inside an arena-allocated
+  // object.
+  IdentifierIndexType addIdentifierName(const IceString &Name) {
+    IdentifierIndexType Index = IdentifierNames.size();
+    IdentifierNames.push_back(Name);
     return Index;
   }
-  const IceString &getNodeName(int32_t Index) const { return NodeNames[Index]; }
+  const IceString &getIdentifierName(IdentifierIndexType Index) const {
+    return IdentifierNames[Index];
+  }
+  enum {
+    IdentifierIndexInvalid = -1
+  };
 
   // Manage instruction numbering.
   InstNumberT newInstNumber() { return NextInstNumber++; }
@@ -78,10 +88,9 @@ public:
   // Manage Variables.
   // Create a new Variable with a particular type and an optional
   // name.  The Node argument is the node where the variable is defined.
-  template <typename T = Variable>
-  T *makeVariable(Type Ty, const IceString &Name = "") {
+  template <typename T = Variable> T *makeVariable(Type Ty) {
     SizeT Index = Variables.size();
-    T *Var = T::create(this, Ty, Index, Name);
+    T *Var = T::create(this, Ty, Index);
     Variables.push_back(Var);
     return Var;
   }
@@ -183,7 +192,7 @@ private:
   IceString ErrorMessage;
   CfgNode *Entry; // entry basic block
   NodeList Nodes; // linearized node list; Entry should be first
-  std::vector<IceString> NodeNames;
+  std::vector<IceString> IdentifierNames;
   InstNumberT NextInstNumber;
   VarList Variables;
   VarList Args; // subset of Variables, in argument order

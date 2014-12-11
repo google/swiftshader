@@ -361,8 +361,9 @@ void InstPhi::livenessPhiOperand(LivenessBV &Live, CfgNode *Target,
 Inst *InstPhi::lower(Cfg *Func) {
   Variable *Dest = getDest();
   assert(Dest);
-  IceString PhiName = Dest->getName() + "_phi";
-  Variable *NewSrc = Func->makeVariable(Dest->getType(), PhiName);
+  Variable *NewSrc = Func->makeVariable(Dest->getType());
+  if (ALLOW_DUMP)
+    NewSrc->setName(Func, Dest->getName(Func) + "_phi");
   this->Dest = NewSrc;
   return InstAssign::create(Func, Dest, NewSrc);
 }

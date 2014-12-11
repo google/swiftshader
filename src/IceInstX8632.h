@@ -152,9 +152,8 @@ class SpillVariable : public Variable {
   SpillVariable &operator=(const SpillVariable &) = delete;
 
 public:
-  static SpillVariable *create(Cfg *Func, Type Ty, SizeT Index,
-                               const IceString &Name) {
-    return new (Func->allocate<SpillVariable>()) SpillVariable(Ty, Index, Name);
+  static SpillVariable *create(Cfg *Func, Type Ty, SizeT Index) {
+    return new (Func->allocate<SpillVariable>()) SpillVariable(Ty, Index);
   }
   const static OperandKind SpillVariableKind =
       static_cast<OperandKind>(kVariable_Target);
@@ -165,8 +164,8 @@ public:
   Variable *getLinkedTo() const { return LinkedTo; }
   // Inherit dump() and emit() from Variable.
 private:
-  SpillVariable(Type Ty, SizeT Index, const IceString &Name)
-      : Variable(SpillVariableKind, Ty, Index, Name), LinkedTo(NULL) {}
+  SpillVariable(Type Ty, SizeT Index)
+      : Variable(SpillVariableKind, Ty, Index), LinkedTo(NULL) {}
   Variable *LinkedTo;
 };
 

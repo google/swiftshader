@@ -436,8 +436,9 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
           }
         }
         if (Verbose && Prefer) {
-          Str << "Initial Prefer=" << *Prefer << " R=" << PreferReg
-              << " LIVE=" << Prefer->getLiveRange()
+          Str << "Initial Prefer=";
+          Prefer->dump(Func);
+          Str << " R=" << PreferReg << " LIVE=" << Prefer->getLiveRange()
               << " Overlap=" << AllowOverlap << "\n";
         }
       }

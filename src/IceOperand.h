@@ -388,18 +388,17 @@ class Variable : public Operand {
   Variable(Variable &&V) = default;
 
 public:
-  static Variable *create(Cfg *Func, Type Ty, SizeT Index,
-                          const IceString &Name) {
-    return new (Func->allocate<Variable>())
-        Variable(kVariable, Ty, Index, Name);
+  static Variable *create(Cfg *Func, Type Ty, SizeT Index) {
+    return new (Func->allocate<Variable>()) Variable(kVariable, Ty, Index);
   }
 
   SizeT getIndex() const { return Number; }
-  IceString getName() const;
-  void setName(IceString &NewName) {
+  IceString getName(const Cfg *Func) const;
+  void setName(Cfg *Func, const IceString &NewName) {
     // Make sure that the name can only be set once.
-    assert(Name.empty());
-    Name = NewName;
+    assert(NameIndex == Cfg::IdentifierIndexInvalid);
+    if (!NewName.empty())
+      NameIndex = Func->addIdentifierName(NewName);
   }
 
   bool getIsArg() const { return IsArgument; }
@@ -484,11 +483,11 @@ public:
   ~Variable() override {}
 
 protected:
-  Variable(OperandKind K, Type Ty, SizeT Index, const IceString &Name)
-      : Operand(K, Ty), Number(Index), Name(Name), IsArgument(false),
-        IsImplicitArgument(false), IgnoreLiveness(false), StackOffset(0),
-        RegNum(NoRegister), RegNumTmp(NoRegister), Weight(1), LoVar(NULL),
-        HiVar(NULL) {
+  Variable(OperandKind K, Type Ty, SizeT Index)
+      : Operand(K, Ty), Number(Index), NameIndex(Cfg::IdentifierIndexInvalid),
+        IsArgument(false), IsImplicitArgument(false), IgnoreLiveness(false),
+        StackOffset(0), RegNum(NoRegister), RegNumTmp(NoRegister), Weight(1),
+        LoVar(NULL), HiVar(NULL) {
     Vars = VarsReal;
     Vars[0] = this;
     NumVars = 1;
@@ -496,8 +495,7 @@ protected:
   // Number is unique across all variables, and is used as a
   // (bit)vector index for liveness analysis.
   const SizeT Number;
-  // Name is optional.
-  IceString Name;
+  Cfg::IdentifierIndexType NameIndex;
   bool IsArgument;
   bool IsImplicitArgument;
   // IgnoreLiveness means that the variable should be ignored when

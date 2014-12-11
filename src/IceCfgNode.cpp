@@ -23,14 +23,14 @@
 namespace Ice {
 
 CfgNode::CfgNode(Cfg *Func, SizeT LabelNumber)
-    : Func(Func), Number(LabelNumber), NameIndex(-1), HasReturn(false),
-      NeedsPlacement(false), InstCountEstimate(0) {}
+    : Func(Func), Number(LabelNumber), NameIndex(Cfg::IdentifierIndexInvalid),
+      HasReturn(false), NeedsPlacement(false), InstCountEstimate(0) {}
 
 // Returns the name the node was created with.  If no name was given,
 // it synthesizes a (hopefully) unique name.
 IceString CfgNode::getName() const {
   if (NameIndex >= 0)
-    return Func->getNodeName(NameIndex);
+    return Func->getIdentifierName(NameIndex);
   return "__" + std::to_string(getIndex());
 }
 
@@ -437,8 +437,9 @@ void CfgNode::advancedPhiLowering() {
           Operand *OtherSrc = Desc[J].Src;
           if (Desc[J].NumPred && sameVarOrReg(Dest, OtherSrc)) {
             SizeT VarNum = Func->getNumVariables();
-            Variable *Tmp = Func->makeVariable(
-                OtherSrc->getType(), "__split_" + std::to_string(VarNum));
+            Variable *Tmp = Func->makeVariable(OtherSrc->getType());
+            if (ALLOW_DUMP)
+              Tmp->setName(Func, "__split_" + std::to_string(VarNum));
             Assignments.push_back(InstAssign::create(Func, Tmp, OtherSrc));
             Desc[J].Src = Tmp;
             Found = true;
@@ -970,7 +971,7 @@ void CfgNode::dump(Cfg *Func) const {
     for (SizeT i = 0; i < LiveIn.size(); ++i) {
       if (LiveIn[i]) {
         Variable *Var = Liveness->getVariable(i, this);
-        Str << " %" << Var->getName();
+        Str << " %" << Var->getName(Func);
         if (Func->getContext()->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
           Str << ":" << Func->getTarget()->getRegName(Var->getRegNum(),
                                                       Var->getType());
@@ -995,7 +996,7 @@ void CfgNode::dump(Cfg *Func) const {
     for (SizeT i = 0; i < LiveOut.size(); ++i) {
       if (LiveOut[i]) {
         Variable *Var = Liveness->getVariable(i, this);
-        Str << " %" << Var->getName();
+        Str << " %" << Var->getName(Func);
         if (Func->getContext()->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
           Str << ":" << Func->getTarget()->getRegName(Var->getRegNum(),
                                                       Var->getType());

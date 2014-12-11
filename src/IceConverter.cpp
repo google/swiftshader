@@ -145,7 +145,9 @@ private:
     if (IceTy == Ice::IceType_void)
       return nullptr;
     if (VarMap.find(V) == VarMap.end()) {
-      VarMap[V] = Func->makeVariable(IceTy, V->getName());
+      VarMap[V] = Func->makeVariable(IceTy);
+      if (ALLOW_DUMP)
+        VarMap[V]->setName(Func, V->getName());
     }
     return VarMap[V];
   }

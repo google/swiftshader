@@ -131,16 +131,17 @@ void LiveRange::trim(InstNumberT Lower) {
     ++TrimmedBegin;
 }
 
-IceString Variable::getName() const {
-  if (!Name.empty())
-    return Name;
+IceString Variable::getName(const Cfg *Func) const {
+  if (Func && NameIndex >= 0)
+    return Func->getIdentifierName(NameIndex);
   return "__" + std::to_string(getIndex());
 }
 
 Variable Variable::asType(Type Ty) {
   // Note: This returns a Variable, even if the "this" object is a
   // subclass of Variable.
-  Variable V(kVariable, Ty, Number, Name);
+  Variable V(kVariable, Ty, Number);
+  V.NameIndex = NameIndex;
   V.RegNum = RegNum;
   V.StackOffset = StackOffset;
   return V;
@@ -405,12 +406,12 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
   if (!ALLOW_DUMP)
     return;
   if (Func == NULL) {
-    Str << "%" << getName();
+    Str << "%" << getName(Func);
     return;
   }
   if (Func->getContext()->isVerbose(IceV_RegOrigins) ||
       (!hasReg() && !Func->getTarget()->hasComputedFrame()))
-    Str << "%" << getName();
+    Str << "%" << getName(Func);
   if (hasReg()) {
     if (Func->getContext()->isVerbose(IceV_RegOrigins))
       Str << ":";

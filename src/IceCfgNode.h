@@ -35,9 +35,9 @@ public:
   IceString getName() const;
   void setName(const IceString &NewName) {
     // Make sure that the name can only be set once.
-    assert(NameIndex < 0);
+    assert(NameIndex == Cfg::IdentifierIndexInvalid);
     if (!NewName.empty())
-      NameIndex = Func->addNodeName(NewName);
+      NameIndex = Func->addIdentifierName(NewName);
   }
   IceString getAsmName() const {
     return ".L" + Func->getFunctionName() + "$" + getName();
@@ -91,7 +91,7 @@ private:
   CfgNode(Cfg *Func, SizeT LabelIndex);
   Cfg *const Func;
   const SizeT Number; // label index
-  int32_t NameIndex;  // index into Cfg::NodeNames table
+  Cfg::IdentifierIndexType NameIndex; // index into Cfg::NodeNames table
   bool HasReturn;     // does this block need an epilog?
   bool NeedsPlacement;
   InstNumberT InstCountEstimate; // rough instruction count estimate

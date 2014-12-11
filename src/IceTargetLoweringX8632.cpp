@@ -555,8 +555,9 @@ void TargetX8632::lowerArguments() {
     // to the assigned location of Arg.
     int32_t RegNum = RegX8632::Reg_xmm0 + NumXmmArgs;
     ++NumXmmArgs;
-    IceString Name = "home_reg:" + Arg->getName();
-    Variable *RegisterArg = Func->makeVariable(Ty, Name);
+    Variable *RegisterArg = Func->makeVariable(Ty);
+    if (ALLOW_DUMP)
+      RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
     RegisterArg->setRegNum(RegNum);
     RegisterArg->setIsArg();
     Arg->setIsArg(false);
@@ -1050,8 +1051,12 @@ void TargetX8632::split64(Variable *Var) {
     return;
   }
   assert(Hi == NULL);
-  Lo = Func->makeVariable(IceType_i32, Var->getName() + "__lo");
-  Hi = Func->makeVariable(IceType_i32, Var->getName() + "__hi");
+  Lo = Func->makeVariable(IceType_i32);
+  Hi = Func->makeVariable(IceType_i32);
+  if (ALLOW_DUMP) {
+    Lo->setName(Func, Var->getName(Func) + "__lo");
+    Hi->setName(Func, Var->getName(Func) + "__hi");
+  }
   Var->setLoHi(Lo, Hi);
   if (Var->getIsArg()) {
     Lo->setIsArg();

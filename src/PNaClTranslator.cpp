@@ -1086,8 +1086,6 @@ void ValuesymtabParser::ProcessRecord() {
   return;
 }
 
-class FunctionValuesymtabParser;
-
 /// Parses function blocks in the bitcode file.
 class FunctionParser : public BlockParserBaseClass {
   FunctionParser(const FunctionParser &) = delete;
@@ -2663,8 +2661,10 @@ void FunctionValuesymtabParser::setValueName(uint64_t Index, StringType &Name) {
     return;
   Ice::Operand *Op = getFunctionParser()->getOperand(Index);
   if (Ice::Variable *V = dyn_cast<Ice::Variable>(Op)) {
-    std::string Nm(Name.data(), Name.size());
-    V->setName(Nm);
+    if (ALLOW_DUMP) {
+      std::string Nm(Name.data(), Name.size());
+      V->setName(getFunctionParser()->getFunc(), Nm);
+    }
   } else {
     reportUnableToAssign("variable", Index, Name);
   }
