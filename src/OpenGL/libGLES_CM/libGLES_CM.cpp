@@ -377,13 +377,13 @@ void GL_APIENTRY glBindBuffer(GLenum target, GLuint buffer)
 	{
 		switch(target)
 		{
-			case GL_ARRAY_BUFFER:
+		case GL_ARRAY_BUFFER:
 			context->bindArrayBuffer(buffer);
 			return;
-			case GL_ELEMENT_ARRAY_BUFFER:
+		case GL_ELEMENT_ARRAY_BUFFER:
 			context->bindElementArrayBuffer(buffer);
 			return;
-			default:
+		default:
 			return error(GL_INVALID_ENUM);
 		}
 	}
@@ -535,71 +535,71 @@ void GL_APIENTRY glBlendFuncSeparateOES(GLenum srcRGB, GLenum dstRGB, GLenum src
 
 	switch(srcRGB)
 	{
-		case GL_ZERO:
-		case GL_ONE:
-		case GL_SRC_COLOR:
-		case GL_ONE_MINUS_SRC_COLOR:
-		case GL_DST_COLOR:
-		case GL_ONE_MINUS_DST_COLOR:
-		case GL_SRC_ALPHA:
-		case GL_ONE_MINUS_SRC_ALPHA:
-		case GL_DST_ALPHA:
-		case GL_ONE_MINUS_DST_ALPHA:
-		case GL_SRC_ALPHA_SATURATE:
+	case GL_ZERO:
+	case GL_ONE:
+	case GL_SRC_COLOR:
+	case GL_ONE_MINUS_SRC_COLOR:
+	case GL_DST_COLOR:
+	case GL_ONE_MINUS_DST_COLOR:
+	case GL_SRC_ALPHA:
+	case GL_ONE_MINUS_SRC_ALPHA:
+	case GL_DST_ALPHA:
+	case GL_ONE_MINUS_DST_ALPHA:
+	case GL_SRC_ALPHA_SATURATE:
 		break;
-		default:
+	default:
 		return error(GL_INVALID_ENUM);
 	}
 
 	switch(dstRGB)
 	{
-		case GL_ZERO:
-		case GL_ONE:
-		case GL_SRC_COLOR:
-		case GL_ONE_MINUS_SRC_COLOR:
-		case GL_DST_COLOR:
-		case GL_ONE_MINUS_DST_COLOR:
-		case GL_SRC_ALPHA:
-		case GL_ONE_MINUS_SRC_ALPHA:
-		case GL_DST_ALPHA:
-		case GL_ONE_MINUS_DST_ALPHA:
+	case GL_ZERO:
+	case GL_ONE:
+	case GL_SRC_COLOR:
+	case GL_ONE_MINUS_SRC_COLOR:
+	case GL_DST_COLOR:
+	case GL_ONE_MINUS_DST_COLOR:
+	case GL_SRC_ALPHA:
+	case GL_ONE_MINUS_SRC_ALPHA:
+	case GL_DST_ALPHA:
+	case GL_ONE_MINUS_DST_ALPHA:
 		break;
-		default:
+	default:
 		return error(GL_INVALID_ENUM);
 	}
 
 	switch(srcAlpha)
 	{
-		case GL_ZERO:
-		case GL_ONE:
-		case GL_SRC_COLOR:
-		case GL_ONE_MINUS_SRC_COLOR:
-		case GL_DST_COLOR:
-		case GL_ONE_MINUS_DST_COLOR:
-		case GL_SRC_ALPHA:
-		case GL_ONE_MINUS_SRC_ALPHA:
-		case GL_DST_ALPHA:
-		case GL_ONE_MINUS_DST_ALPHA:
-		case GL_SRC_ALPHA_SATURATE:
+	case GL_ZERO:
+	case GL_ONE:
+	case GL_SRC_COLOR:
+	case GL_ONE_MINUS_SRC_COLOR:
+	case GL_DST_COLOR:
+	case GL_ONE_MINUS_DST_COLOR:
+	case GL_SRC_ALPHA:
+	case GL_ONE_MINUS_SRC_ALPHA:
+	case GL_DST_ALPHA:
+	case GL_ONE_MINUS_DST_ALPHA:
+	case GL_SRC_ALPHA_SATURATE:
 		break;
-		default:
+	default:
 		return error(GL_INVALID_ENUM);
 	}
 
 	switch(dstAlpha)
 	{
-		case GL_ZERO:
-		case GL_ONE:
-		case GL_SRC_COLOR:
-		case GL_ONE_MINUS_SRC_COLOR:
-		case GL_DST_COLOR:
-		case GL_ONE_MINUS_DST_COLOR:
-		case GL_SRC_ALPHA:
-		case GL_ONE_MINUS_SRC_ALPHA:
-		case GL_DST_ALPHA:
-		case GL_ONE_MINUS_DST_ALPHA:
+	case GL_ZERO:
+	case GL_ONE:
+	case GL_SRC_COLOR:
+	case GL_ONE_MINUS_SRC_COLOR:
+	case GL_DST_COLOR:
+	case GL_ONE_MINUS_DST_COLOR:
+	case GL_SRC_ALPHA:
+	case GL_ONE_MINUS_SRC_ALPHA:
+	case GL_DST_ALPHA:
+	case GL_ONE_MINUS_DST_ALPHA:
 		break;
-		default:
+	default:
 		return error(GL_INVALID_ENUM);
 	}
 
@@ -613,6 +613,8 @@ void GL_APIENTRY glBlendFuncSeparateOES(GLenum srcRGB, GLenum dstRGB, GLenum src
 
 void GL_APIENTRY glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage)
 {
+	size = static_cast<GLint>(size);   // Work around issues with some 64-bit applications
+
 	TRACE("(GLenum target = 0x%X, GLsizeiptr size = %d, const GLvoid* data = 0x%0.8p, GLenum usage = %d)",
 	      target, size, data, usage);
 
@@ -623,10 +625,10 @@ void GL_APIENTRY glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data
 
 	switch(usage)
 	{
-		case GL_STATIC_DRAW:
-		case GL_DYNAMIC_DRAW:
+	case GL_STATIC_DRAW:
+	case GL_DYNAMIC_DRAW:
 		break;
-		default:
+	default:
 		return error(GL_INVALID_ENUM);
 	}
 
@@ -638,13 +640,13 @@ void GL_APIENTRY glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data
 
 		switch(target)
 		{
-			case GL_ARRAY_BUFFER:
+		case GL_ARRAY_BUFFER:
 			buffer = context->getArrayBuffer();
 			break;
-			case GL_ELEMENT_ARRAY_BUFFER:
+		case GL_ELEMENT_ARRAY_BUFFER:
 			buffer = context->getElementArrayBuffer();
 			break;
-			default:
+		default:
 			return error(GL_INVALID_ENUM);
 		}
 
@@ -659,6 +661,9 @@ void GL_APIENTRY glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data
 
 void GL_APIENTRY glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid* data)
 {
+	size = static_cast<GLint>(size);   // Work around issues with some 64-bit applications
+	offset = static_cast<GLint>(offset);
+
 	TRACE("(GLenum target = 0x%X, GLintptr offset = %d, GLsizeiptr size = %d, const GLvoid* data = 0x%0.8p)",
 	      target, offset, size, data);
 
@@ -680,13 +685,13 @@ void GL_APIENTRY glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size
 
 		switch(target)
 		{
-			case GL_ARRAY_BUFFER:
+		case GL_ARRAY_BUFFER:
 			buffer = context->getArrayBuffer();
 			break;
-			case GL_ELEMENT_ARRAY_BUFFER:
+		case GL_ELEMENT_ARRAY_BUFFER:
 			buffer = context->getElementArrayBuffer();
 			break;
-			default:
+		default:
 			return error(GL_INVALID_ENUM);
 		}
 
@@ -945,7 +950,7 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
 		{
 		case GL_TEXTURE_2D:
 			if(width > (es1::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
-				height > (es1::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
+			   height > (es1::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
 			{
 				return error(GL_INVALID_VALUE);
 			}
@@ -2839,7 +2844,7 @@ void GL_APIENTRY glPixelStorei(GLenum pname, GLint param)
 	{
 		switch(pname)
 		{
-			case GL_UNPACK_ALIGNMENT:
+		case GL_UNPACK_ALIGNMENT:
 			if(param != 1 && param != 2 && param != 4 && param != 8)
 			{
 				return error(GL_INVALID_VALUE);
@@ -2847,8 +2852,7 @@ void GL_APIENTRY glPixelStorei(GLenum pname, GLint param)
 
 			context->setUnpackAlignment(param);
 			break;
-
-			case GL_PACK_ALIGNMENT:
+		case GL_PACK_ALIGNMENT:
 			if(param != 1 && param != 2 && param != 4 && param != 8)
 			{
 				return error(GL_INVALID_VALUE);
@@ -2856,8 +2860,7 @@ void GL_APIENTRY glPixelStorei(GLenum pname, GLint param)
 
 			context->setPackAlignment(param);
 			break;
-
-			default:
+		default:
 			return error(GL_INVALID_ENUM);
 		}
 	}
@@ -3105,16 +3108,16 @@ void GL_APIENTRY glStencilFunc(GLenum func, GLint ref, GLuint mask)
 
 	switch(func)
 	{
-		case GL_NEVER:
-		case GL_ALWAYS:
-		case GL_LESS:
-		case GL_LEQUAL:
-		case GL_EQUAL:
-		case GL_GEQUAL:
-		case GL_GREATER:
-		case GL_NOTEQUAL:
+	case GL_NEVER:
+	case GL_ALWAYS:
+	case GL_LESS:
+	case GL_LEQUAL:
+	case GL_EQUAL:
+	case GL_GEQUAL:
+	case GL_GREATER:
+	case GL_NOTEQUAL:
 		break;
-		default:
+	default:
 		return error(GL_INVALID_ENUM);
 	}
 
@@ -3144,46 +3147,46 @@ void GL_APIENTRY glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 
 	switch(fail)
 	{
-		case GL_ZERO:
-		case GL_KEEP:
-		case GL_REPLACE:
-		case GL_INCR:
-		case GL_DECR:
-		case GL_INVERT:
-		case GL_INCR_WRAP_OES:
-		case GL_DECR_WRAP_OES:
+	case GL_ZERO:
+	case GL_KEEP:
+	case GL_REPLACE:
+	case GL_INCR:
+	case GL_DECR:
+	case GL_INVERT:
+	case GL_INCR_WRAP_OES:
+	case GL_DECR_WRAP_OES:
 		break;
-		default:
+	default:
 		return error(GL_INVALID_ENUM);
 	}
 
 	switch(zfail)
 	{
-		case GL_ZERO:
-		case GL_KEEP:
-		case GL_REPLACE:
-		case GL_INCR:
-		case GL_DECR:
-		case GL_INVERT:
-		case GL_INCR_WRAP_OES:
-		case GL_DECR_WRAP_OES:
+	case GL_ZERO:
+	case GL_KEEP:
+	case GL_REPLACE:
+	case GL_INCR:
+	case GL_DECR:
+	case GL_INVERT:
+	case GL_INCR_WRAP_OES:
+	case GL_DECR_WRAP_OES:
 		break;
-		default:
+	default:
 		return error(GL_INVALID_ENUM);
 	}
 
 	switch(zpass)
 	{
-		case GL_ZERO:
-		case GL_KEEP:
-		case GL_REPLACE:
-		case GL_INCR:
-		case GL_DECR:
-		case GL_INVERT:
-		case GL_INCR_WRAP_OES:
-		case GL_DECR_WRAP_OES:
+	case GL_ZERO:
+	case GL_KEEP:
+	case GL_REPLACE:
+	case GL_INCR:
+	case GL_DECR:
+	case GL_INVERT:
+	case GL_INCR_WRAP_OES:
+	case GL_DECR_WRAP_OES:
 		break;
-		default:
+	default:
 		return error(GL_INVALID_ENUM);
 	}
 
@@ -3445,8 +3448,8 @@ void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 			texture = context->getTexture2D();
 			break;
 		case GL_TEXTURE_EXTERNAL_OES:
-				texture = context->getTextureExternal();
-				break;
+			texture = context->getTextureExternal();
+			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
