@@ -47,16 +47,7 @@ public:
   void updateFrameBytes(uint32_t Bytes) { FrameBytes += Bytes; }
   void updateSpills() { ++Spills; }
   void updateFills() { ++Fills; }
-  void dump(const IceString &Name, Ostream &Str) {
-    if (!ALLOW_DUMP)
-      return;
-    Str << "|" << Name << "|Inst Count  |" << InstructionsEmitted << "\n";
-    Str << "|" << Name << "|Regs Saved  |" << RegistersSaved << "\n";
-    Str << "|" << Name << "|Frame Bytes |" << FrameBytes << "\n";
-    Str << "|" << Name << "|Spills      |" << Spills << "\n";
-    Str << "|" << Name << "|Fills       |" << Fills << "\n";
-    Str << "|" << Name << "|Spills+Fills|" << Spills + Fills << "\n";
-  }
+  void dump(const IceString &Name, Ostream &Str);
 
 private:
   uint32_t InstructionsEmitted;

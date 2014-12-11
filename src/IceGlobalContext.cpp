@@ -16,6 +16,8 @@
 #include <locale>  // locale
 #include <unordered_map>
 
+#include "llvm/Support/Timer.h"
+
 #include "IceCfg.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
@@ -104,6 +106,23 @@ public:
   TypePool<IceType_i32, RelocatableTuple, ConstantRelocatable> Relocatables;
   UndefPool Undefs;
 };
+
+void CodeStats::dump(const IceString &Name, Ostream &Str) {
+  if (!ALLOW_DUMP)
+    return;
+  Str << "|" << Name << "|Inst Count  |" << InstructionsEmitted << "\n";
+  Str << "|" << Name << "|Regs Saved  |" << RegistersSaved << "\n";
+  Str << "|" << Name << "|Frame Bytes |" << FrameBytes << "\n";
+  Str << "|" << Name << "|Spills      |" << Spills << "\n";
+  Str << "|" << Name << "|Fills       |" << Fills << "\n";
+  Str << "|" << Name << "|Spills+Fills|" << Spills + Fills << "\n";
+  Str << "|" << Name << "|Memory Usage|";
+  if (ssize_t MemUsed = llvm::TimeRecord::getCurrentTime(false).getMemUsed())
+    Str << MemUsed;
+  else
+    Str << "(requires '-track-memory')";
+  Str << "\n";
+}
 
 GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
                              ELFStreamer *ELFStr, VerboseMask Mask,
