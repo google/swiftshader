@@ -26,7 +26,7 @@
 
 namespace egl
 {
-typedef std::map<EGLNativeDisplayType, Display*> DisplayMap; 
+typedef std::map<EGLNativeDisplayType, Display*> DisplayMap;
 DisplayMap displays;
 
 egl::Display *Display::getPlatformDisplay(EGLenum platform, EGLNativeDisplayType displayId)
@@ -89,16 +89,9 @@ static void cpuid(int registers[4], int info)
 
 static bool detectSSE()
 {
-	#if defined(__APPLE__)
-		int SSE = false;
-		size_t length = sizeof(SSE);
-		sysctlbyname("hw.optional.sse", &SSE, &length, 0, 0);
-		return SSE;
-	#else
-		int registers[4];
-		cpuid(registers, 1);
-		return (registers[3] & 0x02000000) != 0;
-	#endif
+	int registers[4];
+	cpuid(registers, 1);
+	return (registers[3] & 0x02000000) != 0;
 }
 
 bool Display::initialize()
@@ -112,7 +105,7 @@ bool Display::initialize()
 	{
         return false;
 	}
-		
+
     mMinSwapInterval = 0;
     mMaxSwapInterval = 4;
 
@@ -150,7 +143,7 @@ bool Display::initialize()
         for(int depthStencilIndex = 0; depthStencilIndex < sizeof(depthStencilFormats) / sizeof(sw::Format); depthStencilIndex++)
         {
             sw::Format depthStencilFormat = depthStencilFormats[depthStencilIndex];
-             
+
             // FIXME: enumerate multi-sampling
 
             configSet.add(currentDisplayMode, mMinSwapInterval, mMaxSwapInterval, renderTargetFormat, depthStencilFormat, 0);
@@ -512,11 +505,11 @@ DisplayMode Display::getDisplayMode() const
 
 	#if defined(_WIN32)
 		HDC deviceContext = GetDC(0);
-	
+
 		displayMode.width = ::GetDeviceCaps(deviceContext, HORZRES);
 		displayMode.height = ::GetDeviceCaps(deviceContext, VERTRES);
 		unsigned int bpp = ::GetDeviceCaps(deviceContext, BITSPIXEL);
-	
+
 		switch(bpp)
 		{
 		case 32: displayMode.format = sw::FORMAT_X8R8G8B8; break;
@@ -525,7 +518,7 @@ DisplayMode Display::getDisplayMode() const
 		default:
 			ASSERT(false);   // Unexpected display mode color depth
 		}
-	
+
 		ReleaseDC(0, deviceContext);
 	#else
         if(platform == EGL_PLATFORM_X11_EXT)
