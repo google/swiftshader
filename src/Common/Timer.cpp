@@ -49,11 +49,10 @@ namespace sw
 	{
 		#if defined(_WIN32)
 			return __rdtsc();
-		#elif __GNUC_PREREQ(4,5)
-			return __builtin_ia32_rdtsc();
 		#else
-			assert(false);   // UNIMPLEMENTED
-			return 0;
+			int64_t tsc;
+			__asm volatile("rdtsc": "=A" (tsc));
+			return tsc;
 		#endif
 	}
 
