@@ -1363,7 +1363,6 @@ single_declaration
         }
     }
     | INVARIANT IDENTIFIER {
-        VERTEX_ONLY("invariant declaration", $1.line);
         if (context->globalErrorCheck($1.line, context->symbolTable.atGlobalLevel(), "invariant varying"))
             context->recover();
         $$.type.setBasic(EbtInvariant, EvqInvariantVaryingOut, $2.line);

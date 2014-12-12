@@ -154,11 +154,14 @@ namespace sh
 
 	void OutputASM::visitSymbol(TIntermSymbol *symbol)
 	{
+		// Vertex varyings don't have to be actively used to successfully link
+		// against pixel shaders that use them. So make sure they're declared.
 		if(symbol->getQualifier() == EvqVaryingOut || symbol->getQualifier() == EvqInvariantVaryingOut)
 		{
-			// Vertex varyings don't have to be actively used to successfully link
-			// against pixel shaders that use them. So make sure they're declared.
-			declareVarying(symbol, -1);
+			if(symbol->getBasicType() != EbtInvariant)   // Typeless declarations are not new varyings
+			{
+				declareVarying(symbol, -1);
+			}
 		}
 	}
 
