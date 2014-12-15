@@ -69,7 +69,12 @@ public:
 
   InstNumberT getNumber() const { return Number; }
   void renumber(Cfg *Func);
-  enum { NumberDeleted = -1, NumberSentinel = 0 };
+  enum {
+    NumberDeleted = -1,
+    NumberSentinel = 0,
+    NumberInitial = 2,
+    NumberExtended = NumberInitial - 1
+  };
 
   bool isDeleted() const { return Deleted; }
   void setDeleted() { Deleted = true; }

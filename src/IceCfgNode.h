@@ -80,7 +80,8 @@ public:
   void genCode();
   void livenessLightweight();
   bool liveness(Liveness *Liveness);
-  void livenessPostprocess(LivenessMode Mode, Liveness *Liveness);
+  void livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
+                            InstNumberT LastInstNum);
   void contractIfEmpty();
   void doBranchOpt(const CfgNode *NextNode);
   void emit(Cfg *Func) const;

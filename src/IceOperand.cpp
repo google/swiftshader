@@ -33,25 +33,14 @@ bool operator==(const RegWeight &A, const RegWeight &B) {
 }
 
 void LiveRange::addSegment(InstNumberT Start, InstNumberT End) {
-  if (Range.empty()) {
-    Range.push_back(RangeElementType(Start, End));
-    return;
-  }
-  // Special case for faking in-arg liveness.
-  if (End < Range.front().first) {
-    assert(Start < 0);
-    // This is inefficient with Range as a std::vector, but there are
-    // generally very few arguments compared to the total number of
-    // variables with non-empty live ranges.
-    Range.insert(Range.begin(), RangeElementType(Start, End));
-    return;
-  }
-  InstNumberT CurrentEnd = Range.back().second;
-  assert(Start >= CurrentEnd);
-  // Check for merge opportunity.
-  if (Start == CurrentEnd) {
-    Range.back().second = End;
-    return;
+  if (!Range.empty()) {
+    // Check for merge opportunity.
+    InstNumberT CurrentEnd = Range.back().second;
+    assert(Start >= CurrentEnd);
+    if (Start == CurrentEnd) {
+      Range.back().second = End;
+      return;
+    }
   }
   Range.push_back(RangeElementType(Start, End));
 }

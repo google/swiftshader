@@ -26,7 +26,8 @@ namespace Ice {
 Cfg::Cfg(GlobalContext *Ctx)
     : Ctx(Ctx), FunctionName(""), ReturnType(IceType_void),
       IsInternalLinkage(false), HasError(false), FocusedTiming(false),
-      ErrorMessage(""), Entry(NULL), NextInstNumber(1), Live(nullptr),
+      ErrorMessage(""), Entry(NULL), NextInstNumber(Inst::NumberInitial),
+      Live(nullptr),
       Target(TargetLowering::createLowering(Ctx->getTargetArch(), this)),
       VMetadata(new VariablesMetadata(this)),
       TargetAssembler(
@@ -96,7 +97,7 @@ void Cfg::computePredecessors() {
 
 void Cfg::renumberInstructions() {
   TimerMarker T(TimerStack::TT_renumberInstructions, this);
-  NextInstNumber = 1;
+  NextInstNumber = Inst::NumberInitial;
   for (CfgNode *Node : Nodes)
     Node->renumberInstructions();
 }
@@ -256,7 +257,6 @@ void Cfg::liveness(LivenessMode Mode) {
   llvm::BitVector NeedToProcess(Nodes.size(), true);
   while (NeedToProcess.any()) {
     // Iterate in reverse topological order to speed up convergence.
-    // TODO(stichnot): Use llvm::make_range with LLVM 3.5.
     for (auto I = Nodes.rbegin(), E = Nodes.rend(); I != E; ++I) {
       CfgNode *Node = *I;
       if (NeedToProcess[Node->getIndex()]) {
@@ -276,38 +276,45 @@ void Cfg::liveness(LivenessMode Mode) {
     for (Variable *Var : Variables)
       Var->resetLiveRange();
   }
-  // Collect timing for just the portion that constructs the live
-  // range intervals based on the end-of-live-range computation, for a
-  // finer breakdown of the cost.
-  TimerMarker T1(TimerStack::TT_liveRange, this);
-  // Make a final pass over instructions to delete dead instructions
-  // and build each Variable's live range.
-  for (CfgNode *Node : Nodes)
-    Node->livenessPostprocess(Mode, getLiveness());
-  if (Mode == Liveness_Intervals) {
-    // Special treatment for live in-args.  Their liveness needs to
-    // extend beyond the beginning of the function, otherwise an arg
-    // whose only use is in the first instruction will end up having
-    // the trivial live range [1,1) and will *not* interfere with
-    // other arguments.  So if the first instruction of the method is
-    // "r=arg1+arg2", both args may be assigned the same register.
-    for (SizeT I = 0; I < Args.size(); ++I) {
-      Variable *Arg = Args[I];
-      if (!Arg->getLiveRange().isEmpty()) {
-        // Add live range [-1,0) with weight 0.  TODO: Here and below,
-        // use better symbolic constants along the lines of
-        // Inst::NumberDeleted and Inst::NumberSentinel instead of -1
-        // and 0.
-        Arg->addLiveRange(-1, 0, 0);
+  // Make a final pass over each node to delete dead instructions,
+  // collect the first and last instruction numbers, and add live
+  // range segments for that node.
+  for (CfgNode *Node : Nodes) {
+    InstNumberT FirstInstNum = Inst::NumberSentinel;
+    InstNumberT LastInstNum = Inst::NumberSentinel;
+    for (auto I = Node->getPhis().begin(), E = Node->getPhis().end(); I != E;
+         ++I) {
+      I->deleteIfDead();
+      if (Mode == Liveness_Intervals && !I->isDeleted()) {
+        if (FirstInstNum == Inst::NumberSentinel)
+          FirstInstNum = I->getNumber();
+        assert(I->getNumber() > LastInstNum);
+        LastInstNum = I->getNumber();
       }
-      // Do the same for i64 args that may have been lowered into i32
-      // Lo and Hi components.
-      Variable *Lo = Arg->getLo();
-      if (Lo && !Lo->getLiveRange().isEmpty())
-        Lo->addLiveRange(-1, 0, 0);
-      Variable *Hi = Arg->getHi();
-      if (Hi && !Hi->getLiveRange().isEmpty())
-        Hi->addLiveRange(-1, 0, 0);
+    }
+    for (auto I = Node->getInsts().begin(), E = Node->getInsts().end(); I != E;
+         ++I) {
+      I->deleteIfDead();
+      if (Mode == Liveness_Intervals && !I->isDeleted()) {
+        if (FirstInstNum == Inst::NumberSentinel)
+          FirstInstNum = I->getNumber();
+        assert(I->getNumber() > LastInstNum);
+        LastInstNum = I->getNumber();
+      }
+    }
+    if (Mode == Liveness_Intervals) {
+      // Special treatment for live in-args.  Their liveness needs to
+      // extend beyond the beginning of the function, otherwise an arg
+      // whose only use is in the first instruction will end up having
+      // the trivial live range [2,2) and will *not* interfere with
+      // other arguments.  So if the first instruction of the method
+      // is "r=arg1+arg2", both args may be assigned the same
+      // register.  This is accomplished by extending the entry
+      // block's instruction range from [2,n) to [1,n) which will
+      // transform the problematic [2,2) live ranges into [1,2).
+      if (FirstInstNum == Inst::NumberInitial)
+        FirstInstNum = Inst::NumberExtended;
+      Node->livenessAddIntervals(getLiveness(), FirstInstNum, LastInstNum);
     }
   }
 }

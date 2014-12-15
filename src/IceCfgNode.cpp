@@ -639,40 +639,16 @@ bool CfgNode::liveness(Liveness *Liveness) {
   return Changed;
 }
 
-// Now that basic liveness is complete, remove dead instructions that
-// were tentatively marked as dead, and compute actual live ranges.
-// It is assumed that within a single basic block, a live range begins
-// at most once and ends at most once.  This is certainly true for
-// pure SSA form.  It is also true once phis are lowered, since each
+// Once basic liveness is complete, compute actual live ranges.  It is
+// assumed that within a single basic block, a live range begins at
+// most once and ends at most once.  This is certainly true for pure
+// SSA form.  It is also true once phis are lowered, since each
 // assignment to the phi-based temporary is in a different basic
 // block, and there is a single read that ends the live in the basic
 // block that contained the actual phi instruction.
-void CfgNode::livenessPostprocess(LivenessMode Mode, Liveness *Liveness) {
-  InstNumberT FirstInstNum = Inst::NumberSentinel;
-  InstNumberT LastInstNum = Inst::NumberSentinel;
-  // Process phis in any order.  Process only Dest operands.
-  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    I->deleteIfDead();
-    if (I->isDeleted())
-      continue;
-    if (FirstInstNum == Inst::NumberSentinel)
-      FirstInstNum = I->getNumber();
-    assert(I->getNumber() > LastInstNum);
-    LastInstNum = I->getNumber();
-  }
-  // Process instructions
-  for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I) {
-    I->deleteIfDead();
-    if (I->isDeleted())
-      continue;
-    if (FirstInstNum == Inst::NumberSentinel)
-      FirstInstNum = I->getNumber();
-    assert(I->getNumber() > LastInstNum);
-    LastInstNum = I->getNumber();
-  }
-  if (Mode != Liveness_Intervals)
-    return;
-  TimerMarker T1(TimerStack::TT_liveRangeCtor, Func);
+void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
+                                   InstNumberT LastInstNum) {
+  TimerMarker T1(TimerStack::TT_liveRange, Func);
 
   SizeT NumVars = Liveness->getNumVarsInNode(this);
   LivenessBV &LiveIn = Liveness->getLiveIn(this);
