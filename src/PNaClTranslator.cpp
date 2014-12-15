@@ -17,13 +17,14 @@
 #include "llvm/Bitcode/NaCl/NaClBitcodeHeader.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeParser.h"
 #include "llvm/Bitcode/NaCl/NaClReaderWriter.h"
-#include "llvm/IR/Constants.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Format.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "IceAPInt.h"
+#include "IceAPFloat.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
@@ -2186,9 +2187,8 @@ void FunctionParser::ProcessRecord() {
         Error(StrBuf.str());
         return;
       }
-      APInt Value(BitWidth,
-                  NaClDecodeSignRotatedValue(Values[ValCaseIndex + 2]),
-                  true);
+      Ice::APInt Value(BitWidth,
+                       NaClDecodeSignRotatedValue(Values[ValCaseIndex + 2]));
       if (isIRGenDisabled)
         continue;
       Ice::CfgNode *Label = getBranchBasicBlock(Values[ValCaseIndex + 3]);
@@ -2561,7 +2561,8 @@ void ConstantsParser::ProcessRecord() {
     }
     if (auto IType = dyn_cast<IntegerType>(
             Context->convertToLLVMType(NextConstantType))) {
-      APInt Value(IType->getBitWidth(), NaClDecodeSignRotatedValue(Values[0]));
+      Ice::APInt Value(IType->getBitWidth(),
+                       NaClDecodeSignRotatedValue(Values[0]));
       if (Ice::Constant *C = getContext()->getConstantInt(
               NextConstantType, Value.getSExtValue())) {
         FuncParser->setNextConstantID(C);
@@ -2587,16 +2588,15 @@ void ConstantsParser::ProcessRecord() {
     }
     switch (NextConstantType) {
     case Ice::IceType_f32: {
-      APFloat Value(APFloat::IEEEsingle,
-                    APInt(32, static_cast<uint32_t>(Values[0])));
-      FuncParser->setNextConstantID(
-          getContext()->getConstantFloat(Value.convertToFloat()));
+      const Ice::APInt IntValue(32, static_cast<uint32_t>(Values[0]));
+      float FpValue = Ice::convertAPIntToFp<int32_t, float>(IntValue);
+      FuncParser->setNextConstantID(getContext()->getConstantFloat(FpValue));
       return;
     }
     case Ice::IceType_f64: {
-      APFloat Value(APFloat::IEEEdouble, APInt(64, Values[0]));
-      FuncParser->setNextConstantID(
-          getContext()->getConstantDouble(Value.convertToDouble()));
+      const Ice::APInt IntValue(64, Values[0]);
+      double FpValue = Ice::convertAPIntToFp<uint64_t, double>(IntValue);
+      FuncParser->setNextConstantID(getContext()->getConstantDouble(FpValue));
       return;
     }
     default: {
