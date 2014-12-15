@@ -619,13 +619,21 @@ void InstCall::dump(const Cfg *Func) const {
   Str << ")";
 }
 
+const char *InstCast::getCastName(InstCast::OpKind Kind) {
+  size_t Index = static_cast<size_t>(Kind);
+  if (Index < InstCast::OpKind::_num)
+    return InstCastAttributes[Index].DisplayString;
+  llvm_unreachable("Invalid InstCast::OpKind");
+  return "???";
+}
+
 void InstCast::dump(const Cfg *Func) const {
   if (!ALLOW_DUMP)
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
-  Str << " = " << InstCastAttributes[getCastKind()].DisplayString << " "
-      << getSrc(0)->getType() << " ";
+  Str << " = " << getCastName(getCastKind()) << " " << getSrc(0)->getType()
+      << " ";
   dumpSources(Func);
   Str << " to " << getDest()->getType();
 }

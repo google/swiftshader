@@ -402,6 +402,8 @@ public:
         _num
   };
 
+  static const char *getCastName(OpKind Kind);
+
   static InstCast *create(Cfg *Func, OpKind CastKind, Variable *Dest,
                           Operand *Source) {
     return new (Func->allocateInst<InstCast>())

@@ -1603,46 +1603,159 @@ private:
     }
   }
 
-  /// Converts an LLVM cast opcode LLVMCastOp to the corresponding Ice
-  /// cast opcode and assigns to CastKind. Returns true if successful,
-  /// false otherwise.
-  bool convertLLVMCastOpToIceOp(Instruction::CastOps LLVMCastOp,
-                                Ice::InstCast::OpKind &CastKind) const {
-    switch (LLVMCastOp) {
-    case Instruction::ZExt:
-      CastKind = Ice::InstCast::Zext;
-      break;
-    case Instruction::SExt:
-      CastKind = Ice::InstCast::Sext;
-      break;
-    case Instruction::Trunc:
-      CastKind = Ice::InstCast::Trunc;
-      break;
-    case Instruction::FPTrunc:
-      CastKind = Ice::InstCast::Fptrunc;
-      break;
-    case Instruction::FPExt:
-      CastKind = Ice::InstCast::Fpext;
-      break;
-    case Instruction::FPToSI:
-      CastKind = Ice::InstCast::Fptosi;
-      break;
-    case Instruction::FPToUI:
-      CastKind = Ice::InstCast::Fptoui;
-      break;
-    case Instruction::SIToFP:
-      CastKind = Ice::InstCast::Sitofp;
-      break;
-    case Instruction::UIToFP:
-      CastKind = Ice::InstCast::Uitofp;
-      break;
-    case Instruction::BitCast:
-      CastKind = Ice::InstCast::Bitcast;
-      break;
-    default:
+  /// Simplifies out vector types from Type1 and Type2, if both are vectors
+  /// of the same size. Returns true iff both are vectors of the same size,
+  /// or are both scalar types.
+  static bool simplifyOutCommonVectorType(Ice::Type &Type1, Ice::Type &Type2) {
+    bool IsType1Vector = isVectorType(Type1);
+    bool IsType2Vector = isVectorType(Type2);
+    if (IsType1Vector != IsType2Vector)
       return false;
+    if (!IsType1Vector)
+      return true;
+    if (typeNumElements(Type1) != typeNumElements(Type2))
+      return false;
+    Type1 = typeElementType(Type1);
+    Type2 = typeElementType(Type2);
+    return true;
+  }
+
+  /// Returns true iff an integer truncation from SourceType to TargetType is
+  /// valid.
+  static bool isIntTruncCastValid(Ice::Type SourceType, Ice::Type TargetType) {
+    return Ice::isIntegerType(SourceType)
+        && Ice::isIntegerType(TargetType)
+        && simplifyOutCommonVectorType(SourceType, TargetType)
+        && getScalarIntBitWidth(SourceType) > getScalarIntBitWidth(TargetType);
+  }
+
+  /// Returns true iff a floating type truncation from SourceType to TargetType
+  /// is valid.
+  static bool isFloatTruncCastValid(Ice::Type SourceType,
+                                    Ice::Type TargetType) {
+    return simplifyOutCommonVectorType(SourceType, TargetType)
+        && SourceType == Ice::IceType_f64
+        && TargetType == Ice::IceType_f32;
+  }
+
+  /// Returns true iff an integer extension from SourceType to TargetType is
+  /// valid.
+  static bool isIntExtCastValid(Ice::Type SourceType, Ice::Type TargetType) {
+    return isIntTruncCastValid(TargetType, SourceType);
+  }
+
+  /// Returns true iff a floating type extension from SourceType to TargetType
+  /// is valid.
+  static bool isFloatExtCastValid(Ice::Type SourceType, Ice::Type TargetType) {
+    return isFloatTruncCastValid(TargetType, SourceType);
+  }
+
+  /// Returns true iff a cast from floating type SourceType to integer
+  /// type TargetType is valid.
+  static bool isFloatToIntCastValid(Ice::Type SourceType,
+                                    Ice::Type TargetType) {
+    if (!(Ice::isFloatingType(SourceType) && Ice::isIntegerType(TargetType)))
+      return false;
+    bool IsSourceVector = isVectorType(SourceType);
+    bool IsTargetVector = isVectorType(TargetType);
+    if (IsSourceVector != IsTargetVector)
+      return false;
+    if (IsSourceVector) {
+      return typeNumElements(SourceType) == typeNumElements(TargetType);
     }
     return true;
+  }
+
+  /// Returns true iff a cast from integer type SourceType to floating
+  /// type TargetType is valid.
+  static bool isIntToFloatCastValid(Ice::Type SourceType,
+                                    Ice::Type TargetType) {
+    return isFloatToIntCastValid(TargetType, SourceType);
+  }
+
+  /// Returns the number of bits used to model type Ty when defining the
+  /// bitcast instruction.
+  static Ice::SizeT bitcastSizeInBits(Ice::Type Ty) {
+    if (Ice::isVectorType(Ty))
+      return Ice::typeNumElements(Ty) *
+             bitcastSizeInBits(Ice::typeElementType(Ty));
+    if (Ty == Ice::IceType_i1)
+      return 1;
+    return Ice::typeWidthInBytes(Ty) * CHAR_BIT;
+  }
+
+  /// Returns true iff a bitcast from SourceType to TargetType is allowed.
+  static bool isBitcastValid(Ice::Type SourceType, Ice::Type TargetType) {
+    return bitcastSizeInBits(SourceType) == bitcastSizeInBits(TargetType);
+  }
+
+  /// Returns true iff the NaCl bitcode Opcode is a valid cast opcode
+  /// for converting SourceType to TargetType. Updates CastKind to the
+  /// corresponding instruction cast opcode. Also generates an error
+  /// message when this function returns false.
+  bool convertCastOpToIceOp(uint64_t Opcode, Ice::Type SourceType,
+                            Ice::Type TargetType,
+                            Ice::InstCast::OpKind &CastKind) {
+    bool Result;
+    switch (Opcode) {
+    default: {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Cast opcode " << Opcode << " not understood.\n";
+      Error(StrBuf.str());
+      // TODO(kschimpf) Remove error recovery once implementation complete.
+      CastKind = Ice::InstCast::Bitcast;
+      return false;
+    }
+    case naclbitc::CAST_TRUNC:
+      CastKind = Ice::InstCast::Trunc;
+      Result = isIntTruncCastValid(SourceType, TargetType);
+      break;
+    case naclbitc::CAST_ZEXT:
+      CastKind = Ice::InstCast::Zext;
+      Result = isIntExtCastValid(SourceType, TargetType);
+      break;
+    case naclbitc::CAST_SEXT:
+      CastKind = Ice::InstCast::Sext;
+      Result = isIntExtCastValid(SourceType, TargetType);
+      break;
+    case naclbitc::CAST_FPTOUI:
+      CastKind = Ice::InstCast::Fptoui;
+      Result = isFloatToIntCastValid(SourceType, TargetType);
+      break;
+    case naclbitc::CAST_FPTOSI:
+      CastKind = Ice::InstCast::Fptosi;
+      Result = isFloatToIntCastValid(SourceType, TargetType);
+      break;
+    case naclbitc::CAST_UITOFP:
+      CastKind = Ice::InstCast::Uitofp;
+      Result = isIntToFloatCastValid(SourceType, TargetType);
+      break;
+    case naclbitc::CAST_SITOFP:
+      CastKind = Ice::InstCast::Sitofp;
+      Result = isIntToFloatCastValid(SourceType, TargetType);
+      break;
+    case naclbitc::CAST_FPTRUNC:
+      CastKind = Ice::InstCast::Fptrunc;
+      Result = isFloatTruncCastValid(SourceType, TargetType);
+      break;
+    case naclbitc::CAST_FPEXT:
+      CastKind = Ice::InstCast::Fpext;
+      Result = isFloatExtCastValid(SourceType, TargetType);
+      break;
+    case naclbitc::CAST_BITCAST:
+      CastKind = Ice::InstCast::Bitcast;
+      Result = isBitcastValid(SourceType, TargetType);
+      break;
+    }
+    if (!Result) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Illegal cast: " << Ice::InstCast::getCastName(CastKind) << " "
+             << SourceType << " to " << TargetType;
+      Error(StrBuf.str());
+    }
+    return Result;
   }
 
   // Converts PNaCl bitcode Icmp operator to corresponding ICE op.
@@ -1875,30 +1988,13 @@ void FunctionParser::ProcessRecord() {
       return;
     Ice::Operand *Src = getRelativeOperand(Values[0], BaseIndex);
     Ice::Type CastType = Context->getSimpleTypeByID(Values[1]);
-    Instruction::CastOps LLVMCastOp;
     Ice::InstCast::OpKind CastKind;
-    if (!naclbitc::DecodeCastOpcode(Values[2], LLVMCastOp) ||
-        !convertLLVMCastOpToIceOp(LLVMCastOp, CastKind)) {
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Cast opcode not understood: " << Values[2];
-      Error(StrBuf.str());
-      appendErrorInstruction(CastType);
-      return;
-    }
     if (isIRGenerationDisabled()) {
       assert(Src == nullptr);
       setNextLocalInstIndex(nullptr);
       return;
     }
-    Ice::Type SrcType = Src->getType();
-    if (!CastInst::castIsValid(LLVMCastOp, Context->convertToLLVMType(SrcType),
-                               Context->convertToLLVMType(CastType))) {
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Illegal cast: " << Instruction::getOpcodeName(LLVMCastOp)
-             << " " << SrcType << " to " << CastType;
-      Error(StrBuf.str());
+    if (!convertCastOpToIceOp(Values[2], Src->getType(), CastType, CastKind)) {
       appendErrorInstruction(CastType);
       return;
     }
