@@ -35,12 +35,6 @@ public:
   /// Context is the context to use to build llvm types.
   TypeConverter(llvm::LLVMContext &Context);
 
-  /// Returns the LLVM type for the corresponding ICE type Ty.
-  llvm::Type *convertToLLVMType(Type Ty) const {
-    // Note: We use "at" here in case Ty wasn't registered.
-    return LLVMTypes.at(Ty);
-  }
-
   /// Converts LLVM type LLVMTy to an ICE type. Returns
   /// Ice::IceType_NUM if unable to convert.
   Type convertToIceType(llvm::Type *LLVMTy) const {
@@ -50,13 +44,8 @@ public:
     return Pos->second;
   }
 
-  /// Returns ICE model of pointer type.
-  Type getIcePointerType() const { return IceType_i32; }
-
 private:
-  // The list of allowable LLVM types. Indexed by ICE type.
-  std::vector<llvm::Type *> LLVMTypes;
-  // The inverse mapping of LLVMTypes.
+  // The mapping from LLVM types to corresopnding Ice types.
   std::map<llvm::Type *, Type> LLVM2IceMap;
 
   // Add LLVM/ICE pair to internal tables.

@@ -349,8 +349,7 @@ private:
 
   Ice::Inst *convertIntToPtrInstruction(const IntToPtrInst *Inst) {
     Ice::Operand *Src = convertOperand(Inst, 0);
-    Ice::Variable *Dest =
-        mapValueToIceVar(Inst, TypeConverter.getIcePointerType());
+    Ice::Variable *Dest = mapValueToIceVar(Inst, Ice::getPointerType());
     return Ice::InstAssign::create(Func, Dest, Src);
   }
 
@@ -568,8 +567,7 @@ private:
     // PNaCl bitcode only contains allocas of byte-granular objects.
     Ice::Operand *ByteCount = convertValue(Inst->getArraySize());
     uint32_t Align = Inst->getAlignment();
-    Ice::Variable *Dest =
-        mapValueToIceVar(Inst, TypeConverter.getIcePointerType());
+    Ice::Variable *Dest = mapValueToIceVar(Inst, Ice::getPointerType());
 
     return Ice::InstAlloca::create(Func, ByteCount, Align, Dest);
   }
@@ -766,7 +764,7 @@ void LLVM2ICEGlobalsConverter::addGlobalInitializer(
       return;
     case Instruction::PtrToInt: {
       assert(TypeConverter.convertToIceType(Exp->getType()) ==
-             TypeConverter.getIcePointerType());
+             Ice::getPointerType());
       const auto GV = dyn_cast<GlobalValue>(Exp->getOperand(0));
       assert(GV);
       const Ice::GlobalDeclaration *Addr =

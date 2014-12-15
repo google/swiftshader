@@ -108,13 +108,13 @@ SRCS = \
 	IceTargetLoweringX8632.cpp \
 	IceTimerTree.cpp \
 	IceTranslator.cpp \
-	IceTypeConverter.cpp \
 	IceTypes.cpp \
 	llvm2ice.cpp \
 	PNaClTranslator.cpp
 
 ifndef MINIMAL
-  SRCS += IceConverter.cpp
+  SRCS += IceConverter.cpp \
+	IceTypeConverter.cpp
 endif
 
 OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(SRCS))

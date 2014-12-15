@@ -53,6 +53,8 @@ size_t typeNumElements(Type Ty);
 Type typeElementType(Type Ty);
 const char *typeString(Type Ty);
 
+inline Type getPointerType() { return IceType_i32; }
+
 bool isVectorType(Type Ty);
 
 bool isIntegerType(Type Ty); // scalar or vector

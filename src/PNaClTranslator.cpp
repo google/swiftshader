@@ -17,8 +17,6 @@
 #include "llvm/Bitcode/NaCl/NaClBitcodeHeader.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeParser.h"
 #include "llvm/Bitcode/NaCl/NaClReaderWriter.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
 #include "llvm/Support/Format.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
@@ -32,7 +30,6 @@
 #include "IceGlobalInits.h"
 #include "IceInst.h"
 #include "IceOperand.h"
-#include "IceTypeConverter.h"
 #include "PNaClTranslator.h"
 
 #include <memory>
@@ -170,14 +167,11 @@ class TopLevelParser : public NaClBitcodeParser {
 public:
   typedef std::vector<Ice::FunctionDeclaration *> FunctionDeclarationListType;
 
-  TopLevelParser(Ice::Translator &Translator, const std::string &InputName,
-                 NaClBitcodeHeader &Header, NaClBitstreamCursor &Cursor,
-                 bool &ErrorStatus)
-      : NaClBitcodeParser(Cursor), Translator(Translator),
-        Mod(new Module(InputName, getGlobalContext())), Header(Header),
-        TypeConverter(Mod->getContext()), ErrorStatus(ErrorStatus),
-        NumErrors(0), NumFunctionIds(0), NumFunctionBlocks(0),
-        BlockParser(nullptr) {
+  TopLevelParser(Ice::Translator &Translator, NaClBitcodeHeader &Header,
+                 NaClBitstreamCursor &Cursor, bool &ErrorStatus)
+      : NaClBitcodeParser(Cursor), Translator(Translator), Header(Header),
+        ErrorStatus(ErrorStatus), NumErrors(0), NumFunctionIds(0),
+        NumFunctionBlocks(0), BlockParser(nullptr) {
     setErrStream(Translator.getContext()->getStrDump());
   }
 
@@ -198,9 +192,6 @@ public:
   /// Returns the number of errors found while parsing the bitcode
   /// file.
   unsigned getNumErrors() const { return NumErrors; }
-
-  /// Returns the LLVM module associated with the translation.
-  Module *getModule() const { return Mod.get(); }
 
   /// Returns the number of bytes in the bitcode header.
   size_t getHeaderSize() const { return Header.getHeaderSize(); }
@@ -377,34 +368,11 @@ public:
     return VariableDeclarations;
   }
 
-  /// Returns the corresponding ICE type for LLVMTy.
-  Ice::Type convertToIceType(Type *LLVMTy) {
-    Ice::Type IceTy = TypeConverter.convertToIceType(LLVMTy);
-    if (IceTy >= Ice::IceType_NUM) {
-      return convertToIceTypeError(LLVMTy);
-    }
-    return IceTy;
-  }
-
-  /// Returns the corresponding LLVM type for IceTy.
-  Type *convertToLLVMType(Ice::Type IceTy) const {
-    return TypeConverter.convertToLLVMType(IceTy);
-  }
-
-  /// Returns the model for pointer types in ICE.
-  Ice::Type getIcePointerType() const {
-    return TypeConverter.getIcePointerType();
-  }
-
 private:
   // The translator associated with the parser.
   Ice::Translator &Translator;
-  // The parsed module.
-  std::unique_ptr<Module> Mod;
   // The bitcode header.
   NaClBitcodeHeader &Header;
-  // Converter between LLVM and ICE types.
-  Ice::TypeConverter TypeConverter;
   // The exit status that should be set to true if an error occurs.
   bool &ErrorStatus;
   // The number of errors reported.
@@ -1407,7 +1375,7 @@ private:
   // the given InstructionName. Returns true if valid. Otherwise
   // generates an error message and returns false.
   bool isValidPointerType(Ice::Operand *Op, const char *InstructionName) {
-    Ice::Type PtrType = Context->getIcePointerType();
+    Ice::Type PtrType = Ice::getPointerType();
     if (Op->getType() == PtrType)
       return true;
     std::string Buffer;
@@ -2365,7 +2333,7 @@ void FunctionParser::ProcessRecord() {
       setNextLocalInstIndex(nullptr);
       return;
     }
-    Ice::Type PtrTy = Context->getIcePointerType();
+    Ice::Type PtrTy = Ice::getPointerType();
     if (ByteCount->getType() != Ice::IceType_i32) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
@@ -2655,9 +2623,8 @@ void ConstantsParser::ProcessRecord() {
       FuncParser->setNextConstantID(nullptr);
       return;
     }
-    if (auto IType = dyn_cast<IntegerType>(
-            Context->convertToLLVMType(NextConstantType))) {
-      Ice::APInt Value(IType->getBitWidth(),
+    if (Ice::isScalarIntegerType(NextConstantType)) {
+      Ice::APInt Value(Ice::getScalarIntBitWidth(NextConstantType),
                        NaClDecodeSignRotatedValue(Values[0]));
       if (Ice::Constant *C = getContext()->getConstantInt(
               NextConstantType, Value.getSExtValue())) {
@@ -3022,8 +2989,7 @@ void PNaClTranslator::translate(const std::string &IRFilename) {
   NaClBitstreamReader InputStreamFile(BufPtr, EndBufPtr);
   NaClBitstreamCursor InputStream(InputStreamFile);
 
-  TopLevelParser Parser(*this, MemBuf->getBufferIdentifier(), Header,
-                        InputStream, ErrorStatus);
+  TopLevelParser Parser(*this, Header, InputStream, ErrorStatus);
   int TopLevelBlocks = 0;
   while (!InputStream.AtEndOfStream()) {
     if (Parser.Parse()) {
