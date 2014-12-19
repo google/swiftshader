@@ -83,7 +83,7 @@ public:
   Ice::Cfg *convertFunction(const Function *F) {
     VarMap.clear();
     NodeMap.clear();
-    Func = new Ice::Cfg(Ctx);
+    Func = Ice::Cfg::create(Ctx);
     Func->setFunctionName(F->getName());
     Func->setReturnType(convertToIceType(F->getReturnType()));
     Func->setInternal(F->hasInternalLinkage());

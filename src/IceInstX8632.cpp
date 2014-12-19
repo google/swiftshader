@@ -2023,7 +2023,7 @@ template <> void InstX8632Lea::emit(const Cfg *Func) const {
     Type Ty = Src0Var->getType();
     // lea on x86-32 doesn't accept mem128 operands, so cast VSrc0 to an
     // acceptable type.
-    Src0Var->asType(isVectorType(Ty) ? IceType_i32 : Ty).emit(Func);
+    Src0Var->asType(isVectorType(Ty) ? IceType_i32 : Ty)->emit(Func);
   } else {
     Src0->emit(Func);
   }
@@ -2056,7 +2056,7 @@ template <> void InstX8632Mov::emit(const Cfg *Func) const {
          Func->getTarget()->typeWidthInBytesOnStack(SrcTy));
   Src->emit(Func);
   Str << ", ";
-  getDest()->asType(SrcTy).emit(Func);
+  getDest()->asType(SrcTy)->emit(Func);
 }
 
 template <> void InstX8632Mov::emitIAS(const Cfg *Func) const {
@@ -2446,7 +2446,7 @@ template <> void InstX8632Pextr::emit(const Cfg *Func) const {
   // a memory dest, but we aren't using it. For uniformity, just restrict
   // them all to have a register dest for now.
   assert(Dest->hasReg());
-  Dest->asType(IceType_i32).emit(Func);
+  Dest->asType(IceType_i32)->emit(Func);
 }
 
 template <> void InstX8632Pextr::emitIAS(const Cfg *Func) const {
@@ -2489,7 +2489,7 @@ template <> void InstX8632Pinsr::emit(const Cfg *Func) const {
   if (const auto Src1Var = llvm::dyn_cast<Variable>(Src1)) {
     // If src1 is a register, it should always be r32.
     if (Src1Var->hasReg()) {
-      Src1Var->asType(IceType_i32).emit(Func);
+      Src1Var->asType(IceType_i32)->emit(Func);
     } else {
       Src1Var->emit(Func);
     }

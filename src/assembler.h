@@ -24,9 +24,7 @@
 #define SUBZERO_SRC_ASSEMBLER_H
 
 #include "IceDefs.h"
-
 #include "IceFixups.h"
-#include "llvm/Support/Allocator.h"
 
 namespace Ice {
 
@@ -232,7 +230,7 @@ public:
   void emitIASBytes(GlobalContext *Ctx) const;
 
 private:
-  llvm::BumpPtrAllocator Allocator;
+  ArenaAllocator Allocator;
 
 protected:
   AssemblerBuffer buffer_;

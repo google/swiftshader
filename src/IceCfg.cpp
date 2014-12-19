@@ -23,11 +23,17 @@
 
 namespace Ice {
 
+thread_local const Cfg *Cfg::CurrentCfg = NULL;
+
+ArenaAllocator *getCurrentCfgAllocator() {
+  return Cfg::getCurrentCfgAllocator();
+}
+
 Cfg::Cfg(GlobalContext *Ctx)
     : Ctx(Ctx), FunctionName(""), ReturnType(IceType_void),
       IsInternalLinkage(false), HasError(false), FocusedTiming(false),
       ErrorMessage(""), Entry(NULL), NextInstNumber(Inst::NumberInitial),
-      Live(nullptr),
+      Allocator(new ArenaAllocator()), Live(nullptr),
       Target(TargetLowering::createLowering(Ctx->getTargetArch(), this)),
       VMetadata(new VariablesMetadata(this)),
       TargetAssembler(
@@ -37,7 +43,13 @@ Cfg::Cfg(GlobalContext *Ctx)
          "Attempt to build cfg when IR generation disabled");
 }
 
-Cfg::~Cfg() {}
+Cfg::~Cfg() {
+  // TODO(stichnot,kschimpf): Set CurrentCfg=NULL in the dtor for
+  // safety.  This can't be done currently because the translator
+  // manages the Cfg by creating a new Cfg (which sets CurrentCfg to
+  // the new value), then deleting the old Cfg (which would then reset
+  // CurrentCfg to NULL).
+}
 
 void Cfg::setError(const IceString &Message) {
   HasError = true;

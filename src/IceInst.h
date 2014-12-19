@@ -230,7 +230,7 @@ class InstAlloca : public InstHighLevel {
 public:
   static InstAlloca *create(Cfg *Func, Operand *ByteCount,
                             uint32_t AlignInBytes, Variable *Dest) {
-    return new (Func->allocateInst<InstAlloca>())
+    return new (Func->allocate<InstAlloca>())
         InstAlloca(Func, ByteCount, AlignInBytes, Dest);
   }
   uint32_t getAlignInBytes() const { return AlignInBytes; }
@@ -261,7 +261,7 @@ public:
 
   static InstArithmetic *create(Cfg *Func, OpKind Op, Variable *Dest,
                                 Operand *Source1, Operand *Source2) {
-    return new (Func->allocateInst<InstArithmetic>())
+    return new (Func->allocate<InstArithmetic>())
         InstArithmetic(Func, Op, Dest, Source1, Source2);
   }
   OpKind getOp() const { return Op; }
@@ -292,8 +292,7 @@ class InstAssign : public InstHighLevel {
 
 public:
   static InstAssign *create(Cfg *Func, Variable *Dest, Operand *Source) {
-    return new (Func->allocateInst<InstAssign>())
-        InstAssign(Func, Dest, Source);
+    return new (Func->allocate<InstAssign>()) InstAssign(Func, Dest, Source);
   }
   bool isSimpleAssign() const override { return true; }
   void dump(const Cfg *Func) const override;
@@ -315,12 +314,12 @@ public:
   // optimized to an unconditional branch.
   static InstBr *create(Cfg *Func, Operand *Source, CfgNode *TargetTrue,
                         CfgNode *TargetFalse) {
-    return new (Func->allocateInst<InstBr>())
+    return new (Func->allocate<InstBr>())
         InstBr(Func, Source, TargetTrue, TargetFalse);
   }
   // Create an unconditional branch.
   static InstBr *create(Cfg *Func, CfgNode *Target) {
-    return new (Func->allocateInst<InstBr>()) InstBr(Func, Target);
+    return new (Func->allocate<InstBr>()) InstBr(Func, Target);
   }
   bool isUnconditional() const { return getTargetTrue() == NULL; }
   Operand *getCondition() const {
@@ -364,7 +363,7 @@ public:
     // particular intrinsic is deletable and has no side-effects.
     const bool HasSideEffects = true;
     const InstKind Kind = Inst::Call;
-    return new (Func->allocateInst<InstCall>()) InstCall(
+    return new (Func->allocate<InstCall>()) InstCall(
         Func, NumArgs, Dest, CallTarget, HasTailCall, HasSideEffects, Kind);
   }
   void addArg(Operand *Arg) { addSource(Arg); }
@@ -406,7 +405,7 @@ public:
 
   static InstCast *create(Cfg *Func, OpKind CastKind, Variable *Dest,
                           Operand *Source) {
-    return new (Func->allocateInst<InstCast>())
+    return new (Func->allocate<InstCast>())
         InstCast(Func, CastKind, Dest, Source);
   }
   OpKind getCastKind() const { return CastKind; }
@@ -427,7 +426,7 @@ class InstExtractElement : public InstHighLevel {
 public:
   static InstExtractElement *create(Cfg *Func, Variable *Dest, Operand *Source1,
                                     Operand *Source2) {
-    return new (Func->allocateInst<InstExtractElement>())
+    return new (Func->allocate<InstExtractElement>())
         InstExtractElement(Func, Dest, Source1, Source2);
   }
 
@@ -458,7 +457,7 @@ public:
 
   static InstFcmp *create(Cfg *Func, FCond Condition, Variable *Dest,
                           Operand *Source1, Operand *Source2) {
-    return new (Func->allocateInst<InstFcmp>())
+    return new (Func->allocate<InstFcmp>())
         InstFcmp(Func, Condition, Dest, Source1, Source2);
   }
   FCond getCondition() const { return Condition; }
@@ -488,7 +487,7 @@ public:
 
   static InstIcmp *create(Cfg *Func, ICond Condition, Variable *Dest,
                           Operand *Source1, Operand *Source2) {
-    return new (Func->allocateInst<InstIcmp>())
+    return new (Func->allocate<InstIcmp>())
         InstIcmp(Func, Condition, Dest, Source1, Source2);
   }
   ICond getCondition() const { return Condition; }
@@ -510,7 +509,7 @@ class InstInsertElement : public InstHighLevel {
 public:
   static InstInsertElement *create(Cfg *Func, Variable *Dest, Operand *Source1,
                                    Operand *Source2, Operand *Source3) {
-    return new (Func->allocateInst<InstInsertElement>())
+    return new (Func->allocate<InstInsertElement>())
         InstInsertElement(Func, Dest, Source1, Source2, Source3);
   }
 
@@ -535,7 +534,7 @@ public:
   static InstIntrinsicCall *create(Cfg *Func, SizeT NumArgs, Variable *Dest,
                                    Operand *CallTarget,
                                    const Intrinsics::IntrinsicInfo &Info) {
-    return new (Func->allocateInst<InstIntrinsicCall>())
+    return new (Func->allocate<InstIntrinsicCall>())
         InstIntrinsicCall(Func, NumArgs, Dest, CallTarget, Info);
   }
   static bool classof(const Inst *Inst) {
@@ -564,8 +563,7 @@ public:
                           uint32_t Align = 1) {
     // TODO(kschimpf) Stop ignoring alignment specification.
     (void)Align;
-    return new (Func->allocateInst<InstLoad>())
-        InstLoad(Func, Dest, SourceAddr);
+    return new (Func->allocate<InstLoad>()) InstLoad(Func, Dest, SourceAddr);
   }
   Operand *getSourceAddress() const { return getSrc(0); }
   void dump(const Cfg *Func) const override;
@@ -584,7 +582,7 @@ class InstPhi : public InstHighLevel {
 
 public:
   static InstPhi *create(Cfg *Func, SizeT MaxSrcs, Variable *Dest) {
-    return new (Func->allocateInst<InstPhi>()) InstPhi(Func, MaxSrcs, Dest);
+    return new (Func->allocate<InstPhi>()) InstPhi(Func, MaxSrcs, Dest);
   }
   void addArgument(Operand *Source, CfgNode *Label);
   Operand *getOperandForTarget(CfgNode *Target) const;
@@ -618,7 +616,7 @@ class InstRet : public InstHighLevel {
 
 public:
   static InstRet *create(Cfg *Func, Operand *RetValue = NULL) {
-    return new (Func->allocateInst<InstRet>()) InstRet(Func, RetValue);
+    return new (Func->allocate<InstRet>()) InstRet(Func, RetValue);
   }
   bool hasRetValue() const { return getSrcSize(); }
   Operand *getRetValue() const {
@@ -642,7 +640,7 @@ class InstSelect : public InstHighLevel {
 public:
   static InstSelect *create(Cfg *Func, Variable *Dest, Operand *Condition,
                             Operand *SourceTrue, Operand *SourceFalse) {
-    return new (Func->allocateInst<InstSelect>())
+    return new (Func->allocate<InstSelect>())
         InstSelect(Func, Dest, Condition, SourceTrue, SourceFalse);
   }
   Operand *getCondition() const { return getSrc(0); }
@@ -668,7 +666,7 @@ public:
                            uint32_t align = 1) {
     // TODO(kschimpf) Stop ignoring alignment specification.
     (void)align;
-    return new (Func->allocateInst<InstStore>()) InstStore(Func, Data, Addr);
+    return new (Func->allocate<InstStore>()) InstStore(Func, Data, Addr);
   }
   Operand *getAddr() const { return getSrc(1); }
   Operand *getData() const { return getSrc(0); }
@@ -689,7 +687,7 @@ class InstSwitch : public InstHighLevel {
 public:
   static InstSwitch *create(Cfg *Func, SizeT NumCases, Operand *Source,
                             CfgNode *LabelDefault) {
-    return new (Func->allocateInst<InstSwitch>())
+    return new (Func->allocate<InstSwitch>())
         InstSwitch(Func, NumCases, Source, LabelDefault);
   }
   Operand *getComparison() const { return getSrc(0); }
@@ -732,7 +730,7 @@ class InstUnreachable : public InstHighLevel {
 
 public:
   static InstUnreachable *create(Cfg *Func) {
-    return new (Func->allocateInst<InstUnreachable>()) InstUnreachable(Func);
+    return new (Func->allocate<InstUnreachable>()) InstUnreachable(Func);
   }
   NodeList getTerminatorEdges() const override { return NodeList(); }
   void dump(const Cfg *Func) const override;
@@ -763,7 +761,7 @@ class InstFakeDef : public InstHighLevel {
 
 public:
   static InstFakeDef *create(Cfg *Func, Variable *Dest, Variable *Src = NULL) {
-    return new (Func->allocateInst<InstFakeDef>()) InstFakeDef(Func, Dest, Src);
+    return new (Func->allocate<InstFakeDef>()) InstFakeDef(Func, Dest, Src);
   }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
@@ -786,7 +784,7 @@ class InstFakeUse : public InstHighLevel {
 
 public:
   static InstFakeUse *create(Cfg *Func, Variable *Src) {
-    return new (Func->allocateInst<InstFakeUse>()) InstFakeUse(Func, Src);
+    return new (Func->allocate<InstFakeUse>()) InstFakeUse(Func, Src);
   }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
@@ -814,7 +812,7 @@ class InstFakeKill : public InstHighLevel {
 
 public:
   static InstFakeKill *create(Cfg *Func, const Inst *Linked) {
-    return new (Func->allocateInst<InstFakeKill>()) InstFakeKill(Func, Linked);
+    return new (Func->allocate<InstFakeKill>()) InstFakeKill(Func, Linked);
   }
   const Inst *getLinked() const { return Linked; }
   void emit(const Cfg *Func) const override;

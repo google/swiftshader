@@ -1066,7 +1066,7 @@ public:
         Timer(Ice::TimerStack::TT_parseFunctions, getTranslator().getContext()),
         Func(isIRGenerationDisabled()
                  ? nullptr
-                 : new Ice::Cfg(getTranslator().getContext())),
+                 : Ice::Cfg::create(getTranslator().getContext())),
         CurrentBbIndex(0), FcnId(Context->getNextFunctionBlockValueID()),
         FuncDecl(Context->getFunctionByID(FcnId)),
         CachedNumGlobalValueIDs(Context->getNumGlobalIDs()),

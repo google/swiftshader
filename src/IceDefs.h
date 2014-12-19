@@ -32,6 +32,7 @@
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/Support/Allocator.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ELF.h"
 #include "llvm/Support/raw_ostream.h"
@@ -56,16 +57,40 @@ class Variable;
 class VariableDeclaration;
 class VariablesMetadata;
 
-// TODO: Switch over to LLVM's ADT container classes.
-// http://llvm.org/docs/ProgrammersManual.html#picking-the-right-data-structure-for-a-task
+typedef llvm::BumpPtrAllocatorImpl<llvm::MallocAllocator, 1024 * 1024>
+ArenaAllocator;
+
+ArenaAllocator *getCurrentCfgAllocator();
+
+template <typename T> struct CfgLocalAllocator {
+  using value_type = T;
+  CfgLocalAllocator() = default;
+  template <class U> CfgLocalAllocator(const CfgLocalAllocator<U> &) {}
+  T *allocate(std::size_t Num) {
+    return getCurrentCfgAllocator()->Allocate<T>(Num);
+  }
+  void deallocate(T *, std::size_t) {}
+};
+template <typename T, typename U>
+inline bool operator==(const CfgLocalAllocator<T> &,
+                       const CfgLocalAllocator<U> &) {
+  return true;
+}
+template <typename T, typename U>
+inline bool operator!=(const CfgLocalAllocator<T> &,
+                       const CfgLocalAllocator<U> &) {
+  return false;
+}
+
 typedef std::string IceString;
 typedef llvm::ilist<Inst> InstList;
 // Ideally PhiList would be llvm::ilist<InstPhi>, and similar for
 // AssignList, but this runs into issues with SFINAE.
 typedef InstList PhiList;
 typedef InstList AssignList;
-typedef std::vector<Variable *> VarList;
-typedef std::vector<CfgNode *> NodeList;
+// VarList and NodeList are arena-allocated from the Cfg's allocator.
+typedef std::vector<Variable *, CfgLocalAllocator<Variable *>> VarList;
+typedef std::vector<CfgNode *, CfgLocalAllocator<CfgNode *>> NodeList;
 typedef std::vector<Constant *> ConstantList;
 
 // SizeT is for holding small-ish limits like number of source

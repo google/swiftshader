@@ -87,7 +87,6 @@ public:
 protected:
   Operand(OperandKind Kind, Type Ty)
       : Ty(Ty), Kind(Kind), NumVars(0), Vars(NULL) {}
-  Operand(Operand &&O) = default;
 
   const Type Ty;
   const OperandKind Kind;
@@ -362,8 +361,9 @@ public:
 
 private:
   typedef std::pair<InstNumberT, InstNumberT> RangeElementType;
-  // Assume a common case of 2 or fewer segments per live range.
-  typedef llvm::SmallVector<RangeElementType, 2> RangeType;
+  // RangeType is arena-allocated from the Cfg's allocator.
+  typedef std::vector<RangeElementType, CfgLocalAllocator<RangeElementType>>
+  RangeType;
   RangeType Range;
   RegWeight Weight;
   // TrimmedBegin is an optimization for the overlaps() computation.
@@ -385,7 +385,6 @@ Ostream &operator<<(Ostream &Str, const LiveRange &L);
 class Variable : public Operand {
   Variable(const Variable &) = delete;
   Variable &operator=(const Variable &) = delete;
-  Variable(Variable &&V) = default;
 
 public:
   static Variable *create(Cfg *Func, Type Ty, SizeT Index) {
@@ -466,9 +465,9 @@ public:
   // Creates a temporary copy of the variable with a different type.
   // Used primarily for syntactic correctness of textual assembly
   // emission.  Note that only basic information is copied, in
-  // particular not DefInst, IsArgument, Weight, LoVar, HiVar,
-  // VarsReal.
-  Variable asType(Type Ty);
+  // particular not IsArgument, IsImplicitArgument, IgnoreLiveness,
+  // RegNumTmp, Weight, Live, LoVar, HiVar, VarsReal.
+  Variable *asType(Type Ty);
 
   void emit(const Cfg *Func) const override;
   using Operand::dump;
@@ -478,9 +477,6 @@ public:
     OperandKind Kind = Operand->getKind();
     return Kind >= kVariable && Kind <= kVariable_Num;
   }
-
-  // The destructor is public because of the asType() method.
-  ~Variable() override {}
 
 protected:
   Variable(OperandKind K, Type Ty, SizeT Index)
@@ -492,6 +488,7 @@ protected:
     Vars[0] = this;
     NumVars = 1;
   }
+  ~Variable() override {}
   // Number is unique across all variables, and is used as a
   // (bit)vector index for liveness analysis.
   const SizeT Number;

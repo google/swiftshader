@@ -17,8 +17,6 @@
 
 #include <memory>
 
-#include "llvm/Support/Allocator.h"
-
 #include "assembler.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
@@ -32,8 +30,23 @@ class Cfg {
   Cfg &operator=(const Cfg &) = delete;
 
 public:
-  Cfg(GlobalContext *Ctx);
   ~Cfg();
+
+  // TODO(stichnot): Change this to return unique_ptr<Cfg>, and plumb
+  // it through the callers, to make ownership and lifetime and
+  // destruction requirements more explicit.
+  static Cfg *create(GlobalContext *Ctx) {
+    Cfg *Func = new Cfg(Ctx);
+    CurrentCfg = Func;
+    return Func;
+  }
+  // Gets a pointer to the current thread's Cfg.
+  static const Cfg *getCurrentCfg() { return CurrentCfg; }
+  // Gets a pointer to the current thread's Cfg's allocator.
+  static ArenaAllocator *getCurrentCfgAllocator() {
+    assert(CurrentCfg);
+    return CurrentCfg->Allocator.get();
+  }
 
   GlobalContext *getContext() const { return Ctx; }
 
@@ -150,38 +163,25 @@ public:
   void dump(const IceString &Message = "");
 
   // Allocate data of type T using the per-Cfg allocator.
-  template <typename T> T *allocate() { return Allocator.Allocate<T>(); }
-
-  // Allocate an instruction of type T using the per-Cfg instruction allocator.
-  template <typename T> T *allocateInst() { return Allocator.Allocate<T>(); }
+  template <typename T> T *allocate() { return Allocator->Allocate<T>(); }
 
   // Allocate an array of data of type T using the per-Cfg allocator.
   template <typename T> T *allocateArrayOf(size_t NumElems) {
-    return Allocator.Allocate<T>(NumElems);
+    return Allocator->Allocate<T>(NumElems);
   }
 
   // Deallocate data that was allocated via allocate<T>().
   template <typename T> void deallocate(T *Object) {
-    Allocator.Deallocate(Object);
-  }
-
-  // Deallocate data that was allocated via allocateInst<T>().
-  template <typename T> void deallocateInst(T *Instr) {
-    Allocator.Deallocate(Instr);
+    Allocator->Deallocate(Object);
   }
 
   // Deallocate data that was allocated via allocateArrayOf<T>().
   template <typename T> void deallocateArrayOf(T *Array) {
-    Allocator.Deallocate(Array);
+    Allocator->Deallocate(Array);
   }
 
 private:
-  // TODO: for now, everything is allocated from the same allocator. In the
-  // future we may want to split this to several allocators, for example in
-  // order to use a "Recycler" to preserve memory. If we keep all allocation
-  // requests from the Cfg exposed via methods, we can always switch the
-  // implementation over at a later point.
-  llvm::BumpPtrAllocatorImpl<llvm::MallocAllocator, 1024 * 1024> Allocator;
+  Cfg(GlobalContext *Ctx);
 
   GlobalContext *Ctx;
   IceString FunctionName;
@@ -197,6 +197,7 @@ private:
   VarList Variables;
   VarList Args; // subset of Variables, in argument order
   VarList ImplicitArgs; // subset of Variables
+  std::unique_ptr<ArenaAllocator> Allocator;
   std::unique_ptr<Liveness> Live;
   std::unique_ptr<TargetLowering> Target;
   std::unique_ptr<VariablesMetadata> VMetadata;
@@ -208,6 +209,11 @@ private:
   // register allocation, resetCurrentNode() should be called to avoid
   // spurious validation failures.
   const CfgNode *CurrentNode;
+
+  // Maintain a pointer in TLS to the current Cfg being translated.
+  // This is primarily for accessing its allocator statelessly, but
+  // other uses are possible.
+  thread_local static const Cfg *CurrentCfg;
 };
 
 } // end of namespace Ice

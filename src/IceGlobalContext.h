@@ -17,8 +17,6 @@
 
 #include <memory>
 
-#include "llvm/Support/Allocator.h"
-
 #include "IceDefs.h"
 #include "IceClFlags.h"
 #include "IceELFObjectWriter.h"
@@ -208,7 +206,7 @@ private:
   Ostream *StrDump; // Stream for dumping / diagnostics
   Ostream *StrEmit; // Stream for code emission
 
-  llvm::BumpPtrAllocatorImpl<llvm::MallocAllocator, 1024 * 1024> Allocator;
+  ArenaAllocator Allocator;
   VerboseMask VMask;
   std::unique_ptr<class ConstantPool> ConstPool;
   Intrinsics IntrinsicsInfo;

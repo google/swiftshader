@@ -1026,8 +1026,8 @@ template <typename T> void TargetX8632::emitConstantPool() const {
 
 void TargetX8632::emitConstants() const {
   // Note: Still used by emit IAS.
-  emitConstantPool<PoolTypeConverter<float> >();
-  emitConstantPool<PoolTypeConverter<double> >();
+  emitConstantPool<PoolTypeConverter<float>>();
+  emitConstantPool<PoolTypeConverter<double>>();
 
   // No need to emit constants from the int pool since (for x86) they
   // are embedded as immediates in the instructions.
