@@ -29,7 +29,7 @@ public:
   LinearScan(Cfg *Func)
       : Func(Func), FindPreference(false), FindOverlap(false) {}
   void init(RegAllocKind Kind);
-  void scan(const llvm::SmallBitVector &RegMask);
+  void scan(const llvm::SmallBitVector &RegMask, bool Randomized);
   void dump(Cfg *Func) const;
 
 private:

@@ -191,6 +191,10 @@ public:
   virtual const llvm::SmallBitVector &getRegisterSetForType(Type Ty) const = 0;
   void regAlloc(RegAllocKind Kind);
 
+  virtual void makeRandomRegisterPermutation(
+      llvm::SmallVectorImpl<int32_t> &Permutation,
+      const llvm::SmallBitVector &ExcludeRegisters) const = 0;
+
   virtual void emitVariable(const Variable *Var) const = 0;
 
   // Performs target-specific argument lowering.
@@ -204,9 +208,7 @@ public:
   virtual ~TargetLowering() {}
 
 protected:
-  TargetLowering(Cfg *Func)
-      : Func(Func), Ctx(Func->getContext()), HasComputedFrame(false),
-        CallsReturnsTwice(false), StackAdjustment(0) {}
+  TargetLowering(Cfg *Func);
   virtual void lowerAlloca(const InstAlloca *Inst) = 0;
   virtual void lowerArithmetic(const InstArithmetic *Inst) = 0;
   virtual void lowerAssign(const InstAssign *Inst) = 0;
@@ -235,6 +237,7 @@ protected:
 
   Cfg *Func;
   GlobalContext *Ctx;
+  const bool RandomizeRegisterAllocation;
   bool HasComputedFrame;
   bool CallsReturnsTwice;
   // StackAdjustment keeps track of the current stack offset from its

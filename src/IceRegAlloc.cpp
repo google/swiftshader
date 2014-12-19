@@ -141,7 +141,7 @@ void LinearScan::initForGlobal() {
 //
 // Some properties we aren't (yet) taking advantage of:
 //
-// * Because live ranges are a single segment, the Unhandled set will
+// * Because live ranges are a single segment, the Inactive set will
 //   always be empty, and the live range trimming operation is
 //   unnecessary.
 //
@@ -258,7 +258,8 @@ void LinearScan::init(RegAllocKind Kind) {
 // Requires running Cfg::liveness(Liveness_Intervals) in
 // preparation.  Results are assigned to Variable::RegNum for each
 // Variable.
-void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
+void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
+                      bool Randomized) {
   TimerMarker T(TimerStack::TT_linearScan, Func);
   assert(RegMaskFull.any()); // Sanity check
   Ostream &Str = Func->getContext()->getStrDump();
@@ -266,6 +267,13 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
       ALLOW_DUMP && Func->getContext()->isVerbose(IceV_LinearScan);
   Func->resetCurrentNode();
   VariablesMetadata *VMetadata = Func->getVMetadata();
+  const size_t NumRegisters = RegMaskFull.size();
+  llvm::SmallBitVector PreDefinedRegisters(NumRegisters);
+  if (Randomized) {
+    for (Variable *Var : UnhandledPrecolored) {
+      PreDefinedRegisters[Var->getRegNum()] = true;
+    }
+  }
 
   // Build a LiveRange representing the Kills list.
   LiveRange KillsRange(Kills);
@@ -274,7 +282,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   // RegUses[I] is the number of live ranges (variables) that register
   // I is currently assigned to.  It can be greater than 1 as a result
   // of AllowOverlap inference below.
-  std::vector<int> RegUses(RegMaskFull.size());
+  std::vector<int> RegUses(NumRegisters);
   // Unhandled is already set to all ranges in increasing order of
   // start points.
   assert(Active.empty());
@@ -662,23 +670,39 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull) {
   Inactive.clear();
   dump(Func);
 
-  // Finish up by assigning RegNumTmp->RegNum for each Variable.
+  // TODO(stichnot): Statically choose the size based on the target
+  // being compiled.
+  const size_t REGS_SIZE = 32;
+  llvm::SmallVector<int32_t, REGS_SIZE> Permutation(NumRegisters);
+  if (Randomized) {
+    Func->getTarget()->makeRandomRegisterPermutation(
+        Permutation, PreDefinedRegisters | ~RegMaskFull);
+  }
+
+  // Finish up by assigning RegNumTmp->RegNum (or a random permutation
+  // thereof) for each Variable.
   for (Variable *Item : Handled) {
     int32_t RegNum = Item->getRegNumTmp();
+    int32_t AssignedRegNum = RegNum;
+
+    if (Randomized && Item->hasRegTmp() && !Item->hasReg()) {
+      AssignedRegNum = Permutation[RegNum];
+    }
     if (Verbose) {
       if (!Item->hasRegTmp()) {
         Str << "Not assigning ";
         Item->dump(Func);
         Str << "\n";
       } else {
-        Str << (RegNum == Item->getRegNum() ? "Reassigning " : "Assigning ")
-            << Func->getTarget()->getRegName(RegNum, IceType_i32) << "(r"
-            << RegNum << ") to ";
+        Str << (AssignedRegNum == Item->getRegNum() ? "Reassigning "
+                                                    : "Assigning ")
+            << Func->getTarget()->getRegName(AssignedRegNum, IceType_i32)
+            << "(r" << AssignedRegNum << ") to ";
         Item->dump(Func);
         Str << "\n";
       }
     }
-    Item->setRegNum(Item->getRegNumTmp());
+    Item->setRegNum(AssignedRegNum);
   }
 
   // TODO: Consider running register allocation one more time, with

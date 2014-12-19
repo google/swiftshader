@@ -29,6 +29,7 @@ namespace Ice {
 
 namespace {
 
+// TODO(stichnot): Move this machinery into llvm2ice.cpp.
 namespace cl = llvm::cl;
 cl::opt<bool> DoNopInsertion("nop-insertion", cl::desc("Randomly insert NOPs"),
                              cl::init(false));
@@ -40,6 +41,11 @@ cl::opt<int> MaxNopsPerInstruction(
 cl::opt<int> NopProbabilityAsPercentage(
     "nop-insertion-percentage",
     cl::desc("Nop insertion probability as percentage"), cl::init(10));
+
+cl::opt<bool>
+CLRandomizeRegisterAllocation("randomize-regalloc",
+                              cl::desc("Randomize register allocation"),
+                              cl::init(false));
 } // end of anonymous namespace
 
 void LoweringContext::init(CfgNode *N) {
@@ -94,6 +100,12 @@ TargetLowering *TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
   Func->setError("Unsupported target");
   return NULL;
 }
+
+TargetLowering::TargetLowering(Cfg *Func)
+    : Func(Func), Ctx(Func->getContext()),
+      RandomizeRegisterAllocation(CLRandomizeRegisterAllocation),
+      HasComputedFrame(false), CallsReturnsTwice(false), StackAdjustment(0),
+      Context() {}
 
 Assembler *TargetLowering::createAssembler(TargetArch Target, Cfg *Func) {
   // These statements can be #ifdef'd to specialize the assembler
@@ -236,7 +248,7 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
     RegExclude |= RegSet_FramePointer;
   LinearScan.init(Kind);
   llvm::SmallBitVector RegMask = getRegisterSet(RegInclude, RegExclude);
-  LinearScan.scan(RegMask);
+  LinearScan.scan(RegMask, RandomizeRegisterAllocation);
 }
 
 TargetGlobalInitLowering *

@@ -180,6 +180,10 @@ protected:
   OperandX8632Mem *getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
                                                 uint32_t Offset = 0);
 
+  void makeRandomRegisterPermutation(
+      llvm::SmallVectorImpl<int32_t> &Permutation,
+      const llvm::SmallBitVector &ExcludeRegisters) const;
+
   // The following are helpers that insert lowered x86 instructions
   // with minimal syntactic overhead, so that the lowering code can
   // look as close to assembly as practical.

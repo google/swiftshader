@@ -3869,7 +3869,7 @@ void TargetX8632::doAddressOptLoad() {
 void TargetX8632::randomlyInsertNop(float Probability) {
   RandomNumberGeneratorWrapper RNG(Ctx->getRNG());
   if (RNG.getTrueWithProbability(Probability)) {
-    _nop(RNG.next(X86_NUM_NOP_VARIANTS));
+    _nop(RNG(X86_NUM_NOP_VARIANTS));
   }
 }
 
@@ -4526,6 +4526,72 @@ void TargetX8632::postLower() {
       // instructions.
       if (Inst->getSrcSize() > 0 && Inst->getSrc(0) == Dest)
         Inst->setDestNonKillable();
+    }
+  }
+}
+
+void TargetX8632::makeRandomRegisterPermutation(
+    llvm::SmallVectorImpl<int32_t> &Permutation,
+    const llvm::SmallBitVector &ExcludeRegisters) const {
+  // TODO(stichnot): Declaring Permutation this way loses type/size
+  // information.  Fix this in conjunction with the caller-side TODO.
+  assert(Permutation.size() >= RegX8632::Reg_NUM);
+  // Expected upper bound on the number of registers in a single
+  // equivalence class.  For x86-32, this would comprise the 8 XMM
+  // registers.  This is for performance, not correctness.
+  static const unsigned MaxEquivalenceClassSize = 8;
+  typedef llvm::SmallVector<int32_t, MaxEquivalenceClassSize> RegisterList;
+  typedef std::map<uint32_t, RegisterList> EquivalenceClassMap;
+  EquivalenceClassMap EquivalenceClasses;
+  SizeT NumShuffled = 0, NumPreserved = 0;
+
+// Build up the equivalence classes of registers by looking at the
+// register properties as well as whether the registers should be
+// explicitly excluded from shuffling.
+#define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
+          frameptr, isI8, isInt, isFP)                                         \
+  if (ExcludeRegisters[RegX8632::val]) {                                       \
+    /* val stays the same in the resulting permutation. */                     \
+    Permutation[RegX8632::val] = RegX8632::val;                                \
+    ++NumPreserved;                                                            \
+  } else {                                                                     \
+    const uint32_t Index = (scratch << 0) | (preserved << 1) | (isI8 << 2) |   \
+                           (isInt << 3) | (isFP << 4);                         \
+    /* val is assigned to an equivalence class based on its properties. */     \
+    EquivalenceClasses[Index].push_back(RegX8632::val);                        \
+  }
+  REGX8632_TABLE
+#undef X
+
+  RandomNumberGeneratorWrapper RNG(Ctx->getRNG());
+
+  // Shuffle the resulting equivalence classes.
+  for (auto I : EquivalenceClasses) {
+    const RegisterList &List = I.second;
+    RegisterList Shuffled(List);
+    std::random_shuffle(Shuffled.begin(), Shuffled.end(), RNG);
+    for (size_t SI = 0, SE = Shuffled.size(); SI < SE; ++SI) {
+      Permutation[List[SI]] = Shuffled[SI];
+      ++NumShuffled;
+    }
+  }
+
+  assert(NumShuffled + NumPreserved == RegX8632::Reg_NUM);
+
+  if (Func->getContext()->isVerbose(IceV_Random)) {
+    Ostream &Str = Func->getContext()->getStrDump();
+    Str << "Register equivalence classes:\n";
+    for (auto I : EquivalenceClasses) {
+      Str << "{";
+      const RegisterList &List = I.second;
+      bool First = true;
+      for (int32_t Register : List) {
+        if (!First)
+          Str << " ";
+        First = false;
+        Str << getRegName(Register, IceType_i32);
+      }
+      Str << "}\n";
     }
   }
 }

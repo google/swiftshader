@@ -42,7 +42,7 @@ class RandomNumberGeneratorWrapper {
   operator=(const RandomNumberGeneratorWrapper &) = delete;
 
 public:
-  uint64_t next(uint64_t Max) { return RNG.next(Max); }
+  uint64_t operator()(uint64_t Max) { return RNG.next(Max); }
   bool getTrueWithProbability(float Probability);
   RandomNumberGeneratorWrapper(RandomNumberGenerator &RNG) : RNG(RNG) {}
 
