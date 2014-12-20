@@ -78,7 +78,7 @@ public:
   UndefPool() : NextPoolID(0), Pool(IceType_NUM) {}
 
   ConstantUndef *getOrAdd(GlobalContext *Ctx, Type Ty) {
-    if (Pool[Ty] == NULL)
+    if (Pool[Ty] == nullptr)
       Pool[Ty] = ConstantUndef::create(Ctx, Ty, NextPoolID++);
     return Pool[Ty];
   }
@@ -325,7 +325,7 @@ Constant *GlobalContext::getConstantInt(Type Ty, int64_t Value) {
   default:
     llvm_unreachable("Bad integer type for getConstant");
   }
-  return NULL;
+  return nullptr;
 }
 
 Constant *GlobalContext::getConstantInt1(int8_t ConstantInt1) {

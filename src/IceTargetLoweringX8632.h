@@ -292,12 +292,12 @@ protected:
     Context.insert(InstX8632Lea::create(Func, Dest, Src0));
   }
   void _mfence() { Context.insert(InstX8632Mfence::create(Func)); }
-  // If Dest=NULL is passed in, then a new variable is created, marked
-  // as infinite register allocation weight, and returned through the
-  // in/out Dest argument.
+  // If Dest=nullptr is passed in, then a new variable is created,
+  // marked as infinite register allocation weight, and returned
+  // through the in/out Dest argument.
   void _mov(Variable *&Dest, Operand *Src0,
             int32_t RegNum = Variable::NoRegister) {
-    if (Dest == NULL)
+    if (Dest == nullptr)
       Dest = makeReg(Src0->getType(), RegNum);
     Context.insert(InstX8632Mov::create(Func, Dest, Src0));
   }
@@ -396,7 +396,7 @@ protected:
   void _pxor(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Pxor::create(Func, Dest, Src0));
   }
-  void _ret(Variable *Src0 = NULL) {
+  void _ret(Variable *Src0 = nullptr) {
     Context.insert(InstX8632Ret::create(Func, Src0));
   }
   void _rol(Variable *Dest, Operand *Src0) {

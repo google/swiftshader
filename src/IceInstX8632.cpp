@@ -90,7 +90,7 @@ OperandX8632Mem::OperandX8632Mem(Cfg *Func, Type Ty, Variable *Base,
     : OperandX8632(kMem, Ty), Base(Base), Offset(Offset), Index(Index),
       Shift(Shift), SegmentReg(SegmentReg) {
   assert(Shift <= 3);
-  Vars = NULL;
+  Vars = nullptr;
   NumVars = 0;
   if (Base)
     ++NumVars;
@@ -137,7 +137,7 @@ InstX8632Shrd::InstX8632Shrd(Cfg *Func, Variable *Dest, Variable *Source1,
 }
 
 InstX8632Label::InstX8632Label(Cfg *Func, TargetX8632 *Target)
-    : InstX8632(Func, InstX8632::Label, 0, NULL),
+    : InstX8632(Func, InstX8632::Label, 0, nullptr),
       Number(Target->makeNextLabelNumber()) {}
 
 IceString InstX8632Label::getName(const Cfg *Func) const {
@@ -147,13 +147,13 @@ IceString InstX8632Label::getName(const Cfg *Func) const {
 InstX8632Br::InstX8632Br(Cfg *Func, const CfgNode *TargetTrue,
                          const CfgNode *TargetFalse,
                          const InstX8632Label *Label, CondX86::BrCond Condition)
-    : InstX8632(Func, InstX8632::Br, 0, NULL), Condition(Condition),
+    : InstX8632(Func, InstX8632::Br, 0, nullptr), Condition(Condition),
       TargetTrue(TargetTrue), TargetFalse(TargetFalse), Label(Label) {}
 
 bool InstX8632Br::optimizeBranch(const CfgNode *NextNode) {
   // If there is no next block, then there can be no fallthrough to
   // optimize.
-  if (NextNode == NULL)
+  if (NextNode == nullptr)
     return false;
   // Intra-block conditional branches can't be optimized.
   if (Label)
@@ -161,29 +161,29 @@ bool InstX8632Br::optimizeBranch(const CfgNode *NextNode) {
   // If there is no fallthrough node, such as a non-default case label
   // for a switch instruction, then there is no opportunity to
   // optimize.
-  if (getTargetFalse() == NULL)
+  if (getTargetFalse() == nullptr)
     return false;
 
   // Unconditional branch to the next node can be removed.
   if (Condition == CondX86::Br_None && getTargetFalse() == NextNode) {
-    assert(getTargetTrue() == NULL);
+    assert(getTargetTrue() == nullptr);
     setDeleted();
     return true;
   }
-  // If the fallthrough is to the next node, set fallthrough to NULL
+  // If the fallthrough is to the next node, set fallthrough to nullptr
   // to indicate.
   if (getTargetFalse() == NextNode) {
-    TargetFalse = NULL;
+    TargetFalse = nullptr;
     return true;
   }
-  // If TargetTrue is the next node, and TargetFalse is non-NULL
+  // If TargetTrue is the next node, and TargetFalse is not nullptr
   // (which was already tested above), then invert the branch
-  // condition, swap the targets, and set new fallthrough to NULL.
+  // condition, swap the targets, and set new fallthrough to nullptr.
   if (getTargetTrue() == NextNode) {
     assert(Condition != CondX86::Br_None);
     Condition = InstX8632BrAttributes[Condition].Opposite;
     TargetTrue = getTargetFalse();
-    TargetFalse = NULL;
+    TargetFalse = nullptr;
     return true;
   }
   return false;
@@ -237,7 +237,7 @@ InstX8632Cmpxchg8b::InstX8632Cmpxchg8b(Cfg *Func, OperandX8632Mem *Addr,
                                        Variable *Edx, Variable *Eax,
                                        Variable *Ecx, Variable *Ebx,
                                        bool Locked)
-    : InstX8632Lockable(Func, InstX8632::Cmpxchg, 5, NULL, Locked) {
+    : InstX8632Lockable(Func, InstX8632::Cmpxchg, 5, nullptr, Locked) {
   assert(Edx->getRegNum() == RegX8632::Reg_edx);
   assert(Eax->getRegNum() == RegX8632::Reg_eax);
   assert(Ecx->getRegNum() == RegX8632::Reg_ecx);
@@ -256,56 +256,56 @@ InstX8632Cvt::InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source,
 }
 
 InstX8632Icmp::InstX8632Icmp(Cfg *Func, Operand *Src0, Operand *Src1)
-    : InstX8632(Func, InstX8632::Icmp, 2, NULL) {
+    : InstX8632(Func, InstX8632::Icmp, 2, nullptr) {
   addSource(Src0);
   addSource(Src1);
 }
 
 InstX8632Ucomiss::InstX8632Ucomiss(Cfg *Func, Operand *Src0, Operand *Src1)
-    : InstX8632(Func, InstX8632::Ucomiss, 2, NULL) {
+    : InstX8632(Func, InstX8632::Ucomiss, 2, nullptr) {
   addSource(Src0);
   addSource(Src1);
 }
 
 InstX8632UD2::InstX8632UD2(Cfg *Func)
-    : InstX8632(Func, InstX8632::UD2, 0, NULL) {}
+    : InstX8632(Func, InstX8632::UD2, 0, nullptr) {}
 
 InstX8632Test::InstX8632Test(Cfg *Func, Operand *Src1, Operand *Src2)
-    : InstX8632(Func, InstX8632::Test, 2, NULL) {
+    : InstX8632(Func, InstX8632::Test, 2, nullptr) {
   addSource(Src1);
   addSource(Src2);
 }
 
 InstX8632Mfence::InstX8632Mfence(Cfg *Func)
-    : InstX8632(Func, InstX8632::Mfence, 0, NULL) {
+    : InstX8632(Func, InstX8632::Mfence, 0, nullptr) {
   HasSideEffects = true;
 }
 
 InstX8632Store::InstX8632Store(Cfg *Func, Operand *Value, OperandX8632 *Mem)
-    : InstX8632(Func, InstX8632::Store, 2, NULL) {
+    : InstX8632(Func, InstX8632::Store, 2, nullptr) {
   addSource(Value);
   addSource(Mem);
 }
 
 InstX8632StoreP::InstX8632StoreP(Cfg *Func, Variable *Value,
                                  OperandX8632Mem *Mem)
-    : InstX8632(Func, InstX8632::StoreP, 2, NULL) {
+    : InstX8632(Func, InstX8632::StoreP, 2, nullptr) {
   addSource(Value);
   addSource(Mem);
 }
 
 InstX8632StoreQ::InstX8632StoreQ(Cfg *Func, Variable *Value,
                                  OperandX8632Mem *Mem)
-    : InstX8632(Func, InstX8632::StoreQ, 2, NULL) {
+    : InstX8632(Func, InstX8632::StoreQ, 2, nullptr) {
   addSource(Value);
   addSource(Mem);
 }
 
 InstX8632Nop::InstX8632Nop(Cfg *Func, InstX8632Nop::NopVariant Variant)
-    : InstX8632(Func, InstX8632::Nop, 0, NULL), Variant(Variant) {}
+    : InstX8632(Func, InstX8632::Nop, 0, nullptr), Variant(Variant) {}
 
 InstX8632Fld::InstX8632Fld(Cfg *Func, Operand *Src)
-    : InstX8632(Func, InstX8632::Fld, 1, NULL) {
+    : InstX8632(Func, InstX8632::Fld, 1, nullptr) {
   addSource(Src);
 }
 
@@ -316,12 +316,12 @@ InstX8632Pop::InstX8632Pop(Cfg *Func, Variable *Dest)
     : InstX8632(Func, InstX8632::Pop, 0, Dest) {}
 
 InstX8632Push::InstX8632Push(Cfg *Func, Variable *Source)
-    : InstX8632(Func, InstX8632::Push, 1, NULL) {
+    : InstX8632(Func, InstX8632::Push, 1, nullptr) {
   addSource(Source);
 }
 
 InstX8632Ret::InstX8632Ret(Cfg *Func, Variable *Source)
-    : InstX8632(Func, InstX8632::Ret, Source ? 1 : 0, NULL) {
+    : InstX8632(Func, InstX8632::Ret, Source ? 1 : 0, nullptr) {
   if (Source)
     addSource(Source);
 }

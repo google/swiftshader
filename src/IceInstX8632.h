@@ -67,7 +67,7 @@ public:
         SegReg_NUM
   };
   static OperandX8632Mem *create(Cfg *Func, Type Ty, Variable *Base,
-                                 Constant *Offset, Variable *Index = NULL,
+                                 Constant *Offset, Variable *Index = nullptr,
                                  uint16_t Shift = 0,
                                  SegmentRegisters SegmentReg = DefaultSegment) {
     return new (Func->allocate<OperandX8632Mem>())
@@ -165,7 +165,7 @@ public:
   // Inherit dump() and emit() from Variable.
 private:
   SpillVariable(Type Ty, SizeT Index)
-      : Variable(SpillVariableKind, Ty, Index), LinkedTo(NULL) {}
+      : Variable(SpillVariableKind, Ty, Index), LinkedTo(nullptr) {}
   Variable *LinkedTo;
 };
 
@@ -344,14 +344,14 @@ public:
   static InstX8632Br *create(Cfg *Func, CfgNode *TargetTrue,
                              CfgNode *TargetFalse, CondX86::BrCond Condition) {
     assert(Condition != CondX86::Br_None);
-    const InstX8632Label *NoLabel = NULL;
+    const InstX8632Label *NoLabel = nullptr;
     return new (Func->allocate<InstX8632Br>())
         InstX8632Br(Func, TargetTrue, TargetFalse, NoLabel, Condition);
   }
   // Create an unconditional branch to a node.
   static InstX8632Br *create(Cfg *Func, CfgNode *Target) {
-    const CfgNode *NoCondTarget = NULL;
-    const InstX8632Label *NoLabel = NULL;
+    const CfgNode *NoCondTarget = nullptr;
+    const InstX8632Label *NoLabel = nullptr;
     return new (Func->allocate<InstX8632Br>())
         InstX8632Br(Func, NoCondTarget, Target, NoLabel, CondX86::Br_None);
   }
@@ -361,8 +361,8 @@ public:
   static InstX8632Br *create(Cfg *Func, CfgNode *Target,
                              CondX86::BrCond Condition) {
     assert(Condition != CondX86::Br_None);
-    const CfgNode *NoUncondTarget = NULL;
-    const InstX8632Label *NoLabel = NULL;
+    const CfgNode *NoUncondTarget = nullptr;
+    const InstX8632Label *NoLabel = nullptr;
     return new (Func->allocate<InstX8632Br>())
         InstX8632Br(Func, Target, NoUncondTarget, NoLabel, Condition);
   }
@@ -370,8 +370,8 @@ public:
   // Condition==Br_None) to a label in the current block.
   static InstX8632Br *create(Cfg *Func, InstX8632Label *Label,
                              CondX86::BrCond Condition) {
-    const CfgNode *NoCondTarget = NULL;
-    const CfgNode *NoUncondTarget = NULL;
+    const CfgNode *NoCondTarget = nullptr;
+    const CfgNode *NoUncondTarget = nullptr;
     return new (Func->allocate<InstX8632Br>())
         InstX8632Br(Func, NoCondTarget, NoUncondTarget, Label, Condition);
   }
@@ -1486,7 +1486,7 @@ class InstX8632Ret : public InstX8632 {
   InstX8632Ret &operator=(const InstX8632Ret &) = delete;
 
 public:
-  static InstX8632Ret *create(Cfg *Func, Variable *Source = NULL) {
+  static InstX8632Ret *create(Cfg *Func, Variable *Source = nullptr) {
     return new (Func->allocate<InstX8632Ret>()) InstX8632Ret(Func, Source);
   }
   void emit(const Cfg *Func) const override;

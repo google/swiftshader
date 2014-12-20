@@ -410,7 +410,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     // but is never modified.  Furthermore, overlap is only allowed
     // when preferred Variable definition instructions do not appear
     // within the current Variable's live range.
-    Variable *Prefer = NULL;
+    Variable *Prefer = nullptr;
     int32_t PreferReg = Variable::NoRegister;
     bool AllowOverlap = false;
     if (FindPreference) {

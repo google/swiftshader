@@ -51,11 +51,11 @@ void Liveness::init() {
   // Resize each LivenessNode::LiveToVarMap, and the global
   // LiveToVarMap.  Reset the counts to 0.
   for (SizeT i = 0; i < NumNodes; ++i) {
-    Nodes[i].LiveToVarMap.assign(Nodes[i].NumLocals, NULL);
+    Nodes[i].LiveToVarMap.assign(Nodes[i].NumLocals, nullptr);
     Nodes[i].NumLocals = 0;
     Nodes[i].NumNonDeadPhis = 0;
   }
-  LiveToVarMap.assign(NumGlobals, NULL);
+  LiveToVarMap.assign(NumGlobals, nullptr);
 
   // Sort each variable into the appropriate LiveToVarMap.  Also set
   // VarToLiveMap.

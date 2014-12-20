@@ -465,7 +465,7 @@ Variable *TargetX8632::getPhysicalRegister(SizeT RegNum, Type Ty) {
     PhysicalRegisters[Ty].resize(RegX8632::Reg_NUM);
   assert(RegNum < PhysicalRegisters[Ty].size());
   Variable *Reg = PhysicalRegisters[Ty][RegNum];
-  if (Reg == NULL) {
+  if (Reg == nullptr) {
     Reg = Func->makeVariable(Ty);
     Reg->setRegNum(RegNum);
     PhysicalRegisters[Ty][RegNum] = Reg;
@@ -1050,7 +1050,7 @@ void TargetX8632::split64(Variable *Var) {
     assert(Hi);
     return;
   }
-  assert(Hi == NULL);
+  assert(Hi == nullptr);
   Lo = Func->makeVariable(IceType_i32);
   Hi = Func->makeVariable(IceType_i32);
   if (ALLOW_DUMP) {
@@ -1081,7 +1081,7 @@ Operand *TargetX8632::loOperand(Operand *Operand) {
                                    Mem->getShift(), Mem->getSegmentRegister());
   }
   llvm_unreachable("Unsupported operand type");
-  return NULL;
+  return nullptr;
 }
 
 Operand *TargetX8632::hiOperand(Operand *Operand) {
@@ -1098,7 +1098,7 @@ Operand *TargetX8632::hiOperand(Operand *Operand) {
   }
   if (OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Operand)) {
     Constant *Offset = Mem->getOffset();
-    if (Offset == NULL) {
+    if (Offset == nullptr) {
       Offset = Ctx->getConstantInt32(4);
     } else if (ConstantInteger32 *IntOffset =
                    llvm::dyn_cast<ConstantInteger32>(Offset)) {
@@ -1115,7 +1115,7 @@ Operand *TargetX8632::hiOperand(Operand *Operand) {
                                    Mem->getSegmentRegister());
   }
   llvm_unreachable("Unsupported operand type");
-  return NULL;
+  return nullptr;
 }
 
 llvm::SmallBitVector TargetX8632::getRegisterSet(RegSetMask Include,
@@ -1202,7 +1202,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
     Operand *Src0Hi = hiOperand(Src0);
     Operand *Src1Lo = loOperand(Src1);
     Operand *Src1Hi = hiOperand(Src1);
-    Variable *T_Lo = NULL, *T_Hi = NULL;
+    Variable *T_Lo = nullptr, *T_Hi = nullptr;
     switch (Inst->getOp()) {
     case InstArithmetic::_num:
       llvm_unreachable("Unknown arithmetic operator");
@@ -1248,7 +1248,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       _mov(DestHi, T_Hi);
       break;
     case InstArithmetic::Mul: {
-      Variable *T_1 = NULL, *T_2 = NULL, *T_3 = NULL;
+      Variable *T_1 = nullptr, *T_2 = nullptr, *T_3 = nullptr;
       Variable *T_4Lo = makeReg(IceType_i32, RegX8632::Reg_eax);
       Variable *T_4Hi = makeReg(IceType_i32, RegX8632::Reg_edx);
       // gcc does the following:
@@ -1294,7 +1294,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       // L1:
       //   a.lo = t2
       //   a.hi = t3
-      Variable *T_1 = NULL, *T_2 = NULL, *T_3 = NULL;
+      Variable *T_1 = nullptr, *T_2 = nullptr, *T_3 = nullptr;
       Constant *BitTest = Ctx->getConstantInt32(0x20);
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
       InstX8632Label *Label = InstX8632Label::create(Func, this);
@@ -1329,7 +1329,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       // L1:
       //   a.lo = t2
       //   a.hi = t3
-      Variable *T_1 = NULL, *T_2 = NULL, *T_3 = NULL;
+      Variable *T_1 = nullptr, *T_2 = nullptr, *T_3 = nullptr;
       Constant *BitTest = Ctx->getConstantInt32(0x20);
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
       InstX8632Label *Label = InstX8632Label::create(Func, this);
@@ -1364,7 +1364,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       // L1:
       //   a.lo = t2
       //   a.hi = t3
-      Variable *T_1 = NULL, *T_2 = NULL, *T_3 = NULL;
+      Variable *T_1 = nullptr, *T_2 = nullptr, *T_3 = nullptr;
       Constant *BitTest = Ctx->getConstantInt32(0x20);
       Constant *SignExtend = Ctx->getConstantInt32(0x1f);
       InstX8632Label *Label = InstX8632Label::create(Func, this);
@@ -1549,8 +1549,8 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       break;
     }
   } else { // Dest->getType() is non-i64 scalar
-    Variable *T_edx = NULL;
-    Variable *T = NULL;
+    Variable *T_edx = nullptr;
+    Variable *T = nullptr;
     switch (Inst->getOp()) {
     case InstArithmetic::_num:
       llvm_unreachable("Unknown arithmetic operator");
@@ -1623,7 +1623,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       // immediates as the operand.
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
       if (isByteSizedArithType(Dest->getType())) {
-        Variable *T_ah = NULL;
+        Variable *T_ah = nullptr;
         Constant *Zero = Ctx->getConstantZero(IceType_i8);
         _mov(T, Src0, RegX8632::Reg_eax);
         _mov(T_ah, Zero, RegX8632::Reg_ah);
@@ -1655,7 +1655,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
     case InstArithmetic::Urem:
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
       if (isByteSizedArithType(Dest->getType())) {
-        Variable *T_ah = NULL;
+        Variable *T_ah = nullptr;
         Constant *Zero = Ctx->getConstantZero(IceType_i8);
         _mov(T, Src0, RegX8632::Reg_eax);
         _mov(T_ah, Zero, RegX8632::Reg_ah);
@@ -1729,7 +1729,7 @@ void TargetX8632::lowerAssign(const InstAssign *Inst) {
     Operand *Src0Hi = hiOperand(Src0);
     Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
     Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    Variable *T_Lo = NULL, *T_Hi = NULL;
+    Variable *T_Lo = nullptr, *T_Hi = nullptr;
     _mov(T_Lo, Src0Lo);
     _mov(DestLo, T_Lo);
     _mov(T_Hi, Src0Hi);
@@ -1847,8 +1847,8 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   // with high register allocation weight.
   Variable *Dest = Instr->getDest();
   // ReturnReg doubles as ReturnRegLo as necessary.
-  Variable *ReturnReg = NULL;
-  Variable *ReturnRegHi = NULL;
+  Variable *ReturnReg = nullptr;
+  Variable *ReturnRegHi = nullptr;
   if (Dest) {
     switch (Dest->getType()) {
     case IceType_NUM:
@@ -1868,7 +1868,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       break;
     case IceType_f32:
     case IceType_f64:
-      // Leave ReturnReg==ReturnRegHi==NULL, and capture the result with
+      // Leave ReturnReg==ReturnRegHi==nullptr, and capture the result with
       // the fstp instruction.
       break;
     case IceType_v4i1:
@@ -1992,7 +1992,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
         _movsx(T_Lo, Src0RM);
       }
       _mov(DestLo, T_Lo);
-      Variable *T_Hi = NULL;
+      Variable *T_Hi = nullptr;
       _mov(T_Hi, T_Lo);
       if (Src0RM->getType() != IceType_i1)
         // For i1, the sar instruction is already done above.
@@ -2091,7 +2091,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
         Src0 = loOperand(Src0);
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       // t1 = trunc Src0RM; Dest = t1
-      Variable *T = NULL;
+      Variable *T = nullptr;
       _mov(T, Src0RM);
       if (Dest->getType() == IceType_i1)
         _and(T, Ctx->getConstantInt1(1));
@@ -2287,7 +2287,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       //   t.f32 = b.f32
       //   s.f32 = spill t.f32
       //   a.i32 = s.f32
-      Variable *T = NULL;
+      Variable *T = nullptr;
       // TODO: Should be able to force a spill setup by calling legalize() with
       // Legal_Mem and not Legal_Reg or Legal_Imm.
       SpillVariable *SpillVar = Func->makeVariable<SpillVariable>(SrcType);
@@ -2342,7 +2342,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       Variable *Spill = SpillVar;
       Spill->setWeight(RegWeight::Zero);
 
-      Variable *T_Lo = NULL, *T_Hi = NULL;
+      Variable *T_Lo = nullptr, *T_Hi = nullptr;
       VariableSplit *SpillLo =
           VariableSplit::create(Func, Spill, VariableSplit::Low);
       VariableSplit *SpillHi =
@@ -2410,7 +2410,7 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Inst) {
     _pextr(ExtractedElementR, SourceVectR, Mask);
   } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
     // Use pshufd and movd/movss.
-    Variable *T = NULL;
+    Variable *T = nullptr;
     if (Index) {
       // The shuffle only needs to occur if the element to be extracted
       // is not at the lowest index.
@@ -2479,7 +2479,7 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
       Src1 = T;
     }
 
-    Variable *T = NULL;
+    Variable *T = nullptr;
 
     if (Condition == InstFcmp::True) {
       // makeVectorOfOnes() requires an integer vector type.
@@ -2548,7 +2548,7 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
   if (HasC1) {
     Src0 = legalize(Src0);
     Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
-    Variable *T = NULL;
+    Variable *T = nullptr;
     _mov(T, Src0);
     _ucomiss(T, Src1RM);
   }
@@ -2785,7 +2785,7 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     _movp(Inst->getDest(), T);
   } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
     // Use shufps or movss.
-    Variable *ElementR = NULL;
+    Variable *ElementR = nullptr;
     Operand *SourceVectRM =
         legalize(SourceVectNotLegalized, Legal_Reg | Legal_Mem);
 
@@ -3032,7 +3032,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       assert(Val->getType() == IceType_i16);
       Val = legalize(Val);
       Constant *Eight = Ctx->getConstantInt16(8);
-      Variable *T = NULL;
+      Variable *T = nullptr;
       _mov(T, Val);
       _rol(T, Eight);
       _mov(Dest, T);
@@ -3065,7 +3065,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     // a well-defined value.
     Operand *Val = legalize(Instr->getArg(0));
     Operand *FirstVal;
-    Operand *SecondVal = NULL;
+    Operand *SecondVal = nullptr;
     if (Val->getType() == IceType_i64) {
       FirstVal = loOperand(Val);
       SecondVal = hiOperand(Val);
@@ -3082,7 +3082,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     // a well-defined value.
     Operand *Val = legalize(Instr->getArg(0));
     Operand *FirstVal;
-    Operand *SecondVal = NULL;
+    Operand *SecondVal = nullptr;
     if (Val->getType() == IceType_i64) {
       FirstVal = hiOperand(Val);
       SecondVal = loOperand(Val);
@@ -3095,7 +3095,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Longjmp: {
-    InstCall *Call = makeHelperCall("longjmp", NULL, 2);
+    InstCall *Call = makeHelperCall("longjmp", nullptr, 2);
     Call->addArg(Instr->getArg(0));
     Call->addArg(Instr->getArg(1));
     lowerCall(Call);
@@ -3104,7 +3104,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   case Intrinsics::Memcpy: {
     // In the future, we could potentially emit an inline memcpy/memset, etc.
     // for intrinsic calls w/ a known length.
-    InstCall *Call = makeHelperCall("memcpy", NULL, 3);
+    InstCall *Call = makeHelperCall("memcpy", nullptr, 3);
     Call->addArg(Instr->getArg(0));
     Call->addArg(Instr->getArg(1));
     Call->addArg(Instr->getArg(2));
@@ -3112,7 +3112,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Memmove: {
-    InstCall *Call = makeHelperCall("memmove", NULL, 3);
+    InstCall *Call = makeHelperCall("memmove", nullptr, 3);
     Call->addArg(Instr->getArg(0));
     Call->addArg(Instr->getArg(1));
     Call->addArg(Instr->getArg(2));
@@ -3127,7 +3127,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     assert(ValOp->getType() == IceType_i8);
     Variable *ValExt = Func->makeVariable(stackSlotType());
     lowerCast(InstCast::create(Func, InstCast::Zext, ValExt, ValOp));
-    InstCall *Call = makeHelperCall("memset", NULL, 3);
+    InstCall *Call = makeHelperCall("memset", nullptr, 3);
     Call->addArg(Instr->getArg(0));
     Call->addArg(ValExt);
     Call->addArg(Instr->getArg(2));
@@ -3137,10 +3137,11 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   case Intrinsics::NaClReadTP: {
     if (Ctx->getFlags().UseSandboxing) {
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      Operand *Src = OperandX8632Mem::create(
-          Func, IceType_i32, NULL, Zero, NULL, 0, OperandX8632Mem::SegReg_GS);
+      Operand *Src =
+          OperandX8632Mem::create(Func, IceType_i32, nullptr, Zero, nullptr, 0,
+                                  OperandX8632Mem::SegReg_GS);
       Variable *Dest = Instr->getDest();
-      Variable *T = NULL;
+      Variable *T = nullptr;
       _mov(T, Src);
       _mov(Dest, T);
     } else {
@@ -3291,8 +3292,8 @@ bool TargetX8632::tryOptimizedCmpxchgCmpBr(Variable *Dest, Operand *PtrToMem,
 void TargetX8632::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
                                  Operand *Ptr, Operand *Val) {
   bool NeedsCmpxchg = false;
-  LowerBinOp Op_Lo = NULL;
-  LowerBinOp Op_Hi = NULL;
+  LowerBinOp Op_Lo = nullptr;
+  LowerBinOp Op_Hi = nullptr;
   switch (Operation) {
   default:
     Func->setError("Unknown AtomicRMW operation");
@@ -3308,7 +3309,7 @@ void TargetX8632::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
     }
     OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Dest->getType());
     const bool Locked = true;
-    Variable *T = NULL;
+    Variable *T = nullptr;
     _mov(T, Val);
     _xadd(Addr, T, Locked);
     _mov(Dest, T);
@@ -3323,7 +3324,7 @@ void TargetX8632::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
     }
     OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Dest->getType());
     const bool Locked = true;
-    Variable *T = NULL;
+    Variable *T = nullptr;
     _mov(T, Val);
     _neg(T);
     _xadd(Addr, T, Locked);
@@ -3355,12 +3356,12 @@ void TargetX8632::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
       NeedsCmpxchg = true;
       // NeedsCmpxchg, but no real Op_Lo/Op_Hi need to be done. The values
       // just need to be moved to the ecx and ebx registers.
-      Op_Lo = NULL;
-      Op_Hi = NULL;
+      Op_Lo = nullptr;
+      Op_Hi = nullptr;
       break;
     }
     OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Dest->getType());
-    Variable *T = NULL;
+    Variable *T = nullptr;
     _mov(T, Val);
     _xchg(Addr, T);
     _mov(Dest, T);
@@ -3398,7 +3399,7 @@ void TargetX8632::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo, LowerBinOp Op_Hi,
   //   jne     .LABEL
   //   mov     <dest>, eax
   //
-  // If Op_{Lo,Hi} are NULL, then just copy the value.
+  // If Op_{Lo,Hi} are nullptr, then just copy the value.
   Val = legalize(Val);
   Type Ty = Val->getType();
   if (Ty == IceType_i64) {
@@ -3410,7 +3411,7 @@ void TargetX8632::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo, LowerBinOp Op_Hi,
     Variable *T_ecx = makeReg(IceType_i32, RegX8632::Reg_ecx);
     Variable *T_ebx = makeReg(IceType_i32, RegX8632::Reg_ebx);
     InstX8632Label *Label = InstX8632Label::create(Func, this);
-    const bool IsXchg8b = Op_Lo == NULL && Op_Hi == NULL;
+    const bool IsXchg8b = Op_Lo == nullptr && Op_Hi == nullptr;
     if (!IsXchg8b) {
       Context.insert(Label);
       _mov(T_ebx, T_eax);
@@ -3456,7 +3457,7 @@ void TargetX8632::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo, LowerBinOp Op_Hi,
   InstX8632Label *Label = InstX8632Label::create(Func, this);
   Context.insert(Label);
   // We want to pick a different register for T than Eax, so don't use
-  // _mov(T == NULL, T_eax).
+  // _mov(T == nullptr, T_eax).
   Variable *T = makeReg(Ty);
   _mov(T, T_eax);
   (this->*Op_Lo)(T, Val);
@@ -3586,7 +3587,7 @@ bool matchTransitiveAssign(const VariablesMetadata *VMetadata, Variable *&Var,
                            const Inst *&Reason) {
   // Var originates from Var=SrcVar ==>
   //   set Var:=SrcVar
-  if (Var == NULL)
+  if (Var == nullptr)
     return false;
   if (const Inst *VarAssign = VMetadata->getSingleDefinition(Var)) {
     assert(!VMetadata->isMultiDef(Var));
@@ -3610,14 +3611,14 @@ bool matchTransitiveAssign(const VariablesMetadata *VMetadata, Variable *&Var,
 bool matchCombinedBaseIndex(const VariablesMetadata *VMetadata, Variable *&Base,
                             Variable *&Index, uint16_t &Shift,
                             const Inst *&Reason) {
-  // Index==NULL && Base is Base=Var1+Var2 ==>
+  // Index==nullptr && Base is Base=Var1+Var2 ==>
   //   set Base=Var1, Index=Var2, Shift=0
-  if (Base == NULL)
+  if (Base == nullptr)
     return false;
-  if (Index != NULL)
+  if (Index != nullptr)
     return false;
   const Inst *BaseInst = VMetadata->getSingleDefinition(Base);
-  if (BaseInst == NULL)
+  if (BaseInst == nullptr)
     return false;
   assert(!VMetadata->isMultiDef(Base));
   if (BaseInst->getSrcSize() < 2)
@@ -3646,10 +3647,10 @@ bool matchShiftedIndex(const VariablesMetadata *VMetadata, Variable *&Index,
                        uint16_t &Shift, const Inst *&Reason) {
   // Index is Index=Var*Const && log2(Const)+Shift<=3 ==>
   //   Index=Var, Shift+=log2(Const)
-  if (Index == NULL)
+  if (Index == nullptr)
     return false;
   const Inst *IndexInst = VMetadata->getSingleDefinition(Index);
-  if (IndexInst == NULL)
+  if (IndexInst == nullptr)
     return false;
   assert(!VMetadata->isMultiDef(Index));
   if (IndexInst->getSrcSize() < 2)
@@ -3698,10 +3699,10 @@ bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable *&Base,
   //   set Base=Var, Offset+=Const
   // Base is Base=Var-Const ==>
   //   set Base=Var, Offset-=Const
-  if (Base == NULL)
+  if (Base == nullptr)
     return false;
   const Inst *BaseInst = VMetadata->getSingleDefinition(Base);
-  if (BaseInst == NULL)
+  if (BaseInst == nullptr)
     return false;
   assert(!VMetadata->isMultiDef(Base));
   if (const InstArithmetic *ArithInst =
@@ -3710,8 +3711,8 @@ bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable *&Base,
         ArithInst->getOp() != InstArithmetic::Sub)
       return false;
     bool IsAdd = ArithInst->getOp() == InstArithmetic::Add;
-    Variable *Var = NULL;
-    ConstantInteger32 *Const = NULL;
+    Variable *Var = nullptr;
+    ConstantInteger32 *Const = nullptr;
     if (Variable *VariableOperand =
             llvm::dyn_cast<Variable>(ArithInst->getSrc(0))) {
       Var = VariableOperand;
@@ -3720,7 +3721,7 @@ bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable *&Base,
       Const = llvm::dyn_cast<ConstantInteger32>(ArithInst->getSrc(0));
       Var = llvm::dyn_cast<Variable>(ArithInst->getSrc(1));
     }
-    if (Var == NULL || Const == NULL || VMetadata->isMultiDef(Var))
+    if (Var == nullptr || Const == nullptr || VMetadata->isMultiDef(Var))
       return false;
     int32_t MoreOffset = IsAdd ? Const->getValue() : -Const->getValue();
     if (Utils::WouldOverflowAdd(Offset, MoreOffset))
@@ -3742,7 +3743,7 @@ void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
     Instr->dumpDecorated(Func);
   }
   (void)Offset; // TODO: pattern-match for non-zero offsets.
-  if (Base == NULL)
+  if (Base == nullptr)
     return;
   // If the Base has more than one use or is live across multiple
   // blocks, then don't go further.  Alternatively (?), never consider
@@ -3754,7 +3755,7 @@ void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
   const VariablesMetadata *VMetadata = Func->getVMetadata();
   bool Continue = true;
   while (Continue) {
-    const Inst *Reason = NULL;
+    const Inst *Reason = nullptr;
     if (matchTransitiveAssign(VMetadata, Base, Reason) ||
         matchTransitiveAssign(VMetadata, Index, Reason) ||
         matchCombinedBaseIndex(VMetadata, Base, Index, Shift, Reason) ||
@@ -3815,7 +3816,7 @@ void TargetX8632::lowerLoad(const InstLoad *Inst) {
   // load instruction's dest variable, and that instruction ends that
   // variable's live range, then make the substitution.  Deal with
   // commutativity optimization in the arithmetic instruction lowering.
-  InstArithmetic *NewArith = NULL;
+  InstArithmetic *NewArith = nullptr;
   if (InstArithmetic *Arith =
           llvm::dyn_cast_or_null<InstArithmetic>(Context.getNextInst())) {
     Variable *DestLoad = Inst->getDest();
@@ -3846,7 +3847,7 @@ void TargetX8632::doAddressOptLoad() {
   Inst *Inst = Context.getCur();
   Variable *Dest = Inst->getDest();
   Operand *Addr = Inst->getSrc(0);
-  Variable *Index = NULL;
+  Variable *Index = nullptr;
   uint16_t Shift = 0;
   int32_t Offset = 0; // TODO: make Constant
   // Vanilla ICE load instructions should not use the segment registers,
@@ -3878,7 +3879,7 @@ void TargetX8632::lowerPhi(const InstPhi * /*Inst*/) {
 }
 
 void TargetX8632::lowerRet(const InstRet *Inst) {
-  Variable *Reg = NULL;
+  Variable *Reg = nullptr;
   if (Inst->hasRetValue()) {
     Operand *Src0 = legalize(Inst->getRetValue());
     if (Src0->getType() == IceType_i64) {
@@ -4024,7 +4025,7 @@ void TargetX8632::doAddressOptStore() {
   InstStore *Inst = llvm::cast<InstStore>(Context.getCur());
   Operand *Data = Inst->getData();
   Operand *Addr = Inst->getAddr();
-  Variable *Index = NULL;
+  Variable *Index = nullptr;
   uint16_t Shift = 0;
   int32_t Offset = 0; // TODO: make Constant
   Variable *Base = llvm::dyn_cast<Variable>(Addr);
@@ -4143,7 +4144,7 @@ TargetX8632::eliminateNextVectorSextInstruction(Variable *SignExtendedResult) {
 
 void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) {
   const SizeT MaxSrcs = 0;
-  Variable *Dest = NULL;
+  Variable *Dest = nullptr;
   InstCall *Call = makeHelperCall("ice_unreachable", Dest, MaxSrcs);
   lowerCall(Call);
 }
@@ -4258,8 +4259,8 @@ void TargetX8632::lowerPhiAssignments(CfgNode *Node,
       const llvm::SmallBitVector &RegsForType =
           getRegisterSetForType(Dest->getType());
       llvm::SmallBitVector AvailRegsForType = RegsForType & Available;
-      Variable *SpillLoc = NULL;
-      Variable *Preg = NULL;
+      Variable *SpillLoc = nullptr;
+      Variable *Preg = nullptr;
       // TODO(stichnot): Opportunity for register randomization.
       int32_t RegNum = AvailRegsForType.find_first();
       bool IsVector = isVectorType(Dest->getType());
@@ -4408,8 +4409,8 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
     // that the Base and Index components are in physical registers.
     Variable *Base = Mem->getBase();
     Variable *Index = Mem->getIndex();
-    Variable *RegBase = NULL;
-    Variable *RegIndex = NULL;
+    Variable *RegBase = nullptr;
+    Variable *RegIndex = nullptr;
     if (Base) {
       RegBase = legalizeToVar(Base);
     }

@@ -62,7 +62,7 @@ public:
   }
   virtual void emit(const Cfg *Func) const = 0;
   // The dump(Func,Str) implementation must be sure to handle the
-  // situation where Func==NULL.
+  // situation where Func==nullptr.
   virtual void dump(const Cfg *Func, Ostream &Str) const = 0;
   void dump(const Cfg *Func) const {
     if (!ALLOW_DUMP)
@@ -72,7 +72,7 @@ public:
   }
   void dump(Ostream &Str) const {
     if (ALLOW_DUMP)
-      dump(NULL, Str);
+      dump(nullptr, Str);
   }
 
   // Query whether this object was allocated in isolation, or added to
@@ -86,7 +86,7 @@ public:
 
 protected:
   Operand(OperandKind Kind, Type Ty)
-      : Ty(Ty), Kind(Kind), NumVars(0), Vars(NULL) {}
+      : Ty(Ty), Kind(Kind), NumVars(0), Vars(nullptr) {}
 
   const Type Ty;
   const OperandKind Kind;
@@ -122,7 +122,7 @@ public:
 protected:
   Constant(OperandKind Kind, Type Ty, uint32_t PoolEntryID)
       : Operand(Kind, Ty), PoolEntryID(PoolEntryID) {
-    Vars = NULL;
+    Vars = nullptr;
     NumVars = 0;
   }
   ~Constant() override {}
@@ -457,8 +457,8 @@ public:
   Variable *getLo() const { return LoVar; }
   Variable *getHi() const { return HiVar; }
   void setLoHi(Variable *Lo, Variable *Hi) {
-    assert(LoVar == NULL);
-    assert(HiVar == NULL);
+    assert(LoVar == nullptr);
+    assert(HiVar == nullptr);
     LoVar = Lo;
     HiVar = Hi;
   }
@@ -483,7 +483,7 @@ protected:
       : Operand(K, Ty), Number(Index), NameIndex(Cfg::IdentifierIndexInvalid),
         IsArgument(false), IsImplicitArgument(false), IgnoreLiveness(false),
         StackOffset(0), RegNum(NoRegister), RegNumTmp(NoRegister), Weight(1),
-        LoVar(NULL), HiVar(NULL) {
+        LoVar(nullptr), HiVar(nullptr) {
     Vars = VarsReal;
     Vars[0] = this;
     NumVars = 1;
@@ -550,8 +550,8 @@ public:
     MBS_MultiBlock
   };
   VariableTracking()
-      : MultiDef(MDS_Unknown), MultiBlock(MBS_Unknown), SingleUseNode(NULL),
-        SingleDefNode(NULL), FirstOrSingleDefinition(NULL) {}
+      : MultiDef(MDS_Unknown), MultiBlock(MBS_Unknown), SingleUseNode(nullptr),
+        SingleDefNode(nullptr), FirstOrSingleDefinition(nullptr) {}
   MultiDefState getMultiDef() const { return MultiDef; }
   MultiBlockState getMultiBlock() const { return MultiBlock; }
   const Inst *getFirstDefinition() const;
@@ -603,10 +603,10 @@ public:
   // the same block, e.g. T after the lowered sequence "T=B; T+=C;
   // A=T", for which getFirstDefinition(T) would return the "T=B"
   // instruction.  For variables with definitions span multiple
-  // blocks, NULL is returned.
+  // blocks, nullptr is returned.
   const Inst *getFirstDefinition(const Variable *Var) const;
   // Returns the definition instruction of the given Variable, when
-  // the variable has exactly one definition.  Otherwise, NULL is
+  // the variable has exactly one definition.  Otherwise, nullptr is
   // returned.
   const Inst *getSingleDefinition(const Variable *Var) const;
   // Returns the list of all definition instructions of the given
@@ -622,7 +622,7 @@ public:
   // entry block.
   bool isMultiBlock(const Variable *Var) const;
   // Returns the node that the given Variable is used in, assuming
-  // isMultiBlock() returns false.  Otherwise, NULL is returned.
+  // isMultiBlock() returns false.  Otherwise, nullptr is returned.
   const CfgNode *getLocalUseNode(const Variable *Var) const;
 
 private:

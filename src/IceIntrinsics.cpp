@@ -217,7 +217,7 @@ const Intrinsics::FullIntrinsicInfo *
 Intrinsics::find(const IceString &Name) const {
   auto it = Map.find(Name);
   if (it == Map.end())
-    return NULL;
+    return nullptr;
   return &it->second;
 }
 
@@ -231,7 +231,7 @@ Intrinsics::FullIntrinsicInfo::validateCall(const Ice::InstCall *Call,
                                             SizeT &ArgIndex) const {
   assert(NumTypes >= 1);
   Variable *Result = Call->getDest();
-  if (Result == NULL) {
+  if (Result == nullptr) {
     if (Signature[0] != Ice::IceType_void)
       return Intrinsics::BadReturnType;
   } else if (Signature[0] != Result->getType()) {

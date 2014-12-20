@@ -37,18 +37,18 @@ class LoweringContext {
   LoweringContext &operator=(const LoweringContext &) = delete;
 
 public:
-  LoweringContext() : Node(NULL), LastInserted(NULL) {}
+  LoweringContext() : Node(nullptr), LastInserted(nullptr) {}
   ~LoweringContext() {}
   void init(CfgNode *Node);
   Inst *getNextInst() const {
     if (Next == End)
-      return NULL;
+      return nullptr;
     return Next;
   }
   Inst *getNextInst(InstList::iterator &Iter) const {
     advanceForward(Iter);
     if (Iter == End)
-      return NULL;
+      return nullptr;
     return Iter;
   }
   CfgNode *getNode() const { return Node; }

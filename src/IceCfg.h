@@ -154,7 +154,7 @@ public:
   // Manage the CurrentNode field, which is used for validating the
   // Variable::DefNode field during dumping/emitting.
   void setCurrentNode(const CfgNode *Node) { CurrentNode = Node; }
-  void resetCurrentNode() { setCurrentNode(NULL); }
+  void resetCurrentNode() { setCurrentNode(nullptr); }
   const CfgNode *getCurrentNode() const { return CurrentNode; }
 
   void emit();

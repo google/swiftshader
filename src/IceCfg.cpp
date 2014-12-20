@@ -23,7 +23,7 @@
 
 namespace Ice {
 
-thread_local const Cfg *Cfg::CurrentCfg = NULL;
+thread_local const Cfg *Cfg::CurrentCfg = nullptr;
 
 ArenaAllocator *getCurrentCfgAllocator() {
   return Cfg::getCurrentCfgAllocator();
@@ -32,23 +32,23 @@ ArenaAllocator *getCurrentCfgAllocator() {
 Cfg::Cfg(GlobalContext *Ctx)
     : Ctx(Ctx), FunctionName(""), ReturnType(IceType_void),
       IsInternalLinkage(false), HasError(false), FocusedTiming(false),
-      ErrorMessage(""), Entry(NULL), NextInstNumber(Inst::NumberInitial),
+      ErrorMessage(""), Entry(nullptr), NextInstNumber(Inst::NumberInitial),
       Allocator(new ArenaAllocator()), Live(nullptr),
       Target(TargetLowering::createLowering(Ctx->getTargetArch(), this)),
       VMetadata(new VariablesMetadata(this)),
       TargetAssembler(
           TargetLowering::createAssembler(Ctx->getTargetArch(), this)),
-      CurrentNode(NULL) {
+      CurrentNode(nullptr) {
   assert(!Ctx->isIRGenerationDisabled() &&
          "Attempt to build cfg when IR generation disabled");
 }
 
 Cfg::~Cfg() {
-  // TODO(stichnot,kschimpf): Set CurrentCfg=NULL in the dtor for
+  // TODO(stichnot,kschimpf): Set CurrentCfg=nullptr in the dtor for
   // safety.  This can't be done currently because the translator
   // manages the Cfg by creating a new Cfg (which sets CurrentCfg to
   // the new value), then deleting the old Cfg (which would then reset
-  // CurrentCfg to NULL).
+  // CurrentCfg to nullptr).
 }
 
 void Cfg::setError(const IceString &Message) {
@@ -338,12 +338,12 @@ bool Cfg::validateLiveness() const {
   bool Valid = true;
   Ostream &Str = Ctx->getStrDump();
   for (CfgNode *Node : Nodes) {
-    Inst *FirstInst = NULL;
+    Inst *FirstInst = nullptr;
     for (auto Inst = Node->getInsts().begin(), E = Node->getInsts().end();
          Inst != E; ++Inst) {
       if (Inst->isDeleted())
         continue;
-      if (FirstInst == NULL)
+      if (FirstInst == nullptr)
         FirstInst = Inst;
       InstNumberT InstNumber = Inst->getNumber();
       if (Variable *Dest = Inst->getDest()) {
@@ -410,7 +410,7 @@ void Cfg::doBranchOpt() {
   for (auto I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
     auto NextNode = I;
     ++NextNode;
-    (*I)->doBranchOpt(NextNode == E ? NULL : *NextNode);
+    (*I)->doBranchOpt(NextNode == E ? nullptr : *NextNode);
   }
 }
 

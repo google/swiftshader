@@ -235,18 +235,18 @@ InstAssign::InstAssign(Cfg *Func, Variable *Dest, Operand *Source)
 // semantics, there is at most one edge from one node to another.
 InstBr::InstBr(Cfg *Func, Operand *Source, CfgNode *TargetTrue,
                CfgNode *TargetFalse)
-    : InstHighLevel(Func, Inst::Br, 1, NULL), TargetFalse(TargetFalse),
+    : InstHighLevel(Func, Inst::Br, 1, nullptr), TargetFalse(TargetFalse),
       TargetTrue(TargetTrue) {
   if (TargetTrue == TargetFalse) {
-    TargetTrue = NULL; // turn into unconditional version
+    TargetTrue = nullptr; // turn into unconditional version
   } else {
     addSource(Source);
   }
 }
 
 InstBr::InstBr(Cfg *Func, CfgNode *Target)
-    : InstHighLevel(Func, Inst::Br, 0, NULL), TargetFalse(Target),
-      TargetTrue(NULL) {}
+    : InstHighLevel(Func, Inst::Br, 0, nullptr), TargetFalse(Target),
+      TargetTrue(nullptr) {}
 
 NodeList InstBr::getTerminatorEdges() const {
   NodeList OutEdges;
@@ -331,7 +331,7 @@ Operand *InstPhi::getOperandForTarget(CfgNode *Target) const {
       return getSrc(I);
   }
   llvm_unreachable("Phi target not found");
-  return NULL;
+  return nullptr;
 }
 
 // Updates liveness for a particular operand based on the given
@@ -369,7 +369,7 @@ Inst *InstPhi::lower(Cfg *Func) {
 }
 
 InstRet::InstRet(Cfg *Func, Operand *RetValue)
-    : InstHighLevel(Func, Ret, RetValue ? 1 : 0, NULL) {
+    : InstHighLevel(Func, Ret, RetValue ? 1 : 0, nullptr) {
   if (RetValue)
     addSource(RetValue);
 }
@@ -384,14 +384,14 @@ InstSelect::InstSelect(Cfg *Func, Variable *Dest, Operand *Condition,
 }
 
 InstStore::InstStore(Cfg *Func, Operand *Data, Operand *Addr)
-    : InstHighLevel(Func, Inst::Store, 2, NULL) {
+    : InstHighLevel(Func, Inst::Store, 2, nullptr) {
   addSource(Data);
   addSource(Addr);
 }
 
 InstSwitch::InstSwitch(Cfg *Func, SizeT NumCases, Operand *Source,
                        CfgNode *LabelDefault)
-    : InstHighLevel(Func, Inst::Switch, 1, NULL), LabelDefault(LabelDefault),
+    : InstHighLevel(Func, Inst::Switch, 1, nullptr), LabelDefault(LabelDefault),
       NumCases(NumCases) {
   addSource(Source);
   Values = Func->allocateArrayOf<uint64_t>(NumCases);
@@ -399,7 +399,7 @@ InstSwitch::InstSwitch(Cfg *Func, SizeT NumCases, Operand *Source,
   // Initialize in case buggy code doesn't set all entries
   for (SizeT I = 0; I < NumCases; ++I) {
     Values[I] = 0;
-    Labels[I] = NULL;
+    Labels[I] = nullptr;
   }
 }
 
@@ -434,7 +434,7 @@ bool InstSwitch::repointEdge(CfgNode *OldNode, CfgNode *NewNode) {
 }
 
 InstUnreachable::InstUnreachable(Cfg *Func)
-    : InstHighLevel(Func, Inst::Unreachable, 0, NULL) {}
+    : InstHighLevel(Func, Inst::Unreachable, 0, nullptr) {}
 
 InstFakeDef::InstFakeDef(Cfg *Func, Variable *Dest, Variable *Src)
     : InstHighLevel(Func, Inst::FakeDef, Src ? 1 : 0, Dest) {
@@ -444,16 +444,16 @@ InstFakeDef::InstFakeDef(Cfg *Func, Variable *Dest, Variable *Src)
 }
 
 InstFakeUse::InstFakeUse(Cfg *Func, Variable *Src)
-    : InstHighLevel(Func, Inst::FakeUse, 1, NULL) {
+    : InstHighLevel(Func, Inst::FakeUse, 1, nullptr) {
   assert(Src);
   addSource(Src);
 }
 
 InstFakeKill::InstFakeKill(Cfg *Func, const Inst *Linked)
-    : InstHighLevel(Func, Inst::FakeKill, 0, NULL), Linked(Linked) {}
+    : InstHighLevel(Func, Inst::FakeKill, 0, nullptr), Linked(Linked) {}
 
 Type InstCall::getReturnType() const {
-  if (Dest == NULL)
+  if (Dest == nullptr)
     return IceType_void;
   return Dest->getType();
 }

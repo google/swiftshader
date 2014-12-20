@@ -164,7 +164,7 @@ void CfgNode::placePhiStores() {
   // Keep track of the dest variable of a compare instruction, so that
   // we insert the new instruction at the SafeInsertionPoint if the
   // compare's dest matches the Phi-lowered assignment's source.
-  Variable *CmpInstDest = NULL;
+  Variable *CmpInstDest = nullptr;
   // If the current insertion point is at a conditional branch
   // instruction, and the previous instruction is a compare
   // instruction, then we move the insertion point before the compare
@@ -553,8 +553,8 @@ void CfgNode::livenessLightweight() {
 bool CfgNode::liveness(Liveness *Liveness) {
   SizeT NumVars = Liveness->getNumVarsInNode(this);
   LivenessBV Live(NumVars);
-  LiveBeginEndMap *LiveBegin = NULL;
-  LiveBeginEndMap *LiveEnd = NULL;
+  LiveBeginEndMap *LiveBegin = nullptr;
+  LiveBeginEndMap *LiveEnd = nullptr;
   // Mark the beginning and ending of each variable's live range
   // with the sentinel instruction number 0.
   if (Liveness->getMode() == Liveness_Intervals) {
@@ -723,7 +723,7 @@ void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
 void CfgNode::contractIfEmpty() {
   if (InEdges.empty())
     return;
-  Inst *Branch = NULL;
+  Inst *Branch = nullptr;
   for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I) {
     if (I->isDeleted())
       continue;

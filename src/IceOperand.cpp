@@ -179,7 +179,7 @@ void VariableTracking::markUse(MetadataKind TrackingKind, const Inst *Instr,
 
   if (MakeMulti) {
     MultiBlock = MBS_MultiBlock;
-    SingleUseNode = NULL;
+    SingleUseNode = nullptr;
   }
 }
 
@@ -195,7 +195,7 @@ void VariableTracking::markDef(MetadataKind TrackingKind, const Inst *Instr,
   if (TrackingKind == VMK_All) {
     const Inst *LastInstruction =
         Definitions.empty() ? FirstOrSingleDefinition : Definitions.back();
-    assert(LastInstruction == NULL ||
+    assert(LastInstruction == nullptr ||
            Instr->getNumber() >= LastInstruction->getNumber());
   }
 #endif
@@ -204,13 +204,13 @@ void VariableTracking::markDef(MetadataKind TrackingKind, const Inst *Instr,
   markUse(TrackingKind, Instr, Node, IsFromDef, IsImplicit);
   if (TrackingKind == VMK_Uses)
     return;
-  if (FirstOrSingleDefinition == NULL)
+  if (FirstOrSingleDefinition == nullptr)
     FirstOrSingleDefinition = Instr;
   else if (TrackingKind == VMK_All)
     Definitions.push_back(Instr);
   switch (MultiDef) {
   case MDS_Unknown:
-    assert(SingleDefNode == NULL);
+    assert(SingleDefNode == nullptr);
     MultiDef = MDS_SingleDef;
     SingleDefNode = Node;
     break;
@@ -220,18 +220,18 @@ void VariableTracking::markDef(MetadataKind TrackingKind, const Inst *Instr,
       MultiDef = MDS_MultiDefSingleBlock;
     } else {
       MultiDef = MDS_MultiDefMultiBlock;
-      SingleDefNode = NULL;
+      SingleDefNode = nullptr;
     }
     break;
   case MDS_MultiDefSingleBlock:
     assert(SingleDefNode);
     if (Node != SingleDefNode) {
       MultiDef = MDS_MultiDefMultiBlock;
-      SingleDefNode = NULL;
+      SingleDefNode = nullptr;
     }
     break;
   case MDS_MultiDefMultiBlock:
-    assert(SingleDefNode == NULL);
+    assert(SingleDefNode == nullptr);
     break;
   }
 }
@@ -240,13 +240,13 @@ const Inst *VariableTracking::getFirstDefinition() const {
   switch (MultiDef) {
   case MDS_Unknown:
   case MDS_MultiDefMultiBlock:
-    return NULL;
+    return nullptr;
   case MDS_SingleDef:
   case MDS_MultiDefSingleBlock:
     assert(FirstOrSingleDefinition);
     return FirstOrSingleDefinition;
   }
-  return NULL;
+  return nullptr;
 }
 
 const Inst *VariableTracking::getSingleDefinition() const {
@@ -254,12 +254,12 @@ const Inst *VariableTracking::getSingleDefinition() const {
   case MDS_Unknown:
   case MDS_MultiDefMultiBlock:
   case MDS_MultiDefSingleBlock:
-    return NULL;
+    return nullptr;
   case MDS_SingleDef:
     assert(FirstOrSingleDefinition);
     return FirstOrSingleDefinition;
   }
-  return NULL;
+  return nullptr;
 }
 
 void VariablesMetadata::init(MetadataKind TrackingKind) {
@@ -270,7 +270,7 @@ void VariablesMetadata::init(MetadataKind TrackingKind) {
 
   // Mark implicit args as being used in the entry node.
   for (Variable *Var : Func->getImplicitArgs()) {
-    const Inst *NoInst = NULL;
+    const Inst *NoInst = nullptr;
     const CfgNode *EntryNode = Func->getEntryNode();
     const bool IsFromDef = false;
     const bool IsImplicit = true;
@@ -356,7 +356,7 @@ bool VariablesMetadata::isMultiBlock(const Variable *Var) const {
 const Inst *VariablesMetadata::getFirstDefinition(const Variable *Var) const {
   assert(Kind != VMK_Uses);
   if (!isTracked(Var))
-    return NULL; // conservative answer
+    return nullptr; // conservative answer
   SizeT VarNum = Var->getIndex();
   return Metadata[VarNum].getFirstDefinition();
 }
@@ -364,7 +364,7 @@ const Inst *VariablesMetadata::getFirstDefinition(const Variable *Var) const {
 const Inst *VariablesMetadata::getSingleDefinition(const Variable *Var) const {
   assert(Kind != VMK_Uses);
   if (!isTracked(Var))
-    return NULL; // conservative answer
+    return nullptr; // conservative answer
   SizeT VarNum = Var->getIndex();
   return Metadata[VarNum].getSingleDefinition();
 }
@@ -380,7 +380,7 @@ VariablesMetadata::getLatterDefinitions(const Variable *Var) const {
 
 const CfgNode *VariablesMetadata::getLocalUseNode(const Variable *Var) const {
   if (!isTracked(Var))
-    return NULL; // conservative answer
+    return nullptr; // conservative answer
   SizeT VarNum = Var->getIndex();
   return Metadata[VarNum].getNode();
 }
@@ -397,7 +397,7 @@ void Variable::emit(const Cfg *Func) const {
 void Variable::dump(const Cfg *Func, Ostream &Str) const {
   if (!ALLOW_DUMP)
     return;
-  if (Func == NULL) {
+  if (Func == nullptr) {
     Str << "%" << getName(Func);
     return;
   }

@@ -321,7 +321,7 @@ public:
   static InstBr *create(Cfg *Func, CfgNode *Target) {
     return new (Func->allocate<InstBr>()) InstBr(Func, Target);
   }
-  bool isUnconditional() const { return getTargetTrue() == NULL; }
+  bool isUnconditional() const { return getTargetTrue() == nullptr; }
   Operand *getCondition() const {
     assert(!isUnconditional());
     return getSrc(0);
@@ -346,7 +346,7 @@ private:
   ~InstBr() override {}
 
   CfgNode *TargetFalse; // Doubles as unconditional branch target
-  CfgNode *TargetTrue;  // NULL if unconditional branch
+  CfgNode *TargetTrue;  // nullptr if unconditional branch
 };
 
 // Call instruction.  The call target is captured as getSrc(0), and
@@ -615,7 +615,7 @@ class InstRet : public InstHighLevel {
   InstRet &operator=(const InstRet &) = delete;
 
 public:
-  static InstRet *create(Cfg *Func, Operand *RetValue = NULL) {
+  static InstRet *create(Cfg *Func, Operand *RetValue = nullptr) {
     return new (Func->allocate<InstRet>()) InstRet(Func, RetValue);
   }
   bool hasRetValue() const { return getSrcSize(); }
@@ -760,7 +760,8 @@ class InstFakeDef : public InstHighLevel {
   InstFakeDef &operator=(const InstFakeDef &) = delete;
 
 public:
-  static InstFakeDef *create(Cfg *Func, Variable *Dest, Variable *Src = NULL) {
+  static InstFakeDef *create(Cfg *Func, Variable *Dest,
+                             Variable *Src = nullptr) {
     return new (Func->allocate<InstFakeDef>()) InstFakeDef(Func, Dest, Src);
   }
   void emit(const Cfg *Func) const override;

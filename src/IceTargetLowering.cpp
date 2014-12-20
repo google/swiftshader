@@ -98,7 +98,7 @@ TargetLowering *TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
     return IceTargetARM64::create(Func);
 #endif
   Func->setError("Unsupported target");
-  return NULL;
+  return nullptr;
 }
 
 TargetLowering::TargetLowering(Cfg *Func)
@@ -113,7 +113,7 @@ Assembler *TargetLowering::createAssembler(TargetArch Target, Cfg *Func) {
   if (Target == Target_X8632)
     return new x86::AssemblerX86();
   Func->setError("Unsupported target");
-  return NULL;
+  return nullptr;
 }
 
 void TargetLowering::doAddressOpt() {
@@ -267,7 +267,7 @@ TargetGlobalInitLowering::createLowering(TargetArch Target,
     return IceTargetGlobalInitARM64::create(Ctx);
 #endif
   llvm_unreachable("Unsupported target");
-  return NULL;
+  return nullptr;
 }
 
 TargetGlobalInitLowering::~TargetGlobalInitLowering() {}
