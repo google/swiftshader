@@ -109,11 +109,10 @@ void LinearScan::initForGlobal() {
   // Build the (ordered) list of FakeKill instruction numbers.
   Kills.clear();
   for (CfgNode *Node : Func->getNodes()) {
-    for (auto I = Node->getInsts().begin(), E = Node->getInsts().end(); I != E;
-         ++I) {
-      if (auto Kill = llvm::dyn_cast<InstFakeKill>(I)) {
+    for (Inst &I : Node->getInsts()) {
+      if (auto Kill = llvm::dyn_cast<InstFakeKill>(&I)) {
         if (!Kill->isDeleted() && !Kill->getLinked()->isDeleted())
-          Kills.push_back(I->getNumber());
+          Kills.push_back(I.getNumber());
       }
     }
   }
@@ -160,25 +159,24 @@ void LinearScan::initForInfOnly() {
   std::vector<InstNumberT> LRBegin(Vars.size(), Inst::NumberSentinel);
   std::vector<InstNumberT> LREnd(Vars.size(), Inst::NumberSentinel);
   for (CfgNode *Node : Func->getNodes()) {
-    for (auto Inst = Node->getInsts().begin(), E = Node->getInsts().end();
-         Inst != E; ++Inst) {
-      if (Inst->isDeleted())
+    for (Inst &Inst : Node->getInsts()) {
+      if (Inst.isDeleted())
         continue;
-      if (const Variable *Var = Inst->getDest()) {
+      if (const Variable *Var = Inst.getDest()) {
         if (Var->hasReg() || Var->getWeight() == RegWeight::Inf) {
           if (LRBegin[Var->getIndex()] == Inst::NumberSentinel) {
-            LRBegin[Var->getIndex()] = Inst->getNumber();
+            LRBegin[Var->getIndex()] = Inst.getNumber();
             ++NumVars;
           }
         }
       }
-      for (SizeT I = 0; I < Inst->getSrcSize(); ++I) {
-        Operand *Src = Inst->getSrc(I);
+      for (SizeT I = 0; I < Inst.getSrcSize(); ++I) {
+        Operand *Src = Inst.getSrc(I);
         SizeT NumVars = Src->getNumVars();
         for (SizeT J = 0; J < NumVars; ++J) {
           const Variable *Var = Src->getVar(J);
           if (Var->hasReg() || Var->getWeight() == RegWeight::Inf)
-            LREnd[Var->getIndex()] = Inst->getNumber();
+            LREnd[Var->getIndex()] = Inst.getNumber();
         }
       }
     }

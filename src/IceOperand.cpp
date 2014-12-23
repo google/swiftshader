@@ -286,39 +286,37 @@ void VariablesMetadata::addNode(CfgNode *Node) {
   if (Func->getNumVariables() >= Metadata.size())
     Metadata.resize(Func->getNumVariables());
 
-  for (auto I = Node->getPhis().begin(), E = Node->getPhis().end(); I != E;
-       ++I) {
-    if (I->isDeleted())
+  for (Inst &I : Node->getPhis()) {
+    if (I.isDeleted())
       continue;
-    if (Variable *Dest = I->getDest()) {
+    if (Variable *Dest = I.getDest()) {
       SizeT DestNum = Dest->getIndex();
       assert(DestNum < Metadata.size());
-      Metadata[DestNum].markDef(Kind, I, Node);
+      Metadata[DestNum].markDef(Kind, &I, Node);
     }
-    for (SizeT SrcNum = 0; SrcNum < I->getSrcSize(); ++SrcNum) {
-      if (const Variable *Var = llvm::dyn_cast<Variable>(I->getSrc(SrcNum))) {
+    for (SizeT SrcNum = 0; SrcNum < I.getSrcSize(); ++SrcNum) {
+      if (const Variable *Var = llvm::dyn_cast<Variable>(I.getSrc(SrcNum))) {
         SizeT VarNum = Var->getIndex();
         assert(VarNum < Metadata.size());
         const bool IsFromDef = false;
         const bool IsImplicit = false;
-        Metadata[VarNum].markUse(Kind, I, Node, IsFromDef, IsImplicit);
+        Metadata[VarNum].markUse(Kind, &I, Node, IsFromDef, IsImplicit);
       }
     }
   }
 
-  for (auto I = Node->getInsts().begin(), E = Node->getInsts().end(); I != E;
-       ++I) {
-    if (I->isDeleted())
+  for (Inst &I : Node->getInsts()) {
+    if (I.isDeleted())
       continue;
     // Note: The implicit definitions (and uses) from InstFakeKill are
     // deliberately ignored.
-    if (Variable *Dest = I->getDest()) {
+    if (Variable *Dest = I.getDest()) {
       SizeT DestNum = Dest->getIndex();
       assert(DestNum < Metadata.size());
-      Metadata[DestNum].markDef(Kind, I, Node);
+      Metadata[DestNum].markDef(Kind, &I, Node);
     }
-    for (SizeT SrcNum = 0; SrcNum < I->getSrcSize(); ++SrcNum) {
-      Operand *Src = I->getSrc(SrcNum);
+    for (SizeT SrcNum = 0; SrcNum < I.getSrcSize(); ++SrcNum) {
+      Operand *Src = I.getSrc(SrcNum);
       SizeT NumVars = Src->getNumVars();
       for (SizeT J = 0; J < NumVars; ++J) {
         const Variable *Var = Src->getVar(J);
@@ -326,7 +324,7 @@ void VariablesMetadata::addNode(CfgNode *Node) {
         assert(VarNum < Metadata.size());
         const bool IsFromDef = false;
         const bool IsImplicit = false;
-        Metadata[VarNum].markUse(Kind, I, Node, IsFromDef, IsImplicit);
+        Metadata[VarNum].markUse(Kind, &I, Node, IsFromDef, IsImplicit);
       }
     }
   }

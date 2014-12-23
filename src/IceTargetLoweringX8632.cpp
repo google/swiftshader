@@ -669,14 +669,13 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // stack slots.
   llvm::BitVector IsVarReferenced(Func->getNumVariables());
   for (CfgNode *Node : Func->getNodes()) {
-    for (auto Inst = Node->getInsts().begin(), E = Node->getInsts().end();
-         Inst != E; ++Inst) {
-      if (Inst->isDeleted())
+    for (Inst &Inst : Node->getInsts()) {
+      if (Inst.isDeleted())
         continue;
-      if (const Variable *Var = Inst->getDest())
+      if (const Variable *Var = Inst.getDest())
         IsVarReferenced[Var->getIndex()] = true;
-      for (SizeT I = 0; I < Inst->getSrcSize(); ++I) {
-        Operand *Src = Inst->getSrc(I);
+      for (SizeT I = 0; I < Inst.getSrcSize(); ++I) {
+        Operand *Src = Inst.getSrc(I);
         SizeT NumVars = Src->getNumVars();
         for (SizeT J = 0; J < NumVars; ++J) {
           const Variable *Var = Src->getVar(J);
@@ -4155,9 +4154,8 @@ void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) {
 // Undef input.
 void TargetX8632::prelowerPhis() {
   CfgNode *Node = Context.getNode();
-  for (auto I = Node->getPhis().begin(), E = Node->getPhis().end(); I != E;
-       ++I) {
-    auto Phi = llvm::dyn_cast<InstPhi>(I);
+  for (Inst &I : Node->getPhis()) {
+    auto Phi = llvm::dyn_cast<InstPhi>(&I);
     if (Phi->isDeleted())
       continue;
     Variable *Dest = Phi->getDest();
@@ -4221,11 +4219,11 @@ void TargetX8632::lowerPhiAssignments(CfgNode *Node,
   // set.  TODO(stichnot): This work is being repeated for every split
   // edge to the successor, so consider updating LiveIn just once
   // after all the edges are split.
-  for (auto I = Assignments.begin(), E = Assignments.end(); I != E; ++I) {
-    Variable *Dest = I->getDest();
+  for (const Inst &I : Assignments) {
+    Variable *Dest = I.getDest();
     if (Dest->hasReg()) {
       Available[Dest->getRegNum()] = false;
-    } else if (isMemoryOperand(I->getSrc(0))) {
+    } else if (isMemoryOperand(I.getSrc(0))) {
       NeedsRegs = true; // Src and Dest are both in memory
     }
   }

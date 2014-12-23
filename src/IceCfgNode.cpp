@@ -57,10 +57,10 @@ void CfgNode::appendInst(Inst *Inst) {
 // overlap with the range of any other block.
 void CfgNode::renumberInstructions() {
   InstNumberT FirstNumber = Func->getNextInstNumber();
-  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I)
-    I->renumber(Func);
-  for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I)
-    I->renumber(Func);
+  for (Inst &I : Phis)
+    I.renumber(Func);
+  for (Inst &I : Insts)
+    I.renumber(Func);
   InstCountEstimate = Func->getNextInstNumber() - FirstNumber;
 }
 
@@ -86,8 +86,8 @@ void CfgNode::computePredecessors() {
 // instructions and appends assignment instructions to predecessor
 // blocks.  Note that this transformation preserves SSA form.
 void CfgNode::placePhiLoads() {
-  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    auto Phi = llvm::dyn_cast<InstPhi>(I);
+  for (Inst &I : Phis) {
+    auto Phi = llvm::dyn_cast<InstPhi>(&I);
     Insts.insert(Insts.begin(), Phi->lower(Func));
   }
 }
@@ -186,11 +186,11 @@ void CfgNode::placePhiStores() {
   // Consider every out-edge.
   for (CfgNode *Succ : OutEdges) {
     // Consider every Phi instruction at the out-edge.
-    for (auto I = Succ->Phis.begin(), E = Succ->Phis.end(); I != E; ++I) {
-      auto Phi = llvm::dyn_cast<InstPhi>(I);
+    for (Inst &I : Succ->Phis) {
+      auto Phi = llvm::dyn_cast<InstPhi>(&I);
       Operand *Operand = Phi->getOperandForTarget(this);
       assert(Operand);
-      Variable *Dest = I->getDest();
+      Variable *Dest = I.getDest();
       assert(Dest);
       InstAssign *NewInst = InstAssign::create(Func, Dest, Operand);
       if (CmpInstDest == Operand)
@@ -203,8 +203,8 @@ void CfgNode::placePhiStores() {
 
 // Deletes the phi instructions after the loads and stores are placed.
 void CfgNode::deletePhis() {
-  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I)
-    I->setDeleted();
+  for (Inst &I : Phis)
+    I.setDeleted();
 }
 
 // Splits the edge from Pred to this node by creating a new node and
@@ -319,8 +319,8 @@ void CfgNode::advancedPhiLowering() {
   } Desc[getPhis().size()];
 
   size_t NumPhis = 0;
-  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    auto Inst = llvm::dyn_cast<InstPhi>(I);
+  for (Inst &I : Phis) {
+    auto Inst = llvm::dyn_cast<InstPhi>(&I);
     if (!Inst->isDeleted()) {
       Desc[NumPhis].Phi = Inst;
       Desc[NumPhis].Dest = Inst->getDest();
@@ -475,8 +475,8 @@ void CfgNode::advancedPhiLowering() {
     Func->getVMetadata()->addNode(Split);
   }
 
-  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I)
-    I->setDeleted();
+  for (Inst &I : Phis)
+    I.setDeleted();
 }
 
 // Does address mode optimization.  Pass each instruction to the
@@ -539,10 +539,10 @@ void CfgNode::livenessLightweight() {
       continue;
     I->livenessLightweight(Func, Live);
   }
-  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    if (I->isDeleted())
+  for (Inst &I : Phis) {
+    if (I.isDeleted())
       continue;
-    I->livenessLightweight(Func, Live);
+    I.livenessLightweight(Func, Live);
   }
 }
 
@@ -571,8 +571,8 @@ bool CfgNode::liveness(Liveness *Liveness) {
   for (CfgNode *Succ : OutEdges) {
     Live |= Liveness->getLiveIn(Succ);
     // Mark corresponding argument of phis in successor as live.
-    for (auto I = Succ->Phis.begin(), E = Succ->Phis.end(); I != E; ++I) {
-      auto Phi = llvm::dyn_cast<InstPhi>(I);
+    for (Inst &I : Succ->Phis) {
+      auto Phi = llvm::dyn_cast<InstPhi>(&I);
       Phi->livenessPhiOperand(Live, this, Liveness);
     }
   }
@@ -589,12 +589,12 @@ bool CfgNode::liveness(Liveness *Liveness) {
   // the block.
   SizeT NumNonDeadPhis = 0;
   InstNumberT FirstPhiNumber = Inst::NumberSentinel;
-  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    if (I->isDeleted())
+  for (Inst &I : Phis) {
+    if (I.isDeleted())
       continue;
     if (FirstPhiNumber == Inst::NumberSentinel)
-      FirstPhiNumber = I->getNumber();
-    if (I->liveness(FirstPhiNumber, Live, Liveness, LiveBegin, LiveEnd))
+      FirstPhiNumber = I.getNumber();
+    if (I.liveness(FirstPhiNumber, Live, Liveness, LiveBegin, LiveEnd))
       ++NumNonDeadPhis;
   }
 
@@ -724,12 +724,12 @@ void CfgNode::contractIfEmpty() {
   if (InEdges.empty())
     return;
   Inst *Branch = nullptr;
-  for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I) {
-    if (I->isDeleted())
+  for (Inst &I : Insts) {
+    if (I.isDeleted())
       continue;
-    if (I->isUnconditionalBranch())
-      Branch = I;
-    else if (!I->isRedundantAssign())
+    if (I.isUnconditionalBranch())
+      Branch = &I;
+    else if (!I.isRedundantAssign())
       return;
   }
   Branch->setDeleted();
@@ -747,10 +747,9 @@ void CfgNode::contractIfEmpty() {
           OutEdges.front()->InEdges.push_back(Pred);
         }
       }
-      for (auto I = Pred->getInsts().begin(), E = Pred->getInsts().end();
-           I != E; ++I) {
-        if (!I->isDeleted())
-          I->repointEdge(this, OutEdges.front());
+      for (Inst &I : Pred->getInsts()) {
+        if (!I.isDeleted())
+          I.repointEdge(this, OutEdges.front());
       }
     }
   }
@@ -767,9 +766,9 @@ void CfgNode::doBranchOpt(const CfgNode *NextNode) {
   // first opportunity, unless there is some target lowering where we
   // have the possibility of multiple such optimizations per block
   // (currently not the case for x86 lowering).
-  for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I) {
-    if (!I->isDeleted()) {
-      Target->doBranchOpt(I, NextNode);
+  for (Inst &I : Insts) {
+    if (!I.isDeleted()) {
+      Target->doBranchOpt(&I, NextNode);
     }
   }
 }
@@ -872,26 +871,26 @@ void CfgNode::emit(Cfg *Func) const {
   if (DecorateAsm)
     emitRegisterUsage(Str, Func, this, true, LiveRegCount);
 
-  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    if (I->isDeleted())
+  for (const Inst &I : Phis) {
+    if (I.isDeleted())
       continue;
     // Emitting a Phi instruction should cause an error.
-    I->emit(Func);
+    I.emit(Func);
   }
-  for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I) {
-    if (I->isDeleted())
+  for (const Inst &I : Insts) {
+    if (I.isDeleted())
       continue;
-    if (I->isRedundantAssign()) {
-      Variable *Dest = I->getDest();
-      if (DecorateAsm && Dest->hasReg() && !I->isLastUse(I->getSrc(0)))
+    if (I.isRedundantAssign()) {
+      Variable *Dest = I.getDest();
+      if (DecorateAsm && Dest->hasReg() && !I.isLastUse(I.getSrc(0)))
         ++LiveRegCount[Dest->getRegNum()];
       continue;
     }
-    I->emit(Func);
+    I.emit(Func);
     if (DecorateAsm)
-      emitLiveRangesEnded(Str, Func, I, LiveRegCount);
+      emitLiveRangesEnded(Str, Func, &I, LiveRegCount);
     Str << "\n";
-    updateStats(Func, I);
+    updateStats(Func, &I);
   }
   if (DecorateAsm)
     emitRegisterUsage(Str, Func, this, false, LiveRegCount);
@@ -901,19 +900,19 @@ void CfgNode::emitIAS(Cfg *Func) const {
   Func->setCurrentNode(this);
   Assembler *Asm = Func->getAssembler<Assembler>();
   Asm->BindCfgNodeLabel(getIndex());
-  for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I) {
-    if (I->isDeleted())
+  for (const Inst &I : Phis) {
+    if (I.isDeleted())
       continue;
     // Emitting a Phi instruction should cause an error.
-    I->emitIAS(Func);
+    I.emitIAS(Func);
   }
-  for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I) {
-    if (I->isDeleted())
+  for (const Inst &I : Insts) {
+    if (I.isDeleted())
       continue;
-    if (I->isRedundantAssign())
+    if (I.isRedundantAssign())
       continue;
-    I->emitIAS(Func);
-    updateStats(Func, I);
+    I.emitIAS(Func);
+    updateStats(Func, &I);
   }
 }
 
@@ -958,10 +957,10 @@ void CfgNode::dump(Cfg *Func) const {
   }
   // Dump each instruction.
   if (Func->getContext()->isVerbose(IceV_Instructions)) {
-    for (auto I = Phis.begin(), E = Phis.end(); I != E; ++I)
-      I->dumpDecorated(Func);
-    for (auto I = Insts.begin(), E = Insts.end(); I != E; ++I)
-      I->dumpDecorated(Func);
+    for (const Inst &I : Phis)
+      I.dumpDecorated(Func);
+    for (const Inst &I : Insts)
+      I.dumpDecorated(Func);
   }
   // Dump the live-out variables.
   LivenessBV LiveOut;

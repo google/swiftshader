@@ -294,24 +294,22 @@ void Cfg::liveness(LivenessMode Mode) {
   for (CfgNode *Node : Nodes) {
     InstNumberT FirstInstNum = Inst::NumberSentinel;
     InstNumberT LastInstNum = Inst::NumberSentinel;
-    for (auto I = Node->getPhis().begin(), E = Node->getPhis().end(); I != E;
-         ++I) {
-      I->deleteIfDead();
-      if (Mode == Liveness_Intervals && !I->isDeleted()) {
+    for (Inst &I : Node->getPhis()) {
+      I.deleteIfDead();
+      if (Mode == Liveness_Intervals && !I.isDeleted()) {
         if (FirstInstNum == Inst::NumberSentinel)
-          FirstInstNum = I->getNumber();
-        assert(I->getNumber() > LastInstNum);
-        LastInstNum = I->getNumber();
+          FirstInstNum = I.getNumber();
+        assert(I.getNumber() > LastInstNum);
+        LastInstNum = I.getNumber();
       }
     }
-    for (auto I = Node->getInsts().begin(), E = Node->getInsts().end(); I != E;
-         ++I) {
-      I->deleteIfDead();
-      if (Mode == Liveness_Intervals && !I->isDeleted()) {
+    for (Inst &I : Node->getInsts()) {
+      I.deleteIfDead();
+      if (Mode == Liveness_Intervals && !I.isDeleted()) {
         if (FirstInstNum == Inst::NumberSentinel)
-          FirstInstNum = I->getNumber();
-        assert(I->getNumber() > LastInstNum);
-        LastInstNum = I->getNumber();
+          FirstInstNum = I.getNumber();
+        assert(I.getNumber() > LastInstNum);
+        LastInstNum = I.getNumber();
       }
     }
     if (Mode == Liveness_Intervals) {
@@ -339,14 +337,13 @@ bool Cfg::validateLiveness() const {
   Ostream &Str = Ctx->getStrDump();
   for (CfgNode *Node : Nodes) {
     Inst *FirstInst = nullptr;
-    for (auto Inst = Node->getInsts().begin(), E = Node->getInsts().end();
-         Inst != E; ++Inst) {
-      if (Inst->isDeleted())
+    for (Inst &Inst : Node->getInsts()) {
+      if (Inst.isDeleted())
         continue;
       if (FirstInst == nullptr)
-        FirstInst = Inst;
-      InstNumberT InstNumber = Inst->getNumber();
-      if (Variable *Dest = Inst->getDest()) {
+        FirstInst = &Inst;
+      InstNumberT InstNumber = Inst.getNumber();
+      if (Variable *Dest = Inst.getDest()) {
         if (!Dest->getIgnoreLiveness()) {
           bool Invalid = false;
           const bool IsDest = true;
@@ -359,20 +356,20 @@ bool Cfg::validateLiveness() const {
           // temporary may be live at the end of the previous block,
           // and if it is also assigned in the first instruction of
           // this block, the adjacent live ranges get merged.
-          if (static_cast<class Inst *>(Inst) != FirstInst &&
-              !Inst->isDestNonKillable() &&
+          if (static_cast<class Inst *>(&Inst) != FirstInst &&
+              !Inst.isDestNonKillable() &&
               Dest->getLiveRange().containsValue(InstNumber - 1, IsDest))
             Invalid = true;
           if (Invalid) {
             Valid = false;
-            Str << "Liveness error: inst " << Inst->getNumber() << " dest ";
+            Str << "Liveness error: inst " << Inst.getNumber() << " dest ";
             Dest->dump(this);
             Str << " live range " << Dest->getLiveRange() << "\n";
           }
         }
       }
-      for (SizeT I = 0; I < Inst->getSrcSize(); ++I) {
-        Operand *Src = Inst->getSrc(I);
+      for (SizeT I = 0; I < Inst.getSrcSize(); ++I) {
+        Operand *Src = Inst.getSrc(I);
         SizeT NumVars = Src->getNumVars();
         for (SizeT J = 0; J < NumVars; ++J) {
           const Variable *Var = Src->getVar(J);
@@ -380,7 +377,7 @@ bool Cfg::validateLiveness() const {
           if (!Var->getIgnoreLiveness() &&
               !Var->getLiveRange().containsValue(InstNumber, IsDest)) {
             Valid = false;
-            Str << "Liveness error: inst " << Inst->getNumber() << " var ";
+            Str << "Liveness error: inst " << Inst.getNumber() << " var ";
             Var->dump(this);
             Str << " live range " << Var->getLiveRange() << "\n";
           }
