@@ -967,7 +967,6 @@ void TargetX8632::addEpilog(CfgNode *Node) {
 template <typename T> struct PoolTypeConverter {};
 
 template <> struct PoolTypeConverter<float> {
-  typedef float PrimitiveFpType;
   typedef uint32_t PrimitiveIntType;
   typedef ConstantFloat IceType;
   static const Type Ty = IceType_f32;
@@ -980,7 +979,6 @@ const char *PoolTypeConverter<float>::AsmTag = ".long";
 const char *PoolTypeConverter<float>::PrintfString = "0x%x";
 
 template <> struct PoolTypeConverter<double> {
-  typedef double PrimitiveFpType;
   typedef uint64_t PrimitiveIntType;
   typedef ConstantDouble IceType;
   static const Type Ty = IceType_f64;
@@ -1004,7 +1002,7 @@ template <typename T> void TargetX8632::emitConstantPool() const {
   Str << "\t.align\t" << Align << "\n";
   for (Constant *C : Pool) {
     typename T::IceType *Const = llvm::cast<typename T::IceType>(C);
-    typename T::PrimitiveFpType Value = Const->getValue();
+    typename T::IceType::PrimType Value = Const->getValue();
     // Use memcpy() to copy bits from Value into RawValue in a way
     // that avoids breaking strict-aliasing rules.
     typename T::PrimitiveIntType RawValue;
@@ -1022,12 +1020,16 @@ template <typename T> void TargetX8632::emitConstantPool() const {
 }
 
 void TargetX8632::emitConstants() const {
-  // Note: Still used by emit IAS.
-  emitConstantPool<PoolTypeConverter<float>>();
-  emitConstantPool<PoolTypeConverter<double>>();
-
   // No need to emit constants from the int pool since (for x86) they
-  // are embedded as immediates in the instructions.
+  // are embedded as immediates in the instructions, just emit float/double.
+  if (Ctx->getFlags().UseELFWriter) {
+    ELFObjectWriter *Writer = Ctx->getObjectWriter();
+    Writer->writeConstantPool<ConstantFloat>(IceType_f32);
+    Writer->writeConstantPool<ConstantDouble>(IceType_f64);
+  } else {
+    emitConstantPool<PoolTypeConverter<float>>();
+    emitConstantPool<PoolTypeConverter<double>>();
+  }
 }
 
 void TargetX8632::split64(Variable *Var) {

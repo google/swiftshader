@@ -38,14 +38,15 @@ declare void @llvm.memset.p0i8.i32(i8*, i8, i32, i32, i1)
 ; Use float/double constants to test constant pools.
 define internal float @returnFloatConst() {
 entry:
-  %f = fadd float 0x3FF3AE1480000000, 0x3FF3AE1400000000
+  %f = fadd float -0.0, 0x3FF3AE1400000000
   ret float %f
 }
 
 define internal double @returnDoubleConst() {
 entry:
-  %d = fadd double 1.230000e+00, 3.210000e+00
-  ret double %d
+  %d = fadd double 0x7FFFFFFFFFFFFFFFF, 0xFFF7FFFFFFFFFFFF
+  %d2 = fadd double %d, 0xFFF8000000000003
+  ret double %d2
 }
 
 define internal void @test_memcpy(i32 %iptr_dst, i32 %len) {
@@ -141,6 +142,45 @@ define void @_start(i32) {
 ; CHECK:   }
 ; CHECK:   Section {
 ; CHECK:     Index: {{[1-9][0-9]*}}
+; CHECK:     Name: .rodata.cst4
+; CHECK:     Type: SHT_PROGBITS
+; CHECK:     Flags [ (0x12)
+; CHECK:       SHF_ALLOC
+; CHECK:       SHF_MERGE
+; CHECK:     ]
+; CHECK:     Address: 0x0
+; CHECK:     Offset: 0x{{[1-9A-F][0-9A-F]*}}
+; CHECK:     Size: 8
+; CHECK:     Link: 0
+; CHECK:     Info: 0
+; CHECK:     AddressAlignment: 4
+; CHECK:     EntrySize: 4
+; CHECK:     SectionData (
+; CHECK:       0000: A0709D3F 00000080
+; CHECK:     )
+; CHECK:   }
+; CHECK:   Section {
+; CHECK:     Index: {{[1-9][0-9]*}}
+; CHECK:     Name: .rodata.cst8
+; CHECK:     Type: SHT_PROGBITS
+; CHECK:     Flags [ (0x12)
+; CHECK:       SHF_ALLOC
+; CHECK:       SHF_MERGE
+; CHECK:     ]
+; CHECK:     Address: 0x0
+; CHECK:     Offset: 0x{{[1-9A-F][0-9A-F]*}}
+; CHECK:     Size: 24
+; CHECK:     Link: 0
+; CHECK:     Info: 0
+; CHECK:     AddressAlignment: 8
+; CHECK:     EntrySize: 8
+; CHECK:     SectionData (
+; CHECK:       0000: 03000000 0000F8FF FFFFFFFF FFFFF7FF
+; CHECK:       0010: FFFFFFFF FFFFFFFF
+; CHECK:     )
+; CHECK:   }
+; CHECK:   Section {
+; CHECK:     Index: {{[1-9][0-9]*}}
 ; CHECK:     Name: .shstrtab
 ; CHECK:     Type: SHT_STRTAB
 ; CHECK:     Flags [ (0x0)
@@ -202,6 +242,42 @@ define void @_start(i32) {
 ; CHECK-NEXT:     Section: Undefined (0x0)
 ; CHECK-NEXT:   }
 ;  TODO: fill in the data symbols.
+; CHECK:        Symbol {
+; CHECK:          Name: .L$double$0
+; CHECK-NEXT:     Value: 0x10
+; CHECK-NEXT:     Size: 0
+; CHECK-NEXT:     Binding: Local (0x0)
+; CHECK-NEXT:     Type: None (0x0)
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .rodata.cst8
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: .L$double$2
+; CHECK-NEXT:     Value: 0x0
+; CHECK-NEXT:     Size: 0
+; CHECK-NEXT:     Binding: Local (0x0)
+; CHECK-NEXT:     Type: None (0x0)
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .rodata.cst8
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: .L$float$0
+; CHECK-NEXT:     Value: 0x4
+; CHECK-NEXT:     Size: 0
+; CHECK-NEXT:     Binding: Local (0x0)
+; CHECK-NEXT:     Type: None (0x0)
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .rodata.cst4
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: .L$float$1
+; CHECK-NEXT:     Value: 0x0
+; CHECK-NEXT:     Size: 0
+; CHECK-NEXT:     Binding: Local (0x0)
+; CHECK-NEXT:     Type: None (0x0)
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .rodata.cst4
+; CHECK-NEXT:   }
 ; CHECK:        Symbol {
 ; CHECK:          Name: returnDoubleConst
 ; CHECK-NEXT:     Value: 0x{{[1-9A-F][0-9A-F]*}}

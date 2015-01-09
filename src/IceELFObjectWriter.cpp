@@ -17,6 +17,7 @@
 #include "IceELFStreamer.h"
 #include "IceGlobalContext.h"
 #include "IceGlobalInits.h"
+#include "IceOperand.h"
 
 using namespace llvm::ELF;
 
@@ -290,6 +291,61 @@ void ELFObjectWriter::writeELFHeaderInternal(Elf64_Off SectionHeaderOffset,
   Str.writeLE16(static_cast<Elf64_Half>(NumSections));        // e_shnum
   Str.writeLE16(static_cast<Elf64_Half>(SectHeaderStrIndex)); // e_shstrndx
 }
+
+template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
+  ConstantList Pool = Ctx.getConstantPool(Ty);
+  if (Pool.empty()) {
+    return;
+  }
+  SizeT Align = typeAlignInBytes(Ty);
+  size_t EntSize = typeWidthInBytes(Ty);
+  char Buf[20];
+  SizeT WriteAmt = std::min(EntSize, llvm::array_lengthof(Buf));
+  assert(WriteAmt == EntSize);
+  // Assume that writing WriteAmt bytes at a time allows us to avoid aligning
+  // between entries.
+  assert(WriteAmt % Align == 0);
+  // Check that we write the full PrimType.
+  assert(WriteAmt == sizeof(typename ConstType::PrimType));
+  const Elf64_Xword ShFlags = SHF_ALLOC | SHF_MERGE;
+  std::string SecBuffer;
+  llvm::raw_string_ostream SecStrBuf(SecBuffer);
+  SecStrBuf << ".rodata.cst" << WriteAmt;
+  ELFDataSection *Section = createSection<ELFDataSection>(
+      SecStrBuf.str(), SHT_PROGBITS, ShFlags, Align, WriteAmt);
+  RoDataSections.push_back(Section);
+  SizeT OffsetInSection = 0;
+  // The symbol table entry doesn't need to know the defined symbol's
+  // size since this is in a section with a fixed Entry Size.
+  const SizeT SymbolSize = 0;
+  Section->setFileOffset(alignFileOffset(Align));
+
+  // Write the data.
+  for (Constant *C : Pool) {
+    auto Const = llvm::cast<ConstType>(C);
+    std::string SymBuffer;
+    llvm::raw_string_ostream SymStrBuf(SymBuffer);
+    SymStrBuf << ".L$" << Ty << "$" << Const->getPoolEntryID();
+    std::string &SymName = SymStrBuf.str();
+    SymTab->createDefinedSym(SymName, STT_NOTYPE, STB_LOCAL, Section,
+                             OffsetInSection, SymbolSize);
+    StrTab->add(SymName);
+    typename ConstType::PrimType Value = Const->getValue();
+    memcpy(Buf, &Value, WriteAmt);
+    Str.writeBytes(llvm::StringRef(Buf, WriteAmt));
+    OffsetInSection += WriteAmt;
+  }
+  Section->setSize(OffsetInSection);
+}
+
+// Instantiate known needed versions of the template, since we are
+// defining the function in the .cpp file instead of the .h file.
+// We may need to instantiate constant pools for integers as well
+// if we do constant-pooling of large integers to remove them
+// from the instruction stream (fewer bytes controlled by an attacker).
+template void ELFObjectWriter::writeConstantPool<ConstantFloat>(Type Ty);
+
+template void ELFObjectWriter::writeConstantPool<ConstantDouble>(Type Ty);
 
 void ELFObjectWriter::writeNonUserSections() {
   bool IsELF64 = isELF64(Ctx.getTargetArch());

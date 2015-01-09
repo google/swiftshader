@@ -132,14 +132,16 @@ class ConstantPrimitive : public Constant {
   ConstantPrimitive &operator=(const ConstantPrimitive &) = delete;
 
 public:
-  static ConstantPrimitive *create(GlobalContext *Ctx, Type Ty, T Value,
+  typedef T PrimType;
+
+  static ConstantPrimitive *create(GlobalContext *Ctx, Type Ty, PrimType Value,
                                    uint32_t PoolEntryID) {
     assert(!Ctx->isIRGenerationDisabled() &&
            "Attempt to build primitive constant when IR generation disabled");
     return new (Ctx->allocate<ConstantPrimitive>())
         ConstantPrimitive(Ty, Value, PoolEntryID);
   }
-  T getValue() const { return Value; }
+  PrimType getValue() const { return Value; }
   using Constant::emit;
   // The target needs to implement this for each ConstantPrimitive
   // specialization.
@@ -155,10 +157,10 @@ public:
   }
 
 private:
-  ConstantPrimitive(Type Ty, T Value, uint32_t PoolEntryID)
+  ConstantPrimitive(Type Ty, PrimType Value, uint32_t PoolEntryID)
       : Constant(K, Ty, PoolEntryID), Value(Value) {}
   ~ConstantPrimitive() override {}
-  const T Value;
+  const PrimType Value;
 };
 
 typedef ConstantPrimitive<int32_t, Operand::kConstInteger32> ConstantInteger32;

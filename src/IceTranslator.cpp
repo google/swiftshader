@@ -97,13 +97,8 @@ void Translator::translateFcn(Cfg *Fcn) {
 }
 
 void Translator::emitConstants() {
-  if (!Ctx->getFlags().DisableTranslation && Func) {
-    if (Ctx->getFlags().UseELFWriter) {
-      // TODO(jvoung): create the rodata.cst.{4,8} sections for UseELFWriter.
-    } else {
-      Func->getTarget()->emitConstants();
-    }
-  }
+  if (!Ctx->getFlags().DisableTranslation && Func)
+    Func->getTarget()->emitConstants();
 }
 
 void Translator::lowerGlobals(

@@ -17,6 +17,7 @@
 #include "IceDefs.h"
 #include "IceELFSection.h"
 #include "IceELFStreamer.h"
+#include "IceTypes.h"
 
 using namespace llvm::ELF;
 
@@ -58,6 +59,8 @@ public:
   // TODO is handling BSS (which just needs to note the size).
   void writeDataInitializer(const IceString &VarName,
                             const llvm::StringRef Data);
+
+  template <typename ConstType> void writeConstantPool(Type Ty);
 
   // Do final layout and write out the rest of the object file, then
   // patch up the initial ELF header with the final info.
