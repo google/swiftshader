@@ -12,8 +12,8 @@
 // ResourceManager.h : Defines the ResourceManager class, which tracks objects
 // shared by multiple GL contexts.
 
-#ifndef LIBGLESV2_RESOURCEMANAGER_H_
-#define LIBGLESV2_RESOURCEMANAGER_H_
+#ifndef LIBGL_RESOURCEMANAGER_H_
+#define LIBGL_RESOURCEMANAGER_H_
 
 #include "HandleAllocator.h"
 
@@ -97,4 +97,4 @@ class ResourceManager
 
 }
 
-#endif // LIBGLESV2_RESOURCEMANAGER_H_
+#endif // LIBGL_RESOURCEMANAGER_H_

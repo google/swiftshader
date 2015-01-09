@@ -11,8 +11,8 @@
 
 // Fence.h: Defines the Fence class, which supports the GL_NV_fence extension.
 
-#ifndef LIBGLESV2_FENCE_H_
-#define LIBGLESV2_FENCE_H_
+#ifndef LIBGL_FENCE_H_
+#define LIBGL_FENCE_H_
 
 #define GL_APICALL
 #include <GLES2/gl2.h>
@@ -40,4 +40,4 @@ class Fence
 
 }
 
-#endif   // LIBGLESV2_FENCE_H_
+#endif   // LIBGL_FENCE_H_

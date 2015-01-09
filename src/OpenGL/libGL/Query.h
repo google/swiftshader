@@ -11,8 +11,8 @@
 
 // Query.h: Defines the es2::Query class
 
-#ifndef LIBGLESV2_QUERY_H_
-#define LIBGLESV2_QUERY_H_
+#ifndef LIBGL_QUERY_H_
+#define LIBGL_QUERY_H_
 
 #include "common/Object.hpp"
 #include "Renderer/Renderer.hpp"
@@ -47,4 +47,4 @@ class Query : public gl::RefCountObject
 
 }
 
-#endif   // LIBGLESV2_QUERY_H_
+#endif   // LIBGL_QUERY_H_

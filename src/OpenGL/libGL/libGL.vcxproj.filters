@@ -32,7 +32,7 @@
     <ClCompile Include="IndexDataManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="libGLESv2.cpp">
+    <ClCompile Include="libGL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
@@ -147,9 +147,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="libGLESv2.rc" />
+    <ResourceCompile Include="libGL.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="libGLESv2.def" />
+    <None Include="libGL.def" />
   </ItemGroup>
 </Project>

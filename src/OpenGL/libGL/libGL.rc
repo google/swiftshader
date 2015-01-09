@@ -70,13 +70,13 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "FileDescription", "SwiftShader libGLESv2 Dynamic Link Library"
+            VALUE "FileDescription", "SwiftShader OpenGL Dynamic Link Library"
             VALUE "FileVersion", VERSION_STRING
-            VALUE "InternalName", "libGLESv2"
+            VALUE "InternalName", "libGL"
             VALUE "LegalCopyright", "Copyright (C) 2012 TransGaming Inc."
-            VALUE "OriginalFilename", "libGLESv2.dll"
+            VALUE "OriginalFilename", "opengl32.dll"
             VALUE "PrivateBuild", VERSION_STRING
-            VALUE "ProductName", "SwiftShader libGLESv2 Dynamic Link Library"
+            VALUE "ProductName", "SwiftShader openGL Dynamic Link Library"
             VALUE "ProductVersion", VERSION_STRING
         END
     END

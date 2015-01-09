@@ -11,8 +11,8 @@
 
 // utilities.h: Conversion functions and other utility routines.
 
-#ifndef LIBGLESV2_UTILITIES_H
-#define LIBGLESV2_UTILITIES_H
+#ifndef LIBGL_UTILITIES_H
+#define LIBGL_UTILITIES_H
 
 #include "Device.hpp"
 #include "Image.hpp"
@@ -83,4 +83,4 @@ namespace sw2es
 	GLenum ConvertDepthStencilFormat(sw::Format format);
 }
 
-#endif  // LIBGLESV2_UTILITIES_H
+#endif  // LIBGL_UTILITIES_H

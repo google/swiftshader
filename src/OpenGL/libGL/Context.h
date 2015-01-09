@@ -12,8 +12,8 @@
 // Context.h: Defines the Context class, managing all GL state and performing
 // rendering operations. It is the GLES2 specific implementation of EGLContext.
 
-#ifndef LIBGLESV2_CONTEXT_H_
-#define LIBGLESV2_CONTEXT_H_
+#ifndef LIBGL_CONTEXT_H_
+#define LIBGL_CONTEXT_H_
 
 #include "libEGL/Context.hpp"
 #include "ResourceManager.h"

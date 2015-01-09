@@ -11,8 +11,8 @@
 
 // main.h: Management of thread-local data.
 
-#ifndef LIBGLESV2_MAIN_H_
-#define LIBGLESV2_MAIN_H_
+#ifndef LIBGL_MAIN_H_
+#define LIBGL_MAIN_H_
 
 #include "Context.h"
 #include "Device.hpp"
@@ -61,4 +61,4 @@ namespace es1
 extern void *libEGL;       // Handle to the libEGL module
 extern void *libGLES_CM;   // Handle to the libGLES_CM module
 
-#endif   // LIBGLESV2_MAIN_H_
+#endif   // LIBGL_MAIN_H_

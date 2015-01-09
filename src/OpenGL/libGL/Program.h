@@ -12,8 +12,8 @@
 // Program.h: Defines the Program class. Implements GL program objects
 // and related functionality. [OpenGL ES 2.0.24] section 2.10.3 page 28.
 
-#ifndef LIBGLESV2_PROGRAM_H_
-#define LIBGLESV2_PROGRAM_H_
+#ifndef LIBGL_PROGRAM_H_
+#define LIBGL_PROGRAM_H_
 
 #include "Shader.h"
 #include "Context.h"
@@ -204,4 +204,4 @@ namespace es2
 	};
 }
 
-#endif   // LIBGLESV2_PROGRAM_H_
+#endif   // LIBGL_PROGRAM_H_

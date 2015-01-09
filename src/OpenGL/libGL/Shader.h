@@ -14,8 +14,8 @@
 // related functionality. [OpenGL ES 2.0.24] section 2.10 page 24 and section
 // 3.8 page 84.
 
-#ifndef LIBGLESV2_SHADER_H_
-#define LIBGLESV2_SHADER_H_
+#ifndef LIBGL_SHADER_H_
+#define LIBGL_SHADER_H_
 
 #include "ResourceManager.h"
 
@@ -157,4 +157,4 @@ private:
 };
 }
 
-#endif   // LIBGLESV2_SHADER_H_
+#endif   // LIBGL_SHADER_H_

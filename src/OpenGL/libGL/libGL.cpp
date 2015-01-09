@@ -8,7 +8,7 @@
 // agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
 // or implied, including but not limited to any patent rights, are granted to you.
 //
-// libGLESv2.cpp: Implements the exported OpenGL ES 2.0 functions.
+// libGL.cpp: Implements the exported OpenGL functions.
 
 #include "main.h"
 #include "mathutil.h"

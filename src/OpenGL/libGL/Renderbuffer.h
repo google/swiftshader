@@ -14,8 +14,8 @@
 // DepthStencilbuffer, Depthbuffer and Stencilbuffer. Implements GL renderbuffer
 // objects and related functionality. [OpenGL ES 2.0.24] section 4.4.3 page 108.
 
-#ifndef LIBGLESV2_RENDERBUFFER_H_
-#define LIBGLESV2_RENDERBUFFER_H_
+#ifndef LIBGL_RENDERBUFFER_H_
+#define LIBGL_RENDERBUFFER_H_
 
 #include "common/Object.hpp"
 #include "Image.hpp"
@@ -226,4 +226,4 @@ public:
 };
 }
 
-#endif   // LIBGLESV2_RENDERBUFFER_H_
+#endif   // LIBGL_RENDERBUFFER_H_
