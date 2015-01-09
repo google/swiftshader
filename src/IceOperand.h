@@ -75,13 +75,6 @@ public:
       dump(nullptr, Str);
   }
 
-  // Query whether this object was allocated in isolation, or added to
-  // some higher-level pool.  This determines whether a containing
-  // object's destructor should delete this object.  Generally,
-  // constants are pooled globally, variables are pooled per-CFG, and
-  // target-specific operands are not pooled.
-  virtual bool isPooled() const { return false; }
-
   virtual ~Operand() {}
 
 protected:
