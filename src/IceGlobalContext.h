@@ -33,7 +33,7 @@ class FuncSigType;
 // This class collects rudimentary statistics during translation.
 class CodeStats {
   CodeStats(const CodeStats &) = delete;
-  // CodeStats &operator=(const CodeStats &) = delete;
+  CodeStats &operator=(const CodeStats &) = default;
 
 public:
   CodeStats()
@@ -89,15 +89,6 @@ public:
   // translators using the same bitcode as input.
   IceString getTestPrefix() const { return TestPrefix; }
   IceString mangleName(const IceString &Name) const;
-
-  // The purpose of HasEmitted is to add a header comment at the
-  // beginning of assembly code emission, doing it once per file
-  // rather than once per function.
-  bool testAndSetHasEmittedFirstMethod() {
-    bool HasEmitted = HasEmittedFirstMethod;
-    HasEmittedFirstMethod = true;
-    return HasEmitted;
-  }
 
   // Manage Constants.
   // getConstant*() functions are not const because they might add
@@ -214,7 +205,6 @@ private:
   const OptLevel Opt;
   const IceString TestPrefix;
   const ClFlags &Flags;
-  bool HasEmittedFirstMethod;
   RandomNumberGenerator RNG;
   std::unique_ptr<ELFObjectWriter> ObjectWriter;
   CodeStats StatsFunction;

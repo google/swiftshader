@@ -141,12 +141,11 @@ typedef std::multimap<double, IceString> DumpMapType;
 void dumpHelper(Ostream &Str, const DumpMapType &Map, double TotalTime) {
   if (!ALLOW_DUMP)
     return;
-  // TODO(stichnot): Use llvm::make_range with LLVM 3.5.
-  for (auto I = Map.rbegin(), E = Map.rend(); I != E; ++I) {
+  for (auto &I : reverse_range(Map)) {
     char buf[80];
-    snprintf(buf, llvm::array_lengthof(buf), "  %10.6f (%4.1f%%): ", I->first,
-             I->first * 100 / TotalTime);
-    Str << buf << I->second << "\n";
+    snprintf(buf, llvm::array_lengthof(buf), "  %10.6f (%4.1f%%): ", I.first,
+             I.first * 100 / TotalTime);
+    Str << buf << I.second << "\n";
   }
 }
 

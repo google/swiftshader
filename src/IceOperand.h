@@ -282,12 +282,12 @@ private:
 // special value that represents infinite weight, and an addWeight()
 // method that ensures that W+infinity=infinity.
 class RegWeight {
-  // RegWeight(const RegWeight &) = delete;
-  // RegWeight &operator=(const RegWeight &) = delete;
 
 public:
   RegWeight() : Weight(0) {}
   RegWeight(uint32_t Weight) : Weight(Weight) {}
+  RegWeight(const RegWeight &) = default;
+  RegWeight &operator=(const RegWeight &) = default;
   const static uint32_t Inf = ~0; // Force regalloc to give a register
   const static uint32_t Zero = 0; // Force regalloc NOT to give a register
   void addWeight(uint32_t Delta) {
@@ -526,7 +526,6 @@ typedef std::vector<const Inst *, CfgLocalAllocator<const Inst *> > InstDefList;
 // VariableTracking tracks the metadata for a single variable.  It is
 // only meant to be used internally by VariablesMetadata.
 class VariableTracking {
-  // VariableTracking(const VariableTracking &) = delete;
   VariableTracking &operator=(const VariableTracking &) = delete;
 
 public:
@@ -545,6 +544,7 @@ public:
   VariableTracking()
       : MultiDef(MDS_Unknown), MultiBlock(MBS_Unknown), SingleUseNode(nullptr),
         SingleDefNode(nullptr), FirstOrSingleDefinition(nullptr) {}
+  VariableTracking(const VariableTracking &) = default;
   MultiDefState getMultiDef() const { return MultiDef; }
   MultiBlockState getMultiBlock() const { return MultiBlock; }
   const Inst *getFirstDefinition() const;

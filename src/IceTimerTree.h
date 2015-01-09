@@ -19,33 +19,30 @@
 
 namespace Ice {
 
-class TimerTreeNode;
-
-// Timer tree index type
-typedef std::vector<TimerTreeNode>::size_type TTindex;
-
-// TimerTreeNode represents an interior or leaf node in the call tree.
-// It contains a list of children, a pointer to its parent, and the
-// timer ID for the node.  It also holds the cumulative time spent at
-// this node and below.  The children are always at a higher index in
-// the TimerTreeNode::Nodes array, and the parent is always at a lower
-// index.
-class TimerTreeNode {
-  // TimerTreeNode(const TimerTreeNode &) = delete;
-  TimerTreeNode &operator=(const TimerTreeNode &) = delete;
-
-public:
-  TimerTreeNode() : Parent(0), Interior(0), Time(0), UpdateCount(0) {}
-  std::vector<TTindex> Children; // indexed by TimerIdT
-  TTindex Parent;
-  TimerIdT Interior;
-  double Time;
-  size_t UpdateCount;
-};
-
 class TimerStack {
-  // TimerStack(const TimerStack &) = delete;
   TimerStack &operator=(const TimerStack &) = delete;
+
+  // Timer tree index type
+  typedef std::vector<class TimerTreeNode>::size_type TTindex;
+
+  // TimerTreeNode represents an interior or leaf node in the call tree.
+  // It contains a list of children, a pointer to its parent, and the
+  // timer ID for the node.  It also holds the cumulative time spent at
+  // this node and below.  The children are always at a higher index in
+  // the TimerTreeNode::Nodes array, and the parent is always at a lower
+  // index.
+  class TimerTreeNode {
+    TimerTreeNode &operator=(const TimerTreeNode &) = delete;
+
+  public:
+    TimerTreeNode() : Parent(0), Interior(0), Time(0), UpdateCount(0) {}
+    TimerTreeNode(const TimerTreeNode &) = default;
+    std::vector<TTindex> Children; // indexed by TimerIdT
+    TTindex Parent;
+    TimerIdT Interior;
+    double Time;
+    size_t UpdateCount;
+  };
 
 public:
   enum TimerTag {
@@ -55,6 +52,7 @@ public:
         TT__num
   };
   TimerStack(const IceString &Name);
+  TimerStack(const TimerStack &) = default;
   TimerIdT getTimerID(const IceString &Name);
   void setName(const IceString &NewName) { Name = NewName; }
   void push(TimerIdT ID);

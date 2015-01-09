@@ -104,10 +104,6 @@ void CfgNode::placePhiLoads() {
 // Note that this transformation takes the Phi dest variables out of
 // SSA form, as there may be assignments to the dest variable in
 // multiple blocks.
-//
-// TODO: Defer this pass until after register allocation, then split
-// critical edges, add the assignments, and lower them.  This should
-// reduce the amount of shuffling at the end of each block.
 void CfgNode::placePhiStores() {
   // Find the insertion point.
   InstList::iterator InsertionPoint = Insts.end();
@@ -250,14 +246,13 @@ CfgNode *CfgNode::splitIncomingEdge(CfgNode *Pred, SizeT EdgeIndex) {
     }
   }
   assert(Found);
-  // Repoint a suitable branch instruction's target.
+  // Repoint a suitable branch instruction's target and return.
   Found = false;
-  for (auto I = Pred->getInsts().rbegin(), E = Pred->getInsts().rend();
-       !Found && I != E; ++I) {
-    if (!I->isDeleted()) {
-      Found = I->repointEdge(this, NewNode);
-    }
+  for (Inst &I : reverse_range(Pred->getInsts())) {
+    if (!I.isDeleted() && I.repointEdge(this, NewNode))
+      return NewNode;
   }
+  // This should be unreachable, so the assert will fail.
   assert(Found);
   return NewNode;
 }
@@ -533,11 +528,10 @@ void CfgNode::livenessLightweight() {
   SizeT NumVars = Func->getNumVariables();
   LivenessBV Live(NumVars);
   // Process regular instructions in reverse order.
-  // TODO(stichnot): Use llvm::make_range with LLVM 3.5.
-  for (auto I = Insts.rbegin(), E = Insts.rend(); I != E; ++I) {
-    if (I->isDeleted())
+  for (Inst &I : reverse_range(Insts)) {
+    if (I.isDeleted())
       continue;
-    I->livenessLightweight(Func, Live);
+    I.livenessLightweight(Func, Live);
   }
   for (Inst &I : Phis) {
     if (I.isDeleted())
@@ -579,10 +573,10 @@ bool CfgNode::liveness(Liveness *Liveness) {
   Liveness->getLiveOut(this) = Live;
 
   // Process regular instructions in reverse order.
-  for (auto I = Insts.rbegin(), E = Insts.rend(); I != E; ++I) {
-    if (I->isDeleted())
+  for (Inst &I : reverse_range(Insts)) {
+    if (I.isDeleted())
       continue;
-    I->liveness(I->getNumber(), Live, Liveness, LiveBegin, LiveEnd);
+    I.liveness(I.getNumber(), Live, Liveness, LiveBegin, LiveEnd);
   }
   // Process phis in forward order so that we can override the
   // instruction number to be that of the earliest phi instruction in

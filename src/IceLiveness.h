@@ -25,39 +25,37 @@
 
 namespace Ice {
 
-class LivenessNode {
-  // TODO: Disable these constructors when Liveness::Nodes is no
-  // longer an STL container.
-  // LivenessNode(const LivenessNode &) = delete;
-  // LivenessNode &operator=(const LivenessNode &) = delete;
-
-public:
-  LivenessNode() : NumLocals(0), NumNonDeadPhis(0) {}
-  // NumLocals is the number of Variables local to this block.
-  SizeT NumLocals;
-  // NumNonDeadPhis tracks the number of Phi instructions that
-  // Inst::liveness() identified as tentatively live.  If
-  // NumNonDeadPhis changes from the last liveness pass, then liveness
-  // has not yet converged.
-  SizeT NumNonDeadPhis;
-  // LiveToVarMap maps a liveness bitvector index to a Variable.  This
-  // is generally just for printing/dumping.  The index should be less
-  // than NumLocals + Liveness::NumGlobals.
-  std::vector<Variable *> LiveToVarMap;
-  // LiveIn and LiveOut track the in- and out-liveness of the global
-  // variables.  The size of each vector is
-  // LivenessNode::NumGlobals.
-  LivenessBV LiveIn, LiveOut;
-  // LiveBegin and LiveEnd track the instruction numbers of the start
-  // and end of each variable's live range within this block.  The
-  // index/key of each element is less than NumLocals +
-  // Liveness::NumGlobals.
-  LiveBeginEndMap LiveBegin, LiveEnd;
-};
-
 class Liveness {
   Liveness(const Liveness &) = delete;
   Liveness &operator=(const Liveness &) = delete;
+
+  class LivenessNode {
+    LivenessNode &operator=(const LivenessNode &) = delete;
+
+  public:
+    LivenessNode() : NumLocals(0), NumNonDeadPhis(0) {}
+    LivenessNode(const LivenessNode &) = default;
+    // NumLocals is the number of Variables local to this block.
+    SizeT NumLocals;
+    // NumNonDeadPhis tracks the number of Phi instructions that
+    // Inst::liveness() identified as tentatively live.  If
+    // NumNonDeadPhis changes from the last liveness pass, then liveness
+    // has not yet converged.
+    SizeT NumNonDeadPhis;
+    // LiveToVarMap maps a liveness bitvector index to a Variable.  This
+    // is generally just for printing/dumping.  The index should be less
+    // than NumLocals + Liveness::NumGlobals.
+    std::vector<Variable *> LiveToVarMap;
+    // LiveIn and LiveOut track the in- and out-liveness of the global
+    // variables.  The size of each vector is
+    // LivenessNode::NumGlobals.
+    LivenessBV LiveIn, LiveOut;
+    // LiveBegin and LiveEnd track the instruction numbers of the start
+    // and end of each variable's live range within this block.  The
+    // index/key of each element is less than NumLocals +
+    // Liveness::NumGlobals.
+    LiveBeginEndMap LiveBegin, LiveEnd;
+  };
 
 public:
   Liveness(Cfg *Func, LivenessMode Mode)

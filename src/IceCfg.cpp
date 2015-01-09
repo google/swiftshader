@@ -269,8 +269,7 @@ void Cfg::liveness(LivenessMode Mode) {
   llvm::BitVector NeedToProcess(Nodes.size(), true);
   while (NeedToProcess.any()) {
     // Iterate in reverse topological order to speed up convergence.
-    for (auto I = Nodes.rbegin(), E = Nodes.rend(); I != E; ++I) {
-      CfgNode *Node = *I;
+    for (CfgNode *Node : reverse_range(Nodes)) {
       if (NeedToProcess[Node->getIndex()]) {
         NeedToProcess[Node->getIndex()] = false;
         bool Changed = Node->liveness(getLiveness());
@@ -442,16 +441,6 @@ void Cfg::emit() {
     dump("After recomputing liveness for -decorate-asm");
   }
   Ostream &Str = Ctx->getStrEmit();
-  if (!Ctx->testAndSetHasEmittedFirstMethod()) {
-    // Print a helpful command for assembling the output.
-    // TODO: have the Target emit the header
-    // TODO: need a per-file emit in addition to per-CFG
-    Str << "# $LLVM_BIN_PATH/llvm-mc"
-        << " -arch=x86"
-        << " -filetype=obj"
-        << " -o=MyObj.o"
-        << "\n\n";
-  }
   IceString MangledName = getContext()->mangleName(getFunctionName());
   emitTextHeader(MangledName);
   for (CfgNode *Node : Nodes)

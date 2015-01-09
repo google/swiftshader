@@ -112,10 +112,7 @@ inline StreamType &operator<<(StreamType &Str, const Type &Ty) {
 }
 
 /// Models a type signature for a function.
-/// TODO(kschimpf): Consider using arena memory allocation for
-/// the contents of type signatures.
 class FuncSigType {
-  // FuncSigType(const FuncSigType &Ty) = delete;
   FuncSigType &operator=(const FuncSigType &Ty) = delete;
 public:
   typedef std::vector<Type> ArgListType;
@@ -123,6 +120,7 @@ public:
   // Creates a function signature type with the given return type.
   // Parameter types should be added using calls to appendArgType.
   FuncSigType() : ReturnType(IceType_void) {}
+  FuncSigType(const FuncSigType &Ty) = default;
 
   void appendArgType(Type ArgType) { ArgList.push_back(ArgType); }
 

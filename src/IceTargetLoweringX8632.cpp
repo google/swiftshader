@@ -13,7 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/ADT/DenseMap.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/MathExtras.h"
 
@@ -927,7 +926,6 @@ void TargetX8632::addProlog(CfgNode *Node) {
 void TargetX8632::addEpilog(CfgNode *Node) {
   InstList &Insts = Node->getInsts();
   InstList::reverse_iterator RI, E;
-  // TODO(stichnot): Use llvm::make_range with LLVM 3.5.
   for (RI = Insts.rbegin(), E = Insts.rend(); RI != E; ++RI) {
     if (llvm::isa<InstX8632Ret>(*RI))
       break;
@@ -4242,9 +4240,9 @@ void TargetX8632::lowerPhiAssignments(CfgNode *Node,
   // register set, and the lowered instruction numbers may be out of
   // order, but that can be worked around by renumbering the block
   // afterwards if necessary.
-  for (auto I = Assignments.rbegin(), E = Assignments.rend(); I != E; ++I) {
+  for (const Inst &I : reverse_range(Assignments)) {
     Context.rewind();
-    auto Assign = llvm::dyn_cast<InstAssign>(&*I);
+    auto Assign = llvm::dyn_cast<InstAssign>(&I);
     Variable *Dest = Assign->getDest();
     Operand *Src = Assign->getSrc(0);
     Variable *SrcVar = llvm::dyn_cast<Variable>(Src);

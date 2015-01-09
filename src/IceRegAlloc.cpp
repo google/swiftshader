@@ -494,9 +494,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     // complexity.
     llvm::SmallBitVector PrecoloredUnhandledMask(RegMask.size());
     // Note: PrecoloredUnhandledMask is only used for dumping.
-    for (auto I = UnhandledPrecolored.rbegin(), E = UnhandledPrecolored.rend();
-         I != E; ++I) {
-      Variable *Item = *I;
+    for (Variable *Item : reverse_range(UnhandledPrecolored)) {
       assert(Item->hasReg());
       if (Cur->rangeEndsBefore(Item))
         break;
@@ -731,8 +729,8 @@ void LinearScan::dump(Cfg *Func) const {
     Str << "\n";
   }
   Str << "++++++ Unhandled:\n";
-  for (auto I = Unhandled.rbegin(), E = Unhandled.rend(); I != E; ++I) {
-    dumpLiveRange(*I, Func);
+  for (const Variable *Item : reverse_range(Unhandled)) {
+    dumpLiveRange(Item, Func);
     Str << "\n";
   }
   Str << "++++++ Active:\n";

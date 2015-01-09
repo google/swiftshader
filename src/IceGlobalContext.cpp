@@ -130,8 +130,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
                              IceString TestPrefix, const ClFlags &Flags)
     : StrDump(OsDump), StrEmit(OsEmit), VMask(Mask),
       ConstPool(new ConstantPool()), Arch(Arch), Opt(Opt),
-      TestPrefix(TestPrefix), Flags(Flags), HasEmittedFirstMethod(false),
-      RNG(""), ObjectWriter() {
+      TestPrefix(TestPrefix), Flags(Flags), RNG(""), ObjectWriter() {
   // Pre-register built-in stack names.
   if (ALLOW_DUMP) {
     newTimerStackID("Total across all functions");

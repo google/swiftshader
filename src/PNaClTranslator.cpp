@@ -49,13 +49,13 @@ static cl::opt<bool> AllowErrorRecovery(
 // Use methods setAsSimpleType and setAsFuncSigType to define
 // the extended type.
 class ExtendedType {
-  // ExtendedType(const ExtendedType &Ty) = delete;
   ExtendedType &operator=(const ExtendedType &Ty) = delete;
 public:
   /// Discriminator for LLVM-style RTTI.
   enum TypeKind { Undefined, Simple, FuncSig };
 
   ExtendedType() : Kind(Undefined) {}
+  ExtendedType(const ExtendedType &Ty) = default;
 
   virtual ~ExtendedType() {}
 

@@ -29,6 +29,7 @@
 #include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/ilist.h"
 #include "llvm/ADT/ilist_node.h"
+#include "llvm/ADT/iterator_range.h"
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/STLExtras.h"
@@ -156,6 +157,17 @@ typedef uint32_t VerboseMask;
 
 typedef llvm::raw_ostream Ostream;
 typedef llvm::raw_fd_ostream Fdstream;
+
+// Reverse range adaptors written in terms of llvm::make_range().
+template <typename T>
+llvm::iterator_range<typename T::const_reverse_iterator>
+reverse_range(const T &Container) {
+  return llvm::make_range(Container.rbegin(), Container.rend());
+}
+template <typename T>
+llvm::iterator_range<typename T::reverse_iterator> reverse_range(T &Container) {
+  return llvm::make_range(Container.rbegin(), Container.rend());
+}
 
 } // end of namespace Ice
 
