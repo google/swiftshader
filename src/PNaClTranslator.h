@@ -19,6 +19,10 @@
 
 #include "IceTranslator.h"
 
+namespace llvm {
+class MemoryBuffer;
+} // end of namespace llvm
+
 namespace Ice {
 
 class PNaClTranslator : public Translator {
@@ -28,10 +32,15 @@ class PNaClTranslator : public Translator {
 public:
   PNaClTranslator(GlobalContext *Ctx, const ClFlags &Flags)
       : Translator(Ctx, Flags) {}
+
   // Reads the PNaCl bitcode file and translates to ICE, which is then
   // converted to machine code. Sets ErrorStatus to true if any
   // errors occurred.
   void translate(const std::string &IRFilename);
+
+  // Reads MemBuf, assuming it is the PNaCl bitcode contents of IRFilename.
+  void translateBuffer(const std::string &IRFilename,
+                       llvm::MemoryBuffer *MemBuf);
 };
 
 } // end of namespace Ice

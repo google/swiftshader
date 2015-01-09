@@ -27,6 +27,7 @@ public:
         UseSandboxing(false), PhiEdgeSplit(false), DecorateAsm(false),
         DumpStats(false), AllowUninitializedGlobals(false),
         TimeEachFunction(false), DisableIRGeneration(false),
+        AllowErrorRecovery(false), GenerateUnitTestMessages(false),
         DefaultGlobalPrefix(""), DefaultFunctionPrefix(""), TimingFocusOn(""),
         VerboseFocusOn(""), TranslateOnly("") {}
   bool DisableInternal;
@@ -43,6 +44,8 @@ public:
   bool AllowUninitializedGlobals;
   bool TimeEachFunction;
   bool DisableIRGeneration;
+  bool AllowErrorRecovery;
+  bool GenerateUnitTestMessages;
   IceString DefaultGlobalPrefix;
   IceString DefaultFunctionPrefix;
   IceString TimingFocusOn;

@@ -167,6 +167,10 @@ static cl::opt<bool>
                 cl::desc("Build ICE instructions when reading bitcode"),
                 cl::init(true));
 
+static cl::opt<bool> AllowErrorRecovery(
+    "allow-pnacl-reader-error-recovery",
+    cl::desc("Allow error recovery when reading PNaCl bitcode."),
+    cl::init(false));
 
 static cl::opt<bool>
 LLVMVerboseErrors(
@@ -297,6 +301,7 @@ int main(int argc, char **argv) {
   Flags.VerboseFocusOn = VerboseFocusOn;
   Flags.TranslateOnly = TranslateOnly;
   Flags.DisableIRGeneration = DisableIRGeneration;
+  Flags.AllowErrorRecovery = AllowErrorRecovery;
 
   // Force -build-on-read=0 for .ll files.
   const std::string LLSuffix = ".ll";

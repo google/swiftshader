@@ -37,12 +37,6 @@
 namespace {
 using namespace llvm;
 
-// TODO(kschimpf) Remove error recovery once implementation complete.
-static cl::opt<bool> AllowErrorRecovery(
-    "allow-pnacl-reader-error-recovery",
-    cl::desc("Allow error recovery when reading PNaCl bitcode."),
-    cl::init(false));
-
 // Models elements in the list of types defined in the types block.
 // These elements can be undefined, a (simple) type, or a function type
 // signature. Note that an extended type is undefined on construction.
@@ -440,7 +434,7 @@ bool TopLevelParser::Error(const std::string &Message) {
   ErrorStatus = true;
   ++NumErrors;
   NaClBitcodeParser::Error(Message);
-  if (!AllowErrorRecovery)
+  if (!Translator.getFlags().AllowErrorRecovery)
     report_fatal_error("Unable to continue");
   return true;
 }
@@ -612,10 +606,11 @@ bool BlockParserBaseClass::Error(const std::string &Message) {
   StrBuf << "(" << format("%" PRIu64 ":%u", (Bit / 8),
                           static_cast<unsigned>(Bit % 8)) << ") ";
   // Note: If dump routines have been turned off, the error messages
-  // will not be readable. Hence, replace with simple error.
-  if (ALLOW_DUMP)
+  // will not be readable. Hence, replace with simple error. We also
+  // use the simple form for unit tests.
+  if (ALLOW_DUMP && !getFlags().GenerateUnitTestMessages) {
     StrBuf << Message;
-  else {
+  } else {
     StrBuf << "Invalid " << getBlockName() << " record: <" << Record.GetCode();
     for (const uint64_t Val : Record.GetValues()) {
       StrBuf << " " << Val;
@@ -2967,6 +2962,11 @@ void PNaClTranslator::translate(const std::string &IRFilename) {
   }
 
   std::unique_ptr<MemoryBuffer> MemBuf(ErrOrFile.get().release());
+  translateBuffer(IRFilename, MemBuf.get());
+}
+
+void PNaClTranslator::translateBuffer(const std::string &IRFilename,
+                                      MemoryBuffer *MemBuf) {
   if (MemBuf->getBufferSize() % 4 != 0) {
     errs() << IRFilename
            << ": Bitcode stream should be a multiple of 4 bytes in length.\n";
