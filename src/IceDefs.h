@@ -106,7 +106,8 @@ typedef int32_t InstNumberT;
 // Inst::Number value, giving the instruction number that begins or
 // ends a variable's live range.
 typedef std::pair<SizeT, InstNumberT> LiveBeginEndMapEntry;
-typedef std::vector<LiveBeginEndMapEntry> LiveBeginEndMap;
+typedef std::vector<LiveBeginEndMapEntry,
+                    CfgLocalAllocator<LiveBeginEndMapEntry> > LiveBeginEndMap;
 typedef llvm::BitVector LivenessBV;
 
 typedef uint32_t TimerStackIdT;
