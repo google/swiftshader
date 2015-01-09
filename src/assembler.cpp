@@ -124,14 +124,7 @@ void Assembler::emitIASBytes(GlobalContext *Ctx) const {
       Str << "\n";
     }
     Str << "\t.long ";
-    const ConstantRelocatable *Reloc = NextFixup->value();
-    if (Reloc->getSuppressMangling())
-      Str << Reloc->getName();
-    else
-      Str << Ctx->mangleName(Reloc->getName());
-    if (Reloc->getOffset()) {
-      Str << " + " << Reloc->getOffset();
-    }
+    NextFixup->emit(Ctx);
     bool IsPCRel = NextFixup->kind() == FK_PcRel_4;
     if (IsPCRel)
       Str << " - (. + " << FixupSize << ")";
@@ -145,6 +138,36 @@ void Assembler::emitIASBytes(GlobalContext *Ctx) const {
     Str.write_hex(buffer_.Load<uint8_t>(i));
     Str << "\n";
   }
+}
+
+RelocOffsetT AssemblerFixup::offset() const {
+  if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(value_))
+    return CR->getOffset();
+  return 0;
+}
+
+IceString AssemblerFixup::symbol(GlobalContext *Ctx) const {
+  std::string Buffer;
+  llvm::raw_string_ostream Str(Buffer);
+  const Constant *C = value_;
+  if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(C)) {
+    if (CR->getSuppressMangling())
+      Str << CR->getName();
+    else
+      Str << Ctx->mangleName(CR->getName());
+  } else {
+    assert(llvm::isa<ConstantFloat>(C) || llvm::isa<ConstantDouble>(C));
+    C->emitPoolLabel(Str);
+  }
+  return Str.str();
+}
+
+void AssemblerFixup::emit(GlobalContext *Ctx) const {
+  Ostream &Str = Ctx->getStrEmit();
+  Str << symbol(Ctx);
+  RelocOffsetT Offset = offset();
+  if (Offset)
+    Str << " + " << Offset;
 }
 
 } // end of namespace Ice

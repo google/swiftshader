@@ -51,16 +51,20 @@ public:
 
   FixupKind kind() const { return kind_; }
 
-  const ConstantRelocatable *value() const { return value_; }
+  RelocOffsetT offset() const;
+
+  IceString symbol(GlobalContext *Ctx) const;
+
+  void emit(GlobalContext *Ctx) const;
 
 protected:
-  AssemblerFixup(FixupKind Kind, const ConstantRelocatable *Value)
+  AssemblerFixup(FixupKind Kind, const Constant *Value)
       : position_(0), kind_(Kind), value_(Value) {}
 
 private:
   intptr_t position_;
   FixupKind kind_;
-  const ConstantRelocatable *value_;
+  const Constant *value_;
 
   void set_position(intptr_t position) { position_ = position; }
 
@@ -230,7 +234,7 @@ public:
   void emitIASBytes(GlobalContext *Ctx) const;
 
 private:
-  ArenaAllocator Allocator;
+  ArenaAllocator<32 * 1024> Allocator;
 
 protected:
   AssemblerBuffer buffer_;

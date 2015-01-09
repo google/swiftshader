@@ -101,7 +101,9 @@ class Constant : public Operand {
   Constant &operator=(const Constant &) = delete;
 
 public:
-  uint32_t getPoolEntryID() const { return PoolEntryID; }
+  void emitPoolLabel(Ostream &Str) const {
+    Str << ".L$" << getType() << "$" << PoolEntryID;
+  }
   using Operand::dump;
   void emit(const Cfg *Func) const override { emit(Func->getContext()); }
   virtual void emit(GlobalContext *Ctx) const = 0;

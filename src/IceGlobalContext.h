@@ -197,7 +197,7 @@ private:
   Ostream *StrDump; // Stream for dumping / diagnostics
   Ostream *StrEmit; // Stream for code emission
 
-  ArenaAllocator Allocator;
+  ArenaAllocator<> Allocator;
   VerboseMask VMask;
   std::unique_ptr<class ConstantPool> ConstPool;
   Intrinsics IntrinsicsInfo;

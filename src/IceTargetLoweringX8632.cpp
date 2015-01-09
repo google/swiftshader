@@ -1013,8 +1013,8 @@ template <typename T> void TargetX8632::emitConstantPool() const {
     assert(CharsPrinted >= 0 &&
            (size_t)CharsPrinted < llvm::array_lengthof(buf));
     (void)CharsPrinted; // avoid warnings if asserts are disabled
-    Str << ".L$" << Ty << "$" << Const->getPoolEntryID() << ":\n";
-    Str << "\t" << T::AsmTag << "\t" << buf << "\t# " << T::TypeName << " "
+    Const->emitPoolLabel(Str);
+    Str << ":\n\t" << T::AsmTag << "\t" << buf << "\t# " << T::TypeName << " "
         << Value << "\n";
   }
 }
@@ -4610,14 +4610,14 @@ template <> void ConstantFloat::emit(GlobalContext *Ctx) const {
   if (!ALLOW_DUMP)
     return;
   Ostream &Str = Ctx->getStrEmit();
-  Str << ".L$" << IceType_f32 << "$" << getPoolEntryID();
+  emitPoolLabel(Str);
 }
 
 template <> void ConstantDouble::emit(GlobalContext *Ctx) const {
   if (!ALLOW_DUMP)
     return;
   Ostream &Str = Ctx->getStrEmit();
-  Str << ".L$" << IceType_f64 << "$" << getPoolEntryID();
+  emitPoolLabel(Str);
 }
 
 void ConstantUndef::emit(GlobalContext *) const {

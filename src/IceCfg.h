@@ -43,7 +43,7 @@ public:
   // Gets a pointer to the current thread's Cfg.
   static const Cfg *getCurrentCfg() { return CurrentCfg; }
   // Gets a pointer to the current thread's Cfg's allocator.
-  static ArenaAllocator *getCurrentCfgAllocator() {
+  static ArenaAllocator<> *getCurrentCfgAllocator() {
     assert(CurrentCfg);
     return CurrentCfg->Allocator.get();
   }
@@ -197,7 +197,7 @@ private:
   VarList Variables;
   VarList Args; // subset of Variables, in argument order
   VarList ImplicitArgs; // subset of Variables
-  std::unique_ptr<ArenaAllocator> Allocator;
+  std::unique_ptr<ArenaAllocator<>> Allocator;
   std::unique_ptr<Liveness> Live;
   std::unique_ptr<TargetLowering> Target;
   std::unique_ptr<VariablesMetadata> VMetadata;

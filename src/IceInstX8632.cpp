@@ -587,7 +587,8 @@ void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
   } else if (const auto Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
     AssemblerFixup *Fixup =
         x86::DisplacementRelocation::create(Asm, FK_Abs_4, Reloc);
-    (Asm->*(Emitter.GPRImm))(Ty, VarReg, x86::Immediate(Fixup));
+    (Asm->*(Emitter.GPRImm))(Ty, VarReg,
+                             x86::Immediate(Reloc->getOffset(), Fixup));
   } else if (const auto Split = llvm::dyn_cast<VariableSplit>(Src)) {
     (Asm->*(Emitter.GPRAddr))(Ty, VarReg, Split->toAsmAddress(Func));
   } else {
@@ -610,7 +611,8 @@ void emitIASAddrOpTyGPR(const Cfg *Func, Type Ty, const x86::Address &Addr,
   } else if (const auto Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
     AssemblerFixup *Fixup =
         x86::DisplacementRelocation::create(Asm, FK_Abs_4, Reloc);
-    (Asm->*(Emitter.AddrImm))(Ty, Addr, x86::Immediate(Fixup));
+    (Asm->*(Emitter.AddrImm))(Ty, Addr,
+                              x86::Immediate(Reloc->getOffset(), Fixup));
   } else {
     llvm_unreachable("Unexpected operand type");
   }
@@ -727,8 +729,7 @@ void emitIASRegOpTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
     assert(Mem->getSegmentRegister() == OperandX8632Mem::DefaultSegment);
     (Asm->*(Emitter.XmmAddr))(Ty, VarReg, Mem->toAsmAddress(Asm));
   } else if (const auto Imm = llvm::dyn_cast<Constant>(Src)) {
-    (Asm->*(Emitter.XmmAddr))(
-        Ty, VarReg, x86::Address::ofConstPool(Func->getContext(), Asm, Imm));
+    (Asm->*(Emitter.XmmAddr))(Ty, VarReg, x86::Address::ofConstPool(Asm, Imm));
   } else {
     llvm_unreachable("Unexpected operand type");
   }
@@ -2319,7 +2320,7 @@ void InstX8632Fld::emitIAS(const Cfg *Func) const {
     assert(Mem->getSegmentRegister() == OperandX8632Mem::DefaultSegment);
     Asm->fld(Ty, Mem->toAsmAddress(Asm));
   } else if (const auto Imm = llvm::dyn_cast<Constant>(Src)) {
-    Asm->fld(Ty, x86::Address::ofConstPool(Func->getContext(), Asm, Imm));
+    Asm->fld(Ty, x86::Address::ofConstPool(Asm, Imm));
   } else {
     llvm_unreachable("Unexpected operand type");
   }
@@ -2849,6 +2850,7 @@ x86::Address OperandX8632Mem::toAsmAddress(Assembler *Asm) const {
       Disp = static_cast<int32_t>(CI->getValue());
     } else if (const auto CR =
                    llvm::dyn_cast<ConstantRelocatable>(getOffset())) {
+      Disp = CR->getOffset();
       Fixup = x86::DisplacementRelocation::create(Asm, FK_Abs_4, CR);
     } else {
       llvm_unreachable("Unexpected offset type");
@@ -2866,9 +2868,7 @@ x86::Address OperandX8632Mem::toAsmAddress(Assembler *Asm) const {
     return x86::Address(RegX8632::getEncodedGPR(getIndex()->getRegNum()),
                         x86::ScaleFactor(getShift()), Disp);
   } else if (Fixup) {
-    // The fixup itself has an offset, so Disp should still be 0.
-    assert(Disp == 0);
-    return x86::Address::Absolute(Fixup);
+    return x86::Address::Absolute(Disp, Fixup);
   } else {
     return x86::Address::Absolute(Disp);
   }

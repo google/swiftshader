@@ -58,10 +58,11 @@ class Variable;
 class VariableDeclaration;
 class VariablesMetadata;
 
-typedef llvm::BumpPtrAllocatorImpl<llvm::MallocAllocator, 1024 * 1024>
-ArenaAllocator;
+template <size_t SlabSize = 1024 * 1024>
+using ArenaAllocator =
+    llvm::BumpPtrAllocatorImpl<llvm::MallocAllocator, SlabSize>;
 
-ArenaAllocator *getCurrentCfgAllocator();
+ArenaAllocator<> *getCurrentCfgAllocator();
 
 template <typename T> struct CfgLocalAllocator {
   using value_type = T;

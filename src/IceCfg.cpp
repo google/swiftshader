@@ -25,7 +25,7 @@ namespace Ice {
 
 thread_local const Cfg *Cfg::CurrentCfg = nullptr;
 
-ArenaAllocator *getCurrentCfgAllocator() {
+ArenaAllocator<> *getCurrentCfgAllocator() {
   return Cfg::getCurrentCfgAllocator();
 }
 
@@ -33,7 +33,7 @@ Cfg::Cfg(GlobalContext *Ctx)
     : Ctx(Ctx), FunctionName(""), ReturnType(IceType_void),
       IsInternalLinkage(false), HasError(false), FocusedTiming(false),
       ErrorMessage(""), Entry(nullptr), NextInstNumber(Inst::NumberInitial),
-      Allocator(new ArenaAllocator()), Live(nullptr),
+      Allocator(new ArenaAllocator<>()), Live(nullptr),
       Target(TargetLowering::createLowering(Ctx->getTargetArch(), this)),
       VMetadata(new VariablesMetadata(this)),
       TargetAssembler(

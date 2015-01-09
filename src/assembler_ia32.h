@@ -51,13 +51,13 @@ class DisplacementRelocation : public AssemblerFixup {
 
 public:
   static DisplacementRelocation *create(Assembler *Asm, FixupKind Kind,
-                                        const ConstantRelocatable *Sym) {
+                                        const Constant *Sym) {
     return new (Asm->Allocate<DisplacementRelocation>())
         DisplacementRelocation(Kind, Sym);
   }
 
 private:
-  DisplacementRelocation(FixupKind Kind, const ConstantRelocatable *Sym)
+  DisplacementRelocation(FixupKind Kind, const Constant *Sym)
       : AssemblerFixup(Kind, Sym) {}
 };
 
@@ -68,8 +68,8 @@ class Immediate {
 public:
   explicit Immediate(int32_t value) : value_(value), fixup_(nullptr) {}
 
-  explicit Immediate(AssemblerFixup *fixup)
-      : value_(fixup->value()->getOffset()), fixup_(fixup) {
+  Immediate(RelocOffsetT offset, AssemblerFixup *fixup)
+      : value_(offset), fixup_(fixup) {
     // Use the Offset in the "value" for now. If the symbol is part of
     // ".bss", then the relocation's symbol will be plain ".bss" and
     // the value will need to be adjusted further to be sym's
@@ -250,20 +250,19 @@ public:
     return result;
   }
 
-  static Address Absolute(AssemblerFixup *fixup) {
+  static Address Absolute(RelocOffsetT Offset, AssemblerFixup *fixup) {
     Address result;
     result.SetModRM(0, RegX8632::Encoded_Reg_ebp);
     // Use the Offset in the displacement for now. If the symbol is part of
     // ".bss", then the relocation's symbol will be plain .bss and the
     // displacement will need to be adjusted further to be sym's
     // bss offset + Offset.
-    result.SetDisp32(fixup->value()->getOffset());
+    result.SetDisp32(Offset);
     result.SetFixup(fixup);
     return result;
   }
 
-  static Address ofConstPool(GlobalContext *Ctx, Assembler *Asm,
-                             const Constant *Imm);
+  static Address ofConstPool(Assembler *Asm, const Constant *Imm);
 
 private:
   Address() {} // Needed by Address::Absolute.

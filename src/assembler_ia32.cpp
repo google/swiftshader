@@ -31,31 +31,21 @@ class DirectCallRelocation : public AssemblerFixup {
 
 public:
   static DirectCallRelocation *create(Assembler *Asm, FixupKind Kind,
-                                      const ConstantRelocatable *Sym) {
+                                      const Constant *Sym) {
     return new (Asm->Allocate<DirectCallRelocation>())
         DirectCallRelocation(Kind, Sym);
   }
 
 private:
-  DirectCallRelocation(FixupKind Kind, const ConstantRelocatable *Sym)
+  DirectCallRelocation(FixupKind Kind, const Constant *Sym)
       : AssemblerFixup(Kind, Sym) {}
 };
 
-Address Address::ofConstPool(GlobalContext *Ctx, Assembler *Asm,
-                             const Constant *Imm) {
-  // We should make this much lighter-weight. E.g., just record the const pool
-  // entry ID.
-  std::string Buffer;
-  llvm::raw_string_ostream StrBuf(Buffer);
-  Type Ty = Imm->getType();
-  assert(llvm::isa<ConstantFloat>(Imm) || llvm::isa<ConstantDouble>(Imm));
-  StrBuf << ".L$" << Ty << "$" << Imm->getPoolEntryID();
+Address Address::ofConstPool(Assembler *Asm, const Constant *Imm) {
+  AssemblerFixup *Fixup =
+      x86::DisplacementRelocation::create(Asm, FK_Abs_4, Imm);
   const RelocOffsetT Offset = 0;
-  const bool SuppressMangling = true;
-  Constant *Sym = Ctx->getConstantSym(Offset, StrBuf.str(), SuppressMangling);
-  AssemblerFixup *Fixup = x86::DisplacementRelocation::create(
-      Asm, FK_Abs_4, llvm::cast<ConstantRelocatable>(Sym));
-  return x86::Address::Absolute(Fixup);
+  return x86::Address::Absolute(Offset, Fixup);
 }
 
 AssemblerX86::~AssemblerX86() {
