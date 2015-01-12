@@ -24,6 +24,10 @@ namespace Ice {
 
 namespace {
 
+// TODO(stichnot): Statically choose the size based on the target
+// being compiled.
+const size_t REGS_SIZE = 32;
+
 // Returns true if Var has any definitions within Item's live range.
 // TODO(stichnot): Consider trimming the Definitions list similar to
 // how the live ranges are trimmed, since all the overlapsDefs() tests
@@ -280,7 +284,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
   // RegUses[I] is the number of live ranges (variables) that register
   // I is currently assigned to.  It can be greater than 1 as a result
   // of AllowOverlap inference below.
-  std::vector<int> RegUses(NumRegisters);
+  llvm::SmallVector<int, REGS_SIZE> RegUses(NumRegisters);
   // Unhandled is already set to all ranges in increasing order of
   // start points.
   assert(Active.empty());
@@ -484,7 +488,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
       }
     }
 
-    std::vector<RegWeight> Weights(RegMask.size());
+    llvm::SmallVector<RegWeight, REGS_SIZE> Weights(RegMask.size());
 
     // Remove registers from the Free[] list where an Unhandled
     // precolored range overlaps with the current range, and set those
@@ -666,9 +670,6 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
   Inactive.clear();
   dump(Func);
 
-  // TODO(stichnot): Statically choose the size based on the target
-  // being compiled.
-  const size_t REGS_SIZE = 32;
   llvm::SmallVector<int32_t, REGS_SIZE> Permutation(NumRegisters);
   if (Randomized) {
     Func->getTarget()->makeRandomRegisterPermutation(
