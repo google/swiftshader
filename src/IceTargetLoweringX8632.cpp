@@ -20,6 +20,7 @@
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
+#include "IceELFObjectWriter.h"
 #include "IceGlobalInits.h"
 #include "IceInstX8632.h"
 #include "IceLiveness.h"

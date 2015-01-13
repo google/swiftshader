@@ -28,49 +28,6 @@
 
 namespace Ice {
 
-// Forward declarations.
-class Assembler;
-class AssemblerFixup;
-class AssemblerBuffer;
-class ConstantRelocatable;
-
-// Assembler fixups are positions in generated code that hold relocation
-// information that needs to be processed before finalizing the code
-// into executable memory.
-class AssemblerFixup {
-  AssemblerFixup(const AssemblerFixup &) = delete;
-  AssemblerFixup &operator=(const AssemblerFixup &) = delete;
-
-public:
-
-  // It would be ideal if the destructor method could be made private,
-  // but the g++ compiler complains when this is subclassed.
-  virtual ~AssemblerFixup() { llvm_unreachable("~AssemblerFixup used"); }
-
-  intptr_t position() const { return position_; }
-
-  FixupKind kind() const { return kind_; }
-
-  RelocOffsetT offset() const;
-
-  IceString symbol(GlobalContext *Ctx) const;
-
-  void emit(GlobalContext *Ctx) const;
-
-protected:
-  AssemblerFixup(FixupKind Kind, const Constant *Value)
-      : position_(0), kind_(Kind), value_(Value) {}
-
-private:
-  intptr_t position_;
-  FixupKind kind_;
-  const Constant *value_;
-
-  void set_position(intptr_t position) { position_ = position; }
-
-  friend class AssemblerBuffer;
-};
-
 // Assembler buffers are used to emit binary code. They grow on demand.
 class AssemblerBuffer {
   AssemblerBuffer(const AssemblerBuffer &) = delete;
@@ -102,7 +59,6 @@ public:
   // Emit a fixup at the current location.
   void EmitFixup(AssemblerFixup *fixup) {
     fixup->set_position(Size());
-    fixups_.push_back(fixup);
   }
 
   // Get the size of the emitted code.
@@ -156,10 +112,10 @@ public:
   // Returns the position in the instruction stream.
   intptr_t GetPosition() const { return cursor_ - contents_; }
 
-  // List of pool-allocated fixups.
-  typedef std::vector<AssemblerFixup *> FixupList;
-  FixupList::const_iterator fixups_begin() const { return fixups_.begin(); }
-  FixupList::const_iterator fixups_end() const { return fixups_.end(); }
+  // Create and track a fixup in the current function.
+  AssemblerFixup *createFixup(FixupKind Kind, const Constant *Value);
+
+  const FixupRefList &fixups() const { return fixups_; }
 
 private:
   // The limit is set to kMinimumGap bytes before the end of the data area.
@@ -171,10 +127,8 @@ private:
   uintptr_t cursor_;
   uintptr_t limit_;
   Assembler &assembler_;
-  FixupList fixups_;
-#ifndef NDEBUG
-  bool fixups_processed_;
-#endif // !NDEBUG
+  // List of pool-allocated fixups relative to the current function.
+  FixupRefList fixups_;
 
   uintptr_t cursor() const { return cursor_; }
   uintptr_t limit() const { return limit_; }
@@ -190,8 +144,6 @@ private:
   }
 
   void ExtendCapacity();
-
-  friend class AssemblerFixup;
 };
 
 class Assembler {
@@ -228,8 +180,16 @@ public:
   // (represented by NodeNumber).
   virtual void BindCfgNodeLabel(SizeT NodeNumber) = 0;
 
+  virtual bool fixupIsPCRel(FixupKind Kind) const = 0;
+
   // Return a view of all the bytes of code for the current function.
   llvm::StringRef getBufferView() const;
+
+  const FixupRefList &fixups() const { return buffer_.fixups(); }
+
+  AssemblerFixup *createFixup(FixupKind Kind, const Constant *Value) {
+    return buffer_.createFixup(Kind, Value);
+  }
 
   void emitIASBytes(GlobalContext *Ctx) const;
 

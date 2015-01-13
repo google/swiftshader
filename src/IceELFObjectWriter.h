@@ -47,10 +47,9 @@ public:
 
   // Copy data of a function's text section to file and note the offset of the
   // symbol's definition in the symbol table.
-  // TODO(jvoung): This also needs the relocations to adjust the
-  // section-relative offsets and hook them up to the symbol table references.
+  // Copy the text fixups for use after all functions are written.
   void writeFunctionCode(const IceString &FuncName, bool IsInternal,
-                         const llvm::StringRef Data);
+                         const Assembler *Asm);
 
   // Copy initializer data for a global to file and note the offset and
   // size of the global's definition in the symbol table.
@@ -75,7 +74,7 @@ private:
   typedef std::vector<ELFSection *> SectionList;
   typedef std::vector<ELFTextSection *> TextSectionList;
   typedef std::vector<ELFDataSection *> DataSectionList;
-  typedef std::vector<ELFRelocationSectionBase *> RelSectionList;
+  typedef std::vector<ELFRelocationSection *> RelSectionList;
   TextSectionList TextSections;
   RelSectionList RelTextSections;
   DataSectionList DataSections;
@@ -116,6 +115,12 @@ private:
 
   // Link the relocation sections to the symbol table.
   void assignRelLinkNum(SizeT SymTabNumber, RelSectionList &RelSections);
+
+  // Write the final relocation sections given the final symbol table.
+  // May also be able to seek around the file and resolve function calls
+  // that are for functions within the same section.
+  void writeAllRelocationSections(bool IsELF64);
+  void writeRelocationSections(bool IsELF64, RelSectionList &RelSections);
 
   // Write the ELF file header with the given information about sections.
   template <bool IsELF64>

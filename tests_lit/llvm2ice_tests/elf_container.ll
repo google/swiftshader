@@ -49,6 +49,7 @@ entry:
   ret double %d2
 }
 
+; Test intrinsics that call out to external functions.
 define internal void @test_memcpy(i32 %iptr_dst, i32 %len) {
 entry:
   %dst = inttoptr i32 %iptr_dst to i8*
@@ -67,15 +68,35 @@ entry:
   ret void
 }
 
-; Test non-internal functions too.
+; Test calling internal functions (may be able to do the fixup,
+; without emitting a relocation).
+define internal float @test_call_internal() {
+  %f = call float @returnFloatConst()
+  ret float %f
+}
+
+; Test copying a function pointer, or a global data pointer.
+define internal i32 @test_ret_fp() {
+  %r = ptrtoint float ()* @returnFloatConst to i32
+  ret i32 %r
+}
+
+define internal i32 @test_ret_global_pointer() {
+  %r = ptrtoint [7 x i8]* @bytes to i32
+  ret i32 %r
+}
+
+; Test defining a non-internal function.
 define void @_start(i32) {
   %f = call float @returnFloatConst()
   %d = call double @returnDoubleConst()
   call void @test_memcpy(i32 0, i32 99)
   call void @test_memset(i32 0, i32 0, i32 99)
+  %f2 = call float @test_call_internal()
+  %p1 = call i32 @test_ret_fp()
+  %p2 = call i32 @test_ret_global_pointer()
   ret void
 }
-
 
 ; CHECK: ElfHeader {
 ; CHECK:   Ident {
@@ -142,6 +163,22 @@ define void @_start(i32) {
 ; CHECK:   }
 ; CHECK:   Section {
 ; CHECK:     Index: {{[1-9][0-9]*}}
+; CHECK:     Name: .rel.text
+; CHECK:     Type: SHT_REL
+; CHECK:     Flags [ (0x0)
+; CHECK:     ]
+; CHECK:     Address: 0x0
+; CHECK:     Offset: 0x{{[1-9A-F][0-9A-F]*}}
+; CHECK:     Size: {{[1-9][0-9]*}}
+; CHECK:     Link: [[SYMTAB_INDEX:[1-9][0-9]*]]
+; CHECK:     Info: {{[1-9][0-9]*}}
+; CHECK:     AddressAlignment: 4
+; CHECK:     EntrySize: 8
+; CHECK:     SectionData (
+; CHECK:     )
+; CHECK:   }
+; CHECK:   Section {
+; CHECK:     Index: {{[1-9][0-9]*}}
 ; CHECK:     Name: .rodata.cst4
 ; CHECK:     Type: SHT_PROGBITS
 ; CHECK:     Flags [ (0x12)
@@ -197,8 +234,8 @@ define void @_start(i32) {
 ; CHECK:     )
 ; CHECK:   }
 ; CHECK:   Section {
-; CHECK:     Index: {{[1-9][0-9]*}}
-; CHECK:     Name: .symtab
+; CHECK:     Index: [[SYMTAB_INDEX]]
+; CHECK-NEXT: Name: .symtab
 ; CHECK:     Type: SHT_SYMTAB
 ; CHECK:     Flags [ (0x0)
 ; CHECK:     ]
@@ -212,7 +249,7 @@ define void @_start(i32) {
 ; CHECK:   }
 ; CHECK:   Section {
 ; CHECK:     Index: [[STRTAB_INDEX]]
-; CHECK:     Name: .strtab
+; CHECK-NEXT: Name: .strtab
 ; CHECK:     Type: SHT_STRTAB
 ; CHECK:     Flags [ (0x0)
 ; CHECK:     ]
@@ -227,7 +264,20 @@ define void @_start(i32) {
 
 
 ; CHECK: Relocations [
-;  TODO: fill it out.
+; CHECK:   Section ({{[0-9]+}}) .rel.text {
+; CHECK:     0x4 R_386_32 .L$float$0 0x0
+; CHECK:     0xC R_386_32 .L$float$1 0x0
+; CHECK:     0x24 R_386_32 .L$double$0 0x0
+; CHECK:     0x2C R_386_32 .L$double$1 0x0
+; CHECK:     0x34 R_386_32 .L$double$2 0x0
+; The set of relocations between llvm-mc and integrated elf-writer
+; are different. The integrated elf-writer doesn't yet handle
+; global data and external/undef functions like memcpy.
+; Also, it does not resolve internal function calls and instead
+; writes out the relocation. However, there's probably some
+; function call so check for a PC32 relocation at least.
+; CHECK:     0x{{.*}} R_386_PC32
+; CHECK:   }
 ; CHECK: ]
 
 

@@ -585,8 +585,7 @@ void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
   } else if (const auto Imm = llvm::dyn_cast<ConstantInteger32>(Src)) {
     (Asm->*(Emitter.GPRImm))(Ty, VarReg, x86::Immediate(Imm->getValue()));
   } else if (const auto Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
-    AssemblerFixup *Fixup =
-        x86::DisplacementRelocation::create(Asm, FK_Abs_4, Reloc);
+    AssemblerFixup *Fixup = Asm->createFixup(llvm::ELF::R_386_32, Reloc);
     (Asm->*(Emitter.GPRImm))(Ty, VarReg,
                              x86::Immediate(Reloc->getOffset(), Fixup));
   } else if (const auto Split = llvm::dyn_cast<VariableSplit>(Src)) {
@@ -609,8 +608,7 @@ void emitIASAddrOpTyGPR(const Cfg *Func, Type Ty, const x86::Address &Addr,
   } else if (const auto Imm = llvm::dyn_cast<ConstantInteger32>(Src)) {
     (Asm->*(Emitter.AddrImm))(Ty, Addr, x86::Immediate(Imm->getValue()));
   } else if (const auto Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
-    AssemblerFixup *Fixup =
-        x86::DisplacementRelocation::create(Asm, FK_Abs_4, Reloc);
+    AssemblerFixup *Fixup = Asm->createFixup(llvm::ELF::R_386_32, Reloc);
     (Asm->*(Emitter.AddrImm))(Ty, Addr,
                               x86::Immediate(Reloc->getOffset(), Fixup));
   } else {
@@ -2851,7 +2849,7 @@ x86::Address OperandX8632Mem::toAsmAddress(Assembler *Asm) const {
     } else if (const auto CR =
                    llvm::dyn_cast<ConstantRelocatable>(getOffset())) {
       Disp = CR->getOffset();
-      Fixup = x86::DisplacementRelocation::create(Asm, FK_Abs_4, CR);
+      Fixup = Asm->createFixup(llvm::ELF::R_386_32, CR);
     } else {
       llvm_unreachable("Unexpected offset type");
     }

@@ -32,8 +32,6 @@
 
 namespace Ice {
 
-class Assembler;
-
 using RegX8632::GPRRegister;
 using RegX8632::XmmRegister;
 using RegX8632::ByteRegister;
@@ -45,22 +43,6 @@ const int MAX_NOP_SIZE = 8;
 
 enum ScaleFactor { TIMES_1 = 0, TIMES_2 = 1, TIMES_4 = 2, TIMES_8 = 3 };
 
-class DisplacementRelocation : public AssemblerFixup {
-  DisplacementRelocation(const DisplacementRelocation &) = delete;
-  DisplacementRelocation &operator=(const DisplacementRelocation &) = delete;
-
-public:
-  static DisplacementRelocation *create(Assembler *Asm, FixupKind Kind,
-                                        const Constant *Sym) {
-    return new (Asm->Allocate<DisplacementRelocation>())
-        DisplacementRelocation(Kind, Sym);
-  }
-
-private:
-  DisplacementRelocation(FixupKind Kind, const Constant *Sym)
-      : AssemblerFixup(Kind, Sym) {}
-};
-
 class Immediate {
   Immediate(const Immediate &) = delete;
   Immediate &operator=(const Immediate &) = delete;
@@ -70,10 +52,8 @@ public:
 
   Immediate(RelocOffsetT offset, AssemblerFixup *fixup)
       : value_(offset), fixup_(fixup) {
-    // Use the Offset in the "value" for now. If the symbol is part of
-    // ".bss", then the relocation's symbol will be plain ".bss" and
-    // the value will need to be adjusted further to be sym's
-    // bss offset + Offset.
+    // Use the Offset in the "value" for now. If we decide to process fixups,
+    // we'll need to patch that offset with the true value.
   }
 
   int32_t value() const { return value_; }
@@ -253,10 +233,8 @@ public:
   static Address Absolute(RelocOffsetT Offset, AssemblerFixup *fixup) {
     Address result;
     result.SetModRM(0, RegX8632::Encoded_Reg_ebp);
-    // Use the Offset in the displacement for now. If the symbol is part of
-    // ".bss", then the relocation's symbol will be plain .bss and the
-    // displacement will need to be adjusted further to be sym's
-    // bss offset + Offset.
+    // Use the Offset in the displacement for now. If we decide to process
+    // fixups later, we'll need to patch up the emitted displacement.
     result.SetDisp32(Offset);
     result.SetFixup(fixup);
     return result;
@@ -380,6 +358,11 @@ public:
   void BindCfgNodeLabel(SizeT NodeNumber) override;
   Label *GetOrCreateLocalLabel(SizeT Number);
   void BindLocalLabel(SizeT Number);
+
+  bool fixupIsPCRel(FixupKind Kind) const override {
+    // Currently assuming this is the only PC-rel relocation type used.
+    return Kind == llvm::ELF::R_386_PC32;
+  }
 
   // Operations to emit GPR instructions (and dispatch on operand type).
   typedef void (AssemblerX86::*TypedEmitGPR)(Type, GPRRegister);

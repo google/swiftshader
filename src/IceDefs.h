@@ -40,9 +40,12 @@
 
 namespace Ice {
 
+class Assembler;
 class Cfg;
 class CfgNode;
 class Constant;
+class ELFObjectWriter;
+class ELFStreamer;
 class FunctionDeclaration;
 class GlobalContext;
 class GlobalDeclaration;

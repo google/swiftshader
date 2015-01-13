@@ -16,6 +16,8 @@
 
 #include "IceDefs.h"
 #include "IceELFStreamer.h"
+#include "IceFixups.h"
+#include "IceOperand.h"
 
 using namespace llvm::ELF;
 
@@ -122,6 +124,7 @@ public:
 // represents the symbol's final index in the symbol table.
 struct ELFSym {
   Elf64_Sym Sym;
+  ELFSection *Section;
   SizeT Number;
 
   // Sentinel value for symbols that haven't been assigned a number yet.
@@ -157,6 +160,8 @@ public:
   // symbol because it is undefined.
   void noteUndefinedSym(const IceString &Name, ELFSection *NullSection);
 
+  const ELFSym *findSymbol(const IceString &Name) const;
+
   size_t getSectionDataSize() const {
     return (LocalSymbols.size() + GlobalSymbols.size()) * Header.sh_entsize;
   }
@@ -168,8 +173,9 @@ public:
   void writeData(ELFStreamer &Str, bool IsELF64);
 
 private:
-  // Map from symbol name + section to its symbol information.
-  typedef std::pair<IceString, ELFSection *> SymtabKey;
+  // Map from symbol name to its symbol information.
+  // This assumes symbols are unique across all sections.
+  typedef IceString SymtabKey;
   typedef std::map<SymtabKey, ELFSym> SymMap;
 
   template <bool IsELF64>
@@ -181,45 +187,31 @@ private:
   SymMap GlobalSymbols;
 };
 
-// Base model of a relocation section.
-class ELFRelocationSectionBase : public ELFSection {
-  ELFRelocationSectionBase(const ELFRelocationSectionBase &) = delete;
-  ELFRelocationSectionBase &
-  operator=(const ELFRelocationSectionBase &) = delete;
+// Models a relocation section.
+class ELFRelocationSection : public ELFSection {
+  ELFRelocationSection(const ELFRelocationSection &) = delete;
+  ELFRelocationSection &operator=(const ELFRelocationSection &) = delete;
 
 public:
-  ELFRelocationSectionBase(const IceString &Name, Elf64_Word ShType,
-                           Elf64_Xword ShFlags, Elf64_Xword ShAddralign,
-                           Elf64_Xword ShEntsize, ELFSection *RelatedSection)
-      : ELFSection(Name, ShType, ShFlags, ShAddralign, ShEntsize),
-        RelatedSection(RelatedSection) {}
+  using ELFSection::ELFSection;
 
   ELFSection *getRelatedSection() const { return RelatedSection; }
+  void setRelatedSection(ELFSection *Section) { RelatedSection = Section; }
+
+  // Track additional relocations which start out relative to offset 0,
+  // but should be adjusted to be relative to BaseOff.
+  void addRelocations(RelocOffsetT BaseOff, const FixupRefList &FixupRefs);
+
+  size_t getSectionDataSize(const GlobalContext &Ctx,
+                            const ELFSymbolTableSection *SymTab) const;
+
+  template <bool IsELF64>
+  void writeData(const GlobalContext &Ctx, ELFStreamer &Str,
+                 const ELFSymbolTableSection *SymTab);
 
 private:
   ELFSection *RelatedSection;
-};
-
-// ELFRelocationSection which depends on the actual relocation type.
-// Specializations are needed depending on the ELFCLASS and whether
-// or not addends are explicit or implicitly embedded in the related
-// section (ELFCLASS64 pack their r_info field differently from ELFCLASS32).
-template <typename RelType>
-class ELFRelocationSection : ELFRelocationSectionBase {
-  ELFRelocationSection(const ELFRelocationSectionBase &) = delete;
-  ELFRelocationSection &operator=(const ELFRelocationSectionBase &) = delete;
-
-public:
-  using ELFRelocationSectionBase::ELFRelocationSectionBase;
-
-  void addRelocations() {
-    // TODO: fill me in
-  }
-
-private:
-  typedef std::pair<RelType, ELFSym *> ELFRelSym;
-  typedef std::vector<ELFRelSym> RelocationList;
-  RelocationList Relocations;
+  FixupList Fixups;
 };
 
 // Models a string table.  The user will build the string table by
@@ -315,6 +307,34 @@ void ELFSymbolTableSection::writeSymbolMap(ELFStreamer &Str,
       Str.write8(SymInfo.st_info);
       Str.write8(SymInfo.st_other);
       Str.writeLE16(SymInfo.st_shndx);
+    }
+  }
+}
+
+template <bool IsELF64>
+void ELFRelocationSection::writeData(const GlobalContext &Ctx, ELFStreamer &Str,
+                                     const ELFSymbolTableSection *SymTab) {
+  for (const AssemblerFixup &Fixup : Fixups) {
+    const ELFSym *Symbol = SymTab->findSymbol(Fixup.symbol(&Ctx));
+    // TODO(jvoung): Make sure this always succeeds.
+    // We currently don't track data symbols, so they aren't even marked
+    // as undefined symbols.
+    if (Symbol) {
+      if (IsELF64) {
+        Elf64_Rela Rela;
+        Rela.r_offset = Fixup.position();
+        Rela.setSymbolAndType(Symbol->getNumber(), Fixup.kind());
+        Rela.r_addend = Fixup.offset();
+        Str.writeAddrOrOffset<IsELF64>(Rela.r_offset);
+        Str.writeELFXword<IsELF64>(Rela.r_info);
+        Str.writeELFXword<IsELF64>(Rela.r_addend);
+      } else {
+        Elf32_Rel Rel;
+        Rel.r_offset = Fixup.position();
+        Rel.setSymbolAndType(Symbol->getNumber(), Fixup.kind());
+        Str.writeAddrOrOffset<IsELF64>(Rel.r_offset);
+        Str.writeELFWord<IsELF64>(Rel.r_info);
+      }
     }
   }
 }

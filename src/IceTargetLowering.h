@@ -24,8 +24,6 @@
 
 namespace Ice {
 
-class Assembler;
-
 // LoweringContext makes it easy to iterate through non-deleted
 // instructions in a node, and insert new (lowered) instructions at
 // the current point.  Along with the instruction list container and
@@ -94,7 +92,8 @@ class TargetLowering {
 
 public:
   static TargetLowering *createLowering(TargetArch Target, Cfg *Func);
-  static Assembler *createAssembler(TargetArch Target, Cfg *Func);
+  static std::unique_ptr<Assembler> createAssembler(TargetArch Target,
+                                                    Cfg *Func);
   void translate() {
     switch (Ctx->getOptLevel()) {
     case Opt_m1:

@@ -95,6 +95,7 @@ SRCS = \
 	IceCfgNode.cpp \
 	IceELFObjectWriter.cpp \
 	IceELFSection.cpp \
+	IceFixups.cpp \
 	IceGlobalContext.cpp \
 	IceGlobalInits.cpp \
 	IceInst.cpp \

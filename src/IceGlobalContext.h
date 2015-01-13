@@ -19,7 +19,6 @@
 
 #include "IceDefs.h"
 #include "IceClFlags.h"
-#include "IceELFObjectWriter.h"
 #include "IceIntrinsics.h"
 #include "IceRNG.h"
 #include "IceTimerTree.h"

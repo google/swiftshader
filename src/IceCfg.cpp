@@ -12,10 +12,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "assembler.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
+#include "IceELFObjectWriter.h"
 #include "IceInst.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
@@ -459,10 +461,8 @@ void Cfg::emitIAS() {
   // Now write the function to the file and track.
   if (Ctx->getFlags().UseELFWriter) {
     getAssembler<Assembler>()->alignFunction();
-    // TODO(jvoung): Transfer remaining fixups too. They may need their
-    // offsets adjusted.
-    Ctx->getObjectWriter()->writeFunctionCode(
-        MangledName, getInternal(), getAssembler<Assembler>()->getBufferView());
+    Ctx->getObjectWriter()->writeFunctionCode(MangledName, getInternal(),
+                                              getAssembler<Assembler>());
   } else {
     getAssembler<Assembler>()->emitIASBytes(Ctx);
   }

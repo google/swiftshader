@@ -25,25 +25,8 @@
 namespace Ice {
 namespace x86 {
 
-class DirectCallRelocation : public AssemblerFixup {
-  DirectCallRelocation(const DirectCallRelocation &) = delete;
-  DirectCallRelocation &operator=(const DirectCallRelocation &) = delete;
-
-public:
-  static DirectCallRelocation *create(Assembler *Asm, FixupKind Kind,
-                                      const Constant *Sym) {
-    return new (Asm->Allocate<DirectCallRelocation>())
-        DirectCallRelocation(Kind, Sym);
-  }
-
-private:
-  DirectCallRelocation(FixupKind Kind, const Constant *Sym)
-      : AssemblerFixup(Kind, Sym) {}
-};
-
 Address Address::ofConstPool(Assembler *Asm, const Constant *Imm) {
-  AssemblerFixup *Fixup =
-      x86::DisplacementRelocation::create(Asm, FK_Abs_4, Imm);
+  AssemblerFixup *Fixup = Asm->createFixup(llvm::ELF::R_386_32, Imm);
   const RelocOffsetT Offset = 0;
   return x86::Address::Absolute(Offset, Fixup);
 }
@@ -127,7 +110,7 @@ void AssemblerX86::call(const ConstantRelocatable *label) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   intptr_t call_start = buffer_.GetPosition();
   EmitUint8(0xE8);
-  EmitFixup(DirectCallRelocation::create(this, FK_PcRel_4, label));
+  EmitFixup(this->createFixup(llvm::ELF::R_386_PC32, label));
   EmitInt32(-4);
   assert((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
   (void)call_start;
@@ -2274,7 +2257,7 @@ void AssemblerX86::j(CondX86::BrCond condition,
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
   EmitUint8(0x80 + condition);
-  EmitFixup(DirectCallRelocation::create(this, FK_PcRel_4, label));
+  EmitFixup(this->createFixup(llvm::ELF::R_386_PC32, label));
   EmitInt32(-4);
 }
 
@@ -2310,7 +2293,7 @@ void AssemblerX86::jmp(Label *label, bool near) {
 void AssemblerX86::jmp(const ConstantRelocatable *label) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xE9);
-  EmitFixup(DirectCallRelocation::create(this, FK_PcRel_4, label));
+  EmitFixup(this->createFixup(llvm::ELF::R_386_PC32, label));
   EmitInt32(-4);
 }
 

@@ -29,6 +29,17 @@ static uintptr_t NewContents(Assembler &assembler, intptr_t capacity) {
   return result;
 }
 
+AssemblerFixup *AssemblerBuffer::createFixup(FixupKind Kind,
+                                             const Constant *Value) {
+  AssemblerFixup *F =
+      new (assembler_.Allocate<AssemblerFixup>()) AssemblerFixup();
+  F->set_position(0);
+  F->set_kind(Kind);
+  F->set_value(Value);
+  fixups_.push_back(F);
+  return F;
+}
+
 #ifndef NDEBUG
 AssemblerBuffer::EnsureCapacity::EnsureCapacity(AssemblerBuffer *buffer) {
   if (buffer->cursor() >= buffer->limit())
@@ -65,7 +76,6 @@ AssemblerBuffer::AssemblerBuffer(Assembler &assembler) : assembler_(assembler) {
   limit_ = ComputeLimit(contents_, kInitialBufferCapacity);
 #ifndef NDEBUG
   has_ensured_capacity_ = false;
-  fixups_processed_ = false;
 #endif // !NDEBUG
 
   // Verify internal state.
@@ -81,8 +91,8 @@ void AssemblerBuffer::ExtendCapacity() {
   const intptr_t OneMB = 1 << 20;
   intptr_t new_capacity = std::min(old_capacity * 2, old_capacity + OneMB);
   if (new_capacity < old_capacity) {
-    // FATAL
-    llvm_unreachable("Unexpected overflow in AssemblerBuffer::ExtendCapacity");
+    llvm::report_fatal_error(
+        "Unexpected overflow in AssemblerBuffer::ExtendCapacity");
   }
 
   // Allocate the new data area and copy contents of the old one to it.
@@ -113,10 +123,7 @@ void Assembler::emitIASBytes(GlobalContext *Ctx) const {
   intptr_t EndPosition = buffer_.Size();
   intptr_t CurPosition = 0;
   const intptr_t FixupSize = 4;
-  for (AssemblerBuffer::FixupList::const_iterator
-           FixupI = buffer_.fixups_begin(),
-           FixupE = buffer_.fixups_end(); FixupI != FixupE; ++FixupI) {
-    AssemblerFixup *NextFixup = *FixupI;
+  for (const AssemblerFixup *NextFixup : fixups()) {
     intptr_t NextFixupLoc = NextFixup->position();
     for (intptr_t i = CurPosition; i < NextFixupLoc; ++i) {
       Str << "\t.byte 0x";
@@ -125,8 +132,7 @@ void Assembler::emitIASBytes(GlobalContext *Ctx) const {
     }
     Str << "\t.long ";
     NextFixup->emit(Ctx);
-    bool IsPCRel = NextFixup->kind() == FK_PcRel_4;
-    if (IsPCRel)
+    if (fixupIsPCRel(NextFixup->kind()))
       Str << " - (. + " << FixupSize << ")";
     Str << "\n";
     CurPosition = NextFixupLoc + FixupSize;
@@ -138,36 +144,6 @@ void Assembler::emitIASBytes(GlobalContext *Ctx) const {
     Str.write_hex(buffer_.Load<uint8_t>(i));
     Str << "\n";
   }
-}
-
-RelocOffsetT AssemblerFixup::offset() const {
-  if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(value_))
-    return CR->getOffset();
-  return 0;
-}
-
-IceString AssemblerFixup::symbol(GlobalContext *Ctx) const {
-  std::string Buffer;
-  llvm::raw_string_ostream Str(Buffer);
-  const Constant *C = value_;
-  if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(C)) {
-    if (CR->getSuppressMangling())
-      Str << CR->getName();
-    else
-      Str << Ctx->mangleName(CR->getName());
-  } else {
-    assert(llvm::isa<ConstantFloat>(C) || llvm::isa<ConstantDouble>(C));
-    C->emitPoolLabel(Str);
-  }
-  return Str.str();
-}
-
-void AssemblerFixup::emit(GlobalContext *Ctx) const {
-  Ostream &Str = Ctx->getStrEmit();
-  Str << symbol(Ctx);
-  RelocOffsetT Offset = offset();
-  if (Offset)
-    Str << " + " << Offset;
 }
 
 } // end of namespace Ice

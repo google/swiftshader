@@ -21,6 +21,7 @@
 #include "IceCfg.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
+#include "IceELFObjectWriter.h"
 #include "IceGlobalContext.h"
 #include "IceGlobalInits.h"
 #include "IceOperand.h"

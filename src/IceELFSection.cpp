@@ -37,6 +37,29 @@ void ELFDataSection::appendData(ELFStreamer &Str,
 
 // Relocation sections.
 
+void ELFRelocationSection::addRelocations(RelocOffsetT BaseOff,
+                                          const FixupRefList &FixupRefs) {
+  for (const AssemblerFixup *FR : FixupRefs) {
+    Fixups.push_back(*FR);
+    AssemblerFixup &F = Fixups.back();
+    F.set_position(BaseOff + F.position());
+  }
+}
+
+size_t ELFRelocationSection::getSectionDataSize(
+    const GlobalContext &Ctx, const ELFSymbolTableSection *SymTab) const {
+  size_t NumWriteableRelocs = 0;
+  for (const AssemblerFixup &Fixup : Fixups) {
+    const ELFSym *Symbol = SymTab->findSymbol(Fixup.symbol(&Ctx));
+    // TODO(jvoung): When the symbol table finally tracks everything,
+    // just use the Fixups.size() as the count, and remove the
+    // SymTab and Ctx params.
+    if (Symbol)
+      ++NumWriteableRelocs;
+  }
+  return NumWriteableRelocs * Header.sh_entsize;
+}
+
 // Symbol tables.
 
 void ELFSymbolTableSection::createDefinedSym(const IceString &Name,
@@ -47,13 +70,13 @@ void ELFSymbolTableSection::createDefinedSym(const IceString &Name,
   NewSymbol.Sym.setBindingAndType(Binding, Type);
   NewSymbol.Sym.st_value = Offset;
   NewSymbol.Sym.st_size = Size;
+  NewSymbol.Section = Section;
   NewSymbol.Number = ELFSym::UnknownNumber;
-  SymtabKey Key = {Name, Section};
   bool Unique;
   if (Type == STB_LOCAL)
-    Unique = LocalSymbols.insert(std::make_pair(Key, NewSymbol)).second;
+    Unique = LocalSymbols.insert(std::make_pair(Name, NewSymbol)).second;
   else
-    Unique = GlobalSymbols.insert(std::make_pair(Key, NewSymbol)).second;
+    Unique = GlobalSymbols.insert(std::make_pair(Name, NewSymbol)).second;
   assert(Unique);
   (void)Unique;
 }
@@ -62,16 +85,26 @@ void ELFSymbolTableSection::noteUndefinedSym(const IceString &Name,
                                              ELFSection *NullSection) {
   ELFSym NewSymbol = ELFSym();
   NewSymbol.Sym.setBindingAndType(STB_GLOBAL, STT_NOTYPE);
+  NewSymbol.Section = NullSection;
   NewSymbol.Number = ELFSym::UnknownNumber;
-  SymtabKey Key = {Name, NullSection};
-  GlobalSymbols.insert(std::make_pair(Key, NewSymbol));
+  GlobalSymbols.insert(std::make_pair(Name, NewSymbol));
+}
+
+const ELFSym *ELFSymbolTableSection::findSymbol(const IceString &Name) const {
+  auto I = LocalSymbols.find(Name);
+  if (I != LocalSymbols.end())
+    return &I->second;
+  I = GlobalSymbols.find(Name);
+  if (I != GlobalSymbols.end())
+    return &I->second;
+  return nullptr;
 }
 
 void ELFSymbolTableSection::updateIndices(const ELFStringTableSection *StrTab) {
   SizeT SymNumber = 0;
   for (auto &KeyValue : LocalSymbols) {
-    const IceString &Name = KeyValue.first.first;
-    ELFSection *Section = KeyValue.first.second;
+    const IceString &Name = KeyValue.first;
+    ELFSection *Section = KeyValue.second.Section;
     Elf64_Sym &SymInfo = KeyValue.second.Sym;
     if (!Name.empty())
       SymInfo.st_name = StrTab->getIndex(Name);
@@ -79,8 +112,8 @@ void ELFSymbolTableSection::updateIndices(const ELFStringTableSection *StrTab) {
     KeyValue.second.setNumber(SymNumber++);
   }
   for (auto &KeyValue : GlobalSymbols) {
-    const IceString &Name = KeyValue.first.first;
-    ELFSection *Section = KeyValue.first.second;
+    const IceString &Name = KeyValue.first;
+    ELFSection *Section = KeyValue.second.Section;
     Elf64_Sym &SymInfo = KeyValue.second.Sym;
     if (!Name.empty())
       SymInfo.st_name = StrTab->getIndex(Name);

@@ -107,11 +107,12 @@ TargetLowering::TargetLowering(Cfg *Func)
       HasComputedFrame(false), CallsReturnsTwice(false), StackAdjustment(0),
       Context() {}
 
-Assembler *TargetLowering::createAssembler(TargetArch Target, Cfg *Func) {
+std::unique_ptr<Assembler> TargetLowering::createAssembler(TargetArch Target,
+                                                           Cfg *Func) {
   // These statements can be #ifdef'd to specialize the assembler
   // to a subset of the available targets.  TODO: use CRTP.
   if (Target == Target_X8632)
-    return new x86::AssemblerX86();
+    return std::unique_ptr<Assembler>(new x86::AssemblerX86());
   Func->setError("Unsupported target");
   return nullptr;
 }

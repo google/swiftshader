@@ -27,6 +27,8 @@
 #include "IceCfg.h"
 #include "IceClFlags.h"
 #include "IceConverter.h"
+#include "IceELFObjectWriter.h"
+#include "IceELFStreamer.h"
 #include "PNaClTranslator.h"
 
 using namespace llvm;
@@ -346,6 +348,7 @@ int main(int argc, char **argv) {
   Ice::TimerMarker T(Ice::TimerStack::TT_szmain, &Ctx);
 
   if (UseELFWriter) {
+    Ice::TimerMarker T1(Ice::TimerStack::TT_emit, &Ctx);
     Ctx.getObjectWriter()->writeInitialELFHeader();
   }
 
@@ -377,6 +380,7 @@ int main(int argc, char **argv) {
     return GetReturnValue(1);
   }
   if (UseELFWriter) {
+    Ice::TimerMarker T1(Ice::TimerStack::TT_emit, &Ctx);
     Ctx.getObjectWriter()->writeNonUserSections();
   }
   if (SubzeroTimingEnabled)

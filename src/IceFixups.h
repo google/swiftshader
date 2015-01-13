@@ -14,18 +14,38 @@
 #ifndef SUBZERO_SRC_ICEFIXUPS_H
 #define SUBZERO_SRC_ICEFIXUPS_H
 
-#include "IceTypes.def"
+#include "IceDefs.h"
 
 namespace Ice {
 
-enum FixupKind {
-  // Specify some of the most common relocation types.
-  FK_Abs_4 = 0,
-  FK_PcRel_4 = 1,
+// Each target and container format has a different namespace of relocations.
+// This holds the specific target+container format's relocation number.
+typedef uint32_t FixupKind;
 
-  // Target specific relocation types follow this.
-  FK_FirstTargetSpecific = 1 << 4
+// Assembler fixups are positions in generated code/data that hold relocation
+// information that needs to be processed before finalizing the code/data.
+struct AssemblerFixup {
+public:
+  intptr_t position() const { return position_; }
+  void set_position(intptr_t Position) { position_ = Position; }
+
+  FixupKind kind() const { return kind_; }
+  void set_kind(FixupKind Kind) { kind_ = Kind; }
+
+  RelocOffsetT offset() const;
+  IceString symbol(const GlobalContext *Ctx) const;
+  void set_value(const Constant *Value) { value_ = Value; }
+
+  void emit(GlobalContext *Ctx) const;
+
+private:
+  intptr_t position_;
+  FixupKind kind_;
+  const Constant *value_;
 };
+
+typedef std::vector<AssemblerFixup> FixupList;
+typedef std::vector<AssemblerFixup *> FixupRefList;
 
 } // end of namespace Ice
 
