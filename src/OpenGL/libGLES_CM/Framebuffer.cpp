@@ -400,6 +400,16 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 	return GL_FRAMEBUFFER_COMPLETE_OES;
 }
 
+GLenum Framebuffer::getImplementationColorReadFormat()
+{
+	return GL_RGB;
+}
+
+GLenum Framebuffer::getImplementationColorReadType()
+{
+	return GL_UNSIGNED_SHORT_5_6_5;
+}
+
 DefaultFramebuffer::DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuffer *depthStencil)
 {
 	mColorbufferPointer.set(new Renderbuffer(0, colorbuffer));

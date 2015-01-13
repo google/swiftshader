@@ -63,6 +63,9 @@ public:
 	virtual GLenum completeness();
 	GLenum completeness(int &width, int &height, int &samples);
 
+	GLenum getImplementationColorReadFormat();
+	GLenum getImplementationColorReadType();
+
 protected:
     GLenum mColorbufferType;
     gl::BindingPointer<Renderbuffer> mColorbufferPointer;

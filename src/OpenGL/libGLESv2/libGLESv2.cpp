@@ -78,47 +78,6 @@ static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei heigh
 	return true;
 }
 
-// Check for combinations of format and type that are valid for ReadPixels
-static bool validReadFormatType(GLenum format, GLenum type)
-{
-	switch(format)
-	{
-	case GL_RGBA:
-		switch(type)
-		{
-		case GL_UNSIGNED_BYTE:
-			break;
-		default:
-			return false;
-		}
-		break;
-	case GL_BGRA_EXT:
-		switch(type)
-		{
-		case GL_UNSIGNED_BYTE:
-		case GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT:
-		case GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT:
-			break;
-		default:
-			return false;
-		}
-		break;
-	case es2::IMPLEMENTATION_COLOR_READ_FORMAT:
-		switch(type)
-		{
-		case es2::IMPLEMENTATION_COLOR_READ_TYPE:
-			break;
-		default:
-			return false;
-		}
-		break;
-	default:
-		return false;
-	}
-
-	return true;
-}
-
 extern "C"
 {
 
@@ -3618,11 +3577,6 @@ void GL_APIENTRY glReadnPixelsEXT(GLint x, GLint y, GLsizei width, GLsizei heigh
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(!validReadFormatType(format, type))
-	{
-		return error(GL_INVALID_OPERATION);
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -3640,11 +3594,6 @@ void GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, G
 	if(width < 0 || height < 0)
 	{
 		return error(GL_INVALID_VALUE);
-	}
-
-	if(!validReadFormatType(format, type))
-	{
-		return error(GL_INVALID_OPERATION);
 	}
 
 	es2::Context *context = es2::getContext();

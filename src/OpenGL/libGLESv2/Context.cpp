@@ -1358,8 +1358,18 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
             }
         }
         break;
-    case GL_IMPLEMENTATION_COLOR_READ_TYPE:   *params = IMPLEMENTATION_COLOR_READ_TYPE;   break;
-    case GL_IMPLEMENTATION_COLOR_READ_FORMAT: *params = IMPLEMENTATION_COLOR_READ_FORMAT; break;
+    case GL_IMPLEMENTATION_COLOR_READ_TYPE:
+		{
+			Framebuffer *framebuffer = getReadFramebuffer();
+			*params = framebuffer->getImplementationColorReadType();
+		}
+		break;
+    case GL_IMPLEMENTATION_COLOR_READ_FORMAT:
+		{
+			Framebuffer *framebuffer = getReadFramebuffer();
+			*params = framebuffer->getImplementationColorReadFormat();
+		}
+		break;
     case GL_MAX_VIEWPORT_DIMS:
         {
 			int maxDimension = IMPLEMENTATION_MAX_RENDERBUFFER_SIZE;
@@ -2147,6 +2157,14 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
         return error(GL_INVALID_OPERATION);
     }
 
+	if(format != GL_RGBA || type != GL_UNSIGNED_BYTE)
+	{
+		if(format != framebuffer->getImplementationColorReadFormat() || type != framebuffer->getImplementationColorReadType())
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
+
 	GLsizei outputPitch = ComputePitch(width, format, type, mState.packAlignment);
     
 	// Sized query sanity check
@@ -2319,10 +2337,10 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 					default: UNREACHABLE();
 					}
 					break;
-				case GL_RGB:   // IMPLEMENTATION_COLOR_READ_FORMAT
+				case GL_RGB:
 					switch(type)
 					{
-					case GL_UNSIGNED_SHORT_5_6_5:   // IMPLEMENTATION_COLOR_READ_TYPE
+					case GL_UNSIGNED_SHORT_5_6_5:
 						dest16[i + j * outputPitch / sizeof(unsigned short)] = 
 							((unsigned short)(31 * b + 0.5f) << 0) |
 							((unsigned short)(63 * g + 0.5f) << 5) |
