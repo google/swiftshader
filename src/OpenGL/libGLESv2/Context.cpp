@@ -2189,17 +2189,27 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 
     unsigned char *source = (unsigned char*)renderTarget->lock(rect.x0, rect.y0, sw::LOCK_READONLY);
     unsigned char *dest = (unsigned char*)pixels;
-    unsigned short *dest16 = (unsigned short*)pixels;
     int inputPitch = (int)renderTarget->getPitch();
 
     for(int j = 0; j < rect.y1 - rect.y0; j++)
     {
-        if(renderTarget->getInternalFormat() == sw::FORMAT_A8R8G8B8 &&
-           format == GL_BGRA_EXT && type == GL_UNSIGNED_BYTE)
+		unsigned short *dest16 = (unsigned short*)dest;
+		unsigned int *dest32 = (unsigned int*)dest;
+
+		if(renderTarget->getInternalFormat() == sw::FORMAT_A8R8G8B8 &&
+           format == GL_RGBA && type == GL_UNSIGNED_BYTE)
         {
-            // Fast path for EXT_read_format_bgra, given an RGBA source buffer
-			// Note that buffers with no alpha go through the slow path below
-            memcpy(dest + j * outputPitch, source + j * inputPitch, (rect.x1 - rect.x0) * 4);
+            for(int i = 0; i < rect.x1 - rect.x0; i++)
+			{
+				unsigned int argb = *(unsigned int*)(source + 4 * i);
+
+				dest32[i] = (argb & 0xFF00FF00) | ((argb & 0x000000FF) << 16) | ((argb & 0x00FF0000) >> 16);
+			}
+        }
+        else if(renderTarget->getInternalFormat() == sw::FORMAT_A8R8G8B8 &&
+                format == GL_BGRA_EXT && type == GL_UNSIGNED_BYTE)
+        {
+            memcpy(dest, source, (rect.x1 - rect.x0) * 4);
         }
 		else
 		{
@@ -2214,7 +2224,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 				{
 				case sw::FORMAT_R5G6B5:
 					{
-						unsigned short rgb = *(unsigned short*)(source + 2 * i + j * inputPitch);
+						unsigned short rgb = *(unsigned short*)(source + 2 * i);
 
 						a = 1.0f;
 						b = (rgb & 0x001F) * (1.0f / 0x001F);
@@ -2224,7 +2234,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 					break;
 				case sw::FORMAT_A1R5G5B5:
 					{
-						unsigned short argb = *(unsigned short*)(source + 2 * i + j * inputPitch);
+						unsigned short argb = *(unsigned short*)(source + 2 * i);
 
 						a = (argb & 0x8000) ? 1.0f : 0.0f;
 						b = (argb & 0x001F) * (1.0f / 0x001F);
@@ -2234,7 +2244,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 					break;
 				case sw::FORMAT_A8R8G8B8:
 					{
-						unsigned int argb = *(unsigned int*)(source + 4 * i + j * inputPitch);
+						unsigned int argb = *(unsigned int*)(source + 4 * i);
 
 						a = (argb & 0xFF000000) * (1.0f / 0xFF000000);
 						b = (argb & 0x000000FF) * (1.0f / 0x000000FF);
@@ -2244,7 +2254,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 					break;
 				case sw::FORMAT_X8R8G8B8:
 					{
-						unsigned int xrgb = *(unsigned int*)(source + 4 * i + j * inputPitch);
+						unsigned int xrgb = *(unsigned int*)(source + 4 * i);
 
 						a = 1.0f;
 						b = (xrgb & 0x000000FF) * (1.0f / 0x000000FF);
@@ -2254,7 +2264,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 					break;
 				case sw::FORMAT_A2R10G10B10:
 					{
-						unsigned int argb = *(unsigned int*)(source + 4 * i + j * inputPitch);
+						unsigned int argb = *(unsigned int*)(source + 4 * i);
 
 						a = (argb & 0xC0000000) * (1.0f / 0xC0000000);
 						b = (argb & 0x000003FF) * (1.0f / 0x000003FF);
@@ -2264,18 +2274,18 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 					break;
 				case sw::FORMAT_A32B32G32R32F:
 					{
-						r = *((float*)(source + 16 * i + j * inputPitch) + 0);
-						g = *((float*)(source + 16 * i + j * inputPitch) + 1);
-						b = *((float*)(source + 16 * i + j * inputPitch) + 2);
-						a = *((float*)(source + 16 * i + j * inputPitch) + 3);
+						r = *((float*)(source + 16 * i) + 0);
+						g = *((float*)(source + 16 * i) + 1);
+						b = *((float*)(source + 16 * i) + 2);
+						a = *((float*)(source + 16 * i) + 3);
 					}
 					break;
 				case sw::FORMAT_A16B16G16R16F:
 					{
-						r = (float)*((sw::half*)(source + 8 * i + j * inputPitch) + 0);
-						g = (float)*((sw::half*)(source + 8 * i + j * inputPitch) + 1);
-						b = (float)*((sw::half*)(source + 8 * i + j * inputPitch) + 2);
-						a = (float)*((sw::half*)(source + 8 * i + j * inputPitch) + 3);
+						r = (float)*((sw::half*)(source + 8 * i) + 0);
+						g = (float)*((sw::half*)(source + 8 * i) + 1);
+						b = (float)*((sw::half*)(source + 8 * i) + 2);
+						a = (float)*((sw::half*)(source + 8 * i) + 3);
 					}
 					break;
 				default:
@@ -2289,10 +2299,10 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 					switch(type)
 					{
 					case GL_UNSIGNED_BYTE:
-						dest[4 * i + j * outputPitch + 0] = (unsigned char)(255 * r + 0.5f);
-						dest[4 * i + j * outputPitch + 1] = (unsigned char)(255 * g + 0.5f);
-						dest[4 * i + j * outputPitch + 2] = (unsigned char)(255 * b + 0.5f);
-						dest[4 * i + j * outputPitch + 3] = (unsigned char)(255 * a + 0.5f);
+						dest[4 * i + 0] = (unsigned char)(255 * r + 0.5f);
+						dest[4 * i + 1] = (unsigned char)(255 * g + 0.5f);
+						dest[4 * i + 2] = (unsigned char)(255 * b + 0.5f);
+						dest[4 * i + 3] = (unsigned char)(255 * a + 0.5f);
 						break;
 					default: UNREACHABLE();
 					}
@@ -2301,10 +2311,10 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 					switch(type)
 					{
 					case GL_UNSIGNED_BYTE:
-						dest[4 * i + j * outputPitch + 0] = (unsigned char)(255 * b + 0.5f);
-						dest[4 * i + j * outputPitch + 1] = (unsigned char)(255 * g + 0.5f);
-						dest[4 * i + j * outputPitch + 2] = (unsigned char)(255 * r + 0.5f);
-						dest[4 * i + j * outputPitch + 3] = (unsigned char)(255 * a + 0.5f);
+						dest[4 * i + 0] = (unsigned char)(255 * b + 0.5f);
+						dest[4 * i + 1] = (unsigned char)(255 * g + 0.5f);
+						dest[4 * i + 2] = (unsigned char)(255 * r + 0.5f);
+						dest[4 * i + 3] = (unsigned char)(255 * a + 0.5f);
 						break;
 					case GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT:
 						// According to the desktop GL spec in the "Transfer of Pixel Rectangles" section
@@ -2314,7 +2324,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 						// |       4th         |        3rd         |        2nd        |   1st component   |
 						//  --------------------------------------------------------------------------------
 						// in the case of BGRA_EXT, B is the first component, G the second, and so forth.
-						dest16[i + j * outputPitch / sizeof(unsigned short)] =
+						dest16[i] =
 							((unsigned short)(15 * a + 0.5f) << 12)|
 							((unsigned short)(15 * r + 0.5f) << 8) |
 							((unsigned short)(15 * g + 0.5f) << 4) |
@@ -2328,7 +2338,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 						// | 4th |          3rd           |           2nd          |      1st component     |
 						//  --------------------------------------------------------------------------------
 						// in the case of BGRA_EXT, B is the first component, G the second, and so forth.
-						dest16[i + j * outputPitch / sizeof(unsigned short)] =
+						dest16[i] =
 							((unsigned short)(     a + 0.5f) << 15) |
 							((unsigned short)(31 * r + 0.5f) << 10) |
 							((unsigned short)(31 * g + 0.5f) << 5) |
@@ -2341,7 +2351,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 					switch(type)
 					{
 					case GL_UNSIGNED_SHORT_5_6_5:
-						dest16[i + j * outputPitch / sizeof(unsigned short)] = 
+						dest16[i] = 
 							((unsigned short)(31 * b + 0.5f) << 0) |
 							((unsigned short)(63 * g + 0.5f) << 5) |
 							((unsigned short)(31 * r + 0.5f) << 11);
@@ -2353,6 +2363,9 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 				}
 			}
         }
+
+		source += inputPitch;
+		dest += outputPitch;
     }
 
 	renderTarget->unlock();
