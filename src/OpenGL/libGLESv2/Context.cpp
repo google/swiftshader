@@ -2206,10 +2206,50 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 				dest32[i] = (argb & 0xFF00FF00) | ((argb & 0x000000FF) << 16) | ((argb & 0x00FF0000) >> 16);
 			}
         }
+		else if(renderTarget->getInternalFormat() == sw::FORMAT_X8R8G8B8 &&
+                format == GL_RGBA && type == GL_UNSIGNED_BYTE)
+        {
+            for(int i = 0; i < rect.x1 - rect.x0; i++)
+			{
+				unsigned int xrgb = *(unsigned int*)(source + 4 * i);
+
+				dest32[i] = (xrgb & 0xFF00FF00) | ((xrgb & 0x000000FF) << 16) | ((xrgb & 0x00FF0000) >> 16) | 0xFF000000;
+			}
+        }
+		else if(renderTarget->getInternalFormat() == sw::FORMAT_X8R8G8B8 &&
+                format == GL_BGRA_EXT && type == GL_UNSIGNED_BYTE)
+        {
+            for(int i = 0; i < rect.x1 - rect.x0; i++)
+			{
+				unsigned int xrgb = *(unsigned int*)(source + 4 * i);
+
+				dest32[i] = xrgb | 0xFF000000;
+			}
+        }
         else if(renderTarget->getInternalFormat() == sw::FORMAT_A8R8G8B8 &&
                 format == GL_BGRA_EXT && type == GL_UNSIGNED_BYTE)
         {
             memcpy(dest, source, (rect.x1 - rect.x0) * 4);
+        }
+		else if(renderTarget->getInternalFormat() == sw::FORMAT_A16B16G16R16F &&
+                format == GL_RGBA && type == GL_HALF_FLOAT_OES)
+        {
+            memcpy(dest, source, (rect.x1 - rect.x0) * 8);
+        }
+		else if(renderTarget->getInternalFormat() == sw::FORMAT_A32B32G32R32F &&
+                format == GL_RGBA && type == GL_FLOAT)
+        {
+            memcpy(dest, source, (rect.x1 - rect.x0) * 16);
+        }
+		else if(renderTarget->getInternalFormat() == sw::FORMAT_A1R5G5B5 &&
+                format == GL_BGRA_EXT && type == GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT)
+        {
+            memcpy(dest, source, (rect.x1 - rect.x0) * 2);
+        }
+		else if(renderTarget->getInternalFormat() == sw::FORMAT_R5G6B5 &&
+                format == 0x80E0 && type == GL_UNSIGNED_SHORT_5_6_5)   // GL_BGR_EXT
+        {
+            memcpy(dest, source, (rect.x1 - rect.x0) * 2);
         }
 		else
 		{

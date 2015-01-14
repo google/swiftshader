@@ -401,12 +401,46 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 GLenum Framebuffer::getImplementationColorReadFormat()
 {
-	return GL_RGB;
+	Renderbuffer *colorbuffer = mColorbufferPointer.get();
+	
+	if(colorbuffer)
+	{
+		switch(colorbuffer->getInternalFormat())
+		{
+		case sw::FORMAT_A16B16G16R16F: return GL_RGBA;
+		case sw::FORMAT_A32B32G32R32F: return GL_RGBA;
+		case sw::FORMAT_A8R8G8B8:      return GL_BGRA_EXT;
+		case sw::FORMAT_X8R8G8B8:      return GL_BGRA_EXT;
+		case sw::FORMAT_A1R5G5B5:      return GL_BGRA_EXT;
+		case sw::FORMAT_R5G6B5:        return 0x80E0;   // GL_BGR_EXT
+		default:
+			UNREACHABLE();
+		}
+	}
+
+	return GL_RGBA;
 }
 
 GLenum Framebuffer::getImplementationColorReadType()
 {
-	return GL_UNSIGNED_SHORT_5_6_5;
+	Renderbuffer *colorbuffer = mColorbufferPointer.get();
+	
+	if(colorbuffer)
+	{
+		switch(colorbuffer->getInternalFormat())
+		{
+		case sw::FORMAT_A16B16G16R16F: return GL_HALF_FLOAT_OES;
+		case sw::FORMAT_A32B32G32R32F: return GL_FLOAT;
+		case sw::FORMAT_A8R8G8B8:      return GL_UNSIGNED_BYTE;
+		case sw::FORMAT_X8R8G8B8:      return GL_UNSIGNED_BYTE;
+		case sw::FORMAT_A1R5G5B5:      return GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT;
+		case sw::FORMAT_R5G6B5:        return GL_UNSIGNED_SHORT_5_6_5;
+		default:
+			UNREACHABLE();
+		}
+	}
+
+	return GL_UNSIGNED_BYTE;
 }
 
 DefaultFramebuffer::DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuffer *depthStencil)

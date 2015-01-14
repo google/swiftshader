@@ -1873,10 +1873,40 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 				dest32[i] = (argb & 0xFF00FF00) | ((argb & 0x000000FF) << 16) | ((argb & 0x00FF0000) >> 16);
 			}
         }
+		else if(renderTarget->getInternalFormat() == sw::FORMAT_X8R8G8B8 &&
+                format == GL_RGBA && type == GL_UNSIGNED_BYTE)
+        {
+            for(int i = 0; i < rect.x1 - rect.x0; i++)
+			{
+				unsigned int xrgb = *(unsigned int*)(source + 4 * i);
+
+				dest32[i] = (xrgb & 0xFF00FF00) | ((xrgb & 0x000000FF) << 16) | ((xrgb & 0x00FF0000) >> 16) | 0xFF000000;
+			}
+        }
+		else if(renderTarget->getInternalFormat() == sw::FORMAT_X8R8G8B8 &&
+                format == GL_BGRA_EXT && type == GL_UNSIGNED_BYTE)
+        {
+            for(int i = 0; i < rect.x1 - rect.x0; i++)
+			{
+				unsigned int xrgb = *(unsigned int*)(source + 4 * i);
+
+				dest32[i] = xrgb | 0xFF000000;
+			}
+        }
         else if(renderTarget->getInternalFormat() == sw::FORMAT_A8R8G8B8 &&
                 format == GL_BGRA_EXT && type == GL_UNSIGNED_BYTE)
         {
             memcpy(dest, source, (rect.x1 - rect.x0) * 4);
+        }
+		else if(renderTarget->getInternalFormat() == sw::FORMAT_A1R5G5B5 &&
+                format == GL_BGRA_EXT && type == GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT)
+        {
+            memcpy(dest, source, (rect.x1 - rect.x0) * 2);
+        }
+		else if(renderTarget->getInternalFormat() == sw::FORMAT_R5G6B5 &&
+                format == 0x80E0 && type == GL_UNSIGNED_SHORT_5_6_5)   // GL_BGR_EXT
+        {
+            memcpy(dest, source, (rect.x1 - rect.x0) * 2);
         }
 		else
 		{
@@ -1937,22 +1967,6 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 						b = (argb & 0x000003FF) * (1.0f / 0x000003FF);
 						g = (argb & 0x000FFC00) * (1.0f / 0x000FFC00);
 						r = (argb & 0x3FF00000) * (1.0f / 0x3FF00000);
-					}
-					break;
-				case sw::FORMAT_A32B32G32R32F:
-					{
-						r = *((float*)(source + 16 * i) + 0);
-						g = *((float*)(source + 16 * i) + 1);
-						b = *((float*)(source + 16 * i) + 2);
-						a = *((float*)(source + 16 * i) + 3);
-					}
-					break;
-				case sw::FORMAT_A16B16G16R16F:
-					{
-						r = (float)*((sw::half*)(source + 8 * i) + 0);
-						g = (float)*((sw::half*)(source + 8 * i) + 1);
-						b = (float)*((sw::half*)(source + 8 * i) + 2);
-						a = (float)*((sw::half*)(source + 8 * i) + 3);
 					}
 					break;
 				default:
