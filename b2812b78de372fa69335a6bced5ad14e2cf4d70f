@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e233d8e_05dd7272",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-14T17:50:59Z",
+      "side": 1,
+      "message": "Please add \"Bug 18999966\" in the middle, separated by two blank lines.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 52
+      },
+      "revId": "b2812b78de372fa69335a6bced5ad14e2cf4d70f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4e233d8e_a5f49ee5",
+        "filename": "src/OpenGL/libEGL/libEGL.rc",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-14T17:50:59Z",
+      "side": 1,
+      "message": "According to http://msdn.microsoft.com/en-us/library/b0084kay.aspx an underscore is required in front.",
+      "range": {
+        "startLine": 71,
+        "startChar": 10,
+        "endLine": 71,
+        "endChar": 15
+      },
+      "revId": "b2812b78de372fa69335a6bced5ad14e2cf4d70f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4e233d8e_0504923e",
+        "filename": "src/OpenGL/libEGL/libEGL.vcxproj",
+        "patchSetId": 1
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-14T17:50:59Z",
+      "side": 1,
+      "message": "Let\u0027s use the Predefined Macros that Visual Studio already defined for us: http://msdn.microsoft.com/en-us/library/b0084kay.aspx",
+      "range": {
+        "startLine": 230,
+        "startChar": 4,
+        "endLine": 232,
+        "endChar": 22
+      },
+      "revId": "b2812b78de372fa69335a6bced5ad14e2cf4d70f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6e26419e_4994e54b",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.rc",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-14T17:50:59Z",
+      "side": 1,
+      "message": "The other .rc files had this indented. I\u0027m ok with either formatting, but please make it consistent.",
+      "range": {
+        "startLine": 74,
+        "startChar": 3,
+        "endLine": 74,
+        "endChar": 79
+      },
+      "revId": "b2812b78de372fa69335a6bced5ad14e2cf4d70f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
