@@ -70,7 +70,11 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "FileDescription", "SwiftShader libGLES_CM Dynamic Link Library"
+			#ifdef WIN64
+				VALUE "FileDescription", "SwiftShader libGLES_CM 64-bit Dynamic Link Library"
+			#else
+				VALUE "FileDescription", "SwiftShader libGLES_CM 32-bit Dynamic Link Library"
+			#endif
             VALUE "FileVersion", VERSION_STRING
             VALUE "InternalName", "libGLES_CM"
             VALUE "LegalCopyright", "Copyright (C) 2012 TransGaming Inc."

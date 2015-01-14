@@ -170,6 +170,9 @@ copy "$(OutDir)libEGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platfor
 mkdir "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\translator\"
 copy "$(OutDir)libEGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
     </PostBuildEvent>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN64</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -227,6 +230,9 @@ copy "$(OutDir)libEGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platfor
 mkdir "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\translator\"
 copy "$(OutDir)libEGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
     </PostBuildEvent>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN64</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
     <ClCompile>
