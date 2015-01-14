@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e233d8e_8876d774",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2202,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-14T21:21:24Z",
+      "side": 1,
+      "message": "nit: indentation of this line is off",
+      "range": {
+        "startLine": 2202,
+        "startChar": 16,
+        "endLine": 2202,
+        "endChar": 19
+      },
+      "revId": "2131f547d5af5b194e4db2b9a0064e7509390c81",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
