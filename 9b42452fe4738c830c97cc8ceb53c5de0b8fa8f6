@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6b971303_7e7191cc",
+        "filename": "src/OpenGL/libEGL/libEGL.vcxproj",
+        "patchSetId": 2
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-01-15T18:57:02Z",
+      "side": 1,
+      "message": "The Resource compiler does not have this predefined macro, it only has a small subset. Since a definition is needed in the preprocessor, I felt like the underscore in front (_) would be confusing in the sense that people would assume it is predefined by the compiler while it\u0027s not.",
+      "range": {
+        "startLine": 174,
+        "startChar": 31,
+        "endLine": 174,
+        "endChar": 36
+      },
+      "revId": "9b42452fe4738c830c97cc8ceb53c5de0b8fa8f6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
