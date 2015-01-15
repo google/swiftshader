@@ -148,12 +148,11 @@ enum VerboseItem {
   IceV_Preds = 1 << 3,
   IceV_Succs = 1 << 4,
   IceV_Liveness = 1 << 5,
-  IceV_RegManager = 1 << 6,
-  IceV_RegOrigins = 1 << 7,
-  IceV_LinearScan = 1 << 8,
-  IceV_Frame = 1 << 9,
-  IceV_AddrOpt = 1 << 10,
-  IceV_Random = 1 << 11,
+  IceV_RegOrigins = 1 << 6,
+  IceV_LinearScan = 1 << 7,
+  IceV_Frame = 1 << 8,
+  IceV_AddrOpt = 1 << 9,
+  IceV_Random = 1 << 10,
   IceV_All = ~IceV_None,
   IceV_Most = IceV_All & ~IceV_LinearScan
 };

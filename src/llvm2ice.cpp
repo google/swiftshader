@@ -44,7 +44,6 @@ static cl::list<Ice::VerboseItem> VerboseList(
         clEnumValN(Ice::IceV_Preds, "pred", "Show predecessors"),
         clEnumValN(Ice::IceV_Succs, "succ", "Show successors"),
         clEnumValN(Ice::IceV_Liveness, "live", "Liveness information"),
-        clEnumValN(Ice::IceV_RegManager, "rmgr", "Register manager status"),
         clEnumValN(Ice::IceV_RegOrigins, "orig", "Physical register origins"),
         clEnumValN(Ice::IceV_LinearScan, "regalloc", "Linear scan details"),
         clEnumValN(Ice::IceV_Frame, "frame", "Stack frame layout details"),
