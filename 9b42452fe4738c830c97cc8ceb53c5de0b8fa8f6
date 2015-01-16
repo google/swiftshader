@@ -22,6 +22,29 @@
       "revId": "9b42452fe4738c830c97cc8ceb53c5de0b8fa8f6",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4e233d8e_48fe9fc2",
+        "filename": "src/SwiftShader.sln",
+        "patchSetId": 2
+      },
+      "lineNbr": 669,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-16T17:18:12Z",
+      "side": 1,
+      "message": "Good catch!",
+      "range": {
+        "startLine": 668,
+        "startChar": 2,
+        "endLine": 669,
+        "endChar": 74
+      },
+      "revId": "9b42452fe4738c830c97cc8ceb53c5de0b8fa8f6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
