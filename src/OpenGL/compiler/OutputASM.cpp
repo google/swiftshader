@@ -768,7 +768,7 @@ namespace glsl
 				{
 					TString name = TFunction::unmangleName(node->getName());
 
-					if(name == "texture2D" || name == "textureCube")
+					if(name == "texture2D" || name == "textureCube" || name == "texture3D")
 					{
 						if(argumentCount == 2)
 						{	
@@ -2390,6 +2390,10 @@ namespace glsl
 		else if(type.getBasicType() == EbtSamplerExternalOES)
 		{
 			return GL_SAMPLER_EXTERNAL_OES;
+		}
+		else if(type.getBasicType() == EbtSampler3D)
+		{
+			return GL_SAMPLER_3D_OES;
 		}
 		else UNREACHABLE();
 

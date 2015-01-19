@@ -113,7 +113,7 @@ extern void yyerror(TParseContext* context, const char* reason);
 %token <lex> BVEC2 BVEC3 BVEC4 IVEC2 IVEC3 IVEC4 VEC2 VEC3 VEC4
 %token <lex> MATRIX2 MATRIX3 MATRIX4 IN_QUAL OUT_QUAL INOUT_QUAL UNIFORM VARYING
 %token <lex> STRUCT VOID_TYPE WHILE
-%token <lex> SAMPLER2D SAMPLERCUBE SAMPLER_EXTERNAL_OES
+%token <lex> SAMPLER2D SAMPLERCUBE SAMPLER_EXTERNAL_OES SAMPLER3D
 
 %token <lex> IDENTIFIER TYPE_NAME FLOATCONSTANT INTCONSTANT BOOLCONSTANT
 %token <lex> FIELD_SELECTION
@@ -1664,6 +1664,11 @@ type_specifier_nonarray
         FRAG_VERT_ONLY("samplerExternalOES", $1.line);
         TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
         $$.setBasic(EbtSamplerExternalOES, qual, $1.line);
+    }
+    | SAMPLER3D {
+        FRAG_VERT_ONLY("sampler3D", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtSampler3D, qual, $1.line);
     }
     | struct_specifier {
         FRAG_VERT_ONLY("struct", $1.line);

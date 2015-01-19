@@ -26,6 +26,7 @@
 namespace es2
 {
 class Texture2D;
+class Texture3D;
 class TextureCubeMap;
 class Renderbuffer;
 class Colorbuffer;
@@ -81,6 +82,30 @@ public:
 
 private:
 	gl::BindingPointer<Texture2D> mTexture2D;
+};
+
+class RenderbufferTexture3D : public RenderbufferInterface
+{
+public:
+	RenderbufferTexture3D(Texture3D *texture);
+
+	virtual ~RenderbufferTexture3D();
+
+	virtual void addProxyRef(const Renderbuffer *proxy);
+	virtual void releaseProxy(const Renderbuffer *proxy);
+
+	virtual egl::Image *getRenderTarget();
+	virtual egl::Image *createSharedImage();
+	virtual bool isShared() const;
+
+	virtual GLsizei getWidth() const;
+	virtual GLsizei getHeight() const;
+	virtual GLenum getFormat() const;
+	virtual sw::Format getInternalFormat() const;
+	virtual GLsizei getSamples() const;
+
+private:
+	gl::BindingPointer<Texture3D> mTexture3D;
 };
 
 class RenderbufferTextureCubeMap : public RenderbufferInterface

@@ -867,7 +867,7 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
 		return error(EGL_BAD_MATCH, EGL_NO_IMAGE_KHR);
 	}
 
-	if(image->getMultiSampleDepth() > 1)
+	if(image->getDepth() > 1)
 	{
 		return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
 	}

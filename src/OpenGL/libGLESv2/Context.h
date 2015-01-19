@@ -49,6 +49,7 @@ class Shader;
 class Program;
 class Texture;
 class Texture2D;
+class Texture3D;
 class TextureCubeMap;
 class TextureExternal;
 class Framebuffer;
@@ -370,6 +371,7 @@ public:
     void bindTexture2D(GLuint texture);
     void bindTextureCubeMap(GLuint texture);
     void bindTextureExternal(GLuint texture);
+	void bindTexture3D(GLuint texture);
     void bindReadFramebuffer(GLuint framebuffer);
     void bindDrawFramebuffer(GLuint framebuffer);
     void bindRenderbuffer(GLuint renderbuffer);
@@ -397,7 +399,8 @@ public:
     Buffer *getElementArrayBuffer();
     Program *getCurrentProgram();
     Texture2D *getTexture2D();
-    TextureCubeMap *getTextureCubeMap();
+	Texture3D *getTexture3D();
+	TextureCubeMap *getTextureCubeMap();
     TextureExternal *getTextureExternal();
     Texture *getSamplerTexture(unsigned int sampler, TextureType type);
     Framebuffer *getReadFramebuffer();
@@ -460,8 +463,9 @@ private:
 
     State mState;
 
-    gl::BindingPointer<Texture2D> mTexture2DZero;
-    gl::BindingPointer<TextureCubeMap> mTextureCubeMapZero;
+	gl::BindingPointer<Texture2D> mTexture2DZero;
+	gl::BindingPointer<Texture3D> mTexture3DZero;
+	gl::BindingPointer<TextureCubeMap> mTextureCubeMapZero;
     gl::BindingPointer<TextureExternal> mTextureExternalZero;
 
     typedef std::map<GLint, Framebuffer*> FramebufferMap;

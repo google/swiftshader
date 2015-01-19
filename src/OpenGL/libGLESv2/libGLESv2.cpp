@@ -33,6 +33,15 @@
 #include <exception>
 #include <limits>
 
+typedef std::pair<GLenum, GLenum> InternalFormatTypePair;
+typedef std::map<InternalFormatTypePair, GLenum> FormatMap;
+
+// A helper function to insert data into the format map with fewer characters.
+static void InsertFormatMapping(FormatMap& map, GLenum internalformat, GLenum format, GLenum type)
+{
+	map[InternalFormatTypePair(internalformat, type)] = format;
+}
+
 static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 {
 	if(level < 0 || level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS || width < 0 || height < 0)
@@ -63,19 +72,213 @@ static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei heigh
 	if(compressed)
 	{
 		if((width % 4 != 0 && width != texture->getWidth(target, 0)) ||
-		   (height % 4 != 0 && height != texture->getHeight(target, 0)))
+			(height % 4 != 0 && height != texture->getHeight(target, 0)))
 		{
 			return error(GL_INVALID_OPERATION, false);
 		}
 	}
 
 	if(xoffset + width > texture->getWidth(target, level) ||
-	   yoffset + height > texture->getHeight(target, level))
+		yoffset + height > texture->getHeight(target, level))
 	{
 		return error(GL_INVALID_VALUE, false);
 	}
 
 	return true;
+}
+
+static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLsizei depth, GLint xoffset, GLint yoffset, GLint zoffset, GLenum target, GLint level, GLenum format, es2::Texture *texture)
+{
+	if(!texture)
+	{
+		return error(GL_INVALID_OPERATION, false);
+	}
+
+	if(compressed != texture->isCompressed(target, level))
+	{
+		return error(GL_INVALID_OPERATION, false);
+	}
+
+	if(format != GL_NONE && format != texture->getFormat(target, level))
+	{
+		return error(GL_INVALID_OPERATION, false);
+	}
+
+	if(compressed)
+	{
+		if((width % 4 != 0 && width != texture->getWidth(target, 0)) ||
+		   (height % 4 != 0 && height != texture->getHeight(target, 0)) ||
+		   (depth % 4 != 0 && depth != texture->getDepth(target, 0)))
+		{
+			return error(GL_INVALID_OPERATION, false);
+		}
+	}
+
+	if(xoffset + width > texture->getWidth(target, level) ||
+	   yoffset + height > texture->getHeight(target, level) ||
+	   zoffset + depth > texture->getDepth(target, level))
+	{
+		return error(GL_INVALID_VALUE, false);
+	}
+
+	return true;
+}
+
+static bool validateColorBufferFormat(GLenum textureFormat, GLenum colorbufferFormat)
+{
+	// [OpenGL ES 2.0.24] table 3.9
+	switch(textureFormat)
+	{
+	case GL_ALPHA:
+		if(colorbufferFormat != GL_ALPHA &&
+			colorbufferFormat != GL_RGBA &&
+			colorbufferFormat != GL_RGBA4 &&
+			colorbufferFormat != GL_RGB5_A1 &&
+			colorbufferFormat != GL_RGBA8_OES)
+		{
+			return error(GL_INVALID_OPERATION, false);
+		}
+		break;
+	case GL_LUMINANCE:
+	case GL_RGB:
+		if(colorbufferFormat != GL_RGB &&
+			colorbufferFormat != GL_RGB565 &&
+			colorbufferFormat != GL_RGB8_OES &&
+			colorbufferFormat != GL_RGBA &&
+			colorbufferFormat != GL_RGBA4 &&
+			colorbufferFormat != GL_RGB5_A1 &&
+			colorbufferFormat != GL_RGBA8_OES)
+		{
+			return error(GL_INVALID_OPERATION, false);
+		}
+		break;
+	case GL_LUMINANCE_ALPHA:
+	case GL_RGBA:
+		if(colorbufferFormat != GL_RGBA &&
+			colorbufferFormat != GL_RGBA4 &&
+			colorbufferFormat != GL_RGB5_A1 &&
+			colorbufferFormat != GL_RGBA8_OES)
+		{
+			return error(GL_INVALID_OPERATION, false);
+		}
+		break;
+	case GL_ETC1_RGB8_OES:
+		return error(GL_INVALID_OPERATION, false);
+	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
+	case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
+		if(S3TC_SUPPORT)
+		{
+			return error(GL_INVALID_OPERATION, false);
+		}
+		else
+		{
+			return error(GL_INVALID_ENUM, false);
+		}
+	case GL_DEPTH_COMPONENT:
+	case GL_DEPTH_STENCIL_OES:
+		return error(GL_INVALID_OPERATION, false);
+	default:
+		return error(GL_INVALID_ENUM, false);
+	}
+	return true;
+}
+
+static FormatMap BuildFormatMap3D()
+{
+	FormatMap map;
+
+	//                       Internal format | Format | Type
+	InsertFormatMapping(map, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_RGB, GL_RGB, GL_UNSIGNED_SHORT_5_6_5);
+	InsertFormatMapping(map, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_RGBA, GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4);
+	InsertFormatMapping(map, GL_RGBA, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1);
+	InsertFormatMapping(map, GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_LUMINANCE, GL_LUMINANCE, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_ALPHA, GL_ALPHA, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_R8_EXT, GL_RED_EXT, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_R16F_EXT, GL_RED_EXT, GL_HALF_FLOAT_OES);
+	InsertFormatMapping(map, GL_R16F_EXT, GL_RED_EXT, GL_FLOAT);
+	InsertFormatMapping(map, GL_R32F_EXT, GL_RED_EXT, GL_FLOAT);
+	InsertFormatMapping(map, GL_RG8_EXT, GL_RG_EXT, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_R16F_EXT, GL_RED_EXT, GL_HALF_FLOAT_OES);
+	InsertFormatMapping(map, GL_R16F_EXT, GL_RED_EXT, GL_FLOAT);
+	InsertFormatMapping(map, GL_RG32F_EXT, GL_RG_EXT, GL_FLOAT);
+	InsertFormatMapping(map, GL_RGB8_OES, GL_RGB, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_SRGB8_NV, GL_RGB, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_RGB565, GL_RGB, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_RGB565, GL_RGB, GL_UNSIGNED_SHORT_5_6_5);
+	InsertFormatMapping(map, GL_RGB16F_EXT, GL_HALF_FLOAT_OES, GL_FLOAT);
+	InsertFormatMapping(map, GL_RGB32F_EXT, GL_RGB, GL_FLOAT);
+	InsertFormatMapping(map, GL_RGBA8_OES, GL_RGBA, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_SRGB8_ALPHA8_EXT, GL_RGBA, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_RGB5_A1, GL_RGBA, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_RGB5_A1, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1);
+	InsertFormatMapping(map, GL_RGB5_A1, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV_EXT);
+	InsertFormatMapping(map, GL_RGBA4, GL_RGBA, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_RGBA4, GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4);
+	InsertFormatMapping(map, GL_RGB10_A2_EXT, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV_EXT);
+	InsertFormatMapping(map, GL_RGBA16F_EXT, GL_RGBA, GL_HALF_FLOAT_OES);
+	InsertFormatMapping(map, GL_RGBA16F_EXT, GL_RGBA, GL_FLOAT);
+	InsertFormatMapping(map, GL_RGBA32F_EXT, GL_RGBA, GL_FLOAT);
+
+	return map;
+}
+
+static bool ValidateType3D(GLenum type)
+{
+	switch(type)
+	{
+	case GL_UNSIGNED_BYTE:
+	case GL_BYTE:
+	case GL_UNSIGNED_SHORT:
+	case GL_SHORT:
+	case GL_UNSIGNED_INT:
+	case GL_INT:
+	case GL_HALF_FLOAT_OES:
+	case GL_FLOAT:
+	case GL_UNSIGNED_SHORT_5_6_5:
+	case GL_UNSIGNED_SHORT_4_4_4_4:
+	case GL_UNSIGNED_SHORT_5_5_5_1:
+	case GL_UNSIGNED_INT_2_10_10_10_REV_EXT:
+		return true;
+	default:
+		break;
+	}
+	return false;
+}
+
+static bool ValidateFormat3D(GLenum format)
+{
+	switch(format)
+	{
+	case GL_RED_EXT:
+	case GL_RG_EXT:
+	case GL_RGB:
+	case GL_RGBA:
+	case GL_DEPTH_COMPONENT:
+	case GL_DEPTH_STENCIL_OES:
+	case GL_LUMINANCE_ALPHA:
+	case GL_LUMINANCE:
+	case GL_ALPHA:
+		return true;
+	default:
+		break;
+	}
+	return false;
+}
+
+static bool ValidateInternalFormat3D(GLenum internalformat, GLenum format, GLenum type)
+{
+	static const FormatMap formatMap = BuildFormatMap3D();
+	FormatMap::const_iterator iter = formatMap.find(InternalFormatTypePair(internalformat, type));
+	if(iter != formatMap.end())
+	{
+		return iter->second == format;
+	}
+	return false;
 }
 
 extern "C"
@@ -300,6 +503,9 @@ void GL_APIENTRY glBindTexture(GLenum target, GLuint texture)
 			return;
 		case GL_TEXTURE_EXTERNAL_OES:
 			context->bindTextureExternal(texture);
+			return;
+		case GL_TEXTURE_3D_OES:
+			context->bindTexture3D(texture);
 			return;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -730,7 +936,7 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
 
 	if(context)
 	{
-		if(level > es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+		if(level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
 		{
 			return error(GL_INVALID_VALUE);
 		}
@@ -850,7 +1056,7 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
 
 	if(context)
 	{
-		if(level > es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+		if(level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
 		{
 			return error(GL_INVALID_VALUE);
 		}
@@ -956,58 +1162,9 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 		es2::Renderbuffer *source = framebuffer->getColorbuffer();
 		GLenum colorbufferFormat = source->getFormat();
 
-		// [OpenGL ES 2.0.24] table 3.9
-		switch(internalformat)
+		if(!validateColorBufferFormat(internalformat, colorbufferFormat))
 		{
-		case GL_ALPHA:
-			if(colorbufferFormat != GL_ALPHA &&
-			   colorbufferFormat != GL_RGBA &&
-			   colorbufferFormat != GL_RGBA4 &&
-			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_OES)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			break;
-		case GL_LUMINANCE:
-		case GL_RGB:
-			if(colorbufferFormat != GL_RGB &&
-			   colorbufferFormat != GL_RGB565 &&
-			   colorbufferFormat != GL_RGB8_OES &&
-			   colorbufferFormat != GL_RGBA &&
-			   colorbufferFormat != GL_RGBA4 &&
-			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_OES)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			break;
-		case GL_LUMINANCE_ALPHA:
-		case GL_RGBA:
-			if(colorbufferFormat != GL_RGBA &&
-			   colorbufferFormat != GL_RGBA4 &&
-			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_OES)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			break;
-		case GL_ETC1_RGB8_OES:
-			return error(GL_INVALID_OPERATION);
-		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
-		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
-		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
-			if(S3TC_SUPPORT)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			else
-			{
-				return error(GL_INVALID_ENUM);
-			}
-		default:
-			return error(GL_INVALID_ENUM);
+			return;
 		}
 
 		if(target == GL_TEXTURE_2D)
@@ -1066,7 +1223,7 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 
 	if(context)
 	{
-		if(level > es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+		if(level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
 		{
 			return error(GL_INVALID_VALUE);
 		}
@@ -1104,64 +1261,12 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 
 		GLenum textureFormat = texture->getFormat(target, level);
 
-		// [OpenGL ES 2.0.24] table 3.9
-		switch(textureFormat)
+		if(!validateColorBufferFormat(textureFormat, colorbufferFormat))
 		{
-		case GL_ALPHA:
-			if(colorbufferFormat != GL_ALPHA &&
-			   colorbufferFormat != GL_RGBA &&
-			   colorbufferFormat != GL_RGBA4 &&
-			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_OES)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			break;
-		case GL_LUMINANCE:
-		case GL_RGB:
-			if(colorbufferFormat != GL_RGB &&
-			   colorbufferFormat != GL_RGB565 &&
-			   colorbufferFormat != GL_RGB8_OES &&
-			   colorbufferFormat != GL_RGBA &&
-			   colorbufferFormat != GL_RGBA4 &&
-			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_OES)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			break;
-		case GL_LUMINANCE_ALPHA:
-		case GL_RGBA:
-			if(colorbufferFormat != GL_RGBA &&
-			   colorbufferFormat != GL_RGBA4 &&
-			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_OES)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			break;
-		case GL_ETC1_RGB8_OES:
-			return error(GL_INVALID_OPERATION);
-		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
-		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
-		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
-			if(S3TC_SUPPORT)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			else
-			{
-				return error(GL_INVALID_ENUM);
-			}
-		case GL_DEPTH_COMPONENT:
-		case GL_DEPTH_STENCIL_OES:
-			return error(GL_INVALID_OPERATION);
-		default:
-			return error(GL_INVALID_ENUM);
+			return;
 		}
 
-		texture->copySubImage(target, level, xoffset, yoffset, x, y, width, height, framebuffer);
+		texture->copySubImage(target, level, xoffset, yoffset, 0, x, y, width, height, framebuffer);
 	}
 }
 
@@ -2861,6 +2966,7 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
 			"GL_OES_texture_half_float "
 			"GL_OES_texture_half_float_linear "
 			"GL_OES_texture_npot "
+			"GL_OES_texture_3D "
 			"GL_EXT_blend_minmax "
 			"GL_EXT_occlusion_query_boolean "
 			"GL_EXT_read_format_bgra "
@@ -2920,6 +3026,9 @@ void GL_APIENTRY glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* param
 		case GL_TEXTURE_WRAP_T:
 			*params = (GLfloat)texture->getWrapT();
 			break;
+		case GL_TEXTURE_WRAP_R_OES:
+			*params = (GLfloat)texture->getWrapR();
+			break;
 		case GL_TEXTURE_MAX_ANISOTROPY_EXT:
 			*params = texture->getMaxAnisotropy();
 			break;
@@ -2970,6 +3079,9 @@ void GL_APIENTRY glGetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 			break;
 		case GL_TEXTURE_WRAP_T:
 			*params = texture->getWrapT();
+			break;
+		case GL_TEXTURE_WRAP_R_OES:
+			*params = texture->getWrapR();
 			break;
 		case GL_TEXTURE_MAX_ANISOTROPY_EXT:
 			*params = (GLint)texture->getMaxAnisotropy();
@@ -4144,6 +4256,9 @@ void GL_APIENTRY glTexParameterf(GLenum target, GLenum pname, GLfloat param)
 		case GL_TEXTURE_2D:
 			texture = context->getTexture2D();
 			break;
+		case GL_TEXTURE_3D_OES:
+			texture = context->getTexture3D();
+			break;
 		case GL_TEXTURE_CUBE_MAP:
 			texture = context->getTextureCubeMap();
 			break;
@@ -4164,6 +4279,12 @@ void GL_APIENTRY glTexParameterf(GLenum target, GLenum pname, GLfloat param)
 			break;
 		case GL_TEXTURE_WRAP_T:
 			if(!texture->setWrapT((GLenum)param))
+			{
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_WRAP_R_OES:
+			if(!texture->setWrapR((GLenum)param))
 			{
 				return error(GL_INVALID_ENUM);
 			}
@@ -4212,6 +4333,9 @@ void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 		case GL_TEXTURE_2D:
 			texture = context->getTexture2D();
 			break;
+		case GL_TEXTURE_3D_OES:
+			texture = context->getTexture3D();
+			break;
 		case GL_TEXTURE_CUBE_MAP:
 			texture = context->getTextureCubeMap();
 			break;
@@ -4232,6 +4356,12 @@ void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 			break;
 		case GL_TEXTURE_WRAP_T:
 			if(!texture->setWrapT((GLenum)param))
+			{
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_WRAP_R_OES:
+			if(!texture->setWrapR((GLenum)param))
 			{
 				return error(GL_INVALID_ENUM);
 			}
@@ -4302,7 +4432,7 @@ void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
 
 	if(context)
 	{
-		if(level > es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+		if(level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
 		{
 			return error(GL_INVALID_VALUE);
 		}
@@ -5047,7 +5177,371 @@ void GL_APIENTRY glTexImage3DOES(GLenum target, GLint level, GLenum internalform
 	      "GLenum format = 0x%X, GLenum type = 0x%x, const GLvoid* pixels = 0x%0.8p)",
 	      target, level, internalformat, width, height, depth, border, format, type, pixels);
 
-	UNIMPLEMENTED();   // FIXME
+	switch(target)
+	{
+	case GL_TEXTURE_3D_OES:
+		switch(format)
+		{
+		case GL_DEPTH_COMPONENT:
+		case GL_DEPTH_STENCIL_OES:
+			return error(GL_INVALID_OPERATION);
+		default:
+			break;
+		}
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	if(!ValidateType3D(type) || !ValidateFormat3D(format))
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
+	if((level < 0) || (level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS))
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	const GLsizei maxSize3D = es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level;
+	if((width < 0) || (height < 0) || (depth < 0) || (width > maxSize3D) || (height > maxSize3D) || (depth > maxSize3D))
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(border != 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(!ValidateInternalFormat3D(internalformat, format, type))
+	{
+		return error(GL_INVALID_OPERATION);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Texture3D *texture = context->getTexture3D();
+
+		if(!texture)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		texture->setImage(level, width, height, depth, internalformat, type, context->getUnpackAlignment(), pixels);
+	}
+}
+
+void GL_APIENTRY glTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
+{
+	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
+		"GLint zoffset = %d, GLsizei width = %d, GLsizei height = %d, GLsizei depth = %d, "
+		"GLenum format = 0x%X, GLenum type = 0x%x, const GLvoid* pixels = 0x%0.8p)",
+		target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+
+	switch(target)
+	{
+	case GL_TEXTURE_3D_OES:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	if(!ValidateType3D(type) || !ValidateFormat3D(format))
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
+	if((level < 0) || (level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS))
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if((width < 0) || (height < 0) || (depth < 0))
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Texture3D *texture = context->getTexture3D();
+
+		if(validateSubImageParams(false, width, height, depth, xoffset, yoffset, zoffset, target, level, format, texture))
+		{
+			texture->subImage(level, xoffset, yoffset, zoffset, width, height, depth, format, type, context->getUnpackAlignment(), pixels);
+		}
+	}
+}
+
+void GL_APIENTRY glCopyTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+{
+	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
+		"GLint zoffset = %d, GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d)",
+		target, level, xoffset, yoffset, zoffset, x, y, width, height);
+
+	switch(target)
+	{
+	case GL_TEXTURE_3D_OES:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	if((level < 0) || (level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS))
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Framebuffer *framebuffer = context->getReadFramebuffer();
+
+		if(framebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE)
+		{
+			return error(GL_INVALID_FRAMEBUFFER_OPERATION);
+		}
+
+		if(context->getReadFramebufferHandle() != 0 && framebuffer->getColorbuffer()->getSamples() > 1)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		es2::Renderbuffer *source = framebuffer->getColorbuffer();
+		GLenum colorbufferFormat = source->getFormat();
+		es2::Texture3D *texture = context->getTexture3D();
+
+		if(!validateSubImageParams(false, width, height, 1, xoffset, yoffset, zoffset, target, level, GL_NONE, texture))
+		{
+			return;
+		}
+
+		GLenum textureFormat = texture->getFormat(target, level);
+
+		if(!validateColorBufferFormat(textureFormat, colorbufferFormat))
+		{
+			return;
+		}
+		
+		texture->copySubImage(target, level, xoffset, yoffset, zoffset, x, y, width, height, framebuffer);
+	}
+}
+
+void GL_APIENTRY glCompressedTexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *data)
+{
+	TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum internalformat = 0x%X, GLsizei width = %d, "
+		"GLsizei height = %d, GLsizei depth = %d, GLint border = %d, GLsizei imageSize = %d, const GLvoid* data = 0x%0.8p)",
+		target, level, internalformat, width, height, depth, border, imageSize, data);
+
+	switch(target)
+	{
+	case GL_TEXTURE_3D_OES:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	if((level < 0) || (level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS))
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	const GLsizei maxSize3D = es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level;
+	if((width < 0) || (height < 0) || (depth < 0) || (width > maxSize3D) || (height > maxSize3D) || (depth > maxSize3D) ||(border != 0) || (imageSize < 0))
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	switch(internalformat)
+	{
+	case GL_ETC1_RGB8_OES:
+		break;
+	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
+	case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
+		if(!S3TC_SUPPORT)
+		{
+			return error(GL_INVALID_ENUM);
+		}
+		break;
+	case GL_DEPTH_COMPONENT:
+	case GL_DEPTH_COMPONENT16:
+	case GL_DEPTH_COMPONENT32_OES:
+	case GL_DEPTH_STENCIL_OES:
+	case GL_DEPTH24_STENCIL8_OES:
+		return error(GL_INVALID_OPERATION);
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	if(imageSize != es2::ComputeCompressedSize(width, height, internalformat) * depth)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Texture3D *texture = context->getTexture3D();
+
+		if(!texture)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		texture->setCompressedImage(level, internalformat, width, height, depth, imageSize, data);
+	}
+}
+
+void GL_APIENTRY glCompressedTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data)
+{
+	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
+		"GLint zoffset = %d, GLsizei width = %d, GLsizei height = %d, GLsizei depth = %d, "
+		"GLenum format = 0x%X, GLsizei imageSize = %d, const void *data = 0x%0.8p)",
+		target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
+
+	switch(target)
+	{
+	case GL_TEXTURE_3D_OES:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	if(xoffset < 0 || yoffset < 0 || zoffset < 0 || !validImageSize(level, width, height) || depth < 0 || imageSize < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	switch(format)
+	{
+	case GL_ETC1_RGB8_OES:
+		break;
+	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
+	case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
+		if(!S3TC_SUPPORT)
+		{
+			return error(GL_INVALID_ENUM);
+		}
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	if(width == 0 || height == 0 || depth == 0 || data == NULL)
+	{
+		return;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Texture3D *texture = context->getTexture3D();
+
+		if(!texture)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		texture->subImageCompressed(level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
+	}
+}
+
+void GL_APIENTRY glFramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset)
+{
+	TRACE("(GLenum target = 0x%X, GLenum attachment = 0x%X, GLenum textarget = 0x%X, "
+		"GLuint texture = %d, GLint level = %d, GLint zoffset = %d)", target, attachment, textarget, texture, level, zoffset);
+
+	if(target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER_ANGLE && target != GL_READ_FRAMEBUFFER_ANGLE)
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
+	switch(attachment)
+	{
+	case GL_COLOR_ATTACHMENT0:
+	case GL_DEPTH_ATTACHMENT:
+	case GL_STENCIL_ATTACHMENT:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		if(texture == 0)
+		{
+			textarget = GL_NONE;
+		}
+		else
+		{
+			es2::Texture *tex = context->getTexture(texture);
+
+			if(tex == NULL)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+
+			if(tex->isCompressed(textarget, level))
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+
+			switch(textarget)
+			{
+			case GL_TEXTURE_3D_OES:
+				if(tex->getTarget() != GL_TEXTURE_3D_OES)
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+
+			if(level != 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+		}
+
+		es2::Framebuffer *framebuffer = NULL;
+		GLuint framebufferHandle = 0;
+		if(target == GL_READ_FRAMEBUFFER_ANGLE)
+		{
+			framebuffer = context->getReadFramebuffer();
+			framebufferHandle = context->getReadFramebufferHandle();
+		}
+		else
+		{
+			framebuffer = context->getDrawFramebuffer();
+			framebufferHandle = context->getDrawFramebufferHandle();
+		}
+
+		if(framebufferHandle == 0 || !framebuffer)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		switch(attachment)
+		{
+		case GL_COLOR_ATTACHMENT0:  framebuffer->setColorbuffer(textarget, texture);   break;
+		case GL_DEPTH_ATTACHMENT:   framebuffer->setDepthbuffer(textarget, texture);   break;
+		case GL_STENCIL_ATTACHMENT: framebuffer->setStencilbuffer(textarget, texture); break;
+		}
+	}
 }
 
 void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)

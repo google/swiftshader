@@ -361,7 +361,7 @@ Colorbuffer::Colorbuffer(egl::Image *renderTarget) : mRenderTarget(renderTarget)
 		mHeight = renderTarget->getHeight();
 		internalFormat = renderTarget->getInternalFormat();
 		format = sw2es::ConvertBackBufferFormat(internalFormat);
-		mSamples = renderTarget->getMultiSampleDepth() & ~1;
+		mSamples = renderTarget->getDepth() & ~1;
 	}
 }
 
@@ -438,7 +438,7 @@ DepthStencilbuffer::DepthStencilbuffer(egl::Image *depthStencil) : mDepthStencil
 		mHeight = depthStencil->getHeight();
 		internalFormat = depthStencil->getInternalFormat();
 		format = sw2es::ConvertDepthStencilFormat(internalFormat);
-		mSamples = depthStencil->getMultiSampleDepth() & ~1;
+		mSamples = depthStencil->getDepth() & ~1;
 	}
 }
 

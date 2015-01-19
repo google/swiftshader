@@ -82,12 +82,12 @@ RenderbufferTexture2D::~RenderbufferTexture2D()
 // Renderbuffers acting as proxies. Here, we notify the texture of a reference.
 void RenderbufferTexture2D::addProxyRef(const Renderbuffer *proxy)
 {
-    mTexture2D->addProxyRef(proxy);
+	mTexture2D->addProxyRef(proxy);
 }
 
 void RenderbufferTexture2D::releaseProxy(const Renderbuffer *proxy)
 {
-    mTexture2D->releaseProxy(proxy);
+	mTexture2D->releaseProxy(proxy);
 }
 
 // Increments refcount on image.
@@ -101,12 +101,12 @@ egl::Image *RenderbufferTexture2D::getRenderTarget()
 // caller must release() the returned image
 egl::Image *RenderbufferTexture2D::createSharedImage()
 {
-    return mTexture2D->createSharedImage(GL_TEXTURE_2D, 0);
+	return mTexture2D->createSharedImage(GL_TEXTURE_2D, 0);
 }
 
 bool RenderbufferTexture2D::isShared() const
 {
-    return mTexture2D->isShared(GL_TEXTURE_2D, 0);
+	return mTexture2D->isShared(GL_TEXTURE_2D, 0);
 }
 
 GLsizei RenderbufferTexture2D::getWidth() const
@@ -130,6 +130,74 @@ sw::Format RenderbufferTexture2D::getInternalFormat() const
 }
 
 GLsizei RenderbufferTexture2D::getSamples() const
+{
+	return 0;
+}
+
+///// RenderbufferTexture3D Implementation ////////
+
+RenderbufferTexture3D::RenderbufferTexture3D(Texture3D *texture)
+{
+	mTexture3D.set(texture);
+}
+
+RenderbufferTexture3D::~RenderbufferTexture3D()
+{
+	mTexture3D.set(NULL);
+}
+
+// Textures need to maintain their own reference count for references via
+// Renderbuffers acting as proxies. Here, we notify the texture of a reference.
+void RenderbufferTexture3D::addProxyRef(const Renderbuffer *proxy)
+{
+	mTexture3D->addProxyRef(proxy);
+}
+
+void RenderbufferTexture3D::releaseProxy(const Renderbuffer *proxy)
+{
+	mTexture3D->releaseProxy(proxy);
+}
+
+// Increments refcount on image.
+// caller must release() the returned image
+egl::Image *RenderbufferTexture3D::getRenderTarget()
+{
+	return mTexture3D->getRenderTarget(GL_TEXTURE_3D_OES, 0);
+}
+
+// Increments refcount on image.
+// caller must release() the returned image
+egl::Image *RenderbufferTexture3D::createSharedImage()
+{
+	return mTexture3D->createSharedImage(GL_TEXTURE_3D_OES, 0);
+}
+
+bool RenderbufferTexture3D::isShared() const
+{
+	return mTexture3D->isShared(GL_TEXTURE_3D_OES, 0);
+}
+
+GLsizei RenderbufferTexture3D::getWidth() const
+{
+	return mTexture3D->getWidth(GL_TEXTURE_3D_OES, 0);
+}
+
+GLsizei RenderbufferTexture3D::getHeight() const
+{
+	return mTexture3D->getHeight(GL_TEXTURE_3D_OES, 0);
+}
+
+GLenum RenderbufferTexture3D::getFormat() const
+{
+	return mTexture3D->getFormat(GL_TEXTURE_3D_OES, 0);
+}
+
+sw::Format RenderbufferTexture3D::getInternalFormat() const
+{
+	return mTexture3D->getInternalFormat(GL_TEXTURE_3D_OES, 0);
+}
+
+GLsizei RenderbufferTexture3D::getSamples() const
 {
 	return 0;
 }
@@ -361,7 +429,7 @@ Colorbuffer::Colorbuffer(egl::Image *renderTarget) : mRenderTarget(renderTarget)
 		mHeight = renderTarget->getHeight();
 		internalFormat = renderTarget->getInternalFormat();
 		format = sw2es::ConvertBackBufferFormat(internalFormat);
-		mSamples = renderTarget->getMultiSampleDepth() & ~1;
+		mSamples = renderTarget->getDepth() & ~1;
 	}
 }
 
@@ -438,7 +506,7 @@ DepthStencilbuffer::DepthStencilbuffer(egl::Image *depthStencil) : mDepthStencil
 		mHeight = depthStencil->getHeight();
 		internalFormat = depthStencil->getInternalFormat();
 		format = sw2es::ConvertDepthStencilFormat(internalFormat);
-		mSamples = depthStencil->getMultiSampleDepth() & ~1;
+		mSamples = depthStencil->getDepth() & ~1;
 	}
 }
 

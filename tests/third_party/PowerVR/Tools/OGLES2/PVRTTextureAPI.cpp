@@ -349,6 +349,10 @@ EPVRTError PVRTTextureLoadFromPointer(	const void* pointer,
 	bool bIsCompressedFormatSupported=false;
 	bool bIsCompressedFormat=false;
 	bool bIsLegacyPVR=false;
+	bool bUsesTexImage3D = false;
+
+	CPVRTgles2Ext extensions;
+	extensions.LoadExtensions();
 
 	//Texture setup
 	PVRTextureHeaderV3 sTextureHeader;
@@ -443,6 +447,7 @@ EPVRTError PVRTTextureLoadFromPointer(	const void* pointer,
 #endif
 	bool bIsFloat16Supported = CPVRTgles2Ext::IsGLExtensionSupported("GL_OES_texture_half_float");
 	bool bIsFloat32Supported = CPVRTgles2Ext::IsGLExtensionSupported("GL_OES_texture_float");
+	bool bIsTexture3DSupported = CPVRTgles2Ext::IsGLExtensionSupported("GL_OES_texture_3D");
 #ifndef TARGET_OS_IPHONE
 	bool bIsETCSupported = CPVRTgles2Ext::IsGLExtensionSupported("GL_OES_compressed_ETC1_RGB8_texture");
 #endif
@@ -733,20 +738,47 @@ EPVRTError PVRTTextureLoadFromPointer(	const void* pointer,
 	//Initialise a texture target.
 	GLint eTarget=GL_TEXTURE_2D;
 	
-	if(sTextureHeader.u32NumFaces>1)
+	//A mix of arrays/cubes/depths are not permitted in OpenGL ES. Check.
+	if(sTextureHeader.u32NumFaces>1 || sTextureHeader.u32NumSurfaces>1 || sTextureHeader.u32Depth>1)
 	{
-		eTarget=GL_TEXTURE_CUBE_MAP;
+		if((sTextureHeader.u32NumFaces>1) && (sTextureHeader.u32NumSurfaces>1))
+		{
+			PVRTErrorOutputDebug("PVRTTextureLoadFromPointer failed: Arrays of cubemaps are not supported by OpenGL ES 3.0\n");
+			return PVR_FAIL;
+		}
+		else if((sTextureHeader.u32NumFaces>1) && (sTextureHeader.u32Depth>1))
+		{
+			PVRTErrorOutputDebug("PVRTTextureLoadFromPointer failed: 3D Cubemap textures are not supported by OpenGL ES 3.0\n");
+			return PVR_FAIL;
+		}
+		else if((sTextureHeader.u32NumSurfaces>1) && (sTextureHeader.u32Depth>1))
+		{
+			PVRTErrorOutputDebug("PVRTTextureLoadFromPointer failed: Arrays of 3D textures are not supported by OpenGL ES 3.0\n");
+			return PVR_FAIL;
+		}
+
+		if(sTextureHeader.u32NumSurfaces>1)
+		{
+			// GL_TEXTURE_2D_ARRAY;
+			return PVR_FAIL;
+		}
+		else if(sTextureHeader.u32NumFaces>1)
+		{
+			eTarget = GL_TEXTURE_CUBE_MAP;
+		}
+		else if(sTextureHeader.u32Depth>1)
+		{
+			eTarget = GL_TEXTURE_3D_OES;
+			bUsesTexImage3D = true;
+		}
 	}
 
-	//Check if this is a texture array.
-	if(sTextureHeader.u32NumSurfaces>1)
+	if(bUsesTexImage3D && !bIsTexture3DSupported)
 	{
-		//Not supported in OpenGLES 2.0
-		PVRTErrorOutputDebug("PVRTTextureLoadFromPointer failed: Texture arrays are not available in OGLES2.0.\n");
 		return PVR_FAIL;
 	}
 
-	//Bind the 2D texture
+	//Bind the texture
 	glBindTexture(eTarget, *texName);
 
 	if(glGetError())
@@ -783,6 +815,19 @@ EPVRTError PVRTTextureLoadFromPointer(	const void* pointer,
 		psTempHeader=&sTextureHeader;
 	}
 
+	PVRTuint32 u32MIPDepth = 1;
+	if(bUsesTexImage3D)
+	{
+		if(psTempHeader->u32Depth>1)
+		{
+			u32MIPDepth = psTempHeader->u32Depth; //3d texture.
+		}
+		else
+		{
+			return PVR_FAIL; //2d arrays.
+		}
+	}
+
 	//Loop through all MIP levels.
 	if (bIsLegacyPVR)
 	{
@@ -801,13 +846,27 @@ EPVRTError PVRTTextureLoadFromPointer(	const void* pointer,
 				if (uiMIPLevel>=nLoadFromLevel)
 				{
 					//Upload the texture
-					if (bIsCompressedFormat && bIsCompressedFormatSupported)
+					if(bUsesTexImage3D)
 					{
-						glCompressedTexImage2D(eTextureTarget,uiMIPLevel-nLoadFromLevel,eTextureInternalFormat,u32MIPWidth, u32MIPHeight, 0, uiCurrentMIPSize, pTempData);
+						if(bIsCompressedFormat && bIsCompressedFormatSupported)
+						{
+							extensions.glCompressedTexImage3DOES(eTextureTarget, uiMIPLevel - nLoadFromLevel, eTextureInternalFormat, u32MIPWidth, u32MIPHeight, u32MIPDepth, 0, uiCurrentMIPSize, pTempData);
+						}
+						else
+						{
+							extensions.glTexImage3DOES(eTextureTarget, uiMIPLevel - nLoadFromLevel, eTextureInternalFormat, u32MIPWidth, u32MIPHeight, u32MIPDepth, 0, eTextureFormat, eTextureType, pTempData);
+						}
 					}
 					else
 					{
-						glTexImage2D(eTextureTarget,uiMIPLevel-nLoadFromLevel,eTextureInternalFormat, u32MIPWidth, u32MIPHeight, 0, eTextureFormat, eTextureType, pTempData);
+						if(bIsCompressedFormat && bIsCompressedFormatSupported)
+						{
+							glCompressedTexImage2D(eTextureTarget, uiMIPLevel - nLoadFromLevel, eTextureInternalFormat, u32MIPWidth, u32MIPHeight, 0, uiCurrentMIPSize, pTempData);
+						}
+						else
+						{
+							glTexImage2D(eTextureTarget, uiMIPLevel - nLoadFromLevel, eTextureInternalFormat, u32MIPWidth, u32MIPHeight, 0, eTextureFormat, eTextureType, pTempData);
+						}
 					}
 				}
 				pTempData+=uiCurrentMIPSize;
@@ -847,13 +906,29 @@ EPVRTError PVRTTextureLoadFromPointer(	const void* pointer,
 				if (uiMIPLevel>=nLoadFromLevel)
 				{
 					//Upload the texture
-					if (bIsCompressedFormat && bIsCompressedFormatSupported)
+					if(bUsesTexImage3D)
 					{
-						glCompressedTexImage2D(eTextureTarget,uiMIPLevel-nLoadFromLevel,eTextureInternalFormat,u32MIPWidth, u32MIPHeight, 0, uiCurrentMIPSize, pTempData);
+						//Upload the texture
+						if(bIsCompressedFormat && bIsCompressedFormatSupported)
+						{
+							extensions.glCompressedTexImage3DOES(eTextureTarget, uiMIPLevel - nLoadFromLevel, eTextureInternalFormat, u32MIPWidth, u32MIPHeight, u32MIPDepth, 0, uiCurrentMIPSize, pTempData);
+						}
+						else
+						{
+							extensions.glTexImage3DOES(eTextureTarget, uiMIPLevel - nLoadFromLevel, eTextureInternalFormat, u32MIPWidth, u32MIPHeight, u32MIPDepth, 0, eTextureFormat, eTextureType, pTempData);
+						}
 					}
 					else
 					{
-						glTexImage2D(eTextureTarget,uiMIPLevel-nLoadFromLevel,eTextureInternalFormat, u32MIPWidth, u32MIPHeight, 0, eTextureFormat, eTextureType, pTempData);
+						//Upload the texture
+						if(bIsCompressedFormat && bIsCompressedFormatSupported)
+						{
+							glCompressedTexImage2D(eTextureTarget, uiMIPLevel - nLoadFromLevel, eTextureInternalFormat, u32MIPWidth, u32MIPHeight, 0, uiCurrentMIPSize, pTempData);
+						}
+						else
+						{
+							glTexImage2D(eTextureTarget, uiMIPLevel - nLoadFromLevel, eTextureInternalFormat, u32MIPWidth, u32MIPHeight, 0, eTextureFormat, eTextureType, pTempData);
+						}
 					}
 				}
 				pTempData+=uiCurrentMIPSize;

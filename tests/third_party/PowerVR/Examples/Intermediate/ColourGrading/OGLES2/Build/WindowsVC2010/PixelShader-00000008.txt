@@ -1,0 +1,12 @@
+texld r0, v0.xy, s0
+mov r1, r0
+mov r2.xyz, v1.xyzx
+mov r3.x, r1.x
+mul r4.xyz, r2.xyz, r3.x
+mov r5.x, v1.wx
+mov r6.x, r1.wx
+mul r7.x, r5.x, r6.x
+mov r8, r4.xyz
+mov r8.w, r7.x
+mov oC0, r8
+mov r9, r8

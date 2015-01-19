@@ -105,6 +105,13 @@ public:
 	
 	typedef void (GL_APIENTRYP PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXT) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
 	typedef void (GL_APIENTRYP PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXT) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples);
+
+	typedef void (GL_APIENTRYP PFNGLTEXIMAGE3DOES) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
+	typedef void (GL_APIENTRYP PFNGLTEXSUBIMAGE3DOES) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid* pixels);
+	typedef void (GL_APIENTRYP PFNGLCOPYTEXSUBIMAGE3DOES) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+	typedef void (GL_APIENTRYP PFNGLCOMPRESSEDTEXIMAGE3DOES) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const GLvoid* data);
+	typedef void (GL_APIENTRYP PFNGLCOMPRESSEDTEXSUBIMAGE3DOES) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const GLvoid* data);
+	typedef void (GL_APIENTRYP PFNGLFRAMEBUFFERTEXTURE3DOES) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset);
 	
 	typedef void (GL_APIENTRYP PFNGLDRAWBUFFERSEXT) (GLsizei n, const GLenum *bufs);
 
@@ -167,7 +174,25 @@ public:
 	
 	PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXT glRenderbufferStorageMultisampleEXT;
 	PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXT glFramebufferTexture2DMultisampleEXT;
-	
+
+	// GL_OES_texture_3D
+#if !defined(GL_OES_texture_3D)
+	#define GL_TEXTURE_WRAP_R_OES                                   0x8072
+	#define GL_TEXTURE_3D_OES                                       0x806F
+	#define GL_TEXTURE_BINDING_3D_OES                               0x806A
+	#define GL_MAX_3D_TEXTURE_SIZE_OES                              0x8073
+	#define GL_SAMPLER_3D_OES                                       0x8B5F
+	#define GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_3D_ZOFFSET_OES        0x8CD4
+#endif
+
+
+	PFNGLTEXIMAGE3DOES glTexImage3DOES;
+	PFNGLTEXSUBIMAGE3DOES glTexSubImage3DOES;
+	PFNGLCOPYTEXSUBIMAGE3DOES glCopyTexSubImage3DOES;
+	PFNGLCOMPRESSEDTEXIMAGE3DOES glCompressedTexImage3DOES;
+	PFNGLCOMPRESSEDTEXSUBIMAGE3DOES glCompressedTexSubImage3DOES;
+	PFNGLFRAMEBUFFERTEXTURE3DOES glFramebufferTexture3DOES;
+
 	// GL_EXT_draw_buffers
 #if !defined(GL_EXT_draw_buffers)
 	#define GL_MAX_COLOR_ATTACHMENTS_EXT                            0x8CDF

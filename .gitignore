@@ -27,7 +27,6 @@
 /src/OpenGL/compiler/preprocessor/x64/
 
 # Ignored files #
-*.user
 *.obj
 *.lib
 *.log

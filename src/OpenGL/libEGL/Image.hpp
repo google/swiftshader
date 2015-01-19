@@ -18,48 +18,50 @@ class Texture;
 class Image : public sw::Surface
 {
 public:
-	Image(sw::Resource *resource, GLsizei width, GLsizei height, GLenum format, GLenum type, sw::Format internalFormat)
-		: width(width), height(height), format(format), type(type), internalFormat(internalFormat), multiSampleDepth(1)
-		, sw::Surface(resource, width, height, 1, internalFormat, true, true)
+	Image(sw::Resource *resource, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, sw::Format internalFormat)
+		: width(width), height(height), format(format), type(type), internalFormat(internalFormat), depth(depth)
+		, sw::Surface(resource, width, height, depth, internalFormat, true, true)
 	{
 		shared = false;
 	}
 
 	Image(sw::Resource *resource, int width, int height, int depth, sw::Format internalFormat, bool lockable, bool renderTarget)
-		: width(width), height(height), format(0 /*GL_NONE*/), type(0 /*GL_NONE*/), internalFormat(internalFormat), multiSampleDepth(depth)
+		: width(width), height(height), format(0 /*GL_NONE*/), type(0 /*GL_NONE*/), internalFormat(internalFormat), depth(depth)
 		, sw::Surface(resource, width, height, depth, internalFormat, lockable, renderTarget)
 	{
 		shared = false;
 	}
 
-	GLsizei getWidth()
+	GLsizei getWidth() const
 	{
 		return width;
 	}
 
-	GLsizei getHeight()
+	GLsizei getHeight() const
 	{
 		return height;
 	}
 
-	GLenum getFormat()
+	int getDepth() const
+	{
+		// FIXME: add member if the depth dimension (for 3D textures or 2D testure arrays)
+		// and multi sample depth are ever simultaneously required.
+		return depth;
+	}
+
+	GLenum getFormat() const
 	{
 		return format;
 	}
 
-	GLenum getType()
+	GLenum getType() const
 	{
 		return type;
 	}
 
-	sw::Format getInternalFormat()
+	sw::Format getInternalFormat() const
 	{
 		return internalFormat;
-	}
-
-	int getMultiSampleDepth()
-	{
-		return multiSampleDepth;
 	}
 
 	bool isShared() const
@@ -98,8 +100,8 @@ public:
 		release();
     }
 
-	virtual void loadImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *input) = 0;
-	virtual void loadCompressedData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels) = 0;
+	virtual void loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint unpackAlignment, const void *input) = 0;
+	virtual void loadCompressedData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const void *pixels) = 0;
 
 protected:
 	virtual ~Image()
@@ -111,7 +113,7 @@ protected:
 	const GLenum format;
 	const GLenum type;
 	const sw::Format internalFormat;
-	const int multiSampleDepth;
+	const int depth;
 
 	bool shared;   // Used as an EGLImage
 };

@@ -339,7 +339,7 @@ namespace
 		{
 			const unsigned char *inputStart = static_cast<const unsigned char*>(input)+(z * inputPitch * height);
 			unsigned char *destStart = static_cast<unsigned char*>(buffer)+((zoffset + z) * destPitch * destHeight);
-			for(int y = 0; y < height; y++)
+			for(int y = 0; y < height; ++y)
 			{
 				const unsigned char *source = inputStart + y * inputPitch;
 				unsigned char *dest = destStart + (y + yoffset) * destPitch;
@@ -364,7 +364,14 @@ namespace es2
 
 	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
 		: parentTexture(parentTexture)
-		, egl::Image(getParentResource(parentTexture), width, height, format, type, selectInternalFormat(format, type))
+		, egl::Image(getParentResource(parentTexture), width, height, 1, format, type, selectInternalFormat(format, type))
+	{
+		referenceCount = 1;
+	}
+
+	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type)
+		: parentTexture(parentTexture)
+		, egl::Image(getParentResource(parentTexture), width, height, depth, format, type, selectInternalFormat(format, type))
 	{
 		referenceCount = 1;
 	}
@@ -508,13 +515,11 @@ namespace es2
 		return sw::FORMAT_A8R8G8B8;
 	}
 
-	void Image::loadImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *input)
+	void Image::loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint unpackAlignment, const void *input)
 	{
 		GLsizei inputPitch = ComputePitch(width, format, type, unpackAlignment);
 		void *buffer = lock(0, 0, sw::LOCK_WRITEONLY);
-		GLint zoffset = 0;
-		GLsizei depth = 1;
-
+		
 		if(buffer)
 		{
 			switch(type)
@@ -621,7 +626,7 @@ namespace es2
 				LoadImageData<D32>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 				break;
 			case GL_UNSIGNED_INT_24_8_OES:
-				loadD24S8ImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
+				loadD24S8ImageData(xoffset, yoffset, zoffset, width, height, depth, inputPitch, input, buffer);
 				break;
 			default: UNREACHABLE();
 			}
@@ -630,22 +635,27 @@ namespace es2
 		unlock();
 	}
 
-	void Image::loadD24S8ImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer)
+	void Image::loadD24S8ImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, int inputPitch, const void *input, void *buffer)
 	{
-		LoadImageData<D24>(xoffset, yoffset, 0, width, height, 1, inputPitch, getPitch(), getHeight(), input, buffer);
+		LoadImageData<D24>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 
 		unsigned char *stencil = reinterpret_cast<unsigned char*>(lockStencil(0, sw::PUBLIC));
 
 		if(stencil)
 		{
-			LoadImageData<S8>(xoffset, yoffset, 0, width, height, 1, inputPitch, getStencilPitchB(), getHeight(), input, stencil);
+			LoadImageData<S8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getStencilPitchB(), getHeight(), input, stencil);
 
 			unlockStencil();
 		}
 	}
 
-	void Image::loadCompressedData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels)
+	void Image::loadCompressedData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const void *pixels)
 	{
+		if(zoffset != 0 || depth != 1)
+		{
+			UNIMPLEMENTED(); // FIXME
+		}
+
 		int inputPitch = ComputeCompressedPitch(width, format);
 		int rows = imageSize / inputPitch;
 		void *buffer = lock(xoffset, yoffset, sw::LOCK_WRITEONLY);

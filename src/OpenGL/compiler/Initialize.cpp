@@ -255,11 +255,13 @@ void InsertBuiltInFunctions(ShShaderType type, const ShBuiltInResources &resourc
 
 	TType *sampler2D = new TType(EbtSampler2D, EbpUndefined, EvqGlobal, 1);
 	TType *samplerCube = new TType(EbtSamplerCube, EbpUndefined, EvqGlobal, 1);
+	TType *sampler3D = new TType(EbtSampler3D, EbpUndefined, EvqGlobal, 1);
 
     symbolTable.insertBuiltIn(float4, "texture2D", sampler2D, float2);
     symbolTable.insertBuiltIn(float4, "texture2DProj", sampler2D, float3);
     symbolTable.insertBuiltIn(float4, "texture2DProj", sampler2D, float4);
     symbolTable.insertBuiltIn(float4, "textureCube", samplerCube, float3);
+	symbolTable.insertBuiltIn(float4, "texture3D", sampler3D, float3);
 
 	if(type == SH_FRAGMENT_SHADER)
 	{
@@ -267,6 +269,7 @@ void InsertBuiltInFunctions(ShShaderType type, const ShBuiltInResources &resourc
 		symbolTable.insertBuiltIn(float4, "texture2DProj", sampler2D, float3, float1);
 	    symbolTable.insertBuiltIn(float4, "texture2DProj", sampler2D, float4, float1);
 		symbolTable.insertBuiltIn(float4, "textureCube", samplerCube, float3, float1);
+		symbolTable.insertBuiltIn(float4, "texture3D", sampler3D, float3, float1);
 
 		if (resources.OES_standard_derivatives)
 		{
@@ -293,6 +296,7 @@ void InsertBuiltInFunctions(ShShaderType type, const ShBuiltInResources &resourc
 		symbolTable.insertBuiltIn(float4, "texture2DProjLod", sampler2D, float3, float1);
 	    symbolTable.insertBuiltIn(float4, "texture2DProjLod", sampler2D, float4, float1);
 		symbolTable.insertBuiltIn(float4, "textureCubeLod", samplerCube, float3, float1);
+		symbolTable.insertBuiltIn(float4, "texture3DLod", sampler3D, float3, float1);
 	}
 
     TType *samplerExternalOES = new TType(EbtSamplerExternalOES, EbpUndefined, EvqGlobal, 1);
@@ -302,6 +306,7 @@ void InsertBuiltInFunctions(ShShaderType type, const ShBuiltInResources &resourc
         symbolTable.insertBuiltIn(float4, "texture2D", samplerExternalOES, float2);
         symbolTable.insertBuiltIn(float4, "texture2DProj", samplerExternalOES, float3);
         symbolTable.insertBuiltIn(float4, "texture2DProj", samplerExternalOES, float4);
+		symbolTable.insertBuiltIn(float4, "texture3D", samplerExternalOES, float3);
     }
 
 	TTypeList *members = NewPoolTTypeList();

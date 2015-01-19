@@ -53,6 +53,12 @@ void CPVRTgles2Ext::LoadExtensions()
 	glGetQueryObjectuivEXT = 0;
 	glRenderbufferStorageMultisampleEXT = 0;
 	glFramebufferTexture2DMultisampleEXT = 0;
+	glTexImage3DOES = 0;
+	glTexSubImage3DOES = 0;
+	glCopyTexSubImage3DOES = 0;
+	glCompressedTexImage3DOES = 0;
+	glCompressedTexSubImage3DOES = 0;
+	glFramebufferTexture3DOES = 0;
 	glDrawBuffersEXT = 0;
 
 	// Supported extensions provide new entry points for OpenGL ES 2.0.
@@ -101,6 +107,17 @@ void CPVRTgles2Ext::LoadExtensions()
 		glFramebufferTexture2DMultisampleEXT = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXT) PVRGetProcAddress(glFramebufferTexture2DMultisampleEXT);
 	}
 	
+	/* GL_OES_texture_3D */
+	if(strstr((char *)pszGLExtensions, "GL_OES_texture_3D"))
+	{
+		glTexImage3DOES = (PFNGLTEXIMAGE3DOES)PVRGetProcAddress(glTexImage3DOES);
+		glTexSubImage3DOES = (PFNGLTEXSUBIMAGE3DOES)PVRGetProcAddress(glTexSubImage3DOES);
+		glCopyTexSubImage3DOES = (PFNGLCOPYTEXSUBIMAGE3DOES)PVRGetProcAddress(glCopyTexSubImage3DOES);
+		glCompressedTexImage3DOES = (PFNGLCOMPRESSEDTEXIMAGE3DOES)PVRGetProcAddress(glCompressedTexImage3DOES);
+		glCompressedTexSubImage3DOES = (PFNGLCOMPRESSEDTEXSUBIMAGE3DOES)PVRGetProcAddress(glCompressedTexSubImage3DOES);
+		glFramebufferTexture3DOES = (PFNGLFRAMEBUFFERTEXTURE3DOES)PVRGetProcAddress(glFramebufferTexture3DOES);
+	}
+
 	/* GL_EXT_draw_buffers */
 	if (strstr((char *)pszGLExtensions, "GL_EXT_draw_buffers"))
 	{

@@ -32,7 +32,7 @@ namespace gl
 
 	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
 		: parentTexture(parentTexture)
-		, egl::Image(getParentResource(parentTexture), width, height, format, type, selectInternalFormat(format, type))
+		, egl::Image(getParentResource(parentTexture), width, height, 1, format, type, selectInternalFormat(format, type))
 	{
 		referenceCount = 1;
 	}
@@ -176,7 +176,7 @@ namespace gl
 		return sw::FORMAT_A8R8G8B8;
 	}
 
-	void Image::loadImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *input)
+	void Image::loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint unpackAlignment, const void *input)
 	{
 		GLsizei inputPitch = ComputePitch(width, format, type, unpackAlignment);
 		void *buffer = lock(0, 0, sw::LOCK_WRITEONLY);
@@ -644,7 +644,7 @@ namespace gl
 		}
 	}
 
-	void Image::loadCompressedData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels)
+	void Image::loadCompressedData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const void *pixels)
 	{
 		int inputPitch = ComputeCompressedPitch(width, format);
 		int rows = imageSize / inputPitch;

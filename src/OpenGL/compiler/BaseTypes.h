@@ -43,7 +43,8 @@ enum TBasicType
     EbtSampler2D,
     EbtSamplerCube,
     EbtSamplerExternalOES,
-    EbtGuardSamplerEnd,    // non type:  see implementation of IsSampler()
+	EbtSampler3D,
+	EbtGuardSamplerEnd,    // non type:  see implementation of IsSampler()
     EbtStruct,
     EbtAddress,            // should be deprecated??
     EbtInvariant           // used as a type when qualifying a previously declared variable as being invariant
@@ -60,6 +61,7 @@ inline const char* getBasicString(TBasicType t)
     case EbtSampler2D:          return "sampler2D";
     case EbtSamplerCube:        return "samplerCube";
     case EbtSamplerExternalOES: return "samplerExternalOES";
+	case EbtSampler3D:			return "sampler3D";
     case EbtStruct:             return "structure";
     default:                    return "unknown type";
     }

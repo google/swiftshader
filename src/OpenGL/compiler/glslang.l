@@ -134,6 +134,7 @@ O           [0-7]
 "sampler2D"       { context->lexAfterType = true; return SAMPLER2D; }
 "samplerCube"     { context->lexAfterType = true; return SAMPLERCUBE; }
 "samplerExternalOES" { context->lexAfterType = true; return SAMPLER_EXTERNAL_OES; }
+"sampler3D"       { context->lexAfterType = true; return SAMPLER3D; }
 
 "struct"       { context->lexAfterType = true; return(STRUCT); }
 
@@ -183,7 +184,6 @@ O           [0-7]
 "fvec4"        { return reserved_word(yyscanner); }
 
 "sampler1D"    { return reserved_word(yyscanner); }
-"sampler3D"    { return reserved_word(yyscanner); }
 
 "sampler1DShadow" { return reserved_word(yyscanner); }
 "sampler2DShadow" { return reserved_word(yyscanner); }

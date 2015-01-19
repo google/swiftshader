@@ -185,7 +185,7 @@ void Texture::setImage(GLenum format, GLenum type, GLint unpackAlignment, const 
 {
     if(pixels && image)
     {
-		image->loadImageData(0, 0, image->getWidth(), image->getHeight(), format, type, unpackAlignment, pixels);
+		image->loadImageData(0, 0, 0, image->getWidth(), image->getHeight(), 1, format, type, unpackAlignment, pixels);
     }
 }
 
@@ -193,7 +193,7 @@ void Texture::setCompressedImage(GLsizei imageSize, const void *pixels, egl::Ima
 {
     if(pixels && image)
     {
-		image->loadCompressedData(0, 0, image->getWidth(), image->getHeight(), imageSize, pixels);
+		image->loadCompressedData(0, 0, 0, image->getWidth(), image->getHeight(), 1, imageSize, pixels);
     }
 }
 
@@ -221,7 +221,7 @@ void Texture::subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei heig
 
     if(pixels)
     {
-        image->loadImageData(xoffset, yoffset, width, height, format, type, unpackAlignment, pixels);
+        image->loadImageData(xoffset, yoffset, 0, width, height, 1, format, type, unpackAlignment, pixels);
     }
 }
 
@@ -244,7 +244,7 @@ void Texture::subImageCompressed(GLint xoffset, GLint yoffset, GLsizei width, GL
 
     if(pixels)
     {
-		image->loadCompressedData(xoffset, yoffset, width, height, imageSize, pixels);
+		image->loadCompressedData(xoffset, yoffset, 0, width, height, 1, imageSize, pixels);
     }
 }
 

@@ -1,0 +1,7 @@
+texld r0, v0.xy, s0
+mov r1.xyz, r0.xyzx
+mov r2.xyz, r1.xyz
+mov r3, r2.xyz
+mov r3.w, {1, 1, 1, 1}.x
+mov oC0, r3
+mov r4, r3
