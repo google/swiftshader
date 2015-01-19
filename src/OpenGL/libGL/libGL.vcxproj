@@ -27,7 +27,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B5871A7A-968C-42E3-A33B-981E6F448E78}</ProjectGuid>
+    <ProjectGuid>{3EF851E7-4AAB-4C7C-9A79-3122CEA1EB67}</ProjectGuid>
     <RootNamespace>libGL</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
@@ -121,6 +121,24 @@
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(DXSDK_DIR)\Lib\x86;$(VCInstallDir)PlatformSDK\lib;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(DXSDK_DIR)\Lib\x64;$(VCInstallDir)PlatformSDK\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
+    <TargetName>opengl32</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetName>opengl32</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetName>opengl32</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
+    <TargetName>opengl32</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>opengl32</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>opengl32</TargetName>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -168,7 +186,7 @@ copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platf
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"</Command>
+copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -201,7 +219,7 @@ copy "$(OutDir)libGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"</Command>
+copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -233,7 +251,7 @@ copy "$(OutDir)libGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"</Command>
+copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
@@ -265,7 +283,7 @@ copy "$(OutDir)libGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"</Command>
+copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
@@ -296,7 +314,7 @@ copy "$(OutDir)libGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"</Command>
+copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
