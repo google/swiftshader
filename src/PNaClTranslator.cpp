@@ -1174,18 +1174,18 @@ private:
   }
 
   // Extracts the corresponding Alignment to use, given the AlignPower
-  // (i.e. 2**AlignPower, or 0 if AlignPower == 0). InstName is the
+  // (i.e. 2**(AlignPower-1), or 0 if AlignPower == 0). InstName is the
   // name of the instruction the alignment appears in.
   void extractAlignment(const char *InstName, uint32_t AlignPower,
                         uint32_t &Alignment) {
-    if (AlignPower <= AlignPowerLimit) {
+    if (AlignPower <= AlignPowerLimit + 1) {
       Alignment = (1 << AlignPower) >> 1;
       return;
     }
     std::string Buffer;
     raw_string_ostream StrBuf(Buffer);
     StrBuf << InstName << " alignment greater than 2**" << AlignPowerLimit
-           << ". Found: 2**" << AlignPower;
+           << ". Found: 2**" << (AlignPower - 1);
     Error(StrBuf.str());
     // Error recover with value that is always acceptable.
     Alignment = 1;
