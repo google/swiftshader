@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0b4a1799_41c256ca",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5080,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-20T16:32:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b4a1799_e149e22d",
+      "range": {
+        "startLine": 5080,
+        "startChar": 6,
+        "endLine": 5080,
+        "endChar": 43
+      },
+      "revId": "e397ba6dc010fa51e0801db3b78a4d3d5545e02e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0b4a1799_81c29e15",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-20T14:54:51Z",
       "side": 1,
       "message": "This type is for packed depth/stencil formats (GL_DEPTH_STENCIL_OES), for which no extension exists for 3D textures.",
+      "range": {
+        "startLine": 5082,
+        "startChar": 6,
+        "endLine": 5082,
+        "endChar": 30
+      },
+      "revId": "e397ba6dc010fa51e0801db3b78a4d3d5545e02e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0b4a1799_21c74ada",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5082,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-20T16:32:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b4a1799_81c29e15",
       "range": {
         "startLine": 5082,
         "startChar": 6,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "0b4a1799_e123a210",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5573,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-20T16:32:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b4a1799_c1cb062f",
+      "range": {
+        "startLine": 5573,
+        "startChar": 23,
+        "endLine": 5573,
+        "endChar": 24
+      },
+      "revId": "e397ba6dc010fa51e0801db3b78a4d3d5545e02e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0b4a1799_01d68ed5",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2015-01-20T14:54:51Z",
       "side": 1,
       "message": "I find this initialization syntax slightly confusing to read for simple constants. It makes me suspect there\u0027s a constructor being called. I would just use \u003d in this case.",
+      "range": {
+        "startLine": 5578,
+        "startChar": 24,
+        "endLine": 5578,
+        "endChar": 71
+      },
+      "revId": "e397ba6dc010fa51e0801db3b78a4d3d5545e02e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0b4a1799_0127ae20",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5578,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-20T16:32:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b4a1799_01d68ed5",
       "range": {
         "startLine": 5578,
         "startChar": 24,
