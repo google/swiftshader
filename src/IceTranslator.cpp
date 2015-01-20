@@ -50,14 +50,15 @@ IceString Translator::createUnnamedName(const IceString &Prefix, SizeT Index) {
 }
 
 bool Translator::checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
-                                        const IceString &Prefix,
-                                        Ostream &Stream) {
+                                        const IceString &Prefix) {
   if (Name.find(Prefix) == 0) {
     for (size_t i = Prefix.size(); i < Name.size(); ++i) {
       if (!isdigit(Name[i])) {
         return false;
       }
     }
+    OstreamLocker L(Ctx);
+    Ostream &Stream = Ctx->getStrDump();
     Stream << "Warning : Default " << Kind << " prefix '" << Prefix
            << "' potentially conflicts with name '" << Name << "'.\n";
     return true;
@@ -108,6 +109,7 @@ void Translator::lowerGlobals(
   bool DisableTranslation = Ctx->getFlags().DisableTranslation;
   const bool DumpGlobalVariables =
       ALLOW_DUMP && Ctx->isVerbose() && Ctx->getFlags().VerboseFocusOn.empty();
+  OstreamLocker L(Ctx);
   Ostream &Stream = Ctx->getStrDump();
   const IceString &TranslateOnly = Ctx->getFlags().TranslateOnly;
   for (const Ice::VariableDeclaration *Global : VariableDeclarations) {

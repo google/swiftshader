@@ -525,7 +525,7 @@ enum MetadataKind {
   VMK_SingleDefs, // Track uses+defs, but only record single def
   VMK_All         // Track uses+defs, including full def list
 };
-typedef std::vector<const Inst *, CfgLocalAllocator<const Inst *> > InstDefList;
+typedef std::vector<const Inst *, CfgLocalAllocator<const Inst *>> InstDefList;
 
 // VariableTracking tracks the metadata for a single variable.  It is
 // only meant to be used internally by VariablesMetadata.

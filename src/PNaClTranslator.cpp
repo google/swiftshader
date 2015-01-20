@@ -166,6 +166,11 @@ public:
       : NaClBitcodeParser(Cursor), Translator(Translator), Header(Header),
         ErrorStatus(ErrorStatus), NumErrors(0), NumFunctionIds(0),
         NumFunctionBlocks(0), BlockParser(nullptr) {
+    // Note: This gives the reader uncontrolled access to the dump
+    // stream, which it can then use without locking.  TODO(kschimpf):
+    // Consider reworking the LLVM side to use e.g. a callback for
+    // errors.
+    Ice::OstreamLocker L(Translator.getContext());
     setErrStream(Translator.getContext()->getStrDump());
   }
 
@@ -2814,8 +2819,7 @@ private:
       Decl->setName(Trans.createUnnamedName(Prefix, NameIndex));
       ++NameIndex;
     } else {
-      Trans.checkIfUnnamedNameSafe(Decl->getName(), Context, Prefix,
-                                   Trans.getContext()->getStrDump());
+      Trans.checkIfUnnamedNameSafe(Decl->getName(), Context, Prefix);
     }
   }
 

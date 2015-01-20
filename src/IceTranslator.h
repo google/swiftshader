@@ -67,7 +67,7 @@ public:
   /// Prefix to name unnamed names. Errors are put on Ostream.
   /// Returns true if there isn't a potential conflict.
   bool checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
-                              const IceString &Prefix, Ostream &Stream);
+                              const IceString &Prefix);
 
 protected:
   GlobalContext *Ctx;

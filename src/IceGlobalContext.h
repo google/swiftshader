@@ -16,6 +16,7 @@
 #define SUBZERO_SRC_ICEGLOBALCONTEXT_H
 
 #include <memory>
+#include <mutex>
 
 #include "IceDefs.h"
 #include "IceClFlags.h"
@@ -27,39 +28,73 @@
 namespace Ice {
 
 class ClFlags;
+class ConstantPool;
 class FuncSigType;
 
-// This class collects rudimentary statistics during translation.
-class CodeStats {
-  CodeStats(const CodeStats &) = delete;
-  CodeStats &operator=(const CodeStats &) = default;
+typedef std::mutex GlobalLockType;
+
+// LockedPtr is a way to provide automatically locked access to some object.
+template <typename T> class LockedPtr {
+  LockedPtr() = delete;
+  LockedPtr(const LockedPtr &) = delete;
+  LockedPtr &operator=(const LockedPtr &) = delete;
 
 public:
-  CodeStats()
-      : InstructionsEmitted(0), RegistersSaved(0), FrameBytes(0), Spills(0),
-        Fills(0) {}
-  void reset() { *this = CodeStats(); }
-  void updateEmitted(uint32_t InstCount) { InstructionsEmitted += InstCount; }
-  void updateRegistersSaved(uint32_t Num) { RegistersSaved += Num; }
-  void updateFrameBytes(uint32_t Bytes) { FrameBytes += Bytes; }
-  void updateSpills() { ++Spills; }
-  void updateFills() { ++Fills; }
-  void dump(const IceString &Name, Ostream &Str);
+  LockedPtr(T *Value, GlobalLockType *Lock) : Value(Value), Lock(Lock) {
+    Lock->lock();
+  }
+  LockedPtr(LockedPtr &&Other) : Value(Other.Value), Lock(Other.Lock) {
+    Other.Value = nullptr;
+    Other.Lock = nullptr;
+  }
+  ~LockedPtr() { Lock->unlock(); }
+  T *operator->() const { return Value; }
 
 private:
-  uint32_t InstructionsEmitted;
-  uint32_t RegistersSaved;
-  uint32_t FrameBytes;
-  uint32_t Spills;
-  uint32_t Fills;
+  T *Value;
+  GlobalLockType *Lock;
 };
 
-// TODO: Accesses to all non-const fields of GlobalContext need to
-// be synchronized, especially the constant pool, the allocator, and
-// the output streams.
 class GlobalContext {
   GlobalContext(const GlobalContext &) = delete;
   GlobalContext &operator=(const GlobalContext &) = delete;
+
+  // CodeStats collects rudimentary statistics during translation.
+  class CodeStats {
+    CodeStats(const CodeStats &) = delete;
+    CodeStats &operator=(const CodeStats &) = default;
+
+  public:
+    CodeStats()
+        : InstructionsEmitted(0), RegistersSaved(0), FrameBytes(0), Spills(0),
+          Fills(0) {}
+    void reset() { *this = CodeStats(); }
+    void updateEmitted(uint32_t InstCount) { InstructionsEmitted += InstCount; }
+    void updateRegistersSaved(uint32_t Num) { RegistersSaved += Num; }
+    void updateFrameBytes(uint32_t Bytes) { FrameBytes += Bytes; }
+    void updateSpills() { ++Spills; }
+    void updateFills() { ++Fills; }
+    void dump(const IceString &Name, Ostream &Str);
+
+  private:
+    uint32_t InstructionsEmitted;
+    uint32_t RegistersSaved;
+    uint32_t FrameBytes;
+    uint32_t Spills;
+    uint32_t Fills;
+  };
+
+  // ThreadContext contains thread-local data.  This data can be
+  // combined/reduced as needed after all threads complete.
+  class ThreadContext {
+    ThreadContext(const ThreadContext &) = delete;
+    ThreadContext &operator=(const ThreadContext &) = delete;
+
+  public:
+    ThreadContext() {}
+    CodeStats StatsFunction;
+    std::vector<TimerStack> Timers;
+  };
 
 public:
   GlobalContext(Ostream *OsDump, Ostream *OsEmit, ELFStreamer *ELFStreamer,
@@ -76,6 +111,19 @@ public:
   void addVerbose(VerboseMask Mask) { VMask |= Mask; }
   void subVerbose(VerboseMask Mask) { VMask &= ~Mask; }
 
+  // The dump and emit streams need to be used by only one thread at a
+  // time.  This is done by exclusively reserving the streams via
+  // lockStr() and unlockStr().  The OstreamLocker class can be used
+  // to conveniently manage this.
+  //
+  // The model is that a thread grabs the stream lock, then does an
+  // arbitrary amount of work during which far-away callees may grab
+  // the stream and do something with it, and finally the thread
+  // releases the stream lock.  This allows large chunks of output to
+  // be dumped or emitted without risking interleaving from multiple
+  // threads.
+  void lockStr() { StrLock.lock(); }
+  void unlockStr() { StrLock.unlock(); }
   Ostream &getStrDump() { return *StrDump; }
   Ostream &getStrEmit() { return *StrEmit; }
 
@@ -109,7 +157,7 @@ public:
   Constant *getConstantZero(Type Ty);
   // getConstantPool() returns a copy of the constant pool for
   // constants of a given type.
-  ConstantList getConstantPool(Type Ty) const;
+  ConstantList getConstantPool(Type Ty);
   // Returns a new function declaration, allocated in an internal
   // memory pool.  Ownership of the function is maintained by this
   // class instance.
@@ -129,7 +177,7 @@ public:
   }
 
   // Allocate data of type T using the global allocator.
-  template <typename T> T *allocate() { return Allocator.Allocate<T>(); }
+  template <typename T> T *allocate() { return getAllocator()->Allocate<T>(); }
 
   const Intrinsics &getIntrinsicsInfo() const { return IntrinsicsInfo; }
 
@@ -142,38 +190,38 @@ public:
   // Reset stats at the beginning of a function.
   void resetStats() {
     if (ALLOW_DUMP)
-      StatsFunction.reset();
+      TLS->StatsFunction.reset();
   }
   void dumpStats(const IceString &Name, bool Final = false);
   void statsUpdateEmitted(uint32_t InstCount) {
-    if (!ALLOW_DUMP)
+    if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    StatsFunction.updateEmitted(InstCount);
-    StatsCumulative.updateEmitted(InstCount);
+    TLS->StatsFunction.updateEmitted(InstCount);
+    getStatsCumulative()->updateEmitted(InstCount);
   }
   void statsUpdateRegistersSaved(uint32_t Num) {
-    if (!ALLOW_DUMP)
+    if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    StatsFunction.updateRegistersSaved(Num);
-    StatsCumulative.updateRegistersSaved(Num);
+    TLS->StatsFunction.updateRegistersSaved(Num);
+    getStatsCumulative()->updateRegistersSaved(Num);
   }
   void statsUpdateFrameBytes(uint32_t Bytes) {
-    if (!ALLOW_DUMP)
+    if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    StatsFunction.updateFrameBytes(Bytes);
-    StatsCumulative.updateFrameBytes(Bytes);
+    TLS->StatsFunction.updateFrameBytes(Bytes);
+    getStatsCumulative()->updateFrameBytes(Bytes);
   }
   void statsUpdateSpills() {
-    if (!ALLOW_DUMP)
+    if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    StatsFunction.updateSpills();
-    StatsCumulative.updateSpills();
+    TLS->StatsFunction.updateSpills();
+    getStatsCumulative()->updateSpills();
   }
   void statsUpdateFills() {
-    if (!ALLOW_DUMP)
+    if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    StatsFunction.updateFills();
-    StatsCumulative.updateFills();
+    TLS->StatsFunction.updateFills();
+    getStatsCumulative()->updateFills();
   }
 
   // These are predefined TimerStackIdT values.
@@ -183,8 +231,8 @@ public:
     TSK_Num
   };
 
-  TimerIdT getTimerID(TimerStackIdT StackID, const IceString &Name);
   TimerStackIdT newTimerStackID(const IceString &Name);
+  TimerIdT getTimerID(TimerStackIdT StackID, const IceString &Name);
   void pushTimer(TimerIdT ID, TimerStackIdT StackID = TSK_Default);
   void popTimer(TimerIdT ID, TimerStackIdT StackID = TSK_Default);
   void resetTimer(TimerStackIdT StackID);
@@ -193,12 +241,24 @@ public:
                   bool DumpCumulative = true);
 
 private:
+  // Try to make sure the mutexes are allocated on separate cache
+  // lines, assuming the maximum cache line size is 64.
+  const static size_t MaxCacheLineSize = 64;
+  alignas(MaxCacheLineSize) GlobalLockType AllocLock;
+  alignas(MaxCacheLineSize) GlobalLockType ConstPoolLock;
+  alignas(MaxCacheLineSize) GlobalLockType StatsLock;
+  alignas(MaxCacheLineSize) GlobalLockType TimerLock;
+
+  // StrLock is a global lock on the dump and emit output streams.
+  typedef std::mutex StrLockType;
+  StrLockType StrLock;
+
   Ostream *StrDump; // Stream for dumping / diagnostics
   Ostream *StrEmit; // Stream for code emission
 
   ArenaAllocator<> Allocator;
   VerboseMask VMask;
-  std::unique_ptr<class ConstantPool> ConstPool;
+  std::unique_ptr<ConstantPool> ConstPool;
   Intrinsics IntrinsicsInfo;
   const TargetArch Arch;
   const OptLevel Opt;
@@ -206,10 +266,27 @@ private:
   const ClFlags &Flags;
   RandomNumberGenerator RNG;
   std::unique_ptr<ELFObjectWriter> ObjectWriter;
-  CodeStats StatsFunction;
   CodeStats StatsCumulative;
   std::vector<TimerStack> Timers;
   std::vector<GlobalDeclaration *> GlobalDeclarations;
+
+  LockedPtr<ArenaAllocator<>> getAllocator() {
+    return LockedPtr<ArenaAllocator<>>(&Allocator, &AllocLock);
+  }
+  LockedPtr<ConstantPool> getConstPool() {
+    return LockedPtr<ConstantPool>(ConstPool.get(), &ConstPoolLock);
+  }
+  LockedPtr<CodeStats> getStatsCumulative() {
+    return LockedPtr<CodeStats>(&StatsCumulative, &StatsLock);
+  }
+  LockedPtr<std::vector<TimerStack>> getTimers() {
+    return LockedPtr<std::vector<TimerStack>>(&Timers, &TimerLock);
+  }
+
+  std::vector<ThreadContext *> AllThreadContexts;
+  // Each thread has its own TLS pointer which is also held in
+  // AllThreadContexts.
+  thread_local static ThreadContext *TLS;
 
   // Private helpers for mangleName()
   typedef llvm::SmallVector<char, 32> ManglerVector;
@@ -243,6 +320,22 @@ private:
   TimerIdT ID;
   GlobalContext *const Ctx;
   bool Active;
+};
+
+// Helper class for locking the streams and then automatically
+// unlocking them.
+class OstreamLocker {
+private:
+  OstreamLocker() = delete;
+  OstreamLocker(const OstreamLocker &) = delete;
+  OstreamLocker &operator=(const OstreamLocker &) = delete;
+
+public:
+  explicit OstreamLocker(GlobalContext *Ctx) : Ctx(Ctx) { Ctx->lockStr(); }
+  ~OstreamLocker() { Ctx->unlockStr(); }
+
+private:
+  GlobalContext *const Ctx;
 };
 
 } // end of namespace Ice

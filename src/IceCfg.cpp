@@ -56,6 +56,7 @@ Cfg::~Cfg() {
 void Cfg::setError(const IceString &Message) {
   HasError = true;
   ErrorMessage = Message;
+  OstreamLocker L(Ctx);
   Ctx->getStrDump() << "ICE translation error: " << ErrorMessage << "\n";
 }
 
@@ -335,6 +336,7 @@ void Cfg::liveness(LivenessMode Mode) {
 bool Cfg::validateLiveness() const {
   TimerMarker T(TimerStack::TT_validateLiveness, this);
   bool Valid = true;
+  OstreamLocker L(Ctx);
   Ostream &Str = Ctx->getStrDump();
   for (CfgNode *Node : Nodes) {
     Inst *FirstInst = nullptr;
@@ -442,6 +444,7 @@ void Cfg::emit() {
     liveness(Liveness_Basic);
     dump("After recomputing liveness for -decorate-asm");
   }
+  OstreamLocker L(Ctx);
   Ostream &Str = Ctx->getStrEmit();
   IceString MangledName = getContext()->mangleName(getFunctionName());
   emitTextHeader(MangledName);
@@ -454,8 +457,9 @@ void Cfg::emitIAS() {
   TimerMarker T(TimerStack::TT_emit, this);
   assert(!Ctx->getFlags().DecorateAsm);
   IceString MangledName = getContext()->mangleName(getFunctionName());
-  if (!Ctx->getFlags().UseELFWriter)
-    emitTextHeader(MangledName);
+  // The emitIAS() routines emit into the internal assembler buffer,
+  // so there's no need to lock the streams until we're ready to call
+  // emitIASBytes().
   for (CfgNode *Node : Nodes)
     Node->emitIAS(this);
   // Now write the function to the file and track.
@@ -464,6 +468,8 @@ void Cfg::emitIAS() {
     Ctx->getObjectWriter()->writeFunctionCode(MangledName, getInternal(),
                                               getAssembler<Assembler>());
   } else {
+    OstreamLocker L(Ctx);
+    emitTextHeader(MangledName);
     getAssembler<Assembler>()->emitIASBytes(Ctx);
   }
 }
@@ -474,6 +480,7 @@ void Cfg::dump(const IceString &Message) {
     return;
   if (!Ctx->isVerbose())
     return;
+  OstreamLocker L(Ctx);
   Ostream &Str = Ctx->getStrDump();
   if (!Message.empty())
     Str << "================ " << Message << " ================\n";

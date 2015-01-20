@@ -793,13 +793,12 @@ void Converter::nameUnnamedGlobalVariables(Module *Mod) {
   if (GlobalPrefix.empty())
     return;
   uint32_t NameIndex = 0;
-  Ostream &errs = Ctx->getStrDump();
   for (auto V = Mod->global_begin(), E = Mod->global_end(); V != E; ++V) {
     if (!V->hasName()) {
       V->setName(createUnnamedName(GlobalPrefix, NameIndex));
       ++NameIndex;
     } else {
-      checkIfUnnamedNameSafe(V->getName(), "global", GlobalPrefix, errs);
+      checkIfUnnamedNameSafe(V->getName(), "global", GlobalPrefix);
     }
   }
 }
@@ -809,13 +808,12 @@ void Converter::nameUnnamedFunctions(Module *Mod) {
   if (FunctionPrefix.empty())
     return;
   uint32_t NameIndex = 0;
-  Ostream &errs = Ctx->getStrDump();
   for (Function &F : *Mod) {
     if (!F.hasName()) {
       F.setName(createUnnamedName(FunctionPrefix, NameIndex));
       ++NameIndex;
     } else {
-      checkIfUnnamedNameSafe(F.getName(), "function", FunctionPrefix, errs);
+      checkIfUnnamedNameSafe(F.getName(), "function", FunctionPrefix);
     }
   }
 }

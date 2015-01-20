@@ -898,6 +898,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   }
 
   if (ALLOW_DUMP && Func->getContext()->isVerbose(IceV_Frame)) {
+    OstreamLocker L(Func->getContext());
     Ostream &Str = Func->getContext()->getStrDump();
 
     Str << "Stack layout:\n";
@@ -1028,6 +1029,7 @@ void TargetX8632::emitConstants() const {
     Writer->writeConstantPool<ConstantFloat>(IceType_f32);
     Writer->writeConstantPool<ConstantDouble>(IceType_f64);
   } else {
+    OstreamLocker L(Ctx);
     emitConstantPool<PoolTypeConverter<float>>();
     emitConstantPool<PoolTypeConverter<double>>();
   }
@@ -3567,6 +3569,7 @@ void dumpAddressOpt(const Cfg *Func, const Variable *Base,
     return;
   if (!Func->getContext()->isVerbose(IceV_AddrOpt))
     return;
+  OstreamLocker L(Func->getContext());
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "Instruction: ";
   Reason->dumpDecorated(Func);
@@ -3738,6 +3741,7 @@ void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
                        Variable *&Index, uint16_t &Shift, int32_t &Offset) {
   Func->resetCurrentNode();
   if (Func->getContext()->isVerbose(IceV_AddrOpt)) {
+    OstreamLocker L(Func->getContext());
     Ostream &Str = Func->getContext()->getStrDump();
     Str << "\nStarting computeAddressOpt for instruction:\n  ";
     Instr->dumpDecorated(Func);
@@ -4579,6 +4583,7 @@ void TargetX8632::makeRandomRegisterPermutation(
   assert(NumShuffled + NumPreserved == RegX8632::Reg_NUM);
 
   if (Func->getContext()->isVerbose(IceV_Random)) {
+    OstreamLocker L(Func->getContext());
     Ostream &Str = Func->getContext()->getStrDump();
     Str << "Register equivalence classes:\n";
     for (auto I : EquivalenceClasses) {

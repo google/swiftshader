@@ -264,9 +264,11 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
                       bool Randomized) {
   TimerMarker T(TimerStack::TT_linearScan, Func);
   assert(RegMaskFull.any()); // Sanity check
-  Ostream &Str = Func->getContext()->getStrDump();
+  GlobalContext *Ctx = Func->getContext();
   const bool Verbose =
-      ALLOW_DUMP && Func->getContext()->isVerbose(IceV_LinearScan);
+      ALLOW_DUMP && Ctx->isVerbose(IceV_LinearScan);
+  if (Verbose)
+    Ctx->lockStr();
   Func->resetCurrentNode();
   VariablesMetadata *VMetadata = Func->getVMetadata();
   const size_t NumRegisters = RegMaskFull.size();
@@ -300,6 +302,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     Variable *Cur = Unhandled.back();
     Unhandled.pop_back();
     if (Verbose) {
+      Ostream &Str = Ctx->getStrDump();
       Str << "\nConsidering  ";
       dumpLiveRange(Cur, Func);
       Str << "\n";
@@ -318,6 +321,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
       // RegNumTmp should have already been set above.
       assert(Cur->getRegNumTmp() == RegNum);
       if (Verbose) {
+        Ostream &Str = Ctx->getStrDump();
         Str << "Precoloring  ";
         dumpLiveRange(Cur, Func);
         Str << "\n";
@@ -340,6 +344,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
       if (Item->rangeEndsBefore(Cur)) {
         // Move Item from Active to Handled list.
         if (Verbose) {
+          Ostream &Str = Ctx->getStrDump();
           Str << "Expiring     ";
           dumpLiveRange(Item, Func);
           Str << "\n";
@@ -349,6 +354,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
       } else if (!Item->rangeOverlapsStart(Cur)) {
         // Move Item from Active to Inactive list.
         if (Verbose) {
+          Ostream &Str = Ctx->getStrDump();
           Str << "Inactivating ";
           dumpLiveRange(Item, Func);
           Str << "\n";
@@ -373,6 +379,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
       if (Item->rangeEndsBefore(Cur)) {
         // Move Item from Inactive to Handled list.
         if (Verbose) {
+          Ostream &Str = Ctx->getStrDump();
           Str << "Expiring     ";
           dumpLiveRange(Item, Func);
           Str << "\n";
@@ -381,6 +388,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
       } else if (Item->rangeOverlapsStart(Cur)) {
         // Move Item from Inactive to Active list.
         if (Verbose) {
+          Ostream &Str = Ctx->getStrDump();
           Str << "Reactivating ";
           dumpLiveRange(Item, Func);
           Str << "\n";
@@ -446,6 +454,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
           }
         }
         if (Verbose && Prefer) {
+          Ostream &Str = Ctx->getStrDump();
           Str << "Initial Prefer=";
           Prefer->dump(Func);
           Str << " R=" << PreferReg << " LIVE=" << Prefer->getLiveRange()
@@ -531,6 +540,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
 
     // Print info about physical register availability.
     if (Verbose) {
+      Ostream &Str = Ctx->getStrDump();
       for (SizeT i = 0; i < RegMask.size(); ++i) {
         if (RegMask[i]) {
           Str << Func->getTarget()->getRegName(i, IceType_i32)
@@ -546,6 +556,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
       // allowed to overlap with its linked variable.
       Cur->setRegNumTmp(PreferReg);
       if (Verbose) {
+        Ostream &Str = Ctx->getStrDump();
         Str << "Preferring   ";
         dumpLiveRange(Cur, Func);
         Str << "\n";
@@ -560,6 +571,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
       int32_t RegNum = Free.find_first();
       Cur->setRegNumTmp(RegNum);
       if (Verbose) {
+        Ostream &Str = Ctx->getStrDump();
         Str << "Allocating   ";
         dumpLiveRange(Cur, Func);
         Str << "\n";
@@ -613,6 +625,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
           Variable *Item = Active[Index];
           if (Item->getRegNumTmp() == MinWeightIndex) {
             if (Verbose) {
+              Ostream &Str = Ctx->getStrDump();
               Str << "Evicting     ";
               dumpLiveRange(Item, Func);
               Str << "\n";
@@ -639,6 +652,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
           if (Item->getRegNumTmp() == MinWeightIndex &&
               Item->rangeOverlaps(Cur)) {
             if (Verbose) {
+              Ostream &Str = Ctx->getStrDump();
               Str << "Evicting     ";
               dumpLiveRange(Item, Func);
               Str << "\n";
@@ -653,6 +667,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
         ++RegUses[MinWeightIndex];
         Active.push_back(Cur);
         if (Verbose) {
+          Ostream &Str = Ctx->getStrDump();
           Str << "Allocating   ";
           dumpLiveRange(Cur, Func);
           Str << "\n";
@@ -686,6 +701,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
       AssignedRegNum = Permutation[RegNum];
     }
     if (Verbose) {
+      Ostream &Str = Ctx->getStrDump();
       if (!Item->hasRegTmp()) {
         Str << "Not assigning ";
         Item->dump(Func);
@@ -712,6 +728,9 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
   // Another idea for coalescing stack slots is to initialize the
   // Unhandled list with just the unallocated variables, saving time
   // but not offering second-chance opportunities.
+
+  if (Verbose)
+    Ctx->unlockStr();
 }
 
 // ======================== Dump routines ======================== //
@@ -719,9 +738,9 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
 void LinearScan::dump(Cfg *Func) const {
   if (!ALLOW_DUMP)
     return;
-  Ostream &Str = Func->getContext()->getStrDump();
   if (!Func->getContext()->isVerbose(IceV_LinearScan))
     return;
+  Ostream &Str = Func->getContext()->getStrDump();
   Func->resetCurrentNode();
   Str << "**** Current regalloc state:\n";
   Str << "++++++ Handled:\n";

@@ -112,7 +112,7 @@ typedef int32_t InstNumberT;
 // ends a variable's live range.
 typedef std::pair<SizeT, InstNumberT> LiveBeginEndMapEntry;
 typedef std::vector<LiveBeginEndMapEntry,
-                    CfgLocalAllocator<LiveBeginEndMapEntry> > LiveBeginEndMap;
+                    CfgLocalAllocator<LiveBeginEndMapEntry>> LiveBeginEndMap;
 typedef llvm::BitVector LivenessBV;
 
 typedef uint32_t TimerStackIdT;

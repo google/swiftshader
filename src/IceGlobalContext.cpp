@@ -108,7 +108,7 @@ public:
   UndefPool Undefs;
 };
 
-void CodeStats::dump(const IceString &Name, Ostream &Str) {
+void GlobalContext::CodeStats::dump(const IceString &Name, Ostream &Str) {
   if (!ALLOW_DUMP)
     return;
   Str << "|" << Name << "|Inst Count  |" << InstructionsEmitted << "\n";
@@ -132,8 +132,15 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
     : StrDump(OsDump), StrEmit(OsEmit), VMask(Mask),
       ConstPool(new ConstantPool()), Arch(Arch), Opt(Opt),
       TestPrefix(TestPrefix), Flags(Flags), RNG(""), ObjectWriter() {
+  // Create a new ThreadContext for the current thread.  No need to
+  // lock AllThreadContexts at this point since no other threads have
+  // access yet to this GlobalContext object.
+  AllThreadContexts.push_back(new ThreadContext());
+  TLS = AllThreadContexts.back();
   // Pre-register built-in stack names.
   if (ALLOW_DUMP) {
+    // TODO(stichnot): There needs to be a strong relationship between
+    // the newTimerStackID() return values and TSK_Default/TSK_Funcs.
     newTimerStackID("Total across all functions");
     newTimerStackID("Per-function summary");
   }
@@ -308,8 +315,13 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
 
 GlobalContext::~GlobalContext() {
   llvm::DeleteContainerPointers(GlobalDeclarations);
+  llvm::DeleteContainerPointers(AllThreadContexts);
 }
 
+// TODO(stichnot): Consider adding thread-local caches of constant
+// pool entries to reduce contention.
+
+// All locking is done by the getConstantInt[0-9]+() target function.
 Constant *GlobalContext::getConstantInt(Type Ty, int64_t Value) {
   switch (Ty) {
   case IceType_i1:
@@ -330,44 +342,45 @@ Constant *GlobalContext::getConstantInt(Type Ty, int64_t Value) {
 
 Constant *GlobalContext::getConstantInt1(int8_t ConstantInt1) {
   ConstantInt1 &= INT8_C(1);
-  return ConstPool->Integers1.getOrAdd(this, ConstantInt1);
+  return getConstPool()->Integers1.getOrAdd(this, ConstantInt1);
 }
 
 Constant *GlobalContext::getConstantInt8(int8_t ConstantInt8) {
-  return ConstPool->Integers8.getOrAdd(this, ConstantInt8);
+  return getConstPool()->Integers8.getOrAdd(this, ConstantInt8);
 }
 
 Constant *GlobalContext::getConstantInt16(int16_t ConstantInt16) {
-  return ConstPool->Integers16.getOrAdd(this, ConstantInt16);
+  return getConstPool()->Integers16.getOrAdd(this, ConstantInt16);
 }
 
 Constant *GlobalContext::getConstantInt32(int32_t ConstantInt32) {
-  return ConstPool->Integers32.getOrAdd(this, ConstantInt32);
+  return getConstPool()->Integers32.getOrAdd(this, ConstantInt32);
 }
 
 Constant *GlobalContext::getConstantInt64(int64_t ConstantInt64) {
-  return ConstPool->Integers64.getOrAdd(this, ConstantInt64);
+  return getConstPool()->Integers64.getOrAdd(this, ConstantInt64);
 }
 
 Constant *GlobalContext::getConstantFloat(float ConstantFloat) {
-  return ConstPool->Floats.getOrAdd(this, ConstantFloat);
+  return getConstPool()->Floats.getOrAdd(this, ConstantFloat);
 }
 
 Constant *GlobalContext::getConstantDouble(double ConstantDouble) {
-  return ConstPool->Doubles.getOrAdd(this, ConstantDouble);
+  return getConstPool()->Doubles.getOrAdd(this, ConstantDouble);
 }
 
 Constant *GlobalContext::getConstantSym(RelocOffsetT Offset,
                                         const IceString &Name,
                                         bool SuppressMangling) {
-  return ConstPool->Relocatables.getOrAdd(
+  return getConstPool()->Relocatables.getOrAdd(
       this, RelocatableTuple(Offset, Name, SuppressMangling));
 }
 
 Constant *GlobalContext::getConstantUndef(Type Ty) {
-  return ConstPool->Undefs.getOrAdd(this, Ty);
+  return getConstPool()->Undefs.getOrAdd(this, Ty);
 }
 
+// All locking is done by the getConstant*() target function.
 Constant *GlobalContext::getConstantZero(Type Ty) {
   switch (Ty) {
   case IceType_i1:
@@ -403,19 +416,19 @@ Constant *GlobalContext::getConstantZero(Type Ty) {
   llvm_unreachable("Unknown type");
 }
 
-ConstantList GlobalContext::getConstantPool(Type Ty) const {
+ConstantList GlobalContext::getConstantPool(Type Ty) {
   switch (Ty) {
   case IceType_i1:
   case IceType_i8:
   case IceType_i16:
   case IceType_i32:
-    return ConstPool->Integers32.getConstantPool();
+    return getConstPool()->Integers32.getConstantPool();
   case IceType_i64:
-    return ConstPool->Integers64.getConstantPool();
+    return getConstPool()->Integers64.getConstantPool();
   case IceType_f32:
-    return ConstPool->Floats.getConstantPool();
+    return getConstPool()->Floats.getConstantPool();
   case IceType_f64:
-    return ConstPool->Doubles.getConstantPool();
+    return getConstPool()->Doubles.getConstantPool();
   case IceType_v4i1:
   case IceType_v8i1:
   case IceType_v16i1:
@@ -435,6 +448,9 @@ ConstantList GlobalContext::getConstantPool(Type Ty) const {
   llvm_unreachable("Unknown type");
 }
 
+// No locking because only the bitcode parser thread calls it.
+// TODO(stichnot,kschimpf): GlobalContext::GlobalDeclarations actually
+// seems to be unused.  If so, remove that field and this method.
 FunctionDeclaration *
 GlobalContext::newFunctionDeclaration(const FuncSigType *Signature,
                                       unsigned CallingConv, unsigned Linkage,
@@ -446,65 +462,75 @@ GlobalContext::newFunctionDeclaration(const FuncSigType *Signature,
   return Func;
 }
 
+// No locking because only the bitcode parser thread calls it.
+// TODO(stichnot,kschimpf): GlobalContext::GlobalDeclarations actually
+// seems to be unused.  If so, remove that field and this method.
 VariableDeclaration *GlobalContext::newVariableDeclaration() {
   VariableDeclaration *Var = new VariableDeclaration();
   GlobalDeclarations.push_back(Var);
   return Var;
 }
 
-TimerIdT GlobalContext::getTimerID(TimerStackIdT StackID,
-                                   const IceString &Name) {
-  assert(StackID < Timers.size());
-  return Timers[StackID].getTimerID(Name);
-}
-
 TimerStackIdT GlobalContext::newTimerStackID(const IceString &Name) {
   if (!ALLOW_DUMP)
     return 0;
-  TimerStackIdT NewID = Timers.size();
-  Timers.push_back(TimerStack(Name));
+  auto Timers = getTimers();
+  TimerStackIdT NewID = Timers->size();
+  Timers->push_back(TimerStack(Name));
   return NewID;
 }
 
+TimerIdT GlobalContext::getTimerID(TimerStackIdT StackID,
+                                   const IceString &Name) {
+  auto Timers = getTimers();
+  assert(StackID < Timers->size());
+  return Timers->at(StackID).getTimerID(Name);
+}
+
 void GlobalContext::pushTimer(TimerIdT ID, TimerStackIdT StackID) {
-  assert(StackID < Timers.size());
-  Timers[StackID].push(ID);
+  auto Timers = getTimers();
+  assert(StackID < Timers->size());
+  Timers->at(StackID).push(ID);
 }
 
 void GlobalContext::popTimer(TimerIdT ID, TimerStackIdT StackID) {
-  assert(StackID < Timers.size());
-  Timers[StackID].pop(ID);
+  auto Timers = getTimers();
+  assert(StackID < Timers->size());
+  Timers->at(StackID).pop(ID);
 }
 
 void GlobalContext::resetTimer(TimerStackIdT StackID) {
-  assert(StackID < Timers.size());
-  Timers[StackID].reset();
+  auto Timers = getTimers();
+  assert(StackID < Timers->size());
+  Timers->at(StackID).reset();
 }
 
 void GlobalContext::setTimerName(TimerStackIdT StackID,
                                  const IceString &NewName) {
-  assert(StackID < Timers.size());
-  Timers[StackID].setName(NewName);
+  auto Timers = getTimers();
+  assert(StackID < Timers->size());
+  Timers->at(StackID).setName(NewName);
 }
 
 void GlobalContext::dumpStats(const IceString &Name, bool Final) {
-  if (!ALLOW_DUMP)
+  if (!ALLOW_DUMP || !getFlags().DumpStats)
     return;
-  if (Flags.DumpStats) {
-    if (Final) {
-      StatsCumulative.dump(Name, getStrDump());
-    } else {
-      StatsFunction.dump(Name, getStrDump());
-      StatsCumulative.dump("_TOTAL_", getStrDump());
-    }
+  OstreamLocker OL(this);
+  if (Final) {
+    getStatsCumulative()->dump(Name, getStrDump());
+  } else {
+    TLS->StatsFunction.dump(Name, getStrDump());
+    getStatsCumulative()->dump("_TOTAL_", getStrDump());
   }
 }
 
 void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
   if (!ALLOW_DUMP)
     return;
-  assert(Timers.size() > StackID);
-  Timers[StackID].dump(getStrDump(), DumpCumulative);
+  auto Timers = getTimers();
+  assert(Timers->size() > StackID);
+  OstreamLocker L(this);
+  Timers->at(StackID).dump(getStrDump(), DumpCumulative);
 }
 
 TimerMarker::TimerMarker(TimerIdT ID, const Cfg *Func)
@@ -515,5 +541,7 @@ TimerMarker::TimerMarker(TimerIdT ID, const Cfg *Func)
       Ctx->pushTimer(ID);
   }
 }
+
+thread_local GlobalContext::ThreadContext *GlobalContext::TLS;
 
 } // end of namespace Ice
