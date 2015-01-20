@@ -851,7 +851,7 @@ void Converter::installGlobalDeclarations(Module *Mod) {
           Converter.convertToIceType(FuncType->getParamType(I)));
     }
     FunctionDeclaration *IceFunc = FunctionDeclaration::create(
-        Ctx, Signature, Func.getCallingConv(), Func.getLinkage(), Func.empty());
+        Signature, Func.getCallingConv(), Func.getLinkage(), Func.empty());
     IceFunc->setName(Func.getName());
     GlobalDeclarationMap[&Func] = IceFunc;
   }
@@ -860,7 +860,7 @@ void Converter::installGlobalDeclarations(Module *Mod) {
                                      E = Mod->global_end();
        I != E; ++I) {
     const GlobalVariable *GV = I;
-    VariableDeclaration *Var = VariableDeclaration::create(Ctx);
+    VariableDeclaration *Var = VariableDeclaration::create();
     Var->setName(GV->getName());
     Var->setAlignment(GV->getAlignment());
     Var->setIsConstant(GV->isConstant());

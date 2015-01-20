@@ -91,11 +91,9 @@ protected:
 class FunctionDeclaration : public GlobalDeclaration {
   FunctionDeclaration(const FunctionDeclaration &) = delete;
   FunctionDeclaration &operator=(const FunctionDeclaration &) = delete;
-  friend class GlobalContext;
 
 public:
-  static FunctionDeclaration *create(GlobalContext *Ctx,
-                                     const FuncSigType &Signature,
+  static FunctionDeclaration *create(const FuncSigType &Signature,
                                      llvm::CallingConv::ID CallingConv,
                                      llvm::GlobalValue::LinkageTypes Linkage,
                                      bool IsProto);
@@ -129,10 +127,6 @@ private:
 class VariableDeclaration : public GlobalDeclaration {
   VariableDeclaration(const VariableDeclaration &) = delete;
   VariableDeclaration &operator=(const VariableDeclaration &) = delete;
-  friend class GlobalContext;
-  // TODO(kschimpf) Factor out allocation of initializers into the
-  // global context, so that memory allocation/collection can be
-  // optimized.
 public:
   /// Base class for a global variable initializer.
   class Initializer {
@@ -248,7 +242,7 @@ public:
   /// Models the list of initializers.
   typedef std::vector<Initializer *> InitializerListType;
 
-  static VariableDeclaration *create(GlobalContext *Ctx);
+  static VariableDeclaration *create();
   ~VariableDeclaration() final;
 
   const InitializerListType &getInitializers() const { return Initializers; }

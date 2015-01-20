@@ -314,7 +314,6 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
 }
 
 GlobalContext::~GlobalContext() {
-  llvm::DeleteContainerPointers(GlobalDeclarations);
   llvm::DeleteContainerPointers(AllThreadContexts);
 }
 
@@ -446,29 +445,6 @@ ConstantList GlobalContext::getConstantPool(Type Ty) {
     break;
   }
   llvm_unreachable("Unknown type");
-}
-
-// No locking because only the bitcode parser thread calls it.
-// TODO(stichnot,kschimpf): GlobalContext::GlobalDeclarations actually
-// seems to be unused.  If so, remove that field and this method.
-FunctionDeclaration *
-GlobalContext::newFunctionDeclaration(const FuncSigType *Signature,
-                                      unsigned CallingConv, unsigned Linkage,
-                                      bool IsProto) {
-  FunctionDeclaration *Func = new FunctionDeclaration(
-      *Signature, static_cast<llvm::CallingConv::ID>(CallingConv),
-      static_cast<llvm::GlobalValue::LinkageTypes>(Linkage), IsProto);
-  GlobalDeclarations.push_back(Func);
-  return Func;
-}
-
-// No locking because only the bitcode parser thread calls it.
-// TODO(stichnot,kschimpf): GlobalContext::GlobalDeclarations actually
-// seems to be unused.  If so, remove that field and this method.
-VariableDeclaration *GlobalContext::newVariableDeclaration() {
-  VariableDeclaration *Var = new VariableDeclaration();
-  GlobalDeclarations.push_back(Var);
-  return Var;
 }
 
 TimerStackIdT GlobalContext::newTimerStackID(const IceString &Name) {

@@ -60,12 +60,10 @@ void dumpCallingConv(Ice::Ostream &, llvm::CallingConv::ID CallingConv) {
 
 namespace Ice {
 
-FunctionDeclaration *
-FunctionDeclaration::create(GlobalContext *Ctx, const FuncSigType &Signature,
-                            llvm::CallingConv::ID CallingConv,
-                            llvm::GlobalValue::LinkageTypes Linkage,
-                            bool IsProto) {
-  return Ctx->newFunctionDeclaration(&Signature, CallingConv, Linkage, IsProto);
+FunctionDeclaration *FunctionDeclaration::create(
+    const FuncSigType &Signature, llvm::CallingConv::ID CallingConv,
+    llvm::GlobalValue::LinkageTypes Linkage, bool IsProto) {
+  return new FunctionDeclaration(Signature, CallingConv, Linkage, IsProto);
 }
 
 void FunctionDeclaration::dumpType(Ostream &Stream) const {
@@ -94,8 +92,8 @@ void FunctionDeclaration::dump(GlobalContext *Ctx, Ostream &Stream) const {
   Stream << ")";
 }
 
-VariableDeclaration *VariableDeclaration::create(GlobalContext *Ctx) {
-  return Ctx->newVariableDeclaration();
+VariableDeclaration *VariableDeclaration::create() {
+  return new VariableDeclaration();
 }
 
 VariableDeclaration::~VariableDeclaration() {

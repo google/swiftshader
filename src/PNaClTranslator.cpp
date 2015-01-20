@@ -334,9 +334,8 @@ public:
   /// Creates Count global variable declarations.
   void CreateGlobalVariables(size_t Count) {
     assert(VariableDeclarations.empty());
-    Ice::GlobalContext *Context = getTranslator().getContext();
     for (size_t i = 0; i < Count; ++i) {
-      VariableDeclarations.push_back(Ice::VariableDeclaration::create(Context));
+      VariableDeclarations.push_back(Ice::VariableDeclaration::create());
     }
   }
 
@@ -846,8 +845,7 @@ public:
       : BlockParserBaseClass(BlockID, EnclosingParser),
         Timer(Ice::TimerStack::TT_parseGlobals, getTranslator().getContext()),
         InitializersNeeded(0), NextGlobalID(0),
-        DummyGlobalVar(
-            Ice::VariableDeclaration::create(getTranslator().getContext())),
+        DummyGlobalVar(Ice::VariableDeclaration::create()),
         CurGlobalVar(DummyGlobalVar) {}
 
   ~GlobalsParser() final {}
@@ -2929,8 +2927,7 @@ void ModuleParser::ProcessRecord() {
       return;
     }
     Ice::FunctionDeclaration *Func = Ice::FunctionDeclaration::create(
-        getTranslator().getContext(), Signature, CallingConv, Linkage,
-        Values[2] == 0);
+        Signature, CallingConv, Linkage, Values[2] == 0);
     if (Values[2] == 0)
       Context->setNextValueIDAsImplementedFunction();
     Context->setNextFunctionID(Func);

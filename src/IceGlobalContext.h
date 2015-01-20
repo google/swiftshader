@@ -158,17 +158,6 @@ public:
   // getConstantPool() returns a copy of the constant pool for
   // constants of a given type.
   ConstantList getConstantPool(Type Ty);
-  // Returns a new function declaration, allocated in an internal
-  // memory pool.  Ownership of the function is maintained by this
-  // class instance.
-  FunctionDeclaration *newFunctionDeclaration(const FuncSigType *Signature,
-                                              unsigned CallingConv,
-                                              unsigned Linkage, bool IsProto);
-
-  // Returns a new global variable declaration, allocated in an
-  // internal memory pool.  Ownership of the function is maintained by
-  // this class instance.
-  VariableDeclaration *newVariableDeclaration();
 
   const ClFlags &getFlags() const { return Flags; }
 
@@ -268,7 +257,6 @@ private:
   std::unique_ptr<ELFObjectWriter> ObjectWriter;
   CodeStats StatsCumulative;
   std::vector<TimerStack> Timers;
-  std::vector<GlobalDeclaration *> GlobalDeclarations;
 
   LockedPtr<ArenaAllocator<>> getAllocator() {
     return LockedPtr<ArenaAllocator<>>(&Allocator, &AllocLock);
