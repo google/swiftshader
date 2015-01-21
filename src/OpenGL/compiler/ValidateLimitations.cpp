@@ -4,10 +4,10 @@
 // found in the LICENSE file.
 //
 
-#include "compiler/ValidateLimitations.h"
-#include "compiler/InfoSink.h"
-#include "compiler/InitializeParseContext.h"
-#include "compiler/ParseHelper.h"
+#include "ValidateLimitations.h"
+#include "InfoSink.h"
+#include "InitializeParseContext.h"
+#include "ParseHelper.h"
 
 namespace {
 bool IsLoopIndex(const TIntermSymbol* symbol, const TLoopStack& stack) {

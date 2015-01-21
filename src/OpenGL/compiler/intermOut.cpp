@@ -4,8 +4,8 @@
 // found in the LICENSE file.
 //
 
-#include "compiler/localintermediate.h"
-#include "compiler/SymbolTable.h"
+#include "localintermediate.h"
+#include "SymbolTable.h"
 
 //
 // Two purposes:

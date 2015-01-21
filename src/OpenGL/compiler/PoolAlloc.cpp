@@ -4,15 +4,15 @@
 // found in the LICENSE file.
 //
 
-#include "compiler/PoolAlloc.h"
+#include "PoolAlloc.h"
 
 #ifndef _MSC_VER
 #include <stdint.h>
 #endif
 #include <stdio.h>
 
-#include "compiler/InitializeGlobals.h"
-#include "compiler/osinclude.h"
+#include "InitializeGlobals.h"
+#include "osinclude.h"
 
 OS_TLSIndex PoolIndex = OS_INVALID_TLS_INDEX;
 

@@ -4,11 +4,11 @@
 // found in the LICENSE file.
 //
 
-#include "compiler/InitializeDll.h"
+#include "InitializeDll.h"
 
-#include "compiler/InitializeGlobals.h"
-#include "compiler/InitializeParseContext.h"
-#include "compiler/osinclude.h"
+#include "InitializeGlobals.h"
+#include "InitializeParseContext.h"
+#include "osinclude.h"
 
 bool InitProcess()
 {

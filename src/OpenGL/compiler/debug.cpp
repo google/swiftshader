@@ -6,13 +6,13 @@
 
 // debug.cpp: Debugging utilities.
 
-#include "compiler/debug.h"
+#include "debug.h"
 
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "compiler/InitializeParseContext.h"
-#include "compiler/ParseHelper.h"
+#include "InitializeParseContext.h"
+#include "ParseHelper.h"
 
 static const int kTraceBufferLen = 1024;
 

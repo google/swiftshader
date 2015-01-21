@@ -7,9 +7,9 @@
 #ifndef COMPILER_DIRECTIVE_HANDLER_H_
 #define COMPILER_DIRECTIVE_HANDLER_H_
 
-#include "compiler/ExtensionBehavior.h"
-#include "compiler/Pragma.h"
-#include "compiler/preprocessor/DirectiveHandler.h"
+#include "ExtensionBehavior.h"
+#include "Pragma.h"
+#include "preprocessor/DirectiveHandler.h"
 
 class TDiagnostics;
 

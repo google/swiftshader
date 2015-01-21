@@ -4,7 +4,7 @@
 // found in the LICENSE file.
 //
 
-#include "compiler/InfoSink.h"
+#include "InfoSink.h"
 
 void TInfoSinkBase::prefix(TPrefixType message) {
     switch(message) {

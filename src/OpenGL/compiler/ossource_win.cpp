@@ -4,7 +4,7 @@
 // found in the LICENSE file.
 //
 
-#include "compiler/osinclude.h"
+#include "osinclude.h"
 //
 // This file contains contains the window's specific functions
 //

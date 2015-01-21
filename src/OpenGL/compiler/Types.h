@@ -7,9 +7,9 @@
 #ifndef _TYPES_INCLUDED
 #define _TYPES_INCLUDED
 
-#include "compiler/BaseTypes.h"
-#include "compiler/Common.h"
-#include "compiler/debug.h"
+#include "BaseTypes.h"
+#include "Common.h"
+#include "debug.h"
 
 #include <algorithm>
 

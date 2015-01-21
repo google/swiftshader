@@ -16,9 +16,9 @@
 
 #include "GLSLANG/ShaderLang.h"
 
-#include "compiler/ExtensionBehavior.h"
-#include "compiler/InfoSink.h"
-#include "compiler/SymbolTable.h"
+#include "ExtensionBehavior.h"
+#include "InfoSink.h"
+#include "SymbolTable.h"
 
 class TCompiler;
 

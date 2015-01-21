@@ -4,12 +4,12 @@
 // found in the LICENSE file.
 //
 
-#include "compiler/DirectiveHandler.h"
+#include "DirectiveHandler.h"
 
 #include <sstream>
 
-#include "compiler/debug.h"
-#include "compiler/Diagnostics.h"
+#include "debug.h"
+#include "Diagnostics.h"
 
 static TBehavior getBehavior(const std::string& str)
 {

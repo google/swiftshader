@@ -4,7 +4,7 @@
 // found in the LICENSE file.
 //
 
-#include "compiler/AnalyzeCallDepth.h"
+#include "AnalyzeCallDepth.h"
 
 AnalyzeCallDepth::FunctionNode::FunctionNode(TIntermAggregate *node) : node(node)
 {

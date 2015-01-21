@@ -32,8 +32,8 @@
 
 #include <assert.h>
 
-#include "compiler/InfoSink.h"
-#include "compiler/intermediate.h"
+#include "InfoSink.h"
+#include "intermediate.h"
 
 //
 // Symbol base class.  (Can build functions or variables out of these...)

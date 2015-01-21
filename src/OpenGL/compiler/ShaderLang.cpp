@@ -11,9 +11,9 @@
 
 #include "GLSLANG/ShaderLang.h"
 
-#include "compiler/InitializeDll.h"
-#include "compiler/preprocessor/length_limits.h"
-#include "compiler/ShHandle.h"
+#include "InitializeDll.h"
+#include "preprocessor/length_limits.h"
+#include "ShHandle.h"
 
 #include <limits.h>
 

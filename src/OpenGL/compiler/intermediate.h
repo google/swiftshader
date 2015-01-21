@@ -16,9 +16,9 @@
 #ifndef __INTERMEDIATE_H
 #define __INTERMEDIATE_H
 
-#include "compiler/Common.h"
-#include "compiler/Types.h"
-#include "compiler/ConstantUnion.h"
+#include "Common.h"
+#include "Types.h"
+#include "ConstantUnion.h"
 
 //
 // Operators used by the high-level (parse tree) representation.

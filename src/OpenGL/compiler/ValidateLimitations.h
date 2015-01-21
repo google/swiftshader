@@ -5,7 +5,7 @@
 //
 
 #include "GLSLANG/ShaderLang.h"
-#include "compiler/intermediate.h"
+#include "intermediate.h"
 
 class TInfoSinkBase;
 

@@ -6,12 +6,12 @@
 #ifndef _PARSER_HELPER_INCLUDED_
 #define _PARSER_HELPER_INCLUDED_
 
-#include "compiler/Diagnostics.h"
-#include "compiler/DirectiveHandler.h"
-#include "compiler/localintermediate.h"
-#include "compiler/preprocessor/Preprocessor.h"
-#include "compiler/ShHandle.h"
-#include "compiler/SymbolTable.h"
+#include "Diagnostics.h"
+#include "DirectiveHandler.h"
+#include "localintermediate.h"
+#include "preprocessor/Preprocessor.h"
+#include "ShHandle.h"
+#include "SymbolTable.h"
 
 struct TMatrixFields {
     bool wholeRow;

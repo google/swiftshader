@@ -4,11 +4,11 @@
 // found in the LICENSE file.
 //
 
-#include "compiler/Diagnostics.h"
+#include "Diagnostics.h"
 
-#include "compiler/debug.h"
-#include "compiler/InfoSink.h"
-#include "compiler/preprocessor/SourceLocation.h"
+#include "debug.h"
+#include "InfoSink.h"
+#include "preprocessor/SourceLocation.h"
 
 TDiagnostics::TDiagnostics(TInfoSink& infoSink) :
     mInfoSink(infoSink),

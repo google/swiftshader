@@ -115,11 +115,11 @@
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(DXSDK_DIR)\Include;..\include;$(DXSDK_DIR)\Include;$(VCInstallDir)PlatformSDK\include;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(DXSDK_DIR)\Include;..\include;$(DXSDK_DIR)\Include;$(VCInstallDir)PlatformSDK\include;$(IncludePath)</IncludePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(DXSDK_DIR)\Lib\x86;$(VCInstallDir)PlatformSDK\lib;$(LibraryPath)</LibraryPath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(DXSDK_DIR)\Lib\x86;$(VCInstallDir)PlatformSDK\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(DXSDK_DIR)\Lib\x64;$(VCInstallDir)PlatformSDK\lib;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(DXSDK_DIR)\Lib\x86;$(VCInstallDir)PlatformSDK\lib;$(LibraryPath)</LibraryPath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(DXSDK_DIR)\Lib\x86;$(VCInstallDir)PlatformSDK\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(DXSDK_DIR)\Lib\x64;$(VCInstallDir)PlatformSDK\lib;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(DXSDK_DIR)\Lib\x86;$(VCInstallDir)PlatformSDK\lib;$(LibraryPath)</LibraryPath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(DXSDK_DIR)\Lib\x86;$(VCInstallDir)PlatformSDK\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(DXSDK_DIR)\Lib\x64;$(VCInstallDir)PlatformSDK\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -206,10 +206,6 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
       <Command>mkdir "$(ProjectDir)..\..\..\lib\$(Configuration)\"
 copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Command>
     </PostBuildEvent>
-    <ResourceCompile>
-      <PreprocessorDefinitions>
-      </PreprocessorDefinitions>
-    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -357,6 +353,9 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
     <ResourceCompile Include="libRAD.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\OpenGL\compiler\Compiler.vcxproj">
+      <Project>{5b3a6db8-1e7e-40d7-92b9-da8aae619fad}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\SwiftShader\SwiftShader.vcxproj">
       <Project>{7b02cb19-4cdf-4f79-bc9b-7f3f6164a003}</Project>
       <Private>true</Private>
@@ -364,9 +363,6 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
       <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
-    </ProjectReference>
-    <ProjectReference Include="..\compiler\Compiler.vcxproj">
-      <Project>{5aebf8b8-3454-4984-9d77-a8f13bc0377b}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

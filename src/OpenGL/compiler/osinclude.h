@@ -35,7 +35,7 @@
 #endif  // ANGLE_OS_WIN
 
 
-#include "compiler/debug.h"
+#include "debug.h"
 
 //
 // Thread Local Storage Operations

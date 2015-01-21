@@ -17,7 +17,7 @@
 #ifndef LIBGLESV2_SHADER_H_
 #define LIBGLESV2_SHADER_H_
 
-#include "compiler/TranslatorASM.h"
+#include "../OpenGL/compiler/TranslatorASM.h"
 
 #define GL_APICALL
 #include <GLES2/gl2.h>

@@ -8,7 +8,7 @@
 #define _LOCAL_INTERMEDIATE_INCLUDED_
 
 #include "GLSLANG/ShaderLang.h"
-#include "compiler/intermediate.h"
+#include "intermediate.h"
 
 struct TVectorFields {
     int offsets[4];

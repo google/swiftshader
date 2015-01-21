@@ -7,7 +7,7 @@
 #ifndef COMPILER_ANALYZE_CALL_DEPTH_H_
 #define COMPILER_ANALYZE_CALL_DEPTH_H_
 
-#include "compiler/intermediate.h"
+#include "intermediate.h"
 
 #include <set>
 #include <limits.h>

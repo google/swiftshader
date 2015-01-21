@@ -4,12 +4,12 @@
 // found in the LICENSE file.
 //
 
-#include "compiler/AnalyzeCallDepth.h"
-#include "compiler/Initialize.h"
-#include "compiler/InitializeParseContext.h"
-#include "compiler/ParseHelper.h"
-#include "compiler/ShHandle.h"
-#include "compiler/ValidateLimitations.h"
+#include "AnalyzeCallDepth.h"
+#include "Initialize.h"
+#include "InitializeParseContext.h"
+#include "ParseHelper.h"
+#include "ShHandle.h"
+#include "ValidateLimitations.h"
 
 namespace 
 {

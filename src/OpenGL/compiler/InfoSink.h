@@ -8,7 +8,7 @@
 #define _INFOSINK_INCLUDED_
 
 #include <math.h>
-#include "compiler/Common.h"
+#include "Common.h"
 
 // Returns the fractional part of the given floating-point number.
 inline float fractionalPart(float f) {

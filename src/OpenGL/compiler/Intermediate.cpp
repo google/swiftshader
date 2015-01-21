@@ -12,8 +12,8 @@
 #include <limits.h>
 #include <algorithm>
 
-#include "compiler/localintermediate.h"
-#include "compiler/SymbolTable.h"
+#include "localintermediate.h"
+#include "SymbolTable.h"
 
 bool CompareStructure(const TType& leftNodeType, ConstantUnion* rightUnionArray, ConstantUnion* leftUnionArray);
 

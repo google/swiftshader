@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include "compiler/PoolAlloc.h"
+#include "PoolAlloc.h"
 
 // We need two pieces of information to report errors/warnings - string and
 // line number. We encode these into a single int so that it can be easily

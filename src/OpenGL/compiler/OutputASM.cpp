@@ -9,10 +9,10 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-#include "compiler/OutputASM.h"
+#include "OutputASM.h"
 
 #include "common/debug.h"
-#include "compiler/InfoSink.h"
+#include "InfoSink.h"
 
 #include "libGLESv2/Shader.h"
 

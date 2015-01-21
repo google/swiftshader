@@ -4,9 +4,9 @@
 // found in the LICENSE file.
 //
 
-#include "compiler/InitializeParseContext.h"
+#include "InitializeParseContext.h"
 
-#include "compiler/osinclude.h"
+#include "osinclude.h"
 
 OS_TLSIndex GlobalParseContextIndex = OS_INVALID_TLS_INDEX;
 

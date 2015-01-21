@@ -7,9 +7,9 @@
 #ifndef _INITIALIZE_INCLUDED_
 #define _INITIALIZE_INCLUDED_
 
-#include "compiler/Common.h"
-#include "compiler/ShHandle.h"
-#include "compiler/SymbolTable.h"
+#include "Common.h"
+#include "ShHandle.h"
+#include "SymbolTable.h"
 
 void InsertBuiltInFunctions(ShShaderType type, const ShBuiltInResources &resources, TSymbolTable &table);
 

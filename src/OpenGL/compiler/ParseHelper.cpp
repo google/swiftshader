@@ -4,13 +4,13 @@
 // found in the LICENSE file.
 //
 
-#include "compiler/ParseHelper.h"
+#include "ParseHelper.h"
 
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "compiler/glslang.h"
-#include "compiler/preprocessor/SourceLocation.h"
+#include "glslang.h"
+#include "preprocessor/SourceLocation.h"
 
 ///////////////////////////////////////////////////////////////////////
 //

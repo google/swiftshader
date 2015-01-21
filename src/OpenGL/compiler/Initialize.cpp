@@ -10,9 +10,9 @@
 // built-in functions and operators.
 //
 
-#include "compiler/Initialize.h"
+#include "Initialize.h"
 
-#include "compiler/intermediate.h"
+#include "intermediate.h"
 
 void InsertBuiltInFunctions(ShShaderType type, const ShBuiltInResources &resources, TSymbolTable &symbolTable)
 {

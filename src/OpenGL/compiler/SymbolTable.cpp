@@ -13,7 +13,7 @@
 #pragma warning(disable: 4718)
 #endif
 
-#include "compiler/SymbolTable.h"
+#include "SymbolTable.h"
 
 #include <stdio.h>
 #include <algorithm>
