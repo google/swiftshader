@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0bbf77c3_0898934d",
+        "filename": "src/OpenGL/libGLES_CM/libGLES_CM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1743,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-22T18:37:24Z",
+      "side": 1,
+      "message": "Please add \"if(context)\" below like in the other functions. It is valid to call any function while there is no current context (it should just have no effect).",
+      "range": {
+        "startLine": 1743,
+        "startChar": 1,
+        "endLine": 1743,
+        "endChar": 43
+      },
+      "revId": "67621b048efd91f1b85504d5b6e950d7c176301b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
