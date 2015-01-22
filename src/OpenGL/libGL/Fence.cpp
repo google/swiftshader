@@ -16,7 +16,7 @@
 #include "main.h"
 #include "Common/Thread.hpp"
 
-namespace es2
+namespace gl
 {
 
 Fence::Fence()

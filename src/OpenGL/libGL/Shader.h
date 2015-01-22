@@ -32,7 +32,7 @@ namespace glsl
 	class OutputASM;
 }
 
-namespace es2
+namespace gl
 {
 
 class Shader : public glsl::Shader

@@ -23,7 +23,7 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
-namespace es2
+namespace gl
 {
 	Context *getContext();
 	egl::Display *getDisplay();

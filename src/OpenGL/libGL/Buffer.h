@@ -25,7 +25,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace es2
+namespace gl
 {
 class Buffer : public gl::RefCountObject
 {

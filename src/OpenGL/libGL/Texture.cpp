@@ -25,7 +25,7 @@
 
 #include <algorithm>
 
-namespace es2
+namespace gl
 {
 
 Texture::Texture(GLuint id) : egl::Texture(id)
@@ -1166,7 +1166,7 @@ extern "C"
 	{
 		if(config)
 		{
-			return new es2::Image(0, width, height, config->mAlphaSize ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE);
+			return new gl::Image(0, width, height, config->mAlphaSize ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE);
 		}
 
 		return 0;
@@ -1205,7 +1205,7 @@ extern "C"
 			UNREACHABLE();
 		}
 
-		es2::Image *surface = new es2::Image(0, width, height, format, multiSampleDepth, lockable, true);
+		gl::Image *surface = new gl::Image(0, width, height, format, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{

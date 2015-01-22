@@ -22,7 +22,7 @@
 
 #include <string>
 
-namespace es2
+namespace gl
 {
 bool Shader::compilerInitialized = false;
 

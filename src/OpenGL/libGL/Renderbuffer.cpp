@@ -19,7 +19,7 @@
 #include "Texture.h"
 #include "utilities.h"
 
-namespace es2
+namespace gl
 {
 RenderbufferInterface::RenderbufferInterface()
 {

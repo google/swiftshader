@@ -18,7 +18,7 @@
 #define GL_APICALL
 #include <GLES2/gl2.h>
 
-namespace es2
+namespace gl
 {
 	class Texture;
 

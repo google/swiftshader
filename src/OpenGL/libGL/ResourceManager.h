@@ -22,7 +22,7 @@
 
 #include <map>
 
-namespace es2
+namespace gl
 {
 class Buffer;
 class Shader;
