@@ -304,14 +304,15 @@ void CfgNode::advancedPhiLowering() {
     return;
 
   // Count the number of non-deleted Phi instructions.
-  struct {
+  struct PhiDesc {
     InstPhi *Phi;
     Variable *Dest;
     Operand *Src;
     bool Processed;
     size_t NumPred; // number of entries whose Src is this Dest
     int32_t Weight; // preference for topological order
-  } Desc[getPhis().size()];
+  };
+  llvm::SmallVector<PhiDesc, 32> Desc(getPhis().size());
 
   size_t NumPhis = 0;
   for (Inst &I : Phis) {

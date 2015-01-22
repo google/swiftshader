@@ -108,9 +108,6 @@ public:
     case Opt_2:
       translateO2();
       break;
-    default:
-      Func->setError("Target doesn't specify lowering steps.");
-      break;
     }
   }
   virtual void translateOm1() {

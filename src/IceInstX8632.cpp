@@ -2906,9 +2906,6 @@ void VariableSplit::dump(const Cfg *Func, Ostream &Str) const {
   case High:
     Str << "high";
     break;
-  default:
-    Str << "???";
-    break;
   }
   Str << "(";
   if (Func)

@@ -100,9 +100,6 @@ Ice::Ostream &operator<<(Ice::Ostream &Stream, ExtendedType::TypeKind Kind) {
   case ExtendedType::FuncSig:
     Stream << "FuncSig";
     break;
-  default:
-    Stream << "??";
-    break;
   }
   return Stream;
 }
@@ -1434,9 +1431,6 @@ private:
     if (!ALLOW_DUMP)
       return;
     switch (Value) {
-    default:
-      report_fatal_error("Unknown VectorIndexCheckValue");
-      break;
     case VectorIndexNotVector:
       Stream << "Vector index on non vector";
       break;
@@ -2489,10 +2483,6 @@ void FunctionParser::ProcessRecord() {
     if (IntrinsicInfo) {
       Ice::SizeT ArgIndex = 0;
       switch (IntrinsicInfo->validateCall(Inst, ArgIndex)) {
-      default:
-        Error("Unknown validation error for intrinsic call");
-        // TODO(kschimpf) Remove error recovery once implementation complete.
-        break;
       case Ice::Intrinsics::IsValidCall:
         break;
       case Ice::Intrinsics::BadReturnType: {

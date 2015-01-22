@@ -4710,14 +4710,6 @@ void TargetGlobalInitX8632::lower(const VariableDeclaration &Var) {
         Str << "\n";
         break;
       }
-      default: {
-        std::string Buffer;
-        llvm::raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Unable to lower initializer: ";
-        Init->dump(StrBuf);
-        llvm::report_fatal_error(StrBuf.str());
-        break;
-      }
       }
     }
   } else if (IsConstant || IsExternal)

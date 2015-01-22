@@ -589,9 +589,6 @@ private:
                              const Ice::Intrinsics::FullIntrinsicInfo *I) {
     Ice::SizeT ArgIndex = 0;
     switch (I->validateCall(Call, ArgIndex)) {
-    default:
-      report_fatal_error("Unknown validation error for intrinsic call");
-      break;
     case Ice::Intrinsics::IsValidCall:
       break;
     case Ice::Intrinsics::BadReturnType: {
