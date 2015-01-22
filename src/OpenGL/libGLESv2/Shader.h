@@ -34,37 +34,10 @@ namespace sh
 
 namespace es2
 {
-struct Varying
-{
-    Varying(GLenum type, const std::string &name, int arraySize, int reg = -1, int col = -1)
-        : type(type), name(name), arraySize(arraySize), reg(reg), col(col)
-    {
-    }
 
-	bool isArray() const
-	{
-		return arraySize >= 1;
-	}
-
-	int size() const   // Unify with es2::Uniform?
-	{
-		return arraySize > 0 ? arraySize : 1;
-	}
-
-    GLenum type;
-    std::string name;
-    int arraySize;
-
-    int reg;    // First varying register, assigned during link
-    int col;    // First register element, assigned during link
-};
-
-typedef std::list<Varying> VaryingList;
-
-class Shader
+class Shader : public sh::Shader
 {
     friend class Program;
-	friend class sh::OutputASM;
 
 public:
     Shader(ResourceManager *manager, GLuint handle);
@@ -84,10 +57,6 @@ public:
     virtual void compile() = 0;
     bool isCompiled();
     
-	virtual sw::Shader *getShader() const = 0;
-	virtual sw::PixelShader *getPixelShader() const;
-	virtual sw::VertexShader *getVertexShader() const;
-
     void addRef();
     void release();
     unsigned int getRefCount() const;
@@ -102,14 +71,10 @@ protected:
 	void clear();
 
     static GLenum parseType(const std::string &type);
-    static bool compareVarying(const Varying &x, const Varying &y);
+    static bool compareVarying(const sh::Varying &x, const sh::Varying &y);
 
 	char *mSource;
 	char *mInfoLog;
-
-    VaryingList varyings;
-	sh::ActiveUniforms activeUniforms;
-	sh::ActiveAttributes activeAttributes;
 
 private:
 	const GLuint mHandle;

@@ -14,10 +14,8 @@
 
 #include "ShHandle.h"
 #include "OutputASM.h"
-#include "Shader/PixelShader.hpp"
-#include "Shader/VertexShader.hpp"
 
-namespace es2
+namespace sh
 {
 	class Shader;
 }
@@ -25,13 +23,13 @@ namespace es2
 class TranslatorASM : public TCompiler
 {
 public:
-    TranslatorASM(es2::Shader *shaderObject, ShShaderType type, ShShaderSpec spec);
+    TranslatorASM(sh::Shader *shaderObject, ShShaderType type, ShShaderSpec spec);
 
 protected:
     virtual bool translate(TIntermNode* root);
 
 private:
-	es2::Shader *const shaderObject;
+	sh::Shader *const shaderObject;
 };
 
 #endif  // COMPILER_TRANSLATORASM_H_

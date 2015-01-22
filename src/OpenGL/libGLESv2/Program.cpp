@@ -940,9 +940,9 @@ namespace es2
 
 	// Packs varyings into generic varying registers, using the algorithm from [OpenGL ES Shading Language 1.00 rev. 17] appendix A section 7 page 111
 	// Returns the number of used varying registers, or -1 if unsuccesful
-	int Program::packVaryings(const Varying *packing[][4])
+	int Program::packVaryings(const sh::Varying *packing[][4])
 	{
-		for(VaryingList::iterator varying = fragmentShader->varyings.begin(); varying != fragmentShader->varyings.end(); varying++)
+		for(sh::VaryingList::iterator varying = fragmentShader->varyings.begin(); varying != fragmentShader->varyings.end(); varying++)
 		{
 			int n = VariableRowCount(varying->type) * varying->size();
 			int m = VariableColumnCount(varying->type);
@@ -1087,11 +1087,11 @@ namespace es2
 
 	bool Program::linkVaryings()
 	{
-		for(VaryingList::iterator input = fragmentShader->varyings.begin(); input != fragmentShader->varyings.end(); input++)
+		for(sh::VaryingList::iterator input = fragmentShader->varyings.begin(); input != fragmentShader->varyings.end(); input++)
 		{
 			bool matched = false;
 
-			for(VaryingList::iterator output = vertexShader->varyings.begin(); output != vertexShader->varyings.end(); output++)
+			for(sh::VaryingList::iterator output = vertexShader->varyings.begin(); output != vertexShader->varyings.end(); output++)
 			{
 				if(output->name == input->name)
 				{
@@ -1115,12 +1115,12 @@ namespace es2
 			}
 		}
 
-		VaryingList &psVaryings = fragmentShader->varyings;
-		VaryingList &vsVaryings = vertexShader->varyings;
+		sh::VaryingList &psVaryings = fragmentShader->varyings;
+		sh::VaryingList &vsVaryings = vertexShader->varyings;
 
-		for(VaryingList::iterator output = vsVaryings.begin(); output != vsVaryings.end(); output++)
+		for(sh::VaryingList::iterator output = vsVaryings.begin(); output != vsVaryings.end(); output++)
 		{
-			for(VaryingList::iterator input = psVaryings.begin(); input != psVaryings.end(); input++)
+			for(sh::VaryingList::iterator input = psVaryings.begin(); input != psVaryings.end(); input++)
 			{
 				if(output->name == input->name)
 				{

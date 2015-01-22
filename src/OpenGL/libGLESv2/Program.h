@@ -133,7 +133,7 @@ namespace es2
 	private:
 		void unlink();
 
-		int packVaryings(const Varying *packing[][4]);
+		int packVaryings(const sh::Varying *packing[][4]);
 		bool linkVaryings();
 
 		bool linkAttributes();

@@ -57,6 +57,49 @@ namespace sh
 		int registerIndex;
 	};
 
+	typedef std::vector<Attribute> ActiveAttributes;
+
+	struct Varying
+	{
+		Varying(GLenum type, const std::string &name, int arraySize, int reg = -1, int col = -1)
+			: type(type), name(name), arraySize(arraySize), reg(reg), col(col)
+		{
+		}
+
+		bool isArray() const
+		{
+			return arraySize >= 1;
+		}
+
+		int size() const   // Unify with es2::Uniform?
+		{
+			return arraySize > 0 ? arraySize : 1;
+		}
+
+		GLenum type;
+		std::string name;
+		int arraySize;
+
+		int reg;    // First varying register, assigned during link
+		int col;    // First register element, assigned during link
+	};
+
+	typedef std::list<Varying> VaryingList;
+
+	class Shader
+	{
+		friend class OutputASM;
+	public:
+		virtual sw::Shader *getShader() const = 0;
+		virtual sw::PixelShader *getPixelShader() const;
+		virtual sw::VertexShader *getVertexShader() const;
+
+	protected:
+		VaryingList varyings;
+		ActiveUniforms activeUniforms;
+		ActiveAttributes activeAttributes;
+	};
+
 	struct Function
 	{
 		Function(int label, const char *name, TIntermSequence *arg, TIntermTyped *ret) : label(label), name(name), arg(arg), ret(ret)
@@ -74,14 +117,13 @@ namespace sh
 	};
 	
 	typedef sw::Shader::Instruction Instruction;
-	typedef std::vector<Attribute> ActiveAttributes;
 
 	class Temporary;
 
 	class OutputASM : public TIntermTraverser
 	{
 	public:
-		explicit OutputASM(TParseContext &context, es2::Shader *shaderObject);
+		explicit OutputASM(TParseContext &context, Shader *shaderObject);
 		~OutputASM();
 
 		void output();
@@ -145,7 +187,7 @@ namespace sh
 		static unsigned int loopCount(TIntermLoop *node);
 		static bool isSamplerRegister(TIntermTyped *operand);
 
-		es2::Shader *const shaderObject;
+		Shader *const shaderObject;
 		sw::Shader *shader;
 		sw::PixelShader *pixelShader;
 		sw::VertexShader *vertexShader;

@@ -197,16 +197,6 @@ bool Shader::isCompiled()
     return getShader() != 0;
 }
 
-sw::PixelShader *Shader::getPixelShader() const
-{
-	return 0;
-}
-
-sw::VertexShader *Shader::getVertexShader() const
-{
-	return 0;
-}
-
 void Shader::addRef()
 {
     mRefCount++;
@@ -279,7 +269,7 @@ GLenum Shader::parseType(const std::string &type)
 }
 
 // true if varying x has a higher priority in packing than y
-bool Shader::compareVarying(const Varying &x, const Varying &y)
+bool Shader::compareVarying(const sh::Varying &x, const sh::Varying &y)
 {
     if(x.type == y.type)
     {
