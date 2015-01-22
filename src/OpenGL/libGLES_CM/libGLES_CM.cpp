@@ -1439,7 +1439,7 @@ void GL_APIENTRY glDisable(GLenum cap)
 		case GL_LIGHT5:                   context->setLight(5, false);              break;
 		case GL_LIGHT6:                   context->setLight(6, false);              break;
 		case GL_LIGHT7:                   context->setLight(7, false);              break;
-		case GL_FOG:                      UNIMPLEMENTED(); break;
+		case GL_FOG:                      context->setFog(false);					break;
 		case GL_TEXTURE_2D:               context->setTexture2D(false);             break;
 		case GL_ALPHA_TEST:               UNIMPLEMENTED(); break;
 		case GL_COLOR_LOGIC_OP:           UNIMPLEMENTED(); break;
@@ -1462,7 +1462,23 @@ void GL_APIENTRY glDisable(GLenum cap)
 
 void GL_APIENTRY glDisableClientState(GLenum array)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum array = 0x%X)", array);
+
+	es1::Context *context = es1::getContext();
+
+	if (context)
+	{
+		GLenum texture = context->getClientActiveTexture();
+
+		switch (array)
+		{
+		case GL_VERTEX_ARRAY:        context->setEnableVertexAttribArray(sw::Position, false);                            break;
+		case GL_COLOR_ARRAY:         context->setEnableVertexAttribArray(sw::Color0, false);                              break;
+		case GL_TEXTURE_COORD_ARRAY: context->setEnableVertexAttribArray(sw::TexCoord0 + (texture - GL_TEXTURE0), false); break;
+		case GL_NORMAL_ARRAY:        context->setEnableVertexAttribArray(sw::Normal, false);                              break;
+		default:                     UNIMPLEMENTED();
+		}
+	}
 }
 
 void GL_APIENTRY glDrawArrays(GLenum mode, GLint first, GLsizei count)
@@ -1538,7 +1554,7 @@ void GL_APIENTRY glEnable(GLenum cap)
 		case GL_LIGHT5:                   context->setLight(5, true);              break;
 		case GL_LIGHT6:                   context->setLight(6, true);              break;
 		case GL_LIGHT7:                   context->setLight(7, true);              break;
-		case GL_FOG:                      UNIMPLEMENTED(); break;
+		case GL_FOG:                      context->setFog(true);				   break;
 		case GL_TEXTURE_2D:               context->setTexture2D(true);             break;
 		case GL_ALPHA_TEST:               UNIMPLEMENTED(); break;
 		case GL_COLOR_LOGIC_OP:           UNIMPLEMENTED(); break;
@@ -1722,12 +1738,98 @@ void GL_APIENTRY glFramebufferTexture2DOES(GLenum target, GLenum attachment, GLe
 
 void GL_APIENTRY glFogf(GLenum pname, GLfloat param)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum pname = 0x%X, GLfloat param = %f)", pname, param);
+
+	es1::Context *context = es1::getContext();
+	if(context)
+	{
+		switch(pname)
+		{
+		case GL_FOG_MODE:
+			switch((GLenum)param)
+			{
+			case GL_LINEAR:
+			case GL_EXP:
+			case GL_EXP2:
+				context->setFogMode((GLenum)param);
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+
+		case GL_FOG_DENSITY:
+			if(param < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+
+			context->setFogDensity(param);
+			break;
+
+		case GL_FOG_START:
+			context->setFogStart(param);
+			break;
+
+		case GL_FOG_END:
+			context->setFogEnd(param);
+			break;
+
+		case GL_FOG_COLOR:
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}	
 }
 
 void GL_APIENTRY glFogfv(GLenum pname, const GLfloat *params)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum pname = 0x%X, const GLfloat *params)", pname);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		switch(pname)
+		{
+		case GL_FOG_MODE:
+			switch((GLenum)params[0])
+			{
+			case GL_LINEAR:
+			case GL_EXP:
+			case GL_EXP2:
+				context->setFogMode((GLenum)params[0]);
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+
+		case GL_FOG_DENSITY:
+			if(params[0] < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+
+			context->setFogDensity(params[0]);
+			break;
+
+		case GL_FOG_START:
+			context->setFogStart(params[0]);
+			break;
+
+		case GL_FOG_END:
+			context->setFogEnd(params[0]);
+			break;
+
+		case GL_FOG_COLOR:
+			context->setFogColor(params[0], params[1], params[2], params[3]);
+			break;
+
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}	
 }
 
 void GL_APIENTRY glFogx(GLenum pname, GLfixed param)

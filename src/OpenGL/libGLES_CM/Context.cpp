@@ -573,6 +573,49 @@ void Context::setLightAttenuationQuadratic(int index, float quadratic)
 	light[index].attenuation.quadratic = quadratic;
 }
 
+void Context::setFog(bool enable)
+{
+	device->setFogEnable(enable);
+}
+
+void Context::setFogMode(GLenum mode)
+{
+	switch(mode)
+	{
+	case GL_LINEAR:
+		device->setPixelFogMode(sw::FOG_LINEAR);
+		break;
+	case GL_EXP:
+		device->setPixelFogMode(sw::FOG_EXP);
+		break;
+	case GL_EXP2:
+		device->setPixelFogMode(sw::FOG_EXP2);
+		break;
+	default:
+		UNREACHABLE();
+	}
+}
+
+void Context::setFogDensity(float fogDensity)
+{
+	device->setFogDensity(fogDensity);
+}
+
+void Context::setFogStart(float fogStart)
+{
+	device->setFogStart(fogStart);
+}
+
+void Context::setFogEnd(float fogEnd)
+{
+	device->setFogEnd(fogEnd);
+}
+
+void Context::setFogColor(float r, float g, float b, float a)
+{
+	device->setFogColor(sw::Color<float>(r, g, b, a));
+}
+
 void Context::setTexture2D(bool enable)
 {
     texture2D = enable;

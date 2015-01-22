@@ -314,6 +314,13 @@ public:
 	void setLightAttenuationLinear(int index, float linear);
 	void setLightAttenuationQuadratic(int index, float quadratic);
 
+	void setFog(bool enabled);
+	void setFogMode(GLenum mode);
+	void setFogDensity(float fogDensity);
+	void setFogStart(float fogStart);
+	void setFogEnd(float fogEnd);
+	void setFogColor(float r, float g, float b, float a);
+
     void setTexture2D(bool enabled);
     void clientActiveTexture(GLenum texture);
 	GLenum getClientActiveTexture() const;
@@ -464,7 +471,7 @@ private:
 
     VertexDataManager *mVertexDataManager;
     IndexDataManager *mIndexDataManager;
-
+	
 	bool lighting;
 	Light light[MAX_LIGHTS];
 	Color globalAmbient;
