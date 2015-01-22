@@ -133,7 +133,7 @@ namespace es2
 	private:
 		void unlink();
 
-		int packVaryings(const sh::Varying *packing[][4]);
+		int packVaryings(const glsl::Varying *packing[][4]);
 		bool linkVaryings();
 
 		bool linkAttributes();
@@ -171,7 +171,7 @@ namespace es2
 		sw::VertexShader *vertexBinary;
     
 		std::set<std::string> attributeBinding[MAX_VERTEX_ATTRIBS];
-		sh::Attribute linkedAttribute[MAX_VERTEX_ATTRIBS];
+		glsl::Attribute linkedAttribute[MAX_VERTEX_ATTRIBS];
 		int attributeStream[MAX_VERTEX_ATTRIBS];
 
 		struct Sampler

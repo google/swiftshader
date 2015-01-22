@@ -20,7 +20,7 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
-namespace sh
+namespace glsl
 {
 	// Integer to TString conversion
 	TString str(int i)
@@ -2074,7 +2074,7 @@ namespace sh
 				}
 			}
 			
-			activeVaryings.push_back(sh::Varying(glVariableType(type), name, varying->getArraySize(), reg, 0));
+			activeVaryings.push_back(glsl::Varying(glVariableType(type), name, varying->getArraySize(), reg, 0));
 		}
 	}
 

@@ -13,14 +13,14 @@
 
 #include "InitializeParseContext.h"
 
-TranslatorASM::TranslatorASM(sh::Shader *shaderObject, ShShaderType type, ShShaderSpec spec) : TCompiler(type, spec), shaderObject(shaderObject)
+TranslatorASM::TranslatorASM(glsl::Shader *shaderObject, ShShaderType type, ShShaderSpec spec) : TCompiler(type, spec), shaderObject(shaderObject)
 {
 }
 
 bool TranslatorASM::translate(TIntermNode* root)
 {
     TParseContext& parseContext = *GetGlobalParseContext();
-    sh::OutputASM outputASM(parseContext, shaderObject);
+    glsl::OutputASM outputASM(parseContext, shaderObject);
 
 	outputASM.output();
 

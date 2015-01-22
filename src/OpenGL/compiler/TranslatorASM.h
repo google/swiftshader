@@ -15,7 +15,7 @@
 #include "ShHandle.h"
 #include "OutputASM.h"
 
-namespace sh
+namespace glsl
 {
 	class Shader;
 }
@@ -23,13 +23,13 @@ namespace sh
 class TranslatorASM : public TCompiler
 {
 public:
-    TranslatorASM(sh::Shader *shaderObject, ShShaderType type, ShShaderSpec spec);
+    TranslatorASM(glsl::Shader *shaderObject, ShShaderType type, ShShaderSpec spec);
 
 protected:
     virtual bool translate(TIntermNode* root);
 
 private:
-	sh::Shader *const shaderObject;
+	glsl::Shader *const shaderObject;
 };
 
 #endif  // COMPILER_TRANSLATORASM_H_

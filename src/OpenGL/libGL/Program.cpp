@@ -940,9 +940,9 @@ namespace es2
 
 	// Packs varyings into generic varying registers, using the algorithm from [OpenGL ES Shading Language 1.00 rev. 17] appendix A section 7 page 111
 	// Returns the number of used varying registers, or -1 if unsuccesful
-	int Program::packVaryings(const sh::Varying *packing[][4])
+	int Program::packVaryings(const glsl::Varying *packing[][4])
 	{
-		for(sh::VaryingList::iterator varying = fragmentShader->varyings.begin(); varying != fragmentShader->varyings.end(); varying++)
+		for(glsl::VaryingList::iterator varying = fragmentShader->varyings.begin(); varying != fragmentShader->varyings.end(); varying++)
 		{
 			int n = VariableRowCount(varying->type) * varying->size();
 			int m = VariableColumnCount(varying->type);
@@ -1087,11 +1087,11 @@ namespace es2
 
 	bool Program::linkVaryings()
 	{
-		for(sh::VaryingList::iterator input = fragmentShader->varyings.begin(); input != fragmentShader->varyings.end(); input++)
+		for(glsl::VaryingList::iterator input = fragmentShader->varyings.begin(); input != fragmentShader->varyings.end(); input++)
 		{
 			bool matched = false;
 
-			for(sh::VaryingList::iterator output = vertexShader->varyings.begin(); output != vertexShader->varyings.end(); output++)
+			for(glsl::VaryingList::iterator output = vertexShader->varyings.begin(); output != vertexShader->varyings.end(); output++)
 			{
 				if(output->name == input->name)
 				{
@@ -1115,12 +1115,12 @@ namespace es2
 			}
 		}
 
-		sh::VaryingList &psVaryings = fragmentShader->varyings;
-		sh::VaryingList &vsVaryings = vertexShader->varyings;
+		glsl::VaryingList &psVaryings = fragmentShader->varyings;
+		glsl::VaryingList &vsVaryings = vertexShader->varyings;
 
-		for(sh::VaryingList::iterator output = vsVaryings.begin(); output != vsVaryings.end(); output++)
+		for(glsl::VaryingList::iterator output = vsVaryings.begin(); output != vsVaryings.end(); output++)
 		{
-			for(sh::VaryingList::iterator input = psVaryings.begin(); input != psVaryings.end(); input++)
+			for(glsl::VaryingList::iterator input = psVaryings.begin(); input != psVaryings.end(); input++)
 			{
 				if(output->name == input->name)
 				{
@@ -1221,7 +1221,7 @@ namespace es2
 		unsigned int usedLocations = 0;
 
 		// Link attributes that have a binding location
-		for(sh::ActiveAttributes::iterator attribute = vertexShader->activeAttributes.begin(); attribute != vertexShader->activeAttributes.end(); attribute++)
+		for(glsl::ActiveAttributes::iterator attribute = vertexShader->activeAttributes.begin(); attribute != vertexShader->activeAttributes.end(); attribute++)
 		{
 			int location = getAttributeBinding(attribute->name);
 
@@ -1250,7 +1250,7 @@ namespace es2
 		}
 
 		// Link attributes that don't have a binding location
-		for(sh::ActiveAttributes::iterator attribute = vertexShader->activeAttributes.begin(); attribute != vertexShader->activeAttributes.end(); attribute++)
+		for(glsl::ActiveAttributes::iterator attribute = vertexShader->activeAttributes.begin(); attribute != vertexShader->activeAttributes.end(); attribute++)
 		{
 			int location = getAttributeBinding(attribute->name);
 
@@ -1298,11 +1298,11 @@ namespace es2
 
 	bool Program::linkUniforms(Shader *shader)
 	{
-		const sh::ActiveUniforms &activeUniforms = shader->activeUniforms;
+		const glsl::ActiveUniforms &activeUniforms = shader->activeUniforms;
 
 		for(unsigned int uniformIndex = 0; uniformIndex < activeUniforms.size(); uniformIndex++)
 		{
-			const sh::Uniform &uniform = activeUniforms[uniformIndex];
+			const glsl::Uniform &uniform = activeUniforms[uniformIndex];
 
 			if(!defineUniform(shader->getType(), uniform.type, uniform.precision, uniform.name, uniform.arraySize, uniform.registerIndex))
 			{

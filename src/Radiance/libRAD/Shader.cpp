@@ -269,7 +269,7 @@ GLenum Shader::parseType(const std::string &type)
 }
 
 // true if varying x has a higher priority in packing than y
-bool Shader::compareVarying(const sh::Varying &x, const sh::Varying &y)
+bool Shader::compareVarying(const glsl::Varying &x, const glsl::Varying &y)
 {
     if(x.type == y.type)
     {
@@ -415,7 +415,7 @@ int VertexShader::getSemanticIndex(const std::string &attributeName)
 {
     if(!attributeName.empty())
     {
-		for(sh::ActiveAttributes::iterator attribute = activeAttributes.begin(); attribute != activeAttributes.end(); attribute++)
+		for(glsl::ActiveAttributes::iterator attribute = activeAttributes.begin(); attribute != activeAttributes.end(); attribute++)
         {
             if(attribute->name == attributeName)
             {

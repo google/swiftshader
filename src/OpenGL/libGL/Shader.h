@@ -27,7 +27,7 @@
 #include <list>
 #include <vector>
 
-namespace sh
+namespace glsl
 {
 	class OutputASM;
 }
@@ -35,7 +35,7 @@ namespace sh
 namespace es2
 {
 
-class Shader : public sh::Shader
+class Shader : public glsl::Shader
 {
     friend class Program;
 
@@ -71,7 +71,7 @@ protected:
 	void clear();
 
     static GLenum parseType(const std::string &type);
-    static bool compareVarying(const sh::Varying &x, const sh::Varying &y);
+    static bool compareVarying(const glsl::Varying &x, const glsl::Varying &y);
 
 	char *mSource;
 	char *mInfoLog;

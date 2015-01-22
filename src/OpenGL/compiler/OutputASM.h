@@ -29,7 +29,7 @@ namespace es2
 	class Shader;
 }
 
-namespace sh
+namespace glsl
 {
 	struct Uniform
 	{
