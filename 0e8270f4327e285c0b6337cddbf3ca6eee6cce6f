@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cbc55f7a_e29b5c00",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-22T18:36:02Z",
+      "side": 1,
+      "message": "Please add a Buganizer ID.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 0
+      },
+      "revId": "0e8270f4327e285c0b6337cddbf3ca6eee6cce6f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bd4732e_96bcec5b",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-22T18:36:02Z",
+      "side": 1,
+      "message": "Do we still need this one? I guess it becomes a tradeoff between how often this constructor is used vs the code size it takes...",
+      "range": {
+        "startLine": 21,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 2
+      },
+      "revId": "0e8270f4327e285c0b6337cddbf3ca6eee6cce6f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bd4732e_16821c93",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-22T18:36:02Z",
+      "side": 1,
+      "message": "Perhaps instead rename this to depth and add a comment that it is currently also used as the multisample depth?",
+      "range": {
+        "startLine": 54,
+        "startChar": 9,
+        "endLine": 54,
+        "endChar": 25
+      },
+      "revId": "0e8270f4327e285c0b6337cddbf3ca6eee6cce6f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bd4732e_96d06c8d",
+        "filename": "src/OpenGL/libGLESv2/Image.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-22T18:36:02Z",
+      "side": 1,
+      "message": "Could you split the use of the template functions off into a patch that comes before adding 3D texture support?",
+      "range": {
+        "startLine": 23,
+        "startChar": 1,
+        "endLine": 23,
+        "endChar": 14
+      },
+      "revId": "0e8270f4327e285c0b6337cddbf3ca6eee6cce6f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bd4732e_f67c40df",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-22T18:36:02Z",
+      "side": 1,
+      "message": "It\u0027s unlikely we\u0027ll add support for this any time soon, since this format is inefficient to convert without hardware support. So just remove it. It\u0027s easy to add back in if we do have a purpose for it.",
+      "range": {
+        "startLine": 130,
+        "startChar": 0,
+        "endLine": 136,
+        "endChar": 62
+      },
+      "revId": "0e8270f4327e285c0b6337cddbf3ca6eee6cce6f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bd4732e_967bcce3",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-22T18:36:02Z",
+      "side": 1,
+      "message": "Same.",
+      "range": {
+        "startLine": 166,
+        "startChar": 0,
+        "endLine": 168,
+        "endChar": 40
+      },
+      "revId": "0e8270f4327e285c0b6337cddbf3ca6eee6cce6f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
