@@ -165,14 +165,7 @@ public:
                  NaClBitstreamCursor &Cursor, bool &ErrorStatus)
       : NaClBitcodeParser(Cursor), Translator(Translator), Header(Header),
         ErrorStatus(ErrorStatus), NumErrors(0), NumFunctionIds(0),
-        NumFunctionBlocks(0), BlockParser(nullptr) {
-    // Note: This gives the reader uncontrolled access to the dump
-    // stream, which it can then use without locking.  TODO(kschimpf):
-    // Consider reworking the LLVM side to use e.g. a callback for
-    // errors.
-    Ice::OstreamLocker L(Translator.getContext());
-    setErrStream(Translator.getContext()->getStrDump());
-  }
+        NumFunctionBlocks(0), BlockParser(nullptr) {}
 
   ~TopLevelParser() override {}
 
@@ -437,7 +430,11 @@ private:
 bool TopLevelParser::Error(const std::string &Message) {
   ErrorStatus = true;
   ++NumErrors;
+  Ice::GlobalContext *Context = Translator.getContext();
+  Ice::OstreamLocker L(Context);
+  raw_ostream &OldErrStream = setErrStream(Context->getStrDump());
   NaClBitcodeParser::Error(Message);
+  setErrStream(OldErrStream);
   if (!Translator.getFlags().AllowErrorRecovery)
     report_fatal_error("Unable to continue");
   return true;
