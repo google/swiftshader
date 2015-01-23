@@ -25,7 +25,7 @@
 
 namespace Ice {
 
-thread_local const Cfg *Cfg::CurrentCfg = nullptr;
+ICE_ATTRIBUTE_TLS const Cfg *Cfg::CurrentCfg = nullptr;
 
 ArenaAllocator<> *getCurrentCfgAllocator() {
   return Cfg::getCurrentCfgAllocator();

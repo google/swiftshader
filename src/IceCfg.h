@@ -213,7 +213,7 @@ private:
   // Maintain a pointer in TLS to the current Cfg being translated.
   // This is primarily for accessing its allocator statelessly, but
   // other uses are possible.
-  thread_local static const Cfg *CurrentCfg;
+  ICE_ATTRIBUTE_TLS static const Cfg *CurrentCfg;
 };
 
 } // end of namespace Ice

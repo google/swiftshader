@@ -274,7 +274,7 @@ private:
   std::vector<ThreadContext *> AllThreadContexts;
   // Each thread has its own TLS pointer which is also held in
   // AllThreadContexts.
-  thread_local static ThreadContext *TLS;
+  ICE_ATTRIBUTE_TLS static ThreadContext *TLS;
 
   // Private helpers for mangleName()
   typedef llvm::SmallVector<char, 32> ManglerVector;

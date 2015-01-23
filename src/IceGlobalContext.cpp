@@ -518,6 +518,6 @@ TimerMarker::TimerMarker(TimerIdT ID, const Cfg *Func)
   }
 }
 
-thread_local GlobalContext::ThreadContext *GlobalContext::TLS;
+ICE_ATTRIBUTE_TLS GlobalContext::ThreadContext *GlobalContext::TLS;
 
 } // end of namespace Ice
