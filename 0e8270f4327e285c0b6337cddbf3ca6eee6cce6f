@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "abe90b2d_e37b2ce2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-23T21:55:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cbc55f7a_e29b5c00",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 0
+      },
+      "revId": "0e8270f4327e285c0b6337cddbf3ca6eee6cce6f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bd4732e_96bcec5b",
         "filename": "src/OpenGL/libEGL/Image.hpp",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-22T18:36:02Z",
       "side": 1,
       "message": "Do we still need this one? I guess it becomes a tradeoff between how often this constructor is used vs the code size it takes...",
+      "range": {
+        "startLine": 21,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 2
+      },
+      "revId": "0e8270f4327e285c0b6337cddbf3ca6eee6cce6f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "abe90b2d_238eb48f",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-23T21:55:55Z",
+      "side": 1,
+      "message": "Will investigate",
+      "parentUuid": "6bd4732e_96bcec5b",
       "range": {
         "startLine": 21,
         "startChar": 1,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "abe90b2d_c365483e",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-23T21:55:55Z",
+      "side": 1,
+      "message": "Will do in next update",
+      "parentUuid": "6bd4732e_16821c93",
+      "range": {
+        "startLine": 54,
+        "startChar": 9,
+        "endLine": 54,
+        "endChar": 25
+      },
+      "revId": "0e8270f4327e285c0b6337cddbf3ca6eee6cce6f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bd4732e_96d06c8d",
         "filename": "src/OpenGL/libGLESv2/Image.cpp",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2015-01-22T18:36:02Z",
       "side": 1,
       "message": "Could you split the use of the template functions off into a patch that comes before adding 3D texture support?",
+      "range": {
+        "startLine": 23,
+        "startChar": 1,
+        "endLine": 23,
+        "endChar": 14
+      },
+      "revId": "0e8270f4327e285c0b6337cddbf3ca6eee6cce6f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "abe90b2d_0370d0f7",
+        "filename": "src/OpenGL/libGLESv2/Image.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-23T21:55:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bd4732e_96d06c8d",
       "range": {
         "startLine": 23,
         "startChar": 1,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "abe90b2d_435ad87b",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-23T21:55:55Z",
+      "side": 1,
+      "message": "Done. I also removed the other ones. It should be clear when we need to add them, if we add depth/stencil buffer support.",
+      "parentUuid": "6bd4732e_f67c40df",
+      "range": {
+        "startLine": 130,
+        "startChar": 0,
+        "endLine": 136,
+        "endChar": 62
+      },
+      "revId": "0e8270f4327e285c0b6337cddbf3ca6eee6cce6f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bd4732e_967bcce3",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 3
@@ -128,6 +248,30 @@
       "writtenOn": "2015-01-22T18:36:02Z",
       "side": 1,
       "message": "Same.",
+      "range": {
+        "startLine": 166,
+        "startChar": 0,
+        "endLine": 168,
+        "endChar": 40
+      },
+      "revId": "0e8270f4327e285c0b6337cddbf3ca6eee6cce6f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "abe90b2d_8364e03b",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-23T21:55:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bd4732e_967bcce3",
       "range": {
         "startLine": 166,
         "startChar": 0,
