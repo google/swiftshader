@@ -49,18 +49,27 @@
 
 @PrimitiveInitStatic = internal global [4 x i8] zeroinitializer, align 4
 ; CHECK: .type PrimitiveInitStatic,@object
-; CHECK-NEXT: .local PrimitiveInitStatic
-; CHECK-NEXT: .comm PrimitiveInitStatic,4,4
+; CHECK-NEXT: .section .bss,"aw",@nobits
+; CHECK-NEXT: .align 4
+; CHECK-NEXT: PrimitiveInitStatic:
+; CHECK-NEXT: .zero 4
+; CHECK-NEXT: .size PrimitiveInitStatic, 4
 
 @PrimitiveUninit = internal global [4 x i8] zeroinitializer, align 4
 ; CHECK: .type PrimitiveUninit,@object
-; CHECK-NEXT: .local PrimitiveUninit
-; CHECK-NEXT: .comm PrimitiveUninit,4,4
+; CHECK-NEXT: .section .bss,"aw",@nobits
+; CHECK-NEXT: .align 4
+; CHECK-NEXT: PrimitiveUninit:
+; CHECK-NEXT: .zero 4
+; CHECK-NEXT: .size PrimitiveUninit, 4
 
 @ArrayUninit = internal global [20 x i8] zeroinitializer, align 4
 ; CHECK: .type ArrayUninit,@object
-; CHECK-NEXT: .local ArrayUninit
-; CHECK-NEXT: .comm ArrayUninit,20,4
+; CHECK-NEXT: .section .bss,"aw",@nobits
+; CHECK-NEXT: .align 4
+; CHECK-NEXT: ArrayUninit:
+; CHECK-NEXT: .zero 20
+; CHECK-NEXT: .size ArrayUninit, 20
 
 @ArrayUninitConstDouble = internal constant [200 x i8] zeroinitializer, align 8
 ; CHECK: .type ArrayUninitConstDouble,@object

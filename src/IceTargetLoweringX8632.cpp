@@ -4663,24 +4663,16 @@ void TargetGlobalInitX8632::lower(const VariableDeclaration &Var) {
     Str << "\t.section\t.rodata" << SectionSuffix << ",\"a\",@progbits\n";
   else if (HasNonzeroInitializer)
     Str << "\t.section\t.data" << SectionSuffix << ",\"aw\",@progbits\n";
-  else if (IsExternal)
+  else
     Str << "\t.section\t.bss" << SectionSuffix << ",\"aw\",@nobits\n";
-  // No .section for non-constant + zeroinitializer + internal
 
   if (IsExternal)
     Str << "\t.globl\t" << MangledName << "\n";
-  else if (!IsConstant && !HasNonzeroInitializer)
-    Str << "\t.local\t" << MangledName << "\n";
-  // Internal symbols only get .local when using .comm.
 
-  if ((IsConstant || HasNonzeroInitializer || IsExternal) && Align > 1)
+  if (Align > 1)
     Str << "\t.align\t" << Align << "\n";
-  // Alignment is part of .comm.
 
-  if (IsConstant || HasNonzeroInitializer || IsExternal)
-    Str << MangledName << ":\n";
-  else
-    Str << "\t.comm\t" << MangledName << "," << Size << "," << Align << "\n";
+  Str << MangledName << ":\n";
 
   if (HasNonzeroInitializer) {
     for (VariableDeclaration::Initializer *Init : Initializers) {
@@ -4712,13 +4704,14 @@ void TargetGlobalInitX8632::lower(const VariableDeclaration &Var) {
       }
       }
     }
-  } else if (IsConstant || IsExternal)
+  } else
+    // NOTE: for non-constant zero initializers, this is BSS (no bits),
+    // so an ELF writer would not write to the file, and only track
+    // virtual offsets, but the .s writer still needs this .zero and
+    // cannot simply use the .size to advance offsets.
     Str << "\t.zero\t" << Size << "\n";
-  // Size is part of .comm.
 
-  if (IsConstant || HasNonzeroInitializer || IsExternal)
-    Str << "\t.size\t" << MangledName << ", " << Size << "\n";
-  // Size is part of .comm.
+  Str << "\t.size\t" << MangledName << ", " << Size << "\n";
 }
 
 } // end of namespace Ice
