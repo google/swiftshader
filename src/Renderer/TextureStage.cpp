@@ -46,6 +46,9 @@ namespace sw
 		firstModifier = MODIFIER_COLOR;
 		secondModifier = MODIFIER_COLOR;
 		thirdModifier = MODIFIER_COLOR;
+	    firstModifierAlpha = MODIFIER_COLOR;
+		secondModifierAlpha = MODIFIER_COLOR;
+		thirdModifierAlpha = MODIFIER_COLOR;
 		destinationArgument = DESTINATION_CURRENT;
 
 		texCoordIndex = stage;
