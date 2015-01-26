@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4b9ecfd1_5398fc4e",
+        "filename": "src/OpenGL/libGLESv2/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-26T15:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ab5e6bfb_dea095ad",
+      "range": {
+        "startLine": 50,
+        "startChar": 1,
+        "endLine": 50,
+        "endChar": 28
+      },
+      "revId": "1835f5425c15a005ddbbb1411cf2e3ed4f9e22c1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb49434e_d2d16462",
         "filename": "src/OpenGL/libGLESv2/Image.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-26T15:13:51Z",
       "side": 1,
       "message": "To detect this at compile time instead of run-time, you can use a trick like http://stackoverflow.com/questions/1629406/c-template-specialization-without-default-function",
+      "range": {
+        "startLine": 52,
+        "startChar": 2,
+        "endLine": 52,
+        "endChar": 18
+      },
+      "revId": "1835f5425c15a005ddbbb1411cf2e3ed4f9e22c1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b9ecfd1_b375e06c",
+        "filename": "src/OpenGL/libGLESv2/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-26T15:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb49434e_d2d16462",
       "range": {
         "startLine": 52,
         "startChar": 2,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "4b9ecfd1_937a6458",
+        "filename": "src/OpenGL/libGLESv2/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-26T15:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb49434e_d22324ce",
+      "range": {
+        "startLine": 405,
+        "startChar": 0,
+        "endLine": 405,
+        "endChar": 16
+      },
+      "revId": "1835f5425c15a005ddbbb1411cf2e3ed4f9e22c1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb49434e_f22828ab",
         "filename": "src/OpenGL/libGLESv2/Image.cpp",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2015-01-26T15:13:51Z",
       "side": 1,
       "message": "three spaces instead of tab",
+      "range": {
+        "startLine": 407,
+        "startChar": 2,
+        "endLine": 407,
+        "endChar": 3
+      },
+      "revId": "1835f5425c15a005ddbbb1411cf2e3ed4f9e22c1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b9ecfd1_f37f6846",
+        "filename": "src/OpenGL/libGLESv2/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-26T15:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb49434e_f22828ab",
       "range": {
         "startLine": 407,
         "startChar": 2,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "4b9ecfd1_336a9089",
+        "filename": "src/OpenGL/libGLESv2/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-26T15:35:10Z",
+      "side": 1,
+      "message": "Done, but left the comment here for now.",
+      "parentUuid": "eb49434e_92427c70",
+      "range": {
+        "startLine": 551,
+        "startChar": 4,
+        "endLine": 551,
+        "endChar": 5
+      },
+      "revId": "1835f5425c15a005ddbbb1411cf2e3ed4f9e22c1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb49434e_f241086b",
         "filename": "src/OpenGL/libGLESv2/Image.cpp",
         "patchSetId": 1
@@ -128,6 +248,30 @@
       "writtenOn": "2015-01-26T15:13:51Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 573,
+        "startChar": 4,
+        "endLine": 573,
+        "endChar": 5
+      },
+      "revId": "1835f5425c15a005ddbbb1411cf2e3ed4f9e22c1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b9ecfd1_136794c1",
+        "filename": "src/OpenGL/libGLESv2/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-26T15:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb49434e_f241086b",
       "range": {
         "startLine": 573,
         "startChar": 4,
