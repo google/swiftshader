@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b31a7d3_4a63f3fb",
+        "filename": "src/OpenGL/libGLES_CM/libGLES_CM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 867,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-26T20:40:18Z",
+      "side": 1,
+      "message": "This function isn\u0027t affected by the active texture index. So you just need sw::Color0 here.",
+      "range": {
+        "startLine": 867,
+        "startChar": 34,
+        "endLine": 867,
+        "endChar": 60
+      },
+      "revId": "b33372ce4831e882c60e642d13cf6994975a2b76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
