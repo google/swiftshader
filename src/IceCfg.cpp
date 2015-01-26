@@ -25,7 +25,7 @@
 
 namespace Ice {
 
-ICE_ATTRIBUTE_TLS const Cfg *Cfg::CurrentCfg = nullptr;
+ICE_TLS_DEFINE_FIELD(const Cfg *, Cfg, CurrentCfg);
 
 ArenaAllocator<> *getCurrentCfgAllocator() {
   return Cfg::getCurrentCfgAllocator();

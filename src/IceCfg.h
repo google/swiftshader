@@ -37,15 +37,15 @@ public:
   // destruction requirements more explicit.
   static Cfg *create(GlobalContext *Ctx) {
     Cfg *Func = new Cfg(Ctx);
-    CurrentCfg = Func;
+    ICE_TLS_SET_FIELD(CurrentCfg, Func);
     return Func;
   }
   // Gets a pointer to the current thread's Cfg.
-  static const Cfg *getCurrentCfg() { return CurrentCfg; }
+  static const Cfg *getCurrentCfg() { return ICE_TLS_GET_FIELD(CurrentCfg); }
   // Gets a pointer to the current thread's Cfg's allocator.
   static ArenaAllocator<> *getCurrentCfgAllocator() {
-    assert(CurrentCfg);
-    return CurrentCfg->Allocator.get();
+    assert(ICE_TLS_GET_FIELD(CurrentCfg));
+    return ICE_TLS_GET_FIELD(CurrentCfg)->Allocator.get();
   }
 
   GlobalContext *getContext() const { return Ctx; }
@@ -213,7 +213,10 @@ private:
   // Maintain a pointer in TLS to the current Cfg being translated.
   // This is primarily for accessing its allocator statelessly, but
   // other uses are possible.
-  ICE_ATTRIBUTE_TLS static const Cfg *CurrentCfg;
+  ICE_TLS_DECLARE_FIELD(const Cfg *, CurrentCfg);
+
+public:
+  static void TlsInit() { ICE_TLS_INIT_FIELD(CurrentCfg); }
 };
 
 } // end of namespace Ice

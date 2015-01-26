@@ -38,14 +38,7 @@
 #include "llvm/Support/ELF.h"
 #include "llvm/Support/raw_ostream.h"
 
-// TODO(stichnot): Define ICE_ATTRIBUTE_TLS as thread_local after all
-// compilers support that C++11 keyword.  In particular, MacOS 10.6
-// does not support it.
-#if defined (_MSC_VER)
-#define ICE_ATTRIBUTE_TLS __declspec(thread)
-#else // !_MSC_VER
-#define ICE_ATTRIBUTE_TLS __thread
-#endif // !_MSC_VER
+#include "IceTLS.h"
 
 namespace Ice {
 

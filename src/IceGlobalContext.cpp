@@ -132,11 +132,18 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
     : StrDump(OsDump), StrEmit(OsEmit), VMask(Mask),
       ConstPool(new ConstantPool()), Arch(Arch), Opt(Opt),
       TestPrefix(TestPrefix), Flags(Flags), RNG(""), ObjectWriter() {
+  // Make sure thread_local fields are properly initialized before any
+  // accesses are made.  Do this here instead of at the start of
+  // main() so that all clients (e.g. unit tests) can benefit for
+  // free.
+  GlobalContext::TlsInit();
+  Cfg::TlsInit();
+
   // Create a new ThreadContext for the current thread.  No need to
   // lock AllThreadContexts at this point since no other threads have
   // access yet to this GlobalContext object.
   AllThreadContexts.push_back(new ThreadContext());
-  TLS = AllThreadContexts.back();
+  ICE_TLS_SET_FIELD(TLS, AllThreadContexts.back());
   // Pre-register built-in stack names.
   if (ALLOW_DUMP) {
     // TODO(stichnot): There needs to be a strong relationship between
@@ -495,7 +502,7 @@ void GlobalContext::dumpStats(const IceString &Name, bool Final) {
   if (Final) {
     getStatsCumulative()->dump(Name, getStrDump());
   } else {
-    TLS->StatsFunction.dump(Name, getStrDump());
+    ICE_TLS_GET_FIELD(TLS)->StatsFunction.dump(Name, getStrDump());
     getStatsCumulative()->dump("_TOTAL_", getStrDump());
   }
 }
@@ -518,6 +525,6 @@ TimerMarker::TimerMarker(TimerIdT ID, const Cfg *Func)
   }
 }
 
-ICE_ATTRIBUTE_TLS GlobalContext::ThreadContext *GlobalContext::TLS;
+ICE_TLS_DEFINE_FIELD(GlobalContext::ThreadContext *, GlobalContext, TLS);
 
 } // end of namespace Ice

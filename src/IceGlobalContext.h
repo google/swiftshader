@@ -179,37 +179,37 @@ public:
   // Reset stats at the beginning of a function.
   void resetStats() {
     if (ALLOW_DUMP)
-      TLS->StatsFunction.reset();
+      ICE_TLS_GET_FIELD(TLS)->StatsFunction.reset();
   }
   void dumpStats(const IceString &Name, bool Final = false);
   void statsUpdateEmitted(uint32_t InstCount) {
     if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    TLS->StatsFunction.updateEmitted(InstCount);
+    ICE_TLS_GET_FIELD(TLS)->StatsFunction.updateEmitted(InstCount);
     getStatsCumulative()->updateEmitted(InstCount);
   }
   void statsUpdateRegistersSaved(uint32_t Num) {
     if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    TLS->StatsFunction.updateRegistersSaved(Num);
+    ICE_TLS_GET_FIELD(TLS)->StatsFunction.updateRegistersSaved(Num);
     getStatsCumulative()->updateRegistersSaved(Num);
   }
   void statsUpdateFrameBytes(uint32_t Bytes) {
     if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    TLS->StatsFunction.updateFrameBytes(Bytes);
+    ICE_TLS_GET_FIELD(TLS)->StatsFunction.updateFrameBytes(Bytes);
     getStatsCumulative()->updateFrameBytes(Bytes);
   }
   void statsUpdateSpills() {
     if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    TLS->StatsFunction.updateSpills();
+    ICE_TLS_GET_FIELD(TLS)->StatsFunction.updateSpills();
     getStatsCumulative()->updateSpills();
   }
   void statsUpdateFills() {
     if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    TLS->StatsFunction.updateFills();
+    ICE_TLS_GET_FIELD(TLS)->StatsFunction.updateFills();
     getStatsCumulative()->updateFills();
   }
 
@@ -274,11 +274,14 @@ private:
   std::vector<ThreadContext *> AllThreadContexts;
   // Each thread has its own TLS pointer which is also held in
   // AllThreadContexts.
-  ICE_ATTRIBUTE_TLS static ThreadContext *TLS;
+  ICE_TLS_DECLARE_FIELD(ThreadContext *, TLS);
 
   // Private helpers for mangleName()
   typedef llvm::SmallVector<char, 32> ManglerVector;
   void incrementSubstitutions(ManglerVector &OldName) const;
+
+public:
+  static void TlsInit() { ICE_TLS_INIT_FIELD(TLS); }
 };
 
 // Helper class to push and pop a timer marker.  The constructor
