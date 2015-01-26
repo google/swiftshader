@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb49434e_7260b8ee",
+        "filename": "src/OpenGL/libGLES_CM/Context.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 596,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-26T15:22:31Z",
+      "side": 1,
+      "message": "Replace this by the UNREACHABLE() macro. There is no \u0027right\u0027 operations when this does get hit anyway (most likely it would be another fog density curve). With that macro we at least get instantly notified of what\u0027s wrong when debugging.",
+      "range": {
+        "startLine": 595,
+        "startChar": 2,
+        "endLine": 596,
+        "endChar": 8
+      },
+      "revId": "4e5e837a248ca299d9bf3b95e2a37d09412082df",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
