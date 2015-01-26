@@ -17,9 +17,6 @@
 #include "Shader/PixelShader.hpp"
 #include "Shader/VertexShader.hpp"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
-
 #include <list>
 #include <set>
 #include <map>
@@ -28,6 +25,8 @@ namespace es2
 {
 	class Shader;
 }
+
+typedef unsigned int GLenum;
 
 namespace glsl
 {
