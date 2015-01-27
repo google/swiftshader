@@ -23,7 +23,9 @@
 #include <limits>
 #include <list>
 #include <map>
+#include <mutex>
 #include <string>
+#include <system_error>
 #include <vector>
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/BitVector.h"
@@ -58,6 +60,7 @@ class InstTarget;
 class LiveRange;
 class Liveness;
 class Operand;
+class TargetGlobalLowering;
 class TargetLowering;
 class Variable;
 class VariableDeclaration;
@@ -120,6 +123,17 @@ typedef llvm::BitVector LivenessBV;
 typedef uint32_t TimerStackIdT;
 typedef uint32_t TimerIdT;
 
+// Use alignas(MaxCacheLineSize) to isolate variables/fields that
+// might be contended while multithreading.  Assumes the maximum cache
+// line size is 64.
+enum {
+  MaxCacheLineSize = 64
+};
+// Use ICE_CACHELINE_BOUNDARY to force the next field in a declaration
+// list to be aligned to the next cache line.
+#define ICE_CACHELINE_BOUNDARY                                                 \
+  alignas(MaxCacheLineSize) struct {}
+
 // PNaCl is ILP32, so theoretically we should only need 32-bit offsets.
 typedef int32_t RelocOffsetT;
 enum { RelocAddrSize = 4 };
@@ -162,6 +176,37 @@ typedef uint32_t VerboseMask;
 
 typedef llvm::raw_ostream Ostream;
 typedef llvm::raw_fd_ostream Fdstream;
+
+typedef std::mutex GlobalLockType;
+
+enum ErrorCodes {
+  EC_None = 0,
+  EC_Args,
+  EC_Bitcode,
+  EC_Translation
+};
+
+// Wrapper around std::error_code for allowing multiple errors to be
+// folded into one.  The current implementation keeps track of the
+// first error, which is likely to be the most useful one, and this
+// could be extended to e.g. collect a vector of errors.
+class ErrorCode : public std::error_code {
+  ErrorCode(const ErrorCode &) = delete;
+  ErrorCode &operator=(const ErrorCode &) = delete;
+
+public:
+  ErrorCode() : HasError(false) {}
+  void assign(ErrorCodes Code) {
+    if (!HasError) {
+      HasError = true;
+      std::error_code::assign(Code, std::generic_category());
+    }
+  }
+  void assign(int Code) { assign(static_cast<ErrorCodes>(Code)); }
+
+private:
+  bool HasError;
+};
 
 // Reverse range adaptors written in terms of llvm::make_range().
 template <typename T>

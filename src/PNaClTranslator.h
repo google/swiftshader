@@ -34,8 +34,8 @@ public:
       : Translator(Ctx, Flags) {}
 
   // Reads the PNaCl bitcode file and translates to ICE, which is then
-  // converted to machine code. Sets ErrorStatus to true if any
-  // errors occurred.
+  // converted to machine code. Sets ErrorStatus to 1 if any errors
+  // occurred.
   void translate(const std::string &IRFilename);
 
   // Reads MemBuf, assuming it is the PNaCl bitcode contents of IRFilename.

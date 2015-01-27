@@ -199,8 +199,6 @@ public:
   virtual void addProlog(CfgNode *Node) = 0;
   virtual void addEpilog(CfgNode *Node) = 0;
 
-  virtual void emitConstants() const = 0;
-
   virtual ~TargetLowering() {}
 
 protected:
@@ -242,23 +240,23 @@ protected:
   LoweringContext Context;
 };
 
-// TargetGlobalInitLowering is used for "lowering" global
-// initializers.  It is separated out from TargetLowering because it
-// does not require a Cfg.
-class TargetGlobalInitLowering {
-  TargetGlobalInitLowering(const TargetGlobalInitLowering &) = delete;
-  TargetGlobalInitLowering &operator=(const TargetGlobalInitLowering &) =
-      delete;
+// TargetGlobalLowering is used for "lowering" global initializers,
+// including the internal constant pool.  It is separated out from
+// TargetLowering because it does not require a Cfg.
+class TargetGlobalLowering {
+  TargetGlobalLowering() = delete;
+  TargetGlobalLowering(const TargetGlobalLowering &) = delete;
+  TargetGlobalLowering &operator=(const TargetGlobalLowering &) = delete;
 
 public:
-  static TargetGlobalInitLowering *createLowering(TargetArch Target,
-                                                  GlobalContext *Ctx);
-  virtual ~TargetGlobalInitLowering();
+  static TargetGlobalLowering *createLowering(GlobalContext *Ctx);
+  virtual ~TargetGlobalLowering();
 
-  virtual void lower(const VariableDeclaration &Var) = 0;
+  virtual void lowerInit(const VariableDeclaration &Var) const = 0;
+  virtual void lowerConstants(GlobalContext *Ctx) const = 0;
 
 protected:
-  TargetGlobalInitLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
+  TargetGlobalLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
   GlobalContext *Ctx;
 };
 

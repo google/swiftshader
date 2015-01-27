@@ -15,8 +15,6 @@
 #ifndef SUBZERO_SRC_ICECFG_H
 #define SUBZERO_SRC_ICECFG_H
 
-#include <memory>
-
 #include "assembler.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
@@ -42,6 +40,7 @@ public:
   }
   // Gets a pointer to the current thread's Cfg.
   static const Cfg *getCurrentCfg() { return ICE_TLS_GET_FIELD(CurrentCfg); }
+  void updateTLS() const { ICE_TLS_SET_FIELD(CurrentCfg, this); }
   // Gets a pointer to the current thread's Cfg's allocator.
   static ArenaAllocator<> *getCurrentCfgAllocator() {
     assert(ICE_TLS_GET_FIELD(CurrentCfg));
@@ -49,6 +48,12 @@ public:
   }
 
   GlobalContext *getContext() const { return Ctx; }
+
+  // Returns true if any of the specified options in the verbose mask
+  // are set.  If the argument is omitted, it checks if any verbose
+  // options at all are set.
+  bool isVerbose(VerboseMask Mask = IceV_All) const { return VMask & Mask; }
+  void setVerbose(VerboseMask Mask) { VMask = Mask; }
 
   // Manage the name and return type of the function being translated.
   void setFunctionName(const IceString &Name) { FunctionName = Name; }
@@ -184,6 +189,7 @@ private:
   Cfg(GlobalContext *Ctx);
 
   GlobalContext *Ctx;
+  VerboseMask VMask;
   IceString FunctionName;
   Type ReturnType;
   bool IsInternalLinkage;

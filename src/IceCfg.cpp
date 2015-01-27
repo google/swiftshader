@@ -32,10 +32,11 @@ ArenaAllocator<> *getCurrentCfgAllocator() {
 }
 
 Cfg::Cfg(GlobalContext *Ctx)
-    : Ctx(Ctx), FunctionName(""), ReturnType(IceType_void),
-      IsInternalLinkage(false), HasError(false), FocusedTiming(false),
-      ErrorMessage(""), Entry(nullptr), NextInstNumber(Inst::NumberInitial),
-      Allocator(new ArenaAllocator<>()), Live(nullptr),
+    : Ctx(Ctx), VMask(Ctx->getVerbose()), FunctionName(""),
+      ReturnType(IceType_void), IsInternalLinkage(false), HasError(false),
+      FocusedTiming(false), ErrorMessage(""), Entry(nullptr),
+      NextInstNumber(Inst::NumberInitial), Allocator(new ArenaAllocator<>()),
+      Live(nullptr),
       Target(TargetLowering::createLowering(Ctx->getTargetArch(), this)),
       VMetadata(new VariablesMetadata(this)),
       TargetAssembler(
@@ -46,18 +47,14 @@ Cfg::Cfg(GlobalContext *Ctx)
 }
 
 Cfg::~Cfg() {
-  // TODO(stichnot,kschimpf): Set CurrentCfg=nullptr in the dtor for
-  // safety.  This can't be done currently because the translator
-  // manages the Cfg by creating a new Cfg (which sets CurrentCfg to
-  // the new value), then deleting the old Cfg (which would then reset
-  // CurrentCfg to nullptr).
+  assert(ICE_TLS_GET_FIELD(CurrentCfg) == this);
+  // Reset the thread-local CurrentCfg pointer.
+  ICE_TLS_SET_FIELD(CurrentCfg, nullptr);
 }
 
 void Cfg::setError(const IceString &Message) {
   HasError = true;
   ErrorMessage = Message;
-  OstreamLocker L(Ctx);
-  Ctx->getStrDump() << "ICE translation error: " << ErrorMessage << "\n";
 }
 
 CfgNode *Cfg::makeNode() {
@@ -478,7 +475,7 @@ void Cfg::emitIAS() {
 void Cfg::dump(const IceString &Message) {
   if (!ALLOW_DUMP)
     return;
-  if (!Ctx->isVerbose())
+  if (!isVerbose())
     return;
   OstreamLocker L(Ctx);
   Ostream &Str = Ctx->getStrDump();
@@ -486,7 +483,7 @@ void Cfg::dump(const IceString &Message) {
     Str << "================ " << Message << " ================\n";
   setCurrentNode(getEntryNode());
   // Print function name+args
-  if (getContext()->isVerbose(IceV_Instructions)) {
+  if (isVerbose(IceV_Instructions)) {
     Str << "define ";
     if (getInternal() && !Ctx->getFlags().DisableInternal)
       Str << "internal ";
@@ -500,7 +497,7 @@ void Cfg::dump(const IceString &Message) {
     Str << ") {\n";
   }
   resetCurrentNode();
-  if (getContext()->isVerbose(IceV_Liveness)) {
+  if (isVerbose(IceV_Liveness)) {
     // Print summary info about variables
     for (Variable *Var : Variables) {
       Str << "// multiblock=";
@@ -516,7 +513,7 @@ void Cfg::dump(const IceString &Message) {
   // Print each basic block
   for (CfgNode *Node : Nodes)
     Node->dump(this);
-  if (getContext()->isVerbose(IceV_Instructions))
+  if (isVerbose(IceV_Instructions))
     Str << "}\n";
 }
 

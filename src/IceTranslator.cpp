@@ -12,13 +12,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
-#include <memory>
-
-#include "llvm/IR/Constant.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/Module.h"
-
 #include "IceCfg.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
@@ -28,15 +21,10 @@
 
 using namespace Ice;
 
-namespace {
-
-// Match a symbol name against a match string.  An empty match string
-// means match everything.  Returns true if there is a match.
-bool matchSymbolName(const IceString &SymbolName, const IceString &Match) {
-  return Match.empty() || Match == SymbolName;
+Translator::Translator(GlobalContext *Ctx, const ClFlags &Flags)
+    : Ctx(Ctx), Flags(Flags),
+      GlobalLowering(TargetGlobalLowering::createLowering(Ctx)), ErrorStatus() {
 }
-
-} // end of anonymous namespace
 
 Translator::~Translator() {}
 
@@ -66,49 +54,28 @@ bool Translator::checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
   return false;
 }
 
-void Translator::translateFcn(Cfg *Fcn) {
-  Ctx->resetStats();
-  Func.reset(Fcn);
-  VerboseMask OldVerboseMask = Ctx->getVerbose();
-  if (!matchSymbolName(Func->getFunctionName(), Ctx->getFlags().VerboseFocusOn))
-    Ctx->setVerbose(IceV_None);
-
-  if (Ctx->getFlags().DisableTranslation ||
-      !matchSymbolName(Func->getFunctionName(),
-                       Ctx->getFlags().TranslateOnly)) {
-    Func->dump();
-  } else {
-    Func->translate();
-    if (Func->hasError()) {
-      std::cerr << "ICE translation error: " << Func->getError() << "\n";
-      ErrorStatus = true;
-    }
-
-    if (!ErrorStatus) {
-      if (Ctx->getFlags().UseIntegratedAssembler) {
-        Func->emitIAS();
-      } else {
-        Func->emit();
-      }
-    }
-    Ctx->dumpStats(Func->getFunctionName());
+void Translator::translateFcn(Cfg *Func) {
+  Ctx->cfgQueueBlockingPush(Func);
+  if (Ctx->getFlags().NumTranslationThreads == 0) {
+    Ctx->translateFunctions();
   }
-
-  Ctx->setVerbose(OldVerboseMask);
 }
 
 void Translator::emitConstants() {
-  if (!Ctx->getFlags().DisableTranslation && Func)
-    Func->getTarget()->emitConstants();
+  if (!getErrorStatus())
+    GlobalLowering->lowerConstants(Ctx);
+}
+
+void Translator::transferErrorCode() const {
+  if (getErrorStatus())
+    Ctx->getErrorStatus()->assign(getErrorStatus().value());
 }
 
 void Translator::lowerGlobals(
     const VariableDeclarationListType &VariableDeclarations) {
-  std::unique_ptr<TargetGlobalInitLowering> GlobalLowering(
-      TargetGlobalInitLowering::createLowering(Ctx->getTargetArch(), Ctx));
   bool DisableTranslation = Ctx->getFlags().DisableTranslation;
   const bool DumpGlobalVariables =
-      ALLOW_DUMP && Ctx->isVerbose() && Ctx->getFlags().VerboseFocusOn.empty();
+      ALLOW_DUMP && Ctx->getVerbose() && Ctx->getFlags().VerboseFocusOn.empty();
   OstreamLocker L(Ctx);
   Ostream &Stream = Ctx->getStrDump();
   const IceString &TranslateOnly = Ctx->getFlags().TranslateOnly;
@@ -116,8 +83,7 @@ void Translator::lowerGlobals(
     if (DumpGlobalVariables)
       Global->dump(getContext(), Stream);
     if (!DisableTranslation &&
-        matchSymbolName(Global->getName(), TranslateOnly))
-      GlobalLowering->lower(*Global);
+        GlobalContext::matchSymbolName(Global->getName(), TranslateOnly))
+      GlobalLowering->lowerInit(*Global);
   }
-  GlobalLowering.reset();
 }

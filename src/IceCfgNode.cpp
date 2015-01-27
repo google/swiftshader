@@ -917,11 +917,11 @@ void CfgNode::dump(Cfg *Func) const {
   Func->setCurrentNode(this);
   Ostream &Str = Func->getContext()->getStrDump();
   Liveness *Liveness = Func->getLiveness();
-  if (Func->getContext()->isVerbose(IceV_Instructions)) {
+  if (Func->isVerbose(IceV_Instructions)) {
     Str << getName() << ":\n";
   }
   // Dump list of predecessor nodes.
-  if (Func->getContext()->isVerbose(IceV_Preds) && !InEdges.empty()) {
+  if (Func->isVerbose(IceV_Preds) && !InEdges.empty()) {
     Str << "    // preds = ";
     bool First = true;
     for (CfgNode *I : InEdges) {
@@ -936,13 +936,13 @@ void CfgNode::dump(Cfg *Func) const {
   LivenessBV LiveIn;
   if (Liveness)
     LiveIn = Liveness->getLiveIn(this);
-  if (Func->getContext()->isVerbose(IceV_Liveness) && !LiveIn.empty()) {
+  if (Func->isVerbose(IceV_Liveness) && !LiveIn.empty()) {
     Str << "    // LiveIn:";
     for (SizeT i = 0; i < LiveIn.size(); ++i) {
       if (LiveIn[i]) {
         Variable *Var = Liveness->getVariable(i, this);
         Str << " %" << Var->getName(Func);
-        if (Func->getContext()->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
+        if (Func->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
           Str << ":" << Func->getTarget()->getRegName(Var->getRegNum(),
                                                       Var->getType());
         }
@@ -951,7 +951,7 @@ void CfgNode::dump(Cfg *Func) const {
     Str << "\n";
   }
   // Dump each instruction.
-  if (Func->getContext()->isVerbose(IceV_Instructions)) {
+  if (Func->isVerbose(IceV_Instructions)) {
     for (const Inst &I : Phis)
       I.dumpDecorated(Func);
     for (const Inst &I : Insts)
@@ -961,13 +961,13 @@ void CfgNode::dump(Cfg *Func) const {
   LivenessBV LiveOut;
   if (Liveness)
     LiveOut = Liveness->getLiveOut(this);
-  if (Func->getContext()->isVerbose(IceV_Liveness) && !LiveOut.empty()) {
+  if (Func->isVerbose(IceV_Liveness) && !LiveOut.empty()) {
     Str << "    // LiveOut:";
     for (SizeT i = 0; i < LiveOut.size(); ++i) {
       if (LiveOut[i]) {
         Variable *Var = Liveness->getVariable(i, this);
         Str << " %" << Var->getName(Func);
-        if (Func->getContext()->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
+        if (Func->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
           Str << ":" << Func->getTarget()->getRegName(Var->getRegNum(),
                                                       Var->getType());
         }
@@ -976,7 +976,7 @@ void CfgNode::dump(Cfg *Func) const {
     Str << "\n";
   }
   // Dump list of successor nodes.
-  if (Func->getContext()->isVerbose(IceV_Succs)) {
+  if (Func->isVerbose(IceV_Succs)) {
     Str << "    // succs = ";
     bool First = true;
     for (CfgNode *I : OutEdges) {

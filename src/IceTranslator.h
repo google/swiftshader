@@ -15,8 +15,6 @@
 #ifndef SUBZERO_SRC_ICETRANSLATOR_H
 #define SUBZERO_SRC_ICETRANSLATOR_H
 
-#include <memory>
-
 namespace llvm {
 class Module;
 }
@@ -38,23 +36,24 @@ class Translator {
 public:
   typedef std::vector<VariableDeclaration *> VariableDeclarationListType;
 
-  Translator(GlobalContext *Ctx, const ClFlags &Flags)
-      : Ctx(Ctx), Flags(Flags), ErrorStatus(0) {}
-
+  Translator(GlobalContext *Ctx, const ClFlags &Flags);
   ~Translator();
-  bool getErrorStatus() const { return ErrorStatus; }
+  const ErrorCode &getErrorStatus() const { return ErrorStatus; }
 
   GlobalContext *getContext() const { return Ctx; }
 
   const ClFlags &getFlags() const { return Flags; }
 
   /// Translates the constructed ICE function Fcn to machine code.
-  /// Takes ownership of Fcn. Note: As a side effect, Field Func is
-  /// set to Fcn.
-  void translateFcn(Cfg *Fcn);
+  /// Takes ownership of Func.
+  void translateFcn(Cfg *Func);
 
   /// Emits the constant pool.
   void emitConstants();
+
+  /// If there was an error during bitcode reading/parsing, copy the
+  /// error code into the GlobalContext.
+  void transferErrorCode() const;
 
   /// Lowers the given list of global addresses to target. Generates
   /// list of corresponding variable declarations.
@@ -72,18 +71,9 @@ public:
 protected:
   GlobalContext *Ctx;
   const ClFlags &Flags;
-  // The exit status of the translation. False is successful. True
-  // otherwise.
-  bool ErrorStatus;
-  // Ideally, Func would be inside the methods that converts IR to
-  // functions.  However, emitting the constant pool requires a valid
-  // Cfg object, so we need to defer deleting the last non-empty Cfg
-  // object to emit the constant pool (via emitConstants). TODO:
-  // Since all constants are globally pooled in the GlobalContext
-  // object, change all Constant related functions to use
-  // GlobalContext instead of Cfg, and then make emitConstantPool use
-  // that.
-  std::unique_ptr<Cfg> Func;
+  std::unique_ptr<TargetGlobalLowering> GlobalLowering;
+  // Exit status of the translation. False is successful. True otherwise.
+  ErrorCode ErrorStatus;
 };
 
 } // end of namespace Ice

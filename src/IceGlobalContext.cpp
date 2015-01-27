@@ -129,16 +129,17 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
                              ELFStreamer *ELFStr, VerboseMask Mask,
                              TargetArch Arch, OptLevel Opt,
                              IceString TestPrefix, const ClFlags &Flags)
-    : StrDump(OsDump), StrEmit(OsEmit), VMask(Mask),
-      ConstPool(new ConstantPool()), Arch(Arch), Opt(Opt),
-      TestPrefix(TestPrefix), Flags(Flags), RNG(""), ObjectWriter() {
+    : ConstPool(new ConstantPool()), ErrorStatus(), StrDump(OsDump),
+      StrEmit(OsEmit), VMask(Mask), Arch(Arch), Opt(Opt),
+      TestPrefix(TestPrefix), Flags(Flags), RNG(""), ObjectWriter(),
+      CfgQ(/*MaxSize=*/Flags.NumTranslationThreads,
+           /*Sequential=*/(Flags.NumTranslationThreads == 0)) {
   // Make sure thread_local fields are properly initialized before any
   // accesses are made.  Do this here instead of at the start of
   // main() so that all clients (e.g. unit tests) can benefit for
   // free.
   GlobalContext::TlsInit();
   Cfg::TlsInit();
-
   // Create a new ThreadContext for the current thread.  No need to
   // lock AllThreadContexts at this point since no other threads have
   // access yet to this GlobalContext object.
@@ -153,6 +154,43 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
   }
   if (Flags.UseELFWriter) {
     ObjectWriter.reset(new ELFObjectWriter(*this, *ELFStr));
+  }
+}
+
+void GlobalContext::translateFunctions() {
+  while (Cfg *Func = cfgQueueBlockingPop()) {
+    // Reset per-function stats being accumulated in TLS.
+    resetStats();
+    // Install Func in TLS for Cfg-specific container allocators.
+    Func->updateTLS();
+    // Set verbose level to none if the current function does NOT
+    // match the -verbose-focus command-line option.
+    if (!matchSymbolName(Func->getFunctionName(), getFlags().VerboseFocusOn))
+      Func->setVerbose(IceV_None);
+    // Disable translation if -notranslate is specified, or if the
+    // current function matches the -translate-only option.  If
+    // translation is disabled, just dump the high-level IR and
+    // continue.
+    if (getFlags().DisableTranslation ||
+        !matchSymbolName(Func->getFunctionName(), getFlags().TranslateOnly)) {
+      Func->dump();
+    } else {
+      Func->translate();
+      if (Func->hasError()) {
+        getErrorStatus()->assign(EC_Translation);
+        OstreamLocker L(this);
+        getStrDump() << "ICE translation error: " << Func->getError() << "\n";
+      } else {
+        if (getFlags().UseIntegratedAssembler)
+          Func->emitIAS();
+        else
+          Func->emit();
+        // TODO(stichnot): actually add to emit queue
+      }
+      // TODO(stichnot): fix multithreaded stats dumping.
+      dumpStats(Func->getFunctionName());
+    }
+    delete Func;
   }
 }
 
@@ -471,12 +509,18 @@ TimerIdT GlobalContext::getTimerID(TimerStackIdT StackID,
 }
 
 void GlobalContext::pushTimer(TimerIdT ID, TimerStackIdT StackID) {
+  // TODO(stichnot): Timers are completely broken for multithreading; fix.
+  if (getFlags().NumTranslationThreads)
+    llvm::report_fatal_error("Timers and multithreading are currently broken");
   auto Timers = getTimers();
   assert(StackID < Timers->size());
   Timers->at(StackID).push(ID);
 }
 
 void GlobalContext::popTimer(TimerIdT ID, TimerStackIdT StackID) {
+  // TODO(stichnot): Timers are completely broken for multithreading; fix.
+  if (getFlags().NumTranslationThreads)
+    llvm::report_fatal_error("Timers and multithreading are currently broken");
   auto Timers = getTimers();
   assert(StackID < Timers->size());
   Timers->at(StackID).pop(ID);

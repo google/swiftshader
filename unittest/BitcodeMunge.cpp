@@ -34,7 +34,7 @@ bool IceTest::SubzeroBitcodeMunger::runTest(
   Translator.translateBuffer(TestName, MungedInput.get());
 
   cleanupTest();
-  return Translator.getErrorStatus() == 0;
+  return Translator.getErrorStatus().value() == 0;
 }
 
 } // end of namespace IceTest

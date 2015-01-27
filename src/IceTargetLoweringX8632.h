@@ -56,7 +56,6 @@ public:
   void lowerArguments() override;
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
-  void emitConstants() const override;
   SizeT makeNextLabelNumber() { return NextLabelNumber++; }
   // Ensure that a 64-bit Variable has been split into 2 32-bit
   // Variables, creating them if necessary.  This is needed for all
@@ -487,25 +486,27 @@ protected:
 
 private:
   ~TargetX8632() override {}
-  template <typename T> void emitConstantPool() const;
 };
 
-class TargetGlobalInitX8632 : public TargetGlobalInitLowering {
-  TargetGlobalInitX8632(const TargetGlobalInitX8632 &) = delete;
-  TargetGlobalInitX8632 &operator=(const TargetGlobalInitX8632 &) = delete;
+class TargetGlobalX8632 : public TargetGlobalLowering {
+  TargetGlobalX8632() = delete;
+  TargetGlobalX8632(const TargetGlobalX8632 &) = delete;
+  TargetGlobalX8632 &operator=(const TargetGlobalX8632 &) = delete;
 
 public:
-  static TargetGlobalInitLowering *create(GlobalContext *Ctx) {
-    return new TargetGlobalInitX8632(Ctx);
+  static TargetGlobalLowering *create(GlobalContext *Ctx) {
+    return new TargetGlobalX8632(Ctx);
   }
 
-  virtual void lower(const VariableDeclaration &Var) final;
+  virtual void lowerInit(const VariableDeclaration &Var) const final;
+  virtual void lowerConstants(GlobalContext *Ctx) const final;
 
 protected:
-  TargetGlobalInitX8632(GlobalContext *Ctx);
+  TargetGlobalX8632(GlobalContext *Ctx);
 
 private:
-  ~TargetGlobalInitX8632() override {}
+  ~TargetGlobalX8632() override {}
+  template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };
 
 template <> void ConstantInteger32::emit(GlobalContext *Ctx) const;

@@ -203,6 +203,18 @@ GenerateBuildAtts("build-atts",
                            "this executable."),
                   cl::init(false));
 
+// Number of translation threads (in addition to the parser thread and
+// the emitter thread).  The special case of 0 means purely
+// sequential, i.e. parser, translator, and emitter all within the
+// same single thread.  (This may need a slight rework if we expand to
+// multiple parser or emitter threads.)
+static cl::opt<uint32_t>
+NumThreads("threads",
+           cl::desc("Number of translation threads (0 for purely sequential)"),
+           // TODO(stichnot): Settle on a good default.  Consider
+           // something related to std::thread::hardware_concurrency().
+           cl::init(0));
+
 static int GetReturnValue(int Val) {
   if (AlwaysExitSuccess)
     return 0;
@@ -274,12 +286,12 @@ int main(int argc, char **argv) {
 
   ValidateAndGenerateBuildAttributes(GenerateBuildAtts ? Ls.get() : nullptr);
   if (GenerateBuildAtts)
-    return GetReturnValue(0);
+    return GetReturnValue(Ice::EC_None);
 
   if (!ALLOW_DISABLE_IR_GEN && DisableIRGeneration) {
     *Ls << "Error: Build doesn't allow --no-ir-gen when not "
         << "ALLOW_DISABLE_IR_GEN!\n";
-    return GetReturnValue(1);
+    return GetReturnValue(Ice::EC_Args);
   }
 
   Ice::ClFlags Flags;
@@ -288,14 +300,15 @@ int main(int argc, char **argv) {
   Flags.DisableTranslation = DisableTranslation;
   Flags.FunctionSections = FunctionSections;
   Flags.DataSections = DataSections;
-  Flags.UseIntegratedAssembler = UseIntegratedAssembler;
   Flags.UseELFWriter = UseELFWriter;
+  Flags.UseIntegratedAssembler = UseIntegratedAssembler;
   Flags.UseSandboxing = UseSandboxing;
   Flags.PhiEdgeSplit = EnablePhiEdgeSplit;
   Flags.DecorateAsm = DecorateAsm;
   Flags.DumpStats = DumpStats;
   Flags.AllowUninitializedGlobals = AllowUninitializedGlobals;
   Flags.TimeEachFunction = TimeEachFunction;
+  Flags.NumTranslationThreads = NumThreads;
   Flags.DefaultGlobalPrefix = DefaultGlobalPrefix;
   Flags.DefaultFunctionPrefix = DefaultFunctionPrefix;
   Flags.TimingFocusOn = TimingFocusOn;
@@ -319,7 +332,7 @@ int main(int argc, char **argv) {
   if (UseELFWriter) {
     if (OutputFilename == "-") {
       *Ls << "Error: writing binary ELF to stdout is unsupported\n";
-      return GetReturnValue(1);
+      return GetReturnValue(Ice::EC_Args);
     }
     std::string ErrorInfo;
     raw_fd_ostream *FdOs =
@@ -328,7 +341,7 @@ int main(int argc, char **argv) {
     if (!ErrorInfo.empty()) {
       *Ls << "Failed to open output file: " << OutputFilename << ":\n"
           << ErrorInfo << "\n";
-      return GetReturnValue(1);
+      return GetReturnValue(Ice::EC_Args);
     }
     ELFStr.reset(new Ice::ELFStreamer(*FdOs));
   } else {
@@ -351,11 +364,14 @@ int main(int argc, char **argv) {
     Ctx.getObjectWriter()->writeInitialELFHeader();
   }
 
-  int ErrorStatus = 0;
+  Ctx.startWorkerThreads();
+
+  std::unique_ptr<Ice::Translator> Translator;
   if (BuildOnRead) {
-    Ice::PNaClTranslator Translator(&Ctx, Flags);
-    Translator.translate(IRFilename);
-    ErrorStatus = Translator.getErrorStatus();
+    std::unique_ptr<Ice::PNaClTranslator> PTranslator(
+        new Ice::PNaClTranslator(&Ctx, Flags));
+    PTranslator->translate(IRFilename);
+    Translator.reset(PTranslator.release());
   } else if (ALLOW_LLVM_IR) {
     // Parse the input LLVM IR file into a module.
     SMDiagnostic Err;
@@ -367,17 +383,23 @@ int main(int argc, char **argv) {
 
     if (!Mod) {
       Err.print(argv[0], errs());
-      return GetReturnValue(1);
+      return GetReturnValue(Ice::EC_Bitcode);
     }
 
-    Ice::Converter Converter(Mod, &Ctx, Flags);
-    Converter.convertToIce();
-    ErrorStatus = Converter.getErrorStatus();
+    std::unique_ptr<Ice::Converter> Converter(
+        new Ice::Converter(Mod, &Ctx, Flags));
+    Converter->convertToIce();
+    Translator.reset(Converter.release());
   } else {
     *Ls << "Error: Build doesn't allow LLVM IR, "
         << "--build-on-read=0 not allowed\n";
-    return GetReturnValue(1);
+    return GetReturnValue(Ice::EC_Args);
   }
+
+  Ctx.waitForWorkerThreads();
+  Translator->transferErrorCode();
+  Translator->emitConstants();
+
   if (UseELFWriter) {
     Ice::TimerMarker T1(Ice::TimerStack::TT_emit, &Ctx);
     Ctx.getObjectWriter()->writeNonUserSections();
@@ -390,5 +412,5 @@ int main(int argc, char **argv) {
   }
   const bool FinalStats = true;
   Ctx.dumpStats("_FINAL_", FinalStats);
-  return GetReturnValue(ErrorStatus);
+  return GetReturnValue(Ctx.getErrorStatus()->value());
 }

@@ -897,7 +897,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     Var->setStackOffset(Linked->getStackOffset());
   }
 
-  if (ALLOW_DUMP && Func->getContext()->isVerbose(IceV_Frame)) {
+  if (ALLOW_DUMP && Func->isVerbose(IceV_Frame)) {
     OstreamLocker L(Func->getContext());
     Ostream &Str = Func->getContext()->getStrDump();
 
@@ -963,75 +963,6 @@ void TargetX8632::addEpilog(CfgNode *Node) {
     if (CalleeSaves[j] && RegsUsed[j]) {
       _pop(getPhysicalRegister(j));
     }
-  }
-}
-
-template <typename T> struct PoolTypeConverter {};
-
-template <> struct PoolTypeConverter<float> {
-  typedef uint32_t PrimitiveIntType;
-  typedef ConstantFloat IceType;
-  static const Type Ty = IceType_f32;
-  static const char *TypeName;
-  static const char *AsmTag;
-  static const char *PrintfString;
-};
-const char *PoolTypeConverter<float>::TypeName = "float";
-const char *PoolTypeConverter<float>::AsmTag = ".long";
-const char *PoolTypeConverter<float>::PrintfString = "0x%x";
-
-template <> struct PoolTypeConverter<double> {
-  typedef uint64_t PrimitiveIntType;
-  typedef ConstantDouble IceType;
-  static const Type Ty = IceType_f64;
-  static const char *TypeName;
-  static const char *AsmTag;
-  static const char *PrintfString;
-};
-const char *PoolTypeConverter<double>::TypeName = "double";
-const char *PoolTypeConverter<double>::AsmTag = ".quad";
-const char *PoolTypeConverter<double>::PrintfString = "0x%llx";
-
-template <typename T> void TargetX8632::emitConstantPool() const {
-  // Note: Still used by emit IAS.
-  Ostream &Str = Ctx->getStrEmit();
-  Type Ty = T::Ty;
-  SizeT Align = typeAlignInBytes(Ty);
-  ConstantList Pool = Ctx->getConstantPool(Ty);
-
-  Str << "\t.section\t.rodata.cst" << Align << ",\"aM\",@progbits," << Align
-      << "\n";
-  Str << "\t.align\t" << Align << "\n";
-  for (Constant *C : Pool) {
-    typename T::IceType *Const = llvm::cast<typename T::IceType>(C);
-    typename T::IceType::PrimType Value = Const->getValue();
-    // Use memcpy() to copy bits from Value into RawValue in a way
-    // that avoids breaking strict-aliasing rules.
-    typename T::PrimitiveIntType RawValue;
-    memcpy(&RawValue, &Value, sizeof(Value));
-    char buf[30];
-    int CharsPrinted =
-        snprintf(buf, llvm::array_lengthof(buf), T::PrintfString, RawValue);
-    assert(CharsPrinted >= 0 &&
-           (size_t)CharsPrinted < llvm::array_lengthof(buf));
-    (void)CharsPrinted; // avoid warnings if asserts are disabled
-    Const->emitPoolLabel(Str);
-    Str << ":\n\t" << T::AsmTag << "\t" << buf << "\t# " << T::TypeName << " "
-        << Value << "\n";
-  }
-}
-
-void TargetX8632::emitConstants() const {
-  // No need to emit constants from the int pool since (for x86) they
-  // are embedded as immediates in the instructions, just emit float/double.
-  if (Ctx->getFlags().UseELFWriter) {
-    ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    Writer->writeConstantPool<ConstantFloat>(IceType_f32);
-    Writer->writeConstantPool<ConstantDouble>(IceType_f64);
-  } else {
-    OstreamLocker L(Ctx);
-    emitConstantPool<PoolTypeConverter<float>>();
-    emitConstantPool<PoolTypeConverter<double>>();
   }
 }
 
@@ -3567,7 +3498,7 @@ void dumpAddressOpt(const Cfg *Func, const Variable *Base,
                     const Inst *Reason) {
   if (!ALLOW_DUMP)
     return;
-  if (!Func->getContext()->isVerbose(IceV_AddrOpt))
+  if (!Func->isVerbose(IceV_AddrOpt))
     return;
   OstreamLocker L(Func->getContext());
   Ostream &Str = Func->getContext()->getStrDump();
@@ -3740,7 +3671,7 @@ bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable *&Base,
 void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
                        Variable *&Index, uint16_t &Shift, int32_t &Offset) {
   Func->resetCurrentNode();
-  if (Func->getContext()->isVerbose(IceV_AddrOpt)) {
+  if (Func->isVerbose(IceV_AddrOpt)) {
     OstreamLocker L(Func->getContext());
     Ostream &Str = Func->getContext()->getStrDump();
     Str << "\nStarting computeAddressOpt for instruction:\n  ";
@@ -4582,7 +4513,7 @@ void TargetX8632::makeRandomRegisterPermutation(
 
   assert(NumShuffled + NumPreserved == RegX8632::Reg_NUM);
 
-  if (Func->getContext()->isVerbose(IceV_Random)) {
+  if (Func->isVerbose(IceV_Random)) {
     OstreamLocker L(Func->getContext());
     Ostream &Str = Func->getContext()->getStrDump();
     Str << "Register equivalence classes:\n";
@@ -4630,10 +4561,10 @@ void ConstantUndef::emit(GlobalContext *) const {
   llvm_unreachable("undef value encountered by emitter.");
 }
 
-TargetGlobalInitX8632::TargetGlobalInitX8632(GlobalContext *Ctx)
-    : TargetGlobalInitLowering(Ctx) {}
+TargetGlobalX8632::TargetGlobalX8632(GlobalContext *Ctx)
+    : TargetGlobalLowering(Ctx) {}
 
-void TargetGlobalInitX8632::lower(const VariableDeclaration &Var) {
+void TargetGlobalX8632::lowerInit(const VariableDeclaration &Var) const {
   // TODO(jvoung): handle this without text.
   if (Ctx->getFlags().UseELFWriter)
     return;
@@ -4712,6 +4643,78 @@ void TargetGlobalInitX8632::lower(const VariableDeclaration &Var) {
     Str << "\t.zero\t" << Size << "\n";
 
   Str << "\t.size\t" << MangledName << ", " << Size << "\n";
+}
+
+template <typename T> struct PoolTypeConverter {};
+
+template <> struct PoolTypeConverter<float> {
+  typedef uint32_t PrimitiveIntType;
+  typedef ConstantFloat IceType;
+  static const Type Ty = IceType_f32;
+  static const char *TypeName;
+  static const char *AsmTag;
+  static const char *PrintfString;
+};
+const char *PoolTypeConverter<float>::TypeName = "float";
+const char *PoolTypeConverter<float>::AsmTag = ".long";
+const char *PoolTypeConverter<float>::PrintfString = "0x%x";
+
+template <> struct PoolTypeConverter<double> {
+  typedef uint64_t PrimitiveIntType;
+  typedef ConstantDouble IceType;
+  static const Type Ty = IceType_f64;
+  static const char *TypeName;
+  static const char *AsmTag;
+  static const char *PrintfString;
+};
+const char *PoolTypeConverter<double>::TypeName = "double";
+const char *PoolTypeConverter<double>::AsmTag = ".quad";
+const char *PoolTypeConverter<double>::PrintfString = "0x%llx";
+
+template <typename T>
+void TargetGlobalX8632::emitConstantPool(GlobalContext *Ctx) {
+  // Note: Still used by emit IAS.
+  Ostream &Str = Ctx->getStrEmit();
+  Type Ty = T::Ty;
+  SizeT Align = typeAlignInBytes(Ty);
+  ConstantList Pool = Ctx->getConstantPool(Ty);
+
+  Str << "\t.section\t.rodata.cst" << Align << ",\"aM\",@progbits," << Align
+      << "\n";
+  Str << "\t.align\t" << Align << "\n";
+  for (Constant *C : Pool) {
+    typename T::IceType *Const = llvm::cast<typename T::IceType>(C);
+    typename T::IceType::PrimType Value = Const->getValue();
+    // Use memcpy() to copy bits from Value into RawValue in a way
+    // that avoids breaking strict-aliasing rules.
+    typename T::PrimitiveIntType RawValue;
+    memcpy(&RawValue, &Value, sizeof(Value));
+    char buf[30];
+    int CharsPrinted =
+        snprintf(buf, llvm::array_lengthof(buf), T::PrintfString, RawValue);
+    assert(CharsPrinted >= 0 &&
+           (size_t)CharsPrinted < llvm::array_lengthof(buf));
+    (void)CharsPrinted; // avoid warnings if asserts are disabled
+    Const->emitPoolLabel(Str);
+    Str << ":\n\t" << T::AsmTag << "\t" << buf << "\t# " << T::TypeName << " "
+        << Value << "\n";
+  }
+}
+
+void TargetGlobalX8632::lowerConstants(GlobalContext *Ctx) const {
+  if (Ctx->getFlags().DisableTranslation)
+    return;
+  // No need to emit constants from the int pool since (for x86) they
+  // are embedded as immediates in the instructions, just emit float/double.
+  if (Ctx->getFlags().UseELFWriter) {
+    ELFObjectWriter *Writer = Ctx->getObjectWriter();
+    Writer->writeConstantPool<ConstantFloat>(IceType_f32);
+    Writer->writeConstantPool<ConstantDouble>(IceType_f64);
+  } else {
+    OstreamLocker L(Ctx);
+    emitConstantPool<PoolTypeConverter<float>>(Ctx);
+    emitConstantPool<PoolTypeConverter<double>>(Ctx);
+  }
 }
 
 } // end of namespace Ice

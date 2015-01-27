@@ -47,6 +47,8 @@ endif
 
 # The list of CXX defines that are dependent on build parameters.
 CXX_DEFINES =
+CXX_EXTRA =
+LD_EXTRA =
 
 ifdef MINIMAL
   NOASSERT = 1
@@ -63,6 +65,12 @@ ifdef NOASSERT
 else
   ASSERTIONS =
   OBJDIR := $(OBJDIR)+Asserts
+endif
+
+ifdef TSAN
+  OBJDIR := $(OBJDIR)+TSan
+  CXX_EXTRA += -fsanitize=thread
+  LD_EXTRA += -fsanitize=thread
 endif
 
 $(info -----------------------------------------------)
@@ -85,8 +93,9 @@ CXX := CCACHE_CPP2=yes $(CCACHE) $(CLANG_PATH)/clang++
 CXXFLAGS := $(LLVM_CXXFLAGS) -std=c++11 -Wall -Wextra -Werror -fno-rtti \
 	-fno-exceptions $(OPTLEVEL) $(ASSERTIONS) $(CXX_DEFINES) -g \
 	$(HOST_FLAGS) -Wno-error=unused-parameter \
-	-I$(LIBCXX_INSTALL_PATH)/include/c++/v1
-LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib -Wl,--gc-sections
+	-I$(LIBCXX_INSTALL_PATH)/include/c++/v1 $(CXX_EXTRA)
+LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib -Wl,--gc-sections \
+	$(LD_EXTRA)
 
 SRCS = \
 	assembler.cpp \

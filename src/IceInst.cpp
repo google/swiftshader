@@ -464,10 +464,9 @@ void Inst::dumpDecorated(const Cfg *Func) const {
   if (!ALLOW_DUMP)
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  if (!Func->getContext()->isVerbose(IceV_Deleted) &&
-      (isDeleted() || isRedundantAssign()))
+  if (!Func->isVerbose(IceV_Deleted) && (isDeleted() || isRedundantAssign()))
     return;
-  if (Func->getContext()->isVerbose(IceV_InstNumbers)) {
+  if (Func->isVerbose(IceV_InstNumbers)) {
     char buf[30];
     InstNumberT Number = getNumber();
     if (Number == NumberDeleted)
@@ -500,7 +499,7 @@ void Inst::dumpExtras(const Cfg *Func) const {
   bool First = true;
   // Print "LIVEEND={a,b,c}" for all source operands whose live ranges
   // are known to end at this instruction.
-  if (Func->getContext()->isVerbose(IceV_Liveness)) {
+  if (Func->isVerbose(IceV_Liveness)) {
     for (SizeT I = 0; I < getSrcSize(); ++I) {
       Operand *Src = getSrc(I);
       SizeT NumVars = Src->getNumVars();

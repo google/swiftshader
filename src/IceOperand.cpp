@@ -399,15 +399,15 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
     Str << "%" << getName(Func);
     return;
   }
-  if (Func->getContext()->isVerbose(IceV_RegOrigins) ||
+  if (Func->isVerbose(IceV_RegOrigins) ||
       (!hasReg() && !Func->getTarget()->hasComputedFrame()))
     Str << "%" << getName(Func);
   if (hasReg()) {
-    if (Func->getContext()->isVerbose(IceV_RegOrigins))
+    if (Func->isVerbose(IceV_RegOrigins))
       Str << ":";
     Str << Func->getTarget()->getRegName(RegNum, getType());
   } else if (Func->getTarget()->hasComputedFrame()) {
-    if (Func->getContext()->isVerbose(IceV_RegOrigins))
+    if (Func->isVerbose(IceV_RegOrigins))
       Str << ":";
     Str << "[" << Func->getTarget()->getRegName(
                       Func->getTarget()->getFrameOrStackReg(), IceType_i32);

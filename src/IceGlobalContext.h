@@ -15,8 +15,8 @@
 #ifndef SUBZERO_SRC_ICEGLOBALCONTEXT_H
 #define SUBZERO_SRC_ICEGLOBALCONTEXT_H
 
-#include <memory>
 #include <mutex>
+#include <thread>
 
 #include "IceDefs.h"
 #include "IceClFlags.h"
@@ -24,14 +24,13 @@
 #include "IceRNG.h"
 #include "IceTimerTree.h"
 #include "IceTypes.h"
+#include "IceUtils.h"
 
 namespace Ice {
 
 class ClFlags;
 class ConstantPool;
 class FuncSigType;
-
-typedef std::mutex GlobalLockType;
 
 // LockedPtr is a way to provide automatically locked access to some object.
 template <typename T> class LockedPtr {
@@ -102,14 +101,7 @@ public:
                 IceString TestPrefix, const ClFlags &Flags);
   ~GlobalContext();
 
-  // Returns true if any of the specified options in the verbose mask
-  // are set.  If the argument is omitted, it checks if any verbose
-  // options at all are set.
   VerboseMask getVerbose() const { return VMask; }
-  bool isVerbose(VerboseMask Mask = IceV_All) const { return VMask & Mask; }
-  void setVerbose(VerboseMask Mask) { VMask = Mask; }
-  void addVerbose(VerboseMask Mask) { VMask |= Mask; }
-  void subVerbose(VerboseMask Mask) { VMask &= ~Mask; }
 
   // The dump and emit streams need to be used by only one thread at a
   // time.  This is done by exclusively reserving the streams via
@@ -129,6 +121,9 @@ public:
 
   TargetArch getTargetArch() const { return Arch; }
   OptLevel getOptLevel() const { return Opt; }
+  LockedPtr<ErrorCode> getErrorStatus() {
+    return LockedPtr<ErrorCode>(&ErrorStatus, &ErrorStatusLock);
+  }
 
   // When emitting assembly, we allow a string to be prepended to
   // names of translated functions.  This makes it easier to create an
@@ -229,34 +224,107 @@ public:
   void dumpTimers(TimerStackIdT StackID = TSK_Default,
                   bool DumpCumulative = true);
 
-private:
-  // Try to make sure the mutexes are allocated on separate cache
-  // lines, assuming the maximum cache line size is 64.
-  const static size_t MaxCacheLineSize = 64;
-  alignas(MaxCacheLineSize) GlobalLockType AllocLock;
-  alignas(MaxCacheLineSize) GlobalLockType ConstPoolLock;
-  alignas(MaxCacheLineSize) GlobalLockType StatsLock;
-  alignas(MaxCacheLineSize) GlobalLockType TimerLock;
+  // Adds a newly parsed and constructed function to the Cfg work
+  // queue.  Notifies any idle workers that a new function is
+  // available for translating.  May block if the work queue is too
+  // large, in order to control memory footprint.
+  void cfgQueueBlockingPush(Cfg *Func) { CfgQ.blockingPush(Func); }
+  // Takes a Cfg from the work queue for translating.  May block if
+  // the work queue is currently empty.  Returns nullptr if there is
+  // no more work - the queue is empty and either end() has been
+  // called or the Sequential flag was set.
+  Cfg *cfgQueueBlockingPop() { return CfgQ.blockingPop(); }
+  // Notifies that no more work will be added to the work queue.
+  void cfgQueueNotifyEnd() { CfgQ.notifyEnd(); }
 
+  void startWorkerThreads() {
+    size_t NumWorkers = getFlags().NumTranslationThreads;
+    for (size_t i = 0; i < NumWorkers; ++i) {
+      ThreadContext *WorkerTLS = new ThreadContext();
+      AllThreadContexts.push_back(WorkerTLS);
+      TranslationThreads.push_back(std::thread(
+          &GlobalContext::translateFunctionsWrapper, this, WorkerTLS));
+    }
+    if (NumWorkers) {
+      // TODO(stichnot): start a new thread for the emitter queue worker.
+    }
+  }
+
+  void waitForWorkerThreads() {
+    cfgQueueNotifyEnd();
+    // TODO(stichnot): call end() on the emitter work queue.
+    for (std::thread &Worker : TranslationThreads) {
+      Worker.join();
+    }
+    TranslationThreads.clear();
+    // TODO(stichnot): join the emitter thread.
+  }
+
+  // Translation thread startup routine.
+  void translateFunctionsWrapper(ThreadContext *MyTLS) {
+    ICE_TLS_SET_FIELD(TLS, MyTLS);
+    translateFunctions();
+  }
+  // Translate functions from the Cfg queue until the queue is empty.
+  void translateFunctions();
+
+  // Utility function to match a symbol name against a match string.
+  // This is used in a few cases where we want to take some action on
+  // a particular function or symbol based on a command-line argument,
+  // such as changing the verbose level for a particular function.  An
+  // empty Match argument means match everything.  Returns true if
+  // there is a match.
+  static bool matchSymbolName(const IceString &SymbolName,
+                              const IceString &Match) {
+    return Match.empty() || Match == SymbolName;
+  }
+
+private:
+  // Try to ensure mutexes are allocated on separate cache lines.
+
+  ICE_CACHELINE_BOUNDARY;
+  // Managed by getAllocator()
+  GlobalLockType AllocLock;
+  ArenaAllocator<> Allocator;
+
+  ICE_CACHELINE_BOUNDARY;
+  // Managed by getConstantPool()
+  GlobalLockType ConstPoolLock;
+  std::unique_ptr<ConstantPool> ConstPool;
+
+  ICE_CACHELINE_BOUNDARY;
+  // Managed by getErrorStatus()
+  GlobalLockType ErrorStatusLock;
+  ErrorCode ErrorStatus;
+
+  ICE_CACHELINE_BOUNDARY;
+  // Managed by getStatsCumulative()
+  GlobalLockType StatsLock;
+  CodeStats StatsCumulative;
+
+  ICE_CACHELINE_BOUNDARY;
+  // Managed by getTimers()
+  GlobalLockType TimerLock;
+  std::vector<TimerStack> Timers;
+
+  ICE_CACHELINE_BOUNDARY;
   // StrLock is a global lock on the dump and emit output streams.
   typedef std::mutex StrLockType;
   StrLockType StrLock;
-
   Ostream *StrDump; // Stream for dumping / diagnostics
   Ostream *StrEmit; // Stream for code emission
 
-  ArenaAllocator<> Allocator;
-  VerboseMask VMask;
-  std::unique_ptr<ConstantPool> ConstPool;
+  ICE_CACHELINE_BOUNDARY;
+
+  const VerboseMask VMask;
   Intrinsics IntrinsicsInfo;
   const TargetArch Arch;
   const OptLevel Opt;
   const IceString TestPrefix;
   const ClFlags &Flags;
-  RandomNumberGenerator RNG;
+  RandomNumberGenerator RNG; // TODO(stichnot): Move into Cfg.
   std::unique_ptr<ELFObjectWriter> ObjectWriter;
-  CodeStats StatsCumulative;
-  std::vector<TimerStack> Timers;
+  BoundedProducerConsumerQueue<Cfg> CfgQ;
 
   LockedPtr<ArenaAllocator<>> getAllocator() {
     return LockedPtr<ArenaAllocator<>>(&Allocator, &AllocLock);
@@ -272,6 +340,7 @@ private:
   }
 
   std::vector<ThreadContext *> AllThreadContexts;
+  std::vector<std::thread> TranslationThreads;
   // Each thread has its own TLS pointer which is also held in
   // AllThreadContexts.
   ICE_TLS_DECLARE_FIELD(ThreadContext *, TLS);

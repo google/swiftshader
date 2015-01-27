@@ -891,8 +891,6 @@ void Converter::convertFunctions() {
     if (ALLOW_DUMP && Ctx->getFlags().TimeEachFunction)
       Ctx->popTimer(TimerID, StackID);
   }
-
-  emitConstants();
 }
 
 } // end of namespace Ice

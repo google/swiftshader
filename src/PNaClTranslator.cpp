@@ -32,8 +32,6 @@
 #include "IceOperand.h"
 #include "PNaClTranslator.h"
 
-#include <memory>
-
 namespace {
 using namespace llvm;
 
@@ -159,7 +157,7 @@ public:
   typedef std::vector<Ice::FunctionDeclaration *> FunctionDeclarationListType;
 
   TopLevelParser(Ice::Translator &Translator, NaClBitcodeHeader &Header,
-                 NaClBitstreamCursor &Cursor, bool &ErrorStatus)
+                 NaClBitstreamCursor &Cursor, Ice::ErrorCode &ErrorStatus)
       : NaClBitcodeParser(Cursor), Translator(Translator), Header(Header),
         ErrorStatus(ErrorStatus), NumErrors(0), NumFunctionIds(0),
         NumFunctionBlocks(0), BlockParser(nullptr) {}
@@ -362,7 +360,7 @@ private:
   // The bitcode header.
   NaClBitcodeHeader &Header;
   // The exit status that should be set to true if an error occurs.
-  bool &ErrorStatus;
+  Ice::ErrorCode &ErrorStatus;
   // The number of errors reported.
   unsigned NumErrors;
   // The types associated with each type ID.
@@ -425,7 +423,7 @@ private:
 };
 
 bool TopLevelParser::Error(const std::string &Message) {
-  ErrorStatus = true;
+  ErrorStatus.assign(Ice::EC_Bitcode);
   ++NumErrors;
   Ice::GlobalContext *Context = Translator.getContext();
   Ice::OstreamLocker L(Context);
@@ -2812,7 +2810,6 @@ private:
 
   void ExitBlock() override {
     InstallGlobalNamesAndGlobalVarInitializers();
-    getTranslator().emitConstants();
   }
 
   void ProcessRecord() override;
@@ -2945,7 +2942,7 @@ void PNaClTranslator::translate(const std::string &IRFilename) {
       MemoryBuffer::getFileOrSTDIN(IRFilename);
   if (std::error_code EC = ErrOrFile.getError()) {
     errs() << "Error reading '" << IRFilename << "': " << EC.message() << "\n";
-    ErrorStatus = true;
+    ErrorStatus.assign(EC.value());
     return;
   }
 
@@ -2958,7 +2955,7 @@ void PNaClTranslator::translateBuffer(const std::string &IRFilename,
   if (MemBuf->getBufferSize() % 4 != 0) {
     errs() << IRFilename
            << ": Bitcode stream should be a multiple of 4 bytes in length.\n";
-    ErrorStatus = true;
+    ErrorStatus.assign(EC_Bitcode);
     return;
   }
 
@@ -2969,7 +2966,7 @@ void PNaClTranslator::translateBuffer(const std::string &IRFilename,
   NaClBitcodeHeader Header;
   if (Header.Read(BufPtr, EndBufPtr) || !Header.IsSupported()) {
     errs() << "Invalid PNaCl bitcode header.\n";
-    ErrorStatus = true;
+    ErrorStatus.assign(EC_Bitcode);
     return;
   }
 
@@ -2981,7 +2978,7 @@ void PNaClTranslator::translateBuffer(const std::string &IRFilename,
   int TopLevelBlocks = 0;
   while (!InputStream.AtEndOfStream()) {
     if (Parser.Parse()) {
-      ErrorStatus = true;
+      ErrorStatus.assign(EC_Bitcode);
       return;
     }
     ++TopLevelBlocks;
@@ -2991,7 +2988,7 @@ void PNaClTranslator::translateBuffer(const std::string &IRFilename,
     errs() << IRFilename
            << ": Contains more than one module. Found: " << TopLevelBlocks
            << "\n";
-    ErrorStatus = true;
+    ErrorStatus.assign(EC_Bitcode);
   }
 }
 

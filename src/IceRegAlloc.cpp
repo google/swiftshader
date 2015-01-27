@@ -52,7 +52,7 @@ void dumpDisableOverlap(const Cfg *Func, const Variable *Var,
                         const char *Reason) {
   if (!ALLOW_DUMP)
     return;
-  if (Func->getContext()->isVerbose(IceV_LinearScan)) {
+  if (Func->isVerbose(IceV_LinearScan)) {
     VariablesMetadata *VMetadata = Func->getVMetadata();
     Ostream &Str = Func->getContext()->getStrDump();
     Str << "Disabling Overlap due to " << Reason << " " << *Var
@@ -265,8 +265,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
   TimerMarker T(TimerStack::TT_linearScan, Func);
   assert(RegMaskFull.any()); // Sanity check
   GlobalContext *Ctx = Func->getContext();
-  const bool Verbose =
-      ALLOW_DUMP && Ctx->isVerbose(IceV_LinearScan);
+  const bool Verbose = ALLOW_DUMP && Func->isVerbose(IceV_LinearScan);
   if (Verbose)
     Ctx->lockStr();
   Func->resetCurrentNode();
@@ -738,7 +737,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
 void LinearScan::dump(Cfg *Func) const {
   if (!ALLOW_DUMP)
     return;
-  if (!Func->getContext()->isVerbose(IceV_LinearScan))
+  if (!Func->isVerbose(IceV_LinearScan))
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Func->resetCurrentNode();
