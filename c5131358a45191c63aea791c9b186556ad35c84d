@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b7ec137b_706e7e1c",
+        "filename": "src/OpenGL/libGLES_CM/libGLES_CM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 865,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-27T02:42:25Z",
+      "side": 1,
+      "message": "This is dead code now.",
+      "range": {
+        "startLine": 865,
+        "startChar": 2,
+        "endLine": 865,
+        "endChar": 53
+      },
+      "revId": "c5131358a45191c63aea791c9b186556ad35c84d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
