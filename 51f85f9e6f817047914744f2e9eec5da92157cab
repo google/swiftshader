@@ -22,6 +22,30 @@
       "revId": "51f85f9e6f817047914744f2e9eec5da92157cab",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b715f330_8dab3173",
+        "filename": "src/Shader/SetupRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 474,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-27T21:20:21Z",
+      "side": 1,
+      "message": "It\u0027s a feature that only applies to texture coordinates: https://msdn.microsoft.com/en-us/library/windows/desktop/bb206256%28v\u003dvs.85%29.aspx\n\nNote that this is not the addressing mode wrap. It\u0027s a wrap which affects gradient setup.",
+      "parentUuid": "b715f330_0d028136",
+      "range": {
+        "startLine": 474,
+        "startChar": 144,
+        "endLine": 474,
+        "endChar": 149
+      },
+      "revId": "51f85f9e6f817047914744f2e9eec5da92157cab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
