@@ -626,6 +626,7 @@ void Context::setTexture2D(bool enable)
 void Context::setLineWidth(GLfloat width)
 {
     mState.lineWidth = width;
+	device->setLineWidth(clamp(width, ALIASED_LINE_WIDTH_RANGE_MIN, ALIASED_LINE_WIDTH_RANGE_MAX));
 }
 
 void Context::setGenerateMipmapHint(GLenum hint)

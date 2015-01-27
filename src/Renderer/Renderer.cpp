@@ -220,6 +220,10 @@ namespace sw
 
 			sync->lock(sw::PRIVATE);
 
+			Routine *vertexRoutine;
+			Routine *setupRoutine;
+			Routine *pixelRoutine;
+
 			if(update || oldMultiSampleMask != context->multiSampleMask)
 			{
 				vertexState = VertexProcessor::update();
@@ -232,6 +236,8 @@ namespace sw
 			}
 
 			int batch = batchSize / ms;
+
+			int (*setupPrimitives)(Renderer *renderer, int batch, int count);
 
 			if(context->isDrawTriangle())
 			{
@@ -437,6 +443,8 @@ namespace sw
 			{
 				data->point = point;
 			}
+
+			data->lineWidth = context->lineWidth;
 
 			data->factor = factor;
 
@@ -1545,6 +1553,8 @@ namespace sw
 		const SetupProcessor::State &state = draw.setupState;
 		const DrawData &data = *draw.data;
 
+		float lineWidth = data.lineWidth;
+
 		Vertex &v0 = triangle.v0;
 		Vertex &v1 = triangle.v1;
 
@@ -1579,7 +1589,7 @@ namespace sw
 			P[2] = P1;
 			P[3] = P0;
 
-			float scale = 0.5f / sqrt(dx*dx + dy*dy);
+			float scale = lineWidth * 0.5f / sqrt(dx*dx + dy*dy);
 
 			dx *= scale;
 			dy *= scale;
@@ -1641,11 +1651,11 @@ namespace sw
 			P[6] = P1;
 			P[7] = P1;
 
-			float dx0 = 0.5f * P0.w / W;
-			float dy0 = 0.5f * P0.w / H;
+			float dx0 = lineWidth * 0.5f * P0.w / W;
+			float dy0 = lineWidth * 0.5f * P0.w / H;
 
-			float dx1 = 0.5f * P1.w / W;
-			float dy1 = 0.5f * P1.w / H;
+			float dx1 = lineWidth * 0.5f * P1.w / W;
+			float dy1 = lineWidth * 0.5f * P1.w / H;
 
 			P[0].x += -dx0;
 			C[0] = computeClipFlags(P[0], data);
@@ -2191,6 +2201,11 @@ namespace sw
 	void Renderer::setPointScaleEnable(bool pointScaleEnable)
 	{
 		context->setPointScaleEnable(pointScaleEnable);
+	}
+
+	void Renderer::setLineWidth(float width)
+	{
+		context->lineWidth = width;
 	}
 
 	void Renderer::setDepthBias(float bias)

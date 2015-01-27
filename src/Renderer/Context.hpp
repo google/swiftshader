@@ -472,6 +472,7 @@ namespace sw
 
 		bool pointSpriteEnable;
 		bool pointScaleEnable;
+		float lineWidth;
 
 		int colorWriteMask[4];   // RGBA
 		bool writeSRGB;

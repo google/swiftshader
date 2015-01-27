@@ -111,6 +111,7 @@ namespace sw
 		PS ps;
 
 		VertexProcessor::PointSprite point;
+		float lineWidth;
 
 		PixelProcessor::Stencil stencil[2];   // clockwise, counterclockwise
 		PixelProcessor::Stencil stencilCCW;
@@ -293,6 +294,7 @@ namespace sw
 		
 		virtual void setPointSpriteEnable(bool pointSpriteEnable);
 		virtual void setPointScaleEnable(bool pointScaleEnable);
+		virtual void setLineWidth(float width);
 
 		virtual void setDepthBias(float bias);
 		virtual void setSlopeDepthBias(float slopeBias);
@@ -419,11 +421,6 @@ namespace sw
 		VertexProcessor::State vertexState;
 		SetupProcessor::State setupState;
 		PixelProcessor::State pixelState;
-		int (*setupPrimitives)(Renderer *renderer, int batch, int count);
-
-		Routine *vertexRoutine;
-		Routine *setupRoutine;
-		Routine *pixelRoutine;
 
 		Blitter blitter;
 	};

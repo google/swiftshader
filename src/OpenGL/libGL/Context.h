@@ -94,7 +94,7 @@ const GLenum compressedTextureFormats[] =
 const GLint NUM_COMPRESSED_TEXTURE_FORMATS = sizeof(compressedTextureFormats) / sizeof(compressedTextureFormats[0]);
 
 const float ALIASED_LINE_WIDTH_RANGE_MIN = 1.0f;
-const float ALIASED_LINE_WIDTH_RANGE_MAX = 1.0f;
+const float ALIASED_LINE_WIDTH_RANGE_MAX = 128.0f;
 const float ALIASED_POINT_SIZE_RANGE_MIN = 0.125f;
 const float ALIASED_POINT_SIZE_RANGE_MAX = 8192.0f;
 const float MAX_TEXTURE_MAX_ANISOTROPY = 16.0f;

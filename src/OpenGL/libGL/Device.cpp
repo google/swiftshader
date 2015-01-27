@@ -68,7 +68,6 @@ namespace gl
 		setClipFlags(0);
 		setPointSize(1.0f);
 		setPointSizeMin(0.125f);
-		setPointSpriteEnable(false);
         setPointSizeMax(8192.0f);
 		setColorWriteMask(0, 0x0000000F);
 		setBlendOperation(BLENDOP_ADD);

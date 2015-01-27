@@ -288,6 +288,7 @@ namespace sw
 
 		pointSpriteEnable = false;
 		pointScaleEnable = false;
+		lineWidth = 1.0f;
 
 		writeSRGB = false;
 		sampleMask = 0xFFFFFFFF;
