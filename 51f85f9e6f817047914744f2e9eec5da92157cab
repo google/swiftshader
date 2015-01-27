@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b715f330_0d028136",
+        "filename": "src/Shader/SetupRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 474,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-27T21:11:52Z",
+      "side": 1,
+      "message": "Just wondering why wrap doesn\u0027t matter in this case",
+      "range": {
+        "startLine": 474,
+        "startChar": 144,
+        "endLine": 474,
+        "endChar": 149
+      },
+      "revId": "51f85f9e6f817047914744f2e9eec5da92157cab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
