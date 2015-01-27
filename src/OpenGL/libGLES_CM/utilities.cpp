@@ -467,6 +467,59 @@ namespace es2sw
 		default: UNREACHABLE();       return sw::FORMAT_A8R8G8B8;
 		}
 	}
+
+	void ConvertTextureOperations(GLenum texEnvMode, GLenum texFormat, sw::TextureStage::StageOperation *rgbOperation, sw::TextureStage::StageOperation *alphaOperation)
+	{
+		switch(texEnvMode)
+		{
+		case GL_MODULATE:
+			switch(texFormat)
+			{
+			case GL_LUMINANCE_ALPHA:
+				*rgbOperation = sw::TextureStage::STAGE_MODULATE;
+				*alphaOperation = sw::TextureStage::STAGE_MODULATE;
+				break;
+			case GL_RGB:
+				*rgbOperation = sw::TextureStage::STAGE_MODULATE;
+				*alphaOperation = sw::TextureStage::STAGE_SELECTARG2;
+				break;
+			case GL_RGBA:
+				*rgbOperation = sw::TextureStage::STAGE_MODULATE;
+				*alphaOperation = sw::TextureStage::STAGE_MODULATE;
+				break;
+			case GL_ALPHA:
+			case GL_LUMINANCE:
+				UNIMPLEMENTED();
+				// Default operations for compatibility
+				*rgbOperation = sw::TextureStage::STAGE_MODULATE;
+				*alphaOperation = sw::TextureStage::STAGE_MODULATE;
+				break;
+			default: UNREACHABLE();
+			}
+			break;
+
+		case GL_REPLACE:
+			*rgbOperation = sw::TextureStage::STAGE_SELECTARG1;
+			*alphaOperation = sw::TextureStage::STAGE_SELECTARG1;
+			break;
+
+		case GL_ADD:
+			*rgbOperation = sw::TextureStage::STAGE_ADD;
+			*alphaOperation = sw::TextureStage::STAGE_SELECTARG1;
+			break; 
+
+		case GL_DECAL:
+		case GL_BLEND:
+			// Default operations for compatibility
+			*rgbOperation = sw::TextureStage::STAGE_MODULATE;
+			*alphaOperation = sw::TextureStage::STAGE_MODULATE;
+			UNIMPLEMENTED();
+			break;
+
+		default:
+			UNREACHABLE();
+		}
+	}
 }
 
 namespace sw2es

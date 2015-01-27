@@ -103,6 +103,8 @@ Context::Context(const egl::Config *config, const Context *shareContext)
     mState.colorMaskAlpha = true;
     mState.depthMask = true;
 
+	mState.textureEnvMode = GL_MODULATE;
+
     if(shareContext != NULL)
     {
         mResourceManager = shareContext->mResourceManager;
@@ -1757,7 +1759,9 @@ GLenum Context::applyIndexBuffer(const void *indices, GLsizei count, GLenum mode
 
 void Context::applyTextures()
 {
-    for(int samplerIndex = 0; samplerIndex < MAX_TEXTURE_UNITS; samplerIndex++)
+	GLenum texEnvMode = getTextureEnvMode();
+
+	for(int samplerIndex = 0; samplerIndex < MAX_TEXTURE_UNITS; samplerIndex++)
     {
         Texture *texture = getSamplerTexture(samplerIndex, TEXTURE_2D);
 
@@ -1784,27 +1788,55 @@ void Context::applyTextures()
 
 			applyTexture(samplerIndex, texture);
 
-			device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_MODULATE);
-            device->setFirstArgument(samplerIndex, sw::TextureStage::SOURCE_TEXTURE);
-            device->setSecondArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+			GLenum texFormat = texture->getFormat(GL_TEXTURE_2D, 0);
+			sw::TextureStage::StageOperation rgbOperation, alphaOperation;
+			es2sw::ConvertTextureOperations(texEnvMode, texFormat, &rgbOperation, &alphaOperation);
 
-            device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
-            device->setFirstArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_TEXTURE);
-            device->setSecondArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+			device->setStageOperation(samplerIndex, rgbOperation);
+            device->setFirstArgument(samplerIndex, sw::TextureStage::SOURCE_TEXTURE);
+			device->setFirstModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
+			device->setSecondArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+			device->setSecondModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
+
+            device->setStageOperationAlpha(samplerIndex, alphaOperation);
+			device->setFirstArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_TEXTURE);
+			device->setFirstModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
+			device->setSecondArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+			device->setSecondModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
         }
         else
         {
             applyTexture(samplerIndex, 0);
 
 			device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
-            device->setFirstArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
-            device->setSecondArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+			device->setFirstArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+			device->setFirstModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
+			device->setSecondArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+			device->setSecondModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
 
             device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
-            device->setFirstArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
-            device->setSecondArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+			device->setFirstArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+			device->setFirstModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
+			device->setSecondArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
+			device->setSecondModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
         }
     }
+}
+
+void Context::setTextureEnvMode(GLenum texEnvMode)
+{
+	switch(texEnvMode)
+	{
+	case GL_MODULATE:
+	case GL_DECAL:
+	case GL_BLEND:
+	case GL_ADD:
+	case GL_REPLACE:
+		mState.textureEnvMode = texEnvMode;
+		break;
+	default:
+		UNREACHABLE();
+	}
 }
 
 void Context::applyTexture(int index, Texture *baseTexture)
@@ -2631,6 +2663,11 @@ GLenum Context::getClientActiveTexture() const
 unsigned int Context::getActiveTexture() const
 {
 	return mState.activeSampler;
+}
+
+GLenum Context::getTextureEnvMode()
+{
+	return mState.textureEnvMode;
 }
 
 }

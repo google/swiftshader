@@ -252,6 +252,8 @@ struct State
 
     GLint unpackAlignment;
     GLint packAlignment;
+
+	GLenum textureEnvMode;
 };
 
 class Context : public egl::Context
@@ -325,6 +327,9 @@ public:
     void clientActiveTexture(GLenum texture);
 	GLenum getClientActiveTexture() const;
 	unsigned int getActiveTexture() const;
+
+	void setTextureEnvMode(GLenum texEnvMode);
+	GLenum getTextureEnvMode();
 
     void setLineWidth(GLfloat width);
 

@@ -3269,7 +3269,85 @@ void GL_APIENTRY glTexCoordPointer(GLint size, GLenum type, GLsizei stride, cons
 
 void GL_APIENTRY glTexEnvf(GLenum target, GLenum pname, GLfloat param)
 {
-	UNIMPLEMENTED();
+	es1::Context *context = es1::getContext();
+	if(context)
+	{
+		switch(target)
+		{
+		case GL_POINT_SPRITE_OES:
+			UNIMPLEMENTED();
+			break;
+		case GL_TEXTURE_ENV:
+			switch(pname)
+			{
+			case GL_TEXTURE_ENV_MODE:
+				switch((GLenum)param)
+				{
+				case GL_REPLACE:
+				case GL_MODULATE:
+				case GL_DECAL:
+				case GL_BLEND:
+				case GL_ADD:
+				case GL_COMBINE:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setTextureEnvMode((GLenum)param);
+				break;
+			case GL_TEXTURE_ENV_COLOR:
+				UNIMPLEMENTED();
+				break;
+			case GL_COMBINE_RGB:
+				switch((GLenum)param)
+				{
+				case GL_REPLACE:
+					UNIMPLEMENTED();
+					break;
+				case GL_MODULATE:
+					UNIMPLEMENTED();
+					break;
+				case GL_ADD:
+					context->setTextureEnvMode((GLenum)param);	
+					break;
+				case GL_ADD_SIGNED:
+					UNIMPLEMENTED();
+					break;
+				case GL_INTERPOLATE:
+					UNIMPLEMENTED();
+					break;
+				case GL_SUBTRACT:
+					UNIMPLEMENTED();
+					break;
+				case GL_DOT3_RGB:
+					UNIMPLEMENTED();
+					break;
+				case GL_DOT3_RGBA:
+					UNIMPLEMENTED();
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				break;
+			case GL_COMBINE_ALPHA:
+				UNIMPLEMENTED();
+				break;
+			case GL_RGB_SCALE:
+				UNIMPLEMENTED();
+				break;
+			case GL_ALPHA_SCALE:
+				UNIMPLEMENTED();
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}	
 }
 
 void GL_APIENTRY glTexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
@@ -3279,7 +3357,7 @@ void GL_APIENTRY glTexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
 
 void GL_APIENTRY glTexEnvi(GLenum target, GLenum pname, GLint param)
 {
-	UNIMPLEMENTED();
+	glTexEnvf(target, pname, (float)param);
 }
 
 void GL_APIENTRY glTexEnvx(GLenum target, GLenum pname, GLfixed param)
