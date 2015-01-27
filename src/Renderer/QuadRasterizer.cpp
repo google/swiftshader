@@ -122,36 +122,28 @@ namespace sw
 		
 		Do
 		{
-			Int x0;
-			Int x1;
-			Int x2;
-
-			x0 = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->left) + (y + 0) * sizeof(Primitive::Span)));
-			x2 = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->left) + (y + 1) * sizeof(Primitive::Span)));
-			x0 = Min(x0, x2);
+			Int x0a = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->left) + (y + 0) * sizeof(Primitive::Span)));
+			Int x0b = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->left) + (y + 1) * sizeof(Primitive::Span)));
+			Int x0 = Min(x0a, x0b);
 			
 			for(unsigned int q = 1; q < state.multiSample; q++)
 			{
-				Int x0q = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->left) + (y + 0) * sizeof(Primitive::Span)));
-				Int x2q = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->left) + (y + 1) * sizeof(Primitive::Span)));
-				x0q = Min(x0q, x2q);
-
-				x0 = Min(x0q, x0);
+				x0a = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->left) + (y + 0) * sizeof(Primitive::Span)));
+				x0b = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->left) + (y + 1) * sizeof(Primitive::Span)));
+				x0 = Min(x0, Min(x0a, x0b));
 			}
 			
 			x0 &= 0xFFFFFFFE;
 
-			x1 = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->right) + (y + 0) * sizeof(Primitive::Span)));
-			x2 = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->right) + (y + 1) * sizeof(Primitive::Span)));
-			x1 = Max(x1, x2);
+			Int x1a = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->right) + (y + 0) * sizeof(Primitive::Span)));
+			Int x1b = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->right) + (y + 1) * sizeof(Primitive::Span)));
+			Int x1 = Max(x1a, x1b);
 
 			for(unsigned int q = 1; q < state.multiSample; q++)
 			{
-				Int x1q = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->right) + (y + 0) * sizeof(Primitive::Span)));
-				Int x2q = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->right) + (y + 1) * sizeof(Primitive::Span)));
-				x1q = Max(x1q, x2q);
-
-				x1 = Max(x1q, x1);
+				x1a = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->right) + (y + 0) * sizeof(Primitive::Span)));
+				x1b = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->right) + (y + 1) * sizeof(Primitive::Span)));
+				x1 = Max(x1, Max(x1a, x1b));
 			}
 
 			Float4 yyyy = Float4(Float(y)) + *Pointer<Float4>(r.primitive + OFFSET(Primitive,yQuad), 16);

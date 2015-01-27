@@ -942,7 +942,7 @@ namespace sw
 		pixelProgress[cluster].executing = false;
 	}
 
-	void Renderer::processPrimitiveVertices(int unit, unsigned int start, unsigned int count, unsigned int loop, int thread)
+	void Renderer::processPrimitiveVertices(int unit, unsigned int start, unsigned int triangleCount, unsigned int loop, int thread)
 	{
 		Triangle *triangle = triangleBatch[unit];
 		DrawCall *draw = drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
@@ -966,7 +966,7 @@ namespace sw
 			{
 				unsigned int index = start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index;
 					batch[i][1] = index;
@@ -980,7 +980,7 @@ namespace sw
 			{
 				unsigned int index = 2 * start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index + 0;
 					batch[i][1] = index + 1;
@@ -994,7 +994,7 @@ namespace sw
 			{
 				unsigned int index = start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index + 0;
 					batch[i][1] = index + 1;
@@ -1008,7 +1008,7 @@ namespace sw
 			{
 				unsigned int index = start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = (index + 0) % loop;
 					batch[i][1] = (index + 1) % loop;
@@ -1022,7 +1022,7 @@ namespace sw
 			{
 				unsigned int index = 3 * start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index + 0;
 					batch[i][1] = index + 1;
@@ -1036,7 +1036,7 @@ namespace sw
 			{
 				unsigned int index = start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index + 0;
 					batch[i][1] = index + (index & 1) + 1;
@@ -1050,7 +1050,7 @@ namespace sw
 			{
 				unsigned int index = start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index + 1;
 					batch[i][1] = index + 2;
@@ -1064,7 +1064,7 @@ namespace sw
 			{
 				const unsigned char *index = (const unsigned char*)indices + start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = *index;
 					batch[i][1] = *index;
@@ -1078,7 +1078,7 @@ namespace sw
 			{
 				const unsigned short *index = (const unsigned short*)indices + start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = *index;
 					batch[i][1] = *index;
@@ -1092,7 +1092,7 @@ namespace sw
 			{
 				const unsigned int *index = (const unsigned int*)indices + start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = *index;
 					batch[i][1] = *index;
@@ -1106,7 +1106,7 @@ namespace sw
 			{
 				const unsigned char *index = (const unsigned char*)indices + 2 * start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[0];
 					batch[i][1] = index[1];
@@ -1120,7 +1120,7 @@ namespace sw
 			{
 				const unsigned short *index = (const unsigned short*)indices + 2 * start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[0];
 					batch[i][1] = index[1];
@@ -1134,7 +1134,7 @@ namespace sw
 			{
 				const unsigned int *index = (const unsigned int*)indices + 2 * start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[0];
 					batch[i][1] = index[1];
@@ -1148,7 +1148,7 @@ namespace sw
 			{
 				const unsigned char *index = (const unsigned char*)indices + start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[0];
 					batch[i][1] = index[1];
@@ -1162,7 +1162,7 @@ namespace sw
 			{
 				const unsigned short *index = (const unsigned short*)indices + start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[0];
 					batch[i][1] = index[1];
@@ -1176,7 +1176,7 @@ namespace sw
 			{
 				const unsigned int *index = (const unsigned int*)indices + start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[0];
 					batch[i][1] = index[1];
@@ -1190,7 +1190,7 @@ namespace sw
 			{
 				const unsigned char *index = (const unsigned char*)indices;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[(start + i + 0) % loop];
 					batch[i][1] = index[(start + i + 1) % loop];
@@ -1202,7 +1202,7 @@ namespace sw
 			{
 				const unsigned short *index = (const unsigned short*)indices;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[(start + i + 0) % loop];
 					batch[i][1] = index[(start + i + 1) % loop];
@@ -1214,7 +1214,7 @@ namespace sw
 			{
 				const unsigned int *index = (const unsigned int*)indices;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[(start + i + 0) % loop];
 					batch[i][1] = index[(start + i + 1) % loop];
@@ -1226,7 +1226,7 @@ namespace sw
 			{
 				const unsigned char *index = (const unsigned char*)indices + 3 * start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[0];
 					batch[i][1] = index[1];
@@ -1240,7 +1240,7 @@ namespace sw
 			{
 				const unsigned short *index = (const unsigned short*)indices + 3 * start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[0];
 					batch[i][1] = index[1];
@@ -1254,7 +1254,7 @@ namespace sw
 			{
 				const unsigned int *index = (const unsigned int*)indices + 3 * start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[0];
 					batch[i][1] = index[1];
@@ -1268,7 +1268,7 @@ namespace sw
 			{
 				const unsigned char *index = (const unsigned char*)indices + start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[0];
 					batch[i][1] = index[((start + i) & 1) + 1];
@@ -1282,7 +1282,7 @@ namespace sw
 			{
 				const unsigned short *index = (const unsigned short*)indices + start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[0];
 					batch[i][1] = index[((start + i) & 1) + 1];
@@ -1296,7 +1296,7 @@ namespace sw
 			{
 				const unsigned int *index = (const unsigned int*)indices + start;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[0];
 					batch[i][1] = index[((start + i) & 1) + 1];
@@ -1310,7 +1310,7 @@ namespace sw
 			{
 				const unsigned char *index = (const unsigned char*)indices;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[start + i + 1];
 					batch[i][1] = index[start + i + 2];
@@ -1322,7 +1322,7 @@ namespace sw
 			{
 				const unsigned short *index = (const unsigned short*)indices;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[start + i + 1];
 					batch[i][1] = index[start + i + 2];
@@ -1334,7 +1334,7 @@ namespace sw
 			{
 				const unsigned int *index = (const unsigned int*)indices;
 
-				for(unsigned int i = 0; i < count; i++)
+				for(unsigned int i = 0; i < triangleCount; i++)
 				{
 					batch[i][0] = index[start + i + 1];
 					batch[i][1] = index[start + i + 2];
@@ -1342,11 +1342,29 @@ namespace sw
 				}
 			}
 			break;
+        case DRAW_QUADLIST:
+			{
+				unsigned int index = 4 * start / 2;
+
+				for(unsigned int i = 0; i < triangleCount; i += 2)
+				{
+					batch[i+0][0] = index + 0;
+					batch[i+0][1] = index + 1;
+					batch[i+0][2] = index + 2;
+
+                    batch[i+1][0] = index + 0;
+					batch[i+1][1] = index + 2;
+					batch[i+1][2] = index + 3;
+
+					index += 4;
+				}
+			}
+			break;
 		default:
 			ASSERT(false);
 		}
 
-		task->count = count * 3;
+		task->vertexCount = triangleCount * 3;
 		vertexRoutine(&triangle->v0, (unsigned int*)&batch, task, data);
 	}
 

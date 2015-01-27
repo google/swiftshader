@@ -47,7 +47,7 @@ namespace sw
 			Pointer<Byte> vertexCache = cache + OFFSET(VertexCache,vertex);
 			Pointer<Byte> tagCache = cache + OFFSET(VertexCache,tag);
 
-			UInt count = *Pointer<UInt>(task + OFFSET(VertexTask,count));
+			UInt vertexCount = *Pointer<UInt>(task + OFFSET(VertexTask,vertexCount));
 
 			Registers r(shader);
 			r.data = data;
@@ -78,9 +78,9 @@ namespace sw
 
 				vertex += sizeof(Vertex);
 				batch += sizeof(unsigned int);
-				count--;
+				vertexCount--;
 			}
-			Until(count == 0)
+			Until(vertexCount == 0)
 
 			Return();
 		}

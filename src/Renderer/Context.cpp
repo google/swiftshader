@@ -94,6 +94,8 @@ namespace sw
 		case DRAW_INDEXEDTRIANGLESTRIP32:
 		case DRAW_INDEXEDTRIANGLEFAN32:
 			return fillModeAware ? fillMode == FILL_VERTEX : false;
+        case DRAW_QUADLIST:
+            return false;
 		default:
 			ASSERT(false);
 		}
@@ -136,6 +138,8 @@ namespace sw
 		case DRAW_INDEXEDTRIANGLESTRIP32:
 		case DRAW_INDEXEDTRIANGLEFAN32:
 			return fillModeAware ? fillMode == FILL_WIREFRAME : false;
+        case DRAW_QUADLIST:
+            return false;
 		default:
 			ASSERT(false);
 		}
@@ -178,6 +182,9 @@ namespace sw
 		case DRAW_INDEXEDTRIANGLESTRIP32:
 		case DRAW_INDEXEDTRIANGLEFAN32:
 			return fillModeAware ? fillMode == FILL_SOLID : true;
+        case DRAW_QUADLIST:
+			// Quads are broken up into triangles
+            return fillModeAware ? fillMode == FILL_SOLID : true;
 		default:
 			ASSERT(false);
 		}
