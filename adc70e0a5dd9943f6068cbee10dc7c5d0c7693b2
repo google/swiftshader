@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b7ec137b_b663de2a",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-27T15:56:51Z",
+      "side": 1,
+      "message": "It seems that the zoffset parameter of TexSubImage3D would affect the destination, not the source?",
+      "range": {
+        "startLine": 36,
+        "startChar": 43,
+        "endLine": 36,
+        "endChar": 50
+      },
+      "revId": "adc70e0a5dd9943f6068cbee10dc7c5d0c7693b2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
