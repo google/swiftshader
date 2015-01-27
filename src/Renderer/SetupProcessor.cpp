@@ -100,17 +100,19 @@ namespace sw
 			state.pointSizeRegister = Pts;
 		}
 
-		for(int interpolant = 0; interpolant < 11; interpolant++)
+		for(int interpolant = 0; interpolant < 10; interpolant++)
 		{
-			int componentCount = interpolant < 10 ? 4 : 1;   // Fog only has one component
-
-			for(int component = 0; component < componentCount; component++)
+			for(int component = 0; component < 4; component++)
 			{
-				state.gradient[interpolant][component].attribute = 0x3F;
+				state.gradient[interpolant][component].attribute = Unused;
 				state.gradient[interpolant][component].flat = false;
 				state.gradient[interpolant][component].wrap = false;
 			}
 		}
+
+		state.fog.attribute = Unused;
+		state.fog.flat = false;
+		state.fog.wrap = false;
 
 		const bool point = context->isDrawPoint(true);
 		const bool sprite = context->pointSpriteActive();

@@ -97,11 +97,12 @@ namespace sw
 				{
 					Interpolant color[2];
 					Interpolant texture[8];
-					Interpolant fog;
 				};
 
 				Interpolant interpolant[10];
 			};
+
+			Interpolant fog;
 		};
 
 		struct State : States

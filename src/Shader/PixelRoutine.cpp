@@ -127,7 +127,7 @@ namespace sw
 				Long interpTime = Ticks();
 			#endif
 
-			Float4 yyyy = Float4(Float(y)) + *Pointer<Float4>(r.primitive + OFFSET(Primitive, yQuad), 16);
+			Float4 yyyy = Float4(Float(y)) + *Pointer<Float4>(r.primitive + OFFSET(Primitive,yQuad), 16);
 
 			// Centroid locations
 			Float4 XXXX = Float4(0.0f);

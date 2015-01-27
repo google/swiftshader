@@ -18,11 +18,11 @@
 
 namespace sw
 {
-	enum Out   // Default vertex attribute semantic
+	enum Out   // Default vertex output semantic
 	{
 		Pos = 0,
-		D0 = 1,
-		D1 = 2,
+		D0 = 1,   // Diffuse
+		D1 = 2,   // Specular
 		T0 = 3,
 		T1 = 4,
 		T2 = 5,
@@ -31,8 +31,9 @@ namespace sw
 		T5 = 8,
 		T6 = 9,
 		T7 = 10,
-		Fog = 11,   // x component
-		Pts = Fog   // y component
+		Fog = 11,    // x component
+		Pts = Fog,   // y component
+		Unused
 	};
 
 	struct UVWQ

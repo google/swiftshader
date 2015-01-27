@@ -250,11 +250,9 @@ namespace sw
 					r.Dw = *Pointer<Float4>(r.primitive + OFFSET(Primitive,w.C), 16) + yyyy * *Pointer<Float4>(r.primitive + OFFSET(Primitive,w.B), 16);
 				}
 
-				for(int interpolant = 0; interpolant < 11; interpolant++)
+				for(int interpolant = 0; interpolant < 10; interpolant++)
 				{
-					int componentCount = interpolant < 10 ? 4 : 1;   // Fog only has one component
-
-					for(int component = 0; component < componentCount; component++)
+					for(int component = 0; component < 4; component++)
 					{
 						if(state.interpolant[interpolant].component & (1 << component))
 						{
@@ -265,6 +263,16 @@ namespace sw
 								r.Dv[interpolant][component] += yyyy * *Pointer<Float4>(r.primitive + OFFSET(Primitive,V[interpolant][component].B), 16);
 							}
 						}
+					}
+				}
+
+				if(state.fog.component)
+				{
+					r.Df = *Pointer<Float4>(r.primitive + OFFSET(Primitive,f.C), 16);
+
+					if(!state.fog.flat)
+					{
+						r.Df += yyyy * *Pointer<Float4>(r.primitive + OFFSET(Primitive,f.B), 16);
 					}
 				}
 
