@@ -32,13 +32,10 @@ void testSelect(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   typedef typename Vectors<T>::Ty Ty;
   typedef typename Vectors<TI1>::Ty TyI1;
   volatile unsigned Values[] = {
-    0x0,        0x1,        0x7ffffffe, 0x7fffffff,
-    0x80000000, 0x80000001, 0xfffffffe, 0xffffffff,
-    0x7e,       0x7f,       0x80,       0x81,
-    0xfe,       0xff,       0x100,      0x101,
-    0x7ffe,     0x7fff,     0x8000,     0x8001,
-    0xfffe,     0xffff,     0x10000,    0x10001
-  };
+      0x0,        0x1,        0x7ffffffe, 0x7fffffff, 0x80000000, 0x80000001,
+      0xfffffffe, 0xffffffff, 0x7e,       0x7f,       0x80,       0x81,
+      0xfe,       0xff,       0x100,      0x101,      0x7ffe,     0x7fff,
+      0x8000,     0x8001,     0xfffe,     0xffff,     0x10000,    0x10001};
   static const size_t NumValues = sizeof(Values) / sizeof(*Values);
   static const size_t NumElements = Vectors<T>::NumElements;
   PRNG Index;
@@ -67,8 +64,9 @@ void testSelect(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   }
 }
 
-template<> void
-testSelect<v4f32, v4i1>(size_t &TotalTests, size_t &Passes, size_t &Failures) {
+template <>
+void testSelect<v4f32, v4i1>(size_t &TotalTests, size_t &Passes,
+                             size_t &Failures) {
   static const float NegInf = -1.0 / 0.0;
   static const float PosInf = 1.0 / 0.0;
   static const float Nan = 0.0 / 0.0;
@@ -102,7 +100,7 @@ testSelect<v4f32, v4i1>(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   }
 }
 
-template<typename T>
+template <typename T>
 void testSelectI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   typedef typename Vectors<T>::Ty Ty;
   static const size_t NumElements = Vectors<T>::NumElements;

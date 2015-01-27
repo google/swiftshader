@@ -126,9 +126,7 @@ typedef uint32_t TimerIdT;
 // Use alignas(MaxCacheLineSize) to isolate variables/fields that
 // might be contended while multithreading.  Assumes the maximum cache
 // line size is 64.
-enum {
-  MaxCacheLineSize = 64
-};
+enum { MaxCacheLineSize = 64 };
 // Use ICE_CACHELINE_BOUNDARY to force the next field in a declaration
 // list to be aligned to the next cache line.
 #define ICE_CACHELINE_BOUNDARY                                                 \
@@ -179,12 +177,7 @@ typedef llvm::raw_fd_ostream Fdstream;
 
 typedef std::mutex GlobalLockType;
 
-enum ErrorCodes {
-  EC_None = 0,
-  EC_Args,
-  EC_Bitcode,
-  EC_Translation
-};
+enum ErrorCodes { EC_None = 0, EC_Args, EC_Bitcode, EC_Translation };
 
 // Wrapper around std::error_code for allowing multiple errors to be
 // folded into one.  The current implementation keeps track of the

@@ -820,8 +820,7 @@ void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
     for (SizeT J = 0; J < NumVars; ++J) {
       const Variable *Var = Src->getVar(J);
       if (Var->hasReg()) {
-        if (Instr->isLastUse(Var) &&
-            --LiveRegCount[Var->getRegNum()] == 0) {
+        if (Instr->isLastUse(Var) && --LiveRegCount[Var->getRegNum()] == 0) {
           if (First)
             Str << " \t# END=";
           else
@@ -943,8 +942,9 @@ void CfgNode::dump(Cfg *Func) const {
         Variable *Var = Liveness->getVariable(i, this);
         Str << " %" << Var->getName(Func);
         if (Func->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
-          Str << ":" << Func->getTarget()->getRegName(Var->getRegNum(),
-                                                      Var->getType());
+          Str << ":"
+              << Func->getTarget()->getRegName(Var->getRegNum(),
+                                               Var->getType());
         }
       }
     }
@@ -968,8 +968,9 @@ void CfgNode::dump(Cfg *Func) const {
         Variable *Var = Liveness->getVariable(i, this);
         Str << " %" << Var->getName(Func);
         if (Func->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
-          Str << ":" << Func->getTarget()->getRegName(Var->getRegNum(),
-                                                      Var->getType());
+          Str << ":"
+              << Func->getTarget()->getRegName(Var->getRegNum(),
+                                               Var->getType());
         }
       }
     }

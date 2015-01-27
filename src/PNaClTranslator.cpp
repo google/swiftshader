@@ -42,6 +42,7 @@ using namespace llvm;
 // the extended type.
 class ExtendedType {
   ExtendedType &operator=(const ExtendedType &Ty) = delete;
+
 public:
   /// Discriminator for LLVM-style RTTI.
   enum TypeKind { Undefined, Simple, FuncSig };
@@ -106,6 +107,7 @@ Ice::Ostream &operator<<(Ice::Ostream &Stream, ExtendedType::TypeKind Kind) {
 class SimpleExtendedType : public ExtendedType {
   SimpleExtendedType(const SimpleExtendedType &) = delete;
   SimpleExtendedType &operator=(const SimpleExtendedType &) = delete;
+
 public:
   Ice::Type getType() const { return Signature.getReturnType(); }
 
@@ -118,6 +120,7 @@ public:
 class FuncSigExtendedType : public ExtendedType {
   FuncSigExtendedType(const FuncSigExtendedType &) = delete;
   FuncSigExtendedType &operator=(const FuncSigExtendedType &) = delete;
+
 public:
   const Ice::FuncSigType &getSignature() const { return Signature; }
   void setReturnType(Ice::Type ReturnType) {
@@ -201,7 +204,7 @@ public:
     if (Ty)
       return Ty;
     if (ID >= TypeIDValues.size())
-      TypeIDValues.resize(ID+1);
+      TypeIDValues.resize(ID + 1);
     return &TypeIDValues[ID];
   }
 
@@ -1006,7 +1009,6 @@ protected:
   virtual void setBbName(uint64_t Index, StringType &Name) = 0;
 
 private:
-
   void ProcessRecord() override;
 
   void ConvertToString(StringType &ConvertedName) {
@@ -1092,13 +1094,9 @@ public:
 
   const char *getBlockName() const override { return "function"; }
 
-  Ice::Cfg *getFunc() const {
-    return Func;
-  }
+  Ice::Cfg *getFunc() const { return Func; }
 
-  uint32_t getNumGlobalIDs() const {
-    return CachedNumGlobalValueIDs;
-  }
+  uint32_t getNumGlobalIDs() const { return CachedNumGlobalValueIDs; }
 
   void setNextLocalInstIndex(Ice::Operand *Op) {
     setOperand(NextLocalInstIndex++, Op);
@@ -1578,19 +1576,17 @@ private:
   /// Returns true iff an integer truncation from SourceType to TargetType is
   /// valid.
   static bool isIntTruncCastValid(Ice::Type SourceType, Ice::Type TargetType) {
-    return Ice::isIntegerType(SourceType)
-        && Ice::isIntegerType(TargetType)
-        && simplifyOutCommonVectorType(SourceType, TargetType)
-        && getScalarIntBitWidth(SourceType) > getScalarIntBitWidth(TargetType);
+    return Ice::isIntegerType(SourceType) && Ice::isIntegerType(TargetType) &&
+           simplifyOutCommonVectorType(SourceType, TargetType) &&
+           getScalarIntBitWidth(SourceType) > getScalarIntBitWidth(TargetType);
   }
 
   /// Returns true iff a floating type truncation from SourceType to TargetType
   /// is valid.
   static bool isFloatTruncCastValid(Ice::Type SourceType,
                                     Ice::Type TargetType) {
-    return simplifyOutCommonVectorType(SourceType, TargetType)
-        && SourceType == Ice::IceType_f64
-        && TargetType == Ice::IceType_f32;
+    return simplifyOutCommonVectorType(SourceType, TargetType) &&
+           SourceType == Ice::IceType_f64 && TargetType == Ice::IceType_f32;
   }
 
   /// Returns true iff an integer extension from SourceType to TargetType is
@@ -1996,8 +1992,8 @@ void FunctionParser::ProcessRecord() {
     } else if (CondVal->getType() != Ice::IceType_i1) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Select condition " << CondVal << " not type i1. Found: "
-             << CondVal->getType();
+      StrBuf << "Select condition " << CondVal
+             << " not type i1. Found: " << CondVal->getType();
       Error(StrBuf.str());
       appendErrorInstruction(ThenType);
       return;
@@ -2079,8 +2075,8 @@ void FunctionParser::ProcessRecord() {
     if (Op1Type != Op2Type) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Compare argument types differ: " << Op1Type
-             << " and " << Op2Type;
+      StrBuf << "Compare argument types differ: " << Op1Type << " and "
+             << Op2Type;
       Error(StrBuf.str());
       appendErrorInstruction(DestType);
       Op2 = Op1;
@@ -2105,7 +2101,7 @@ void FunctionParser::ProcessRecord() {
       }
       CurrentNode->appendInst(
           Ice::InstIcmp::create(Func, Cond, Dest, Op1, Op2));
-    } else if (isFloatingType(Op1Type)){
+    } else if (isFloatingType(Op1Type)) {
       Ice::InstFcmp::FCond Cond;
       if (!convertNaClBitcFCompOpToIce(Values[2], Cond)) {
         std::string Buffer;
@@ -2168,8 +2164,8 @@ void FunctionParser::ProcessRecord() {
       if (Cond->getType() != Ice::IceType_i1) {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Branch condition " << *Cond << " not i1. Found: "
-               << Cond->getType();
+        StrBuf << "Branch condition " << *Cond
+               << " not i1. Found: " << Cond->getType();
         Error(StrBuf.str());
         return;
       }
@@ -2227,10 +2223,10 @@ void FunctionParser::ProcessRecord() {
     Ice::InstSwitch *Switch =
         isIRGenDisabled ? nullptr : Ice::InstSwitch::create(Func, NumCases,
                                                             Cond, DefaultLabel);
-    unsigned ValCaseIndex = 4;  // index to beginning of case entry.
+    unsigned ValCaseIndex = 4; // index to beginning of case entry.
     for (unsigned CaseIndex = 0; CaseIndex < NumCases;
          ++CaseIndex, ValCaseIndex += 4) {
-      if (Values[ValCaseIndex] != 1 || Values[ValCaseIndex+1] != 1) {
+      if (Values[ValCaseIndex] != 1 || Values[ValCaseIndex + 1] != 1) {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
         StrBuf << "Sequence [1, 1, value, label] expected for case entry "
@@ -2257,8 +2253,7 @@ void FunctionParser::ProcessRecord() {
       return;
     if (isIRGenerationDisabled())
       return;
-    CurrentNode->appendInst(
-        Ice::InstUnreachable::create(Func));
+    CurrentNode->appendInst(Ice::InstUnreachable::create(Func));
     InstIsTerminating = true;
     return;
   }
@@ -2464,9 +2459,8 @@ void FunctionParser::ProcessRecord() {
                               : getNextInstVar(ReturnType);
     Ice::InstCall *Inst = nullptr;
     if (IntrinsicInfo) {
-      Inst =
-          Ice::InstIntrinsicCall::create(Func, NumParams, Dest, Callee,
-                                         IntrinsicInfo->Info);
+      Inst = Ice::InstIntrinsicCall::create(Func, NumParams, Dest, Callee,
+                                            IntrinsicInfo->Info);
     } else {
       Inst = Ice::InstCall::create(Func, NumParams, Dest, Callee, IsTailCall);
     }
@@ -2808,9 +2802,7 @@ private:
 
   bool ParseBlock(unsigned BlockID) override;
 
-  void ExitBlock() override {
-    InstallGlobalNamesAndGlobalVarInitializers();
-  }
+  void ExitBlock() override { InstallGlobalNamesAndGlobalVarInitializers(); }
 
   void ProcessRecord() override;
 };

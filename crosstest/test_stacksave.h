@@ -15,12 +15,12 @@
 #ifndef TEST_STACKSAVE_H
 #define TEST_STACKSAVE_H
 
-#define DECLARE_TESTS(PREFIX)                                            \
-  uint32_t PREFIX##test_basic_vla(uint32_t size, uint32_t start,         \
-                                  uint32_t inc);                         \
-  uint32_t PREFIX##test_vla_in_loop(uint32_t size, uint32_t start,       \
-                                    uint32_t inc);                       \
-  uint32_t PREFIX##test_two_vlas_in_loops(uint32_t size, uint32_t start, \
+#define DECLARE_TESTS(PREFIX)                                                  \
+  uint32_t PREFIX##test_basic_vla(uint32_t size, uint32_t start,               \
+                                  uint32_t inc);                               \
+  uint32_t PREFIX##test_vla_in_loop(uint32_t size, uint32_t start,             \
+                                    uint32_t inc);                             \
+  uint32_t PREFIX##test_two_vlas_in_loops(uint32_t size, uint32_t start,       \
                                           uint32_t inc);
 
 #endif

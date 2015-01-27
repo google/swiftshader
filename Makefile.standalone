@@ -157,7 +157,7 @@ $(OBJDIR)/llvm2ice: $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
                -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
 
-# TODO: Be more precise than "*.h" here and elsewhere.
+# TODO(stichnot): Be more precise than "*.h" here and elsewhere.
 $(OBJS): $(OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
@@ -197,24 +197,18 @@ check: check-lit check-unit
 	(cd crosstest; ./runtests.sh)
 endif
 
-# TODO: Fix the use of wildcards.
-# Assumes clang-format is within $PATH.
+FORMAT_BLACKLIST =
+# Add one of the following lines for each source file to ignore.
+FORMAT_BLACKLIST += ! -name IceParseInstsTest.cpp
 format:
-	clang-format -style=LLVM -i src/*.h src/*.cpp
+	$(LLVM_BIN_PATH)/clang-format -style=LLVM -i \
+	`find . -regex '.*\.\(c\|h\|cpp\)' $(FORMAT_BLACKLIST)`
 
-# Assumes clang-format-diff.py is within $PATH, and that the
-# clang-format it calls is also within $PATH.  This may require adding
-# a component to $PATH, or creating symlinks within some existing
-# $PATH component.  Uses the one in /usr/lib/clang-format/ if it
-# exists.
-ifeq (,$(wildcard /usr/lib/clang-format/clang-format-diff.py))
-  CLANG_FORMAT_DIFF = clang-format-diff.py
-else
-  CLANG_FORMAT_DIFF = /usr/lib/clang-format/clang-format-diff.py
-endif
 format-diff:
 	git diff -U0 `git merge-base HEAD master` | \
-	$(CLANG_FORMAT_DIFF) -p1 -style=LLVM -i
+	PATH=$(LLVM_BIN_PATH):$(PATH) \
+	$(LLVM_SRC_PATH)/../clang/tools/clang-format/clang-format-diff.py \
+	-p1 -style=LLVM -i
 
 clean:
 	rm -rf llvm2ice *.o $(OBJDIR)

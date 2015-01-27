@@ -14,9 +14,8 @@ typedef int elem_t;
 /*
  * Reset buf to the sequence of bytes: n, n+1, n+2 ... length - 1
  */
-static void __attribute__((noinline)) reset_buf(uint8_t *buf,
-                                                uint8_t init,
-                                                size_t length) {
+static void __attribute__((noinline))
+reset_buf(uint8_t *buf, uint8_t init, size_t length) {
   size_t i;
   size_t v = init;
   for (i = 0; i < length; ++i)
@@ -27,8 +26,8 @@ static void __attribute__((noinline)) reset_buf(uint8_t *buf,
  * (Not doing a fletcher-32 checksum, since we are working with
  * smaller buffers, whose total won't approach 2**16).
  */
-static int __attribute__((noinline)) fletcher_checksum(uint8_t *buf,
-                                                       size_t length) {
+static int __attribute__((noinline))
+fletcher_checksum(uint8_t *buf, size_t length) {
   size_t i;
   int sum = 0;
   int sum_of_sums = 0;

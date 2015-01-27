@@ -14,9 +14,9 @@
 
 #include "test_sync_atomic.def"
 
-#define X(inst, type)                                                   \
-  type test_##inst(bool fetch_first, volatile type *ptr, type a);       \
-  type test_alloca_##inst(bool fetch, volatile type *ptr, type a);      \
+#define X(inst, type)                                                          \
+  type test_##inst(bool fetch_first, volatile type *ptr, type a);              \
+  type test_alloca_##inst(bool fetch, volatile type *ptr, type a);             \
   type test_const_##inst(bool fetch, volatile type *ptr, type ignored);
 
 FOR_ALL_RMWOP_TYPES(X)

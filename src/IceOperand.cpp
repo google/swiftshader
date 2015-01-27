@@ -190,7 +190,7 @@ void VariableTracking::markDef(MetadataKind TrackingKind, const Inst *Instr,
   // be careful not to omit all uses of the variable if markDef() and
   // markUse() both use this optimization.
   assert(Node);
-  // Verify that instructions are added in increasing order.
+// Verify that instructions are added in increasing order.
 #ifndef NDEBUG
   if (TrackingKind == VMK_All) {
     const Inst *LastInstruction =
@@ -274,8 +274,8 @@ void VariablesMetadata::init(MetadataKind TrackingKind) {
     const CfgNode *EntryNode = Func->getEntryNode();
     const bool IsFromDef = false;
     const bool IsImplicit = true;
-    Metadata[Var->getIndex()]
-        .markUse(Kind, NoInst, EntryNode, IsFromDef, IsImplicit);
+    Metadata[Var->getIndex()].markUse(Kind, NoInst, EntryNode, IsFromDef,
+                                      IsImplicit);
   }
 
   for (CfgNode *Node : Func->getNodes())
@@ -409,8 +409,9 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
   } else if (Func->getTarget()->hasComputedFrame()) {
     if (Func->isVerbose(IceV_RegOrigins))
       Str << ":";
-    Str << "[" << Func->getTarget()->getRegName(
-                      Func->getTarget()->getFrameOrStackReg(), IceType_i32);
+    Str << "["
+        << Func->getTarget()->getRegName(
+               Func->getTarget()->getFrameOrStackReg(), IceType_i32);
     int32_t Offset = getStackOffset();
     if (Offset) {
       if (Offset > 0)

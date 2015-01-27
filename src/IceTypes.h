@@ -40,12 +40,7 @@ inline Ostream &operator<<(Ostream &Stream, TargetArch Arch) {
   return Stream << targetArchString(Arch);
 }
 
-enum OptLevel {
-  Opt_m1,
-  Opt_0,
-  Opt_1,
-  Opt_2
-};
+enum OptLevel { Opt_m1, Opt_0, Opt_1, Opt_2 };
 
 size_t typeWidthInBytes(Type Ty);
 size_t typeAlignInBytes(Type Ty);
@@ -114,6 +109,7 @@ inline StreamType &operator<<(StreamType &Str, const Type &Ty) {
 /// Models a type signature for a function.
 class FuncSigType {
   FuncSigType &operator=(const FuncSigType &Ty) = delete;
+
 public:
   typedef std::vector<Type> ArgListType;
 

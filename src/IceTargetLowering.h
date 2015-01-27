@@ -164,9 +164,7 @@ public:
   // Returns true if this function calls a function that has the
   // "returns twice" attribute.
   bool callsReturnsTwice() const { return CallsReturnsTwice; }
-  void setCallsReturnsTwice(bool RetTwice) {
-    CallsReturnsTwice = RetTwice;
-  }
+  void setCallsReturnsTwice(bool RetTwice) { CallsReturnsTwice = RetTwice; }
   int32_t getStackAdjustment() const { return StackAdjustment; }
   void updateStackAdjustment(int32_t Offset) { StackAdjustment += Offset; }
   void resetStackAdjustment() { StackAdjustment = 0; }

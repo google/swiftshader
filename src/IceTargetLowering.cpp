@@ -43,9 +43,9 @@ cl::opt<int> NopProbabilityAsPercentage(
     cl::desc("Nop insertion probability as percentage"), cl::init(10));
 
 cl::opt<bool>
-CLRandomizeRegisterAllocation("randomize-regalloc",
-                              cl::desc("Randomize register allocation"),
-                              cl::init(false));
+    CLRandomizeRegisterAllocation("randomize-regalloc",
+                                  cl::desc("Randomize register allocation"),
+                                  cl::init(false));
 } // end of anonymous namespace
 
 void LoweringContext::init(CfgNode *N) {

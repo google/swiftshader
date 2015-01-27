@@ -69,10 +69,10 @@ private:
   uint64_t StateChangeCount;
   // IDsIndex maps a symbolic timer name to its integer ID.
   std::map<IceString, TimerIdT> IDsIndex;
-  std::vector<IceString> IDs;        // indexed by TimerIdT
-  std::vector<TimerTreeNode> Nodes;  // indexed by TTindex
-  std::vector<double> LeafTimes;     // indexed by TimerIdT
-  std::vector<size_t> LeafCounts;    // indexed by TimerIdT
+  std::vector<IceString> IDs;       // indexed by TimerIdT
+  std::vector<TimerTreeNode> Nodes; // indexed by TTindex
+  std::vector<double> LeafTimes;    // indexed by TimerIdT
+  std::vector<size_t> LeafCounts;   // indexed by TimerIdT
   TTindex StackTop;
 };
 

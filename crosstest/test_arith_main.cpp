@@ -64,14 +64,14 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 #define X(inst, op, isdiv, isshift)                                            \
   { STR(inst), test##inst, Subzero_::test##inst, NULL, NULL, isdiv }           \
   ,
-      UINTOP_TABLE
+        UINTOP_TABLE
 #undef X
 #define X(inst, op, isdiv, isshift)                                            \
   { STR(inst), NULL, NULL, test##inst, Subzero_::test##inst, isdiv }           \
   ,
-      SINTOP_TABLE
+            SINTOP_TABLE
 #undef X
-  };
+    };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
 
   if (sizeof(TypeUnsigned) <= sizeof(uint32_t)) {
@@ -175,20 +175,16 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     bool MaskShiftOperations;  // for shift related tests
   } Funcs[] = {
 #define X(inst, op, isdiv, isshift)                                            \
-  {                                                                            \
-    STR(inst), test##inst, Subzero_::test##inst, NULL, NULL, isdiv, isshift    \
-  }                                                                            \
+  { STR(inst), test##inst, Subzero_::test##inst, NULL, NULL, isdiv, isshift }  \
   ,
         UINTOP_TABLE
 #undef X
 #define X(inst, op, isdiv, isshift)                                            \
-  {                                                                            \
-    STR(inst), NULL, NULL, test##inst, Subzero_::test##inst, isdiv, isshift    \
-  }                                                                            \
+  { STR(inst), NULL, NULL, test##inst, Subzero_::test##inst, isdiv, isshift }  \
   ,
-        SINTOP_TABLE
+            SINTOP_TABLE
 #undef X
-  };
+    };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
   const static size_t NumElementsInType = Vectors<TypeUnsigned>::NumElements;
   for (size_t f = 0; f < NumFuncs; ++f) {
@@ -251,9 +247,9 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 #define X(inst, op, func)                                                      \
   { STR(inst), (FuncType)test##inst, (FuncType)Subzero_::test##inst }          \
   ,
-      FPOP_TABLE
+        FPOP_TABLE
 #undef X
-  };
+    };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
 
   for (size_t f = 0; f < NumFuncs; ++f) {
@@ -310,9 +306,9 @@ void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 #define X(inst, op, func)                                                      \
   { STR(inst), (FuncType)test##inst, (FuncType)Subzero_::test##inst }          \
   ,
-      FPOP_TABLE
+        FPOP_TABLE
 #undef X
-  };
+    };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
   const static size_t NumElementsInType = 4;
   for (size_t f = 0; f < NumFuncs; ++f) {
@@ -363,4 +359,3 @@ int main(int argc, char **argv) {
             << " Failures=" << Failures << "\n";
   return Failures;
 }
-

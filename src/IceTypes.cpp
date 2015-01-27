@@ -92,7 +92,7 @@ const struct TypeAttributeFields TypeAttributes[] = {
 #define X(tag, size, align, elts, elty, str)                                   \
   { size, align, elts, elty, str }                                             \
   ,
-  ICETYPE_TABLE
+    ICETYPE_TABLE
 #undef X
 };
 
@@ -116,7 +116,7 @@ const TypePropertyFields TypePropertiesTable[] = {
         IsFloat && !IsVec, IsFloat && IsVec, IsLoadStore, CompareResult        \
   }                                                                            \
   ,
-  ICETYPE_PROPS_TABLE
+    ICETYPE_PROPS_TABLE
 #undef X
 };
 

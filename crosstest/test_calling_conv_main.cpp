@@ -56,7 +56,7 @@ std::string bufAsString(const char Buf[BUF_SIZE]) {
   for (size_t i = 0; i < BUF_SIZE; ++i) {
     if (i > 0)
       OS << " ";
-    OS << (unsigned) Buf[i];
+    OS << (unsigned)Buf[i];
   }
   return OS.str();
 }
@@ -75,9 +75,9 @@ void testCaller(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         reinterpret_cast<CalleePtrTy>(&callee),                                \
   }                                                                            \
   ,
-    TEST_FUNC_TABLE
+        TEST_FUNC_TABLE
 #undef X
-  };
+    };
 
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
 
@@ -125,9 +125,9 @@ void testCallee(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         reinterpret_cast<CalleePtrTy>(&Subzero_::callee)                       \
   }                                                                            \
   ,
-    TEST_FUNC_TABLE
+        TEST_FUNC_TABLE
 #undef X
-  };
+    };
 
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
 

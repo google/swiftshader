@@ -19,8 +19,9 @@
 
 namespace IceTest {
 
-bool IceTest::SubzeroBitcodeMunger::runTest(
-    const char* TestName, const uint64_t Munges[], size_t MungeSize) {
+bool IceTest::SubzeroBitcodeMunger::runTest(const char *TestName,
+                                            const uint64_t Munges[],
+                                            size_t MungeSize) {
   const bool AddHeader = true;
   setupTest(TestName, Munges, MungeSize, AddHeader);
 
@@ -28,8 +29,8 @@ bool IceTest::SubzeroBitcodeMunger::runTest(
   Flags.AllowErrorRecovery = true;
   Flags.GenerateUnitTestMessages = true;
   Ice::GlobalContext Ctx(DumpStream, DumpStream, nullptr,
-                         Ice::IceV_Instructions, Ice::Target_X8632,
-                         Ice::Opt_m1, "", Flags);
+                         Ice::IceV_Instructions, Ice::Target_X8632, Ice::Opt_m1,
+                         "", Flags);
   Ice::PNaClTranslator Translator(&Ctx, Flags);
   Translator.translateBuffer(TestName, MungedInput.get());
 

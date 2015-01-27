@@ -30,9 +30,9 @@ const struct InstArithmeticAttributes_ {
 #define X(tag, str, commutative)                                               \
   { str, commutative }                                                         \
   ,
-    ICEINSTARITHMETIC_TABLE
+      ICEINSTARITHMETIC_TABLE
 #undef X
-  };
+};
 
 // Using non-anonymous struct so that array_lengthof works.
 const struct InstCastAttributes_ {
@@ -41,9 +41,9 @@ const struct InstCastAttributes_ {
 #define X(tag, str)                                                            \
   { str }                                                                      \
   ,
-    ICEINSTCAST_TABLE
+      ICEINSTCAST_TABLE
 #undef X
-  };
+};
 
 // Using non-anonymous struct so that array_lengthof works.
 const struct InstFcmpAttributes_ {
@@ -52,9 +52,9 @@ const struct InstFcmpAttributes_ {
 #define X(tag, str)                                                            \
   { str }                                                                      \
   ,
-    ICEINSTFCMP_TABLE
+      ICEINSTFCMP_TABLE
 #undef X
-  };
+};
 
 // Using non-anonymous struct so that array_lengthof works.
 const struct InstIcmpAttributes_ {
@@ -63,9 +63,9 @@ const struct InstIcmpAttributes_ {
 #define X(tag, str)                                                            \
   { str }                                                                      \
   ,
-    ICEINSTICMP_TABLE
+      ICEINSTICMP_TABLE
 #undef X
-  };
+};
 
 } // end of anonymous namespace
 

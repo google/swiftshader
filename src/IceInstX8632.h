@@ -34,11 +34,7 @@ class OperandX8632 : public Operand {
   OperandX8632 &operator=(const OperandX8632 &) = delete;
 
 public:
-  enum OperandKindX8632 {
-    k__Start = Operand::kTarget,
-    kMem,
-    kSplit
-  };
+  enum OperandKindX8632 { k__Start = Operand::kTarget, kMem, kSplit };
   using Operand::dump;
   void dump(const Cfg *, Ostream &Str) const override {
     if (ALLOW_DUMP)
@@ -110,10 +106,7 @@ class VariableSplit : public OperandX8632 {
   VariableSplit &operator=(const VariableSplit &) = delete;
 
 public:
-  enum Portion {
-    Low,
-    High
-  };
+  enum Portion { Low, High };
   static VariableSplit *create(Cfg *Func, Variable *Var, Portion Part) {
     return new (Func->allocate<VariableSplit>()) VariableSplit(Func, Var, Part);
   }
@@ -1464,8 +1457,7 @@ class InstX8632Push : public InstX8632 {
 
 public:
   static InstX8632Push *create(Cfg *Func, Variable *Source) {
-    return new (Func->allocate<InstX8632Push>())
-        InstX8632Push(Func, Source);
+    return new (Func->allocate<InstX8632Push>()) InstX8632Push(Func, Source);
   }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;

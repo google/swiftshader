@@ -29,9 +29,7 @@ uint32_t test_basic_vla(uint32_t size, uint32_t start, uint32_t inc) {
   return (vla[start] << 2) + (vla[mid] << 1) + vla[size - 1];
 }
 
-static uint32_t __attribute__((noinline)) foo(uint32_t x) {
-  return x * x;
-}
+static uint32_t __attribute__((noinline)) foo(uint32_t x) { return x * x; }
 
 /* NOTE: This has 1 stacksave, because the vla is in a loop and should
  * be freed before the next iteration.

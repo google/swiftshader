@@ -73,13 +73,13 @@ static cl::opt<bool>
     DataSections("fdata-sections",
                  cl::desc("Emit (global) data into separate sections"));
 static cl::opt<Ice::OptLevel>
-OptLevel(cl::desc("Optimization level"), cl::init(Ice::Opt_m1),
-         cl::value_desc("level"),
-         cl::values(clEnumValN(Ice::Opt_m1, "Om1", "-1"),
-                    clEnumValN(Ice::Opt_m1, "O-1", "-1"),
-                    clEnumValN(Ice::Opt_0, "O0", "0"),
-                    clEnumValN(Ice::Opt_1, "O1", "1"),
-                    clEnumValN(Ice::Opt_2, "O2", "2"), clEnumValEnd));
+    OptLevel(cl::desc("Optimization level"), cl::init(Ice::Opt_m1),
+             cl::value_desc("level"),
+             cl::values(clEnumValN(Ice::Opt_m1, "Om1", "-1"),
+                        clEnumValN(Ice::Opt_m1, "O-1", "-1"),
+                        clEnumValN(Ice::Opt_0, "O0", "0"),
+                        clEnumValN(Ice::Opt_1, "O1", "1"),
+                        clEnumValN(Ice::Opt_2, "O2", "2"), clEnumValEnd));
 static cl::opt<std::string> IRFilename(cl::Positional, cl::desc("<IR file>"),
                                        cl::init("-"));
 static cl::opt<std::string> OutputFilename("o",
@@ -90,27 +90,26 @@ static cl::opt<std::string> LogFilename("log", cl::desc("Set log filename"),
                                         cl::init("-"),
                                         cl::value_desc("filename"));
 static cl::opt<std::string>
-TestPrefix("prefix", cl::desc("Prepend a prefix to symbol names for testing"),
-           cl::init(""), cl::value_desc("prefix"));
+    TestPrefix("prefix",
+               cl::desc("Prepend a prefix to symbol names for testing"),
+               cl::init(""), cl::value_desc("prefix"));
+static cl::opt<bool> DisableInternal("externalize",
+                                     cl::desc("Externalize all symbols"));
 static cl::opt<bool>
-DisableInternal("externalize",
-                cl::desc("Externalize all symbols"));
-static cl::opt<bool>
-DisableTranslation("notranslate", cl::desc("Disable Subzero translation"));
+    DisableTranslation("notranslate", cl::desc("Disable Subzero translation"));
 // Note: Modifiable only if ALLOW_DISABLE_IR_GEN.
 static cl::opt<bool>
     DisableIRGeneration("no-ir-gen",
                         cl::desc("Disable generating Subzero IR."));
 static cl::opt<std::string>
-TranslateOnly("translate-only", cl::desc("Translate only the given function"),
-              cl::init(""));
+    TranslateOnly("translate-only",
+                  cl::desc("Translate only the given function"), cl::init(""));
 
 static cl::opt<bool> SubzeroTimingEnabled(
     "timing", cl::desc("Enable breakdown timing of Subzero translation"));
 
-static cl::opt<bool>
-TimeEachFunction("timing-funcs",
-                 cl::desc("Print total translation time for each function"));
+static cl::opt<bool> TimeEachFunction(
+    "timing-funcs", cl::desc("Print total translation time for each function"));
 
 static cl::opt<std::string> TimingFocusOn(
     "timing-focus",
@@ -123,17 +122,17 @@ static cl::opt<std::string> VerboseFocusOn(
     cl::init(""));
 
 static cl::opt<bool>
-EnablePhiEdgeSplit("phi-edge-split",
-                   cl::desc("Enable edge splitting for Phi lowering"),
-                   cl::init(true));
+    EnablePhiEdgeSplit("phi-edge-split",
+                       cl::desc("Enable edge splitting for Phi lowering"),
+                       cl::init(true));
 
 static cl::opt<bool> DecorateAsm(
     "asm-verbose",
     cl::desc("Decorate textual asm output with register liveness info"));
 
 static cl::opt<bool>
-DumpStats("szstats",
-          cl::desc("Print statistics after translating each function"));
+    DumpStats("szstats",
+              cl::desc("Print statistics after translating each function"));
 
 // This is currently needed by crosstest.py.
 static cl::opt<bool> AllowUninitializedGlobals(
@@ -173,8 +172,7 @@ static cl::opt<bool> AllowErrorRecovery(
     cl::desc("Allow error recovery when reading PNaCl bitcode."),
     cl::init(false));
 
-static cl::opt<bool>
-LLVMVerboseErrors(
+static cl::opt<bool> LLVMVerboseErrors(
     "verbose-llvm-parse-errors",
     cl::desc("Print out more descriptive PNaCl bitcode parse errors when "
              "building LLVM IR first"),
@@ -197,23 +195,22 @@ static cl::opt<bool> AlwaysExitSuccess(
     "exit-success", cl::desc("Exit with success status, even if errors found"),
     cl::init(false));
 
-static cl::opt<bool>
-GenerateBuildAtts("build-atts",
-                  cl::desc("Generate list of build attributes associated with "
+static cl::opt<bool> GenerateBuildAtts(
+    "build-atts", cl::desc("Generate list of build attributes associated with "
                            "this executable."),
-                  cl::init(false));
+    cl::init(false));
 
 // Number of translation threads (in addition to the parser thread and
 // the emitter thread).  The special case of 0 means purely
 // sequential, i.e. parser, translator, and emitter all within the
 // same single thread.  (This may need a slight rework if we expand to
 // multiple parser or emitter threads.)
-static cl::opt<uint32_t>
-NumThreads("threads",
-           cl::desc("Number of translation threads (0 for purely sequential)"),
-           // TODO(stichnot): Settle on a good default.  Consider
-           // something related to std::thread::hardware_concurrency().
-           cl::init(0));
+static cl::opt<uint32_t> NumThreads(
+    "threads",
+    cl::desc("Number of translation threads (0 for purely sequential)"),
+    // TODO(stichnot): Settle on a good default.  Consider
+    // something related to std::thread::hardware_concurrency().
+    cl::init(0));
 
 static int GetReturnValue(int Val) {
   if (AlwaysExitSuccess)
@@ -377,9 +374,8 @@ int main(int argc, char **argv) {
     SMDiagnostic Err;
     Ice::TimerMarker T1(Ice::TimerStack::TT_parse, &Ctx);
     raw_ostream *Verbose = LLVMVerboseErrors ? &errs() : nullptr;
-    Module *Mod =
-        NaClParseIRFile(IRFilename, InputFileFormat, Err, Verbose,
-                        getGlobalContext());
+    Module *Mod = NaClParseIRFile(IRFilename, InputFileFormat, Err, Verbose,
+                                  getGlobalContext());
 
     if (!Mod) {
       Err.print(argv[0], errs());

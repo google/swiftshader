@@ -14,10 +14,10 @@
 
 #include "test_bitmanip.def"
 
-#define X(inst, type)                                                         \
-  type test_##inst(type a);                                                   \
-  type test_alloca_##inst(type a);                                            \
-  type test_const_##inst(type ignored);                                       \
+#define X(inst, type)                                                          \
+  type test_##inst(type a);                                                    \
+  type test_alloca_##inst(type a);                                             \
+  type test_const_##inst(type ignored);                                        \
   type my_##inst(type a);
 
 FOR_ALL_BMI_OP_TYPES(X)

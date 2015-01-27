@@ -88,7 +88,7 @@ protected:
   Variable **Vars;
 };
 
-template<class StreamType>
+template <class StreamType>
 inline StreamType &operator<<(StreamType &Str, const Operand &Op) {
   Op.dump(Str);
   return Str;
@@ -170,7 +170,8 @@ typedef ConstantPrimitive<int64_t, Operand::kConstInteger64> ConstantInteger64;
 typedef ConstantPrimitive<float, Operand::kConstFloat> ConstantFloat;
 typedef ConstantPrimitive<double, Operand::kConstDouble> ConstantDouble;
 
-template <> inline void ConstantInteger32::dump(const Cfg *, Ostream &Str) const {
+template <>
+inline void ConstantInteger32::dump(const Cfg *, Ostream &Str) const {
   if (!ALLOW_DUMP)
     return;
   if (getType() == IceType_i1)
@@ -179,7 +180,8 @@ template <> inline void ConstantInteger32::dump(const Cfg *, Ostream &Str) const
     Str << static_cast<int32_t>(getValue());
 }
 
-template <> inline void ConstantInteger64::dump(const Cfg *, Ostream &Str) const {
+template <>
+inline void ConstantInteger64::dump(const Cfg *, Ostream &Str) const {
   if (!ALLOW_DUMP)
     return;
   assert(getType() == IceType_i64);
@@ -244,7 +246,7 @@ private:
         Name(Name), SuppressMangling(SuppressMangling) {}
   ~ConstantRelocatable() override {}
   const RelocOffsetT Offset; // fixed offset to add
-  const IceString Name; // optional for debug/dump
+  const IceString Name;      // optional for debug/dump
   bool SuppressMangling;
 };
 
@@ -360,7 +362,7 @@ private:
   typedef std::pair<InstNumberT, InstNumberT> RangeElementType;
   // RangeType is arena-allocated from the Cfg's allocator.
   typedef std::vector<RangeElementType, CfgLocalAllocator<RangeElementType>>
-  RangeType;
+      RangeType;
   RangeType Range;
   RegWeight Weight;
   // TrimmedBegin is an optimization for the overlaps() computation.
@@ -540,11 +542,7 @@ public:
     MDS_MultiDefSingleBlock,
     MDS_MultiDefMultiBlock
   };
-  enum MultiBlockState {
-    MBS_Unknown,
-    MBS_SingleBlock,
-    MBS_MultiBlock
-  };
+  enum MultiBlockState { MBS_Unknown, MBS_SingleBlock, MBS_MultiBlock };
   VariableTracking()
       : MultiDef(MDS_Unknown), MultiBlock(MBS_Unknown), SingleUseNode(nullptr),
         SingleDefNode(nullptr), FirstOrSingleDefinition(nullptr) {}

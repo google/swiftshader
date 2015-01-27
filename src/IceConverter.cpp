@@ -690,7 +690,7 @@ void LLVM2ICEGlobalsConverter::convertGlobalsToIce(
     const GlobalVariable *GV = I;
 
     Ice::GlobalDeclaration *Var = getConverter().getGlobalDeclaration(GV);
-    Ice::VariableDeclaration* VarDecl = cast<Ice::VariableDeclaration>(Var);
+    Ice::VariableDeclaration *VarDecl = cast<Ice::VariableDeclaration>(Var);
     VariableDeclarations.push_back(VarDecl);
 
     if (!GV->hasInternalLinkage() && GV->hasInitializer()) {

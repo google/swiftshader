@@ -64,19 +64,13 @@ void testBitManip(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     FuncType FuncLlc;
     FuncType FuncSz;
   } Funcs[] = {
-#define X(inst)                                                             \
-  {                                                                         \
-    STR(inst), test_##inst, Subzero_::test_##inst                           \
-  },                                                                        \
-  {                                                                         \
-    STR(inst) "_alloca", test_alloca_##inst, Subzero_::test_alloca_##inst   \
-  },                                                                        \
-  {                                                                         \
-    STR(inst) "_const", test_const_##inst, Subzero_::test_const_##inst      \
-  },
-      BMI_OPS
+#define X(inst)                                                                \
+  { STR(inst), test_##inst, Subzero_::test_##inst }                            \
+  , {STR(inst) "_alloca", test_alloca_##inst, Subzero_::test_alloca_##inst},   \
+      {STR(inst) "_const", test_const_##inst, Subzero_::test_const_##inst},
+        BMI_OPS
 #undef X
-  };
+    };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
 
   for (size_t f = 0; f < NumFuncs; ++f) {
@@ -89,12 +83,10 @@ void testBitManip(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         ++Passes;
       } else {
         ++Failures;
-        std::cout << "test_" << Funcs[f].Name
-                  << (CHAR_BIT * sizeof(Type)) << "("
-                  << static_cast<uint64_t>(Value)
+        std::cout << "test_" << Funcs[f].Name << (CHAR_BIT * sizeof(Type))
+                  << "(" << static_cast<uint64_t>(Value)
                   << "): sz=" << static_cast<uint64_t>(ResultSz)
-                  << " llc=" << static_cast<uint64_t>(ResultLlc)
-                  << "\n";
+                  << " llc=" << static_cast<uint64_t>(ResultLlc) << "\n";
       }
     }
   }

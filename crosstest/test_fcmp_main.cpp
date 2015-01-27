@@ -51,7 +51,7 @@ void initializeValues() {
   assert(NegInf < PosInf);
   assert(Zero < PosInf);
   static volatile double InitValues[] =
-    FP_VALUE_ARRAY(NegInf, PosInf, NegNan, Nan);
+      FP_VALUE_ARRAY(NegInf, PosInf, NegNan, Nan);
   NumValues = sizeof(InitValues) / sizeof(*InitValues);
   Values = InitValues;
 }
@@ -72,7 +72,7 @@ void testsScalar(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         Subzero_fcmp##cmp##Double, fcmp##cmp##Double                           \
   }                                                                            \
   ,
-      FCMP_TABLE
+        FCMP_TABLE
 #undef X
     };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);

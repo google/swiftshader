@@ -68,8 +68,7 @@ int main(int argc, char **argv) {
       } else {
         ++Failures;
         std::cout << i << ":LlcArray[" << i << "] = " << (int)LlcArray[i]
-                  << ", SzArray[" << i << "] = " << (int)SzArray[i]
-                  << "\n";
+                  << ", SzArray[" << i << "] = " << (int)SzArray[i] << "\n";
       }
     }
   }

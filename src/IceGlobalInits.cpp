@@ -123,8 +123,9 @@ void VariableDeclaration::dumpType(Ostream &Stream) const {
 void VariableDeclaration::dump(GlobalContext *Ctx, Ostream &Stream) const {
   if (!ALLOW_DUMP)
     return;
-  Stream << "@" << ((Ctx && !getSuppressMangling())
-                    ? Ctx->mangleName(Name) : Name) << " = ";
+  Stream << "@"
+         << ((Ctx && !getSuppressMangling()) ? Ctx->mangleName(Name) : Name)
+         << " = ";
   ::dumpLinkage(Stream, Linkage);
   Stream << " " << (IsConstant ? "constant" : "global") << " ";
 
@@ -158,8 +159,8 @@ void VariableDeclaration::Initializer::dumpType(Ostream &Stream) const {
   Stream << "[" << getNumBytes() << " x " << Ice::IceType_i8 << "]";
 }
 
-void VariableDeclaration::DataInitializer::dump(
-    GlobalContext *, Ostream &Stream) const {
+void VariableDeclaration::DataInitializer::dump(GlobalContext *,
+                                                Ostream &Stream) const {
   if (!ALLOW_DUMP)
     return;
   dumpType(Stream);
@@ -176,8 +177,8 @@ void VariableDeclaration::DataInitializer::dump(
   Stream << "\"";
 }
 
-void VariableDeclaration::ZeroInitializer::dump(
-    GlobalContext *, Ostream &Stream) const {
+void VariableDeclaration::ZeroInitializer::dump(GlobalContext *,
+                                                Ostream &Stream) const {
   if (!ALLOW_DUMP)
     return;
   dumpType(Stream);
@@ -190,8 +191,8 @@ void VariableDeclaration::RelocInitializer::dumpType(Ostream &Stream) const {
   Stream << Ice::IceType_i32;
 }
 
-void VariableDeclaration::RelocInitializer::dump(
-    GlobalContext *Ctx, Ostream &Stream) const {
+void VariableDeclaration::RelocInitializer::dump(GlobalContext *Ctx,
+                                                 Ostream &Stream) const {
   if (!ALLOW_DUMP)
     return;
   if (Offset != 0) {

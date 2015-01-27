@@ -41,7 +41,7 @@ TEST(IceParseInstsTest, NonexistentCallArg) {
     3, naclbitc::MODULE_CODE_FUNCTION, 2, 0, 0, 0, Terminator,
     1, naclbitc::BLK_CODE_ENTER, naclbitc::FUNCTION_BLOCK_ID, 2, Terminator,
     3, naclbitc::FUNC_CODE_DECLAREBLOCKS, 1, Terminator,
-    // Note: 100 is a bad value index in next line.
+      // Note: 100 is a bad value index in next line.
     3, naclbitc::FUNC_CODE_INST_CALL, 0, 4, 2, 100, Terminator,
     3, naclbitc::FUNC_CODE_INST_RET, Terminator,
     0, naclbitc::BLK_CODE_EXIT, Terminator,
@@ -54,23 +54,23 @@ TEST(IceParseInstsTest, NonexistentCallArg) {
   EXPECT_FALSE(DumpMunger.runTestForAssembly("Nonexistent call arg"));
   EXPECT_EQ(
       "module {  // BlockID = 8\n"
-      "  types {  // BlockID = 17\n"
-      "    count 3;\n"
-      "    @t0 = i32;\n"
-      "    @t1 = void;\n"
-      "    @t2 = void (i32, i32);\n"
-      "  }\n"
-      "  declare external void @f0(i32, i32);\n"
-      "  define external void @f1(i32, i32);\n"
-      "  function void @f1(i32 %p0, i32 %p1) {  // BlockID = 12\n"
-      "    blocks 1;\n"
-      "  %b0:\n"
-      "    call void @f0(i32 %p0, i32 @f0);\n"
-      "Error(66:4): Invalid relative value id: 100 (Must be <= 4)\n"
-      "    ret void;\n"
-      "  }\n"
-      "}\n",
-      DumpMunger.getTestResults());
+            "  types {  // BlockID = 17\n"
+            "    count 3;\n"
+            "    @t0 = i32;\n"
+            "    @t1 = void;\n"
+            "    @t2 = void (i32, i32);\n"
+            "  }\n"
+            "  declare external void @f0(i32, i32);\n"
+            "  define external void @f1(i32, i32);\n"
+            "  function void @f1(i32 %p0, i32 %p1) {  // BlockID = 12\n"
+            "    blocks 1;\n"
+            "  %b0:\n"
+            "    call void @f0(i32 %p0, i32 @f0);\n"
+            "Error(66:4): Invalid relative value id: 100 (Must be <= 4)\n"
+            "    ret void;\n"
+            "  }\n"
+            "}\n",
+            DumpMunger.getTestResults());
 
   // Show that we get appropriate error when parsing in Subzero.
   IceTest::SubzeroBitcodeMunger Munger(
@@ -78,7 +78,7 @@ TEST(IceParseInstsTest, NonexistentCallArg) {
   EXPECT_FALSE(Munger.runTest("Nonexistent call arg"));
   EXPECT_EQ(
       "Error: (66:4) Invalid function record: <34 0 4 2 100>\n",
-      Munger.getTestResults());
+            Munger.getTestResults());
 }
 
 /// Test how we recognize alignments in alloca instructions.
@@ -332,8 +332,8 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
                                              Align0, array_lengthof(Align0)));
   EXPECT_EQ(
       "    %v0 = load float* %p0, align 0;\n"
-      "Error(58:4): load: Illegal alignment for float. Expects: 1 or 4\n",
-      DumpMunger.getLinesWithSubstring("load"));
+            "Error(58:4): load: Illegal alignment for float. Expects: 1 or 4\n",
+            DumpMunger.getLinesWithSubstring("load"));
 
   // Show what happens when changing alignment to 4.
   const uint64_t Align4[] = {
@@ -359,8 +359,8 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
                                              Align29, array_lengthof(Align29)));
   EXPECT_EQ(
       "    %v0 = load float* %p0, align 536870912;\n"
-      "Error(58:4): load: Illegal alignment for float. Expects: 1 or 4\n",
-      DumpMunger.getLinesWithSubstring("load"));
+            "Error(58:4): load: Illegal alignment for float. Expects: 1 or 4\n",
+            DumpMunger.getLinesWithSubstring("load"));
 
   // Show what happens when changing alignment to 2**30.
   const uint64_t Align30[] = {
@@ -375,8 +375,8 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
                                              Align30, array_lengthof(Align30)));
   EXPECT_EQ(
       "    %v0 = load float* %p0, align 0;\n"
-      "Error(58:4): load: Illegal alignment for float. Expects: 1 or 4\n",
-      DumpMunger.getLinesWithSubstring("load"));
+            "Error(58:4): load: Illegal alignment for float. Expects: 1 or 4\n",
+            DumpMunger.getLinesWithSubstring("load"));
 }
 
 // Test how we recognize alignments in store instructions.

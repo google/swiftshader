@@ -15,57 +15,31 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-void ice_unreachable(void) {
-  abort();
-}
+void ice_unreachable(void) { abort(); }
 
-uint32_t cvtftoui32(float value) {
-  return (uint32_t) value;
-}
+uint32_t cvtftoui32(float value) { return (uint32_t)value; }
 
-uint32_t cvtdtoui32(double value) {
-  return (uint32_t) value;
-}
+uint32_t cvtdtoui32(double value) { return (uint32_t)value; }
 
-int64_t cvtftosi64(float value) {
-  return (int64_t) value;
-}
+int64_t cvtftosi64(float value) { return (int64_t)value; }
 
-int64_t cvtdtosi64(double value) {
-  return (int64_t) value;
-}
+int64_t cvtdtosi64(double value) { return (int64_t)value; }
 
-uint64_t cvtftoui64(float value) {
-  return (uint64_t) value;
-}
+uint64_t cvtftoui64(float value) { return (uint64_t)value; }
 
-uint64_t cvtdtoui64(double value) {
-  return (uint64_t) value;
-}
+uint64_t cvtdtoui64(double value) { return (uint64_t)value; }
 
-float cvtui32tof(uint32_t value) {
-  return (float) value;
-}
+float cvtui32tof(uint32_t value) { return (float)value; }
 
-float cvtsi64tof(int64_t value) {
-  return (float) value;
-}
+float cvtsi64tof(int64_t value) { return (float)value; }
 
-float cvtui64tof(uint64_t value) {
-  return (float) value;
-}
+float cvtui64tof(uint64_t value) { return (float)value; }
 
-double cvtui32tod(uint32_t value) {
-  return (double) value;
-}
+double cvtui32tod(uint32_t value) { return (double)value; }
 
-double cvtsi64tod(int64_t value) {
-  return (double) value;
-}
+double cvtsi64tod(int64_t value) { return (double)value; }
 
-double cvtui64tod(uint64_t value) {
-  return (double) value;
-}
+double cvtui64tod(uint64_t value) { return (double)value; }
 
 /* TODO(stichnot):
    Sz_bitcast_v8i1_to_i8

@@ -95,9 +95,7 @@ public:
   const IceString &getIdentifierName(IdentifierIndexType Index) const {
     return IdentifierNames[Index];
   }
-  enum {
-    IdentifierIndexInvalid = -1
-  };
+  enum { IdentifierIndexInvalid = -1 };
 
   // Manage instruction numbering.
   InstNumberT newInstNumber() { return NextInstNumber++; }
@@ -201,7 +199,7 @@ private:
   std::vector<IceString> IdentifierNames;
   InstNumberT NextInstNumber;
   VarList Variables;
-  VarList Args; // subset of Variables, in argument order
+  VarList Args;         // subset of Variables, in argument order
   VarList ImplicitArgs; // subset of Variables
   std::unique_ptr<ArenaAllocator<>> Allocator;
   std::unique_ptr<Liveness> Live;

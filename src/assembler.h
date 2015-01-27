@@ -57,9 +57,7 @@ public:
   }
 
   // Emit a fixup at the current location.
-  void EmitFixup(AssemblerFixup *fixup) {
-    fixup->set_position(Size());
-  }
+  void EmitFixup(AssemblerFixup *fixup) { fixup->set_position(Size()); }
 
   // Get the size of the emitted code.
   intptr_t Size() const { return cursor_ - contents_; }

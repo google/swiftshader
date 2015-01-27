@@ -31,12 +31,10 @@ int main(int argc, char **argv) {
     const char *Name;
     FuncType FuncLlc;
     FuncType FuncSz;
-  } Funcs[] = {
-    { "test_basic_vla", test_basic_vla, Subzero_test_basic_vla },
-    { "test_vla_in_loop", test_vla_in_loop, Subzero_test_vla_in_loop },
-    { "test_two_vlas_in_loops", test_two_vlas_in_loops,
-      Subzero_test_two_vlas_in_loops }
-  };
+  } Funcs[] = {{"test_basic_vla", test_basic_vla, Subzero_test_basic_vla},
+               {"test_vla_in_loop", test_vla_in_loop, Subzero_test_vla_in_loop},
+               {"test_two_vlas_in_loops", test_two_vlas_in_loops,
+                Subzero_test_two_vlas_in_loops}};
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
   const uint32_t size_to_test = 128;
   for (size_t f = 0; f < NumFuncs; ++f) {
@@ -55,7 +53,7 @@ int main(int argc, char **argv) {
       }
     }
   }
-  printf("TotalTests=%zu Passes=%zu Failures=%zu\n",
-         TotalTests, Passes, Failures);
+  printf("TotalTests=%zu Passes=%zu Failures=%zu\n", TotalTests, Passes,
+         Failures);
   return Failures;
 }

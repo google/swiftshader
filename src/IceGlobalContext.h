@@ -209,11 +209,7 @@ public:
   }
 
   // These are predefined TimerStackIdT values.
-  enum TimerStackKind {
-    TSK_Default = 0,
-    TSK_Funcs,
-    TSK_Num
-  };
+  enum TimerStackKind { TSK_Default = 0, TSK_Funcs, TSK_Num };
 
   TimerStackIdT newTimerStackID(const IceString &Name);
   TimerIdT getTimerID(TimerStackIdT StackID, const IceString &Name);

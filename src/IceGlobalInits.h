@@ -107,9 +107,7 @@ public:
   }
   void dumpType(Ostream &Stream) const final;
   void dump(GlobalContext *Ctx, Ostream &Stream) const final;
-  bool getSuppressMangling() const final {
-    return isExternal() && IsProto;
-  }
+  bool getSuppressMangling() const final { return isExternal() && IsProto; }
 
 private:
   const Ice::FuncSigType Signature;
@@ -127,6 +125,7 @@ private:
 class VariableDeclaration : public GlobalDeclaration {
   VariableDeclaration(const VariableDeclaration &) = delete;
   VariableDeclaration &operator=(const VariableDeclaration &) = delete;
+
 public:
   /// Base class for a global variable initializer.
   class Initializer {

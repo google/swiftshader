@@ -19,36 +19,36 @@
 
 #include "test_sync_atomic.h"
 
-#define X(inst, type)                                                   \
-  type test_##inst(bool fetch_first, volatile type *ptr, type a) {      \
-    if (fetch_first) {                                                  \
-      return __sync_fetch_and_##inst(ptr, a);                           \
-    } else {                                                            \
-      return __sync_##inst##_and_fetch(ptr, a);                         \
-    }                                                                   \
-  }                                                                     \
-  type test_alloca_##inst(bool fetch, volatile type *ptr, type a) {     \
-    const size_t buf_size = 8;                                          \
-    type buf[buf_size];                                                 \
-    for (size_t i = 0; i < buf_size; ++i) {                             \
-      if (fetch) {                                                      \
-        buf[i] = __sync_fetch_and_##inst(ptr, a);                       \
-      } else {                                                          \
-        buf[i] = __sync_##inst##_and_fetch(ptr, a);                     \
-      }                                                                 \
-    }                                                                   \
-    type sum = 0;                                                       \
-    for (size_t i = 0; i < buf_size; ++i) {                             \
-      sum += buf[i];                                                    \
-    }                                                                   \
-    return sum;                                                         \
-  }                                                                     \
-  type test_const_##inst(bool fetch, volatile type *ptr, type ign) {    \
-    if (fetch) {                                                        \
-      return __sync_fetch_and_##inst(ptr, 42);                          \
-    } else {                                                            \
-      return __sync_##inst##_and_fetch(ptr, 99);                        \
-    }                                                                   \
+#define X(inst, type)                                                          \
+  type test_##inst(bool fetch_first, volatile type *ptr, type a) {             \
+    if (fetch_first) {                                                         \
+      return __sync_fetch_and_##inst(ptr, a);                                  \
+    } else {                                                                   \
+      return __sync_##inst##_and_fetch(ptr, a);                                \
+    }                                                                          \
+  }                                                                            \
+  type test_alloca_##inst(bool fetch, volatile type *ptr, type a) {            \
+    const size_t buf_size = 8;                                                 \
+    type buf[buf_size];                                                        \
+    for (size_t i = 0; i < buf_size; ++i) {                                    \
+      if (fetch) {                                                             \
+        buf[i] = __sync_fetch_and_##inst(ptr, a);                              \
+      } else {                                                                 \
+        buf[i] = __sync_##inst##_and_fetch(ptr, a);                            \
+      }                                                                        \
+    }                                                                          \
+    type sum = 0;                                                              \
+    for (size_t i = 0; i < buf_size; ++i) {                                    \
+      sum += buf[i];                                                           \
+    }                                                                          \
+    return sum;                                                                \
+  }                                                                            \
+  type test_const_##inst(bool fetch, volatile type *ptr, type ign) {           \
+    if (fetch) {                                                               \
+      return __sync_fetch_and_##inst(ptr, 42);                                 \
+    } else {                                                                   \
+      return __sync_##inst##_and_fetch(ptr, 99);                               \
+    }                                                                          \
   }
 
 FOR_ALL_RMWOP_TYPES(X)

@@ -93,15 +93,9 @@ public:
 
   static bool VerifyMemoryOrder(uint64_t Order);
 
-  enum SideEffects {
-    SideEffects_F=0,
-    SideEffects_T=1
-  };
+  enum SideEffects { SideEffects_F = 0, SideEffects_T = 1 };
 
-  enum ReturnsTwice {
-    ReturnsTwice_F=0,
-    ReturnsTwice_T=1
-  };
+  enum ReturnsTwice { ReturnsTwice_F = 0, ReturnsTwice_T = 1 };
 
   // Basic attributes related to each intrinsic, that are relevant to
   // code generation. Perhaps the attributes representation can be shared

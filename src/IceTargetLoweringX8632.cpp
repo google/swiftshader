@@ -61,9 +61,9 @@ const struct TableFcmp_ {
 #define X(val, dflt, swapS, C1, C2, swapV, pred)                               \
   { dflt, swapS, CondX86::C1, CondX86::C2, swapV, CondX86::pred }              \
   ,
-    FCMPX8632_TABLE
+      FCMPX8632_TABLE
 #undef X
-  };
+};
 const size_t TableFcmpSize = llvm::array_lengthof(TableFcmp);
 
 // The following table summarizes the logic for lowering the icmp instruction
@@ -76,9 +76,9 @@ const struct TableIcmp32_ {
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
   { CondX86::C_32 }                                                            \
   ,
-    ICMPX8632_TABLE
+      ICMPX8632_TABLE
 #undef X
-  };
+};
 const size_t TableIcmp32Size = llvm::array_lengthof(TableIcmp32);
 
 // The following table summarizes the logic for lowering the icmp instruction
@@ -91,9 +91,9 @@ const struct TableIcmp64_ {
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
   { CondX86::C1_64, CondX86::C2_64, CondX86::C3_64 }                           \
   ,
-    ICMPX8632_TABLE
+      ICMPX8632_TABLE
 #undef X
-  };
+};
 const size_t TableIcmp64Size = llvm::array_lengthof(TableIcmp64);
 
 CondX86::BrCond getIcmp32Mapping(InstIcmp::ICond Cond) {
@@ -108,9 +108,9 @@ const struct TableTypeX8632Attributes_ {
 #define X(tag, elementty, cvt, sdss, pack, width, fld)                         \
   { elementty }                                                                \
   ,
-    ICETYPEX8632_TABLE
+      ICETYPEX8632_TABLE
 #undef X
-  };
+};
 const size_t TableTypeX8632AttributesSize =
     llvm::array_lengthof(TableTypeX8632Attributes);
 
@@ -155,14 +155,13 @@ uint32_t applyStackAlignment(uint32_t Value) {
 
 // Instruction set options
 namespace cl = ::llvm::cl;
-cl::opt<TargetX8632::X86InstructionSet>
-CLInstructionSet("mattr", cl::desc("X86 target attributes"),
-                 cl::init(TargetX8632::SSE2),
-                 cl::values(clEnumValN(TargetX8632::SSE2, "sse2",
-                                       "Enable SSE2 instructions (default)"),
-                            clEnumValN(TargetX8632::SSE4_1, "sse4.1",
-                                       "Enable SSE 4.1 instructions"),
-                            clEnumValEnd));
+cl::opt<TargetX8632::X86InstructionSet> CLInstructionSet(
+    "mattr", cl::desc("X86 target attributes"), cl::init(TargetX8632::SSE2),
+    cl::values(clEnumValN(TargetX8632::SSE2, "sse2",
+                          "Enable SSE2 instructions (default)"),
+               clEnumValN(TargetX8632::SSE4_1, "sse4.1",
+                          "Enable SSE 4.1 instructions"),
+               clEnumValEnd));
 
 // In some cases, there are x-macros tables for both high-level and
 // low-level instructions/operands that use the same enum key value.
@@ -454,7 +453,7 @@ IceString TargetX8632::RegNames[] = {
 #define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
           frameptr, isI8, isInt, isFP)                                         \
   name,
-  REGX8632_TABLE
+    REGX8632_TABLE
 #undef X
 };
 
@@ -485,14 +484,14 @@ IceString TargetX8632::getRegName(SizeT RegNum, Type Ty) const {
 #define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
           frameptr, isI8, isInt, isFP)                                         \
   name8,
-    REGX8632_TABLE
+      REGX8632_TABLE
 #undef X
   };
   static IceString RegNames16[] = {
 #define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
           frameptr, isI8, isInt, isFP)                                         \
   name16,
-    REGX8632_TABLE
+      REGX8632_TABLE
 #undef X
   };
   switch (Ty) {
@@ -2762,8 +2761,8 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
     //   T := SourceVectRM
     //   ElementR := ElementR[0, 0] T[0, 2]
     //   T := T[0, 1] ElementR[3, 0]
-    const unsigned char Mask1[3] = { 0, 192, 128 };
-    const unsigned char Mask2[3] = { 227, 196, 52 };
+    const unsigned char Mask1[3] = {0, 192, 128};
+    const unsigned char Mask2[3] = {227, 196, 52};
 
     Constant *Mask1Constant = Ctx->getConstantInt32(Mask1[Index - 1]);
     Constant *Mask2Constant = Ctx->getConstantInt32(Mask2[Index - 1]);
@@ -2806,12 +2805,12 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   switch (Instr->getIntrinsicInfo().ID) {
   case Intrinsics::AtomicCmpxchg: {
     if (!Intrinsics::VerifyMemoryOrder(
-             llvm::cast<ConstantInteger32>(Instr->getArg(3))->getValue())) {
+            llvm::cast<ConstantInteger32>(Instr->getArg(3))->getValue())) {
       Func->setError("Unexpected memory ordering (success) for AtomicCmpxchg");
       return;
     }
     if (!Intrinsics::VerifyMemoryOrder(
-             llvm::cast<ConstantInteger32>(Instr->getArg(4))->getValue())) {
+            llvm::cast<ConstantInteger32>(Instr->getArg(4))->getValue())) {
       Func->setError("Unexpected memory ordering (failure) for AtomicCmpxchg");
       return;
     }
@@ -2826,7 +2825,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   }
   case Intrinsics::AtomicFence:
     if (!Intrinsics::VerifyMemoryOrder(
-             llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue())) {
+            llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue())) {
       Func->setError("Unexpected memory ordering for AtomicFence");
       return;
     }
@@ -2872,7 +2871,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     // We require the memory address to be naturally aligned.
     // Given that is the case, then normal loads are atomic.
     if (!Intrinsics::VerifyMemoryOrder(
-             llvm::cast<ConstantInteger32>(Instr->getArg(1))->getValue())) {
+            llvm::cast<ConstantInteger32>(Instr->getArg(1))->getValue())) {
       Func->setError("Unexpected memory ordering for AtomicLoad");
       return;
     }
@@ -2905,18 +2904,18 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   }
   case Intrinsics::AtomicRMW:
     if (!Intrinsics::VerifyMemoryOrder(
-             llvm::cast<ConstantInteger32>(Instr->getArg(3))->getValue())) {
+            llvm::cast<ConstantInteger32>(Instr->getArg(3))->getValue())) {
       Func->setError("Unexpected memory ordering for AtomicRMW");
       return;
     }
     lowerAtomicRMW(Instr->getDest(),
                    static_cast<uint32_t>(llvm::cast<ConstantInteger32>(
-                       Instr->getArg(0))->getValue()),
+                                             Instr->getArg(0))->getValue()),
                    Instr->getArg(1), Instr->getArg(2));
     return;
   case Intrinsics::AtomicStore: {
     if (!Intrinsics::VerifyMemoryOrder(
-             llvm::cast<ConstantInteger32>(Instr->getArg(2))->getValue())) {
+            llvm::cast<ConstantInteger32>(Instr->getArg(2))->getValue())) {
       Func->setError("Unexpected memory ordering for AtomicStore");
       return;
     }
@@ -4577,7 +4576,8 @@ void TargetGlobalX8632::lowerInit(const VariableDeclaration &Var) const {
   // If external and not initialized, this must be a cross test.
   // Don't generate a declaration for such cases.
   bool IsExternal = Var.isExternal() || Ctx->getFlags().DisableInternal;
-  if (IsExternal && !Var.hasInitializer()) return;
+  if (IsExternal && !Var.hasInitializer())
+    return;
 
   bool HasNonzeroInitializer = Var.hasNonzeroInitializer();
   bool IsConstant = Var.getIsConstant();

@@ -27,12 +27,12 @@ namespace Subzero_ {
 #include "test_icmp.h"
 }
 
-volatile unsigned Values[] = { 0x0,        0x1,        0x7ffffffe, 0x7fffffff,
-                               0x80000000, 0x80000001, 0xfffffffe, 0xffffffff,
-                               0x7e,       0x7f,       0x80,       0x81,
-                               0xfe,       0xff,       0x100,      0x101,
-                               0x7ffe,     0x7fff,     0x8000,     0x8001,
-                               0xfffe,     0xffff,     0x10000,    0x10001, };
+volatile unsigned Values[] = {
+    0x0,        0x1,        0x7ffffffe, 0x7fffffff, 0x80000000, 0x80000001,
+    0xfffffffe, 0xffffffff, 0x7e,       0x7f,       0x80,       0x81,
+    0xfe,       0xff,       0x100,      0x101,      0x7ffe,     0x7fff,
+    0x8000,     0x8001,     0xfffe,     0xffff,     0x10000,    0x10001,
+};
 const static size_t NumValues = sizeof(Values) / sizeof(*Values);
 
 template <typename TypeUnsigned, typename TypeSigned>
@@ -54,13 +54,13 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 #undef X
 #define X(cmp, op)                                                             \
   {                                                                            \
-    STR(cmp), (FuncTypeUnsigned)(FuncTypeSigned)icmp##cmp,                     \
-        (FuncTypeUnsigned)(FuncTypeSigned)Subzero_::icmp##cmp                  \
+    STR(cmp), (FuncTypeUnsigned)(FuncTypeSigned) icmp##cmp,                    \
+        (FuncTypeUnsigned)(FuncTypeSigned) Subzero_::icmp##cmp                 \
   }                                                                            \
   ,
-        ICMP_S_TABLE
+            ICMP_S_TABLE
 #undef X
-  };
+    };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
 
   if (sizeof(TypeUnsigned) <= sizeof(uint32_t)) {
@@ -141,13 +141,13 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 #undef X
 #define X(cmp, op)                                                             \
   {                                                                            \
-    STR(cmp), (FuncTypeUnsigned)(FuncTypeSigned)icmp##cmp,                     \
-        (FuncTypeUnsigned)(FuncTypeSigned)Subzero_::icmp##cmp                  \
+    STR(cmp), (FuncTypeUnsigned)(FuncTypeSigned) icmp##cmp,                    \
+        (FuncTypeUnsigned)(FuncTypeSigned) Subzero_::icmp##cmp                 \
   }                                                                            \
   ,
-        ICMP_S_TABLE
+            ICMP_S_TABLE
 #undef X
-  };
+    };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
   const static size_t NumElementsInType = Vectors<TypeUnsigned>::NumElements;
   for (size_t f = 0; f < NumFuncs; ++f) {
@@ -206,9 +206,7 @@ void testsVecI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 #define X(cmp, op)                                                             \
   { STR(cmp), (FuncType)icmpi1##cmp, (FuncType)Subzero_::icmpi1##cmp }         \
   ,
-        ICMP_U_TABLE
-        ICMP_S_TABLE
-  };
+        ICMP_U_TABLE ICMP_S_TABLE};
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
   const static size_t NumElements = Vectors<T>::NumElements;
   const static size_t MAX_NUMBER_OF_ELEMENTS_FOR_EXHAUSTIVE_TESTING = 8;

@@ -34,7 +34,7 @@ struct {
 #define X(tag, str, is_elf64, e_machine, e_flags)                              \
   { is_elf64, e_machine, e_flags }                                             \
   ,
-    TARGETARCH_TABLE
+      TARGETARCH_TABLE
 #undef X
 };
 

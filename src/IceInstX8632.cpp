@@ -34,9 +34,9 @@ const struct InstX8632BrAttributes_ {
 #define X(tag, encode, opp, dump, emit)                                        \
   { CondX86::opp, dump, emit }                                                 \
   ,
-    ICEINSTX8632BR_TABLE
+      ICEINSTX8632BR_TABLE
 #undef X
-  };
+};
 
 const struct InstX8632CmppsAttributes_ {
   const char *EmitString;
@@ -44,9 +44,9 @@ const struct InstX8632CmppsAttributes_ {
 #define X(tag, emit)                                                           \
   { emit }                                                                     \
   ,
-    ICEINSTX8632CMPPS_TABLE
+      ICEINSTX8632CMPPS_TABLE
 #undef X
-  };
+};
 
 const struct TypeX8632Attributes_ {
   const char *CvtString;   // i (integer), s (single FP), d (double FP)
@@ -58,9 +58,9 @@ const struct TypeX8632Attributes_ {
 #define X(tag, elementty, cvt, sdss, pack, width, fld)                         \
   { cvt, sdss, pack, width, fld }                                              \
   ,
-    ICETYPEX8632_TABLE
+      ICETYPEX8632_TABLE
 #undef X
-  };
+};
 
 const char *InstX8632SegmentRegNames[] = {
 #define X(val, name, prefix) name,
@@ -900,7 +900,8 @@ template <> const char *InstX8632Pshufd::Opcode = "pshufd";
 // Inplace GPR ops
 template <>
 const x86::AssemblerX86::GPREmitterOneOp InstX8632Bswap::Emitter = {
-    &x86::AssemblerX86::bswap, nullptr /* only a reg form exists */};
+    &x86::AssemblerX86::bswap, nullptr /* only a reg form exists */
+};
 template <>
 const x86::AssemblerX86::GPREmitterOneOp InstX8632Neg::Emitter = {
     &x86::AssemblerX86::neg, &x86::AssemblerX86::neg};
@@ -926,8 +927,7 @@ const x86::AssemblerX86::GPREmitterRegOp InstX8632Movzx::Emitter = {
 // Unary XMM ops
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Sqrtss::Emitter = {
-  &x86::AssemblerX86::sqrtss, &x86::AssemblerX86::sqrtss
-};
+    &x86::AssemblerX86::sqrtss, &x86::AssemblerX86::sqrtss};
 
 // Binary GPR ops
 template <>
@@ -969,76 +969,58 @@ const x86::AssemblerX86::GPREmitterShiftOp InstX8632Shr::Emitter = {
 // Binary XMM ops
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Addss::Emitter = {
-  &x86::AssemblerX86::addss, &x86::AssemblerX86::addss
-};
+    &x86::AssemblerX86::addss, &x86::AssemblerX86::addss};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Addps::Emitter = {
-  &x86::AssemblerX86::addps, &x86::AssemblerX86::addps
-};
+    &x86::AssemblerX86::addps, &x86::AssemblerX86::addps};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Divss::Emitter = {
-  &x86::AssemblerX86::divss, &x86::AssemblerX86::divss
-};
+    &x86::AssemblerX86::divss, &x86::AssemblerX86::divss};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Divps::Emitter = {
-  &x86::AssemblerX86::divps, &x86::AssemblerX86::divps
-};
+    &x86::AssemblerX86::divps, &x86::AssemblerX86::divps};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Mulss::Emitter = {
-  &x86::AssemblerX86::mulss, &x86::AssemblerX86::mulss
-};
+    &x86::AssemblerX86::mulss, &x86::AssemblerX86::mulss};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Mulps::Emitter = {
-  &x86::AssemblerX86::mulps, &x86::AssemblerX86::mulps
-};
+    &x86::AssemblerX86::mulps, &x86::AssemblerX86::mulps};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Padd::Emitter = {
-  &x86::AssemblerX86::padd, &x86::AssemblerX86::padd
-};
+    &x86::AssemblerX86::padd, &x86::AssemblerX86::padd};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Pand::Emitter = {
-  &x86::AssemblerX86::pand, &x86::AssemblerX86::pand
-};
+    &x86::AssemblerX86::pand, &x86::AssemblerX86::pand};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Pandn::Emitter = {
-  &x86::AssemblerX86::pandn, &x86::AssemblerX86::pandn
-};
+    &x86::AssemblerX86::pandn, &x86::AssemblerX86::pandn};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Pcmpeq::Emitter = {
-  &x86::AssemblerX86::pcmpeq, &x86::AssemblerX86::pcmpeq
-};
+    &x86::AssemblerX86::pcmpeq, &x86::AssemblerX86::pcmpeq};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Pcmpgt::Emitter = {
-  &x86::AssemblerX86::pcmpgt, &x86::AssemblerX86::pcmpgt
-};
+    &x86::AssemblerX86::pcmpgt, &x86::AssemblerX86::pcmpgt};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Pmull::Emitter = {
-  &x86::AssemblerX86::pmull, &x86::AssemblerX86::pmull
-};
+    &x86::AssemblerX86::pmull, &x86::AssemblerX86::pmull};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Pmuludq::Emitter = {
-  &x86::AssemblerX86::pmuludq, &x86::AssemblerX86::pmuludq
-};
+    &x86::AssemblerX86::pmuludq, &x86::AssemblerX86::pmuludq};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Por::Emitter = {
-  &x86::AssemblerX86::por, &x86::AssemblerX86::por
-};
+    &x86::AssemblerX86::por, &x86::AssemblerX86::por};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Psub::Emitter = {
-  &x86::AssemblerX86::psub, &x86::AssemblerX86::psub
-};
+    &x86::AssemblerX86::psub, &x86::AssemblerX86::psub};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Pxor::Emitter = {
-  &x86::AssemblerX86::pxor, &x86::AssemblerX86::pxor
-};
+    &x86::AssemblerX86::pxor, &x86::AssemblerX86::pxor};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Subss::Emitter = {
-  &x86::AssemblerX86::subss, &x86::AssemblerX86::subss
-};
+    &x86::AssemblerX86::subss, &x86::AssemblerX86::subss};
 template <>
 const x86::AssemblerX86::XmmEmitterRegOp InstX8632Subps::Emitter = {
-  &x86::AssemblerX86::subps, &x86::AssemblerX86::subps
-};
+    &x86::AssemblerX86::subps, &x86::AssemblerX86::subps};
 
 // Binary XMM Shift ops
 template <>
@@ -1756,11 +1738,10 @@ void InstX8632Icmp::emitIAS(const Cfg *Func) const {
   const Operand *Src1 = getSrc(1);
   Type Ty = Src0->getType();
   static const x86::AssemblerX86::GPREmitterRegOp RegEmitter = {
-    &x86::AssemblerX86::cmp, &x86::AssemblerX86::cmp, &x86::AssemblerX86::cmp
-  };
+      &x86::AssemblerX86::cmp, &x86::AssemblerX86::cmp,
+      &x86::AssemblerX86::cmp};
   static const x86::AssemblerX86::GPREmitterAddrOp AddrEmitter = {
-    &x86::AssemblerX86::cmp, &x86::AssemblerX86::cmp
-  };
+      &x86::AssemblerX86::cmp, &x86::AssemblerX86::cmp};
   if (const auto SrcVar0 = llvm::dyn_cast<Variable>(Src0)) {
     if (SrcVar0->hasReg()) {
       emitIASRegOpTyGPR(Func, Ty, SrcVar0, Src1, RegEmitter);
@@ -1798,8 +1779,7 @@ void InstX8632Ucomiss::emitIAS(const Cfg *Func) const {
   const auto Src0Var = llvm::cast<Variable>(getSrc(0));
   Type Ty = Src0Var->getType();
   const static x86::AssemblerX86::XmmEmitterRegOp Emitter = {
-    &x86::AssemblerX86::ucomiss, &x86::AssemblerX86::ucomiss
-  };
+      &x86::AssemblerX86::ucomiss, &x86::AssemblerX86::ucomiss};
   emitIASRegOpTyXMM(Func, Ty, Src0Var, getSrc(1), Emitter);
 }
 
@@ -1851,8 +1831,7 @@ void InstX8632Test::emitIAS(const Cfg *Func) const {
   static const x86::AssemblerX86::GPREmitterRegOp RegEmitter = {
       &x86::AssemblerX86::test, nullptr, &x86::AssemblerX86::test};
   static const x86::AssemblerX86::GPREmitterAddrOp AddrEmitter = {
-    &x86::AssemblerX86::test, &x86::AssemblerX86::test
-  };
+      &x86::AssemblerX86::test, &x86::AssemblerX86::test};
   if (const auto SrcVar0 = llvm::dyn_cast<Variable>(Src0)) {
     if (SrcVar0->hasReg()) {
       emitIASRegOpTyGPR(Func, Ty, SrcVar0, Src1, RegEmitter);
@@ -2181,9 +2160,8 @@ template <> void InstX8632Movp::emitIAS(const Cfg *Func) const {
   const Variable *Dest = getDest();
   const Operand *Src = getSrc(0);
   const static x86::AssemblerX86::XmmEmitterMovOps Emitter = {
-    &x86::AssemblerX86::movups, &x86::AssemblerX86::movups,
-    &x86::AssemblerX86::movups
-  };
+      &x86::AssemblerX86::movups, &x86::AssemblerX86::movups,
+      &x86::AssemblerX86::movups};
   emitIASMovlikeXMM(Func, Dest, Src, Emitter);
 }
 
@@ -2207,8 +2185,8 @@ template <> void InstX8632Movq::emitIAS(const Cfg *Func) const {
   const Variable *Dest = getDest();
   const Operand *Src = getSrc(0);
   const static x86::AssemblerX86::XmmEmitterMovOps Emitter = {
-    &x86::AssemblerX86::movq, &x86::AssemblerX86::movq, &x86::AssemblerX86::movq
-  };
+      &x86::AssemblerX86::movq, &x86::AssemblerX86::movq,
+      &x86::AssemblerX86::movq};
   emitIASMovlikeXMM(Func, Dest, Src, Emitter);
 }
 
@@ -2432,10 +2410,10 @@ template <> void InstX8632Pextr::emit(const Cfg *Func) const {
   // pextrb and pextrd are SSE4.1 instructions.
   assert(getSrc(0)->getType() == IceType_v8i16 ||
          getSrc(0)->getType() == IceType_v8i1 ||
-         static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet()
-             >= TargetX8632::SSE4_1);
-  Str << "\t" << Opcode
-      << TypeX8632Attributes[getSrc(0)->getType()].PackString << "\t";
+         static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
+             TargetX8632::SSE4_1);
+  Str << "\t" << Opcode << TypeX8632Attributes[getSrc(0)->getType()].PackString
+      << "\t";
   getSrc(1)->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
@@ -2478,10 +2456,10 @@ template <> void InstX8632Pinsr::emit(const Cfg *Func) const {
   // pinsrb and pinsrd are SSE4.1 instructions.
   assert(getDest()->getType() == IceType_v8i16 ||
          getDest()->getType() == IceType_v8i1 ||
-         static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet()
-             >= TargetX8632::SSE4_1);
-  Str << "\t" << Opcode
-      << TypeX8632Attributes[getDest()->getType()].PackString << "\t";
+         static_cast<TargetX8632 *>(Func->getTarget())->getInstructionSet() >=
+             TargetX8632::SSE4_1);
+  Str << "\t" << Opcode << TypeX8632Attributes[getDest()->getType()].PackString
+      << "\t";
   getSrc(2)->emit(Func);
   Str << ", ";
   Operand *Src1 = getSrc(1);
