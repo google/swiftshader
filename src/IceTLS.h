@@ -71,7 +71,7 @@
   static int FieldName##__initStatus
 #define ICE_TLS_DEFINE_FIELD(Type, ClassName, FieldName)                       \
   pthread_key_t ClassName::FieldName##__key;                                   \
-  int ClassName::FieldName##__initStatus = 1;
+  int ClassName::FieldName##__initStatus = 1
 #define ICE_TLS_INIT_FIELD(FieldName)                                          \
   if (FieldName##__initStatus) {                                               \
     FieldName##__initStatus = pthread_key_create(&FieldName##__key, nullptr);  \

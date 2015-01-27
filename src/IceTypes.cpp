@@ -46,7 +46,7 @@ enum {
   static_assert(                                                               \
       (unsigned)_table_tag_##tag == (unsigned)_props_table_tag_##tag,          \
       "Inconsistency between ICETYPE_PROPS_TABLE and ICETYPE_TABLE");
-ICETYPE_TABLE;
+ICETYPE_TABLE
 #undef X
 // Assert that tags in ICETYPE_PROPS_TABLE is in ICETYPE_TABLE.
 #define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, CompareResult)  \
@@ -77,7 +77,7 @@ enum {
 #define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, CompareResult)  \
   static_assert((_table_elts_##tag > 1) == _props_table_IsVec_##tag,           \
                 "Inconsistent vector specification in ICETYPE_PROPS_TABLE");
-ICETYPE_PROPS_TABLE;
+ICETYPE_PROPS_TABLE
 #undef X
 
 struct TypeAttributeFields {

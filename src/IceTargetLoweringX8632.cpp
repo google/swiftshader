@@ -183,7 +183,7 @@ enum _tmp_enum {
 };
 // Define a set of constants based on high-level table entries.
 #define X(tag, str) static const int _table1_##tag = InstFcmp::tag;
-ICEINSTFCMP_TABLE;
+ICEINSTFCMP_TABLE
 #undef X
 // Define a set of constants based on low-level table entries, and
 // ensure the table entry keys are consistent.
@@ -192,7 +192,7 @@ ICEINSTFCMP_TABLE;
   static_assert(                                                               \
       _table1_##val == _table2_##val,                                          \
       "Inconsistency between FCMPX8632_TABLE and ICEINSTFCMP_TABLE");
-FCMPX8632_TABLE;
+FCMPX8632_TABLE
 #undef X
 // Repeat the static asserts with respect to the high-level table
 // entries in case the high-level table has extra entries.
@@ -200,7 +200,7 @@ FCMPX8632_TABLE;
   static_assert(                                                               \
       _table1_##tag == _table2_##tag,                                          \
       "Inconsistency between FCMPX8632_TABLE and ICEINSTFCMP_TABLE");
-ICEINSTFCMP_TABLE;
+ICEINSTFCMP_TABLE
 #undef X
 } // end of namespace dummy1
 
@@ -216,7 +216,7 @@ enum _tmp_enum {
 };
 // Define a set of constants based on high-level table entries.
 #define X(tag, str) static const int _table1_##tag = InstIcmp::tag;
-ICEINSTICMP_TABLE;
+ICEINSTICMP_TABLE
 #undef X
 // Define a set of constants based on low-level table entries, and
 // ensure the table entry keys are consistent.
@@ -225,7 +225,7 @@ ICEINSTICMP_TABLE;
   static_assert(                                                               \
       _table1_##val == _table2_##val,                                          \
       "Inconsistency between ICMPX8632_TABLE and ICEINSTICMP_TABLE");
-ICMPX8632_TABLE;
+ICMPX8632_TABLE
 #undef X
 // Repeat the static asserts with respect to the high-level table
 // entries in case the high-level table has extra entries.
@@ -233,7 +233,7 @@ ICMPX8632_TABLE;
   static_assert(                                                               \
       _table1_##tag == _table2_##tag,                                          \
       "Inconsistency between ICMPX8632_TABLE and ICEINSTICMP_TABLE");
-ICEINSTICMP_TABLE;
+ICEINSTICMP_TABLE
 #undef X
 } // end of namespace dummy2
 
@@ -250,7 +250,7 @@ enum _tmp_enum {
 // Define a set of constants based on high-level table entries.
 #define X(tag, size, align, elts, elty, str)                                   \
   static const int _table1_##tag = tag;
-ICETYPE_TABLE;
+ICETYPE_TABLE
 #undef X
 // Define a set of constants based on low-level table entries, and
 // ensure the table entry keys are consistent.
@@ -258,14 +258,14 @@ ICETYPE_TABLE;
   static const int _table2_##tag = _tmp_##tag;                                 \
   static_assert(_table1_##tag == _table2_##tag,                                \
                 "Inconsistency between ICETYPEX8632_TABLE and ICETYPE_TABLE");
-ICETYPEX8632_TABLE;
+ICETYPEX8632_TABLE
 #undef X
 // Repeat the static asserts with respect to the high-level table
 // entries in case the high-level table has extra entries.
 #define X(tag, size, align, elts, elty, str)                                   \
   static_assert(_table1_##tag == _table2_##tag,                                \
                 "Inconsistency between ICETYPEX8632_TABLE and ICETYPE_TABLE");
-ICETYPE_TABLE;
+ICETYPE_TABLE
 #undef X
 } // end of namespace dummy3
 
