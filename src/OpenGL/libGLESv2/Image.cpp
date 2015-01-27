@@ -50,7 +50,7 @@ namespace
 	template<DataType dataType>
 	void LoadImageRow(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
 	{
-		dataType::unimplemented_function;
+		UNIMPLEMENTED();
 	}
 
 	template<>
