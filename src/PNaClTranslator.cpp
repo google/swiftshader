@@ -162,8 +162,8 @@ public:
   TopLevelParser(Ice::Translator &Translator, NaClBitcodeHeader &Header,
                  NaClBitstreamCursor &Cursor, Ice::ErrorCode &ErrorStatus)
       : NaClBitcodeParser(Cursor), Translator(Translator), Header(Header),
-        ErrorStatus(ErrorStatus), NumErrors(0), NumFunctionIds(0),
-        NumFunctionBlocks(0), BlockParser(nullptr) {}
+        ErrorStatus(ErrorStatus), NumErrors(0), NextDefiningFunctionID(0),
+        BlockParser(nullptr) {}
 
   ~TopLevelParser() override {}
 
@@ -228,24 +228,21 @@ public:
 
   /// Sets the next function ID to the given LLVM function.
   void setNextFunctionID(Ice::FunctionDeclaration *Fcn) {
-    ++NumFunctionIds;
     FunctionDeclarationList.push_back(Fcn);
-  }
-
-  /// Defines the next function ID as one that has an implementation
-  /// (i.e a corresponding function block in the bitcode).
-  void setNextValueIDAsImplementedFunction() {
-    DefiningFunctionDeclarationsList.push_back(FunctionDeclarationList.size());
   }
 
   /// Returns the value id that should be associated with the the
   /// current function block. Increments internal counters during call
   /// so that it will be in correct position for next function block.
-  unsigned getNextFunctionBlockValueID() {
-    if (NumFunctionBlocks >= DefiningFunctionDeclarationsList.size())
+  size_t getNextFunctionBlockValueID() {
+    size_t NumDeclaredFunctions = FunctionDeclarationList.size();
+    while (NextDefiningFunctionID < NumDeclaredFunctions &&
+           FunctionDeclarationList[NextDefiningFunctionID]->isProto())
+      ++NextDefiningFunctionID;
+    if (NextDefiningFunctionID >= NumDeclaredFunctions)
       report_fatal_error(
           "More function blocks than defined function addresses");
-    return DefiningFunctionDeclarationsList[NumFunctionBlocks++];
+    return NextDefiningFunctionID++;
   }
 
   /// Returns the function associated with ID.
@@ -314,7 +311,7 @@ public:
   }
 
   /// Returns the number of function declarations in the bitcode file.
-  unsigned getNumFunctionIDs() const { return NumFunctionIds; }
+  unsigned getNumFunctionIDs() const { return FunctionDeclarationList.size(); }
 
   /// Returns the number of global declarations (i.e. IDs) defined in
   /// the bitcode file.
@@ -346,6 +343,7 @@ public:
   /// Returns the global declaration (variable or function) with the
   /// given Index.
   Ice::GlobalDeclaration *getGlobalDeclarationByID(size_t Index) {
+    size_t NumFunctionIds = FunctionDeclarationList.size();
     if (Index < NumFunctionIds)
       return getFunctionByID(Index);
     else
@@ -368,21 +366,19 @@ private:
   unsigned NumErrors;
   // The types associated with each type ID.
   std::vector<ExtendedType> TypeIDValues;
-  // The set of functions.
+  // The set of functions (prototype and defined).
   FunctionDeclarationListType FunctionDeclarationList;
+  // The ID of the next possible defined function ID in
+  // FunctionDeclarationList.  FunctionDeclarationList is filled
+  // first. It's the set of functions (either defined or isproto). Then
+  // function definitions are encountered/parsed and
+  // NextDefiningFunctionID is incremented to track the next
+  // actually-defined function.
+  size_t NextDefiningFunctionID;
   // The set of global variables.
   Ice::Translator::VariableDeclarationListType VariableDeclarations;
   // Relocatable constants associated with global declarations.
   std::vector<Ice::Constant *> ValueIDConstants;
-  // The number of function declarations (i.e. IDs).
-  unsigned NumFunctionIds;
-  // The number of function blocks (processed so far).
-  unsigned NumFunctionBlocks;
-  // The list of function declaration IDs (in the order found) that
-  // aren't just proto declarations.
-  // TODO(kschimpf): Instead of using this list, just use
-  // FunctionDeclarationList, and the isProto member function.
-  std::vector<unsigned> DefiningFunctionDeclarationsList;
   // Error recovery value to use when getFuncSigTypeByID fails.
   Ice::FuncSigType UndefinedFuncSigType;
   // The block parser currently being applied. Used for error
@@ -2902,10 +2898,9 @@ void ModuleParser::ProcessRecord() {
       Error(StrBuf.str());
       return;
     }
+    bool IsProto = Values[2] == 1;
     Ice::FunctionDeclaration *Func = Ice::FunctionDeclaration::create(
-        Signature, CallingConv, Linkage, Values[2] == 0);
-    if (Values[2] == 0)
-      Context->setNextValueIDAsImplementedFunction();
+        Signature, CallingConv, Linkage, IsProto);
     Context->setNextFunctionID(Func);
     return;
   }
