@@ -15,7 +15,7 @@
 #define SUBZERO_SRC_ICEUTILS_H
 
 #include <climits>
-#include <mutex>
+#include <condition_variable>
 
 namespace Ice {
 
