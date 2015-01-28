@@ -94,6 +94,30 @@
     },
     {
       "key": {
+        "uuid": "d7ba679b_4d88adba",
+        "filename": "src/OpenGL/libGLES_CM/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1768,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-28T19:23:48Z",
+      "side": 1,
+      "message": "In fixed-function GL you can \u0027enable\u0027 GL_TEXTURE_2D. This will probably have to become a per texture unit boolean at some point...",
+      "parentUuid": "374f4380_eb2f25b2",
+      "range": {
+        "startLine": 1768,
+        "startChar": 2,
+        "endLine": 1768,
+        "endChar": 47
+      },
+      "revId": "acc991131a2efe39338348ec7f8bdd13a8b35029",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "374f4380_8b0f9154",
         "filename": "src/OpenGL/libGLES_CM/Context.cpp",
         "patchSetId": 2
@@ -110,6 +134,29 @@
         "startChar": 0,
         "endLine": 1794,
         "endChar": 3
+      },
+      "revId": "acc991131a2efe39338348ec7f8bdd13a8b35029",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d7ba679b_ed788115",
+        "filename": "src/OpenGL/libGLES_CM/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1837,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-01-28T19:23:48Z",
+      "side": 1,
+      "message": "Let\u0027s add an UNREACHABLE() here, and move the break up.",
+      "range": {
+        "startLine": 1837,
+        "startChar": 2,
+        "endLine": 1837,
+        "endChar": 8
       },
       "revId": "acc991131a2efe39338348ec7f8bdd13a8b35029",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
