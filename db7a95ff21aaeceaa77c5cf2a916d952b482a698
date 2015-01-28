@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "374f4380_ced7d746",
+        "filename": "src/Renderer/SetupProcessor.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-28T19:39:34Z",
+      "side": 1,
+      "message": "Could it be possible to define what 0x3F is?",
+      "range": {
+        "startLine": 113,
+        "startChar": 24,
+        "endLine": 113,
+        "endChar": 28
+      },
+      "revId": "db7a95ff21aaeceaa77c5cf2a916d952b482a698",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
