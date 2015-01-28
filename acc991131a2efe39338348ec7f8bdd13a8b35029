@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "374f4380_2b1f7d8d",
+        "filename": "src/OpenGL/libGLES_CM/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1762,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-28T16:55:16Z",
+      "side": 1,
+      "message": "weird trailing spaces",
+      "range": {
+        "startLine": 1762,
+        "startChar": 41,
+        "endLine": 1762,
+        "endChar": 45
+      },
+      "revId": "acc991131a2efe39338348ec7f8bdd13a8b35029",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "374f4380_ab124d7c",
+        "filename": "src/OpenGL/libGLES_CM/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1763,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-28T16:55:16Z",
+      "side": 1,
+      "message": "extra tabs added",
+      "range": {
+        "startLine": 1763,
+        "startChar": 0,
+        "endLine": 1763,
+        "endChar": 1
+      },
+      "revId": "acc991131a2efe39338348ec7f8bdd13a8b35029",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "374f4380_eb084550",
+        "filename": "src/OpenGL/libGLES_CM/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1767,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-28T16:55:16Z",
+      "side": 1,
+      "message": "extra tabs added",
+      "range": {
+        "startLine": 1767,
+        "startChar": 0,
+        "endLine": 1767,
+        "endChar": 2
+      },
+      "revId": "acc991131a2efe39338348ec7f8bdd13a8b35029",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "374f4380_eb2f25b2",
+        "filename": "src/OpenGL/libGLES_CM/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1768,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-28T16:55:16Z",
+      "side": 1,
+      "message": "Not new, but I\u0027m a bit confused. Shouldn\u0027t this be:\n\"if(texture \u0026\u0026 texture-\u003eisSamplerComplete())\"\nWhat\u0027s \"texture2D\" in this context?",
+      "range": {
+        "startLine": 1768,
+        "startChar": 2,
+        "endLine": 1768,
+        "endChar": 47
+      },
+      "revId": "acc991131a2efe39338348ec7f8bdd13a8b35029",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "374f4380_8b0f9154",
+        "filename": "src/OpenGL/libGLES_CM/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1794,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-01-28T16:55:16Z",
+      "side": 1,
+      "message": "extra tabs added",
+      "range": {
+        "startLine": 1794,
+        "startChar": 0,
+        "endLine": 1794,
+        "endChar": 3
+      },
+      "revId": "acc991131a2efe39338348ec7f8bdd13a8b35029",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
