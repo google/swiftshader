@@ -130,7 +130,7 @@ enum { MaxCacheLineSize = 64 };
 // Use ICE_CACHELINE_BOUNDARY to force the next field in a declaration
 // list to be aligned to the next cache line.
 #define ICE_CACHELINE_BOUNDARY                                                 \
-  alignas(MaxCacheLineSize) struct {}
+  __attribute__((aligned(MaxCacheLineSize))) int : 0
 
 // PNaCl is ILP32, so theoretically we should only need 32-bit offsets.
 typedef int32_t RelocOffsetT;
