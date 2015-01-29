@@ -9,38 +9,37 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// HandleAllocator.h: Defines the HandleAllocator class, which is used to
-// allocate GL handles.
+// NameSpace.h: Defines the NameSpace class, which is used to
+// allocate GL object names.
 
-#ifndef LIBGLES_CM_HANDLEALLOCATOR_H_
-#define LIBGLES_CM_HANDLEALLOCATOR_H_
-
-#define GL_API
-#include <GLES/gl.h>
+#ifndef gl_NameSpace_hpp
+#define gl_NameSpace_hpp
 
 #include <vector>
 
-namespace es1
+typedef unsigned int GLuint;
+
+namespace gl
 {
 
-class HandleAllocator
+class NameSpace
 {
   public:
-    HandleAllocator();
-    virtual ~HandleAllocator();
+    NameSpace();
+    virtual ~NameSpace();
 
     void setBaseHandle(GLuint value);
 
     GLuint allocate();
     void release(GLuint handle);
 
-  private:
-    GLuint mBaseValue;
-    GLuint mNextValue;
+private:
+    GLuint baseValue;
+    GLuint nextValue;
     typedef std::vector<GLuint> HandleList;
-    HandleList mFreeValues;
+    HandleList freeValues;
 };
 
 }
 
-#endif   // LIBGLES_CM_HANDLEALLOCATOR_H_
+#endif   // gl_NameSpace_hpp

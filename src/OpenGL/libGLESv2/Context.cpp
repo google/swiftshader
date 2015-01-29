@@ -44,7 +44,7 @@ Context::Context(const egl::Config *config, const Context *shareContext) : mConf
 	sw::Context *context = new sw::Context();
 	device = new es2::Device(context);
 
-    mFenceHandleAllocator.setBaseHandle(0);
+    mFenceNameSpace.setBaseHandle(0);
 
     setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -775,7 +775,7 @@ GLuint Context::createRenderbuffer()
 // Returns an unused framebuffer name
 GLuint Context::createFramebuffer()
 {
-    GLuint handle = mFramebufferHandleAllocator.allocate();
+    GLuint handle = mFramebufferNameSpace.allocate();
 
     mFramebufferMap[handle] = NULL;
 
@@ -784,7 +784,7 @@ GLuint Context::createFramebuffer()
 
 GLuint Context::createFence()
 {
-    GLuint handle = mFenceHandleAllocator.allocate();
+    GLuint handle = mFenceNameSpace.allocate();
 
     mFenceMap[handle] = new Fence;
 
@@ -794,7 +794,7 @@ GLuint Context::createFence()
 // Returns an unused query name
 GLuint Context::createQuery()
 {
-    GLuint handle = mQueryHandleAllocator.allocate();
+    GLuint handle = mQueryNameSpace.allocate();
 
     mQueryMap[handle] = NULL;
 
@@ -849,7 +849,7 @@ void Context::deleteFramebuffer(GLuint framebuffer)
     {
         detachFramebuffer(framebuffer);
 
-        mFramebufferHandleAllocator.release(framebufferObject->first);
+        mFramebufferNameSpace.release(framebufferObject->first);
         delete framebufferObject->second;
         mFramebufferMap.erase(framebufferObject);
     }
@@ -861,7 +861,7 @@ void Context::deleteFence(GLuint fence)
 
     if(fenceObject != mFenceMap.end())
     {
-        mFenceHandleAllocator.release(fenceObject->first);
+        mFenceNameSpace.release(fenceObject->first);
         delete fenceObject->second;
         mFenceMap.erase(fenceObject);
     }
@@ -873,7 +873,7 @@ void Context::deleteQuery(GLuint query)
     
 	if(queryObject != mQueryMap.end())
     {
-        mQueryHandleAllocator.release(queryObject->first);
+        mQueryNameSpace.release(queryObject->first);
         
 		if(queryObject->second)
         {

@@ -15,7 +15,7 @@
 #ifndef LIBGL_RESOURCEMANAGER_H_
 #define LIBGL_RESOURCEMANAGER_H_
 
-#include "HandleAllocator.h"
+#include "common/NameSpace.hpp"
 
 #define GL_APICALL
 #include <GLES2/gl2.h>
@@ -77,22 +77,22 @@ class ResourceManager
 
     typedef std::map<GLint, Buffer*> BufferMap;
     BufferMap mBufferMap;
-    HandleAllocator mBufferHandleAllocator;
+    NameSpace mBufferNameSpace;
 
     typedef std::map<GLint, Shader*> ShaderMap;
     ShaderMap mShaderMap;
 
     typedef std::map<GLint, Program*> ProgramMap;
     ProgramMap mProgramMap;
-    HandleAllocator mProgramShaderHandleAllocator;
+    NameSpace mProgramShaderNameSpace;
 
     typedef std::map<GLint, Texture*> TextureMap;
     TextureMap mTextureMap;
-    HandleAllocator mTextureHandleAllocator;
+    NameSpace mTextureNameSpace;
 
     typedef std::map<GLint, Renderbuffer*> RenderbufferMap;
     RenderbufferMap mRenderbufferMap;
-    HandleAllocator mRenderbufferHandleAllocator;
+    NameSpace mRenderbufferNameSpace;
 };
 
 }

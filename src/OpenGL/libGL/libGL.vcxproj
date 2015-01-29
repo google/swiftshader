@@ -318,6 +318,7 @@ copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platf
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\NameSpace.cpp" />
     <ClCompile Include="..\common\Object.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Context.cpp" />
@@ -325,7 +326,6 @@ copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platf
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Fence.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
-    <ClCompile Include="HandleAllocator.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="IndexDataManager.cpp" />
     <ClCompile Include="libGL.cpp" />
@@ -341,6 +341,7 @@ copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platf
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\debug.h" />
+    <ClInclude Include="..\common\NameSpace.hpp" />
     <ClInclude Include="..\common\Object.hpp" />
     <ClInclude Include="..\include\GLES2\gl2.h" />
     <ClInclude Include="..\include\GLES2\gl2ext.h" />
@@ -350,7 +351,6 @@ copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platf
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="Fence.h" />
     <ClInclude Include="Framebuffer.h" />
-    <ClInclude Include="HandleAllocator.h" />
     <ClInclude Include="Image.hpp" />
     <ClInclude Include="IndexDataManager.h" />
     <ClInclude Include="main.h" />

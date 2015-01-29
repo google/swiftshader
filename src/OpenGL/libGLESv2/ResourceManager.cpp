@@ -71,7 +71,7 @@ void ResourceManager::release()
 // Returns an unused buffer name
 GLuint ResourceManager::createBuffer()
 {
-    GLuint handle = mBufferHandleAllocator.allocate();
+    GLuint handle = mBufferNameSpace.allocate();
 
     mBufferMap[handle] = NULL;
 
@@ -81,7 +81,7 @@ GLuint ResourceManager::createBuffer()
 // Returns an unused shader/program name
 GLuint ResourceManager::createShader(GLenum type)
 {
-    GLuint handle = mProgramShaderHandleAllocator.allocate();
+    GLuint handle = mProgramShaderNameSpace.allocate();
 
     if(type == GL_VERTEX_SHADER)
     {
@@ -99,7 +99,7 @@ GLuint ResourceManager::createShader(GLenum type)
 // Returns an unused program/shader name
 GLuint ResourceManager::createProgram()
 {
-    GLuint handle = mProgramShaderHandleAllocator.allocate();
+    GLuint handle = mProgramShaderNameSpace.allocate();
 
     mProgramMap[handle] = new Program(this, handle);
 
@@ -109,7 +109,7 @@ GLuint ResourceManager::createProgram()
 // Returns an unused texture name
 GLuint ResourceManager::createTexture()
 {
-    GLuint handle = mTextureHandleAllocator.allocate();
+    GLuint handle = mTextureNameSpace.allocate();
 
     mTextureMap[handle] = NULL;
 
@@ -119,7 +119,7 @@ GLuint ResourceManager::createTexture()
 // Returns an unused renderbuffer name
 GLuint ResourceManager::createRenderbuffer()
 {
-    GLuint handle = mRenderbufferHandleAllocator.allocate();
+    GLuint handle = mRenderbufferNameSpace.allocate();
 
     mRenderbufferMap[handle] = NULL;
 
@@ -132,7 +132,7 @@ void ResourceManager::deleteBuffer(GLuint buffer)
 
     if(bufferObject != mBufferMap.end())
     {
-        mBufferHandleAllocator.release(bufferObject->first);
+        mBufferNameSpace.release(bufferObject->first);
         if(bufferObject->second) bufferObject->second->release();
         mBufferMap.erase(bufferObject);
     }
@@ -146,7 +146,7 @@ void ResourceManager::deleteShader(GLuint shader)
     {
         if(shaderObject->second->getRefCount() == 0)
         {
-            mProgramShaderHandleAllocator.release(shaderObject->first);
+            mProgramShaderNameSpace.release(shaderObject->first);
             delete shaderObject->second;
             mShaderMap.erase(shaderObject);
         }
@@ -165,7 +165,7 @@ void ResourceManager::deleteProgram(GLuint program)
     {
         if(programObject->second->getRefCount() == 0)
         {
-            mProgramShaderHandleAllocator.release(programObject->first);
+            mProgramShaderNameSpace.release(programObject->first);
             delete programObject->second;
             mProgramMap.erase(programObject);
         }
@@ -182,7 +182,7 @@ void ResourceManager::deleteTexture(GLuint texture)
 
     if(textureObject != mTextureMap.end())
     {
-        mTextureHandleAllocator.release(textureObject->first);
+        mTextureNameSpace.release(textureObject->first);
         if(textureObject->second) textureObject->second->release();
         mTextureMap.erase(textureObject);
     }
@@ -194,7 +194,7 @@ void ResourceManager::deleteRenderbuffer(GLuint renderbuffer)
 
     if(renderbufferObject != mRenderbufferMap.end())
     {
-        mRenderbufferHandleAllocator.release(renderbufferObject->first);
+        mRenderbufferNameSpace.release(renderbufferObject->first);
         if(renderbufferObject->second) renderbufferObject->second->release();
         mRenderbufferMap.erase(renderbufferObject);
     }

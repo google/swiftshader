@@ -9,58 +9,60 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// HandleAllocator.cpp: Implements the HandleAllocator class, which is used
-// to allocate GL handles.
+// NameSpace.cpp: Implements the NameSpace class, which is used
+// to allocate GL object names.
 
-#include "HandleAllocator.h"
+#include "common/NameSpace.hpp"
 
-#include "main.h"
+#include "debug.h"
 
 namespace gl
 {
 
-HandleAllocator::HandleAllocator() : mBaseValue(1), mNextValue(1)
+NameSpace::NameSpace() : baseValue(1), nextValue(1)
 {
 }
 
-HandleAllocator::~HandleAllocator()
+NameSpace::~NameSpace()
 {
 }
 
-void HandleAllocator::setBaseHandle(GLuint value)
+void NameSpace::setBaseHandle(GLuint value)
 {
-    ASSERT(mBaseValue == mNextValue);
-    mBaseValue = value;
-    mNextValue = value;
+    ASSERT(baseValue == nextValue);
+    baseValue = value;
+    nextValue = value;
 }
 
-GLuint HandleAllocator::allocate()
+GLuint NameSpace::allocate()
 {
-    if(mFreeValues.size())
+    if(freeValues.size())
     {
-        GLuint handle = mFreeValues.back();
-        mFreeValues.pop_back();
+        GLuint handle = freeValues.back();
+        freeValues.pop_back();
+
         return handle;
     }
-    return mNextValue++;
+
+    return nextValue++;
 }
 
-void HandleAllocator::release(GLuint handle)
+void NameSpace::release(GLuint handle)
 {
-    if(handle == mNextValue - 1)
+    if(handle == nextValue - 1)
     {
         // Don't drop below base value
-        if(mNextValue > mBaseValue)
+        if(nextValue > baseValue)
         {
-            mNextValue--;
+            nextValue--;
         }
     }
     else
     {
         // Only free handles that we own - don't drop below the base value
-        if(handle >= mBaseValue)
+        if(handle >= baseValue)
         {
-            mFreeValues.push_back(handle);
+            freeValues.push_back(handle);
         }
     }
 }

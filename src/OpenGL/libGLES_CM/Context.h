@@ -17,7 +17,7 @@
 
 #include "libEGL/Context.hpp"
 #include "ResourceManager.h"
-#include "HandleAllocator.h"
+#include "common/NameSpace.hpp"
 #include "common/Object.hpp"
 #include "Image.hpp"
 #include "Renderer/Sampler.hpp"
@@ -472,7 +472,7 @@ private:
 
     typedef std::map<GLint, Framebuffer*> FramebufferMap;
     FramebufferMap mFramebufferMap;
-    HandleAllocator mFramebufferHandleAllocator;
+    gl::NameSpace mFramebufferNameSpace;
 
     VertexDataManager *mVertexDataManager;
     IndexDataManager *mIndexDataManager;

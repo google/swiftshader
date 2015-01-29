@@ -761,7 +761,7 @@ GLuint Context::createRenderbuffer()
 // Returns an unused framebuffer name
 GLuint Context::createFramebuffer()
 {
-    GLuint handle = mFramebufferHandleAllocator.allocate();
+    GLuint handle = mFramebufferNameSpace.allocate();
 
     mFramebufferMap[handle] = NULL;
 
@@ -806,7 +806,7 @@ void Context::deleteFramebuffer(GLuint framebuffer)
     {
         detachFramebuffer(framebuffer);
 
-        mFramebufferHandleAllocator.release(framebufferObject->first);
+        mFramebufferNameSpace.release(framebufferObject->first);
         delete framebufferObject->second;
         mFramebufferMap.erase(framebufferObject);
     }

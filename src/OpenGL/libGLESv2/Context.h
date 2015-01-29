@@ -17,7 +17,7 @@
 
 #include "libEGL/Context.hpp"
 #include "ResourceManager.h"
-#include "HandleAllocator.h"
+#include "common/NameSpace.hpp"
 #include "common/Object.hpp"
 #include "Image.hpp"
 #include "Renderer/Sampler.hpp"
@@ -470,15 +470,15 @@ private:
 
     typedef std::map<GLint, Framebuffer*> FramebufferMap;
     FramebufferMap mFramebufferMap;
-    HandleAllocator mFramebufferHandleAllocator;
+    gl::NameSpace mFramebufferNameSpace;
 
     typedef std::map<GLint, Fence*> FenceMap;
     FenceMap mFenceMap;
-    HandleAllocator mFenceHandleAllocator;
+    gl::NameSpace mFenceNameSpace;
 
 	typedef std::map<GLint, Query*> QueryMap;
     QueryMap mQueryMap;
-    HandleAllocator mQueryHandleAllocator;
+    gl::NameSpace mQueryNameSpace;
 
     VertexDataManager *mVertexDataManager;
     IndexDataManager *mIndexDataManager;

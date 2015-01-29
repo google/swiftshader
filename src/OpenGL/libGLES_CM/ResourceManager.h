@@ -15,7 +15,7 @@
 #ifndef LIBGLES_CM_RESOURCEMANAGER_H_
 #define LIBGLES_CM_RESOURCEMANAGER_H_
 
-#include "HandleAllocator.h"
+#include "common/NameSpace.hpp"
 
 #define GL_API
 #include <GLES/gl.h>
@@ -69,15 +69,15 @@ class ResourceManager
 
     typedef std::map<GLint, Buffer*> BufferMap;
     BufferMap mBufferMap;
-    HandleAllocator mBufferHandleAllocator;
+    gl::NameSpace mBufferNameSpace;
 	
     typedef std::map<GLint, Texture*> TextureMap;
     TextureMap mTextureMap;
-    HandleAllocator mTextureHandleAllocator;
+    gl::NameSpace mTextureNameSpace;
 
     typedef std::map<GLint, Renderbuffer*> RenderbufferMap;
     RenderbufferMap mRenderbufferMap;
-    HandleAllocator mRenderbufferHandleAllocator;
+    gl::NameSpace mRenderbufferNameSpace;
 };
 
 }
