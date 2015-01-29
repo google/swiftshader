@@ -9,10 +9,9 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// RefCountObject.cpp: Defines the RefCountObject base class that provides
+// Object.cpp: Defines the Object base class that provides
 // lifecycle support for GL objects using the traditional BindObject scheme, but
 // that need to be reference counted for correct cross-context deletion.
-// (Concretely, textures, buffers and renderbuffers.)
 
 #include "Object.hpp"
 
@@ -21,24 +20,22 @@
 namespace gl
 {
 
-RefCountObject::RefCountObject(GLuint id)
+Object::Object(GLuint name) : name(name)
 {
-    mId = id;
-    
 	referenceCount = 0;
 }
 
-RefCountObject::~RefCountObject()
+Object::~Object()
 {
     ASSERT(referenceCount == 0);
 }
 
-void RefCountObject::addRef()
+void Object::addRef()
 {
 	sw::atomicIncrement(&referenceCount);
 }
 
-void RefCountObject::release()
+void Object::release()
 {
     ASSERT(referenceCount > 0);
 
@@ -51,15 +48,6 @@ void RefCountObject::release()
 	{
 		delete this;
 	}
-}
-
-void RefCountObjectBindingPointer::set(RefCountObject *newObject)
-{
-    // addRef first in case newObject == mObject and this is the last reference to it.
-    if(newObject != NULL) newObject->addRef();
-    if(mObject != NULL) mObject->release();
-
-    mObject = newObject;
 }
 
 }

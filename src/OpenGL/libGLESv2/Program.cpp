@@ -2056,7 +2056,7 @@ namespace es2
 		{
 			if(total < maxCount)
 			{
-				shaders[total] = vertexShader->getHandle();
+				shaders[total] = vertexShader->getName();
 			}
 
 			total++;
@@ -2066,7 +2066,7 @@ namespace es2
 		{
 			if(total < maxCount)
 			{
-				shaders[total] = fragmentShader->getHandle();
+				shaders[total] = fragmentShader->getName();
 			}
 
 			total++;

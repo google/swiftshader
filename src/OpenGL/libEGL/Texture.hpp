@@ -5,10 +5,10 @@
 
 namespace egl
 {
-class Texture : public gl::RefCountObject
+class Texture : public gl::Object
 {
 public:
-	Texture(GLuint id) : RefCountObject(id) {};
+	Texture(GLuint name) : Object(name) {};
 	virtual void releaseTexImage() = 0;
 };
 }

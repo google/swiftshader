@@ -54,9 +54,9 @@ public:
     GLenum getDepthbufferType();
     GLenum getStencilbufferType();
 
-    GLuint getColorbufferHandle();
-    GLuint getDepthbufferHandle();
-    GLuint getStencilbufferHandle();
+    GLuint getColorbufferName();
+    GLuint getDepthbufferName();
+    GLuint getStencilbufferName();
 
     bool hasStencil();
 

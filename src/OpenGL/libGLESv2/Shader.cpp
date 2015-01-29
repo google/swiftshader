@@ -43,7 +43,7 @@ Shader::~Shader()
     delete[] mInfoLog;
 }
 
-GLuint Shader::getHandle() const
+GLuint Shader::getName() const
 {
     return mHandle;
 }
@@ -388,11 +388,11 @@ void VertexShader::compile()
 	{
 		static int serial = 1;
 		char buffer[256];
-		sprintf(buffer, "vertex-input-%d-%d.txt", getHandle(), serial);
+		sprintf(buffer, "vertex-input-%d-%d.txt", getName(), serial);
 		FILE *file = fopen(buffer, "wt");
 		fprintf(file, mSource);
 		fclose(file);
-		vertexShader->print("vertex-output-%d-%d.txt", getHandle(), serial);
+		vertexShader->print("vertex-output-%d-%d.txt", getName(), serial);
 		serial++;
 	}
 
@@ -474,11 +474,11 @@ void FragmentShader::compile()
 	{
 		static int serial = 1;
 		char buffer[256];
-		sprintf(buffer, "pixel-input-%d-%d.txt", getHandle(), serial);
+		sprintf(buffer, "pixel-input-%d-%d.txt", getName(), serial);
 		FILE *file = fopen(buffer, "wt");
 		fprintf(file, mSource);
 		fclose(file);
-		pixelShader->print("pixel-output-%d-%d.txt", getHandle(), serial);
+		pixelShader->print("pixel-output-%d-%d.txt", getName(), serial);
 		serial++;
 	}
 

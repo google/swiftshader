@@ -9,67 +9,60 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// Object.hpp: Defines the RefCountObject base class that provides
+// Object.hpp: Defines the Object base class that provides
 // lifecycle support for GL objects using the traditional BindObject scheme, but
 // that need to be reference counted for correct cross-context deletion.
-// (Concretely, textures, buffers and renderbuffers.)
 
-#ifndef LIBGLESV2_REFCOUNTOBJECT_H_
-#define LIBGLESV2_REFCOUNTOBJECT_H_
+#ifndef gl_Object_hpp
+#define gl_Object_hpp
 
 #include "common/debug.h"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
-
-#include <cstddef>
+typedef unsigned int GLuint;
 
 namespace gl
 {
 
-class RefCountObject
+class Object
 {
-  public:
-    explicit RefCountObject(GLuint id);
-    virtual ~RefCountObject();
+public:
+    explicit Object(GLuint name);
+    virtual ~Object();
 
     virtual void addRef();
 	virtual void release();
 
-    GLuint id() const {return mId;}
+    const GLuint name;
     
-  private:
-    GLuint mId;
-
+private:
     volatile int referenceCount;
 };
 
-class RefCountObjectBindingPointer
-{
-  protected:
-    RefCountObjectBindingPointer() : mObject(NULL) { }
-    ~RefCountObjectBindingPointer() { ASSERT(mObject == NULL); } // Objects have to be released before the resource manager is destroyed, so they must be explicitly cleaned up.
-
-    void set(RefCountObject *newObject);
-    RefCountObject *get() const { return mObject; }
-
-  public:
-    GLuint id() const { return (mObject != NULL) ? mObject->id() : 0; }
-    bool operator ! () const { return (get() == NULL); }
-
-  private:
-    RefCountObject *mObject;
-};
-
 template<class ObjectType>
-class BindingPointer : public RefCountObjectBindingPointer
+class BindingPointer
 {
-  public:
-    void set(ObjectType *newObject) { RefCountObjectBindingPointer::set(newObject); }
-    ObjectType *get() const { return static_cast<ObjectType*>(RefCountObjectBindingPointer::get()); }
-    ObjectType *operator -> () const { return get(); }
+public:
+	BindingPointer() : object(nullptr) { }
+
+	~BindingPointer() { ASSERT(!object); } // Objects have to be released before the resource manager is destroyed, so they must be explicitly cleaned up.
+
+    void set(ObjectType *newObject) 
+	{
+		if(newObject) newObject->addRef();
+		if(object) object->release();
+
+		object = newObject;
+	}
+    ObjectType *get() const { return object; }
+    ObjectType *operator->() const { return object; }
+
+	GLuint name() const { return object ? object->name : 0; }
+    bool operator!() const { return !object; }
+
+private:
+    ObjectType *object;
 };
 
 }
 
-#endif   // LIBGLESV2_REFCOUNTOBJECT_H_
+#endif   // gl_Object_hpp

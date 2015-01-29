@@ -181,9 +181,9 @@ void GL_APIENTRY glAttachShader(GLuint program, GLuint shader)
 	}
 }
 
-void GL_APIENTRY glBeginQueryEXT(GLenum target, GLuint id)
+void GL_APIENTRY glBeginQueryEXT(GLenum target, GLuint name)
 {
-	TRACE("(GLenum target = 0x%X, GLuint %d)", target, id);
+	TRACE("(GLenum target = 0x%X, GLuint name = %d)", target, name);
 
 	switch(target)
 	{
@@ -194,7 +194,7 @@ void GL_APIENTRY glBeginQueryEXT(GLenum target, GLuint id)
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(id == 0)
+	if(name == 0)
 	{
 		return error(GL_INVALID_OPERATION);
 	}
@@ -203,7 +203,7 @@ void GL_APIENTRY glBeginQueryEXT(GLenum target, GLuint id)
 
 	if(context)
 	{
-		context->beginQuery(target, id);
+		context->beginQuery(target, name);
 	}
 }
 
@@ -989,7 +989,7 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 			return error(GL_INVALID_FRAMEBUFFER_OPERATION);
 		}
 
-		if(context->getReadFramebufferHandle() != 0 && framebuffer->getColorbuffer()->getSamples() > 1)
+		if(context->getReadFramebufferName() != 0 && framebuffer->getColorbuffer()->getSamples() > 1)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -1119,7 +1119,7 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 			return error(GL_INVALID_FRAMEBUFFER_OPERATION);
 		}
 
-		if(context->getReadFramebufferHandle() != 0 && framebuffer->getColorbuffer()->getSamples() > 1)
+		if(context->getReadFramebufferName() != 0 && framebuffer->getColorbuffer()->getSamples() > 1)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -1754,19 +1754,19 @@ void GL_APIENTRY glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLe
 	if(context)
 	{
 		gl::Framebuffer *framebuffer = NULL;
-		GLuint framebufferHandle = 0;
+		GLuint framebufferName = 0;
 		if(target == GL_READ_FRAMEBUFFER_ANGLE)
 		{
 			framebuffer = context->getReadFramebuffer();
-			framebufferHandle = context->getReadFramebufferHandle();
+			framebufferName = context->getReadFramebufferName();
 		}
 		else
 		{
 			framebuffer = context->getDrawFramebuffer();
-			framebufferHandle = context->getDrawFramebufferHandle();
+			framebufferName = context->getDrawFramebufferName();
 		}
 
-		if(!framebuffer || (framebufferHandle == 0 && renderbuffer != 0))
+		if(!framebuffer || (framebufferName == 0 && renderbuffer != 0))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -1860,19 +1860,19 @@ void GL_APIENTRY glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum
 		}
 
 		gl::Framebuffer *framebuffer = NULL;
-		GLuint framebufferHandle = 0;
+		GLuint framebufferName = 0;
 		if(target == GL_READ_FRAMEBUFFER_ANGLE)
 		{
 			framebuffer = context->getReadFramebuffer();
-			framebufferHandle = context->getReadFramebufferHandle();
+			framebufferName = context->getReadFramebufferName();
 		}
 		else
 		{
 			framebuffer = context->getDrawFramebuffer();
-			framebufferHandle = context->getDrawFramebufferHandle();
+			framebufferName = context->getDrawFramebufferName();
 		}
 
-		if(framebufferHandle == 0 || !framebuffer)
+		if(framebufferName == 0 || !framebuffer)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -2402,7 +2402,7 @@ void GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum att
 		gl::Framebuffer *framebuffer = NULL;
 		if(target == GL_READ_FRAMEBUFFER_ANGLE)
 		{
-			if(context->getReadFramebufferHandle() == 0)
+			if(context->getReadFramebufferName() == 0)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -2411,7 +2411,7 @@ void GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum att
 		}
 		else
 		{
-			if(context->getDrawFramebufferHandle() == 0)
+			if(context->getDrawFramebufferName() == 0)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -2425,15 +2425,15 @@ void GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum att
 		{
 		case GL_COLOR_ATTACHMENT0:
 			attachmentType = framebuffer->getColorbufferType();
-			attachmentHandle = framebuffer->getColorbufferHandle();
+			attachmentHandle = framebuffer->getColorbufferName();
 			break;
 		case GL_DEPTH_ATTACHMENT:
 			attachmentType = framebuffer->getDepthbufferType();
-			attachmentHandle = framebuffer->getDepthbufferHandle();
+			attachmentHandle = framebuffer->getDepthbufferName();
 			break;
 		case GL_STENCIL_ATTACHMENT:
 			attachmentType = framebuffer->getStencilbufferType();
-			attachmentHandle = framebuffer->getStencilbufferHandle();
+			attachmentHandle = framebuffer->getStencilbufferName();
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -2660,9 +2660,9 @@ void GL_APIENTRY glGetQueryivEXT(GLenum target, GLenum pname, GLint *params)
 	}
 }
 
-void GL_APIENTRY glGetQueryObjectuivEXT(GLuint id, GLenum pname, GLuint *params)
+void GL_APIENTRY glGetQueryObjectuivEXT(GLuint name, GLenum pname, GLuint *params)
 {
-	TRACE("(GLuint id = %d, GLenum pname = 0x%X, GLuint *params = 0x%0.8p)", id, pname, params);
+	TRACE("(GLuint name = %d, GLenum pname = 0x%X, GLuint *params = 0x%0.8p)", name, pname, params);
 
 	switch(pname)
 	{
@@ -2677,14 +2677,14 @@ void GL_APIENTRY glGetQueryObjectuivEXT(GLuint id, GLenum pname, GLuint *params)
 
 	if(context)
 	{
-		gl::Query *queryObject = context->getQuery(id, false, GL_NONE);
+		gl::Query *queryObject = context->getQuery(name, false, GL_NONE);
 
 		if(!queryObject)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(context->getActiveQuery(queryObject->getType()) == id)
+		if(context->getActiveQuery(queryObject->getType()) == name)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -2716,12 +2716,12 @@ void GL_APIENTRY glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint
 			return error(GL_INVALID_ENUM);
 		}
 
-		if(context->getRenderbufferHandle() == 0)
+		if(context->getRenderbufferName() == 0)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
 
-		gl::Renderbuffer *renderbuffer = context->getRenderbuffer(context->getRenderbufferHandle());
+		gl::Renderbuffer *renderbuffer = context->getRenderbuffer(context->getRenderbufferName());
 
 		switch(pname)
 		{
@@ -3225,7 +3225,7 @@ void GL_APIENTRY glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params
 			*params = (GLfloat)(attribState.mNormalized ? GL_TRUE : GL_FALSE);
 			break;
 		case GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING:
-			*params = (GLfloat)attribState.mBoundBuffer.id();
+			*params = (GLfloat)attribState.mBoundBuffer.name();
 			break;
 		case GL_CURRENT_VERTEX_ATTRIB:
 			for(int i = 0; i < 4; ++i)
@@ -3271,7 +3271,7 @@ void GL_APIENTRY glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params)
 			*params = (attribState.mNormalized ? GL_TRUE : GL_FALSE);
 			break;
 		case GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING:
-			*params = attribState.mBoundBuffer.id();
+			*params = attribState.mBoundBuffer.name();
 			break;
 		case GL_CURRENT_VERTEX_ATTRIB:
 			for(int i = 0; i < 4; ++i)
@@ -3440,11 +3440,11 @@ GLboolean GL_APIENTRY glIsProgram(GLuint program)
 	return GL_FALSE;
 }
 
-GLboolean GL_APIENTRY glIsQueryEXT(GLuint id)
+GLboolean GL_APIENTRY glIsQueryEXT(GLuint name)
 {
-	TRACE("(GLuint id = %d)", id);
+	TRACE("(GLuint name = %d)", name);
 
-	if(id == 0)
+	if(name == 0)
 	{
 		return GL_FALSE;
 	}
@@ -3453,7 +3453,7 @@ GLboolean GL_APIENTRY glIsQueryEXT(GLuint id)
 
 	if(context)
 	{
-		gl::Query *queryObject = context->getQuery(id, false, GL_NONE);
+		gl::Query *queryObject = context->getQuery(name, false, GL_NONE);
 
 		if(queryObject)
 		{
@@ -3696,7 +3696,7 @@ void GL_APIENTRY glRenderbufferStorageMultisampleANGLE(GLenum target, GLsizei sa
 			return error(GL_INVALID_VALUE);
 		}
 
-		GLuint handle = context->getRenderbufferHandle();
+		GLuint handle = context->getRenderbufferName();
 		if(handle == 0)
 		{
 			return error(GL_INVALID_OPERATION);
@@ -5080,7 +5080,7 @@ void GL_APIENTRY glBlitFramebufferANGLE(GLint srcX0, GLint srcY0, GLint srcX1, G
 
 	if(context)
 	{
-		if(context->getReadFramebufferHandle() == context->getDrawFramebufferHandle())
+		if(context->getReadFramebufferName() == context->getDrawFramebufferName())
 		{
 			ERR("Blits with the same source and destination framebuffer are not supported by this implementation.");
 			return error(GL_INVALID_OPERATION);

@@ -23,10 +23,10 @@
 namespace es2
 {
 
-class Query : public gl::RefCountObject
+class Query : public gl::Object
 {
   public:
-    Query(GLuint id, GLenum type);
+    Query(GLuint name, GLenum type);
     virtual ~Query();
 
     void begin();

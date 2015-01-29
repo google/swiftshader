@@ -49,7 +49,7 @@ enum
 class Texture : public egl::Texture
 {
 public:
-    explicit Texture(GLuint id);
+    explicit Texture(GLuint name);
 
     virtual ~Texture();
 
@@ -113,7 +113,7 @@ protected:
 class Texture2D : public Texture
 {
 public:
-    explicit Texture2D(GLuint id);
+    explicit Texture2D(GLuint name);
 
     virtual ~Texture2D();
 
@@ -171,7 +171,7 @@ protected:
 class TextureExternal : public Texture2D
 {
 public:
-    explicit TextureExternal(GLuint id);
+    explicit TextureExternal(GLuint name);
 
     virtual ~TextureExternal();
 

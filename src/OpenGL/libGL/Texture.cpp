@@ -28,7 +28,7 @@
 namespace gl
 {
 
-Texture::Texture(GLuint id) : egl::Texture(id)
+Texture::Texture(GLuint name) : egl::Texture(name)
 {
     mMinFilter = GL_NEAREST_MIPMAP_LINEAR;
     mMagFilter = GL_LINEAR;
@@ -281,7 +281,7 @@ bool Texture::isMipmapFiltered() const
 	return false;
 }
 
-Texture2D::Texture2D(GLuint id) : Texture(id)
+Texture2D::Texture2D(GLuint name) : Texture(name)
 {
 	for(int i = 0; i < MIPMAP_LEVELS; i++)
 	{
@@ -665,7 +665,7 @@ Renderbuffer *Texture2D::getRenderbuffer(GLenum target)
 
     if(mColorbufferProxy == NULL)
     {
-        mColorbufferProxy = new Renderbuffer(id(), new RenderbufferTexture2D(this));
+        mColorbufferProxy = new Renderbuffer(name, new RenderbufferTexture2D(this));
     }
 
     return mColorbufferProxy;
@@ -702,7 +702,7 @@ bool Texture2D::isShared(GLenum target, unsigned int level) const
     return image[level]->isShared();
 }
 
-TextureCubeMap::TextureCubeMap(GLuint id) : Texture(id)
+TextureCubeMap::TextureCubeMap(GLuint name) : Texture(name)
 {
 	for(int f = 0; f < 6; f++)
 	{
@@ -1104,7 +1104,7 @@ Renderbuffer *TextureCubeMap::getRenderbuffer(GLenum target)
 
     if(mFaceProxies[face] == NULL)
     {
-        mFaceProxies[face] = new Renderbuffer(id(), new RenderbufferTextureCubeMap(this, target));
+        mFaceProxies[face] = new Renderbuffer(name, new RenderbufferTextureCubeMap(this, target));
     }
 
     return mFaceProxies[face];
@@ -1140,7 +1140,7 @@ bool TextureCubeMap::isShared(GLenum target, unsigned int level) const
     return image[face][level]->isShared();
 }
 
-TextureExternal::TextureExternal(GLuint id) : Texture2D(id)
+TextureExternal::TextureExternal(GLuint name) : Texture2D(name)
 {
     mMinFilter = GL_LINEAR;
     mMagFilter = GL_LINEAR;

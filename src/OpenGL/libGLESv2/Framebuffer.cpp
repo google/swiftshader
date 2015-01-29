@@ -81,19 +81,19 @@ void Framebuffer::setStencilbuffer(GLenum type, GLuint stencilbuffer)
 
 void Framebuffer::detachTexture(GLuint texture)
 {
-	if(mColorbufferPointer.id() == texture && IsTextureTarget(mColorbufferType))
+	if(mColorbufferPointer.name() == texture && IsTextureTarget(mColorbufferType))
 	{
 		mColorbufferType = GL_NONE;
 		mColorbufferPointer.set(NULL);
 	}
 
-	if(mDepthbufferPointer.id() == texture && IsTextureTarget(mDepthbufferType))
+	if(mDepthbufferPointer.name() == texture && IsTextureTarget(mDepthbufferType))
 	{
 		mDepthbufferType = GL_NONE;
 		mDepthbufferPointer.set(NULL);
 	}
 
-	if(mStencilbufferPointer.id() == texture && IsTextureTarget(mStencilbufferType))
+	if(mStencilbufferPointer.name() == texture && IsTextureTarget(mStencilbufferType))
 	{
 		mStencilbufferType = GL_NONE;
 		mStencilbufferPointer.set(NULL);
@@ -102,19 +102,19 @@ void Framebuffer::detachTexture(GLuint texture)
 
 void Framebuffer::detachRenderbuffer(GLuint renderbuffer)
 {
-	if(mColorbufferPointer.id() == renderbuffer && mColorbufferType == GL_RENDERBUFFER)
+	if(mColorbufferPointer.name() == renderbuffer && mColorbufferType == GL_RENDERBUFFER)
 	{
 		mColorbufferType = GL_NONE;
 		mColorbufferPointer.set(NULL);
 	}
 
-	if(mDepthbufferPointer.id() == renderbuffer && mDepthbufferType == GL_RENDERBUFFER)
+	if(mDepthbufferPointer.name() == renderbuffer && mDepthbufferType == GL_RENDERBUFFER)
 	{
 		mDepthbufferType = GL_NONE;
 		mDepthbufferPointer.set(NULL);
 	}
 
-	if(mStencilbufferPointer.id() == renderbuffer && mStencilbufferType == GL_RENDERBUFFER)
+	if(mStencilbufferPointer.name() == renderbuffer && mStencilbufferType == GL_RENDERBUFFER)
 	{
 		mStencilbufferType = GL_NONE;
 		mStencilbufferPointer.set(NULL);
@@ -184,19 +184,19 @@ GLenum Framebuffer::getStencilbufferType()
 	return mStencilbufferType;
 }
 
-GLuint Framebuffer::getColorbufferHandle()
+GLuint Framebuffer::getColorbufferName()
 {
-	return mColorbufferPointer.id();
+	return mColorbufferPointer.name();
 }
 
-GLuint Framebuffer::getDepthbufferHandle()
+GLuint Framebuffer::getDepthbufferName()
 {
-	return mDepthbufferPointer.id();
+	return mDepthbufferPointer.name();
 }
 
-GLuint Framebuffer::getStencilbufferHandle()
+GLuint Framebuffer::getStencilbufferName()
 {
-	return mStencilbufferPointer.id();
+	return mStencilbufferPointer.name();
 }
 
 bool Framebuffer::hasStencil()

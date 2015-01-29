@@ -2036,7 +2036,7 @@ namespace gl
 		{
 			if(total < maxCount)
 			{
-				shaders[total] = vertexShader->getHandle();
+				shaders[total] = vertexShader->getName();
 			}
 
 			total++;
@@ -2046,7 +2046,7 @@ namespace gl
 		{
 			if(total < maxCount)
 			{
-				shaders[total] = fragmentShader->getHandle();
+				shaders[total] = fragmentShader->getName();
 			}
 
 			total++;

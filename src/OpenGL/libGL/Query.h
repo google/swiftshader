@@ -23,10 +23,10 @@
 namespace gl
 {
 
-class Query : public gl::RefCountObject
+class Query : public Object
 {
   public:
-    Query(GLuint id, GLenum type);
+    Query(GLuint name, GLenum type);
     virtual ~Query();
 
     void begin();

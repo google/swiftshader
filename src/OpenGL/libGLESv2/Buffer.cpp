@@ -22,7 +22,7 @@
 namespace es2
 {
 
-Buffer::Buffer(GLuint id) : RefCountObject(id)
+Buffer::Buffer(GLuint name) : Object(name)
 {
     mContents = 0;
     mSize = 0;

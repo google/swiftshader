@@ -650,24 +650,24 @@ void Context::setActiveSampler(unsigned int active)
     mState.activeSampler = active;
 }
 
-GLuint Context::getReadFramebufferHandle() const
+GLuint Context::getReadFramebufferName() const
 {
     return mState.readFramebuffer;
 }
 
-GLuint Context::getDrawFramebufferHandle() const
+GLuint Context::getDrawFramebufferName() const
 {
     return mState.drawFramebuffer;
 }
 
-GLuint Context::getRenderbufferHandle() const
+GLuint Context::getRenderbufferName() const
 {
-    return mState.renderbuffer.id();
+    return mState.renderbuffer.name();
 }
 
-GLuint Context::getArrayBufferHandle() const
+GLuint Context::getArrayBufferName() const
 {
-    return mState.arrayBuffer.id();
+    return mState.arrayBuffer.name();
 }
 
 GLuint Context::getActiveQuery(GLenum target) const
@@ -688,7 +688,7 @@ GLuint Context::getActiveQuery(GLenum target) const
 
     if(queryObject)
     {
-        return queryObject->id();
+        return queryObject->name;
     }
     
 	return 0;
@@ -1178,7 +1178,7 @@ TextureExternal *Context::getTextureExternal()
 
 Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type)
 {
-    GLuint texid = mState.samplerTexture[type][sampler].id();
+    GLuint texid = mState.samplerTexture[type][sampler].name();
 
     if(texid == 0)   // Special case: 0 refers to different initial textures based on the target
     {
@@ -1289,12 +1289,12 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 	case GL_MAX_RENDERBUFFER_SIZE:            *params = IMPLEMENTATION_MAX_RENDERBUFFER_SIZE; break;
     case GL_NUM_SHADER_BINARY_FORMATS:        *params = 0;                                    break;
     case GL_SHADER_BINARY_FORMATS:      /* no shader binary formats are supported */          break;
-    case GL_ARRAY_BUFFER_BINDING:             *params = mState.arrayBuffer.id();              break;
-    case GL_ELEMENT_ARRAY_BUFFER_BINDING:     *params = mState.elementArrayBuffer.id();       break;
+    case GL_ARRAY_BUFFER_BINDING:             *params = mState.arrayBuffer.name();            break;
+    case GL_ELEMENT_ARRAY_BUFFER_BINDING:     *params = mState.elementArrayBuffer.name();     break;
 //	case GL_FRAMEBUFFER_BINDING:            // now equivalent to GL_DRAW_FRAMEBUFFER_BINDING_ANGLE
     case GL_DRAW_FRAMEBUFFER_BINDING_ANGLE:   *params = mState.drawFramebuffer;               break;
     case GL_READ_FRAMEBUFFER_BINDING_ANGLE:   *params = mState.readFramebuffer;               break;
-    case GL_RENDERBUFFER_BINDING:             *params = mState.renderbuffer.id();             break;
+    case GL_RENDERBUFFER_BINDING:             *params = mState.renderbuffer.name();           break;
     case GL_CURRENT_PROGRAM:                  *params = mState.currentProgram;                break;
     case GL_PACK_ALIGNMENT:                   *params = mState.packAlignment;                 break;
     case GL_UNPACK_ALIGNMENT:                 *params = mState.unpackAlignment;               break;
@@ -1452,7 +1452,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
                 return false;
             }
 
-            *params = mState.samplerTexture[TEXTURE_2D][mState.activeSampler].id();
+            *params = mState.samplerTexture[TEXTURE_2D][mState.activeSampler].name();
         }
         break;
     case GL_TEXTURE_BINDING_CUBE_MAP:
@@ -1463,7 +1463,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
                 return false;
             }
 
-            *params = mState.samplerTexture[TEXTURE_CUBE][mState.activeSampler].id();
+            *params = mState.samplerTexture[TEXTURE_CUBE][mState.activeSampler].name();
         }
         break;
     case GL_TEXTURE_BINDING_EXTERNAL_OES:
@@ -1474,7 +1474,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
                 return false;
             }
 
-            *params = mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler].id();
+            *params = mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler].name();
         }
         break;
     default:
@@ -2143,7 +2143,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
         return error(GL_INVALID_FRAMEBUFFER_OPERATION);
     }
 
-    if(getReadFramebufferHandle() != 0 && framebufferSamples != 0)
+    if(getReadFramebufferName() != 0 && framebufferSamples != 0)
     {
         return error(GL_INVALID_OPERATION);
     }
@@ -2594,19 +2594,19 @@ void Context::detachBuffer(GLuint buffer)
     // If a buffer object is deleted while it is bound, all bindings to that object in the current context
     // (i.e. in the thread that called Delete-Buffers) are reset to zero.
 
-    if(mState.arrayBuffer.id() == buffer)
+    if(mState.arrayBuffer.name() == buffer)
     {
         mState.arrayBuffer.set(NULL);
     }
 
-    if(mState.elementArrayBuffer.id() == buffer)
+    if(mState.elementArrayBuffer.name() == buffer)
     {
         mState.elementArrayBuffer.set(NULL);
     }
 
     for(int attribute = 0; attribute < MAX_VERTEX_ATTRIBS; attribute++)
     {
-        if(mState.vertexAttribute[attribute].mBoundBuffer.id() == buffer)
+        if(mState.vertexAttribute[attribute].mBoundBuffer.name() == buffer)
         {
             mState.vertexAttribute[attribute].mBoundBuffer.set(NULL);
         }
@@ -2623,7 +2623,7 @@ void Context::detachTexture(GLuint texture)
     {
         for(int sampler = 0; sampler < MAX_COMBINED_TEXTURE_IMAGE_UNITS; sampler++)
         {
-            if(mState.samplerTexture[type][sampler].id() == texture)
+            if(mState.samplerTexture[type][sampler].name() == texture)
             {
                 mState.samplerTexture[type][sampler].set(NULL);
             }
@@ -2672,7 +2672,7 @@ void Context::detachRenderbuffer(GLuint renderbuffer)
     // If a renderbuffer that is currently bound to RENDERBUFFER is deleted, it is as though BindRenderbuffer
     // had been executed with the target RENDERBUFFER and name of zero.
 
-    if(mState.renderbuffer.id() == renderbuffer)
+    if(mState.renderbuffer.name() == renderbuffer)
     {
         bindRenderbuffer(0);
     }

@@ -45,7 +45,7 @@ public:
     virtual ~Shader();
 
     virtual GLenum getType() = 0;
-    GLuint getHandle() const;
+    GLuint getName() const;
 
     void deleteSource();
     void setSource(GLsizei count, const char *const *string, const GLint *length);

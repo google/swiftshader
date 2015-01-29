@@ -318,13 +318,13 @@ public:
 
     void setActiveSampler(unsigned int active);
 
-    GLuint getReadFramebufferHandle() const;
-    GLuint getDrawFramebufferHandle() const;
-    GLuint getRenderbufferHandle() const;
+    GLuint getReadFramebufferName() const;
+    GLuint getDrawFramebufferName() const;
+    GLuint getRenderbufferName() const;
 
 	GLuint getActiveQuery(GLenum target) const;
 
-    GLuint getArrayBufferHandle() const;
+    GLuint getArrayBufferName() const;
 
     void setEnableVertexAttribArray(unsigned int attribNum, bool enabled);
     const VertexAttribute &getVertexAttribState(unsigned int attribNum);

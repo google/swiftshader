@@ -204,7 +204,7 @@ GLsizei RenderbufferTextureCubeMap::getSamples() const
 
 ////// Renderbuffer Implementation //////
 
-Renderbuffer::Renderbuffer(GLuint id, RenderbufferInterface *instance) : RefCountObject(id)
+Renderbuffer::Renderbuffer(GLuint name, RenderbufferInterface *instance) : Object(name)
 {
 	ASSERT(instance != NULL);
 	mInstance = instance;
@@ -221,14 +221,14 @@ void Renderbuffer::addRef()
 {
     mInstance->addProxyRef(this);
 
-    RefCountObject::addRef();
+    Object::addRef();
 }
 
 void Renderbuffer::release()
 {
     mInstance->releaseProxy(this);
 
-    RefCountObject::release();
+    Object::release();
 }
 
 // Increments refcount on image.

@@ -677,19 +677,19 @@ void Context::setActiveSampler(unsigned int active)
     mState.activeSampler = active;
 }
 
-GLuint Context::getFramebufferHandle() const
+GLuint Context::getFramebufferName() const
 {
     return mState.framebuffer;
 }
 
-GLuint Context::getRenderbufferHandle() const
+GLuint Context::getRenderbufferName() const
 {
-    return mState.renderbuffer.id();
+    return mState.renderbuffer.name();
 }
 
-GLuint Context::getArrayBufferHandle() const
+GLuint Context::getArrayBufferName() const
 {
-    return mState.arrayBuffer.id();
+    return mState.arrayBuffer.name();
 }
 
 void Context::setEnableVertexAttribArray(unsigned int attribNum, bool enabled)
@@ -923,7 +923,7 @@ TextureExternal *Context::getTextureExternal()
 
 Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type)
 {
-    GLuint texid = mState.samplerTexture[type][sampler].id();
+    GLuint texid = mState.samplerTexture[type][sampler].name();
 
     if(texid == 0)   // Special case: 0 refers to different initial textures based on the target
     {
@@ -1028,10 +1028,10 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
     // Context::getFloatv.
     switch (pname)
     {
-    case GL_ARRAY_BUFFER_BINDING:             *params = mState.arrayBuffer.id();              break;
-    case GL_ELEMENT_ARRAY_BUFFER_BINDING:     *params = mState.elementArrayBuffer.id();       break;
+    case GL_ARRAY_BUFFER_BINDING:             *params = mState.arrayBuffer.name();            break;
+    case GL_ELEMENT_ARRAY_BUFFER_BINDING:     *params = mState.elementArrayBuffer.name();     break;
 	case GL_FRAMEBUFFER_BINDING_OES:          *params = mState.framebuffer;                   break;
-    case GL_RENDERBUFFER_BINDING_OES:         *params = mState.renderbuffer.id();             break;
+    case GL_RENDERBUFFER_BINDING_OES:         *params = mState.renderbuffer.name();           break;
     case GL_PACK_ALIGNMENT:                   *params = mState.packAlignment;                 break;
     case GL_UNPACK_ALIGNMENT:                 *params = mState.unpackAlignment;               break;
     case GL_GENERATE_MIPMAP_HINT:             *params = mState.generateMipmapHint;            break;
@@ -1188,7 +1188,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
                 return false;
             }
 
-            *params = mState.samplerTexture[TEXTURE_2D][mState.activeSampler].id();
+            *params = mState.samplerTexture[TEXTURE_2D][mState.activeSampler].name();
         }
         break;
     case GL_TEXTURE_BINDING_CUBE_MAP_OES:
@@ -1199,7 +1199,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
                 return false;
             }
 
-            *params = mState.samplerTexture[TEXTURE_CUBE][mState.activeSampler].id();
+            *params = mState.samplerTexture[TEXTURE_CUBE][mState.activeSampler].name();
         }
         break;
     case GL_TEXTURE_BINDING_EXTERNAL_OES:
@@ -1210,7 +1210,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
                 return false;
             }
 
-            *params = mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler].id();
+            *params = mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler].name();
         }
         break;
 	case GL_MAX_LIGHTS:                 *params = MAX_LIGHTS;                 break;
@@ -1895,7 +1895,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
         return error(GL_INVALID_FRAMEBUFFER_OPERATION_OES);
     }
 
-    if(getFramebufferHandle() != 0 && framebufferSamples != 0)
+    if(getFramebufferName() != 0 && framebufferSamples != 0)
     {
         return error(GL_INVALID_OPERATION);
     }
@@ -2359,19 +2359,19 @@ void Context::detachBuffer(GLuint buffer)
     // If a buffer object is deleted while it is bound, all bindings to that object in the current context
     // (i.e. in the thread that called Delete-Buffers) are reset to zero.
 
-    if(mState.arrayBuffer.id() == buffer)
+    if(mState.arrayBuffer.name() == buffer)
     {
         mState.arrayBuffer.set(NULL);
     }
 
-    if(mState.elementArrayBuffer.id() == buffer)
+    if(mState.elementArrayBuffer.name() == buffer)
     {
         mState.elementArrayBuffer.set(NULL);
     }
 
     for(int attribute = 0; attribute < MAX_VERTEX_ATTRIBS; attribute++)
     {
-        if(mState.vertexAttribute[attribute].mBoundBuffer.id() == buffer)
+        if(mState.vertexAttribute[attribute].mBoundBuffer.name() == buffer)
         {
             mState.vertexAttribute[attribute].mBoundBuffer.set(NULL);
         }
@@ -2388,7 +2388,7 @@ void Context::detachTexture(GLuint texture)
     {
         for(int sampler = 0; sampler < MAX_TEXTURE_UNITS; sampler++)
         {
-            if(mState.samplerTexture[type][sampler].id() == texture)
+            if(mState.samplerTexture[type][sampler].name() == texture)
             {
                 mState.samplerTexture[type][sampler].set(NULL);
             }
@@ -2426,7 +2426,7 @@ void Context::detachRenderbuffer(GLuint renderbuffer)
     // If a renderbuffer that is currently bound to RENDERBUFFER is deleted, it is as though BindRenderbuffer
     // had been executed with the target RENDERBUFFER and name of zero.
 
-    if(mState.renderbuffer.id() == renderbuffer)
+    if(mState.renderbuffer.name() == renderbuffer)
     {
         bindRenderbuffer(0);
     }

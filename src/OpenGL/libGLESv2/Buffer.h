@@ -27,10 +27,10 @@
 
 namespace es2
 {
-class Buffer : public gl::RefCountObject
+class Buffer : public gl::Object
 {
   public:
-    explicit Buffer(GLuint id);
+    explicit Buffer(GLuint name);
 
     virtual ~Buffer();
 

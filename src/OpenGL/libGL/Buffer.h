@@ -27,10 +27,10 @@
 
 namespace gl
 {
-class Buffer : public gl::RefCountObject
+class Buffer : public Object
 {
   public:
-    explicit Buffer(GLuint id);
+    explicit Buffer(GLuint name);
 
     virtual ~Buffer();
 

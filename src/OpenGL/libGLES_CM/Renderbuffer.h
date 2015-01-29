@@ -113,14 +113,14 @@ protected:
 // Renderbuffer implements the GL renderbuffer object.
 // It's only a proxy for a RenderbufferInterface instance; the internal object
 // can change whenever glRenderbufferStorage is called.
-class Renderbuffer : public gl::RefCountObject
+class Renderbuffer : public gl::Object
 {
 public:
-	Renderbuffer(GLuint id, RenderbufferInterface *storage);
+	Renderbuffer(GLuint name, RenderbufferInterface *storage);
 
 	virtual ~Renderbuffer();
 
-	// These functions from RefCountObject are overloaded here because
+	// These functions from Object are overloaded here because
     // Textures need to maintain their own count of references to them via
     // Renderbuffers/RenderbufferTextures. These functions invoke those
     // reference counting functions on the RenderbufferInterface.

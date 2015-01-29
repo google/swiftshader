@@ -19,7 +19,7 @@
 namespace es2
 {
 
-Query::Query(GLuint id, GLenum type) : RefCountObject(id)
+Query::Query(GLuint name, GLenum type) : Object(name)
 { 
     mQuery = NULL;
     mStatus = GL_FALSE;

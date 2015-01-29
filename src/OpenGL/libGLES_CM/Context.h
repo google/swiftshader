@@ -346,10 +346,10 @@ public:
 
     void setActiveSampler(unsigned int active);
 
-    GLuint getFramebufferHandle() const;
-    GLuint getRenderbufferHandle() const;
+    GLuint getFramebufferName() const;
+    GLuint getRenderbufferName() const;
 
-    GLuint getArrayBufferHandle() const;
+    GLuint getArrayBufferName() const;
 
     void setEnableVertexAttribArray(unsigned int attribNum, bool enabled);
     const VertexAttribute &getVertexAttribState(unsigned int attribNum);
