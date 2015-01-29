@@ -2409,6 +2409,7 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
 			"GL_OES_element_index_uint "
 			"GL_OES_framebuffer_object "
 			"GL_OES_packed_depth_stencil "
+			"GL_OES_read_format "
 			"GL_OES_rgb8_rgba8 "
 			"GL_OES_stencil8 "
 			"GL_OES_stencil_wrap "

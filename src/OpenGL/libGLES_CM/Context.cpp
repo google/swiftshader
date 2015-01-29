@@ -1082,13 +1082,13 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
             }
         }
         break;
-    case GL_IMPLEMENTATION_COLOR_READ_TYPE:
+    case GL_IMPLEMENTATION_COLOR_READ_TYPE_OES:
 		{
 			Framebuffer *framebuffer = getFramebuffer();
 			*params = framebuffer->getImplementationColorReadType();
 		}
 		break;
-    case GL_IMPLEMENTATION_COLOR_READ_FORMAT:
+    case GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES:
 		{
 			Framebuffer *framebuffer = getFramebuffer();
 			*params = framebuffer->getImplementationColorReadFormat();
