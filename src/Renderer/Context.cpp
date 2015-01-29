@@ -1294,7 +1294,7 @@ namespace sw
 		}
 
 		// Pixel processor requires specular component
-		bool pixelSpecular = specularUsed(component) || fogActive();
+		bool pixelSpecular = specularUsed(component);
 
 		return vertexSpecular && pixelSpecular;
 	}
@@ -1365,13 +1365,11 @@ namespace sw
 
 			if(texture)
 			{
-				for(int i = coordinate - 1; i >= 0; i--)
+				for(int i = coordinate; i >= 0; i--)
 				{
 					if(textureStage[i].stageOperation == TextureStage::STAGE_DISABLE)
 					{
-						texture = false;
-
-						break;
+						return false;
 					}
 				}
 			}
