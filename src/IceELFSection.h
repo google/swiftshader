@@ -117,6 +117,16 @@ public:
   using ELFSection::ELFSection;
 
   void appendData(ELFStreamer &Str, const llvm::StringRef MoreData);
+
+  void appendZeros(ELFStreamer &Str, SizeT NumBytes);
+
+  void appendRelocationOffset(ELFStreamer &Str, bool IsRela,
+                              RelocOffsetT RelocOffset);
+
+  // Pad the next section offset for writing data elements to the requested
+  // alignment. If the section is NOBITS then do not actually write out
+  // the padding and only update the section size.
+  void padToAlignment(ELFStreamer &Str, Elf64_Xword Align);
 };
 
 // Model of ELF symbol table entries. Besides keeping track of the fields
@@ -195,12 +205,17 @@ class ELFRelocationSection : public ELFSection {
 public:
   using ELFSection::ELFSection;
 
-  ELFSection *getRelatedSection() const { return RelatedSection; }
-  void setRelatedSection(ELFSection *Section) { RelatedSection = Section; }
+  const ELFSection *getRelatedSection() const { return RelatedSection; }
+  void setRelatedSection(const ELFSection *Section) {
+    RelatedSection = Section;
+  }
 
   // Track additional relocations which start out relative to offset 0,
   // but should be adjusted to be relative to BaseOff.
   void addRelocations(RelocOffsetT BaseOff, const FixupRefList &FixupRefs);
+
+  // Track a single additional relocation.
+  void addRelocation(const AssemblerFixup &Fixup) { Fixups.push_back(Fixup); }
 
   size_t getSectionDataSize(const GlobalContext &Ctx,
                             const ELFSymbolTableSection *SymTab) const;
@@ -209,8 +224,10 @@ public:
   void writeData(const GlobalContext &Ctx, ELFStreamer &Str,
                  const ELFSymbolTableSection *SymTab);
 
+  bool isRela() const { return Header.sh_type == SHT_RELA; }
+
 private:
-  ELFSection *RelatedSection;
+  const ELFSection *RelatedSection;
   FixupList Fixups;
 };
 

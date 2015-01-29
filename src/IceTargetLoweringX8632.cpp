@@ -4560,25 +4560,19 @@ void ConstantUndef::emit(GlobalContext *) const {
   llvm_unreachable("undef value encountered by emitter.");
 }
 
-TargetGlobalX8632::TargetGlobalX8632(GlobalContext *Ctx)
-    : TargetGlobalLowering(Ctx) {}
+TargetDataX8632::TargetDataX8632(GlobalContext *Ctx)
+    : TargetDataLowering(Ctx) {}
 
-void TargetGlobalX8632::lowerInit(const VariableDeclaration &Var) const {
-  // TODO(jvoung): handle this without text.
-  if (Ctx->getFlags().UseELFWriter)
-    return;
-
-  Ostream &Str = Ctx->getStrEmit();
-
-  const VariableDeclaration::InitializerListType &Initializers =
-      Var.getInitializers();
-
+void TargetDataX8632::lowerGlobal(const VariableDeclaration &Var) const {
   // If external and not initialized, this must be a cross test.
   // Don't generate a declaration for such cases.
   bool IsExternal = Var.isExternal() || Ctx->getFlags().DisableInternal;
   if (IsExternal && !Var.hasInitializer())
     return;
 
+  Ostream &Str = Ctx->getStrEmit();
+  const VariableDeclaration::InitializerListType &Initializers =
+      Var.getInitializers();
   bool HasNonzeroInitializer = Var.hasNonzeroInitializer();
   bool IsConstant = Var.getIsConstant();
   uint32_t Align = Var.getAlignment();
@@ -4645,6 +4639,12 @@ void TargetGlobalX8632::lowerInit(const VariableDeclaration &Var) const {
   Str << "\t.size\t" << MangledName << ", " << Size << "\n";
 }
 
+void
+TargetDataX8632::lowerGlobalsELF(const VariableDeclarationList &Vars) const {
+  ELFObjectWriter *Writer = Ctx->getObjectWriter();
+  Writer->writeDataSection(Vars, llvm::ELF::R_386_32);
+}
+
 template <typename T> struct PoolTypeConverter {};
 
 template <> struct PoolTypeConverter<float> {
@@ -4672,7 +4672,7 @@ const char *PoolTypeConverter<double>::AsmTag = ".quad";
 const char *PoolTypeConverter<double>::PrintfString = "0x%llx";
 
 template <typename T>
-void TargetGlobalX8632::emitConstantPool(GlobalContext *Ctx) {
+void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
   // Note: Still used by emit IAS.
   Ostream &Str = Ctx->getStrEmit();
   Type Ty = T::Ty;
@@ -4701,7 +4701,7 @@ void TargetGlobalX8632::emitConstantPool(GlobalContext *Ctx) {
   }
 }
 
-void TargetGlobalX8632::lowerConstants(GlobalContext *Ctx) const {
+void TargetDataX8632::lowerConstants(GlobalContext *Ctx) const {
   if (Ctx->getFlags().DisableTranslation)
     return;
   // No need to emit constants from the int pool since (for x86) they

@@ -43,19 +43,13 @@ AssemblerX86::~AssemblerX86() {
 }
 
 void AssemblerX86::alignFunction() {
-  intptr_t Pos = buffer_.GetPosition();
   SizeT Align = 1 << getBundleAlignLog2Bytes();
-  intptr_t Mod = Pos & (Align - 1);
-  if (Mod == 0) {
-    return;
-  }
-  SizeT BytesNeeded = Align - Mod;
+  SizeT BytesNeeded = Utils::OffsetToAlignment(buffer_.GetPosition(), Align);
   const SizeT HltSize = 1;
   while (BytesNeeded > 0) {
     hlt();
     BytesNeeded -= HltSize;
   }
-  assert((buffer_.GetPosition() & (Align - 1)) == 0);
 }
 
 Label *AssemblerX86::GetOrCreateLabel(SizeT Number, LabelVector &Labels) {

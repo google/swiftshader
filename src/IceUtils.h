@@ -53,6 +53,14 @@ public:
     return ((X > 0 && Y > 0 && (X > std::numeric_limits<T>::max() - Y)) ||
             (X < 0 && Y < 0 && (X < std::numeric_limits<T>::min() - Y)));
   }
+
+  static inline uint64_t OffsetToAlignment(uint64_t Pos, uint64_t Align) {
+    assert(llvm::isPowerOf2_64(Align));
+    uint64_t Mod = Pos & (Align - 1);
+    if (Mod == 0)
+      return 0;
+    return Align - Mod;
+  }
 };
 
 // BoundedProducerConsumerQueue is a work queue that allows multiple

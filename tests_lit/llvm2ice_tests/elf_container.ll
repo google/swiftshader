@@ -12,28 +12,34 @@
 ; RUN:   | llvm-readobj -file-headers -sections -section-data \
 ; RUN:       -relocations -symbols - | FileCheck %s
 
+; Add a run that shows relocations in code inline.
+; RUN: %p2i -i %s --args -O2 --verbose none -elf-writer -o %t \
+; RUN:   && llvm-objdump -d -r -x86-asm-syntax=intel %t \
+; RUN:   | FileCheck --check-prefix=TEXT-RELOCS %s
+
 ; Use intrinsics to test external calls.
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
 declare void @llvm.memset.p0i8.i32(i8*, i8, i32, i32, i1)
 
 ; Test some global data relocs (data, rodata, bss).
-@bytes = internal global [7 x i8] c"abcdefg", align 1
-@const_bytes = internal constant [7 x i8] c"abcdefg", align 1
+@bytes = internal global [7 x i8] c"ab\03\FF\F6fg", align 1
+@bytes_const = internal constant [7 x i8] c"ab\03\FF\F6fg", align 1
 
-@ptr = internal global i32 ptrtoint ([7 x i8]* @bytes to i32), align 4
-@const_ptr = internal constant i32 ptrtoint ([7 x i8]* @bytes to i32), align 4
+@ptr = internal global i32 ptrtoint ([7 x i8]* @bytes to i32), align 16
+@ptr_const = internal constant i32 ptrtoint ([7 x i8]* @bytes to i32), align 16
 
 @ptr_to_func = internal global i32 ptrtoint (double ()* @returnDoubleConst to i32), align 4
-@const_ptr_to_func = internal constant i32 ptrtoint (double ()* @returnDoubleConst to i32), align 4
+@ptr_to_func_const = internal constant i32 ptrtoint (double ()* @returnDoubleConst to i32), align 4
+
+@addend_ptr = internal global i32 add (i32 ptrtoint (i32* @ptr to i32), i32 128), align 4
+@addend_ptr_const = internal constant i32 add (i32 ptrtoint (i32* @ptr to i32), i32 64), align 4
 
 @short_zero = internal global [2 x i8] zeroinitializer, align 2
-@double_zero = internal global [8 x i8] zeroinitializer, align 8
-@const_short_zero = internal constant [2 x i8] zeroinitializer, align 2
-@const_double_zero = internal constant [8 x i8] zeroinitializer, align 8
-
-
-@addend_ptr = internal global i32 add (i32 ptrtoint (i32* @ptr to i32), i32 128)
-@const_addend_ptr = internal constant i32 add (i32 ptrtoint (i32* @ptr to i32), i32 64)
+@double_zero = internal global [8 x i8] zeroinitializer, align 32
+@double_zero2 = internal global [8 x i8] zeroinitializer, align 8
+@short_zero_const = internal constant [2 x i8] zeroinitializer, align 2
+@double_zero_const = internal constant [8 x i8] zeroinitializer, align 32
+@double_zero_const2 = internal constant [8 x i8] zeroinitializer, align 8
 
 ; Use float/double constants to test constant pools.
 define internal float @returnFloatConst() {
@@ -41,6 +47,11 @@ entry:
   %f = fadd float -0.0, 0x3FF3AE1400000000
   ret float %f
 }
+; TEXT-RELOCS-LABEL: returnFloatConst
+; TEXT-RELOCS: movss
+; TEXT-RELOCS-NEXT: R_386_32 .L$float$0
+; TEXT-RELOCS: addss
+; TEXT-RELOCS-NEXT: R_386_32 .L$float$1
 
 define internal double @returnDoubleConst() {
 entry:
@@ -48,6 +59,13 @@ entry:
   %d2 = fadd double %d, 0xFFF8000000000003
   ret double %d2
 }
+; TEXT-RELOCS-LABEL: returnDoubleConst
+; TEXT-RELOCS: movsd
+; TEXT-RELOCS-NEXT: R_386_32 .L$double$0
+; TEXT-RELOCS: addsd
+; TEXT-RELOCS-NEXT: R_386_32 .L$double$1
+; TEXT-RELOCS: addsd
+; TEXT-RELOCS-NEXT: R_386_32 .L$double$2
 
 ; Test intrinsics that call out to external functions.
 define internal void @test_memcpy(i32 %iptr_dst, i32 %len) {
@@ -58,6 +76,9 @@ entry:
                                        i32 %len, i32 1, i1 false)
   ret void
 }
+; TEXT-RELOCS-LABEL: test_memcpy
+; TEXT-RELOCS: mov
+; TEXT-RELOCS: R_386_32 bytes
 
 define internal void @test_memset(i32 %iptr_dst, i32 %wide_val, i32 %len) {
 entry:
@@ -67,6 +88,7 @@ entry:
                                   i32 %len, i32 1, i1 false)
   ret void
 }
+; TEXT-RELOCS-LABEL: test_memset
 
 ; Test calling internal functions (may be able to do the fixup,
 ; without emitting a relocation).
@@ -80,11 +102,17 @@ define internal i32 @test_ret_fp() {
   %r = ptrtoint float ()* @returnFloatConst to i32
   ret i32 %r
 }
+; TEXT-RELOCS-LABEL: test_ret_fp
+; TEXT-RELOCS-NEXT: mov
+; TEXT-RELOCS-NEXT: R_386_32 returnFloatConst
 
 define internal i32 @test_ret_global_pointer() {
   %r = ptrtoint [7 x i8]* @bytes to i32
   ret i32 %r
 }
+; TEXT-RELOCS-LABEL: test_ret_global_pointer
+; TEXT-RELOCS-NEXT: mov
+; TEXT-RELOCS-NEXT: R_386_32 bytes
 
 ; Test defining a non-internal function.
 define void @_start(i32) {
@@ -139,7 +167,7 @@ define void @_start(i32) {
 ; CHECK:     AddressAlignment: 0
 ; CHECK:     EntrySize: 0
 ; CHECK:     SectionData (
-; CHECK-NEXT: )
+; CHECK:     )
 ; CHECK:   }
 ; CHECK:   Section {
 ; CHECK:     Index: {{[1-9][0-9]*}}
@@ -171,6 +199,93 @@ define void @_start(i32) {
 ; CHECK:     Offset: 0x{{[1-9A-F][0-9A-F]*}}
 ; CHECK:     Size: {{[1-9][0-9]*}}
 ; CHECK:     Link: [[SYMTAB_INDEX:[1-9][0-9]*]]
+; CHECK:     Info: {{[1-9][0-9]*}}
+; CHECK:     AddressAlignment: 4
+; CHECK:     EntrySize: 8
+; CHECK:     SectionData (
+; CHECK:     )
+; CHECK:   }
+; CHECK:   Section {
+; CHECK:     Index: [[DATA_INDEX:[1-9][0-9]*]]
+; CHECK:     Name: .data
+; CHECK:     Type: SHT_PROGBITS
+; CHECK:     Flags [ (0x3)
+; CHECK:       SHF_ALLOC
+; CHECK:       SHF_WRITE
+; CHECK:     ]
+; CHECK:     Address: 0x0
+; CHECK:     Offset: 0x{{[1-9A-F][0-9A-F]*}}
+; CHECK:     Size: 28
+; CHECK:     Link: 0
+; CHECK:     Info: 0
+; CHECK:     AddressAlignment: 16
+; CHECK:     EntrySize: 0
+; CHECK:     SectionData (
+; CHECK:       0000: 616203FF F66667{{.*}} |ab...fg
+; CHECK:     )
+; CHECK:   }
+; CHECK:   Section {
+; CHECK:     Index: {{[1-9][0-9]*}}
+; CHECK:     Name: .rel.data
+; CHECK:     Type: SHT_REL
+; CHECK:     Flags [ (0x0)
+; CHECK:     ]
+; CHECK:     Address: 0x0
+; CHECK:     Offset: 0x{{[1-9A-F][0-9A-F]*}}
+; CHECK:     Size: 24
+; CHECK:     Link: [[SYMTAB_INDEX]]
+; CHECK:     Info: [[DATA_INDEX]]
+; CHECK:     AddressAlignment: 4
+; CHECK:     EntrySize: 8
+; CHECK:     SectionData (
+; CHECK:     )
+; CHECK:   }
+; CHECK:   Section {
+; CHECK:     Index: {{[1-9][0-9]*}}
+; CHECK:     Name: .bss
+; CHECK:     Type: SHT_NOBITS
+; CHECK:     Flags [ (0x3)
+; CHECK:       SHF_ALLOC
+; CHECK:       SHF_WRITE
+; CHECK:     ]
+; CHECK:     Address: 0x0
+; CHECK:     Offset: 0x{{[1-9A-F][0-9A-F]*}}
+; CHECK:     Size: 48
+; CHECK:     Link: 0
+; CHECK:     Info: 0
+; CHECK:     AddressAlignment: 32
+; CHECK:     EntrySize: 0
+; CHECK:     SectionData (
+; CHECK:     )
+; CHECK:   }
+; CHECK:   Section {
+; CHECK:     Index: {{[1-9][0-9]*}}
+; CHECK:     Name: .rodata
+; CHECK:     Type: SHT_PROGBITS
+; CHECK:     Flags [ (0x2)
+; CHECK:       SHF_ALLOC
+; CHECK:     ]
+; CHECK:     Address: 0x0
+; CHECK:     Offset: 0x{{[1-9A-F][0-9A-F]*}}
+; CHECK:     Size: 48
+; CHECK:     Link: 0
+; CHECK:     Info: 0
+; CHECK:     AddressAlignment: 32
+; CHECK:     EntrySize: 0
+; CHECK:     SectionData (
+; CHECK:       0000: 616203FF F66667{{.*}} |ab...fg
+; CHECK:     )
+; CHECK:   }
+; CHECK:   Section {
+; CHECK:     Index: {{[1-9][0-9]*}}
+; CHECK:     Name: .rel.rodata
+; CHECK:     Type: SHT_REL
+; CHECK:     Flags [ (0x0)
+; CHECK:     ]
+; CHECK:     Address: 0x0
+; CHECK:     Offset: 0x{{[1-9A-F][0-9A-F]*}}
+; CHECK:     Size: {{[1-9][0-9]*}}
+; CHECK:     Link: [[SYMTAB_INDEX]]
 ; CHECK:     Info: {{[1-9][0-9]*}}
 ; CHECK:     AddressAlignment: 4
 ; CHECK:     EntrySize: 8
@@ -271,12 +386,24 @@ define void @_start(i32) {
 ; CHECK:     0x2C R_386_32 .L$double$1 0x0
 ; CHECK:     0x34 R_386_32 .L$double$2 0x0
 ; The set of relocations between llvm-mc and integrated elf-writer
-; are different. The integrated elf-writer doesn't yet handle
-; global data and external/undef functions like memcpy.
-; Also, it does not resolve internal function calls and instead
-; writes out the relocation. However, there's probably some
-; function call so check for a PC32 relocation at least.
+; are different. The integrated elf-writer does not yet handle
+; external/undef functions like memcpy.  Also, it does not resolve internal
+; function calls and instead writes out the relocation. However, there's
+; probably some function call so check for a PC32 relocation at least.
 ; CHECK:     0x{{.*}} R_386_PC32
+; CHECK:   }
+; CHECK:   Section ({{[0-9]+}}) .rel.data {
+; The set of relocations between llvm-mc and the integrated elf-writer
+; are different. For local symbols, llvm-mc uses the section + offset within
+; the section, while the integrated elf-writer refers the symbol itself.
+; CHECK:     0x10 R_386_32 {{.*}} 0x0
+; CHECK:     0x14 R_386_32 {{.*}} 0x0
+; CHECK:     0x18 R_386_32 {{.*}} 0x0
+; CHECK:   }
+; CHECK:   Section ({{[0-9]+}}) .rel.rodata {
+; CHECK:     0x10 R_386_32 {{.*}} 0x0
+; CHECK:     0x14 R_386_32 {{.*}} 0x0
+; CHECK:     0x18 R_386_32 {{.*}} 0x0
 ; CHECK:   }
 ; CHECK: ]
 
@@ -291,7 +418,6 @@ define void @_start(i32) {
 ; CHECK-NEXT:     Other: 0
 ; CHECK-NEXT:     Section: Undefined (0x0)
 ; CHECK-NEXT:   }
-;  TODO: fill in the data symbols.
 ; CHECK:        Symbol {
 ; CHECK:          Name: .L$double$0
 ; CHECK-NEXT:     Value: 0x10
@@ -329,6 +455,114 @@ define void @_start(i32) {
 ; CHECK-NEXT:     Section: .rodata.cst4
 ; CHECK-NEXT:   }
 ; CHECK:        Symbol {
+; CHECK:          Name: addend_ptr
+; CHECK-NEXT:     Value: 0x18
+; CHECK-NEXT:     Size: 4
+; CHECK-NEXT:     Binding: Local (0x0)
+; CHECK-NEXT:     Type: Object (0x1)
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .data
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: addend_ptr_const
+; CHECK-NEXT:     Value: 0x18
+; CHECK-NEXT:     Size: 4
+; CHECK-NEXT:     Binding: Local (0x0)
+; CHECK-NEXT:     Type: Object (0x1)
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .rodata
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: bytes
+; CHECK-NEXT:     Value: 0x0
+; CHECK-NEXT:     Size: 7
+; CHECK-NEXT:     Binding: Local (0x0)
+; CHECK-NEXT:     Type: Object (0x1)
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .data
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: bytes_const
+; CHECK-NEXT:     Value: 0x0
+; CHECK-NEXT:     Size: 7
+; CHECK-NEXT:     Binding: Local (0x0)
+; CHECK-NEXT:     Type: Object (0x1)
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .rodata
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: double_zero
+; CHECK-NEXT:     Value: 0x20
+; CHECK-NEXT:     Size: 8
+; CHECK-NEXT:     Binding: Local
+; CHECK-NEXT:     Type: Object
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .bss
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: double_zero2
+; CHECK-NEXT:     Value: 0x28
+; CHECK-NEXT:     Size: 8
+; CHECK-NEXT:     Binding: Local
+; CHECK-NEXT:     Type: Object
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .bss
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: double_zero_const
+; CHECK-NEXT:     Value: 0x20
+; CHECK-NEXT:     Size: 8
+; CHECK-NEXT:     Binding: Local
+; CHECK-NEXT:     Type: Object
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .rodata
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: double_zero_const2
+; CHECK-NEXT:     Value: 0x28
+; CHECK-NEXT:     Size: 8
+; CHECK-NEXT:     Binding: Local
+; CHECK-NEXT:     Type: Object
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .rodata
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: ptr
+; CHECK-NEXT:     Value: 0x10
+; CHECK-NEXT:     Size: 4
+; CHECK-NEXT:     Binding: Local
+; CHECK-NEXT:     Type: Object
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .data
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: ptr_const
+; CHECK-NEXT:     Value: 0x10
+; CHECK-NEXT:     Size: 4
+; CHECK-NEXT:     Binding: Local
+; CHECK-NEXT:     Type: Object
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .rodata
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: ptr_to_func
+; CHECK-NEXT:     Value: 0x14
+; CHECK-NEXT:     Size: 4
+; CHECK-NEXT:     Binding: Local
+; CHECK-NEXT:     Type: Object
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .data
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: ptr_to_func_const
+; CHECK-NEXT:     Value: 0x14
+; CHECK-NEXT:     Size: 4
+; CHECK-NEXT:     Binding: Local
+; CHECK-NEXT:     Type: Object
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .rodata
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
 ; CHECK:          Name: returnDoubleConst
 ; CHECK-NEXT:     Value: 0x{{[1-9A-F][0-9A-F]*}}
 ; CHECK-NEXT:     Size: 0
@@ -346,6 +580,24 @@ define void @_start(i32) {
 ; CHECK-NEXT:     Type: None
 ; CHECK-NEXT:     Other: 0
 ; CHECK-NEXT:     Section: .text
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: short_zero
+; CHECK-NEXT:     Value: 0x0
+; CHECK-NEXT:     Size: 2
+; CHECK-NEXT:     Binding: Local
+; CHECK-NEXT:     Type: Object
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .bss
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: short_zero_const
+; CHECK-NEXT:     Value: 0x1C
+; CHECK-NEXT:     Size: 2
+; CHECK-NEXT:     Binding: Local
+; CHECK-NEXT:     Type: Object
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .rodata
 ; CHECK-NEXT:   }
 ; CHECK:        Symbol {
 ; CHECK:          Name: test_memcpy

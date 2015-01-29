@@ -11,6 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "llvm/Support/MathExtras.h"
+
 #include "IceDefs.h"
 #include "IceELFSection.h"
 #include "IceELFStreamer.h"
@@ -33,6 +35,32 @@ void ELFDataSection::appendData(ELFStreamer &Str,
                                 const llvm::StringRef MoreData) {
   Str.writeBytes(MoreData);
   Header.sh_size += MoreData.size();
+}
+
+void ELFDataSection::appendZeros(ELFStreamer &Str, SizeT NumBytes) {
+  Str.writeZeroPadding(NumBytes);
+  Header.sh_size += NumBytes;
+}
+
+void ELFDataSection::appendRelocationOffset(ELFStreamer &Str, bool IsRela,
+                                            RelocOffsetT RelocOffset) {
+  if (IsRela) {
+    appendZeros(Str, RelocAddrSize);
+    return;
+  }
+  static_assert(RelocAddrSize == 4, " writeLE32 assumes RelocAddrSize is 4");
+  Str.writeLE32(RelocOffset);
+  Header.sh_size += RelocAddrSize;
+}
+
+void ELFDataSection::padToAlignment(ELFStreamer &Str, Elf64_Xword Align) {
+  assert(llvm::isPowerOf2_32(Align));
+  Elf64_Xword AlignDiff = Utils::OffsetToAlignment(Header.sh_size, Align);
+  if (AlignDiff == 0)
+    return;
+  if (Header.sh_type != llvm::ELF::SHT_NOBITS)
+    Str.writeZeroPadding(AlignDiff);
+  Header.sh_size += AlignDiff;
 }
 
 // Relocation sections.
@@ -73,7 +101,7 @@ void ELFSymbolTableSection::createDefinedSym(const IceString &Name,
   NewSymbol.Section = Section;
   NewSymbol.Number = ELFSym::UnknownNumber;
   bool Unique;
-  if (Type == STB_LOCAL)
+  if (Binding == STB_LOCAL)
     Unique = LocalSymbols.insert(std::make_pair(Name, NewSymbol)).second;
   else
     Unique = GlobalSymbols.insert(std::make_pair(Name, NewSymbol)).second;

@@ -252,24 +252,24 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
   LinearScan.scan(RegMask, RandomizeRegisterAllocation);
 }
 
-TargetGlobalLowering *TargetGlobalLowering::createLowering(GlobalContext *Ctx) {
+TargetDataLowering *TargetDataLowering::createLowering(GlobalContext *Ctx) {
   // These statements can be #ifdef'd to specialize the code generator
   // to a subset of the available targets.  TODO: use CRTP.
   TargetArch Target = Ctx->getTargetArch();
   if (Target == Target_X8632)
-    return TargetGlobalX8632::create(Ctx);
+    return TargetDataX8632::create(Ctx);
 #if 0
   if (Target == Target_X8664)
-    return TargetGlobalX8664::create(Ctx);
+    return TargetDataX8664::create(Ctx);
   if (Target == Target_ARM32)
-    return TargetGlobalARM32::create(Ctx);
+    return TargetDataARM32::create(Ctx);
   if (Target == Target_ARM64)
-    return TargetGlobalARM64::create(Ctx);
+    return TargetDataARM64::create(Ctx);
 #endif
   llvm_unreachable("Unsupported target");
   return nullptr;
 }
 
-TargetGlobalLowering::~TargetGlobalLowering() {}
+TargetDataLowering::~TargetDataLowering() {}
 
 } // end of namespace Ice

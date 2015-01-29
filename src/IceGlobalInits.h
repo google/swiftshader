@@ -157,7 +157,7 @@ public:
   };
 
   // Models the data in a data initializer.
-  typedef std::vector<uint8_t> DataVecType;
+  typedef std::vector<char> DataVecType;
 
   /// Defines a sequence of byte values as a data initializer.
   class DataInitializer : public Initializer {
@@ -170,14 +170,14 @@ public:
         : Initializer(DataInitializerKind), Contents(Values.size()) {
       size_t i = 0;
       for (auto &V : Values) {
-        Contents[i] = static_cast<uint8_t>(V);
+        Contents[i] = static_cast<int8_t>(V);
         ++i;
       }
     }
     DataInitializer(const char *Str, size_t StrLen)
         : Initializer(DataInitializerKind), Contents(StrLen) {
       for (size_t i = 0; i < StrLen; ++i)
-        Contents[i] = static_cast<uint8_t>(Str[i]);
+        Contents[i] = Str[i];
     }
     ~DataInitializer() override {}
     const DataVecType &getContents() const { return Contents; }

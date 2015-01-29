@@ -60,7 +60,7 @@ class InstTarget;
 class LiveRange;
 class Liveness;
 class Operand;
-class TargetGlobalLowering;
+class TargetDataLowering;
 class TargetLowering;
 class Variable;
 class VariableDeclaration;
@@ -102,6 +102,8 @@ typedef InstList AssignList;
 typedef std::vector<Variable *, CfgLocalAllocator<Variable *>> VarList;
 typedef std::vector<CfgNode *, CfgLocalAllocator<CfgNode *>> NodeList;
 typedef std::vector<Constant *> ConstantList;
+
+typedef std::vector<VariableDeclaration *> VariableDeclarationList;
 
 // SizeT is for holding small-ish limits like number of source
 // operands in an instruction.  It is used instead of size_t (which

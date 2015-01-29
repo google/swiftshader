@@ -34,9 +34,8 @@ class Translator {
   Translator &operator=(const Translator &) = delete;
 
 public:
-  typedef std::vector<VariableDeclaration *> VariableDeclarationListType;
-
   Translator(GlobalContext *Ctx, const ClFlags &Flags);
+
   ~Translator();
   const ErrorCode &getErrorStatus() const { return ErrorStatus; }
 
@@ -57,7 +56,7 @@ public:
 
   /// Lowers the given list of global addresses to target. Generates
   /// list of corresponding variable declarations.
-  void lowerGlobals(const VariableDeclarationListType &VariableDeclarations);
+  void lowerGlobals(const VariableDeclarationList &VariableDeclarations);
 
   /// Creates a name using the given prefix and corresponding index.
   std::string createUnnamedName(const IceString &Prefix, SizeT Index);
@@ -71,7 +70,7 @@ public:
 protected:
   GlobalContext *Ctx;
   const ClFlags &Flags;
-  std::unique_ptr<TargetGlobalLowering> GlobalLowering;
+  std::unique_ptr<TargetDataLowering> DataLowering;
   // Exit status of the translation. False is successful. True otherwise.
   ErrorCode ErrorStatus;
 };

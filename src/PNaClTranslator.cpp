@@ -351,7 +351,7 @@ public:
   }
 
   /// Returns the list of parsed global variable declarations.
-  const Ice::Translator::VariableDeclarationListType &getGlobalVariables() {
+  const Ice::VariableDeclarationList &getGlobalVariables() {
     return VariableDeclarations;
   }
 
@@ -376,7 +376,7 @@ private:
   // actually-defined function.
   size_t NextDefiningFunctionID;
   // The set of global variables.
-  Ice::Translator::VariableDeclarationListType VariableDeclarations;
+  Ice::VariableDeclarationList VariableDeclarations;
   // Relocatable constants associated with global declarations.
   std::vector<Ice::Constant *> ValueIDConstants;
   // Error recovery value to use when getFuncSigTypeByID fails.

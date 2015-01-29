@@ -643,9 +643,8 @@ public:
   /// Converts global variables, and their initializers into ICE
   /// global variable declarations, for module Mod. Puts corresponding
   /// converted declarations into VariableDeclarations.
-  void convertGlobalsToIce(
-      Module *Mod,
-      Ice::Translator::VariableDeclarationListType &VariableDeclarations);
+  void convertGlobalsToIce(Module *Mod,
+                           Ice::VariableDeclarationList &VariableDeclarations);
 
 private:
   // Adds the Initializer to the list of initializers for the Global
@@ -681,8 +680,7 @@ private:
 };
 
 void LLVM2ICEGlobalsConverter::convertGlobalsToIce(
-    Module *Mod,
-    Ice::Translator::VariableDeclarationListType &VariableDeclarations) {
+    Module *Mod, Ice::VariableDeclarationList &VariableDeclarations) {
   for (Module::const_global_iterator I = Mod->global_begin(),
                                      E = Mod->global_end();
        I != E; ++I) {
@@ -868,7 +866,7 @@ void Converter::installGlobalDeclarations(Module *Mod) {
 
 void Converter::convertGlobals(Module *Mod) {
   LLVM2ICEGlobalsConverter GlobalsConverter(*this);
-  Translator::VariableDeclarationListType VariableDeclarations;
+  VariableDeclarationList VariableDeclarations;
   GlobalsConverter.convertGlobalsToIce(Mod, VariableDeclarations);
   lowerGlobals(VariableDeclarations);
 }

@@ -29,10 +29,23 @@ namespace Ice {
 // After all definitions are written out, it will finalize the bookkeeping
 // sections and write them out.  Expected usage:
 //
-// (1) writeInitialELFHeader
-// (2) writeDataInitializer*
-// (3) writeFunctionCode*
-// (4) writeNonUserSections
+// (1) writeInitialELFHeader (invoke once)
+// (2) writeDataSection  (invoke once)
+// (3) writeFunctionCode (must invoke once per function)
+// (4) writeConstantPool (must invoke once per pooled primitive type)
+// (5) writeNonUserSections (invoke once)
+//
+// The requirement for writeDataSection to be invoked only once can
+// be relaxed if using -fdata-sections. The requirement to invoke only once
+// without -fdata-sections is so that variables that belong to each possible
+// SectionType are contiguous in the file. With -fdata-sections, each global
+// variable is in a separate section and therefore the sections will be
+// trivially contiguous.
+//
+// The motivation for requiring that writeFunctionCode happen after
+// writeDataSection: to keep the .text and .data sections contiguous in the
+// file. Having both -fdata-sections and -ffunction-sections does allow
+// relaxing this requirement.
 class ELFObjectWriter {
   ELFObjectWriter(const ELFObjectWriter &) = delete;
   ELFObjectWriter &operator=(const ELFObjectWriter &) = delete;
@@ -45,25 +58,31 @@ public:
   // and data directly to the file and get the right file offsets.
   void writeInitialELFHeader();
 
+  // Copy initializer data for globals to file and note the offset and size
+  // of each global's definition in the symbol table.
+  // Use the given target's RelocationKind for any relocations.
+  void writeDataSection(const VariableDeclarationList &Vars,
+                        FixupKind RelocationKind);
+
   // Copy data of a function's text section to file and note the offset of the
   // symbol's definition in the symbol table.
   // Copy the text fixups for use after all functions are written.
+  // The text buffer and fixups are extracted from the Assembler object.
   void writeFunctionCode(const IceString &FuncName, bool IsInternal,
                          const Assembler *Asm);
 
-  // Copy initializer data for a global to file and note the offset and
-  // size of the global's definition in the symbol table.
-  // TODO(jvoung): This needs to know which section. This also needs the
-  // relocations to hook them up to the symbol table references. Also
-  // TODO is handling BSS (which just needs to note the size).
-  void writeDataInitializer(const IceString &VarName,
-                            const llvm::StringRef Data);
-
+  // Queries the GlobalContext for constant pools of the given type
+  // and writes out read-only data sections for those constants. This also
+  // fills the symbol table with labels for each constant pool entry.
   template <typename ConstType> void writeConstantPool(Type Ty);
 
-  // Do final layout and write out the rest of the object file, then
-  // patch up the initial ELF header with the final info.
+  // Do final layout and write out the rest of the object file.
+  // Finally, patch up the initial ELF header with the final info.
   void writeNonUserSections();
+
+  // Which type of ELF section a global variable initializer belongs to.
+  // This is used as an array index so should start at 0 and be contiguous.
+  enum SectionType { ROData = 0, Data, BSS, NumSectionTypes };
 
 private:
   GlobalContext &Ctx;
@@ -79,8 +98,9 @@ private:
   RelSectionList RelTextSections;
   DataSectionList DataSections;
   RelSectionList RelDataSections;
-  DataSectionList RoDataSections;
-  RelSectionList RelRoDataSections;
+  DataSectionList RODataSections;
+  RelSectionList RelRODataSections;
+  DataSectionList BSSSections;
 
   // Handles to special sections that need incremental bookkeeping.
   ELFSection *NullSection;
@@ -92,6 +112,11 @@ private:
   T *createSection(const IceString &Name, Elf64_Word ShType,
                    Elf64_Xword ShFlags, Elf64_Xword ShAddralign,
                    Elf64_Xword ShEntsize);
+
+  // Create a relocation section, given the related section
+  // (e.g., .text, .data., .rodata).
+  ELFRelocationSection *
+  createRelocationSection(bool IsELF64, const ELFSection *RelatedSection);
 
   // Align the file position before writing out a section's data,
   // and return the position of the file.
@@ -115,6 +140,12 @@ private:
 
   // Link the relocation sections to the symbol table.
   void assignRelLinkNum(SizeT SymTabNumber, RelSectionList &RelSections);
+
+  // Helper function for writeDataSection. Writes a data section of type
+  // SectionType, given the global variables Vars belonging to that SectionType.
+  void writeDataOfType(SectionType SectionType,
+                       const VariableDeclarationList &Vars,
+                       FixupKind RelocationKind, bool IsELF64);
 
   // Write the final relocation sections given the final symbol table.
   // May also be able to seek around the file and resolve function calls

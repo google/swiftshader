@@ -11,6 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "llvm/Support/MathExtras.h"
+
 #include "assembler.h"
 #include "IceDefs.h"
 #include "IceELFObjectWriter.h"
@@ -103,6 +105,28 @@ T *ELFObjectWriter::createSection(const IceString &Name, Elf64_Word ShType,
   return NewSection;
 }
 
+ELFRelocationSection *
+ELFObjectWriter::createRelocationSection(bool IsELF64,
+                                         const ELFSection *RelatedSection) {
+  // Choice of RELA vs REL is actually separate from elf64 vs elf32,
+  // but in practice we've only had .rela for elf64 (x86-64).
+  // In the future, the two properties may need to be decoupled
+  // and the ShEntSize can vary more.
+  const Elf64_Word ShType = IsELF64 ? SHT_RELA : SHT_REL;
+  IceString RelPrefix = IsELF64 ? ".rela" : ".rel";
+  IceString RelSectionName = RelPrefix + RelatedSection->getName();
+  const Elf64_Xword ShAlign = IsELF64 ? 8 : 4;
+  const Elf64_Xword ShEntSize =
+      IsELF64 ? sizeof(Elf64_Rela) : sizeof(Elf32_Rel);
+  static_assert(sizeof(Elf64_Rela) == 24 && sizeof(Elf32_Rel) == 8,
+                "Elf_Rel/Rela sizes cannot be derived from sizeof");
+  const Elf64_Xword ShFlags = 0;
+  ELFRelocationSection *RelSection = createSection<ELFRelocationSection>(
+      RelSectionName, ShType, ShFlags, ShAlign, ShEntSize);
+  RelSection->setRelatedSection(RelatedSection);
+  return RelSection;
+}
+
 template <typename UserSectionList>
 void ELFObjectWriter::assignRelSectionNumInPairs(SizeT &CurSectionNumber,
                                                  UserSectionList &UserSections,
@@ -150,8 +174,13 @@ void ELFObjectWriter::assignSectionNumbersInfo(SectionList &AllSections) {
                                               RelTextSections, AllSections);
   assignRelSectionNumInPairs<DataSectionList>(CurSectionNumber, DataSections,
                                               RelDataSections, AllSections);
-  assignRelSectionNumInPairs<DataSectionList>(CurSectionNumber, RoDataSections,
-                                              RelRoDataSections, AllSections);
+  for (ELFSection *BSSSection : BSSSections) {
+    BSSSection->setNumber(CurSectionNumber++);
+    BSSSection->setNameStrIndex(ShStrTab->getIndex(BSSSection->getName()));
+    AllSections.push_back(BSSSection);
+  }
+  assignRelSectionNumInPairs<DataSectionList>(CurSectionNumber, RODataSections,
+                                              RelRODataSections, AllSections);
 
   ShStrTab->setNumber(CurSectionNumber++);
   ShStrTab->setNameStrIndex(ShStrTab->getIndex(ShStrTab->getName()));
@@ -170,20 +199,17 @@ void ELFObjectWriter::assignSectionNumbersInfo(SectionList &AllSections) {
 
   assignRelLinkNum(SymTab->getNumber(), RelTextSections);
   assignRelLinkNum(SymTab->getNumber(), RelDataSections);
-  assignRelLinkNum(SymTab->getNumber(), RelRoDataSections);
+  assignRelLinkNum(SymTab->getNumber(), RelRODataSections);
   SectionNumbersAssigned = true;
 }
 
 Elf64_Off ELFObjectWriter::alignFileOffset(Elf64_Xword Align) {
-  assert(llvm::isPowerOf2_32(Align));
   Elf64_Off OffsetInFile = Str.tell();
-  Elf64_Xword Mod = OffsetInFile & (Align - 1);
-  if (Mod == 0)
+  Elf64_Xword AlignDiff = Utils::OffsetToAlignment(OffsetInFile, Align);
+  if (AlignDiff == 0)
     return OffsetInFile;
-  Elf64_Xword AlignDiff = Align - Mod;
   Str.writeZeroPadding(AlignDiff);
   OffsetInFile += AlignDiff;
-  assert((OffsetInFile & (Align - 1)) == 0);
   return OffsetInFile;
 }
 
@@ -191,9 +217,11 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
                                         bool IsInternal, const Assembler *Asm) {
   assert(!SectionNumbersAssigned);
   ELFTextSection *Section = nullptr;
-  // TODO(jvoung): handle ffunction-sections.
-  IceString SectionName = ".text";
-  if (TextSections.size() == 0) {
+  ELFRelocationSection *RelSection = nullptr;
+  if (TextSections.empty()) {
+    // TODO(jvoung): handle ffunction-sections.
+    IceString SectionName = ".text";
+    bool IsELF64 = isELF64(Ctx.getTargetArch());
     const Elf64_Xword ShFlags = SHF_ALLOC | SHF_EXECINSTR;
     // TODO(jvoung): Should be bundle size. Grab it from that target?
     const Elf64_Xword ShAlign = 32;
@@ -202,8 +230,11 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
     Elf64_Off OffsetInFile = alignFileOffset(Section->getSectionAlign());
     Section->setFileOffset(OffsetInFile);
     TextSections.push_back(Section);
+    RelSection = createRelocationSection(IsELF64, Section);
+    RelTextSections.push_back(RelSection);
   } else {
     Section = TextSections[0];
+    RelSection = RelTextSections[0];
   }
   RelocOffsetT OffsetInSection = Section->getCurrentSize();
   // Function symbols are set to 0 size in the symbol table,
@@ -227,41 +258,158 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
   // fixup information from per-function Assembler memory to the object
   // writer's memory, for writing later.
   if (!Asm->fixups().empty()) {
-    bool IsELF64 = isELF64(Ctx.getTargetArch());
-    IceString RelSectionName = IsELF64 ? ".rela" : ".rel";
-    RelSectionName += SectionName;
-    ELFRelocationSection *RelSection = nullptr;
-    // TODO(jvoung): Make this more efficient if -ffunction-sections
-    // efficiency becomes a problem.
-    auto RSI =
-        std::find_if(RelTextSections.begin(), RelTextSections.end(),
-                     [&RelSectionName](const ELFRelocationSection *S)
-                         -> bool { return S->getName() == RelSectionName; });
-    if (RSI != RelTextSections.end()) {
-      RelSection = *RSI;
-    } else {
-      const Elf64_Word ShType = IsELF64 ? SHT_RELA : SHT_REL;
-      const Elf64_Xword ShAlign = IsELF64 ? 8 : 4;
-      const Elf64_Xword ShEntSize =
-          IsELF64 ? sizeof(Elf64_Rela) : sizeof(Elf32_Rel);
-      static_assert(sizeof(Elf64_Rela) == 24 && sizeof(Elf32_Rel) == 8,
-                    "Elf_Rel/Rela sizes cannot be derived from sizeof");
-      const Elf64_Xword ShFlags = 0;
-      RelSection = createSection<ELFRelocationSection>(
-          RelSectionName, ShType, ShFlags, ShAlign, ShEntSize);
-      RelSection->setRelatedSection(Section);
-      RelTextSections.push_back(RelSection);
-    }
     RelSection->addRelocations(OffsetInSection, Asm->fixups());
   }
 }
 
-void ELFObjectWriter::writeDataInitializer(const IceString &VarName,
-                                           const llvm::StringRef Data) {
+namespace {
+
+ELFObjectWriter::SectionType
+classifyGlobalSection(const VariableDeclaration *Var) {
+  if (Var->getIsConstant())
+    return ELFObjectWriter::ROData;
+  if (Var->hasNonzeroInitializer())
+    return ELFObjectWriter::Data;
+  return ELFObjectWriter::BSS;
+}
+
+// Partition the Vars list by SectionType into VarsBySection.
+// If TranslateOnly is non-empty, then only the TranslateOnly variable
+// is kept for emission.
+void partitionGlobalsBySection(const VariableDeclarationList &Vars,
+                               VariableDeclarationList VarsBySection[],
+                               const IceString &TranslateOnly) {
+  for (VariableDeclaration *Var : Vars) {
+    if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
+      size_t Section = classifyGlobalSection(Var);
+      assert(Section < ELFObjectWriter::SectionType::NumSectionTypes);
+      VarsBySection[Section].push_back(Var);
+    }
+  }
+}
+
+} // end of anonymous namespace
+
+void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
+                                       FixupKind RelocationKind) {
   assert(!SectionNumbersAssigned);
-  (void)Data;
-  llvm_unreachable("TODO");
-  StrTab->add(VarName);
+  VariableDeclarationList VarsBySection[ELFObjectWriter::NumSectionTypes];
+  for (auto &SectionList : VarsBySection)
+    SectionList.reserve(Vars.size());
+  partitionGlobalsBySection(Vars, VarsBySection, Ctx.getFlags().TranslateOnly);
+  bool IsELF64 = isELF64(Ctx.getTargetArch());
+  size_t I = 0;
+  for (auto &SectionList : VarsBySection) {
+    writeDataOfType(static_cast<SectionType>(I++), SectionList, RelocationKind,
+                    IsELF64);
+  }
+}
+
+void ELFObjectWriter::writeDataOfType(SectionType SectionType,
+                                      const VariableDeclarationList &Vars,
+                                      FixupKind RelocationKind, bool IsELF64) {
+  ELFDataSection *Section;
+  ELFRelocationSection *RelSection;
+  // TODO(jvoung): Handle fdata-sections.
+  IceString SectionName;
+  Elf64_Xword ShAddralign = 0;
+  for (VariableDeclaration *Var : Vars) {
+    Elf64_Xword Align = Var->getAlignment();
+    ShAddralign = std::max(ShAddralign, Align);
+  }
+  const Elf64_Xword ShEntsize = 0; // non-uniform data element size.
+  // Lift this out, so it can be re-used if we do fdata-sections?
+  switch (SectionType) {
+  case SectionType::ROData: {
+    SectionName = ".rodata";
+    // Only expecting to write the data sections all in one shot for now.
+    assert(RODataSections.empty());
+    const Elf64_Xword ShFlags = SHF_ALLOC;
+    Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, ShFlags,
+                                            ShAddralign, ShEntsize);
+    Section->setFileOffset(alignFileOffset(ShAddralign));
+    RODataSections.push_back(Section);
+    RelSection = createRelocationSection(IsELF64, Section);
+    RelRODataSections.push_back(RelSection);
+    break;
+  }
+  case SectionType::Data: {
+    SectionName = ".data";
+    assert(DataSections.empty());
+    const Elf64_Xword ShFlags = SHF_ALLOC | SHF_WRITE;
+    Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, ShFlags,
+                                            ShAddralign, ShEntsize);
+    Section->setFileOffset(alignFileOffset(ShAddralign));
+    DataSections.push_back(Section);
+    RelSection = createRelocationSection(IsELF64, Section);
+    RelDataSections.push_back(RelSection);
+    break;
+  }
+  case SectionType::BSS: {
+    SectionName = ".bss";
+    assert(BSSSections.empty());
+    const Elf64_Xword ShFlags = SHF_ALLOC | SHF_WRITE;
+    Section = createSection<ELFDataSection>(SectionName, SHT_NOBITS, ShFlags,
+                                            ShAddralign, ShEntsize);
+    Section->setFileOffset(alignFileOffset(ShAddralign));
+    BSSSections.push_back(Section);
+    break;
+  }
+  case SectionType::NumSectionTypes:
+    llvm::report_fatal_error("Unknown SectionType");
+    break;
+  }
+
+  const uint8_t SymbolType = STT_OBJECT;
+  for (VariableDeclaration *Var : Vars) {
+    Elf64_Xword Align = Var->getAlignment();
+    Section->padToAlignment(Str, Align);
+    SizeT SymbolSize = Var->getNumBytes();
+    bool IsExternal = Var->isExternal() || Ctx.getFlags().DisableInternal;
+    const uint8_t SymbolBinding = IsExternal ? STB_GLOBAL : STB_LOCAL;
+    IceString MangledName = Var->mangleName(&Ctx);
+    SymTab->createDefinedSym(MangledName, SymbolType, SymbolBinding, Section,
+                             Section->getCurrentSize(), SymbolSize);
+    StrTab->add(MangledName);
+    if (!Var->hasNonzeroInitializer()) {
+      assert(SectionType == SectionType::BSS ||
+             SectionType == SectionType::ROData);
+      if (SectionType == SectionType::ROData)
+        Section->appendZeros(Str, SymbolSize);
+      else
+        Section->setSize(Section->getCurrentSize() + SymbolSize);
+    } else {
+      assert(SectionType != SectionType::BSS);
+      for (VariableDeclaration::Initializer *Init : Var->getInitializers()) {
+        switch (Init->getKind()) {
+        case VariableDeclaration::Initializer::DataInitializerKind: {
+          const auto Data = llvm::cast<VariableDeclaration::DataInitializer>(
+                                Init)->getContents();
+          Section->appendData(Str, llvm::StringRef(Data.data(), Data.size()));
+          break;
+        }
+        case VariableDeclaration::Initializer::ZeroInitializerKind:
+          Section->appendZeros(Str, Init->getNumBytes());
+          break;
+        case VariableDeclaration::Initializer::RelocInitializerKind: {
+          const auto Reloc =
+              llvm::cast<VariableDeclaration::RelocInitializer>(Init);
+          AssemblerFixup NewFixup;
+          NewFixup.set_position(Section->getCurrentSize());
+          NewFixup.set_kind(RelocationKind);
+          const bool SuppressMangling = true;
+          NewFixup.set_value(Ctx.getConstantSym(
+              Reloc->getOffset(), Reloc->getDeclaration()->mangleName(&Ctx),
+              SuppressMangling));
+          RelSection->addRelocation(NewFixup);
+          Section->appendRelocationOffset(Str, RelSection->isRela(),
+                                          Reloc->getOffset());
+          break;
+        }
+        }
+      }
+    }
+  }
 }
 
 void ELFObjectWriter::writeInitialELFHeader() {
@@ -345,7 +493,7 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
   SecStrBuf << ".rodata.cst" << WriteAmt;
   ELFDataSection *Section = createSection<ELFDataSection>(
       SecStrBuf.str(), SHT_PROGBITS, ShFlags, Align, WriteAmt);
-  RoDataSections.push_back(Section);
+  RODataSections.push_back(Section);
   SizeT OffsetInSection = 0;
   // The symbol table entry doesn't need to know the defined symbol's
   // size since this is in a section with a fixed Entry Size.
@@ -382,7 +530,7 @@ template void ELFObjectWriter::writeConstantPool<ConstantDouble>(Type Ty);
 void ELFObjectWriter::writeAllRelocationSections(bool IsELF64) {
   writeRelocationSections(IsELF64, RelTextSections);
   writeRelocationSections(IsELF64, RelDataSections);
-  writeRelocationSections(IsELF64, RelRoDataSections);
+  writeRelocationSections(IsELF64, RelRODataSections);
 }
 
 void ELFObjectWriter::writeRelocationSections(bool IsELF64,

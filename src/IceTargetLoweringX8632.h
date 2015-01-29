@@ -488,24 +488,25 @@ private:
   ~TargetX8632() override {}
 };
 
-class TargetGlobalX8632 : public TargetGlobalLowering {
-  TargetGlobalX8632() = delete;
-  TargetGlobalX8632(const TargetGlobalX8632 &) = delete;
-  TargetGlobalX8632 &operator=(const TargetGlobalX8632 &) = delete;
+class TargetDataX8632 : public TargetDataLowering {
+  TargetDataX8632() = delete;
+  TargetDataX8632(const TargetDataX8632 &) = delete;
+  TargetDataX8632 &operator=(const TargetDataX8632 &) = delete;
 
 public:
-  static TargetGlobalLowering *create(GlobalContext *Ctx) {
-    return new TargetGlobalX8632(Ctx);
+  static TargetDataLowering *create(GlobalContext *Ctx) {
+    return new TargetDataX8632(Ctx);
   }
 
-  virtual void lowerInit(const VariableDeclaration &Var) const final;
-  virtual void lowerConstants(GlobalContext *Ctx) const final;
+  void lowerGlobal(const VariableDeclaration &Var) const final;
+  void lowerGlobalsELF(const VariableDeclarationList &Vars) const final;
+  void lowerConstants(GlobalContext *Ctx) const final;
 
 protected:
-  TargetGlobalX8632(GlobalContext *Ctx);
+  TargetDataX8632(GlobalContext *Ctx);
 
 private:
-  ~TargetGlobalX8632() override {}
+  ~TargetDataX8632() override {}
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };
 

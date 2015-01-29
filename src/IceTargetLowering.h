@@ -238,23 +238,24 @@ protected:
   LoweringContext Context;
 };
 
-// TargetGlobalLowering is used for "lowering" global initializers,
-// including the internal constant pool.  It is separated out from
-// TargetLowering because it does not require a Cfg.
-class TargetGlobalLowering {
-  TargetGlobalLowering() = delete;
-  TargetGlobalLowering(const TargetGlobalLowering &) = delete;
-  TargetGlobalLowering &operator=(const TargetGlobalLowering &) = delete;
+// TargetDataLowering is used for "lowering" data including initializers
+// for global variables, and the internal constant pools.  It is separated
+// out from TargetLowering because it does not require a Cfg.
+class TargetDataLowering {
+  TargetDataLowering() = delete;
+  TargetDataLowering(const TargetDataLowering &) = delete;
+  TargetDataLowering &operator=(const TargetDataLowering &) = delete;
 
 public:
-  static TargetGlobalLowering *createLowering(GlobalContext *Ctx);
-  virtual ~TargetGlobalLowering();
+  static TargetDataLowering *createLowering(GlobalContext *Ctx);
+  virtual ~TargetDataLowering();
 
-  virtual void lowerInit(const VariableDeclaration &Var) const = 0;
+  virtual void lowerGlobal(const VariableDeclaration &Var) const = 0;
+  virtual void lowerGlobalsELF(const VariableDeclarationList &Vars) const = 0;
   virtual void lowerConstants(GlobalContext *Ctx) const = 0;
 
 protected:
-  TargetGlobalLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
+  TargetDataLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
   GlobalContext *Ctx;
 };
 

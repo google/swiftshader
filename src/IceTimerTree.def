@@ -26,6 +26,7 @@
   X(doBranchOpt)               \
   X(doNopInsertion)            \
   X(emit)                      \
+  X(emitGlobalInitializers)    \
   X(genCode)                   \
   X(genFrame)                  \
   X(initUnhandled)             \
