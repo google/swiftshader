@@ -536,11 +536,7 @@ namespace sw
 			switch(texGen[coordinate])
 			{
 			case TEXGEN_PASSTHRU:
-				if(input[TexCoord0 + textureStage[coordinate].texCoordIndex].type == STREAMTYPE_FLOAT)
-				{
-					hasTexture = hasTexture || (component < input[TexCoord0 + textureStage[coordinate].texCoordIndex].count);
-				}
-				else ASSERT(!input[TexCoord0 + textureStage[coordinate].texCoordIndex]);
+				hasTexture = hasTexture || (component < input[TexCoord0 + textureStage[coordinate].texCoordIndex].count);
 				break;
 			case TEXGEN_NORMAL:
 				hasTexture = hasTexture || (component <= 2);
@@ -652,7 +648,7 @@ namespace sw
 			return MATERIAL_MATERIAL;
 		}
 
-		if(specularMaterialSource == MATERIAL_MATERIAL || !colorVertexEnable ||
+		if(!colorVertexEnable ||
 		   (specularMaterialSource == MATERIAL_COLOR1 && !input[Color0]) ||
 		   (specularMaterialSource == MATERIAL_COLOR2 && !input[Color1]))
 		{
@@ -669,7 +665,7 @@ namespace sw
 			return MATERIAL_MATERIAL;
 		}
 
-		if(ambientMaterialSource == MATERIAL_MATERIAL || !colorVertexEnable ||
+		if(!colorVertexEnable ||
 		   (ambientMaterialSource == MATERIAL_COLOR1 && !input[Color0]) ||
 		   (ambientMaterialSource == MATERIAL_COLOR2 && !input[Color1]))
 		{
@@ -686,7 +682,7 @@ namespace sw
 			return MATERIAL_MATERIAL;
 		}
 
-		if(emissiveMaterialSource == MATERIAL_MATERIAL || !colorVertexEnable ||
+		if(!colorVertexEnable ||
 		   (emissiveMaterialSource == MATERIAL_COLOR1 && !input[Color0]) ||
 		   (emissiveMaterialSource == MATERIAL_COLOR2 && !input[Color1]))
 		{
