@@ -182,7 +182,7 @@ $(OBJDIR):
 $(OBJDIR)/unittest: $(OBJDIR)
 	@mkdir -p $@
 
-check-lit: llvm2ice make_symlink
+check-lit: $(OBJDIR)/llvm2ice make_symlink
 	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit
 
