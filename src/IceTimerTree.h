@@ -22,8 +22,16 @@ namespace Ice {
 class TimerStack {
   TimerStack &operator=(const TimerStack &) = delete;
 
-  // Timer tree index type
+  // Timer tree index type.  A variable of this type is used to access
+  // an interior, not-necessarily-leaf node of the tree.
   typedef std::vector<class TimerTreeNode>::size_type TTindex;
+  // Representation of a path of leaf values leading to a particular
+  // node.  The representation happens to be in "reverse" order,
+  // i.e. from leaf/interior to root, for implementation efficiency.
+  typedef llvm::SmallVector<TTindex, 8> PathType;
+  // Representation of a mapping of leaf node indexes from one timer
+  // stack to another.
+  typedef std::vector<TimerIdT> TranslationType;
 
   // TimerTreeNode represents an interior or leaf node in the call tree.
   // It contains a list of children, a pointer to its parent, and the
@@ -54,7 +62,9 @@ public:
   TimerStack(const IceString &Name);
   TimerStack(const TimerStack &) = default;
   TimerIdT getTimerID(const IceString &Name);
+  void mergeFrom(const TimerStack &Src);
   void setName(const IceString &NewName) { Name = NewName; }
+  const IceString &getName() const { return Name; }
   void push(TimerIdT ID);
   void pop(TimerIdT ID);
   void reset();
@@ -63,6 +73,10 @@ public:
 private:
   void update(bool UpdateCounts);
   static double timestamp();
+  TranslationType translateIDsFrom(const TimerStack &Src);
+  PathType getPath(TTindex Index, const TranslationType &Mapping) const;
+  TTindex getChildIndex(TTindex Parent, TimerIdT ID);
+  TTindex findPath(const PathType &Path);
   IceString Name;
   double FirstTimestamp;
   double LastTimestamp;

@@ -143,8 +143,9 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
   // Create a new ThreadContext for the current thread.  No need to
   // lock AllThreadContexts at this point since no other threads have
   // access yet to this GlobalContext object.
-  AllThreadContexts.push_back(new ThreadContext());
-  ICE_TLS_SET_FIELD(TLS, AllThreadContexts.back());
+  ThreadContext *MyTLS = new ThreadContext();
+  AllThreadContexts.push_back(MyTLS);
+  ICE_TLS_SET_FIELD(TLS, MyTLS);
   // Pre-register built-in stack names.
   if (ALLOW_DUMP) {
     // TODO(stichnot): There needs to be a strong relationship between
@@ -152,6 +153,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
     newTimerStackID("Total across all functions");
     newTimerStackID("Per-function summary");
   }
+  Timers.initInto(MyTLS->Timers);
   if (Flags.UseELFWriter) {
     ObjectWriter.reset(new ELFObjectWriter(*this, *ELFStr));
   }
@@ -503,38 +505,32 @@ TimerStackIdT GlobalContext::newTimerStackID(const IceString &Name) {
 
 TimerIdT GlobalContext::getTimerID(TimerStackIdT StackID,
                                    const IceString &Name) {
-  auto Timers = getTimers();
+  auto Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
   assert(StackID < Timers->size());
   return Timers->at(StackID).getTimerID(Name);
 }
 
 void GlobalContext::pushTimer(TimerIdT ID, TimerStackIdT StackID) {
-  // TODO(stichnot): Timers are completely broken for multithreading; fix.
-  if (getFlags().NumTranslationThreads)
-    llvm::report_fatal_error("Timers and multithreading are currently broken");
-  auto Timers = getTimers();
+  auto Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
   assert(StackID < Timers->size());
   Timers->at(StackID).push(ID);
 }
 
 void GlobalContext::popTimer(TimerIdT ID, TimerStackIdT StackID) {
-  // TODO(stichnot): Timers are completely broken for multithreading; fix.
-  if (getFlags().NumTranslationThreads)
-    llvm::report_fatal_error("Timers and multithreading are currently broken");
-  auto Timers = getTimers();
+  auto Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
   assert(StackID < Timers->size());
   Timers->at(StackID).pop(ID);
 }
 
 void GlobalContext::resetTimer(TimerStackIdT StackID) {
-  auto Timers = getTimers();
+  auto Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
   assert(StackID < Timers->size());
   Timers->at(StackID).reset();
 }
 
 void GlobalContext::setTimerName(TimerStackIdT StackID,
                                  const IceString &NewName) {
-  auto Timers = getTimers();
+  auto Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
   assert(StackID < Timers->size());
   Timers->at(StackID).setName(NewName);
 }
@@ -560,13 +556,26 @@ void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
   Timers->at(StackID).dump(getStrDump(), DumpCumulative);
 }
 
-TimerMarker::TimerMarker(TimerIdT ID, const Cfg *Func)
-    : ID(ID), Ctx(Func->getContext()), Active(false) {
-  if (ALLOW_DUMP) {
-    Active = Func->getFocusedTiming() || Ctx->getFlags().SubzeroTimingEnabled;
-    if (Active)
-      Ctx->pushTimer(ID);
+void TimerMarker::push() {
+  switch (StackID) {
+  case GlobalContext::TSK_Default:
+    Active = Ctx->getFlags().SubzeroTimingEnabled;
+    break;
+  case GlobalContext::TSK_Funcs:
+    Active = Ctx->getFlags().TimeEachFunction;
+    break;
+  default:
+    break;
   }
+  if (Active)
+    Ctx->pushTimer(ID, StackID);
+}
+
+void TimerMarker::pushCfg(const Cfg *Func) {
+  Ctx = Func->getContext();
+  Active = Func->getFocusedTiming() || Ctx->getFlags().SubzeroTimingEnabled;
+  if (Active)
+    Ctx->pushTimer(ID, StackID);
 }
 
 ICE_TLS_DEFINE_FIELD(GlobalContext::ThreadContext *, GlobalContext, TLS);

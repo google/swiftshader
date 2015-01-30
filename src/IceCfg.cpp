@@ -81,13 +81,21 @@ bool Cfg::hasComputedFrame() const { return getTarget()->hasComputedFrame(); }
 void Cfg::translate() {
   if (hasError())
     return;
+  // FunctionTimer conditionally pushes/pops a TimerMarker if
+  // TimeEachFunction is enabled.
+  std::unique_ptr<TimerMarker> FunctionTimer;
   if (ALLOW_DUMP) {
     const IceString &TimingFocusOn = getContext()->getFlags().TimingFocusOn;
-    if (TimingFocusOn == "*" || TimingFocusOn == getFunctionName()) {
+    const IceString &Name = getFunctionName();
+    if (TimingFocusOn == "*" || TimingFocusOn == Name) {
       setFocusedTiming();
       getContext()->resetTimer(GlobalContext::TSK_Default);
-      getContext()->setTimerName(GlobalContext::TSK_Default, getFunctionName());
+      getContext()->setTimerName(GlobalContext::TSK_Default, Name);
     }
+    if (getContext()->getFlags().TimeEachFunction)
+      FunctionTimer.reset(new TimerMarker(
+          getContext()->getTimerID(GlobalContext::TSK_Funcs, Name),
+          getContext(), GlobalContext::TSK_Funcs));
   }
   TimerMarker T(TimerStack::TT_translate, this);
 

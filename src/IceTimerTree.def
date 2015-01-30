@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICETIMERTREE_DEF
+#define SUBZERO_SRC_ICETIMERTREE_DEF
 
 #define TIMERTREE_TABLE        \
   /* enum value */             \
@@ -53,5 +54,4 @@
   X(vmetadata)
 //#define X(tag)
 
-#define SUBZERO_SRC_ICETIMERTREE_DEF
 #endif // SUBZERO_SRC_ICETIMERTREE_DEF

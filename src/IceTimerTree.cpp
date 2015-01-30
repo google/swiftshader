@@ -24,8 +24,10 @@ TimerStack::TimerStack(const IceString &Name)
       StateChangeCount(0), StackTop(0) {
   if (!ALLOW_DUMP)
     return;
-  Nodes.resize(1); // Reserve Nodes[0] for the root node.
+  Nodes.resize(1); // Reserve Nodes[0] for the root node (sentinel).
   IDs.resize(TT__num);
+  LeafTimes.resize(TT__num);
+  LeafCounts.resize(TT__num);
 #define STR(s) #s
 #define X(tag)                                                                 \
   IDs[TT_##tag] = STR(tag);                                                    \
@@ -43,8 +45,95 @@ TimerIdT TimerStack::getTimerID(const IceString &Name) {
   if (IDsIndex.find(Name) == IDsIndex.end()) {
     IDsIndex[Name] = IDs.size();
     IDs.push_back(Name);
+    LeafTimes.push_back(decltype(LeafTimes)::value_type());
+    LeafCounts.push_back(decltype(LeafCounts)::value_type());
   }
   return IDsIndex[Name];
+}
+
+// Creates a mapping from TimerIdT (leaf) values in the Src timer
+// stack into TimerIdT values in this timer stack.  Creates new
+// entries in this timer stack as needed.
+TimerStack::TranslationType
+TimerStack::translateIDsFrom(const TimerStack &Src) {
+  size_t Size = Src.IDs.size();
+  TranslationType Mapping(Size);
+  for (TimerIdT i = 0; i < Size; ++i) {
+    Mapping[i] = getTimerID(Src.IDs[i]);
+  }
+  return Mapping;
+}
+
+// Merges two timer stacks, by combining and summing corresponding
+// entries.  This timer stack is updated from Src.
+void TimerStack::mergeFrom(const TimerStack &Src) {
+  if (!ALLOW_DUMP)
+    return;
+  TranslationType Mapping = translateIDsFrom(Src);
+  TTindex SrcIndex = 0;
+  for (const TimerTreeNode &SrcNode : Src.Nodes) {
+    // The first node is reserved as a sentinel, so avoid it.
+    if (SrcIndex > 0) {
+      // Find the full path to the Src node, translated to path
+      // components corresponding to this timer stack.
+      PathType MyPath = Src.getPath(SrcIndex, Mapping);
+      // Find a node in this timer stack corresponding to the given
+      // path, creating new interior nodes as necessary.
+      TTindex MyIndex = findPath(MyPath);
+      Nodes[MyIndex].Time += SrcNode.Time;
+      Nodes[MyIndex].UpdateCount += SrcNode.UpdateCount;
+    }
+    ++SrcIndex;
+  }
+  for (TimerIdT i = 0; i < Src.LeafTimes.size(); ++i) {
+    LeafTimes[Mapping[i]] += Src.LeafTimes[i];
+    LeafCounts[Mapping[i]] += Src.LeafCounts[i];
+  }
+  StateChangeCount += Src.StateChangeCount;
+}
+
+// Constructs a path consisting of the sequence of leaf values leading
+// to a given node, with the Mapping translation applied to the leaf
+// values.  The path ends up being in "reverse" order, i.e. from leaf
+// to root.
+TimerStack::PathType TimerStack::getPath(TTindex Index,
+                                         const TranslationType &Mapping) const {
+  PathType Path;
+  while (Index) {
+    Path.push_back(Mapping[Nodes[Index].Interior]);
+    assert(Nodes[Index].Parent < Index);
+    Index = Nodes[Index].Parent;
+  }
+  return Path;
+}
+
+// Given a parent node and a leaf ID, returns the index of the
+// parent's child ID, creating a new node for the child as necessary.
+TimerStack::TTindex TimerStack::getChildIndex(TimerStack::TTindex Parent,
+                                              TimerIdT ID) {
+  if (Nodes[Parent].Children.size() <= ID)
+    Nodes[Parent].Children.resize(ID + 1);
+  if (Nodes[Parent].Children[ID] == 0) {
+    TTindex Size = Nodes.size();
+    Nodes[Parent].Children[ID] = Size;
+    Nodes.resize(Size + 1);
+    Nodes[Size].Parent = Parent;
+    Nodes[Size].Interior = ID;
+  }
+  return Nodes[Parent].Children[ID];
+}
+
+// Finds a node in the timer stack corresponding to the given path,
+// creating new interior nodes as necessary.
+TimerStack::TTindex TimerStack::findPath(const PathType &Path) {
+  TTindex CurIndex = 0;
+  // The path is in reverse order (leaf to root), so it needs to be
+  // followed in reverse.
+  for (TTindex Index : reverse_range(Path)) {
+    CurIndex = getChildIndex(CurIndex, Index);
+  }
+  assert(CurIndex); // shouldn't be the sentinel node
+  return CurIndex;
 }
 
 // Pushes a new marker onto the timer stack.
@@ -53,19 +142,11 @@ void TimerStack::push(TimerIdT ID) {
     return;
   const bool UpdateCounts = false;
   update(UpdateCounts);
-  if (Nodes[StackTop].Children.size() <= ID)
-    Nodes[StackTop].Children.resize(ID + 1);
-  if (Nodes[StackTop].Children[ID] == 0) {
-    TTindex Size = Nodes.size();
-    Nodes[StackTop].Children[ID] = Size;
-    Nodes.resize(Size + 1);
-    Nodes[Size].Parent = StackTop;
-    Nodes[Size].Interior = ID;
-  }
-  StackTop = Nodes[StackTop].Children[ID];
+  StackTop = getChildIndex(StackTop, ID);
+  assert(StackTop);
 }
 
-// Pop the top marker from the timer stack.  Validates via assert()
+// Pops the top marker from the timer stack.  Validates via assert()
 // that the expected marker is popped.
 void TimerStack::pop(TimerIdT ID) {
   if (!ALLOW_DUMP)

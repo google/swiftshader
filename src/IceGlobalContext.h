@@ -83,6 +83,35 @@ class GlobalContext {
     uint32_t Fills;
   };
 
+  // TimerList is a vector of TimerStack objects, with extra methods
+  // to initialize and merge these vectors.
+  class TimerList : public std::vector<TimerStack> {
+  public:
+    // initInto() initializes a target list of timers based on the
+    // current list.  In particular, it creates the same number of
+    // timers, in the same order, with the same names, but initially
+    // empty of timing data.
+    void initInto(TimerList &Dest) const {
+      if (!ALLOW_DUMP)
+        return;
+      Dest.clear();
+      for (const TimerStack &Stack : *this) {
+        Dest.push_back(TimerStack(Stack.getName()));
+      }
+    }
+    void mergeFrom(TimerList &Src) {
+      if (!ALLOW_DUMP)
+        return;
+      assert(size() == Src.size());
+      size_type i = 0;
+      for (TimerStack &Stack : *this) {
+        assert(Stack.getName() == Src[i].getName());
+        Stack.mergeFrom(Src[i]);
+        ++i;
+      }
+    }
+  };
+
   // ThreadContext contains thread-local data.  This data can be
   // combined/reduced as needed after all threads complete.
   class ThreadContext {
@@ -92,7 +121,7 @@ class GlobalContext {
   public:
     ThreadContext() {}
     CodeStats StatsFunction;
-    std::vector<TimerStack> Timers;
+    TimerList Timers;
   };
 
 public:
@@ -211,14 +240,20 @@ public:
   // These are predefined TimerStackIdT values.
   enum TimerStackKind { TSK_Default = 0, TSK_Funcs, TSK_Num };
 
+  // newTimerStackID() creates a new TimerStack in the global space.
+  // It does not affect any TimerStack objects in TLS.
   TimerStackIdT newTimerStackID(const IceString &Name);
-  TimerIdT getTimerID(TimerStackIdT StackID, const IceString &Name);
-  void pushTimer(TimerIdT ID, TimerStackIdT StackID = TSK_Default);
-  void popTimer(TimerIdT ID, TimerStackIdT StackID = TSK_Default);
-  void resetTimer(TimerStackIdT StackID);
-  void setTimerName(TimerStackIdT StackID, const IceString &NewName);
+  // dumpTimers() dumps the global timer data.  As such, one probably
+  // wants to call mergeTimerStacks() as a prerequisite.
   void dumpTimers(TimerStackIdT StackID = TSK_Default,
                   bool DumpCumulative = true);
+  // The following methods affect only the calling thread's TLS timer
+  // data.
+  TimerIdT getTimerID(TimerStackIdT StackID, const IceString &Name);
+  void pushTimer(TimerIdT ID, TimerStackIdT StackID);
+  void popTimer(TimerIdT ID, TimerStackIdT StackID);
+  void resetTimer(TimerStackIdT StackID);
+  void setTimerName(TimerStackIdT StackID, const IceString &NewName);
 
   // Adds a newly parsed and constructed function to the Cfg work
   // queue.  Notifies any idle workers that a new function is
@@ -235,8 +270,10 @@ public:
 
   void startWorkerThreads() {
     size_t NumWorkers = getFlags().NumTranslationThreads;
+    auto Timers = getTimers();
     for (size_t i = 0; i < NumWorkers; ++i) {
       ThreadContext *WorkerTLS = new ThreadContext();
+      Timers->initInto(WorkerTLS->Timers);
       AllThreadContexts.push_back(WorkerTLS);
       TranslationThreads.push_back(std::thread(
           &GlobalContext::translateFunctionsWrapper, this, WorkerTLS));
@@ -254,6 +291,11 @@ public:
     }
     TranslationThreads.clear();
     // TODO(stichnot): join the emitter thread.
+    if (ALLOW_DUMP) {
+      auto Timers = getTimers();
+      for (ThreadContext *TLS : AllThreadContexts)
+        Timers->mergeFrom(TLS->Timers);
+    }
   }
 
   // Translation thread startup routine.
@@ -301,7 +343,7 @@ private:
   ICE_CACHELINE_BOUNDARY;
   // Managed by getTimers()
   GlobalLockType TimerLock;
-  std::vector<TimerStack> Timers;
+  TimerList Timers;
 
   ICE_CACHELINE_BOUNDARY;
   // StrLock is a global lock on the dump and emit output streams.
@@ -331,8 +373,8 @@ private:
   LockedPtr<CodeStats> getStatsCumulative() {
     return LockedPtr<CodeStats>(&StatsCumulative, &StatsLock);
   }
-  LockedPtr<std::vector<TimerStack>> getTimers() {
-    return LockedPtr<std::vector<TimerStack>>(&Timers, &TimerLock);
+  LockedPtr<TimerList> getTimers() {
+    return LockedPtr<TimerList>(&Timers, &TimerLock);
   }
 
   std::vector<ThreadContext *> AllThreadContexts;
@@ -357,24 +399,31 @@ class TimerMarker {
   TimerMarker &operator=(const TimerMarker &) = delete;
 
 public:
-  TimerMarker(TimerIdT ID, GlobalContext *Ctx)
-      : ID(ID), Ctx(Ctx), Active(false) {
-    if (ALLOW_DUMP) {
-      Active = Ctx->getFlags().SubzeroTimingEnabled;
-      if (Active)
-        Ctx->pushTimer(ID);
-    }
+  TimerMarker(TimerIdT ID, GlobalContext *Ctx,
+              TimerStackIdT StackID = GlobalContext::TSK_Default)
+      : ID(ID), Ctx(Ctx), StackID(StackID), Active(false) {
+    if (ALLOW_DUMP)
+      push();
   }
-  TimerMarker(TimerIdT ID, const Cfg *Func);
+  TimerMarker(TimerIdT ID, const Cfg *Func,
+              TimerStackIdT StackID = GlobalContext::TSK_Default)
+      : ID(ID), Ctx(nullptr), StackID(StackID), Active(false) {
+    // Ctx gets set at the beginning of pushCfg().
+    if (ALLOW_DUMP)
+      pushCfg(Func);
+  }
 
   ~TimerMarker() {
     if (ALLOW_DUMP && Active)
-      Ctx->popTimer(ID);
+      Ctx->popTimer(ID, StackID);
   }
 
 private:
-  TimerIdT ID;
-  GlobalContext *const Ctx;
+  void push();
+  void pushCfg(const Cfg *Func);
+  const TimerIdT ID;
+  GlobalContext *Ctx;
+  const TimerStackIdT StackID;
   bool Active;
 };
 

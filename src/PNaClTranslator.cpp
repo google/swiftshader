@@ -1157,7 +1157,7 @@ private:
     if (ALLOW_DUMP && getFlags().TimeEachFunction) {
       getTranslator().getContext()->popTimer(
           getTranslator().getContext()->getTimerID(
-              Ice::GlobalContext::TSK_Funcs, Func->getFunctionName()),
+              Ice::GlobalContext::TSK_Funcs, FuncDecl->getName()),
           Ice::GlobalContext::TSK_Funcs);
     }
   }
@@ -1827,6 +1827,7 @@ private:
 void FunctionParser::ExitBlock() {
   if (isIRGenerationDisabled()) {
     popTimerIfTimingEachFunction();
+    delete Func;
     return;
   }
   // Before translating, check for blocks without instructions, and
@@ -1844,13 +1845,16 @@ void FunctionParser::ExitBlock() {
     ++Index;
   }
   Func->computePredecessors();
+  // Temporarily end per-function timing, which will be resumed by the
+  // translator function.  This is because translation may be done
+  // asynchronously in a separate thread.
+  popTimerIfTimingEachFunction();
   // Note: Once any errors have been found, we turn off all
   // translation of all remaining functions. This allows use to see
   // multiple errors, without adding extra checks to the translator
   // for such parsing errors.
   if (Context->getNumErrors() == 0)
     getTranslator().translateFcn(Func);
-  popTimerIfTimingEachFunction();
 }
 
 void FunctionParser::ReportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op,
