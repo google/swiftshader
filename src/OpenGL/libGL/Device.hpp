@@ -14,15 +14,10 @@
 
 #include "Renderer/Renderer.hpp"
 
-namespace egl
-{
-	class Image;
-}
-
 namespace gl
 {
-	class Texture;
 	class Image;
+	class Texture;
 
 	enum PrimitiveType
 	{
@@ -32,7 +27,8 @@ namespace gl
 		DRAW_LINELOOP,
 		DRAW_TRIANGLELIST,
 		DRAW_TRIANGLESTRIP,
-		DRAW_TRIANGLEFAN
+		DRAW_TRIANGLEFAN,
+        DRAW_QUADLIST
 	};
 
 	struct Viewport
@@ -59,17 +55,17 @@ namespace gl
 		virtual Image *createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable);
 		virtual void drawIndexedPrimitive(PrimitiveType type, unsigned int indexOffset, unsigned int primitiveCount, int indexSize);
 		virtual void drawPrimitive(PrimitiveType primitiveType, unsigned int primiveCount);
-		virtual void setDepthStencilSurface(egl::Image *newDepthStencil);
+		virtual void setDepthStencilSurface(Image *newDepthStencil);
 		virtual void setPixelShader(sw::PixelShader *shader);
 		virtual void setPixelShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		virtual void setScissorEnable(bool enable);
-		virtual void setRenderTarget(egl::Image *renderTarget);
+		virtual void setRenderTarget(Image *renderTarget);
 		virtual void setScissorRect(const sw::Rect &rect);
 		virtual void setVertexShader(sw::VertexShader *shader);
 		virtual void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		virtual void setViewport(const Viewport &viewport);
 
-		virtual bool stretchRect(egl::Image *sourceSurface, const sw::Rect *sourceRect, egl::Image *destSurface, const sw::Rect *destRect, bool filter);
+		virtual bool stretchRect(Image *sourceSurface, const sw::Rect *sourceRect, Image *destSurface, const sw::Rect *destRect, bool filter);
 		virtual void finish();
 
 	private:
@@ -79,7 +75,7 @@ namespace gl
 		void bindShaderConstants();
 		bool bindViewport();   // Also adjusts for scissoring
 
-		bool validRectangle(const sw::Rect *rect, egl::Image *surface);
+		bool validRectangle(const sw::Rect *rect, Image *surface);
 
 		Viewport viewport;
 		sw::Rect scissorRect;
@@ -96,8 +92,8 @@ namespace gl
 		float pixelShaderConstantF[224][4];
 		float vertexShaderConstantF[256][4];
 
-		egl::Image *renderTarget;
-		egl::Image *depthStencil;
+		Image *renderTarget;
+		Image *depthStencil;
 	};
 }
 

@@ -11,8 +11,8 @@
 
 // Shader.h: Defines the abstract Shader class and its concrete derived
 // classes VertexShader and FragmentShader. Implements GL shader objects and
-// related functionality. [OpenGL ES 2.0.24] section 2.10 page 24 and section
-// 3.8 page 84.
+// related functionality.
+
 
 #ifndef LIBGL_SHADER_H_
 #define LIBGL_SHADER_H_
@@ -21,8 +21,11 @@
 
 #include "compiler/TranslatorASM.h"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define _GDI32_
+#include <windows.h>
+#include <GL/GL.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GL/glext.h>
 
 #include <list>
 #include <vector>

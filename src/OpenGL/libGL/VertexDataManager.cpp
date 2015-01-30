@@ -121,11 +121,14 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
     // Determine the required storage size per used buffer
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
-        if(program->getAttributeStream(i) != -1 && attribs[i].mArrayEnabled)
+        if(!program || program->getAttributeStream(i) != -1)
         {
-            if(!attribs[i].mBoundBuffer)
+            if(attribs[i].mArrayEnabled)
             {
-                mStreamingBuffer->addRequiredSpace(attribs[i].typeSize() * count);
+                if(!attribs[i].mBoundBuffer)
+                {
+                    mStreamingBuffer->addRequiredSpace(attribs[i].typeSize() * count);
+                }
             }
         }
     }
@@ -135,7 +138,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
     // Perform the vertex data translations
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
-        if(program->getAttributeStream(i) != -1)
+        if(!program || program->getAttributeStream(i) != -1)
         {
             if(attribs[i].mArrayEnabled)
             {

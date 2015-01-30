@@ -13,16 +13,18 @@
 #define gl_Image_hpp
 
 #include "Renderer/Surface.hpp"
-#include "libEGL/Image.hpp"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define _GDI32_
+#include <windows.h>
+#include <GL/GL.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GL/glext.h>
 
 namespace gl
 {
 	class Texture;
 
-	class Image : public egl::Image
+	class Image : public sw::Surface
 	{
 	public:
 		Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type);
@@ -31,9 +33,20 @@ namespace gl
 		void loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint unpackAlignment, const void *input);
 		void loadCompressedData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const void *pixels);
 
+		void *lock(unsigned int left, unsigned int top, sw::Lock lock);
+		unsigned int getPitch() const;
+		void unlock();
+		
+		int getWidth();
+		int getHeight();
+		GLenum getFormat();
+		GLenum getType();
+		virtual sw::Format getInternalFormat();
+		int getMultiSampleDepth();
+
 		virtual void addRef();
 		virtual void release();
-		virtual void unbind(const egl::Texture *parent);   // Break parent ownership and release
+		void unbind();   // Break parent ownership and release
 
 		static sw::Format selectInternalFormat(GLenum format, GLenum type);
 
@@ -63,7 +76,14 @@ namespace gl
 		void loadD32ImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const;
 		void loadD24S8ImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer);
 
-		egl::Texture *parentTexture;
+		Texture *parentTexture;
+
+		const GLsizei width;
+		const GLsizei height;
+		const GLenum format;
+		const GLenum type;
+		const sw::Format internalFormat;
+		const int multiSampleDepth;
 
 		volatile int referenceCount;
 	};

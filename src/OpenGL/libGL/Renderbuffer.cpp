@@ -11,7 +11,7 @@
 
 // Renderbuffer.cpp: the Renderbuffer class and its derived classes
 // Colorbuffer, Depthbuffer and Stencilbuffer. Implements GL renderbuffer
-// objects and related functionality. [OpenGL ES 2.0.24] section 4.4.3 page 108.
+// objects and related functionality.
 
 #include "Renderbuffer.h"
 
@@ -90,23 +90,11 @@ void RenderbufferTexture2D::releaseProxy(const Renderbuffer *proxy)
     mTexture2D->releaseProxy(proxy);
 }
 
-// Increments refcount on image.
-// caller must release() the returned image
-egl::Image *RenderbufferTexture2D::getRenderTarget()
+// Increments refcount on surface.
+// caller must release() the returned surface
+Image *RenderbufferTexture2D::getRenderTarget()
 {
 	return mTexture2D->getRenderTarget(GL_TEXTURE_2D, 0);
-}
-
-// Increments refcount on image.
-// caller must release() the returned image
-egl::Image *RenderbufferTexture2D::createSharedImage()
-{
-    return mTexture2D->createSharedImage(GL_TEXTURE_2D, 0);
-}
-
-bool RenderbufferTexture2D::isShared() const
-{
-    return mTexture2D->isShared(GL_TEXTURE_2D, 0);
 }
 
 GLsizei RenderbufferTexture2D::getWidth() const
@@ -158,23 +146,11 @@ void RenderbufferTextureCubeMap::releaseProxy(const Renderbuffer *proxy)
     mTextureCubeMap->releaseProxy(proxy);
 }
 
-// Increments refcount on image.
-// caller must release() the returned image
+// Increments refcount on surface.
+// caller must release() the returned surface
 Image *RenderbufferTextureCubeMap::getRenderTarget()
 {
 	return mTextureCubeMap->getRenderTarget(mTarget, 0);
-}
-
-// Increments refcount on image.
-// caller must release() the returned image
-egl::Image *RenderbufferTextureCubeMap::createSharedImage()
-{
-    return mTextureCubeMap->createSharedImage(mTarget, 0);
-}
-
-bool RenderbufferTextureCubeMap::isShared() const
-{
-    return mTextureCubeMap->isShared(mTarget, 0);
 }
 
 GLsizei RenderbufferTextureCubeMap::getWidth() const
@@ -231,23 +207,11 @@ void Renderbuffer::release()
     Object::release();
 }
 
-// Increments refcount on image.
-// caller must Release() the returned image
-egl::Image *Renderbuffer::getRenderTarget()
+// Increments refcount on surface.
+// caller must Release() the returned surface
+Image *Renderbuffer::getRenderTarget()
 {
 	return mInstance->getRenderTarget();
-}
-
-// Increments refcount on image.
-// caller must Release() the returned image
-egl::Image *Renderbuffer::createSharedImage()
-{
-    return mInstance->createSharedImage();
-}
-
-bool Renderbuffer::isShared() const
-{
-    return mInstance->isShared();
 }
 
 GLsizei Renderbuffer::getWidth() const
@@ -326,6 +290,13 @@ RenderbufferStorage::~RenderbufferStorage()
 {
 }
 
+// Increments refcount on surface.
+// caller must Release() the returned surface
+Image *RenderbufferStorage::getRenderTarget()
+{
+	return NULL;
+}
+
 GLsizei RenderbufferStorage::getWidth() const
 {
 	return mWidth;
@@ -351,7 +322,7 @@ GLsizei RenderbufferStorage::getSamples() const
 	return mSamples;
 }
 
-Colorbuffer::Colorbuffer(egl::Image *renderTarget) : mRenderTarget(renderTarget)
+Colorbuffer::Colorbuffer(Image *renderTarget) : mRenderTarget(renderTarget)
 {
 	if(renderTarget)
 	{
@@ -361,7 +332,7 @@ Colorbuffer::Colorbuffer(egl::Image *renderTarget) : mRenderTarget(renderTarget)
 		mHeight = renderTarget->getHeight();
 		internalFormat = renderTarget->getInternalFormat();
 		format = sw2es::ConvertBackBufferFormat(internalFormat);
-		mSamples = renderTarget->getDepth() & ~1;
+		mSamples = renderTarget->getMultiSampleDepth() & ~1;
 	}
 }
 
@@ -398,9 +369,9 @@ Colorbuffer::~Colorbuffer()
 	}
 }
 
-// Increments refcount on image.
-// caller must release() the returned image
-egl::Image *Colorbuffer::getRenderTarget()
+// Increments refcount on surface.
+// caller must release() the returned surface
+Image *Colorbuffer::getRenderTarget()
 {
 	if(mRenderTarget)
 	{
@@ -410,25 +381,7 @@ egl::Image *Colorbuffer::getRenderTarget()
 	return mRenderTarget;
 }
 
-// Increments refcount on image.
-// caller must release() the returned image
-egl::Image *Colorbuffer::createSharedImage()
-{
-    if(mRenderTarget)
-    {
-        mRenderTarget->addRef();
-        mRenderTarget->markShared();
-    }
-
-    return mRenderTarget;
-}
-
-bool Colorbuffer::isShared() const
-{
-    return mRenderTarget->isShared();
-}
-
-DepthStencilbuffer::DepthStencilbuffer(egl::Image *depthStencil) : mDepthStencil(depthStencil)
+DepthStencilbuffer::DepthStencilbuffer(Image *depthStencil) : mDepthStencil(depthStencil)
 {
 	if(depthStencil)
 	{
@@ -438,7 +391,7 @@ DepthStencilbuffer::DepthStencilbuffer(egl::Image *depthStencil) : mDepthStencil
 		mHeight = depthStencil->getHeight();
 		internalFormat = depthStencil->getInternalFormat();
 		format = sw2es::ConvertDepthStencilFormat(internalFormat);
-		mSamples = depthStencil->getDepth() & ~1;
+		mSamples = depthStencil->getMultiSampleDepth() & ~1;
 	}
 }
 
@@ -463,7 +416,7 @@ DepthStencilbuffer::DepthStencilbuffer(int width, int height, GLsizei samples)
 
 	mWidth = width;
 	mHeight = height;
-	format = GL_DEPTH24_STENCIL8_OES;
+	format = GL_DEPTH24_STENCIL8_EXT;
 	internalFormat = sw::FORMAT_D24S8;
 	mSamples = supportedSamples & ~1;
 }
@@ -476,9 +429,9 @@ DepthStencilbuffer::~DepthStencilbuffer()
 	}
 }
 
-// Increments refcount on image.
-// caller must release() the returned image
-egl::Image *DepthStencilbuffer::getRenderTarget()
+// Increments refcount on surface.
+// caller must release() the returned surface
+Image *DepthStencilbuffer::getRenderTarget()
 {
 	if(mDepthStencil)
 	{
@@ -488,25 +441,7 @@ egl::Image *DepthStencilbuffer::getRenderTarget()
 	return mDepthStencil;
 }
 
-// Increments refcount on image.
-// caller must release() the returned image
-egl::Image *DepthStencilbuffer::createSharedImage()
-{
-    if(mDepthStencil)
-    {
-        mDepthStencil->addRef();
-        mDepthStencil->markShared();
-    }
-
-    return mDepthStencil;
-}
-
-bool DepthStencilbuffer::isShared() const
-{
-    return mDepthStencil->isShared();
-}
-
-Depthbuffer::Depthbuffer(egl::Image *depthStencil) : DepthStencilbuffer(depthStencil)
+Depthbuffer::Depthbuffer(Image *depthStencil) : DepthStencilbuffer(depthStencil)
 {
 	if(depthStencil)
 	{
@@ -530,7 +465,7 @@ Depthbuffer::~Depthbuffer()
 {
 }
 
-Stencilbuffer::Stencilbuffer(egl::Image *depthStencil) : DepthStencilbuffer(depthStencil)
+Stencilbuffer::Stencilbuffer(Image *depthStencil) : DepthStencilbuffer(depthStencil)
 {
 	if(depthStencil)
 	{

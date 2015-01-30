@@ -140,6 +140,25 @@ namespace gl
 
 			setVertexShaderConstantF(i, zero, 1);
 		}
+
+		setLightingEnable(false);
+
+		setGlobalAmbient(sw::Color<float>(0.2f, 0.2f, 0.2f, 1.0f));
+		setMaterialAmbient(sw::Color<float>(0.2f, 0.2f, 0.2f, 1.0f));
+		setMaterialDiffuse(sw::Color<float>(0.8f, 0.8f, 0.8f, 1.0f));
+		setMaterialSpecular(sw::Color<float>(0.0f, 0.0f, 0.0f, 1.0f));
+		setMaterialEmission(sw::Color<float>(0.0f, 0.0f, 0.0f, 1.0f));
+
+		for(int i = 0; i < 8; i++)
+		{
+			setLightEnable(i, false);
+			setLightAttenuation(i, 1.0f, 0.0f, 0.0f);
+		}
+
+        setDiffuseMaterialSource(sw::MATERIAL_COLOR1);
+        setSpecularMaterialSource(sw::MATERIAL_MATERIAL);
+        setAmbientMaterialSource(sw::MATERIAL_COLOR1);
+        setEmissiveMaterialSource(sw::MATERIAL_MATERIAL);
 	}
 
 	Device::~Device()
@@ -370,13 +389,14 @@ namespace gl
 		case DRAW_TRIANGLELIST:  drawType = sw::DRAW_TRIANGLELIST;  break;
 		case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_TRIANGLESTRIP; break;
 		case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_TRIANGLEFAN;   break;
+        case DRAW_QUADLIST:      drawType = sw::DRAW_QUADLIST;      break;
 		default: UNREACHABLE();
 		}
 
 		draw(drawType, 0, primitiveCount);
 	}
 
-	void Device::setDepthStencilSurface(egl::Image *depthStencil)
+	void Device::setDepthStencilSurface(Image *depthStencil)
 	{
 		if(this->depthStencil == depthStencil)
 		{
@@ -423,7 +443,7 @@ namespace gl
 		scissorEnable = enable;
 	}
 
-	void Device::setRenderTarget(egl::Image *renderTarget)
+	void Device::setRenderTarget(Image *renderTarget)
 	{
 		if(renderTarget)
 		{
@@ -470,7 +490,7 @@ namespace gl
 		this->viewport = viewport;
 	}
 
-	bool Device::stretchRect(egl::Image *source, const sw::Rect *sourceRect, egl::Image *dest, const sw::Rect *destRect, bool filter)
+	bool Device::stretchRect(Image *source, const sw::Rect *sourceRect, Image *dest, const sw::Rect *destRect, bool filter)
 	{
 		if(!source || !dest || !validRectangle(sourceRect, source) || !validRectangle(destRect, dest))
 		{
@@ -721,7 +741,7 @@ namespace gl
 		return true;
 	}
 
-	bool Device::validRectangle(const sw::Rect *rect, egl::Image *surface)
+	bool Device::validRectangle(const sw::Rect *rect, Image *surface)
 	{
 		if(!rect)
 		{

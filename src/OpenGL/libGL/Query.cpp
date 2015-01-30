@@ -110,8 +110,8 @@ GLboolean Query::testQuery()
 
             switch(mType)
             {
-            case GL_ANY_SAMPLES_PASSED_EXT:
-            case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
+            case GL_ANY_SAMPLES_PASSED:
+            case GL_ANY_SAMPLES_PASSED_CONSERVATIVE:
                 mResult = (numPixels > 0) ? GL_TRUE : GL_FALSE;
                 break;
             default:

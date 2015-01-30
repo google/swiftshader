@@ -71,7 +71,13 @@ void ResourceManager::release()
 // Returns an unused buffer name
 GLuint ResourceManager::createBuffer()
 {
-    GLuint handle = mBufferNameSpace.allocate();
+    //GLuint handle = mBufferNameSpace.allocate();
+    unsigned int handle = 1;
+
+    while (mBufferMap.find(handle) != mBufferMap.end())
+    {
+        handle++;
+    }
 
     mBufferMap[handle] = NULL;
 
@@ -81,7 +87,13 @@ GLuint ResourceManager::createBuffer()
 // Returns an unused shader/program name
 GLuint ResourceManager::createShader(GLenum type)
 {
-    GLuint handle = mProgramShaderNameSpace.allocate();
+    //GLuint handle = mProgramShaderNameSpace.allocate();
+    unsigned int handle = 1;
+
+    while (mShaderMap.find(handle) != mShaderMap.end())
+    {
+        handle++;
+    }
 
     if(type == GL_VERTEX_SHADER)
     {
@@ -99,7 +111,13 @@ GLuint ResourceManager::createShader(GLenum type)
 // Returns an unused program/shader name
 GLuint ResourceManager::createProgram()
 {
-    GLuint handle = mProgramShaderNameSpace.allocate();
+    //GLuint handle = mProgramShaderNameSpace.allocate();
+    unsigned int handle = 1;
+
+    while (mProgramMap.find(handle) != mProgramMap.end())
+    {
+        handle++;
+    }
 
     mProgramMap[handle] = new Program(this, handle);
 
@@ -109,7 +127,13 @@ GLuint ResourceManager::createProgram()
 // Returns an unused texture name
 GLuint ResourceManager::createTexture()
 {
-    GLuint handle = mTextureNameSpace.allocate();
+    //GLuint handle = mTextureNameSpace.allocate();
+    unsigned int handle = 1;
+
+    while (mTextureMap.find(handle) != mTextureMap.end())
+    {
+        handle++;
+    }
 
     mTextureMap[handle] = NULL;
 
@@ -119,7 +143,13 @@ GLuint ResourceManager::createTexture()
 // Returns an unused renderbuffer name
 GLuint ResourceManager::createRenderbuffer()
 {
-    GLuint handle = mRenderbufferNameSpace.allocate();
+    //GLuint handle = mRenderbufferNameSpace.allocate();
+    unsigned int handle = 1;
+
+    while (mRenderbufferMap.find(handle) != mRenderbufferMap.end())
+    {
+        handle++;
+    }
 
     mRenderbufferMap[handle] = NULL;
 
@@ -132,7 +162,7 @@ void ResourceManager::deleteBuffer(GLuint buffer)
 
     if(bufferObject != mBufferMap.end())
     {
-        mBufferNameSpace.release(bufferObject->first);
+        //mBufferNameSpace.release(bufferObject->first);
         if(bufferObject->second) bufferObject->second->release();
         mBufferMap.erase(bufferObject);
     }
@@ -146,7 +176,7 @@ void ResourceManager::deleteShader(GLuint shader)
     {
         if(shaderObject->second->getRefCount() == 0)
         {
-            mProgramShaderNameSpace.release(shaderObject->first);
+            //mProgramShaderNameSpace.release(shaderObject->first);
             delete shaderObject->second;
             mShaderMap.erase(shaderObject);
         }
@@ -165,7 +195,7 @@ void ResourceManager::deleteProgram(GLuint program)
     {
         if(programObject->second->getRefCount() == 0)
         {
-            mProgramShaderNameSpace.release(programObject->first);
+            //mProgramShaderNameSpace.release(programObject->first);
             delete programObject->second;
             mProgramMap.erase(programObject);
         }
@@ -182,7 +212,7 @@ void ResourceManager::deleteTexture(GLuint texture)
 
     if(textureObject != mTextureMap.end())
     {
-        mTextureNameSpace.release(textureObject->first);
+        //mTextureNameSpace.release(textureObject->first);
         if(textureObject->second) textureObject->second->release();
         mTextureMap.erase(textureObject);
     }
@@ -194,7 +224,7 @@ void ResourceManager::deleteRenderbuffer(GLuint renderbuffer)
 
     if(renderbufferObject != mRenderbufferMap.end())
     {
-        mRenderbufferNameSpace.release(renderbufferObject->first);
+        //mRenderbufferNameSpace.release(renderbufferObject->first);
         if(renderbufferObject->second) renderbufferObject->second->release();
         mRenderbufferMap.erase(renderbufferObject);
     }
@@ -268,12 +298,6 @@ Renderbuffer *ResourceManager::getRenderbuffer(unsigned int handle)
     }
     else
     {
-		if (!renderbuffer->second)
-		{
-			Renderbuffer *renderbufferObject = new Renderbuffer(handle, new Colorbuffer(0, 0, GL_RGBA4_OES, 0));
-			mRenderbufferMap[handle] = renderbufferObject;
-			renderbufferObject->addRef();
-		}
         return renderbuffer->second;
     }
 }
@@ -307,10 +331,6 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
         {
             textureObject = new TextureCubeMap(texture);
         }
-        else if(type == TEXTURE_EXTERNAL)
-        {
-            textureObject = new TextureExternal(texture);
-        }
         else
         {
             UNREACHABLE();
@@ -319,6 +339,16 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
 
         mTextureMap[texture] = textureObject;
         textureObject->addRef();
+    }
+}
+
+void ResourceManager::checkRenderbufferAllocation(GLuint renderbuffer)
+{
+    if(renderbuffer != 0 && !getRenderbuffer(renderbuffer))
+    {
+        Renderbuffer *renderbufferObject = new Renderbuffer(renderbuffer, new Colorbuffer(0, 0, GL_RGBA4, 0));
+        mRenderbufferMap[renderbuffer] = renderbufferObject;
+        renderbufferObject->addRef();
     }
 }
 

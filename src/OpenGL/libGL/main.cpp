@@ -13,11 +13,13 @@
 
 #include "main.h"
 
+#include "resource.h"
 #include "Framebuffer.h"
-#include "libEGL/Surface.h"
+#include "Surface.h"
 #include "Common/Thread.hpp"
-#include "Common/SharedLibrary.hpp"
 #include "common/debug.h"
+
+static sw::Thread::LocalStorageKey currentTLS = TLS_OUT_OF_INDEXES;
 
 #if !defined(_MSC_VER)
 #define CONSTRUCTOR __attribute__((constructor))
@@ -30,43 +32,57 @@
 static void glAttachThread()
 {
     TRACE("()");
+
+	gl::Current *current = new gl::Current;
+
+    if(current)
+    {
+		sw::Thread::setLocalStorage(currentTLS, current);
+
+        current->context = 0;
+        current->display = 0;
+        current->drawSurface = 0;
+        current->readSurface = 0;
+    }
 }
 
 static void glDetachThread()
 {
     TRACE("()");
+
+	gl::Current *current = (gl::Current*)sw::Thread::getLocalStorage(currentTLS);
+
+    if(current)
+    {
+        delete current;
+    }
 }
 
 CONSTRUCTOR static bool glAttachProcess()
 {
     TRACE("()");
 
+	#if !(ANGLE_DISABLE_TRACE)
+        FILE *debug = fopen(TRACE_OUTPUT_FILE, "rt");
+
+        if(debug)
+        {
+            fclose(debug);
+            debug = fopen(TRACE_OUTPUT_FILE, "wt");   // Erase
+            fclose(debug);
+        }
+	#endif
+
+	currentTLS = sw::Thread::allocateLocalStorageKey();
+
+    if(currentTLS == TLS_OUT_OF_INDEXES)
+    {
+        return false;
+    }
+
     glAttachThread();
 
-	#if defined(_WIN32)
-	const char *libEGL_lib[] = {"libEGL.dll", "libEGL_translator.dll"};
-	#elif defined(__LP64__)
-	const char *libEGL_lib[] = {"lib64EGL_translator.so", "libEGL.so.1", "libEGL.so"};
-	#else
-	const char *libEGL_lib[] = {"libEGL_translator.so", "libEGL.so.1", "libEGL.so"};
-	#endif
-
-	libEGL = loadLibrary(libEGL_lib);
-	egl::getCurrentContext = (egl::Context *(*)())getProcAddress(libEGL, "clientGetCurrentContext");
-	egl::getCurrentDisplay = (egl::Display *(*)())getProcAddress(libEGL, "clientGetCurrentDisplay");
-
-	#if defined(_WIN32)
-	const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "libGLES_CM_translator.dll"};
-	#elif defined(__LP64__)
-	const char *libGLES_CM_lib[] = {"lib64GLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
-	#else
-	const char *libGLES_CM_lib[] = {"libGLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
-	#endif
-
-	libGLES_CM = loadLibrary(libGLES_CM_lib);
-	es1::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLES_CM, "glGetProcAddress");
-
-    return libEGL != 0;
+    return true;
 }
 
 DESTRUCTOR static void glDetachProcess()
@@ -74,16 +90,57 @@ DESTRUCTOR static void glDetachProcess()
     TRACE("()");
 
 	glDetachThread();
-	freeLibrary(libEGL);
-	freeLibrary(libGLES_CM);
+
+    sw::Thread::freeLocalStorageKey(currentTLS);
 }
 
 #if defined(_WIN32)
+static INT_PTR CALLBACK DebuggerWaitDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	RECT rect;
+
+    switch(uMsg)
+    {
+    case WM_INITDIALOG:
+		GetWindowRect(GetDesktopWindow(), &rect);
+		SetWindowPos(hwnd, HWND_TOP, rect.right / 2, rect.bottom / 2, 0, 0, SWP_NOSIZE);
+		SetTimer(hwnd, 1, 100, NULL);
+		return TRUE;
+    case WM_COMMAND:
+        if(LOWORD(wParam) == IDCANCEL)
+		{
+			EndDialog(hwnd, 0);
+		}
+        break;
+    case WM_TIMER:
+		if(IsDebuggerPresent())
+		{
+			EndDialog(hwnd, 0);
+		}
+    }
+
+    return FALSE;
+}
+
+static void WaitForDebugger(HINSTANCE instance)
+{
+    if(!IsDebuggerPresent())
+    {
+        HRSRC dialog = FindResource(instance, MAKEINTRESOURCE(IDD_DIALOG1), RT_DIALOG);
+		DLGTEMPLATE *dialogTemplate = (DLGTEMPLATE*)LoadResource(instance, dialog);
+		DialogBoxIndirect(instance, dialogTemplate, NULL, DebuggerWaitDialogProc);
+    }
+}
+
 extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
     switch(reason)
     {
     case DLL_PROCESS_ATTACH:
+		if(false)
+		{
+			WaitForDebugger(instance);
+		}
         return glAttachProcess();
         break;
     case DLL_THREAD_ATTACH:
@@ -105,21 +162,43 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
 
 namespace gl
 {
-gl::Context *getContext()
+static gl::Current *getCurrent(void)
 {
-	egl::Context *context = egl::getCurrentContext();
+	Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
 
-	if(context && context->getClientVersion() == 2)
+	if(!current)
 	{
-		return static_cast<gl::Context*>(context);
+		glAttachThread();
 	}
 
-	return 0;
+	return (Current*)sw::Thread::getLocalStorage(currentTLS);
 }
 
-egl::Display *getDisplay()
+void makeCurrent(Context *context, Display *display, Surface *surface)
 {
-    return egl::getCurrentDisplay();
+    Current *current = getCurrent();
+
+    current->context = context;
+    current->display = display;
+
+    if(context && display && surface)
+    {
+        context->makeCurrent(surface);
+    }
+}
+
+Context *getContext()
+{
+    Current *current = getCurrent();
+
+    return current->context;
+}
+
+Display *getDisplay()
+{
+    Current *current = getCurrent();
+
+    return current->display;
 }
 
 Device *getDevice()
@@ -128,15 +207,47 @@ Device *getDevice()
 
     return context ? context->getDevice() : 0;
 }
+
+void setCurrentDisplay(Display *dpy)
+{
+    Current *current = getCurrent();
+
+    current->display = dpy;
 }
 
-namespace egl
+void setCurrentContext(gl::Context *ctx)
 {
-GLint getClientVersion()
-{
-	Context *context = egl::getCurrentContext();
+	Current *current = getCurrent();
 
-    return context ? context->getClientVersion() : 0;
+	current->context = ctx;
+}
+
+void setCurrentDrawSurface(Surface *surface)
+{
+    Current *current = getCurrent();
+
+    current->drawSurface = surface;
+}
+
+Surface *getCurrentDrawSurface()
+{
+    Current *current = getCurrent();
+
+    return current->drawSurface;
+}
+
+void setCurrentReadSurface(Surface *surface)
+{
+    Current *current = getCurrent();
+
+    current->readSurface = surface;
+}
+
+Surface *getCurrentReadSurface()
+{
+    Current *current = getCurrent();
+
+    return current->readSurface;
 }
 }
 
@@ -173,17 +284,3 @@ void error(GLenum errorCode)
         }
     }
 }
-
-namespace egl
-{
-	egl::Context *(*getCurrentContext)() = 0;
-	egl::Display *(*getCurrentDisplay)() = 0;
-}
-
-namespace es1
-{
-	__eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname) = 0;
-}
-
-void *libEGL = 0;   // Handle to the libEGL module
-void *libGLES_CM = 0;   // Handle to the libGLES_CM module

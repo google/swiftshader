@@ -26,9 +26,11 @@
 #include "Common/Version.h"
 #include "Main/Register.hpp"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#define _GDI32_
+#include <windows.h>
+#include <GL/GL.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GL/glext.h>
 
 #include <exception>
 #include <limits>
@@ -96,8 +98,8 @@ static bool validReadFormatType(GLenum format, GLenum type)
 		switch(type)
 		{
 		case GL_UNSIGNED_BYTE:
-		case GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT:
-		case GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT:
+		case GL_UNSIGNED_SHORT_4_4_4_4_REV:
+		case GL_UNSIGNED_SHORT_1_5_5_5_REV:
 			break;
 		default:
 			return false;
@@ -122,7 +124,7 @@ static bool validReadFormatType(GLenum format, GLenum type)
 extern "C"
 {
 
-void GL_APIENTRY glActiveTexture(GLenum texture)
+void APIENTRY glActiveTexture(GLenum texture)
 {
 	TRACE("(GLenum texture = 0x%X)", texture);
 
@@ -130,6 +132,11 @@ void GL_APIENTRY glActiveTexture(GLenum texture)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		if(texture < GL_TEXTURE0 || texture > GL_TEXTURE0 + gl::MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
 		{
 			return error(GL_INVALID_ENUM);
@@ -139,7 +146,7 @@ void GL_APIENTRY glActiveTexture(GLenum texture)
 	}
 }
 
-void GL_APIENTRY glAttachShader(GLuint program, GLuint shader)
+void APIENTRY glAttachShader(GLuint program, GLuint shader)
 {
 	TRACE("(GLuint program = %d, GLuint shader = %d)", program, shader);
 
@@ -181,14 +188,14 @@ void GL_APIENTRY glAttachShader(GLuint program, GLuint shader)
 	}
 }
 
-void GL_APIENTRY glBeginQueryEXT(GLenum target, GLuint name)
+void APIENTRY glBeginQueryEXT(GLenum target, GLuint name)
 {
 	TRACE("(GLenum target = 0x%X, GLuint name = %d)", target, name);
 
 	switch(target)
 	{
-	case GL_ANY_SAMPLES_PASSED_EXT:
-	case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
+	case GL_ANY_SAMPLES_PASSED:
+	case GL_ANY_SAMPLES_PASSED_CONSERVATIVE:
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
@@ -203,11 +210,16 @@ void GL_APIENTRY glBeginQueryEXT(GLenum target, GLuint name)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->beginQuery(target, name);
 	}
 }
 
-void GL_APIENTRY glBindAttribLocation(GLuint program, GLuint index, const GLchar* name)
+void APIENTRY glBindAttribLocation(GLuint program, GLuint index, const GLchar* name)
 {
 	TRACE("(GLuint program = %d, GLuint index = %d, const GLchar* name = %s)", program, index, name);
 
@@ -243,7 +255,7 @@ void GL_APIENTRY glBindAttribLocation(GLuint program, GLuint index, const GLchar
 	}
 }
 
-void GL_APIENTRY glBindBuffer(GLenum target, GLuint buffer)
+void APIENTRY glBindBuffer(GLenum target, GLuint buffer)
 {
 	TRACE("(GLenum target = 0x%X, GLuint buffer = %d)", target, buffer);
 
@@ -265,11 +277,11 @@ void GL_APIENTRY glBindBuffer(GLenum target, GLuint buffer)
 	}
 }
 
-void GL_APIENTRY glBindFramebuffer(GLenum target, GLuint framebuffer)
+void APIENTRY glBindFramebuffer(GLenum target, GLuint framebuffer)
 {
 	TRACE("(GLenum target = 0x%X, GLuint framebuffer = %d)", target, framebuffer);
 
-	if(target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER_ANGLE && target != GL_READ_FRAMEBUFFER_ANGLE)
+	if(target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER_EXT && target != GL_READ_FRAMEBUFFER_EXT)
 	{
 		return error(GL_INVALID_ENUM);
 	}
@@ -278,19 +290,24 @@ void GL_APIENTRY glBindFramebuffer(GLenum target, GLuint framebuffer)
 
 	if(context)
 	{
-		if(target == GL_READ_FRAMEBUFFER_ANGLE || target == GL_FRAMEBUFFER)
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		if(target == GL_READ_FRAMEBUFFER_EXT || target == GL_FRAMEBUFFER)
 		{
 			context->bindReadFramebuffer(framebuffer);
 		}
-
-		if(target == GL_DRAW_FRAMEBUFFER_ANGLE || target == GL_FRAMEBUFFER)
+			
+		if(target == GL_DRAW_FRAMEBUFFER_EXT || target == GL_FRAMEBUFFER)
 		{
 			context->bindDrawFramebuffer(framebuffer);
 		}
 	}
 }
 
-void GL_APIENTRY glBindRenderbuffer(GLenum target, GLuint renderbuffer)
+void APIENTRY glBindRenderbuffer(GLenum target, GLuint renderbuffer)
 {
 	TRACE("(GLenum target = 0x%X, GLuint renderbuffer = %d)", target, renderbuffer);
 
@@ -303,20 +320,16 @@ void GL_APIENTRY glBindRenderbuffer(GLenum target, GLuint renderbuffer)
 
 	if(context)
 	{
-		if(renderbuffer != 0 && !context->getRenderbuffer(renderbuffer))
+		if(context->getListIndex() != 0)
 		{
-			// [OpenGL ES 2.0.25] Section 4.4.3 page 112
-			// [OpenGL ES 3.0.2] Section 4.4.2 page 201
-			// 'renderbuffer' must be either zero or the name of an existing renderbuffer object of
-			// type 'renderbuffertarget', otherwise an INVALID_OPERATION error is generated.
-			return error(GL_INVALID_OPERATION);
+			UNIMPLEMENTED();
 		}
 
 		context->bindRenderbuffer(renderbuffer);
 	}
 }
 
-void GL_APIENTRY glBindTexture(GLenum target, GLuint texture)
+void APIENTRY glBindTexture(GLenum target, GLuint texture)
 {
 	TRACE("(GLenum target = 0x%X, GLuint texture = %d)", target, texture);
 
@@ -324,6 +337,11 @@ void GL_APIENTRY glBindTexture(GLenum target, GLuint texture)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Texture *textureObject = context->getTexture(texture);
 
 		if(textureObject && textureObject->getTarget() != target && texture != 0)
@@ -339,34 +357,36 @@ void GL_APIENTRY glBindTexture(GLenum target, GLuint texture)
 		case GL_TEXTURE_CUBE_MAP:
 			context->bindTextureCubeMap(texture);
 			return;
-		case GL_TEXTURE_EXTERNAL_OES:
-			context->bindTextureExternal(texture);
-			return;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
 	}
 }
 
-void GL_APIENTRY glBlendColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
+void APIENTRY glBlendColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 {
 	TRACE("(GLclampf red = %f, GLclampf green = %f, GLclampf blue = %f, GLclampf alpha = %f)",
-		red, green, blue, alpha);
+		  red, green, blue, alpha);
 
 	gl::Context* context = gl::getContext();
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setBlendColor(gl::clamp01(red), gl::clamp01(green), gl::clamp01(blue), gl::clamp01(alpha));
 	}
 }
 
-void GL_APIENTRY glBlendEquation(GLenum mode)
+void APIENTRY glBlendEquation(GLenum mode)
 {
 	glBlendEquationSeparate(mode, mode);
 }
 
-void GL_APIENTRY glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
+void APIENTRY glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
 {
 	TRACE("(GLenum modeRGB = 0x%X, GLenum modeAlpha = 0x%X)", modeRGB, modeAlpha);
 
@@ -398,16 +418,21 @@ void GL_APIENTRY glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setBlendEquation(modeRGB, modeAlpha);
 	}
 }
 
-void GL_APIENTRY glBlendFunc(GLenum sfactor, GLenum dfactor)
+void APIENTRY glBlendFunc(GLenum sfactor, GLenum dfactor)
 {
 	glBlendFuncSeparate(sfactor, dfactor, sfactor, dfactor);
 }
 
-void GL_APIENTRY glBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)
+void APIENTRY glBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)
 {
 	TRACE("(GLenum srcRGB = 0x%X, GLenum dstRGB = 0x%X, GLenum srcAlpha = 0x%X, GLenum dstAlpha = 0x%X)",
 	      srcRGB, dstRGB, srcAlpha, dstAlpha);
@@ -502,14 +527,17 @@ void GL_APIENTRY glBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlp
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setBlendFactors(srcRGB, dstRGB, srcAlpha, dstAlpha);
 	}
 }
 
-void GL_APIENTRY glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage)
+void APIENTRY glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage)
 {
-	size = static_cast<GLint>(size);   // Work around issues with some 64-bit applications
-
 	TRACE("(GLenum target = 0x%X, GLsizeiptr size = %d, const GLvoid* data = 0x%0.8p, GLenum usage = %d)",
 	      target, size, data, usage);
 
@@ -555,11 +583,8 @@ void GL_APIENTRY glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data
 	}
 }
 
-void GL_APIENTRY glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid* data)
+void APIENTRY glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid* data)
 {
-	size = static_cast<GLint>(size);   // Work around issues with some 64-bit applications
-	offset = static_cast<GLint>(offset);
-
 	TRACE("(GLenum target = 0x%X, GLintptr offset = %d, GLsizeiptr size = %d, const GLvoid* data = 0x%0.8p)",
 	      target, offset, size, data);
 
@@ -605,11 +630,11 @@ void GL_APIENTRY glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size
 	}
 }
 
-GLenum GL_APIENTRY glCheckFramebufferStatus(GLenum target)
+GLenum APIENTRY glCheckFramebufferStatus(GLenum target)
 {
 	TRACE("(GLenum target = 0x%X)", target);
 
-	if(target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER_ANGLE && target != GL_READ_FRAMEBUFFER_ANGLE)
+	if(target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER_EXT && target != GL_READ_FRAMEBUFFER_EXT)
 	{
 		return error(GL_INVALID_ENUM, 0);
 	}
@@ -618,8 +643,13 @@ GLenum GL_APIENTRY glCheckFramebufferStatus(GLenum target)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Framebuffer *framebuffer = NULL;
-		if(target == GL_READ_FRAMEBUFFER_ANGLE)
+		if(target == GL_READ_FRAMEBUFFER_EXT)
 		{
 			framebuffer = context->getReadFramebuffer();
 		}
@@ -634,7 +664,7 @@ GLenum GL_APIENTRY glCheckFramebufferStatus(GLenum target)
 	return 0;
 }
 
-void GL_APIENTRY glClear(GLbitfield mask)
+void APIENTRY glClear(GLbitfield mask)
 {
 	TRACE("(GLbitfield mask = %X)", mask);
 
@@ -647,11 +677,16 @@ void GL_APIENTRY glClear(GLbitfield mask)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			return context->listCommand(gl::newCommand(glClear, mask));
+		}
+
 		context->clear(mask);
 	}
 }
 
-void GL_APIENTRY glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
+void APIENTRY glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 {
 	TRACE("(GLclampf red = %f, GLclampf green = %f, GLclampf blue = %f, GLclampf alpha = %f)",
 	      red, green, blue, alpha);
@@ -660,11 +695,16 @@ void GL_APIENTRY glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLcla
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setClearColor(red, green, blue, alpha);
 	}
 }
 
-void GL_APIENTRY glClearDepthf(GLclampf depth)
+void APIENTRY glClearDepthf(GLclampf depth)
 {
 	TRACE("(GLclampf depth = %f)", depth);
 
@@ -672,11 +712,16 @@ void GL_APIENTRY glClearDepthf(GLclampf depth)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setClearDepth(depth);
 	}
 }
 
-void GL_APIENTRY glClearStencil(GLint s)
+void APIENTRY glClearStencil(GLint s)
 {
 	TRACE("(GLint s = %d)", s);
 
@@ -684,11 +729,16 @@ void GL_APIENTRY glClearStencil(GLint s)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setClearStencil(s);
 	}
 }
 
-void GL_APIENTRY glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
+void APIENTRY glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 {
 	TRACE("(GLboolean red = %d, GLboolean green = %d, GLboolean blue = %d, GLboolean alpha = %d)",
 	      red, green, blue, alpha);
@@ -697,11 +747,16 @@ void GL_APIENTRY glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLb
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setColorMask(red == GL_TRUE, green == GL_TRUE, blue == GL_TRUE, alpha == GL_TRUE);
 	}
 }
 
-void GL_APIENTRY glCompileShader(GLuint shader)
+void APIENTRY glCompileShader(GLuint shader)
 {
 	TRACE("(GLuint shader = %d)", shader);
 
@@ -727,7 +782,7 @@ void GL_APIENTRY glCompileShader(GLuint shader)
 	}
 }
 
-void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height,
+void APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height,
                                         GLint border, GLsizei imageSize, const GLvoid* data)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum internalformat = 0x%X, GLsizei width = %d, "
@@ -741,12 +796,10 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
 
 	switch(internalformat)
 	{
-	case GL_ETC1_RGB8_OES:
-		break;
 	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-	case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
-	case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
+	case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
 		if(!S3TC_SUPPORT)
 		{
 			return error(GL_INVALID_ENUM);
@@ -754,9 +807,9 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
 		break;
 	case GL_DEPTH_COMPONENT:
 	case GL_DEPTH_COMPONENT16:
-	case GL_DEPTH_COMPONENT32_OES:
-	case GL_DEPTH_STENCIL_OES:
-	case GL_DEPTH24_STENCIL8_OES:
+	case GL_DEPTH_COMPONENT32:
+	case GL_DEPTH_STENCIL_EXT:
+	case GL_DEPTH24_STENCIL8_EXT:
 		return error(GL_INVALID_OPERATION);
 	default:
 		return error(GL_INVALID_ENUM);
@@ -771,6 +824,11 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		if(level > gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
 		{
 			return error(GL_INVALID_VALUE);
@@ -813,7 +871,7 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
 
 		if(target == GL_TEXTURE_2D)
 		{
-			gl::Texture2D *texture = context->getTexture2D();
+			gl::Texture2D *texture = context->getTexture2D(target);
 
 			if(!texture)
 			{
@@ -847,7 +905,7 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
 	}
 }
 
-void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
+void APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
                                            GLenum format, GLsizei imageSize, const GLvoid* data)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
@@ -867,12 +925,10 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
 
 	switch(format)
 	{
-	case GL_ETC1_RGB8_OES:
-		break;
 	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-	case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
-	case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
+	case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
 		if(!S3TC_SUPPORT)
 		{
 			return error(GL_INVALID_ENUM);
@@ -891,6 +947,11 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		if(level > gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
 		{
 			return error(GL_INVALID_VALUE);
@@ -909,7 +970,7 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
 
 		if(target == GL_TEXTURE_2D)
 		{
-			gl::Texture2D *texture = context->getTexture2D();
+			gl::Texture2D *texture = context->getTexture2D(target);
 
 			if(validateSubImageParams(true, width, height, xoffset, yoffset, target, level, format, texture))
 			{
@@ -932,7 +993,7 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
 	}
 }
 
-void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
+void APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum internalformat = 0x%X, "
 	      "GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d, GLint border = %d)",
@@ -952,6 +1013,11 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		switch(target)
 		{
 		case GL_TEXTURE_2D:
@@ -997,7 +1063,6 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 		gl::Renderbuffer *source = framebuffer->getColorbuffer();
 		GLenum colorbufferFormat = source->getFormat();
 
-		// [OpenGL ES 2.0.24] table 3.9
 		switch(internalformat)
 		{
 		case GL_ALPHA:
@@ -1005,7 +1070,7 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 			   colorbufferFormat != GL_RGBA &&
 			   colorbufferFormat != GL_RGBA4 &&
 			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_OES)
+			   colorbufferFormat != GL_RGBA8_EXT)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -1014,11 +1079,11 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 		case GL_RGB:
 			if(colorbufferFormat != GL_RGB &&
 			   colorbufferFormat != GL_RGB565 &&
-			   colorbufferFormat != GL_RGB8_OES &&
+			   colorbufferFormat != GL_RGB8_EXT &&
 			   colorbufferFormat != GL_RGBA &&
 			   colorbufferFormat != GL_RGBA4 &&
 			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_OES)
+			   colorbufferFormat != GL_RGBA8_EXT)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -1028,17 +1093,15 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 			if(colorbufferFormat != GL_RGBA &&
 			   colorbufferFormat != GL_RGBA4 &&
 			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_OES)
+			   colorbufferFormat != GL_RGBA8_EXT)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
 			break;
-		case GL_ETC1_RGB8_OES:
-			return error(GL_INVALID_OPERATION);
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
-		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
+		case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
 			if(S3TC_SUPPORT)
 			{
 				return error(GL_INVALID_OPERATION);
@@ -1053,7 +1116,7 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 
 		if(target == GL_TEXTURE_2D)
 		{
-			gl::Texture2D *texture = context->getTexture2D();
+			gl::Texture2D *texture = context->getTexture2D(target);
 
 			if(!texture)
 			{
@@ -1077,7 +1140,7 @@ void GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalfor
 	}
 }
 
-void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+void APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
 	      "GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d)",
@@ -1107,6 +1170,11 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		if(level > gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
 		{
 			return error(GL_INVALID_VALUE);
@@ -1130,7 +1198,7 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 
 		if(target == GL_TEXTURE_2D)
 		{
-			texture = context->getTexture2D();
+			texture = context->getTexture2D(target);
 		}
 		else if(gl::IsCubemapTextureTarget(target))
 		{
@@ -1145,7 +1213,6 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 
 		GLenum textureFormat = texture->getFormat(target, level);
 
-		// [OpenGL ES 2.0.24] table 3.9
 		switch(textureFormat)
 		{
 		case GL_ALPHA:
@@ -1153,7 +1220,7 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 			   colorbufferFormat != GL_RGBA &&
 			   colorbufferFormat != GL_RGBA4 &&
 			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_OES)
+			   colorbufferFormat != GL_RGBA8_EXT)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -1162,11 +1229,11 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 		case GL_RGB:
 			if(colorbufferFormat != GL_RGB &&
 			   colorbufferFormat != GL_RGB565 &&
-			   colorbufferFormat != GL_RGB8_OES &&
+			   colorbufferFormat != GL_RGB8_EXT &&
 			   colorbufferFormat != GL_RGBA &&
 			   colorbufferFormat != GL_RGBA4 &&
 			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_OES)
+			   colorbufferFormat != GL_RGBA8_EXT)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -1176,28 +1243,26 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 			if(colorbufferFormat != GL_RGBA &&
 			   colorbufferFormat != GL_RGBA4 &&
 			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_OES)
+			   colorbufferFormat != GL_RGBA8_EXT)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
 			break;
-		case GL_ETC1_RGB8_OES:
-			return error(GL_INVALID_OPERATION);
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
-		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
-			if(S3TC_SUPPORT)
+		case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+			return error(GL_INVALID_OPERATION);
+		case GL_DEPTH_COMPONENT:
+		case GL_DEPTH_STENCIL_EXT:
+			return error(GL_INVALID_OPERATION);
+		case GL_BGRA_EXT:
+			if(colorbufferFormat != GL_RGB8)
 			{
+				UNIMPLEMENTED();
 				return error(GL_INVALID_OPERATION);
 			}
-			else
-			{
-				return error(GL_INVALID_ENUM);
-			}
-		case GL_DEPTH_COMPONENT:
-		case GL_DEPTH_STENCIL_OES:
-			return error(GL_INVALID_OPERATION);
+			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -1206,7 +1271,7 @@ void GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, 
 	}
 }
 
-GLuint GL_APIENTRY glCreateProgram(void)
+GLuint APIENTRY glCreateProgram(void)
 {
 	TRACE("()");
 
@@ -1220,7 +1285,7 @@ GLuint GL_APIENTRY glCreateProgram(void)
 	return 0;
 }
 
-GLuint GL_APIENTRY glCreateShader(GLenum type)
+GLuint APIENTRY glCreateShader(GLenum type)
 {
 	TRACE("(GLenum type = 0x%X)", type);
 
@@ -1241,7 +1306,7 @@ GLuint GL_APIENTRY glCreateShader(GLenum type)
 	return 0;
 }
 
-void GL_APIENTRY glCullFace(GLenum mode)
+void APIENTRY glCullFace(GLenum mode)
 {
 	TRACE("(GLenum mode = 0x%X)", mode);
 
@@ -1264,7 +1329,7 @@ void GL_APIENTRY glCullFace(GLenum mode)
 	}
 }
 
-void GL_APIENTRY glDeleteBuffers(GLsizei n, const GLuint* buffers)
+void APIENTRY glDeleteBuffers(GLsizei n, const GLuint* buffers)
 {
 	TRACE("(GLsizei n = %d, const GLuint* buffers = 0x%0.8p)", n, buffers);
 
@@ -1284,7 +1349,7 @@ void GL_APIENTRY glDeleteBuffers(GLsizei n, const GLuint* buffers)
 	}
 }
 
-void GL_APIENTRY glDeleteFencesNV(GLsizei n, const GLuint* fences)
+void APIENTRY glDeleteFencesNV(GLsizei n, const GLuint* fences)
 {
 	TRACE("(GLsizei n = %d, const GLuint* fences = 0x%0.8p)", n, fences);
 
@@ -1297,6 +1362,11 @@ void GL_APIENTRY glDeleteFencesNV(GLsizei n, const GLuint* fences)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		for(int i = 0; i < n; i++)
 		{
 			context->deleteFence(fences[i]);
@@ -1304,7 +1374,7 @@ void GL_APIENTRY glDeleteFencesNV(GLsizei n, const GLuint* fences)
 	}
 }
 
-void GL_APIENTRY glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers)
+void APIENTRY glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers)
 {
 	TRACE("(GLsizei n = %d, const GLuint* framebuffers = 0x%0.8p)", n, framebuffers);
 
@@ -1317,6 +1387,11 @@ void GL_APIENTRY glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		for(int i = 0; i < n; i++)
 		{
 			if(framebuffers[i] != 0)
@@ -1327,7 +1402,7 @@ void GL_APIENTRY glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers)
 	}
 }
 
-void GL_APIENTRY glDeleteProgram(GLuint program)
+void APIENTRY glDeleteProgram(GLuint program)
 {
 	TRACE("(GLuint program = %d)", program);
 
@@ -1356,7 +1431,7 @@ void GL_APIENTRY glDeleteProgram(GLuint program)
 	}
 }
 
-void GL_APIENTRY glDeleteQueriesEXT(GLsizei n, const GLuint *ids)
+void APIENTRY glDeleteQueriesEXT(GLsizei n, const GLuint *ids)
 {
 	TRACE("(GLsizei n = %d, const GLuint *ids = 0x%0.8p)", n, ids);
 
@@ -1376,7 +1451,7 @@ void GL_APIENTRY glDeleteQueriesEXT(GLsizei n, const GLuint *ids)
 	}
 }
 
-void GL_APIENTRY glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers)
+void APIENTRY glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers)
 {
 	TRACE("(GLsizei n = %d, const GLuint* renderbuffers = 0x%0.8p)", n, renderbuffers);
 
@@ -1389,6 +1464,11 @@ void GL_APIENTRY glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		for(int i = 0; i < n; i++)
 		{
 			context->deleteRenderbuffer(renderbuffers[i]);
@@ -1396,7 +1476,7 @@ void GL_APIENTRY glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers)
 	}
 }
 
-void GL_APIENTRY glDeleteShader(GLuint shader)
+void APIENTRY glDeleteShader(GLuint shader)
 {
 	TRACE("(GLuint shader = %d)", shader);
 
@@ -1425,7 +1505,7 @@ void GL_APIENTRY glDeleteShader(GLuint shader)
 	}
 }
 
-void GL_APIENTRY glDeleteTextures(GLsizei n, const GLuint* textures)
+void APIENTRY glDeleteTextures(GLsizei n, const GLuint* textures)
 {
 	TRACE("(GLsizei n = %d, const GLuint* textures = 0x%0.8p)", n, textures);
 
@@ -1448,7 +1528,7 @@ void GL_APIENTRY glDeleteTextures(GLsizei n, const GLuint* textures)
 	}
 }
 
-void GL_APIENTRY glDepthFunc(GLenum func)
+void APIENTRY glDepthFunc(GLenum func)
 {
 	TRACE("(GLenum func = 0x%X)", func);
 
@@ -1471,11 +1551,16 @@ void GL_APIENTRY glDepthFunc(GLenum func)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setDepthFunc(func);
 	}
 }
 
-void GL_APIENTRY glDepthMask(GLboolean flag)
+void APIENTRY glDepthMask(GLboolean flag)
 {
 	TRACE("(GLboolean flag = %d)", flag);
 
@@ -1483,11 +1568,16 @@ void GL_APIENTRY glDepthMask(GLboolean flag)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setDepthMask(flag != GL_FALSE);
 	}
 }
 
-void GL_APIENTRY glDepthRangef(GLclampf zNear, GLclampf zFar)
+void APIENTRY glDepthRangef(GLclampf zNear, GLclampf zFar)
 {
 	TRACE("(GLclampf zNear = %f, GLclampf zFar = %f)", zNear, zFar);
 
@@ -1495,11 +1585,16 @@ void GL_APIENTRY glDepthRangef(GLclampf zNear, GLclampf zFar)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setDepthRange(zNear, zFar);
 	}
 }
 
-void GL_APIENTRY glDetachShader(GLuint program, GLuint shader)
+void APIENTRY glDetachShader(GLuint program, GLuint shader)
 {
 	TRACE("(GLuint program = %d, GLuint shader = %d)", program, shader);
 
@@ -1507,7 +1602,6 @@ void GL_APIENTRY glDetachShader(GLuint program, GLuint shader)
 
 	if(context)
 	{
-
 		gl::Program *programObject = context->getProgram(program);
 		gl::Shader *shaderObject = context->getShader(shader);
 
@@ -1545,7 +1639,7 @@ void GL_APIENTRY glDetachShader(GLuint program, GLuint shader)
 	}
 }
 
-void GL_APIENTRY glDisable(GLenum cap)
+void APIENTRY glDisable(GLenum cap)
 {
 	TRACE("(GLenum cap = 0x%X)", cap);
 
@@ -1553,6 +1647,11 @@ void GL_APIENTRY glDisable(GLenum cap)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		switch(cap)
 		{
 		case GL_CULL_FACE:                context->setCullFace(false);              break;
@@ -1564,13 +1663,27 @@ void GL_APIENTRY glDisable(GLenum cap)
 		case GL_DEPTH_TEST:               context->setDepthTest(false);             break;
 		case GL_BLEND:                    context->setBlend(false);                 break;
 		case GL_DITHER:                   context->setDither(false);                break;
+		case GL_LIGHTING:                 context->setLighting(false);              break;
+		case GL_FOG:                      context->setFog(false);                   break;
+		case GL_ALPHA_TEST:               context->setAlphaTest(false);             break;
+		case GL_TEXTURE_2D:               context->setTexture2D(false);             break;
+		case GL_LIGHT0:                   context->setLight(0, false);              break;
+		case GL_LIGHT1:                   context->setLight(1, false);              break;
+		case GL_LIGHT2:                   context->setLight(2, false);              break;
+		case GL_LIGHT3:                   context->setLight(3, false);              break;
+		case GL_LIGHT4:                   context->setLight(4, false);              break;
+		case GL_LIGHT5:                   context->setLight(5, false);              break;
+		case GL_LIGHT6:                   context->setLight(6, false);              break;
+		case GL_LIGHT7:                   context->setLight(7, false);              break;
+		case GL_COLOR_MATERIAL:           context->setColorMaterial(false);         break;
+		case GL_RESCALE_NORMAL:           context->setNormalizeNormals(false);      break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
 	}
 }
 
-void GL_APIENTRY glDisableVertexAttribArray(GLuint index)
+void APIENTRY glDisableVertexAttribArray(GLuint index)
 {
 	TRACE("(GLuint index = %d)", index);
 
@@ -1587,7 +1700,31 @@ void GL_APIENTRY glDisableVertexAttribArray(GLuint index)
 	}
 }
 
-void GL_APIENTRY glDrawArrays(GLenum mode, GLint first, GLsizei count)
+void APIENTRY glCaptureAttribs()
+{
+	TRACE("()");
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		context->captureAttribs();
+	}
+}
+
+void APIENTRY glRestoreAttribs()
+{
+	TRACE("()");
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		context->restoreAttribs();
+	}
+}
+
+void APIENTRY glDrawArrays(GLenum mode, GLint first, GLsizei count)
 {
 	TRACE("(GLenum mode = 0x%X, GLint first = %d, GLsizei count = %d)", mode, first, count);
 
@@ -1600,11 +1737,23 @@ void GL_APIENTRY glDrawArrays(GLenum mode, GLint first, GLsizei count)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			ASSERT(context->getListMode() != GL_COMPILE_AND_EXECUTE);   // UNIMPLEMENTED!
+
+			context->listCommand(gl::newCommand(glCaptureAttribs));
+			context->captureDrawArrays(mode, first, count);
+			context->listCommand(gl::newCommand(glDrawArrays, mode, first, count));
+			context->listCommand(gl::newCommand(glRestoreAttribs));
+
+			return;
+		}
+
 		context->drawArrays(mode, first, count);
 	}
 }
 
-void GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices)
+void APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices)
 {
 	TRACE("(GLenum mode = 0x%X, GLsizei count = %d, GLenum type = 0x%X, const GLvoid* indices = 0x%0.8p)",
 	      mode, count, type, indices);
@@ -1618,6 +1767,11 @@ void GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum type, const G
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		switch(type)
 		{
 		case GL_UNSIGNED_BYTE:
@@ -1632,7 +1786,7 @@ void GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum type, const G
 	}
 }
 
-void GL_APIENTRY glEnable(GLenum cap)
+void APIENTRY glEnable(GLenum cap)
 {
 	TRACE("(GLenum cap = 0x%X)", cap);
 
@@ -1640,6 +1794,11 @@ void GL_APIENTRY glEnable(GLenum cap)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		switch(cap)
 		{
 		case GL_CULL_FACE:                context->setCullFace(true);              break;
@@ -1651,13 +1810,27 @@ void GL_APIENTRY glEnable(GLenum cap)
 		case GL_DEPTH_TEST:               context->setDepthTest(true);             break;
 		case GL_BLEND:                    context->setBlend(true);                 break;
 		case GL_DITHER:                   context->setDither(true);                break;
+		case GL_TEXTURE_2D:               context->setTexture2D(true);             break;
+		case GL_ALPHA_TEST:               context->setAlphaTest(true);             break;
+		case GL_COLOR_MATERIAL:           context->setColorMaterial(true);         break;
+		case GL_FOG:                      context->setFog(true);                   break;
+		case GL_LIGHTING:                 context->setLighting(true);              break;
+		case GL_LIGHT0:                   context->setLight(0, true);              break;
+		case GL_LIGHT1:                   context->setLight(1, true);              break;
+		case GL_LIGHT2:                   context->setLight(2, true);              break;
+		case GL_LIGHT3:                   context->setLight(3, true);              break;
+		case GL_LIGHT4:                   context->setLight(4, true);              break;
+		case GL_LIGHT5:                   context->setLight(5, true);              break;
+		case GL_LIGHT6:                   context->setLight(6, true);              break;
+		case GL_LIGHT7:                   context->setLight(7, true);              break;
+		case GL_RESCALE_NORMAL:           context->setNormalizeNormals(true);      break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
 	}
 }
 
-void GL_APIENTRY glEnableVertexAttribArray(GLuint index)
+void APIENTRY glEnableVertexAttribArray(GLuint index)
 {
 	TRACE("(GLuint index = %d)", index);
 
@@ -1674,14 +1847,14 @@ void GL_APIENTRY glEnableVertexAttribArray(GLuint index)
 	}
 }
 
-void GL_APIENTRY glEndQueryEXT(GLenum target)
+void APIENTRY glEndQueryEXT(GLenum target)
 {
 	TRACE("GLenum target = 0x%X)", target);
 
 	switch(target)
 	{
-	case GL_ANY_SAMPLES_PASSED_EXT:
-	case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
+	case GL_ANY_SAMPLES_PASSED:
+	case GL_ANY_SAMPLES_PASSED_CONSERVATIVE:
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
@@ -1691,11 +1864,16 @@ void GL_APIENTRY glEndQueryEXT(GLenum target)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->endQuery(target);
 	}
 }
 
-void GL_APIENTRY glFinishFenceNV(GLuint fence)
+void APIENTRY glFinishFenceNV(GLuint fence)
 {
 	TRACE("(GLuint fence = %d)", fence);
 
@@ -1703,6 +1881,11 @@ void GL_APIENTRY glFinishFenceNV(GLuint fence)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Fence* fenceObject = context->getFence(fence);
 
 		if(fenceObject == NULL)
@@ -1714,7 +1897,7 @@ void GL_APIENTRY glFinishFenceNV(GLuint fence)
 	}
 }
 
-void GL_APIENTRY glFinish(void)
+void APIENTRY glFinish(void)
 {
 	TRACE("()");
 
@@ -1726,7 +1909,7 @@ void GL_APIENTRY glFinish(void)
 	}
 }
 
-void GL_APIENTRY glFlush(void)
+void APIENTRY glFlush(void)
 {
 	TRACE("()");
 
@@ -1738,12 +1921,12 @@ void GL_APIENTRY glFlush(void)
 	}
 }
 
-void GL_APIENTRY glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
+void APIENTRY glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
 {
 	TRACE("(GLenum target = 0x%X, GLenum attachment = 0x%X, GLenum renderbuffertarget = 0x%X, "
 	      "GLuint renderbuffer = %d)", target, attachment, renderbuffertarget, renderbuffer);
 
-	if((target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER_ANGLE && target != GL_READ_FRAMEBUFFER_ANGLE) ||
+	if((target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER_EXT && target != GL_READ_FRAMEBUFFER_EXT) ||
 	   (renderbuffertarget != GL_RENDERBUFFER && renderbuffer != 0))
 	{
 		return error(GL_INVALID_ENUM);
@@ -1753,9 +1936,14 @@ void GL_APIENTRY glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLe
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Framebuffer *framebuffer = NULL;
 		GLuint framebufferName = 0;
-		if(target == GL_READ_FRAMEBUFFER_ANGLE)
+		if(target == GL_READ_FRAMEBUFFER_EXT)
 		{
 			framebuffer = context->getReadFramebuffer();
 			framebufferName = context->getReadFramebufferName();
@@ -1788,12 +1976,17 @@ void GL_APIENTRY glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLe
 	}
 }
 
-void GL_APIENTRY glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+void APIENTRY glFramebufferTexture1D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
 	TRACE("(GLenum target = 0x%X, GLenum attachment = 0x%X, GLenum textarget = 0x%X, "
 	      "GLuint texture = %d, GLint level = %d)", target, attachment, textarget, texture, level);
 
-	if(target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER_ANGLE && target != GL_READ_FRAMEBUFFER_ANGLE)
+	if(target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER_EXT && target != GL_READ_FRAMEBUFFER_EXT)
 	{
 		return error(GL_INVALID_ENUM);
 	}
@@ -1812,6 +2005,11 @@ void GL_APIENTRY glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		if(texture == 0)
 		{
 			textarget = GL_NONE;
@@ -1861,7 +2059,7 @@ void GL_APIENTRY glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum
 
 		gl::Framebuffer *framebuffer = NULL;
 		GLuint framebufferName = 0;
-		if(target == GL_READ_FRAMEBUFFER_ANGLE)
+		if(target == GL_READ_FRAMEBUFFER_EXT)
 		{
 			framebuffer = context->getReadFramebuffer();
 			framebufferName = context->getReadFramebufferName();
@@ -1886,7 +2084,12 @@ void GL_APIENTRY glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum
 	}
 }
 
-void GL_APIENTRY glFrontFace(GLenum mode)
+void APIENTRY glFramebufferTexture3D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glFrontFace(GLenum mode)
 {
 	TRACE("(GLenum mode = 0x%X)", mode);
 
@@ -1908,7 +2111,7 @@ void GL_APIENTRY glFrontFace(GLenum mode)
 	}
 }
 
-void GL_APIENTRY glGenBuffers(GLsizei n, GLuint* buffers)
+void APIENTRY glGenBuffers(GLsizei n, GLuint* buffers)
 {
 	TRACE("(GLsizei n = %d, GLuint* buffers = 0x%0.8p)", n, buffers);
 
@@ -1928,7 +2131,7 @@ void GL_APIENTRY glGenBuffers(GLsizei n, GLuint* buffers)
 	}
 }
 
-void GL_APIENTRY glGenerateMipmap(GLenum target)
+void APIENTRY glGenerateMipmap(GLenum target)
 {
 	TRACE("(GLenum target = 0x%X)", target);
 
@@ -1936,12 +2139,17 @@ void GL_APIENTRY glGenerateMipmap(GLenum target)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Texture *texture;
 
 		switch(target)
 		{
 		case GL_TEXTURE_2D:
-			texture = context->getTexture2D();
+			texture = context->getTexture2D(target);
 			break;
 		case GL_TEXTURE_CUBE_MAP:
 			texture = context->getTextureCubeMap();
@@ -1959,7 +2167,7 @@ void GL_APIENTRY glGenerateMipmap(GLenum target)
 	}
 }
 
-void GL_APIENTRY glGenFencesNV(GLsizei n, GLuint* fences)
+void APIENTRY glGenFencesNV(GLsizei n, GLuint* fences)
 {
 	TRACE("(GLsizei n = %d, GLuint* fences = 0x%0.8p)", n, fences);
 
@@ -1972,6 +2180,11 @@ void GL_APIENTRY glGenFencesNV(GLsizei n, GLuint* fences)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		for(int i = 0; i < n; i++)
 		{
 			fences[i] = context->createFence();
@@ -1979,7 +2192,7 @@ void GL_APIENTRY glGenFencesNV(GLsizei n, GLuint* fences)
 	}
 }
 
-void GL_APIENTRY glGenFramebuffers(GLsizei n, GLuint* framebuffers)
+void APIENTRY glGenFramebuffers(GLsizei n, GLuint* framebuffers)
 {
 	TRACE("(GLsizei n = %d, GLuint* framebuffers = 0x%0.8p)", n, framebuffers);
 
@@ -1992,6 +2205,11 @@ void GL_APIENTRY glGenFramebuffers(GLsizei n, GLuint* framebuffers)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		for(int i = 0; i < n; i++)
 		{
 			framebuffers[i] = context->createFramebuffer();
@@ -1999,7 +2217,7 @@ void GL_APIENTRY glGenFramebuffers(GLsizei n, GLuint* framebuffers)
 	}
 }
 
-void GL_APIENTRY glGenQueriesEXT(GLsizei n, GLuint* ids)
+void APIENTRY glGenQueriesEXT(GLsizei n, GLuint* ids)
 {
 	TRACE("(GLsizei n = %d, GLuint* ids = 0x%0.8p)", n, ids);
 
@@ -2019,7 +2237,7 @@ void GL_APIENTRY glGenQueriesEXT(GLsizei n, GLuint* ids)
 	}
 }
 
-void GL_APIENTRY glGenRenderbuffers(GLsizei n, GLuint* renderbuffers)
+void APIENTRY glGenRenderbuffers(GLsizei n, GLuint* renderbuffers)
 {
 	TRACE("(GLsizei n = %d, GLuint* renderbuffers = 0x%0.8p)", n, renderbuffers);
 
@@ -2032,6 +2250,11 @@ void GL_APIENTRY glGenRenderbuffers(GLsizei n, GLuint* renderbuffers)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		for(int i = 0; i < n; i++)
 		{
 			renderbuffers[i] = context->createRenderbuffer();
@@ -2039,7 +2262,7 @@ void GL_APIENTRY glGenRenderbuffers(GLsizei n, GLuint* renderbuffers)
 	}
 }
 
-void GL_APIENTRY glGenTextures(GLsizei n, GLuint* textures)
+void APIENTRY glGenTextures(GLsizei n, GLuint* textures)
 {
 	TRACE("(GLsizei n = %d, GLuint* textures = 0x%0.8p)", n, textures);
 
@@ -2059,7 +2282,7 @@ void GL_APIENTRY glGenTextures(GLsizei n, GLuint* textures)
 	}
 }
 
-void GL_APIENTRY glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
+void APIENTRY glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
 {
 	TRACE("(GLuint program = %d, GLuint index = %d, GLsizei bufsize = %d, GLsizei *length = 0x%0.8p, "
 	      "GLint *size = 0x%0.8p, GLenum *type = %0.8p, GLchar *name = %0.8p)",
@@ -2097,7 +2320,7 @@ void GL_APIENTRY glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufsize
 	}
 }
 
-void GL_APIENTRY glGetActiveUniform(GLuint program, GLuint index, GLsizei bufsize, GLsizei* length, GLint* size, GLenum* type, GLchar* name)
+void APIENTRY glGetActiveUniform(GLuint program, GLuint index, GLsizei bufsize, GLsizei* length, GLint* size, GLenum* type, GLchar* name)
 {
 	TRACE("(GLuint program = %d, GLuint index = %d, GLsizei bufsize = %d, "
 	      "GLsizei* length = 0x%0.8p, GLint* size = 0x%0.8p, GLenum* type = 0x%0.8p, GLchar* name = %s)",
@@ -2135,7 +2358,7 @@ void GL_APIENTRY glGetActiveUniform(GLuint program, GLuint index, GLsizei bufsiz
 	}
 }
 
-void GL_APIENTRY glGetAttachedShaders(GLuint program, GLsizei maxcount, GLsizei* count, GLuint* shaders)
+void APIENTRY glGetAttachedShaders(GLuint program, GLsizei maxcount, GLsizei* count, GLuint* shaders)
 {
 	TRACE("(GLuint program = %d, GLsizei maxcount = %d, GLsizei* count = 0x%0.8p, GLuint* shaders = 0x%0.8p)",
 	      program, maxcount, count, shaders);
@@ -2167,7 +2390,7 @@ void GL_APIENTRY glGetAttachedShaders(GLuint program, GLsizei maxcount, GLsizei*
 	}
 }
 
-int GL_APIENTRY glGetAttribLocation(GLuint program, const GLchar* name)
+int APIENTRY glGetAttribLocation(GLuint program, const GLchar* name)
 {
 	TRACE("(GLuint program = %d, const GLchar* name = %s)", program, name);
 
@@ -2175,7 +2398,6 @@ int GL_APIENTRY glGetAttribLocation(GLuint program, const GLchar* name)
 
 	if(context)
 	{
-
 		gl::Program *programObject = context->getProgram(program);
 
 		if(!programObject)
@@ -2201,7 +2423,7 @@ int GL_APIENTRY glGetAttribLocation(GLuint program, const GLchar* name)
 	return -1;
 }
 
-void GL_APIENTRY glGetBooleanv(GLenum pname, GLboolean* params)
+void APIENTRY glGetBooleanv(GLenum pname, GLboolean* params)
 {
 	TRACE("(GLenum pname = 0x%X, GLboolean* params = 0x%0.8p)",  pname, params);
 
@@ -2257,7 +2479,7 @@ void GL_APIENTRY glGetBooleanv(GLenum pname, GLboolean* params)
 	}
 }
 
-void GL_APIENTRY glGetBufferParameteriv(GLenum target, GLenum pname, GLint* params)
+void APIENTRY glGetBufferParameteriv(GLenum target, GLenum pname, GLint* params)
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint* params = 0x%0.8p)", target, pname, params);
 
@@ -2299,7 +2521,7 @@ void GL_APIENTRY glGetBufferParameteriv(GLenum target, GLenum pname, GLint* para
 	}
 }
 
-GLenum GL_APIENTRY glGetError(void)
+GLenum APIENTRY glGetError(void)
 {
 	TRACE("()");
 
@@ -2313,7 +2535,7 @@ GLenum GL_APIENTRY glGetError(void)
 	return GL_NO_ERROR;
 }
 
-void GL_APIENTRY glGetFenceivNV(GLuint fence, GLenum pname, GLint *params)
+void APIENTRY glGetFenceivNV(GLuint fence, GLenum pname, GLint *params)
 {
 	TRACE("(GLuint fence = %d, GLenum pname = 0x%X, GLint *params = 0x%0.8p)", fence, pname, params);
 
@@ -2332,7 +2554,7 @@ void GL_APIENTRY glGetFenceivNV(GLuint fence, GLenum pname, GLint *params)
 	}
 }
 
-void GL_APIENTRY glGetFloatv(GLenum pname, GLfloat* params)
+void APIENTRY glGetFloatv(GLenum pname, GLfloat* params)
 {
 	TRACE("(GLenum pname = 0x%X, GLfloat* params = 0x%0.8p)", pname, params);
 
@@ -2385,7 +2607,7 @@ void GL_APIENTRY glGetFloatv(GLenum pname, GLfloat* params)
 	}
 }
 
-void GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint* params)
+void APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint* params)
 {
 	TRACE("(GLenum target = 0x%X, GLenum attachment = 0x%X, GLenum pname = 0x%X, GLint* params = 0x%0.8p)",
 	      target, attachment, pname, params);
@@ -2394,13 +2616,13 @@ void GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum att
 
 	if(context)
 	{
-		if(target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER_ANGLE && target != GL_READ_FRAMEBUFFER_ANGLE)
+		if(target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER_EXT && target != GL_READ_FRAMEBUFFER_EXT)
 		{
 			return error(GL_INVALID_ENUM);
 		}
 
 		gl::Framebuffer *framebuffer = NULL;
-		if(target == GL_READ_FRAMEBUFFER_ANGLE)
+		if(target == GL_READ_FRAMEBUFFER_EXT)
 		{
 			if(context->getReadFramebufferName() == 0)
 			{
@@ -2498,14 +2720,14 @@ void GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum att
 	}
 }
 
-GLenum GL_APIENTRY glGetGraphicsResetStatusEXT(void)
+GLenum APIENTRY glGetGraphicsResetStatusEXT(void)
 {
 	TRACE("()");
 
 	return GL_NO_ERROR;
 }
 
-void GL_APIENTRY glGetIntegerv(GLenum pname, GLint* params)
+void APIENTRY glGetIntegerv(GLenum pname, GLint* params)
 {
 	TRACE("(GLenum pname = 0x%X, GLint* params = 0x%0.8p)", pname, params);
 
@@ -2565,7 +2787,7 @@ void GL_APIENTRY glGetIntegerv(GLenum pname, GLint* params)
 	}
 }
 
-void GL_APIENTRY glGetProgramiv(GLuint program, GLenum pname, GLint* params)
+void APIENTRY glGetProgramiv(GLuint program, GLenum pname, GLint* params)
 {
 	TRACE("(GLuint program = %d, GLenum pname = 0x%X, GLint* params = 0x%0.8p)", program, pname, params);
 
@@ -2615,7 +2837,7 @@ void GL_APIENTRY glGetProgramiv(GLuint program, GLenum pname, GLint* params)
 	}
 }
 
-void GL_APIENTRY glGetProgramInfoLog(GLuint program, GLsizei bufsize, GLsizei* length, GLchar* infolog)
+void APIENTRY glGetProgramInfoLog(GLuint program, GLsizei bufsize, GLsizei* length, GLchar* infolog)
 {
 	TRACE("(GLuint program = %d, GLsizei bufsize = %d, GLsizei* length = 0x%0.8p, GLchar* infolog = 0x%0.8p)",
 	      program, bufsize, length, infolog);
@@ -2640,13 +2862,13 @@ void GL_APIENTRY glGetProgramInfoLog(GLuint program, GLsizei bufsize, GLsizei* l
 	}
 }
 
-void GL_APIENTRY glGetQueryivEXT(GLenum target, GLenum pname, GLint *params)
+void APIENTRY glGetQueryivEXT(GLenum target, GLenum pname, GLint *params)
 {
 	TRACE("GLenum target = 0x%X, GLenum pname = 0x%X, GLint *params = 0x%0.8p)", target, pname, params);
 
 	switch(pname)
 	{
-	case GL_CURRENT_QUERY_EXT:
+	case GL_CURRENT_QUERY:
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
@@ -2660,14 +2882,14 @@ void GL_APIENTRY glGetQueryivEXT(GLenum target, GLenum pname, GLint *params)
 	}
 }
 
-void GL_APIENTRY glGetQueryObjectuivEXT(GLuint name, GLenum pname, GLuint *params)
+void APIENTRY glGetQueryObjectuivEXT(GLuint name, GLenum pname, GLuint *params)
 {
 	TRACE("(GLuint name = %d, GLenum pname = 0x%X, GLuint *params = 0x%0.8p)", name, pname, params);
 
 	switch(pname)
 	{
-	case GL_QUERY_RESULT_EXT:
-	case GL_QUERY_RESULT_AVAILABLE_EXT:
+	case GL_QUERY_RESULT:
+	case GL_QUERY_RESULT_AVAILABLE:
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
@@ -2691,10 +2913,10 @@ void GL_APIENTRY glGetQueryObjectuivEXT(GLuint name, GLenum pname, GLuint *param
 
 		switch(pname)
 		{
-		case GL_QUERY_RESULT_EXT:
+		case GL_QUERY_RESULT:
 			params[0] = queryObject->getResult();
 			break;
-		case GL_QUERY_RESULT_AVAILABLE_EXT:
+		case GL_QUERY_RESULT_AVAILABLE:
 			params[0] = queryObject->isResultAvailable();
 			break;
 		default:
@@ -2703,7 +2925,7 @@ void GL_APIENTRY glGetQueryObjectuivEXT(GLuint name, GLenum pname, GLuint *param
 	}
 }
 
-void GL_APIENTRY glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint* params)
+void APIENTRY glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint* params)
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint* params = 0x%0.8p)", target, pname, params);
 
@@ -2734,14 +2956,14 @@ void GL_APIENTRY glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint
 		case GL_RENDERBUFFER_ALPHA_SIZE:      *params = renderbuffer->getAlphaSize();   break;
 		case GL_RENDERBUFFER_DEPTH_SIZE:      *params = renderbuffer->getDepthSize();   break;
 		case GL_RENDERBUFFER_STENCIL_SIZE:    *params = renderbuffer->getStencilSize(); break;
-		case GL_RENDERBUFFER_SAMPLES_ANGLE:   *params = renderbuffer->getSamples();     break;
+		case GL_RENDERBUFFER_SAMPLES_EXT:     *params = renderbuffer->getSamples();     break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
 	}
 }
 
-void GL_APIENTRY glGetShaderiv(GLuint shader, GLenum pname, GLint* params)
+void APIENTRY glGetShaderiv(GLuint shader, GLenum pname, GLint* params)
 {
 	TRACE("(GLuint shader = %d, GLenum pname = %d, GLint* params = 0x%0.8p)", shader, pname, params);
 
@@ -2779,7 +3001,7 @@ void GL_APIENTRY glGetShaderiv(GLuint shader, GLenum pname, GLint* params)
 	}
 }
 
-void GL_APIENTRY glGetShaderInfoLog(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* infolog)
+void APIENTRY glGetShaderInfoLog(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* infolog)
 {
 	TRACE("(GLuint shader = %d, GLsizei bufsize = %d, GLsizei* length = 0x%0.8p, GLchar* infolog = 0x%0.8p)",
 	      shader, bufsize, length, infolog);
@@ -2804,7 +3026,7 @@ void GL_APIENTRY glGetShaderInfoLog(GLuint shader, GLsizei bufsize, GLsizei* len
 	}
 }
 
-void GL_APIENTRY glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision)
+void APIENTRY glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision)
 {
 	TRACE("(GLenum shadertype = 0x%X, GLenum precisiontype = 0x%X, GLint* range = 0x%0.8p, GLint* precision = 0x%0.8p)",
 	      shadertype, precisiontype, range, precision);
@@ -2841,7 +3063,7 @@ void GL_APIENTRY glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiont
 	}
 }
 
-void GL_APIENTRY glGetShaderSource(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* source)
+void APIENTRY glGetShaderSource(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* source)
 {
 	TRACE("(GLuint shader = %d, GLsizei bufsize = %d, GLsizei* length = 0x%0.8p, GLchar* source = 0x%0.8p)",
 	      shader, bufsize, length, source);
@@ -2866,11 +3088,9 @@ void GL_APIENTRY glGetShaderSource(GLuint shader, GLsizei bufsize, GLsizei* leng
 	}
 }
 
-const GLubyte* GL_APIENTRY glGetString(GLenum name)
+const GLubyte* APIENTRY glGetString(GLenum name)
 {
 	TRACE("(GLenum name = 0x%X)", name);
-
-	gl::Context *context = gl::getContext();
 
 	switch(name)
 	{
@@ -2879,50 +3099,52 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
 	case GL_RENDERER:
 		return (GLubyte*)"SwiftShader";
 	case GL_VERSION:
-		return (GLubyte*)"OpenGL ES 2.0 SwiftShader " VERSION_STRING;
+		return (GLubyte*)"2.1 SwiftShader "VERSION_STRING;
 	case GL_SHADING_LANGUAGE_VERSION:
-		return (GLubyte*)"OpenGL ES GLSL ES 1.00 SwiftShader " VERSION_STRING;
+		return (GLubyte*)"3.30 SwiftShader "VERSION_STRING;
 	case GL_EXTENSIONS:
 		// Keep list sorted in following order:
 		// OES extensions
 		// EXT extensions
 		// Vendor extensions
 		return (GLubyte*)
-			"GL_OES_compressed_ETC1_RGB8_texture "
-			"GL_OES_depth_texture "
-			"GL_OES_depth_texture_cube_map "
-			"GL_OES_EGL_image "
-			"GL_OES_EGL_image_external "
-			"GL_OES_element_index_uint "
-			"GL_OES_packed_depth_stencil "
-			"GL_OES_rgb8_rgba8 "
-			"GL_OES_standard_derivatives "
-			"GL_OES_texture_float "
-			"GL_OES_texture_float_linear "
-			"GL_OES_texture_half_float "
-			"GL_OES_texture_half_float_linear "
-			"GL_OES_texture_npot "
+			"GL_ARB_framebuffer_object "
 			"GL_EXT_blend_minmax "
+			"GL_EXT_depth_texture "
+			"GL_EXT_depth_texture_cube_map "
+			"GL_EXT_element_index_uint "
+			"GL_EXT_packed_depth_stencil "
+			"GL_EXT_rgb8_rgba8 "
+			"GL_EXT_standard_derivatives "
+			"GL_EXT_texture_float "
+			"GL_EXT_texture_float_linear "
+			"GL_EXT_texture_half_float "
+			"GL_EXT_texture_half_float_linear "
+			"GL_EXT_texture_npot "
 			"GL_EXT_occlusion_query_boolean "
 			"GL_EXT_read_format_bgra "
 			#if (S3TC_SUPPORT)
 			"GL_EXT_texture_compression_dxt1 "
 			#endif
+			"GL_EXT_blend_func_separate "
+			"GL_EXT_secondary_color "
 			"GL_EXT_texture_filter_anisotropic "
 			"GL_EXT_texture_format_BGRA8888 "
-			"GL_ANGLE_framebuffer_blit "
-			"GL_ANGLE_framebuffer_multisample "
+			"GL_EXT_framebuffer_blit "
+			"GL_EXT_framebuffer_multisample "
 			#if (S3TC_SUPPORT)
-			"GL_ANGLE_texture_compression_dxt3 "
-			"GL_ANGLE_texture_compression_dxt5 "
+			"GL_EXT_texture_compression_dxt3 "
+			"GL_EXT_texture_compression_dxt5 "
 			#endif
 			"GL_NV_fence";
 	default:
 		return error(GL_INVALID_ENUM, (GLubyte*)NULL);
 	}
+
+	return NULL;
 }
 
-void GL_APIENTRY glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* params)
+void APIENTRY glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* params)
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLfloat* params = 0x%0.8p)", target, pname, params);
 
@@ -2935,13 +3157,10 @@ void GL_APIENTRY glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* param
 		switch(target)
 		{
 		case GL_TEXTURE_2D:
-			texture = context->getTexture2D();
+			texture = context->getTexture2D(target);
 			break;
 		case GL_TEXTURE_CUBE_MAP:
 			texture = context->getTextureCubeMap();
-			break;
-		case GL_TEXTURE_EXTERNAL_OES:
-			texture = context->getTextureExternal();
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -2964,16 +3183,13 @@ void GL_APIENTRY glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* param
 		case GL_TEXTURE_MAX_ANISOTROPY_EXT:
 			*params = texture->getMaxAnisotropy();
 			break;
-		case GL_REQUIRED_TEXTURE_IMAGE_UNITS_OES:
-			*params = (GLfloat)1;
-			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
 	}
 }
 
-void GL_APIENTRY glGetTexParameteriv(GLenum target, GLenum pname, GLint* params)
+void APIENTRY glGetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint* params = 0x%0.8p)", target, pname, params);
 
@@ -2986,13 +3202,10 @@ void GL_APIENTRY glGetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 		switch(target)
 		{
 		case GL_TEXTURE_2D:
-			texture = context->getTexture2D();
+			texture = context->getTexture2D(target);
 			break;
 		case GL_TEXTURE_CUBE_MAP:
 			texture = context->getTextureCubeMap();
-			break;
-		case GL_TEXTURE_EXTERNAL_OES:
-			texture = context->getTextureExternal();
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -3015,16 +3228,13 @@ void GL_APIENTRY glGetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 		case GL_TEXTURE_MAX_ANISOTROPY_EXT:
 			*params = (GLint)texture->getMaxAnisotropy();
 			break;
-		case GL_REQUIRED_TEXTURE_IMAGE_UNITS_OES:
-			*params = 1;
-			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
 	}
 }
 
-void GL_APIENTRY glGetnUniformfvEXT(GLuint program, GLint location, GLsizei bufSize, GLfloat* params)
+void APIENTRY glGetnUniformfvEXT(GLuint program, GLint location, GLsizei bufSize, GLfloat* params)
 {
 	TRACE("(GLuint program = %d, GLint location = %d, GLsizei bufSize = %d, GLfloat* params = 0x%0.8p)",
 	      program, location, bufSize, params);
@@ -3057,7 +3267,7 @@ void GL_APIENTRY glGetnUniformfvEXT(GLuint program, GLint location, GLsizei bufS
 	}
 }
 
-void GL_APIENTRY glGetUniformfv(GLuint program, GLint location, GLfloat* params)
+void APIENTRY glGetUniformfv(GLuint program, GLint location, GLfloat* params)
 {
 	TRACE("(GLuint program = %d, GLint location = %d, GLfloat* params = 0x%0.8p)", program, location, params);
 
@@ -3084,7 +3294,7 @@ void GL_APIENTRY glGetUniformfv(GLuint program, GLint location, GLfloat* params)
 	}
 }
 
-void GL_APIENTRY glGetnUniformivEXT(GLuint program, GLint location, GLsizei bufSize, GLint* params)
+void APIENTRY glGetnUniformivEXT(GLuint program, GLint location, GLsizei bufSize, GLint* params)
 {
 	TRACE("(GLuint program = %d, GLint location = %d, GLsizei bufSize = %d, GLint* params = 0x%0.8p)",
 	      program, location, bufSize, params);
@@ -3122,7 +3332,7 @@ void GL_APIENTRY glGetnUniformivEXT(GLuint program, GLint location, GLsizei bufS
 	}
 }
 
-void GL_APIENTRY glGetUniformiv(GLuint program, GLint location, GLint* params)
+void APIENTRY glGetUniformiv(GLuint program, GLint location, GLint* params)
 {
 	TRACE("(GLuint program = %d, GLint location = %d, GLint* params = 0x%0.8p)", program, location, params);
 
@@ -3154,7 +3364,7 @@ void GL_APIENTRY glGetUniformiv(GLuint program, GLint location, GLint* params)
 	}
 }
 
-int GL_APIENTRY glGetUniformLocation(GLuint program, const GLchar* name)
+int APIENTRY glGetUniformLocation(GLuint program, const GLchar* name)
 {
 	TRACE("(GLuint program = %d, const GLchar* name = %s)", program, name);
 
@@ -3192,7 +3402,7 @@ int GL_APIENTRY glGetUniformLocation(GLuint program, const GLchar* name)
 	return -1;
 }
 
-void GL_APIENTRY glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params)
+void APIENTRY glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params)
 {
 	TRACE("(GLuint index = %d, GLenum pname = 0x%X, GLfloat* params = 0x%0.8p)", index, pname, params);
 
@@ -3238,7 +3448,7 @@ void GL_APIENTRY glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params
 	}
 }
 
-void GL_APIENTRY glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params)
+void APIENTRY glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params)
 {
 	TRACE("(GLuint index = %d, GLenum pname = 0x%X, GLint* params = 0x%0.8p)", index, pname, params);
 
@@ -3285,7 +3495,7 @@ void GL_APIENTRY glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params)
 	}
 }
 
-void GL_APIENTRY glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** pointer)
+void APIENTRY glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** pointer)
 {
 	TRACE("(GLuint index = %d, GLenum pname = 0x%X, GLvoid** pointer = 0x%0.8p)", index, pname, pointer);
 
@@ -3307,7 +3517,7 @@ void GL_APIENTRY glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** 
 	}
 }
 
-void GL_APIENTRY glHint(GLenum target, GLenum mode)
+void APIENTRY glHint(GLenum target, GLenum mode)
 {
 	TRACE("(GLenum target = 0x%X, GLenum mode = 0x%X)", target, mode);
 
@@ -3327,7 +3537,7 @@ void GL_APIENTRY glHint(GLenum target, GLenum mode)
 	case GL_GENERATE_MIPMAP_HINT:
 		if(context) context->setGenerateMipmapHint(mode);
 		break;
-	case GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES:
+	case GL_FRAGMENT_SHADER_DERIVATIVE_HINT:
 		if(context) context->setFragmentShaderDerivativeHint(mode);
 		break;
 	default:
@@ -3335,7 +3545,7 @@ void GL_APIENTRY glHint(GLenum target, GLenum mode)
 	}
 }
 
-GLboolean GL_APIENTRY glIsBuffer(GLuint buffer)
+GLboolean APIENTRY glIsBuffer(GLuint buffer)
 {
 	TRACE("(GLuint buffer = %d)", buffer);
 
@@ -3354,7 +3564,7 @@ GLboolean GL_APIENTRY glIsBuffer(GLuint buffer)
 	return GL_FALSE;
 }
 
-GLboolean GL_APIENTRY glIsEnabled(GLenum cap)
+GLboolean APIENTRY glIsEnabled(GLenum cap)
 {
 	TRACE("(GLenum cap = 0x%X)", cap);
 
@@ -3381,7 +3591,7 @@ GLboolean GL_APIENTRY glIsEnabled(GLenum cap)
 	return false;
 }
 
-GLboolean GL_APIENTRY glIsFenceNV(GLuint fence)
+GLboolean APIENTRY glIsFenceNV(GLuint fence)
 {
 	TRACE("(GLuint fence = %d)", fence);
 
@@ -3402,7 +3612,7 @@ GLboolean GL_APIENTRY glIsFenceNV(GLuint fence)
 	return GL_FALSE;
 }
 
-GLboolean GL_APIENTRY glIsFramebuffer(GLuint framebuffer)
+GLboolean APIENTRY glIsFramebuffer(GLuint framebuffer)
 {
 	TRACE("(GLuint framebuffer = %d)", framebuffer);
 
@@ -3421,7 +3631,7 @@ GLboolean GL_APIENTRY glIsFramebuffer(GLuint framebuffer)
 	return GL_FALSE;
 }
 
-GLboolean GL_APIENTRY glIsProgram(GLuint program)
+GLboolean APIENTRY glIsProgram(GLuint program)
 {
 	TRACE("(GLuint program = %d)", program);
 
@@ -3440,7 +3650,7 @@ GLboolean GL_APIENTRY glIsProgram(GLuint program)
 	return GL_FALSE;
 }
 
-GLboolean GL_APIENTRY glIsQueryEXT(GLuint name)
+GLboolean APIENTRY glIsQueryEXT(GLuint name)
 {
 	TRACE("(GLuint name = %d)", name);
 
@@ -3464,7 +3674,7 @@ GLboolean GL_APIENTRY glIsQueryEXT(GLuint name)
 	return GL_FALSE;
 }
 
-GLboolean GL_APIENTRY glIsRenderbuffer(GLuint renderbuffer)
+GLboolean APIENTRY glIsRenderbuffer(GLuint renderbuffer)
 {
 	TRACE("(GLuint renderbuffer = %d)", renderbuffer);
 
@@ -3483,7 +3693,7 @@ GLboolean GL_APIENTRY glIsRenderbuffer(GLuint renderbuffer)
 	return GL_FALSE;
 }
 
-GLboolean GL_APIENTRY glIsShader(GLuint shader)
+GLboolean APIENTRY glIsShader(GLuint shader)
 {
 	TRACE("(GLuint shader = %d)", shader);
 
@@ -3502,7 +3712,7 @@ GLboolean GL_APIENTRY glIsShader(GLuint shader)
 	return GL_FALSE;
 }
 
-GLboolean GL_APIENTRY glIsTexture(GLuint texture)
+GLboolean APIENTRY glIsTexture(GLuint texture)
 {
 	TRACE("(GLuint texture = %d)", texture);
 
@@ -3521,7 +3731,7 @@ GLboolean GL_APIENTRY glIsTexture(GLuint texture)
 	return GL_FALSE;
 }
 
-void GL_APIENTRY glLineWidth(GLfloat width)
+void APIENTRY glLineWidth(GLfloat width)
 {
 	TRACE("(GLfloat width = %f)", width);
 
@@ -3534,11 +3744,16 @@ void GL_APIENTRY glLineWidth(GLfloat width)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setLineWidth(width);
 	}
 }
 
-void GL_APIENTRY glLinkProgram(GLuint program)
+void APIENTRY glLinkProgram(GLuint program)
 {
 	TRACE("(GLuint program = %d)", program);
 
@@ -3564,7 +3779,7 @@ void GL_APIENTRY glLinkProgram(GLuint program)
 	}
 }
 
-void GL_APIENTRY glPixelStorei(GLenum pname, GLint param)
+void APIENTRY glPixelStorei(GLenum pname, GLint param)
 {
 	TRACE("(GLenum pname = 0x%X, GLint param = %d)", pname, param);
 
@@ -3594,7 +3809,7 @@ void GL_APIENTRY glPixelStorei(GLenum pname, GLint param)
 	}
 }
 
-void GL_APIENTRY glPolygonOffset(GLfloat factor, GLfloat units)
+void APIENTRY glPolygonOffset(GLfloat factor, GLfloat units)
 {
 	TRACE("(GLfloat factor = %f, GLfloat units = %f)", factor, units);
 
@@ -3602,11 +3817,16 @@ void GL_APIENTRY glPolygonOffset(GLfloat factor, GLfloat units)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setPolygonOffsetParams(factor, units);
 	}
 }
 
-void GL_APIENTRY glReadnPixelsEXT(GLint x, GLint y, GLsizei width, GLsizei height,
+void APIENTRY glReadnPixelsEXT(GLint x, GLint y, GLsizei width, GLsizei height,
                                   GLenum format, GLenum type, GLsizei bufSize, GLvoid *data)
 {
 	TRACE("(GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d, "
@@ -3627,11 +3847,16 @@ void GL_APIENTRY glReadnPixelsEXT(GLint x, GLint y, GLsizei width, GLsizei heigh
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->readPixels(x, y, width, height, format, type, &bufSize, data);
 	}
 }
 
-void GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels)
+void APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels)
 {
 	TRACE("(GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d, "
 	      "GLenum format = 0x%X, GLenum type = 0x%X, GLvoid* pixels = 0x%0.8p)",
@@ -3655,14 +3880,14 @@ void GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, G
 	}
 }
 
-void GL_APIENTRY glReleaseShaderCompiler(void)
+void APIENTRY glReleaseShaderCompiler(void)
 {
 	TRACE("()");
 
 	gl::Shader::releaseCompiler();
 }
 
-void GL_APIENTRY glRenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
+void APIENTRY glRenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 {
 	TRACE("(GLenum target = 0x%X, GLsizei samples = %d, GLenum internalformat = 0x%X, GLsizei width = %d, GLsizei height = %d)",
 	      target, samples, internalformat, width, height);
@@ -3689,7 +3914,12 @@ void GL_APIENTRY glRenderbufferStorageMultisampleANGLE(GLenum target, GLsizei sa
 
 	if(context)
 	{
-		if(width > gl::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		if(width > gl::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || 
 		   height > gl::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
 		   samples > gl::IMPLEMENTATION_MAX_SAMPLES)
 		{
@@ -3705,19 +3935,20 @@ void GL_APIENTRY glRenderbufferStorageMultisampleANGLE(GLenum target, GLsizei sa
 		switch(internalformat)
 		{
 		case GL_DEPTH_COMPONENT16:
+		case GL_DEPTH_COMPONENT24:
 			context->setRenderbufferStorage(new gl::Depthbuffer(width, height, samples));
 			break;
 		case GL_RGBA4:
 		case GL_RGB5_A1:
 		case GL_RGB565:
-		case GL_RGB8_OES:
-		case GL_RGBA8_OES:
+		case GL_RGB8_EXT:
+		case GL_RGBA8_EXT:
 			context->setRenderbufferStorage(new gl::Colorbuffer(width, height, internalformat, samples));
 			break;
 		case GL_STENCIL_INDEX8:
 			context->setRenderbufferStorage(new gl::Stencilbuffer(width, height, samples));
 			break;
-		case GL_DEPTH24_STENCIL8_OES:
+		case GL_DEPTH24_STENCIL8_EXT:
 			context->setRenderbufferStorage(new gl::DepthStencilbuffer(width, height, samples));
 			break;
 		default:
@@ -3726,12 +3957,12 @@ void GL_APIENTRY glRenderbufferStorageMultisampleANGLE(GLenum target, GLsizei sa
 	}
 }
 
-void GL_APIENTRY glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
+void APIENTRY glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
 {
 	glRenderbufferStorageMultisampleANGLE(target, 0, internalformat, width, height);
 }
 
-void GL_APIENTRY glSampleCoverage(GLclampf value, GLboolean invert)
+void APIENTRY glSampleCoverage(GLclampf value, GLboolean invert)
 {
 	TRACE("(GLclampf value = %f, GLboolean invert = %d)", value, invert);
 
@@ -3739,11 +3970,16 @@ void GL_APIENTRY glSampleCoverage(GLclampf value, GLboolean invert)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setSampleCoverageParams(gl::clamp01(value), invert == GL_TRUE);
 	}
 }
 
-void GL_APIENTRY glSetFenceNV(GLuint fence, GLenum condition)
+void APIENTRY glSetFenceNV(GLuint fence, GLenum condition)
 {
 	TRACE("(GLuint fence = %d, GLenum condition = 0x%X)", fence, condition);
 
@@ -3756,6 +3992,11 @@ void GL_APIENTRY glSetFenceNV(GLuint fence, GLenum condition)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Fence *fenceObject = context->getFence(fence);
 
 		if(fenceObject == NULL)
@@ -3767,7 +4008,7 @@ void GL_APIENTRY glSetFenceNV(GLuint fence, GLenum condition)
 	}
 }
 
-void GL_APIENTRY glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
+void APIENTRY glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	TRACE("(GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d)", x, y, width, height);
 
@@ -3780,11 +4021,16 @@ void GL_APIENTRY glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setScissorParams(x, y, width, height);
 	}
 }
 
-void GL_APIENTRY glShaderBinary(GLsizei n, const GLuint* shaders, GLenum binaryformat, const GLvoid* binary, GLsizei length)
+void APIENTRY glShaderBinary(GLsizei n, const GLuint* shaders, GLenum binaryformat, const GLvoid* binary, GLsizei length)
 {
 	TRACE("(GLsizei n = %d, const GLuint* shaders = 0x%0.8p, GLenum binaryformat = 0x%X, "
 	      "const GLvoid* binary = 0x%0.8p, GLsizei length = %d)",
@@ -3794,7 +4040,7 @@ void GL_APIENTRY glShaderBinary(GLsizei n, const GLuint* shaders, GLenum binaryf
 	return error(GL_INVALID_ENUM);
 }
 
-void GL_APIENTRY glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length)
+void APIENTRY glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length)
 {
 	TRACE("(GLuint shader = %d, GLsizei count = %d, const GLchar** string = 0x%0.8p, const GLint* length = 0x%0.8p)",
 	      shader, count, string, length);
@@ -3808,6 +4054,11 @@ void GL_APIENTRY glShaderSource(GLuint shader, GLsizei count, const GLchar *cons
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Shader *shaderObject = context->getShader(shader);
 
 		if(!shaderObject)
@@ -3826,12 +4077,12 @@ void GL_APIENTRY glShaderSource(GLuint shader, GLsizei count, const GLchar *cons
 	}
 }
 
-void GL_APIENTRY glStencilFunc(GLenum func, GLint ref, GLuint mask)
+void APIENTRY glStencilFunc(GLenum func, GLint ref, GLuint mask)
 {
 	glStencilFuncSeparate(GL_FRONT_AND_BACK, func, ref, mask);
 }
 
-void GL_APIENTRY glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask)
+void APIENTRY glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask)
 {
 	TRACE("(GLenum face = 0x%X, GLenum func = 0x%X, GLint ref = %d, GLuint mask = %d)", face, func, ref, mask);
 
@@ -3864,6 +4115,11 @@ void GL_APIENTRY glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLui
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		if(face == GL_FRONT || face == GL_FRONT_AND_BACK)
 		{
 			context->setStencilParams(func, ref, mask);
@@ -3876,12 +4132,12 @@ void GL_APIENTRY glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLui
 	}
 }
 
-void GL_APIENTRY glStencilMask(GLuint mask)
+void APIENTRY glStencilMask(GLuint mask)
 {
 	glStencilMaskSeparate(GL_FRONT_AND_BACK, mask);
 }
 
-void GL_APIENTRY glStencilMaskSeparate(GLenum face, GLuint mask)
+void APIENTRY glStencilMaskSeparate(GLenum face, GLuint mask)
 {
 	TRACE("(GLenum face = 0x%X, GLuint mask = %d)", face, mask);
 
@@ -3899,6 +4155,11 @@ void GL_APIENTRY glStencilMaskSeparate(GLenum face, GLuint mask)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		if(face == GL_FRONT || face == GL_FRONT_AND_BACK)
 		{
 			context->setStencilWritemask(mask);
@@ -3911,12 +4172,12 @@ void GL_APIENTRY glStencilMaskSeparate(GLenum face, GLuint mask)
 	}
 }
 
-void GL_APIENTRY glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
+void APIENTRY glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 {
 	glStencilOpSeparate(GL_FRONT_AND_BACK, fail, zfail, zpass);
 }
 
-void GL_APIENTRY glStencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass)
+void APIENTRY glStencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass)
 {
 	TRACE("(GLenum face = 0x%X, GLenum fail = 0x%X, GLenum zfail = 0x%X, GLenum zpas = 0x%Xs)",
 	      face, fail, zfail, zpass);
@@ -3980,6 +4241,11 @@ void GL_APIENTRY glStencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLe
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		if(face == GL_FRONT || face == GL_FRONT_AND_BACK)
 		{
 			context->setStencilOperations(fail, zfail, zpass);
@@ -3992,7 +4258,7 @@ void GL_APIENTRY glStencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLe
 	}
 }
 
-GLboolean GL_APIENTRY glTestFenceNV(GLuint fence)
+GLboolean APIENTRY glTestFenceNV(GLuint fence)
 {
 	TRACE("(GLuint fence = %d)", fence);
 
@@ -4000,6 +4266,11 @@ GLboolean GL_APIENTRY glTestFenceNV(GLuint fence)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Fence *fenceObject = context->getFence(fence);
 
 		if(fenceObject == NULL)
@@ -4013,7 +4284,7 @@ GLboolean GL_APIENTRY glTestFenceNV(GLuint fence)
 	return GL_TRUE;
 }
 
-void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
+void APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
                               GLint border, GLenum format, GLenum type, const GLvoid* pixels)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint internalformat = %d, GLsizei width = %d, GLsizei height = %d, "
@@ -4027,7 +4298,8 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 
 	if(internalformat != format)
 	{
-		return error(GL_INVALID_OPERATION);
+		//TRACE("UNIMPLEMENTED!!");
+		//return error(GL_INVALID_OPERATION);
 	}
 
 	switch(format)
@@ -4039,7 +4311,7 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 		{
 		case GL_UNSIGNED_BYTE:
 		case GL_FLOAT:
-		case GL_HALF_FLOAT_OES:
+		case GL_HALF_FLOAT:
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -4051,7 +4323,7 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 		case GL_UNSIGNED_BYTE:
 		case GL_UNSIGNED_SHORT_5_6_5:
 		case GL_FLOAT:
-		case GL_HALF_FLOAT_OES:
+		case GL_HALF_FLOAT:
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -4064,7 +4336,7 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 		case GL_UNSIGNED_SHORT_4_4_4_4:
 		case GL_UNSIGNED_SHORT_5_5_5_1:
 		case GL_FLOAT:
-		case GL_HALF_FLOAT_OES:
+		case GL_HALF_FLOAT:
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -4074,25 +4346,18 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 		switch(type)
 		{
 		case GL_UNSIGNED_BYTE:
+		case GL_UNSIGNED_SHORT_5_6_5:
+		case GL_UNSIGNED_INT_8_8_8_8_REV:
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
 		break;
-	case GL_ETC1_RGB8_OES:
-		return error(GL_INVALID_OPERATION);
-	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:  // error cases for compressed textures are handled below
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-	case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
-	case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
-		if(S3TC_SUPPORT)
-		{
-			return error(GL_INVALID_OPERATION);
-		}
-		else
-		{
-			return error(GL_INVALID_ENUM);
-		}
+	case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+		break;
 	case GL_DEPTH_COMPONENT:
 		switch(type)
 		{
@@ -4103,10 +4368,10 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 			return error(GL_INVALID_ENUM);
 		}
 		break;
-	case GL_DEPTH_STENCIL_OES:
+	case GL_DEPTH_STENCIL_EXT:
 		switch(type)
 		{
-		case GL_UNSIGNED_INT_24_8_OES:
+		case GL_UNSIGNED_INT_24_8_EXT:
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -4121,43 +4386,79 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 		return error(GL_INVALID_VALUE);
 	}
 
+	switch(target)
+	{
+	case GL_TEXTURE_2D:
+		if(width > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
+		   height > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
+		{
+			return error(GL_INVALID_VALUE);
+		}
+		break;
+	case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
+	case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
+	case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
+	case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
+	case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
+	case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
+		if(width != height)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		if(width > (gl::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level) ||
+		   height > (gl::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level))
+		{
+			return error(GL_INVALID_VALUE);
+		}
+		break;
+	case GL_PROXY_TEXTURE_2D:
+		pixels = 0;
+
+		if(width > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
+		   height > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
+		{
+			//UNIMPLEMENTED();
+			width = 0;
+			height = 0;
+			internalformat = GL_NONE;
+			format = GL_NONE;
+			type = GL_NONE;
+
+			//return;// error(GL_INVALID_VALUE);
+		}
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	if(format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
+	   format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ||
+	   format == GL_COMPRESSED_RGBA_S3TC_DXT3_EXT ||
+	   format == GL_COMPRESSED_RGBA_S3TC_DXT5_EXT)
+	{
+		if(S3TC_SUPPORT)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+		else
+		{
+			return error(GL_INVALID_ENUM);
+		}
+	}
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
 	{
-		switch(target)
+		if(context->getListIndex() != 0)
 		{
-		case GL_TEXTURE_2D:
-			if(width > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
-			   height > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
-			{
-				return error(GL_INVALID_VALUE);
-			}
-			break;
-		case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
-		case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
-		case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
-		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
-		case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
-		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
-			if(width != height)
-			{
-				return error(GL_INVALID_VALUE);
-			}
-
-			if(width > (gl::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level) ||
-			   height > (gl::IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE >> level))
-			{
-				return error(GL_INVALID_VALUE);
-			}
-			break;
-		default:
-			return error(GL_INVALID_ENUM);
+			UNIMPLEMENTED();
 		}
 
-		if(target == GL_TEXTURE_2D)
+		if(target == GL_TEXTURE_2D || target == GL_PROXY_TEXTURE_2D)
 		{
-			gl::Texture2D *texture = context->getTexture2D();
+			gl::Texture2D *texture = context->getTexture2D(target);
 
 			if(!texture)
 			{
@@ -4180,7 +4481,7 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 	}
 }
 
-void GL_APIENTRY glTexParameterf(GLenum target, GLenum pname, GLfloat param)
+void APIENTRY glTexParameterf(GLenum target, GLenum pname, GLfloat param)
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLfloat param = %f)", target, pname, param);
 
@@ -4188,18 +4489,20 @@ void GL_APIENTRY glTexParameterf(GLenum target, GLenum pname, GLfloat param)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Texture *texture;
 
 		switch(target)
 		{
 		case GL_TEXTURE_2D:
-			texture = context->getTexture2D();
+			texture = context->getTexture2D(target);
 			break;
 		case GL_TEXTURE_CUBE_MAP:
 			texture = context->getTextureCubeMap();
-			break;
-		case GL_TEXTURE_EXTERNAL_OES:
-			texture = context->getTextureExternal();
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -4237,18 +4540,32 @@ void GL_APIENTRY glTexParameterf(GLenum target, GLenum pname, GLfloat param)
 				return error(GL_INVALID_VALUE);
 			}
 			break;
+		case GL_TEXTURE_MIN_LOD:
+			//TRACE("() UNIMPLEMENTED!!");   // FIXME
+			//UNIMPLEMENTED();
+			break;
+		case GL_TEXTURE_MAX_LOD:
+			//TRACE("() UNIMPLEMENTED!!");   // FIXME
+			//UNIMPLEMENTED();
+			break;
+		case GL_TEXTURE_LOD_BIAS:
+			if(param != 0.0f)
+			{
+				UNIMPLEMENTED();
+			}
+			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
 	}
 }
 
-void GL_APIENTRY glTexParameterfv(GLenum target, GLenum pname, const GLfloat* params)
+void APIENTRY glTexParameterfv(GLenum target, GLenum pname, const GLfloat* params)
 {
 	glTexParameterf(target, pname, *params);
 }
 
-void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
+void APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint param = %d)", target, pname, param);
 
@@ -4256,19 +4573,21 @@ void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Texture *texture;
 
 		switch(target)
 		{
 		case GL_TEXTURE_2D:
-			texture = context->getTexture2D();
+			texture = context->getTexture2D(target);
 			break;
 		case GL_TEXTURE_CUBE_MAP:
 			texture = context->getTextureCubeMap();
 			break;
-		case GL_TEXTURE_EXTERNAL_OES:
-				texture = context->getTextureExternal();
-				break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -4305,19 +4624,25 @@ void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 				return error(GL_INVALID_VALUE);
 			}
 			break;
+		case GL_TEXTURE_MAX_LEVEL:
+			if(!texture->setMaxLevel(param))
+			{
+				return error(GL_INVALID_ENUM);
+			}
+			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
 	}
 }
 
-void GL_APIENTRY glTexParameteriv(GLenum target, GLenum pname, const GLint* params)
+void APIENTRY glTexParameteriv(GLenum target, GLenum pname, const GLint* params)
 {
 	glTexParameteri(target, pname, *params);
 }
 
-void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
-                                 GLenum format, GLenum type, const GLvoid* pixels)
+void APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
+                              GLenum format, GLenum type, const GLvoid* pixels)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
 	      "GLsizei width = %d, GLsizei height = %d, GLenum format = 0x%X, GLenum type = 0x%X, "
@@ -4353,6 +4678,11 @@ void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		if(level > gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
 		{
 			return error(GL_INVALID_VALUE);
@@ -4360,7 +4690,7 @@ void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
 
 		if(target == GL_TEXTURE_2D)
 		{
-			gl::Texture2D *texture = context->getTexture2D();
+			gl::Texture2D *texture = context->getTexture2D(target);
 
 			if(validateSubImageParams(false, width, height, xoffset, yoffset, target, level, format, texture))
 			{
@@ -4383,12 +4713,12 @@ void GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
 	}
 }
 
-void GL_APIENTRY glUniform1f(GLint location, GLfloat x)
+void APIENTRY glUniform1f(GLint location, GLfloat x)
 {
 	glUniform1fv(location, 1, &x);
 }
 
-void GL_APIENTRY glUniform1fv(GLint location, GLsizei count, const GLfloat* v)
+void APIENTRY glUniform1fv(GLint location, GLsizei count, const GLfloat* v)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLfloat* v = 0x%0.8p)", location, count, v);
 
@@ -4406,6 +4736,11 @@ void GL_APIENTRY glUniform1fv(GLint location, GLsizei count, const GLfloat* v)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -4420,12 +4755,12 @@ void GL_APIENTRY glUniform1fv(GLint location, GLsizei count, const GLfloat* v)
 	}
 }
 
-void GL_APIENTRY glUniform1i(GLint location, GLint x)
+void APIENTRY glUniform1i(GLint location, GLint x)
 {
 	glUniform1iv(location, 1, &x);
 }
 
-void GL_APIENTRY glUniform1iv(GLint location, GLsizei count, const GLint* v)
+void APIENTRY glUniform1iv(GLint location, GLsizei count, const GLint* v)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLint* v = 0x%0.8p)", location, count, v);
 
@@ -4443,6 +4778,11 @@ void GL_APIENTRY glUniform1iv(GLint location, GLsizei count, const GLint* v)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -4457,14 +4797,14 @@ void GL_APIENTRY glUniform1iv(GLint location, GLsizei count, const GLint* v)
 	}
 }
 
-void GL_APIENTRY glUniform2f(GLint location, GLfloat x, GLfloat y)
+void APIENTRY glUniform2f(GLint location, GLfloat x, GLfloat y)
 {
 	GLfloat xy[2] = {x, y};
 
 	glUniform2fv(location, 1, (GLfloat*)&xy);
 }
 
-void GL_APIENTRY glUniform2fv(GLint location, GLsizei count, const GLfloat* v)
+void APIENTRY glUniform2fv(GLint location, GLsizei count, const GLfloat* v)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLfloat* v = 0x%0.8p)", location, count, v);
 
@@ -4482,6 +4822,11 @@ void GL_APIENTRY glUniform2fv(GLint location, GLsizei count, const GLfloat* v)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -4496,14 +4841,14 @@ void GL_APIENTRY glUniform2fv(GLint location, GLsizei count, const GLfloat* v)
 	}
 }
 
-void GL_APIENTRY glUniform2i(GLint location, GLint x, GLint y)
+void APIENTRY glUniform2i(GLint location, GLint x, GLint y)
 {
 	GLint xy[4] = {x, y};
 
 	glUniform2iv(location, 1, (GLint*)&xy);
 }
 
-void GL_APIENTRY glUniform2iv(GLint location, GLsizei count, const GLint* v)
+void APIENTRY glUniform2iv(GLint location, GLsizei count, const GLint* v)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLint* v = 0x%0.8p)", location, count, v);
 
@@ -4521,6 +4866,11 @@ void GL_APIENTRY glUniform2iv(GLint location, GLsizei count, const GLint* v)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -4535,14 +4885,14 @@ void GL_APIENTRY glUniform2iv(GLint location, GLsizei count, const GLint* v)
 	}
 }
 
-void GL_APIENTRY glUniform3f(GLint location, GLfloat x, GLfloat y, GLfloat z)
+void APIENTRY glUniform3f(GLint location, GLfloat x, GLfloat y, GLfloat z)
 {
 	GLfloat xyz[3] = {x, y, z};
 
 	glUniform3fv(location, 1, (GLfloat*)&xyz);
 }
 
-void GL_APIENTRY glUniform3fv(GLint location, GLsizei count, const GLfloat* v)
+void APIENTRY glUniform3fv(GLint location, GLsizei count, const GLfloat* v)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLfloat* v = 0x%0.8p)", location, count, v);
 
@@ -4560,6 +4910,11 @@ void GL_APIENTRY glUniform3fv(GLint location, GLsizei count, const GLfloat* v)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -4574,14 +4929,14 @@ void GL_APIENTRY glUniform3fv(GLint location, GLsizei count, const GLfloat* v)
 	}
 }
 
-void GL_APIENTRY glUniform3i(GLint location, GLint x, GLint y, GLint z)
+void APIENTRY glUniform3i(GLint location, GLint x, GLint y, GLint z)
 {
 	GLint xyz[3] = {x, y, z};
 
 	glUniform3iv(location, 1, (GLint*)&xyz);
 }
 
-void GL_APIENTRY glUniform3iv(GLint location, GLsizei count, const GLint* v)
+void APIENTRY glUniform3iv(GLint location, GLsizei count, const GLint* v)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLint* v = 0x%0.8p)", location, count, v);
 
@@ -4599,6 +4954,11 @@ void GL_APIENTRY glUniform3iv(GLint location, GLsizei count, const GLint* v)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -4613,14 +4973,14 @@ void GL_APIENTRY glUniform3iv(GLint location, GLsizei count, const GLint* v)
 	}
 }
 
-void GL_APIENTRY glUniform4f(GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+void APIENTRY glUniform4f(GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
 	GLfloat xyzw[4] = {x, y, z, w};
 
 	glUniform4fv(location, 1, (GLfloat*)&xyzw);
 }
 
-void GL_APIENTRY glUniform4fv(GLint location, GLsizei count, const GLfloat* v)
+void APIENTRY glUniform4fv(GLint location, GLsizei count, const GLfloat* v)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLfloat* v = 0x%0.8p)", location, count, v);
 
@@ -4638,6 +4998,11 @@ void GL_APIENTRY glUniform4fv(GLint location, GLsizei count, const GLfloat* v)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -4652,14 +5017,14 @@ void GL_APIENTRY glUniform4fv(GLint location, GLsizei count, const GLfloat* v)
 	}
 }
 
-void GL_APIENTRY glUniform4i(GLint location, GLint x, GLint y, GLint z, GLint w)
+void APIENTRY glUniform4i(GLint location, GLint x, GLint y, GLint z, GLint w)
 {
 	GLint xyzw[4] = {x, y, z, w};
 
 	glUniform4iv(location, 1, (GLint*)&xyzw);
 }
 
-void GL_APIENTRY glUniform4iv(GLint location, GLsizei count, const GLint* v)
+void APIENTRY glUniform4iv(GLint location, GLsizei count, const GLint* v)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLint* v = 0x%0.8p)", location, count, v);
 
@@ -4677,6 +5042,11 @@ void GL_APIENTRY glUniform4iv(GLint location, GLsizei count, const GLint* v)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -4691,7 +5061,7 @@ void GL_APIENTRY glUniform4iv(GLint location, GLsizei count, const GLint* v)
 	}
 }
 
-void GL_APIENTRY glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
+void APIENTRY glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat* value = 0x%0.8p)",
 	      location, count, transpose, value);
@@ -4710,6 +5080,11 @@ void GL_APIENTRY glUniformMatrix2fv(GLint location, GLsizei count, GLboolean tra
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -4724,7 +5099,7 @@ void GL_APIENTRY glUniformMatrix2fv(GLint location, GLsizei count, GLboolean tra
 	}
 }
 
-void GL_APIENTRY glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
+void APIENTRY glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat* value = 0x%0.8p)",
 	      location, count, transpose, value);
@@ -4743,6 +5118,11 @@ void GL_APIENTRY glUniformMatrix3fv(GLint location, GLsizei count, GLboolean tra
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -4757,7 +5137,7 @@ void GL_APIENTRY glUniformMatrix3fv(GLint location, GLsizei count, GLboolean tra
 	}
 }
 
-void GL_APIENTRY glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
+void APIENTRY glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat* value = 0x%0.8p)",
 	      location, count, transpose, value);
@@ -4776,6 +5156,11 @@ void GL_APIENTRY glUniformMatrix4fv(GLint location, GLsizei count, GLboolean tra
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -4790,7 +5175,7 @@ void GL_APIENTRY glUniformMatrix4fv(GLint location, GLsizei count, GLboolean tra
 	}
 }
 
-void GL_APIENTRY glUseProgram(GLuint program)
+void APIENTRY glUseProgram(GLuint program)
 {
 	TRACE("(GLuint program = %d)", program);
 
@@ -4798,6 +5183,11 @@ void GL_APIENTRY glUseProgram(GLuint program)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		gl::Program *programObject = context->getProgram(program);
 
 		if(!programObject && program != 0)
@@ -4821,7 +5211,7 @@ void GL_APIENTRY glUseProgram(GLuint program)
 	}
 }
 
-void GL_APIENTRY glValidateProgram(GLuint program)
+void APIENTRY glValidateProgram(GLuint program)
 {
 	TRACE("(GLuint program = %d)", program);
 
@@ -4847,7 +5237,7 @@ void GL_APIENTRY glValidateProgram(GLuint program)
 	}
 }
 
-void GL_APIENTRY glVertexAttrib1f(GLuint index, GLfloat x)
+void APIENTRY glVertexAttrib1f(GLuint index, GLfloat x)
 {
 	TRACE("(GLuint index = %d, GLfloat x = %f)", index, x);
 
@@ -4860,12 +5250,17 @@ void GL_APIENTRY glVertexAttrib1f(GLuint index, GLfloat x)
 
 	if(context)
 	{
-		GLfloat vals[4] = { x, 0, 0, 1 };
-		context->setVertexAttrib(index, vals);
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		//GLfloat vals[4] = { x, 0, 0, 1 };
+		context->setVertexAttrib(index, x, 0, 0, 1);
 	}
 }
 
-void GL_APIENTRY glVertexAttrib1fv(GLuint index, const GLfloat* values)
+void APIENTRY glVertexAttrib1fv(GLuint index, const GLfloat* values)
 {
 	TRACE("(GLuint index = %d, const GLfloat* values = 0x%0.8p)", index, values);
 
@@ -4878,12 +5273,17 @@ void GL_APIENTRY glVertexAttrib1fv(GLuint index, const GLfloat* values)
 
 	if(context)
 	{
-		GLfloat vals[4] = { values[0], 0, 0, 1 };
-		context->setVertexAttrib(index, vals);
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		//GLfloat vals[4] = { values[0], 0, 0, 1 };
+		context->setVertexAttrib(index, values[0], 0, 0, 1);
 	}
 }
 
-void GL_APIENTRY glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
+void APIENTRY glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
 {
 	TRACE("(GLuint index = %d, GLfloat x = %f, GLfloat y = %f)", index, x, y);
 
@@ -4896,12 +5296,17 @@ void GL_APIENTRY glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
 
 	if(context)
 	{
-		GLfloat vals[4] = { x, y, 0, 1 };
-		context->setVertexAttrib(index, vals);
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		//GLfloat vals[4] = { x, y, 0, 1 };
+		context->setVertexAttrib(index, x, y, 0, 1);
 	}
 }
 
-void GL_APIENTRY glVertexAttrib2fv(GLuint index, const GLfloat* values)
+void APIENTRY glVertexAttrib2fv(GLuint index, const GLfloat* values)
 {
 	TRACE("(GLuint index = %d, const GLfloat* values = 0x%0.8p)", index, values);
 
@@ -4914,12 +5319,17 @@ void GL_APIENTRY glVertexAttrib2fv(GLuint index, const GLfloat* values)
 
 	if(context)
 	{
-		GLfloat vals[4] = { values[0], values[1], 0, 1 };
-		context->setVertexAttrib(index, vals);
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		//GLfloat vals[4] = {  };
+		context->setVertexAttrib(index, values[0], values[1], 0, 1);
 	}
 }
 
-void GL_APIENTRY glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z)
+void APIENTRY glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z)
 {
 	TRACE("(GLuint index = %d, GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)", index, x, y, z);
 
@@ -4932,12 +5342,17 @@ void GL_APIENTRY glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z)
 
 	if(context)
 	{
-		GLfloat vals[4] = { x, y, z, 1 };
-		context->setVertexAttrib(index, vals);
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		//GLfloat vals[4] = { x, y, z, 1 };
+		context->setVertexAttrib(index, x, y, z, 1);
 	}
 }
 
-void GL_APIENTRY glVertexAttrib3fv(GLuint index, const GLfloat* values)
+void APIENTRY glVertexAttrib3fv(GLuint index, const GLfloat* values)
 {
 	TRACE("(GLuint index = %d, const GLfloat* values = 0x%0.8p)", index, values);
 
@@ -4950,12 +5365,17 @@ void GL_APIENTRY glVertexAttrib3fv(GLuint index, const GLfloat* values)
 
 	if(context)
 	{
-		GLfloat vals[4] = { values[0], values[1], values[2], 1 };
-		context->setVertexAttrib(index, vals);
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		//GLfloat vals[4] = { values[0], values[1], values[2], 1 };
+		context->setVertexAttrib(index, values[0], values[1], values[2], 1);
 	}
 }
 
-void GL_APIENTRY glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+void APIENTRY glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
 	TRACE("(GLuint index = %d, GLfloat x = %f, GLfloat y = %f, GLfloat z = %f, GLfloat w = %f)", index, x, y, z, w);
 
@@ -4968,12 +5388,17 @@ void GL_APIENTRY glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z,
 
 	if(context)
 	{
-		GLfloat vals[4] = { x, y, z, w };
-		context->setVertexAttrib(index, vals);
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		//GLfloat vals[4] = { x, y, z, w };
+		context->setVertexAttrib(index, x, y, z, w);
 	}
 }
 
-void GL_APIENTRY glVertexAttrib4fv(GLuint index, const GLfloat* values)
+void APIENTRY glVertexAttrib4fv(GLuint index, const GLfloat* values)
 {
 	TRACE("(GLuint index = %d, const GLfloat* values = 0x%0.8p)", index, values);
 
@@ -4986,11 +5411,16 @@ void GL_APIENTRY glVertexAttrib4fv(GLuint index, const GLfloat* values)
 
 	if(context)
 	{
-		context->setVertexAttrib(index, values);
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->setVertexAttrib(index, values[0], values[1], values[2], values[3]);
 	}
 }
 
-void GL_APIENTRY glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* ptr)
+void APIENTRY glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* ptr)
 {
 	TRACE("(GLuint index = %d, GLint size = %d, GLenum type = 0x%X, "
 	      "GLboolean normalized = %d, GLsizei stride = %d, const GLvoid* ptr = 0x%0.8p)",
@@ -5032,7 +5462,7 @@ void GL_APIENTRY glVertexAttribPointer(GLuint index, GLint size, GLenum type, GL
 	}
 }
 
-void GL_APIENTRY glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
+void APIENTRY glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	TRACE("(GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d)", x, y, width, height);
 
@@ -5045,11 +5475,16 @@ void GL_APIENTRY glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		context->setViewportParams(x, y, width, height);
 	}
 }
 
-void GL_APIENTRY glBlitFramebufferANGLE(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
+void APIENTRY glBlitFramebufferANGLE(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
                                         GLbitfield mask, GLenum filter)
 {
 	TRACE("(GLint srcX0 = %d, GLint srcY0 = %d, GLint srcX1 = %d, GLint srcY1 = %d, "
@@ -5080,6 +5515,11 @@ void GL_APIENTRY glBlitFramebufferANGLE(GLint srcX0, GLint srcY0, GLint srcX1, G
 
 	if(context)
 	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
 		if(context->getReadFramebufferName() == context->getDrawFramebufferName())
 		{
 			ERR("Blits with the same source and destination framebuffer are not supported by this implementation.");
@@ -5090,7 +5530,7 @@ void GL_APIENTRY glBlitFramebufferANGLE(GLint srcX0, GLint srcY0, GLint srcX1, G
 	}
 }
 
-void GL_APIENTRY glTexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth,
+void APIENTRY glTexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth,
                                  GLint border, GLenum format, GLenum type, const GLvoid* pixels)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum internalformat = 0x%X, "
@@ -5101,112 +5541,2746 @@ void GL_APIENTRY glTexImage3DOES(GLenum target, GLint level, GLenum internalform
 	UNIMPLEMENTED();   // FIXME
 }
 
-void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
+void WINAPI GlmfBeginGlsBlock()
 {
-	if(egl::getClientVersion() == 1)
+	UNIMPLEMENTED();
+}
+
+void WINAPI GlmfCloseMetaFile()
+{
+	UNIMPLEMENTED();
+}
+
+void WINAPI GlmfEndGlsBlock()
+{
+	UNIMPLEMENTED();
+}
+
+void WINAPI GlmfEndPlayback()
+{
+	UNIMPLEMENTED();
+}
+
+void WINAPI GlmfInitPlayback()
+{
+	UNIMPLEMENTED();
+}
+
+void WINAPI GlmfPlayGlsRecord()
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glAccum(GLenum op, GLfloat value)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glAlphaFunc(GLenum func, GLclampf ref)
+{
+	TRACE("(GLenum func = 0x%X, GLclampf ref = %f)", func, ref);
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
 	{
-		static auto glEGLImageTargetTexture2DOES = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)es1::getProcAddress("glEGLImageTargetTexture2DOES");
-		return glEGLImageTargetTexture2DOES(target, image);
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->alphaFunc(func, ref);
 	}
+}
 
-	TRACE("(GLenum target = 0x%X, GLeglImageOES image = 0x%0.8p)", target, image);
+GLboolean APIENTRY glAreTexturesResident(GLsizei n, const GLuint *textures, GLboolean *residences)
+{
+	UNIMPLEMENTED();
+	return GL_FALSE;
+}
 
-	switch(target)
+void APIENTRY glArrayElement(GLint i)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glBegin(GLenum mode)
+{
+	TRACE("(GLenum mode = 0x%X)", mode);
+	
+	switch(mode)
 	{
-	case GL_TEXTURE_2D:
-	case GL_TEXTURE_EXTERNAL_OES:
+	case GL_POINTS:
+	case GL_LINES:
+	case GL_LINE_STRIP:
+	case GL_LINE_LOOP:
+	case GL_TRIANGLES:
+	case GL_TRIANGLE_STRIP:
+	case GL_TRIANGLE_FAN:
+	case GL_QUADS:
+	case GL_QUAD_STRIP:
+	case GL_POLYGON:
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
-	}
-
-	if(!image)
-	{
-		return error(GL_INVALID_OPERATION);
 	}
 
 	gl::Context *context = gl::getContext();
 
 	if(context)
 	{
-		gl::Texture2D *texture = 0;
-
-		switch(target)
+		if(context->getListIndex() != 0)
 		{
-		case GL_TEXTURE_2D:           texture = context->getTexture2D();       break;
-		case GL_TEXTURE_EXTERNAL_OES: texture = context->getTextureExternal(); break;
-		default:                      UNREACHABLE();
+			UNIMPLEMENTED();
 		}
 
-		if(!texture)
-		{
-			return error(GL_INVALID_OPERATION);
-		}
-
-		egl::Image *glImage = static_cast<egl::Image*>(image);
-
-		texture->setImage(glImage);
+		context->begin(mode);
 	}
 }
 
-void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target, GLeglImageOES image)
+void APIENTRY glBitmap(GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig, GLfloat xmove, GLfloat ymove, const GLubyte *bitmap)
 {
-	TRACE("(GLenum target = 0x%X, GLeglImageOES image = 0x%0.8p)", target, image);
-
 	UNIMPLEMENTED();
 }
 
-__eglMustCastToProperFunctionPointerType glGetProcAddress(const char *procname)
+void APIENTRY glCallList(GLuint list)
 {
+	TRACE("(GLuint list = %d)", list);
+
+	if(list == 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->callList(list);
+	}
+}
+
+void APIENTRY glCallLists(GLsizei n, GLenum type, const GLvoid *lists)
+{
+	TRACE("(GLsizei n = %d, GLenum type = 0x%X, const GLvoid *lists)", n, type);
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		for(int i = 0; i < n; i++)
+		{
+			switch(type)
+			{
+			case GL_UNSIGNED_INT: context->callList(((unsigned int*)lists)[i]); break;
+			default:
+				UNIMPLEMENTED();
+				UNREACHABLE();
+			}
+		}
+	}
+}
+
+void APIENTRY glClearAccum(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glClearDepth(GLclampd depth)
+{
+	TRACE("(GLclampd depth = %d)", depth);
+	
+	glClearDepthf((float)depth);   // FIXME
+}
+
+void APIENTRY glClearIndex(GLfloat c)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glClipPlane(GLenum plane, const GLdouble *equation)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3b(GLbyte red, GLbyte green, GLbyte blue)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3bv(const GLbyte *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3d(GLdouble red, GLdouble green, GLdouble blue)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3dv(const GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3f(GLfloat red, GLfloat green, GLfloat blue)
+{
+	TRACE("(GLfloat red = %f, GLfloat green = %f, GLfloat blue = %f)", red, green, blue);
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		//context->color(red, green, blue, 1.0f);
+		//GLfloat vals[4] = {};
+		context->setVertexAttrib(sw::Color0, red, green, blue, 1);
+	}
+}
+
+void APIENTRY glColor3fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3i(GLint red, GLint green, GLint blue)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3iv(const GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3s(GLshort red, GLshort green, GLshort blue)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3sv(const GLshort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3ub(GLubyte red, GLubyte green, GLubyte blue)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3ubv(const GLubyte *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3ui(GLuint red, GLuint green, GLuint blue)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3uiv(const GLuint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3us(GLushort red, GLushort green, GLushort blue)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor3usv(const GLushort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4b(GLbyte red, GLbyte green, GLbyte blue, GLbyte alpha)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4bv(const GLbyte *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4d(GLdouble red, GLdouble green, GLdouble blue, GLdouble alpha)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4dv(const GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+{
+	TRACE("(GLfloat red = %f, GLfloat green = %f, GLfloat blue = %f, GLfloat alpha = %f)", red, green, blue, alpha);
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		//context->color(red, green, blue, alpha);
+		//GLfloat vals[4] = {red, green, blue, alpha};
+		context->setVertexAttrib(sw::Color0, red, green, blue, alpha);
+	}
+}
+
+void APIENTRY glColor4fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4i(GLint red, GLint green, GLint blue, GLint alpha)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4iv(const GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4s(GLshort red, GLshort green, GLshort blue, GLshort alpha)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4sv(const GLshort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4ub(GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4ubv(const GLubyte *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4ui(GLuint red, GLuint green, GLuint blue, GLuint alpha)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4uiv(const GLuint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4us(GLushort red, GLushort green, GLushort blue, GLushort alpha)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColor4usv(const GLushort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glColorMaterial(GLenum face, GLenum mode)
+{
+	TRACE("(GLenum face = 0x%X, GLenum mode = 0x%X)", face, mode);
+
+	// FIXME: Validate enums
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		switch(face)
+		{
+		case GL_FRONT:
+			context->setColorMaterialMode(mode);   // FIXME: Front only
+			break;
+		case GL_FRONT_AND_BACK:
+			context->setColorMaterialMode(mode);
+			break;
+		default:
+			UNIMPLEMENTED();
+			return error(GL_INVALID_ENUM);
+		}
+	}
+}
+
+void APIENTRY glColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+{
+	TRACE("(*)");
+
+	glVertexAttribPointer(sw::Color0, size, type, true, stride, pointer);
+}
+
+void APIENTRY glCopyPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum type)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glCopyTexImage1D(GLenum target, GLint level, GLenum internalFormat, GLint x, GLint y, GLsizei width, GLint border)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glCopyTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glDebugEntry()
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glDeleteLists(GLuint list, GLsizei range)
+{
+	TRACE("(GLuint list = %d, GLsizei range = %d)", list, range);
+
+	if(range < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		for(int i = list; i < list + range; i++)
+		{
+			context->deleteList(i);
+		}
+	}
+}
+
+void APIENTRY glDepthRange(GLclampd zNear, GLclampd zFar)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glDisableClientState(GLenum array)
+{
+	TRACE("(GLenum array = 0x%X)", array);
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		GLenum texture = context->getClientActiveTexture();
+
+		switch(array)
+		{
+		case GL_VERTEX_ARRAY:        context->setEnableVertexAttribArray(sw::Position, false);                            break;
+		case GL_COLOR_ARRAY:         context->setEnableVertexAttribArray(sw::Color0, false);                              break;
+		case GL_TEXTURE_COORD_ARRAY: context->setEnableVertexAttribArray(sw::TexCoord0 + (texture - GL_TEXTURE0), false); break;
+		case GL_NORMAL_ARRAY:        context->setEnableVertexAttribArray(sw::Normal, false);                              break;
+		default:                     UNIMPLEMENTED();
+		}
+	}
+}
+
+void APIENTRY glDrawBuffer(GLenum mode)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glDrawPixels(GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEdgeFlag(GLboolean flag)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEdgeFlagPointer(GLsizei stride, const GLvoid *pointer)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEdgeFlagv(const GLboolean *flag)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEnableClientState(GLenum array)
+{
+	TRACE("(GLenum array = 0x%X)", array);
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		GLenum texture = context->getClientActiveTexture();
+
+		switch(array)
+		{
+		case GL_VERTEX_ARRAY:        context->setEnableVertexAttribArray(sw::Position, true);                            break;
+		case GL_COLOR_ARRAY:         context->setEnableVertexAttribArray(sw::Color0, true);                              break;
+		case GL_TEXTURE_COORD_ARRAY: context->setEnableVertexAttribArray(sw::TexCoord0 + (texture - GL_TEXTURE0), true); break;
+		case GL_NORMAL_ARRAY:        context->setEnableVertexAttribArray(sw::Normal, true);                              break;
+		default:                     UNIMPLEMENTED();
+		}
+	}
+}
+
+void APIENTRY glEnd()
+{
+	TRACE("()");
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->end();
+	}
+}
+
+void APIENTRY glEndList()
+{
+	TRACE("()");
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		context->endList();
+	}
+}
+
+void APIENTRY glEvalCoord1d(GLdouble u)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEvalCoord1dv(const GLdouble *u)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEvalCoord1f(GLfloat u)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEvalCoord1fv(const GLfloat *u)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEvalCoord2d(GLdouble u, GLdouble v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEvalCoord2dv(const GLdouble *u)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEvalCoord2f(GLfloat u, GLfloat v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEvalCoord2fv(const GLfloat *u)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEvalMesh1(GLenum mode, GLint i1, GLint i2)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEvalMesh2(GLenum mode, GLint i1, GLint i2, GLint j1, GLint j2)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEvalPoint1(GLint i)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glEvalPoint2(GLint i, GLint j)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glFeedbackBuffer(GLsizei size, GLenum type, GLfloat *buffer)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glFogf(GLenum pname, GLfloat param)
+{
+	TRACE("(GLenum pname = 0x%X, GLfloat param = %f)", pname, param);
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		gl::Device *device = gl::getDevice();   // FIXME
+
+		switch(pname)
+		{
+		case GL_FOG_START: device->setFogStart(param); break;
+		case GL_FOG_END:   device->setFogEnd(param);   break;
+		default:
+			UNIMPLEMENTED();
+			return error(GL_INVALID_ENUM);
+		}
+	}
+}
+
+void APIENTRY glFogfv(GLenum pname, const GLfloat *params)
+{
+	TRACE("(GLenum pname = 0x%X, const GLfloat *params)", pname);
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		switch(pname)
+		{
+		case GL_FOG_COLOR:
+			{
+				gl::Device *device = gl::getDevice();   // FIXME
+				device->setFogColor(sw::Color<float>(params[0], params[1], params[2], params[3]));
+			}
+			break;
+		default:
+			UNIMPLEMENTED();
+			return error(GL_INVALID_ENUM);
+		}
+	}
+}
+
+void APIENTRY glFogi(GLenum pname, GLint param)
+{
+	TRACE("(GLenum pname = 0x%X, GLint param = %d)", pname, param);
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		switch(pname)
+		{
+		case GL_FOG_MODE:
+			{
+				gl::Device *device = gl::getDevice();   // FIXME
+				switch(param)
+				{
+				case GL_LINEAR: device->setVertexFogMode(sw::FOG_LINEAR); break;
+				default:
+					UNIMPLEMENTED();
+					return error(GL_INVALID_ENUM);
+				}
+			}
+			break;
+		default:
+			UNIMPLEMENTED();
+			return error(GL_INVALID_ENUM);
+		}
+	}
+}
+
+void APIENTRY glFogiv(GLenum pname, const GLint *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glFrustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
+{
+	UNIMPLEMENTED();
+}
+
+GLuint APIENTRY glGenLists(GLsizei range)
+{
+	TRACE("(GLsizei range = %d)", range);
+
+	if(range < 0)
+	{
+		return error(GL_INVALID_VALUE, 0);
+	}
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		return context->genLists(range);
+	}
+
+	return 0;
+}
+
+void APIENTRY glGetClipPlane(GLenum plane, GLdouble *equation)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetDoublev(GLenum pname, GLdouble *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetLightfv(GLenum light, GLenum pname, GLfloat *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetLightiv(GLenum light, GLenum pname, GLint *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetMapdv(GLenum target, GLenum query, GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetMapfv(GLenum target, GLenum query, GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetMapiv(GLenum target, GLenum query, GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetMaterialfv(GLenum face, GLenum pname, GLfloat *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetMaterialiv(GLenum face, GLenum pname, GLint *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetPixelMapfv(GLenum map, GLfloat *values)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetPixelMapuiv(GLenum map, GLuint *values)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetPixelMapusv(GLenum map, GLushort *values)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetPointerv(GLenum pname, GLvoid* *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetPolygonStipple(GLubyte *mask)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetTexEnvfv(GLenum target, GLenum pname, GLfloat *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetTexEnviv(GLenum target, GLenum pname, GLint *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetTexGendv(GLenum coord, GLenum pname, GLdouble *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetTexGenfv(GLenum coord, GLenum pname, GLfloat *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetTexGeniv(GLenum coord, GLenum pname, GLint *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLvoid *pixels)
+{
+	TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum format = 0x%X, GLenum type = 0x%X, GLint *pixels0x%0.8p)", target, level, format, type, pixels);
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		gl::Texture *texture;
+
+		switch(target)
+		{
+		case GL_TEXTURE_2D:
+			texture = context->getTexture2D(target);
+			break;
+		case GL_TEXTURE_CUBE_MAP:
+			texture = context->getTextureCubeMap();
+			break;
+		default:
+			UNIMPLEMENTED();
+			return error(GL_INVALID_ENUM);
+		}
+
+		if(format == texture->getFormat(target, level) && type == texture->getType(target, level))
+		{
+			gl::Image *image = texture->getRenderTarget(target, level);
+			void *source = image->lock(0, 0, sw::LOCK_READONLY);
+			memcpy(pixels, source, image->getPitch() * image->getHeight());
+			image->unlock();
+		}
+		else 
+		{
+			UNIMPLEMENTED();
+		}
+	}
+}
+
+void APIENTRY glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname, GLfloat *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint *params)
+{
+	TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum pname = 0x%X, GLint *params = 0x%0.8p)", target, level, pname, params);
+ 
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		gl::Texture *texture;
+
+		switch(target)
+		{
+		case GL_TEXTURE_2D:
+		case GL_PROXY_TEXTURE_2D:
+			texture = context->getTexture2D(target);
+			break;
+		case GL_TEXTURE_CUBE_MAP:
+			texture = context->getTextureCubeMap();
+			break;
+		default:
+			UNIMPLEMENTED();
+			return error(GL_INVALID_ENUM);
+		}
+
+		switch(pname)
+		{
+		case GL_TEXTURE_MAG_FILTER:
+			*params = texture->getMagFilter();
+			break;
+		case GL_TEXTURE_MIN_FILTER:
+			*params = texture->getMinFilter();
+			break;
+		case GL_TEXTURE_WRAP_S:
+			*params = texture->getWrapS();
+			break;
+		case GL_TEXTURE_WRAP_T:
+			*params = texture->getWrapT();
+			break;
+		case GL_TEXTURE_WIDTH:
+			*params = texture->getWidth(target, level);
+			break;
+		case GL_TEXTURE_HEIGHT:
+			*params = texture->getHeight(target, level);
+			break;
+		case GL_TEXTURE_INTERNAL_FORMAT:
+				*params = texture->getInternalFormat(target, level);
+			break;
+		case GL_TEXTURE_BORDER_COLOR:
+			UNIMPLEMENTED();
+			break;
+		case GL_TEXTURE_BORDER:
+			UNIMPLEMENTED();
+			break;
+		case GL_TEXTURE_MAX_ANISOTROPY_EXT:
+			*params = (GLint)texture->getMaxAnisotropy();
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
+}
+
+void APIENTRY glIndexMask(GLuint mask)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glIndexPointer(GLenum type, GLsizei stride, const GLvoid *pointer)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glIndexd(GLdouble c)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glIndexdv(const GLdouble *c)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glIndexf(GLfloat c)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glIndexfv(const GLfloat *c)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glIndexi(GLint c)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glIndexiv(const GLint *c)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glIndexs(GLshort c)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glIndexsv(const GLshort *c)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glIndexub(GLubyte c)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glIndexubv(const GLubyte *c)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glInitNames(void)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glInterleavedArrays(GLenum format, GLsizei stride, const GLvoid *pointer)
+{
+	UNIMPLEMENTED();
+}
+
+GLboolean APIENTRY glIsList(GLuint list)
+{
+	UNIMPLEMENTED();
+	return GL_FALSE;
+}
+
+void APIENTRY glLightModelf(GLenum pname, GLfloat param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glLightModelfv(GLenum pname, const GLfloat *params)
+{
+	TRACE("(GLenum pname = 0x%X, const GLint *params)", pname);
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		gl::Device *device = gl::getDevice();   // FIXME
+
+		switch(pname)
+		{
+		case GL_LIGHT_MODEL_AMBIENT:
+			device->setGlobalAmbient(sw::Color<float>(params[0], params[1], params[2], params[3]));
+			break;
+		default:
+			UNIMPLEMENTED();
+			return error(GL_INVALID_ENUM);
+		}
+	}
+}
+
+void APIENTRY glLightModeli(GLenum pname, GLint param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glLightModeliv(GLenum pname, const GLint *params)
+{
+	TRACE("(GLenum pname = 0x%X, const GLint *params)", pname);
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glLightf(GLenum light, GLenum pname, GLfloat param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glLightfv(GLenum light, GLenum pname, const GLfloat *params)
+{
+	TRACE("(GLenum light = 0x%X, GLenum pname = 0x%X, const GLint *params)", light, pname);
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		gl::Device *device = gl::getDevice();   // FIXME
+
+		switch(pname)
+		{
+		case GL_AMBIENT:  device->setLightAmbient(light - GL_LIGHT0, sw::Color<float>(params[0], params[1], params[2], params[3]));  break;
+		case GL_DIFFUSE:  device->setLightDiffuse(light - GL_LIGHT0, sw::Color<float>(params[0], params[1], params[2], params[3]));  break;
+		case GL_SPECULAR: device->setLightSpecular(light - GL_LIGHT0, sw::Color<float>(params[0], params[1], params[2], params[3])); break;
+		case GL_POSITION:
+			if(params[3] == 0.0f)   // Directional light
+			{
+				// Create a very far out point light
+				float max = std::max(std::max(abs(params[0]), abs(params[1])), abs(params[2]));
+				device->setLightPosition(light - GL_LIGHT0, sw::Point(params[0] / max * 1e10f, params[1] / max * 1e10f, params[2] / max * 1e10f));
+			}
+			else
+			{
+				device->setLightPosition(light - GL_LIGHT0, sw::Point(params[0] / params[3], params[1] / params[3], params[2] / params[3]));
+			}
+			break;
+		default:
+			UNIMPLEMENTED();
+			return error(GL_INVALID_ENUM);
+		}
+	}
+}
+
+void APIENTRY glLighti(GLenum light, GLenum pname, GLint param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glLightiv(GLenum light, GLenum pname, const GLint *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glLineStipple(GLint factor, GLushort pattern)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glListBase(GLuint base)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glLoadIdentity()
+{
+	TRACE("()");
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->loadIdentity();
+	}
+}
+
+void APIENTRY glLoadMatrixd(const GLdouble *m)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glLoadMatrixf(const GLfloat *m)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glLoadName(GLuint name)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glLogicOp(GLenum opcode)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMap1d(GLenum target, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMap1f(GLenum target, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat *points)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMap2d(GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, const GLdouble *points)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMap2f(GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, const GLfloat *points)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMapGrid1d(GLint un, GLdouble u1, GLdouble u2)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMapGrid1f(GLint un, GLfloat u1, GLfloat u2)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMapGrid2d(GLint un, GLdouble u1, GLdouble u2, GLint vn, GLdouble v1, GLdouble v2)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMapGrid2f(GLint un, GLfloat u1, GLfloat u2, GLint vn, GLfloat v1, GLfloat v2)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMaterialf(GLenum face, GLenum pname, GLfloat param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMateriali(GLenum face, GLenum pname, GLint param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMaterialiv(GLenum face, GLenum pname, const GLint *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMatrixMode(GLenum mode)
+{
+	TRACE("(*)");
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->setMatrixMode(mode);
+	}
+}
+
+void APIENTRY glMultMatrixd(const GLdouble *m)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glMultMatrixm(sw::Matrix m)
+{
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		context->multiply((GLfloat*)m.m);
+	}
+}
+
+void APIENTRY glMultMatrixf(const GLfloat *m)
+{
+	TRACE("(*)");
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			return context->listCommand(gl::newCommand(glMultMatrixm, sw::Matrix(m)));
+		}
+
+		context->multiply(m);
+	}
+}
+
+void APIENTRY glNewList(GLuint list, GLenum mode)
+{
+	TRACE("(GLuint list = %d, GLenum mode = 0x%X)", list, mode);
+
+	if(list == 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	switch(mode)
+	{
+	case GL_COMPILE:
+	case GL_COMPILE_AND_EXECUTE:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->newList(list, mode);
+	}
+}
+
+void APIENTRY glNormal3b(GLbyte nx, GLbyte ny, GLbyte nz)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glNormal3bv(const GLbyte *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glNormal3d(GLdouble nx, GLdouble ny, GLdouble nz)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glNormal3dv(const GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glNormal3f(GLfloat nx, GLfloat ny, GLfloat nz)
+{
+	TRACE("(GLfloat nx = %f, GLfloat ny = %f, GLfloat nz = %f)", nx, ny, nz);
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		//context->normal(nx, ny, nz);
+		context->setVertexAttrib(sw::Normal, nx, ny, nz, 0);
+	}
+}
+
+void APIENTRY glNormal3fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glNormal3i(GLint nx, GLint ny, GLint nz)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glNormal3iv(const GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glNormal3s(GLshort nx, GLshort ny, GLshort nz)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glNormal3sv(const GLshort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glNormalPointer(GLenum type, GLsizei stride, const GLvoid *pointer)
+{
+	TRACE("(*)");
+
+	glVertexAttribPointer(sw::Normal, 3, type, false, stride, pointer);
+}
+
+void APIENTRY glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
+{
+	TRACE("(*)");
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->ortho(left, right, bottom, top, zNear, zFar);
+	}
+}
+
+void APIENTRY glPassThrough(GLfloat token)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPixelMapfv(GLenum map, GLsizei mapsize, const GLfloat *values)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPixelMapuiv(GLenum map, GLsizei mapsize, const GLuint *values)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPixelMapusv(GLenum map, GLsizei mapsize, const GLushort *values)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPixelStoref(GLenum pname, GLfloat param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPixelTransferf(GLenum pname, GLfloat param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPixelTransferi(GLenum pname, GLint param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPixelZoom(GLfloat xfactor, GLfloat yfactor)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPointSize(GLfloat size)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPolygonMode(GLenum face, GLenum mode)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPolygonStipple(const GLubyte *mask)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPopAttrib(void)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPopClientAttrib(void)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPopMatrix(void)
+{
+	TRACE("()");
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			return context->listCommand(gl::newCommand(glPopMatrix));
+		}
+
+		context->popMatrix();
+	}
+}
+
+void APIENTRY glPopName(void)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPrioritizeTextures(GLsizei n, const GLuint *textures, const GLclampf *priorities)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPushAttrib(GLbitfield mask)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPushClientAttrib(GLbitfield mask)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glPushMatrix(void)
+{
+	TRACE("()");
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			return context->listCommand(gl::newCommand(glPushMatrix));
+		}
+
+		context->pushMatrix();
+	}
+}
+
+void APIENTRY glPushName(GLuint name)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos2d(GLdouble x, GLdouble y)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos2dv(const GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos2f(GLfloat x, GLfloat y)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos2fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos2i(GLint x, GLint y)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos2iv(const GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos2s(GLshort x, GLshort y)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos2sv(const GLshort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos3d(GLdouble x, GLdouble y, GLdouble z)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos3dv(const GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos3f(GLfloat x, GLfloat y, GLfloat z)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos3fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos3i(GLint x, GLint y, GLint z)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos3iv(const GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos3s(GLshort x, GLshort y, GLshort z)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos3sv(const GLshort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos4d(GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos4dv(const GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos4fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos4i(GLint x, GLint y, GLint z, GLint w)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos4iv(const GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos4s(GLshort x, GLshort y, GLshort z, GLshort w)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRasterPos4sv(const GLshort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glReadBuffer(GLenum mode)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRectd(GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRectdv(const GLdouble *v1, const GLdouble *v2)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRectf(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRectfv(const GLfloat *v1, const GLfloat *v2)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRecti(GLint x1, GLint y1, GLint x2, GLint y2)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRectiv(const GLint *v1, const GLint *v2)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRects(GLshort x1, GLshort y1, GLshort x2, GLshort y2)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRectsv(const GLshort *v1, const GLshort *v2)
+{
+	UNIMPLEMENTED();
+}
+
+GLint APIENTRY glRenderMode(GLenum mode)
+{
+	UNIMPLEMENTED();
+	return 0;
+}
+
+void APIENTRY glRotated(GLdouble angle, GLdouble x, GLdouble y, GLdouble z)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
+{
+	TRACE("(*)");
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->rotate(angle, x, y, z);
+	}
+}
+
+void APIENTRY glScaled(GLdouble x, GLdouble y, GLdouble z)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glScalef(GLfloat x, GLfloat y, GLfloat z)
+{
+	TRACE("(GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)", x, y, z);
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			return context->listCommand(gl::newCommand(glScalef, x, y, z));
+		}
+
+		context->scale(x, y, z);
+	}
+}
+
+void APIENTRY glSelectBuffer(GLsizei size, GLuint *buffer)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glShadeModel(GLenum mode)
+{
+	TRACE("(*)");
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->setShadeModel(mode);
+	}
+}
+
+void APIENTRY glTexCoord1d(GLdouble s)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord1dv(const GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord1f(GLfloat s)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord1fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord1i(GLint s)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord1iv(const GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord1s(GLshort s)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord1sv(const GLshort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord2d(GLdouble s, GLdouble t)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord2dv(const GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord2f(GLfloat s, GLfloat t)
+{
+	TRACE("(GLfloat s = %f, GLfloat t = %f)", s, t);
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		//context->texCoord(s, t, 0.0f, 1.0f);
+		unsigned int texture = context->getActiveTexture();
+		context->setVertexAttrib(sw::TexCoord0/* + texture*/, s, t, 0.0f, 1.0f);
+	}
+}
+
+void APIENTRY glTexCoord2fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord2i(GLint s, GLint t)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord2iv(const GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord2s(GLshort s, GLshort t)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord2sv(const GLshort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord3d(GLdouble s, GLdouble t, GLdouble r)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord3dv(const GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord3f(GLfloat s, GLfloat t, GLfloat r)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord3fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord3i(GLint s, GLint t, GLint r)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord3iv(const GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord3s(GLshort s, GLshort t, GLshort r)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord3sv(const GLshort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord4d(GLdouble s, GLdouble t, GLdouble r, GLdouble q)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord4dv(const GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord4f(GLfloat s, GLfloat t, GLfloat r, GLfloat q)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord4fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord4i(GLint s, GLint t, GLint r, GLint q)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord4iv(const GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord4s(GLshort s, GLshort t, GLshort r, GLshort q)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoord4sv(const GLshort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+{
+	TRACE("(*)");
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		GLenum texture = context->getClientActiveTexture();
+
+		glVertexAttribPointer(sw::TexCoord0 + (texture - GL_TEXTURE0), size, type, false, stride, pointer);
+	}
+}
+
+void APIENTRY glTexEnvf(GLenum target, GLenum pname, GLfloat param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexEnvi(GLenum target, GLenum pname, GLint param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexEnviv(GLenum target, GLenum pname, const GLint *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexGend(GLenum coord, GLenum pname, GLdouble param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexGendv(GLenum coord, GLenum pname, const GLdouble *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexGenf(GLenum coord, GLenum pname, GLfloat param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexGenfv(GLenum coord, GLenum pname, const GLfloat *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexGeni(GLenum coord, GLenum pname, GLint param)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexGeniv(GLenum coord, GLenum pname, const GLint *params)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const GLvoid *pixels)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glTranslated(GLdouble x, GLdouble y, GLdouble z)
+{
+	TRACE("(*)");
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			return context->listCommand(gl::newCommand(glTranslated, x, y, z));
+		}
+
+		context->translate(x, y, z);   // FIXME
+	}
+}
+
+void APIENTRY glTranslatef(GLfloat x, GLfloat y, GLfloat z)
+{
+	TRACE("(GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)", x, y, z);
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			return context->listCommand(gl::newCommand(glTranslatef, x, y, z));
+		}
+
+		context->translate(x, y, z);
+	}
+}
+
+void APIENTRY glVertex2d(GLdouble x, GLdouble y)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex2dv(const GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex2f(GLfloat x, GLfloat y)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex2fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex2i(GLint x, GLint y)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex2iv(const GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex2s(GLshort x, GLshort y)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex2sv(const GLshort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex3d(GLdouble x, GLdouble y, GLdouble z)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex3dv(const GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex3f(GLfloat x, GLfloat y, GLfloat z)
+{
+	TRACE("(GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)", x, y, z);
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->position(x, y, z, 1.0f);
+	}
+}
+
+void APIENTRY glVertex3fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex3i(GLint x, GLint y, GLint z)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex3iv(const GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex3s(GLshort x, GLshort y, GLshort z)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex3sv(const GLshort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex4d(GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex4dv(const GLdouble *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex4fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex4i(GLint x, GLint y, GLint z, GLint w)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex4iv(const GLint *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex4s(GLshort x, GLshort y, GLshort z, GLshort w)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertex4sv(const GLshort *v)
+{
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+{
+	TRACE("(GLint size = %d, GLenum type = 0x%X, GLsizei stride = %d, const GLvoid *pointer = 0x%0.8p)", size, type, stride, pointer);
+
+	glVertexAttribPointer(sw::Position, size, type, false, stride, pointer);
+}
+
+void APIENTRY glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices) {UNIMPLEMENTED();}
+void APIENTRY glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels) {UNIMPLEMENTED();}
+void APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels) {UNIMPLEMENTED();}
+void APIENTRY glCopyTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height) {UNIMPLEMENTED();}
+
+void APIENTRY glClientActiveTexture(GLenum texture)
+{
+	TRACE("(GLenum texture = 0x%X)", texture);
+	
+	switch(texture)
+	{
+	case GL_TEXTURE0:
+	case GL_TEXTURE1:
+		break;
+	default:
+		UNIMPLEMENTED();
+		UNREACHABLE();
+	}
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		context->clientActiveTexture(texture);
+	}
+}
+
+void APIENTRY glCompressedTexImage1D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *data) {UNIMPLEMENTED();}
+void APIENTRY glCompressedTexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *data) {UNIMPLEMENTED();}
+void APIENTRY glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data) {UNIMPLEMENTED();}
+void APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data) {UNIMPLEMENTED();}
+void APIENTRY glGetCompressedTexImage(GLenum target, GLint level, void *img) {UNIMPLEMENTED();}
+void APIENTRY glMultiTexCoord1f(GLenum target, GLfloat s) {UNIMPLEMENTED();}
+void APIENTRY glMultiTexCoord1d(GLenum target, GLdouble s) {UNIMPLEMENTED();}
+
+void APIENTRY glMultiTexCoord2f(GLenum texture, GLfloat s, GLfloat t)
+{
+	TRACE("(GLenum texture = 0x%X, GLfloat s = %f, GLfloat t = %f)", texture, s, t);
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		//context->texCoord(s, t, 0.0f, 1.0f);
+		context->setVertexAttrib(sw::TexCoord0 + (texture - GL_TEXTURE0), s, t, 0.0f, 1.0f);
+	}
+}
+
+void APIENTRY glMultiTexCoord2d(GLenum target, GLdouble s, GLdouble t) {UNIMPLEMENTED();}
+void APIENTRY glMultiTexCoord3f(GLenum target, GLfloat s, GLfloat t, GLfloat r) {UNIMPLEMENTED();}
+void APIENTRY glMultiTexCoord3d(GLenum target, GLdouble s, GLdouble t, GLdouble r) {UNIMPLEMENTED();}
+void APIENTRY glMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q) {UNIMPLEMENTED();}
+void APIENTRY glMultiTexCoord4d(GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdouble q) {UNIMPLEMENTED();}
+void APIENTRY glLoadTransposeMatrixf(const GLfloat *m) {UNIMPLEMENTED();}
+void APIENTRY glLoadTransposeMatrixd(const GLdouble *m) {UNIMPLEMENTED();}
+void APIENTRY glMultTransposeMatrixf(const GLfloat *m) {UNIMPLEMENTED();}
+void APIENTRY glMultTransposeMatrixd(const GLdouble *m) {UNIMPLEMENTED();}
+void APIENTRY glFogCoordf(GLfloat coord) {UNIMPLEMENTED();}
+void APIENTRY glFogCoordd(GLdouble coord) {UNIMPLEMENTED();}
+void APIENTRY glFogCoordPointer(GLenum type, GLsizei stride, const void *pointer) {UNIMPLEMENTED();}
+void APIENTRY glMultiDrawArrays(GLenum mode, const GLint *first, const GLsizei *count, GLsizei drawcount) {UNIMPLEMENTED();}
+void APIENTRY glPointParameteri(GLenum pname, GLint param) {UNIMPLEMENTED();}
+void APIENTRY glPointParameterf(GLenum pname, GLfloat param) {UNIMPLEMENTED();}
+void APIENTRY glPointParameteriv(GLenum pname, const GLint *params) {UNIMPLEMENTED();}
+void APIENTRY glPointParameterfv(GLenum pname, const GLfloat *params) {UNIMPLEMENTED();}
+void APIENTRY glSecondaryColor3b(GLbyte red, GLbyte green, GLbyte blue) {UNIMPLEMENTED();}
+void APIENTRY glSecondaryColor3f(GLfloat red, GLfloat green, GLfloat blue) {UNIMPLEMENTED();}
+void APIENTRY glSecondaryColor3d(GLdouble red, GLdouble green, GLdouble blue) {UNIMPLEMENTED();}
+void APIENTRY glSecondaryColor3ub(GLubyte red, GLubyte green, GLubyte blue) {UNIMPLEMENTED();}
+void APIENTRY glSecondaryColorPointer(GLint size, GLenum type, GLsizei stride, const void *pointer) {UNIMPLEMENTED();}
+void APIENTRY glWindowPos2f(GLfloat x, GLfloat y) {UNIMPLEMENTED();}
+void APIENTRY glWindowPos2d(GLdouble x, GLdouble y) {UNIMPLEMENTED();}
+void APIENTRY glWindowPos2i(GLint x, GLint y) {UNIMPLEMENTED();}
+void APIENTRY glWindowPos3f(GLfloat x, GLfloat y, GLfloat z) {UNIMPLEMENTED();}
+void APIENTRY glWindowPos3d(GLdouble x, GLdouble y, GLdouble z) {UNIMPLEMENTED();}
+void APIENTRY glWindowPos3i(GLint x, GLint y, GLint z) {UNIMPLEMENTED();}
+void APIENTRY glGetBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, void *data) {UNIMPLEMENTED();}
+void *APIENTRY glMapBuffer(GLenum target, GLenum access) {UNIMPLEMENTED(); return 0;}
+GLboolean APIENTRY glUnmapBuffer(GLenum target) {UNIMPLEMENTED(); return GL_FALSE;}
+void APIENTRY glGetBufferPointerv(GLenum target, GLenum pname, void **params) {UNIMPLEMENTED();}
+void APIENTRY glGenQueries(GLsizei n, GLuint *ids) {UNIMPLEMENTED();}
+void APIENTRY glDeleteQueries(GLsizei n, const GLuint *ids) {UNIMPLEMENTED();}
+GLboolean APIENTRY glIsQuery(GLuint id) {UNIMPLEMENTED(); return 0;}
+void APIENTRY glBeginQuery(GLenum target, GLuint id) {UNIMPLEMENTED();}
+void APIENTRY glEndQuery(GLenum target) {UNIMPLEMENTED();}
+void APIENTRY glGetQueryiv(GLenum target, GLenum pname, GLint *params) {UNIMPLEMENTED();}
+void APIENTRY glGetQueryObjectiv(GLuint id, GLenum pname, GLint *params) {UNIMPLEMENTED();}
+void APIENTRY glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint *params) {UNIMPLEMENTED();}
+void APIENTRY glVertexAttrib1s(GLuint index, GLshort x) {UNIMPLEMENTED();}
+void APIENTRY glVertexAttrib1d(GLuint index, GLdouble x) {UNIMPLEMENTED();}
+void APIENTRY glVertexAttrib2s(GLuint index, GLshort x, GLshort y) {UNIMPLEMENTED();}
+void APIENTRY glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y) {UNIMPLEMENTED();}
+void APIENTRY glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z) {UNIMPLEMENTED();}
+void APIENTRY glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z) {UNIMPLEMENTED();}
+void APIENTRY glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w) {UNIMPLEMENTED();}
+void APIENTRY glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w) {UNIMPLEMENTED();}
+void APIENTRY glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w) {UNIMPLEMENTED();}
+void APIENTRY glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble *params) {UNIMPLEMENTED();}
+void APIENTRY glDrawBuffers(GLsizei n, const GLenum *bufs) {UNIMPLEMENTED();}
+void APIENTRY glUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {UNIMPLEMENTED();}
+void APIENTRY glUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {UNIMPLEMENTED();}
+void APIENTRY glUniformMatrix2x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {UNIMPLEMENTED();}
+void APIENTRY glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {UNIMPLEMENTED();}
+void APIENTRY glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {UNIMPLEMENTED();}
+void APIENTRY glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {UNIMPLEMENTED();}
+
+void APIENTRY glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer) {UNIMPLEMENTED();}
+void APIENTRY glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height) {UNIMPLEMENTED();}
+void APIENTRY glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter) {UNIMPLEMENTED();}
+
+BOOL WINAPI wglSwapIntervalEXT(int interval)
+{
+	gl::Surface *drawSurface = static_cast<gl::Surface*>(gl::getCurrentDrawSurface());
+
+	if(drawSurface)
+	{
+		drawSurface->setSwapInterval(interval);
+		return TRUE;
+	}
+	
+	SetLastError(ERROR_DC_NOT_FOUND);
+	return FALSE;
+}
+
+int WINAPI wglChoosePixelFormat(HDC hdc, const PIXELFORMATDESCRIPTOR *ppfd)
+{
+	TRACE("(*)");
+
+	return 1;
+}
+
+BOOL WINAPI wglCopyContext(HGLRC, HGLRC, UINT)
+{
+	UNIMPLEMENTED();
+	return FALSE;
+}
+
+HGLRC WINAPI wglCreateContext(HDC hdc)
+{
+	TRACE("(*)");
+
+	gl::Display *display = gl::Display::getDisplay(hdc);
+	display->initialize();
+
+	gl::Context *context = display->createContext(nullptr);
+
+	return (HGLRC)context;
+}
+
+HGLRC WINAPI wglCreateLayerContext(HDC, int)
+{
+	UNIMPLEMENTED();
+	return 0;
+}
+
+BOOL WINAPI wglDeleteContext(HGLRC context)
+{
+	gl::Display *display = gl::getDisplay();
+
+	if(display && context)
+	{
+		display->destroyContext(reinterpret_cast<gl::Context*>(context));
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+BOOL WINAPI wglDescribeLayerPlane(HDC, int, int, UINT, LPLAYERPLANEDESCRIPTOR)
+{
+	UNIMPLEMENTED();
+	return FALSE;
+}
+
+int WINAPI wglDescribePixelFormat(HDC hdc, int iPixelFormat, UINT nBytes, LPPIXELFORMATDESCRIPTOR ppfd)
+{
+	TRACE("(*)");
+
+	ASSERT(nBytes == sizeof(PIXELFORMATDESCRIPTOR));   // FIXME
+
+	ppfd->nSize = sizeof(PIXELFORMATDESCRIPTOR);
+	ppfd->nVersion = 1;
+	ppfd->dwFlags = PFD_DRAW_TO_WINDOW | PFD_DRAW_TO_BITMAP | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	ppfd->iPixelType = PFD_TYPE_RGBA;
+	ppfd->cColorBits = 32;
+	ppfd->cRedBits = 8;
+	ppfd->cRedShift = 16;
+	ppfd->cGreenBits = 8;
+	ppfd->cGreenShift = 8;
+	ppfd->cBlueBits = 8;
+	ppfd->cBlueShift = 0;
+	ppfd->cAlphaBits = 0;
+	ppfd->cAlphaShift = 24;
+	ppfd->cAccumBits = 0;
+	ppfd->cAccumRedBits = 0;
+	ppfd->cAccumGreenBits = 0;
+	ppfd->cAccumBlueBits = 0;
+	ppfd->cAccumAlphaBits = 0;
+	ppfd->cDepthBits = 24;
+	ppfd->cStencilBits = 0;
+	ppfd->cAuxBuffers = 0;
+	ppfd->iLayerType = 0;
+	ppfd->bReserved = 0;
+	ppfd->dwLayerMask = 0;
+	ppfd->dwVisibleMask = 0;
+	ppfd->dwDamageMask = 0;
+
+	return 1;
+}
+
+HGLRC WINAPI wglGetCurrentContext(VOID)
+{
+	TRACE("(*)");
+	return (HGLRC)gl::getContext();
+}
+
+HDC WINAPI wglGetCurrentDC(VOID)
+{
+	TRACE("(*)");
+	gl::Display *display = gl::getDisplay();
+	return display ? display->getNativeDisplay() : 0;
+}
+
+void WINAPI wglGetDefaultProcAddress()
+{
+	UNIMPLEMENTED();
+}
+
+int WINAPI wglGetLayerPaletteEntries(HDC, int, int, int, COLORREF*)
+{
+	UNIMPLEMENTED();
+	return 0;
+}
+
+void WINAPI wglGetPixelFormat()
+{
+	UNIMPLEMENTED();
+}
+
+const char *WINAPI wglGetExtensionsStringARB(HDC hdc)
+{
+	TRACE("(*)");
+
+	return "GL_ARB_framebuffer_object "
+		   "WGL_EXT_extensions_string "
+		   "WGL_EXT_swap_control";
+}
+
+const char *WINAPI wglGetExtensionsStringEXT()
+{
+	TRACE("(*)");
+	return wglGetExtensionsStringARB(0);
+}
+
+PROC WINAPI wglGetProcAddress(LPCSTR lpszProc)
+{
+	TRACE("(LPCSTR lpszProc = \"%s\")", lpszProc);
+
 	struct Extension
 	{
 		const char *name;
-		__eglMustCastToProperFunctionPointerType address;
+		PROC address;
 	};
 
 	static const Extension glExtensions[] =
 	{
-		#define EXTENSION(name) {#name, (__eglMustCastToProperFunctionPointerType)name}
+		#define EXT(function) {#function, (PROC)function}
+		
+		// Core 2.1
+		EXT(glDrawRangeElements),
+		EXT(glTexImage3D),
+		EXT(glTexSubImage3D),
+		EXT(glCopyTexSubImage3D),
+		EXT(glActiveTexture),
+		EXT(glClientActiveTexture),
+		EXT(glCompressedTexImage1D),
+		EXT(glCompressedTexImage2D),
+		EXT(glCompressedTexImage3D),
+		EXT(glCompressedTexSubImage1D),
+		EXT(glCompressedTexSubImage2D),
+		EXT(glCompressedTexSubImage3D),
+		EXT(glGetCompressedTexImage),
+		EXT(glMultiTexCoord1f),
+		EXT(glMultiTexCoord1d),
+		EXT(glMultiTexCoord2f),
+		EXT(glMultiTexCoord2d),
+		EXT(glMultiTexCoord3f),
+		EXT(glMultiTexCoord3d),
+		EXT(glMultiTexCoord4f),
+		EXT(glMultiTexCoord4d),
+		EXT(glLoadTransposeMatrixf),
+		EXT(glLoadTransposeMatrixd),
+		EXT(glMultTransposeMatrixf),
+		EXT(glMultTransposeMatrixd),
+		EXT(glSampleCoverage),
+		EXT(glBlendEquation),
+		EXT(glBlendColor),
+		EXT(glFogCoordf),
+		EXT(glFogCoordd),
+		EXT(glFogCoordPointer),
+		EXT(glMultiDrawArrays),
+		EXT(glPointParameteri),
+		EXT(glPointParameterf),
+		EXT(glPointParameteriv),
+		EXT(glPointParameterfv),
+		EXT(glSecondaryColor3b),
+		EXT(glSecondaryColor3f),
+		EXT(glSecondaryColor3d),
+		EXT(glSecondaryColor3ub),
+		EXT(glSecondaryColorPointer),
+		EXT(glBlendFuncSeparate),
+		EXT(glWindowPos2f),
+		EXT(glWindowPos2d),
+		EXT(glWindowPos2i),
+		EXT(glWindowPos3f),
+		EXT(glWindowPos3d),
+		EXT(glWindowPos3i),
+		EXT(glBindBuffer),
+		EXT(glDeleteBuffers),
+		EXT(glGenBuffers),
+		EXT(glIsBuffer),
+		EXT(glBufferData),
+		EXT(glBufferSubData),
+		EXT(glGetBufferSubData),
+		EXT(glMapBuffer),
+		EXT(glUnmapBuffer),
+		EXT(glGetBufferParameteriv),
+		EXT(glGetBufferPointerv),
+		EXT(glGenQueries),
+		EXT(glDeleteQueries),
+		EXT(glIsQuery),
+		EXT(glBeginQuery),
+		EXT(glEndQuery),
+		EXT(glGetQueryiv),
+		EXT(glGetQueryObjectiv),
+		EXT(glGetQueryObjectuiv),
+		EXT(glShaderSource),
+		EXT(glCreateShader),
+		EXT(glIsShader),
+		EXT(glCompileShader),
+		EXT(glDeleteShader),
+		EXT(glCreateProgram),
+		EXT(glIsProgram),
+		EXT(glAttachShader),
+		EXT(glDetachShader),
+		EXT(glLinkProgram),
+		EXT(glUseProgram),
+		EXT(glValidateProgram),
+		EXT(glDeleteProgram),
+		EXT(glUniform1f),
+		EXT(glUniform2f),
+		EXT(glUniform3f),
+		EXT(glUniform4f),
+		EXT(glUniform1i),
+		EXT(glUniform2i),
+		EXT(glUniform3i),
+		EXT(glUniform4i),
+		EXT(glUniform1fv),
+		EXT(glUniform2fv),
+		EXT(glUniform3fv),
+		EXT(glUniform4fv),
+		EXT(glUniform1iv),
+		EXT(glUniform2iv),
+		EXT(glUniform3iv),
+		EXT(glUniform4iv),
+		EXT(glUniformMatrix2fv),
+		EXT(glUniformMatrix3fv),
+		EXT(glUniformMatrix4fv),
+		EXT(glGetShaderiv),
+		EXT(glGetProgramiv),
+		EXT(glGetShaderInfoLog),
+		EXT(glGetProgramInfoLog),
+		EXT(glGetAttachedShaders),
+		EXT(glGetUniformLocation),
+		EXT(glGetActiveUniform),
+		EXT(glGetUniformfv),
+		EXT(glGetUniformiv),
+		EXT(glGetShaderSource),
+		EXT(glVertexAttrib1s),
+		EXT(glVertexAttrib1f),
+		EXT(glVertexAttrib1d),
+		EXT(glVertexAttrib2s),
+		EXT(glVertexAttrib2f),
+		EXT(glVertexAttrib2d),
+		EXT(glVertexAttrib3s),
+		EXT(glVertexAttrib3f),
+		EXT(glVertexAttrib3d),
+		EXT(glVertexAttrib4s),
+		EXT(glVertexAttrib4f),
+		EXT(glVertexAttrib4d),
+		EXT(glVertexAttrib4Nub),
+		EXT(glVertexAttribPointer),
+		EXT(glEnableVertexAttribArray),
+		EXT(glDisableVertexAttribArray),
+		EXT(glGetVertexAttribfv),
+		EXT(glGetVertexAttribdv),
+		EXT(glGetVertexAttribiv),
+		EXT(glGetVertexAttribPointerv),
+		EXT(glBindAttribLocation),
+		EXT(glGetActiveAttrib),
+		EXT(glGetAttribLocation),
+		EXT(glDrawBuffers),
+		EXT(glStencilOpSeparate),
+		EXT(glStencilFuncSeparate),
+		EXT(glStencilMaskSeparate),
+		EXT(glBlendEquationSeparate),
+		EXT(glUniformMatrix2x3fv),
+		EXT(glUniformMatrix3x2fv),
+		EXT(glUniformMatrix2x4fv),
+		EXT(glUniformMatrix4x2fv),
+		EXT(glUniformMatrix3x4fv),
+		EXT(glUniformMatrix4x3fv),
+		EXT(glGenFencesNV),
+		EXT(glDeleteFencesNV),
+		EXT(glSetFenceNV),
+		EXT(glTestFenceNV),
+		EXT(glFinishFenceNV),
+		EXT(glIsFenceNV),
+		EXT(glGetFenceivNV),
+	
+		EXT(glIsRenderbuffer),
+		EXT(glBindRenderbuffer),
+		EXT(glDeleteRenderbuffers),
+		EXT(glGenRenderbuffers),
+		EXT(glRenderbufferStorage),
+		EXT(glGetRenderbufferParameteriv),
+		EXT(glIsFramebuffer),
+		EXT(glBindFramebuffer),
+		EXT(glDeleteFramebuffers),
+		EXT(glGenFramebuffers),
+		EXT(glCheckFramebufferStatus),
+		EXT(glFramebufferTexture1D),
+		EXT(glFramebufferTexture2D),
+		EXT(glFramebufferTexture3D),
+		EXT(glFramebufferRenderbuffer),
+		EXT(glGetFramebufferAttachmentParameteriv),
+		EXT(glGenerateMipmap),
+		EXT(glReleaseShaderCompiler),
+		EXT(glShaderBinary),
+		EXT(glGetShaderPrecisionFormat),
+		EXT(glDepthRangef),
+		EXT(glClearDepthf),
 
-		EXTENSION(glTexImage3DOES),
-		EXTENSION(glBlitFramebufferANGLE),
-		EXTENSION(glRenderbufferStorageMultisampleANGLE),
-		EXTENSION(glDeleteFencesNV),
-		EXTENSION(glGenFencesNV),
-		EXTENSION(glIsFenceNV),
-		EXTENSION(glTestFenceNV),
-		EXTENSION(glGetFenceivNV),
-		EXTENSION(glFinishFenceNV),
-		EXTENSION(glSetFenceNV),
-		EXTENSION(glGetGraphicsResetStatusEXT),
-		EXTENSION(glReadnPixelsEXT),
-		EXTENSION(glGetnUniformfvEXT),
-		EXTENSION(glGetnUniformivEXT),
-		EXTENSION(glGenQueriesEXT),
-		EXTENSION(glDeleteQueriesEXT),
-		EXTENSION(glIsQueryEXT),
-		EXTENSION(glBeginQueryEXT),
-		EXTENSION(glEndQueryEXT),
-		EXTENSION(glGetQueryivEXT),
-		EXTENSION(glGetQueryObjectuivEXT),
-		EXTENSION(glEGLImageTargetTexture2DOES),
-		EXTENSION(glEGLImageTargetRenderbufferStorageOES),
+		// ARB
+		EXT(wglGetExtensionsStringARB),
+		EXT(glIsRenderbuffer),
+		EXT(glBindRenderbuffer),
+		EXT(glDeleteRenderbuffers),
+		EXT(glGenRenderbuffers),
+		EXT(glRenderbufferStorage),
+		EXT(glRenderbufferStorageMultisample),
+		EXT(glGetRenderbufferParameteriv),
+		EXT(glIsFramebuffer),
+		EXT(glBindFramebuffer),
+		EXT(glDeleteFramebuffers),
+		EXT(glGenFramebuffers),
+		EXT(glCheckFramebufferStatus),
+		EXT(glFramebufferTexture1D),
+		EXT(glFramebufferTexture2D),
+		EXT(glFramebufferTexture3D),
+		EXT(glFramebufferTextureLayer),
+		EXT(glFramebufferRenderbuffer),
+		EXT(glGetFramebufferAttachmentParameteriv),
+		EXT(glBlitFramebuffer),
+		EXT(glGenerateMipmap),
 
-		#undef EXTENSION
+		// EXT
+		EXT(wglSwapIntervalEXT),
+		EXT(wglGetExtensionsStringEXT),
+		#undef EXT
 	};
 
 	for(int ext = 0; ext < sizeof(glExtensions) / sizeof(Extension); ext++)
 	{
-		if(strcmp(procname, glExtensions[ext].name) == 0)
+		if(strcmp(lpszProc, glExtensions[ext].name) == 0)
 		{
-			return (__eglMustCastToProperFunctionPointerType)glExtensions[ext].address;
+			return (PROC)glExtensions[ext].address;
 		}
 	}
 
-	return NULL;
+	FARPROC proc = GetProcAddress(GetModuleHandle("opengl32.dll"), lpszProc);  // FIXME?
+
+	if(proc)
+	{
+		return proc;
+	}
+
+	TRACE("(LPCSTR lpszProc = \"%s\") NOT FOUND!!!", lpszProc);
+
+	return 0;
 }
 
-void GL_APIENTRY Register(const char *licenseKey)
+BOOL WINAPI wglMakeCurrent(HDC hdc, HGLRC hglrc)
+{
+	TRACE("(*)");
+
+	if(hdc && hglrc)
+	{
+		gl::Display *display = (gl::Display*)gl::Display::getDisplay(hdc);
+		gl::makeCurrent((gl::Context*)hglrc, display, display->getPrimarySurface());
+		gl::setCurrentDrawSurface(display->getPrimarySurface());
+		gl::setCurrentDisplay(display);
+	}
+	else
+	{
+		gl::makeCurrent(0, 0, 0);
+	}
+
+	return TRUE;
+}
+
+BOOL WINAPI wglRealizeLayerPalette(HDC, int, BOOL)
+{
+	UNIMPLEMENTED();
+	return FALSE;
+}
+
+int WINAPI wglSetLayerPaletteEntries(HDC, int, int, int, CONST COLORREF*)
+{
+	UNIMPLEMENTED();
+	return 0;
+}
+
+BOOL WINAPI wglSetPixelFormat(HDC hdc, int iPixelFormat, const PIXELFORMATDESCRIPTOR *ppfd)
+{
+	TRACE("(*)");
+	//UNIMPLEMENTED();
+
+	return TRUE;
+}
+
+BOOL WINAPI wglShareLists(HGLRC, HGLRC)
+{
+	UNIMPLEMENTED();
+	return FALSE;
+}
+
+void WINAPI wglSwapBuffers()
+{
+	TRACE("(*)");
+	
+	gl::Display *display = gl::getDisplay();
+	
+	if(display)
+	{
+		display->getPrimarySurface()->swap();
+	}
+}
+
+BOOL WINAPI wglSwapLayerBuffers(HDC, UINT)
+{
+	UNIMPLEMENTED();
+	return FALSE;
+}
+
+DWORD WINAPI wglSwapMultipleBuffers(UINT, CONST WGLSWAP*)
+{
+	UNIMPLEMENTED();
+	return 0;
+}
+
+BOOL WINAPI wglUseFontBitmapsA(HDC, DWORD, DWORD, DWORD)
+{
+	UNIMPLEMENTED();
+	return FALSE;
+}
+
+BOOL WINAPI wglUseFontBitmapsW(HDC, DWORD, DWORD, DWORD)
+{
+	UNIMPLEMENTED();
+	return FALSE;
+}
+
+BOOL WINAPI wglUseFontOutlinesA(HDC, DWORD, DWORD, DWORD, FLOAT, FLOAT, int, LPGLYPHMETRICSFLOAT)
+{
+	UNIMPLEMENTED();
+	return FALSE;
+}
+
+BOOL WINAPI wglUseFontOutlinesW(HDC, DWORD, DWORD, DWORD, FLOAT, FLOAT, int, LPGLYPHMETRICSFLOAT)
+{
+	UNIMPLEMENTED();
+	return FALSE;
+}
+
+void APIENTRY Register(const char *licenseKey)
 {
 	RegisterLicenseKey(licenseKey);
 }

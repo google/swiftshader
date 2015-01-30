@@ -10,36 +10,281 @@
 //
 
 // Context.h: Defines the Context class, managing all GL state and performing
-// rendering operations. It is the GLES2 specific implementation of EGLContext.
+// rendering operations.
 
 #ifndef LIBGL_CONTEXT_H_
 #define LIBGL_CONTEXT_H_
 
-#include "libEGL/Context.hpp"
 #include "ResourceManager.h"
 #include "common/NameSpace.hpp"
 #include "common/Object.hpp"
 #include "Image.hpp"
 #include "Renderer/Sampler.hpp"
+#include "Renderer/Vertex.hpp"
+#include "MatrixStack.hpp"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#define EGLAPI
-#include <EGL/egl.h>
+#define _GDI32_
+#include <windows.h>
+#include <GL/GL.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GL/glext.h>
 
 #include <map>
 #include <string>
-
-namespace egl
-{
-class Display;
-class Surface;
-class Config;
-}
+#include <list>
 
 namespace gl
 {
+	class Display;
+	class Surface;
+	class Config;
+
+	class Command
+	{
+	public:
+		Command() {};
+		virtual ~Command() {};
+
+		virtual void call() = 0;
+	};
+
+	class Command0 : public Command
+	{
+	public:
+		Command0(void (APIENTRY *function)())
+			: function(function)
+		{
+		}
+
+		virtual void call()
+		{
+			function();
+		}
+
+		void (APIENTRY *function)();
+	};
+
+	template<typename A1>
+	class Command1 : public Command
+	{
+	public:
+		Command1(void (APIENTRY *function)(A1), A1 arg1)
+			: function(function)
+			, argument1(arg1)
+		{
+		}
+
+		virtual void call()
+		{
+			function(argument1);
+		}
+
+		void (APIENTRY *function)(A1);
+		A1 argument1;
+	};
+
+	template<typename A1, typename A2>
+	class Command2 : public Command
+	{
+	public:
+		Command2(void (APIENTRY *function)(A1, A2), A1 arg1, A2 arg2)
+			: function(function)
+			, argument1(arg1)
+			, argument2(arg2)
+		{
+		}
+
+		virtual void call()
+		{
+			function(argument1, argument2);
+		}
+
+		void (APIENTRY *function)(A1, A2);
+		A1 argument1;
+		A2 argument2;
+	};
+
+    template<typename A1, typename A2, typename A3>
+	class Command3 : public Command
+	{
+	public:
+		Command3(void (APIENTRY *function)(A1, A2, A3), A1 arg1, A2 arg2, A3 arg3)
+			: function(function)
+			, argument1(arg1)
+			, argument2(arg2)
+            , argument3(arg3)
+		{
+		}
+
+		virtual void call()
+		{
+			function(argument1, argument2, argument3);
+		}
+
+		void (APIENTRY *function)(A1, A2, A3);
+		A1 argument1;
+		A2 argument2;
+        A3 argument3;
+	};
+
+	template<typename A1, typename A2, typename A3, typename A4>
+	class Command4 : public Command
+	{
+	public:
+		Command4(void (APIENTRY *function)(A1, A2, A3, A4), A1 arg1, A2 arg2, A3 arg3, A4 arg4)
+			: function(function)
+			, argument1(arg1)
+			, argument2(arg2)
+            , argument3(arg3)
+			, argument4(arg4)
+		{
+		}
+
+		virtual void call()
+		{
+			function(argument1, argument2, argument3, argument4);
+		}
+
+		void (APIENTRY *function)(A1, A2, A3, A4);
+		A1 argument1;
+		A2 argument2;
+        A3 argument3;
+		A4 argument4;
+	};
+
+	template<typename A1, typename A2, typename A3, typename A4, typename A5>
+	class Command5 : public Command
+	{
+	public:
+		Command5(void (APIENTRY *function)(A1, A2, A3, A4, A5), A1 arg1, A2 arg2, A3 arg3, A4 arg4, A5 arg5)
+			: function(function)
+			, argument1(arg1)
+			, argument2(arg2)
+            , argument3(arg3)
+			, argument4(arg4)
+			, argument5(arg5)
+		{
+		}
+
+		virtual void call()
+		{
+			function(argument1, argument2, argument3, argument4, argument5);
+		}
+
+		void (APIENTRY *function)(A1, A2, A3, A4, A5);
+		A1 argument1;
+		A2 argument2;
+        A3 argument3;
+		A4 argument4;
+		A5 argument5;
+	};
+
+	template<typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
+	class Command6 : public Command
+	{
+	public:
+		Command6(void (APIENTRY *function)(A1, A2, A3, A4, A5, A6), A1 arg1, A2 arg2, A3 arg3, A4 arg4, A5 arg5, A6 arg6)
+			: function(function)
+			, argument1(arg1)
+			, argument2(arg2)
+            , argument3(arg3)
+			, argument4(arg4)
+			, argument5(arg5)
+			, argument6(arg6)
+		{
+		}
+
+		~Command6()
+		{
+			if(function == glVertexAttribArray)
+			{
+				delete[] argument6;
+			}
+		}
+
+		virtual void call()
+		{
+			function(argument1, argument2, argument3, argument4, argument5, argument6);
+		}
+
+		void (APIENTRY *function)(A1, A2, A3, A4, A5, A6);
+		A1 argument1;
+		A2 argument2;
+        A3 argument3;
+		A4 argument4;
+		A5 argument5;
+		A6 argument6;
+	};
+
+	inline Command0 *newCommand(void (APIENTRY *function)())
+	{
+		return new Command0(function);
+	}
+
+	template<typename A1>
+	Command1<A1> *newCommand(void (APIENTRY *function)(A1), A1 arg1)
+	{
+		return new Command1<A1>(function, arg1);
+	}
+
+	template<typename A1, typename A2>
+	Command2<A1, A2> *newCommand(void (APIENTRY *function)(A1, A2), A1 arg1, A2 arg2)
+	{
+		return new Command2<A1, A2>(function, arg1, arg2);
+	}
+
+    template<typename A1, typename A2, typename A3>
+	Command3<A1, A2, A3> *newCommand(void (APIENTRY *function)(A1, A2, A3), A1 arg1, A2 arg2, A3 arg3)
+	{
+		return new Command3<A1, A2, A3>(function, arg1, arg2, arg3);
+	}
+
+	template<typename A1, typename A2, typename A3, typename A4>
+	Command4<A1, A2, A3, A4> *newCommand(void (APIENTRY *function)(A1, A2, A3, A4), A1 arg1, A2 arg2, A3 arg3, A4 arg4)
+	{
+		return new Command4<A1, A2, A3, A4>(function, arg1, arg2, arg3, arg4);
+	}
+
+	template<typename A1, typename A2, typename A3, typename A4, typename A5>
+	Command5<A1, A2, A3, A4, A5> *newCommand(void (APIENTRY *function)(A1, A2, A3, A4, A5), A1 arg1, A2 arg2, A3 arg3, A4 arg4, A5 arg5)
+	{
+		return new Command5<A1, A2, A3, A4, A5>(function, arg1, arg2, arg3, arg4, arg5);
+	}
+
+	template<typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
+	Command6<A1, A2, A3, A4, A5, A6> *newCommand(void (APIENTRY *function)(A1, A2, A3, A4, A5, A6), A1 arg1, A2 arg2, A3 arg3, A4 arg4, A5 arg5, A6 arg6)
+	{
+		return new Command6<A1, A2, A3, A4, A5, A6>(function, arg1, arg2, arg3, arg4, arg5, arg6);
+	}
+
+	class DisplayList
+	{
+	public:
+		DisplayList()
+		{
+		}
+
+		~DisplayList()
+		{
+			while(!list.empty())
+			{
+				delete list.back();
+				list.pop_back();
+			}
+		}
+
+		void call()
+		{
+			for(CommandList::iterator command = list.begin(); command != list.end(); command++)
+			{
+				(*command)->call();
+			}
+		}
+
+		typedef std::list<Command*> CommandList;
+		CommandList list;
+	};
+
 struct TranslatedAttribute;
 struct TranslatedIndexData;
 
@@ -50,7 +295,6 @@ class Program;
 class Texture;
 class Texture2D;
 class TextureCubeMap;
-class TextureExternal;
 class Framebuffer;
 class Renderbuffer;
 class RenderbufferStorage;
@@ -66,12 +310,12 @@ class Query;
 
 enum
 {
-    MAX_VERTEX_ATTRIBS = 16,
+    MAX_VERTEX_ATTRIBS = 9,
 	MAX_UNIFORM_VECTORS = 256,   // Device limit
     MAX_VERTEX_UNIFORM_VECTORS = 256 - 3,   // Reserve space for gl_DepthRange
     MAX_VARYING_VECTORS = 10,
-    MAX_TEXTURE_IMAGE_UNITS = 16,
-    MAX_VERTEX_TEXTURE_IMAGE_UNITS = 4,
+    MAX_TEXTURE_IMAGE_UNITS = 2,
+    MAX_VERTEX_TEXTURE_IMAGE_UNITS = 1,
     MAX_COMBINED_TEXTURE_IMAGE_UNITS = MAX_TEXTURE_IMAGE_UNITS + MAX_VERTEX_TEXTURE_IMAGE_UNITS,
     MAX_FRAGMENT_UNIFORM_VECTORS = 224 - 3,    // Reserve space for gl_DepthRange
     MAX_DRAW_BUFFERS = 1,
@@ -82,12 +326,11 @@ enum
 
 const GLenum compressedTextureFormats[] =
 {
-	GL_ETC1_RGB8_OES,
 #if (S3TC_SUPPORT)
 	GL_COMPRESSED_RGB_S3TC_DXT1_EXT,
 	GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
-	GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE,
-	GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE,
+	GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
+	GL_COMPRESSED_RGBA_S3TC_DXT5_EXT,
 #endif
 };
 
@@ -158,7 +401,7 @@ class VertexAttribute
         intptr_t mOffset;
     };
 
-    gl::BindingPointer<Buffer> mBoundBuffer;   // Captured when glVertexAttribPointer is called.
+    BindingPointer<Buffer> mBoundBuffer;   // Captured when glVertexAttribPointer is called.
 
     bool mArrayEnabled;   // From glEnable/DisableVertexAttribArray
     float mCurrentValue[4];   // From glVertexAttrib
@@ -235,29 +478,29 @@ struct State
     bool depthMask;
 
     unsigned int activeSampler;   // Active texture unit selector - GL_TEXTURE0
-    gl::BindingPointer<Buffer> arrayBuffer;
-    gl::BindingPointer<Buffer> elementArrayBuffer;
+    BindingPointer<Buffer> arrayBuffer;
+    BindingPointer<Buffer> elementArrayBuffer;
     GLuint readFramebuffer;
     GLuint drawFramebuffer;
-    gl::BindingPointer<Renderbuffer> renderbuffer;
+    BindingPointer<Renderbuffer> renderbuffer;
     GLuint currentProgram;
 
     VertexAttribute vertexAttribute[MAX_VERTEX_ATTRIBS];
-    gl::BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
-	gl::BindingPointer<Query> activeQuery[QUERY_TYPE_COUNT];
+    BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
+	BindingPointer<Query> activeQuery[QUERY_TYPE_COUNT];
 
     GLint unpackAlignment;
     GLint packAlignment;
 };
 
-class Context : public egl::Context
+class Context
 {
 public:
-    Context(const egl::Config *config, const Context *shareContext);
+    Context(const Context *shareContext);
 
-	virtual void makeCurrent(egl::Surface *surface);
-	virtual void destroy();
-	virtual int getClientVersion();
+    ~Context();
+
+    void makeCurrent(Surface *surface);
 
     void markAllStateDirty();
 
@@ -372,7 +615,6 @@ public:
     void bindElementArrayBuffer(GLuint buffer);
     void bindTexture2D(GLuint texture);
     void bindTextureCubeMap(GLuint texture);
-    void bindTextureExternal(GLuint texture);
     void bindReadFramebuffer(GLuint framebuffer);
     void bindDrawFramebuffer(GLuint framebuffer);
     void bindRenderbuffer(GLuint renderbuffer);
@@ -385,23 +627,22 @@ public:
 
     void setRenderbufferStorage(RenderbufferStorage *renderbuffer);
 
-    void setVertexAttrib(GLuint index, const GLfloat *values);
+    void setVertexAttrib(GLuint index, float x, float y, float z, float w);
 
     Buffer *getBuffer(GLuint handle);
     Fence *getFence(GLuint handle);
     Shader *getShader(GLuint handle);
     Program *getProgram(GLuint handle);
-    virtual Texture *getTexture(GLuint handle);
+    Texture *getTexture(GLuint handle);
     Framebuffer *getFramebuffer(GLuint handle);
-    virtual Renderbuffer *getRenderbuffer(GLuint handle);
+    Renderbuffer *getRenderbuffer(GLuint handle);
 	Query *getQuery(GLuint handle, bool create, GLenum type);
 
     Buffer *getArrayBuffer();
     Buffer *getElementArrayBuffer();
     Program *getCurrentProgram();
-    Texture2D *getTexture2D();
+    Texture2D *getTexture2D(GLenum target);
     TextureCubeMap *getTextureCubeMap();
-    TextureExternal *getTextureExternal();
     Texture *getSamplerTexture(unsigned int sampler, TextureType type);
     Framebuffer *getReadFramebuffer();
     Framebuffer *getDrawFramebuffer();
@@ -433,15 +674,51 @@ public:
                          GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
                          GLbitfield mask);
 
-	virtual void bindTexImage(egl::Surface *surface);
-	virtual EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
-	virtual egl::Image *createSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
+    void setMatrixMode(GLenum mode);
+    void loadIdentity();
+    void pushMatrix();
+    void popMatrix();
+    void rotate(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
+    void translate(GLfloat x, GLfloat y, GLfloat z);
+	void scale(GLfloat x, GLfloat y, GLfloat z);
+    void multiply(const GLfloat *m);
+    void ortho(double left, double right, double bottom, double top, double zNear, double zFar);   // FIXME: GLdouble
+
+    void setLighting(bool enabled);
+    void setFog(bool enabled);
+	void setAlphaTest(bool enabled);
+	void alphaFunc(GLenum func, GLclampf ref);
+    void setTexture2D(bool enabled);
+	void setShadeModel(GLenum mode);
+    void setLight(int index, bool enable);
+	void setNormalizeNormals(bool enable);
+
+	GLuint genLists(GLsizei range);
+	void newList(GLuint list, GLenum mode);
+	void endList();
+	void callList(GLuint list);
+	void deleteList(GLuint list);
+	GLuint getListIndex() {return listIndex;}
+	GLenum getListMode() {return listMode;}
+	void listCommand(Command *command);
+
+	void captureAttribs();
+    void captureDrawArrays(GLenum mode, GLint first, GLsizei count);
+	void restoreAttribs();
+	void clientActiveTexture(GLenum texture);
+	GLenum getClientActiveTexture() const;
+	unsigned int getActiveTexture() const;
+
+    void begin(GLenum mode);
+    void position(GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+    void end();
+
+    void setColorMaterial(bool enable);
+    void setColorMaterialMode(GLenum mode);
 
 	Device *getDevice();
 
 private:
-	virtual ~Context();
-
     bool applyRenderTarget();
     void applyState(GLenum drawMode);
     GLenum applyVertexBuffer(GLint base, GLint first, GLsizei count);
@@ -459,25 +736,23 @@ private:
     bool cullSkipsDraw(GLenum drawMode);
     bool isTriangleMode(GLenum drawMode);
 
-    const egl::Config *const mConfig;
-
     State mState;
 
-    gl::BindingPointer<Texture2D> mTexture2DZero;
-    gl::BindingPointer<TextureCubeMap> mTextureCubeMapZero;
-    gl::BindingPointer<TextureExternal> mTextureExternalZero;
+    BindingPointer<Texture2D> mTexture2DZero;
+    BindingPointer<Texture2D> mProxyTexture2DZero;
+    BindingPointer<TextureCubeMap> mTextureCubeMapZero;
 
     typedef std::map<GLint, Framebuffer*> FramebufferMap;
     FramebufferMap mFramebufferMap;
-    NameSpace mFramebufferNameSpace;
+    //NameSpace mFramebufferNameSpace;
 
     typedef std::map<GLint, Fence*> FenceMap;
     FenceMap mFenceMap;
-    NameSpace mFenceNameSpace;
+    //NameSpace mFenceNameSpace;
 
 	typedef std::map<GLint, Query*> QueryMap;
     QueryMap mQueryMap;
-    NameSpace mQueryNameSpace;
+    //NameSpace mQueryNameSpace;
 
     VertexDataManager *mVertexDataManager;
     IndexDataManager *mIndexDataManager;
@@ -506,6 +781,39 @@ private:
 
 	Device *device;
     ResourceManager *mResourceManager;
+
+	sw::MatrixStack &currentMatrixStack();
+	GLenum matrixMode;
+    sw::MatrixStack modelView;
+	sw::MatrixStack projection;
+	sw::MatrixStack texture[8];
+
+	GLenum listMode;
+	//std::map<GLuint, GLuint> listMap;
+	std::map<GLuint, DisplayList*> displayList;
+    DisplayList *list;
+	GLuint listIndex;
+	GLuint firstFreeIndex;
+
+	GLenum clientTexture;
+
+    bool drawing;
+    GLenum drawMode;
+
+	struct InVertex
+	{
+		sw::float4 P;    // Position
+		sw::float4 N;    // Normal
+		sw::float4 C;    // Color
+		sw::float4 T0;   // Texture coordinate
+		sw::float4 T1;
+	};
+
+    std::vector<InVertex> vertex;
+
+	VertexAttribute clientAttribute[MAX_VERTEX_ATTRIBS];
+
+    bool envEnable[8];
 };
 }
 

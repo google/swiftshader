@@ -10,7 +10,7 @@
 //
 
 // Program.h: Defines the Program class. Implements GL program objects
-// and related functionality. [OpenGL ES 2.0.24] section 2.10.3 page 28.
+// and related functionality.
 
 #ifndef LIBGL_PROGRAM_H_
 #define LIBGL_PROGRAM_H_

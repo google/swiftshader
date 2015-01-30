@@ -11,7 +11,7 @@
 
 // Shader.cpp: Implements the Shader class and its  derived classes
 // VertexShader and FragmentShader. Implements GL shader objects and related
-// functionality. [OpenGL ES 2.0.24] section 2.10 page 24 and section 3.8 page 84.
+// functionality.
 
 #include "Shader.h"
 

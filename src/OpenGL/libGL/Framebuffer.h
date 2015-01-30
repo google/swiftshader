@@ -10,7 +10,7 @@
 //
 
 // Framebuffer.h: Defines the Framebuffer class. Implements GL framebuffer
-// objects and related functionality. [OpenGL ES 2.0.24] section 4.4 page 105.
+// objects and related functionality.
 
 #ifndef LIBGL_FRAMEBUFFER_H_
 #define LIBGL_FRAMEBUFFER_H_
@@ -18,8 +18,11 @@
 #include "common/Object.hpp"
 #include "Image.hpp"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define _GDI32_
+#include <windows.h>
+#include <GL/GL.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GL/glext.h>
 
 namespace gl
 {
@@ -43,8 +46,8 @@ public:
     void detachTexture(GLuint texture);
     void detachRenderbuffer(GLuint renderbuffer);
 
-    egl::Image *getRenderTarget();
-    egl::Image *getDepthStencil();
+    Image *getRenderTarget();
+    Image *getDepthStencil();
 
     Renderbuffer *getColorbuffer();
     Renderbuffer *getDepthbuffer();
@@ -65,13 +68,13 @@ public:
 
 protected:
     GLenum mColorbufferType;
-    gl::BindingPointer<Renderbuffer> mColorbufferPointer;
+    BindingPointer<Renderbuffer> mColorbufferPointer;
 
     GLenum mDepthbufferType;
-    gl::BindingPointer<Renderbuffer> mDepthbufferPointer;
+    BindingPointer<Renderbuffer> mDepthbufferPointer;
 
     GLenum mStencilbufferType;
-    gl::BindingPointer<Renderbuffer> mStencilbufferPointer;
+    BindingPointer<Renderbuffer> mStencilbufferPointer;
 
 private:
     Renderbuffer *lookupRenderbuffer(GLenum type, GLuint handle) const;

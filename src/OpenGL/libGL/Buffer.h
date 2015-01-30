@@ -11,7 +11,6 @@
 
 // Buffer.h: Defines the Buffer class, representing storage of vertex and/or
 // index data. Implements GL buffer objects and related functionality.
-// [OpenGL ES 2.0.24] section 2.9 page 21.
 
 #ifndef LIBGL_BUFFER_H_
 #define LIBGL_BUFFER_H_
@@ -19,8 +18,11 @@
 #include "common/Object.hpp"
 #include "Common/Resource.hpp"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define _GDI32_
+#include <windows.h>
+#include <GL/GL.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GL/glext.h>
 
 #include <cstddef>
 #include <vector>

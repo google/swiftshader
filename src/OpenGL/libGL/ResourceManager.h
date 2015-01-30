@@ -17,8 +17,11 @@
 
 #include "common/NameSpace.hpp"
 
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#define _GDI32_
+#include <windows.h>
+#include <GL/GL.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GL/glext.h>
 
 #include <map>
 
@@ -33,8 +36,8 @@ class Renderbuffer;
 enum TextureType
 {
     TEXTURE_2D,
+    PROXY_TEXTURE_2D,
     TEXTURE_CUBE,
-    TEXTURE_EXTERNAL,
 
     TEXTURE_TYPE_COUNT,
     TEXTURE_UNKNOWN
@@ -71,28 +74,29 @@ class ResourceManager
 
     void checkBufferAllocation(unsigned int buffer);
     void checkTextureAllocation(GLuint texture, TextureType type);
+    void checkRenderbufferAllocation(GLuint renderbuffer);
 
   private:
     std::size_t mRefCount;
 
     typedef std::map<GLint, Buffer*> BufferMap;
     BufferMap mBufferMap;
-    NameSpace mBufferNameSpace;
+    //NameSpace mBufferNameSpace;
 
     typedef std::map<GLint, Shader*> ShaderMap;
     ShaderMap mShaderMap;
 
     typedef std::map<GLint, Program*> ProgramMap;
     ProgramMap mProgramMap;
-    NameSpace mProgramShaderNameSpace;
+    //NameSpace mProgramShaderNameSpace;
 
     typedef std::map<GLint, Texture*> TextureMap;
     TextureMap mTextureMap;
-    NameSpace mTextureNameSpace;
+    //NameSpace mTextureNameSpace;
 
     typedef std::map<GLint, Renderbuffer*> RenderbufferMap;
     RenderbufferMap mRenderbufferMap;
-    NameSpace mRenderbufferNameSpace;
+    //NameSpace mRenderbufferNameSpace;
 };
 
 }

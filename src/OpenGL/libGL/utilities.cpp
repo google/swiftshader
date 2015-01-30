@@ -31,8 +31,6 @@ namespace gl
 		case GL_INT:
 		case GL_SAMPLER_2D:
 		case GL_SAMPLER_CUBE:
-        case GL_SAMPLER_EXTERNAL_OES:
-		case GL_SAMPLER_3D_OES:
 			return 1;
 		case GL_BOOL_VEC2:
 		case GL_FLOAT_VEC2:
@@ -78,8 +76,6 @@ namespace gl
 		case GL_INT:
 		case GL_SAMPLER_2D:
 		case GL_SAMPLER_CUBE:
-        case GL_SAMPLER_EXTERNAL_OES:
-		case GL_SAMPLER_3D_OES:
 		case GL_INT_VEC2:
 		case GL_INT_VEC3:
 		case GL_INT_VEC4:
@@ -123,8 +119,6 @@ namespace gl
 		case GL_INT_VEC4:
 		case GL_SAMPLER_2D:
 		case GL_SAMPLER_CUBE:
-        case GL_SAMPLER_EXTERNAL_OES:
-		case GL_SAMPLER_3D_OES:
 			return 1;
 		case GL_FLOAT_MAT2:
 			return 2;
@@ -210,10 +204,9 @@ namespace gl
 		{
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-        case GL_ETC1_RGB8_OES:
 			return 8 * (GLsizei)ceil((float)width / 4.0f) * (GLsizei)ceil((float)height / 4.0f);
-		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
-		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
+		case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
 			return 16 * (GLsizei)ceil((float)width / 4.0f) * (GLsizei)ceil((float)height / 4.0f);
 		default:
 			return 0;
@@ -224,21 +217,20 @@ namespace gl
 	{
 		return format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
 		       format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ||
-               format == GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE ||
-               format == GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE ||
-               format == GL_ETC1_RGB8_OES;
+		       format == GL_COMPRESSED_RGBA_S3TC_DXT3_EXT ||
+		       format == GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 	}
 
 	bool IsDepthTexture(GLenum format)
 	{
 		return format == GL_DEPTH_COMPONENT ||
-		       format == GL_DEPTH_STENCIL_OES;
+		       format == GL_DEPTH_STENCIL_EXT;
 	}
 
 	bool IsStencilTexture(GLenum format)
 	{
-		return format == GL_STENCIL_INDEX_OES ||
-		       format == GL_DEPTH_STENCIL_OES;
+		return format == GL_STENCIL_INDEX ||
+		       format == GL_DEPTH_STENCIL_EXT;
 	}
 
 	// Returns the size, in bytes, of a single texel in an Image
@@ -264,7 +256,8 @@ namespace gl
 		case GL_UNSIGNED_SHORT:
 			return sizeof(unsigned short);
 		case GL_UNSIGNED_INT:
-		case GL_UNSIGNED_INT_24_8_OES:
+		case GL_UNSIGNED_INT_24_8_EXT:
+        case GL_UNSIGNED_INT_8_8_8_8_REV:
 			return sizeof(unsigned int);
 		case GL_FLOAT:
 			switch(format)
@@ -277,7 +270,7 @@ namespace gl
 			default: UNREACHABLE();
 			}
 			break;
-		case GL_HALF_FLOAT_OES:
+		case GL_HALF_FLOAT:
 			switch(format)
 			{
 			case GL_ALPHA:           return sizeof(unsigned short);
@@ -338,7 +331,7 @@ namespace gl
 				return false;
 			}
 		case GL_FLOAT:
-		case GL_HALF_FLOAT_OES:
+		case GL_HALF_FLOAT:
 			switch(format)
 			{
 			case GL_RGBA:
@@ -357,8 +350,10 @@ namespace gl
 			return (format == GL_RGB);
 		case GL_UNSIGNED_INT:
 			return (format == GL_DEPTH_COMPONENT);
-		case GL_UNSIGNED_INT_24_8_OES:
-			return (format == GL_DEPTH_STENCIL_OES);
+		case GL_UNSIGNED_INT_24_8_EXT:
+			return (format == GL_DEPTH_STENCIL_EXT);
+        case GL_UNSIGNED_INT_8_8_8_8_REV:
+            return (format == GL_BGRA);
 		default:
 			return false;
 		}
@@ -371,12 +366,13 @@ namespace gl
 		case GL_RGBA4:
 		case GL_RGB5_A1:
 		case GL_RGB565:
-		case GL_RGB8_OES:
-		case GL_RGBA8_OES:
+		case GL_RGB8_EXT:
+		case GL_RGBA8_EXT:
 			return true;
 		case GL_DEPTH_COMPONENT16:
+        case GL_DEPTH_COMPONENT24:
 		case GL_STENCIL_INDEX8:
-		case GL_DEPTH24_STENCIL8_OES:
+		case GL_DEPTH24_STENCIL8_EXT:
 			return false;
 		default:
 			UNIMPLEMENTED();
@@ -390,14 +386,15 @@ namespace gl
 		switch(internalformat)
 		{
 		case GL_DEPTH_COMPONENT16:
-		case GL_DEPTH24_STENCIL8_OES:
+        case GL_DEPTH_COMPONENT24:
+		case GL_DEPTH24_STENCIL8_EXT:
 			return true;
 		case GL_STENCIL_INDEX8:
 		case GL_RGBA4:
 		case GL_RGB5_A1:
 		case GL_RGB565:
-		case GL_RGB8_OES:
-		case GL_RGBA8_OES:
+		case GL_RGB8_EXT:
+		case GL_RGBA8_EXT:
 			return false;
 		default:
 			UNIMPLEMENTED();
@@ -411,14 +408,15 @@ namespace gl
 		switch(internalformat)
 		{
 		case GL_STENCIL_INDEX8:
-		case GL_DEPTH24_STENCIL8_OES:
+		case GL_DEPTH24_STENCIL8_EXT:
 			return true;
 		case GL_RGBA4:
 		case GL_RGB5_A1:
 		case GL_RGB565:
-		case GL_RGB8_OES:
-		case GL_RGBA8_OES:
+		case GL_RGB8_EXT:
+		case GL_RGBA8_EXT:
 		case GL_DEPTH_COMPONENT16:
+        case GL_DEPTH_COMPONENT24:
 			return false;
 		default:
 			UNIMPLEMENTED();
@@ -533,6 +531,7 @@ namespace es2sw
 	{
 		switch(wrap)
 		{
+        case GL_CLAMP:             return sw::ADDRESSING_CLAMP;
 		case GL_REPEAT:            return sw::ADDRESSING_WRAP;
 		case GL_CLAMP_TO_EDGE:     return sw::ADDRESSING_CLAMP;
 		case GL_MIRRORED_REPEAT:   return sw::ADDRESSING_MIRROR;
@@ -650,6 +649,10 @@ namespace es2sw
 			swPrimitiveType = gl::DRAW_TRIANGLEFAN;
 			primitiveCount = elementCount - 2;
 			break;
+        case GL_QUADS:
+            swPrimitiveType = gl::DRAW_QUADLIST;
+			primitiveCount = (elementCount / 4) * 2;
+			break;
 		default:
 			return false;
 		}
@@ -663,12 +666,13 @@ namespace es2sw
 		{
 		case GL_RGBA4:
 		case GL_RGB5_A1:
-		case GL_RGBA8_OES:            return sw::FORMAT_A8R8G8B8;
+		case GL_RGBA8_EXT:            return sw::FORMAT_A8R8G8B8;
 		case GL_RGB565:               return sw::FORMAT_R5G6B5;
-		case GL_RGB8_OES:             return sw::FORMAT_X8R8G8B8;
+		case GL_RGB8_EXT:             return sw::FORMAT_X8R8G8B8;
 		case GL_DEPTH_COMPONENT16:
+        case GL_DEPTH_COMPONENT24:
 		case GL_STENCIL_INDEX8:       
-		case GL_DEPTH24_STENCIL8_OES: return sw::FORMAT_D24S8;
+		case GL_DEPTH24_STENCIL8_EXT: return sw::FORMAT_D24S8;
 		default: UNREACHABLE();       return sw::FORMAT_A8R8G8B8;
 		}
 	}
@@ -812,10 +816,10 @@ namespace sw2es
 		switch(format)
 		{
 		case sw::FORMAT_A4R4G4B4: return GL_RGBA4;
-		case sw::FORMAT_A8R8G8B8: return GL_RGBA8_OES;
+		case sw::FORMAT_A8R8G8B8: return GL_RGBA8_EXT;
 		case sw::FORMAT_A1R5G5B5: return GL_RGB5_A1;
 		case sw::FORMAT_R5G6B5:   return GL_RGB565;
-		case sw::FORMAT_X8R8G8B8: return GL_RGB8_OES;
+		case sw::FORMAT_X8R8G8B8: return GL_RGB8_EXT;
 		default:
 			UNREACHABLE();
 		}
@@ -828,15 +832,16 @@ namespace sw2es
 		switch(format)
 		{
 		case sw::FORMAT_D16:
-		case sw::FORMAT_D24X8:
 		case sw::FORMAT_D32:
 			return GL_DEPTH_COMPONENT16;
+        case sw::FORMAT_D24X8:
+            return GL_DEPTH_COMPONENT24;
 		case sw::FORMAT_D24S8:
-			return GL_DEPTH24_STENCIL8_OES;
+			return GL_DEPTH24_STENCIL8_EXT;
 		default:
 			UNREACHABLE();
 		}
 
-		return GL_DEPTH24_STENCIL8_OES;
+		return GL_DEPTH24_STENCIL8_EXT;
 	}
 }
