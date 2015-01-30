@@ -55,7 +55,7 @@ VertexDataManager::~VertexDataManager()
 
 unsigned int VertexDataManager::writeAttributeData(StreamingVertexBuffer *vertexBuffer, GLint start, GLsizei count, const VertexAttribute &attribute)
 {
-    Buffer *buffer = attribute.mBoundBuffer.get();
+    Buffer *buffer = attribute.mBoundBuffer;
 
     int inputStride = attribute.stride();
     int elementSize = attribute.typeSize();
@@ -139,7 +139,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
         {
             if(attribs[i].mArrayEnabled)
             {
-                Buffer *buffer = attribs[i].mBoundBuffer.get();
+                Buffer *buffer = attribs[i].mBoundBuffer;
 
                 if(!buffer && attribs[i].mPointer == NULL)
                 {

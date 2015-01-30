@@ -44,18 +44,19 @@ class BindingPointer
 public:
 	BindingPointer() : object(nullptr) { }
 
-	~BindingPointer() { ASSERT(!object); } // Objects have to be released before the resource manager is destroyed, so they must be explicitly cleaned up.
+	~BindingPointer() { ASSERT(!object); }   // Objects have to be released before the resource manager is destroyed, so they must be explicitly cleaned up.
 
-    void set(ObjectType *newObject) 
+    ObjectType *operator=(ObjectType *newObject) 
 	{
 		if(newObject) newObject->addRef();
 		if(object) object->release();
 
 		object = newObject;
-	}
-    ObjectType *get() const { return object; }
-    ObjectType *operator->() const { return object; }
 
+		return object;
+	}
+    operator ObjectType*() const { return object; }
+    ObjectType *operator->() const { return object; }
 	GLuint name() const { return object ? object->name : 0; }
     bool operator!() const { return !object; }
 

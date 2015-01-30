@@ -70,12 +70,12 @@ GLuint RenderbufferInterface::getStencilSize() const
 
 RenderbufferTexture2D::RenderbufferTexture2D(Texture2D *texture)
 {
-	mTexture2D.set(texture);
+	mTexture2D = texture;
 }
 
 RenderbufferTexture2D::~RenderbufferTexture2D()
 {
-	mTexture2D.set(NULL);
+	mTexture2D = NULL;
 }
 
 // Textures need to maintain their own reference count for references via

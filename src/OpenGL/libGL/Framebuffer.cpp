@@ -31,9 +31,9 @@ Framebuffer::Framebuffer()
 
 Framebuffer::~Framebuffer()
 {
-	mColorbufferPointer.set(NULL);
-	mDepthbufferPointer.set(NULL);
-	mStencilbufferPointer.set(NULL);
+	mColorbufferPointer = NULL;
+	mDepthbufferPointer = NULL;
+	mStencilbufferPointer = NULL;
 }
 
 Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle) const
@@ -64,19 +64,19 @@ Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle) const
 void Framebuffer::setColorbuffer(GLenum type, GLuint colorbuffer)
 {
 	mColorbufferType = (colorbuffer != 0) ? type : GL_NONE;
-	mColorbufferPointer.set(lookupRenderbuffer(type, colorbuffer));
+	mColorbufferPointer = lookupRenderbuffer(type, colorbuffer);
 }
 
 void Framebuffer::setDepthbuffer(GLenum type, GLuint depthbuffer)
 {
 	mDepthbufferType = (depthbuffer != 0) ? type : GL_NONE;
-	mDepthbufferPointer.set(lookupRenderbuffer(type, depthbuffer));
+	mDepthbufferPointer = lookupRenderbuffer(type, depthbuffer);
 }
 
 void Framebuffer::setStencilbuffer(GLenum type, GLuint stencilbuffer)
 {
 	mStencilbufferType = (stencilbuffer != 0) ? type : GL_NONE;
-	mStencilbufferPointer.set(lookupRenderbuffer(type, stencilbuffer));
+	mStencilbufferPointer = lookupRenderbuffer(type, stencilbuffer);
 }
 
 void Framebuffer::detachTexture(GLuint texture)
@@ -84,19 +84,19 @@ void Framebuffer::detachTexture(GLuint texture)
 	if(mColorbufferPointer.name() == texture && IsTextureTarget(mColorbufferType))
 	{
 		mColorbufferType = GL_NONE;
-		mColorbufferPointer.set(NULL);
+		mColorbufferPointer = NULL;
 	}
 
 	if(mDepthbufferPointer.name() == texture && IsTextureTarget(mDepthbufferType))
 	{
 		mDepthbufferType = GL_NONE;
-		mDepthbufferPointer.set(NULL);
+		mDepthbufferPointer = NULL;
 	}
 
 	if(mStencilbufferPointer.name() == texture && IsTextureTarget(mStencilbufferType))
 	{
 		mStencilbufferType = GL_NONE;
-		mStencilbufferPointer.set(NULL);
+		mStencilbufferPointer = NULL;
 	}
 }
 
@@ -105,19 +105,19 @@ void Framebuffer::detachRenderbuffer(GLuint renderbuffer)
 	if(mColorbufferPointer.name() == renderbuffer && mColorbufferType == GL_RENDERBUFFER)
 	{
 		mColorbufferType = GL_NONE;
-		mColorbufferPointer.set(NULL);
+		mColorbufferPointer = NULL;
 	}
 
 	if(mDepthbufferPointer.name() == renderbuffer && mDepthbufferType == GL_RENDERBUFFER)
 	{
 		mDepthbufferType = GL_NONE;
-		mDepthbufferPointer.set(NULL);
+		mDepthbufferPointer = NULL;
 	}
 
 	if(mStencilbufferPointer.name() == renderbuffer && mStencilbufferType == GL_RENDERBUFFER)
 	{
 		mStencilbufferType = GL_NONE;
-		mStencilbufferPointer.set(NULL);
+		mStencilbufferPointer = NULL;
 	}
 }
 
@@ -125,7 +125,7 @@ void Framebuffer::detachRenderbuffer(GLuint renderbuffer)
 // caller must Release() the returned surface
 egl::Image *Framebuffer::getRenderTarget()
 {
-	Renderbuffer *colorbuffer = mColorbufferPointer.get();
+	Renderbuffer *colorbuffer = mColorbufferPointer;
 
 	if(colorbuffer)
 	{
@@ -139,11 +139,11 @@ egl::Image *Framebuffer::getRenderTarget()
 // caller must Release() the returned surface
 egl::Image *Framebuffer::getDepthStencil()
 {
-	Renderbuffer *depthstencilbuffer = mDepthbufferPointer.get();
+	Renderbuffer *depthstencilbuffer = mDepthbufferPointer;
 	
 	if(!depthstencilbuffer)
 	{
-		depthstencilbuffer = mStencilbufferPointer.get();
+		depthstencilbuffer = mStencilbufferPointer;
 	}
 
 	if(depthstencilbuffer)
@@ -156,17 +156,17 @@ egl::Image *Framebuffer::getDepthStencil()
 
 Renderbuffer *Framebuffer::getColorbuffer()
 {
-	return mColorbufferPointer.get();
+	return mColorbufferPointer;
 }
 
 Renderbuffer *Framebuffer::getDepthbuffer()
 {
-	return mDepthbufferPointer.get();
+	return mDepthbufferPointer;
 }
 
 Renderbuffer *Framebuffer::getStencilbuffer()
 {
-	return mStencilbufferPointer.get();
+	return mStencilbufferPointer;
 }
 
 GLenum Framebuffer::getColorbufferType()
@@ -401,11 +401,11 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 DefaultFramebuffer::DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuffer *depthStencil)
 {
-	mColorbufferPointer.set(new Renderbuffer(0, colorbuffer));
+	mColorbufferPointer = new Renderbuffer(0, colorbuffer);
 
 	Renderbuffer *depthStencilRenderbuffer = new Renderbuffer(0, depthStencil);
-	mDepthbufferPointer.set(depthStencilRenderbuffer);
-	mStencilbufferPointer.set(depthStencilRenderbuffer);
+	mDepthbufferPointer = depthStencilRenderbuffer;
+	mStencilbufferPointer = depthStencilRenderbuffer;
 
 	mColorbufferType = GL_RENDERBUFFER;
 	mDepthbufferType = (depthStencilRenderbuffer->getDepthSize() != 0) ? GL_RENDERBUFFER : GL_NONE;

@@ -121,8 +121,8 @@ Context::Context(const egl::Config *config, const Context *shareContext)
     // In order that access to these initial textures not be lost, they are treated as texture
     // objects all of whose names are 0.
 
-    mTexture2DZero.set(new Texture2D(0));
-    mTextureExternalZero.set(new TextureExternal(0));
+    mTexture2DZero = new Texture2D(0);
+    mTextureExternalZero = new TextureExternal(0);
 
     mState.activeSampler = 0;
     bindArrayBuffer(0);
@@ -191,21 +191,21 @@ Context::~Context()
     {
         for(int sampler = 0; sampler < MAX_TEXTURE_UNITS; sampler++)
         {
-            mState.samplerTexture[type][sampler].set(NULL);
+            mState.samplerTexture[type][sampler] = NULL;
         }
     }
 
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
-        mState.vertexAttribute[i].mBoundBuffer.set(NULL);
+        mState.vertexAttribute[i].mBoundBuffer = NULL;
     }
 
-    mState.arrayBuffer.set(NULL);
-    mState.elementArrayBuffer.set(NULL);
-    mState.renderbuffer.set(NULL);
+    mState.arrayBuffer = NULL;
+    mState.elementArrayBuffer = NULL;
+    mState.renderbuffer = NULL;
 
-    mTexture2DZero.set(NULL);
-    mTextureExternalZero.set(NULL);
+    mTexture2DZero = NULL;
+    mTextureExternalZero = NULL;
 
     delete mVertexDataManager;
     delete mIndexDataManager;
@@ -705,7 +705,7 @@ const VertexAttribute &Context::getVertexAttribState(unsigned int attribNum)
 void Context::setVertexAttribState(unsigned int attribNum, Buffer *boundBuffer, GLint size, GLenum type, bool normalized,
                                    GLsizei stride, const void *pointer)
 {
-    mState.vertexAttribute[attribNum].mBoundBuffer.set(boundBuffer);
+    mState.vertexAttribute[attribNum].mBoundBuffer = boundBuffer;
     mState.vertexAttribute[attribNum].mSize = size;
     mState.vertexAttribute[attribNum].mType = type;
     mState.vertexAttribute[attribNum].mNormalized = normalized;
@@ -836,28 +836,28 @@ void Context::bindArrayBuffer(unsigned int buffer)
 {
     mResourceManager->checkBufferAllocation(buffer);
 
-    mState.arrayBuffer.set(getBuffer(buffer));
+    mState.arrayBuffer = getBuffer(buffer);
 }
 
 void Context::bindElementArrayBuffer(unsigned int buffer)
 {
     mResourceManager->checkBufferAllocation(buffer);
 
-    mState.elementArrayBuffer.set(getBuffer(buffer));
+    mState.elementArrayBuffer = getBuffer(buffer);
 }
 
 void Context::bindTexture2D(GLuint texture)
 {
     mResourceManager->checkTextureAllocation(texture, TEXTURE_2D);
 
-    mState.samplerTexture[TEXTURE_2D][mState.activeSampler].set(getTexture(texture));
+    mState.samplerTexture[TEXTURE_2D][mState.activeSampler] = getTexture(texture);
 }
 
 void Context::bindTextureExternal(GLuint texture)
 {
     mResourceManager->checkTextureAllocation(texture, TEXTURE_EXTERNAL);
 
-    mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler].set(getTexture(texture));
+    mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler] = getTexture(texture);
 }
 
 void Context::bindFramebuffer(GLuint framebuffer)
@@ -872,7 +872,7 @@ void Context::bindFramebuffer(GLuint framebuffer)
 
 void Context::bindRenderbuffer(GLuint renderbuffer)
 {
-    mState.renderbuffer.set(getRenderbuffer(renderbuffer));
+    mState.renderbuffer = getRenderbuffer(renderbuffer);
 }
 
 void Context::setFramebufferZero(Framebuffer *buffer)
@@ -883,7 +883,7 @@ void Context::setFramebufferZero(Framebuffer *buffer)
 
 void Context::setRenderbufferStorage(RenderbufferStorage *renderbuffer)
 {
-    Renderbuffer *renderbufferObject = mState.renderbuffer.get();
+    Renderbuffer *renderbufferObject = mState.renderbuffer;
     renderbufferObject->setStorage(renderbuffer);
 }
 
@@ -903,12 +903,12 @@ Framebuffer *Context::getFramebuffer(unsigned int handle)
 
 Buffer *Context::getArrayBuffer()
 {
-    return mState.arrayBuffer.get();
+    return mState.arrayBuffer;
 }
 
 Buffer *Context::getElementArrayBuffer()
 {
-    return mState.elementArrayBuffer.get();
+    return mState.elementArrayBuffer;
 }
 
 Texture2D *Context::getTexture2D()
@@ -929,13 +929,13 @@ Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type)
     {
         switch (type)
         {
-        case TEXTURE_2D: return mTexture2DZero.get();
-        case TEXTURE_EXTERNAL: return mTextureExternalZero.get();
+        case TEXTURE_2D: return mTexture2DZero;
+        case TEXTURE_EXTERNAL: return mTextureExternalZero;
         default: UNREACHABLE();
         }
     }
 
-    return mState.samplerTexture[type][sampler].get();
+    return mState.samplerTexture[type][sampler];
 }
 
 bool Context::getBooleanv(GLenum pname, GLboolean *params)
@@ -1748,7 +1748,7 @@ GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count)
 // Applies the indices and element array bindings
 GLenum Context::applyIndexBuffer(const void *indices, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo)
 {
-    GLenum err = mIndexDataManager->prepareIndexData(type, count, mState.elementArrayBuffer.get(), indices, indexInfo);
+    GLenum err = mIndexDataManager->prepareIndexData(type, count, mState.elementArrayBuffer, indices, indexInfo);
 
     if(err == GL_NO_ERROR)
     {
@@ -2361,19 +2361,19 @@ void Context::detachBuffer(GLuint buffer)
 
     if(mState.arrayBuffer.name() == buffer)
     {
-        mState.arrayBuffer.set(NULL);
+        mState.arrayBuffer = NULL;
     }
 
     if(mState.elementArrayBuffer.name() == buffer)
     {
-        mState.elementArrayBuffer.set(NULL);
+        mState.elementArrayBuffer = NULL;
     }
 
     for(int attribute = 0; attribute < MAX_VERTEX_ATTRIBS; attribute++)
     {
         if(mState.vertexAttribute[attribute].mBoundBuffer.name() == buffer)
         {
-            mState.vertexAttribute[attribute].mBoundBuffer.set(NULL);
+            mState.vertexAttribute[attribute].mBoundBuffer = NULL;
         }
     }
 }
@@ -2390,7 +2390,7 @@ void Context::detachTexture(GLuint texture)
         {
             if(mState.samplerTexture[type][sampler].name() == texture)
             {
-                mState.samplerTexture[type][sampler].set(NULL);
+                mState.samplerTexture[type][sampler] = NULL;
             }
         }
     }
