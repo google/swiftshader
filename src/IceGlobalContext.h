@@ -15,6 +15,7 @@
 #ifndef SUBZERO_SRC_ICEGLOBALCONTEXT_H
 #define SUBZERO_SRC_ICEGLOBALCONTEXT_H
 
+#include <array>
 #include <mutex>
 #include <thread>
 
@@ -62,25 +63,36 @@ class GlobalContext {
   class CodeStats {
     CodeStats(const CodeStats &) = delete;
     CodeStats &operator=(const CodeStats &) = default;
+#define CODESTATS_TABLE                                                        \
+  /* dump string, enum value */                                                \
+  X("Inst Count  ", InstCount)                                                 \
+  X("Regs Saved  ", RegsSaved)                                                 \
+  X("Frame Bytes ", FrameByte)                                                 \
+  X("Spills      ", NumSpills)                                                 \
+  X("Fills       ", NumFills)
+    //#define X(str, tag)
 
   public:
-    CodeStats()
-        : InstructionsEmitted(0), RegistersSaved(0), FrameBytes(0), Spills(0),
-          Fills(0) {}
-    void reset() { *this = CodeStats(); }
-    void updateEmitted(uint32_t InstCount) { InstructionsEmitted += InstCount; }
-    void updateRegistersSaved(uint32_t Num) { RegistersSaved += Num; }
-    void updateFrameBytes(uint32_t Bytes) { FrameBytes += Bytes; }
-    void updateSpills() { ++Spills; }
-    void updateFills() { ++Fills; }
+    enum CSTag {
+#define X(str, tag) CS_##tag,
+      CODESTATS_TABLE
+#undef X
+          CS_NUM
+    };
+    CodeStats() { reset(); }
+    void reset() { Stats.fill(0); }
+    void update(CSTag Tag, uint32_t Count = 1) {
+      assert(Tag < Stats.size());
+      Stats[Tag] += Count;
+    }
+    void add(const CodeStats &Other) {
+      for (uint32_t i = 0; i < Stats.size(); ++i)
+        Stats[i] += Other.Stats[i];
+    }
     void dump(const IceString &Name, Ostream &Str);
 
   private:
-    uint32_t InstructionsEmitted;
-    uint32_t RegistersSaved;
-    uint32_t FrameBytes;
-    uint32_t Spills;
-    uint32_t Fills;
+    std::array<uint32_t, CS_NUM> Stats;
   };
 
   // TimerList is a vector of TimerStack objects, with extra methods
@@ -121,6 +133,7 @@ class GlobalContext {
   public:
     ThreadContext() {}
     CodeStats StatsFunction;
+    CodeStats StatsCumulative;
     TimerList Timers;
   };
 
@@ -209,32 +222,37 @@ public:
   void statsUpdateEmitted(uint32_t InstCount) {
     if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    ICE_TLS_GET_FIELD(TLS)->StatsFunction.updateEmitted(InstCount);
-    getStatsCumulative()->updateEmitted(InstCount);
+    ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
+    TLS->StatsFunction.update(CodeStats::CS_InstCount, InstCount);
+    TLS->StatsCumulative.update(CodeStats::CS_InstCount, InstCount);
   }
   void statsUpdateRegistersSaved(uint32_t Num) {
     if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    ICE_TLS_GET_FIELD(TLS)->StatsFunction.updateRegistersSaved(Num);
-    getStatsCumulative()->updateRegistersSaved(Num);
+    ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
+    TLS->StatsFunction.update(CodeStats::CS_RegsSaved, Num);
+    TLS->StatsCumulative.update(CodeStats::CS_RegsSaved, Num);
   }
   void statsUpdateFrameBytes(uint32_t Bytes) {
     if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    ICE_TLS_GET_FIELD(TLS)->StatsFunction.updateFrameBytes(Bytes);
-    getStatsCumulative()->updateFrameBytes(Bytes);
+    ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
+    TLS->StatsFunction.update(CodeStats::CS_FrameByte, Bytes);
+    TLS->StatsCumulative.update(CodeStats::CS_FrameByte, Bytes);
   }
   void statsUpdateSpills() {
     if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    ICE_TLS_GET_FIELD(TLS)->StatsFunction.updateSpills();
-    getStatsCumulative()->updateSpills();
+    ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
+    TLS->StatsFunction.update(CodeStats::CS_NumSpills);
+    TLS->StatsCumulative.update(CodeStats::CS_NumSpills);
   }
   void statsUpdateFills() {
     if (!ALLOW_DUMP || !getFlags().DumpStats)
       return;
-    ICE_TLS_GET_FIELD(TLS)->StatsFunction.updateFills();
-    getStatsCumulative()->updateFills();
+    ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
+    TLS->StatsFunction.update(CodeStats::CS_NumFills);
+    TLS->StatsCumulative.update(CodeStats::CS_NumFills);
   }
 
   // These are predefined TimerStackIdT values.
@@ -295,6 +313,13 @@ public:
       auto Timers = getTimers();
       for (ThreadContext *TLS : AllThreadContexts)
         Timers->mergeFrom(TLS->Timers);
+    }
+    if (ALLOW_DUMP) {
+      // Do a separate loop over AllThreadContexts to avoid holding
+      // two locks at once.
+      auto Stats = getStatsCumulative();
+      for (ThreadContext *TLS : AllThreadContexts)
+        Stats->add(TLS->StatsCumulative);
     }
   }
 

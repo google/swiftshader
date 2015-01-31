@@ -111,12 +111,12 @@ public:
 void GlobalContext::CodeStats::dump(const IceString &Name, Ostream &Str) {
   if (!ALLOW_DUMP)
     return;
-  Str << "|" << Name << "|Inst Count  |" << InstructionsEmitted << "\n";
-  Str << "|" << Name << "|Regs Saved  |" << RegistersSaved << "\n";
-  Str << "|" << Name << "|Frame Bytes |" << FrameBytes << "\n";
-  Str << "|" << Name << "|Spills      |" << Spills << "\n";
-  Str << "|" << Name << "|Fills       |" << Fills << "\n";
-  Str << "|" << Name << "|Spills+Fills|" << Spills + Fills << "\n";
+#define X(str, tag)                                                            \
+  Str << "|" << Name << "|" str "|" << Stats[CS_##tag] << "\n";
+  CODESTATS_TABLE
+#undef X
+  Str << "|" << Name << "|Spills+Fills|"
+      << Stats[CS_NumSpills] + Stats[CS_NumFills] << "\n";
   Str << "|" << Name << "|Memory Usage|";
   if (ssize_t MemUsed = llvm::TimeRecord::getCurrentTime(false).getMemUsed())
     Str << MemUsed;
@@ -543,7 +543,6 @@ void GlobalContext::dumpStats(const IceString &Name, bool Final) {
     getStatsCumulative()->dump(Name, getStrDump());
   } else {
     ICE_TLS_GET_FIELD(TLS)->StatsFunction.dump(Name, getStrDump());
-    getStatsCumulative()->dump("_TOTAL_", getStrDump());
   }
 }
 
