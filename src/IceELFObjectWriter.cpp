@@ -282,7 +282,7 @@ void partitionGlobalsBySection(const VariableDeclarationList &Vars,
   for (VariableDeclaration *Var : Vars) {
     if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
       size_t Section = classifyGlobalSection(Var);
-      assert(Section < ELFObjectWriter::SectionType::NumSectionTypes);
+      assert(Section < ELFObjectWriter::NumSectionTypes);
       VarsBySection[Section].push_back(Var);
     }
   }
@@ -305,7 +305,7 @@ void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
   }
 }
 
-void ELFObjectWriter::writeDataOfType(SectionType SectionType,
+void ELFObjectWriter::writeDataOfType(SectionType ST,
                                       const VariableDeclarationList &Vars,
                                       FixupKind RelocationKind, bool IsELF64) {
   ELFDataSection *Section;
@@ -319,8 +319,8 @@ void ELFObjectWriter::writeDataOfType(SectionType SectionType,
   }
   const Elf64_Xword ShEntsize = 0; // non-uniform data element size.
   // Lift this out, so it can be re-used if we do fdata-sections?
-  switch (SectionType) {
-  case SectionType::ROData: {
+  switch (ST) {
+  case ROData: {
     SectionName = ".rodata";
     // Only expecting to write the data sections all in one shot for now.
     assert(RODataSections.empty());
@@ -333,7 +333,7 @@ void ELFObjectWriter::writeDataOfType(SectionType SectionType,
     RelRODataSections.push_back(RelSection);
     break;
   }
-  case SectionType::Data: {
+  case Data: {
     SectionName = ".data";
     assert(DataSections.empty());
     const Elf64_Xword ShFlags = SHF_ALLOC | SHF_WRITE;
@@ -345,7 +345,7 @@ void ELFObjectWriter::writeDataOfType(SectionType SectionType,
     RelDataSections.push_back(RelSection);
     break;
   }
-  case SectionType::BSS: {
+  case BSS: {
     SectionName = ".bss";
     assert(BSSSections.empty());
     const Elf64_Xword ShFlags = SHF_ALLOC | SHF_WRITE;
@@ -355,7 +355,7 @@ void ELFObjectWriter::writeDataOfType(SectionType SectionType,
     BSSSections.push_back(Section);
     break;
   }
-  case SectionType::NumSectionTypes:
+  case NumSectionTypes:
     llvm::report_fatal_error("Unknown SectionType");
     break;
   }
@@ -372,14 +372,13 @@ void ELFObjectWriter::writeDataOfType(SectionType SectionType,
                              Section->getCurrentSize(), SymbolSize);
     StrTab->add(MangledName);
     if (!Var->hasNonzeroInitializer()) {
-      assert(SectionType == SectionType::BSS ||
-             SectionType == SectionType::ROData);
-      if (SectionType == SectionType::ROData)
+      assert(ST == BSS || ST == ROData);
+      if (ST == ROData)
         Section->appendZeros(Str, SymbolSize);
       else
         Section->setSize(Section->getCurrentSize() + SymbolSize);
     } else {
-      assert(SectionType != SectionType::BSS);
+      assert(ST != BSS);
       for (VariableDeclaration::Initializer *Init : Var->getInitializers()) {
         switch (Init->getKind()) {
         case VariableDeclaration::Initializer::DataInitializerKind: {
