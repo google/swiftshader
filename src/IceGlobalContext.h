@@ -188,6 +188,7 @@ public:
   // Returns a symbolic constant.
   Constant *getConstantSym(RelocOffsetT Offset, const IceString &Name,
                            bool SuppressMangling);
+  Constant *getConstantExternSym(const IceString &Name);
   // Returns an undef.
   Constant *getConstantUndef(Type Ty);
   // Returns a zero value.
@@ -195,6 +196,8 @@ public:
   // getConstantPool() returns a copy of the constant pool for
   // constants of a given type.
   ConstantList getConstantPool(Type Ty);
+  // Returns a copy of the list of external symbols.
+  ConstantList getConstantExternSyms();
 
   const ClFlags &getFlags() const { return Flags; }
 

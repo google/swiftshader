@@ -217,8 +217,7 @@ public:
   // Track a single additional relocation.
   void addRelocation(const AssemblerFixup &Fixup) { Fixups.push_back(Fixup); }
 
-  size_t getSectionDataSize(const GlobalContext &Ctx,
-                            const ELFSymbolTableSection *SymTab) const;
+  size_t getSectionDataSize() const;
 
   template <bool IsELF64>
   void writeData(const GlobalContext &Ctx, ELFStreamer &Str,
@@ -333,25 +332,23 @@ void ELFRelocationSection::writeData(const GlobalContext &Ctx, ELFStreamer &Str,
                                      const ELFSymbolTableSection *SymTab) {
   for (const AssemblerFixup &Fixup : Fixups) {
     const ELFSym *Symbol = SymTab->findSymbol(Fixup.symbol(&Ctx));
-    // TODO(jvoung): Make sure this always succeeds.
-    // We currently don't track data symbols, so they aren't even marked
-    // as undefined symbols.
-    if (Symbol) {
-      if (IsELF64) {
-        Elf64_Rela Rela;
-        Rela.r_offset = Fixup.position();
-        Rela.setSymbolAndType(Symbol->getNumber(), Fixup.kind());
-        Rela.r_addend = Fixup.offset();
-        Str.writeAddrOrOffset<IsELF64>(Rela.r_offset);
-        Str.writeELFXword<IsELF64>(Rela.r_info);
-        Str.writeELFXword<IsELF64>(Rela.r_addend);
-      } else {
-        Elf32_Rel Rel;
-        Rel.r_offset = Fixup.position();
-        Rel.setSymbolAndType(Symbol->getNumber(), Fixup.kind());
-        Str.writeAddrOrOffset<IsELF64>(Rel.r_offset);
-        Str.writeELFWord<IsELF64>(Rel.r_info);
-      }
+    if (!Symbol)
+      llvm::report_fatal_error("Missing symbol mentioned in reloc");
+
+    if (IsELF64) {
+      Elf64_Rela Rela;
+      Rela.r_offset = Fixup.position();
+      Rela.setSymbolAndType(Symbol->getNumber(), Fixup.kind());
+      Rela.r_addend = Fixup.offset();
+      Str.writeAddrOrOffset<IsELF64>(Rela.r_offset);
+      Str.writeELFXword<IsELF64>(Rela.r_info);
+      Str.writeELFXword<IsELF64>(Rela.r_addend);
+    } else {
+      Elf32_Rel Rel;
+      Rel.r_offset = Fixup.position();
+      Rel.setSymbolAndType(Symbol->getNumber(), Fixup.kind());
+      Str.writeAddrOrOffset<IsELF64>(Rel.r_offset);
+      Str.writeELFWord<IsELF64>(Rel.r_info);
     }
   }
 }

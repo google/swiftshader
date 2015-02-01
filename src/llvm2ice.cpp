@@ -398,6 +398,7 @@ int main(int argc, char **argv) {
 
   if (UseELFWriter) {
     Ice::TimerMarker T1(Ice::TimerStack::TT_emit, &Ctx);
+    Ctx.getObjectWriter()->setUndefinedSyms(Ctx.getConstantExternSyms());
     Ctx.getObjectWriter()->writeNonUserSections();
   }
   if (SubzeroTimingEnabled)

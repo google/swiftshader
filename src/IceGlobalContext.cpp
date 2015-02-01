@@ -105,6 +105,8 @@ public:
   TypePool<IceType_i32, int32_t, ConstantInteger32> Integers32;
   TypePool<IceType_i64, int64_t, ConstantInteger64> Integers64;
   TypePool<IceType_i32, RelocatableTuple, ConstantRelocatable> Relocatables;
+  TypePool<IceType_i32, RelocatableTuple, ConstantRelocatable>
+      ExternRelocatables;
   UndefPool Undefs;
 };
 
@@ -422,6 +424,13 @@ Constant *GlobalContext::getConstantSym(RelocOffsetT Offset,
       this, RelocatableTuple(Offset, Name, SuppressMangling));
 }
 
+Constant *GlobalContext::getConstantExternSym(const IceString &Name) {
+  const RelocOffsetT Offset = 0;
+  const bool SuppressMangling = true;
+  return getConstPool()->ExternRelocatables.getOrAdd(
+      this, RelocatableTuple(Offset, Name, SuppressMangling));
+}
+
 Constant *GlobalContext::getConstantUndef(Type Ty) {
   return getConstPool()->Undefs.getOrAdd(this, Ty);
 }
@@ -492,6 +501,10 @@ ConstantList GlobalContext::getConstantPool(Type Ty) {
     break;
   }
   llvm_unreachable("Unknown type");
+}
+
+ConstantList GlobalContext::getConstantExternSyms() {
+  return getConstPool()->ExternRelocatables.getConstantPool();
 }
 
 TimerStackIdT GlobalContext::newTimerStackID(const IceString &Name) {

@@ -33,7 +33,8 @@ namespace Ice {
 // (2) writeDataSection  (invoke once)
 // (3) writeFunctionCode (must invoke once per function)
 // (4) writeConstantPool (must invoke once per pooled primitive type)
-// (5) writeNonUserSections (invoke once)
+// (5) setUndefinedSyms (invoke once)
+// (6) writeNonUserSections (invoke once)
 //
 // The requirement for writeDataSection to be invoked only once can
 // be relaxed if using -fdata-sections. The requirement to invoke only once
@@ -75,6 +76,9 @@ public:
   // and writes out read-only data sections for those constants. This also
   // fills the symbol table with labels for each constant pool entry.
   template <typename ConstType> void writeConstantPool(Type Ty);
+
+  // Populate the symbol table with a list of external/undefined symbols.
+  void setUndefinedSyms(const ConstantList &UndefSyms);
 
   // Do final layout and write out the rest of the object file.
   // Finally, patch up the initial ELF header with the final info.

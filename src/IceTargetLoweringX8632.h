@@ -153,12 +153,11 @@ protected:
   OperandX8632Mem *FormMemoryOperand(Operand *Ptr, Type Ty);
 
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
+  // Make a call to an external helper function.
   InstCall *makeHelperCall(const IceString &Name, Variable *Dest,
                            SizeT MaxSrcs) {
-    const bool SuppressMangling = true;
     const bool HasTailCall = false;
-    const RelocOffsetT Offset = 0;
-    Constant *CallTarget = Ctx->getConstantSym(Offset, Name, SuppressMangling);
+    Constant *CallTarget = Ctx->getConstantExternSym(Name);
     InstCall *Call =
         InstCall::create(Func, MaxSrcs, Dest, CallTarget, HasTailCall);
     return Call;

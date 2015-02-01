@@ -74,18 +74,8 @@ void ELFRelocationSection::addRelocations(RelocOffsetT BaseOff,
   }
 }
 
-size_t ELFRelocationSection::getSectionDataSize(
-    const GlobalContext &Ctx, const ELFSymbolTableSection *SymTab) const {
-  size_t NumWriteableRelocs = 0;
-  for (const AssemblerFixup &Fixup : Fixups) {
-    const ELFSym *Symbol = SymTab->findSymbol(Fixup.symbol(&Ctx));
-    // TODO(jvoung): When the symbol table finally tracks everything,
-    // just use the Fixups.size() as the count, and remove the
-    // SymTab and Ctx params.
-    if (Symbol)
-      ++NumWriteableRelocs;
-  }
-  return NumWriteableRelocs * Header.sh_entsize;
+size_t ELFRelocationSection::getSectionDataSize() const {
+  return Fixups.size() * Header.sh_entsize;
 }
 
 // Symbol tables.

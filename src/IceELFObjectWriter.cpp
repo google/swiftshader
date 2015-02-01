@@ -532,12 +532,23 @@ void ELFObjectWriter::writeAllRelocationSections(bool IsELF64) {
   writeRelocationSections(IsELF64, RelRODataSections);
 }
 
+void ELFObjectWriter::setUndefinedSyms(const ConstantList &UndefSyms) {
+  for (const Constant *S : UndefSyms) {
+    const auto Sym = llvm::cast<ConstantRelocatable>(S);
+    IceString Name = Sym->getName();
+    assert(Sym->getOffset() == 0);
+    assert(Sym->getSuppressMangling());
+    SymTab->noteUndefinedSym(Name, NullSection);
+    StrTab->add(Name);
+  }
+}
+
 void ELFObjectWriter::writeRelocationSections(bool IsELF64,
                                               RelSectionList &RelSections) {
   for (ELFRelocationSection *RelSec : RelSections) {
     Elf64_Off Offset = alignFileOffset(RelSec->getSectionAlign());
     RelSec->setFileOffset(Offset);
-    RelSec->setSize(RelSec->getSectionDataSize(Ctx, SymTab));
+    RelSec->setSize(RelSec->getSectionDataSize());
     if (IsELF64) {
       RelSec->writeData<true>(Ctx, Str, SymTab);
     } else {

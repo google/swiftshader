@@ -385,12 +385,8 @@ define void @_start(i32) {
 ; CHECK:     0x24 R_386_32 .L$double$0 0x0
 ; CHECK:     0x2C R_386_32 .L$double$1 0x0
 ; CHECK:     0x34 R_386_32 .L$double$2 0x0
-; The set of relocations between llvm-mc and integrated elf-writer
-; are different. The integrated elf-writer does not yet handle
-; external/undef functions like memcpy.  Also, it does not resolve internal
-; function calls and instead writes out the relocation. However, there's
-; probably some function call so check for a PC32 relocation at least.
-; CHECK:     0x{{.*}} R_386_PC32
+; CHECK:     0x{{.*}} R_386_PC32 memcpy
+; CHECK:     0x{{.*}} R_386_PC32 memset
 ; CHECK:   }
 ; CHECK:   Section ({{[0-9]+}}) .rel.data {
 ; The set of relocations between llvm-mc and the integrated elf-writer
@@ -616,5 +612,23 @@ define void @_start(i32) {
 ; CHECK-NEXT:     Type: Function
 ; CHECK-NEXT:     Other: 0
 ; CHECK-NEXT:     Section: .text
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: memcpy
+; CHECK-NEXT:     Value: 0x0
+; CHECK-NEXT:     Size: 0
+; CHECK-NEXT:     Binding: Global
+; CHECK-NEXT:     Type: None
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: Undefined
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: memset
+; CHECK-NEXT:     Value: 0x0
+; CHECK-NEXT:     Size: 0
+; CHECK-NEXT:     Binding: Global
+; CHECK-NEXT:     Type: None
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: Undefined
 ; CHECK-NEXT:   }
 ; CHECK: ]
