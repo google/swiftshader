@@ -65,6 +65,9 @@ if __name__ == '__main__':
                            'from the same bitcode as the subzero object. ' +
                            'If 0, then compile it straight from source.' +
                            ' Default %(default)d.')
+    argparser.add_argument('--elf', dest='elf',
+                           action='store_true',
+                           help='Directly generate ELF output')
     args = argparser.parse_args()
 
     nacl_root = FindBaseNaCl()
@@ -105,13 +108,15 @@ if __name__ == '__main__':
                   '--target=' + args.target,
                   '--prefix=' + args.prefix,
                   '-allow-uninitialized-globals',
-                  '-o=' + asm_sz,
-                  bitcode])
-        shellcmd(['llvm-mc',
-                  '-arch=' + arch_map[args.target],
-                  '-filetype=obj',
-                  '-o=' + obj_sz,
-                  asm_sz])
+                  '-o=' + (obj_sz if args.elf else asm_sz),
+                  bitcode] +
+                 (['-elf-writer'] if args.elf else []))
+        if not args.elf:
+            shellcmd(['llvm-mc',
+                      '-arch=' + arch_map[args.target],
+                      '-filetype=obj',
+                      '-o=' + obj_sz,
+                      asm_sz])
         objs.append(obj_sz)
         # Each original bitcode file needs to be translated by the
         # LLVM toolchain and have its object file linked in.  There
