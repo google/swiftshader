@@ -18,6 +18,7 @@
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileSystem.h"
@@ -331,13 +332,13 @@ int main(int argc, char **argv) {
       *Ls << "Error: writing binary ELF to stdout is unsupported\n";
       return GetReturnValue(Ice::EC_Args);
     }
-    std::string ErrorInfo;
+    std::error_code EC;
     raw_fd_ostream *FdOs =
-        new raw_fd_ostream(OutputFilename.c_str(), ErrorInfo, sys::fs::F_None);
+        new raw_fd_ostream(OutputFilename, EC, sys::fs::F_None);
     Os.reset(FdOs);
-    if (!ErrorInfo.empty()) {
+    if (EC) {
       *Ls << "Failed to open output file: " << OutputFilename << ":\n"
-          << ErrorInfo << "\n";
+          << EC.message() << "\n";
       return GetReturnValue(Ice::EC_Args);
     }
     ELFStr.reset(new Ice::ELFStreamer(*FdOs));
@@ -374,16 +375,16 @@ int main(int argc, char **argv) {
     SMDiagnostic Err;
     Ice::TimerMarker T1(Ice::TimerStack::TT_parse, &Ctx);
     raw_ostream *Verbose = LLVMVerboseErrors ? &errs() : nullptr;
-    Module *Mod = NaClParseIRFile(IRFilename, InputFileFormat, Err, Verbose,
-                                  getGlobalContext());
-
+    std::unique_ptr<Module> Mod =
+        NaClParseIRFile(IRFilename, InputFileFormat, Err, Verbose,
+                        getGlobalContext());
     if (!Mod) {
       Err.print(argv[0], errs());
       return GetReturnValue(Ice::EC_Bitcode);
     }
 
     std::unique_ptr<Ice::Converter> Converter(
-        new Ice::Converter(Mod, &Ctx, Flags));
+        new Ice::Converter(Mod.get(), &Ctx, Flags));
     Converter->convertToIce();
     Translator.reset(Converter.release());
   } else {
