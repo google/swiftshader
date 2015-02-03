@@ -121,9 +121,20 @@ public:
   Ice::Constant *convertConstant(const Constant *Const) {
     if (const auto GV = dyn_cast<GlobalValue>(Const)) {
       Ice::GlobalDeclaration *Decl = getConverter().getGlobalDeclaration(GV);
-      const Ice::RelocOffsetT Offset = 0;
-      return Ctx->getConstantSym(Offset, Decl->getName(),
-                                 Decl->getSuppressMangling());
+      bool IsUndefined = false;
+      if (const auto *Func = llvm::dyn_cast<Ice::FunctionDeclaration>(Decl))
+        IsUndefined = Func->isProto();
+      else if (const auto *Var = llvm::dyn_cast<Ice::VariableDeclaration>(Decl))
+        IsUndefined = !Var->hasInitializer();
+      else
+        report_fatal_error("Unhandled GlobalDeclaration type");
+      if (IsUndefined)
+        return Ctx->getConstantExternSym(Decl->getName());
+      else {
+        const Ice::RelocOffsetT Offset = 0;
+        return Ctx->getConstantSym(Offset, Decl->getName(),
+                                   Decl->getSuppressMangling());
+      }
     } else if (const auto CI = dyn_cast<ConstantInt>(Const)) {
       Ice::Type Ty = convertToIceType(CI->getType());
       return Ctx->getConstantInt(Ty, CI->getSExtValue());

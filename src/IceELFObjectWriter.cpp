@@ -308,11 +308,13 @@ void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
 void ELFObjectWriter::writeDataOfType(SectionType ST,
                                       const VariableDeclarationList &Vars,
                                       FixupKind RelocationKind, bool IsELF64) {
+  if (Vars.empty())
+    return;
   ELFDataSection *Section;
   ELFRelocationSection *RelSection;
   // TODO(jvoung): Handle fdata-sections.
   IceString SectionName;
-  Elf64_Xword ShAddralign = 0;
+  Elf64_Xword ShAddralign = 1;
   for (VariableDeclaration *Var : Vars) {
     Elf64_Xword Align = Var->getAlignment();
     ShAddralign = std::max(ShAddralign, Align);
@@ -362,6 +364,10 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
 
   const uint8_t SymbolType = STT_OBJECT;
   for (VariableDeclaration *Var : Vars) {
+    // If the variable declaration does not have an initializer, its symtab
+    // entry will be created separately.
+    if (!Var->hasInitializer())
+      continue;
     Elf64_Xword Align = Var->getAlignment();
     Section->padToAlignment(Str, Align);
     SizeT SymbolSize = Var->getNumBytes();

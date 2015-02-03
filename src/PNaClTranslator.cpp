@@ -284,10 +284,15 @@ public:
     // TODO(kschimpf) Don't get addresses of intrinsic function declarations.
     Ice::GlobalDeclaration *Decl = nullptr;
     unsigned FcnIDSize = FunctionDeclarationList.size();
+    bool IsUndefined = false;
     if (ID < FcnIDSize) {
       Decl = FunctionDeclarationList[ID];
+      const auto Func = llvm::cast<Ice::FunctionDeclaration>(Decl);
+      IsUndefined = Func->isProto();
     } else if ((ID - FcnIDSize) < VariableDeclarations.size()) {
       Decl = VariableDeclarations[ID - FcnIDSize];
+      const auto Var = llvm::cast<Ice::VariableDeclaration>(Decl);
+      IsUndefined = !Var->hasInitializer();
     }
     std::string Name;
     bool SuppressMangling;
@@ -303,9 +308,13 @@ public:
       Name = "??";
       SuppressMangling = false;
     }
-    const Ice::RelocOffsetT Offset = 0;
-    C = getTranslator().getContext()->getConstantSym(Offset, Name,
-                                                     SuppressMangling);
+    if (IsUndefined)
+      C = getTranslator().getContext()->getConstantExternSym(Name);
+    else {
+      const Ice::RelocOffsetT Offset = 0;
+      C = getTranslator().getContext()->getConstantSym(Offset, Name,
+                                                       SuppressMangling);
+    }
     ValueIDConstants[ID] = C;
     return C;
   }

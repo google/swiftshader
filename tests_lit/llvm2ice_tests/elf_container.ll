@@ -21,6 +21,11 @@
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
 declare void @llvm.memset.p0i8.i32(i8*, i8, i32, i32, i1)
 
+; Try other external functions (for cross tests).
+; Not testing external global variables since the NaCl bitcode writer
+; refuses to freeze such IR.
+declare void @external_foo(i32)
+
 ; Test some global data relocs (data, rodata, bss).
 @bytes = internal global [7 x i8] c"ab\03\FF\F6fg", align 1
 @bytes_const = internal constant [7 x i8] c"ab\03\FF\F6fg", align 1
@@ -95,6 +100,12 @@ entry:
 define internal float @test_call_internal() {
   %f = call float @returnFloatConst()
   ret float %f
+}
+
+; Test calling an external function.
+define internal void @test_call_external() {
+  call void @external_foo(i32 42)
+  ret void
 }
 
 ; Test copying a function pointer, or a global data pointer.
@@ -387,6 +398,7 @@ define void @_start(i32) {
 ; CHECK:     0x34 R_386_32 .L$double$2 0x0
 ; CHECK:     0x{{.*}} R_386_PC32 memcpy
 ; CHECK:     0x{{.*}} R_386_PC32 memset
+; CHECK:     0x{{.*}} R_386_PC32 external_foo
 ; CHECK:   }
 ; CHECK:   Section ({{[0-9]+}}) .rel.data {
 ; The set of relocations between llvm-mc and the integrated elf-writer
@@ -612,6 +624,15 @@ define void @_start(i32) {
 ; CHECK-NEXT:     Type: Function
 ; CHECK-NEXT:     Other: 0
 ; CHECK-NEXT:     Section: .text
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: external_foo
+; CHECK-NEXT:     Value: 0x0
+; CHECK-NEXT:     Size: 0
+; CHECK-NEXT:     Binding: Global
+; CHECK-NEXT:     Type: None
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: Undefined
 ; CHECK-NEXT:   }
 ; CHECK:        Symbol {
 ; CHECK:          Name: memcpy
