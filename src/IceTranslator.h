@@ -45,7 +45,7 @@ public:
 
   /// Translates the constructed ICE function Fcn to machine code.
   /// Takes ownership of Func.
-  void translateFcn(Cfg *Func);
+  void translateFcn(std::unique_ptr<Cfg> Func);
 
   /// Emits the constant pool.
   void emitConstants();

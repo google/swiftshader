@@ -30,17 +30,14 @@ class Cfg {
 public:
   ~Cfg();
 
-  // TODO(stichnot): Change this to return unique_ptr<Cfg>, and plumb
-  // it through the callers, to make ownership and lifetime and
-  // destruction requirements more explicit.
-  static Cfg *create(GlobalContext *Ctx) {
-    Cfg *Func = new Cfg(Ctx);
-    ICE_TLS_SET_FIELD(CurrentCfg, Func);
-    return Func;
+  static std::unique_ptr<Cfg> create(GlobalContext *Ctx) {
+    return std::unique_ptr<Cfg>(new Cfg(Ctx));
   }
   // Gets a pointer to the current thread's Cfg.
   static const Cfg *getCurrentCfg() { return ICE_TLS_GET_FIELD(CurrentCfg); }
-  void updateTLS() const { ICE_TLS_SET_FIELD(CurrentCfg, this); }
+  static void setCurrentCfg(const Cfg *Func) {
+    ICE_TLS_SET_FIELD(CurrentCfg, Func);
+  }
   // Gets a pointer to the current thread's Cfg's allocator.
   static ArenaAllocator<> *getCurrentCfgAllocator() {
     assert(ICE_TLS_GET_FIELD(CurrentCfg));

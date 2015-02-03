@@ -280,12 +280,12 @@ public:
   // queue.  Notifies any idle workers that a new function is
   // available for translating.  May block if the work queue is too
   // large, in order to control memory footprint.
-  void cfgQueueBlockingPush(Cfg *Func) { CfgQ.blockingPush(Func); }
+  void cfgQueueBlockingPush(std::unique_ptr<Cfg> Func);
   // Takes a Cfg from the work queue for translating.  May block if
   // the work queue is currently empty.  Returns nullptr if there is
   // no more work - the queue is empty and either end() has been
   // called or the Sequential flag was set.
-  Cfg *cfgQueueBlockingPop() { return CfgQ.blockingPop(); }
+  std::unique_ptr<Cfg> cfgQueueBlockingPop();
   // Notifies that no more work will be added to the work queue.
   void cfgQueueNotifyEnd() { CfgQ.notifyEnd(); }
 

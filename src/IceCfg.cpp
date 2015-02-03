@@ -46,11 +46,7 @@ Cfg::Cfg(GlobalContext *Ctx)
          "Attempt to build cfg when IR generation disabled");
 }
 
-Cfg::~Cfg() {
-  assert(ICE_TLS_GET_FIELD(CurrentCfg) == this);
-  // Reset the thread-local CurrentCfg pointer.
-  ICE_TLS_SET_FIELD(CurrentCfg, nullptr);
-}
+Cfg::~Cfg() { assert(ICE_TLS_GET_FIELD(CurrentCfg) == nullptr); }
 
 void Cfg::setError(const IceString &Message) {
   HasError = true;

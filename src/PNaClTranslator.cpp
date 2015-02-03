@@ -1052,19 +1052,27 @@ public:
   FunctionParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser),
         Timer(Ice::TimerStack::TT_parseFunctions, getTranslator().getContext()),
-        Func(isIRGenerationDisabled()
-                 ? nullptr
-                 : Ice::Cfg::create(getTranslator().getContext())),
-        CurrentBbIndex(0), FcnId(Context->getNextFunctionBlockValueID()),
+        Func(nullptr), CurrentBbIndex(0),
+        FcnId(Context->getNextFunctionBlockValueID()),
         FuncDecl(Context->getFunctionByID(FcnId)),
         CachedNumGlobalValueIDs(Context->getNumGlobalIDs()),
         NextLocalInstIndex(Context->getNumGlobalIDs()),
-        InstIsTerminating(false) {
-    if (ALLOW_DUMP && getFlags().TimeEachFunction)
-      getTranslator().getContext()->pushTimer(
-          getTranslator().getContext()->getTimerID(
-              Ice::GlobalContext::TSK_Funcs, FuncDecl->getName()),
-          Ice::GlobalContext::TSK_Funcs);
+        InstIsTerminating(false) {}
+
+  bool convertFunction() {
+    const Ice::TimerStackIdT StackID = Ice::GlobalContext::TSK_Funcs;
+    Ice::TimerIdT TimerID = 0;
+    const bool TimeThisFunction = ALLOW_DUMP && getFlags().TimeEachFunction;
+    if (TimeThisFunction) {
+      TimerID = getTranslator().getContext()->getTimerID(StackID,
+                                                         FuncDecl->getName());
+      getTranslator().getContext()->pushTimer(TimerID, StackID);
+    }
+
+    if (!isIRGenerationDisabled())
+      Func = Ice::Cfg::create(getTranslator().getContext());
+    Ice::Cfg::setCurrentCfg(Func.get());
+
     // TODO(kschimpf) Clean up API to add a function signature to
     // a CFG.
     const Ice::FuncSigType &Signature = FuncDecl->getSignature();
@@ -1084,13 +1092,34 @@ public:
         Func->addArg(getNextInstVar(ArgType));
       }
     }
+    bool ParserResult = ParseThisBlock();
+
+    // Temporarily end per-function timing, which will be resumed by
+    // the translator function.  This is because translation may be
+    // done asynchronously in a separate thread.
+    if (TimeThisFunction)
+      getTranslator().getContext()->popTimer(TimerID, StackID);
+
+    Ice::Cfg::setCurrentCfg(nullptr);
+    // Note: Once any errors have been found, we turn off all
+    // translation of all remaining functions. This allows successive
+    // parsing errors to be reported, without adding extra checks to
+    // the translator for such parsing errors.
+    if (Context->getNumErrors() == 0) {
+      getTranslator().translateFcn(std::move(Func));
+      // The translator now has ownership of Func.
+    } else {
+      Func.reset();
+    }
+
+    return ParserResult;
   }
 
   ~FunctionParser() final {}
 
   const char *getBlockName() const override { return "function"; }
 
-  Ice::Cfg *getFunc() const { return Func; }
+  Ice::Cfg *getFunc() const { return Func.get(); }
 
   uint32_t getNumGlobalIDs() const { return CachedNumGlobalValueIDs; }
 
@@ -1130,7 +1159,7 @@ public:
 private:
   Ice::TimerMarker Timer;
   // The corresponding ICE function defined by the function block.
-  Ice::Cfg *Func;
+  std::unique_ptr<Ice::Cfg> Func;
   // The index to the current basic block being built.
   uint32_t CurrentBbIndex;
   // The basic block being built.
@@ -1152,15 +1181,6 @@ private:
   bool InstIsTerminating;
   // Upper limit of alignment power allowed by LLVM
   static const uint32_t AlignPowerLimit = 29;
-
-  void popTimerIfTimingEachFunction() const {
-    if (ALLOW_DUMP && getFlags().TimeEachFunction) {
-      getTranslator().getContext()->popTimer(
-          getTranslator().getContext()->getTimerID(
-              Ice::GlobalContext::TSK_Funcs, FuncDecl->getName()),
-          Ice::GlobalContext::TSK_Funcs);
-    }
-  }
 
   // Extracts the corresponding Alignment to use, given the AlignPower
   // (i.e. 2**(AlignPower-1), or 0 if AlignPower == 0). InstName is the
@@ -1820,14 +1840,12 @@ private:
     if (Ty == Ice::IceType_void)
       return;
     Ice::Variable *Var = getNextInstVar(Ty);
-    CurrentNode->appendInst(Ice::InstAssign::create(Func, Var, Var));
+    CurrentNode->appendInst(Ice::InstAssign::create(Func.get(), Var, Var));
   }
 };
 
 void FunctionParser::ExitBlock() {
   if (isIRGenerationDisabled()) {
-    popTimerIfTimingEachFunction();
-    delete Func;
     return;
   }
   // Before translating, check for blocks without instructions, and
@@ -1840,21 +1858,11 @@ void FunctionParser::ExitBlock() {
       StrBuf << "Basic block " << Index << " contains no instructions";
       Error(StrBuf.str());
       // TODO(kschimpf) Remove error recovery once implementation complete.
-      Node->appendInst(Ice::InstUnreachable::create(Func));
+      Node->appendInst(Ice::InstUnreachable::create(Func.get()));
     }
     ++Index;
   }
   Func->computePredecessors();
-  // Temporarily end per-function timing, which will be resumed by the
-  // translator function.  This is because translation may be done
-  // asynchronously in a separate thread.
-  popTimerIfTimingEachFunction();
-  // Note: Once any errors have been found, we turn off all
-  // translation of all remaining functions. This allows use to see
-  // multiple errors, without adding extra checks to the translator
-  // for such parsing errors.
-  if (Context->getNumErrors() == 0)
-    getTranslator().translateFcn(Func);
 }
 
 void FunctionParser::ReportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op,
@@ -1930,7 +1938,7 @@ void FunctionParser::ProcessRecord() {
       return;
     }
     CurrentNode->appendInst(Ice::InstArithmetic::create(
-        Func, Opcode, getNextInstVar(Type1), Op1, Op2));
+        Func.get(), Opcode, getNextInstVar(Type1), Op1, Op2));
     return;
   }
   case naclbitc::FUNC_CODE_INST_CAST: {
@@ -1949,8 +1957,8 @@ void FunctionParser::ProcessRecord() {
       appendErrorInstruction(CastType);
       return;
     }
-    CurrentNode->appendInst(
-        Ice::InstCast::create(Func, CastKind, getNextInstVar(CastType), Src));
+    CurrentNode->appendInst(Ice::InstCast::create(
+        Func.get(), CastKind, getNextInstVar(CastType), Src));
     return;
   }
   case naclbitc::FUNC_CODE_INST_VSELECT: {
@@ -1999,7 +2007,7 @@ void FunctionParser::ProcessRecord() {
       return;
     }
     CurrentNode->appendInst(Ice::InstSelect::create(
-        Func, getNextInstVar(ThenType), CondVal, ThenVal, ElseVal));
+        Func.get(), getNextInstVar(ThenType), CondVal, ThenVal, ElseVal));
     return;
   }
   case naclbitc::FUNC_CODE_INST_EXTRACTELT: {
@@ -2026,7 +2034,7 @@ void FunctionParser::ProcessRecord() {
       return;
     }
     CurrentNode->appendInst(Ice::InstExtractElement::create(
-        Func, getNextInstVar(typeElementType(VecType)), Vec, Index));
+        Func.get(), getNextInstVar(typeElementType(VecType)), Vec, Index));
     return;
   }
   case naclbitc::FUNC_CODE_INST_INSERTELT: {
@@ -2055,7 +2063,7 @@ void FunctionParser::ProcessRecord() {
       return;
     }
     CurrentNode->appendInst(Ice::InstInsertElement::create(
-        Func, getNextInstVar(VecType), Vec, Elt, Index));
+        Func.get(), getNextInstVar(VecType), Vec, Elt, Index));
     return;
   }
   case naclbitc::FUNC_CODE_INST_CMP2: {
@@ -2100,7 +2108,7 @@ void FunctionParser::ProcessRecord() {
         appendErrorInstruction(DestType);
       }
       CurrentNode->appendInst(
-          Ice::InstIcmp::create(Func, Cond, Dest, Op1, Op2));
+          Ice::InstIcmp::create(Func.get(), Cond, Dest, Op1, Op2));
     } else if (isFloatingType(Op1Type)) {
       Ice::InstFcmp::FCond Cond;
       if (!convertNaClBitcFCompOpToIce(Values[2], Cond)) {
@@ -2112,7 +2120,7 @@ void FunctionParser::ProcessRecord() {
         appendErrorInstruction(DestType);
       }
       CurrentNode->appendInst(
-          Ice::InstFcmp::create(Func, Cond, Dest, Op1, Op2));
+          Ice::InstFcmp::create(Func.get(), Cond, Dest, Op1, Op2));
     } else {
       // Not sure this can happen, but be safe.
       std::string Buffer;
@@ -2131,14 +2139,14 @@ void FunctionParser::ProcessRecord() {
     if (Values.empty()) {
       if (isIRGenerationDisabled())
         return;
-      CurrentNode->appendInst(Ice::InstRet::create(Func));
+      CurrentNode->appendInst(Ice::InstRet::create(Func.get()));
     } else {
       Ice::Operand *RetVal = getRelativeOperand(Values[0], BaseIndex);
       if (isIRGenerationDisabled()) {
         assert(RetVal == nullptr);
         return;
       }
-      CurrentNode->appendInst(Ice::InstRet::create(Func, RetVal));
+      CurrentNode->appendInst(Ice::InstRet::create(Func.get(), RetVal));
     }
     InstIsTerminating = true;
     return;
@@ -2151,7 +2159,7 @@ void FunctionParser::ProcessRecord() {
       Ice::CfgNode *Block = getBranchBasicBlock(Values[0]);
       if (Block == nullptr)
         return;
-      CurrentNode->appendInst(Ice::InstBr::create(Func, Block));
+      CurrentNode->appendInst(Ice::InstBr::create(Func.get(), Block));
     } else {
       // BR: [bb#, bb#, opval]
       if (!isValidRecordSize(3, "branch"))
@@ -2174,7 +2182,7 @@ void FunctionParser::ProcessRecord() {
       if (ThenBlock == nullptr || ElseBlock == nullptr)
         return;
       CurrentNode->appendInst(
-          Ice::InstBr::create(Func, Cond, ThenBlock, ElseBlock));
+          Ice::InstBr::create(Func.get(), Cond, ThenBlock, ElseBlock));
     }
     InstIsTerminating = true;
     return;
@@ -2221,8 +2229,9 @@ void FunctionParser::ProcessRecord() {
     if (!isValidRecordSize(4 + NumCases * 4, "switch"))
       return;
     Ice::InstSwitch *Switch =
-        isIRGenDisabled ? nullptr : Ice::InstSwitch::create(Func, NumCases,
-                                                            Cond, DefaultLabel);
+        isIRGenDisabled
+            ? nullptr
+            : Ice::InstSwitch::create(Func.get(), NumCases, Cond, DefaultLabel);
     unsigned ValCaseIndex = 4; // index to beginning of case entry.
     for (unsigned CaseIndex = 0; CaseIndex < NumCases;
          ++CaseIndex, ValCaseIndex += 4) {
@@ -2253,7 +2262,7 @@ void FunctionParser::ProcessRecord() {
       return;
     if (isIRGenerationDisabled())
       return;
-    CurrentNode->appendInst(Ice::InstUnreachable::create(Func));
+    CurrentNode->appendInst(Ice::InstUnreachable::create(Func.get()));
     InstIsTerminating = true;
     return;
   }
@@ -2285,7 +2294,8 @@ void FunctionParser::ProcessRecord() {
       return;
     }
     Ice::Variable *Dest = getNextInstVar(Ty);
-    Ice::InstPhi *Phi = Ice::InstPhi::create(Func, Values.size() >> 1, Dest);
+    Ice::InstPhi *Phi =
+        Ice::InstPhi::create(Func.get(), Values.size() >> 1, Dest);
     for (unsigned i = 1; i < Values.size(); i += 2) {
       Ice::Operand *Op =
           getRelativeOperand(NaClDecodeSignRotatedValue(Values[i]), BaseIndex);
@@ -2324,8 +2334,8 @@ void FunctionParser::ProcessRecord() {
       appendErrorInstruction(PtrTy);
       return;
     }
-    CurrentNode->appendInst(Ice::InstAlloca::create(Func, ByteCount, Alignment,
-                                                    getNextInstVar(PtrTy)));
+    CurrentNode->appendInst(Ice::InstAlloca::create(
+        Func.get(), ByteCount, Alignment, getNextInstVar(PtrTy)));
     return;
   }
   case naclbitc::FUNC_CODE_INST_LOAD: {
@@ -2349,8 +2359,8 @@ void FunctionParser::ProcessRecord() {
       appendErrorInstruction(Ty);
       return;
     }
-    CurrentNode->appendInst(
-        Ice::InstLoad::create(Func, getNextInstVar(Ty), Address, Alignment));
+    CurrentNode->appendInst(Ice::InstLoad::create(
+        Func.get(), getNextInstVar(Ty), Address, Alignment));
     return;
   }
   case naclbitc::FUNC_CODE_INST_STORE: {
@@ -2370,7 +2380,7 @@ void FunctionParser::ProcessRecord() {
     if (!isValidLoadStoreAlignment(Alignment, Value->getType(), "Store"))
       return;
     CurrentNode->appendInst(
-        Ice::InstStore::create(Func, Value, Address, Alignment));
+        Ice::InstStore::create(Func.get(), Value, Address, Alignment));
     return;
   }
   case naclbitc::FUNC_CODE_INST_CALL:
@@ -2459,10 +2469,11 @@ void FunctionParser::ProcessRecord() {
                               : getNextInstVar(ReturnType);
     Ice::InstCall *Inst = nullptr;
     if (IntrinsicInfo) {
-      Inst = Ice::InstIntrinsicCall::create(Func, NumParams, Dest, Callee,
+      Inst = Ice::InstIntrinsicCall::create(Func.get(), NumParams, Dest, Callee,
                                             IntrinsicInfo->Info);
     } else {
-      Inst = Ice::InstCall::create(Func, NumParams, Dest, Callee, IsTailCall);
+      Inst = Ice::InstCall::create(Func.get(), NumParams, Dest, Callee,
+                                   IsTailCall);
     }
 
     // Add parameters.
@@ -2857,7 +2868,7 @@ bool ModuleParser::ParseBlock(unsigned BlockID) {
   case naclbitc::FUNCTION_BLOCK_ID: {
     InstallGlobalNamesAndGlobalVarInitializers();
     FunctionParser Parser(BlockID, this);
-    return Parser.ParseThisBlock();
+    return Parser.convertFunction();
   }
   default:
     return BlockParserBaseClass::ParseBlock(BlockID);

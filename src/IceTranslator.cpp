@@ -53,8 +53,8 @@ bool Translator::checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
   return false;
 }
 
-void Translator::translateFcn(Cfg *Func) {
-  Ctx->cfgQueueBlockingPush(Func);
+void Translator::translateFcn(std::unique_ptr<Cfg> Func) {
+  Ctx->cfgQueueBlockingPush(std::move(Func));
   if (Ctx->getFlags().NumTranslationThreads == 0) {
     Ctx->translateFunctions();
   }

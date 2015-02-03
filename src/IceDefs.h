@@ -23,6 +23,7 @@
 #include <limits>
 #include <list>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <system_error>

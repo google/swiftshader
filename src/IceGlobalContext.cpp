@@ -162,11 +162,11 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
 }
 
 void GlobalContext::translateFunctions() {
-  while (Cfg *Func = cfgQueueBlockingPop()) {
+  while (std::unique_ptr<Cfg> Func = cfgQueueBlockingPop()) {
+    // Install Func in TLS for Cfg-specific container allocators.
+    Cfg::setCurrentCfg(Func.get());
     // Reset per-function stats being accumulated in TLS.
     resetStats();
-    // Install Func in TLS for Cfg-specific container allocators.
-    Func->updateTLS();
     // Set verbose level to none if the current function does NOT
     // match the -verbose-focus command-line option.
     if (!matchSymbolName(Func->getFunctionName(), getFlags().VerboseFocusOn))
@@ -191,10 +191,10 @@ void GlobalContext::translateFunctions() {
           Func->emit();
         // TODO(stichnot): actually add to emit queue
       }
-      // TODO(stichnot): fix multithreaded stats dumping.
       dumpStats(Func->getFunctionName());
     }
-    delete Func;
+    Cfg::setCurrentCfg(nullptr);
+    // The Cfg now gets deleted as Func goes out of scope.
   }
 }
 
@@ -546,6 +546,19 @@ void GlobalContext::setTimerName(TimerStackIdT StackID,
   auto Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
   assert(StackID < Timers->size());
   Timers->at(StackID).setName(NewName);
+}
+
+// Note: cfgQueueBlockingPush and cfgQueueBlockingPop use unique_ptr
+// at the interface to take and transfer ownership, but they
+// internally store the raw Cfg pointer in the work queue.  This
+// allows e.g. future queue optimizations such as the use of atomics
+// to modify queue elements.
+void GlobalContext::cfgQueueBlockingPush(std::unique_ptr<Cfg> Func) {
+  CfgQ.blockingPush(Func.release());
+}
+
+std::unique_ptr<Cfg> GlobalContext::cfgQueueBlockingPop() {
+  return std::unique_ptr<Cfg>(CfgQ.blockingPop());
 }
 
 void GlobalContext::dumpStats(const IceString &Name, bool Final) {
