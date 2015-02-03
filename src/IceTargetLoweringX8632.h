@@ -180,7 +180,7 @@ protected:
 
   void makeRandomRegisterPermutation(
       llvm::SmallVectorImpl<int32_t> &Permutation,
-      const llvm::SmallBitVector &ExcludeRegisters) const;
+      const llvm::SmallBitVector &ExcludeRegisters) const override;
 
   // The following are helpers that insert lowered x86 instructions
   // with minimal syntactic overhead, so that the lowering code can

@@ -104,10 +104,8 @@ public:
   void emitPoolLabel(Ostream &Str) const {
     Str << ".L$" << getType() << "$" << PoolEntryID;
   }
-  using Operand::dump;
   void emit(const Cfg *Func) const override { emit(Func->getContext()); }
   virtual void emit(GlobalContext *Ctx) const = 0;
-  void dump(const Cfg *Func, Ostream &Str) const = 0;
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();

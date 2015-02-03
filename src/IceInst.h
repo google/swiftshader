@@ -371,7 +371,7 @@ public:
   Operand *getArg(SizeT I) const { return getSrc(I + 1); }
   SizeT getNumArgs() const { return getSrcSize() - 1; }
   bool isTailcall() const { return HasTailCall; }
-  void dump(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Call; }
   Type getReturnType() const;
 
