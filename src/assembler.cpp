@@ -5,6 +5,10 @@
 //
 // Modified by the Subzero authors.
 //
+// This is forked from Dart revision 39313.
+// Please update the revision if we merge back changes from Dart.
+// https://code.google.com/p/dart/wiki/GettingTheSource
+//
 //===----------------------------------------------------------------------===//
 //
 //                        The Subzero Code Generator
