@@ -3086,9 +3086,9 @@ namespace sw
 	RValue<Short4> RoundShort4(RValue<Float4> cast)
 	{
 		RValue<Int4> v4i32 = x86::cvtps2dq(cast);
-		v4i32 = As<Int4>(x86::packssdw(v4i32, v4i32));
+		RValue<Short8> v8i16 = x86::packssdw(v4i32, v4i32);
 
-		return As<Short4>(Int2(v4i32));
+		return As<Short4>(Int2(As<Int4>(v8i16)));
 	}
 
 	RValue<Short4> Max(RValue<Short4> x, RValue<Short4> y)
