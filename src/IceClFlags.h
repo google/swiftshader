@@ -27,10 +27,10 @@ public:
         UseSandboxing(false), PhiEdgeSplit(false), DecorateAsm(false),
         DumpStats(false), AllowUninitializedGlobals(false),
         TimeEachFunction(false), DisableIRGeneration(false),
-        AllowErrorRecovery(false), GenerateUnitTestMessages(false),
-        NumTranslationThreads(0), DefaultGlobalPrefix(""),
-        DefaultFunctionPrefix(""), TimingFocusOn(""), VerboseFocusOn(""),
-        TranslateOnly("") {}
+        AllowErrorRecovery(false), StubConstantCalls(false),
+        GenerateUnitTestMessages(false), NumTranslationThreads(0),
+        DefaultGlobalPrefix(""), DefaultFunctionPrefix(""), TimingFocusOn(""),
+        VerboseFocusOn(""), TranslateOnly("") {}
   bool DisableInternal;
   bool SubzeroTimingEnabled;
   bool DisableTranslation;
@@ -46,6 +46,7 @@ public:
   bool TimeEachFunction;
   bool DisableIRGeneration;
   bool AllowErrorRecovery;
+  bool StubConstantCalls;
   bool GenerateUnitTestMessages;
   size_t NumTranslationThreads; // 0 means completely sequential
   IceString DefaultGlobalPrefix;

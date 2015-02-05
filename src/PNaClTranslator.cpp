@@ -163,7 +163,7 @@ public:
                  NaClBitstreamCursor &Cursor, Ice::ErrorCode &ErrorStatus)
       : NaClBitcodeParser(Cursor), Translator(Translator), Header(Header),
         ErrorStatus(ErrorStatus), NumErrors(0), NextDefiningFunctionID(0),
-        BlockParser(nullptr) {}
+        BlockParser(nullptr), StubbedConstCallValue(nullptr) {}
 
   ~TopLevelParser() override {}
 
@@ -319,6 +319,24 @@ public:
     return C;
   }
 
+  /// Returns a defined function reference to be used in place of
+  /// called constant addresses. Returns the corresponding operand
+  /// to replace the calling address with. Reports an error if
+  /// a stub could not be found, returning the CallValue.
+  Ice::Operand *getStubbedConstCallValue(Ice::Operand *CallValue) {
+    if (StubbedConstCallValue)
+      return StubbedConstCallValue;
+    for (unsigned i = 0; i < getNumFunctionIDs(); ++i) {
+      Ice::FunctionDeclaration *Func = getFunctionByID(i);
+      if (!Func->isProto()) {
+        StubbedConstCallValue = getOrCreateGlobalConstantByID(i);
+        return StubbedConstCallValue;
+      }
+    }
+    Error("Unable to find function definition to stub constant calls with");
+    return CallValue;
+  }
+
   /// Returns the number of function declarations in the bitcode file.
   unsigned getNumFunctionIDs() const { return FunctionDeclarationList.size(); }
 
@@ -393,6 +411,8 @@ private:
   // The block parser currently being applied. Used for error
   // reporting.
   BlockParserBaseClass *BlockParser;
+  // Value to use to stub constant calls.
+  Ice::Operand *StubbedConstCallValue;
 
   bool ParseBlock(unsigned BlockID) override;
 
@@ -2441,6 +2461,10 @@ void FunctionParser::ProcessRecord() {
         }
       }
     } else {
+      if (getFlags().StubConstantCalls &&
+          llvm::isa<Ice::ConstantInteger32>(Callee)) {
+        Callee = Context->getStubbedConstCallValue(Callee);
+      }
       ReturnType = Context->getSimpleTypeByID(Values[2]);
     }
 
