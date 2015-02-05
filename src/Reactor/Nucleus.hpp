@@ -2475,8 +2475,13 @@ namespace sw
 	template<class T>
 	void Return(RValue<Pointer<T> > ret);
 
-	template<class R = Void, class A1 = Void, class A2 = Void, class A3 = Void, class A4 = Void>
-	class Function
+	// Generic template, leave undefined!
+	template<typename FunctionType>
+	class Function;
+
+	// Specialized for function types
+	template<typename Return, typename... Arguments>
+	class Function<Return(Arguments...)>
 	{
 	public:
 		Function();
@@ -2917,34 +2922,35 @@ namespace sw
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
 	}
 
-	template<class R, class A1, class A2, class A3, class A4>
-	Function<R, A1, A2, A3, A4>::Function()
+	template<typename Return, typename... Arguments>
+	Function<Return(Arguments...)>::Function()
 	{
 		core = new Nucleus();
 
-		if(!A1::isVoid()) arguments.push_back(A1::getType());
-		if(!A2::isVoid()) arguments.push_back(A2::getType());
-		if(!A3::isVoid()) arguments.push_back(A3::getType());
-		if(!A4::isVoid()) arguments.push_back(A4::getType());
+		llvm::Type *types[] = {Arguments::getType()...};
+		for(llvm::Type *type : types)
+		{
+			arguments.push_back(type);
+		} 
 
-		function = Nucleus::createFunction(R::getType(), arguments);
+		function = Nucleus::createFunction(Return::getType(), arguments);
 		Nucleus::setFunction(function);
 	}
 
-	template<class R, class A1, class A2, class A3, class A4>
-	Function<R, A1, A2, A3, A4>::~Function()
+	template<typename Return, typename... Arguments>
+	Function<Return(Arguments...)>::~Function()
 	{
 		delete core;
 	}
 
-	template<class R, class A1, class A2, class A3, class A4>
-	llvm::Argument *Function<R, A1, A2, A3, A4>::arg(int index)
+	template<typename Return, typename... Arguments>
+	llvm::Argument *Function<Return(Arguments...)>::arg(int index)
 	{
 		return Nucleus::getArgument(function, index);
 	}
 
-	template<class R, class A1, class A2, class A3, class A4>
-	Routine *Function<R, A1, A2, A3, A4>::operator()(const wchar_t *name, ...)
+	template<typename Return, typename... Arguments>
+	Routine *Function<Return(Arguments...)>::operator()(const wchar_t *name, ...)
 	{
 		wchar_t fullName[1024 + 1];
 

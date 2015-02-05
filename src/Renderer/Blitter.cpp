@@ -964,7 +964,7 @@ namespace sw
 
 	Routine *Blitter::generate(BlitState &state)
 	{
-		Function<Void, Pointer<Byte> > function;
+		Function<Void(Pointer<Byte>)> function;
 		{
 			Pointer<Byte> blit(function.arg(0));
 

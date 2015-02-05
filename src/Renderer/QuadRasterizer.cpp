@@ -47,7 +47,7 @@ namespace sw
 
 	void QuadRasterizer::generate()
 	{
-		Function<Void, Pointer<Byte>, Int, Int, Pointer<Byte> > function;
+		Function<Void(Pointer<Byte>, Int, Int, Pointer<Byte>)> function;
 		{
 			#if PERF_PROFILE
 				Long pixelTime = Ticks();

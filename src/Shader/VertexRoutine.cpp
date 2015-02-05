@@ -34,7 +34,7 @@ namespace sw
 
 	void VertexRoutine::generate()
 	{
-		Function<Void, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte> > function;
+		Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)> function;
 		{
 			Pointer<Byte> vertex(function.arg(0));
 			Pointer<Byte> batch(function.arg(1));

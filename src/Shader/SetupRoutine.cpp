@@ -34,7 +34,7 @@ namespace sw
 
 	void SetupRoutine::generate()
 	{
-		Function<Bool, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte> > function;
+		Function<Bool(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)> function;
 		{
 			Pointer<Byte> primitive(function.arg(0));
 			Pointer<Byte> tri(function.arg(1));

@@ -234,7 +234,7 @@ namespace sw
 			bool validKey = ValidateSerialNumber(validationKey, CHECKSUM_KEY, SERIAL_PREFIX);
 		#endif
 
-		Function<Void, Pointer<Byte>, Pointer<Byte> > function;
+		Function<Void(Pointer<Byte>, Pointer<Byte>)> function;
 		{
 			Pointer<Byte> dst(function.arg(0));
 			Pointer<Byte> src(function.arg(1));
