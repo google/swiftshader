@@ -294,7 +294,7 @@ public:
       const auto Var = llvm::cast<Ice::VariableDeclaration>(Decl);
       IsUndefined = !Var->hasInitializer();
     }
-    std::string Name;
+    Ice::IceString Name;
     bool SuppressMangling;
     if (Decl) {
       Name = Decl->getName();
@@ -1508,7 +1508,7 @@ private:
   }
 
   // Returns true if the Str begins with Prefix.
-  bool isStringPrefix(Ice::IceString &Str, Ice::IceString &Prefix) {
+  bool isStringPrefix(const Ice::IceString &Str, const Ice::IceString &Prefix) {
     const size_t PrefixSize = Prefix.size();
     if (Str.size() < PrefixSize)
       return false;
@@ -2446,7 +2446,7 @@ void FunctionParser::ProcessRecord() {
 
       // Check if this direct call is to an Intrinsic (starts with "llvm.")
       static Ice::IceString LLVMPrefix("llvm.");
-      Ice::IceString Name = Fcn->getName();
+      const Ice::IceString &Name = Fcn->getName();
       if (isStringPrefix(Name, LLVMPrefix)) {
         Ice::IceString Suffix = Name.substr(LLVMPrefix.size());
         IntrinsicInfo =

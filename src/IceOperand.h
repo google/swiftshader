@@ -223,7 +223,7 @@ public:
   }
 
   RelocOffsetT getOffset() const { return Offset; }
-  IceString getName() const { return Name; }
+  const IceString &getName() const { return Name; }
   void setSuppressMangling(bool Value) { SuppressMangling = Value; }
   bool getSuppressMangling() const { return SuppressMangling; }
   using Constant::emit;

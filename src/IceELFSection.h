@@ -66,7 +66,7 @@ public:
 
   void setNameStrIndex(Elf64_Word sh_name) { Header.sh_name = sh_name; }
 
-  IceString getName() const { return Name; }
+  const IceString &getName() const { return Name; }
 
   void setLinkNum(Elf64_Word sh_link) { Header.sh_link = sh_link; }
 
@@ -84,7 +84,7 @@ protected:
 
   // Name of the section in convenient string form (instead of a index
   // into the Section Header String Table, which is not known till later).
-  IceString Name;
+  const IceString Name;
 
   // The fields of the header. May only be partially initialized, but should
   // be fully initialized before writing.

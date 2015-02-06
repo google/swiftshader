@@ -541,7 +541,7 @@ void ELFObjectWriter::writeAllRelocationSections(bool IsELF64) {
 void ELFObjectWriter::setUndefinedSyms(const ConstantList &UndefSyms) {
   for (const Constant *S : UndefSyms) {
     const auto Sym = llvm::cast<ConstantRelocatable>(S);
-    IceString Name = Sym->getName();
+    const IceString &Name = Sym->getName();
     assert(Sym->getOffset() == 0);
     assert(Sym->getSuppressMangling());
     SymTab->noteUndefinedSym(Name, NullSection);
