@@ -202,7 +202,7 @@ public:
   const ClFlags &getFlags() const { return Flags; }
 
   bool isIRGenerationDisabled() const {
-    return ALLOW_DISABLE_IR_GEN ? getFlags().DisableIRGeneration : false;
+    return getFlags().getDisableIRGeneration();
   }
 
   // Allocate data of type T using the global allocator.
@@ -223,35 +223,35 @@ public:
   }
   void dumpStats(const IceString &Name, bool Final = false);
   void statsUpdateEmitted(uint32_t InstCount) {
-    if (!ALLOW_DUMP || !getFlags().DumpStats)
+    if (!getFlags().getDumpStats())
       return;
     ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
     TLS->StatsFunction.update(CodeStats::CS_InstCount, InstCount);
     TLS->StatsCumulative.update(CodeStats::CS_InstCount, InstCount);
   }
   void statsUpdateRegistersSaved(uint32_t Num) {
-    if (!ALLOW_DUMP || !getFlags().DumpStats)
+    if (!getFlags().getDumpStats())
       return;
     ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
     TLS->StatsFunction.update(CodeStats::CS_RegsSaved, Num);
     TLS->StatsCumulative.update(CodeStats::CS_RegsSaved, Num);
   }
   void statsUpdateFrameBytes(uint32_t Bytes) {
-    if (!ALLOW_DUMP || !getFlags().DumpStats)
+    if (!getFlags().getDumpStats())
       return;
     ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
     TLS->StatsFunction.update(CodeStats::CS_FrameByte, Bytes);
     TLS->StatsCumulative.update(CodeStats::CS_FrameByte, Bytes);
   }
   void statsUpdateSpills() {
-    if (!ALLOW_DUMP || !getFlags().DumpStats)
+    if (!getFlags().getDumpStats())
       return;
     ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
     TLS->StatsFunction.update(CodeStats::CS_NumSpills);
     TLS->StatsCumulative.update(CodeStats::CS_NumSpills);
   }
   void statsUpdateFills() {
-    if (!ALLOW_DUMP || !getFlags().DumpStats)
+    if (!getFlags().getDumpStats())
       return;
     ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
     TLS->StatsFunction.update(CodeStats::CS_NumFills);
@@ -290,7 +290,7 @@ public:
   void cfgQueueNotifyEnd() { CfgQ.notifyEnd(); }
 
   void startWorkerThreads() {
-    size_t NumWorkers = getFlags().NumTranslationThreads;
+    size_t NumWorkers = getFlags().getNumTranslationThreads();
     auto Timers = getTimers();
     for (size_t i = 0; i < NumWorkers; ++i) {
       ThreadContext *WorkerTLS = new ThreadContext();

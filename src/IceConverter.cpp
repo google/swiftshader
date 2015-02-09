@@ -716,7 +716,7 @@ void LLVM2ICEGlobalsConverter::convertGlobalsToIce(
     }
 
     if (!GV->hasInitializer()) {
-      if (Ctx->getFlags().AllowUninitializedGlobals)
+      if (Ctx->getFlags().getAllowUninitializedGlobals())
         continue;
       else {
         std::string Buffer;
@@ -801,7 +801,7 @@ void LLVM2ICEGlobalsConverter::addGlobalInitializer(
 namespace Ice {
 
 void Converter::nameUnnamedGlobalVariables(Module *Mod) {
-  const IceString &GlobalPrefix = Flags.DefaultGlobalPrefix;
+  const IceString &GlobalPrefix = Flags.getDefaultGlobalPrefix();
   if (GlobalPrefix.empty())
     return;
   uint32_t NameIndex = 0;
@@ -816,7 +816,7 @@ void Converter::nameUnnamedGlobalVariables(Module *Mod) {
 }
 
 void Converter::nameUnnamedFunctions(Module *Mod) {
-  const IceString &FunctionPrefix = Flags.DefaultFunctionPrefix;
+  const IceString &FunctionPrefix = Flags.getDefaultFunctionPrefix();
   if (FunctionPrefix.empty())
     return;
   uint32_t NameIndex = 0;
@@ -895,8 +895,7 @@ void Converter::convertFunctions() {
       continue;
 
     TimerIdT TimerID = 0;
-    const bool TimeThisFunction =
-        ALLOW_DUMP && Ctx->getFlags().TimeEachFunction;
+    const bool TimeThisFunction = Ctx->getFlags().getTimeEachFunction();
     if (TimeThisFunction) {
       TimerID = Ctx->getTimerID(StackID, I.getName());
       Ctx->pushTimer(TimerID, StackID);

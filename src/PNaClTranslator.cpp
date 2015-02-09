@@ -191,8 +191,7 @@ public:
 
   /// Returns true if generation of Subzero IR is disabled.
   bool isIRGenerationDisabled() const {
-    return ALLOW_DISABLE_IR_GEN ? Translator.getFlags().DisableIRGeneration
-                                : false;
+    return Translator.getFlags().getDisableIRGeneration();
   }
 
   /// Returns the undefined type associated with type ID.
@@ -458,7 +457,7 @@ bool TopLevelParser::Error(const std::string &Message) {
   raw_ostream &OldErrStream = setErrStream(Context->getStrDump());
   NaClBitcodeParser::Error(Message);
   setErrStream(OldErrStream);
-  if (!Translator.getFlags().AllowErrorRecovery)
+  if (!Translator.getFlags().getAllowErrorRecovery())
     report_fatal_error("Unable to continue");
   return true;
 }
@@ -552,8 +551,7 @@ protected:
   const Ice::ClFlags &getFlags() const { return getTranslator().getFlags(); }
 
   bool isIRGenerationDisabled() const {
-    return ALLOW_DISABLE_IR_GEN ? getTranslator().getFlags().DisableIRGeneration
-                                : false;
+    return getTranslator().getFlags().getDisableIRGeneration();
   }
 
   // Default implementation. Reports that block is unknown and skips
@@ -632,14 +630,14 @@ bool BlockParserBaseClass::Error(const std::string &Message) {
   // Note: If dump routines have been turned off, the error messages
   // will not be readable. Hence, replace with simple error. We also
   // use the simple form for unit tests.
-  if (ALLOW_DUMP && !getFlags().GenerateUnitTestMessages) {
-    StrBuf << Message;
-  } else {
+  if (getFlags().getGenerateUnitTestMessages()) {
     StrBuf << "Invalid " << getBlockName() << " record: <" << Record.GetCode();
     for (const uint64_t Val : Record.GetValues()) {
       StrBuf << " " << Val;
     }
     StrBuf << ">";
+  } else {
+    StrBuf << Message;
   }
   return Context->Error(StrBuf.str());
 }
@@ -1091,7 +1089,7 @@ public:
   bool convertFunction() {
     const Ice::TimerStackIdT StackID = Ice::GlobalContext::TSK_Funcs;
     Ice::TimerIdT TimerID = 0;
-    const bool TimeThisFunction = ALLOW_DUMP && getFlags().TimeEachFunction;
+    const bool TimeThisFunction = getFlags().getTimeEachFunction();
     if (TimeThisFunction) {
       TimerID = getTranslator().getContext()->getTimerID(StackID,
                                                          FuncDecl->getName());
@@ -2461,7 +2459,7 @@ void FunctionParser::ProcessRecord() {
         }
       }
     } else {
-      if (getFlags().StubConstantCalls &&
+      if (getFlags().getStubConstantCalls() &&
           llvm::isa<Ice::ConstantInteger32>(Callee)) {
         Callee = Context->getStubbedConstCallValue(Callee);
       }
@@ -2811,14 +2809,15 @@ private:
   void InstallGlobalNamesAndGlobalVarInitializers() {
     if (!GlobalDeclarationNamesAndInitializersInstalled) {
       Ice::Translator &Trans = getTranslator();
-      const Ice::IceString &GlobalPrefix = getFlags().DefaultGlobalPrefix;
+      const Ice::IceString &GlobalPrefix = getFlags().getDefaultGlobalPrefix();
       if (!GlobalPrefix.empty()) {
         uint32_t NameIndex = 0;
         for (Ice::VariableDeclaration *Var : Context->getGlobalVariables()) {
           installDeclarationName(Trans, Var, GlobalPrefix, "global", NameIndex);
         }
       }
-      const Ice::IceString &FunctionPrefix = getFlags().DefaultFunctionPrefix;
+      const Ice::IceString &FunctionPrefix =
+          getFlags().getDefaultFunctionPrefix();
       if (!FunctionPrefix.empty()) {
         uint32_t NameIndex = 0;
         for (Ice::FunctionDeclaration *Func :

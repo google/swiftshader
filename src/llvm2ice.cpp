@@ -228,10 +228,11 @@ static struct {
   const char *FlagName;
   int FlagValue;
 } ConditionalBuildAttributes[] = {{"dump", ALLOW_DUMP},
+                                  {"disable_ir_gen", ALLOW_DISABLE_IR_GEN},
                                   {"llvm_cl", ALLOW_LLVM_CL},
                                   {"llvm_ir", ALLOW_LLVM_IR},
                                   {"llvm_ir_as_input", ALLOW_LLVM_IR_AS_INPUT},
-                                  {"disable_ir_gen", ALLOW_DISABLE_IR_GEN}};
+                                  {"minimal_build", ALLOW_MINIMAL_BUILD}};
 
 // Validates values of build attributes. Prints them to Stream if
 // Stream is non-null.
@@ -298,28 +299,28 @@ int main(int argc, char **argv) {
   }
 
   Ice::ClFlags Flags;
-  Flags.DisableInternal = DisableInternal;
-  Flags.SubzeroTimingEnabled = SubzeroTimingEnabled;
-  Flags.DisableTranslation = DisableTranslation;
-  Flags.FunctionSections = FunctionSections;
-  Flags.DataSections = DataSections;
-  Flags.UseELFWriter = UseELFWriter;
-  Flags.UseIntegratedAssembler = UseIntegratedAssembler;
-  Flags.UseSandboxing = UseSandboxing;
-  Flags.PhiEdgeSplit = EnablePhiEdgeSplit;
-  Flags.DecorateAsm = DecorateAsm;
-  Flags.DumpStats = DumpStats;
-  Flags.AllowUninitializedGlobals = AllowUninitializedGlobals;
-  Flags.TimeEachFunction = TimeEachFunction;
-  Flags.NumTranslationThreads = NumThreads;
-  Flags.DefaultGlobalPrefix = DefaultGlobalPrefix;
-  Flags.DefaultFunctionPrefix = DefaultFunctionPrefix;
-  Flags.TimingFocusOn = TimingFocusOn;
-  Flags.VerboseFocusOn = VerboseFocusOn;
-  Flags.TranslateOnly = TranslateOnly;
-  Flags.DisableIRGeneration = DisableIRGeneration;
-  Flags.AllowErrorRecovery = AllowErrorRecovery;
-  Flags.StubConstantCalls = StubConstantCalls;
+  Flags.setAllowErrorRecovery(AllowErrorRecovery);
+  Flags.setAllowUninitializedGlobals(AllowUninitializedGlobals);
+  Flags.setDataSections(DataSections);
+  Flags.setDecorateAsm(DecorateAsm);
+  Flags.setDefaultFunctionPrefix(DefaultFunctionPrefix);
+  Flags.setDefaultGlobalPrefix(DefaultGlobalPrefix);
+  Flags.setDisableInternal(DisableInternal);
+  Flags.setDisableIRGeneration(DisableIRGeneration);
+  Flags.setDisableTranslation(DisableTranslation);
+  Flags.setDumpStats(DumpStats);
+  Flags.setFunctionSections(FunctionSections);
+  Flags.setNumTranslationThreads(NumThreads);
+  Flags.setPhiEdgeSplit(EnablePhiEdgeSplit);
+  Flags.setStubConstantCalls(StubConstantCalls);
+  Flags.setSubzeroTimingEnabled(SubzeroTimingEnabled);
+  Flags.setTimeEachFunction(TimeEachFunction);
+  Flags.setTimingFocusOn(TimingFocusOn);
+  Flags.setTranslateOnly(TranslateOnly);
+  Flags.setUseELFWriter(UseELFWriter);
+  Flags.setUseIntegratedAssembler(UseIntegratedAssembler);
+  Flags.setUseSandboxing(UseSandboxing);
+  Flags.setVerboseFocusOn(VerboseFocusOn);
 
   // Force -build-on-read=0 for .ll files.
   const std::string LLSuffix = ".ll";

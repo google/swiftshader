@@ -134,8 +134,8 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
     : ConstPool(new ConstantPool()), ErrorStatus(), StrDump(OsDump),
       StrEmit(OsEmit), VMask(Mask), Arch(Arch), Opt(Opt),
       TestPrefix(TestPrefix), Flags(Flags), RNG(""), ObjectWriter(),
-      CfgQ(/*MaxSize=*/Flags.NumTranslationThreads,
-           /*Sequential=*/(Flags.NumTranslationThreads == 0)) {
+      CfgQ(/*MaxSize=*/Flags.getNumTranslationThreads(),
+           /*Sequential=*/(Flags.getNumTranslationThreads() == 0)) {
   // Make sure thread_local fields are properly initialized before any
   // accesses are made.  Do this here instead of at the start of
   // main() so that all clients (e.g. unit tests) can benefit for
@@ -156,7 +156,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
     newTimerStackID("Per-function summary");
   }
   Timers.initInto(MyTLS->Timers);
-  if (Flags.UseELFWriter) {
+  if (Flags.getUseELFWriter()) {
     ObjectWriter.reset(new ELFObjectWriter(*this, *ELFStr));
   }
 }
@@ -169,14 +169,16 @@ void GlobalContext::translateFunctions() {
     resetStats();
     // Set verbose level to none if the current function does NOT
     // match the -verbose-focus command-line option.
-    if (!matchSymbolName(Func->getFunctionName(), getFlags().VerboseFocusOn))
+    if (!matchSymbolName(Func->getFunctionName(),
+                         getFlags().getVerboseFocusOn()))
       Func->setVerbose(IceV_None);
     // Disable translation if -notranslate is specified, or if the
     // current function matches the -translate-only option.  If
     // translation is disabled, just dump the high-level IR and
     // continue.
-    if (getFlags().DisableTranslation ||
-        !matchSymbolName(Func->getFunctionName(), getFlags().TranslateOnly)) {
+    if (getFlags().getDisableTranslation() ||
+        !matchSymbolName(Func->getFunctionName(),
+                         getFlags().getTranslateOnly())) {
       Func->dump();
     } else {
       Func->translate();
@@ -185,7 +187,7 @@ void GlobalContext::translateFunctions() {
         OstreamLocker L(this);
         getStrDump() << "ICE translation error: " << Func->getError() << "\n";
       } else {
-        if (getFlags().UseIntegratedAssembler)
+        if (getFlags().getUseIntegratedAssembler())
           Func->emitIAS();
         else
           Func->emit();
@@ -562,7 +564,7 @@ std::unique_ptr<Cfg> GlobalContext::cfgQueueBlockingPop() {
 }
 
 void GlobalContext::dumpStats(const IceString &Name, bool Final) {
-  if (!ALLOW_DUMP || !getFlags().DumpStats)
+  if (!getFlags().getDumpStats())
     return;
   OstreamLocker OL(this);
   if (Final) {
@@ -584,10 +586,10 @@ void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
 void TimerMarker::push() {
   switch (StackID) {
   case GlobalContext::TSK_Default:
-    Active = Ctx->getFlags().SubzeroTimingEnabled;
+    Active = Ctx->getFlags().getSubzeroTimingEnabled();
     break;
   case GlobalContext::TSK_Funcs:
-    Active = Ctx->getFlags().TimeEachFunction;
+    Active = Ctx->getFlags().getTimeEachFunction();
     break;
   default:
     break;
@@ -598,7 +600,8 @@ void TimerMarker::push() {
 
 void TimerMarker::pushCfg(const Cfg *Func) {
   Ctx = Func->getContext();
-  Active = Func->getFocusedTiming() || Ctx->getFlags().SubzeroTimingEnabled;
+  Active =
+      Func->getFocusedTiming() || Ctx->getFlags().getSubzeroTimingEnabled();
   if (Active)
     Ctx->pushTimer(ID, StackID);
 }

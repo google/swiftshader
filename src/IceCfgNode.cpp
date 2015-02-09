@@ -859,7 +859,8 @@ void CfgNode::emit(Cfg *Func) const {
   Func->setCurrentNode(this);
   Ostream &Str = Func->getContext()->getStrEmit();
   Liveness *Liveness = Func->getLiveness();
-  bool DecorateAsm = Liveness && Func->getContext()->getFlags().DecorateAsm;
+  bool DecorateAsm =
+      Liveness && Func->getContext()->getFlags().getDecorateAsm();
   Str << getAsmName() << ":\n";
   std::vector<SizeT> LiveRegCount(Func->getTarget()->getNumRegisters());
   if (DecorateAsm)

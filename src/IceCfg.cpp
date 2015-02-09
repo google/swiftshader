@@ -81,14 +81,15 @@ void Cfg::translate() {
   // TimeEachFunction is enabled.
   std::unique_ptr<TimerMarker> FunctionTimer;
   if (ALLOW_DUMP) {
-    const IceString &TimingFocusOn = getContext()->getFlags().TimingFocusOn;
+    const IceString &TimingFocusOn =
+        getContext()->getFlags().getTimingFocusOn();
     const IceString &Name = getFunctionName();
     if (TimingFocusOn == "*" || TimingFocusOn == Name) {
       setFocusedTiming();
       getContext()->resetTimer(GlobalContext::TSK_Default);
       getContext()->setTimerName(GlobalContext::TSK_Default, Name);
     }
-    if (getContext()->getFlags().TimeEachFunction)
+    if (getContext()->getFlags().getTimeEachFunction())
       FunctionTimer.reset(new TimerMarker(
           getContext()->getTimerID(GlobalContext::TSK_Funcs, Name),
           getContext(), GlobalContext::TSK_Funcs));
@@ -399,7 +400,7 @@ void Cfg::contractEmptyNodes() {
   // such, we disable this pass when DecorateAsm is specified.  This
   // may make the resulting code look more branchy, but it should have
   // no effect on the register assignments.
-  if (Ctx->getFlags().DecorateAsm)
+  if (Ctx->getFlags().getDecorateAsm())
     return;
   for (CfgNode *Node : Nodes) {
     Node->contractIfEmpty();
@@ -421,9 +422,9 @@ void Cfg::emitTextHeader(const IceString &MangledName) {
   // Note: Still used by emit IAS.
   Ostream &Str = Ctx->getStrEmit();
   Str << "\t.text\n";
-  if (Ctx->getFlags().FunctionSections)
+  if (Ctx->getFlags().getFunctionSections())
     Str << "\t.section\t.text." << MangledName << ",\"ax\",@progbits\n";
-  if (!getInternal() || Ctx->getFlags().DisableInternal) {
+  if (!getInternal() || Ctx->getFlags().getDisableInternal()) {
     Str << "\t.globl\t" << MangledName << "\n";
     Str << "\t.type\t" << MangledName << ",@function\n";
   }
@@ -439,7 +440,7 @@ void Cfg::emit() {
   if (!ALLOW_DUMP)
     return;
   TimerMarker T(TimerStack::TT_emit, this);
-  if (Ctx->getFlags().DecorateAsm) {
+  if (Ctx->getFlags().getDecorateAsm()) {
     renumberInstructions();
     getVMetadata()->init(VMK_Uses);
     liveness(Liveness_Basic);
@@ -456,7 +457,7 @@ void Cfg::emit() {
 
 void Cfg::emitIAS() {
   TimerMarker T(TimerStack::TT_emit, this);
-  assert(!Ctx->getFlags().DecorateAsm);
+  assert(!Ctx->getFlags().getDecorateAsm());
   IceString MangledName = getContext()->mangleName(getFunctionName());
   // The emitIAS() routines emit into the internal assembler buffer,
   // so there's no need to lock the streams until we're ready to call
@@ -464,7 +465,7 @@ void Cfg::emitIAS() {
   for (CfgNode *Node : Nodes)
     Node->emitIAS(this);
   // Now write the function to the file and track.
-  if (Ctx->getFlags().UseELFWriter) {
+  if (Ctx->getFlags().getUseELFWriter()) {
     getAssembler<Assembler>()->alignFunction();
     Ctx->getObjectWriter()->writeFunctionCode(MangledName, getInternal(),
                                               getAssembler<Assembler>());
@@ -489,7 +490,7 @@ void Cfg::dump(const IceString &Message) {
   // Print function name+args
   if (isVerbose(IceV_Instructions)) {
     Str << "define ";
-    if (getInternal() && !Ctx->getFlags().DisableInternal)
+    if (getInternal() && !Ctx->getFlags().getDisableInternal())
       Str << "internal ";
     Str << ReturnType << " @" << Ctx->mangleName(getFunctionName()) << "(";
     for (SizeT i = 0; i < Args.size(); ++i) {

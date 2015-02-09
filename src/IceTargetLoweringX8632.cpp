@@ -313,7 +313,7 @@ TargetX8632::TargetX8632(Cfg *Func)
 void TargetX8632::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
-  if (!Ctx->getFlags().PhiEdgeSplit) {
+  if (!Ctx->getFlags().getPhiEdgeSplit()) {
     // Lower Phi instructions.
     Func->placePhiLoads();
     if (Func->hasError())
@@ -377,7 +377,7 @@ void TargetX8632::translateO2() {
     return;
   Func->dump("After linear scan regalloc");
 
-  if (Ctx->getFlags().PhiEdgeSplit) {
+  if (Ctx->getFlags().getPhiEdgeSplit()) {
     Func->advancedPhiLowering();
     Func->dump("After advanced Phi lowering");
   }
@@ -3067,7 +3067,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::NaClReadTP: {
-    if (Ctx->getFlags().UseSandboxing) {
+    if (Ctx->getFlags().getUseSandboxing()) {
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
       Operand *Src =
           OperandX8632Mem::create(Func, IceType_i32, nullptr, Zero, nullptr, 0,
@@ -4566,7 +4566,7 @@ TargetDataX8632::TargetDataX8632(GlobalContext *Ctx)
 void TargetDataX8632::lowerGlobal(const VariableDeclaration &Var) const {
   // If external and not initialized, this must be a cross test.
   // Don't generate a declaration for such cases.
-  bool IsExternal = Var.isExternal() || Ctx->getFlags().DisableInternal;
+  bool IsExternal = Var.isExternal() || Ctx->getFlags().getDisableInternal();
   if (IsExternal && !Var.hasInitializer())
     return;
 
@@ -4579,7 +4579,7 @@ void TargetDataX8632::lowerGlobal(const VariableDeclaration &Var) const {
   SizeT Size = Var.getNumBytes();
   IceString MangledName = Var.mangleName(Ctx);
   IceString SectionSuffix = "";
-  if (Ctx->getFlags().DataSections)
+  if (Ctx->getFlags().getDataSections())
     SectionSuffix = "." + MangledName;
 
   Str << "\t.type\t" << MangledName << ",@object\n";
@@ -4702,11 +4702,11 @@ void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
 }
 
 void TargetDataX8632::lowerConstants(GlobalContext *Ctx) const {
-  if (Ctx->getFlags().DisableTranslation)
+  if (Ctx->getFlags().getDisableTranslation())
     return;
   // No need to emit constants from the int pool since (for x86) they
   // are embedded as immediates in the instructions, just emit float/double.
-  if (Ctx->getFlags().UseELFWriter) {
+  if (Ctx->getFlags().getUseELFWriter()) {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     Writer->writeConstantPool<ConstantFloat>(IceType_f32);
     Writer->writeConstantPool<ConstantDouble>(IceType_f64);

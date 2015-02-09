@@ -296,7 +296,8 @@ void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
   VariableDeclarationList VarsBySection[ELFObjectWriter::NumSectionTypes];
   for (auto &SectionList : VarsBySection)
     SectionList.reserve(Vars.size());
-  partitionGlobalsBySection(Vars, VarsBySection, Ctx.getFlags().TranslateOnly);
+  partitionGlobalsBySection(Vars, VarsBySection,
+                            Ctx.getFlags().getTranslateOnly());
   bool IsELF64 = isELF64(Ctx.getTargetArch());
   size_t I = 0;
   for (auto &SectionList : VarsBySection) {
@@ -371,7 +372,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     Elf64_Xword Align = Var->getAlignment();
     Section->padToAlignment(Str, Align);
     SizeT SymbolSize = Var->getNumBytes();
-    bool IsExternal = Var->isExternal() || Ctx.getFlags().DisableInternal;
+    bool IsExternal = Var->isExternal() || Ctx.getFlags().getDisableInternal();
     const uint8_t SymbolBinding = IsExternal ? STB_GLOBAL : STB_LOCAL;
     IceString MangledName = Var->mangleName(&Ctx);
     SymTab->createDefinedSym(MangledName, SymbolType, SymbolBinding, Section,

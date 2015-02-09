@@ -19,41 +19,157 @@
 namespace Ice {
 
 class ClFlags {
+  ClFlags(const ClFlags &) = delete;
+  ClFlags &operator=(const ClFlags &) = delete;
+
 public:
   ClFlags()
-      : DisableInternal(false), SubzeroTimingEnabled(false),
-        DisableTranslation(false), FunctionSections(false), DataSections(false),
-        UseELFWriter(false), UseIntegratedAssembler(false),
-        UseSandboxing(false), PhiEdgeSplit(false), DecorateAsm(false),
-        DumpStats(false), AllowUninitializedGlobals(false),
-        TimeEachFunction(false), DisableIRGeneration(false),
-        AllowErrorRecovery(false), StubConstantCalls(false),
-        GenerateUnitTestMessages(false), NumTranslationThreads(0),
-        DefaultGlobalPrefix(""), DefaultFunctionPrefix(""), TimingFocusOn(""),
-        VerboseFocusOn(""), TranslateOnly("") {}
-  bool DisableInternal;
-  bool SubzeroTimingEnabled;
-  bool DisableTranslation;
-  bool FunctionSections;
+      : // bool fields.
+        AllowErrorRecovery(false),
+        AllowUninitializedGlobals(false), DataSections(false),
+        DecorateAsm(false), DisableInternal(false), DisableIRGeneration(false),
+        DisableTranslation(false), DumpStats(false), FunctionSections(false),
+        GenerateUnitTestMessages(false), PhiEdgeSplit(false),
+        StubConstantCalls(false), SubzeroTimingEnabled(false),
+        TimeEachFunction(false), UseELFWriter(false),
+        UseIntegratedAssembler(false), UseSandboxing(false),
+        // IceString fields.
+        DefaultFunctionPrefix(""), DefaultGlobalPrefix(""), TimingFocusOn(""),
+        TranslateOnly(""), VerboseFocusOn(""),
+        // size_t fields.
+        NumTranslationThreads(0) {}
+
+  // bool accessors.
+
+  bool getAllowErrorRecovery() const { return AllowErrorRecovery; }
+  void setAllowErrorRecovery(bool NewValue) { AllowErrorRecovery = NewValue; }
+
+  bool getAllowUninitializedGlobals() const {
+    return AllowUninitializedGlobals;
+  }
+  void setAllowUninitializedGlobals(bool NewValue) {
+    AllowUninitializedGlobals = NewValue;
+  }
+
+  bool getDataSections() const { return DataSections; }
+  void setDataSections(bool NewValue) { DataSections = NewValue; }
+
+  bool getDecorateAsm() const { return DecorateAsm; }
+  void setDecorateAsm(bool NewValue) { DecorateAsm = NewValue; }
+
+  bool getDisableInternal() const { return DisableInternal; }
+  void setDisableInternal(bool NewValue) { DisableInternal = NewValue; }
+
+  bool getDisableIRGeneration() const {
+    return ALLOW_DISABLE_IR_GEN && DisableIRGeneration;
+  }
+  void setDisableIRGeneration(bool NewValue) { DisableIRGeneration = NewValue; }
+
+  bool getDisableTranslation() const { return DisableTranslation; }
+  void setDisableTranslation(bool NewValue) { DisableTranslation = NewValue; }
+
+  bool getDumpStats() const { return ALLOW_DUMP && DumpStats; }
+  void setDumpStats(bool NewValue) { DumpStats = NewValue; }
+
+  bool getFunctionSections() const { return FunctionSections; }
+  void setFunctionSections(bool NewValue) { FunctionSections = NewValue; }
+
+  bool getGenerateUnitTestMessages() const {
+    // Note: If dump routines have been turned off, the error messages
+    // will not be readable. Hence, turn off.
+    return !ALLOW_DUMP || GenerateUnitTestMessages;
+  }
+  void setGenerateUnitTestMessages(bool NewValue) {
+    GenerateUnitTestMessages = NewValue;
+  }
+
+  bool getPhiEdgeSplit() const { return PhiEdgeSplit; }
+  void setPhiEdgeSplit(bool NewValue) { PhiEdgeSplit = NewValue; }
+
+  bool getStubConstantCalls() const {
+    return !ALLOW_MINIMAL_BUILD && StubConstantCalls;
+  }
+  void setStubConstantCalls(bool NewValue) { StubConstantCalls = NewValue; }
+
+  bool getSubzeroTimingEnabled() const { return SubzeroTimingEnabled; }
+  void setSubzeroTimingEnabled(bool NewValue) {
+    SubzeroTimingEnabled = NewValue;
+  }
+
+  bool getTimeEachFunction() const { return ALLOW_DUMP && TimeEachFunction; }
+  void setTimeEachFunction(bool NewValue) { TimeEachFunction = NewValue; }
+
+  bool getUseELFWriter() const { return UseELFWriter; }
+  void setUseELFWriter(bool NewValue) { UseELFWriter = NewValue; }
+
+  bool getUseIntegratedAssembler() const { return UseIntegratedAssembler; }
+  void setUseIntegratedAssembler(bool NewValue) {
+    UseIntegratedAssembler = NewValue;
+  }
+
+  bool getUseSandboxing() const { return UseSandboxing; }
+  void setUseSandboxing(bool NewValue) { UseSandboxing = NewValue; }
+
+  // IceString accessors.
+
+  const IceString &getDefaultFunctionPrefix() const {
+    return DefaultFunctionPrefix;
+  }
+  void setDefaultFunctionPrefix(const IceString &NewValue) {
+    DefaultFunctionPrefix = NewValue;
+  }
+
+  const IceString &getDefaultGlobalPrefix() const {
+    return DefaultGlobalPrefix;
+  }
+  void setDefaultGlobalPrefix(const IceString &NewValue) {
+    DefaultGlobalPrefix = NewValue;
+  }
+
+  const IceString &getTimingFocusOn() const { return TimingFocusOn; }
+  void setTimingFocusOn(const IceString &NewValue) { TimingFocusOn = NewValue; }
+
+  const IceString &getTranslateOnly() const { return TranslateOnly; }
+  void setTranslateOnly(const IceString &NewValue) { TranslateOnly = NewValue; }
+
+  const IceString &getVerboseFocusOn() const { return VerboseFocusOn; }
+  void setVerboseFocusOn(const IceString &NewValue) {
+    VerboseFocusOn = NewValue;
+  }
+
+  // size_t accessors.
+
+  size_t getNumTranslationThreads() const { return NumTranslationThreads; }
+  void setNumTranslationThreads(size_t NewValue) {
+    NumTranslationThreads = NewValue;
+  }
+
+private:
+  bool AllowErrorRecovery;
+  bool AllowUninitializedGlobals;
   bool DataSections;
+  bool DecorateAsm;
+  bool DisableInternal;
+  bool DisableIRGeneration;
+  bool DisableTranslation;
+  bool DumpStats;
+  bool FunctionSections;
+  bool GenerateUnitTestMessages;
+  bool PhiEdgeSplit;
+  bool StubConstantCalls;
+  bool SubzeroTimingEnabled;
+  bool TimeEachFunction;
   bool UseELFWriter;
   bool UseIntegratedAssembler;
   bool UseSandboxing;
-  bool PhiEdgeSplit;
-  bool DecorateAsm;
-  bool DumpStats;
-  bool AllowUninitializedGlobals;
-  bool TimeEachFunction;
-  bool DisableIRGeneration;
-  bool AllowErrorRecovery;
-  bool StubConstantCalls;
-  bool GenerateUnitTestMessages;
-  size_t NumTranslationThreads; // 0 means completely sequential
-  IceString DefaultGlobalPrefix;
+
   IceString DefaultFunctionPrefix;
+  IceString DefaultGlobalPrefix;
   IceString TimingFocusOn;
-  IceString VerboseFocusOn;
   IceString TranslateOnly;
+  IceString VerboseFocusOn;
+
+  size_t NumTranslationThreads; // 0 means completely sequential
 };
 
 } // end of namespace Ice

@@ -26,8 +26,8 @@ bool IceTest::SubzeroBitcodeMunger::runTest(const char *TestName,
   setupTest(TestName, Munges, MungeSize, AddHeader);
 
   Ice::ClFlags Flags;
-  Flags.AllowErrorRecovery = true;
-  Flags.GenerateUnitTestMessages = true;
+  Flags.setAllowErrorRecovery(true);
+  Flags.setGenerateUnitTestMessages(true);
   Ice::GlobalContext Ctx(DumpStream, DumpStream, nullptr,
                          Ice::IceV_Instructions, Ice::Target_X8632, Ice::Opt_m1,
                          "", Flags);

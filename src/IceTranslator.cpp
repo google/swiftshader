@@ -55,7 +55,7 @@ bool Translator::checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
 
 void Translator::translateFcn(std::unique_ptr<Cfg> Func) {
   Ctx->cfgQueueBlockingPush(std::move(Func));
-  if (Ctx->getFlags().NumTranslationThreads == 0) {
+  if (Ctx->getFlags().getNumTranslationThreads() == 0) {
     Ctx->translateFunctions();
   }
 }
@@ -73,10 +73,10 @@ void Translator::transferErrorCode() const {
 void
 Translator::lowerGlobals(const VariableDeclarationList &VariableDeclarations) {
   TimerMarker T(TimerStack::TT_emitGlobalInitializers, Ctx);
-  bool DisableTranslation = Ctx->getFlags().DisableTranslation;
-  const bool DumpGlobalVariables =
-      ALLOW_DUMP && Ctx->getVerbose() && Ctx->getFlags().VerboseFocusOn.empty();
-  if (Ctx->getFlags().UseELFWriter) {
+  bool DisableTranslation = Ctx->getFlags().getDisableTranslation();
+  const bool DumpGlobalVariables = ALLOW_DUMP && Ctx->getVerbose() &&
+                                   Ctx->getFlags().getVerboseFocusOn().empty();
+  if (Ctx->getFlags().getUseELFWriter()) {
     // Dump all globals if requested, but don't interleave w/ emission.
     if (DumpGlobalVariables) {
       OstreamLocker L(Ctx);
@@ -87,7 +87,7 @@ Translator::lowerGlobals(const VariableDeclarationList &VariableDeclarations) {
     }
     DataLowering->lowerGlobalsELF(VariableDeclarations);
   } else {
-    const IceString &TranslateOnly = Ctx->getFlags().TranslateOnly;
+    const IceString &TranslateOnly = Ctx->getFlags().getTranslateOnly();
     OstreamLocker L(Ctx);
     Ostream &Stream = Ctx->getStrDump();
     for (const Ice::VariableDeclaration *Global : VariableDeclarations) {
