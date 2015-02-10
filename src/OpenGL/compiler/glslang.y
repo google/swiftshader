@@ -36,7 +36,6 @@ WHICH GENERATES THE GLSL ES PARSER (glslang_tab.cpp AND glslang_tab.h).
 
 #include "SymbolTable.h"
 #include "ParseHelper.h"
-#include "GLSLANG/ShaderLang.h"
 
 #define YYENABLE_NLS 0
 #define YYLTYPE_IS_TRIVIAL 1

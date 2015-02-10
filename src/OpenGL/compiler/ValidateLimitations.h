@@ -4,7 +4,7 @@
 // found in the LICENSE file.
 //
 
-#include "GLSLANG/ShaderLang.h"
+#include "Compiler.h"
 #include "intermediate.h"
 
 class TInfoSinkBase;

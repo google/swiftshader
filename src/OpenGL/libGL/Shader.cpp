@@ -18,8 +18,6 @@
 #include "main.h"
 #include "utilities.h"
 
-#include "GLSLANG/ShaderLang.h"
-
 #include <string>
 
 namespace gl
@@ -158,7 +156,7 @@ TranslatorASM *Shader::createCompiler(ShShaderType type)
 {
 	if(!compilerInitialized)
 	{
-		ShInitialize();
+		InitCompilerGlobals();
 		compilerInitialized = true;
 	}
 
@@ -228,7 +226,7 @@ void Shader::flagForDeletion()
 
 void Shader::releaseCompiler()
 {
-    ShFinalize();
+    FreeCompilerGlobals();
 	compilerInitialized = false;
 }
 

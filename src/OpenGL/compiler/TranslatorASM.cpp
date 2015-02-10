@@ -26,21 +26,3 @@ bool TranslatorASM::translate(TIntermNode* root)
 
 	return parseContext.numErrors() == 0;
 }
-
-//
-// This function must be provided to create the actual
-// compile object used by higher level code.  It returns
-// a subclass of TCompiler.
-//
-TCompiler* ConstructCompiler(ShShaderType type, ShShaderSpec spec)
-{
-    return new TranslatorASM(0, type, spec);
-}
-
-//
-// Delete the compiler made by ConstructCompiler
-//
-void DeleteCompiler(TCompiler* compiler)
-{
-    delete compiler;
-}

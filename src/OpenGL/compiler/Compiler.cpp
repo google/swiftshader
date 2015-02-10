@@ -4,11 +4,13 @@
 // found in the LICENSE file.
 //
 
+#include "Compiler.h"
+
 #include "AnalyzeCallDepth.h"
 #include "Initialize.h"
 #include "InitializeParseContext.h"
+#include "InitializeGlobals.h"
 #include "ParseHelper.h"
-#include "Compiler.h"
 #include "ValidateLimitations.h"
 
 namespace 
@@ -30,6 +32,29 @@ private:
     bool mPushPopAllocator;
 };
 }  // namespace
+
+//
+// Initialize built-in resources with minimum expected values.
+//
+ShBuiltInResources::ShBuiltInResources()
+{
+    // Constants.
+    MaxVertexAttribs = 8;
+    MaxVertexUniformVectors = 128;
+    MaxVaryingVectors = 8;
+    MaxVertexTextureImageUnits = 0;
+    MaxCombinedTextureImageUnits = 8;
+    MaxTextureImageUnits = 8;
+    MaxFragmentUniformVectors = 16;
+    MaxDrawBuffers = 1;
+
+    // Extensions.
+    OES_standard_derivatives = 0;
+	OES_fragment_precision_high = 0;
+    OES_EGL_image_external = 0;
+
+	MaxCallStackDepth = UINT_MAX;
+}
 
 TCompiler::TCompiler(ShShaderType type, ShShaderSpec spec)
     : shaderType(type),
@@ -209,4 +234,27 @@ bool TCompiler::validateLimitations(TIntermNode* root) {
 const TExtensionBehavior& TCompiler::getExtensionBehavior() const
 {
     return extensionBehavior;
+}
+
+bool InitCompilerGlobals()
+{
+    if(!InitializePoolIndex())
+	{
+        assert(0 && "InitCompilerGlobals(): Failed to initalize global pool");
+        return false;
+    }
+
+    if(!InitializeParseContextIndex())
+	{
+        assert(0 && "InitCompilerGlobals(): Failed to initalize parse context");
+        return false;
+    }
+
+    return true;
+}
+
+void FreeCompilerGlobals()
+{
+    FreeParseContextIndex();
+    FreePoolIndex();
 }

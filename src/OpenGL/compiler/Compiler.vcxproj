@@ -201,7 +201,6 @@
     <ClCompile Include="DirectiveHandler.cpp" />
     <ClCompile Include="InfoSink.cpp" />
     <ClCompile Include="Initialize.cpp" />
-    <ClCompile Include="InitializeDll.cpp" />
     <ClCompile Include="InitializeParseContext.cpp" />
     <ClCompile Include="Intermediate.cpp" />
     <ClCompile Include="intermOut.cpp" />
@@ -211,7 +210,6 @@
     <ClCompile Include="parseConst.cpp" />
     <ClCompile Include="ParseHelper.cpp" />
     <ClCompile Include="PoolAlloc.cpp" />
-    <ClCompile Include="ShaderLang.cpp" />
     <ClCompile Include="SymbolTable.cpp" />
     <ClCompile Include="TranslatorASM.cpp" />
     <ClCompile Include="util.cpp" />
@@ -292,7 +290,6 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\GLSLANG\ShaderLang.h" />
     <ClInclude Include="AnalyzeCallDepth.h" />
     <ClInclude Include="BaseTypes.h" />
     <ClInclude Include="Common.h" />
@@ -302,7 +299,6 @@
     <ClInclude Include="Diagnostics.h" />
     <ClInclude Include="InfoSink.h" />
     <ClInclude Include="Initialize.h" />
-    <ClInclude Include="InitializeDll.h" />
     <ClInclude Include="InitializeGlobals.h" />
     <ClInclude Include="InitializeParseContext.h" />
     <ClInclude Include="intermediate.h" />
