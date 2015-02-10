@@ -1184,7 +1184,6 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
 
 TIntermTyped* TIntermediate::promoteConstantUnion(TBasicType promoteTo, TIntermConstantUnion* node)
 {
-    ConstantUnion *rightUnionArray = node->getUnionArrayPointer();
     int size = node->getType().getObjectSize();
 
     ConstantUnion *leftUnionArray = new ConstantUnion[size];
@@ -1195,13 +1194,13 @@ TIntermTyped* TIntermediate::promoteConstantUnion(TBasicType promoteTo, TIntermC
             case EbtFloat:
                 switch (node->getType().getBasicType()) {
                     case EbtInt:
-                        leftUnionArray[i].setFConst(static_cast<float>(rightUnionArray[i].getIConst()));
+                        leftUnionArray[i].setFConst(static_cast<float>(node->getIConst(i)));
                         break;
                     case EbtBool:
-                        leftUnionArray[i].setFConst(static_cast<float>(rightUnionArray[i].getBConst()));
+                        leftUnionArray[i].setFConst(static_cast<float>(node->getBConst(i)));
                         break;
                     case EbtFloat:
-                        leftUnionArray[i] = rightUnionArray[i];
+                        leftUnionArray[i].setFConst(static_cast<float>(node->getFConst(i)));
                         break;
                     default:
                         infoSink.info.message(EPrefixInternalError, "Cannot promote", node->getLine());
@@ -1211,13 +1210,13 @@ TIntermTyped* TIntermediate::promoteConstantUnion(TBasicType promoteTo, TIntermC
             case EbtInt:
                 switch (node->getType().getBasicType()) {
                     case EbtInt:
-                        leftUnionArray[i] = rightUnionArray[i];
+                        leftUnionArray[i].setIConst(static_cast<int>(node->getIConst(i)));
                         break;
                     case EbtBool:
-                        leftUnionArray[i].setIConst(static_cast<int>(rightUnionArray[i].getBConst()));
+                        leftUnionArray[i].setIConst(static_cast<int>(node->getBConst(i)));
                         break;
                     case EbtFloat:
-                        leftUnionArray[i].setIConst(static_cast<int>(rightUnionArray[i].getFConst()));
+                        leftUnionArray[i].setIConst(static_cast<int>(node->getFConst(i)));
                         break;
                     default:
                         infoSink.info.message(EPrefixInternalError, "Cannot promote", node->getLine());
@@ -1227,13 +1226,13 @@ TIntermTyped* TIntermediate::promoteConstantUnion(TBasicType promoteTo, TIntermC
             case EbtBool:
                 switch (node->getType().getBasicType()) {
                     case EbtInt:
-                        leftUnionArray[i].setBConst(rightUnionArray[i].getIConst() != 0);
+                        leftUnionArray[i].setBConst(node->getIConst(i) != 0);
                         break;
                     case EbtBool:
-                        leftUnionArray[i] = rightUnionArray[i];
+                        leftUnionArray[i].setBConst(node->getBConst(i));
                         break;
                     case EbtFloat:
-                        leftUnionArray[i].setBConst(rightUnionArray[i].getFConst() != 0.0f);
+                        leftUnionArray[i].setBConst(node->getFConst(i) != 0.0f);
                         break;
                     default:
                         infoSink.info.message(EPrefixInternalError, "Cannot promote", node->getLine());
