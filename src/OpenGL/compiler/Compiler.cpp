@@ -31,25 +31,19 @@ private:
 };
 }  // namespace
 
-TShHandleBase::TShHandleBase() {
-    allocator.push();
-    SetGlobalPoolAllocator(&allocator);
-}
-
-TShHandleBase::~TShHandleBase() {
-    SetGlobalPoolAllocator(NULL);
-    allocator.popAll();
-}
-
 TCompiler::TCompiler(ShShaderType type, ShShaderSpec spec)
     : shaderType(type),
       shaderSpec(spec),
       maxCallStackDepth(UINT_MAX)
 {
+	allocator.push();
+    SetGlobalPoolAllocator(&allocator);
 }
 
 TCompiler::~TCompiler()
 {
+	SetGlobalPoolAllocator(NULL);
+    allocator.popAll();
 }
 
 bool TCompiler::Init(const ShBuiltInResources& resources)

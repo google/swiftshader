@@ -20,28 +20,12 @@
 #include "InfoSink.h"
 #include "SymbolTable.h"
 
-class TCompiler;
-
-//
-// The base class used to back handles returned to the driver.
-//
-class TShHandleBase {
-public:
-    TShHandleBase();
-    virtual ~TShHandleBase();
-    virtual TCompiler* getAsCompiler() { return 0; }
-
-protected:
-    // Memory allocator. Allocates and tracks memory required by the compiler.
-    // Deallocates all memory when compiler is destructed.
-    TPoolAllocator allocator;
-};
-
 //
 // The base class for the machine dependent compiler to derive from
 // for managing object code from the compile.
 //
-class TCompiler : public TShHandleBase {
+class TCompiler
+{
 public:
     TCompiler(ShShaderType type, ShShaderSpec spec);
     virtual ~TCompiler();
@@ -86,6 +70,10 @@ private:
 
     // Results of compilation.
     TInfoSink infoSink;  // Output sink.
+
+    // Memory allocator. Allocates and tracks memory required by the compiler.
+    // Deallocates all memory when compiler is destructed.
+    TPoolAllocator allocator;
 };
 
 //

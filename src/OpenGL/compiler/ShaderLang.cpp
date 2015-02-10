@@ -64,7 +64,7 @@ void ShInitBuiltInResources(ShBuiltInResources* resources)
 ShHandle ShConstructCompiler(ShShaderType type, ShShaderSpec spec,
                              const ShBuiltInResources* resources)
 {
-    TShHandleBase* base = static_cast<TShHandleBase*>(ConstructCompiler(type, spec));
+    TCompiler* base = ConstructCompiler(type, spec);
     TCompiler* compiler = base->getAsCompiler();
     if (compiler == 0)
         return 0;
@@ -83,7 +83,7 @@ void ShDestruct(ShHandle handle)
     if (handle == 0)
         return;
 
-    TShHandleBase* base = static_cast<TShHandleBase*>(handle);
+    TCompiler* base = static_cast<TCompiler*>(handle);
 
     if (base->getAsCompiler())
         DeleteCompiler(base->getAsCompiler());
@@ -105,7 +105,7 @@ int ShCompile(
     if (handle == 0)
         return 0;
 
-    TShHandleBase* base = reinterpret_cast<TShHandleBase*>(handle);
+    TCompiler* base = reinterpret_cast<TCompiler*>(handle);
     TCompiler* compiler = base->getAsCompiler();
     if (compiler == 0)
         return 0;
@@ -119,7 +119,7 @@ void ShGetInfo(const ShHandle handle, ShShaderInfo pname, int* params)
     if (!handle || !params)
         return;
 
-    TShHandleBase* base = static_cast<TShHandleBase*>(handle);
+    TCompiler* base = static_cast<TCompiler*>(handle);
     TCompiler* compiler = base->getAsCompiler();
     if (!compiler) return;
 
@@ -149,7 +149,7 @@ void ShGetInfoLog(const ShHandle handle, char* infoLog)
     if (!handle || !infoLog)
         return;
 
-    TShHandleBase* base = static_cast<TShHandleBase*>(handle);
+    TCompiler* base = static_cast<TCompiler*>(handle);
     TCompiler* compiler = base->getAsCompiler();
     if (!compiler) return;
 
@@ -165,7 +165,7 @@ void ShGetObjectCode(const ShHandle handle, char* objCode)
     if (!handle || !objCode)
         return;
 
-    TShHandleBase* base = static_cast<TShHandleBase*>(handle);
+    TCompiler* base = static_cast<TCompiler*>(handle);
     TCompiler* compiler = base->getAsCompiler();
     if (!compiler) return;
 
