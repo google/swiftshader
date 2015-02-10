@@ -261,7 +261,7 @@ namespace glsl
 		case EOpIndexDirect:
 			if(visit == PostVisit)
 			{
-				int index = right->getAsConstantUnion()->getUnionArrayPointer()->getIConst();
+				int index = right->getAsConstantUnion()->getIConst(0);
 
 				if(result->isMatrix() || result->isStruct())
  				{
@@ -1498,7 +1498,7 @@ namespace glsl
 
 						if(binary->getOp() == EOpIndexDirect)
 						{
-							parameter.index += right->getAsConstantUnion()->getUnionArrayPointer()->getIConst();
+							parameter.index += right->getAsConstantUnion()->getIConst(0);
 						}
 						else if(binary->getOp() == EOpIndexIndirect)
 						{
@@ -1612,7 +1612,7 @@ namespace glsl
 			{
 			case EOpIndexDirect:
 				{
-					int rightIndex = right->getAsConstantUnion()->getUnionArrayPointer()->getIConst();
+					int rightIndex = right->getAsConstantUnion()->getIConst(0);
 
 					if(left->isRegister())
 					{
@@ -1734,7 +1734,7 @@ namespace glsl
 
 					for(unsigned int i = 0; i < sequence.size(); i++)
 					{
-						int index = sequence[i]->getAsConstantUnion()->getUnionArrayPointer()->getIConst();
+						int index = sequence[i]->getAsConstantUnion()->getIConst(0);
 
 						int element = swizzleElement(leftSwizzle, index);
 						rightMask = rightMask | (1 << element);

@@ -354,7 +354,10 @@ public:
     TIntermConstantUnion(ConstantUnion *unionPointer, const TType& t) : TIntermTyped(t), unionArrayPointer(unionPointer) { }
 
     ConstantUnion* getUnionArrayPointer() const { return unionArrayPointer; }
-    void setUnionArrayPointer(ConstantUnion *c) { unionArrayPointer = c; }
+    
+    int getIConst(int index) const { return unionArrayPointer ? unionArrayPointer[index].getIConst() : 0; }
+    float getFConst(int index) const { return unionArrayPointer ? unionArrayPointer[index].getFConst() : 0.0f; }
+    bool getBConst(int index) const { return unionArrayPointer ? unionArrayPointer[index].getBConst() : false; }
 
     virtual TIntermConstantUnion* getAsConstantUnion()  { return this; }
     virtual void traverse(TIntermTraverser*);

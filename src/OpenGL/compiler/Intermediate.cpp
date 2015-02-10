@@ -410,7 +410,7 @@ TIntermNode* TIntermediate::addSelection(TIntermTyped* cond, TIntermNodePair nod
     //
 
     if (cond->getAsTyped() && cond->getAsTyped()->getAsConstantUnion()) {
-        if (cond->getAsTyped()->getAsConstantUnion()->getUnionArrayPointer()->getBConst() == true)
+        if (cond->getAsConstantUnion()->getBConst(0) == true)
             return nodePair.node1 ? setAggregateOperator(nodePair.node1, EOpSequence, nodePair.node1->getLine()) : NULL;
         else
             return nodePair.node2 ? setAggregateOperator(nodePair.node2, EOpSequence, nodePair.node2->getLine()) : NULL;
@@ -455,7 +455,7 @@ TIntermTyped* TIntermediate::addSelection(TIntermTyped* cond, TIntermTyped* true
     //
 
     if (cond->getAsConstantUnion() && trueBlock->getAsConstantUnion() && falseBlock->getAsConstantUnion()) {
-        if (cond->getAsConstantUnion()->getUnionArrayPointer()->getBConst())
+        if (cond->getAsConstantUnion()->getBConst(0))
             return trueBlock;
         else
             return falseBlock;
