@@ -361,6 +361,9 @@ int glslang_scan(int count, const char* const string[], const int length[],
     {
         context->preprocessor.predefineMacro(iter->first.c_str(), 1);
     }
+
+    context->preprocessor.predefineMacro("GL_FRAGMENT_PRECISION_HIGH", 1);
+
     return 0;
 }
 
