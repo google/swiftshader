@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "31191331_d53cdcf1",
+        "filename": "src/OpenGL/libGL/libGL.def",
+        "patchSetId": 20
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-02-10T18:50:48Z",
+      "side": 1,
+      "message": "This should be libGL",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 17
+      },
+      "revId": "b98309fd5c37600c9143f3545d7640b05e47a56b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
