@@ -73,6 +73,7 @@ TCompiler::~TCompiler()
 
 bool TCompiler::Init(const ShBuiltInResources& resources)
 {
+    shaderVersion = 100;
     maxCallStackDepth = resources.MaxCallStackDepth;
     TScopedPoolAllocator scopedAlloc(&allocator, false);
 
@@ -123,6 +124,9 @@ bool TCompiler::compile(const char* const shaderStrings[],
     bool success =
         (PaParseStrings(numStrings - firstSource, &shaderStrings[firstSource], NULL, &parseContext) == 0) &&
         (parseContext.treeRoot != NULL);
+
+    shaderVersion = parseContext.shaderVersion();
+
     if (success) {
         TIntermNode* root = parseContext.treeRoot;
         success = intermediate.postProcess(root);

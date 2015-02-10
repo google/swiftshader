@@ -65,6 +65,7 @@ struct TParseContext {
     pp::Preprocessor preprocessor;
     void* scanner;
 
+    int shaderVersion() const { return diagnostics.shaderVersion(); }
     int numErrors() const { return diagnostics.numErrors(); }
     TInfoSink& infoSink() { return diagnostics.infoSink(); }
     void error(TSourceLoc loc, const char *reason, const char* token,

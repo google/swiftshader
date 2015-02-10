@@ -11,6 +11,7 @@
 #include "preprocessor/SourceLocation.h"
 
 TDiagnostics::TDiagnostics(TInfoSink& infoSink) :
+    mShaderVersion(100),
     mInfoSink(infoSink),
     mNumErrors(0),
     mNumWarnings(0)
@@ -19,6 +20,11 @@ TDiagnostics::TDiagnostics(TInfoSink& infoSink) :
 
 TDiagnostics::~TDiagnostics()
 {
+}
+
+void TDiagnostics::setShaderVersion(int version)
+{
+    mShaderVersion = version;
 }
 
 void TDiagnostics::writeInfo(Severity severity,

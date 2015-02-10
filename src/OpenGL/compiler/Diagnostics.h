@@ -17,10 +17,13 @@ class TDiagnostics : public pp::Diagnostics
     TDiagnostics(TInfoSink& infoSink);
     virtual ~TDiagnostics();
 
+    int shaderVersion() const { return mShaderVersion; }
     TInfoSink& infoSink() { return mInfoSink; }
 
     int numErrors() const { return mNumErrors; }
     int numWarnings() const { return mNumWarnings; }
+
+    void setShaderVersion(int version);
 
     void writeInfo(Severity severity,
                    const pp::SourceLocation& loc,
@@ -36,6 +39,8 @@ class TDiagnostics : public pp::Diagnostics
                        const std::string& text);
 
   private:
+    int mShaderVersion;
+
     TInfoSink& mInfoSink;
     int mNumErrors;
     int mNumWarnings;

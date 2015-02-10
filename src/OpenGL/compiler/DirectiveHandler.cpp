@@ -148,9 +148,12 @@ void TDirectiveHandler::handleExtension(const pp::SourceLocation& loc,
 void TDirectiveHandler::handleVersion(const pp::SourceLocation& loc,
                                       int version)
 {
-    static const int kVersion = 100;
-
-    if (version != kVersion)
+    if (version == 100 ||
+        version == 300)
+    {
+        mDiagnostics.setShaderVersion(version);
+    }
+    else
     {
         std::stringstream stream;
         stream << version;
