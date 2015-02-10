@@ -10,7 +10,7 @@
 #include "DirectiveHandler.h"
 #include "localintermediate.h"
 #include "preprocessor/Preprocessor.h"
-#include "ShHandle.h"
+#include "Compiler.h"
 #include "SymbolTable.h"
 
 struct TMatrixFields {

@@ -133,9 +133,6 @@
     <ClInclude Include="PoolAlloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ShHandle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SymbolTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -170,6 +167,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AnalyzeCallDepth.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Compiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

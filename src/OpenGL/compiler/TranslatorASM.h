@@ -12,7 +12,7 @@
 #ifndef COMPILER_TRANSLATORASM_H_
 #define COMPILER_TRANSLATORASM_H_
 
-#include "ShHandle.h"
+#include "Compiler.h"
 #include "OutputASM.h"
 
 namespace glsl

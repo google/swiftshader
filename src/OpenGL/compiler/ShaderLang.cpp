@@ -13,7 +13,7 @@
 
 #include "InitializeDll.h"
 #include "preprocessor/length_limits.h"
-#include "ShHandle.h"
+#include "Compiler.h"
 
 #include <limits.h>
 

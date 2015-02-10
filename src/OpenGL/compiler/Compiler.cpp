@@ -8,7 +8,7 @@
 #include "Initialize.h"
 #include "InitializeParseContext.h"
 #include "ParseHelper.h"
-#include "ShHandle.h"
+#include "Compiler.h"
 #include "ValidateLimitations.h"
 
 namespace 

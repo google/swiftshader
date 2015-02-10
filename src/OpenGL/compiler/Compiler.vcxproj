@@ -296,6 +296,7 @@
     <ClInclude Include="AnalyzeCallDepth.h" />
     <ClInclude Include="BaseTypes.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="Compiler.h" />
     <ClInclude Include="ConstantUnion.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="Diagnostics.h" />
@@ -312,7 +313,6 @@
     <ClInclude Include="ParseHelper.h" />
     <ClInclude Include="PoolAlloc.h" />
     <ClInclude Include="Pragma.h" />
-    <ClInclude Include="ShHandle.h" />
     <ClInclude Include="SymbolTable.h" />
     <ClInclude Include="TranslatorASM.h" />
     <ClInclude Include="Types.h" />
