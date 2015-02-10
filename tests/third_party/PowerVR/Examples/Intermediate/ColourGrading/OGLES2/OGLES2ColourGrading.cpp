@@ -158,6 +158,7 @@ class OGLES2ColourGrading : public PVRShell
 
 	// Texture IDs used by the app
 	GLuint	m_uiTextureToRenderTo;
+	GLuint  m_uiDepthToRenderTo;
 
 	// Handle for our FBO and the depth buffer that it requires
 	GLuint m_uiFBO;
@@ -195,6 +196,7 @@ public:
 		m_uiSceneFragShader(0),
 		m_i32OriginalFbo(0),
 		m_uiTextureToRenderTo(0),
+		m_uiDepthToRenderTo(0),
 		m_uiFBO(0),
 		m_uiFBOMultisampled(0),
 		m_uiDepthBufferMultisampled(0),
@@ -521,6 +523,15 @@ bool OGLES2ColourGrading::CreateFBO()
 
 	// Attach the texture to the FBO
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_uiTextureToRenderTo, 0);
+	if(!m_bMultisampledSupported)
+	{
+		glGenTextures(1, &m_uiDepthToRenderTo);
+		glBindTexture(GL_TEXTURE_2D, m_uiDepthToRenderTo);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, PVRShellGet(prefWidth), PVRShellGet(prefHeight), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_uiDepthToRenderTo, 0);
+	}
 
 	// Check that our FBO creation was successful
 	GLuint uStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -690,6 +701,7 @@ bool OGLES2ColourGrading::ReleaseView()
 	glDeleteTextures(1, &m_uiBackgroundTexture);
 	glDeleteTextures(eLast, m_uiLUTs);
 	glDeleteTextures(1, &m_uiTextureToRenderTo);
+	glDeleteTextures(1, &m_uiDepthToRenderTo);
 
 	// Release Vertex buffer object.
 	glDeleteBuffers(1, &m_ui32FullScreenRectVBO);
