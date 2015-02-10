@@ -46,6 +46,30 @@
       "revId": "b98309fd5c37600c9143f3545d7640b05e47a56b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "71bc6b32_2f0b494f",
+        "filename": "src/OpenGL/libGL/libGL.def",
+        "patchSetId": 20
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-02-10T19:20:14Z",
+      "side": 1,
+      "message": "If the name opengl32.dll is permanent (libGL.dll won\u0027t be used anymore) then yes, in that case it should be opengl32.",
+      "parentUuid": "f1121b0d_13baecba",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 17
+      },
+      "revId": "b98309fd5c37600c9143f3545d7640b05e47a56b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
