@@ -7,13 +7,6 @@
 #ifndef _SHHANDLE_INCLUDED_
 #define _SHHANDLE_INCLUDED_
 
-//
-// Machine independent part of the compiler private objects
-// sent as ShHandle to the driver.
-//
-// This should not be included by driver code.
-//
-
 #include "GLSLANG/ShaderLang.h"
 
 #include "ExtensionBehavior.h"

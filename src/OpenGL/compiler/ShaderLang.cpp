@@ -38,137 +38,22 @@ int ShFinalize()
 //
 // Initialize built-in resources with minimum expected values.
 //
-void ShInitBuiltInResources(ShBuiltInResources* resources)
+ShBuiltInResources::ShBuiltInResources()
 {
     // Constants.
-    resources->MaxVertexAttribs = 8;
-    resources->MaxVertexUniformVectors = 128;
-    resources->MaxVaryingVectors = 8;
-    resources->MaxVertexTextureImageUnits = 0;
-    resources->MaxCombinedTextureImageUnits = 8;
-    resources->MaxTextureImageUnits = 8;
-    resources->MaxFragmentUniformVectors = 16;
-    resources->MaxDrawBuffers = 1;
+    MaxVertexAttribs = 8;
+    MaxVertexUniformVectors = 128;
+    MaxVaryingVectors = 8;
+    MaxVertexTextureImageUnits = 0;
+    MaxCombinedTextureImageUnits = 8;
+    MaxTextureImageUnits = 8;
+    MaxFragmentUniformVectors = 16;
+    MaxDrawBuffers = 1;
 
     // Extensions.
-    resources->OES_standard_derivatives = 0;
-	resources->OES_fragment_precision_high = 0;
-    resources->OES_EGL_image_external = 0;
+    OES_standard_derivatives = 0;
+	OES_fragment_precision_high = 0;
+    OES_EGL_image_external = 0;
 
-	resources->MaxCallStackDepth = UINT_MAX;
-}
-
-//
-// Driver calls these to create and destroy compiler objects.
-//
-ShHandle ShConstructCompiler(ShShaderType type, ShShaderSpec spec,
-                             const ShBuiltInResources* resources)
-{
-    TCompiler* base = ConstructCompiler(type, spec);
-    TCompiler* compiler = base->getAsCompiler();
-    if (compiler == 0)
-        return 0;
-
-    // Generate built-in symbol table.
-    if (!compiler->Init(*resources)) {
-        ShDestruct(base);
-        return 0;
-    }
-
-    return reinterpret_cast<void*>(base);
-}
-
-void ShDestruct(ShHandle handle)
-{
-    if (handle == 0)
-        return;
-
-    TCompiler* base = static_cast<TCompiler*>(handle);
-
-    if (base->getAsCompiler())
-        DeleteCompiler(base->getAsCompiler());
-}
-
-//
-// Do an actual compile on the given strings.  The result is left 
-// in the given compile object.
-//
-// Return:  The return value of ShCompile is really boolean, indicating
-// success or failure.
-//
-int ShCompile(
-    const ShHandle handle,
-    const char* const shaderStrings[],
-    const int numStrings,
-    int compileOptions)
-{
-    if (handle == 0)
-        return 0;
-
-    TCompiler* base = reinterpret_cast<TCompiler*>(handle);
-    TCompiler* compiler = base->getAsCompiler();
-    if (compiler == 0)
-        return 0;
-
-    bool success = compiler->compile(shaderStrings, numStrings, compileOptions);
-    return success ? 1 : 0;
-}
-
-void ShGetInfo(const ShHandle handle, ShShaderInfo pname, int* params)
-{
-    if (!handle || !params)
-        return;
-
-    TCompiler* base = static_cast<TCompiler*>(handle);
-    TCompiler* compiler = base->getAsCompiler();
-    if (!compiler) return;
-
-    switch(pname)
-    {
-    case SH_INFO_LOG_LENGTH:
-        *params = compiler->getInfoSink().info.size() + 1;
-        break;
-    case SH_OBJECT_CODE_LENGTH:
-        *params = compiler->getInfoSink().obj.size() + 1;
-        break;
-    case SH_ACTIVE_UNIFORM_MAX_LENGTH:
-        *params = 1 +  MAX_SYMBOL_NAME_LEN;
-        break;
-    case SH_ACTIVE_ATTRIBUTE_MAX_LENGTH:
-        *params = 1 + MAX_SYMBOL_NAME_LEN;
-        break;
-    default: UNREACHABLE();
-    }
-}
-
-//
-// Return any compiler log of messages for the application.
-//
-void ShGetInfoLog(const ShHandle handle, char* infoLog)
-{
-    if (!handle || !infoLog)
-        return;
-
-    TCompiler* base = static_cast<TCompiler*>(handle);
-    TCompiler* compiler = base->getAsCompiler();
-    if (!compiler) return;
-
-    TInfoSink& infoSink = compiler->getInfoSink();
-    strcpy(infoLog, infoSink.info.c_str());
-}
-
-//
-// Return any object code.
-//
-void ShGetObjectCode(const ShHandle handle, char* objCode)
-{
-    if (!handle || !objCode)
-        return;
-
-    TCompiler* base = static_cast<TCompiler*>(handle);
-    TCompiler* compiler = base->getAsCompiler();
-    if (!compiler) return;
-
-    TInfoSink& infoSink = compiler->getInfoSink();
-    strcpy(objCode, infoSink.obj.c_str());
+	MaxCallStackDepth = UINT_MAX;
 }

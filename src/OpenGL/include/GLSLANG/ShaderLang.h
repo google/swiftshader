@@ -69,8 +69,10 @@ int ShFinalize();
 // Implementation dependent built-in resources (constants and extensions).
 // The names for these resources has been obtained by stripping gl_/GL_.
 //
-typedef struct
+struct ShBuiltInResources
 {
+	ShBuiltInResources();
+
     // Constants.
     int MaxVertexAttribs;
     int MaxVertexUniformVectors;
@@ -88,109 +90,7 @@ typedef struct
     int OES_EGL_image_external;
 
     unsigned int MaxCallStackDepth;
-} ShBuiltInResources;
-
-//
-// Initialize built-in resources with minimum expected values.
-//
-void ShInitBuiltInResources(ShBuiltInResources* resources);
-
-//
-// ShHandle held by but opaque to the driver.  It is allocated,
-// managed, and de-allocated by the compiler. It's contents 
-// are defined by and used by the compiler.
-//
-// If handle creation fails, 0 will be returned.
-//
-typedef void* ShHandle;
-
-//
-// Driver calls these to create and destroy compiler objects.
-//
-// Returns the handle of constructed compiler.
-// Parameters:
-// type: Specifies the type of shader - SH_FRAGMENT_SHADER or SH_VERTEX_SHADER.
-// spec: Specifies the language spec the compiler must conform to -
-//       SH_GLES2_SPEC or SH_WEBGL_SPEC.
-// resources: Specifies the built-in resources.
-ShHandle ShConstructCompiler(ShShaderType type, ShShaderSpec spec,
-                             const ShBuiltInResources* resources);
-void ShDestruct(ShHandle handle);
-
-//
-// Compiles the given shader source.
-// If the function succeeds, the return value is nonzero, else zero.
-// Parameters:
-// handle: Specifies the handle of compiler to be used.
-// shaderStrings: Specifies an array of pointers to null-terminated strings
-//                containing the shader source code.
-// numStrings: Specifies the number of elements in shaderStrings array.
-// compileOptions: A mask containing the following parameters:
-// SH_VALIDATE: Validates shader to ensure that it conforms to the spec
-//              specified during compiler construction.
-// SH_VALIDATE_LOOP_INDEXING: Validates loop and indexing in the shader to
-//                            ensure that they do not exceed the minimum
-//                            functionality mandated in GLSL 1.0 spec,
-//                            Appendix A, Section 4 and 5.
-//                            There is no need to specify this parameter when
-//                            compiling for WebGL - it is implied.
-// SH_INTERMEDIATE_TREE: Writes intermediate tree to info log.
-//                       Can be queried by calling ShGetInfoLog().
-// SH_OBJECT_CODE: Translates intermediate tree to glsl or hlsl shader.
-//                 Can be queried by calling ShGetObjectCode().
-// SH_ATTRIBUTES_UNIFORMS: Extracts attributes and uniforms.
-//                         Can be queried by calling ShGetActiveAttrib() and
-//                         ShGetActiveUniform().
-//
-int ShCompile(
-    const ShHandle handle,
-    const char* const shaderStrings[],
-    const int numStrings,
-    int compileOptions
-    );
-
-// Returns a parameter from a compiled shader.
-// Parameters:
-// handle: Specifies the compiler
-// pname: Specifies the parameter to query.
-// The following parameters are defined:
-// SH_INFO_LOG_LENGTH: the number of characters in the information log
-//                     including the null termination character.
-// SH_OBJECT_CODE_LENGTH: the number of characters in the object code
-//                        including the null termination character.
-// SH_ACTIVE_ATTRIBUTES: the number of active attribute variables.
-// SH_ACTIVE_ATTRIBUTE_MAX_LENGTH: the length of the longest active attribute
-//                                 variable name including the null
-//                                 termination character.
-// SH_ACTIVE_UNIFORMS: the number of active uniform variables.
-// SH_ACTIVE_UNIFORM_MAX_LENGTH: the length of the longest active uniform
-//                               variable name including the null
-//                               termination character.
-// SH_MAPPED_NAME_MAX_LENGTH: the length of the mapped variable name including
-//                            the null termination character.
-// 
-// params: Requested parameter
-void ShGetInfo(const ShHandle handle, ShShaderInfo pname, int* params);
-
-// Returns nul-terminated information log for a compiled shader.
-// Parameters:
-// handle: Specifies the compiler
-// infoLog: Specifies an array of characters that is used to return
-//          the information log. It is assumed that infoLog has enough memory
-//          to accomodate the information log. The size of the buffer required
-//          to store the returned information log can be obtained by calling
-//          ShGetInfo with SH_INFO_LOG_LENGTH.
-void ShGetInfoLog(const ShHandle handle, char* infoLog);
-
-// Returns null-terminated object code for a compiled shader.
-// Parameters:
-// handle: Specifies the compiler
-// infoLog: Specifies an array of characters that is used to return
-//          the object code. It is assumed that infoLog has enough memory to
-//          accomodate the object code. The size of the buffer required to
-//          store the returned object code can be obtained by calling
-//          ShGetInfo with SH_OBJECT_CODE_LENGTH.
-void ShGetObjectCode(const ShHandle handle, char* objCode);
+};
 
 #ifdef __cplusplus
 }

@@ -165,7 +165,6 @@ TranslatorASM *Shader::createCompiler(ShShaderType type)
 	TranslatorASM *assembler = new TranslatorASM(this, type, SH_GLES2_SPEC);
 
 	ShBuiltInResources resources;
-	ShInitBuiltInResources(&resources);     
 	resources.MaxVertexAttribs = MAX_VERTEX_ATTRIBS;
 	resources.MaxVertexUniformVectors = MAX_VERTEX_UNIFORM_VECTORS;
 	resources.MaxVaryingVectors = MAX_VARYING_VECTORS;
@@ -382,7 +381,7 @@ void VertexShader::compile()
         source = mSource;
     }
 
-	int success = ShCompile(compiler, &source, 1, SH_OBJECT_CODE);
+	bool success = compiler->compile(&source, 1, SH_OBJECT_CODE);
 
 	if(false)
 	{
@@ -401,10 +400,9 @@ void VertexShader::compile()
 		delete vertexShader;
 		vertexShader = 0;
 
-		int infoLogLen = 0;
-        ShGetInfo(compiler, SH_INFO_LOG_LENGTH, &infoLogLen);
+		int infoLogLen = compiler->getInfoSink().info.size() + 1;
         mInfoLog = new char[infoLogLen];
-        ShGetInfoLog(compiler, mInfoLog);
+        strcpy(mInfoLog, compiler->getInfoSink().info.c_str());
         TRACE("\n%s", mInfoLog);
 	}
 
@@ -468,7 +466,7 @@ void FragmentShader::compile()
         source = mSource;
     }
 
-	int success = ShCompile(compiler, &source, 1, SH_OBJECT_CODE);
+	bool success = compiler->compile(&source, 1, SH_OBJECT_CODE);
 	
 	if(false)
 	{
@@ -487,10 +485,9 @@ void FragmentShader::compile()
 		delete pixelShader;
 		pixelShader = 0;
 
-		int infoLogLen = 0;
-        ShGetInfo(compiler, SH_INFO_LOG_LENGTH, &infoLogLen);
+		int infoLogLen = compiler->getInfoSink().info.size() + 1;
         mInfoLog = new char[infoLogLen];
-        ShGetInfoLog(compiler, mInfoLog);
+        strcpy(mInfoLog, compiler->getInfoSink().info.c_str());
         TRACE("\n%s", mInfoLog);
 	}
 
