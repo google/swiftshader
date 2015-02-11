@@ -400,11 +400,12 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
 			context = es1::createContext(config, shareContext);
 		}
 	}
-	else if(clientVersion == 2 && config->mRenderableType & EGL_OPENGL_ES2_BIT)
+	else if((clientVersion == 2 && config->mRenderableType & EGL_OPENGL_ES2_BIT) ||
+	        (clientVersion == 3 && config->mRenderableType & EGL_OPENGL_ES3_BIT))
 	{
 		if(es2::createContext != 0)
 		{
-			context = es2::createContext(config, shareContext);
+			context = es2::createContext(config, shareContext, clientVersion);
 		}
 	}
 	else

@@ -92,7 +92,7 @@ namespace es1
 // libGLESv2 dependencies
 namespace es2
 {
-	extern egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext);
+	extern egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext, EGLint clientVersion);
 	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);
 }
 

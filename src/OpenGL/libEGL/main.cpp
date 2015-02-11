@@ -104,7 +104,7 @@ CONSTRUCTOR static bool eglAttachProcess()
 	#endif
 
     libGLESv2 = loadLibrary(libGLESv2_lib);
-    es2::createContext = (egl::Context *(*)(const egl::Config*, const egl::Context*))getProcAddress(libGLESv2, "glCreateContext");
+    es2::createContext = (egl::Context *(*)(const egl::Config*, const egl::Context*, EGLint))getProcAddress(libGLESv2, "glCreateContext");
     es2::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLESv2, "glGetProcAddress");
 
 	es::createBackBuffer = (egl::Image *(*)(int, int, const egl::Config*))getProcAddress(libGLES_CM, "createBackBuffer");
@@ -342,7 +342,7 @@ namespace es1
 
 namespace es2
 {
-	egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext) = 0;
+	egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext, EGLint clientVersion) = 0;
 	__eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname) = 0;
 }
 

@@ -109,7 +109,8 @@ es2::Context *getContext()
 {
 	egl::Context *context = egl::getCurrentContext();
 
-	if(context && context->getClientVersion() == 2)
+	if(context && (context->getClientVersion() == 2 ||
+	               context->getClientVersion() == 3))
 	{
 		return static_cast<es2::Context*>(context);
 	}

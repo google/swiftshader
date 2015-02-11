@@ -4086,106 +4086,109 @@ void GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(internalformat != format)
-	{
-		return error(GL_INVALID_OPERATION);
-	}
-
-	switch(format)
-	{
-	case GL_ALPHA:
-	case GL_LUMINANCE:
-	case GL_LUMINANCE_ALPHA:
-		switch(type)
-		{
-		case GL_UNSIGNED_BYTE:
-		case GL_FLOAT:
-		case GL_HALF_FLOAT_OES:
-			break;
-		default:
-			return error(GL_INVALID_ENUM);
-		}
-		break;
-	case GL_RGB:
-		switch(type)
-		{
-		case GL_UNSIGNED_BYTE:
-		case GL_UNSIGNED_SHORT_5_6_5:
-		case GL_FLOAT:
-		case GL_HALF_FLOAT_OES:
-			break;
-		default:
-			return error(GL_INVALID_ENUM);
-		}
-		break;
-	case GL_RGBA:
-		switch(type)
-		{
-		case GL_UNSIGNED_BYTE:
-		case GL_UNSIGNED_SHORT_4_4_4_4:
-		case GL_UNSIGNED_SHORT_5_5_5_1:
-		case GL_FLOAT:
-		case GL_HALF_FLOAT_OES:
-			break;
-		default:
-			return error(GL_INVALID_ENUM);
-		}
-		break;
-	case GL_BGRA_EXT:
-		switch(type)
-		{
-		case GL_UNSIGNED_BYTE:
-			break;
-		default:
-			return error(GL_INVALID_ENUM);
-		}
-		break;
-	case GL_ETC1_RGB8_OES:
-		return error(GL_INVALID_OPERATION);
-	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
-	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-	case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
-	case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
-		if(S3TC_SUPPORT)
-		{
-			return error(GL_INVALID_OPERATION);
-		}
-		else
-		{
-			return error(GL_INVALID_ENUM);
-		}
-	case GL_DEPTH_COMPONENT:
-		switch(type)
-		{
-		case GL_UNSIGNED_SHORT:
-		case GL_UNSIGNED_INT:
-			break;
-		default:
-			return error(GL_INVALID_ENUM);
-		}
-		break;
-	case GL_DEPTH_STENCIL_OES:
-		switch(type)
-		{
-		case GL_UNSIGNED_INT_24_8_OES:
-			break;
-		default:
-			return error(GL_INVALID_ENUM);
-		}
-		break;
-	default:
-		return error(GL_INVALID_VALUE);
-	}
-
-	if(border != 0)
-	{
-		return error(GL_INVALID_VALUE);
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
 	{
+		if(context->getClientVersion() < 3)
+		{
+			if(internalformat != format)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+		}
+
+		switch(format)
+		{
+		case GL_ALPHA:
+		case GL_LUMINANCE:
+		case GL_LUMINANCE_ALPHA:
+			switch(type)
+			{
+			case GL_UNSIGNED_BYTE:
+			case GL_FLOAT:
+			case GL_HALF_FLOAT_OES:
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_RGB:
+			switch(type)
+			{
+			case GL_UNSIGNED_BYTE:
+			case GL_UNSIGNED_SHORT_5_6_5:
+			case GL_FLOAT:
+			case GL_HALF_FLOAT_OES:
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_RGBA:
+			switch(type)
+			{
+			case GL_UNSIGNED_BYTE:
+			case GL_UNSIGNED_SHORT_4_4_4_4:
+			case GL_UNSIGNED_SHORT_5_5_5_1:
+			case GL_FLOAT:
+			case GL_HALF_FLOAT_OES:
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_BGRA_EXT:
+			switch(type)
+			{
+			case GL_UNSIGNED_BYTE:
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_ETC1_RGB8_OES:
+			return error(GL_INVALID_OPERATION);
+		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
+			if(S3TC_SUPPORT)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			else
+			{
+				return error(GL_INVALID_ENUM);
+			}
+		case GL_DEPTH_COMPONENT:
+			switch(type)
+			{
+			case GL_UNSIGNED_SHORT:
+			case GL_UNSIGNED_INT:
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_DEPTH_STENCIL_OES:
+			switch(type)
+			{
+			case GL_UNSIGNED_INT_24_8_OES:
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		default:
+			return error(GL_INVALID_VALUE);
+		}
+
+		if(border != 0)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
 		switch(target)
 		{
 		case GL_TEXTURE_2D:

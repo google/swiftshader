@@ -81,7 +81,7 @@ Config::Config(const DisplayMode &displayMode, EGLint minInterval, EGLint maxInt
     mColorBufferType = EGL_RGB_BUFFER;
     mConfigCaveat = isSlowConfig() ? EGL_SLOW_CONFIG : EGL_NONE;
     mConfigID = 0;
-    mConformant = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT;
+    mConformant = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT | EGL_OPENGL_ES3_BIT;
 
 	switch (depthStencilFormat)
 	{
@@ -139,7 +139,7 @@ Config::Config(const DisplayMode &displayMode, EGLint minInterval, EGLint maxInt
     mNativeRenderable = EGL_FALSE;
     mNativeVisualID = 0;
     mNativeVisualType = 0;
-    mRenderableType = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT;
+    mRenderableType = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT | EGL_OPENGL_ES3_BIT;
     mSampleBuffers = multiSample ? 1 : 0;
     mSamples = multiSample;
     mSurfaceType = EGL_PBUFFER_BIT | EGL_WINDOW_BIT | EGL_SWAP_BEHAVIOR_PRESERVED_BIT;

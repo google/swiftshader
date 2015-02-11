@@ -39,7 +39,8 @@
 
 namespace es2
 {
-Context::Context(const egl::Config *config, const Context *shareContext) : mConfig(config)
+Context::Context(const egl::Config *config, const Context *shareContext, EGLint clientVersion)
+	: mConfig(config), clientVersion(clientVersion)
 {
 	sw::Context *context = new sw::Context();
 	device = new es2::Device(context);
@@ -272,9 +273,9 @@ void Context::destroy()
 	delete this;
 }
 
-int Context::getClientVersion()
+EGLint Context::getClientVersion()
 {
-	return 2;
+	return clientVersion;
 }
 
 // This function will set all of the state-related dirty flags, so that all state is set during next pre-draw.
@@ -3245,8 +3246,8 @@ Device *Context::getDevice()
 // Exported functions for use by EGL
 extern "C"
 {
-	es2::Context *glCreateContext(const egl::Config *config, const es2::Context *shareContext)
+	es2::Context *glCreateContext(const egl::Config *config, const es2::Context *shareContext, int clientVersion)
 	{
-		return new es2::Context(config, shareContext);
+		return new es2::Context(config, shareContext, clientVersion);
 	}
 }
