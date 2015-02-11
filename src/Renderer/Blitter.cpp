@@ -26,15 +26,15 @@ namespace sw
 		delete blitCache;
 	}
 
-	void Blitter::blit(Surface *source, const Rect &sRect, Surface *dest, const Rect &dRect, bool filter)
+	void Blitter::blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter)
 	{
 		if(blitReactor(source, sRect, dest, dRect, filter))
 		{
 			return;
 		}
 
-		source->lockInternal(sRect.x0, sRect.y0, 0, sw::LOCK_READONLY, sw::PUBLIC);
-		dest->lockInternal(dRect.x0, dRect.y0, 0, sw::LOCK_WRITEONLY, sw::PUBLIC);
+		source->lockInternal(sRect.x0, sRect.y0, sRect.slice, sw::LOCK_READONLY, sw::PUBLIC);
+		dest->lockInternal(dRect.x0, dRect.y0, dRect.slice, sw::LOCK_WRITEONLY, sw::PUBLIC);
 
 		float w = 1.0f / (dRect.x1 - dRect.x0) * (sRect.x1 - sRect.x0);
 		float h = 1.0f / (dRect.y1 - dRect.y0) * (sRect.y1 - sRect.y0);
@@ -115,7 +115,7 @@ namespace sw
 		return true;
 	}
 
-	bool Blitter::blitReactor(Surface *source, const Rect &sRect, Surface *dest, const Rect &dRect, bool filter)
+	bool Blitter::blitReactor(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter)
 	{
 		BlitState state;
 
@@ -321,8 +321,8 @@ namespace sw
 
 		BlitData data;
 
-		data.source = source->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
-		data.dest = dest->lockInternal(0, 0, 0, sw::LOCK_WRITEONLY, sw::PUBLIC);
+		data.source = source->lockInternal(0, 0, sRect.slice, sw::LOCK_READONLY, sw::PUBLIC);
+		data.dest = dest->lockInternal(0, 0, dRect.slice, sw::LOCK_WRITEONLY, sw::PUBLIC);
 		data.sPitchB = source->getInternalPitchB();
 		data.dPitchB = dest->getInternalPitchB();
 

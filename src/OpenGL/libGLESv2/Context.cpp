@@ -2874,8 +2874,8 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
         return error(GL_INVALID_OPERATION);
     }
 
-    sw::Rect sourceRect;
-    sw::Rect destRect;
+    sw::SliceRect sourceRect;
+    sw::SliceRect destRect;
 
     if(srcX0 < srcX1)
     {

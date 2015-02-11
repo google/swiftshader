@@ -65,7 +65,7 @@ namespace es1
 		virtual void setScissorRect(const sw::Rect &rect);
 		virtual void setViewport(const Viewport &viewport);
 
-		virtual bool stretchRect(egl::Image *sourceSurface, const sw::Rect *sourceRect, egl::Image *destSurface, const sw::Rect *destRect, bool filter);
+		virtual bool stretchRect(egl::Image *sourceSurface, const sw::SliceRect *sourceRect, egl::Image *destSurface, const sw::SliceRect *destRect, bool filter);
 		virtual void finish();
 
 	private:

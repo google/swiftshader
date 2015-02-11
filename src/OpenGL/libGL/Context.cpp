@@ -2094,7 +2094,7 @@ void Context::applyTextures(sw::SamplerType samplerType)
 				device->setTextureFilter(samplerType, samplerIndex, minFilter);
 			//	device->setTextureFilter(samplerType, samplerIndex, es2sw::ConvertMagFilter(magFilter));
 				device->setMipmapFilter(samplerType, samplerIndex, mipFilter);
-				device->setMaxAnisotropy(samplerType, samplerIndex, (int)maxAnisotropy);
+				device->setMaxAnisotropy(samplerType, samplerIndex, maxAnisotropy);
 
 				applyTexture(samplerType, samplerIndex, texture);
 
@@ -2834,8 +2834,8 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
         return error(GL_INVALID_OPERATION);
     }
 
-    sw::Rect sourceRect;
-    sw::Rect destRect;
+    sw::SliceRect sourceRect;
+    sw::SliceRect destRect;
 
     if(srcX0 < srcX1)
     {

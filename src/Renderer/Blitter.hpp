@@ -27,11 +27,11 @@ namespace sw
 
 		virtual ~Blitter();
 
-		void blit(Surface *source, const Rect &sRect, Surface *dest, const Rect &dRect, bool filter);
+		void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter);
 
 	private:
 		bool read(Float4 &color, Pointer<Byte> element, Format format);
-		bool blitReactor(Surface *source, const Rect &sRect, Surface *dest, const Rect &dRect, bool filter);
+		bool blitReactor(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter);
 
 		struct BlitState
 		{

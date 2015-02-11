@@ -408,7 +408,7 @@ namespace es1
 		this->viewport = viewport;
 	}
 
-	bool Device::stretchRect(egl::Image *source, const sw::Rect *sourceRect, egl::Image *dest, const sw::Rect *destRect, bool filter)
+	bool Device::stretchRect(egl::Image *source, const sw::SliceRect *sourceRect, egl::Image *dest, const sw::SliceRect *destRect, bool filter)
 	{
 		if(!source || !dest || !validRectangle(sourceRect, source) || !validRectangle(destRect, dest))
 		{
@@ -421,8 +421,8 @@ namespace es1
 		int dWidth = dest->getExternalWidth();
 		int dHeight = dest->getExternalHeight();
 
-		Rect sRect;
-		Rect dRect;
+		SliceRect sRect;
+		SliceRect dRect;
 
 		if(sourceRect)
 		{
@@ -464,8 +464,8 @@ namespace es1
 		{
 			if(source->hasDepth())
 			{
-				sw::byte *sourceBuffer = (sw::byte*)source->lockInternal(0, 0, 0, LOCK_READONLY, PUBLIC);
-				sw::byte *destBuffer = (sw::byte*)dest->lockInternal(0, 0, 0, LOCK_DISCARD, PUBLIC);
+				sw::byte *sourceBuffer = (sw::byte*)source->lockInternal(0, 0, sRect.slice, LOCK_READONLY, PUBLIC);
+				sw::byte *destBuffer = (sw::byte*)dest->lockInternal(0, 0, dRect.slice, LOCK_DISCARD, PUBLIC);
 
 				unsigned int width = source->getInternalWidth();
 				unsigned int height = source->getInternalHeight();
@@ -506,8 +506,8 @@ namespace es1
 		}
 		else if(!scaling && equalFormats)
 		{
-			unsigned char *sourceBytes = (unsigned char*)source->lockInternal(sRect.x0, sRect.y0, 0, LOCK_READONLY, PUBLIC);
-			unsigned char *destBytes = (unsigned char*)dest->lockInternal(dRect.x0, dRect.y0, 0, LOCK_READWRITE, PUBLIC);
+			unsigned char *sourceBytes = (unsigned char*)source->lockInternal(sRect.x0, sRect.y0, sRect.slice, LOCK_READONLY, PUBLIC);
+			unsigned char *destBytes = (unsigned char*)dest->lockInternal(dRect.x0, dRect.y0, dRect.slice, LOCK_READWRITE, PUBLIC);
 			unsigned int sourcePitch = source->getInternalPitchB();
 			unsigned int destPitch = dest->getInternalPitchB();
 

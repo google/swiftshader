@@ -4340,8 +4340,8 @@ void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 			texture = context->getTextureCubeMap();
 			break;
 		case GL_TEXTURE_EXTERNAL_OES:
-				texture = context->getTextureExternal();
-				break;
+			texture = context->getTextureExternal();
+			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}

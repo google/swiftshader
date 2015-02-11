@@ -273,8 +273,9 @@ bool Texture::copy(egl::Image *source, const sw::Rect &sourceRect, GLenum destFo
 {
     Device *device = getDevice();
 	
-    sw::Rect destRect = {xoffset, yoffset, xoffset + (sourceRect.x1 - sourceRect.x0), yoffset + (sourceRect.y1 - sourceRect.y0)};
-    bool success = device->stretchRect(source, &sourceRect, dest, &destRect, false);
+    sw::SliceRect destRect(xoffset, yoffset, xoffset + (sourceRect.x1 - sourceRect.x0), yoffset + (sourceRect.y1 - sourceRect.y0), 0);
+    sw::SliceRect sourceSliceRect(sourceRect);
+    bool success = device->stretchRect(source, &sourceSliceRect, dest, &destRect, false);
 
     if(!success)
     {

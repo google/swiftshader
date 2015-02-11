@@ -281,11 +281,11 @@ void Texture::subImageCompressed(GLint xoffset, GLint yoffset, GLint zoffset, GL
     }
 }
 
-bool Texture::copy(egl::Image *source, const sw::Rect &sourceRect, GLenum destFormat, GLint xoffset, GLint yoffset, egl::Image *dest)
+bool Texture::copy(egl::Image *source, const sw::SliceRect &sourceRect, GLenum destFormat, GLint xoffset, GLint yoffset, GLint zoffset, egl::Image *dest)
 {
     Device *device = getDevice();
 	
-    sw::Rect destRect = {xoffset, yoffset, xoffset + (sourceRect.x1 - sourceRect.x0), yoffset + (sourceRect.y1 - sourceRect.y0)};
+    sw::SliceRect destRect(xoffset, yoffset, xoffset + (sourceRect.x1 - sourceRect.x0), yoffset + (sourceRect.y1 - sourceRect.y0), zoffset);
     bool success = device->stretchRect(source, &sourceRect, dest, &destRect, false);
 
     if(!success)
@@ -532,10 +532,10 @@ void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei 
 
     if(width != 0 && height != 0)
     {
-		sw::Rect sourceRect = {x, y, x + width, y + height};
+		sw::SliceRect sourceRect(x, y, x + width, y + height, 0);
 		sourceRect.clip(0, 0, source->getColorbuffer()->getWidth(), source->getColorbuffer()->getHeight());
 
-        copy(renderTarget, sourceRect, format, 0, 0, image[level]);
+        copy(renderTarget, sourceRect, format, 0, 0, 0, image[level]);
     }
 
 	renderTarget->release();
@@ -548,7 +548,7 @@ void Texture2D::copySubImage(GLenum target, GLint level, GLint xoffset, GLint yo
 		return error(GL_INVALID_OPERATION);
 	}
 
-    if(xoffset + width > image[level]->getWidth() || yoffset + height > image[level]->getHeight())
+    if(xoffset + width > image[level]->getWidth() || yoffset + height > image[level]->getHeight() || zoffset != 0)
     {
         return error(GL_INVALID_VALUE);
     }
@@ -561,10 +561,10 @@ void Texture2D::copySubImage(GLenum target, GLint level, GLint xoffset, GLint yo
         return error(GL_OUT_OF_MEMORY);
     }
 
-	sw::Rect sourceRect = {x, y, x + width, y + height};
+	sw::SliceRect sourceRect(x, y, x + width, y + height, 0);
 	sourceRect.clip(0, 0, source->getColorbuffer()->getWidth(), source->getColorbuffer()->getHeight());
 
-	copy(renderTarget, sourceRect, image[level]->getFormat(), xoffset, yoffset, image[level]);
+	copy(renderTarget, sourceRect, image[level]->getFormat(), xoffset, yoffset, zoffset, image[level]);
 
 	renderTarget->release();
 }
@@ -1045,10 +1045,10 @@ void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint 
 
     if(width != 0 && height != 0)
     {
-		sw::Rect sourceRect = {x, y, x + width, y + height};
+		sw::SliceRect sourceRect(x, y, x + width, y + height, 0);
 		sourceRect.clip(0, 0, source->getColorbuffer()->getWidth(), source->getColorbuffer()->getHeight());
         
-        copy(renderTarget, sourceRect, format, 0, 0, image[face][level]);
+        copy(renderTarget, sourceRect, format, 0, 0, 0, image[face][level]);
     }
 
 	renderTarget->release();
@@ -1075,7 +1075,7 @@ void TextureCubeMap::copySubImage(GLenum target, GLint level, GLint xoffset, GLi
 
     GLsizei size = image[face][level]->getWidth();
 
-    if(xoffset + width > size || yoffset + height > size)
+    if(xoffset + width > size || yoffset + height > size || zoffset != 0)
     {
         return error(GL_INVALID_VALUE);
     }
@@ -1088,10 +1088,10 @@ void TextureCubeMap::copySubImage(GLenum target, GLint level, GLint xoffset, GLi
         return error(GL_OUT_OF_MEMORY);
     }
 
-	sw::Rect sourceRect = {x, y, x + width, y + height};
+	sw::SliceRect sourceRect(x, y, x + width, y + height, 0);
 	sourceRect.clip(0, 0, source->getColorbuffer()->getWidth(), source->getColorbuffer()->getHeight());
 
-	copy(renderTarget, sourceRect, image[face][level]->getFormat(), xoffset, yoffset, image[face][level]);
+	copy(renderTarget, sourceRect, image[face][level]->getFormat(), xoffset, yoffset, zoffset, image[face][level]);
 
 	renderTarget->release();
 }
@@ -1375,22 +1375,47 @@ void Texture3D::subImageCompressed(GLint level, GLint xoffset, GLint yoffset, GL
 
 void Texture3D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLint z, GLsizei width, GLsizei height, GLsizei depth, Framebuffer *source)
 {
-	UNIMPLEMENTED();
+	egl::Image *renderTarget = source->getRenderTarget();
+
+	if(!renderTarget)
+	{
+		ERR("Failed to retrieve the render target.");
+		return error(GL_OUT_OF_MEMORY);
+	}
+
+	if(image[level])
+	{
+		image[level]->unbind(this);
+	}
+
+	image[level] = new Image(this, width, height, depth, format, GL_UNSIGNED_BYTE);
+
+	if(!image[level])
+	{
+		return error(GL_OUT_OF_MEMORY);
+	}
+
+	if(width != 0 && height != 0 && depth != 0)
+	{
+		sw::SliceRect sourceRect(x, y, x + width, y + height, z);
+		sourceRect.clip(0, 0, source->getColorbuffer()->getWidth(), source->getColorbuffer()->getHeight());
+		for(GLint sliceZ = 0; sliceZ < depth; ++sliceZ, ++sourceRect.slice)
+		{
+			copy(renderTarget, sourceRect, format, 0, 0, sliceZ, image[level]);
+		}
+	}
+
+	renderTarget->release();
 }
 
 void Texture3D::copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source)
 {
-	if(zoffset != 0)
-	{
-		UNIMPLEMENTED(); // FIXME: add support for copying into a layer other than layer 0
-	}
-
 	if(!image[level])
 	{
 		return error(GL_INVALID_OPERATION);
 	}
 
-	if(xoffset + width > image[level]->getWidth() || yoffset + height > image[level]->getHeight())
+	if(xoffset + width > image[level]->getWidth() || yoffset + height > image[level]->getHeight() || zoffset >= image[level]->getDepth())
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -1403,10 +1428,10 @@ void Texture3D::copySubImage(GLenum target, GLint level, GLint xoffset, GLint yo
 		return error(GL_OUT_OF_MEMORY);
 	}
 
-	sw::Rect sourceRect = { x, y, x + width, y + height };
+	sw::SliceRect sourceRect = {x, y, x + width, y + height, 0};
 	sourceRect.clip(0, 0, source->getColorbuffer()->getWidth(), source->getColorbuffer()->getHeight());
 
-	copy(renderTarget, sourceRect, image[level]->getFormat(), xoffset, yoffset, image[level]);
+	copy(renderTarget, sourceRect, image[level]->getFormat(), xoffset, yoffset, zoffset, image[level]);
 
 	renderTarget->release();
 }

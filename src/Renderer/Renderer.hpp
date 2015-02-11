@@ -270,7 +270,7 @@ namespace sw
 
 		virtual ~Renderer();
 
-		virtual void blit(Surface *source, const Rect &sRect, Surface *dest, const Rect &dRect, bool filter);
+		virtual void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter);
 		virtual void draw(DrawType drawType, unsigned int indexOffset, unsigned int count, bool update = true);
 
 		virtual void setIndexBuffer(Resource *indexBuffer);

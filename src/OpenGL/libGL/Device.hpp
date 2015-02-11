@@ -65,7 +65,7 @@ namespace gl
 		virtual void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		virtual void setViewport(const Viewport &viewport);
 
-		virtual bool stretchRect(Image *sourceSurface, const sw::Rect *sourceRect, Image *destSurface, const sw::Rect *destRect, bool filter);
+		virtual bool stretchRect(Image *sourceSurface, const sw::SliceRect *sourceRect, Image *destSurface, const sw::SliceRect *destRect, bool filter);
 		virtual void finish();
 
 	private:

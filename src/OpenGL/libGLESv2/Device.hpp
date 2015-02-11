@@ -69,7 +69,7 @@ namespace es2
 		virtual void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		virtual void setViewport(const Viewport &viewport);
 
-		virtual bool stretchRect(egl::Image *sourceSurface, const sw::Rect *sourceRect, egl::Image *destSurface, const sw::Rect *destRect, bool filter);
+		virtual bool stretchRect(egl::Image *sourceSurface, const sw::SliceRect *sourceRect, egl::Image *destSurface, const sw::SliceRect *destRect, bool filter);
 		virtual void finish();
 
 	private:

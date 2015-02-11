@@ -22,12 +22,24 @@ namespace sw
 
 	struct Rect
 	{
+		Rect() {}
+		Rect(int x0i, int y0i, int x1i, int y1i) : x0(x0i), y0(y0i), x1(x1i), y1(y1i) {}
+
 		void clip(int minX, int minY, int maxX, int maxY);
 
 		int x0;   // Inclusive
 		int y0;   // Inclusive
 		int x1;   // Exclusive
 		int y1;   // Exclusive
+	};
+
+	struct SliceRect : public Rect
+	{
+		SliceRect() : slice(0) {}
+		SliceRect(const Rect& rect) : Rect(rect), slice(0) {}
+		SliceRect(const Rect& rect, int s) : Rect(rect), slice(s) {}
+		SliceRect(int x0, int y0, int x1, int y1, int s) : Rect(x0, y0, x1, y1), slice(s) {}
+		int slice;
 	};
 
 	enum Format : unsigned char

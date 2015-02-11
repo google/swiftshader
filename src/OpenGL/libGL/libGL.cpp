@@ -5971,7 +5971,7 @@ void APIENTRY glDeleteLists(GLuint list, GLsizei range)
 
 	if(context)
 	{
-		for(int i = list; i < list + range; i++)
+		for(GLuint i = list; i < list + range; i++)
 		{
 			context->deleteList(i);
 		}
