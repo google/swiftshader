@@ -144,29 +144,135 @@ EXPORTS
     glViewport                      @142
 
     ; Extensions
-    glTexImage3DOES                 @143
-    glBlitFramebufferANGLE          @149
-    glRenderbufferStorageMultisampleANGLE @150
-    glDeleteFencesNV                @151
-    glFinishFenceNV                 @152
-    glGenFencesNV                   @153
-    glGetFenceivNV                  @154
-    glIsFenceNV                     @155
-    glSetFenceNV                    @156
-    glTestFenceNV                   @157
-    glGetGraphicsResetStatusEXT     @161
-    glReadnPixelsEXT                @162
-    glGetnUniformfvEXT              @163
-    glGetnUniformivEXT              @164
-	glGenQueriesEXT                 @165
-    glDeleteQueriesEXT              @166
-    glIsQueryEXT                    @167
-    glBeginQueryEXT                 @168
-    glEndQueryEXT                   @169
-    glGetQueryivEXT                 @170
-    glGetQueryObjectuivEXT          @171
+    glTexImage3DOES
+    glBlitFramebufferANGLE
+    glRenderbufferStorageMultisampleANGLE
+    glDeleteFencesNV
+    glFinishFenceNV
+    glGenFencesNV
+    glGetFenceivNV
+    glIsFenceNV
+    glSetFenceNV
+    glTestFenceNV
+    glGetGraphicsResetStatusEXT
+    glReadnPixelsEXT
+    glGetnUniformfvEXT
+    glGetnUniformivEXT
+    glGenQueriesEXT
+    glDeleteQueriesEXT
+    glIsQueryEXT
+    glBeginQueryEXT
+    glEndQueryEXT
+    glGetQueryivEXT
+    glGetQueryObjectuivEXT
 	glEGLImageTargetTexture2DOES
 	glEGLImageTargetRenderbufferStorageOES
+
+    ; GLES 3.0 Functions
+    glReadBuffer                    @211
+    glDrawRangeElements             @212
+    glTexImage3D                    @213
+    glTexSubImage3D                 @214
+    glCopyTexSubImage3D             @215
+    glCompressedTexImage3D          @216
+    glCompressedTexSubImage3D       @217
+    glGenQueries                    @218
+    glDeleteQueries                 @219
+    glIsQuery                       @220
+    glBeginQuery                    @221
+    glEndQuery                      @222
+    glGetQueryiv                    @223
+    glGetQueryObjectuiv             @224
+    glUnmapBuffer                   @204
+    glGetBufferPointerv             @205
+    glDrawBuffers                   @225
+    glUniformMatrix2x3fv            @226
+    glUniformMatrix3x2fv            @227
+    glUniformMatrix2x4fv            @228
+    glUniformMatrix4x2fv            @229
+    glUniformMatrix3x4fv            @230
+    glUniformMatrix4x3fv            @231
+    glBlitFramebuffer               @232
+    glRenderbufferStorageMultisample @305
+    glFramebufferTextureLayer       @233
+    glMapBufferRange                @307
+    glFlushMappedBufferRange        @234
+    glBindVertexArray               @206
+    glDeleteVertexArrays            @207
+    glGenVertexArrays               @208
+    glIsVertexArray                 @209
+    glGetIntegeri_v                 @235
+    glBeginTransformFeedback        @236
+    glEndTransformFeedback          @237
+    glBindBufferRange               @238
+    glBindBufferBase                @239
+    glTransformFeedbackVaryings     @240
+    glGetTransformFeedbackVarying   @241
+    glVertexAttribIPointer          @242
+    glGetVertexAttribIiv            @243
+    glGetVertexAttribIuiv           @244
+    glVertexAttribI4i               @245
+    glVertexAttribI4ui              @246
+    glVertexAttribI4iv              @247
+    glVertexAttribI4uiv             @248
+    glGetUniformuiv                 @249
+    glGetFragDataLocation           @309
+    glUniform1ui                    @250
+    glUniform2ui                    @251
+    glUniform3ui                    @252
+    glUniform4ui                    @253
+    glUniform1uiv                   @254
+    glUniform2uiv                   @255
+    glUniform3uiv                   @256
+    glUniform4uiv                   @257
+    glClearBufferiv                 @258
+    glClearBufferuiv                @259
+    glClearBufferfv                 @260
+    glClearBufferfi                 @261
+    glGetStringi                    @262
+    glCopyBufferSubData             @263
+    glGetUniformIndices             @264
+    glGetActiveUniformsiv           @265
+    glGetUniformBlockIndex          @267
+    glGetActiveUniformBlockiv       @268
+    glGetActiveUniformBlockName     @269
+    glUniformBlockBinding           @270
+    glDrawArraysInstanced           @271
+    glDrawElementsInstanced         @272
+    glFenceSync                     @273
+    glIsSync                        @274
+    glDeleteSync                    @275
+    glClientWaitSync                @276
+    glWaitSync                      @277
+    glGetInteger64v                 @278
+    glGetSynciv                     @279
+    glGetInteger64i_v               @280
+    glGetBufferParameteri64v        @306
+    glGenSamplers                   @281
+    glDeleteSamplers                @282
+    glIsSampler                     @283
+    glBindSampler                   @284
+    glSamplerParameteri             @285
+    glSamplerParameteriv            @286
+    glSamplerParameterf             @287
+    glSamplerParameterfv            @288
+    glGetSamplerParameteriv         @289
+    glGetSamplerParameterfv         @290
+    glVertexAttribDivisor           @291
+    glBindTransformFeedback         @292
+    glDeleteTransformFeedbacks      @293
+    glGenTransformFeedbacks         @294
+    glIsTransformFeedback           @295
+    glPauseTransformFeedback        @296
+    glResumeTransformFeedback       @297
+    glGetProgramBinary              @299
+    glProgramBinary                 @300
+    glProgramParameteri             @301
+    glInvalidateFramebuffer         @210
+    glInvalidateSubFramebuffer      @302
+    glTexStorage2D                  @303
+    glTexStorage3D                  @304
+    glGetInternalformativ           @308
 
     ; EGL dependencies
     glCreateContext

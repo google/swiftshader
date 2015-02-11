@@ -329,6 +329,7 @@ copy "$(OutDir)libGLESv2.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Plat
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="IndexDataManager.cpp" />
     <ClCompile Include="libGLESv2.cpp" />
+    <ClCompile Include="libGLESv3.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Query.cpp" />
