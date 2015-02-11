@@ -45,6 +45,30 @@
       "revId": "db8d061abd80f2e3e41c1582669eae10b1bfdcd9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "762541ee_67333292",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5186,
+      "author": {
+        "id": 5190
+      },
+      "writtenOn": "2015-02-11T20:06:28Z",
+      "side": 1,
+      "message": "You\u0027re correct-- the ANGLE one doesn\u0027t permit format conversion, stretching/scaling, or flipping, while the NV version does.",
+      "parentUuid": "762541ee_e742822e",
+      "range": {
+        "startLine": 5186,
+        "startChar": 1,
+        "endLine": 5186,
+        "endChar": 23
+      },
+      "revId": "db8d061abd80f2e3e41c1582669eae10b1bfdcd9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
