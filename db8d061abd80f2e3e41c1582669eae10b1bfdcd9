@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "762541ee_a78eca42",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3794,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-11T19:48:35Z",
+      "side": 1,
+      "message": "Are these intended to behave identically in both extensions? In that case we can just have one glRenderBufferStorageMultisample() and have eglGetProcAddress() point both extension function names to that one.",
+      "range": {
+        "startLine": 3794,
+        "startChar": 1,
+        "endLine": 3794,
+        "endChar": 38
+      },
+      "revId": "db8d061abd80f2e3e41c1582669eae10b1bfdcd9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "762541ee_e742822e",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5186,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-11T19:48:35Z",
+      "side": 1,
+      "message": "If I recall correctly these functions do not behave 100% identical; the ANGLE one was created to deal with an ANGLE-specific limitation. If the NV one is more generic, maybe we should keep just that one?",
+      "range": {
+        "startLine": 5186,
+        "startChar": 1,
+        "endLine": 5186,
+        "endChar": 23
+      },
+      "revId": "db8d061abd80f2e3e41c1582669eae10b1bfdcd9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
