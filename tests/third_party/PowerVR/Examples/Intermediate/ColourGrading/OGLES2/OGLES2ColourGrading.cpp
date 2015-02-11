@@ -94,7 +94,7 @@ class OGLES2ColourGrading : public PVRShell
 	{
 		eMultisampleExtension_None,
 		eMultisampleExtension_IMG,
-		eMultisampleExtension_EXT
+		eMultisampleExtension_ANGLE
 	};
 
 	// Print3D object
@@ -179,6 +179,9 @@ class OGLES2ColourGrading : public PVRShell
 	bool m_bMultisampledSupported;
 	EMultisampleExtension m_eMultisampleMode;
 
+	bool m_flipX;
+	bool m_flipY;
+
 public:
 	OGLES2ColourGrading() :
 		m_uiMaskTexture(0),
@@ -203,7 +206,9 @@ public:
 		m_uiColourBufferMultisampled(0),
 		m_ulStartTime(0),
 		m_bDiscard(false),
-		m_bMultisampledSupported(false)
+		m_bMultisampledSupported(false),
+		m_flipX(false),
+		m_flipY(false)
 	{
 	}
 
@@ -494,9 +499,9 @@ bool OGLES2ColourGrading::CreateFBO()
 {
 	// Figure out if the platform supports either EXT or IMG extension
 	m_eMultisampleMode = eMultisampleExtension_IMG;
-	if(m_Extensions.glFramebufferTexture2DMultisampleEXT && m_Extensions.glRenderbufferStorageMultisampleEXT)
+	if(m_Extensions.glRenderbufferStorageMultisampleANGLE)
 	{
-		m_eMultisampleMode = eMultisampleExtension_EXT;
+		m_eMultisampleMode = eMultisampleExtension_ANGLE;
 	}
 
 	GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
@@ -553,17 +558,17 @@ bool OGLES2ColourGrading::CreateFBO()
 		glGenRenderbuffers(1, &m_uiDepthBufferMultisampled);
 		glBindRenderbuffer(GL_RENDERBUFFER, m_uiDepthBufferMultisampled);
 
-		if(m_eMultisampleMode == eMultisampleExtension_EXT)
-			m_Extensions.glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT16, PVRShellGet(prefWidth), PVRShellGet(prefHeight));
+		if(m_eMultisampleMode == eMultisampleExtension_ANGLE)
+			m_Extensions.glRenderbufferStorageMultisampleANGLE(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT16, PVRShellGet(prefWidth), PVRShellGet(prefHeight));
 		else
 			m_Extensions.glRenderbufferStorageMultisampleIMG(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT16, PVRShellGet(prefWidth), PVRShellGet(prefHeight));
 
 		glGenRenderbuffers(1, &m_uiColourBufferMultisampled);
 		glBindRenderbuffer(GL_RENDERBUFFER, m_uiColourBufferMultisampled);
-		if(m_eMultisampleMode == eMultisampleExtension_EXT)
-			m_Extensions.glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER, samples, GL_RGB, PVRShellGet(prefWidth), PVRShellGet(prefHeight));
+		if(m_eMultisampleMode == eMultisampleExtension_ANGLE)
+			m_Extensions.glRenderbufferStorageMultisampleANGLE(GL_RENDERBUFFER, samples, GL_RGB8_OES, PVRShellGet(prefWidth), PVRShellGet(prefHeight));
 		else
-			m_Extensions.glRenderbufferStorageMultisampleIMG(GL_RENDERBUFFER, samples, GL_RGB, PVRShellGet(prefWidth), PVRShellGet(prefHeight));
+			m_Extensions.glRenderbufferStorageMultisampleIMG(GL_RENDERBUFFER, samples, GL_RGB8_OES, PVRShellGet(prefWidth), PVRShellGet(prefHeight));
 
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
@@ -650,7 +655,7 @@ bool OGLES2ColourGrading::InitView()
 	// Create a multisampled FBO if the required extension is supported
 	m_eMultisampleMode = eMultisampleExtension_None;
 	m_bMultisampledSupported = false;
-	m_bMultisampledSupported |= CPVRTgles2Ext::IsGLExtensionSupported("GL_EXT_multisampled_render_to_texture");
+	m_bMultisampledSupported |= CPVRTgles2Ext::IsGLExtensionSupported("GL_ANGLE_framebuffer_multisample");
 	m_bMultisampledSupported |= CPVRTgles2Ext::IsGLExtensionSupported("GL_IMG_multisampled_render_to_texture");
 
 	// Create FBOs
@@ -770,7 +775,15 @@ bool OGLES2ColourGrading::RenderScene()
 		if(m_iCurrentLUT < eA)
 			m_iCurrentLUT = eB;
 	}
-	
+	else if(PVRShellIsKeyPressed(PVRShellKeyNameUP))
+	{
+		m_flipX = !m_flipX;
+	}
+	else if(PVRShellIsKeyPressed(PVRShellKeyNameDOWN))
+	{
+		m_flipY = !m_flipY;
+	}
+
 	// Render to our texture
 	{
 		// Bind our FBO
@@ -852,8 +865,13 @@ bool OGLES2ColourGrading::RenderScene()
 		{
 			glBindFramebuffer(GL_READ_FRAMEBUFFER_NV, m_uiFBOMultisampled);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER_NV, m_uiFBO);
-			return false; // FIXME: fix the multisampling path by adding a blit function below
-			//glBlitFramebuffer(0, 0, PVRShellGet(prefWidth), PVRShellGet(prefHeight), 0, 0, PVRShellGet(prefWidth), PVRShellGet(prefHeight), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			int w = PVRShellGet(prefWidth);
+			int h = PVRShellGet(prefHeight);
+			int destX0 = m_flipX ? w : 0;
+			int destX1 = m_flipX ? 0 : w;
+			int destY0 = m_flipY ? h : 0;
+			int destY1 = m_flipY ? 0 : h;
+			m_Extensions.glBlitFramebufferNV(0, 0, w, h, destX0, destY0, destX1, destY1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		}
 
 		// We are done with rendering to our FBO so switch back to the back buffer.

@@ -2877,38 +2877,54 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
     sw::SliceRect sourceRect;
     sw::SliceRect destRect;
+	bool flipX = (srcX0 < srcX1) ^ (dstX0 < dstX1);
+	bool flipy = (srcY0 < srcY1) ^ (dstY0 < dstY1);
 
     if(srcX0 < srcX1)
     {
         sourceRect.x0 = srcX0;
         sourceRect.x1 = srcX1;
-        destRect.x0 = dstX0;
-        destRect.x1 = dstX1;
     }
     else
     {
         sourceRect.x0 = srcX1;
-        destRect.x0 = dstX1;
         sourceRect.x1 = srcX0;
-        destRect.x1 = dstX0;
     }
 
+	if(dstX0 < dstX1)
+	{
+		destRect.x0 = dstX0;
+		destRect.x1 = dstX1;
+	}
+	else
+	{
+		destRect.x0 = dstX1;
+		destRect.x1 = dstX0;
+	}
+	
     if(srcY0 < srcY1)
     {
         sourceRect.y0 = srcY0;
-        destRect.y0 = dstY0;
         sourceRect.y1 = srcY1;
-        destRect.y1 = dstY1;
     }
     else
     {
         sourceRect.y0 = srcY1;
-        destRect.y0 = dstY1;
         sourceRect.y1 = srcY0;
-        destRect.y1 = dstY0;
     }
 
-    sw::Rect sourceScissoredRect = sourceRect;
+	if(dstY0 < dstY1)
+	{
+		destRect.y0 = dstY0;
+		destRect.y1 = dstY1;
+	}
+	else
+	{
+		destRect.y0 = dstY1;
+		destRect.y1 = dstY0;
+	}
+
+	sw::Rect sourceScissoredRect = sourceRect;
     sw::Rect destScissoredRect = destRect;
 
     if(mState.scissorTest)   // Only write to parts of the destination framebuffer which pass the scissor test
@@ -3023,10 +3039,8 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
                                    readFramebuffer->getColorbufferType() == GL_RENDERBUFFER;
         const bool validDrawType = drawFramebuffer->getColorbufferType() == GL_TEXTURE_2D ||
                                    drawFramebuffer->getColorbufferType() == GL_RENDERBUFFER;
-        if(!validReadType || !validDrawType ||
-           readFramebuffer->getColorbuffer()->getInternalFormat() != drawFramebuffer->getColorbuffer()->getInternalFormat())
+        if(!validReadType || !validDrawType)
         {
-            ERR("Color buffer format conversion in BlitFramebufferANGLE not supported by this implementation");
             return error(GL_INVALID_OPERATION);
         }
         
@@ -3050,8 +3064,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
         {
             if(readFramebuffer->getDepthbuffer() && drawFramebuffer->getDepthbuffer())
             {
-                if(readFramebuffer->getDepthbufferType() != drawFramebuffer->getDepthbufferType() ||
-                   readFramebuffer->getDepthbuffer()->getInternalFormat() != drawFramebuffer->getDepthbuffer()->getInternalFormat())
+                if(readFramebuffer->getDepthbufferType() != drawFramebuffer->getDepthbufferType())
                 {
                     return error(GL_INVALID_OPERATION);
                 }
@@ -3066,8 +3079,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
         {
             if(readFramebuffer->getStencilbuffer() && drawFramebuffer->getStencilbuffer())
             {
-                if(readFramebuffer->getStencilbufferType() != drawFramebuffer->getStencilbufferType() ||
-                   readFramebuffer->getStencilbuffer()->getInternalFormat() != drawFramebuffer->getStencilbuffer()->getInternalFormat())
+                if(readFramebuffer->getStencilbufferType() != drawFramebuffer->getStencilbufferType())
                 {
                     return error(GL_INVALID_OPERATION);
                 }
@@ -3098,6 +3110,15 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
             egl::Image *readRenderTarget = readFramebuffer->getRenderTarget();
             egl::Image *drawRenderTarget = drawFramebuffer->getRenderTarget();
  
+			if(flipX)
+			{
+				swap(destRect.x0, destRect.x1);
+			}
+			if(flipy)
+			{
+				swap(destRect.y0, destRect.y1);
+			}
+
             bool success = device->stretchRect(readRenderTarget, &sourceRect, drawRenderTarget, &destRect, false);
 
             readRenderTarget->release();
@@ -3105,7 +3126,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
             if(!success)
             {
-                ERR("BlitFramebufferANGLE failed.");
+                ERR("BlitFramebuffer failed.");
                 return;
             }
         }
@@ -3116,7 +3137,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
             if(!success)
             {
-                ERR("BlitFramebufferANGLE failed.");
+                ERR("BlitFramebuffer failed.");
                 return;
             }
         }

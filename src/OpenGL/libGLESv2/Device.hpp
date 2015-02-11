@@ -81,6 +81,8 @@ namespace es2
 
 		bool validRectangle(const sw::Rect *rect, egl::Image *surface);
 
+		void copyBuffer(sw::byte *sourceBuffer, sw::byte *destBuffer, unsigned int width, unsigned int height, unsigned int sourcePitch, unsigned int destPitch, unsigned int bytes, bool flipX, bool flipY);
+
 		Viewport viewport;
 		sw::Rect scissorRect;
 		bool scissorEnable;

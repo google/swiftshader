@@ -103,8 +103,9 @@ public:
 	typedef void (GL_APIENTRYP PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
 	typedef void (GL_APIENTRYP PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples);
 	
-	typedef void (GL_APIENTRYP PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXT) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
-	typedef void (GL_APIENTRYP PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXT) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples);
+	typedef void (GL_APIENTRYP PFNGLRENDERBUFFERSTORAGEMULTISAMPLEANGLEPROC) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
+
+	typedef void (GL_APIENTRYP PFNGLBLITFRAMEBUFFERNVPROC) (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 
 	typedef void (GL_APIENTRYP PFNGLTEXIMAGE3DOES) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
 	typedef void (GL_APIENTRYP PFNGLTEXSUBIMAGE3DOES) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid* pixels);
@@ -165,15 +166,23 @@ public:
 	PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG glFramebufferTexture2DMultisampleIMG;
 
 	// GL_EXT_multisampled_render_to_texture
-#if !defined(GL_EXT_multisampled_render_to_texture)
-	#define GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_SAMPLES_EXT           0x8D6C
-	#define GL_RENDERBUFFER_SAMPLES_EXT                             0x8CAB
-	#define GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_EXT               0x8D56
-	#define GL_MAX_SAMPLES_EXT                                      0x8D57
+#if !defined(GL_ANGLE_framebuffer_multisample)
+	#define GL_RENDERBUFFER_SAMPLES_ANGLE               0x8CAB
+	#define GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_ANGLE 0x8D56
+	#define GL_MAX_SAMPLES_ANGLE                        0x8D57
 #endif
-	
-	PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXT glRenderbufferStorageMultisampleEXT;
-	PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXT glFramebufferTexture2DMultisampleEXT;
+
+	PFNGLRENDERBUFFERSTORAGEMULTISAMPLEANGLEPROC glRenderbufferStorageMultisampleANGLE;
+
+	// GL_NV_framebuffer_blit
+#if !defined(GL_NV_framebuffer_blit)
+	#define GL_READ_FRAMEBUFFER_NV            0x8CA8
+	#define GL_DRAW_FRAMEBUFFER_NV            0x8CA9
+	#define GL_DRAW_FRAMEBUFFER_BINDING_NV    0x8CA6
+	#define GL_READ_FRAMEBUFFER_BINDING_NV    0x8CAA
+#endif
+
+	PFNGLBLITFRAMEBUFFERNVPROC glBlitFramebufferNV;
 
 	// GL_OES_texture_3D
 #if !defined(GL_OES_texture_3D)
@@ -184,7 +193,6 @@ public:
 	#define GL_SAMPLER_3D_OES                                       0x8B5F
 	#define GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_3D_ZOFFSET_OES        0x8CD4
 #endif
-
 
 	PFNGLTEXIMAGE3DOES glTexImage3DOES;
 	PFNGLTEXSUBIMAGE3DOES glTexSubImage3DOES;

@@ -51,6 +51,14 @@ inline T clamp(T x, MIN min, MAX max)
     return x < min ? min : (x > max ? max : x);
 }
 
+template<class T>
+inline void swap(T &a, T &b)
+{
+	T t = a;
+	a = b;
+	b = t;
+}
+
 inline float clamp01(float x)
 {
     return clamp(x, 0.0f, 1.0f);

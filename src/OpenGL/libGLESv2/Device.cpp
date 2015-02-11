@@ -470,9 +470,58 @@ namespace es2
 		this->viewport = viewport;
 	}
 
+	void Device::copyBuffer(sw::byte *sourceBuffer, sw::byte *destBuffer, unsigned int width, unsigned int height, unsigned int sourcePitch, unsigned int destPitch, unsigned int bytes, bool flipX, bool flipY)
+	{
+		unsigned int widthB = width * bytes;
+		unsigned int widthMaxB = widthB - 1;
+
+		if(flipX)
+		{
+			if(flipY)
+			{
+				sourceBuffer += (height - 1) * sourcePitch;
+				for(unsigned int y = 0; y < height; ++y, sourceBuffer -= sourcePitch, destBuffer += destPitch)
+				{
+					for(unsigned int x = 0; x < widthB; ++x)
+					{
+						destBuffer[x] = sourceBuffer[widthMaxB - x];
+					}
+				}
+			}
+			else
+			{
+				for(unsigned int y = 0; y < height; ++y, sourceBuffer += sourcePitch, destBuffer += destPitch)
+				{
+					for(unsigned int x = 0; x < widthB; ++x)
+					{
+						destBuffer[x] = sourceBuffer[widthMaxB - x];
+					}
+				}
+			}
+		}
+		else
+		{
+			if(flipY)
+			{
+				sourceBuffer += (height - 1) * sourcePitch;
+				for(unsigned int y = 0; y < height; ++y, sourceBuffer -= sourcePitch, destBuffer += destPitch)
+				{
+					memcpy(destBuffer, sourceBuffer, widthB);
+				}
+			}
+			else
+			{
+				for(unsigned int y = 0; y < height; ++y, sourceBuffer += sourcePitch, destBuffer += destPitch)
+				{
+					memcpy(destBuffer, sourceBuffer, widthB);
+				}
+			}
+		}
+	}
+
 	bool Device::stretchRect(egl::Image *source, const sw::SliceRect *sourceRect, egl::Image *dest, const sw::SliceRect *destRect, bool filter)
 	{
-		if(!source || !dest || !validRectangle(sourceRect, source) || !validRectangle(destRect, dest))
+		if(!source || !dest)
 		{
 			ERR("Invalid parameters");
 			return false;
@@ -483,12 +532,40 @@ namespace es2
 		int dWidth = dest->getExternalWidth();
 		int dHeight = dest->getExternalHeight();
 
+		bool flipX = false;
+		bool flipY = false;
+		if(sourceRect && destRect)
+		{
+			flipX = (sourceRect->x0 < sourceRect->x1) ^ (destRect->x0 < destRect->x1);
+			flipY = (sourceRect->y0 < sourceRect->y1) ^ (destRect->y0 < destRect->y1);
+		}
+		else if(sourceRect)
+		{
+			flipX = (sourceRect->x0 > sourceRect->x1);
+			flipY = (sourceRect->y0 > sourceRect->y1);
+		}
+		else if(destRect)
+		{
+			flipX = (destRect->x0 > destRect->x1);
+			flipY = (destRect->y0 > destRect->y1);
+		}
+
 		SliceRect sRect;
 		SliceRect dRect;
 
 		if(sourceRect)
 		{
 			sRect = *sourceRect;
+
+			if(sRect.x0 > sRect.x1)
+			{
+				swap(sRect.x0, sRect.x1);
+			}
+
+			if(sRect.y0 > sRect.y1)
+			{
+				swap(sRect.y0, sRect.y1);
+			}
 		}
 		else
 		{
@@ -501,6 +578,16 @@ namespace es2
 		if(destRect)
 		{
 			dRect = *destRect;
+
+			if(dRect.x0 > dRect.x1)
+			{
+				swap(dRect.x0, dRect.x1);
+			}
+
+			if(dRect.y0 > dRect.y1)
+			{
+				swap(dRect.y0, dRect.y1);
+			}
 		}
 		else
 		{
@@ -508,6 +595,12 @@ namespace es2
 			dRect.x0 = 0;
 			dRect.y1 = dHeight;
 			dRect.x1 = dWidth;
+		}
+
+		if(!validRectangle(&sRect, source) || !validRectangle(&dRect, dest))
+		{
+			ERR("Invalid parameters");
+			return false;
 		}
 
 		bool scaling = (sRect.x1 - sRect.x0 != dRect.x1 - dRect.x0) || (sRect.y1 - sRect.y0 != dRect.y1 - dRect.y0);
@@ -529,17 +622,7 @@ namespace es2
 				sw::byte *sourceBuffer = (sw::byte*)source->lockInternal(0, 0, sourceRect->slice, LOCK_READONLY, PUBLIC);
 				sw::byte *destBuffer = (sw::byte*)dest->lockInternal(0, 0, destRect->slice, LOCK_DISCARD, PUBLIC);
 
-				unsigned int width = source->getInternalWidth();
-				unsigned int height = source->getInternalHeight();
-				unsigned int pitch = source->getInternalPitchB();
-
-				for(unsigned int y = 0; y < height; y++)
-				{
-					memcpy(destBuffer, sourceBuffer, pitch);   // FIXME: Only copy width * bytes
-
-					sourceBuffer += pitch;
-					destBuffer += pitch;
-				}
+				copyBuffer(sourceBuffer, destBuffer, source->getInternalWidth(), source->getInternalHeight(), source->getInternalPitchB(), dest->getInternalPitchB(), Image::bytes(source->getInternalFormat()), flipX, flipY);
 
 				source->unlockInternal();
 				dest->unlockInternal();
@@ -550,17 +633,7 @@ namespace es2
 				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(0, PUBLIC);
 				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(0, PUBLIC);
 
-				unsigned int width = source->getInternalWidth();
-				unsigned int height = source->getInternalHeight();
-				unsigned int pitch = source->getStencilPitchB();
-
-				for(unsigned int y = 0; y < height; y++)
-				{
-					memcpy(destBuffer, sourceBuffer, pitch);   // FIXME: Only copy width * bytes
-
-					sourceBuffer += pitch;
-					destBuffer += pitch;
-				}
+				copyBuffer(sourceBuffer, destBuffer, source->getInternalWidth(), source->getInternalHeight(), source->getInternalPitchB(), dest->getInternalPitchB(), Image::bytes(source->getInternalFormat()), flipX, flipY);
 
 				source->unlockStencil();
 				dest->unlockStencil();
@@ -575,22 +648,18 @@ namespace es2
 
 			unsigned int width = dRect.x1 - dRect.x0;
 			unsigned int height = dRect.y1 - dRect.y0;
-			unsigned int bytes = width * Image::bytes(source->getInternalFormat());
 
-			for(unsigned int y = 0; y < height; y++)
+			copyBuffer(sourceBytes, destBytes, width, height, sourcePitch, destPitch, Image::bytes(source->getInternalFormat()), flipX, flipY);
+
+			if(alpha0xFF)
 			{
-				memcpy(destBytes, sourceBytes, bytes);
-
-				if(alpha0xFF)
+				for(unsigned int y = 0; y < height; ++y, destBytes += destPitch)
 				{
-					for(unsigned int x = 0; x < width; x++)
+					for(unsigned int x = 0; x < width; ++x)
 					{
 						destBytes[4 * x + 3] = 0xFF;
 					}
 				}
-				
-				sourceBytes += sourcePitch;
-				destBytes += destPitch;
 			}
 
 			source->unlockInternal();
@@ -598,6 +667,14 @@ namespace es2
 		}
 		else
 		{
+			if(flipX)
+			{
+				swap(dRect.x0, dRect.x1);
+			}
+			if(flipY)
+			{
+				swap(dRect.y0, dRect.y1);
+			}
 			blit(source, sRect, dest, dRect, scaling && filter);
 		}
 
