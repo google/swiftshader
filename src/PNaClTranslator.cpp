@@ -1150,7 +1150,8 @@ public:
     }
 
     if (!isIRGenerationDisabled())
-      Func = Ice::Cfg::create(getTranslator().getContext());
+      Func = Ice::Cfg::create(getTranslator().getContext(),
+                              getTranslator().getNextSequenceNumber());
     Ice::Cfg::setCurrentCfg(Func.get());
 
     // TODO(kschimpf) Clean up API to add a function signature to
@@ -1185,7 +1186,7 @@ public:
     // translation of all remaining functions. This allows successive
     // parsing errors to be reported, without adding extra checks to
     // the translator for such parsing errors.
-    if (Context->getNumErrors() == 0) {
+    if (Context->getNumErrors() == 0 && Func) {
       getTranslator().translateFcn(std::move(Func));
       // The translator now has ownership of Func.
     } else {
@@ -2863,10 +2864,7 @@ private:
     if (!GlobalDeclarationNamesAndInitializersInstalled) {
       Context->installGlobalNames();
       Context->createValueIDs();
-      std::unique_ptr<Ice::VariableDeclarationList> DeclsPtr =
-          Context->getGlobalVariables();
-      const Ice::VariableDeclarationList &Decls = *DeclsPtr;
-      getTranslator().lowerGlobals(Decls);
+      getTranslator().lowerGlobals(Context->getGlobalVariables());
       GlobalDeclarationNamesAndInitializersInstalled = true;
     }
   }

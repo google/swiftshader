@@ -6,8 +6,8 @@
 
 ; REQUIRES: allow_dump
 
-; RUN: %p2i -i %s --args -O2 --verbose inst | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose inst | FileCheck %s
+; RUN: %p2i -i %s --args -O2 --verbose inst -threads=0 | FileCheck %s
+; RUN: %p2i -i %s --args -Om1 --verbose inst -threads=0 | FileCheck %s
 
 define i32 @simple_cond_branch(i32 %foo, i32 %bar) {
 entry:

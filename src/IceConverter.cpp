@@ -84,7 +84,9 @@ public:
       : LLVM2ICEConverter(Converter), Func(nullptr) {}
 
   void convertFunction(const Function *F) {
-    Func = Ice::Cfg::create(Ctx);
+    if (Ctx->isIRGenerationDisabled())
+      return;
+    Func = Ice::Cfg::create(Ctx, Converter.getNextSequenceNumber());
     Ice::Cfg::setCurrentCfg(Func.get());
 
     VarMap.clear();
@@ -658,10 +660,10 @@ public:
       : LLVM2ICEConverter(Converter) {}
 
   /// Converts global variables, and their initializers into ICE
-  /// global variable declarations, for module Mod. Puts corresponding
-  /// converted declarations into VariableDeclarations.
-  void convertGlobalsToIce(Module *Mod,
-                           Ice::VariableDeclarationList &VariableDeclarations);
+  /// global variable declarations, for module Mod. Returns the set of
+  /// converted declarations.
+  std::unique_ptr<Ice::VariableDeclarationList>
+  convertGlobalsToIce(Module *Mod);
 
 private:
   // Adds the Initializer to the list of initializers for the Global
@@ -696,8 +698,10 @@ private:
   }
 };
 
-void LLVM2ICEGlobalsConverter::convertGlobalsToIce(
-    Module *Mod, Ice::VariableDeclarationList &VariableDeclarations) {
+std::unique_ptr<Ice::VariableDeclarationList>
+LLVM2ICEGlobalsConverter::convertGlobalsToIce(Module *Mod) {
+  std::unique_ptr<Ice::VariableDeclarationList> VariableDeclarations(
+      new Ice::VariableDeclarationList);
   for (Module::const_global_iterator I = Mod->global_begin(),
                                      E = Mod->global_end();
        I != E; ++I) {
@@ -706,7 +710,7 @@ void LLVM2ICEGlobalsConverter::convertGlobalsToIce(
 
     Ice::GlobalDeclaration *Var = getConverter().getGlobalDeclaration(GV);
     Ice::VariableDeclaration *VarDecl = cast<Ice::VariableDeclaration>(Var);
-    VariableDeclarations.push_back(VarDecl);
+    VariableDeclarations->push_back(VarDecl);
 
     if (!GV->hasInternalLinkage() && GV->hasInitializer()) {
       std::string Buffer;
@@ -739,6 +743,7 @@ void LLVM2ICEGlobalsConverter::convertGlobalsToIce(
       addGlobalInitializer(*VarDecl, Initializer);
     }
   }
+  return std::move(VariableDeclarations);
 }
 
 void LLVM2ICEGlobalsConverter::addGlobalInitializer(
@@ -801,7 +806,7 @@ void LLVM2ICEGlobalsConverter::addGlobalInitializer(
 namespace Ice {
 
 void Converter::nameUnnamedGlobalVariables(Module *Mod) {
-  const IceString &GlobalPrefix = Flags.getDefaultGlobalPrefix();
+  const IceString &GlobalPrefix = Ctx->getFlags().getDefaultGlobalPrefix();
   if (GlobalPrefix.empty())
     return;
   uint32_t NameIndex = 0;
@@ -816,7 +821,7 @@ void Converter::nameUnnamedGlobalVariables(Module *Mod) {
 }
 
 void Converter::nameUnnamedFunctions(Module *Mod) {
-  const IceString &FunctionPrefix = Flags.getDefaultFunctionPrefix();
+  const IceString &FunctionPrefix = Ctx->getFlags().getDefaultFunctionPrefix();
   if (FunctionPrefix.empty())
     return;
   uint32_t NameIndex = 0;
@@ -882,10 +887,7 @@ void Converter::installGlobalDeclarations(Module *Mod) {
 }
 
 void Converter::convertGlobals(Module *Mod) {
-  LLVM2ICEGlobalsConverter GlobalsConverter(*this);
-  VariableDeclarationList VariableDeclarations;
-  GlobalsConverter.convertGlobalsToIce(Mod, VariableDeclarations);
-  lowerGlobals(VariableDeclarations);
+  lowerGlobals(LLVM2ICEGlobalsConverter(*this).convertGlobalsToIce(Mod));
 }
 
 void Converter::convertFunctions() {

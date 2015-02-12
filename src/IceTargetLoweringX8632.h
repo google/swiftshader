@@ -497,14 +497,14 @@ public:
     return new TargetDataX8632(Ctx);
   }
 
-  void lowerGlobal(const VariableDeclaration &Var) const final;
-  void lowerGlobalsELF(const VariableDeclarationList &Vars) const final;
-  void lowerConstants(GlobalContext *Ctx) const final;
+  void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) const final;
+  void lowerConstants() const final;
 
 protected:
   TargetDataX8632(GlobalContext *Ctx);
 
 private:
+  void lowerGlobal(const VariableDeclaration &Var) const;
   ~TargetDataX8632() override {}
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };

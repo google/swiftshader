@@ -30,8 +30,7 @@ class PNaClTranslator : public Translator {
   PNaClTranslator &operator=(const PNaClTranslator &) = delete;
 
 public:
-  PNaClTranslator(GlobalContext *Ctx, const ClFlags &Flags)
-      : Translator(Ctx, Flags) {}
+  PNaClTranslator(GlobalContext *Ctx) : Translator(Ctx) {}
 
   // Reads the PNaCl bitcode file and translates to ICE, which is then
   // converted to machine code. Sets ErrorStatus to 1 if any errors

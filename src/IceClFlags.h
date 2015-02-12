@@ -140,6 +140,7 @@ public:
   // size_t accessors.
 
   size_t getNumTranslationThreads() const { return NumTranslationThreads; }
+  bool isSequential() const { return NumTranslationThreads == 0; }
   void setNumTranslationThreads(size_t NewValue) {
     NumTranslationThreads = NewValue;
   }

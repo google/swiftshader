@@ -893,7 +893,7 @@ void CfgNode::emit(Cfg *Func) const {
 
 void CfgNode::emitIAS(Cfg *Func) const {
   Func->setCurrentNode(this);
-  Assembler *Asm = Func->getAssembler<Assembler>();
+  Assembler *Asm = Func->getAssembler<>();
   Asm->BindCfgNodeLabel(getIndex());
   for (const Inst &I : Phis) {
     if (I.isDeleted())

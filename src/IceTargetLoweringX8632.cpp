@@ -4639,10 +4639,20 @@ void TargetDataX8632::lowerGlobal(const VariableDeclaration &Var) const {
   Str << "\t.size\t" << MangledName << ", " << Size << "\n";
 }
 
-void
-TargetDataX8632::lowerGlobalsELF(const VariableDeclarationList &Vars) const {
-  ELFObjectWriter *Writer = Ctx->getObjectWriter();
-  Writer->writeDataSection(Vars, llvm::ELF::R_386_32);
+void TargetDataX8632::lowerGlobals(
+    std::unique_ptr<VariableDeclarationList> Vars) const {
+  if (Ctx->getFlags().getUseELFWriter()) {
+    ELFObjectWriter *Writer = Ctx->getObjectWriter();
+    Writer->writeDataSection(*Vars, llvm::ELF::R_386_32);
+  } else {
+    const IceString &TranslateOnly = Ctx->getFlags().getTranslateOnly();
+    OstreamLocker L(Ctx);
+    for (const VariableDeclaration *Var : *Vars) {
+      if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
+        lowerGlobal(*Var);
+      }
+    }
+  }
 }
 
 template <typename T> struct PoolTypeConverter {};
@@ -4701,7 +4711,7 @@ void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
   }
 }
 
-void TargetDataX8632::lowerConstants(GlobalContext *Ctx) const {
+void TargetDataX8632::lowerConstants() const {
   if (Ctx->getFlags().getDisableTranslation())
     return;
   // No need to emit constants from the int pool since (for x86) they

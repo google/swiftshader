@@ -149,7 +149,7 @@ class Assembler {
   Assembler &operator=(const Assembler &) = delete;
 
 public:
-  Assembler() : buffer_(*this) {}
+  Assembler() : FunctionName(""), IsInternal(false), buffer_(*this) {}
   virtual ~Assembler() {}
 
   // Allocate a chunk of bytes using the per-Assembler allocator.
@@ -190,9 +190,18 @@ public:
   }
 
   void emitIASBytes(GlobalContext *Ctx) const;
+  bool getInternal() const { return IsInternal; }
+  void setInternal(bool Internal) { IsInternal = Internal; }
+  const IceString &getFunctionName() { return FunctionName; }
+  void setFunctionName(const IceString &NewName) { FunctionName = NewName; }
 
 private:
   ArenaAllocator<32 * 1024> Allocator;
+  // FunctionName and IsInternal are transferred from the original Cfg
+  // object, since the Cfg object may be deleted by the time the
+  // assembler buffer is emitted.
+  IceString FunctionName;
+  bool IsInternal;
 
 protected:
   AssemblerBuffer buffer_;

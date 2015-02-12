@@ -7,11 +7,14 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file declares the TargetLowering and LoweringContext
-// classes.  TargetLowering is an abstract class used to drive the
-// translation/lowering process.  LoweringContext maintains a
-// context for lowering each instruction, offering conveniences such
-// as iterating over non-deleted instructions.
+// This file declares the TargetLowering, LoweringContext, and
+// TargetDataLowering classes.  TargetLowering is an abstract class
+// used to drive the translation/lowering process.  LoweringContext
+// maintains a context for lowering each instruction, offering
+// conveniences such as iterating over non-deleted instructions.
+// TargetDataLowering is an abstract class used to drive the
+// lowering/emission of global initializers, external global
+// declarations, and internal constant pools.
 //
 //===----------------------------------------------------------------------===//
 
@@ -247,12 +250,12 @@ class TargetDataLowering {
   TargetDataLowering &operator=(const TargetDataLowering &) = delete;
 
 public:
-  static TargetDataLowering *createLowering(GlobalContext *Ctx);
+  static std::unique_ptr<TargetDataLowering> createLowering(GlobalContext *Ctx);
   virtual ~TargetDataLowering();
 
-  virtual void lowerGlobal(const VariableDeclaration &Var) const = 0;
-  virtual void lowerGlobalsELF(const VariableDeclarationList &Vars) const = 0;
-  virtual void lowerConstants(GlobalContext *Ctx) const = 0;
+  virtual void
+  lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) const = 0;
+  virtual void lowerConstants() const = 0;
 
 protected:
   TargetDataLowering(GlobalContext *Ctx) : Ctx(Ctx) {}

@@ -2,7 +2,7 @@
 
 ; REQUIRES: allow_dump
 
-; RUN: %p2i -i %s --args --verbose inst | FileCheck %s
+; RUN: %p2i -i %s --args --verbose inst -threads=0 | FileCheck %s
 
 define void @store_i64(i32 %addr_arg) {
 entry:

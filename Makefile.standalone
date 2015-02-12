@@ -118,6 +118,7 @@ SRCS = \
 	IceRNG.cpp \
 	IceTargetLowering.cpp \
 	IceTargetLoweringX8632.cpp \
+	IceThreading.cpp \
 	IceTimerTree.cpp \
 	IceTranslator.cpp \
 	IceTypes.cpp \

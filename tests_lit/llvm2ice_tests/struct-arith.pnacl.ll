@@ -3,7 +3,7 @@
 
 ; TODO(kschimpf) Find out why lc2i is needed.
 ; REQUIRES: allow_llvm_ir_as_input
-; RUN: %lc2i -i %s --args --verbose inst | FileCheck %s
+; RUN: %lc2i -i %s --args --verbose inst -threads=0 | FileCheck %s
 
 define internal i32 @compute_important_function(i32 %v1, i32 %v2) {
 entry:

@@ -28,10 +28,11 @@ bool IceTest::SubzeroBitcodeMunger::runTest(const char *TestName,
   Ice::ClFlags Flags;
   Flags.setAllowErrorRecovery(true);
   Flags.setGenerateUnitTestMessages(true);
+  Flags.setUseIntegratedAssembler(true); // for the MINIMAL build
   Ice::GlobalContext Ctx(DumpStream, DumpStream, nullptr,
                          Ice::IceV_Instructions, Ice::Target_X8632, Ice::Opt_m1,
                          "", Flags);
-  Ice::PNaClTranslator Translator(&Ctx, Flags);
+  Ice::PNaClTranslator Translator(&Ctx);
   Translator.translateBuffer(TestName, MungedInput.get());
 
   cleanupTest();

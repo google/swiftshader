@@ -31,10 +31,10 @@ ArenaAllocator<> *getCurrentCfgAllocator() {
   return Cfg::getCurrentCfgAllocator();
 }
 
-Cfg::Cfg(GlobalContext *Ctx)
-    : Ctx(Ctx), VMask(Ctx->getVerbose()), FunctionName(""),
-      ReturnType(IceType_void), IsInternalLinkage(false), HasError(false),
-      FocusedTiming(false), ErrorMessage(""), Entry(nullptr),
+Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
+    : Ctx(Ctx), SequenceNumber(SequenceNumber), VMask(Ctx->getVerbose()),
+      FunctionName(""), ReturnType(IceType_void), IsInternalLinkage(false),
+      HasError(false), FocusedTiming(false), ErrorMessage(""), Entry(nullptr),
       NextInstNumber(Inst::NumberInitial), Allocator(new ArenaAllocator<>()),
       Live(nullptr),
       Target(TargetLowering::createLowering(Ctx->getTargetArch(), this)),
@@ -418,17 +418,20 @@ void Cfg::doBranchOpt() {
 
 // ======================== Dump routines ======================== //
 
-void Cfg::emitTextHeader(const IceString &MangledName) {
+// emitTextHeader() is not target-specific (apart from what is
+// abstracted by the Assembler), so it is defined here rather than in
+// the target lowering class.
+void Cfg::emitTextHeader(const IceString &MangledName, GlobalContext *Ctx,
+                         const Assembler *Asm) {
   // Note: Still used by emit IAS.
   Ostream &Str = Ctx->getStrEmit();
   Str << "\t.text\n";
   if (Ctx->getFlags().getFunctionSections())
     Str << "\t.section\t.text." << MangledName << ",\"ax\",@progbits\n";
-  if (!getInternal() || Ctx->getFlags().getDisableInternal()) {
+  if (!Asm->getInternal() || Ctx->getFlags().getDisableInternal()) {
     Str << "\t.globl\t" << MangledName << "\n";
     Str << "\t.type\t" << MangledName << ",@function\n";
   }
-  Assembler *Asm = getAssembler<Assembler>();
   Str << "\t.p2align " << Asm->getBundleAlignLog2Bytes() << ",0x";
   for (uint8_t I : Asm->getNonExecBundlePadding())
     Str.write_hex(I);
@@ -449,7 +452,7 @@ void Cfg::emit() {
   OstreamLocker L(Ctx);
   Ostream &Str = Ctx->getStrEmit();
   IceString MangledName = getContext()->mangleName(getFunctionName());
-  emitTextHeader(MangledName);
+  emitTextHeader(MangledName, Ctx, getAssembler<>());
   for (CfgNode *Node : Nodes)
     Node->emit(this);
   Str << "\n";
@@ -458,22 +461,10 @@ void Cfg::emit() {
 void Cfg::emitIAS() {
   TimerMarker T(TimerStack::TT_emit, this);
   assert(!Ctx->getFlags().getDecorateAsm());
-  IceString MangledName = getContext()->mangleName(getFunctionName());
   // The emitIAS() routines emit into the internal assembler buffer,
-  // so there's no need to lock the streams until we're ready to call
-  // emitIASBytes().
+  // so there's no need to lock the streams.
   for (CfgNode *Node : Nodes)
     Node->emitIAS(this);
-  // Now write the function to the file and track.
-  if (Ctx->getFlags().getUseELFWriter()) {
-    getAssembler<Assembler>()->alignFunction();
-    Ctx->getObjectWriter()->writeFunctionCode(MangledName, getInternal(),
-                                              getAssembler<Assembler>());
-  } else {
-    OstreamLocker L(Ctx);
-    emitTextHeader(MangledName);
-    getAssembler<Assembler>()->emitIASBytes(Ctx);
-  }
 }
 
 // Dumps the IR with an optional introductory message.

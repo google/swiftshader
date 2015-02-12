@@ -252,19 +252,20 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
   LinearScan.scan(RegMask, RandomizeRegisterAllocation);
 }
 
-TargetDataLowering *TargetDataLowering::createLowering(GlobalContext *Ctx) {
+std::unique_ptr<TargetDataLowering>
+TargetDataLowering::createLowering(GlobalContext *Ctx) {
   // These statements can be #ifdef'd to specialize the code generator
   // to a subset of the available targets.  TODO: use CRTP.
   TargetArch Target = Ctx->getTargetArch();
   if (Target == Target_X8632)
-    return TargetDataX8632::create(Ctx);
+    return std::unique_ptr<TargetDataLowering>(TargetDataX8632::create(Ctx));
 #if 0
   if (Target == Target_X8664)
-    return TargetDataX8664::create(Ctx);
+    return std::unique_ptr<TargetDataLowering>(TargetDataX8664::create(Ctx));
   if (Target == Target_ARM32)
-    return TargetDataARM32::create(Ctx);
+    return std::unique_ptr<TargetDataLowering>(TargetDataARM32::create(Ctx));
   if (Target == Target_ARM64)
-    return TargetDataARM64::create(Ctx);
+    return std::unique_ptr<TargetDataLowering>(TargetDataARM64::create(Ctx));
 #endif
   llvm_unreachable("Unsupported target");
   return nullptr;

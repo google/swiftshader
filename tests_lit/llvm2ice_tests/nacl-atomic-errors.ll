@@ -1,7 +1,8 @@
 ; Test that some errors trigger when the usage of NaCl atomic
 ; intrinsics does not match the required ABI.
 
-; RUN: %p2i -i %s --args --verbose none --exit-success 2>&1 | FileCheck %s
+; RUN: %p2i -i %s --args --verbose none --exit-success -threads=0 2>&1 \
+; RUN:   | FileCheck %s
 
 declare i8 @llvm.nacl.atomic.load.i8(i8*, i32)
 declare i16 @llvm.nacl.atomic.load.i16(i16*, i32)

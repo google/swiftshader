@@ -374,7 +374,7 @@ int main(int argc, char **argv) {
   std::unique_ptr<Ice::Translator> Translator;
   if (BuildOnRead) {
     std::unique_ptr<Ice::PNaClTranslator> PTranslator(
-        new Ice::PNaClTranslator(&Ctx, Flags));
+        new Ice::PNaClTranslator(&Ctx));
     PTranslator->translate(IRFilename);
     Translator.reset(PTranslator.release());
   } else if (ALLOW_LLVM_IR) {
@@ -390,8 +390,7 @@ int main(int argc, char **argv) {
       return GetReturnValue(Ice::EC_Bitcode);
     }
 
-    std::unique_ptr<Ice::Converter> Converter(
-        new Ice::Converter(Mod, &Ctx, Flags));
+    std::unique_ptr<Ice::Converter> Converter(new Ice::Converter(Mod, &Ctx));
     Converter->convertToIce();
     Translator.reset(Converter.release());
   } else {

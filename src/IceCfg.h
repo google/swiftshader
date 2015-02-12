@@ -30,8 +30,9 @@ class Cfg {
 public:
   ~Cfg();
 
-  static std::unique_ptr<Cfg> create(GlobalContext *Ctx) {
-    return std::unique_ptr<Cfg>(new Cfg(Ctx));
+  static std::unique_ptr<Cfg> create(GlobalContext *Ctx,
+                                     uint32_t SequenceNumber) {
+    return std::unique_ptr<Cfg>(new Cfg(Ctx, SequenceNumber));
   }
   // Gets a pointer to the current thread's Cfg.
   static const Cfg *getCurrentCfg() { return ICE_TLS_GET_FIELD(CurrentCfg); }
@@ -45,6 +46,7 @@ public:
   }
 
   GlobalContext *getContext() const { return Ctx; }
+  uint32_t getSequenceNumber() const { return SequenceNumber; }
 
   // Returns true if any of the specified options in the verbose mask
   // are set.  If the argument is omitted, it checks if any verbose
@@ -121,9 +123,10 @@ public:
   TargetLowering *getTarget() const { return Target.get(); }
   VariablesMetadata *getVMetadata() const { return VMetadata.get(); }
   Liveness *getLiveness() const { return Live.get(); }
-  template <typename T> T *getAssembler() const {
+  template <typename T = Assembler> T *getAssembler() const {
     return static_cast<T *>(TargetAssembler.get());
   }
+  Assembler *releaseAssembler() { return TargetAssembler.release(); }
   bool hasComputedFrame() const;
   bool getFocusedTiming() const { return FocusedTiming; }
   void setFocusedTiming() { FocusedTiming = true; }
@@ -159,7 +162,8 @@ public:
 
   void emit();
   void emitIAS();
-  void emitTextHeader(const IceString &MangledName);
+  static void emitTextHeader(const IceString &MangledName, GlobalContext *Ctx,
+                             const Assembler *Asm);
   void dump(const IceString &Message = "");
 
   // Allocate data of type T using the per-Cfg allocator.
@@ -181,9 +185,10 @@ public:
   }
 
 private:
-  Cfg(GlobalContext *Ctx);
+  Cfg(GlobalContext *Ctx, uint32_t SequenceNumber);
 
   GlobalContext *Ctx;
+  uint32_t SequenceNumber; // output order for emission
   VerboseMask VMask;
   IceString FunctionName;
   Type ReturnType;

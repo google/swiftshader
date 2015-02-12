@@ -34,14 +34,14 @@ class Translator {
   Translator &operator=(const Translator &) = delete;
 
 public:
-  Translator(GlobalContext *Ctx, const ClFlags &Flags);
+  Translator(GlobalContext *Ctx);
 
   ~Translator();
   const ErrorCode &getErrorStatus() const { return ErrorStatus; }
 
   GlobalContext *getContext() const { return Ctx; }
 
-  const ClFlags &getFlags() const { return Flags; }
+  const ClFlags &getFlags() const { return Ctx->getFlags(); }
 
   /// Translates the constructed ICE function Fcn to machine code.
   /// Takes ownership of Func.
@@ -56,7 +56,8 @@ public:
 
   /// Lowers the given list of global addresses to target. Generates
   /// list of corresponding variable declarations.
-  void lowerGlobals(const VariableDeclarationList &VariableDeclarations);
+  void
+  lowerGlobals(std::unique_ptr<VariableDeclarationList> VariableDeclarations);
 
   /// Creates a name using the given prefix and corresponding index.
   std::string createUnnamedName(const IceString &Prefix, SizeT Index);
@@ -67,10 +68,11 @@ public:
   bool checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
                               const IceString &Prefix);
 
+  uint32_t getNextSequenceNumber() { return NextSequenceNumber++; }
+
 protected:
   GlobalContext *Ctx;
-  const ClFlags &Flags;
-  std::unique_ptr<TargetDataLowering> DataLowering;
+  uint32_t NextSequenceNumber;
   // Exit status of the translation. False is successful. True otherwise.
   ErrorCode ErrorStatus;
 };
