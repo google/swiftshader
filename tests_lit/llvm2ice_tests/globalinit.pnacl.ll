@@ -2,10 +2,12 @@
 
 ; REQUIRES: allow_dump
 
-; Test -ias=0 to test the lea "hack" until we are fully confident in -ias=1
-; RUN: %p2i -i %s --args --verbose none -ias=0 | FileCheck %s
+; Test -filetype=asm to test the lea "hack" until we are fully confident
+; in -filetype=iasm .
+; RUN: %p2i -i %s --args --verbose none -filetype=asm | FileCheck %s
 
-; Test -ias=1 and try to cross reference instructions w/ the symbol table.
+; Test -filetype=iasm and try to cross reference instructions w/ the
+; symbol table.
 ; RUN: %p2i -i %s --args --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d -r --symbolize -x86-asm-syntax=intel - \

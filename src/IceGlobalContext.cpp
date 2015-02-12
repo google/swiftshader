@@ -158,8 +158,13 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
     newTimerStackID("Per-function summary");
   }
   Timers.initInto(MyTLS->Timers);
-  if (Flags.getUseELFWriter()) {
+  switch (Flags.getOutFileType()) {
+  case FT_Elf:
     ObjectWriter.reset(new ELFObjectWriter(*this, *ELFStr));
+    break;
+  case FT_Asm:
+  case FT_Iasm:
+    break;
   }
 }
 
@@ -193,7 +198,9 @@ void GlobalContext::translateFunctions() {
       getStrDump() << "ICE translation error: " << Func->getError() << "\n";
       Item = new EmitterWorkItem(Func->getSequenceNumber());
     } else {
-      if (getFlags().getUseIntegratedAssembler()) {
+      switch (getFlags().getOutFileType()) {
+      case FT_Elf:
+      case FT_Iasm: {
         Func->emitIAS();
         // The Cfg has already emitted into the assembly buffer, so
         // stats have been fully collected into this thread's TLS.
@@ -204,10 +211,12 @@ void GlobalContext::translateFunctions() {
         Asm->setFunctionName(Func->getFunctionName());
         Asm->setInternal(Func->getInternal());
         Item = new EmitterWorkItem(Func->getSequenceNumber(), Asm);
-      } else {
+      } break;
+      case FT_Asm:
         // The Cfg has not been emitted yet, so stats are not ready
         // to be dumped.
         Item = new EmitterWorkItem(Func->getSequenceNumber(), Func.release());
+        break;
       }
     }
     Cfg::setCurrentCfg(nullptr);
@@ -283,19 +292,25 @@ void GlobalContext::emitItems() {
       std::unique_ptr<Assembler> Asm = Item->getAsm();
       Asm->alignFunction();
       IceString MangledName = mangleName(Asm->getFunctionName());
-      if (getFlags().getUseELFWriter()) {
+      switch (getFlags().getOutFileType()) {
+      case FT_Elf:
         getObjectWriter()->writeFunctionCode(MangledName, Asm->getInternal(),
                                              Asm.get());
-      } else {
+        break;
+      case FT_Iasm: {
         OstreamLocker L(this);
         Cfg::emitTextHeader(MangledName, this, Asm.get());
         Asm->emitIASBytes(this);
+      } break;
+      case FT_Asm:
+        llvm::report_fatal_error("Unexpected FT_Asm");
+        break;
       }
     } break;
     case EmitterWorkItem::WI_Cfg: {
       if (!ALLOW_DUMP)
         llvm::report_fatal_error("WI_Cfg work item created inappropriately");
-      assert(!getFlags().getUseIntegratedAssembler());
+      assert(getFlags().getOutFileType() == FT_Asm);
       std::unique_ptr<Cfg> Func = Item->getCfg();
       // Unfortunately, we have to temporarily install the Cfg in TLS
       // because Variable::asType() uses the allocator to create the

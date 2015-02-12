@@ -184,18 +184,13 @@ static cl::opt<bool> LLVMVerboseErrors(
              "building LLVM IR first"),
     cl::init(false));
 
-static cl::opt<bool>
-    UseIntegratedAssembler("integrated-as",
-                           cl::desc("Use integrated assembler (default yes)"),
-                           cl::init(true));
-
-static cl::alias UseIas("ias", cl::desc("Alias for -integrated-as"),
-                        cl::NotHidden, cl::aliasopt(UseIntegratedAssembler));
-
-static cl::opt<bool>
-    UseELFWriter("elf-writer",
-                 cl::desc("Use ELF writer with the integrated assembler"),
-                 cl::init(false));
+static cl::opt<Ice::FileType> OutFileType(
+    "filetype", cl::desc("Output file type"), cl::init(Ice::FT_Iasm),
+    cl::values(clEnumValN(Ice::FT_Elf, "obj", "Native ELF object ('.o') file"),
+               clEnumValN(Ice::FT_Asm, "asm", "Assembly ('.s') file"),
+               clEnumValN(Ice::FT_Iasm, "iasm",
+                          "Low-level integrated assembly ('.s') file"),
+               clEnumValEnd));
 
 static cl::opt<bool> AlwaysExitSuccess(
     "exit-success", cl::desc("Exit with success status, even if errors found"),
@@ -317,10 +312,9 @@ int main(int argc, char **argv) {
   Flags.setTimeEachFunction(TimeEachFunction);
   Flags.setTimingFocusOn(TimingFocusOn);
   Flags.setTranslateOnly(TranslateOnly);
-  Flags.setUseELFWriter(UseELFWriter);
-  Flags.setUseIntegratedAssembler(UseIntegratedAssembler);
   Flags.setUseSandboxing(UseSandboxing);
   Flags.setVerboseFocusOn(VerboseFocusOn);
+  Flags.setOutFileType(OutFileType);
 
   // Force -build-on-read=0 for .ll files.
   const std::string LLSuffix = ".ll";
@@ -334,7 +328,8 @@ int main(int argc, char **argv) {
   std::unique_ptr<Ice::Ostream> Os;
   std::unique_ptr<Ice::ELFStreamer> ELFStr;
   std::ofstream Ofs;
-  if (UseELFWriter) {
+  switch (OutFileType) {
+  case Ice::FT_Elf: {
     if (OutputFilename == "-") {
       *Ls << "Error: writing binary ELF to stdout is unsupported\n";
       return GetReturnValue(Ice::EC_Args);
@@ -349,7 +344,9 @@ int main(int argc, char **argv) {
       return GetReturnValue(Ice::EC_Args);
     }
     ELFStr.reset(new Ice::ELFStreamer(*FdOs));
-  } else {
+  } break;
+  case Ice::FT_Asm:
+  case Ice::FT_Iasm: {
     if (OutputFilename != "-") {
       Ofs.open(OutputFilename.c_str(), std::ofstream::out);
       Os.reset(new raw_os_ostream(Ofs));
@@ -357,6 +354,7 @@ int main(int argc, char **argv) {
       Os.reset(new raw_os_ostream(std::cout));
     }
     Os->SetUnbuffered();
+  } break;
   }
 
   Ice::GlobalContext Ctx(Ls.get(), Os.get(), ELFStr.get(), VMask, TargetArch,
@@ -364,7 +362,7 @@ int main(int argc, char **argv) {
 
   Ice::TimerMarker T(Ice::TimerStack::TT_szmain, &Ctx);
 
-  if (UseELFWriter) {
+  if (OutFileType == Ice::FT_Elf) {
     Ice::TimerMarker T1(Ice::TimerStack::TT_emit, &Ctx);
     Ctx.getObjectWriter()->writeInitialELFHeader();
   }
@@ -403,7 +401,7 @@ int main(int argc, char **argv) {
   Translator->transferErrorCode();
   Translator->emitConstants();
 
-  if (UseELFWriter) {
+  if (OutFileType == Ice::FT_Elf) {
     Ice::TimerMarker T1(Ice::TimerStack::TT_emit, &Ctx);
     Ctx.getObjectWriter()->setUndefinedSyms(Ctx.getConstantExternSyms());
     Ctx.getObjectWriter()->writeNonUserSections();

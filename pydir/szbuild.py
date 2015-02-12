@@ -80,9 +80,9 @@ def AddOptionalArgs(argparser):
                            help='Optimization level ' +
                                 '(m1 and -1 are equivalent).' +
                                 ' Default %(default)s.')
-    argparser.add_argument('--elf', dest='elf',
-                           action='store_true',
-                           help='Directly generate ELF output')
+    argparser.add_argument('--filetype', default='iasm', dest='filetype',
+                           choices=['obj', 'asm', 'iasm'],
+                           help='Output file type.  Default %(default)s.')
     argparser.add_argument('--verbose', '-v', dest='verbose',
                            action='store_true',
                            help='Display some extra debugging output')
@@ -205,15 +205,15 @@ def ProcessPexe(args, pexe, exe):
         shellcmd([llvm2ice,
                   '-O' + opt_level,
                   '-bitcode-format=pnacl',
-                  '-o', obj_sz if args.elf else asm_sz] +
+                  '-filetype=' + args.filetype,
+                  '-o', obj_sz if args.filetype == 'obj' else asm_sz] +
                  (['-externalize',
                    '-ffunction-sections',
                    '-fdata-sections'] if hybrid else []) +
-                 (['-elf-writer'] if args.elf else []) +
                  args.sz_args +
                  [pexe],
                  echo=args.verbose)
-        if not args.elf:
+        if args.filetype != 'obj':
             shellcmd((
                 'llvm-mc -arch=x86 -filetype=obj -o {obj} {asm}'
                 ).format(asm=asm_sz, obj=obj_sz), echo=args.verbose)

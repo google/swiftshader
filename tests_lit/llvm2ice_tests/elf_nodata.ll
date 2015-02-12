@@ -3,7 +3,7 @@
 
 ; For the integrated ELF writer, we can't pipe the output because we need
 ; to seek backward and patch up the file headers. So, use a temporary file.
-; RUN: %p2i -i %s --args -O2 --verbose none -elf-writer -o %t \
+; RUN: %p2i -i %s --args -O2 --verbose none -filetype=obj -o %t \
 ; RUN:   && llvm-readobj -file-headers -sections -section-data \
 ; RUN:       -relocations -symbols %t | FileCheck %s
 

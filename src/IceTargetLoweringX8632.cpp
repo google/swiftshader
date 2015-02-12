@@ -4641,10 +4641,13 @@ void TargetDataX8632::lowerGlobal(const VariableDeclaration &Var) const {
 
 void TargetDataX8632::lowerGlobals(
     std::unique_ptr<VariableDeclarationList> Vars) const {
-  if (Ctx->getFlags().getUseELFWriter()) {
+  switch (Ctx->getFlags().getOutFileType()) {
+  case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     Writer->writeDataSection(*Vars, llvm::ELF::R_386_32);
-  } else {
+  } break;
+  case FT_Asm:
+  case FT_Iasm: {
     const IceString &TranslateOnly = Ctx->getFlags().getTranslateOnly();
     OstreamLocker L(Ctx);
     for (const VariableDeclaration *Var : *Vars) {
@@ -4652,6 +4655,7 @@ void TargetDataX8632::lowerGlobals(
         lowerGlobal(*Var);
       }
     }
+  } break;
   }
 }
 
@@ -4716,14 +4720,18 @@ void TargetDataX8632::lowerConstants() const {
     return;
   // No need to emit constants from the int pool since (for x86) they
   // are embedded as immediates in the instructions, just emit float/double.
-  if (Ctx->getFlags().getUseELFWriter()) {
+  switch (Ctx->getFlags().getOutFileType()) {
+  case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     Writer->writeConstantPool<ConstantFloat>(IceType_f32);
     Writer->writeConstantPool<ConstantDouble>(IceType_f64);
-  } else {
+  } break;
+  case FT_Asm:
+  case FT_Iasm: {
     OstreamLocker L(Ctx);
     emitConstantPool<PoolTypeConverter<float>>(Ctx);
     emitConstantPool<PoolTypeConverter<double>>(Ctx);
+  } break;
   }
 }
 

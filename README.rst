@@ -61,7 +61,9 @@ following:
     ``-target=<TARGET>`` -- Set the target architecture.  The default is x8632.
     Future targets include x8664, arm32, and arm64.
 
-    ``-integrated-as=0|1`` -- Disable/enable the integrated assembler.
+    ``-filetype=obj|asm|iasm`` -- Select the output file type.  ``obj`` is a
+    native ELF file, ``asm`` is a textual assembly file, and ``iasm`` is a
+    low-level textual assembly file demonstrating the integrated assembler.
 
     ``-O<LEVEL>`` -- Set the optimization level.  Valid levels are ``2``, ``1``,
     ``0``, ``-1``, and ``m1``.  Levels ``-1`` and ``m1`` are synonyms, and
@@ -103,15 +105,16 @@ A convenient way to run both the lit tests and the cross tests is::
 
     make -f Makefile.standalone check
 
-Assembling ``llvm2ice`` output
-------------------------------
+Assembling ``llvm2ice`` output as needed
+----------------------------------------
 
-Currently ``llvm2ice`` produces textual assembly code in a structure suitable
-for input to ``llvm-mc``.  An object file can be produced using the command::
+``llvm2ice`` can now produce a native ELF binary using ``-filetype=obj``.
+
+``llvm2ice`` can also produce textual assembly code in a structure suitable for
+input to ``llvm-mc``, using ``-filetype=asm`` or ``-filetype=iasm``.  An object
+file can then be produced using the command::
 
     llvm-mc -arch=x86 -filetype=obj -o=MyObj.o
-
-In the future, the integrated assembler will directly produce ELF object files.
 
 Building a translated binary
 ----------------------------

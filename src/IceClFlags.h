@@ -31,8 +31,9 @@ public:
         DisableTranslation(false), DumpStats(false), FunctionSections(false),
         GenerateUnitTestMessages(false), PhiEdgeSplit(false),
         StubConstantCalls(false), SubzeroTimingEnabled(false),
-        TimeEachFunction(false), UseELFWriter(false),
-        UseIntegratedAssembler(false), UseSandboxing(false),
+        TimeEachFunction(false), UseSandboxing(false),
+        // FileType field
+        OutFileType(FT_Iasm),
         // IceString fields.
         DefaultFunctionPrefix(""), DefaultGlobalPrefix(""), TimingFocusOn(""),
         TranslateOnly(""), VerboseFocusOn(""),
@@ -99,16 +100,12 @@ public:
   bool getTimeEachFunction() const { return ALLOW_DUMP && TimeEachFunction; }
   void setTimeEachFunction(bool NewValue) { TimeEachFunction = NewValue; }
 
-  bool getUseELFWriter() const { return UseELFWriter; }
-  void setUseELFWriter(bool NewValue) { UseELFWriter = NewValue; }
-
-  bool getUseIntegratedAssembler() const { return UseIntegratedAssembler; }
-  void setUseIntegratedAssembler(bool NewValue) {
-    UseIntegratedAssembler = NewValue;
-  }
-
   bool getUseSandboxing() const { return UseSandboxing; }
   void setUseSandboxing(bool NewValue) { UseSandboxing = NewValue; }
+
+  // FileType accessor.
+  FileType getOutFileType() const { return OutFileType; }
+  void setOutFileType(FileType NewValue) { OutFileType = NewValue; }
 
   // IceString accessors.
 
@@ -160,9 +157,9 @@ private:
   bool StubConstantCalls;
   bool SubzeroTimingEnabled;
   bool TimeEachFunction;
-  bool UseELFWriter;
-  bool UseIntegratedAssembler;
   bool UseSandboxing;
+
+  FileType OutFileType;
 
   IceString DefaultFunctionPrefix;
   IceString DefaultGlobalPrefix;
