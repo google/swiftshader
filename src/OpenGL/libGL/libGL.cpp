@@ -8232,7 +8232,7 @@ BOOL WINAPI wglShareLists(HGLRC, HGLRC)
 	return FALSE;
 }
 
-void WINAPI wglSwapBuffers()
+BOOL WINAPI wglSwapBuffers(HDC hdc)
 {
 	TRACE("(*)");
 	
@@ -8241,7 +8241,10 @@ void WINAPI wglSwapBuffers()
 	if(display)
 	{
 		display->getPrimarySurface()->swap();
+		return TRUE;
 	}
+
+	return FALSE;
 }
 
 BOOL WINAPI wglSwapLayerBuffers(HDC, UINT)
