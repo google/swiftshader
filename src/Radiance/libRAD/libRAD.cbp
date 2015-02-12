@@ -161,6 +161,7 @@
 		<Unit filename="../../OpenGL/compiler/BaseTypes.h" />
 		<Unit filename="../../OpenGL/compiler/Common.h" />
 		<Unit filename="../../OpenGL/compiler/Compiler.cpp" />
+		<Unit filename="../../OpenGL/compiler/Compiler.h" />
 		<Unit filename="../../OpenGL/compiler/ConstantUnion.h" />
 		<Unit filename="../../OpenGL/compiler/Diagnostics.cpp" />
 		<Unit filename="../../OpenGL/compiler/Diagnostics.h" />
@@ -171,8 +172,6 @@
 		<Unit filename="../../OpenGL/compiler/InfoSink.h" />
 		<Unit filename="../../OpenGL/compiler/Initialize.cpp" />
 		<Unit filename="../../OpenGL/compiler/Initialize.h" />
-		<Unit filename="../../OpenGL/compiler/InitializeDll.cpp" />
-		<Unit filename="../../OpenGL/compiler/InitializeDll.h" />
 		<Unit filename="../../OpenGL/compiler/InitializeGlobals.h" />
 		<Unit filename="../../OpenGL/compiler/InitializeParseContext.cpp" />
 		<Unit filename="../../OpenGL/compiler/InitializeParseContext.h" />
@@ -186,8 +185,6 @@
 		<Unit filename="../../OpenGL/compiler/PoolAlloc.cpp" />
 		<Unit filename="../../OpenGL/compiler/PoolAlloc.h" />
 		<Unit filename="../../OpenGL/compiler/Pragma.h" />
-		<Unit filename="../../OpenGL/compiler/ShHandle.h" />
-		<Unit filename="../../OpenGL/compiler/ShaderLang.cpp" />
 		<Unit filename="../../OpenGL/compiler/SymbolTable.cpp" />
 		<Unit filename="../../OpenGL/compiler/SymbolTable.h" />
 		<Unit filename="../../OpenGL/compiler/TranslatorASM.cpp" />
@@ -317,7 +314,6 @@
 		<Unit filename="../include/GLES2/gl2.h" />
 		<Unit filename="../include/GLES2/gl2ext.h" />
 		<Unit filename="../include/GLES2/gl2platform.h" />
-		<Unit filename="../include/GLSLANG/ShaderLang.h" />
 		<Unit filename="../include/KHR/khrplatform.h" />
 		<Unit filename="../include/RAD/rad.h" />
 		<Unit filename="Config.cpp" />

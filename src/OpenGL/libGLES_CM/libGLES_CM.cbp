@@ -247,6 +247,8 @@
 		<Unit filename="../../Shader/VertexRoutine.hpp" />
 		<Unit filename="../../Shader/VertexShader.cpp" />
 		<Unit filename="../../Shader/VertexShader.hpp" />
+		<Unit filename="../common/NameSpace.cpp" />
+		<Unit filename="../common/NameSpace.hpp" />
 		<Unit filename="../common/Object.cpp" />
 		<Unit filename="../common/Object.hpp" />
 		<Unit filename="../common/debug.cpp" />
@@ -257,7 +259,6 @@
 		<Unit filename="../include/GLES2/gl2.h" />
 		<Unit filename="../include/GLES2/gl2ext.h" />
 		<Unit filename="../include/GLES2/gl2platform.h" />
-		<Unit filename="../include/GLSLANG/ShaderLang.h" />
 		<Unit filename="../include/KHR/khrplatform.h" />
 		<Unit filename="Buffer.cpp" />
 		<Unit filename="Buffer.h" />
@@ -267,8 +268,6 @@
 		<Unit filename="Device.hpp" />
 		<Unit filename="Framebuffer.cpp" />
 		<Unit filename="Framebuffer.h" />
-		<Unit filename="HandleAllocator.cpp" />
-		<Unit filename="HandleAllocator.h" />
 		<Unit filename="Image.cpp" />
 		<Unit filename="Image.hpp" />
 		<Unit filename="IndexDataManager.cpp" />
