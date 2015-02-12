@@ -137,10 +137,9 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
     switch(reason)
     {
     case DLL_PROCESS_ATTACH:
-		if(false)
-		{
+		#ifndef NDEBUG
 			WaitForDebugger(instance);
-		}
+		#endif
         return glAttachProcess();
         break;
     case DLL_THREAD_ATTACH:
