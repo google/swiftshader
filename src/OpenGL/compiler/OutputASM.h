@@ -170,6 +170,7 @@ namespace glsl
 		int uniformRegister(TIntermTyped *uniform);
 		int attributeRegister(TIntermTyped *attribute);
 		int samplerRegister(TIntermTyped *sampler);
+		int samplerRegister(TIntermSymbol *sampler);
 
 		typedef std::vector<TIntermTyped*> VariableArray;
 
@@ -185,6 +186,7 @@ namespace glsl
 		static int dim2(TIntermNode *m);
 		static unsigned int loopCount(TIntermLoop *node);
 		static bool isSamplerRegister(TIntermTyped *operand);
+		static bool isSamplerRegister(const TType &type);
 
 		Shader *const shaderObject;
 		sw::Shader *shader;
