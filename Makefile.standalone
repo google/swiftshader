@@ -152,7 +152,7 @@ make_symlink: $(OBJDIR)/llvm2ice
 	@echo "Build Attributes:"
 	@$(OBJDIR)/llvm2ice --build-atts
 
-.PHONY: all make_symlink
+.PHONY: all make_symlink bloat
 
 # TODO(kschimpf): Fix python scripts to directly get build attributes
 # rather than generating $(OBJDIR)/llvm2ice.build_atts.
@@ -214,8 +214,13 @@ format-diff:
 	$(LLVM_SRC_PATH)/../clang/tools/clang-format/clang-format-diff.py \
 	-p1 -style=LLVM -i
 
+bloat: make_symlink
+	nm -C -S -l llvm2ice | \
+	bloat/bloat.py --nm-output=/dev/stdin syms > build/llvm2ice.bloat.json
+	@echo See Subzero size breakdown in bloat/llvm2ice.bloat.html
+
 clean:
-	rm -rf llvm2ice *.o $(OBJDIR)
+	rm -rf llvm2ice *.o $(OBJDIR) build/llvm2ice.bloat.json
 
 clean-all: clean
 	rm -rf build/
