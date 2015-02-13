@@ -54,7 +54,7 @@ public:
     int getSourceLength() const;
     void getSource(GLsizei bufSize, GLsizei *length, char *source);
 
-    virtual void compile() = 0;
+    void compile();
     bool isCompiled();
     
     void addRef();
@@ -77,6 +77,9 @@ protected:
 	char *mInfoLog;
 
 private:
+	virtual void createShader() = 0;
+	virtual void deleteShader() = 0;
+
 	const GLuint mHandle;
     unsigned int mRefCount;     // Number of program objects this shader is attached to
     bool mDeleteStatus;         // Flag to indicate that the shader can be deleted when no longer in use
@@ -94,13 +97,15 @@ public:
     ~VertexShader();
 
     virtual GLenum getType();
-    virtual void compile();
     int getSemanticIndex(const std::string &attributeName);
 
 	virtual sw::Shader *getShader() const;
 	virtual sw::VertexShader *getVertexShader() const;
 
 private:
+	virtual void createShader();
+	virtual void deleteShader();
+
 	sw::VertexShader *vertexShader;
 };
 
@@ -112,12 +117,14 @@ public:
     ~FragmentShader();
 
     virtual GLenum getType();
-    virtual void compile();
 
 	virtual sw::Shader *getShader() const;
 	virtual sw::PixelShader *getPixelShader() const;
 
 private:
+	virtual void createShader();
+	virtual void deleteShader();
+
 	sw::PixelShader *pixelShader;
 };
 }

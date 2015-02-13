@@ -189,6 +189,47 @@ void Shader::clear()
 	activeAttributes.clear();
 }
 
+void Shader::compile()
+{
+	clear();
+
+	createShader();
+	TranslatorASM *compiler = createCompiler(getType());
+
+	// Ensure we don't pass a NULL source to the compiler
+    char *source = "\0";
+	if(mSource)
+    {
+        source = mSource;
+    }
+
+	bool success = compiler->compile(&source, 1, SH_OBJECT_CODE);
+
+	if(false)
+	{
+		static int serial = 1;
+		char buffer[256];
+		sprintf(buffer, "shader-input-%d-%d.txt", getName(), serial);
+		FILE *file = fopen(buffer, "wt");
+		fprintf(file, mSource);
+		fclose(file);
+		getShader()->print("shader-output-%d-%d.txt", getName(), serial);
+		serial++;
+	}
+
+	if(!success)
+	{
+		deleteShader();
+
+		int infoLogLen = compiler->getInfoSink().info.size() + 1;
+        mInfoLog = new char[infoLogLen];
+        strcpy(mInfoLog, compiler->getInfoSink().info.c_str());
+        TRACE("\n%s", mInfoLog);
+	}
+
+	delete compiler;
+}
+
 bool Shader::isCompiled()
 {
     return getShader() != 0;
@@ -363,50 +404,6 @@ GLenum VertexShader::getType()
     return GL_VERTEX_SHADER;
 }
 
-void VertexShader::compile()
-{
-	clear();
-
-	delete vertexShader;
-	vertexShader = new sw::VertexShader();
-
-	TranslatorASM *compiler = createCompiler(GL_VERTEX_SHADER);
-
-	// Ensure we don't pass a NULL source to the compiler
-    char *source = "\0";
-	if(mSource)
-    {
-        source = mSource;
-    }
-
-	bool success = compiler->compile(&source, 1, SH_OBJECT_CODE);
-
-	if(false)
-	{
-		static int serial = 1;
-		char buffer[256];
-		sprintf(buffer, "vertex-input-%d-%d.txt", getName(), serial);
-		FILE *file = fopen(buffer, "wt");
-		fprintf(file, mSource);
-		fclose(file);
-		vertexShader->print("vertex-output-%d-%d.txt", getName(), serial);
-		serial++;
-	}
-
-	if(!success)
-	{
-		delete vertexShader;
-		vertexShader = 0;
-
-		int infoLogLen = compiler->getInfoSink().info.size() + 1;
-        mInfoLog = new char[infoLogLen];
-        strcpy(mInfoLog, compiler->getInfoSink().info.c_str());
-        TRACE("\n%s", mInfoLog);
-	}
-
-	delete compiler;
-}
-
 int VertexShader::getSemanticIndex(const std::string &attributeName)
 {
     if(!attributeName.empty())
@@ -433,6 +430,18 @@ sw::VertexShader *VertexShader::getVertexShader() const
 	return vertexShader;
 }
 
+void VertexShader::createShader()
+{
+	delete vertexShader;
+	vertexShader = new sw::VertexShader();
+}
+
+void VertexShader::deleteShader()
+{
+	delete vertexShader;
+	vertexShader = nullptr;
+}
+
 FragmentShader::FragmentShader(ResourceManager *manager, GLuint handle) : Shader(manager, handle)
 {
 	pixelShader = 0;
@@ -448,50 +457,6 @@ GLenum FragmentShader::getType()
     return GL_FRAGMENT_SHADER;
 }
 
-void FragmentShader::compile()
-{
-	clear();
-
-	delete pixelShader;
-	pixelShader = new sw::PixelShader();
-
-	TranslatorASM *compiler = createCompiler(GL_FRAGMENT_SHADER);
-
-	// Ensure we don't pass a NULL source to the compiler
-    char *source = "\0";
-	if(mSource)
-    {
-        source = mSource;
-    }
-
-	bool success = compiler->compile(&source, 1, SH_OBJECT_CODE);
-	
-	if(false)
-	{
-		static int serial = 1;
-		char buffer[256];
-		sprintf(buffer, "pixel-input-%d-%d.txt", getName(), serial);
-		FILE *file = fopen(buffer, "wt");
-		fprintf(file, mSource);
-		fclose(file);
-		pixelShader->print("pixel-output-%d-%d.txt", getName(), serial);
-		serial++;
-	}
-
-	if(!success)
-	{
-		delete pixelShader;
-		pixelShader = 0;
-
-		int infoLogLen = compiler->getInfoSink().info.size() + 1;
-        mInfoLog = new char[infoLogLen];
-        strcpy(mInfoLog, compiler->getInfoSink().info.c_str());
-        TRACE("\n%s", mInfoLog);
-	}
-
-	delete compiler;
-}
-
 sw::Shader *FragmentShader::getShader() const
 {
 	return pixelShader;
@@ -501,4 +466,17 @@ sw::PixelShader *FragmentShader::getPixelShader() const
 {
 	return pixelShader;
 }
+
+void FragmentShader::createShader()
+{
+	delete pixelShader;
+	pixelShader = new sw::PixelShader();
+}
+
+void FragmentShader::deleteShader()
+{
+	delete pixelShader;
+	pixelShader = nullptr;
+}
+
 }
