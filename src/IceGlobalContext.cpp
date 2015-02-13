@@ -198,6 +198,7 @@ void GlobalContext::translateFunctions() {
       getStrDump() << "ICE translation error: " << Func->getError() << "\n";
       Item = new EmitterWorkItem(Func->getSequenceNumber());
     } else {
+      Func->getAssembler<>()->setInternal(Func->getInternal());
       switch (getFlags().getOutFileType()) {
       case FT_Elf:
       case FT_Iasm: {
@@ -209,7 +210,6 @@ void GlobalContext::translateFunctions() {
         Assembler *Asm = Func->releaseAssembler();
         // Copy relevant fields into Asm before Func is deleted.
         Asm->setFunctionName(Func->getFunctionName());
-        Asm->setInternal(Func->getInternal());
         Item = new EmitterWorkItem(Func->getSequenceNumber(), Asm);
       } break;
       case FT_Asm:
