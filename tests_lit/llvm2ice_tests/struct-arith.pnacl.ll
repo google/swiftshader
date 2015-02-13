@@ -1,9 +1,8 @@
 ; This test is lowered from C code that does some simple aritmetic
 ; with struct members.
 
-; TODO(kschimpf) Find out why lc2i is needed.
-; REQUIRES: allow_llvm_ir_as_input
-; RUN: %lc2i -i %s --args --verbose inst -threads=0 | FileCheck %s
+; REQUIRES: allow_dump
+; RUN: %p2i -i %s --args --verbose inst -threads=0 | FileCheck %s
 
 define internal i32 @compute_important_function(i32 %v1, i32 %v2) {
 entry:
@@ -11,7 +10,6 @@ entry:
   %_v0 = load i32* %__2, align 1
 
 ; CHECK:        entry:
-; CHECK-NEXT:       %__2 = i32 %v1
 ; CHECK-NEXT:       %_v0 = load i32* {{.*}}, align 1
 
   %__4 = inttoptr i32 %v2 to i32*

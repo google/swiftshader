@@ -1,19 +1,18 @@
 ; This tests each of the supported NaCl atomic instructions for every
 ; size allowed.
 
-; TODO(kschimpf) Find out why lc2i is needed.
-; RUN: %lc2i -i %s --args -O2 --verbose none \
+; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
-; RUN:   | %iflc FileCheck %s
+; RUN:   | FileCheck %s
 ; RUN: %p2i -i %s --args -O2 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
 ; RUN:   | FileCheck --check-prefix=CHECKO2 %s
-; RUN: %lc2i -i %s --args -Om1 --verbose none \
+; RUN: %p2i -i %s --args -Om1 --verbose none \
 ; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
 ; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
-; RUN:   | %iflc FileCheck %s
+; RUN:   | FileCheck %s
 
 declare i8 @llvm.nacl.atomic.load.i8(i8*, i32)
 declare i16 @llvm.nacl.atomic.load.i16(i16*, i32)
@@ -714,11 +713,11 @@ entry:
   ret i32 %old_ext
 }
 ; CHECK-LABEL: test_atomic_cmpxchg_8
-; CHECK: mov al, {{.*}}
+; CHECK: mov eax, {{.*}}
 ; Need to check that eax isn't used as the address register or the desired.
 ; since it is already used as the *expected* register.
 ; CHECK: lock
-; CHECK-NEXT: cmpxchg byte ptr [e{{[^a].}}], {{[^a]}}
+; CHECK-NEXT: cmpxchg byte ptr [e{{[^a].}}], {{[^a]}}l
 
 define i32 @test_atomic_cmpxchg_16(i32 %iptr, i32 %expected, i32 %desired) {
 entry:
@@ -731,9 +730,9 @@ entry:
   ret i32 %old_ext
 }
 ; CHECK-LABEL: test_atomic_cmpxchg_16
-; CHECK: mov ax, {{.*}}
+; CHECK: mov eax, {{.*}}
 ; CHECK: lock
-; CHECK-NEXT: cmpxchg word ptr [e{{[^a].}}], {{[^a]}}
+; CHECK-NEXT: cmpxchg word ptr [e{{[^a].}}], {{[^a]}}x
 
 define i32 @test_atomic_cmpxchg_32(i32 %iptr, i32 %expected, i32 %desired) {
 entry:
@@ -784,8 +783,8 @@ entry:
 ; CHECK-DAG: mov ebx
 ; CHECK: lock
 ; CHECK-NEXT: cmpxchg8b qword ptr [e{{.[^x]}}]
-; CHECK: mov {{.*}}, edx
-; CHECK: mov {{.*}}, eax
+; CHECK-DAG: mov {{.*}}, edx
+; CHECK-DAG: mov {{.*}}, eax
 
 ; Test with some more register pressure. When we have an alloca, ebp is
 ; used to manage the stack frame, so it cannot be used as a register either.

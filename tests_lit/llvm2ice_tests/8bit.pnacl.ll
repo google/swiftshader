@@ -37,7 +37,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: sub8Bit
-; XCHECK: sub {{[abcd]l}}
+; CHECK: sub {{[abcd]l}}
 
 define internal i32 @sub8BitConst(i32 %a) {
 entry:
@@ -47,7 +47,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: sub8BitConst
-; XCHECK: sub {{[abcd]l}}
+; CHECK: sub {{[abcd]l}}
 
 define internal i32 @mul8Bit(i32 %a, i32 %b) {
 entry:
