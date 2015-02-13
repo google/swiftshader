@@ -65,7 +65,7 @@ public:
 
 protected:
 	static bool compilerInitialized;
-	TranslatorASM *createCompiler(ShShaderType type);
+	TranslatorASM *createCompiler(GLenum type);
 	void clear();
 
     static GLenum parseType(const std::string &type);

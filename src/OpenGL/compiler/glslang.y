@@ -84,22 +84,22 @@ extern int yylex(YYSTYPE* yylval_param, void* yyscanner);
 extern void yyerror(TParseContext* context, const char* reason);
 
 #define FRAG_VERT_ONLY(S, L) {  \
-    if (context->shaderType != SH_FRAGMENT_SHADER &&  \
-        context->shaderType != SH_VERTEX_SHADER) {  \
+    if (context->shaderType != GL_FRAGMENT_SHADER &&  \
+        context->shaderType != GL_VERTEX_SHADER) {  \
         context->error(L, " supported in vertex/fragment shaders only ", S);  \
         context->recover();  \
     }  \
 }
 
 #define VERTEX_ONLY(S, L) {  \
-    if (context->shaderType != SH_VERTEX_SHADER) {  \
+    if (context->shaderType != GL_VERTEX_SHADER) {  \
         context->error(L, " supported in vertex shaders only ", S);  \
         context->recover();  \
     }  \
 }
 
 #define FRAG_ONLY(S, L) {  \
-    if (context->shaderType != SH_FRAGMENT_SHADER) {  \
+    if (context->shaderType != GL_FRAGMENT_SHADER) {  \
         context->error(L, " supported in fragment shaders only ", S);  \
         context->recover();  \
     }  \
@@ -1493,7 +1493,7 @@ type_qualifier
     | VARYING {
         if (context->globalErrorCheck($1.line, context->symbolTable.atGlobalLevel(), "varying"))
             context->recover();
-        if (context->shaderType == SH_VERTEX_SHADER)
+        if (context->shaderType == GL_VERTEX_SHADER)
             $$.setBasic(EbtVoid, EvqVaryingOut, $1.line);
         else
             $$.setBasic(EbtVoid, EvqVaryingIn, $1.line);
@@ -1501,7 +1501,7 @@ type_qualifier
     | INVARIANT VARYING {
         if (context->globalErrorCheck($1.line, context->symbolTable.atGlobalLevel(), "invariant varying"))
             context->recover();
-        if (context->shaderType == SH_VERTEX_SHADER)
+        if (context->shaderType == GL_VERTEX_SHADER)
             $$.setBasic(EbtVoid, EvqInvariantVaryingOut, $1.line);
         else
             $$.setBasic(EbtVoid, EvqInvariantVaryingIn, $1.line);
@@ -1754,10 +1754,6 @@ struct_declaration
             if ($1.userDef) {
                 type->setStruct($1.userDef->getStruct());
                 type->setTypeName($1.userDef->getTypeName());
-            }
-
-            if (context->structNestingErrorCheck($1.line, *type)) {
-                context->recover();
             }
         }
     }

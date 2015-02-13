@@ -23,7 +23,7 @@ namespace glsl
 class TranslatorASM : public TCompiler
 {
 public:
-    TranslatorASM(glsl::Shader *shaderObject, ShShaderType type, ShShaderSpec spec);
+    TranslatorASM(glsl::Shader *shaderObject, GLenum type);
 
 protected:
     virtual bool translate(TIntermNode* root);

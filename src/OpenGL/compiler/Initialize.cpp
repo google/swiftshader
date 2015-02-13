@@ -14,7 +14,7 @@
 
 #include "intermediate.h"
 
-void InsertBuiltInFunctions(ShShaderType type, const ShBuiltInResources &resources, TSymbolTable &symbolTable)
+void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TSymbolTable &symbolTable)
 {
 	TType *float1 = new TType(EbtFloat, EbpUndefined, EvqGlobal, 1);
 	TType *float2 = new TType(EbtFloat, EbpUndefined, EvqGlobal, 2);
@@ -263,7 +263,7 @@ void InsertBuiltInFunctions(ShShaderType type, const ShBuiltInResources &resourc
     symbolTable.insertBuiltIn(float4, "textureCube", samplerCube, float3);
 	symbolTable.insertBuiltIn(float4, "texture3D", sampler3D, float3);
 
-	if(type == SH_FRAGMENT_SHADER)
+	if(type == GL_FRAGMENT_SHADER)
 	{
 	    symbolTable.insertBuiltIn(float4, "texture2D", sampler2D, float2, float1);
 		symbolTable.insertBuiltIn(float4, "texture2DProj", sampler2D, float3, float1);
@@ -290,7 +290,7 @@ void InsertBuiltInFunctions(ShShaderType type, const ShBuiltInResources &resourc
 		}
 	}
 
-	if(type == SH_VERTEX_SHADER)
+	if(type == GL_VERTEX_SHADER)
 	{
 		symbolTable.insertBuiltIn(float4, "texture2DLod", sampler2D, float2, float1);
 		symbolTable.insertBuiltIn(float4, "texture2DProjLod", sampler2D, float3, float1);
@@ -335,7 +335,7 @@ void InsertBuiltInFunctions(ShShaderType type, const ShBuiltInResources &resourc
     symbolTable.insertConstInt("gl_MaxDrawBuffers", resources.MaxDrawBuffers);
 }
 
-void IdentifyBuiltIns(ShShaderType type, ShShaderSpec spec,
+void IdentifyBuiltIns(GLenum shaderType,
                       const ShBuiltInResources& resources,
                       TSymbolTable &symbolTable)
 {
@@ -343,15 +343,16 @@ void IdentifyBuiltIns(ShShaderType type, ShShaderSpec spec,
     // First, insert some special built-in variables that are not in 
     // the built-in header files.
     //
-    switch(type) {
-    case SH_FRAGMENT_SHADER:
+    switch(shaderType)
+	{
+    case GL_FRAGMENT_SHADER:
         symbolTable.insert(*new TVariable(NewPoolTString("gl_FragCoord"),                   TType(EbtFloat, EbpMedium, EvqFragCoord,   4)));
         symbolTable.insert(*new TVariable(NewPoolTString("gl_FrontFacing"),                 TType(EbtBool,  EbpUndefined, EvqFrontFacing, 1)));
         symbolTable.insert(*new TVariable(NewPoolTString("gl_FragColor"),                   TType(EbtFloat, EbpMedium, EvqFragColor,   4)));
         symbolTable.insert(*new TVariable(NewPoolTString("gl_FragData[gl_MaxDrawBuffers]"), TType(EbtFloat, EbpMedium, EvqFragData,    4)));
         symbolTable.insert(*new TVariable(NewPoolTString("gl_PointCoord"),                  TType(EbtFloat, EbpMedium, EvqPointCoord,  2)));
         break;
-    case SH_VERTEX_SHADER:
+    case GL_VERTEX_SHADER:
         symbolTable.insert(*new TVariable(NewPoolTString("gl_Position"),    TType(EbtFloat, EbpHigh, EvqPosition,    4)));
         symbolTable.insert(*new TVariable(NewPoolTString("gl_PointSize"),   TType(EbtFloat, EbpMedium, EvqPointSize,   1)));
         break;
@@ -418,10 +419,11 @@ void IdentifyBuiltIns(ShShaderType type, ShShaderSpec spec,
     symbolTable.relateToOperator("all",          EOpAll);
 
     // Map language-specific operators.
-    switch(type) {
-    case SH_VERTEX_SHADER:
+    switch(shaderType)
+	{
+    case GL_VERTEX_SHADER:
         break;
-    case SH_FRAGMENT_SHADER:
+    case GL_FRAGMENT_SHADER:
         if (resources.OES_standard_derivatives) {
             symbolTable.relateToOperator("dFdx",   EOpDFdx);
             symbolTable.relateToOperator("dFdy",   EOpDFdy);
@@ -436,9 +438,9 @@ void IdentifyBuiltIns(ShShaderType type, ShShaderSpec spec,
     }
 
     // Finally add resource-specific variables.
-    switch(type)
+    switch(shaderType)
     {
-    case SH_FRAGMENT_SHADER:
+    case GL_FRAGMENT_SHADER:
 		{
             // Set up gl_FragData.  The array size.
             TType fragData(EbtFloat, EbpMedium, EvqFragData, 4, false, true);

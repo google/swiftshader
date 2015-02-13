@@ -152,7 +152,7 @@ void Shader::getSource(GLsizei bufSize, GLsizei *length, char *source)
     }
 }
 
-TranslatorASM *Shader::createCompiler(ShShaderType type)
+TranslatorASM *Shader::createCompiler(GLenum type)
 {
 	if(!compilerInitialized)
 	{
@@ -160,7 +160,7 @@ TranslatorASM *Shader::createCompiler(ShShaderType type)
 		compilerInitialized = true;
 	}
 
-	TranslatorASM *assembler = new TranslatorASM(this, type, SH_GLES2_SPEC);
+	TranslatorASM *assembler = new TranslatorASM(this, type);
 
 	ShBuiltInResources resources;
 	resources.MaxVertexAttribs = MAX_VERTEX_ATTRIBS;
@@ -370,7 +370,7 @@ void VertexShader::compile()
 	delete vertexShader;
 	vertexShader = new sw::VertexShader();
 
-	TranslatorASM *compiler = createCompiler(SH_VERTEX_SHADER);
+	TranslatorASM *compiler = createCompiler(GL_VERTEX_SHADER);
 
 	// Ensure we don't pass a NULL source to the compiler
     char *source = "\0";
@@ -455,7 +455,7 @@ void FragmentShader::compile()
 	delete pixelShader;
 	pixelShader = new sw::PixelShader();
 
-	TranslatorASM *compiler = createCompiler(SH_FRAGMENT_SHADER);
+	TranslatorASM *compiler = createCompiler(GL_FRAGMENT_SHADER);
 
 	// Ensure we don't pass a NULL source to the compiler
     char *source = "\0";

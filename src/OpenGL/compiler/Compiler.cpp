@@ -56,9 +56,8 @@ ShBuiltInResources::ShBuiltInResources()
 	MaxCallStackDepth = UINT_MAX;
 }
 
-TCompiler::TCompiler(ShShaderType type, ShShaderSpec spec)
+TCompiler::TCompiler(GLenum type)
     : shaderType(type),
-      shaderSpec(spec),
       maxCallStackDepth(UINT_MAX)
 {
 	allocator.push();
@@ -95,10 +94,6 @@ bool TCompiler::compile(const char* const shaderStrings[],
     if (numStrings == 0)
         return true;
 
-    // If compiling for WebGL, validate loop and indexing as well.
-    if (shaderSpec == SH_WEBGL_SPEC)
-        compileOptions |= SH_VALIDATE_LOOP_INDEXING;
-
     // First string is path of source file if flag is set. The actual source follows.
     const char* sourcePath = NULL;
     int firstSource = 0;
@@ -110,7 +105,7 @@ bool TCompiler::compile(const char* const shaderStrings[],
 
     TIntermediate intermediate(infoSink);
     TParseContext parseContext(symbolTable, extensionBehavior, intermediate,
-                               shaderType, shaderSpec, compileOptions, true,
+                               shaderType, compileOptions, true,
                                sourcePath, infoSink);
     SetGlobalParseContext(&parseContext);
 
@@ -177,10 +172,10 @@ bool TCompiler::InitBuiltInSymbolTable(const ShBuiltInResources &resources)
 
 	switch(shaderType)
 	{
-    case SH_FRAGMENT_SHADER:
+    case GL_FRAGMENT_SHADER:
 		symbolTable.setDefaultPrecision(integer, EbpMedium);
         break;
-    case SH_VERTEX_SHADER:
+    case GL_VERTEX_SHADER:
 		symbolTable.setDefaultPrecision(integer, EbpHigh);
 		symbolTable.setDefaultPrecision(floatingPoint, EbpHigh);
         break;
@@ -189,7 +184,7 @@ bool TCompiler::InitBuiltInSymbolTable(const ShBuiltInResources &resources)
 
 	InsertBuiltInFunctions(shaderType, resources, symbolTable);
 
-    IdentifyBuiltIns(shaderType, shaderSpec, resources, symbolTable);
+    IdentifyBuiltIns(shaderType, resources, symbolTable);
 
     return true;
 }

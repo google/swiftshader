@@ -272,22 +272,22 @@ extern int yylex(YYSTYPE* yylval_param, void* yyscanner);
 extern void yyerror(TParseContext* context, const char* reason);
 
 #define FRAG_VERT_ONLY(S, L) {  \
-    if (context->shaderType != SH_FRAGMENT_SHADER &&  \
-        context->shaderType != SH_VERTEX_SHADER) {  \
+    if (context->shaderType != GL_FRAGMENT_SHADER &&  \
+        context->shaderType != GL_VERTEX_SHADER) {  \
         context->error(L, " supported in vertex/fragment shaders only ", S);  \
         context->recover();  \
     }  \
 }
 
 #define VERTEX_ONLY(S, L) {  \
-    if (context->shaderType != SH_VERTEX_SHADER) {  \
+    if (context->shaderType != GL_VERTEX_SHADER) {  \
         context->error(L, " supported in vertex shaders only ", S);  \
         context->recover();  \
     }  \
 }
 
 #define FRAG_ONLY(S, L) {  \
-    if (context->shaderType != SH_FRAGMENT_SHADER) {  \
+    if (context->shaderType != GL_FRAGMENT_SHADER) {  \
         context->error(L, " supported in fragment shaders only ", S);  \
         context->recover();  \
     }  \
@@ -674,13 +674,13 @@ static const yytype_uint16 yyrline[] =
     1527,  1534,  1537,  1540,  1546,  1549,  1564,  1568,  1572,  1576,
     1585,  1590,  1595,  1600,  1605,  1610,  1615,  1620,  1625,  1630,
     1636,  1642,  1648,  1653,  1658,  1667,  1672,  1677,  1690,  1690,
-    1704,  1704,  1713,  1716,  1731,  1767,  1771,  1777,  1785,  1801,
-    1805,  1809,  1810,  1816,  1817,  1818,  1819,  1820,  1824,  1825,
-    1825,  1825,  1835,  1836,  1840,  1840,  1841,  1841,  1846,  1849,
-    1859,  1862,  1868,  1869,  1873,  1881,  1885,  1895,  1900,  1917,
-    1917,  1922,  1922,  1929,  1929,  1937,  1940,  1946,  1949,  1955,
-    1959,  1966,  1973,  1980,  1987,  1998,  2007,  2011,  2018,  2021,
-    2027,  2027
+    1704,  1704,  1713,  1716,  1731,  1763,  1767,  1773,  1781,  1797,
+    1801,  1805,  1806,  1812,  1813,  1814,  1815,  1816,  1820,  1821,
+    1821,  1821,  1831,  1832,  1836,  1836,  1837,  1837,  1842,  1845,
+    1855,  1858,  1864,  1865,  1869,  1877,  1881,  1891,  1896,  1913,
+    1913,  1918,  1918,  1925,  1925,  1933,  1936,  1942,  1945,  1951,
+    1955,  1962,  1969,  1976,  1983,  1994,  2003,  2007,  2014,  2017,
+    2023,  2023
 };
 #endif
 
@@ -3597,7 +3597,7 @@ yyreduce:
     {
         if (context->globalErrorCheck((yyvsp[(1) - (1)].lex).line, context->symbolTable.atGlobalLevel(), "varying"))
             context->recover();
-        if (context->shaderType == SH_VERTEX_SHADER)
+        if (context->shaderType == GL_VERTEX_SHADER)
             (yyval.interm.type).setBasic(EbtVoid, EvqVaryingOut, (yyvsp[(1) - (1)].lex).line);
         else
             (yyval.interm.type).setBasic(EbtVoid, EvqVaryingIn, (yyvsp[(1) - (1)].lex).line);
@@ -3609,7 +3609,7 @@ yyreduce:
     {
         if (context->globalErrorCheck((yyvsp[(1) - (2)].lex).line, context->symbolTable.atGlobalLevel(), "invariant varying"))
             context->recover();
-        if (context->shaderType == SH_VERTEX_SHADER)
+        if (context->shaderType == GL_VERTEX_SHADER)
             (yyval.interm.type).setBasic(EbtVoid, EvqInvariantVaryingOut, (yyvsp[(1) - (2)].lex).line);
         else
             (yyval.interm.type).setBasic(EbtVoid, EvqInvariantVaryingIn, (yyvsp[(1) - (2)].lex).line);
@@ -3986,10 +3986,6 @@ yyreduce:
             if ((yyvsp[(1) - (3)].interm.type).userDef) {
                 type->setStruct((yyvsp[(1) - (3)].interm.type).userDef->getStruct());
                 type->setTypeName((yyvsp[(1) - (3)].interm.type).userDef->getTypeName());
-            }
-
-            if (context->structNestingErrorCheck((yyvsp[(1) - (3)].interm.type).line, *type)) {
-                context->recover();
             }
         }
     }

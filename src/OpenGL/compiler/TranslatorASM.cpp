@@ -13,7 +13,7 @@
 
 #include "InitializeParseContext.h"
 
-TranslatorASM::TranslatorASM(glsl::Shader *shaderObject, ShShaderType type, ShShaderSpec spec) : TCompiler(type, spec), shaderObject(shaderObject)
+TranslatorASM::TranslatorASM(glsl::Shader *shaderObject, GLenum shaderType) : TCompiler(shaderType), shaderObject(shaderObject)
 {
 }
 

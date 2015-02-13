@@ -96,7 +96,7 @@ private:
 };
 }  // namespace
 
-ValidateLimitations::ValidateLimitations(ShShaderType shaderType,
+ValidateLimitations::ValidateLimitations(GLenum shaderType,
                                          TInfoSinkBase& sink)
     : mShaderType(shaderType),
       mSink(sink),
@@ -501,7 +501,7 @@ bool ValidateLimitations::validateIndexing(TIntermBinary* node)
     // The index expession must be a constant-index-expression unless
     // the operand is a uniform in a vertex shader.
     TIntermTyped* operand = node->getLeft();
-    bool skip = (mShaderType == SH_VERTEX_SHADER) &&
+    bool skip = (mShaderType == GL_VERTEX_SHADER) &&
                 (operand->getQualifier() == EvqUniform);
     if (!skip && !isConstIndexExpr(index)) {
         error(index->getLine(), "Index expression must be constant", "[]");

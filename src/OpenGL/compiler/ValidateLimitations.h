@@ -21,7 +21,7 @@ typedef TVector<TLoopInfo> TLoopStack;
 // minimum functionality mandated in GLSL 1.0 spec, Appendix A.
 class ValidateLimitations : public TIntermTraverser {
 public:
-    ValidateLimitations(ShShaderType shaderType, TInfoSinkBase& sink);
+    ValidateLimitations(GLenum shaderType, TInfoSinkBase& sink);
 
     int numErrors() const { return mNumErrors; }
 
@@ -51,7 +51,7 @@ private:
     bool isConstIndexExpr(TIntermNode* node);
     bool validateIndexing(TIntermBinary* node);
 
-    ShShaderType mShaderType;
+    GLenum mShaderType;
     TInfoSinkBase& mSink;
     int mNumErrors;
     TLoopStack mLoopStack;

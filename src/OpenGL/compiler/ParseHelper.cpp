@@ -432,16 +432,6 @@ bool TParseContext::reservedErrorCheck(int line, const TString& identifier)
             error(line, reservedErrMsg, "gl_");
             return true;
         }
-        if (shaderSpec == SH_WEBGL_SPEC) {
-            if (identifier.compare(0, 6, "webgl_") == 0) {
-                error(line, reservedErrMsg, "webgl_");
-                return true;
-            }
-            if (identifier.compare(0, 7, "_webgl_") == 0) {
-                error(line, reservedErrMsg, "_webgl_");
-                return true;
-            }
-        }
         if (identifier.find("__") != TString::npos) {
             error(line, "identifiers containing two consecutive underscores (__) are reserved as possible future keywords", identifier.c_str());
             return true;
@@ -1331,36 +1321,6 @@ bool TParseContext::enterStructDeclaration(int line, const TString& identifier)
 void TParseContext::exitStructDeclaration()
 {
     --structNestingLevel;
-}
-
-namespace {
-
-const int kWebGLMaxStructNesting = 4;
-
-}  // namespace
-
-bool TParseContext::structNestingErrorCheck(TSourceLoc line, const TType& fieldType)
-{
-    if (shaderSpec != SH_WEBGL_SPEC) {
-        return false;
-    }
-
-    if (fieldType.getBasicType() != EbtStruct) {
-        return false;
-    }
-
-    // We're already inside a structure definition at this point, so add
-    // one to the field's struct nesting.
-    if (1 + fieldType.getDeepestStructNesting() > kWebGLMaxStructNesting) {
-        std::stringstream extraInfoStream;
-        extraInfoStream << "Reference of struct type " << fieldType.getTypeName()
-                        << " exceeds maximum struct nesting of " << kWebGLMaxStructNesting;
-        std::string extraInfo = extraInfoStream.str();
-        error(line, "", "", extraInfo.c_str());
-        return true;
-    }
-
-    return false;
 }
 
 //
