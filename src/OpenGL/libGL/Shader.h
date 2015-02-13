@@ -27,6 +27,7 @@
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glext.h>
 
+#include <string>
 #include <list>
 #include <vector>
 
@@ -77,7 +78,7 @@ protected:
     static bool compareVarying(const glsl::Varying &x, const glsl::Varying &y);
 
 	char *mSource;
-	char *mInfoLog;
+	std::string infoLog;
 
 private:
 	virtual void createShader() = 0;

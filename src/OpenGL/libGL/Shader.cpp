@@ -27,7 +27,6 @@ bool Shader::compilerInitialized = false;
 Shader::Shader(ResourceManager *manager, GLuint handle) : mHandle(handle), mResourceManager(manager)
 {
     mSource = NULL;
-    mInfoLog = NULL;
 
 	clear();
 
@@ -38,7 +37,6 @@ Shader::Shader(ResourceManager *manager, GLuint handle) : mHandle(handle), mReso
 Shader::~Shader()
 {
     delete[] mSource;
-    delete[] mInfoLog;
 }
 
 GLuint Shader::getName() const
@@ -88,29 +86,29 @@ void Shader::setSource(GLsizei count, const char *const *string, const GLint *le
 
 int Shader::getInfoLogLength() const
 {
-    if(!mInfoLog)
+    if(infoLog.empty())
     {
         return 0;
     }
     else
     {
-       return strlen(mInfoLog) + 1;
+       return infoLog.size() + 1;
     }
 }
 
-void Shader::getInfoLog(GLsizei bufSize, GLsizei *length, char *infoLog)
+void Shader::getInfoLog(GLsizei bufSize, GLsizei *length, char *infoLogOut)
 {
     int index = 0;
 
 	if(bufSize > 0)
 	{
-		if(mInfoLog)
+		if(!infoLog.empty())
 		{
-			index = std::min(bufSize - 1, (int)strlen(mInfoLog));
-			memcpy(infoLog, mInfoLog, index);
+			index = std::min(bufSize - 1, (GLsizei)infoLog.size());
+			memcpy(infoLogOut, infoLog.c_str(), index);
 		}
 
-        infoLog[index] = '\0';
+        infoLogOut[index] = '\0';
     }
 
     if(length)
@@ -181,8 +179,7 @@ TranslatorASM *Shader::createCompiler(GLenum shaderType)
 
 void Shader::clear()
 {
-	delete[] mInfoLog;
-	mInfoLog = NULL;
+	infoLog.clear();
 
 	varyings.clear();
 	activeUniforms.clear();
@@ -221,10 +218,8 @@ void Shader::compile()
 	{
 		deleteShader();
 
-		int infoLogLen = compiler->getInfoSink().info.size() + 1;
-        mInfoLog = new char[infoLogLen];
-        strcpy(mInfoLog, compiler->getInfoSink().info.c_str());
-        TRACE("\n%s", mInfoLog);
+		infoLog = compiler->getInfoSink().info.c_str();
+        TRACE("\n%s", infoLog.c_str());
 	}
 
 	delete compiler;
