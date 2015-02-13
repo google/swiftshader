@@ -16,9 +16,9 @@ Inspired by http://www.cs.rit.edu/~ncs/Courses/570/UserGuide/OpenGLonWin-11.html
 #include <math.h>
 
 #include <gl\GL.h>
-#pragma comment (lib, "opengl32.lib")
 
 #define PI 3.14159265
+#define SCALE_FACTOR 0.5
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -26,16 +26,24 @@ const char *className = "OpenGL";
 char *windowName = "OpenGL Cube";
 int winX = 0, winY = 0;
 int winWidth = 300, winHeight = 300;
-int listIndex = 1;
-float angle = 1.0f; 
+float angle = 0.1f;
 double theta = angle * PI / 180.0;
+int listIndex;
+
+// Rotation matrix
 GLfloat R[16] = { 1, 0, 0, 0, 0, cos(theta), -sin(theta), 0, 0, sin(theta), cos(theta), 0, 0, 0, 0, 1 };
+
+// Projection matrix (mimic the glFrustum function, which is unimplemented as of now)
+GLfloat P[16] = { 2.0f, 0, 0, 0, 0, 2.0f, 0, 0, 0, 0, -2.0f, -1.0f, 0, 0, -3.0f, 0 };
+
+// Scaling matrix
+GLfloat S[16] = { SCALE_FACTOR, 0, 0, 0, 0, SCALE_FACTOR, 0, 0, 0, 0, SCALE_FACTOR, 0, 0, 0, 0, 1 };
 
 HDC hDC;
 HGLRC hGLRC;
-HPALETTE hPalette; 
+HPALETTE hPalette;
 
-GLfloat vertices1[] = { 
+GLfloat vertices1[] = {
 	0.5F, 0.5F, 0.5F, -0.5F, 0.5F, 0.5F, -0.5F, -0.5F, 0.5F, 0.5F, -0.5F, 0.5F,
 	-0.5F, -0.5F, -0.5F, -0.5F, 0.5F, -0.5F, 0.5F, 0.5F, -0.5F, 0.5F, -0.5F, -0.5F,
 	0.5F, 0.5F, 0.5F, 0.5F, 0.5F, -0.5F, -0.5F, 0.5F, -0.5F, -0.5F, 0.5F, 0.5F,
@@ -44,29 +52,29 @@ GLfloat vertices1[] = {
 	-0.5F, -0.5F, -0.5F, -0.5F, -0.5F, 0.5F, -0.5F, 0.5F, 0.5F, -0.5F, 0.5F, -0.5F
 };
 
-GLfloat normals1[] = { 
+GLfloat normals1[] = {
 	0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1,
 	0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1,
 	0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
 	0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0,
-	1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 
+	1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0,
 	-1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0
 };
 
-GLfloat colors1[] = { 
+GLfloat colors1[] = {
 	1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0,
 	0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0,
 	1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0,
 	0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0,
 	0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1
-}; 
+};
 
 void initializeView(void)
 {
 	// Set viewing projection
 	glMatrixMode(GL_PROJECTION);
-	glFrustum(-0.5F, 0.5F, -0.5F, 0.5F, 1.0F, 3.0F);
+	glMultMatrixf(P);
 
 	// Position viewer
 	glMatrixMode(GL_MODELVIEW);
@@ -74,38 +82,32 @@ void initializeView(void)
 
 	// Position object
 	glRotatef(30.0F, 1.0F, 0.0F, 0.0F);
-	glRotatef(30.0F, 0.0F, 1.0F, 0.0F);	
+	glRotatef(30.0F, 0.0F, 1.0F, 0.0F);
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_COLOR_MATERIAL);
 }
 
-void initializeDisplayList(void)
+void initDisplayList(void)
 {
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_COLOR_MATERIAL);
-
+	listIndex = glGenLists(1);
+	glNewList(listIndex, GL_COMPILE);
 	glNormalPointer(GL_FLOAT, 0, normals1);
 	glColorPointer(3, GL_FLOAT, 0, colors1);
 	glVertexPointer(3, GL_FLOAT, 0, vertices1);
-
-	// Display list
-	glNewList(listIndex, GL_COMPILE);
 
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-
-	glMultMatrixf(R);
 	glPushMatrix();
+	glMultMatrixf(S);
 	glDrawArrays(GL_QUADS, 0, 24);
-
 	glPopMatrix();
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
-
 	glEndList();
 }
 
@@ -113,6 +115,10 @@ void redraw(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glCallList(listIndex);
+	
+	// Rotation
+	glMultMatrixf(R);
+
 	SwapBuffers(hDC);
 }
 
@@ -188,7 +194,14 @@ int WinMain(__in HINSTANCE hCurrentInst, __in_opt HINSTANCE hPreviousInst, __in_
 
 	// Display window
 	ShowWindow(hWnd, nShowCmd);
-	
+
+	hDC = GetDC(hWnd);
+	setupPixelFormat(hDC);
+	hGLRC = wglCreateContext(hDC);
+	wglMakeCurrent(hDC, hGLRC);
+	initializeView();
+	initDisplayList();
+
 	while(true)
 	{
 		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -217,15 +230,6 @@ int WinMain(__in HINSTANCE hCurrentInst, __in_opt HINSTANCE hPreviousInst, __in_
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch(message) {
-	case WM_CREATE:
-		// Initialize OpenGL rendering
-		hDC = GetDC(hWnd);
-		setupPixelFormat(hDC);
-		hGLRC = wglCreateContext(hDC);
-		wglMakeCurrent(hDC, hGLRC);
-		initializeView();
-		initializeDisplayList();
-		return 0;
 	case WM_DESTROY:
 		// Finish OpenGL rendering
 		if(hGLRC) {
