@@ -262,5 +262,5 @@ define void @func() {
   ret void
 }
 
-; CHECK: define void @func() {
+; DUMP: define void @func() {
 

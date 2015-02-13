@@ -65,9 +65,9 @@ if __name__ == '__main__':
                            'from the same bitcode as the subzero object. ' +
                            'If 0, then compile it straight from source.' +
                            ' Default %(default)d.')
-    argparser.add_argument('--elf', dest='elf',
-                           action='store_true',
-                           help='Directly generate ELF output')
+    argparser.add_argument('--filetype', default='obj', dest='filetype',
+                           choices=['obj', 'asm', 'iasm'],
+                           help='Output file type.  Default %(default)s.')
     args = argparser.parse_args()
 
     nacl_root = FindBaseNaCl()
@@ -108,10 +108,10 @@ if __name__ == '__main__':
                   '--target=' + args.target,
                   '--prefix=' + args.prefix,
                   '-allow-uninitialized-globals',
-                  '-o=' + (obj_sz if args.elf else asm_sz),
-                  bitcode] +
-                 (['-elf-writer'] if args.elf else []))
-        if not args.elf:
+                  '-filetype=' + args.filetype,
+                  '-o=' + (obj_sz if args.filetype == 'obj' else asm_sz),
+                  bitcode])
+        if args.filetype != 'obj':
             shellcmd(['llvm-mc',
                       '-arch=' + arch_map[args.target],
                       '-filetype=obj',

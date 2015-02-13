@@ -211,7 +211,7 @@ static cl::opt<uint32_t> NumThreads(
     cl::desc("Number of translation threads (0 for purely sequential)"),
     // TODO(stichnot): Settle on a good default.  Consider
     // something related to std::thread::hardware_concurrency().
-    cl::init(0));
+    cl::init(2));
 
 static int GetReturnValue(int Val) {
   if (AlwaysExitSuccess)
