@@ -160,6 +160,15 @@
     <ClInclude Include="Compiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DirectiveHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtensionBehavior.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="glslang.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="glslang.l">

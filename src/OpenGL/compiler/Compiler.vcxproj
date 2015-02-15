@@ -297,6 +297,9 @@
     <ClInclude Include="ConstantUnion.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="Diagnostics.h" />
+    <ClInclude Include="DirectiveHandler.h" />
+    <ClInclude Include="ExtensionBehavior.h" />
+    <ClInclude Include="glslang.h" />
     <ClInclude Include="InfoSink.h" />
     <ClInclude Include="Initialize.h" />
     <ClInclude Include="InitializeGlobals.h" />
