@@ -54,6 +54,8 @@ WHICH GENERATES THE GLSL ES LEXER (glslang_lex.cpp).
 static int string_input(char* buf, int max_size, yyscan_t yyscanner);
 static int check_type(yyscan_t yyscanner);
 static int reserved_word(yyscan_t yyscanner);
+static int ES2_reserved_ES3_keyword(TParseContext *context, int token);
+static int ES2_keyword_ES3_reserved(TParseContext *context, int token);
 %}
 
 %option noyywrap nounput never-interactive
@@ -89,10 +91,10 @@ O           [0-7]
 "lowp"         { return(LOW_PRECISION); }
 "precision"    { return(PRECISION); }
 
-"attribute"    { if (context->shaderVersion < 300) return(ATTRIBUTE); return reserved_word(yyscanner); }
+"attribute"    { return ES2_keyword_ES3_reserved(context, ATTRIBUTE); }
 "const"        { return(CONST_QUAL); }
 "uniform"      { return(UNIFORM); }
-"varying"      { if (context->shaderVersion < 300) return(VARYING); return reserved_word(yyscanner); }
+"varying"      { return ES2_keyword_ES3_reserved(context, VARYING); }
 
 "break"        { return(BREAK); }
 "continue"     { return(CONTINUE); }
@@ -102,13 +104,13 @@ O           [0-7]
 
 "if"           { return(IF); }
 "else"         { return(ELSE); }
-"switch"       { if (context->shaderVersion < 300) return reserved_word(yyscanner); return(SWITCH); }
-"case"         { if (context->shaderVersion < 300) return reserved_word(yyscanner); return(CASE); }
-"default"      { if (context->shaderVersion < 300) return reserved_word(yyscanner); return(DEFAULT); }
+"switch"       { return ES2_reserved_ES3_keyword(context, SWITCH); }
+"case"         { return ES2_reserved_ES3_keyword(context, CASE); }
+"default"      { return ES2_reserved_ES3_keyword(context, DEFAULT); }
 
-"centroid"     { if (context->shaderVersion < 300) return reserved_word(yyscanner); return(CENTROID); }
-"flat"         { if (context->shaderVersion < 300) return reserved_word(yyscanner); return(FLAT); }
-"smooth"       { if (context->shaderVersion < 300) return reserved_word(yyscanner); return(SMOOTH); }
+"centroid"     { return ES2_reserved_ES3_keyword(context, CENTROID); }
+"flat"         { return ES2_reserved_ES3_keyword(context, FLAT); }
+"smooth"       { return ES2_reserved_ES3_keyword(context, SMOOTH); }
 
 "in"           { return(IN_QUAL); }
 "out"          { return(OUT_QUAL); }
@@ -142,8 +144,8 @@ O           [0-7]
 "samplerCube"        { context->lexAfterType = true; return SAMPLERCUBE; }
 "samplerExternalOES" { context->lexAfterType = true; return SAMPLER_EXTERNAL_OES; }
 "sampler3D"          { context->lexAfterType = true; return SAMPLER3D; }
-"sampler3DRect"      { if (context->shaderVersion < 300) return reserved_word(yyscanner); context->lexAfterType = true; return SAMPLER3DRECT; }
-"sampler2DShadow"    { if (context->shaderVersion < 300) return reserved_word(yyscanner); context->lexAfterType = true; return SAMPLER2DSHADOW; }
+"sampler3DRect"      { return ES2_reserved_ES3_keyword(context, SAMPLER3DRECT); }
+"sampler2DShadow"    { return ES2_reserved_ES3_keyword(context, SAMPLER2DSHADOW); }
 
 "struct"       { context->lexAfterType = true; return(STRUCT); }
 
@@ -381,6 +383,30 @@ int reserved_word(yyscan_t yyscanner) {
     yyextra->error(yylineno, "Illegal use of reserved word", yytext, "");
     yyextra->recover();
     return 0;
+}
+
+int ES2_reserved_ES3_keyword(TParseContext *context, int token)
+{
+    yyscan_t yyscanner = (yyscan_t) context->scanner;
+
+    if (context->shaderVersion < 300)
+    {
+        return reserved_word(yyscanner);
+    }
+
+    return token;
+}
+
+int ES2_keyword_ES3_reserved(TParseContext *context, int token)
+{
+    yyscan_t yyscanner = (yyscan_t) context->scanner;
+
+    if (context->shaderVersion >= 300)
+    {
+        return reserved_word(yyscanner);
+    }
+
+    return token;
 }
 
 void yyerror(TParseContext* context, const char* reason) {

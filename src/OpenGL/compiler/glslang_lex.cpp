@@ -1003,6 +1003,8 @@ WHICH GENERATES THE GLSL ES LEXER (glslang_lex.cpp).
 static int string_input(char* buf, int max_size, yyscan_t yyscanner);
 static int check_type(yyscan_t yyscanner);
 static int reserved_word(yyscan_t yyscanner);
+static int ES2_reserved_ES3_keyword(TParseContext *context, int token);
+static int ES2_keyword_ES3_reserved(TParseContext *context, int token);
 
 #define INITIAL 0
 #define COMMENT 1
@@ -1372,7 +1374,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-{ if (context->shaderVersion < 300) return(ATTRIBUTE); return reserved_word(yyscanner); }
+{ return ES2_keyword_ES3_reserved(context, ATTRIBUTE); }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
@@ -1384,7 +1386,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-{ if (context->shaderVersion < 300) return(VARYING); return reserved_word(yyscanner); }
+{ return ES2_keyword_ES3_reserved(context, VARYING); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
@@ -1416,27 +1418,27 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-{ if (context->shaderVersion < 300) return reserved_word(yyscanner); return(SWITCH); }
+{ return ES2_reserved_ES3_keyword(context, SWITCH); }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-{ if (context->shaderVersion < 300) return reserved_word(yyscanner); return(CASE); }
+{ return ES2_reserved_ES3_keyword(context, CASE); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-{ if (context->shaderVersion < 300) return reserved_word(yyscanner); return(DEFAULT); }
+{ return ES2_reserved_ES3_keyword(context, DEFAULT); }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-{ if (context->shaderVersion < 300) return reserved_word(yyscanner); return(CENTROID); }
+{ return ES2_reserved_ES3_keyword(context, CENTROID); }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-{ if (context->shaderVersion < 300) return reserved_word(yyscanner); return(FLAT); }
+{ return ES2_reserved_ES3_keyword(context, FLAT); }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-{ if (context->shaderVersion < 300) return reserved_word(yyscanner); return(SMOOTH); }
+{ return ES2_reserved_ES3_keyword(context, SMOOTH); }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
@@ -1548,11 +1550,11 @@ YY_RULE_SETUP
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-{ if (context->shaderVersion < 300) return reserved_word(yyscanner); context->lexAfterType = true; return SAMPLER3DRECT; }
+{ return ES2_reserved_ES3_keyword(context, SAMPLER3DRECT); }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-{ if (context->shaderVersion < 300) return reserved_word(yyscanner); context->lexAfterType = true; return SAMPLER2DSHADOW; }
+{ return ES2_reserved_ES3_keyword(context, SAMPLER2DSHADOW); }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
@@ -3126,6 +3128,30 @@ int reserved_word(yyscan_t yyscanner) {
     yyextra->error(yylineno, "Illegal use of reserved word", yytext, "");
     yyextra->recover();
     return 0;
+}
+
+int ES2_reserved_ES3_keyword(TParseContext *context, int token)
+{
+    yyscan_t yyscanner = (yyscan_t) context->scanner;
+
+    if (context->shaderVersion < 300)
+    {
+        return reserved_word(yyscanner);
+    }
+
+    return token;
+}
+
+int ES2_keyword_ES3_reserved(TParseContext *context, int token)
+{
+    yyscan_t yyscanner = (yyscan_t) context->scanner;
+
+    if (context->shaderVersion >= 300)
+    {
+        return reserved_word(yyscanner);
+    }
+
+    return token;
 }
 
 void yyerror(TParseContext* context, const char* reason) {
