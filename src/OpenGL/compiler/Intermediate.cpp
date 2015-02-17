@@ -601,6 +601,9 @@ bool TIntermOperator::isConstructor() const
         case EOpConstructIVec3:
         case EOpConstructIVec4:
         case EOpConstructInt:
+        case EOpConstructUVec2:
+        case EOpConstructUVec3:
+        case EOpConstructUVec4:
         case EOpConstructUInt:
         case EOpConstructBVec2:
         case EOpConstructBVec3:
