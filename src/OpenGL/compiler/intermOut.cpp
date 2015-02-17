@@ -223,6 +223,7 @@ bool TOutputTraverser::visitAggregate(Visit visit, TIntermAggregate* node)
         case EOpConstructIVec2: out << "Construct ivec2"; break;
         case EOpConstructIVec3: out << "Construct ivec3"; break;
         case EOpConstructIVec4: out << "Construct ivec4"; break;
+        case EOpConstructUInt:  out << "Construct uint";   break;
         case EOpConstructMat2:  out << "Construct mat2";  break;
         case EOpConstructMat3:  out << "Construct mat3";  break;
         case EOpConstructMat4:  out << "Construct mat4";  break;
@@ -324,6 +325,10 @@ void TOutputTraverser::visitConstantUnion(TIntermConstantUnion* node)
             case EbtInt:
                 out << node->getUnionArrayPointer()[i].getIConst();
                 out << " (const int)\n";
+                break;
+            case EbtUInt:
+                out << node->getUnionArrayPointer()[i].getUConst();
+                out << " (const uint)\n";
                 break;
             default:
                 out.message(EPrefixInternalError, "Unknown constant", node->getLine());

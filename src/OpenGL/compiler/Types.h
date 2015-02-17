@@ -146,6 +146,7 @@ public:
     bool isScalar() const { return size == 1 && !matrix && !structure; }
 	bool isRegister() const { return !matrix && !structure && !array; }   // Fits in a 4-element register
 	bool isStruct() const { return structure != 0; }
+	bool isScalarInt() const { return isScalar() && (type == EbtInt || type == EbtUInt); }
 
     TTypeList* getStruct() const { return structure; }
     void setStruct(TTypeList* s) { structure = s; computeDeepestStructNesting(); }

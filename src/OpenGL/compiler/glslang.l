@@ -56,6 +56,7 @@ static int check_type(yyscan_t yyscanner);
 static int reserved_word(yyscan_t yyscanner);
 static int ES2_reserved_ES3_keyword(TParseContext *context, int token);
 static int ES2_keyword_ES3_reserved(TParseContext *context, int token);
+static int ES2_identifier_ES3_keyword(TParseContext *context, int token);
 %}
 
 %option noyywrap nounput never-interactive
@@ -118,6 +119,7 @@ O           [0-7]
 
 "float"        { context->lexAfterType = true; return(FLOAT_TYPE); }
 "int"          { context->lexAfterType = true; return(INT_TYPE); }
+"uint"         { return ES2_identifier_ES3_keyword(context, UINT_TYPE); }
 "void"         { context->lexAfterType = true; return(VOID_TYPE); }
 "bool"         { context->lexAfterType = true; return(BOOL_TYPE); }
 "true"         { yylval->lex.b = true;  return(BOOLCONSTANT); }
@@ -404,6 +406,21 @@ int ES2_keyword_ES3_reserved(TParseContext *context, int token)
     if (context->shaderVersion >= 300)
     {
         return reserved_word(yyscanner);
+    }
+
+    return token;
+}
+
+int ES2_identifier_ES3_keyword(TParseContext *context, int token)
+{
+    struct yyguts_t* yyg = (struct yyguts_t*) context->scanner;
+    yyscan_t yyscanner = (yyscan_t) context->scanner;
+
+    // not a reserved word in GLSL ES 1.00, so could be used as an identifier/type name
+    if (context->shaderVersion < 300)
+    {
+        yylval->lex.string = NewPoolTString(yytext);
+        return check_type(yyscanner);
     }
 
     return token;

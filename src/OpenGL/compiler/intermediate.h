@@ -145,6 +145,7 @@ enum TOperator {
     //
 
     EOpConstructInt,
+    EOpConstructUInt,
     EOpConstructBool,
     EOpConstructFloat,
     EOpConstructVec2,
@@ -248,6 +249,7 @@ public:
     bool isArray()  const { return type.isArray(); }
     bool isVector() const { return type.isVector(); }
     bool isScalar() const { return type.isScalar(); }
+    bool isScalarInt() const { return type.isScalarInt(); }
 	bool isRegister() const { return type.isRegister(); }   // Fits in a 4-element register
 	bool isStruct() const { return type.isStruct(); }
     const char* getBasicString() const { return type.getBasicString(); }
@@ -356,6 +358,7 @@ public:
     ConstantUnion* getUnionArrayPointer() const { return unionArrayPointer; }
     
     int getIConst(int index) const { return unionArrayPointer ? unionArrayPointer[index].getIConst() : 0; }
+    int getUConst(int index) const { return unionArrayPointer ? unionArrayPointer[index].getUConst() : 0; }
     float getFConst(int index) const { return unionArrayPointer ? unionArrayPointer[index].getFConst() : 0.0f; }
     bool getBConst(int index) const { return unionArrayPointer ? unionArrayPointer[index].getBConst() : false; }
 
