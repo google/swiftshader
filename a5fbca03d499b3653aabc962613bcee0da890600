@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4bd4142e_f637a00a",
+        "filename": "src/SwiftShader.sln",
+        "patchSetId": 3
+      },
+      "lineNbr": 719,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-17T19:04:16Z",
+      "side": 0,
+      "message": "x64...Win32? Seems wrong...",
+      "range": {
+        "startLine": 719,
+        "startChar": 69,
+        "endLine": 719,
+        "endChar": 74
+      },
+      "revId": "a5fbca03d499b3653aabc962613bcee0da890600",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
