@@ -267,6 +267,7 @@ protected:
 struct TPublicType
 {
     TBasicType type;
+    TLayoutQualifier layoutQualifier;
     TQualifier qualifier;
     TPrecision precision;
     int size;          // size of vector or matrix, not size of array
@@ -279,6 +280,7 @@ struct TPublicType
     void setBasic(TBasicType bt, TQualifier q, int ln = 0)
     {
         type = bt;
+        layoutQualifier = TLayoutQualifier::create();
         qualifier = q;
         precision = EbpUndefined;
         size = 1;

@@ -1321,6 +1321,66 @@ TIntermTyped* TParseContext::addConstStruct(TString& identifier, TIntermTyped* n
     return typedNode;
 }
 
+TLayoutQualifier TParseContext::parseLayoutQualifier(const TString &qualifierType, const TSourceLoc& qualifierTypeLine)
+{
+    TLayoutQualifier qualifier;
+
+    qualifier.location = -1;
+
+    if (qualifierType == "location")
+    {
+        error(qualifierTypeLine, "invalid layout qualifier", qualifierType.c_str(), "location requires an argument");
+        recover();
+    }
+    else
+    {
+        error(qualifierTypeLine, "invalid layout qualifier", qualifierType.c_str());
+        recover();
+    }
+
+    return qualifier;
+}
+
+TLayoutQualifier TParseContext::parseLayoutQualifier(const TString &qualifierType, const TSourceLoc& qualifierTypeLine, const TString &intValueString, int intValue, const TSourceLoc& intValueLine)
+{
+    TLayoutQualifier qualifier;
+
+    qualifier.location = -1;
+
+    if (qualifierType != "location")
+    {
+        error(qualifierTypeLine, "invalid layout qualifier", qualifierType.c_str(), "only location may have arguments");
+        recover();
+    }
+    else
+    {
+        // must check that location is non-negative
+        if (intValue < 0)
+        {
+            error(intValueLine, "out of range:", intValueString.c_str(), "location must be non-negative");
+            recover();
+        }
+        else
+        {
+            qualifier.location = intValue;
+        }
+    }
+
+    return qualifier;
+}
+
+TLayoutQualifier TParseContext::joinLayoutQualifiers(TLayoutQualifier leftQualifier, TLayoutQualifier rightQualifier)
+{
+    TLayoutQualifier joinedQualifier = leftQualifier;
+
+    if (rightQualifier.location != -1)
+    {
+        joinedQualifier.location = rightQualifier.location;
+    }
+
+    return joinedQualifier;
+}
+
 bool TParseContext::enterStructDeclaration(int line, const TString& identifier)
 {
     ++structNestingLevel;

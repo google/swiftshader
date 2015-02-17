@@ -119,6 +119,25 @@ enum TQualifier
     EvqLast
 };
 
+struct TLayoutQualifier
+{
+    static TLayoutQualifier create()
+    {
+        TLayoutQualifier layoutQualifier;
+
+        layoutQualifier.location = -1;
+
+        return layoutQualifier;
+    }
+
+    bool isEmpty() const
+    {
+        return location == -1;
+    }
+
+    int location;
+};
+
 //
 // This is just for debug print out, carried along with the definitions above.
 //
