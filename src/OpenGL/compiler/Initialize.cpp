@@ -16,14 +16,14 @@
 
 void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TSymbolTable &symbolTable)
 {
-	TType *float1 = new TType(EbtFloat, EbpUndefined, EvqGlobal, 1);
-	TType *float2 = new TType(EbtFloat, EbpUndefined, EvqGlobal, 2);
-	TType *float3 = new TType(EbtFloat, EbpUndefined, EvqGlobal, 3);
-	TType *float4 = new TType(EbtFloat, EbpUndefined, EvqGlobal, 4);
+	TType *float1 = new TType(EbtFloat);
+	TType *float2 = new TType(EbtFloat, 2);
+	TType *float3 = new TType(EbtFloat, 3);
+	TType *float4 = new TType(EbtFloat, 4);
 
-	TType *int2 = new TType(EbtInt, EbpUndefined, EvqGlobal, 2);
-	TType *int3 = new TType(EbtInt, EbpUndefined, EvqGlobal, 3);
-	TType *int4 = new TType(EbtInt, EbpUndefined, EvqGlobal, 4);
+	TType *int2 = new TType(EbtInt, 2);
+	TType *int3 = new TType(EbtInt, 3);
+	TType *int4 = new TType(EbtInt, 4);
 
     //
     // Angle and Trigonometric Functions.
@@ -234,9 +234,9 @@ void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TS
     symbolTable.insertBuiltIn(COMMON_BUILTINS, float3, "refract", float3, float3, float1);
     symbolTable.insertBuiltIn(COMMON_BUILTINS, float4, "refract", float4, float4, float1);
 
-	TType *mat2 = new TType(EbtFloat, EbpUndefined, EvqGlobal, 2, true);
-	TType *mat3 = new TType(EbtFloat, EbpUndefined, EvqGlobal, 3, true);
-	TType *mat4 = new TType(EbtFloat, EbpUndefined, EvqGlobal, 4, true);
+	TType *mat2 = new TType(EbtFloat, 2, true);
+	TType *mat3 = new TType(EbtFloat, 3, true);
+	TType *mat4 = new TType(EbtFloat, 4, true);
 
     //
     // Matrix Functions.
@@ -245,10 +245,10 @@ void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TS
     symbolTable.insertBuiltIn(COMMON_BUILTINS, mat3, "matrixCompMult", mat3, mat3);
     symbolTable.insertBuiltIn(COMMON_BUILTINS, mat4, "matrixCompMult", mat4, mat4);
 
-	TType *bool1 = new TType(EbtBool, EbpUndefined, EvqGlobal, 1);
-	TType *bool2 = new TType(EbtBool, EbpUndefined, EvqGlobal, 2);
-	TType *bool3 = new TType(EbtBool, EbpUndefined, EvqGlobal, 3);
-	TType *bool4 = new TType(EbtBool, EbpUndefined, EvqGlobal, 4);
+	TType *bool1 = new TType(EbtBool);
+	TType *bool2 = new TType(EbtBool, 2);
+	TType *bool3 = new TType(EbtBool, 3);
+	TType *bool4 = new TType(EbtBool, 4);
 
     //
     // Vector relational functions.
@@ -321,9 +321,9 @@ void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TS
     symbolTable.insertBuiltIn(COMMON_BUILTINS, bool3, "not", bool3);
     symbolTable.insertBuiltIn(COMMON_BUILTINS, bool4, "not", bool4);
 
-	TType *sampler2D = new TType(EbtSampler2D, EbpUndefined, EvqGlobal, 1);
-	TType *samplerCube = new TType(EbtSamplerCube, EbpUndefined, EvqGlobal, 1);
-	TType *sampler3D = new TType(EbtSampler3D, EbpUndefined, EvqGlobal, 1);
+	TType *sampler2D = new TType(EbtSampler2D);
+	TType *samplerCube = new TType(EbtSamplerCube);
+	TType *sampler3D = new TType(EbtSampler3D);
 
     //
     // Texture Functions for GLSL ES 1.0
@@ -336,7 +336,7 @@ void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TS
 
 	if(resources.OES_EGL_image_external)
     {
-        TType *samplerExternalOES = new TType(EbtSamplerExternalOES, EbpUndefined, EvqGlobal, 1);
+        TType *samplerExternalOES = new TType(EbtSamplerExternalOES);
 
         symbolTable.insertBuiltIn(ESSL1_BUILTINS, float4, "texture2D", samplerExternalOES, float2);
         symbolTable.insertBuiltIn(ESSL1_BUILTINS, float4, "texture2DProj", samplerExternalOES, float3);

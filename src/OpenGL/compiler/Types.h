@@ -39,6 +39,11 @@ class TType
 public:
     POOL_ALLOCATOR_NEW_DELETE();
     TType() {}
+	TType(TBasicType t, int s = 1, bool m = false) :
+            type(t), precision(EbpUndefined), qualifier(EvqGlobal), size(s), matrix(m), array(false), arraySize(0),
+            maxArraySize(0), arrayInformationType(0), structure(0), structureSize(0), deepestStructNesting(0), fieldName(0), mangled(0), typeName(0)
+    {
+    }
     TType(TBasicType t, TPrecision p, TQualifier q = EvqTemporary, int s = 1, bool m = false, bool a = false) :
             type(t), precision(p), qualifier(q), size(s), matrix(m), array(a), arraySize(0),
             maxArraySize(0), arrayInformationType(0), structure(0), structureSize(0), deepestStructNesting(0), fieldName(0), mangled(0), typeName(0)
