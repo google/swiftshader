@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b028cb9_f8d3d1d8",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-18T14:51:59Z",
+      "side": 1,
+      "message": "There\u0027s a swap() function in Math.hpp to do this more conveniently/concisely.",
+      "range": {
+        "startLine": 44,
+        "startChar": 3,
+        "endLine": 46,
+        "endChar": 17
+      },
+      "revId": "00691e64db59e08d0e0348198f7687df19b5f44c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b028cb9_38eee98b",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-18T14:51:59Z",
+      "side": 1,
+      "message": "Isn\u0027t there a way to just step \u0027backwards\u0027 in the source image by having a negative \u0027w\u0027 and \u0027h\u0027 value? That way there\u0027s no extra work in the loops. You just have to adjust the starting corner in source-\u003elockInternal().",
+      "range": {
+        "startLine": 82,
+        "startChar": 24,
+        "endLine": 82,
+        "endChar": 66
+      },
+      "revId": "00691e64db59e08d0e0348198f7687df19b5f44c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
