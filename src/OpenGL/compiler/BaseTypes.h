@@ -40,12 +40,29 @@ enum TBasicType
     EbtInt,
     EbtUInt,
     EbtBool,
-    EbtGuardSamplerBegin,  // non type:  see implementation of IsSampler()
+    EbtGVec4,              // non type: represents vec4, ivec4 and uvec4
+    EbtGuardSamplerBegin,  // non type: see implementation of IsSampler()
     EbtSampler2D,
+    EbtSampler3D,
     EbtSamplerCube,
-    EbtSamplerExternalOES,
-	EbtSampler3D,
-	EbtGuardSamplerEnd,    // non type:  see implementation of IsSampler()
+    EbtSampler2DArray,
+    EbtSamplerExternalOES,  // Only valid if OES_EGL_image_external exists.
+    EbtISampler2D,
+    EbtISampler3D,
+    EbtISamplerCube,
+    EbtISampler2DArray,
+    EbtUSampler2D,
+    EbtUSampler3D,
+    EbtUSamplerCube,
+    EbtUSampler2DArray,
+    EbtSampler2DShadow,
+    EbtSamplerCubeShadow,
+    EbtSampler2DArrayShadow,
+    EbtGuardSamplerEnd,    // non type: see implementation of IsSampler()
+    EbtGSampler2D,         // non type: represents sampler2D, isampler2D and usampler2D
+    EbtGSampler3D,         // non type: represents sampler3D, isampler3D and usampler3D
+    EbtGSamplerCube,       // non type: represents samplerCube, isamplerCube and usamplerCube
+    EbtGSampler2DArray,    // non type: represents sampler2DArray, isampler2DArray and usampler2DArray
     EbtStruct,
     EbtAddress,            // should be deprecated??
     EbtInvariant           // used as a type when qualifying a previously declared variable as being invariant
