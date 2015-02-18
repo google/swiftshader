@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2b9e00d1_2d618d22",
+        "filename": "src/OpenGL/common/debug.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-18T19:28:44Z",
+      "side": 1,
+      "message": "Does it need to be global? Could be inside if(false) (line 25)",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 25
+      },
+      "revId": "38d42597d55e7deadb6c8d83963fa8769b7493f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
