@@ -2934,8 +2934,6 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
 {
 	TRACE("(GLenum name = 0x%X)", name);
 
-	es2::Context *context = es2::getContext();
-
 	switch(name)
 	{
 	case GL_VENDOR:

@@ -38,7 +38,8 @@
 //
 // Symbol base class.  (Can build functions or variables out of these...)
 //
-class TSymbol {    
+class TSymbol
+{
 public:
     POOL_ALLOCATOR_NEW_DELETE();
     TSymbol(const TString *n) :  name(n) { }
@@ -67,7 +68,8 @@ protected:
 // different values for different types polymorphically, so this is 
 // just simple and pragmatic.
 //
-class TVariable : public TSymbol {
+class TVariable : public TSymbol
+{
 public:
     TVariable(const TString *name, const TType& t, bool uT = false ) : TSymbol(name), type(t), userType(uT), unionArray(0), arrayInformationType(0) { }
     virtual ~TVariable() { }
@@ -111,7 +113,8 @@ protected:
 // The function sub-class of symbols and the parser will need to
 // share this definition of a function parameter.
 //
-struct TParameter {
+struct TParameter
+{
     TString *name;
     TType *type;
 };
@@ -119,7 +122,8 @@ struct TParameter {
 //
 // The function sub-class of a symbol.  
 //
-class TFunction : public TSymbol {
+class TFunction : public TSymbol
+{
 public:
     TFunction(TOperator o) :
         TSymbol(0),
@@ -142,7 +146,7 @@ public:
     }
 
     void addParameter(TParameter& p) 
-    { 
+    {
         parameters.push_back(p);
         mangledName = mangledName + p.type->getMangledName();
     }
@@ -173,7 +177,8 @@ protected:
 };
 
 
-class TSymbolTableLevel {
+class TSymbolTableLevel
+{
 public:
     typedef TMap<TString, TSymbol*> tLevel;
     typedef tLevel::const_iterator const_iterator;
@@ -214,7 +219,8 @@ protected:
 	static int uniqueId;     // for unique identification in code generation
 };
 
-class TSymbolTable {
+class TSymbolTable
+{
 public:
     TSymbolTable()
     {
@@ -247,13 +253,13 @@ public:
     }
 
     void pop()
-    { 
-        delete table[currentLevel()]; 
-        table.pop_back(); 
+    {
+        delete table[currentLevel()];
+        table.pop_back();
         precisionStack.pop_back();
     }
 
-    bool insert(TSymbol& symbol)
+    bool insert(TSymbol &symbol)
     {
         return table[currentLevel()]->insert(symbol);
     }
@@ -287,7 +293,7 @@ public:
 		return insert(*function);
 	}
 
-    TSymbol* find(const TString& name, bool* builtIn = 0, bool *sameScope = 0) 
+    TSymbol *find(const TString &name, int shaderVersion, bool *builtIn = false, bool *sameScope = false) const
     {
         int level = currentLevel();
         TSymbol* symbol;
@@ -303,29 +309,35 @@ public:
         return symbol;
     }
 
-    TSymbol *findBuiltIn(const TString &name)
+    TSymbol *findBuiltIn(const TString &name, int shaderVersion) const
     {
         return table[0]->find(name);
     }
 
-    TSymbolTableLevel* getGlobalLevel() {
+    TSymbolTableLevel *getGlobalLevel() const
+    {
         assert(table.size() >= 2);
         return table[1];
     }
 
-    TSymbolTableLevel* getOuterLevel() {
+    TSymbolTableLevel *getOuterLevel() const
+    {
         assert(table.size() >= 2);
         return table[currentLevel() - 1];
     }
 
-    void relateToOperator(const char* name, TOperator op) {
+    void relateToOperator(const char* name, TOperator op)
+    {
         table[0]->relateToOperator(name, op);
     }
-    void relateToExtension(const char* name, const TString& ext) {
+
+    void relateToExtension(const char* name, const TString& ext)
+    {
         table[0]->relateToExtension(name, ext);
     }
 
-    bool setDefaultPrecision( const TPublicType& type, TPrecision prec ){
+    bool setDefaultPrecision(const TPublicType &type, TPrecision prec)
+    {
         if (IsSampler(type.type))
             return true;  // Skip sampler types for the time being
         if (type.type != EbtFloat && type.type != EbtInt)
@@ -359,8 +371,8 @@ public:
         return prec;
     }
 
-protected:    
-    int currentLevel() const { return static_cast<int>(table.size()) - 1; }
+protected:
+    int currentLevel() const { return static_cast<int>(table.size() - 1); }
 
     std::vector<TSymbolTableLevel*> table;
     typedef std::map< TBasicType, TPrecision > PrecisionStackLevel;
