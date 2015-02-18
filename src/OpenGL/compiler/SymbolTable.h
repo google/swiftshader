@@ -259,16 +259,21 @@ public:
         precisionStack.pop_back();
     }
 
-    bool insert(TSymbol &symbol)
+    bool declare(TSymbol &symbol)
     {
-        return table[currentLevel()]->insert(symbol);
+        return insert(currentLevel(), symbol);
+    }
+
+    bool insert(int level, TSymbol &symbol)
+    {
+        return table[level]->insert(symbol);
     }
 
 	bool insertConstInt(const char *name, int value)
 	{
 		TVariable *constant = new TVariable(NewPoolTString(name), TType(EbtInt, EbpUndefined, EvqConst, 1));
 		constant->getConstPointer()->setIConst(value);
-		return insert(*constant);
+		return insert(0, *constant);
 	}
 
 	bool insertBuiltIn(TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0)
@@ -290,7 +295,7 @@ public:
 			function->addParameter(param3);
 		}
 
-		return insert(*function);
+		return insert(0, *function);
 	}
 
     TSymbol *find(const TString &name, int shaderVersion, bool *builtIn = false, bool *sameScope = false) const

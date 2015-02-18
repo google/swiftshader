@@ -320,10 +320,10 @@ void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TS
 	members->push_back(far);
 	members->push_back(diff);
 	TVariable *depthRangeParameters = new TVariable(NewPoolTString("gl_DepthRangeParameters"), TType(members, "gl_DepthRangeParameters"), true);
-	symbolTable.insert(*depthRangeParameters);
+	symbolTable.insert(0, *depthRangeParameters);
 	TVariable *depthRange = new TVariable(NewPoolTString("gl_DepthRange"), TType(members, "gl_DepthRangeParameters"));
 	depthRange->setQualifier(EvqUniform);
-	symbolTable.insert(*depthRange);
+	symbolTable.insert(0, *depthRange);
 
 	symbolTable.insertConstInt("gl_MaxVertexAttribs", resources.MaxVertexAttribs);
     symbolTable.insertConstInt("gl_MaxVertexUniformVectors", resources.MaxVertexUniformVectors);
@@ -346,15 +346,15 @@ void IdentifyBuiltIns(GLenum shaderType,
     switch(shaderType)
 	{
     case GL_FRAGMENT_SHADER:
-        symbolTable.insert(*new TVariable(NewPoolTString("gl_FragCoord"),                   TType(EbtFloat, EbpMedium, EvqFragCoord,   4)));
-        symbolTable.insert(*new TVariable(NewPoolTString("gl_FrontFacing"),                 TType(EbtBool,  EbpUndefined, EvqFrontFacing, 1)));
-        symbolTable.insert(*new TVariable(NewPoolTString("gl_FragColor"),                   TType(EbtFloat, EbpMedium, EvqFragColor,   4)));
-        symbolTable.insert(*new TVariable(NewPoolTString("gl_FragData[gl_MaxDrawBuffers]"), TType(EbtFloat, EbpMedium, EvqFragData,    4)));
-        symbolTable.insert(*new TVariable(NewPoolTString("gl_PointCoord"),                  TType(EbtFloat, EbpMedium, EvqPointCoord,  2)));
+        symbolTable.insert(0, *new TVariable(NewPoolTString("gl_FragCoord"),                   TType(EbtFloat, EbpMedium, EvqFragCoord,   4)));
+        symbolTable.insert(0, *new TVariable(NewPoolTString("gl_FrontFacing"),                 TType(EbtBool,  EbpUndefined, EvqFrontFacing, 1)));
+        symbolTable.insert(0, *new TVariable(NewPoolTString("gl_FragColor"),                   TType(EbtFloat, EbpMedium, EvqFragColor,   4)));
+        symbolTable.insert(0, *new TVariable(NewPoolTString("gl_FragData[gl_MaxDrawBuffers]"), TType(EbtFloat, EbpMedium, EvqFragData,    4)));
+        symbolTable.insert(0, *new TVariable(NewPoolTString("gl_PointCoord"),                  TType(EbtFloat, EbpMedium, EvqPointCoord,  2)));
         break;
     case GL_VERTEX_SHADER:
-        symbolTable.insert(*new TVariable(NewPoolTString("gl_Position"),    TType(EbtFloat, EbpHigh, EvqPosition,    4)));
-        symbolTable.insert(*new TVariable(NewPoolTString("gl_PointSize"),   TType(EbtFloat, EbpMedium, EvqPointSize,   1)));
+        symbolTable.insert(0, *new TVariable(NewPoolTString("gl_Position"),    TType(EbtFloat, EbpHigh, EvqPosition,    4)));
+        symbolTable.insert(0, *new TVariable(NewPoolTString("gl_PointSize"),   TType(EbtFloat, EbpMedium, EvqPointSize,   1)));
         break;
     default: assert(false && "Language not supported");
     }
@@ -445,7 +445,7 @@ void IdentifyBuiltIns(GLenum shaderType,
             // Set up gl_FragData.  The array size.
             TType fragData(EbtFloat, EbpMedium, EvqFragData, 4, false, true);
             fragData.setArraySize(resources.MaxDrawBuffers);
-            symbolTable.insert(*new TVariable(NewPoolTString("gl_FragData"), fragData));
+            symbolTable.insert(0, *new TVariable(NewPoolTString("gl_FragData"), fragData));
 		}
 		break;
     default: break;
