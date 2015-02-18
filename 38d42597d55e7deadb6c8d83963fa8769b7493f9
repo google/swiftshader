@@ -70,6 +70,30 @@
       "revId": "38d42597d55e7deadb6c8d83963fa8769b7493f9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6b8ab89e_a253c05b",
+        "filename": "src/OpenGL/common/debug.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-02-18T20:02:39Z",
+      "side": 1,
+      "message": "My bad, I misunderstood. You meant without the null assignment.",
+      "parentUuid": "6b8ab89e_82cebc32",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 25
+      },
+      "revId": "38d42597d55e7deadb6c8d83963fa8769b7493f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
