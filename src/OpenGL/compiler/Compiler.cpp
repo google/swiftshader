@@ -150,13 +150,9 @@ bool TCompiler::compile(const char* const shaderStrings[],
 bool TCompiler::InitBuiltInSymbolTable(const ShBuiltInResources &resources)
 {
     assert(symbolTable.isEmpty());
-    
-    //
-    // Push the symbol table to give it an initial scope.  This
-    // push should not have a corresponding pop, so that built-ins
-    // are preserved, and the test for an empty table fails.
-    //
-    symbolTable.push();
+    symbolTable.push();   // COMMON_BUILTINS
+    symbolTable.push();   // ESSL1_BUILTINS
+    symbolTable.push();   // ESSL3_BUILTINS
 
 	TPublicType integer;
 	integer.type = EbtInt;

@@ -188,16 +188,19 @@ TSymbol *TSymbolTable::find(const TString &name, int shaderVersion, bool *builtI
 
     do
     {
-        symbol = table[level]->find(name);
-        --level;
-    }
-    while(!symbol && level >= 0);
+        while((level == ESSL3_BUILTINS && shaderVersion != 300) ||
+              (level == ESSL1_BUILTINS && shaderVersion != 100))   // Skip version specific levels
+        {
+            --level;
+        }
 
-    level++;
+        symbol = table[level]->find(name);
+    }
+    while(!symbol && --level >= 0);   // Doesn't decrement level when a symbol was found
 
     if(builtIn)
     {
-        *builtIn = (level == 0);
+        *builtIn = (level <= LAST_BUILTIN_LEVEL);
     }
 
     if(sameScope)
@@ -210,7 +213,23 @@ TSymbol *TSymbolTable::find(const TString &name, int shaderVersion, bool *builtI
 
 TSymbol *TSymbolTable::findBuiltIn(const TString &name, int shaderVersion) const
 {
-    return table[0]->find(name);
+    for(int level = LAST_BUILTIN_LEVEL; level >= 0; --level)
+    {
+        while((level == ESSL3_BUILTINS && shaderVersion != 300) ||
+              (level == ESSL1_BUILTINS && shaderVersion != 100))   // Skip version specific levels
+        {
+            --level;
+        }
+
+        TSymbol *symbol = table[level]->find(name);
+
+        if(symbol)
+        {
+            return symbol;
+        }
+    }
+
+    return 0;
 }
 
 TSymbol::TSymbol(const TSymbol& copyOf)
