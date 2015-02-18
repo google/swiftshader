@@ -768,10 +768,10 @@ namespace glsl
 				{
 					TString name = TFunction::unmangleName(node->getName());
 
-					if(name == "texture2D" || name == "textureCube" || name == "texture3D")
+					if(name == "texture" || name == "texture2D" || name == "textureCube" || name == "texture3D")
 					{
 						if(argumentCount == 2)
-						{	
+						{
 							emit(sw::Shader::OPCODE_TEX, result, arg[1], arg[0]);
 						}
 						else if(argumentCount == 3)   // bias
