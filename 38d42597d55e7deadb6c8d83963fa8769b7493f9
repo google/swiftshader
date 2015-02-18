@@ -22,6 +22,30 @@
       "revId": "38d42597d55e7deadb6c8d83963fa8769b7493f9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6b8ab89e_9f53735c",
+        "filename": "src/OpenGL/common/debug.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-02-18T19:32:58Z",
+      "side": 1,
+      "message": "If it was inside the if(false), it would be reassigned every time the method is called. The point of this change is to only open the file once (at the first method call)",
+      "parentUuid": "2b9e00d1_2d618d22",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 25
+      },
+      "revId": "38d42597d55e7deadb6c8d83963fa8769b7493f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
