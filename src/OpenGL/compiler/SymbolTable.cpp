@@ -181,6 +181,38 @@ void TSymbolTableLevel::relateToExtension(const char* name, const TString& ext)
     }
 }
 
+TSymbol *TSymbolTable::find(const TString &name, int shaderVersion, bool *builtIn, bool *sameScope) const
+{
+    int level = currentLevel();
+    TSymbol *symbol = nullptr;
+
+    do
+    {
+        symbol = table[level]->find(name);
+        --level;
+    }
+    while(!symbol && level >= 0);
+
+    level++;
+
+    if(builtIn)
+    {
+        *builtIn = (level == 0);
+    }
+
+    if(sameScope)
+    {
+        *sameScope = (level == currentLevel());
+    }
+
+    return symbol;
+}
+
+TSymbol *TSymbolTable::findBuiltIn(const TString &name, int shaderVersion) const
+{
+    return table[0]->find(name);
+}
+
 TSymbol::TSymbol(const TSymbol& copyOf)
 {
     name = NewPoolTString(copyOf.name->c_str());
