@@ -14,7 +14,7 @@
 
 ; Add a run that shows relocations in code inline.
 ; RUN: %p2i -i %s --args -O2 --verbose none -filetype=obj -o %t \
-; RUN:   && llvm-objdump -d -r -x86-asm-syntax=intel %t \
+; RUN:   && objdump -w -d -r -Mintel %t \
 ; RUN:   | FileCheck --check-prefix=TEXT-RELOCS %s
 
 ; Use intrinsics to test external calls.
@@ -53,10 +53,8 @@ entry:
   ret float %f
 }
 ; TEXT-RELOCS-LABEL: returnFloatConst
-; TEXT-RELOCS: movss
-; TEXT-RELOCS-NEXT: R_386_32 .L$float$0
-; TEXT-RELOCS: addss
-; TEXT-RELOCS-NEXT: R_386_32 .L$float$1
+; TEXT-RELOCS: movss {{.*}} R_386_32 .L$float$0
+; TEXT-RELOCS: addss {{.*}} R_386_32 .L$float$1
 
 define internal double @returnDoubleConst() {
 entry:
@@ -65,12 +63,9 @@ entry:
   ret double %d2
 }
 ; TEXT-RELOCS-LABEL: returnDoubleConst
-; TEXT-RELOCS: movsd
-; TEXT-RELOCS-NEXT: R_386_32 .L$double$0
-; TEXT-RELOCS: addsd
-; TEXT-RELOCS-NEXT: R_386_32 .L$double$1
-; TEXT-RELOCS: addsd
-; TEXT-RELOCS-NEXT: R_386_32 .L$double$2
+; TEXT-RELOCS: movsd {{.*}} R_386_32 .L$double$0
+; TEXT-RELOCS: addsd {{.*}} R_386_32 .L$double$1
+; TEXT-RELOCS: addsd {{.*}} R_386_32 .L$double$2
 
 ; Test intrinsics that call out to external functions.
 define internal void @test_memcpy(i32 %iptr_dst, i32 %len) {
@@ -82,8 +77,7 @@ entry:
   ret void
 }
 ; TEXT-RELOCS-LABEL: test_memcpy
-; TEXT-RELOCS: mov
-; TEXT-RELOCS: R_386_32 bytes
+; TEXT-RELOCS: mov {{.*}} R_386_32 bytes
 
 define internal void @test_memset(i32 %iptr_dst, i32 %wide_val, i32 %len) {
 entry:
@@ -114,16 +108,14 @@ define internal i32 @test_ret_fp() {
   ret i32 %r
 }
 ; TEXT-RELOCS-LABEL: test_ret_fp
-; TEXT-RELOCS-NEXT: mov
-; TEXT-RELOCS-NEXT: R_386_32 returnFloatConst
+; TEXT-RELOCS-NEXT: mov {{.*}} R_386_32 returnFloatConst
 
 define internal i32 @test_ret_global_pointer() {
   %r = ptrtoint [7 x i8]* @bytes to i32
   ret i32 %r
 }
 ; TEXT-RELOCS-LABEL: test_ret_global_pointer
-; TEXT-RELOCS-NEXT: mov
-; TEXT-RELOCS-NEXT: R_386_32 bytes
+; TEXT-RELOCS-NEXT: mov {{.*}} R_386_32 bytes
 
 ; Test defining a non-internal function.
 define void @_start(i32) {

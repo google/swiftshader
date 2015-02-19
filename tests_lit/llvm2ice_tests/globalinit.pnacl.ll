@@ -8,14 +8,10 @@
 
 ; Test -filetype=iasm and try to cross reference instructions w/ the
 ; symbol table.
-; RUN: %p2i -i %s --args --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d -r --symbolize -x86-asm-syntax=intel - \
+; RUN: %p2i --assemble --disassemble -i %s --args --verbose none \
 ; RUN:   | FileCheck --check-prefix=IAS %s
-; RUN: %p2i -i %s --args --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d -t --symbolize -x86-asm-syntax=intel - \
-; RUN:   | FileCheck --check-prefix=SYMTAB %s
+; RUN: %p2i --assemble --disassemble --dis-flags=-t -i %s --args \
+; RUN:   --verbose none | FileCheck --check-prefix=SYMTAB %s
 
 @PrimitiveInit = internal global [4 x i8] c"\1B\00\00\00", align 4
 ; CHECK: .type PrimitiveInit,@object
@@ -121,46 +117,39 @@ entry:
 ; CHECK: movl $ArrayInitPartial,
 ; CHECK: movl $ArrayUninit,
 
-; llvm-objdump does not indicate what symbol the mov/relocation applies to
-; so we grep for "mov {{.*}}, OFFSET", along with "OFFSET {{.*}} symbol" in
-; the symbol table as a sanity check. NOTE: The symbol table sorting has no
-; relation to the code's references.
+; objdump does not indicate what symbol the mov/relocation applies to
+; so we grep for "mov {{.*}}, OFFSET, sec", along with
+; "OFFSET {{.*}} sec {{.*}} symbol" in the symbol table as a sanity check.
+; NOTE: The symbol table sorting has no relation to the code's references.
 ; IAS-LABEL: main
 ; SYMTAB-LABEL: SYMBOL TABLE
 
 ; SYMTAB-DAG: 00000000 {{.*}} .data {{.*}} PrimitiveInit
-; IAS: mov {{.*}}, .data
-; IAS-NEXT: R_386_32
+; IAS: mov {{.*}},0x0 {{.*}} .data
 ; IAS: call
 
 ; SYMTAB-DAG: 00000000 {{.*}} .rodata {{.*}} PrimitiveInitConst
-; IAS: mov {{.*}}, .rodata
-; IAS-NEXT: R_386_32
+; IAS: mov {{.*}},0x0 {{.*}} .rodata
 ; IAS: call
 
 ; SYMTAB-DAG: 00000000 {{.*}} .bss {{.*}} PrimitiveInitStatic
-; IAS: mov {{.*}}, .bss
-; IAS-NEXT: R_386_32
+; IAS: mov {{.*}},0x0 {{.*}} .bss
 ; IAS: call
 
 ; SYMTAB-DAG: 00000004 {{.*}} .bss {{.*}} PrimitiveUninit
-; IAS: mov {{.*}}, .bss
-; IAS-NEXT: R_386_32
+; IAS: mov {{.*}},0x4 {{.*}} .bss
 ; IAS: call
 
 ; SYMTAB-DAG: 00000004{{.*}}.data{{.*}}ArrayInit
-; IAS: mov {{.*}}, .data
-; IAS-NEXT: R_386_32
+; IAS: mov {{.*}},0x4 {{.*}} .data
 ; IAS: call
 
 ; SYMTAB-DAG: 00000018 {{.*}} .data {{.*}} ArrayInitPartial
-; IAS: mov {{.*}}, .data
-; IAS-NEXT: R_386_32
+; IAS: mov {{.*}},0x18 {{.*}} .data
 ; IAS: call
 
 ; SYMTAB-DAG: 00000008 {{.*}} .bss {{.*}} ArrayUninit
-; IAS: mov {{.*}}, .bss
-; IAS-NEXT: R_386_32
+; IAS: mov {{.*}},0x8 {{.*}} .bss
 ; IAS: call
 
 

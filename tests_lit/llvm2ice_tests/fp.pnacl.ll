@@ -3,12 +3,10 @@
 ; that should be present regardless of the optimization level, so
 ; there are no special OPTM1 match lines.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
+; RUN:   | FileCheck %s
+; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
+; RUN:   | FileCheck %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
@@ -20,7 +18,7 @@ entry:
   ret i32 %b
 }
 ; CHECK-LABEL: doubleArgs
-; CHECK:      mov     eax, dword ptr [esp + 12]
+; CHECK:      mov eax,DWORD PTR [esp+0xc]
 ; CHECK-NEXT: ret
 
 define internal i32 @floatArgs(float %a, i32 %b, float %c) {
@@ -28,7 +26,7 @@ entry:
   ret i32 %b
 }
 ; CHECK-LABEL: floatArgs
-; CHECK:      mov     eax, dword ptr [esp + 8]
+; CHECK:      mov eax,DWORD PTR [esp+0x8]
 ; CHECK-NEXT: ret
 
 define internal i32 @passFpArgs(float %a, double %b, float %c, double %d, float %e, double %f) {
@@ -41,12 +39,12 @@ entry:
   ret i32 %add3
 }
 ; CHECK-LABEL: passFpArgs
-; CHECK: mov dword ptr [esp + 4], 123
-; CHECK: call ignoreFpArgsNoInline
-; CHECK: mov dword ptr [esp + 4], 123
-; CHECK: call ignoreFpArgsNoInline
-; CHECK: mov dword ptr [esp + 4], 123
-; CHECK: call ignoreFpArgsNoInline
+; CHECK: mov DWORD PTR [esp+0x4],0x7b
+; CHECK: call {{.*}} R_{{.*}} ignoreFpArgsNoInline
+; CHECK: mov DWORD PTR [esp+0x4],0x7b
+; CHECK: call {{.*}} R_{{.*}} ignoreFpArgsNoInline
+; CHECK: mov DWORD PTR [esp+0x4],0x7b
+; CHECK: call {{.*}} R_{{.*}} ignoreFpArgsNoInline
 
 declare i32 @ignoreFpArgsNoInline(float %x, i32 %y, double %z)
 
@@ -56,8 +54,8 @@ entry:
   ret i32 %call
 }
 ; CHECK-LABEL: passFpConstArg
-; CHECK: mov dword ptr [esp + 4], 123
-; CHECK: call ignoreFpArgsNoInline
+; CHECK: mov DWORD PTR [esp+0x4],0x7b
+; CHECK: call {{.*}} R_{{.*}} ignoreFpArgsNoInline
 
 define internal i32 @passFp32ConstArg(float %a) {
 entry:
@@ -65,28 +63,25 @@ entry:
   ret i32 %call
 }
 ; CHECK-LABEL: passFp32ConstArg
-; CHECK: mov dword ptr [esp + 4], 123
-; CHECK: movss dword ptr [esp + 8]
-; CHECK: call ignoreFp32ArgsNoInline
+; CHECK: mov DWORD PTR [esp+0x4],0x7b
+; CHECK: movss DWORD PTR [esp+0x8]
+; CHECK: call {{.*}} R_{{.*}} ignoreFp32ArgsNoInline
 
-define i32 @ignoreFp32ArgsNoInline(float %x, i32 %y, float %z) {
-entry:
-  ret i32 %y
-}
+declare i32 @ignoreFp32ArgsNoInline(float %x, i32 %y, float %z)
 
 define internal float @returnFloatArg(float %a) {
 entry:
   ret float %a
 }
 ; CHECK-LABEL: returnFloatArg
-; CHECK: fld dword ptr [esp
+; CHECK: fld DWORD PTR [esp
 
 define internal double @returnDoubleArg(double %a) {
 entry:
   ret double %a
 }
 ; CHECK-LABEL: returnDoubleArg
-; CHECK: fld qword ptr [esp
+; CHECK: fld QWORD PTR [esp
 
 define internal float @returnFloatConst() {
 entry:
@@ -180,7 +175,7 @@ entry:
   ret float %div
 }
 ; CHECK-LABEL: remFloat
-; CHECK: call fmodf
+; CHECK: call {{.*}} R_{{.*}} fmodf
 
 define internal double @remDouble(double %a, double %b) {
 entry:
@@ -188,7 +183,7 @@ entry:
   ret double %div
 }
 ; CHECK-LABEL: remDouble
-; CHECK: call fmod
+; CHECK: call {{.*}} R_{{.*}} fmod
 
 define internal float @fptrunc(double %a) {
 entry:
@@ -214,7 +209,7 @@ entry:
   ret i64 %conv
 }
 ; CHECK-LABEL: doubleToSigned64
-; CHECK: call cvtdtosi64
+; CHECK: call {{.*}} R_{{.*}} cvtdtosi64
 
 define internal i64 @floatToSigned64(float %a) {
 entry:
@@ -222,7 +217,7 @@ entry:
   ret i64 %conv
 }
 ; CHECK-LABEL: floatToSigned64
-; CHECK: call cvtftosi64
+; CHECK: call {{.*}} R_{{.*}} cvtftosi64
 
 define internal i64 @doubleToUnsigned64(double %a) {
 entry:
@@ -230,7 +225,7 @@ entry:
   ret i64 %conv
 }
 ; CHECK-LABEL: doubleToUnsigned64
-; CHECK: call cvtdtoui64
+; CHECK: call {{.*}} R_{{.*}} cvtdtoui64
 
 define internal i64 @floatToUnsigned64(float %a) {
 entry:
@@ -238,7 +233,7 @@ entry:
   ret i64 %conv
 }
 ; CHECK-LABEL: floatToUnsigned64
-; CHECK: call cvtftoui64
+; CHECK: call {{.*}} R_{{.*}} cvtftoui64
 
 define internal i32 @doubleToSigned32(double %a) {
 entry:
@@ -270,7 +265,7 @@ entry:
   ret i32 %conv
 }
 ; CHECK-LABEL: doubleToUnsigned32
-; CHECK: call cvtdtoui32
+; CHECK: call {{.*}} R_{{.*}} cvtdtoui32
 
 define internal i32 @floatToUnsigned32(float %a) {
 entry:
@@ -278,8 +273,7 @@ entry:
   ret i32 %conv
 }
 ; CHECK-LABEL: floatToUnsigned32
-; CHECK: call cvtftoui32
-
+; CHECK: call {{.*}} R_{{.*}} cvtftoui32
 
 define internal i32 @doubleToSigned16(double %a) {
 entry:
@@ -369,7 +363,7 @@ entry:
 }
 ; CHECK-LABEL: doubleToUnsigned1
 ; CHECK: cvttsd2si
-; CHECK: and eax, 1
+; CHECK: and eax,0x1
 
 define internal i32 @floatToUnsigned1(float %a) {
 entry:
@@ -379,7 +373,7 @@ entry:
 }
 ; CHECK-LABEL: floatToUnsigned1
 ; CHECK: cvttss2si
-; CHECK: and eax, 1
+; CHECK: and eax,0x1
 
 define internal double @signed64ToDouble(i64 %a) {
 entry:
@@ -387,8 +381,8 @@ entry:
   ret double %conv
 }
 ; CHECK-LABEL: signed64ToDouble
-; CHECK: call cvtsi64tod
-; CHECK: fstp qword
+; CHECK: call {{.*}} R_{{.*}} cvtsi64tod
+; CHECK: fstp QWORD
 
 define internal float @signed64ToFloat(i64 %a) {
 entry:
@@ -396,8 +390,8 @@ entry:
   ret float %conv
 }
 ; CHECK-LABEL: signed64ToFloat
-; CHECK: call cvtsi64tof
-; CHECK: fstp dword
+; CHECK: call {{.*}} R_{{.*}} cvtsi64tof
+; CHECK: fstp DWORD
 
 define internal double @unsigned64ToDouble(i64 %a) {
 entry:
@@ -405,7 +399,7 @@ entry:
   ret double %conv
 }
 ; CHECK-LABEL: unsigned64ToDouble
-; CHECK: call cvtui64tod
+; CHECK: call {{.*}} R_{{.*}} cvtui64tod
 ; CHECK: fstp
 
 define internal float @unsigned64ToFloat(i64 %a) {
@@ -414,7 +408,7 @@ entry:
   ret float %conv
 }
 ; CHECK-LABEL: unsigned64ToFloat
-; CHECK: call cvtui64tof
+; CHECK: call {{.*}} R_{{.*}} cvtui64tof
 ; CHECK: fstp
 
 define internal double @unsigned64ToDoubleConst() {
@@ -423,9 +417,9 @@ entry:
   ret double %conv
 }
 ; CHECK-LABEL: unsigned64ToDouble
-; CHECK: mov dword ptr [esp + 4], 2874
-; CHECK: mov dword ptr [esp], 1942892530
-; CHECK: call cvtui64tod
+; CHECK: mov DWORD PTR [esp+0x4],0xb3a
+; CHECK: mov DWORD PTR [esp],0x73ce2ff2
+; CHECK: call {{.*}} R_{{.*}} cvtui64tod
 ; CHECK: fstp
 
 define internal double @signed32ToDouble(i32 %a) {
@@ -461,8 +455,8 @@ entry:
   ret double %conv
 }
 ; CHECK-LABEL: unsigned32ToDouble
-; CHECK: call cvtui32tod
-; CHECK: fstp qword
+; CHECK: call {{.*}} R_{{.*}} cvtui32tod
+; CHECK: fstp QWORD
 
 define internal float @unsigned32ToFloat(i32 %a) {
 entry:
@@ -470,8 +464,8 @@ entry:
   ret float %conv
 }
 ; CHECK-LABEL: unsigned32ToFloat
-; CHECK: call cvtui32tof
-; CHECK: fstp dword
+; CHECK: call {{.*}} R_{{.*}} cvtui32tof
+; CHECK: fstp DWORD
 
 define internal double @signed16ToDouble(i32 %a) {
 entry:
@@ -481,7 +475,7 @@ entry:
 }
 ; CHECK-LABEL: signed16ToDouble
 ; CHECK: cvtsi2sd
-; CHECK: fld qword
+; CHECK: fld QWORD
 
 define internal float @signed16ToFloat(i32 %a) {
 entry:
@@ -491,7 +485,7 @@ entry:
 }
 ; CHECK-LABEL: signed16ToFloat
 ; CHECK: cvtsi2ss
-; CHECK: fld dword
+; CHECK: fld DWORD
 
 define internal double @unsigned16ToDouble(i32 %a) {
 entry:
@@ -636,18 +630,15 @@ if.end3:                                          ; preds = %if.then2, %if.end
 }
 ; CHECK-LABEL: fcmpEq
 ; CHECK: ucomiss
-; CHECK: jne {{[0-9]}}
-; CHECK-NEXT: jp {{[0-9]}}
-; CHECK: call func
+; CHECK: jne
+; CHECK-NEXT: jp
+; CHECK: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: jne {{[0-9]}}
-; CHECK-NEXT: jp {{[0-9]}}
-; CHECK: call func
+; CHECK: jne
+; CHECK-NEXT: jp
+; CHECK: call {{.*}} R_{{.*}} func
 
-define void @func() {
-entry:
-  ret void
-}
+declare void @func()
 
 define internal void @fcmpNe(float %a, float %b, double %c, double %d) {
 entry:
@@ -671,13 +662,13 @@ if.end3:                                          ; preds = %if.then2, %if.end
 }
 ; CHECK-LABEL: fcmpNe
 ; CHECK: ucomiss
-; CHECK: jne {{[0-9]}}
-; CHECK-NEXT: jp {{[0-9]}}
-; CHECK: call func
+; CHECK: jne
+; CHECK-NEXT: jp
+; CHECK: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: jne {{[0-9]}}
-; CHECK-NEXT: jp {{[0-9]}}
-; CHECK: call func
+; CHECK: jne
+; CHECK-NEXT: jp
+; CHECK: call {{.*}} R_{{.*}} func
 
 define internal void @fcmpGt(float %a, float %b, double %c, double %d) {
 entry:
@@ -701,11 +692,11 @@ if.end3:                                          ; preds = %if.then2, %if.end
 }
 ; CHECK-LABEL: fcmpGt
 ; CHECK: ucomiss
-; CHECK: ja {{[0-9]}}
-; CHECK: call func
+; CHECK: ja
+; CHECK: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: ja {{[0-9]}}
-; CHECK: call func
+; CHECK: ja
+; CHECK: call {{.*}} R_{{.*}} func
 
 define internal void @fcmpGe(float %a, float %b, double %c, double %d) {
 entry:
@@ -729,11 +720,11 @@ if.end3:                                          ; preds = %if.end, %if.then2
 }
 ; CHECK-LABEL: fcmpGe
 ; CHECK: ucomiss
-; CHECK: jb {{[0-9]}}
-; CHECK: call func
+; CHECK: jb
+; CHECK: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: jb {{[0-9]}}
-; CHECK: call func
+; CHECK: jb
+; CHECK: call {{.*}} R_{{.*}} func
 
 define internal void @fcmpLt(float %a, float %b, double %c, double %d) {
 entry:
@@ -757,11 +748,11 @@ if.end3:                                          ; preds = %if.then2, %if.end
 }
 ; CHECK-LABEL: fcmpLt
 ; CHECK: ucomiss
-; CHECK: ja {{[0-9]}}
-; CHECK: call func
+; CHECK: ja
+; CHECK: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: ja {{[0-9]}}
-; CHECK: call func
+; CHECK: ja
+; CHECK: call {{.*}} R_{{.*}} func
 
 define internal void @fcmpLe(float %a, float %b, double %c, double %d) {
 entry:
@@ -785,11 +776,11 @@ if.end3:                                          ; preds = %if.end, %if.then2
 }
 ; CHECK-LABEL: fcmpLe
 ; CHECK: ucomiss
-; CHECK: jb {{[0-9]}}
-; CHECK: call func
+; CHECK: jb
+; CHECK: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: jb {{[0-9]}}
-; CHECK: call func
+; CHECK: jb
+; CHECK: call {{.*}} R_{{.*}} func
 
 define internal i32 @fcmpFalseFloat(float %a, float %b) {
 entry:
@@ -798,7 +789,7 @@ entry:
   ret i32 %cmp.ret_ext
 }
 ; CHECK-LABEL: fcmpFalseFloat
-; CHECK: mov {{.*}}, 0
+; CHECK: mov {{.*}},0x0
 
 define internal i32 @fcmpFalseDouble(double %a, double %b) {
 entry:
@@ -807,7 +798,7 @@ entry:
   ret i32 %cmp.ret_ext
 }
 ; CHECK-LABEL: fcmpFalseDouble
-; CHECK: mov {{.*}}, 0
+; CHECK: mov {{.*}},0x0
 
 define internal i32 @fcmpOeqFloat(float %a, float %b) {
 entry:
@@ -817,8 +808,8 @@ entry:
 }
 ; CHECK-LABEL: fcmpOeqFloat
 ; CHECK: ucomiss
-; CHECK: jne {{[0-9]}}
-; CHECK: jp {{[0-9]}}
+; CHECK: jne
+; CHECK: jp
 
 define internal i32 @fcmpOeqDouble(double %a, double %b) {
 entry:
@@ -828,8 +819,8 @@ entry:
 }
 ; CHECK-LABEL: fcmpOeqDouble
 ; CHECK: ucomisd
-; CHECK: jne {{[0-9]}}
-; CHECK: jp {{[0-9]}}
+; CHECK: jne
+; CHECK: jp
 
 define internal i32 @fcmpOgtFloat(float %a, float %b) {
 entry:
@@ -839,7 +830,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOgtFloat
 ; CHECK: ucomiss
-; CHECK: ja {{[0-9]}}
+; CHECK: ja
 
 define internal i32 @fcmpOgtDouble(double %a, double %b) {
 entry:
@@ -849,7 +840,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOgtDouble
 ; CHECK: ucomisd
-; CHECK: ja {{[0-9]}}
+; CHECK: ja
 
 define internal i32 @fcmpOgeFloat(float %a, float %b) {
 entry:
@@ -859,7 +850,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOgeFloat
 ; CHECK: ucomiss
-; CHECK: jae {{[0-9]}}
+; CHECK: jae
 
 define internal i32 @fcmpOgeDouble(double %a, double %b) {
 entry:
@@ -869,7 +860,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOgeDouble
 ; CHECK: ucomisd
-; CHECK: jae {{[0-9]}}
+; CHECK: jae
 
 define internal i32 @fcmpOltFloat(float %a, float %b) {
 entry:
@@ -879,7 +870,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOltFloat
 ; CHECK: ucomiss
-; CHECK: ja {{[0-9]}}
+; CHECK: ja
 
 define internal i32 @fcmpOltDouble(double %a, double %b) {
 entry:
@@ -889,7 +880,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOltDouble
 ; CHECK: ucomisd
-; CHECK: ja {{[0-9]}}
+; CHECK: ja
 
 define internal i32 @fcmpOleFloat(float %a, float %b) {
 entry:
@@ -899,7 +890,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOleFloat
 ; CHECK: ucomiss
-; CHECK: jae {{[0-9]}}
+; CHECK: jae
 
 define internal i32 @fcmpOleDouble(double %a, double %b) {
 entry:
@@ -909,7 +900,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOleDouble
 ; CHECK: ucomisd
-; CHECK: jae {{[0-9]}}
+; CHECK: jae
 
 define internal i32 @fcmpOneFloat(float %a, float %b) {
 entry:
@@ -919,7 +910,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOneFloat
 ; CHECK: ucomiss
-; CHECK: jne {{[0-9]}}
+; CHECK: jne
 
 define internal i32 @fcmpOneDouble(double %a, double %b) {
 entry:
@@ -929,7 +920,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOneDouble
 ; CHECK: ucomisd
-; CHECK: jne {{[0-9]}}
+; CHECK: jne
 
 define internal i32 @fcmpOrdFloat(float %a, float %b) {
 entry:
@@ -939,7 +930,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOrdFloat
 ; CHECK: ucomiss
-; CHECK: jnp {{[0-9]}}
+; CHECK: jnp
 
 define internal i32 @fcmpOrdDouble(double %a, double %b) {
 entry:
@@ -949,7 +940,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOrdDouble
 ; CHECK: ucomisd
-; CHECK: jnp {{[0-9]}}
+; CHECK: jnp
 
 define internal i32 @fcmpUeqFloat(float %a, float %b) {
 entry:
@@ -959,7 +950,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUeqFloat
 ; CHECK: ucomiss
-; CHECK: je {{[0-9]}}
+; CHECK: je
 
 define internal i32 @fcmpUeqDouble(double %a, double %b) {
 entry:
@@ -969,7 +960,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUeqDouble
 ; CHECK: ucomisd
-; CHECK: je {{[0-9]}}
+; CHECK: je
 
 define internal i32 @fcmpUgtFloat(float %a, float %b) {
 entry:
@@ -979,7 +970,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUgtFloat
 ; CHECK: ucomiss
-; CHECK: jb {{[0-9]}}
+; CHECK: jb
 
 define internal i32 @fcmpUgtDouble(double %a, double %b) {
 entry:
@@ -989,7 +980,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUgtDouble
 ; CHECK: ucomisd
-; CHECK: jb {{[0-9]}}
+; CHECK: jb
 
 define internal i32 @fcmpUgeFloat(float %a, float %b) {
 entry:
@@ -999,7 +990,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUgeFloat
 ; CHECK: ucomiss
-; CHECK: jbe {{[0-9]}}
+; CHECK: jbe
 
 define internal i32 @fcmpUgeDouble(double %a, double %b) {
 entry:
@@ -1009,7 +1000,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUgeDouble
 ; CHECK: ucomisd
-; CHECK: jbe {{[0-9]}}
+; CHECK: jbe
 
 define internal i32 @fcmpUltFloat(float %a, float %b) {
 entry:
@@ -1019,7 +1010,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUltFloat
 ; CHECK: ucomiss
-; CHECK: jb {{[0-9]}}
+; CHECK: jb
 
 define internal i32 @fcmpUltDouble(double %a, double %b) {
 entry:
@@ -1029,7 +1020,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUltDouble
 ; CHECK: ucomisd
-; CHECK: jb {{[0-9]}}
+; CHECK: jb
 
 define internal i32 @fcmpUleFloat(float %a, float %b) {
 entry:
@@ -1039,7 +1030,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUleFloat
 ; CHECK: ucomiss
-; CHECK: jbe {{[0-9]}}
+; CHECK: jbe
 
 define internal i32 @fcmpUleDouble(double %a, double %b) {
 entry:
@@ -1049,7 +1040,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUleDouble
 ; CHECK: ucomisd
-; CHECK: jbe {{[0-9]}}
+; CHECK: jbe
 
 define internal i32 @fcmpUneFloat(float %a, float %b) {
 entry:
@@ -1059,8 +1050,8 @@ entry:
 }
 ; CHECK-LABEL: fcmpUneFloat
 ; CHECK: ucomiss
-; CHECK: jne {{[0-9]}}
-; CHECK: jp {{[0-9]}}
+; CHECK: jne
+; CHECK: jp
 
 define internal i32 @fcmpUneDouble(double %a, double %b) {
 entry:
@@ -1070,8 +1061,8 @@ entry:
 }
 ; CHECK-LABEL: fcmpUneDouble
 ; CHECK: ucomisd
-; CHECK: jne {{[0-9]}}
-; CHECK: jp {{[0-9]}}
+; CHECK: jne
+; CHECK: jp
 
 define internal i32 @fcmpUnoFloat(float %a, float %b) {
 entry:
@@ -1081,7 +1072,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUnoFloat
 ; CHECK: ucomiss
-; CHECK: jp {{[0-9]}}
+; CHECK: jp
 
 define internal i32 @fcmpUnoDouble(double %a, double %b) {
 entry:
@@ -1091,7 +1082,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUnoDouble
 ; CHECK: ucomisd
-; CHECK: jp {{[0-9]}}
+; CHECK: jp
 
 define internal i32 @fcmpTrueFloat(float %a, float %b) {
 entry:
@@ -1100,7 +1091,7 @@ entry:
   ret i32 %cmp.ret_ext
 }
 ; CHECK-LABEL: fcmpTrueFloat
-; CHECK: mov {{.*}}, 1
+; CHECK: mov {{.*}},0x1
 
 define internal i32 @fcmpTrueDouble(double %a, double %b) {
 entry:
@@ -1109,7 +1100,7 @@ entry:
   ret i32 %cmp.ret_ext
 }
 ; CHECK-LABEL: fcmpTrueDouble
-; CHECK: mov {{.*}}, 1
+; CHECK: mov {{.*}},0x1
 
 define internal float @loadFloat(i32 %a) {
 entry:
@@ -1137,7 +1128,7 @@ entry:
   store float %value, float* %__2, align 4
   ret void
 }
-; CHECK-LABEL: storeFloat:
+; CHECK-LABEL: storeFloat
 ; CHECK: movss
 ; CHECK: movss
 
@@ -1147,7 +1138,7 @@ entry:
   store double %value, double* %__2, align 8
   ret void
 }
-; CHECK-LABEL: storeDouble:
+; CHECK-LABEL: storeDouble
 ; CHECK: movsd
 ; CHECK: movsd
 
@@ -1179,7 +1170,7 @@ entry:
 }
 ; CHECK-LABEL: selectFloatVarVar
 ; CHECK: ucomiss
-; CHECK: ja {{[0-9]}}
+; CHECK: ja
 ; CHECK: fld
 
 define internal double @selectDoubleVarVar(double %a, double %b) {
@@ -1190,5 +1181,5 @@ entry:
 }
 ; CHECK-LABEL: selectDoubleVarVar
 ; CHECK: ucomisd
-; CHECK: ja {{[0-9]}}
+; CHECK: ja
 ; CHECK: fld

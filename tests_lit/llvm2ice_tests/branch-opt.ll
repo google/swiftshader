@@ -1,13 +1,9 @@
 ; Tests the branch optimizations under O2 (against a lack of
 ; optimizations under Om1).
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
+; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
 ; RUN:   | FileCheck --check-prefix=O2 %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
+; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
 ; RUN:   | FileCheck --check-prefix=OM1 %s
 
 declare void @dummy()
@@ -47,7 +43,7 @@ target:
   ret void
 }
 ; O2-LABEL: testCondFallthroughToNextBlock
-; O2: cmp {{.*}}, 123
+; O2: cmp {{.*}},0x7b
 ; O2-NEXT: jge
 ; O2-NOT: j
 ; O2: call
@@ -56,7 +52,7 @@ target:
 ; O2: ret
 
 ; OM1-LABEL: testCondFallthroughToNextBlock
-; OM1: cmp {{.*}}, 123
+; OM1: cmp {{.*}},0x7b
 ; OM1: jge
 ; OM1: cmp
 ; OM1: jne
@@ -82,7 +78,7 @@ target:
   ret void
 }
 ; O2-LABEL: testCondTargetNextBlock
-; O2: cmp {{.*}}, 123
+; O2: cmp {{.*}},0x7b
 ; O2-NEXT: jl
 ; O2-NOT: j
 ; O2: call
@@ -91,7 +87,7 @@ target:
 ; O2: ret
 
 ; OM1-LABEL: testCondTargetNextBlock
-; OM1: cmp {{.*}}, 123
+; OM1: cmp {{.*}},0x7b
 ; OM1: jge
 ; OM1: cmp
 ; OM1: jne

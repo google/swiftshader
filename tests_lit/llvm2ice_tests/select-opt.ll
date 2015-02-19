@@ -3,12 +3,10 @@
 ; regardless of the optimization level, so there are no special OPTM1
 ; match lines.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
+; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none \
+; RUN:   | FileCheck %s
 
 define void @testSelect(i32 %a, i32 %b) {
 entry:
@@ -21,21 +19,15 @@ entry:
   ret void
 }
 
-define void @useInt(i32 %x) {
-entry:
-  call void @useIntHelper(i32 %x)
-  ret void
-}
-
-declare void @useIntHelper(i32)
+declare void @useInt(i32 %x)
 
 ; CHECK-LABEL: testSelect
 ; CHECK:      cmp
 ; CHECK:      cmp
-; CHECK:      call useInt
+; CHECK:      call {{.*}} R_{{.*}} useInt
 ; CHECK:      cmp
 ; CHECK:      cmp
-; CHECK:      call useInt
+; CHECK:      call {{.*}} R_{{.*}} useInt
 ; CHECK:      ret
 
 ; Check for valid addressing mode in the cmp instruction when the
@@ -46,7 +38,7 @@ entry:
   ret i32 %cond
 }
 ; CHECK-LABEL: testSelectImm32
-; CHECK-NOT: cmp {{[0-9]+}},
+; CHECK-NOT: cmp 0x{{[0-9a-f]+}},
 
 ; Check for valid addressing mode in the cmp instruction when the
 ; operand is an immediate.  There is a different x86-32 lowering
@@ -57,4 +49,4 @@ entry:
   ret i64 %cond
 }
 ; CHECK-LABEL: testSelectImm64
-; CHECK-NOT: cmp {{[0-9]+}},
+; CHECK-NOT: cmp 0x{{[0-9a-f]+}},

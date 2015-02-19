@@ -28,6 +28,10 @@ LIBCXX_INSTALL_PATH ?= $(shell readlink -e \
 CLANG_PATH ?= $(shell readlink -e \
 	../../../../third_party/llvm-build/Release+Asserts/bin)
 
+# The location of binutils tools (e.g., objdump).
+BINUTILS_BIN_PATH ?= $(shell readlink -e \
+	../../out/binutils_pnacl_x86_64_linux_work/binutils)
+
 HOST_ARCH ?= x86_64
 ifeq ($(HOST_ARCH),x86_64)
   HOST_FLAGS = -m64 -stdlib=libc++
@@ -80,6 +84,7 @@ $(info Using LLVM_SRC_PATH = $(LLVM_SRC_PATH))
 $(info Using LLVM_BIN_PATH = $(LLVM_BIN_PATH))
 $(info Using LIBCXX_INSTALL_PATH = $(LIBCXX_INSTALL_PATH))
 $(info Using CLANG_PATH = $(CLANG_PATH))
+$(info Using BINUTILS_BIN_PATH = $(BINUTILS_BIN_PATH))
 $(info Using HOST_ARCH     = $(HOST_ARCH))
 $(info -----------------------------------------------)
 
@@ -188,6 +193,7 @@ $(OBJDIR)/unittest: $(OBJDIR)
 
 check-lit: $(OBJDIR)/llvm2ice make_symlink
 	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
+	BINUTILS_BIN_PATH=$(BINUTILS_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit
 
 check-unit: $(OBJDIR)/run_unittests

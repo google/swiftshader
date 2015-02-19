@@ -1,12 +1,9 @@
 ; This tests a simple loop that sums the elements of an input array.
 ; The O2 check patterns represent the best code currently achieved.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
+; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
+; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
 
 define i32 @simple_loop(i32 %a, i32 %n) {
@@ -32,22 +29,22 @@ for.end:
 }
 
 ; CHECK-LABEL: simple_loop
-; CHECK:      mov ecx, dword ptr [esp{{.*}}+{{.*}}{{[0-9]+}}]
-; CHECK:      cmp ecx, 0
+; CHECK:      mov ecx,DWORD PTR [esp{{.*}}+0x{{[0-9a-f]+}}]
+; CHECK:      cmp ecx,0x0
 ; CHECK-NEXT: j{{le|g}} {{[0-9]}}
 
 ; Check for the combination of address mode inference, register
 ; allocation, and load/arithmetic fusing.
-; CHECK:      add e{{..}}, dword ptr [e{{..}} + 4*[[IREG:e..]]]
+; CHECK: [[L:[0-9a-f]+]]{{.*}} add e{{..}},DWORD PTR [e{{..}}+[[IREG:e..]]*4]
 ; Check for incrementing of the register-allocated induction variable.
-; CHECK-NEXT: add [[IREG]], 1
+; CHECK-NEXT: add [[IREG]],0x1
 ; Check for comparing the induction variable against the loop size.
 ; CHECK-NEXT: cmp [[IREG]],
-; CHECK-NEXT: jl -{{[0-9]}}
+; CHECK-NEXT: jl [[L]]
 ;
 ; There's nothing remarkable under Om1 to test for, since Om1 generates
 ; such atrocious code (by design).
 ; OPTM1-LABEL: simple_loop
-; OPTM1:      cmp {{.*}}, 0
+; OPTM1:      cmp {{.*}},0x0
 ; OPTM1:      jg
 ; OPTM1:      ret

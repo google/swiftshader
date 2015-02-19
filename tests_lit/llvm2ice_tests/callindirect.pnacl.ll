@@ -2,12 +2,9 @@
 ; should be to the same operand, whether it's in a register or on the
 ; stack.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
+; RUN:   | FileCheck %s
+; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4

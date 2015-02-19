@@ -2,9 +2,8 @@
 ; For example, the encoding is shorter for 8-bit immediates or when using EAX.
 ; This assumes that EAX is chosen as the first free register in O2 mode.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
+; RUN:   | FileCheck %s
 
 define internal i32 @testXor8Imm8(i32 %arg) {
 entry:
@@ -14,7 +13,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXor8Imm8
-; CHECK: 34 7f   xor al, 127
+; CHECK: 34 7f   xor al
 
 define internal i32 @testXor8Imm8Neg(i32 %arg) {
 entry:
@@ -24,7 +23,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXor8Imm8Neg
-; CHECK: 34 80   xor al, -128
+; CHECK: 34 80   xor al
 
 define internal i32 @testXor8Imm8NotEAX(i32 %arg, i32 %arg2, i32 %arg3) {
 entry:
@@ -40,7 +39,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXor8Imm8NotEAX
-; CHECK: 80 f{{[1-3]}} 7f xor {{[^a]}}l, 127
+; CHECK: 80 f{{[1-3]}} 7f xor {{[^a]}}l
 
 define internal i32 @testXor16Imm8(i32 %arg) {
 entry:
@@ -50,7 +49,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXor16Imm8
-; CHECK: 66 83 f0 7f  xor ax, 127
+; CHECK: 66 83 f0 7f  xor ax
 
 define internal i32 @testXor16Imm8Neg(i32 %arg) {
 entry:
@@ -60,7 +59,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXor16Imm8Neg
-; CHECK: 66 83 f0 80  xor ax, -128
+; CHECK: 66 83 f0 80  xor ax
 
 define internal i32 @testXor16Imm16Eax(i32 %arg) {
 entry:
@@ -71,8 +70,8 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXor16Imm16Eax
-; CHECK: 66 35 00 04  xor ax, 1024
-; CHECK-NEXT: add ax, 1
+; CHECK: 66 35 00 04  xor ax
+; CHECK-NEXT: add ax,0x1
 
 define internal i32 @testXor16Imm16NegEax(i32 %arg) {
 entry:
@@ -83,8 +82,8 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXor16Imm16NegEax
-; CHECK: 66 35 00 ff  xor ax, 65280
-; CHECK-NEXT: add ax, 1
+; CHECK: 66 35 00 ff  xor ax
+; CHECK-NEXT: add ax,0x1
 
 define internal i32 @testXor16Imm16NotEAX(i32 %arg_i32, i32 %arg2_i32, i32 %arg3_i32) {
 entry:
@@ -100,8 +99,8 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXor16Imm16NotEAX
-; CHECK: 66 81 f{{[1-3]}} ff 7f  xor {{[^a]}}x, 32767
-; CHECK-NEXT: 66 81 f{{[1-3]}} ff 7f  xor {{[^a]}}x, 32767
+; CHECK: 66 81 f{{[1-3]}} ff 7f  xor {{[^a]}}x
+; CHECK-NEXT: 66 81 f{{[1-3]}} ff 7f  xor {{[^a]}}x
 
 define internal i32 @testXor32Imm8(i32 %arg) {
 entry:
@@ -109,7 +108,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXor32Imm8
-; CHECK: 83 f0 7f   xor eax, 127
+; CHECK: 83 f0 7f   xor eax
 
 define internal i32 @testXor32Imm8Neg(i32 %arg) {
 entry:
@@ -117,7 +116,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXor32Imm8Neg
-; CHECK: 83 f0 80   xor eax, -128
+; CHECK: 83 f0 80   xor eax
 
 define internal i32 @testXor32Imm32Eax(i32 %arg) {
 entry:
@@ -125,7 +124,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXor32Imm32Eax
-; CHECK: 35 00 00 00 01   xor eax, 16777216
+; CHECK: 35 00 00 00 01   xor eax
 
 define internal i32 @testXor32Imm32NegEax(i32 %arg) {
 entry:
@@ -133,7 +132,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXor32Imm32NegEax
-; CHECK: 35 00 ff ff ff   xor eax, 4294967040
+; CHECK: 35 00 ff ff ff   xor eax
 
 define internal i32 @testXor32Imm32NotEAX(i32 %arg, i32 %arg2, i32 %arg3) {
 entry:
@@ -145,7 +144,7 @@ entry:
   ret i32 %add2
 }
 ; CHECK-LABEL: testXor32Imm32NotEAX
-; CHECK: 81 f{{[1-3]}} ff 7f 00 00   xor e{{[^a]}}x, 32767
+; CHECK: 81 f{{[1-3]}} ff 7f 00 00   xor e{{[^a]}}x,
 
 ; Should be similar for add, sub, etc., so sample a few.
 
@@ -157,7 +156,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testAdd8Imm8
-; CHECK: 04 7e   add al, 126
+; CHECK: 04 7e   add al
 
 define internal i32 @testSub8Imm8(i32 %arg) {
 entry:
@@ -167,7 +166,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testSub8Imm8
-; CHECK: 2c 7d  sub al, 125
+; CHECK: 2c 7d  sub al
 
 ; imul has some shorter 8-bit immediate encodings.
 ; It also has a shorter encoding for eax, but we don't do that yet.
@@ -181,8 +180,8 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testMul16Imm8
-; CHECK: 66 6b c0 63  imul ax, ax, 99
-; CHECK-NEXT: add ax, 1
+; CHECK: 66 6b c0 63  imul ax,ax
+; CHECK-NEXT: add ax,0x1
 
 define internal i32 @testMul16Imm8Neg(i32 %arg) {
 entry:
@@ -193,8 +192,8 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testMul16Imm8Neg
-; CHECK: 66 6b c0 91  imul ax, ax, -111
-; CHECK-NEXT: add ax, 1
+; CHECK: 66 6b c0 91  imul ax,ax
+; CHECK-NEXT: add ax,0x1
 
 define internal i32 @testMul16Imm16(i32 %arg) {
 entry:
@@ -205,8 +204,8 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testMul16Imm16
-; CHECK: 66 69 c0 00 04  imul ax, ax, 1024
-; CHECK-NEXT: add ax, 1
+; CHECK: 66 69 c0 00 04  imul ax,ax
+; CHECK-NEXT: add ax,0x1
 
 define internal i32 @testMul16Imm16Neg(i32 %arg) {
 entry:
@@ -217,8 +216,8 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testMul16Imm16Neg
-; CHECK: 66 69 c0 00 ff  imul ax, ax, 65280
-; CHECK-NEXT: add ax, 1
+; CHECK: 66 69 c0 00 ff  imul ax,ax
+; CHECK-NEXT: add ax,0x1
 
 define internal i32 @testMul32Imm8(i32 %arg) {
 entry:
@@ -226,7 +225,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testMul32Imm8
-; CHECK: 6b c0 63  imul eax, eax, 99
+; CHECK: 6b c0 63  imul eax,eax
 
 define internal i32 @testMul32Imm8Neg(i32 %arg) {
 entry:
@@ -234,7 +233,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testMul32Imm8Neg
-; CHECK: 6b c0 91  imul eax, eax, -111
+; CHECK: 6b c0 91  imul eax,eax
 
 define internal i32 @testMul32Imm16(i32 %arg) {
 entry:
@@ -242,7 +241,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testMul32Imm16
-; CHECK: 69 c0 00 04 00 00  imul eax, eax, 1024
+; CHECK: 69 c0 00 04 00 00  imul eax,eax
 
 define internal i32 @testMul32Imm16Neg(i32 %arg) {
 entry:
@@ -250,7 +249,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testMul32Imm16Neg
-; CHECK: 69 c0 00 ff ff ff  imul eax, eax, 4294967040
+; CHECK: 69 c0 00 ff ff ff  imul eax,eax
 
 ; The GPR shift instructions either allow an 8-bit immediate or
 ; have a special encoding for "1".
@@ -262,7 +261,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testShl16Imm8
-; CHECK: 66 c1 e0 0d shl ax, 13
+; CHECK: 66 c1 e0 0d shl ax,0xd
 
 define internal i32 @testShl16Imm1(i32 %arg) {
 entry:
@@ -286,9 +285,9 @@ entry:
   ret i64 %shl
 }
 ; CHECK-LABEL: test_via_shl64Bit
-; CHECK: 0f a5 c2  shld edx, eax, cl
-; CHECK: d3 e0     shl eax, cl
-; CHECK: f6 c1 20  test cl, 32
+; CHECK: 0f a5 c2  shld edx,eax,cl
+; CHECK: d3 e0     shl eax,cl
+; CHECK: f6 c1 20  test cl,0x20
 
 ; Test a few register encodings of "test".
 declare i64 @llvm.ctlz.i64(i64, i1)
@@ -305,6 +304,6 @@ entry:
   ret i64 %res
 }
 ; CHECK-LABEL: test_via_ctlz_64
-; CHECK-DAG: 85 c0 test eax, eax
-; CHECK-DAG: 85 db test ebx, ebx
-; CHECK-DAG: 85 f6 test esi, esi
+; CHECK-DAG: 85 c0 test eax,eax
+; CHECK-DAG: 85 db test ebx,ebx
+; CHECK-DAG: 85 f6 test esi,esi

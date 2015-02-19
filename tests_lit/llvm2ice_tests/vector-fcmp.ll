@@ -1,12 +1,10 @@
 ; This file checks support for comparing vector values with the fcmp
 ; instruction.
 
-; RUN: %p2i -i %s -a -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s -a -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i -i %s --assemble --disassemble -a -O2 --verbose none \
+; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --assemble --disassemble -a -Om1 --verbose none \
+; RUN:   | FileCheck %s
 
 ; Check that sext elimination occurs when the result of the comparison
 ; instruction is alrady sign extended.  Sign extension to 4 x i32 uses
@@ -16,7 +14,7 @@ entry:
   %res.trunc = fcmp oeq <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: sextElimination:
+; CHECK-LABEL: sextElimination
 ; CHECK: cmpeqps
 ; CHECK-NOT: pslld
 }
@@ -26,7 +24,7 @@ entry:
   %res.trunc = fcmp false <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpFalseVector:
+; CHECK-LABEL: fcmpFalseVector
 ; CHECK: pxor
 }
 
@@ -35,7 +33,7 @@ entry:
   %res.trunc = fcmp oeq <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpOeqVector:
+; CHECK-LABEL: fcmpOeqVector
 ; CHECK: cmpeqps
 }
 
@@ -44,7 +42,7 @@ entry:
   %res.trunc = fcmp oge <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpOgeVector:
+; CHECK-LABEL: fcmpOgeVector
 ; CHECK: cmpleps
 }
 
@@ -53,7 +51,7 @@ entry:
   %res.trunc = fcmp ogt <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpOgtVector:
+; CHECK-LABEL: fcmpOgtVector
 ; CHECK: cmpltps
 }
 
@@ -62,7 +60,7 @@ entry:
   %res.trunc = fcmp ole <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpOleVector:
+; CHECK-LABEL: fcmpOleVector
 ; CHECK: cmpleps
 }
 
@@ -71,7 +69,7 @@ entry:
   %res.trunc = fcmp olt <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpOltVector:
+; CHECK-LABEL: fcmpOltVector
 ; CHECK: cmpltps
 }
 
@@ -80,7 +78,7 @@ entry:
   %res.trunc = fcmp one <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpOneVector:
+; CHECK-LABEL: fcmpOneVector
 ; CHECK: cmpneqps
 ; CHECK: cmpordps
 ; CHECK: pand
@@ -91,7 +89,7 @@ entry:
   %res.trunc = fcmp ord <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpOrdVector:
+; CHECK-LABEL: fcmpOrdVector
 ; CHECK: cmpordps
 }
 
@@ -100,7 +98,7 @@ entry:
   %res.trunc = fcmp true <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpTrueVector:
+; CHECK-LABEL: fcmpTrueVector
 ; CHECK: pcmpeqd
 }
 
@@ -109,7 +107,7 @@ entry:
   %res.trunc = fcmp ueq <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpUeqVector:
+; CHECK-LABEL: fcmpUeqVector
 ; CHECK: cmpeqps
 ; CHECK: cmpunordps
 ; CHECK: por
@@ -120,7 +118,7 @@ entry:
   %res.trunc = fcmp uge <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpUgeVector:
+; CHECK-LABEL: fcmpUgeVector
 ; CHECK: cmpnltps
 }
 
@@ -129,7 +127,7 @@ entry:
   %res.trunc = fcmp ugt <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpUgtVector:
+; CHECK-LABEL: fcmpUgtVector
 ; CHECK: cmpnleps
 }
 
@@ -138,7 +136,7 @@ entry:
   %res.trunc = fcmp ule <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpUleVector:
+; CHECK-LABEL: fcmpUleVector
 ; CHECK: cmpnltps
 }
 
@@ -147,7 +145,7 @@ entry:
   %res.trunc = fcmp ult <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpUltVector:
+; CHECK-LABEL: fcmpUltVector
 ; CHECK: cmpnleps
 }
 
@@ -156,7 +154,7 @@ entry:
   %res.trunc = fcmp une <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpUneVector:
+; CHECK-LABEL: fcmpUneVector
 ; CHECK: cmpneqps
 }
 
@@ -165,6 +163,6 @@ entry:
   %res.trunc = fcmp uno <4 x float> %a, %b
   %res = sext <4 x i1> %res.trunc to <4 x i32>
   ret <4 x i32> %res
-; CHECK-LABEL: fcmpUnoVector:
+; CHECK-LABEL: fcmpUnoVector
 ; CHECK: cmpunordps
 }

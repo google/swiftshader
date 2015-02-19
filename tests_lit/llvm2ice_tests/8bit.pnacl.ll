@@ -1,11 +1,9 @@
 ; This tries to be a comprehensive test of i8 operations.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
+; RUN:   | FileCheck %s
+; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
+; RUN:   | FileCheck %s
 
 define internal i32 @add8Bit(i32 %a, i32 %b) {
 entry:
@@ -58,7 +56,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: mul8Bit
-; CHECK: mul {{[abcd]l|byte ptr}}
+; CHECK: mul {{[abcd]l|BYTE PTR}}
 
 define internal i32 @mul8BitConst(i32 %a) {
 entry:
@@ -69,8 +67,8 @@ entry:
 }
 ; CHECK-LABEL: mul8BitConst
 ; 8-bit imul only accepts r/m, not imm
-; CHECK: mov {{.*}}, 56
-; CHECK: mul {{[abcd]l|byte ptr}}
+; CHECK: mov {{.*}},0x38
+; CHECK: mul {{[abcd]l|BYTE PTR}}
 
 define internal i32 @udiv8Bit(i32 %a, i32 %b) {
 entry:
@@ -81,7 +79,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: udiv8Bit
-; CHECK: div {{[abcd]l|byte ptr}}
+; CHECK: div {{[abcd]l|BYTE PTR}}
 
 define internal i32 @udiv8BitConst(i32 %a) {
 entry:
@@ -91,7 +89,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: udiv8BitConst
-; CHECK: div {{[abcd]l|byte ptr}}
+; CHECK: div {{[abcd]l|BYTE PTR}}
 
 define internal i32 @urem8Bit(i32 %a, i32 %b) {
 entry:
@@ -102,7 +100,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: urem8Bit
-; CHECK: div {{[abcd]l|byte ptr}}
+; CHECK: div {{[abcd]l|BYTE PTR}}
 
 define internal i32 @urem8BitConst(i32 %a) {
 entry:
@@ -112,7 +110,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: urem8BitConst
-; CHECK: div {{[abcd]l|byte ptr}}
+; CHECK: div {{[abcd]l|BYTE PTR}}
 
 
 define internal i32 @sdiv8Bit(i32 %a, i32 %b) {
@@ -124,7 +122,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: sdiv8Bit
-; CHECK: idiv {{[abcd]l|byte ptr}}
+; CHECK: idiv {{[abcd]l|BYTE PTR}}
 
 define internal i32 @sdiv8BitConst(i32 %a) {
 entry:
@@ -134,7 +132,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: sdiv8BitConst
-; CHECK: idiv {{[abcd]l|byte ptr}}
+; CHECK: idiv {{[abcd]l|BYTE PTR}}
 
 define internal i32 @srem8Bit(i32 %a, i32 %b) {
 entry:
@@ -145,7 +143,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: srem8Bit
-; CHECK: idiv {{[abcd]l|byte ptr}}
+; CHECK: idiv {{[abcd]l|BYTE PTR}}
 
 define internal i32 @srem8BitConst(i32 %a) {
 entry:
@@ -155,7 +153,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: srem8BitConst
-; CHECK: idiv {{[abcd]l|byte ptr}}
+; CHECK: idiv {{[abcd]l|BYTE PTR}}
 
 define internal i32 @shl8Bit(i32 %a, i32 %b) {
 entry:
@@ -166,7 +164,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: shl8Bit
-; CHECK: shl {{[abd]l|byte ptr}}, cl
+; CHECK: shl {{[abd]l|BYTE PTR}},cl
 
 define internal i32 @shl8BitConst(i32 %a, i32 %b) {
 entry:
@@ -176,7 +174,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: shl8BitConst
-; CHECK: shl {{[abcd]l|byte ptr}}, 6
+; CHECK: shl {{[abcd]l|BYTE PTR}},0x6
 
 define internal i32 @lshr8Bit(i32 %a, i32 %b) {
 entry:
@@ -187,7 +185,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: lshr8Bit
-; CHECK: shr {{[abd]l|byte ptr}}, cl
+; CHECK: shr {{[abd]l|BYTE PTR}},cl
 
 define internal i32 @lshr8BitConst(i32 %a, i32 %b) {
 entry:
@@ -197,7 +195,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: lshr8BitConst
-; CHECK: shr {{[abcd]l|byte ptr}}, 6
+; CHECK: shr {{[abcd]l|BYTE PTR}},0x6
 
 define internal i32 @ashr8Bit(i32 %a, i32 %b) {
 entry:
@@ -208,7 +206,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: ashr8Bit
-; CHECK: sar {{[abd]l|byte ptr}}, cl
+; CHECK: sar {{[abd]l|BYTE PTR}},cl
 
 define internal i32 @ashr8BitConst(i32 %a, i32 %b) {
 entry:
@@ -218,7 +216,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: ashr8BitConst
-; CHECK: sar {{[abcd]l|byte ptr}}, 6
+; CHECK: sar {{[abcd]l|BYTE PTR}},0x6
 
 define internal i32 @icmp8Bit(i32 %a, i32 %b) {
 entry:
@@ -229,7 +227,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: icmp8Bit
-; CHECK: cmp {{[abcd]l|byte ptr}}
+; CHECK: cmp {{[abcd]l|BYTE PTR}}
 
 define internal i32 @icmp8BitConst(i32 %a) {
 entry:
@@ -239,7 +237,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: icmp8BitConst
-; CHECK: cmp {{[abcd]l|byte ptr}}
+; CHECK: cmp {{[abcd]l|BYTE PTR}}
 
 define internal i32 @icmp8BitConstSwapped(i32 %a) {
 entry:
@@ -249,7 +247,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: icmp8BitConstSwapped
-; CHECK: cmp {{[abcd]l|byte ptr}}
+; CHECK: cmp {{[abcd]l|BYTE PTR}}
 
 define internal i32 @icmp8BitMem(i32 %a, i32 %b_iptr) {
 entry:
@@ -261,7 +259,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: icmp8BitMem
-; CHECK: cmp {{[abcd]l|byte ptr}}
+; CHECK: cmp {{[abcd]l|BYTE PTR}}
 
 define internal i32 @icmp8BitMemSwapped(i32 %a, i32 %b_iptr) {
 entry:
@@ -273,7 +271,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: icmp8BitMemSwapped
-; CHECK: cmp {{[abcd]l|byte ptr}}
+; CHECK: cmp {{[abcd]l|BYTE PTR}}
 
 define internal i32 @selectI8Var(i32 %a, i32 %b) {
 entry:
@@ -324,9 +322,9 @@ target:
 }
 ; CHECK-LABEL: testPhi8
 ; This assumes there will be some copy from an 8-bit register / stack slot.
-; CHECK-DAG: mov {{.*}}, {{[a-d]}}l
-; CHECK-DAG: mov {{.*}}, byte ptr
-; CHECK-DAG: mov byte ptr {{.*}}
+; CHECK-DAG: mov {{.*}},{{[a-d]}}l
+; CHECK-DAG: mov {{.*}},BYTE PTR
+; CHECK-DAG: mov BYTE PTR {{.*}}
 
 @global8 = internal global [1 x i8] c"\01", align 4
 
@@ -338,7 +336,7 @@ entry:
   ret i32 %ret_ext
 }
 ; CHECK-LABEL: load_i8
-; CHECK: mov {{[a-d]l}}, byte ptr
+; CHECK: mov {{[a-d]l}},BYTE PTR
 
 define i32 @load_i8_global(i32 %addr_arg) {
 entry:
@@ -348,7 +346,7 @@ entry:
   ret i32 %ret_ext
 }
 ; CHECK-LABEL: load_i8_global
-; CHECK: mov {{[a-d]l}}, byte ptr
+; CHECK: mov {{[a-d]l}},BYTE PTR
 
 define void @store_i8(i32 %addr_arg, i32 %val) {
 entry:
@@ -358,7 +356,7 @@ entry:
   ret void
 }
 ; CHECK-LABEL: store_i8
-; CHECK: mov byte ptr {{.*}}, {{[a-d]l}}
+; CHECK: mov BYTE PTR {{.*}},{{[a-d]l}}
 
 define void @store_i8_const(i32 %addr_arg) {
 entry:
@@ -367,4 +365,4 @@ entry:
   ret void
 }
 ; CHECK-LABEL: store_i8_const
-; CHECK: mov byte ptr {{.*}}, 123
+; CHECK: mov BYTE PTR {{.*}},0x7b

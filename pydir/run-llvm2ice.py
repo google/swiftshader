@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 
 from utils import shellcmd
 
@@ -43,6 +44,18 @@ def main():
                            default=None, metavar='LLVM_BIN_PATH',
                            help='Path to LLVM executables ' +
                                 '(for building PEXE files)')
+    argparser.add_argument('--binutils-bin-path', required=False,
+                           default=None, metavar='BINUTILS_BIN_PATH',
+                           help='Path to Binutils executables')
+    argparser.add_argument('--assemble', required=False,
+                           action='store_true',
+                           help='Assemble the output')
+    argparser.add_argument('--disassemble', required=False,
+                           action='store_true',
+                           help='Disassemble the assembled output')
+    argparser.add_argument('--dis-flags', required=False,
+                           action='append', default=[],
+                           help='Add a disassembler flag')
     argparser.add_argument('--echo-cmd', required=False,
                            action='store_true',
                            help='Trace command that generates ICE instructions')
@@ -52,6 +65,7 @@ def main():
 
     args = argparser.parse_args()
     llvm_bin_path = args.llvm_bin_path
+    binutils_bin_path = args.binutils_bin_path
     llfile = args.input
 
     if args.llvm and args.llvm_source:
@@ -85,10 +99,28 @@ def main():
     cmd += args.args
     if args.llvm_source:
       cmd += [llfile]
+    asm_temp = None
+    if args.assemble or args.disassemble:
+      # On windows we may need to close the file first before it can be
+      # re-opened by the other tools, so don't do delete-on-close,
+      # and instead manually delete.
+      asm_temp = tempfile.NamedTemporaryFile(delete=False)
+      asm_temp.close()
+    if args.assemble:
+      cmd += ['|', os.path.join(llvm_bin_path, 'llvm-mc'),
+              '-triple=i686-none-nacl',
+              '-filetype=obj', '-o', asm_temp.name]
+    if args.disassemble:
+      # Show wide instruction encodings, diassemble, and show relocs.
+      cmd += (['&&', os.path.join(binutils_bin_path, 'objdump')] +
+              args.dis_flags +
+              ['-w', '-d', '-r', '-Mintel', asm_temp.name])
 
     stdout_result = shellcmd(cmd, echo=args.echo_cmd)
     if not args.echo_cmd:
       sys.stdout.write(stdout_result)
+    if asm_temp:
+      os.remove(asm_temp.name)
 
 if __name__ == '__main__':
     main()

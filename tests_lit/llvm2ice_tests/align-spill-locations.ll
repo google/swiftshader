@@ -1,11 +1,9 @@
 ; This checks to ensure that Subzero aligns spill slots.
 
-; RUN: %p2i -i %s --args --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i --assemble --disassemble -i %s --args --verbose none \
+; RUN:   | FileCheck %s
+; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
+; RUN:   | FileCheck %s
 
 ; The location of the stack slot for a variable is inferred from the
 ; return sequence.
@@ -21,9 +19,9 @@ entry:
 block:
   call void @ForceXmmSpills()
   ret <4 x i32> %vec.global
-; CHECK-LABEL: align_global_vector:
-; CHECK: movups xmm0, xmmword ptr [esp]
-; CHECK-NEXT: add esp, 28
+; CHECK-LABEL: align_global_vector
+; CHECK: movups xmm0,XMMWORD PTR [esp]
+; CHECK-NEXT: add esp,0x1c
 ; CHECK-NEXT: ret
 }
 
@@ -34,9 +32,9 @@ block:
   %vec.local = insertelement <4 x i32> undef, i32 %arg, i32 0
   call void @ForceXmmSpills()
   ret <4 x i32> %vec.local
-; CHECK-LABEL: align_local_vector:
-; CHECK: movups xmm0, xmmword ptr [esp]
-; CHECK-NEXT: add esp, 28
+; CHECK-LABEL: align_local_vector
+; CHECK: movups xmm0,XMMWORD PTR [esp]
+; CHECK-NEXT: add esp,0x1c
 ; CHECK-NEXT: ret
 }
 
@@ -50,9 +48,9 @@ entry:
 block:
   call void @ForceXmmSpillsAndUseAlloca(i8* %alloc)
   ret <4 x i32> %vec.global
-; CHECK-LABEL: align_global_vector_ebp_based:
-; CHECK: movups xmm0, xmmword ptr [ebp - 24]
-; CHECK-NEXT: mov esp, ebp
+; CHECK-LABEL: align_global_vector_ebp_based
+; CHECK: movups xmm0,XMMWORD PTR [ebp-0x18]
+; CHECK-NEXT: mov esp,ebp
 ; CHECK-NEXT: pop ebp
 ; CHECK: ret
 }
@@ -63,9 +61,9 @@ entry:
   %vec.local = insertelement <4 x i32> undef, i32 %arg, i32 0
   call void @ForceXmmSpillsAndUseAlloca(i8* %alloc)
   ret <4 x i32> %vec.local
-; CHECK-LABEL: align_local_vector_ebp_based:
-; CHECK: movups xmm0, xmmword ptr [ebp - 24]
-; CHECK-NEXT: mov esp, ebp
+; CHECK-LABEL: align_local_vector_ebp_based
+; CHECK: movups xmm0,XMMWORD PTR [ebp-0x18]
+; CHECK-NEXT: mov esp,ebp
 ; CHECK-NEXT: pop ebp
 ; CHECK: ret
 }
@@ -79,11 +77,11 @@ block:
   %vec.local = insertelement <4 x i32> undef, i32 undef, i32 0
   call void @ForceXmmSpillsAndUseFloat(float %float.global)
   ret <4 x i32> %vec.local
-; CHECK-LABEL: align_local_vector_and_global_float:
-; CHECK: cvtsi2ss xmm0, eax
-; CHECK-NEXT: movss dword ptr [esp + {{12|28}}], xmm0
-; CHECK: movups xmm0, xmmword ptr [{{esp|esp \+ 16}}]
-; CHECK-NEXT: add esp, 44
+; CHECK-LABEL: align_local_vector_and_global_float
+; CHECK: cvtsi2ss xmm0,eax
+; CHECK-NEXT: movss DWORD PTR [esp+{{0xc|0x1c}}],xmm0
+; CHECK: movups xmm0,XMMWORD PTR [{{esp|esp\+0x10}}]
+; CHECK-NEXT: add esp,0x2c
 ; CHECK-NEXT: ret
 }
 

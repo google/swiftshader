@@ -1,14 +1,9 @@
 ; Simple test of signed and unsigned integer conversions.
 
-; TODO(jvoung): llvm-objdump doesn't symbolize global symbols well, so we
-; have [0] == i8v, [2] == i16v, [4] == i32v, [8] == i64v, etc.
-
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
+; RUN:   | FileCheck %s
+; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
+; RUN:   | FileCheck %s
 
 @i8v = internal global [1 x i8] zeroinitializer, align 1
 @i16v = internal global [2 x i8] zeroinitializer, align 2
@@ -35,16 +30,16 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_int8
-; CHECK: mov {{.*}}, byte ptr [
-; CHECK: movsx e{{.*}}, {{[a-d]l|byte ptr}}
-; CHECK: mov word ptr [
+; CHECK: mov {{.*}},BYTE PTR
+; CHECK: movsx e{{.*}},{{[a-d]l|BYTE PTR}}
+; CHECK: mov WORD PTR
 ; CHECK: movsx
-; CHECK: mov dword ptr [
+; CHECK: mov DWORD PTR
 ; CHECK: movsx
-; CHECK: sar {{.*}}, 31
+; CHECK: sar {{.*}},0x1f
 ; This appears to be a bug in llvm-mc. It should be i64v and i64+4.
-; CHECK-DAG: [.bss]
-; CHECK-DAG: [.bss]
+; CHECK-DAG: .bss
+; CHECK-DAG: .bss
 
 define void @from_int16() {
 entry:
@@ -62,13 +57,13 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_int16
-; CHECK: mov {{.*}}, word ptr [
-; CHECK: [.bss]
-; CHECK: movsx e{{.*}}, {{.*x|[ds]i|bp|word ptr}}
-; CHECK: [.bss]
-; CHECK: movsx e{{.*}}, {{.*x|[ds]i|bp|word ptr}}
-; CHECK: sar {{.*}}, 31
-; CHECK: [.bss]
+; CHECK: mov {{.*}},WORD PTR
+; CHECK: .bss
+; CHECK: movsx e{{.*}},{{.*x|[ds]i|bp|WORD PTR}}
+; CHECK: .bss
+; CHECK: movsx e{{.*}},{{.*x|[ds]i|bp|WORD PTR}}
+; CHECK: sar {{.*}},0x1f
+; CHECK: .bss
 
 define void @from_int32() {
 entry:
@@ -86,11 +81,11 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_int32
-; CHECK: [.bss]
-; CHECK: [.bss]
-; CHECK: [.bss]
-; CHECK: sar {{.*}}, 31
-; CHECK: [.bss]
+; CHECK: .bss
+; CHECK: .bss
+; CHECK: .bss
+; CHECK: sar {{.*}},0x1f
+; CHECK: .bss
 
 define void @from_int64() {
 entry:
@@ -108,10 +103,10 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_int64
-; CHECK: [.bss]
-; CHECK: [.bss]
-; CHECK: [.bss]
-; CHECK: [.bss]
+; CHECK: .bss
+; CHECK: .bss
+; CHECK: .bss
+; CHECK: .bss
 
 
 define void @from_uint8() {
@@ -130,14 +125,14 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint8
-; CHECK: [.bss]
-; CHECK: movzx e{{.*}}, {{[a-d]l|byte ptr}}
-; CHECK: [.bss]
+; CHECK: .bss
+; CHECK: movzx e{{.*}},{{[a-d]l|BYTE PTR}}
+; CHECK: .bss
 ; CHECK: movzx
-; CHECK: [.bss]
+; CHECK: .bss
 ; CHECK: movzx
-; CHECK: mov {{.*}}, 0
-; CHECK: [.bss]
+; CHECK: mov {{.*}},0x0
+; CHECK: .bss
 
 define void @from_uint16() {
 entry:
@@ -155,13 +150,13 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint16
-; CHECK: [.bss]
-; CHECK: [.bss]
-; CHECK: movzx e{{.*}}, {{.*x|[ds]i|bp|word ptr}}
-; CHECK: [.bss]
-; CHECK: movzx e{{.*}}, {{.*x|[ds]i|bp|word ptr}}
-; CHECK: mov {{.*}}, 0
-; CHECK: [.bss]
+; CHECK: .bss
+; CHECK: .bss
+; CHECK: movzx e{{.*}},{{.*x|[ds]i|bp|WORD PTR}}
+; CHECK: .bss
+; CHECK: movzx e{{.*}},{{.*x|[ds]i|bp|WORD PTR}}
+; CHECK: mov {{.*}},0x0
+; CHECK: .bss
 
 define void @from_uint32() {
 entry:
@@ -179,11 +174,11 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint32
-; CHECK: [.bss]
-; CHECK: [.bss]
-; CHECK: [.bss]
-; CHECK: mov {{.*}}, 0
-; CHECK: [.bss]
+; CHECK: .bss
+; CHECK: .bss
+; CHECK: .bss
+; CHECK: mov {{.*}},0x0
+; CHECK: .bss
 
 define void @from_uint64() {
 entry:
@@ -201,7 +196,7 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint64
-; CHECK: [.bss]
-; CHECK: [.bss]
-; CHECK: [.bss]
-; CHECK: [.bss]
+; CHECK: .bss
+; CHECK: .bss
+; CHECK: .bss
+; CHECK: .bss

@@ -1,9 +1,8 @@
 ; This file checks that SimpleCoalescing of local stack slots is not done
 ; when calling a function with the "returns twice" attribute.
 
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none \
+; RUN:   | FileCheck %s
 
 ; Setjmp is a function with the "returns twice" attribute.
 declare i32 @llvm.nacl.setjmp(i8*)
@@ -28,11 +27,11 @@ NonZero:
 }
 
 ; CHECK-LABEL: call_returns_twice
-; CHECK: add [[REG1:.*]], 12345
-; CHECK: mov dword ptr [esp + [[OFF:.*]]], [[REG1]]
-; CHECK: add [[REG2:.*]], 54321
+; CHECK: add [[REG1:.*]],0x3039
+; CHECK: mov DWORD PTR [esp+[[OFF:.*]]],[[REG1]]
+; CHECK: add [[REG2:.*]],0xd431
 ; There should not be sharing of the stack slot.
-; CHECK-NOT: mov dword ptr [esp + [[OFF]]], [[REG2]]
+; CHECK-NOT: mov DWORD PTR [esp + [[OFF]]], [[REG2]]
 
 define i32 @no_call_returns_twice(i32 %iptr_jmpbuf, i32 %x) {
 entry:
@@ -50,11 +49,11 @@ NonZero:
 }
 
 ; CHECK-LABEL: no_call_returns_twice
-; CHECK: add [[REG1:.*]], 12345
-; CHECK: mov dword ptr [esp + [[OFF:.*]]], [[REG1]]
-; CHECK: add [[REG2:.*]], 54321
+; CHECK: add [[REG1:.*]],0x3039
+; CHECK: mov DWORD PTR [esp+[[OFF:.*]]],[[REG1]]
+; CHECK: add [[REG2:.*]],0xd431
 ; Now there should be sharing of the stack slot (OFF is the same).
 ; Commenting out after disabling simple coalescing for -Om1.
 ; TODO(stichnot): Add it back if/when we add a flag to enable simple
 ; coalescing.
-; xCHECK: mov dword ptr [esp + [[OFF]]], [[REG2]]
+; xCHECK: mov DWORD PTR [esp + [[OFF]]], [[REG2]]

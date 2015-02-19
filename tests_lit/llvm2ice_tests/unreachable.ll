@@ -1,11 +1,9 @@
 ; This tests the basic structure of the Unreachable instruction.
 
-; RUN: %p2i -i %s -a -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s -a -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i -i %s --assemble --disassemble -a -O2 --verbose none \
+; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --assemble --disassemble -a -Om1 --verbose none \
+; RUN:   | FileCheck %s
 
 define internal i32 @divide(i32 %num, i32 %den) {
 entry:
@@ -22,7 +20,7 @@ return:                                           ; preds = %entry
 
 ; CHECK-LABEL: divide
 ; CHECK: cmp
-; CHECK: call ice_unreachable
+; CHECK: call {{.*}} R_{{.*}} ice_unreachable
 ; CHECK: cdq
 ; CHECK: idiv
 ; CHECK: ret

@@ -18,7 +18,7 @@ define <4 x i32> @mul_v4i32(<4 x i32> %a, <4 x i32> %b) {
 entry:
   %res = mul <4 x i32> %a, %b
   ret <4 x i32> %res
-; PROB50-LABEL: mul_v4i32:
+; PROB50-LABEL: mul_v4i32
 ; PROB50: nop # variant = 3
 ; PROB50: subl $60, %esp
 ; PROB50: nop # variant = 4
@@ -41,7 +41,7 @@ entry:
 ; PROB50: nop # variant = 0
 ; PROB50: ret
 
-; PROB90-LABEL: mul_v4i32:
+; PROB90-LABEL: mul_v4i32
 ; PROB90: nop # variant = 3
 ; PROB90: subl $60, %esp
 ; PROB90: nop # variant = 4
@@ -71,7 +71,7 @@ entry:
 ; PROB90: nop # variant = 3
 ; PROB90: ret
 
-; MAXNOPS2-LABEL: mul_v4i32:
+; MAXNOPS2-LABEL: mul_v4i32
 ; MAXNOPS2: subl $60, %esp
 ; MAXNOPS2: nop # variant = 4
 ; MAXNOPS2: movups %xmm0, 32(%esp)

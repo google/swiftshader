@@ -1,11 +1,9 @@
 ; Trivial smoke test of bitcast between integer and FP types.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
+; RUN:   | FileCheck %s
+; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
+; RUN:   | FileCheck %s
 
 define internal i32 @cast_f2i(float %f) {
 entry:
@@ -22,7 +20,7 @@ entry:
   ret float %v0
 }
 ; CHECK-LABEL: cast_i2f
-; CHECK: fld dword ptr
+; CHECK: fld DWORD PTR
 ; CHECK: ret
 
 define internal i64 @cast_d2ll(double %d) {
@@ -40,7 +38,7 @@ entry:
   ret i64 %v0
 }
 ; CHECK-LABEL: cast_d2ll_const
-; CHECK: movsd xmm{{.*}}, qword ptr
+; CHECK: movsd xmm{{.*}},QWORD PTR
 ; CHECK: mov edx
 ; CHECK: ret
 
@@ -50,7 +48,7 @@ entry:
   ret double %v0
 }
 ; CHECK-LABEL: cast_ll2d
-; CHECK: fld qword ptr
+; CHECK: fld QWORD PTR
 ; CHECK: ret
 
 define internal double @cast_ll2d_const() {
@@ -59,7 +57,7 @@ entry:
   ret double %v0
 }
 ; CHECK-LABEL: cast_ll2d_const
-; CHECK: mov {{.*}}, 1942892530
-; CHECK: mov {{.*}}, 2874
-; CHECK: fld qword ptr
+; CHECK: mov {{.*}},0x73ce2ff2
+; CHECK: mov {{.*}},0xb3a
+; CHECK: fld QWORD PTR
 ; CHECK: ret

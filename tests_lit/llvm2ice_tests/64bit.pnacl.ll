@@ -2,12 +2,9 @@
 ; particular the patterns for lowering i64 operations into constituent
 ; i32 operations on x86-32.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
+; RUN:   | FileCheck %s
+; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
@@ -31,49 +28,49 @@ entry:
 }
 ; CHECK-LABEL: pass64BitArg
 ; CHECK:      sub     esp
-; CHECK:      mov     dword ptr [esp + 4]
-; CHECK:      mov     dword ptr [esp]
-; CHECK:      mov     dword ptr [esp + 8], 123
-; CHECK:      mov     dword ptr [esp + 16]
-; CHECK:      mov     dword ptr [esp + 12]
-; CHECK:      call    ignore64BitArgNoInline
+; CHECK:      mov     DWORD PTR [esp+0x4]
+; CHECK:      mov     DWORD PTR [esp]
+; CHECK:      mov     DWORD PTR [esp+0x8],0x7b
+; CHECK:      mov     DWORD PTR [esp+0x10]
+; CHECK:      mov     DWORD PTR [esp+0xc]
+; CHECK:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
 ; CHECK:      sub     esp
-; CHECK:      mov     dword ptr [esp + 4]
-; CHECK:      mov     dword ptr [esp]
-; CHECK:      mov     dword ptr [esp + 8], 123
-; CHECK:      mov     dword ptr [esp + 16]
-; CHECK:      mov     dword ptr [esp + 12]
-; CHECK:      call    ignore64BitArgNoInline
+; CHECK:      mov     DWORD PTR [esp+0x4]
+; CHECK:      mov     DWORD PTR [esp]
+; CHECK:      mov     DWORD PTR [esp+0x8],0x7b
+; CHECK:      mov     DWORD PTR [esp+0x10]
+; CHECK:      mov     DWORD PTR [esp+0xc]
+; CHECK:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
 ; CHECK:      sub     esp
-; CHECK:      mov     dword ptr [esp + 4]
-; CHECK:      mov     dword ptr [esp]
-; CHECK:      mov     dword ptr [esp + 8], 123
-; CHECK:      mov     dword ptr [esp + 16]
-; CHECK:      mov     dword ptr [esp + 12]
-; CHECK:      call    ignore64BitArgNoInline
+; CHECK:      mov     DWORD PTR [esp+0x4]
+; CHECK:      mov     DWORD PTR [esp]
+; CHECK:      mov     DWORD PTR [esp+0x8],0x7b
+; CHECK:      mov     DWORD PTR [esp+0x10]
+; CHECK:      mov     DWORD PTR [esp+0xc]
+; CHECK:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
 ;
 ; OPTM1-LABEL: pass64BitArg
 ; OPTM1:      sub     esp
-; OPTM1:      mov     dword ptr [esp + 4]
-; OPTM1:      mov     dword ptr [esp]
-; OPTM1:      mov     dword ptr [esp + 8], 123
-; OPTM1:      mov     dword ptr [esp + 16]
-; OPTM1:      mov     dword ptr [esp + 12]
-; OPTM1:      call    ignore64BitArgNoInline
+; OPTM1:      mov     DWORD PTR [esp+0x4]
+; OPTM1:      mov     DWORD PTR [esp]
+; OPTM1:      mov     DWORD PTR [esp+0x8],0x7b
+; OPTM1:      mov     DWORD PTR [esp+0x10]
+; OPTM1:      mov     DWORD PTR [esp+0xc]
+; OPTM1:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
 ; OPTM1:      sub     esp
-; OPTM1:      mov     dword ptr [esp + 4]
-; OPTM1:      mov     dword ptr [esp]
-; OPTM1:      mov     dword ptr [esp + 8], 123
-; OPTM1:      mov     dword ptr [esp + 16]
-; OPTM1:      mov     dword ptr [esp + 12]
-; OPTM1:      call    ignore64BitArgNoInline
+; OPTM1:      mov     DWORD PTR [esp+0x4]
+; OPTM1:      mov     DWORD PTR [esp]
+; OPTM1:      mov     DWORD PTR [esp+0x8],0x7b
+; OPTM1:      mov     DWORD PTR [esp+0x10]
+; OPTM1:      mov     DWORD PTR [esp+0xc]
+; OPTM1:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
 ; OPTM1:      sub     esp
-; OPTM1:      mov     dword ptr [esp + 4]
-; OPTM1:      mov     dword ptr [esp]
-; OPTM1:      mov     dword ptr [esp + 8], 123
-; OPTM1:      mov     dword ptr [esp + 16]
-; OPTM1:      mov     dword ptr [esp + 12]
-; OPTM1:      call    ignore64BitArgNoInline
+; OPTM1:      mov     DWORD PTR [esp+0x4]
+; OPTM1:      mov     DWORD PTR [esp]
+; OPTM1:      mov     DWORD PTR [esp+0x8],0x7b
+; OPTM1:      mov     DWORD PTR [esp+0x10]
+; OPTM1:      mov     DWORD PTR [esp+0xc]
+; OPTM1:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
 
 declare i32 @ignore64BitArgNoInline(i64, i32, i64)
 
@@ -84,50 +81,50 @@ entry:
 }
 ; CHECK-LABEL: pass64BitConstArg
 ; CHECK:      sub     esp
-; CHECK:      mov     dword ptr [esp + 4]
-; CHECK-NEXT: mov     dword ptr [esp]
-; CHECK-NEXT: mov     dword ptr [esp + 8], 123
+; CHECK:      mov     DWORD PTR [esp+0x4]
+; CHECK-NEXT: mov     DWORD PTR [esp]
+; CHECK-NEXT: mov     DWORD PTR [esp+0x8],0x7b
 ; Bundle padding might be added (so not using -NEXT).
-; CHECK:      mov     dword ptr [esp + 16], 3735928559
-; CHECK-NEXT: mov     dword ptr [esp + 12], 305419896
+; CHECK:      mov     DWORD PTR [esp+0x10],0xdeadbeef
+; CHECK-NEXT: mov     DWORD PTR [esp+0xc],0x12345678
 ; Bundle padding will push the call down.
 ; CHECK-NOT:  mov
-; CHECK:      call    ignore64BitArgNoInline
+; CHECK:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
 ;
 ; OPTM1-LABEL: pass64BitConstArg
 ; OPTM1:      sub     esp
-; OPTM1:      mov     dword ptr [esp + 4]
-; OPTM1-NEXT: mov     dword ptr [esp]
-; OPTM1-NEXT: mov     dword ptr [esp + 8], 123
+; OPTM1:      mov     DWORD PTR [esp+0x4]
+; OPTM1-NEXT: mov     DWORD PTR [esp]
+; OPTM1-NEXT: mov     DWORD PTR [esp+0x8],0x7b
 ; Bundle padding might be added (so not using -NEXT).
-; OPTM1:      mov     dword ptr [esp + 16], 3735928559
-; OPTM1-NEXT: mov     dword ptr [esp + 12], 305419896
+; OPTM1:      mov     DWORD PTR [esp+0x10],0xdeadbeef
+; OPTM1-NEXT: mov     DWORD PTR [esp+0xc],0x12345678
 ; OPTM1-NOT:  mov
-; OPTM1:      call    ignore64BitArgNoInline
+; OPTM1:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
 
 define internal i64 @return64BitArg(i64 %a) {
 entry:
   ret i64 %a
 }
 ; CHECK-LABEL: return64BitArg
-; CHECK: mov     {{.*}}, dword ptr [esp + 4]
-; CHECK: mov     {{.*}}, dword ptr [esp + 8]
+; CHECK: mov     {{.*}},DWORD PTR [esp+0x4]
+; CHECK: mov     {{.*}},DWORD PTR [esp+0x8]
 ;
 ; OPTM1-LABEL: return64BitArg
-; OPTM1: mov     {{.*}}, dword ptr [esp + 4]
-; OPTM1: mov     {{.*}}, dword ptr [esp + 8]
+; OPTM1: mov     {{.*}},DWORD PTR [esp+0x4]
+; OPTM1: mov     {{.*}},DWORD PTR [esp+0x8]
 
 define internal i64 @return64BitConst() {
 entry:
   ret i64 -2401053092306725256
 }
 ; CHECK-LABEL: return64BitConst
-; CHECK: mov     eax, 305419896
-; CHECK: mov     edx, 3735928559
+; CHECK: mov     eax,0x12345678
+; CHECK: mov     edx,0xdeadbeef
 ;
 ; OPTM1-LABEL: return64BitConst
-; OPTM1: mov     eax, 305419896
-; OPTM1: mov     edx, 3735928559
+; OPTM1: mov     eax,0x12345678
+; OPTM1: mov     edx,0xdeadbeef
 
 define internal i64 @add64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -225,10 +222,10 @@ entry:
   ret i64 %div
 }
 ; CHECK-LABEL: div64BitSigned
-; CHECK: call    __divdi3
+; CHECK: call {{.*}} R_{{.*}}    __divdi3
 
 ; OPTM1-LABEL: div64BitSigned
-; OPTM1: call    __divdi3
+; OPTM1: call {{.*}} R_{{.*}}    __divdi3
 
 define internal i64 @div64BitSignedConst(i64 %a) {
 entry:
@@ -236,14 +233,14 @@ entry:
   ret i64 %div
 }
 ; CHECK-LABEL: div64BitSignedConst
-; CHECK: mov     dword ptr [esp + 12], 2874
-; CHECK: mov     dword ptr [esp + 8],  1942892530
-; CHECK: call    __divdi3
+; CHECK: mov     DWORD PTR [esp+0xc],0xb3a
+; CHECK: mov     DWORD PTR [esp+0x8],0x73ce2ff2
+; CHECK: call {{.*}} R_{{.*}}    __divdi3
 ;
 ; OPTM1-LABEL: div64BitSignedConst
-; OPTM1: mov     dword ptr [esp + 12], 2874
-; OPTM1: mov     dword ptr [esp + 8],  1942892530
-; OPTM1: call    __divdi3
+; OPTM1: mov     DWORD PTR [esp+0xc],0xb3a
+; OPTM1: mov     DWORD PTR [esp+0x8],0x73ce2ff2
+; OPTM1: call {{.*}} R_{{.*}}    __divdi3
 
 define internal i64 @div64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -251,10 +248,10 @@ entry:
   ret i64 %div
 }
 ; CHECK-LABEL: div64BitUnsigned
-; CHECK: call    __udivdi3
+; CHECK: call {{.*}} R_{{.*}}    __udivdi3
 ;
 ; OPTM1-LABEL: div64BitUnsigned
-; OPTM1: call    __udivdi3
+; OPTM1: call {{.*}} R_{{.*}}    __udivdi3
 
 define internal i64 @rem64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -262,10 +259,10 @@ entry:
   ret i64 %rem
 }
 ; CHECK-LABEL: rem64BitSigned
-; CHECK: call    __moddi3
+; CHECK: call {{.*}} R_{{.*}}    __moddi3
 ;
 ; OPTM1-LABEL: rem64BitSigned
-; OPTM1: call    __moddi3
+; OPTM1: call {{.*}} R_{{.*}}    __moddi3
 
 define internal i64 @rem64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -273,10 +270,10 @@ entry:
   ret i64 %rem
 }
 ; CHECK-LABEL: rem64BitUnsigned
-; CHECK: call    __umoddi3
+; CHECK: call {{.*}} R_{{.*}}    __umoddi3
 ;
 ; OPTM1-LABEL: rem64BitUnsigned
-; OPTM1: call    __umoddi3
+; OPTM1: call {{.*}} R_{{.*}}    __umoddi3
 
 define internal i64 @shl64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -286,13 +283,13 @@ entry:
 ; CHECK-LABEL: shl64BitSigned
 ; CHECK: shld
 ; CHECK: shl e
-; CHECK: test {{.*}}, 32
+; CHECK: test {{.*}},0x20
 ; CHECK: je
 ;
 ; OPTM1-LABEL: shl64BitSigned
 ; OPTM1: shld
 ; OPTM1: shl e
-; OPTM1: test {{.*}}, 32
+; OPTM1: test {{.*}},0x20
 ; OPTM1: je
 
 define internal i32 @shl64BitSignedTrunc(i64 %a, i64 %b) {
@@ -304,13 +301,13 @@ entry:
 ; CHECK-LABEL: shl64BitSignedTrunc
 ; CHECK: mov
 ; CHECK: shl e
-; CHECK: test {{.*}}, 32
+; CHECK: test {{.*}},0x20
 ; CHECK: je
 ;
 ; OPTM1-LABEL: shl64BitSignedTrunc
 ; OPTM1: shld
 ; OPTM1: shl e
-; OPTM1: test {{.*}}, 32
+; OPTM1: test {{.*}},0x20
 ; OPTM1: je
 
 define internal i64 @shl64BitUnsigned(i64 %a, i64 %b) {
@@ -321,13 +318,13 @@ entry:
 ; CHECK-LABEL: shl64BitUnsigned
 ; CHECK: shld
 ; CHECK: shl e
-; CHECK: test {{.*}}, 32
+; CHECK: test {{.*}},0x20
 ; CHECK: je
 ;
 ; OPTM1-LABEL: shl64BitUnsigned
 ; OPTM1: shld
 ; OPTM1: shl e
-; OPTM1: test {{.*}}, 32
+; OPTM1: test {{.*}},0x20
 ; OPTM1: je
 
 define internal i64 @shr64BitSigned(i64 %a, i64 %b) {
@@ -338,16 +335,16 @@ entry:
 ; CHECK-LABEL: shr64BitSigned
 ; CHECK: shrd
 ; CHECK: sar
-; CHECK: test {{.*}}, 32
+; CHECK: test {{.*}},0x20
 ; CHECK: je
-; CHECK: sar {{.*}}, 31
+; CHECK: sar {{.*}},0x1f
 ;
 ; OPTM1-LABEL: shr64BitSigned
 ; OPTM1: shrd
 ; OPTM1: sar
-; OPTM1: test {{.*}}, 32
+; OPTM1: test {{.*}},0x20
 ; OPTM1: je
-; OPTM1: sar {{.*}}, 31
+; OPTM1: sar {{.*}},0x1f
 
 define internal i32 @shr64BitSignedTrunc(i64 %a, i64 %b) {
 entry:
@@ -358,15 +355,15 @@ entry:
 ; CHECK-LABEL: shr64BitSignedTrunc
 ; CHECK: shrd
 ; CHECK: sar
-; CHECK: test {{.*}}, 32
+; CHECK: test {{.*}},0x20
 ; CHECK: je
 ;
 ; OPTM1-LABEL: shr64BitSignedTrunc
 ; OPTM1: shrd
 ; OPTM1: sar
-; OPTM1: test {{.*}}, 32
+; OPTM1: test {{.*}},0x20
 ; OPTM1: je
-; OPTM1: sar {{.*}}, 31
+; OPTM1: sar {{.*}},0x1f
 
 define internal i64 @shr64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -376,13 +373,13 @@ entry:
 ; CHECK-LABEL: shr64BitUnsigned
 ; CHECK: shrd
 ; CHECK: shr
-; CHECK: test {{.*}}, 32
+; CHECK: test {{.*}},0x20
 ; CHECK: je
 ;
 ; OPTM1-LABEL: shr64BitUnsigned
 ; OPTM1: shrd
 ; OPTM1: shr
-; OPTM1: test {{.*}}, 32
+; OPTM1: test {{.*}},0x20
 ; OPTM1: je
 
 define internal i32 @shr64BitUnsignedTrunc(i64 %a, i64 %b) {
@@ -394,13 +391,13 @@ entry:
 ; CHECK-LABEL: shr64BitUnsignedTrunc
 ; CHECK: shrd
 ; CHECK: shr
-; CHECK: test {{.*}}, 32
+; CHECK: test {{.*}},0x20
 ; CHECK: je
 ;
 ; OPTM1-LABEL: shr64BitUnsignedTrunc
 ; OPTM1: shrd
 ; OPTM1: shr
-; OPTM1: test {{.*}}, 32
+; OPTM1: test {{.*}},0x20
 ; OPTM1: je
 
 define internal i64 @and64BitSigned(i64 %a, i64 %b) {
@@ -487,10 +484,10 @@ entry:
   ret i32 %conv
 }
 ; CHECK-LABEL: trunc64To32Signed
-; CHECK: mov     eax, dword ptr [esp + 4]
+; CHECK: mov     eax,DWORD PTR [esp+0x4]
 ;
 ; OPTM1-LABEL: trunc64To32Signed
-; OPTM1: mov     eax, dword ptr [esp +
+; OPTM1: mov     eax,DWORD PTR [esp+
 
 define internal i32 @trunc64To16Signed(i64 %a) {
 entry:
@@ -499,11 +496,11 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: trunc64To16Signed
-; CHECK:      mov     eax, dword ptr [esp + 4]
-; CHECK-NEXT: movsx  eax, ax
+; CHECK:      mov     eax,DWORD PTR [esp+0x4]
+; CHECK-NEXT: movsx  eax,ax
 ;
 ; OPTM1-LABEL: trunc64To16Signed
-; OPTM1:      mov     eax, dword ptr [esp +
+; OPTM1:      mov     eax,DWORD PTR [esp+
 ; OPTM1: movsx  eax,
 
 define internal i32 @trunc64To8Signed(i64 %a) {
@@ -513,11 +510,11 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: trunc64To8Signed
-; CHECK:      mov     eax, dword ptr [esp + 4]
-; CHECK-NEXT: movsx  eax, al
+; CHECK:      mov     eax,DWORD PTR [esp+0x4]
+; CHECK-NEXT: movsx  eax,al
 ;
 ; OPTM1-LABEL: trunc64To8Signed
-; OPTM1:      mov     eax, dword ptr [esp +
+; OPTM1:      mov     eax,DWORD PTR [esp+
 ; OPTM1: movsx  eax,
 
 define internal i32 @trunc64To32SignedConst() {
@@ -526,10 +523,10 @@ entry:
   ret i32 %conv
 }
 ; CHECK-LABEL: trunc64To32SignedConst
-; CHECK: mov eax, 1942892530
+; CHECK: mov eax,0x73ce2ff2
 ;
 ; OPTM1-LABEL: trunc64To32SignedConst
-; OPTM1: mov eax, 1942892530
+; OPTM1: mov eax,0x73ce2ff2
 
 define internal i32 @trunc64To16SignedConst() {
 entry:
@@ -538,11 +535,11 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: trunc64To16SignedConst
-; CHECK: mov eax, 1942892530
-; CHECK: movsx eax, ax
+; CHECK: mov eax,0x73ce2ff2
+; CHECK: movsx eax,ax
 ;
 ; OPTM1-LABEL: trunc64To16SignedConst
-; OPTM1: mov eax, 1942892530
+; OPTM1: mov eax,0x73ce2ff2
 ; OPTM1: movsx eax,
 
 define internal i32 @trunc64To32Unsigned(i64 %a) {
@@ -551,10 +548,10 @@ entry:
   ret i32 %conv
 }
 ; CHECK-LABEL: trunc64To32Unsigned
-; CHECK: mov     eax, dword ptr [esp + 4]
+; CHECK: mov     eax,DWORD PTR [esp+0x4]
 ;
 ; OPTM1-LABEL: trunc64To32Unsigned
-; OPTM1: mov     eax, dword ptr [esp +
+; OPTM1: mov     eax,DWORD PTR [esp+
 
 define internal i32 @trunc64To16Unsigned(i64 %a) {
 entry:
@@ -563,11 +560,11 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: trunc64To16Unsigned
-; CHECK:      mov     eax, dword ptr [esp + 4]
-; CHECK-NEXT: movzx  eax, ax
+; CHECK:      mov     eax,DWORD PTR [esp+0x4]
+; CHECK-NEXT: movzx  eax,ax
 ;
 ; OPTM1-LABEL: trunc64To16Unsigned
-; OPTM1:      mov     eax, dword ptr [esp +
+; OPTM1:      mov     eax,DWORD PTR [esp+
 ; OPTM1: movzx  eax,
 
 define internal i32 @trunc64To8Unsigned(i64 %a) {
@@ -577,11 +574,11 @@ entry:
   ret i32 %conv.ret_ext
 }
 ; CHECK-LABEL: trunc64To8Unsigned
-; CHECK:      mov     eax, dword ptr [esp + 4]
-; CHECK-NEXT: movzx  eax, al
+; CHECK:      mov     eax,DWORD PTR [esp+0x4]
+; CHECK-NEXT: movzx  eax,al
 ;
 ; OPTM1-LABEL: trunc64To8Unsigned
-; OPTM1: mov    eax, dword ptr [esp +
+; OPTM1: mov    eax,DWORD PTR [esp+
 ; OPTM1: movzx  eax,
 
 define internal i32 @trunc64To1(i64 %a) {
@@ -592,14 +589,14 @@ entry:
   ret i32 %tobool.ret_ext
 }
 ; CHECK-LABEL: trunc64To1
-; CHECK:      mov     eax, dword ptr [esp + 4]
-; CHECK:      and     eax, 1
-; CHECK:      and     eax, 1
+; CHECK:      mov     eax,DWORD PTR [esp+0x4]
+; CHECK:      and     eax,0x1
+; CHECK:      and     eax,0x1
 ;
 ; OPTM1-LABEL: trunc64To1
-; OPTM1:      mov     eax, dword ptr [esp +
-; OPTM1:      and     eax, 1
-; OPTM1:      and     eax, 1
+; OPTM1:      mov     eax,DWORD PTR [esp+
+; OPTM1:      and     eax,0x1
+; OPTM1:      and     eax,0x1
 
 define internal i64 @sext32To64(i32 %a) {
 entry:
@@ -608,11 +605,11 @@ entry:
 }
 ; CHECK-LABEL: sext32To64
 ; CHECK: mov
-; CHECK: sar {{.*}}, 31
+; CHECK: sar {{.*}},0x1f
 ;
 ; OPTM1-LABEL: sext32To64
 ; OPTM1: mov
-; OPTM1: sar {{.*}}, 31
+; OPTM1: sar {{.*}},0x1f
 
 define internal i64 @sext16To64(i32 %a) {
 entry:
@@ -622,11 +619,11 @@ entry:
 }
 ; CHECK-LABEL: sext16To64
 ; CHECK: movsx
-; CHECK: sar {{.*}}, 31
+; CHECK: sar {{.*}},0x1f
 ;
 ; OPTM1-LABEL: sext16To64
 ; OPTM1: movsx
-; OPTM1: sar {{.*}}, 31
+; OPTM1: sar {{.*}},0x1f
 
 define internal i64 @sext8To64(i32 %a) {
 entry:
@@ -636,11 +633,11 @@ entry:
 }
 ; CHECK-LABEL: sext8To64
 ; CHECK: movsx
-; CHECK: sar {{.*}}, 31
+; CHECK: sar {{.*}},0x1f
 ;
 ; OPTM1-LABEL: sext8To64
 ; OPTM1: movsx
-; OPTM1: sar {{.*}}, 31
+; OPTM1: sar {{.*}},0x1f
 
 define internal i64 @sext1To64(i32 %a) {
 entry:
@@ -650,13 +647,13 @@ entry:
 }
 ; CHECK-LABEL: sext1To64
 ; CHECK: mov
-; CHECK: shl {{.*}}, 31
-; CHECK: sar {{.*}}, 31
+; CHECK: shl {{.*}},0x1f
+; CHECK: sar {{.*}},0x1f
 ;
 ; OPTM1-LABEL: sext1To64
 ; OPTM1: mov
-; OPTM1: shl {{.*}}, 31
-; OPTM1: sar {{.*}}, 31
+; OPTM1: shl {{.*}},0x1f
+; OPTM1: sar {{.*}},0x1f
 
 define internal i64 @zext32To64(i32 %a) {
 entry:
@@ -665,11 +662,11 @@ entry:
 }
 ; CHECK-LABEL: zext32To64
 ; CHECK: mov
-; CHECK: mov {{.*}}, 0
+; CHECK: mov {{.*}},0x0
 ;
 ; OPTM1-LABEL: zext32To64
 ; OPTM1: mov
-; OPTM1: mov {{.*}}, 0
+; OPTM1: mov {{.*}},0x0
 
 define internal i64 @zext16To64(i32 %a) {
 entry:
@@ -679,11 +676,11 @@ entry:
 }
 ; CHECK-LABEL: zext16To64
 ; CHECK: movzx
-; CHECK: mov {{.*}}, 0
+; CHECK: mov {{.*}},0x0
 ;
 ; OPTM1-LABEL: zext16To64
 ; OPTM1: movzx
-; OPTM1: mov {{.*}}, 0
+; OPTM1: mov {{.*}},0x0
 
 define internal i64 @zext8To64(i32 %a) {
 entry:
@@ -693,11 +690,11 @@ entry:
 }
 ; CHECK-LABEL: zext8To64
 ; CHECK: movzx
-; CHECK: mov {{.*}}, 0
+; CHECK: mov {{.*}},0x0
 ;
 ; OPTM1-LABEL: zext8To64
 ; OPTM1: movzx
-; OPTM1: mov {{.*}}, 0
+; OPTM1: mov {{.*}},0x0
 
 define internal i64 @zext1To64(i32 %a) {
 entry:
@@ -706,12 +703,12 @@ entry:
   ret i64 %conv
 }
 ; CHECK-LABEL: zext1To64
-; CHECK: and {{.*}}, 1
-; CHECK: mov {{.*}}, 0
+; CHECK: and {{.*}},0x1
+; CHECK: mov {{.*}},0x0
 ;
 ; OPTM1-LABEL: zext1To64
-; OPTM1: and {{.*}}, 1
-; OPTM1: mov {{.*}}, 0
+; OPTM1: and {{.*}},0x1
+; OPTM1: mov {{.*}},0x0
 
 define internal void @icmpEq64(i64 %a, i64 %b, i64 %c, i64 %d) {
 entry:
@@ -1142,13 +1139,13 @@ entry:
   ret i64 %v0
 }
 ; CHECK-LABEL: load64
-; CHECK: mov e[[REGISTER:[a-z]+]], dword ptr [esp + 4]
-; CHECK-NEXT: mov {{.*}}, dword ptr [e[[REGISTER]]]
-; CHECK-NEXT: mov {{.*}}, dword ptr [e[[REGISTER]] + 4]
+; CHECK: mov e[[REGISTER:[a-z]+]],DWORD PTR [esp+0x4]
+; CHECK-NEXT: mov {{.*}},DWORD PTR [e[[REGISTER]]]
+; CHECK-NEXT: mov {{.*}},DWORD PTR [e[[REGISTER]]+0x4]
 ;
 ; OPTM1-LABEL: load64
-; OPTM1: mov e{{..}}, dword ptr [e{{..}}]
-; OPTM1: mov e{{..}}, dword ptr [e{{..}} + 4]
+; OPTM1: mov e{{..}},DWORD PTR [e{{..}}]
+; OPTM1: mov e{{..}},DWORD PTR [e{{..}}+0x4]
 
 define internal void @store64(i32 %a, i64 %value) {
 entry:
@@ -1157,13 +1154,13 @@ entry:
   ret void
 }
 ; CHECK-LABEL: store64
-; CHECK: mov e[[REGISTER:[a-z]+]], dword ptr [esp + 4]
-; CHECK: mov dword ptr [e[[REGISTER]] + 4],
-; CHECK: mov dword ptr [e[[REGISTER]]],
+; CHECK: mov e[[REGISTER:[a-z]+]],DWORD PTR [esp+0x4]
+; CHECK: mov DWORD PTR [e[[REGISTER]]+0x4],
+; CHECK: mov DWORD PTR [e[[REGISTER]]],
 ;
 ; OPTM1-LABEL: store64
-; OPTM1: mov dword ptr [e[[REGISTER:[a-z]+]] + 4],
-; OPTM1: mov dword ptr [e[[REGISTER]]],
+; OPTM1: mov DWORD PTR [e[[REGISTER:[a-z]+]]+0x4],
+; OPTM1: mov DWORD PTR [e[[REGISTER]]],
 
 define internal void @store64Const(i32 %a) {
 entry:
@@ -1172,13 +1169,13 @@ entry:
   ret void
 }
 ; CHECK-LABEL: store64Const
-; CHECK: mov e[[REGISTER:[a-z]+]], dword ptr [esp + 4]
-; CHECK: mov dword ptr [e[[REGISTER]] + 4], 3735928559
-; CHECK: mov dword ptr [e[[REGISTER]]], 305419896
+; CHECK: mov e[[REGISTER:[a-z]+]],DWORD PTR [esp+0x4]
+; CHECK: mov DWORD PTR [e[[REGISTER]]+0x4],0xdeadbeef
+; CHECK: mov DWORD PTR [e[[REGISTER]]],0x12345678
 ;
 ; OPTM1-LABEL: store64Const
-; OPTM1: mov dword ptr [e[[REGISTER:[a-z]+]] + 4], 3735928559
-; OPTM1: mov dword ptr [e[[REGISTER]]], 305419896
+; OPTM1: mov DWORD PTR [e[[REGISTER:[a-z]+]]+0x4],0xdeadbeef
+; OPTM1: mov DWORD PTR [e[[REGISTER]]],0x12345678
 
 define internal i64 @select64VarVar(i64 %a, i64 %b) {
 entry:
@@ -1275,9 +1272,9 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; The following checks are not strictly necessary since one of the RUN
 ; lines actually runs the output through the assembler.
 ; CHECK-LABEL: icmpEq64Imm
-; CHECK-NOT: cmp {{[0-9]+}},
+; CHECK-NOT: cmp 0x{{[0-9a-f]+}},
 ; OPTM1-LABEL: icmpEq64Imm
-; OPTM1-LABEL-NOT: cmp {{[0-9]+}},
+; OPTM1-LABEL-NOT: cmp 0x{{[0-9a-f]+}},
 
 define internal void @icmpLt64Imm() {
 entry:
@@ -1302,6 +1299,6 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; The following checks are not strictly necessary since one of the RUN
 ; lines actually runs the output through the assembler.
 ; CHECK-LABEL: icmpLt64Imm
-; CHECK-NOT: cmp {{[0-9]+}},
+; CHECK-NOT: cmp 0x{{[0-9a-f]+}},
 ; OPTM1-LABEL: icmpLt64Imm
-; OPTM1-NOT: cmp {{[0-9]+}},
+; OPTM1-NOT: cmp 0x{{[0-9a-f]+}},

@@ -6,12 +6,10 @@
 ; number in a reasonable number of digits".  See
 ; http://llvm.org/docs/LangRef.html#simple-constants .
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -s -d -symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -s -d -symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i --assemble --disassemble --dis-flags=-s -i %s --args -O2 \
+; RUN:   --verbose none | FileCheck %s
+; RUN: %p2i --assemble --disassemble --dis-flags=-s -i %s --args -Om1 \
+; RUN:   --verbose none | FileCheck %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
@@ -549,4 +547,4 @@ return:                                           ; preds = %entry, %sw.bb65, %s
 ; CHECK-LABEL: .rodata.cst8
 ; CHECK:     00000000 0000e03f
 ; CHECK-NOT: 00000000 0000e03f
-; CHECK-LABEL: .shstrtab
+; CHECK-LABEL: .text
