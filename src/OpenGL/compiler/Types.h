@@ -241,17 +241,17 @@ protected:
     int getStructSize() const;
     void computeDeepestStructNesting();
 
-    TBasicType type      : 6;
+    TBasicType type;
     TPrecision precision;
-    TQualifier qualifier : 7;
-    int size             : 8; // size of vector or matrix, not size of array
-    unsigned int matrix  : 1;
-    unsigned int array   : 1;
+    TQualifier qualifier;
+    unsigned char size;   // size of vector or matrix, not size of array
+    bool matrix;
+    bool array;
     int arraySize;
     int maxArraySize;
-    TType* arrayInformationType;
+    TType *arrayInformationType;
 
-    TTypeList* structure;      // 0 unless this is a struct
+    TTypeList *structure;      // 0 unless this is a struct
     mutable int structureSize;
     int deepestStructNesting;
 

@@ -10,7 +10,7 @@
 //
 // Precision qualifiers
 //
-enum TPrecision
+enum TPrecision : unsigned char
 {
     // These need to be kept sorted
     EbpUndefined,
@@ -33,7 +33,7 @@ inline const char* getPrecisionString(TPrecision p)
 //
 // Basic type.  Arrays, vectors, etc., are orthogonal to this.
 //
-enum TBasicType
+enum TBasicType : unsigned char
 {
     EbtVoid,
     EbtFloat,
@@ -97,7 +97,7 @@ inline bool IsSampler(TBasicType type)
 // to allocate variables in.  Since built-ins tend to go to different registers
 // than varying or uniform, it makes sense they are peers, not sub-classes.
 //
-enum TQualifier
+enum TQualifier : unsigned char
 {
     EvqTemporary,     // For temporaries (within a function), read/write
     EvqGlobal,        // For globals read/write
