@@ -228,6 +228,70 @@ enum ESymbolLevel
     GLOBAL_LEVEL
 };
 
+inline bool IsGenType(const TType *type)
+{
+	if(type)
+	{
+		TBasicType basicType = type->getBasicType();
+		return basicType == EbtGenType || basicType == EbtGenIType || basicType == EbtGenUType || basicType == EbtGenBType;
+	}
+
+	return false;
+}
+
+inline bool IsVecType(const TType *type)
+{
+	if(type)
+	{
+		TBasicType basicType = type->getBasicType();
+		return basicType == EbtVec || basicType == EbtIVec || basicType == EbtUVec || basicType == EbtBVec;
+	}
+
+	return false;
+}
+
+inline TType *GenType(TType *type, int size)
+{
+	ASSERT(size >= 1 && size <= 4);
+
+	if(!type)
+	{
+		return nullptr;
+	}
+
+	ASSERT(!IsVecType(type));
+
+	switch(type->getBasicType())
+	{
+	case EbtGenType:  return new TType(EbtFloat, size);
+	case EbtGenIType: return new TType(EbtInt, size);
+	case EbtGenUType: return new TType(EbtUInt, size);
+	case EbtGenBType: return new TType(EbtBool, size);
+	default: return type;
+	}
+}
+
+inline TType *VecType(TType *type, int size)
+{
+	ASSERT(size >= 2 && size <= 4);
+
+	if(!type)
+	{
+		return nullptr;
+	}
+
+	ASSERT(!IsGenType(type));
+
+	switch(type->getBasicType())
+	{
+	case EbtVec:  return new TType(EbtFloat, size);
+	case EbtIVec: return new TType(EbtInt, size);
+	case EbtUVec: return new TType(EbtUInt, size);
+	case EbtBVec: return new TType(EbtBool, size);
+	default: return type;
+	}
+}
+
 class TSymbolTable
 {
 public:
@@ -315,6 +379,29 @@ public:
 			insertBuiltIn(level, gvec4 ? new TType(EbtUInt, 4) : rvalue, name, new TType(EbtUSampler2DArray), ptype2, ptype3, ptype4);
 			return;
 		}
+		else if(IsGenType(rvalue) ||
+		        IsGenType(ptype1) ||
+		        IsGenType(ptype2) ||
+		        IsGenType(ptype3) ||
+		        IsGenType(ptype4))
+		{
+			insertBuiltIn(level, GenType(rvalue, 1), name, GenType(ptype1, 1), GenType(ptype2, 1), GenType(ptype3, 1), GenType(ptype4, 1));
+			insertBuiltIn(level, GenType(rvalue, 2), name, GenType(ptype1, 2), GenType(ptype2, 2), GenType(ptype3, 2), GenType(ptype4, 2));
+			insertBuiltIn(level, GenType(rvalue, 3), name, GenType(ptype1, 3), GenType(ptype2, 3), GenType(ptype3, 3), GenType(ptype4, 3));
+			insertBuiltIn(level, GenType(rvalue, 4), name, GenType(ptype1, 4), GenType(ptype2, 4), GenType(ptype3, 4), GenType(ptype4, 4));
+			return;
+		}
+		else if(IsVecType(rvalue) ||
+		        IsVecType(ptype1) ||
+		        IsVecType(ptype2) ||
+		        IsVecType(ptype3) ||
+		        IsVecType(ptype4))
+		{
+			insertBuiltIn(level, VecType(rvalue, 2), name, VecType(ptype1, 2), VecType(ptype2, 2), VecType(ptype3, 2), VecType(ptype4, 2));
+			insertBuiltIn(level, VecType(rvalue, 3), name, VecType(ptype1, 3), VecType(ptype2, 3), VecType(ptype3, 3), VecType(ptype4, 3));
+			insertBuiltIn(level, VecType(rvalue, 4), name, VecType(ptype1, 4), VecType(ptype2, 4), VecType(ptype3, 4), VecType(ptype4, 4));
+			return;
+		}
 
 		TFunction *function = new TFunction(NewPoolTString(name), *rvalue);
 
@@ -331,6 +418,12 @@ public:
 		{
 			TParameter param3 = {0, ptype3};
 			function->addParameter(param3);
+		}
+
+		if(ptype4)
+		{
+			TParameter param4 = {0, ptype4};
+			function->addParameter(param4);
 		}
 
 		insert(level, *function);
