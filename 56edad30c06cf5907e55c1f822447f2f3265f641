@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8c5967a_3cc61dce",
+        "filename": "src/OpenGL/compiler/BaseTypes.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T19:13:31Z",
+      "side": 1,
+      "message": "nit: TAB",
+      "range": {
+        "startLine": 138,
+        "startChar": 0,
+        "endLine": 138,
+        "endChar": 1
+      },
+      "revId": "56edad30c06cf5907e55c1f822447f2f3265f641",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a8c5967a_1cc359be",
+        "filename": "src/OpenGL/compiler/ParseHelper.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T19:13:31Z",
+      "side": 1,
+      "message": "nit: TAB",
+      "range": {
+        "startLine": 127,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 1
+      },
+      "revId": "56edad30c06cf5907e55c1f822447f2f3265f641",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a8c5967a_3f0e0f5d",
+        "filename": "src/OpenGL/compiler/Types.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T19:13:31Z",
+      "side": 1,
+      "message": "nit: TAB",
+      "range": {
+        "startLine": 270,
+        "startChar": 0,
+        "endLine": 270,
+        "endChar": 1
+      },
+      "revId": "56edad30c06cf5907e55c1f822447f2f3265f641",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a8c5967a_9f375b0a",
+        "filename": "src/OpenGL/compiler/Types.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T19:13:31Z",
+      "side": 1,
+      "message": "nit: TAB",
+      "range": {
+        "startLine": 283,
+        "startChar": 0,
+        "endLine": 283,
+        "endChar": 2
+      },
+      "revId": "56edad30c06cf5907e55c1f822447f2f3265f641",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a8c5967a_bf6fbfdf",
+        "filename": "src/OpenGL/compiler/glslang.y",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T19:13:31Z",
+      "side": 1,
+      "message": "nit: TABS",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 3
+      },
+      "revId": "56edad30c06cf5907e55c1f822447f2f3265f641",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
