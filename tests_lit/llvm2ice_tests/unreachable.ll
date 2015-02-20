@@ -20,7 +20,7 @@ return:                                           ; preds = %entry
 
 ; CHECK-LABEL: divide
 ; CHECK: cmp
-; CHECK: call {{.*}} R_{{.*}} ice_unreachable
+; CHECK: ud2
 ; CHECK: cdq
 ; CHECK: idiv
 ; CHECK: ret

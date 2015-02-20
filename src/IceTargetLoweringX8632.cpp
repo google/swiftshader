@@ -4119,10 +4119,7 @@ TargetX8632::eliminateNextVectorSextInstruction(Variable *SignExtendedResult) {
 }
 
 void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) {
-  const SizeT MaxSrcs = 0;
-  Variable *Dest = nullptr;
-  InstCall *Call = makeHelperCall("ice_unreachable", Dest, MaxSrcs);
-  lowerCall(Call);
+  _ud2();
 }
 
 // Turn an i64 Phi instruction into a pair of i32 Phi instructions, to

@@ -15,8 +15,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-void ice_unreachable(void) { abort(); }
-
 uint32_t cvtftoui32(float value) { return (uint32_t)value; }
 
 uint32_t cvtdtoui32(double value) { return (uint32_t)value; }
