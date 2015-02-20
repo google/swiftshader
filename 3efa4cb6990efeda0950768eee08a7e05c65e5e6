@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8c5967a_dfb6f3b7",
+        "filename": "src/OpenGL/compiler/DirectiveHandler.h",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T19:28:48Z",
+      "side": 1,
+      "message": "nit:TAB",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 1
+      },
+      "revId": "3efa4cb6990efeda0950768eee08a7e05c65e5e6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a8c5967a_3fa28f3e",
+        "filename": "src/OpenGL/compiler/glslang.y",
+        "patchSetId": 5
+      },
+      "lineNbr": 1505,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T19:28:48Z",
+      "side": 1,
+      "message": "nit: TABS",
+      "range": {
+        "startLine": 1505,
+        "startChar": 0,
+        "endLine": 1505,
+        "endChar": 2
+      },
+      "revId": "3efa4cb6990efeda0950768eee08a7e05c65e5e6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a8c5967a_ff8c17d3",
+        "filename": "src/OpenGL/compiler/glslang.y",
+        "patchSetId": 5
+      },
+      "lineNbr": 1511,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T19:28:48Z",
+      "side": 1,
+      "message": "nit: TAB",
+      "range": {
+        "startLine": 1511,
+        "startChar": 0,
+        "endLine": 1511,
+        "endChar": 1
+      },
+      "revId": "3efa4cb6990efeda0950768eee08a7e05c65e5e6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a8c5967a_bf869faf",
+        "filename": "src/OpenGL/compiler/glslang.y",
+        "patchSetId": 5
+      },
+      "lineNbr": 1520,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T19:28:48Z",
+      "side": 1,
+      "message": "nit: TAB",
+      "range": {
+        "startLine": 1520,
+        "startChar": 0,
+        "endLine": 1520,
+        "endChar": 1
+      },
+      "revId": "3efa4cb6990efeda0950768eee08a7e05c65e5e6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
