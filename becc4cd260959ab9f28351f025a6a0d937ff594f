@@ -22,6 +22,30 @@
       "revId": "becc4cd260959ab9f28351f025a6a0d937ff594f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a813d6da_acfaeb78",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 408,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-20T20:59:10Z",
+      "side": 1,
+      "message": "No, many objects (e.g. the texture classes) will be used by both ES2 and ES3 contexts. It would get very messy to have an es2-only, es2-and-es3, and es3-only namespace. So just like libGLESv2 containing both 2 and 3, I think we should stick with the es2 namespace. :-/",
+      "parentUuid": "a813d6da_6c919368",
+      "range": {
+        "startLine": 408,
+        "startChar": 13,
+        "endLine": 408,
+        "endChar": 16
+      },
+      "revId": "becc4cd260959ab9f28351f025a6a0d937ff594f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
