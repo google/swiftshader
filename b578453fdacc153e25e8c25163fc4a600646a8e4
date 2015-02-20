@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8c5967a_42a2083f",
+        "filename": "src/OpenGL/libGLESv2/Shader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T19:54:06Z",
+      "side": 1,
+      "message": "Maybe not necessary, but seems like this check could be more futureproof. Something like \"if(clientVersion \u003c shaderVersion/100)\" or \"if(shaderVersion \u003c someMaxShaderVersionTable[clientVersion])\" or \"if(someShaderVersionMap[clientVersion].find(shaderVersion) !\u003d someShaderVersionMap[clientVersion]::end)\".\n\nAnyway, a generic check like this should probably exist for every version is what I\u0027m saying.",
+      "range": {
+        "startLine": 220,
+        "startChar": 1,
+        "endLine": 220,
+        "endChar": 46
+      },
+      "revId": "b578453fdacc153e25e8c25163fc4a600646a8e4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
