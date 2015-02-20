@@ -79,13 +79,15 @@ Label *AssemblerX86::GetOrCreateLocalLabel(SizeT Number) {
 }
 
 void AssemblerX86::BindCfgNodeLabel(SizeT NodeNumber) {
+  assert(!getPreliminary());
   Label *L = GetOrCreateCfgNodeLabel(NodeNumber);
   this->Bind(L);
 }
 
 void AssemblerX86::BindLocalLabel(SizeT Number) {
   Label *L = GetOrCreateLocalLabel(Number);
-  this->Bind(L);
+  if (!getPreliminary())
+    this->Bind(L);
 }
 
 void AssemblerX86::call(GPRRegister reg) {
@@ -2229,6 +2231,13 @@ void AssemblerX86::j(CondX86::BrCond condition, Label *label, bool near) {
     intptr_t offset = label->Position() - buffer_.Size();
     assert(offset <= 0);
     if (Utils::IsInt(8, offset - kShortSize)) {
+      // TODO(stichnot): Here and in jmp(), we may need to be more
+      // conservative about the backward branch distance if the branch
+      // instruction is within a bundle_lock sequence, because the
+      // distance may increase when padding is added.  This isn't an
+      // issue for branches outside a bundle_lock, because if padding
+      // is added, the retry may change it to a long backward branch
+      // without affecting any of the bookkeeping.
       EmitUint8(0x70 + condition);
       EmitUint8((offset - kShortSize) & 0xFF);
     } else {
@@ -2463,14 +2472,16 @@ void AssemblerX86::EmitLabelLink(Label *label) {
   assert(!label->IsBound());
   intptr_t position = buffer_.Size();
   EmitInt32(label->position_);
-  label->LinkTo(position);
+  if (!getPreliminary())
+    label->LinkTo(position);
 }
 
 void AssemblerX86::EmitNearLabelLink(Label *label) {
   assert(!label->IsBound());
   intptr_t position = buffer_.Size();
   EmitUint8(0);
-  label->NearLinkTo(position);
+  if (!getPreliminary())
+    label->NearLinkTo(position);
 }
 
 void AssemblerX86::EmitGenericShift(int rm, Type Ty, GPRRegister reg,

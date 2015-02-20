@@ -218,6 +218,8 @@ void TargetLowering::lower() {
   case Inst::Unreachable:
     lowerUnreachable(llvm::dyn_cast<InstUnreachable>(Inst));
     break;
+  case Inst::BundleLock:
+  case Inst::BundleUnlock:
   case Inst::FakeDef:
   case Inst::FakeUse:
   case Inst::FakeKill:

@@ -59,11 +59,13 @@ public:
     Select,
     Store,
     Switch,
-    FakeDef,  // not part of LLVM/PNaCl bitcode
-    FakeUse,  // not part of LLVM/PNaCl bitcode
-    FakeKill, // not part of LLVM/PNaCl bitcode
-    Target    // target-specific low-level ICE
-              // Anything >= Target is an InstTarget subclass.
+    BundleLock,   // not part of LLVM/PNaCl bitcode
+    BundleUnlock, // not part of LLVM/PNaCl bitcode
+    FakeDef,      // not part of LLVM/PNaCl bitcode
+    FakeUse,      // not part of LLVM/PNaCl bitcode
+    FakeKill,     // not part of LLVM/PNaCl bitcode
+    Target        // target-specific low-level ICE
+                  // Anything >= Target is an InstTarget subclass.
   };
   InstKind getKind() const { return Kind; }
 
@@ -741,6 +743,53 @@ public:
 private:
   InstUnreachable(Cfg *Func);
   ~InstUnreachable() override {}
+};
+
+// BundleLock instruction.  There are no operands.  Contains an option
+// indicating whether align_to_end is specified.
+class InstBundleLock : public InstHighLevel {
+  InstBundleLock(const InstBundleLock &) = delete;
+  InstBundleLock &operator=(const InstBundleLock &) = delete;
+
+public:
+  enum Option { Opt_None, Opt_AlignToEnd };
+  static InstBundleLock *create(Cfg *Func, Option BundleOption) {
+    return new (Func->allocate<InstBundleLock>())
+        InstBundleLock(Func, BundleOption);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg * /* Func */) const override {}
+  void dump(const Cfg *Func) const override;
+  Option getOption() const { return BundleOption; }
+  static bool classof(const Inst *Inst) {
+    return Inst->getKind() == BundleLock;
+  }
+
+private:
+  Option BundleOption;
+  InstBundleLock(Cfg *Func, Option BundleOption);
+  ~InstBundleLock() override {}
+};
+
+// BundleUnlock instruction.  There are no operands.
+class InstBundleUnlock : public InstHighLevel {
+  InstBundleUnlock(const InstBundleUnlock &) = delete;
+  InstBundleUnlock &operator=(const InstBundleUnlock &) = delete;
+
+public:
+  static InstBundleUnlock *create(Cfg *Func) {
+    return new (Func->allocate<InstBundleUnlock>()) InstBundleUnlock(Func);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg * /* Func */) const override {}
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) {
+    return Inst->getKind() == BundleUnlock;
+  }
+
+private:
+  explicit InstBundleUnlock(Cfg *Func);
+  ~InstBundleUnlock() override {}
 };
 
 // FakeDef instruction.  This creates a fake definition of a variable,

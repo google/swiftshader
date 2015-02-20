@@ -963,6 +963,29 @@ void TargetX8632::addEpilog(CfgNode *Node) {
       _pop(getPhysicalRegister(j));
     }
   }
+
+  if (!Ctx->getFlags().getUseSandboxing())
+    return;
+  // Change the original ret instruction into a sandboxed return sequence.
+  // t:ecx = pop
+  // bundle_lock
+  // and t, ~31
+  // jmp *t
+  // bundle_unlock
+  // FakeUse <original_ret_operand>
+  const SizeT BundleSize = 1
+                           << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+  Variable *T_ecx = makeReg(IceType_i32, RegX8632::Reg_ecx);
+  _pop(T_ecx);
+  _bundle_lock();
+  _and(T_ecx, Ctx->getConstantInt32(~(BundleSize - 1)));
+  _jmp(T_ecx);
+  _bundle_unlock();
+  if (RI->getSrcSize()) {
+    Variable *RetValue = llvm::cast<Variable>(RI->getSrc(0));
+    Context.insert(InstFakeUse::create(Func, RetValue));
+  }
+  RI->setDeleted();
 }
 
 void TargetX8632::split64(Variable *Var) {
@@ -1815,8 +1838,24 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     }
   }
   Operand *CallTarget = legalize(Instr->getCallTarget());
+  const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
+  if (NeedSandboxing) {
+    if (llvm::isa<Constant>(CallTarget)) {
+      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
+    } else {
+      Variable *CallTargetVar = nullptr;
+      _mov(CallTargetVar, CallTarget);
+      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
+      const SizeT BundleSize =
+          1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+      _and(CallTargetVar, Ctx->getConstantInt32(~(BundleSize - 1)));
+      CallTarget = CallTargetVar;
+    }
+  }
   Inst *NewCall = InstX8632Call::create(Func, ReturnReg, CallTarget);
   Context.insert(NewCall);
+  if (NeedSandboxing)
+    _bundle_unlock();
   if (ReturnRegHi)
     Context.insert(InstFakeDef::create(Func, ReturnRegHi));
 
@@ -3829,6 +3868,9 @@ void TargetX8632::lowerRet(const InstRet *Inst) {
       _mov(Reg, Src0, RegX8632::Reg_eax);
     }
   }
+  // Add a ret instruction even if sandboxing is enabled, because
+  // addEpilog explicitly looks for a ret instruction as a marker for
+  // where to insert the frame removal instructions.
   _ret(Reg);
   // Add a fake use of esp to make sure esp stays alive for the entire
   // function.  Otherwise post-call esp adjustments get dead-code

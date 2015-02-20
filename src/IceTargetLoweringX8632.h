@@ -230,6 +230,11 @@ protected:
   void _bswap(Variable *SrcDest) {
     Context.insert(InstX8632Bswap::create(Func, SrcDest));
   }
+  void
+  _bundle_lock(InstBundleLock::Option BundleOption = InstBundleLock::Opt_None) {
+    Context.insert(InstBundleLock::create(Func, BundleOption));
+  }
+  void _bundle_unlock() { Context.insert(InstBundleUnlock::create(Func)); }
   void _cbwdq(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Cbwdq::create(Func, Dest, Src0));
   }
@@ -285,6 +290,9 @@ protected:
   }
   void _insertps(Variable *Dest, Operand *Src0, Operand *Src1) {
     Context.insert(InstX8632Insertps::create(Func, Dest, Src0, Src1));
+  }
+  void _jmp(Operand *Target) {
+    Context.insert(InstX8632Jmp::create(Func, Target));
   }
   void _lea(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Lea::create(Func, Dest, Src0));

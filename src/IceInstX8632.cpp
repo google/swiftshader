@@ -200,6 +200,11 @@ bool InstX8632Br::repointEdge(CfgNode *OldNode, CfgNode *NewNode) {
   return false;
 }
 
+InstX8632Jmp::InstX8632Jmp(Cfg *Func, Operand *Target)
+    : InstX8632(Func, InstX8632::Jmp, 1, nullptr) {
+  addSource(Target);
+}
+
 InstX8632Call::InstX8632Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
     : InstX8632(Func, InstX8632::Call, 1, Dest) {
   HasSideEffects = true;
@@ -448,6 +453,59 @@ void InstX8632Br::dump(const Cfg *Func) const {
       Str << ", label %" << getTargetFalse()->getName();
     }
   }
+}
+
+void InstX8632Jmp::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  Str << "\tjmp\t*";
+  getJmpTarget()->emit(Func);
+}
+
+void InstX8632Jmp::emitIAS(const Cfg *Func) const {
+  // Note: Adapted (mostly copied) from InstX8632Call::emitIAS().
+  x86::AssemblerX86 *Asm = Func->getAssembler<x86::AssemblerX86>();
+  Operand *Target = getJmpTarget();
+  if (const auto Var = llvm::dyn_cast<Variable>(Target)) {
+    if (Var->hasReg()) {
+      Asm->jmp(RegX8632::getEncodedGPR(Var->getRegNum()));
+    } else {
+      // The jmp instruction with a memory operand should be possible
+      // to encode, but it isn't a valid sandboxed instruction, and
+      // there shouldn't be a register allocation issue to jump
+      // through a scratch register, so we don't really need to bother
+      // implementing it.
+      llvm::report_fatal_error("Assembler can't jmp to memory operand");
+    }
+  } else if (const auto Mem = llvm::dyn_cast<OperandX8632Mem>(Target)) {
+    assert(Mem->getSegmentRegister() == OperandX8632Mem::DefaultSegment);
+    llvm::report_fatal_error("Assembler can't jmp to memory operand");
+  } else if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(Target)) {
+    assert(CR->getOffset() == 0 && "We only support jumping to a function");
+    Asm->jmp(CR);
+  } else if (const auto Imm = llvm::dyn_cast<ConstantInteger32>(Target)) {
+    // NaCl trampoline calls refer to an address within the sandbox directly.
+    // This is usually only needed for non-IRT builds and otherwise not
+    // very portable or stable. For this, we would use the 0xE8 opcode
+    // (relative version of call) and there should be a PC32 reloc too.
+    // The PC32 reloc will have symbol index 0, and the absolute address
+    // would be encoded as an offset relative to the next instruction.
+    // TODO(jvoung): Do we need to support this?
+    (void)Imm;
+    llvm::report_fatal_error("Unexpected jmp to absolute address");
+  } else {
+    llvm::report_fatal_error("Unexpected operand type");
+  }
+}
+
+void InstX8632Jmp::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "jmp ";
+  getJmpTarget()->dump(Func);
 }
 
 void InstX8632Call::emit(const Cfg *Func) const {
@@ -2729,7 +2787,7 @@ void OperandX8632Mem::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   if (SegmentReg != DefaultSegment) {
     assert(SegmentReg >= 0 && SegmentReg < SegReg_NUM);
-    Str << InstX8632SegmentRegNames[SegmentReg] << ":";
+    Str << "%" << InstX8632SegmentRegNames[SegmentReg] << ":";
   }
   // Emit as Offset(Base,Index,1<<Shift).
   // Offset is emitted without the leading '$'.
@@ -2737,7 +2795,7 @@ void OperandX8632Mem::emit(const Cfg *Func) const {
   if (!Offset) {
     // No offset, emit nothing.
   } else if (const auto CI = llvm::dyn_cast<ConstantInteger32>(Offset)) {
-    if (CI->getValue())
+    if (Base == nullptr || CI->getValue())
       // Emit a non-zero offset without a leading '$'.
       Str << CI->getValue();
   } else if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {

@@ -196,6 +196,7 @@ public:
     Idiv,
     Imul,
     Insertps,
+    Jmp,
     Label,
     Lea,
     Load,
@@ -398,6 +399,27 @@ private:
   const CfgNode *TargetTrue;
   const CfgNode *TargetFalse;
   const InstX8632Label *Label; // Intra-block branch target
+};
+
+// Jump to a target outside this function, such as tailcall, nacljump,
+// naclret, unreachable.  This is different from a Branch instruction
+// in that there is no intra-function control flow to represent.
+class InstX8632Jmp : public InstX8632 {
+  InstX8632Jmp(const InstX8632Jmp &) = delete;
+  InstX8632Jmp &operator=(const InstX8632Jmp &) = delete;
+
+public:
+  static InstX8632Jmp *create(Cfg *Func, Operand *Target) {
+    return new (Func->allocate<InstX8632Jmp>()) InstX8632Jmp(Func, Target);
+  }
+  Operand *getJmpTarget() const { return getSrc(0); }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Jmp); }
+
+private:
+  InstX8632Jmp(Cfg *Func, Operand *Target);
 };
 
 // AdjustStack instruction - subtracts esp by the given amount and

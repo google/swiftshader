@@ -436,6 +436,8 @@ void Cfg::emitTextHeader(const IceString &MangledName, GlobalContext *Ctx,
   for (uint8_t I : Asm->getNonExecBundlePadding())
     Str.write_hex(I);
   Str << "\n";
+  if (Ctx->getFlags().getUseSandboxing())
+    Str << "\t.bundle_align_mode " << Asm->getBundleAlignLog2Bytes() << "\n";
   Str << MangledName << ":\n";
 }
 
