@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c882ca18_ea1427c0",
+        "filename": "src/OpenGL/libGL/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2840,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-20T06:27:14Z",
+      "side": 1,
+      "message": "Since we seem to have several of these initializations in this patch, it might be useful to set 0 as the default slice in the constructor instead?",
+      "range": {
+        "startLine": 2839,
+        "startChar": 4,
+        "endLine": 2840,
+        "endChar": 19
+      },
+      "revId": "152aaf00e5945dc65d69b718e87994809483f5c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c882ca18_6a0917a6",
+        "filename": "src/Renderer/Surface.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-20T06:27:14Z",
+      "side": 1,
+      "message": "If SliceRect was inherited from Rect, there wouldn\u0027t be a need to have so much rect.rect.x syntax in the rest of the patch. Which also begs the question if maybe we\u0027re better off just adding the slice index to Rect itself?",
+      "range": {
+        "startLine": 35,
+        "startChar": 7,
+        "endLine": 35,
+        "endChar": 11
+      },
+      "revId": "152aaf00e5945dc65d69b718e87994809483f5c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c882ca18_8a0d6bb4",
+        "filename": "src/Renderer/Surface.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-20T06:27:14Z",
+      "side": 1,
+      "message": "Consider naming this \u0027slice\u0027 instead?",
+      "range": {
+        "startLine": 36,
+        "startChar": 6,
+        "endLine": 36,
+        "endChar": 7
+      },
+      "revId": "152aaf00e5945dc65d69b718e87994809483f5c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
