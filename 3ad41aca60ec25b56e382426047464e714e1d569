@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "88a1b2bc_0039a6ff",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T15:46:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c882ca18_4aeb732c",
+      "range": {
+        "startLine": 56,
+        "startChar": 12,
+        "endLine": 56,
+        "endChar": 58
+      },
+      "revId": "3ad41aca60ec25b56e382426047464e714e1d569",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c882ca18_8ae48b5c",
         "filename": "src/Renderer/Blitter.cpp",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-20T06:47:14Z",
       "side": 1,
       "message": "This can be optimized the same way as the non-Reactor generic blit.",
+      "range": {
+        "startLine": 298,
+        "startChar": 31,
+        "endLine": 298,
+        "endChar": 56
+      },
+      "revId": "3ad41aca60ec25b56e382426047464e714e1d569",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "88a1b2bc_20af0aa5",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T15:46:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c882ca18_8ae48b5c",
       "range": {
         "startLine": 298,
         "startChar": 31,
