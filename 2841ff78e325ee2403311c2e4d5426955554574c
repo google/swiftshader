@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e84dce10_7ba59fc4",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T22:09:13Z",
+      "side": 1,
+      "message": "Just note that w and h can now be negative numbers and we can walk backwards from the locked pointer. I just want to be certain this is ok before submitting this.",
+      "range": {
+        "startLine": 56,
+        "startChar": 8,
+        "endLine": 56,
+        "endChar": 9
+      },
+      "revId": "2841ff78e325ee2403311c2e4d5426955554574c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
