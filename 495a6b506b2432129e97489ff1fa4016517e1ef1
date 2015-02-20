@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8c5967a_dc9161ed",
+        "filename": "src/OpenGL/compiler/SymbolTable.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T19:04:05Z",
+      "side": 1,
+      "message": "const?",
+      "revId": "495a6b506b2432129e97489ff1fa4016517e1ef1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a8c5967a_9c8be9b7",
+        "filename": "src/OpenGL/compiler/SymbolTable.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T19:04:05Z",
+      "side": 1,
+      "message": "const?",
+      "revId": "495a6b506b2432129e97489ff1fa4016517e1ef1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
