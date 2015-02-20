@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8c5967a_bc38ed6a",
+        "filename": "src/OpenGL/compiler/Initialize.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T18:58:20Z",
+      "side": 1,
+      "message": "Nit: Maybe having an enum called something like DEFAULT_LEVEL or BASE_LEVEL instead of using 0 would make the call clearer.",
+      "range": {
+        "startLine": 323,
+        "startChar": 20,
+        "endLine": 323,
+        "endChar": 21
+      },
+      "revId": "43515c0e2c9f520a2e8eddbc38a5837e92a5a1cc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
