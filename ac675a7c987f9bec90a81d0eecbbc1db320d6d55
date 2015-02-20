@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a813d6da_69986514",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-20T20:35:44Z",
+      "side": 1,
+      "message": "These are no longer used.",
+      "range": {
+        "startLine": 52,
+        "startChar": 2,
+        "endLine": 53,
+        "endChar": 26
+      },
+      "revId": "ac675a7c987f9bec90a81d0eecbbc1db320d6d55",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
