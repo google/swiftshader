@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8c5967a_f928b72b",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T18:15:18Z",
+      "side": 1,
+      "message": "Why not also add EbtSamplerCube right away?",
+      "range": {
+        "startLine": 774,
+        "startChar": 30,
+        "endLine": 774,
+        "endChar": 90
+      },
+      "revId": "fd4e14ec70751f4dcbc358529de0979871213318",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
