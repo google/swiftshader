@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8c5967a_fcb1c5c1",
+        "filename": "src/OpenGL/compiler/SymbolTable.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T18:55:40Z",
+      "side": 1,
+      "message": "Why \"level--\" instead of \"break\"? There\u0027s no level value equivalent to -1, is it (ESSL1_BUILTINS is 0, right)? Table is an std::vector, so dereferencing \"table[-1]\" is probably a bad idea.",
+      "range": {
+        "startLine": 193,
+        "startChar": 12,
+        "endLine": 193,
+        "endChar": 19
+      },
+      "revId": "dda7f58a09091a714de2c69ce8cc1b117abe939f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a8c5967a_fcff8532",
+        "filename": "src/OpenGL/compiler/SymbolTable.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-20T18:55:40Z",
+      "side": 1,
+      "message": "Same comment here",
+      "range": {
+        "startLine": 213,
+        "startChar": 12,
+        "endLine": 213,
+        "endChar": 19
+      },
+      "revId": "dda7f58a09091a714de2c69ce8cc1b117abe939f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
