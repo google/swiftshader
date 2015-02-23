@@ -22,9 +22,7 @@
 #include <sys/stat.h>
 #include <string.h>
 
-#if PERF_PROFILE
 extern Profiler profiler;
-#endif
 
 namespace sw
 {
@@ -241,7 +239,6 @@ namespace sw
 		html += "<title>SwiftShader Configuration Panel</title>\n";
 		html += "</head>\n";
 		html += "<body>\n";
-		html += "<div id='profile'></div>\n";
 		html += "<script type='text/javascript'>\n";
 		html += "request();\n";
 		html += "function request()\n";
@@ -261,6 +258,7 @@ namespace sw
 		html += "</script>\n";
 		html += "<form method='POST' action=''>\n";
 		html += "<h1>SwiftShader Configuration Panel</h1>\n";
+		html += "<div id='profile'>" + profile() + "</div>\n";
 		html += "<hr><p>\n";
 		html += "<input type='submit' value='Apply changes' title='Click to apply all settings.'>\n";
 	//	html += "<input type='reset' value='Reset changes' title='Click to reset your changes to the previous value.'>\n";
@@ -390,11 +388,11 @@ namespace sw
 		html += "<option value='15'" + (config.threadCount == 15 ? selected : empty) + ">15</option>\n";
 		html += "<option value='16'" + (config.threadCount == 16 ? selected : empty) + ">16</option>\n";
 		html += "</select></td></tr>\n";
-		html += "<tr><td>Enable SSE:</td><td><input name = 'enableSSE' type='checkbox'" + (config.enableSSE == true ? checked : empty) + " disabled='disabled' title='If checked enables the use of SSE instruction set extentions if supported by the CPU.'></td></tr>";
-		html += "<tr><td>Enable SSE2:</td><td><input name = 'enableSSE2' type='checkbox'" + (config.enableSSE2 == true ? checked : empty) + " title='If checked enables the use of SSE2 instruction set extentions if supported by the CPU.'></td></tr>";
-		html += "<tr><td>Enable SSE3:</td><td><input name = 'enableSSE3' type='checkbox'" + (config.enableSSE3 == true ? checked : empty) + " title='If checked enables the use of SSE3 instruction set extentions if supported by the CPU.'></td></tr>";
-		html += "<tr><td>Enable SSSE3:</td><td><input name = 'enableSSSE3' type='checkbox'" + (config.enableSSSE3 == true ? checked : empty) + " title='If checked enables the use of SSSE3 instruction set extentions if supported by the CPU.'></td></tr>";
-		html += "<tr><td>Enable SSE4.1:</td><td><input name = 'enableSSE4_1' type='checkbox'" + (config.enableSSE4_1 == true ? checked : empty) + " title='If checked enables the use of SSE4.1 instruction set extentions if supported by the CPU.'></td></tr>";
+		html += "<tr><td>Enable SSE:</td><td><input name = 'enableSSE' type='checkbox'" + (config.enableSSE ? checked : empty) + " disabled='disabled' title='If checked enables the use of SSE instruction set extentions if supported by the CPU.'></td></tr>";
+		html += "<tr><td>Enable SSE2:</td><td><input name = 'enableSSE2' type='checkbox'" + (config.enableSSE2 ? checked : empty) + " title='If checked enables the use of SSE2 instruction set extentions if supported by the CPU.'></td></tr>";
+		html += "<tr><td>Enable SSE3:</td><td><input name = 'enableSSE3' type='checkbox'" + (config.enableSSE3 ? checked : empty) + " title='If checked enables the use of SSE3 instruction set extentions if supported by the CPU.'></td></tr>";
+		html += "<tr><td>Enable SSSE3:</td><td><input name = 'enableSSSE3' type='checkbox'" + (config.enableSSSE3 ? checked : empty) + " title='If checked enables the use of SSSE3 instruction set extentions if supported by the CPU.'></td></tr>";
+		html += "<tr><td>Enable SSE4.1:</td><td><input name = 'enableSSE4_1' type='checkbox'" + (config.enableSSE4_1 ? checked : empty) + " title='If checked enables the use of SSE4.1 instruction set extentions if supported by the CPU.'></td></tr>";
 		html += "</table>\n";
 		html += "<h2><em>Compiler optimizations</em></h2>\n";
 		html += "<table>\n";
@@ -453,9 +451,7 @@ namespace sw
 		html += "</body>\n";
 		html += "</html>\n";
 
-		#if PERF_PROFILE
-			profiler.reset();
-		#endif
+		profiler.reset();
 
 		return html;
 	}
@@ -463,6 +459,9 @@ namespace sw
 	std::string SwiftConfig::profile()
 	{
 		std::string html;
+
+		html += "<p>FPS: " + ftoa(profiler.FPS) + "</p>\n";
+		html += "<p>Frame: " + itoa(profiler.framesTotal) + "</p>\n";
 
 		#if PERF_PROFILE
 			int texTime = (int)(1000 * profiler.cycles[PERF_TEX] / profiler.cycles[PERF_PIXEL] + 0.5);
@@ -486,8 +485,6 @@ namespace sw
 			double averageCompressedTex = profiler.compressedTexTotal / std::max(profiler.framesTotal, 1) / 1.0e6f;
 			double averageTexOperations = profiler.texOperationsTotal / std::max(profiler.framesTotal, 1) / 1.0e6f;
 
-			html += "<p>FPS: " + ftoa(profiler.FPS) + "</p>\n";
-			html += "<p>Frame: " + itoa(profiler.framesTotal) + "</p>\n";
 			html += "<p>Raster operations (million): " + ftoa(profiler.ropOperationsFrame / 1.0e6f) + " (current), " + ftoa(averageRopOperations) + " (average)</p>\n";
 			html += "<p>Texture operations (million): " + ftoa(profiler.texOperationsFrame / 1.0e6f) + " (current), " + ftoa(averageTexOperations) + " (average)</p>\n";
 			html += "<p>Compressed texture operations (million): " + ftoa(profiler.compressedTexFrame / 1.0e6f) + " (current), " + ftoa(averageCompressedTex) + " (average)</p>\n";

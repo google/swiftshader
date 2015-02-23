@@ -22,7 +22,6 @@
 #define S3TC_SUPPORT 0
 #endif
 
-#if PERF_PROFILE
 enum
 {
 	PERF_PIXEL,
@@ -45,6 +44,8 @@ struct Profiler
 	int framesSec;
 	int framesTotal;
 	double FPS;
+
+	#if PERF_PROFILE
 	double cycles[PERF_TIMERS];
 
 	int64_t ropOperations;
@@ -58,10 +59,10 @@ struct Profiler
 	int64_t compressedTex;
 	int64_t compressedTexTotal;
 	int64_t compressedTexFrame;
+	#endif
 };
 
 extern Profiler profiler;
-#endif
 
 enum
 {

@@ -187,6 +187,8 @@ namespace sw
 		}
 
 		unlock();
+
+		profiler.nextFrame();   // Assumes every copy() is a full frame
 	}
 
 	void FrameBuffer::copyLocked()

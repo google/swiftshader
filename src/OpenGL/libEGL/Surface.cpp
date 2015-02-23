@@ -176,10 +176,6 @@ EGLNativeWindowType Surface::getWindowHandle()
 
 void Surface::swap()
 {
-    #if PERF_PROFILE
-		profiler.nextFrame();
-	#endif
-
 	if(backBuffer)
     {
 		void *source = backBuffer->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
