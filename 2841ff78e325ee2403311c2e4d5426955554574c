@@ -210,6 +210,30 @@
       "revId": "2841ff78e325ee2403311c2e4d5426955554574c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "882c527c_281a4b14",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-23T21:04:40Z",
+      "side": 1,
+      "message": "Turns out this is a bit tricky. Because of bilinear filtering, flipping the source x/y indices requires more code changes than flipping the destination x/y. Not sure it\u0027s worth doing it. Your call, we can discuss it if you want.",
+      "parentUuid": "a83756c2_492781d5",
+      "range": {
+        "startLine": 182,
+        "startChar": 4,
+        "endLine": 185,
+        "endChar": 42
+      },
+      "revId": "2841ff78e325ee2403311c2e4d5426955554574c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
