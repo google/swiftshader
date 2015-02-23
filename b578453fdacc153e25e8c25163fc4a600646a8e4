@@ -22,6 +22,30 @@
       "revId": "b578453fdacc153e25e8c25163fc4a600646a8e4",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "882c527c_6881a32b",
+        "filename": "src/OpenGL/libGLESv2/Shader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-23T20:47:15Z",
+      "side": 1,
+      "message": "The parser only allows exactly version 100 or 300 (cf. TDirectiveHandler::handleVersion), so we can deal with failures when a new version number needs to be supported. Anyway, I generalized it just a safe little bit in the new patch.",
+      "parentUuid": "a8c5967a_42a2083f",
+      "range": {
+        "startLine": 220,
+        "startChar": 1,
+        "endLine": 220,
+        "endChar": 46
+      },
+      "revId": "b578453fdacc153e25e8c25163fc4a600646a8e4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
