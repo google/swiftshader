@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "288c46b9_5d849b3c",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 2924,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-23T15:50:11Z",
+      "side": 1,
+      "message": "Is this still needed when the blitter itself can handle flipped rectangles?",
+      "range": {
+        "startLine": 2879,
+        "startChar": 1,
+        "endLine": 2924,
+        "endChar": 2
+      },
+      "revId": "2841ff78e325ee2403311c2e4d5426955554574c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "288c46b9_5d5d7b30",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 2979,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-23T15:50:11Z",
+      "side": 1,
+      "message": "I thought you decided to stick with the ANGLE extension?",
+      "range": {
+        "startLine": 2979,
+        "startChar": 4,
+        "endLine": 2979,
+        "endChar": 26
+      },
+      "revId": "2841ff78e325ee2403311c2e4d5426955554574c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "288c46b9_7d5a373b",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 5132,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-23T15:50:11Z",
+      "side": 1,
+      "message": "Same.",
+      "range": {
+        "startLine": 5132,
+        "startChar": 17,
+        "endLine": 5132,
+        "endChar": 36
+      },
+      "revId": "2841ff78e325ee2403311c2e4d5426955554574c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e84dce10_7ba59fc4",
         "filename": "src/Renderer/Blitter.cpp",
         "patchSetId": 6
@@ -18,6 +87,53 @@
         "startChar": 8,
         "endLine": 56,
         "endChar": 9
+      },
+      "revId": "2841ff78e325ee2403311c2e4d5426955554574c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "288c46b9_1d2db3b5",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-23T15:50:11Z",
+      "side": 1,
+      "message": "Yes, it\u0027s absolutely fine for them to be negative. Think about this blitter performing texture mapping. It\u0027s just axis-aligned and without perspective correction, and the input coordinates are unnormalized integers instead of normalized floating-point.\n\nw and h are the horizontal and vertical gradient, which corresponds to the width of a destination pixel in the reference frame of the source image (in other words, the stride between sampling operations). In fact it might be more clear to rewrite as w \u003d (sRect.x1 - sRect.x0) / (dRect.x1 - dRect.x0).\n\nxStart is the *center* of the first location to be sampled. So it\u0027s x0 plus half the stride between sampling locations. When you think of it as texture sampling, there\u0027s clearly no issue with this stride/gradient being negative, or the starting location to be at the beginning or the end.",
+      "parentUuid": "e84dce10_7ba59fc4",
+      "range": {
+        "startLine": 56,
+        "startChar": 8,
+        "endLine": 56,
+        "endChar": 9
+      },
+      "revId": "2841ff78e325ee2403311c2e4d5426955554574c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "288c46b9_dd6fcbde",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-23T15:50:11Z",
+      "side": 1,
+      "message": "We should be able to do the exact same thing here as in the non-Reactor code. Step in the positive direction for the destination.",
+      "range": {
+        "startLine": 182,
+        "startChar": 4,
+        "endLine": 185,
+        "endChar": 42
       },
       "revId": "2841ff78e325ee2403311c2e4d5426955554574c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
