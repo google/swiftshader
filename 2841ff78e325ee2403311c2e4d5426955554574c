@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "283a86a9_adcc7df1",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 2924,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-23T20:03:04Z",
+      "side": 1,
+      "message": "Well, if I don\u0027t do this here, I\u0027d have to fix all the code that uses destRect inside this function, since x0 and x1 could be inverted (for scissor test and trimming).",
+      "parentUuid": "288c46b9_5d849b3c",
+      "range": {
+        "startLine": 2879,
+        "startChar": 1,
+        "endLine": 2924,
+        "endChar": 2
+      },
+      "revId": "2841ff78e325ee2403311c2e4d5426955554574c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "288c46b9_5d5d7b30",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-23T15:50:11Z",
       "side": 1,
       "message": "I thought you decided to stick with the ANGLE extension?",
+      "range": {
+        "startLine": 2979,
+        "startChar": 4,
+        "endLine": 2979,
+        "endChar": 26
+      },
+      "revId": "2841ff78e325ee2403311c2e4d5426955554574c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "283a86a9_0d811197",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 2979,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-23T20:03:04Z",
+      "side": 1,
+      "message": "I decided to stick with the ANGLE extension for GL_ANGLE_framebuffer_multisample (just below), not for the blitter. ANGLE\u0027s blitter doesn\u0027t need to support X/Y flips, so I added the NV one, which does.\n\nThe one I didn\u0027t add after all was GL_EXT_multisampled_render_to_texture.",
+      "parentUuid": "288c46b9_5d5d7b30",
       "range": {
         "startLine": 2979,
         "startChar": 4,
@@ -129,6 +177,30 @@
       "writtenOn": "2015-02-23T15:50:11Z",
       "side": 1,
       "message": "We should be able to do the exact same thing here as in the non-Reactor code. Step in the positive direction for the destination.",
+      "range": {
+        "startLine": 182,
+        "startChar": 4,
+        "endLine": 185,
+        "endChar": 42
+      },
+      "revId": "2841ff78e325ee2403311c2e4d5426955554574c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a83756c2_492781d5",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-23T20:03:04Z",
+      "side": 1,
+      "message": "Will look into it.",
+      "parentUuid": "288c46b9_dd6fcbde",
       "range": {
         "startLine": 182,
         "startChar": 4,
