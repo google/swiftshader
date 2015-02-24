@@ -22,6 +22,30 @@
       "revId": "3ecd68260bb68de2e78bc9449fa8b7becbf59414",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a55dc161_1c08b9d6",
+        "filename": "src/OpenGL/common/debug.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-24T14:55:22Z",
+      "side": 1,
+      "message": "Indeed that\u0027s a small but desired change in behavior.\n\nI\u0027m a tiny bit more concerned about losing output when the app crashes. When leaving the file open, it\u0027s up to the O.S. to flush it before closing it. From experience, that doesn\u0027t always happen. Ideally we could switch between a fast mode and a secure mode. Anyway, we can come back to it when we need the secure mode.\n\nLGTM with Alexis\u0027 suggestion.",
+      "parentUuid": "a55dc161_bcceed67",
+      "range": {
+        "startLine": 26,
+        "startChar": 3,
+        "endLine": 34,
+        "endChar": 4
+      },
+      "revId": "3ecd68260bb68de2e78bc9449fa8b7becbf59414",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
