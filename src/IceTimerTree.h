@@ -20,6 +20,7 @@
 namespace Ice {
 
 class TimerStack {
+  TimerStack() = delete;
   TimerStack &operator=(const TimerStack &) = delete;
 
   // Timer tree index type.  A variable of this type is used to access
@@ -59,7 +60,7 @@ public:
 #undef X
         TT__num
   };
-  TimerStack(const IceString &Name);
+  explicit TimerStack(const IceString &Name);
   TimerStack(const TimerStack &) = default;
   TimerIdT getTimerID(const IceString &Name);
   void mergeFrom(const TimerStack &Src);

@@ -58,6 +58,7 @@ private:
 };
 
 class GlobalContext {
+  GlobalContext() = delete;
   GlobalContext(const GlobalContext &) = delete;
   GlobalContext &operator=(const GlobalContext &) = delete;
 
@@ -100,7 +101,11 @@ class GlobalContext {
   // TimerList is a vector of TimerStack objects, with extra methods
   // to initialize and merge these vectors.
   class TimerList : public std::vector<TimerStack> {
+    TimerList(const TimerList &) = delete;
+    TimerList &operator=(const TimerList &) = delete;
+
   public:
+    TimerList() = default;
     // initInto() initializes a target list of timers based on the
     // current list.  In particular, it creates the same number of
     // timers, in the same order, with the same names, but initially
@@ -457,6 +462,7 @@ public:
 // pushes a marker, and the destructor pops it.  This is for
 // convenient timing of regions of code.
 class TimerMarker {
+  TimerMarker() = delete;
   TimerMarker(const TimerMarker &) = delete;
   TimerMarker &operator=(const TimerMarker &) = delete;
 

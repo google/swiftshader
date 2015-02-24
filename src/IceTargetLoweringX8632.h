@@ -25,6 +25,7 @@
 namespace Ice {
 
 class TargetX8632 : public TargetLowering {
+  TargetX8632() = delete;
   TargetX8632(const TargetX8632 &) = delete;
   TargetX8632 &operator=(const TargetX8632 &) = delete;
 
@@ -78,7 +79,7 @@ public:
   X86InstructionSet getInstructionSet() const { return InstructionSet; }
 
 protected:
-  TargetX8632(Cfg *Func);
+  explicit TargetX8632(Cfg *Func);
 
   void postLower() override;
 
@@ -509,7 +510,7 @@ public:
   void lowerConstants() const final;
 
 protected:
-  TargetDataX8632(GlobalContext *Ctx);
+  explicit TargetDataX8632(GlobalContext *Ctx);
 
 private:
   void lowerGlobal(const VariableDeclaration &Var) const;

@@ -31,6 +31,10 @@ template <class D, class S> inline D bit_copy(const S &source) {
 }
 
 class Utils {
+  Utils() = delete;
+  Utils(const Utils &) = delete;
+  Utils &operator=(const Utils &) = delete;
+
 public:
   // Check whether an N-bit two's-complement representation can hold value.
   template <typename T> static inline bool IsInt(int N, T value) {

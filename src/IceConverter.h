@@ -25,6 +25,7 @@ class Module;
 namespace Ice {
 
 class Converter : public Translator {
+  Converter() = delete;
   Converter(const Converter &) = delete;
   Converter &operator=(const Converter &) = delete;
 

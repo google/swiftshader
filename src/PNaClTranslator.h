@@ -26,11 +26,12 @@ class MemoryBuffer;
 namespace Ice {
 
 class PNaClTranslator : public Translator {
+  PNaClTranslator() = delete;
   PNaClTranslator(const PNaClTranslator &) = delete;
   PNaClTranslator &operator=(const PNaClTranslator &) = delete;
 
 public:
-  PNaClTranslator(GlobalContext *Ctx) : Translator(Ctx) {}
+  explicit PNaClTranslator(GlobalContext *Ctx) : Translator(Ctx) {}
 
   // Reads the PNaCl bitcode file and translates to ICE, which is then
   // converted to machine code. Sets ErrorStatus to 1 if any errors

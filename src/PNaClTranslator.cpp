@@ -105,6 +105,7 @@ Ice::Ostream &operator<<(Ice::Ostream &Stream, ExtendedType::TypeKind Kind) {
 
 // Models an ICE type as an extended type.
 class SimpleExtendedType : public ExtendedType {
+  SimpleExtendedType() = delete;
   SimpleExtendedType(const SimpleExtendedType &) = delete;
   SimpleExtendedType &operator=(const SimpleExtendedType &) = delete;
 
@@ -118,6 +119,7 @@ public:
 
 // Models a function signature as an extended type.
 class FuncSigExtendedType : public ExtendedType {
+  FuncSigExtendedType() = delete;
   FuncSigExtendedType(const FuncSigExtendedType &) = delete;
   FuncSigExtendedType &operator=(const FuncSigExtendedType &) = delete;
 
@@ -153,6 +155,7 @@ class BlockParserBaseClass;
 
 // Top-level class to read PNaCl bitcode files, and translate to ICE.
 class TopLevelParser : public NaClBitcodeParser {
+  TopLevelParser() = delete;
   TopLevelParser(const TopLevelParser &) = delete;
   TopLevelParser &operator=(const TopLevelParser &) = delete;
 
@@ -568,6 +571,7 @@ Ice::Type TopLevelParser::convertToIceTypeError(Type *LLVMTy) {
 // messages if ParseBlock or ParseRecord is not overridden in derived
 // classes.
 class BlockParserBaseClass : public NaClBitcodeParser {
+  BlockParserBaseClass() = delete;
   BlockParserBaseClass(const BlockParserBaseClass &) = delete;
   BlockParserBaseClass &operator=(const BlockParserBaseClass &) = delete;
 
@@ -736,6 +740,10 @@ void BlockParserBaseClass::ProcessRecord() {
 
 // Class to parse a types block.
 class TypesParser : public BlockParserBaseClass {
+  TypesParser() = delete;
+  TypesParser(const TypesParser &) = delete;
+  TypesParser &operator=(const TypesParser &) = delete;
+
 public:
   TypesParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser),
@@ -911,6 +919,10 @@ void TypesParser::ProcessRecord() {
 /// Parses the globals block (i.e. global variable declarations and
 /// corresponding initializers).
 class GlobalsParser : public BlockParserBaseClass {
+  GlobalsParser() = delete;
+  GlobalsParser(const GlobalsParser &) = delete;
+  GlobalsParser &operator=(const GlobalsParser &) = delete;
+
 public:
   GlobalsParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser),
@@ -1064,6 +1076,7 @@ void GlobalsParser::ProcessRecord() {
 
 /// Base class for parsing a valuesymtab block in the bitcode file.
 class ValuesymtabParser : public BlockParserBaseClass {
+  ValuesymtabParser() = delete;
   ValuesymtabParser(const ValuesymtabParser &) = delete;
   void operator=(const ValuesymtabParser &) = delete;
 
@@ -1125,6 +1138,7 @@ void ValuesymtabParser::ProcessRecord() {
 
 /// Parses function blocks in the bitcode file.
 class FunctionParser : public BlockParserBaseClass {
+  FunctionParser() = delete;
   FunctionParser(const FunctionParser &) = delete;
   FunctionParser &operator=(const FunctionParser &) = delete;
 
@@ -2626,6 +2640,7 @@ void FunctionParser::ProcessRecord() {
 
 /// Parses constants within a function block.
 class ConstantsParser : public BlockParserBaseClass {
+  ConstantsParser() = delete;
   ConstantsParser(const ConstantsParser &) = delete;
   ConstantsParser &operator=(const ConstantsParser &) = delete;
 
@@ -2754,6 +2769,7 @@ void ConstantsParser::ProcessRecord() {
 
 // Parses valuesymtab blocks appearing in a function block.
 class FunctionValuesymtabParser : public ValuesymtabParser {
+  FunctionValuesymtabParser() = delete;
   FunctionValuesymtabParser(const FunctionValuesymtabParser &) = delete;
   void operator=(const FunctionValuesymtabParser &) = delete;
 
@@ -2839,6 +2855,10 @@ bool FunctionParser::ParseBlock(unsigned BlockID) {
 
 /// Parses the module block in the bitcode file.
 class ModuleParser : public BlockParserBaseClass {
+  ModuleParser() = delete;
+  ModuleParser(const ModuleParser &) = delete;
+  ModuleParser &operator=(const ModuleParser &) = delete;
+
 public:
   ModuleParser(unsigned BlockID, TopLevelParser *Context)
       : BlockParserBaseClass(BlockID, Context),
@@ -2876,6 +2896,7 @@ private:
 };
 
 class ModuleValuesymtabParser : public ValuesymtabParser {
+  ModuleValuesymtabParser() = delete;
   ModuleValuesymtabParser(const ModuleValuesymtabParser &) = delete;
   void operator=(const ModuleValuesymtabParser &) = delete;
 

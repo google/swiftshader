@@ -9,7 +9,7 @@
 ///
 /// \file
 /// \brief This file implements a class to represent 64 bit integer constant
-/// values, and thier conversion to variable bit sized integers.
+/// values, and their conversion to variable bit sized integers.
 ///
 /// Note: This is a simplified version of llvm/include/llvm/ADT/APInt.h for use
 /// with Subzero.
@@ -23,6 +23,10 @@
 namespace Ice {
 
 class APInt {
+  APInt() = delete;
+  APInt(const APInt &) = delete;
+  APInt &operator=(const APInt &) = delete;
+
 public:
   /// Bits in an (internal) value.
   static const SizeT APINT_BITS_PER_WORD = sizeof(uint64_t) * CHAR_BIT;

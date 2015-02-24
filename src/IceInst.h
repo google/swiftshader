@@ -35,6 +35,7 @@ namespace Ice {
 // from InstHighLevel, and low-level (target-specific) ICE
 // instructions inherit from InstTarget.
 class Inst : public llvm::ilist_node<Inst> {
+  Inst() = delete;
   Inst(const Inst &) = delete;
   Inst &operator=(const Inst &) = delete;
 
@@ -44,7 +45,6 @@ public:
     Unreachable,
     Alloca,
     Arithmetic,
-    Assign, // not part of LLVM/PNaCl bitcode
     Br,
     Call,
     Cast,
@@ -59,6 +59,7 @@ public:
     Select,
     Store,
     Switch,
+    Assign,       // not part of LLVM/PNaCl bitcode
     BundleLock,   // not part of LLVM/PNaCl bitcode
     BundleUnlock, // not part of LLVM/PNaCl bitcode
     FakeDef,      // not part of LLVM/PNaCl bitcode
@@ -207,6 +208,7 @@ protected:
 };
 
 class InstHighLevel : public Inst {
+  InstHighLevel() = delete;
   InstHighLevel(const InstHighLevel &) = delete;
   InstHighLevel &operator=(const InstHighLevel &) = delete;
 
@@ -226,6 +228,7 @@ protected:
 // and the required alignment in bytes.  The alignment must be either
 // 0 (no alignment required) or a power of 2.
 class InstAlloca : public InstHighLevel {
+  InstAlloca() = delete;
   InstAlloca(const InstAlloca &) = delete;
   InstAlloca &operator=(const InstAlloca &) = delete;
 
@@ -250,6 +253,7 @@ private:
 // Binary arithmetic instruction.  The source operands are captured in
 // getSrc(0) and getSrc(1).
 class InstArithmetic : public InstHighLevel {
+  InstArithmetic() = delete;
   InstArithmetic(const InstArithmetic &) = delete;
   InstArithmetic &operator=(const InstArithmetic &) = delete;
 
@@ -289,6 +293,7 @@ private:
 // Inttoptr instruction, or as an intermediate step for lowering a
 // Load instruction.
 class InstAssign : public InstHighLevel {
+  InstAssign() = delete;
   InstAssign(const InstAssign &) = delete;
   InstAssign &operator=(const InstAssign &) = delete;
 
@@ -308,6 +313,7 @@ private:
 // Branch instruction.  This represents both conditional and
 // unconditional branches.
 class InstBr : public InstHighLevel {
+  InstBr() = delete;
   InstBr(const InstBr &) = delete;
   InstBr &operator=(const InstBr &) = delete;
 
@@ -354,6 +360,7 @@ private:
 // Call instruction.  The call target is captured as getSrc(0), and
 // arg I is captured as getSrc(I+1).
 class InstCall : public InstHighLevel {
+  InstCall() = delete;
   InstCall(const InstCall &) = delete;
   InstCall &operator=(const InstCall &) = delete;
 
@@ -392,6 +399,7 @@ private:
 
 // Cast instruction (a.k.a. conversion operation).
 class InstCast : public InstHighLevel {
+  InstCast() = delete;
   InstCast(const InstCast &) = delete;
   InstCast &operator=(const InstCast &) = delete;
 
@@ -422,6 +430,7 @@ private:
 
 // ExtractElement instruction.
 class InstExtractElement : public InstHighLevel {
+  InstExtractElement() = delete;
   InstExtractElement(const InstExtractElement &) = delete;
   InstExtractElement &operator=(const InstExtractElement &) = delete;
 
@@ -446,6 +455,7 @@ private:
 // Floating-point comparison instruction.  The source operands are
 // captured in getSrc(0) and getSrc(1).
 class InstFcmp : public InstHighLevel {
+  InstFcmp() = delete;
   InstFcmp(const InstFcmp &) = delete;
   InstFcmp &operator=(const InstFcmp &) = delete;
 
@@ -476,6 +486,7 @@ private:
 // Integer comparison instruction.  The source operands are captured
 // in getSrc(0) and getSrc(1).
 class InstIcmp : public InstHighLevel {
+  InstIcmp() = delete;
   InstIcmp(const InstIcmp &) = delete;
   InstIcmp &operator=(const InstIcmp &) = delete;
 
@@ -505,6 +516,7 @@ private:
 
 // InsertElement instruction.
 class InstInsertElement : public InstHighLevel {
+  InstInsertElement() = delete;
   InstInsertElement(const InstInsertElement &) = delete;
   InstInsertElement &operator=(const InstInsertElement &) = delete;
 
@@ -529,6 +541,7 @@ private:
 // Call to an intrinsic function.  The call target is captured as getSrc(0),
 // and arg I is captured as getSrc(I+1).
 class InstIntrinsicCall : public InstCall {
+  InstIntrinsicCall() = delete;
   InstIntrinsicCall(const InstIntrinsicCall &) = delete;
   InstIntrinsicCall &operator=(const InstIntrinsicCall &) = delete;
 
@@ -557,6 +570,7 @@ private:
 
 // Load instruction.  The source address is captured in getSrc(0).
 class InstLoad : public InstHighLevel {
+  InstLoad() = delete;
   InstLoad(const InstLoad &) = delete;
   InstLoad &operator=(const InstLoad &) = delete;
 
@@ -579,6 +593,7 @@ private:
 // Phi instruction.  For incoming edge I, the node is Labels[I] and
 // the Phi source operand is getSrc(I).
 class InstPhi : public InstHighLevel {
+  InstPhi() = delete;
   InstPhi(const InstPhi &) = delete;
   InstPhi &operator=(const InstPhi &) = delete;
 
@@ -613,6 +628,7 @@ private:
 // there is no return value (void-type function), then
 // getSrcSize()==0 and hasRetValue()==false.
 class InstRet : public InstHighLevel {
+  InstRet() = delete;
   InstRet(const InstRet &) = delete;
   InstRet &operator=(const InstRet &) = delete;
 
@@ -636,6 +652,7 @@ private:
 
 // Select instruction.  The condition, true, and false operands are captured.
 class InstSelect : public InstHighLevel {
+  InstSelect() = delete;
   InstSelect(const InstSelect &) = delete;
   InstSelect &operator=(const InstSelect &) = delete;
 
@@ -660,6 +677,7 @@ private:
 // Store instruction.  The address operand is captured, along with the
 // data operand to be stored into the address.
 class InstStore : public InstHighLevel {
+  InstStore() = delete;
   InstStore(const InstStore &) = delete;
   InstStore &operator=(const InstStore &) = delete;
 
@@ -683,6 +701,7 @@ private:
 // Switch instruction.  The single source operand is captured as
 // getSrc(0).
 class InstSwitch : public InstHighLevel {
+  InstSwitch() = delete;
   InstSwitch(const InstSwitch &) = delete;
   InstSwitch &operator=(const InstSwitch &) = delete;
 
@@ -727,6 +746,7 @@ private:
 // Unreachable instruction.  This is a terminator instruction with no
 // operands.
 class InstUnreachable : public InstHighLevel {
+  InstUnreachable() = delete;
   InstUnreachable(const InstUnreachable &) = delete;
   InstUnreachable &operator=(const InstUnreachable &) = delete;
 
@@ -741,13 +761,14 @@ public:
   }
 
 private:
-  InstUnreachable(Cfg *Func);
+  explicit InstUnreachable(Cfg *Func);
   ~InstUnreachable() override {}
 };
 
 // BundleLock instruction.  There are no operands.  Contains an option
 // indicating whether align_to_end is specified.
 class InstBundleLock : public InstHighLevel {
+  InstBundleLock() = delete;
   InstBundleLock(const InstBundleLock &) = delete;
   InstBundleLock &operator=(const InstBundleLock &) = delete;
 
@@ -773,6 +794,7 @@ private:
 
 // BundleUnlock instruction.  There are no operands.
 class InstBundleUnlock : public InstHighLevel {
+  InstBundleUnlock() = delete;
   InstBundleUnlock(const InstBundleUnlock &) = delete;
   InstBundleUnlock &operator=(const InstBundleUnlock &) = delete;
 
@@ -805,6 +827,7 @@ private:
 // eliminated if its dest operand is unused, and therefore the FakeDef
 // dest wouldn't be properly initialized.
 class InstFakeDef : public InstHighLevel {
+  InstFakeDef() = delete;
   InstFakeDef(const InstFakeDef &) = delete;
   InstFakeDef &operator=(const InstFakeDef &) = delete;
 
@@ -829,6 +852,7 @@ private:
 // situations.  The FakeUse instruction has no dest, so it can itself
 // never be dead-code eliminated.
 class InstFakeUse : public InstHighLevel {
+  InstFakeUse() = delete;
   InstFakeUse(const InstFakeUse &) = delete;
   InstFakeUse &operator=(const InstFakeUse &) = delete;
 
@@ -857,6 +881,7 @@ private:
 // that kills the set of variables, so that if that linked instruction
 // gets dead-code eliminated, the FakeKill instruction will as well.
 class InstFakeKill : public InstHighLevel {
+  InstFakeKill() = delete;
   InstFakeKill(const InstFakeKill &) = delete;
   InstFakeKill &operator=(const InstFakeKill &) = delete;
 
@@ -881,6 +906,7 @@ private:
 // The Target instruction is the base class for all target-specific
 // instructions.
 class InstTarget : public Inst {
+  InstTarget() = delete;
   InstTarget(const InstTarget &) = delete;
   InstTarget &operator=(const InstTarget &) = delete;
 

@@ -24,6 +24,7 @@
 namespace Ice {
 
 class Cfg {
+  Cfg() = delete;
   Cfg(const Cfg &) = delete;
   Cfg &operator=(const Cfg &) = delete;
 

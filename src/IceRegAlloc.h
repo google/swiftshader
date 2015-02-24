@@ -22,11 +22,12 @@
 namespace Ice {
 
 class LinearScan {
+  LinearScan() = delete;
   LinearScan(const LinearScan &) = delete;
   LinearScan &operator=(const LinearScan &) = delete;
 
 public:
-  LinearScan(Cfg *Func)
+  explicit LinearScan(Cfg *Func)
       : Func(Func), FindPreference(false), FindOverlap(false) {}
   void init(RegAllocKind Kind);
   void scan(const llvm::SmallBitVector &RegMask, bool Randomized);

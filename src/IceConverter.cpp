@@ -53,11 +53,12 @@ template <typename T> static std::string LLVMObjectAsString(const T *O) {
 // respect to Translator.  In particular, the unique_ptr ownership
 // rules in LLVM2ICEFunctionConverter.
 class LLVM2ICEConverter {
+  LLVM2ICEConverter() = delete;
   LLVM2ICEConverter(const LLVM2ICEConverter &) = delete;
   LLVM2ICEConverter &operator=(const LLVM2ICEConverter &) = delete;
 
 public:
-  LLVM2ICEConverter(Ice::Converter &Converter)
+  explicit LLVM2ICEConverter(Ice::Converter &Converter)
       : Converter(Converter), Ctx(Converter.getContext()),
         TypeConverter(Converter.getModule()->getContext()) {}
 
@@ -75,12 +76,13 @@ protected:
 // Note: this currently assumes that the given IR was verified to be
 // valid PNaCl bitcode. Otherwise, the behavior is undefined.
 class LLVM2ICEFunctionConverter : LLVM2ICEConverter {
+  LLVM2ICEFunctionConverter() = delete;
   LLVM2ICEFunctionConverter(const LLVM2ICEFunctionConverter &) = delete;
   LLVM2ICEFunctionConverter &
   operator=(const LLVM2ICEFunctionConverter &) = delete;
 
 public:
-  LLVM2ICEFunctionConverter(Ice::Converter &Converter)
+  explicit LLVM2ICEFunctionConverter(Ice::Converter &Converter)
       : LLVM2ICEConverter(Converter), Func(nullptr) {}
 
   void convertFunction(const Function *F) {
@@ -651,12 +653,13 @@ private:
 // Note: this currently assumes that the given IR was verified to be
 // valid PNaCl bitcode. Othewise, the behavior is undefined.
 class LLVM2ICEGlobalsConverter : public LLVM2ICEConverter {
+  LLVM2ICEGlobalsConverter() = delete;
   LLVM2ICEGlobalsConverter(const LLVM2ICEGlobalsConverter &) = delete;
   LLVM2ICEGlobalsConverter &
   operator-(const LLVM2ICEGlobalsConverter &) = delete;
 
 public:
-  LLVM2ICEGlobalsConverter(Ice::Converter &Converter)
+  explicit LLVM2ICEGlobalsConverter(Ice::Converter &Converter)
       : LLVM2ICEConverter(Converter) {}
 
   /// Converts global variables, and their initializers into ICE

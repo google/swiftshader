@@ -30,6 +30,7 @@ namespace Ice {
 
 /// Base class for global variable and function declarations.
 class GlobalDeclaration {
+  GlobalDeclaration() = delete;
   GlobalDeclaration(const GlobalDeclaration &) = delete;
   GlobalDeclaration &operator=(const GlobalDeclaration &) = delete;
 
@@ -89,6 +90,7 @@ protected:
 // Models a function declaration. This includes the type signature of
 // the function, its calling conventions, and its linkage.
 class FunctionDeclaration : public GlobalDeclaration {
+  FunctionDeclaration() = delete;
   FunctionDeclaration(const FunctionDeclaration &) = delete;
   FunctionDeclaration &operator=(const FunctionDeclaration &) = delete;
 

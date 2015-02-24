@@ -30,6 +30,7 @@ class TargetX8632;
 // OperandX8632 extends the Operand hierarchy.  Its subclasses are
 // OperandX8632Mem and VariableSplit.
 class OperandX8632 : public Operand {
+  OperandX8632() = delete;
   OperandX8632(const OperandX8632 &) = delete;
   OperandX8632 &operator=(const OperandX8632 &) = delete;
 
@@ -51,6 +52,7 @@ protected:
 // base and index registers, a constant offset, and a fixed shift
 // value for the index register.
 class OperandX8632Mem : public OperandX8632 {
+  OperandX8632Mem() = delete;
   OperandX8632Mem(const OperandX8632Mem &) = delete;
   OperandX8632Mem &operator=(const OperandX8632Mem &) = delete;
 
@@ -102,6 +104,7 @@ private:
 // lowering forces the f64 to be spilled to the stack and then
 // accesses through the VariableSplit.
 class VariableSplit : public OperandX8632 {
+  VariableSplit() = delete;
   VariableSplit(const VariableSplit &) = delete;
   VariableSplit &operator=(const VariableSplit &) = delete;
 
@@ -141,6 +144,7 @@ private:
 // register.  If the linked Variable has a stack slot, then the
 // Variable and SpillVariable share that slot.
 class SpillVariable : public Variable {
+  SpillVariable() = delete;
   SpillVariable(const SpillVariable &) = delete;
   SpillVariable &operator=(const SpillVariable &) = delete;
 
@@ -163,6 +167,7 @@ private:
 };
 
 class InstX8632 : public InstTarget {
+  InstX8632() = delete;
   InstX8632(const InstX8632 &) = delete;
   InstX8632 &operator=(const InstX8632 &) = delete;
 
@@ -308,6 +313,7 @@ protected:
 // it may be prevented by running dead code elimination before
 // lowering.
 class InstX8632Label : public InstX8632 {
+  InstX8632Label() = delete;
   InstX8632Label(const InstX8632Label &) = delete;
   InstX8632Label &operator=(const InstX8632Label &) = delete;
 
@@ -330,6 +336,7 @@ private:
 
 // Conditional and unconditional branch instruction.
 class InstX8632Br : public InstX8632 {
+  InstX8632Br() = delete;
   InstX8632Br(const InstX8632Br &) = delete;
   InstX8632Br &operator=(const InstX8632Br &) = delete;
 
@@ -405,6 +412,7 @@ private:
 // naclret, unreachable.  This is different from a Branch instruction
 // in that there is no intra-function control flow to represent.
 class InstX8632Jmp : public InstX8632 {
+  InstX8632Jmp() = delete;
   InstX8632Jmp(const InstX8632Jmp &) = delete;
   InstX8632Jmp &operator=(const InstX8632Jmp &) = delete;
 
@@ -425,6 +433,7 @@ private:
 // AdjustStack instruction - subtracts esp by the given amount and
 // updates the stack offset during code emission.
 class InstX8632AdjustStack : public InstX8632 {
+  InstX8632AdjustStack() = delete;
   InstX8632AdjustStack(const InstX8632AdjustStack &) = delete;
   InstX8632AdjustStack &operator=(const InstX8632AdjustStack &) = delete;
 
@@ -445,6 +454,7 @@ private:
 
 // Call instruction.  Arguments should have already been pushed.
 class InstX8632Call : public InstX8632 {
+  InstX8632Call() = delete;
   InstX8632Call(const InstX8632Call &) = delete;
   InstX8632Call &operator=(const InstX8632Call &) = delete;
 
@@ -471,6 +481,7 @@ void emitIASOpTyGPR(const Cfg *Func, Type Ty, const Operand *Var,
 // Instructions of the form x := op(x).
 template <InstX8632::InstKindX8632 K>
 class InstX8632InplaceopGPR : public InstX8632 {
+  InstX8632InplaceopGPR() = delete;
   InstX8632InplaceopGPR(const InstX8632InplaceopGPR &) = delete;
   InstX8632InplaceopGPR &operator=(const InstX8632InplaceopGPR &) = delete;
 
@@ -523,6 +534,7 @@ void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Dst,
 // Instructions of the form x := op(y).
 template <InstX8632::InstKindX8632 K>
 class InstX8632UnaryopGPR : public InstX8632 {
+  InstX8632UnaryopGPR() = delete;
   InstX8632UnaryopGPR(const InstX8632UnaryopGPR &) = delete;
   InstX8632UnaryopGPR &operator=(const InstX8632UnaryopGPR &) = delete;
 
@@ -582,6 +594,7 @@ void emitIASRegOpTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
 
 template <InstX8632::InstKindX8632 K>
 class InstX8632UnaryopXmm : public InstX8632 {
+  InstX8632UnaryopXmm() = delete;
   InstX8632UnaryopXmm(const InstX8632UnaryopXmm &) = delete;
   InstX8632UnaryopXmm &operator=(const InstX8632UnaryopXmm &) = delete;
 
@@ -636,6 +649,7 @@ void emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
 
 template <InstX8632::InstKindX8632 K>
 class InstX8632BinopGPRShift : public InstX8632 {
+  InstX8632BinopGPRShift() = delete;
   InstX8632BinopGPRShift(const InstX8632BinopGPRShift &) = delete;
   InstX8632BinopGPRShift &operator=(const InstX8632BinopGPRShift &) = delete;
 
@@ -680,6 +694,7 @@ private:
 
 template <InstX8632::InstKindX8632 K>
 class InstX8632BinopGPR : public InstX8632 {
+  InstX8632BinopGPR() = delete;
   InstX8632BinopGPR(const InstX8632BinopGPR &) = delete;
   InstX8632BinopGPR &operator=(const InstX8632BinopGPR &) = delete;
 
@@ -723,6 +738,7 @@ private:
 
 template <InstX8632::InstKindX8632 K, bool NeedsElementType>
 class InstX8632BinopXmm : public InstX8632 {
+  InstX8632BinopXmm() = delete;
   InstX8632BinopXmm(const InstX8632BinopXmm &) = delete;
   InstX8632BinopXmm &operator=(const InstX8632BinopXmm &) = delete;
 
@@ -772,6 +788,7 @@ void emitIASXmmShift(const Cfg *Func, Type Ty, const Variable *Var,
 
 template <InstX8632::InstKindX8632 K>
 class InstX8632BinopXmmShift : public InstX8632 {
+  InstX8632BinopXmmShift() = delete;
   InstX8632BinopXmmShift(const InstX8632BinopXmmShift &) = delete;
   InstX8632BinopXmmShift &operator=(const InstX8632BinopXmmShift &) = delete;
 
@@ -818,6 +835,7 @@ private:
 };
 
 template <InstX8632::InstKindX8632 K> class InstX8632Ternop : public InstX8632 {
+  InstX8632Ternop() = delete;
   InstX8632Ternop(const InstX8632Ternop &) = delete;
   InstX8632Ternop &operator=(const InstX8632Ternop &) = delete;
 
@@ -865,6 +883,7 @@ private:
 // Instructions of the form x := y op z
 template <InstX8632::InstKindX8632 K>
 class InstX8632ThreeAddressop : public InstX8632 {
+  InstX8632ThreeAddressop() = delete;
   InstX8632ThreeAddressop(const InstX8632ThreeAddressop &) = delete;
   InstX8632ThreeAddressop &operator=(const InstX8632ThreeAddressop &) = delete;
 
@@ -913,6 +932,7 @@ bool checkForRedundantAssign(const Variable *Dest, const Operand *Source);
 // Base class for assignment instructions
 template <InstX8632::InstKindX8632 K>
 class InstX8632Movlike : public InstX8632 {
+  InstX8632Movlike() = delete;
   InstX8632Movlike(const InstX8632Movlike &) = delete;
   InstX8632Movlike &operator=(const InstX8632Movlike &) = delete;
 
@@ -1018,6 +1038,7 @@ typedef InstX8632ThreeAddressop<InstX8632::Pshufd> InstX8632Pshufd;
 
 // Base class for a lockable x86-32 instruction (emits a locked prefix).
 class InstX8632Lockable : public InstX8632 {
+  InstX8632Lockable() = delete;
   InstX8632Lockable(const InstX8632Lockable &) = delete;
   InstX8632Lockable &operator=(const InstX8632Lockable &) = delete;
 
@@ -1036,6 +1057,7 @@ protected:
 
 // Mul instruction - unsigned multiply.
 class InstX8632Mul : public InstX8632 {
+  InstX8632Mul() = delete;
   InstX8632Mul(const InstX8632Mul &) = delete;
   InstX8632Mul &operator=(const InstX8632Mul &) = delete;
 
@@ -1057,6 +1079,7 @@ private:
 
 // Shld instruction - shift across a pair of operands.
 class InstX8632Shld : public InstX8632 {
+  InstX8632Shld() = delete;
   InstX8632Shld(const InstX8632Shld &) = delete;
   InstX8632Shld &operator=(const InstX8632Shld &) = delete;
 
@@ -1079,6 +1102,7 @@ private:
 
 // Shrd instruction - shift across a pair of operands.
 class InstX8632Shrd : public InstX8632 {
+  InstX8632Shrd() = delete;
   InstX8632Shrd(const InstX8632Shrd &) = delete;
   InstX8632Shrd &operator=(const InstX8632Shrd &) = delete;
 
@@ -1101,6 +1125,7 @@ private:
 
 // Conditional move instruction.
 class InstX8632Cmov : public InstX8632 {
+  InstX8632Cmov() = delete;
   InstX8632Cmov(const InstX8632Cmov &) = delete;
   InstX8632Cmov &operator=(const InstX8632Cmov &) = delete;
 
@@ -1126,6 +1151,7 @@ private:
 // Cmpps instruction - compare packed singled-precision floating point
 // values
 class InstX8632Cmpps : public InstX8632 {
+  InstX8632Cmpps() = delete;
   InstX8632Cmpps(const InstX8632Cmpps &) = delete;
   InstX8632Cmpps &operator=(const InstX8632Cmpps &) = delete;
 
@@ -1154,6 +1180,7 @@ private:
 // <dest> can be a register or memory, while <desired> must be a register.
 // It is the user's responsiblity to mark eax with a FakeDef.
 class InstX8632Cmpxchg : public InstX8632Lockable {
+  InstX8632Cmpxchg() = delete;
   InstX8632Cmpxchg(const InstX8632Cmpxchg &) = delete;
   InstX8632Cmpxchg &operator=(const InstX8632Cmpxchg &) = delete;
 
@@ -1181,6 +1208,7 @@ private:
 // and eax as modified.
 // <m64> must be a memory operand.
 class InstX8632Cmpxchg8b : public InstX8632Lockable {
+  InstX8632Cmpxchg8b() = delete;
   InstX8632Cmpxchg8b(const InstX8632Cmpxchg8b &) = delete;
   InstX8632Cmpxchg8b &operator=(const InstX8632Cmpxchg8b &) = delete;
 
@@ -1207,6 +1235,7 @@ private:
 // from dest/src types.  Sign and zero extension on the integer
 // operand needs to be done separately.
 class InstX8632Cvt : public InstX8632 {
+  InstX8632Cvt() = delete;
   InstX8632Cvt(const InstX8632Cvt &) = delete;
   InstX8632Cvt &operator=(const InstX8632Cvt &) = delete;
 
@@ -1231,6 +1260,7 @@ private:
 
 // cmp - Integer compare instruction.
 class InstX8632Icmp : public InstX8632 {
+  InstX8632Icmp() = delete;
   InstX8632Icmp(const InstX8632Icmp &) = delete;
   InstX8632Icmp &operator=(const InstX8632Icmp &) = delete;
 
@@ -1251,6 +1281,7 @@ private:
 
 // ucomiss/ucomisd - floating-point compare instruction.
 class InstX8632Ucomiss : public InstX8632 {
+  InstX8632Ucomiss() = delete;
   InstX8632Ucomiss(const InstX8632Ucomiss &) = delete;
   InstX8632Ucomiss &operator=(const InstX8632Ucomiss &) = delete;
 
@@ -1271,6 +1302,7 @@ private:
 
 // UD2 instruction.
 class InstX8632UD2 : public InstX8632 {
+  InstX8632UD2() = delete;
   InstX8632UD2(const InstX8632UD2 &) = delete;
   InstX8632UD2 &operator=(const InstX8632UD2 &) = delete;
 
@@ -1284,12 +1316,13 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, UD2); }
 
 private:
-  InstX8632UD2(Cfg *Func);
+  explicit InstX8632UD2(Cfg *Func);
   ~InstX8632UD2() override {}
 };
 
 // Test instruction.
 class InstX8632Test : public InstX8632 {
+  InstX8632Test() = delete;
   InstX8632Test(const InstX8632Test &) = delete;
   InstX8632Test &operator=(const InstX8632Test &) = delete;
 
@@ -1310,6 +1343,7 @@ private:
 
 // Mfence instruction.
 class InstX8632Mfence : public InstX8632 {
+  InstX8632Mfence() = delete;
   InstX8632Mfence(const InstX8632Mfence &) = delete;
   InstX8632Mfence &operator=(const InstX8632Mfence &) = delete;
 
@@ -1323,7 +1357,7 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, Mfence); }
 
 private:
-  InstX8632Mfence(Cfg *Func);
+  explicit InstX8632Mfence(Cfg *Func);
   ~InstX8632Mfence() override {}
 };
 
@@ -1331,6 +1365,7 @@ private:
 // operand instead of Variable as the destination.  It's important
 // for liveness that there is no Dest operand.
 class InstX8632Store : public InstX8632 {
+  InstX8632Store() = delete;
   InstX8632Store(const InstX8632Store &) = delete;
   InstX8632Store &operator=(const InstX8632Store &) = delete;
 
@@ -1354,6 +1389,7 @@ private:
 // for liveness that there is no Dest operand. The source must be an
 // Xmm register, since Dest is mem.
 class InstX8632StoreP : public InstX8632 {
+  InstX8632StoreP() = delete;
   InstX8632StoreP(const InstX8632StoreP &) = delete;
   InstX8632StoreP &operator=(const InstX8632StoreP &) = delete;
 
@@ -1374,6 +1410,7 @@ private:
 };
 
 class InstX8632StoreQ : public InstX8632 {
+  InstX8632StoreQ() = delete;
   InstX8632StoreQ(const InstX8632StoreQ &) = delete;
   InstX8632StoreQ &operator=(const InstX8632StoreQ &) = delete;
 
@@ -1395,6 +1432,7 @@ private:
 
 // Nop instructions of varying length
 class InstX8632Nop : public InstX8632 {
+  InstX8632Nop() = delete;
   InstX8632Nop(const InstX8632Nop &) = delete;
   InstX8632Nop &operator=(const InstX8632Nop &) = delete;
 
@@ -1419,6 +1457,7 @@ private:
 
 // Fld - load a value onto the x87 FP stack.
 class InstX8632Fld : public InstX8632 {
+  InstX8632Fld() = delete;
   InstX8632Fld(const InstX8632Fld &) = delete;
   InstX8632Fld &operator=(const InstX8632Fld &) = delete;
 
@@ -1438,6 +1477,7 @@ private:
 
 // Fstp - store x87 st(0) into memory and pop st(0).
 class InstX8632Fstp : public InstX8632 {
+  InstX8632Fstp() = delete;
   InstX8632Fstp(const InstX8632Fstp &) = delete;
   InstX8632Fstp &operator=(const InstX8632Fstp &) = delete;
 
@@ -1456,6 +1496,7 @@ private:
 };
 
 class InstX8632Pop : public InstX8632 {
+  InstX8632Pop() = delete;
   InstX8632Pop(const InstX8632Pop &) = delete;
   InstX8632Pop &operator=(const InstX8632Pop &) = delete;
 
@@ -1474,6 +1515,7 @@ private:
 };
 
 class InstX8632Push : public InstX8632 {
+  InstX8632Push() = delete;
   InstX8632Push(const InstX8632Push &) = delete;
   InstX8632Push &operator=(const InstX8632Push &) = delete;
 
@@ -1496,6 +1538,7 @@ private:
 // (for non-void returning functions) for liveness analysis, though
 // a FakeUse before the ret would do just as well.
 class InstX8632Ret : public InstX8632 {
+  InstX8632Ret() = delete;
   InstX8632Ret(const InstX8632Ret &) = delete;
   InstX8632Ret &operator=(const InstX8632Ret &) = delete;
 
@@ -1521,6 +1564,7 @@ private:
 // Both the dest and source are updated. The caller should then insert a
 // FakeDef to reflect the second udpate.
 class InstX8632Xadd : public InstX8632Lockable {
+  InstX8632Xadd() = delete;
   InstX8632Xadd(const InstX8632Xadd &) = delete;
   InstX8632Xadd &operator=(const InstX8632Xadd &) = delete;
 
@@ -1547,6 +1591,7 @@ private:
 // then the instruction is automatically "locked" without the need for
 // a lock prefix.
 class InstX8632Xchg : public InstX8632 {
+  InstX8632Xchg() = delete;
   InstX8632Xchg(const InstX8632Xchg &) = delete;
   InstX8632Xchg &operator=(const InstX8632Xchg &) = delete;
 

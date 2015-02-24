@@ -95,7 +95,7 @@ void LinearScan::initForGlobal() {
   for (Variable *Var : Vars) {
     // Explicitly don't consider zero-weight variables, which are
     // meant to be spill slots.
-    if (Var->getWeight() == RegWeight::Zero)
+    if (Var->getWeight().isZero())
       continue;
     // Don't bother if the variable has a null live range, which means
     // it was never referenced.
@@ -167,7 +167,7 @@ void LinearScan::initForInfOnly() {
       if (Inst.isDeleted())
         continue;
       if (const Variable *Var = Inst.getDest()) {
-        if (Var->hasReg() || Var->getWeight() == RegWeight::Inf) {
+        if (Var->hasReg() || Var->getWeight().isInf()) {
           if (LRBegin[Var->getIndex()] == Inst::NumberSentinel) {
             LRBegin[Var->getIndex()] = Inst.getNumber();
             ++NumVars;
@@ -179,7 +179,7 @@ void LinearScan::initForInfOnly() {
         SizeT NumVars = Src->getNumVars();
         for (SizeT J = 0; J < NumVars; ++J) {
           const Variable *Var = Src->getVar(J);
-          if (Var->hasReg() || Var->getWeight() == RegWeight::Inf)
+          if (Var->hasReg() || Var->getWeight().isInf())
             LREnd[Var->getIndex()] = Inst.getNumber();
         }
       }

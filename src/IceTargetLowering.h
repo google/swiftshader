@@ -90,6 +90,7 @@ private:
 };
 
 class TargetLowering {
+  TargetLowering() = delete;
   TargetLowering(const TargetLowering &) = delete;
   TargetLowering &operator=(const TargetLowering &) = delete;
 
@@ -214,7 +215,7 @@ public:
   virtual ~TargetLowering() {}
 
 protected:
-  TargetLowering(Cfg *Func);
+  explicit TargetLowering(Cfg *Func);
   virtual void lowerAlloca(const InstAlloca *Inst) = 0;
   virtual void lowerArithmetic(const InstArithmetic *Inst) = 0;
   virtual void lowerAssign(const InstAssign *Inst) = 0;
@@ -272,7 +273,7 @@ public:
   virtual void lowerConstants() const = 0;
 
 protected:
-  TargetDataLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
+  explicit TargetDataLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
   GlobalContext *Ctx;
 };
 

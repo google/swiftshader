@@ -30,11 +30,12 @@ class GlobalContext;
 // other intermediate representations down to ICE, and then call the appropriate
 // (inherited) methods to convert ICE into machine instructions.
 class Translator {
+  Translator() = delete;
   Translator(const Translator &) = delete;
   Translator &operator=(const Translator &) = delete;
 
 public:
-  Translator(GlobalContext *Ctx);
+  explicit Translator(GlobalContext *Ctx);
 
   ~Translator();
   const ErrorCode &getErrorStatus() const { return ErrorStatus; }

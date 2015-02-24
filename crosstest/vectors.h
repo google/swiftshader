@@ -100,7 +100,7 @@ std::string vectAsString(const typename Vectors<T>::Ty Vect) {
 // TODO: Replace with a portable PRNG from C++11.
 class PRNG {
 public:
-  PRNG(uint32_t Seed = 1) : State(Seed) {}
+  explicit PRNG(uint32_t Seed = 1) : State(Seed) {}
 
   uint32_t operator()() {
     // Lewis, Goodman, and Miller (1969)

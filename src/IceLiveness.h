@@ -26,6 +26,7 @@
 namespace Ice {
 
 class Liveness {
+  Liveness() = delete;
   Liveness(const Liveness &) = delete;
   Liveness &operator=(const Liveness &) = delete;
 

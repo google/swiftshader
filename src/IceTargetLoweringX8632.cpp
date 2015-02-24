@@ -748,7 +748,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     // A spill slot linked to a variable with a stack slot should reuse
     // that stack slot.
     if (SpillVariable *SpillVar = llvm::dyn_cast<SpillVariable>(Var)) {
-      assert(Var->getWeight() == RegWeight::Zero);
+      assert(Var->getWeight().isZero());
       if (!SpillVar->getLinkedTo()->hasReg()) {
         VariablesLinkedToSpillSlots.push_back(Var);
         continue;
@@ -4336,7 +4336,7 @@ OperandX8632Mem *TargetX8632::getMemoryOperandForStackSlot(Type Ty,
                                                            Variable *Slot,
                                                            uint32_t Offset) {
   // Ensure that Loc is a stack slot.
-  assert(Slot->getWeight() == RegWeight::Zero);
+  assert(Slot->getWeight().isZero());
   assert(Slot->getRegNum() == Variable::NoRegister);
   // Compute the location of Loc in memory.
   // TODO(wala,stichnot): lea should not be required.  The address of
@@ -4433,8 +4433,7 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
     // Check if the variable is guaranteed a physical register.  This
     // can happen either when the variable is pre-colored or when it is
     // assigned infinite weight.
-    bool MustHaveRegister =
-        (Var->hasReg() || Var->getWeight() == RegWeight::Inf);
+    bool MustHaveRegister = (Var->hasReg() || Var->getWeight().isInf());
     // We need a new physical register for the operand if:
     //   Mem is not allowed and Var isn't guaranteed a physical
     //   register, or
