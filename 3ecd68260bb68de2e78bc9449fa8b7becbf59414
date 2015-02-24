@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a55dc161_bcceed67",
+        "filename": "src/OpenGL/common/debug.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-24T12:54:12Z",
+      "side": 1,
+      "message": "This piece of code is more complex than it needs to be. It could be:\n\nif(!file)\n{\n    file \u003d fopen(TRACE_OUTPUT_FILE, \"w\");\n}\nvfprintf(file, format, vararg);\n\nAlso to note:\nSince before the trace output file was opened in append mode, does it mean that it could continue gathering data between sessions? By opening it in write mode, every new session will overwrite the trace output file. It probably is the desired behavior, but just checking.",
+      "range": {
+        "startLine": 26,
+        "startChar": 3,
+        "endLine": 34,
+        "endChar": 4
+      },
+      "revId": "3ecd68260bb68de2e78bc9449fa8b7becbf59414",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
