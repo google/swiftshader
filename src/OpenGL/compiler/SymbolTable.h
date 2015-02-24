@@ -154,7 +154,6 @@ public:
     const TString& getMangledName() const { return mangledName; }
     const TType& getReturnType() const { return returnType; }
 
-    void relateToOperator(TOperator o) { op = o; }
     TOperator getBuiltInOp() const { return op; }
 
     void relateToExtension(const TString& ext) { extension = ext; }
@@ -211,7 +210,6 @@ public:
             return (*it).second;
     }
 
-    void relateToOperator(const char* name, TOperator op);
     void relateToExtension(const char* name, const TString& ext);
 
 protected:
@@ -345,7 +343,7 @@ public:
 		return insert(level, *constant);
 	}
 
-	void insertBuiltIn(ESymbolLevel level, TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0, TType *ptype4 = 0)
+	void insertBuiltIn(ESymbolLevel level, TOperator op, TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0, TType *ptype4 = 0)
 	{
 		if(ptype1->getBasicType() == EbtGSampler2D)
 		{
@@ -353,7 +351,6 @@ public:
 			insertBuiltIn(level, gvec4 ? new TType(EbtFloat, 4) : rvalue, name, new TType(EbtSampler2D), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtInt, 4) : rvalue, name, new TType(EbtISampler2D), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtUInt, 4) : rvalue, name, new TType(EbtUSampler2D), ptype2, ptype3, ptype4);
-			return;
 		}
 		else if(ptype1->getBasicType() == EbtGSampler3D)
 		{
@@ -361,7 +358,6 @@ public:
 			insertBuiltIn(level, gvec4 ? new TType(EbtFloat, 4) : rvalue, name, new TType(EbtSampler3D), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtInt, 4) : rvalue, name, new TType(EbtISampler3D), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtUInt, 4) : rvalue, name, new TType(EbtUSampler3D), ptype2, ptype3, ptype4);
-			return;
 		}
 		else if(ptype1->getBasicType() == EbtGSamplerCube)
 		{
@@ -369,7 +365,6 @@ public:
 			insertBuiltIn(level, gvec4 ? new TType(EbtFloat, 4) : rvalue, name, new TType(EbtSamplerCube), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtInt, 4) : rvalue, name, new TType(EbtISamplerCube), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtUInt, 4) : rvalue, name, new TType(EbtUSamplerCube), ptype2, ptype3, ptype4);
-			return;
 		}
 		else if(ptype1->getBasicType() == EbtGSampler2DArray)
 		{
@@ -377,56 +372,54 @@ public:
 			insertBuiltIn(level, gvec4 ? new TType(EbtFloat, 4) : rvalue, name, new TType(EbtSampler2DArray), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtInt, 4) : rvalue, name, new TType(EbtISampler2DArray), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtUInt, 4) : rvalue, name, new TType(EbtUSampler2DArray), ptype2, ptype3, ptype4);
-			return;
 		}
-		else if(IsGenType(rvalue) ||
-		        IsGenType(ptype1) ||
-		        IsGenType(ptype2) ||
-		        IsGenType(ptype3) ||
-		        IsGenType(ptype4))
+		else if(IsGenType(rvalue) || IsGenType(ptype1) || IsGenType(ptype2) || IsGenType(ptype3))
 		{
-			insertBuiltIn(level, GenType(rvalue, 1), name, GenType(ptype1, 1), GenType(ptype2, 1), GenType(ptype3, 1), GenType(ptype4, 1));
-			insertBuiltIn(level, GenType(rvalue, 2), name, GenType(ptype1, 2), GenType(ptype2, 2), GenType(ptype3, 2), GenType(ptype4, 2));
-			insertBuiltIn(level, GenType(rvalue, 3), name, GenType(ptype1, 3), GenType(ptype2, 3), GenType(ptype3, 3), GenType(ptype4, 3));
-			insertBuiltIn(level, GenType(rvalue, 4), name, GenType(ptype1, 4), GenType(ptype2, 4), GenType(ptype3, 4), GenType(ptype4, 4));
-			return;
+			ASSERT(!ptype4);
+			insertBuiltIn(level, op, GenType(rvalue, 1), name, GenType(ptype1, 1), GenType(ptype2, 1), GenType(ptype3, 1));
+			insertBuiltIn(level, op, GenType(rvalue, 2), name, GenType(ptype1, 2), GenType(ptype2, 2), GenType(ptype3, 2));
+			insertBuiltIn(level, op, GenType(rvalue, 3), name, GenType(ptype1, 3), GenType(ptype2, 3), GenType(ptype3, 3));
+			insertBuiltIn(level, op, GenType(rvalue, 4), name, GenType(ptype1, 4), GenType(ptype2, 4), GenType(ptype3, 4));
 		}
-		else if(IsVecType(rvalue) ||
-		        IsVecType(ptype1) ||
-		        IsVecType(ptype2) ||
-		        IsVecType(ptype3) ||
-		        IsVecType(ptype4))
+		else if(IsVecType(rvalue) || IsVecType(ptype1) || IsVecType(ptype2) || IsVecType(ptype3))
 		{
-			insertBuiltIn(level, VecType(rvalue, 2), name, VecType(ptype1, 2), VecType(ptype2, 2), VecType(ptype3, 2), VecType(ptype4, 2));
-			insertBuiltIn(level, VecType(rvalue, 3), name, VecType(ptype1, 3), VecType(ptype2, 3), VecType(ptype3, 3), VecType(ptype4, 3));
-			insertBuiltIn(level, VecType(rvalue, 4), name, VecType(ptype1, 4), VecType(ptype2, 4), VecType(ptype3, 4), VecType(ptype4, 4));
-			return;
+			ASSERT(!ptype4);
+			insertBuiltIn(level, op, VecType(rvalue, 2), name, VecType(ptype1, 2), VecType(ptype2, 2), VecType(ptype3, 2));
+			insertBuiltIn(level, op, VecType(rvalue, 3), name, VecType(ptype1, 3), VecType(ptype2, 3), VecType(ptype3, 3));
+			insertBuiltIn(level, op, VecType(rvalue, 4), name, VecType(ptype1, 4), VecType(ptype2, 4), VecType(ptype3, 4));
 		}
-
-		TFunction *function = new TFunction(NewPoolTString(name), *rvalue);
-
-		TParameter param1 = {0, ptype1};
-		function->addParameter(param1);
-
-		if(ptype2)
+		else
 		{
-			TParameter param2 = {0, ptype2};
-			function->addParameter(param2);
-		}
+			TFunction *function = new TFunction(NewPoolTString(name), *rvalue, op);
 
-		if(ptype3)
-		{
-			TParameter param3 = {0, ptype3};
-			function->addParameter(param3);
-		}
+			TParameter param1 = {0, ptype1};
+			function->addParameter(param1);
 
-		if(ptype4)
-		{
-			TParameter param4 = {0, ptype4};
-			function->addParameter(param4);
-		}
+			if(ptype2)
+			{
+				TParameter param2 = {0, ptype2};
+				function->addParameter(param2);
+			}
 
-		insert(level, *function);
+			if(ptype3)
+			{
+				TParameter param3 = {0, ptype3};
+				function->addParameter(param3);
+			}
+
+			if(ptype4)
+			{
+				TParameter param4 = {0, ptype4};
+				function->addParameter(param4);
+			}
+
+			insert(level, *function);
+		}
+    }
+
+	void insertBuiltIn(ESymbolLevel level, TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0, TType *ptype4 = 0)
+	{
+		insertBuiltIn(level, EOpNull, rvalue, name, ptype1, ptype2, ptype3, ptype4);
     }
 
     TSymbol *find(const TString &name, int shaderVersion, bool *builtIn = false, bool *sameScope = false) const;
@@ -436,11 +429,6 @@ public:
     {
         assert(currentLevel() >= 1);
         return table[currentLevel() - 1];
-    }
-
-    void relateToOperator(ESymbolLevel level, const char *name, TOperator op)
-    {
-        table[level]->relateToOperator(name, op);
     }
 
     void relateToExtension(ESymbolLevel level, const char *name, const TString &ext)
