@@ -218,9 +218,11 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
   assert(!SectionNumbersAssigned);
   ELFTextSection *Section = nullptr;
   ELFRelocationSection *RelSection = nullptr;
-  if (TextSections.empty()) {
-    // TODO(jvoung): handle ffunction-sections.
+  const bool FunctionSections = Ctx.getFlags().getFunctionSections();
+  if (TextSections.empty() || FunctionSections) {
     IceString SectionName = ".text";
+    if (FunctionSections)
+      SectionName += "." + FuncName;
     bool IsELF64 = isELF64(Ctx.getTargetArch());
     const Elf64_Xword ShFlags = SHF_ALLOC | SHF_EXECINSTR;
     // TODO(jvoung): Should be bundle size. Grab it from that target?
@@ -254,9 +256,8 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
                            OffsetInSection, SymbolSize);
   StrTab->add(FuncName);
 
-  // Create a relocation section for the text section if needed, and copy the
-  // fixup information from per-function Assembler memory to the object
-  // writer's memory, for writing later.
+  // Copy the fixup information from per-function Assembler memory to the
+  // object writer's memory, for writing later.
   if (!Asm->fixups().empty()) {
     RelSection->addRelocations(OffsetInSection, Asm->fixups());
   }
