@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5cb9564_423fd2e2",
+        "filename": "src/OpenGL/common/debug.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-24T16:45:19Z",
+      "side": 1,
+      "message": "Ah, sorry I forgot about this, but we no longer check if \"file\" is NULL before using it. Do we still need an \"if(file) {...}\" here or do we prefer crashing in the event that the file didn\u0027t open properly?",
+      "range": {
+        "startLine": 31,
+        "startChar": 12,
+        "endLine": 31,
+        "endChar": 16
+      },
+      "revId": "dbbba15044cc3c481b0766c8015ab55b053c2001",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
