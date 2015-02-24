@@ -46,6 +46,30 @@
       "revId": "fd4e14ec70751f4dcbc358529de0979871213318",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e5e5f9f3_9bd4eb47",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-24T17:09:21Z",
+      "side": 1,
+      "message": "I figured that it shouldn\u0027t check the sampler type here at all. They should all go down this path.",
+      "parentUuid": "a55dc161_7cd295d5",
+      "range": {
+        "startLine": 774,
+        "startChar": 30,
+        "endLine": 774,
+        "endChar": 90
+      },
+      "revId": "fd4e14ec70751f4dcbc358529de0979871213318",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
