@@ -53,8 +53,8 @@ namespace sw
 		source->lockInternal(sRect.x0, sRect.y0, sRect.slice, sw::LOCK_READONLY, sw::PUBLIC);
 		dest->lockInternal(dRect.x0, dRect.y0, dRect.slice, sw::LOCK_WRITEONLY, sw::PUBLIC);
 
-		float w = 1.0f / (dRect.x1 - dRect.x0) * (sRect.x1 - sRect.x0);
-		float h = 1.0f / (dRect.y1 - dRect.y0) * (sRect.y1 - sRect.y0);
+		float w = static_cast<float>(sRect.x1 - sRect.x0) / static_cast<float>(dRect.x1 - dRect.x0);
+		float h = static_cast<float>(sRect.y1 - sRect.y0) / static_cast<float>(dRect.y1 - dRect.y0);
 
 		const float xStart = (float)sRect.x0 + 0.5f * w;
 		float y = (float)sRect.y0 + 0.5f * h;
@@ -82,6 +82,36 @@ namespace sw
 			}
 
 			y += h;
+		}
+
+		source->unlockInternal();
+		dest->unlockInternal();
+	}
+
+	void Blitter::blit3D(Surface *source, Surface *dest)
+	{
+		source->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
+		dest->lockInternal(0, 0, 0, sw::LOCK_WRITEONLY, sw::PUBLIC);
+
+		float w = static_cast<float>(source->getExternalWidth())  / static_cast<float>(dest->getExternalWidth());
+		float h = static_cast<float>(source->getExternalHeight()) / static_cast<float>(dest->getExternalHeight());
+		float d = static_cast<float>(source->getExternalDepth())  / static_cast<float>(dest->getExternalDepth());
+
+		float z = 0.5f * d;
+		for(int k = 0; k < dest->getExternalDepth(); ++k)
+		{
+			float y = 0.5f * h;
+			for(int j = 0; j < dest->getExternalHeight(); ++j)
+			{
+				float x = 0.5f * w;
+				for(int i = 0; i < dest->getExternalWidth(); ++i)
+				{
+					dest->writeInternal(i, j, k, source->sampleInternal(x, y, z));
+					x += w;
+				}
+				y += h;
+			}
+			z += d;
 		}
 
 		source->unlockInternal();

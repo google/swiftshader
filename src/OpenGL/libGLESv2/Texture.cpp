@@ -1723,7 +1723,29 @@ bool Texture3D::isDepth(GLenum target, GLint level) const
 
 void Texture3D::generateMipmaps()
 {
-	UNIMPLEMENTED();
+	if(!image[0])
+	{
+		return;   // FIXME: error?
+	}
+
+	unsigned int q = log2(std::max(std::max(image[0]->getWidth(), image[0]->getHeight()), image[0]->getDepth()));
+
+	for(unsigned int i = 1; i <= q; i++)
+	{
+		if(image[i])
+		{
+			image[i]->unbind(this);
+		}
+
+		image[i] = new Image(this, std::max(image[0]->getWidth() >> i, 1), std::max(image[0]->getHeight() >> i, 1), std::max(image[0]->getDepth() >> i, 1), image[0]->getFormat(), image[0]->getType());
+
+		if(!image[i])
+		{
+			return error(GL_OUT_OF_MEMORY);
+		}
+
+		getDevice()->stretchCube(image[i - 1], image[i]);
+	}
 }
 
 egl::Image *Texture3D::getImage(unsigned int level)

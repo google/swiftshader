@@ -190,6 +190,11 @@ namespace sw
 		blitter.blit(source, sRect, dest, dRect, filter);
 	}
 
+	void Renderer::blit3D(Surface *source, Surface *dest)
+	{
+		blitter.blit3D(source, dest);
+	}
+
 	void Renderer::draw(DrawType drawType, unsigned int indexOffset, unsigned int count, bool update)
 	{
 		#ifndef NDEBUG

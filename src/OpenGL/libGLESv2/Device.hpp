@@ -70,6 +70,7 @@ namespace es2
 		virtual void setViewport(const Viewport &viewport);
 
 		virtual bool stretchRect(egl::Image *sourceSurface, const sw::SliceRect *sourceRect, egl::Image *destSurface, const sw::SliceRect *destRect, bool filter);
+		virtual bool stretchCube(egl::Image *sourceSurface, egl::Image *destSurface);
 		virtual void finish();
 
 	private:

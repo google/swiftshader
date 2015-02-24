@@ -681,6 +681,70 @@ namespace es2
 		return true;
 	}
 
+	bool Device::stretchCube(egl::Image *source, egl::Image *dest)
+	{
+		if(!source || !dest || Image::isDepth(source->getInternalFormat()) || Image::isStencil(source->getInternalFormat()))
+		{
+			ERR("Invalid parameters");
+			return false;
+		}
+
+		int sWidth  = source->getExternalWidth();
+		int sHeight = source->getExternalHeight();
+		int sDepth  = source->getExternalDepth();
+		int dWidth  = dest->getExternalWidth();
+		int dHeight = dest->getExternalHeight();
+		int dDepth  = dest->getExternalDepth();
+
+		bool scaling = (sWidth != dWidth) || (sHeight != dHeight) || (sDepth != dDepth);
+		bool equalFormats = source->getInternalFormat() == dest->getInternalFormat();
+		bool alpha0xFF = false;
+
+		if((source->getInternalFormat() == FORMAT_A8R8G8B8 && dest->getInternalFormat() == FORMAT_X8R8G8B8) ||
+		   (source->getInternalFormat() == FORMAT_X8R8G8B8 && dest->getInternalFormat() == FORMAT_A8R8G8B8))
+		{
+			equalFormats = true;
+			alpha0xFF = true;
+		}
+
+		if(!scaling && equalFormats)
+		{
+			unsigned int sourcePitch = source->getInternalPitchB();
+			unsigned int destPitch = dest->getInternalPitchB();
+			unsigned int bytes = dWidth * Image::bytes(source->getInternalFormat());
+
+			for(int z = 0; z < dDepth; ++z)
+			{
+				unsigned char *sourceBytes = (unsigned char*)source->lockInternal(0, 0, z, LOCK_READONLY, PUBLIC);
+				unsigned char *destBytes = (unsigned char*)dest->lockInternal(0, 0, z, LOCK_READWRITE, PUBLIC);
+				for(int y = 0; y < dHeight; ++y)
+				{
+					memcpy(destBytes, sourceBytes, bytes);
+
+					if(alpha0xFF)
+					{
+						for(int x = 0; x < dWidth; ++x)
+						{
+							destBytes[4 * x + 3] = 0xFF;
+						}
+					}
+
+					sourceBytes += sourcePitch;
+					destBytes += destPitch;
+				}
+			}
+
+			source->unlockInternal();
+			dest->unlockInternal();
+		}
+		else
+		{
+			blit3D(source, dest);
+		}
+
+		return true;
+	}
+
 	bool Device::bindResources()
 	{
 		if(!bindViewport())
