@@ -22,6 +22,30 @@
       "revId": "fd4e14ec70751f4dcbc358529de0979871213318",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a55dc161_7cd295d5",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-24T14:49:46Z",
+      "side": 1,
+      "message": "I prefer hitting the assert when I have a test that uses it, so I can be sure it works correctly. Granted, in this case there\u0027s zero chance it would fail though. :-)",
+      "parentUuid": "a8c5967a_f928b72b",
+      "range": {
+        "startLine": 774,
+        "startChar": 30,
+        "endLine": 774,
+        "endChar": 90
+      },
+      "revId": "fd4e14ec70751f4dcbc358529de0979871213318",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
