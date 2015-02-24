@@ -130,11 +130,12 @@ public:
         returnType(TType(EbtVoid, EbpUndefined)),
         op(o),
         defined(false) { }
-    TFunction(const TString *name, TType& retType, TOperator tOp = EOpNull) : 
+    TFunction(const TString *name, TType& retType, TOperator tOp = EOpNull, const char *ext = "") : 
         TSymbol(name), 
         returnType(retType),
         mangledName(TFunction::mangleName(*name)),
         op(tOp),
+        extension(ext),
         defined(false) { }
     virtual ~TFunction();
     virtual bool isFunction() const { return true; }    
@@ -155,8 +156,6 @@ public:
     const TType& getReturnType() const { return returnType; }
 
     TOperator getBuiltInOp() const { return op; }
-
-    void relateToExtension(const TString& ext) { extension = ext; }
     const TString& getExtension() const { return extension; }
 
     void setDefined() { defined = true; }
@@ -209,8 +208,6 @@ public:
         else
             return (*it).second;
     }
-
-    void relateToExtension(const char* name, const TString& ext);
 
 protected:
     tLevel level;
@@ -343,7 +340,7 @@ public:
 		return insert(level, *constant);
 	}
 
-	void insertBuiltIn(ESymbolLevel level, TOperator op, TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0, TType *ptype4 = 0)
+	void insertBuiltIn(ESymbolLevel level, TOperator op, const char *ext, TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0, TType *ptype4 = 0)
 	{
 		if(ptype1->getBasicType() == EbtGSampler2D)
 		{
@@ -376,21 +373,21 @@ public:
 		else if(IsGenType(rvalue) || IsGenType(ptype1) || IsGenType(ptype2) || IsGenType(ptype3))
 		{
 			ASSERT(!ptype4);
-			insertBuiltIn(level, op, GenType(rvalue, 1), name, GenType(ptype1, 1), GenType(ptype2, 1), GenType(ptype3, 1));
-			insertBuiltIn(level, op, GenType(rvalue, 2), name, GenType(ptype1, 2), GenType(ptype2, 2), GenType(ptype3, 2));
-			insertBuiltIn(level, op, GenType(rvalue, 3), name, GenType(ptype1, 3), GenType(ptype2, 3), GenType(ptype3, 3));
-			insertBuiltIn(level, op, GenType(rvalue, 4), name, GenType(ptype1, 4), GenType(ptype2, 4), GenType(ptype3, 4));
+			insertBuiltIn(level, op, ext, GenType(rvalue, 1), name, GenType(ptype1, 1), GenType(ptype2, 1), GenType(ptype3, 1));
+			insertBuiltIn(level, op, ext, GenType(rvalue, 2), name, GenType(ptype1, 2), GenType(ptype2, 2), GenType(ptype3, 2));
+			insertBuiltIn(level, op, ext, GenType(rvalue, 3), name, GenType(ptype1, 3), GenType(ptype2, 3), GenType(ptype3, 3));
+			insertBuiltIn(level, op, ext, GenType(rvalue, 4), name, GenType(ptype1, 4), GenType(ptype2, 4), GenType(ptype3, 4));
 		}
 		else if(IsVecType(rvalue) || IsVecType(ptype1) || IsVecType(ptype2) || IsVecType(ptype3))
 		{
 			ASSERT(!ptype4);
-			insertBuiltIn(level, op, VecType(rvalue, 2), name, VecType(ptype1, 2), VecType(ptype2, 2), VecType(ptype3, 2));
-			insertBuiltIn(level, op, VecType(rvalue, 3), name, VecType(ptype1, 3), VecType(ptype2, 3), VecType(ptype3, 3));
-			insertBuiltIn(level, op, VecType(rvalue, 4), name, VecType(ptype1, 4), VecType(ptype2, 4), VecType(ptype3, 4));
+			insertBuiltIn(level, op, ext, VecType(rvalue, 2), name, VecType(ptype1, 2), VecType(ptype2, 2), VecType(ptype3, 2));
+			insertBuiltIn(level, op, ext, VecType(rvalue, 3), name, VecType(ptype1, 3), VecType(ptype2, 3), VecType(ptype3, 3));
+			insertBuiltIn(level, op, ext, VecType(rvalue, 4), name, VecType(ptype1, 4), VecType(ptype2, 4), VecType(ptype3, 4));
 		}
 		else
 		{
-			TFunction *function = new TFunction(NewPoolTString(name), *rvalue, op);
+			TFunction *function = new TFunction(NewPoolTString(name), *rvalue, op, ext);
 
 			TParameter param1 = {0, ptype1};
 			function->addParameter(param1);
@@ -417,6 +414,11 @@ public:
 		}
     }
 
+	void insertBuiltIn(ESymbolLevel level, TOperator op, TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0, TType *ptype4 = 0)
+	{
+		insertBuiltIn(level, op, "", rvalue, name, ptype1, ptype2, ptype3, ptype4);
+    }
+
 	void insertBuiltIn(ESymbolLevel level, TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0, TType *ptype4 = 0)
 	{
 		insertBuiltIn(level, EOpNull, rvalue, name, ptype1, ptype2, ptype3, ptype4);
@@ -429,11 +431,6 @@ public:
     {
         assert(currentLevel() >= 1);
         return table[currentLevel() - 1];
-    }
-
-    void relateToExtension(ESymbolLevel level, const char *name, const TString &ext)
-    {
-        table[level]->relateToExtension(name, ext);
     }
 
     bool setDefaultPrecision(const TPublicType &type, TPrecision prec)

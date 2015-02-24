@@ -150,9 +150,9 @@ void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TS
 
 		if(resources.OES_standard_derivatives)
 		{
-			symbolTable.insertBuiltIn(ESSL1_BUILTINS, EOpDFdx, genType, "dFdx", genType);
-			symbolTable.insertBuiltIn(ESSL1_BUILTINS, EOpDFdy, genType, "dFdy", genType);
-			symbolTable.insertBuiltIn(ESSL1_BUILTINS, EOpFwidth, genType, "fwidth", genType);
+			symbolTable.insertBuiltIn(ESSL1_BUILTINS, EOpDFdx, "GL_OES_standard_derivatives", genType, "dFdx", genType);
+			symbolTable.insertBuiltIn(ESSL1_BUILTINS, EOpDFdy, "GL_OES_standard_derivatives", genType, "dFdy", genType);
+			symbolTable.insertBuiltIn(ESSL1_BUILTINS, EOpFwidth,"GL_OES_standard_derivatives", genType, "fwidth", genType);
 		}
 	}
 
@@ -252,22 +252,6 @@ void IdentifyBuiltIns(GLenum shaderType,
         symbolTable.insert(COMMON_BUILTINS, *new TVariable(NewPoolTString("gl_PointSize"), TType(EbtFloat, EbpMedium, EvqPointSize,   1)));
         break;
     default: assert(false && "Language not supported");
-    }
-
-    // Map language-specific operators.
-    switch(shaderType)
-	{
-    case GL_VERTEX_SHADER:
-        break;
-    case GL_FRAGMENT_SHADER:
-        if(resources.OES_standard_derivatives)
-		{
-            symbolTable.relateToExtension(ESSL1_BUILTINS, "dFdx", "GL_OES_standard_derivatives");
-            symbolTable.relateToExtension(ESSL1_BUILTINS, "dFdy", "GL_OES_standard_derivatives");
-            symbolTable.relateToExtension(ESSL1_BUILTINS, "fwidth", "GL_OES_standard_derivatives");
-        }
-        break;
-    default: break;
     }
 
     // Finally add resource-specific variables.
