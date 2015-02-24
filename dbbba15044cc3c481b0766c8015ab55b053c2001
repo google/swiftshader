@@ -22,6 +22,30 @@
       "revId": "dbbba15044cc3c481b0766c8015ab55b053c2001",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c5cb9564_c25cc238",
+        "filename": "src/OpenGL/common/debug.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-02-24T16:51:35Z",
+      "side": 1,
+      "message": "I think it\u0027s better to crash (given that this feature will not be used in production). This way, it is easy to identify the problem (versus having to find if the dump file was create or if it was overwritten).",
+      "parentUuid": "c5cb9564_423fd2e2",
+      "range": {
+        "startLine": 31,
+        "startChar": 12,
+        "endLine": 31,
+        "endChar": 16
+      },
+      "revId": "dbbba15044cc3c481b0766c8015ab55b053c2001",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
