@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a55dc161_dce2c19c",
+        "filename": "src/OpenGL/compiler/SymbolTable.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-24T14:53:52Z",
+      "side": 1,
+      "message": "nit: I liked the parenteses. I find it easier to read.",
+      "range": {
+        "startLine": 194,
+        "startChar": 8,
+        "endLine": 196,
+        "endChar": 45
+      },
+      "revId": "7ab3fc69c963c35283c0e5ef8fe1f0848117b5d5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
