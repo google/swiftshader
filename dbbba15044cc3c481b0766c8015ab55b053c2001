@@ -70,6 +70,30 @@
       "revId": "dbbba15044cc3c481b0766c8015ab55b053c2001",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e5b1790e_fb12ef85",
+        "filename": "src/OpenGL/common/debug.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-24T20:13:34Z",
+      "side": 1,
+      "message": "In general I would agree, but Chrome does not allow opening any files in the GPU process by default, because it\u0027s sandboxed. While most other applications are not sandboxed, and we can disable Chrome\u0027s sandboxing with a flag, I think it\u0027s a major use case for us to test Chrome with a debug build without using the flag. It should work out of the box.\n\nFor other cases the file should practically never be null, and when it does occur it should be easy to attach a debugger here and find out what goes wrong.\n\nConclusion: please add back the if(file){}",
+      "parentUuid": "c5cb9564_c25cc238",
+      "range": {
+        "startLine": 31,
+        "startChar": 12,
+        "endLine": 31,
+        "endChar": 16
+      },
+      "revId": "dbbba15044cc3c481b0766c8015ab55b053c2001",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
