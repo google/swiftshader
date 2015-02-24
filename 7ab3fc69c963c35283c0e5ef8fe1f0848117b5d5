@@ -22,6 +22,30 @@
       "revId": "7ab3fc69c963c35283c0e5ef8fe1f0848117b5d5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25ee31c7_0dc6d1a3",
+        "filename": "src/OpenGL/compiler/SymbolTable.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-24T15:05:15Z",
+      "side": 1,
+      "message": "Agreed. I just moved the code from the .h to the .cpp as a refactoring to prepare for the next patch, but improving the readability should also be part of the refactoring. Done in new patch.",
+      "parentUuid": "a55dc161_dce2c19c",
+      "range": {
+        "startLine": 194,
+        "startChar": 8,
+        "endLine": 196,
+        "endChar": 45
+      },
+      "revId": "7ab3fc69c963c35283c0e5ef8fe1f0848117b5d5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
