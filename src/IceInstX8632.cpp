@@ -480,6 +480,7 @@ void InstX8632Jmp::emitIAS(const Cfg *Func) const {
       llvm::report_fatal_error("Assembler can't jmp to memory operand");
     }
   } else if (const auto Mem = llvm::dyn_cast<OperandX8632Mem>(Target)) {
+    (void)Mem;
     assert(Mem->getSegmentRegister() == OperandX8632Mem::DefaultSegment);
     llvm::report_fatal_error("Assembler can't jmp to memory operand");
   } else if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(Target)) {
