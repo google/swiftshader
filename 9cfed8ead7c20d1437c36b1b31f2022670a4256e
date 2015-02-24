@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e5b1790e_9b73ebcb",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 627,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-24T20:32:46Z",
+      "side": 1,
+      "message": "nit: should be three spaces.",
+      "range": {
+        "startLine": 627,
+        "startChar": 2,
+        "endLine": 627,
+        "endChar": 3
+      },
+      "revId": "9cfed8ead7c20d1437c36b1b31f2022670a4256e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
