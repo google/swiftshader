@@ -46,6 +46,30 @@
       "revId": "3ecd68260bb68de2e78bc9449fa8b7becbf59414",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "05fbed86_0c3537d1",
+        "filename": "src/OpenGL/common/debug.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-02-24T16:12:17Z",
+      "side": 1,
+      "message": "Agreed. I will create another CL for those 2 modes",
+      "parentUuid": "a55dc161_1c08b9d6",
+      "range": {
+        "startLine": 26,
+        "startChar": 3,
+        "endLine": 34,
+        "endChar": 4
+      },
+      "revId": "3ecd68260bb68de2e78bc9449fa8b7becbf59414",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
