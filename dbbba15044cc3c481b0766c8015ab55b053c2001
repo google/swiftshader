@@ -46,6 +46,30 @@
       "revId": "dbbba15044cc3c481b0766c8015ab55b053c2001",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c5b475e0_3abcc1e5",
+        "filename": "src/OpenGL/common/debug.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-24T17:30:22Z",
+      "side": 1,
+      "message": "As long as we all agree, LGTM.",
+      "parentUuid": "c5cb9564_c25cc238",
+      "range": {
+        "startLine": 31,
+        "startChar": 12,
+        "endLine": 31,
+        "endChar": 16
+      },
+      "revId": "dbbba15044cc3c481b0766c8015ab55b053c2001",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
