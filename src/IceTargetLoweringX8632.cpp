@@ -4118,9 +4118,7 @@ TargetX8632::eliminateNextVectorSextInstruction(Variable *SignExtendedResult) {
   }
 }
 
-void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) {
-  _ud2();
-}
+void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) { _ud2(); }
 
 // Turn an i64 Phi instruction into a pair of i32 Phi instructions, to
 // preserve integrity of liveness analysis.  Undef values are also

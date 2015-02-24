@@ -230,3 +230,23 @@ entry:
 ; CHECK: 40: {{.*}} nop
 ; CHECK: 5b: {{.*}} and [[REG]],0xffffffe0
 ; CHECK-NEXT: 5e: {{.*}} call [[REG]]
+
+; Stack adjustment state during an argument push sequence gets
+; properly checkpointed and restored during the two passes, as
+; observed by the stack adjustment for accessing stack-allocated
+; variables.
+define void @checkpoint_restore_stack_adjustment(i32 %arg) {
+entry:
+  call void @call_target()
+  ; bundle boundary
+  call void @checkpoint_restore_stack_adjustment(i32 %arg)
+  ret void
+}
+; CHECK-LABEL: checkpoint_restore_stack_adjustment
+; CHECK: call
+; CHECK: sub esp,0x10
+; The address of %arg should be [esp+0x20], not [esp+0x30].
+; CHECK-NEXT: mov [[REG:.*]],DWORD PTR [esp+0x20]
+; CHECK-NEXT: mov DWORD PTR [esp],[[REG]]
+; CHECK: call
+; CHECK: add esp,0x10

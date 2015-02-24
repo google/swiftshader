@@ -105,7 +105,7 @@ TargetLowering::TargetLowering(Cfg *Func)
     : Func(Func), Ctx(Func->getContext()),
       RandomizeRegisterAllocation(CLRandomizeRegisterAllocation),
       HasComputedFrame(false), CallsReturnsTwice(false), StackAdjustment(0),
-      Context() {}
+      Context(), SnapshotStackAdjustment(0) {}
 
 std::unique_ptr<Assembler> TargetLowering::createAssembler(TargetArch Target,
                                                            Cfg *Func) {

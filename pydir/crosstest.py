@@ -24,8 +24,8 @@ if __name__ == '__main__':
     that calls the test functions with a variety of interesting inputs
     and compares their results.
     """
-    # arch_map maps a Subzero target string to an llvm-mc -arch string.
-    arch_map = { 'x8632':'x86', 'x8664':'x86-64', 'arm':'arm' }
+    # arch_map maps a Subzero target string to an llvm-mc -triple string.
+    arch_map = { 'x8632':'i686', 'x8664':'x86_64', 'arm':'armv7a' }
     desc = 'Build a cross-test that compares Subzero and llc translation.'
     argparser = argparse.ArgumentParser(description=desc)
     argparser.add_argument('--test', required=True, action='append',
@@ -113,7 +113,7 @@ if __name__ == '__main__':
                   bitcode])
         if args.filetype != 'obj':
             shellcmd(['llvm-mc',
-                      '-arch=' + arch_map[args.target],
+                      '-triple=' + arch_map[args.target],
                       '-filetype=obj',
                       '-o=' + obj_sz,
                       asm_sz])
@@ -144,12 +144,9 @@ if __name__ == '__main__':
         else:
             objs.append(bitcode)
 
-    # Use 'clang szrt.c'  -or-  'clang++ szrt.cpp'
     objs.append((
-            '{root}/toolchain_build/src/subzero/runtime/szrt.{ext}'
-            ).format(root=nacl_root, ext='c' if pure_c else 'cpp'))
-    objs.append((
-            '{root}/toolchain_build/src/subzero/runtime/szrt_i686.ll'
+            '{root}/toolchain_build/src/subzero/build/runtime/' +
+            'szrt_native_x8632.o'
             ).format(root=nacl_root))
     linker = 'clang' if pure_c else 'clang++'
     shellcmd([linker, '-g', '-m32', args.driver] +

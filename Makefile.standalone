@@ -146,7 +146,7 @@ UNITTEST_OBJS = $(patsubst %.cpp, $(OBJDIR)/unittest/%.o, $(UNITTEST_SRCS))
 UNITTEST_LIB_OBJS = $(filter-out $(OBJDIR)/llvm2ice.o,$(OBJS))
 
 # Keep all the first target so it's the default.
-all: $(OBJDIR)/llvm2ice make_symlink
+all: $(OBJDIR)/llvm2ice make_symlink runtime
 
 # Creates symbolic link so that testing is easier. Also runs
 # llvm2ice to verify that the defines flags have valid values,
@@ -157,10 +157,8 @@ make_symlink: $(OBJDIR)/llvm2ice
 	@echo "Build Attributes:"
 	@$(OBJDIR)/llvm2ice --build-atts
 
-.PHONY: all make_symlink bloat
+.PHONY: all make_symlink runtime bloat
 
-# TODO(kschimpf): Fix python scripts to directly get build attributes
-# rather than generating $(OBJDIR)/llvm2ice.build_atts.
 $(OBJDIR)/llvm2ice: $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
                -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
@@ -191,6 +189,19 @@ $(OBJDIR):
 $(OBJDIR)/unittest: $(OBJDIR)
 	@mkdir -p $@
 
+RT_SRC := runtime/szrt.c runtime/szrt_ll.ll
+RT_OBJ := build/runtime/szrt_native_x8632.o build/runtime/szrt_sb_x8632.o
+
+runtime: $(RT_OBJ)
+
+# Use runtime.is.built so that build-runtime.py is invoked only once
+# even in a parallel build.
+.INTERMEDIATE: runtime.is.built
+$(RT_OBJ): runtime.is.built
+runtime.is.built: $(RT_SRC)
+	@echo ================ Building Subzero runtime ================
+	./pydir/build-runtime.py -v
+
 check-lit: $(OBJDIR)/llvm2ice make_symlink
 	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
 	BINUTILS_BIN_PATH=$(BINUTILS_BIN_PATH) \
@@ -200,10 +211,10 @@ check-unit: $(OBJDIR)/run_unittests
 	$(OBJDIR)/run_unittests
 
 ifdef MINIMAL
-check: check-lit check-unit
+check: check-lit check-unit runtime
 	@echo "Crosstests ignored, minimal build"
 else
-check: check-lit check-unit
+check: check-lit check-unit runtime
 	(cd crosstest; ./runtests.sh)
 endif
 

@@ -192,6 +192,17 @@ public:
       llvm::SmallVectorImpl<int32_t> &Permutation,
       const llvm::SmallBitVector &ExcludeRegisters) const = 0;
 
+  // Save/restore any mutable state for the situation where code
+  // emission needs multiple passes, such as sandboxing or relaxation.
+  // Subclasses may provide their own implementation, but should be
+  // sure to also call the parent class's methods.
+  virtual void snapshotEmitState() {
+    SnapshotStackAdjustment = StackAdjustment;
+  }
+  virtual void rollbackEmitState() {
+    StackAdjustment = SnapshotStackAdjustment;
+  }
+
   virtual void emitVariable(const Variable *Var) const = 0;
 
   // Performs target-specific argument lowering.
@@ -239,6 +250,9 @@ protected:
   // natural location, as arguments are pushed for a function call.
   int32_t StackAdjustment;
   LoweringContext Context;
+
+private:
+  int32_t SnapshotStackAdjustment;
 };
 
 // TargetDataLowering is used for "lowering" data including initializers
