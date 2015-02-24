@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "45d4052e_b6880808",
+        "filename": "src/Renderer/Blitter.hpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-02-24T20:48:55Z",
+      "side": 1,
+      "message": "No longer needed.",
+      "range": {
+        "startLine": 46,
+        "startChar": 3,
+        "endLine": 47,
+        "endChar": 14
+      },
+      "revId": "b1155a2eee8cfb0499e4ec0f4d11c1ba367a9bb9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
