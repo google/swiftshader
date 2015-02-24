@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25ee31c7_0d0ed134",
+        "filename": "src/OpenGL/compiler/SymbolTable.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-24T15:41:39Z",
+      "side": 1,
+      "message": "seems like this \"if\" should be a \"while\"\n\nalso, if level is ESSL1, should we still be able to go back up to find ESSL3 (I don\u0027t think so, but maybe)",
+      "range": {
+        "startLine": 191,
+        "startChar": 8,
+        "endLine": 191,
+        "endChar": 10
+      },
+      "revId": "ff54e781f61e599e79dcce0bc8b425e5ac024a49",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25ee31c7_4d18d973",
+        "filename": "src/OpenGL/compiler/SymbolTable.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-24T15:41:39Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 218,
+        "startChar": 8,
+        "endLine": 218,
+        "endChar": 10
+      },
+      "revId": "ff54e781f61e599e79dcce0bc8b425e5ac024a49",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
