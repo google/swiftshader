@@ -225,8 +225,7 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
       SectionName += "." + FuncName;
     bool IsELF64 = isELF64(Ctx.getTargetArch());
     const Elf64_Xword ShFlags = SHF_ALLOC | SHF_EXECINSTR;
-    // TODO(jvoung): Should be bundle size. Grab it from that target?
-    const Elf64_Xword ShAlign = 32;
+    const Elf64_Xword ShAlign = 1 << Asm->getBundleAlignLog2Bytes();
     Section = createSection<ELFTextSection>(SectionName, SHT_PROGBITS, ShFlags,
                                             ShAlign, 0);
     Elf64_Off OffsetInFile = alignFileOffset(Section->getSectionAlign());
