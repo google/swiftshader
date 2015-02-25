@@ -1,13 +1,13 @@
 ; This file tests support for the select instruction with vector valued inputs.
 
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 -mattr=sse4.1 \
-; RUN:   --verbose none | FileCheck --check-prefix=SSE41 %s
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 -mattr=sse4.1 \
-; RUN:   --verbose none | FileCheck --check-prefix=SSE41 %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 -mattr=sse4.1 \
+; RUN:   | FileCheck --check-prefix=SSE41 %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 -mattr=sse4.1 \
+; RUN:   | FileCheck --check-prefix=SSE41 %s
 
 define <16 x i8> @test_select_v16i8(<16 x i1> %cond, <16 x i8> %arg1, <16 x i8> %arg2) {
 entry:

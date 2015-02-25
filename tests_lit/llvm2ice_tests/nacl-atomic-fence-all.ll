@@ -3,8 +3,7 @@
 ; (unlike the non-"all" variety of nacl.atomic.fence, which only
 ; applies to atomic load/stores).
 ;
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
 
 declare void @llvm.nacl.atomic.fence.all()
 declare i32 @llvm.nacl.atomic.load.i32(i32*, i32)
@@ -45,12 +44,12 @@ entry:
 ; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
 ; The load + add are optimized into one everywhere.
-; CHECK: add {{.*}},DWORD PTR {{.*}}.bss
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_a
 ; CHECK: mov DWORD PTR
 ; CHECK: mfence
-; CHECK: add {{.*}},DWORD PTR {{.*}}.bss
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_b
 ; CHECK: mov DWORD PTR
-; CHECK: add {{.*}},DWORD PTR {{.*}}.bss
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_c
 ; CHECK: mfence
 ; CHECK: mov DWORD PTR
 
@@ -84,15 +83,15 @@ entry:
 ; CHECK: mov {{.*}},esp
 ; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
-; CHECK: add {{.*}},DWORD PTR {{.*}}.bss
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_a
 ; CHECK: mov DWORD PTR
 ; CHECK: mfence
-; CHECK: add {{.*}},DWORD PTR {{.*}}.bss
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_b
 ; CHECK: mov DWORD PTR
 ; CHECK: mfence
 ; Load + add can still be optimized into one instruction
 ; because it is not separated by a fence.
-; CHECK: add {{.*}},DWORD PTR {{.*}}.bss
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_c
 ; CHECK: mov DWORD PTR
 
 ; Test with the fence splitting a load/add.
@@ -125,17 +124,17 @@ entry:
 ; CHECK: mov {{.*}},esp
 ; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
-; CHECK: add {{.*}},DWORD PTR {{.*}}.bss
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_a
 ; CHECK: mov DWORD PTR
 ; CHECK: mfence
 ; This load + add are no longer optimized into one,
 ; though perhaps it should be legal as long as
 ; the load stays on the same side of the fence.
-; CHECK: mov {{.*}},DWORD PTR {{.*}}.bss
+; CHECK: mov {{.*}},DWORD PTR {{.*}}g32_b
 ; CHECK: mfence
 ; CHECK: add {{.*}},0x1
 ; CHECK: mov DWORD PTR
-; CHECK: add {{.*}},DWORD PTR {{.*}}.bss
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_c
 ; CHECK: mov DWORD PTR
 
 
@@ -198,8 +197,8 @@ branch2:
 }
 ; CHECK-LABEL: could_have_hoisted_loads
 ; CHECK: jne {{.*}}
-; CHECK: mov {{.*}},DWORD PTR {{.*}}.bss
+; CHECK: mov {{.*}},DWORD PTR {{.*}}g32_d
 ; CHECK: ret
 ; CHECK: mfence
-; CHECK: mov {{.*}},DWORD PTR {{.*}}.bss
+; CHECK: mov {{.*}},DWORD PTR {{.*}}g32_d
 ; CHECK: ret

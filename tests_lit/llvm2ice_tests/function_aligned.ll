@@ -3,8 +3,7 @@
 ; but typically you want to align functions anyway.
 ; Also, we are currently using hlts for non-executable padding.
 
-; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
 
 define void @foo() {
   ret void

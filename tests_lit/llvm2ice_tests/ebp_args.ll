@@ -3,8 +3,7 @@
 ; adjustment was incorrectly added to the stack/frame offset for
 ; ebp-based frames.
 
-; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
 declare i32 @memcpy_helper2(i32 %buf, i32 %buf2, i32 %n)
 

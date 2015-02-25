@@ -1,9 +1,7 @@
 ; This is a basic test of the alloca instruction.
 
-; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
-; RUN:   | FileCheck %s
-; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
 define void @fixed_416_align_16(i32 %n) {
 entry:

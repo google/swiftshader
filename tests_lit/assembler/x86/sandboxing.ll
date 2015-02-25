@@ -3,7 +3,7 @@
 ; we try to limit to a few instructions with well known sizes and
 ; minimal use of registers and stack slots in the lowering sequence.
 
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   -ffunction-sections -sandbox | FileCheck %s
 
 declare void @call_target()

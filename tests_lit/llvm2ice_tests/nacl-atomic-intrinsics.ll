@@ -1,11 +1,11 @@
 ; This tests each of the supported NaCl atomic instructions for every
 ; size allowed.
 
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:   | FileCheck --check-prefix=O2 %s
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   | FileCheck %s
 
 declare i8 @llvm.nacl.atomic.load.i8(i8*, i32)

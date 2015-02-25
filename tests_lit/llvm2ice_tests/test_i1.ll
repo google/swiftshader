@@ -1,9 +1,7 @@
 ; Tests various aspects of i1 related lowering.
 
-; RUN: %p2i -i %s --assemble --disassemble -a -O2 --verbose none \
-; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble -a -Om1 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 | FileCheck %s
 
 ; Test that and with true uses immediate 1, not -1.
 define internal i32 @testAndTrue(i32 %arg) {

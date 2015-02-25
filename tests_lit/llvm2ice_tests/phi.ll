@@ -2,8 +2,7 @@
 ; it tests that it does the right thing when it tries to enable
 ; compare/branch fusing.
 
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
-; RUN:   --phi-edge-split=0 \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 --phi-edge-split=0 \
 ; RUN:   | FileCheck %s
 
 define internal i32 @testPhi1(i32 %arg) {

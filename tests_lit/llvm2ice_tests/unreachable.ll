@@ -1,9 +1,7 @@
 ; This tests the basic structure of the Unreachable instruction.
 
-; RUN: %p2i -i %s --assemble --disassemble -a -O2 --verbose none \
-; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble -a -Om1 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble -a -O2 | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble -a -Om1 | FileCheck %s
 
 define internal i32 @divide(i32 %num, i32 %den) {
 entry:

@@ -1,13 +1,13 @@
 ; This test checks support for vector arithmetic.
 
-; RUN: %p2i -i %s --assemble --disassemble -a -O2 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble -a -O2 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble -a -Om1 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble -a -Om1 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble -a -O2 -mattr=sse4.1 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble -a -O2 -mattr=sse4.1 \
 ; RUN:   | FileCheck --check-prefix=SSE41 %s
-; RUN: %p2i -i %s --assemble --disassemble -a -Om1 -mattr=sse4.1 \
-; RUN:   --verbose none | FileCheck --check-prefix=SSE41 %s
+; RUN: %p2i -i %s --filetype=obj --disassemble -a -Om1 -mattr=sse4.1 \
+; RUN:   | FileCheck --check-prefix=SSE41 %s
 
 define <4 x float> @test_fadd(<4 x float> %arg0, <4 x float> %arg1) {
 entry:

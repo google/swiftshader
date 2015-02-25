@@ -1,7 +1,8 @@
 ; Tests the integrated assembler for instructions with multiple
 ; relocations.
 
-; RUN: %p2i -i %s --args -O2 | FileCheck %s
+; RUN: %if --need=allow_dump --command %p2i -i %s --args -O2 \
+; RUN:   | %if --need=allow_dump --command FileCheck %s
 
 ; char global_char;
 ; char *p_global_char;

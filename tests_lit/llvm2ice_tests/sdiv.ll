@@ -1,10 +1,8 @@
 ; This checks the correctness of the lowering code for the small
 ; integer variants of sdiv and srem.
 
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
-; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 | FileCheck %s
 
 define i32 @sdiv_i8(i32 %a.i32, i32 %b.i32) {
 entry:

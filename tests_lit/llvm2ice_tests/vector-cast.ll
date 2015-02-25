@@ -1,10 +1,8 @@
 ; This file tests casting / conversion operations that apply to vector types.
 ; bitcast operations are in vector-bitcast.ll.
 
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
-; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 | FileCheck %s
 
 ; sext operations
 

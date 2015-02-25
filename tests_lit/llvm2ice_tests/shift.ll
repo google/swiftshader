@@ -1,10 +1,10 @@
 ; This is a test of C-level conversion operations that clang lowers
 ; into pairs of shifts.
 
-; RUN: %p2i -i %s --assemble --disassemble --no-local-syms --args -O2 \
-; RUN:   --verbose none | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --no-local-syms --args -Om1 \
-; RUN:   --verbose none | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --no-local-syms --args -O2 \
+; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --no-local-syms --args -Om1 \
+; RUN:   | FileCheck %s
 
 @i1 = internal global [4 x i8] zeroinitializer, align 4
 @i2 = internal global [4 x i8] zeroinitializer, align 4

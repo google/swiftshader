@@ -1,9 +1,9 @@
 ; This file checks support for address mode optimization.
 
-; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i --assemble --disassemble -i %s --args -O2 -mattr=sse4.1 \
-; RUN:   --verbose none | FileCheck --check-prefix=SSE41 %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 -mattr=sse4.1 \
+; RUN:   | FileCheck --check-prefix=SSE41 %s
 
 define float @load_arg_plus_200000(float* %arg) {
 entry:

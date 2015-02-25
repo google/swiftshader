@@ -1,13 +1,13 @@
 ; This test checks that undef values are represented as zero.
 
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 -mattr=sse4.1 \
-; RUN:   --verbose none | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 -mattr=sse4.1 \
-; RUN:   --verbose none | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 -mattr=sse4.1 \
+; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 -mattr=sse4.1 \
+; RUN:   | FileCheck %s
 
 define i32 @undef_i32() {
 entry:

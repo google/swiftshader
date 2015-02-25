@@ -1,13 +1,13 @@
 ; This checks support for insertelement and extractelement.
 
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 -mattr=sse4.1 \
-; RUN:   --verbose none | FileCheck --check-prefix=SSE41 %s
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 -mattr=sse4.1 \
-; RUN:   --verbose none | FileCheck --check-prefix=SSE41 %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 -mattr=sse4.1 \
+; RUN:   | FileCheck --check-prefix=SSE41 %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 -mattr=sse4.1 \
+; RUN:   | FileCheck --check-prefix=SSE41 %s
 
 ; insertelement operations
 

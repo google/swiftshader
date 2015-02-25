@@ -1,9 +1,7 @@
 ; Simple test of signed and unsigned integer conversions.
 
-; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
-; RUN:   | FileCheck %s
-; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
 @i8v = internal global [1 x i8] zeroinitializer, align 1
 @i16v = internal global [2 x i8] zeroinitializer, align 2
@@ -37,9 +35,8 @@ entry:
 ; CHECK: mov DWORD PTR
 ; CHECK: movsx
 ; CHECK: sar {{.*}},0x1f
-; This appears to be a bug in llvm-mc. It should be i64v and i64+4.
-; CHECK-DAG: .bss
-; CHECK-DAG: .bss
+; CHECK-DAG: ds:0x0,{{.*}}i64v
+; CHECK-DAG: ds:0x4,{{.*}}i64v
 
 define void @from_int16() {
 entry:
@@ -58,12 +55,12 @@ entry:
 }
 ; CHECK-LABEL: from_int16
 ; CHECK: mov {{.*}},WORD PTR
-; CHECK: .bss
+; CHECK: 0x0 {{.*}}i16v
 ; CHECK: movsx e{{.*}},{{.*x|[ds]i|bp|WORD PTR}}
-; CHECK: .bss
+; CHECK: 0x0,{{.*}}i32v
 ; CHECK: movsx e{{.*}},{{.*x|[ds]i|bp|WORD PTR}}
 ; CHECK: sar {{.*}},0x1f
-; CHECK: .bss
+; CHECK: 0x0,{{.*}}i64v
 
 define void @from_int32() {
 entry:
@@ -81,11 +78,11 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_int32
-; CHECK: .bss
-; CHECK: .bss
-; CHECK: .bss
+; CHECK: 0x0 {{.*}} i32v
+; CHECK: 0x0,{{.*}} i8v
+; CHECK: 0x0,{{.*}} i16v
 ; CHECK: sar {{.*}},0x1f
-; CHECK: .bss
+; CHECK: 0x0,{{.*}} i64v
 
 define void @from_int64() {
 entry:
@@ -103,10 +100,10 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_int64
-; CHECK: .bss
-; CHECK: .bss
-; CHECK: .bss
-; CHECK: .bss
+; CHECK: 0x0 {{.*}} i64v
+; CHECK: 0x0,{{.*}} i8v
+; CHECK: 0x0,{{.*}} i16v
+; CHECK: 0x0,{{.*}} i32v
 
 
 define void @from_uint8() {
@@ -125,14 +122,14 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint8
-; CHECK: .bss
+; CHECK: 0x0 {{.*}} u8v
 ; CHECK: movzx e{{.*}},{{[a-d]l|BYTE PTR}}
-; CHECK: .bss
+; CHECK: 0x0,{{.*}} i16v
 ; CHECK: movzx
-; CHECK: .bss
+; CHECK: 0x0,{{.*}} i32v
 ; CHECK: movzx
 ; CHECK: mov {{.*}},0x0
-; CHECK: .bss
+; CHECK: 0x0,{{.*}} i64v
 
 define void @from_uint16() {
 entry:
@@ -150,13 +147,13 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint16
-; CHECK: .bss
-; CHECK: .bss
+; CHECK: 0x0 {{.*}} u16v
+; CHECK: 0x0,{{.*}} i8v
 ; CHECK: movzx e{{.*}},{{.*x|[ds]i|bp|WORD PTR}}
-; CHECK: .bss
+; CHECK: 0x0,{{.*}} i32v
 ; CHECK: movzx e{{.*}},{{.*x|[ds]i|bp|WORD PTR}}
 ; CHECK: mov {{.*}},0x0
-; CHECK: .bss
+; CHECK: 0x0,{{.*}} i64v
 
 define void @from_uint32() {
 entry:
@@ -174,11 +171,11 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint32
-; CHECK: .bss
-; CHECK: .bss
-; CHECK: .bss
+; CHECK: 0x0 {{.*}} u32v
+; CHECK: 0x0,{{.*}} i8v
+; CHECK: 0x0,{{.*}} i16v
 ; CHECK: mov {{.*}},0x0
-; CHECK: .bss
+; CHECK: 0x0,{{.*}} i64v
 
 define void @from_uint64() {
 entry:
@@ -196,7 +193,7 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint64
-; CHECK: .bss
-; CHECK: .bss
-; CHECK: .bss
-; CHECK: .bss
+; CHECK: 0x0 {{.*}} u64v
+; CHECK: 0x0,{{.*}} i8v
+; CHECK: 0x0,{{.*}} i16v
+; CHECK: 0x0,{{.*}} i32v

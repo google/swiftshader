@@ -1,14 +1,17 @@
 ; Tests filetype=obj with -ffunction-sections.
 
-; RUN: %p2i -i %s --filetype=obj --args -O2 --verbose none -o %t \
-; RUN:     -ffunction-sections && \
+; RUN: %p2i -i %s --filetype=obj --args -O2 -o %t -ffunction-sections && \
 ; RUN:   llvm-readobj -file-headers -sections -section-data \
 ; RUN:     -relocations -symbols %t | FileCheck %s
 
-; RUN: %p2i -i %s --args -O2 --verbose none -ffunction-sections \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj -o - \
-; RUN:   | llvm-readobj -file-headers -sections -section-data \
-; RUN:       -relocations -symbols - | FileCheck %s
+; RUN: %if --need=allow_dump --command \
+; RUN:   %p2i -i %s --args -O2 -ffunction-sections \
+; RUN:   | %if --need=allow_dump --command \
+; RUN:   llvm-mc -triple=i686-none-nacl -filetype=obj -o - \
+; RUN:   | %if --need=allow_dump --command \
+; RUN:   llvm-readobj -file-headers -sections -section-data \
+; RUN:       -relocations -symbols - \
+; RUN:   | %if --need=allow_dump --command FileCheck %s
 
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
 

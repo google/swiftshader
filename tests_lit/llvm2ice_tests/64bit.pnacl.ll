@@ -2,9 +2,9 @@
 ; particular the patterns for lowering i64 operations into constituent
 ; i32 operations on x86-32.
 
-; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4

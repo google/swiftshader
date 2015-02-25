@@ -1,20 +1,20 @@
 ; This tests the NaCl intrinsics not related to atomic operations.
 
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none -sandbox \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 -sandbox \
 ; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none -sandbox \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 -sandbox \
 ; RUN:   | FileCheck %s
 
 ; Do another run w/ O2 and a different check-prefix (otherwise O2 and Om1
 ; share the same "CHECK" prefix). This separate run helps check that
 ; some code is optimized out.
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none -sandbox \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 -sandbox \
 ; RUN:   | FileCheck --check-prefix=CHECKO2REM %s
 
 ; Do O2 runs without -sandbox to make sure llvm.nacl.read.tp gets
 ; lowered to __nacl_read_tp instead of gs:0x0.
 ; We also know that because it's O2, it'll have the O2REM optimizations.
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:   | FileCheck --check-prefix=CHECKO2UNSANDBOXEDREM %s
 
 declare i8* @llvm.nacl.read.tp()

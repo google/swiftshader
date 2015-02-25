@@ -2,8 +2,8 @@
 ; those for pmull vary more wildly depending on operand size (rather than
 ; follow a usual pattern).
 
-; RUN: %p2i --assemble --disassemble -i %s --args -O2 -mattr=sse4.1 -sandbox \
-; RUN:   --verbose none | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 -mattr=sse4.1 \
+; RUN:  -sandbox | FileCheck %s
 
 define <8 x i16> @test_mul_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
 entry:

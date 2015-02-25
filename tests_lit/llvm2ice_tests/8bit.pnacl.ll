@@ -1,9 +1,7 @@
 ; This tries to be a comprehensive test of i8 operations.
 
-; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
-; RUN:   | FileCheck %s
-; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
 define internal i32 @add8Bit(i32 %a, i32 %b) {
 entry:

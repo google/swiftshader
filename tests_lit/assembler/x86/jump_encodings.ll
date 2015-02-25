@@ -2,7 +2,7 @@
 ; forward vs backward, using CFG labels, or local labels).
 
 ; Use -ffunction-sections so that the offsets reset for each function.
-; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
 ; RUN:   -ffunction-sections | FileCheck %s
 
 ; Use atomic ops as filler, which shouldn't get optimized out.

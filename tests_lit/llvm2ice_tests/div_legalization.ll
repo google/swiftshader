@@ -1,10 +1,8 @@
 ; This is a regression test that idiv and div operands are legalized
 ; (they cannot be constants and can only be reg/mem for x86).
 
-; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
-; RUN:   | FileCheck %s
-; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
 define i32 @Sdiv_const8_b(i8 %a) {
 ; CHECK-LABEL: Sdiv_const8_b

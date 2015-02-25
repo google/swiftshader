@@ -2,8 +2,7 @@
 ; For example, the encoding is shorter for 8-bit immediates or when using EAX.
 ; This assumes that EAX is chosen as the first free register in O2 mode.
 
-; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
 
 define internal i32 @testXor8Imm8(i32 %arg) {
 entry:

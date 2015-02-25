@@ -1,9 +1,9 @@
 ; This file tests bitcasts of vector type. For most operations, these
 ; should be lowered to a no-op on -O2.
 
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
 
 define <16 x i8> @test_bitcast_v16i8_to_v16i8(<16 x i8> %arg) {

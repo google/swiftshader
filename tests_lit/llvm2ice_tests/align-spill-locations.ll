@@ -1,9 +1,7 @@
 ; This checks to ensure that Subzero aligns spill slots.
 
-; RUN: %p2i --assemble --disassemble -i %s --args --verbose none \
-; RUN:   | FileCheck %s
-; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
 
 ; The location of the stack slot for a variable is inferred from the
 ; return sequence.

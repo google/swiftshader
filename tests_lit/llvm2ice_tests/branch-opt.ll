@@ -1,9 +1,9 @@
 ; Tests the branch optimizations under O2 (against a lack of
 ; optimizations under Om1).
 
-; RUN: %p2i --assemble --disassemble -i %s --args -O2 --verbose none \
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
 ; RUN:   | FileCheck --check-prefix=O2 %s
-; RUN: %p2i --assemble --disassemble -i %s --args -Om1 --verbose none \
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 \
 ; RUN:   | FileCheck --check-prefix=OM1 %s
 
 declare void @dummy()

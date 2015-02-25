@@ -1,9 +1,9 @@
 ; This file checks that Subzero generates code in accordance with the
 ; calling convention for vectors.
 
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
 
 ; The first five functions test that vectors are moved from their

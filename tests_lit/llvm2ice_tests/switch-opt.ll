@@ -2,8 +2,7 @@
 ; same label which also results in phi instructions with multiple
 ; entries for the same incoming edge.
 
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
 
 define i32 @testSwitch(i32 %a) {
 entry:

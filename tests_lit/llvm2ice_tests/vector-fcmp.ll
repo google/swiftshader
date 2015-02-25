@@ -1,10 +1,8 @@
 ; This file checks support for comparing vector values with the fcmp
 ; instruction.
 
-; RUN: %p2i -i %s --assemble --disassemble -a -O2 --verbose none \
-; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble -a -Om1 --verbose none \
-; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble -a -O2 | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble -a -Om1 | FileCheck %s
 
 ; Check that sext elimination occurs when the result of the comparison
 ; instruction is alrady sign extended.  Sign extension to 4 x i32 uses

@@ -370,6 +370,8 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     if (!Var->hasInitializer())
       continue;
     Elf64_Xword Align = Var->getAlignment();
+    const Elf64_Xword MinAlign = 1;
+    Align = std::max(Align, MinAlign);
     Section->padToAlignment(Str, Align);
     SizeT SymbolSize = Var->getNumBytes();
     bool IsExternal = Var->isExternal() || Ctx.getFlags().getDisableInternal();

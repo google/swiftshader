@@ -1,9 +1,9 @@
 ; This tests a simple loop that sums the elements of an input array.
 ; The O2 check patterns represent the best code currently achieved.
 
-; RUN: %p2i -i %s --assemble --disassemble --args -O2 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --assemble --disassemble --args -Om1 --verbose none \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
 
 define i32 @simple_loop(i32 %a, i32 %n) {
