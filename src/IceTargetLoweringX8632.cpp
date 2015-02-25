@@ -4723,7 +4723,8 @@ const char *PoolTypeConverter<double>::PrintfString = "0x%llx";
 
 template <typename T>
 void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
-  // Note: Still used by emit IAS.
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Ctx->getStrEmit();
   Type Ty = T::Ty;
   SizeT Align = typeAlignInBytes(Ty);

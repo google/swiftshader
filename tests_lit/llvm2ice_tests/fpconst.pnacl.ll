@@ -6,10 +6,17 @@
 ; number in a reasonable number of digits".  See
 ; http://llvm.org/docs/LangRef.html#simple-constants .
 
-; RUN: %p2i --assemble --disassemble --dis-flags=-s -i %s --args -O2 \
-; RUN:   --verbose none | FileCheck %s
-; RUN: %p2i --assemble --disassemble --dis-flags=-s -i %s --args -Om1 \
-; RUN:   --verbose none | FileCheck %s
+; RUN: %p2i --assemble --disassemble --filetype=obj --dis-flags=-s \
+; RUN:   -i %s --args -O2 --verbose none | FileCheck %s
+; RUN: %p2i --assemble --disassemble --filetype=obj --dis-flags=-s \
+; RUN:   -i %s --args -Om1 --verbose none | FileCheck %s
+
+; RUN: %if --need allow_dump --command %p2i --assemble --disassemble \
+; RUN:   --dis-flags=-s -i %s --args -O2 --verbose none \
+; RUN:  | %if --need allow_dump --command FileCheck %s
+; RUN: %if --need allow_dump --command %p2i --assemble --disassemble \
+; RUN:   --dis-flags=-s -i %s --args -Om1 --verbose none \
+; RUN:  | %if --need allow_dump --command FileCheck %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4

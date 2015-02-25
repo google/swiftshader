@@ -4,7 +4,7 @@
 
 ; Test -filetype=asm to test the lea "hack" until we are fully confident
 ; in -filetype=iasm .
-; RUN: %p2i -i %s --args --verbose none -filetype=asm | FileCheck %s
+; RUN: %p2i -i %s --filetype=asm --args --verbose none | FileCheck %s
 
 ; Test -filetype=iasm and try to cross reference instructions w/ the
 ; symbol table.

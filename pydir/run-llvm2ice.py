@@ -56,6 +56,9 @@ def main():
     argparser.add_argument('--dis-flags', required=False,
                            action='append', default=[],
                            help='Add a disassembler flag')
+    argparser.add_argument('--filetype', default='iasm', dest='filetype',
+                           choices=['obj', 'asm', 'iasm'],
+                           help='Output file type.  Default %(default)s.')
     argparser.add_argument('--echo-cmd', required=False,
                            action='store_true',
                            help='Trace command that generates ICE instructions')
@@ -96,6 +99,7 @@ def main():
       cmd += ['--build-on-read=0']
     else:
       cmd += ['--build-on-read=1']
+    cmd += ['--filetype=' + args.filetype]
     cmd += args.args
     if args.llvm_source:
       cmd += [llfile]
@@ -106,10 +110,12 @@ def main():
       # and instead manually delete.
       asm_temp = tempfile.NamedTemporaryFile(delete=False)
       asm_temp.close()
-    if args.assemble:
+    if args.assemble and args.filetype != 'obj':
       cmd += ['|', os.path.join(llvm_bin_path, 'llvm-mc'),
               '-triple=i686-none-nacl',
               '-filetype=obj', '-o', asm_temp.name]
+    elif asm_temp:
+      cmd += ['-o', asm_temp.name]
     if args.disassemble:
       # Show wide instruction encodings, diassemble, and show relocs.
       cmd += (['&&', os.path.join(binutils_bin_path, 'objdump')] +

@@ -3,17 +3,19 @@
 
 ; For the integrated ELF writer, we can't pipe the output because we need
 ; to seek backward and patch up the file headers. So, use a temporary file.
-; RUN: %p2i -i %s --args -O2 --verbose none -filetype=obj -o %t \
+; RUN: %p2i -i %s --filetype=obj --args -O2 --verbose none -o %t \
 ; RUN:   && llvm-readobj -file-headers -sections -section-data \
 ; RUN:       -relocations -symbols %t | FileCheck %s
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj -o - \
-; RUN:   | llvm-readobj -file-headers -sections -section-data \
-; RUN:       -relocations -symbols - | FileCheck %s
+; RUN: %if --need=allow_dump --command %p2i -i %s --args -O2 --verbose none \
+; RUN:   | %if --need=allow_dump --command llvm-mc -triple=i686-none-nacl \
+; RUN:     -filetype=obj -o - \
+; RUN:   | %if --need=allow_dump --command llvm-readobj -file-headers \
+; RUN:     -sections -section-data -relocations -symbols - \
+; RUN:   | %if --need=allow_dump --command FileCheck %s
 
 ; Add a run that shows relocations in code inline.
-; RUN: %p2i -i %s --args -O2 --verbose none -filetype=obj -o %t \
+; RUN: %p2i -i %s --filetype=obj --args -O2 --verbose none -o %t \
 ; RUN:   && objdump -w -d -r -Mintel %t \
 ; RUN:   | FileCheck --check-prefix=TEXT-RELOCS %s
 
