@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "85d0bd89_888357eb",
+        "filename": "src/OpenGL/compiler/SymbolTable.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-02-25T13:12:49Z",
+      "side": 1,
+      "message": "nit: TABS",
+      "range": {
+        "startLine": 138,
+        "startChar": 0,
+        "endLine": 138,
+        "endChar": 2
+      },
+      "revId": "b3a8056f94e25a73fad74c6b0ee1c1bdc3ad469e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
