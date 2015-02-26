@@ -102,7 +102,7 @@ if __name__ == '__main__':
         asm_sz = os.path.join(args.dir, base_sz + '.sz.s')
         obj_sz = os.path.join(args.dir, base_sz + '.sz.o')
         obj_llc = os.path.join(args.dir, base + '.llc.o')
-        shellcmd(['../llvm2ice',
+        shellcmd(['../pnacl-sz',
                   '-O' + args.optlevel,
                   '-mattr=' + args.attr,
                   '--target=' + args.target,

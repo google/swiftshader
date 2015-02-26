@@ -1,4 +1,4 @@
-//===- subzero/src/llvm2ice.cpp - Driver for testing ----------------------===//
+//===- subzero/src/main.cpp - Driver for bitcode translation --------------===//
 //
 //                        The Subzero Code Generator
 //
@@ -7,9 +7,11 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file defines a driver that uses LLVM capabilities to parse a
-// bitcode file and build the LLVM IR, and then convert the LLVM basic
-// blocks, instructions, and operands into their Subzero equivalents.
+// This file defines a driver for translating PNaCl bitcode into native code.
+// It can either directly parse the binary bitcode file, or use LLVM routines to
+// parse a textual bitcode file into LLVM IR and then convert LLVM IR into ICE.
+// In either case, the high-level ICE is then compiled down to native code, as
+// either an ELF object file or a textual asm file.
 //
 //===----------------------------------------------------------------------===//
 

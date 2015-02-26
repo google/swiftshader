@@ -121,7 +121,7 @@ def main():
     entirely using Subzero, without using llc or linker tricks.
 
     This script uses file modification timestamps to determine whether llc and
-    Subzero re-translation are needed.  It checks timestamps of llc, llvm2ice,
+    Subzero re-translation are needed.  It checks timestamps of llc, pnacl-sz,
     and the pexe against the translated object files to determine the minimal
     work necessary.  The --force option suppresses those checks and
     re-translates everything.
@@ -169,8 +169,8 @@ def ProcessPexe(args, pexe, exe):
     sym_sz_unescaped = pexe_base_unescaped + '.sym.sz.txt'
     whitelist_sz = pexe_base + '.wl.sz.txt'
     whitelist_sz_unescaped = pexe_base_unescaped + '.wl.sz.txt'
-    llvm2ice = (
-        '{root}/toolchain_build/src/subzero/llvm2ice'
+    pnacl_sz = (
+        '{root}/toolchain_build/src/subzero/pnacl-sz'
         ).format(root=nacl_root)
     llcbin = 'llc'
     gold = 'le32-nacl-ld.gold'
@@ -206,9 +206,9 @@ def ProcessPexe(args, pexe, exe):
 
     if (args.force or
         NewerThanOrNotThere(pexe, obj_sz) or
-        NewerThanOrNotThere(llvm2ice, obj_sz)):
-        # Run llvm2ice regardless of hybrid mode.
-        shellcmd([llvm2ice,
+        NewerThanOrNotThere(pnacl_sz, obj_sz)):
+        # Run pnacl-sz regardless of hybrid mode.
+        shellcmd([pnacl_sz,
                   '-O' + opt_level,
                   '-bitcode-format=pnacl',
                   '-filetype=' + args.filetype,

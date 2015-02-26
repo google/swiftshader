@@ -32,4 +32,4 @@ styling and transitions) rather than a big canvas/svg/plugin.
 
 Local Modifications:
 webtreemap.{js,css} are used with no modifications.  demo/demo.html
-was used as the basis for llvm2ice.bloat.html.
+was used as the basis for pnacl-sz.bloat.html.

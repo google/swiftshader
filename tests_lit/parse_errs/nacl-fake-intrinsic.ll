@@ -1,12 +1,12 @@
 ; Tests that we don't get fooled by a fake NaCl intrinsic.
 
 ; TODO(kschimpf) Find way to run this through p2i. Note: Can't do this
-;                currently because run-llvm2ice.py raises exception on error,
+;                currently because run-pnacl-sz.py raises exception on error,
 ;                and output is lost.
 ; RUN: %if --need=allow_dump --command llvm-as < %s \
 ; RUN:   | %if --need=allow_dump --command pnacl-freeze \
 ; RUN        -allow-local-symbol-tables \
-; RUN:   | %if --need=allow_dump --command not %llvm2ice -notranslate \
+; RUN:   | %if --need=allow_dump --command not %pnacl_sz -notranslate \
 ; RUN:       -verbose=inst -build-on-read \
 ; RUN:       -allow-pnacl-reader-error-recovery \
 ; RUN:       -allow-local-symbol-tables \
@@ -15,7 +15,7 @@
 ; RUN: %if --need=no_dump --command llvm-as < %s \
 ; RUN:   | %if --need=no_dump --command pnacl-freeze \
 ; RUN        -allow-local-symbol-tables \
-; RUN:   | %if --need=no_dump --command not %llvm2ice -notranslate \
+; RUN:   | %if --need=no_dump --command not %pnacl_sz -notranslate \
 ; RUN:       -verbose=inst -build-on-read \
 ; RUN:       -allow-pnacl-reader-error-recovery \
 ; RUN:       -allow-local-symbol-tables \

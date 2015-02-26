@@ -127,7 +127,7 @@ SRCS = \
 	IceTimerTree.cpp \
 	IceTranslator.cpp \
 	IceTypes.cpp \
-	llvm2ice.cpp \
+	main.cpp \
 	PNaClTranslator.cpp
 
 ifndef MINIMAL
@@ -143,23 +143,23 @@ UNITTEST_SRCS = \
 	IceParseInstsTest.cpp
 
 UNITTEST_OBJS = $(patsubst %.cpp, $(OBJDIR)/unittest/%.o, $(UNITTEST_SRCS))
-UNITTEST_LIB_OBJS = $(filter-out $(OBJDIR)/llvm2ice.o,$(OBJS))
+UNITTEST_LIB_OBJS = $(filter-out $(OBJDIR)/main.o,$(OBJS))
 
 # Keep all the first target so it's the default.
-all: $(OBJDIR)/llvm2ice make_symlink runtime
+all: $(OBJDIR)/pnacl-sz make_symlink runtime
 
 # Creates symbolic link so that testing is easier. Also runs
-# llvm2ice to verify that the defines flags have valid values,
+# pnacl-sz to verify that the defines flags have valid values,
 # as well as describe the corresponding build attributes.
-make_symlink: $(OBJDIR)/llvm2ice
-	rm -rf llvm2ice
-	ln -s $(OBJDIR)/llvm2ice
+make_symlink: $(OBJDIR)/pnacl-sz
+	rm -rf pnacl-sz
+	ln -s $(OBJDIR)/pnacl-sz
 	@echo "Build Attributes:"
-	@$(OBJDIR)/llvm2ice --build-atts
+	@$(OBJDIR)/pnacl-sz --build-atts
 
 .PHONY: all make_symlink runtime bloat
 
-$(OBJDIR)/llvm2ice: $(OBJS)
+$(OBJDIR)/pnacl-sz: $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
                -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
 
@@ -202,7 +202,7 @@ runtime.is.built: $(RT_SRC)
 	@echo ================ Building Subzero runtime ================
 	./pydir/build-runtime.py -v
 
-check-lit: $(OBJDIR)/llvm2ice make_symlink
+check-lit: $(OBJDIR)/pnacl-sz make_symlink
 	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
 	BINUTILS_BIN_PATH=$(BINUTILS_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit
@@ -232,12 +232,12 @@ format-diff:
 	-p1 -style=LLVM -i
 
 bloat: make_symlink
-	nm -C -S -l llvm2ice | \
-	bloat/bloat.py --nm-output=/dev/stdin syms > build/llvm2ice.bloat.json
-	@echo See Subzero size breakdown in bloat/llvm2ice.bloat.html
+	nm -C -S -l pnacl-sz | \
+	bloat/bloat.py --nm-output=/dev/stdin syms > build/pnacl-sz.bloat.json
+	@echo See Subzero size breakdown in bloat/pnacl-sz.bloat.html
 
 clean:
-	rm -rf llvm2ice *.o $(OBJDIR) build/llvm2ice.bloat.json
+	rm -rf pnacl-sz *.o $(OBJDIR) build/pnacl-sz.bloat.json
 
 clean-all: clean
 	rm -rf build/

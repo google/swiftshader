@@ -32,23 +32,23 @@ inside a debugger.  ``NOASSERT=1`` disables assertions and is the preferred
 configuration for performance testing the translator.  ``MINIMAL=1`` attempts to
 minimize the size of the translator by compiling out everything unnecessary.
 
-The result of the ``make`` command is the target ``llvm2ice`` in the current
+The result of the ``make`` command is the target ``pnacl-sz`` in the current
 directory.
 
-``llvm2ice``
+``pnacl-sz``
 ------------
 
-The ``llvm2ice`` program parses a pexe or an LLVM bitcode file and translates it
+The ``pnacl-sz`` program parses a pexe or an LLVM bitcode file and translates it
 into ICE (Subzero's intermediate representation).  It then invokes the ICE
 translate method to lower it to target-specific machine code, optionally dumping
 the intermediate representation at various stages of the translation.
 
 The program can be run as follows::
 
-    ../llvm2ice ./path/to/<file>.pexe
-    ../llvm2ice ./tests_lit/llvm2ice_tests/<file>.ll
+    ../pnacl-sz ./path/to/<file>.pexe
+    ../pnacl-sz ./tests_lit/pnacl-sz_tests/<file>.ll
 
-At this time, ``llvm2ice`` accepts a number of arguments, including the
+At this time, ``pnacl-sz`` accepts a number of arguments, including the
 following:
 
     ``-help`` -- Show available arguments and possible values.  (Note: this
@@ -105,12 +105,12 @@ A convenient way to run both the lit tests and the cross tests is::
 
     make -f Makefile.standalone check
 
-Assembling ``llvm2ice`` output as needed
+Assembling ``pnacl-sz`` output as needed
 ----------------------------------------
 
-``llvm2ice`` can now produce a native ELF binary using ``-filetype=obj``.
+``pnacl-sz`` can now produce a native ELF binary using ``-filetype=obj``.
 
-``llvm2ice`` can also produce textual assembly code in a structure suitable for
+``pnacl-sz`` can also produce textual assembly code in a structure suitable for
 input to ``llvm-mc``, using ``-filetype=asm`` or ``-filetype=iasm``.  An object
 file can then be produced using the command::
 

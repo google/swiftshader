@@ -29,7 +29,7 @@ namespace Ice {
 
 namespace {
 
-// TODO(stichnot): Move this machinery into llvm2ice.cpp.
+// TODO(stichnot): Move this machinery into main.cpp.
 namespace cl = llvm::cl;
 cl::opt<bool> DoNopInsertion("nop-insertion", cl::desc("Randomly insert NOPs"),
                              cl::init(false));

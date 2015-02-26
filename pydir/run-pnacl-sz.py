@@ -11,7 +11,7 @@ import tempfile
 from utils import shellcmd
 
 def main():
-    """Run the llvm2ice compiler on an llvm file.
+    """Run the pnacl-sz compiler on an llvm file.
 
     Takes an llvm input file, freezes it into a pexe file, converts
     it to a Subzero program, and finally compiles it.
@@ -38,8 +38,8 @@ def main():
                            '(without generating a pexe), then ' +
                            'convert to Subzero')
     argparser.add_argument(
-        '--llvm2ice', required=False, default='./llvm2ice', metavar='LLVM2ICE',
-        help="Subzero translator 'llvm2ice'")
+        '--pnacl-sz', required=False, default='./pnacl-sz', metavar='PNACL-SZ',
+        help="Subzero translator 'pnacl-sz'")
     argparser.add_argument('--llvm-bin-path', required=False,
                            default=None, metavar='LLVM_BIN_PATH',
                            help='Path to LLVM executables ' +
@@ -64,7 +64,7 @@ def main():
                            help='Trace command that generates ICE instructions')
     argparser.add_argument('--args', '-a', nargs=argparse.REMAINDER,
                            default=[],
-                           help='Remaining arguments are passed to llvm2ice')
+                           help='Remaining arguments are passed to pnacl-sz')
 
     args = argparser.parse_args()
     llvm_bin_path = args.llvm_bin_path
@@ -85,7 +85,7 @@ def main():
       if not args.no_local_syms:
         cmd += ['--allow-local-symbol-tables']
       cmd += ['|']
-    cmd += [args.llvm2ice]
+    cmd += [args.pnacl_sz]
     if args.insts:
       # If the tests are based on '-verbose inst' output, force
       # single-threaded translation because dump output does not get

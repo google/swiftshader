@@ -72,7 +72,7 @@ public:
   virtual bool getSuppressMangling() const = 0;
 
   // Mangles name for cross tests, unless external and not defined locally
-  // (so that relocations accross llvm2ice and pnacl-llc will work).
+  // (so that relocations accross pnacl-sz and pnacl-llc will work).
   virtual IceString mangleName(GlobalContext *Ctx) const {
     return getSuppressMangling() ? Name : Ctx->mangleName(Name);
   }

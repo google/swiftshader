@@ -1,7 +1,7 @@
 
 SUBZERO_LEVEL := ..
 
-TOOLNAME := llvm2ice
+TOOLNAME := pnacl-sz
 LINK_COMPONENTS := support
 
 # This tool has no plugins, optimize startup time.

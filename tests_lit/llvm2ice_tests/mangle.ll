@@ -1,4 +1,4 @@
-; Tests the Subzero "name mangling" when using the "llvm2ice --prefix"
+; Tests the Subzero "name mangling" when using the "pnacl-sz --prefix"
 ; option.  Also does a quick smoke test of -ffunction-sections.
 
 ; REQUIRES: allow_dump
