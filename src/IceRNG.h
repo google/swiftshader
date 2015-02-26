@@ -22,11 +22,12 @@
 namespace Ice {
 
 class RandomNumberGenerator {
+  RandomNumberGenerator() = delete;
   RandomNumberGenerator(const RandomNumberGenerator &) = delete;
   RandomNumberGenerator &operator=(const RandomNumberGenerator &) = delete;
 
 public:
-  RandomNumberGenerator(llvm::StringRef Salt);
+  explicit RandomNumberGenerator(llvm::StringRef Salt);
   uint64_t next(uint64_t Max);
 
 private:
@@ -37,6 +38,7 @@ private:
 // reason for the wrapper class is that we want to keep the
 // RandomNumberGenerator interface identical to LLVM's.
 class RandomNumberGeneratorWrapper {
+  RandomNumberGeneratorWrapper() = delete;
   RandomNumberGeneratorWrapper(const RandomNumberGeneratorWrapper &) = delete;
   RandomNumberGeneratorWrapper &
   operator=(const RandomNumberGeneratorWrapper &) = delete;
@@ -44,7 +46,8 @@ class RandomNumberGeneratorWrapper {
 public:
   uint64_t operator()(uint64_t Max) { return RNG.next(Max); }
   bool getTrueWithProbability(float Probability);
-  RandomNumberGeneratorWrapper(RandomNumberGenerator &RNG) : RNG(RNG) {}
+  explicit RandomNumberGeneratorWrapper(RandomNumberGenerator &RNG)
+      : RNG(RNG) {}
 
 private:
   RandomNumberGenerator &RNG;

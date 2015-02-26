@@ -1,12 +1,10 @@
 ; This is a test of C-level conversion operations that clang lowers
 ; into pairs of shifts.
 
-; RUN: %p2i -i %s --no-local-syms --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --no-local-syms --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --no-local-syms --args -O2 \
+; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --no-local-syms --args -Om1 \
+; RUN:   | FileCheck %s
 
 @i1 = internal global [4 x i8] zeroinitializer, align 4
 @i2 = internal global [4 x i8] zeroinitializer, align 4
@@ -23,8 +21,8 @@ entry:
   ret void
 }
 ; CHECK-LABEL: conv1
-; CHECK: shl {{.*}}, 24
-; CHECK: sar {{.*}}, 24
+; CHECK: shl {{.*}},0x18
+; CHECK: sar {{.*}},0x18
 
 define void @conv2() {
 entry:
@@ -37,5 +35,5 @@ entry:
   ret void
 }
 ; CHECK-LABEL: conv2
-; CHECK: shl {{.*}}, 16
-; CHECK: sar {{.*}}, 16
+; CHECK: shl {{.*}},0x10
+; CHECK: sar {{.*}},0x10

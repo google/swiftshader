@@ -80,9 +80,11 @@ def AddOptionalArgs(argparser):
                            help='Optimization level ' +
                                 '(m1 and -1 are equivalent).' +
                                 ' Default %(default)s.')
-    argparser.add_argument('--elf', dest='elf',
-                           action='store_true',
-                           help='Directly generate ELF output')
+    argparser.add_argument('--filetype', default='iasm', dest='filetype',
+                           choices=['obj', 'asm', 'iasm'],
+                           help='Output file type.  Default %(default)s.')
+    argparser.add_argument('--sandbox', dest='sandbox', action='store_true',
+                           help='Enabled sandboxing in the translator')
     argparser.add_argument('--verbose', '-v', dest='verbose',
                            action='store_true',
                            help='Display some extra debugging output')
@@ -119,7 +121,7 @@ def main():
     entirely using Subzero, without using llc or linker tricks.
 
     This script uses file modification timestamps to determine whether llc and
-    Subzero re-translation are needed.  It checks timestamps of llc, llvm2ice,
+    Subzero re-translation are needed.  It checks timestamps of llc, pnacl-sz,
     and the pexe against the translated object files to determine the minimal
     work necessary.  The --force option suppresses those checks and
     re-translates everything.
@@ -150,10 +152,12 @@ def ProcessPexe(args, pexe, exe):
     pexe = pipes.quote(pexe)
 
     nacl_root = FindBaseNaCl()
+    path_addition = (
+        '{root}/toolchain/linux_x86/pnacl_newlib/bin'
+        ).format(root=nacl_root)
     os.environ['PATH'] = (
-        '{root}/toolchain/linux_x86/pnacl_newlib/bin{sep}' +
-        '{path}'
-        ).format(root=nacl_root, sep=os.pathsep, path=os.environ['PATH'])
+        '{dir}{sep}{path}'
+        ).format(dir=path_addition, sep=os.pathsep, path=os.environ['PATH'])
     obj_llc = pexe_base + '.llc.o'
     obj_sz = pexe_base + '.sz.o'
     asm_sz = pexe_base + '.sz.s'
@@ -165,12 +169,11 @@ def ProcessPexe(args, pexe, exe):
     sym_sz_unescaped = pexe_base_unescaped + '.sym.sz.txt'
     whitelist_sz = pexe_base + '.wl.sz.txt'
     whitelist_sz_unescaped = pexe_base_unescaped + '.wl.sz.txt'
-    llvm2ice = (
-        '{root}/toolchain_build/src/subzero/llvm2ice'
+    pnacl_sz = (
+        '{root}/toolchain_build/src/subzero/pnacl-sz'
         ).format(root=nacl_root)
-    llcbin = (
-        '{root}/toolchain/linux_x86/pnacl_newlib/bin/llc'
-        ).format(root=nacl_root)
+    llcbin = 'llc'
+    gold = 'le32-nacl-ld.gold'
     opt_level = args.optlevel
     opt_level_map = { 'm1':'0', '-1':'0', '0':'0', '1':'1', '2':'2' }
     hybrid = args.include or args.exclude
@@ -180,19 +183,22 @@ def ProcessPexe(args, pexe, exe):
                    NewerThanOrNotThere(llcbin, obj_llc)):
         # Only run pnacl-translate in hybrid mode.
         shellcmd(['pnacl-translate',
+                  '-split-module=1',
                   '-ffunction-sections',
                   '-fdata-sections',
                   '-c',
-                  '-arch', 'x86-32-linux',
+                  '-arch', 'x86-32' if args.sandbox else 'x86-32-linux',
                   '-O' + opt_level_map[opt_level],
                   '--pnacl-driver-append-LLC_FLAGS_EXTRA=-externalize',
                   '-o', obj_llc] +
+                 (['--pnacl-driver-verbose'] if args.verbose else []) +
                  args.llc_args +
                  [pexe],
                  echo=args.verbose)
-        shellcmd((
-            'objcopy --redefine-sym _start=_user_start {obj}'
-            ).format(obj=obj_llc), echo=args.verbose)
+        if not args.sandbox:
+            shellcmd((
+                'objcopy --redefine-sym _start=_user_start {obj}'
+                ).format(obj=obj_llc), echo=args.verbose)
         # Generate llc syms file for consistency, even though it's not used.
         shellcmd((
             'nm {obj} | sed -n "s/.* [a-zA-Z] //p" > {sym}'
@@ -200,26 +206,30 @@ def ProcessPexe(args, pexe, exe):
 
     if (args.force or
         NewerThanOrNotThere(pexe, obj_sz) or
-        NewerThanOrNotThere(llvm2ice, obj_sz)):
-        # Run llvm2ice regardless of hybrid mode.
-        shellcmd([llvm2ice,
+        NewerThanOrNotThere(pnacl_sz, obj_sz)):
+        # Run pnacl-sz regardless of hybrid mode.
+        shellcmd([pnacl_sz,
                   '-O' + opt_level,
                   '-bitcode-format=pnacl',
-                  '-o', obj_sz if args.elf else asm_sz] +
+                  '-filetype=' + args.filetype,
+                  '-o', obj_sz if args.filetype == 'obj' else asm_sz] +
                  (['-externalize',
                    '-ffunction-sections',
                    '-fdata-sections'] if hybrid else []) +
-                 (['-elf-writer'] if args.elf else []) +
+                 (['-sandbox'] if args.sandbox else []) +
                  args.sz_args +
                  [pexe],
                  echo=args.verbose)
-        if not args.elf:
+        if args.filetype != 'obj':
             shellcmd((
-                'llvm-mc -arch=x86 -filetype=obj -o {obj} {asm}'
-                ).format(asm=asm_sz, obj=obj_sz), echo=args.verbose)
-        shellcmd((
-            'objcopy --redefine-sym _start=_user_start {obj}'
-            ).format(obj=obj_sz), echo=args.verbose)
+                'llvm-mc -triple={triple} -filetype=obj -o {obj} {asm}'
+                ).format(asm=asm_sz, obj=obj_sz,
+                         triple='i686-nacl' if args.sandbox else 'i686'),
+                     echo=args.verbose)
+        if not args.sandbox:
+            shellcmd((
+                'objcopy --redefine-sym _start=_user_start {obj}'
+                ).format(obj=obj_sz), echo=args.verbose)
         if hybrid:
             shellcmd((
                 'nm {obj} | sed -n "s/.* [a-zA-Z] //p" > {sym}'
@@ -266,29 +276,46 @@ def ProcessPexe(args, pexe, exe):
             'objcopy -w --localize-symbol="*" {partial}'
             ).format(partial=obj_partial), echo=args.verbose)
         shellcmd((
-            'objcopy --globalize-symbol=_user_start {partial}'
-            ).format(partial=obj_partial), echo=args.verbose)
+            'objcopy --globalize-symbol={start} {partial}'
+            ).format(partial=obj_partial,
+                     start='_start' if args.sandbox else '_user_start'),
+                 echo=args.verbose)
 
     # Run the linker regardless of hybrid mode.
     linker = (
         '{root}/../third_party/llvm-build/Release+Asserts/bin/clang'
         ).format(root=nacl_root)
-    shellcmd((
-        '{ld} -m32 {partial} -o {exe} -O{opt_level} ' +
-        # Keep the rest of this command line (except szrt.c) in sync
-        # with RunHostLD() in pnacl-translate.py.
-        '{root}/toolchain/linux_x86/pnacl_newlib/translator/x86-32-linux/lib/' +
-        '{{unsandboxed_irt,irt_random,irt_query_list}}.o ' +
-        '{root}/toolchain_build/src/subzero/runtime/szrt.c ' +
-        '{root}/toolchain_build/src/subzero/runtime/szrt_i686.ll ' +
-        '-lpthread -lrt'
-        ).format(ld=linker, partial=obj_partial, exe=exe,
-                 opt_level=opt_level_map[opt_level], root=nacl_root),
-             echo=args.verbose)
+    if args.sandbox:
+        linklib = ('{root}/toolchain/linux_x86/pnacl_newlib/translator/' +
+                   'x86-32/lib').format(root=nacl_root)
+        shellcmd((
+            '{gold} -nostdlib --no-fix-cortex-a8 --eh-frame-hdr -z text ' +
+            '--build-id --entry=__pnacl_start -static ' +
+            '{linklib}/crtbegin.o {partial} ' +
+            '{root}/toolchain_build/src/subzero/build/runtime/' +
+            'szrt_sb_x8632.o ' +
+            '{linklib}/libpnacl_irt_shim_dummy.a --start-group ' +
+            '{linklib}/libgcc.a {linklib}/libcrt_platform.a ' +
+            '--end-group {linklib}/crtend.o --undefined=_start ' +
+            '-o {exe}'
+            ).format(gold=gold, linklib=linklib, partial=obj_partial, exe=exe,
+                     root=nacl_root),
+                 echo=args.verbose)
+    else:
+        shellcmd((
+            '{ld} -m32 {partial} -o {exe} ' +
+            # Keep the rest of this command line (except szrt_native_x8632.o) in
+            # sync with RunHostLD() in pnacl-translate.py.
+            '{root}/toolchain/linux_x86/pnacl_newlib/translator/x86-32-linux/' +
+            'lib/{{unsandboxed_irt,irt_random,irt_query_list}}.o ' +
+            '{root}/toolchain_build/src/subzero/build/runtime/' +
+            'szrt_native_x8632.o -lpthread -lrt'
+            ).format(ld=linker, partial=obj_partial, exe=exe, root=nacl_root),
+                 echo=args.verbose)
 
     # Put the extra verbose printing at the end.
     if args.verbose:
-        print 'PATH={path}'.format(path=os.environ['PATH'])
+        print 'PATH: {path}'.format(path=path_addition)
         if hybrid:
             print 'include={regex}'.format(regex=re_include_str)
             print 'exclude={regex}'.format(regex=re_exclude_str)

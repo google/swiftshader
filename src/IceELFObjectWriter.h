@@ -48,6 +48,7 @@ namespace Ice {
 // file. Having both -fdata-sections and -ffunction-sections does allow
 // relaxing this requirement.
 class ELFObjectWriter {
+  ELFObjectWriter() = delete;
   ELFObjectWriter(const ELFObjectWriter &) = delete;
   ELFObjectWriter &operator=(const ELFObjectWriter &) = delete;
 

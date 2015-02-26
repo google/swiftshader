@@ -1,16 +1,17 @@
 ; Tests that we generate an ELF container correctly when there
 ; is no data section.
 
-; For the integrated ELF writer, we can't pipe the output because we need
-; to seek backward and patch up the file headers. So, use a temporary file.
-; RUN: %p2i -i %s --args -O2 --verbose none -elf-writer -o %t \
+; RUN: %p2i -i %s --filetype=obj --args -O2 -o %t \
 ; RUN:   && llvm-readobj -file-headers -sections -section-data \
 ; RUN:       -relocations -symbols %t | FileCheck %s
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj -o - \
-; RUN:   | llvm-readobj -file-headers -sections -section-data \
-; RUN:       -relocations -symbols - | FileCheck %s
+; RUN: %if --need=allow_dump --command %p2i -i %s --args -O2 \
+; RUN:   | %if --need=allow_dump --command \
+; RUN:   llvm-mc -triple=i686-none-nacl -filetype=obj -o - \
+; RUN:   | %if --need=allow_dump --command \
+; RUN:   llvm-readobj -file-headers -sections -section-data \
+; RUN:       -relocations -symbols - \
+; RUN:   | %if --need=allow_dump --command FileCheck %s
 
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
 

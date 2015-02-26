@@ -7,11 +7,14 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file declares the TargetLowering and LoweringContext
-// classes.  TargetLowering is an abstract class used to drive the
-// translation/lowering process.  LoweringContext maintains a
-// context for lowering each instruction, offering conveniences such
-// as iterating over non-deleted instructions.
+// This file declares the TargetLowering, LoweringContext, and
+// TargetDataLowering classes.  TargetLowering is an abstract class
+// used to drive the translation/lowering process.  LoweringContext
+// maintains a context for lowering each instruction, offering
+// conveniences such as iterating over non-deleted instructions.
+// TargetDataLowering is an abstract class used to drive the
+// lowering/emission of global initializers, external global
+// declarations, and internal constant pools.
 //
 //===----------------------------------------------------------------------===//
 
@@ -87,6 +90,7 @@ private:
 };
 
 class TargetLowering {
+  TargetLowering() = delete;
   TargetLowering(const TargetLowering &) = delete;
   TargetLowering &operator=(const TargetLowering &) = delete;
 
@@ -189,6 +193,17 @@ public:
       llvm::SmallVectorImpl<int32_t> &Permutation,
       const llvm::SmallBitVector &ExcludeRegisters) const = 0;
 
+  // Save/restore any mutable state for the situation where code
+  // emission needs multiple passes, such as sandboxing or relaxation.
+  // Subclasses may provide their own implementation, but should be
+  // sure to also call the parent class's methods.
+  virtual void snapshotEmitState() {
+    SnapshotStackAdjustment = StackAdjustment;
+  }
+  virtual void rollbackEmitState() {
+    StackAdjustment = SnapshotStackAdjustment;
+  }
+
   virtual void emitVariable(const Variable *Var) const = 0;
 
   // Performs target-specific argument lowering.
@@ -200,7 +215,7 @@ public:
   virtual ~TargetLowering() {}
 
 protected:
-  TargetLowering(Cfg *Func);
+  explicit TargetLowering(Cfg *Func);
   virtual void lowerAlloca(const InstAlloca *Inst) = 0;
   virtual void lowerArithmetic(const InstArithmetic *Inst) = 0;
   virtual void lowerAssign(const InstAssign *Inst) = 0;
@@ -236,6 +251,9 @@ protected:
   // natural location, as arguments are pushed for a function call.
   int32_t StackAdjustment;
   LoweringContext Context;
+
+private:
+  int32_t SnapshotStackAdjustment;
 };
 
 // TargetDataLowering is used for "lowering" data including initializers
@@ -247,15 +265,15 @@ class TargetDataLowering {
   TargetDataLowering &operator=(const TargetDataLowering &) = delete;
 
 public:
-  static TargetDataLowering *createLowering(GlobalContext *Ctx);
+  static std::unique_ptr<TargetDataLowering> createLowering(GlobalContext *Ctx);
   virtual ~TargetDataLowering();
 
-  virtual void lowerGlobal(const VariableDeclaration &Var) const = 0;
-  virtual void lowerGlobalsELF(const VariableDeclarationList &Vars) const = 0;
-  virtual void lowerConstants(GlobalContext *Ctx) const = 0;
+  virtual void
+  lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) const = 0;
+  virtual void lowerConstants() const = 0;
 
 protected:
-  TargetDataLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
+  explicit TargetDataLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
   GlobalContext *Ctx;
 };
 

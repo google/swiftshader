@@ -1,13 +1,13 @@
-; Tests the Subzero "name mangling" when using the "llvm2ice --prefix"
+; Tests the Subzero "name mangling" when using the "pnacl-sz --prefix"
 ; option.  Also does a quick smoke test of -ffunction-sections.
 
 ; REQUIRES: allow_dump
 ; RUN: %p2i -i %s --args --verbose none -ffunction-sections | FileCheck %s
 ; TODO(stichnot): The following line causes this test to fail.
-; RUIN: %p2i -i %s --args --verbose none \
-; RUIN:     | llvm-mc -triple=i686-none-nacl -filetype=obj
+; RUIN: %p2i --assemble --disassemble -i %s --args --verbose none \
+; RUIN:   | FileCheck %s
 ; RUN: %p2i -i %s --args --verbose none --prefix Subzero -ffunction-sections \
-; RUN:      | FileCheck --check-prefix=MANGLE %s
+; RUN:   | FileCheck --check-prefix=MANGLE %s
 
 define internal void @FuncC(i32 %i) {
 entry:

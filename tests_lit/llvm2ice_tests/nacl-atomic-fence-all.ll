@@ -3,12 +3,7 @@
 ; (unlike the non-"all" variety of nacl.atomic.fence, which only
 ; applies to atomic load/stores).
 ;
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d -r -symbolize -x86-asm-syntax=intel - | FileCheck %s
-
-; TODO(jvoung): llvm-objdump doesn't symbolize global symbols well, so we
-; have 0 == g32_a, 4 == g32_b, 8 == g32_c, 12 == g32_d
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
 
 declare void @llvm.nacl.atomic.fence.all()
 declare i32 @llvm.nacl.atomic.load.i32(i32*, i32)
@@ -45,21 +40,18 @@ entry:
 }
 ; CHECK-LABEL: test_fused_load_add_a
 ;    alloca store
-; CHECK: mov {{.*}}, esp
-; CHECK: mov dword ptr {{.*}}, 999
+; CHECK: mov {{.*}},esp
+; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
 ; The load + add are optimized into one everywhere.
-; CHECK: add {{.*}}, dword ptr [.bss]
-; CHECK-NEXT:  R_386_32
-; CHECK: mov dword ptr
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_a
+; CHECK: mov DWORD PTR
 ; CHECK: mfence
-; CHECK: add {{.*}}, dword ptr [.bss]
-; CHECK-NEXT:  R_386_32
-; CHECK: mov dword ptr
-; CHECK: add {{.*}}, dword ptr [.bss]
-; CHECK-NEXT:  R_386_32
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_b
+; CHECK: mov DWORD PTR
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_c
 ; CHECK: mfence
-; CHECK: mov dword ptr
+; CHECK: mov DWORD PTR
 
 ; Test with the fence moved up a bit.
 define i32 @test_fused_load_add_b() {
@@ -88,22 +80,19 @@ entry:
 }
 ; CHECK-LABEL: test_fused_load_add_b
 ;    alloca store
-; CHECK: mov {{.*}}, esp
-; CHECK: mov dword ptr {{.*}}, 999
+; CHECK: mov {{.*}},esp
+; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
-; CHECK: add {{.*}}, dword ptr [.bss]
-; CHECK-NEXT:  R_386_32
-; CHECK: mov dword ptr
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_a
+; CHECK: mov DWORD PTR
 ; CHECK: mfence
-; CHECK: add {{.*}}, dword ptr [.bss]
-; CHECK-NEXT:  R_386_32
-; CHECK: mov dword ptr
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_b
+; CHECK: mov DWORD PTR
 ; CHECK: mfence
 ; Load + add can still be optimized into one instruction
 ; because it is not separated by a fence.
-; CHECK: add {{.*}}, dword ptr [.bss]
-; CHECK-NEXT:  R_386_32
-; CHECK: mov dword ptr
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_c
+; CHECK: mov DWORD PTR
 
 ; Test with the fence splitting a load/add.
 define i32 @test_fused_load_add_c() {
@@ -132,24 +121,21 @@ entry:
 }
 ; CHECK-LABEL: test_fused_load_add_c
 ;    alloca store
-; CHECK: mov {{.*}}, esp
-; CHECK: mov dword ptr {{.*}}, 999
+; CHECK: mov {{.*}},esp
+; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
-; CHECK: add {{.*}}, dword ptr [.bss]
-; CHECK-NEXT:  R_386_32
-; CHECK: mov dword ptr
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_a
+; CHECK: mov DWORD PTR
 ; CHECK: mfence
 ; This load + add are no longer optimized into one,
 ; though perhaps it should be legal as long as
 ; the load stays on the same side of the fence.
-; CHECK: mov {{.*}}, dword ptr [.bss]
-; CHECK-NEXT:  R_386_32
+; CHECK: mov {{.*}},DWORD PTR {{.*}}g32_b
 ; CHECK: mfence
-; CHECK: add {{.*}}, 1
-; CHECK: mov dword ptr
-; CHECK: add {{.*}}, dword ptr [.bss]
-; CHECK-NEXT:  R_386_32
-; CHECK: mov dword ptr
+; CHECK: add {{.*}},0x1
+; CHECK: mov DWORD PTR
+; CHECK: add {{.*}},DWORD PTR {{.*}}g32_c
+; CHECK: mov DWORD PTR
 
 
 ; Test where a bunch of i8 loads could have been fused into one
@@ -187,12 +173,11 @@ entry:
   ret i32 %b1234
 }
 ; CHECK-LABEL: could_have_fused_loads
-; CHECK: mov {{.*}}, byte ptr
-; CHECK-NEXT:  R_386_32
-; CHECK: mov {{.*}}, byte ptr
-; CHECK: mov {{.*}}, byte ptr
+; CHECK: mov {{.*}},BYTE PTR
+; CHECK: mov {{.*}},BYTE PTR
+; CHECK: mov {{.*}},BYTE PTR
 ; CHECK: mfence
-; CHECK: mov {{.*}}, byte ptr
+; CHECK: mov {{.*}},BYTE PTR
 
 
 ; Test where an identical load from two branches could have been hoisted
@@ -212,10 +197,8 @@ branch2:
 }
 ; CHECK-LABEL: could_have_hoisted_loads
 ; CHECK: jne {{.*}}
-; CHECK: mov {{.*}}, dword ptr [.bss]
-; CHECK-NEXT:  R_386_32
+; CHECK: mov {{.*}},DWORD PTR {{.*}}g32_d
 ; CHECK: ret
 ; CHECK: mfence
-; CHECK: mov {{.*}}, dword ptr [.bss]
-; CHECK-NEXT:  R_386_32
+; CHECK: mov {{.*}},DWORD PTR {{.*}}g32_d
 ; CHECK: ret

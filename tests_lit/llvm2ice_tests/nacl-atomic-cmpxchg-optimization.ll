@@ -1,12 +1,8 @@
 ; This tests the optimization of atomic cmpxchg w/ following cmp + branches.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:   | FileCheck --check-prefix=O2 %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d -symbolize -x86-asm-syntax=intel - \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   | FileCheck --check-prefix=OM1 %s
 
 declare i32 @llvm.nacl.atomic.cmpxchg.i32(i32*, i32, i32, i32, i32)
@@ -36,16 +32,14 @@ done:
   ret i32 %succeeded_first_try
 }
 ; O2-LABEL: test_atomic_cmpxchg_loop
-; O2: lock
-; O2-NEXT: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
+; O2: lock cmpxchg DWORD PTR [e{{[^a].}}],e{{[^a]}}
 ; O2-NEXT: j{{e|ne}}
 ; Make sure the call isn't accidentally deleted.
 ; O2: call
 ;
 ; Check that the unopt version does have a cmp
 ; OM1-LABEL: test_atomic_cmpxchg_loop
-; OM1: lock
-; OM1-NEXT: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
+; OM1: lock cmpxchg DWORD PTR [e{{[^a].}}],e{{[^a]}}
 ; OM1: cmp
 ; OM1: je
 ; OM1: call
@@ -67,8 +61,7 @@ done:
   ret i32 %old
 }
 ; O2-LABEL: test_atomic_cmpxchg_loop2
-; O2: lock
-; O2-NEXT: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
+; O2: lock cmpxchg DWORD PTR [e{{[^a].}}],e{{[^a]}}
 ; O2-NOT: cmp
 ; O2: jne
 
@@ -90,8 +83,7 @@ done:
   ret i32 %succeeded_first_try
 }
 ; O2-LABEL: test_atomic_cmpxchg_loop_const
-; O2: lock
-; O2-NEXT: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
+; O2: lock cmpxchg DWORD PTR [e{{[^a].}}],e{{[^a]}}
 ; O2-NEXT: j{{e|ne}}
 
 ; This is a case where the flags cannot be reused (compare is for some
@@ -112,8 +104,7 @@ done:
   ret i32 %old
 }
 ; O2-LABEL: test_atomic_cmpxchg_no_opt
-; O2: lock
-; O2-NEXT: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
+; O2: lock cmpxchg DWORD PTR [e{{[^a].}}],e{{[^a]}}
 ; O2: cmp
 ; O2: jle
 
@@ -136,8 +127,7 @@ done:
   ret i32 %r
 }
 ; O2-LABEL: test_atomic_cmpxchg_no_opt2
-; O2: lock
-; O2-NEXT: cmpxchg dword ptr [e{{[^a].}}], e{{[^a]}}
+; O2: lock cmpxchg DWORD PTR [e{{[^a].}}],e{{[^a]}}
 ; O2: mov {{.*}}
 ; O2: cmp
 ; O2: je

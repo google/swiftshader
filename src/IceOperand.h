@@ -26,6 +26,7 @@
 namespace Ice {
 
 class Operand {
+  Operand() = delete;
   Operand(const Operand &) = delete;
   Operand &operator=(const Operand &) = delete;
 
@@ -97,6 +98,7 @@ inline StreamType &operator<<(StreamType &Str, const Operand &Op) {
 // Constant is the abstract base class for constants.  All
 // constants are allocated from a global arena and are pooled.
 class Constant : public Operand {
+  Constant() = delete;
   Constant(const Constant &) = delete;
   Constant &operator=(const Constant &) = delete;
 
@@ -128,6 +130,7 @@ protected:
 // ConstantPrimitive<> wraps a primitive type.
 template <typename T, Operand::OperandKind K>
 class ConstantPrimitive : public Constant {
+  ConstantPrimitive() = delete;
   ConstantPrimitive(const ConstantPrimitive &) = delete;
   ConstantPrimitive &operator=(const ConstantPrimitive &) = delete;
 
@@ -191,6 +194,7 @@ inline void ConstantInteger64::dump(const Cfg *, Ostream &Str) const {
 // ConstantRelocatable can fit into the global constant pool
 // template mechanism.
 class RelocatableTuple {
+  RelocatableTuple() = delete;
   RelocatableTuple &operator=(const RelocatableTuple &) = delete;
 
 public:
@@ -209,6 +213,7 @@ bool operator==(const RelocatableTuple &A, const RelocatableTuple &B);
 // ConstantRelocatable represents a symbolic constant combined with
 // a fixed offset.
 class ConstantRelocatable : public Constant {
+  ConstantRelocatable() = delete;
   ConstantRelocatable(const ConstantRelocatable &) = delete;
   ConstantRelocatable &operator=(const ConstantRelocatable &) = delete;
 
@@ -223,7 +228,7 @@ public:
   }
 
   RelocOffsetT getOffset() const { return Offset; }
-  IceString getName() const { return Name; }
+  const IceString &getName() const { return Name; }
   void setSuppressMangling(bool Value) { SuppressMangling = Value; }
   bool getSuppressMangling() const { return SuppressMangling; }
   using Constant::emit;
@@ -252,6 +257,7 @@ private:
 // legal to lower ConstantUndef to any value, backends should try to
 // make code generation deterministic by lowering ConstantUndefs to 0.
 class ConstantUndef : public Constant {
+  ConstantUndef() = delete;
   ConstantUndef(const ConstantUndef &) = delete;
   ConstantUndef &operator=(const ConstantUndef &) = delete;
 
@@ -286,10 +292,9 @@ private:
 // special value that represents infinite weight, and an addWeight()
 // method that ensures that W+infinity=infinity.
 class RegWeight {
-
 public:
   RegWeight() : Weight(0) {}
-  RegWeight(uint32_t Weight) : Weight(Weight) {}
+  explicit RegWeight(uint32_t Weight) : Weight(Weight) {}
   RegWeight(const RegWeight &) = default;
   RegWeight &operator=(const RegWeight &) = default;
   const static uint32_t Inf = ~0; // Force regalloc to give a register
@@ -304,6 +309,7 @@ public:
   void setWeight(uint32_t Val) { Weight = Val; }
   uint32_t getWeight() const { return Weight; }
   bool isInf() const { return Weight == Inf; }
+  bool isZero() const { return Weight == Zero; }
 
 private:
   uint32_t Weight;
@@ -324,7 +330,7 @@ public:
   LiveRange() : Weight(0) {}
   // Special constructor for building a kill set.  The advantage is
   // that we can reserve the right amount of space in advance.
-  LiveRange(const std::vector<InstNumberT> &Kills) : Weight(0) {
+  explicit LiveRange(const std::vector<InstNumberT> &Kills) : Weight(0) {
     Range.reserve(Kills.size());
     for (InstNumberT I : Kills)
       addSegment(I, I);
@@ -380,6 +386,7 @@ Ostream &operator<<(Ostream &Str, const LiveRange &L);
 // stack-allocated.  If it is register-allocated, it will ultimately
 // have a non-negative RegNum field.
 class Variable : public Operand {
+  Variable() = delete;
   Variable(const Variable &) = delete;
   Variable &operator=(const Variable &) = delete;
 
@@ -421,8 +428,8 @@ public:
   void setRegNumTmp(int32_t NewRegNum) { RegNumTmp = NewRegNum; }
 
   RegWeight getWeight() const { return Weight; }
-  void setWeight(uint32_t NewWeight) { Weight = NewWeight; }
-  void setWeightInfinite() { Weight = RegWeight::Inf; }
+  void setWeight(uint32_t NewWeight) { Weight = RegWeight(NewWeight); }
+  void setWeightInfinite() { setWeight(RegWeight::Inf); }
 
   LiveRange &getLiveRange() { return Live; }
   const LiveRange &getLiveRange() const { return Live; }
@@ -432,11 +439,13 @@ public:
     assert(WeightDelta != RegWeight::Inf);
     Live.addSegment(Start, End);
     if (Weight.isInf())
-      Live.setWeight(RegWeight::Inf);
+      Live.setWeight(RegWeight(RegWeight::Inf));
     else
       Live.addWeight(WeightDelta * Weight.getWeight());
   }
-  void setLiveRangeInfiniteWeight() { Live.setWeight(RegWeight::Inf); }
+  void setLiveRangeInfiniteWeight() {
+    Live.setWeight(RegWeight(RegWeight::Inf));
+  }
   void trimLiveRange(InstNumberT Start) { Live.trim(Start); }
   void untrimLiveRange() { Live.untrim(); }
   bool rangeEndsBefore(const Variable *Other) const {
@@ -570,11 +579,12 @@ private:
 // VariablesMetadata analyzes and summarizes the metadata for the
 // complete set of Variables.
 class VariablesMetadata {
+  VariablesMetadata() = delete;
   VariablesMetadata(const VariablesMetadata &) = delete;
   VariablesMetadata &operator=(const VariablesMetadata &) = delete;
 
 public:
-  VariablesMetadata(const Cfg *Func) : Func(Func) {}
+  explicit VariablesMetadata(const Cfg *Func) : Func(Func) {}
   // Initialize the state by traversing all instructions/variables in
   // the CFG.
   void init(MetadataKind TrackingKind);

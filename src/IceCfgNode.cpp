@@ -834,6 +834,8 @@ void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
 }
 
 void updateStats(Cfg *Func, const Inst *I) {
+  if (!ALLOW_DUMP)
+    return;
   // Update emitted instruction count, plus fill/spill count for
   // Variable operands without a physical register.
   if (uint32_t Count = I->getEmitInstCount()) {
@@ -859,7 +861,8 @@ void CfgNode::emit(Cfg *Func) const {
   Func->setCurrentNode(this);
   Ostream &Str = Func->getContext()->getStrEmit();
   Liveness *Liveness = Func->getLiveness();
-  bool DecorateAsm = Liveness && Func->getContext()->getFlags().DecorateAsm;
+  bool DecorateAsm =
+      Liveness && Func->getContext()->getFlags().getDecorateAsm();
   Str << getAsmName() << ":\n";
   std::vector<SizeT> LiveRegCount(Func->getTarget()->getNumRegisters());
   if (DecorateAsm)
@@ -890,9 +893,131 @@ void CfgNode::emit(Cfg *Func) const {
     emitRegisterUsage(Str, Func, this, false, LiveRegCount);
 }
 
+// Helper class for emitIAS().
+namespace {
+class BundleEmitHelper {
+  BundleEmitHelper() = delete;
+  BundleEmitHelper(const BundleEmitHelper &) = delete;
+  BundleEmitHelper &operator=(const BundleEmitHelper &) = delete;
+
+public:
+  BundleEmitHelper(Assembler *Asm, TargetLowering *Target,
+                   const InstList &Insts)
+      : Asm(Asm), Target(Target), End(Insts.end()), BundleLockStart(End),
+        BundleSize(1 << Asm->getBundleAlignLog2Bytes()),
+        BundleMaskLo(BundleSize - 1), BundleMaskHi(~BundleMaskLo),
+        SizeSnapshotPre(0), SizeSnapshotPost(0) {}
+  // Check whether we're currently within a bundle_lock region.
+  bool isInBundleLockRegion() const { return BundleLockStart != End; }
+  // Check whether the current bundle_lock region has the align_to_end
+  // option.
+  bool isAlignToEnd() const {
+    assert(isInBundleLockRegion());
+    return llvm::cast<InstBundleLock>(getBundleLockStart())->getOption() ==
+           InstBundleLock::Opt_AlignToEnd;
+  }
+  // Check whether the entire bundle_lock region falls within the same
+  // bundle.
+  bool isSameBundle() const {
+    assert(isInBundleLockRegion());
+    return SizeSnapshotPre == SizeSnapshotPost ||
+           (SizeSnapshotPre & BundleMaskHi) ==
+               ((SizeSnapshotPost - 1) & BundleMaskHi);
+  }
+  // Get the bundle alignment of the first instruction of the
+  // bundle_lock region.
+  intptr_t getPreAlignment() const {
+    assert(isInBundleLockRegion());
+    return SizeSnapshotPre & BundleMaskLo;
+  }
+  // Get the bundle alignment of the first instruction past the
+  // bundle_lock region.
+  intptr_t getPostAlignment() const {
+    assert(isInBundleLockRegion());
+    return SizeSnapshotPost & BundleMaskLo;
+  }
+  // Get the iterator pointing to the bundle_lock instruction, e.g. to
+  // roll back the instruction iteration to that point.
+  InstList::const_iterator getBundleLockStart() const {
+    assert(isInBundleLockRegion());
+    return BundleLockStart;
+  }
+  // Set up bookkeeping when the bundle_lock instruction is first
+  // processed.
+  void enterBundleLock(InstList::const_iterator I) {
+    assert(!isInBundleLockRegion());
+    BundleLockStart = I;
+    SizeSnapshotPre = Asm->getBufferSize();
+    Asm->setPreliminary(true);
+    Target->snapshotEmitState();
+    assert(isInBundleLockRegion());
+  }
+  // Update bookkeeping when the bundle_unlock instruction is
+  // processed.
+  void enterBundleUnlock() {
+    assert(isInBundleLockRegion());
+    SizeSnapshotPost = Asm->getBufferSize();
+  }
+  // Update bookkeeping when we are completely finished with the
+  // bundle_lock region.
+  void leaveBundleLockRegion() { BundleLockStart = End; }
+  // Check whether the instruction sequence fits within the current
+  // bundle, and if not, add nop padding to the end of the current
+  // bundle.
+  void padToNextBundle() {
+    assert(isInBundleLockRegion());
+    if (!isSameBundle()) {
+      intptr_t PadToNextBundle = BundleSize - getPreAlignment();
+      Asm->padWithNop(PadToNextBundle);
+      SizeSnapshotPre += PadToNextBundle;
+      SizeSnapshotPost += PadToNextBundle;
+      assert((Asm->getBufferSize() & BundleMaskLo) == 0);
+      assert(Asm->getBufferSize() == SizeSnapshotPre);
+    }
+  }
+  // If align_to_end is specified, add padding such that the
+  // instruction sequences ends precisely at a bundle boundary.
+  void padForAlignToEnd() {
+    assert(isInBundleLockRegion());
+    if (isAlignToEnd()) {
+      if (intptr_t Offset = getPostAlignment()) {
+        Asm->padWithNop(BundleSize - Offset);
+        SizeSnapshotPre = Asm->getBufferSize();
+      }
+    }
+  }
+  // Update bookkeeping when rolling back for the second pass.
+  void rollback() {
+    assert(isInBundleLockRegion());
+    Asm->setBufferSize(SizeSnapshotPre);
+    Asm->setPreliminary(false);
+    Target->rollbackEmitState();
+  }
+
+private:
+  Assembler *const Asm;
+  TargetLowering *const Target;
+  // End is a sentinel value such that BundleLockStart==End implies
+  // that we are not in a bundle_lock region.
+  const InstList::const_iterator End;
+  InstList::const_iterator BundleLockStart;
+  const intptr_t BundleSize;
+  // Masking with BundleMaskLo identifies an address's bundle offset.
+  const intptr_t BundleMaskLo;
+  // Masking with BundleMaskHi identifies an address's bundle.
+  const intptr_t BundleMaskHi;
+  intptr_t SizeSnapshotPre;
+  intptr_t SizeSnapshotPost;
+};
+
+} // end of anonymous namespace
+
 void CfgNode::emitIAS(Cfg *Func) const {
   Func->setCurrentNode(this);
-  Assembler *Asm = Func->getAssembler<Assembler>();
+  Assembler *Asm = Func->getAssembler<>();
+  // TODO(stichnot): When sandboxing, defer binding the node label
+  // until just before the first instruction is emitted, to reduce the
+  // chance that a padding nop is a branch target.
   Asm->BindCfgNodeLabel(getIndex());
   for (const Inst &I : Phis) {
     if (I.isDeleted())
@@ -900,14 +1025,99 @@ void CfgNode::emitIAS(Cfg *Func) const {
     // Emitting a Phi instruction should cause an error.
     I.emitIAS(Func);
   }
-  for (const Inst &I : Insts) {
-    if (I.isDeleted())
-      continue;
-    if (I.isRedundantAssign())
-      continue;
-    I.emitIAS(Func);
-    updateStats(Func, &I);
+
+  // Do the simple emission if not sandboxed.
+  if (!Func->getContext()->getFlags().getUseSandboxing()) {
+    for (const Inst &I : Insts) {
+      if (!I.isDeleted() && !I.isRedundantAssign()) {
+        I.emitIAS(Func);
+        updateStats(Func, &I);
+      }
+    }
+    return;
   }
+
+  // The remainder of the function handles emission with sandboxing.
+  // There are explicit bundle_lock regions delimited by bundle_lock
+  // and bundle_unlock instructions.  All other instructions are
+  // treated as an implicit one-instruction bundle_lock region.
+  // Emission is done twice for each bundle_lock region.  The first
+  // pass is a preliminary pass, after which we can figure out what
+  // nop padding is needed, then roll back, and make the final pass.
+  //
+  // Ideally, the first pass would be speculative and the second pass
+  // would only be done if nop padding were needed, but the structure
+  // of the integrated assembler makes it hard to roll back the state
+  // of label bindings, label links, and relocation fixups.  Instead,
+  // the first pass just disables all mutation of that state.
+
+  BundleEmitHelper Helper(Asm, Func->getTarget(), Insts);
+  InstList::const_iterator End = Insts.end();
+  // Retrying indicates that we had to roll back to the bundle_lock
+  // instruction to apply padding before the bundle_lock sequence.
+  bool Retrying = false;
+  for (InstList::const_iterator I = Insts.begin(); I != End; ++I) {
+    if (I->isDeleted() || I->isRedundantAssign())
+      continue;
+
+    if (llvm::isa<InstBundleLock>(I)) {
+      // Set up the initial bundle_lock state.  This should not happen
+      // while retrying, because the retry rolls back to the
+      // instruction following the bundle_lock instruction.
+      assert(!Retrying);
+      Helper.enterBundleLock(I);
+      continue;
+    }
+
+    if (llvm::isa<InstBundleUnlock>(I)) {
+      Helper.enterBundleUnlock();
+      if (Retrying) {
+        // Make sure all instructions are in the same bundle.
+        assert(Helper.isSameBundle());
+        // If align_to_end is specified, make sure the next
+        // instruction begins the bundle.
+        assert(!Helper.isAlignToEnd() || Helper.getPostAlignment() == 0);
+        Helper.leaveBundleLockRegion();
+        Retrying = false;
+      } else {
+        // This is the first pass, so roll back for the retry pass.
+        Helper.rollback();
+        // Pad to the next bundle if the instruction sequence crossed
+        // a bundle boundary.
+        Helper.padToNextBundle();
+        // Insert additional padding to make AlignToEnd work.
+        Helper.padForAlignToEnd();
+        // Prepare for the retry pass after padding is done.
+        Retrying = true;
+        I = Helper.getBundleLockStart();
+      }
+      continue;
+    }
+
+    // I points to a non bundle_lock/bundle_unlock instruction.
+    if (Helper.isInBundleLockRegion()) {
+      I->emitIAS(Func);
+      // Only update stats during the final pass.
+      if (Retrying)
+        updateStats(Func, I);
+    } else {
+      // Treat it as though there were an implicit bundle_lock and
+      // bundle_unlock wrapping the instruction.
+      Helper.enterBundleLock(I);
+      I->emitIAS(Func);
+      Helper.enterBundleUnlock();
+      Helper.rollback();
+      Helper.padToNextBundle();
+      I->emitIAS(Func);
+      updateStats(Func, I);
+      Helper.leaveBundleLockRegion();
+    }
+  }
+
+  // Don't allow bundle locking across basic blocks, to keep the
+  // backtracking mechanism simple.
+  assert(!Helper.isInBundleLockRegion());
+  assert(!Retrying);
 }
 
 void CfgNode::dump(Cfg *Func) const {

@@ -25,6 +25,7 @@
 namespace Ice {
 
 class TargetX8632 : public TargetLowering {
+  TargetX8632() = delete;
   TargetX8632(const TargetX8632 &) = delete;
   TargetX8632 &operator=(const TargetX8632 &) = delete;
 
@@ -78,7 +79,7 @@ public:
   X86InstructionSet getInstructionSet() const { return InstructionSet; }
 
 protected:
-  TargetX8632(Cfg *Func);
+  explicit TargetX8632(Cfg *Func);
 
   void postLower() override;
 
@@ -230,6 +231,11 @@ protected:
   void _bswap(Variable *SrcDest) {
     Context.insert(InstX8632Bswap::create(Func, SrcDest));
   }
+  void
+  _bundle_lock(InstBundleLock::Option BundleOption = InstBundleLock::Opt_None) {
+    Context.insert(InstBundleLock::create(Func, BundleOption));
+  }
+  void _bundle_unlock() { Context.insert(InstBundleUnlock::create(Func)); }
   void _cbwdq(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Cbwdq::create(Func, Dest, Src0));
   }
@@ -285,6 +291,9 @@ protected:
   }
   void _insertps(Variable *Dest, Operand *Src0, Operand *Src1) {
     Context.insert(InstX8632Insertps::create(Func, Dest, Src0, Src1));
+  }
+  void _jmp(Operand *Target) {
+    Context.insert(InstX8632Jmp::create(Func, Target));
   }
   void _lea(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Lea::create(Func, Dest, Src0));
@@ -497,14 +506,14 @@ public:
     return new TargetDataX8632(Ctx);
   }
 
-  void lowerGlobal(const VariableDeclaration &Var) const final;
-  void lowerGlobalsELF(const VariableDeclarationList &Vars) const final;
-  void lowerConstants(GlobalContext *Ctx) const final;
+  void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) const final;
+  void lowerConstants() const final;
 
 protected:
-  TargetDataX8632(GlobalContext *Ctx);
+  explicit TargetDataX8632(GlobalContext *Ctx);
 
 private:
+  void lowerGlobal(const VariableDeclaration &Var) const;
   ~TargetDataX8632() override {}
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };

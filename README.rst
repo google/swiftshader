@@ -32,23 +32,23 @@ inside a debugger.  ``NOASSERT=1`` disables assertions and is the preferred
 configuration for performance testing the translator.  ``MINIMAL=1`` attempts to
 minimize the size of the translator by compiling out everything unnecessary.
 
-The result of the ``make`` command is the target ``llvm2ice`` in the current
+The result of the ``make`` command is the target ``pnacl-sz`` in the current
 directory.
 
-``llvm2ice``
+``pnacl-sz``
 ------------
 
-The ``llvm2ice`` program parses a pexe or an LLVM bitcode file and translates it
+The ``pnacl-sz`` program parses a pexe or an LLVM bitcode file and translates it
 into ICE (Subzero's intermediate representation).  It then invokes the ICE
 translate method to lower it to target-specific machine code, optionally dumping
 the intermediate representation at various stages of the translation.
 
 The program can be run as follows::
 
-    ../llvm2ice ./path/to/<file>.pexe
-    ../llvm2ice ./tests_lit/llvm2ice_tests/<file>.ll
+    ../pnacl-sz ./path/to/<file>.pexe
+    ../pnacl-sz ./tests_lit/pnacl-sz_tests/<file>.ll
 
-At this time, ``llvm2ice`` accepts a number of arguments, including the
+At this time, ``pnacl-sz`` accepts a number of arguments, including the
 following:
 
     ``-help`` -- Show available arguments and possible values.  (Note: this
@@ -61,7 +61,9 @@ following:
     ``-target=<TARGET>`` -- Set the target architecture.  The default is x8632.
     Future targets include x8664, arm32, and arm64.
 
-    ``-integrated-as=0|1`` -- Disable/enable the integrated assembler.
+    ``-filetype=obj|asm|iasm`` -- Select the output file type.  ``obj`` is a
+    native ELF file, ``asm`` is a textual assembly file, and ``iasm`` is a
+    low-level textual assembly file demonstrating the integrated assembler.
 
     ``-O<LEVEL>`` -- Set the optimization level.  Valid levels are ``2``, ``1``,
     ``0``, ``-1``, and ``m1``.  Levels ``-1`` and ``m1`` are synonyms, and
@@ -103,15 +105,16 @@ A convenient way to run both the lit tests and the cross tests is::
 
     make -f Makefile.standalone check
 
-Assembling ``llvm2ice`` output
-------------------------------
+Assembling ``pnacl-sz`` output as needed
+----------------------------------------
 
-Currently ``llvm2ice`` produces textual assembly code in a structure suitable
-for input to ``llvm-mc``.  An object file can be produced using the command::
+``pnacl-sz`` can now produce a native ELF binary using ``-filetype=obj``.
+
+``pnacl-sz`` can also produce textual assembly code in a structure suitable for
+input to ``llvm-mc``, using ``-filetype=asm`` or ``-filetype=iasm``.  An object
+file can then be produced using the command::
 
     llvm-mc -arch=x86 -filetype=obj -o=MyObj.o
-
-In the future, the integrated assembler will directly produce ELF object files.
 
 Building a translated binary
 ----------------------------

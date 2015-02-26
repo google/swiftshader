@@ -1,4 +1,4 @@
-//===- subzero/src/llvm2ice.cpp - Driver for testing ----------------------===//
+//===- subzero/src/main.cpp - Driver for bitcode translation --------------===//
 //
 //                        The Subzero Code Generator
 //
@@ -7,9 +7,11 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file defines a driver that uses LLVM capabilities to parse a
-// bitcode file and build the LLVM IR, and then convert the LLVM basic
-// blocks, instructions, and operands into their Subzero equivalents.
+// This file defines a driver for translating PNaCl bitcode into native code.
+// It can either directly parse the binary bitcode file, or use LLVM routines to
+// parse a textual bitcode file into LLVM IR and then convert LLVM IR into ICE.
+// In either case, the high-level ICE is then compiled down to native code, as
+// either an ELF object file or a textual asm file.
 //
 //===----------------------------------------------------------------------===//
 
@@ -173,24 +175,25 @@ static cl::opt<bool> AllowErrorRecovery(
     cl::desc("Allow error recovery when reading PNaCl bitcode."),
     cl::init(false));
 
+// TODO(kschimpf) Remove once the emitter handles these cases.
+static cl::opt<bool>
+    StubConstantCalls("stub-const-calls",
+                      cl::desc("Stub indirect calls to constants."),
+                      cl::init(false));
+
 static cl::opt<bool> LLVMVerboseErrors(
     "verbose-llvm-parse-errors",
     cl::desc("Print out more descriptive PNaCl bitcode parse errors when "
              "building LLVM IR first"),
     cl::init(false));
 
-static cl::opt<bool>
-    UseIntegratedAssembler("integrated-as",
-                           cl::desc("Use integrated assembler (default yes)"),
-                           cl::init(true));
-
-static cl::alias UseIas("ias", cl::desc("Alias for -integrated-as"),
-                        cl::NotHidden, cl::aliasopt(UseIntegratedAssembler));
-
-static cl::opt<bool>
-    UseELFWriter("elf-writer",
-                 cl::desc("Use ELF writer with the integrated assembler"),
-                 cl::init(false));
+static cl::opt<Ice::FileType> OutFileType(
+    "filetype", cl::desc("Output file type"), cl::init(Ice::FT_Iasm),
+    cl::values(clEnumValN(Ice::FT_Elf, "obj", "Native ELF object ('.o') file"),
+               clEnumValN(Ice::FT_Asm, "asm", "Assembly ('.s') file"),
+               clEnumValN(Ice::FT_Iasm, "iasm",
+                          "Low-level integrated assembly ('.s') file"),
+               clEnumValEnd));
 
 static cl::opt<bool> AlwaysExitSuccess(
     "exit-success", cl::desc("Exit with success status, even if errors found"),
@@ -211,7 +214,7 @@ static cl::opt<uint32_t> NumThreads(
     cl::desc("Number of translation threads (0 for purely sequential)"),
     // TODO(stichnot): Settle on a good default.  Consider
     // something related to std::thread::hardware_concurrency().
-    cl::init(0));
+    cl::init(2));
 
 static int GetReturnValue(int Val) {
   if (AlwaysExitSuccess)
@@ -223,10 +226,11 @@ static struct {
   const char *FlagName;
   int FlagValue;
 } ConditionalBuildAttributes[] = {{"dump", ALLOW_DUMP},
+                                  {"disable_ir_gen", ALLOW_DISABLE_IR_GEN},
                                   {"llvm_cl", ALLOW_LLVM_CL},
                                   {"llvm_ir", ALLOW_LLVM_IR},
                                   {"llvm_ir_as_input", ALLOW_LLVM_IR_AS_INPUT},
-                                  {"disable_ir_gen", ALLOW_DISABLE_IR_GEN}};
+                                  {"minimal_build", ALLOW_MINIMAL_BUILD}};
 
 // Validates values of build attributes. Prints them to Stream if
 // Stream is non-null.
@@ -293,27 +297,27 @@ int main(int argc, char **argv) {
   }
 
   Ice::ClFlags Flags;
-  Flags.DisableInternal = DisableInternal;
-  Flags.SubzeroTimingEnabled = SubzeroTimingEnabled;
-  Flags.DisableTranslation = DisableTranslation;
-  Flags.FunctionSections = FunctionSections;
-  Flags.DataSections = DataSections;
-  Flags.UseELFWriter = UseELFWriter;
-  Flags.UseIntegratedAssembler = UseIntegratedAssembler;
-  Flags.UseSandboxing = UseSandboxing;
-  Flags.PhiEdgeSplit = EnablePhiEdgeSplit;
-  Flags.DecorateAsm = DecorateAsm;
-  Flags.DumpStats = DumpStats;
-  Flags.AllowUninitializedGlobals = AllowUninitializedGlobals;
-  Flags.TimeEachFunction = TimeEachFunction;
-  Flags.NumTranslationThreads = NumThreads;
-  Flags.DefaultGlobalPrefix = DefaultGlobalPrefix;
-  Flags.DefaultFunctionPrefix = DefaultFunctionPrefix;
-  Flags.TimingFocusOn = TimingFocusOn;
-  Flags.VerboseFocusOn = VerboseFocusOn;
-  Flags.TranslateOnly = TranslateOnly;
-  Flags.DisableIRGeneration = DisableIRGeneration;
-  Flags.AllowErrorRecovery = AllowErrorRecovery;
+  Flags.setAllowErrorRecovery(AllowErrorRecovery);
+  Flags.setAllowUninitializedGlobals(AllowUninitializedGlobals);
+  Flags.setDataSections(DataSections);
+  Flags.setDecorateAsm(DecorateAsm);
+  Flags.setDefaultFunctionPrefix(DefaultFunctionPrefix);
+  Flags.setDefaultGlobalPrefix(DefaultGlobalPrefix);
+  Flags.setDisableInternal(DisableInternal);
+  Flags.setDisableIRGeneration(DisableIRGeneration);
+  Flags.setDisableTranslation(DisableTranslation);
+  Flags.setDumpStats(DumpStats);
+  Flags.setFunctionSections(FunctionSections);
+  Flags.setNumTranslationThreads(NumThreads);
+  Flags.setPhiEdgeSplit(EnablePhiEdgeSplit);
+  Flags.setStubConstantCalls(StubConstantCalls);
+  Flags.setSubzeroTimingEnabled(SubzeroTimingEnabled);
+  Flags.setTimeEachFunction(TimeEachFunction);
+  Flags.setTimingFocusOn(TimingFocusOn);
+  Flags.setTranslateOnly(TranslateOnly);
+  Flags.setUseSandboxing(UseSandboxing);
+  Flags.setVerboseFocusOn(VerboseFocusOn);
+  Flags.setOutFileType(OutFileType);
 
   // Force -build-on-read=0 for .ll files.
   const std::string LLSuffix = ".ll";
@@ -327,7 +331,8 @@ int main(int argc, char **argv) {
   std::unique_ptr<Ice::Ostream> Os;
   std::unique_ptr<Ice::ELFStreamer> ELFStr;
   std::ofstream Ofs;
-  if (UseELFWriter) {
+  switch (OutFileType) {
+  case Ice::FT_Elf: {
     if (OutputFilename == "-") {
       *Ls << "Error: writing binary ELF to stdout is unsupported\n";
       return GetReturnValue(Ice::EC_Args);
@@ -342,7 +347,9 @@ int main(int argc, char **argv) {
       return GetReturnValue(Ice::EC_Args);
     }
     ELFStr.reset(new Ice::ELFStreamer(*FdOs));
-  } else {
+  } break;
+  case Ice::FT_Asm:
+  case Ice::FT_Iasm: {
     if (OutputFilename != "-") {
       Ofs.open(OutputFilename.c_str(), std::ofstream::out);
       Os.reset(new raw_os_ostream(Ofs));
@@ -350,6 +357,7 @@ int main(int argc, char **argv) {
       Os.reset(new raw_os_ostream(std::cout));
     }
     Os->SetUnbuffered();
+  } break;
   }
 
   Ice::GlobalContext Ctx(Ls.get(), Os.get(), ELFStr.get(), VMask, TargetArch,
@@ -357,7 +365,7 @@ int main(int argc, char **argv) {
 
   Ice::TimerMarker T(Ice::TimerStack::TT_szmain, &Ctx);
 
-  if (UseELFWriter) {
+  if (OutFileType == Ice::FT_Elf) {
     Ice::TimerMarker T1(Ice::TimerStack::TT_emit, &Ctx);
     Ctx.getObjectWriter()->writeInitialELFHeader();
   }
@@ -367,7 +375,7 @@ int main(int argc, char **argv) {
   std::unique_ptr<Ice::Translator> Translator;
   if (BuildOnRead) {
     std::unique_ptr<Ice::PNaClTranslator> PTranslator(
-        new Ice::PNaClTranslator(&Ctx, Flags));
+        new Ice::PNaClTranslator(&Ctx));
     PTranslator->translate(IRFilename);
     Translator.reset(PTranslator.release());
   } else if (ALLOW_LLVM_IR) {
@@ -384,7 +392,7 @@ int main(int argc, char **argv) {
     }
 
     std::unique_ptr<Ice::Converter> Converter(
-        new Ice::Converter(Mod.get(), &Ctx, Flags));
+        new Ice::Converter(Mod.get(), &Ctx));
     Converter->convertToIce();
     Translator.reset(Converter.release());
   } else {
@@ -397,7 +405,7 @@ int main(int argc, char **argv) {
   Translator->transferErrorCode();
   Translator->emitConstants();
 
-  if (UseELFWriter) {
+  if (OutFileType == Ice::FT_Elf) {
     Ice::TimerMarker T1(Ice::TimerStack::TT_emit, &Ctx);
     Ctx.getObjectWriter()->setUndefinedSyms(Ctx.getConstantExternSyms());
     Ctx.getObjectWriter()->writeNonUserSections();

@@ -21,9 +21,9 @@
 
 using namespace Ice;
 
-Translator::Translator(GlobalContext *Ctx, const ClFlags &Flags)
-    : Ctx(Ctx), Flags(Flags),
-      DataLowering(TargetDataLowering::createLowering(Ctx)), ErrorStatus() {}
+Translator::Translator(GlobalContext *Ctx)
+    : Ctx(Ctx), NextSequenceNumber(GlobalContext::getFirstSequenceNumber()),
+      ErrorStatus() {}
 
 Translator::~Translator() {}
 
@@ -54,15 +54,12 @@ bool Translator::checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
 }
 
 void Translator::translateFcn(std::unique_ptr<Cfg> Func) {
-  Ctx->cfgQueueBlockingPush(std::move(Func));
-  if (Ctx->getFlags().NumTranslationThreads == 0) {
-    Ctx->translateFunctions();
-  }
+  Ctx->optQueueBlockingPush(std::move(Func));
 }
 
 void Translator::emitConstants() {
   if (!getErrorStatus())
-    DataLowering->lowerConstants(Ctx);
+    TargetDataLowering::createLowering(Ctx)->lowerConstants();
 }
 
 void Translator::transferErrorCode() const {
@@ -70,33 +67,9 @@ void Translator::transferErrorCode() const {
     Ctx->getErrorStatus()->assign(getErrorStatus().value());
 }
 
-void
-Translator::lowerGlobals(const VariableDeclarationList &VariableDeclarations) {
-  TimerMarker T(TimerStack::TT_emitGlobalInitializers, Ctx);
-  bool DisableTranslation = Ctx->getFlags().DisableTranslation;
-  const bool DumpGlobalVariables =
-      ALLOW_DUMP && Ctx->getVerbose() && Ctx->getFlags().VerboseFocusOn.empty();
-  if (Ctx->getFlags().UseELFWriter) {
-    // Dump all globals if requested, but don't interleave w/ emission.
-    if (DumpGlobalVariables) {
-      OstreamLocker L(Ctx);
-      Ostream &Stream = Ctx->getStrDump();
-      for (const Ice::VariableDeclaration *Global : VariableDeclarations) {
-        Global->dump(getContext(), Stream);
-      }
-    }
-    DataLowering->lowerGlobalsELF(VariableDeclarations);
-  } else {
-    const IceString &TranslateOnly = Ctx->getFlags().TranslateOnly;
-    OstreamLocker L(Ctx);
-    Ostream &Stream = Ctx->getStrDump();
-    for (const Ice::VariableDeclaration *Global : VariableDeclarations) {
-      // Interleave dump output w/ emit output.
-      if (DumpGlobalVariables)
-        Global->dump(getContext(), Stream);
-      if (!DisableTranslation &&
-          GlobalContext::matchSymbolName(Global->getName(), TranslateOnly))
-        DataLowering->lowerGlobal(*Global);
-    }
-  }
+void Translator::lowerGlobals(
+    std::unique_ptr<VariableDeclarationList> VariableDeclarations) {
+  EmitterWorkItem *Item = new EmitterWorkItem(getNextSequenceNumber(),
+                                              VariableDeclarations.release());
+  Ctx->emitQueueBlockingPush(Item);
 }

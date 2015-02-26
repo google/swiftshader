@@ -23,6 +23,7 @@
 #include "IceClFlags.h"
 #include "IceIntrinsics.h"
 #include "IceRNG.h"
+#include "IceThreading.h"
 #include "IceTimerTree.h"
 #include "IceTypes.h"
 #include "IceUtils.h"
@@ -31,6 +32,7 @@ namespace Ice {
 
 class ClFlags;
 class ConstantPool;
+class EmitterWorkItem;
 class FuncSigType;
 
 // LockedPtr is a way to provide automatically locked access to some object.
@@ -56,6 +58,7 @@ private:
 };
 
 class GlobalContext {
+  GlobalContext() = delete;
   GlobalContext(const GlobalContext &) = delete;
   GlobalContext &operator=(const GlobalContext &) = delete;
 
@@ -98,7 +101,11 @@ class GlobalContext {
   // TimerList is a vector of TimerStack objects, with extra methods
   // to initialize and merge these vectors.
   class TimerList : public std::vector<TimerStack> {
+    TimerList(const TimerList &) = delete;
+    TimerList &operator=(const TimerList &) = delete;
+
   public:
+    TimerList() = default;
     // initInto() initializes a target list of timers based on the
     // current list.  In particular, it creates the same number of
     // timers, in the same order, with the same names, but initially
@@ -202,7 +209,7 @@ public:
   const ClFlags &getFlags() const { return Flags; }
 
   bool isIRGenerationDisabled() const {
-    return ALLOW_DISABLE_IR_GEN ? getFlags().DisableIRGeneration : false;
+    return getFlags().getDisableIRGeneration();
   }
 
   // Allocate data of type T using the global allocator.
@@ -223,35 +230,35 @@ public:
   }
   void dumpStats(const IceString &Name, bool Final = false);
   void statsUpdateEmitted(uint32_t InstCount) {
-    if (!ALLOW_DUMP || !getFlags().DumpStats)
+    if (!getFlags().getDumpStats())
       return;
     ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
     TLS->StatsFunction.update(CodeStats::CS_InstCount, InstCount);
     TLS->StatsCumulative.update(CodeStats::CS_InstCount, InstCount);
   }
   void statsUpdateRegistersSaved(uint32_t Num) {
-    if (!ALLOW_DUMP || !getFlags().DumpStats)
+    if (!getFlags().getDumpStats())
       return;
     ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
     TLS->StatsFunction.update(CodeStats::CS_RegsSaved, Num);
     TLS->StatsCumulative.update(CodeStats::CS_RegsSaved, Num);
   }
   void statsUpdateFrameBytes(uint32_t Bytes) {
-    if (!ALLOW_DUMP || !getFlags().DumpStats)
+    if (!getFlags().getDumpStats())
       return;
     ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
     TLS->StatsFunction.update(CodeStats::CS_FrameByte, Bytes);
     TLS->StatsCumulative.update(CodeStats::CS_FrameByte, Bytes);
   }
   void statsUpdateSpills() {
-    if (!ALLOW_DUMP || !getFlags().DumpStats)
+    if (!getFlags().getDumpStats())
       return;
     ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
     TLS->StatsFunction.update(CodeStats::CS_NumSpills);
     TLS->StatsCumulative.update(CodeStats::CS_NumSpills);
   }
   void statsUpdateFills() {
-    if (!ALLOW_DUMP || !getFlags().DumpStats)
+    if (!getFlags().getDumpStats())
       return;
     ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
     TLS->StatsFunction.update(CodeStats::CS_NumFills);
@@ -276,21 +283,31 @@ public:
   void resetTimer(TimerStackIdT StackID);
   void setTimerName(TimerStackIdT StackID, const IceString &NewName);
 
+  // This is the first work item sequence number that the parser
+  // produces, and correspondingly the first sequence number that the
+  // emitter thread will wait for.  Start numbering at 1 to leave room
+  // for a sentinel, in case e.g. we wish to inject items with a
+  // special sequence number that may be executed out of order.
+  static uint32_t getFirstSequenceNumber() { return 1; }
   // Adds a newly parsed and constructed function to the Cfg work
   // queue.  Notifies any idle workers that a new function is
   // available for translating.  May block if the work queue is too
   // large, in order to control memory footprint.
-  void cfgQueueBlockingPush(std::unique_ptr<Cfg> Func);
+  void optQueueBlockingPush(std::unique_ptr<Cfg> Func);
   // Takes a Cfg from the work queue for translating.  May block if
   // the work queue is currently empty.  Returns nullptr if there is
   // no more work - the queue is empty and either end() has been
   // called or the Sequential flag was set.
-  std::unique_ptr<Cfg> cfgQueueBlockingPop();
+  std::unique_ptr<Cfg> optQueueBlockingPop();
   // Notifies that no more work will be added to the work queue.
-  void cfgQueueNotifyEnd() { CfgQ.notifyEnd(); }
+  void optQueueNotifyEnd() { OptQ.notifyEnd(); }
+
+  void emitQueueBlockingPush(EmitterWorkItem *Item);
+  EmitterWorkItem *emitQueueBlockingPop();
+  void emitQueueNotifyEnd() { EmitQ.notifyEnd(); }
 
   void startWorkerThreads() {
-    size_t NumWorkers = getFlags().NumTranslationThreads;
+    size_t NumWorkers = getFlags().getNumTranslationThreads();
     auto Timers = getTimers();
     for (size_t i = 0; i < NumWorkers; ++i) {
       ThreadContext *WorkerTLS = new ThreadContext();
@@ -300,18 +317,29 @@ public:
           &GlobalContext::translateFunctionsWrapper, this, WorkerTLS));
     }
     if (NumWorkers) {
-      // TODO(stichnot): start a new thread for the emitter queue worker.
+      ThreadContext *WorkerTLS = new ThreadContext();
+      Timers->initInto(WorkerTLS->Timers);
+      AllThreadContexts.push_back(WorkerTLS);
+      EmitterThreads.push_back(
+          std::thread(&GlobalContext::emitterWrapper, this, WorkerTLS));
     }
   }
 
   void waitForWorkerThreads() {
-    cfgQueueNotifyEnd();
-    // TODO(stichnot): call end() on the emitter work queue.
+    optQueueNotifyEnd();
     for (std::thread &Worker : TranslationThreads) {
       Worker.join();
     }
     TranslationThreads.clear();
-    // TODO(stichnot): join the emitter thread.
+
+    // Only notify the emit queue to end after all the translation
+    // threads have ended.
+    emitQueueNotifyEnd();
+    for (std::thread &Worker : EmitterThreads) {
+      Worker.join();
+    }
+    EmitterThreads.clear();
+
     if (ALLOW_DUMP) {
       auto Timers = getTimers();
       for (ThreadContext *TLS : AllThreadContexts)
@@ -333,6 +361,15 @@ public:
   }
   // Translate functions from the Cfg queue until the queue is empty.
   void translateFunctions();
+
+  // Emitter thread startup routine.
+  void emitterWrapper(ThreadContext *MyTLS) {
+    ICE_TLS_SET_FIELD(TLS, MyTLS);
+    emitItems();
+  }
+  // Emit functions and global initializers from the emitter queue
+  // until the queue is empty.
+  void emitItems();
 
   // Utility function to match a symbol name against a match string.
   // This is used in a few cases where we want to take some action on
@@ -390,7 +427,8 @@ private:
   const ClFlags &Flags;
   RandomNumberGenerator RNG; // TODO(stichnot): Move into Cfg.
   std::unique_ptr<ELFObjectWriter> ObjectWriter;
-  BoundedProducerConsumerQueue<Cfg> CfgQ;
+  BoundedProducerConsumerQueue<Cfg> OptQ;
+  BoundedProducerConsumerQueue<EmitterWorkItem> EmitQ;
 
   LockedPtr<ArenaAllocator<>> getAllocator() {
     return LockedPtr<ArenaAllocator<>>(&Allocator, &AllocLock);
@@ -405,8 +443,9 @@ private:
     return LockedPtr<TimerList>(&Timers, &TimerLock);
   }
 
-  std::vector<ThreadContext *> AllThreadContexts;
-  std::vector<std::thread> TranslationThreads;
+  llvm::SmallVector<ThreadContext *, 128> AllThreadContexts;
+  llvm::SmallVector<std::thread, 128> TranslationThreads;
+  llvm::SmallVector<std::thread, 128> EmitterThreads;
   // Each thread has its own TLS pointer which is also held in
   // AllThreadContexts.
   ICE_TLS_DECLARE_FIELD(ThreadContext *, TLS);
@@ -423,6 +462,7 @@ public:
 // pushes a marker, and the destructor pops it.  This is for
 // convenient timing of regions of code.
 class TimerMarker {
+  TimerMarker() = delete;
   TimerMarker(const TimerMarker &) = delete;
   TimerMarker &operator=(const TimerMarker &) = delete;
 

@@ -218,13 +218,14 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
   assert(!SectionNumbersAssigned);
   ELFTextSection *Section = nullptr;
   ELFRelocationSection *RelSection = nullptr;
-  if (TextSections.empty()) {
-    // TODO(jvoung): handle ffunction-sections.
+  const bool FunctionSections = Ctx.getFlags().getFunctionSections();
+  if (TextSections.empty() || FunctionSections) {
     IceString SectionName = ".text";
+    if (FunctionSections)
+      SectionName += "." + FuncName;
     bool IsELF64 = isELF64(Ctx.getTargetArch());
     const Elf64_Xword ShFlags = SHF_ALLOC | SHF_EXECINSTR;
-    // TODO(jvoung): Should be bundle size. Grab it from that target?
-    const Elf64_Xword ShAlign = 32;
+    const Elf64_Xword ShAlign = 1 << Asm->getBundleAlignLog2Bytes();
     Section = createSection<ELFTextSection>(SectionName, SHT_PROGBITS, ShFlags,
                                             ShAlign, 0);
     Elf64_Off OffsetInFile = alignFileOffset(Section->getSectionAlign());
@@ -254,9 +255,8 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
                            OffsetInSection, SymbolSize);
   StrTab->add(FuncName);
 
-  // Create a relocation section for the text section if needed, and copy the
-  // fixup information from per-function Assembler memory to the object
-  // writer's memory, for writing later.
+  // Copy the fixup information from per-function Assembler memory to the
+  // object writer's memory, for writing later.
   if (!Asm->fixups().empty()) {
     RelSection->addRelocations(OffsetInSection, Asm->fixups());
   }
@@ -296,7 +296,8 @@ void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
   VariableDeclarationList VarsBySection[ELFObjectWriter::NumSectionTypes];
   for (auto &SectionList : VarsBySection)
     SectionList.reserve(Vars.size());
-  partitionGlobalsBySection(Vars, VarsBySection, Ctx.getFlags().TranslateOnly);
+  partitionGlobalsBySection(Vars, VarsBySection,
+                            Ctx.getFlags().getTranslateOnly());
   bool IsELF64 = isELF64(Ctx.getTargetArch());
   size_t I = 0;
   for (auto &SectionList : VarsBySection) {
@@ -369,9 +370,11 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     if (!Var->hasInitializer())
       continue;
     Elf64_Xword Align = Var->getAlignment();
+    const Elf64_Xword MinAlign = 1;
+    Align = std::max(Align, MinAlign);
     Section->padToAlignment(Str, Align);
     SizeT SymbolSize = Var->getNumBytes();
-    bool IsExternal = Var->isExternal() || Ctx.getFlags().DisableInternal;
+    bool IsExternal = Var->isExternal() || Ctx.getFlags().getDisableInternal();
     const uint8_t SymbolBinding = IsExternal ? STB_GLOBAL : STB_LOCAL;
     IceString MangledName = Var->mangleName(&Ctx);
     SymTab->createDefinedSym(MangledName, SymbolType, SymbolBinding, Section,
@@ -541,7 +544,7 @@ void ELFObjectWriter::writeAllRelocationSections(bool IsELF64) {
 void ELFObjectWriter::setUndefinedSyms(const ConstantList &UndefSyms) {
   for (const Constant *S : UndefSyms) {
     const auto Sym = llvm::cast<ConstantRelocatable>(S);
-    IceString Name = Sym->getName();
+    const IceString &Name = Sym->getName();
     assert(Sym->getOffset() == 0);
     assert(Sym->getSuppressMangling());
     SymTab->noteUndefinedSym(Name, NullSection);

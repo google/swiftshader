@@ -14,6 +14,8 @@ def main():
     Afterwards, the executables can be run from the
     native_client/tests/spec2k/ directory as:
     './run_all.sh RunBenchmarks SetupGccX8632Opt {train|ref} ...'
+    -- or --
+    './run_all.sh RunBenchmarks SetupPnaclX8632Opt {train|ref} ...'
     """
     nacl_root = FindBaseNaCl()
     # Use the same default ordering as spec2k/run_all.sh.
@@ -31,6 +33,7 @@ def main():
         print 'Unknown component{s}: '.format(s='s' if len(bad) > 1 else '') + \
             ' '.join(x for x in bad)
         sys.exit(1)
+    suffix = 'pnacl.opt.x8632' if args.sandbox else 'gcc.opt.x8632'
     for comp in args.comps:
         name = os.path.splitext(comp)[1] or comp
         if name[0] == '.':
@@ -40,8 +43,9 @@ def main():
                              '{name}.opt.stripped.pexe'
                              ).format(root=nacl_root, comp=comp, name=name),
                             ('{root}/tests/spec2k/{comp}/' +
-                             '{name}.gcc.opt.x8632'
-                             ).format(root=nacl_root, comp=comp, name=name))
+                             '{name}.{suffix}'
+                             ).format(root=nacl_root, comp=comp, name=name,
+                                      suffix=suffix))
 
 if __name__ == '__main__':
     main()

@@ -3,18 +3,10 @@
 ; particular, the top-of-stack must be popped regardless of whether
 ; its value is used.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
-define float @dummy() {
-entry:
-  ret float 0.000000e+00
-}
-; CHECK-LABEL: dummy
+declare float @dummy()
 
 ; The call is ignored, but the top of the FP stack still needs to be
 ; popped.
@@ -24,7 +16,7 @@ entry:
   ret i32 0
 }
 ; CHECK-LABEL: ignored_fp_call
-; CHECK: call dummy
+; CHECK: call {{.*}} R_{{.*}} dummy
 ; CHECK: fstp
 
 ; The top of the FP stack is popped and subsequently used.
@@ -35,7 +27,7 @@ entry:
   ret i32 %ret
 }
 ; CHECK-LABEL: converted_fp_call
-; CHECK: call dummy
+; CHECK: call {{.*}} R_{{.*}} dummy
 ; CHECK: fstp
 ; CHECK: cvttss2si
 
@@ -48,6 +40,6 @@ entry:
   ret float %fp
 }
 ; CHECK-LABEL: returned_fp_call
-; CHECK: call dummy
+; CHECK: call {{.*}} R_{{.*}} dummy
 ; CHECK: fstp
 ; CHECK: fld

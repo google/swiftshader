@@ -1,11 +1,8 @@
 ; Simple test of non-fused compare/branch.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
+; RUN:   | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
 
 define void @testBool(i32 %a, i32 %b) {

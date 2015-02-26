@@ -20,6 +20,10 @@
 namespace Ice {
 
 class CondX86 {
+  CondX86() = delete;
+  CondX86(const CondX86 &) = delete;
+  CondX86 &operator=(const CondX86 &) = delete;
+
 public:
   // An enum of condition codes used for branches and cmov. The enum value
   // should match the value used to encode operands in binary instructions.

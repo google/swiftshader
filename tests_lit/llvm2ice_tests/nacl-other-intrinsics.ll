@@ -1,26 +1,20 @@
 ; This tests the NaCl intrinsics not related to atomic operations.
 
-; RUN: %p2i -i %s --args -O2 --verbose none -sandbox \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none -sandbox \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 -sandbox \
+; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 -sandbox \
+; RUN:   | FileCheck %s
 
 ; Do another run w/ O2 and a different check-prefix (otherwise O2 and Om1
 ; share the same "CHECK" prefix). This separate run helps check that
 ; some code is optimized out.
-; RUN: %p2i -i %s --args -O2 --verbose none -sandbox \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 -sandbox \
 ; RUN:   | FileCheck --check-prefix=CHECKO2REM %s
 
 ; Do O2 runs without -sandbox to make sure llvm.nacl.read.tp gets
-; lowered to __nacl_read_tp instead of gs:[0x0].
+; lowered to __nacl_read_tp instead of gs:0x0.
 ; We also know that because it's O2, it'll have the O2REM optimizations.
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:   | FileCheck --check-prefix=CHECKO2UNSANDBOXEDREM %s
 
 declare i8* @llvm.nacl.read.tp()
@@ -51,11 +45,11 @@ entry:
   ret i32 %__1
 }
 ; CHECK-LABEL: test_nacl_read_tp
-; CHECK: mov e{{.*}}, dword ptr gs:[0]
+; CHECK: mov e{{.*}},DWORD PTR gs:0x0
 ; CHECKO2REM-LABEL: test_nacl_read_tp
-; CHECKO2REM: mov e{{.*}}, dword ptr gs:[0]
+; CHECKO2REM: mov e{{.*}},DWORD PTR gs:0x0
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp
-; CHECKO2UNSANDBOXEDREM: call __nacl_read_tp
+; CHECKO2UNSANDBOXEDREM: call {{.*}} R_{{.*}} __nacl_read_tp
 
 define i32 @test_nacl_read_tp_more_addressing() {
 entry:
@@ -75,14 +69,14 @@ entry:
   ret i32 %v
 }
 ; CHECK-LABEL: test_nacl_read_tp_more_addressing
-; CHECK: mov e{{.*}}, dword ptr gs:[0]
-; CHECK: mov e{{.*}}, dword ptr gs:[0]
+; CHECK: mov e{{.*}},DWORD PTR gs:0x0
+; CHECK: mov e{{.*}},DWORD PTR gs:0x0
 ; CHECKO2REM-LABEL: test_nacl_read_tp_more_addressing
-; CHECKO2REM: mov e{{.*}}, dword ptr gs:[0]
-; CHECKO2REM: mov e{{.*}}, dword ptr gs:[0]
+; CHECKO2REM: mov e{{.*}},DWORD PTR gs:0x0
+; CHECKO2REM: mov e{{.*}},DWORD PTR gs:0x0
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp_more_addressing
-; CHECKO2UNSANDBOXEDREM: call __nacl_read_tp
-; CHECKO2UNSANDBOXEDREM: call __nacl_read_tp
+; CHECKO2UNSANDBOXEDREM: call {{.*}} R_{{.*}} __nacl_read_tp
+; CHECKO2UNSANDBOXEDREM: call {{.*}} R_{{.*}} __nacl_read_tp
 
 define i32 @test_nacl_read_tp_dead(i32 %a) {
 entry:
@@ -93,9 +87,9 @@ entry:
 }
 ; Consider nacl.read.tp side-effect free, so it can be eliminated.
 ; CHECKO2REM-LABEL: test_nacl_read_tp_dead
-; CHECKO2REM-NOT: mov e{{.*}}, dword ptr gs:[0]
+; CHECKO2REM-NOT: mov e{{.*}}, DWORD PTR gs:0x0
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp_dead
-; CHECKO2UNSANDBOXEDREM-NOT: call __nacl_read_tp
+; CHECKO2UNSANDBOXEDREM-NOT: call {{.*}} R_{{.*}} __nacl_read_tp
 
 define void @test_memcpy(i32 %iptr_dst, i32 %iptr_src, i32 %len) {
 entry:
@@ -106,7 +100,7 @@ entry:
   ret void
 }
 ; CHECK-LABEL: test_memcpy
-; CHECK: call memcpy
+; CHECK: call {{.*}} R_{{.*}} memcpy
 ; CHECKO2REM-LABEL: test_memcpy
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_memcpy
 
@@ -121,7 +115,7 @@ entry:
   ret void
 }
 ; CHECK-LABEL: test_memcpy_const_len_align
-; CHECK: call memcpy
+; CHECK: call {{.*}} R_{{.*}} memcpy
 
 define void @test_memmove(i32 %iptr_dst, i32 %iptr_src, i32 %len) {
 entry:
@@ -132,7 +126,7 @@ entry:
   ret void
 }
 ; CHECK-LABEL: test_memmove
-; CHECK: call memmove
+; CHECK: call {{.*}} R_{{.*}} memmove
 
 define void @test_memmove_const_len_align(i32 %iptr_dst, i32 %iptr_src) {
 entry:
@@ -143,7 +137,7 @@ entry:
   ret void
 }
 ; CHECK-LABEL: test_memmove_const_len_align
-; CHECK: call memmove
+; CHECK: call {{.*}} R_{{.*}} memmove
 
 define void @test_memset(i32 %iptr_dst, i32 %wide_val, i32 %len) {
 entry:
@@ -155,7 +149,7 @@ entry:
 }
 ; CHECK-LABEL: test_memset
 ; CHECK: movzx
-; CHECK: call memset
+; CHECK: call {{.*}} R_{{.*}} memset
 
 define void @test_memset_const_len_align(i32 %iptr_dst, i32 %wide_val) {
 entry:
@@ -167,7 +161,7 @@ entry:
 }
 ; CHECK-LABEL: test_memset_const_len_align
 ; CHECK: movzx
-; CHECK: call memset
+; CHECK: call {{.*}} R_{{.*}} memset
 
 define void @test_memset_const_val(i32 %iptr_dst, i32 %len) {
 entry:
@@ -177,8 +171,8 @@ entry:
 }
 ; CHECK-LABEL: test_memset_const_val
 ; Make sure the argument is legalized (can't movzx reg, 0).
-; CHECK: movzx {{.*}}, {{[^0]}}
-; CHECK: call memset
+; CHECK: movzx {{.*}},{{[^0]}}
+; CHECK: call {{.*}} R_{{.*}} memset
 
 
 define i32 @test_setjmplongjmp(i32 %iptr_env) {
@@ -196,11 +190,11 @@ NonZero:
   ret i32 1
 }
 ; CHECK-LABEL: test_setjmplongjmp
-; CHECK: call setjmp
-; CHECK: call longjmp
+; CHECK: call {{.*}} R_{{.*}} setjmp
+; CHECK: call {{.*}} R_{{.*}} longjmp
 ; CHECKO2REM-LABEL: test_setjmplongjmp
-; CHECKO2REM: call setjmp
-; CHECKO2REM: call longjmp
+; CHECKO2REM: call {{.*}} R_{{.*}} setjmp
+; CHECKO2REM: call {{.*}} R_{{.*}} longjmp
 
 define i32 @test_setjmp_unused(i32 %iptr_env, i32 %i_other) {
 entry:
@@ -211,7 +205,7 @@ entry:
 ; Don't consider setjmp side-effect free, so it's not eliminated if
 ; result unused.
 ; CHECKO2REM-LABEL: test_setjmp_unused
-; CHECKO2REM: call setjmp
+; CHECKO2REM: call {{.*}} R_{{.*}} setjmp
 
 define float @test_sqrt_float(float %x, i32 %iptr) {
 entry:
@@ -224,7 +218,7 @@ entry:
 ; CHECK-LABEL: test_sqrt_float
 ; CHECK: sqrtss xmm{{.*}}
 ; CHECK: sqrtss xmm{{.*}}
-; CHECK: sqrtss xmm{{.*}}, dword ptr
+; CHECK: sqrtss xmm{{.*}},DWORD PTR
 
 define float @test_sqrt_float_mergeable_load(float %x, i32 %iptr) {
 entry:
@@ -251,7 +245,7 @@ entry:
 ; CHECK-LABEL: test_sqrt_double
 ; CHECK: sqrtsd xmm{{.*}}
 ; CHECK: sqrtsd xmm{{.*}}
-; CHECK: sqrtsd xmm{{.*}}, qword ptr
+; CHECK: sqrtsd xmm{{.*}},QWORD PTR
 
 define double @test_sqrt_double_mergeable_load(double %x, i32 %iptr) {
 entry:
@@ -297,7 +291,7 @@ entry:
 ; CHECK-LABEL: test_bswap_16
 ; Make sure this is the right operand size so that the most significant bit
 ; to least significant bit rotation happens at the right boundary.
-; CHECK: rol {{[abcd]x|si|di|bp|word ptr}}, 8
+; CHECK: rol {{[abcd]x|si|di|bp|word ptr}},0x8
 
 define i32 @test_bswap_32(i32 %x) {
 entry:
@@ -325,10 +319,10 @@ entry:
 ; TODO(jvoung): If we detect that LZCNT is supported, then use that
 ; and avoid the need to do the cmovne and xor stuff to guarantee that
 ; the result is well-defined w/ input == 0.
-; CHECK: bsr [[REG_TMP:e.*]], {{.*}}
-; CHECK: mov [[REG_RES:e.*]], 63
-; CHECK: cmovne [[REG_RES]], [[REG_TMP]]
-; CHECK: xor [[REG_RES]], 31
+; CHECK: bsr [[REG_TMP:e.*]],{{.*}}
+; CHECK: mov [[REG_RES:e.*]],0x3f
+; CHECK: cmovne [[REG_RES]],[[REG_TMP]]
+; CHECK: xor [[REG_RES]],0x1f
 
 define i32 @test_ctlz_32_const() {
 entry:
@@ -339,7 +333,7 @@ entry:
 ; The dest operand must be a register and the source operand must be a register
 ; or memory.
 ; CHECK-LABEL: test_ctlz_32_const
-; CHECK: bsr e{{.*}}, {{.*}}e{{.*}}
+; CHECK: bsr e{{.*}},{{.*}}e{{.*}}
 
 define i32 @test_ctlz_32_ignored(i32 %x) {
 entry:
@@ -356,16 +350,16 @@ entry:
 }
 ; CHECKO2REM-LABEL: test_ctlz_64
 ; CHECK-LABEL: test_ctlz_64
-; CHECK: bsr [[REG_TMP1:e.*]], {{.*}}
-; CHECK: mov [[REG_RES1:e.*]], 63
-; CHECK: cmovne [[REG_RES1]], [[REG_TMP1]]
-; CHECK: xor [[REG_RES1]], 31
-; CHECK: add [[REG_RES1]], 32
-; CHECK: bsr [[REG_RES2:e.*]], {{.*}}
-; CHECK: xor [[REG_RES2]], 31
-; CHECK: test [[REG_UPPER:.*]], [[REG_UPPER]]
-; CHECK: cmove [[REG_RES2]], [[REG_RES1]]
-; CHECK: mov {{.*}}, 0
+; CHECK: bsr [[REG_TMP1:e.*]],{{.*}}
+; CHECK: mov [[REG_RES1:e.*]],0x3f
+; CHECK: cmovne [[REG_RES1]],[[REG_TMP1]]
+; CHECK: xor [[REG_RES1]],0x1f
+; CHECK: add [[REG_RES1]],0x20
+; CHECK: bsr [[REG_RES2:e.*]],{{.*}}
+; CHECK: xor [[REG_RES2]],0x1f
+; CHECK: test [[REG_UPPER:.*]],[[REG_UPPER]]
+; CHECK: cmove [[REG_RES2]],[[REG_RES1]]
+; CHECK: mov {{.*}},0x0
 
 define i32 @test_ctlz_64_const(i64 %x) {
 entry:
@@ -374,8 +368,8 @@ entry:
   ret i32 %r2
 }
 ; CHECK-LABEL: test_ctlz_64_const
-; CHECK: bsr e{{.*}}, {{.*}}e{{.*}}
-; CHECK: bsr e{{.*}}, {{.*}}e{{.*}}
+; CHECK: bsr e{{.*}},{{.*}}e{{.*}}
+; CHECK: bsr e{{.*}},{{.*}}e{{.*}}
 
 
 define i32 @test_ctlz_64_ignored(i64 %x) {
@@ -392,9 +386,9 @@ entry:
   ret i32 %r
 }
 ; CHECK-LABEL: test_cttz_32
-; CHECK: bsf [[REG_IF_NOTZERO:e.*]], {{.*}}
-; CHECK: mov [[REG_IF_ZERO:e.*]], 32
-; CHECK: cmovne [[REG_IF_ZERO]], [[REG_IF_NOTZERO]]
+; CHECK: bsf [[REG_IF_NOTZERO:e.*]],{{.*}}
+; CHECK: mov [[REG_IF_ZERO:e.*]],0x20
+; CHECK: cmovne [[REG_IF_ZERO]],[[REG_IF_NOTZERO]]
 
 define i64 @test_cttz_64(i64 %x) {
 entry:
@@ -402,14 +396,14 @@ entry:
   ret i64 %r
 }
 ; CHECK-LABEL: test_cttz_64
-; CHECK: bsf [[REG_IF_NOTZERO:e.*]], {{.*}}
-; CHECK: mov [[REG_RES1:e.*]], 32
-; CHECK: cmovne [[REG_RES1]], [[REG_IF_NOTZERO]]
-; CHECK: add [[REG_RES1]], 32
-; CHECK: bsf [[REG_RES2:e.*]], [[REG_LOWER:.*]]
-; CHECK: test [[REG_LOWER]], [[REG_LOWER]]
-; CHECK: cmove [[REG_RES2]], [[REG_RES1]]
-; CHECK: mov {{.*}}, 0
+; CHECK: bsf [[REG_IF_NOTZERO:e.*]],{{.*}}
+; CHECK: mov [[REG_RES1:e.*]],0x20
+; CHECK: cmovne [[REG_RES1]],[[REG_IF_NOTZERO]]
+; CHECK: add [[REG_RES1]],0x20
+; CHECK: bsf [[REG_RES2:e.*]],[[REG_LOWER:.*]]
+; CHECK: test [[REG_LOWER]],[[REG_LOWER]]
+; CHECK: cmove [[REG_RES2]],[[REG_RES1]]
+; CHECK: mov {{.*}},0x0
 
 define i32 @test_popcount_32(i32 %x) {
 entry:
@@ -417,7 +411,7 @@ entry:
   ret i32 %r
 }
 ; CHECK-LABEL: test_popcount_32
-; CHECK: call __popcountsi2
+; CHECK: call {{.*}} R_{{.*}} __popcountsi2
 
 define i64 @test_popcount_64(i64 %x) {
 entry:
@@ -425,10 +419,10 @@ entry:
   ret i64 %r
 }
 ; CHECK-LABEL: test_popcount_64
-; CHECK: call __popcountdi2
+; CHECK: call {{.*}} R_{{.*}} __popcountdi2
 ; __popcountdi2 only returns a 32-bit result, so clear the upper bits of
 ; the return value just in case.
-; CHECK: mov {{.*}}, 0
+; CHECK: mov {{.*}},0x0
 
 
 define i32 @test_popcount_64_ret_i32(i64 %x) {
@@ -439,7 +433,7 @@ entry:
 }
 ; If there is a trunc, then the mov {{.*}}, 0 is dead and gets optimized out.
 ; CHECKO2REM-LABEL: test_popcount_64_ret_i32
-; CHECKO2REM: call __popcountdi2
+; CHECKO2REM: call {{.*}} R_{{.*}} __popcountdi2
 ; CHECKO2REM-NOT: mov {{.*}}, 0
 
 define void @test_stacksave_noalloca() {
@@ -449,8 +443,8 @@ entry:
   ret void
 }
 ; CHECK-LABEL: test_stacksave_noalloca
-; CHECK: mov {{.*}}, esp
-; CHECK: mov esp, {{.*}}
+; CHECK: mov {{.*}},esp
+; CHECK: mov esp,{{.*}}
 
 declare i32 @foo(i32 %x)
 
@@ -482,7 +476,7 @@ entry:
 }
 ; CHECK-LABEL: test_stacksave_multiple
 ; At least 3 copies of esp, but probably more from having to do the allocas.
-; CHECK: mov {{.*}}, esp
-; CHECK: mov {{.*}}, esp
-; CHECK: mov {{.*}}, esp
-; CHECK: mov esp, {{.*}}
+; CHECK: mov {{.*}},esp
+; CHECK: mov {{.*}},esp
+; CHECK: mov {{.*}},esp
+; CHECK: mov esp,{{.*}}

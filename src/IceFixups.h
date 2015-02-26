@@ -25,7 +25,11 @@ typedef uint32_t FixupKind;
 // Assembler fixups are positions in generated code/data that hold relocation
 // information that needs to be processed before finalizing the code/data.
 struct AssemblerFixup {
+  AssemblerFixup &operator=(const AssemblerFixup &) = delete;
+
 public:
+  AssemblerFixup() : position_(0), kind_(0), value_(nullptr) {}
+  AssemblerFixup(const AssemblerFixup &) = default;
   intptr_t position() const { return position_; }
   void set_position(intptr_t Position) { position_ = Position; }
 

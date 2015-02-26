@@ -3,7 +3,7 @@
 
 ; REQUIRES: allow_dump
 
-; RUN: %p2i -i %s --args --verbose inst -ias=0 | FileCheck %s
+; RUN: %p2i -i %s --filetype=asm --args --verbose inst -threads=0 | FileCheck %s
 
 define i32 @Add(i32 %a, i32 %b) {
 ; CHECK: define i32 @Add

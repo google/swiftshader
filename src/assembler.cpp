@@ -40,7 +40,8 @@ AssemblerFixup *AssemblerBuffer::createFixup(FixupKind Kind,
   F->set_position(0);
   F->set_kind(Kind);
   F->set_value(Value);
-  fixups_.push_back(F);
+  if (!assembler_.getPreliminary())
+    fixups_.push_back(F);
   return F;
 }
 

@@ -8,6 +8,6 @@
 \#*
 
 # Ignore specific patterns at the top-level directory
-/llvm2ice
+/pnacl-sz
 /build/
 /crosstest/Output/

@@ -325,6 +325,8 @@ private:
 
   intptr_t position_;
   intptr_t num_unresolved_;
+  // TODO(stichnot,jvoung): Can this instead be
+  // llvm::SmallVector<intptr_t, kMaxUnresolvedBranches> ?
   intptr_t unresolved_near_positions_[kMaxUnresolvedBranches];
 
   friend class AssemblerX86;
@@ -352,6 +354,15 @@ public:
   llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const override {
     static const uint8_t Padding[] = {0xF4};
     return llvm::ArrayRef<uint8_t>(Padding, 1);
+  }
+
+  void padWithNop(intptr_t Padding) override {
+    while (Padding > MAX_NOP_SIZE) {
+      nop(MAX_NOP_SIZE);
+      Padding -= MAX_NOP_SIZE;
+    }
+    if (Padding)
+      nop(Padding);
   }
 
   Label *GetOrCreateCfgNodeLabel(SizeT NodeNumber);

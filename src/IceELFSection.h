@@ -28,6 +28,7 @@ class ELFStringTableSection;
 
 // Base representation of an ELF section.
 class ELFSection {
+  ELFSection() = delete;
   ELFSection(const ELFSection &) = delete;
   ELFSection &operator=(const ELFSection &) = delete;
 
@@ -66,7 +67,7 @@ public:
 
   void setNameStrIndex(Elf64_Word sh_name) { Header.sh_name = sh_name; }
 
-  IceString getName() const { return Name; }
+  const IceString &getName() const { return Name; }
 
   void setLinkNum(Elf64_Word sh_link) { Header.sh_link = sh_link; }
 
@@ -84,7 +85,7 @@ protected:
 
   // Name of the section in convenient string form (instead of a index
   // into the Section Header String Table, which is not known till later).
-  IceString Name;
+  const IceString Name;
 
   // The fields of the header. May only be partially initialized, but should
   // be fully initialized before writing.
@@ -97,6 +98,7 @@ protected:
 // Models text/code sections. Code is written out incrementally and the
 // size of the section is then updated incrementally.
 class ELFTextSection : public ELFSection {
+  ELFTextSection() = delete;
   ELFTextSection(const ELFTextSection &) = delete;
   ELFTextSection &operator=(const ELFTextSection &) = delete;
 
@@ -110,6 +112,7 @@ public:
 // size of the section is then updated incrementally.
 // Some rodata sections may have fixed entsize and duplicates may be mergeable.
 class ELFDataSection : public ELFSection {
+  ELFDataSection() = delete;
   ELFDataSection(const ELFDataSection &) = delete;
   ELFDataSection &operator=(const ELFDataSection &) = delete;
 
@@ -155,6 +158,10 @@ struct ELFSym {
 // Models a symbol table. Symbols may be added up until updateIndices is
 // called. At that point the indices of each symbol will be finalized.
 class ELFSymbolTableSection : public ELFSection {
+  ELFSymbolTableSection() = delete;
+  ELFSymbolTableSection(const ELFSymbolTableSection &) = delete;
+  ELFSymbolTableSection &operator=(const ELFSymbolTableSection &) = delete;
+
 public:
   using ELFSection::ELFSection;
 
@@ -199,6 +206,7 @@ private:
 
 // Models a relocation section.
 class ELFRelocationSection : public ELFSection {
+  ELFRelocationSection() = delete;
   ELFRelocationSection(const ELFRelocationSection &) = delete;
   ELFRelocationSection &operator=(const ELFRelocationSection &) = delete;
 
@@ -237,6 +245,7 @@ private:
 // can be discovered and used to fill out section headers and symbol
 // table entries.
 class ELFStringTableSection : public ELFSection {
+  ELFStringTableSection() = delete;
   ELFStringTableSection(const ELFStringTableSection &) = delete;
   ELFStringTableSection &operator=(const ELFStringTableSection &) = delete;
 

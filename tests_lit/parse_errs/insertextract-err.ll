@@ -2,13 +2,13 @@
 
 ; RUN: %if --need=allow_dump --command llvm-as < %s \
 ; RUN:   | %if --need=allow_dump --command pnacl-freeze \
-; RUN:   | %if --need=allow_dump --command not %llvm2ice -notranslate \
+; RUN:   | %if --need=allow_dump --command not %pnacl_sz -notranslate \
 ; RUN:     -build-on-read -allow-pnacl-reader-error-recovery \
 ; RUN:   | %if --need=allow_dump --command FileCheck %s
 
 ; RUN: %if --need=no_dump --command llvm-as < %s \
 ; RUN:   | %if --need=no_dump --command pnacl-freeze \
-; RUN:   | %if --need=no_dump --command not %llvm2ice -notranslate \
+; RUN:   | %if --need=no_dump --command not %pnacl_sz -notranslate \
 ; RUN:     -build-on-read -allow-pnacl-reader-error-recovery \
 ; RUN:   | %if --need=no_dump --command FileCheck %s --check-prefix=MIN
 

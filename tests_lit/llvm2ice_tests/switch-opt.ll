@@ -2,9 +2,7 @@
 ; same label which also results in phi instructions with multiple
 ; entries for the same incoming edge.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
 
 define i32 @testSwitch(i32 %a) {
 entry:
@@ -49,7 +47,7 @@ sw.default:
   ret i32 20
 }
 ; CHECK-LABEL: testSwitchImm
-; CHECK-NOT: cmp {{[0-9]*}},
+; CHECK-NOT: cmp 0x{{[0-9a-f]*}},
 
 ; Test for correct 64-bit lowering.
 define internal i32 @testSwitch64(i64 %a) {
@@ -78,21 +76,21 @@ return:                                           ; preds = %sw.default, %sw.bb3
   ret i32 %retval.0
 }
 ; CHECK-LABEL: testSwitch64
-; CHECK: cmp {{.*}}, 123
+; CHECK: cmp {{.*}},0x7b
 ; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}}, 0
+; CHECK-NEXT: cmp {{.*}},0x0
 ; CHECK-NEXT: je
-; CHECK: cmp {{.*}}, 234
+; CHECK: cmp {{.*}},0xea
 ; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}}, 0
+; CHECK-NEXT: cmp {{.*}},0x0
 ; CHECK-NEXT: je
-; CHECK: cmp {{.*}}, 345
+; CHECK: cmp {{.*}},0x159
 ; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}}, 0
+; CHECK-NEXT: cmp {{.*}},0x0
 ; CHECK-NEXT: je
-; CHECK: cmp {{.*}}, 878082192
+; CHECK: cmp {{.*}},0x34567890
 ; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}}, 18
+; CHECK-NEXT: cmp {{.*}},0x12
 ; CHECK-NEXT: je
 
 ; Similar to testSwitchImm, make sure proper addressing modes are
@@ -108,7 +106,7 @@ sw.default:
   ret i32 20
 }
 ; CHECK-LABEL: testSwitchImm64
-; CHECK: cmp {{.*}}, 1
+; CHECK: cmp {{.*}},0x1
 ; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}}, 0
+; CHECK-NEXT: cmp {{.*}},0x0
 ; CHECK-NEXT: je

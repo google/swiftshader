@@ -1,31 +1,27 @@
 ; This test checks that undef values are represented as zero.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -O2 -mattr=sse4.1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 -mattr=sse4.1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
+; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
+; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 -mattr=sse4.1 \
+; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 -mattr=sse4.1 \
+; RUN:   | FileCheck %s
 
 define i32 @undef_i32() {
 entry:
   ret i32 undef
 ; CHECK-LABEL: undef_i32
-; CHECK: mov eax, 0
+; CHECK: mov eax,0x0
 }
 
 define i64 @undef_i64() {
 entry:
   ret i64 undef
 ; CHECK-LABEL: undef_i64
-; CHECK-DAG: mov eax, 0
-; CHECK-DAG: mov edx, 0
+; CHECK-DAG: mov eax,0x0
+; CHECK-DAG: mov edx,0x0
 ; CHECK: ret
 }
 
@@ -33,7 +29,7 @@ define float @undef_float() {
 entry:
   ret float undef
 ; CHECK-LABEL: undef_float
-; CHECK: fld dword ptr [.L$float$0]
+; CHECK: fld DWORD PTR {{.*}} .L$float$0
 }
 
 define <4 x i1> @undef_v4i1() {
@@ -186,7 +182,7 @@ entry:
   %val = insertelement <4 x float> %arg, float undef, i32 0
   ret <4 x float> %val
 ; CHECK-LABEL: vector_insertelement_arg2
-; CHECK: movss {{.*}}, dword ptr [.L$float$0]
+; CHECK: movss {{.*}},DWORD PTR {{.*}} .L$float$0
 }
 
 define float @vector_extractelement_v4f32_index_0() {

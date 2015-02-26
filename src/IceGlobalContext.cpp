@@ -134,8 +134,10 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
     : ConstPool(new ConstantPool()), ErrorStatus(), StrDump(OsDump),
       StrEmit(OsEmit), VMask(Mask), Arch(Arch), Opt(Opt),
       TestPrefix(TestPrefix), Flags(Flags), RNG(""), ObjectWriter(),
-      CfgQ(/*MaxSize=*/Flags.NumTranslationThreads,
-           /*Sequential=*/(Flags.NumTranslationThreads == 0)) {
+      OptQ(/*Sequential=*/Flags.isSequential(),
+           /*MaxSize=*/Flags.getNumTranslationThreads()),
+      // EmitQ is allowed unlimited size.
+      EmitQ(/*Sequential=*/Flags.isSequential()) {
   // Make sure thread_local fields are properly initialized before any
   // accesses are made.  Do this here instead of at the start of
   // main() so that all clients (e.g. unit tests) can benefit for
@@ -156,45 +158,169 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
     newTimerStackID("Per-function summary");
   }
   Timers.initInto(MyTLS->Timers);
-  if (Flags.UseELFWriter) {
+  switch (Flags.getOutFileType()) {
+  case FT_Elf:
     ObjectWriter.reset(new ELFObjectWriter(*this, *ELFStr));
+    break;
+  case FT_Asm:
+  case FT_Iasm:
+    break;
   }
 }
 
 void GlobalContext::translateFunctions() {
-  while (std::unique_ptr<Cfg> Func = cfgQueueBlockingPop()) {
+  while (std::unique_ptr<Cfg> Func = optQueueBlockingPop()) {
     // Install Func in TLS for Cfg-specific container allocators.
     Cfg::setCurrentCfg(Func.get());
     // Reset per-function stats being accumulated in TLS.
     resetStats();
     // Set verbose level to none if the current function does NOT
     // match the -verbose-focus command-line option.
-    if (!matchSymbolName(Func->getFunctionName(), getFlags().VerboseFocusOn))
+    if (!matchSymbolName(Func->getFunctionName(),
+                         getFlags().getVerboseFocusOn()))
       Func->setVerbose(IceV_None);
     // Disable translation if -notranslate is specified, or if the
     // current function matches the -translate-only option.  If
     // translation is disabled, just dump the high-level IR and
     // continue.
-    if (getFlags().DisableTranslation ||
-        !matchSymbolName(Func->getFunctionName(), getFlags().TranslateOnly)) {
+    if (getFlags().getDisableTranslation() ||
+        !matchSymbolName(Func->getFunctionName(),
+                         getFlags().getTranslateOnly())) {
       Func->dump();
+      Cfg::setCurrentCfg(nullptr);
+      continue; // Func goes out of scope and gets deleted
+    }
+    Func->translate();
+    EmitterWorkItem *Item = nullptr;
+    if (Func->hasError()) {
+      getErrorStatus()->assign(EC_Translation);
+      OstreamLocker L(this);
+      getStrDump() << "ICE translation error: " << Func->getError() << "\n";
+      Item = new EmitterWorkItem(Func->getSequenceNumber());
     } else {
-      Func->translate();
-      if (Func->hasError()) {
-        getErrorStatus()->assign(EC_Translation);
-        OstreamLocker L(this);
-        getStrDump() << "ICE translation error: " << Func->getError() << "\n";
-      } else {
-        if (getFlags().UseIntegratedAssembler)
-          Func->emitIAS();
-        else
-          Func->emit();
-        // TODO(stichnot): actually add to emit queue
+      Func->getAssembler<>()->setInternal(Func->getInternal());
+      switch (getFlags().getOutFileType()) {
+      case FT_Elf:
+      case FT_Iasm: {
+        Func->emitIAS();
+        // The Cfg has already emitted into the assembly buffer, so
+        // stats have been fully collected into this thread's TLS.
+        // Dump them before TLS is reset for the next Cfg.
+        dumpStats(Func->getFunctionName());
+        Assembler *Asm = Func->releaseAssembler();
+        // Copy relevant fields into Asm before Func is deleted.
+        Asm->setFunctionName(Func->getFunctionName());
+        Item = new EmitterWorkItem(Func->getSequenceNumber(), Asm);
+      } break;
+      case FT_Asm:
+        // The Cfg has not been emitted yet, so stats are not ready
+        // to be dumped.
+        Item = new EmitterWorkItem(Func->getSequenceNumber(), Func.release());
+        break;
       }
-      dumpStats(Func->getFunctionName());
     }
     Cfg::setCurrentCfg(nullptr);
+    assert(Item);
+    emitQueueBlockingPush(Item);
     // The Cfg now gets deleted as Func goes out of scope.
+  }
+}
+
+namespace {
+
+void lowerGlobals(GlobalContext *Ctx,
+                  std::unique_ptr<VariableDeclarationList> VariableDeclarations,
+                  TargetDataLowering *DataLowering) {
+  TimerMarker T(TimerStack::TT_emitGlobalInitializers, Ctx);
+  const bool DumpGlobalVariables = ALLOW_DUMP && Ctx->getVerbose() &&
+                                   Ctx->getFlags().getVerboseFocusOn().empty();
+  if (DumpGlobalVariables) {
+    OstreamLocker L(Ctx);
+    Ostream &Stream = Ctx->getStrDump();
+    for (const Ice::VariableDeclaration *Global : *VariableDeclarations) {
+      Global->dump(Ctx, Stream);
+    }
+  }
+  if (Ctx->getFlags().getDisableTranslation())
+    return;
+  DataLowering->lowerGlobals(std::move(VariableDeclarations));
+}
+
+// Ensure Pending is large enough that Pending[Index] is valid.
+void resizePending(std::vector<EmitterWorkItem *> &Pending, uint32_t Index) {
+  if (Index >= Pending.size())
+    Pending.resize(Index + 1);
+}
+
+} // end of anonymous namespace
+
+void GlobalContext::emitItems() {
+  const bool Threaded = !getFlags().isSequential();
+  // Pending is a vector containing the reassembled, ordered list of
+  // work items.  When we're ready for the next item, we first check
+  // whether it's in the Pending list.  If not, we take an item from
+  // the work queue, and if it's not the item we're waiting for, we
+  // insert it into Pending and repeat.  The work item is deleted
+  // after it is processed.
+  std::vector<EmitterWorkItem *> Pending;
+  uint32_t DesiredSequenceNumber = getFirstSequenceNumber();
+  while (true) {
+    resizePending(Pending, DesiredSequenceNumber);
+    // See if Pending contains DesiredSequenceNumber.
+    EmitterWorkItem *RawItem = Pending[DesiredSequenceNumber];
+    if (RawItem == nullptr)
+      RawItem = emitQueueBlockingPop();
+    if (RawItem == nullptr)
+      return;
+    uint32_t ItemSeq = RawItem->getSequenceNumber();
+    if (Threaded && ItemSeq != DesiredSequenceNumber) {
+      resizePending(Pending, ItemSeq);
+      Pending[ItemSeq] = RawItem;
+      continue;
+    }
+
+    std::unique_ptr<EmitterWorkItem> Item(RawItem);
+    ++DesiredSequenceNumber;
+    switch (Item->getKind()) {
+    case EmitterWorkItem::WI_Nop:
+      break;
+    case EmitterWorkItem::WI_GlobalInits: {
+      lowerGlobals(this, Item->getGlobalInits(),
+                   TargetDataLowering::createLowering(this).get());
+    } break;
+    case EmitterWorkItem::WI_Asm: {
+      std::unique_ptr<Assembler> Asm = Item->getAsm();
+      Asm->alignFunction();
+      IceString MangledName = mangleName(Asm->getFunctionName());
+      switch (getFlags().getOutFileType()) {
+      case FT_Elf:
+        getObjectWriter()->writeFunctionCode(MangledName, Asm->getInternal(),
+                                             Asm.get());
+        break;
+      case FT_Iasm: {
+        OstreamLocker L(this);
+        Cfg::emitTextHeader(MangledName, this, Asm.get());
+        Asm->emitIASBytes(this);
+      } break;
+      case FT_Asm:
+        llvm::report_fatal_error("Unexpected FT_Asm");
+        break;
+      }
+    } break;
+    case EmitterWorkItem::WI_Cfg: {
+      if (!ALLOW_DUMP)
+        llvm::report_fatal_error("WI_Cfg work item created inappropriately");
+      assert(getFlags().getOutFileType() == FT_Asm);
+      std::unique_ptr<Cfg> Func = Item->getCfg();
+      // Unfortunately, we have to temporarily install the Cfg in TLS
+      // because Variable::asType() uses the allocator to create the
+      // differently-typed copy.
+      Cfg::setCurrentCfg(Func.get());
+      Func->emit();
+      Cfg::setCurrentCfg(nullptr);
+      dumpStats(Func->getFunctionName());
+    } break;
+    }
   }
 }
 
@@ -548,21 +674,35 @@ void GlobalContext::setTimerName(TimerStackIdT StackID,
   Timers->at(StackID).setName(NewName);
 }
 
-// Note: cfgQueueBlockingPush and cfgQueueBlockingPop use unique_ptr
+// Note: optQueueBlockingPush and optQueueBlockingPop use unique_ptr
 // at the interface to take and transfer ownership, but they
 // internally store the raw Cfg pointer in the work queue.  This
 // allows e.g. future queue optimizations such as the use of atomics
 // to modify queue elements.
-void GlobalContext::cfgQueueBlockingPush(std::unique_ptr<Cfg> Func) {
-  CfgQ.blockingPush(Func.release());
+void GlobalContext::optQueueBlockingPush(std::unique_ptr<Cfg> Func) {
+  assert(Func);
+  OptQ.blockingPush(Func.release());
+  if (getFlags().isSequential())
+    translateFunctions();
 }
 
-std::unique_ptr<Cfg> GlobalContext::cfgQueueBlockingPop() {
-  return std::unique_ptr<Cfg>(CfgQ.blockingPop());
+std::unique_ptr<Cfg> GlobalContext::optQueueBlockingPop() {
+  return std::unique_ptr<Cfg>(OptQ.blockingPop());
+}
+
+void GlobalContext::emitQueueBlockingPush(EmitterWorkItem *Item) {
+  assert(Item);
+  EmitQ.blockingPush(Item);
+  if (getFlags().isSequential())
+    emitItems();
+}
+
+EmitterWorkItem *GlobalContext::emitQueueBlockingPop() {
+  return EmitQ.blockingPop();
 }
 
 void GlobalContext::dumpStats(const IceString &Name, bool Final) {
-  if (!ALLOW_DUMP || !getFlags().DumpStats)
+  if (!getFlags().getDumpStats())
     return;
   OstreamLocker OL(this);
   if (Final) {
@@ -584,10 +724,10 @@ void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
 void TimerMarker::push() {
   switch (StackID) {
   case GlobalContext::TSK_Default:
-    Active = Ctx->getFlags().SubzeroTimingEnabled;
+    Active = Ctx->getFlags().getSubzeroTimingEnabled();
     break;
   case GlobalContext::TSK_Funcs:
-    Active = Ctx->getFlags().TimeEachFunction;
+    Active = Ctx->getFlags().getTimeEachFunction();
     break;
   default:
     break;
@@ -598,7 +738,8 @@ void TimerMarker::push() {
 
 void TimerMarker::pushCfg(const Cfg *Func) {
   Ctx = Func->getContext();
-  Active = Func->getFocusedTiming() || Ctx->getFlags().SubzeroTimingEnabled;
+  Active =
+      Func->getFocusedTiming() || Ctx->getFlags().getSubzeroTimingEnabled();
   if (Active)
     Ctx->pushTimer(ID, StackID);
 }

@@ -1,11 +1,7 @@
 ; This is a basic test of the alloca instruction.
 
-; RUN: %p2i -i %s --args -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s --args -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
 define void @fixed_416_align_16(i32 %n) {
 entry:
@@ -14,11 +10,11 @@ entry:
   call void @f1(i32 %__2)
   ret void
 }
-; CHECK-LABEL: fixed_416_align_16:
-; CHECK:      sub     esp, 416
-; CHECK:      sub     esp, 16
-; CHECK:      mov     dword ptr [esp], eax
-; CHECK:      call    f1
+; CHECK-LABEL: fixed_416_align_16
+; CHECK:      sub     esp,0x1a0
+; CHECK:      sub     esp,0x10
+; CHECK:      mov     DWORD PTR [esp],eax
+; CHECK:      call {{.*}} R_{{.*}}    f1
 
 define void @fixed_416_align_32(i32 %n) {
 entry:
@@ -27,12 +23,12 @@ entry:
   call void @f1(i32 %__2)
   ret void
 }
-; CHECK-LABEL: fixed_416_align_32:
-; CHECK:      and     esp, -32
-; CHECK:      sub     esp, 416
-; CHECK:      sub     esp, 16
-; CHECK:      mov     dword ptr [esp], eax
-; CHECK:      call    f1
+; CHECK-LABEL: fixed_416_align_32
+; CHECK:      and     esp,0xffffffe0
+; CHECK:      sub     esp,0x1a0
+; CHECK:      sub     esp,0x10
+; CHECK:      mov     DWORD PTR [esp],eax
+; CHECK:      call {{.*}} R_{{.*}}    f1
 
 define void @fixed_351_align_16(i32 %n) {
 entry:
@@ -41,11 +37,11 @@ entry:
   call void @f1(i32 %__2)
   ret void
 }
-; CHECK-LABEL: fixed_351_align_16:
-; CHECK:      sub     esp, 352
-; CHECK:      sub     esp, 16
-; CHECK:      mov     dword ptr [esp], eax
-; CHECK:      call    f1
+; CHECK-LABEL: fixed_351_align_16
+; CHECK:      sub     esp,0x160
+; CHECK:      sub     esp,0x10
+; CHECK:      mov     DWORD PTR [esp],eax
+; CHECK:      call {{.*}} R_{{.*}}    f1
 
 define void @fixed_351_align_32(i32 %n) {
 entry:
@@ -54,17 +50,14 @@ entry:
   call void @f1(i32 %__2)
   ret void
 }
-; CHECK-LABEL: fixed_351_align_32:
-; CHECK:      and     esp, -32
-; CHECK:      sub     esp, 352
-; CHECK:      sub     esp, 16
-; CHECK:      mov     dword ptr [esp], eax
-; CHECK:      call    f1
+; CHECK-LABEL: fixed_351_align_32
+; CHECK:      and     esp,0xffffffe0
+; CHECK:      sub     esp,0x160
+; CHECK:      sub     esp,0x10
+; CHECK:      mov     DWORD PTR [esp],eax
+; CHECK:      call {{.*}} R_{{.*}}    f1
 
-define void @f1(i32 %ignored) {
-entry:
-  ret void
-}
+declare void @f1(i32 %ignored)
 
 define void @variable_n_align_16(i32 %n) {
 entry:
@@ -73,14 +66,14 @@ entry:
   call void @f2(i32 %__2)
   ret void
 }
-; CHECK-LABEL: variable_n_align_16:
-; CHECK:      mov     eax, dword ptr [ebp + 8]
-; CHECK:      add     eax, 15
-; CHECK:      and     eax, -16
-; CHECK:      sub     esp, eax
-; CHECK:      sub     esp, 16
-; CHECK:      mov     dword ptr [esp], eax
-; CHECK:      call    f2
+; CHECK-LABEL: variable_n_align_16
+; CHECK:      mov     eax,DWORD PTR [ebp+0x8]
+; CHECK:      add     eax,0xf
+; CHECK:      and     eax,0xfffffff0
+; CHECK:      sub     esp,eax
+; CHECK:      sub     esp,0x10
+; CHECK:      mov     DWORD PTR [esp],eax
+; CHECK:      call {{.*}} R_{{.*}}    f2
 
 define void @variable_n_align_32(i32 %n) {
 entry:
@@ -90,15 +83,15 @@ entry:
   ret void
 }
 ; In -O2, the order of the CHECK-DAG lines in the output is switched.
-; CHECK-LABEL: variable_n_align_32:
-; CHECK-DAG:  and     esp, -32
-; CHECK-DAG:  mov     eax, dword ptr [ebp + 8]
-; CHECK:      add     eax, 31
-; CHECK:      and     eax, -32
-; CHECK:      sub     esp, eax
-; CHECK:      sub     esp, 16
-; CHECK:      mov     dword ptr [esp], eax
-; CHECK:      call    f2
+; CHECK-LABEL: variable_n_align_32
+; CHECK-DAG:  and     esp,0xffffffe0
+; CHECK-DAG:  mov     eax,DWORD PTR [ebp+0x8]
+; CHECK:      add     eax,0x1f
+; CHECK:      and     eax,0xffffffe0
+; CHECK:      sub     esp,eax
+; CHECK:      sub     esp,0x10
+; CHECK:      mov     DWORD PTR [esp],eax
+; CHECK:      call {{.*}} R_{{.*}}    f2
 
 ; Test alloca with default (0) alignment.
 define void @align0(i32 %n) {
@@ -109,11 +102,8 @@ entry:
   ret void
 }
 ; CHECK-LABEL: align0
-; CHECK: add [[REG:.*]], 15
-; CHECK: and [[REG]], -16
-; CHECK: sub esp, [[REG]]
+; CHECK: add [[REG:.*]],0xf
+; CHECK: and [[REG]],0xfffffff0
+; CHECK: sub esp,[[REG]]
 
-define void @f2(i32 %ignored) {
-entry:
-  ret void
-}
+declare void @f2(i32 %ignored)

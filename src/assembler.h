@@ -115,6 +115,11 @@ public:
 
   const FixupRefList &fixups() const { return fixups_; }
 
+  void setSize(intptr_t NewSize) {
+    assert(NewSize <= Size());
+    cursor_ = contents_ + NewSize;
+  }
+
 private:
   // The limit is set to kMinimumGap bytes before the end of the data area.
   // This leaves enough space for the longest possible instruction and allows
@@ -149,7 +154,9 @@ class Assembler {
   Assembler &operator=(const Assembler &) = delete;
 
 public:
-  Assembler() : buffer_(*this) {}
+  Assembler()
+      : FunctionName(""), IsInternal(false), Preliminary(false),
+        buffer_(*this) {}
   virtual ~Assembler() {}
 
   // Allocate a chunk of bytes using the per-Assembler allocator.
@@ -169,6 +176,9 @@ public:
 
   // Align the tail end of the function to the required target alignment.
   virtual void alignFunction() = 0;
+
+  // Add nop padding of a particular width to the current bundle.
+  virtual void padWithNop(intptr_t Padding) = 0;
 
   virtual SizeT getBundleAlignLog2Bytes() const = 0;
 
@@ -190,9 +200,28 @@ public:
   }
 
   void emitIASBytes(GlobalContext *Ctx) const;
+  bool getInternal() const { return IsInternal; }
+  void setInternal(bool Internal) { IsInternal = Internal; }
+  const IceString &getFunctionName() { return FunctionName; }
+  void setFunctionName(const IceString &NewName) { FunctionName = NewName; }
+  intptr_t getBufferSize() const { return buffer_.Size(); }
+  // Roll back to a (smaller) size.
+  void setBufferSize(intptr_t NewSize) { buffer_.setSize(NewSize); }
+  void setPreliminary(bool Value) { Preliminary = Value; }
+  bool getPreliminary() const { return Preliminary; }
 
 private:
   ArenaAllocator<32 * 1024> Allocator;
+  // FunctionName and IsInternal are transferred from the original Cfg
+  // object, since the Cfg object may be deleted by the time the
+  // assembler buffer is emitted.
+  IceString FunctionName;
+  bool IsInternal;
+  // Preliminary indicates whether a preliminary pass is being made
+  // for calculating bundle padding (Preliminary=true), versus the
+  // final pass where all changes to label bindings, label links, and
+  // relocation fixups are fully committed (Preliminary=false).
+  bool Preliminary;
 
 protected:
   AssemblerBuffer buffer_;

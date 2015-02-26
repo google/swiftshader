@@ -1,11 +1,7 @@
 ; Tests various aspects of i1 related lowering.
 
-; RUN: %p2i -i %s -a -O2 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
-; RUN: %p2i -i %s -a -Om1 --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 | FileCheck %s
 
 ; Test that and with true uses immediate 1, not -1.
 define internal i32 @testAndTrue(i32 %arg) {
@@ -16,7 +12,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testAndTrue
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 
 ; Test that or with true uses immediate 1, not -1.
 define internal i32 @testOrTrue(i32 %arg) {
@@ -27,7 +23,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testOrTrue
-; CHECK: or {{.*}}, 1
+; CHECK: or {{.*}},0x1
 
 ; Test that xor with true uses immediate 1, not -1.
 define internal i32 @testXorTrue(i32 %arg) {
@@ -38,7 +34,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testXorTrue
-; CHECK: xor {{.*}}, 1
+; CHECK: xor {{.*}},0x1
 
 ; Test that trunc to i1 masks correctly.
 define internal i32 @testTrunc(i32 %arg) {
@@ -48,7 +44,7 @@ entry:
   ret i32 %result
 }
 ; CHECK-LABEL: testTrunc
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 
 ; Test zext to i8.
 define internal i32 @testZextI8(i32 %arg) {
@@ -60,9 +56,9 @@ entry:
 }
 ; CHECK-LABEL: testZextI8
 ; match the trunc instruction
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 ; match the zext i1 instruction (NOTE: no mov need between i1 and i8).
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 
 ; Test zext to i16.
 define internal i32 @testZextI16(i32 %arg) {
@@ -74,10 +70,10 @@ entry:
 }
 ; CHECK-LABEL: testZextI16
 ; match the trunc instruction
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 ; match the zext i1 instruction (note 32-bit reg is used because it's shorter).
-; CHECK: movzx [[REG:e.*]], {{[a-d]l|byte ptr}}
-; CHECK: and [[REG]], 1
+; CHECK: movzx [[REG:e.*]],{{[a-d]l|BYTE PTR}}
+; CHECK: and [[REG]],0x1
 
 ; Test zext to i32.
 define internal i32 @testZextI32(i32 %arg) {
@@ -88,10 +84,10 @@ entry:
 }
 ; CHECK-LABEL: testZextI32
 ; match the trunc instruction
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 ; match the zext i1 instruction
 ; CHECK: movzx
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 
 ; Test zext to i64.
 define internal i64 @testZextI64(i32 %arg) {
@@ -102,11 +98,11 @@ entry:
 }
 ; CHECK-LABEL: testZextI64
 ; match the trunc instruction
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 ; match the zext i1 instruction
 ; CHECK: movzx
-; CHECK: and {{.*}}, 1
-; CHECK: mov {{.*}}, 0
+; CHECK: and {{.*}},0x1
+; CHECK: mov {{.*}},0x0
 
 ; Test sext to i8.
 define internal i32 @testSextI8(i32 %arg) {
@@ -118,10 +114,10 @@ entry:
 }
 ; CHECK-LABEL: testSextI8
 ; match the trunc instruction
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 ; match the sext i1 instruction
-; CHECK: shl [[REG:.*]], 7
-; CHECK-NEXT: sar [[REG]], 7
+; CHECK: shl [[REG:.*]],0x7
+; CHECK-NEXT: sar [[REG]],0x7
 
 ; Test sext to i16.
 define internal i32 @testSextI16(i32 %arg) {
@@ -133,11 +129,11 @@ entry:
 }
 ; CHECK-LABEL: testSextI16
 ; match the trunc instruction
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 ; match the sext i1 instruction
-; CHECK: movzx e[[REG:.*]], {{[a-d]l|byte ptr}}
-; CHECK-NEXT: shl [[REG]], 15
-; CHECK-NEXT: sar [[REG]], 15
+; CHECK: movzx e[[REG:.*]],{{[a-d]l|BYTE PTR}}
+; CHECK-NEXT: shl [[REG]],0xf
+; CHECK-NEXT: sar [[REG]],0xf
 
 ; Test sext to i32.
 define internal i32 @testSextI32(i32 %arg) {
@@ -148,11 +144,11 @@ entry:
 }
 ; CHECK-LABEL: testSextI32
 ; match the trunc instruction
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 ; match the sext i1 instruction
 ; CHECK: movzx [[REG:.*]],
-; CHECK-NEXT: shl [[REG]], 31
-; CHECK-NEXT: sar [[REG]], 31
+; CHECK-NEXT: shl [[REG]],0x1f
+; CHECK-NEXT: sar [[REG]],0x1f
 
 ; Test sext to i64.
 define internal i64 @testSextI64(i32 %arg) {
@@ -163,11 +159,11 @@ entry:
 }
 ; CHECK-LABEL: testSextI64
 ; match the trunc instruction
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 ; match the sext i1 instruction
 ; CHECK: movzx [[REG:.*]],
-; CHECK-NEXT: shl [[REG]], 31
-; CHECK-NEXT: sar [[REG]], 31
+; CHECK-NEXT: shl [[REG]],0x1f
+; CHECK-NEXT: sar [[REG]],0x1f
 
 ; Test fptosi float to i1.
 define internal i32 @testFptosiFloat(float %arg) {
@@ -178,10 +174,10 @@ entry:
 }
 ; CHECK-LABEL: testFptosiFloat
 ; CHECK: cvttss2si
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 ; CHECK: movzx [[REG:.*]],
-; CHECK-NEXT: shl [[REG]], 31
-; CHECK-NEXT: sar [[REG]], 31
+; CHECK-NEXT: shl [[REG]],0x1f
+; CHECK-NEXT: sar [[REG]],0x1f
 
 ; Test fptosi double to i1.
 define internal i32 @testFptosiDouble(double %arg) {
@@ -192,7 +188,7 @@ entry:
 }
 ; CHECK-LABEL: testFptosiDouble
 ; CHECK: cvttsd2si
-; CHECK: and {{.*}}, 1
+; CHECK: and {{.*}},0x1
 ; CHECK: movzx [[REG:.*]],
-; CHECK-NEXT: shl [[REG]], 31
-; CHECK-NEXT: sar [[REG]], 31
+; CHECK-NEXT: shl [[REG]],0x1f
+; CHECK-NEXT: sar [[REG]],0x1f

@@ -22,6 +22,7 @@
 namespace Ice {
 
 class CfgNode {
+  CfgNode() = delete;
   CfgNode(const CfgNode &) = delete;
   CfgNode &operator=(const CfgNode &) = delete;
 

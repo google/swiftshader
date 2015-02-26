@@ -28,12 +28,13 @@ namespace Ice {
 
 /// Converts LLVM types to ICE types, and ICE types to LLVM types.
 class TypeConverter {
+  TypeConverter() = delete;
   TypeConverter(const TypeConverter &) = delete;
   TypeConverter &operator=(const TypeConverter &) = delete;
 
 public:
   /// Context is the context to use to build llvm types.
-  TypeConverter(llvm::LLVMContext &Context);
+  explicit TypeConverter(llvm::LLVMContext &Context);
 
   /// Converts LLVM type LLVMTy to an ICE type. Returns
   /// Ice::IceType_NUM if unable to convert.

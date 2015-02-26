@@ -29,7 +29,7 @@ namespace Ice {
 
 namespace {
 
-// TODO(stichnot): Move this machinery into llvm2ice.cpp.
+// TODO(stichnot): Move this machinery into main.cpp.
 namespace cl = llvm::cl;
 cl::opt<bool> DoNopInsertion("nop-insertion", cl::desc("Randomly insert NOPs"),
                              cl::init(false));
@@ -105,7 +105,7 @@ TargetLowering::TargetLowering(Cfg *Func)
     : Func(Func), Ctx(Func->getContext()),
       RandomizeRegisterAllocation(CLRandomizeRegisterAllocation),
       HasComputedFrame(false), CallsReturnsTwice(false), StackAdjustment(0),
-      Context() {}
+      Context(), SnapshotStackAdjustment(0) {}
 
 std::unique_ptr<Assembler> TargetLowering::createAssembler(TargetArch Target,
                                                            Cfg *Func) {
@@ -218,6 +218,8 @@ void TargetLowering::lower() {
   case Inst::Unreachable:
     lowerUnreachable(llvm::dyn_cast<InstUnreachable>(Inst));
     break;
+  case Inst::BundleLock:
+  case Inst::BundleUnlock:
   case Inst::FakeDef:
   case Inst::FakeUse:
   case Inst::FakeKill:
@@ -252,19 +254,20 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
   LinearScan.scan(RegMask, RandomizeRegisterAllocation);
 }
 
-TargetDataLowering *TargetDataLowering::createLowering(GlobalContext *Ctx) {
+std::unique_ptr<TargetDataLowering>
+TargetDataLowering::createLowering(GlobalContext *Ctx) {
   // These statements can be #ifdef'd to specialize the code generator
   // to a subset of the available targets.  TODO: use CRTP.
   TargetArch Target = Ctx->getTargetArch();
   if (Target == Target_X8632)
-    return TargetDataX8632::create(Ctx);
+    return std::unique_ptr<TargetDataLowering>(TargetDataX8632::create(Ctx));
 #if 0
   if (Target == Target_X8664)
-    return TargetDataX8664::create(Ctx);
+    return std::unique_ptr<TargetDataLowering>(TargetDataX8664::create(Ctx));
   if (Target == Target_ARM32)
-    return TargetDataARM32::create(Ctx);
+    return std::unique_ptr<TargetDataLowering>(TargetDataARM32::create(Ctx));
   if (Target == Target_ARM64)
-    return TargetDataARM64::create(Ctx);
+    return std::unique_ptr<TargetDataLowering>(TargetDataARM64::create(Ctx));
 #endif
   llvm_unreachable("Unsupported target");
   return nullptr;

@@ -25,12 +25,13 @@ class Module;
 namespace Ice {
 
 class Converter : public Translator {
+  Converter() = delete;
   Converter(const Converter &) = delete;
   Converter &operator=(const Converter &) = delete;
 
 public:
-  Converter(llvm::Module *Mod, GlobalContext *Ctx, const Ice::ClFlags &Flags)
-      : Translator(Ctx, Flags), Mod(Mod) {}
+  Converter(llvm::Module *Mod, GlobalContext *Ctx)
+      : Translator(Ctx), Mod(Mod) {}
 
   ~Converter() {}
 

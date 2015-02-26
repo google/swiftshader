@@ -2,16 +2,15 @@
 ; those for pmull vary more wildly depending on operand size (rather than
 ; follow a usual pattern).
 
-; RUN: %p2i -i %s --args -O2 -mattr=sse4.1 -sandbox --verbose none \
-; RUN:   | llvm-mc -triple=i686-none-nacl -filetype=obj \
-; RUN:   | llvm-objdump -d --symbolize -x86-asm-syntax=intel - | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 -mattr=sse4.1 \
+; RUN:  -sandbox | FileCheck %s
 
 define <8 x i16> @test_mul_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
 entry:
   %res = mul <8 x i16> %arg0, %arg1
   ret <8 x i16> %res
 ; CHECK-LABEL: test_mul_v8i16
-; CHECK: 66 0f d5 c1 pmullw xmm0, xmm1
+; CHECK: 66 0f d5 c1 pmullw xmm0,xmm1
 }
 
 ; Test register and address mode encoding.
@@ -34,14 +33,14 @@ entry:
   %res = select <8 x i1> %cond, <8 x i16> %res_acc1_3, <8 x i16> %res_acc2_4
   ret <8 x i16> %res
 ; CHECK-LABEL: test_mul_v8i16_more_regs
-; CHECK-DAG: 66 0f d5 c2 pmullw xmm0, xmm2
-; CHECK-DAG: 66 0f d5 c3 pmullw xmm0, xmm3
-; CHECK-DAG: 66 0f d5 c4 pmullw xmm0, xmm4
-; CHECK-DAG: 66 0f d5 c5 pmullw xmm0, xmm5
-; CHECK-DAG: 66 0f d5 c6 pmullw xmm0, xmm6
-; CHECK-DAG: 66 0f d5 c7 pmullw xmm0, xmm7
-; CHECK-DAG: 66 0f d5 44 24 70 pmullw xmm0, xmmword ptr [esp + 112]
-; CHECK-DAG: 66 0f d5 8c 24 80 00 00 00 pmullw xmm1, xmmword ptr [esp + 128]
+; CHECK-DAG: 66 0f d5 c2 pmullw xmm0,xmm2
+; CHECK-DAG: 66 0f d5 c3 pmullw xmm0,xmm3
+; CHECK-DAG: 66 0f d5 c4 pmullw xmm0,xmm4
+; CHECK-DAG: 66 0f d5 c5 pmullw xmm0,xmm5
+; CHECK-DAG: 66 0f d5 c6 pmullw xmm0,xmm6
+; CHECK-DAG: 66 0f d5 c7 pmullw xmm0,xmm7
+; CHECK-DAG: 66 0f d5 44 24 70 pmullw xmm0,XMMWORD PTR [esp
+; CHECK-DAG: 66 0f d5 8c 24 80 00 00 00 pmullw xmm1,XMMWORD PTR [esp
 }
 
 define <4 x i32> @test_mul_v4i32(<4 x i32> %arg0, <4 x i32> %arg1) {
@@ -49,7 +48,7 @@ entry:
   %res = mul <4 x i32> %arg0, %arg1
   ret <4 x i32> %res
 ; CHECK-LABEL: test_mul_v4i32
-; CHECK: 66 0f 38 40 c1  pmulld  xmm0, xmm1
+; CHECK: 66 0f 38 40 c1  pmulld  xmm0,xmm1
 }
 
 define <4 x i32> @test_mul_v4i32_more_regs(<4 x i1> %cond, <4 x i32> %arg0, <4 x i32> %arg1, <4 x i32> %arg2, <4 x i32> %arg3, <4 x i32> %arg4, <4 x i32> %arg5, <4 x i32> %arg6, <4 x i32> %arg7, <4 x i32> %arg8) {
@@ -71,14 +70,14 @@ entry:
   %res = select <4 x i1> %cond, <4 x i32> %res_acc1_3, <4 x i32> %res_acc2_4
   ret <4 x i32> %res
 ; CHECK-LABEL: test_mul_v4i32_more_regs
-; CHECK-DAG: 66 0f 38 40 c2 pmulld xmm0, xmm2
-; CHECK-DAG: 66 0f 38 40 c3 pmulld xmm0, xmm3
-; CHECK-DAG: 66 0f 38 40 c4 pmulld xmm0, xmm4
-; CHECK-DAG: 66 0f 38 40 c5 pmulld xmm0, xmm5
-; CHECK-DAG: 66 0f 38 40 c6 pmulld xmm0, xmm6
-; CHECK-DAG: 66 0f 38 40 c7 pmulld xmm0, xmm7
-; CHECK-DAG: 66 0f 38 40 44 24 70 pmulld xmm0, xmmword ptr [esp + 112]
-; CHECK-DAG: 66 0f 38 40 8c 24 80 00 00 00 pmulld xmm1, xmmword ptr [esp + 128]
+; CHECK-DAG: 66 0f 38 40 c2 pmulld xmm0,xmm2
+; CHECK-DAG: 66 0f 38 40 c3 pmulld xmm0,xmm3
+; CHECK-DAG: 66 0f 38 40 c4 pmulld xmm0,xmm4
+; CHECK-DAG: 66 0f 38 40 c5 pmulld xmm0,xmm5
+; CHECK-DAG: 66 0f 38 40 c6 pmulld xmm0,xmm6
+; CHECK-DAG: 66 0f 38 40 c7 pmulld xmm0,xmm7
+; CHECK-DAG: 66 0f 38 40 44 24 70 pmulld xmm0,XMMWORD PTR [esp
+; CHECK-DAG: 66 0f 38 40 8c 24 80 00 00 00 pmulld xmm1,XMMWORD PTR [esp
 }
 
 ; Test movq, which is used by atomic stores.
@@ -95,9 +94,9 @@ entry:
   ret void
 }
 ; CHECK-LABEL: test_atomic_store_64
-; CHECK-DAG: f3 0f 7e 04 24    movq xmm0, qword ptr [esp]
-; CHECK-DAG: f3 0f 7e 44 24 08 movq xmm0, qword ptr [esp + 8]
-; CHECK-DAG: 66 0f d6 0{{.*}}  movq qword ptr [e{{.*}}], xmm0
+; CHECK-DAG: f3 0f 7e 04 24    movq xmm0,QWORD PTR [esp]
+; CHECK-DAG: f3 0f 7e 44 24 08 movq xmm0,QWORD PTR [esp
+; CHECK-DAG: 66 0f d6 0{{.*}}  movq QWORD PTR [e{{.*}}],xmm0
 
 ; Test "movups" via vector stores and loads.
 define void @store_v16xI8(i32 %addr, i32 %addr2, i32 %addr3, <16 x i8> %v) {
@@ -110,7 +109,7 @@ define void @store_v16xI8(i32 %addr, i32 %addr2, i32 %addr3, <16 x i8> %v) {
   ret void
 }
 ; CHECK-LABEL: store_v16xI8
-; CHECK: 0f 11 0{{.*}} movups xmmword ptr [e{{.*}}], xmm0
+; CHECK: 0f 11 0{{.*}} movups XMMWORD PTR [e{{.*}}],xmm0
 
 define <16 x i8> @load_v16xI8(i32 %addr, i32 %addr2, i32 %addr3) {
   %addr_v16xI8 = inttoptr i32 %addr to <16 x i8>*
@@ -124,7 +123,7 @@ define <16 x i8> @load_v16xI8(i32 %addr, i32 %addr2, i32 %addr3) {
   ret <16 x i8> %res123
 }
 ; CHECK-LABEL: load_v16xI8
-; CHECK: 0f 10 0{{.*}} movups xmm0, xmmword ptr [e{{.*}}]
+; CHECK: 0f 10 0{{.*}} movups xmm0,XMMWORD PTR [e{{.*}}]
 
 ; Test segment override prefix. This happens w/ nacl.read.tp.
 declare i8* @llvm.nacl.read.tp()
@@ -154,11 +153,11 @@ entry:
   ret i32 %v
 }
 ; CHECK-LABEL: test_nacl_read_tp_more_addressing
-; CHECK: 65 8b 05 00 00 00 00  mov eax, dword ptr gs:[0]
-; CHECK: 8b 04 00              mov eax, dword ptr [eax + eax]
-; CHECK: 65 8b 0d 00 00 00 00  mov ecx, dword ptr gs:[0]
-; CHECK: 89 51 80              mov dword ptr [ecx - 128], edx
-; CHECK: 89 91 00 01 00 00     mov dword ptr [ecx + 256], edx
+; CHECK: 65 8b 05 00 00 00 00  mov eax,DWORD PTR gs:0x0
+; CHECK: 8b 04 00              mov eax,DWORD PTR [eax+eax*1]
+; CHECK: 65 8b 0d 00 00 00 00  mov ecx,DWORD PTR gs:0x0
+; CHECK: 89 51 80              mov DWORD PTR [ecx-0x80],edx
+; CHECK: 89 91 00 01 00 00     mov DWORD PTR [ecx+0x100],edx
 
 ; The 16-bit pinsrw/pextrw (SSE2) are quite different from
 ; the pinsr{b,d}/pextr{b,d} (SSE4.1).
@@ -172,10 +171,10 @@ entry:
   %res3 = insertelement <4 x i32> %res2, i32 %elt1, i32 3
   ret <4 x i32> %res3
 }
-; CHECK-LABEL: test_pinsrd:
-; CHECK-DAG: 66 0f 3a 22 c{{.*}} 01 pinsrd xmm0, e{{.*}}, 1
-; CHECK-DAG: 66 0f 3a 22 c{{.*}} 02 pinsrd xmm0, e{{.*}}, 2
-; CHECK-DAG: 66 0f 3a 22 c{{.*}} 03 pinsrd xmm0, e{{.*}}, 3
+; CHECK-LABEL: test_pinsrd
+; CHECK-DAG: 66 0f 3a 22 c{{.*}} 01 pinsrd xmm0,e{{.*}}
+; CHECK-DAG: 66 0f 3a 22 c{{.*}} 02 pinsrd xmm0,e{{.*}}
+; CHECK-DAG: 66 0f 3a 22 c{{.*}} 03 pinsrd xmm0,e{{.*}}
 
 define <16 x i8> @test_pinsrb(<16 x i8> %vec, i32 %elt1_w, i32 %elt2_w, i32 %elt3_w, i32 %elt4_w) {
 entry:
@@ -190,10 +189,10 @@ entry:
   %res3 = insertelement <16 x i8> %res2, i8 %elt1, i32 15
   ret <16 x i8> %res3
 }
-; CHECK-LABEL: test_pinsrb:
-; CHECK-DAG: 66 0f 3a 20 c{{.*}} 01 pinsrb xmm0, e{{.*}}, 1
-; CHECK-DAG: 66 0f 3a 20 c{{.*}} 07 pinsrb xmm0, e{{.*}}, 7
-; CHECK-DAG: 66 0f 3a 20 {{.*}} 0f pinsrb xmm0, byte ptr {{.*}}, 15
+; CHECK-LABEL: test_pinsrb
+; CHECK-DAG: 66 0f 3a 20 c{{.*}} 01 pinsrb xmm0,e{{.*}}
+; CHECK-DAG: 66 0f 3a 20 c{{.*}} 07 pinsrb xmm0,e{{.*}}
+; CHECK-DAG: 66 0f 3a 20 {{.*}} 0f pinsrb xmm0,BYTE PTR {{.*}}
 
 define <8 x i16> @test_pinsrw(<8 x i16> %vec, i32 %elt1_w, i32 %elt2_w, i32 %elt3_w, i32 %elt4_w) {
 entry:
@@ -208,10 +207,10 @@ entry:
   %res3 = insertelement <8 x i16> %res2, i16 %elt1, i32 7
   ret <8 x i16> %res3
 }
-; CHECK-LABEL: test_pinsrw:
-; CHECK-DAG: 66 0f c4 c{{.*}} 01 pinsrw xmm0, e{{.*}}, 1
-; CHECK-DAG: 66 0f c4 c{{.*}} 04 pinsrw xmm0, e{{.*}}, 4
-; CHECK-DAG: 66 0f c4 c{{.*}} 07 pinsrw xmm0, e{{.*}}, 7
+; CHECK-LABEL: test_pinsrw
+; CHECK-DAG: 66 0f c4 c{{.*}} 01 pinsrw xmm0,e{{.*}}
+; CHECK-DAG: 66 0f c4 c{{.*}} 04 pinsrw xmm0,e{{.*}}
+; CHECK-DAG: 66 0f c4 c{{.*}} 07 pinsrw xmm0,e{{.*}}
 
 define i32 @test_pextrd(i32 %c, <4 x i32> %vec1, <4 x i32> %vec2, <4 x i32> %vec3, <4 x i32> %vec4) {
 entry:
@@ -232,10 +231,10 @@ three:
   ret i32 %res3
 }
 ; CHECK-LABEL: test_pextrd
-; CHECK-DAG: 66 0f 3a 16 c0 00 pextrd eax, xmm0, 0
-; CHECK-DAG: 66 0f 3a 16 c8 01 pextrd eax, xmm1, 1
-; CHECK-DAG: 66 0f 3a 16 d0 02 pextrd eax, xmm2, 2
-; CHECK-DAG: 66 0f 3a 16 d8 03 pextrd eax, xmm3, 3
+; CHECK-DAG: 66 0f 3a 16 c0 00 pextrd eax,xmm0
+; CHECK-DAG: 66 0f 3a 16 c8 01 pextrd eax,xmm1
+; CHECK-DAG: 66 0f 3a 16 d0 02 pextrd eax,xmm2
+; CHECK-DAG: 66 0f 3a 16 d8 03 pextrd eax,xmm3
 
 define i32 @test_pextrb(i32 %c, <16 x i8> %vec1, <16 x i8> %vec2, <16 x i8> %vec3, <16 x i8> %vec4) {
 entry:
@@ -260,10 +259,10 @@ three:
   ret i32 %res3_ext
 }
 ; CHECK-LABEL: test_pextrb
-; CHECK-DAG: 66 0f 3a 14 c0 00 pextrb eax, xmm0, 0
-; CHECK-DAG: 66 0f 3a 14 c8 06 pextrb eax, xmm1, 6
-; CHECK-DAG: 66 0f 3a 14 d0 0c pextrb eax, xmm2, 12
-; CHECK-DAG: 66 0f 3a 14 d8 0f pextrb eax, xmm3, 15
+; CHECK-DAG: 66 0f 3a 14 c0 00 pextrb eax,xmm0
+; CHECK-DAG: 66 0f 3a 14 c8 06 pextrb eax,xmm1
+; CHECK-DAG: 66 0f 3a 14 d0 0c pextrb eax,xmm2
+; CHECK-DAG: 66 0f 3a 14 d8 0f pextrb eax,xmm3
 
 define i32 @test_pextrw(i32 %c, <8 x i16> %vec1, <8 x i16> %vec2, <8 x i16> %vec3, <8 x i16> %vec4) {
 entry:
@@ -288,7 +287,7 @@ three:
   ret i32 %res3_ext
 }
 ; CHECK-LABEL: test_pextrw
-; CHECK-DAG: 66 0f c5 c0 00 pextrw eax, xmm0, 0
-; CHECK-DAG: 66 0f c5 c1 02 pextrw eax, xmm1, 2
-; CHECK-DAG: 66 0f c5 c2 05 pextrw eax, xmm2, 5
-; CHECK-DAG: 66 0f c5 c3 07 pextrw eax, xmm3, 7
+; CHECK-DAG: 66 0f c5 c0 00 pextrw eax,xmm0
+; CHECK-DAG: 66 0f c5 c1 02 pextrw eax,xmm1
+; CHECK-DAG: 66 0f c5 c2 05 pextrw eax,xmm2
+; CHECK-DAG: 66 0f c5 c3 07 pextrw eax,xmm3

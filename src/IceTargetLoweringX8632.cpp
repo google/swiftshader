@@ -313,7 +313,7 @@ TargetX8632::TargetX8632(Cfg *Func)
 void TargetX8632::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
-  if (!Ctx->getFlags().PhiEdgeSplit) {
+  if (!Ctx->getFlags().getPhiEdgeSplit()) {
     // Lower Phi instructions.
     Func->placePhiLoads();
     if (Func->hasError())
@@ -377,7 +377,7 @@ void TargetX8632::translateO2() {
     return;
   Func->dump("After linear scan regalloc");
 
-  if (Ctx->getFlags().PhiEdgeSplit) {
+  if (Ctx->getFlags().getPhiEdgeSplit()) {
     Func->advancedPhiLowering();
     Func->dump("After advanced Phi lowering");
   }
@@ -748,7 +748,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     // A spill slot linked to a variable with a stack slot should reuse
     // that stack slot.
     if (SpillVariable *SpillVar = llvm::dyn_cast<SpillVariable>(Var)) {
-      assert(Var->getWeight() == RegWeight::Zero);
+      assert(Var->getWeight().isZero());
       if (!SpillVar->getLinkedTo()->hasReg()) {
         VariablesLinkedToSpillSlots.push_back(Var);
         continue;
@@ -963,6 +963,29 @@ void TargetX8632::addEpilog(CfgNode *Node) {
       _pop(getPhysicalRegister(j));
     }
   }
+
+  if (!Ctx->getFlags().getUseSandboxing())
+    return;
+  // Change the original ret instruction into a sandboxed return sequence.
+  // t:ecx = pop
+  // bundle_lock
+  // and t, ~31
+  // jmp *t
+  // bundle_unlock
+  // FakeUse <original_ret_operand>
+  const SizeT BundleSize = 1
+                           << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+  Variable *T_ecx = makeReg(IceType_i32, RegX8632::Reg_ecx);
+  _pop(T_ecx);
+  _bundle_lock();
+  _and(T_ecx, Ctx->getConstantInt32(~(BundleSize - 1)));
+  _jmp(T_ecx);
+  _bundle_unlock();
+  if (RI->getSrcSize()) {
+    Variable *RetValue = llvm::cast<Variable>(RI->getSrc(0));
+    Context.insert(InstFakeUse::create(Func, RetValue));
+  }
+  RI->setDeleted();
 }
 
 void TargetX8632::split64(Variable *Var) {
@@ -1815,8 +1838,24 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     }
   }
   Operand *CallTarget = legalize(Instr->getCallTarget());
+  const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
+  if (NeedSandboxing) {
+    if (llvm::isa<Constant>(CallTarget)) {
+      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
+    } else {
+      Variable *CallTargetVar = nullptr;
+      _mov(CallTargetVar, CallTarget);
+      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
+      const SizeT BundleSize =
+          1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+      _and(CallTargetVar, Ctx->getConstantInt32(~(BundleSize - 1)));
+      CallTarget = CallTargetVar;
+    }
+  }
   Inst *NewCall = InstX8632Call::create(Func, ReturnReg, CallTarget);
   Context.insert(NewCall);
+  if (NeedSandboxing)
+    _bundle_unlock();
   if (ReturnRegHi)
     Context.insert(InstFakeDef::create(Func, ReturnRegHi));
 
@@ -3067,7 +3106,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::NaClReadTP: {
-    if (Ctx->getFlags().UseSandboxing) {
+    if (Ctx->getFlags().getUseSandboxing()) {
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
       Operand *Src =
           OperandX8632Mem::create(Func, IceType_i32, nullptr, Zero, nullptr, 0,
@@ -3829,6 +3868,9 @@ void TargetX8632::lowerRet(const InstRet *Inst) {
       _mov(Reg, Src0, RegX8632::Reg_eax);
     }
   }
+  // Add a ret instruction even if sandboxing is enabled, because
+  // addEpilog explicitly looks for a ret instruction as a marker for
+  // where to insert the frame removal instructions.
   _ret(Reg);
   // Add a fake use of esp to make sure esp stays alive for the entire
   // function.  Otherwise post-call esp adjustments get dead-code
@@ -4076,12 +4118,7 @@ TargetX8632::eliminateNextVectorSextInstruction(Variable *SignExtendedResult) {
   }
 }
 
-void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) {
-  const SizeT MaxSrcs = 0;
-  Variable *Dest = nullptr;
-  InstCall *Call = makeHelperCall("ice_unreachable", Dest, MaxSrcs);
-  lowerCall(Call);
-}
+void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) { _ud2(); }
 
 // Turn an i64 Phi instruction into a pair of i32 Phi instructions, to
 // preserve integrity of liveness analysis.  Undef values are also
@@ -4299,7 +4336,7 @@ OperandX8632Mem *TargetX8632::getMemoryOperandForStackSlot(Type Ty,
                                                            Variable *Slot,
                                                            uint32_t Offset) {
   // Ensure that Loc is a stack slot.
-  assert(Slot->getWeight() == RegWeight::Zero);
+  assert(Slot->getWeight().isZero());
   assert(Slot->getRegNum() == Variable::NoRegister);
   // Compute the location of Loc in memory.
   // TODO(wala,stichnot): lea should not be required.  The address of
@@ -4396,8 +4433,7 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
     // Check if the variable is guaranteed a physical register.  This
     // can happen either when the variable is pre-colored or when it is
     // assigned infinite weight.
-    bool MustHaveRegister =
-        (Var->hasReg() || Var->getWeight() == RegWeight::Inf);
+    bool MustHaveRegister = (Var->hasReg() || Var->getWeight().isInf());
     // We need a new physical register for the operand if:
     //   Mem is not allowed and Var isn't guaranteed a physical
     //   register, or
@@ -4566,7 +4602,7 @@ TargetDataX8632::TargetDataX8632(GlobalContext *Ctx)
 void TargetDataX8632::lowerGlobal(const VariableDeclaration &Var) const {
   // If external and not initialized, this must be a cross test.
   // Don't generate a declaration for such cases.
-  bool IsExternal = Var.isExternal() || Ctx->getFlags().DisableInternal;
+  bool IsExternal = Var.isExternal() || Ctx->getFlags().getDisableInternal();
   if (IsExternal && !Var.hasInitializer())
     return;
 
@@ -4579,7 +4615,7 @@ void TargetDataX8632::lowerGlobal(const VariableDeclaration &Var) const {
   SizeT Size = Var.getNumBytes();
   IceString MangledName = Var.mangleName(Ctx);
   IceString SectionSuffix = "";
-  if (Ctx->getFlags().DataSections)
+  if (Ctx->getFlags().getDataSections())
     SectionSuffix = "." + MangledName;
 
   Str << "\t.type\t" << MangledName << ",@object\n";
@@ -4639,10 +4675,24 @@ void TargetDataX8632::lowerGlobal(const VariableDeclaration &Var) const {
   Str << "\t.size\t" << MangledName << ", " << Size << "\n";
 }
 
-void
-TargetDataX8632::lowerGlobalsELF(const VariableDeclarationList &Vars) const {
-  ELFObjectWriter *Writer = Ctx->getObjectWriter();
-  Writer->writeDataSection(Vars, llvm::ELF::R_386_32);
+void TargetDataX8632::lowerGlobals(
+    std::unique_ptr<VariableDeclarationList> Vars) const {
+  switch (Ctx->getFlags().getOutFileType()) {
+  case FT_Elf: {
+    ELFObjectWriter *Writer = Ctx->getObjectWriter();
+    Writer->writeDataSection(*Vars, llvm::ELF::R_386_32);
+  } break;
+  case FT_Asm:
+  case FT_Iasm: {
+    const IceString &TranslateOnly = Ctx->getFlags().getTranslateOnly();
+    OstreamLocker L(Ctx);
+    for (const VariableDeclaration *Var : *Vars) {
+      if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
+        lowerGlobal(*Var);
+      }
+    }
+  } break;
+  }
 }
 
 template <typename T> struct PoolTypeConverter {};
@@ -4673,7 +4723,8 @@ const char *PoolTypeConverter<double>::PrintfString = "0x%llx";
 
 template <typename T>
 void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
-  // Note: Still used by emit IAS.
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Ctx->getStrEmit();
   Type Ty = T::Ty;
   SizeT Align = typeAlignInBytes(Ty);
@@ -4701,19 +4752,23 @@ void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
   }
 }
 
-void TargetDataX8632::lowerConstants(GlobalContext *Ctx) const {
-  if (Ctx->getFlags().DisableTranslation)
+void TargetDataX8632::lowerConstants() const {
+  if (Ctx->getFlags().getDisableTranslation())
     return;
   // No need to emit constants from the int pool since (for x86) they
   // are embedded as immediates in the instructions, just emit float/double.
-  if (Ctx->getFlags().UseELFWriter) {
+  switch (Ctx->getFlags().getOutFileType()) {
+  case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     Writer->writeConstantPool<ConstantFloat>(IceType_f32);
     Writer->writeConstantPool<ConstantDouble>(IceType_f64);
-  } else {
+  } break;
+  case FT_Asm:
+  case FT_Iasm: {
     OstreamLocker L(Ctx);
     emitConstantPool<PoolTypeConverter<float>>(Ctx);
     emitConstantPool<PoolTypeConverter<double>>(Ctx);
+  } break;
   }
 }
 

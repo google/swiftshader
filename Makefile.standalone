@@ -28,6 +28,10 @@ LIBCXX_INSTALL_PATH ?= $(shell readlink -e \
 CLANG_PATH ?= $(shell readlink -e \
 	../../../../third_party/llvm-build/Release+Asserts/bin)
 
+# The location of binutils tools (e.g., objdump).
+BINUTILS_BIN_PATH ?= $(shell readlink -e \
+	../../out/binutils_pnacl_x86_64_linux_work/binutils)
+
 HOST_ARCH ?= x86_64
 ifeq ($(HOST_ARCH),x86_64)
   HOST_FLAGS = -m64 -stdlib=libc++
@@ -54,10 +58,12 @@ ifdef MINIMAL
   NOASSERT = 1
   OBJDIR := $(OBJDIR)+Min
   CXX_DEFINES += -DALLOW_DUMP=0 -DALLOW_LLVM_CL=0 -DALLOW_LLVM_IR=0 \
-	-DALLOW_LLVM_IR_AS_INPUT=0 -DALLOW_DISABLE_IR_GEN=0
+	-DALLOW_LLVM_IR_AS_INPUT=0 -DALLOW_DISABLE_IR_GEN=0 \
+        -DALLOW_MINIMAL_BUILD=1
 else
   CXX_DEFINES += -DALLOW_DUMP=1 -DALLOW_LLVM_CL=1 -DALLOW_LLVM_IR=1 \
-	-DALLOW_LLVM_IR_AS_INPUT=1 -DALLOW_DISABLE_IR_GEN=1
+	-DALLOW_LLVM_IR_AS_INPUT=1 -DALLOW_DISABLE_IR_GEN=1 \
+        -DALLOW_MINIMAL_BUILD=0
 endif
 
 ifdef NOASSERT
@@ -78,6 +84,7 @@ $(info Using LLVM_SRC_PATH = $(LLVM_SRC_PATH))
 $(info Using LLVM_BIN_PATH = $(LLVM_BIN_PATH))
 $(info Using LIBCXX_INSTALL_PATH = $(LIBCXX_INSTALL_PATH))
 $(info Using CLANG_PATH = $(CLANG_PATH))
+$(info Using BINUTILS_BIN_PATH = $(BINUTILS_BIN_PATH))
 $(info Using HOST_ARCH     = $(HOST_ARCH))
 $(info -----------------------------------------------)
 
@@ -116,10 +123,11 @@ SRCS = \
 	IceRNG.cpp \
 	IceTargetLowering.cpp \
 	IceTargetLoweringX8632.cpp \
+	IceThreading.cpp \
 	IceTimerTree.cpp \
 	IceTranslator.cpp \
 	IceTypes.cpp \
-	llvm2ice.cpp \
+	main.cpp \
 	PNaClTranslator.cpp
 
 ifndef MINIMAL
@@ -135,25 +143,23 @@ UNITTEST_SRCS = \
 	IceParseInstsTest.cpp
 
 UNITTEST_OBJS = $(patsubst %.cpp, $(OBJDIR)/unittest/%.o, $(UNITTEST_SRCS))
-UNITTEST_LIB_OBJS = $(filter-out $(OBJDIR)/llvm2ice.o,$(OBJS))
+UNITTEST_LIB_OBJS = $(filter-out $(OBJDIR)/main.o,$(OBJS))
 
 # Keep all the first target so it's the default.
-all: $(OBJDIR)/llvm2ice make_symlink
+all: $(OBJDIR)/pnacl-sz make_symlink runtime
 
 # Creates symbolic link so that testing is easier. Also runs
-# llvm2ice to verify that the defines flags have valid values,
+# pnacl-sz to verify that the defines flags have valid values,
 # as well as describe the corresponding build attributes.
-make_symlink: $(OBJDIR)/llvm2ice
-	rm -rf llvm2ice
-	ln -s $(OBJDIR)/llvm2ice
+make_symlink: $(OBJDIR)/pnacl-sz
+	rm -rf pnacl-sz
+	ln -s $(OBJDIR)/pnacl-sz
 	@echo "Build Attributes:"
-	@$(OBJDIR)/llvm2ice --build-atts
+	@$(OBJDIR)/pnacl-sz --build-atts
 
-.PHONY: all make_symlink
+.PHONY: all make_symlink runtime bloat
 
-# TODO(kschimpf): Fix python scripts to directly get build attributes
-# rather than generating $(OBJDIR)/llvm2ice.build_atts.
-$(OBJDIR)/llvm2ice: $(OBJS)
+$(OBJDIR)/pnacl-sz: $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
                -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
 
@@ -183,18 +189,32 @@ $(OBJDIR):
 $(OBJDIR)/unittest: $(OBJDIR)
 	@mkdir -p $@
 
-check-lit: $(OBJDIR)/llvm2ice make_symlink
+RT_SRC := runtime/szrt.c runtime/szrt_ll.ll
+RT_OBJ := build/runtime/szrt_native_x8632.o build/runtime/szrt_sb_x8632.o
+
+runtime: $(RT_OBJ)
+
+# Use runtime.is.built so that build-runtime.py is invoked only once
+# even in a parallel build.
+.INTERMEDIATE: runtime.is.built
+$(RT_OBJ): runtime.is.built
+runtime.is.built: $(RT_SRC)
+	@echo ================ Building Subzero runtime ================
+	./pydir/build-runtime.py -v
+
+check-lit: $(OBJDIR)/pnacl-sz make_symlink
 	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
+	BINUTILS_BIN_PATH=$(BINUTILS_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit
 
 check-unit: $(OBJDIR)/run_unittests
 	$(OBJDIR)/run_unittests
 
 ifdef MINIMAL
-check: check-lit check-unit
+check: check-lit check-unit runtime
 	@echo "Crosstests ignored, minimal build"
 else
-check: check-lit check-unit
+check: check-lit check-unit runtime
 	(cd crosstest; ./runtests.sh)
 endif
 
@@ -211,8 +231,13 @@ format-diff:
 	$(LLVM_SRC_PATH)/../clang/tools/clang-format/clang-format-diff.py \
 	-p1 -style=LLVM -i
 
+bloat: make_symlink
+	nm -C -S -l pnacl-sz | \
+	bloat/bloat.py --nm-output=/dev/stdin syms > build/pnacl-sz.bloat.json
+	@echo See Subzero size breakdown in bloat/pnacl-sz.bloat.html
+
 clean:
-	rm -rf llvm2ice *.o $(OBJDIR)
+	rm -rf pnacl-sz *.o $(OBJDIR) build/pnacl-sz.bloat.json
 
 clean-all: clean
 	rm -rf build/

@@ -1,6 +1,6 @@
 ; Trivial smoke test of icmp without fused branch opportunity.
 
-; RUN: %p2i -i %s --args --verbose none | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args | FileCheck %s
 
 ; Check that correct addressing modes are used for comparing two
 ; immediates.

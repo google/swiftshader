@@ -105,6 +105,7 @@ Ice::Ostream &operator<<(Ice::Ostream &Stream, ExtendedType::TypeKind Kind) {
 
 // Models an ICE type as an extended type.
 class SimpleExtendedType : public ExtendedType {
+  SimpleExtendedType() = delete;
   SimpleExtendedType(const SimpleExtendedType &) = delete;
   SimpleExtendedType &operator=(const SimpleExtendedType &) = delete;
 
@@ -118,6 +119,7 @@ public:
 
 // Models a function signature as an extended type.
 class FuncSigExtendedType : public ExtendedType {
+  FuncSigExtendedType() = delete;
   FuncSigExtendedType(const FuncSigExtendedType &) = delete;
   FuncSigExtendedType &operator=(const FuncSigExtendedType &) = delete;
 
@@ -153,6 +155,7 @@ class BlockParserBaseClass;
 
 // Top-level class to read PNaCl bitcode files, and translate to ICE.
 class TopLevelParser : public NaClBitcodeParser {
+  TopLevelParser() = delete;
   TopLevelParser(const TopLevelParser &) = delete;
   TopLevelParser &operator=(const TopLevelParser &) = delete;
 
@@ -163,11 +166,12 @@ public:
                  NaClBitstreamCursor &Cursor, Ice::ErrorCode &ErrorStatus)
       : NaClBitcodeParser(Cursor), Translator(Translator), Header(Header),
         ErrorStatus(ErrorStatus), NumErrors(0), NextDefiningFunctionID(0),
-        BlockParser(nullptr) {}
+        VariableDeclarations(new Ice::VariableDeclarationList()),
+        BlockParser(nullptr), StubbedConstCallValue(nullptr) {}
 
   ~TopLevelParser() override {}
 
-  Ice::Translator &getTranslator() { return Translator; }
+  Ice::Translator &getTranslator() const { return Translator; }
 
   void setBlockParser(BlockParserBaseClass *NewBlockParser) {
     BlockParser = NewBlockParser;
@@ -191,8 +195,7 @@ public:
 
   /// Returns true if generation of Subzero IR is disabled.
   bool isIRGenerationDisabled() const {
-    return ALLOW_DISABLE_IR_GEN ? Translator.getFlags().DisableIRGeneration
-                                : false;
+    return Translator.getFlags().getDisableIRGeneration();
   }
 
   /// Returns the undefined type associated with type ID.
@@ -252,71 +255,45 @@ public:
     return reportGetFunctionByIDError(ID);
   }
 
-  /// Returns the list of function declarations.
-  const FunctionDeclarationListType &getFunctionDeclarationList() const {
-    return FunctionDeclarationList;
+  /// Returns the constant associated with the given global value ID.
+  Ice::Constant *getGlobalConstantByID(unsigned ID) {
+    assert(ID < ValueIDConstants.size());
+    return ValueIDConstants[ID];
   }
 
-  /// Returns the corresponding constant associated with a global declaration.
-  /// (i.e. relocatable).
-  Ice::Constant *getOrCreateGlobalConstantByID(unsigned ID) {
-    // TODO(kschimpf): Can this be built when creating global initializers?
-    Ice::Constant *C;
-    if (ID >= ValueIDConstants.size()) {
-      C = nullptr;
-      unsigned ExpectedSize =
-          FunctionDeclarationList.size() + VariableDeclarations.size();
-      if (ID >= ExpectedSize)
-        ExpectedSize = ID;
-      ValueIDConstants.resize(ExpectedSize);
-    } else {
-      C = ValueIDConstants[ID];
-    }
-    if (C != nullptr)
-      return C;
+  /// Install names for all global values without names. Called after
+  /// the global value symbol table is processed, but before any
+  /// function blocks are processed.
+  void installGlobalNames() {
+    assert(VariableDeclarations);
+    installGlobalVarNames();
+    installFunctionNames();
+  }
 
-    if (isIRGenerationDisabled()) {
-      ValueIDConstants[ID] = nullptr;
-      return nullptr;
-    }
+  void createValueIDs() {
+    assert(VariableDeclarations);
+    ValueIDConstants.reserve(VariableDeclarations->size() +
+                             FunctionDeclarationList.size());
+    createValueIDsForFunctions();
+    createValueIDsForGlobalVars();
+  }
 
-    // If reached, no such constant exists, create one.
-    // TODO(kschimpf) Don't get addresses of intrinsic function declarations.
-    Ice::GlobalDeclaration *Decl = nullptr;
-    unsigned FcnIDSize = FunctionDeclarationList.size();
-    bool IsUndefined = false;
-    if (ID < FcnIDSize) {
-      Decl = FunctionDeclarationList[ID];
-      const auto Func = llvm::cast<Ice::FunctionDeclaration>(Decl);
-      IsUndefined = Func->isProto();
-    } else if ((ID - FcnIDSize) < VariableDeclarations.size()) {
-      Decl = VariableDeclarations[ID - FcnIDSize];
-      const auto Var = llvm::cast<Ice::VariableDeclaration>(Decl);
-      IsUndefined = !Var->hasInitializer();
+  /// Returns a defined function reference to be used in place of
+  /// called constant addresses. Returns the corresponding operand
+  /// to replace the calling address with. Reports an error if
+  /// a stub could not be found, returning the CallValue.
+  Ice::Operand *getStubbedConstCallValue(Ice::Operand *CallValue) {
+    if (StubbedConstCallValue)
+      return StubbedConstCallValue;
+    for (unsigned i = 0; i < getNumFunctionIDs(); ++i) {
+      Ice::FunctionDeclaration *Func = getFunctionByID(i);
+      if (!Func->isProto()) {
+        StubbedConstCallValue = getGlobalConstantByID(i);
+        return StubbedConstCallValue;
+      }
     }
-    std::string Name;
-    bool SuppressMangling;
-    if (Decl) {
-      Name = Decl->getName();
-      SuppressMangling = Decl->getSuppressMangling();
-    } else {
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Reference to global not defined: " << ID;
-      BlockError(StrBuf.str());
-      // TODO(kschimpf) Remove error recovery once implementation complete.
-      Name = "??";
-      SuppressMangling = false;
-    }
-    if (IsUndefined)
-      C = getTranslator().getContext()->getConstantExternSym(Name);
-    else {
-      const Ice::RelocOffsetT Offset = 0;
-      C = getTranslator().getContext()->getConstantSym(Offset, Name,
-                                                       SuppressMangling);
-    }
-    ValueIDConstants[ID] = C;
-    return C;
+    Error("Unable to find function definition to stub constant calls with");
+    return CallValue;
   }
 
   /// Returns the number of function declarations in the bitcode file.
@@ -325,27 +302,37 @@ public:
   /// Returns the number of global declarations (i.e. IDs) defined in
   /// the bitcode file.
   unsigned getNumGlobalIDs() const {
-    return FunctionDeclarationList.size() + VariableDeclarations.size();
+    if (VariableDeclarations) {
+      return FunctionDeclarationList.size() + VariableDeclarations->size();
+    } else {
+      return ValueIDConstants.size();
+    }
   }
 
   /// Creates Count global variable declarations.
   void CreateGlobalVariables(size_t Count) {
-    assert(VariableDeclarations.empty());
+    assert(VariableDeclarations);
+    assert(VariableDeclarations->empty());
     for (size_t i = 0; i < Count; ++i) {
-      VariableDeclarations.push_back(Ice::VariableDeclaration::create());
+      VariableDeclarations->push_back(Ice::VariableDeclaration::create());
     }
   }
 
   /// Returns the number of global variable declarations in the
   /// bitcode file.
   Ice::SizeT getNumGlobalVariables() const {
-    return VariableDeclarations.size();
+    if (VariableDeclarations) {
+      return VariableDeclarations->size();
+    } else {
+      return ValueIDConstants.size() - FunctionDeclarationList.size();
+    }
   }
 
   /// Returns the global variable declaration with the given index.
   Ice::VariableDeclaration *getGlobalVariableByID(unsigned Index) {
-    if (Index < VariableDeclarations.size())
-      return VariableDeclarations[Index];
+    assert(VariableDeclarations);
+    if (Index < VariableDeclarations->size())
+      return VariableDeclarations->at(Index);
     return reportGetGlobalVariableByIDError(Index);
   }
 
@@ -359,9 +346,16 @@ public:
       return getGlobalVariableByID(Index - NumFunctionIds);
   }
 
-  /// Returns the list of parsed global variable declarations.
-  const Ice::VariableDeclarationList &getGlobalVariables() {
-    return VariableDeclarations;
+  /// Returns the list of parsed global variable
+  /// declarations. Releases ownership of the current list of global
+  /// variables. Note: only returns non-null pointer on first
+  /// call. All successive calls return a null pointer.
+  std::unique_ptr<Ice::VariableDeclarationList> getGlobalVariables() {
+    // Before returning, check that ValidIDConstants has already been
+    // built.
+    assert(!VariableDeclarations ||
+           VariableDeclarations->size() <= ValueIDConstants.size());
+    return std::move(VariableDeclarations);
   }
 
 private:
@@ -385,7 +379,7 @@ private:
   // actually-defined function.
   size_t NextDefiningFunctionID;
   // The set of global variables.
-  Ice::VariableDeclarationList VariableDeclarations;
+  std::unique_ptr<Ice::VariableDeclarationList> VariableDeclarations;
   // Relocatable constants associated with global declarations.
   std::vector<Ice::Constant *> ValueIDConstants;
   // Error recovery value to use when getFuncSigTypeByID fails.
@@ -393,6 +387,8 @@ private:
   // The block parser currently being applied. Used for error
   // reporting.
   BlockParserBaseClass *BlockParser;
+  // Value to use to stub constant calls.
+  Ice::Operand *StubbedConstCallValue;
 
   bool ParseBlock(unsigned BlockID) override;
 
@@ -411,6 +407,85 @@ private:
     // Generate an error message and set ErrorStatus.
     this->reportBadTypeIDAs(ID, Ty, WantedKind);
     return nullptr;
+  }
+
+  // Gives Decl a name if it doesn't already have one. Prefix and
+  // NameIndex are used to generate the name. NameIndex is
+  // automatically incremented if a new name is created.  DeclType is
+  // literal text describing the type of name being created. Also
+  // generates warning if created names may conflict with named
+  // declarations.
+  void installDeclarationName(Ice::GlobalDeclaration *Decl,
+                              const Ice::IceString &Prefix,
+                              const char *DeclType, uint32_t &NameIndex) {
+    if (Decl->hasName()) {
+      Translator.checkIfUnnamedNameSafe(Decl->getName(), DeclType, Prefix);
+    } else {
+      Decl->setName(Translator.createUnnamedName(Prefix, NameIndex));
+      ++NameIndex;
+    }
+  }
+
+  // Installs names for global variables without names.
+  void installGlobalVarNames() {
+    assert(VariableDeclarations);
+    const Ice::IceString &GlobalPrefix =
+        getTranslator().getFlags().getDefaultGlobalPrefix();
+    if (!GlobalPrefix.empty()) {
+      uint32_t NameIndex = 0;
+      for (Ice::VariableDeclaration *Var : *VariableDeclarations) {
+        installDeclarationName(Var, GlobalPrefix, "global", NameIndex);
+      }
+    }
+  }
+
+  // Installs names for functions without names.
+  void installFunctionNames() {
+    const Ice::IceString &FunctionPrefix =
+        getTranslator().getFlags().getDefaultFunctionPrefix();
+    if (!FunctionPrefix.empty()) {
+      uint32_t NameIndex = 0;
+      for (Ice::FunctionDeclaration *Func : FunctionDeclarationList) {
+        installDeclarationName(Func, FunctionPrefix, "function", NameIndex);
+      }
+    }
+  }
+
+  // Builds a constant symbol named Name, suppressing name mangling if
+  // SuppressMangling.  IsExternal is true iff the symbol is external.
+  Ice::Constant *getConstantSym(const Ice::IceString &Name,
+                                bool SuppressMangling, bool IsExternal) const {
+    if (IsExternal) {
+      return getTranslator().getContext()->getConstantExternSym(Name);
+    } else {
+      const Ice::RelocOffsetT Offset = 0;
+      return getTranslator().getContext()->getConstantSym(Offset, Name,
+                                                          SuppressMangling);
+    }
+  }
+
+  // Converts function declarations into constant value IDs.
+  void createValueIDsForFunctions() {
+    for (const Ice::FunctionDeclaration *Func : FunctionDeclarationList) {
+      Ice::Constant *C = nullptr;
+      if (!isIRGenerationDisabled()) {
+        C = getConstantSym(Func->getName(), Func->getSuppressMangling(),
+                           Func->isProto());
+      }
+      ValueIDConstants.push_back(C);
+    }
+  }
+
+  // Converts global variable declarations into constant value IDs.
+  void createValueIDsForGlobalVars() {
+    for (const Ice::VariableDeclaration *Decl : *VariableDeclarations) {
+      Ice::Constant *C = nullptr;
+      if (!isIRGenerationDisabled()) {
+        C = getConstantSym(Decl->getName(), Decl->getSuppressMangling(),
+                           !Decl->hasInitializer());
+      }
+      ValueIDConstants.push_back(C);
+    }
   }
 
   // Reports that type ID is undefined, or not of the WantedType.
@@ -438,7 +513,7 @@ bool TopLevelParser::Error(const std::string &Message) {
   raw_ostream &OldErrStream = setErrStream(Context->getStrDump());
   NaClBitcodeParser::Error(Message);
   setErrStream(OldErrStream);
-  if (!Translator.getFlags().AllowErrorRecovery)
+  if (!Translator.getFlags().getAllowErrorRecovery())
     report_fatal_error("Unable to continue");
   return true;
 }
@@ -475,11 +550,11 @@ TopLevelParser::reportGetGlobalVariableByIDError(unsigned Index) {
   raw_string_ostream StrBuf(Buffer);
   StrBuf << "Global index " << Index
          << " not allowed. Out of range. Must be less than "
-         << VariableDeclarations.size();
+         << VariableDeclarations->size();
   BlockError(StrBuf.str());
   // TODO(kschimpf) Remove error recovery once implementation complete.
-  if (!VariableDeclarations.empty())
-    return VariableDeclarations[0];
+  if (!VariableDeclarations->empty())
+    return VariableDeclarations->at(0);
   report_fatal_error("Unable to continue");
 }
 
@@ -496,6 +571,7 @@ Ice::Type TopLevelParser::convertToIceTypeError(Type *LLVMTy) {
 // messages if ParseBlock or ParseRecord is not overridden in derived
 // classes.
 class BlockParserBaseClass : public NaClBitcodeParser {
+  BlockParserBaseClass() = delete;
   BlockParserBaseClass(const BlockParserBaseClass &) = delete;
   BlockParserBaseClass &operator=(const BlockParserBaseClass &) = delete;
 
@@ -532,8 +608,7 @@ protected:
   const Ice::ClFlags &getFlags() const { return getTranslator().getFlags(); }
 
   bool isIRGenerationDisabled() const {
-    return ALLOW_DISABLE_IR_GEN ? getTranslator().getFlags().DisableIRGeneration
-                                : false;
+    return getTranslator().getFlags().getDisableIRGeneration();
   }
 
   // Default implementation. Reports that block is unknown and skips
@@ -612,14 +687,14 @@ bool BlockParserBaseClass::Error(const std::string &Message) {
   // Note: If dump routines have been turned off, the error messages
   // will not be readable. Hence, replace with simple error. We also
   // use the simple form for unit tests.
-  if (ALLOW_DUMP && !getFlags().GenerateUnitTestMessages) {
-    StrBuf << Message;
-  } else {
+  if (getFlags().getGenerateUnitTestMessages()) {
     StrBuf << "Invalid " << getBlockName() << " record: <" << Record.GetCode();
     for (const uint64_t Val : Record.GetValues()) {
       StrBuf << " " << Val;
     }
     StrBuf << ">";
+  } else {
+    StrBuf << Message;
   }
   return Context->Error(StrBuf.str());
 }
@@ -665,6 +740,10 @@ void BlockParserBaseClass::ProcessRecord() {
 
 // Class to parse a types block.
 class TypesParser : public BlockParserBaseClass {
+  TypesParser() = delete;
+  TypesParser(const TypesParser &) = delete;
+  TypesParser &operator=(const TypesParser &) = delete;
+
 public:
   TypesParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser),
@@ -840,6 +919,10 @@ void TypesParser::ProcessRecord() {
 /// Parses the globals block (i.e. global variable declarations and
 /// corresponding initializers).
 class GlobalsParser : public BlockParserBaseClass {
+  GlobalsParser() = delete;
+  GlobalsParser(const GlobalsParser &) = delete;
+  GlobalsParser &operator=(const GlobalsParser &) = delete;
+
 public:
   GlobalsParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser),
@@ -993,6 +1076,7 @@ void GlobalsParser::ProcessRecord() {
 
 /// Base class for parsing a valuesymtab block in the bitcode file.
 class ValuesymtabParser : public BlockParserBaseClass {
+  ValuesymtabParser() = delete;
   ValuesymtabParser(const ValuesymtabParser &) = delete;
   void operator=(const ValuesymtabParser &) = delete;
 
@@ -1054,6 +1138,7 @@ void ValuesymtabParser::ProcessRecord() {
 
 /// Parses function blocks in the bitcode file.
 class FunctionParser : public BlockParserBaseClass {
+  FunctionParser() = delete;
   FunctionParser(const FunctionParser &) = delete;
   FunctionParser &operator=(const FunctionParser &) = delete;
 
@@ -1071,7 +1156,7 @@ public:
   bool convertFunction() {
     const Ice::TimerStackIdT StackID = Ice::GlobalContext::TSK_Funcs;
     Ice::TimerIdT TimerID = 0;
-    const bool TimeThisFunction = ALLOW_DUMP && getFlags().TimeEachFunction;
+    const bool TimeThisFunction = getFlags().getTimeEachFunction();
     if (TimeThisFunction) {
       TimerID = getTranslator().getContext()->getTimerID(StackID,
                                                          FuncDecl->getName());
@@ -1079,7 +1164,8 @@ public:
     }
 
     if (!isIRGenerationDisabled())
-      Func = Ice::Cfg::create(getTranslator().getContext());
+      Func = Ice::Cfg::create(getTranslator().getContext(),
+                              getTranslator().getNextSequenceNumber());
     Ice::Cfg::setCurrentCfg(Func.get());
 
     // TODO(kschimpf) Clean up API to add a function signature to
@@ -1114,7 +1200,7 @@ public:
     // translation of all remaining functions. This allows successive
     // parsing errors to be reported, without adding extra checks to
     // the translator for such parsing errors.
-    if (Context->getNumErrors() == 0) {
+    if (Context->getNumErrors() == 0 && Func) {
       getTranslator().translateFcn(std::move(Func));
       // The translator now has ownership of Func.
     } else {
@@ -1142,7 +1228,7 @@ public:
   // Returns the value referenced by the given value Index.
   Ice::Operand *getOperand(uint32_t Index) {
     if (Index < CachedNumGlobalValueIDs) {
-      return Context->getOrCreateGlobalConstantByID(Index);
+      return Context->getGlobalConstantByID(Index);
     }
     uint32_t LocalIndex = Index - CachedNumGlobalValueIDs;
     if (LocalIndex >= LocalOperands.size()) {
@@ -1488,7 +1574,7 @@ private:
   }
 
   // Returns true if the Str begins with Prefix.
-  bool isStringPrefix(Ice::IceString &Str, Ice::IceString &Prefix) {
+  bool isStringPrefix(const Ice::IceString &Str, const Ice::IceString &Prefix) {
     const size_t PrefixSize = Prefix.size();
     if (Str.size() < PrefixSize)
       return false;
@@ -2426,7 +2512,7 @@ void FunctionParser::ProcessRecord() {
 
       // Check if this direct call is to an Intrinsic (starts with "llvm.")
       static Ice::IceString LLVMPrefix("llvm.");
-      Ice::IceString Name = Fcn->getName();
+      const Ice::IceString &Name = Fcn->getName();
       if (isStringPrefix(Name, LLVMPrefix)) {
         Ice::IceString Suffix = Name.substr(LLVMPrefix.size());
         IntrinsicInfo =
@@ -2441,6 +2527,10 @@ void FunctionParser::ProcessRecord() {
         }
       }
     } else {
+      if (getFlags().getStubConstantCalls() &&
+          llvm::isa<Ice::ConstantInteger32>(Callee)) {
+        Callee = Context->getStubbedConstCallValue(Callee);
+      }
       ReturnType = Context->getSimpleTypeByID(Values[2]);
     }
 
@@ -2550,6 +2640,7 @@ void FunctionParser::ProcessRecord() {
 
 /// Parses constants within a function block.
 class ConstantsParser : public BlockParserBaseClass {
+  ConstantsParser() = delete;
   ConstantsParser(const ConstantsParser &) = delete;
   ConstantsParser &operator=(const ConstantsParser &) = delete;
 
@@ -2678,6 +2769,7 @@ void ConstantsParser::ProcessRecord() {
 
 // Parses valuesymtab blocks appearing in a function block.
 class FunctionValuesymtabParser : public ValuesymtabParser {
+  FunctionValuesymtabParser() = delete;
   FunctionValuesymtabParser(const FunctionValuesymtabParser &) = delete;
   void operator=(const FunctionValuesymtabParser &) = delete;
 
@@ -2763,6 +2855,10 @@ bool FunctionParser::ParseBlock(unsigned BlockID) {
 
 /// Parses the module block in the bitcode file.
 class ModuleParser : public BlockParserBaseClass {
+  ModuleParser() = delete;
+  ModuleParser(const ModuleParser &) = delete;
+  ModuleParser &operator=(const ModuleParser &) = delete;
+
 public:
   ModuleParser(unsigned BlockID, TopLevelParser *Context)
       : BlockParserBaseClass(BlockID, Context),
@@ -2786,40 +2882,12 @@ private:
   // the first call will do the installation.
   void InstallGlobalNamesAndGlobalVarInitializers() {
     if (!GlobalDeclarationNamesAndInitializersInstalled) {
-      Ice::Translator &Trans = getTranslator();
-      const Ice::IceString &GlobalPrefix = getFlags().DefaultGlobalPrefix;
-      if (!GlobalPrefix.empty()) {
-        uint32_t NameIndex = 0;
-        for (Ice::VariableDeclaration *Var : Context->getGlobalVariables()) {
-          installDeclarationName(Trans, Var, GlobalPrefix, "global", NameIndex);
-        }
-      }
-      const Ice::IceString &FunctionPrefix = getFlags().DefaultFunctionPrefix;
-      if (!FunctionPrefix.empty()) {
-        uint32_t NameIndex = 0;
-        for (Ice::FunctionDeclaration *Func :
-             Context->getFunctionDeclarationList()) {
-          installDeclarationName(Trans, Func, FunctionPrefix, "function",
-                                 NameIndex);
-        }
-      }
+      Context->installGlobalNames();
+      Context->createValueIDs();
       getTranslator().lowerGlobals(Context->getGlobalVariables());
       GlobalDeclarationNamesAndInitializersInstalled = true;
     }
   }
-
-  void installDeclarationName(Ice::Translator &Trans,
-                              Ice::GlobalDeclaration *Decl,
-                              const Ice::IceString &Prefix, const char *Context,
-                              uint32_t &NameIndex) {
-    if (!Decl->hasName()) {
-      Decl->setName(Trans.createUnnamedName(Prefix, NameIndex));
-      ++NameIndex;
-    } else {
-      Trans.checkIfUnnamedNameSafe(Decl->getName(), Context, Prefix);
-    }
-  }
-
   bool ParseBlock(unsigned BlockID) override;
 
   void ExitBlock() override { InstallGlobalNamesAndGlobalVarInitializers(); }
@@ -2828,6 +2896,7 @@ private:
 };
 
 class ModuleValuesymtabParser : public ValuesymtabParser {
+  ModuleValuesymtabParser() = delete;
   ModuleValuesymtabParser(const ModuleValuesymtabParser &) = delete;
   void operator=(const ModuleValuesymtabParser &) = delete;
 

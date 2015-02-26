@@ -177,6 +177,12 @@ enum VerboseItem {
 };
 typedef uint32_t VerboseMask;
 
+enum FileType {
+  FT_Elf, // ELF .o file
+  FT_Asm, // Assembly .s file
+  FT_Iasm // "Integrated assembler" .byte-style .s file
+};
+
 typedef llvm::raw_ostream Ostream;
 typedef llvm::raw_fd_ostream Fdstream;
 
