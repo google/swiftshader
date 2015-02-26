@@ -260,8 +260,6 @@ define void @_start(i32) {
 ; CHECK:     Info: 0
 ; CHECK:     AddressAlignment: 32
 ; CHECK:     EntrySize: 0
-; CHECK:     SectionData (
-; CHECK:     )
 ; CHECK:   }
 ; CHECK:   Section {
 ; CHECK:     Index: {{[1-9][0-9]*}}
