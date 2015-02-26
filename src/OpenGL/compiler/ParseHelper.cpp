@@ -900,16 +900,16 @@ bool TParseContext::nonInitErrorCheck(int line, TString& identifier, TPublicType
 
 bool TParseContext::paramErrorCheck(int line, TQualifier qualifier, TQualifier paramQualifier, TType* type)
 {
-    if (qualifier != EvqConstExpr && qualifier != EvqTemporary) {
+    if (qualifier != EvqConstReadOnly && qualifier != EvqTemporary) {
         error(line, "qualifier not allowed on function parameter", getQualifierString(qualifier));
         return true;
     }
-    if (qualifier == EvqConstExpr && paramQualifier != EvqIn) {
+    if (qualifier == EvqConstReadOnly && paramQualifier != EvqIn) {
         error(line, "qualifier not allowed with ", getQualifierString(qualifier), getQualifierString(paramQualifier));
         return true;
     }
 
-    if (qualifier == EvqConstExpr)
+    if (qualifier == EvqConstReadOnly)
         type->setQualifier(EvqConstReadOnly);
     else
         type->setQualifier(paramQualifier);

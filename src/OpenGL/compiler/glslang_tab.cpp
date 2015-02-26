@@ -3689,7 +3689,7 @@ yyreduce:
   case 105:
 
     {
-        (yyval.interm.qualifier) = EvqConstExpr;
+        (yyval.interm.qualifier) = EvqConstReadOnly;
     }
     break;
 

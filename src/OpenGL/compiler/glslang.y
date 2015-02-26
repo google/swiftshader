@@ -1499,7 +1499,7 @@ fully_specified_type
 
 parameter_type_qualifier
     : CONST_QUAL {
-        $$ = EvqConstExpr;
+        $$ = EvqConstReadOnly;
     }
     ;
 
