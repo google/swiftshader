@@ -49,7 +49,7 @@ namespace glsl
 	class Constant : public TIntermConstantUnion
 	{
 	public:
-		Constant(float x, float y, float z, float w) : TIntermConstantUnion(constants, TType(EbtFloat, EbpHigh, EvqConst, 4, false, false))
+		Constant(float x, float y, float z, float w) : TIntermConstantUnion(constants, TType(EbtFloat, EbpHigh, EvqConstExpr, 4, false, false))
 		{
 			constants[0].setFConst(x);
 			constants[1].setFConst(y);
@@ -57,12 +57,12 @@ namespace glsl
 			constants[3].setFConst(w);
 		}
 
-		Constant(bool b) : TIntermConstantUnion(constants, TType(EbtBool, EbpHigh, EvqConst, 1, false, false))
+		Constant(bool b) : TIntermConstantUnion(constants, TType(EbtBool, EbpHigh, EvqConstExpr, 1, false, false))
 		{
 			constants[0].setBConst(b);
 		}
 
-		Constant(int i) : TIntermConstantUnion(constants, TType(EbtInt, EbpHigh, EvqConst, 1, false, false))
+		Constant(int i) : TIntermConstantUnion(constants, TType(EbtInt, EbpHigh, EvqConstExpr, 1, false, false))
 		{
 			constants[0].setIConst(i);
 		}
@@ -1467,7 +1467,7 @@ namespace glsl
 
 			parameter.type = registerType(arg);
 
-			if(arg->getQualifier() == EvqConst)
+			if(arg->getQualifier() == EvqConstExpr)
 			{
 				int component = componentCount(type, index);
 				ConstantUnion *constants = arg->getAsConstantUnion()->getUnionArrayPointer();
@@ -1793,7 +1793,7 @@ namespace glsl
 		{
 		case EvqTemporary:           return sw::Shader::PARAMETER_TEMP;
 		case EvqGlobal:              return sw::Shader::PARAMETER_TEMP;
-		case EvqConst:               return sw::Shader::PARAMETER_FLOAT4LITERAL;   // All converted to float
+		case EvqConstExpr:           return sw::Shader::PARAMETER_FLOAT4LITERAL;   // All converted to float
 		case EvqAttribute:           return sw::Shader::PARAMETER_INPUT;
 		case EvqVaryingIn:           return sw::Shader::PARAMETER_INPUT;
 		case EvqVaryingOut:          return sw::Shader::PARAMETER_OUTPUT;
@@ -1828,7 +1828,7 @@ namespace glsl
 		{
 		case EvqTemporary:           return temporaryRegister(operand);
 		case EvqGlobal:              return temporaryRegister(operand);
-		case EvqConst:               UNREACHABLE();
+		case EvqConstExpr:           UNREACHABLE();
 		case EvqAttribute:           return attributeRegister(operand);
 		case EvqVaryingIn:           return varyingRegister(operand);
 		case EvqVaryingOut:          return varyingRegister(operand);

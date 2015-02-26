@@ -425,7 +425,7 @@ TIntermNode* TIntermediate::addSelection(TIntermTyped* cond, TIntermNodePair nod
 
 TIntermTyped* TIntermediate::addComma(TIntermTyped* left, TIntermTyped* right, TSourceLoc line)
 {
-    if (left->getType().getQualifier() == EvqConst && right->getType().getQualifier() == EvqConst) {
+    if (left->getType().getQualifier() == EvqConstExpr && right->getType().getQualifier() == EvqConstExpr) {
         return right;
     } else {
         TIntermTyped *commaAggregate = growAggregate(left, right, line);
@@ -498,7 +498,7 @@ TIntermTyped* TIntermediate::addSwizzle(TVectorFields& fields, TSourceLoc line)
     for (int i = 0; i < fields.num; i++) {
         unionArray = new ConstantUnion[1];
         unionArray->setIConst(fields.offsets[i]);
-        constIntNode = addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConst), line);
+        constIntNode = addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConstExpr), line);
         sequenceVector.push_back(constIntNode);
     }
 
@@ -652,7 +652,7 @@ bool TIntermUnary::promote(TInfoSink&)
     setType(operand->getType());
 
 	// Unary operations results in temporary variables unless const.
-    if (operand->getQualifier() != EvqConst) {
+    if (operand->getQualifier() != EvqConstExpr) {
         getTypePointer()->setQualifier(EvqTemporary);
     }
 
@@ -692,7 +692,7 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
 
     // Binary operations results in temporary variables unless both
     // operands are const.
-    if (left->getQualifier() != EvqConst || right->getQualifier() != EvqConst) {
+    if (left->getQualifier() != EvqConstExpr || right->getQualifier() != EvqConstExpr) {
         getTypePointer()->setQualifier(EvqTemporary);
     }
 
@@ -1069,13 +1069,13 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
                 assert(objectSize == 1);
                 tempConstArray = new ConstantUnion[1];
                 tempConstArray->setBConst(*unionArray < *rightUnionArray);
-                returnType = TType(EbtBool, EbpUndefined, EvqConst);
+                returnType = TType(EbtBool, EbpUndefined, EvqConstExpr);
                 break;
             case EOpGreaterThan:
                 assert(objectSize == 1);
                 tempConstArray = new ConstantUnion[1];
                 tempConstArray->setBConst(*unionArray > *rightUnionArray);
-                returnType = TType(EbtBool, EbpUndefined, EvqConst);
+                returnType = TType(EbtBool, EbpUndefined, EvqConstExpr);
                 break;
             case EOpLessThanEqual:
                 {
@@ -1084,7 +1084,7 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
                     constant.setBConst(*unionArray > *rightUnionArray);
                     tempConstArray = new ConstantUnion[1];
                     tempConstArray->setBConst(!constant.getBConst());
-                    returnType = TType(EbtBool, EbpUndefined, EvqConst);
+                    returnType = TType(EbtBool, EbpUndefined, EvqConstExpr);
                     break;
                 }
             case EOpGreaterThanEqual:
@@ -1094,7 +1094,7 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
                     constant.setBConst(*unionArray < *rightUnionArray);
                     tempConstArray = new ConstantUnion[1];
                     tempConstArray->setBConst(!constant.getBConst());
-                    returnType = TType(EbtBool, EbpUndefined, EvqConst);
+                    returnType = TType(EbtBool, EbpUndefined, EvqConstExpr);
                     break;
                 }
 
@@ -1119,7 +1119,7 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
                     tempConstArray->setBConst(false);
                 }
 
-                tempNode = new TIntermConstantUnion(tempConstArray, TType(EbtBool, EbpUndefined, EvqConst));
+                tempNode = new TIntermConstantUnion(tempConstArray, TType(EbtBool, EbpUndefined, EvqConstExpr));
                 tempNode->setLine(getLine());
 
                 return tempNode;
@@ -1145,7 +1145,7 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
                     tempConstArray->setBConst(false);
                 }
 
-                tempNode = new TIntermConstantUnion(tempConstArray, TType(EbtBool, EbpUndefined, EvqConst));
+                tempNode = new TIntermConstantUnion(tempConstArray, TType(EbtBool, EbpUndefined, EvqConstExpr));
                 tempNode->setLine(getLine());
 
                 return tempNode;

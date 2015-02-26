@@ -311,7 +311,7 @@ bool TParseContext::lValueErrorCheck(int line, const char* op, TIntermTyped* nod
 
     const char* message = 0;
     switch (node->getQualifier()) {
-    case EvqConst:          message = "can't modify a const";        break;
+    case EvqConstExpr:      message = "can't modify a const";        break;
     case EvqConstReadOnly:  message = "can't modify a const";        break;
     case EvqAttribute:      message = "can't modify an attribute";   break;
     case EvqUniform:        message = "can't modify a uniform";      break;
@@ -375,7 +375,7 @@ bool TParseContext::lValueErrorCheck(int line, const char* op, TIntermTyped* nod
 //
 bool TParseContext::constErrorCheck(TIntermTyped* node)
 {
-    if (node->getQualifier() == EvqConst)
+    if (node->getQualifier() == EvqConstExpr)
         return false;
 
     error(node->getLine(), "constant expression required", "");
@@ -485,14 +485,14 @@ bool TParseContext::constructorErrorCheck(int line, TIntermNode* node, TFunction
             overFull = true;
         if (op != EOpConstructStruct && !type->isArray() && size >= type->getObjectSize())
             full = true;
-        if (param.type->getQualifier() != EvqConst)
+        if (param.type->getQualifier() != EvqConstExpr)
             constType = false;
         if (param.type->isArray())
             arrayArg = true;
     }
 
     if (constType)
-        type->setQualifier(EvqConst);
+        type->setQualifier(EvqConstExpr);
 
     if (type->isArray() && type->getArraySize() != function.getParamCount()) {
         error(line, "array constructor needs one argument per array element", "constructor");
@@ -698,7 +698,7 @@ bool TParseContext::arraySizeErrorCheck(int line, TIntermTyped* expr, int& size)
 //
 bool TParseContext::arrayQualifierErrorCheck(int line, TPublicType type)
 {
-    if ((type.qualifier == EvqAttribute) || (type.qualifier == EvqConst)) {
+    if ((type.qualifier == EvqAttribute) || (type.qualifier == EvqConstExpr)) {
         error(line, "cannot declare arrays of this qualifier", TType(type).getCompleteString().c_str());
         return true;
     }
@@ -848,7 +848,7 @@ bool TParseContext::arraySetMaxSize(TIntermSymbol *node, TType* type, int size, 
 //
 bool TParseContext::nonInitConstErrorCheck(int line, TString& identifier, TPublicType& type, bool array)
 {
-    if (type.qualifier == EvqConst)
+    if (type.qualifier == EvqConstExpr)
     {
         // Make the qualifier make sense.
         type.qualifier = EvqTemporary;
@@ -900,16 +900,16 @@ bool TParseContext::nonInitErrorCheck(int line, TString& identifier, TPublicType
 
 bool TParseContext::paramErrorCheck(int line, TQualifier qualifier, TQualifier paramQualifier, TType* type)
 {
-    if (qualifier != EvqConst && qualifier != EvqTemporary) {
+    if (qualifier != EvqConstExpr && qualifier != EvqTemporary) {
         error(line, "qualifier not allowed on function parameter", getQualifierString(qualifier));
         return true;
     }
-    if (qualifier == EvqConst && paramQualifier != EvqIn) {
+    if (qualifier == EvqConstExpr && paramQualifier != EvqIn) {
         error(line, "qualifier not allowed with ", getQualifierString(qualifier), getQualifierString(paramQualifier));
         return true;
     }
 
-    if (qualifier == EvqConst)
+    if (qualifier == EvqConstExpr)
         type->setQualifier(EvqConstReadOnly);
     else
         type->setQualifier(paramQualifier);
@@ -1024,7 +1024,7 @@ bool TParseContext::executeInitializer(TSourceLoc line, TString& identifier, TPu
     // identifier must be of type constant, a global, or a temporary
     //
     TQualifier qualifier = variable->getType().getQualifier();
-    if ((qualifier != EvqTemporary) && (qualifier != EvqGlobal) && (qualifier != EvqConst)) {
+    if ((qualifier != EvqTemporary) && (qualifier != EvqGlobal) && (qualifier != EvqConstExpr)) {
         error(line, " cannot initialize this type of qualifier ", variable->getType().getQualifierString());
         return true;
     }
@@ -1032,7 +1032,7 @@ bool TParseContext::executeInitializer(TSourceLoc line, TString& identifier, TPu
     // test for and propagate constant
     //
 
-    if (qualifier == EvqConst) {
+    if (qualifier == EvqConstExpr) {
         if (qualifier != initializer->getType().getQualifier()) {
             std::stringstream extraInfoStream;
             extraInfoStream << "'" << variable->getType().getCompleteString() << "'";
@@ -1071,7 +1071,7 @@ bool TParseContext::executeInitializer(TSourceLoc line, TString& identifier, TPu
         }
     }
 
-    if (qualifier != EvqConst) {
+    if (qualifier != EvqConstExpr) {
         TIntermSymbol* intermSymbol = intermediate.addSymbol(variable->getUniqueId(), variable->getName(), variable->getType(), line);
         intermNode = intermediate.addAssign(EOpInitialize, intermSymbol, initializer, line);
         if (intermNode == 0) {

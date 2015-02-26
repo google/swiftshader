@@ -335,7 +335,7 @@ public:
 
 	bool insertConstInt(ESymbolLevel level, const char *name, int value)
 	{
-		TVariable *constant = new TVariable(NewPoolTString(name), TType(EbtInt, EbpUndefined, EvqConst, 1));
+		TVariable *constant = new TVariable(NewPoolTString(name), TType(EbtInt, EbpUndefined, EvqConstExpr, 1));
 		constant->getConstPointer()->setIConst(value);
 		return insert(level, *constant);
 	}

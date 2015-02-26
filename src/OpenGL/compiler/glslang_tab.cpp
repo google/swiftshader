@@ -2193,7 +2193,7 @@ yyreduce:
         // don't delete $1.string, it's used by error recovery, and the pool
         // pop will reclaim the memory
 
-        if (variable->getType().getQualifier() == EvqConst ) {
+        if (variable->getType().getQualifier() == EvqConstExpr ) {
             ConstantUnion* constArray = variable->getConstPointer();
             TType t(variable->getType());
             (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(constArray, t, (yyvsp[(1) - (1)].lex).line);
@@ -2216,7 +2216,7 @@ yyreduce:
     {
         ConstantUnion *unionArray = new ConstantUnion[1];
         unionArray->setIConst((yyvsp[(1) - (1)].lex).i);
-        (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConst), (yyvsp[(1) - (1)].lex).line);
+        (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConstExpr), (yyvsp[(1) - (1)].lex).line);
     }
     break;
 
@@ -2225,7 +2225,7 @@ yyreduce:
     {
         ConstantUnion *unionArray = new ConstantUnion[1];
         unionArray->setUConst((yyvsp[(1) - (1)].lex).u);
-        (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtUInt, EbpUndefined, EvqConst), (yyvsp[(1) - (1)].lex).line);
+        (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtUInt, EbpUndefined, EvqConstExpr), (yyvsp[(1) - (1)].lex).line);
     }
     break;
 
@@ -2234,7 +2234,7 @@ yyreduce:
     {
         ConstantUnion *unionArray = new ConstantUnion[1];
         unionArray->setFConst((yyvsp[(1) - (1)].lex).f);
-        (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpUndefined, EvqConst), (yyvsp[(1) - (1)].lex).line);
+        (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpUndefined, EvqConstExpr), (yyvsp[(1) - (1)].lex).line);
     }
     break;
 
@@ -2243,7 +2243,7 @@ yyreduce:
     {
         ConstantUnion *unionArray = new ConstantUnion[1];
         unionArray->setBConst((yyvsp[(1) - (1)].lex).b);
-        (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), (yyvsp[(1) - (1)].lex).line);
+        (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), (yyvsp[(1) - (1)].lex).line);
     }
     break;
 
@@ -2271,7 +2271,7 @@ yyreduce:
                 context->error((yyvsp[(2) - (4)].lex).line, " left of '[' is not of type array, matrix, or vector ", "expression");
             context->recover();
         }
-        if ((yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getQualifier() == EvqConst && (yyvsp[(3) - (4)].interm.intermTypedNode)->getQualifier() == EvqConst) {
+        if ((yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getQualifier() == EvqConstExpr && (yyvsp[(3) - (4)].interm.intermTypedNode)->getQualifier() == EvqConstExpr) {
             if ((yyvsp[(1) - (4)].interm.intermTypedNode)->isArray()) { // constant folding for arrays
                 (yyval.interm.intermTypedNode) = context->addConstArrayNode((yyvsp[(3) - (4)].interm.intermTypedNode)->getAsConstantUnion()->getIConst(0), (yyvsp[(1) - (4)].interm.intermTypedNode), (yyvsp[(2) - (4)].lex).line);
             } else if ((yyvsp[(1) - (4)].interm.intermTypedNode)->isVector()) {  // constant folding for vectors
@@ -2283,7 +2283,7 @@ yyreduce:
                 (yyval.interm.intermTypedNode) = context->addConstMatrixNode((yyvsp[(3) - (4)].interm.intermTypedNode)->getAsConstantUnion()->getIConst(0), (yyvsp[(1) - (4)].interm.intermTypedNode), (yyvsp[(2) - (4)].lex).line);
             }
         } else {
-            if ((yyvsp[(3) - (4)].interm.intermTypedNode)->getQualifier() == EvqConst) {
+            if ((yyvsp[(3) - (4)].interm.intermTypedNode)->getQualifier() == EvqConstExpr) {
                 if (((yyvsp[(1) - (4)].interm.intermTypedNode)->isVector() || (yyvsp[(1) - (4)].interm.intermTypedNode)->isMatrix()) && (yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getNominalSize() <= (yyvsp[(3) - (4)].interm.intermTypedNode)->getAsConstantUnion()->getIConst(0) && !(yyvsp[(1) - (4)].interm.intermTypedNode)->isArray() ) {
                     std::stringstream extraInfoStream;
                     extraInfoStream << "field selection out of range '" << (yyvsp[(3) - (4)].interm.intermTypedNode)->getAsConstantUnion()->getIConst(0) << "'";
@@ -2322,21 +2322,21 @@ yyreduce:
         if ((yyval.interm.intermTypedNode) == 0) {
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setFConst(0.0f);
-            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpHigh, EvqConst), (yyvsp[(2) - (4)].lex).line);
+            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpHigh, EvqConstExpr), (yyvsp[(2) - (4)].lex).line);
         } else if ((yyvsp[(1) - (4)].interm.intermTypedNode)->isArray()) {
             if ((yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getStruct())
                 (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getStruct(), (yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getTypeName()));
             else
                 (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (4)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (4)].interm.intermTypedNode)->getPrecision(), EvqTemporary, (yyvsp[(1) - (4)].interm.intermTypedNode)->getNominalSize(), (yyvsp[(1) - (4)].interm.intermTypedNode)->isMatrix()));
 
-            if ((yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getQualifier() == EvqConst)
-                (yyval.interm.intermTypedNode)->getTypePointer()->setQualifier(EvqConst);
-        } else if ((yyvsp[(1) - (4)].interm.intermTypedNode)->isMatrix() && (yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getQualifier() == EvqConst)
-            (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (4)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (4)].interm.intermTypedNode)->getPrecision(), EvqConst, (yyvsp[(1) - (4)].interm.intermTypedNode)->getNominalSize()));
+            if ((yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getQualifier() == EvqConstExpr)
+                (yyval.interm.intermTypedNode)->getTypePointer()->setQualifier(EvqConstExpr);
+        } else if ((yyvsp[(1) - (4)].interm.intermTypedNode)->isMatrix() && (yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getQualifier() == EvqConstExpr)
+            (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (4)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (4)].interm.intermTypedNode)->getPrecision(), EvqConstExpr, (yyvsp[(1) - (4)].interm.intermTypedNode)->getNominalSize()));
         else if ((yyvsp[(1) - (4)].interm.intermTypedNode)->isMatrix())
             (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (4)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (4)].interm.intermTypedNode)->getPrecision(), EvqTemporary, (yyvsp[(1) - (4)].interm.intermTypedNode)->getNominalSize()));
-        else if ((yyvsp[(1) - (4)].interm.intermTypedNode)->isVector() && (yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getQualifier() == EvqConst)
-            (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (4)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (4)].interm.intermTypedNode)->getPrecision(), EvqConst));
+        else if ((yyvsp[(1) - (4)].interm.intermTypedNode)->isVector() && (yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getQualifier() == EvqConstExpr)
+            (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (4)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (4)].interm.intermTypedNode)->getPrecision(), EvqConstExpr));
         else if ((yyvsp[(1) - (4)].interm.intermTypedNode)->isVector())
             (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (4)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (4)].interm.intermTypedNode)->getPrecision(), EvqTemporary));
         else
@@ -2367,14 +2367,14 @@ yyreduce:
                 context->recover();
             }
 
-            if ((yyvsp[(1) - (3)].interm.intermTypedNode)->getType().getQualifier() == EvqConst) { // constant folding for vector fields
+            if ((yyvsp[(1) - (3)].interm.intermTypedNode)->getType().getQualifier() == EvqConstExpr) { // constant folding for vector fields
                 (yyval.interm.intermTypedNode) = context->addConstVectorNode(fields, (yyvsp[(1) - (3)].interm.intermTypedNode), (yyvsp[(3) - (3)].lex).line);
                 if ((yyval.interm.intermTypedNode) == 0) {
                     context->recover();
                     (yyval.interm.intermTypedNode) = (yyvsp[(1) - (3)].interm.intermTypedNode);
                 }
                 else
-                    (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (3)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (3)].interm.intermTypedNode)->getPrecision(), EvqConst, (int) (*(yyvsp[(3) - (3)].lex).string).size()));
+                    (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (3)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (3)].interm.intermTypedNode)->getPrecision(), EvqConstExpr, (int) (*(yyvsp[(3) - (3)].lex).string).size()));
             } else {
                 TString vectorString = *(yyvsp[(3) - (3)].lex).string;
                 TIntermTyped* index = context->intermediate.addSwizzle(fields, (yyvsp[(3) - (3)].lex).line);
@@ -2396,13 +2396,13 @@ yyreduce:
                 context->recover();
                 ConstantUnion *unionArray = new ConstantUnion[1];
                 unionArray->setIConst(0);
-                TIntermTyped* index = context->intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConst), (yyvsp[(3) - (3)].lex).line);
+                TIntermTyped* index = context->intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConstExpr), (yyvsp[(3) - (3)].lex).line);
                 (yyval.interm.intermTypedNode) = context->intermediate.addIndex(EOpIndexDirect, (yyvsp[(1) - (3)].interm.intermTypedNode), index, (yyvsp[(2) - (3)].lex).line);
                 (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (3)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (3)].interm.intermTypedNode)->getPrecision(),EvqTemporary, (yyvsp[(1) - (3)].interm.intermTypedNode)->getNominalSize()));
             } else {
                 ConstantUnion *unionArray = new ConstantUnion[1];
                 unionArray->setIConst(fields.col * (yyvsp[(1) - (3)].interm.intermTypedNode)->getNominalSize() + fields.row);
-                TIntermTyped* index = context->intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConst), (yyvsp[(3) - (3)].lex).line);
+                TIntermTyped* index = context->intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConstExpr), (yyvsp[(3) - (3)].lex).line);
                 (yyval.interm.intermTypedNode) = context->intermediate.addIndex(EOpIndexDirect, (yyvsp[(1) - (3)].interm.intermTypedNode), index, (yyvsp[(2) - (3)].lex).line);
                 (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (3)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (3)].interm.intermTypedNode)->getPrecision()));
             }
@@ -2422,7 +2422,7 @@ yyreduce:
                     }
                 }
                 if (fieldFound) {
-                    if ((yyvsp[(1) - (3)].interm.intermTypedNode)->getType().getQualifier() == EvqConst) {
+                    if ((yyvsp[(1) - (3)].interm.intermTypedNode)->getType().getQualifier() == EvqConstExpr) {
                         (yyval.interm.intermTypedNode) = context->addConstStruct(*(yyvsp[(3) - (3)].lex).string, (yyvsp[(1) - (3)].interm.intermTypedNode), (yyvsp[(2) - (3)].lex).line);
                         if ((yyval.interm.intermTypedNode) == 0) {
                             context->recover();
@@ -2432,7 +2432,7 @@ yyreduce:
                             (yyval.interm.intermTypedNode)->setType(*(*fields)[i].type);
                             // change the qualifier of the return type, not of the structure field
                             // as the structure definition is shared between various structures.
-                            (yyval.interm.intermTypedNode)->getTypePointer()->setQualifier(EvqConst);
+                            (yyval.interm.intermTypedNode)->getTypePointer()->setQualifier(EvqConstExpr);
                         }
                     } else {
                         ConstantUnion *unionArray = new ConstantUnion[1];
@@ -2586,7 +2586,7 @@ yyreduce:
                 // Put on a dummy node for error recovery
                 ConstantUnion *unionArray = new ConstantUnion[1];
                 unionArray->setFConst(0.0f);
-                (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpUndefined, EvqConst), (yyvsp[(1) - (1)].interm).line);
+                (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpUndefined, EvqConstExpr), (yyvsp[(1) - (1)].interm).line);
                 context->recover();
             }
         }
@@ -2900,7 +2900,7 @@ yyreduce:
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), (yyvsp[(2) - (3)].lex).line);
+            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), (yyvsp[(2) - (3)].lex).line);
         }
     }
     break;
@@ -2914,7 +2914,7 @@ yyreduce:
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), (yyvsp[(2) - (3)].lex).line);
+            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), (yyvsp[(2) - (3)].lex).line);
         }
     }
     break;
@@ -2928,7 +2928,7 @@ yyreduce:
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), (yyvsp[(2) - (3)].lex).line);
+            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), (yyvsp[(2) - (3)].lex).line);
         }
     }
     break;
@@ -2942,7 +2942,7 @@ yyreduce:
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), (yyvsp[(2) - (3)].lex).line);
+            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), (yyvsp[(2) - (3)].lex).line);
         }
     }
     break;
@@ -2961,7 +2961,7 @@ yyreduce:
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), (yyvsp[(2) - (3)].lex).line);
+            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), (yyvsp[(2) - (3)].lex).line);
         }
     }
     break;
@@ -2975,7 +2975,7 @@ yyreduce:
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), (yyvsp[(2) - (3)].lex).line);
+            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), (yyvsp[(2) - (3)].lex).line);
         }
     }
     break;
@@ -3009,7 +3009,7 @@ yyreduce:
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), (yyvsp[(2) - (3)].lex).line);
+            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), (yyvsp[(2) - (3)].lex).line);
         }
     }
     break;
@@ -3028,7 +3028,7 @@ yyreduce:
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), (yyvsp[(2) - (3)].lex).line);
+            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), (yyvsp[(2) - (3)].lex).line);
         }
     }
     break;
@@ -3047,7 +3047,7 @@ yyreduce:
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), (yyvsp[(2) - (3)].lex).line);
+            (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), (yyvsp[(2) - (3)].lex).line);
         }
     }
     break;
@@ -3689,7 +3689,7 @@ yyreduce:
   case 105:
 
     {
-        (yyval.interm.qualifier) = EvqConst;
+        (yyval.interm.qualifier) = EvqConstExpr;
     }
     break;
 
@@ -3756,7 +3756,7 @@ yyreduce:
   case 112:
 
     {
-        (yyval.interm.type).qualifier = EvqConst;
+        (yyval.interm.type).qualifier = EvqConstExpr;
 		(yyval.interm.type).line = (yyvsp[(1) - (1)].lex).line;
     }
     break;

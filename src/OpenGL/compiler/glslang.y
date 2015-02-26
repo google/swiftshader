@@ -207,7 +207,7 @@ variable_identifier
         // don't delete $1.string, it's used by error recovery, and the pool
         // pop will reclaim the memory
 
-        if (variable->getType().getQualifier() == EvqConst ) {
+        if (variable->getType().getQualifier() == EvqConstExpr ) {
             ConstantUnion* constArray = variable->getConstPointer();
             TType t(variable->getType());
             $$ = context->intermediate.addConstantUnion(constArray, t, $1.line);
@@ -225,22 +225,22 @@ primary_expression
     | INTCONSTANT {
         ConstantUnion *unionArray = new ConstantUnion[1];
         unionArray->setIConst($1.i);
-        $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConst), $1.line);
+        $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConstExpr), $1.line);
     }
     | UINTCONSTANT {
         ConstantUnion *unionArray = new ConstantUnion[1];
         unionArray->setUConst($1.u);
-        $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtUInt, EbpUndefined, EvqConst), $1.line);
+        $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtUInt, EbpUndefined, EvqConstExpr), $1.line);
     }
     | FLOATCONSTANT {
         ConstantUnion *unionArray = new ConstantUnion[1];
         unionArray->setFConst($1.f);
-        $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpUndefined, EvqConst), $1.line);
+        $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpUndefined, EvqConstExpr), $1.line);
     }
     | BOOLCONSTANT {
         ConstantUnion *unionArray = new ConstantUnion[1];
         unionArray->setBConst($1.b);
-        $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), $1.line);
+        $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), $1.line);
     }
     | LEFT_PAREN expression RIGHT_PAREN {
         $$ = $2;
@@ -259,7 +259,7 @@ postfix_expression
                 context->error($2.line, " left of '[' is not of type array, matrix, or vector ", "expression");
             context->recover();
         }
-        if ($1->getType().getQualifier() == EvqConst && $3->getQualifier() == EvqConst) {
+        if ($1->getType().getQualifier() == EvqConstExpr && $3->getQualifier() == EvqConstExpr) {
             if ($1->isArray()) { // constant folding for arrays
                 $$ = context->addConstArrayNode($3->getAsConstantUnion()->getIConst(0), $1, $2.line);
             } else if ($1->isVector()) {  // constant folding for vectors
@@ -271,7 +271,7 @@ postfix_expression
                 $$ = context->addConstMatrixNode($3->getAsConstantUnion()->getIConst(0), $1, $2.line);
             }
         } else {
-            if ($3->getQualifier() == EvqConst) {
+            if ($3->getQualifier() == EvqConstExpr) {
                 if (($1->isVector() || $1->isMatrix()) && $1->getType().getNominalSize() <= $3->getAsConstantUnion()->getIConst(0) && !$1->isArray() ) {
                     std::stringstream extraInfoStream;
                     extraInfoStream << "field selection out of range '" << $3->getAsConstantUnion()->getIConst(0) << "'";
@@ -310,21 +310,21 @@ postfix_expression
         if ($$ == 0) {
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setFConst(0.0f);
-            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpHigh, EvqConst), $2.line);
+            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpHigh, EvqConstExpr), $2.line);
         } else if ($1->isArray()) {
             if ($1->getType().getStruct())
                 $$->setType(TType($1->getType().getStruct(), $1->getType().getTypeName()));
             else
                 $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqTemporary, $1->getNominalSize(), $1->isMatrix()));
 
-            if ($1->getType().getQualifier() == EvqConst)
-                $$->getTypePointer()->setQualifier(EvqConst);
-        } else if ($1->isMatrix() && $1->getType().getQualifier() == EvqConst)
-            $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqConst, $1->getNominalSize()));
+            if ($1->getType().getQualifier() == EvqConstExpr)
+                $$->getTypePointer()->setQualifier(EvqConstExpr);
+        } else if ($1->isMatrix() && $1->getType().getQualifier() == EvqConstExpr)
+            $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqConstExpr, $1->getNominalSize()));
         else if ($1->isMatrix())
             $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqTemporary, $1->getNominalSize()));
-        else if ($1->isVector() && $1->getType().getQualifier() == EvqConst)
-            $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqConst));
+        else if ($1->isVector() && $1->getType().getQualifier() == EvqConstExpr)
+            $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqConstExpr));
         else if ($1->isVector())
             $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqTemporary));
         else
@@ -347,14 +347,14 @@ postfix_expression
                 context->recover();
             }
 
-            if ($1->getType().getQualifier() == EvqConst) { // constant folding for vector fields
+            if ($1->getType().getQualifier() == EvqConstExpr) { // constant folding for vector fields
                 $$ = context->addConstVectorNode(fields, $1, $3.line);
                 if ($$ == 0) {
                     context->recover();
                     $$ = $1;
                 }
                 else
-                    $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqConst, (int) (*$3.string).size()));
+                    $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqConstExpr, (int) (*$3.string).size()));
             } else {
                 TString vectorString = *$3.string;
                 TIntermTyped* index = context->intermediate.addSwizzle(fields, $3.line);
@@ -376,13 +376,13 @@ postfix_expression
                 context->recover();
                 ConstantUnion *unionArray = new ConstantUnion[1];
                 unionArray->setIConst(0);
-                TIntermTyped* index = context->intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConst), $3.line);
+                TIntermTyped* index = context->intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConstExpr), $3.line);
                 $$ = context->intermediate.addIndex(EOpIndexDirect, $1, index, $2.line);
                 $$->setType(TType($1->getBasicType(), $1->getPrecision(),EvqTemporary, $1->getNominalSize()));
             } else {
                 ConstantUnion *unionArray = new ConstantUnion[1];
                 unionArray->setIConst(fields.col * $1->getNominalSize() + fields.row);
-                TIntermTyped* index = context->intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConst), $3.line);
+                TIntermTyped* index = context->intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConstExpr), $3.line);
                 $$ = context->intermediate.addIndex(EOpIndexDirect, $1, index, $2.line);
                 $$->setType(TType($1->getBasicType(), $1->getPrecision()));
             }
@@ -402,7 +402,7 @@ postfix_expression
                     }
                 }
                 if (fieldFound) {
-                    if ($1->getType().getQualifier() == EvqConst) {
+                    if ($1->getType().getQualifier() == EvqConstExpr) {
                         $$ = context->addConstStruct(*$3.string, $1, $2.line);
                         if ($$ == 0) {
                             context->recover();
@@ -412,7 +412,7 @@ postfix_expression
                             $$->setType(*(*fields)[i].type);
                             // change the qualifier of the return type, not of the structure field
                             // as the structure definition is shared between various structures.
-                            $$->getTypePointer()->setQualifier(EvqConst);
+                            $$->getTypePointer()->setQualifier(EvqConstExpr);
                         }
                     } else {
                         ConstantUnion *unionArray = new ConstantUnion[1];
@@ -556,7 +556,7 @@ function_call
                 // Put on a dummy node for error recovery
                 ConstantUnion *unionArray = new ConstantUnion[1];
                 unionArray->setFConst(0.0f);
-                $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpUndefined, EvqConst), $1.line);
+                $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpUndefined, EvqConstExpr), $1.line);
                 context->recover();
             }
         }
@@ -798,7 +798,7 @@ relational_expression
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), $2.line);
+            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), $2.line);
         }
     }
     | relational_expression RIGHT_ANGLE shift_expression  {
@@ -808,7 +808,7 @@ relational_expression
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), $2.line);
+            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), $2.line);
         }
     }
     | relational_expression LE_OP shift_expression  {
@@ -818,7 +818,7 @@ relational_expression
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), $2.line);
+            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), $2.line);
         }
     }
     | relational_expression GE_OP shift_expression  {
@@ -828,7 +828,7 @@ relational_expression
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), $2.line);
+            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), $2.line);
         }
     }
     ;
@@ -842,7 +842,7 @@ equality_expression
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), $2.line);
+            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), $2.line);
         }
     }
     | equality_expression NE_OP relational_expression {
@@ -852,7 +852,7 @@ equality_expression
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), $2.line);
+            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), $2.line);
         }
     }
     ;
@@ -878,7 +878,7 @@ logical_and_expression
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), $2.line);
+            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), $2.line);
         }
     }
     ;
@@ -892,7 +892,7 @@ logical_xor_expression
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), $2.line);
+            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), $2.line);
         }
     }
     ;
@@ -906,7 +906,7 @@ logical_or_expression
             context->recover();
             ConstantUnion *unionArray = new ConstantUnion[1];
             unionArray->setBConst(false);
-            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConst), $2.line);
+            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), $2.line);
         }
     }
     ;
@@ -1499,7 +1499,7 @@ fully_specified_type
 
 parameter_type_qualifier
     : CONST_QUAL {
-        $$ = EvqConst;
+        $$ = EvqConstExpr;
     }
     ;
 
@@ -1544,7 +1544,7 @@ type_qualifier
 
 storage_qualifier
     : CONST_QUAL {
-        $$.qualifier = EvqConst;
+        $$.qualifier = EvqConstExpr;
 		$$.line = $1.line;
     }
     | IN_QUAL {

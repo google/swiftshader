@@ -111,7 +111,7 @@ enum TQualifier : unsigned char
 {
     EvqTemporary,     // For temporaries (within a function), read/write
     EvqGlobal,        // For globals read/write
-    EvqConst,         // User defined constants and non-output parameters in functions
+    EvqConstExpr,     // User defined constants
     EvqAttribute,     // Readonly
     EvqVaryingIn,     // readonly, fragment shaders only
     EvqVaryingOut,    // vertex shaders only  read/write
@@ -174,7 +174,7 @@ inline const char *getQualifierString(TQualifier qualifier)
     {
     case EvqTemporary:      return "Temporary";      break;
     case EvqGlobal:         return "Global";         break;
-    case EvqConst:          return "const";          break;
+    case EvqConstExpr:      return "const";          break;
     case EvqConstReadOnly:  return "const";          break;
     case EvqAttribute:      return "attribute";      break;
     case EvqVaryingIn:      return "varying";        break;

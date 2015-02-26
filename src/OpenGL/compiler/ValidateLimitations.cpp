@@ -50,7 +50,7 @@ public:
         // Only constants and loop indices are allowed in a
         // constant index expression.
         if (mValid) {
-            mValid = (symbol->getQualifier() == EvqConst) ||
+            mValid = (symbol->getQualifier() == EvqConstExpr) ||
                      IsLoopIndex(symbol, mLoopStack);
         }
     }

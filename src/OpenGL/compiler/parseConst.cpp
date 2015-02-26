@@ -67,7 +67,7 @@ bool TConstTraverser::visitBinary(Visit visit, TIntermBinary* node)
 {
     TQualifier qualifier = node->getType().getQualifier();
 
-    if (qualifier != EvqConst) {
+    if (qualifier != EvqConstExpr) {
         TString buf;
         buf.append("'constructor' : assigning non-constant to ");
         buf.append(type.getCompleteString());
