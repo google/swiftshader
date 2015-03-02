@@ -2,7 +2,7 @@
 SUBZERO_LEVEL := ..
 
 TOOLNAME := pnacl-sz
-LINK_COMPONENTS := support
+LINK_COMPONENTS := bitreader naclbitreader irreader naclanalysis nacltransforms support
 
 # This tool has no plugins, optimize startup time.
 TOOL_NO_EXPORTS := 1
@@ -10,4 +10,3 @@ TOOL_NO_EXPORTS := 1
 include $(SUBZERO_LEVEL)/../../Makefile.config
 
 include $(SUBZERO_LEVEL)/Makefile
-

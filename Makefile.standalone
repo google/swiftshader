@@ -97,7 +97,7 @@ LLVM_LDFLAGS := `$(LLVM_BIN_PATH)/llvm-config --libs` \
 CCACHE := `command -v ccache`
 CXX := CCACHE_CPP2=yes $(CCACHE) $(CLANG_PATH)/clang++
 
-CXXFLAGS := $(LLVM_CXXFLAGS) -std=c++11 -Wall -Wextra -Werror -fno-rtti \
+CXXFLAGS := $(LLVM_CXXFLAGS) -std=gnu++11 -Wall -Wextra -Werror -fno-rtti \
 	-fno-exceptions $(OPTLEVEL) $(ASSERTIONS) $(CXX_DEFINES) -g \
 	$(HOST_FLAGS) -pedantic -Wno-error=unused-parameter \
 	-I$(LIBCXX_INSTALL_PATH)/include/c++/v1 $(CXX_EXTRA)
