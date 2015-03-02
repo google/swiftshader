@@ -18,7 +18,7 @@
 //   so that symbol table lookups are never ambiguous.  This allows
 //   a simpler symbol table structure.
 //
-// * Pushing and popping of scope, so symbol table will really be a stack 
+// * Pushing and popping of scope, so symbol table will really be a stack
 //   of symbol tables.  Searched from the top, with new inserts going into
 //   the top.
 //
@@ -60,12 +60,12 @@ protected:
 
 //
 // Variable class, meaning a symbol that's not a function.
-// 
+//
 // There could be a separate class heirarchy for Constant variables;
 // Only one of int, bool, or float, (or none) is correct for
 // any particular use, but it's easy to do this way, and doesn't
 // seem worth having separate classes, and "getConst" can't simply return
-// different values for different types polymorphically, so this is 
+// different values for different types polymorphically, so this is
 // just simple and pragmatic.
 //
 class TVariable : public TSymbol
@@ -73,8 +73,8 @@ class TVariable : public TSymbol
 public:
     TVariable(const TString *name, const TType& t, bool uT = false ) : TSymbol(name), type(t), userType(uT), unionArray(0), arrayInformationType(0) { }
     virtual ~TVariable() { }
-    virtual bool isVariable() const { return true; }    
-    TType& getType() { return type; }    
+    virtual bool isVariable() const { return true; }
+    TType& getType() { return type; }
     const TType& getType() const { return type; }
     bool isUserType() const { return userType; }
     void setQualifier(TQualifier qualifier) { type.setQualifier(qualifier); }
@@ -82,7 +82,7 @@ public:
     TType* getArrayInformationType() { return arrayInformationType; }
 
     ConstantUnion* getConstPointer()
-    { 
+    {
         if (!unionArray)
             unionArray = new ConstantUnion[type.getObjectSize()];
 
@@ -97,7 +97,7 @@ public:
             return;
 
         delete[] unionArray;
-        unionArray = constArray;  
+        unionArray = constArray;
     }
 
 protected:
@@ -120,7 +120,7 @@ struct TParameter
 };
 
 //
-// The function sub-class of a symbol.  
+// The function sub-class of a symbol.
 //
 class TFunction : public TSymbol
 {
@@ -130,15 +130,15 @@ public:
         returnType(TType(EbtVoid, EbpUndefined)),
         op(o),
         defined(false) { }
-    TFunction(const TString *name, TType& retType, TOperator tOp = EOpNull, const char *ext = "") : 
-        TSymbol(name), 
+    TFunction(const TString *name, TType& retType, TOperator tOp = EOpNull, const char *ext = "") :
+        TSymbol(name),
         returnType(retType),
         mangledName(TFunction::mangleName(*name)),
         op(tOp),
         extension(ext),
         defined(false) { }
     virtual ~TFunction();
-    virtual bool isFunction() const { return true; }    
+    virtual bool isFunction() const { return true; }
 
     static TString mangleName(const TString& name) { return name + '('; }
     static TString unmangleName(const TString& mangledName)
@@ -146,7 +146,7 @@ public:
         return TString(mangledName.c_str(), mangledName.find_first_of('('));
     }
 
-    void addParameter(TParameter& p) 
+    void addParameter(TParameter& p)
     {
         parameters.push_back(p);
         mangledName = mangledName + p.type->getMangledName();
@@ -161,7 +161,7 @@ public:
     void setDefined() { defined = true; }
     bool isDefined() { return defined; }
 
-    int getParamCount() const { return static_cast<int>(parameters.size()); }  
+    int getParamCount() const { return static_cast<int>(parameters.size()); }
     const TParameter& getParam(int i) const { return parameters[i]; }
 
 protected:
@@ -187,7 +187,7 @@ public:
     TSymbolTableLevel() { }
     ~TSymbolTableLevel();
 
-    bool insert(TSymbol &symbol) 
+    bool insert(TSymbol &symbol)
     {
 		symbol.setUniqueId(++uniqueId);
 
@@ -424,7 +424,7 @@ public:
 		insertBuiltIn(level, EOpNull, rvalue, name, ptype1, ptype2, ptype3, ptype4);
     }
 
-    TSymbol *find(const TString &name, int shaderVersion, bool *builtIn = false, bool *sameScope = false) const;
+    TSymbol *find(const TString &name, int shaderVersion, bool *builtIn = nullptr, bool *sameScope = nullptr) const;
     TSymbol *findBuiltIn(const TString &name, int shaderVersion) const;
 
     TSymbolTableLevel *getOuterLevel() const
