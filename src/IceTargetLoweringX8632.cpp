@@ -1342,28 +1342,28 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
     } break;
     case InstArithmetic::Udiv: {
       const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall("__udivdi3", Dest, MaxSrcs);
+      InstCall *Call = makeHelperCall(H_udiv_i64, Dest, MaxSrcs);
       Call->addArg(Inst->getSrc(0));
       Call->addArg(Inst->getSrc(1));
       lowerCall(Call);
     } break;
     case InstArithmetic::Sdiv: {
       const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall("__divdi3", Dest, MaxSrcs);
+      InstCall *Call = makeHelperCall(H_sdiv_i64, Dest, MaxSrcs);
       Call->addArg(Inst->getSrc(0));
       Call->addArg(Inst->getSrc(1));
       lowerCall(Call);
     } break;
     case InstArithmetic::Urem: {
       const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall("__umoddi3", Dest, MaxSrcs);
+      InstCall *Call = makeHelperCall(H_urem_i64, Dest, MaxSrcs);
       Call->addArg(Inst->getSrc(0));
       Call->addArg(Inst->getSrc(1));
       lowerCall(Call);
     } break;
     case InstArithmetic::Srem: {
       const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall("__moddi3", Dest, MaxSrcs);
+      InstCall *Call = makeHelperCall(H_srem_i64, Dest, MaxSrcs);
       Call->addArg(Inst->getSrc(0));
       Call->addArg(Inst->getSrc(1));
       lowerCall(Call);
@@ -1664,8 +1664,9 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
     case InstArithmetic::Frem: {
       const SizeT MaxSrcs = 2;
       Type Ty = Dest->getType();
-      InstCall *Call = makeHelperCall(
-          isFloat32Asserting32Or64(Ty) ? "fmodf" : "fmod", Dest, MaxSrcs);
+      InstCall *Call =
+          makeHelperCall(isFloat32Asserting32Or64(Ty) ? H_frem_f32 : H_frem_f64,
+                         Dest, MaxSrcs);
       Call->addArg(Src0);
       Call->addArg(Src1);
       return lowerCall(Call);
@@ -2097,10 +2098,10 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       split64(Dest);
       const SizeT MaxSrcs = 1;
       Type SrcType = Inst->getSrc(0)->getType();
-      InstCall *Call = makeHelperCall(
-          isFloat32Asserting32Or64(SrcType) ? "cvtftosi64" : "cvtdtosi64", Dest,
-          MaxSrcs);
-      // TODO: Call the correct compiler-rt helper function.
+      InstCall *Call =
+          makeHelperCall(isFloat32Asserting32Or64(SrcType) ? H_fptosi_f32_i64
+                                                           : H_fptosi_f64_i64,
+                         Dest, MaxSrcs);
       Call->addArg(Inst->getSrc(0));
       lowerCall(Call);
     } else {
@@ -2120,7 +2121,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       assert(Dest->getType() == IceType_v4i32 &&
              Inst->getSrc(0)->getType() == IceType_v4f32);
       const SizeT MaxSrcs = 1;
-      InstCall *Call = makeHelperCall("Sz_fptoui_v4f32", Dest, MaxSrcs);
+      InstCall *Call = makeHelperCall(H_fptoui_4xi32_f32, Dest, MaxSrcs);
       Call->addArg(Inst->getSrc(0));
       lowerCall(Call);
     } else if (Dest->getType() == IceType_i64 ||
@@ -2130,11 +2131,14 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
       Type SrcType = Inst->getSrc(0)->getType();
-      IceString DstSubstring = (isInt32Asserting32Or64(DestType) ? "32" : "64");
-      IceString SrcSubstring = (isFloat32Asserting32Or64(SrcType) ? "f" : "d");
-      // Possibilities are cvtftoui32, cvtdtoui32, cvtftoui64, cvtdtoui64
-      IceString TargetString = "cvt" + SrcSubstring + "toui" + DstSubstring;
-      // TODO: Call the correct compiler-rt helper function.
+      IceString TargetString;
+      if (isInt32Asserting32Or64(DestType)) {
+        TargetString = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i32
+                                                         : H_fptoui_f64_i32;
+      } else {
+        TargetString = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i64
+                                                         : H_fptoui_f64_i64;
+      }
       InstCall *Call = makeHelperCall(TargetString, Dest, MaxSrcs);
       Call->addArg(Inst->getSrc(0));
       lowerCall(Call);
@@ -2163,9 +2167,10 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       // Use a helper for x86-32.
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
-      InstCall *Call = makeHelperCall(
-          isFloat32Asserting32Or64(DestType) ? "cvtsi64tof" : "cvtsi64tod",
-          Dest, MaxSrcs);
+      InstCall *Call =
+          makeHelperCall(isFloat32Asserting32Or64(DestType) ? H_sitofp_i64_f32
+                                                            : H_sitofp_i64_f64,
+                         Dest, MaxSrcs);
       // TODO: Call the correct compiler-rt helper function.
       Call->addArg(Inst->getSrc(0));
       lowerCall(Call);
@@ -2190,7 +2195,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       assert(Dest->getType() == IceType_v4f32 &&
              Src0->getType() == IceType_v4i32);
       const SizeT MaxSrcs = 1;
-      InstCall *Call = makeHelperCall("Sz_uitofp_v4i32", Dest, MaxSrcs);
+      InstCall *Call = makeHelperCall(H_uitofp_4xi32_4xf32, Dest, MaxSrcs);
       Call->addArg(Src0);
       lowerCall(Call);
     } else if (Src0->getType() == IceType_i64 ||
@@ -2199,12 +2204,14 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       // i32 on x86-32.
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
-      IceString SrcSubstring =
-          (isInt32Asserting32Or64(Src0->getType()) ? "32" : "64");
-      IceString DstSubstring = (isFloat32Asserting32Or64(DestType) ? "f" : "d");
-      // Possibilities are cvtui32tof, cvtui32tod, cvtui64tof, cvtui64tod
-      IceString TargetString = "cvtui" + SrcSubstring + "to" + DstSubstring;
-      // TODO: Call the correct compiler-rt helper function.
+      IceString TargetString;
+      if (isInt32Asserting32Or64(Src0->getType())) {
+        TargetString = isFloat32Asserting32Or64(DestType) ? H_uitofp_i32_f32
+                                                          : H_uitofp_i32_f64;
+      } else {
+        TargetString = isFloat32Asserting32Or64(DestType) ? H_uitofp_i64_f32
+                                                          : H_uitofp_i64_f64;
+      }
       InstCall *Call = makeHelperCall(TargetString, Dest, MaxSrcs);
       Call->addArg(Src0);
       lowerCall(Call);
@@ -2236,13 +2243,13 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       llvm_unreachable("Unexpected Bitcast dest type");
     case IceType_i8: {
       assert(Src0->getType() == IceType_v8i1);
-      InstCall *Call = makeHelperCall("Sz_bitcast_v8i1_to_i8", Dest, 1);
+      InstCall *Call = makeHelperCall(H_bitcast_8xi1_i8, Dest, 1);
       Call->addArg(Src0);
       lowerCall(Call);
     } break;
     case IceType_i16: {
       assert(Src0->getType() == IceType_v16i1);
-      InstCall *Call = makeHelperCall("Sz_bitcast_v16i1_to_i16", Dest, 1);
+      InstCall *Call = makeHelperCall(H_bitcast_16xi1_i16, Dest, 1);
       Call->addArg(Src0);
       lowerCall(Call);
     } break;
@@ -2330,7 +2337,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     } break;
     case IceType_v8i1: {
       assert(Src0->getType() == IceType_i8);
-      InstCall *Call = makeHelperCall("Sz_bitcast_i8_to_v8i1", Dest, 1);
+      InstCall *Call = makeHelperCall(H_bitcast_i8_8xi1, Dest, 1);
       Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
       // Arguments to functions are required to be at least 32 bits wide.
       lowerCast(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
@@ -2339,7 +2346,7 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     } break;
     case IceType_v16i1: {
       assert(Src0->getType() == IceType_i16);
-      InstCall *Call = makeHelperCall("Sz_bitcast_i16_to_v16i1", Dest, 1);
+      InstCall *Call = makeHelperCall(H_bitcast_i16_16xi1, Dest, 1);
       Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
       // Arguments to functions are required to be at least 32 bits wide.
       lowerCast(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
@@ -3013,10 +3020,10 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   case Intrinsics::Ctpop: {
     Variable *Dest = Instr->getDest();
     Operand *Val = Instr->getArg(0);
-    InstCall *Call =
-        makeHelperCall(isInt32Asserting32Or64(Val->getType()) ? "__popcountsi2"
-                                                              : "__popcountdi2",
-                       Dest, 1);
+    InstCall *Call = makeHelperCall(isInt32Asserting32Or64(Val->getType())
+                                        ? H_call_ctpop_i32
+                                        : H_call_ctpop_i64,
+                                    Dest, 1);
     Call->addArg(Val);
     lowerCall(Call);
     // The popcount helpers always return 32-bit values, while the intrinsic's
@@ -3066,7 +3073,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Longjmp: {
-    InstCall *Call = makeHelperCall("longjmp", nullptr, 2);
+    InstCall *Call = makeHelperCall(H_call_longjmp, nullptr, 2);
     Call->addArg(Instr->getArg(0));
     Call->addArg(Instr->getArg(1));
     lowerCall(Call);
@@ -3075,7 +3082,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   case Intrinsics::Memcpy: {
     // In the future, we could potentially emit an inline memcpy/memset, etc.
     // for intrinsic calls w/ a known length.
-    InstCall *Call = makeHelperCall("memcpy", nullptr, 3);
+    InstCall *Call = makeHelperCall(H_call_memcpy, nullptr, 3);
     Call->addArg(Instr->getArg(0));
     Call->addArg(Instr->getArg(1));
     Call->addArg(Instr->getArg(2));
@@ -3083,7 +3090,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Memmove: {
-    InstCall *Call = makeHelperCall("memmove", nullptr, 3);
+    InstCall *Call = makeHelperCall(H_call_memmove, nullptr, 3);
     Call->addArg(Instr->getArg(0));
     Call->addArg(Instr->getArg(1));
     Call->addArg(Instr->getArg(2));
@@ -3098,7 +3105,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     assert(ValOp->getType() == IceType_i8);
     Variable *ValExt = Func->makeVariable(stackSlotType());
     lowerCast(InstCast::create(Func, InstCast::Zext, ValExt, ValOp));
-    InstCall *Call = makeHelperCall("memset", nullptr, 3);
+    InstCall *Call = makeHelperCall(H_call_memset, nullptr, 3);
     Call->addArg(Instr->getArg(0));
     Call->addArg(ValExt);
     Call->addArg(Instr->getArg(2));
@@ -3116,13 +3123,13 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       _mov(T, Src);
       _mov(Dest, T);
     } else {
-      InstCall *Call = makeHelperCall("__nacl_read_tp", Instr->getDest(), 0);
+      InstCall *Call = makeHelperCall(H_call_read_tp, Instr->getDest(), 0);
       lowerCall(Call);
     }
     return;
   }
   case Intrinsics::Setjmp: {
-    InstCall *Call = makeHelperCall("setjmp", Instr->getDest(), 1);
+    InstCall *Call = makeHelperCall(H_call_setjmp, Instr->getDest(), 1);
     Call->addArg(Instr->getArg(0));
     lowerCall(Call);
     return;

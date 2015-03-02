@@ -16,6 +16,8 @@ def Translate(ll_files, extra_args, obj, verbose):
     shellcmd(['cat'] + ll_files + ['|',
               'pnacl-llc',
               '-externalize',
+              '-function-sections',
+              '-O2',
               '-filetype=obj',
               '-bitcode-format=llvm',
               '-o', obj

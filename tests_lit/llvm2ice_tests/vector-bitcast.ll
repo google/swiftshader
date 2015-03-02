@@ -156,7 +156,7 @@ entry:
   ret i8 %res
 
 ; CHECK-LABEL: test_bitcast_v8i1_to_i8
-; CHECK: call {{.*}} R_{{.*}} Sz_bitcast_v8i1_to_i8
+; CHECK: call {{.*}} R_{{.*}} __Sz_bitcast_8xi1_i8
 
 ; OPTM1-LABEL: test_bitcast_v8i1_to_i8
 ; OPMT1: call -4
@@ -168,7 +168,7 @@ entry:
   ret i16 %res
 
 ; CHECK-LABEL: test_bitcast_v16i1_to_i16
-; CHECK: call {{.*}} R_{{.*}} Sz_bitcast_v16i1_to_i16
+; CHECK: call {{.*}} R_{{.*}} __Sz_bitcast_16xi1_i16
 
 ; OPTM1-LABEL: test_bitcast_v16i1_to_i16
 ; OPMT1: call -4
@@ -181,10 +181,10 @@ entry:
   ret <8 x i1> %res
 
 ; CHECK-LABEL: test_bitcast_i8_to_v8i1
-; CHECK: call {{.*}} R_{{.*}} Sz_bitcast_i8_to_v8i1
+; CHECK: call {{.*}} R_{{.*}} __Sz_bitcast_i8_8xi1
 
 ; OPTM1-LABEL: test_bitcast_i8_to_v8i1
-; OPTM1: call {{.*}} R_{{.*}} Sz_bitcast_i8_to_v8i1
+; OPTM1: call {{.*}} R_{{.*}} __Sz_bitcast_i8_8xi1
 }
 
 define <16 x i1> @test_bitcast_i16_to_v16i1(i32 %arg) {
@@ -194,8 +194,8 @@ entry:
   ret <16 x i1> %res
 
 ; CHECK-LABEL: test_bitcast_i16_to_v16i1
-; CHECK: call {{.*}} R_{{.*}} Sz_bitcast_i16_to_v16i1
+; CHECK: call {{.*}} R_{{.*}} __Sz_bitcast_i16_16xi1
 
 ; OPTM1-LABEL: test_bitcast_i16_to_v16i1
-; OPTM1: call {{.*}} R_{{.*}} Sz_bitcast_i16_to_v16i1
+; OPTM1: call {{.*}} R_{{.*}} __Sz_bitcast_i16_16xi1
 }

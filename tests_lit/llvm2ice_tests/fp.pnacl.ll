@@ -207,7 +207,7 @@ entry:
   ret i64 %conv
 }
 ; CHECK-LABEL: doubleToSigned64
-; CHECK: call {{.*}} R_{{.*}} cvtdtosi64
+; CHECK: call {{.*}} R_{{.*}} __Sz_fptosi_f64_i64
 
 define internal i64 @floatToSigned64(float %a) {
 entry:
@@ -215,7 +215,7 @@ entry:
   ret i64 %conv
 }
 ; CHECK-LABEL: floatToSigned64
-; CHECK: call {{.*}} R_{{.*}} cvtftosi64
+; CHECK: call {{.*}} R_{{.*}} __Sz_fptosi_f32_i64
 
 define internal i64 @doubleToUnsigned64(double %a) {
 entry:
@@ -223,7 +223,7 @@ entry:
   ret i64 %conv
 }
 ; CHECK-LABEL: doubleToUnsigned64
-; CHECK: call {{.*}} R_{{.*}} cvtdtoui64
+; CHECK: call {{.*}} R_{{.*}} __Sz_fptoui_f64_i64
 
 define internal i64 @floatToUnsigned64(float %a) {
 entry:
@@ -231,7 +231,7 @@ entry:
   ret i64 %conv
 }
 ; CHECK-LABEL: floatToUnsigned64
-; CHECK: call {{.*}} R_{{.*}} cvtftoui64
+; CHECK: call {{.*}} R_{{.*}} __Sz_fptoui_f32_i64
 
 define internal i32 @doubleToSigned32(double %a) {
 entry:
@@ -263,7 +263,7 @@ entry:
   ret i32 %conv
 }
 ; CHECK-LABEL: doubleToUnsigned32
-; CHECK: call {{.*}} R_{{.*}} cvtdtoui32
+; CHECK: call {{.*}} R_{{.*}} __Sz_fptoui_f64_i32
 
 define internal i32 @floatToUnsigned32(float %a) {
 entry:
@@ -271,7 +271,7 @@ entry:
   ret i32 %conv
 }
 ; CHECK-LABEL: floatToUnsigned32
-; CHECK: call {{.*}} R_{{.*}} cvtftoui32
+; CHECK: call {{.*}} R_{{.*}} __Sz_fptoui_f32_i32
 
 define internal i32 @doubleToSigned16(double %a) {
 entry:
@@ -379,7 +379,7 @@ entry:
   ret double %conv
 }
 ; CHECK-LABEL: signed64ToDouble
-; CHECK: call {{.*}} R_{{.*}} cvtsi64tod
+; CHECK: call {{.*}} R_{{.*}} __Sz_sitofp_i64_f64
 ; CHECK: fstp QWORD
 
 define internal float @signed64ToFloat(i64 %a) {
@@ -388,7 +388,7 @@ entry:
   ret float %conv
 }
 ; CHECK-LABEL: signed64ToFloat
-; CHECK: call {{.*}} R_{{.*}} cvtsi64tof
+; CHECK: call {{.*}} R_{{.*}} __Sz_sitofp_i64_f32
 ; CHECK: fstp DWORD
 
 define internal double @unsigned64ToDouble(i64 %a) {
@@ -397,7 +397,7 @@ entry:
   ret double %conv
 }
 ; CHECK-LABEL: unsigned64ToDouble
-; CHECK: call {{.*}} R_{{.*}} cvtui64tod
+; CHECK: call {{.*}} R_{{.*}} __Sz_uitofp_i64_f64
 ; CHECK: fstp
 
 define internal float @unsigned64ToFloat(i64 %a) {
@@ -406,7 +406,7 @@ entry:
   ret float %conv
 }
 ; CHECK-LABEL: unsigned64ToFloat
-; CHECK: call {{.*}} R_{{.*}} cvtui64tof
+; CHECK: call {{.*}} R_{{.*}} __Sz_uitofp_i64_f32
 ; CHECK: fstp
 
 define internal double @unsigned64ToDoubleConst() {
@@ -417,7 +417,7 @@ entry:
 ; CHECK-LABEL: unsigned64ToDouble
 ; CHECK: mov DWORD PTR [esp+0x4],0xb3a
 ; CHECK: mov DWORD PTR [esp],0x73ce2ff2
-; CHECK: call {{.*}} R_{{.*}} cvtui64tod
+; CHECK: call {{.*}} R_{{.*}} __Sz_uitofp_i64_f64
 ; CHECK: fstp
 
 define internal double @signed32ToDouble(i32 %a) {
@@ -453,7 +453,7 @@ entry:
   ret double %conv
 }
 ; CHECK-LABEL: unsigned32ToDouble
-; CHECK: call {{.*}} R_{{.*}} cvtui32tod
+; CHECK: call {{.*}} R_{{.*}} __Sz_uitofp_i32_f64
 ; CHECK: fstp QWORD
 
 define internal float @unsigned32ToFloat(i32 %a) {
@@ -462,7 +462,7 @@ entry:
   ret float %conv
 }
 ; CHECK-LABEL: unsigned32ToFloat
-; CHECK: call {{.*}} R_{{.*}} cvtui32tof
+; CHECK: call {{.*}} R_{{.*}} __Sz_uitofp_i32_f32
 ; CHECK: fstp DWORD
 
 define internal double @signed16ToDouble(i32 %a) {

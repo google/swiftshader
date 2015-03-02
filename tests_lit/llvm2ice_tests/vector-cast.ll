@@ -133,7 +133,7 @@ entry:
   ret <4 x i32> %res
 
 ; CHECK-LABEL: test_fptoui_v4f32_to_v4i32
-; CHECK: call {{.*}} R_{{.*}} Sz_fptoui_v4f32
+; CHECK: call {{.*}} R_{{.*}} __Sz_fptoui_4xi32_f32
 }
 
 ; [su]itofp operations
@@ -153,5 +153,5 @@ entry:
   ret <4 x float> %res
 
 ; CHECK-LABEL: test_uitofp_v4i32_to_v4f32
-; CHECK: call {{.*}} R_{{.*}} Sz_uitofp_v4i32
+; CHECK: call {{.*}} R_{{.*}} __Sz_uitofp_4xi32_4xf32
 }

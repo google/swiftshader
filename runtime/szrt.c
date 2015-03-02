@@ -15,7 +15,6 @@
 //===----------------------------------------------------------------------===//
 
 #include <stdint.h>
-#include <stdlib.h>
 
 // TODO(stichnot): The various NaN cross tests try to map Subzero's
 // undefined behavior to the same as llc's undefined behavior, as
@@ -24,44 +23,57 @@
 // for different targets.  It would be better to find a more
 // appropriate set of llc options when building the Subzero runtime.
 //
-// We test for NaN using "value==value" instead of using isnan(value)
+// We test for NaN using "Value==Value" instead of using isnan(Value)
 // to avoid an external dependency on fpclassify().
 
-uint32_t cvtftoui32(float value) {
-  if (value == value) // NaNaN
-    return (uint32_t)value;
+uint32_t __Sz_fptoui_f32_i32(float Value) {
+  if (Value == Value) // NaNaN
+    return (uint32_t)Value;
   return 0x80000000;
 }
 
-uint32_t cvtdtoui32(double value) {
-  if (value == value) // NaNaN
-    return (uint32_t)value;
+uint32_t __Sz_fptoui_f64_i32(double Value) {
+  if (Value == Value) // NaNaN
+    return (uint32_t)Value;
   return 0x80000000;
 }
 
-int64_t cvtftosi64(float value) { return (int64_t)value; }
+uint64_t __Sz_fptoui_f32_i64(float Value) { return (uint64_t)Value; }
 
-int64_t cvtdtosi64(double value) { return (int64_t)value; }
+uint64_t __Sz_fptoui_f64_i64(double Value) { return (uint64_t)Value; }
 
-uint64_t cvtftoui64(float value) { return (uint64_t)value; }
+int64_t __Sz_fptosi_f32_i64(float Value) { return (int64_t)Value; }
 
-uint64_t cvtdtoui64(double value) { return (uint64_t)value; }
+int64_t __Sz_fptosi_f64_i64(double Value) { return (int64_t)Value; }
 
-float cvtui32tof(uint32_t value) { return (float)value; }
+float __Sz_uitofp_i32_f32(uint32_t Value) { return (float)Value; }
 
-float cvtsi64tof(int64_t value) { return (float)value; }
+float __Sz_uitofp_i64_f32(uint64_t Value) { return (float)Value; }
 
-float cvtui64tof(uint64_t value) { return (float)value; }
+double __Sz_uitofp_i32_f64(uint32_t Value) { return (double)Value; }
 
-double cvtui32tod(uint32_t value) { return (double)value; }
+double __Sz_uitofp_i64_f64(uint64_t Value) { return (double)Value; }
 
-double cvtsi64tod(int64_t value) { return (double)value; }
+float __Sz_sitofp_i64_f32(int64_t Value) { return (float)Value; }
 
-double cvtui64tod(uint64_t value) { return (double)value; }
+double __Sz_sitofp_i64_f64(int64_t Value) { return (double)Value; }
 
-/* TODO(stichnot):
-   Sz_bitcast_v8i1_to_i8
-   Sz_bitcast_v16i1_to_i16
-   Sz_bitcast_i8_to_v8i1
-   Sz_bitcast_i16_to_v16i1
-*/
+// Other helper calls emitted by Subzero but not implemented here:
+// Compiler-rt:
+//   __udivdi3     - udiv i64
+//   __divdi3      - sdiv i64
+//   __umoddi3     - urem i64
+//   __moddi3      - srem i64
+//   __popcountsi2 - call @llvm.ctpop.i32
+//   __popcountdi2 - call @llvm.ctpop.i64
+// libm:
+//   fmodf - frem f32
+//   fmod  - frem f64
+// libc:
+//   setjmp  - call @llvm.nacl.setjmp
+//   longjmp - call @llvm.nacl.longjmp
+//   memcpy  - call @llvm.memcpy.p0i8.p0i8.i32
+//   memmove - call @llvm.memmove.p0i8.p0i8.i32
+//   memset  - call @llvm.memset.p0i8.i32
+// unsandboxed_irt:
+//   __nacl_read_tp
