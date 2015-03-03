@@ -1691,10 +1691,19 @@ void TargetX8632::lowerAssign(const InstAssign *Inst) {
     _mov(T_Hi, Src0Hi);
     _mov(DestHi, T_Hi);
   } else {
-    // If Dest is in memory, then RI is either a physical register or
-    // an immediate, otherwise RI can be anything.
-    Operand *RI =
-        legalize(Src0, Dest->hasReg() ? Legal_All : Legal_Reg | Legal_Imm);
+    Operand *RI;
+    if (Dest->hasReg())
+      // If Dest already has a physical register, then legalize the
+      // Src operand into a Variable with the same register
+      // assignment.  This is mostly a workaround for advanced phi
+      // lowering's ad-hoc register allocation which assumes no
+      // register allocation is needed when at least one of the
+      // operands is non-memory.
+      RI = legalize(Src0, Legal_Reg, Dest->getRegNum());
+    else
+      // If Dest could be a stack operand, then RI must be a physical
+      // register or a scalar integer immediate.
+      RI = legalize(Src0, Legal_Reg | Legal_Imm);
     if (isVectorType(Dest->getType()))
       _movp(Dest, RI);
     else
@@ -4163,6 +4172,12 @@ namespace {
 bool isMemoryOperand(const Operand *Opnd) {
   if (const auto Var = llvm::dyn_cast<Variable>(Opnd))
     return !Var->hasReg();
+  // We treat vector undef values the same as a memory operand,
+  // because they do in fact need a register to materialize the vector
+  // of zeroes into.
+  if (llvm::isa<ConstantUndef>(Opnd))
+    return isScalarFloatingType(Opnd->getType()) ||
+           isVectorType(Opnd->getType());
   if (llvm::isa<Constant>(Opnd))
     return isScalarFloatingType(Opnd->getType());
   return true;
