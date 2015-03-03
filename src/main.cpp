@@ -340,6 +340,9 @@ int main(int argc, char **argv) {
     std::error_code EC;
     raw_fd_ostream *FdOs =
         new raw_fd_ostream(OutputFilename, EC, sys::fs::F_None);
+    // NaCl sets st_blksize to 0, and LLVM uses that to pick the
+    // default preferred buffer size. Set to something non-zero.
+    FdOs->SetBufferSize(1 << 14);
     Os.reset(FdOs);
     if (EC) {
       *Ls << "Failed to open output file: " << OutputFilename << ":\n"
