@@ -3164,6 +3164,16 @@ void Context::scale(GLfloat x, GLfloat y, GLfloat z)
     currentMatrixStack().scale(x, y, z);
 }
 
+void Context::multiply(const GLdouble *m)
+{
+	if(drawing)
+	{
+		return error(GL_INVALID_OPERATION);
+	}
+
+	currentMatrixStack().multiply(m);
+}
+
 void Context::multiply(const GLfloat *m)
 {
     if(drawing)

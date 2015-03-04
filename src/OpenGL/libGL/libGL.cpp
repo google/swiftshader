@@ -6759,7 +6759,19 @@ void APIENTRY glMatrixMode(GLenum mode)
 
 void APIENTRY glMultMatrixd(const GLdouble *m)
 {
-	UNIMPLEMENTED();
+	TRACE("(*)");
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->multiply(m);
+	}
 }
 
 void APIENTRY glMultMatrixm(sw::Matrix m)

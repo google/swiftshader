@@ -681,6 +681,7 @@ public:
     void rotate(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
     void translate(GLfloat x, GLfloat y, GLfloat z);
 	void scale(GLfloat x, GLfloat y, GLfloat z);
+	void multiply(const GLdouble *m);
     void multiply(const GLfloat *m);
     void ortho(double left, double right, double bottom, double top, double zNear, double zFar);   // FIXME: GLdouble
 
