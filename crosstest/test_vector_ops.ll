@@ -1,5 +1,3 @@
-target triple = "i686-pc-linux-gnu"
-
 define <4 x float> @insertelement_v4f32(<4 x float> %vec, float %elt, i32 %idx) {
   switch i32 %idx, label %abort [
   i32 0, label %idx0

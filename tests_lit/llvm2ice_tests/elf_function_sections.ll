@@ -7,7 +7,7 @@
 ; RUN: %if --need=allow_dump --command \
 ; RUN:   %p2i -i %s --args -O2 -ffunction-sections \
 ; RUN:   | %if --need=allow_dump --command \
-; RUN:   llvm-mc -triple=i686-none-nacl -filetype=obj -o - \
+; RUN:   llvm-mc -triple=i686-nacl -filetype=obj -o - \
 ; RUN:   | %if --need=allow_dump --command \
 ; RUN:   llvm-readobj -file-headers -sections -section-data \
 ; RUN:       -relocations -symbols - \

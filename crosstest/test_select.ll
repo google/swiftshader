@@ -1,5 +1,3 @@
-target triple = "i686-pc-linux-gnu"
-
 define <4 x float> @_Z6selectDv4_iDv4_fS0_(<4 x i32> %cond.ext, <4 x float> %arg1, <4 x float> %arg2) {
 entry:
   %cond = trunc <4 x i32> %cond.ext to <4 x i1>

@@ -555,19 +555,15 @@ private:
 
     if (const auto Target = dyn_cast<Ice::ConstantRelocatable>(CallTarget)) {
       // Check if this direct call is to an Intrinsic (starts with "llvm.")
-      static const char LLVMPrefix[] = "llvm.";
-      const size_t LLVMPrefixLen = strlen(LLVMPrefix);
-      Ice::IceString Name = Target->getName();
-      if (Name.substr(0, LLVMPrefixLen) == LLVMPrefix) {
-        Ice::IceString NameSuffix = Name.substr(LLVMPrefixLen);
-        Info = Ctx->getIntrinsicsInfo().find(NameSuffix);
-        if (!Info) {
-          report_fatal_error(std::string("Invalid PNaCl intrinsic call: ") +
-                             LLVMObjectAsString(Inst));
-        }
+      bool BadIntrinsic;
+      Info = Ctx->getIntrinsicsInfo().find(Target->getName(), BadIntrinsic);
+      if (BadIntrinsic) {
+        report_fatal_error(std::string("Invalid PNaCl intrinsic call: ") +
+                           LLVMObjectAsString(Inst));
+      }
+      if (Info)
         NewInst = Ice::InstIntrinsicCall::create(Func.get(), NumArgs, Dest,
                                                  CallTarget, Info->Info);
-      }
     }
 
     // Not an intrinsic call.

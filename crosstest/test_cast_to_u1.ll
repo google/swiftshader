@@ -1,5 +1,3 @@
-target triple = "i686-pc-linux-gnu"
-
 define i32 @_Z4castIxbET0_T_(i64 %a) {
 entry:
 ;  %tobool = icmp ne i64 %a, 0

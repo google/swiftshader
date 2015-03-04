@@ -220,11 +220,19 @@ Intrinsics::Intrinsics() {
 
 Intrinsics::~Intrinsics() {}
 
-const Intrinsics::FullIntrinsicInfo *
-Intrinsics::find(const IceString &Name) const {
-  auto it = Map.find(Name);
-  if (it == Map.end())
+const Intrinsics::FullIntrinsicInfo *Intrinsics::find(const IceString &Name,
+                                                      bool &Error) const {
+  static const char LLVMPrefix[] = "llvm.";
+  const size_t LLVMPrefixLen = strlen(LLVMPrefix);
+  Error = false;
+  if (Name.substr(0, LLVMPrefixLen) != LLVMPrefix)
     return nullptr;
+  IceString NameSuffix = Name.substr(LLVMPrefixLen);
+  auto it = Map.find(NameSuffix);
+  if (it == Map.end()) {
+    Error = true;
+    return nullptr;
+  }
   return &it->second;
 }
 

@@ -5,10 +5,6 @@
 ; TODO(kschimpf) Find out why lc2i is needed.
 ; RUN: %lc2i -i %s --args -O2 --verbose regalloc
 
-; ModuleID = 'bugpoint-reduced-simplified.ll'
-target datalayout = "e-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-p:32:32:32-v128:32:32"
-target triple = "i386-pc-linux-gnu"
-
 define void @foo() {
 bb:
   br i1 undef, label %bb13, label %bb14

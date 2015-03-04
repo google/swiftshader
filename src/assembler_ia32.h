@@ -803,15 +803,10 @@ public:
   void mfence();
 
   void lock();
-  void cmpxchg(Type Ty, const Address &address, GPRRegister reg);
-  void cmpxchg8b(const Address &address);
-  void xadd(Type Ty, const Address &address, GPRRegister reg);
+  void cmpxchg(Type Ty, const Address &address, GPRRegister reg, bool Locked);
+  void cmpxchg8b(const Address &address, bool Locked);
+  void xadd(Type Ty, const Address &address, GPRRegister reg, bool Locked);
   void xchg(Type Ty, const Address &address, GPRRegister reg);
-
-  void LockCmpxchg(Type Ty, const Address &address, GPRRegister reg) {
-    lock();
-    cmpxchg(Ty, address, reg);
-  }
 
   void EmitSegmentOverride(uint8_t prefix);
 

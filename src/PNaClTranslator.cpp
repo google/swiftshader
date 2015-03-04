@@ -1573,18 +1573,6 @@ private:
     return VectorIndexValid;
   }
 
-  // Returns true if the Str begins with Prefix.
-  bool isStringPrefix(const Ice::IceString &Str, const Ice::IceString &Prefix) {
-    const size_t PrefixSize = Prefix.size();
-    if (Str.size() < PrefixSize)
-      return false;
-    for (size_t i = 0; i < PrefixSize; ++i) {
-      if (Str[i] != Prefix[i])
-        return false;
-    }
-    return true;
-  }
-
   // Takes the PNaCl bitcode binary operator Opcode, and the opcode
   // type Ty, and sets Op to the corresponding ICE binary
   // opcode. Returns true if able to convert, false otherwise.
@@ -2511,20 +2499,17 @@ void FunctionParser::ProcessRecord() {
       ReturnType = Signature.getReturnType();
 
       // Check if this direct call is to an Intrinsic (starts with "llvm.")
-      static Ice::IceString LLVMPrefix("llvm.");
+      bool BadIntrinsic;
       const Ice::IceString &Name = Fcn->getName();
-      if (isStringPrefix(Name, LLVMPrefix)) {
-        Ice::IceString Suffix = Name.substr(LLVMPrefix.size());
-        IntrinsicInfo =
-            getTranslator().getContext()->getIntrinsicsInfo().find(Suffix);
-        if (!IntrinsicInfo) {
-          std::string Buffer;
-          raw_string_ostream StrBuf(Buffer);
-          StrBuf << "Invalid PNaCl intrinsic call to " << Name;
-          Error(StrBuf.str());
-          appendErrorInstruction(ReturnType);
-          return;
-        }
+      IntrinsicInfo = getTranslator().getContext()->getIntrinsicsInfo().find(
+          Name, BadIntrinsic);
+      if (BadIntrinsic) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Invalid PNaCl intrinsic call to " << Name;
+        Error(StrBuf.str());
+        appendErrorInstruction(ReturnType);
+        return;
       }
     } else {
       if (getFlags().getStubConstantCalls() &&

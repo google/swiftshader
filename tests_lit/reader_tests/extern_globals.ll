@@ -12,9 +12,6 @@
 ; RUN: %lc2i -i %s --insts --args --allow-uninitialized-globals \
 ; RUN:       -prefix Subzero_ | FileCheck --check-prefix=CROSS %s
 
-target datalayout = "e-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-p:32:32:32-v128:32:32"
-target triple = "i686-pc-linux-gnu"
-
 @ArrayInitPartial = internal global [40 x i8] c"<\00\00\00F\00\00\00P\00\00\00Z\00\00\00d\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", align 4
 
 ; CHECK: @ArrayInitPartial = internal global [40 x i8] c"<\00\00\00F\00\00\00P\00\00\00Z\00\00\00d\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", align 4

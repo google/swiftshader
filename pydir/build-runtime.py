@@ -74,12 +74,12 @@ def main():
                     '{srcdir}/szrt_ll.ll'.format(srcdir=srcdir)]
         # Translate tempdir/szrt.ll and srcdir/szrt_ll.ll to szrt_native_x8632.o
         Translate(ll_files,
-                  ['-mtriple=i386-unknown-linux-gnu', '-mcpu=pentium4m'],
+                  ['-mtriple=i686', '-mcpu=pentium4m'],
                   '{rtdir}/szrt_native_x8632.o'.format(rtdir=rtdir),
                   args.verbose)
         # Translate tempdir/szrt.ll and srcdir/szrt_ll.ll to szrt_sb_x8632.o
         Translate(ll_files,
-                  ['-mtriple=i686-none-nacl-gnu', '-mcpu=pentium4m'],
+                  ['-mtriple=i686-nacl', '-mcpu=pentium4m'],
                   '{rtdir}/szrt_sb_x8632.o'.format(rtdir=rtdir),
                   args.verbose)
     finally:

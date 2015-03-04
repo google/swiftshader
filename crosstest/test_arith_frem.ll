@@ -1,5 +1,3 @@
-target triple = "i686-pc-linux-gnu"
-
 define float @_Z6myFremff(float %a, float %b) {
   %rem = frem float %a, %b
   ret float %rem

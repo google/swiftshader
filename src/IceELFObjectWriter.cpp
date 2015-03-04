@@ -244,7 +244,7 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
   Section->appendData(Str, Asm->getBufferView());
   uint8_t SymbolType;
   uint8_t SymbolBinding;
-  if (IsInternal) {
+  if (IsInternal && !Ctx.getFlags().getDisableInternal()) {
     SymbolType = STT_NOTYPE;
     SymbolBinding = STB_LOCAL;
   } else {
@@ -545,6 +545,12 @@ void ELFObjectWriter::setUndefinedSyms(const ConstantList &UndefSyms) {
   for (const Constant *S : UndefSyms) {
     const auto Sym = llvm::cast<ConstantRelocatable>(S);
     const IceString &Name = Sym->getName();
+    bool BadIntrinsic;
+    const Intrinsics::FullIntrinsicInfo *Info =
+        Ctx.getIntrinsicsInfo().find(Name, BadIntrinsic);
+    if (Info)
+      continue;
+    assert(!BadIntrinsic);
     assert(Sym->getOffset() == 0);
     assert(Sym->getSuppressMangling());
     SymTab->noteUndefinedSym(Name, NullSection);

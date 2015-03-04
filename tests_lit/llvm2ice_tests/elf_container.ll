@@ -8,7 +8,7 @@
 ; RUN:       -relocations -symbols %t | FileCheck %s
 
 ; RUN: %if --need=allow_dump --command %p2i -i %s --args -O2 --verbose none \
-; RUN:   | %if --need=allow_dump --command llvm-mc -triple=i686-none-nacl \
+; RUN:   | %if --need=allow_dump --command llvm-mc -triple=i686-nacl \
 ; RUN:     -filetype=obj -o - \
 ; RUN:   | %if --need=allow_dump --command llvm-readobj -file-headers \
 ; RUN:     -sections -section-data -relocations -symbols - \

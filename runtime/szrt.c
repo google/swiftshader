@@ -16,27 +16,9 @@
 
 #include <stdint.h>
 
-// TODO(stichnot): The various NaN cross tests try to map Subzero's
-// undefined behavior to the same as llc's undefined behavior, as
-// observed by the cross tests.  This will have to be kept up to date
-// with any future changes to llc, and may also have to be different
-// for different targets.  It would be better to find a more
-// appropriate set of llc options when building the Subzero runtime.
-//
-// We test for NaN using "Value==Value" instead of using isnan(Value)
-// to avoid an external dependency on fpclassify().
+uint32_t __Sz_fptoui_f32_i32(float value) { return (uint32_t)value; }
 
-uint32_t __Sz_fptoui_f32_i32(float Value) {
-  if (Value == Value) // NaNaN
-    return (uint32_t)Value;
-  return 0x80000000;
-}
-
-uint32_t __Sz_fptoui_f64_i32(double Value) {
-  if (Value == Value) // NaNaN
-    return (uint32_t)Value;
-  return 0x80000000;
-}
+uint32_t __Sz_fptoui_f64_i32(double value) { return (uint32_t)value; }
 
 uint64_t __Sz_fptoui_f32_i64(float Value) { return (uint64_t)Value; }
 

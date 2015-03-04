@@ -112,7 +112,10 @@ def main():
       asm_temp.close()
     if args.assemble and args.filetype != 'obj':
       cmd += ['|', os.path.join(llvm_bin_path, 'llvm-mc'),
-              '-triple=i686-none-nacl',
+              # TODO(stichnot): -triple=i686-nacl should be used for a
+              # sandboxing test.  This means there should be an args.sandbox
+              # argument that also gets passed through to pnacl-sz.
+              '-triple=i686',
               '-filetype=obj', '-o', asm_temp.name]
     elif asm_temp:
       cmd += ['-o', asm_temp.name]

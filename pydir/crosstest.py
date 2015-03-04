@@ -2,7 +2,6 @@
 
 import argparse
 import os
-import re
 import subprocess
 import sys
 import tempfile
@@ -10,7 +9,7 @@ import tempfile
 from utils import shellcmd
 from utils import FindBaseNaCl
 
-if __name__ == '__main__':
+def main():
     """Builds a cross-test binary that allows functions translated by
     Subzero and llc to be compared.
 
@@ -49,6 +48,9 @@ if __name__ == '__main__':
                            dest='attr', choices=['sse2', 'sse4.1'],
                            metavar='ATTRIBUTE',
                            help='Target attribute. Default %(default)s.')
+    argparser.add_argument('--sandbox', required=False, default=0, type=int,
+                           dest='sandbox',
+                           help='Use sandboxing. Default "%(default)s".')
     argparser.add_argument('--prefix', required=True,
                            metavar='SZ_PREFIX',
                            help='String prepended to Subzero symbol names')
@@ -71,14 +73,11 @@ if __name__ == '__main__':
     args = argparser.parse_args()
 
     nacl_root = FindBaseNaCl()
-    # Prepend PNaCl bin to $PATH.
-    os.environ['PATH'] = nacl_root + \
-        '/toolchain/linux_x86/pnacl_newlib/bin' + \
-        os.pathsep + os.environ['PATH']
+    bindir = ('{root}/toolchain/linux_x86/pnacl_newlib/bin'
+              .format(root=nacl_root))
+    triple = arch_map[args.target] + ('-nacl' if args.sandbox else '')
 
     objs = []
-    remove_internal = re.compile('^define internal ')
-    fix_target = re.compile('le32-unknown-nacl')
     for arg in args.test:
         base, ext = os.path.splitext(arg)
         if ext == '.ll':
@@ -87,68 +86,61 @@ if __name__ == '__main__':
             bitcode = os.path.join(args.dir, base + '.pnacl.ll')
             shellcmd(['../pydir/build-pnacl-ir.py', '--disable-verify',
                       '--dir', args.dir, arg])
-            # Read in the bitcode file, fix it up, and rewrite the file.
-            f = open(bitcode)
-            ll_lines = f.readlines()
-            f.close()
-            f = open(bitcode, 'w')
-            for line in ll_lines:
-                line = remove_internal.sub('define ', line)
-                line = fix_target.sub('i686-pc-linux-gnu', line)
-                f.write(line)
-            f.close()
 
-        base_sz = '%s.O%s.%s.%s' % (base, args.optlevel, args.attr, args.target)
+        base_sz = '{base}.{sb}.O{opt}.{attr}.{target}'.format(
+            base=base, sb='sb' if args.sandbox else 'nat', opt=args.optlevel,
+            attr=args.attr, target=args.target)
         asm_sz = os.path.join(args.dir, base_sz + '.sz.s')
         obj_sz = os.path.join(args.dir, base_sz + '.sz.o')
-        obj_llc = os.path.join(args.dir, base + '.llc.o')
+        obj_llc = os.path.join(args.dir, base_sz + '.llc.o')
         shellcmd(['../pnacl-sz',
                   '-O' + args.optlevel,
                   '-mattr=' + args.attr,
                   '--target=' + args.target,
+                  '--sandbox=' + str(args.sandbox),
                   '--prefix=' + args.prefix,
                   '-allow-uninitialized-globals',
+                  '-externalize',
                   '-filetype=' + args.filetype,
                   '-o=' + (obj_sz if args.filetype == 'obj' else asm_sz),
                   bitcode])
         if args.filetype != 'obj':
-            shellcmd(['llvm-mc',
-                      '-triple=' + arch_map[args.target],
+            shellcmd(['{bin}/llvm-mc'.format(bin=bindir),
+                      '-triple=' + triple,
                       '-filetype=obj',
                       '-o=' + obj_sz,
                       asm_sz])
         objs.append(obj_sz)
-        # Each original bitcode file needs to be translated by the
-        # LLVM toolchain and have its object file linked in.  There
-        # are two ways to do this: explicitly use llc, or include the
-        # .ll file in the link command.  It turns out that these two
-        # approaches can produce different semantics on some undefined
-        # bitcode behavior.  Specifically, LLVM produces different
-        # results for overflowing fptoui instructions for i32 and i64
-        # on x86-32.  As it turns out, Subzero lowering was based on
-        # inspecting the object code produced by the direct llc
-        # command, so we need to directly run llc on the bitcode, even
-        # though it makes this script longer, to avoid spurious
-        # failures.  This behavior can be inspected by switching
-        # use_llc between True and False.
-        use_llc = False
-        pure_c = os.path.splitext(args.driver)[1] == '.c'
-        if not args.crosstest_bitcode:
-            objs.append(arg)
-        elif use_llc:
-            shellcmd(['llc'
+        if args.crosstest_bitcode:
+            shellcmd(['{bin}/pnacl-llc'.format(bin=bindir),
+                      '-mtriple=' + triple,
+                      # Use sse2 instructions regardless of input -mattr
+                      # argument to avoid differences in (undefined) behavior of
+                      # converting NaN to int.
+                      '-mattr=sse2',
+                      '-externalize',
                       '-filetype=obj',
                       '-o=' + obj_llc,
                       bitcode])
             objs.append(obj_llc)
         else:
-            objs.append(bitcode)
+            objs.append(arg)
 
+    # Add szrt_sb_x8632.o or szrt_native_x8632.o.
     objs.append((
             '{root}/toolchain_build/src/subzero/build/runtime/' +
-            'szrt_native_x8632.o'
-            ).format(root=nacl_root))
-    linker = 'clang' if pure_c else 'clang++'
-    shellcmd([linker, '-g', '-m32', args.driver] +
-             objs +
-             ['-lm', '-lpthread', '-o', os.path.join(args.dir, args.output)])
+            'szrt_{sb}_' + args.target + '.o'
+            ).format(root=nacl_root, sb='sb' if args.sandbox else 'native'))
+    pure_c = os.path.splitext(args.driver)[1] == '.c'
+    # Set compiler to clang, clang++, pnacl-clang, or pnacl-clang++.
+    compiler = '{bin}/{prefix}{cc}'.format(
+        bin=bindir, prefix='pnacl-' if args.sandbox else '',
+        cc='clang' if pure_c else 'clang++')
+    sb_native_args = (['-O0', '--pnacl-allow-native', '-arch', 'x8632']
+                      if args.sandbox else
+                      ['-g', '-m32', '-lm', '-lpthread'])
+    shellcmd([compiler, args.driver] + objs +
+             ['-o', os.path.join(args.dir, args.output)] + sb_native_args)
+
+if __name__ == '__main__':
+    main()

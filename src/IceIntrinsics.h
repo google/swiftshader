@@ -145,11 +145,14 @@ public:
     Type getArgType(SizeT Index) const;
   };
 
-  // Find the information about a given intrinsic, based on function name.
-  // The function name is expected to have the common "llvm." prefix
-  // stripped. If found, returns a reference to a FullIntrinsicInfo entry
-  // (valid for the lifetime of the map). Otherwise returns null.
-  const FullIntrinsicInfo *find(const IceString &Name) const;
+  // Find the information about a given intrinsic, based on function name.  If
+  // the function name does not have the common "llvm." prefix, nullptr is
+  // returned and Error is set to false.  Otherwise, tries to find a reference
+  // to a FullIntrinsicInfo entry (valid for the lifetime of the map).  If
+  // found, sets Error to false and returns the reference.  If not found, sets
+  // Error to true and returns nullptr (indicating an unknown "llvm.foo"
+  // intrinsic).
+  const FullIntrinsicInfo *find(const IceString &Name, bool &Error) const;
 
 private:
   // TODO(jvoung): May want to switch to something like LLVM's StringMap.

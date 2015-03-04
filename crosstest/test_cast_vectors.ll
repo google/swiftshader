@@ -1,5 +1,3 @@
-target triple = "i686-pc-linux-gnu"
-
 define <4 x float> @_Z4castIDv4_iDv4_fET0_T_(<4 x i32> %a) {
 entry:
   %0 = sitofp <4 x i32> %a to <4 x float>

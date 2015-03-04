@@ -1,5 +1,3 @@
-target triple = "i686-pc-linux-gnu"
-
 ; This file is extracted from fp.pnacl.ll and vector-fcmp.ll in the lit
 ; tests, with the "internal" attribute removed from the functions.
 

@@ -1,5 +1,3 @@
-target triple = "i686-pc-linux-gnu"
-
 declare float @llvm.sqrt.f32(float)
 declare double @llvm.sqrt.f64(double)
 

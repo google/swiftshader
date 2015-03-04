@@ -1640,11 +1640,7 @@ void InstX8632Cmpxchg::emitIAS(const Cfg *Func) const {
   assert(VarReg->hasReg());
   const RegX8632::GPRRegister Reg =
       RegX8632::getEncodedGPR(VarReg->getRegNum());
-  if (Locked) {
-    Asm->LockCmpxchg(Ty, Addr, Reg);
-  } else {
-    Asm->cmpxchg(Ty, Addr, Reg);
-  }
+  Asm->cmpxchg(Ty, Addr, Reg, Locked);
 }
 
 void InstX8632Cmpxchg::dump(const Cfg *Func) const {
@@ -1676,10 +1672,7 @@ void InstX8632Cmpxchg8b::emitIAS(const Cfg *Func) const {
   const auto Mem = llvm::cast<OperandX8632Mem>(getSrc(0));
   assert(Mem->getSegmentRegister() == OperandX8632Mem::DefaultSegment);
   const x86::Address Addr = Mem->toAsmAddress(Asm);
-  if (Locked) {
-    Asm->lock();
-  }
-  Asm->cmpxchg8b(Addr);
+  Asm->cmpxchg8b(Addr, Locked);
 }
 
 void InstX8632Cmpxchg8b::dump(const Cfg *Func) const {
@@ -2731,10 +2724,7 @@ void InstX8632Xadd::emitIAS(const Cfg *Func) const {
   assert(VarReg->hasReg());
   const RegX8632::GPRRegister Reg =
       RegX8632::getEncodedGPR(VarReg->getRegNum());
-  if (Locked) {
-    Asm->lock();
-  }
-  Asm->xadd(Ty, Addr, Reg);
+  Asm->xadd(Ty, Addr, Reg, Locked);
 }
 
 void InstX8632Xadd::dump(const Cfg *Func) const {

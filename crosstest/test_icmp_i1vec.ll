@@ -1,5 +1,3 @@
-target triple = "i686-pc-linux-gnu"
-
 define <16 x i8> @_Z8icmpi1EqDv16_aS_(<16 x i8> %a, <16 x i8> %b) {
 entry:
   %a.trunc = trunc <16 x i8> %a to <16 x i1>

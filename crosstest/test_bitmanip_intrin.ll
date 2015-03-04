@@ -4,8 +4,6 @@
 ; Also, normalize the intrinsic to take a single parameter when there
 ; can be two, as is the case for ctlz and cttz.
 
-target triple = "i686-pc-linux-gnu"
-
 declare i32 @llvm.ctlz.i32(i32, i1)
 declare i64 @llvm.ctlz.i64(i64, i1)
 

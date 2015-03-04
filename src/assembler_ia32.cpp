@@ -2312,10 +2312,13 @@ void AssemblerX86::lock() {
   EmitUint8(0xF0);
 }
 
-void AssemblerX86::cmpxchg(Type Ty, const Address &address, GPRRegister reg) {
+void AssemblerX86::cmpxchg(Type Ty, const Address &address, GPRRegister reg,
+                           bool Locked) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (Ty == IceType_i16)
     EmitOperandSizeOverride();
+  if (Locked)
+    EmitUint8(0xF0);
   EmitUint8(0x0F);
   if (isByteSizedArithType(Ty))
     EmitUint8(0xB0);
@@ -2324,17 +2327,22 @@ void AssemblerX86::cmpxchg(Type Ty, const Address &address, GPRRegister reg) {
   EmitOperand(reg, address);
 }
 
-void AssemblerX86::cmpxchg8b(const Address &address) {
+void AssemblerX86::cmpxchg8b(const Address &address, bool Locked) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Locked)
+    EmitUint8(0xF0);
   EmitUint8(0x0F);
   EmitUint8(0xC7);
   EmitOperand(1, address);
 }
 
-void AssemblerX86::xadd(Type Ty, const Address &addr, GPRRegister reg) {
+void AssemblerX86::xadd(Type Ty, const Address &addr, GPRRegister reg,
+                        bool Locked) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (Ty == IceType_i16)
     EmitOperandSizeOverride();
+  if (Locked)
+    EmitUint8(0xF0);
   EmitUint8(0x0F);
   if (isByteSizedArithType(Ty))
     EmitUint8(0xC0);
