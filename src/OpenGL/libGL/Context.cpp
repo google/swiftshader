@@ -3184,6 +3184,16 @@ void Context::multiply(const GLfloat *m)
     currentMatrixStack().multiply(m);
 }
 
+void Context::frustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
+{
+	if(drawing)
+	{
+		return error(GL_INVALID_OPERATION);
+	}
+
+	currentMatrixStack().frustum(left, right, bottom, top, zNear, zFar);
+}
+
 void Context::ortho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {
     if(drawing)

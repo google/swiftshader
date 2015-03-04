@@ -6239,7 +6239,19 @@ void APIENTRY glFogiv(GLenum pname, const GLint *params)
 
 void APIENTRY glFrustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {
-	UNIMPLEMENTED();
+	TRACE("(*)");
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->frustum(left, right, bottom, top, zNear, zFar);
+	}
 }
 
 GLuint APIENTRY glGenLists(GLsizei range)

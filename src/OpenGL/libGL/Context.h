@@ -683,6 +683,7 @@ public:
 	void scale(GLfloat x, GLfloat y, GLfloat z);
 	void multiply(const GLdouble *m);
     void multiply(const GLfloat *m);
+	void frustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
     void ortho(double left, double right, double bottom, double top, double zNear, double zFar);   // FIXME: GLdouble
 
     void setLighting(bool enabled);

@@ -33,9 +33,6 @@ int listIndex;
 // Rotation matrix
 GLfloat R[16] = { 1, 0, 0, 0, 0, cos(theta), -sin(theta), 0, 0, sin(theta), cos(theta), 0, 0, 0, 0, 1 };
 
-// Projection matrix (mimic the glFrustum function, which is unimplemented as of now)
-GLfloat P[16] = { 2.0f, 0, 0, 0, 0, 2.0f, 0, 0, 0, 0, -2.0f, -1.0f, 0, 0, -3.0f, 0 };
-
 // Scaling matrix
 GLfloat S[16] = { SCALE_FACTOR, 0, 0, 0, 0, SCALE_FACTOR, 0, 0, 0, 0, SCALE_FACTOR, 0, 0, 0, 0, 1 };
 
@@ -74,7 +71,7 @@ void initializeView(void)
 {
 	// Set viewing projection
 	glMatrixMode(GL_PROJECTION);
-	glMultMatrixf(P);
+	glFrustum(-0.5, 0.5, -0.5, 0.5, 1.0, 3.0);
 
 	// Position viewer
 	glMatrixMode(GL_MODELVIEW);

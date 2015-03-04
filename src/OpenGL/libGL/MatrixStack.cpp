@@ -113,8 +113,8 @@ namespace sw
 
 		float A = (r + l) / (r - l);
 		float B = (t + b) / (t - b);
-		float C = -(f + n) / (r - n);
-		float D = -2 * r * n / (f - n);
+		float C = -(f + n) / (f - n);
+		float D = -2 * f * n / (f - n);
 
 		Matrix frustum(2 * n / (r - l), 0,               A,  0,
 		               0,               2 * n / (t - b), B,  0,
