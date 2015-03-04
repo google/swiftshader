@@ -162,9 +162,9 @@ class TopLevelParser : public NaClBitcodeParser {
 public:
   typedef std::vector<Ice::FunctionDeclaration *> FunctionDeclarationListType;
 
-  TopLevelParser(Ice::Translator &Translator, NaClBitcodeHeader &Header,
-                 NaClBitstreamCursor &Cursor, Ice::ErrorCode &ErrorStatus)
-      : NaClBitcodeParser(Cursor), Translator(Translator), Header(Header),
+  TopLevelParser(Ice::Translator &Translator, NaClBitstreamCursor &Cursor,
+                 Ice::ErrorCode &ErrorStatus)
+      : NaClBitcodeParser(Cursor), Translator(Translator),
         ErrorStatus(ErrorStatus), NumErrors(0), NextDefiningFunctionID(0),
         VariableDeclarations(new Ice::VariableDeclarationList()),
         BlockParser(nullptr), StubbedConstCallValue(nullptr) {}
@@ -177,18 +177,16 @@ public:
     BlockParser = NewBlockParser;
   }
 
-  // Generates error with given Message. Always returns true.
-  bool Error(const std::string &Message) override;
+  /// Generates error with given Message, occurring at BitPosition
+  /// within the bitcode file. Always returns true.
+  bool ErrorAt(uint64_t BitPosition, const std::string &Message) final;
 
-  // Generates error message with respect to the current block parser.
+  /// Generates error message with respect to the current block parser.
   bool BlockError(const std::string &Message);
 
   /// Returns the number of errors found while parsing the bitcode
   /// file.
   unsigned getNumErrors() const { return NumErrors; }
-
-  /// Returns the number of bytes in the bitcode header.
-  size_t getHeaderSize() const { return Header.getHeaderSize(); }
 
   /// Changes the size of the type list to the given size.
   void resizeTypeIDValues(unsigned NewSize) { TypeIDValues.resize(NewSize); }
@@ -243,8 +241,7 @@ public:
            FunctionDeclarationList[NextDefiningFunctionID]->isProto())
       ++NextDefiningFunctionID;
     if (NextDefiningFunctionID >= NumDeclaredFunctions)
-      report_fatal_error(
-          "More function blocks than defined function addresses");
+      Fatal("More function blocks than defined function addresses");
     return NextDefiningFunctionID++;
   }
 
@@ -361,8 +358,6 @@ public:
 private:
   // The translator associated with the parser.
   Ice::Translator &Translator;
-  // The bitcode header.
-  NaClBitcodeHeader &Header;
   // The exit status that should be set to true if an error occurs.
   Ice::ErrorCode &ErrorStatus;
   // The number of errors reported.
@@ -505,16 +500,16 @@ private:
   Ice::Type convertToIceTypeError(Type *LLVMTy);
 };
 
-bool TopLevelParser::Error(const std::string &Message) {
+bool TopLevelParser::ErrorAt(uint64_t Bit, const std::string &Message) {
   ErrorStatus.assign(Ice::EC_Bitcode);
   ++NumErrors;
   Ice::GlobalContext *Context = Translator.getContext();
   Ice::OstreamLocker L(Context);
   raw_ostream &OldErrStream = setErrStream(Context->getStrDump());
-  NaClBitcodeParser::Error(Message);
+  NaClBitcodeParser::ErrorAt(Bit, Message);
   setErrStream(OldErrStream);
   if (!Translator.getFlags().getAllowErrorRecovery())
-    report_fatal_error("Unable to continue");
+    Fatal();
   return true;
 }
 
@@ -541,7 +536,7 @@ TopLevelParser::reportGetFunctionByIDError(unsigned ID) {
   // TODO(kschimpf) Remove error recovery once implementation complete.
   if (!FunctionDeclarationList.empty())
     return FunctionDeclarationList[0];
-  report_fatal_error("Unable to continue");
+  Fatal();
 }
 
 Ice::VariableDeclaration *
@@ -555,7 +550,7 @@ TopLevelParser::reportGetGlobalVariableByIDError(unsigned Index) {
   // TODO(kschimpf) Remove error recovery once implementation complete.
   if (!VariableDeclarations->empty())
     return VariableDeclarations->at(0);
-  report_fatal_error("Unable to continue");
+  Fatal();
 }
 
 Ice::Type TopLevelParser::convertToIceTypeError(Type *LLVMTy) {
@@ -590,8 +585,8 @@ public:
     return "unknown";
   }
 
-  // Generates an error Message with the bit address prefixed to it.
-  bool Error(const std::string &Message) override;
+  // Generates an error Message with the Bit address prefixed to it.
+  bool ErrorAt(uint64_t Bit, const std::string &Message) final;
 
 protected:
   // The context parser that contains the decoded state.
@@ -678,12 +673,9 @@ bool TopLevelParser::BlockError(const std::string &Message) {
 }
 
 // Generates an error Message with the bit address prefixed to it.
-bool BlockParserBaseClass::Error(const std::string &Message) {
-  uint64_t Bit = Record.GetStartBit() + Context->getHeaderSize() * 8;
+bool BlockParserBaseClass::ErrorAt(uint64_t Bit, const std::string &Message) {
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
-  StrBuf << "(" << format("%" PRIu64 ":%u", (Bit / 8),
-                          static_cast<unsigned>(Bit % 8)) << ") ";
   // Note: If dump routines have been turned off, the error messages
   // will not be readable. Hence, replace with simple error. We also
   // use the simple form for unit tests.
@@ -696,7 +688,7 @@ bool BlockParserBaseClass::Error(const std::string &Message) {
   } else {
     StrBuf << Message;
   }
-  return Context->Error(StrBuf.str());
+  return Context->ErrorAt(Bit, StrBuf.str());
 }
 
 void BlockParserBaseClass::ReportRecordSizeError(unsigned ExpectedSize,
@@ -1235,8 +1227,7 @@ public:
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Value index " << Index << " not defined!";
-      Error(StrBuf.str());
-      report_fatal_error("Unable to continue");
+      Fatal(StrBuf.str());
     }
     Ice::Operand *Op = LocalOperands[LocalIndex];
     if (Op == nullptr) {
@@ -1245,8 +1236,7 @@ public:
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Value index " << Index << " not defined!";
-      Error(StrBuf.str());
-      report_fatal_error("Unable to continue");
+      Fatal(StrBuf.str());
     }
     return Op;
   }
@@ -3025,21 +3015,23 @@ void PNaClTranslator::translateBuffer(const std::string &IRFilename,
   }
 
   const unsigned char *BufPtr = (const unsigned char *)MemBuf->getBufferStart();
+  const unsigned char *HeaderPtr = BufPtr;
   const unsigned char *EndBufPtr = BufPtr + MemBuf->getBufferSize();
 
   // Read header and verify it is good.
   NaClBitcodeHeader Header;
-  if (Header.Read(BufPtr, EndBufPtr) || !Header.IsSupported()) {
+  if (Header.Read(HeaderPtr, EndBufPtr) || !Header.IsSupported()) {
     errs() << "Invalid PNaCl bitcode header.\n";
     ErrorStatus.assign(EC_Bitcode);
     return;
   }
 
   // Create a bitstream reader to read the bitcode file.
-  NaClBitstreamReader InputStreamFile(BufPtr, EndBufPtr);
+  NaClBitstreamReader InputStreamFile(BufPtr, EndBufPtr,
+                                      Header.getHeaderSize());
   NaClBitstreamCursor InputStream(InputStreamFile);
 
-  TopLevelParser Parser(*this, Header, InputStream, ErrorStatus);
+  TopLevelParser Parser(*this, InputStream, ErrorStatus);
   int TopLevelBlocks = 0;
   while (!InputStream.AtEndOfStream()) {
     if (Parser.Parse()) {

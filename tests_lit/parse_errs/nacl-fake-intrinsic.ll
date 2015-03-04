@@ -28,5 +28,5 @@ define i32 @testFake(i32 %v) {
   ret i32 %r
 }
 
-; CHECK: Error: ({{.*}}) Invalid PNaCl intrinsic call to llvm.fake.i32
-; MIN: Error: ({{.*}}) Invalid function record: <34 0 3 1>
+; CHECK: Error({{.*}}): Invalid PNaCl intrinsic call to llvm.fake.i32
+; MIN: Error({{.*}}): Invalid function record: <34 0 3 1>

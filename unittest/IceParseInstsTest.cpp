@@ -51,33 +51,17 @@ TEST(IceParseInstsTest, NonexistentCallArg) {
   // Show bitcode objdump for BitcodeRecords.
   NaClObjDumpMunger DumpMunger(BitcodeRecords,
                                array_lengthof(BitcodeRecords), Terminator);
-  EXPECT_FALSE(DumpMunger.runTestForAssembly("Nonexistent call arg"));
-  EXPECT_EQ(
-      "module {  // BlockID = 8\n"
-            "  types {  // BlockID = 17\n"
-            "    count 3;\n"
-            "    @t0 = i32;\n"
-            "    @t1 = void;\n"
-            "    @t2 = void (i32, i32);\n"
-            "  }\n"
-            "  declare external void @f0(i32, i32);\n"
-            "  define external void @f1(i32, i32);\n"
-            "  function void @f1(i32 %p0, i32 %p1) {  // BlockID = 12\n"
-            "    blocks 1;\n"
-            "  %b0:\n"
-            "    call void @f0(i32 %p0, i32 @f0);\n"
-            "Error(66:4): Invalid relative value id: 100 (Must be <= 4)\n"
-            "    ret void;\n"
-            "  }\n"
-            "}\n",
-            DumpMunger.getTestResults());
+  EXPECT_FALSE(DumpMunger.runTest("Nonexistent call arg"));
+  EXPECT_EQ("      66:4|    3: <34, 0, 4, 2, 100>    |    call void @f0(i32 "
+            "%p0, i32 @f0);\n"
+            "Error(66:4): Invalid relative value id: 100 (Must be <= 4)\n",
+            DumpMunger.getLinesWithSubstring("66:4"));
 
   // Show that we get appropriate error when parsing in Subzero.
   IceTest::SubzeroBitcodeMunger Munger(
       BitcodeRecords, array_lengthof(BitcodeRecords), Terminator);
   EXPECT_FALSE(Munger.runTest("Nonexistent call arg"));
-  EXPECT_EQ(
-      "Error: (66:4) Invalid function record: <34 0 4 2 100>\n",
+  EXPECT_EQ("Error(66:4): Invalid function record: <34 0 4 2 100>\n",
             Munger.getTestResults());
 }
 
@@ -105,24 +89,10 @@ TEST(IceParseInstsTests, AllocaAlignment) {
   // Show text when alignment is 1.
   NaClObjDumpMunger DumpMunger(BitcodeRecords, array_lengthof(BitcodeRecords),
                                Terminator);
-  EXPECT_TRUE(DumpMunger.runTestForAssembly("Good alloca alignment 1"));
-  EXPECT_EQ("module {  // BlockID = 8\n"
-            "  types {  // BlockID = 17\n"
-            "    count 4;\n"
-            "    @t0 = i32;\n"
-            "    @t1 = void;\n"
-            "    @t2 = void (i32);\n"
-            "    @t3 = i8;\n"
-            "  }\n"
-            "  define external void @f0(i32);\n"
-            "  function void @f0(i32 %p0) {  // BlockID = 12\n"
-            "    blocks 1;\n"
-            "  %b0:\n"
-            "    %v0 = alloca i8, i32 %p0, align 1;\n"
-            "    ret void;\n"
-            "  }\n"
-            "}\n",
-            DumpMunger.getTestResults());
+  EXPECT_TRUE(DumpMunger.runTest("Good alloca alignment 1"));
+  EXPECT_EQ("      62:4|    3: <19, 1, 1>            |    %v0 = alloca i8, i32 "
+            "%p0, align 1;\n",
+            DumpMunger.getLinesWithSubstring("62:4"));
 
   // Show that we can handle alignment of 1.
   IceTest::SubzeroBitcodeMunger Munger(
@@ -148,7 +118,7 @@ TEST(IceParseInstsTests, AllocaAlignment) {
   };
   EXPECT_FALSE(Munger.runTest("Bad alloca alignment 30", Align30,
                               array_lengthof(Align30)));
-  EXPECT_EQ("Error: (62:4) Invalid function record: <19 1 31>\n",
+  EXPECT_EQ("Error(62:4): Invalid function record: <19 1 31>\n",
             Munger.getTestResults());
 
   EXPECT_FALSE(DumpMunger.runTestForAssembly("Bad alloca alignment 30", Align30,
@@ -194,22 +164,10 @@ TEST(IceParseInstsTests, LoadI32Alignment) {
   // Show text when alignment is 1.
   NaClObjDumpMunger DumpMunger(BitcodeRecords, array_lengthof(BitcodeRecords),
                                Terminator);
-  EXPECT_TRUE(DumpMunger.runTestForAssembly("Good load i32 alignment 1"));
-  EXPECT_EQ("module {  // BlockID = 8\n"
-            "  types {  // BlockID = 17\n"
-            "    count 2;\n"
-            "    @t0 = i32;\n"
-            "    @t1 = i32 (i32);\n"
-            "  }\n"
-            "  define external i32 @f0(i32);\n"
-            "  function i32 @f0(i32 %p0) {  // BlockID = 12\n"
-            "    blocks 1;\n"
-            "  %b0:\n"
-            "    %v0 = load i32* %p0, align 1;\n"
-            "    ret i32 %v0;\n"
-            "  }\n"
-            "}\n",
-            DumpMunger.getTestResults());
+  EXPECT_TRUE(DumpMunger.runTest("Good load i32 alignment 1"));
+  EXPECT_EQ("      58:4|    3: <20, 1, 1, 0>         |    %v0 = load i32* %p0, "
+            "align 1;\n",
+            DumpMunger.getLinesWithSubstring("58:4"));
   IceTest::SubzeroBitcodeMunger Munger(
       BitcodeRecords, array_lengthof(BitcodeRecords), Terminator);
   EXPECT_TRUE(Munger.runTest("Good load i32 alignment 1"));
@@ -221,7 +179,7 @@ TEST(IceParseInstsTests, LoadI32Alignment) {
   };
   EXPECT_FALSE(Munger.runTest("Bad load i32 alignment 0", Align0,
                               array_lengthof(Align0)));
-  EXPECT_EQ("Error: (58:4) Invalid function record: <20 1 0 0>\n",
+  EXPECT_EQ("Error(58:4): Invalid function record: <20 1 0 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly("Bad load i32 alignment 0", Align0,
                                              array_lengthof(Align0)));
@@ -236,7 +194,7 @@ TEST(IceParseInstsTests, LoadI32Alignment) {
   };
   EXPECT_FALSE(Munger.runTest("Bad load i32 alignment 4", Align4,
                               array_lengthof(Align4)));
-  EXPECT_EQ("Error: (58:4) Invalid function record: <20 1 3 0>\n",
+  EXPECT_EQ("Error(58:4): Invalid function record: <20 1 3 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly("Bad load i32 alignment 4", Align4,
                                              array_lengthof(Align4)));
@@ -251,7 +209,7 @@ TEST(IceParseInstsTests, LoadI32Alignment) {
   };
   EXPECT_FALSE(Munger.runTest("Bad load i32 alignment 29", Align29,
                               array_lengthof(Align29)));
-  EXPECT_EQ("Error: (58:4) Invalid function record: <20 1 30 0>\n",
+  EXPECT_EQ("Error(58:4): Invalid function record: <20 1 30 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly("Bad load i32 alignment 29",
                                              Align29, array_lengthof(Align29)));
@@ -266,7 +224,7 @@ TEST(IceParseInstsTests, LoadI32Alignment) {
   };
   EXPECT_FALSE(Munger.runTest("Bad load i32 alignment 30", Align30,
                               array_lengthof(Align30)));
-  EXPECT_EQ("Error: (58:4) Invalid function record: <20 1 31 0>\n",
+  EXPECT_EQ("Error(58:4): Invalid function record: <20 1 31 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly("Bad load i32 alignment 30",
                                              Align30, array_lengthof(Align30)));
@@ -298,23 +256,10 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
   // Show text when alignment is 1.
   NaClObjDumpMunger DumpMunger(BitcodeRecords, array_lengthof(BitcodeRecords),
                                Terminator);
-  EXPECT_TRUE(DumpMunger.runTestForAssembly("Good load float alignment 1"));
-  EXPECT_EQ("module {  // BlockID = 8\n"
-            "  types {  // BlockID = 17\n"
-            "    count 3;\n"
-            "    @t0 = float;\n"
-            "    @t1 = i32;\n"
-            "    @t2 = float (i32);\n"
-            "  }\n"
-            "  define external float @f0(i32);\n"
-            "  function float @f0(i32 %p0) {  // BlockID = 12\n"
-            "    blocks 1;\n"
-            "  %b0:\n"
-            "    %v0 = load float* %p0, align 1;\n"
-            "    ret float %v0;\n"
-            "  }\n"
-            "}\n",
-            DumpMunger.getTestResults());
+  EXPECT_TRUE(DumpMunger.runTest("Good load float alignment 1"));
+  EXPECT_EQ("      58:4|    3: <20, 1, 1, 0>         |    %v0 = load float* "
+            "%p0, align 1;\n",
+            DumpMunger.getLinesWithSubstring("58:4"));
   IceTest::SubzeroBitcodeMunger Munger(
       BitcodeRecords, array_lengthof(BitcodeRecords), Terminator);
   EXPECT_TRUE(Munger.runTest("Good load float alignment 1"));
@@ -326,7 +271,7 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
   };
   EXPECT_FALSE(Munger.runTest("Bad load float alignment 0", Align0,
                               array_lengthof(Align0)));
-  EXPECT_EQ("Error: (58:4) Invalid function record: <20 1 0 0>\n",
+  EXPECT_EQ("Error(58:4): Invalid function record: <20 1 0 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly("Bad load float alignment 0",
                                              Align0, array_lengthof(Align0)));
@@ -353,7 +298,7 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
   };
   EXPECT_FALSE(Munger.runTest("Bad load float alignment 29", Align29,
                               array_lengthof(Align29)));
-  EXPECT_EQ("Error: (58:4) Invalid function record: <20 1 30 0>\n",
+  EXPECT_EQ("Error(58:4): Invalid function record: <20 1 30 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly("Bad load float alignment 29",
                                              Align29, array_lengthof(Align29)));
@@ -369,7 +314,7 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
   };
   EXPECT_FALSE(Munger.runTest("Bad load float alignment 30", Align30,
                               array_lengthof(Align30)));
-  EXPECT_EQ("Error: (58:4) Invalid function record: <20 1 31 0>\n",
+  EXPECT_EQ("Error(58:4): Invalid function record: <20 1 31 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly("Bad load float alignment 30",
                                              Align30, array_lengthof(Align30)));
@@ -402,23 +347,10 @@ TEST(NaClParseInstsTests, StoreAlignment) {
   // Show text when alignment is 1.
   NaClObjDumpMunger DumpMunger(BitcodeRecords, array_lengthof(BitcodeRecords),
                                Terminator);
-  EXPECT_TRUE(DumpMunger.runTestForAssembly("Good Store Alignment 1"));
-  EXPECT_EQ("module {  // BlockID = 8\n"
-            "  types {  // BlockID = 17\n"
-            "    count 3;\n"
-            "    @t0 = float;\n"
-            "    @t1 = i32;\n"
-            "    @t2 = float (i32, float);\n"
-            "  }\n"
-            "  define external float @f0(i32, float);\n"
-            "  function float @f0(i32 %p0, float %p1) {  // BlockID = 12\n"
-            "    blocks 1;\n"
-            "  %b0:\n"
-            "    store float %p1, float* %p0, align 1;\n"
-            "    ret float %p1;\n"
-            "  }\n"
-            "}\n",
-            DumpMunger.getTestResults());
+  EXPECT_TRUE(DumpMunger.runTest("Good Store Alignment 1"));
+  EXPECT_EQ("      62:4|    3: <24, 2, 1, 1>         |    store float %p1, "
+            "float* %p0, \n",
+            DumpMunger.getLinesWithSubstring("62:4"));
   IceTest::SubzeroBitcodeMunger Munger(
       BitcodeRecords, array_lengthof(BitcodeRecords), Terminator);
   EXPECT_TRUE(Munger.runTest("Good store alignment"));
@@ -430,7 +362,7 @@ TEST(NaClParseInstsTests, StoreAlignment) {
   };
   EXPECT_FALSE(
       Munger.runTest("Bad store alignment 0", Align0, array_lengthof(Align0)));
-  EXPECT_EQ("Error: (62:4) Invalid function record: <24 2 1 0>\n",
+  EXPECT_EQ("Error(62:4): Invalid function record: <24 2 1 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly("Bad store alignment 0", Align0,
                                              array_lengthof(Align0)));
@@ -456,7 +388,7 @@ TEST(NaClParseInstsTests, StoreAlignment) {
   };
   EXPECT_FALSE(
       Munger.runTest("Bad store alignment 8", Align8, array_lengthof(Align8)));
-  EXPECT_EQ("Error: (62:4) Invalid function record: <24 2 1 4>\n",
+  EXPECT_EQ("Error(62:4): Invalid function record: <24 2 1 4>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly("Bad store alignment 8", Align8,
                                              array_lengthof(Align8)));
@@ -472,7 +404,7 @@ TEST(NaClParseInstsTests, StoreAlignment) {
   };
   EXPECT_FALSE(Munger.runTest("Bad store alignment 29", Align29,
                               array_lengthof(Align29)));
-  EXPECT_EQ("Error: (62:4) Invalid function record: <24 2 1 30>\n",
+  EXPECT_EQ("Error(62:4): Invalid function record: <24 2 1 30>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly("Bad store alignment 29", Align29,
                                              array_lengthof(Align29)));
@@ -488,7 +420,7 @@ TEST(NaClParseInstsTests, StoreAlignment) {
   };
   EXPECT_FALSE(Munger.runTest("Bad store alignment 30", Align30,
                               array_lengthof(Align30)));
-  EXPECT_EQ("Error: (62:4) Invalid function record: <24 2 1 31>\n",
+  EXPECT_EQ("Error(62:4): Invalid function record: <24 2 1 31>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly("Bad Store alignment 30", Align30,
                                              array_lengthof(Align30)));
