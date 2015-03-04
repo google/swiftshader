@@ -43,12 +43,12 @@ static struct {
   } NestedStuff;
   uint8_t *Pointer5;
 } StructEx = {
-      {10, 20, 30, 40, 50},
-      ExternName1,
-      {0.5, 1.5, 2.5},
-      ExternName4,
-      {ExternName3, {1000, 1010, 1020}, ExternName2},
-      ExternName5,
+    {10, 20, 30, 40, 50},
+    ExternName1,
+    {0.5, 1.5, 2.5},
+    ExternName4,
+    {ExternName3, {1000, 1010, 1020}, ExternName2},
+    ExternName5,
 };
 
 #define ARRAY(a)                                                               \
@@ -61,13 +61,13 @@ struct {
   uint8_t *ArrayAddress;
   size_t ArraySizeInBytes;
 } Arrays[] = {
-      ARRAY(ArrayInitPartial),
-      ARRAY(ArrayInitFull),
-      ARRAY(ArrayConst),
-      ARRAY(ArrayDouble),
-      {(uint8_t *)(ArrayInitPartial + 2),
-       sizeof(ArrayInitPartial) - 2 * sizeof(int)},
-      {(uint8_t *)(&StructEx), sizeof(StructEx)},
+    ARRAY(ArrayInitPartial),
+    ARRAY(ArrayInitFull),
+    ARRAY(ArrayConst),
+    ARRAY(ArrayDouble),
+    {(uint8_t *)(ArrayInitPartial + 2),
+     sizeof(ArrayInitPartial) - 2 * sizeof(int)},
+    {(uint8_t *)(&StructEx), sizeof(StructEx)},
 };
 size_t NumArraysElements = sizeof(Arrays) / sizeof(*Arrays);
 

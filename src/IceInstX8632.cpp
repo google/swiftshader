@@ -34,7 +34,7 @@ const struct InstX8632BrAttributes_ {
 #define X(tag, encode, opp, dump, emit)                                        \
   { CondX86::opp, dump, emit }                                                 \
   ,
-      ICEINSTX8632BR_TABLE
+    ICEINSTX8632BR_TABLE
 #undef X
 };
 
@@ -44,7 +44,7 @@ const struct InstX8632CmppsAttributes_ {
 #define X(tag, emit)                                                           \
   { emit }                                                                     \
   ,
-      ICEINSTX8632CMPPS_TABLE
+    ICEINSTX8632CMPPS_TABLE
 #undef X
 };
 
@@ -58,7 +58,7 @@ const struct TypeX8632Attributes_ {
 #define X(tag, elementty, cvt, sdss, pack, width, fld)                         \
   { cvt, sdss, pack, width, fld }                                              \
   ,
-      ICETYPEX8632_TABLE
+    ICETYPEX8632_TABLE
 #undef X
 };
 
@@ -1256,9 +1256,9 @@ void emitVariableBlendInst(const char *Opcode, const Inst *Inst,
   Inst->getDest()->emit(Func);
 }
 
-void
-emitIASVariableBlendInst(const Inst *Inst, const Cfg *Func,
-                         const x86::AssemblerX86::XmmEmitterRegOp &Emitter) {
+void emitIASVariableBlendInst(
+    const Inst *Inst, const Cfg *Func,
+    const x86::AssemblerX86::XmmEmitterRegOp &Emitter) {
   assert(Inst->getSrcSize() == 3);
   assert(llvm::cast<Variable>(Inst->getSrc(2))->getRegNum() ==
          RegX8632::Reg_xmm0);

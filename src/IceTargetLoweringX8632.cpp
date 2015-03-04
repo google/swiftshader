@@ -61,7 +61,7 @@ const struct TableFcmp_ {
 #define X(val, dflt, swapS, C1, C2, swapV, pred)                               \
   { dflt, swapS, CondX86::C1, CondX86::C2, swapV, CondX86::pred }              \
   ,
-      FCMPX8632_TABLE
+    FCMPX8632_TABLE
 #undef X
 };
 const size_t TableFcmpSize = llvm::array_lengthof(TableFcmp);
@@ -76,7 +76,7 @@ const struct TableIcmp32_ {
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
   { CondX86::C_32 }                                                            \
   ,
-      ICMPX8632_TABLE
+    ICMPX8632_TABLE
 #undef X
 };
 const size_t TableIcmp32Size = llvm::array_lengthof(TableIcmp32);
@@ -91,7 +91,7 @@ const struct TableIcmp64_ {
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
   { CondX86::C1_64, CondX86::C2_64, CondX86::C3_64 }                           \
   ,
-      ICMPX8632_TABLE
+    ICMPX8632_TABLE
 #undef X
 };
 const size_t TableIcmp64Size = llvm::array_lengthof(TableIcmp64);
@@ -108,7 +108,7 @@ const struct TableTypeX8632Attributes_ {
 #define X(tag, elementty, cvt, sdss, pack, width, fld)                         \
   { elementty }                                                                \
   ,
-      ICETYPEX8632_TABLE
+    ICETYPEX8632_TABLE
 #undef X
 };
 const size_t TableTypeX8632AttributesSize =
@@ -4120,8 +4120,8 @@ void TargetX8632::scalarizeArithmetic(InstArithmetic::OpKind Kind,
 // We can eliminate the sext operation by copying the result of pcmpeqd,
 // pcmpgtd, or cmpps (which produce sign extended results) to the result
 // of the sext operation.
-void
-TargetX8632::eliminateNextVectorSextInstruction(Variable *SignExtendedResult) {
+void TargetX8632::eliminateNextVectorSextInstruction(
+    Variable *SignExtendedResult) {
   if (InstCast *NextCast =
           llvm::dyn_cast_or_null<InstCast>(Context.getNextInst())) {
     if (NextCast->getCastKind() == InstCast::Sext &&

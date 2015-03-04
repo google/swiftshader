@@ -30,7 +30,7 @@ const struct InstArithmeticAttributes_ {
 #define X(tag, str, commutative)                                               \
   { str, commutative }                                                         \
   ,
-      ICEINSTARITHMETIC_TABLE
+    ICEINSTARITHMETIC_TABLE
 #undef X
 };
 
@@ -41,7 +41,7 @@ const struct InstCastAttributes_ {
 #define X(tag, str)                                                            \
   { str }                                                                      \
   ,
-      ICEINSTCAST_TABLE
+    ICEINSTCAST_TABLE
 #undef X
 };
 
@@ -52,7 +52,7 @@ const struct InstFcmpAttributes_ {
 #define X(tag, str)                                                            \
   { str }                                                                      \
   ,
-      ICEINSTFCMP_TABLE
+    ICEINSTFCMP_TABLE
 #undef X
 };
 
@@ -63,7 +63,7 @@ const struct InstIcmpAttributes_ {
 #define X(tag, str)                                                            \
   { str }                                                                      \
   ,
-      ICEINSTICMP_TABLE
+    ICEINSTICMP_TABLE
 #undef X
 };
 

@@ -386,9 +386,8 @@ int main(int argc, char **argv) {
     SMDiagnostic Err;
     Ice::TimerMarker T1(Ice::TimerStack::TT_parse, &Ctx);
     raw_ostream *Verbose = LLVMVerboseErrors ? &errs() : nullptr;
-    std::unique_ptr<Module> Mod =
-        NaClParseIRFile(IRFilename, InputFileFormat, Err, Verbose,
-                        getGlobalContext());
+    std::unique_ptr<Module> Mod = NaClParseIRFile(
+        IRFilename, InputFileFormat, Err, Verbose, getGlobalContext());
     if (!Mod) {
       Err.print(argv[0], errs());
       return GetReturnValue(Ice::EC_Bitcode);

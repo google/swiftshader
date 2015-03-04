@@ -72,9 +72,9 @@ void testsScalar(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         Subzero_fcmp##cmp##Double, fcmp##cmp##Double                           \
   }                                                                            \
   ,
-        FCMP_TABLE
+      FCMP_TABLE
 #undef X
-    };
+  };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
 
   bool ResultSz, ResultLlc;
@@ -125,9 +125,9 @@ void testsVector(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 #define X(cmp)                                                                 \
   { "fcmp" STR(cmp), Subzero_fcmp##cmp##Vector, fcmp##cmp##Vector }            \
   ,
-        FCMP_TABLE
+      FCMP_TABLE
 #undef X
-    };
+  };
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
   const static size_t NumElementsInType = 4;
   const static size_t MaxTestsPerFunc = 100000;
