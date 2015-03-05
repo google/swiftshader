@@ -121,7 +121,7 @@ def main():
       cmd += ['-o', asm_temp.name]
     if args.disassemble:
       # Show wide instruction encodings, diassemble, and show relocs.
-      cmd += (['&&', os.path.join(binutils_bin_path, 'objdump')] +
+      cmd += (['&&', os.path.join(binutils_bin_path, 'le32-nacl-objdump')] +
               args.dis_flags +
               ['-w', '-d', '-r', '-Mintel', asm_temp.name])
 

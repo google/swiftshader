@@ -16,7 +16,7 @@
 
 ; Add a run that shows relocations in code inline.
 ; RUN: %p2i -i %s --filetype=obj --args -O2 --verbose none -o %t \
-; RUN:   && objdump -w -d -r -Mintel %t \
+; RUN:   && le32-nacl-objdump -w -d -r -Mintel %t \
 ; RUN:   | FileCheck --check-prefix=TEXT-RELOCS %s
 
 ; Use intrinsics to test external calls.

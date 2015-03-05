@@ -37,12 +37,12 @@ def main():
     argparser.add_argument('--verbose', '-v', dest='verbose',
                            action='store_true',
                            help='Display some extra debugging output')
+    argparser.add_argument('--pnacl-root', dest='pnacl_root',
+                           help='Path to PNaCl toolchain binaries.')
     args = argparser.parse_args()
     nacl_root = FindBaseNaCl()
-    os.environ['PATH'] = (
-        '{root}/toolchain/linux_x86/pnacl_newlib/bin{sep}' +
-        '{path}'
-        ).format(root=nacl_root, sep=os.pathsep, path=os.environ['PATH'])
+    os.environ['PATH'] = ('{root}/bin{sep}{path}'
+        ).format(root=args.pnacl_root, sep=os.pathsep, path=os.environ['PATH'])
     srcdir = (
         '{root}/toolchain_build/src/subzero/runtime'
         ).format(root=nacl_root)

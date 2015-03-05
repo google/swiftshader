@@ -3,7 +3,8 @@
 # invocation of make, like:
 #
 #   make LLVM_SRC_PATH=<path> LLVM_BIN_PATH=<path> \
-#        LIBCXX_INSTALL_PATH=<path> CLANG_PATH=<path> ...
+#        LIBCXX_INSTALL_PATH=<path> CLANG_PATH=<path> \
+#        BINUTILS_BIN_PATH=<path> ...
 #
 
 # LLVM_SRC_PATH is the path to the root of the checked out source code. This
@@ -14,23 +15,30 @@
 LLVM_SRC_PATH ?= ../llvm
 
 # LLVM_BIN_PATH is the directory where binaries are placed by the LLVM build
-# process. It should contain the tools like opt, llc and clang. The default
-# reflects a debug build with autotools (configure & make).
+# process. It should contain the tools like clang, clang-format, llc,
+# llvm-as, llvm-config, llvm-mc, pnacl-bcdis, and pnacl-freeze.
+# It also contains developer libraries like libLLVMSupport.a.
+# The default reflects a configure + make build.
 LLVM_BIN_PATH ?= $(shell readlink -e \
 	../../out/llvm_x86_64_linux_work/Release+Asserts/bin)
 
-# LIBCXX_INSTALL_PATH is the directory where libc++ is located. It should
-# contain header files and corresponding libraries
-LIBCXX_INSTALL_PATH ?= $(shell readlink -e \
+# PNACL_TOOLCHAIN_ROOT is the location of the PNaCl toolchain.
+# This is used as the default root for finding binutils, libcxx, etc.
+PNACL_TOOLCHAIN_ROOT = $(shell readlink -e \
 	../../../toolchain/linux_x86/pnacl_newlib)
 
-# CLANG_PATH is the location of the clang compiler to use.
+# CLANG_PATH is the location of the clang compiler to use for building
+# the host binaries.
 CLANG_PATH ?= $(shell readlink -e \
 	../../../../third_party/llvm-build/Release+Asserts/bin)
 
-# The location of binutils tools (e.g., objdump).
-BINUTILS_BIN_PATH ?= $(shell readlink -e \
-	../../out/binutils_pnacl_x86_64_linux_work/binutils)
+# LIBCXX_INSTALL_PATH is the directory where libc++ is located. It should
+# contain header files and corresponding libraries. This is used for
+# building the host binaries in conjuction with clang.
+LIBCXX_INSTALL_PATH ?= $(PNACL_TOOLCHAIN_ROOT)
+
+# The location of binutils tools (e.g., objdump) for testing.
+BINUTILS_BIN_PATH ?= $(shell readlink -e $(PNACL_TOOLCHAIN_ROOT)/bin)
 
 HOST_ARCH ?= x86_64
 ifeq ($(HOST_ARCH),x86_64)
@@ -82,8 +90,9 @@ endif
 $(info -----------------------------------------------)
 $(info Using LLVM_SRC_PATH = $(LLVM_SRC_PATH))
 $(info Using LLVM_BIN_PATH = $(LLVM_BIN_PATH))
-$(info Using LIBCXX_INSTALL_PATH = $(LIBCXX_INSTALL_PATH))
+$(info Using PNACL_TOOLCHAIN_ROOT = $(PNACL_TOOLCHAIN_ROOT))
 $(info Using CLANG_PATH = $(CLANG_PATH))
+$(info Using LIBCXX_INSTALL_PATH = $(LIBCXX_INSTALL_PATH))
 $(info Using BINUTILS_BIN_PATH = $(BINUTILS_BIN_PATH))
 $(info Using HOST_ARCH     = $(HOST_ARCH))
 $(info -----------------------------------------------)
@@ -200,7 +209,7 @@ runtime: $(RT_OBJ)
 $(RT_OBJ): runtime.is.built
 runtime.is.built: $(RT_SRC)
 	@echo ================ Building Subzero runtime ================
-	./pydir/build-runtime.py -v
+	./pydir/build-runtime.py -v --pnacl-root $(PNACL_TOOLCHAIN_ROOT)
 
 check-lit: $(OBJDIR)/pnacl-sz make_symlink
 	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
