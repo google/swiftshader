@@ -21,6 +21,7 @@
 
 namespace llvm {
 class MemoryBuffer;
+class MemoryObject;
 } // end of namespace llvm
 
 namespace Ice {
@@ -35,8 +36,9 @@ public:
 
   // Reads the PNaCl bitcode file and translates to ICE, which is then
   // converted to machine code. Sets ErrorStatus to 1 if any errors
-  // occurred.
-  void translate(const std::string &IRFilename);
+  // occurred. Takes ownership of the MemoryObject.
+  void translate(const std::string &IRFilename,
+                 std::unique_ptr<llvm::MemoryObject> &&MemoryObject);
 
   // Reads MemBuf, assuming it is the PNaCl bitcode contents of IRFilename.
   void translateBuffer(const std::string &IRFilename,

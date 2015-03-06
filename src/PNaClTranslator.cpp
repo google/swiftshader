@@ -2992,43 +2992,27 @@ bool TopLevelParser::ParseBlock(unsigned BlockID) {
 
 namespace Ice {
 
-void PNaClTranslator::translate(const std::string &IRFilename) {
-  ErrorOr<std::unique_ptr<MemoryBuffer>> ErrOrFile =
-      MemoryBuffer::getFileOrSTDIN(IRFilename);
-  if (std::error_code EC = ErrOrFile.getError()) {
-    errs() << "Error reading '" << IRFilename << "': " << EC.message() << "\n";
-    ErrorStatus.assign(EC.value());
-    return;
-  }
-
-  std::unique_ptr<MemoryBuffer> MemBuf(ErrOrFile.get().release());
-  translateBuffer(IRFilename, MemBuf.get());
-}
-
 void PNaClTranslator::translateBuffer(const std::string &IRFilename,
                                       MemoryBuffer *MemBuf) {
-  if (MemBuf->getBufferSize() % 4 != 0) {
-    errs() << IRFilename
-           << ": Bitcode stream should be a multiple of 4 bytes in length.\n";
-    ErrorStatus.assign(EC_Bitcode);
-    return;
-  }
+  std::unique_ptr<MemoryObject> MemObj(getNonStreamedMemoryObject(
+      reinterpret_cast<const unsigned char *>(MemBuf->getBufferStart()),
+      reinterpret_cast<const unsigned char *>(MemBuf->getBufferEnd())));
+  translate(IRFilename, std::move(MemObj));
+}
 
-  const unsigned char *BufPtr = (const unsigned char *)MemBuf->getBufferStart();
-  const unsigned char *HeaderPtr = BufPtr;
-  const unsigned char *EndBufPtr = BufPtr + MemBuf->getBufferSize();
+void PNaClTranslator::translate(const std::string &IRFilename,
+                                std::unique_ptr<MemoryObject> &&MemObj) {
 
   // Read header and verify it is good.
   NaClBitcodeHeader Header;
-  if (Header.Read(HeaderPtr, EndBufPtr) || !Header.IsSupported()) {
+  if (Header.Read(MemObj.get()) || !Header.IsSupported()) {
     errs() << "Invalid PNaCl bitcode header.\n";
     ErrorStatus.assign(EC_Bitcode);
     return;
   }
 
   // Create a bitstream reader to read the bitcode file.
-  NaClBitstreamReader InputStreamFile(BufPtr, EndBufPtr,
-                                      Header.getHeaderSize());
+  NaClBitstreamReader InputStreamFile(MemObj.release(), Header.getHeaderSize());
   NaClBitstreamCursor InputStream(InputStreamFile);
 
   TopLevelParser Parser(*this, InputStream, ErrorStatus);
@@ -3046,6 +3030,12 @@ void PNaClTranslator::translateBuffer(const std::string &IRFilename,
            << ": Contains more than one module. Found: " << TopLevelBlocks
            << "\n";
     ErrorStatus.assign(EC_Bitcode);
+  }
+  if (InputStreamFile.getBitcodeBytes().getExtent() % 4 != 0) {
+    errs() << IRFilename
+           << ": Bitcode stream should be a multiple of 4 bytes in length.\n";
+    ErrorStatus.assign(EC_Bitcode);
+    return;
   }
 }
 

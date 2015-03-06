@@ -26,6 +26,7 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/SourceMgr.h"
+#include "llvm/Support/StreamingMemoryObject.h"
 
 #include "IceCfg.h"
 #include "IceClFlags.h"
@@ -379,7 +380,17 @@ int main(int argc, char **argv) {
   if (BuildOnRead) {
     std::unique_ptr<Ice::PNaClTranslator> PTranslator(
         new Ice::PNaClTranslator(&Ctx));
-    PTranslator->translate(IRFilename);
+    std::string StrError;
+    std::unique_ptr<DataStreamer> FileStreamer(
+        getDataFileStreamer(IRFilename, &StrError));
+    if (!StrError.empty() || !FileStreamer) {
+      SMDiagnostic Err(IRFilename, SourceMgr::DK_Error, StrError);
+      Err.print(argv[0], errs());
+      return GetReturnValue(Ice::EC_Bitcode);
+    }
+    std::unique_ptr<StreamingMemoryObject> MemObj(
+        new StreamingMemoryObjectImpl(FileStreamer.release()));
+    PTranslator->translate(IRFilename, std::move(MemObj));
     Translator.reset(PTranslator.release());
   } else if (ALLOW_LLVM_IR) {
     // Parse the input LLVM IR file into a module.
