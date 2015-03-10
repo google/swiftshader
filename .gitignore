@@ -42,4 +42,6 @@
 *.sdf
 *.suo
 *.o
+*.depend
+*.layout
 
