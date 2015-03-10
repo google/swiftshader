@@ -1,4 +1,4 @@
-// SwiftShader Software Renderer
+﻿// SwiftShader Software Renderer
 //
 // Copyright(c) 2005-2013 TransGaming Inc.
 //
@@ -92,6 +92,8 @@ Context::Context(const egl::Config *config, const Context *shareContext, EGLint 
     mState.sampleCoverageInvert = false;
     mState.scissorTest = false;
     mState.dither = true;
+    mState.primitiveRestartFixedIndex = false;
+    mState.rasterizerDiscard = false;
     mState.generateMipmapHint = GL_DONT_CARE;
     mState.fragmentShaderDerivativeHint = GL_DONT_CARE;
 
@@ -589,6 +591,28 @@ void Context::setDither(bool enabled)
 bool Context::isDitherEnabled() const
 {
     return mState.dither;
+}
+
+void Context::setPrimitiveRestartFixedIndex(bool enabled)
+{
+    UNIMPLEMENTED();
+    mState.primitiveRestartFixedIndex = enabled;
+}
+
+bool Context::isPrimitiveRestartFixedIndexEnabled() const
+{
+    return mState.primitiveRestartFixedIndex;
+}
+
+void Context::setRasterizerDiscard(bool enabled)
+{
+    UNIMPLEMENTED();
+    mState.rasterizerDiscard = enabled;
+}
+
+bool Context::isRasterizerDiscardEnabled() const
+{
+    return mState.rasterizerDiscard;
 }
 
 void Context::setLineWidth(GLfloat width)
@@ -1232,6 +1256,8 @@ bool Context::getBooleanv(GLenum pname, GLboolean *params)
       case GL_DEPTH_TEST:               *params = mState.depthTest;                 break;
       case GL_BLEND:                    *params = mState.blend;                     break;
       case GL_DITHER:                   *params = mState.dither;                    break;
+      case GL_PRIMITIVE_RESTART_FIXED_INDEX: *params = mState.primitiveRestartFixedIndex; break;
+      case GL_RASTERIZER_DISCARD:       *params = mState.rasterizerDiscard;         break;
       default:
         return false;
     }
@@ -1504,7 +1530,8 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
         }
         break;
 	case GL_TEXTURE_BINDING_3D_OES:
-		{
+	case GL_TEXTURE_BINDING_2D_ARRAY: // GLES 3.0
+	    {
 			if(mState.activeSampler < 0 || mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
 			{
 				error(GL_INVALID_OPERATION);
@@ -1512,13 +1539,266 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 			}
 
 			*params = mState.samplerTexture[TEXTURE_3D][mState.activeSampler].name();
-	}
+		}
+		break;
+	case GL_COPY_READ_BUFFER_BINDING: // name, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_COPY_WRITE_BUFFER_BINDING: // name, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_DRAW_BUFFER0: // symbolic constant, initial value is GL_BACK​
+		UNIMPLEMENTED();
+		*params = GL_BACK;
+		break;
+	case GL_DRAW_BUFFER1: // symbolic constant, initial value is GL_NONE
+	case GL_DRAW_BUFFER2:
+	case GL_DRAW_BUFFER3:
+	case GL_DRAW_BUFFER4:
+	case GL_DRAW_BUFFER5:
+	case GL_DRAW_BUFFER6:
+	case GL_DRAW_BUFFER7:
+	case GL_DRAW_BUFFER8:
+	case GL_DRAW_BUFFER9:
+	case GL_DRAW_BUFFER10:
+	case GL_DRAW_BUFFER11:
+	case GL_DRAW_BUFFER12:
+	case GL_DRAW_BUFFER13:
+	case GL_DRAW_BUFFER14:
+	case GL_DRAW_BUFFER15:
+		UNIMPLEMENTED();
+		*params = GL_NONE;
+		break;
+	case GL_MAJOR_VERSION: // integer, at least 3
+		UNIMPLEMENTED();
+		*params = 3;
+		break;
+	case GL_MAX_3D_TEXTURE_SIZE: // GLint, at least 2048
+		UNIMPLEMENTED();
+		*params = 2048;
+		break;
+	case GL_MAX_ARRAY_TEXTURE_LAYERS: // GLint, at least 2048
+		UNIMPLEMENTED();
+		*params = 2048;
+		break;
+	case GL_MAX_COLOR_ATTACHMENTS: // integer, at least 8
+		UNIMPLEMENTED();
+		*params = 8;
+		break;
+	case GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS: // integer, at least 1
+		UNIMPLEMENTED();
+		*params = 1;
+		break;
+	case GL_MAX_COMBINED_UNIFORM_BLOCKS: // integer, at least 70
+		UNIMPLEMENTED();
+		*params = 70;
+		break;
+	case GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS: // integer, at least 1
+		UNIMPLEMENTED();
+		*params = 1;
+		break;
+	case GL_MAX_DRAW_BUFFERS: // integer, at least 8
+		UNIMPLEMENTED();
+		*params = 8;
+		break;
+	case GL_MAX_ELEMENT_INDEX: // integer, at least 16777215
+		UNIMPLEMENTED();
+		*params = 16777215;
+		break;
+	case GL_MAX_ELEMENTS_INDICES: // integer
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_MAX_ELEMENTS_VERTICES: // integer
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_MAX_FRAGMENT_INPUT_COMPONENTS: // integer, at least 128
+		UNIMPLEMENTED();
+		*params = 128;
+		break;
+	case GL_MAX_FRAGMENT_UNIFORM_BLOCKS: // integer, at least 12
+		UNIMPLEMENTED();
+		*params = 12;
+		break;
+	case GL_MAX_FRAGMENT_UNIFORM_COMPONENTS: // integer, at least 1024
+		UNIMPLEMENTED();
+		*params = 1024;
+		break;
+	case GL_MAX_PROGRAM_TEXEL_OFFSET: // integer, minimum is 7
+		UNIMPLEMENTED();
+		*params = 7;
+		break;
+	case GL_MAX_SERVER_WAIT_TIMEOUT: // integer
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_MAX_TEXTURE_LOD_BIAS: // integer,  at least 2.0
+		UNIMPLEMENTED();
+		*params = 2;
+		break;
+	case GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS: // integer, at least 64
+		UNIMPLEMENTED();
+		*params = 64;
+		break;
+	case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS: // integer, at least 4
+		UNIMPLEMENTED();
+		*params = 4;
+		break;
+	case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS: // integer, at least 4
+		UNIMPLEMENTED();
+		*params = 4;
+		break;
+	case GL_MAX_UNIFORM_BLOCK_SIZE: // integer, at least 16384
+		UNIMPLEMENTED();
+		*params = 16384;
+		break;
+	case GL_MAX_UNIFORM_BUFFER_BINDINGS: // integer, at least 36
+		UNIMPLEMENTED();
+		*params = 36;
+		break;
+	case GL_MAX_VARYING_COMPONENTS: // integer, at least 60
+		UNIMPLEMENTED();
+		*params = 60;
+		break;
+	case GL_MAX_VERTEX_OUTPUT_COMPONENTS: // integer,  at least 64
+		UNIMPLEMENTED();
+		*params = 64;
+		break;
+	case GL_MAX_VERTEX_UNIFORM_BLOCKS: // integer,  at least 12
+		UNIMPLEMENTED();
+		*params = 12;
+		break;
+	case GL_MAX_VERTEX_UNIFORM_COMPONENTS: // integer,  at least 1024
+		UNIMPLEMENTED();
+		*params = 1024;
+		break;
+	case GL_MIN_PROGRAM_TEXEL_OFFSET: // integer, maximum is -8
+		UNIMPLEMENTED();
+		*params = -8;
+		break;
+	case GL_MINOR_VERSION: // integer
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_NUM_EXTENSIONS: // integer
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_NUM_PROGRAM_BINARY_FORMATS: // integer, at least 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_PACK_ROW_LENGTH: // integer, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_PACK_SKIP_PIXELS: // integer, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_PACK_SKIP_ROWS: // integer, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_PIXEL_PACK_BUFFER_BINDING: // integer, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_PIXEL_UNPACK_BUFFER_BINDING: // integer, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_PROGRAM_BINARY_FORMATS: // integer[GL_NUM_PROGRAM_BINARY_FORMATS​]
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_READ_BUFFER: // symbolic constant,  initial value is GL_BACK​
+		UNIMPLEMENTED();
+		*params = GL_BACK;
+		break;
+	case GL_SAMPLER_BINDING: // GLint, default 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_UNIFORM_BUFFER_BINDING: // name, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT: // integer, defaults to 1
+		UNIMPLEMENTED();
+		*params = 1;
+		break;
+	case GL_UNIFORM_BUFFER_SIZE: // indexed[n] 64-bit integer, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_UNIFORM_BUFFER_START: // indexed[n] 64-bit integer, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_UNPACK_IMAGE_HEIGHT: // integer, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_UNPACK_ROW_LENGTH: // integer, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_UNPACK_SKIP_IMAGES: // integer, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_UNPACK_SKIP_PIXELS: // integer, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_UNPACK_SKIP_ROWS: // integer, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
+		break;
+	case GL_VERTEX_ARRAY_BINDING: // GLint, initially 0
+		UNIMPLEMENTED();
+		*params = 0;
 		break;
 	default:
         return false;
     }
 
     return true;
+}
+
+bool Context::getTransformFeedbackiv(GLuint xfb, GLenum pname, GLint *param)
+{
+	UNIMPLEMENTED();
+
+	switch(pname)
+	{
+	case GL_TRANSFORM_FEEDBACK_BINDING: // GLint, initially 0
+		*param = 0;
+		break;
+	case GL_TRANSFORM_FEEDBACK_ACTIVE: // boolean, initially GL_FALSE
+		*param = GL_FALSE;
+		break;
+	case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING: // name, initially 0
+		*param = 0;
+		break;
+	case GL_TRANSFORM_FEEDBACK_PAUSED: // boolean, initially GL_FALSE
+		*param = GL_FALSE;
+		break;
+	case GL_TRANSFORM_FEEDBACK_BUFFER_SIZE: // indexed[n] 64-bit integer, initially 0
+		*param = 0;
+		break;
+	case GL_TRANSFORM_FEEDBACK_BUFFER_START: // indexed[n] 64-bit integer, initially 0
+		*param = 0;
+		break;
+	default:
+		return false;
+	}
+
+	return true;
 }
 
 bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *numParams)
@@ -1604,7 +1884,74 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
       case GL_TEXTURE_BINDING_2D:
       case GL_TEXTURE_BINDING_CUBE_MAP:
       case GL_TEXTURE_BINDING_EXTERNAL_OES:
-	  case GL_TEXTURE_BINDING_3D_OES:
+      case GL_TEXTURE_BINDING_3D_OES:
+      case GL_COPY_READ_BUFFER_BINDING:
+      case GL_COPY_WRITE_BUFFER_BINDING:
+      case GL_DRAW_BUFFER0:
+      case GL_DRAW_BUFFER1:
+      case GL_DRAW_BUFFER2:
+      case GL_DRAW_BUFFER3:
+      case GL_DRAW_BUFFER4:
+      case GL_DRAW_BUFFER5:
+      case GL_DRAW_BUFFER6:
+      case GL_DRAW_BUFFER7:
+      case GL_DRAW_BUFFER8:
+      case GL_DRAW_BUFFER9:
+      case GL_DRAW_BUFFER10:
+      case GL_DRAW_BUFFER11:
+      case GL_DRAW_BUFFER12:
+      case GL_DRAW_BUFFER13:
+      case GL_DRAW_BUFFER14:
+      case GL_DRAW_BUFFER15:
+      case GL_MAJOR_VERSION:
+      case GL_MAX_3D_TEXTURE_SIZE:
+      case GL_MAX_ARRAY_TEXTURE_LAYERS:
+      case GL_MAX_COLOR_ATTACHMENTS:
+      case GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS:
+      case GL_MAX_COMBINED_UNIFORM_BLOCKS:
+      case GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS:
+      case GL_MAX_DRAW_BUFFERS:
+      case GL_MAX_ELEMENT_INDEX:
+      case GL_MAX_ELEMENTS_INDICES:
+      case GL_MAX_ELEMENTS_VERTICES:
+      case GL_MAX_FRAGMENT_INPUT_COMPONENTS:
+      case GL_MAX_FRAGMENT_UNIFORM_BLOCKS:
+      case GL_MAX_FRAGMENT_UNIFORM_COMPONENTS:
+      case GL_MAX_PROGRAM_TEXEL_OFFSET:
+      case GL_MAX_SERVER_WAIT_TIMEOUT:
+      case GL_MAX_TEXTURE_LOD_BIAS:
+      case GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS:
+      case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS:
+      case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS:
+      case GL_MAX_UNIFORM_BLOCK_SIZE:
+      case GL_MAX_UNIFORM_BUFFER_BINDINGS:
+      case GL_MAX_VARYING_COMPONENTS:
+      case GL_MAX_VERTEX_OUTPUT_COMPONENTS:
+      case GL_MAX_VERTEX_UNIFORM_BLOCKS:
+      case GL_MAX_VERTEX_UNIFORM_COMPONENTS:
+      case GL_MIN_PROGRAM_TEXEL_OFFSET:
+      case GL_MINOR_VERSION:
+      case GL_NUM_EXTENSIONS:
+      case GL_NUM_PROGRAM_BINARY_FORMATS:
+      case GL_PACK_ROW_LENGTH:
+      case GL_PACK_SKIP_PIXELS:
+      case GL_PACK_SKIP_ROWS:
+      case GL_PIXEL_PACK_BUFFER_BINDING:
+      case GL_PIXEL_UNPACK_BUFFER_BINDING:
+      case GL_PROGRAM_BINARY_FORMATS:
+      case GL_READ_BUFFER:
+      case GL_SAMPLER_BINDING:
+      case GL_TEXTURE_BINDING_2D_ARRAY:
+      case GL_UNIFORM_BUFFER_BINDING:
+      case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT:
+      case GL_UNIFORM_BUFFER_SIZE:
+      case GL_UNIFORM_BUFFER_START:
+      case GL_UNPACK_IMAGE_HEIGHT:
+      case GL_UNPACK_ROW_LENGTH:
+      case GL_UNPACK_SKIP_IMAGES:
+      case GL_UNPACK_SKIP_PIXELS:
+      case GL_UNPACK_SKIP_ROWS:
+      case GL_VERTEX_ARRAY_BINDING:
         {
             *type = GL_INT;
             *numParams = 1;
@@ -1641,6 +1988,8 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
       case GL_DEPTH_TEST:
       case GL_BLEND:
       case GL_DITHER:
+      case GL_PRIMITIVE_RESTART_FIXED_INDEX:
+      case GL_RASTERIZER_DISCARD:
         {
             *type = GL_BOOL;
             *numParams = 1;

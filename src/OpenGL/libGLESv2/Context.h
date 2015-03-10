@@ -25,6 +25,7 @@
 #define GL_APICALL
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#include <GLES3/gl3.h>
 #define EGLAPI
 #include <EGL/egl.h>
 
@@ -86,6 +87,18 @@ const GLenum compressedTextureFormats[] =
 	GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
 	GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE,
 	GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE,
+#endif
+#if (GL_ES_VERSION_3_0)
+	GL_COMPRESSED_R11_EAC,
+	GL_COMPRESSED_SIGNED_R11_EAC,
+	GL_COMPRESSED_RG11_EAC,
+	GL_COMPRESSED_SIGNED_RG11_EAC,
+	GL_COMPRESSED_RGB8_ETC2,
+	GL_COMPRESSED_SRGB8_ETC2,
+	GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2,
+	GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2,
+	GL_COMPRESSED_RGBA8_ETC2_EAC,
+	GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC,
 #endif
 };
 
@@ -208,6 +221,8 @@ struct State
     bool sampleCoverageInvert;
     bool scissorTest;
     bool dither;
+    bool primitiveRestartFixedIndex;
+    bool rasterizerDiscard;
 
     GLfloat lineWidth;
 
@@ -301,6 +316,12 @@ public:
 
     void setDither(bool enabled);
     bool isDitherEnabled() const;
+
+    void setPrimitiveRestartFixedIndex(bool enabled);
+    bool isPrimitiveRestartFixedIndexEnabled() const;
+
+    void setRasterizerDiscard(bool enabled);
+    bool isRasterizerDiscardEnabled() const;
 
     void setLineWidth(GLfloat width);
 
@@ -409,6 +430,7 @@ public:
     bool getFloatv(GLenum pname, GLfloat *params);
     bool getIntegerv(GLenum pname, GLint *params);
     bool getBooleanv(GLenum pname, GLboolean *params);
+	bool getTransformFeedbackiv(GLuint xfb, GLenum pname, GLint *param);
 
     bool getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *numParams);
 

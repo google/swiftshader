@@ -29,6 +29,7 @@
 #define GL_APICALL
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#include <GLES3/gl3.h>
 
 #include <exception>
 #include <limits>
@@ -1628,6 +1629,8 @@ void GL_APIENTRY glDisable(GLenum cap)
 		case GL_DEPTH_TEST:               context->setDepthTest(false);             break;
 		case GL_BLEND:                    context->setBlend(false);                 break;
 		case GL_DITHER:                   context->setDither(false);                break;
+		case GL_PRIMITIVE_RESTART_FIXED_INDEX: context->setPrimitiveRestartFixedIndex(false); break;
+		case GL_RASTERIZER_DISCARD:       context->setRasterizerDiscard(false); break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -1715,6 +1718,8 @@ void GL_APIENTRY glEnable(GLenum cap)
 		case GL_DEPTH_TEST:               context->setDepthTest(true);             break;
 		case GL_BLEND:                    context->setBlend(true);                 break;
 		case GL_DITHER:                   context->setDither(true);                break;
+		case GL_PRIMITIVE_RESTART_FIXED_INDEX: context->setPrimitiveRestartFixedIndex(true); break;
+		case GL_RASTERIZER_DISCARD:       context->setRasterizerDiscard(true); break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
