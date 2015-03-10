@@ -10,18 +10,17 @@ from utils import shellcmd
 from utils import FindBaseNaCl
 
 def main():
-    """Builds a cross-test binary that allows functions translated by
-    Subzero and llc to be compared.
+    """Builds a cross-test binary for comparing Subzero and llc translation.
 
-    Each --test argument is compiled once by llc and once by Subzero.
-    C/C++ tests are first compiled down to PNaCl bitcode by the
-    build-pnacl-ir.py script.  The --prefix argument ensures that
-    symbol names are different between the two object files, to avoid
-    linking errors.
+    Each --test argument is compiled once by llc and once by Subzero.  C/C++
+    tests are first compiled down to PNaCl bitcode using pnacl-clang and
+    pnacl-opt.  The --prefix argument ensures that symbol names are different
+    between the two object files, to avoid linking errors.
 
-    There is also a --driver argument that specifies the C/C++ file
-    that calls the test functions with a variety of interesting inputs
-    and compares their results.
+    There is also a --driver argument that specifies the C/C++ file that calls
+    the test functions with a variety of interesting inputs and compares their
+    results.
+
     """
     # arch_map maps a Subzero target string to an llvm-mc -triple string.
     arch_map = { 'x8632':'i686', 'x8664':'x86_64', 'arm':'armv7a' }
@@ -76,24 +75,35 @@ def main():
     bindir = ('{root}/toolchain/linux_x86/pnacl_newlib/bin'
               .format(root=nacl_root))
     triple = arch_map[args.target] + ('-nacl' if args.sandbox else '')
+    mypath = os.path.abspath(os.path.dirname(sys.argv[0]))
 
     objs = []
     for arg in args.test:
+        # Construct a "unique key" for each test so that tests can be run in
+        # parallel without race conditions on temporary file creation.
+        key = '{target}.{sb}.O{opt}.{attr}'.format(
+            target=args.target, sb='sb' if args.sandbox else 'nat',
+            opt=args.optlevel, attr=args.attr)
         base, ext = os.path.splitext(arg)
         if ext == '.ll':
             bitcode = arg
         else:
-            bitcode = os.path.join(args.dir, base + '.pnacl.ll')
-            shellcmd(['../pydir/build-pnacl-ir.py', '--disable-verify',
-                      '--dir', args.dir, arg])
+            # Use pnacl-clang and pnacl-opt to produce PNaCl bitcode.
+            bitcode_nonfinal = os.path.join(args.dir, base + '.' + key + '.bc')
+            bitcode = os.path.join(args.dir, base + '.' + key + '.pnacl.ll')
+            shellcmd(['{bin}/pnacl-clang'.format(bin=bindir),
+                      '-O2', '-c', arg, '-o', bitcode_nonfinal])
+            shellcmd(['{bin}/pnacl-opt'.format(bin=bindir),
+                      '-pnacl-abi-simplify-preopt',
+                      '-pnacl-abi-simplify-postopt',
+                      '-pnaclabi-allow-debug-metadata',
+                      bitcode_nonfinal, '-S', '-o', bitcode])
 
-        base_sz = '{base}.{sb}.O{opt}.{attr}.{target}'.format(
-            base=base, sb='sb' if args.sandbox else 'nat', opt=args.optlevel,
-            attr=args.attr, target=args.target)
+        base_sz = '{base}.{key}'.format(base=base, key=key)
         asm_sz = os.path.join(args.dir, base_sz + '.sz.s')
         obj_sz = os.path.join(args.dir, base_sz + '.sz.o')
         obj_llc = os.path.join(args.dir, base_sz + '.llc.o')
-        shellcmd(['../pnacl-sz',
+        shellcmd(['{path}/pnacl-sz'.format(path=os.path.dirname(mypath)),
                   '-O' + args.optlevel,
                   '-mattr=' + args.attr,
                   '--target=' + args.target,

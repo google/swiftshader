@@ -224,7 +224,13 @@ check: check-lit check-unit runtime
 	@echo "Crosstests ignored, minimal build"
 else
 check: check-lit check-unit runtime
-	(cd crosstest; ./runtests.sh)
+       # Do all native/sse2 tests, but only test_vector_ops for native/sse4.1.
+       # For (slow) sandboxed tests, limit to Om1/sse4.1.
+	./pydir/crosstest_generator.py -v --lit \
+	  -i native,sse2 -i native,sse4.1,test_vector_ops \
+	  -i sandbox,sse4.1,Om1
+	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
+	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv crosstest/Output
 endif
 
 FORMAT_BLACKLIST =
