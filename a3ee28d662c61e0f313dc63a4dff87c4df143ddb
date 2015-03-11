@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "41d23ee8_72ea38f9",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1552,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-11T18:16:49Z",
+      "side": 1,
+      "message": "nit: double space",
+      "range": {
+        "startLine": 1552,
+        "startChar": 44,
+        "endLine": 1552,
+        "endChar": 46
+      },
+      "revId": "a3ee28d662c61e0f313dc63a4dff87c4df143ddb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "41d23ee8_b22180cf",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1556,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-11T18:16:49Z",
+      "side": 1,
+      "message": "We can handle all of these together, using fall-through. The spec guarantees that GL_DRAW_BUFFERi \u003d GL_DRAW_BUFFER0 + i.\n\nNot critical for now since it can be rewritten when we properly implement them.",
+      "range": {
+        "startLine": 1556,
+        "startChar": 6,
+        "endLine": 1556,
+        "endChar": 21
+      },
+      "revId": "a3ee28d662c61e0f313dc63a4dff87c4df143ddb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "81cfd646_6c133b8f",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1616,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-11T18:16:49Z",
+      "side": 1,
+      "message": "Note: This function only returns integers. Other types that need conversion to integer are handled by the calling function.",
+      "range": {
+        "startLine": 1616,
+        "startChar": 27,
+        "endLine": 1616,
+        "endChar": 34
+      },
+      "revId": "a3ee28d662c61e0f313dc63a4dff87c4df143ddb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "81051600_dcc68dc4",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-11T18:16:49Z",
+      "side": 1,
+      "message": "These are all mandatory? Just checking.",
+      "range": {
+        "startLine": 92,
+        "startChar": 1,
+        "endLine": 101,
+        "endChar": 37
+      },
+      "revId": "a3ee28d662c61e0f313dc63a4dff87c4df143ddb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
