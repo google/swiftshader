@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "41307e12_4251b2b5",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1552,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-11T20:04:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "41d23ee8_72ea38f9",
+      "range": {
+        "startLine": 1552,
+        "startChar": 44,
+        "endLine": 1552,
+        "endChar": 46
+      },
+      "revId": "a3ee28d662c61e0f313dc63a4dff87c4df143ddb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "41d23ee8_b22180cf",
         "filename": "src/OpenGL/libGLESv2/Context.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-11T18:16:49Z",
       "side": 1,
       "message": "We can handle all of these together, using fall-through. The spec guarantees that GL_DRAW_BUFFERi \u003d GL_DRAW_BUFFER0 + i.\n\nNot critical for now since it can be rewritten when we properly implement them.",
+      "range": {
+        "startLine": 1556,
+        "startChar": 6,
+        "endLine": 1556,
+        "endChar": 21
+      },
+      "revId": "a3ee28d662c61e0f313dc63a4dff87c4df143ddb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "41307e12_22562eaf",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1556,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-11T20:04:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "41d23ee8_b22180cf",
       "range": {
         "startLine": 1556,
         "startChar": 6,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "c16c6e17_76df5051",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1616,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-11T20:04:31Z",
+      "side": 1,
+      "message": "I wrote \"integer\" just to differentiate from \"constant\" or \"name\". I assume these comments may disappear once these are properly implemented.",
+      "parentUuid": "81cfd646_6c133b8f",
+      "range": {
+        "startLine": 1616,
+        "startChar": 27,
+        "endLine": 1616,
+        "endChar": 34
+      },
+      "revId": "a3ee28d662c61e0f313dc63a4dff87c4df143ddb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "81051600_dcc68dc4",
         "filename": "src/OpenGL/libGLESv2/Context.h",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-11T18:16:49Z",
       "side": 1,
       "message": "These are all mandatory? Just checking.",
+      "range": {
+        "startLine": 92,
+        "startChar": 1,
+        "endLine": 101,
+        "endChar": 37
+      },
+      "revId": "a3ee28d662c61e0f313dc63a4dff87c4df143ddb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "013a06f6_80729663",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-11T20:04:31Z",
+      "side": 1,
+      "message": "These are the 10 new formats in GLES 3.0 according to the spec.\ndEQP did complain about missing formats, but I didn\u0027t specifically try to remove any of these to see if the format check still passed. These may or may not all be in the initial dEQP test I was looking at, but it is very likely that they will appear at some point in the dEQP tests.",
+      "parentUuid": "81051600_dcc68dc4",
       "range": {
         "startLine": 92,
         "startChar": 1,
