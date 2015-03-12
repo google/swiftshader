@@ -272,8 +272,8 @@
 		<Unit filename="Image.hpp" />
 		<Unit filename="IndexDataManager.cpp" />
 		<Unit filename="IndexDataManager.h" />
-		<Unit filename="MatrixStack.cpp" />
-		<Unit filename="MatrixStack.hpp" />
+		<Unit filename="../common/MatrixStack.cpp" />
+		<Unit filename="../common/MatrixStack.hpp" />
 		<Unit filename="Renderbuffer.cpp" />
 		<Unit filename="Renderbuffer.h" />
 		<Unit filename="ResourceManager.cpp" />

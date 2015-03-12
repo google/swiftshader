@@ -318,6 +318,7 @@ copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platf
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\MatrixStack.cpp" />
     <ClCompile Include="..\common\NameSpace.cpp" />
     <ClCompile Include="..\common\Object.cpp" />
     <ClCompile Include="Buffer.cpp" />
@@ -331,7 +332,6 @@ copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platf
     <ClCompile Include="IndexDataManager.cpp" />
     <ClCompile Include="libGL.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MatrixStack.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Query.cpp" />
     <ClCompile Include="Renderbuffer.cpp" />
@@ -344,6 +344,7 @@ copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platf
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\debug.h" />
+    <ClInclude Include="..\common\MatrixStack.hpp" />
     <ClInclude Include="..\common\NameSpace.hpp" />
     <ClInclude Include="..\common\Object.hpp" />
     <ClInclude Include="..\include\GL\glcorearb.h" />
@@ -360,7 +361,6 @@ copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platf
     <ClInclude Include="IndexDataManager.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="mathutil.h" />
-    <ClInclude Include="MatrixStack.hpp" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Query.h" />
     <ClInclude Include="Renderbuffer.h" />

@@ -53,13 +53,13 @@
     <ClCompile Include="libGLES_CM.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MatrixStack.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\NameSpace.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\MatrixStack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -121,13 +121,13 @@
     <ClInclude Include="..\include\GLES\glplatform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MatrixStack.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\common\Object.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\NameSpace.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MatrixStack.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

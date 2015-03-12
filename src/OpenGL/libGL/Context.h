@@ -21,7 +21,7 @@
 #include "Image.hpp"
 #include "Renderer/Sampler.hpp"
 #include "Renderer/Vertex.hpp"
-#include "MatrixStack.hpp"
+#include "common/MatrixStack.hpp"
 
 #define _GDI32_
 #include <windows.h>

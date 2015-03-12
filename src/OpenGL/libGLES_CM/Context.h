@@ -21,7 +21,7 @@
 #include "common/Object.hpp"
 #include "Image.hpp"
 #include "Renderer/Sampler.hpp"
-#include "MatrixStack.hpp"
+#include "common/MatrixStack.hpp"
 
 #define GL_API
 #include <GLES/gl.h>
