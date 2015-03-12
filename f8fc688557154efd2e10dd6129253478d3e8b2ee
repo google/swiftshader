@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0103e6bf_f8de3153",
+        "filename": "src/OpenGL/libGL/libGL.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 6242,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-03-12T14:39:08Z",
+      "side": 1,
+      "message": "The GLfloats in the trace should be GLdoubles",
+      "revId": "f8fc688557154efd2e10dd6129253478d3e8b2ee",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
