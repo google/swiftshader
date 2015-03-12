@@ -211,7 +211,8 @@ static FormatMap BuildFormatMap3D()
 	InsertFormatMapping(map, GL_SRGB8_NV, GL_RGB, GL_UNSIGNED_BYTE);
 	InsertFormatMapping(map, GL_RGB565, GL_RGB, GL_UNSIGNED_BYTE);
 	InsertFormatMapping(map, GL_RGB565, GL_RGB, GL_UNSIGNED_SHORT_5_6_5);
-	InsertFormatMapping(map, GL_RGB16F_EXT, GL_HALF_FLOAT_OES, GL_FLOAT);
+	InsertFormatMapping(map, GL_RGB16F_EXT, GL_RGB, GL_HALF_FLOAT_OES);
+	InsertFormatMapping(map, GL_RGB16F_EXT, GL_RGB, GL_FLOAT);
 	InsertFormatMapping(map, GL_RGB32F_EXT, GL_RGB, GL_FLOAT);
 	InsertFormatMapping(map, GL_RGBA8_OES, GL_RGBA, GL_UNSIGNED_BYTE);
 	InsertFormatMapping(map, GL_SRGB8_ALPHA8_EXT, GL_RGBA, GL_UNSIGNED_BYTE);

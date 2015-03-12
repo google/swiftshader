@@ -1585,7 +1585,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 		break;
 	case GL_MAX_COLOR_ATTACHMENTS: // integer, at least 8
 		UNIMPLEMENTED();
-		*params = 8;
+		*params = IMPLEMENTATION_MAX_COLOR_ATTACHMENTS;
 		break;
 	case GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS: // integer, at least 1
 		UNIMPLEMENTED();
