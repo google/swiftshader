@@ -2646,6 +2646,11 @@ void Context::multiply(const GLfloat *m)
     currentMatrixStack().multiply(m);
 }
 
+void Context::frustum(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar)
+{
+	currentMatrixStack().frustum(left, right, bottom, top, zNear, zFar);
+}
+
 void Context::ortho(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar)
 {
 	currentMatrixStack().ortho(left, right, bottom, top, zNear, zFar);

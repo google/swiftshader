@@ -1868,7 +1868,14 @@ void GL_APIENTRY glFrontFace(GLenum mode)
 
 void GL_APIENTRY glFrustumf(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLfloat left = %f, GLfloat right = %f, GLfloat bottom = %f, GLfloat top = %f, GLfloat zNear = %f, GLfloat zFar = %f)", left, right, bottom, top, zNear, zFar);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		context->frustum(left, right, bottom, top, zNear, zFar);
+	}
 }
 
 void GL_APIENTRY glFrustumx(GLfixed left, GLfixed right, GLfixed bottom, GLfixed top, GLfixed zNear, GLfixed zFar)
@@ -2874,7 +2881,7 @@ void GL_APIENTRY glNormalPointer(GLenum type, GLsizei stride, const GLvoid *poin
 {
 	TRACE("(GLenum type = 0x%X, GLsizei stride = %d, const GLvoid *pointer = 0x%0.8p)", type, stride, pointer);
 
-glVertexAttribPointer(sw::Normal, 3, type, false, stride, pointer);
+	glVertexAttribPointer(sw::Normal, 3, type, false, stride, pointer);
 }
 
 void GL_APIENTRY glOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar)
