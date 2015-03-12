@@ -179,7 +179,8 @@ public:
 
   /// Generates error with given Message, occurring at BitPosition
   /// within the bitcode file. Always returns true.
-  bool ErrorAt(uint64_t BitPosition, const std::string &Message) final;
+  bool ErrorAt(naclbitc::ErrorLevel Level, uint64_t BitPosition,
+               const std::string &Message) final;
 
   /// Generates error message with respect to the current block parser.
   bool BlockError(const std::string &Message);
@@ -500,15 +501,17 @@ private:
   Ice::Type convertToIceTypeError(Type *LLVMTy);
 };
 
-bool TopLevelParser::ErrorAt(uint64_t Bit, const std::string &Message) {
+bool TopLevelParser::ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
+                             const std::string &Message) {
   ErrorStatus.assign(Ice::EC_Bitcode);
   ++NumErrors;
   Ice::GlobalContext *Context = Translator.getContext();
   Ice::OstreamLocker L(Context);
   raw_ostream &OldErrStream = setErrStream(Context->getStrDump());
-  NaClBitcodeParser::ErrorAt(Bit, Message);
+  NaClBitcodeParser::ErrorAt(Level, Bit, Message);
   setErrStream(OldErrStream);
-  if (!Translator.getFlags().getAllowErrorRecovery())
+  if (Level >= naclbitc::Error
+      && !Translator.getFlags().getAllowErrorRecovery())
     Fatal();
   return true;
 }
@@ -586,7 +589,8 @@ public:
   }
 
   // Generates an error Message with the Bit address prefixed to it.
-  bool ErrorAt(uint64_t Bit, const std::string &Message) final;
+  bool ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
+               const std::string &Message) final;
 
 protected:
   // The context parser that contains the decoded state.
@@ -673,7 +677,8 @@ bool TopLevelParser::BlockError(const std::string &Message) {
 }
 
 // Generates an error Message with the bit address prefixed to it.
-bool BlockParserBaseClass::ErrorAt(uint64_t Bit, const std::string &Message) {
+bool BlockParserBaseClass::ErrorAt(
+    naclbitc::ErrorLevel Level, uint64_t Bit, const std::string &Message) {
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
   // Note: If dump routines have been turned off, the error messages
@@ -688,7 +693,7 @@ bool BlockParserBaseClass::ErrorAt(uint64_t Bit, const std::string &Message) {
   } else {
     StrBuf << Message;
   }
-  return Context->ErrorAt(Bit, StrBuf.str());
+  return Context->ErrorAt(Level, Bit, StrBuf.str());
 }
 
 void BlockParserBaseClass::ReportRecordSizeError(unsigned ExpectedSize,
