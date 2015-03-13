@@ -216,14 +216,11 @@ check-lit: $(OBJDIR)/pnacl-sz make_symlink
 	BINUTILS_BIN_PATH=$(BINUTILS_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit
 
-check-unit: $(OBJDIR)/run_unittests
-	$(OBJDIR)/run_unittests
-
 ifdef MINIMAL
-check: check-lit check-unit runtime
-	@echo "Crosstests ignored, minimal build"
+check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
+	@echo "Crosstests disabled, minimal build"
 else
-check: check-lit check-unit runtime
+check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
        # Do all native/sse2 tests, but only test_vector_ops for native/sse4.1.
        # For (slow) sandboxed tests, limit to Om1/sse4.1.
 	./pydir/crosstest_generator.py -v --lit \
@@ -232,6 +229,11 @@ check: check-lit check-unit runtime
 	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv crosstest/Output
 endif
+
+check-unit: $(OBJDIR)/run_unittests
+	$(OBJDIR)/run_unittests
+
+check: check-lit check-unit check-xtest
 
 FORMAT_BLACKLIST =
 # Add one of the following lines for each source file to ignore.
