@@ -1,0 +1,510 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2168ea9d_4c7cd235",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "nit: Wrap to next line. I don\u0027t like hard breaks but several Git tools have a problem with long lines in the commit message.",
+      "range": {
+        "startLine": 9,
+        "startChar": 68,
+        "endLine": 9,
+        "endChar": 74
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_8c86eaa9",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "nit: three spaces instead of a tab. There\u0027s several more occurrences of this below.",
+      "range": {
+        "startLine": 61,
+        "startChar": 2,
+        "endLine": 61,
+        "endChar": 3
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_ac83ae99",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Probably has an ES3 equivalent?",
+      "range": {
+        "startLine": 115,
+        "startChar": 3,
+        "endLine": 115,
+        "endChar": 32
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_eca76636",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE. Granted, it wasn\u0027t there in the first place, but even with a very partial implementation it starts to become useful.",
+      "range": {
+        "startLine": 359,
+        "startChar": 0,
+        "endLine": 359,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_6cc7d6c0",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "We should probably have a context-independent constant for this, similar to IMPLEMENTATION_MAX_TEXTURE_LEVELS, instead of having to query it. 4 is the minimum I believe, and it\u0027s what SwiftShader supports internally.",
+      "range": {
+        "startLine": 386,
+        "startChar": 6,
+        "endLine": 386,
+        "endChar": 74
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_0c9d7adf",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 404,
+        "startChar": 0,
+        "endLine": 404,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_2ca23e27",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "nit: Six spaces instead of single tab. More below.",
+      "range": {
+        "startLine": 440,
+        "startChar": 1,
+        "endLine": 440,
+        "endChar": 2
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_4c9772bf",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 744,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 744,
+        "startChar": 0,
+        "endLine": 744,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_6c9436ba",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 754,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 754,
+        "startChar": 0,
+        "endLine": 754,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_8c918acb",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 770,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 770,
+        "startChar": 0,
+        "endLine": 770,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_ac8e4ea7",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 780,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 780,
+        "startChar": 0,
+        "endLine": 780,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_ec0846ad",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 790,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 790,
+        "startChar": 0,
+        "endLine": 790,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_0c0e5ab6",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 800,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 800,
+        "startChar": 0,
+        "endLine": 800,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_2c131ede",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 820,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 820,
+        "startChar": 0,
+        "endLine": 820,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_4c1852f6",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1006,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 1006,
+        "startChar": 0,
+        "endLine": 1006,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_8c226a2a",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1047,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 1047,
+        "startChar": 0,
+        "endLine": 1047,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_ac1f2eda",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1070,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 1070,
+        "startChar": 0,
+        "endLine": 1070,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_cc2c621e",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1090,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 1090,
+        "startChar": 0,
+        "endLine": 1090,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_ec312673",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1100,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 1100,
+        "startChar": 0,
+        "endLine": 1100,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_2c2cfe17",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1178,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 1178,
+        "startChar": 0,
+        "endLine": 1178,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_4c4132c4",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1198,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 1198,
+        "startChar": 0,
+        "endLine": 1198,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_6c3ef63e",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1212,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T14:32:10Z",
+      "side": 1,
+      "message": "Missing TRACE.",
+      "range": {
+        "startLine": 1212,
+        "startChar": 0,
+        "endLine": 1212,
+        "endChar": 1
+      },
+      "revId": "b42a8d57696953eb1967e76ee4fbfcadd975e321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
