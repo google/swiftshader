@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2168ea9d_11c67797",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T04:31:13Z",
+      "side": 1,
+      "message": "These globals most probably make it not thread safe. Surfaces consist of an internal and external Buffer, with access being controlled by a Resource lock. We just need multiple of those as part of the Surface instead of a global map.",
+      "range": {
+        "startLine": 41,
+        "startChar": 1,
+        "endLine": 41,
+        "endChar": 56
+      },
+      "revId": "f1eb01e795c5923a760a53f211b75a888fee8ce0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_71f6d3df",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 838,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T04:31:13Z",
+      "side": 1,
+      "message": "This doesn\u0027t take the type of lock into account. Only when a buffer is being \u0027discarded\u0027, as in the case of a clear, would it be valid to allocate a new one when the current one is still locked. Any other write lock should result in copy-on-write (or just be blocking).",
+      "range": {
+        "startLine": 838,
+        "startChar": 3,
+        "endLine": 838,
+        "endChar": 39
+      },
+      "revId": "f1eb01e795c5923a760a53f211b75a888fee8ce0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2168ea9d_362c5118",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2448,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-13T04:31:13Z",
+      "side": 1,
+      "message": "mfence is an SSE2 instruction, while the test above is for SSE1. sfence is an SSE1 instruction, and should suffice.",
+      "range": {
+        "startLine": 2448,
+        "startChar": 3,
+        "endLine": 2448,
+        "endChar": 13
+      },
+      "revId": "f1eb01e795c5923a760a53f211b75a888fee8ce0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
