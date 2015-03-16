@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "46309412_42e2521b",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-16T16:17:22Z",
+      "side": 1,
+      "message": "nit: I prefer to indent preprocessor conditionals the same as C control flow, when they correspond to control flow. Especially for compounded ones this keeps things more readable.",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 44
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "86a8cc5c_04a13673",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-16T16:17:22Z",
+      "side": 1,
+      "message": "This could result in loading the library twice for the same process, when using a different path. I have some WIP that would avoid that: https://swiftshader-review.googlesource.com/1660. Anyway, I\u0027m ok with this change and we can fix the potential issue later if and when we run into it.",
+      "range": {
+        "startLine": 78,
+        "startChar": 2,
+        "endLine": 79,
+        "endChar": 33
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "46309412_a256be2d",
+        "filename": "src/Common/Thread.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-16T16:17:22Z",
+      "side": 1,
+      "message": "Is this different from pthread_join()? I think this could result in a deadlock. pthread_cancel() kills a thread no matter what it\u0027s doing, while pthread_join() waits for it to return from its entry function. SwiftShader\u0027s job threads are sent a signal to exit, before deleting them, but other Thread uses might not. While it might be very sensible to demand threads to exit before deleting them, I\u0027d like to avoid having two semantics for this destructor between platforms. If Android has no equivalent for pthread_cancel() at all, we should make this behave as a join() for all platforms and check all uses of Thread for proper exit behavior.\n\nAlternatively we could create a derived class that acts as a task loop, say ThreadLoop, which checks for the exit signal on every iteration.",
+      "range": {
+        "startLine": 36,
+        "startChar": 3,
+        "endLine": 36,
+        "endChar": 10
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e63c28f4_dfec7b0a",
+        "filename": "src/LLVM/lib/ExecutionEngine/JIT/Intercept.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-16T16:17:22Z",
+      "side": 1,
+      "message": "Instead of altering LLVM code, you could add an empty open64() stub to Reactor. See X86CompilationCallback() in Nucleus.cpp for another example of such a case.",
+      "range": {
+        "startLine": 72,
+        "startChar": 4,
+        "endLine": 72,
+        "endChar": 73
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e63c28f4_ff069f4b",
+        "filename": "src/LLVM/lib/MC/WinCOFFObjectWriter.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-16T16:17:22Z",
+      "side": 1,
+      "message": "This file shouldn\u0027t be needed at all on Android, it\u0027s for producing Windows executables.",
+      "range": {
+        "startLine": 487,
+        "startChar": 0,
+        "endLine": 487,
+        "endChar": 44
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a63eb0ea_9dcb239e",
+        "filename": "src/Main/FrameBufferAndroid.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-16T16:17:22Z",
+      "side": 1,
+      "message": "Nice. This looks far more like what I expected it should look like. :-)",
+      "range": {
+        "startLine": 7,
+        "startChar": 4,
+        "endLine": 31,
+        "endChar": 5
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a63eb0ea_3de2cf1a",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 11
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-16T16:17:22Z",
+      "side": 1,
+      "message": "Does the compiler complain about the lack of this or did you add it out of precaution or other justification?",
+      "range": {
+        "startLine": 92,
+        "startChar": 2,
+        "endLine": 92,
+        "endChar": 23
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a63eb0ea_bdfc1fb6",
+        "filename": "src/OpenGL/compiler/preprocessor/ExpressionParser.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 1551,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-16T16:17:22Z",
+      "side": 1,
+      "message": "This file is generated by Bison from a parser specification, so it shouldn\u0027t be edited directly. Use generate_parser.py to invoke Bison on ExperssionParser.y.\n\nThese lines seem to add little or no value to the division by zero error reporting, so they can just be removed instead of adding Android specific implementations. #notmycode",
+      "range": {
+        "startLine": 1547,
+        "startChar": 0,
+        "endLine": 1551,
+        "endChar": 6
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a63eb0ea_bd237fd1",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-16T16:17:22Z",
+      "side": 1,
+      "message": "nit: I prefer splitting this over three lines to match up the brackets. See the style below for \u0027else\u0027. It makes it easier to visually parse the control flow at a glance, and avoids some common pitfalls when making changes.",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 45
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a63eb0ea_fd1d0794",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-16T16:17:22Z",
+      "side": 1,
+      "message": "nit: decrease indent.\n\nSet width and height to 0, and format to sw::FORMAT_X8R8G8B8, like below for EGL_PLATFORM_GBM_MESA. That\u0027s safer than leaving it uninitialized.",
+      "range": {
+        "startLine": 528,
+        "startChar": 8,
+        "endLine": 529,
+        "endChar": 13
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
