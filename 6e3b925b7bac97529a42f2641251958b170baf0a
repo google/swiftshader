@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "660f5879_4f09e061",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-16T23:57:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "46309412_42e2521b",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 44
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "86a8cc5c_04a13673",
         "filename": "src/Common/SharedLibrary.hpp",
         "patchSetId": 11
@@ -166,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "660f5879_6c84aa57",
+        "filename": "src/LLVM/lib/ExecutionEngine/JIT/Intercept.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-16T23:57:45Z",
+      "side": 1,
+      "message": "open64 is referenced in Intercept.cpp itself and would generate a compile time error. Keep this here for now until figuring out a better solution...",
+      "parentUuid": "41331ed7_9940e766",
+      "range": {
+        "startLine": 72,
+        "startChar": 4,
+        "endLine": 72,
+        "endChar": 73
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e63c28f4_ff069f4b",
         "filename": "src/LLVM/lib/MC/WinCOFFObjectWriter.cpp",
         "patchSetId": 11
@@ -177,6 +225,30 @@
       "writtenOn": "2015-03-16T16:17:22Z",
       "side": 1,
       "message": "This file shouldn\u0027t be needed at all on Android, it\u0027s for producing Windows executables.",
+      "range": {
+        "startLine": 487,
+        "startChar": 0,
+        "endLine": 487,
+        "endChar": 44
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "660f5879_6c294a03",
+        "filename": "src/LLVM/lib/MC/WinCOFFObjectWriter.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-16T23:57:45Z",
+      "side": 1,
+      "message": "Unfortunately WinCOFFObjectWriter is referenced in X86AsmBackend.cpp so although it is not really used linker still complains an undefined reference. I\u0027ll keep this here for now until figuring out a better solution.",
+      "parentUuid": "e63c28f4_ff069f4b",
       "range": {
         "startLine": 487,
         "startChar": 0,
@@ -353,6 +425,30 @@
     },
     {
       "key": {
+        "uuid": "660f5879_cff5d0d1",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-16T23:57:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a63eb0ea_bd237fd1",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 45
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a63eb0ea_fd1d0794",
         "filename": "src/OpenGL/libEGL/Display.cpp",
         "patchSetId": 11
@@ -364,6 +460,30 @@
       "writtenOn": "2015-03-16T16:17:22Z",
       "side": 1,
       "message": "nit: decrease indent.\n\nSet width and height to 0, and format to sw::FORMAT_X8R8G8B8, like below for EGL_PLATFORM_GBM_MESA. That\u0027s safer than leaving it uninitialized.",
+      "range": {
+        "startLine": 528,
+        "startChar": 8,
+        "endLine": 529,
+        "endChar": 13
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "660f5879_aff214e5",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-16T23:57:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a63eb0ea_fd1d0794",
       "range": {
         "startLine": 528,
         "startChar": 8,
