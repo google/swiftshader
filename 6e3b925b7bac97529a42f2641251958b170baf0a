@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "06085c62_b059d862",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-16T19:19:36Z",
+      "side": 1,
+      "message": "Sure. I can probably keep this as a patch for now and wait until your patch merged in.",
+      "parentUuid": "86a8cc5c_04a13673",
+      "range": {
+        "startLine": 78,
+        "startChar": 2,
+        "endLine": 79,
+        "endChar": 33
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "46309412_a256be2d",
         "filename": "src/Common/Thread.cpp",
         "patchSetId": 11
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "e60a685c_8f9d956e",
+        "filename": "src/Common/Thread.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-16T19:19:36Z",
+      "side": 1,
+      "message": "No different from pthread_join()...\n\nMakes sense. I\u0027ll look into this more. Android doesn\u0027t have pthread_cancel() at all. As far as I know on Android you usually use a signal handler to check for exit signal. Or just make the thread don\u0027t wait on any I/Os.\n\nFor SwiftShader, what do you think would be the better approach?",
+      "parentUuid": "46309412_a256be2d",
+      "range": {
+        "startLine": 36,
+        "startChar": 3,
+        "endLine": 36,
+        "endChar": 10
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e63c28f4_dfec7b0a",
         "filename": "src/LLVM/lib/ExecutionEngine/JIT/Intercept.cpp",
         "patchSetId": 11
@@ -82,6 +130,30 @@
       "writtenOn": "2015-03-16T16:17:22Z",
       "side": 1,
       "message": "Instead of altering LLVM code, you could add an empty open64() stub to Reactor. See X86CompilationCallback() in Nucleus.cpp for another example of such a case.",
+      "range": {
+        "startLine": 72,
+        "startChar": 4,
+        "endLine": 72,
+        "endChar": 73
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "41331ed7_9940e766",
+        "filename": "src/LLVM/lib/ExecutionEngine/JIT/Intercept.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-16T19:19:36Z",
+      "side": 1,
+      "message": "Ok. Will add the stub somewhere sensible.",
+      "parentUuid": "e63c28f4_dfec7b0a",
       "range": {
         "startLine": 72,
         "startChar": 4,
@@ -140,6 +212,30 @@
     },
     {
       "key": {
+        "uuid": "86fb6c85_4c18dfad",
+        "filename": "src/Main/FrameBufferAndroid.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-16T19:19:36Z",
+      "side": 1,
+      "message": "Obviously I didn\u0027t know what I was doing :)\n\nBad news is that this doesn\u0027t seems to do what I thought it would do. Failed miserably at run time. Basically I think this is the public API exposed for developers to get a buffer on an existing ANativeWindow that is already connected to Android\u0027s BufferQueue, while FrameBufferAndroid should actually do is to provide the mechanism of connecting to the BufferQueue. Still need to look into this more.\n\nThat said, now I think I should be able to provide a more sensible implementation here using the private ANativeWindow API.",
+      "parentUuid": "a63eb0ea_9dcb239e",
+      "range": {
+        "startLine": 7,
+        "startChar": 4,
+        "endLine": 31,
+        "endChar": 5
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a63eb0ea_3de2cf1a",
         "filename": "src/OpenGL/compiler/OutputASM.h",
         "patchSetId": 11
@@ -163,6 +259,30 @@
     },
     {
       "key": {
+        "uuid": "e60a685c_8f5595dd",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 11
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-16T19:19:36Z",
+      "side": 1,
+      "message": "Yes, the compiler complains about the lack of virtual destructor. I think Android\u0027s default CFLAGS includes -Wno-non-virtual-dtor that generates an error.",
+      "parentUuid": "a63eb0ea_3de2cf1a",
+      "range": {
+        "startLine": 92,
+        "startChar": 2,
+        "endLine": 92,
+        "endChar": 23
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a63eb0ea_bdfc1fb6",
         "filename": "src/OpenGL/compiler/preprocessor/ExpressionParser.cpp",
         "patchSetId": 11
@@ -174,6 +294,30 @@
       "writtenOn": "2015-03-16T16:17:22Z",
       "side": 1,
       "message": "This file is generated by Bison from a parser specification, so it shouldn\u0027t be edited directly. Use generate_parser.py to invoke Bison on ExperssionParser.y.\n\nThese lines seem to add little or no value to the division by zero error reporting, so they can just be removed instead of adding Android specific implementations. #notmycode",
+      "range": {
+        "startLine": 1547,
+        "startChar": 0,
+        "endLine": 1551,
+        "endChar": 6
+      },
+      "revId": "6e3b925b7bac97529a42f2641251958b170baf0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "660f5879_e310b253",
+        "filename": "src/OpenGL/compiler/preprocessor/ExpressionParser.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 1551,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-16T19:19:36Z",
+      "side": 1,
+      "message": "Ah I see. Basically here the compiler complains ambiguous operation. Let me look into alternative solution.",
+      "parentUuid": "a63eb0ea_bdfc1fb6",
       "range": {
         "startLine": 1547,
         "startChar": 0,
