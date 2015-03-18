@@ -195,7 +195,8 @@ void GlobalContext::translateFunctions() {
     if (Func->hasError()) {
       getErrorStatus()->assign(EC_Translation);
       OstreamLocker L(this);
-      getStrDump() << "ICE translation error: " << Func->getError() << "\n";
+      getStrDump() << "ICE translation error: " << Func->getFunctionName()
+                   << ": " << Func->getError() << "\n";
       Item = new EmitterWorkItem(Func->getSequenceNumber());
     } else {
       Func->getAssembler<>()->setInternal(Func->getInternal());

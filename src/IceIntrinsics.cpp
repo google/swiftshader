@@ -233,9 +233,73 @@ const Intrinsics::FullIntrinsicInfo *Intrinsics::find(const IceString &Name,
   return &it->second;
 }
 
-bool Intrinsics::VerifyMemoryOrder(uint64_t Order) {
-  // There is only one memory ordering for atomics allowed right now.
-  return Order == Intrinsics::MemoryOrderSequentiallyConsistent;
+namespace {
+
+// Returns whether PNaCl allows the given memory ordering in general.
+bool isMemoryOrderValidPNaCl(uint64_t Order) {
+  switch (Order) {
+  case Intrinsics::MemoryOrderAcquire:
+  case Intrinsics::MemoryOrderRelease:
+  case Intrinsics::MemoryOrderAcquireRelease:
+  case Intrinsics::MemoryOrderSequentiallyConsistent:
+    return true;
+  default:
+    return false;
+  }
+}
+
+} // end of anonymous namespace
+
+bool Intrinsics::isMemoryOrderValid(IntrinsicID ID, uint64_t Order,
+                                    uint64_t OrderOther) {
+  // Reject orderings not allowed in PNaCl.
+  if (!isMemoryOrderValidPNaCl(Order))
+    return false;
+  if (ID == AtomicCmpxchg && !isMemoryOrderValidPNaCl(OrderOther))
+    return false;
+  // Reject orderings not allowed by C++11.
+  switch (ID) {
+  default:
+    llvm_unreachable("isMemoryOrderValid: Unknown IntrinsicID");
+    return false;
+  case AtomicFence:
+  case AtomicFenceAll:
+  case AtomicRMW:
+    return true;
+  case AtomicCmpxchg:
+    // Reject orderings that are disallowed by C++11 as invalid
+    // combinations for cmpxchg.
+    switch (OrderOther) {
+    case MemoryOrderRelaxed:
+    case MemoryOrderConsume:
+    case MemoryOrderAcquire:
+    case MemoryOrderSequentiallyConsistent:
+      if (OrderOther > Order)
+        return false;
+      if (Order == MemoryOrderRelease && OrderOther != MemoryOrderRelaxed)
+        return false;
+      return true;
+    default:
+      return false;
+    }
+  case AtomicLoad:
+    switch (Order) {
+    case MemoryOrderRelease:
+    case MemoryOrderAcquireRelease:
+      return false;
+    default:
+      return true;
+    }
+  case AtomicStore:
+    switch (Order) {
+    case MemoryOrderConsume:
+    case MemoryOrderAcquire:
+    case MemoryOrderAcquireRelease:
+      return false;
+    default:
+      return true;
+    }
+  }
 }
 
 Intrinsics::ValidateCallValue

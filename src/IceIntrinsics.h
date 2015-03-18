@@ -91,7 +91,14 @@ public:
     MemoryOrderNum // Invalid, keep last.
   };
 
-  static bool VerifyMemoryOrder(uint64_t Order);
+  // Verify memory ordering rules for atomic intrinsics.  For
+  // AtomicCmpxchg, Order is the "success" ordering and OrderOther is
+  // the "failure" ordering.  Returns true if valid, false if invalid.
+  // TODO(stichnot,kschimpf): Perform memory order validation in the
+  // bitcode reader/parser, allowing LLVM and Subzero to share.  See
+  // https://code.google.com/p/nativeclient/issues/detail?id=4126 .
+  static bool isMemoryOrderValid(IntrinsicID ID, uint64_t Order,
+                                 uint64_t OrderOther = MemoryOrderInvalid);
 
   enum SideEffects { SideEffects_F = 0, SideEffects_T = 1 };
 

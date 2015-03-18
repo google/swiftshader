@@ -2856,17 +2856,25 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
   }
 }
 
+namespace {
+
+// Converts a ConstantInteger32 operand into its constant value, or
+// MemoryOrderInvalid if the operand is not a ConstantInteger32.
+uint64_t getConstantMemoryOrder(Operand *Opnd) {
+  if (auto Integer = llvm::dyn_cast<ConstantInteger32>(Opnd))
+    return Integer->getValue();
+  return Intrinsics::MemoryOrderInvalid;
+}
+
+} // end of anonymous namespace
+
 void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
-  switch (Instr->getIntrinsicInfo().ID) {
+  switch (Intrinsics::IntrinsicID ID = Instr->getIntrinsicInfo().ID) {
   case Intrinsics::AtomicCmpxchg: {
-    if (!Intrinsics::VerifyMemoryOrder(
-            llvm::cast<ConstantInteger32>(Instr->getArg(3))->getValue())) {
-      Func->setError("Unexpected memory ordering (success) for AtomicCmpxchg");
-      return;
-    }
-    if (!Intrinsics::VerifyMemoryOrder(
-            llvm::cast<ConstantInteger32>(Instr->getArg(4))->getValue())) {
-      Func->setError("Unexpected memory ordering (failure) for AtomicCmpxchg");
+    if (!Intrinsics::isMemoryOrderValid(
+            ID, getConstantMemoryOrder(Instr->getArg(3)),
+            getConstantMemoryOrder(Instr->getArg(4)))) {
+      Func->setError("Unexpected memory ordering for AtomicCmpxchg");
       return;
     }
     Variable *DestPrev = Instr->getDest();
@@ -2879,8 +2887,8 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::AtomicFence:
-    if (!Intrinsics::VerifyMemoryOrder(
-            llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue())) {
+    if (!Intrinsics::isMemoryOrderValid(
+            ID, getConstantMemoryOrder(Instr->getArg(0)))) {
       Func->setError("Unexpected memory ordering for AtomicFence");
       return;
     }
@@ -2925,8 +2933,8 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   case Intrinsics::AtomicLoad: {
     // We require the memory address to be naturally aligned.
     // Given that is the case, then normal loads are atomic.
-    if (!Intrinsics::VerifyMemoryOrder(
-            llvm::cast<ConstantInteger32>(Instr->getArg(1))->getValue())) {
+    if (!Intrinsics::isMemoryOrderValid(
+            ID, getConstantMemoryOrder(Instr->getArg(1)))) {
       Func->setError("Unexpected memory ordering for AtomicLoad");
       return;
     }
@@ -2958,8 +2966,8 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::AtomicRMW:
-    if (!Intrinsics::VerifyMemoryOrder(
-            llvm::cast<ConstantInteger32>(Instr->getArg(3))->getValue())) {
+    if (!Intrinsics::isMemoryOrderValid(
+            ID, getConstantMemoryOrder(Instr->getArg(3)))) {
       Func->setError("Unexpected memory ordering for AtomicRMW");
       return;
     }
@@ -2969,8 +2977,8 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
                    Instr->getArg(1), Instr->getArg(2));
     return;
   case Intrinsics::AtomicStore: {
-    if (!Intrinsics::VerifyMemoryOrder(
-            llvm::cast<ConstantInteger32>(Instr->getArg(2))->getValue())) {
+    if (!Intrinsics::isMemoryOrderValid(
+            ID, getConstantMemoryOrder(Instr->getArg(2)))) {
       Func->setError("Unexpected memory ordering for AtomicStore");
       return;
     }
@@ -4485,6 +4493,8 @@ OperandX8632Mem *TargetX8632::FormMemoryOperand(Operand *Operand, Type Ty) {
     Constant *Offset = llvm::dyn_cast<Constant>(Operand);
     assert(Base || Offset);
     if (Offset) {
+      // Make sure Offset is not undef.
+      Offset = llvm::cast<Constant>(legalize(Offset));
       assert(llvm::isa<ConstantInteger32>(Offset) ||
              llvm::isa<ConstantRelocatable>(Offset));
     }
