@@ -20,10 +20,10 @@ def Match(desc, includes, excludes, default_match):
   Otherwise, the 'default_match' value is returned.
   """
   for exclude in excludes:
-    if exclude < desc:
+    if exclude <= desc:
       return False
   for include in includes:
-    if include < desc:
+    if include <= desc:
       return True
   return default_match
 
