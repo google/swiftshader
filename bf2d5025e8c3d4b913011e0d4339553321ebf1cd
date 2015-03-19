@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a64230dc_fd07679b",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-19T17:47:36Z",
+      "side": 1,
+      "message": "nit: Format like flow control",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 6
+      },
+      "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a64230dc_ddcaab1f",
+        "filename": "src/Common/Timer.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-19T17:47:36Z",
+      "side": 1,
+      "message": "I couldn\u0027t find any reference to this. Where would it be used?",
+      "range": {
+        "startLine": 27,
+        "startChar": 10,
+        "endLine": 27,
+        "endChar": 23
+      },
+      "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a64230dc_c0440079",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-19T17:47:36Z",
+      "side": 1,
+      "message": "nit: decrease indent",
+      "range": {
+        "startLine": 530,
+        "startChar": 8,
+        "endLine": 534,
+        "endChar": 13
+      },
+      "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
