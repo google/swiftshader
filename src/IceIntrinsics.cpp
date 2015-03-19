@@ -159,6 +159,16 @@ const struct IceIntrinsicsEntry_ {
     CttzInit(IceType_i64, "i64"),
 #undef CttzInit
 
+#define FabsInit(Overload, NameSuffix)                                         \
+  {                                                                            \
+    { INTRIN(Fabs, SideEffects_F, ReturnsTwice_F), {Overload, Overload}, 2 }   \
+    , "fabs." NameSuffix                                                       \
+  }
+    FabsInit(IceType_f32, "f32"),
+    FabsInit(IceType_f64, "f64"),
+    FabsInit(IceType_v4f32, "v4f32"),
+#undef FabsInit
+
     {{INTRIN(Longjmp, SideEffects_T, ReturnsTwice_F),
       {IceType_void, IceType_i32, IceType_i32},
       3},

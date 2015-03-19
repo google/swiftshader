@@ -55,3 +55,7 @@ FPOP_TABLE
 float mySqrt(float a);
 double mySqrt(double a);
 // mySqrt for v4f32 is currently unsupported.
+
+float myFabs(float a);
+double myFabs(double a);
+v4f32 myFabs(v4f32 a);

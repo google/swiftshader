@@ -48,6 +48,7 @@ public:
     Ctlz,
     Ctpop,
     Cttz,
+    Fabs,
     Longjmp,
     Memcpy,
     Memmove,

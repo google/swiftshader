@@ -931,6 +931,7 @@ template <> const char *InstX8632Psll::Opcode = "psll";
 template <> const char *InstX8632Shr::Opcode = "shr";
 template <> const char *InstX8632Sar::Opcode = "sar";
 template <> const char *InstX8632Psra::Opcode = "psra";
+template <> const char *InstX8632Psrl::Opcode = "psrl";
 template <> const char *InstX8632Pcmpeq::Opcode = "pcmpeq";
 template <> const char *InstX8632Pcmpgt::Opcode = "pcmpgt";
 template <> const char *InstX8632MovssRegs::Opcode = "movss";
@@ -1078,6 +1079,10 @@ template <>
 const x86::AssemblerX86::XmmEmitterShiftOp InstX8632Psra::Emitter = {
     &x86::AssemblerX86::psra, &x86::AssemblerX86::psra,
     &x86::AssemblerX86::psra};
+template <>
+const x86::AssemblerX86::XmmEmitterShiftOp InstX8632Psrl::Emitter = {
+    &x86::AssemblerX86::psrl, &x86::AssemblerX86::psrl,
+    &x86::AssemblerX86::psrl};
 
 template <> void InstX8632Sqrtss::emit(const Cfg *Func) const {
   if (!ALLOW_DUMP)
@@ -2663,6 +2668,15 @@ template <> void InstX8632Psra::emit(const Cfg *Func) const {
          getDest()->getType() == IceType_v4i1);
   char buf[30];
   snprintf(buf, llvm::array_lengthof(buf), "psra%s",
+           TypeX8632Attributes[getDest()->getType()].PackString);
+  emitTwoAddress(buf, this, Func);
+}
+
+template <> void InstX8632Psrl::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  char buf[30];
+  snprintf(buf, llvm::array_lengthof(buf), "psrl%s",
            TypeX8632Attributes[getDest()->getType()].PackString);
   emitTwoAddress(buf, this, Func);
 }

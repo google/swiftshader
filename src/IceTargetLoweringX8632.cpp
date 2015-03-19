@@ -3089,6 +3089,18 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
                     SecondVal);
     return;
   }
+  case Intrinsics::Fabs: {
+    Operand *Src = legalize(Instr->getArg(0));
+    Type Ty = Src->getType();
+    Variable *Dest = Instr->getDest();
+    Variable *T = makeVectorOfFabsMask(Ty);
+    _pand(T, Src);
+    if (isVectorType(Ty))
+      _movp(Dest, T);
+    else
+      _mov(Dest, T);
+    return;
+  }
   case Intrinsics::Longjmp: {
     InstCall *Call = makeHelperCall(H_call_longjmp, nullptr, 2);
     Call->addArg(Instr->getArg(0));
@@ -4360,6 +4372,18 @@ Variable *TargetX8632::makeVectorOfHighOrderBits(Type Ty, int32_t RegNum) {
     _pshufd(Reg, Reg, Ctx->getConstantZero(IceType_i8));
     return Reg;
   }
+}
+
+// Construct a mask in a register that can be and'ed with a
+// floating-point value to mask off its sign bit.  The value will be
+// <4 x 0x7fffffff> for f32 and v4f32, and <2 x 0x7fffffffffffffff>
+// for f64.  Construct it as vector of ones logically right shifted
+// one bit.  TODO(stichnot): Fix the wala TODO above, to represent
+// vector constants in memory.
+Variable *TargetX8632::makeVectorOfFabsMask(Type Ty, int32_t RegNum) {
+  Variable *Reg = makeVectorOfMinusOnes(Ty, RegNum);
+  _psrl(Reg, Ctx->getConstantInt8(1));
+  return Reg;
 }
 
 OperandX8632Mem *TargetX8632::getMemoryOperandForStackSlot(Type Ty,

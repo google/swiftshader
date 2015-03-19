@@ -143,15 +143,15 @@
   X(IceType_i16,   IceType_void, "si", ""  , "" ,  "w", "")      \
   X(IceType_i32,   IceType_void, "si", ""  , "" ,  "l", "")      \
   X(IceType_i64,   IceType_void, "si", ""  , "" ,  "q", "")      \
-  X(IceType_f32,   IceType_void, "ss", "ss", "" ,  "",  "s")     \
-  X(IceType_f64,   IceType_void, "sd", "sd", "" ,  "",  "l")     \
+  X(IceType_f32,   IceType_void, "ss", "ss", "d",  "",  "s")     \
+  X(IceType_f64,   IceType_void, "sd", "sd", "q",  "",  "l")     \
   X(IceType_v4i1,  IceType_i32 , "?" , ""  , "d",  "",  "")      \
   X(IceType_v8i1,  IceType_i16 , "?" , ""  , "w",  "",  "")      \
   X(IceType_v16i1, IceType_i8  , "?" , ""  , "b",  "",  "")      \
   X(IceType_v16i8, IceType_i8  , "?" , ""  , "b",  "",  "")      \
   X(IceType_v8i16, IceType_i16 , "?" , ""  , "w",  "",  "")      \
   X(IceType_v4i32, IceType_i32 , "dq", ""  , "d",  "",  "")      \
-  X(IceType_v4f32, IceType_f32 , "ps", ""  , "" ,  "",  "")      \
+  X(IceType_v4f32, IceType_f32 , "ps", ""  , "d",  "",  "")      \
 //#define X(tag, elementty, cvt, sdss, pack, width, fld)
 
 #endif // SUBZERO_SRC_ICEINSTX8632_DEF

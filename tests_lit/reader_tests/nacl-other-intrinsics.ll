@@ -14,6 +14,9 @@ declare void @llvm.nacl.longjmp(i8*, i32)
 declare i32 @llvm.nacl.setjmp(i8*)
 declare float @llvm.sqrt.f32(float)
 declare double @llvm.sqrt.f64(double)
+declare float @llvm.fabs.f32(float)
+declare double @llvm.fabs.f64(double)
+declare <4 x float> @llvm.fabs.v4f32(<4 x float>)
 declare void @llvm.trap()
 declare i16 @llvm.bswap.i16(i16)
 declare i32 @llvm.bswap.i32(i32)
@@ -147,6 +150,60 @@ entry:
 ; CHECK-NEXT:   %r3 = call double @llvm.sqrt.f64(double -0.000000e+00)
 ; CHECK-NEXT:   %r4 = fadd double %r2, %r3
 ; CHECK-NEXT:   ret double %r4
+; CHECK-NEXT: }
+
+define float @test_fabs_float(float %x) {
+entry:
+  %r = call float @llvm.fabs.f32(float %x)
+  %r2 = call float @llvm.fabs.f32(float %r)
+  %r3 = call float @llvm.fabs.f32(float -0.0)
+  %r4 = fadd float %r2, %r3
+  ret float %r4
+}
+
+; CHECK-NEXT: define float @test_fabs_float(float %x) {
+; CHECK-NEXT: entry:
+; CHECK-NEXT:   %r = call float @llvm.fabs.f32(float %x)
+; CHECK-NEXT:   %r2 = call float @llvm.fabs.f32(float %r)
+; CHECK-NEXT:   %r3 = call float @llvm.fabs.f32(float -0.000000e+00)
+; CHECK-NEXT:   %r4 = fadd float %r2, %r3
+; CHECK-NEXT:   ret float %r4
+; CHECK-NEXT: }
+
+define double @test_fabs_double(double %x) {
+entry:
+  %r = call double @llvm.fabs.f64(double %x)
+  %r2 = call double @llvm.fabs.f64(double %r)
+  %r3 = call double @llvm.fabs.f64(double -0.0)
+  %r4 = fadd double %r2, %r3
+  ret double %r4
+}
+
+; CHECK-NEXT: define double @test_fabs_double(double %x) {
+; CHECK-NEXT: entry:
+; CHECK-NEXT:   %r = call double @llvm.fabs.f64(double %x)
+; CHECK-NEXT:   %r2 = call double @llvm.fabs.f64(double %r)
+; CHECK-NEXT:   %r3 = call double @llvm.fabs.f64(double -0.000000e+00)
+; CHECK-NEXT:   %r4 = fadd double %r2, %r3
+; CHECK-NEXT:   ret double %r4
+; CHECK-NEXT: }
+
+define <4 x float> @test_fabs_v4f32(<4 x float> %x) {
+entry:
+  %r = call <4 x float> @llvm.fabs.v4f32(<4 x float> %x)
+  %r2 = call <4 x float> @llvm.fabs.v4f32(<4 x float> %r)
+  %r3 = call <4 x float> @llvm.fabs.v4f32(<4 x float> undef)
+  %r4 = fadd <4 x float> %r2, %r3
+  ret <4 x float> %r4
+}
+
+; CHECK-NEXT: define <4 x float> @test_fabs_v4f32(<4 x float> %x) {
+; CHECK-NEXT: entry:
+; CHECK-NEXT:   %r = call <4 x float> @llvm.fabs.v4f32(<4 x float> %x)
+; CHECK-NEXT:   %r2 = call <4 x float> @llvm.fabs.v4f32(<4 x float> %r)
+; CHECK-NEXT:   %r3 = call <4 x float> @llvm.fabs.v4f32(<4 x float> undef)
+; CHECK-NEXT:   %r4 = fadd <4 x float> %r2, %r3
+; CHECK-NEXT:   ret <4 x float> %r4
 ; CHECK-NEXT: }
 
 define i32 @test_trap(i32 %br) {

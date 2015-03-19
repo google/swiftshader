@@ -559,6 +559,9 @@ public:
   void psra(Type Ty, XmmRegister dst, XmmRegister src);
   void psra(Type Ty, XmmRegister dst, const Address &src);
   void psra(Type Ty, XmmRegister dst, const Immediate &src);
+  void psrl(Type Ty, XmmRegister dst, XmmRegister src);
+  void psrl(Type Ty, XmmRegister dst, const Address &src);
+  void psrl(Type Ty, XmmRegister dst, const Immediate &src);
 
   void addps(Type Ty, XmmRegister dst, XmmRegister src);
   void addps(Type Ty, XmmRegister dst, const Address &src);

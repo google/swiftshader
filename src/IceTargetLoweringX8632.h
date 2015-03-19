@@ -174,6 +174,8 @@ protected:
                                   int32_t RegNum = Variable::NoRegister);
   Variable *makeVectorOfHighOrderBits(Type Ty,
                                       int32_t RegNum = Variable::NoRegister);
+  Variable *makeVectorOfFabsMask(Type Ty,
+                                 int32_t RegNum = Variable::NoRegister);
 
   // Return a memory operand corresponding to a stack allocated Variable.
   OperandX8632Mem *getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
@@ -393,6 +395,9 @@ protected:
   }
   void _psra(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Psra::create(Func, Dest, Src0));
+  }
+  void _psrl(Variable *Dest, Operand *Src0) {
+    Context.insert(InstX8632Psrl::create(Func, Dest, Src0));
   }
   void _psub(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Psub::create(Func, Dest, Src0));

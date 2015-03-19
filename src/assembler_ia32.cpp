@@ -715,6 +715,53 @@ void AssemblerX86::psra(Type Ty, XmmRegister dst, const Immediate &imm) {
   EmitUint8(imm.value() & 0xFF);
 }
 
+void AssemblerX86::psrl(Type Ty, XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (Ty == IceType_i16) {
+    EmitUint8(0xD1);
+  } else if (Ty == IceType_f64) {
+    EmitUint8(0xD3);
+  } else {
+    assert(Ty == IceType_i32 || Ty == IceType_f32 || Ty == IceType_v4f32);
+    EmitUint8(0xD2);
+  }
+  EmitXmmRegisterOperand(dst, src);
+}
+
+void AssemblerX86::psrl(Type Ty, XmmRegister dst, const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (Ty == IceType_i16) {
+    EmitUint8(0xD1);
+  } else if (Ty == IceType_f64) {
+    EmitUint8(0xD3);
+  } else {
+    assert(Ty == IceType_i32 || Ty == IceType_f32 || Ty == IceType_v4f32);
+    EmitUint8(0xD2);
+  }
+  EmitOperand(dst, src);
+}
+
+void AssemblerX86::psrl(Type Ty, XmmRegister dst, const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  assert(imm.is_int8());
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  if (Ty == IceType_i16) {
+    EmitUint8(0x71);
+  } else if (Ty == IceType_f64) {
+    EmitUint8(0x73);
+  } else {
+    assert(Ty == IceType_i32 || Ty == IceType_f32 || Ty == IceType_v4f32);
+    EmitUint8(0x72);
+  }
+  EmitRegisterOperand(2, dst);
+  EmitUint8(imm.value() & 0xFF);
+}
+
 // {add,sub,mul,div}ps are given a Ty parameter for consistency with
 // {add,sub,mul,div}ss. In the future, when the PNaCl ABI allows
 // addpd, etc., we can use the Ty parameter to decide on adding

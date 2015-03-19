@@ -234,6 +234,7 @@ public:
     Pshufd,
     Psll,
     Psra,
+    Psrl,
     Psub,
     Push,
     Pxor,
@@ -786,7 +787,7 @@ void emitIASXmmShift(const Cfg *Func, Type Ty, const Variable *Var,
                      const Operand *Src,
                      const x86::AssemblerX86::XmmEmitterShiftOp &Emitter);
 
-template <InstX8632::InstKindX8632 K>
+template <InstX8632::InstKindX8632 K, bool AllowAllTypes = false>
 class InstX8632BinopXmmShift : public InstX8632 {
   InstX8632BinopXmmShift() = delete;
   InstX8632BinopXmmShift(const InstX8632BinopXmmShift &) = delete;
@@ -807,8 +808,7 @@ public:
   }
   void emitIAS(const Cfg *Func) const override {
     Type Ty = getDest()->getType();
-    assert(Ty == IceType_v8i16 || Ty == IceType_v8i1 || Ty == IceType_v4i32 ||
-           Ty == IceType_v4i1);
+    assert(AllowAllTypes || isVectorType(Ty));
     Type ElementTy = typeElementType(Ty);
     assert(getSrcSize() == 2);
     emitIASXmmShift(Func, ElementTy, getDest(), getSrc(1), Emitter);
@@ -1013,6 +1013,7 @@ typedef InstX8632BinopXmm<InstX8632::Divss, false> InstX8632Divss;
 typedef InstX8632BinopGPRShift<InstX8632::Rol> InstX8632Rol;
 typedef InstX8632BinopGPRShift<InstX8632::Shl> InstX8632Shl;
 typedef InstX8632BinopXmmShift<InstX8632::Psll> InstX8632Psll;
+typedef InstX8632BinopXmmShift<InstX8632::Psrl, true> InstX8632Psrl;
 typedef InstX8632BinopGPRShift<InstX8632::Shr> InstX8632Shr;
 typedef InstX8632BinopGPRShift<InstX8632::Sar> InstX8632Sar;
 typedef InstX8632BinopXmmShift<InstX8632::Psra> InstX8632Psra;
@@ -1632,6 +1633,7 @@ template <> void InstX8632Pmull::emit(const Cfg *Func) const;
 template <> void InstX8632Pmuludq::emit(const Cfg *Func) const;
 template <> void InstX8632Psll::emit(const Cfg *Func) const;
 template <> void InstX8632Psra::emit(const Cfg *Func) const;
+template <> void InstX8632Psrl::emit(const Cfg *Func) const;
 template <> void InstX8632Psub::emit(const Cfg *Func) const;
 template <> void InstX8632Sqrtss::emit(const Cfg *Func) const;
 template <> void InstX8632Subss::emit(const Cfg *Func) const;

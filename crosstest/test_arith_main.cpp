@@ -287,6 +287,18 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
                 << Value << "): sz=" << ResultSz << " llc=" << ResultLlc
                 << "\n";
     }
+    ++TotalTests;
+    ResultSz = Subzero_::myFabs(Value);
+    ResultLlc = myFabs(Value);
+    // Compare results using memcmp() in case they are both NaN.
+    if (!memcmp(&ResultSz, &ResultLlc, sizeof(Type))) {
+      ++Passes;
+    } else {
+      ++Failures;
+      std::cout << std::fixed << "test_fabs" << (CHAR_BIT * sizeof(Type)) << "("
+                << Value << "): sz=" << ResultSz << " llc=" << ResultLlc
+                << "\n";
+    }
   }
 }
 
@@ -331,6 +343,19 @@ void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         std::cout << "test" << Funcs[f].Name << "v4f32"
                   << "(" << vectAsString<v4f32>(Value1) << ","
                   << vectAsString<v4f32>(Value2)
+                  << "): sz=" << vectAsString<v4f32>(ResultSz) << " llc"
+                  << vectAsString<v4f32>(ResultLlc) << "\n";
+      }
+      // Special case for unary fabs operation.  Use Value1, ignore Value2.
+      ResultSz = Subzero_::myFabs(Value1);
+      ResultLlc = myFabs(Value1);
+      ++TotalTests;
+      if (!memcmp(&ResultSz, &ResultLlc, sizeof(ResultSz))) {
+        ++Passes;
+      } else {
+        ++Failures;
+        std::cout << "test_fabs_v4f32"
+                  << "(" << vectAsString<v4f32>(Value1)
                   << "): sz=" << vectAsString<v4f32>(ResultSz) << " llc"
                   << vectAsString<v4f32>(ResultLlc) << "\n";
       }
