@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "86fc4cc6_edf21db4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-19T13:35:34Z",
+      "side": 1,
+      "message": "nit: Could use something slightly more descriptive. In two years from know, we won\u0027t know what this means.\n\nSomething like \"Implement simple OpenGL ES 3.0 parameter checks\".",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 31
+      },
+      "revId": "a04a9d07ad2b6d3b8ac8d1cf7f9884918b911148",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "86fc4cc6_6d074d1b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-19T13:35:34Z",
+      "side": 1,
+      "message": "nit: Could still use a hard break here.",
+      "range": {
+        "startLine": 9,
+        "startChar": 68,
+        "endLine": 9,
+        "endChar": 74
+      },
+      "revId": "a04a9d07ad2b6d3b8ac8d1cf7f9884918b911148",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
