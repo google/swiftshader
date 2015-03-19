@@ -72,6 +72,52 @@
     },
     {
       "key": {
+        "uuid": "a64230dc_204a84b2",
+        "filename": "src/LLVM/lib/ExecutionEngine/JIT/Intercept.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-19T18:02:48Z",
+      "side": 1,
+      "message": "Not ideal, but we can address it later.",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 6
+      },
+      "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a64230dc_a07e94dd",
+        "filename": "src/LLVM/lib/Support/DynamicLibrary.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-19T18:02:48Z",
+      "side": 1,
+      "message": "Perhaps add this into the above #if\n\nIt\u0027s not ideal to be changing LLVM code, but we can address this issue later.",
+      "range": {
+        "startLine": 165,
+        "startChar": 0,
+        "endLine": 165,
+        "endChar": 46
+      },
+      "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a64230dc_c0440079",
         "filename": "src/OpenGL/libEGL/Display.cpp",
         "patchSetId": 4
