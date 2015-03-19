@@ -108,6 +108,7 @@ public:
   }
   void emit(const Cfg *Func) const override { emit(Func->getContext()); }
   virtual void emit(GlobalContext *Ctx) const = 0;
+  virtual void emitWithoutDollar(GlobalContext *Ctx) const = 0;
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
@@ -149,6 +150,7 @@ public:
   // The target needs to implement this for each ConstantPrimitive
   // specialization.
   void emit(GlobalContext *Ctx) const override;
+  void emitWithoutDollar(GlobalContext *Ctx) const override;
   using Constant::dump;
   void dump(const Cfg *, Ostream &Str) const override {
     if (ALLOW_DUMP)
@@ -234,7 +236,7 @@ public:
   using Constant::emit;
   using Constant::dump;
   void emit(GlobalContext *Ctx) const override;
-  void emitWithoutDollar(GlobalContext *Ctx) const;
+  void emitWithoutDollar(GlobalContext *Ctx) const override;
   void dump(const Cfg *Func, Ostream &Str) const override;
 
   static bool classof(const Operand *Operand) {
@@ -273,6 +275,7 @@ public:
   using Constant::dump;
   // The target needs to implement this.
   void emit(GlobalContext *Ctx) const override;
+  void emitWithoutDollar(GlobalContext *Ctx) const override;
   void dump(const Cfg *, Ostream &Str) const override {
     if (ALLOW_DUMP)
       Str << "undef";

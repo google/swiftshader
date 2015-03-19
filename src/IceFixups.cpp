@@ -17,7 +17,11 @@
 
 namespace Ice {
 
+const Constant *AssemblerFixup::NullSymbol = nullptr;
+
 RelocOffsetT AssemblerFixup::offset() const {
+  if (isNullSymbol())
+    return 0;
   if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(value_))
     return CR->getOffset();
   return 0;
@@ -27,6 +31,7 @@ IceString AssemblerFixup::symbol(const GlobalContext *Ctx) const {
   std::string Buffer;
   llvm::raw_string_ostream Str(Buffer);
   const Constant *C = value_;
+  assert(!isNullSymbol());
   if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(C)) {
     if (CR->getSuppressMangling())
       Str << CR->getName();
@@ -43,6 +48,9 @@ IceString AssemblerFixup::symbol(const GlobalContext *Ctx) const {
 
 void AssemblerFixup::emit(GlobalContext *Ctx) const {
   Ostream &Str = Ctx->getStrEmit();
+  // TODO(jvoung): Not yet clear how to emit a relocation against
+  // the null symbol.
+  assert(!isNullSymbol());
   Str << symbol(Ctx);
   RelocOffsetT Offset = offset();
   if (Offset)

@@ -112,6 +112,17 @@ void AssemblerX86::call(const ConstantRelocatable *label) {
   (void)call_start;
 }
 
+void AssemblerX86::call(const Immediate &abs_address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  intptr_t call_start = buffer_.GetPosition();
+  EmitUint8(0xE8);
+  EmitFixup(
+      this->createFixup(llvm::ELF::R_386_PC32, AssemblerFixup::NullSymbol));
+  EmitInt32(abs_address.value() - 4);
+  assert((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
+  (void)call_start;
+}
+
 void AssemblerX86::pushl(GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x50 + reg);

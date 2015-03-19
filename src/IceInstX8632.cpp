@@ -489,11 +489,10 @@ void InstX8632Jmp::emitIAS(const Cfg *Func) const {
   } else if (const auto Imm = llvm::dyn_cast<ConstantInteger32>(Target)) {
     // NaCl trampoline calls refer to an address within the sandbox directly.
     // This is usually only needed for non-IRT builds and otherwise not
-    // very portable or stable. For this, we would use the 0xE8 opcode
-    // (relative version of call) and there should be a PC32 reloc too.
-    // The PC32 reloc will have symbol index 0, and the absolute address
-    // would be encoded as an offset relative to the next instruction.
-    // TODO(jvoung): Do we need to support this?
+    // very portable or stable. Usually this is only done for "calls"
+    // and not jumps.
+    // TODO(jvoung): Support this when there is a lowering that
+    // actually triggers this case.
     (void)Imm;
     llvm::report_fatal_error("Unexpected jmp to absolute address");
   } else {
@@ -515,10 +514,7 @@ void InstX8632Call::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   Str << "\tcall\t";
-  if (const auto CallTarget =
-          llvm::dyn_cast<ConstantRelocatable>(getCallTarget())) {
-    // TODO(stichnot): All constant targets should suppress the '$',
-    // not just relocatables.
+  if (const auto CallTarget = llvm::dyn_cast<Constant>(getCallTarget())) {
     CallTarget->emitWithoutDollar(Func->getContext());
   } else {
     Str << "*";
@@ -544,15 +540,7 @@ void InstX8632Call::emitIAS(const Cfg *Func) const {
     assert(CR->getOffset() == 0 && "We only support calling a function");
     Asm->call(CR);
   } else if (const auto Imm = llvm::dyn_cast<ConstantInteger32>(Target)) {
-    // NaCl trampoline calls refer to an address within the sandbox directly.
-    // This is usually only needed for non-IRT builds and otherwise not
-    // very portable or stable. For this, we would use the 0xE8 opcode
-    // (relative version of call) and there should be a PC32 reloc too.
-    // The PC32 reloc will have symbol index 0, and the absolute address
-    // would be encoded as an offset relative to the next instruction.
-    // TODO(jvoung): Do we need to support this?
-    (void)Imm;
-    llvm_unreachable("Unexpected call to absolute address");
+    Asm->call(x86::Immediate(Imm->getValue()));
   } else {
     llvm_unreachable("Unexpected operand type");
   }

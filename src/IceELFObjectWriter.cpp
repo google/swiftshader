@@ -84,10 +84,7 @@ ELFObjectWriter::ELFObjectWriter(GlobalContext &Ctx, ELFStreamer &Out)
                 "Elf_Sym sizes cannot be derived from sizeof");
   SymTab = createSection<ELFSymbolTableSection>(SymTabName, SHT_SYMTAB, 0,
                                                 SymTabAlign, SymTabEntSize);
-  // The first entry in the symbol table should be a NULL entry.
-  const IceString NullSymName("");
-  SymTab->createDefinedSym(NullSymName, STT_NOTYPE, STB_LOCAL, NullSection, 0,
-                           0);
+  SymTab->createNullSymbol(NullSection);
 
   const IceString StrTabName(".strtab");
   StrTab =

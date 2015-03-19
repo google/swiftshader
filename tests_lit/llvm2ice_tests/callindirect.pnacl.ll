@@ -4,6 +4,9 @@
 
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
 ; RUN:   | FileCheck %s
+; RUN: %if --need=allow_dump --command %p2i --filetype=asm --assemble \
+; RUN:     --disassemble -i %s --args -O2 \
+; RUN:   | %if --need=allow_dump --command FileCheck %s
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
 
@@ -62,14 +65,23 @@ entry:
 ; OPTM1: call [[TARGET]]
 
 ; Calling an absolute address is used for non-IRT PNaCl pexes to directly
-; access syscall trampolines. Do we need to support this?
-; define internal void @CallIndirectConst() {
-; entry:
-;   %__1 = inttoptr i32 66496 to void ()*
-;   call void %__1()
-;   call void %__1()
-;   call void %__1()
-;   call void %__1()
-;   call void %__1()
-;   ret void
-; }
+; access syscall trampolines. This is not really an indirect call, but
+; there is a cast from int to pointer first.
+define internal void @CallConst() {
+entry:
+  %__1 = inttoptr i32 66496 to void ()*
+  call void %__1()
+  call void %__1()
+  call void %__1()
+  ret void
+}
+
+; CHECK-LABEL: CallConst
+; CHECK: e8 bc 03 01 00 call {{[0-9a-f]+}} {{.*}} R_386_PC32 *ABS*
+; CHECK: e8 bc 03 01 00 call {{[0-9a-f]+}} {{.*}} R_386_PC32 *ABS*
+; CHECK: e8 bc 03 01 00 call {{[0-9a-f]+}} {{.*}} R_386_PC32 *ABS*
+;
+; OPTM1-LABEL: CallConst
+; OPTM1: e8 bc 03 01 00 call {{[0-9a-f]+}} {{.*}} R_386_PC32 *ABS*
+; OPTM1: e8 bc 03 01 00 call {{[0-9a-f]+}} {{.*}} R_386_PC32 *ABS*
+; OPTM1: e8 bc 03 01 00 call {{[0-9a-f]+}} {{.*}} R_386_PC32 *ABS*

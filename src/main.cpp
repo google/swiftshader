@@ -176,12 +176,6 @@ static cl::opt<bool> AllowErrorRecovery(
     cl::desc("Allow error recovery when reading PNaCl bitcode."),
     cl::init(false));
 
-// TODO(kschimpf) Remove once the emitter handles these cases.
-static cl::opt<bool>
-    StubConstantCalls("stub-const-calls",
-                      cl::desc("Stub indirect calls to constants."),
-                      cl::init(false));
-
 static cl::opt<bool> LLVMVerboseErrors(
     "verbose-llvm-parse-errors",
     cl::desc("Print out more descriptive PNaCl bitcode parse errors when "
@@ -311,7 +305,6 @@ int main(int argc, char **argv) {
   Flags.setFunctionSections(FunctionSections);
   Flags.setNumTranslationThreads(NumThreads);
   Flags.setPhiEdgeSplit(EnablePhiEdgeSplit);
-  Flags.setStubConstantCalls(StubConstantCalls);
   Flags.setSubzeroTimingEnabled(SubzeroTimingEnabled);
   Flags.setTimeEachFunction(TimeEachFunction);
   Flags.setTimingFocusOn(TimingFocusOn);

@@ -4599,15 +4599,32 @@ void TargetX8632::makeRandomRegisterPermutation(
   }
 }
 
+template <>
+void ConstantInteger32::emitWithoutDollar(GlobalContext *Ctx) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Ctx->getStrEmit();
+  Str << (int32_t)getValue();
+}
+
 template <> void ConstantInteger32::emit(GlobalContext *Ctx) const {
   if (!ALLOW_DUMP)
     return;
   Ostream &Str = Ctx->getStrEmit();
-  Str << "$" << (int32_t)getValue();
+  Str << "$";
+  emitWithoutDollar(Ctx);
+}
+
+template <> void ConstantInteger64::emitWithoutDollar(GlobalContext *) const {
+  llvm_unreachable("Not expecting to emitWithoutDollar 64-bit integers");
 }
 
 template <> void ConstantInteger64::emit(GlobalContext *) const {
   llvm_unreachable("Not expecting to emit 64-bit integers");
+}
+
+template <> void ConstantFloat::emitWithoutDollar(GlobalContext *) const {
+  llvm_unreachable("Not expecting to emitWithoutDollar floats");
 }
 
 template <> void ConstantFloat::emit(GlobalContext *Ctx) const {
@@ -4617,11 +4634,19 @@ template <> void ConstantFloat::emit(GlobalContext *Ctx) const {
   emitPoolLabel(Str);
 }
 
+template <> void ConstantDouble::emitWithoutDollar(GlobalContext *) const {
+  llvm_unreachable("Not expecting to emitWithoutDollar doubles");
+}
+
 template <> void ConstantDouble::emit(GlobalContext *Ctx) const {
   if (!ALLOW_DUMP)
     return;
   Ostream &Str = Ctx->getStrEmit();
   emitPoolLabel(Str);
+}
+
+void ConstantUndef::emitWithoutDollar(GlobalContext *) const {
+  llvm_unreachable("Not expecting to emitWithoutDollar undef");
 }
 
 void ConstantUndef::emit(GlobalContext *) const {

@@ -38,6 +38,10 @@ public:
 
   RelocOffsetT offset() const;
   IceString symbol(const GlobalContext *Ctx) const;
+
+  static const Constant *NullSymbol;
+  bool isNullSymbol() const { return value_ == NullSymbol; }
+
   void set_value(const Constant *Value) { value_ = Value; }
 
   void emit(GlobalContext *Ctx) const;

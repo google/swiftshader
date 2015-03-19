@@ -167,7 +167,7 @@ public:
       : NaClBitcodeParser(Cursor), Translator(Translator),
         ErrorStatus(ErrorStatus), NumErrors(0), NextDefiningFunctionID(0),
         VariableDeclarations(new Ice::VariableDeclarationList()),
-        BlockParser(nullptr), StubbedConstCallValue(nullptr) {}
+        BlockParser(nullptr) {}
 
   ~TopLevelParser() override {}
 
@@ -276,24 +276,6 @@ public:
     createValueIDsForGlobalVars();
   }
 
-  /// Returns a defined function reference to be used in place of
-  /// called constant addresses. Returns the corresponding operand
-  /// to replace the calling address with. Reports an error if
-  /// a stub could not be found, returning the CallValue.
-  Ice::Operand *getStubbedConstCallValue(Ice::Operand *CallValue) {
-    if (StubbedConstCallValue)
-      return StubbedConstCallValue;
-    for (unsigned i = 0; i < getNumFunctionIDs(); ++i) {
-      Ice::FunctionDeclaration *Func = getFunctionByID(i);
-      if (!Func->isProto()) {
-        StubbedConstCallValue = getGlobalConstantByID(i);
-        return StubbedConstCallValue;
-      }
-    }
-    Error("Unable to find function definition to stub constant calls with");
-    return CallValue;
-  }
-
   /// Returns the number of function declarations in the bitcode file.
   unsigned getNumFunctionIDs() const { return FunctionDeclarationList.size(); }
 
@@ -383,8 +365,6 @@ private:
   // The block parser currently being applied. Used for error
   // reporting.
   BlockParserBaseClass *BlockParser;
-  // Value to use to stub constant calls.
-  Ice::Operand *StubbedConstCallValue;
 
   bool ParseBlock(unsigned BlockID) override;
 
@@ -510,8 +490,8 @@ bool TopLevelParser::ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
   raw_ostream &OldErrStream = setErrStream(Context->getStrDump());
   NaClBitcodeParser::ErrorAt(Level, Bit, Message);
   setErrStream(OldErrStream);
-  if (Level >= naclbitc::Error
-      && !Translator.getFlags().getAllowErrorRecovery())
+  if (Level >= naclbitc::Error &&
+      !Translator.getFlags().getAllowErrorRecovery())
     Fatal();
   return true;
 }
@@ -677,8 +657,8 @@ bool TopLevelParser::BlockError(const std::string &Message) {
 }
 
 // Generates an error Message with the bit address prefixed to it.
-bool BlockParserBaseClass::ErrorAt(
-    naclbitc::ErrorLevel Level, uint64_t Bit, const std::string &Message) {
+bool BlockParserBaseClass::ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
+                                   const std::string &Message) {
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
   // Note: If dump routines have been turned off, the error messages
@@ -2507,10 +2487,6 @@ void FunctionParser::ProcessRecord() {
         return;
       }
     } else {
-      if (getFlags().getStubConstantCalls() &&
-          llvm::isa<Ice::ConstantInteger32>(Callee)) {
-        Callee = Context->getStubbedConstCallValue(Callee);
-      }
       ReturnType = Context->getSimpleTypeByID(Values[2]);
     }
 

@@ -30,8 +30,8 @@ public:
         DecorateAsm(false), DisableInternal(false), DisableIRGeneration(false),
         DisableTranslation(false), DumpStats(false), FunctionSections(false),
         GenerateUnitTestMessages(false), PhiEdgeSplit(false),
-        StubConstantCalls(false), SubzeroTimingEnabled(false),
-        TimeEachFunction(false), UseSandboxing(false),
+        SubzeroTimingEnabled(false), TimeEachFunction(false),
+        UseSandboxing(false),
         // FileType field
         OutFileType(FT_Iasm),
         // IceString fields.
@@ -86,11 +86,6 @@ public:
 
   bool getPhiEdgeSplit() const { return PhiEdgeSplit; }
   void setPhiEdgeSplit(bool NewValue) { PhiEdgeSplit = NewValue; }
-
-  bool getStubConstantCalls() const {
-    return !ALLOW_MINIMAL_BUILD && StubConstantCalls;
-  }
-  void setStubConstantCalls(bool NewValue) { StubConstantCalls = NewValue; }
 
   bool getSubzeroTimingEnabled() const { return SubzeroTimingEnabled; }
   void setSubzeroTimingEnabled(bool NewValue) {
@@ -154,7 +149,6 @@ private:
   bool FunctionSections;
   bool GenerateUnitTestMessages;
   bool PhiEdgeSplit;
-  bool StubConstantCalls;
   bool SubzeroTimingEnabled;
   bool TimeEachFunction;
   bool UseSandboxing;

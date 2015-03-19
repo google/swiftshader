@@ -163,7 +163,11 @@ class ELFSymbolTableSection : public ELFSection {
   ELFSymbolTableSection &operator=(const ELFSymbolTableSection &) = delete;
 
 public:
-  using ELFSection::ELFSection;
+  ELFSymbolTableSection(const IceString &Name, Elf64_Word ShType,
+                        Elf64_Xword ShFlags, Elf64_Xword ShAddralign,
+                        Elf64_Xword ShEntsize)
+      : ELFSection(Name, ShType, ShFlags, ShAddralign, ShEntsize),
+        NullSymbol(nullptr) {}
 
   // Create initial entry for a symbol when it is defined.
   // Each entry should only be defined once.
@@ -178,6 +182,9 @@ public:
   void noteUndefinedSym(const IceString &Name, ELFSection *NullSection);
 
   const ELFSym *findSymbol(const IceString &Name) const;
+
+  void createNullSymbol(ELFSection *NullSection);
+  const ELFSym *getNullSymbol() const { return NullSymbol; }
 
   size_t getSectionDataSize() const {
     return (LocalSymbols.size() + GlobalSymbols.size()) * Header.sh_entsize;
@@ -198,6 +205,7 @@ private:
   template <bool IsELF64>
   void writeSymbolMap(ELFStreamer &Str, const SymMap &Map);
 
+  const ELFSym *NullSymbol;
   // Keep Local and Global symbols separate, since the sh_info needs to
   // know the index of the last LOCAL.
   SymMap LocalSymbols;
@@ -211,7 +219,11 @@ class ELFRelocationSection : public ELFSection {
   ELFRelocationSection &operator=(const ELFRelocationSection &) = delete;
 
 public:
-  using ELFSection::ELFSection;
+  ELFRelocationSection(const IceString &Name, Elf64_Word ShType,
+                       Elf64_Xword ShFlags, Elf64_Xword ShAddralign,
+                       Elf64_Xword ShEntsize)
+      : ELFSection(Name, ShType, ShFlags, ShAddralign, ShEntsize),
+        RelatedSection(nullptr) {}
 
   const ELFSection *getRelatedSection() const { return RelatedSection; }
   void setRelatedSection(const ELFSection *Section) {
@@ -340,7 +352,11 @@ template <bool IsELF64>
 void ELFRelocationSection::writeData(const GlobalContext &Ctx, ELFStreamer &Str,
                                      const ELFSymbolTableSection *SymTab) {
   for (const AssemblerFixup &Fixup : Fixups) {
-    const ELFSym *Symbol = SymTab->findSymbol(Fixup.symbol(&Ctx));
+    const ELFSym *Symbol;
+    if (Fixup.isNullSymbol())
+      Symbol = SymTab->getNullSymbol();
+    else
+      Symbol = SymTab->findSymbol(Fixup.symbol(&Ctx));
     if (!Symbol)
       llvm::report_fatal_error("Missing symbol mentioned in reloc");
 

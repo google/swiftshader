@@ -80,6 +80,15 @@ size_t ELFRelocationSection::getSectionDataSize() const {
 
 // Symbol tables.
 
+void ELFSymbolTableSection::createNullSymbol(ELFSection *NullSection) {
+  // The first entry in the symbol table should be a NULL entry,
+  // so make sure the map is still empty.
+  assert(LocalSymbols.empty());
+  const IceString NullSymName("");
+  createDefinedSym(NullSymName, STT_NOTYPE, STB_LOCAL, NullSection, 0, 0);
+  NullSymbol = findSymbol(NullSymName);
+}
+
 void ELFSymbolTableSection::createDefinedSym(const IceString &Name,
                                              uint8_t Type, uint8_t Binding,
                                              ELFSection *Section,
@@ -105,7 +114,9 @@ void ELFSymbolTableSection::noteUndefinedSym(const IceString &Name,
   NewSymbol.Sym.setBindingAndType(STB_GLOBAL, STT_NOTYPE);
   NewSymbol.Section = NullSection;
   NewSymbol.Number = ELFSym::UnknownNumber;
-  GlobalSymbols.insert(std::make_pair(Name, NewSymbol));
+  bool Unique = GlobalSymbols.insert(std::make_pair(Name, NewSymbol)).second;
+  assert(Unique);
+  (void)Unique;
 }
 
 const ELFSym *ELFSymbolTableSection::findSymbol(const IceString &Name) const {
