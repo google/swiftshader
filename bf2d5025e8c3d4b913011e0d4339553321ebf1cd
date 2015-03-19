@@ -72,6 +72,23 @@
     },
     {
       "key": {
+        "uuid": "06177cd9_b8f01962",
+        "filename": "src/LLVM/LLVM.mk",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-03-19T20:02:26Z",
+      "side": 1,
+      "message": "Let\u0027s handle the makefiles in a separate CL.\n\nI preferred the versions in the prior CL.",
+      "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a64230dc_204a84b2",
         "filename": "src/LLVM/lib/ExecutionEngine/JIT/Intercept.cpp",
         "patchSetId": 4
@@ -118,6 +135,40 @@
     },
     {
       "key": {
+        "uuid": "06177cd9_f89bf14a",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-03-19T20:02:26Z",
+      "side": 1,
+      "message": "Something doesn\u0027t seem right here. At a bare minimum the ifdef should be around the entire if.",
+      "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "06177cd9_18b585ad",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-03-19T20:02:26Z",
+      "side": 1,
+      "message": "I need comments here. Could this be the reason that things don\u0027t render?",
+      "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a64230dc_c0440079",
         "filename": "src/OpenGL/libEGL/Display.cpp",
         "patchSetId": 4
@@ -135,6 +186,57 @@
         "endLine": 534,
         "endChar": 13
       },
+      "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "06177cd9_98d435c3",
+        "filename": "src/OpenGL/libEGL/main.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-03-19T20:02:26Z",
+      "side": 1,
+      "message": "These paths should be /system/vendor/lib/egl/lib...",
+      "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "06177cd9_180025b7",
+        "filename": "src/OpenGL/libGLES_CM/main.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-03-19T20:02:26Z",
+      "side": 1,
+      "message": "Also should be /system/vendor/lib/egl/lib...",
+      "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "06177cd9_38fde935",
+        "filename": "src/OpenGL/libGLESv2/main.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-03-19T20:02:26Z",
+      "side": 1,
+      "message": "Same directory applies here.",
       "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
