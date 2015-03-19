@@ -1,6 +1,8 @@
 ; This file is copied/adapted from llvm/test/NaCl/PNaClABI/abi-atomics.ll .
 ; TODO(stichnot): Find a way to share the file to avoid divergence.
 
+; REQUIRES: allow_dump
+
 ; RUN: %p2i -i %s --args --verbose none --exit-success -threads=0 2>&1 \
 ; RUN:   | FileCheck %s
 

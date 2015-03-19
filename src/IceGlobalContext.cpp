@@ -40,6 +40,30 @@ template <> struct hash<Ice::RelocatableTuple> {
 
 namespace Ice {
 
+namespace {
+
+// Define the key comparison function for the constant pool's
+// unordered_map, but only for key types of interest: integer types,
+// floating point types, and the special RelocatableTuple.
+template <typename KeyType, class Enable = void> struct KeyCompare {};
+
+template <typename KeyType>
+struct KeyCompare<KeyType,
+                  typename std::enable_if<
+                      std::is_integral<KeyType>::value ||
+                      std::is_same<KeyType, RelocatableTuple>::value>::type> {
+  bool operator()(const KeyType &Value1, const KeyType &Value2) const {
+    return Value1 == Value2;
+  }
+};
+template <typename KeyType>
+struct KeyCompare<KeyType, typename std::enable_if<
+                               std::is_floating_point<KeyType>::value>::type> {
+  bool operator()(const KeyType &Value1, const KeyType &Value2) const {
+    return !memcmp(&Value1, &Value2, sizeof(KeyType));
+  }
+};
+
 // TypePool maps constants of type KeyType (e.g. float) to pointers to
 // type ValueType (e.g. ConstantFloat).
 template <Type Ty, typename KeyType, typename ValueType> class TypePool {
@@ -65,7 +89,15 @@ public:
   }
 
 private:
-  typedef std::unordered_map<KeyType, ValueType *> ContainerType;
+  // Use the default hash function, and a custom key comparison
+  // function.  The key comparison function for floating point
+  // variables can't use the default == based implementation because
+  // of special C++ semantics regarding +0.0, -0.0, and NaN
+  // comparison.  However, it's OK to use the default hash for
+  // floating point values because KeyCompare is the final source of
+  // truth - in the worst case a "false" collision must be resolved.
+  typedef std::unordered_map<KeyType, ValueType *, std::hash<KeyType>,
+                             KeyCompare<KeyType>> ContainerType;
   ContainerType Pool;
   uint32_t NextPoolID;
 };
@@ -88,6 +120,8 @@ private:
   uint32_t NextPoolID;
   std::vector<ConstantUndef *> Pool;
 };
+
+} // end of anonymous namespace
 
 // The global constant pool bundles individual pools of each type of
 // interest.
