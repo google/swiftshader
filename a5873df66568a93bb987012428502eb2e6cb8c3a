@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "86fc4cc6_b812218d",
+        "filename": "src/Renderer/Sampler.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-19T17:25:18Z",
+      "side": 1,
+      "message": "Seem like a good time to implement this. :-)",
+      "range": {
+        "startLine": 36,
+        "startChar": 2,
+        "endLine": 36,
+        "endChar": 24
+      },
+      "revId": "a5873df66568a93bb987012428502eb2e6cb8c3a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "86fc4cc6_6da2adf0",
+        "filename": "src/Renderer/Sampler.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-19T17:25:18Z",
+      "side": 1,
+      "message": "There\u0027s a risk of returning a null reference here, so at the very least there should be an assert to check for that in debug builds.\n\nAlternatively a pointer could be returned, instead of a reference. As a rule-of-thumb that means it\u0027s the caller\u0027s responsibility to check that it\u0027s non-null. However in this case we\u0027d probably like to avoid the overhead of that extra check and ensure at a higher level that it will be non-null. The assert is just to ensure that we\u0027d catch the bug in case that \"contract\" is broken in future development.\n\nWhen it\u0027s valid to have a null object but still try to access it, a reference to a default one can be provided. Is that the purpose of the placeholderTexture? Should there be one per Sampler, or a global one we only have to init once?",
+      "range": {
+        "startLine": 349,
+        "startChar": 9,
+        "endLine": 349,
+        "endChar": 17
+      },
+      "revId": "a5873df66568a93bb987012428502eb2e6cb8c3a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
