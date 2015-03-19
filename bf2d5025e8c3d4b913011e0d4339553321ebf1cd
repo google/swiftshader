@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "a64230dc_60064cd8",
+        "filename": "src/Common/Timer.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-19T17:54:08Z",
+      "side": 1,
+      "message": "Ah, this should be removed. This is only to make an older gcc in Android source toolchain happy. Building with clang doesn\u0027t need this. Forgot to take it out when I switched to clang.",
+      "parentUuid": "a64230dc_ddcaab1f",
+      "range": {
+        "startLine": 27,
+        "startChar": 10,
+        "endLine": 27,
+        "endChar": 23
+      },
+      "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a64230dc_c0440079",
         "filename": "src/OpenGL/libEGL/Display.cpp",
         "patchSetId": 4
