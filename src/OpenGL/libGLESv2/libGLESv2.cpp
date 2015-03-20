@@ -31,7 +31,6 @@
 #include <GLES2/gl2ext.h>
 #include <GLES3/gl3.h>
 
-#include <exception>
 #include <limits>
 
 typedef std::pair<GLenum, GLenum> InternalFormatTypePair;

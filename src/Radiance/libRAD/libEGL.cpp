@@ -20,8 +20,6 @@
 #include "common/debug.h"
 #include "Common/Version.h"
 
-#include <exception>
-
 static bool validateDisplay(egl::Display *display)
 {
     if(display == EGL_NO_DISPLAY)

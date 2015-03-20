@@ -20,7 +20,6 @@
 #include "common/debug.h"
 #include "Common/Version.h"
 
-#include <exception>
 #include <string.h>
 
 static bool validateDisplay(egl::Display *display)

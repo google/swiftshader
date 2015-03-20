@@ -32,7 +32,6 @@
 #define GL_GLEXT_PROTOTYPES
 #include <GLES/glext.h>
 
-#include <exception>
 #include <limits>
 
 static bool validImageSize(GLint level, GLsizei width, GLsizei height)
