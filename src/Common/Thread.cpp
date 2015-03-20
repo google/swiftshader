@@ -29,11 +29,7 @@ namespace sw
 
 	Thread::~Thread()
 	{
-		#if defined(_WIN32)
-			CloseHandle(handle);
-		#else
-			pthread_cancel(handle);
-		#endif
+		join();   // Make threads exit before deleting them to not block here
 	}
 
 	void Thread::join()
