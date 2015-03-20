@@ -208,7 +208,7 @@ void Shader::compile()
 		char buffer[256];
 		sprintf(buffer, "shader-input-%d-%d.txt", getName(), serial);
 		FILE *file = fopen(buffer, "wt");
-		fprintf(file, mSource);
+		fprintf(file, "%s", mSource);
 		fclose(file);
 		getShader()->print("shader-output-%d-%d.txt", getName(), serial);
 		serial++;

@@ -387,7 +387,7 @@ void VertexShader::compile()
 		char buffer[256];
 		sprintf(buffer, "vertex-input-%d-%d.txt", getName(), serial);
 		FILE *file = fopen(buffer, "wt");
-		fprintf(file, mSource);
+		fprintf(file, "%s", mSource);
 		fclose(file);
 		vertexShader->print("vertex-output-%d-%d.txt", getName(), serial);
 		serial++;
@@ -472,7 +472,7 @@ void FragmentShader::compile()
 		char buffer[256];
 		sprintf(buffer, "pixel-input-%d-%d.txt", getName(), serial);
 		FILE *file = fopen(buffer, "wt");
-		fprintf(file, mSource);
+		fprintf(file, "%s", mSource);
 		fclose(file);
 		pixelShader->print("pixel-output-%d-%d.txt", getName(), serial);
 		serial++;
