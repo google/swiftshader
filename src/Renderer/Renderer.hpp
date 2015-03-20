@@ -403,7 +403,8 @@ namespace sw
 		unsigned int qHead;
 		unsigned int qSize;
 
-		BackoffLock mutex;
+		BackoffLock schedulerMutex;
+		static BackoffLock codegenMutex;
 
 		#if PERF_HUD
 			int64_t vertexTime[16];

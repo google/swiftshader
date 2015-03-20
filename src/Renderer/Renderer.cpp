@@ -69,6 +69,8 @@ namespace sw
 	TranscendentalPrecision rsqPrecision = ACCURATE;
 	bool perspectiveCorrection = true;
 
+	BackoffLock Renderer::codegenMutex;
+
 	struct Parameters
 	{
 		Renderer *renderer;
@@ -230,9 +232,13 @@ namespace sw
 				setupState = SetupProcessor::update();
 				pixelState = PixelProcessor::update();
 
+				codegenMutex.lock();
+
 				vertexRoutine = VertexProcessor::routine(vertexState);
 				setupRoutine = SetupProcessor::routine(setupState);
 				pixelRoutine = PixelProcessor::routine(pixelState);
+
+				codegenMutex.unlock();
 			}
 
 			int batch = batchSize / ms;
@@ -593,9 +599,9 @@ namespace sw
 
 			draw->references = (count + batch - 1) / batch;
 
-			mutex.lock();
+			schedulerMutex.lock();
 			nextDraw++;
-			mutex.unlock();
+			schedulerMutex.unlock();
 
 			if(!threadsAwake)
 			{
@@ -726,7 +732,7 @@ namespace sw
 
 	void Renderer::scheduleTask(int threadIndex)
 	{
-		mutex.lock();
+		schedulerMutex.lock();
 
 		if((int)qSize < threadCount - threadsAwake + 1)
 		{
@@ -763,7 +769,7 @@ namespace sw
 			threadsAwake--;
 		}
 
-		mutex.unlock();
+		schedulerMutex.unlock();
 	}
 
 	void Renderer::executeTask(int threadIndex)
