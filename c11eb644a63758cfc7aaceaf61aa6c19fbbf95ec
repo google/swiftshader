@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "068cdc85_f68c4689",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-20T21:23:02Z",
+      "side": 1,
+      "message": "nit: Might want to use a static_cast here to make it stand out more since it\u0027s a kind of hack.",
+      "range": {
+        "startLine": 39,
+        "startChar": 20,
+        "endLine": 39,
+        "endChar": 45
+      },
+      "revId": "c11eb644a63758cfc7aaceaf61aa6c19fbbf95ec",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
