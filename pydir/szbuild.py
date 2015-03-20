@@ -297,6 +297,7 @@ def ProcessPexe(args, pexe, exe):
             '{linklib}/libpnacl_irt_shim_dummy.a --start-group ' +
             '{linklib}/libgcc.a {linklib}/libcrt_platform.a ' +
             '--end-group {linklib}/crtend.o --undefined=_start ' +
+            '--defsym=__Sz_AbsoluteZero=0 ' +
             '-o {exe}'
             ).format(gold=gold, linklib=linklib, partial=obj_partial, exe=exe,
                      root=nacl_root),
@@ -309,7 +310,8 @@ def ProcessPexe(args, pexe, exe):
             '{root}/toolchain/linux_x86/pnacl_newlib/translator/x86-32-linux/' +
             'lib/{{unsandboxed_irt,irt_random,irt_query_list}}.o ' +
             '{root}/toolchain_build/src/subzero/build/runtime/' +
-            'szrt_native_x8632.o -lpthread -lrt'
+            'szrt_native_x8632.o -lpthread -lrt ' +
+            '-Wl,--defsym=__Sz_AbsoluteZero=0'
             ).format(ld=linker, partial=obj_partial, exe=exe, root=nacl_root),
                  echo=args.verbose)
 

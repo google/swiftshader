@@ -146,9 +146,11 @@ def main():
     compiler = '{bin}/{prefix}{cc}'.format(
         bin=bindir, prefix='pnacl-' if args.sandbox else '',
         cc='clang' if pure_c else 'clang++')
-    sb_native_args = (['-O0', '--pnacl-allow-native', '-arch', 'x8632']
+    sb_native_args = (['-O0', '--pnacl-allow-native', '-arch', 'x8632',
+                       '-Wn,-defsym=__Sz_AbsoluteZero=0']
                       if args.sandbox else
-                      ['-g', '-m32', '-lm', '-lpthread'])
+                      ['-g', '-m32', '-lm', '-lpthread',
+                       '-Wl,--defsym=__Sz_AbsoluteZero=0'])
     shellcmd([compiler, args.driver] + objs +
              ['-o', os.path.join(args.dir, args.output)] + sb_native_args)
 

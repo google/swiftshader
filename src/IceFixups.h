@@ -44,7 +44,7 @@ public:
 
   void set_value(const Constant *Value) { value_ = Value; }
 
-  void emit(GlobalContext *Ctx) const;
+  void emit(GlobalContext *Ctx, RelocOffsetT BaseOffset) const;
 
 private:
   intptr_t position_;

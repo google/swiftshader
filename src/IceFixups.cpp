@@ -46,13 +46,15 @@ IceString AssemblerFixup::symbol(const GlobalContext *Ctx) const {
   return Str.str();
 }
 
-void AssemblerFixup::emit(GlobalContext *Ctx) const {
+void AssemblerFixup::emit(GlobalContext *Ctx, RelocOffsetT BaseOffset) const {
+  if (!ALLOW_DUMP)
+    return;
   Ostream &Str = Ctx->getStrEmit();
-  // TODO(jvoung): Not yet clear how to emit a relocation against
-  // the null symbol.
-  assert(!isNullSymbol());
-  Str << symbol(Ctx);
-  RelocOffsetT Offset = offset();
+  if (isNullSymbol())
+    Str << "__Sz_AbsoluteZero";
+  else
+    Str << symbol(Ctx);
+  RelocOffsetT Offset = offset() + BaseOffset;
   if (Offset)
     Str << " + " << Offset;
 }

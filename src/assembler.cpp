@@ -136,9 +136,9 @@ void Assembler::emitIASBytes(GlobalContext *Ctx) const {
       Str << "\n";
     }
     Str << "\t.long ";
-    NextFixup->emit(Ctx);
+    NextFixup->emit(Ctx, buffer_.Load<RelocOffsetT>(NextFixupLoc));
     if (fixupIsPCRel(NextFixup->kind()))
-      Str << " - (. + " << FixupSize << ")";
+      Str << " - .";
     Str << "\n";
     CurPosition = NextFixupLoc + FixupSize;
     assert(CurPosition <= EndPosition);
