@@ -319,8 +319,8 @@ bool ConfigSet::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint 
             case EGL_MAX_PBUFFER_WIDTH:          match = config->mMaxPBufferWidth >= attribute[1];                 break;
             case EGL_MAX_PBUFFER_HEIGHT:         match = config->mMaxPBufferHeight >= attribute[1];                break;
             case EGL_MAX_PBUFFER_PIXELS:         match = config->mMaxPBufferPixels >= attribute[1];                break;
-			case EGL_RECORDABLE_ANDROID:         match = false; /* UNIMPLEMENTED(); */                             break;
-			case EGL_FRAMEBUFFER_TARGET_ANDROID: match = false; /* UNIMPLEMENTED(); */                             break;
+            case EGL_RECORDABLE_ANDROID:         match = true; /* UNIMPLEMENTED(); EGL_ANDROID_recordable */       break;
+            case EGL_FRAMEBUFFER_TARGET_ANDROID: match = true; /* UNIMPLEMENTED(); EGL_ANDROID_framebuffer_target */ break;
 			default:
 				UNIMPLEMENTED();
 				match = false;
