@@ -14,6 +14,7 @@ class Image;
 class Context
 {
 public:
+	virtual ~Context() {};
 	virtual void destroy() = 0;
 	virtual void makeCurrent(Surface *surface) = 0;
 	virtual void bindTexImage(Surface *surface) = 0;
