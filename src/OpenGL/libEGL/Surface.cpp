@@ -118,6 +118,8 @@ bool Surface::reset()
 		GetClientRect(mWindow, &windowRect);
 
 		return reset(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
+	#elif defined(__ANDROID__)
+		return reset(ANativeWindow_getWidth(mWindow), ANativeWindow_getHeight(mWindow));
 	#else
 		XWindowAttributes windowAttributes;
 		XGetWindowAttributes(mDisplay->getNativeDisplay(), mWindow, &windowAttributes);
@@ -285,6 +287,9 @@ bool Surface::checkForResize()
 
 		int clientWidth = client.right - client.left;
 		int clientHeight = client.bottom - client.top;
+	#elif defined(__ANDROID__)
+		int clientWidth = ANativeWindow_getWidth(mWindow);
+		int clientHeight = ANativeWindow_getHeight(mWindow);
 	#else
 		XWindowAttributes windowAttributes;
 		XGetWindowAttributes(mDisplay->getNativeDisplay(), mWindow, &windowAttributes);

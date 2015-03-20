@@ -20,6 +20,11 @@
 #include "libEGL/Context.hpp"
 #include "common/debug.h"
 
+#ifdef __ANDROID__
+#include <system/window.h>
+#include <GceFrameBufferConfig.h>
+#endif
+
 #include <algorithm>
 #include <vector>
 #include <map>
@@ -31,28 +36,30 @@ DisplayMap displays;
 
 egl::Display *Display::getPlatformDisplay(EGLenum platform, EGLNativeDisplayType displayId)
 {
-    if(platform == EGL_UNKNOWN)   // Default
-    {
-        #if defined(__unix__)
-            platform = EGL_PLATFORM_X11_EXT;
-        #endif
-    }
-
-    if(displayId == EGL_DEFAULT_DISPLAY)
-    {
-        if(platform == EGL_PLATFORM_X11_EXT)
+    #ifndef __ANDROID__
+        if(platform == EGL_UNKNOWN)   // Default
         {
             #if defined(__unix__)
-                displayId = XOpenDisplay(NULL);
-            #else
-                return error(EGL_BAD_PARAMETER, (egl::Display*)EGL_NO_DISPLAY);
+                platform = EGL_PLATFORM_X11_EXT;
             #endif
         }
-    }
-    else
-    {
-        // FIXME: Check if displayId is a valid display device context for <platform>
-    }
+
+        if(displayId == EGL_DEFAULT_DISPLAY)
+        {
+            if(platform == EGL_PLATFORM_X11_EXT)
+            {
+                #if defined(__unix__)
+                    displayId = XOpenDisplay(NULL);
+                #else
+                    return error(EGL_BAD_PARAMETER, (egl::Display*)EGL_NO_DISPLAY);
+                #endif
+            }
+        }
+        else
+        {
+            // FIXME: Check if displayId is a valid display device context for <platform>
+        }
+    #endif
 
     if(displays.find(displayId) != displays.end())
     {
@@ -459,6 +466,18 @@ bool Display::isValidWindow(EGLNativeWindowType window)
 {
     #if defined(_WIN32)
         return IsWindow(window) == TRUE;
+    #elif defined(__ANDROID__)
+		if(!window)
+		{
+			ALOGE("%s called with window==NULL %s:%d", __FUNCTION__, __FILE__, __LINE__);
+			return false;
+		}
+		if(static_cast<ANativeWindow*>(window)->common.magic != ANDROID_NATIVE_WINDOW_MAGIC)
+		{
+			ALOGE("%s called with window==%p bad magic %s:%d", __FUNCTION__, window, __FILE__, __LINE__);
+			return false;
+		}
+		return true;
     #else
         if(platform == EGL_PLATFORM_X11_EXT)
         {
@@ -467,7 +486,7 @@ bool Display::isValidWindow(EGLNativeWindowType window)
 
             return status == True;
         }
-	#endif
+    #endif
 
     return false;
 }
@@ -521,7 +540,12 @@ DisplayMode Display::getDisplayMode() const
 		}
 
 		ReleaseDC(0, deviceContext);
-	#else
+	#elif defined(__ANDROID__)
+		displayMode.width = GceFrameBufferConfig::getInstance()->x_res();
+		displayMode.height = GceFrameBufferConfig::getInstance()->y_res();
+		displayMode.format = sw::FORMAT_X8R8G8B8;
+		ALOGI("Returning framebuffer config width=%d height=%d, format=%d", displayMode.width, displayMode.height, displayMode.format);
+    #else
         if(platform == EGL_PLATFORM_X11_EXT)
         {
             Screen *screen = XDefaultScreenOfDisplay(displayId);
