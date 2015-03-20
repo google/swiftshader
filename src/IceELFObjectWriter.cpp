@@ -64,7 +64,8 @@ uint32_t getELFFlags(TargetArch Arch) {
 } // end of anonymous namespace
 
 ELFObjectWriter::ELFObjectWriter(GlobalContext &Ctx, ELFStreamer &Out)
-    : Ctx(Ctx), Str(Out), SectionNumbersAssigned(false) {
+    : Ctx(Ctx), Str(Out), SectionNumbersAssigned(false),
+      ELF64(isELF64(Ctx.getFlags().getTargetArch())) {
   // Create the special bookkeeping sections now.
   const IceString NullSectionName("");
   NullSection = new (Ctx.allocate<ELFSection>())
@@ -76,10 +77,9 @@ ELFObjectWriter::ELFObjectWriter(GlobalContext &Ctx, ELFStreamer &Out)
   ShStrTab->add(ShStrTabName);
 
   const IceString SymTabName(".symtab");
-  bool IsELF64 = isELF64(Ctx.getTargetArch());
-  const Elf64_Xword SymTabAlign = IsELF64 ? 8 : 4;
+  const Elf64_Xword SymTabAlign = ELF64 ? 8 : 4;
   const Elf64_Xword SymTabEntSize =
-      IsELF64 ? sizeof(Elf64_Sym) : sizeof(Elf32_Sym);
+      ELF64 ? sizeof(Elf64_Sym) : sizeof(Elf32_Sym);
   static_assert(sizeof(Elf64_Sym) == 24 && sizeof(Elf32_Sym) == 16,
                 "Elf_Sym sizes cannot be derived from sizeof");
   SymTab = createSection<ELFSymbolTableSection>(SymTabName, SHT_SYMTAB, 0,
@@ -103,18 +103,16 @@ T *ELFObjectWriter::createSection(const IceString &Name, Elf64_Word ShType,
 }
 
 ELFRelocationSection *
-ELFObjectWriter::createRelocationSection(bool IsELF64,
-                                         const ELFSection *RelatedSection) {
+ELFObjectWriter::createRelocationSection(const ELFSection *RelatedSection) {
   // Choice of RELA vs REL is actually separate from elf64 vs elf32,
   // but in practice we've only had .rela for elf64 (x86-64).
   // In the future, the two properties may need to be decoupled
   // and the ShEntSize can vary more.
-  const Elf64_Word ShType = IsELF64 ? SHT_RELA : SHT_REL;
-  IceString RelPrefix = IsELF64 ? ".rela" : ".rel";
+  const Elf64_Word ShType = ELF64 ? SHT_RELA : SHT_REL;
+  IceString RelPrefix = ELF64 ? ".rela" : ".rel";
   IceString RelSectionName = RelPrefix + RelatedSection->getName();
-  const Elf64_Xword ShAlign = IsELF64 ? 8 : 4;
-  const Elf64_Xword ShEntSize =
-      IsELF64 ? sizeof(Elf64_Rela) : sizeof(Elf32_Rel);
+  const Elf64_Xword ShAlign = ELF64 ? 8 : 4;
+  const Elf64_Xword ShEntSize = ELF64 ? sizeof(Elf64_Rela) : sizeof(Elf32_Rel);
   static_assert(sizeof(Elf64_Rela) == 24 && sizeof(Elf32_Rel) == 8,
                 "Elf_Rel/Rela sizes cannot be derived from sizeof");
   const Elf64_Xword ShFlags = 0;
@@ -220,7 +218,6 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
     IceString SectionName = ".text";
     if (FunctionSections)
       SectionName += "." + FuncName;
-    bool IsELF64 = isELF64(Ctx.getTargetArch());
     const Elf64_Xword ShFlags = SHF_ALLOC | SHF_EXECINSTR;
     const Elf64_Xword ShAlign = 1 << Asm->getBundleAlignLog2Bytes();
     Section = createSection<ELFTextSection>(SectionName, SHT_PROGBITS, ShFlags,
@@ -228,7 +225,7 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
     Elf64_Off OffsetInFile = alignFileOffset(Section->getSectionAlign());
     Section->setFileOffset(OffsetInFile);
     TextSections.push_back(Section);
-    RelSection = createRelocationSection(IsELF64, Section);
+    RelSection = createRelocationSection(Section);
     RelTextSections.push_back(RelSection);
   } else {
     Section = TextSections[0];
@@ -295,17 +292,15 @@ void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
     SectionList.reserve(Vars.size());
   partitionGlobalsBySection(Vars, VarsBySection,
                             Ctx.getFlags().getTranslateOnly());
-  bool IsELF64 = isELF64(Ctx.getTargetArch());
   size_t I = 0;
   for (auto &SectionList : VarsBySection) {
-    writeDataOfType(static_cast<SectionType>(I++), SectionList, RelocationKind,
-                    IsELF64);
+    writeDataOfType(static_cast<SectionType>(I++), SectionList, RelocationKind);
   }
 }
 
 void ELFObjectWriter::writeDataOfType(SectionType ST,
                                       const VariableDeclarationList &Vars,
-                                      FixupKind RelocationKind, bool IsELF64) {
+                                      FixupKind RelocationKind) {
   if (Vars.empty())
     return;
   ELFDataSection *Section;
@@ -329,7 +324,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
                                             ShAddralign, ShEntsize);
     Section->setFileOffset(alignFileOffset(ShAddralign));
     RODataSections.push_back(Section);
-    RelSection = createRelocationSection(IsELF64, Section);
+    RelSection = createRelocationSection(Section);
     RelRODataSections.push_back(RelSection);
     break;
   }
@@ -341,7 +336,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
                                             ShAddralign, ShEntsize);
     Section->setFileOffset(alignFileOffset(ShAddralign));
     DataSections.push_back(Section);
-    RelSection = createRelocationSection(IsELF64, Section);
+    RelSection = createRelocationSection(Section);
     RelDataSections.push_back(RelSection);
     break;
   }
@@ -422,7 +417,7 @@ void ELFObjectWriter::writeInitialELFHeader() {
   const Elf64_Off DummySHOffset = 0;
   const SizeT DummySHStrIndex = 0;
   const SizeT DummyNumSections = 0;
-  if (isELF64(Ctx.getTargetArch())) {
+  if (ELF64) {
     writeELFHeaderInternal<true>(DummySHOffset, DummySHStrIndex,
                                  DummyNumSections);
   } else {
@@ -453,17 +448,18 @@ void ELFObjectWriter::writeELFHeaderInternal(Elf64_Off SectionHeaderOffset,
   assert(NumSections < SHN_LORESERVE);
   assert(SectHeaderStrIndex < SHN_LORESERVE);
 
+  const TargetArch Arch = Ctx.getFlags().getTargetArch();
   // Write the rest of the file header, which does depend on byte order
   // and ELF class.
-  Str.writeLE16(ET_REL);                             // e_type
-  Str.writeLE16(getELFMachine(Ctx.getTargetArch())); // e_machine
-  Str.writeELFWord<IsELF64>(1);                      // e_version
+  Str.writeLE16(ET_REL);                                        // e_type
+  Str.writeLE16(getELFMachine(Ctx.getFlags().getTargetArch())); // e_machine
+  Str.writeELFWord<IsELF64>(1);                                 // e_version
   // Since this is for a relocatable object, there is no entry point,
   // and no program headers.
   Str.writeAddrOrOffset<IsELF64>(0);                                // e_entry
   Str.writeAddrOrOffset<IsELF64>(0);                                // e_phoff
   Str.writeAddrOrOffset<IsELF64>(SectionHeaderOffset);              // e_shoff
-  Str.writeELFWord<IsELF64>(getELFFlags(Ctx.getTargetArch()));      // e_flags
+  Str.writeELFWord<IsELF64>(getELFFlags(Arch));                     // e_flags
   Str.writeLE16(IsELF64 ? sizeof(Elf64_Ehdr) : sizeof(Elf32_Ehdr)); // e_ehsize
   static_assert(sizeof(Elf64_Ehdr) == 64 && sizeof(Elf32_Ehdr) == 52,
                 "Elf_Ehdr sizes cannot be derived from sizeof");
@@ -532,10 +528,10 @@ template void ELFObjectWriter::writeConstantPool<ConstantFloat>(Type Ty);
 
 template void ELFObjectWriter::writeConstantPool<ConstantDouble>(Type Ty);
 
-void ELFObjectWriter::writeAllRelocationSections(bool IsELF64) {
-  writeRelocationSections(IsELF64, RelTextSections);
-  writeRelocationSections(IsELF64, RelDataSections);
-  writeRelocationSections(IsELF64, RelRODataSections);
+void ELFObjectWriter::writeAllRelocationSections() {
+  writeRelocationSections(RelTextSections);
+  writeRelocationSections(RelDataSections);
+  writeRelocationSections(RelRODataSections);
 }
 
 void ELFObjectWriter::setUndefinedSyms(const ConstantList &UndefSyms) {
@@ -555,13 +551,12 @@ void ELFObjectWriter::setUndefinedSyms(const ConstantList &UndefSyms) {
   }
 }
 
-void ELFObjectWriter::writeRelocationSections(bool IsELF64,
-                                              RelSectionList &RelSections) {
+void ELFObjectWriter::writeRelocationSections(RelSectionList &RelSections) {
   for (ELFRelocationSection *RelSec : RelSections) {
     Elf64_Off Offset = alignFileOffset(RelSec->getSectionAlign());
     RelSec->setFileOffset(Offset);
     RelSec->setSize(RelSec->getSectionDataSize());
-    if (IsELF64) {
+    if (ELF64) {
       RelSec->writeData<true>(Ctx, Str, SymTab);
     } else {
       RelSec->writeData<false>(Ctx, Str, SymTab);
@@ -570,8 +565,6 @@ void ELFObjectWriter::writeRelocationSections(bool IsELF64,
 }
 
 void ELFObjectWriter::writeNonUserSections() {
-  bool IsELF64 = isELF64(Ctx.getTargetArch());
-
   // Write out the shstrtab now that all sections are known.
   ShStrTab->doLayout();
   ShStrTab->setSize(ShStrTab->getSectionDataSize());
@@ -591,19 +584,19 @@ void ELFObjectWriter::writeNonUserSections() {
   Elf64_Off SymTabOffset = alignFileOffset(SymTab->getSectionAlign());
   SymTab->setFileOffset(SymTabOffset);
   SymTab->setSize(SymTab->getSectionDataSize());
-  SymTab->writeData(Str, IsELF64);
+  SymTab->writeData(Str, ELF64);
 
   Elf64_Off StrTabOffset = alignFileOffset(StrTab->getSectionAlign());
   StrTab->setFileOffset(StrTabOffset);
   Str.writeBytes(StrTab->getSectionData());
 
-  writeAllRelocationSections(IsELF64);
+  writeAllRelocationSections();
 
   // Write out the section headers.
-  const size_t ShdrAlign = IsELF64 ? 8 : 4;
+  const size_t ShdrAlign = ELF64 ? 8 : 4;
   Elf64_Off ShOffset = alignFileOffset(ShdrAlign);
   for (const auto S : AllSections) {
-    if (IsELF64)
+    if (ELF64)
       S->writeHeader<true>(Str);
     else
       S->writeHeader<false>(Str);
@@ -611,7 +604,7 @@ void ELFObjectWriter::writeNonUserSections() {
 
   // Finally write the updated ELF header w/ the correct number of sections.
   Str.seek(0);
-  if (IsELF64) {
+  if (ELF64) {
     writeELFHeaderInternal<true>(ShOffset, ShStrTab->getNumber(),
                                  AllSections.size());
   } else {

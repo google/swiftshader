@@ -99,7 +99,7 @@ public:
   static std::unique_ptr<Assembler> createAssembler(TargetArch Target,
                                                     Cfg *Func);
   void translate() {
-    switch (Ctx->getOptLevel()) {
+    switch (Ctx->getFlags().getOptLevel()) {
     case Opt_m1:
       translateOm1();
       break;
@@ -164,7 +164,6 @@ public:
   virtual SizeT getFrameOrStackReg() const = 0;
   virtual size_t typeWidthInBytesOnStack(Type Ty) const = 0;
   bool hasComputedFrame() const { return HasComputedFrame; }
-  bool shouldDoNopInsertion() const;
   // Returns true if this function calls a function that has the
   // "returns twice" attribute.
   bool callsReturnsTwice() const { return CallsReturnsTwice; }
@@ -244,7 +243,6 @@ protected:
 
   Cfg *Func;
   GlobalContext *Ctx;
-  const bool RandomizeRegisterAllocation;
   bool HasComputedFrame;
   bool CallsReturnsTwice;
   // StackAdjustment keeps track of the current stack offset from its

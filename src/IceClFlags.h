@@ -14,7 +14,7 @@
 #ifndef SUBZERO_SRC_ICECLFLAGS_H
 #define SUBZERO_SRC_ICECLFLAGS_H
 
-#include "IceTypes.def"
+#include "IceTypes.h"
 
 namespace Ice {
 
@@ -30,15 +30,18 @@ public:
         DecorateAsm(false), DisableInternal(false), DisableIRGeneration(false),
         DisableTranslation(false), DumpStats(false), FunctionSections(false),
         GenerateUnitTestMessages(false), PhiEdgeSplit(false),
+        RandomNopInsertion(false), RandomRegAlloc(false),
         SubzeroTimingEnabled(false), TimeEachFunction(false),
         UseSandboxing(false),
-        // FileType field
-        OutFileType(FT_Iasm),
+        // Enum and integer fields
+        Opt(Opt_m1), OutFileType(FT_Iasm), RandomMaxNopsPerInstruction(0),
+        RandomNopProbabilityAsPercentage(0), TArch(TargetArch_NUM),
+        VMask(IceV_None),
         // IceString fields.
-        DefaultFunctionPrefix(""), DefaultGlobalPrefix(""), TimingFocusOn(""),
-        TranslateOnly(""), VerboseFocusOn(""),
-        // size_t fields.
-        NumTranslationThreads(0) {}
+        DefaultFunctionPrefix(""), DefaultGlobalPrefix(""), TestPrefix(""),
+        TimingFocusOn(""), TranslateOnly(""), VerboseFocusOn(""),
+        // size_t and 64-bit fields.
+        NumTranslationThreads(0), RandomSeed(0) {}
 
   // bool accessors.
 
@@ -87,6 +90,12 @@ public:
   bool getPhiEdgeSplit() const { return PhiEdgeSplit; }
   void setPhiEdgeSplit(bool NewValue) { PhiEdgeSplit = NewValue; }
 
+  bool shouldDoNopInsertion() const { return RandomNopInsertion; }
+  void setShouldDoNopInsertion(bool NewValue) { RandomNopInsertion = NewValue; }
+
+  bool shouldRandomizeRegAlloc() const { return RandomRegAlloc; }
+  void setShouldRandomizeRegAlloc(bool NewValue) { RandomRegAlloc = NewValue; }
+
   bool getSubzeroTimingEnabled() const { return SubzeroTimingEnabled; }
   void setSubzeroTimingEnabled(bool NewValue) {
     SubzeroTimingEnabled = NewValue;
@@ -98,9 +107,35 @@ public:
   bool getUseSandboxing() const { return UseSandboxing; }
   void setUseSandboxing(bool NewValue) { UseSandboxing = NewValue; }
 
-  // FileType accessor.
+  // Enum and integer accessors.
+  OptLevel getOptLevel() const { return Opt; }
+  void setOptLevel(OptLevel NewValue) { Opt = NewValue; }
+
   FileType getOutFileType() const { return OutFileType; }
   void setOutFileType(FileType NewValue) { OutFileType = NewValue; }
+
+  int getMaxNopsPerInstruction() const { return RandomMaxNopsPerInstruction; }
+  void setMaxNopsPerInstruction(int NewValue) {
+    RandomMaxNopsPerInstruction = NewValue;
+  }
+
+  int getNopProbabilityAsPercentage() const {
+    return RandomNopProbabilityAsPercentage;
+  }
+  void setNopProbabilityAsPercentage(int NewValue) {
+    RandomNopProbabilityAsPercentage = NewValue;
+  }
+
+  TargetArch getTargetArch() const { return TArch; }
+  void setTargetArch(TargetArch NewValue) { TArch = NewValue; }
+
+  TargetInstructionSet getTargetInstructionSet() const { return TInstrSet; }
+  void setTargetInstructionSet(TargetInstructionSet NewValue) {
+    TInstrSet = NewValue;
+  }
+
+  VerboseMask getVerbose() const { return ALLOW_DUMP ? VMask : IceV_None; }
+  void setVerbose(VerboseMask NewValue) { VMask = NewValue; }
 
   // IceString accessors.
 
@@ -118,6 +153,9 @@ public:
     DefaultGlobalPrefix = NewValue;
   }
 
+  const IceString &getTestPrefix() const { return TestPrefix; }
+  void setTestPrefix(const IceString &NewValue) { TestPrefix = NewValue; }
+
   const IceString &getTimingFocusOn() const { return TimingFocusOn; }
   void setTimingFocusOn(const IceString &NewValue) { TimingFocusOn = NewValue; }
 
@@ -129,13 +167,16 @@ public:
     VerboseFocusOn = NewValue;
   }
 
-  // size_t accessors.
+  // size_t and 64-bit accessors.
 
   size_t getNumTranslationThreads() const { return NumTranslationThreads; }
   bool isSequential() const { return NumTranslationThreads == 0; }
   void setNumTranslationThreads(size_t NewValue) {
     NumTranslationThreads = NewValue;
   }
+
+  uint64_t getRandomSeed() const { return RandomSeed; }
+  void setRandomSeed(size_t NewValue) { RandomSeed = NewValue; }
 
 private:
   bool AllowErrorRecovery;
@@ -149,19 +190,29 @@ private:
   bool FunctionSections;
   bool GenerateUnitTestMessages;
   bool PhiEdgeSplit;
+  bool RandomNopInsertion;
+  bool RandomRegAlloc;
   bool SubzeroTimingEnabled;
   bool TimeEachFunction;
   bool UseSandboxing;
 
+  OptLevel Opt;
   FileType OutFileType;
+  int RandomMaxNopsPerInstruction;
+  int RandomNopProbabilityAsPercentage;
+  TargetArch TArch;
+  TargetInstructionSet TInstrSet;
+  VerboseMask VMask;
 
   IceString DefaultFunctionPrefix;
   IceString DefaultGlobalPrefix;
+  IceString TestPrefix;
   IceString TimingFocusOn;
   IceString TranslateOnly;
   IceString VerboseFocusOn;
 
   size_t NumTranslationThreads; // 0 means completely sequential
+  uint64_t RandomSeed;
 };
 
 } // end of namespace Ice

@@ -162,12 +162,9 @@ void GlobalContext::CodeStats::dump(const IceString &Name, Ostream &Str) {
 }
 
 GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
-                             ELFStreamer *ELFStr, VerboseMask Mask,
-                             TargetArch Arch, OptLevel Opt,
-                             IceString TestPrefix, const ClFlags &Flags)
+                             ELFStreamer *ELFStr, const ClFlags &Flags)
     : ConstPool(new ConstantPool()), ErrorStatus(), StrDump(OsDump),
-      StrEmit(OsEmit), VMask(Mask), Arch(Arch), Opt(Opt),
-      TestPrefix(TestPrefix), Flags(Flags), RNG(""), ObjectWriter(),
+      StrEmit(OsEmit), Flags(Flags), RNG(Flags.getRandomSeed()), ObjectWriter(),
       OptQ(/*Sequential=*/Flags.isSequential(),
            /*MaxSize=*/Flags.getNumTranslationThreads()),
       // EmitQ is allowed unlimited size.
@@ -267,7 +264,7 @@ void lowerGlobals(GlobalContext *Ctx,
                   std::unique_ptr<VariableDeclarationList> VariableDeclarations,
                   TargetDataLowering *DataLowering) {
   TimerMarker T(TimerStack::TT_emitGlobalInitializers, Ctx);
-  const bool DumpGlobalVariables = ALLOW_DUMP && Ctx->getVerbose() &&
+  const bool DumpGlobalVariables = ALLOW_DUMP && Ctx->getFlags().getVerbose() &&
                                    Ctx->getFlags().getVerboseFocusOn().empty();
   if (DumpGlobalVariables) {
     OstreamLocker L(Ctx);
@@ -459,10 +456,11 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
   //   _Z3barxyz ==> ZN6Prefix3barExyz
   // An unmangled, extern "C" style name, gets a simple prefix:
   //   bar ==> Prefixbar
-  if (!ALLOW_DUMP || getTestPrefix().empty())
+  if (!ALLOW_DUMP || getFlags().getTestPrefix().empty())
     return Name;
 
-  unsigned PrefixLength = getTestPrefix().length();
+  const IceString &TestPrefix = getFlags().getTestPrefix();
+  unsigned PrefixLength = TestPrefix.length();
   ManglerVector NameBase(1 + Name.length());
   const size_t BufLen = 30 + Name.length() + PrefixLength;
   ManglerVector NewName(BufLen);
@@ -473,7 +471,7 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
     // Transform _ZN3foo3barExyz ==> _ZN6Prefix3foo3barExyz
     //   (splice in "6Prefix")          ^^^^^^^
     snprintf(NewName.data(), BufLen, "_ZN%u%s%s", PrefixLength,
-             getTestPrefix().c_str(), NameBase.data());
+             TestPrefix.c_str(), NameBase.data());
     // We ignore the snprintf return value (here and below).  If we
     // somehow miscalculated the output buffer length, the output will
     // be truncated, but it will be truncated consistently for all
@@ -512,7 +510,7 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
     OrigName[ActualBaseLength] = '\0';
     strcpy(OrigSuffix.data(), NameBase.data() + ActualBaseLength);
     snprintf(NewName.data(), BufLen, "_ZN%u%s%u%sE%s", PrefixLength,
-             getTestPrefix().c_str(), BaseLength, OrigName.data(),
+             TestPrefix.c_str(), BaseLength, OrigName.data(),
              OrigSuffix.data());
     incrementSubstitutions(NewName);
     return NewName.data();
@@ -520,7 +518,7 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
 
   // Transform bar ==> Prefixbar
   //                   ^^^^^^
-  return getTestPrefix() + Name;
+  return TestPrefix + Name;
 }
 
 GlobalContext::~GlobalContext() {

@@ -15,8 +15,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Support/CommandLine.h"
-
 #include "assembler_ia32.h"
 #include "IceCfg.h" // setError()
 #include "IceCfgNode.h"
@@ -26,27 +24,6 @@
 #include "IceTargetLoweringX8632.h"
 
 namespace Ice {
-
-namespace {
-
-// TODO(stichnot): Move this machinery into main.cpp.
-namespace cl = llvm::cl;
-cl::opt<bool> DoNopInsertion("nop-insertion", cl::desc("Randomly insert NOPs"),
-                             cl::init(false));
-
-cl::opt<int> MaxNopsPerInstruction(
-    "max-nops-per-instruction",
-    cl::desc("Max number of nops to insert per instruction"), cl::init(1));
-
-cl::opt<int> NopProbabilityAsPercentage(
-    "nop-insertion-percentage",
-    cl::desc("Nop insertion probability as percentage"), cl::init(10));
-
-cl::opt<bool>
-    CLRandomizeRegisterAllocation("randomize-regalloc",
-                                  cl::desc("Randomize register allocation"),
-                                  cl::init(false));
-} // end of anonymous namespace
 
 void LoweringContext::init(CfgNode *N) {
   Node = N;
@@ -102,10 +79,9 @@ TargetLowering *TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
 }
 
 TargetLowering::TargetLowering(Cfg *Func)
-    : Func(Func), Ctx(Func->getContext()),
-      RandomizeRegisterAllocation(CLRandomizeRegisterAllocation),
-      HasComputedFrame(false), CallsReturnsTwice(false), StackAdjustment(0),
-      Context(), SnapshotStackAdjustment(0) {}
+    : Func(Func), Ctx(Func->getContext()), HasComputedFrame(false),
+      CallsReturnsTwice(false), StackAdjustment(0), Context(),
+      SnapshotStackAdjustment(0) {}
 
 std::unique_ptr<Assembler> TargetLowering::createAssembler(TargetArch Target,
                                                            Cfg *Func) {
@@ -126,16 +102,15 @@ void TargetLowering::doAddressOpt() {
   Context.advanceNext();
 }
 
-bool TargetLowering::shouldDoNopInsertion() const { return DoNopInsertion; }
-
 void TargetLowering::doNopInsertion() {
   Inst *I = Context.getCur();
   bool ShouldSkip = llvm::isa<InstFakeUse>(I) || llvm::isa<InstFakeDef>(I) ||
                     llvm::isa<InstFakeKill>(I) || I->isRedundantAssign() ||
                     I->isDeleted();
   if (!ShouldSkip) {
-    for (int I = 0; I < MaxNopsPerInstruction; ++I) {
-      randomlyInsertNop(NopProbabilityAsPercentage / 100.0);
+    int Probability = Ctx->getFlags().getNopProbabilityAsPercentage();
+    for (int I = 0; I < Ctx->getFlags().getMaxNopsPerInstruction(); ++I) {
+      randomlyInsertNop(Probability / 100.0);
     }
   }
 }
@@ -251,14 +226,14 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
     RegExclude |= RegSet_FramePointer;
   LinearScan.init(Kind);
   llvm::SmallBitVector RegMask = getRegisterSet(RegInclude, RegExclude);
-  LinearScan.scan(RegMask, RandomizeRegisterAllocation);
+  LinearScan.scan(RegMask, Ctx->getFlags().shouldRandomizeRegAlloc());
 }
 
 std::unique_ptr<TargetDataLowering>
 TargetDataLowering::createLowering(GlobalContext *Ctx) {
   // These statements can be #ifdef'd to specialize the code generator
   // to a subset of the available targets.  TODO: use CRTP.
-  TargetArch Target = Ctx->getTargetArch();
+  TargetArch Target = Ctx->getFlags().getTargetArch();
   if (Target == Target_X8632)
     return std::unique_ptr<TargetDataLowering>(TargetDataX8632::create(Ctx));
 #if 0

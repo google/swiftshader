@@ -146,11 +146,8 @@ class GlobalContext {
 
 public:
   GlobalContext(Ostream *OsDump, Ostream *OsEmit, ELFStreamer *ELFStreamer,
-                VerboseMask Mask, TargetArch Arch, OptLevel Opt,
-                IceString TestPrefix, const ClFlags &Flags);
+                const ClFlags &Flags);
   ~GlobalContext();
-
-  VerboseMask getVerbose() const { return VMask; }
 
   // The dump and emit streams need to be used by only one thread at a
   // time.  This is done by exclusively reserving the streams via
@@ -168,8 +165,6 @@ public:
   Ostream &getStrDump() { return *StrDump; }
   Ostream &getStrEmit() { return *StrEmit; }
 
-  TargetArch getTargetArch() const { return Arch; }
-  OptLevel getOptLevel() const { return Opt; }
   LockedPtr<ErrorCode> getErrorStatus() {
     return LockedPtr<ErrorCode>(&ErrorStatus, &ErrorStatusLock);
   }
@@ -178,7 +173,6 @@ public:
   // names of translated functions.  This makes it easier to create an
   // execution test against a reference translator like llc, with both
   // translators using the same bitcode as input.
-  IceString getTestPrefix() const { return TestPrefix; }
   IceString mangleName(const IceString &Name) const;
 
   // Manage Constants.
@@ -419,11 +413,7 @@ private:
 
   ICE_CACHELINE_BOUNDARY;
 
-  const VerboseMask VMask;
   Intrinsics IntrinsicsInfo;
-  const TargetArch Arch;
-  const OptLevel Opt;
-  const IceString TestPrefix;
   const ClFlags &Flags;
   RandomNumberGenerator RNG; // TODO(stichnot): Move into Cfg.
   std::unique_ptr<ELFObjectWriter> ObjectWriter;

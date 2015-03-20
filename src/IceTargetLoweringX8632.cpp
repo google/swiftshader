@@ -13,7 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/MathExtras.h"
 
 #include "IceCfg.h"
@@ -153,16 +152,6 @@ uint32_t applyStackAlignment(uint32_t Value) {
   return applyAlignment(Value, X86_STACK_ALIGNMENT_BYTES);
 }
 
-// Instruction set options
-namespace cl = ::llvm::cl;
-cl::opt<TargetX8632::X86InstructionSet> CLInstructionSet(
-    "mattr", cl::desc("X86 target attributes"), cl::init(TargetX8632::SSE2),
-    cl::values(clEnumValN(TargetX8632::SSE2, "sse2",
-                          "Enable SSE2 instructions (default)"),
-               clEnumValN(TargetX8632::SSE4_1, "sse4.1",
-                          "Enable SSE 4.1 instructions"),
-               clEnumValEnd));
-
 // In some cases, there are x-macros tables for both high-level and
 // low-level instructions/operands that use the same enum key value.
 // The tables are kept separate to maintain a proper separation
@@ -272,9 +261,16 @@ ICETYPE_TABLE
 } // end of anonymous namespace
 
 TargetX8632::TargetX8632(Cfg *Func)
-    : TargetLowering(Func), InstructionSet(CLInstructionSet),
+    : TargetLowering(Func),
+      InstructionSet(static_cast<X86InstructionSet>(
+          Func->getContext()->getFlags().getTargetInstructionSet() -
+          TargetInstructionSet::X86InstructionSet_Begin)),
       IsEbpBasedFrame(false), NeedsStackAlignment(false), FrameSizeLocals(0),
       SpillAreaSizeBytes(0), NextLabelNumber(0) {
+  static_assert((X86InstructionSet::End - X86InstructionSet::Begin) ==
+                    (TargetInstructionSet::X86InstructionSet_End -
+                     TargetInstructionSet::X86InstructionSet_Begin),
+                "X86InstructionSet range different from TargetInstructionSet");
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
   // class.
@@ -400,7 +396,7 @@ void TargetX8632::translateO2() {
   Func->dump("After branch optimization");
 
   // Nop insertion
-  if (shouldDoNopInsertion()) {
+  if (Ctx->getFlags().shouldDoNopInsertion()) {
     Func->doNopInsertion();
   }
 }
@@ -437,7 +433,7 @@ void TargetX8632::translateOm1() {
   Func->dump("After stack frame mapping");
 
   // Nop insertion
-  if (shouldDoNopInsertion()) {
+  if (Ctx->getFlags().shouldDoNopInsertion()) {
     Func->doNopInsertion();
   }
 }
@@ -3230,7 +3226,7 @@ void TargetX8632::lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr,
 bool TargetX8632::tryOptimizedCmpxchgCmpBr(Variable *Dest, Operand *PtrToMem,
                                            Operand *Expected,
                                            Operand *Desired) {
-  if (Ctx->getOptLevel() == Opt_m1)
+  if (Ctx->getFlags().getOptLevel() == Opt_m1)
     return false;
   // Peek ahead a few instructions and see how Dest is used.
   // It's very common to have:
@@ -4543,7 +4539,7 @@ Variable *TargetX8632::makeReg(Type Type, int32_t RegNum) {
 }
 
 void TargetX8632::postLower() {
-  if (Ctx->getOptLevel() == Opt_m1)
+  if (Ctx->getFlags().getOptLevel() == Opt_m1)
     return;
   // Find two-address non-SSA instructions where Dest==Src0, and set
   // the DestNonKillable flag to keep liveness analysis consistent.

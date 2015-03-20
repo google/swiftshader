@@ -69,6 +69,16 @@ static cl::opt<Ice::TargetArch> TargetArch(
         clEnumValN(Ice::Target_ARM32, "arm", "arm32"),
         clEnumValN(Ice::Target_ARM32, "arm32", "arm32 (same as arm)"),
         clEnumValN(Ice::Target_ARM64, "arm64", "arm64"), clEnumValEnd));
+
+cl::opt<Ice::TargetInstructionSet> InstructionSet(
+    "mattr", cl::desc("Target architecture attributes"),
+    cl::init(Ice::X86InstructionSet_SSE2),
+    cl::values(clEnumValN(Ice::X86InstructionSet_SSE2, "sse2",
+                          "Enable SSE2 instructions (default)"),
+               clEnumValN(Ice::X86InstructionSet_SSE4_1, "sse4.1",
+                          "Enable SSE 4.1 instructions"),
+               clEnumValEnd));
+
 static cl::opt<bool> UseSandboxing("sandbox", cl::desc("Use sandboxing"));
 static cl::opt<bool>
     FunctionSections("ffunction-sections",
@@ -211,6 +221,30 @@ static cl::opt<uint32_t> NumThreads(
     // something related to std::thread::hardware_concurrency().
     cl::init(2));
 
+static cl::opt<bool> DoNopInsertion("nop-insertion",
+                                    cl::desc("Randomly insert NOPs"),
+                                    cl::init(false));
+
+static cl::opt<int> MaxNopsPerInstruction(
+    "max-nops-per-instruction",
+    cl::desc("Max number of nops to insert per instruction"), cl::init(1));
+
+static cl::opt<int> NopProbabilityAsPercentage(
+    "nop-insertion-percentage",
+    cl::desc("Nop insertion probability as percentage"), cl::init(10));
+
+static cl::opt<bool>
+    RandomizeRegisterAllocation("randomize-regalloc",
+                                cl::desc("Randomize register allocation"),
+                                cl::init(false));
+
+// TODO(stichnot): See if we can easily use LLVM's -rng-seed option
+// and implementation.  I expect the implementation is different and
+// therefore the tests would need to be changed.
+cl::opt<unsigned long long>
+    RandomSeed("sz-seed", cl::desc("Seed the random number generator"),
+               cl::init(time(0)));
+
 static int GetReturnValue(int Val) {
   if (AlwaysExitSuccess)
     return 0;
@@ -304,14 +338,24 @@ int main(int argc, char **argv) {
   Flags.setDumpStats(DumpStats);
   Flags.setFunctionSections(FunctionSections);
   Flags.setNumTranslationThreads(NumThreads);
+  Flags.setOptLevel(OptLevel);
   Flags.setPhiEdgeSplit(EnablePhiEdgeSplit);
+  Flags.setRandomSeed(RandomSeed);
+  Flags.setShouldDoNopInsertion(DoNopInsertion);
+  Flags.setShouldRandomizeRegAlloc(RandomizeRegisterAllocation);
   Flags.setSubzeroTimingEnabled(SubzeroTimingEnabled);
+  Flags.setTargetArch(TargetArch);
+  Flags.setTargetInstructionSet(InstructionSet);
+  Flags.setTestPrefix(TestPrefix);
   Flags.setTimeEachFunction(TimeEachFunction);
   Flags.setTimingFocusOn(TimingFocusOn);
   Flags.setTranslateOnly(TranslateOnly);
   Flags.setUseSandboxing(UseSandboxing);
   Flags.setVerboseFocusOn(VerboseFocusOn);
   Flags.setOutFileType(OutFileType);
+  Flags.setMaxNopsPerInstruction(MaxNopsPerInstruction);
+  Flags.setNopProbabilityAsPercentage(NopProbabilityAsPercentage);
+  Flags.setVerbose(VMask);
 
   // Force -build-on-read=0 for .ll files.
   const std::string LLSuffix = ".ll";
@@ -357,8 +401,7 @@ int main(int argc, char **argv) {
   } break;
   }
 
-  Ice::GlobalContext Ctx(Ls.get(), Os.get(), ELFStr.get(), VMask, TargetArch,
-                         OptLevel, TestPrefix, Flags);
+  Ice::GlobalContext Ctx(Ls.get(), Os.get(), ELFStr.get(), Flags);
 
   Ice::TimerMarker T(Ice::TimerStack::TT_szmain, &Ctx);
 

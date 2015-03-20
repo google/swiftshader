@@ -71,9 +71,11 @@ public:
   x86::Address stackVarToAsmOperand(const Variable *Var) const;
 
   enum X86InstructionSet {
+    Begin,
     // SSE2 is the PNaCl baseline instruction set.
-    SSE2,
-    SSE4_1
+    SSE2 = Begin,
+    SSE4_1,
+    End
   };
 
   X86InstructionSet getInstructionSet() const { return InstructionSet; }

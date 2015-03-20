@@ -93,6 +93,7 @@ private:
   GlobalContext &Ctx;
   ELFStreamer &Str;
   bool SectionNumbersAssigned;
+  bool ELF64;
 
   // All created sections, separated into different pools.
   typedef std::vector<ELFSection *> SectionList;
@@ -121,7 +122,7 @@ private:
   // Create a relocation section, given the related section
   // (e.g., .text, .data., .rodata).
   ELFRelocationSection *
-  createRelocationSection(bool IsELF64, const ELFSection *RelatedSection);
+  createRelocationSection(const ELFSection *RelatedSection);
 
   // Align the file position before writing out a section's data,
   // and return the position of the file.
@@ -150,13 +151,13 @@ private:
   // SectionType, given the global variables Vars belonging to that SectionType.
   void writeDataOfType(SectionType SectionType,
                        const VariableDeclarationList &Vars,
-                       FixupKind RelocationKind, bool IsELF64);
+                       FixupKind RelocationKind);
 
   // Write the final relocation sections given the final symbol table.
   // May also be able to seek around the file and resolve function calls
   // that are for functions within the same section.
-  void writeAllRelocationSections(bool IsELF64);
-  void writeRelocationSections(bool IsELF64, RelSectionList &RelSections);
+  void writeAllRelocationSections();
+  void writeRelocationSections(RelSectionList &RelSections);
 
   // Write the ELF file header with the given information about sections.
   template <bool IsELF64>

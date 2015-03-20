@@ -27,7 +27,7 @@ class RandomNumberGenerator {
   RandomNumberGenerator &operator=(const RandomNumberGenerator &) = delete;
 
 public:
-  explicit RandomNumberGenerator(llvm::StringRef Salt);
+  explicit RandomNumberGenerator(uint64_t Seed, llvm::StringRef Salt = "");
   uint64_t next(uint64_t Max);
 
 private:
