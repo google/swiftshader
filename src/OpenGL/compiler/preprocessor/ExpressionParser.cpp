@@ -470,7 +470,7 @@ static const yytype_uint8 yyrline[] =
 {
        0,    85,    85,    92,    93,    96,    99,   102,   105,   108,
      111,   114,   117,   120,   123,   126,   129,   132,   135,   138,
-     151,   164,   167,   170,   173,   176,   179
+     147,   156,   159,   162,   165,   168,   171
 };
 #endif
 
@@ -1543,12 +1543,8 @@ yyreduce:
 
     {
         if ((yyvsp[(3) - (3)]) == 0) {
-            std::ostringstream stream;
-            stream << (yyvsp[(1) - (3)]) << " % " << (yyvsp[(3) - (3)]);
-            std::string text = stream.str();
             context->diagnostics->report(pp::Diagnostics::DIVISION_BY_ZERO,
-                                         context->token->location,
-                                         text.c_str());
+                                         context->token->location, "");
             YYABORT;
         } else {
             (yyval) = (yyvsp[(1) - (3)]) % (yyvsp[(3) - (3)]);
@@ -1560,12 +1556,8 @@ yyreduce:
 
     {
         if ((yyvsp[(3) - (3)]) == 0) {
-            std::ostringstream stream;
-            stream << (yyvsp[(1) - (3)]) << " / " << (yyvsp[(3) - (3)]);
-            std::string text = stream.str();
             context->diagnostics->report(pp::Diagnostics::DIVISION_BY_ZERO,
-                                         context->token->location,
-                                         text.c_str());
+                                         context->token->location, "");
             YYABORT;
         } else {
             (yyval) = (yyvsp[(1) - (3)]) / (yyvsp[(3) - (3)]);

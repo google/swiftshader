@@ -137,12 +137,8 @@ expression
     }
     | expression '%' expression {
         if ($3 == 0) {
-            std::ostringstream stream;
-            stream << $1 << " % " << $3;
-            std::string text = stream.str();
             context->diagnostics->report(pp::Diagnostics::DIVISION_BY_ZERO,
-                                         context->token->location,
-                                         text.c_str());
+                                         context->token->location, "");
             YYABORT;
         } else {
             $$ = $1 % $3;
@@ -150,12 +146,8 @@ expression
     }
     | expression '/' expression {
         if ($3 == 0) {
-            std::ostringstream stream;
-            stream << $1 << " / " << $3;
-            std::string text = stream.str();
             context->diagnostics->report(pp::Diagnostics::DIVISION_BY_ZERO,
-                                         context->token->location,
-                                         text.c_str());
+                                         context->token->location, "");
             YYABORT;
         } else {
             $$ = $1 / $3;

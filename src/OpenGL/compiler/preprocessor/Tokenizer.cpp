@@ -1,4 +1,4 @@
-#line 16 "./preprocessor/Tokenizer.l"
+#line 16 "./Tokenizer.l"
 //
 // Copyright (c) 2011-2013 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,7 +9,7 @@
 
 
 
-#line 13 "./preprocessor/Tokenizer.cpp"
+#line 13 "./Tokenizer.cpp"
 
 #define  YY_INT_ALIGNED short int
 
