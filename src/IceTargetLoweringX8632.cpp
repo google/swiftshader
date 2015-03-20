@@ -3094,6 +3094,10 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Type Ty = Src->getType();
     Variable *Dest = Instr->getDest();
     Variable *T = makeVectorOfFabsMask(Ty);
+    // The pand instruction operates on an m128 memory operand, so if
+    // Src is an f32 or f64, we need to make sure it's in a register.
+    if (!isVectorType(Ty))
+      Src = legalizeToVar(Src);
     _pand(T, Src);
     if (isVectorType(Ty))
       _movp(Dest, T);

@@ -279,16 +279,18 @@ entry:
   %r4 = fadd float %r2, %r3
   ret float %r4
 }
+;;; Specially check that the pand instruction doesn't try to operate on a 32-bit
+;;; (f32) memory operand, and instead uses two xmm registers.
 ; CHECK-LABEL: test_fabs_float
 ; CHECK: pcmpeqd
 ; CHECK: psrld
-; CHECK: pand
+; CHECK: pand {{.*}}xmm{{.*}}xmm
 ; CHECK: pcmpeqd
 ; CHECK: psrld
-; CHECK: pand
+; CHECK: pand {{.*}}xmm{{.*}}xmm
 ; CHECK: pcmpeqd
 ; CHECK: psrld
-; CHECK: pand
+; CHECK: pand {{.*}}xmm{{.*}}xmm
 
 define double @test_fabs_double(double %x) {
 entry:
@@ -298,16 +300,18 @@ entry:
   %r4 = fadd double %r2, %r3
   ret double %r4
 }
+;;; Specially check that the pand instruction doesn't try to operate on a 64-bit
+;;; (f64) memory operand, and instead uses two xmm registers.
 ; CHECK-LABEL: test_fabs_double
 ; CHECK: pcmpeqd
 ; CHECK: psrlq
-; CHECK: pand
+; CHECK: pand {{.*}}xmm{{.*}}xmm
 ; CHECK: pcmpeqd
 ; CHECK: psrlq
-; CHECK: pand
+; CHECK: pand {{.*}}xmm{{.*}}xmm
 ; CHECK: pcmpeqd
 ; CHECK: psrlq
-; CHECK: pand
+; CHECK: pand {{.*}}xmm{{.*}}xmm
 
 define <4 x float> @test_fabs_v4f32(<4 x float> %x) {
 entry:
