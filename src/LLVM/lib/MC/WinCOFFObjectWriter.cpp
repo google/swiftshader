@@ -484,7 +484,13 @@ void WinCOFFObjectWriter::MakeSectionReal(COFFSection &S, size_t Number) {
     if (StringTableEntry > 999999)
       report_fatal_error("COFF string table is greater than 999999 bytes.");
 
+#if defined(__ANDROID__) || defined(ANDROID)
+    // bionic defines sprintf as __builtin___sprintf_chk, which is not available
+    // in std.
+    sprintf(S.Header.Name, "/%d", unsigned(StringTableEntry));
+#else
     std::sprintf(S.Header.Name, "/%d", unsigned(StringTableEntry));
+#endif
   } else
     std::memcpy(S.Header.Name, S.Name.c_str(), S.Name.size());
 
