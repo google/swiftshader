@@ -85,6 +85,8 @@ CONSTRUCTOR static bool eglAttachProcess()
 
 	#if defined(_WIN32)
 	const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "libGLES_CM_translator.dll"};
+	#elif defined(__ANDROID__)
+	const char *libGLES_CM_lib[] = {"/vendor/lib/egl/libGLESv1_CM_swiftshader.so", "libGLES_CM.so.1", "libGLES_CM.so"};
 	#elif defined(__LP64__)
 	const char *libGLES_CM_lib[] = {"lib64GLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
 	#else
@@ -97,6 +99,8 @@ CONSTRUCTOR static bool eglAttachProcess()
 
 	#if defined(_WIN32)
 	const char *libGLESv2_lib[] = {"libGLESv2.dll", "libGLES_V2_translator.dll"};
+	#elif defined(__ANDROID__)
+	const char *libGLESv2_lib[] = {"/vendor/lib/egl/libGLESv2_swiftshader.so", "libGLESv2.so.2", "libGLESv2.so"};
 	#elif defined(__LP64__)
 	const char *libGLESv2_lib[] = {"lib64GLES_V2_translator.so", "libGLESv2.so.2", "libGLESv2.so"};
 	#else

@@ -45,6 +45,8 @@ CONSTRUCTOR static bool glAttachProcess()
 
 	#if defined(_WIN32)
 	const char *libEGL_lib[] = {"libEGL.dll", "libEGL_translator.dll"};
+	#elif defined(__ANDROID__)
+	const char *libEGL_lib[] = {"/vendor/lib/egl/libEGL_swiftshader.so", "libEGL.so.1", "libEGL.so"};
 	#elif defined(__LP64__)
 	const char *libEGL_lib[] = {"lib64EGL_translator.so", "libEGL.so.1", "libEGL.so"};
 	#else
