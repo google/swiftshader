@@ -377,6 +377,24 @@
     },
     {
       "key": {
+        "uuid": "867fec20_2f7a85b7",
+        "filename": "src/OpenGL/libEGL/main.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-03-20T03:30:05Z",
+      "side": 1,
+      "message": "Interesting. From a build perspective its /system/vendor, but a symlink in root makes it /vendor.\n\nI withdraw my objection.",
+      "parentUuid": "06177cd9_61072c1b",
+      "revId": "bf2d5025e8c3d4b913011e0d4339553321ebf1cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "06177cd9_180025b7",
         "filename": "src/OpenGL/libGLES_CM/main.cpp",
         "patchSetId": 4
