@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a69cf0d8_f6391688",
+        "filename": "src/OpenGL/libEGL/Android.mk",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-21T01:36:25Z",
+      "side": 1,
+      "message": "nit: This should actually be uncommented for a release build. I missed it when uploading...",
+      "revId": "3c14794cce1bac37abc3ad9f3fbb36e6ef95b7ec",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_568f4aa8",
+        "filename": "src/OpenGL/libEGL/Android.mk",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-21T01:36:25Z",
+      "side": 1,
+      "message": "nit: Is there any scenario where we want a SwiftShader build for Android that is not running on GCE? Shipped with the emulator perhaps? Guess we can defer this but might want to call it out somewhere this is GCE only.",
+      "range": {
+        "startLine": 22,
+        "startChar": 26,
+        "endLine": 22,
+        "endChar": 64
+      },
+      "revId": "3c14794cce1bac37abc3ad9f3fbb36e6ef95b7ec",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
