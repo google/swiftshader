@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a69cf0d8_96d53271",
+        "filename": "src/OpenGL/libEGL/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-21T01:44:49Z",
+      "side": 1,
+      "message": "Either system or vendor is fine with me but in the commit of Android.mk the output path actually is changed to /vendor/lib/.",
+      "range": {
+        "startLine": 89,
+        "startChar": 34,
+        "endLine": 89,
+        "endChar": 46
+      },
+      "revId": "9e26cc7cc8e355967610925e683f14d91ed75e4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
