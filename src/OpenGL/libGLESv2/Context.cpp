@@ -3522,6 +3522,10 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
         break;
     case EGL_GL_RENDERBUFFER_KHR:
         break;
+    #if defined(__ANDROID__)
+    case EGL_NATIVE_BUFFER_ANDROID:
+        break;
+    #endif
     default:
         return EGL_BAD_PARAMETER;
     }
@@ -3569,6 +3573,32 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
             return EGL_BAD_ACCESS;
         }
     }
+    #if defined(__ANDROID__)
+    else if(target == EGL_NATIVE_BUFFER_ANDROID)
+    {
+        ANativeWindowBuffer *nativeBuffer = reinterpret_cast<ANativeWindowBuffer*>(name);
+        
+		if(nativeBuffer->common.magic != ANDROID_NATIVE_BUFFER_MAGIC)
+        {
+            return EGL_BAD_PARAMETER;
+        }
+
+        if(nativeBuffer->common.version != sizeof(ANativeWindowBuffer))
+        {
+            return EGL_BAD_PARAMETER;
+        }
+
+        switch(nativeBuffer->format)
+		{
+        case HAL_PIXEL_FORMAT_RGBA_8888:
+        case HAL_PIXEL_FORMAT_RGBX_8888:
+        case HAL_PIXEL_FORMAT_RGB_565:
+            break;
+        default:
+            return EGL_BAD_PARAMETER;
+        }
+    }
+    #endif
     else UNREACHABLE();
 
 	return EGL_SUCCESS;
@@ -3601,6 +3631,22 @@ egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textu
 
         return renderbuffer->createSharedImage();
     }
+    #if defined(__ANDROID__)
+    else if(target == EGL_NATIVE_BUFFER_ANDROID)
+    {
+        ANativeWindowBuffer *nativeBuffer = reinterpret_cast<ANativeWindowBuffer*>(name);
+        nativeBuffer->common.incRef(&nativeBuffer->common);
+
+        GLenum format = Image::getColorFormatFromAndroid(nativeBuffer->format);
+        GLenum type = Image::getPixelFormatFromAndroid(nativeBuffer->format);
+
+        es2::Image *image = new Image(0, nativeBuffer->width, nativeBuffer->height, format, type);
+        image->setNativeBuffer(nativeBuffer);
+        image->markShared();
+
+        return image;
+    }
+    #endif
     else UNREACHABLE();
 
 	return 0;

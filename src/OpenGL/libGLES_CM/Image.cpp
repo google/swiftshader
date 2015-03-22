@@ -544,4 +544,46 @@ namespace es1
 
 		unlock();
 	}
+
+	#if defined(__ANDROID__)
+	GLenum Image::getColorFormatFromAndroid(int format)
+	{
+		switch(format)
+		{
+		case HAL_PIXEL_FORMAT_RGBA_8888:
+		case HAL_PIXEL_FORMAT_RGBX_8888:
+			return GL_RGBA;
+		case HAL_PIXEL_FORMAT_RGB_888:
+			return GL_RGB;
+		case HAL_PIXEL_FORMAT_RGB_565:
+			return GL_RGB565_OES;
+		case HAL_PIXEL_FORMAT_BGRA_8888:
+			return GL_BGRA_EXT;
+		#if GCE_PLATFORM_SDK_VERSION >= 19
+		case HAL_PIXEL_FORMAT_sRGB_A_8888:
+		case HAL_PIXEL_FORMAT_sRGB_X_8888:
+		#endif
+		case HAL_PIXEL_FORMAT_YV12:
+		case HAL_PIXEL_FORMAT_Y8:
+		case HAL_PIXEL_FORMAT_Y16:
+		case HAL_PIXEL_FORMAT_RAW_SENSOR:
+		case HAL_PIXEL_FORMAT_BLOB:
+		case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
+		case HAL_PIXEL_FORMAT_YCbCr_420_888:
+		default:
+			UNIMPLEMENTED();
+		}
+		return GL_RGBA;
+	}
+
+	GLenum Image::getPixelFormatFromAndroid(int format)
+	{
+		if(format == HAL_PIXEL_FORMAT_Y16)
+		{
+			return GL_UNSIGNED_SHORT;
+		}
+
+		return GL_UNSIGNED_BYTE;
+	}
+	#endif
 }
