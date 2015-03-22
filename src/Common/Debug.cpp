@@ -11,23 +11,38 @@
 
 #include "Debug.hpp"
 
+#ifdef __ANDROID__
+#include <utils/String8.h>
+#include <log/log.h>
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 
-void trace(const char *format, ...)
-{
-	if(false)
+#ifdef __ANDROID__
+	void trace(const char *format, ...)
 	{
-		FILE *file = fopen("debug.txt", "a");
-
-		if(file)
+		va_list vararg;
+		va_start(vararg, format);
+		ALOGI("%s", android::String8::formatV(format, vararg).string());
+		va_end(vararg);
+	}
+#else
+	void trace(const char *format, ...)
+	{
+		if(false)
 		{
-			va_list vararg;
-			va_start(vararg, format);
-			vfprintf(file, format, vararg);
-			va_end(vararg);
+			FILE *file = fopen("debug.txt", "a");
 
-			fclose(file);
+			if(file)
+			{
+				va_list vararg;
+				va_start(vararg, format);
+				vfprintf(file, format, vararg);
+				va_end(vararg);
+
+				fclose(file);
+			}
 		}
 	}
-}
+#endif

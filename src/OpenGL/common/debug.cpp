@@ -13,11 +13,22 @@
 
 #include "common/debug.h"
 
+#ifdef  __ANDROID__
+#include <utils/String8.h>
+#include <log/log.h>
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 
 namespace es
 {
+#ifdef __ANDROID__
+	void output(const char *format, va_list vararg)
+	{
+		ALOGI("%s", android::String8::formatV(format, vararg).string());
+	}
+#else
 	static void output(const char *format, va_list vararg)
 	{
 		if(false)
@@ -34,6 +45,7 @@ namespace es
 			}
 		}
 	}
+#endif
 
 	void trace(const char *format, ...)
 	{
