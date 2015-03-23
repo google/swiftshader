@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "a69cf0d8_de0d036f",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-23T18:27:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a69cf0d8_8f218c22",
+      "range": {
+        "startLine": 214,
+        "startChar": 30,
+        "endLine": 214,
+        "endChar": 31
+      },
+      "revId": "6669bdb6a0628de6ab37ff0e14062627e9c58065",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a69cf0d8_2f3b384e",
         "filename": "src/OpenGL/libGLESv2/Context.cpp",
         "patchSetId": 3
@@ -59,6 +83,30 @@
       "writtenOn": "2015-03-23T15:21:05Z",
       "side": 1,
       "message": "These enums are for ES3 and higher, but instead of replacing the \u003d\u003d above with \u003e\u003d, I think it\u0027s better to just retrieve a const int clientVersion above and do the \u003e\u003d test explicitly in the switch for each of these cases.",
+      "range": {
+        "startLine": 1679,
+        "startChar": 2,
+        "endLine": 1679,
+        "endChar": 11
+      },
+      "revId": "6669bdb6a0628de6ab37ff0e14062627e9c58065",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_3e136794",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1679,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-23T18:27:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a69cf0d8_2f3b384e",
       "range": {
         "startLine": 1679,
         "startChar": 2,
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "a69cf0d8_bef0f7de",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-23T18:27:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a69cf0d8_6f8f00a9",
+      "range": {
+        "startLine": 212,
+        "startChar": 20,
+        "endLine": 212,
+        "endChar": 21
+      },
+      "revId": "6669bdb6a0628de6ab37ff0e14062627e9c58065",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a69cf0d8_cf02748e",
         "filename": "src/OpenGL/libGLESv2/Context.h",
         "patchSetId": 3
@@ -105,6 +177,30 @@
       "writtenOn": "2015-03-23T15:21:05Z",
       "side": 1,
       "message": "nit: On a new line.",
+      "range": {
+        "startLine": 224,
+        "startChar": 16,
+        "endLine": 224,
+        "endChar": 18
+      },
+      "revId": "6669bdb6a0628de6ab37ff0e14062627e9c58065",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_9eed3b06",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-23T18:27:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a69cf0d8_cf02748e",
       "range": {
         "startLine": 224,
         "startChar": 16,
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "a69cf0d8_fe08bf60",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-23T18:27:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a69cf0d8_ef1130da",
+      "range": {
+        "startLine": 228,
+        "startChar": 1,
+        "endLine": 229,
+        "endChar": 10
+      },
+      "revId": "6669bdb6a0628de6ab37ff0e14062627e9c58065",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a69cf0d8_efdf708c",
         "filename": "src/OpenGL/libGLESv2/Program.cpp",
         "patchSetId": 3
@@ -151,6 +271,30 @@
       "writtenOn": "2015-03-23T15:21:05Z",
       "side": 1,
       "message": "nit: three spaces instead of tabs.",
+      "range": {
+        "startLine": 602,
+        "startChar": 2,
+        "endLine": 602,
+        "endChar": 3
+      },
+      "revId": "6669bdb6a0628de6ab37ff0e14062627e9c58065",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_7efdefaf",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-23T18:27:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a69cf0d8_efdf708c",
       "range": {
         "startLine": 602,
         "startChar": 2,
@@ -186,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "a69cf0d8_5efab3b9",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-23T18:27:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a69cf0d8_8fcfccd8",
+      "range": {
+        "startLine": 429,
+        "startChar": 3,
+        "endLine": 429,
+        "endChar": 12
+      },
+      "revId": "6669bdb6a0628de6ab37ff0e14062627e9c58065",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a69cf0d8_6fe38048",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 3
@@ -197,6 +365,30 @@
       "writtenOn": "2015-03-23T15:21:05Z",
       "side": 1,
       "message": "It seems error prone to let this drop through to each of the other enums. If we added one at the bottom for ES2 we would hit that code even though it\u0027s not for the enum that was passed in.\n\nSo just add \"else return error(GL_INVALID_ENUM);\". I\u0027m ok with keeping those compact on one line each (instead of adding brackets and splitting it over multiple lines) since there\u0027s never anything else to do.\n\nSame comments for two more switches in this file.",
+      "range": {
+        "startLine": 433,
+        "startChar": 3,
+        "endLine": 433,
+        "endChar": 4
+      },
+      "revId": "6669bdb6a0628de6ab37ff0e14062627e9c58065",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_be075747",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-23T18:27:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a69cf0d8_6fe38048",
       "range": {
         "startLine": 433,
         "startChar": 3,
