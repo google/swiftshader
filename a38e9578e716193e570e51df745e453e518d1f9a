@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a69cf0d8_fb29f107",
+        "filename": "src/Main/FrameBufferAndroid.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-23T19:07:54Z",
+      "side": 1,
+      "message": "Rename to gralloc to be a little more descriptive.",
+      "range": {
+        "startLine": 33,
+        "startChar": 32,
+        "endLine": 33,
+        "endChar": 38
+      },
+      "revId": "a38e9578e716193e570e51df745e453e518d1f9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
