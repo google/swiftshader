@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a69cf0d8_cf6434d0",
+        "filename": "src/OpenGL/libGLES_CM/Image.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-03-23T14:30:44Z",
+      "side": 1,
+      "message": "Code clone with the v2 code. This should be written once in EGL.",
+      "revId": "7747b5c4d6459fdc2c2581ca84986652e3e8cc85",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_8f8cec05",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3577,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-03-23T14:30:44Z",
+      "side": 1,
+      "message": "I\u0027m less confident here, but in the emulator code this is also confined to the EGL driver. Is there some difference in the SwiftShader architecture that makes this impossible to isolate?",
+      "revId": "7747b5c4d6459fdc2c2581ca84986652e3e8cc85",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_2fa85855",
+        "filename": "src/OpenGL/libGLESv2/Image.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-03-23T14:30:44Z",
+      "side": 1,
+      "message": "This belongs in EGL, not in the platform-independent code.",
+      "revId": "7747b5c4d6459fdc2c2581ca84986652e3e8cc85",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
