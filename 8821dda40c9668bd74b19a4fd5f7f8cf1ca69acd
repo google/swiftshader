@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a69cf0d8_0f78fc79",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-23T14:34:51Z",
+      "side": 1,
+      "message": "Do we need this second defined(), using the non-standard ANDROID symbol?",
+      "range": {
+        "startLine": 26,
+        "startChar": 24,
+        "endLine": 26,
+        "endChar": 44
+      },
+      "revId": "8821dda40c9668bd74b19a4fd5f7f8cf1ca69acd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_af8288d3",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-23T14:34:51Z",
+      "side": 1,
+      "message": "Please move these above the standard C++ ones.\n\nRationale: http://stackoverflow.com/questions/614302/c-header-order",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 6
+      },
+      "revId": "8821dda40c9668bd74b19a4fd5f7f8cf1ca69acd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_ef73f093",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-23T14:34:51Z",
+      "side": 1,
+      "message": "Contrary to what I said earlier, 0/NULL is a valid display ID, as it corresponds to EGL_DEFAULT_DISPLAY. However, it might be necessary to support multiple displays for \"external\" and \"virtual\" ones: http://source.android.com/devices/graphics/architecture.html#virtual-displays\n\nIt\u0027s worth checking what Mesa does here.",
+      "range": {
+        "startLine": 39,
+        "startChar": 8,
+        "endLine": 40,
+        "endChar": 25
+      },
+      "revId": "8821dda40c9668bd74b19a4fd5f7f8cf1ca69acd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_8f634cc0",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-23T14:34:51Z",
+      "side": 1,
+      "message": "Looks fine to me but we should verify the assumption that this is always set correctly.",
+      "range": {
+        "startLine": 476,
+        "startChar": 16,
+        "endLine": 476,
+        "endChar": 103
+      },
+      "revId": "8821dda40c9668bd74b19a4fd5f7f8cf1ca69acd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_6f60a0b3",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-23T14:34:51Z",
+      "side": 1,
+      "message": "nit: Decrease indent",
+      "range": {
+        "startLine": 547,
+        "startChar": 8,
+        "endLine": 547,
+        "endChar": 13
+      },
+      "revId": "8821dda40c9668bd74b19a4fd5f7f8cf1ca69acd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
