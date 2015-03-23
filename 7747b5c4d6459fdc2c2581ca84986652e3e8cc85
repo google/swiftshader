@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "a69cf0d8_bbf64a5d",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3577,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-23T21:49:51Z",
+      "side": 1,
+      "message": "Yes I agree that platform-dependent logic should probably be confined in EGL. However, SwiftShader handles the validation and the creation of shared images inside GLES context. Hence the extra \u0027else if\u0027 code blocks you see here in this code path.\n\nIn the case of Android native buffer it always comes in with EGL_NO_CONTEXT so it probably does make sense to have a second code path somewhere in EGL for validating and creating shared images.",
+      "parentUuid": "a69cf0d8_8f8cec05",
+      "revId": "7747b5c4d6459fdc2c2581ca84986652e3e8cc85",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a69cf0d8_2fa85855",
         "filename": "src/OpenGL/libGLESv2/Image.hpp",
         "patchSetId": 1
