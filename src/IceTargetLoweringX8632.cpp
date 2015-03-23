@@ -3450,8 +3450,9 @@ void TargetX8632::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo, LowerBinOp Op_Hi,
       Context.insert(InstFakeUse::create(Func, T_ebx));
       Context.insert(InstFakeUse::create(Func, T_ecx));
     }
-    // The address base is also reused in the loop.
-    Context.insert(InstFakeUse::create(Func, Addr->getBase()));
+    // The address base (if any) is also reused in the loop.
+    if (Variable *Base = Addr->getBase())
+      Context.insert(InstFakeUse::create(Func, Base));
     Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
     Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     _mov(DestLo, T_eax);
@@ -3476,8 +3477,9 @@ void TargetX8632::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo, LowerBinOp Op_Hi,
   if (Variable *ValVar = llvm::dyn_cast<Variable>(Val)) {
     Context.insert(InstFakeUse::create(Func, ValVar));
   }
-  // The address base is also reused in the loop.
-  Context.insert(InstFakeUse::create(Func, Addr->getBase()));
+  // The address base (if any) is also reused in the loop.
+  if (Variable *Base = Addr->getBase())
+    Context.insert(InstFakeUse::create(Func, Base));
   _mov(Dest, T_eax);
 }
 

@@ -28,6 +28,11 @@ declare void @llvm.nacl.atomic.fence(i32)
 declare void @llvm.nacl.atomic.fence.all()
 declare i1 @llvm.nacl.atomic.is.lock.free(i32, i8*)
 
+@Global8 = internal global [1 x i8] zeroinitializer, align 1
+@Global16 = internal global [2 x i8] zeroinitializer, align 2
+@Global32 = internal global [4 x i8] zeroinitializer, align 4
+@Global64 = internal global [8 x i8] zeroinitializer, align 8
+
 ; NOTE: The LLC equivalent for 16-bit atomic operations are expanded
 ; as 32-bit operations. For Subzero, assume that real 16-bit operations
 ; will be usable (the validator will be fixed):
@@ -243,6 +248,15 @@ entry:
 ; CHECK: lock cmpxchg8b QWORD PTR [e{{.[^x]}}
 ; CHECK: jne [[LABEL]]
 
+; Same test as above, but with a global address to test FakeUse issues.
+define i64 @test_atomic_rmw_add_64_global(i64 %v) {
+entry:
+  %ptr = bitcast [8 x i8]* @Global64 to i64*
+  %a = call i64 @llvm.nacl.atomic.rmw.i64(i32 1, i64* %ptr, i64 %v, i32 6)
+  ret i64 %a
+}
+; CHECK-LABEL: test_atomic_rmw_add_64_global
+
 ; Test with some more register pressure. When we have an alloca, ebp is
 ; used to manage the stack frame, so it cannot be used as a register either.
 declare void @use_ptr(i32 %iptr)
@@ -402,6 +416,17 @@ entry:
 ; CHECK: lock cmpxchg BYTE PTR [e{{[^a].}}],[[REG]]
 ; CHECK: jne
 
+; Same test as above, but with a global address to test FakeUse issues.
+define i32 @test_atomic_rmw_or_8_global(i32 %v) {
+entry:
+  %trunc = trunc i32 %v to i8
+  %ptr = bitcast [1 x i8]* @Global8 to i8*
+  %a = call i8 @llvm.nacl.atomic.rmw.i8(i32 3, i8* %ptr, i8 %trunc, i32 6)
+  %a_ext = zext i8 %a to i32
+  ret i32 %a_ext
+}
+; CHECK-LABEL: test_atomic_rmw_or_8_global
+
 define i32 @test_atomic_rmw_or_16(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i16
@@ -416,6 +441,17 @@ entry:
 ; CHECK: lock cmpxchg WORD PTR [e{{[^a].}}],[[REG]]
 ; CHECK: jne
 
+; Same test as above, but with a global address to test FakeUse issues.
+define i32 @test_atomic_rmw_or_16_global(i32 %v) {
+entry:
+  %trunc = trunc i32 %v to i16
+  %ptr = bitcast [2 x i8]* @Global16 to i16*
+  %a = call i16 @llvm.nacl.atomic.rmw.i16(i32 3, i16* %ptr, i16 %trunc, i32 6)
+  %a_ext = zext i16 %a to i32
+  ret i32 %a_ext
+}
+; CHECK-LABEL: test_atomic_rmw_or_16_global
+
 define i32 @test_atomic_rmw_or_32(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
@@ -427,6 +463,15 @@ entry:
 ; CHECK: or [[REG:e[^a].]]
 ; CHECK: lock cmpxchg DWORD PTR [e{{[^a].}}],[[REG]]
 ; CHECK: jne
+
+; Same test as above, but with a global address to test FakeUse issues.
+define i32 @test_atomic_rmw_or_32_global(i32 %v) {
+entry:
+  %ptr = bitcast [4 x i8]* @Global32 to i32*
+  %a = call i32 @llvm.nacl.atomic.rmw.i32(i32 3, i32* %ptr, i32 %v, i32 6)
+  ret i32 %a
+}
+; CHECK-LABEL: test_atomic_rmw_or_32_global
 
 define i64 @test_atomic_rmw_or_64(i32 %iptr, i64 %v) {
 entry:
