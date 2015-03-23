@@ -135,9 +135,9 @@ public:
   // Passes over the CFG.
   void translate();
   // After the CFG is fully constructed, iterate over the nodes and
-  // compute the predecessor edges, in the form of
-  // CfgNode::InEdges[].
-  void computePredecessors();
+  // compute the predecessor and successor edges, in the form of
+  // CfgNode::InEdges[] and CfgNode::OutEdges[].
+  void computeInOutEdges();
   void renumberInstructions();
   void placePhiLoads();
   void placePhiStores();

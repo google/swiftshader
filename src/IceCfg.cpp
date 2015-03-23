@@ -108,9 +108,41 @@ void Cfg::translate() {
     getContext()->dumpTimers();
 }
 
-void Cfg::computePredecessors() {
+void Cfg::computeInOutEdges() {
+  // Compute the out-edges.
   for (CfgNode *Node : Nodes)
-    Node->computePredecessors();
+    Node->computeSuccessors();
+
+  // Prune any unreachable nodes before computing in-edges.
+  SizeT NumNodes = getNumNodes();
+  llvm::BitVector Reachable(NumNodes);
+  llvm::BitVector Pending(NumNodes);
+  Pending.set(getEntryNode()->getIndex());
+  while (true) {
+    int Index = Pending.find_first();
+    if (Index == -1)
+      break;
+    Pending.reset(Index);
+    Reachable.set(Index);
+    CfgNode *Node = Nodes[Index];
+    assert(Node->getIndex() == (SizeT)Index);
+    for (CfgNode *Succ : Node->getOutEdges()) {
+      SizeT SuccIndex = Succ->getIndex();
+      if (!Reachable.test(SuccIndex))
+        Pending.set(SuccIndex);
+    }
+  }
+  SizeT Dest = 0;
+  for (SizeT Source = 0; Source < NumNodes; ++Source) {
+    if (Reachable.test(Source)) {
+      Nodes[Dest] = Nodes[Source];
+      Nodes[Dest]->resetIndex(Dest);
+      // Compute the in-edges.
+      Nodes[Dest]->computePredecessors();
+      ++Dest;
+    }
+  }
+  Nodes.resize(Dest);
 }
 
 void Cfg::renumberInstructions() {

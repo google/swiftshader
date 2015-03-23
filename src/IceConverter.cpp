@@ -113,7 +113,7 @@ public:
     for (const BasicBlock &BBI : *F)
       convertBasicBlock(&BBI);
     Func->setEntryNode(mapBasicBlockToNode(&F->getEntryBlock()));
-    Func->computePredecessors();
+    Func->computeInOutEdges();
 
     Ice::Cfg::setCurrentCfg(nullptr);
     Converter.translateFcn(std::move(Func));

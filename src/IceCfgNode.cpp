@@ -69,9 +69,12 @@ void CfgNode::renumberInstructions() {
 // constructed, the computePredecessors() pass finalizes it by
 // creating the InEdges list.
 void CfgNode::computePredecessors() {
-  OutEdges = Insts.rbegin()->getTerminatorEdges();
   for (CfgNode *Succ : OutEdges)
     Succ->InEdges.push_back(this);
+}
+
+void CfgNode::computeSuccessors() {
+  OutEdges = Insts.rbegin()->getTerminatorEdges();
 }
 
 // This does part 1 of Phi lowering, by creating a new dest variable
@@ -605,19 +608,21 @@ bool CfgNode::liveness(Liveness *Liveness) {
   // entry.
   bool IsEntry = (Func->getEntryNode() == this);
   if (!(IsEntry || Live == LiveOrig)) {
-    // This is a fatal liveness consistency error.  Print some
-    // diagnostics and abort.
-    Ostream &Str = Func->getContext()->getStrDump();
-    Func->resetCurrentNode();
-    Str << "LiveOrig-Live =";
-    for (SizeT i = Live.size(); i < LiveOrig.size(); ++i) {
-      if (LiveOrig.test(i)) {
-        Str << " ";
-        Liveness->getVariable(i, this)->dump(Func);
+    if (ALLOW_DUMP) {
+      // This is a fatal liveness consistency error.  Print some
+      // diagnostics and abort.
+      Ostream &Str = Func->getContext()->getStrDump();
+      Func->resetCurrentNode();
+      Str << "LiveOrig-Live =";
+      for (SizeT i = Live.size(); i < LiveOrig.size(); ++i) {
+        if (LiveOrig.test(i)) {
+          Str << " ";
+          Liveness->getVariable(i, this)->dump(Func);
+        }
       }
+      Str << "\n";
     }
-    Str << "\n";
-    llvm_unreachable("Fatal inconsistency in liveness analysis");
+    llvm::report_fatal_error("Fatal inconsistency in liveness analysis");
   }
 
   bool Changed = false;

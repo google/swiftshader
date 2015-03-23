@@ -33,6 +33,7 @@ public:
 
   // Access the label number and name for this node.
   SizeT getIndex() const { return Number; }
+  void resetIndex(SizeT NewNumber) { Number = NewNumber; }
   IceString getName() const;
   void setName(const IceString &NewName) {
     // Make sure that the name can only be set once.
@@ -70,6 +71,7 @@ public:
   // Add a predecessor edge to the InEdges list for each of this
   // node's successors.
   void computePredecessors();
+  void computeSuccessors();
   CfgNode *splitIncomingEdge(CfgNode *Pred, SizeT InEdgeIndex);
 
   void placePhiLoads();
@@ -92,7 +94,7 @@ public:
 private:
   CfgNode(Cfg *Func, SizeT LabelIndex);
   Cfg *const Func;
-  const SizeT Number;                 // label index
+  SizeT Number;                       // label index
   Cfg::IdentifierIndexType NameIndex; // index into Cfg::NodeNames table
   bool HasReturn;                     // does this block need an epilog?
   bool NeedsPlacement;

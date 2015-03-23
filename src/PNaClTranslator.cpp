@@ -1920,7 +1920,7 @@ void FunctionParser::ExitBlock() {
     }
     ++Index;
   }
-  Func->computePredecessors();
+  Func->computeInOutEdges();
 }
 
 void FunctionParser::ReportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op,
