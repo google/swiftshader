@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a69cf0d8_cfa39425",
+        "filename": "src/Common/Debug.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-23T15:00:02Z",
+      "side": 1,
+      "message": "Same comments as other file.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 5
+      },
+      "revId": "5244421b3ad149e43f2e5c4f6e327e7c829f0849",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_2fae9812",
+        "filename": "src/OpenGL/common/debug.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-23T15:00:02Z",
+      "side": 1,
+      "message": "Remove the non-standard define.",
+      "range": {
+        "startLine": 21,
+        "startChar": 4,
+        "endLine": 21,
+        "endChar": 23
+      },
+      "revId": "5244421b3ad149e43f2e5c4f6e327e7c829f0849",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_0fd59cbd",
+        "filename": "src/OpenGL/common/debug.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-23T15:00:02Z",
+      "side": 1,
+      "message": "I\u0027d move this up with the rest of the includes (above stdio.h).",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 21
+      },
+      "revId": "5244421b3ad149e43f2e5c4f6e327e7c829f0849",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a69cf0d8_6fb8a056",
+        "filename": "src/OpenGL/common/debug.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-23T15:00:02Z",
+      "side": 1,
+      "message": "Probably should have an if(false) {} around it to make sure we don\u0027t incur any overhead from it. It could be used directly in places where it\u0027s not controlled by another define.",
+      "range": {
+        "startLine": 27,
+        "startChar": 2,
+        "endLine": 27,
+        "endChar": 66
+      },
+      "revId": "5244421b3ad149e43f2e5c4f6e327e7c829f0849",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
