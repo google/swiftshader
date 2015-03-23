@@ -1375,6 +1375,8 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
   } else if (isVectorType(Dest->getType())) {
     // TODO: Trap on integer divide and integer modulo by zero.
     // See: https://code.google.com/p/nativeclient/issues/detail?id=3899
+    if (llvm::isa<OperandX8632Mem>(Src1))
+      Src1 = legalizeToVar(Src1);
     switch (Inst->getOp()) {
     case InstArithmetic::_num:
       llvm_unreachable("Unknown arithmetic operator");
@@ -2090,6 +2092,8 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       assert(Dest->getType() == IceType_v4i32 &&
              Inst->getSrc(0)->getType() == IceType_v4f32);
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+      if (llvm::isa<OperandX8632Mem>(Src0RM))
+        Src0RM = legalizeToVar(Src0RM);
       Variable *T = makeReg(Dest->getType());
       _cvt(T, Src0RM, InstX8632Cvt::Tps2dq);
       _movp(Dest, T);
@@ -2165,6 +2169,8 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       assert(Dest->getType() == IceType_v4f32 &&
              Inst->getSrc(0)->getType() == IceType_v4i32);
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+      if (llvm::isa<OperandX8632Mem>(Src0RM))
+        Src0RM = legalizeToVar(Src0RM);
       Variable *T = makeReg(Dest->getType());
       _cvt(T, Src0RM, InstX8632Cvt::Dq2ps);
       _movp(Dest, T);
@@ -2472,6 +2478,8 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
     } else {
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+      if (llvm::isa<OperandX8632Mem>(Src1RM))
+        Src1RM = legalizeToVar(Src1RM);
 
       switch (Condition) {
       default: {
@@ -2609,10 +2617,14 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
       llvm_unreachable("unexpected condition");
       break;
     case InstIcmp::Eq: {
+      if (llvm::isa<OperandX8632Mem>(Src1RM))
+        Src1RM = legalizeToVar(Src1RM);
       _movp(T, Src0RM);
       _pcmpeq(T, Src1RM);
     } break;
     case InstIcmp::Ne: {
+      if (llvm::isa<OperandX8632Mem>(Src1RM))
+        Src1RM = legalizeToVar(Src1RM);
       _movp(T, Src0RM);
       _pcmpeq(T, Src1RM);
       Variable *MinusOne = makeVectorOfMinusOnes(Ty);
@@ -2620,12 +2632,16 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
     } break;
     case InstIcmp::Ugt:
     case InstIcmp::Sgt: {
+      if (llvm::isa<OperandX8632Mem>(Src1RM))
+        Src1RM = legalizeToVar(Src1RM);
       _movp(T, Src0RM);
       _pcmpgt(T, Src1RM);
     } break;
     case InstIcmp::Uge:
     case InstIcmp::Sge: {
       // !(Src1RM > Src0RM)
+      if (llvm::isa<OperandX8632Mem>(Src0RM))
+        Src0RM = legalizeToVar(Src0RM);
       _movp(T, Src1RM);
       _pcmpgt(T, Src0RM);
       Variable *MinusOne = makeVectorOfMinusOnes(Ty);
@@ -2633,12 +2649,16 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
     } break;
     case InstIcmp::Ult:
     case InstIcmp::Slt: {
+      if (llvm::isa<OperandX8632Mem>(Src0RM))
+        Src0RM = legalizeToVar(Src0RM);
       _movp(T, Src1RM);
       _pcmpgt(T, Src0RM);
     } break;
     case InstIcmp::Ule:
     case InstIcmp::Sle: {
       // !(Src0RM > Src1RM)
+      if (llvm::isa<OperandX8632Mem>(Src1RM))
+        Src1RM = legalizeToVar(Src1RM);
       _movp(T, Src0RM);
       _pcmpgt(T, Src1RM);
       Variable *MinusOne = makeVectorOfMinusOnes(Ty);
@@ -3092,8 +3112,12 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Variable *T = makeVectorOfFabsMask(Ty);
     // The pand instruction operates on an m128 memory operand, so if
     // Src is an f32 or f64, we need to make sure it's in a register.
-    if (!isVectorType(Ty))
+    if (isVectorType(Ty)) {
+      if (llvm::isa<OperandX8632Mem>(Src))
+        Src = legalizeToVar(Src);
+    } else {
       Src = legalizeToVar(Src);
+    }
     _pand(T, Src);
     if (isVectorType(Ty))
       _movp(Dest, T);

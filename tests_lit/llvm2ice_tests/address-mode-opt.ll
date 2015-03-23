@@ -56,8 +56,9 @@ entry:
   %arg1 = load <8 x i16>* %addr_ptr, align 2
   %res_vec = mul <8 x i16> %arg0, %arg1
   ret <8 x i16> %res_vec
+; Address mode optimization is generally unsafe for SSE vector instructions.
 ; CHECK-LABEL: load_mul_v8i16_mem
-; CHECK: pmullw xmm{{.*}},XMMWORD PTR [e{{.*}}-0x30d40]
+; CHECK-NOT: pmullw xmm{{.*}},XMMWORD PTR [e{{..}}-0x30d40]
 }
 
 define <4 x i32> @load_mul_v4i32_mem(<4 x i32> %arg0, i32 %arg1_iptr) {
@@ -67,12 +68,13 @@ entry:
   %arg1 = load <4 x i32>* %addr_ptr, align 4
   %res = mul <4 x i32> %arg0, %arg1
   ret <4 x i32> %res
+; Address mode optimization is generally unsafe for SSE vector instructions.
 ; CHECK-LABEL: load_mul_v4i32_mem
-; CHECK: pmuludq xmm{{.*}},XMMWORD PTR [e{{.*}}-0x30d40]
+; CHECK-NOT: pmuludq xmm{{.*}},XMMWORD PTR [e{{..}}-0x30d40]
 ; CHECK: pmuludq
 ;
 ; SSE41-LABEL: load_mul_v4i32_mem
-; SSE41: pmulld xmm{{.*}},XMMWORD PTR [e{{.*}}-0x30d40]
+; SSE41-NOT: pmulld xmm{{.*}},XMMWORD PTR [e{{..}}-0x30d40]
 }
 
 define float @address_mode_opt_chaining(float* %arg) {

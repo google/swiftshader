@@ -273,6 +273,29 @@ protected:
   static bool isClassof(const Inst *Inst, InstKindX8632 MyKind) {
     return Inst->getKind() == static_cast<InstKind>(MyKind);
   }
+  // Most instructions that operate on vector arguments require vector
+  // memory operands to be fully aligned (16-byte alignment for PNaCl
+  // vector types).  The stack frame layout and call ABI ensure proper
+  // alignment for stack operands, but memory operands (originating
+  // from load/store bitcode instructions) only have element-size
+  // alignment guarantees.  This function validates that none of the
+  // operands is a memory operand of vector type, calling
+  // report_fatal_error() if one is found.  This function should be
+  // called during emission, and maybe also in the ctor (as long as
+  // that fits the lowering style).
+  void validateVectorAddrMode() const {
+    if (getDest())
+      validateVectorAddrModeOpnd(getDest());
+    for (SizeT i = 0; i < getSrcSize(); ++i) {
+      validateVectorAddrModeOpnd(getSrc(i));
+    }
+  }
+private:
+  static void validateVectorAddrModeOpnd(const Operand *Opnd) {
+    if (llvm::isa<OperandX8632Mem>(Opnd) && isVectorType(Opnd->getType())) {
+      llvm::report_fatal_error("Possible misaligned vector memory operation");
+    }
+  }
 };
 
 // InstX8632Label represents an intra-block label that is the target
@@ -752,10 +775,12 @@ public:
   void emit(const Cfg *Func) const override {
     if (!ALLOW_DUMP)
       return;
+    validateVectorAddrMode();
     const bool ShiftHack = false;
     emitTwoAddress(Opcode, this, Func, ShiftHack);
   }
   void emitIAS(const Cfg *Func) const override {
+    validateVectorAddrMode();
     Type Ty = getDest()->getType();
     if (NeedsElementType)
       Ty = typeElementType(Ty);
@@ -803,10 +828,12 @@ public:
   void emit(const Cfg *Func) const override {
     if (!ALLOW_DUMP)
       return;
+    validateVectorAddrMode();
     const bool ShiftHack = false;
     emitTwoAddress(Opcode, this, Func, ShiftHack);
   }
   void emitIAS(const Cfg *Func) const override {
+    validateVectorAddrMode();
     Type Ty = getDest()->getType();
     assert(AllowAllTypes || isVectorType(Ty));
     Type ElementTy = typeElementType(Ty);
