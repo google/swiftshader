@@ -20,6 +20,7 @@
 	#include <intrin.h>
 #else
 	#include <pthread.h>
+	#include <sched.h>
 	#include <unistd.h>
 	#define TLS_OUT_OF_INDEXES (~0)
 #endif
@@ -110,7 +111,7 @@ namespace sw
 		#elif defined(__APPLE__)
 			pthread_yield_np();
 		#else
-			pthread_yield();
+			sched_yield();
 		#endif
 	}
 
