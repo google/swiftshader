@@ -14,6 +14,10 @@
 #ifndef COMMON_DEBUG_H_
 #define COMMON_DEBUG_H_
 
+#ifdef __ANDROID__
+#include <cutils/log.h>
+#endif
+
 #include <stdio.h>
 #include <assert.h>
 
@@ -60,13 +64,33 @@ namespace es
 #endif
 
 // A macro to indicate unimplemented functionality
-#if !defined(NDEBUG)
-#define UNIMPLEMENTED() do { \
-    FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__); \
-    assert(false); \
-    } while(0)
+#ifdef __ANDROID__
+	// On Android Virtual Devices we heavily depend on logging, even in
+	// production builds. We do this because AVDs are components of larger
+	// systems, and may be configured in ways that are difficult to
+	// reproduce locally. For example some system run tests against
+	// third-party code that we cannot access.  Aborting (cf. assert) on
+	// unimplemented functionality creates two problems. First, it produces
+	// a service failure where none is needed. Second, it puts the
+	// customer on the critical path for notifying us of a problem.
+	// The alternative, skipping unimplemented functionality silently, is
+	// arguably worse: neither the service provider nor the customer will
+	// learn that unimplemented functionality may have compromised the test
+	// results.
+	// Logging invocations of unimplemented functionality is useful to both
+	// service provider and the customer. The service provider can learn
+	// that the functionality is needed. The customer learns that the test
+	// results may be compromised.
+	#define UNIMPLEMENTED() {ALOGE("Unimplemented: %s %s:%d", __FUNCTION__, __FILE__, __LINE__); }
 #else
-    #define UNIMPLEMENTED() FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__)
+	#if !defined(NDEBUG)
+		#define UNIMPLEMENTED() do { \
+			FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__); \
+			assert(false); \
+		} while(0)
+	#else
+	    #define UNIMPLEMENTED() FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__)
+	#endif
 #endif
 
 // A macro for code which is not expected to be reached under valid assumptions

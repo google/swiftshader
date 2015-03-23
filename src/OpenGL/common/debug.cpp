@@ -15,7 +15,7 @@
 
 #ifdef  __ANDROID__
 #include <utils/String8.h>
-#include <log/log.h>
+#include <cutils/log.h>
 #endif
 
 #include <stdio.h>
