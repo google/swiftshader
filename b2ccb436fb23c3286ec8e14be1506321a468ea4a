@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "666d98b3_e2b05844",
+        "filename": "src/OpenGL/libEGL/Android.mk",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-24T04:02:14Z",
+      "side": 1,
+      "message": "If only want to turn on tracing, not defining ANGLE_DISABLE_TRACE should be good enough. I don\u0027t yet see a good reason to unset NDEBUG.\n\nUnset NDEBUG would also enable assert failure on UNIMPLEMENTED(), UNREACHABLE() macros.",
+      "revId": "b2ccb436fb23c3286ec8e14be1506321a468ea4a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
