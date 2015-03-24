@@ -3655,7 +3655,7 @@ void GL_APIENTRY glTexParameteriv(GLenum target, GLenum pname, const GLint* para
 
 void GL_APIENTRY glTexParameterx(GLenum target, GLenum pname, GLfixed param)
 {
-	UNIMPLEMENTED();
+	glTexParameteri(target, pname, (GLint)param);
 }
 
 void GL_APIENTRY glTexParameterxv(GLenum target, GLenum pname, const GLfixed *params)
