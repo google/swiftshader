@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "666d98b3_62cfe8d9",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-24T03:52:42Z",
+      "side": 1,
+      "message": "The image actually should be marked as shared when being created. I missed that part. We should keep this assert as it is.",
+      "revId": "828d19998eb877852ae857497df1f1a942400f6b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
