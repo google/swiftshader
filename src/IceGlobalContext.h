@@ -226,37 +226,37 @@ public:
   void statsUpdateEmitted(uint32_t InstCount) {
     if (!getFlags().getDumpStats())
       return;
-    ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
-    TLS->StatsFunction.update(CodeStats::CS_InstCount, InstCount);
-    TLS->StatsCumulative.update(CodeStats::CS_InstCount, InstCount);
+    ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
+    Tls->StatsFunction.update(CodeStats::CS_InstCount, InstCount);
+    Tls->StatsCumulative.update(CodeStats::CS_InstCount, InstCount);
   }
   void statsUpdateRegistersSaved(uint32_t Num) {
     if (!getFlags().getDumpStats())
       return;
-    ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
-    TLS->StatsFunction.update(CodeStats::CS_RegsSaved, Num);
-    TLS->StatsCumulative.update(CodeStats::CS_RegsSaved, Num);
+    ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
+    Tls->StatsFunction.update(CodeStats::CS_RegsSaved, Num);
+    Tls->StatsCumulative.update(CodeStats::CS_RegsSaved, Num);
   }
   void statsUpdateFrameBytes(uint32_t Bytes) {
     if (!getFlags().getDumpStats())
       return;
-    ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
-    TLS->StatsFunction.update(CodeStats::CS_FrameByte, Bytes);
-    TLS->StatsCumulative.update(CodeStats::CS_FrameByte, Bytes);
+    ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
+    Tls->StatsFunction.update(CodeStats::CS_FrameByte, Bytes);
+    Tls->StatsCumulative.update(CodeStats::CS_FrameByte, Bytes);
   }
   void statsUpdateSpills() {
     if (!getFlags().getDumpStats())
       return;
-    ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
-    TLS->StatsFunction.update(CodeStats::CS_NumSpills);
-    TLS->StatsCumulative.update(CodeStats::CS_NumSpills);
+    ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
+    Tls->StatsFunction.update(CodeStats::CS_NumSpills);
+    Tls->StatsCumulative.update(CodeStats::CS_NumSpills);
   }
   void statsUpdateFills() {
     if (!getFlags().getDumpStats())
       return;
-    ThreadContext *TLS = ICE_TLS_GET_FIELD(TLS);
-    TLS->StatsFunction.update(CodeStats::CS_NumFills);
-    TLS->StatsCumulative.update(CodeStats::CS_NumFills);
+    ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
+    Tls->StatsFunction.update(CodeStats::CS_NumFills);
+    Tls->StatsCumulative.update(CodeStats::CS_NumFills);
   }
 
   // These are predefined TimerStackIdT values.
