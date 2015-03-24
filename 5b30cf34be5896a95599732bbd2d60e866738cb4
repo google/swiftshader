@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "666d98b3_4d313d9a",
+        "filename": "src/Main/FrameBufferAndroid.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-24T14:16:39Z",
+      "side": 1,
+      "message": "I read somewhere that when buffers are used in another process they should be \"registered\" before use.",
+      "range": {
+        "startLine": 48,
+        "startChar": 26,
+        "endLine": 48,
+        "endChar": 39
+      },
+      "revId": "5b30cf34be5896a95599732bbd2d60e866738cb4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "666d98b3_0d282537",
+        "filename": "src/Main/FrameBufferAndroid.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-24T14:16:39Z",
+      "side": 1,
+      "message": "I don\u0027t see any implementation of this. Can it be removed?",
+      "range": {
+        "startLine": 25,
+        "startChar": 8,
+        "endLine": 25,
+        "endChar": 58
+      },
+      "revId": "5b30cf34be5896a95599732bbd2d60e866738cb4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "666d98b3_8d1435f6",
+        "filename": "src/Main/FrameBufferAndroid.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-24T14:16:39Z",
+      "side": 1,
+      "message": "FrameBuffer\u0027s \"locked\" member (also a void pointer) can be used for this instead.",
+      "range": {
+        "startLine": 34,
+        "startChar": 8,
+        "endLine": 34,
+        "endChar": 19
+      },
+      "revId": "5b30cf34be5896a95599732bbd2d60e866738cb4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
