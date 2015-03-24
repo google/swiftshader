@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "666d98b3_88fd0338",
+        "filename": "src/Main/FrameBufferAndroid.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-24T15:36:21Z",
+      "side": 1,
+      "message": "Found the reference. It was in gralloc.h itself:\n\n(*registerBuffer)() must be called before a buffer_handle_t that has not been created with (*alloc_device_t::alloc)() can be used.\n\nThis is intended to be used with buffer_handle_t\u0027s that have been received in this process through IPC.\n\nThis function checks that the handle is indeed a valid one and prepares it for use with (*lock)() and (*unlock)().",
+      "parentUuid": "666d98b3_4d313d9a",
+      "range": {
+        "startLine": 48,
+        "startChar": 26,
+        "endLine": 48,
+        "endChar": 39
+      },
+      "revId": "5b30cf34be5896a95599732bbd2d60e866738cb4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "666d98b3_0d282537",
         "filename": "src/Main/FrameBufferAndroid.hpp",
         "patchSetId": 5
