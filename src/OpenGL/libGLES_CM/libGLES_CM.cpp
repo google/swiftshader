@@ -3289,7 +3289,18 @@ void GL_APIENTRY glTexCoordPointer(GLint size, GLenum type, GLsizei stride, cons
 
 void GL_APIENTRY glTexEnvf(GLenum target, GLenum pname, GLfloat param)
 {
+	glTexEnvi(target, pname, (GLint)param);
+}
+
+void GL_APIENTRY glTexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
+{
+	UNIMPLEMENTED();
+}
+
+void GL_APIENTRY glTexEnvi(GLenum target, GLenum pname, GLint param)
+{
 	es1::Context *context = es1::getContext();
+
 	if(context)
 	{
 		switch(target)
@@ -3367,22 +3378,12 @@ void GL_APIENTRY glTexEnvf(GLenum target, GLenum pname, GLfloat param)
 		default:
 			return error(GL_INVALID_ENUM);
 		}
-	}	
-}
-
-void GL_APIENTRY glTexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
-{
-	UNIMPLEMENTED();
-}
-
-void GL_APIENTRY glTexEnvi(GLenum target, GLenum pname, GLint param)
-{
-	glTexEnvf(target, pname, (float)param);
+	}
 }
 
 void GL_APIENTRY glTexEnvx(GLenum target, GLenum pname, GLfixed param)
 {
-	UNIMPLEMENTED();
+	glTexEnvi(target, pname, (GLint)param);
 }
 
 void GL_APIENTRY glTexEnviv(GLenum target, GLenum pname, const GLint *params)
