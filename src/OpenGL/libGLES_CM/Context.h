@@ -218,6 +218,7 @@ struct State
     bool sampleCoverageInvert;
     bool scissorTest;
     bool dither;
+	GLenum shadeModel;
 
     GLfloat lineWidth;
 
@@ -303,6 +304,7 @@ public:
     bool isSampleCoverageEnabled() const;
     void setSampleCoverageParams(GLclampf value, bool invert);
 
+	void setShadeModel(GLenum mode);
     void setDither(bool enabled);
     bool isDitherEnabled() const;
 	void setLighting(bool enabled);

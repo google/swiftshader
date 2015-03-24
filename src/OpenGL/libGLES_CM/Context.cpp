@@ -81,6 +81,7 @@ Context::Context(const egl::Config *config, const Context *shareContext)
     mState.sampleCoverageInvert = false;
     mState.scissorTest = false;
     mState.dither = true;
+	mState.shadeModel = GL_SMOOTH;
     mState.generateMipmapHint = GL_DONT_CARE;
 
     mState.lineWidth = 1.0f;
@@ -493,7 +494,7 @@ bool Context::isSampleCoverageEnabled() const
 void Context::setSampleCoverageParams(GLclampf value, bool invert)
 {
     if(mState.sampleCoverageValue != value ||
-        mState.sampleCoverageInvert != invert)
+       mState.sampleCoverageInvert != invert)
     {
         mState.sampleCoverageValue = value;
         mState.sampleCoverageInvert = invert;
@@ -509,6 +510,11 @@ void Context::setScissorTest(bool enabled)
 bool Context::isScissorTestEnabled() const
 {
     return mState.scissorTest;
+}
+
+void Context::setShadeModel(GLenum mode)
+{
+    mState.shadeModel = mode;
 }
 
 void Context::setDither(bool enabled)
@@ -1672,6 +1678,13 @@ void Context::applyState(GLenum drawMode)
 
         mDitherStateDirty = false;
     }
+
+	switch(mState.shadeModel)
+	{
+	default: UNREACHABLE();
+	case GL_SMOOTH: device->setShadingMode(sw::SHADING_GOURAUD); break;
+	case GL_FLAT:   device->setShadingMode(sw::SHADING_FLAT);    break;
+	}
 
 	device->setLightingEnable(lighting);
 	device->setGlobalAmbient(sw::Color<float>(globalAmbient.red, globalAmbient.green, globalAmbient.blue, globalAmbient.alpha));

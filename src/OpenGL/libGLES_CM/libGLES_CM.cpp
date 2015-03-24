@@ -3160,7 +3160,21 @@ void GL_APIENTRY glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 
 void GL_APIENTRY glShadeModel(GLenum mode)
 {
-	UNIMPLEMENTED();
+	switch(mode)
+	{
+	case GL_FLAT:
+	case GL_SMOOTH:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		context->setShadeModel(mode);
+	}
 }
 
 void GL_APIENTRY glStencilFunc(GLenum func, GLint ref, GLuint mask)
