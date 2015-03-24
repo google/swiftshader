@@ -919,3 +919,91 @@ not_lock_free:
 ; CHECK: ret
 ; CHECK: add
 ; CHECK: ret
+
+; Test the liveness / register allocation properties of the xadd instruction.
+; Make sure we model that the Src register is modified and therefore it can't
+; share a register with an overlapping live range, even if the result of the
+; xadd instruction is unused.
+define void @test_xadd_regalloc() {
+entry:
+  br label %body
+body:
+  %i = phi i32 [ 1, %entry ], [ %i_plus_1, %body ]
+  %g = bitcast [4 x i8]* @Global32 to i32*
+  %unused = call i32 @llvm.nacl.atomic.rmw.i32(i32 1, i32* %g, i32 %i, i32 6)
+  %i_plus_1 = add i32 %i, 1
+  %cmp = icmp eq i32 %i_plus_1, 1001
+  br i1 %cmp, label %done, label %body
+done:
+  ret void
+}
+; O2-LABEL: test_xadd_regalloc
+;;; Some register will be used in the xadd instruction.
+; O2: lock xadd DWORD PTR {{.*}},[[REG:e..]]
+;;; Make sure that register isn't used again, e.g. as the induction variable.
+; O2-NOT: [[REG]]
+; O2: ret
+
+; Do the same test for the xchg instruction instead of xadd.
+define void @test_xchg_regalloc() {
+entry:
+  br label %body
+body:
+  %i = phi i32 [ 1, %entry ], [ %i_plus_1, %body ]
+  %g = bitcast [4 x i8]* @Global32 to i32*
+  %unused = call i32 @llvm.nacl.atomic.rmw.i32(i32 6, i32* %g, i32 %i, i32 6)
+  %i_plus_1 = add i32 %i, 1
+  %cmp = icmp eq i32 %i_plus_1, 1001
+  br i1 %cmp, label %done, label %body
+done:
+  ret void
+}
+; O2-LABEL: test_xchg_regalloc
+;;; Some register will be used in the xchg instruction.
+; O2: xchg DWORD PTR {{.*}},[[REG:e..]]
+;;; Make sure that register isn't used again, e.g. as the induction variable.
+; O2-NOT: [[REG]]
+; O2: ret
+
+; Same test for cmpxchg.
+define void @test_cmpxchg_regalloc() {
+entry:
+  br label %body
+body:
+  %i = phi i32 [ 1, %entry ], [ %i_plus_1, %body ]
+  %g = bitcast [4 x i8]* @Global32 to i32*
+  %unused = call i32 @llvm.nacl.atomic.cmpxchg.i32(i32* %g, i32 %i, i32 %i, i32 6, i32 6)
+  %i_plus_1 = add i32 %i, 1
+  %cmp = icmp eq i32 %i_plus_1, 1001
+  br i1 %cmp, label %done, label %body
+done:
+  ret void
+}
+; O2-LABEL: test_cmpxchg_regalloc
+;;; eax and some other register will be used in the cmpxchg instruction.
+; O2: lock cmpxchg DWORD PTR {{.*}},[[REG:e..]]
+;;; Make sure eax isn't used again, e.g. as the induction variable.
+; O2-NOT: eax
+; O2: ret
+
+; Same test for cmpxchg8b.
+define void @test_cmpxchg8b_regalloc() {
+entry:
+  br label %body
+body:
+  %i = phi i32 [ 1, %entry ], [ %i_plus_1, %body ]
+  %g = bitcast [8 x i8]* @Global64 to i64*
+  %i_64 = zext i32 %i to i64
+  %unused = call i64 @llvm.nacl.atomic.cmpxchg.i64(i64* %g, i64 %i_64, i64 %i_64, i32 6, i32 6)
+  %i_plus_1 = add i32 %i, 1
+  %cmp = icmp eq i32 %i_plus_1, 1001
+  br i1 %cmp, label %done, label %body
+done:
+  ret void
+}
+; O2-LABEL: test_cmpxchg8b_regalloc
+;;; eax and some other register will be used in the cmpxchg instruction.
+; O2: lock cmpxchg8b QWORD PTR
+;;; Make sure eax/ecx/edx/ebx aren't used again, e.g. as the induction variable.
+; O2-NOT: {{eax|ecx|edx|ebx}}
+; O2: pop ebx

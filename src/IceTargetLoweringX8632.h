@@ -260,6 +260,7 @@ protected:
     Context.insert(
         InstFakeDef::create(Func, Eax, llvm::dyn_cast<Variable>(DestOrAddr)));
     _set_dest_nonkillable();
+    Context.insert(InstFakeUse::create(Func, Eax));
   }
   void _cmpxchg8b(OperandX8632Mem *Addr, Variable *Edx, Variable *Eax,
                   Variable *Ecx, Variable *Ebx, bool Locked) {
@@ -268,8 +269,10 @@ protected:
     // Mark edx, and eax as possibly modified by cmpxchg8b.
     Context.insert(InstFakeDef::create(Func, Edx));
     _set_dest_nonkillable();
+    Context.insert(InstFakeUse::create(Func, Edx));
     Context.insert(InstFakeDef::create(Func, Eax));
     _set_dest_nonkillable();
+    Context.insert(InstFakeUse::create(Func, Eax));
   }
   void _cvt(Variable *Dest, Operand *Src0, InstX8632Cvt::CvtVariant Variant) {
     Context.insert(InstX8632Cvt::create(Func, Dest, Src0, Variant));
@@ -468,17 +471,20 @@ protected:
   void _xadd(Operand *Dest, Variable *Src, bool Locked) {
     Context.insert(InstX8632Xadd::create(Func, Dest, Src, Locked));
     // The xadd exchanges Dest and Src (modifying Src).
-    // Model that update with a FakeDef.
+    // Model that update with a FakeDef followed by a FakeUse.
     Context.insert(
         InstFakeDef::create(Func, Src, llvm::dyn_cast<Variable>(Dest)));
     _set_dest_nonkillable();
+    Context.insert(InstFakeUse::create(Func, Src));
   }
   void _xchg(Operand *Dest, Variable *Src) {
     Context.insert(InstX8632Xchg::create(Func, Dest, Src));
-    // The xchg modifies Dest and Src -- model that update with a FakeDef.
+    // The xchg modifies Dest and Src -- model that update with a
+    // FakeDef/FakeUse.
     Context.insert(
         InstFakeDef::create(Func, Src, llvm::dyn_cast<Variable>(Dest)));
     _set_dest_nonkillable();
+    Context.insert(InstFakeUse::create(Func, Src));
   }
   void _xor(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Xor::create(Func, Dest, Src0));

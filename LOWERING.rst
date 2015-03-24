@@ -218,3 +218,22 @@ instruction.  Using pseudocode::
 
 If ``v_result_high`` is live but ``v_result_low`` is dead, adding ``t1`` as an
 argument to ``InstFakeDef`` suffices to keep the ``call`` instruction live.
+
+Instructions modifying source operands
+--------------------------------------
+
+Some native instructions may modify one or more source operands.  For example,
+the x86 ``xadd`` and ``xchg`` instructions modify both source operands.  Some
+analysis needs to identify every place a ``Variable`` is modified, and it uses
+the presence of a ``Dest`` variable for this analysis.  Since ICE instructions
+have at most one ``Dest``, the ``xadd`` and ``xchg`` instructions need special
+treatment.
+
+A ``Variable`` that is not the ``Dest`` can be marked as modified by adding an
+``InstFakeDef``.  However, this is not sufficient, as the ``Variable`` may have
+no more live uses, which could result in the ``InstFakeDef`` being dead-code
+eliminated.  The solution is to add an ``InstFakeUse`` as well.
+
+To summarize, for every source ``Variable`` that is not equal to the
+instruction's ``Dest``, append an ``InstFakeDef`` and ``InstFakeUse``
+instruction to provide the necessary analysis information.
