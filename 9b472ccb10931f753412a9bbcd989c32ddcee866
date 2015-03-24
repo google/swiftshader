@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8620cc83_44bbee53",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 470,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-24T16:57:10Z",
+      "side": 1,
+      "message": "Should need only __ANDROID__. Same below.",
+      "range": {
+        "startLine": 470,
+        "startChar": 10,
+        "endLine": 470,
+        "endChar": 50
+      },
+      "revId": "9b472ccb10931f753412a9bbcd989c32ddcee866",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8620cc83_24e9922a",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 474,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-24T16:57:10Z",
+      "side": 1,
+      "message": "Should we add some logging here to notify us in case it\u0027s not a valid window?",
+      "range": {
+        "startLine": 474,
+        "startChar": 16,
+        "endLine": 474,
+        "endChar": 104
+      },
+      "revId": "9b472ccb10931f753412a9bbcd989c32ddcee866",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8620cc83_a492e2a5",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 543,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-24T16:57:10Z",
+      "side": 1,
+      "message": "In the absence of other means to validate that this returns the expected screen dimensions, we should probably log these values.",
+      "range": {
+        "startLine": 542,
+        "startChar": 2,
+        "endLine": 543,
+        "endChar": 68
+      },
+      "revId": "9b472ccb10931f753412a9bbcd989c32ddcee866",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8620cc83_24aef212",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-24T16:57:10Z",
+      "side": 1,
+      "message": "Should need only __ANDROID__. Same below.",
+      "range": {
+        "startLine": 121,
+        "startChar": 7,
+        "endLine": 121,
+        "endChar": 47
+      },
+      "revId": "9b472ccb10931f753412a9bbcd989c32ddcee866",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
