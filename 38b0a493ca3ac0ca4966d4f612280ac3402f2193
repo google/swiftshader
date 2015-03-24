@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a3f6a249_d18c3406",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 474,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-24T19:36:53Z",
+      "side": 1,
+      "message": "nit: No need to split this over two lines, as far as I\u0027m concerned. It\u0027s short anyway and I prefer the logging to distract me as little as possible from the real logic. Same below.",
+      "range": {
+        "startLine": 473,
+        "startChar": 0,
+        "endLine": 474,
+        "endChar": 24
+      },
+      "revId": "38b0a493ca3ac0ca4966d4f612280ac3402f2193",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3f6a249_f1da90ea",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 478,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-24T19:36:53Z",
+      "side": 1,
+      "message": "nit: Four spaces (or three when you write \"if(\" with no space in between). And actually I again don\u0027t mind keeping the entire statement on one line.",
+      "range": {
+        "startLine": 478,
+        "startChar": 2,
+        "endLine": 478,
+        "endChar": 3
+      },
+      "revId": "38b0a493ca3ac0ca4966d4f612280ac3402f2193",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3f6a249_d100b4ba",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 552,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-24T19:36:53Z",
+      "side": 1,
+      "message": "nit: Two tabs + six spaces, or everything on one line.",
+      "range": {
+        "startLine": 552,
+        "startChar": 0,
+        "endLine": 552,
+        "endChar": 14
+      },
+      "revId": "38b0a493ca3ac0ca4966d4f612280ac3402f2193",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
