@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2362b2ee_320c96bf",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-25T08:11:12Z",
+      "side": 1,
+      "message": "Could use something slightly more descriptive like \"Turn on tracing on Android by default.\"",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 55
+      },
+      "revId": "1dbea5a4fc84bf1b518c8fb1f145b4c76d55d4bf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2362b2ee_122ab2f7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-25T08:11:12Z",
+      "side": 1,
+      "message": "\"UNIMPLEMENTED()\"",
+      "range": {
+        "startLine": 9,
+        "startChar": 14,
+        "endLine": 9,
+        "endChar": 27
+      },
+      "revId": "1dbea5a4fc84bf1b518c8fb1f145b4c76d55d4bf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2362b2ee_f23efe3b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-25T08:11:12Z",
+      "side": 1,
+      "message": "\"aborting.\"",
+      "range": {
+        "startLine": 9,
+        "startChar": 40,
+        "endLine": 9,
+        "endChar": 48
+      },
+      "revId": "1dbea5a4fc84bf1b518c8fb1f145b4c76d55d4bf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2362b2ee_d23bfa49",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-25T08:11:12Z",
+      "side": 1,
+      "message": "\"ASSERT() will still abort.\"",
+      "range": {
+        "startLine": 10,
+        "startChar": 8,
+        "endLine": 10,
+        "endChar": 25
+      },
+      "revId": "1dbea5a4fc84bf1b518c8fb1f145b4c76d55d4bf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2362b2ee_121192d9",
+        "filename": "src/Common/Debug.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-25T08:11:12Z",
+      "side": 1,
+      "message": "Please describe the real issue here. Something like \"On Android we heavily depend on logging, even for production builds. Don\u0027t abort (cf. assert) on unimplemented functionality.\"",
+      "range": {
+        "startLine": 34,
+        "startChar": 4,
+        "endLine": 34,
+        "endChar": 55
+      },
+      "revId": "1dbea5a4fc84bf1b518c8fb1f145b4c76d55d4bf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2362b2ee_f215dec5",
+        "filename": "src/OpenGL/common/debug.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-25T08:11:12Z",
+      "side": 1,
+      "message": "Could use same comment as the other header.",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 24
+      },
+      "revId": "1dbea5a4fc84bf1b518c8fb1f145b4c76d55d4bf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
