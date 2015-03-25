@@ -208,6 +208,11 @@ egl::Image *Surface::getDepthStencil()
     return mDepthStencil;
 }
 
+void Surface::setSwapBehavior(EGLenum swapBehavior)
+{
+	mSwapBehavior = swapBehavior;
+}
+
 void Surface::setSwapInterval(EGLint interval)
 {
     if(mSwapInterval == interval)
@@ -223,6 +228,16 @@ void Surface::setSwapInterval(EGLint interval)
 EGLint Surface::getConfigID() const
 {
     return mConfig->mConfigID;
+}
+
+EGLenum Surface::getSurfaceType() const
+{
+    return mConfig->mSurfaceType;
+}
+
+sw::Format Surface::getInternalFormat() const
+{
+    return mConfig->mRenderTargetFormat;
 }
 
 EGLint Surface::getWidth() const
@@ -268,11 +283,6 @@ void Surface::setBoundTexture(egl::Texture *texture)
 egl::Texture *Surface::getBoundTexture() const
 {
     return mTexture;
-}
-
-sw::Format Surface::getInternalFormat() const
-{
-    return mConfig->mRenderTargetFormat;
 }
 
 bool Surface::checkForResize()

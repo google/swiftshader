@@ -44,9 +44,13 @@ public:
     virtual egl::Image *getRenderTarget();
     virtual egl::Image *getDepthStencil();
 
+	void setSwapBehavior(EGLenum swapBehavior);
     void setSwapInterval(EGLint interval);
 
     virtual EGLint getConfigID() const;
+	virtual EGLenum getSurfaceType() const;
+	virtual sw::Format getInternalFormat() const;
+
     virtual EGLint getWidth() const;
     virtual EGLint getHeight() const;
     virtual EGLint getPixelAspectRatio() const;
@@ -54,7 +58,6 @@ public:
     virtual EGLenum getSwapBehavior() const;
     virtual EGLenum getTextureFormat() const;
     virtual EGLenum getTextureTarget() const;
-    virtual sw::Format getInternalFormat() const;
 
     virtual void setBoundTexture(egl::Texture *texture);
     virtual egl::Texture *getBoundTexture() const;
