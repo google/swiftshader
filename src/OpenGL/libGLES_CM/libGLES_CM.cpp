@@ -1780,7 +1780,7 @@ void GL_APIENTRY glFogf(GLenum pname, GLfloat param)
 		default:
 			return error(GL_INVALID_ENUM);
 		}
-	}	
+	}
 }
 
 void GL_APIENTRY glFogfv(GLenum pname, const GLfloat *params)
@@ -1830,7 +1830,7 @@ void GL_APIENTRY glFogfv(GLenum pname, const GLfloat *params)
 		default:
 			return error(GL_INVALID_ENUM);
 		}
-	}	
+	}
 }
 
 void GL_APIENTRY glFogx(GLenum pname, GLfixed param)
@@ -3018,7 +3018,7 @@ void GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, G
 	{
 		return error(GL_INVALID_VALUE);
 	}
-	
+
 	es1::Context *context = es1::getContext();
 
 	if(context)
@@ -3340,7 +3340,7 @@ void GL_APIENTRY glTexEnvi(GLenum target, GLenum pname, GLint param)
 					UNIMPLEMENTED();
 					break;
 				case GL_ADD:
-					context->setTextureEnvMode((GLenum)param);	
+					context->setTextureEnvMode((GLenum)param);
 					break;
 				case GL_ADD_SIGNED:
 					UNIMPLEMENTED();
@@ -3640,9 +3640,6 @@ void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 				return error(GL_INVALID_VALUE);
 			}
 			break;
-		case GL_TEXTURE_CROP_RECT_OES:
-			UNIMPLEMENTED();
-			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -3651,7 +3648,40 @@ void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 
 void GL_APIENTRY glTexParameteriv(GLenum target, GLenum pname, const GLint* params)
 {
-	glTexParameteri(target, pname, *params);
+	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint param = 0x%0.8p)", target, pname, params);
+
+	switch(pname)
+	{
+	case GL_TEXTURE_CROP_RECT_OES:
+		break;
+	default:
+		return glTexParameteri(target, pname, params[0]);
+	}
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		es1::Texture *texture;
+
+		switch(target)
+		{
+		case GL_TEXTURE_2D:
+			texture = context->getTexture2D();
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+
+		switch(pname)
+		{
+		case GL_TEXTURE_CROP_RECT_OES:
+			texture->setCropRect(params[0], params[1], params[2], params[3]);
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void GL_APIENTRY glTexParameterx(GLenum target, GLenum pname, GLfixed param)
@@ -3816,7 +3846,19 @@ void GL_APIENTRY glDrawTexsOES(GLshort x, GLshort y, GLshort z, GLshort width, G
 
 void GL_APIENTRY glDrawTexiOES(GLint x, GLint y, GLint z, GLint width, GLint height)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLint x = %d, GLint y = %d, GLint z = %d, GLint width = %d, GLint height = %d)", x, y, z, width, height);
+
+	if(width <= 0 || height <= 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		context->drawTexture(x, y, z, width, height);
+	}
 }
 
 void GL_APIENTRY glDrawTexxOES(GLfixed x, GLfixed y, GLfixed z, GLfixed width, GLfixed height)

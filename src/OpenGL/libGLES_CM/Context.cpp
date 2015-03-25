@@ -2121,7 +2121,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 					switch(type)
 					{
 					case GL_UNSIGNED_SHORT_5_6_5:
-						dest16[i] = 
+						dest16[i] =
 							((unsigned short)(31 * b + 0.5f) << 0) |
 							((unsigned short)(63 * g + 0.5f) << 5) |
 							((unsigned short)(31 * r + 0.5f) << 11);
@@ -2272,6 +2272,56 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
     {
 		device->drawIndexedPrimitive(primitiveType, indexInfo.indexOffset, primitiveCount, IndexDataManager::typeSize(type));
     }
+}
+
+void Context::drawTexture(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height)
+{
+	es1::Framebuffer *framebuffer = getFramebuffer();
+	es1::Renderbuffer *renderbuffer = framebuffer->getColorbuffer();
+	float targetWidth = renderbuffer->getWidth();
+	float targetHeight = renderbuffer->getHeight();
+	float x0 = 2.0f * x / targetWidth - 1.0f;
+	float y0 = 2.0f * y / targetHeight - 1.0f;
+	float x1 = 2.0f * (x + width) / targetWidth - 1.0f;
+	float y1 = 2.0f * (y + height) / targetHeight - 1.0f;
+	float Zw = sw::clamp(mState.zNear + z * (mState.zFar - mState.zNear), mState.zNear, mState.zFar);
+
+	float vertices[][3] = {{x0, y0, Zw},
+						   {x0, y1, Zw},
+						   {x1, y0, Zw},
+						   {x1, y1, Zw}};
+
+	ASSERT(mState.samplerTexture[TEXTURE_2D][1].name() == 0);   // Multi-texturing unimplemented
+	es1::Texture *texture = getSamplerTexture(0, TEXTURE_2D);
+	float textureWidth = texture->getWidth(GL_TEXTURE_2D, 0);
+	float textureHeight = texture->getHeight(GL_TEXTURE_2D, 0);
+	int Ucr = texture->getCropRectU();
+	int Vcr = texture->getCropRectV();
+	int Wcr = texture->getCropRectW();
+	int Hcr = texture->getCropRectH();
+
+	float texCoords[][2] = {{Ucr / textureWidth, Vcr / textureHeight},
+							{Ucr / textureWidth, (Vcr + Hcr) / textureHeight},
+							{(Ucr + Wcr) / textureWidth, Vcr / textureHeight},
+							{(Ucr + Wcr) / textureWidth, (Vcr + Hcr) / textureHeight}};
+
+	VertexAttribute oldPositionAttribute = mState.vertexAttribute[sw::Position];
+	VertexAttribute oldTexCoord0Attribute = mState.vertexAttribute[sw::TexCoord0];
+
+	glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), vertices);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 2 * sizeof(float), texCoords);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	textureStack0.push();
+	textureStack0.identity();   // Disable texture coordinate transformation
+
+	drawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	// Restore state
+	mState.vertexAttribute[sw::Position] = oldPositionAttribute;
+	mState.vertexAttribute[sw::TexCoord0] = oldTexCoord0Attribute;
+	textureStack0.pop();
 }
 
 void Context::finish()

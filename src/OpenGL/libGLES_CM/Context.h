@@ -282,7 +282,7 @@ public:
     bool isDepthTestEnabled() const;
     void setDepthFunc(GLenum depthFunc);
     void setDepthRange(float zNear, float zFar);
-    
+
     void setBlend(bool enabled);
     bool isBlendEnabled() const;
     void setBlendFactors(GLenum sourceRGB, GLenum destRGB, GLenum sourceAlpha, GLenum destAlpha);
@@ -293,7 +293,7 @@ public:
     void setStencilParams(GLenum stencilFunc, GLint stencilRef, GLuint stencilMask);
     void setStencilWritemask(GLuint stencilWritemask);
     void setStencilOperations(GLenum stencilFail, GLenum stencilPassDepthFail, GLenum stencilPassDepthPass);
-    
+
     void setPolygonOffsetFill(bool enabled);
     bool isPolygonOffsetFillEnabled() const;
     void setPolygonOffsetParams(GLfloat factor, GLfloat units);
@@ -367,7 +367,7 @@ public:
     void setPackAlignment(GLint alignment);
     GLint getPackAlignment() const;
 
-    // These create  and destroy methods are merely pass-throughs to 
+    // These create  and destroy methods are merely pass-throughs to
     // ResourceManager, which owns these object types
     GLuint createBuffer();
     GLuint createTexture();
@@ -419,6 +419,7 @@ public:
     void clear(GLbitfield mask);
     void drawArrays(GLenum mode, GLint first, GLsizei count);
     void drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices);
+    void drawTexture(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height);
     void finish();
     void flush();
 
@@ -479,7 +480,7 @@ private:
 
     VertexDataManager *mVertexDataManager;
     IndexDataManager *mIndexDataManager;
-	
+
 	bool lighting;
 	Light light[MAX_LIGHTS];
 	Color globalAmbient;
@@ -496,7 +497,7 @@ private:
     bool mInvalidFramebufferOperation;
 
     bool mHasBeenCurrent;
-    
+
     // state caching flags
     bool mDepthStateDirty;
     bool mMaskStateDirty;

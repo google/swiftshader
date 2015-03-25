@@ -35,6 +35,10 @@ Texture::Texture(GLuint name) : egl::Texture(name)
     mWrapS = GL_REPEAT;
     mWrapT = GL_REPEAT;
 	mMaxAnisotropy = 1.0f;
+	cropRectU = 0;
+	cropRectV = 0;
+	cropRectW = 0;
+	cropRectH = 0;
 
 	resource = new sw::Resource(0);
 }
@@ -135,13 +139,21 @@ bool Texture::setMaxAnisotropy(float textureMaxAnisotropy)
     {
         return false;
     }
-    
+
 	if(mMaxAnisotropy != textureMaxAnisotropy)
     {
         mMaxAnisotropy = textureMaxAnisotropy;
     }
 
     return true;
+}
+
+void Texture::setCropRect(GLint u, GLint v, GLint w, GLint h)
+{
+	cropRectU = u;
+	cropRectV = v;
+	cropRectW = w;
+	cropRectH = h;
 }
 
 GLenum Texture::getMinFilter() const
@@ -167,6 +179,26 @@ GLenum Texture::getWrapT() const
 GLfloat Texture::getMaxAnisotropy() const
 {
     return mMaxAnisotropy;
+}
+
+GLint Texture::getCropRectU() const
+{
+	return cropRectU;
+}
+
+GLint Texture::getCropRectV() const
+{
+	return cropRectV;
+}
+
+GLint Texture::getCropRectW() const
+{
+	return cropRectW;
+}
+
+GLint Texture::getCropRectH() const
+{
+	return cropRectH;
 }
 
 egl::Image *Texture::createSharedImage(GLenum target, unsigned int level)
@@ -251,7 +283,7 @@ void Texture::subImageCompressed(GLint xoffset, GLint yoffset, GLsizei width, GL
 bool Texture::copy(egl::Image *source, const sw::Rect &sourceRect, GLenum destFormat, GLint xoffset, GLint yoffset, egl::Image *dest)
 {
     Device *device = getDevice();
-	
+
     sw::SliceRect destRect(xoffset, yoffset, xoffset + (sourceRect.x1 - sourceRect.x0), yoffset + (sourceRect.y1 - sourceRect.y0), 0);
     sw::SliceRect sourceSliceRect(sourceRect);
     bool success = device->stretchRect(source, &sourceSliceRect, dest, &destRect, false);
@@ -319,8 +351,8 @@ Texture2D::~Texture2D()
 	mColorbufferProxy = NULL;
 }
 
-// We need to maintain a count of references to renderbuffers acting as 
-// proxies for this texture, so that we do not attempt to use a pointer 
+// We need to maintain a count of references to renderbuffers acting as
+// proxies for this texture, so that we do not attempt to use a pointer
 // to a renderbuffer proxy which has been deleted.
 void Texture2D::addProxyRef(const Renderbuffer *proxy)
 {
@@ -633,7 +665,7 @@ void Texture2D::generateMipmaps()
 	}
 
     unsigned int q = log2(std::max(image[0]->getWidth(), image[0]->getHeight()));
-    
+
 	for(unsigned int i = 1; i <= q; i++)
     {
 		if(image[i])
@@ -742,7 +774,7 @@ extern "C"
 			ERR("Invalid parameters");
 			return 0;
 		}
-		
+
 		bool lockable = true;
 
 		switch(format)

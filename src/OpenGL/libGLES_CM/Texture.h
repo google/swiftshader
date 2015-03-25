@@ -65,12 +65,17 @@ public:
     bool setWrapS(GLenum wrap);
     bool setWrapT(GLenum wrap);
 	bool setMaxAnisotropy(GLfloat textureMaxAnisotropy);
+	void setCropRect(GLint u, GLint v, GLint w, GLint h);
 
     GLenum getMinFilter() const;
     GLenum getMagFilter() const;
     GLenum getWrapS() const;
     GLenum getWrapT() const;
 	GLfloat getMaxAnisotropy() const;
+	GLint getCropRectU() const;
+    GLint getCropRectV() const;
+    GLint getCropRectW() const;
+    GLint getCropRectH() const;
 
     virtual GLsizei getWidth(GLenum target, GLint level) const = 0;
     virtual GLsizei getHeight(GLenum target, GLint level) const = 0;
@@ -106,6 +111,10 @@ protected:
     GLenum mWrapS;
     GLenum mWrapT;
 	GLfloat mMaxAnisotropy;
+	GLint cropRectU;
+	GLint cropRectV;
+	GLint cropRectW;
+	GLint cropRectH;
 
 	sw::Resource *resource;
 };
@@ -156,9 +165,9 @@ protected:
 	bool isMipmapComplete() const;
 
 	egl::Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS];
-    
+
     egl::Surface *mSurface;
-    
+
 	// A specific internal reference count is kept for colorbuffer proxy references,
     // because, as the renderbuffer acting as proxy will maintain a binding pointer
     // back to this texture, there would be a circular reference if we used a binding
