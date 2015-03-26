@@ -279,6 +279,30 @@
       "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43d246e8_55083e5d",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 874,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-26T20:19:31Z",
+      "side": 1,
+      "message": "Should we always create an es2::Image here? Can\u0027t create egl::Image directly as it\u0027s an abstract class.",
+      "parentUuid": "e3697ae5_57310c1f",
+      "range": {
+        "startLine": 874,
+        "startChar": 21,
+        "endLine": 874,
+        "endChar": 47
+      },
+      "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
