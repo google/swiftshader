@@ -1328,17 +1328,16 @@ namespace es2
 					if(index < MAX_VERTEX_TEXTURE_IMAGE_UNITS)
 					{
 						samplersVS[index].active = true;
-						switch(type) {
-						case GL_SAMPLER_CUBE:
-							samplersVS[index].textureType = TEXTURE_CUBE;
-							break;
-						case GL_SAMPLER_3D_OES:
-							samplersVS[index].textureType = TEXTURE_3D;
-							break;
-						default:
-							samplersVS[index].textureType = TEXTURE_2D;
-							break;
+
+						switch(type)
+						{
+						default:                      UNREACHABLE();
+						case GL_SAMPLER_2D:           samplersVS[index].textureType = TEXTURE_2D;       break;
+						case GL_SAMPLER_CUBE:         samplersVS[index].textureType = TEXTURE_CUBE;     break;
+						case GL_SAMPLER_3D_OES:       samplersVS[index].textureType = TEXTURE_3D;       break;
+						case GL_SAMPLER_EXTERNAL_OES: samplersVS[index].textureType = TEXTURE_EXTERNAL; break;
 						}
+
 						samplersVS[index].logicalTextureUnit = 0;
 					}
 					else
@@ -1352,17 +1351,16 @@ namespace es2
 					if(index < MAX_TEXTURE_IMAGE_UNITS)
 					{
 						samplersPS[index].active = true;
-						switch(type) {
-						case GL_SAMPLER_CUBE:
-							samplersPS[index].textureType = TEXTURE_CUBE;
-							break;
-						case GL_SAMPLER_3D_OES:
-							samplersPS[index].textureType = TEXTURE_3D;
-							break;
-						default:
-							samplersPS[index].textureType = TEXTURE_2D;
-							break;
+						
+						switch(type)
+						{
+						default:                      UNREACHABLE();
+						case GL_SAMPLER_2D:           samplersPS[index].textureType = TEXTURE_2D;       break;
+						case GL_SAMPLER_CUBE:         samplersPS[index].textureType = TEXTURE_CUBE;     break;
+						case GL_SAMPLER_3D_OES:       samplersPS[index].textureType = TEXTURE_3D;       break;
+						case GL_SAMPLER_EXTERNAL_OES: samplersPS[index].textureType = TEXTURE_EXTERNAL; break;
 						}
+
 						samplersPS[index].logicalTextureUnit = 0;
 					}
 					else
