@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e3697ae5_97d7a443",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-26T17:18:32Z",
+      "side": 1,
+      "message": "How does this differ from __ANDROID__ exactly?",
+      "range": {
+        "startLine": 30,
+        "startChar": 14,
+        "endLine": 30,
+        "endChar": 29
+      },
+      "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e3697ae5_57e34c1f",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-26T17:18:32Z",
+      "side": 1,
+      "message": "I feel like we shouldn\u0027t load gralloc until we need it.",
+      "range": {
+        "startLine": 31,
+        "startChar": 3,
+        "endLine": 34,
+        "endChar": 63
+      },
+      "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e3697ae5_97f004e0",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-26T17:18:32Z",
+      "side": 1,
+      "message": "Probably not needed here since it was referenced in setNativeBuffer().",
+      "range": {
+        "startLine": 100,
+        "startChar": 25,
+        "endLine": 100,
+        "endChar": 31
+      },
+      "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e3697ae5_770d306c",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-26T17:18:32Z",
+      "side": 1,
+      "message": "Could be written to as well.",
+      "range": {
+        "startLine": 101,
+        "startChar": 47,
+        "endLine": 101,
+        "endChar": 74
+      },
+      "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e3697ae5_b7ed0805",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-26T17:18:32Z",
+      "side": 1,
+      "message": "The one in destroyShared seems sufficient.",
+      "range": {
+        "startLine": 120,
+        "startChar": 25,
+        "endLine": 120,
+        "endChar": 31
+      },
+      "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e3697ae5_37e25819",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-26T17:18:32Z",
+      "side": 1,
+      "message": "Should probably also be registered here: \"module-\u003eregisterBuffer(module, nativeBuffer-\u003ehandle);\"",
+      "range": {
+        "startLine": 151,
+        "startChar": 2,
+        "endLine": 151,
+        "endChar": 53
+      },
+      "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e3697ae5_f7f860c0",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 863,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-26T17:18:32Z",
+      "side": 1,
+      "message": "Let\u0027s just do the validation for EGL_NATIVE_BUFFER_ANDROID here instead of in context-\u003evalidateSharedImage().",
+      "range": {
+        "startLine": 863,
+        "startChar": 3,
+        "endLine": 863,
+        "endChar": 66
+      },
+      "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e3697ae5_57310c1f",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 874,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-26T17:18:32Z",
+      "side": 1,
+      "message": "Likewise just create the egl::Image right here for EGL_NATIVE_BUFFER_ANDROID instead of going down into the context.\n\nWe should probably rename validateSharedImage/createSharedImage a little to clarify the distinction.",
+      "range": {
+        "startLine": 874,
+        "startChar": 21,
+        "endLine": 874,
+        "endChar": 47
+      },
+      "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
