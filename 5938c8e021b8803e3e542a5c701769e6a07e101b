@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "639caa2a_c4ed7404",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-26T18:57:46Z",
+      "side": 1,
+      "message": "HAVE_ANDROID_OS would be defined only when building in Android source while __ANDROID__ is also available with NDK. Since now we are exclusively building in Android source it doesn\u0027t really matter. I guess I\u0027ll just use __ANDROID__ to be consistent with other commits?",
+      "parentUuid": "e3697ae5_97d7a443",
+      "range": {
+        "startLine": 30,
+        "startChar": 14,
+        "endLine": 30,
+        "endChar": 29
+      },
+      "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e3697ae5_57e34c1f",
         "filename": "src/OpenGL/libEGL/Image.hpp",
         "patchSetId": 8
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "639caa2a_cfd4ad40",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-26T18:57:46Z",
+      "side": 1,
+      "message": "It\u0027s only getting a handle so probably doesn\u0027t affect anything but sure I\u0027ll move that out of constructor.",
+      "parentUuid": "e3697ae5_57e34c1f",
+      "range": {
+        "startLine": 31,
+        "startChar": 3,
+        "endLine": 34,
+        "endChar": 63
+      },
+      "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e3697ae5_97f004e0",
         "filename": "src/OpenGL/libEGL/Image.hpp",
         "patchSetId": 8
@@ -59,6 +107,30 @@
       "writtenOn": "2015-03-26T17:18:32Z",
       "side": 1,
       "message": "Probably not needed here since it was referenced in setNativeBuffer().",
+      "range": {
+        "startLine": 100,
+        "startChar": 25,
+        "endLine": 100,
+        "endChar": 31
+      },
+      "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "639caa2a_ef5ac953",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-26T18:57:46Z",
+      "side": 1,
+      "message": "Ah yes, the pair of inc/decRef in lock/unclock seems redundant.",
+      "parentUuid": "e3697ae5_97f004e0",
       "range": {
         "startLine": 100,
         "startChar": 25,
@@ -128,6 +200,30 @@
       "writtenOn": "2015-03-26T17:18:32Z",
       "side": 1,
       "message": "Should probably also be registered here: \"module-\u003eregisterBuffer(module, nativeBuffer-\u003ehandle);\"",
+      "range": {
+        "startLine": 151,
+        "startChar": 2,
+        "endLine": 151,
+        "endChar": 53
+      },
+      "revId": "5938c8e021b8803e3e542a5c701769e6a07e101b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "639caa2a_8f630516",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-26T18:57:46Z",
+      "side": 1,
+      "message": "On the registerBuffer, I\u0027ve been looking at Android source and I feel like the register has been handled else where already but I\u0027m not 100% sure... Anyway it should be fairly easy to try register/unregister and see what happens.",
+      "parentUuid": "e3697ae5_37e25819",
       "range": {
         "startLine": 151,
         "startChar": 2,
