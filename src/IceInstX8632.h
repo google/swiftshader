@@ -290,6 +290,7 @@ protected:
       validateVectorAddrModeOpnd(getSrc(i));
     }
   }
+
 private:
   static void validateVectorAddrModeOpnd(const Operand *Opnd) {
     if (llvm::isa<OperandX8632Mem>(Opnd) && isVectorType(Opnd->getType())) {

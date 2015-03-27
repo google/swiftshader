@@ -74,7 +74,7 @@ public:
 protected:
   GlobalContext *Ctx;
   uint32_t NextSequenceNumber;
-  // Exit status of the translation. False is successful. True otherwise.
+  // ErrorCode of the translation.
   ErrorCode ErrorStatus;
 };
 

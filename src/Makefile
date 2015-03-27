@@ -2,7 +2,7 @@
 SUBZERO_LEVEL := ..
 
 TOOLNAME := pnacl-sz
-LINK_COMPONENTS := bitreader naclbitreader irreader naclanalysis nacltransforms support
+LINK_COMPONENTS := irreader bitreader naclbitreader naclanalysis core support
 
 # This tool has no plugins, optimize startup time.
 TOOL_NO_EXPORTS := 1

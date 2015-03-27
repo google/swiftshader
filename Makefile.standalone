@@ -4,7 +4,7 @@
 #
 #   make LLVM_SRC_PATH=<path> LLVM_BIN_PATH=<path> \
 #        LIBCXX_INSTALL_PATH=<path> CLANG_PATH=<path> \
-#        BINUTILS_BIN_PATH=<path> ...
+#        PNACL_BIN_PATH=<path> ...
 #
 
 # LLVM_SRC_PATH is the path to the root of the checked out source code. This
@@ -22,23 +22,32 @@ LLVM_SRC_PATH ?= ../llvm
 LLVM_BIN_PATH ?= $(shell readlink -e \
 	../../out/llvm_x86_64_linux_work/Release+Asserts/bin)
 
+# The x86-32-specific sandboxed translator directory.
+# It holds sandboxed versions of libraries and binaries.
+SB_LLVM_PATH ?= $(shell readlink -e \
+	../../out/sandboxed_translators_work/translator-i686/llvm-sb/Release)
+
+# NACL_ROOT is the root of the native client repository.
+NACL_ROOT ?= $(shell python -c "import sys; sys.path.insert(0, 'pydir'); \
+	import utils; print utils.FindBaseNaCl()")
+
 # PNACL_TOOLCHAIN_ROOT is the location of the PNaCl toolchain.
 # This is used as the default root for finding binutils, libcxx, etc.
-PNACL_TOOLCHAIN_ROOT = $(shell readlink -e \
-	../../../toolchain/linux_x86/pnacl_newlib)
+PNACL_TOOLCHAIN_ROOT ?= $(shell readlink -e \
+	$(NACL_ROOT)/toolchain/linux_x86/pnacl_newlib)
+
+# The location of PNaCl tools (e.g., binutils objdump, pnacl-clang++, etc.).
+PNACL_BIN_PATH ?= $(shell readlink -e $(PNACL_TOOLCHAIN_ROOT)/bin)
 
 # CLANG_PATH is the location of the clang compiler to use for building
 # the host binaries.
 CLANG_PATH ?= $(shell readlink -e \
-	../../../../third_party/llvm-build/Release+Asserts/bin)
+	$(NACL_ROOT)/../third_party/llvm-build/Release+Asserts/bin)
 
 # LIBCXX_INSTALL_PATH is the directory where libc++ is located. It should
 # contain header files and corresponding libraries. This is used for
 # building the host binaries in conjuction with clang.
 LIBCXX_INSTALL_PATH ?= $(PNACL_TOOLCHAIN_ROOT)
-
-# The location of binutils tools (e.g., objdump) for testing.
-BINUTILS_BIN_PATH ?= $(shell readlink -e $(PNACL_TOOLCHAIN_ROOT)/bin)
 
 HOST_ARCH ?= x86_64
 ifeq ($(HOST_ARCH),x86_64)
@@ -52,27 +61,32 @@ endif
 ifdef DEBUG
   OBJDIR = build/Debug
   OPTLEVEL = -O0
+  LINKOPTLEVEL = -O0
 else
   OBJDIR = build/Release
   OPTLEVEL = -O2 -ffunction-sections -fdata-sections
+  LINKOPTLEVEL = -O2
 endif
 
 # The list of CXX defines that are dependent on build parameters.
-CXX_DEFINES =
+BASE_CXX_DEFINES =
 CXX_EXTRA =
 LD_EXTRA =
 
 ifdef MINIMAL
   NOASSERT = 1
   OBJDIR := $(OBJDIR)+Min
-  CXX_DEFINES += -DALLOW_DUMP=0 -DALLOW_LLVM_CL=0 -DALLOW_LLVM_IR=0 \
+  BASE_CXX_DEFINES += -DALLOW_DUMP=0 -DALLOW_LLVM_CL=0 -DALLOW_LLVM_IR=0 \
 	-DALLOW_LLVM_IR_AS_INPUT=0 -DALLOW_DISABLE_IR_GEN=0 \
-        -DALLOW_MINIMAL_BUILD=1
+    -DALLOW_MINIMAL_BUILD=1
 else
-  CXX_DEFINES += -DALLOW_DUMP=1 -DALLOW_LLVM_CL=1 -DALLOW_LLVM_IR=1 \
+  BASE_CXX_DEFINES += -DALLOW_DUMP=1 -DALLOW_LLVM_CL=1 -DALLOW_LLVM_IR=1 \
 	-DALLOW_LLVM_IR_AS_INPUT=1 -DALLOW_DISABLE_IR_GEN=1 \
-        -DALLOW_MINIMAL_BUILD=0
+    -DALLOW_MINIMAL_BUILD=0
 endif
+
+SB_CXX_DEFINES := $(BASE_CXX_DEFINES) -DPNACL_BROWSER_TRANSLATOR=1
+CXX_DEFINES := $(BASE_CXX_DEFINES) -DPNACL_BROWSER_TRANSLATOR=0
 
 ifdef NOASSERT
   ASSERTIONS = -DNDEBUG
@@ -87,37 +101,63 @@ ifdef TSAN
   LD_EXTRA += -fsanitize=thread
 endif
 
+SB_OBJDIR := $(OBJDIR)+Sandboxed
+
 $(info -----------------------------------------------)
 $(info Using LLVM_SRC_PATH = $(LLVM_SRC_PATH))
 $(info Using LLVM_BIN_PATH = $(LLVM_BIN_PATH))
+$(info Using SB_LLVM_PATH = $(SB_LLVM_PATH))
+$(info Using NACL_ROOT = $(NACL_ROOT))
 $(info Using PNACL_TOOLCHAIN_ROOT = $(PNACL_TOOLCHAIN_ROOT))
+$(info Using PNACL_BIN_PATH = $(PNACL_BIN_PATH))
 $(info Using CLANG_PATH = $(CLANG_PATH))
 $(info Using LIBCXX_INSTALL_PATH = $(LIBCXX_INSTALL_PATH))
-$(info Using BINUTILS_BIN_PATH = $(BINUTILS_BIN_PATH))
 $(info Using HOST_ARCH     = $(HOST_ARCH))
 $(info -----------------------------------------------)
 
 LLVM_CXXFLAGS := `$(LLVM_BIN_PATH)/llvm-config --cxxflags`
-LLVM_LDFLAGS := `$(LLVM_BIN_PATH)/llvm-config --libs` \
+SB_LLVM_CXXFLAGS := $(LLVM_CXXFLAGS)
+
+# Listing specific libraries that are needed for pnacl-sz
+# and the unittests, since we build "tools-only" for the
+# sandboxed_translators (which doesn't include every library
+# listed by llvm-config).
+LLVM_LIBS := -lLLVMIRReader -lLLVMBitReader -lLLVMNaClBitTestUtils \
+	-lLLVMNaClBitReader -lLLVMNaClBitAnalysis -lLLVMNaClBitWriter \
+	-lLLVMAsmParser -lLLVMNaClAnalysis -lLLVMCore -lLLVMSupport
+LLVM_LDFLAGS := $(LLVM_LIBS) \
                 `$(LLVM_BIN_PATH)/llvm-config --ldflags` \
                 `$(LLVM_BIN_PATH)/llvm-config --system-libs`
+SB_LLVM_LDFLAGS := $(LLVM_LIBS) \
+                   -L$(SB_LLVM_PATH)/lib
 
-# It's recommended that CXX matches the compiler you used to build LLVM itself.
 CCACHE := `command -v ccache`
 CXX := CCACHE_CPP2=yes $(CCACHE) $(CLANG_PATH)/clang++
+SB_CXX := CCACHE_CPP2=yes $(CCACHE) $(PNACL_BIN_PATH)/pnacl-clang++
+SB_TRANSLATE := $(PNACL_BIN_PATH)/pnacl-translate
 
-CXXFLAGS := $(LLVM_CXXFLAGS) -std=gnu++11 -Wall -Wextra -Werror -fno-rtti \
-	-fno-exceptions $(OPTLEVEL) $(ASSERTIONS) $(CXX_DEFINES) -g \
-	$(HOST_FLAGS) -pedantic -Wno-error=unused-parameter \
-	-I$(LIBCXX_INSTALL_PATH)/include/c++/v1 $(CXX_EXTRA)
+BASE_CXXFLAGS := -std=gnu++11 -Wall -Wextra -Werror -fno-rtti \
+	-fno-exceptions $(OPTLEVEL) $(ASSERTIONS) -g -pedantic \
+	-Wno-error=unused-parameter $(CXX_EXTRA)
+
+CXXFLAGS := $(LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(CXX_DEFINES) $(HOST_FLAGS) \
+	-I$(LIBCXX_INSTALL_PATH)/include/c++/v1
+SB_CXXFLAGS := $(SB_LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(SB_CXX_DEFINES)
+
 LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib -Wl,--gc-sections \
 	$(LD_EXTRA)
+# Not specifying -Wl,--gc-sections but instead doing bitcode linking GC w/ LTO.
+SB_LDFLAGS := $(LINKOPTLEVEL) $(LD_EXTRA)
 
 SRCS = \
 	assembler.cpp \
 	assembler_ia32.cpp \
+	IceBrowserCompileServer.cpp \
 	IceCfg.cpp \
 	IceCfgNode.cpp \
+	IceClFlags.cpp \
+	IceCompiler.cpp \
+	IceCompileServer.cpp \
 	IceELFObjectWriter.cpp \
 	IceELFSection.cpp \
 	IceFixups.cpp \
@@ -145,6 +185,7 @@ ifndef MINIMAL
 endif
 
 OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(SRCS))
+SB_OBJS=$(patsubst %.cpp, $(SB_OBJDIR)/%.o, $(SRCS))
 
 UNITTEST_SRCS = \
 	BitcodeMunge.cpp \
@@ -157,6 +198,13 @@ UNITTEST_LIB_OBJS = $(filter-out $(OBJDIR)/main.o,$(OBJS))
 # Keep all the first target so it's the default.
 all: $(OBJDIR)/pnacl-sz make_symlink runtime
 
+ifdef TSAN
+sb:
+	@echo "Skipping pnacl-sz.*.nexe: TSAN isn't supported under NaCl."
+else
+sb: $(SB_OBJDIR)/pnacl-sz.x86-32.nexe
+endif
+
 # Creates symbolic link so that testing is easier. Also runs
 # pnacl-sz to verify that the defines flags have valid values,
 # as well as describe the corresponding build attributes.
@@ -166,15 +214,25 @@ make_symlink: $(OBJDIR)/pnacl-sz
 	@echo "Build Attributes:"
 	@$(OBJDIR)/pnacl-sz --build-atts
 
-.PHONY: all make_symlink runtime bloat
+.PHONY: all make_symlink runtime bloat sb
 
 $(OBJDIR)/pnacl-sz: $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
                -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
 
+$(SB_OBJDIR)/pnacl-sz.x86-32.nexe: $(SB_OBJS)
+	$(eval PNACL_SZ_BASE := $(patsubst %.nexe, %, $@))
+	$(SB_CXX) $(SB_LDFLAGS) -o $(PNACL_SZ_BASE).nonfinal.pexe $^ \
+		$(SB_LLVM_LDFLAGS)
+	$(SB_TRANSLATE) -arch x86-32 $(PNACL_SZ_BASE).nonfinal.pexe -o $@ \
+		--allow-llvm-bitcode-input
+
 # TODO(stichnot): Be more precise than "*.h" here and elsewhere.
 $(OBJS): $(OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
 	$(CXX) -c $(CXXFLAGS) $< -o $@
+
+$(SB_OBJS): $(SB_OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
+	$(SB_CXX) -c $(SB_CXXFLAGS) $< -o $@
 
 $(OBJDIR)/run_unittests: $(UNITTEST_OBJS) $(UNITTEST_LIB_OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) -lgtest -lgtest_main -ldl \
@@ -189,10 +247,13 @@ $(UNITTEST_OBJS): $(OBJDIR)/unittest/%.o: unittest/%.cpp \
 		$< -o $@
 
 $(OBJS): | $(OBJDIR)
+$(SB_OBJS): | $(SB_OBJDIR)
 
 $(UNITTEST_OBJS): | $(OBJDIR)/unittest
 
 $(OBJDIR):
+	@mkdir -p $@
+$(SB_OBJDIR):
 	@mkdir -p $@
 
 $(OBJDIR)/unittest: $(OBJDIR)
@@ -213,7 +274,7 @@ runtime.is.built: $(RT_SRC)
 
 check-lit: $(OBJDIR)/pnacl-sz make_symlink
 	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
-	BINUTILS_BIN_PATH=$(BINUTILS_BIN_PATH) \
+	BINUTILS_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit
 
 ifdef MINIMAL
@@ -254,7 +315,7 @@ bloat: make_symlink
 	@echo See Subzero size breakdown in bloat/pnacl-sz.bloat.html
 
 clean:
-	rm -rf pnacl-sz *.o $(OBJDIR) build/pnacl-sz.bloat.json
+	rm -rf pnacl-sz *.o $(OBJDIR) $(SB_OBJDIR) build/pnacl-sz.bloat.json
 
 clean-all: clean
 	rm -rf build/

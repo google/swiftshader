@@ -300,6 +300,14 @@ public:
   EmitterWorkItem *emitQueueBlockingPop();
   void emitQueueNotifyEnd() { EmitQ.notifyEnd(); }
 
+  void initParserThread() {
+    ThreadContext *Tls = new ThreadContext();
+    auto Timers = getTimers();
+    Timers->initInto(Tls->Timers);
+    AllThreadContexts.push_back(Tls);
+    ICE_TLS_SET_FIELD(TLS, Tls);
+  }
+
   void startWorkerThreads() {
     size_t NumWorkers = getFlags().getNumTranslationThreads();
     auto Timers = getTimers();

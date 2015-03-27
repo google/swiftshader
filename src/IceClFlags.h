@@ -14,9 +14,12 @@
 #ifndef SUBZERO_SRC_ICECLFLAGS_H
 #define SUBZERO_SRC_ICECLFLAGS_H
 
+#include "IceDefs.h"
 #include "IceTypes.h"
 
 namespace Ice {
+
+class ClFlagsExtra;
 
 class ClFlags {
   ClFlags(const ClFlags &) = delete;
@@ -33,7 +36,7 @@ public:
         RandomNopInsertion(false), RandomRegAlloc(false),
         SubzeroTimingEnabled(false), TimeEachFunction(false),
         UseSandboxing(false),
-        // Enum and integer fields
+        // Enum and integer fields.
         Opt(Opt_m1), OutFileType(FT_Iasm), RandomMaxNopsPerInstruction(0),
         RandomNopProbabilityAsPercentage(0), TArch(TargetArch_NUM),
         VMask(IceV_None),
@@ -42,6 +45,10 @@ public:
         TimingFocusOn(""), TranslateOnly(""), VerboseFocusOn(""),
         // size_t and 64-bit fields.
         NumTranslationThreads(0), RandomSeed(0) {}
+
+  static void parseFlags(int argc, char *argv[]);
+  static void getParsedClFlags(ClFlags &OutFlags);
+  static void getParsedClFlagsExtra(ClFlagsExtra &OutFlagsExtra);
 
   // bool accessors.
 
