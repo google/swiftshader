@@ -66,6 +66,7 @@ namespace sw
         }
 
         locked = bits;
+        stride = buffer->stride;
         return locked;
     }
 
