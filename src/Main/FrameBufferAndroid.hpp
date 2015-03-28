@@ -31,7 +31,6 @@ namespace sw
         ANativeWindow* nativeWindow;
         ANativeWindowBuffer* buffer;
         gralloc_module_t const* gralloc;
-        void* bits;
     };
 }
 

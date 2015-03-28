@@ -7,7 +7,7 @@ namespace sw
 {
     FrameBufferAndroid::FrameBufferAndroid(ANativeWindow* window, int width, int height)
         : FrameBuffer(width, height, false, false),
-        nativeWindow(window), buffer(0), gralloc(0), bits(NULL)
+        nativeWindow(window), buffer(0), gralloc(0)
     {
         hw_module_t const* pModule;
         hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &pModule);
@@ -33,9 +33,9 @@ namespace sw
         copy(source, format);
         nativeWindow->queueBuffer(nativeWindow, buffer, -1);
 
-        if (buffer && bits)
+        if (buffer && locked)
         {
-            bits = 0;
+            locked = 0;
             unlock(buffer);
         }
 
@@ -59,14 +59,21 @@ namespace sw
 
         buffer->common.incRef(&buffer->common);
 
-        if (lock(buffer, GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN, &bits) != android::NO_ERROR)
+        if (lock(buffer, GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN, &locked) != android::NO_ERROR)
         {
             ALOGE("connect() failed to lock buffer %p", buffer);
             return NULL;
         }
 
-        locked = bits;
-        stride = buffer->stride;
+		switch(buffer->format)
+		{
+		default: ASSERT(false);
+		case HAL_PIXEL_FORMAT_RGBA_8888: destFormat = FORMAT_A8B8G8R8; break;
+		case HAL_PIXEL_FORMAT_RGBX_8888: destFormat = FORMAT_X8B8G8R8; break;
+		case HAL_PIXEL_FORMAT_BGRA_8888: destFormat = FORMAT_A8R8G8B8; break;
+		}
+
+        stride = buffer->stride * Surface::bytes(destFormat);
         return locked;
     }
 

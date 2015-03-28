@@ -275,7 +275,7 @@ namespace sw
 					}
 				#endif
 
-				if(state.destFormat == FORMAT_X8R8G8B8)
+				if(state.destFormat == FORMAT_X8R8G8B8 || state.destFormat == FORMAT_A8R8G8B8)
 				{
 					Int x = x0;
 
@@ -284,6 +284,20 @@ namespace sw
 						For(, x < width - 3, x += 4)
 						{
 							*Pointer<Int4>(d, 1) = *Pointer<Int4>(s, width % 4 ? 1 : 16);
+
+							s += 4 * sBytes;
+							d += 4 * dBytes;
+						}
+					}
+					else if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
+					{
+						For(, x < width - 3, x += 4)
+						{
+							Int4 bgra = *Pointer<Int4>(s, width % 4 ? 1 : 16);
+
+							*Pointer<Int4>(d, 1) = ((bgra & Int4(0x00FF0000)) >> 16) |
+							                       ((bgra & Int4(0x000000FF)) << 16) |
+							                       (bgra & Int4(0xFF00FF00));
 
 							s += 4 * sBytes;
 							d += 4 * dBytes;
@@ -310,9 +324,85 @@ namespace sw
 						{
 							*Pointer<Int>(d) = *Pointer<Int>(s);
 						}
+						else if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
+						{
+							Int rgba = *Pointer<Int>(s);
+
+							*Pointer<Int>(d) = ((rgba & Int(0x00FF0000)) >> 16) |
+							                   ((rgba & Int(0x000000FF)) << 16) |
+							                   (rgba & Int(0xFF00FF00));
+						}
 						else if(state.sourceFormat == FORMAT_A16B16G16R16)
 						{
 							UShort4 c = As<UShort4>(Swizzle(*Pointer<Short4>(s), 0xC6)) >> 8;
+
+							*Pointer<Int>(d) = Int(As<Int2>(Pack(c, c)));
+						}
+						else ASSERT(false);
+
+						s += sBytes;
+						d += dBytes;
+					}
+				}
+				else if(state.destFormat == FORMAT_X8B8G8R8 || state.destFormat == FORMAT_A8B8G8R8)
+				{
+					Int x = x0;
+
+					if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
+					{
+						For(, x < width - 3, x += 4)
+						{
+							*Pointer<Int4>(d, 1) = *Pointer<Int4>(s, width % 4 ? 1 : 16);
+
+							s += 4 * sBytes;
+							d += 4 * dBytes;
+						}
+					}
+					else if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
+					{
+						For(, x < width - 3, x += 4)
+						{
+							Int4 bgra = *Pointer<Int4>(s, width % 4 ? 1 : 16);
+
+							*Pointer<Int4>(d, 1) = ((bgra & Int4(0x00FF0000)) >> 16) |
+							                       ((bgra & Int4(0x000000FF)) << 16) |
+							                       (bgra & Int4(0xFF00FF00));
+
+							s += 4 * sBytes;
+							d += 4 * dBytes;
+						}
+					}
+					else if(state.sourceFormat == FORMAT_A16B16G16R16)
+					{
+						For(, x < width - 1, x += 2)
+						{
+							UShort4 c0 = *Pointer<UShort4>(s + 0) >> 8;
+							UShort4 c1 = *Pointer<UShort4>(s + 8) >> 8;
+
+							*Pointer<Int2>(d) = As<Int2>(Pack(c0, c1));
+
+							s += 2 * sBytes;
+							d += 2 * dBytes;
+						}
+					}
+					else ASSERT(false);
+
+					For(, x < width, x++)
+					{
+						if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
+						{
+							*Pointer<Int>(d) = *Pointer<Int>(s);
+						}
+						else if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
+						{
+							Int bgra = *Pointer<Int>(s);
+							*Pointer<Int>(d) = ((bgra & Int(0x00FF0000)) >> 16) |
+							                   ((bgra & Int(0x000000FF)) << 16) |
+							                   (bgra & Int(0xFF00FF00));
+						}
+						else if(state.sourceFormat == FORMAT_A16B16G16R16)
+						{
+							UShort4 c = *Pointer<UShort4>(s) >> 8;
 
 							*Pointer<Int>(d) = Int(As<Int2>(Pack(c, c)));
 						}
@@ -332,6 +422,12 @@ namespace sw
 							*Pointer<Byte>(d + 1) = *Pointer<Byte>(s + 1);
 							*Pointer<Byte>(d + 2) = *Pointer<Byte>(s + 2);
 						}
+						else if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
+						{
+							*Pointer<Byte>(d + 0) = *Pointer<Byte>(s + 2);
+							*Pointer<Byte>(d + 1) = *Pointer<Byte>(s + 1);
+							*Pointer<Byte>(d + 2) = *Pointer<Byte>(s + 0);
+						}
 						else if(state.sourceFormat == FORMAT_A16B16G16R16)
 						{
 							*Pointer<Byte>(d + 0) = *Pointer<Byte>(s + 5);
@@ -348,23 +444,32 @@ namespace sw
 				{
 					For(Int x = x0, x < width, x++)
 					{
-						Int c;
-
 						if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
 						{
-							c = *Pointer<Int>(s);
+							Int c = *Pointer<Int>(s);
+
+							*Pointer<Short>(d) = Short((c & 0x00F80000) >> 8 |
+						                               (c & 0x0000FC00) >> 5 |
+						                               (c & 0x000000F8) >> 3);
+						}
+						else if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
+						{
+							Int c = *Pointer<Int>(s);
+
+							*Pointer<Short>(d) = Short((c & 0x00F80000) >> 19 |
+						                               (c & 0x0000FC00) >> 5 |
+						                               (c & 0x000000F8) << 8);
 						}
 						else if(state.sourceFormat == FORMAT_A16B16G16R16)
 						{
-							UShort4 cc = As<UShort4>(Swizzle(*Pointer<Short4>(s + 0), 0xC6)) >> 8;
+							UShort4 cc = *Pointer<UShort4>(s) >> 8;
+							Int c = Int(As<Int2>(Pack(cc, cc)));
 
-							c = Int(As<Int2>(Pack(cc, cc)));
+							*Pointer<Short>(d) = Short((c & 0x00F80000) >> 19 |
+						                               (c & 0x0000FC00) >> 5 |
+						                               (c & 0x000000F8) << 8);
 						}
 						else ASSERT(false);
-
-						*Pointer<Short>(d) = Short((c & 0x00F80000) >> 8 |
-						                           (c & 0x0000FC00) >> 5 |
-						                           (c & 0x000000F8) >> 3);
 
 						s += sBytes;
 						d += dBytes;
@@ -450,6 +555,10 @@ namespace sw
 		{
 			c2 = UnpackLow(As<Byte8>(c2), *Pointer<Byte8>(s));
 		}
+		else if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
+		{
+			c2 = Swizzle(UnpackLow(As<Byte8>(c2), *Pointer<Byte8>(s)), 0xC6);
+		}
 		else if(state.sourceFormat == FORMAT_A16B16G16R16)
 		{
 			c2 = Swizzle(*Pointer<Short4>(s + 0), 0xC6);
@@ -466,15 +575,19 @@ namespace sw
 		c1 = c1 + c2;
 		c1 = c1 + c1;
 
-		c1 = As<Short4>(Pack(As<UShort4>(c1), As<UShort4>(c1)));
-
-		if(state.destFormat == FORMAT_X8R8G8B8)
+		if(state.destFormat == FORMAT_X8R8G8B8 || state.destFormat == FORMAT_A8R8G8B8)
 		{
-			*Pointer<UInt>(d) = UInt(As<Long>(c1));
+			*Pointer<UInt>(d) = UInt(As<Long>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
+		}
+		else if(state.destFormat == FORMAT_X8B8G8R8 || state.destFormat == FORMAT_A8B8G8R8)
+		{
+			c1 = Swizzle(c1, 0xC6);
+
+			*Pointer<UInt>(d) = UInt(As<Long>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
 		}
 		else if(state.destFormat == FORMAT_R8G8B8)
 		{
-			Int c = Int(As<Int2>(c1));
+			Int c = Int(As<Int2>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
 
 			*Pointer<Byte>(d + 0) = Byte(c >> 0);
 			*Pointer<Byte>(d + 1) = Byte(c >> 8);
@@ -482,7 +595,7 @@ namespace sw
 		}
 		else if(state.destFormat == FORMAT_R5G6B5)
 		{
-			Int c = Int(As<Int2>(c1));
+			Int c = Int(As<Int2>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
 
 			*Pointer<Short>(d) = Short((c & 0x00F80000) >> 8 |
 			                           (c & 0x0000FC00) >> 5 |
