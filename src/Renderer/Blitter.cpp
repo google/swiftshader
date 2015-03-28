@@ -104,8 +104,15 @@ namespace sw
 		case FORMAT_A8R8G8B8:
 			c = Float4(*Pointer<Byte4>(element)).zyxw;
 			break;
+		case FORMAT_A8B8G8R8:
+			c = Float4(*Pointer<Byte4>(element));
+			break;
 		case FORMAT_X8R8G8B8:
 			c = Float4(*Pointer<Byte4>(element)).zyxw;
+			c.w = 1.0f;
+			break;
+		case FORMAT_X8B8G8R8:
+			c = Float4(*Pointer<Byte4>(element));
 			c.w = 1.0f;
 			break;
 		case FORMAT_A16B16G16R16:
@@ -240,7 +247,9 @@ namespace sw
 						case FORMAT_L8:
 						case FORMAT_A8:
 						case FORMAT_A8R8G8B8:
+						case FORMAT_A8B8G8R8:
 						case FORMAT_X8R8G8B8:
+						case FORMAT_X8B8G8R8:
 							unscale = vector(255, 255, 255, 255);
 							break;
 						case FORMAT_A16B16G16R16:
@@ -263,7 +272,9 @@ namespace sw
 						case FORMAT_L8:
 						case FORMAT_A8:
 						case FORMAT_A8R8G8B8:
+						case FORMAT_A8B8G8R8:
 						case FORMAT_X8R8G8B8:
+						case FORMAT_X8B8G8R8:
 							scale = vector(255, 255, 255, 255);
 							break;
 						case FORMAT_A16B16G16R16:
@@ -311,9 +322,23 @@ namespace sw
 								*Pointer<UInt>(d) = UInt(As<Long>(c1));
 							}
 							break;
+						case FORMAT_A8B8G8R8:
+							{
+								UShort4 c0 = As<UShort4>(RoundShort4(color));
+								Byte8 c1 = Pack(c0, c0);
+								*Pointer<UInt>(d) = UInt(As<Long>(c1));
+							}
+							break;
 						case FORMAT_X8R8G8B8:
 							{
 								UShort4 c0 = As<UShort4>(RoundShort4(color.zyxw));
+								Byte8 c1 = Pack(c0, c0);
+								*Pointer<UInt>(d) = UInt(As<Long>(c1)) | 0xFF000000;
+							}
+							break;
+						case FORMAT_X8B8G8R8:
+							{
+								UShort4 c0 = As<UShort4>(RoundShort4(color));
 								Byte8 c1 = Pack(c0, c0);
 								*Pointer<UInt>(d) = UInt(As<Long>(c1)) | 0xFF000000;
 							}
