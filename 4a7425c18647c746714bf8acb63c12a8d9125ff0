@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "43d246e8_feeb78a3",
+        "filename": "src/Main/FrameBufferAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-28T00:22:40Z",
+      "side": 1,
+      "message": "I feel it\u0027d be more appropriate to get the bytes by a table/routine that maps HAL_PIXEL_FORMAT_* (contained in buffer-\u003eformat) to bytes, instead of relying on GCE side of code. I can\u0027t find any API that does that though so maybe this is an acceptable solution.",
+      "revId": "4a7425c18647c746714bf8acb63c12a8d9125ff0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
