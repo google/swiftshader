@@ -1952,8 +1952,13 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 		unsigned short *dest16 = (unsigned short*)dest;
 		unsigned int *dest32 = (unsigned int*)dest;
 
-		if(renderTarget->getInternalFormat() == sw::FORMAT_A8R8G8B8 &&
+		if(renderTarget->getInternalFormat() == sw::FORMAT_A8B8G8R8 &&
            format == GL_RGBA && type == GL_UNSIGNED_BYTE)
+        {
+            memcpy(dest, source, (rect.x1 - rect.x0) * 4);
+        }
+		else if(renderTarget->getInternalFormat() == sw::FORMAT_A8R8G8B8 &&
+                format == GL_RGBA && type == GL_UNSIGNED_BYTE)
         {
             for(int i = 0; i < rect.x1 - rect.x0; i++)
 			{
@@ -2038,6 +2043,16 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 						r = (argb & 0x00FF0000) * (1.0f / 0x00FF0000);
 					}
 					break;
+				case sw::FORMAT_A8B8G8R8:
+					{
+						unsigned int abgr = *(unsigned int*)(source + 4 * i);
+
+						a = (abgr & 0xFF000000) * (1.0f / 0xFF000000);
+						b = (abgr & 0x00FF0000) * (1.0f / 0x00FF0000);
+						g = (abgr & 0x0000FF00) * (1.0f / 0x0000FF00);
+						r = (abgr & 0x000000FF) * (1.0f / 0x000000FF);
+					}
+					break;
 				case sw::FORMAT_X8R8G8B8:
 					{
 						unsigned int xrgb = *(unsigned int*)(source + 4 * i);
@@ -2046,6 +2061,16 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 						b = (xrgb & 0x000000FF) * (1.0f / 0x000000FF);
 						g = (xrgb & 0x0000FF00) * (1.0f / 0x0000FF00);
 						r = (xrgb & 0x00FF0000) * (1.0f / 0x00FF0000);
+					}
+					break;
+				case sw::FORMAT_X8B8G8R8:
+					{
+						unsigned int xbgr = *(unsigned int*)(source + 4 * i);
+
+						a = 1.0f;
+						b = (xbgr & 0x00FF0000) * (1.0f / 0x00FF0000);
+						g = (xbgr & 0x0000FF00) * (1.0f / 0x0000FF00);
+						r = (xbgr & 0x000000FF) * (1.0f / 0x000000FF);
 					}
 					break;
 				case sw::FORMAT_A2R10G10B10:
