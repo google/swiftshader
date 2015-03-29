@@ -1063,8 +1063,6 @@ namespace sw
 			switch(source.format)
 			{
 			case FORMAT_R8G8B8:		decodeR8G8B8(destination, source);		break;   // FIXME: Check destination format
-			case FORMAT_X8B8G8R8:	decodeX8B8G8R8(destination, source);	break;   // FIXME: Check destination format
-			case FORMAT_A8B8G8R8:	decodeA8B8G8R8(destination, source);	break;   // FIXME: Check destination format
 			case FORMAT_R5G6B5:		decodeR5G6B5(destination, source);		break;   // FIXME: Check destination format
 			case FORMAT_X1R5G5B5:	decodeX1R5G5B5(destination, source);	break;   // FIXME: Check destination format
 			case FORMAT_A1R5G5B5:	decodeA1R5G5B5(destination, source);	break;   // FIXME: Check destination format
@@ -1151,79 +1149,6 @@ namespace sw
 					unsigned int r = sourceElement[2];
 
 					*(unsigned int*)destinationElement = 0xFF000000 | (r << 16) | (g << 8) | (b << 0);
-
-					sourceElement += source.bytes;
-					destinationElement += destination.bytes;
-				}
-
-				sourceRow += source.pitchB;
-				destinationRow += destination.pitchB;
-			}
-
-			sourceSlice += source.sliceB;
-			destinationSlice += destination.sliceB;
-		}
-	}
-
-	void Surface::decodeX8B8G8R8(Buffer &destination, const Buffer &source)
-	{
-		unsigned char *sourceSlice = (unsigned char*)source.buffer;
-		unsigned char *destinationSlice = (unsigned char*)destination.buffer;
-
-		for(int z = 0; z < destination.depth && z < source.depth; z++)
-		{
-			unsigned char *sourceRow = sourceSlice;
-			unsigned char *destinationRow = destinationSlice;
-
-			for(int y = 0; y < destination.height && y < source.height; y++)
-			{
-				unsigned char *sourceElement = sourceRow;
-				unsigned char *destinationElement = destinationRow;
-
-				for(int x = 0; x < destination.width && x < source.width; x++)
-				{
-					unsigned int r = sourceElement[0];
-					unsigned int g = sourceElement[1];
-					unsigned int b = sourceElement[2];
-
-					*(unsigned int*)destinationElement = 0xFF000000 | (r << 16) | (g << 8) | (b << 0);
-
-					sourceElement += source.bytes;
-					destinationElement += destination.bytes;
-				}
-
-				sourceRow += source.pitchB;
-				destinationRow += destination.pitchB;
-			}
-
-			sourceSlice += source.sliceB;
-			destinationSlice += destination.sliceB;
-		}
-	}
-
-	void Surface::decodeA8B8G8R8(Buffer &destination, const Buffer &source)
-	{
-		unsigned char *sourceSlice = (unsigned char*)source.buffer;
-		unsigned char *destinationSlice = (unsigned char*)destination.buffer;
-
-		for(int z = 0; z < destination.depth && z < source.depth; z++)
-		{
-			unsigned char *sourceRow = sourceSlice;
-			unsigned char *destinationRow = destinationSlice;
-
-			for(int y = 0; y < destination.height && y < source.height; y++)
-			{
-				unsigned char *sourceElement = sourceRow;
-				unsigned char *destinationElement = destinationRow;
-
-				for(int x = 0; x < destination.width && x < source.width; x++)
-				{
-					unsigned int r = sourceElement[0];
-					unsigned int g = sourceElement[1];
-					unsigned int b = sourceElement[2];
-					unsigned int a = sourceElement[3];
-
-					*(unsigned int*)destinationElement = (a << 24) | (r << 16) | (g << 8) | (b << 0);
 
 					sourceElement += source.bytes;
 					destinationElement += destination.bytes;
@@ -2070,7 +1995,9 @@ namespace sw
 		switch(format)
 		{
 		case FORMAT_X8R8G8B8:
+		case FORMAT_X8B8G8R8:
 		case FORMAT_A8R8G8B8:
+		case FORMAT_A8B8G8R8:
 		case FORMAT_G8R8:
 		case FORMAT_G16R16:
 		case FORMAT_A16B16G16R16:
@@ -2108,7 +2035,9 @@ namespace sw
 		{
 		case FORMAT_NULL:
 		case FORMAT_X8R8G8B8:
+		case FORMAT_X8B8G8R8:
 		case FORMAT_A8R8G8B8:
+		case FORMAT_A8B8G8R8:
 		case FORMAT_G8R8:
 		case FORMAT_G16R16:
 		case FORMAT_A16B16G16R16:
@@ -2244,7 +2173,9 @@ namespace sw
 		switch(format)
 		{
 		case FORMAT_X8R8G8B8:		return 3;
+		case FORMAT_X8B8G8R8:		return 3;
 		case FORMAT_A8R8G8B8:		return 4;
+		case FORMAT_A8B8G8R8:		return 4;
 		case FORMAT_G8R8:			return 2;
 		case FORMAT_G16R16:			return 2;
 		case FORMAT_A16B16G16R16:	return 4;
@@ -2346,7 +2277,7 @@ namespace sw
 		}
 	}
 
-	void Surface::clearColorBuffer(unsigned int color, unsigned int rgbaMask, int x0, int y0, int width, int height)
+	void Surface::clearColorBuffer(unsigned int colorARGB, unsigned int rgbaMask, int x0, int y0, int width, int height)
 	{
 		// FIXME: Also clear buffers in other formats?
 
@@ -2376,10 +2307,10 @@ namespace sw
 		{
 			unsigned char *buffer = (unsigned char*)lockInternal(x0, y0, 0, lock, PUBLIC);
 
-			unsigned char r8 = (color & 0x00FF0000) >> 16;
-			unsigned char g8 = (color & 0x0000FF00) >> 8;
-			unsigned char b8 = (color & 0x000000FF) >> 0;
-			unsigned char a8 = (color & 0xFF000000) >> 24;
+			unsigned char r8 = (colorARGB & 0x00FF0000) >> 16;
+			unsigned char g8 = (colorARGB & 0x0000FF00) >> 8;
+			unsigned char b8 = (colorARGB & 0x000000FF) >> 0;
+			unsigned char a8 = (colorARGB & 0xFF000000) >> 24;
 
 			unsigned short r16 = (r8 << 8) + r8;
 			unsigned short g16 = (g8 << 8) + g8;
@@ -2393,6 +2324,8 @@ namespace sw
 			
 			unsigned char g8r8[4] = {r8, g8, r8, g8};
 			unsigned short g16r16[2] = {r16, g16};
+			unsigned char a8b8g8r8[4] = {r8, g8, b8, a8};
+			unsigned int colorABGR = (unsigned int&)a8b8g8r8;
 
 			for(int z = 0; z < internal.depth; z++)
 			{
@@ -2410,14 +2343,33 @@ namespace sw
 				//	case FORMAT_A8G8R8B8Q:   // FIXME
 						if(rgbaMask == 0xF || (internal.format == FORMAT_X8R8G8B8 && rgbaMask == 0x7))
 						{
-							memfill(target, color, 4 * (x1 - x0));
+							memfill(target, colorARGB, 4 * (x1 - x0));
 						}
 						else
 						{
 							unsigned int bgraMask = (rgbaMask & 0x1 ? 0x00FF0000 : 0) | (rgbaMask & 0x2 ? 0x0000FF00 : 0) | (rgbaMask & 0x4 ? 0x000000FF : 0) | (rgbaMask & 0x8 ? 0xFF000000 : 0);
 							unsigned int invMask = ~bgraMask;
-							unsigned int maskedColor = color & bgraMask;
+							unsigned int maskedColor = colorARGB & bgraMask;
 							unsigned int *target32 = (unsigned int*)target;
+
+							for(int x = 0; x < width; x++)
+							{
+								target32[x] = maskedColor | (target32[x] & invMask);
+							}
+						}
+						break;
+					case FORMAT_X8B8G8R8:
+					case FORMAT_A8B8G8R8:
+						if(rgbaMask == 0xF || (internal.format == FORMAT_X8B8G8R8 && rgbaMask == 0x7))
+						{
+							memfill(target, colorABGR, 4 * (x1 - x0));
+						}
+						else
+						{
+							unsigned int rgbaMask32 = (rgbaMask & 0x1 ? 0x000000FF : 0) | (rgbaMask & 0x2 ? 0x0000FF00 : 0) | (rgbaMask & 0x4 ? 0x00FF0000 : 0) | (rgbaMask & 0x8 ? 0xFF000000 : 0);
+							unsigned int invMask = ~rgbaMask32;
+							unsigned int maskedColor = colorABGR & rgbaMask32;
+ 							unsigned int *target32 = (unsigned int*)target;
 
 							for(int x = 0; x < width; x++)
 							{
@@ -3068,7 +3020,6 @@ namespace sw
 		case FORMAT_G16R16:
 			return FORMAT_G16R16;
 		case FORMAT_A8R8G8B8:
-		case FORMAT_A8B8G8R8:
 			if(lockable || !quadLayoutEnabled)
 			{
 				return FORMAT_A8R8G8B8;
@@ -3077,13 +3028,14 @@ namespace sw
 			{
 				return FORMAT_A8G8R8B8Q;
 			}
+		case FORMAT_A8B8G8R8:
+			return FORMAT_A8B8G8R8;
 		case FORMAT_R3G3B2:
 		case FORMAT_R5G6B5:
 		case FORMAT_R8G8B8:
 		case FORMAT_X4R4G4B4:
 		case FORMAT_X1R5G5B5:
 		case FORMAT_X8R8G8B8:
-		case FORMAT_X8B8G8R8:
 			if(lockable || !quadLayoutEnabled)
 			{
 				return FORMAT_X8R8G8B8;
@@ -3092,6 +3044,8 @@ namespace sw
 			{
 				return FORMAT_X8G8R8B8Q;
 			}
+		case FORMAT_X8B8G8R8:
+			return FORMAT_X8B8G8R8;
 		// Compressed formats
 		#if S3TC_SUPPORT
 		case FORMAT_DXT1:
@@ -3193,7 +3147,7 @@ namespace sw
 		unsigned char *sourceE = sourceD + slice;
 		unsigned char *sourceF = sourceE + slice;
 
-		if(internal.format == FORMAT_X8R8G8B8 || internal.format == FORMAT_A8R8G8B8)
+		if(internal.format == FORMAT_X8R8G8B8 || internal.format == FORMAT_A8R8G8B8 || internal.format == FORMAT_X8B8G8R8 || internal.format == FORMAT_A8B8G8R8)
 		{
 			if(CPUID::supportsSSE2() && (width % 4) == 0)
 			{

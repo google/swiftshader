@@ -196,7 +196,7 @@ namespace sw
 		inline int getMultiSampleCount() const;
 		inline int getSuperSampleCount() const;
 
-		void clearColorBuffer(unsigned int color, unsigned int rgbaMask, int x0, int y0, int width, int height);
+		void clearColorBuffer(unsigned int colorARGB, unsigned int rgbaMask, int x0, int y0, int width, int height);
 		void clearDepthBuffer(float depth, int x0, int y0, int width, int height);
 		void clearStencilBuffer(unsigned char stencil, unsigned char mask, int x0, int y0, int width, int height);
 		void fill(const Color<float> &color, int x0, int y0, int width, int height);
@@ -326,8 +326,6 @@ namespace sw
 		};
 
 		static void decodeR8G8B8(Buffer &destination, const Buffer &source);
-		static void decodeX8B8G8R8(Buffer &destination, const Buffer &source);
-		static void decodeA8B8G8R8(Buffer &destination, const Buffer &source);
 		static void decodeR5G6B5(Buffer &destination, const Buffer &source);
 		static void decodeX1R5G5B5(Buffer &destination, const Buffer &source);
 		static void decodeA1R5G5B5(Buffer &destination, const Buffer &source);
