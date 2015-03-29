@@ -172,7 +172,7 @@ def ProcessPexe(args, pexe, exe):
     pnacl_sz = (
         '{root}/toolchain_build/src/subzero/pnacl-sz'
         ).format(root=nacl_root)
-    llcbin = 'llc'
+    llcbin = '{base}/pnacl-llc'.format(base=path_addition)
     gold = 'le32-nacl-ld.gold'
     opt_level = args.optlevel
     opt_level_map = { 'm1':'0', '-1':'0', '0':'0', '1':'1', '2':'2' }
