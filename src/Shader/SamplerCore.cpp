@@ -601,13 +601,13 @@ namespace sw
 					f0v = f0v * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,height));
 				}
 
-				Short4 f1u = ~f0u;
-				Short4 f1v = ~f0v;
+				UShort4 f1u = ~f0u;
+				UShort4 f1v = ~f0v;
 			
-				Short4 f0u0v = MulHigh(As<UShort4>(f0u), As<UShort4>(f0v));
-				Short4 f1u0v = MulHigh(As<UShort4>(f1u), As<UShort4>(f0v));
-				Short4 f0u1v = MulHigh(As<UShort4>(f0u), As<UShort4>(f1v));
-				Short4 f1u1v = MulHigh(As<UShort4>(f1u), As<UShort4>(f1v));
+				UShort4 f0u0v = MulHigh(f0u, f0v);
+				UShort4 f1u0v = MulHigh(f1u, f0v);
+				UShort4 f0u1v = MulHigh(f0u, f1v);
+				UShort4 f1u1v = MulHigh(f1u, f1v);
 
 				// Signed fractions
 				Short4 f1u1vs;
@@ -617,10 +617,10 @@ namespace sw
 
 				if(!hasUnsignedTextureComponent(0) || !hasUnsignedTextureComponent(1) || !hasUnsignedTextureComponent(2) || !hasUnsignedTextureComponent(3))
 				{
-					f1u1vs = As<UShort4>(f1u1v) >> 1;
-					f0u1vs = As<UShort4>(f0u1v) >> 1;
-					f1u0vs = As<UShort4>(f1u0v) >> 1;
-					f0u0vs = As<UShort4>(f0u0v) >> 1;
+					f1u1vs = f1u1v >> 1;
+					f0u1vs = f0u1v >> 1;
+					f1u0vs = f1u0v >> 1;
+					f0u0vs = f0u0v >> 1;
 				}
 
 				// Bilinear interpolation
@@ -636,10 +636,10 @@ namespace sw
 					{
 						if(hasUnsignedTextureComponent(0))
 						{
-							c0.x = MulHigh(As<UShort4>(c0.x), As<UShort4>(f1u1v));
-							c1.x = MulHigh(As<UShort4>(c1.x), As<UShort4>(f0u1v));
-							c2.x = MulHigh(As<UShort4>(c2.x), As<UShort4>(f1u0v));
-							c3.x = MulHigh(As<UShort4>(c3.x), As<UShort4>(f0u0v));
+							c0.x = MulHigh(As<UShort4>(c0.x), f1u1v);
+							c1.x = MulHigh(As<UShort4>(c1.x), f0u1v);
+							c2.x = MulHigh(As<UShort4>(c2.x), f1u0v);
+							c3.x = MulHigh(As<UShort4>(c3.x), f0u0v);
 						}
 						else
 						{
@@ -666,10 +666,10 @@ namespace sw
 					{
 						if(hasUnsignedTextureComponent(1))
 						{
-							c0.y = MulHigh(As<UShort4>(c0.y), As<UShort4>(f1u1v));
-							c1.y = MulHigh(As<UShort4>(c1.y), As<UShort4>(f0u1v));
-							c2.y = MulHigh(As<UShort4>(c2.y), As<UShort4>(f1u0v));
-							c3.y = MulHigh(As<UShort4>(c3.y), As<UShort4>(f0u0v));
+							c0.y = MulHigh(As<UShort4>(c0.y), f1u1v);
+							c1.y = MulHigh(As<UShort4>(c1.y), f0u1v);
+							c2.y = MulHigh(As<UShort4>(c2.y), f1u0v);
+							c3.y = MulHigh(As<UShort4>(c3.y), f0u0v);
 						}
 						else
 						{
@@ -696,10 +696,10 @@ namespace sw
 					{
 						if(hasUnsignedTextureComponent(2))
 						{
-							c0.z = MulHigh(As<UShort4>(c0.z), As<UShort4>(f1u1v));
-							c1.z = MulHigh(As<UShort4>(c1.z), As<UShort4>(f0u1v));
-							c2.z = MulHigh(As<UShort4>(c2.z), As<UShort4>(f1u0v));
-							c3.z = MulHigh(As<UShort4>(c3.z), As<UShort4>(f0u0v));
+							c0.z = MulHigh(As<UShort4>(c0.z), f1u1v);
+							c1.z = MulHigh(As<UShort4>(c1.z), f0u1v);
+							c2.z = MulHigh(As<UShort4>(c2.z), f1u0v);
+							c3.z = MulHigh(As<UShort4>(c3.z), f0u0v);
 						}
 						else
 						{
@@ -726,10 +726,10 @@ namespace sw
 					{
 						if(hasUnsignedTextureComponent(3))
 						{
-							c0.w = MulHigh(As<UShort4>(c0.w), As<UShort4>(f1u1v));
-							c1.w = MulHigh(As<UShort4>(c1.w), As<UShort4>(f0u1v));
-							c2.w = MulHigh(As<UShort4>(c2.w), As<UShort4>(f1u0v));
-							c3.w = MulHigh(As<UShort4>(c3.w), As<UShort4>(f0u0v));
+							c0.w = MulHigh(As<UShort4>(c0.w), f1u1v);
+							c1.w = MulHigh(As<UShort4>(c1.w), f0u1v);
+							c2.w = MulHigh(As<UShort4>(c2.w), f1u0v);
+							c3.w = MulHigh(As<UShort4>(c3.w), f0u0v);
 						}
 						else
 						{
@@ -797,66 +797,59 @@ namespace sw
 				}
 			}
 
-			Short4 f[2][2][2];
-			Short4 fs[2][2][2];
-			Short4 f0u;
-			Short4 f0v;
-			Short4 f0s;
-			Short4 f1u;
-			Short4 f1v;
-			Short4 f1s;
-
 			// Fractions
-			f0u = u[0][0][0];
-			f0v = v[0][0][0];
-			f0s = s[0][0][0];
+			UShort4 f[2][2][2];
+			Short4 fs[2][2][2];
+			UShort4 f0u;
+			UShort4 f0v;
+			UShort4 f0s;
 
 			if(!state.hasNPOTTexture)
 			{
-				f0u = f0u << *Pointer<Long1>(mipmap + OFFSET(Mipmap,uInt));
-				f0v = f0v << *Pointer<Long1>(mipmap + OFFSET(Mipmap,vInt));
-				f0s = f0s << *Pointer<Long1>(mipmap + OFFSET(Mipmap,wInt));
+				f0u = As<UShort4>(u[0][0][0]) << *Pointer<Long1>(mipmap + OFFSET(Mipmap,uInt));
+				f0v = As<UShort4>(v[0][0][0]) << *Pointer<Long1>(mipmap + OFFSET(Mipmap,vInt));
+				f0s = As<UShort4>(s[0][0][0]) << *Pointer<Long1>(mipmap + OFFSET(Mipmap,wInt));
 			}
 			else
 			{
-				f0u *= *Pointer<Short4>(mipmap + OFFSET(Mipmap,width));
-				f0v *= *Pointer<Short4>(mipmap + OFFSET(Mipmap,height));
-				f0s *= *Pointer<Short4>(mipmap + OFFSET(Mipmap,depth));
+				f0u = As<UShort4>(u[0][0][0]) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,width));
+				f0v = As<UShort4>(v[0][0][0]) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,height));
+				f0s = As<UShort4>(s[0][0][0]) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,depth));
 			}
 
-			f1u = ~f0u;
-			f1v = ~f0v;
-			f1s = ~f0s;
+			UShort4 f1u = ~f0u;
+			UShort4 f1v = ~f0v;
+			UShort4 f1s = ~f0s;
 
-			f[1][1][1] = MulHigh(As<UShort4>(f1u), As<UShort4>(f1v));
-			f[0][1][1] = MulHigh(As<UShort4>(f0u), As<UShort4>(f1v));
-			f[1][0][1] = MulHigh(As<UShort4>(f1u), As<UShort4>(f0v));
-			f[0][0][1] = MulHigh(As<UShort4>(f0u), As<UShort4>(f0v));
-			f[1][1][0] = MulHigh(As<UShort4>(f1u), As<UShort4>(f1v));
-			f[0][1][0] = MulHigh(As<UShort4>(f0u), As<UShort4>(f1v));
-			f[1][0][0] = MulHigh(As<UShort4>(f1u), As<UShort4>(f0v));
-			f[0][0][0] = MulHigh(As<UShort4>(f0u), As<UShort4>(f0v));
+			f[1][1][1] = MulHigh(f1u, f1v);
+			f[0][1][1] = MulHigh(f0u, f1v);
+			f[1][0][1] = MulHigh(f1u, f0v);
+			f[0][0][1] = MulHigh(f0u, f0v);
+			f[1][1][0] = MulHigh(f1u, f1v);
+			f[0][1][0] = MulHigh(f0u, f1v);
+			f[1][0][0] = MulHigh(f1u, f0v);
+			f[0][0][0] = MulHigh(f0u, f0v);
 
-			f[1][1][1] = MulHigh(As<UShort4>(f[1][1][1]), As<UShort4>(f1s));
-			f[0][1][1] = MulHigh(As<UShort4>(f[0][1][1]), As<UShort4>(f1s));
-			f[1][0][1] = MulHigh(As<UShort4>(f[1][0][1]), As<UShort4>(f1s));
-			f[0][0][1] = MulHigh(As<UShort4>(f[0][0][1]), As<UShort4>(f1s));
-			f[1][1][0] = MulHigh(As<UShort4>(f[1][1][0]), As<UShort4>(f0s));
-			f[0][1][0] = MulHigh(As<UShort4>(f[0][1][0]), As<UShort4>(f0s));
-			f[1][0][0] = MulHigh(As<UShort4>(f[1][0][0]), As<UShort4>(f0s));
-			f[0][0][0] = MulHigh(As<UShort4>(f[0][0][0]), As<UShort4>(f0s));
+			f[1][1][1] = MulHigh(f[1][1][1], f1s);
+			f[0][1][1] = MulHigh(f[0][1][1], f1s);
+			f[1][0][1] = MulHigh(f[1][0][1], f1s);
+			f[0][0][1] = MulHigh(f[0][0][1], f1s);
+			f[1][1][0] = MulHigh(f[1][1][0], f0s);
+			f[0][1][0] = MulHigh(f[0][1][0], f0s);
+			f[1][0][0] = MulHigh(f[1][0][0], f0s);
+			f[0][0][0] = MulHigh(f[0][0][0], f0s);
 
 			// Signed fractions
 			if(!hasUnsignedTextureComponent(0) || !hasUnsignedTextureComponent(1) || !hasUnsignedTextureComponent(2) || !hasUnsignedTextureComponent(3))
 			{
-				fs[0][0][0] = As<UShort4>(f[0][0][0]) >> 1;
-				fs[0][0][1] = As<UShort4>(f[0][0][1]) >> 1;
-				fs[0][1][0] = As<UShort4>(f[0][1][0]) >> 1;
-				fs[0][1][1] = As<UShort4>(f[0][1][1]) >> 1;
-				fs[1][0][0] = As<UShort4>(f[1][0][0]) >> 1;
-				fs[1][0][1] = As<UShort4>(f[1][0][1]) >> 1;
-				fs[1][1][0] = As<UShort4>(f[1][1][0]) >> 1;
-				fs[1][1][1] = As<UShort4>(f[1][1][1]) >> 1;
+				fs[0][0][0] = f[0][0][0] >> 1;
+				fs[0][0][1] = f[0][0][1] >> 1;
+				fs[0][1][0] = f[0][1][0] >> 1;
+				fs[0][1][1] = f[0][1][1] >> 1;
+				fs[1][0][0] = f[1][0][0] >> 1;
+				fs[1][0][1] = f[1][0][1] >> 1;
+				fs[1][1][0] = f[1][1][0] >> 1;
+				fs[1][1][1] = f[1][1][1] >> 1;
 			}
 
 			for(int i = 0; i < 2; i++)
@@ -867,10 +860,10 @@ namespace sw
 					{
 						sampleTexel(c[i][j][k], u[i][j][k], v[i][j][k], s[i][j][k], mipmap, buffer);
 
-						if(componentCount >= 1) if(hasUnsignedTextureComponent(0)) c[i][j][k].x = MulHigh(As<UShort4>(c[i][j][k].x), As<UShort4>(f[1 - i][1 - j][1 - k])); else c[i][j][k].x = MulHigh(c[i][j][k].x, fs[1 - i][1 - j][1 - k]);
-						if(componentCount >= 2) if(hasUnsignedTextureComponent(1)) c[i][j][k].y = MulHigh(As<UShort4>(c[i][j][k].y), As<UShort4>(f[1 - i][1 - j][1 - k])); else c[i][j][k].y = MulHigh(c[i][j][k].y, fs[1 - i][1 - j][1 - k]);
-						if(componentCount >= 3) if(hasUnsignedTextureComponent(2)) c[i][j][k].z = MulHigh(As<UShort4>(c[i][j][k].z), As<UShort4>(f[1 - i][1 - j][1 - k])); else c[i][j][k].z = MulHigh(c[i][j][k].z, fs[1 - i][1 - j][1 - k]);
-						if(componentCount >= 4) if(hasUnsignedTextureComponent(3)) c[i][j][k].w = MulHigh(As<UShort4>(c[i][j][k].w), As<UShort4>(f[1 - i][1 - j][1 - k])); else c[i][j][k].w = MulHigh(c[i][j][k].w, fs[1 - i][1 - j][1 - k]);
+						if(componentCount >= 1) if(hasUnsignedTextureComponent(0)) c[i][j][k].x = MulHigh(As<UShort4>(c[i][j][k].x), f[1 - i][1 - j][1 - k]); else c[i][j][k].x = MulHigh(c[i][j][k].x, fs[1 - i][1 - j][1 - k]);
+						if(componentCount >= 2) if(hasUnsignedTextureComponent(1)) c[i][j][k].y = MulHigh(As<UShort4>(c[i][j][k].y), f[1 - i][1 - j][1 - k]); else c[i][j][k].y = MulHigh(c[i][j][k].y, fs[1 - i][1 - j][1 - k]);
+						if(componentCount >= 3) if(hasUnsignedTextureComponent(2)) c[i][j][k].z = MulHigh(As<UShort4>(c[i][j][k].z), f[1 - i][1 - j][1 - k]); else c[i][j][k].z = MulHigh(c[i][j][k].z, fs[1 - i][1 - j][1 - k]);
+						if(componentCount >= 4) if(hasUnsignedTextureComponent(3)) c[i][j][k].w = MulHigh(As<UShort4>(c[i][j][k].w), f[1 - i][1 - j][1 - k]); else c[i][j][k].w = MulHigh(c[i][j][k].w, fs[1 - i][1 - j][1 - k]);
 
 						if(i != 0 || j != 0 || k != 0)
 						{
