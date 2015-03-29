@@ -118,13 +118,17 @@ namespace es1
 			{
 				return sw::FORMAT_A8L8;
 			}
-			else if(format == GL_RGBA || format == GL_BGRA_EXT)
+			else if(format == GL_RGBA)
+			{
+				return sw::FORMAT_A8B8G8R8;
+			}
+			else if(format == GL_BGRA_EXT)
 			{
 				return sw::FORMAT_A8R8G8B8;
 			}
 			else if(format == GL_RGB)
 			{
-				return sw::FORMAT_X8R8G8B8;
+				return sw::FORMAT_X8B8G8R8;
 			}
 			else if(format == GL_ALPHA)
 			{
@@ -154,7 +158,7 @@ namespace es1
 		}
 		else UNREACHABLE();
 
-		return sw::FORMAT_A8R8G8B8;
+		return sw::FORMAT_A8B8G8R8;
 	}
 
 	void Image::loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint unpackAlignment, const void *input)
@@ -184,10 +188,8 @@ namespace es1
 					loadRGBUByteImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
 					break;
 				case GL_RGBA:
-					loadRGBAUByteImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
-					break;
 				case GL_BGRA_EXT:
-					loadBGRAImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
+					loadRGBAUByteImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
 					break;
 				default: UNREACHABLE();
 				}
@@ -350,9 +352,9 @@ namespace es1
 			
 			for(int x = 0; x < width; x++)
 			{
-				dest[4 * x + 0] = source[x * 3 + 2];
+				dest[4 * x + 0] = source[x * 3 + 0];
 				dest[4 * x + 1] = source[x * 3 + 1];
-				dest[4 * x + 2] = source[x * 3 + 0];
+				dest[4 * x + 2] = source[x * 3 + 2];
 				dest[4 * x + 3] = 0xFF;
 			}
 		}
@@ -400,11 +402,7 @@ namespace es1
 			const unsigned int *source = reinterpret_cast<const unsigned int*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			unsigned int *dest = reinterpret_cast<unsigned int*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 4);
 
-			for(int x = 0; x < width; x++)
-			{
-				unsigned int rgba = source[x];
-				dest[x] = (rgba & 0xFF00FF00) | ((rgba << 16) & 0x00FF0000) | ((rgba >> 16) & 0x000000FF);
-			}
+			memcpy(dest, source, width * 4);
 		}
 	}
 
@@ -452,17 +450,6 @@ namespace es1
 			float *dest = reinterpret_cast<float*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 16);
 			
 			memcpy(dest, source, width * 16);
-		}
-	}
-
-	void Image::loadBGRAImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const
-	{
-		for(int y = 0; y < height; y++)
-		{
-			const unsigned char *source = static_cast<const unsigned char*>(input) + y * inputPitch;
-			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 4;
-			
-			memcpy(dest, source, width*4);
 		}
 	}
 

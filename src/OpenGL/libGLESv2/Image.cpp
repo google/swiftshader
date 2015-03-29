@@ -31,16 +31,15 @@ namespace
 		LuminanceAlpha,
 		LuminanceAlphaFloat,
 		LuminanceAlphaHalfFloat,
-		RGBUByte,
+		UByteRGB,
 		RGB565,
-		RGBFloat,
-		RGBHalfFloat,
-		RGBAUByte,
+		FloatRGB,
+		HalfFloatRGB,
+		UByte4,
 		RGBA4444,
 		RGBA5551,
-		RGBAFloat,
-		RGBAHalfFloat,
-		BGRA,
+		Float4,
+		HalfFloat4,
 		D16,
 		D24,
 		D32,
@@ -162,15 +161,15 @@ namespace
 	}
 
 	template<>
-	void LoadImageRow<RGBUByte>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
+	void LoadImageRow<UByteRGB>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
 	{
 		unsigned char *destB = dest + xoffset * 4;
 
 		for(int x = 0; x < width; x++)
 		{
-			destB[4 * x + 0] = source[x * 3 + 2];
+			destB[4 * x + 0] = source[x * 3 + 0];
 			destB[4 * x + 1] = source[x * 3 + 1];
-			destB[4 * x + 2] = source[x * 3 + 0];
+			destB[4 * x + 2] = source[x * 3 + 2];
 			destB[4 * x + 3] = 0xFF;
 		}
 	}
@@ -192,7 +191,7 @@ namespace
 	}
 
 	template<>
-	void LoadImageRow<RGBFloat>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
+	void LoadImageRow<FloatRGB>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
 	{
 		const float *sourceF = reinterpret_cast<const float*>(source);
 		float *destF = reinterpret_cast<float*>(dest + xoffset * 16);
@@ -207,7 +206,7 @@ namespace
 	}
 
 	template<>
-	void LoadImageRow<RGBHalfFloat>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
+	void LoadImageRow<HalfFloatRGB>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
 	{
 		const unsigned short *sourceH = reinterpret_cast<const unsigned short*>(source);
 		unsigned short *destH = reinterpret_cast<unsigned short*>(dest + xoffset * 8);
@@ -222,15 +221,14 @@ namespace
 	}
 
 	template<>
-	void LoadImageRow<RGBAUByte>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
+	void LoadImageRow<UByte4>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
 	{
 		const unsigned int *sourceI = reinterpret_cast<const unsigned int*>(source);
 		unsigned int *destI = reinterpret_cast<unsigned int*>(dest + xoffset * 4);
 
 		for(int x = 0; x < width; x++)
 		{
-			unsigned int rgba = sourceI[x];
-			destI[x] = (rgba & 0xFF00FF00) | ((rgba << 16) & 0x00FF0000) | ((rgba >> 16) & 0x000000FF);
+			memcpy(dest + xoffset * 4, source, width * 4);
 		}
 	}
 
@@ -267,21 +265,15 @@ namespace
 	}
 
 	template<>
-	void LoadImageRow<RGBAFloat>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
+	void LoadImageRow<Float4>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
 	{
 		memcpy(dest + xoffset * 16, source, width * 16);
 	}
 
 	template<>
-	void LoadImageRow<RGBAHalfFloat>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
+	void LoadImageRow<HalfFloat4>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
 	{
 		memcpy(dest + xoffset * 8, source, width * 8);
-	}
-
-	template<>
-	void LoadImageRow<BGRA>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
-	{
-		memcpy(dest + xoffset * 4, source, width * 4);
 	}
 
 	template<>
@@ -337,8 +329,8 @@ namespace
 	{
 		for(int z = 0; z < depth; ++z)
 		{
-			const unsigned char *inputStart = static_cast<const unsigned char*>(input)+(z * inputPitch * height);
-			unsigned char *destStart = static_cast<unsigned char*>(buffer)+((zoffset + z) * destPitch * destHeight);
+			const unsigned char *inputStart = static_cast<const unsigned char*>(input) + (z * inputPitch * height);
+			unsigned char *destStart = static_cast<unsigned char*>(buffer) + ((zoffset + z) * destPitch * destHeight);
 			for(int y = 0; y < height; ++y)
 			{
 				const unsigned char *source = inputStart + y * inputPitch;
@@ -468,13 +460,17 @@ namespace es2
 			{
 				return sw::FORMAT_A8L8;
 			}
-			else if(format == GL_RGBA || format == GL_BGRA_EXT)
+			else if(format == GL_RGBA)
+			{
+				return sw::FORMAT_A8B8G8R8;
+			}
+			else if(format == GL_BGRA_EXT)
 			{
 				return sw::FORMAT_A8R8G8B8;
 			}
 			else if(format == GL_RGB)
 			{
-				return sw::FORMAT_X8R8G8B8;
+				return sw::FORMAT_X8B8G8R8;
 			}
 			else if(format == GL_ALPHA)
 			{
@@ -512,7 +508,7 @@ namespace es2
 		}
 		else UNREACHABLE();
 
-		return sw::FORMAT_A8R8G8B8;
+		return sw::FORMAT_A8B8G8R8;
 	}
 
 	void Image::loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint unpackAlignment, const void *input)
@@ -537,13 +533,11 @@ namespace es2
 					LoadImageData<LuminanceAlpha>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 					break;
 				case GL_RGB:
-					LoadImageData<RGBUByte>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
+					LoadImageData<UByteRGB>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 					break;
 				case GL_RGBA:
-					LoadImageData<RGBAUByte>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
-					break;
 				case GL_BGRA_EXT:
-					LoadImageData<BGRA>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
+					LoadImageData<UByte4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 					break;
 				default: UNREACHABLE();
 				}
@@ -578,7 +572,6 @@ namespace es2
 			case GL_FLOAT:
 				switch(format)
 				{
-				// float textures are converted to RGBA, not BGRA
 				case GL_ALPHA:
 					LoadImageData<AlphaFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 					break;
@@ -589,10 +582,10 @@ namespace es2
 					LoadImageData<LuminanceAlphaFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 					break;
 				case GL_RGB:
-					LoadImageData<RGBFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
+					LoadImageData<FloatRGB>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 					break;
 				case GL_RGBA:
-					LoadImageData<RGBAFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
+					LoadImageData<Float4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 					break;
 				default: UNREACHABLE();
 				}
@@ -600,7 +593,6 @@ namespace es2
 			case GL_HALF_FLOAT_OES:
 				switch(format)
 				{
-				// float textures are converted to RGBA, not BGRA
 				case GL_ALPHA:
 					LoadImageData<AlphaHalfFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 					break;
@@ -611,10 +603,10 @@ namespace es2
 					LoadImageData<LuminanceAlphaHalfFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 					break;
 				case GL_RGB:
-					LoadImageData<RGBHalfFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
+					LoadImageData<HalfFloatRGB>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 					break;
 				case GL_RGBA:
-					LoadImageData<RGBAHalfFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
+					LoadImageData<HalfFloat4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 					break;
 				default: UNREACHABLE();
 				}
@@ -653,7 +645,7 @@ namespace es2
 	{
 		if(zoffset != 0 || depth != 1)
 		{
-			UNIMPLEMENTED(); // FIXME
+			UNIMPLEMENTED();   // FIXME
 		}
 
 		int inputPitch = ComputeCompressedPitch(width, format);
