@@ -18,4 +18,10 @@ add_definitions(
   -DALLOW_MINIMAL_BUILD=0
   )
 
+if(PNACL_BROWSER_TRANSLATOR)
+  add_definitions(-DPNACL_BROWSER_TRANSLATOR=1)
+else()
+  add_definitions(-DPNACL_BROWSER_TRANSLATOR=0)
+endif()
+
 target_link_libraries(pnacl-sz pthread)
