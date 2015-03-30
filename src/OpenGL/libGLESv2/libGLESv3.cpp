@@ -864,31 +864,161 @@ void GL_APIENTRY glUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean t
 void GL_APIENTRY glUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat *value = 0x%0.8p)", location, count, transpose, value);
-	UNIMPLEMENTED();
+
+	if(count < 0 || transpose != GL_FALSE)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(location == -1)
+	{
+		return;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Program *program = context->getCurrentProgram();
+
+		if(!program)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(!program->setUniformMatrix3x2fv(location, count, value))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 void GL_APIENTRY glUniformMatrix2x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat *value = 0x%0.8p)", location, count, transpose, value);
-	UNIMPLEMENTED();
+
+	if(count < 0 || transpose != GL_FALSE)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(location == -1)
+	{
+		return;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Program *program = context->getCurrentProgram();
+
+		if(!program)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(!program->setUniformMatrix2x4fv(location, count, value))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 void GL_APIENTRY glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat *value = 0x%0.8p)", location, count, transpose, value);
-	UNIMPLEMENTED();
+
+	if(count < 0 || transpose != GL_FALSE)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(location == -1)
+	{
+		return;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Program *program = context->getCurrentProgram();
+
+		if(!program)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(!program->setUniformMatrix4x2fv(location, count, value))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 void GL_APIENTRY glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat *value = 0x%0.8p)", location, count, transpose, value);
-	UNIMPLEMENTED();
+
+	if(count < 0 || transpose != GL_FALSE)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(location == -1)
+	{
+		return;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Program *program = context->getCurrentProgram();
+
+		if(!program)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(!program->setUniformMatrix3x4fv(location, count, value))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 void GL_APIENTRY glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat *value = 0x%0.8p)", location, count, transpose, value);
-	UNIMPLEMENTED();
+
+	if(count < 0 || transpose != GL_FALSE)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(location == -1)
+	{
+		return;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Program *program = context->getCurrentProgram();
+
+		if(!program)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(!program->setUniformMatrix4x3fv(location, count, value))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 void GL_APIENTRY glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
@@ -1418,28 +1548,132 @@ void GL_APIENTRY glUniform1uiv(GLint location, GLsizei count, const GLuint *valu
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLuint *value = 0x%0.8p)",
 	      location, count, value);
-	UNIMPLEMENTED();
+	
+	if(count < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(location == -1)
+	{
+		return;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Program *program = context->getCurrentProgram();
+
+		if(!program)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(!program->setUniform1uiv(location, count, value))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 void GL_APIENTRY glUniform2uiv(GLint location, GLsizei count, const GLuint *value)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLuint *value = 0x%0.8p)",
 	      location, count, value);
-	UNIMPLEMENTED();
+
+	if(count < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(location == -1)
+	{
+		return;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Program *program = context->getCurrentProgram();
+
+		if(!program)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(!program->setUniform2uiv(location, count, value))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 void GL_APIENTRY glUniform3uiv(GLint location, GLsizei count, const GLuint *value)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLuint *value = 0x%0.8p)",
 	      location, count, value);
-	UNIMPLEMENTED();
+
+	if(count < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(location == -1)
+	{
+		return;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Program *program = context->getCurrentProgram();
+
+		if(!program)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(!program->setUniform3uiv(location, count, value))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 void GL_APIENTRY glUniform4uiv(GLint location, GLsizei count, const GLuint *value)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLuint *value = 0x%0.8p)",
 	      location, count, value);
-	UNIMPLEMENTED();
+
+	if(count < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(location == -1)
+	{
+		return;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Program *program = context->getCurrentProgram();
+
+		if(!program)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(!program->setUniform4uiv(location, count, value))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 void GL_APIENTRY glClearBufferiv(GLenum buffer, GLint drawbuffer, const GLint *value)

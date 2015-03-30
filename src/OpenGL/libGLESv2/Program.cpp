@@ -287,8 +287,13 @@ namespace es2
 		return -1;
 	}
 
-	bool Program::setUniform1fv(GLint location, GLsizei count, const GLfloat* v)
+	bool Program::setUniformfv(GLint location, GLsizei count, const GLfloat *v, int numElements)
 	{
+		ASSERT(numElements >= 1 && numElements <= 4);
+
+		static GLenum floatType[] = { GL_FLOAT, GL_FLOAT_VEC2, GL_FLOAT_VEC3, GL_FLOAT_VEC4 };
+		static GLenum boolType[] = { GL_BOOL, GL_BOOL_VEC2, GL_BOOL_VEC3, GL_BOOL_VEC4 };
+
 		if(location < 0 || location >= (int)uniformIndex.size())
 		{
 			return false;
@@ -306,25 +311,19 @@ namespace es2
 	
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
-		if(targetUniform->type == GL_FLOAT)
+		int index = numElements - 1;
+		if(targetUniform->type == floatType[index])
 		{
-			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLfloat),
-				   v, sizeof(GLfloat) * count);
+			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLfloat)* numElements,
+				   v, numElements * sizeof(GLfloat)* count);
 		}
-		else if(targetUniform->type == GL_BOOL)
+		else if(targetUniform->type == boolType[index])
 		{
-			GLboolean *boolParams = (GLboolean*)targetUniform->data + uniformIndex[location].element;
+			GLboolean *boolParams = (GLboolean*)targetUniform->data + uniformIndex[location].element * numElements;
 
-			for(int i = 0; i < count; i++)
+			for(int i = 0; i < count * numElements; i++)
 			{
-				if(v[i] == 0.0f)
-				{
-					boolParams[i] = GL_FALSE;
-				}
-				else
-				{
-					boolParams[i] = GL_TRUE;
-				}
+				boolParams[i] = (v[i] == 0.0f) ? GL_FALSE : GL_TRUE;
 			}
 		}
 		else
@@ -335,104 +334,56 @@ namespace es2
 		return true;
 	}
 
+	bool Program::setUniform1fv(GLint location, GLsizei count, const GLfloat* v)
+	{
+		return setUniformfv(location, count, v, 1);
+	}
+
 	bool Program::setUniform2fv(GLint location, GLsizei count, const GLfloat *v)
 	{
-		if(location < 0 || location >= (int)uniformIndex.size())
-		{
-			return false;
-		}
-
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-		targetUniform->dirty = true;
-
-		int size = targetUniform->size();
-
-		if(size == 1 && count > 1)
-		{
-			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
-		}
-	
-		count = std::min(size - (int)uniformIndex[location].element, count);
-
-		if(targetUniform->type == GL_FLOAT_VEC2)
-		{
-			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLfloat) * 2,
-				   v, 2 * sizeof(GLfloat) * count);
-		}
-		else if(targetUniform->type == GL_BOOL_VEC2)
-		{
-			GLboolean *boolParams = (GLboolean*)targetUniform->data + uniformIndex[location].element * 2;
-
-			for(int i = 0; i < count * 2; i++)
-			{
-				if(v[i] == 0.0f)
-				{
-					boolParams[i] = GL_FALSE;
-				}
-				else
-				{
-					boolParams[i] = GL_TRUE;
-				}
-			}
-		}
-		else 
-		{
-			return false;
-		}
-
-		return true;
+		return setUniformfv(location, count, v, 2);
 	}
 
 	bool Program::setUniform3fv(GLint location, GLsizei count, const GLfloat *v)
 	{
-		if(location < 0 || location >= (int)uniformIndex.size())
-		{
-			return false;
-		}
-
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-		targetUniform->dirty = true;
-
-		int size = targetUniform->size();
-
-		if(size == 1 && count > 1)
-		{
-			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
-		}
-	
-		count = std::min(size - (int)uniformIndex[location].element, count);
-
-		if(targetUniform->type == GL_FLOAT_VEC3)
-		{
-			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLfloat) * 3,
-				   v, 3 * sizeof(GLfloat) * count);
-		}
-		else if(targetUniform->type == GL_BOOL_VEC3)
-		{
-			GLboolean *boolParams = (GLboolean*)targetUniform->data + uniformIndex[location].element * 3;
-
-			for(int i = 0; i < count * 3; i++)
-			{
-				if(v[i] == 0.0f)
-				{
-					boolParams[i] = GL_FALSE;
-				}
-				else
-				{
-					boolParams[i] = GL_TRUE;
-				}
-			}
-		}
-		else 
-		{
-			return false;
-		}
-
-		return true;
+		return setUniformfv(location, count, v, 3);
 	}
 
 	bool Program::setUniform4fv(GLint location, GLsizei count, const GLfloat *v)
 	{
+		return setUniformfv(location, count, v, 4);
+	}
+
+	bool Program::setUniformMatrixfv(GLint location, GLsizei count, const GLfloat *value, GLenum type)
+	{
+		int numElements;
+		switch(type)
+		{
+		case GL_FLOAT_MAT2:
+			numElements = 4;
+			break;
+		case GL_FLOAT_MAT2x3:
+		case GL_FLOAT_MAT3x2:
+			numElements = 6;
+			break;
+		case GL_FLOAT_MAT2x4:
+		case GL_FLOAT_MAT4x2:
+			numElements = 8;
+			break;
+		case GL_FLOAT_MAT3:
+			numElements = 9;
+			break;
+		case GL_FLOAT_MAT3x4:
+		case GL_FLOAT_MAT4x3:
+			numElements = 12;
+			break;
+		case GL_FLOAT_MAT4:
+			numElements = 16;
+			break;
+		default:
+			return false;
+		}
+
 		if(location < 0 || location >= (int)uniformIndex.size())
 		{
 			return false;
@@ -441,132 +392,69 @@ namespace es2
 		Uniform *targetUniform = uniforms[uniformIndex[location].index];
 		targetUniform->dirty = true;
 
+		if(targetUniform->type != type)
+		{
+			return false;
+		}
+
 		int size = targetUniform->size();
 
 		if(size == 1 && count > 1)
 		{
 			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
 		}
-	
+
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
-		if(targetUniform->type == GL_FLOAT_VEC4)
-		{
-			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLfloat) * 4,
-				   v, 4 * sizeof(GLfloat) * count);
-		}
-		else if(targetUniform->type == GL_BOOL_VEC4)
-		{
-			GLboolean *boolParams = (GLboolean*)targetUniform->data + uniformIndex[location].element * 4;
-
-			for(int i = 0; i < count * 4; i++)
-			{
-				if(v[i] == 0.0f)
-				{
-					boolParams[i] = GL_FALSE;
-				}
-				else
-				{
-					boolParams[i] = GL_TRUE;
-				}
-			}
-		}
-		else 
-		{
-			return false;
-		}
+		memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLfloat)* numElements,
+			   value, numElements * sizeof(GLfloat)* count);
 
 		return true;
 	}
 
 	bool Program::setUniformMatrix2fv(GLint location, GLsizei count, const GLfloat *value)
 	{
-		if(location < 0 || location >= (int)uniformIndex.size())
-		{
-			return false;
-		}
+		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT2);
+	}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-		targetUniform->dirty = true;
+	bool Program::setUniformMatrix2x3fv(GLint location, GLsizei count, const GLfloat *value)
+	{
+		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT2x3);
+	}
 
-		if(targetUniform->type != GL_FLOAT_MAT2)
-		{
-			return false;
-		}
-
-		int size = targetUniform->size();
-
-		if(size == 1 && count > 1)
-		{
-			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
-		}
-
-		count = std::min(size - (int)uniformIndex[location].element, count);
-
-		memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLfloat) * 4,
-			   value, 4 * sizeof(GLfloat) * count);
-
-		return true;
+	bool Program::setUniformMatrix2x4fv(GLint location, GLsizei count, const GLfloat *value)
+	{
+		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT2x4);
 	}
 
 	bool Program::setUniformMatrix3fv(GLint location, GLsizei count, const GLfloat *value)
 	{
-		if(location < 0 || location >= (int)uniformIndex.size())
-		{
-			return false;
-		}
+		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT3);
+	}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-		targetUniform->dirty = true;
+	bool Program::setUniformMatrix3x2fv(GLint location, GLsizei count, const GLfloat *value)
+	{
+		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT3x2);
+	}
 
-		if(targetUniform->type != GL_FLOAT_MAT3)
-		{
-			return false;
-		}
-
-		int size = targetUniform->size();
-
-		if(size == 1 && count > 1)
-		{
-			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
-		}
-
-		count = std::min(size - (int)uniformIndex[location].element, count);
-
-		memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLfloat) * 9,
-			   value, 9 * sizeof(GLfloat) * count);
-
-		return true;
+	bool Program::setUniformMatrix3x4fv(GLint location, GLsizei count, const GLfloat *value)
+	{
+		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT3x4);
 	}
 
 	bool Program::setUniformMatrix4fv(GLint location, GLsizei count, const GLfloat *value)
 	{
-		if(location < 0 || location >= (int)uniformIndex.size())
-		{
-			return false;
-		}
+		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT4);
+	}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-		targetUniform->dirty = true;
+	bool Program::setUniformMatrix4x2fv(GLint location, GLsizei count, const GLfloat *value)
+	{
+		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT4x2);
+	}
 
-		if(targetUniform->type != GL_FLOAT_MAT4)
-		{
-			return false;
-		}
-
-		int size = targetUniform->size();
-
-		if(size == 1 && count > 1)
-		{
-			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
-		}
-
-		count = std::min(size - (int)uniformIndex[location].element, count);
-
-		memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLfloat) * 16,
-			   value, 16 * sizeof(GLfloat) * count);
-
-		return true;
+	bool Program::setUniformMatrix4x3fv(GLint location, GLsizei count, const GLfloat *value)
+	{
+		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT4x3);
 	}
 
 	bool Program::setUniform1iv(GLint location, GLsizei count, const GLint *v)
@@ -626,8 +514,11 @@ namespace es2
 		return true;
 	}
 
-	bool Program::setUniform2iv(GLint location, GLsizei count, const GLint *v)
+	bool Program::setUniformiv(GLint location, GLsizei count, const GLint *v, int numElements)
 	{
+		static GLenum intType[] = { GL_INT, GL_INT_VEC2, GL_INT_VEC3, GL_INT_VEC4 };
+		static GLenum boolType[] = { GL_BOOL, GL_BOOL_VEC2, GL_BOOL_VEC3, GL_BOOL_VEC4 };
+
 		if(location < 0 || location >= (int)uniformIndex.size())
 		{
 			return false;
@@ -645,29 +536,23 @@ namespace es2
 	
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
-		if(targetUniform->type == GL_INT_VEC2)
+		int index = numElements - 1;
+		if(targetUniform->type == intType[index])
 		{
-			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLint) * 2,
-				   v, 2 * sizeof(GLint) * count);
+			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLint)* numElements,
+				   v, numElements * sizeof(GLint)* count);
 		}
-		else if(targetUniform->type == GL_BOOL_VEC2)
+		else if(targetUniform->type == boolType[index])
 		{
-			GLboolean *boolParams = new GLboolean[count * 2];
+			GLboolean *boolParams = new GLboolean[count * numElements];
 
-			for(int i = 0; i < count * 2; i++)
+			for(int i = 0; i < count * numElements; i++)
 			{
-				if(v[i] == 0)
-				{
-					boolParams[i] = GL_FALSE;
-				}
-				else
-				{
-					boolParams[i] = GL_TRUE;
-				}
+				boolParams[i] = (v[i] == 0) ? GL_FALSE : GL_TRUE;
 			}
 
-			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLboolean) * 2,
-				   boolParams, 2 * sizeof(GLboolean) * count);
+			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLboolean)* numElements,
+				   boolParams, numElements * sizeof(GLboolean)* count);
 
 			delete[] boolParams;
 		}
@@ -677,62 +562,24 @@ namespace es2
 		}
 
 		return true;
+	}
+
+	bool Program::setUniform2iv(GLint location, GLsizei count, const GLint *v)
+	{
+		return setUniformiv(location, count, v, 2);
 	}
 
 	bool Program::setUniform3iv(GLint location, GLsizei count, const GLint *v)
 	{
-		if(location < 0 || location >= (int)uniformIndex.size())
-		{
-			return false;
-		}
-
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-		targetUniform->dirty = true;
-
-		int size = targetUniform->size();
-
-		if(size == 1 && count > 1)
-		{
-			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
-		}
-	
-		count = std::min(size - (int)uniformIndex[location].element, count);
-
-		if(targetUniform->type == GL_INT_VEC3)
-		{
-			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLint) * 3,
-				   v, 3 * sizeof(GLint) * count);
-		}
-		else if(targetUniform->type == GL_BOOL_VEC3)
-		{
-			GLboolean *boolParams = new GLboolean[count * 3];
-
-			for(int i = 0; i < count * 3; i++)
-			{
-				if(v[i] == 0)
-				{
-					boolParams[i] = GL_FALSE;
-				}
-				else
-				{
-					boolParams[i] = GL_TRUE;
-				}
-			}
-
-			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLboolean) * 3,
-				   boolParams, 3 * sizeof(GLboolean) * count);
-
-			delete[] boolParams;
-		}
-		else
-		{
-			return false;
-		}
-
-		return true;
+		return setUniformiv(location, count, v, 3);
 	}
 
 	bool Program::setUniform4iv(GLint location, GLsizei count, const GLint *v)
+	{
+		return setUniformiv(location, count, v, 4);
+	}
+
+	bool Program::setUniform1uiv(GLint location, GLsizei count, const GLuint *v)
 	{
 		if(location < 0 || location >= (int)uniformIndex.size())
 		{
@@ -751,16 +598,20 @@ namespace es2
 	
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
-		if(targetUniform->type == GL_INT_VEC4)
+		if(targetUniform->type == GL_INT ||
+		   targetUniform->type == GL_SAMPLER_2D ||
+		   targetUniform->type == GL_SAMPLER_CUBE ||
+		   targetUniform->type == GL_SAMPLER_EXTERNAL_OES ||
+		   targetUniform->type == GL_SAMPLER_3D_OES)
 		{
-			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLint) * 4,
-				   v, 4 * sizeof(GLint) * count);
+			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLuint),
+				   v, sizeof(GLuint)* count);
 		}
-		else if(targetUniform->type == GL_BOOL_VEC4)
+		else if(targetUniform->type == GL_BOOL)
 		{
-			GLboolean *boolParams = new GLboolean[count * 4];
+			GLboolean *boolParams = new GLboolean[count];
 
-			for(int i = 0; i < count * 4; i++)
+			for(int i = 0; i < count; i++)
 			{
 				if(v[i] == 0)
 				{
@@ -772,8 +623,8 @@ namespace es2
 				}
 			}
 
-			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLboolean) * 4,
-				   boolParams, 4 * sizeof(GLboolean) * count);
+			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLboolean),
+				   boolParams, sizeof(GLboolean)* count);
 
 			delete[] boolParams;
 		}
@@ -783,6 +634,71 @@ namespace es2
 		}
 
 		return true;
+	}
+
+	bool Program::setUniformuiv(GLint location, GLsizei count, const GLuint *v, int numElements)
+	{
+		static GLenum intType[] = { GL_INT, GL_INT_VEC2, GL_INT_VEC3, GL_INT_VEC4 };
+		static GLenum boolType[] = { GL_BOOL, GL_BOOL_VEC2, GL_BOOL_VEC3, GL_BOOL_VEC4 };
+
+		if(location < 0 || location >= (int)uniformIndex.size())
+		{
+			return false;
+		}
+
+		Uniform *targetUniform = uniforms[uniformIndex[location].index];
+		targetUniform->dirty = true;
+
+		int size = targetUniform->size();
+
+		if(size == 1 && count > 1)
+		{
+			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
+		}
+	
+		count = std::min(size - (int)uniformIndex[location].element, count);
+
+		int index = numElements - 1;
+		if(targetUniform->type == intType[index])
+		{
+			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLuint)* numElements,
+				   v, numElements * sizeof(GLuint)* count);
+		}
+		else if(targetUniform->type == boolType[index])
+		{
+			GLboolean *boolParams = new GLboolean[count * numElements];
+
+			for(int i = 0; i < count * numElements; i++)
+			{
+				boolParams[i] = (v[i] == 0) ? GL_FALSE : GL_TRUE;
+			}
+
+			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLboolean)* numElements,
+				   boolParams, numElements * sizeof(GLboolean)* count);
+
+			delete[] boolParams;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool Program::setUniform2uiv(GLint location, GLsizei count, const GLuint *v)
+	{
+		return setUniformuiv(location, count, v, 2);
+	}
+
+	bool Program::setUniform3uiv(GLint location, GLsizei count, const GLuint *v)
+	{
+		return setUniformuiv(location, count, v, 3);
+	}
+
+	bool Program::setUniform4uiv(GLint location, GLsizei count, const GLuint *v)
+	{
+		return setUniformuiv(location, count, v, 4);
 	}
 
 	bool Program::getUniformfv(GLint location, GLsizei *bufSize, GLfloat *params)
@@ -881,6 +797,54 @@ namespace es2
 		return true;
 	}
 
+	bool Program::getUniformuiv(GLint location, GLsizei *bufSize, GLuint *params)
+	{
+		if(location < 0 || location >= (int)uniformIndex.size())
+		{
+			return false;
+		}
+
+		Uniform *targetUniform = uniforms[uniformIndex[location].index];
+		unsigned int count = UniformComponentCount(targetUniform->type);
+
+		// Sized query - ensure the provided buffer is large enough
+		if(bufSize && *bufSize < count * sizeof(GLuint))
+		{
+			return false;
+		}
+
+		switch(UniformComponentType(targetUniform->type))
+		{
+		case GL_BOOL:
+		{
+			GLboolean *boolParams = targetUniform->data + uniformIndex[location].element * count;
+
+			for(unsigned int i = 0; i < count; i++)
+			{
+				params[i] = (GLuint)boolParams[i];
+			}
+		}
+			break;
+		case GL_FLOAT:
+		{
+			GLfloat *floatParams = (GLfloat*)targetUniform->data + uniformIndex[location].element * count;
+
+			for(unsigned int i = 0; i < count; i++)
+			{
+				params[i] = (GLuint)floatParams[i];
+			}
+		}
+			break;
+		case GL_INT:
+			memcpy(params, targetUniform->data + uniformIndex[location].element * count * sizeof(GLuint),
+				   count * sizeof(GLuint));
+			break;
+		default: UNREACHABLE();
+		}
+
+		return true;
+	}
+
 	void Program::dirtyAllUniforms()
 	{
 		unsigned int numUniforms = uniforms.size();
@@ -938,153 +902,6 @@ namespace es2
 				targetUniform->dirty = false;
 			}
 		}
-	}
-
-	// Packs varyings into generic varying registers, using the algorithm from [OpenGL ES Shading Language 1.00 rev. 17] appendix A section 7 page 111
-	// Returns the number of used varying registers, or -1 if unsuccesful
-	int Program::packVaryings(const glsl::Varying *packing[][4])
-	{
-		for(glsl::VaryingList::iterator varying = fragmentShader->varyings.begin(); varying != fragmentShader->varyings.end(); varying++)
-		{
-			int n = VariableRowCount(varying->type) * varying->size();
-			int m = VariableColumnCount(varying->type);
-			bool success = false;
-
-			if(m == 2 || m == 3 || m == 4)
-			{
-				for(int r = 0; r <= MAX_VARYING_VECTORS - n && !success; r++)
-				{
-					bool available = true;
-
-					for(int y = 0; y < n && available; y++)
-					{
-						for(int x = 0; x < m && available; x++)
-						{
-							if(packing[r + y][x])
-							{
-								available = false;
-							}
-						}
-					}
-
-					if(available)
-					{
-						varying->reg = r;
-						varying->col = 0;
-
-						for(int y = 0; y < n; y++)
-						{
-							for(int x = 0; x < m; x++)
-							{
-								packing[r + y][x] = &*varying;
-							}
-						}
-
-						success = true;
-					}
-				}
-
-				if(!success && m == 2)
-				{
-					for(int r = MAX_VARYING_VECTORS - n; r >= 0 && !success; r--)
-					{
-						bool available = true;
-
-						for(int y = 0; y < n && available; y++)
-						{
-							for(int x = 2; x < 4 && available; x++)
-							{
-								if(packing[r + y][x])
-								{
-									available = false;
-								}
-							}
-						}
-
-						if(available)
-						{
-							varying->reg = r;
-							varying->col = 2;
-
-							for(int y = 0; y < n; y++)
-							{
-								for(int x = 2; x < 4; x++)
-								{
-									packing[r + y][x] = &*varying;
-								}
-							}
-
-							success = true;
-						}
-					}
-				}
-			}
-			else if(m == 1)
-			{
-				int space[4] = {0};
-
-				for(int y = 0; y < MAX_VARYING_VECTORS; y++)
-				{
-					for(int x = 0; x < 4; x++)
-					{
-						space[x] += packing[y][x] ? 0 : 1;
-					}
-				}
-
-				int column = 0;
-
-				for(int x = 0; x < 4; x++)
-				{
-					if(space[x] >= n && space[x] < space[column])
-					{
-						column = x;
-					}
-				}
-
-				if(space[column] >= n)
-				{
-					for(int r = 0; r < MAX_VARYING_VECTORS; r++)
-					{
-						if(!packing[r][column])
-						{
-							varying->reg = r;
-
-							for(int y = r; y < r + n; y++)
-							{
-								packing[y][column] = &*varying;
-							}
-
-							break;
-						}
-					}
-
-					varying->col = column;
-
-					success = true;
-				}
-			}
-			else UNREACHABLE();
-
-			if(!success)
-			{
-				appendToInfoLog("Could not pack varying %s", varying->name.c_str());
-
-				return -1;
-			}
-		}
-
-		// Return the number of used registers
-		int registers = 0;
-
-		for(int r = 0; r < MAX_VARYING_VECTORS; r++)
-		{
-			if(packing[r][0] || packing[r][1] || packing[r][2] || packing[r][3])
-			{
-				registers++;
-			}
-		}
-
-		return registers;
 	}
 
 	bool Program::linkVaryings()

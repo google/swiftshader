@@ -91,15 +91,26 @@ namespace es2
 		bool setUniform3fv(GLint location, GLsizei count, const GLfloat *v);
 		bool setUniform4fv(GLint location, GLsizei count, const GLfloat *v);
 		bool setUniformMatrix2fv(GLint location, GLsizei count, const GLfloat *value);
+		bool setUniformMatrix2x3fv(GLint location, GLsizei count, const GLfloat *value);
+		bool setUniformMatrix2x4fv(GLint location, GLsizei count, const GLfloat *value);
 		bool setUniformMatrix3fv(GLint location, GLsizei count, const GLfloat *value);
+		bool setUniformMatrix3x2fv(GLint location, GLsizei count, const GLfloat *value);
+		bool setUniformMatrix3x4fv(GLint location, GLsizei count, const GLfloat *value);
 		bool setUniformMatrix4fv(GLint location, GLsizei count, const GLfloat *value);
+		bool setUniformMatrix4x2fv(GLint location, GLsizei count, const GLfloat *value);
+		bool setUniformMatrix4x3fv(GLint location, GLsizei count, const GLfloat *value);
 		bool setUniform1iv(GLint location, GLsizei count, const GLint *v);
 		bool setUniform2iv(GLint location, GLsizei count, const GLint *v);
 		bool setUniform3iv(GLint location, GLsizei count, const GLint *v);
 		bool setUniform4iv(GLint location, GLsizei count, const GLint *v);
+		bool setUniform1uiv(GLint location, GLsizei count, const GLuint *v);
+		bool setUniform2uiv(GLint location, GLsizei count, const GLuint *v);
+		bool setUniform3uiv(GLint location, GLsizei count, const GLuint *v);
+		bool setUniform4uiv(GLint location, GLsizei count, const GLuint *v);
 
 		bool getUniformfv(GLint location, GLsizei *bufSize, GLfloat *params);
 		bool getUniformiv(GLint location, GLsizei *bufSize, GLint *params);
+		bool getUniformuiv(GLint location, GLsizei *bufSize, GLuint *params);
 
 		void dirtyAllUniforms();
 		void applyUniforms();
@@ -133,7 +144,6 @@ namespace es2
 	private:
 		void unlink();
 
-		int packVaryings(const glsl::Varying *packing[][4]);
 		bool linkVaryings();
 
 		bool linkAttributes();
@@ -155,7 +165,12 @@ namespace es2
 		bool applyUniform1iv(GLint location, GLsizei count, const GLint *v);
 		bool applyUniform2iv(GLint location, GLsizei count, const GLint *v);
 		bool applyUniform3iv(GLint location, GLsizei count, const GLint *v);
-		bool applyUniform4iv(GLint location, GLsizei count, const GLint *v);    
+		bool applyUniform4iv(GLint location, GLsizei count, const GLint *v);
+
+		bool setUniformfv(GLint location, GLsizei count, const GLfloat *v, int numElements);
+		bool setUniformMatrixfv(GLint location, GLsizei count, const GLfloat *value, GLenum type);
+		bool setUniformiv(GLint location, GLsizei count, const GLint *v, int numElements);
+		bool setUniformuiv(GLint location, GLsizei count, const GLuint *v, int numElements);
 
 		void appendToInfoLog(const char *info, ...);
 		void resetInfoLog();
@@ -169,7 +184,7 @@ namespace es2
 
 		sw::PixelShader *pixelBinary;
 		sw::VertexShader *vertexBinary;
-    
+
 		std::set<std::string> attributeBinding[MAX_VERTEX_ATTRIBS];
 		glsl::Attribute linkedAttribute[MAX_VERTEX_ATTRIBS];
 		int attributeStream[MAX_VERTEX_ATTRIBS];
