@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a3a94260_7a467d14",
+        "filename": "src/Main/FrameBufferAndroid.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2015-03-30T01:16:37Z",
+      "side": 1,
+      "message": "nit: To be consistent within the file, use space for indent instead of tab? Although I do notice now all FrameBuffer* files use tabs...",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 3
+      },
+      "revId": "cd394a204d8f601204ed5aade24f1a8abcdcd3d5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
