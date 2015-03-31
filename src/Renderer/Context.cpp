@@ -200,7 +200,7 @@ namespace sw
 		}
 
 		// Set vertex streams to null stream
-		for(int i = 0; i < 16; i++)
+		for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
 		{
 			input[i].defaults();
 		}
@@ -208,7 +208,7 @@ namespace sw
 		fogStart = 0.0f;
 		fogEnd = 1.0f;
 
-		for(int i = 0; i < 16; i++) textureWrap[i] = 0;
+		for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++) textureWrap[i] = 0;
 		for(int i = 0; i < 8; i++) texGen[i] = TEXGEN_PASSTHRU;
 		for(int i = 0; i < 8; i++) textureTransformCount[i] = 0;
 		for(int i = 0; i < 8; i++) textureTransformProject[i] = false;

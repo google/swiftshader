@@ -89,8 +89,8 @@ namespace gl
 		bool vertexShaderDirty;
 		unsigned int vertexShaderConstantsFDirty;
 
-		float pixelShaderConstantF[224][4];
-		float vertexShaderConstantF[256][4];
+		float pixelShaderConstantF[FRAGMENT_UNIFORM_VECTORS][4];
+		float vertexShaderConstantF[VERTEX_UNIFORM_VECTORS][4];
 
 		Image *renderTarget;
 		Image *depthStencil;

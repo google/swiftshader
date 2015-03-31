@@ -406,7 +406,7 @@ namespace es2
 
 	void Device::setPixelShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count)
 	{
-		for(unsigned int i = 0; i < count && startRegister + i < 224; i++)
+		for(unsigned int i = 0; i < count && startRegister + i < FRAGMENT_UNIFORM_VECTORS; i++)
 		{
 			pixelShaderConstantF[startRegister + i][0] = constantData[i * 4 + 0];
 			pixelShaderConstantF[startRegister + i][1] = constantData[i * 4 + 1];
@@ -453,7 +453,7 @@ namespace es2
 
 	void Device::setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count)
 	{
-		for(unsigned int i = 0; i < count && startRegister + i < 256; i++)
+		for(unsigned int i = 0; i < count && startRegister + i < VERTEX_UNIFORM_VECTORS; i++)
 		{
 			vertexShaderConstantF[startRegister + i][0] = constantData[i * 4 + 0];
 			vertexShaderConstantF[startRegister + i][1] = constantData[i * 4 + 1];

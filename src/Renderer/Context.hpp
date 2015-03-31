@@ -395,15 +395,15 @@ namespace sw
 		int alphaReference;
 		
 		TextureStage textureStage[8];
-		Sampler sampler[16 + 4];
+		Sampler sampler[TOTAL_IMAGE_UNITS];
 
 		Format renderTargetInternalFormat(int index);
 		int colorWriteActive();
 		int colorWriteActive(int index);
 		bool colorUsed();
 
-		Resource *texture[16 + 4];
-		Stream input[16];
+		Resource *texture[TOTAL_IMAGE_UNITS];
+		Stream input[TEXTURE_IMAGE_UNITS];
 		Resource *indexBuffer;
 
 		bool preTransformed;   // FIXME: Private
@@ -414,7 +414,7 @@ namespace sw
 		void computeIllumination();
 
 		bool textureWrapActive;
-		unsigned char textureWrap[16];
+		unsigned char textureWrap[TEXTURE_IMAGE_UNITS];
 		TexGen texGen[8];
 		bool localViewer;
 		bool normalizeNormals;

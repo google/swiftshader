@@ -53,7 +53,7 @@ namespace sw
 
 	PixelRoutine::~PixelRoutine()
 	{
-		for(int i = 0; i < 16; i++)
+		for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
 		{
 			delete sampler[i];
 		}
@@ -65,7 +65,7 @@ namespace sw
 			Long pipeTime = Ticks();
 		#endif
 
-		for(int i = 0; i < 16; i++)
+		for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
 		{
 			sampler[i] = new SamplerCore(r.constants, state.sampler[i]);
 		}
@@ -2078,7 +2078,7 @@ namespace sw
 		{
 			Int index = As<Int>(Float(reg(r, sampler).x.x));
 
-			for(int i = 0; i < 16; i++)
+			for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
 			{
 				if(shader->usesSampler(i))
 				{

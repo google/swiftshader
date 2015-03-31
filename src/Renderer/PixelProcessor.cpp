@@ -327,7 +327,7 @@ namespace sw
 
 	void PixelProcessor::setTextureFilter(unsigned int sampler, FilterType textureFilter)
 	{
-		if(sampler < 16)
+		if(sampler < TEXTURE_IMAGE_UNITS)
 		{
 			context->sampler[sampler].setTextureFilter(textureFilter);
 		}
@@ -336,7 +336,7 @@ namespace sw
 
 	void PixelProcessor::setMipmapFilter(unsigned int sampler, MipmapType mipmapFilter)
 	{
-		if(sampler < 16)
+		if(sampler < TEXTURE_IMAGE_UNITS)
 		{
 			context->sampler[sampler].setMipmapFilter(mipmapFilter);
 		}
@@ -345,7 +345,7 @@ namespace sw
 
 	void PixelProcessor::setGatherEnable(unsigned int sampler, bool enable)
 	{
-		if(sampler < 16)
+		if(sampler < TEXTURE_IMAGE_UNITS)
 		{
 			context->sampler[sampler].setGatherEnable(enable);
 		}
@@ -354,7 +354,7 @@ namespace sw
 
 	void PixelProcessor::setAddressingModeU(unsigned int sampler, AddressingMode addressMode)
 	{
-		if(sampler < 16)
+		if(sampler < TEXTURE_IMAGE_UNITS)
 		{
 			context->sampler[sampler].setAddressingModeU(addressMode);
 		}
@@ -363,7 +363,7 @@ namespace sw
 
 	void PixelProcessor::setAddressingModeV(unsigned int sampler, AddressingMode addressMode)
 	{
-		if(sampler < 16)
+		if(sampler < TEXTURE_IMAGE_UNITS)
 		{
 			context->sampler[sampler].setAddressingModeV(addressMode);
 		}
@@ -372,7 +372,7 @@ namespace sw
 
 	void PixelProcessor::setAddressingModeW(unsigned int sampler, AddressingMode addressMode)
 	{
-		if(sampler < 16)
+		if(sampler < TEXTURE_IMAGE_UNITS)
 		{
 			context->sampler[sampler].setAddressingModeW(addressMode);
 		}
@@ -381,7 +381,7 @@ namespace sw
 
 	void PixelProcessor::setReadSRGB(unsigned int sampler, bool sRGB)
 	{
-		if(sampler < 16)
+		if(sampler < TEXTURE_IMAGE_UNITS)
 		{
 			context->sampler[sampler].setReadSRGB(sRGB);
 		}
@@ -390,7 +390,7 @@ namespace sw
 
 	void PixelProcessor::setMipmapLOD(unsigned int sampler, float bias)
 	{
-		if(sampler < 16)
+		if(sampler < TEXTURE_IMAGE_UNITS)
 		{
 			context->sampler[sampler].setMipmapLOD(bias);
 		}
@@ -399,7 +399,7 @@ namespace sw
 
 	void PixelProcessor::setBorderColor(unsigned int sampler, const Color<float> &borderColor)
 	{
-		if(sampler < 16)
+		if(sampler < TEXTURE_IMAGE_UNITS)
 		{
 			context->sampler[sampler].setBorderColor(borderColor);
 		}
@@ -408,7 +408,7 @@ namespace sw
 
 	void PixelProcessor::setMaxAnisotropy(unsigned int sampler, float maxAnisotropy)
 	{
-		if(sampler < 16)
+		if(sampler < TEXTURE_IMAGE_UNITS)
 		{
 			context->sampler[sampler].setMaxAnisotropy(maxAnisotropy);
 		}

@@ -83,7 +83,7 @@ namespace sw
 
 			TextureState textureState[8];
 
-			Sampler::State samplerState[4];
+			Sampler::State samplerState[VERTEX_TEXTURE_IMAGE_UNITS];
 
 			struct Input
 			{
@@ -126,7 +126,7 @@ namespace sw
 				};
 			};
 
-			Input input[16];
+			Input input[TEXTURE_IMAGE_UNITS];
 			Output output[12];
 		};
 

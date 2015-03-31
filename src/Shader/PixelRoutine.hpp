@@ -296,7 +296,7 @@ namespace sw
 		const PixelShader *const shader;
 
 	private:
-		SamplerCore *sampler[16];
+		SamplerCore *sampler[TEXTURE_IMAGE_UNITS];
 
 		bool perturbate;
 		bool luminance;

@@ -82,9 +82,9 @@ namespace sw
 	{
 		const void *constants;
 
-		const void *input[16];
-		unsigned int stride[16];
-		Texture mipmap[16 + 4];
+		const void *input[TEXTURE_IMAGE_UNITS];
+		unsigned int stride[TEXTURE_IMAGE_UNITS];
+		Texture mipmap[TOTAL_IMAGE_UNITS];
 		const void *indices;
 
 		struct VS
@@ -97,7 +97,7 @@ namespace sw
 		struct PS
 		{
 			word4 cW[8][4];
-			float4 c[224];
+			float4 c[FRAGMENT_UNIFORM_VECTORS];
 			int4 i[16];
 			bool b[16];
 		};
@@ -180,11 +180,11 @@ namespace sw
 		int (*setupPrimitives)(Renderer *renderer, int batch, int count);
 		SetupProcessor::State setupState;
 
-		Resource *vertexStream[16];
+		Resource *vertexStream[TEXTURE_IMAGE_UNITS];
 		Resource *indexBuffer;
 		Surface *renderTarget[4];
 		Surface *depthStencil;
-		Resource *texture[16 + 4];
+		Resource *texture[TOTAL_IMAGE_UNITS];
 
 		int vsDirtyConstF;
 		int vsDirtyConstI;

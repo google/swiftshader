@@ -116,7 +116,7 @@ namespace sw
 
 	void VertexProcessor::resetInputStreams(bool preTransformed)
 	{
-		for(int i = 0; i < 16; i++)
+		for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
 		{
 			context->input[i].defaults();
 		}
@@ -400,7 +400,7 @@ namespace sw
 
 	void VertexProcessor::setTextureWrap(unsigned int stage, int mask)
 	{
-		if(stage < 16)
+		if(stage < TEXTURE_IMAGE_UNITS)
 		{
 			context->textureWrap[stage] = mask;
 		}
@@ -408,7 +408,7 @@ namespace sw
 
 		context->textureWrapActive = false;
 
-		for(int i = 0; i < 16; i++)
+		for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
 		{
 			context->textureWrapActive |= (context->textureWrap[i] != 0x00);
 		}
@@ -452,90 +452,90 @@ namespace sw
 
 	void VertexProcessor::setTextureFilter(unsigned int sampler, FilterType textureFilter)
 	{
-		if(sampler < 4)
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
 		{
-			context->sampler[16 + sampler].setTextureFilter(textureFilter);
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setTextureFilter(textureFilter);
 		}
 		else ASSERT(false);
 	}
 
 	void VertexProcessor::setMipmapFilter(unsigned int sampler, MipmapType mipmapFilter)
 	{
-		if(sampler < 4)
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
 		{
-			context->sampler[16 + sampler].setMipmapFilter(mipmapFilter);
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setMipmapFilter(mipmapFilter);
 		}
 		else ASSERT(false);
 	}
 
 	void VertexProcessor::setGatherEnable(unsigned int sampler, bool enable)
 	{
-		if(sampler < 4)
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
 		{
-			context->sampler[16 + sampler].setGatherEnable(enable);
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setGatherEnable(enable);
 		}
 		else ASSERT(false);
 	}
 
 	void VertexProcessor::setAddressingModeU(unsigned int sampler, AddressingMode addressMode)
 	{
-		if(sampler < 4)
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
 		{
-			context->sampler[16 + sampler].setAddressingModeU(addressMode);
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setAddressingModeU(addressMode);
 		}
 		else ASSERT(false);
 	}
 
 	void VertexProcessor::setAddressingModeV(unsigned int sampler, AddressingMode addressMode)
 	{
-		if(sampler < 4)
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
 		{
-			context->sampler[16 + sampler].setAddressingModeV(addressMode);
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setAddressingModeV(addressMode);
 		}
 		else ASSERT(false);
 	}
 
 	void VertexProcessor::setAddressingModeW(unsigned int sampler, AddressingMode addressMode)
 	{
-		if(sampler < 4)
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
 		{
-			context->sampler[16 + sampler].setAddressingModeW(addressMode);
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setAddressingModeW(addressMode);
 		}
 		else ASSERT(false);
 	}
 
 	void VertexProcessor::setReadSRGB(unsigned int sampler, bool sRGB)
 	{
-		if(sampler < 4)
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
 		{
-			context->sampler[16 + sampler].setReadSRGB(sRGB);
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setReadSRGB(sRGB);
 		}
 		else ASSERT(false);
 	}
 
 	void VertexProcessor::setMipmapLOD(unsigned int sampler, float bias)
 	{
-		if(sampler < 4)
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
 		{
-			context->sampler[16 + sampler].setMipmapLOD(bias);
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setMipmapLOD(bias);
 		}
 		else ASSERT(false);
 	}
 
 	void VertexProcessor::setBorderColor(unsigned int sampler, const Color<float> &borderColor)
 	{
-		if(sampler < 4)
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
 		{
-			context->sampler[16 + sampler].setBorderColor(borderColor);
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setBorderColor(borderColor);
 		}
 		else ASSERT(false);
 	}
 
 	void VertexProcessor::setMaxAnisotropy(unsigned int sampler, float maxAnisotropy)
 	{
-		if(sampler < 4)
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
 		{
-			context->sampler[16 + sampler].setMaxAnisotropy(maxAnisotropy);
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setMaxAnisotropy(maxAnisotropy);
 		}
 		else ASSERT(false);
 	}
@@ -801,7 +801,7 @@ namespace sw
 		state.superSampling = context->getSuperSampleCount() > 1;
 		state.multiSampling = context->getMultiSampleCount() > 1;
 
-		for(int i = 0; i < 16; i++)
+		for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
 		{
 			state.input[i].type = context->input[i].type;
 			state.input[i].count = context->input[i].count;
@@ -820,11 +820,11 @@ namespace sw
 		}
 		else
 		{
-			for(unsigned int i = 0; i < 4; i++)
+			for(unsigned int i = 0; i < VERTEX_TEXTURE_IMAGE_UNITS; i++)
 			{
 				if(context->vertexShader->usesSampler(i))
 				{
-					state.samplerState[i] = context->sampler[16 + i].samplerState();
+					state.samplerState[i] = context->sampler[TEXTURE_IMAGE_UNITS + i].samplerState();
 				}
 			}
 		}

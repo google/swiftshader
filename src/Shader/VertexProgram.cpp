@@ -38,7 +38,7 @@ namespace sw
 
 	VertexProgram::~VertexProgram()
 	{
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < VERTEX_TEXTURE_IMAGE_UNITS; i++)
 		{
 			delete sampler[i];
 		}
@@ -46,7 +46,7 @@ namespace sw
 
 	void VertexProgram::pipeline(Registers &r)
 	{
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < VERTEX_TEXTURE_IMAGE_UNITS; i++)
 		{
 			sampler[i] = new SamplerCore(r.constants, state.samplerState[i]);
 		}

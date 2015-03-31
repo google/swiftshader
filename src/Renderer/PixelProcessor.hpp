@@ -80,7 +80,7 @@ namespace sw
 			TransparencyAntialiasing transparencyAntialiasing : BITS(TRANSPARENCY_LAST);
 			bool centroid                                     : 1;
 
-			Sampler::State sampler[16];
+			Sampler::State sampler[TEXTURE_IMAGE_UNITS];
 			TextureStage::State textureStage[8];
 
 			struct Interpolant
@@ -287,7 +287,7 @@ namespace sw
 
 		// Shader constants
 		word4 cW[8][4];
-		float4 c[224];
+		float4 c[FRAGMENT_UNIFORM_VECTORS];
 		int4 i[16];
 		bool b[16];
 

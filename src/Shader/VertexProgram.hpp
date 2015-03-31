@@ -82,7 +82,7 @@ namespace sw
 
 		void sampleTexture(Registers &r, Vector4f &c, const Src &s, Float4 &u, Float4 &v, Float4 &w, Float4 &q);
 
-		SamplerCore *sampler[4];
+		SamplerCore *sampler[VERTEX_TEXTURE_IMAGE_UNITS];
 
 		int ifDepth;
 		int loopRepDepth;

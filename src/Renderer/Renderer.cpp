@@ -341,12 +341,12 @@ namespace sw
 
 			draw->indexBuffer = context->indexBuffer;
 
-			for(int sampler = 0; sampler < 20; sampler++)
+			for(int sampler = 0; sampler < TOTAL_IMAGE_UNITS; sampler++)
 			{
 				draw->texture[sampler] = 0;
 			}
 
-			for(int sampler = 0; sampler < 16; sampler++)
+			for(int sampler = 0; sampler < TEXTURE_IMAGE_UNITS; sampler++)
 			{
 				if(pixelState.sampler[sampler].textureType != TEXTURE_NULL)
 				{
@@ -395,14 +395,14 @@ namespace sw
 			{
 				if(context->vertexShader->getVersion() >= 0x0300)
 				{
-					for(int sampler = 0; sampler < 4; sampler++)
+					for(int sampler = 0; sampler < VERTEX_TEXTURE_IMAGE_UNITS; sampler++)
 					{
 						if(vertexState.samplerState[sampler].textureType != TEXTURE_NULL)
 						{
-							draw->texture[16 + sampler] = context->texture[16 + sampler];
-							draw->texture[16 + sampler]->lock(PUBLIC, PRIVATE);
+							draw->texture[TEXTURE_IMAGE_UNITS + sampler] = context->texture[TEXTURE_IMAGE_UNITS + sampler];
+							draw->texture[TEXTURE_IMAGE_UNITS + sampler]->lock(PUBLIC, PRIVATE);
 
-							data->mipmap[16 + sampler] = context->sampler[16 + sampler].getTextureData();
+							data->mipmap[TEXTURE_IMAGE_UNITS + sampler] = context->sampler[TEXTURE_IMAGE_UNITS + sampler].getTextureData();
 						}
 					}
 				}
@@ -913,7 +913,7 @@ namespace sw
 					draw.depthStencil->unlockStencil();
 				}
 
-				for(int i = 0; i < 16 + 4; i++)
+				for(int i = 0; i < TOTAL_IMAGE_UNITS; i++)
 				{
 					if(draw.texture[i])
 					{
@@ -921,7 +921,7 @@ namespace sw
 					}
 				}
 
-				for(int i = 0; i < 16; i++)
+				for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
 				{
 					if(draw.vertexStream[i])
 					{
@@ -2085,14 +2085,14 @@ namespace sw
 
 	void Renderer::setTextureResource(unsigned int sampler, Resource *resource)
 	{
-		ASSERT(sampler < (16 + 4));
+		ASSERT(sampler < TOTAL_IMAGE_UNITS);
 
 		context->texture[sampler] = resource;
 	}
 
 	void Renderer::setTextureLevel(unsigned int sampler, unsigned int face, unsigned int level, Surface *surface, TextureType type)
 	{
-		ASSERT(sampler < (16 + 4) && face < 6 && level < MIPMAP_LEVELS);
+		ASSERT(sampler < TOTAL_IMAGE_UNITS && face < 6 && level < MIPMAP_LEVELS);
 		
 		context->sampler[sampler].setTextureLevel(face, level, surface, type);
 	}

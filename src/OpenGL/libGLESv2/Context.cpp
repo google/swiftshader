@@ -1587,21 +1587,21 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 		UNIMPLEMENTED();
 		*params = IMPLEMENTATION_MAX_COLOR_ATTACHMENTS;
 		break;
-	case GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS: // integer, at least 1
+	case GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS: // integer, at least 50048
 		UNIMPLEMENTED();
-		*params = 1;
+		*params = MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS;
 		break;
 	case GL_MAX_COMBINED_UNIFORM_BLOCKS: // integer, at least 70
 		UNIMPLEMENTED();
 		*params = 70;
 		break;
-	case GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS: // integer, at least 1
+	case GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS: // integer, at least 50176
 		UNIMPLEMENTED();
-		*params = 1;
+		*params = MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS;
 		break;
 	case GL_MAX_DRAW_BUFFERS: // integer, at least 8
 		UNIMPLEMENTED();
-		*params = 8;
+		*params = IMPLEMENTATION_MAX_DRAW_BUFFERS;
 		break;
 	case GL_MAX_ELEMENT_INDEX: // integer, at least 16777215
 		UNIMPLEMENTED();
@@ -1645,7 +1645,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 		break;
 	case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS: // integer, at least 4
 		UNIMPLEMENTED();
-		*params = 4;
+		*params = IMPLEMENTATION_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS;
 		break;
 	case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS: // integer, at least 4
 		UNIMPLEMENTED();
@@ -1657,7 +1657,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 		break;
 	case GL_MAX_UNIFORM_BUFFER_BINDINGS: // integer, at least 36
 		UNIMPLEMENTED();
-		*params = 36;
+		*params = IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS;
 		break;
 	case GL_MAX_VARYING_COMPONENTS: // integer, at least 60
 		UNIMPLEMENTED();
@@ -1729,7 +1729,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 		break;
 	case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT: // integer, defaults to 1
 		UNIMPLEMENTED();
-		*params = 1;
+		*params = IMPLEMENTATION_UNIFORM_BUFFER_OFFSET_ALIGNMENT;
 		break;
 	case GL_UNIFORM_BUFFER_SIZE: // indexed[n] 64-bit integer, initially 0
 		UNIMPLEMENTED();
