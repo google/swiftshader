@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "630f4a79_1bbe06a3",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1590,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-31T20:39:00Z",
+      "side": 1,
+      "message": "I think you have the 2 reversed. I think this is 896 and vertex is 1024 (looking at FRAGMENT_UNIFORM_VECTORS and VERTEX_UNIFORM_VECTORS).\n\nAlso, this constant contains uniform blocks components too.\nSo we have 896 for uniforms and 12 * 16k / 4 \u003d 48k for uniform blocks, which is 50048.\nFor vertex, it\u0027s 1024 + 48k \u003d 50176.\n\nI changed it to express it as such.",
+      "parentUuid": "630f4a79_00ee97ff",
+      "range": {
+        "startLine": 1590,
+        "startChar": 72,
+        "endLine": 1590,
+        "endChar": 77
+      },
+      "revId": "4293f1836eb2e0837958cc638d3c01d5e59a55f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "630f4a79_2006334e",
         "filename": "src/OpenGL/libGLESv2/Context.cpp",
         "patchSetId": 1
@@ -94,6 +118,30 @@
     },
     {
       "key": {
+        "uuid": "630f4a79_006fb724",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-31T20:39:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "630f4a79_605e6b56",
+      "range": {
+        "startLine": 398,
+        "startChar": 18,
+        "endLine": 398,
+        "endChar": 66
+      },
+      "revId": "4293f1836eb2e0837958cc638d3c01d5e59a55f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "630f4a79_a06863f0",
         "filename": "src/Renderer/Context.hpp",
         "patchSetId": 1
@@ -105,6 +153,30 @@
       "writtenOn": "2015-03-31T19:59:29Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 405,
+        "startChar": 20,
+        "endLine": 405,
+        "endChar": 68
+      },
+      "revId": "4293f1836eb2e0837958cc638d3c01d5e59a55f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "630f4a79_605dcb7f",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-03-31T20:39:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "630f4a79_a06863f0",
       "range": {
         "startLine": 405,
         "startChar": 20,
