@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "630f4a79_00ee97ff",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1590,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-31T19:59:29Z",
+      "side": 1,
+      "message": "ES3 spec says 1024\n\nWe should be able to write this as FRAGMENT_UNIFORM_VECTORS * 4?",
+      "range": {
+        "startLine": 1590,
+        "startChar": 72,
+        "endLine": 1590,
+        "endChar": 77
+      },
+      "revId": "4293f1836eb2e0837958cc638d3c01d5e59a55f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "630f4a79_2006334e",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1598,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-31T19:59:29Z",
+      "side": 1,
+      "message": "ES3 spec says 896\n\nWe should be able to write this as VERTEX_UNIFORM_VECTORS * 4?",
+      "range": {
+        "startLine": 1598,
+        "startChar": 70,
+        "endLine": 1598,
+        "endChar": 75
+      },
+      "revId": "4293f1836eb2e0837958cc638d3c01d5e59a55f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "630f4a79_605e6b56",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-31T19:59:29Z",
+      "side": 1,
+      "message": "Define and use a COMBINED one?",
+      "range": {
+        "startLine": 398,
+        "startChar": 18,
+        "endLine": 398,
+        "endChar": 66
+      },
+      "revId": "4293f1836eb2e0837958cc638d3c01d5e59a55f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "630f4a79_a06863f0",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-31T19:59:29Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 405,
+        "startChar": 20,
+        "endLine": 405,
+        "endChar": 68
+      },
+      "revId": "4293f1836eb2e0837958cc638d3c01d5e59a55f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
