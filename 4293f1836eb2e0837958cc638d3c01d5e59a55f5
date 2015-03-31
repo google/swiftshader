@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "630f4a79_40f88f4a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-03-31T20:01:48Z",
+      "side": 1,
+      "message": "nit: OpenGL ES\n\nAlways assume that someone who isn\u0027t familiar with the vernacular will read this.",
+      "range": {
+        "startLine": 10,
+        "startChar": 18,
+        "endLine": 10,
+        "endChar": 22
+      },
+      "revId": "4293f1836eb2e0837958cc638d3c01d5e59a55f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "630f4a79_00ee97ff",
         "filename": "src/OpenGL/libGLESv2/Context.cpp",
         "patchSetId": 1
