@@ -41,7 +41,7 @@ void getIRTInterfaces() {
 }
 
 char *onInitCallback(uint32_t NumThreads, int *ObjFileFDs,
-                     size_t ObjFileFDCount, char **argv, size_t argc) {
+                     size_t ObjFileFDCount, char **CLArgs, size_t CLArgsLen) {
   if (ObjFileFDCount < 1) {
     std::string Buffer;
     llvm::raw_string_ostream StrBuf(Buffer);
@@ -56,8 +56,17 @@ char *onInitCallback(uint32_t NumThreads, int *ObjFileFDs,
     StrBuf << "Invalid FD given for onInitCallback " << ObjFileFD << "\n";
     return strdup(StrBuf.str().c_str());
   }
-  // NOTE: argv is owned by the caller, but we parse here before returning.
-  gCompileServer->getParsedFlags(NumThreads, argc, argv);
+  // CLArgs is almost an "argv", but is missing the argv[0] program name.
+  std::vector<char *> Argv;
+  char ProgramName[] = "pnacl-sz.nexe";
+  Argv.reserve(CLArgsLen + 1);
+  Argv.push_back(ProgramName);
+  for (size_t i = 0; i < CLArgsLen; ++i) {
+    Argv.push_back(CLArgs[i]);
+  }
+  // NOTE: strings pointed to by argv are owned by the caller, but we parse
+  // here before returning and don't store them.
+  gCompileServer->getParsedFlags(NumThreads, Argv.size(), Argv.data());
   gCompileServer->startCompileThread(ObjFileFD);
   return nullptr;
 }
