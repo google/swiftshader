@@ -13,6 +13,7 @@
 #define sw_Nucleus_hpp
 
 #include "Common/Types.hpp"
+#include "Common/MutexLock.hpp"
 
 #include <stdarg.h>
 #include <vector>
@@ -218,6 +219,8 @@ namespace sw
 		static llvm::LLVMContext *context;
 		static llvm::Module *module;
 		static RoutineManager *routineManager;
+
+		static BackoffLock codegenMutex;
 	};
 
 	class Byte;

@@ -66,6 +66,7 @@ namespace sw
 	LLVMContext *Nucleus::context = 0;
 	Module *Nucleus::module = 0;
 	llvm::Function *Nucleus::function = 0;
+	BackoffLock Nucleus::codegenMutex;
 
 	class Builder : public IRBuilder<>
 	{
@@ -73,6 +74,8 @@ namespace sw
 
 	Nucleus::Nucleus()
 	{
+		codegenMutex.lock();   // Reactor and LLVM are currently not thread safe
+
 		InitializeNativeTarget();
 		JITEmitDebugInfo = false;
 
@@ -129,6 +132,8 @@ namespace sw
 		routineManager = 0;
 		function = 0;
 		module = 0;
+
+		codegenMutex.unlock();
 	}
 
 	Routine *Nucleus::acquireRoutine(const wchar_t *name, bool runOptimizations)

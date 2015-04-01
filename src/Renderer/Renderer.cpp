@@ -69,8 +69,6 @@ namespace sw
 	TranscendentalPrecision rsqPrecision = ACCURATE;
 	bool perspectiveCorrection = true;
 
-	BackoffLock Renderer::codegenMutex;
-
 	struct Parameters
 	{
 		Renderer *renderer;
@@ -232,13 +230,9 @@ namespace sw
 				setupState = SetupProcessor::update();
 				pixelState = PixelProcessor::update();
 
-				codegenMutex.lock();
-
 				vertexRoutine = VertexProcessor::routine(vertexState);
 				setupRoutine = SetupProcessor::routine(setupState);
 				pixelRoutine = PixelProcessor::routine(pixelState);
-
-				codegenMutex.unlock();
 			}
 
 			int batch = batchSize / ms;
