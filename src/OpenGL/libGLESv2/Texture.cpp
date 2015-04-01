@@ -36,6 +36,17 @@ Texture::Texture(GLuint name) : egl::Texture(name)
     mWrapT = GL_REPEAT;
 	mWrapR = GL_REPEAT;
 	mMaxAnisotropy = 1.0f;
+	mBaseLevel = 0;
+	mCompareFunc = GL_LEQUAL;
+	mCompareMode = GL_NONE;
+	mImmutableFormat = GL_FALSE;
+	mMaxLevel = 1000;
+	mMaxLOD = 1000;
+	mMinLOD = -1000;
+	mSwizzleR = GL_RED;
+	mSwizzleG = GL_GREEN;
+	mSwizzleB = GL_BLUE;
+	mSwizzleA = GL_ALPHA;
 
 	resource = new sw::Resource(0);
 }
@@ -165,6 +176,136 @@ bool Texture::setMaxAnisotropy(float textureMaxAnisotropy)
     return true;
 }
 
+bool Texture::setBaseLevel(GLint baseLevel)
+{
+	mBaseLevel = baseLevel;
+	return true;
+}
+
+bool Texture::setCompareFunc(GLenum compareFunc)
+{
+	switch(compareFunc)
+	{
+	case GL_LEQUAL:
+	case GL_GEQUAL:
+	case GL_LESS:
+	case GL_GREATER:
+	case GL_EQUAL:
+	case GL_NOTEQUAL:
+	case GL_ALWAYS:
+	case GL_NEVER:
+		mCompareFunc = compareFunc;
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool Texture::setCompareMode(GLenum compareMode)
+{
+	switch(compareMode)
+	{
+	case GL_COMPARE_REF_TO_TEXTURE:
+	case GL_NONE:
+		mCompareMode = compareMode;
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool Texture::setImmutableFormat(GLboolean immutableFormat)
+{
+	mImmutableFormat = immutableFormat;
+	return true;
+}
+
+bool Texture::setMaxLevel(GLint maxLevel)
+{
+	mMaxLevel = maxLevel;
+	return true;
+}
+
+bool Texture::setMaxLOD(GLfloat maxLOD)
+{
+	mMaxLOD = maxLOD;
+	return true;
+}
+
+bool Texture::setMinLOD(GLfloat minLOD)
+{
+	mMinLOD = minLOD;
+	return true;
+}
+
+bool Texture::setSwizzleR(GLenum swizzleR)
+{
+	switch(swizzleR)
+	{
+	case GL_RED:
+	case GL_GREEN:
+	case GL_BLUE:
+	case GL_ALPHA:
+	case GL_ZERO:
+	case GL_ONE:
+		mSwizzleR = swizzleR;
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool Texture::setSwizzleG(GLenum swizzleG)
+{
+	switch(swizzleG)
+	{
+	case GL_RED:
+	case GL_GREEN:
+	case GL_BLUE:
+	case GL_ALPHA:
+	case GL_ZERO:
+	case GL_ONE:
+		mSwizzleG = swizzleG;
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool Texture::setSwizzleB(GLenum swizzleB)
+{
+	switch(swizzleB)
+	{
+	case GL_RED:
+	case GL_GREEN:
+	case GL_BLUE:
+	case GL_ALPHA:
+	case GL_ZERO:
+	case GL_ONE:
+		mSwizzleB = swizzleB;
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool Texture::setSwizzleA(GLenum swizzleA)
+{
+	switch(swizzleA)
+	{
+	case GL_RED:
+	case GL_GREEN:
+	case GL_BLUE:
+	case GL_ALPHA:
+	case GL_ZERO:
+	case GL_ONE:
+		mSwizzleA = swizzleA;
+		return true;
+	default:
+		return false;
+	}
+}
+
 GLenum Texture::getMinFilter() const
 {
     return mMinFilter;
@@ -193,6 +334,51 @@ GLenum Texture::getWrapR() const
 GLfloat Texture::getMaxAnisotropy() const
 {
     return mMaxAnisotropy;
+}
+
+GLint Texture::getBaseLevel() const
+{
+	return mBaseLevel;
+}
+GLenum Texture::getCompareFunc() const
+{
+	return mCompareFunc;
+}
+GLenum Texture::getCompareMode() const
+{
+	return mCompareMode;
+}
+GLboolean Texture::getImmutableFormat() const
+{
+	return mImmutableFormat;
+}
+GLint Texture::getMaxLevel() const
+{
+	return mMaxLevel;
+}
+GLfloat Texture::getMaxLOD() const
+{
+	return mMaxLOD;
+}
+GLfloat Texture::getMinLOD() const
+{
+	return mMinLOD;
+}
+GLenum Texture::getSwizzleR() const
+{
+	return mSwizzleR;
+}
+GLenum Texture::getSwizzleG() const
+{
+	return mSwizzleG;
+}
+GLenum Texture::getSwizzleB() const
+{
+	return mSwizzleB;
+}
+GLenum Texture::getSwizzleA() const
+{
+	return mSwizzleA;
 }
 
 GLsizei Texture::getDepth(GLenum target, GLint level) const

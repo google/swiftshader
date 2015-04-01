@@ -71,6 +71,17 @@ public:
 	bool setWrapT(GLenum wrap);
 	bool setWrapR(GLenum wrap);
 	bool setMaxAnisotropy(GLfloat textureMaxAnisotropy);
+	bool setBaseLevel(GLint baseLevel);
+	bool setCompareFunc(GLenum compareFunc);
+	bool setCompareMode(GLenum compareMode);
+	bool setImmutableFormat(GLboolean immutableFormat);
+	bool setMaxLevel(GLint maxLevel);
+	bool setMaxLOD(GLfloat maxLOD);
+	bool setMinLOD(GLfloat minLOD);
+	bool setSwizzleR(GLenum swizzleR);
+	bool setSwizzleG(GLenum swizzleG);
+	bool setSwizzleB(GLenum swizzleB);
+	bool setSwizzleA(GLenum swizzleA);
 
     GLenum getMinFilter() const;
     GLenum getMagFilter() const;
@@ -78,6 +89,17 @@ public:
 	GLenum getWrapT() const;
 	GLenum getWrapR() const;
 	GLfloat getMaxAnisotropy() const;
+	GLint getBaseLevel() const;
+	GLenum getCompareFunc() const;
+	GLenum getCompareMode() const;
+	GLboolean getImmutableFormat() const;
+	GLint getMaxLevel() const;
+	GLfloat getMaxLOD() const;
+	GLfloat getMinLOD() const;
+	GLenum getSwizzleR() const;
+	GLenum getSwizzleG() const;
+	GLenum getSwizzleB() const;
+	GLenum getSwizzleA() const;
 
     virtual GLsizei getWidth(GLenum target, GLint level) const = 0;
 	virtual GLsizei getHeight(GLenum target, GLint level) const = 0;
@@ -115,6 +137,17 @@ protected:
     GLenum mWrapT;
     GLenum mWrapR;
 	GLfloat mMaxAnisotropy;
+	GLint mBaseLevel;
+	GLenum mCompareFunc;
+	GLenum mCompareMode;
+	GLboolean mImmutableFormat;
+	GLint mMaxLevel;
+	GLfloat mMaxLOD;
+	GLfloat mMinLOD;
+	GLenum mSwizzleR;
+	GLenum mSwizzleG;
+	GLenum mSwizzleB;
+	GLenum mSwizzleA;
 
 	sw::Resource *resource;
 };

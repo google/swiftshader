@@ -40,6 +40,14 @@ class Buffer : public gl::Object
 	const void *data() { return mContents ? mContents->data() : 0; }
     size_t size() const { return mSize; }
     GLenum usage() const { return mUsage; }
+	bool isMapped() const { return mIsMapped; }
+	GLintptr offset() const { return mOffset; }
+	GLsizeiptr length() const { return mLength; }
+	GLbitfield access() const { return mAccess; }
+
+	void* mapRange(GLintptr offset, GLsizeiptr length, GLbitfield access);
+	bool unmap();
+	void flushMappedRange(GLintptr offset, GLsizeiptr length) {}
 
 	sw::Resource *getResource();
 
@@ -47,6 +55,10 @@ class Buffer : public gl::Object
     sw::Resource *mContents;
     size_t mSize;
     GLenum mUsage;
+	bool mIsMapped;
+	GLintptr mOffset;
+	GLsizeiptr mLength;
+	GLbitfield mAccess;
 };
 
 }
