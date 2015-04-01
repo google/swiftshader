@@ -515,7 +515,7 @@ namespace es2
 	{
 		GLsizei inputPitch = ComputePitch(width, format, type, unpackAlignment);
 		void *buffer = lock(0, 0, sw::LOCK_WRITEONLY);
-		
+
 		if(buffer)
 		{
 			switch(type)
@@ -669,8 +669,9 @@ namespace es2
 		switch(format)
 		{
 		case HAL_PIXEL_FORMAT_RGBA_8888:
-		case HAL_PIXEL_FORMAT_RGBX_8888:
 			return GL_RGBA;
+		case HAL_PIXEL_FORMAT_RGBX_8888:
+			return GL_RGB;
 		case HAL_PIXEL_FORMAT_RGB_888:
 			return GL_RGB;
 		case HAL_PIXEL_FORMAT_RGB_565:

@@ -167,7 +167,7 @@ namespace es1
 
 		GLsizei inputPitch = ComputePitch(width, format, type, unpackAlignment);
 		void *buffer = lock(0, 0, sw::LOCK_WRITEONLY);
-		
+
 		if(buffer)
 		{
 			switch(type)
@@ -276,7 +276,7 @@ namespace es1
 		{
 			const float *source = reinterpret_cast<const float*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			float *dest = reinterpret_cast<float*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 16);
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = 0;
@@ -304,7 +304,7 @@ namespace es1
 		{
 			const float *source = reinterpret_cast<const float*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			float *dest = reinterpret_cast<float*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 16);
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = source[x];
@@ -321,7 +321,7 @@ namespace es1
 		{
 			const unsigned char *source = static_cast<const unsigned char*>(input) + y * inputPitch;
 			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 2;
-        
+
 			memcpy(dest, source, width * 2);
 		}
 	}
@@ -332,7 +332,7 @@ namespace es1
 		{
 			const float *source = reinterpret_cast<const float*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			float *dest = reinterpret_cast<float*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 16);
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = source[2*x+0];
@@ -349,7 +349,7 @@ namespace es1
 		{
 			const unsigned char *source = static_cast<const unsigned char*>(input) + y * inputPitch;
 			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 4;
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = source[x * 3 + 0];
@@ -366,7 +366,7 @@ namespace es1
 		{
 			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 4;
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				unsigned short rgba = source[x];
@@ -384,7 +384,7 @@ namespace es1
 		{
 			const float *source = reinterpret_cast<const float*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			float *dest = reinterpret_cast<float*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 16);
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = source[x * 3 + 0];
@@ -412,7 +412,7 @@ namespace es1
 		{
 			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 4;
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				unsigned short rgba = source[x];
@@ -430,7 +430,7 @@ namespace es1
 		{
 			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 4;
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				unsigned short rgba = source[x];
@@ -448,7 +448,7 @@ namespace es1
 		{
 			const float *source = reinterpret_cast<const float*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			float *dest = reinterpret_cast<float*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 16);
-			
+
 			memcpy(dest, source, width * 16);
 		}
 	}
@@ -538,8 +538,9 @@ namespace es1
 		switch(format)
 		{
 		case HAL_PIXEL_FORMAT_RGBA_8888:
-		case HAL_PIXEL_FORMAT_RGBX_8888:
 			return GL_RGBA;
+		case HAL_PIXEL_FORMAT_RGBX_8888:
+			return GL_RGB;
 		case HAL_PIXEL_FORMAT_RGB_888:
 			return GL_RGB;
 		case HAL_PIXEL_FORMAT_RGB_565:
