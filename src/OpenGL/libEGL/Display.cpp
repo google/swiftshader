@@ -189,6 +189,11 @@ void Display::terminate()
     {
         destroyContext(*mContextSet.begin());
     }
+
+	if(this == getCurrentDisplay())
+	{
+		setCurrentDisplay(EGL_NO_DISPLAY);
+	}
 }
 
 bool Display::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint configSize, EGLint *numConfig)
@@ -434,12 +439,29 @@ void Display::destroySurface(egl::Surface *surface)
 {
     delete surface;
     mSurfaceSet.erase(surface);
+
+	if(surface == getCurrentDrawSurface())
+	{
+		setCurrentDrawSurface(EGL_NO_SURFACE);
+	}
+
+	if(surface == getCurrentReadSurface())
+	{
+		setCurrentReadSurface(EGL_NO_SURFACE);
+	}
 }
 
 void Display::destroyContext(egl::Context *context)
 {
     context->destroy();
     mContextSet.erase(context);
+
+	if(context == getCurrentContext())
+	{
+		setCurrentContext(EGL_NO_CONTEXT);
+		setCurrentDrawSurface(EGL_NO_SURFACE);
+		setCurrentReadSurface(EGL_NO_SURFACE);
+	}
 }
 
 bool Display::isInitialized() const
