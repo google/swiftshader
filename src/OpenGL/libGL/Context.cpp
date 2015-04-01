@@ -3362,7 +3362,7 @@ void Context::endList()
 
 void Context::callList(GLuint list)
 {
-	ASSERT(displayList[list]);
+	// As per GL specifications, if the list does not exist, it is ignored
 	if(displayList[list])
 	{
 		displayList[list]->call();
