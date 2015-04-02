@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "63de6a5c_ffc9a72a",
+        "filename": "src/OpenGL/libGL/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 838,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-04-02T14:52:13Z",
+      "side": 1,
+      "message": "A call to genQueries with \u003e1000 queries results in an important delay (35k \u003d ~45 minutes) due to the fact that handle started from 1 every time.",
+      "range": {
+        "startLine": 838,
+        "startChar": 4,
+        "endLine": 838,
+        "endChar": 10
+      },
+      "revId": "c3e397cc52375a877da28387b4a286947e644a60",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
