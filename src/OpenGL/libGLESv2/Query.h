@@ -23,7 +23,7 @@
 namespace es2
 {
 
-class Query : public gl::Object
+class Query : public gl::NamedObject
 {
   public:
     Query(GLuint name, GLenum type);

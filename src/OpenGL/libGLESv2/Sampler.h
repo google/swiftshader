@@ -23,10 +23,10 @@
 namespace es2
 {
 
-class Sampler : public gl::Object
+class Sampler : public gl::NamedObject
 {
 public:
-	Sampler(GLuint name) : Object(name)
+	Sampler(GLuint name) : NamedObject(name)
 	{
 		mMinFilter = GL_NEAREST_MIPMAP_LINEAR;
 		mMagFilter = GL_LINEAR;

@@ -44,7 +44,7 @@ enum
 	IMPLEMENTATION_MAX_SAMPLES = 4
 };
 
-class Texture : public Object
+class Texture : public NamedObject
 {
 public:
     explicit Texture(GLuint name);

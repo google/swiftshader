@@ -18,7 +18,7 @@
 namespace es2
 {
 
-TransformFeedback::TransformFeedback(GLuint name) : Object(name), mActive(false), mPaused(false)
+TransformFeedback::TransformFeedback(GLuint name) : NamedObject(name), mActive(false), mPaused(false)
 {
 	mGenericBuffer = NULL;
 }

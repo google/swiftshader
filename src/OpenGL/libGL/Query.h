@@ -26,7 +26,7 @@
 namespace gl
 {
 
-class Query : public Object
+class Query : public NamedObject
 {
   public:
     Query(GLuint name, GLenum type);

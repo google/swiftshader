@@ -27,7 +27,7 @@
 
 namespace es1
 {
-class Buffer : public gl::Object
+class Buffer : public gl::NamedObject
 {
   public:
     explicit Buffer(GLuint name);

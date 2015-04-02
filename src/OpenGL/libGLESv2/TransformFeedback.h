@@ -24,7 +24,7 @@ namespace es2
 {
 class Buffer;
 
-class TransformFeedback : public gl::Object
+class TransformFeedback : public gl::NamedObject
 {
 public:
 	// FIXME: Change this when implementing transform feedback

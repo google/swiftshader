@@ -164,7 +164,7 @@ protected:
 // Renderbuffer implements the GL renderbuffer object.
 // It's only a proxy for a RenderbufferInterface instance; the internal object
 // can change whenever glRenderbufferStorage is called.
-class Renderbuffer : public gl::Object
+class Renderbuffer : public gl::NamedObject
 {
 public:
 	Renderbuffer(GLuint name, RenderbufferInterface *storage);

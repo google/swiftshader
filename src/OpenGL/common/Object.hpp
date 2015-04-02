@@ -26,16 +26,23 @@ namespace gl
 class Object
 {
 public:
-    explicit Object(GLuint name);
+    Object();
     virtual ~Object();
 
     virtual void addRef();
 	virtual void release();
-
-    const GLuint name;
     
 private:
     volatile int referenceCount;
+};
+
+class NamedObject : public Object
+{
+public:
+    explicit NamedObject(GLuint name);
+    virtual ~NamedObject();
+
+    const GLuint name;
 };
 
 template<class ObjectType>

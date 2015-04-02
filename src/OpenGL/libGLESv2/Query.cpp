@@ -19,7 +19,7 @@
 namespace es2
 {
 
-Query::Query(GLuint name, GLenum type) : Object(name)
+Query::Query(GLuint name, GLenum type) : NamedObject(name)
 { 
     mQuery = NULL;
     mStatus = GL_FALSE;

@@ -29,7 +29,7 @@
 
 namespace gl
 {
-class Buffer : public Object
+class Buffer : public NamedObject
 {
   public:
     explicit Buffer(GLuint name);

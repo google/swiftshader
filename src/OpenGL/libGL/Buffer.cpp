@@ -21,7 +21,7 @@
 namespace gl
 {
 
-Buffer::Buffer(GLuint name) : Object(name)
+Buffer::Buffer(GLuint name) : NamedObject(name)
 {
     mContents = 0;
     mSize = 0;

@@ -5,10 +5,10 @@
 
 namespace egl
 {
-class Texture : public gl::Object
+class Texture : public gl::NamedObject
 {
 public:
-	Texture(GLuint name) : Object(name) {};
+	Texture(GLuint name) : NamedObject(name) {};
 	virtual void releaseTexImage() = 0;
 };
 }

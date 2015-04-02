@@ -272,7 +272,7 @@ GLsizei RenderbufferTextureCubeMap::getSamples() const
 
 ////// Renderbuffer Implementation //////
 
-Renderbuffer::Renderbuffer(GLuint name, RenderbufferInterface *instance) : Object(name)
+Renderbuffer::Renderbuffer(GLuint name, RenderbufferInterface *instance) : NamedObject(name)
 {
 	ASSERT(instance != NULL);
 	mInstance = instance;

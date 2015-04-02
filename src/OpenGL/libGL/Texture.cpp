@@ -27,7 +27,7 @@
 namespace gl
 {
 
-Texture::Texture(GLuint name) : Object(name)
+Texture::Texture(GLuint name) : NamedObject(name)
 {
     mMinFilter = GL_NEAREST_MIPMAP_LINEAR;
     mMagFilter = GL_LINEAR;

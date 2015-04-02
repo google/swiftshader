@@ -20,7 +20,7 @@
 namespace gl
 {
 
-Object::Object(GLuint name) : name(name)
+Object::Object()
 {
 	referenceCount = 0;
 }
@@ -48,6 +48,14 @@ void Object::release()
 	{
 		delete this;
 	}
+}
+
+NamedObject::NamedObject(GLuint name) : name(name)
+{
+}
+
+NamedObject::~NamedObject()
+{
 }
 
 }
