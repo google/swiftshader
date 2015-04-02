@@ -71,7 +71,7 @@ Surface::Surface(Display *display, const Config *config, EGLint width, EGLint he
 
 Surface::~Surface()
 {
-    release();
+    deleteResources();
 }
 
 bool Surface::initialize()
@@ -81,7 +81,7 @@ bool Surface::initialize()
     return reset();
 }
 
-void Surface::release()
+void Surface::deleteResources()
 {	
     if(mDepthStencil)
     {
@@ -130,7 +130,7 @@ bool Surface::reset()
 
 bool Surface::reset(int backBufferWidth, int backBufferHeight)
 {
-    release();
+    deleteResources();
 
     if(mWindow)
     {
@@ -139,7 +139,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 		if(!frameBuffer)
 		{
 			ERR("Could not create frame buffer");
-			release();
+			deleteResources();
 			return error(EGL_BAD_ALLOC, false);
 		}
     }
@@ -149,7 +149,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
     if(!backBuffer)
     {
         ERR("Could not create back buffer");
-        release();
+        deleteResources();
         return error(EGL_BAD_ALLOC, false);
     }
 
@@ -160,7 +160,7 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 		if(!mDepthStencil)
 		{
 			ERR("Could not create depth/stencil buffer for surface");
-			release();
+			deleteResources();
 			return error(EGL_BAD_ALLOC, false);
 		}
     }

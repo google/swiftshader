@@ -17,6 +17,7 @@
 #define INCLUDE_SURFACE_H_
 
 #include "Main/FrameBuffer.hpp"
+#include "common/Object.hpp"
 
 #define EGLAPI
 #include <EGL/egl.h>
@@ -28,13 +29,11 @@ class Config;
 class Texture;
 class Image;
 
-class Surface
+class Surface : public gl::Object
 {
 public:
     Surface(Display *display, const egl::Config *config, EGLNativeWindowType window);
     Surface(Display *display, const egl::Config *config, EGLint width, EGLint height, EGLenum textureFormat, EGLenum textureTarget);
-
-    virtual ~Surface();
 
 	bool initialize();
     void swap();
@@ -65,7 +64,9 @@ public:
 	bool checkForResize();   // Returns true if surface changed due to resize
 
 private:
-    void release();
+	virtual ~Surface();
+
+    void deleteResources();
     bool reset();
 
     Display *const mDisplay;

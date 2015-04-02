@@ -295,11 +295,6 @@ void Context::makeCurrent(egl::Surface *surface)
     markAllStateDirty();
 }
 
-void Context::destroy()
-{
-	delete this;
-}
-
 EGLint Context::getClientVersion()
 {
 	return clientVersion;

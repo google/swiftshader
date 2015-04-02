@@ -263,7 +263,6 @@ public:
     Context(const egl::Config *config, const Context *shareContext);
 
 	virtual void makeCurrent(egl::Surface *surface);
-	virtual void destroy();
 	virtual int getClientVersion();
 
     void markAllStateDirty();

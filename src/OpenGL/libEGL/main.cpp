@@ -13,6 +13,9 @@
 
 #include "main.h"
 
+#include "Context.hpp"
+#include "Surface.h"
+
 #include "resource.h"
 #include "Common/Thread.hpp"
 #include "Common/SharedLibrary.hpp"
@@ -259,6 +262,16 @@ void setCurrentContext(egl::Context *ctx)
 {
     Current *current = eglGetCurrent();
 
+	if(ctx)
+	{
+		ctx->addRef();
+	}
+
+	if(current->context)
+	{
+		current->context->release();
+	}
+
     current->context = ctx;
 }
 
@@ -273,6 +286,16 @@ void setCurrentDrawSurface(egl::Surface *surface)
 {
     Current *current = eglGetCurrent();
 
+	if(surface)
+	{
+		surface->addRef();
+	}
+
+	if(current->drawSurface)
+	{
+		current->drawSurface->release();
+	}
+
     current->drawSurface = surface;
 }
 
@@ -286,6 +309,16 @@ egl::Surface *getCurrentDrawSurface()
 void setCurrentReadSurface(egl::Surface *surface)
 {
     Current *current = eglGetCurrent();
+
+	if(surface)
+	{
+		surface->addRef();
+	}
+
+	if(current->readSurface)
+	{
+		current->readSurface->release();
+	}
 
     current->readSurface = surface;
 }
