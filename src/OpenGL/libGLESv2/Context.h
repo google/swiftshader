@@ -21,6 +21,7 @@
 #include "common/Object.hpp"
 #include "Image.hpp"
 #include "Renderer/Sampler.hpp"
+#include "TransformFeedback.h"
 
 #define GL_APICALL
 #include <GLES2/gl2.h>
@@ -65,6 +66,8 @@ class VertexDataManager;
 class IndexDataManager;
 class Fence;
 class Query;
+class Sampler;
+class VertexArray;
 
 enum
 {
@@ -254,6 +257,9 @@ struct State
     GLuint drawFramebuffer;
     gl::BindingPointer<Renderbuffer> renderbuffer;
     GLuint currentProgram;
+    gl::BindingPointer<VertexArray> vertexArray;
+	gl::BindingPointer<TransformFeedback> transformFeedback;
+	gl::BindingPointer<Sampler> sampler[MAX_COMBINED_TEXTURE_IMAGE_UNITS];
 
     VertexAttribute vertexAttribute[MAX_VERTEX_ATTRIBS];
     gl::BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
@@ -387,6 +393,18 @@ public:
     GLuint createQuery();
     void deleteQuery(GLuint query);
 
+	// Vertex arrays are owned by the Context
+	GLuint createVertexArray();
+	void deleteVertexArray(GLuint array);
+
+	// Transform feedbacks are owned by the Context
+	GLuint createTransformFeedback();
+	void deleteTransformFeedback(GLuint transformFeedback);
+
+	// Samplers are owned by the Context
+	GLuint createSampler();
+	void deleteSampler(GLuint sampler);
+
     void bindArrayBuffer(GLuint buffer);
     void bindElementArrayBuffer(GLuint buffer);
     void bindTexture2D(GLuint texture);
@@ -396,6 +414,9 @@ public:
     void bindReadFramebuffer(GLuint framebuffer);
     void bindDrawFramebuffer(GLuint framebuffer);
     void bindRenderbuffer(GLuint renderbuffer);
+	bool bindVertexArray(GLuint array);
+	bool bindTransformFeedback(GLuint transformFeedback);
+	bool bindSampler(GLuint unit, GLuint sampler);
     void useProgram(GLuint program);
 
 	void beginQuery(GLenum target, GLuint query);
@@ -415,6 +436,10 @@ public:
     Framebuffer *getFramebuffer(GLuint handle);
     virtual Renderbuffer *getRenderbuffer(GLuint handle);
 	Query *getQuery(GLuint handle, bool create, GLenum type);
+	VertexArray *getVertexArray(GLuint array);
+	TransformFeedback *getTransformFeedback(GLuint transformFeedback);
+	TransformFeedback *getTransformFeedback();
+	Sampler *getSampler(GLuint sampler);
 
     Buffer *getArrayBuffer();
     Buffer *getElementArrayBuffer();
@@ -502,6 +527,18 @@ private:
 	typedef std::map<GLint, Query*> QueryMap;
     QueryMap mQueryMap;
     gl::NameSpace mQueryNameSpace;
+
+	typedef std::map<GLint, VertexArray*> VertexArrayMap;
+	VertexArrayMap mVertexArrayMap;
+	gl::NameSpace mVertexArrayNameSpace;
+
+	typedef std::map<GLint, TransformFeedback*> TransformFeedbackMap;
+	TransformFeedbackMap mTransformFeedbackMap;
+	gl::NameSpace mTransformFeedbackNameSpace;
+
+	typedef std::map<GLint, Sampler*> SamplerMap;
+	SamplerMap mSamplerMap;
+	gl::NameSpace mSamplerNameSpace;
 
     VertexDataManager *mVertexDataManager;
     IndexDataManager *mIndexDataManager;

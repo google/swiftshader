@@ -121,6 +121,7 @@ LOCAL_SRC_FILES += \
 	ResourceManager.cpp \
 	Shader.cpp \
 	Texture.cpp \
+	TransformFeedback.cpp \
 	utilities.cpp \
 	VertexDataManager.cpp \
 

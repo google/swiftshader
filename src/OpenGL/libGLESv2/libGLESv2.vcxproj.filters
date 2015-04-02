@@ -74,6 +74,9 @@
     <ClCompile Include="libGLESv3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TransformFeedback.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h">
@@ -146,6 +149,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\NameSpace.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sampler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformFeedback.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

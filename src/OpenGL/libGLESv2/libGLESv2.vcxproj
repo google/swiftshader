@@ -337,6 +337,7 @@ copy "$(OutDir)libGLESv2.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Plat
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TransformFeedback.cpp" />
     <ClCompile Include="utilities.cpp" />
     <ClCompile Include="VertexDataManager.cpp" />
   </ItemGroup>
@@ -361,9 +362,12 @@ copy "$(OutDir)libGLESv2.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Plat
     <ClInclude Include="Renderbuffer.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="Sampler.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="TransformFeedback.h" />
     <ClInclude Include="utilities.h" />
+    <ClInclude Include="VertexArray.h" />
     <ClInclude Include="VertexDataManager.h" />
   </ItemGroup>
   <ItemGroup>

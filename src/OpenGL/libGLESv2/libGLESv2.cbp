@@ -358,10 +358,14 @@
 		<Unit filename="Renderbuffer.h" />
 		<Unit filename="ResourceManager.cpp" />
 		<Unit filename="ResourceManager.h" />
+		<Unit filename="Sampler.h" />
 		<Unit filename="Shader.cpp" />
 		<Unit filename="Shader.h" />
 		<Unit filename="Texture.cpp" />
 		<Unit filename="Texture.h" />
+		<Unit filename="TransformFeedback.cpp" />
+		<Unit filename="TransformFeedback.h" />
+		<Unit filename="VertexArray.h" />
 		<Unit filename="VertexDataManager.cpp" />
 		<Unit filename="VertexDataManager.h" />
 		<Unit filename="exports.map" />
