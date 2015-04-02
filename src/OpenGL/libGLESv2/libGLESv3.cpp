@@ -11,6 +11,7 @@
 // libGLESv3.cpp: Implements the exported OpenGL ES 3.0 functions.
 
 #include "main.h"
+#include "Buffer.h"
 #include "Framebuffer.h"
 #include "Program.h"
 #include "Query.h"
@@ -938,7 +939,33 @@ void GL_APIENTRY glDrawBuffers(GLsizei n, const GLenum *bufs)
 void GL_APIENTRY glUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat *value = 0x%0.8p)", location, count, transpose, value);
-	UNIMPLEMENTED();
+
+	if(count < 0 || transpose != GL_FALSE)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(location == -1)
+	{
+		return;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Program *program = context->getCurrentProgram();
+
+		if(!program)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(!program->setUniformMatrix2x3fv(location, count, value))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 void GL_APIENTRY glUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
@@ -1511,21 +1538,154 @@ void GL_APIENTRY glVertexAttribIPointer(GLuint index, GLint size, GLenum type, G
 {
 	TRACE("(GLuint program = %d, GLuint index = %d, GLsizei bufSize = %d, GLsizei *length = 0x%0.8p, GLsizei *size = 0x%0.8p, GLenum *type = 0x%0.8p, GLchar *name = 0x%0.8p)",
 	      index, size, type, stride, pointer);
-	UNIMPLEMENTED();
+
+	if(index >= es2::MAX_VERTEX_ATTRIBS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(size < 1 || size > 4 || stride < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	switch(type)
+	{
+	case GL_BYTE:
+	case GL_UNSIGNED_BYTE:
+	case GL_SHORT:
+	case GL_UNSIGNED_SHORT:
+	case GL_INT:
+	case GL_UNSIGNED_INT:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		context->setVertexAttribState(index, context->getArrayBuffer(), size, type, false, stride, pointer);
+	}
 }
 
 void GL_APIENTRY glGetVertexAttribIiv(GLuint index, GLenum pname, GLint *params)
 {
 	TRACE("(GLuint index = %d, GLenum pname = 0x%X, GLint *params = 0x%0.8p)",
 	      index, pname, params);
-	UNIMPLEMENTED();
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		if(index >= es2::MAX_VERTEX_ATTRIBS)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		const es2::VertexAttribute &attribState = context->getVertexAttribState(index);
+
+		switch(pname)
+		{
+		case GL_VERTEX_ATTRIB_ARRAY_ENABLED:
+			*params = (attribState.mArrayEnabled ? GL_TRUE : GL_FALSE);
+			break;
+		case GL_VERTEX_ATTRIB_ARRAY_SIZE:
+			*params = attribState.mSize;
+			break;
+		case GL_VERTEX_ATTRIB_ARRAY_STRIDE:
+			*params = attribState.mStride;
+			break;
+		case GL_VERTEX_ATTRIB_ARRAY_TYPE:
+			*params = attribState.mType;
+			break;
+		case GL_VERTEX_ATTRIB_ARRAY_NORMALIZED:
+			*params = (attribState.mNormalized ? GL_TRUE : GL_FALSE);
+			break;
+		case GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING:
+			*params = attribState.mBoundBuffer.name();
+			break;
+		case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
+			switch(attribState.mType)
+			{
+			case GL_BYTE:
+			case GL_UNSIGNED_BYTE:
+			case GL_SHORT:
+			case GL_UNSIGNED_SHORT:
+			case GL_INT:
+			case GL_INT_2_10_10_10_REV:
+			case GL_UNSIGNED_INT:
+			case GL_FIXED:
+				*params = GL_TRUE;
+				break;
+			default:
+				*params = GL_FALSE;
+				break;
+			}
+			break;
+		default: return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void GL_APIENTRY glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint *params)
 {
 	TRACE("(GLuint index = %d, GLenum pname = 0x%X, GLuint *params = 0x%0.8p)",
-	      index, pname, params);
-	UNIMPLEMENTED();
+		index, pname, params);
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		if(index >= es2::MAX_VERTEX_ATTRIBS)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		const es2::VertexAttribute &attribState = context->getVertexAttribState(index);
+
+		switch(pname)
+		{
+		case GL_VERTEX_ATTRIB_ARRAY_ENABLED:
+			*params = (attribState.mArrayEnabled ? GL_TRUE : GL_FALSE);
+			break;
+		case GL_VERTEX_ATTRIB_ARRAY_SIZE:
+			*params = attribState.mSize;
+			break;
+		case GL_VERTEX_ATTRIB_ARRAY_STRIDE:
+			*params = attribState.mStride;
+			break;
+		case GL_VERTEX_ATTRIB_ARRAY_TYPE:
+			*params = attribState.mType;
+			break;
+		case GL_VERTEX_ATTRIB_ARRAY_NORMALIZED:
+			*params = (attribState.mNormalized ? GL_TRUE : GL_FALSE);
+			break;
+		case GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING:
+			*params = attribState.mBoundBuffer.name();
+			break;
+		case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
+			switch(attribState.mType)
+			{
+			case GL_BYTE:
+			case GL_UNSIGNED_BYTE:
+			case GL_SHORT:
+			case GL_UNSIGNED_SHORT:
+			case GL_INT:
+			case GL_INT_2_10_10_10_REV:
+			case GL_UNSIGNED_INT:
+			case GL_FIXED:
+				*params = GL_TRUE;
+				break;
+			default:
+				*params = GL_FALSE;
+				break;
+			}
+			break;
+		default: return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void GL_APIENTRY glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLint w)
@@ -1558,7 +1718,33 @@ void GL_APIENTRY glGetUniformuiv(GLuint program, GLint location, GLuint *params)
 {
 	TRACE("(GLuint program = %d, GLint location = %d, GLuint *params = 0x%0.8p)",
 	      program, location, params);
-	UNIMPLEMENTED();
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		if(program == 0)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		es2::Program *programObject = context->getProgram(program);
+
+		if(!programObject || !programObject->isLinked())
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(!programObject)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(!programObject->getUniformuiv(location, NULL, params))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 GLint GL_APIENTRY glGetFragDataLocation(GLuint program, const GLchar *name)
@@ -1908,9 +2094,9 @@ void GL_APIENTRY glGetUniformIndices(GLuint program, GLsizei uniformCount, const
 
 	if(context)
 	{
-		es2::Program *program = context->getCurrentProgram();
+		es2::Program *programObject = context->getProgram(program);
 
-		if(!program)
+		if(!programObject)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -1943,9 +2129,9 @@ void GL_APIENTRY glGetActiveUniformsiv(GLuint program, GLsizei uniformCount, con
 
 	if(context)
 	{
-		es2::Program *program = context->getCurrentProgram();
+		es2::Program *programObject = context->getProgram(program);
 
-		if(!program)
+		if(!programObject)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -1963,9 +2149,9 @@ GLuint GL_APIENTRY glGetUniformBlockIndex(GLuint program, const GLchar *uniformB
 
 	if(context)
 	{
-		es2::Program *program = context->getCurrentProgram();
+		es2::Program *programObject = context->getProgram(program);
 
-		if(!program)
+		if(!programObject)
 		{
 			return error(GL_INVALID_OPERATION, GL_INVALID_INDEX);
 		}
@@ -2018,9 +2204,9 @@ void GL_APIENTRY glGetActiveUniformBlockName(GLuint program, GLuint uniformBlock
 
 	if(context)
 	{
-		es2::Program *program = context->getCurrentProgram();
+		es2::Program *programObject = context->getProgram(program);
 
-		if(!program)
+		if(!programObject)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -2038,11 +2224,11 @@ void GL_APIENTRY glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex,
 
 	if(context)
 	{
-		es2::Program *program = context->getCurrentProgram();
+		es2::Program *programObject = context->getProgram(program);
 
-		if(!program)
+		if(!programObject)
 		{
-			return error(GL_INVALID_OPERATION);
+			return error(GL_INVALID_VALUE);
 		}
 	}
 
