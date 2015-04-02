@@ -1867,8 +1867,9 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 		*params = 0;
 		break;
 	case GL_NUM_EXTENSIONS: // integer
-		UNIMPLEMENTED();
-		*params = 0;
+		GLuint numExtensions;
+		getExtensions(0, &numExtensions);
+		*params = numExtensions;
 		break;
 	case GL_NUM_PROGRAM_BINARY_FORMATS: // integer, at least 0
 		UNIMPLEMENTED();
@@ -3888,6 +3889,85 @@ egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textu
 Device *Context::getDevice()
 {
 	return device;
+}
+
+const GLubyte* Context::getExtensions(GLuint index, GLuint* numExt)
+{
+	// Keep list sorted in following order:
+	// OES extensions
+	// EXT extensions
+	// Vendor extensions
+	static const GLubyte* extensions[] = {
+		(const GLubyte*)"GL_OES_compressed_ETC1_RGB8_texture",
+		(const GLubyte*)"GL_OES_depth_texture",
+		(const GLubyte*)"GL_OES_depth_texture_cube_map",
+		(const GLubyte*)"GL_OES_EGL_image",
+		(const GLubyte*)"GL_OES_EGL_image_external",
+		(const GLubyte*)"GL_OES_element_index_uint",
+		(const GLubyte*)"GL_OES_packed_depth_stencil",
+		(const GLubyte*)"GL_OES_rgb8_rgba8",
+		(const GLubyte*)"GL_OES_standard_derivatives",
+		(const GLubyte*)"GL_OES_texture_float",
+		(const GLubyte*)"GL_OES_texture_float_linear",
+		(const GLubyte*)"GL_OES_texture_half_float",
+		(const GLubyte*)"GL_OES_texture_half_float_linear",
+		(const GLubyte*)"GL_OES_texture_npot",
+		(const GLubyte*)"GL_OES_texture_3D",
+		(const GLubyte*)"GL_EXT_blend_minmax",
+		(const GLubyte*)"GL_EXT_occlusion_query_boolean",
+		(const GLubyte*)"GL_EXT_read_format_bgra",
+#if (S3TC_SUPPORT)
+		(const GLubyte*)"GL_EXT_texture_compression_dxt1",
+#endif
+		(const GLubyte*)"GL_EXT_texture_filter_anisotropic",
+		(const GLubyte*)"GL_EXT_texture_format_BGRA8888",
+		(const GLubyte*)"GL_ANGLE_framebuffer_blit",
+		(const GLubyte*)"GL_NV_framebuffer_blit",
+		(const GLubyte*)"GL_ANGLE_framebuffer_multisample",
+#if (S3TC_SUPPORT)
+		(const GLubyte*)"GL_ANGLE_texture_compression_dxt3",
+		(const GLubyte*)"GL_ANGLE_texture_compression_dxt5",
+#endif
+		(const GLubyte*)"GL_NV_fence"
+	};
+	static const GLuint numExtensions = sizeof(extensions) / sizeof(*extensions);
+
+	if(numExt)
+	{
+		*numExt = numExtensions;
+		return nullptr;
+	}
+
+	if(index == GL_INVALID_INDEX)
+	{
+		static GLubyte* extensionsCat = nullptr;
+		if((extensionsCat == nullptr) && (numExtensions > 0))
+		{
+			int totalLength = numExtensions; // 1 space between each extension name + terminating null
+			for(int i = 0; i < numExtensions; ++i)
+			{
+				totalLength += strlen(reinterpret_cast<const char*>(extensions[i]));
+			}
+			extensionsCat = new GLubyte[totalLength];
+			extensionsCat[0] = '\0';
+			for(int i = 0; i < numExtensions; ++i)
+			{
+				if(i != 0)
+				{
+					strcat(reinterpret_cast<char*>(extensionsCat), " ");
+				}
+				strcat(reinterpret_cast<char*>(extensionsCat), reinterpret_cast<const char*>(extensions[i]));
+			}
+		}
+		return extensionsCat;
+	}
+
+	if(index >= numExtensions)
+	{
+		return nullptr;
+	}
+
+	return extensions[index];
 }
 
 }

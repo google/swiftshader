@@ -3104,7 +3104,7 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
 	switch(name)
 	{
 	case GL_VENDOR:
-		return (GLubyte*)"TransGaming Inc.";
+		return (GLubyte*)"Google Inc.";
 	case GL_RENDERER:
 		return (GLubyte*)"SwiftShader";
 	case GL_VERSION:
@@ -3112,42 +3112,10 @@ const GLubyte* GL_APIENTRY glGetString(GLenum name)
 	case GL_SHADING_LANGUAGE_VERSION:
 		return (GLubyte*)"OpenGL ES GLSL ES 1.00 SwiftShader " VERSION_STRING;
 	case GL_EXTENSIONS:
-		// Keep list sorted in following order:
-		// OES extensions
-		// EXT extensions
-		// Vendor extensions
-		return (GLubyte*)
-			"GL_OES_compressed_ETC1_RGB8_texture "
-			"GL_OES_depth_texture "
-			"GL_OES_depth_texture_cube_map "
-			"GL_OES_EGL_image "
-			"GL_OES_EGL_image_external "
-			"GL_OES_element_index_uint "
-			"GL_OES_packed_depth_stencil "
-			"GL_OES_rgb8_rgba8 "
-			"GL_OES_standard_derivatives "
-			"GL_OES_texture_float "
-			"GL_OES_texture_float_linear "
-			"GL_OES_texture_half_float "
-			"GL_OES_texture_half_float_linear "
-			"GL_OES_texture_npot "
-			"GL_OES_texture_3D "
-			"GL_EXT_blend_minmax "
-			"GL_EXT_occlusion_query_boolean "
-			"GL_EXT_read_format_bgra "
-			#if (S3TC_SUPPORT)
-			"GL_EXT_texture_compression_dxt1 "
-			#endif
-			"GL_EXT_texture_filter_anisotropic "
-			"GL_EXT_texture_format_BGRA8888 "
-			"GL_ANGLE_framebuffer_blit "
-			"GL_NV_framebuffer_blit "
-			"GL_ANGLE_framebuffer_multisample "
-			#if (S3TC_SUPPORT)
-			"GL_ANGLE_texture_compression_dxt3 "
-			"GL_ANGLE_texture_compression_dxt5 "
-			#endif
-			"GL_NV_fence";
+	{
+		es2::Context *context = es2::getContext();
+		return context ? context->getExtensions(GL_INVALID_INDEX) : (GLubyte*)NULL;
+	}
 	default:
 		return error(GL_INVALID_ENUM, (GLubyte*)NULL);
 	}
