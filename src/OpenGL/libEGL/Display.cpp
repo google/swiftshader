@@ -192,7 +192,7 @@ void Display::terminate()
 
 	if(this == getCurrentDisplay())
 	{
-		setCurrentDisplay(EGL_NO_DISPLAY);
+		setCurrentDisplay(nullptr);
 	}
 }
 
@@ -442,12 +442,12 @@ void Display::destroySurface(egl::Surface *surface)
 
 	if(surface == getCurrentDrawSurface())
 	{
-		setCurrentDrawSurface(EGL_NO_SURFACE);
+		setCurrentDrawSurface(nullptr);
 	}
 
 	if(surface == getCurrentReadSurface())
 	{
-		setCurrentReadSurface(EGL_NO_SURFACE);
+		setCurrentReadSurface(nullptr);
 	}
 }
 
@@ -458,9 +458,9 @@ void Display::destroyContext(egl::Context *context)
 
 	if(context == getCurrentContext())
 	{
-		setCurrentContext(EGL_NO_CONTEXT);
-		setCurrentDrawSurface(EGL_NO_SURFACE);
-		setCurrentReadSurface(EGL_NO_SURFACE);
+		setCurrentContext(nullptr);
+		setCurrentDrawSurface(nullptr);
+		setCurrentReadSurface(nullptr);
 	}
 }
 

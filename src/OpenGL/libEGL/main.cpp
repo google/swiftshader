@@ -40,10 +40,10 @@ static void eglAttachThread()
 
         current->error = EGL_SUCCESS;
         current->API = EGL_OPENGL_ES_API;
-        current->display = EGL_NO_DISPLAY;
-        current->drawSurface = EGL_NO_SURFACE;
-        current->readSurface = EGL_NO_SURFACE;
-		current->context = EGL_NO_CONTEXT;
+		current->display = nullptr;
+		current->context = nullptr;
+		current->drawSurface = nullptr;
+        current->readSurface = nullptr;
 	}
 }
 
@@ -241,56 +241,56 @@ EGLenum getCurrentAPI()
     return current->API;
 }
 
-void setCurrentDisplay(EGLDisplay dpy)
+void setCurrentDisplay(egl::Display *dpy)
 {
     Current *current = eglGetCurrent();
 
     current->display = dpy;
 }
 
-EGLDisplay getCurrentDisplay()
+egl::Display *getCurrentDisplay()
 {
     Current *current = eglGetCurrent();
 
     return current->display;
 }
 
-void setCurrentContext(EGLContext ctx)
+void setCurrentContext(egl::Context *ctx)
 {
     Current *current = eglGetCurrent();
 
     current->context = ctx;
 }
 
-EGLContext getCurrentContext()
+egl::Context *getCurrentContext()
 {
     Current *current = eglGetCurrent();
 
     return current->context;
 }
 
-void setCurrentDrawSurface(EGLSurface surface)
+void setCurrentDrawSurface(egl::Surface *surface)
 {
     Current *current = eglGetCurrent();
 
     current->drawSurface = surface;
 }
 
-EGLSurface getCurrentDrawSurface()
+egl::Surface *getCurrentDrawSurface()
 {
     Current *current = eglGetCurrent();
 
     return current->drawSurface;
 }
 
-void setCurrentReadSurface(EGLSurface surface)
+void setCurrentReadSurface(egl::Surface *surface)
 {
     Current *current = eglGetCurrent();
 
     current->readSurface = surface;
 }
 
-EGLSurface getCurrentReadSurface()
+egl::Surface *getCurrentReadSurface()
 {
     Current *current = eglGetCurrent();
 

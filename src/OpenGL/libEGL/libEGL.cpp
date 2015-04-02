@@ -668,6 +668,8 @@ EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurfac
 
 	egl::Display *display = static_cast<egl::Display*>(dpy);
 	egl::Context *context = static_cast<egl::Context*>(ctx);
+	egl::Surface *drawSurface = static_cast<egl::Surface*>(draw);
+	egl::Surface *readSurface = static_cast<egl::Surface*>(read);
 
 	if(ctx != EGL_NO_CONTEXT || draw != EGL_NO_SURFACE || read != EGL_NO_SURFACE)
 	{
@@ -687,8 +689,8 @@ EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurfac
 		return EGL_FALSE;
 	}
 
-	if((draw != EGL_NO_SURFACE && !validateSurface(display, static_cast<egl::Surface*>(draw))) ||
-		(read != EGL_NO_SURFACE && !validateSurface(display, static_cast<egl::Surface*>(read))))
+	if((draw != EGL_NO_SURFACE && !validateSurface(display, drawSurface)) ||
+	   (read != EGL_NO_SURFACE && !validateSurface(display, readSurface)))
 	{
 		return EGL_FALSE;
 	}
@@ -703,14 +705,14 @@ EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurfac
 		UNIMPLEMENTED();   // FIXME
 	}
 
-	egl::setCurrentDisplay(dpy);
-	egl::setCurrentDrawSurface(draw);
-	egl::setCurrentReadSurface(read);
-	egl::setCurrentContext(ctx);
+	egl::setCurrentDisplay(display);
+	egl::setCurrentDrawSurface(drawSurface);
+	egl::setCurrentReadSurface(readSurface);
+	egl::setCurrentContext(context);
 
 	if(context)
 	{
-		context->makeCurrent(static_cast<egl::Surface*>(draw));
+		context->makeCurrent(drawSurface);
 	}
 
 	return success(EGL_TRUE);

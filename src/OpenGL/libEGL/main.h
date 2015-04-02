@@ -20,14 +20,18 @@
 
 namespace egl
 {
+	class Display;
+	class Context;
+	class Surface;
+
 	struct Current
 	{
 		EGLint error;
 		EGLenum API;
-		EGLDisplay display;
-		EGLContext context;
-		EGLSurface drawSurface;
-		EGLSurface readSurface;
+		Display *display;
+		Context *context;
+		Surface *drawSurface;
+		Surface *readSurface;
 	};
 
 	void setCurrentError(EGLint error);
@@ -36,17 +40,17 @@ namespace egl
 	void setCurrentAPI(EGLenum API);
 	EGLenum getCurrentAPI();
 
-	void setCurrentDisplay(EGLDisplay dpy);
-	EGLDisplay getCurrentDisplay();
+	void setCurrentDisplay(Display *dpy);
+	Display *getCurrentDisplay();
 
-	void setCurrentContext(EGLContext ctx);
-	EGLContext getCurrentContext();
+	void setCurrentContext(Context *ctx);
+	Context *getCurrentContext();
 
-	void setCurrentDrawSurface(EGLSurface surface);
-	EGLSurface getCurrentDrawSurface();
+	void setCurrentDrawSurface(Surface *surface);
+	Surface *getCurrentDrawSurface();
 
-	void setCurrentReadSurface(EGLSurface surface);
-	EGLSurface getCurrentReadSurface();
+	void setCurrentReadSurface(Surface *surface);
+	Surface *getCurrentReadSurface();
 }
 
 void error(EGLint errorCode);
