@@ -25,7 +25,7 @@
 namespace llvm {
 class QueueStreamer;
 class raw_fd_ostream;
-};
+}
 
 namespace Ice {
 

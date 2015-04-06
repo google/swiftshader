@@ -141,7 +141,9 @@ public:
     TInstrSet = NewValue;
   }
 
-  VerboseMask getVerbose() const { return ALLOW_DUMP ? VMask : IceV_None; }
+  VerboseMask getVerbose() const {
+    return ALLOW_DUMP ? VMask : (VerboseMask)IceV_None;
+  }
   void setVerbose(VerboseMask NewValue) { VMask = NewValue; }
 
   // IceString accessors.

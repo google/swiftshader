@@ -112,8 +112,8 @@ struct TypePropertyFields {
 const TypePropertyFields TypePropertiesTable[] = {
 #define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, CompareResult)  \
   {                                                                            \
-    IsVec, IsInt, IsInt && !IsVec, IsInt && IsVec, IsIntArith, IsFloat,        \
-        IsFloat && !IsVec, IsFloat && IsVec, IsLoadStore, CompareResult        \
+    IsVec, IsInt, IsInt & !IsVec, IsInt & IsVec, IsIntArith, IsFloat,          \
+        IsFloat & !IsVec, IsFloat & IsVec, IsLoadStore, CompareResult          \
   }                                                                            \
   ,
     ICETYPE_PROPS_TABLE
