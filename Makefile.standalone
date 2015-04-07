@@ -17,10 +17,15 @@ LLVM_SRC_PATH ?= ../llvm
 # LLVM_BIN_PATH is the directory where binaries are placed by the LLVM build
 # process. It should contain the tools like clang, clang-format, llc,
 # llvm-as, llvm-config, llvm-mc, pnacl-bcdis, and pnacl-freeze.
-# It also contains developer libraries like libLLVMSupport.a.
-# The default reflects a configure + make build.
-LLVM_BIN_PATH ?= $(shell readlink -e \
-	../../out/llvm_x86_64_linux_work/Release+Asserts/bin)
+ifdef CMAKE
+  # LLVM cmake build
+  LLVM_BIN_PATH ?= ../../out/llvm_x86_64_linux_work/bin
+  STDLIB_FLAGS =
+else
+  # LLVM autoconf build
+  LLVM_BIN_PATH ?= ../../out/llvm_x86_64_linux_work/Release+Asserts/bin
+  STDLIB_FLAGS = -stdlib=libc++ -I$(LIBCXX_INSTALL_PATH)/include/c++/v1
+endif
 
 # The x86-32-specific sandboxed translator directory.
 # It holds sandboxed versions of libraries and binaries.
@@ -51,10 +56,10 @@ LIBCXX_INSTALL_PATH ?= $(PNACL_TOOLCHAIN_ROOT)
 
 HOST_ARCH ?= x86_64
 ifeq ($(HOST_ARCH),x86_64)
-  HOST_FLAGS = -m64 -stdlib=libc++
+  HOST_FLAGS = -m64
 else
   ifeq ($(HOST_ARCH),x86)
-    HOST_FLAGS = -m32 -stdlib=libc++
+    HOST_FLAGS = -m32
   endif
 endif
 
@@ -141,11 +146,11 @@ BASE_CXXFLAGS := -std=gnu++11 -Wall -Wextra -Werror -fno-rtti \
 	-Wno-error=unused-parameter $(CXX_EXTRA)
 
 CXXFLAGS := $(LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(CXX_DEFINES) $(HOST_FLAGS) \
-	-I$(LIBCXX_INSTALL_PATH)/include/c++/v1
+	$(STDLIB_FLAGS)
 SB_CXXFLAGS := $(SB_LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(SB_CXX_DEFINES)
 
 LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib -Wl,--gc-sections \
-	$(LD_EXTRA)
+	$(LD_EXTRA) $(STDLIB_FLAGS)
 # Not specifying -Wl,--gc-sections but instead doing bitcode linking GC w/ LTO.
 SB_LDFLAGS := $(LINKOPTLEVEL) $(LD_EXTRA)
 
