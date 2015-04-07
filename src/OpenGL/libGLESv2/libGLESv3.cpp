@@ -13,6 +13,7 @@
 #include "main.h"
 #include "Framebuffer.h"
 #include "Program.h"
+#include "Query.h"
 #include "Texture.h"
 #include "common/debug.h"
 
@@ -745,7 +746,15 @@ void GL_APIENTRY glGenQueries(GLsizei n, GLuint *ids)
 		return error(GL_INVALID_VALUE);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		for(int i = 0; i < n; i++)
+		{
+			ids[i] = context->createQuery();
+		}
+	}
 }
 
 void GL_APIENTRY glDeleteQueries(GLsizei n, const GLuint *ids)
@@ -757,14 +766,38 @@ void GL_APIENTRY glDeleteQueries(GLsizei n, const GLuint *ids)
 		return error(GL_INVALID_VALUE);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		for(int i = 0; i < n; i++)
+		{
+			context->deleteQuery(ids[i]);
+		}
+	}
 }
 
 GLboolean GL_APIENTRY glIsQuery(GLuint id)
 {
 	TRACE("(GLuint id = %d)", id);
 
-	UNIMPLEMENTED();
+	if(id == 0)
+	{
+		return GL_FALSE;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Query *queryObject = context->getQuery(id, false, GL_NONE);
+
+		if(queryObject)
+		{
+			return GL_TRUE;
+		}
+	}
+
 	return GL_FALSE;
 }
 
@@ -777,7 +810,17 @@ void GL_APIENTRY glBeginQuery(GLenum target, GLuint id)
 		return error(GL_INVALID_ENUM);
 	}
 
-	UNIMPLEMENTED();
+	if(id == 0)
+	{
+		return error(GL_INVALID_OPERATION);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		context->beginQuery(target, id);
+	}
 }
 
 void GL_APIENTRY glEndQuery(GLenum target)
@@ -789,7 +832,12 @@ void GL_APIENTRY glEndQuery(GLenum target)
 		return error(GL_INVALID_ENUM);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		context->endQuery(target);
+	}
 }
 
 void GL_APIENTRY glGetQueryiv(GLenum target, GLenum pname, GLint *params)
@@ -802,7 +850,12 @@ void GL_APIENTRY glGetQueryiv(GLenum target, GLenum pname, GLint *params)
 		return error(GL_INVALID_ENUM);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		params[0] = context->getActiveQuery(target);
+	}
 }
 
 void GL_APIENTRY glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint *params)
@@ -819,7 +872,34 @@ void GL_APIENTRY glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint *params)
 		return error(GL_INVALID_ENUM);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Query *queryObject = context->getQuery(id, false, GL_NONE);
+
+		if(!queryObject)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(context->getActiveQuery(queryObject->getType()) == id)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		switch(pname)
+		{
+		case GL_QUERY_RESULT:
+			params[0] = queryObject->getResult();
+			break;
+		case GL_QUERY_RESULT_AVAILABLE:
+			params[0] = queryObject->isResultAvailable();
+			break;
+		default:
+			ASSERT(false);
+		}
+	}
 }
 
 GLboolean GL_APIENTRY glUnmapBuffer(GLenum target)
