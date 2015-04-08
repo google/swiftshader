@@ -425,6 +425,30 @@
     },
     {
       "key": {
+        "uuid": "63f82afb_04e3bcce",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4527,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-08T14:11:12Z",
+      "side": 1,
+      "message": "Ah, I see, internalFormat is actually a GLint instead of a GLenum. Thanks for checking!\n\nFYI opengl.org isn\u0027t a good reference, but in this case it\u0027s right...",
+      "parentUuid": "63258a42_87b136d6",
+      "range": {
+        "startLine": 4527,
+        "startChar": 28,
+        "endLine": 4527,
+        "endChar": 33
+      },
+      "revId": "8207c5ada128314349292795234fe41bf780a6d5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "63258a42_d630421f",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 1
