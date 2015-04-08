@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "63f82afb_24a7d887",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-08T14:18:14Z",
+      "side": 1,
+      "message": "I assume you\u0027re aware this isn\u0027t correct and would do bad things when running a release build as-is?\n\nIn general I think unimplemented functionality should be left to have no side-effect. In this case we\u0027re very likely not to miss implementing any of them in the near future, but sometimes stuff is left unimplemented for a long time and anyone using it would get behavior that is worse than just a missing feature.",
+      "range": {
+        "startLine": 518,
+        "startChar": 4,
+        "endLine": 518,
+        "endChar": 36
+      },
+      "revId": "2afbcdb3f01111ca105d87f09ad38e302c500807",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
