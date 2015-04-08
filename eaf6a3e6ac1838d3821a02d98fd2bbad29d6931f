@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "63f82afb_6feed900",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 446,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-04-08T15:50:28Z",
+      "side": 1,
+      "message": "Moved it to context, but kept the array local for now. I feel like querying extensions should be force to go through a single point to make sure it\u0027s not used all over the place, but I could be convinced otherwise if you feel strongly about it.",
+      "parentUuid": "63f82afb_e445f074",
+      "range": {
+        "startLine": 446,
+        "startChar": 2,
+        "endLine": 446,
+        "endChar": 40
+      },
+      "revId": "eaf6a3e6ac1838d3821a02d98fd2bbad29d6931f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "63f82afb_042bbcad",
         "filename": "src/OpenGL/libGLESv2/utilities.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-08T14:00:40Z",
       "side": 1,
       "message": "It should be possible to construct this string at compile time with \"constexpr\". :-)",
+      "range": {
+        "startLine": 487,
+        "startChar": 2,
+        "endLine": 503,
+        "endChar": 3
+      },
+      "revId": "eaf6a3e6ac1838d3821a02d98fd2bbad29d6931f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "63f82afb_44a304f4",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 503,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-04-08T15:50:28Z",
+      "side": 1,
+      "message": "Sorry, Visual Studio doesn\u0027t know about \"constexpr\" \u003csad trombone\u003e",
+      "parentUuid": "63f82afb_042bbcad",
       "range": {
         "startLine": 487,
         "startChar": 2,
