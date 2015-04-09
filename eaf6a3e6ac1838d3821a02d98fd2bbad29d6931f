@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "03868e96_3bc990a7",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 446,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-09T14:28:53Z",
+      "side": 1,
+      "message": "Yeah, I think that\u0027s sensible. For now we don\u0027t have any extensions that would be enabled or disabled at run-time, but I imagine some Android project will request that to be able to simulate multiple GPUs.",
+      "parentUuid": "63f82afb_6feed900",
+      "range": {
+        "startLine": 446,
+        "startChar": 2,
+        "endLine": 446,
+        "endChar": 40
+      },
+      "revId": "eaf6a3e6ac1838d3821a02d98fd2bbad29d6931f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "63f82afb_042bbcad",
         "filename": "src/OpenGL/libGLESv2/utilities.cpp",
         "patchSetId": 1
