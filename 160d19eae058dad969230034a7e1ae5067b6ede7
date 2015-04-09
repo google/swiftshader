@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "03868e96_16d4a1c1",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 985,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-09T16:50:33Z",
+      "side": 1,
+      "message": "This should be prevented at the entry function, see glDeleteTextures() and glDeleteFramebuffers(), so you don\u0027t need the contextDestruction parameter.",
+      "range": {
+        "startLine": 982,
+        "startChar": 1,
+        "endLine": 985,
+        "endChar": 2
+      },
+      "revId": "160d19eae058dad969230034a7e1ae5067b6ede7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
