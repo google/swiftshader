@@ -258,7 +258,7 @@ struct State
     gl::BindingPointer<Renderbuffer> renderbuffer;
     GLuint currentProgram;
     gl::BindingPointer<VertexArray> vertexArray;
-	gl::BindingPointer<TransformFeedback> transformFeedback;
+	GLuint transformFeedback;
 	gl::BindingPointer<Sampler> sampler[MAX_COMBINED_TEXTURE_IMAGE_UNITS];
 
     VertexAttribute vertexAttribute[MAX_VERTEX_ATTRIBS];

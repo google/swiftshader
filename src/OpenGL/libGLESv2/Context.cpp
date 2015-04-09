@@ -141,9 +141,6 @@ Context::Context(const egl::Config *config, const Context *shareContext, EGLint 
     mTextureCubeMapZero = new TextureCubeMap(0);
     mTextureExternalZero = new TextureExternal(0);
 
-	mState.transformFeedback = new TransformFeedback(0);
-	mTransformFeedbackMap[0] = mState.transformFeedback;
-
     mState.activeSampler = 0;
     bindArrayBuffer(0);
     bindElementArrayBuffer(0);
@@ -152,6 +149,7 @@ Context::Context(const egl::Config *config, const Context *shareContext, EGLint 
     bindReadFramebuffer(0);
     bindDrawFramebuffer(0);
     bindRenderbuffer(0);
+    bindTransformFeedback(0);
 
     mState.currentProgram = 0;
 
@@ -174,52 +172,73 @@ Context::Context(const egl::Config *config, const Context *shareContext, EGLint 
 
 Context::~Context()
 {
-    if(mState.currentProgram != 0)
-    {
-        Program *programObject = mResourceManager->getProgram(mState.currentProgram);
-        if(programObject)
-        {
-            programObject->release();
-        }
-        mState.currentProgram = 0;
-    }
+	if(mState.currentProgram != 0)
+	{
+		Program *programObject = mResourceManager->getProgram(mState.currentProgram);
+		if(programObject)
+		{
+			programObject->release();
+		}
+		mState.currentProgram = 0;
+	}
 
-    while(!mFramebufferMap.empty())
-    {
-        deleteFramebuffer(mFramebufferMap.begin()->first);
-    }
+	while(!mFramebufferMap.empty())
+	{
+		deleteFramebuffer(mFramebufferMap.begin()->first);
+	}
 
-    while(!mFenceMap.empty())
-    {
-        deleteFence(mFenceMap.begin()->first);
-    }
+	while(!mFenceMap.empty())
+	{
+		deleteFence(mFenceMap.begin()->first);
+	}
 
 	while(!mQueryMap.empty())
-    {
-        deleteQuery(mQueryMap.begin()->first);
-    }
+	{
+		deleteQuery(mQueryMap.begin()->first);
+	}
 
-    for(int type = 0; type < TEXTURE_TYPE_COUNT; type++)
-    {
-        for(int sampler = 0; sampler < MAX_COMBINED_TEXTURE_IMAGE_UNITS; sampler++)
-        {
-            mState.samplerTexture[type][sampler] = NULL;
-        }
-    }
+	while(!mVertexArrayMap.empty())
+	{
+		deleteVertexArray(mVertexArrayMap.begin()->first);
+	}
 
-    for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
-    {
-        mState.vertexAttribute[i].mBoundBuffer = NULL;
-    }
+	while(!mTransformFeedbackMap.empty())
+	{
+		deleteTransformFeedback(mTransformFeedbackMap.begin()->first);
+	}
+
+	while(!mSamplerMap.empty())
+	{
+		deleteSampler(mSamplerMap.begin()->first);
+	}
+
+	for(int type = 0; type < TEXTURE_TYPE_COUNT; type++)
+	{
+		for(int sampler = 0; sampler < MAX_COMBINED_TEXTURE_IMAGE_UNITS; sampler++)
+		{
+			mState.samplerTexture[type][sampler] = NULL;
+		}
+	}
+
+	for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
+	{
+		mState.vertexAttribute[i].mBoundBuffer = NULL;
+	}
 
 	for(int i = 0; i < QUERY_TYPE_COUNT; i++)
-    {
-        mState.activeQuery[i] = NULL;
-    }
+	{
+		mState.activeQuery[i] = NULL;
+	}
 
-    mState.arrayBuffer = NULL;
-    mState.elementArrayBuffer = NULL;
-    mState.renderbuffer = NULL;
+	mState.arrayBuffer = NULL;
+	mState.elementArrayBuffer = NULL;
+	mState.renderbuffer = NULL;
+
+	mState.vertexArray = NULL;
+	for(int i = 0; i < MAX_COMBINED_TEXTURE_IMAGE_UNITS; ++i)
+	{
+		mState.sampler[i] = NULL;
+	}
 
     mTexture2DZero = NULL;
 	mTexture3DZero = NULL;
@@ -969,12 +988,7 @@ void Context::deleteTransformFeedback(GLuint transformFeedback)
 	if(transformFeedbackObject != mTransformFeedbackMap.end())
 	{
 		mTransformFeedbackNameSpace.release(transformFeedbackObject->first);
-
-		if(transformFeedbackObject->second)
-		{
-			transformFeedbackObject->second->release();
-		}
-
+		delete transformFeedbackObject->second;
 		mTransformFeedbackMap.erase(transformFeedbackObject);
 	}
 }
@@ -1112,15 +1126,14 @@ bool Context::bindVertexArray(GLuint array)
 
 bool Context::bindTransformFeedback(GLuint id)
 {
-	TransformFeedback* transformFeedback = getTransformFeedback(id);
-
-	if(transformFeedback)
+	if(!getTransformFeedback(id))
 	{
-		mState.transformFeedback = transformFeedback;
-		return true;
+		mTransformFeedbackMap[id] = new TransformFeedback(id);
 	}
 
-	return false;
+	mState.transformFeedback = id;
+
+	return true;
 }
 
 bool Context::bindSampler(GLuint unit, GLuint sampler)
@@ -1403,20 +1416,26 @@ bool Context::getBooleanv(GLenum pname, GLboolean *params)
       case GL_DITHER:                   *params = mState.dither;                    break;
       case GL_PRIMITIVE_RESTART_FIXED_INDEX: *params = mState.primitiveRestartFixedIndex; break;
       case GL_RASTERIZER_DISCARD:       *params = mState.rasterizerDiscard;         break;
-      case GL_TRANSFORM_FEEDBACK_ACTIVE:
-		  if(mState.transformFeedback)
+	  case GL_TRANSFORM_FEEDBACK_ACTIVE:
+	  {
+		  TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
+		  if(transformFeedback)
 		  {
-			  *params = mState.transformFeedback->isActive();
+			  *params = transformFeedback->isActive();
 			  break;
 		  }
 		  else return false;
+	  }
       case GL_TRANSFORM_FEEDBACK_PAUSED:
-		  if(mState.transformFeedback)
+	  {
+		  TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
+		  if(transformFeedback)
 		  {
-			  *params = mState.transformFeedback->isPaused();
+			  *params = transformFeedback->isPaused();
 			  break;
 		  }
 		  else return false;
+	  }
       default:
         return false;
     }
@@ -1933,36 +1952,30 @@ bool Context::getTransformFeedbackiv(GLuint xfb, GLenum pname, GLint *param)
 {
 	UNIMPLEMENTED();
 
+	TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
+	if(!transformFeedback)
+	{
+		return false;
+	}
+
 	switch(pname)
 	{
 	case GL_TRANSFORM_FEEDBACK_BINDING: // GLint, initially 0
 		*param = 0;
 		break;
 	case GL_TRANSFORM_FEEDBACK_ACTIVE: // boolean, initially GL_FALSE
-		if(mState.transformFeedback)
-		{
-			*param = mState.transformFeedback->isActive();
-			break;
-		}
-		else return false;
+		*param = transformFeedback->isActive();
+		break;
 	case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING: // name, initially 0
-		if(mState.transformFeedback && mState.transformFeedback->getGenericBuffer())
-		{
-			*param = mState.transformFeedback->getGenericBuffer()->name;
-			break;
-		}
-		else return false;
+		*param = transformFeedback->name;
+		break;
 	case GL_TRANSFORM_FEEDBACK_PAUSED: // boolean, initially GL_FALSE
-		if(mState.transformFeedback)
-		{
-			*param = mState.transformFeedback->isPaused();
-			break;
-		}
-		else return false;
+		*param = transformFeedback->isPaused();
+		break;
 	case GL_TRANSFORM_FEEDBACK_BUFFER_SIZE: // indexed[n] 64-bit integer, initially 0
-		if(mState.transformFeedback && mState.transformFeedback->getGenericBuffer())
+		if(transformFeedback->getGenericBuffer())
 		{
-			*param = mState.transformFeedback->getGenericBuffer()->size();
+			*param = transformFeedback->getGenericBuffer()->size();
 			break;
 		}
 		else return false;
