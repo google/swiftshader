@@ -64,6 +64,54 @@ struct KeyCompare<KeyType, typename std::enable_if<
   }
 };
 
+// Define a key comparison function for sorting the constant pool's
+// values after they are dumped to a vector.  This covers integer
+// types, floating point types, and ConstantRelocatable values.
+template <typename ValueType, class Enable = void> struct KeyCompareLess {};
+
+template <typename ValueType>
+struct KeyCompareLess<ValueType,
+                      typename std::enable_if<std::is_floating_point<
+                          typename ValueType::PrimType>::value>::type> {
+  bool operator()(const Constant *Const1, const Constant *Const2) const {
+    typedef uint64_t CompareType;
+    static_assert(sizeof(typename ValueType::PrimType) <= sizeof(CompareType),
+                  "Expected floating-point type of width 64-bit or less");
+    typename ValueType::PrimType V1 = llvm::cast<ValueType>(Const1)->getValue();
+    typename ValueType::PrimType V2 = llvm::cast<ValueType>(Const2)->getValue();
+    // We avoid "V1<V2" because of NaN.
+    // We avoid "memcmp(&V1,&V2,sizeof(V1))<0" which depends on the
+    // endian-ness of the host system running Subzero.
+    // Instead, compare the result of bit_cast to uint64_t.
+    uint64_t I1 = 0, I2 = 0;
+    memcpy(&I1, &V1, sizeof(V1));
+    memcpy(&I2, &V2, sizeof(V2));
+    return I1 < I2;
+  }
+};
+template <typename ValueType>
+struct KeyCompareLess<ValueType,
+                      typename std::enable_if<std::is_integral<
+                          typename ValueType::PrimType>::value>::type> {
+  bool operator()(const Constant *Const1, const Constant *Const2) const {
+    typename ValueType::PrimType V1 = llvm::cast<ValueType>(Const1)->getValue();
+    typename ValueType::PrimType V2 = llvm::cast<ValueType>(Const2)->getValue();
+    return V1 < V2;
+  }
+};
+template <typename ValueType>
+struct KeyCompareLess<
+    ValueType, typename std::enable_if<
+                   std::is_same<ValueType, ConstantRelocatable>::value>::type> {
+  bool operator()(const Constant *Const1, const Constant *Const2) const {
+    auto V1 = llvm::cast<ValueType>(Const1);
+    auto V2 = llvm::cast<ValueType>(Const2);
+    if (V1->getName() == V2->getName())
+      return V1->getOffset() < V2->getOffset();
+    return V1->getName() < V2->getName();
+  }
+};
+
 // TypePool maps constants of type KeyType (e.g. float) to pointers to
 // type ValueType (e.g. ConstantFloat).
 template <Type Ty, typename KeyType, typename ValueType> class TypePool {
@@ -85,6 +133,10 @@ public:
     Constants.reserve(Pool.size());
     for (auto &I : Pool)
       Constants.push_back(I.second);
+    // The sort (and its KeyCompareLess machinery) is not strictly
+    // necessary, but is desirable for producing output that is
+    // deterministic across unordered_map::iterator implementations.
+    std::sort(Constants.begin(), Constants.end(), KeyCompareLess<ValueType>());
     return Constants;
   }
 

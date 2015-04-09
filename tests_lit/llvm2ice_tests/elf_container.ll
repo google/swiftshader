@@ -330,7 +330,7 @@ define void @_start(i32) {
 ; CHECK:     AddressAlignment: 8
 ; CHECK:     EntrySize: 8
 ; CHECK:     SectionData (
-; CHECK:       0000: 03000000 0000F8FF FFFFFFFF FFFFF7FF
+; CHECK:       0000: FFFFFFFF FFFFF7FF 03000000 0000F8FF
 ; CHECK:       0010: FFFFFFFF FFFFFFFF
 ; CHECK:     )
 ; CHECK:   }
@@ -429,7 +429,7 @@ define void @_start(i32) {
 ; CHECK-NEXT:   }
 ; CHECK:        Symbol {
 ; CHECK:          Name: .L$double$2
-; CHECK-NEXT:     Value: 0x0
+; CHECK-NEXT:     Value: 0x8
 ; CHECK-NEXT:     Size: 0
 ; CHECK-NEXT:     Binding: Local (0x0)
 ; CHECK-NEXT:     Type: None (0x0)
