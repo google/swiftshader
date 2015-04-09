@@ -53,6 +53,15 @@ private:
   RandomNumberGenerator &RNG;
 };
 
+// RandomShuffle is an implementation of std::random_shuffle() that
+// doesn't change across stdlib implementations.  Adapted from a
+// sample implementation at cppreference.com.
+template <class RandomIt, class RandomFunc>
+void RandomShuffle(RandomIt First, RandomIt Last, RandomFunc &&RNG) {
+  for (auto i = Last - First - 1; i > 0; --i)
+    std::swap(First[i], First[RNG(i + 1)]);
+}
+
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICERNG_H

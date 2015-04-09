@@ -4621,7 +4621,7 @@ void TargetX8632::makeRandomRegisterPermutation(
   for (auto I : EquivalenceClasses) {
     const RegisterList &List = I.second;
     RegisterList Shuffled(List);
-    std::random_shuffle(Shuffled.begin(), Shuffled.end(), RNG);
+    RandomShuffle(Shuffled.begin(), Shuffled.end(), RNG);
     for (size_t SI = 0, SE = Shuffled.size(); SI < SE; ++SI) {
       Permutation[List[SI]] = Shuffled[SI];
       ++NumShuffled;

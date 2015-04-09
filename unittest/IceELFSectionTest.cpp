@@ -90,8 +90,11 @@ TEST(IceELFSectionTest, StringTableBuilderPermSeveral) {
   Strings.push_back(".shstrtab");
   Strings.push_back("_start");
   const SizeT NumTests = 128;
+  const uint64_t RandomSeed = 12345; // arbitrary value for now
+  RandomNumberGenerator R(RandomSeed);
+  RandomNumberGeneratorWrapper RNG(R);
   for (SizeT i = 0; i < NumTests; ++i) {
-    std::random_shuffle(Strings.begin(), Strings.end());
+    RandomShuffle(Strings.begin(), Strings.end(), RNG);
     ELFStringTableSection Strtab(".strtab", SHT_STRTAB, 0, 1, 0);
     for (auto &S : Strings) {
       Strtab.add(S);
