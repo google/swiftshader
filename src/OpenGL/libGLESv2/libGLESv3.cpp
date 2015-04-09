@@ -15,6 +15,7 @@
 #include "Framebuffer.h"
 #include "Program.h"
 #include "Query.h"
+#include "Sampler.h"
 #include "Texture.h"
 #include "common/debug.h"
 
@@ -1320,15 +1321,15 @@ void *GL_APIENTRY glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr le
 		error(GL_INVALID_VALUE);
 	}
 
-	if((access & ~(GL_MAP_READ_BIT |
-				   GL_MAP_WRITE_BIT |
-				   GL_MAP_INVALIDATE_RANGE_BIT |
-				   GL_MAP_INVALIDATE_BUFFER_BIT |
-				   GL_MAP_FLUSH_EXPLICIT_BIT |
-				   GL_MAP_UNSYNCHRONIZED_BIT)) != 0)
-	{
-		error(GL_INVALID_VALUE);
-	}
+		if((access & ~(GL_MAP_READ_BIT |
+		               GL_MAP_WRITE_BIT |
+		               GL_MAP_INVALIDATE_RANGE_BIT |
+		               GL_MAP_INVALIDATE_BUFFER_BIT |
+		               GL_MAP_FLUSH_EXPLICIT_BIT |
+		               GL_MAP_UNSYNCHRONIZED_BIT)) != 0)
+		{
+			error(GL_INVALID_VALUE);
+		}
 
 	UNIMPLEMENTED();
 	return nullptr;
@@ -1356,7 +1357,17 @@ void GL_APIENTRY glBindVertexArray(GLuint array)
 {
 	TRACE("(GLuint array = %d)", array);
 
-	UNIMPLEMENTED();
+	if(array == 0)
+	{
+		return;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context && !context->bindVertexArray(array))
+	{
+		return error(GL_INVALID_OPERATION);
+	}
 }
 
 void GL_APIENTRY glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
@@ -1368,7 +1379,15 @@ void GL_APIENTRY glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
 		return error(GL_INVALID_VALUE);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		for(int i = 0; i < n; i++)
+		{
+			context->deleteVertexArray(arrays[i]);
+		}
+	}
 }
 
 void GL_APIENTRY glGenVertexArrays(GLsizei n, GLuint *arrays)
@@ -1380,14 +1399,38 @@ void GL_APIENTRY glGenVertexArrays(GLsizei n, GLuint *arrays)
 		return error(GL_INVALID_VALUE);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		for(int i = 0; i < n; i++)
+		{
+			arrays[i] = context->createVertexArray();
+		}
+	}
 }
 
 GLboolean GL_APIENTRY glIsVertexArray(GLuint array)
 {
 	TRACE("(GLuint array = %d)", array);
 
-	UNIMPLEMENTED();
+	if(array == 0)
+	{
+		return GL_FALSE;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::VertexArray *arrayObject = context->getVertexArray(array);
+
+		if(arrayObject)
+		{
+			return GL_TRUE;
+		}
+	}
+
 	return GL_FALSE;
 }
 
@@ -1464,12 +1507,50 @@ void GL_APIENTRY glBeginTransformFeedback(GLenum primitiveMode)
 		return error(GL_INVALID_ENUM);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::TransformFeedback *transformFeedbackObject = context->getTransformFeedback();
+
+		if(transformFeedbackObject)
+		{
+			if(transformFeedbackObject->isActive())
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			transformFeedbackObject->begin(primitiveMode);
+		}
+		else
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 void GL_APIENTRY glEndTransformFeedback(void)
 {
-	UNIMPLEMENTED();
+	TRACE("()");
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::TransformFeedback *transformFeedbackObject = context->getTransformFeedback();
+
+		if(transformFeedbackObject)
+		{
+			if(!transformFeedbackObject->isActive())
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			transformFeedbackObject->end();
+		}
+		else
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 void GL_APIENTRY glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
@@ -1477,16 +1558,47 @@ void GL_APIENTRY glBindBufferRange(GLenum target, GLuint index, GLuint buffer, G
 	TRACE("(GLenum target = 0x%X, GLuint index = %d, GLuint buffer = %d, GLintptr offset = %d, GLsizeiptr size = %d)",
 	      target, index, buffer, offset, size);
 
-	switch(target)
+	if(buffer != 0 && size <= 0)
 	{
-	case GL_TRANSFORM_FEEDBACK_BUFFER:
-	case GL_UNIFORM_BUFFER:
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
+		return error(GL_INVALID_VALUE);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		switch(target)
+		{
+		case GL_TRANSFORM_FEEDBACK_BUFFER:
+			if(index >= es2::IMPLEMENTATION_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			if(size & 0x3 || offset & 0x3) // size and offset must be multiples of 4
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			else
+			{
+				es2::TransformFeedback* transformFeedback = context->getTransformFeedback();
+				transformFeedback->setBuffer(index, context->getBuffer(buffer), offset, size);
+			}
+			break;
+		case GL_UNIFORM_BUFFER:
+			if(index >= es2::IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			if(offset % es2::IMPLEMENTATION_UNIFORM_BUFFER_OFFSET_ALIGNMENT != 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			UNIMPLEMENTED();
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void GL_APIENTRY glBindBufferBase(GLenum target, GLuint index, GLuint buffer)
@@ -1494,22 +1606,65 @@ void GL_APIENTRY glBindBufferBase(GLenum target, GLuint index, GLuint buffer)
 	TRACE("(GLenum target = 0x%X, GLuint index = %d, GLuint buffer = %d)",
 	      target, index, buffer);
 
-	switch(target)
-	{
-	case GL_TRANSFORM_FEEDBACK_BUFFER:
-	case GL_UNIFORM_BUFFER:
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
-	}
+	es2::Context *context = es2::getContext();
 
-	UNIMPLEMENTED();
+	if(context)
+	{
+		switch(target)
+		{
+		case GL_TRANSFORM_FEEDBACK_BUFFER:
+			if(index >= es2::IMPLEMENTATION_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			else
+			{
+				es2::TransformFeedback* transformFeedback = context->getTransformFeedback();
+				transformFeedback->setBuffer(index, context->getBuffer(buffer));
+			}
+			break;
+		case GL_UNIFORM_BUFFER:
+			if(index >= es2::IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			UNIMPLEMENTED();
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void GL_APIENTRY glTransformFeedbackVaryings(GLuint program, GLsizei count, const GLchar *const*varyings, GLenum bufferMode)
 {
 	TRACE("(GLuint program = %d, GLsizei count = %d, const GLchar *const*varyings = 0x%0.8p, GLenum bufferMode = 0x%X)",
 	      program, count, varyings, bufferMode);
+
+	switch(bufferMode)
+	{
+	case GL_SEPARATE_ATTRIBS:
+		if(count > es2::IMPLEMENTATION_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+	case GL_INTERLEAVED_ATTRIBS:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Program *programObject = context->getProgram(program);
+
+		if(!programObject)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+	}
 
 	UNIMPLEMENTED();
 }
@@ -2259,6 +2414,17 @@ void GL_APIENTRY glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, 
 		return error(GL_INVALID_VALUE);
 	}
 
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::TransformFeedback* transformFeedback = context->getTransformFeedback();
+		if(transformFeedback && transformFeedback->isActive() && (mode != transformFeedback->primitiveMode()))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
+
 	UNIMPLEMENTED();
 }
 
@@ -2294,6 +2460,17 @@ void GL_APIENTRY glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type
 	if(count < 0 || instancecount < 0)
 	{
 		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::TransformFeedback* transformFeedback = context->getTransformFeedback();
+		if(transformFeedback && transformFeedback->isActive() && !transformFeedback->isPaused())
+		{
+			return error(GL_INVALID_OPERATION);
+		}
 	}
 
 	UNIMPLEMENTED();
@@ -2400,7 +2577,15 @@ void GL_APIENTRY glGenSamplers(GLsizei count, GLuint *samplers)
 		return error(GL_INVALID_VALUE);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		for(int i = 0; i < count; i++)
+		{
+			samplers[i] = context->createSampler();
+		}
+	}
 }
 
 void GL_APIENTRY glDeleteSamplers(GLsizei count, const GLuint *samplers)
@@ -2412,14 +2597,38 @@ void GL_APIENTRY glDeleteSamplers(GLsizei count, const GLuint *samplers)
 		return error(GL_INVALID_VALUE);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		for(int i = 0; i < count; i++)
+		{
+			context->deleteSampler(samplers[i]);
+		}
+	}
 }
 
 GLboolean GL_APIENTRY glIsSampler(GLuint sampler)
 {
 	TRACE("(GLuint sampler = %d)", sampler);
 
-	UNIMPLEMENTED();
+	if(sampler == 0)
+	{
+		return GL_FALSE;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Sampler *samplerObject = context->getSampler(sampler);
+
+		if(samplerObject)
+		{
+			return GL_TRUE;
+		}
+	}
+
 	return GL_FALSE;
 }
 
@@ -2427,7 +2636,27 @@ void GL_APIENTRY glBindSampler(GLuint unit, GLuint sampler)
 {
 	TRACE("(GLuint unit = %d, GLuint sampler = %d)", unit, sampler);
 
-	UNIMPLEMENTED();
+	if(unit >= es2::MAX_COMBINED_TEXTURE_IMAGE_UNITS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		if(sampler != 0)
+		{
+			es2::Sampler *samplerObject = context->getSampler(sampler);
+
+			if(!samplerObject)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+		}
+
+		context->bindSampler(unit, sampler);
+	}
 }
 
 void GL_APIENTRY glSamplerParameteri(GLuint sampler, GLenum pname, GLint param)
@@ -2443,7 +2672,119 @@ void GL_APIENTRY glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint 
 	TRACE("(GLuint sampler = %d, GLenum pname = 0x%X, const GLint *param = 0x%0.8p)",
 	      sampler, pname, param);
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Sampler *samplerObject = (sampler != 0) ? context->getSampler(sampler) : nullptr;
+
+		if(!samplerObject)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		switch(pname)
+		{
+		case GL_TEXTURE_WRAP_S:
+			switch(*param)
+			{
+			case GL_CLAMP_TO_EDGE:
+			case GL_MIRRORED_REPEAT:
+			case GL_REPEAT:
+				samplerObject->mWrapModeS = *param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_WRAP_T:
+			switch(*param)
+			{
+			case GL_CLAMP_TO_EDGE:
+			case GL_MIRRORED_REPEAT:
+			case GL_REPEAT:
+				samplerObject->mWrapModeT = *param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_WRAP_R:
+			switch(*param)
+			{
+			case GL_CLAMP_TO_EDGE:
+			case GL_MIRRORED_REPEAT:
+			case GL_REPEAT:
+				samplerObject->mWrapModeR = *param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_MIN_FILTER:
+			switch(*param)
+			{
+			case GL_NEAREST:
+			case GL_LINEAR:
+			case GL_NEAREST_MIPMAP_NEAREST:
+			case GL_LINEAR_MIPMAP_NEAREST:
+			case GL_NEAREST_MIPMAP_LINEAR:
+			case GL_LINEAR_MIPMAP_LINEAR:
+				samplerObject->mMinFilter = *param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_MAG_FILTER:
+			switch(*param)
+			{
+			case GL_NEAREST:
+			case GL_LINEAR:
+				samplerObject->mMagFilter = *param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_MIN_LOD:
+			samplerObject->mMinLod = (GLfloat)*param;
+			break;
+		case GL_TEXTURE_MAX_LOD:
+			samplerObject->mMaxLod = (GLfloat)*param;
+			break;
+		case GL_TEXTURE_COMPARE_MODE:
+			switch(*param)
+			{
+			case GL_COMPARE_REF_TO_TEXTURE:
+			case GL_NONE:
+				samplerObject->mCompareMode = *param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_COMPARE_FUNC:
+			switch(*param)
+			{
+			case GL_LEQUAL:
+			case GL_GEQUAL:
+			case GL_LESS:
+			case GL_GREATER:
+			case GL_EQUAL:
+			case GL_NOTEQUAL:
+			case GL_ALWAYS:
+			case GL_NEVER:
+				samplerObject->mCompareFunc = *param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void GL_APIENTRY glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param)
@@ -2459,7 +2800,119 @@ void GL_APIENTRY glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloa
 	TRACE("(GLuint sampler = %d, GLenum pname = 0x%X, const GLfloat *param = 0x%0.8p)",
 	      sampler, pname, param);
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Sampler *samplerObject = (sampler != 0) ? context->getSampler(sampler) : nullptr;
+
+		if(!samplerObject)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		switch(pname)
+		{
+		case GL_TEXTURE_WRAP_S:
+			switch((GLenum)*param)
+			{
+			case GL_CLAMP_TO_EDGE:
+			case GL_MIRRORED_REPEAT:
+			case GL_REPEAT:
+				samplerObject->mWrapModeS = (GLenum)*param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_WRAP_T:
+			switch((GLenum)*param)
+			{
+			case GL_CLAMP_TO_EDGE:
+			case GL_MIRRORED_REPEAT:
+			case GL_REPEAT:
+				samplerObject->mWrapModeT = (GLenum)*param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_WRAP_R:
+			switch((GLenum)*param)
+			{
+			case GL_CLAMP_TO_EDGE:
+			case GL_MIRRORED_REPEAT:
+			case GL_REPEAT:
+				samplerObject->mWrapModeR = (GLenum)*param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_MIN_FILTER:
+			switch((GLenum)*param)
+			{
+			case GL_NEAREST:
+			case GL_LINEAR:
+			case GL_NEAREST_MIPMAP_NEAREST:
+			case GL_LINEAR_MIPMAP_NEAREST:
+			case GL_NEAREST_MIPMAP_LINEAR:
+			case GL_LINEAR_MIPMAP_LINEAR:
+				samplerObject->mMinFilter = (GLenum)*param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_MAG_FILTER:
+			switch((GLenum)*param)
+			{
+			case GL_NEAREST:
+			case GL_LINEAR:
+				samplerObject->mMagFilter = (GLenum)*param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_MIN_LOD:
+			samplerObject->mMinLod = *param;
+			break;
+		case GL_TEXTURE_MAX_LOD:
+			samplerObject->mMaxLod = *param;
+			break;
+		case GL_TEXTURE_COMPARE_MODE:
+			switch((GLenum)*param)
+			{
+			case GL_COMPARE_REF_TO_TEXTURE:
+			case GL_NONE:
+				samplerObject->mCompareMode = (GLenum)*param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_TEXTURE_COMPARE_FUNC:
+			switch((GLenum)*param)
+			{
+			case GL_LEQUAL:
+			case GL_GEQUAL:
+			case GL_LESS:
+			case GL_GREATER:
+			case GL_EQUAL:
+			case GL_NOTEQUAL:
+			case GL_ALWAYS:
+			case GL_NEVER:
+				samplerObject->mCompareFunc = (GLenum)*param;
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void GL_APIENTRY glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint *params)
@@ -2467,7 +2920,50 @@ void GL_APIENTRY glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint *pa
 	TRACE("(GLuint sampler = %d, GLenum pname = 0x%X, GLint *params = 0x%0.8p)",
 	      sampler, pname, params);
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Sampler *samplerObject = (sampler != 0) ? context->getSampler(sampler) : nullptr;
+
+		if(!samplerObject)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		switch(pname)
+		{
+		case GL_TEXTURE_WRAP_S:
+			*params = samplerObject->mWrapModeS;
+			break;
+		case GL_TEXTURE_WRAP_T:
+			*params = samplerObject->mWrapModeT;
+			break;
+		case GL_TEXTURE_WRAP_R:
+			*params = samplerObject->mWrapModeR;
+			break;
+		case GL_TEXTURE_MIN_FILTER:
+			*params = samplerObject->mMinFilter;
+			break;
+		case GL_TEXTURE_MAG_FILTER:
+			*params = samplerObject->mMagFilter;
+			break;
+		case GL_TEXTURE_MIN_LOD:
+			*params = (GLint)samplerObject->mMinLod;
+			break;
+		case GL_TEXTURE_MAX_LOD:
+			*params = (GLint)samplerObject->mMaxLod;
+			break;
+		case GL_TEXTURE_COMPARE_MODE:
+			*params = samplerObject->mCompareMode;
+			break;
+		case GL_TEXTURE_COMPARE_FUNC:
+			*params = samplerObject->mCompareFunc;
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void GL_APIENTRY glGetSamplerParameterfv(GLuint sampler, GLenum pname, GLfloat *params)
@@ -2475,7 +2971,50 @@ void GL_APIENTRY glGetSamplerParameterfv(GLuint sampler, GLenum pname, GLfloat *
 	TRACE("(GLuint sampler = %d, GLenum pname = 0x%X, GLfloat *params = 0x%0.8p)",
 	      sampler, pname, params);
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Sampler *samplerObject = (sampler != 0) ? context->getSampler(sampler) : nullptr;
+
+		if(!samplerObject)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		switch(pname)
+		{
+		case GL_TEXTURE_WRAP_S:
+			*params = (GLfloat)samplerObject->mWrapModeS;
+			break;
+		case GL_TEXTURE_WRAP_T:
+			*params = (GLfloat)samplerObject->mWrapModeT;
+			break;
+		case GL_TEXTURE_WRAP_R:
+			*params = (GLfloat)samplerObject->mWrapModeR;
+			break;
+		case GL_TEXTURE_MIN_FILTER:
+			*params = (GLfloat)samplerObject->mMinFilter;
+			break;
+		case GL_TEXTURE_MAG_FILTER:
+			*params = (GLfloat)samplerObject->mMagFilter;
+			break;
+		case GL_TEXTURE_MIN_LOD:
+			*params = samplerObject->mMinLod;
+			break;
+		case GL_TEXTURE_MAX_LOD:
+			*params = samplerObject->mMaxLod;
+			break;
+		case GL_TEXTURE_COMPARE_MODE:
+			*params = (GLfloat)samplerObject->mCompareMode;
+			break;
+		case GL_TEXTURE_COMPARE_FUNC:
+			*params = (GLfloat)samplerObject->mCompareFunc;
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void GL_APIENTRY glVertexAttribDivisor(GLuint index, GLuint divisor)
@@ -2488,39 +3027,136 @@ void GL_APIENTRY glBindTransformFeedback(GLenum target, GLuint id)
 {
 	TRACE("(GLenum target = 0x%X, GLuint id = %d)", target, id);
 
-	UNIMPLEMENTED();
+	if(target != GL_TRANSFORM_FEEDBACK)
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::TransformFeedback *transformFeedbackObject = context->getTransformFeedback();
+
+		if(transformFeedbackObject && transformFeedbackObject->isActive() && !transformFeedbackObject->isPaused())
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(!context->bindTransformFeedback(id))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
 }
 
 void GL_APIENTRY glDeleteTransformFeedbacks(GLsizei n, const GLuint *ids)
 {
 	TRACE("(GLsizei n = %d, const GLuint *ids = 0x%0.8p)", n, ids);
 
-	UNIMPLEMENTED();
+	if(n < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		for(int i = 0; i < n; i++)
+		{
+			if (ids[i] != 0)
+			{
+				context->deleteTransformFeedback(ids[i]);
+			}
+		}
+	}
 }
 
 void GL_APIENTRY glGenTransformFeedbacks(GLsizei n, GLuint *ids)
 {
 	TRACE("(GLsizei n = %d, const GLuint *ids = 0x%0.8p)", n, ids);
 
-	UNIMPLEMENTED();
+	if(n < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		for(int i = 0; i < n; i++)
+		{
+			ids[i] = context->createTransformFeedback();
+		}
+	}
 }
 
 GLboolean GL_APIENTRY glIsTransformFeedback(GLuint id)
 {
 	TRACE("(GLuint id = %d)", id);
 
-	UNIMPLEMENTED();
+	if(id == 0)
+	{
+		return GL_FALSE;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::TransformFeedback *transformFeedbackObject = context->getTransformFeedback(id);
+
+		if(transformFeedbackObject)
+		{
+			return GL_TRUE;
+		}
+	}
+
 	return GL_FALSE;
 }
 
 void GL_APIENTRY glPauseTransformFeedback(void)
 {
-	UNIMPLEMENTED();
+	TRACE("()");
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::TransformFeedback *transformFeedbackObject = context->getTransformFeedback();
+
+		if(transformFeedbackObject)
+		{
+			if(!transformFeedbackObject->isActive() || transformFeedbackObject->isPaused())
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			transformFeedbackObject->setPaused(true);
+		}
+	}
 }
 
 void GL_APIENTRY glResumeTransformFeedback(void)
 {
-	UNIMPLEMENTED();
+	TRACE("()");
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::TransformFeedback *transformFeedbackObject = context->getTransformFeedback();
+
+		if(transformFeedbackObject)
+		{
+			if(!transformFeedbackObject->isActive() || !transformFeedbackObject->isPaused())
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			transformFeedbackObject->setPaused(false);
+		}
+	}
 }
 
 void GL_APIENTRY glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, void *binary)

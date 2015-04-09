@@ -1343,6 +1343,11 @@ Buffer *Context::getElementArrayBuffer()
     return mState.elementArrayBuffer;
 }
 
+TransformFeedback *Context::getTransformFeedback()
+{
+	return getTransformFeedback(mState.transformFeedback);
+}
+
 Program *Context::getCurrentProgram()
 {
     return mResourceManager->getProgram(mState.currentProgram);
