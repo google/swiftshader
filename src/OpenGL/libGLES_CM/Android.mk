@@ -94,11 +94,11 @@ LOCAL_CFLAGS += -std=c++11
 # Uncomment for ON:
 LOCAL_CFLAGS += -UNDEBUG -g
 # Uncomment for OFF:
-#LOCAL_CFLAGS += -fomit-frame-pointer -ffunction-sections -fdata-sections -DNDEBUG -DANGLE_DISABLE_TRACE
+#LOCAL_CFLAGS += -fomit-frame-pointer -ffunction-sections -fdata-sections -DANGLE_DISABLE_TRACE
 
 LOCAL_SHARED_LIBRARIES += libdl liblog libcutils libhardware libui libutils
 LOCAL_STATIC_LIBRARIES += libLLVM_swiftshader
-LOCAL_LDFLAGS += -Wl,--gc-sections -Wl,--version-script=$(LOCAL_PATH)/exports.map -Wl,--hash-style=sysv -g
+LOCAL_LDFLAGS += -Wl,--gc-sections -Wl,--version-script=$(LOCAL_PATH)/exports.map -Wl,--hash-style=sysv
 
 LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/../include \

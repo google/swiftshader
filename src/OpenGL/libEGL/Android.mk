@@ -21,7 +21,7 @@ LOCAL_CFLAGS += -DLOG_TAG=\"libEGL_swiftshader\"
 # Uncomment for ON:
 LOCAL_CFLAGS += -UNDEBUG -g
 # Uncomment for OFF:
-#LOCAL_CFLAGS += -DNDEBUG -DANGLE_DISABLE_TRACE
+#LOCAL_CFLAGS += -DANGLE_DISABLE_TRACE
 
 LOCAL_CFLAGS += -std=c++11
 
@@ -31,7 +31,7 @@ LOCAL_STATIC_LIBRARIES += libgceframebufferconfig libgcemetadata
 LOCAL_C_INCLUDES += device/google/gce/include
 
 LOCAL_SHARED_LIBRARIES += libdl liblog libandroid libutils
-LOCAL_LDFLAGS += -Wl,--version-script=$(LOCAL_PATH)/exports.map -Wl,--hash-style=sysv -g
+LOCAL_LDFLAGS += -Wl,--version-script=$(LOCAL_PATH)/exports.map -Wl,--hash-style=sysv
 
 LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/../include \
