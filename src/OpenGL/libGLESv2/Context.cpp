@@ -2700,9 +2700,9 @@ GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count)
 }
 
 // Applies the indices and element array bindings
-GLenum Context::applyIndexBuffer(const void *indices, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo)
+GLenum Context::applyIndexBuffer(const void *indices, GLuint start, GLuint end, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo)
 {
-    GLenum err = mIndexDataManager->prepareIndexData(type, count, mState.elementArrayBuffer, indices, indexInfo);
+    GLenum err = mIndexDataManager->prepareIndexData(type, start, end, count, mState.elementArrayBuffer, indices, indexInfo);
 
     if(err == GL_NO_ERROR)
     {
@@ -3285,7 +3285,7 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
     }
 }
 
-void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices)
+void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices)
 {
     if(!mState.currentProgram)
     {
@@ -3316,7 +3316,7 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
     applyState(mode);
 
     TranslatedIndexData indexInfo;
-    GLenum err = applyIndexBuffer(indices, count, mode, type, &indexInfo);
+    GLenum err = applyIndexBuffer(indices, start, end, count, mode, type, &indexInfo);
     if(err != GL_NO_ERROR)
     {
         return error(err);

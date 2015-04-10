@@ -517,7 +517,12 @@ void GL_APIENTRY glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsi
 		return error(GL_INVALID_VALUE);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		context->drawElements(mode, start, end, count, type, indices);
+	}
 }
 
 void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels)

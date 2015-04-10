@@ -1819,7 +1819,7 @@ void GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum type, const G
 			return error(GL_INVALID_ENUM);
 		}
 
-		context->drawElements(mode, count, type, indices);
+		context->drawElements(mode, 0, UINT_MAX, count, type, indices);
 	}
 }
 

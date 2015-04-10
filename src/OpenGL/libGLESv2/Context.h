@@ -553,7 +553,7 @@ public:
     void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
     void clear(GLbitfield mask);
     void drawArrays(GLenum mode, GLint first, GLsizei count);
-    void drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices);
+    void drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices);
     void finish();
     void flush();
 
@@ -585,7 +585,7 @@ private:
     bool applyRenderTarget();
     void applyState(GLenum drawMode);
     GLenum applyVertexBuffer(GLint base, GLint first, GLsizei count);
-    GLenum applyIndexBuffer(const void *indices, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo);
+    GLenum applyIndexBuffer(const void *indices, GLuint start, GLuint end, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo);
     void applyShaders();
     void applyTextures();
     void applyTextures(sw::SamplerType type);
