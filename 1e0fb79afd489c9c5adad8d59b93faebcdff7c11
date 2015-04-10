@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e356daec_044c7a9f",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-10T19:34:27Z",
+      "side": 1,
+      "message": "Remove extra indent?",
+      "range": {
+        "startLine": 373,
+        "startChar": 0,
+        "endLine": 386,
+        "endChar": 29
+      },
+      "revId": "1e0fb79afd489c9c5adad8d59b93faebcdff7c11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e356daec_24b6deef",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1325,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-10T19:34:27Z",
+      "side": 1,
+      "message": "nit: Ideally this should be indented by 15 spaces, from the same level as the if.",
+      "range": {
+        "startLine": 1325,
+        "startChar": 2,
+        "endLine": 1325,
+        "endChar": 3
+      },
+      "revId": "1e0fb79afd489c9c5adad8d59b93faebcdff7c11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
