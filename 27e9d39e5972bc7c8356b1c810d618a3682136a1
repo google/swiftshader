@@ -22,6 +22,30 @@
       "revId": "27e9d39e5972bc7c8356b1c810d618a3682136a1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e356daec_2c46ca80",
+        "filename": "src/OpenGL/common/debug.h",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-10T15:06:22Z",
+      "side": 1,
+      "message": "There were brackets in Patch Set 4 to prevent that.",
+      "parentUuid": "03868e96_5d048ccd",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 36
+      },
+      "revId": "27e9d39e5972bc7c8356b1c810d618a3682136a1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
