@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e356daec_822f7f33",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 2727,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-04-10T17:41:08Z",
+      "side": 1,
+      "message": "We don\u0027t really have a good option for this in the current list, so just call logging directly:\n\nASSERT has some specific problems in the Cloud Android context\nERR, FIXME, UNIMPLEMENTED, and UNREACHABLE should be fail-stop\nTRACE is logged at too low of a level (ALOGV) and may not be enabled in production builds\n\nexpected_badness means that this isn\u0027t interesting in a bug report, but ideally it shouldn\u0027t happen. This should also go on the whitelest for MTaaS test invalidation: we\u0027re reasonably certain that we\u0027re still in a defined state.",
+      "revId": "c8ac23069c4c797531820aafe9fac6faf56531ec",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
