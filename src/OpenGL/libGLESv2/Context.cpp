@@ -746,6 +746,11 @@ void Context::setEnableVertexAttribArray(unsigned int attribNum, bool enabled)
     mState.vertexAttribute[attribNum].mArrayEnabled = enabled;
 }
 
+void Context::setVertexAttribDivisor(unsigned int attribNum, GLuint divisor)
+{
+	mState.vertexAttribute[attribNum].mDivisor = divisor;
+}
+
 const VertexAttribute &Context::getVertexAttribState(unsigned int attribNum)
 {
     return mState.vertexAttribute[attribNum];
@@ -3408,12 +3413,27 @@ void Context::setVertexAttrib(GLuint index, const GLfloat *values)
 {
     ASSERT(index < MAX_VERTEX_ATTRIBS);
 
-    mState.vertexAttribute[index].mCurrentValue[0] = values[0];
-    mState.vertexAttribute[index].mCurrentValue[1] = values[1];
-    mState.vertexAttribute[index].mCurrentValue[2] = values[2];
-    mState.vertexAttribute[index].mCurrentValue[3] = values[3];
+    mState.vertexAttribute[index].setCurrentValue(values);
 
     mVertexDataManager->dirtyCurrentValue(index);
+}
+
+void Context::setVertexAttrib(GLuint index, const GLint *values)
+{
+	ASSERT(index < MAX_VERTEX_ATTRIBS);
+
+	mState.vertexAttribute[index].setCurrentValue(values);
+
+	mVertexDataManager->dirtyCurrentValue(index);
+}
+
+void Context::setVertexAttrib(GLuint index, const GLuint *values)
+{
+	ASSERT(index < MAX_VERTEX_ATTRIBS);
+
+	mState.vertexAttribute[index].setCurrentValue(values);
+
+	mVertexDataManager->dirtyCurrentValue(index);
 }
 
 void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, 

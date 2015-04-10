@@ -189,7 +189,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
                 if(mDirtyCurrentValue[i])
                 {
                     delete mCurrentValueBuffer[i];
-                    mCurrentValueBuffer[i] = new ConstantVertexBuffer(attribs[i].mCurrentValue[0], attribs[i].mCurrentValue[1], attribs[i].mCurrentValue[2], attribs[i].mCurrentValue[3]);
+                    mCurrentValueBuffer[i] = new ConstantVertexBuffer(attribs[i].getCurrentValue(0), attribs[i].getCurrentValue(1), attribs[i].getCurrentValue(2), attribs[i].getCurrentValue(3));
                     mDirtyCurrentValue[i] = false;
                 }
 

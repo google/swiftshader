@@ -1761,6 +1761,12 @@ void GL_APIENTRY glGetVertexAttribIiv(GLuint index, GLenum pname, GLint *params)
 		case GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING:
 			*params = attribState.mBoundBuffer.name();
 			break;
+		case GL_CURRENT_VERTEX_ATTRIB:
+			for(int i = 0; i < 4; ++i)
+			{
+				params[i] = attribState.getCurrentValueI(i);
+			}
+			break;
 		case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
 			switch(attribState.mType)
 			{
@@ -1778,6 +1784,9 @@ void GL_APIENTRY glGetVertexAttribIiv(GLuint index, GLenum pname, GLint *params)
 				*params = GL_FALSE;
 				break;
 			}
+			break;
+		case GL_VERTEX_ATTRIB_ARRAY_DIVISOR:
+			*params = attribState.mDivisor;
 			break;
 		default: return error(GL_INVALID_ENUM);
 		}
@@ -1820,6 +1829,12 @@ void GL_APIENTRY glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint *param
 		case GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING:
 			*params = attribState.mBoundBuffer.name();
 			break;
+		case GL_CURRENT_VERTEX_ATTRIB:
+			for(int i = 0; i < 4; ++i)
+			{
+				params[i] = attribState.getCurrentValueUI(i);
+			}
+			break;
 		case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
 			switch(attribState.mType)
 			{
@@ -1838,6 +1853,9 @@ void GL_APIENTRY glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint *param
 				break;
 			}
 			break;
+		case GL_VERTEX_ATTRIB_ARRAY_DIVISOR:
+			*params = attribState.mDivisor;
+			break;
 		default: return error(GL_INVALID_ENUM);
 		}
 	}
@@ -1847,26 +1865,72 @@ void GL_APIENTRY glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLin
 {
 	TRACE("(GLuint index = %d, GLint x = %d, GLint y = %d, GLint z = %d, GLint w = %d)",
 	      index, x, y, z, w);
-	UNIMPLEMENTED();
+
+	if(index >= es2::MAX_VERTEX_ATTRIBS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		GLint vals[4] = { x, y, z, w };
+		context->setVertexAttrib(index, vals);
+	}
 }
 
 void GL_APIENTRY glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w)
 {
 	TRACE("(GLuint index = %d, GLint x = %d, GLint y = %d, GLint z = %d, GLint w = %d)",
 	      index, x, y, z, w);
-	UNIMPLEMENTED();
+
+	if(index >= es2::MAX_VERTEX_ATTRIBS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		GLuint vals[4] = { x, y, z, w };
+		context->setVertexAttrib(index, vals);
+	}
 }
 
 void GL_APIENTRY glVertexAttribI4iv(GLuint index, const GLint *v)
 {
 	TRACE("(GLuint index = %d, GLint *v = 0x%0.8p)", index, v);
-	UNIMPLEMENTED();
+
+	if(index >= es2::MAX_VERTEX_ATTRIBS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		context->setVertexAttrib(index, v);
+	}
 }
 
 void GL_APIENTRY glVertexAttribI4uiv(GLuint index, const GLuint *v)
 {
 	TRACE("(GLuint index = %d, GLint *v = 0x%0.8p)", index, v);
-	UNIMPLEMENTED();
+
+	if(index >= es2::MAX_VERTEX_ATTRIBS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		context->setVertexAttrib(index, v);
+	}
 }
 
 void GL_APIENTRY glGetUniformuiv(GLuint program, GLint location, GLuint *params)
@@ -3020,7 +3084,18 @@ void GL_APIENTRY glGetSamplerParameterfv(GLuint sampler, GLenum pname, GLfloat *
 void GL_APIENTRY glVertexAttribDivisor(GLuint index, GLuint divisor)
 {
 	TRACE("(GLuint index = %d, GLuint divisor = %d)", index, divisor);
-	UNIMPLEMENTED();
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		if(index >= es2::MAX_VERTEX_ATTRIBS)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		context->setVertexAttribDivisor(index, divisor);
+	}
 }
 
 void GL_APIENTRY glBindTransformFeedback(GLenum target, GLuint id)
