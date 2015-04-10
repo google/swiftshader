@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e356daec_31a383f5",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-04-10T14:17:57Z",
+      "side": 1,
+      "message": "You shouldn\u0027t have to manually ref/unref objects, it gets messy fast.\nI don\u0027t know if it\u0027s possible, but if mSurfaceSet could own the pointer, adding a surface to it would automatically ref it. And instead of \"Surface *surface\" here, you\u0027d have something like \"SmartPointer\u003cSurface\u003e surface\" and all the ref/unref would be taken care of for you.",
+      "range": {
+        "startLine": 288,
+        "startChar": 4,
+        "endLine": 297,
+        "endChar": 32
+      },
+      "revId": "6919aabba6455bd88e6c9bd71534efa7d11672e4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e356daec_919a6fb8",
+        "filename": "src/OpenGL/libEGL/main.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-04-10T14:17:57Z",
+      "side": 1,
+      "message": "Why not make context a smart pointer instead?",
+      "range": {
+        "startLine": 275,
+        "startChar": 13,
+        "endLine": 275,
+        "endChar": 20
+      },
+      "revId": "6919aabba6455bd88e6c9bd71534efa7d11672e4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e356daec_b173f318",
+        "filename": "src/OpenGL/libEGL/main.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-04-10T14:17:57Z",
+      "side": 1,
+      "message": "Why not make drawSurface a smart pointer instead?",
+      "range": {
+        "startLine": 299,
+        "startChar": 13,
+        "endLine": 299,
+        "endChar": 24
+      },
+      "revId": "6919aabba6455bd88e6c9bd71534efa7d11672e4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e356daec_d17877f5",
+        "filename": "src/OpenGL/libEGL/main.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-04-10T14:17:57Z",
+      "side": 1,
+      "message": "Why not make readSurface a smart pointer instead?",
+      "range": {
+        "startLine": 323,
+        "startChar": 13,
+        "endLine": 323,
+        "endChar": 24
+      },
+      "revId": "6919aabba6455bd88e6c9bd71534efa7d11672e4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
