@@ -991,8 +991,26 @@ GLboolean GL_APIENTRY glUnmapBuffer(GLenum target)
 {
 	TRACE("(GLenum target = 0x%X)", target);
 
-	UNIMPLEMENTED();
-	return GL_FALSE;
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Buffer *buffer = nullptr;
+		if(!context->getBuffer(target, &buffer))
+		{
+			return error(GL_INVALID_ENUM, GL_TRUE);
+		}
+
+		if(!buffer)
+		{
+			// A null buffer means that "0" is bound to the requested buffer target
+			return error(GL_INVALID_OPERATION, GL_TRUE);
+		}
+
+		return buffer->unmap() ? GL_TRUE : GL_FALSE;
+	}
+
+	return GL_TRUE;
 }
 
 void GL_APIENTRY glGetBufferPointerv(GLenum target, GLenum pname, void **params)
@@ -1000,17 +1018,29 @@ void GL_APIENTRY glGetBufferPointerv(GLenum target, GLenum pname, void **params)
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint *params = 0x%0.8p)",
 	      target, pname, params);
 
-	if(!ValidateBufferTarget(target))
-	{
-		return error(GL_INVALID_ENUM);
-	}
-
 	if(pname != GL_BUFFER_MAP_POINTER)
 	{
 		return error(GL_INVALID_ENUM);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Buffer *buffer = nullptr;
+		if(!context->getBuffer(target, &buffer))
+		{
+			return error(GL_INVALID_ENUM);
+		}
+
+		if(!buffer)
+		{
+			// A null buffer means that "0" is bound to the requested buffer target
+			return error(GL_INVALID_OPERATION);
+		}
+
+		*params = buffer->isMapped() ? (void*)(((const char*)buffer->data()) + buffer->offset()) : nullptr;
+	}
 }
 
 void GL_APIENTRY glDrawBuffers(GLsizei n, const GLenum *bufs)
@@ -1397,12 +1427,27 @@ void *GL_APIENTRY glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr le
 	TRACE("(GLenum target = 0x%X,  GLintptr offset = %d, GLsizeiptr length = %d, GLbitfield access = %X)",
 	      target, offset, length, access);
 
-	GLint bufferSize;
-	glGetBufferParameteriv(target, GL_BUFFER_SIZE, &bufferSize);
-	if((offset < 0) || (length<0) || ((offset + length) > bufferSize))
+	es2::Context *context = es2::getContext();
+
+	if(context)
 	{
-		error(GL_INVALID_VALUE);
-	}
+		es2::Buffer *buffer = nullptr;
+		if(!context->getBuffer(target, &buffer))
+		{
+			return error(GL_INVALID_ENUM, nullptr);
+		}
+
+		if(!buffer)
+		{
+			// A null buffer means that "0" is bound to the requested buffer target
+			return error(GL_INVALID_OPERATION, nullptr);
+		}
+
+		GLint bufferSize = buffer->size();
+		if((offset < 0) || (length < 0) || ((offset + length) > bufferSize))
+		{
+			error(GL_INVALID_VALUE);
+		}
 
 		if((access & ~(GL_MAP_READ_BIT |
 		               GL_MAP_WRITE_BIT |
@@ -1414,7 +1459,9 @@ void *GL_APIENTRY glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr le
 			error(GL_INVALID_VALUE);
 		}
 
-	UNIMPLEMENTED();
+		return buffer->mapRange(offset, length, access);
+	}
+
 	return nullptr;
 }
 
@@ -1423,17 +1470,30 @@ void GL_APIENTRY glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsize
 	TRACE("(GLenum target = 0x%X,  GLintptr offset = %d, GLsizeiptr length = %d)",
 	      target, offset, length);
 
-	if(!ValidateBufferTarget(target))
-	{
-		return error(GL_INVALID_ENUM);
-	}
+	es2::Context *context = es2::getContext();
 
-	if((offset < 0) || (length<0)) // FIXME: also check if offset + length exceeds the size of the mapping
+	if(context)
 	{
-		error(GL_INVALID_VALUE);
-	}
+		es2::Buffer *buffer = nullptr;
+		if(!context->getBuffer(target, &buffer))
+		{
+			return error(GL_INVALID_ENUM);
+		}
 
-	UNIMPLEMENTED();
+		if(!buffer)
+		{
+			// A null buffer means that "0" is bound to the requested buffer target
+			return error(GL_INVALID_OPERATION);
+		}
+
+		GLint bufferSize = buffer->size();
+		if((offset < 0) || (length < 0) || ((offset + length) > bufferSize))
+		{
+			error(GL_INVALID_VALUE);
+		}
+
+		buffer->flushMappedRange(offset, length);
+	}
 }
 
 void GL_APIENTRY glBindVertexArray(GLuint array)
@@ -2368,42 +2428,37 @@ void GL_APIENTRY glCopyBufferSubData(GLenum readTarget, GLenum writeTarget, GLin
 	TRACE("(GLenum readTarget = 0x%X, GLenum writeTarget = 0x%X,  GLintptr readOffset = %d, GLintptr writeOffset = %d, GLsizeiptr size = %d)",
 	      readTarget, writeTarget, readOffset, writeOffset, size);
 
-	switch(readTarget)
-	{
-	case GL_ARRAY_BUFFER:
-	case GL_COPY_READ_BUFFER:
-	case GL_COPY_WRITE_BUFFER:
-	case GL_ELEMENT_ARRAY_BUFFER:
-	case GL_PIXEL_PACK_BUFFER:
-	case GL_PIXEL_UNPACK_BUFFER:
-	case GL_TRANSFORM_FEEDBACK_BUFFER:
-	case GL_UNIFORM_BUFFER:
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
-	}
-
-	switch(writeTarget)
-	{
-	case GL_ARRAY_BUFFER:
-	case GL_COPY_READ_BUFFER:
-	case GL_COPY_WRITE_BUFFER:
-	case GL_ELEMENT_ARRAY_BUFFER:
-	case GL_PIXEL_PACK_BUFFER:
-	case GL_PIXEL_UNPACK_BUFFER:
-	case GL_TRANSFORM_FEEDBACK_BUFFER:
-	case GL_UNIFORM_BUFFER:
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
-	}
-
 	if(readOffset < 0 || writeOffset < 0 || size < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Buffer *readBuffer = nullptr;
+		if(!context->getBuffer(readTarget, &readBuffer))
+		{
+			return error(GL_INVALID_ENUM);
+		}
+		if((readOffset + size) > readBuffer->size())
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		es2::Buffer *writeBuffer = nullptr;
+		if(!context->getBuffer(writeTarget, &writeBuffer))
+		{
+			return error(GL_INVALID_ENUM);
+		}
+		if((writeOffset + size) > writeBuffer->size())
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		writeBuffer->bufferSubData(((char*)readBuffer->data()) + readOffset, size, writeOffset);
+	}
 }
 
 void GL_APIENTRY glGetUniformIndices(GLuint program, GLsizei uniformCount, const GLchar *const*uniformNames, GLuint *uniformIndices)
@@ -2731,7 +2786,73 @@ void GL_APIENTRY glGetInteger64i_v(GLenum target, GLuint index, GLint64 *data)
 void GL_APIENTRY glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64 *params)
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint64 *params = 0x%0.8p)", target, pname, params);
-	UNIMPLEMENTED();
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Buffer *buffer = nullptr;
+
+		switch(target)
+		{
+		case GL_ARRAY_BUFFER:
+			buffer = context->getArrayBuffer();
+			break;
+		case GL_ELEMENT_ARRAY_BUFFER:
+			buffer = context->getElementArrayBuffer();
+			break;
+		case GL_COPY_READ_BUFFER:
+			buffer = context->getCopyReadBuffer();
+			break;
+		case GL_COPY_WRITE_BUFFER:
+			buffer = context->getCopyWriteBuffer();
+			break;
+		case GL_PIXEL_PACK_BUFFER:
+			buffer = context->getPixelPackBuffer();
+			break;
+		case GL_PIXEL_UNPACK_BUFFER:
+			buffer = context->getPixelUnpackBuffer();
+			break;
+		case GL_TRANSFORM_FEEDBACK_BUFFER:
+			UNIMPLEMENTED();
+			break;
+		case GL_UNIFORM_BUFFER:
+			buffer = context->getUniformBuffer();
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+
+		if(!buffer)
+		{
+			// A null buffer means that "0" is bound to the requested buffer target
+			return error(GL_INVALID_OPERATION);
+		}
+
+		switch(pname)
+		{
+		case GL_BUFFER_USAGE:
+			*params = buffer->usage();
+			break;
+		case GL_BUFFER_SIZE:
+			*params = buffer->size();
+			break;
+		case GL_BUFFER_ACCESS_FLAGS:
+			*params = buffer->access();
+			break;
+		case GL_BUFFER_MAPPED:
+			*params = buffer->isMapped();
+			break;
+		case GL_BUFFER_MAP_LENGTH:
+			*params = buffer->length();
+			break;
+		case GL_BUFFER_MAP_OFFSET:
+			*params = buffer->offset();
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void GL_APIENTRY glGenSamplers(GLsizei count, GLuint *samplers)

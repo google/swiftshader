@@ -232,6 +232,11 @@ Context::~Context()
 
 	mState.arrayBuffer = NULL;
 	mState.elementArrayBuffer = NULL;
+	mState.copyReadBuffer = NULL;
+	mState.copyWriteBuffer = NULL;
+	mState.pixelPackBuffer = NULL;
+	mState.pixelUnpackBuffer = NULL;
+	mState.uniformBuffer = NULL;
 	mState.renderbuffer = NULL;
 
 	mState.vertexArray = NULL;
@@ -1059,6 +1064,41 @@ void Context::bindElementArrayBuffer(unsigned int buffer)
     mState.elementArrayBuffer = getBuffer(buffer);
 }
 
+void Context::bindCopyReadBuffer(GLuint buffer)
+{
+	mResourceManager->checkBufferAllocation(buffer);
+
+	mState.copyReadBuffer = getBuffer(buffer);
+}
+
+void Context::bindCopyWriteBuffer(GLuint buffer)
+{
+	mResourceManager->checkBufferAllocation(buffer);
+
+	mState.copyWriteBuffer = getBuffer(buffer);
+}
+
+void Context::bindPixelPackBuffer(GLuint buffer)
+{
+	mResourceManager->checkBufferAllocation(buffer);
+
+	mState.pixelPackBuffer = getBuffer(buffer);
+}
+
+void Context::bindPixelUnpackBuffer(GLuint buffer)
+{
+	mResourceManager->checkBufferAllocation(buffer);
+
+	mState.pixelUnpackBuffer = getBuffer(buffer);
+}
+
+void Context::bindUniformBuffer(GLuint buffer)
+{
+	mResourceManager->checkBufferAllocation(buffer);
+
+	mState.uniformBuffer = getBuffer(buffer);
+}
+
 void Context::bindTexture2D(GLuint texture)
 {
     mResourceManager->checkTextureAllocation(texture, TEXTURE_2D);
@@ -1346,6 +1386,89 @@ Buffer *Context::getArrayBuffer()
 Buffer *Context::getElementArrayBuffer()
 {
     return mState.elementArrayBuffer;
+}
+
+Buffer *Context::getCopyReadBuffer()
+{
+	return mState.copyReadBuffer;
+}
+
+Buffer *Context::getCopyWriteBuffer()
+{
+	return mState.copyWriteBuffer;
+}
+
+Buffer *Context::getPixelPackBuffer()
+{
+	return mState.pixelPackBuffer;
+}
+
+Buffer *Context::getPixelUnpackBuffer()
+{
+	return mState.pixelUnpackBuffer;
+}
+
+Buffer *Context::getUniformBuffer()
+{
+	return mState.uniformBuffer;
+}
+
+bool Context::getBuffer(GLenum target, es2::Buffer **buffer)
+{
+	switch(target)
+	{
+	case GL_ARRAY_BUFFER:
+		*buffer = getArrayBuffer();
+		break;
+	case GL_ELEMENT_ARRAY_BUFFER:
+		*buffer = getElementArrayBuffer();
+		break;
+	case GL_COPY_READ_BUFFER:
+		if(clientVersion >= 3)
+		{
+			*buffer = getCopyReadBuffer();
+			break;
+		}
+		else return false;
+	case GL_COPY_WRITE_BUFFER:
+		if(clientVersion >= 3)
+		{
+			*buffer = getCopyWriteBuffer();
+			break;
+		}
+		else return false;
+	case GL_PIXEL_PACK_BUFFER:
+		if(clientVersion >= 3)
+		{
+			*buffer = getPixelPackBuffer();
+			break;
+		}
+		else return false;
+	case GL_PIXEL_UNPACK_BUFFER:
+		if(clientVersion >= 3)
+		{
+			*buffer = getPixelUnpackBuffer();
+			break;
+		}
+		else return false;
+	case GL_TRANSFORM_FEEDBACK_BUFFER:
+		if(clientVersion >= 3)
+		{
+			UNIMPLEMENTED();
+			return false;
+		}
+		else return false;
+	case GL_UNIFORM_BUFFER:
+		if(clientVersion >= 3)
+		{
+			*buffer = getUniformBuffer();
+			break;
+		}
+		else return false;
+	default:
+		return false;
+	}
+	return true;
 }
 
 TransformFeedback *Context::getTransformFeedback()
@@ -1725,12 +1848,24 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 		}
 		break;
 	case GL_COPY_READ_BUFFER_BINDING: // name, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		if(clientVersion >= 3)
+		{
+			*params = mState.copyReadBuffer.name();
+		}
+		else
+		{
+			return false;
+		}
 		break;
 	case GL_COPY_WRITE_BUFFER_BINDING: // name, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		if(clientVersion >= 3)
+		{
+			*params = mState.copyWriteBuffer.name();
+		}
+		else
+		{
+			return false;
+		}
 		break;
 	case GL_DRAW_BUFFER0: // symbolic constant, initial value is GL_BACK​
 		UNIMPLEMENTED();
@@ -1888,12 +2023,24 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 		*params = 0;
 		break;
 	case GL_PIXEL_PACK_BUFFER_BINDING: // integer, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		if(clientVersion >= 3)
+		{
+			*params = mState.pixelPackBuffer.name();
+		}
+		else
+		{
+			return false;
+		}
 		break;
 	case GL_PIXEL_UNPACK_BUFFER_BINDING: // integer, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		if(clientVersion >= 3)
+		{
+			*params = mState.pixelUnpackBuffer.name();
+		}
+		else
+		{
+			return false;
+		}
 		break;
 	case GL_PROGRAM_BINARY_FORMATS: // integer[GL_NUM_PROGRAM_BINARY_FORMATS​]
 		UNIMPLEMENTED();
@@ -1908,8 +2055,14 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 		*params = 0;
 		break;
 	case GL_UNIFORM_BUFFER_BINDING: // name, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		if(clientVersion >= 3)
+		{
+			*params = mState.uniformBuffer.name();
+		}
+		else
+		{
+			return false;
+		}
 		break;
 	case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT: // integer, defaults to 1
 		UNIMPLEMENTED();

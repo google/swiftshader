@@ -418,6 +418,8 @@ void GL_APIENTRY glBindBuffer(GLenum target, GLuint buffer)
 
 	if(context)
 	{
+		egl::GLint clientVersion = egl::getClientVersion();
+
 		switch(target)
 		{
 		case GL_ARRAY_BUFFER:
@@ -426,6 +428,48 @@ void GL_APIENTRY glBindBuffer(GLenum target, GLuint buffer)
 		case GL_ELEMENT_ARRAY_BUFFER:
 			context->bindElementArrayBuffer(buffer);
 			return;
+		case GL_COPY_READ_BUFFER:
+			if(clientVersion >= 3)
+			{
+				context->bindCopyReadBuffer(buffer);
+				return;
+			}
+			else return error(GL_INVALID_ENUM);
+		case GL_COPY_WRITE_BUFFER:
+			if(clientVersion >= 3)
+			{
+				context->bindCopyWriteBuffer(buffer);
+				return;
+			}
+			else return error(GL_INVALID_ENUM);
+		case GL_PIXEL_PACK_BUFFER:
+			if(clientVersion >= 3)
+			{
+				context->bindPixelPackBuffer(buffer);
+				return;
+			}
+			else return error(GL_INVALID_ENUM);
+		case GL_PIXEL_UNPACK_BUFFER:
+			if(clientVersion >= 3)
+			{
+				context->bindPixelUnpackBuffer(buffer);
+				return;
+			}
+			else return error(GL_INVALID_ENUM);
+		case GL_TRANSFORM_FEEDBACK_BUFFER:
+			if(clientVersion >= 3)
+			{
+				UNIMPLEMENTED();
+				return;
+			}
+			else return error(GL_INVALID_ENUM);
+		case GL_UNIFORM_BUFFER:
+			if(clientVersion >= 3)
+			{
+				context->bindUniformBuffer(buffer);
+				return;
+			}
+			else return error(GL_INVALID_ENUM);
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -729,16 +773,8 @@ void GL_APIENTRY glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data
 	if(context)
 	{
 		es2::Buffer *buffer;
-
-		switch(target)
+		if(!context->getBuffer(target, &buffer))
 		{
-		case GL_ARRAY_BUFFER:
-			buffer = context->getArrayBuffer();
-			break;
-		case GL_ELEMENT_ARRAY_BUFFER:
-			buffer = context->getElementArrayBuffer();
-			break;
-		default:
 			return error(GL_INVALID_ENUM);
 		}
 
@@ -775,16 +811,8 @@ void GL_APIENTRY glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size
 	if(context)
 	{
 		es2::Buffer *buffer;
-
-		switch(target)
+		if(!context->getBuffer(target, &buffer))
 		{
-		case GL_ARRAY_BUFFER:
-			buffer = context->getArrayBuffer();
-			break;
-		case GL_ELEMENT_ARRAY_BUFFER:
-			buffer = context->getElementArrayBuffer();
-			break;
-		default:
 			return error(GL_INVALID_ENUM);
 		}
 
@@ -2445,16 +2473,8 @@ void GL_APIENTRY glGetBufferParameteriv(GLenum target, GLenum pname, GLint* para
 	if(context)
 	{
 		es2::Buffer *buffer;
-
-		switch(target)
+		if(!context->getBuffer(target, &buffer))
 		{
-		case GL_ARRAY_BUFFER:
-			buffer = context->getArrayBuffer();
-			break;
-		case GL_ELEMENT_ARRAY_BUFFER:
-			buffer = context->getElementArrayBuffer();
-			break;
-		default:
 			return error(GL_INVALID_ENUM);
 		}
 
