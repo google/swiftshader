@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e356daec_c4b192c3",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 914,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-10T19:39:13Z",
+      "side": 1,
+      "message": "Initialize to nullptr.\n\nAdditional cases like this in the rest of the changed files.",
+      "range": {
+        "startLine": 914,
+        "startChar": 15,
+        "endLine": 914,
+        "endChar": 21
+      },
+      "revId": "7526800b37bf11ee87f6c0ff242149e95f3fe937",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
