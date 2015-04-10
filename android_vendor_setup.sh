@@ -9,6 +9,7 @@ popd > /dev/null 2>&1
 
 OUT="$(pwd)/vendor/swiftshader"
 mkdir -p "${OUT}"
+ln -s "${DIR}/.dir-locals.el" "${OUT}"
 
 IFS=$'\n'
 for i in $(find "${DIR}/src" -name Android.mk -print); do
