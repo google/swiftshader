@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e356daec_216ed0ac",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-10T18:51:40Z",
+      "side": 1,
+      "message": "Can we do this in a general (non-GCE) way? Also, if it\u0027s not defined the value is 0 so it would still compile this even if we\u0027re on L.",
+      "range": {
+        "startLine": 77,
+        "startChar": 30,
+        "endLine": 77,
+        "endChar": 59
+      },
+      "revId": "f7fc83fcb6c907f3c5946b7fd1e1e57737ffc091",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
