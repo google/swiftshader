@@ -9,6 +9,12 @@
 #ifndef COMPILER_DEBUG_H_
 #define COMPILER_DEBUG_H_
 
+#ifdef __ANDROID__
+#include "../../Common/DebugAndroid.hpp"
+
+#define Trace(...) ((void)0)
+#else
+
 #include <assert.h>
 
 #ifdef _DEBUG
@@ -49,5 +55,6 @@ void Trace(const char* format, ...);
     assert(false); \
 } while(0)
 
+#endif   // __ANDROID__
 #endif   // COMPILER_DEBUG_H_
 

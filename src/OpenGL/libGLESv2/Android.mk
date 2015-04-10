@@ -9,7 +9,7 @@ LOCAL_MODULE := libGLESv2_swiftshader
 LOCAL_SRC_FILES := \
 	../../Common/CPUID.cpp \
 	../../Common/Configurator.cpp \
-	../../Common/Debug.cpp \
+	../../Common/DebugAndroid.cpp \
 	../../Common/Half.cpp \
 	../../Common/Math.cpp \
 	../../Common/Memory.cpp \
@@ -68,7 +68,6 @@ LOCAL_SRC_FILES += \
 LOCAL_SRC_FILES += \
 	../common/NameSpace.cpp \
 	../common/Object.cpp \
-	../common/debug.cpp \
 
 LOCAL_SRC_FILES += \
 	../compiler/preprocessor/Diagnostics.cpp \
@@ -129,7 +128,7 @@ LOCAL_CFLAGS += -DLOG_TAG=\"libGLESv2_swiftshader\"
 
 # Android's make system also uses NDEBUG, so we need to set/unset it forcefully
 # Uncomment for ON:
-LOCAL_CFLAGS += -UNDEBUG -g
+LOCAL_CFLAGS += -UNDEBUG -g -O0
 # Uncomment for OFF:
 #LOCAL_CFLAGS += -fomit-frame-pointer -ffunction-sections -fdata-sections -DANGLE_DISABLE_TRACE
 

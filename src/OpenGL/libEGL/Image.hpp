@@ -8,7 +8,11 @@
 #include <system/window.h>
 #endif
 
+#ifdef __ANDROID__
+#include "../../Common/DebugAndroid.hpp"
+#else
 #include <assert.h>
+#endif
 
 namespace egl
 {

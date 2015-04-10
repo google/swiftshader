@@ -30,7 +30,11 @@
 //   are tracked in the intermediate representation, not the symbol table.
 //
 
+#ifndef __ANDROID__
 #include <assert.h>
+#else
+#include "../../Common/DebugAndroid.hpp"
+#endif
 
 #include "InfoSink.h"
 #include "intermediate.h"

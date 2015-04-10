@@ -70,7 +70,7 @@ CONSTRUCTOR static void eglAttachProcess()
 {
     TRACE("()");
 
-	#if !defined(ANGLE_DISABLE_TRACE)
+	#if !defined(ANGLE_DISABLE_TRACE) && defined(TRACE_OUTPUT_FILE)
         FILE *debug = fopen(TRACE_OUTPUT_FILE, "rt");
 
         if(debug)

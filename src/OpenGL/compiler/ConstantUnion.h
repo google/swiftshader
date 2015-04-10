@@ -7,7 +7,11 @@
 #ifndef _CONSTANT_UNION_INCLUDED_
 #define _CONSTANT_UNION_INCLUDED_
 
+#ifndef __ANDROID__
 #include <assert.h>
+#else
+#include "../../Common/DebugAndroid.hpp"
+#endif
 
 class ConstantUnion {
 public:
