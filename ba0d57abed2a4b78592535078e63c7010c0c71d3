@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "9033a6f4_b208785b",
+        "filename": "src/OpenGL/compiler/Types.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-13T16:54:58Z",
+      "side": 1,
+      "message": "These names are a bit confusing, since the primary size is also a matrix size, and I\u0027d expect the set function to take either two parameters or make it a square one.\n\nI would just add getColumns() and getRows() calls which return the primary and secondary sizes, and setMatrixSize(int columns, int rows).",
+      "range": {
+        "startLine": 144,
+        "startChar": 4,
+        "endLine": 145,
+        "endChar": 46
+      },
+      "revId": "ba0d57abed2a4b78592535078e63c7010c0c71d3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9033a6f4_4c7c1fe6",
+        "filename": "src/OpenGL/compiler/Types.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-13T16:54:58Z",
+      "side": 1,
+      "message": "I think I prefer \"primarySize\" and \"secondarySize\" as two separate variables.",
+      "range": {
+        "startLine": 253,
+        "startChar": 4,
+        "endLine": 253,
+        "endChar": 25
+      },
+      "revId": "ba0d57abed2a4b78592535078e63c7010c0c71d3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9033a6f4_2ca0b318",
         "filename": "src/OpenGL/compiler/glslang.l",
         "patchSetId": 2
