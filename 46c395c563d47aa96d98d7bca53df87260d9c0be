@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9033a6f4_cc57efe0",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 700,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2015-04-13T14:44:45Z",
+      "side": 1,
+      "message": "typo:FIXME :)",
+      "revId": "46c395c563d47aa96d98d7bca53df87260d9c0be",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
