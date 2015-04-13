@@ -107,10 +107,13 @@
 		<Linker>
 			<Add option="-Wl,--version-script=./exports.map" />
 			<Add option="-Wl,--hash-style=both" />
+			<Add option="-Wl,--no-undefined" />
 			<Add library="pthread" />
-			<Add library="X11" />
+			<Add library="dl" />
 		</Linker>
 		<Unit filename="../../Common/SharedLibrary.hpp" />
+		<Unit filename="../../Main/libX11.cpp" />
+		<Unit filename="../../Main/libX11.hpp" />
 		<Unit filename="../common/Object.cpp" />
 		<Unit filename="../common/Object.hpp" />
 		<Unit filename="../common/debug.cpp" />

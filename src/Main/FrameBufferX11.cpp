@@ -15,6 +15,8 @@
 
 #include "FrameBufferX11.hpp"
 
+#include "libX11.hpp"
+
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <string.h>
@@ -43,31 +45,31 @@ namespace sw
 	{
 		if(!x_display)
 		{
-			x_display = XOpenDisplay(0);
+			x_display = libX11->XOpenDisplay(0);
 		}
 
 		int screen = DefaultScreen(x_display);
-		x_gc = XDefaultGC(x_display, screen);
-		int depth = XDefaultDepth(x_display, screen);
+		x_gc = libX11->XDefaultGC(x_display, screen);
+		int depth = libX11->XDefaultDepth(x_display, screen);
 
-		Status status = XMatchVisualInfo(x_display, screen, 32, TrueColor, &x_visual);
+		Status status = libX11->XMatchVisualInfo(x_display, screen, 32, TrueColor, &x_visual);
 		bool match = (status != 0 && x_visual.blue_mask == 0xFF);   // Prefer X8R8G8B8
-		Visual *visual = match ? x_visual.visual : XDefaultVisual(x_display, screen);
+		Visual *visual = match ? x_visual.visual : libX11->XDefaultVisual(x_display, screen);
 
-		mit_shm = (XShmQueryExtension(x_display) == True);
+		mit_shm = (libX11->XShmQueryExtension && libX11->XShmQueryExtension(x_display) == True);
 
 		if(mit_shm)
 		{
-			x_image = XShmCreateImage(x_display, visual, depth, ZPixmap, 0, &shminfo, width, height);
+			x_image = libX11->XShmCreateImage(x_display, visual, depth, ZPixmap, 0, &shminfo, width, height);
 
 			shminfo.shmid = shmget(IPC_PRIVATE, x_image->bytes_per_line * x_image->height, IPC_CREAT | SHM_R | SHM_W);
 			shminfo.shmaddr = x_image->data = buffer = (char*)shmat(shminfo.shmid, 0, 0);
 			shminfo.readOnly = False;
 
-			PreviousXErrorHandler = XSetErrorHandler(XShmErrorHandler);
-			XShmAttach(x_display, &shminfo);   // May produce a BadAccess error
-			XSync(x_display, False);
-			XSetErrorHandler(PreviousXErrorHandler);
+			PreviousXErrorHandler = libX11->XSetErrorHandler(XShmErrorHandler);
+			libX11->XShmAttach(x_display, &shminfo);   // May produce a BadAccess error
+			libX11->XSync(x_display, False);
+			libX11->XSetErrorHandler(PreviousXErrorHandler);
 
 			if(shmBadAccess)
 			{
@@ -84,7 +86,7 @@ namespace sw
 		if(!mit_shm)
 		{
 			buffer = new char[width * height * 4];
-			x_image = XCreateImage(x_display, visual, depth, ZPixmap, 0, buffer, width, height, 32, width * 4);
+			x_image = libX11->XCreateImage(x_display, visual, depth, ZPixmap, 0, buffer, width, height, 32, width * 4);
 		}
 	}
 
@@ -100,7 +102,7 @@ namespace sw
 		}
 		else
 		{
-			XShmDetach(x_display, &shminfo);
+			libX11->XShmDetach(x_display, &shminfo);
 			XDestroyImage(x_image);
 			shmdt(shminfo.shmaddr);
 			shmctl(shminfo.shmid, IPC_RMID, 0);
@@ -108,7 +110,7 @@ namespace sw
 
 		if(ownX11)
 		{
-			XCloseDisplay(x_display);
+			libX11->XCloseDisplay(x_display);
 		}
 	}
 
@@ -131,14 +133,14 @@ namespace sw
 
 		if(!mit_shm)
 		{
-			XPutImage(x_display, x_window, x_gc, x_image, 0, 0, 0, 0, width, height);
+			libX11->XPutImage(x_display, x_window, x_gc, x_image, 0, 0, 0, 0, width, height);
 		}
 		else
 		{
-			XShmPutImage(x_display, x_window, x_gc, x_image, 0, 0, 0, 0, width, height, False);
+			libX11->XShmPutImage(x_display, x_window, x_gc, x_image, 0, 0, 0, 0, width, height, False);
 		}
 
-		XSync(x_display, False);
+		libX11->XSync(x_display, False);
 	}
 }
 

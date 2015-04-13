@@ -20,6 +20,10 @@
 #include "libEGL/Context.hpp"
 #include "common/debug.h"
 
+#if defined(__unix__) && !defined(__ANDROID__)
+#include "Main/libX11.hpp"
+#endif
+
 #ifdef __ANDROID__
 #include <system/window.h>
 #include <GceFrameBufferConfig.h>
@@ -49,7 +53,14 @@ egl::Display *Display::getPlatformDisplay(EGLenum platform, EGLNativeDisplayType
             if(platform == EGL_PLATFORM_X11_EXT)
             {
                 #if defined(__unix__)
-                    displayId = XOpenDisplay(NULL);
+					if(libX11->XOpenDisplay)
+					{
+						displayId = libX11->XOpenDisplay(NULL);
+					}
+					else
+					{
+						return error(EGL_BAD_PARAMETER, (egl::Display*)EGL_NO_DISPLAY);
+					}
                 #else
                     return error(EGL_BAD_PARAMETER, (egl::Display*)EGL_NO_DISPLAY);
                 #endif
@@ -507,7 +518,7 @@ bool Display::isValidWindow(EGLNativeWindowType window)
         if(platform == EGL_PLATFORM_X11_EXT)
         {
             XWindowAttributes windowAttributes;
-            Status status = XGetWindowAttributes(displayId, window, &windowAttributes);
+            Status status = libX11->XGetWindowAttributes(displayId, window, &windowAttributes);
 
             return status == True;
         }
@@ -573,10 +584,10 @@ DisplayMode Display::getDisplayMode() const
     #else
         if(platform == EGL_PLATFORM_X11_EXT)
         {
-            Screen *screen = XDefaultScreenOfDisplay(displayId);
-            displayMode.width = XWidthOfScreen(screen);
-            displayMode.height = XHeightOfScreen(screen);
-            unsigned int bpp = XPlanesOfScreen(screen);
+            Screen *screen = libX11->XDefaultScreenOfDisplay(displayId);
+            displayMode.width = libX11->XWidthOfScreen(screen);
+            displayMode.height = libX11->XHeightOfScreen(screen);
+            unsigned int bpp = libX11->XPlanesOfScreen(screen);
 
             switch(bpp)
             {

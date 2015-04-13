@@ -131,9 +131,9 @@
 		<Linker>
 			<Add option="-Wl,--version-script=./exports.map" />
 			<Add option="-Wl,--hash-style=both" />
+			<Add option="-Wl,--no-undefined" />
 			<Add library="pthread" />
-			<Add library="X11" />
-			<Add library="Xext" />
+			<Add library="dl" />
 		</Linker>
 		<Unit filename="../../Common/CPUID.cpp" />
 		<Unit filename="../../Common/CPUID.hpp" />
@@ -174,6 +174,8 @@
 		<Unit filename="../../Main/SwiftConfig.hpp" />
 		<Unit filename="../../Main/crc.cpp" />
 		<Unit filename="../../Main/crc.h" />
+		<Unit filename="../../Main/libX11.cpp" />
+		<Unit filename="../../Main/libX11.hpp" />
 		<Unit filename="../../Main/serialcommon.h" />
 		<Unit filename="../../Main/serialvalid.cpp" />
 		<Unit filename="../../Main/serialvalid.h" />
@@ -247,6 +249,8 @@
 		<Unit filename="../../Shader/VertexRoutine.hpp" />
 		<Unit filename="../../Shader/VertexShader.cpp" />
 		<Unit filename="../../Shader/VertexShader.hpp" />
+		<Unit filename="../common/MatrixStack.cpp" />
+		<Unit filename="../common/MatrixStack.hpp" />
 		<Unit filename="../common/NameSpace.cpp" />
 		<Unit filename="../common/NameSpace.hpp" />
 		<Unit filename="../common/Object.cpp" />
@@ -272,8 +276,6 @@
 		<Unit filename="Image.hpp" />
 		<Unit filename="IndexDataManager.cpp" />
 		<Unit filename="IndexDataManager.h" />
-		<Unit filename="../common/MatrixStack.cpp" />
-		<Unit filename="../common/MatrixStack.hpp" />
 		<Unit filename="Renderbuffer.cpp" />
 		<Unit filename="Renderbuffer.h" />
 		<Unit filename="ResourceManager.cpp" />

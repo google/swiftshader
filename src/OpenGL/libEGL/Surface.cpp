@@ -23,6 +23,10 @@
 #include "common/debug.h"
 #include "Main/FrameBuffer.hpp"
 
+#if defined(__unix__) && !defined(__ANDROID__)
+#include "Main/libX11.hpp"
+#endif
+
 #if defined(_WIN32)
 #include <tchar.h>
 #endif
@@ -82,7 +86,7 @@ bool Surface::initialize()
 }
 
 void Surface::deleteResources()
-{	
+{
     if(mDepthStencil)
     {
         mDepthStencil->release();
@@ -122,8 +126,8 @@ bool Surface::reset()
 		return reset(ANativeWindow_getWidth(mWindow), ANativeWindow_getHeight(mWindow));
 	#else
 		XWindowAttributes windowAttributes;
-		XGetWindowAttributes(mDisplay->getNativeDisplay(), mWindow, &windowAttributes);
-		
+		libX11->XGetWindowAttributes(mDisplay->getNativeDisplay(), mWindow, &windowAttributes);
+
 		return reset(windowAttributes.width, windowAttributes.height);
 	#endif
 }
@@ -219,7 +223,7 @@ void Surface::setSwapInterval(EGLint interval)
     {
         return;
     }
-    
+
     mSwapInterval = interval;
     mSwapInterval = std::max(mSwapInterval, mDisplay->getMinSwapInterval());
     mSwapInterval = std::min(mSwapInterval, mDisplay->getMaxSwapInterval());
@@ -302,7 +306,7 @@ bool Surface::checkForResize()
 		int clientHeight = ANativeWindow_getHeight(mWindow);
 	#else
 		XWindowAttributes windowAttributes;
-		XGetWindowAttributes(mDisplay->getNativeDisplay(), mWindow, &windowAttributes);
+		libX11->XGetWindowAttributes(mDisplay->getNativeDisplay(), mWindow, &windowAttributes);
 
 		int clientWidth = windowAttributes.width;
 		int clientHeight = windowAttributes.height;

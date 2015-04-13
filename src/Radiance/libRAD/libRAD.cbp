@@ -153,6 +153,8 @@
 		<Unit filename="../../Main/SwiftConfig.hpp" />
 		<Unit filename="../../Main/crc.cpp" />
 		<Unit filename="../../Main/crc.h" />
+		<Unit filename="../../Main/libX11.cpp" />
+		<Unit filename="../../Main/libX11.hpp" />
 		<Unit filename="../../Main/serialcommon.h" />
 		<Unit filename="../../Main/serialvalid.cpp" />
 		<Unit filename="../../Main/serialvalid.h" />
