@@ -161,7 +161,13 @@ enum TOperator {
     EOpConstructUVec3,
     EOpConstructUVec4,
     EOpConstructMat2,
+    EOpConstructMat2x3,
+    EOpConstructMat2x4,
+    EOpConstructMat3x2,
     EOpConstructMat3,
+    EOpConstructMat3x4,
+    EOpConstructMat4x2,
+    EOpConstructMat4x3,
     EOpConstructMat4,
     EOpConstructStruct,
 
@@ -247,6 +253,7 @@ public:
     TQualifier getQualifier() const { return type.getQualifier(); }
     TPrecision getPrecision() const { return type.getPrecision(); }
     int getNominalSize() const { return type.getNominalSize(); }
+	int getSecondarySize() const { return type.getSecondarySize(); }
     
     bool isMatrix() const { return type.isMatrix(); }
     bool isArray()  const { return type.isArray(); }

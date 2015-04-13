@@ -19,6 +19,7 @@
 #define GL_APICALL
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#include <GLES3/gl3.h>
 
 namespace glsl
 {
@@ -33,7 +34,7 @@ namespace glsl
 	class Temporary : public TIntermSymbol
 	{
 	public:
-		Temporary(OutputASM *assembler) : TIntermSymbol(0, "tmp", TType(EbtFloat, EbpHigh, EvqTemporary, 4, false, false)), assembler(assembler)
+		Temporary(OutputASM *assembler) : TIntermSymbol(0, "tmp", TType(EbtFloat, EbpHigh, EvqTemporary, 4, 1, false)), assembler(assembler)
 		{
 		}
 
@@ -49,7 +50,7 @@ namespace glsl
 	class Constant : public TIntermConstantUnion
 	{
 	public:
-		Constant(float x, float y, float z, float w) : TIntermConstantUnion(constants, TType(EbtFloat, EbpHigh, EvqConstExpr, 4, false, false))
+		Constant(float x, float y, float z, float w) : TIntermConstantUnion(constants, TType(EbtFloat, EbpHigh, EvqConstExpr, 4, 1, false))
 		{
 			constants[0].setFConst(x);
 			constants[1].setFConst(y);
@@ -57,12 +58,12 @@ namespace glsl
 			constants[3].setFConst(w);
 		}
 
-		Constant(bool b) : TIntermConstantUnion(constants, TType(EbtBool, EbpHigh, EvqConstExpr, 1, false, false))
+		Constant(bool b) : TIntermConstantUnion(constants, TType(EbtBool, EbpHigh, EvqConstExpr, 1, 1, false))
 		{
 			constants[0].setBConst(b);
 		}
 
-		Constant(int i) : TIntermConstantUnion(constants, TType(EbtInt, EbpHigh, EvqConstExpr, 1, false, false))
+		Constant(int i) : TIntermConstantUnion(constants, TType(EbtInt, EbpHigh, EvqConstExpr, 1, 1, false))
 		{
 			constants[0].setIConst(i);
 		}
@@ -2357,9 +2358,30 @@ namespace glsl
 			{
 				switch(type.getNominalSize())
 				{
-				case 2: return GL_FLOAT_MAT2;
-				case 3: return GL_FLOAT_MAT3;
-				case 4: return GL_FLOAT_MAT4;
+				case 2:
+					switch(type.getSecondarySize())
+					{
+					case 2: return GL_FLOAT_MAT2;
+					case 3: return GL_FLOAT_MAT2x3;
+					case 4: return GL_FLOAT_MAT2x4;
+					default: UNREACHABLE();
+					}
+				case 3:
+					switch(type.getSecondarySize())
+					{
+					case 2: return GL_FLOAT_MAT3x2;
+					case 3: return GL_FLOAT_MAT3;
+					case 4: return GL_FLOAT_MAT4x2;
+					default: UNREACHABLE();
+					}
+				case 4:
+					switch(type.getSecondarySize())
+					{
+					case 2: return GL_FLOAT_MAT4x2;
+					case 3: return GL_FLOAT_MAT4x3;
+					case 4: return GL_FLOAT_MAT4;
+					default: UNREACHABLE();
+					}
 				default: UNREACHABLE();
 				}
 			}

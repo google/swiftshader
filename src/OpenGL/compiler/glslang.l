@@ -1,6 +1,6 @@
 /*
 //
-// Copyright (c) 2002-2012 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2015 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -133,6 +133,17 @@ O           [0-7]
 "mat3"         { context->lexAfterType = true; return(MATRIX3); }
 "mat4"         { context->lexAfterType = true; return(MATRIX4); }
 
+"mat2x2"       { return ES2_identifier_ES3_keyword(context, MATRIX2); }
+"mat3x3"       { return ES2_identifier_ES3_keyword(context, MATRIX3); }
+"mat4x4"       { return ES2_identifier_ES3_keyword(context, MATRIX4); }
+
+"mat2x3"       { return ES2_identifier_ES3_keyword(context, MATRIX2x3); }
+"mat3x2"       { return ES2_identifier_ES3_keyword(context, MATRIX3x2); }
+"mat2x4"       { return ES2_identifier_ES3_keyword(context, MATRIX2x4); }
+"mat4x2"       { return ES2_identifier_ES3_keyword(context, MATRIX4x2); }
+"mat3x4"       { return ES2_identifier_ES3_keyword(context, MATRIX3x4); }
+"mat4x3"       { return ES2_identifier_ES3_keyword(context, MATRIX4x3); }
+
 "vec2"         { context->lexAfterType = true; return (VEC2); }
 "vec3"         { context->lexAfterType = true; return (VEC3); }
 "vec4"         { context->lexAfterType = true; return (VEC4); }
@@ -151,7 +162,18 @@ O           [0-7]
 "samplerExternalOES" { context->lexAfterType = true; return SAMPLER_EXTERNAL_OES; }
 "sampler3D"          { context->lexAfterType = true; return SAMPLER3D; }
 "sampler3DRect"      { return ES2_reserved_ES3_keyword(context, SAMPLER3DRECT); }
+"sampler2DArray"     { return  ES2_identifier_ES3_keyword(context, SAMPLER2DARRAY); }
+"isampler2D"         { return  ES2_identifier_ES3_keyword(context, ISAMPLER2D); }
+"isampler3D"         { return  ES2_identifier_ES3_keyword(context, ISAMPLER3D); }
+"isamplerCube"       { return  ES2_identifier_ES3_keyword(context, ISAMPLERCUBE); }
+"isampler2DArray"    { return  ES2_identifier_ES3_keyword(context, ISAMPLER2DARRAY); }
+"usampler2D"         { return  ES2_identifier_ES3_keyword(context, USAMPLER2D); }
+"usampler3D"         { return  ES2_identifier_ES3_keyword(context, USAMPLER3D); }
+"usamplerCube"       { return  ES2_identifier_ES3_keyword(context, USAMPLERCUBE); }
+"usampler2DArray"    { return  ES2_identifier_ES3_keyword(context, USAMPLER2DARRAY); }
 "sampler2DShadow"    { return ES2_reserved_ES3_keyword(context, SAMPLER2DSHADOW); }
+"samplerCubeShadow"  { return  ES2_identifier_ES3_keyword(context, SAMPLERCUBESHADOW); }
+"sampler2DArrayShadow" { return  ES2_identifier_ES3_keyword(context, SAMPLER2DARRAYSHADOW); }
 
 "struct"       { context->lexAfterType = true; return(STRUCT); }
 

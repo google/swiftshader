@@ -1,6 +1,6 @@
 /*
 //
-// Copyright (c) 2002-2013 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2015 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -15,7 +15,7 @@ WHICH GENERATES THE GLSL ES PARSER (glslang_tab.cpp AND glslang_tab.h).
 
 %{
 //
-// Copyright (c) 2002-2013 The ANGLE Project Authors. All rights reserved.
+// Copyright (c) 2002-2015 The ANGLE Project Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -127,10 +127,13 @@ extern void yyerror(TParseContext* context, const char* reason);
 %token <lex> BREAK CONTINUE DO ELSE FOR IF DISCARD RETURN SWITCH CASE DEFAULT
 %token <lex> BVEC2 BVEC3 BVEC4 IVEC2 IVEC3 IVEC4 VEC2 VEC3 VEC4 UVEC2 UVEC3 UVEC4
 %token <lex> MATRIX2 MATRIX3 MATRIX4 IN_QUAL OUT_QUAL INOUT_QUAL UNIFORM VARYING
+%token <lex> MATRIX2x3 MATRIX3x2 MATRIX2x4 MATRIX4x2 MATRIX3x4 MATRIX4x3
 %token <lex> CENTROID FLAT SMOOTH
 %token <lex> STRUCT VOID_TYPE WHILE
-%token <lex> SAMPLER2D SAMPLERCUBE SAMPLER_EXTERNAL_OES SAMPLER2DRECT
-%token <lex> SAMPLER3D SAMPLER3DRECT SAMPLER2DSHADOW
+%token <lex> SAMPLER2D SAMPLERCUBE SAMPLER_EXTERNAL_OES SAMPLER2DRECT SAMPLER2DARRAY
+%token <lex> ISAMPLER2D ISAMPLER3D ISAMPLERCUBE ISAMPLER2DARRAY
+%token <lex> USAMPLER2D USAMPLER3D USAMPLERCUBE USAMPLER2DARRAY
+%token <lex> SAMPLER3D SAMPLER3DRECT SAMPLER2DSHADOW SAMPLERCUBESHADOW SAMPLER2DARRAYSHADOW
 %token <lex> LAYOUT
 
 %token <lex> IDENTIFIER TYPE_NAME FLOATCONSTANT INTCONSTANT UINTCONSTANT BOOLCONSTANT
@@ -315,7 +318,7 @@ postfix_expression
             if ($1->getType().getStruct())
                 $$->setType(TType($1->getType().getStruct(), $1->getType().getTypeName()));
             else
-                $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqTemporary, $1->getNominalSize(), $1->isMatrix()));
+                $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqTemporary, $1->getNominalSize(), $1->getSecondarySize()));
 
             if ($1->getType().getQualifier() == EvqConstExpr)
                 $$->getTypePointer()->setQualifier(EvqConstExpr);
@@ -631,23 +634,37 @@ function_identifier
         } else {
             switch ($1.type) {
             case EbtFloat:
-                if ($1.matrix) {
-                    switch($1.size) {
-                    case 2:                                     op = EOpConstructMat2;  break;
-                    case 3:                                     op = EOpConstructMat3;  break;
-                    case 4:                                     op = EOpConstructMat4;  break;
+                switch($1.primarySize) {
+                case 1:
+                    op = EOpConstructFloat; break;
+                case 2:
+                    switch($1.secondarySize) {
+					case 1:                                 op = EOpConstructVec2;    break;
+                    case 2:                                 op = EOpConstructMat2;    break;
+                    case 3:                                 op = EOpConstructMat2x3;  break;
+                    case 4:                                 op = EOpConstructMat2x4;  break;
                     }
-                } else {
-                    switch($1.size) {
-                    case 1:                                     op = EOpConstructFloat; break;
-                    case 2:                                     op = EOpConstructVec2;  break;
-                    case 3:                                     op = EOpConstructVec3;  break;
-                    case 4:                                     op = EOpConstructVec4;  break;
+                    break;
+                case 3:
+                    switch($1.secondarySize) {
+					case 1:                                 op = EOpConstructVec3;    break;
+                    case 2:                                 op = EOpConstructMat3x2;  break;
+                    case 3:                                 op = EOpConstructMat3;    break;
+                    case 4:                                 op = EOpConstructMat3x4;  break;
                     }
+                    break;
+                case 4:
+                    switch($1.secondarySize) {
+					case 1:                                 op = EOpConstructVec4;    break;
+                    case 2:                                 op = EOpConstructMat4x2;  break;
+                    case 3:                                 op = EOpConstructMat4x3;  break;
+                    case 4:                                 op = EOpConstructMat4;    break;
+                    }
+                    break;
                 }
                 break;
             case EbtInt:
-                switch($1.size) {
+                switch($1.primarySize) {
                 case 1:                                         op = EOpConstructInt;   break;
                 case 2:       FRAG_VERT_ONLY("ivec2", $1.line); op = EOpConstructIVec2; break;
                 case 3:       FRAG_VERT_ONLY("ivec3", $1.line); op = EOpConstructIVec3; break;
@@ -655,7 +672,7 @@ function_identifier
                 }
                 break;
             case EbtBool:
-                switch($1.size) {
+                switch($1.primarySize) {
                 case 1:                                         op = EOpConstructBool;  break;
                 case 2:       FRAG_VERT_ONLY("bvec2", $1.line); op = EOpConstructBVec2; break;
                 case 3:       FRAG_VERT_ONLY("bvec3", $1.line); op = EOpConstructBVec3; break;
@@ -1737,19 +1754,55 @@ type_specifier_nonarray
         FRAG_VERT_ONLY("mat2", $1.line);
         TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
         $$.setBasic(EbtFloat, qual, $1.line);
-        $$.setAggregate(2, true);
+        $$.setMatrix(2, 2);
     }
     | MATRIX3 {
         FRAG_VERT_ONLY("mat3", $1.line);
         TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
         $$.setBasic(EbtFloat, qual, $1.line);
-        $$.setAggregate(3, true);
+        $$.setMatrix(3, 3);
     }
     | MATRIX4 {
         FRAG_VERT_ONLY("mat4", $1.line);
         TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
         $$.setBasic(EbtFloat, qual, $1.line);
-        $$.setAggregate(4, true);
+        $$.setMatrix(4, 4);
+    }
+    | MATRIX2x3 {
+        FRAG_VERT_ONLY("mat2x3", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtFloat, qual, $1.line);
+        $$.setMatrix(2, 3);
+    }
+    | MATRIX3x2 {
+        FRAG_VERT_ONLY("mat3x2", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtFloat, qual, $1.line);
+        $$.setMatrix(3, 2);
+    }
+    | MATRIX2x4 {
+        FRAG_VERT_ONLY("mat2x4", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtFloat, qual, $1.line);
+        $$.setMatrix(2, 4);
+    }
+    | MATRIX4x2 {
+        FRAG_VERT_ONLY("mat4x2", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtFloat, qual, $1.line);
+        $$.setMatrix(4, 2);
+    }
+    | MATRIX3x4 {
+        FRAG_VERT_ONLY("mat3x4", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtFloat, qual, $1.line);
+        $$.setMatrix(3, 4);
+    }
+    | MATRIX4x3 {
+        FRAG_VERT_ONLY("mat4x3", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtFloat, qual, $1.line);
+        $$.setMatrix(4, 3);
     }
     | SAMPLER2D {
         FRAG_VERT_ONLY("sampler2D", $1.line);
@@ -1774,6 +1827,66 @@ type_specifier_nonarray
         FRAG_VERT_ONLY("sampler3D", $1.line);
         TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
         $$.setBasic(EbtSampler3D, qual, $1.line);
+    }
+    | SAMPLER2DARRAY {
+        FRAG_VERT_ONLY("sampler2DArray", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtSampler2DArray, qual, $1.line);
+    }
+    | ISAMPLER2D {
+        FRAG_VERT_ONLY("isampler2D", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtISampler2D, qual, $1.line);
+    }
+    | ISAMPLER3D {
+        FRAG_VERT_ONLY("isampler3D", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtISampler3D, qual, $1.line);
+    }
+    | ISAMPLERCUBE {
+        FRAG_VERT_ONLY("isamplerCube", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtISamplerCube, qual, $1.line);
+    }
+    | ISAMPLER2DARRAY {
+        FRAG_VERT_ONLY("isampler2DArray", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtISampler2DArray, qual, $1.line);
+    }
+    | USAMPLER2D {
+        FRAG_VERT_ONLY("usampler2D", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtUSampler2D, qual, $1.line);
+    }
+    | USAMPLER3D {
+        FRAG_VERT_ONLY("usampler3D", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtUSampler3D, qual, $1.line);
+    }
+    | USAMPLERCUBE {
+        FRAG_VERT_ONLY("usamplerCube", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtUSamplerCube, qual, $1.line);
+    }
+    | USAMPLER2DARRAY {
+        FRAG_VERT_ONLY("usampler2DArray", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtUSampler2DArray, qual, $1.line);
+    }
+    | SAMPLER2DSHADOW {
+        FRAG_VERT_ONLY("sampler2DShadow", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtSampler2DShadow, qual, $1.line);
+    }
+    | SAMPLERCUBESHADOW {
+        FRAG_VERT_ONLY("samplerCubeShadow", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtSamplerCubeShadow, qual, $1.line);
+    }
+    | SAMPLER2DARRAYSHADOW {
+        FRAG_VERT_ONLY("sampler2DArrayShadow", $1.line);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtSampler2DArrayShadow, qual, $1.line);
     }
     | struct_specifier {
         FRAG_VERT_ONLY("struct", $1.line);
@@ -1846,8 +1959,8 @@ struct_declaration
             //
             TType* type = (*$$)[i].type;
             type->setBasicType($1.type);
-            type->setNominalSize($1.size);
-            type->setMatrix($1.matrix);
+            type->setNominalSize($1.primarySize);
+            type->setSecondarySize($1.secondarySize);
             type->setPrecision($1.precision);
 
             // don't allow arrays of arrays

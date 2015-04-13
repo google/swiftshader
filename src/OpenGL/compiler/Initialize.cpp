@@ -81,9 +81,9 @@ void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TS
     symbolTable.insertBuiltIn(COMMON_BUILTINS, EOpReflect, genType, "reflect", genType, genType);
     symbolTable.insertBuiltIn(COMMON_BUILTINS, EOpRefract, genType, "refract", genType, genType, float1);
 
-	TType *mat2 = new TType(EbtFloat, 2, true);
-	TType *mat3 = new TType(EbtFloat, 3, true);
-	TType *mat4 = new TType(EbtFloat, 4, true);
+	TType *mat2 = new TType(EbtFloat, 2, 2);
+	TType *mat3 = new TType(EbtFloat, 3, 3);
+	TType *mat4 = new TType(EbtFloat, 4, 4);
 
     //
     // Matrix Functions.
@@ -260,7 +260,7 @@ void IdentifyBuiltIns(GLenum shaderType,
     case GL_FRAGMENT_SHADER:
 		{
             // Set up gl_FragData.  The array size.
-            TType fragData(EbtFloat, EbpMedium, EvqFragData, 4, false, true);
+            TType fragData(EbtFloat, EbpMedium, EvqFragData, 4, 1, true);
             fragData.setArraySize(resources.MaxDrawBuffers);
             symbolTable.insert(ESSL1_BUILTINS, *new TVariable(NewPoolTString("gl_FragData"), fragData));
 		}
