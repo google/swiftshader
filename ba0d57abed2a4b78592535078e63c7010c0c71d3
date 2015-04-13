@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9033a6f4_2ca0b318",
+        "filename": "src/OpenGL/compiler/glslang.l",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-13T15:10:45Z",
+      "side": 1,
+      "message": "Doesn\u0027t appear to be reserved in ESSL 1.00, so it would be valid to use as an identifier. Use ES2_identifier_ES3_keyword() here instead.\n\nProbably more of these below.",
+      "range": {
+        "startLine": 166,
+        "startChar": 30,
+        "endLine": 166,
+        "endChar": 54
+      },
+      "revId": "ba0d57abed2a4b78592535078e63c7010c0c71d3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
