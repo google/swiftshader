@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9033a6f4_be54b7aa",
+        "filename": "src/OpenGL/libGLESv2/IndexDataManager.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-14T14:07:02Z",
+      "side": 1,
+      "message": "It is \"implementation dependent\" what happens in this case. Do we really want to return an error and draw nothing? I imagine a hardware implementation to just check if each fetch is within range, while it\u0027s already executing the draw itself. It might be worth checking the typical behavior here, as I imagine some applications will depend on that.",
+      "range": {
+        "startLine": 155,
+        "startChar": 1,
+        "endLine": 158,
+        "endChar": 2
+      },
+      "revId": "d74a7b032364d985101599b63f4df4cab93d4822",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
