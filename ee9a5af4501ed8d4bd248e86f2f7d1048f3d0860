@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b07b4aac_a98925f8",
+        "filename": "src/Shader/PixelRoutine.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-15T17:23:11Z",
+      "side": 1,
+      "message": "This is slightly confusing as it appears to be the plural of reg(). Since these functions are only used in a couple of places we can use much more explicit names; something like fetchRegisterS() and fetchRegisterF().",
+      "range": {
+        "startLine": 285,
+        "startChar": 11,
+        "endLine": 285,
+        "endChar": 15
+      },
+      "revId": "ee9a5af4501ed8d4bd248e86f2f7d1048f3d0860",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
