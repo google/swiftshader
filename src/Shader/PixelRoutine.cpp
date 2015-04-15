@@ -283,7 +283,7 @@ namespace sw
 				else
 				{
 					r.current = r.diffuse;
-					Vector4i temp(0x0000, 0x0000, 0x0000, 0x0000);
+					Vector4s temp(0x0000, 0x0000, 0x0000, 0x0000);
 
 					for(int stage = 0; stage < 8; stage++)
 					{
@@ -292,7 +292,7 @@ namespace sw
 							break;
 						}
 
-						Vector4i texture;
+						Vector4s texture;
 
 						if(state.textureStage[stage].usesTexture)
 						{
@@ -660,15 +660,15 @@ namespace sw
 		return zMask != 0;
 	}
 
-	void PixelRoutine::blendTexture(Registers &r, Vector4i &temp, Vector4i &texture, int stage)
+	void PixelRoutine::blendTexture(Registers &r, Vector4s &temp, Vector4s &texture, int stage)
 	{
-		Vector4i *arg1;
-		Vector4i *arg2;
-		Vector4i *arg3;
-		Vector4i res;
+		Vector4s *arg1;
+		Vector4s *arg2;
+		Vector4s *arg3;
+		Vector4s res;
 
-		Vector4i constant;
-		Vector4i tfactor;
+		Vector4s constant;
+		Vector4s tfactor;
 
 		const TextureStage::State &textureStage = state.textureStage[stage];
 
@@ -762,9 +762,9 @@ namespace sw
 			ASSERT(false);
 		}
 
-		Vector4i mod1;
-		Vector4i mod2;
-		Vector4i mod3;
+		Vector4s mod1;
+		Vector4s mod2;
+		Vector4s mod3;
 
 		switch(textureStage.firstModifier)
 		{
@@ -1628,7 +1628,7 @@ namespace sw
 		cMask[3] &= aMask3;
 	}
 
-	Bool PixelRoutine::alphaTest(Registers &r, Int cMask[4], Vector4i &current)
+	Bool PixelRoutine::alphaTest(Registers &r, Int cMask[4], Vector4s &current)
 	{
 		if(!state.alphaTestActive())
 		{
@@ -1700,7 +1700,7 @@ namespace sw
 		return pass != 0x0;
 	}
 
-	void PixelRoutine::fogBlend(Registers &r, Vector4i &current, Float4 &f, Float4 &z, Float4 &rhw)
+	void PixelRoutine::fogBlend(Registers &r, Vector4s &current, Float4 &f, Float4 &z, Float4 &rhw)
 	{
 		if(!state.fogActive)
 		{
@@ -1799,7 +1799,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::specularPixel(Vector4i &current, Vector4i &specular)
+	void PixelRoutine::specularPixel(Vector4s &current, Vector4s &specular)
 	{
 		if(!state.specularAdd)
 		{
@@ -2014,7 +2014,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::sampleTexture(Registers &r, Vector4i &c, int coordinates, int stage, bool project)
+	void PixelRoutine::sampleTexture(Registers &r, Vector4s &c, int coordinates, int stage, bool project)
 	{
 		Float4 u = r.vf[2 + coordinates].x;
 		Float4 v = r.vf[2 + coordinates].y;
@@ -2032,7 +2032,7 @@ namespace sw
 		sampleTexture(r, c, stage, u, v, w, q, project);
 	}
 
-	void PixelRoutine::sampleTexture(Registers &r, Vector4i &c, int stage, Float4 &u, Float4 &v, Float4 &w, Float4 &q, bool project, bool bias, bool fixed12)
+	void PixelRoutine::sampleTexture(Registers &r, Vector4s &c, int stage, Float4 &u, Float4 &v, Float4 &w, Float4 &q, bool project, bool bias, bool fixed12)
 	{
 		Vector4f dsx;
 		Vector4f dsy;
@@ -2040,7 +2040,7 @@ namespace sw
 		sampleTexture(r, c, stage, u, v, w, q, dsx, dsy, project, bias, fixed12, false);
 	}
 
-	void PixelRoutine::sampleTexture(Registers &r, Vector4i &c, int stage, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project, bool bias, bool fixed12, bool gradients, bool lodProvided)
+	void PixelRoutine::sampleTexture(Registers &r, Vector4s &c, int stage, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project, bool bias, bool fixed12, bool gradients, bool lodProvided)
 	{
 		#if PERF_PROFILE
 			Long texTime = Ticks();
@@ -2076,7 +2076,7 @@ namespace sw
 		}
 		else
 		{
-			Int index = As<Int>(Float(reg(r, sampler).x.x));
+			Int index = As<Int>(Float(fetchRegisterF(r, sampler).x.x));
 
 			for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
 			{
@@ -2155,7 +2155,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::rasterOperation(Vector4i &current, Registers &r, Float4 &fog, Pointer<Byte> &cBuffer, Int &x, Int sMask[4], Int zMask[4], Int cMask[4])
+	void PixelRoutine::rasterOperation(Vector4s &current, Registers &r, Float4 &fog, Pointer<Byte> &cBuffer, Int &x, Int sMask[4], Int zMask[4], Int cMask[4])
 	{
 		if(!state.colorWriteActive(0))
 		{
@@ -2190,7 +2190,7 @@ namespace sw
 			for(unsigned int q = 0; q < state.multiSample; q++)
 			{
 				Pointer<Byte> buffer = cBuffer + q * *Pointer<Int>(r.data + OFFSET(DrawData,colorSliceB[0]));
-				Vector4i color = current;
+				Vector4s color = current;
 
 				if(state.multiSampleMask & (1 << q))
 				{
@@ -2255,7 +2255,7 @@ namespace sw
 				for(unsigned int q = 0; q < state.multiSample; q++)
 				{
 					Pointer<Byte> buffer = cBuffer[index] + q * *Pointer<Int>(r.data + OFFSET(DrawData,colorSliceB[index]));
-					Vector4i color;
+					Vector4s color;
 
 					color.x = convertFixed16(oC[index].x, false);
 					color.y = convertFixed16(oC[index].y, false);
@@ -2290,7 +2290,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactor(Registers &r, const Vector4i &blendFactor, const Vector4i &current, const Vector4i &pixel, BlendFactor blendFactorActive)
+	void PixelRoutine::blendFactor(Registers &r, const Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorActive)
 	{
 		switch(blendFactorActive)
 		{
@@ -2371,7 +2371,7 @@ namespace sw
 		}
 	}
 	
-	void PixelRoutine::blendFactorAlpha(Registers &r, const Vector4i &blendFactor, const Vector4i &current, const Vector4i &pixel, BlendFactor blendFactorAlphaActive)
+	void PixelRoutine::blendFactorAlpha(Registers &r, const Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorAlphaActive)
 	{
 		switch(blendFactorAlphaActive)
 		{
@@ -2421,7 +2421,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::alphaBlend(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4i &current, Int &x)
+	void PixelRoutine::alphaBlend(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x)
 	{
 		if(!state.alphaBlendActive)
 		{
@@ -2430,7 +2430,7 @@ namespace sw
 		 
 		Pointer<Byte> buffer;
 
-		Vector4i pixel;
+		Vector4s pixel;
 		Short4 c01;
 		Short4 c23;
 
@@ -2569,8 +2569,8 @@ namespace sw
 		}
 
 		// Final Color = ObjectColor * SourceBlendFactor + PixelColor * DestinationBlendFactor
-		Vector4i sourceFactor;
-		Vector4i destFactor;
+		Vector4s sourceFactor;
+		Vector4s destFactor;
 
 		blendFactor(r, sourceFactor, current, pixel, state.sourceBlendFactor);
 		blendFactor(r, destFactor, current, pixel, state.destBlendFactor);
@@ -2677,7 +2677,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::writeColor(Registers &r, int index, Pointer<Byte> &cBuffer, Int &x, Vector4i &current, Int &sMask, Int &zMask, Int &cMask)
+	void PixelRoutine::writeColor(Registers &r, int index, Pointer<Byte> &cBuffer, Int &x, Vector4s &current, Int &sMask, Int &zMask, Int &cMask)
 	{
 		if(!state.colorWriteActive(index))
 		{
@@ -3233,7 +3233,7 @@ namespace sw
 		Pointer<Byte> buffer;
 		Vector4f pixel;
 
-		Vector4i color;
+		Vector4s color;
 		Short4 c01;
 		Short4 c23;
 
@@ -3550,7 +3550,7 @@ namespace sw
 			return;
 		}
 
-		Vector4i color;
+		Vector4s color;
 
 		switch(state.targetFormat[index])
 		{
@@ -3750,7 +3750,7 @@ namespace sw
 	void PixelRoutine::ps_1_x(Registers &r, Int cMask[4])
 	{
 		int pad = 0;        // Count number of texm3x3pad instructions
-		Vector4i dPairing;   // Destination for first pairing instruction
+		Vector4s dPairing;   // Destination for first pairing instruction
 
 		for(size_t i = 0; i < shader->getLength(); i++)
 		{
@@ -3775,14 +3775,14 @@ namespace sw
 			bool pairing = i + 1 < shader->getLength() && shader->getInstruction(i + 1)->coissue;   // First instruction of pair
 			bool coissue = instruction->coissue;                                                              // Second instruction of pair
 
-			Vector4i d;
-			Vector4i s0;
-			Vector4i s1;
-			Vector4i s2;
+			Vector4s d;
+			Vector4s s0;
+			Vector4s s1;
+			Vector4s s2;
 
-			if(src0.type != Shader::PARAMETER_VOID) s0 = regi(r, src0);
-			if(src1.type != Shader::PARAMETER_VOID) s1 = regi(r, src1);
-			if(src2.type != Shader::PARAMETER_VOID) s2 = regi(r, src2);
+			if(src0.type != Shader::PARAMETER_VOID) s0 = fetchRegisterS(r, src0);
+			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegisterS(r, src1);
+			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegisterS(r, src2);
 
 			Float4 u = version < 0x0104 ? r.vf[2 + dst.index].x : r.vf[2 + src0.index].x;
 			Float4 v = version < 0x0104 ? r.vf[2 + dst.index].y : r.vf[2 + src0.index].y;
@@ -3838,7 +3838,7 @@ namespace sw
 					}
 					else
 					{
-						TEXKILL(cMask, r.ri[dst.index]);
+						TEXKILL(cMask, r.rs[dst.index]);
 					}
 				}
 				else ASSERT(false);
@@ -4011,10 +4011,10 @@ namespace sw
 				}
 			}
 
-			if(src0.type != Shader::PARAMETER_VOID) s0 = reg(r, src0);
-			if(src1.type != Shader::PARAMETER_VOID) s1 = reg(r, src1);
-			if(src2.type != Shader::PARAMETER_VOID) s2 = reg(r, src2);
-			if(src3.type != Shader::PARAMETER_VOID) s3 = reg(r, src3);
+			if(src0.type != Shader::PARAMETER_VOID) s0 = fetchRegisterF(r, src0);
+			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegisterF(r, src1);
+			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegisterF(r, src2);
+			if(src3.type != Shader::PARAMETER_VOID) s3 = fetchRegisterF(r, src3);
 
 			switch(opcode)
 			{
@@ -4323,12 +4323,12 @@ namespace sw
 		return RoundShort4(cf * Float4(0x1000));
 	}
 
-	void PixelRoutine::convertFixed12(Vector4i &ci, Vector4f &cf)
+	void PixelRoutine::convertFixed12(Vector4s &cs, Vector4f &cf)
 	{
-		ci.x = convertFixed12(cf.x);
-		ci.y = convertFixed12(cf.y);
-		ci.z = convertFixed12(cf.z);
-		ci.w = convertFixed12(cf.w);
+		cs.x = convertFixed12(cf.x);
+		cs.y = convertFixed12(cf.y);
+		cs.z = convertFixed12(cf.z);
+		cs.w = convertFixed12(cf.w);
 	}
 
 	UShort4 PixelRoutine::convertFixed16(Float4 &cf, bool saturate)
@@ -4336,33 +4336,33 @@ namespace sw
 		return UShort4(cf * Float4(0xFFFF), saturate);
 	}
 
-	void PixelRoutine::convertFixed16(Vector4i &ci, Vector4f &cf, bool saturate)
+	void PixelRoutine::convertFixed16(Vector4s &cs, Vector4f &cf, bool saturate)
 	{
-		ci.x = convertFixed16(cf.x, saturate);
-		ci.y = convertFixed16(cf.y, saturate);
-		ci.z = convertFixed16(cf.z, saturate);
-		ci.w = convertFixed16(cf.w, saturate);
+		cs.x = convertFixed16(cf.x, saturate);
+		cs.y = convertFixed16(cf.y, saturate);
+		cs.z = convertFixed16(cf.z, saturate);
+		cs.w = convertFixed16(cf.w, saturate);
 	}
 
-	Float4 PixelRoutine::convertSigned12(Short4 &ci)
+	Float4 PixelRoutine::convertSigned12(Short4 &cs)
 	{
-		return Float4(ci) * Float4(1.0f / 0x0FFE);
+		return Float4(cs) * Float4(1.0f / 0x0FFE);
 	}
 
-	void PixelRoutine::convertSigned12(Vector4f &cf, Vector4i &ci)
+	void PixelRoutine::convertSigned12(Vector4f &cf, Vector4s &cs)
 	{
-		cf.x = convertSigned12(ci.x);
-		cf.y = convertSigned12(ci.y);
-		cf.z = convertSigned12(ci.z);
-		cf.w = convertSigned12(ci.w);
+		cf.x = convertSigned12(cs.x);
+		cf.y = convertSigned12(cs.y);
+		cf.z = convertSigned12(cs.z);
+		cf.w = convertSigned12(cs.w);
 	}
 
-	Float4 PixelRoutine::convertUnsigned16(UShort4 ci)
+	Float4 PixelRoutine::convertUnsigned16(UShort4 cs)
 	{
-		return Float4(ci) * Float4(1.0f / 0xFFFF);
+		return Float4(cs) * Float4(1.0f / 0xFFFF);
 	}
 
-	void PixelRoutine::sRGBtoLinear16_16(Registers &r, Vector4i &c)
+	void PixelRoutine::sRGBtoLinear16_16(Registers &r, Vector4s &c)
 	{
 		c.x = As<UShort4>(c.x) >> 4;
 		c.y = As<UShort4>(c.y) >> 4;
@@ -4371,7 +4371,7 @@ namespace sw
 		sRGBtoLinear12_16(r, c);
 	}
 
-	void PixelRoutine::sRGBtoLinear12_16(Registers &r, Vector4i &c)
+	void PixelRoutine::sRGBtoLinear12_16(Registers &r, Vector4s &c)
 	{
 		Pointer<Byte> LUT = r.constants + OFFSET(Constants,sRGBtoLin12_16);
 
@@ -4391,7 +4391,7 @@ namespace sw
 		c.z = Insert(c.z, *Pointer<Short>(LUT + 2 * Int(Extract(c.z, 3))), 3);
 	}
 
-	void PixelRoutine::linearToSRGB16_16(Registers &r, Vector4i &c)
+	void PixelRoutine::linearToSRGB16_16(Registers &r, Vector4s &c)
 	{
 		c.x = As<UShort4>(c.x) >> 4;
 		c.y = As<UShort4>(c.y) >> 4;
@@ -4400,7 +4400,7 @@ namespace sw
 		linearToSRGB12_16(r, c);
 	}
 
-	void PixelRoutine::linearToSRGB12_16(Registers &r, Vector4i &c)
+	void PixelRoutine::linearToSRGB12_16(Registers &r, Vector4s &c)
 	{
 		Pointer<Byte> LUT = r.constants + OFFSET(Constants,linToSRGB12_16);
 
@@ -4436,7 +4436,7 @@ namespace sw
 		return Min(Max(linear, Float4(0.0f)), Float4(1.0f));
 	}
 
-	void PixelRoutine::MOV(Vector4i &dst, Vector4i &src0)
+	void PixelRoutine::MOV(Vector4s &dst, Vector4s &src0)
 	{
 		dst.x = src0.x;
 		dst.y = src0.y;
@@ -4444,7 +4444,7 @@ namespace sw
 		dst.w = src0.w;
 	}
 
-	void PixelRoutine::ADD(Vector4i &dst, Vector4i &src0, Vector4i &src1)
+	void PixelRoutine::ADD(Vector4s &dst, Vector4s &src0, Vector4s &src1)
 	{
 		dst.x = AddSat(src0.x, src1.x);
 		dst.y = AddSat(src0.y, src1.y);
@@ -4452,7 +4452,7 @@ namespace sw
 		dst.w = AddSat(src0.w, src1.w);
 	}
 
-	void PixelRoutine::SUB(Vector4i &dst, Vector4i &src0, Vector4i &src1)
+	void PixelRoutine::SUB(Vector4s &dst, Vector4s &src0, Vector4s &src1)
 	{
 		dst.x = SubSat(src0.x, src1.x);
 		dst.y = SubSat(src0.y, src1.y);
@@ -4460,7 +4460,7 @@ namespace sw
 		dst.w = SubSat(src0.w, src1.w);
 	}
 
-	void PixelRoutine::MAD(Vector4i &dst, Vector4i &src0, Vector4i &src1, Vector4i &src2)
+	void PixelRoutine::MAD(Vector4s &dst, Vector4s &src0, Vector4s &src1, Vector4s &src2)
 	{
 		// FIXME: Long fixed-point multiply fixup
 		{dst.x = MulHigh(src0.x, src1.x); dst.x = AddSat(dst.x, dst.x); dst.x = AddSat(dst.x, dst.x); dst.x = AddSat(dst.x, dst.x); dst.x = AddSat(dst.x, dst.x); dst.x = AddSat(dst.x, src2.x);}
@@ -4469,7 +4469,7 @@ namespace sw
 		{dst.w = MulHigh(src0.w, src1.w); dst.w = AddSat(dst.w, dst.w); dst.w = AddSat(dst.w, dst.w); dst.w = AddSat(dst.w, dst.w); dst.w = AddSat(dst.w, dst.w); dst.w = AddSat(dst.w, src2.w);}
 	}
 
-	void PixelRoutine::MUL(Vector4i &dst, Vector4i &src0, Vector4i &src1)
+	void PixelRoutine::MUL(Vector4s &dst, Vector4s &src0, Vector4s &src1)
 	{
 		// FIXME: Long fixed-point multiply fixup
 		{dst.x = MulHigh(src0.x, src1.x); dst.x = AddSat(dst.x, dst.x); dst.x = AddSat(dst.x, dst.x); dst.x = AddSat(dst.x, dst.x); dst.x = AddSat(dst.x, dst.x);}
@@ -4478,7 +4478,7 @@ namespace sw
 		{dst.w = MulHigh(src0.w, src1.w); dst.w = AddSat(dst.w, dst.w); dst.w = AddSat(dst.w, dst.w); dst.w = AddSat(dst.w, dst.w); dst.w = AddSat(dst.w, dst.w);}
 	}
 
-	void PixelRoutine::DP3(Vector4i &dst, Vector4i &src0, Vector4i &src1)
+	void PixelRoutine::DP3(Vector4s &dst, Vector4s &src0, Vector4s &src1)
 	{
 		Short4 t0;
 		Short4 t1;
@@ -4496,7 +4496,7 @@ namespace sw
 		dst.w = t0;
 	}
 
-	void PixelRoutine::DP4(Vector4i &dst, Vector4i &src0, Vector4i &src1)
+	void PixelRoutine::DP4(Vector4s &dst, Vector4s &src0, Vector4s &src1)
 	{
 		Short4 t0;
 		Short4 t1;
@@ -4516,7 +4516,7 @@ namespace sw
 		dst.w = t0;
 	}
 
-	void PixelRoutine::LRP(Vector4i &dst, Vector4i &src0, Vector4i &src1, Vector4i &src2)
+	void PixelRoutine::LRP(Vector4s &dst, Vector4s &src0, Vector4s &src1, Vector4s &src2)
 	{
 		// FIXME: Long fixed-point multiply fixup
 		{dst.x = SubSat(src1.x, src2.x); dst.x = MulHigh(dst.x, src0.x); dst.x = AddSat(dst.x, dst.x); dst.x = AddSat(dst.x, dst.x); dst.x = AddSat(dst.x, dst.x); dst.x = AddSat(dst.x, dst.x); dst.x = AddSat(dst.x, src2.x);}
@@ -4525,7 +4525,7 @@ namespace sw
 		{dst.w = SubSat(src1.w, src2.w); dst.w = MulHigh(dst.w, src0.w); dst.w = AddSat(dst.w, dst.w); dst.w = AddSat(dst.w, dst.w); dst.w = AddSat(dst.w, dst.w); dst.w = AddSat(dst.w, dst.w); dst.w = AddSat(dst.w, src2.w);}
 	}
 
-	void PixelRoutine::TEXCOORD(Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int coordinate)
+	void PixelRoutine::TEXCOORD(Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int coordinate)
 	{
 		Float4 uw;
 		Float4 vw;
@@ -4567,7 +4567,7 @@ namespace sw
 		dst.w = Short4(0x1000);
 	}
 
-	void PixelRoutine::TEXCRD(Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int coordinate, bool project)
+	void PixelRoutine::TEXCRD(Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int coordinate, bool project)
 	{
 		Float4 uw = u;
 		Float4 vw = v;
@@ -4616,7 +4616,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::TEXDP3(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, Vector4i &src)
+	void PixelRoutine::TEXDP3(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, Vector4s &src)
 	{
 		TEXM3X3PAD(r, u, v, s, src, 0, false);
 
@@ -4628,7 +4628,7 @@ namespace sw
 		dst.w = t0;
 	}
 
-	void PixelRoutine::TEXDP3TEX(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4i &src0)
+	void PixelRoutine::TEXDP3TEX(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0)
 	{
 		TEXM3X3PAD(r, u, v, s, src0, 0, false);
 
@@ -4650,7 +4650,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::TEXKILL(Int cMask[4], Vector4i &src)
+	void PixelRoutine::TEXKILL(Int cMask[4], Vector4s &src)
 	{
 		Short4 test = src.x | src.y | src.z;
 		Int kill = SignMask(Pack(test, test)) ^ 0x0000000F;
@@ -4661,12 +4661,12 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::TEX(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int sampler, bool project)
+	void PixelRoutine::TEX(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int sampler, bool project)
 	{
 		sampleTexture(r, dst, sampler, u, v, s, s, project);
 	}
 
-	void PixelRoutine::TEXLD(Registers &r, Vector4i &dst, Vector4i &src, int sampler, bool project)
+	void PixelRoutine::TEXLD(Registers &r, Vector4s &dst, Vector4s &src, int sampler, bool project)
 	{
 		Float4 u = Float4(src.x) * Float4(1.0f / 0x0FFE);
 		Float4 v = Float4(src.y) * Float4(1.0f / 0x0FFE);
@@ -4675,7 +4675,7 @@ namespace sw
 		sampleTexture(r, dst, sampler, u, v, s, s, project);
 	}
 
-	void PixelRoutine::TEXBEM(Registers &r, Vector4i &dst, Vector4i &src, Float4 &u, Float4 &v, Float4 &s, int stage)
+	void PixelRoutine::TEXBEM(Registers &r, Vector4s &dst, Vector4s &src, Float4 &u, Float4 &v, Float4 &s, int stage)
 	{
 		Float4 du = Float4(src.x) * Float4(1.0f / 0x0FFE);
 		Float4 dv = Float4(src.y) * Float4(1.0f / 0x0FFE);
@@ -4696,7 +4696,7 @@ namespace sw
 		sampleTexture(r, dst, stage, u_, v_, s, s);
 	}
 
-	void PixelRoutine::TEXBEML(Registers &r, Vector4i &dst, Vector4i &src, Float4 &u, Float4 &v, Float4 &s, int stage)
+	void PixelRoutine::TEXBEML(Registers &r, Vector4s &dst, Vector4s &src, Float4 &u, Float4 &v, Float4 &s, int stage)
 	{
 		Float4 du = Float4(src.x) * Float4(1.0f / 0x0FFE);
 		Float4 dv = Float4(src.y) * Float4(1.0f / 0x0FFE);
@@ -4730,7 +4730,7 @@ namespace sw
 		dst.z = MulHigh(dst.z, L); dst.z = dst.z << 4;
 	}
 
-	void PixelRoutine::TEXREG2AR(Registers &r, Vector4i &dst, Vector4i &src0, int stage)
+	void PixelRoutine::TEXREG2AR(Registers &r, Vector4s &dst, Vector4s &src0, int stage)
 	{
 		Float4 u = Float4(src0.w) * Float4(1.0f / 0x0FFE);
 		Float4 v = Float4(src0.x) * Float4(1.0f / 0x0FFE);
@@ -4739,7 +4739,7 @@ namespace sw
 		sampleTexture(r, dst, stage, u, v, s, s);
 	}
 
-	void PixelRoutine::TEXREG2GB(Registers &r, Vector4i &dst, Vector4i &src0, int stage)
+	void PixelRoutine::TEXREG2GB(Registers &r, Vector4s &dst, Vector4s &src0, int stage)
 	{
 		Float4 u = Float4(src0.y) * Float4(1.0f / 0x0FFE);
 		Float4 v = Float4(src0.z) * Float4(1.0f / 0x0FFE);
@@ -4748,7 +4748,7 @@ namespace sw
 		sampleTexture(r, dst, stage, u, v, s, s);
 	}
 
-	void PixelRoutine::TEXREG2RGB(Registers &r, Vector4i &dst, Vector4i &src0, int stage)
+	void PixelRoutine::TEXREG2RGB(Registers &r, Vector4s &dst, Vector4s &src0, int stage)
 	{
 		Float4 u = Float4(src0.x) * Float4(1.0f / 0x0FFE);
 		Float4 v = Float4(src0.y) * Float4(1.0f / 0x0FFE);
@@ -4757,7 +4757,7 @@ namespace sw
 		sampleTexture(r, dst, stage, u, v, s, s);
 	}
 
-	void PixelRoutine::TEXM3X2DEPTH(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, Vector4i &src, bool signedScaling)
+	void PixelRoutine::TEXM3X2DEPTH(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, Vector4s &src, bool signedScaling)
 	{
 		TEXM3X2PAD(r, u, v, s, src, 1, signedScaling);
 
@@ -4767,12 +4767,12 @@ namespace sw
 		r.oDepth = r.u_;
 	}
 
-	void PixelRoutine::TEXM3X2PAD(Registers &r, Float4 &u, Float4 &v, Float4 &s, Vector4i &src0, int component, bool signedScaling)
+	void PixelRoutine::TEXM3X2PAD(Registers &r, Float4 &u, Float4 &v, Float4 &s, Vector4s &src0, int component, bool signedScaling)
 	{
 		TEXM3X3PAD(r, u, v, s, src0, component, signedScaling);
 	}
 
-	void PixelRoutine::TEXM3X2TEX(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4i &src0, bool signedScaling)
+	void PixelRoutine::TEXM3X2TEX(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0, bool signedScaling)
 	{
 		TEXM3X2PAD(r, u, v, s, src0, 1, signedScaling);
 
@@ -4781,7 +4781,7 @@ namespace sw
 		sampleTexture(r, dst, stage, r.u_, r.v_, r.w_, r.w_);
 	}
 
-	void PixelRoutine::TEXM3X3(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, Vector4i &src0, bool signedScaling)
+	void PixelRoutine::TEXM3X3(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, Vector4s &src0, bool signedScaling)
 	{
 		TEXM3X3PAD(r, u, v, s, src0, 2, signedScaling);
 
@@ -4791,7 +4791,7 @@ namespace sw
 		dst.w = Short4(0x1000);
 	}
 
-	void PixelRoutine::TEXM3X3PAD(Registers &r, Float4 &u, Float4 &v, Float4 &s, Vector4i &src0, int component, bool signedScaling)
+	void PixelRoutine::TEXM3X3PAD(Registers &r, Float4 &u, Float4 &v, Float4 &s, Vector4s &src0, int component, bool signedScaling)
 	{
 		if(component == 0 || previousScaling != signedScaling)   // FIXME: Other source modifiers?
 		{
@@ -4815,7 +4815,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::TEXM3X3SPEC(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4i &src0, Vector4i &src1)
+	void PixelRoutine::TEXM3X3SPEC(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0, Vector4s &src1)
 	{
 		TEXM3X3PAD(r, u, v, s, src0, 2, false);
 
@@ -4852,14 +4852,14 @@ namespace sw
 		sampleTexture(r, dst, stage,  u__, v__, w__, w__);
 	}
 
-	void PixelRoutine::TEXM3X3TEX(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4i &src0, bool signedScaling)
+	void PixelRoutine::TEXM3X3TEX(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0, bool signedScaling)
 	{
 		TEXM3X3PAD(r, u, v, s, src0, 2, signedScaling);
 
 		sampleTexture(r, dst, stage, r.u_, r.v_, r.w_, r.w_);
 	}
 
-	void PixelRoutine::TEXM3X3VSPEC(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4i &src0)
+	void PixelRoutine::TEXM3X3VSPEC(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0)
 	{
 		TEXM3X3PAD(r, u, v, s, src0, 2, false);
 
@@ -4898,8 +4898,8 @@ namespace sw
 
 	void PixelRoutine::TEXDEPTH(Registers &r)
 	{
-		r.u_ = Float4(r.ri[5].x);
-		r.v_ = Float4(r.ri[5].y);
+		r.u_ = Float4(r.rs[5].x);
+		r.v_ = Float4(r.rs[5].y);
 
 		// z / w
 		r.u_ *= Rcp_pp(r.v_);   // FIXME: Set result to 1.0 when division by zero
@@ -4907,7 +4907,7 @@ namespace sw
 		r.oDepth = r.u_;
 	}
 
-	void PixelRoutine::CND(Vector4i &dst, Vector4i &src0, Vector4i &src1, Vector4i &src2)
+	void PixelRoutine::CND(Vector4s &dst, Vector4s &src0, Vector4s &src1, Vector4s &src2)
 	{
 		{Short4 t0; t0 = src0.x; t0 = CmpGT(t0, Short4(0x0800, 0x0800, 0x0800, 0x0800)); Short4 t1; t1 = src1.x; t1 = t1 & t0; t0 = ~t0 & src2.x; t0 = t0 | t1; dst.x = t0;};
 		{Short4 t0; t0 = src0.y; t0 = CmpGT(t0, Short4(0x0800, 0x0800, 0x0800, 0x0800)); Short4 t1; t1 = src1.y; t1 = t1 & t0; t0 = ~t0 & src2.y; t0 = t0 | t1; dst.y = t0;};
@@ -4915,7 +4915,7 @@ namespace sw
 		{Short4 t0; t0 = src0.w; t0 = CmpGT(t0, Short4(0x0800, 0x0800, 0x0800, 0x0800)); Short4 t1; t1 = src1.w; t1 = t1 & t0; t0 = ~t0 & src2.w; t0 = t0 | t1; dst.w = t0;};
 	}
 
-	void PixelRoutine::CMP(Vector4i &dst, Vector4i &src0, Vector4i &src1, Vector4i &src2)
+	void PixelRoutine::CMP(Vector4s &dst, Vector4s &src0, Vector4s &src1, Vector4s &src2)
 	{
 		{Short4 t0 = CmpGT(Short4(0x0000, 0x0000, 0x0000, 0x0000), src0.x); Short4 t1; t1 = src2.x; t1 &= t0; t0 = ~t0 & src1.x; t0 |= t1; dst.x = t0;};
 		{Short4 t0 = CmpGT(Short4(0x0000, 0x0000, 0x0000, 0x0000), src0.y); Short4 t1; t1 = src2.y; t1 &= t0; t0 = ~t0 & src1.y; t0 |= t1; dst.y = t0;};
@@ -4923,7 +4923,7 @@ namespace sw
 		{Short4 t0 = CmpGT(Short4(0x0000, 0x0000, 0x0000, 0x0000), src0.w); Short4 t1; t1 = src2.w; t1 &= t0; t0 = ~t0 & src1.w; t0 |= t1; dst.w = t0;};
 	}
 
-	void PixelRoutine::BEM(Registers &r, Vector4i &dst, Vector4i &src0, Vector4i &src1, int stage)
+	void PixelRoutine::BEM(Registers &r, Vector4s &dst, Vector4s &src0, Vector4s &src1, int stage)
 	{
 		Short4 t0;
 		Short4 t1;
@@ -4945,8 +4945,8 @@ namespace sw
 
 	void PixelRoutine::M3X2(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1)
 	{
-		Vector4f row0 = reg(r, src1, 0);
-		Vector4f row1 = reg(r, src1, 1);
+		Vector4f row0 = fetchRegisterF(r, src1, 0);
+		Vector4f row1 = fetchRegisterF(r, src1, 1);
 
 		dst.x = dot3(src0, row0);
 		dst.y = dot3(src0, row1);
@@ -4954,9 +4954,9 @@ namespace sw
 
 	void PixelRoutine::M3X3(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1)
 	{
-		Vector4f row0 = reg(r, src1, 0);
-		Vector4f row1 = reg(r, src1, 1);
-		Vector4f row2 = reg(r, src1, 2);
+		Vector4f row0 = fetchRegisterF(r, src1, 0);
+		Vector4f row1 = fetchRegisterF(r, src1, 1);
+		Vector4f row2 = fetchRegisterF(r, src1, 2);
 
 		dst.x = dot3(src0, row0);
 		dst.y = dot3(src0, row1);
@@ -4965,10 +4965,10 @@ namespace sw
 
 	void PixelRoutine::M3X4(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1)
 	{
-		Vector4f row0 = reg(r, src1, 0);
-		Vector4f row1 = reg(r, src1, 1);
-		Vector4f row2 = reg(r, src1, 2);
-		Vector4f row3 = reg(r, src1, 3);
+		Vector4f row0 = fetchRegisterF(r, src1, 0);
+		Vector4f row1 = fetchRegisterF(r, src1, 1);
+		Vector4f row2 = fetchRegisterF(r, src1, 2);
+		Vector4f row3 = fetchRegisterF(r, src1, 3);
 
 		dst.x = dot3(src0, row0);
 		dst.y = dot3(src0, row1);
@@ -4978,9 +4978,9 @@ namespace sw
 
 	void PixelRoutine::M4X3(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1)
 	{
-		Vector4f row0 = reg(r, src1, 0);
-		Vector4f row1 = reg(r, src1, 1);
-		Vector4f row2 = reg(r, src1, 2);
+		Vector4f row0 = fetchRegisterF(r, src1, 0);
+		Vector4f row1 = fetchRegisterF(r, src1, 1);
+		Vector4f row2 = fetchRegisterF(r, src1, 2);
 
 		dst.x = dot4(src0, row0);
 		dst.y = dot4(src0, row1);
@@ -4989,10 +4989,10 @@ namespace sw
 
 	void PixelRoutine::M4X4(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1)
 	{
-		Vector4f row0 = reg(r, src1, 0);
-		Vector4f row1 = reg(r, src1, 1);
-		Vector4f row2 = reg(r, src1, 2);
-		Vector4f row3 = reg(r, src1, 3);
+		Vector4f row0 = fetchRegisterF(r, src1, 0);
+		Vector4f row1 = fetchRegisterF(r, src1, 1);
+		Vector4f row2 = fetchRegisterF(r, src1, 2);
+		Vector4f row3 = fetchRegisterF(r, src1, 3);
 
 		dst.x = dot4(src0, row0);
 		dst.y = dot4(src0, row1);
@@ -5372,7 +5372,7 @@ namespace sw
 		}
 		else
 		{
-			Int4 condition = As<Int4>(reg(r, src).x);
+			Int4 condition = As<Int4>(fetchRegisterF(r, src).x);
 			IF(r, condition);
 		}
 	}
@@ -5541,7 +5541,7 @@ namespace sw
 		Nucleus::setInsertBlock(testBlock);
 		r.enableContinue = restoreContinue;
 
-		const Vector4f &src = reg(r, temporaryRegister);
+		const Vector4f &src = fetchRegisterF(r, temporaryRegister);
 		Int4 condition = As<Int4>(src.x);
 		condition &= r.enableStack[r.enableIndex - 1];
 		r.enableStack[r.enableIndex] = condition;
@@ -5604,46 +5604,46 @@ namespace sw
 		// FIXME: Use enableLeave in other control-flow constructs
 	}
 	
-	void PixelRoutine::writeDestination(Registers &r, Vector4i &d, const Dst &dst)
+	void PixelRoutine::writeDestination(Registers &r, Vector4s &d, const Dst &dst)
 	{
 		switch(dst.type)
 		{
 		case Shader::PARAMETER_TEMP:
-			if(dst.mask & 0x1) r.ri[dst.index].x = d.x;
-			if(dst.mask & 0x2) r.ri[dst.index].y = d.y;
-			if(dst.mask & 0x4) r.ri[dst.index].z = d.z;
-			if(dst.mask & 0x8) r.ri[dst.index].w = d.w;
+			if(dst.mask & 0x1) r.rs[dst.index].x = d.x;
+			if(dst.mask & 0x2) r.rs[dst.index].y = d.y;
+			if(dst.mask & 0x4) r.rs[dst.index].z = d.z;
+			if(dst.mask & 0x8) r.rs[dst.index].w = d.w;
 			break;
 		case Shader::PARAMETER_INPUT:
-			if(dst.mask & 0x1) r.vi[dst.index].x = d.x;
-			if(dst.mask & 0x2) r.vi[dst.index].y = d.y;
-			if(dst.mask & 0x4) r.vi[dst.index].z = d.z;
-			if(dst.mask & 0x8) r.vi[dst.index].w = d.w;
+			if(dst.mask & 0x1) r.vs[dst.index].x = d.x;
+			if(dst.mask & 0x2) r.vs[dst.index].y = d.y;
+			if(dst.mask & 0x4) r.vs[dst.index].z = d.z;
+			if(dst.mask & 0x8) r.vs[dst.index].w = d.w;
 			break;
 		case Shader::PARAMETER_CONST:			ASSERT(false);	break;
 		case Shader::PARAMETER_TEXTURE:
-			if(dst.mask & 0x1) r.ti[dst.index].x = d.x;
-			if(dst.mask & 0x2) r.ti[dst.index].y = d.y;
-			if(dst.mask & 0x4) r.ti[dst.index].z = d.z;
-			if(dst.mask & 0x8) r.ti[dst.index].w = d.w;
+			if(dst.mask & 0x1) r.ts[dst.index].x = d.x;
+			if(dst.mask & 0x2) r.ts[dst.index].y = d.y;
+			if(dst.mask & 0x4) r.ts[dst.index].z = d.z;
+			if(dst.mask & 0x8) r.ts[dst.index].w = d.w;
 			break;
 		case Shader::PARAMETER_COLOROUT:
-			if(dst.mask & 0x1) r.vi[dst.index].x = d.x;
-			if(dst.mask & 0x2) r.vi[dst.index].y = d.y;
-			if(dst.mask & 0x4) r.vi[dst.index].z = d.z;
-			if(dst.mask & 0x8) r.vi[dst.index].w = d.w;
+			if(dst.mask & 0x1) r.vs[dst.index].x = d.x;
+			if(dst.mask & 0x2) r.vs[dst.index].y = d.y;
+			if(dst.mask & 0x4) r.vs[dst.index].z = d.z;
+			if(dst.mask & 0x8) r.vs[dst.index].w = d.w;
 			break;
 		default:
 			ASSERT(false);
 		}
 	}
 
-	Vector4i PixelRoutine::regi(Registers &r, const Src &src)
+	Vector4s PixelRoutine::fetchRegisterS(Registers &r, const Src &src)
 	{
-		Vector4i *reg;
+		Vector4s *reg;
 		int i = src.index;
 
-		Vector4i c;
+		Vector4s c;
 
 		if(src.type == Shader::PARAMETER_CONST)
 		{
@@ -5655,12 +5655,12 @@ namespace sw
 
 		switch(src.type)
 		{
-		case Shader::PARAMETER_TEMP:          reg = &r.ri[i]; break;
-		case Shader::PARAMETER_INPUT:         reg = &r.vi[i]; break;
+		case Shader::PARAMETER_TEMP:          reg = &r.rs[i]; break;
+		case Shader::PARAMETER_INPUT:         reg = &r.vs[i]; break;
 		case Shader::PARAMETER_CONST:         reg = &c;       break;
-		case Shader::PARAMETER_TEXTURE:       reg = &r.ti[i]; break;
-		case Shader::PARAMETER_VOID:          return r.ri[0]; // Dummy
-		case Shader::PARAMETER_FLOAT4LITERAL: return r.ri[0]; // Dummy
+		case Shader::PARAMETER_TEXTURE:       reg = &r.ts[i]; break;
+		case Shader::PARAMETER_VOID:          return r.rs[0]; // Dummy
+		case Shader::PARAMETER_FLOAT4LITERAL: return r.rs[0]; // Dummy
 		default:
 			ASSERT(false);
 		}
@@ -5670,7 +5670,7 @@ namespace sw
 		const Short4 &z = (*reg)[(src.swizzle >> 4) & 0x3];
 		const Short4 &w = (*reg)[(src.swizzle >> 6) & 0x3];
 
-		Vector4i mod;
+		Vector4s mod;
 
 		switch(src.modifier)
 		{
@@ -5765,7 +5765,7 @@ namespace sw
 		return mod;
 	}
 
-	Vector4f PixelRoutine::reg(Registers &r, const Src &src, int offset)
+	Vector4f PixelRoutine::fetchRegisterF(Registers &r, const Src &src, int offset)
 	{
 		Vector4f reg;
 		int i = src.index + offset;

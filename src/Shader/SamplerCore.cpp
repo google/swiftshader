@@ -20,7 +20,7 @@ namespace sw
 	{
 	}
 
-	void SamplerCore::sampleTexture(Pointer<Byte> &texture, Vector4i &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool bias, bool fixed12, bool gradients, bool lodProvided)
+	void SamplerCore::sampleTexture(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool bias, bool fixed12, bool gradients, bool lodProvided)
 	{
 		#if PERF_PROFILE
 			AddAtomic(Pointer<Long>(&profiler.texOperations), 4);
@@ -257,26 +257,26 @@ namespace sw
 			}
 			else
 			{
-				Vector4i ci;
+				Vector4s cs;
 
-				sampleTexture(texture, ci, u, v, w, q, dsx, dsy, bias, false, gradients, lodProvided);
+				sampleTexture(texture, cs, u, v, w, q, dsx, dsy, bias, false, gradients, lodProvided);
 
 				for(int component = 0; component < textureComponentCount(); component++)
 				{
 					if(state.sRGB && isRGBComponent(component))
 					{
-						sRGBtoLinear16_12(ci[component]);   // FIXME: Perform linearization at surface level for read-only textures
-						convertSigned12(c[component], ci[component]);
+						sRGBtoLinear16_12(cs[component]);   // FIXME: Perform linearization at surface level for read-only textures
+						convertSigned12(c[component], cs[component]);
 					}
 					else
 					{
 						if(hasUnsignedTextureComponent(component))
 						{
-							convertUnsigned16(c[component], ci[component]);
+							convertUnsigned16(c[component], cs[component]);
 						}
 						else
 						{
-							convertSigned15(c[component], ci[component]);
+							convertSigned15(c[component], cs[component]);
 						}
 					}
 				}
@@ -381,7 +381,7 @@ namespace sw
 		return uvw;
 	}
 
-	void SamplerCore::sampleFilter(Pointer<Byte> &texture, Vector4i &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool lodProvided)
+	void SamplerCore::sampleFilter(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool lodProvided)
 	{
 		bool volumeTexture = state.textureType == TEXTURE_3D;
 
@@ -389,7 +389,7 @@ namespace sw
 
 		if(state.mipmapFilter > MIPMAP_POINT)
 		{
-			Vector4i cc;
+			Vector4s cc;
 
 			sampleAniso(texture, cc, u, v, w, lod, anisotropy, uDelta, vDelta, face, true, lodProvided);
 
@@ -479,7 +479,7 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::sampleAniso(Pointer<Byte> &texture, Vector4i &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool secondLOD, bool lodProvided)
+	void SamplerCore::sampleAniso(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool secondLOD, bool lodProvided)
 	{
 		if(state.textureFilter != FILTER_ANISOTROPIC || lodProvided)
 		{
@@ -489,7 +489,7 @@ namespace sw
 		{
 			Int a = RoundInt(anisotropy);
 
-			Vector4i cSum;
+			Vector4s cSum;
 
 			cSum.x = Short4(0, 0, 0, 0);
 			cSum.y = Short4(0, 0, 0, 0);
@@ -535,7 +535,7 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::sampleQuad(Pointer<Byte> &texture, Vector4i &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Int face[4], bool secondLOD)
+	void SamplerCore::sampleQuad(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Int face[4], bool secondLOD)
 	{
 		if(state.textureType != TEXTURE_3D)
 		{
@@ -547,7 +547,7 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::sampleQuad2D(Pointer<Byte> &texture, Vector4i &c, Float4 &u, Float4 &v, Float &lod, Int face[4], bool secondLOD)
+	void SamplerCore::sampleQuad2D(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float &lod, Int face[4], bool secondLOD)
 	{
 		int componentCount = textureComponentCount();
 		bool gather = state.textureFilter == FILTER_GATHER;
@@ -569,10 +569,10 @@ namespace sw
 		}
 		else
 		{
-			Vector4i c0;
-			Vector4i c1;
-			Vector4i c2;
-			Vector4i c3;
+			Vector4s c0;
+			Vector4s c1;
+			Vector4s c2;
+			Vector4s c3;
 
 			Short4 uuuu0 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, gather ? 0 : -1);
 			Short4 vvvv0 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, gather ? 0 : -1);
@@ -754,7 +754,7 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::sample3D(Pointer<Byte> &texture, Vector4i &c_, Float4 &u_, Float4 &v_, Float4 &w_, Float &lod, bool secondLOD)
+	void SamplerCore::sample3D(Pointer<Byte> &texture, Vector4s &c_, Float4 &u_, Float4 &v_, Float4 &w_, Float &lod, bool secondLOD)
 	{
 		int componentCount = textureComponentCount();
 
@@ -778,7 +778,7 @@ namespace sw
 		}
 		else
 		{
-			Vector4i c[2][2][2];
+			Vector4s c[2][2][2];
 
 			Short4 u[2][2][2];
 			Short4 v[2][2][2];
@@ -1471,7 +1471,7 @@ namespace sw
 		index[3] = Extract(As<Int2>(uuu2), 1);
 	}
 
-	void SamplerCore::sampleTexel(Vector4i &c, Short4 &uuuu, Short4 &vvvv, Short4 &wwww, Pointer<Byte> &mipmap, Pointer<Byte> buffer[4])
+	void SamplerCore::sampleTexel(Vector4s &c, Short4 &uuuu, Short4 &vvvv, Short4 &wwww, Pointer<Byte> &mipmap, Pointer<Byte> buffer[4])
 	{
 		Int index[4];
 
@@ -1746,40 +1746,40 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::convertFixed12(Short4 &ci, Float4 &cf)
+	void SamplerCore::convertFixed12(Short4 &cs, Float4 &cf)
 	{
-		ci = RoundShort4(cf * Float4(0x1000));
+		cs = RoundShort4(cf * Float4(0x1000));
 	}
 
-	void SamplerCore::convertFixed12(Vector4i &ci, Vector4f &cf)
+	void SamplerCore::convertFixed12(Vector4s &cs, Vector4f &cf)
 	{
-		convertFixed12(ci.x, cf.x);
-		convertFixed12(ci.y, cf.y);
-		convertFixed12(ci.z, cf.z);
-		convertFixed12(ci.w, cf.w);
+		convertFixed12(cs.x, cf.x);
+		convertFixed12(cs.y, cf.y);
+		convertFixed12(cs.z, cf.z);
+		convertFixed12(cs.w, cf.w);
 	}
 
-	void SamplerCore::convertSigned12(Float4 &cf, Short4 &ci)
+	void SamplerCore::convertSigned12(Float4 &cf, Short4 &cs)
 	{
-		cf = Float4(ci) * Float4(1.0f / 0x0FFE);
+		cf = Float4(cs) * Float4(1.0f / 0x0FFE);
 	}
 
-//	void SamplerCore::convertSigned12(Vector4f &cf, Vector4i &ci)
+//	void SamplerCore::convertSigned12(Vector4f &cf, Vector4s &cs)
 //	{
-//		convertSigned12(cf.x, ci.x);
-//		convertSigned12(cf.y, ci.y);
-//		convertSigned12(cf.z, ci.z);
-//		convertSigned12(cf.w, ci.w);
+//		convertSigned12(cf.x, cs.x);
+//		convertSigned12(cf.y, cs.y);
+//		convertSigned12(cf.z, cs.z);
+//		convertSigned12(cf.w, cs.w);
 //	}
 
-	void SamplerCore::convertSigned15(Float4 &cf, Short4 &ci)
+	void SamplerCore::convertSigned15(Float4 &cf, Short4 &cs)
 	{
-		cf = Float4(ci) * Float4(1.0f / 0x7FFF);
+		cf = Float4(cs) * Float4(1.0f / 0x7FFF);
 	}
 
-	void SamplerCore::convertUnsigned16(Float4 &cf, Short4 &ci)
+	void SamplerCore::convertUnsigned16(Float4 &cf, Short4 &cs)
 	{
-		cf = Float4(As<UShort4>(ci)) * Float4(1.0f / 0xFFFF);
+		cf = Float4(As<UShort4>(cs)) * Float4(1.0f / 0xFFFF);
 	}
 
 	void SamplerCore::sRGBtoLinear16_12(Short4 &c)

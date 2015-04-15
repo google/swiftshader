@@ -38,7 +38,7 @@ namespace sw
 		struct Registers
 		{
 			Registers(const PixelShader *shader) :
-				current(ri[0]), diffuse(vi[0]), specular(vi[1]),
+				current(rs[0]), diffuse(vs[0]), specular(vs[1]),
 				rf(shader && shader->dynamicallyIndexedTemporaries),
 				vf(shader && shader->dynamicallyIndexedInput)
 			{
@@ -91,13 +91,13 @@ namespace sw
 			Float4 Dv[10][4];
 			Float4 Df;
 
-			Vector4i &current;
-			Vector4i &diffuse;
-			Vector4i &specular;
+			Vector4s &current;
+			Vector4s &diffuse;
+			Vector4s &specular;
 
-			Vector4i ri[6];
-			Vector4i vi[2];
-			Vector4i ti[6];
+			Vector4s rs[6];
+			Vector4s vs[2];
+			Vector4s ts[6];
 
 			RegisterArray<4096> rf;
 			RegisterArray<10> vf;
@@ -157,30 +157,30 @@ namespace sw
 		void stencilOperation(Registers &r, Byte8 &newValue, Byte8 &bufferValue, StencilOperation stencilPassOperation, StencilOperation stencilZFailOperation, StencilOperation stencilFailOperation, bool CCW, Int &zMask, Int &sMask);
 		void stencilOperation(Registers &r, Byte8 &output, Byte8 &bufferValue, StencilOperation operation, bool CCW);
 		Bool depthTest(Registers &r, Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask);
-		void blendTexture(Registers &r, Vector4i &temp, Vector4i &texture, int stage);
+		void blendTexture(Registers &r, Vector4s &temp, Vector4s &texture, int stage);
 		void alphaTest(Registers &r, Int &aMask, Short4 &alpha);
 		void alphaToCoverage(Registers &r, Int cMask[4], Float4 &alpha);
-		Bool alphaTest(Registers &r, Int cMask[4], Vector4i &current);
+		Bool alphaTest(Registers &r, Int cMask[4], Vector4s &current);
 		Bool alphaTest(Registers &r, Int cMask[4], Vector4f &c0);
-		void fogBlend(Registers &r, Vector4i &current, Float4 &fog, Float4 &z, Float4 &rhw);
+		void fogBlend(Registers &r, Vector4s &current, Float4 &fog, Float4 &z, Float4 &rhw);
 		void fogBlend(Registers &r, Vector4f &c0, Float4 &fog, Float4 &z, Float4 &rhw);
 		void pixelFog(Registers &r, Float4 &visibility, Float4 &z, Float4 &rhw);
-		void specularPixel(Vector4i &current, Vector4i &specular);
+		void specularPixel(Vector4s &current, Vector4s &specular);
 
-		void sampleTexture(Registers &r, Vector4i &c, int coordinates, int sampler, bool project = false);
-		void sampleTexture(Registers &r, Vector4i &c, int sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, bool project = false, bool bias = false, bool fixed12 = true);
-		void sampleTexture(Registers &r, Vector4i &c, int sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project = false, bool bias = false, bool fixed12 = true, bool gradients = false, bool lodProvided = false);
+		void sampleTexture(Registers &r, Vector4s &c, int coordinates, int sampler, bool project = false);
+		void sampleTexture(Registers &r, Vector4s &c, int sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, bool project = false, bool bias = false, bool fixed12 = true);
+		void sampleTexture(Registers &r, Vector4s &c, int sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project = false, bool bias = false, bool fixed12 = true, bool gradients = false, bool lodProvided = false);
 		void sampleTexture(Registers &r, Vector4f &c, const Src &sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project = false, bool bias = false, bool gradients = false, bool lodProvided = false);
 		void sampleTexture(Registers &r, Vector4f &c, int sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project = false, bool bias = false, bool gradients = false, bool lodProvided = false);
 	
 		// Raster operations
 		void clampColor(Vector4f oC[4]);
-		void rasterOperation(Vector4i &current, Registers &r, Float4 &fog, Pointer<Byte> &cBuffer, Int &x, Int sMask[4], Int zMask[4], Int cMask[4]);
+		void rasterOperation(Vector4s &current, Registers &r, Float4 &fog, Pointer<Byte> &cBuffer, Int &x, Int sMask[4], Int zMask[4], Int cMask[4]);
 		void rasterOperation(Vector4f oC[4], Registers &r, Float4 &fog, Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4]);
-		void blendFactor(Registers &r, const Vector4i &blendFactor, const Vector4i &current, const Vector4i &pixel, BlendFactor blendFactorActive);
-		void blendFactorAlpha(Registers &r, const Vector4i &blendFactor, const Vector4i &current, const Vector4i &pixel, BlendFactor blendFactorAlphaActive);
-		void alphaBlend(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4i &current, Int &x);
-		void writeColor(Registers &r, int index, Pointer<Byte> &cBuffer, Int &i, Vector4i &current, Int &sMask, Int &zMask, Int &cMask);
+		void blendFactor(Registers &r, const Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorActive);
+		void blendFactorAlpha(Registers &r, const Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorAlphaActive);
+		void alphaBlend(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x);
+		void writeColor(Registers &r, int index, Pointer<Byte> &cBuffer, Int &i, Vector4s &current, Int &sMask, Int &zMask, Int &cMask);
 		void blendFactor(Registers &r, const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorActive);
 		void blendFactorAlpha(Registers &r, const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorAlphaActive);
 		void alphaBlend(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4f &oC, Int &x);
@@ -192,53 +192,53 @@ namespace sw
 		void ps_2_x(Registers &r, Int cMask[4]);
 
 		Short4 convertFixed12(RValue<Float4> cf);
-		void convertFixed12(Vector4i &ci, Vector4f &cf);
-		Float4 convertSigned12(Short4 &ci);
-		void convertSigned12(Vector4f &cf, Vector4i &ci);
-		Float4 convertUnsigned16(UShort4 ci);
+		void convertFixed12(Vector4s &cs, Vector4f &cf);
+		Float4 convertSigned12(Short4 &cs);
+		void convertSigned12(Vector4f &cf, Vector4s &cs);
+		Float4 convertUnsigned16(UShort4 cs);
 		UShort4 convertFixed16(Float4 &cf, bool saturate = true);
-		void convertFixed16(Vector4i &ci, Vector4f &cf, bool saturate = true);
-		void sRGBtoLinear16_16(Registers &r, Vector4i &c);
-		void sRGBtoLinear12_16(Registers &r, Vector4i &c);
-		void linearToSRGB16_16(Registers &r, Vector4i &c);
-		void linearToSRGB12_16(Registers &r, Vector4i &c);
+		void convertFixed16(Vector4s &cs, Vector4f &cf, bool saturate = true);
+		void sRGBtoLinear16_16(Registers &r, Vector4s &c);
+		void sRGBtoLinear12_16(Registers &r, Vector4s &c);
+		void linearToSRGB16_16(Registers &r, Vector4s &c);
+		void linearToSRGB12_16(Registers &r, Vector4s &c);
 		Float4 sRGBtoLinear(const Float4 &x);
 		Float4 linearToSRGB(const Float4 &x);
 
 		// ps_1_x instructions
-		void MOV(Vector4i &dst, Vector4i &src0);
-		void ADD(Vector4i &dst, Vector4i &src0, Vector4i &src1);
-		void SUB(Vector4i &dst, Vector4i &src0, Vector4i &src1);
-		void MAD(Vector4i &dst, Vector4i &src0, Vector4i &src1, Vector4i &src2);
-		void MUL(Vector4i &dst, Vector4i &src0, Vector4i &src1);
-		void DP3(Vector4i &dst, Vector4i &src0, Vector4i &src1);
-		void DP4(Vector4i &dst, Vector4i &src0, Vector4i &src1);
-		void LRP(Vector4i &dst, Vector4i &src0, Vector4i &src1, Vector4i &src2);
-		void TEXCOORD(Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int coordinate);
-		void TEXCRD(Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int coordinate, bool project);
-		void TEXDP3(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, Vector4i &src);
-		void TEXDP3TEX(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4i &src0);
+		void MOV(Vector4s &dst, Vector4s &src0);
+		void ADD(Vector4s &dst, Vector4s &src0, Vector4s &src1);
+		void SUB(Vector4s &dst, Vector4s &src0, Vector4s &src1);
+		void MAD(Vector4s &dst, Vector4s &src0, Vector4s &src1, Vector4s &src2);
+		void MUL(Vector4s &dst, Vector4s &src0, Vector4s &src1);
+		void DP3(Vector4s &dst, Vector4s &src0, Vector4s &src1);
+		void DP4(Vector4s &dst, Vector4s &src0, Vector4s &src1);
+		void LRP(Vector4s &dst, Vector4s &src0, Vector4s &src1, Vector4s &src2);
+		void TEXCOORD(Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int coordinate);
+		void TEXCRD(Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int coordinate, bool project);
+		void TEXDP3(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, Vector4s &src);
+		void TEXDP3TEX(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0);
 		void TEXKILL(Int cMask[4], Float4 &u, Float4 &v, Float4 &s);
-		void TEXKILL(Int cMask[4], Vector4i &dst);
-		void TEX(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int stage, bool project);
-		void TEXLD(Registers &r, Vector4i &dst, Vector4i &src, int stage, bool project);
-		void TEXBEM(Registers &r, Vector4i &dst, Vector4i &src, Float4 &u, Float4 &v, Float4 &s, int stage);
-		void TEXBEML(Registers &r, Vector4i &dst, Vector4i &src, Float4 &u, Float4 &v, Float4 &s, int stage);
-		void TEXREG2AR(Registers &r, Vector4i &dst, Vector4i &src0, int stage);
-		void TEXREG2GB(Registers &r, Vector4i &dst, Vector4i &src0, int stage);
-		void TEXREG2RGB(Registers &r, Vector4i &dst, Vector4i &src0, int stage);
-		void TEXM3X2DEPTH(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, Vector4i &src, bool signedScaling);
-		void TEXM3X2PAD(Registers &r, Float4 &u, Float4 &v, Float4 &s, Vector4i &src0, int component, bool signedScaling);
-		void TEXM3X2TEX(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4i &src0, bool signedScaling);
-		void TEXM3X3(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, Vector4i &src0, bool signedScaling);
-		void TEXM3X3PAD(Registers &r, Float4 &u, Float4 &v, Float4 &s, Vector4i &src0, int component, bool signedScaling);
-		void TEXM3X3SPEC(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4i &src0, Vector4i &src1);
-		void TEXM3X3TEX(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4i &src0, bool singedScaling);
-		void TEXM3X3VSPEC(Registers &r, Vector4i &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4i &src0);
+		void TEXKILL(Int cMask[4], Vector4s &dst);
+		void TEX(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, bool project);
+		void TEXLD(Registers &r, Vector4s &dst, Vector4s &src, int stage, bool project);
+		void TEXBEM(Registers &r, Vector4s &dst, Vector4s &src, Float4 &u, Float4 &v, Float4 &s, int stage);
+		void TEXBEML(Registers &r, Vector4s &dst, Vector4s &src, Float4 &u, Float4 &v, Float4 &s, int stage);
+		void TEXREG2AR(Registers &r, Vector4s &dst, Vector4s &src0, int stage);
+		void TEXREG2GB(Registers &r, Vector4s &dst, Vector4s &src0, int stage);
+		void TEXREG2RGB(Registers &r, Vector4s &dst, Vector4s &src0, int stage);
+		void TEXM3X2DEPTH(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, Vector4s &src, bool signedScaling);
+		void TEXM3X2PAD(Registers &r, Float4 &u, Float4 &v, Float4 &s, Vector4s &src0, int component, bool signedScaling);
+		void TEXM3X2TEX(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0, bool signedScaling);
+		void TEXM3X3(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, Vector4s &src0, bool signedScaling);
+		void TEXM3X3PAD(Registers &r, Float4 &u, Float4 &v, Float4 &s, Vector4s &src0, int component, bool signedScaling);
+		void TEXM3X3SPEC(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0, Vector4s &src1);
+		void TEXM3X3TEX(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0, bool singedScaling);
+		void TEXM3X3VSPEC(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0);
 		void TEXDEPTH(Registers &r);
-		void CND(Vector4i &dst, Vector4i &src0, Vector4i &src1, Vector4i &src2);
-		void CMP(Vector4i &dst, Vector4i &src0, Vector4i &src1, Vector4i &src2);
-		void BEM(Registers &r, Vector4i &dst, Vector4i &src0, Vector4i &src1, int stage);
+		void CND(Vector4s &dst, Vector4s &src0, Vector4s &src1, Vector4s &src2);
+		void CMP(Vector4s &dst, Vector4s &src0, Vector4s &src1, Vector4s &src2);
+		void BEM(Registers &r, Vector4s &dst, Vector4s &src0, Vector4s &src1, int stage);
 
 		// ps_2_x instructions
 		void M3X2(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1);
@@ -281,9 +281,9 @@ namespace sw
 		void RET(Registers &r);
 		void LEAVE(Registers &r);
 
-		void writeDestination(Registers &r, Vector4i &d, const Dst &dst);
-		Vector4i regi(Registers &r, const Src &src);
-		Vector4f reg(Registers &r, const Src &src, int offset = 0);
+		void writeDestination(Registers &r, Vector4s &d, const Dst &dst);
+		Vector4s fetchRegisterS(Registers &r, const Src &src);
+		Vector4f fetchRegisterF(Registers &r, const Src &src, int offset = 0);
 		Vector4f readConstant(Registers &r, const Src &src, int offset = 0);
 		Int relativeAddress(Registers &r, const Shader::Parameter &var);
 		Int4 enableMask(Registers &r, const Shader::Instruction *instruction);

@@ -18,15 +18,15 @@
 
 namespace sw
 {
-	class Vector4i
+	class Vector4s
 	{
 	public:
-		Vector4i();
-		Vector4i(unsigned short x, unsigned short y, unsigned short z, unsigned short w);
-		Vector4i(const Vector4i &rhs);
+		Vector4s();
+		Vector4s(unsigned short x, unsigned short y, unsigned short z, unsigned short w);
+		Vector4s(const Vector4s &rhs);
 
 		Short4 &operator[](int i);
-		Vector4i &operator=(const Vector4i &rhs);
+		Vector4s &operator=(const Vector4s &rhs);
 
 		Short4 x;
 		Short4 y;

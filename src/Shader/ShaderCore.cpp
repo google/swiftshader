@@ -21,11 +21,11 @@ namespace sw
 	extern TranscendentalPrecision rcpPrecision;
 	extern TranscendentalPrecision rsqPrecision;
 
-	Vector4i::Vector4i()
+	Vector4s::Vector4s()
 	{
 	}
 
-	Vector4i::Vector4i(unsigned short x, unsigned short y, unsigned short z, unsigned short w)
+	Vector4s::Vector4s(unsigned short x, unsigned short y, unsigned short z, unsigned short w)
 	{
 		this->x = Short4(x);
 		this->y = Short4(y);
@@ -33,7 +33,7 @@ namespace sw
 		this->w = Short4(w);
 	}
 
-	Vector4i::Vector4i(const Vector4i &rhs)
+	Vector4s::Vector4s(const Vector4s &rhs)
 	{
 		x = rhs.x;
 		y = rhs.y;
@@ -41,7 +41,7 @@ namespace sw
 		w = rhs.w;
 	}
 
-	Vector4i &Vector4i::operator=(const Vector4i &rhs)
+	Vector4s &Vector4s::operator=(const Vector4s &rhs)
 	{
 		x = rhs.x;
 		y = rhs.y;
@@ -51,7 +51,7 @@ namespace sw
 		return *this;
 	}
 
-	Short4 &Vector4i::operator[](int i)
+	Short4 &Vector4s::operator[](int i)
 	{
 		switch(i)
 		{
