@@ -13,6 +13,7 @@
 
 #include "main.h"
 
+#include "libEGL.hpp"
 #include "Context.hpp"
 #include "Surface.h"
 
@@ -20,6 +21,9 @@
 #include "Common/Thread.hpp"
 #include "Common/SharedLibrary.hpp"
 #include "common/debug.h"
+
+#define EGL_EGLEXT_PROTOTYPES
+#include <EGL/eglext.h>
 
 static sw::Thread::LocalStorageKey currentTLS = TLS_OUT_OF_INDEXES;
 
@@ -62,7 +66,7 @@ static void eglDetachThread()
 	}
 }
 
-CONSTRUCTOR static bool eglAttachProcess()
+CONSTRUCTOR static void eglAttachProcess()
 {
     TRACE("()");
 
@@ -81,51 +85,10 @@ CONSTRUCTOR static bool eglAttachProcess()
 
     if(currentTLS == TLS_OUT_OF_INDEXES)
     {
-        return false;
+        return;
     }
 
 	eglAttachThread();
-
-	#if defined(_WIN32)
-	const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "libGLES_CM_translator.dll"};
-	#elif defined(__ANDROID__)
-	const char *libGLES_CM_lib[] = {"/vendor/lib/egl/libGLESv1_CM_swiftshader.so"};
-	#elif defined(__LP64__)
-	const char *libGLES_CM_lib[] = {"lib64GLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
-	#else
-	const char *libGLES_CM_lib[] = {"libGLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
-	#endif
-
-    libGLES_CM = loadLibrary(libGLES_CM_lib);
-    es1::createContext = (egl::Context *(*)(const egl::Config*, const egl::Context*))getProcAddress(libGLES_CM, "glCreateContext");
-    es1::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLES_CM, "glGetProcAddress");
-
-	#if defined(_WIN32)
-	const char *libGLESv2_lib[] = {"libGLESv2.dll", "libGLES_V2_translator.dll"};
-	#elif defined(__ANDROID__)
-	const char *libGLESv2_lib[] = {"/vendor/lib/egl/libGLESv2_swiftshader.so"};
-	#elif defined(__LP64__)
-	const char *libGLESv2_lib[] = {"lib64GLES_V2_translator.so", "libGLESv2.so.2", "libGLESv2.so"};
-	#else
-	const char *libGLESv2_lib[] = {"libGLES_V2_translator.so", "libGLESv2.so.2", "libGLESv2.so"};
-	#endif
-
-    libGLESv2 = loadLibrary(libGLESv2_lib);
-    es2::createContext = (egl::Context *(*)(const egl::Config*, const egl::Context*, EGLint))getProcAddress(libGLESv2, "glCreateContext");
-    es2::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLESv2, "glGetProcAddress");
-
-	es::createBackBuffer = (egl::Image *(*)(int, int, const egl::Config*))getProcAddress(libGLES_CM, "createBackBuffer");
-	es::createDepthStencil = (egl::Image *(*)(unsigned int, unsigned int, sw::Format, int, bool))getProcAddress(libGLES_CM, "createDepthStencil");
-    es::createFrameBuffer = (sw::FrameBuffer *(*)(EGLNativeDisplayType, EGLNativeWindowType, int, int))getProcAddress(libGLES_CM, "createFrameBuffer");
-
-	if(!es::createBackBuffer)
-	{
-		es::createBackBuffer = (egl::Image *(*)(int, int, const egl::Config*))getProcAddress(libGLESv2, "createBackBuffer");
-		es::createDepthStencil = (egl::Image *(*)(unsigned int, unsigned int, sw::Format, int, bool))getProcAddress(libGLESv2, "createDepthStencil");
-		es::createFrameBuffer = (sw::FrameBuffer *(*)(EGLNativeDisplayType, EGLNativeWindowType, int, int))getProcAddress(libGLESv2, "createFrameBuffer");
-	}
-
-	return libGLES_CM != 0 || libGLESv2 != 0;
 }
 
 DESTRUCTOR static void eglDetachProcess()
@@ -134,7 +97,6 @@ DESTRUCTOR static void eglDetachProcess()
 
 	eglDetachThread();
 	sw::Thread::freeLocalStorageKey(currentTLS);
-	freeLibrary(libGLESv2);
 }
 
 #if defined(_WIN32)
@@ -183,7 +145,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
 		#ifndef NDEBUG
 			WaitForDebugger(instance);
 		#endif
-        return eglAttachProcess();
+        eglAttachProcess();
         break;
     case DLL_THREAD_ATTACH:
         eglAttachThread();
@@ -329,7 +291,6 @@ egl::Surface *getCurrentReadSurface()
 
     return current->readSurface;
 }
-}
 
 void error(EGLint errorCode)
 {
@@ -357,38 +318,56 @@ void error(EGLint errorCode)
 		}
 	}
 }
-
-extern "C"
-{
-EGLContext clientGetCurrentContext()
-{
-    return egl::getCurrentContext();
 }
 
-EGLContext clientGetCurrentDisplay()
+LibEGLexports::LibEGLexports()
 {
-    return egl::getCurrentDisplay();
-}
+	this->eglGetError = ::eglGetError;
+	this->eglGetDisplay = ::eglGetDisplay;
+	this->eglInitialize = ::eglInitialize;
+	this->eglTerminate = ::eglTerminate;
+	this->eglQueryString = ::eglQueryString;
+	this->eglGetConfigs = ::eglGetConfigs;
+	this->eglChooseConfig = ::eglChooseConfig;
+	this->eglGetConfigAttrib = ::eglGetConfigAttrib;
+	this->eglCreateWindowSurface = ::eglCreateWindowSurface;
+	this->eglCreatePbufferSurface = ::eglCreatePbufferSurface;
+	this->eglCreatePixmapSurface = ::eglCreatePixmapSurface;
+	this->eglDestroySurface = ::eglDestroySurface;
+	this->eglQuerySurface = ::eglQuerySurface;
+	this->eglBindAPI = ::eglBindAPI;
+	this->eglQueryAPI = ::eglQueryAPI;
+	this->eglWaitClient = ::eglWaitClient;
+	this->eglReleaseThread = ::eglReleaseThread;
+	this->eglCreatePbufferFromClientBuffer = ::eglCreatePbufferFromClientBuffer;
+	this->eglSurfaceAttrib = ::eglSurfaceAttrib;
+	this->eglBindTexImage = ::eglBindTexImage;
+	this->eglReleaseTexImage = ::eglReleaseTexImage;
+	this->eglSwapInterval = ::eglSwapInterval;
+	this->eglCreateContext = ::eglCreateContext;
+	this->eglDestroyContext = ::eglDestroyContext;
+	this->eglMakeCurrent = ::eglMakeCurrent;
+	this->eglGetCurrentContext = ::eglGetCurrentContext;
+	this->eglGetCurrentSurface = ::eglGetCurrentSurface;
+	this->eglGetCurrentDisplay = ::eglGetCurrentDisplay;
+	this->eglQueryContext = ::eglQueryContext;
+	this->eglWaitGL = ::eglWaitGL;
+	this->eglWaitNative = ::eglWaitNative;
+	this->eglSwapBuffers = ::eglSwapBuffers;
+	this->eglCopyBuffers = ::eglCopyBuffers;
+	this->eglCreateImageKHR = ::eglCreateImageKHR;
+	this->eglDestroyImageKHR = ::eglDestroyImageKHR;
+	this->eglGetProcAddress = ::eglGetProcAddress;
+
+	this->clientGetCurrentContext = egl::getCurrentContext;
+	this->clientGetCurrentDisplay = egl::getCurrentDisplay;
 }
 
-namespace es1
+extern "C" LibEGLexports *libEGLexports()
 {
-	egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext) = 0;
-	__eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname) = 0;
+	static LibEGLexports libEGL;
+	return &libEGL;
 }
 
-namespace es2
-{
-	egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext, EGLint clientVersion) = 0;
-	__eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname) = 0;
-}
-
-namespace es
-{
-	egl::Image *(*createBackBuffer)(int width, int height, const egl::Config *config) = 0;
-	egl::Image *(*createDepthStencil)(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard) = 0;
-	sw::FrameBuffer *(*createFrameBuffer)(EGLNativeDisplayType display, EGLNativeWindowType window, int width, int height) = 0;
-}
-
-void *libGLES_CM = 0;   // Handle to the libGLES_CM module
-void *libGLESv2 = 0;   // Handle to the libGLESv2 module
+LibGLES_CM libGLES_CM;
+LibGLESv2 libGLESv2;

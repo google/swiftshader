@@ -13,7 +13,9 @@
 
 #include "main.h"
 
+#include "libGLESv2.hpp"
 #include "Framebuffer.h"
+#include "libEGL/main.h"
 #include "libEGL/Surface.h"
 #include "Common/Thread.hpp"
 #include "Common/SharedLibrary.hpp"
@@ -37,40 +39,11 @@ static void glDetachThread()
     TRACE("()");
 }
 
-CONSTRUCTOR static bool glAttachProcess()
+CONSTRUCTOR static void glAttachProcess()
 {
     TRACE("()");
 
     glAttachThread();
-
-	#if defined(_WIN32)
-	const char *libEGL_lib[] = {"libEGL.dll", "libEGL_translator.dll"};
-	#elif defined(__ANDROID__)
-	const char *libEGL_lib[] = {"/vendor/lib/egl/libEGL_swiftshader.so"};
-	#elif defined(__LP64__)
-	const char *libEGL_lib[] = {"lib64EGL_translator.so", "libEGL.so.1", "libEGL.so"};
-	#else
-	const char *libEGL_lib[] = {"libEGL_translator.so", "libEGL.so.1", "libEGL.so"};
-	#endif
-
-	libEGL = loadLibrary(libEGL_lib);
-	egl::getCurrentContext = (egl::Context *(*)())getProcAddress(libEGL, "clientGetCurrentContext");
-	egl::getCurrentDisplay = (egl::Display *(*)())getProcAddress(libEGL, "clientGetCurrentDisplay");
-
-	#if defined(_WIN32)
-	const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "libGLES_CM_translator.dll"};
-	#elif defined(__ANDROID__)
-	const char *libGLES_CM_lib[] = {"/vendor/lib/egl/libGLESv1_CM_swiftshader.so"};
-	#elif defined(__LP64__)
-	const char *libGLES_CM_lib[] = {"lib64GLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
-	#else
-	const char *libGLES_CM_lib[] = {"libGLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
-	#endif
-
-	libGLES_CM = loadLibrary(libGLES_CM_lib);
-	es1::getProcAddress = (__eglMustCastToProperFunctionPointerType (*)(const char*))getProcAddress(libGLES_CM, "glGetProcAddress");
-
-    return libEGL != 0;
 }
 
 DESTRUCTOR static void glDetachProcess()
@@ -78,8 +51,6 @@ DESTRUCTOR static void glDetachProcess()
     TRACE("()");
 
 	glDetachThread();
-	freeLibrary(libEGL);
-	freeLibrary(libGLES_CM);
 }
 
 #if defined(_WIN32)
@@ -88,7 +59,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
     switch(reason)
     {
     case DLL_PROCESS_ATTACH:
-        return glAttachProcess();
+        glAttachProcess();
         break;
     case DLL_THREAD_ATTACH:
         glAttachThread();
@@ -111,7 +82,7 @@ namespace es2
 {
 es2::Context *getContext()
 {
-	egl::Context *context = egl::getCurrentContext();
+	egl::Context *context = libEGL->clientGetCurrentContext();
 
 	if(context && (context->getClientVersion() == 2 ||
 	               context->getClientVersion() == 3))
@@ -124,7 +95,7 @@ es2::Context *getContext()
 
 egl::Display *getDisplay()
 {
-    return egl::getCurrentDisplay();
+    return libEGL->clientGetCurrentDisplay();
 }
 
 Device *getDevice()
@@ -132,17 +103,6 @@ Device *getDevice()
     Context *context = getContext();
 
     return context ? context->getDevice() : 0;
-}
-}
-
-namespace egl
-{
-GLint getClientVersion()
-{
-	Context *context = egl::getCurrentContext();
-
-    return context ? context->getClientVersion() : 0;
-}
 }
 
 // Records an error code
@@ -178,17 +138,38 @@ void error(GLenum errorCode)
         }
     }
 }
+}
 
 namespace egl
 {
-	egl::Context *(*getCurrentContext)() = 0;
-	egl::Display *(*getCurrentDisplay)() = 0;
-}
-
-namespace es1
+GLint getClientVersion()
 {
-	__eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname) = 0;
+	Context *context = libEGL->clientGetCurrentContext();
+
+    return context ? context->getClientVersion() : 0;
+}
 }
 
-void *libEGL = 0;   // Handle to the libEGL module
-void *libGLES_CM = 0;   // Handle to the libGLES_CM module
+egl::Context *es2CreateContext(const egl::Config *config, const egl::Context *shareContext, int clientVersion);
+extern "C" __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char *procname);
+egl::Image *createBackBuffer(int width, int height, const egl::Config *config);
+egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
+sw::FrameBuffer *createFrameBuffer(EGLNativeDisplayType display, EGLNativeWindowType window, int width, int height);
+
+LibGLESv2exports::LibGLESv2exports()
+{
+	this->es2CreateContext = ::es2CreateContext;
+	this->es2GetProcAddress = ::es2GetProcAddress;
+	this->createBackBuffer = ::createBackBuffer;
+	this->createDepthStencil = ::createDepthStencil;
+	this->createFrameBuffer = ::createFrameBuffer;
+}
+
+extern "C" LibGLESv2exports *libGLESv2exports()
+{
+	static LibGLESv2exports libGLESv2;
+	return &libGLESv2;
+}
+
+LibEGL libEGL;
+LibGLES_CM libGLES_CM;

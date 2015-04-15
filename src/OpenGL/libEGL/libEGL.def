@@ -42,6 +42,4 @@ EXPORTS
     eglCreatePlatformWindowSurfaceEXT
     eglCreatePlatformPixmapSurfaceEXT
 
-	; Functions that don't change the error code, for use by client APIs
-	clientGetCurrentContext
-	clientGetCurrentDisplay
+	libEGLexports

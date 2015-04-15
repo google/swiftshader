@@ -14,8 +14,12 @@
 #ifndef LIBEGL_MAIN_H_
 #define LIBEGL_MAIN_H_
 
+#include "libGLES_CM/libGLES_CM.hpp"
+#include "libGLESv2/libGLESv2.hpp"
+
 #define EGLAPI
 #include <EGL/egl.h>
+#define EGL_EGLEXT_PROTOTYPES
 #include <EGL/eglext.h>
 
 namespace egl
@@ -51,28 +55,25 @@ namespace egl
 
 	void setCurrentReadSurface(Surface *surface);
 	Surface *getCurrentReadSurface();
-}
 
-void error(EGLint errorCode);
+	void error(EGLint errorCode);
+	
+	template<class T>
+	const T &error(EGLint errorCode, const T &returnValue)
+	{
+		egl::error(errorCode);
 
-template<class T>
-const T &error(EGLint errorCode, const T &returnValue)
-{
-    error(errorCode);
+		return returnValue;
+	}
 
-    return returnValue;
-}
+	template<class T>
+	const T &success(const T &returnValue)
+	{
+		egl::setCurrentError(EGL_SUCCESS);
 
-template<class T>
-const T &success(const T &returnValue)
-{
-    egl::setCurrentError(EGL_SUCCESS);
+		return returnValue;
+	}
 
-    return returnValue;
-}
-
-namespace egl
-{
 	class Config;
 	class Surface;
 	class Display;
@@ -80,34 +81,7 @@ namespace egl
 	class Image;
 }
 
-namespace sw
-{
-	class FrameBuffer;
-	enum Format : unsigned char;
-}
-
-// libGLES_CM dependencies
-namespace es1
-{
-	extern egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext);
-	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);
-}
-
-// libGLESv2 dependencies
-namespace es2
-{
-	extern egl::Context *(*createContext)(const egl::Config *config, const egl::Context *shareContext, EGLint clientVersion);
-	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);
-}
-
-namespace es
-{
-	extern egl::Image *(*createBackBuffer)(int width, int height, const egl::Config *config);
-	extern egl::Image *(*createDepthStencil)(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
-	extern sw::FrameBuffer *(*createFrameBuffer)(EGLNativeDisplayType display, EGLNativeWindowType window, int width, int height);
-}
-
-extern void *libGLES_CM;   // Handle to the libGLES_CM module
-extern void *libGLESv2;    // Handle to the libGLESv2 module
+extern LibGLES_CM libGLES_CM;
+extern LibGLESv2 libGLESv2;
 
 #endif  // LIBEGL_MAIN_H_

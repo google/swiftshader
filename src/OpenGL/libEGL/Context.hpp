@@ -20,7 +20,7 @@ public:
 	virtual void bindTexImage(Surface *surface) = 0;
 	virtual EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel) = 0;
 	virtual Image *createSharedImage(EGLenum target, GLuint name, GLuint textureLevel) = 0;
-	virtual int getClientVersion() = 0;
+	virtual int getClientVersion() const = 0;
 
 protected:
 	virtual ~Context() {};

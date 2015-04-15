@@ -17,7 +17,9 @@
 #include "Context.h"
 #include "Device.hpp"
 #include "common/debug.h"
+#include "libEGL/libEGL.hpp"
 #include "libEGL/Display.h"
+#include "libGLES_CM/libGLES_CM.hpp"
 
 #define GL_APICALL
 #include <GLES2/gl2.h>
@@ -29,6 +31,16 @@ namespace es2
 	Context *getContext();
 	egl::Display *getDisplay();
 	Device *getDevice();
+
+	void error(GLenum errorCode);
+
+	template<class T>
+	const T &error(GLenum errorCode, const T &returnValue)
+	{
+		error(errorCode);
+
+		return returnValue;
+	}
 }
 
 namespace egl
@@ -36,30 +48,7 @@ namespace egl
 	GLint getClientVersion();
 }
 
-void error(GLenum errorCode);
-
-template<class T>
-const T &error(GLenum errorCode, const T &returnValue)
-{
-    error(errorCode);
-
-    return returnValue;
-}
-
-// libEGL dependencies
-namespace egl
-{
-	extern egl::Context *(*getCurrentContext)();
-	extern egl::Display *(*getCurrentDisplay)();
-}
-
-// libGLES_CM dependencies
-namespace es1
-{
-	extern __eglMustCastToProperFunctionPointerType (*getProcAddress)(const char *procname);
-}
-
-extern void *libEGL;       // Handle to the libEGL module
-extern void *libGLES_CM;   // Handle to the libGLES_CM module
+extern LibEGL libEGL;
+extern LibGLES_CM libGLES_CM;
 
 #endif   // LIBGLESV2_MAIN_H_

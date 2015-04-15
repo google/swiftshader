@@ -96,10 +96,7 @@ namespace sw
     }
 }
 
-extern "C"
+sw::FrameBuffer *createFrameBuffer(void *display, ANativeWindow* window, int width, int height)
 {
-    sw::FrameBuffer *createFrameBuffer(void *display, void* window, int width, int height)
-    {
-        return new sw::FrameBufferAndroid((ANativeWindow*)window, width, height);
-    }
+    return new sw::FrameBufferAndroid(window, width, height);
 }

@@ -73,6 +73,9 @@
     <ClInclude Include="..\common\Object.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="libEGL.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="libEGL.rc" />

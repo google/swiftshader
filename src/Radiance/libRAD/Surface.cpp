@@ -33,12 +33,13 @@ extern "C"
 {
 	es2::Image *createBackBuffer(int width, int height, const egl::Config *config);
 	es2::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
-	#if defined(_WIN32)
-	sw::FrameBuffer *createFrameBuffer(HDC display, HWND window, int width, int height);
-	#else
-	sw::FrameBuffer *createFrameBuffer(void *display, Window window, int width, int height);
-	#endif
 }
+
+#if defined(_WIN32)
+sw::FrameBuffer *createFrameBuffer(HDC display, HWND window, int width, int height);
+#else
+sw::FrameBuffer *createFrameBuffer(Display *display, Window window, int width, int height);
+#endif
 
 namespace egl
 {

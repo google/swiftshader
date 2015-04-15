@@ -9,6 +9,9 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
+#ifndef SharedLibrary_hpp
+#define SharedLibrary_hpp
+
 #if defined(_WIN32)
 	#include <Windows.h>
 #else
@@ -102,3 +105,5 @@ void *loadLibrary(const char *(&names)[n])
 		return library ? dlsym(library, name) : 0;
 	}
 #endif
+
+#endif   // SharedLibrary_hpp

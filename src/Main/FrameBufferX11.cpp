@@ -144,10 +144,7 @@ namespace sw
 	}
 }
 
-extern "C"
+sw::FrameBuffer *createFrameBuffer(Display *display, Window window, int width, int height)
 {
-	sw::FrameBuffer *createFrameBuffer(void *display, Window window, int width, int height)
-	{
-		return new sw::FrameBufferX11((Display*)display, window, width, height);
-	}
+	return new sw::FrameBufferX11(display, window, width, height);
 }

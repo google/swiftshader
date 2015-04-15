@@ -25,6 +25,7 @@
 
 #define GL_API
 #include <GLES/gl.h>
+#define GL_GLEXT_PROTOTYPES
 #include <GLES/glext.h>
 #define EGLAPI
 #include <EGL/egl.h>
@@ -263,7 +264,7 @@ public:
     Context(const egl::Config *config, const Context *shareContext);
 
 	virtual void makeCurrent(egl::Surface *surface);
-	virtual int getClientVersion();
+	virtual int getClientVersion() const;
 
     void markAllStateDirty();
 

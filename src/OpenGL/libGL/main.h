@@ -67,6 +67,6 @@ const T &error(GLenum errorCode, const T &returnValue)
     return returnValue;
 }
 
-extern "C" sw::FrameBuffer *createFrameBuffer(NativeDisplayType display, NativeWindowType window, int width, int height);
+extern sw::FrameBuffer *createFrameBuffer(NativeDisplayType display, NativeWindowType window, int width, int height);
 
 #endif   // LIBGL_MAIN_H_

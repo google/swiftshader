@@ -205,13 +205,7 @@ global:
     glDrawTexfOES;
     glDrawTexfvOES;
 
-    # EGL dependencies
-    glCreateContext;
-    glGetProcAddress;
-
-	createFrameBuffer;
-	createBackBuffer;
-	createDepthStencil;
+    libGLES_CMexports;
 
 	Register;
 

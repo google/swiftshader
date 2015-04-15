@@ -255,7 +255,7 @@ void Context::makeCurrent(egl::Surface *surface)
     markAllStateDirty();
 }
 
-int Context::getClientVersion()
+int Context::getClientVersion() const
 {
 	return 1;
 }
@@ -2807,11 +2807,8 @@ GLenum Context::getTextureEnvMode()
 
 }
 
-// Exported functions for use by EGL
-extern "C"
+egl::Context *es1CreateContext(const egl::Config *config, const egl::Context *shareContext)
 {
-	es1::Context *glCreateContext(const egl::Config *config, const es1::Context *shareContext)
-	{
-		return new es1::Context(config, shareContext);
-	}
+	ASSERT(!shareContext || shareContext->getClientVersion() == 1);   // Should be checked by eglCreateContext
+	return new es1::Context(config, static_cast<const es1::Context*>(shareContext));
 }

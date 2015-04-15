@@ -286,6 +286,7 @@
 		<Unit filename="VertexDataManager.h" />
 		<Unit filename="exports.map" />
 		<Unit filename="libGLES_CM.cpp" />
+		<Unit filename="libGLES_CM.hpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="main.h" />
 		<Unit filename="mathutil.h" />

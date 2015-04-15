@@ -37,6 +37,8 @@
 #include <cutils/log.h>
 #endif
 
+using namespace es2;
+
 typedef std::pair<GLenum, GLenum> InternalFormatTypePair;
 typedef std::map<InternalFormatTypePair, GLenum> FormatMap;
 
@@ -6690,8 +6692,7 @@ void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image
 {
 	if(egl::getClientVersion() == 1)
 	{
-		static auto glEGLImageTargetTexture2DOES = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)es1::getProcAddress("glEGLImageTargetTexture2DOES");
-		return glEGLImageTargetTexture2DOES(target, image);
+		return libGLES_CM->glEGLImageTargetTexture2DOES(target, image);
 	}
 
 	TRACE("(GLenum target = 0x%X, GLeglImageOES image = 0x%0.8p)", target, image);
@@ -6741,7 +6742,7 @@ void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target, GLeglImag
 	UNIMPLEMENTED();
 }
 
-__eglMustCastToProperFunctionPointerType glGetProcAddress(const char *procname)
+__eglMustCastToProperFunctionPointerType es2GetProcAddress(const char *procname)
 {
 	struct Extension
 	{

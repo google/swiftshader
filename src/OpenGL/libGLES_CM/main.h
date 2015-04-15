@@ -17,6 +17,7 @@
 #include "Context.h"
 #include "Device.hpp"
 #include "common/debug.h"
+#include "libEGL/libEGL.hpp"
 #include "libEGL/Display.h"
 
 #define GL_API
@@ -29,25 +30,18 @@ namespace es1
 	Context *getContext();
 	egl::Display *getDisplay();
 	Device *getDevice();
+
+	void error(GLenum errorCode);
+
+	template<class T>
+	const T &error(GLenum errorCode, const T &returnValue)
+	{
+		error(errorCode);
+
+		return returnValue;
+	}
 }
 
-void error(GLenum errorCode);
-
-template<class T>
-const T &error(GLenum errorCode, const T &returnValue)
-{
-    error(errorCode);
-
-    return returnValue;
-}
-
-// libEGL dependencies
-namespace egl
-{
-	extern egl::Context *(*getCurrentContext)();
-	extern egl::Display *(*getCurrentDisplay)();
-}
-
-extern void *libEGL;   // Handle to the libEGL module
+extern LibEGL libEGL;
 
 #endif   // LIBGLES_CM_MAIN_H_

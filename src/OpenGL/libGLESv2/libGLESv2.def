@@ -274,12 +274,6 @@ EXPORTS
     glTexStorage3D                  @304
     glGetInternalformativ           @308
 
-    ; EGL dependencies
-    glCreateContext
-    glGetProcAddress
-
-	createFrameBuffer
-	createBackBuffer
-	createDepthStencil
+    libGLESv2exports
 
 	Register

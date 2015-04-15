@@ -126,6 +126,7 @@
 		<Unit filename="Surface.h" />
 		<Unit filename="exports.map" />
 		<Unit filename="libEGL.cpp" />
+		<Unit filename="libEGL.hpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="main.h" />
 		<Extensions>

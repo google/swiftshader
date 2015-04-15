@@ -168,13 +168,7 @@ global:
 	glEGLImageTargetTexture2DOES;
 	glEGLImageTargetRenderbufferStorageOES;
 
-    # EGL dependencies
-    glCreateContext;
-    glGetProcAddress;
-
-	createFrameBuffer;
-	createBackBuffer;
-	createDepthStencil;
+    libGLESv2exports;
 
 	Register;
 

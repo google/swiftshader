@@ -108,6 +108,7 @@
 			<Add directory="./../../Shader/" />
 			<Add directory="./../../Main/" />
 			<Add directory="./../../OpenGL/" />
+			<Add directory="./../../OpenGL/include" />
 		</Compiler>
 		<Linker>
 			<Add option="-Wl,--version-script=./exports.map" />

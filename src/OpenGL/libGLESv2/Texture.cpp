@@ -1797,60 +1797,57 @@ GLenum TextureExternal::getTarget() const
 
 }
 
-// Exported functions for use by EGL
-extern "C"
+egl::Image *createBackBuffer(int width, int height, const egl::Config *config)
 {
-	egl::Image *createBackBuffer(int width, int height, const egl::Config *config)
+	if(config)
 	{
-		if(config)
-		{
-			return new es2::Image(0, width, height, config->mAlphaSize ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE);
-		}
+		return new es2::Image(0, width, height, config->mAlphaSize ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE);
+	}
 
+	return 0;
+}
+
+egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
+{
+	if(width == 0 || height == 0 || height > OUTLINE_RESOLUTION)
+	{
+		ERR("Invalid parameters");
+		return 0;
+	}
+		
+	bool lockable = true;
+
+	switch(format)
+	{
+//	case sw::FORMAT_D15S1:
+	case sw::FORMAT_D24S8:
+	case sw::FORMAT_D24X8:
+//	case sw::FORMAT_D24X4S4:
+	case sw::FORMAT_D24FS8:
+	case sw::FORMAT_D32:
+	case sw::FORMAT_D16:
+		lockable = false;
+		break;
+//	case sw::FORMAT_S8_LOCKABLE:
+//	case sw::FORMAT_D16_LOCKABLE:
+	case sw::FORMAT_D32F_LOCKABLE:
+//	case sw::FORMAT_D32_LOCKABLE:
+	case sw::FORMAT_DF24S8:
+	case sw::FORMAT_DF16S8:
+		lockable = true;
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	es2::Image *surface = new es2::Image(0, width, height, format, multiSampleDepth, lockable, true);
+
+	if(!surface)
+	{
+		ERR("Out of memory");
 		return 0;
 	}
 
-	egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
-	{
-		if(width == 0 || height == 0 || height > OUTLINE_RESOLUTION)
-		{
-			ERR("Invalid parameters");
-			return 0;
-		}
-		
-		bool lockable = true;
-
-		switch(format)
-		{
-	//	case sw::FORMAT_D15S1:
-		case sw::FORMAT_D24S8:
-		case sw::FORMAT_D24X8:
-	//	case sw::FORMAT_D24X4S4:
-		case sw::FORMAT_D24FS8:
-		case sw::FORMAT_D32:
-		case sw::FORMAT_D16:
-			lockable = false;
-			break;
-	//	case sw::FORMAT_S8_LOCKABLE:
-	//	case sw::FORMAT_D16_LOCKABLE:
-		case sw::FORMAT_D32F_LOCKABLE:
-	//	case sw::FORMAT_D32_LOCKABLE:
-		case sw::FORMAT_DF24S8:
-		case sw::FORMAT_DF16S8:
-			lockable = true;
-			break;
-		default:
-			UNREACHABLE();
-		}
-
-		es2::Image *surface = new es2::Image(0, width, height, format, multiSampleDepth, lockable, true);
-
-		if(!surface)
-		{
-			ERR("Out of memory");
-			return 0;
-		}
-
-		return surface;
-	}
+	return surface;
 }
+

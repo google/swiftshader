@@ -351,6 +351,7 @@ copy "$(OutDir)libGLES_CM.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Pla
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="Image.hpp" />
     <ClInclude Include="IndexDataManager.h" />
+    <ClInclude Include="libGLES_CM.hpp" />
     <ClInclude Include="main.h" />
     <ClInclude Include="mathutil.h" />
     <ClInclude Include="Renderbuffer.h" />
