@@ -96,7 +96,9 @@ LOCAL_CFLAGS += -UNDEBUG -g
 # Uncomment for OFF:
 #LOCAL_CFLAGS += -fomit-frame-pointer -ffunction-sections -fdata-sections -DANGLE_DISABLE_TRACE
 
-LOCAL_SHARED_LIBRARIES += libdl liblog libcutils libhardware libui libutils
+LOCAL_SHARED_LIBRARIES += libdl liblog libcutils libhardware libui libutils \
+    $(GCE_STLPORT_LIBS)
+
 LOCAL_STATIC_LIBRARIES += libLLVM_swiftshader
 LOCAL_LDFLAGS += -Wl,--gc-sections -Wl,--version-script=$(LOCAL_PATH)/exports.map -Wl,--hash-style=sysv
 

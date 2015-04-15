@@ -136,7 +136,9 @@ LOCAL_CFLAGS += -UNDEBUG -g
 LOCAL_CFLAGS += -fno-operator-names -msse2 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS
 LOCAL_CFLAGS += -std=c++11
 
-LOCAL_SHARED_LIBRARIES += libdl liblog libcutils libhardware libui libutils
+LOCAL_SHARED_LIBRARIES += libdl liblog libcutils libhardware libui libutils \
+    $(GCE_STLPORT_LIBS)
+
 LOCAL_STATIC_LIBRARIES += libLLVM_swiftshader
 LOCAL_LDFLAGS += -Wl,--gc-sections -Wl,--version-script=$(LOCAL_PATH)/exports.map -Wl,--hash-style=sysv
 

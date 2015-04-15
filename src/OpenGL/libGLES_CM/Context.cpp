@@ -30,6 +30,10 @@
 
 #include <EGL/eglext.h>
 
+#ifdef __ANDROID__
+	#include "../common/AndroidCommon.hpp"
+#endif  // __ANDROID__
+
 #undef near
 #undef far
 
@@ -2683,8 +2687,8 @@ egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textu
         ANativeWindowBuffer *nativeBuffer = reinterpret_cast<ANativeWindowBuffer*>(name);
         nativeBuffer->common.incRef(&nativeBuffer->common);
 
-        GLenum format = Image::getColorFormatFromAndroid(nativeBuffer->format);
-        GLenum type = Image::getPixelFormatFromAndroid(nativeBuffer->format);
+        GLenum format = getColorFormatFromAndroid(nativeBuffer->format);
+        GLenum type = getPixelFormatFromAndroid(nativeBuffer->format);
 
         es1::Image *image = new Image(0, nativeBuffer->width, nativeBuffer->height, format, type);
         image->setNativeBuffer(nativeBuffer);
