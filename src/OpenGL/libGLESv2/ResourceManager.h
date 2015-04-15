@@ -33,6 +33,7 @@ enum TextureType
 {
     TEXTURE_2D,
 	TEXTURE_3D,
+	TEXTURE_2D_ARRAY,
     TEXTURE_CUBE,
     TEXTURE_EXTERNAL,
 

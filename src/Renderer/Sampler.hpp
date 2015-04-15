@@ -78,8 +78,9 @@ namespace sw
 		TEXTURE_2D,
 		TEXTURE_CUBE,
 		TEXTURE_3D,
+		TEXTURE_2D_ARRAY,
 
-		TEXTURE_LAST = TEXTURE_3D
+		TEXTURE_LAST = TEXTURE_2D_ARRAY
 	};
 
 	enum FilterType : unsigned int

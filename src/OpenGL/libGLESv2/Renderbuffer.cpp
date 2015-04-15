@@ -162,39 +162,39 @@ void RenderbufferTexture3D::releaseProxy(const Renderbuffer *proxy)
 // caller must release() the returned image
 egl::Image *RenderbufferTexture3D::getRenderTarget()
 {
-	return mTexture3D->getRenderTarget(GL_TEXTURE_3D_OES, 0);
+	return mTexture3D->getRenderTarget(mTexture3D->getTarget(), 0);
 }
 
 // Increments refcount on image.
 // caller must release() the returned image
 egl::Image *RenderbufferTexture3D::createSharedImage()
 {
-	return mTexture3D->createSharedImage(GL_TEXTURE_3D_OES, 0);
+	return mTexture3D->createSharedImage(mTexture3D->getTarget(), 0);
 }
 
 bool RenderbufferTexture3D::isShared() const
 {
-	return mTexture3D->isShared(GL_TEXTURE_3D_OES, 0);
+	return mTexture3D->isShared(mTexture3D->getTarget(), 0);
 }
 
 GLsizei RenderbufferTexture3D::getWidth() const
 {
-	return mTexture3D->getWidth(GL_TEXTURE_3D_OES, 0);
+	return mTexture3D->getWidth(mTexture3D->getTarget(), 0);
 }
 
 GLsizei RenderbufferTexture3D::getHeight() const
 {
-	return mTexture3D->getHeight(GL_TEXTURE_3D_OES, 0);
+	return mTexture3D->getHeight(mTexture3D->getTarget(), 0);
 }
 
 GLenum RenderbufferTexture3D::getFormat() const
 {
-	return mTexture3D->getFormat(GL_TEXTURE_3D_OES, 0);
+	return mTexture3D->getFormat(mTexture3D->getTarget(), 0);
 }
 
 sw::Format RenderbufferTexture3D::getInternalFormat() const
 {
-	return mTexture3D->getInternalFormat(GL_TEXTURE_3D_OES, 0);
+	return mTexture3D->getInternalFormat(mTexture3D->getTarget(), 0);
 }
 
 GLsizei RenderbufferTexture3D::getSamples() const

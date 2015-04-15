@@ -326,6 +326,17 @@ protected:
 	unsigned int mProxyRefs;
 };
 
+class Texture2DArray : public Texture3D
+{
+public:
+	explicit Texture2DArray(GLuint name);
+
+	virtual ~Texture2DArray();
+
+	virtual GLenum getTarget() const;
+	virtual void generateMipmaps();
+};
+
 class TextureExternal : public Texture2D
 {
 public:

@@ -598,7 +598,7 @@ GL_APICALL void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint inter
 
 	if(context)
 	{
-		es2::Texture3D *texture = context->getTexture3D();
+		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
 
 		if(!texture)
 		{
@@ -644,7 +644,7 @@ GL_APICALL void GL_APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xo
 
 	if(context)
 	{
-		es2::Texture3D *texture = context->getTexture3D();
+		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
 
 		if(validateSubImageParams(false, width, height, depth, xoffset, yoffset, zoffset, target, level, format, texture))
 		{
@@ -692,7 +692,7 @@ GL_APICALL void GL_APIENTRY glCopyTexSubImage3D(GLenum target, GLint level, GLin
 		}
 
 		GLenum colorbufferFormat = source->getFormat();
-		es2::Texture3D *texture = context->getTexture3D();
+		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
 
 		if(!validateSubImageParams(false, width, height, 1, xoffset, yoffset, zoffset, target, level, GL_NONE, texture))
 		{
@@ -778,7 +778,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexImage3D(GLenum target, GLint level, G
 
 	if(context)
 	{
-		es2::Texture3D *texture = context->getTexture3D();
+		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
 
 		if(!texture)
 		{
@@ -846,7 +846,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 
 	if(context)
 	{
-		es2::Texture3D *texture = context->getTexture3D();
+		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
 
 		if(!texture)
 		{
@@ -3834,7 +3834,7 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 				return error(GL_INVALID_OPERATION);
 			}
 
-			es2::Texture3D *texture = context->getTexture3D();
+			es2::Texture3D *texture = context->getTexture2DArray();
 			if(!texture || texture->name == 0 || texture->getImmutableFormat())
 			{
 				return error(GL_INVALID_OPERATION);
