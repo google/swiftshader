@@ -926,7 +926,13 @@ namespace glsl
 			}
 			break;
 		case EOpConstructMat2:
+		case EOpConstructMat2x3:
+		case EOpConstructMat2x4:
+		case EOpConstructMat3x2:
 		case EOpConstructMat3:
+		case EOpConstructMat3x4:
+		case EOpConstructMat4x2:
+		case EOpConstructMat4x3:
 		case EOpConstructMat4:
 			if(visit == PostVisit)
 			{
@@ -2507,7 +2513,7 @@ namespace glsl
 	{
 		TIntermTyped *matrix = m->getAsTyped();
 		ASSERT(matrix && matrix->isMatrix() && !matrix->isArray());
-		return matrix->getNominalSize();
+		return matrix->getSecondarySize();
 	}
 
 	// Returns ~0 if no loop count could be determined
