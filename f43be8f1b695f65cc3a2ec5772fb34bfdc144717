@@ -45,6 +45,30 @@
       "revId": "f43be8f1b695f65cc3a2ec5772fb34bfdc144717",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10dc16fc_b08658e4",
+        "filename": "src/OpenGL/libGLESv2/Image.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 681,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-04-16T18:15:24Z",
+      "side": 1,
+      "message": "There is no way to see the difference. See my email \"Differences in #defines between J and K\"\n\nOur lack of support for these formats is a serious bug, but as you point out pulling this makes no difference. However this CL is superseded by the consolidation CL.\n\nHow do yo want me to proceed?",
+      "parentUuid": "30d59acf_33ea6b74",
+      "range": {
+        "startLine": 681,
+        "startChar": 13,
+        "endLine": 681,
+        "endChar": 16
+      },
+      "revId": "f43be8f1b695f65cc3a2ec5772fb34bfdc144717",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
