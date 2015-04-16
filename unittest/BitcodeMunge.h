@@ -17,8 +17,6 @@
 
 #include "llvm/Bitcode/NaCl/NaClBitcodeMunge.h"
 
-#include "IceClFlags.h"
-
 namespace IceTest {
 
 // Class to run tests on Subzero's bitcode parser. Runs a Subzero
@@ -29,9 +27,7 @@ class SubzeroBitcodeMunger : public llvm::NaClBitcodeMunger {
 public:
   SubzeroBitcodeMunger(const uint64_t Records[], size_t RecordSize,
                        uint64_t RecordTerminator)
-      : llvm::NaClBitcodeMunger(Records, RecordSize, RecordTerminator) {
-    resetMungeFlags();
-  }
+      : llvm::NaClBitcodeMunger(Records, RecordSize, RecordTerminator) {}
 
   /// Runs PNaClTranslator to translate bitcode records (with defined
   /// record Munges), and puts output into DumpResults. Returns true
@@ -43,15 +39,6 @@ public:
     uint64_t NoMunges[] = {0};
     return runTest(TestName, NoMunges, 0);
   }
-
-  /// Sets flags back to default assumptions for munging.
-  void resetFlags();
-
-  /// Flags to use to run tests. Use to change default assumptions.
-  Ice::ClFlags Flags;
-
-private:
-  void resetMungeFlags();
 };
 
 } // end of namespace IceTest
