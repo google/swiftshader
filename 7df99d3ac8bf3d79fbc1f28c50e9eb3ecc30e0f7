@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "30d59acf_9a100c86",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-04-16T12:04:37Z",
+      "side": 1,
+      "message": "You don\u0027t need to check if the functions used in this file are present (not null) before using them?",
+      "range": {
+        "startLine": 143,
+        "startChar": 29,
+        "endLine": 143,
+        "endChar": 46
+      },
+      "revId": "7df99d3ac8bf3d79fbc1f28c50e9eb3ecc30e0f7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
