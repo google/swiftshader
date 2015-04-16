@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d080bec6_c7bebef6",
+        "filename": "src/LLVM/lib/Target/X86/X86JITInfo.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-16T17:48:41Z",
+      "side": 1,
+      "message": "Why only JellyBean? Later versions of LLVM don\u0027t seem to make any of these callbacks static.",
+      "range": {
+        "startLine": 349,
+        "startChar": 69,
+        "endLine": 350,
+        "endChar": 40
+      },
+      "revId": "f43be8f1b695f65cc3a2ec5772fb34bfdc144717",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30d59acf_33ea6b74",
+        "filename": "src/OpenGL/libGLESv2/Image.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 681,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-16T17:48:41Z",
+      "side": 1,
+      "message": "Is there a non-GCE-specific way to determine the SDK version?\n\nAnyway, since we currently don\u0027t support these formats, perhaps we can just remove them (or comment them out) and not bother with the version check (but add a comment to indicate that they\u0027re K+).",
+      "range": {
+        "startLine": 681,
+        "startChar": 13,
+        "endLine": 681,
+        "endChar": 16
+      },
+      "revId": "f43be8f1b695f65cc3a2ec5772fb34bfdc144717",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
