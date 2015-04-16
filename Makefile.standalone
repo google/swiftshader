@@ -20,9 +20,11 @@ LLVM_SRC_PATH ?= ../llvm
 ifdef CMAKE
   # LLVM cmake build
   LLVM_BIN_PATH ?= ../../out/llvm_x86_64_linux_work/bin
+  STDLIB_FLAGS =
 else
   # LLVM autoconf build
   LLVM_BIN_PATH ?= ../../out/llvm_x86_64_linux_work/Release+Asserts/bin
+  STDLIB_FLAGS = -stdlib=libc++ -I$(LIBCXX_INSTALL_PATH)/include/c++/v1
 endif
 
 # The x86-32-specific sandboxed translator directory.
@@ -51,7 +53,6 @@ CLANG_PATH ?= $(shell readlink -e \
 # contain header files and corresponding libraries. This is used for
 # building the host binaries in conjuction with clang.
 LIBCXX_INSTALL_PATH ?= $(PNACL_TOOLCHAIN_ROOT)
-STDLIB_FLAGS := -stdlib=libc++ -I$(LIBCXX_INSTALL_PATH)/include/c++/v1
 
 HOST_ARCH ?= x86_64
 ifeq ($(HOST_ARCH),x86_64)
