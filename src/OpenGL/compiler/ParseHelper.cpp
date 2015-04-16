@@ -315,6 +315,9 @@ bool TParseContext::lValueErrorCheck(int line, const char* op, TIntermTyped* nod
     case EvqConstReadOnly:  message = "can't modify a const";        break;
     case EvqAttribute:      message = "can't modify an attribute";   break;
     case EvqUniform:        message = "can't modify a uniform";      break;
+    case EvqSmoothIn:
+    case EvqFlatIn:
+    case EvqCentroidIn:
     case EvqVaryingIn:      message = "can't modify a varying";      break;
     case EvqInput:          message = "can't modify an input";       break;
     case EvqFragCoord:      message = "can't modify gl_FragCoord";   break;
@@ -609,12 +612,27 @@ bool TParseContext::samplerErrorCheck(int line, const TPublicType& pType, const 
 
 bool TParseContext::structQualifierErrorCheck(int line, const TPublicType& pType)
 {
-    if ((pType.qualifier == EvqVaryingIn || pType.qualifier == EvqVaryingOut || pType.qualifier == EvqAttribute) &&
-        pType.type == EbtStruct) {
-        error(line, "cannot be used with a structure", getQualifierString(pType.qualifier));
+	switch(pType.qualifier)
+	{
+	case EvqVaryingOut:
+	case EvqSmooth:
+	case EvqFlat:
+	case EvqCentroidOut:
+	case EvqVaryingIn:
+	case EvqSmoothIn:
+	case EvqFlatIn:
+	case EvqCentroidIn:
+	case EvqAttribute:
+		if(pType.type == EbtStruct)
+		{
+			error(line, "cannot be used with a structure", getQualifierString(pType.qualifier));
 
-        return true;
-    }
+			return true;
+		}
+		break;
+	default:
+		break;
+	}
 
     if (pType.qualifier != EvqUniform && samplerErrorCheck(line, pType, "samplers must be uniform"))
         return true;
@@ -1379,6 +1397,52 @@ TLayoutQualifier TParseContext::joinLayoutQualifiers(TLayoutQualifier leftQualif
     }
 
     return joinedQualifier;
+}
+
+
+TPublicType TParseContext::joinInterpolationQualifiers(const TSourceLoc &interpolationLoc, TQualifier interpolationQualifier,
+	const TSourceLoc &storageLoc, TQualifier storageQualifier)
+{
+	TQualifier mergedQualifier = EvqSmoothIn;
+
+	if(storageQualifier == EvqVaryingIn) {
+		if(interpolationQualifier == EvqSmooth)
+			mergedQualifier = EvqSmoothIn;
+		else if(interpolationQualifier == EvqFlat)
+			mergedQualifier = EvqFlatIn;
+		else UNREACHABLE();
+	}
+	else if(storageQualifier == EvqCentroidIn) {
+		if(interpolationQualifier == EvqSmooth)
+			mergedQualifier = EvqCentroidIn;
+		else if(interpolationQualifier == EvqFlat)
+			mergedQualifier = EvqFlatIn;
+		else UNREACHABLE();
+	}
+	else if(storageQualifier == EvqVaryingOut) {
+		if(interpolationQualifier == EvqSmooth)
+			mergedQualifier = EvqSmoothOut;
+		else if(interpolationQualifier == EvqFlat)
+			mergedQualifier = EvqFlatOut;
+		else UNREACHABLE();
+	}
+	else if(storageQualifier == EvqCentroidOut) {
+		if(interpolationQualifier == EvqSmooth)
+			mergedQualifier = EvqCentroidOut;
+		else if(interpolationQualifier == EvqFlat)
+			mergedQualifier = EvqFlatOut;
+		else UNREACHABLE();
+	}
+	else {
+		error(interpolationLoc, "interpolation qualifier requires a fragment 'in' or vertex 'out' storage qualifier", getQualifierString(interpolationQualifier));
+		recover();
+
+		mergedQualifier = storageQualifier;
+	}
+
+	TPublicType type;
+	type.setBasic(EbtVoid, mergedQualifier, storageLoc);
+	return type;
 }
 
 bool TParseContext::enterStructDeclaration(int line, const TString& identifier)

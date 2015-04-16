@@ -142,6 +142,16 @@ enum TQualifier : unsigned char
     EvqFragColor,
     EvqFragData,
 
+    // GLSL ES 3.0 vertex output and fragment input
+    EvqSmooth,        // Incomplete qualifier, smooth is the default
+    EvqFlat,          // Incomplete qualifier
+    EvqSmoothOut = EvqSmooth,
+    EvqFlatOut = EvqFlat,
+    EvqCentroidOut,   // Implies smooth
+    EvqSmoothIn,
+    EvqFlatIn,
+    EvqCentroidIn,    // Implies smooth
+
     // end of list
     EvqLast
 };
@@ -192,7 +202,13 @@ inline const char *getQualifierString(TQualifier qualifier)
     case EvqFragCoord:      return "FragCoord";      break;
     case EvqFrontFacing:    return "FrontFacing";    break;
     case EvqFragColor:      return "FragColor";      break;
-    case EvqFragData:       return "FragData";      break;
+    case EvqFragData:       return "FragData";       break;
+    case EvqSmooth:         return "Smooth";         break;
+    case EvqFlat:           return "Flat";           break;
+    case EvqCentroidOut:    return "CentroidOut";    break;
+    case EvqSmoothIn:       return "SmoothIn";       break;
+    case EvqFlatIn:         return "FlatIn";         break;
+    case EvqCentroidIn:     return "CentroidIn";     break;
     default: UNREACHABLE(); return "unknown qualifier";
     }
 }

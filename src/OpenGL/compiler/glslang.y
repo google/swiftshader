@@ -173,7 +173,7 @@ extern void yyerror(TParseContext* context, const char* reason);
 %type <interm.layoutQualifier> layout_qualifier layout_qualifier_id_list layout_qualifier_id
 
 %type <interm.precision> precision_qualifier
-%type <interm.type> type_qualifier fully_specified_type type_specifier storage_qualifier
+%type <interm.type> type_qualifier fully_specified_type type_specifier storage_qualifier interpolation_qualifier
 %type <interm.type> type_specifier_no_prec type_specifier_nonarray
 %type <interm.type> struct_specifier
 %type <interm.typeLine> struct_declarator
@@ -1514,6 +1514,15 @@ fully_specified_type
     }
     ;
 
+interpolation_qualifier
+    : SMOOTH {
+        $$.qualifier = EvqSmooth;
+    }
+    | FLAT {
+        $$.qualifier = EvqFlat;
+    }
+    ;
+
 parameter_type_qualifier
     : CONST_QUAL {
         $$ = EvqConstReadOnly;
@@ -1548,6 +1557,16 @@ type_qualifier
     }
 	| storage_qualifier {
         $$.setBasic(EbtVoid, $1.qualifier, $1.line);
+    }
+	| interpolation_qualifier storage_qualifier {
+        $$ = context->joinInterpolationQualifiers($1.line, $1.qualifier, $2.line, $2.qualifier);
+    }
+    | interpolation_qualifier {
+        context->error($1.line, "interpolation qualifier requires a fragment 'in' or vertex 'out' storage qualifier", getQualifierString($1.qualifier));
+        context->recover();
+        
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtVoid, qual, $1.line);
     }
 	| layout_qualifier {
         $$.qualifier = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
