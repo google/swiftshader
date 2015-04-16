@@ -29,7 +29,6 @@
 #include "Reactor/Reactor.hpp"
 
 #include <malloc.h>
-#include <assert.h>
 
 #undef max
 

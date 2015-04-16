@@ -20,8 +20,6 @@
 #include "Constants.hpp"
 #include "Debug.hpp"
 
-#include <assert.h>
-
 extern bool localShaderConstants;
 
 namespace sw

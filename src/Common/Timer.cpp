@@ -22,8 +22,6 @@
 	#include <features.h>
 #endif
 
-#include <assert.h>
-
 namespace sw
 {
 	Timer::Timer()
