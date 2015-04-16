@@ -35,6 +35,8 @@ namespace es2
 
 	int AllocateFirstFreeBits(unsigned int *bits, unsigned int allocationSize, unsigned int bitsSize);
 
+	GLint floatToInt(GLfloat value);
+
 	bool IsCompressed(GLenum format);
 	bool IsDepthTexture(GLenum format);
 	bool IsStencilTexture(GLenum format);

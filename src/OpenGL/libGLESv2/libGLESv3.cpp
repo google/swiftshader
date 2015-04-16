@@ -1638,7 +1638,7 @@ GL_APICALL void GL_APIENTRY glGetIntegeri_v(GLenum target, GLuint index, GLint *
 				{
 					if(target == GL_DEPTH_RANGE || target == GL_COLOR_CLEAR_VALUE || target == GL_DEPTH_CLEAR_VALUE || target == GL_BLEND_COLOR)
 					{
-						data[i] = (GLint)(((GLfloat)(0xFFFFFFFF) * floatParams[i] - 1.0f) * 0.5f);
+						data[i] = es2::floatToInt(floatParams[i]);
 					}
 					else
 					{
@@ -2788,7 +2788,58 @@ GL_APICALL void GL_APIENTRY glWaitSync(GLsync sync, GLbitfield flags, GLuint64 t
 GL_APICALL void GL_APIENTRY glGetInteger64v(GLenum pname, GLint64 *data)
 {
 	TRACE("(GLenum pname = 0x%X, GLint64 *data = %p)", pname, data);
-	UNIMPLEMENTED();
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		if(!(context->getIntegerv(pname, data)))
+		{
+			GLenum nativeType;
+			unsigned int numParams = 0;
+			if(!context->getQueryParameterInfo(pname, &nativeType, &numParams))
+				return error(GL_INVALID_ENUM);
+
+			if(numParams == 0)
+				return; // it is known that pname is valid, but there are no parameters to return
+
+			if(nativeType == GL_BOOL)
+			{
+				GLboolean *boolParams = NULL;
+				boolParams = new GLboolean[numParams];
+
+				context->getBooleanv(pname, boolParams);
+
+				for(unsigned int i = 0; i < numParams; ++i)
+				{
+					data[i] = (boolParams[i] == GL_FALSE) ? 0 : 1;
+				}
+
+				delete[] boolParams;
+			}
+			else if(nativeType == GL_FLOAT)
+			{
+				GLfloat *floatParams = NULL;
+				floatParams = new GLfloat[numParams];
+
+				context->getFloatv(pname, floatParams);
+
+				for(unsigned int i = 0; i < numParams; ++i)
+				{
+					if(pname == GL_DEPTH_RANGE || pname == GL_COLOR_CLEAR_VALUE || pname == GL_DEPTH_CLEAR_VALUE || pname == GL_BLEND_COLOR)
+					{
+						data[i] = (GLint64)(es2::floatToInt(floatParams[i]));
+					}
+					else
+					{
+						data[i] = (GLint64)(floatParams[i] > 0.0f ? floor(floatParams[i] + 0.5) : ceil(floatParams[i] - 0.5));
+					}
+				}
+
+				delete[] floatParams;
+			}
+		}
+	}
 }
 
 GL_APICALL void GL_APIENTRY glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei *length, GLint *values)
@@ -2802,7 +2853,59 @@ GL_APICALL void GL_APIENTRY glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSi
 GL_APICALL void GL_APIENTRY glGetInteger64i_v(GLenum target, GLuint index, GLint64 *data)
 {
 	TRACE("(GLenum target = 0x%X, GLuint index = %d, GLint64 *data = %p)", target, index, data);
-	UNIMPLEMENTED();
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		if(!context->getTransformFeedbackiv(index, target, data) &&
+			!context->getIntegerv(target, data))
+		{
+			GLenum nativeType;
+			unsigned int numParams = 0;
+			if(!context->getQueryParameterInfo(target, &nativeType, &numParams))
+				return error(GL_INVALID_ENUM);
+
+			if(numParams == 0)
+				return; // it is known that target is valid, but there are no parameters to return
+
+			if(nativeType == GL_BOOL)
+			{
+				GLboolean *boolParams = NULL;
+				boolParams = new GLboolean[numParams];
+
+				context->getBooleanv(target, boolParams);
+
+				for(unsigned int i = 0; i < numParams; ++i)
+				{
+					data[i] = (boolParams[i] == GL_FALSE) ? 0 : 1;
+				}
+
+				delete[] boolParams;
+			}
+			else if(nativeType == GL_FLOAT)
+			{
+				GLfloat *floatParams = NULL;
+				floatParams = new GLfloat[numParams];
+
+				context->getFloatv(target, floatParams);
+
+				for(unsigned int i = 0; i < numParams; ++i)
+				{
+					if(target == GL_DEPTH_RANGE || target == GL_COLOR_CLEAR_VALUE || target == GL_DEPTH_CLEAR_VALUE || target == GL_BLEND_COLOR)
+					{
+						data[i] = (GLint64)(es2::floatToInt(floatParams[i]));
+					}
+					else
+					{
+						data[i] = (GLint64)(floatParams[i] > 0.0f ? floor(floatParams[i] + 0.5) : ceil(floatParams[i] - 0.5));
+					}
+				}
+
+				delete[] floatParams;
+			}
+		}
+	}
 }
 
 GL_APICALL void GL_APIENTRY glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64 *params)
