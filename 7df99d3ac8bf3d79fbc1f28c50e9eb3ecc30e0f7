@@ -22,6 +22,30 @@
       "revId": "7df99d3ac8bf3d79fbc1f28c50e9eb3ecc30e0f7",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30d59acf_ba7ab0b3",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-16T13:17:08Z",
+      "side": 1,
+      "message": "No, the if(libGLES_CM) check makes sure they\u0027re all present. That said, I should check if libGLESv2 is loaded before calling createFrameBuffer below...",
+      "parentUuid": "30d59acf_9a100c86",
+      "range": {
+        "startLine": 143,
+        "startChar": 29,
+        "endLine": 143,
+        "endChar": 46
+      },
+      "revId": "7df99d3ac8bf3d79fbc1f28c50e9eb3ecc30e0f7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
