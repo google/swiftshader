@@ -63,6 +63,12 @@ TEST(IceParseInstsTest, NonexistentCallArg) {
   EXPECT_FALSE(Munger.runTest("Nonexistent call arg"));
   EXPECT_EQ("Error(66:4): Invalid function record: <34 0 4 2 100>\n",
             Munger.getTestResults());
+
+  // Show that we generate a fatal error when not allowing error recovery.
+  Munger.Flags.setAllowErrorRecovery(false);
+  EXPECT_DEATH(
+      Munger.runTest("Nonexistent call arg"),
+      ".*ERROR: Unable to continue.*");
 }
 
 /// Test how we recognize alignments in alloca instructions.

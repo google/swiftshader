@@ -245,6 +245,43 @@ void ClFlags::parseFlags(int argc, char **argv) {
   AppName = IceString(argv[0]);
 }
 
+void ClFlags::resetClFlags(ClFlags &OutFlags) {
+  // bool fields
+  OutFlags.AllowErrorRecovery = false;
+  OutFlags.AllowUninitializedGlobals = false;
+  OutFlags.DataSections = false;
+  OutFlags.DecorateAsm = false;
+  OutFlags.DisableInternal = false;
+  OutFlags.DisableIRGeneration = false;
+  OutFlags.DisableTranslation = false;
+  OutFlags.DumpStats = false;
+  OutFlags.FunctionSections = false;
+  OutFlags.GenerateUnitTestMessages = false;
+  OutFlags.PhiEdgeSplit = false;
+  OutFlags.RandomNopInsertion = false;
+  OutFlags.RandomRegAlloc = false;
+  OutFlags.SubzeroTimingEnabled = false;
+  OutFlags.TimeEachFunction = false;
+  OutFlags.UseSandboxing = false;
+  // Enum and integer fields.
+  OutFlags.Opt = Opt_m1;
+  OutFlags.OutFileType = FT_Iasm;
+  OutFlags.RandomMaxNopsPerInstruction = 0;
+  OutFlags.RandomNopProbabilityAsPercentage = 0;
+  OutFlags.TArch = TargetArch_NUM;
+  OutFlags.VMask = IceV_None;
+  // IceString fields.
+  OutFlags.DefaultFunctionPrefix = "";
+  OutFlags.DefaultGlobalPrefix = "";
+  OutFlags.TestPrefix = "";
+  OutFlags.TimingFocusOn = "";
+  OutFlags.TranslateOnly = "";
+  OutFlags.VerboseFocusOn = "";
+  // size_t and 64-bit fields.
+  OutFlags.NumTranslationThreads = 0;
+  OutFlags.RandomSeed = 0;
+}
+
 void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   if (::DisableIRGeneration)
     ::DisableTranslation = true;
