@@ -64,6 +64,92 @@ namespace sw
 		return x;
 	}
 
+	Vector4i::Vector4i()
+	{
+	}
+
+	Vector4i::Vector4i(int x, int y, int z, int w)
+	{
+		this->x = Int4(x);
+		this->y = Int4(y);
+		this->z = Int4(z);
+		this->w = Int4(w);
+	}
+
+	Vector4i::Vector4i(const Vector4i &rhs)
+	{
+		x = rhs.x;
+		y = rhs.y;
+		z = rhs.z;
+		w = rhs.w;
+	}
+
+	Vector4i &Vector4i::operator=(const Vector4i &rhs)
+	{
+		x = rhs.x;
+		y = rhs.y;
+		z = rhs.z;
+		w = rhs.w;
+
+		return *this;
+	}
+
+	Int4 &Vector4i::operator[](int i)
+	{
+		switch(i)
+		{
+		case 0: return x;
+		case 1: return y;
+		case 2: return z;
+		case 3: return w;
+		}
+
+		return x;
+	}
+
+	Vector4u::Vector4u()
+	{
+	}
+
+	Vector4u::Vector4u(unsigned int x, unsigned int y, unsigned int z, unsigned int w)
+	{
+		this->x = UInt4(x);
+		this->y = UInt4(y);
+		this->z = UInt4(z);
+		this->w = UInt4(w);
+	}
+
+	Vector4u::Vector4u(const Vector4u &rhs)
+	{
+		x = rhs.x;
+		y = rhs.y;
+		z = rhs.z;
+		w = rhs.w;
+	}
+
+	Vector4u &Vector4u::operator=(const Vector4u &rhs)
+	{
+		x = rhs.x;
+		y = rhs.y;
+		z = rhs.z;
+		w = rhs.w;
+
+		return *this;
+	}
+
+	UInt4 &Vector4u::operator[](int i)
+	{
+		switch(i)
+		{
+		case 0: return x;
+		case 1: return y;
+		case 2: return z;
+		case 3: return w;
+		}
+
+		return x;
+	}
+
 	Vector4f::Vector4f()
 	{
 	}
@@ -364,6 +450,58 @@ namespace sw
 		theta += y_x * (Float4(-0.27f) * y_x + Float4(1.05539816f));
 
 		return theta;
+	}
+
+	Float4 sineh(RValue<Float4> x, bool pp)
+	{
+		return (exponential(x, pp) - exponential(-x, pp)) * Float4(0.5f);
+	}
+
+	Float4 cosineh(RValue<Float4> x, bool pp)
+	{
+		return (exponential(x, pp) + exponential(-x, pp)) * Float4(0.5f);
+	}
+
+	Float4 tangenth(RValue<Float4> x, bool pp)
+	{
+		Float4 e_x = exponential(x, pp);
+		Float4 e_minus_x = exponential(-x, pp);
+		return (e_x - e_minus_x) / (e_x + e_minus_x);
+	}
+
+	Float4 arccosh(RValue<Float4> x, bool pp)
+	{
+		return logarithm(x + Sqrt(x + Float4(1.0f)) * Sqrt(x - Float4(1.0f)), pp);
+	}
+
+	Float4 arcsinh(RValue<Float4> x, bool pp)
+	{
+		return logarithm(x + Sqrt(x * x + Float4(1.0f)), pp);
+	}
+
+	Float4 arctanh(RValue<Float4> x, bool pp)
+	{
+		return logarithm((Float4(1.0f) + x) / (Float4(1.0f) - x), pp) * Float4(0.5f);
+	}
+
+	Int4 floatBitsToInt(RValue<Float4> x)
+	{
+		return As<Int4>(x);
+	}
+	
+	UInt4 floatBitsToUInt(RValue<Float4> x)
+	{
+		return As<UInt4>(x);
+	}
+
+	Float4 intBitsToFloat(RValue<Int4> x)
+	{
+		return As<Float4>(x);
+	}
+
+	Float4 uintBitsToFloat(RValue<UInt4> x)
+	{
+		return As<Float4>(x);
 	}
 
 	Float4 dot2(Vector4f &v0, Vector4f &v1)
@@ -799,6 +937,38 @@ namespace sw
 		Float4 tw = Min(Max((x.w - edge0.w) / (edge1.w - edge0.w), Float4(0.0f)), Float4(1.0f)); dst.w = tw * tw * (Float4(3.0f) - Float4(2.0f) * tw);
 	}
 
+	void ShaderCore::floatBitsToInt(Vector4i &dst, Vector4f &src)
+	{
+		dst.x = sw::floatBitsToInt(src.x);
+		dst.y = sw::floatBitsToInt(src.y);
+		dst.z = sw::floatBitsToInt(src.z);
+		dst.w = sw::floatBitsToInt(src.w);
+	}
+
+	void ShaderCore::floatBitsToUInt(Vector4u &dst, Vector4f &src)
+	{
+		dst.x = sw::floatBitsToUInt(src.x);
+		dst.y = sw::floatBitsToUInt(src.y);
+		dst.z = sw::floatBitsToUInt(src.z);
+		dst.w = sw::floatBitsToUInt(src.w);
+	}
+
+	void ShaderCore::intBitsToFloat(Vector4f &dst, Vector4i &src)
+	{
+		dst.x = sw::intBitsToFloat(src.x);
+		dst.y = sw::intBitsToFloat(src.y);
+		dst.z = sw::intBitsToFloat(src.z);
+		dst.w = sw::intBitsToFloat(src.w);
+	}
+
+	void ShaderCore::uintBitsToFloat(Vector4f &dst, Vector4u &src)
+	{
+		dst.x = sw::uintBitsToFloat(src.x);
+		dst.y = sw::uintBitsToFloat(src.y);
+		dst.z = sw::uintBitsToFloat(src.z);
+		dst.w = sw::uintBitsToFloat(src.w);
+	}
+
 	void ShaderCore::frc(Vector4f &dst, Vector4f &src)
 	{
 		dst.x = Frac(src.x);
@@ -821,6 +991,14 @@ namespace sw
 		dst.y = Floor(src.y);
 		dst.z = Floor(src.z);
 		dst.w = Floor(src.w);
+	}
+
+	void ShaderCore::round(Vector4f &dst, Vector4f &src)
+	{
+		dst.x = Round(src.x);
+		dst.y = Round(src.y);
+		dst.z = Round(src.z);
+		dst.w = Round(src.w);
 	}
 
 	void ShaderCore::ceil(Vector4f &dst, Vector4f &src)
@@ -1079,6 +1257,54 @@ namespace sw
 		dst.y = arctan(src0.y, src1.y, pp);
 		dst.z = arctan(src0.z, src1.z, pp);
 		dst.w = arctan(src0.w, src1.w, pp);
+	}
+
+	void ShaderCore::cosh(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = cosineh(src.x, pp);
+		dst.y = cosineh(src.y, pp);
+		dst.z = cosineh(src.z, pp);
+		dst.w = cosineh(src.w, pp);
+	}
+
+	void ShaderCore::sinh(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = sineh(src.x, pp);
+		dst.y = sineh(src.y, pp);
+		dst.z = sineh(src.z, pp);
+		dst.w = sineh(src.w, pp);
+	}
+
+	void ShaderCore::tanh(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = tangenth(src.x, pp);
+		dst.y = tangenth(src.y, pp);
+		dst.z = tangenth(src.z, pp);
+		dst.w = tangenth(src.w, pp);
+	}
+
+	void ShaderCore::acosh(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = arccosh(src.x, pp);
+		dst.y = arccosh(src.y, pp);
+		dst.z = arccosh(src.z, pp);
+		dst.w = arccosh(src.w, pp);
+	}
+
+	void ShaderCore::asinh(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = arcsinh(src.x, pp);
+		dst.y = arcsinh(src.y, pp);
+		dst.z = arcsinh(src.z, pp);
+		dst.w = arcsinh(src.w, pp);
+	}
+
+	void ShaderCore::atanh(Vector4f &dst, Vector4f &src, bool pp)
+	{
+		dst.x = arctanh(src.x, pp);
+		dst.y = arctanh(src.y, pp);
+		dst.z = arctanh(src.z, pp);
+		dst.w = arctanh(src.w, pp);
 	}
 
 	void ShaderCore::expp(Vector4f &dst, Vector4f &src, unsigned short version)
