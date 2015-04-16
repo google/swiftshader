@@ -458,37 +458,55 @@ GL_APICALL void GL_APIENTRY glReadBuffer(GLenum src)
 
 	es2::Context *context = es2::getContext();
 
-	switch(src)
+	if(context)
 	{
-	case GL_BACK:
-	case GL_NONE:
-		break;
-	case GL_COLOR_ATTACHMENT0:
-	case GL_COLOR_ATTACHMENT1:
-	case GL_COLOR_ATTACHMENT2:
-	case GL_COLOR_ATTACHMENT3:
-	case GL_COLOR_ATTACHMENT4:
-	case GL_COLOR_ATTACHMENT5:
-	case GL_COLOR_ATTACHMENT6:
-	case GL_COLOR_ATTACHMENT7:
-	case GL_COLOR_ATTACHMENT8:
-	case GL_COLOR_ATTACHMENT9:
-	case GL_COLOR_ATTACHMENT10:
-	case GL_COLOR_ATTACHMENT11:
-	case GL_COLOR_ATTACHMENT12:
-	case GL_COLOR_ATTACHMENT13:
-	case GL_COLOR_ATTACHMENT14:
-	case GL_COLOR_ATTACHMENT15:
-		if((src - GL_COLOR_ATTACHMENT0) >= es2::IMPLEMENTATION_MAX_COLOR_ATTACHMENTS)
-		{
-			return error(GL_INVALID_ENUM);
-		}
-		break;
-	default:
-		error(GL_INVALID_ENUM);
-	}
+		GLuint readFramebufferName = context->getReadFramebufferName();
 
-	UNIMPLEMENTED();
+		switch(src)
+		{
+		case GL_BACK:
+			if(readFramebufferName != 0)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			context->setReadFramebufferColorIndex(0);
+			break;
+		case GL_NONE:
+			context->setReadFramebufferColorIndex(GL_INVALID_INDEX);
+			break;
+		case GL_COLOR_ATTACHMENT0:
+		case GL_COLOR_ATTACHMENT1:
+		case GL_COLOR_ATTACHMENT2:
+		case GL_COLOR_ATTACHMENT3:
+		case GL_COLOR_ATTACHMENT4:
+		case GL_COLOR_ATTACHMENT5:
+		case GL_COLOR_ATTACHMENT6:
+		case GL_COLOR_ATTACHMENT7:
+		case GL_COLOR_ATTACHMENT8:
+		case GL_COLOR_ATTACHMENT9:
+		case GL_COLOR_ATTACHMENT10:
+		case GL_COLOR_ATTACHMENT11:
+		case GL_COLOR_ATTACHMENT12:
+		case GL_COLOR_ATTACHMENT13:
+		case GL_COLOR_ATTACHMENT14:
+		case GL_COLOR_ATTACHMENT15:
+		{
+			GLuint index = (src - GL_COLOR_ATTACHMENT0);
+			if(index >= es2::IMPLEMENTATION_MAX_COLOR_ATTACHMENTS)
+			{
+				return error(GL_INVALID_ENUM);
+			}
+			if(readFramebufferName == 0)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			context->setReadFramebufferColorIndex(index);
+		}
+			break;
+		default:
+			error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 GL_APICALL void GL_APIENTRY glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices)
@@ -666,12 +684,13 @@ GL_APICALL void GL_APIENTRY glCopyTexSubImage3D(GLenum target, GLint level, GLin
 			return error(GL_INVALID_FRAMEBUFFER_OPERATION);
 		}
 
-		if(context->getReadFramebufferName() != 0 && framebuffer->getColorbuffer()->getSamples() > 1)
+		es2::Renderbuffer *source = framebuffer->getReadColorbuffer();
+
+		if(context->getReadFramebufferName() != 0 && (!source || source->getSamples() > 1))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
 
-		es2::Renderbuffer *source = framebuffer->getColorbuffer();
 		GLenum colorbufferFormat = source->getFormat();
 		es2::Texture3D *texture = context->getTexture3D();
 
@@ -1063,7 +1082,78 @@ GL_APICALL void GL_APIENTRY glDrawBuffers(GLsizei n, const GLenum *bufs)
 {
 	TRACE("(GLsizei n = %d, const GLenum *bufs = %p)", n, bufs);
 
-	UNIMPLEMENTED();
+	if(n < 0 || n > es2::IMPLEMENTATION_MAX_DRAW_BUFFERS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(n == 0)
+	{
+		return;
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		GLuint drawFramebufferName = context->getDrawFramebufferName();
+
+		if((drawFramebufferName == 0) && (n != 1))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		for(int i = 0; i < n; ++i)
+		{
+			switch(bufs[i])
+			{
+			case GL_BACK:
+				if(drawFramebufferName != 0)
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+				break;
+			case GL_NONE:
+				break;
+			case GL_COLOR_ATTACHMENT0:
+			case GL_COLOR_ATTACHMENT1:
+			case GL_COLOR_ATTACHMENT2:
+			case GL_COLOR_ATTACHMENT3:
+			case GL_COLOR_ATTACHMENT4:
+			case GL_COLOR_ATTACHMENT5:
+			case GL_COLOR_ATTACHMENT6:
+			case GL_COLOR_ATTACHMENT7:
+			case GL_COLOR_ATTACHMENT8:
+			case GL_COLOR_ATTACHMENT9:
+			case GL_COLOR_ATTACHMENT10:
+			case GL_COLOR_ATTACHMENT11:
+			case GL_COLOR_ATTACHMENT12:
+			case GL_COLOR_ATTACHMENT13:
+			case GL_COLOR_ATTACHMENT14:
+			case GL_COLOR_ATTACHMENT15:
+			{
+				GLuint index = (bufs[i] - GL_COLOR_ATTACHMENT0);
+				if(index >= es2::IMPLEMENTATION_MAX_COLOR_ATTACHMENTS)
+				{
+					return error(GL_INVALID_ENUM);
+				}
+				if(index != i)
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+				if(drawFramebufferName == 0)
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+			}
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+		}
+
+		context->setDrawFramebufferColorIndices(n, bufs);
+	}
 }
 
 GL_APICALL void GL_APIENTRY glUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)

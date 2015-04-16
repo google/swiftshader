@@ -35,25 +35,27 @@ public:
 
     virtual ~Framebuffer();
 
-    void setColorbuffer(GLenum type, GLuint colorbuffer);
+    void setColorbuffer(GLenum type, GLuint colorbuffer, GLuint index);
     void setDepthbuffer(GLenum type, GLuint depthbuffer);
     void setStencilbuffer(GLenum type, GLuint stencilbuffer);
 
     void detachTexture(GLuint texture);
     void detachRenderbuffer(GLuint renderbuffer);
 
-    egl::Image *getRenderTarget();
+    egl::Image *getRenderTarget(GLuint index);
+    egl::Image *getReadRenderTarget();
     egl::Image *getDepthStencil();
 
-    Renderbuffer *getColorbuffer();
+    Renderbuffer *getColorbuffer(GLuint index);
+    Renderbuffer *getReadColorbuffer();
     Renderbuffer *getDepthbuffer();
     Renderbuffer *getStencilbuffer();
 
-    GLenum getColorbufferType();
+    GLenum getColorbufferType(GLuint index);
     GLenum getDepthbufferType();
     GLenum getStencilbufferType();
 
-    GLuint getColorbufferName();
+    GLuint getColorbufferName(GLuint index);
     GLuint getDepthbufferName();
     GLuint getStencilbufferName();
 
@@ -66,8 +68,8 @@ public:
 	GLenum getImplementationColorReadType();
 
 protected:
-    GLenum mColorbufferType;
-    gl::BindingPointer<Renderbuffer> mColorbufferPointer;
+    GLenum mColorbufferType[MAX_COLOR_ATTACHMENTS];
+    gl::BindingPointer<Renderbuffer> mColorbufferPointer[MAX_COLOR_ATTACHMENTS];
 
     GLenum mDepthbufferType;
     gl::BindingPointer<Renderbuffer> mDepthbufferPointer;
