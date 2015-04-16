@@ -26,27 +26,10 @@ class ClFlags {
   ClFlags &operator=(const ClFlags &) = delete;
 
 public:
-  ClFlags()
-      : // bool fields.
-        AllowErrorRecovery(false),
-        AllowUninitializedGlobals(false), DataSections(false),
-        DecorateAsm(false), DisableInternal(false), DisableIRGeneration(false),
-        DisableTranslation(false), DumpStats(false), FunctionSections(false),
-        GenerateUnitTestMessages(false), PhiEdgeSplit(false),
-        RandomNopInsertion(false), RandomRegAlloc(false),
-        SubzeroTimingEnabled(false), TimeEachFunction(false),
-        UseSandboxing(false),
-        // Enum and integer fields.
-        Opt(Opt_m1), OutFileType(FT_Iasm), RandomMaxNopsPerInstruction(0),
-        RandomNopProbabilityAsPercentage(0), TArch(TargetArch_NUM),
-        VMask(IceV_None),
-        // IceString fields.
-        DefaultFunctionPrefix(""), DefaultGlobalPrefix(""), TestPrefix(""),
-        TimingFocusOn(""), TranslateOnly(""), VerboseFocusOn(""),
-        // size_t and 64-bit fields.
-        NumTranslationThreads(0), RandomSeed(0) {}
+  ClFlags() { resetClFlags(*this); }
 
   static void parseFlags(int argc, char *argv[]);
+  static void resetClFlags(ClFlags &OutFlags);
   static void getParsedClFlags(ClFlags &OutFlags);
   static void getParsedClFlagsExtra(ClFlagsExtra &OutFlagsExtra);
 

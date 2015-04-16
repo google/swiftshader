@@ -486,10 +486,12 @@ bool TopLevelParser::ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
   ErrorStatus.assign(Ice::EC_Bitcode);
   ++NumErrors;
   Ice::GlobalContext *Context = Translator.getContext();
-  Ice::OstreamLocker L(Context);
-  raw_ostream &OldErrStream = setErrStream(Context->getStrDump());
-  NaClBitcodeParser::ErrorAt(Level, Bit, Message);
-  setErrStream(OldErrStream);
+  { // Lock while printing out error message.
+    Ice::OstreamLocker L(Context);
+    raw_ostream &OldErrStream = setErrStream(Context->getStrDump());
+    NaClBitcodeParser::ErrorAt(Level, Bit, Message);
+    setErrStream(OldErrStream);
+  }
   if (Level >= naclbitc::Error &&
       !Translator.getFlags().getAllowErrorRecovery())
     Fatal();
