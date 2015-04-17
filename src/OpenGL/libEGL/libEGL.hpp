@@ -89,12 +89,12 @@ private:
 			const char *libEGL_lib[] = {"libEGL_translator.so", "libEGL.so.1", "libEGL.so"};
 			#endif
 
-			libEGL = loadLibrary(libEGL_lib);
+			libEGL = loadLibrary(libEGL_lib, "libEGL_swiftshader");
 
 			if(libEGL)
 			{
-				auto libEGLexportsProc = (LibEGLexports *(*)())getProcAddress(libEGL, "libEGLexports");
-				libEGLexports = libEGLexportsProc();
+				auto libEGL_swiftshader = (LibEGLexports *(*)())getProcAddress(libEGL, "libEGL_swiftshader");
+				libEGLexports = libEGL_swiftshader();
 			}
 		}
 

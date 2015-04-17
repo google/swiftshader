@@ -74,12 +74,12 @@ private:
 			const char *libGLESv2_lib[] = {"libGLES_V2_translator.so", "libGLESv2.so.2", "libGLESv2.so"};
 			#endif
 
-			libGLESv2 = loadLibrary(libGLESv2_lib);
+			libGLESv2 = loadLibrary(libGLESv2_lib, "libGLESv2_swiftshader");
 
 			if(libGLESv2)
 			{
-				auto libGLESv2exportsProc = (LibGLESv2exports *(*)())getProcAddress(libGLESv2, "libGLESv2exports");
-				libGLESv2exports = libGLESv2exportsProc();
+				auto libGLESv2_swiftshader = (LibGLESv2exports *(*)())getProcAddress(libGLESv2, "libGLESv2_swiftshader");
+				libGLESv2exports = libGLESv2_swiftshader();
 			}
 		}
 

@@ -168,7 +168,7 @@ global:
 	glEGLImageTargetTexture2DOES;
 	glEGLImageTargetRenderbufferStorageOES;
 
-    libGLESv2exports;
+    libGLESv2_swiftshader;
 
 	Register;
 

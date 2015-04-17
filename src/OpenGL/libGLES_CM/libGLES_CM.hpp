@@ -76,12 +76,12 @@ private:
 			const char *libGLES_CM_lib[] = {"libGLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
 			#endif
 
-			libGLES_CM = loadLibrary(libGLES_CM_lib);
+			libGLES_CM = loadLibrary(libGLES_CM_lib, "libGLES_CM_swiftshader");
 
 			if(libGLES_CM)
 			{
-				auto libGLES_CMexportsProc = (LibGLES_CMexports *(*)())getProcAddress(libGLES_CM, "libGLES_CMexports");
-				libGLES_CMexports = libGLES_CMexportsProc();
+				auto libGLES_CM_swiftshader = (LibGLES_CMexports *(*)())getProcAddress(libGLES_CM, "libGLES_CM_swiftshader");
+				libGLES_CMexports = libGLES_CM_swiftshader();
 			}
 		}
 

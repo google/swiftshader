@@ -363,7 +363,7 @@ LibEGLexports::LibEGLexports()
 	this->clientGetCurrentDisplay = egl::getCurrentDisplay;
 }
 
-extern "C" LibEGLexports *libEGLexports()
+extern "C" LibEGLexports *libEGL_swiftshader()
 {
 	static LibEGLexports libEGL;
 	return &libEGL;

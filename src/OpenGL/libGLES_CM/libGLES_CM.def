@@ -205,6 +205,6 @@ EXPORTS
     glDrawTexfOES
     glDrawTexfvOES
 
-	libGLES_CMexports
+	libGLES_CM_swiftshader
 
 	Register

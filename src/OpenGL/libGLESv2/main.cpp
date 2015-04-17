@@ -165,7 +165,7 @@ LibGLESv2exports::LibGLESv2exports()
 	this->createFrameBuffer = ::createFrameBuffer;
 }
 
-extern "C" LibGLESv2exports *libGLESv2exports()
+extern "C" LibGLESv2exports *libGLESv2_swiftshader()
 {
 	static LibGLESv2exports libGLESv2;
 	return &libGLESv2;

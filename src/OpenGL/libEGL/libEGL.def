@@ -42,4 +42,4 @@ EXPORTS
     eglCreatePlatformWindowSurfaceEXT
     eglCreatePlatformPixmapSurfaceEXT
 
-	libEGLexports
+	libEGL_swiftshader

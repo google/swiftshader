@@ -42,7 +42,7 @@ global:
     eglCreatePlatformWindowSurfaceEXT;
     eglCreatePlatformPixmapSurfaceEXT;
 
-	libEGLexports;
+	libEGL_swiftshader;
 
 local:
     *;

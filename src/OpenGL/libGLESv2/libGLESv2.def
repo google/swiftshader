@@ -274,6 +274,6 @@ EXPORTS
     glTexStorage3D                  @304
     glGetInternalformativ           @308
 
-    libGLESv2exports
+    libGLESv2_swiftshader
 
 	Register

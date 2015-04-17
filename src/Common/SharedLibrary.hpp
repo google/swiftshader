@@ -20,9 +20,11 @@
 
 void *getLibraryHandle(const char *path);
 void *loadLibrary(const char *path);
+void freeLibrary(void *library);
+void *getProcAddress(void *library, const char *name);
 
 template<int n>
-void *loadLibrary(const char *(&names)[n])
+void *loadLibrary(const char *(&names)[n], const char *mustContainSymbol = nullptr)
 {
 	for(int i = 0; i < n; i++)
 	{
@@ -30,7 +32,12 @@ void *loadLibrary(const char *(&names)[n])
 
 		if(library)
 		{
-			return library;
+			if(!mustContainSymbol || getProcAddress(library, mustContainSymbol))
+			{
+				return library;
+			}
+
+			freeLibrary(library);
 		}
 	}
 
@@ -40,7 +47,12 @@ void *loadLibrary(const char *(&names)[n])
 
 		if(library)
 		{
-			return library;
+			if(!mustContainSymbol || getProcAddress(library, mustContainSymbol))
+			{
+				return library;
+			}
+
+			freeLibrary(library);
 		}
 	}
 

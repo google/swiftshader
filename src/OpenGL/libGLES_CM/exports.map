@@ -1,5 +1,6 @@
 {
 global:
+	eglBindAPI;
 	eglBindTexImage;
     eglChooseConfig;
     eglCopyBuffers;
@@ -205,7 +206,7 @@ global:
     glDrawTexfOES;
     glDrawTexfvOES;
 
-    libGLES_CMexports;
+    libGLES_CM_swiftshader;
 
 	Register;
 

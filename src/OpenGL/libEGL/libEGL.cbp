@@ -100,6 +100,7 @@
 			<Add option="-Wall" />
 			<Add option="-std=c++11" />
 			<Add option="-fexceptions" />
+			<Add option="-fvisibility=protected" />
 			<Add directory="./../include/" />
 			<Add directory="./../" />
 			<Add directory="./../../" />
