@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0c51e25_d1dd260c",
+        "filename": "src/OpenGL/compiler/Initialize.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-17T14:19:42Z",
+      "side": 1,
+      "message": "Is there some line-ending change going on here?",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 82
+      },
+      "revId": "483cbce7d6c1a076f4ba6330034e3b05b1106a54",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
