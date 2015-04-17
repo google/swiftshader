@@ -24,7 +24,6 @@ LOCAL_CFLAGS += -UNDEBUG -g -O0
 #LOCAL_CFLAGS += -DANGLE_DISABLE_TRACE
 
 LOCAL_CFLAGS += -std=c++11
-LOCAL_CFLAGS += -fvisibility=protected
 
 # These changes tie the build to Cloud Android. Do something else
 # for other Android builds.
