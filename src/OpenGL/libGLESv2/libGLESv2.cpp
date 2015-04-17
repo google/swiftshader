@@ -1823,6 +1823,109 @@ void GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum type, const G
 	}
 }
 
+void GL_APIENTRY glDrawArraysInstancedEXT(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount)
+{
+	TRACE("(GLenum mode = 0x%X, GLint first = %d, GLsizei count = %d, GLsizei instanceCount = %d)",
+		mode, first, count, instanceCount);
+
+	switch(mode)
+	{
+	case GL_POINTS:
+	case GL_LINES:
+	case GL_LINE_LOOP:
+	case GL_LINE_STRIP:
+	case GL_TRIANGLES:
+	case GL_TRIANGLE_FAN:
+	case GL_TRIANGLE_STRIP:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	if(count < 0 || instanceCount < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::TransformFeedback* transformFeedback = context->getTransformFeedback();
+		if(transformFeedback && transformFeedback->isActive() && (mode != transformFeedback->primitiveMode()))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		context->drawArrays(mode, first, count, instanceCount);
+	}
+}
+
+void GL_APIENTRY glDrawElementsInstancedEXT(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instanceCount)
+{
+	TRACE("(GLenum mode = 0x%X, GLsizei count = %d, GLenum type = 0x%X, const void *indices = 0x%0.8p, GLsizei instanceCount = %d)",
+		mode, count, type, indices, instanceCount);
+
+	switch(mode)
+	{
+	case GL_POINTS:
+	case GL_LINES:
+	case GL_LINE_LOOP:
+	case GL_LINE_STRIP:
+	case GL_TRIANGLES:
+	case GL_TRIANGLE_FAN:
+	case GL_TRIANGLE_STRIP:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	switch(type)
+	{
+	case GL_UNSIGNED_BYTE:
+	case GL_UNSIGNED_SHORT:
+	case GL_UNSIGNED_INT:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	if(count < 0 || instanceCount < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::TransformFeedback* transformFeedback = context->getTransformFeedback();
+		if(transformFeedback && transformFeedback->isActive() && !transformFeedback->isPaused())
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		context->drawElements(mode, 0, UINT_MAX, count, type, indices, instanceCount);
+	}
+}
+
+void GL_APIENTRY glVertexAttribDivisorEXT(GLuint index, GLuint divisor)
+{
+	TRACE("(GLuint index = %d, GLuint divisor = %d)", index, divisor);
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		if(index >= es2::MAX_VERTEX_ATTRIBS)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		context->setVertexAttribDivisor(index, divisor);
+	}
+}
+
 void GL_APIENTRY glEnable(GLenum cap)
 {
 	TRACE("(GLenum cap = 0x%X)", cap);
@@ -6778,6 +6881,9 @@ __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char *procname)
 		EXTENSION(glGetQueryObjectuivEXT),
 		EXTENSION(glEGLImageTargetTexture2DOES),
 		EXTENSION(glEGLImageTargetRenderbufferStorageOES),
+		EXTENSION(glDrawElementsInstancedEXT),
+		EXTENSION(glDrawArraysInstancedEXT),
+		EXTENSION(glVertexAttribDivisorEXT),
 
 		#undef EXTENSION
 	};

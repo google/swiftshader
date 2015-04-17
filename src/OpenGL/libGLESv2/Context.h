@@ -552,8 +552,8 @@ public:
 
     void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
     void clear(GLbitfield mask);
-    void drawArrays(GLenum mode, GLint first, GLsizei count);
-    void drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices);
+    void drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount = 1);
+    void drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLsizei instanceCount = 1);
     void finish();
     void flush();
 

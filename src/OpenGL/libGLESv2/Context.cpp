@@ -3240,7 +3240,7 @@ void Context::clear(GLbitfield mask)
 	}
 }
 
-void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
+void Context::drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount)
 {
     if(!mState.currentProgram)
     {
@@ -3285,7 +3285,7 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
     }
 }
 
-void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices)
+void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLsizei instanceCount)
 {
     if(!mState.currentProgram)
     {
@@ -4085,7 +4085,8 @@ const GLubyte* Context::getExtensions(GLuint index, GLuint* numExt)
 		(const GLubyte*)"GL_ANGLE_texture_compression_dxt3",
 		(const GLubyte*)"GL_ANGLE_texture_compression_dxt5",
 #endif
-		(const GLubyte*)"GL_NV_fence"
+		(const GLubyte*)"GL_NV_fence",
+		(const GLubyte*)"GL_EXT_instanced_arrays",
 	};
 	static const GLuint numExtensions = sizeof(extensions) / sizeof(*extensions);
 

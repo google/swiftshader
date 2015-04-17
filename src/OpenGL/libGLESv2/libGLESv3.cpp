@@ -2618,10 +2618,10 @@ void GL_APIENTRY glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex,
 	UNIMPLEMENTED();
 }
 
-void GL_APIENTRY glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei instancecount)
+void GL_APIENTRY glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount)
 {
-	TRACE("(GLenum mode = 0x%X, GLint first = %d, GLsizei count = %d, GLsizei instancecount = %d)",
-	      mode, first, count, instancecount);
+	TRACE("(GLenum mode = 0x%X, GLint first = %d, GLsizei count = %d, GLsizei instanceCount = %d)",
+	      mode, first, count, instanceCount);
 
 	switch(mode)
 	{
@@ -2637,7 +2637,7 @@ void GL_APIENTRY glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, 
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(count < 0 || instancecount < 0)
+	if(count < 0 || instanceCount < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -2651,15 +2651,15 @@ void GL_APIENTRY glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, 
 		{
 			return error(GL_INVALID_OPERATION);
 		}
-	}
 
-	UNIMPLEMENTED();
+		context->drawArrays(mode, first, count, instanceCount);
+	}
 }
 
-void GL_APIENTRY glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount)
+void GL_APIENTRY glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instanceCount)
 {
-	TRACE("(GLenum mode = 0x%X, GLsizei count = %d, GLenum type = 0x%X, const void *indices = 0x%0.8p, GLsizei instancecount = %d)",
-	      mode, count, type, indices, instancecount);
+	TRACE("(GLenum mode = 0x%X, GLsizei count = %d, GLenum type = 0x%X, const void *indices = 0x%0.8p, GLsizei instanceCount = %d)",
+	      mode, count, type, indices, instanceCount);
 
 	switch(mode)
 	{
@@ -2685,7 +2685,7 @@ void GL_APIENTRY glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(count < 0 || instancecount < 0)
+	if(count < 0 || instanceCount < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -2699,9 +2699,9 @@ void GL_APIENTRY glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type
 		{
 			return error(GL_INVALID_OPERATION);
 		}
-	}
 
-	UNIMPLEMENTED();
+		context->drawElements(mode, 0, UINT_MAX, count, type, indices, instanceCount);
+	}
 }
 
 GLsync GL_APIENTRY glFenceSync(GLenum condition, GLbitfield flags)
