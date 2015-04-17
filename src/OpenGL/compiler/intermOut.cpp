@@ -160,6 +160,12 @@ bool TOutputTraverser::visitUnary(Visit visit, TIntermUnary* node)
         case EOpAsin:           out << "arc sine";             break;
         case EOpAcos:           out << "arc cosine";           break;
         case EOpAtan:           out << "arc tangent";          break;
+        case EOpSinh:           out << "hyperbolic sine";        break;
+        case EOpCosh:           out << "hyperbolic cosine";      break;
+        case EOpTanh:           out << "hyperbolic tangent";     break;
+        case EOpAsinh:          out << "arc hyperbolic sine";    break;
+        case EOpAcosh:          out << "arc hyperbolic cosine";  break;
+        case EOpAtanh:          out << "arc hyperbolic tangent"; break;
 
         case EOpExp:            out << "exp";                  break;
         case EOpLog:            out << "log";                  break;
@@ -171,14 +177,36 @@ bool TOutputTraverser::visitUnary(Visit visit, TIntermUnary* node)
         case EOpAbs:            out << "Absolute value";       break;
         case EOpSign:           out << "Sign";                 break;
         case EOpFloor:          out << "Floor";                break;
+        case EOpTrunc:          out << "Trunc";                break;
+        case EOpRound:          out << "Round";                break;
+        case EOpRoundEven:      out << "RoundEven";            break;
         case EOpCeil:           out << "Ceiling";              break;
         case EOpFract:          out << "Fraction";             break;
+        case EOpIsNan:          out << "Is not a number";      break;
+        case EOpIsInf:          out << "Is infinity";          break;
+
+        case EOpFloatBitsToInt: out << "float bits to int";    break;
+        case EOpFloatBitsToUint: out << "float bits to uint";  break;
+        case EOpIntBitsToFloat: out << "int bits to float";    break;
+        case EOpUintBitsToFloat: out << "uint bits to float";  break;
+
+        case EOpPackSnorm2x16:  out << "pack Snorm 2x16";      break;
+        case EOpPackUnorm2x16:  out << "pack Unorm 2x16";      break;
+        case EOpPackHalf2x16:   out << "pack half 2x16";       break;
+
+        case EOpUnpackSnorm2x16: out << "unpack Snorm 2x16";   break;
+        case EOpUnpackUnorm2x16: out << "unpack Unorm 2x16";   break;
+        case EOpUnpackHalf2x16:  out << "unpack half 2x16";    break;
 
         case EOpLength:         out << "length";               break;
         case EOpNormalize:      out << "normalize";            break;
             //	case EOpDPdx:           out << "dPdx";                 break;               
             //	case EOpDPdy:           out << "dPdy";                 break;   
             //	case EOpFwidth:         out << "fwidth";               break;                   
+
+        case EOpDeterminant:    out << "determinant";          break;
+        case EOpTranspose:      out << "transpose";            break;
+        case EOpInverse:        out << "inverse";              break;
 
         case EOpAny:            out << "any";                  break;
         case EOpAll:            out << "all";                  break;
@@ -258,6 +286,7 @@ bool TOutputTraverser::visitAggregate(Visit visit, TIntermAggregate* node)
         case EOpReflect:       out << "reflect";                 break;
         case EOpRefract:       out << "refract";                 break;
         case EOpMul:           out << "component-wise multiply"; break;
+        case EOpOuterProduct:  out << "outer product";           break;
 
         default: out.message(EPrefixError, "Bad aggregation op");
     }

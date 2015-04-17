@@ -80,6 +80,12 @@ const char* getOperatorString(TOperator op) {
       case EOpAsin: return "asin";
       case EOpAcos: return "acos";
       case EOpAtan: return "atan";
+      case EOpSinh: return "sinh";
+      case EOpCosh: return "cosh";
+      case EOpTanh: return "tanh";
+      case EOpAsinh: return "asinh";
+      case EOpAcosh: return "acosh";
+      case EOpAtanh: return "atanh";
       case EOpExp: return "exp";
       case EOpLog: return "log";
       case EOpExp2: return "exp2";
@@ -89,6 +95,9 @@ const char* getOperatorString(TOperator op) {
       case EOpAbs: return "abs";
       case EOpSign: return "sign";
       case EOpFloor: return "floor";
+      case EOpTrunc: return "trunc";
+      case EOpRound: return "round";
+      case EOpRoundEven: return "roundEven";
       case EOpCeil: return "ceil";
       case EOpFract: return "fract";
       case EOpLength: return "length";
@@ -98,6 +107,8 @@ const char* getOperatorString(TOperator op) {
       case EOpFwidth: return "fwidth";
       case EOpAny: return "any";
       case EOpAll: return "all";
+      case EOpIsNan: return "isnan";
+      case EOpIsInf: return "isinf";
 
       default: break;
     }

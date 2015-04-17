@@ -118,9 +118,9 @@ namespace sw
 			Vector4f s1;
 			Vector4f s2;
 
-			if(src0.type != Shader::PARAMETER_VOID) s0 = reg(r, src0);
-			if(src1.type != Shader::PARAMETER_VOID) s1 = reg(r, src1);
-			if(src2.type != Shader::PARAMETER_VOID) s2 = reg(r, src2);
+			if(src0.type != Shader::PARAMETER_VOID) s0 = fetchRegisterF(r, src0);
+			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegisterF(r, src1);
+			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegisterF(r, src2);
 
 			switch(opcode)
 			{
@@ -163,6 +163,7 @@ namespace sw
 			case Shader::OPCODE_FRC:		frc(d, s0);						break;
 			case Shader::OPCODE_TRUNC:      trunc(d, s0);                   break;
 			case Shader::OPCODE_FLOOR:      floor(d, s0);                   break;
+			case Shader::OPCODE_ROUND:      round(d, s0);                   break;
 			case Shader::OPCODE_CEIL:       ceil(d, s0);                    break;
 			case Shader::OPCODE_LIT:		lit(d, s0);						break;
 			case Shader::OPCODE_LOG2X:		log2x(d, s0, pp);				break;
@@ -213,6 +214,12 @@ namespace sw
 			case Shader::OPCODE_ASIN:		asin(d, s0);					break;
 			case Shader::OPCODE_ATAN:		atan(d, s0);					break;
 			case Shader::OPCODE_ATAN2:		atan2(d, s0, s1);				break;
+			case Shader::OPCODE_COSH:		cosh(d, s0, pp);				break;
+			case Shader::OPCODE_SINH:		sinh(d, s0, pp);				break;
+			case Shader::OPCODE_TANH:		tanh(d, s0, pp);				break;
+			case Shader::OPCODE_ACOSH:		acosh(d, s0, pp);				break;
+			case Shader::OPCODE_ASINH:		asinh(d, s0, pp);				break;
+			case Shader::OPCODE_ATANH:		atanh(d, s0, pp);				break;
 			case Shader::OPCODE_SLT:		slt(d, s0, s1);					break;
 			case Shader::OPCODE_SUB:		sub(d, s0, s1);					break;
 			case Shader::OPCODE_BREAK:		BREAK(r);						break;
@@ -596,7 +603,7 @@ namespace sw
 		}
 	}
 
-	Vector4f VertexProgram::reg(Registers &r, const Src &src, int offset)
+	Vector4f VertexProgram::fetchRegisterF(Registers &r, const Src &src, int offset)
 	{
 		int i = src.index + offset;
 
@@ -859,8 +866,8 @@ namespace sw
 
 	void VertexProgram::M3X2(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1)
 	{
-		Vector4f row0 = reg(r, src1, 0);
-		Vector4f row1 = reg(r, src1, 1);
+		Vector4f row0 = fetchRegisterF(r, src1, 0);
+		Vector4f row1 = fetchRegisterF(r, src1, 1);
 
 		dst.x = dot3(src0, row0);
 		dst.y = dot3(src0, row1);
@@ -868,9 +875,9 @@ namespace sw
 
 	void VertexProgram::M3X3(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1)
 	{
-		Vector4f row0 = reg(r, src1, 0);
-		Vector4f row1 = reg(r, src1, 1);
-		Vector4f row2 = reg(r, src1, 2);
+		Vector4f row0 = fetchRegisterF(r, src1, 0);
+		Vector4f row1 = fetchRegisterF(r, src1, 1);
+		Vector4f row2 = fetchRegisterF(r, src1, 2);
 
 		dst.x = dot3(src0, row0);
 		dst.y = dot3(src0, row1);
@@ -879,10 +886,10 @@ namespace sw
 
 	void VertexProgram::M3X4(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1)
 	{
-		Vector4f row0 = reg(r, src1, 0);
-		Vector4f row1 = reg(r, src1, 1);
-		Vector4f row2 = reg(r, src1, 2);
-		Vector4f row3 = reg(r, src1, 3);
+		Vector4f row0 = fetchRegisterF(r, src1, 0);
+		Vector4f row1 = fetchRegisterF(r, src1, 1);
+		Vector4f row2 = fetchRegisterF(r, src1, 2);
+		Vector4f row3 = fetchRegisterF(r, src1, 3);
 
 		dst.x = dot3(src0, row0);
 		dst.y = dot3(src0, row1);
@@ -892,9 +899,9 @@ namespace sw
 
 	void VertexProgram::M4X3(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1)
 	{
-		Vector4f row0 = reg(r, src1, 0);
-		Vector4f row1 = reg(r, src1, 1);
-		Vector4f row2 = reg(r, src1, 2);
+		Vector4f row0 = fetchRegisterF(r, src1, 0);
+		Vector4f row1 = fetchRegisterF(r, src1, 1);
+		Vector4f row2 = fetchRegisterF(r, src1, 2);
 
 		dst.x = dot4(src0, row0);
 		dst.y = dot4(src0, row1);
@@ -903,10 +910,10 @@ namespace sw
 
 	void VertexProgram::M4X4(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1)
 	{
-		Vector4f row0 = reg(r, src1, 0);
-		Vector4f row1 = reg(r, src1, 1);
-		Vector4f row2 = reg(r, src1, 2);
-		Vector4f row3 = reg(r, src1, 3);
+		Vector4f row0 = fetchRegisterF(r, src1, 0);
+		Vector4f row1 = fetchRegisterF(r, src1, 1);
+		Vector4f row2 = fetchRegisterF(r, src1, 2);
+		Vector4f row3 = fetchRegisterF(r, src1, 3);
 
 		dst.x = dot4(src0, row0);
 		dst.y = dot4(src0, row1);
@@ -1188,7 +1195,7 @@ namespace sw
 		}
 		else
 		{
-			Int4 condition = As<Int4>(reg(r, src).x);
+			Int4 condition = As<Int4>(fetchRegisterF(r, src).x);
 			IF(r, condition);
 		}
 	}
@@ -1358,7 +1365,7 @@ namespace sw
 		Nucleus::setInsertBlock(testBlock);
 		r.enableContinue = restoreContinue;
 
-		const Vector4f &src = reg(r, temporaryRegister);
+		const Vector4f &src = fetchRegisterF(r, temporaryRegister);
 		Int4 condition = As<Int4>(src.x);
 		condition &= r.enableStack[r.enableIndex - 1];
 		r.enableStack[r.enableIndex] = condition;
@@ -1453,7 +1460,7 @@ namespace sw
 		}
 		else
 		{
-			Int index = As<Int>(Float(reg(r, s).x.x));
+			Int index = As<Int>(Float(fetchRegisterF(r, s).x.x));
 
 			for(int i = 0; i < 16; i++)
 			{

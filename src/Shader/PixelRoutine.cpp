@@ -4042,6 +4042,7 @@ namespace sw
 			case Shader::OPCODE_FRC:		frc(d, s0);										break;
 			case Shader::OPCODE_TRUNC:      trunc(d, s0);                                   break;
 			case Shader::OPCODE_FLOOR:      floor(d, s0);                                   break;
+			case Shader::OPCODE_ROUND:		round(d, s0);                                   break;
 			case Shader::OPCODE_CEIL:       ceil(d, s0);                                    break;
 			case Shader::OPCODE_EXP2X:		exp2x(d, s0, pp);								break;
 			case Shader::OPCODE_EXP2:		exp2(d, s0, pp);								break;
@@ -4095,6 +4096,12 @@ namespace sw
 			case Shader::OPCODE_ASIN:		asin(d, s0, pp);								break;
 			case Shader::OPCODE_ATAN:		atan(d, s0, pp);								break;
 			case Shader::OPCODE_ATAN2:		atan2(d, s0, s1, pp);							break;
+			case Shader::OPCODE_COSH:		cosh(d, s0, pp);								break;
+			case Shader::OPCODE_SINH:		sinh(d, s0, pp);								break;
+			case Shader::OPCODE_TANH:		tanh(d, s0, pp);								break;
+			case Shader::OPCODE_ACOSH:		acosh(d, s0, pp);								break;
+			case Shader::OPCODE_ASINH:		asinh(d, s0, pp);								break;
+			case Shader::OPCODE_ATANH:		atanh(d, s0, pp);								break;
 			case Shader::OPCODE_M4X4:		M4X4(r, d, s0, src1);							break;
 			case Shader::OPCODE_M4X3:		M4X3(r, d, s0, src1);							break;
 			case Shader::OPCODE_M3X4:		M3X4(r, d, s0, src1);							break;
