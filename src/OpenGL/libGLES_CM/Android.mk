@@ -6,70 +6,6 @@ LOCAL_CLANG := true
 LOCAL_MODULE_PATH := $(TARGET_OUT)/vendor/lib/egl
 LOCAL_MODULE := libGLESv1_CM_swiftshader
 
-LOCAL_SRC_FILES := \
-	../../Common/CPUID.cpp \
-	../../Common/Configurator.cpp \
-	../../Common/DebugAndroid.cpp \
-	../../Common/Half.cpp \
-	../../Common/Math.cpp \
-	../../Common/Memory.cpp \
-	../../Common/Resource.cpp \
-	../../Common/Socket.cpp \
-	../../Common/Thread.cpp \
-	../../Common/Timer.cpp
-
-LOCAL_SRC_FILES += \
-	../../Main/Config.cpp \
-	../../Main/FrameBuffer.cpp \
-	../../Main/FrameBufferAndroid.cpp \
-	../../Main/Logo.cpp \
-	../../Main/Register.cpp \
-	../../Main/SwiftConfig.cpp \
-	../../Main/crc.cpp \
-	../../Main/serialvalid.cpp \
-
-LOCAL_SRC_FILES += \
-	../../Reactor/Nucleus.cpp \
-	../../Reactor/Routine.cpp \
-	../../Reactor/RoutineManager.cpp
-
-LOCAL_SRC_FILES += \
-	../../Renderer/Blitter.cpp \
-	../../Renderer/Clipper.cpp \
-	../../Renderer/Color.cpp \
-	../../Renderer/Context.cpp \
-	../../Renderer/Matrix.cpp \
-	../../Renderer/PixelProcessor.cpp \
-	../../Renderer/Plane.cpp \
-	../../Renderer/Point.cpp \
-	../../Renderer/QuadRasterizer.cpp \
-	../../Renderer/Rasterizer.cpp \
-	../../Renderer/Renderer.cpp \
-	../../Renderer/Sampler.cpp \
-	../../Renderer/SetupProcessor.cpp \
-	../../Renderer/Surface.cpp \
-	../../Renderer/TextureStage.cpp \
-	../../Renderer/Vector.cpp \
-	../../Renderer/VertexProcessor.cpp \
-
-LOCAL_SRC_FILES += \
-	../../Shader/Constants.cpp \
-	../../Shader/PixelRoutine.cpp \
-	../../Shader/PixelShader.cpp \
-	../../Shader/SamplerCore.cpp \
-	../../Shader/SetupRoutine.cpp \
-	../../Shader/Shader.cpp \
-	../../Shader/ShaderCore.cpp \
-	../../Shader/VertexPipeline.cpp \
-	../../Shader/VertexProgram.cpp \
-	../../Shader/VertexRoutine.cpp \
-	../../Shader/VertexShader.cpp \
-
-LOCAL_SRC_FILES += \
-	../common/NameSpace.cpp \
-	../common/Object.cpp \
-	../common/MatrixStack.cpp \
-
 LOCAL_SRC_FILES += \
 	Buffer.cpp \
 	Context.cpp \
@@ -98,7 +34,7 @@ LOCAL_CFLAGS += -UNDEBUG -g -O0
 LOCAL_SHARED_LIBRARIES += libdl liblog libcutils libhardware libui libutils \
     $(GCE_STLPORT_LIBS)
 
-LOCAL_STATIC_LIBRARIES += libLLVM_swiftshader
+LOCAL_STATIC_LIBRARIES += swiftshader_top libLLVM_swiftshader
 LOCAL_LDFLAGS += -Wl,--gc-sections -Wl,--version-script=$(LOCAL_PATH)/exports.map -Wl,--hash-style=sysv
 
 LOCAL_C_INCLUDES += \

@@ -7,8 +7,6 @@ LOCAL_MODULE_PATH := $(TARGET_OUT)/vendor/lib/egl
 LOCAL_MODULE := libEGL_swiftshader
 
 LOCAL_SRC_FILES += \
-	../common/Object.cpp \
-	../../Common/DebugAndroid.cpp \
 	Config.cpp \
 	Display.cpp \
 	Surface.cpp \
@@ -27,7 +25,7 @@ LOCAL_CFLAGS += -std=c++11
 
 # These changes tie the build to Cloud Android. Do something else
 # for other Android builds.
-LOCAL_STATIC_LIBRARIES += libgceframebufferconfig libgcemetadata
+LOCAL_STATIC_LIBRARIES += swiftshader_top libgceframebufferconfig libgcemetadata
 LOCAL_C_INCLUDES += device/google/gce/include
 
 LOCAL_SHARED_LIBRARIES += libdl liblog libandroid libutils libcutils $(GCE_STLPORT_LIBS)
