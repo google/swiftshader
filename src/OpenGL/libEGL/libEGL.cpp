@@ -490,7 +490,7 @@ EGLBoolean EGLAPIENTRY eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLi
 	case EGL_SWAP_BEHAVIOR:
 		if(value == EGL_BUFFER_PRESERVED)
 		{
-			if(!(eglSurface->getSurfaceType() && EGL_SWAP_BEHAVIOR_PRESERVED_BIT))
+			if(!(eglSurface->getSurfaceType() & EGL_SWAP_BEHAVIOR_PRESERVED_BIT))
 			{
 				return error(EGL_BAD_MATCH, EGL_FALSE);
 			}

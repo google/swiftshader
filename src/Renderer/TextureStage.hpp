@@ -193,4 +193,4 @@ namespace sw
 	};
 }
 
-#endif sw_TextureStage_hpp
+#endif  // sw_TextureStage_hpp

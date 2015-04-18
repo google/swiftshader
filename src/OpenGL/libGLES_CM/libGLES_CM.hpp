@@ -92,4 +92,4 @@ private:
 	LibGLES_CMexports *libGLES_CMexports;
 };
 
-#endif libGLES_CM_hpp
+#endif   // libGLES_CM_hpp
