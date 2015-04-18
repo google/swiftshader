@@ -2639,27 +2639,7 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
     #if defined(__ANDROID__)
     else if(target == EGL_NATIVE_BUFFER_ANDROID)
     {
-        ANativeWindowBuffer *nativeBuffer = reinterpret_cast<ANativeWindowBuffer*>(name);
-
-        if(nativeBuffer->common.magic != ANDROID_NATIVE_BUFFER_MAGIC)
-        {
-            return EGL_BAD_PARAMETER;
-        }
-
-        if(nativeBuffer->common.version != sizeof(ANativeWindowBuffer))
-        {
-            return EGL_BAD_PARAMETER;
-        }
-
-        switch(nativeBuffer->format)
-		{
-        case HAL_PIXEL_FORMAT_RGBA_8888:
-        case HAL_PIXEL_FORMAT_RGBX_8888:
-        case HAL_PIXEL_FORMAT_RGB_565:
-            break;
-        default:
-            return EGL_BAD_PARAMETER;
-        }
+		return isSupportedAndroidBuffer(name);
     }
     #endif
     else UNREACHABLE();
@@ -2684,17 +2664,7 @@ egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textu
     #if defined(__ANDROID__)
     else if(target == EGL_NATIVE_BUFFER_ANDROID)
     {
-        ANativeWindowBuffer *nativeBuffer = reinterpret_cast<ANativeWindowBuffer*>(name);
-        nativeBuffer->common.incRef(&nativeBuffer->common);
-
-        GLenum format = getColorFormatFromAndroid(nativeBuffer->format);
-        GLenum type = getPixelFormatFromAndroid(nativeBuffer->format);
-
-        es1::Image *image = new Image(0, nativeBuffer->width, nativeBuffer->height, format, type);
-        image->setNativeBuffer(nativeBuffer);
-        image->markShared();
-
-        return image;
+		return wrapAndroidNativeWindow<es1::Image>(name);
     }
     #endif
     else UNREACHABLE();

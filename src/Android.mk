@@ -9,6 +9,7 @@ LOCAL_SRC_FILES := \
 	Common/CPUID.cpp \
 	Common/Configurator.cpp \
 	Common/DebugAndroid.cpp \
+	Common/GrallocAndroid.cpp \
 	Common/Half.cpp \
 	Common/Math.cpp \
 	Common/Memory.cpp \
@@ -65,6 +66,7 @@ LOCAL_SRC_FILES += \
 	Shader/VertexShader.cpp \
 
 LOCAL_SRC_FILES += \
+	OpenGL/common/AndroidCommon.cpp \
 	OpenGL/common/NameSpace.cpp \
 	OpenGL/common/Object.cpp \
 	OpenGL/common/MatrixStack.cpp \

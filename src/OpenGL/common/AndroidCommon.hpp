@@ -1,54 +1,30 @@
 #ifndef ANDROID_COMMON
 #define ANDROID_COMMON
 
-static inline GLenum getColorFormatFromAndroid(int format)
+// Used internally
+GLenum getColorFormatFromAndroid(int format);
+
+// Used internally
+GLenum getPixelFormatFromAndroid(int format);
+
+// Used in V1 & V2 Context.cpp
+GLenum isSupportedAndroidBuffer(GLuint name);
+
+// Used in V1 & V2 Context.cpp
+template <typename I> I* wrapAndroidNativeWindow(GLuint name)
 {
-    switch(format)
-    {
-        case HAL_PIXEL_FORMAT_RGBA_8888:
-            return GL_RGBA;
-        case HAL_PIXEL_FORMAT_RGBX_8888:
-            return GL_RGB;
-        case HAL_PIXEL_FORMAT_RGB_888:
-            return GL_RGB;
-        case HAL_PIXEL_FORMAT_BGRA_8888:
-            return GL_BGRA_EXT;
-        case HAL_PIXEL_FORMAT_RGB_565:
-            return GL_RGB565_OES;
-        case HAL_PIXEL_FORMAT_YV12:
-        case HAL_PIXEL_FORMAT_Y8:
-        case HAL_PIXEL_FORMAT_Y16:
-        case HAL_PIXEL_FORMAT_RAW_SENSOR:
-        case HAL_PIXEL_FORMAT_BLOB:
-        case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
-        case HAL_PIXEL_FORMAT_YCbCr_420_888:
-        default:
-            UNIMPLEMENTED();
-    }
-    return GL_RGBA;
+    ANativeWindowBuffer *nativeBuffer = reinterpret_cast<ANativeWindowBuffer*>(name);
+    ALOGV("%s: wrapping %p", __FUNCTION__, nativeBuffer);
+    nativeBuffer->common.incRef(&nativeBuffer->common);
+
+    GLenum format = getColorFormatFromAndroid(nativeBuffer->format);
+    GLenum type = getPixelFormatFromAndroid(nativeBuffer->format);
+
+    I *image = new I(0, nativeBuffer->width, nativeBuffer->height, format, type);
+    image->setNativeBuffer(nativeBuffer);
+    image->markShared();
+
+    return image;
 }
 
-static inline GLenum getPixelFormatFromAndroid(int format)
-{
-    switch(format)
-    {
-        case HAL_PIXEL_FORMAT_RGBA_8888:
-        case HAL_PIXEL_FORMAT_RGBX_8888:
-        case HAL_PIXEL_FORMAT_RGB_888:
-        case HAL_PIXEL_FORMAT_BGRA_8888:
-            return GL_UNSIGNED_BYTE;
-        case HAL_PIXEL_FORMAT_RGB_565:
-            return GL_UNSIGNED_SHORT_5_6_5;
-        case HAL_PIXEL_FORMAT_YV12:
-        case HAL_PIXEL_FORMAT_Y8:
-        case HAL_PIXEL_FORMAT_Y16:
-        case HAL_PIXEL_FORMAT_RAW_SENSOR:
-        case HAL_PIXEL_FORMAT_BLOB:
-        case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
-        case HAL_PIXEL_FORMAT_YCbCr_420_888:
-        default:
-            UNIMPLEMENTED();
-    }
-    return GL_UNSIGNED_BYTE;
-}
 #endif  // ANDROID_COMMON

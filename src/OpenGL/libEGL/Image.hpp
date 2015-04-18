@@ -6,6 +6,7 @@
 #if defined(__ANDROID__)
 #include <hardware/gralloc.h>
 #include <system/window.h>
+#include "../../Common/GrallocAndroid.hpp"
 #endif
 
 #ifdef __ANDROID__
@@ -35,7 +36,6 @@ public:
 
 		#if defined(__ANDROID__)
 			nativeBuffer = 0;
-			gralloc = 0;
 		#endif
 	}
 
@@ -47,7 +47,6 @@ public:
 
 		#if defined(__ANDROID__)
 			nativeBuffer = 0;
-			gralloc = 0;
 		#endif
 	}
 
@@ -185,35 +184,19 @@ protected:
 
 	#if defined(__ANDROID__)
 	ANativeWindowBuffer *nativeBuffer;
-	gralloc_module_t const *gralloc;
-
-	void initGralloc()
-	{
-		hw_module_t const *module;
-		hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &module);
-		gralloc = reinterpret_cast<gralloc_module_t const*>(module);
-	}
 
 	void* lockNativeBuffer(int usage)
 	{
-		if(!gralloc)
-		{
-			initGralloc();
-		}
-
 		void *buffer = 0;
-		gralloc->lock(gralloc, nativeBuffer->handle, usage, 0, 0, nativeBuffer->width, nativeBuffer->height, &buffer);
+		GrallocModule::getInstance()->lock(
+			nativeBuffer->handle, usage, 0, 0,
+			nativeBuffer->width, nativeBuffer->height, &buffer);
 		return buffer;
 	}
 
 	void unlockNativeBuffer()
 	{
-		if(!gralloc)
-		{
-			initGralloc();
-		}
-
-		gralloc->unlock(gralloc, nativeBuffer->handle);
+		GrallocModule::getInstance()->unlock(nativeBuffer->handle);
 	}
 	#endif
 };
