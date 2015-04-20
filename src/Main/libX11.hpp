@@ -38,7 +38,15 @@ struct LibX11exports
 class LibX11
 {
 public:
+	operator bool()
+	{
+		return loadExports();
+	}
+
     LibX11exports *operator->();
+
+private:
+	LibX11exports *loadExports();
 };
 
 extern LibX11 libX11;

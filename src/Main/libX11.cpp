@@ -31,6 +31,11 @@ LibX11exports::LibX11exports(void *libX11, void *libXext)
 
 LibX11exports *LibX11::operator->()
 {
+	return loadExports();
+}
+
+LibX11exports *LibX11::loadExports()
+{
     static void *libX11 = nullptr;
     static void *libXext = nullptr;
     static LibX11exports *libX11exports = nullptr;
@@ -38,8 +43,12 @@ LibX11exports *LibX11::operator->()
     if(!libX11)
     {
         libX11 = loadLibrary("libX11.so");
-        libXext = loadLibrary("libXext.so");
-        libX11exports = new LibX11exports(libX11, libXext);
+
+        if(libX11)
+        {
+			libXext = loadLibrary("libXext.so");
+			libX11exports = new LibX11exports(libX11, libXext);
+		}
     }
 
     return libX11exports;

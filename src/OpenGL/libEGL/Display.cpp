@@ -44,7 +44,14 @@ egl::Display *Display::getPlatformDisplay(EGLenum platform, EGLNativeDisplayType
         if(platform == EGL_UNKNOWN)   // Default
         {
             #if defined(__unix__)
-                platform = EGL_PLATFORM_X11_EXT;
+				if(libX11)
+				{
+					platform = EGL_PLATFORM_X11_EXT;
+				}
+				else
+				{
+					platform = EGL_PLATFORM_GBM_KHR;
+				}
             #endif
         }
 
