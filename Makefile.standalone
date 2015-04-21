@@ -2,8 +2,7 @@
 # and how you built LLVM & Clang. They can be overridden in a command-line
 # invocation of make, like:
 #
-#   make LLVM_SRC_PATH=<path> LLVM_BIN_PATH=<path> \
-#        LIBCXX_INSTALL_PATH=<path> CLANG_PATH=<path> \
+#   make LLVM_SRC_PATH=<path> LIBCXX_INSTALL_PATH=<path> CLANG_PATH=<path> \
 #        PNACL_BIN_PATH=<path> ...
 #
 
@@ -13,17 +12,6 @@
 # Alternatively, if you're building vs. a binary download of LLVM, then
 # LLVM_SRC_PATH can point to the main untarred directory.
 LLVM_SRC_PATH ?= ../llvm
-
-# LLVM_BIN_PATH is the directory where binaries are placed by the LLVM build
-# process. It should contain the tools like clang, clang-format, llc,
-# llvm-as, llvm-config, llvm-mc, pnacl-bcdis, and pnacl-freeze.
-ifdef CMAKE
-  # LLVM cmake build
-  LLVM_BIN_PATH ?= ../../out/llvm_x86_64_linux_work/bin
-else
-  # LLVM autoconf build
-  LLVM_BIN_PATH ?= ../../out/llvm_x86_64_linux_work/Release+Asserts/bin
-endif
 
 # The x86-32-specific sandboxed translator directory.
 # It holds sandboxed versions of libraries and binaries.
@@ -37,10 +25,16 @@ NACL_ROOT ?= $(shell python -c "import sys; sys.path.insert(0, 'pydir'); \
 # PNACL_TOOLCHAIN_ROOT is the location of the PNaCl toolchain.
 # This is used as the default root for finding binutils, libcxx, etc.
 PNACL_TOOLCHAIN_ROOT ?= $(shell readlink -e \
-	$(NACL_ROOT)/toolchain/linux_x86/pnacl_newlib)
+	$(NACL_ROOT)/toolchain/linux_x86/pnacl_newlib_raw)
 
 # The location of PNaCl tools (e.g., binutils objdump, pnacl-clang++, etc.).
 PNACL_BIN_PATH ?= $(shell readlink -e $(PNACL_TOOLCHAIN_ROOT)/bin)
+
+# Hack to auto-detect autoconf versus cmake build of LLVM.  If the LLVM tools
+# were dynamically linked with something like libLLVM-3.6svn.so, it is an
+# autoconf build, otherwise it is a cmake build.  AUTOCONF is set to 0 for
+# cmake, nonzero for autoconf.
+AUTOCONF ?= $(shell ldd $(PNACL_BIN_PATH)/opt | grep -c libLLVM-)
 
 # CLANG_PATH is the location of the clang compiler to use for building
 # the host binaries.
@@ -109,7 +103,6 @@ SB_OBJDIR := $(OBJDIR)+Sandboxed
 
 $(info -----------------------------------------------)
 $(info Using LLVM_SRC_PATH = $(LLVM_SRC_PATH))
-$(info Using LLVM_BIN_PATH = $(LLVM_BIN_PATH))
 $(info Using SB_LLVM_PATH = $(SB_LLVM_PATH))
 $(info Using NACL_ROOT = $(NACL_ROOT))
 $(info Using PNACL_TOOLCHAIN_ROOT = $(PNACL_TOOLCHAIN_ROOT))
@@ -119,20 +112,36 @@ $(info Using LIBCXX_INSTALL_PATH = $(LIBCXX_INSTALL_PATH))
 $(info Using HOST_ARCH     = $(HOST_ARCH))
 $(info -----------------------------------------------)
 
-LLVM_CXXFLAGS := `$(LLVM_BIN_PATH)/llvm-config --cxxflags`
+LLVM_CXXFLAGS := `$(PNACL_BIN_PATH)/llvm-config --cxxflags`
 SB_LLVM_CXXFLAGS := $(LLVM_CXXFLAGS)
 
 # Listing specific libraries that are needed for pnacl-sz
 # and the unittests, since we build "tools-only" for the
 # sandboxed_translators (which doesn't include every library
 # listed by llvm-config).
-LLVM_LIBS := -lLLVMIRReader -lLLVMBitReader -lLLVMNaClBitTestUtils \
-	-lLLVMNaClBitReader -lLLVMNaClBitAnalysis -lLLVMNaClBitWriter \
-	-lLLVMAsmParser -lLLVMNaClAnalysis -lLLVMCore -lLLVMSupport
+
+LLVM_LIBS_LIST := -lLLVMIRReader -lLLVMBitReader -lLLVMNaClBitTestUtils \
+    -lLLVMNaClBitReader -lLLVMNaClBitAnalysis -lLLVMNaClBitWriter \
+    -lLLVMAsmParser -lLLVMNaClAnalysis -lLLVMCore -lLLVMSupport
+
+ifeq ($(AUTOCONF), 0)
+  # LLVM cmake build
+  LLVM_LIBS := $(LLVM_LIBS_LIST)
+  # For the cmake build, the gtest libs end up in the same place as the LLVM
+  # libs, so no "-L..." arg is needed.
+  GTEST_LIB_PATH ?=
+  CLANG_FORMAT_PATH ?= $(PNACL_BIN_PATH)
+else
+  # LLVM autoconf build
+  LLVM_LIBS := -lLLVM-3.6svn
+  GTEST_LIB_PATH ?= -L../../out/llvm_x86_64_linux_work/Release+Asserts/lib
+  CLANG_FORMAT_PATH ?= ../../out/llvm_x86_64_linux_work/Release+Asserts/bin
+endif
+
 LLVM_LDFLAGS := $(LLVM_LIBS) \
-                `$(LLVM_BIN_PATH)/llvm-config --ldflags` \
-                `$(LLVM_BIN_PATH)/llvm-config --system-libs`
-SB_LLVM_LDFLAGS := $(LLVM_LIBS) \
+                `$(PNACL_BIN_PATH)/llvm-config --ldflags` \
+                `$(PNACL_BIN_PATH)/llvm-config --system-libs`
+SB_LLVM_LDFLAGS := $(LLVM_LIBS_LIST) \
                    -L$(SB_LLVM_PATH)/lib
 
 CCACHE := `command -v ccache`
@@ -239,7 +248,8 @@ $(SB_OBJS): $(SB_OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
 	$(SB_CXX) -c $(SB_CXXFLAGS) $< -o $@
 
 $(OBJDIR)/run_unittests: $(UNITTEST_OBJS) $(UNITTEST_LIB_OBJS)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) -lgtest -lgtest_main -ldl \
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
+               $(GTEST_LIB_PATH) -lgtest -lgtest_main -ldl \
                -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
 
 $(UNITTEST_OBJS): $(OBJDIR)/unittest/%.o: unittest/%.cpp \
@@ -277,8 +287,7 @@ runtime.is.built: $(RT_SRC)
 	./pydir/build-runtime.py -v --pnacl-root $(PNACL_TOOLCHAIN_ROOT)
 
 check-lit: $(OBJDIR)/pnacl-sz make_symlink
-	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
-	BINUTILS_BIN_PATH=$(PNACL_BIN_PATH) \
+	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit
 
 ifdef MINIMAL
@@ -291,7 +300,7 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
 	./pydir/crosstest_generator.py -v --lit \
 	  -i native,sse2 -i native,sse4.1,test_vector_ops \
 	  -i sandbox,sse4.1,Om1
-	LLVM_BIN_PATH=$(LLVM_BIN_PATH) \
+	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv crosstest/Output
 endif
 
@@ -304,12 +313,12 @@ FORMAT_BLACKLIST =
 # Add one of the following lines for each source file to ignore.
 FORMAT_BLACKLIST += ! -name IceParseInstsTest.cpp
 format:
-	$(LLVM_BIN_PATH)/clang-format -style=LLVM -i \
+	$(CLANG_FORMAT_PATH)/clang-format -style=LLVM -i \
 	`find . -regex '.*\.\(c\|h\|cpp\)' $(FORMAT_BLACKLIST)`
 
 format-diff:
 	git diff -U0 `git merge-base HEAD master` | \
-	PATH=$(LLVM_BIN_PATH):$(PATH) \
+	PATH=$(PNACL_BIN_PATH):$(PATH) \
 	$(LLVM_SRC_PATH)/../clang/tools/clang-format/clang-format-diff.py \
 	-p1 -style=LLVM -i
 

@@ -40,13 +40,10 @@ def main():
     argparser.add_argument(
         '--pnacl-sz', required=False, default='./pnacl-sz', metavar='PNACL-SZ',
         help="Subzero translator 'pnacl-sz'")
-    argparser.add_argument('--llvm-bin-path', required=False,
-                           default=None, metavar='LLVM_BIN_PATH',
-                           help='Path to LLVM executables ' +
-                                '(for building PEXE files)')
-    argparser.add_argument('--binutils-bin-path', required=False,
-                           default=None, metavar='BINUTILS_BIN_PATH',
-                           help='Path to Binutils executables')
+    argparser.add_argument('--pnacl-bin-path', required=False,
+                           default=None, metavar='PNACL_BIN_PATH',
+                           help='Path to LLVM & Binutils executables ' +
+                                '(e.g. for building PEXE files)')
     argparser.add_argument('--assemble', required=False,
                            action='store_true',
                            help='Assemble the output')
@@ -67,8 +64,7 @@ def main():
                            help='Remaining arguments are passed to pnacl-sz')
 
     args = argparser.parse_args()
-    llvm_bin_path = args.llvm_bin_path
-    binutils_bin_path = args.binutils_bin_path
+    pnacl_bin_path = args.pnacl_bin_path
     llfile = args.input
 
     if args.llvm and args.llvm_source:
@@ -80,8 +76,8 @@ def main():
 
     cmd = []
     if not args.llvm_source:
-      cmd = [os.path.join(llvm_bin_path, 'llvm-as'), llfile, '-o', '-', '|',
-             os.path.join(llvm_bin_path, 'pnacl-freeze')]
+      cmd = [os.path.join(pnacl_bin_path, 'llvm-as'), llfile, '-o', '-', '|',
+             os.path.join(pnacl_bin_path, 'pnacl-freeze')]
       if not args.no_local_syms:
         cmd += ['--allow-local-symbol-tables']
       cmd += ['|']
@@ -111,7 +107,7 @@ def main():
       asm_temp = tempfile.NamedTemporaryFile(delete=False)
       asm_temp.close()
     if args.assemble and args.filetype != 'obj':
-      cmd += ['|', os.path.join(llvm_bin_path, 'llvm-mc'),
+      cmd += ['|', os.path.join(pnacl_bin_path, 'llvm-mc'),
               # TODO(stichnot): -triple=i686-nacl should be used for a
               # sandboxing test.  This means there should be an args.sandbox
               # argument that also gets passed through to pnacl-sz.
@@ -121,7 +117,7 @@ def main():
       cmd += ['-o', asm_temp.name]
     if args.disassemble:
       # Show wide instruction encodings, diassemble, and show relocs.
-      cmd += (['&&', os.path.join(binutils_bin_path, 'le32-nacl-objdump')] +
+      cmd += (['&&', os.path.join(pnacl_bin_path, 'le32-nacl-objdump')] +
               args.dis_flags +
               ['-w', '-d', '-r', '-Mintel', asm_temp.name])
 
