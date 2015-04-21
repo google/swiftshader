@@ -248,8 +248,8 @@ $(SB_OBJS): $(SB_OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
 	$(SB_CXX) -c $(SB_CXXFLAGS) $< -o $@
 
 $(OBJDIR)/run_unittests: $(UNITTEST_OBJS) $(UNITTEST_LIB_OBJS)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
-               $(GTEST_LIB_PATH) -lgtest -lgtest_main -ldl \
+	$(CXX) $(GTEST_LIB_PATH) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
+               -lgtest -lgtest_main -ldl \
                -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
 
 $(UNITTEST_OBJS): $(OBJDIR)/unittest/%.o: unittest/%.cpp \
