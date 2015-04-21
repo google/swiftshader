@@ -32,6 +32,8 @@ namespace sw
 		int positionRegister;     // FIXME: Private
 		int pointSizeRegister;    // FIXME: Private
 
+		bool instanceIdDeclared;
+
 		enum {MAX_INPUT_ATTRIBUTES = 16};
 		Semantic input[MAX_INPUT_ATTRIBUTES];       // FIXME: Private
 

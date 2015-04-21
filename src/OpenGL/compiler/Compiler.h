@@ -39,6 +39,10 @@ struct ShBuiltInResources
     int MaxTextureImageUnits;
     int MaxFragmentUniformVectors;
     int MaxDrawBuffers;
+    int MaxVertexOutputVectors;
+    int MaxFragmentInputVectors;
+    int MinProgramTexelOffset;
+    int MaxProgramTexelOffset;
 
     // Extensions.
     // Set to 1 to enable the extension, else 0.

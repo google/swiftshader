@@ -205,6 +205,8 @@ namespace sw
 		virtual void setLightAttenuation(unsigned int light, float constant, float linear, float quadratic);
 		virtual void setLightRange(unsigned int light, float lightRange);
 
+		virtual void setInstanceID(int instanceID);
+
 		virtual void setFogEnable(bool fogEnable);
 		virtual void setVertexFogMode(FogMode fogMode);
 		virtual void setRangeFogEnable(bool enable);

@@ -443,6 +443,9 @@ namespace sw
 		// Global mipmap bias
 		float bias;
 
+		// Instancing
+		int instanceID;
+
 		// Fixed-function vertex pipeline state
 		bool lightingEnable;
 		bool specularEnable;

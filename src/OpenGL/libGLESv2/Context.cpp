@@ -3536,6 +3536,8 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instan
 
 	for(int i = 0; i < instanceCount; ++i)
 	{
+		device->setInstanceID(i);
+
 		GLenum err = applyVertexBuffer(0, first, count, i);
 		if(err != GL_NO_ERROR)
 		{
@@ -3589,6 +3591,8 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 
 	for(int i = 0; i < instanceCount; ++i)
 	{
+		device->setInstanceID(i);
+
 		TranslatedIndexData indexInfo;
 		GLenum err = applyIndexBuffer(indices, start, end, count, mode, type, &indexInfo);
 		if(err != GL_NO_ERROR)

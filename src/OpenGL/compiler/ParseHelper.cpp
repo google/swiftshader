@@ -323,6 +323,7 @@ bool TParseContext::lValueErrorCheck(int line, const char* op, TIntermTyped* nod
     case EvqFragCoord:      message = "can't modify gl_FragCoord";   break;
     case EvqFrontFacing:    message = "can't modify gl_FrontFacing"; break;
     case EvqPointCoord:     message = "can't modify gl_PointCoord";  break;
+    case EvqInstanceID:     message = "can't modify gl_InstanceID";  break;
     default:
 
         //

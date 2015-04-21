@@ -297,6 +297,11 @@ namespace sw
 		context->vertexFogMode = fogMode;
 	}
 
+	void VertexProcessor::setInstanceID(int instanceID)
+	{
+		context->instanceID = instanceID;
+	}
+
 	void VertexProcessor::setColorVertexEnable(bool colorVertexEnable)
 	{
 		context->setColorVertexEnable(colorVertexEnable);

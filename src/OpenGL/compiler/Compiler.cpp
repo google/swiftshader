@@ -47,6 +47,10 @@ ShBuiltInResources::ShBuiltInResources()
     MaxTextureImageUnits = 8;
     MaxFragmentUniformVectors = 16;
     MaxDrawBuffers = 1;
+    MaxVertexOutputVectors = 16;
+    MaxFragmentInputVectors = 15;
+    MinProgramTexelOffset = -8;
+    MaxProgramTexelOffset = 7;
 
     // Extensions.
     OES_standard_derivatives = 0;

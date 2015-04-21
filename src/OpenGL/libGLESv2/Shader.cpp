@@ -169,6 +169,10 @@ TranslatorASM *Shader::createCompiler(GLenum shaderType)
 	resources.MaxTextureImageUnits = MAX_TEXTURE_IMAGE_UNITS;
 	resources.MaxFragmentUniformVectors = MAX_FRAGMENT_UNIFORM_VECTORS;
 	resources.MaxDrawBuffers = MAX_DRAW_BUFFERS;
+	resources.MaxVertexOutputVectors = MAX_VERTEX_OUTPUT_VECTORS;
+	resources.MaxFragmentInputVectors = MAX_FRAGMENT_INPUT_VECTORS;
+	resources.MinProgramTexelOffset = MIN_PROGRAM_TEXEL_OFFSET;
+	resources.MaxProgramTexelOffset = MAX_PROGRAM_TEXEL_OFFSET;
 	resources.OES_standard_derivatives = 1;
 	resources.OES_fragment_precision_high = 1;
 	resources.OES_EGL_image_external = 1;
