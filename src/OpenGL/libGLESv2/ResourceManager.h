@@ -28,6 +28,8 @@ class Shader;
 class Program;
 class Texture;
 class Renderbuffer;
+class Sampler;
+class FenceSync;
 
 enum TextureType
 {
@@ -55,23 +57,32 @@ class ResourceManager
     GLuint createProgram();
     GLuint createTexture();
     GLuint createRenderbuffer();
+    GLuint createSampler();
+    GLuint createFenceSync(GLenum condition, GLbitfield flags);
 
     void deleteBuffer(GLuint buffer);
     void deleteShader(GLuint shader);
     void deleteProgram(GLuint program);
     void deleteTexture(GLuint texture);
     void deleteRenderbuffer(GLuint renderbuffer);
+    void deleteSampler(GLuint sampler);
+    void deleteFenceSync(GLuint fenceSync);
 
     Buffer *getBuffer(GLuint handle);
     Shader *getShader(GLuint handle);
     Program *getProgram(GLuint handle);
     Texture *getTexture(GLuint handle);
     Renderbuffer *getRenderbuffer(GLuint handle);
+    Sampler *getSampler(GLuint handle);
+    FenceSync *getFenceSync(GLuint handle);
     
     void setRenderbuffer(GLuint handle, Renderbuffer *renderbuffer);
 
     void checkBufferAllocation(unsigned int buffer);
     void checkTextureAllocation(GLuint texture, TextureType type);
+    void checkSamplerAllocation(GLuint sampler);
+
+    bool isSampler(GLuint sampler);
 
   private:
     std::size_t mRefCount;
@@ -94,6 +105,14 @@ class ResourceManager
     typedef std::map<GLint, Renderbuffer*> RenderbufferMap;
     RenderbufferMap mRenderbufferMap;
     gl::NameSpace mRenderbufferNameSpace;
+
+	typedef std::map<GLint, Sampler*> SamplerMap;
+	SamplerMap mSamplerMap;
+	gl::NameSpace mSamplerHandleAllocator;
+
+	typedef std::map<GLint, FenceSync*> FenceMap;
+	FenceMap mFenceSyncMap;
+	gl::NameSpace mFenceSyncHandleAllocator;
 };
 
 }

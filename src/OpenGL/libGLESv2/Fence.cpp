@@ -112,4 +112,21 @@ void Fence::getFenceiv(GLenum pname, GLint *params)
     }
 }
 
+FenceSync::FenceSync(GLuint name, GLenum condition, GLbitfield flags) : NamedObject(name), mCondition(condition), mFlags(flags)
+{
+}
+
+FenceSync::~FenceSync()
+{
+}
+
+GLenum FenceSync::clientWait(GLbitfield flags, GLuint64 timeout)
+{
+	return GL_TRUE;
+}
+
+void FenceSync::serverWait(GLbitfield flags, GLuint64 timeout)
+{
+}
+
 }

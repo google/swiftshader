@@ -15,8 +15,10 @@
 #include "ResourceManager.h"
 
 #include "Buffer.h"
+#include "Fence.h"
 #include "Program.h"
 #include "Renderbuffer.h"
+#include "Sampler.h"
 #include "Shader.h"
 #include "Texture.h"
 
@@ -53,6 +55,16 @@ ResourceManager::~ResourceManager()
     {
         deleteTexture(mTextureMap.begin()->first);
     }
+
+	while(!mSamplerMap.empty())
+	{
+		deleteSampler(mSamplerMap.begin()->first);
+	}
+
+	while(!mFenceSyncMap.empty())
+	{
+		deleteFenceSync(mFenceSyncMap.begin()->first);
+	}
 }
 
 void ResourceManager::addRef()
@@ -124,6 +136,26 @@ GLuint ResourceManager::createRenderbuffer()
     mRenderbufferMap[handle] = NULL;
 
     return handle;
+}
+
+// Returns an unused sampler name
+GLuint ResourceManager::createSampler()
+{
+	GLuint handle = mSamplerHandleAllocator.allocate();
+
+	mSamplerMap[handle] = NULL;
+
+	return handle;
+}
+
+// Returns the next unused fence name, and allocates the fence
+GLuint ResourceManager::createFenceSync(GLenum condition, GLbitfield flags)
+{
+	GLuint handle = mFenceSyncHandleAllocator.allocate();
+
+	mFenceSyncMap[handle] = new FenceSync(handle, condition, flags);
+
+	return handle;
 }
 
 void ResourceManager::deleteBuffer(GLuint buffer)
@@ -198,6 +230,30 @@ void ResourceManager::deleteRenderbuffer(GLuint renderbuffer)
         if(renderbufferObject->second) renderbufferObject->second->release();
         mRenderbufferMap.erase(renderbufferObject);
     }
+}
+
+void ResourceManager::deleteSampler(GLuint sampler)
+{
+	auto samplerObject = mSamplerMap.find(sampler);
+
+	if(samplerObject != mSamplerMap.end())
+	{
+		mSamplerHandleAllocator.release(samplerObject->first);
+		if(samplerObject->second) samplerObject->second->release();
+		mSamplerMap.erase(samplerObject);
+	}
+}
+
+void ResourceManager::deleteFenceSync(GLuint fenceSync)
+{
+	auto fenceObjectIt = mFenceSyncMap.find(fenceSync);
+
+	if(fenceObjectIt != mFenceSyncMap.end())
+	{
+		mFenceSyncHandleAllocator.release(fenceObjectIt->first);
+		if(fenceObjectIt->second) fenceObjectIt->second->release();
+		mFenceSyncMap.erase(fenceObjectIt);
+	}
 }
 
 Buffer *ResourceManager::getBuffer(unsigned int handle)
@@ -278,6 +334,34 @@ Renderbuffer *ResourceManager::getRenderbuffer(unsigned int handle)
     }
 }
 
+Sampler *ResourceManager::getSampler(unsigned int handle)
+{
+	auto sampler = mSamplerMap.find(handle);
+
+	if(sampler == mSamplerMap.end())
+	{
+		return NULL;
+	}
+	else
+	{
+		return sampler->second;
+	}
+}
+
+FenceSync *ResourceManager::getFenceSync(unsigned int handle)
+{
+	auto fenceObjectIt = mFenceSyncMap.find(handle);
+
+	if(fenceObjectIt == mFenceSyncMap.end())
+	{
+		return NULL;
+	}
+	else
+	{
+		return fenceObjectIt->second;
+	}
+}
+
 void ResourceManager::setRenderbuffer(GLuint handle, Renderbuffer *buffer)
 {
     mRenderbufferMap[handle] = buffer;
@@ -328,6 +412,22 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
         mTextureMap[texture] = textureObject;
         textureObject->addRef();
     }
+}
+
+void ResourceManager::checkSamplerAllocation(GLuint sampler)
+{
+	if(sampler != 0 && !getSampler(sampler))
+	{
+		Sampler *samplerObject = new Sampler(sampler);
+		mSamplerMap[sampler] = samplerObject;
+		samplerObject->addRef();
+		// Samplers cannot be created via Bind
+	}
+}
+
+bool ResourceManager::isSampler(GLuint sampler)
+{
+	return mSamplerMap.find(sampler) != mSamplerMap.end();
 }
 
 }

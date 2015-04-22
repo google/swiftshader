@@ -14,6 +14,7 @@
 #ifndef LIBGLESV2_FENCE_H_
 #define LIBGLESV2_FENCE_H_
 
+#include "common/Object.hpp"
 #include <GLES2/gl2.h>
 
 namespace es2
@@ -35,6 +36,23 @@ class Fence
     bool mQuery;
     GLenum mCondition;
     GLboolean mStatus;
+};
+
+class FenceSync : public gl::NamedObject
+{
+public:
+	FenceSync(GLuint name, GLenum condition, GLbitfield flags);
+	virtual ~FenceSync();
+
+	GLenum clientWait(GLbitfield flags, GLuint64 timeout);
+	void serverWait(GLbitfield flags, GLuint64 timeout);
+
+	GLenum getCondition() const { return mCondition; }
+	GLbitfield getFlags() const { return mFlags; }
+
+private:
+	GLenum mCondition;
+	GLbitfield mFlags;
 };
 
 }
