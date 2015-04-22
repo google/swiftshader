@@ -1,0 +1,65 @@
+//===- subzero/src/IceInstARM32.def - X-Macros for ARM32 insts --*- C++ -*-===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file defines properties of ARM32 instructions in the form of x-macros.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef SUBZERO_SRC_ICEINSTARM32_DEF
+#define SUBZERO_SRC_ICEINSTARM32_DEF
+
+// NOTE: PC and SP are not considered isInt, to avoid register allocating.
+// For the NaCl sandbox we also need to r9 for TLS, so just reserve always.
+// TODO(jvoung): Allow r9 to be isInt when sandboxing is turned off
+// (native mode).
+#define REGARM32_GPR_TABLE                                                     \
+  /* val, encode, name, scratch, preserved, stackptr, frameptr, isInt, isFP */ \
+  X(Reg_r0,  = 0,            "r0",  1, 0, 0, 0, 1, 0)                   \
+  X(Reg_r1,  = Reg_r0 + 1,   "r1",  1, 0, 0, 0, 1, 0)                   \
+  X(Reg_r2,  = Reg_r0 + 2,   "r2",  1, 0, 0, 0, 1, 0)                   \
+  X(Reg_r3,  = Reg_r0 + 3,   "r3",  1, 0, 0, 0, 1, 0)                   \
+  X(Reg_r4,  = Reg_r0 + 4,   "r4",  0, 1, 0, 0, 1, 0)                   \
+  X(Reg_r5,  = Reg_r0 + 5,   "r5",  0, 1, 0, 0, 1, 0)                   \
+  X(Reg_r6,  = Reg_r0 + 6,   "r6",  0, 1, 0, 0, 1, 0)                   \
+  X(Reg_r7,  = Reg_r0 + 7,   "r7",  0, 1, 0, 0, 1, 0)                   \
+  X(Reg_r8,  = Reg_r0 + 8,   "r8",  0, 1, 0, 0, 1, 0)                   \
+  X(Reg_r9,  = Reg_r0 + 9,   "r9",  0, 1, 0, 0, 0, 0)                   \
+  X(Reg_r10, = Reg_r0 + 10,  "r10", 0, 1, 0, 0, 1, 0)                   \
+  X(Reg_fp,  = Reg_r0 + 11,  "fp",  0, 1, 0, 1, 1, 0)                   \
+  X(Reg_ip,  = Reg_r0 + 12,  "ip",  1, 0, 0, 0, 1, 0)                   \
+  X(Reg_sp,  = Reg_r0 + 13,  "sp",  0, 1, 1, 0, 0, 0)                   \
+  X(Reg_lr,  = Reg_r0 + 14,  "lr",  0, 1, 0, 0, 1, 0)                   \
+  X(Reg_pc,  = Reg_r0 + 15,  "pc",  0, 1, 0, 0, 0, 0)                   \
+//#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
+//          isInt, isFP)
+
+// TODO(jvoung): List FP registers and know S0 == D0 == Q0, etc.
+// Be able to grab even registers, and the corresponding odd register
+// for each even register.
+
+// We also provide a combined table, so that there is a namespace where
+// all of the registers are considered and have distinct numberings.
+// This is in contrast to the above, where the "encode" is based on how
+// the register numbers will be encoded in binaries and values can overlap.
+#define REGARM32_TABLE                                                  \
+  /* val, encode, name, scratch, preserved, stackptr, frameptr, isInt, isFP */ \
+  REGARM32_GPR_TABLE
+//#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
+//          isInt, isFP)
+
+#define REGARM32_TABLE_BOUNDS                                           \
+  /* val, init */                                                       \
+  X(Reg_GPR_First, = Reg_r0)                                            \
+  X(Reg_GPR_Last,  = Reg_pc)
+//define X(val, init)
+
+// TODO(jvoung): add condition code tables, etc.
+
+
+#endif // SUBZERO_SRC_ICEINSTARM32_DEF

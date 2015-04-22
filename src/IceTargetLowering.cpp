@@ -15,12 +15,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "assembler_arm32.h"
 #include "assembler_ia32.h"
 #include "IceCfg.h" // setError()
 #include "IceCfgNode.h"
 #include "IceOperand.h"
 #include "IceRegAlloc.h"
 #include "IceTargetLowering.h"
+#include "IceTargetLoweringARM32.h"
 #include "IceTargetLoweringX8632.h"
 
 namespace Ice {
@@ -62,34 +64,33 @@ Inst *LoweringContext::getLastInserted() const {
 }
 
 TargetLowering *TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
-  // These statements can be #ifdef'd to specialize the code generator
-  // to a subset of the available targets.  TODO: use CRTP.
-  if (Target == Target_X8632)
-    return TargetX8632::create(Func);
-#if 0
-  if (Target == Target_X8664)
-    return IceTargetX8664::create(Func);
-  if (Target == Target_ARM32)
-    return IceTargetARM32::create(Func);
-  if (Target == Target_ARM64)
-    return IceTargetARM64::create(Func);
-#endif
+#define SUBZERO_TARGET(X)                                                      \
+  if (Target == Target_##X)                                                    \
+    return Target##X::create(Func);
+#include "llvm/Config/SZTargets.def"
+
   Func->setError("Unsupported target");
   return nullptr;
 }
 
 TargetLowering::TargetLowering(Cfg *Func)
     : Func(Func), Ctx(Func->getContext()), HasComputedFrame(false),
-      CallsReturnsTwice(false), StackAdjustment(0), Context(),
-      SnapshotStackAdjustment(0) {}
+      CallsReturnsTwice(false), StackAdjustment(0), NextLabelNumber(0),
+      Context(), SnapshotStackAdjustment(0) {}
 
 std::unique_ptr<Assembler> TargetLowering::createAssembler(TargetArch Target,
                                                            Cfg *Func) {
   // These statements can be #ifdef'd to specialize the assembler
   // to a subset of the available targets.  TODO: use CRTP.
+  // TODO(jvoung): use SZTargets.def (rename AssemblerX86 -> AssemblerX8632),
+  // and make the namespaces consistent.
   if (Target == Target_X8632)
     return std::unique_ptr<Assembler>(new x86::AssemblerX86());
-  Func->setError("Unsupported target");
+
+  if (Target == Target_ARM32)
+    return std::unique_ptr<Assembler>(new AssemblerARM32());
+
+  Func->setError("Unsupported target assembler");
   return nullptr;
 }
 
@@ -229,22 +230,24 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
   LinearScan.scan(RegMask, Ctx->getFlags().shouldRandomizeRegAlloc());
 }
 
+InstCall *TargetLowering::makeHelperCall(const IceString &Name, Variable *Dest,
+                                         SizeT MaxSrcs) {
+  const bool HasTailCall = false;
+  Constant *CallTarget = Ctx->getConstantExternSym(Name);
+  InstCall *Call =
+      InstCall::create(Func, MaxSrcs, Dest, CallTarget, HasTailCall);
+  return Call;
+}
+
 std::unique_ptr<TargetDataLowering>
 TargetDataLowering::createLowering(GlobalContext *Ctx) {
-  // These statements can be #ifdef'd to specialize the code generator
-  // to a subset of the available targets.  TODO: use CRTP.
   TargetArch Target = Ctx->getFlags().getTargetArch();
-  if (Target == Target_X8632)
-    return std::unique_ptr<TargetDataLowering>(TargetDataX8632::create(Ctx));
-#if 0
-  if (Target == Target_X8664)
-    return std::unique_ptr<TargetDataLowering>(TargetDataX8664::create(Ctx));
-  if (Target == Target_ARM32)
-    return std::unique_ptr<TargetDataLowering>(TargetDataARM32::create(Ctx));
-  if (Target == Target_ARM64)
-    return std::unique_ptr<TargetDataLowering>(TargetDataARM64::create(Ctx));
-#endif
-  llvm_unreachable("Unsupported target");
+#define SUBZERO_TARGET(X)                                                      \
+  if (Target == Target_##X)                                                    \
+    return std::unique_ptr<TargetDataLowering>(TargetData##X::create(Ctx));
+#include "llvm/Config/SZTargets.def"
+
+  llvm_unreachable("Unsupported target data lowering");
   return nullptr;
 }
 

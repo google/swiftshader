@@ -95,6 +95,7 @@ class TargetLowering {
   TargetLowering &operator=(const TargetLowering &) = delete;
 
 public:
+  // TODO(jvoung): return a unique_ptr like the other factory functions.
   static TargetLowering *createLowering(TargetArch Target, Cfg *Func);
   static std::unique_ptr<Assembler> createAssembler(TargetArch Target,
                                                     Cfg *Func);
@@ -171,6 +172,7 @@ public:
   int32_t getStackAdjustment() const { return StackAdjustment; }
   void updateStackAdjustment(int32_t Offset) { StackAdjustment += Offset; }
   void resetStackAdjustment() { StackAdjustment = 0; }
+  SizeT makeNextLabelNumber() { return NextLabelNumber++; }
   LoweringContext &getContext() { return Context; }
 
   enum RegSet {
@@ -241,6 +243,10 @@ protected:
   // expansion before returning.
   virtual void postLower() {}
 
+  // Make a call to an external helper function.
+  InstCall *makeHelperCall(const IceString &Name, Variable *Dest,
+                           SizeT MaxSrcs);
+
   Cfg *Func;
   GlobalContext *Ctx;
   bool HasComputedFrame;
@@ -248,6 +254,7 @@ protected:
   // StackAdjustment keeps track of the current stack offset from its
   // natural location, as arguments are pushed for a function call.
   int32_t StackAdjustment;
+  SizeT NextLabelNumber;
   LoweringContext Context;
 
   // Runtime helper function names

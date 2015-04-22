@@ -266,7 +266,7 @@ TargetX8632::TargetX8632(Cfg *Func)
           Func->getContext()->getFlags().getTargetInstructionSet() -
           TargetInstructionSet::X86InstructionSet_Begin)),
       IsEbpBasedFrame(false), NeedsStackAlignment(false), FrameSizeLocals(0),
-      SpillAreaSizeBytes(0), NextLabelNumber(0) {
+      SpillAreaSizeBytes(0) {
   static_assert((X86InstructionSet::End - X86InstructionSet::Begin) ==
                     (TargetInstructionSet::X86InstructionSet_End -
                      TargetInstructionSet::X86InstructionSet_Begin),

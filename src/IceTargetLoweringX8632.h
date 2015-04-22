@@ -57,7 +57,6 @@ public:
   void lowerArguments() override;
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
-  SizeT makeNextLabelNumber() { return NextLabelNumber++; }
   // Ensure that a 64-bit Variable has been split into 2 32-bit
   // Variables, creating them if necessary.  This is needed for all
   // I64 operations, and it is needed for pushing F64 arguments for
@@ -156,15 +155,6 @@ protected:
   OperandX8632Mem *FormMemoryOperand(Operand *Ptr, Type Ty);
 
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
-  // Make a call to an external helper function.
-  InstCall *makeHelperCall(const IceString &Name, Variable *Dest,
-                           SizeT MaxSrcs) {
-    const bool HasTailCall = false;
-    Constant *CallTarget = Ctx->getConstantExternSym(Name);
-    InstCall *Call =
-        InstCall::create(Func, MaxSrcs, Dest, CallTarget, HasTailCall);
-    return Call;
-  }
   static Type stackSlotType();
 
   Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
@@ -501,7 +491,6 @@ protected:
   llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
-  SizeT NextLabelNumber;
   VarList PhysicalRegisters[IceType_NUM];
   static IceString RegNames[];
 

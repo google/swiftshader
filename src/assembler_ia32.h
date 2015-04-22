@@ -1,4 +1,5 @@
 //===- subzero/src/assembler_ia32.h - Assembler for x86-32 ------*- C++ -*-===//
+//
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18,8 +19,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef SUBZERO_SRC_ASSEMBLER_IA32_H_
-#define SUBZERO_SRC_ASSEMBLER_IA32_H_
+#ifndef SUBZERO_SRC_ASSEMBLER_IA32_H
+#define SUBZERO_SRC_ASSEMBLER_IA32_H
 
 #include "IceConditionCodesX8632.h"
 #include "IceDefs.h"
@@ -882,4 +883,4 @@ inline void AssemblerX86::EmitOperandSizeOverride() { EmitUint8(0x66); }
 } // end of namespace x86
 } // end of namespace Ice
 
-#endif // SUBZERO_SRC_ASSEMBLER_IA32_H_
+#endif // SUBZERO_SRC_ASSEMBLER_IA32_H

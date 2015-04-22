@@ -1,4 +1,4 @@
-//===- subzero/src/IceInstX8632.h - Low-level x86 instructions --*- C++ -*-===//
+//===- subzero/src/IceInstX8632.h - x86-32 machine instructions -*- C++ -*-===//
 //
 //                        The Subzero Code Generator
 //
