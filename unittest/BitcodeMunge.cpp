@@ -38,7 +38,7 @@ bool IceTest::SubzeroBitcodeMunger::runTest(const char *TestName,
                                             size_t MungeSize) {
   const bool AddHeader = true;
   setupTest(TestName, Munges, MungeSize, AddHeader);
-  Ice::GlobalContext Ctx(DumpStream, DumpStream, nullptr, Flags);
+  Ice::GlobalContext Ctx(DumpStream, DumpStream, DumpStream, nullptr, Flags);
   Ice::PNaClTranslator Translator(&Ctx);
   Translator.translateBuffer(TestName, MungedInput.get());
 

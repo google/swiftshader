@@ -81,7 +81,8 @@ char *onEndCallback() {
   // TODO(jvoung): Also return an error string, and UMA data.
   // Set up a report_fatal_error handler to grab that string.
   if (gCompileServer->getErrorCode().value()) {
-    return strdup("Some error occurred");
+    const std::string Error = gCompileServer->getErrorStream().getContents();
+    return strdup(Error.empty() ? "Some error occurred" : Error.c_str());
   }
   return nullptr;
 }
@@ -142,9 +143,12 @@ void BrowserCompileServer::startCompileThread(int ObjFD) {
   LogStream->SetUnbuffered();
   EmitStream = getOutputStream(ObjFD);
   EmitStream->SetBufferSize(1 << 14);
+  std::unique_ptr<StringStream> ErrStrm(new StringStream());
+  ErrorStream = std::move(ErrStrm);
   ELFStream.reset(new ELFStreamer(*EmitStream.get()));
   Ctx.reset(new GlobalContext(LogStream.get(), EmitStream.get(),
-                              ELFStream.get(), Flags));
+                              &ErrorStream->getStream(), ELFStream.get(),
+                              Flags));
   CompileThread = std::thread([this]() {
     Ctx->initParserThread();
     this->getCompiler().run(ExtraFlags, *Ctx.get(),

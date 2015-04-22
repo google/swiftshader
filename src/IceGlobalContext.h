@@ -145,14 +145,17 @@ class GlobalContext {
   };
 
 public:
-  GlobalContext(Ostream *OsDump, Ostream *OsEmit, ELFStreamer *ELFStreamer,
-                const ClFlags &Flags);
+  // The dump stream is a log stream while emit is the stream code
+  // is emitted to. The error stream is strictly for logging errors.
+  GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
+                ELFStreamer *ELFStreamer, const ClFlags &Flags);
   ~GlobalContext();
 
-  // The dump and emit streams need to be used by only one thread at a
-  // time.  This is done by exclusively reserving the streams via
-  // lockStr() and unlockStr().  The OstreamLocker class can be used
-  // to conveniently manage this.
+  //
+  // The dump, error, and emit streams need to be used by only one
+  // thread at a time.  This is done by exclusively reserving the
+  // streams via lockStr() and unlockStr().  The OstreamLocker class
+  // can be used to conveniently manage this.
   //
   // The model is that a thread grabs the stream lock, then does an
   // arbitrary amount of work during which far-away callees may grab
@@ -163,6 +166,7 @@ public:
   void lockStr() { StrLock.lock(); }
   void unlockStr() { StrLock.unlock(); }
   Ostream &getStrDump() { return *StrDump; }
+  Ostream &getStrError() { return *StrError; }
   Ostream &getStrEmit() { return *StrEmit; }
 
   LockedPtr<ErrorCode> getErrorStatus() {
@@ -418,6 +422,7 @@ private:
   StrLockType StrLock;
   Ostream *StrDump; // Stream for dumping / diagnostics
   Ostream *StrEmit; // Stream for code emission
+  Ostream *StrError; // Stream for logging errors.
 
   ICE_CACHELINE_BOUNDARY;
 

@@ -213,14 +213,18 @@ void GlobalContext::CodeStats::dump(const IceString &Name, Ostream &Str) {
   Str << "\n";
 }
 
-GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit,
+GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
                              ELFStreamer *ELFStr, const ClFlags &Flags)
     : ConstPool(new ConstantPool()), ErrorStatus(), StrDump(OsDump),
-      StrEmit(OsEmit), Flags(Flags), RNG(Flags.getRandomSeed()), ObjectWriter(),
+      StrEmit(OsEmit), StrError(OsError), Flags(Flags),
+      RNG(Flags.getRandomSeed()), ObjectWriter(),
       OptQ(/*Sequential=*/Flags.isSequential(),
            /*MaxSize=*/Flags.getNumTranslationThreads()),
       // EmitQ is allowed unlimited size.
       EmitQ(/*Sequential=*/Flags.isSequential()) {
+  assert(OsDump && "OsDump is not defined for GlobalContext");
+  assert(OsEmit && "OsEmit is not defined for GlobalContext");
+  assert(OsError && "OsError is not defined for GlobalContext");
   // Make sure thread_local fields are properly initialized before any
   // accesses are made.  Do this here instead of at the start of
   // main() so that all clients (e.g. unit tests) can benefit for
@@ -278,8 +282,8 @@ void GlobalContext::translateFunctions() {
     if (Func->hasError()) {
       getErrorStatus()->assign(EC_Translation);
       OstreamLocker L(this);
-      getStrDump() << "ICE translation error: " << Func->getFunctionName()
-                   << ": " << Func->getError() << "\n";
+      getStrError() << "ICE translation error: " << Func->getFunctionName()
+                    << ": " << Func->getError() << "\n";
       Item = new EmitterWorkItem(Func->getSequenceNumber());
     } else {
       Func->getAssembler<>()->setInternal(Func->getInternal());

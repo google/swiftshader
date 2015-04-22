@@ -39,6 +39,7 @@ class BrowserCompileServer : public CompileServer {
   BrowserCompileServer() = delete;
   BrowserCompileServer(const BrowserCompileServer &) = delete;
   BrowserCompileServer &operator=(const BrowserCompileServer &) = delete;
+  class StringStream;
 
 public:
   explicit BrowserCompileServer(Compiler &Comp)
@@ -74,7 +75,20 @@ public:
     ELFStream.reset(nullptr);
   }
 
+  StringStream &getErrorStream() {
+    return *ErrorStream;
+  }
+
 private:
+  class StringStream {
+  public:
+    StringStream() : StrBuf(Buffer) {}
+    const IceString &getContents() { return StrBuf.str(); }
+    Ostream &getStream() { return StrBuf; }
+  private:
+    std::string Buffer;
+    llvm::raw_string_ostream StrBuf;
+  };
   // This currently only handles a single compile request, hence one copy
   // of the state.
   std::unique_ptr<GlobalContext> Ctx;
@@ -84,6 +98,7 @@ private:
   llvm::QueueStreamer *InputStream;
   std::unique_ptr<Ostream> LogStream;
   std::unique_ptr<llvm::raw_fd_ostream> EmitStream;
+  std::unique_ptr<StringStream> ErrorStream;
   std::unique_ptr<ELFStreamer> ELFStream;
   ClFlags Flags;
   ClFlagsExtra ExtraFlags;

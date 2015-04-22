@@ -96,7 +96,8 @@ void CLCompileServer::run() {
     return transferErrorCode(getReturnValue(ExtraFlags, Ice::EC_Bitcode));
   }
 
-  Ctx.reset(new GlobalContext(Ls.get(), Os.get(), ELFStr.get(), Flags));
+  Ctx.reset(new GlobalContext(Ls.get(), Os.get(), Ls.get(), ELFStr.get(),
+                              Flags));
   if (Ctx->getFlags().getNumTranslationThreads() != 0) {
     std::thread CompileThread([this, &ExtraFlags, &InputStream]() {
       Ctx->initParserThread();
