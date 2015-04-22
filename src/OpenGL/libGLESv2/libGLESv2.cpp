@@ -461,7 +461,7 @@ void GL_APIENTRY glBindBuffer(GLenum target, GLuint buffer)
 		case GL_TRANSFORM_FEEDBACK_BUFFER:
 			if(clientVersion >= 3)
 			{
-				UNIMPLEMENTED();
+				context->bindTransformFeedbackBuffer(buffer);
 				return;
 			}
 			else return error(GL_INVALID_ENUM);
@@ -1777,6 +1777,12 @@ void GL_APIENTRY glDrawArrays(GLenum mode, GLint first, GLsizei count)
 
 	if(context)
 	{
+		es2::TransformFeedback* transformFeedback = context->getTransformFeedback();
+		if(transformFeedback && transformFeedback->isActive() && (mode != transformFeedback->primitiveMode()))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
 		context->drawArrays(mode, first, count);
 	}
 }
@@ -1809,6 +1815,12 @@ void GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum type, const G
 
 	if(context)
 	{
+		es2::TransformFeedback* transformFeedback = context->getTransformFeedback();
+		if(transformFeedback && transformFeedback->isActive() && !transformFeedback->isPaused())
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
 		switch(type)
 		{
 		case GL_UNSIGNED_BYTE:

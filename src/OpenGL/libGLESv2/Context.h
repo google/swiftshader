@@ -492,6 +492,7 @@ public:
 	void bindCopyWriteBuffer(GLuint buffer);
 	void bindPixelPackBuffer(GLuint buffer);
 	void bindPixelUnpackBuffer(GLuint buffer);
+	void bindTransformFeedbackBuffer(GLuint buffer);
 	void bindUniformBuffer(GLuint buffer);
     void bindTexture2D(GLuint texture);
     void bindTextureCubeMap(GLuint texture);

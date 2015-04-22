@@ -1096,6 +1096,18 @@ void Context::bindPixelUnpackBuffer(GLuint buffer)
 	mState.pixelUnpackBuffer = getBuffer(buffer);
 }
 
+void Context::bindTransformFeedbackBuffer(GLuint buffer)
+{
+	mResourceManager->checkBufferAllocation(buffer);
+
+	TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
+	
+	if(transformFeedback)
+	{
+		transformFeedback->setGenericBuffer(getBuffer(buffer));
+	}
+}
+
 void Context::bindUniformBuffer(GLuint buffer)
 {
 	mResourceManager->checkBufferAllocation(buffer);
@@ -1458,8 +1470,9 @@ bool Context::getBuffer(GLenum target, es2::Buffer **buffer)
 	case GL_TRANSFORM_FEEDBACK_BUFFER:
 		if(clientVersion >= 3)
 		{
-			UNIMPLEMENTED();
-			return false;
+			TransformFeedback* transformFeedback = getTransformFeedback();
+			*buffer = transformFeedback ? static_cast<es2::Buffer*>(transformFeedback->getGenericBuffer()) : nullptr;
+			break;
 		}
 		else return false;
 	case GL_UNIFORM_BUFFER:
