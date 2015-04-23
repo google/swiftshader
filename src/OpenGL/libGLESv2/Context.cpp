@@ -162,7 +162,15 @@ Context::Context(const egl::Config *config, const Context *shareContext, EGLint 
     mState.currentProgram = 0;
 
     mState.packAlignment = 4;
-    mState.unpackAlignment = 4;
+	mState.unpackInfo.alignment = 4;
+	mState.packRowLength = 0;
+	mState.packSkipPixels = 0;
+	mState.packSkipRows = 0;
+	mState.unpackInfo.rowLength = 0;
+	mState.unpackInfo.imageHeight = 0;
+	mState.unpackInfo.skipPixels = 0;
+	mState.unpackInfo.skipRows = 0;
+	mState.unpackInfo.skipImages = 0;
 
     mVertexDataManager = NULL;
     mIndexDataManager = NULL;
@@ -821,19 +829,54 @@ void Context::setPackAlignment(GLint alignment)
     mState.packAlignment = alignment;
 }
 
-GLint Context::getPackAlignment() const
-{
-    return mState.packAlignment;
-}
-
 void Context::setUnpackAlignment(GLint alignment)
 {
-    mState.unpackAlignment = alignment;
+	mState.unpackInfo.alignment = alignment;
 }
 
-GLint Context::getUnpackAlignment() const
+const egl::Image::UnpackInfo& Context::getUnpackInfo() const
 {
-    return mState.unpackAlignment;
+	return mState.unpackInfo;
+}
+
+void Context::setPackRowLength(GLint rowLength)
+{
+	mState.packRowLength = rowLength;
+}
+
+void Context::setPackSkipPixels(GLint skipPixels)
+{
+	mState.packSkipPixels = skipPixels;
+}
+
+void Context::setPackSkipRows(GLint skipRows)
+{
+	mState.packSkipRows = skipRows;
+}
+
+void Context::setUnpackRowLength(GLint rowLength)
+{
+	mState.unpackInfo.rowLength = rowLength;
+}
+
+void Context::setUnpackImageHeight(GLint imageHeight)
+{
+	mState.unpackInfo.imageHeight = imageHeight;
+}
+
+void Context::setUnpackSkipPixels(GLint skipPixels)
+{
+	mState.unpackInfo.skipPixels = skipPixels;
+}
+
+void Context::setUnpackSkipRows(GLint skipRows)
+{
+	mState.unpackInfo.skipRows = skipRows;
+}
+
+void Context::setUnpackSkipImages(GLint skipImages)
+{
+	mState.unpackInfo.skipImages = skipImages;
 }
 
 GLuint Context::createBuffer()
@@ -1752,7 +1795,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
     case GL_RENDERBUFFER_BINDING:             *params = mState.renderbuffer.name();           break;
     case GL_CURRENT_PROGRAM:                  *params = mState.currentProgram;                break;
     case GL_PACK_ALIGNMENT:                   *params = mState.packAlignment;                 break;
-    case GL_UNPACK_ALIGNMENT:                 *params = mState.unpackAlignment;               break;
+    case GL_UNPACK_ALIGNMENT:                 *params = mState.unpackInfo.alignment;          break;
     case GL_GENERATE_MIPMAP_HINT:             *params = mState.generateMipmapHint;            break;
     case GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES: *params = mState.fragmentShaderDerivativeHint; break;
     case GL_ACTIVE_TEXTURE:                   *params = (mState.activeSampler + GL_TEXTURE0); break;
@@ -2113,16 +2156,13 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		*params = 0;
 		break;
 	case GL_PACK_ROW_LENGTH: // integer, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		*params = mState.packRowLength;
 		break;
 	case GL_PACK_SKIP_PIXELS: // integer, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		*params = mState.packSkipPixels;
 		break;
 	case GL_PACK_SKIP_ROWS: // integer, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		*params = mState.packSkipRows;
 		break;
 	case GL_PIXEL_PACK_BUFFER_BINDING: // integer, initially 0
 		if(clientVersion >= 3)
@@ -2179,24 +2219,19 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		*params = 0;
 		break;
 	case GL_UNPACK_IMAGE_HEIGHT: // integer, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		*params = mState.unpackInfo.imageHeight;
 		break;
 	case GL_UNPACK_ROW_LENGTH: // integer, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		*params = mState.unpackInfo.rowLength;
 		break;
 	case GL_UNPACK_SKIP_IMAGES: // integer, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		*params = mState.unpackInfo.skipImages;
 		break;
 	case GL_UNPACK_SKIP_PIXELS: // integer, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		*params = mState.unpackInfo.skipPixels;
 		break;
 	case GL_UNPACK_SKIP_ROWS: // integer, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		*params = mState.unpackInfo.skipRows;
 		break;
 	case GL_VERTEX_ARRAY_BINDING: // GLint, initially 0
 		*params = getCurrentVertexArray()->name;
@@ -3038,7 +3073,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 		}
 	}
 
-	GLsizei outputPitch = egl::ComputePitch(width, format, type, mState.packAlignment);
+	GLsizei outputPitch = (mState.packRowLength > 0) ? mState.packRowLength : egl::ComputePitch(width, format, type, mState.packAlignment);
     
 	// Sized query sanity check
     if(bufSize)
@@ -3057,6 +3092,8 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
         return error(GL_OUT_OF_MEMORY);
     }
 
+	x += mState.packSkipPixels;
+	y += mState.packSkipRows;
 	sw::Rect rect = {x, y, x + width, y + height};
 	rect.clip(0, 0, renderTarget->getWidth(), renderTarget->getHeight());
 

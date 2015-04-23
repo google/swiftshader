@@ -217,7 +217,9 @@ void Texture::setImage(GLenum format, GLenum type, GLint unpackAlignment, const 
 {
     if(pixels && image)
     {
-		image->loadImageData(0, 0, 0, image->getWidth(), image->getHeight(), 1, format, type, unpackAlignment, pixels);
+		egl::Image::UnpackInfo unpackInfo;
+		unpackInfo.alignment = unpackAlignment;
+		image->loadImageData(0, 0, 0, image->getWidth(), image->getHeight(), 1, format, type, unpackInfo, pixels);
     }
 }
 
@@ -253,7 +255,9 @@ void Texture::subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei heig
 
     if(pixels)
     {
-        image->loadImageData(xoffset, yoffset, 0, width, height, 1, format, type, unpackAlignment, pixels);
+		egl::Image::UnpackInfo unpackInfo;
+		unpackInfo.alignment = unpackAlignment;
+		image->loadImageData(xoffset, yoffset, 0, width, height, 1, format, type, unpackInfo, pixels);
     }
 }
 

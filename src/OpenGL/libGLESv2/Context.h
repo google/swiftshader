@@ -347,8 +347,11 @@ struct State
     gl::BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
 	gl::BindingPointer<Query> activeQuery[QUERY_TYPE_COUNT];
 
-    GLint unpackAlignment;
+	egl::Image::UnpackInfo unpackInfo;
     GLint packAlignment;
+	GLint packRowLength;
+	GLint packSkipPixels;
+	GLint packSkipRows;
 };
 
 class Context : public egl::Context
@@ -451,10 +454,17 @@ public:
 	const VertexAttributeArray &getCurrentVertexAttributes();
 
     void setUnpackAlignment(GLint alignment);
-    GLint getUnpackAlignment() const;
+	void setUnpackRowLength(GLint rowLength);
+	void setUnpackImageHeight(GLint imageHeight);
+	void setUnpackSkipPixels(GLint skipPixels);
+	void setUnpackSkipRows(GLint skipRows);
+	void setUnpackSkipImages(GLint skipImages);
+	const egl::Image::UnpackInfo& getUnpackInfo() const;
 
     void setPackAlignment(GLint alignment);
-    GLint getPackAlignment() const;
+	void setPackRowLength(GLint rowLength);
+	void setPackSkipPixels(GLint skipPixels);
+	void setPackSkipRows(GLint skipRows);
 
     // These create  and destroy methods are merely pass-throughs to 
     // ResourceManager, which owns these object types
