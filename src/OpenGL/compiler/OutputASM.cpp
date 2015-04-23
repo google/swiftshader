@@ -1430,7 +1430,7 @@ namespace glsl
 		}
 		else if(type.isMatrix())
 		{
-			return registers * type.getNominalSize();
+			return registers * type.getSecondarySize();
 		}
 		
 		UNREACHABLE();
@@ -1446,7 +1446,7 @@ namespace glsl
 				return registerSize(*type.getStruct()->begin()->type, 0);
 			}
 
-			return type.getNominalSize();
+			return type.isMatrix() ? type.getSecondarySize() : type.getNominalSize();
 		}
 
 		if(type.isArray() && registers >= type.elementRegisterCount())
@@ -1590,7 +1590,7 @@ namespace glsl
 	{
 		if(src &&
 			((src->isVector() && (!dst->isVector() || (dst->getNominalSize() != dst->getNominalSize()))) ||
-			 (src->isMatrix() && (!dst->isMatrix() || (src->getNominalSize() != dst->getNominalSize())))))
+			 (src->isMatrix() && (!dst->isMatrix() || (src->getNominalSize() != dst->getNominalSize()) || (src->getSecondarySize() != dst->getSecondarySize())))))
 		{
 			return mContext.error(src->getLine(), "Result type should match the l-value type in compound assignment", src->isVector() ? "vector" : "matrix");
 		}

@@ -21,6 +21,38 @@ static TPrecision GetHigherPrecision( TPrecision left, TPrecision right ){
     return left > right ? left : right;
 }
 
+static bool ValidateMultiplication(TOperator op, const TType &left, const TType &right)
+{
+	switch(op)
+	{
+	case EOpMul:
+	case EOpMulAssign:
+		return left.getNominalSize() == right.getNominalSize() &&
+		       left.getSecondarySize() == right.getSecondarySize();
+	case EOpVectorTimesScalar:
+	case EOpVectorTimesScalarAssign:
+		return true;
+	case EOpVectorTimesMatrix:
+		return left.getNominalSize() == right.getSecondarySize();
+	case EOpVectorTimesMatrixAssign:
+		return left.getNominalSize() == right.getSecondarySize() &&
+		       left.getNominalSize() == right.getNominalSize();
+	case EOpMatrixTimesVector:
+		return left.getNominalSize() == right.getNominalSize();
+	case EOpMatrixTimesScalar:
+	case EOpMatrixTimesScalarAssign:
+		return true;
+	case EOpMatrixTimesMatrix:
+		return left.getNominalSize() == right.getSecondarySize();
+	case EOpMatrixTimesMatrixAssign:
+		return left.getNominalSize() == right.getNominalSize() &&
+		       left.getSecondarySize() == right.getSecondarySize();
+	default:
+		UNREACHABLE();
+		return false;
+	}
+}
+
 const char* getOperatorString(TOperator op) {
     switch (op) {
       case EOpInitialize: return "=";
@@ -645,7 +677,13 @@ bool TIntermOperator::isConstructor() const
         case EOpConstructVec3:
         case EOpConstructVec4:
         case EOpConstructMat2:
+        case EOpConstructMat2x3:
+        case EOpConstructMat2x4:
+        case EOpConstructMat3x2:
         case EOpConstructMat3:
+        case EOpConstructMat3x4:
+        case EOpConstructMat4x2:
+        case EOpConstructMat4x3:
         case EOpConstructMat4:
         case EOpConstructFloat:
         case EOpConstructIVec2:
@@ -752,7 +790,6 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
     }
 
     int primarySize = std::max(left->getNominalSize(), right->getNominalSize());
-	int secondarySize = std::max(left->getSecondarySize(), right->getSecondarySize());
 
     //
     // All scalars. Code after this test assumes this case is removed!
@@ -791,25 +828,6 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
 
     // If we reach here, at least one of the operands is vector or matrix.
     // The other operand could be a scalar, vector, or matrix.
-    // Are the sizes compatible?
-    //
-    if (left->getNominalSize() != right->getNominalSize()) {
-        // If the nominal size of operands do not match:
-        // One of them must be scalar.
-        if (left->getNominalSize() != 1 && right->getNominalSize() != 1)
-            return false;
-        // Operator cannot be of type pure assignment.
-        if (op == EOpAssign || op == EOpInitialize)
-            return false;
-    }
-
-	if (left->getSecondarySize() != right->getSecondarySize()) {
-        // Operator cannot be of type pure assignment.
-        if (op == EOpAssign || op == EOpInitialize)
-            return false;
-    }
-
-    //
     // Can these two operands be combined?
     //
     TBasicType basicType = left->getBasicType();
@@ -817,29 +835,43 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
         case EOpMul:
             if (!left->isMatrix() && right->isMatrix()) {
                 if (left->isVector())
+                {
                     op = EOpVectorTimesMatrix;
+                    setType(TType(basicType, higherPrecision, EvqTemporary,
+                        static_cast<unsigned char>(right->getNominalSize()), 1));
+                }
                 else {
                     op = EOpMatrixTimesScalar;
-                    setType(TType(basicType, higherPrecision, EvqTemporary, primarySize, secondarySize));
+                    setType(TType(basicType, higherPrecision, EvqTemporary,
+                        static_cast<unsigned char>(right->getNominalSize()), static_cast<unsigned char>(right->getSecondarySize())));
                 }
             } else if (left->isMatrix() && !right->isMatrix()) {
                 if (right->isVector()) {
                     op = EOpMatrixTimesVector;
-                    setType(TType(basicType, higherPrecision, EvqTemporary, primarySize, 1));
+                    setType(TType(basicType, higherPrecision, EvqTemporary,
+                        static_cast<unsigned char>(left->getSecondarySize()), 1));
                 } else {
                     op = EOpMatrixTimesScalar;
                 }
             } else if (left->isMatrix() && right->isMatrix()) {
                 op = EOpMatrixTimesMatrix;
+                setType(TType(basicType, higherPrecision, EvqTemporary,
+                    static_cast<unsigned char>(right->getNominalSize()), static_cast<unsigned char>(left->getSecondarySize())));
             } else if (!left->isMatrix() && !right->isMatrix()) {
                 if (left->isVector() && right->isVector()) {
                     // leave as component product
                 } else if (left->isVector() || right->isVector()) {
                     op = EOpVectorTimesScalar;
-                    setType(TType(basicType, higherPrecision, EvqTemporary, primarySize, 1));
+                    setType(TType(basicType, higherPrecision, EvqTemporary,
+                        static_cast<unsigned char>(primarySize), 1));
                 }
             } else {
                 infoSink.info.message(EPrefixInternalError, "Missing elses", getLine());
+                return false;
+            }
+
+            if(!ValidateMultiplication(op, left->getType(), right->getType()))
+            {
                 return false;
             }
             break;
@@ -858,6 +890,8 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
                 }
             } else if (left->isMatrix() && right->isMatrix()) {
                 op = EOpMatrixTimesMatrixAssign;
+                setType(TType(basicType, higherPrecision, EvqTemporary,
+                    static_cast<unsigned char>(right->getNominalSize()), static_cast<unsigned char>(left->getSecondarySize())));
             } else if (!left->isMatrix() && !right->isMatrix()) {
                 if (left->isVector() && right->isVector()) {
                     // leave as component product
@@ -865,16 +899,27 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
                     if (! left->isVector())
                         return false;
                     op = EOpVectorTimesScalarAssign;
-                    setType(TType(basicType, higherPrecision, EvqTemporary, primarySize, 1));
+                    setType(TType(basicType, higherPrecision, EvqTemporary,
+                        static_cast<unsigned char>(left->getNominalSize()), 1));
                 }
             } else {
                 infoSink.info.message(EPrefixInternalError, "Missing elses", getLine());
+                return false;
+            }
+
+            if(!ValidateMultiplication(op, left->getType(), right->getType()))
+            {
                 return false;
             }
             break;
 
         case EOpAssign:
         case EOpInitialize:
+            // No more additional checks are needed.
+            if ((left->getNominalSize() != right->getNominalSize()) ||
+                (left->getSecondarySize() != right->getSecondarySize()))
+                return false;
+            break;
         case EOpAdd:
         case EOpSub:
         case EOpDiv:
@@ -915,6 +960,8 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
             }
 
             {
+                const int secondarySize = std::max(
+                    left->getSecondarySize(), right->getSecondarySize());
                 setType(TType(basicType, higherPrecision, EvqTemporary,
                     static_cast<unsigned char>(primarySize), static_cast<unsigned char>(secondarySize)));
                 if(left->isArray())
@@ -923,8 +970,6 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
                     type.setArraySize(left->getArraySize());
                 }
             }
-
-            setType(TType(basicType, higherPrecision, EvqTemporary, primarySize, secondarySize));
             break;
 
         case EOpEqual:
@@ -933,8 +978,8 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
         case EOpGreaterThan:
         case EOpLessThanEqual:
         case EOpGreaterThanEqual:
-            if ((left->isMatrix() && right->isVector()) ||
-                (left->isVector() && right->isMatrix()))
+            if ((left->getNominalSize() != right->getNominalSize()) ||
+                (left->getSecondarySize() != right->getSecondarySize()))
                 return false;
             setType(TType(EbtBool, EbpUndefined));
             break;
@@ -1056,16 +1101,29 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
                     return 0;
                 }
                 {// support MSVC++6.0
-                    int size = getNominalSize();
-                    tempConstArray = new ConstantUnion[size*size];
-                    for (int row = 0; row < size; row++) {
-                        for (int column = 0; column < size; column++) {
-                            tempConstArray[size * column + row].setFConst(0.0f);
-                            for (int i = 0; i < size; i++) {
-                                tempConstArray[size * column + row].setFConst(tempConstArray[size * column + row].getFConst() + unionArray[i * size + row].getFConst() * (rightUnionArray[column * size + i].getFConst()));
+                    int leftNumCols = getNominalSize();
+                    int leftNumRows = getSecondarySize();
+                    int rightNumCols = node->getNominalSize();
+                    int rightNumRows = node->getSecondarySize();
+                    if(leftNumCols != rightNumRows) {
+                        infoSink.info.message(EPrefixInternalError, "Constant Folding cannot be done for matrix multiply", getLine());
+                        return 0;
+                    }
+                    int tempNumCols = rightNumCols;
+                    int tempNumRows = leftNumRows;
+                    int tempNumAdds = leftNumCols;
+                    tempConstArray = new ConstantUnion[tempNumCols*tempNumRows];
+                    for (int row = 0; row < tempNumRows; row++) {
+                        for (int column = 0; column < tempNumCols; column++) {
+                            tempConstArray[tempNumRows * column + row].setFConst(0.0f);
+                            for (int i = 0; i < tempNumAdds; i++) {
+                                tempConstArray[tempNumRows * column + row].setFConst(tempConstArray[tempNumRows * column + row].getFConst() + unionArray[i * leftNumRows + row].getFConst() * (rightUnionArray[column * rightNumRows + i].getFConst()));
                             }
                         }
                     }
+                    // update return type for matrix product
+                    returnType.setNominalSize(static_cast<unsigned char>(tempNumCols));
+                    returnType.setSecondarySize(static_cast<unsigned char>(tempNumRows));
                 }
                 break;
             case EOpDiv:

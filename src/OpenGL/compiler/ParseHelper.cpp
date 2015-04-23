@@ -114,7 +114,7 @@ bool TParseContext::parseVectorFields(const TString& compString, int vecSize, TV
 // Look at a '.' field selector string and change it into offsets
 // for a matrix.
 //
-bool TParseContext::parseMatrixFields(const TString& compString, int matSize, TMatrixFields& fields, int line)
+bool TParseContext::parseMatrixFields(const TString& compString, int matCols, int matRows, TMatrixFields& fields, int line)
 {
     fields.wholeRow = false;
     fields.wholeCol = false;
@@ -150,7 +150,7 @@ bool TParseContext::parseMatrixFields(const TString& compString, int matSize, TM
         fields.col = compString[1] - '0';
     }
 
-    if (fields.row >= matSize || fields.col >= matSize) {
+    if (fields.row >= matRows || fields.col >= matCols) {
         error(line, "matrix field selection out of range", compString.c_str());
         return false;
     }

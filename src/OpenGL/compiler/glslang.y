@@ -323,9 +323,9 @@ postfix_expression
             if ($1->getType().getQualifier() == EvqConstExpr)
                 $$->getTypePointer()->setQualifier(EvqConstExpr);
         } else if ($1->isMatrix() && $1->getType().getQualifier() == EvqConstExpr)
-            $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqConstExpr, $1->getNominalSize()));
+            $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqConstExpr, $1->getSecondarySize()));
         else if ($1->isMatrix())
-            $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqTemporary, $1->getNominalSize()));
+            $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqTemporary, $1->getSecondarySize()));
         else if ($1->isVector() && $1->getType().getQualifier() == EvqConstExpr)
             $$->setType(TType($1->getBasicType(), $1->getPrecision(), EvqConstExpr));
         else if ($1->isVector())
@@ -366,7 +366,7 @@ postfix_expression
             }
         } else if ($1->isMatrix()) {
             TMatrixFields fields;
-            if (! context->parseMatrixFields(*$3.string, $1->getNominalSize(), fields, $3.line)) {
+            if (! context->parseMatrixFields(*$3.string, $1->getNominalSize(), $1->getSecondarySize(), fields, $3.line)) {
                 fields.wholeRow = false;
                 fields.wholeCol = false;
                 fields.row = 0;

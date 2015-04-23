@@ -2465,9 +2465,9 @@ yyreduce:
             if ((yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getQualifier() == EvqConstExpr)
                 (yyval.interm.intermTypedNode)->getTypePointer()->setQualifier(EvqConstExpr);
         } else if ((yyvsp[(1) - (4)].interm.intermTypedNode)->isMatrix() && (yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getQualifier() == EvqConstExpr)
-            (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (4)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (4)].interm.intermTypedNode)->getPrecision(), EvqConstExpr, (yyvsp[(1) - (4)].interm.intermTypedNode)->getNominalSize()));
+            (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (4)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (4)].interm.intermTypedNode)->getPrecision(), EvqConstExpr, (yyvsp[(1) - (4)].interm.intermTypedNode)->getSecondarySize()));
         else if ((yyvsp[(1) - (4)].interm.intermTypedNode)->isMatrix())
-            (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (4)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (4)].interm.intermTypedNode)->getPrecision(), EvqTemporary, (yyvsp[(1) - (4)].interm.intermTypedNode)->getNominalSize()));
+            (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (4)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (4)].interm.intermTypedNode)->getPrecision(), EvqTemporary, (yyvsp[(1) - (4)].interm.intermTypedNode)->getSecondarySize()));
         else if ((yyvsp[(1) - (4)].interm.intermTypedNode)->isVector() && (yyvsp[(1) - (4)].interm.intermTypedNode)->getType().getQualifier() == EvqConstExpr)
             (yyval.interm.intermTypedNode)->setType(TType((yyvsp[(1) - (4)].interm.intermTypedNode)->getBasicType(), (yyvsp[(1) - (4)].interm.intermTypedNode)->getPrecision(), EvqConstExpr));
         else if ((yyvsp[(1) - (4)].interm.intermTypedNode)->isVector())
@@ -2516,7 +2516,7 @@ yyreduce:
             }
         } else if ((yyvsp[(1) - (3)].interm.intermTypedNode)->isMatrix()) {
             TMatrixFields fields;
-            if (! context->parseMatrixFields(*(yyvsp[(3) - (3)].lex).string, (yyvsp[(1) - (3)].interm.intermTypedNode)->getNominalSize(), fields, (yyvsp[(3) - (3)].lex).line)) {
+            if (! context->parseMatrixFields(*(yyvsp[(3) - (3)].lex).string, (yyvsp[(1) - (3)].interm.intermTypedNode)->getNominalSize(), (yyvsp[(1) - (3)].interm.intermTypedNode)->getSecondarySize(), fields, (yyvsp[(3) - (3)].lex).line)) {
                 fields.wholeRow = false;
                 fields.wholeCol = false;
                 fields.row = 0;
