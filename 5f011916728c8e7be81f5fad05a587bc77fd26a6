@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0d43e30_4706914e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-24T01:24:30Z",
+      "side": 1,
+      "message": "Should be reworded for binding gralloc buffers to image\u0027s external buffers.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 67
+      },
+      "revId": "5f011916728c8e7be81f5fad05a587bc77fd26a6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d0d43e30_87f149e3",
+        "filename": "src/OpenGL/common/AndroidCommon.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-24T01:24:30Z",
+      "side": 1,
+      "message": "Note: These should eventually become members of AndroidNativeImage.",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 18
+      },
+      "revId": "5f011916728c8e7be81f5fad05a587bc77fd26a6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d0d43e30_c7306119",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-24T01:24:30Z",
+      "side": 1,
+      "message": "Won\u0027t need the converting gralloc.",
+      "range": {
+        "startLine": 193,
+        "startChar": 2,
+        "endLine": 206,
+        "endChar": 3
+      },
+      "revId": "5f011916728c8e7be81f5fad05a587bc77fd26a6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
