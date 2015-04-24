@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0d43e30_2ca5bc03",
+        "filename": "src/OpenGL/libEGL/Image.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-24T01:18:10Z",
+      "side": 1,
+      "message": "Already included above.",
+      "range": {
+        "startLine": 10,
+        "startChar": 1,
+        "endLine": 10,
+        "endChar": 27
+      },
+      "revId": "115da3a07cdc8af451ede253b2264f1616677926",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d0d43e30_4c4918bd",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 495,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-24T01:18:10Z",
+      "side": 1,
+      "message": "This isn\u0027t unimplemented. It\u0027s a requirement of the spec that an error is reported when preserved behavior is requested for a surface that doesn\u0027t support it. It\u0027s perfectly valid for a surface to not support it. SwiftShader preserves the content on swap by default.",
+      "range": {
+        "startLine": 495,
+        "startChar": 0,
+        "endLine": 495,
+        "endChar": 20
+      },
+      "revId": "115da3a07cdc8af451ede253b2264f1616677926",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
