@@ -108,24 +108,27 @@ unsigned int VertexDataManager::writeAttributeData(StreamingVertexBuffer *vertex
     return streamOffset;
 }
 
-GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, TranslatedAttribute *translated)
+GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, TranslatedAttribute *translated, GLsizei instanceId)
 {
     if(!mStreamingBuffer)
     {
         return GL_OUT_OF_MEMORY;
     }
 
-    const VertexAttributeArray &attribs = mContext->getVertexAttributes();
+	const VertexAttributeArray &attribs = mContext->getVertexArrayAttributes();
+	const VertexAttributeArray &currentAttribs = mContext->getCurrentVertexAttributes();
     Program *program = mContext->getCurrentProgram();
 
     // Determine the required storage size per used buffer
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
-        if(program->getAttributeStream(i) != -1 && attribs[i].mArrayEnabled)
+        const VertexAttribute &attrib = attribs[i].mArrayEnabled ? attribs[i] : currentAttribs[i];
+
+        if(program->getAttributeStream(i) != -1 && attrib.mArrayEnabled)
         {
-            if(!attribs[i].mBoundBuffer)
+            if(!attrib.mBoundBuffer)
             {
-                mStreamingBuffer->addRequiredSpace(attribs[i].typeSize() * count);
+                mStreamingBuffer->addRequiredSpace(attrib.typeSize() * count);
             }
         }
     }
@@ -137,11 +140,18 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
     {
         if(program->getAttributeStream(i) != -1)
         {
-            if(attribs[i].mArrayEnabled)
-            {
-                Buffer *buffer = attribs[i].mBoundBuffer;
+			const VertexAttribute &attrib = attribs[i].mArrayEnabled ? attribs[i] : currentAttribs[i];
 
-                if(!buffer && attribs[i].mPointer == NULL)
+            if(attrib.mArrayEnabled)
+            {
+				const bool isInstanced = attrib.mDivisor > 0;
+
+				// Instanced vertices do not apply the 'start' offset
+				GLint firstVertexIndex = isInstanced ? instanceId / attrib.mDivisor : start;
+
+                Buffer *buffer = attrib.mBoundBuffer;
+
+                if(!buffer && attrib.mPointer == NULL)
                 {
                     // This is an application error that would normally result in a crash, but we catch it and return an error
                     ERR("An enabled vertex array has no buffer and no pointer.");
@@ -153,12 +163,12 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
                 if(staticBuffer)
                 {
 					translated[i].vertexBuffer = staticBuffer;
-					translated[i].offset = start * attribs[i].stride() + attribs[i].mOffset;
-					translated[i].stride = attribs[i].stride();
+					translated[i].offset = firstVertexIndex * attrib.stride() + attrib.mOffset;
+					translated[i].stride = isInstanced ? 0 : attrib.stride();
                 }
                 else
                 {
-                    unsigned int streamOffset = writeAttributeData(mStreamingBuffer, start, count, attribs[i]);
+                    unsigned int streamOffset = writeAttributeData(mStreamingBuffer, firstVertexIndex, count, attrib);
 
 					if(streamOffset == -1)
 					{
@@ -167,10 +177,10 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
 
 					translated[i].vertexBuffer = mStreamingBuffer->getResource();
 					translated[i].offset = streamOffset;
-					translated[i].stride = attribs[i].typeSize();
+					translated[i].stride = isInstanced ? 0 : attrib.typeSize();
                 }
 
-				switch(attribs[i].mType)
+				switch(attrib.mType)
 				{
 				case GL_BYTE:           translated[i].type = sw::STREAMTYPE_SBYTE;  break;
 				case GL_UNSIGNED_BYTE:  translated[i].type = sw::STREAMTYPE_BYTE;   break;
@@ -181,15 +191,15 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
 				default: UNREACHABLE(); translated[i].type = sw::STREAMTYPE_FLOAT;  break;
 				}
 
-				translated[i].count = attribs[i].mSize;
-				translated[i].normalized = attribs[i].mNormalized;
+				translated[i].count = attrib.mSize;
+				translated[i].normalized = attrib.mNormalized;
             }
             else
             {
                 if(mDirtyCurrentValue[i])
                 {
                     delete mCurrentValueBuffer[i];
-                    mCurrentValueBuffer[i] = new ConstantVertexBuffer(attribs[i].getCurrentValue(0), attribs[i].getCurrentValue(1), attribs[i].getCurrentValue(2), attribs[i].getCurrentValue(3));
+                    mCurrentValueBuffer[i] = new ConstantVertexBuffer(attrib.getCurrentValue(0), attrib.getCurrentValue(1), attrib.getCurrentValue(2), attrib.getCurrentValue(3));
                     mDirtyCurrentValue[i] = false;
                 }
 

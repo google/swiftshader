@@ -81,7 +81,7 @@ class VertexDataManager
 
     void dirtyCurrentValue(int index) { mDirtyCurrentValue[index] = true; }
 
-    GLenum prepareVertexData(GLint start, GLsizei count, TranslatedAttribute *outAttribs);
+    GLenum prepareVertexData(GLint start, GLsizei count, TranslatedAttribute *outAttribs, GLsizei instanceId);
 
   private:
     unsigned int writeAttributeData(StreamingVertexBuffer *vertexBuffer, GLint start, GLsizei count, const VertexAttribute &attribute);

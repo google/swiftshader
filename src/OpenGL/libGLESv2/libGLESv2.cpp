@@ -1938,6 +1938,119 @@ void GL_APIENTRY glVertexAttribDivisorEXT(GLuint index, GLuint divisor)
 	}
 }
 
+void GL_APIENTRY glDrawArraysInstancedANGLE(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount)
+{
+	TRACE("(GLenum mode = 0x%X, GLint first = %d, GLsizei count = %d, GLsizei instanceCount = %d)",
+		mode, first, count, instanceCount);
+
+	switch(mode)
+	{
+	case GL_POINTS:
+	case GL_LINES:
+	case GL_LINE_LOOP:
+	case GL_LINE_STRIP:
+	case GL_TRIANGLES:
+	case GL_TRIANGLE_FAN:
+	case GL_TRIANGLE_STRIP:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	if(count < 0 || instanceCount < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		if(!context->hasZeroDivisor())
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		es2::TransformFeedback* transformFeedback = context->getTransformFeedback();
+		if(transformFeedback && transformFeedback->isActive() && (mode != transformFeedback->primitiveMode()))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		context->drawArrays(mode, first, count, instanceCount);
+	}
+}
+
+void GL_APIENTRY glDrawElementsInstancedANGLE(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instanceCount)
+{
+	TRACE("(GLenum mode = 0x%X, GLsizei count = %d, GLenum type = 0x%X, const void *indices = 0x%0.8p, GLsizei instanceCount = %d)",
+		mode, count, type, indices, instanceCount);
+
+	switch(mode)
+	{
+	case GL_POINTS:
+	case GL_LINES:
+	case GL_LINE_LOOP:
+	case GL_LINE_STRIP:
+	case GL_TRIANGLES:
+	case GL_TRIANGLE_FAN:
+	case GL_TRIANGLE_STRIP:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	switch(type)
+	{
+	case GL_UNSIGNED_BYTE:
+	case GL_UNSIGNED_SHORT:
+	case GL_UNSIGNED_INT:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	if(count < 0 || instanceCount < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		if(!context->hasZeroDivisor())
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		es2::TransformFeedback* transformFeedback = context->getTransformFeedback();
+		if(transformFeedback && transformFeedback->isActive() && !transformFeedback->isPaused())
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		context->drawElements(mode, 0, UINT_MAX, count, type, indices, instanceCount);
+	}
+}
+
+void GL_APIENTRY glVertexAttribDivisorANGLE(GLuint index, GLuint divisor)
+{
+	TRACE("(GLuint index = %d, GLuint divisor = %d)", index, divisor);
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		if(index >= MAX_VERTEX_ATTRIBS)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		context->setVertexAttribDivisor(index, divisor);
+	}
+}
+
 void GL_APIENTRY glEnable(GLenum cap)
 {
 	TRACE("(GLenum cap = 0x%X)", cap);
@@ -3758,9 +3871,12 @@ void GL_APIENTRY glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params
 			*params = (GLfloat)attribState.mBoundBuffer.name();
 			break;
 		case GL_CURRENT_VERTEX_ATTRIB:
-			for(int i = 0; i < 4; ++i)
 			{
-				params[i] = attribState.getCurrentValue(i);
+				const VertexAttribute& attrib = context->getCurrentVertexAttributes()[index];
+				for(int i = 0; i < 4; ++i)
+				{
+					params[i] = attrib.getCurrentValue(i);
+				}
 			}
 			break;
 		case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
@@ -3828,10 +3944,13 @@ void GL_APIENTRY glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params)
 			*params = attribState.mBoundBuffer.name();
 			break;
 		case GL_CURRENT_VERTEX_ATTRIB:
-			for(int i = 0; i < 4; ++i)
 			{
-				float currentValue = attribState.getCurrentValue(i);
-				params[i] = (GLint)(currentValue > 0.0f ? floor(currentValue + 0.5f) : ceil(currentValue - 0.5f));
+				const VertexAttribute& attrib = context->getCurrentVertexAttributes()[index];
+				for(int i = 0; i < 4; ++i)
+				{
+					float currentValue = attrib.getCurrentValue(i);
+					params[i] = (GLint)(currentValue > 0.0f ? floor(currentValue + 0.5f) : ceil(currentValue - 0.5f));
+				}
 			}
 			break;
 		case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
@@ -6896,6 +7015,9 @@ __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char *procname)
 		EXTENSION(glDrawElementsInstancedEXT),
 		EXTENSION(glDrawArraysInstancedEXT),
 		EXTENSION(glVertexAttribDivisorEXT),
+		EXTENSION(glDrawArraysInstancedANGLE),
+		EXTENSION(glDrawElementsInstancedANGLE),
+		EXTENSION(glVertexAttribDivisorANGLE),
 
 		#undef EXTENSION
 	};

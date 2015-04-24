@@ -327,7 +327,6 @@ struct State
 
     unsigned int activeSampler;   // Active texture unit selector - GL_TEXTURE0
     gl::BindingPointer<Buffer> arrayBuffer;
-    gl::BindingPointer<Buffer> elementArrayBuffer;
 	gl::BindingPointer<Buffer> copyReadBuffer;
 	gl::BindingPointer<Buffer> copyWriteBuffer;
 	gl::BindingPointer<Buffer> pixelPackBuffer;
@@ -338,7 +337,7 @@ struct State
     GLuint drawFramebuffer;
     gl::BindingPointer<Renderbuffer> renderbuffer;
     GLuint currentProgram;
-    gl::BindingPointer<VertexArray> vertexArray;
+	GLuint vertexArray;
 	GLuint transformFeedback;
 	gl::BindingPointer<Sampler> sampler[MAX_COMBINED_TEXTURE_IMAGE_UNITS];
 
@@ -440,7 +439,9 @@ public:
                               bool normalized, GLsizei stride, const void *pointer);
     const void *getVertexAttribPointer(unsigned int attribNum) const;
 
-    const VertexAttributeArray &getVertexAttributes();
+	const VertexAttributeArray &getVertexArrayAttributes();
+	// Context attribute current values can be queried independently from VAO current values
+	const VertexAttributeArray &getCurrentVertexAttributes();
 
     void setUnpackAlignment(GLint alignment);
     GLint getUnpackAlignment() const;
@@ -555,6 +556,8 @@ public:
 
 	bool getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *numParams) const;
 
+	bool hasZeroDivisor() const;
+
     void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
     void clear(GLbitfield mask);
     void drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount = 1);
@@ -589,7 +592,7 @@ private:
 
     bool applyRenderTarget();
     void applyState(GLenum drawMode);
-    GLenum applyVertexBuffer(GLint base, GLint first, GLsizei count);
+	GLenum applyVertexBuffer(GLint base, GLint first, GLsizei count, GLsizei instanceId);
     GLenum applyIndexBuffer(const void *indices, GLuint start, GLuint end, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo);
     void applyShaders();
     void applyTextures();

@@ -1912,9 +1912,12 @@ void GL_APIENTRY glGetVertexAttribIiv(GLuint index, GLenum pname, GLint *params)
 			*params = attribState.mBoundBuffer.name();
 			break;
 		case GL_CURRENT_VERTEX_ATTRIB:
-			for(int i = 0; i < 4; ++i)
 			{
-				params[i] = attribState.getCurrentValueI(i);
+				const VertexAttribute& attrib = context->getCurrentVertexAttributes()[index];
+				for(int i = 0; i < 4; ++i)
+				{
+					params[i] = attrib.getCurrentValueI(i);
+				}
 			}
 			break;
 		case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
@@ -1980,9 +1983,12 @@ void GL_APIENTRY glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint *param
 			*params = attribState.mBoundBuffer.name();
 			break;
 		case GL_CURRENT_VERTEX_ATTRIB:
-			for(int i = 0; i < 4; ++i)
 			{
-				params[i] = attribState.getCurrentValueUI(i);
+				const VertexAttribute& attrib = context->getCurrentVertexAttributes()[index];
+				for(int i = 0; i < 4; ++i)
+				{
+					params[i] = attrib.getCurrentValueUI(i);
+				}
 			}
 			break;
 		case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
