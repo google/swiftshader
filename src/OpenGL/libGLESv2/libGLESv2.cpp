@@ -1819,7 +1819,7 @@ void GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum type, const G
 			return error(GL_INVALID_ENUM);
 		}
 
-		context->drawElements(mode, 0, UINT_MAX, count, type, indices);
+		context->drawElements(mode, 0, MAX_ELEMENT_INDEX, count, type, indices);
 	}
 }
 
@@ -1905,7 +1905,7 @@ void GL_APIENTRY glDrawElementsInstancedEXT(GLenum mode, GLsizei count, GLenum t
 			return error(GL_INVALID_OPERATION);
 		}
 
-		context->drawElements(mode, 0, UINT_MAX, count, type, indices, instanceCount);
+		context->drawElements(mode, 0, MAX_ELEMENT_INDEX, count, type, indices, instanceCount);
 	}
 }
 

@@ -1925,17 +1925,14 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 		UNIMPLEMENTED();
 		*params = IMPLEMENTATION_MAX_DRAW_BUFFERS;
 		break;
-	case GL_MAX_ELEMENT_INDEX: // integer, at least 16777215
-		UNIMPLEMENTED();
-		*params = 16777215;
+	case GL_MAX_ELEMENT_INDEX:
+		*params = MAX_ELEMENT_INDEX;
 		break;
-	case GL_MAX_ELEMENTS_INDICES: // integer
-		UNIMPLEMENTED();
-		*params = 0;
+	case GL_MAX_ELEMENTS_INDICES:
+		*params = MAX_ELEMENTS_INDICES;
 		break;
-	case GL_MAX_ELEMENTS_VERTICES: // integer
-		UNIMPLEMENTED();
-		*params = 0;
+	case GL_MAX_ELEMENTS_VERTICES:
+		*params = MAX_ELEMENTS_VERTICES;
 		break;
 	case GL_MAX_FRAGMENT_INPUT_COMPONENTS: // integer, at least 128
 		UNIMPLEMENTED();
