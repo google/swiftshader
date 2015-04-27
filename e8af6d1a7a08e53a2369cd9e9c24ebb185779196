@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0027e8c_af3d39e2",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-27T09:58:10Z",
+      "side": 0,
+      "message": "I\u0027d like to keep this in Context.h with the other context constants. Can Context.h be included in VertexArray.h?",
+      "range": {
+        "startLine": 74,
+        "startChar": 4,
+        "endLine": 74,
+        "endChar": 28
+      },
+      "revId": "e8af6d1a7a08e53a2369cd9e9c24ebb185779196",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}

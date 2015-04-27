@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0027e8c_6f90611a",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-27T09:58:10Z",
+      "side": 1,
+      "message": "Are these both used? I couldn\u0027t find a reference to getVertexAttributes() at first glance. If they\u0027re both necessary it would be best to have a more descriptive name.",
+      "range": {
+        "startLine": 316,
+        "startChar": 1,
+        "endLine": 317,
+        "endChar": 58
+      },
+      "revId": "dfddbc3c18588d6ad4b5fd46f461326afb8ec7e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d0027e8c_af753981",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cbp",
+        "patchSetId": 1
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-27T09:58:10Z",
+      "side": 1,
+      "message": "It\u0027s also needed in the Android.mk file",
+      "range": {
+        "startLine": 371,
+        "startChar": 20,
+        "endLine": 371,
+        "endChar": 35
+      },
+      "revId": "dfddbc3c18588d6ad4b5fd46f461326afb8ec7e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d0027e8c_4f8da502",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cbp",
+        "patchSetId": 1
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-27T09:58:10Z",
+      "side": 1,
+      "message": "nit: tabs",
+      "range": {
+        "startLine": 371,
+        "startChar": 0,
+        "endLine": 373,
+        "endChar": 45
+      },
+      "revId": "dfddbc3c18588d6ad4b5fd46f461326afb8ec7e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
