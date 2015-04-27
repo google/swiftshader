@@ -88,9 +88,9 @@ static bool validateSurface(egl::Display *display, egl::Surface *surface)
 	return true;
 }
 
-extern "C"
+namespace egl
 {
-EGLAPI EGLint EGLAPIENTRY eglGetError(void)
+EGLint GetError(void)
 {
 	TRACE("()");
 
@@ -104,14 +104,14 @@ EGLAPI EGLint EGLAPIENTRY eglGetError(void)
 	return error;
 }
 
-EGLAPI EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id)
+EGLDisplay GetDisplay(EGLNativeDisplayType display_id)
 {
 	TRACE("(EGLNativeDisplayType display_id = %p)", display_id);
 
 	return egl::Display::getPlatformDisplay(EGL_UNKNOWN, display_id);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay dpy, EGLint *major, EGLint *minor)
+EGLBoolean Initialize(EGLDisplay dpy, EGLint *major, EGLint *minor)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLint *major = %p, EGLint *minor = %p)",
 		  dpy, major, minor);
@@ -134,7 +134,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay dpy, EGLint *major, EGLin
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglTerminate(EGLDisplay dpy)
+EGLBoolean Terminate(EGLDisplay dpy)
 {
 	TRACE("(EGLDisplay dpy = %p)", dpy);
 
@@ -150,7 +150,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglTerminate(EGLDisplay dpy)
 	return success(EGL_TRUE);
 }
 
-EGLAPI const char *EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name)
+const char *QueryString(EGLDisplay dpy, EGLint name)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLint name = %d)", dpy, name);
 
@@ -187,7 +187,7 @@ EGLAPI const char *EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name)
 	return error(EGL_BAD_PARAMETER, (const char*)NULL);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigs(EGLDisplay dpy, EGLConfig *configs, EGLint config_size, EGLint *num_config)
+EGLBoolean GetConfigs(EGLDisplay dpy, EGLConfig *configs, EGLint config_size, EGLint *num_config)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLConfig *configs = %p, "
 		  "EGLint config_size = %d, EGLint *num_config = %p)",
@@ -215,7 +215,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigs(EGLDisplay dpy, EGLConfig *configs, 
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig *configs, EGLint config_size, EGLint *num_config)
+EGLBoolean ChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig *configs, EGLint config_size, EGLint *num_config)
 {
 	TRACE("(EGLDisplay dpy = %p, const EGLint *attrib_list = %p, "
 		  "EGLConfig *configs = %p, EGLint config_size = %d, EGLint *num_config = %p)",
@@ -245,7 +245,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay dpy, const EGLint *attr
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint *value)
+EGLBoolean GetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint *value)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLConfig config = %p, EGLint attribute = %d, EGLint *value = %p)",
 		  dpy, config, attribute, value);
@@ -265,7 +265,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigAttrib(EGLDisplay dpy, EGLConfig confi
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType window, const EGLint *attrib_list)
+EGLSurface CreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType window, const EGLint *attrib_list)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLConfig config = %p, EGLNativeWindowType win = %p, "
 		  "const EGLint *attrib_list = %p)", dpy, config, window, attrib_list);
@@ -285,7 +285,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig c
 	return display->createWindowSurface(window, config, attrib_list);
 }
 
-EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list)
+EGLSurface CreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLConfig config = %p, const EGLint *attrib_list = %p)",
 		  dpy, config, attrib_list);
@@ -300,7 +300,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig 
 	return display->createOffscreenSurface(config, attrib_list);
 }
 
-EGLAPI EGLSurface EGLAPIENTRY eglCreatePixmapSurface(EGLDisplay dpy, EGLConfig config, EGLNativePixmapType pixmap, const EGLint *attrib_list)
+EGLSurface CreatePixmapSurface(EGLDisplay dpy, EGLConfig config, EGLNativePixmapType pixmap, const EGLint *attrib_list)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLConfig config = %p, EGLNativePixmapType pixmap = %p, "
 		  "const EGLint *attrib_list = %p)", dpy, config, pixmap, attrib_list);
@@ -317,7 +317,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreatePixmapSurface(EGLDisplay dpy, EGLConfig c
 	return success(EGL_NO_SURFACE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglDestroySurface(EGLDisplay dpy, EGLSurface surface)
+EGLBoolean DestroySurface(EGLDisplay dpy, EGLSurface surface)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLSurface surface = %p)", dpy, surface);
 
@@ -339,7 +339,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglDestroySurface(EGLDisplay dpy, EGLSurface surfa
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglQuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint *value)
+EGLBoolean QuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint *value)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLSurface surface = %p, EGLint attribute = %d, EGLint *value = %p)",
 		  dpy, surface, attribute, value);
@@ -414,7 +414,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglQuerySurface(EGLDisplay dpy, EGLSurface surface
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglBindAPI(EGLenum api)
+EGLBoolean BindAPI(EGLenum api)
 {
 	TRACE("(EGLenum api = 0x%X)", api);
 
@@ -434,7 +434,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglBindAPI(EGLenum api)
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLenum EGLAPIENTRY eglQueryAPI(void)
+EGLenum QueryAPI(void)
 {
 	TRACE("()");
 
@@ -443,7 +443,7 @@ EGLAPI EGLenum EGLAPIENTRY eglQueryAPI(void)
 	return success(API);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglWaitClient(void)
+EGLBoolean WaitClient(void)
 {
 	TRACE("()");
 
@@ -452,7 +452,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglWaitClient(void)
 	return success(EGL_FALSE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglReleaseThread(void)
+EGLBoolean ReleaseThread(void)
 {
 	TRACE("()");
 
@@ -461,7 +461,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglReleaseThread(void)
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer, EGLConfig config, const EGLint *attrib_list)
+EGLSurface CreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer, EGLConfig config, const EGLint *attrib_list)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLenum buftype = 0x%X, EGLClientBuffer buffer = %p, "
 		  "EGLConfig config = %p, const EGLint *attrib_list = %p)",
@@ -472,7 +472,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferFromClientBuffer(EGLDisplay dpy, E
 	return error(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value)
+EGLBoolean SurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLSurface surface = %p, EGLint attribute = %d, EGLint value = %d)",
 		  dpy, surface, attribute, value);
@@ -508,7 +508,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surfac
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglBindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
+EGLBoolean BindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLSurface surface = %p, EGLint buffer = %d)", dpy, surface, buffer);
 
@@ -550,7 +550,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglBindTexImage(EGLDisplay dpy, EGLSurface surface
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
+EGLBoolean ReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLSurface surface = %p, EGLint buffer = %d)", dpy, surface, buffer);
 
@@ -587,7 +587,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglReleaseTexImage(EGLDisplay dpy, EGLSurface surf
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglSwapInterval(EGLDisplay dpy, EGLint interval)
+EGLBoolean SwapInterval(EGLDisplay dpy, EGLint interval)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLint interval = %d)", dpy, interval);
 
@@ -610,7 +610,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapInterval(EGLDisplay dpy, EGLint interval)
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint *attrib_list)
+EGLContext CreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint *attrib_list)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLConfig config = %p, EGLContext share_context = %p, "
 		  "const EGLint *attrib_list = %p)", dpy, config, share_context, attrib_list);
@@ -647,7 +647,7 @@ EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config,
 	return display->createContext(config, shareContext, clientVersion);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
+EGLBoolean DestroyContext(EGLDisplay dpy, EGLContext ctx)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLContext ctx = %p)", dpy, ctx);
 
@@ -669,7 +669,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx)
+EGLBoolean MakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLSurface draw = %p, EGLSurface read = %p, EGLContext ctx = %p)",
 		  dpy, draw, read, ctx);
@@ -726,7 +726,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EG
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLContext EGLAPIENTRY eglGetCurrentContext(void)
+EGLContext GetCurrentContext(void)
 {
 	TRACE("()");
 
@@ -735,7 +735,7 @@ EGLAPI EGLContext EGLAPIENTRY eglGetCurrentContext(void)
 	return success(context);
 }
 
-EGLAPI EGLSurface EGLAPIENTRY eglGetCurrentSurface(EGLint readdraw)
+EGLSurface GetCurrentSurface(EGLint readdraw)
 {
 	TRACE("(EGLint readdraw = %d)", readdraw);
 
@@ -755,7 +755,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglGetCurrentSurface(EGLint readdraw)
 	}
 }
 
-EGLAPI EGLDisplay EGLAPIENTRY eglGetCurrentDisplay(void)
+EGLDisplay GetCurrentDisplay(void)
 {
 	TRACE("()");
 
@@ -764,7 +764,7 @@ EGLAPI EGLDisplay EGLAPIENTRY eglGetCurrentDisplay(void)
 	return success(dpy);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglQueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGLint *value)
+EGLBoolean QueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGLint *value)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLContext ctx = %p, EGLint attribute = %d, EGLint *value = %p)",
 		  dpy, ctx, attribute, value);
@@ -782,7 +782,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglQueryContext(EGLDisplay dpy, EGLContext ctx, EG
 	return success(0);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglWaitGL(void)
+EGLBoolean WaitGL(void)
 {
 	TRACE("()");
 
@@ -791,7 +791,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglWaitGL(void)
 	return success(EGL_FALSE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglWaitNative(EGLint engine)
+EGLBoolean WaitNative(EGLint engine)
 {
 	TRACE("(EGLint engine = %d)", engine);
 
@@ -800,7 +800,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglWaitNative(EGLint engine)
 	return success(EGL_FALSE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
+EGLBoolean SwapBuffers(EGLDisplay dpy, EGLSurface surface)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLSurface surface = %p)", dpy, surface);
 
@@ -822,7 +822,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface, EGLNativePixmapType target)
+EGLBoolean CopyBuffers(EGLDisplay dpy, EGLSurface surface, EGLNativePixmapType target)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLSurface surface = %p, EGLNativePixmapType target = %p)", dpy, surface, target);
 
@@ -839,7 +839,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface,
 	return success(EGL_FALSE);
 }
 
-EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list)
+EGLImageKHR CreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLContext ctx = %p, EGLenum target = 0x%X, buffer = %p, const EGLint attrib_list = %p)", dpy, ctx, target, buffer, attrib_list);
 
@@ -913,7 +913,7 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx,
 	return success((EGLImageKHR)image);
 }
 
-EGLAPI EGLBoolean EGLAPIENTRY eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
+EGLBoolean DestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLImageKHR image = %p)", dpy, image);
 
@@ -935,24 +935,24 @@ EGLAPI EGLBoolean EGLAPIENTRY eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR ima
 	return success(EGL_TRUE);
 }
 
-EGLAPI EGLDisplay EGLAPIENTRY eglGetPlatformDisplayEXT(EGLenum platform, void *native_display, const EGLint *attrib_list)
+EGLDisplay GetPlatformDisplayEXT(EGLenum platform, void *native_display, const EGLint *attrib_list)
 {
 	TRACE("(EGLenum platform = 0x%X, void *native_display = %p, const EGLint *attrib_list = %p)", platform, native_display, attrib_list);
 
 	return egl::Display::getPlatformDisplay(platform, (EGLNativeDisplayType)native_display);
 }
 
-EGLAPI EGLSurface EGLAPIENTRY eglCreatePlatformWindowSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLint *attrib_list)
+EGLSurface CreatePlatformWindowSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLint *attrib_list)
 {
-	return eglCreateWindowSurface(dpy, config, (EGLNativeWindowType)native_window, attrib_list);
+	return CreateWindowSurface(dpy, config, (EGLNativeWindowType)native_window, attrib_list);
 }
 
-EGLAPI EGLSurface EGLAPIENTRY eglCreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_pixmap, const EGLint *attrib_list)
+EGLSurface CreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_pixmap, const EGLint *attrib_list)
 {
-	return eglCreatePixmapSurface(dpy, config, (EGLNativePixmapType)native_pixmap, attrib_list);
+	return CreatePixmapSurface(dpy, config, (EGLNativePixmapType)native_pixmap, attrib_list);
 }
 
-EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const char *procname)
+__eglMustCastToProperFunctionPointerType GetProcAddress(const char *procname)
 {
 	TRACE("(const char *procname = \"%s\")", procname);
 

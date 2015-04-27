@@ -156,7 +156,7 @@ LibGLES_CMexports::LibGLES_CMexports()
 	this->glEGLImageTargetTexture2DOES = ::glEGLImageTargetTexture2DOES;
 }
 
-extern "C" LibGLES_CMexports *libGLES_CM_swiftshader()
+extern "C" GL_API LibGLES_CMexports *libGLES_CM_swiftshader()
 {
 	static LibGLES_CMexports libGLES_CM;
 	return &libGLES_CM;

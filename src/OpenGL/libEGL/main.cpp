@@ -320,50 +320,291 @@ void error(EGLint errorCode)
 }
 }
 
+namespace egl
+{
+EGLint GetError(void);
+EGLDisplay GetDisplay(EGLNativeDisplayType display_id);
+EGLBoolean Initialize(EGLDisplay dpy, EGLint *major, EGLint *minor);
+EGLBoolean Terminate(EGLDisplay dpy);
+const char *QueryString(EGLDisplay dpy, EGLint name);
+EGLBoolean GetConfigs(EGLDisplay dpy, EGLConfig *configs, EGLint config_size, EGLint *num_config);
+EGLBoolean ChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig *configs, EGLint config_size, EGLint *num_config);
+EGLBoolean GetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint *value);
+EGLSurface CreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType window, const EGLint *attrib_list);
+EGLSurface CreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list);
+EGLSurface CreatePixmapSurface(EGLDisplay dpy, EGLConfig config, EGLNativePixmapType pixmap, const EGLint *attrib_list);
+EGLBoolean DestroySurface(EGLDisplay dpy, EGLSurface surface);
+EGLBoolean QuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint *value);
+EGLBoolean BindAPI(EGLenum api);
+EGLenum QueryAPI(void);
+EGLBoolean WaitClient(void);
+EGLBoolean ReleaseThread(void);
+EGLSurface CreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer, EGLConfig config, const EGLint *attrib_list);
+EGLBoolean SurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value);
+EGLBoolean BindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer);
+EGLBoolean ReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer);
+EGLBoolean SwapInterval(EGLDisplay dpy, EGLint interval);
+EGLContext CreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint *attrib_list);
+EGLBoolean DestroyContext(EGLDisplay dpy, EGLContext ctx);
+EGLBoolean MakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx);
+EGLContext GetCurrentContext(void);
+EGLSurface GetCurrentSurface(EGLint readdraw);
+EGLDisplay GetCurrentDisplay(void);
+EGLBoolean QueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGLint *value);
+EGLBoolean WaitGL(void);
+EGLBoolean WaitNative(EGLint engine);
+EGLBoolean SwapBuffers(EGLDisplay dpy, EGLSurface surface);
+EGLBoolean CopyBuffers(EGLDisplay dpy, EGLSurface surface, EGLNativePixmapType target);
+EGLImageKHR CreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list);
+EGLBoolean DestroyImageKHR(EGLDisplay dpy, EGLImageKHR image);
+EGLDisplay GetPlatformDisplayEXT(EGLenum platform, void *native_display, const EGLint *attrib_list);
+EGLSurface CreatePlatformWindowSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLint *attrib_list);
+EGLSurface CreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_pixmap, const EGLint *attrib_list);
+__eglMustCastToProperFunctionPointerType GetProcAddress(const char *procname);
+}
+
+extern "C"
+{
+EGLAPI EGLint EGLAPIENTRY eglGetError(void)
+{
+	return egl::GetError();
+}
+
+EGLAPI EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id)
+{
+	return egl::GetDisplay(display_id);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay dpy, EGLint *major, EGLint *minor)
+{
+	return egl::Initialize(dpy, major, minor);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglTerminate(EGLDisplay dpy)
+{
+	return egl::Terminate(dpy);
+}
+
+EGLAPI const char *EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name)
+{
+	return egl::QueryString(dpy, name);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigs(EGLDisplay dpy, EGLConfig *configs, EGLint config_size, EGLint *num_config)
+{
+	return egl::GetConfigs(dpy, configs, config_size, num_config);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig *configs, EGLint config_size, EGLint *num_config)
+{
+	return egl::ChooseConfig(dpy, attrib_list, configs, config_size, num_config);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint *value)
+{
+	return egl::GetConfigAttrib(dpy, config, attribute, value);
+}
+
+EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType window, const EGLint *attrib_list)
+{
+	return egl::CreateWindowSurface(dpy, config, window, attrib_list);
+}
+
+EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list)
+{
+	return egl::CreatePbufferSurface(dpy, config, attrib_list);
+}
+
+EGLAPI EGLSurface EGLAPIENTRY eglCreatePixmapSurface(EGLDisplay dpy, EGLConfig config, EGLNativePixmapType pixmap, const EGLint *attrib_list)
+{
+	return egl::CreatePixmapSurface(dpy, config, pixmap, attrib_list);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglDestroySurface(EGLDisplay dpy, EGLSurface surface)
+{
+	return egl::DestroySurface(dpy, surface);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglQuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint *value)
+{
+	return egl::QuerySurface(dpy, surface, attribute, value);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglBindAPI(EGLenum api)
+{
+	return egl::BindAPI(api);
+}
+
+EGLAPI EGLenum EGLAPIENTRY eglQueryAPI(void)
+{
+	return egl::QueryAPI();
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglWaitClient(void)
+{
+	return egl::WaitClient();
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglReleaseThread(void)
+{
+	return egl::ReleaseThread();
+}
+
+EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer, EGLConfig config, const EGLint *attrib_list)
+{
+	return egl::CreatePbufferFromClientBuffer(dpy, buftype, buffer, config, attrib_list);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value)
+{
+	return egl::SurfaceAttrib(dpy, surface, attribute, value);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglBindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
+{
+	return egl::BindTexImage(dpy, surface, buffer);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
+{
+	return egl::ReleaseTexImage(dpy, surface, buffer);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglSwapInterval(EGLDisplay dpy, EGLint interval)
+{
+	return egl::SwapInterval(dpy, interval);
+}
+
+EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint *attrib_list)
+{
+	return egl::CreateContext(dpy, config, share_context, attrib_list);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
+{
+	return egl::DestroyContext(dpy, ctx);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx)
+{
+	return egl::MakeCurrent(dpy, draw, read, ctx);
+}
+
+EGLAPI EGLContext EGLAPIENTRY eglGetCurrentContext(void)
+{
+	return egl::GetCurrentContext();
+}
+
+EGLAPI EGLSurface EGLAPIENTRY eglGetCurrentSurface(EGLint readdraw)
+{
+	return egl::GetCurrentSurface(readdraw);
+}
+
+EGLAPI EGLDisplay EGLAPIENTRY eglGetCurrentDisplay(void)
+{
+	return egl::GetCurrentDisplay();
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglQueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGLint *value)
+{
+	return egl::QueryContext(dpy, ctx, attribute, value);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglWaitGL(void)
+{
+	return egl::WaitClient();
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglWaitNative(EGLint engine)
+{
+	return egl::WaitNative(engine);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
+{
+	return egl::SwapBuffers(dpy, surface);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface, EGLNativePixmapType target)
+{
+	return egl::CopyBuffers(dpy, surface, target);
+}
+
+EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list)
+{
+	return egl::CreateImageKHR(dpy, ctx, target, buffer, attrib_list);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
+{
+	return egl::DestroyImageKHR(dpy, image);
+}
+
+EGLAPI EGLDisplay EGLAPIENTRY eglGetPlatformDisplayEXT(EGLenum platform, void *native_display, const EGLint *attrib_list)
+{
+	return egl::GetPlatformDisplayEXT(platform, native_display, attrib_list);
+}
+
+EGLAPI EGLSurface EGLAPIENTRY eglCreatePlatformWindowSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLint *attrib_list)
+{
+	return egl::CreatePlatformWindowSurfaceEXT(dpy, config, native_window, attrib_list);
+}
+
+EGLAPI EGLSurface EGLAPIENTRY eglCreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_pixmap, const EGLint *attrib_list)
+{
+	return egl::CreatePlatformPixmapSurfaceEXT(dpy, config, native_pixmap, attrib_list);
+}
+
+EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const char *procname)
+{
+	return egl::GetProcAddress(procname);
+}
+}
+
 LibEGLexports::LibEGLexports()
 {
-	this->eglGetError = ::eglGetError;
-	this->eglGetDisplay = ::eglGetDisplay;
-	this->eglInitialize = ::eglInitialize;
-	this->eglTerminate = ::eglTerminate;
-	this->eglQueryString = ::eglQueryString;
-	this->eglGetConfigs = ::eglGetConfigs;
-	this->eglChooseConfig = ::eglChooseConfig;
-	this->eglGetConfigAttrib = ::eglGetConfigAttrib;
-	this->eglCreateWindowSurface = ::eglCreateWindowSurface;
-	this->eglCreatePbufferSurface = ::eglCreatePbufferSurface;
-	this->eglCreatePixmapSurface = ::eglCreatePixmapSurface;
-	this->eglDestroySurface = ::eglDestroySurface;
-	this->eglQuerySurface = ::eglQuerySurface;
-	this->eglBindAPI = ::eglBindAPI;
-	this->eglQueryAPI = ::eglQueryAPI;
-	this->eglWaitClient = ::eglWaitClient;
-	this->eglReleaseThread = ::eglReleaseThread;
-	this->eglCreatePbufferFromClientBuffer = ::eglCreatePbufferFromClientBuffer;
-	this->eglSurfaceAttrib = ::eglSurfaceAttrib;
-	this->eglBindTexImage = ::eglBindTexImage;
-	this->eglReleaseTexImage = ::eglReleaseTexImage;
-	this->eglSwapInterval = ::eglSwapInterval;
-	this->eglCreateContext = ::eglCreateContext;
-	this->eglDestroyContext = ::eglDestroyContext;
-	this->eglMakeCurrent = ::eglMakeCurrent;
-	this->eglGetCurrentContext = ::eglGetCurrentContext;
-	this->eglGetCurrentSurface = ::eglGetCurrentSurface;
-	this->eglGetCurrentDisplay = ::eglGetCurrentDisplay;
-	this->eglQueryContext = ::eglQueryContext;
-	this->eglWaitGL = ::eglWaitGL;
-	this->eglWaitNative = ::eglWaitNative;
-	this->eglSwapBuffers = ::eglSwapBuffers;
-	this->eglCopyBuffers = ::eglCopyBuffers;
-	this->eglCreateImageKHR = ::eglCreateImageKHR;
-	this->eglDestroyImageKHR = ::eglDestroyImageKHR;
-	this->eglGetProcAddress = ::eglGetProcAddress;
+	this->eglGetError = egl::GetError;
+	this->eglGetDisplay = egl::GetDisplay;
+	this->eglInitialize = egl::Initialize;
+	this->eglTerminate = egl::Terminate;
+	this->eglQueryString = egl::QueryString;
+	this->eglGetConfigs = egl::GetConfigs;
+	this->eglChooseConfig = egl::ChooseConfig;
+	this->eglGetConfigAttrib = egl::GetConfigAttrib;
+	this->eglCreateWindowSurface = egl::CreateWindowSurface;
+	this->eglCreatePbufferSurface = egl::CreatePbufferSurface;
+	this->eglCreatePixmapSurface = egl::CreatePixmapSurface;
+	this->eglDestroySurface = egl::DestroySurface;
+	this->eglQuerySurface = egl::QuerySurface;
+	this->eglBindAPI = egl::BindAPI;
+	this->eglQueryAPI = egl::QueryAPI;
+	this->eglWaitClient = egl::WaitClient;
+	this->eglReleaseThread = egl::ReleaseThread;
+	this->eglCreatePbufferFromClientBuffer = egl::CreatePbufferFromClientBuffer;
+	this->eglSurfaceAttrib = egl::SurfaceAttrib;
+	this->eglBindTexImage = egl::BindTexImage;
+	this->eglReleaseTexImage = egl::ReleaseTexImage;
+	this->eglSwapInterval = egl::SwapInterval;
+	this->eglCreateContext = egl::CreateContext;
+	this->eglDestroyContext = egl::DestroyContext;
+	this->eglMakeCurrent = egl::MakeCurrent;
+	this->eglGetCurrentContext = egl::GetCurrentContext;
+	this->eglGetCurrentSurface = egl::GetCurrentSurface;
+	this->eglGetCurrentDisplay = egl::GetCurrentDisplay;
+	this->eglQueryContext = egl::QueryContext;
+	this->eglWaitGL = egl::WaitGL;
+	this->eglWaitNative = egl::WaitNative;
+	this->eglSwapBuffers = egl::SwapBuffers;
+	this->eglCopyBuffers = egl::CopyBuffers;
+	this->eglCreateImageKHR = egl::CreateImageKHR;
+	this->eglDestroyImageKHR = egl::DestroyImageKHR;
+	this->eglGetProcAddress = egl::GetProcAddress;
 
 	this->clientGetCurrentContext = egl::getCurrentContext;
 	this->clientGetCurrentDisplay = egl::getCurrentDisplay;
 }
 
-extern "C" LibEGLexports *libEGL_swiftshader()
+extern "C" EGLAPI LibEGLexports *libEGL_swiftshader()
 {
 	static LibEGLexports libEGL;
 	return &libEGL;
