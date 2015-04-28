@@ -158,19 +158,19 @@ global:
     glReadnPixelsEXT;
     glGetnUniformfvEXT;
     glGetnUniformivEXT;
-	glGenQueriesEXT;
+    glGenQueriesEXT;
     glDeleteQueriesEXT;
     glIsQueryEXT;
     glBeginQueryEXT;
     glEndQueryEXT;
     glGetQueryivEXT;
     glGetQueryObjectuivEXT;
-	glEGLImageTargetTexture2DOES;
-	glEGLImageTargetRenderbufferStorageOES;
+    glEGLImageTargetTexture2DOES;
+    glEGLImageTargetRenderbufferStorageOES;
 
     libGLESv2_swiftshader;
 
-	Register;
+    Register;
 
 local:
     *;

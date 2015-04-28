@@ -1,7 +1,7 @@
 {
 global:
-	eglBindAPI;
-	eglBindTexImage;
+    eglBindAPI;
+    eglBindTexImage;
     eglChooseConfig;
     eglCopyBuffers;
     eglCreateContext;
@@ -175,8 +175,8 @@ global:
     glVertexPointer;
     glViewport;
 
-	# Extensions
-	glPointSizePointerOES;
+    # Extensions
+    glPointSizePointerOES;
     glEGLImageTargetTexture2DOES;
     glEGLImageTargetRenderbufferStorageOES;
     glIsRenderbufferOES;
@@ -208,7 +208,7 @@ global:
 
     libGLES_CM_swiftshader;
 
-	Register;
+    Register;
 
 local:
     *;
