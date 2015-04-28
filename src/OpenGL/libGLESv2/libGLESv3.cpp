@@ -882,7 +882,7 @@ GLboolean GL_APIENTRY glIsQuery(GLuint id)
 
 	if(context)
 	{
-		es2::Query *queryObject = context->getQuery(id, false, GL_NONE);
+		es2::Query *queryObject = context->getQuery(id);
 
 		if(queryObject)
 		{
@@ -968,7 +968,7 @@ void GL_APIENTRY glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint *params)
 
 	if(context)
 	{
-		es2::Query *queryObject = context->getQuery(id, false, GL_NONE);
+		es2::Query *queryObject = context->getQuery(id);
 
 		if(!queryObject)
 		{

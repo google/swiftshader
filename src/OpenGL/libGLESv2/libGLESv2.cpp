@@ -3045,7 +3045,7 @@ void GL_APIENTRY glGetQueryObjectuivEXT(GLuint name, GLenum pname, GLuint *param
 
 	if(context)
 	{
-		es2::Query *queryObject = context->getQuery(name, false, GL_NONE);
+		es2::Query *queryObject = context->getQuery(name);
 
 		if(!queryObject)
 		{
@@ -4029,7 +4029,7 @@ GLboolean GL_APIENTRY glIsQueryEXT(GLuint name)
 
 	if(context)
 	{
-		es2::Query *queryObject = context->getQuery(name, false, GL_NONE);
+		es2::Query *queryObject = context->getQuery(name);
 
 		if(queryObject)
 		{

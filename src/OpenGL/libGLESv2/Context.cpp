@@ -760,7 +760,7 @@ void Context::setVertexAttribDivisor(unsigned int attribNum, GLuint divisor)
 	mState.vertexAttribute[attribNum].mDivisor = divisor;
 }
 
-const VertexAttribute &Context::getVertexAttribState(unsigned int attribNum)
+const VertexAttribute &Context::getVertexAttribState(unsigned int attribNum) const
 {
     return mState.vertexAttribute[attribNum];
 }
@@ -1019,37 +1019,37 @@ void Context::deleteSampler(GLuint sampler)
 	}
 }
 
-Buffer *Context::getBuffer(GLuint handle)
+Buffer *Context::getBuffer(GLuint handle) const
 {
     return mResourceManager->getBuffer(handle);
 }
 
-Shader *Context::getShader(GLuint handle)
+Shader *Context::getShader(GLuint handle) const
 {
     return mResourceManager->getShader(handle);
 }
 
-Program *Context::getProgram(GLuint handle)
+Program *Context::getProgram(GLuint handle) const
 {
     return mResourceManager->getProgram(handle);
 }
 
-Texture *Context::getTexture(GLuint handle)
+Texture *Context::getTexture(GLuint handle) const
 {
     return mResourceManager->getTexture(handle);
 }
 
-Renderbuffer *Context::getRenderbuffer(GLuint handle)
+Renderbuffer *Context::getRenderbuffer(GLuint handle) const
 {
     return mResourceManager->getRenderbuffer(handle);
 }
 
-Framebuffer *Context::getReadFramebuffer()
+Framebuffer *Context::getReadFramebuffer() const
 {
     return getFramebuffer(mState.readFramebuffer);
 }
 
-Framebuffer *Context::getDrawFramebuffer()
+Framebuffer *Context::getDrawFramebuffer() const
 {
     return getFramebuffer(mState.drawFramebuffer);
 }
@@ -1264,7 +1264,7 @@ void Context::beginQuery(GLenum target, GLuint query)
         ASSERT(false);
     }
 
-    Query *queryObject = getQuery(query, true, target);
+    Query *queryObject = createQuery(query, target);
 
     // Check that name was obtained with glGenQueries
     if(!queryObject)
@@ -1325,9 +1325,9 @@ void Context::setRenderbufferStorage(RenderbufferStorage *renderbuffer)
     renderbufferObject->setStorage(renderbuffer);
 }
 
-Framebuffer *Context::getFramebuffer(unsigned int handle)
+Framebuffer *Context::getFramebuffer(unsigned int handle) const
 {
-    FramebufferMap::iterator framebuffer = mFramebufferMap.find(handle);
+    FramebufferMap::const_iterator framebuffer = mFramebufferMap.find(handle);
 
     if(framebuffer == mFramebufferMap.end())
     {
@@ -1339,9 +1339,9 @@ Framebuffer *Context::getFramebuffer(unsigned int handle)
     }
 }
 
-Fence *Context::getFence(unsigned int handle)
+Fence *Context::getFence(unsigned int handle) const
 {
-    FenceMap::iterator fence = mFenceMap.find(handle);
+    FenceMap::const_iterator fence = mFenceMap.find(handle);
 
     if(fence == mFenceMap.end())
     {
@@ -1353,83 +1353,97 @@ Fence *Context::getFence(unsigned int handle)
     }
 }
 
-Query *Context::getQuery(unsigned int handle, bool create, GLenum type)
+Query *Context::getQuery(unsigned int handle) const
 {
-    QueryMap::iterator query = mQueryMap.find(handle);
+	QueryMap::const_iterator query = mQueryMap.find(handle);
 
-    if(query == mQueryMap.end())
-    {
-        return NULL;
-    }
-    else
-    {
-        if(!query->second && create)
-        {
-            query->second = new Query(handle, type);
-            query->second->addRef();
-        }
-
-        return query->second;
-    }
+	if(query == mQueryMap.end())
+	{
+		return NULL;
+	}
+	else
+	{
+		return query->second;
+	}
 }
 
-VertexArray *Context::getVertexArray(GLuint array)
+Query *Context::createQuery(unsigned int handle, GLenum type)
 {
-	VertexArrayMap::iterator vertexArray = mVertexArrayMap.find(array);
+	QueryMap::iterator query = mQueryMap.find(handle);
+
+	if(query == mQueryMap.end())
+	{
+		return NULL;
+	}
+	else
+	{
+		if(!query->second)
+		{
+			query->second = new Query(handle, type);
+			query->second->addRef();
+		}
+
+		return query->second;
+	}
+}
+
+VertexArray *Context::getVertexArray(GLuint array) const
+{
+	VertexArrayMap::const_iterator vertexArray = mVertexArrayMap.find(array);
 
 	return (vertexArray == mVertexArrayMap.end()) ? NULL : vertexArray->second;
 }
 
-TransformFeedback *Context::getTransformFeedback(GLuint transformFeedback)
+TransformFeedback *Context::getTransformFeedback(GLuint transformFeedback) const
 {
-	TransformFeedbackMap::iterator transformFeedbackObject = mTransformFeedbackMap.find(transformFeedback);
+	TransformFeedbackMap::const_iterator transformFeedbackObject = mTransformFeedbackMap.find(transformFeedback);
 
 	return (transformFeedbackObject == mTransformFeedbackMap.end()) ? NULL : transformFeedbackObject->second;
 }
 
-Sampler *Context::getSampler(GLuint sampler)
+Sampler *Context::getSampler(GLuint sampler) const
 {
-	SamplerMap::iterator samplerObject = mSamplerMap.find(sampler);
+	SamplerMap::const_iterator samplerObject = mSamplerMap.find(sampler);
 
 	return (samplerObject == mSamplerMap.end()) ? NULL : samplerObject->second;
 }
 
-Buffer *Context::getArrayBuffer()
+Buffer *Context::getArrayBuffer() const
 {
     return mState.arrayBuffer;
 }
 
-Buffer *Context::getElementArrayBuffer()
+Buffer *Context::getElementArrayBuffer() const
 {
     return mState.elementArrayBuffer;
 }
 
-Buffer *Context::getCopyReadBuffer()
+Buffer *Context::getCopyReadBuffer() const
 {
 	return mState.copyReadBuffer;
 }
 
-Buffer *Context::getCopyWriteBuffer()
+Buffer *Context::getCopyWriteBuffer() const
 {
 	return mState.copyWriteBuffer;
 }
 
-Buffer *Context::getPixelPackBuffer()
+Buffer *Context::getPixelPackBuffer() const
 {
 	return mState.pixelPackBuffer;
 }
 
-Buffer *Context::getPixelUnpackBuffer()
+Buffer *Context::getPixelUnpackBuffer() const
 {
 	return mState.pixelUnpackBuffer;
 }
 
-Buffer *Context::getUniformBuffer()
+Buffer *Context::getUniformBuffer() const
 {
 	return mState.uniformBuffer;
 }
 
-bool Context::getBuffer(GLenum target, es2::Buffer **buffer)
+bool Context::getBuffer(GLenum target, es2::Buffer **buffer) const
 {
 	switch(target)
 	{
@@ -1488,37 +1502,37 @@ bool Context::getBuffer(GLenum target, es2::Buffer **buffer)
 	return true;
 }
 
-TransformFeedback *Context::getTransformFeedback()
+TransformFeedback *Context::getTransformFeedback() const
 {
 	return getTransformFeedback(mState.transformFeedback);
 }
 
-Program *Context::getCurrentProgram()
+Program *Context::getCurrentProgram() const
 {
     return mResourceManager->getProgram(mState.currentProgram);
 }
 
-Texture2D *Context::getTexture2D()
+Texture2D *Context::getTexture2D() const
 {
 	return static_cast<Texture2D*>(getSamplerTexture(mState.activeSampler, TEXTURE_2D));
 }
 
-Texture3D *Context::getTexture3D()
+Texture3D *Context::getTexture3D() const
 {
 	return static_cast<Texture3D*>(getSamplerTexture(mState.activeSampler, TEXTURE_3D));
 }
 
-TextureCubeMap *Context::getTextureCubeMap()
+TextureCubeMap *Context::getTextureCubeMap() const
 {
     return static_cast<TextureCubeMap*>(getSamplerTexture(mState.activeSampler, TEXTURE_CUBE));
 }
 
-TextureExternal *Context::getTextureExternal()
+TextureExternal *Context::getTextureExternal() const
 {
     return static_cast<TextureExternal*>(getSamplerTexture(mState.activeSampler, TEXTURE_EXTERNAL));
 }
 
-Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type)
+Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type) const
 {
     GLuint texid = mState.samplerTexture[type][sampler].name();
 
@@ -1537,7 +1551,7 @@ Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type)
     return mState.samplerTexture[type][sampler];
 }
 
-bool Context::getBooleanv(GLenum pname, GLboolean *params)
+bool Context::getBooleanv(GLenum pname, GLboolean *params) const
 {
     switch (pname)
     {
@@ -1588,7 +1602,7 @@ bool Context::getBooleanv(GLenum pname, GLboolean *params)
     return true;
 }
 
-bool Context::getFloatv(GLenum pname, GLfloat *params)
+bool Context::getFloatv(GLenum pname, GLfloat *params) const
 {
     // Please note: DEPTH_CLEAR_VALUE is included in our internal getFloatv implementation
     // because it is stored as a float, despite the fact that the GL ES 2.0 spec names
@@ -1635,7 +1649,7 @@ bool Context::getFloatv(GLenum pname, GLfloat *params)
     return true;
 }
 
-bool Context::getIntegerv(GLenum pname, GLint *params)
+bool Context::getIntegerv(GLenum pname, GLint *params) const
 {
     // Please note: DEPTH_CLEAR_VALUE is not included in our internal getIntegerv implementation
     // because it is stored as a float, despite the fact that the GL ES 2.0 spec names
@@ -2121,7 +2135,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
     return true;
 }
 
-bool Context::getTransformFeedbackiv(GLuint xfb, GLenum pname, GLint *param)
+bool Context::getTransformFeedbackiv(GLuint xfb, GLenum pname, GLint *param) const
 {
 	UNIMPLEMENTED();
 
@@ -2162,7 +2176,7 @@ bool Context::getTransformFeedbackiv(GLuint xfb, GLenum pname, GLint *param)
 	return true;
 }
 
-bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *numParams)
+bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *numParams) const
 {
     // Please note: the query type returned for DEPTH_CLEAR_VALUE in this implementation
     // is FLOAT rather than INT, as would be suggested by the GL ES 2.0 spec. This is due
@@ -4028,7 +4042,7 @@ Device *Context::getDevice()
 	return device;
 }
 
-const GLubyte* Context::getExtensions(GLuint index, GLuint* numExt)
+const GLubyte* Context::getExtensions(GLuint index, GLuint* numExt) const
 {
 	// Keep list sorted in following order:
 	// OES extensions
