@@ -2030,7 +2030,7 @@ void GL_APIENTRY glDrawElementsInstancedANGLE(GLenum mode, GLsizei count, GLenum
 			return error(GL_INVALID_OPERATION);
 		}
 
-		context->drawElements(mode, 0, UINT_MAX, count, type, indices, instanceCount);
+		context->drawElements(mode, 0, MAX_ELEMENT_INDEX, count, type, indices, instanceCount);
 	}
 }
 
