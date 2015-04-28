@@ -24,6 +24,7 @@ LOCAL_SRC_FILES += \
 	Texture.cpp \
 	TransformFeedback.cpp \
 	utilities.cpp \
+	VertexArray.cpp \
 	VertexDataManager.cpp \
 
 LOCAL_CFLAGS += -DLOG_TAG=\"libGLESv2_swiftshader\"

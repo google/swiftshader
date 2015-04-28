@@ -368,6 +368,7 @@
 		<Unit filename="Texture.h" />
 		<Unit filename="TransformFeedback.cpp" />
 		<Unit filename="TransformFeedback.h" />
+		<Unit filename="VertexArray.cpp" />
 		<Unit filename="VertexArray.h" />
 		<Unit filename="VertexDataManager.cpp" />
 		<Unit filename="VertexDataManager.h" />

@@ -339,6 +339,7 @@ copy "$(OutDir)libGLESv2.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Plat
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TransformFeedback.cpp" />
     <ClCompile Include="utilities.cpp" />
+    <ClCompile Include="VertexArray.cpp" />
     <ClCompile Include="VertexDataManager.cpp" />
   </ItemGroup>
   <ItemGroup>

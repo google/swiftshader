@@ -14,17 +14,33 @@
 #ifndef LIBGLESV2_VERTEX_ARRAY_H_
 #define LIBGLESV2_VERTEX_ARRAY_H_
 
-#include "common/Object.hpp"
-#include "Renderer/Renderer.hpp"
-
-#define GL_APICALL
-#include <GLES2/gl2.h>
+#include "Buffer.h"
+#include "Context.h"
 
 namespace es2
 {
 
-class VertexArray : public gl::Object
+class VertexArray : public gl::NamedObject
 {
+public:
+	VertexArray(GLuint name);
+	~VertexArray();
+
+	const VertexAttribute& getVertexAttribute(size_t attributeIndex) const;
+	VertexAttributeArray& getVertexAttributes() { return mVertexAttributes; }
+
+	void detachBuffer(GLuint bufferName);
+	void setVertexAttribDivisor(GLuint index, GLuint divisor);
+	void enableAttribute(unsigned int attributeIndex, bool enabledState);
+	void setAttributeState(unsigned int attributeIndex, Buffer *boundBuffer, GLint size, GLenum type,
+	                       bool normalized, GLsizei stride, const void *pointer);
+
+	Buffer *getElementArrayBuffer() const { return mElementArrayBuffer; }
+	void setElementArrayBuffer(Buffer *buffer);
+
+private:
+	VertexAttributeArray mVertexAttributes;
+	gl::BindingPointer<Buffer> mElementArrayBuffer;
 };
 
 }
