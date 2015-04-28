@@ -427,7 +427,7 @@ void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLenum form
 		image[level]->unbind(this);
 	}
 
-	image[level] = new Image(this, width, height, format, type);
+	image[level] = new egl::Image(this, width, height, format, type);
 
 	if(!image[level])
 	{
@@ -492,7 +492,7 @@ void Texture2D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 		image[level]->unbind(this);
 	}
 
-	image[level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
+	image[level] = new egl::Image(this, width, height, format, GL_UNSIGNED_BYTE);
 
 	if(!image[level])
 	{
@@ -527,7 +527,7 @@ void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei 
 		image[level]->unbind(this);
 	}
 
-	image[level] = new Image(this, width, height, format, GL_UNSIGNED_BYTE);
+	image[level] = new egl::Image(this, width, height, format, GL_UNSIGNED_BYTE);
 
 	if(!image[level])
 	{
@@ -677,7 +677,7 @@ void Texture2D::generateMipmaps()
 			image[i]->unbind(this);
 		}
 
-		image[i] = new Image(this, std::max(image[0]->getWidth() >> i, 1), std::max(image[0]->getHeight() >> i, 1), image[0]->getFormat(), image[0]->getType());
+		image[i] = new egl::Image(this, std::max(image[0]->getWidth() >> i, 1), std::max(image[0]->getHeight() >> i, 1), image[0]->getFormat(), image[0]->getType());
 
 		if(!image[i])
 		{
@@ -762,7 +762,7 @@ egl::Image *createBackBuffer(int width, int height, const egl::Config *config)
 {
 	if(config)
 	{
-		return new es1::Image(0, width, height, config->mAlphaSize ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE);
+		return new egl::Image(0, width, height, config->mAlphaSize ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE);
 	}
 
 	return 0;
@@ -801,7 +801,7 @@ egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Form
 		UNREACHABLE();
 	}
 
-	es1::Image *surface = new es1::Image(0, width, height, format, multiSampleDepth, lockable, true);
+	egl::Image *surface = new egl::Image(0, width, height, format, multiSampleDepth, lockable, true);
 
 	if(!surface)
 	{

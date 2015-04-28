@@ -11,7 +11,6 @@ LOCAL_SRC_FILES += \
 	Context.cpp \
 	Device.cpp \
 	Framebuffer.cpp \
-	Image.cpp \
 	IndexDataManager.cpp \
 	libGLES_CM.cpp \
 	main.cpp \

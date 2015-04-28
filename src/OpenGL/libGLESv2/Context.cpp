@@ -37,10 +37,6 @@
 
 #include <EGL/eglext.h>
 
-#ifdef __ANDROID__
-	#include "../common/AndroidCommon.hpp"
-#endif  // __ANDROID__
-
 #undef near
 #undef far
 
@@ -2971,7 +2967,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 		}
 	}
 
-	GLsizei outputPitch = ComputePitch(width, format, type, mState.packAlignment);
+	GLsizei outputPitch = egl::ComputePitch(width, format, type, mState.packAlignment);
     
 	// Sized query sanity check
     if(bufSize)
@@ -3973,10 +3969,6 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
         break;
     case EGL_GL_RENDERBUFFER_KHR:
         break;
-    #if defined(__ANDROID__)
-    case EGL_NATIVE_BUFFER_ANDROID:
-        break;
-    #endif
     default:
         return EGL_BAD_PARAMETER;
     }
@@ -4024,12 +4016,6 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
             return EGL_BAD_ACCESS;
         }
     }
-    #if defined(__ANDROID__)
-    else if(target == EGL_NATIVE_BUFFER_ANDROID)
-    {
-		return isSupportedAndroidBuffer(name);
-    }
-    #endif
     else UNREACHABLE();
 
 	return EGL_SUCCESS;
@@ -4062,12 +4048,6 @@ egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textu
 
         return renderbuffer->createSharedImage();
     }
-    #if defined(__ANDROID__)
-    else if(target == EGL_NATIVE_BUFFER_ANDROID)
-    {
-		return wrapAndroidNativeWindow<es2::Image>(name);
-    }
-    #endif
     else UNREACHABLE();
 
 	return 0;

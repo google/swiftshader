@@ -22,32 +22,6 @@
 
 namespace es1
 {
-	GLsizei ComputePitch(GLsizei width, GLenum format, GLenum type, GLint alignment)
-	{
-		ASSERT(alignment > 0 && isPow2(alignment));
-
-		GLsizei rawPitch = ComputePixelSize(format, type) * width;
-		return (rawPitch + alignment - 1) & ~(alignment - 1);
-	}
-
-	GLsizei ComputeCompressedPitch(GLsizei width, GLenum format)
-	{
-		return ComputeCompressedSize(width, 1, format);
-	}
-
-	GLsizei ComputeCompressedSize(GLsizei width, GLsizei height, GLenum format)
-	{
-		switch(format)
-		{
-		case GL_ETC1_RGB8_OES:
-		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
-		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-			return 8 * (GLsizei)ceil((float)width / 4.0f) * (GLsizei)ceil((float)height / 4.0f);
-		default:
-			return 0;
-		}
-	}
-
 	bool IsCompressed(GLenum format)
 	{
 		return format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
@@ -63,48 +37,6 @@ namespace es1
 	bool IsStencilTexture(GLenum format)
 	{
 		return format == GL_DEPTH_STENCIL_OES;
-	}
-
-	// Returns the size, in bytes, of a single texel in an Image
-	int ComputePixelSize(GLenum format, GLenum type)
-	{
-		switch(type)
-		{
-		case GL_UNSIGNED_BYTE:
-			switch(format)
-			{
-			case GL_ALPHA:           return sizeof(unsigned char);
-			case GL_LUMINANCE:       return sizeof(unsigned char);
-			case GL_LUMINANCE_ALPHA: return sizeof(unsigned char) * 2;
-			case GL_RGB:             return sizeof(unsigned char) * 3;
-			case GL_RGBA:            return sizeof(unsigned char) * 4;
-			case GL_BGRA_EXT:        return sizeof(unsigned char) * 4;
-			default: UNREACHABLE();
-			}
-			break;
-		case GL_UNSIGNED_SHORT_4_4_4_4:
-		case GL_UNSIGNED_SHORT_5_5_5_1:
-		case GL_UNSIGNED_SHORT_5_6_5:
-		case GL_UNSIGNED_SHORT:
-			return sizeof(unsigned short);
-		case GL_UNSIGNED_INT:
-		case GL_UNSIGNED_INT_24_8_OES:
-			return sizeof(unsigned int);
-		case GL_FLOAT:
-			switch(format)
-			{
-			case GL_ALPHA:           return sizeof(float);
-			case GL_LUMINANCE:       return sizeof(float);
-			case GL_LUMINANCE_ALPHA: return sizeof(float) * 2;
-			case GL_RGB:             return sizeof(float) * 3;
-			case GL_RGBA:            return sizeof(float) * 4;
-			default: UNREACHABLE();
-			}
-			break;
-		default: UNREACHABLE();
-		}
-
-		return 0;
 	}
 
 	bool IsCubemapTextureTarget(GLenum target)

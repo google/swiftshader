@@ -16,7 +16,7 @@
 #define LIBGLESV2_FRAMEBUFFER_H_
 
 #include "common/Object.hpp"
-#include "Image.hpp"
+#include "common/Image.hpp"
 
 #define GL_APICALL
 #include <GLES2/gl2.h>

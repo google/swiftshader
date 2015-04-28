@@ -19,7 +19,7 @@
 #include "ResourceManager.h"
 #include "common/NameSpace.hpp"
 #include "common/Object.hpp"
-#include "Image.hpp"
+#include "common/Image.hpp"
 #include "Renderer/Sampler.hpp"
 #include "TransformFeedback.h"
 

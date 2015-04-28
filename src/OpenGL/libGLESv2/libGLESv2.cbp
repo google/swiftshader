@@ -250,6 +250,8 @@
 		<Unit filename="../../Shader/VertexRoutine.hpp" />
 		<Unit filename="../../Shader/VertexShader.cpp" />
 		<Unit filename="../../Shader/VertexShader.hpp" />
+		<Unit filename="../common/Image.cpp" />
+		<Unit filename="../common/Image.hpp" />
 		<Unit filename="../common/NameSpace.cpp" />
 		<Unit filename="../common/NameSpace.hpp" />
 		<Unit filename="../common/Object.cpp" />
@@ -349,8 +351,6 @@
 		<Unit filename="Fence.h" />
 		<Unit filename="Framebuffer.cpp" />
 		<Unit filename="Framebuffer.h" />
-		<Unit filename="Image.cpp" />
-		<Unit filename="Image.hpp" />
 		<Unit filename="IndexDataManager.cpp" />
 		<Unit filename="IndexDataManager.h" />
 		<Unit filename="Program.cpp" />

@@ -11,7 +11,7 @@
 
 #include "Device.hpp"
 
-#include "Image.hpp"
+#include "common/Image.hpp"
 #include "Texture.h"
 
 #include "Renderer/Renderer.hpp"
@@ -209,7 +209,7 @@ namespace es1
 		depthStencil->clearStencilBuffer(stencil, mask, x0, y0, width, height);
 	}
 
-	Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
+	egl::Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
 	{
 		if(width == 0 || height == 0 || height > OUTLINE_RESOLUTION)
 		{
@@ -242,7 +242,7 @@ namespace es1
 			UNREACHABLE();
 		}
 
-		Image *surface = new Image(0, width, height, format, multiSampleDepth, lockable, true);
+		egl::Image *surface = new egl::Image(0, width, height, format, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{
@@ -253,7 +253,7 @@ namespace es1
 		return surface;
 	}
 
-	Image *Device::createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable)
+	egl::Image *Device::createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable)
 	{
 		if(height > OUTLINE_RESOLUTION)
 		{
@@ -261,7 +261,7 @@ namespace es1
 			return 0;
 		}
 
-		Image *surface = new Image(0, width, height, format, multiSampleDepth, lockable, true);
+		egl::Image *surface = new egl::Image(0, width, height, format, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{
@@ -450,7 +450,7 @@ namespace es1
 
 		bool scaling = (sRect.x1 - sRect.x0 != dRect.x1 - dRect.x0) || (sRect.y1 - sRect.y0 != dRect.y1 - dRect.y0);
 		bool equalFormats = source->getInternalFormat() == dest->getInternalFormat();
-		bool depthStencil = Image::isDepth(source->getInternalFormat()) || Image::isStencil(source->getInternalFormat());
+		bool depthStencil = egl::Image::isDepth(source->getInternalFormat()) || egl::Image::isStencil(source->getInternalFormat());
 		bool alpha0xFF = false;
 
 		if((source->getInternalFormat() == FORMAT_A8R8G8B8 && dest->getInternalFormat() == FORMAT_X8R8G8B8) ||
@@ -513,7 +513,7 @@ namespace es1
 
 			unsigned int width = dRect.x1 - dRect.x0;
 			unsigned int height = dRect.y1 - dRect.y0;
-			unsigned int bytes = width * Image::bytes(source->getInternalFormat());
+			unsigned int bytes = width * egl::Image::bytes(source->getInternalFormat());
 
 			for(unsigned int y = 0; y < height; y++)
 			{

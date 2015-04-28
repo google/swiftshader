@@ -67,6 +67,7 @@ LOCAL_SRC_FILES += \
 
 LOCAL_SRC_FILES += \
 	OpenGL/common/AndroidCommon.cpp \
+	OpenGL/common/Image.cpp \
 	OpenGL/common/NameSpace.cpp \
 	OpenGL/common/Object.cpp \
 	OpenGL/common/MatrixStack.cpp \

@@ -28,7 +28,7 @@ LOCAL_CFLAGS += -std=c++11
 LOCAL_STATIC_LIBRARIES += swiftshader_top libgceframebufferconfig libgcemetadata
 LOCAL_C_INCLUDES += device/google/gce/include
 
-LOCAL_SHARED_LIBRARIES += libdl liblog libandroid libutils libcutils $(GCE_STLPORT_LIBS)
+LOCAL_SHARED_LIBRARIES += libdl liblog libandroid libutils libcutils libhardware  $(GCE_STLPORT_LIBS)
 LOCAL_LDFLAGS += -Wl,--version-script=$(LOCAL_PATH)/exports.map -Wl,--hash-style=sysv
 
 LOCAL_C_INCLUDES += \

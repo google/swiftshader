@@ -15,7 +15,7 @@
 #define LIBGLES_CM_UTILITIES_H
 
 #include "Device.hpp"
-#include "Image.hpp"
+#include "common/Image.hpp"
 #include "Texture.h"
 
 #define GL_API
@@ -29,10 +29,6 @@ namespace es1
 {
 	struct Color;
 
-	int ComputePixelSize(GLenum format, GLenum type);
-	GLsizei ComputePitch(GLsizei width, GLenum format, GLenum type, GLint alignment);
-	GLsizei ComputeCompressedPitch(GLsizei width, GLenum format);
-	GLsizei ComputeCompressedSize(GLsizei width, GLsizei height, GLenum format);
 	bool IsCompressed(GLenum format);
 	bool IsDepthTexture(GLenum format);
 	bool IsStencilTexture(GLenum format);

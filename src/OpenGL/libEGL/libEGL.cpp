@@ -16,7 +16,7 @@
 #include "Surface.h"
 #include "Texture.hpp"
 #include "Context.hpp"
-#include "Image.hpp"
+#include "common/Image.hpp"
 #include "common/debug.h"
 #include "Common/Version.h"
 
@@ -887,9 +887,7 @@ EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
 	#if defined(__ANDROID__)
 		if(target == EGL_NATIVE_BUFFER_ANDROID)
 		{
-			// When target is EGL_NATIVE_BUFFER_ANDROID, ctx is always EGL_NO_CONTEXT.
-			// Get the current context so that we can validate and create shared image
-			context = static_cast<egl::Context*>(egl::getCurrentContext());
+			return new AndroidNativeImage(reinterpret_cast<ANativeWindowBuffer*>(name));
 		}
 	#endif
 

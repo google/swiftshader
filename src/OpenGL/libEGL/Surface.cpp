@@ -18,7 +18,7 @@
 #include "main.h"
 #include "Display.h"
 #include "Texture.hpp"
-#include "Image.hpp"
+#include "common/Image.hpp"
 #include "Context.hpp"
 #include "common/debug.h"
 #include "Main/FrameBuffer.hpp"

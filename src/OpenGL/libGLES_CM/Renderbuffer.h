@@ -18,7 +18,7 @@
 #define LIBGLES_CM_RENDERBUFFER_H_
 
 #include "common/Object.hpp"
-#include "Image.hpp"
+#include "common/Image.hpp"
 
 #define GL_API
 #include <GLES/gl.h>

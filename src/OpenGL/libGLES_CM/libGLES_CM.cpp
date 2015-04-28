@@ -892,7 +892,7 @@ void GL_APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum inter
 			return error(GL_INVALID_ENUM);
 		}
 
-		if(imageSize != es1::ComputeCompressedSize(width, height, internalformat))
+		if(imageSize != egl::ComputeCompressedSize(width, height, internalformat))
 		{
 			return error(GL_INVALID_VALUE);
 		}
@@ -959,7 +959,7 @@ void GL_APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xof
 			return error(GL_INVALID_VALUE);
 		}
 
-		if(imageSize != es1::ComputeCompressedSize(width, height, format))
+		if(imageSize != egl::ComputeCompressedSize(width, height, format))
 		{
 			return error(GL_INVALID_VALUE);
 		}

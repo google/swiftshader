@@ -18,7 +18,7 @@
 #define LIBGLESV2_RENDERBUFFER_H_
 
 #include "common/Object.hpp"
-#include "Image.hpp"
+#include "common/Image.hpp"
 
 #define GL_APICALL
 #include <GLES2/gl2.h>
@@ -118,7 +118,7 @@ public:
 	virtual void addProxyRef(const Renderbuffer *proxy);
     virtual void releaseProxy(const Renderbuffer *proxy);
 
-	virtual Image *getRenderTarget();
+	virtual egl::Image *getRenderTarget();
     virtual egl::Image *createSharedImage();
     virtual bool isShared() const;
 

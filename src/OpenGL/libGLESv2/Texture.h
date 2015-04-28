@@ -58,7 +58,7 @@ public:
 
     virtual ~Texture();
 
-	sw::Resource *getResource() const;
+	virtual sw::Resource *getResource() const;
 
 	virtual void addProxyRef(const Renderbuffer *proxy) = 0;
     virtual void releaseProxy(const Renderbuffer *proxy) = 0;
@@ -245,19 +245,19 @@ public:
     virtual void generateMipmaps();
 
     virtual Renderbuffer *getRenderbuffer(GLenum target);
-	virtual Image *getRenderTarget(GLenum target, unsigned int level);
+	virtual egl::Image *getRenderTarget(GLenum target, unsigned int level);
 	virtual bool isShared(GLenum target, unsigned int level) const;
 
-	Image *getImage(int face, unsigned int level);
+	egl::Image *getImage(int face, unsigned int level);
 
 private:
 	bool isCubeComplete() const;
 	bool isMipmapCubeComplete() const;
 
     // face is one of the GL_TEXTURE_CUBE_MAP_* enumerants. Returns NULL on failure.
-    Image *getImage(GLenum face, unsigned int level);
+	egl::Image *getImage(GLenum face, unsigned int level);
 
-    Image *image[6][IMPLEMENTATION_MAX_TEXTURE_LEVELS];
+	egl::Image *image[6][IMPLEMENTATION_MAX_TEXTURE_LEVELS];
 	
 	// A specific internal reference count is kept for colorbuffer proxy references,
     // because, as the renderbuffer acting as proxy will maintain a binding pointer

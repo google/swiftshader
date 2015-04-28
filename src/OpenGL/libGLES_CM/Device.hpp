@@ -22,7 +22,6 @@ namespace egl
 namespace es1
 {
 	class Texture;
-	class Image;
 
 	enum PrimitiveType
 	{
@@ -55,8 +54,8 @@ namespace es1
 		virtual void clearColor(unsigned int color, unsigned int rgbaMask);
 		virtual void clearDepth(float z);
 		virtual void clearStencil(unsigned int stencil, unsigned int mask);
-		virtual Image *createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
-		virtual Image *createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable);
+		virtual egl::Image *createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
+		virtual egl::Image *createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable);
 		virtual void drawIndexedPrimitive(PrimitiveType type, unsigned int indexOffset, unsigned int primitiveCount, int indexSize);
 		virtual void drawPrimitive(PrimitiveType primitiveType, unsigned int primiveCount);
 		virtual void setDepthStencilSurface(egl::Image *newDepthStencil);

@@ -122,7 +122,6 @@
 		<Unit filename="Config.h" />
 		<Unit filename="Display.cpp" />
 		<Unit filename="Display.h" />
-		<Unit filename="Image.hpp" />
 		<Unit filename="Surface.cpp" />
 		<Unit filename="Surface.h" />
 		<Unit filename="exports.map" />

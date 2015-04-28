@@ -11,12 +11,16 @@
 
 #include "Image.hpp"
 
-#include "Texture.h"
-#include "utilities.h"
+#include "../libEGL/Texture.hpp"
 #include "../common/debug.h"
 #include "Common/Thread.hpp"
 
+#define GL_GLEXT_PROTOTYPES
+#include <GLES/glext.h>
 #include <GLES2/gl2ext.h>
+#include <GLES3/gl3.h>
+
+#include <string.h>
 
 namespace
 {
@@ -342,37 +346,99 @@ namespace
 	}
 }
 
-namespace es2
+namespace egl
 {
-	static sw::Resource *getParentResource(Texture *texture)
+	// Returns the size, in bytes, of a single texel in an Image
+	int ComputePixelSize(GLenum format, GLenum type)
 	{
-		if(texture)
+		switch(type)
 		{
-			return texture->getResource();
+		case GL_UNSIGNED_BYTE:
+			switch(format)
+			{
+			case GL_ALPHA:           return sizeof(unsigned char);
+			case GL_LUMINANCE:       return sizeof(unsigned char);
+			case GL_LUMINANCE_ALPHA: return sizeof(unsigned char) * 2;
+			case GL_RGB:             return sizeof(unsigned char) * 3;
+			case GL_RGBA:            return sizeof(unsigned char) * 4;
+			case GL_BGRA_EXT:        return sizeof(unsigned char) * 4;
+			default: UNREACHABLE();
+			}
+			break;
+		case GL_UNSIGNED_SHORT_4_4_4_4:
+		case GL_UNSIGNED_SHORT_5_5_5_1:
+		case GL_UNSIGNED_SHORT_5_6_5:
+		case GL_UNSIGNED_SHORT:
+			return sizeof(unsigned short);
+		case GL_UNSIGNED_INT:
+		case GL_UNSIGNED_INT_24_8_OES:
+			return sizeof(unsigned int);
+		case GL_FLOAT:
+			switch(format)
+			{
+			case GL_ALPHA:           return sizeof(float);
+			case GL_LUMINANCE:       return sizeof(float);
+			case GL_LUMINANCE_ALPHA: return sizeof(float) * 2;
+			case GL_RGB:             return sizeof(float) * 3;
+			case GL_RGBA:            return sizeof(float) * 4;
+			default: UNREACHABLE();
+			}
+			break;
+		case GL_HALF_FLOAT_OES:
+			switch(format)
+			{
+			case GL_ALPHA:           return sizeof(unsigned short);
+			case GL_LUMINANCE:       return sizeof(unsigned short);
+			case GL_LUMINANCE_ALPHA: return sizeof(unsigned short) * 2;
+			case GL_RGB:             return sizeof(unsigned short) * 3;
+			case GL_RGBA:            return sizeof(unsigned short) * 4;
+			default: UNREACHABLE();
+			}
+			break;
+		default: UNREACHABLE();
 		}
 
 		return 0;
 	}
 
-	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
-		: parentTexture(parentTexture)
-		, egl::Image(getParentResource(parentTexture), width, height, 1, format, type, selectInternalFormat(format, type))
+	GLsizei ComputePitch(GLsizei width, GLenum format, GLenum type, GLint alignment)
 	{
-		referenceCount = 1;
+		ASSERT(alignment > 0 && sw::isPow2(alignment));
+
+		GLsizei rawPitch = ComputePixelSize(format, type) * width;
+		return (rawPitch + alignment - 1) & ~(alignment - 1);
 	}
 
-	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type)
-		: parentTexture(parentTexture)
-		, egl::Image(getParentResource(parentTexture), width, height, depth, format, type, selectInternalFormat(format, type))
+
+	GLsizei ComputeCompressedPitch(GLsizei width, GLenum format)
 	{
-		referenceCount = 1;
+		return ComputeCompressedSize(width, 1, format);
 	}
 
-	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable, bool renderTarget)
-		: parentTexture(parentTexture)
-		, egl::Image(getParentResource(parentTexture), width, height, multiSampleDepth, internalFormat, lockable, renderTarget)
+	GLsizei ComputeCompressedSize(GLsizei width, GLsizei height, GLenum format)
 	{
-		referenceCount = 1;
+		switch(format)
+		{
+		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+        case GL_ETC1_RGB8_OES:
+		case GL_COMPRESSED_R11_EAC:
+		case GL_COMPRESSED_SIGNED_R11_EAC:
+		case GL_COMPRESSED_RGB8_ETC2:
+		case GL_COMPRESSED_SRGB8_ETC2:
+		case GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:
+		case GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:
+			return 8 * (GLsizei)ceil((float)width / 4.0f) * (GLsizei)ceil((float)height / 4.0f);
+		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
+		case GL_COMPRESSED_RG11_EAC:
+		case GL_COMPRESSED_SIGNED_RG11_EAC:
+		case GL_COMPRESSED_RGBA8_ETC2_EAC:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC:
+			return 16 * (GLsizei)ceil((float)width / 4.0f) * (GLsizei)ceil((float)height / 4.0f);
+		default:
+			return 0;
+		}
 	}
 
 	Image::~Image()
@@ -572,6 +638,7 @@ namespace es2
 			case GL_FLOAT:
 				switch(format)
 				{
+				// float textures are converted to RGBA, not BGRA
 				case GL_ALPHA:
 					LoadImageData<AlphaFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, getPitch(), getHeight(), input, buffer);
 					break;

@@ -741,7 +741,7 @@ void GL_APIENTRY glCompressedTexImage3D(GLenum target, GLint level, GLenum inter
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(imageSize != es2::ComputeCompressedSize(width, height, internalformat) * depth)
+	if(imageSize != egl::ComputeCompressedSize(width, height, internalformat) * depth)
 	{
 		return error(GL_INVALID_VALUE);
 	}

@@ -228,7 +228,7 @@ void RenderbufferTextureCubeMap::releaseProxy(const Renderbuffer *proxy)
 
 // Increments refcount on image.
 // caller must release() the returned image
-Image *RenderbufferTextureCubeMap::getRenderTarget()
+egl::Image *RenderbufferTextureCubeMap::getRenderTarget()
 {
 	return mTextureCubeMap->getRenderTarget(mTarget, 0);
 }

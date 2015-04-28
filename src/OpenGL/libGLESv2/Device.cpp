@@ -11,7 +11,7 @@
 
 #include "Device.hpp"
 
-#include "Image.hpp"
+#include "common/Image.hpp"
 #include "Texture.h"
 
 #include "Renderer/Renderer.hpp"
@@ -231,7 +231,7 @@ namespace es2
 		depthStencil->clearStencilBuffer(stencil, mask, x0, y0, width, height);
 	}
 
-	Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
+	egl::Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
 	{
 		if(width == 0 || height == 0 || height > OUTLINE_RESOLUTION)
 		{
@@ -264,7 +264,7 @@ namespace es2
 			UNREACHABLE();
 		}
 
-		Image *surface = new Image(0, width, height, format, multiSampleDepth, lockable, true);
+		egl::Image *surface = new egl::Image(0, width, height, format, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{
@@ -275,7 +275,7 @@ namespace es2
 		return surface;
 	}
 
-	Image *Device::createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable)
+	egl::Image *Device::createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable)
 	{
 		if(height > OUTLINE_RESOLUTION)
 		{
@@ -283,7 +283,7 @@ namespace es2
 			return 0;
 		}
 
-		Image *surface = new Image(0, width, height, format, multiSampleDepth, lockable, true);
+		egl::Image *surface = new egl::Image(0, width, height, format, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{
@@ -605,7 +605,7 @@ namespace es2
 
 		bool scaling = (sRect.x1 - sRect.x0 != dRect.x1 - dRect.x0) || (sRect.y1 - sRect.y0 != dRect.y1 - dRect.y0);
 		bool equalFormats = source->getInternalFormat() == dest->getInternalFormat();
-		bool depthStencil = Image::isDepth(source->getInternalFormat()) || Image::isStencil(source->getInternalFormat());
+		bool depthStencil = egl::Image::isDepth(source->getInternalFormat()) || egl::Image::isStencil(source->getInternalFormat());
 		bool alpha0xFF = false;
 
 		if((source->getInternalFormat() == FORMAT_A8R8G8B8 && dest->getInternalFormat() == FORMAT_X8R8G8B8) ||
@@ -622,7 +622,7 @@ namespace es2
 				sw::byte *sourceBuffer = (sw::byte*)source->lockInternal(0, 0, sourceRect->slice, LOCK_READONLY, PUBLIC);
 				sw::byte *destBuffer = (sw::byte*)dest->lockInternal(0, 0, destRect->slice, LOCK_DISCARD, PUBLIC);
 
-				copyBuffer(sourceBuffer, destBuffer, source->getInternalWidth(), source->getInternalHeight(), source->getInternalPitchB(), dest->getInternalPitchB(), Image::bytes(source->getInternalFormat()), flipX, flipY);
+				copyBuffer(sourceBuffer, destBuffer, source->getInternalWidth(), source->getInternalHeight(), source->getInternalPitchB(), dest->getInternalPitchB(), egl::Image::bytes(source->getInternalFormat()), flipX, flipY);
 
 				source->unlockInternal();
 				dest->unlockInternal();
@@ -633,7 +633,7 @@ namespace es2
 				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(0, PUBLIC);
 				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(0, PUBLIC);
 
-				copyBuffer(sourceBuffer, destBuffer, source->getInternalWidth(), source->getInternalHeight(), source->getInternalPitchB(), dest->getInternalPitchB(), Image::bytes(source->getInternalFormat()), flipX, flipY);
+				copyBuffer(sourceBuffer, destBuffer, source->getInternalWidth(), source->getInternalHeight(), source->getInternalPitchB(), dest->getInternalPitchB(), egl::Image::bytes(source->getInternalFormat()), flipX, flipY);
 
 				source->unlockStencil();
 				dest->unlockStencil();
@@ -649,7 +649,7 @@ namespace es2
 			unsigned int width = dRect.x1 - dRect.x0;
 			unsigned int height = dRect.y1 - dRect.y0;
 
-			copyBuffer(sourceBytes, destBytes, width, height, sourcePitch, destPitch, Image::bytes(source->getInternalFormat()), flipX, flipY);
+			copyBuffer(sourceBytes, destBytes, width, height, sourcePitch, destPitch, egl::Image::bytes(source->getInternalFormat()), flipX, flipY);
 
 			if(alpha0xFF)
 			{
@@ -683,7 +683,7 @@ namespace es2
 
 	bool Device::stretchCube(egl::Image *source, egl::Image *dest)
 	{
-		if(!source || !dest || Image::isDepth(source->getInternalFormat()) || Image::isStencil(source->getInternalFormat()))
+		if(!source || !dest || egl::Image::isDepth(source->getInternalFormat()) || egl::Image::isStencil(source->getInternalFormat()))
 		{
 			ERR("Invalid parameters");
 			return false;
@@ -711,7 +711,7 @@ namespace es2
 		{
 			unsigned int sourcePitch = source->getInternalPitchB();
 			unsigned int destPitch = dest->getInternalPitchB();
-			unsigned int bytes = dWidth * Image::bytes(source->getInternalFormat());
+			unsigned int bytes = dWidth * egl::Image::bytes(source->getInternalFormat());
 
 			for(int z = 0; z < dDepth; ++z)
 			{
