@@ -3393,7 +3393,7 @@ void Context::listCommand(Command *command)
 void APIENTRY glVertexAttribArray(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* ptr)
 {
     TRACE("(GLuint index = %d, GLint size = %d, GLenum type = 0x%X, "
-          "GLboolean normalized = %d, GLsizei stride = %d, const GLvoid* ptr = 0x%0.8p)",
+          "GLboolean normalized = %d, GLsizei stride = %d, const GLvoid* ptr = %p)",
           index, size, type, normalized, stride, ptr);
 
 	gl::Context *context = gl::getContext();
