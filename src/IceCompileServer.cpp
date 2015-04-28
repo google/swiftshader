@@ -30,13 +30,13 @@ namespace Ice {
 
 namespace {
 
-std::unique_ptr<Ostream> getStream(const IceString &Filename) {
-  std::ofstream Ofs;
-  if (Filename != "-") {
-    Ofs.open(Filename.c_str(), std::ofstream::out);
-    return std::unique_ptr<Ostream>(new llvm::raw_os_ostream(Ofs));
-  } else {
+std::unique_ptr<Ostream> makeStream(const IceString &Filename,
+                                    std::error_code &EC) {
+  if (Filename == "-") {
     return std::unique_ptr<Ostream>(new llvm::raw_os_ostream(std::cout));
+  } else {
+    return std::unique_ptr<Ostream>(
+        new llvm::raw_fd_ostream(Filename, EC, llvm::sys::fs::F_None));
   }
 }
 
@@ -55,7 +55,11 @@ void CLCompileServer::run() {
   ClFlags::getParsedClFlags(Flags);
   ClFlags::getParsedClFlagsExtra(ExtraFlags);
 
-  std::unique_ptr<Ostream> Ls = getStream(ExtraFlags.getLogFilename());
+  std::error_code EC;
+  std::unique_ptr<Ostream> Ls = makeStream(ExtraFlags.getLogFilename(), EC);
+  if (EC) {
+    llvm::report_fatal_error("Unable to open log file");
+  }
   Ls->SetUnbuffered();
   std::unique_ptr<Ostream> Os;
   std::unique_ptr<ELFStreamer> ELFStr;
@@ -65,7 +69,6 @@ void CLCompileServer::run() {
       *Ls << "Error: writing binary ELF to stdout is unsupported\n";
       return transferErrorCode(getReturnValue(ExtraFlags, Ice::EC_Args));
     }
-    std::error_code EC;
     std::unique_ptr<llvm::raw_fd_ostream> FdOs(new llvm::raw_fd_ostream(
         ExtraFlags.getOutputFilename(), EC, llvm::sys::fs::F_None));
     if (EC) {
@@ -81,7 +84,12 @@ void CLCompileServer::run() {
   } break;
   case FT_Asm:
   case FT_Iasm: {
-    Os = getStream(ExtraFlags.getOutputFilename());
+    Os = makeStream(ExtraFlags.getOutputFilename(), EC);
+    if (EC) {
+      *Ls << "Failed to open output file: " << ExtraFlags.getOutputFilename()
+          << ":\n" << EC.message() << "\n";
+      return transferErrorCode(getReturnValue(ExtraFlags, Ice::EC_Args));
+    }
     Os->SetUnbuffered();
   } break;
   }
@@ -96,8 +104,8 @@ void CLCompileServer::run() {
     return transferErrorCode(getReturnValue(ExtraFlags, Ice::EC_Bitcode));
   }
 
-  Ctx.reset(new GlobalContext(Ls.get(), Os.get(), Ls.get(), ELFStr.get(),
-                              Flags));
+  Ctx.reset(
+      new GlobalContext(Ls.get(), Os.get(), Ls.get(), ELFStr.get(), Flags));
   if (Ctx->getFlags().getNumTranslationThreads() != 0) {
     std::thread CompileThread([this, &ExtraFlags, &InputStream]() {
       Ctx->initParserThread();

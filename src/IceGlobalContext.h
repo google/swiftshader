@@ -420,8 +420,8 @@ private:
   // StrLock is a global lock on the dump and emit output streams.
   typedef std::mutex StrLockType;
   StrLockType StrLock;
-  Ostream *StrDump; // Stream for dumping / diagnostics
-  Ostream *StrEmit; // Stream for code emission
+  Ostream *StrDump;  // Stream for dumping / diagnostics
+  Ostream *StrEmit;  // Stream for code emission
   Ostream *StrError; // Stream for logging errors.
 
   ICE_CACHELINE_BOUNDARY;

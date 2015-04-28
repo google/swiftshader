@@ -75,9 +75,7 @@ public:
     ELFStream.reset(nullptr);
   }
 
-  StringStream &getErrorStream() {
-    return *ErrorStream;
-  }
+  StringStream &getErrorStream() { return *ErrorStream; }
 
 private:
   class StringStream {
@@ -85,6 +83,7 @@ private:
     StringStream() : StrBuf(Buffer) {}
     const IceString &getContents() { return StrBuf.str(); }
     Ostream &getStream() { return StrBuf; }
+
   private:
     std::string Buffer;
     llvm::raw_string_ostream StrBuf;
