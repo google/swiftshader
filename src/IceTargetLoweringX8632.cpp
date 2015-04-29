@@ -798,6 +798,9 @@ void TargetX8632::addProlog(CfgNode *Node) {
     Variable *esp = getPhysicalRegister(RegX8632::Reg_esp);
     _push(ebp);
     _mov(ebp, esp);
+    // Keep ebp live for late-stage liveness analysis
+    // (e.g. asm-verbose mode).
+    Context.insert(InstFakeUse::create(Func, ebp));
   }
 
   // Align the variables area. SpillAreaPaddingBytes is the size of
@@ -940,6 +943,10 @@ void TargetX8632::addEpilog(CfgNode *Node) {
   Variable *esp = getPhysicalRegister(RegX8632::Reg_esp);
   if (IsEbpBasedFrame) {
     Variable *ebp = getPhysicalRegister(RegX8632::Reg_ebp);
+    // For late-stage liveness analysis (e.g. asm-verbose mode),
+    // adding a fake use of esp before the assignment of esp=ebp keeps
+    // previous esp adjustments from being dead-code eliminated.
+    Context.insert(InstFakeUse::create(Func, esp));
     _mov(esp, ebp);
     _pop(ebp);
   } else {
@@ -4309,6 +4316,10 @@ void TargetX8632::lowerPhiAssignments(CfgNode *Node,
         RegNum = RegsForType.find_first();
         Preg = getPhysicalRegister(RegNum, Dest->getType());
         SpillLoc = Func->makeVariable(Dest->getType());
+        // Create a fake def of the physical register to avoid
+        // liveness inconsistency problems during late-stage liveness
+        // analysis (e.g. asm-verbose mode).
+        Context.insert(InstFakeDef::create(Func, Preg));
         if (IsVector)
           _movp(SpillLoc, Preg);
         else
@@ -4335,6 +4346,9 @@ void TargetX8632::lowerPhiAssignments(CfgNode *Node,
           _movp(Preg, SpillLoc);
         else
           _mov(Preg, SpillLoc);
+        // Create a fake use of the physical register to keep it live
+        // for late-stage liveness analysis (e.g. asm-verbose mode).
+        Context.insert(InstFakeUse::create(Func, Preg));
       }
     }
     // Update register availability before moving to the previous

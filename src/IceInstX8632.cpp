@@ -318,7 +318,15 @@ InstX8632Fstp::InstX8632Fstp(Cfg *Func, Variable *Dest)
     : InstX8632(Func, InstX8632::Fstp, 0, Dest) {}
 
 InstX8632Pop::InstX8632Pop(Cfg *Func, Variable *Dest)
-    : InstX8632(Func, InstX8632::Pop, 0, Dest) {}
+    : InstX8632(Func, InstX8632::Pop, 0, Dest) {
+  // A pop instruction affects the stack pointer and so it should not
+  // be allowed to be automatically dead-code eliminated.  (The
+  // corresponding push instruction doesn't need this treatment
+  // because it has no dest variable and therefore won't be dead-code
+  // eliminated.)  This is needed for late-stage liveness analysis
+  // (e.g. asm-verbose mode).
+  HasSideEffects = true;
+}
 
 InstX8632Push::InstX8632Push(Cfg *Func, Variable *Source)
     : InstX8632(Func, InstX8632::Push, 1, nullptr) {
