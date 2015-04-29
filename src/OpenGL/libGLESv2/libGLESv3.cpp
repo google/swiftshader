@@ -2421,25 +2421,36 @@ GL_APICALL void GL_APIENTRY glClearBufferiv(GLenum buffer, GLint drawbuffer, con
 	TRACE("(GLenum buffer = 0x%X, GLint drawbuffer = %d, const GLint *value = %p)",
 	      buffer, drawbuffer, value);
 
-	switch(buffer)
-	{
-	case GL_COLOR:
-		if(drawbuffer > es2::IMPLEMENTATION_MAX_DRAW_BUFFERS)
-		{
-			return error(GL_INVALID_VALUE);
-		}
-		break;
-	case GL_STENCIL:
-		if(drawbuffer != 0)
-		{
-			return error(GL_INVALID_VALUE);
-		}
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
-	}
+	es2::Context *context = es2::getContext();
 
-	UNIMPLEMENTED();
+	if(context)
+	{
+		switch(buffer)
+		{
+		case GL_COLOR:
+			if(drawbuffer < 0 || drawbuffer >= es2::IMPLEMENTATION_MAX_DRAW_BUFFERS)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			else
+			{
+				context->clearColorBuffer(drawbuffer, value);
+			}
+			break;
+		case GL_STENCIL:
+			if(drawbuffer != 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			else
+			{
+				context->clearStencilBuffer(drawbuffer, value);
+			}
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 GL_APICALL void GL_APIENTRY glClearBufferuiv(GLenum buffer, GLint drawbuffer, const GLuint *value)
@@ -2447,19 +2458,26 @@ GL_APICALL void GL_APIENTRY glClearBufferuiv(GLenum buffer, GLint drawbuffer, co
 	TRACE("(GLenum buffer = 0x%X, GLint drawbuffer = %d, const GLuint *value = %p)",
 	      buffer, drawbuffer, value);
 
-	switch(buffer)
-	{
-	case GL_COLOR:
-		if(drawbuffer > es2::IMPLEMENTATION_MAX_DRAW_BUFFERS)
-		{
-			return error(GL_INVALID_VALUE);
-		}
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
-	}
+	es2::Context *context = es2::getContext();
 
-	UNIMPLEMENTED();
+	if(context)
+	{
+		switch(buffer)
+		{
+		case GL_COLOR:
+			if(drawbuffer < 0 || drawbuffer >= es2::IMPLEMENTATION_MAX_DRAW_BUFFERS)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			else
+			{
+				context->clearColorBuffer(drawbuffer, value);
+			}
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 GL_APICALL void GL_APIENTRY glClearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat *value)
@@ -2467,25 +2485,36 @@ GL_APICALL void GL_APIENTRY glClearBufferfv(GLenum buffer, GLint drawbuffer, con
 	TRACE("(GLenum buffer = 0x%X, GLint drawbuffer = %d, const GLfloat *value = %p)",
 	      buffer, drawbuffer, value);
 
-	switch(buffer)
-	{
-	case GL_COLOR:
-		if(drawbuffer > es2::IMPLEMENTATION_MAX_DRAW_BUFFERS)
-		{
-			return error(GL_INVALID_VALUE);
-		}
-		break;
-	case GL_DEPTH:
-		if(drawbuffer != 0)
-		{
-			return error(GL_INVALID_VALUE);
-		}
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
-	}
+	es2::Context *context = es2::getContext();
 
-	UNIMPLEMENTED();
+	if(context)
+	{
+		switch(buffer)
+		{
+		case GL_COLOR:
+			if(drawbuffer < 0 || drawbuffer >= es2::IMPLEMENTATION_MAX_DRAW_BUFFERS)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			else
+			{
+				context->clearColorBuffer(drawbuffer, value);
+			}
+			break;
+		case GL_DEPTH:
+			if(drawbuffer != 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			else
+			{
+				context->clearDepthBuffer(drawbuffer, value);
+			}
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 GL_APICALL void GL_APIENTRY glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
@@ -2493,19 +2522,26 @@ GL_APICALL void GL_APIENTRY glClearBufferfi(GLenum buffer, GLint drawbuffer, GLf
 	TRACE("(GLenum buffer = 0x%X, GLint drawbuffer = %d, GLfloat depth = %f, GLint stencil = %d)",
 	      buffer, drawbuffer, depth, stencil);
 
-	switch(buffer)
-	{
-	case GL_DEPTH_STENCIL:
-		if(drawbuffer != 0)
-		{
-			return error(GL_INVALID_VALUE);
-		}
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
-	}
+	es2::Context *context = es2::getContext();
 
-	UNIMPLEMENTED();
+	if(context)
+	{
+		switch(buffer)
+		{
+		case GL_DEPTH_STENCIL:
+			if(drawbuffer != 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			else
+			{
+				context->clearDepthStencilBuffer(drawbuffer, depth, stencil);
+			}
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 GL_APICALL const GLubyte *GL_APIENTRY glGetStringi(GLenum name, GLuint index)

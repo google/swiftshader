@@ -425,6 +425,7 @@ public:
     void setScissorParams(GLint x, GLint y, GLsizei width, GLsizei height);
 
     void setColorMask(bool red, bool green, bool blue, bool alpha);
+    unsigned int getColorMask() const;
     void setDepthMask(bool mask);
 
     void setActiveSampler(unsigned int active);
@@ -579,6 +580,12 @@ public:
 
     void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
     void clear(GLbitfield mask);
+    void clearColorBuffer(GLint drawbuffer, const GLint *value);
+    void clearColorBuffer(GLint drawbuffer, const GLuint *value);
+    void clearColorBuffer(GLint drawbuffer, const GLfloat *value);
+    void clearDepthBuffer(GLint drawbuffer, const GLfloat *value);
+    void clearStencilBuffer(GLint drawbuffer, const GLint *value);
+    void clearDepthStencilBuffer(GLint drawbuffer, GLfloat depth, GLint stencil);
     void drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount = 1);
     void drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLsizei instanceCount = 1);
     void finish();
@@ -609,6 +616,8 @@ public:
 private:
 	virtual ~Context();
 
+	egl::Image *getScissoredImage(GLint drawbuffer, int &x0, int &y0, int &width, int &height, bool depthStencil);
+	void applyScissor(int width, int height);
     bool applyRenderTarget();
     void applyState(GLenum drawMode);
 	GLenum applyVertexBuffer(GLint base, GLint first, GLsizei count, GLsizei instanceId);

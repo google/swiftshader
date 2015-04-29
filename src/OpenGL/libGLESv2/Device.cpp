@@ -157,17 +157,12 @@ namespace es2
 		delete context;
 	}
 
-	void Device::clearColor(unsigned int color, unsigned int rgbaMask)
+	void Device::getScissoredRegion(egl::Image *sourceSurface, int &x0, int &y0, int& width, int& height) const
 	{
-		if(!renderTarget)
-		{
-			return;
-		}
-
-		int x0 = 0;
-		int y0 = 0;
-		int width = renderTarget->getExternalWidth();
-		int height = renderTarget->getExternalHeight();
+		x0 = 0;
+		y0 = 0;
+		width = sourceSurface->getExternalWidth();
+		height = sourceSurface->getExternalHeight();
 
 		if(scissorEnable)   // Clamp against scissor rectangle
 		{
@@ -176,6 +171,17 @@ namespace es2
 			if(width > scissorRect.x1 - scissorRect.x0) width = scissorRect.x1 - scissorRect.x0;
 			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
 		}
+	}
+
+	void Device::clearColor(unsigned int color, unsigned int rgbaMask)
+	{
+		if(!renderTarget)
+		{
+			return;
+		}
+
+		int x0(0), y0(0), width(0), height(0);
+		getScissoredRegion(renderTarget, x0, y0, width, height);
 
 		renderTarget->clearColorBuffer(color, rgbaMask, x0, y0, width, height);
 	}
@@ -190,18 +196,8 @@ namespace es2
 		if(z > 1) z = 1;
 		if(z < 0) z = 0;
 
-		int x0 = 0;
-		int y0 = 0;
-		int width = depthStencil->getExternalWidth();
-		int height = depthStencil->getExternalHeight();
-
-		if(scissorEnable)   // Clamp against scissor rectangle
-		{
-			if(x0 < scissorRect.x0) x0 = scissorRect.x0;
-			if(y0 < scissorRect.y0) y0 = scissorRect.y0;
-			if(width > scissorRect.x1 - scissorRect.x0) width = scissorRect.x1 - scissorRect.x0;
-			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
-		}
+		int x0(0), y0(0), width(0), height(0);
+		getScissoredRegion(depthStencil, x0, y0, width, height);
 			
 		depthStencil->clearDepthBuffer(z, x0, y0, width, height);
 	}
@@ -213,18 +209,8 @@ namespace es2
 			return;
 		}
 
-		int x0 = 0;
-		int y0 = 0;
-		int width = depthStencil->getExternalWidth();
-		int height = depthStencil->getExternalHeight();
-
-		if(scissorEnable)   // Clamp against scissor rectangle
-		{
-			if(x0 < scissorRect.x0) x0 = scissorRect.x0;
-			if(y0 < scissorRect.y0) y0 = scissorRect.y0;
-			if(width > scissorRect.x1 - scissorRect.x0) width = scissorRect.x1 - scissorRect.x0;
-			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
-		}
+		int x0(0), y0(0), width(0), height(0);
+		getScissoredRegion(depthStencil, x0, y0, width, height);
 
 		depthStencil->clearStencilBuffer(stencil, mask, x0, y0, width, height);
 	}

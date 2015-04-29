@@ -703,6 +703,14 @@ void Context::setColorMask(bool red, bool green, bool blue, bool alpha)
     }
 }
 
+unsigned int Context::getColorMask() const
+{
+	return (mState.colorMaskRed ? 0x1 : 0) |
+	       (mState.colorMaskGreen ? 0x2 : 0) |
+	       (mState.colorMaskBlue ? 0x4 : 0) |
+	       (mState.colorMaskAlpha ? 0x8 : 0);
+}
+
 void Context::setDepthMask(bool mask)
 {
     if(mState.depthMask != mask)
@@ -2530,6 +2538,34 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
     return true;
 }
 
+void Context::applyScissor(int width, int height)
+{
+	if(mState.scissorTest)
+	{
+		sw::Rect scissor = { mState.scissorX, mState.scissorY, mState.scissorX + mState.scissorWidth, mState.scissorY + mState.scissorHeight };
+		scissor.clip(0, 0, width, height);
+
+		device->setScissorRect(scissor);
+		device->setScissorEnable(true);
+	}
+	else
+	{
+		device->setScissorEnable(false);
+	}
+}
+
+egl::Image *Context::getScissoredImage(GLint drawbuffer, int &x0, int &y0, int &width, int &height, bool depthStencil)
+{
+	Framebuffer* framebuffer = getFramebuffer(drawbuffer);
+	egl::Image* image = depthStencil ? framebuffer->getDepthStencil() : framebuffer->getRenderTarget(0);
+
+	applyScissor(image->getWidth(), image->getHeight());
+
+	device->getScissoredRegion(image, x0, y0, width, height);
+
+	return image;
+}
+
 // Applies the render target surface, depth stencil surface, viewport rectangle and scissor rectangle
 bool Context::applyRenderTarget()
 {
@@ -2562,18 +2598,7 @@ bool Context::applyRenderTarget()
 
     device->setViewport(viewport);
 
-    if(mState.scissorTest)
-    {
-		sw::Rect scissor = {mState.scissorX, mState.scissorY, mState.scissorX + mState.scissorWidth, mState.scissorY + mState.scissorHeight};
-		scissor.clip(0, 0, width, height);
-        
-		device->setScissorRect(scissor);
-        device->setScissorEnable(true);
-    }
-    else
-    {
-        device->setScissorEnable(false);
-    }
+	applyScissor(width, height);
 
 	Program *program = getCurrentProgram();
 
@@ -3368,22 +3393,16 @@ void Context::clear(GLbitfield mask)
         return;
     }
 	
-	unsigned int color = (unorm<8>(mState.colorClearValue.alpha) << 24) |
-                         (unorm<8>(mState.colorClearValue.red) << 16) |
-                         (unorm<8>(mState.colorClearValue.green) << 8) | 
-                         (unorm<8>(mState.colorClearValue.blue) << 0);
-    float depth = clamp01(mState.depthClearValue);
-    int stencil = mState.stencilClearValue & 0x000000FF;
-
 	if(mask & GL_COLOR_BUFFER_BIT)
 	{
-		unsigned int rgbaMask = (mState.colorMaskRed ? 0x1 : 0) |
-		                        (mState.colorMaskGreen ? 0x2 : 0) | 
-		                        (mState.colorMaskBlue ? 0x4 : 0) |
-		                        (mState.colorMaskAlpha ? 0x8 : 0);
+		unsigned int rgbaMask = getColorMask();
 
 		if(rgbaMask != 0)
 		{
+			unsigned int color = (unorm<8>(mState.colorClearValue.alpha) << 24) |
+			                     (unorm<8>(mState.colorClearValue.red) << 16) |
+			                     (unorm<8>(mState.colorClearValue.green) << 8) |
+			                     (unorm<8>(mState.colorClearValue.blue) << 0);
 			device->clearColor(color, rgbaMask);
 		}
 	}
@@ -3392,6 +3411,7 @@ void Context::clear(GLbitfield mask)
 	{
 		if(mState.depthMask != 0)
 		{
+			float depth = clamp01(mState.depthClearValue);
 			device->clearDepth(depth);
 		}
 	}
@@ -3400,7 +3420,99 @@ void Context::clear(GLbitfield mask)
 	{
 		if(mState.stencilWritemask != 0)
 		{
+			int stencil = mState.stencilClearValue & 0x000000FF;
 			device->clearStencil(stencil, mState.stencilWritemask);
+		}
+	}
+}
+
+void Context::clearColorBuffer(GLint drawbuffer, const GLint *value)
+{
+	unsigned int rgbaMask = getColorMask();
+	if(device && rgbaMask)
+	{
+		int x0(0), y0(0), width(0), height(0);
+		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, false);
+
+		unsigned int color = (value[0] < 0 ? 0 : (value[0] & 0x7F800000) << 1) |
+		                     (value[1] < 0 ? 0 : (value[1] & 0x7F800000) >> 7) |
+		                     (value[2] < 0 ? 0 : (value[2] & 0x7F800000) >> 15) |
+		                     (value[3] < 0 ? 0 : (value[3] & 0x7F800000) >> 23);
+		image->clearColorBuffer(color, rgbaMask, x0, y0, width, height);
+	}
+}
+
+void Context::clearColorBuffer(GLint drawbuffer, const GLuint *value)
+{
+	unsigned int rgbaMask = getColorMask();
+	if(device && rgbaMask)
+	{
+		int x0(0), y0(0), width(0), height(0);
+		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, false);
+
+		unsigned int color = (value[0] & 0xFF000000) >> 0 |
+		                     (value[1] & 0xFF000000) >> 8 |
+		                     (value[2] & 0xFF000000) >> 16 |
+		                     (value[3] & 0xFF000000) >> 24;
+		image->clearColorBuffer(color, rgbaMask, x0, y0, width, height);
+	}
+}
+
+void Context::clearColorBuffer(GLint drawbuffer, const GLfloat *value)
+{
+	unsigned int rgbaMask = getColorMask();
+	if(device && rgbaMask)
+	{
+		int x0(0), y0(0), width(0), height(0);
+		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, false);
+
+		unsigned int color = (unorm<8>(value[0]) << 24) |
+		                     (unorm<8>(value[1]) << 16) |
+		                     (unorm<8>(value[2]) << 8) |
+		                     (unorm<8>(value[3]) << 0);
+		image->clearColorBuffer(color, rgbaMask, x0, y0, width, height);
+	}
+}
+
+void Context::clearDepthBuffer(GLint drawbuffer, const GLfloat *value)
+{
+	if(device && mState.depthMask)
+	{
+		int x0(0), y0(0), width(0), height(0);
+		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, true);
+
+		float depth = clamp01(value[0]);
+		image->clearDepthBuffer(depth, x0, y0, width, height);
+	}
+}
+
+void Context::clearStencilBuffer(GLint drawbuffer, const GLint *value)
+{
+	if(device && mState.stencilWritemask)
+	{
+		int x0(0), y0(0), width(0), height(0);
+		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, true);
+
+		unsigned char stencil = value[0] < 0 ? 0 : static_cast<unsigned char>(value[0] & 0x000000FF);
+		image->clearStencilBuffer(stencil, static_cast<unsigned char>(mState.stencilWritemask), x0, y0, width, height);
+	}
+}
+
+void Context::clearDepthStencilBuffer(GLint drawbuffer, GLfloat depth, GLint stencil)
+{
+	if(device && (mState.depthMask || mState.stencilWritemask))
+	{
+		int x0(0), y0(0), width(0), height(0);
+		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, true);
+
+		if(mState.stencilWritemask)
+		{
+			image->clearStencilBuffer(static_cast<unsigned char>(stencil & 0x000000FF), static_cast<unsigned char>(mState.stencilWritemask), x0, y0, width, height);
+		}
+
+		if(mState.depthMask)
+		{
+			image->clearDepthBuffer(clamp01(depth), x0, y0, width, height);
 		}
 	}
 }
