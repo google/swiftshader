@@ -404,7 +404,7 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
 
 	mContextSet.insert(context);
 
-    return success(context);;
+    return success(context);
 }
 
 void Display::destroySurface(egl::Surface *surface)

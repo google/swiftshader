@@ -314,7 +314,7 @@ namespace sw
 			draw->vertexRoutine = vertexRoutine;
 			draw->setupRoutine = setupRoutine;
 			draw->pixelRoutine = pixelRoutine;
-			draw->vertexPointer = (VertexProcessor::RoutinePointer)vertexRoutine->getEntry();;
+			draw->vertexPointer = (VertexProcessor::RoutinePointer)vertexRoutine->getEntry();
 			draw->setupPointer = (SetupProcessor::RoutinePointer)setupRoutine->getEntry();
 			draw->pixelPointer = (PixelProcessor::RoutinePointer)pixelRoutine->getEntry();
 			draw->setupPrimitives = setupPrimitives;
