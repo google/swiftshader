@@ -721,6 +721,12 @@ GLuint Context::getArrayBufferName() const
     return mState.arrayBuffer.name();
 }
 
+GLuint Context::getElementArrayBufferName() const
+{
+	Buffer* elementArrayBuffer = getCurrentVertexArray()->getElementArrayBuffer();
+	return elementArrayBuffer ? elementArrayBuffer->name : 0;
+}
+
 GLuint Context::getActiveQuery(GLenum target) const
 {
     Query *queryObject = NULL;
@@ -1695,7 +1701,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params) const
     case GL_NUM_SHADER_BINARY_FORMATS:        *params = 0;                                    break;
     case GL_SHADER_BINARY_FORMATS:      /* no shader binary formats are supported */          break;
     case GL_ARRAY_BUFFER_BINDING:             *params = getArrayBufferName();                 break;
-    case GL_ELEMENT_ARRAY_BUFFER_BINDING:     *params = getCurrentVertexArray()->getElementArrayBuffer()->name; break;
+    case GL_ELEMENT_ARRAY_BUFFER_BINDING:     *params = getElementArrayBufferName();          break;
 //	case GL_FRAMEBUFFER_BINDING:            // now equivalent to GL_DRAW_FRAMEBUFFER_BINDING_ANGLE
     case GL_DRAW_FRAMEBUFFER_BINDING_ANGLE:   *params = mState.drawFramebuffer;               break;
     case GL_READ_FRAMEBUFFER_BINDING_ANGLE:   *params = mState.readFramebuffer;               break;

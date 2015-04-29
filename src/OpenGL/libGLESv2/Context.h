@@ -429,6 +429,7 @@ public:
 	GLuint getActiveQuery(GLenum target) const;
 
     GLuint getArrayBufferName() const;
+	GLuint getElementArrayBufferName() const;
 
     void setEnableVertexAttribArray(unsigned int attribNum, bool enabled);
     void setVertexAttribDivisor(unsigned int attribNum, GLuint divisor);
