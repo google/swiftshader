@@ -2305,7 +2305,12 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 				return error(GL_INVALID_ENUM);
 			}
 
-			if(level != 0)
+			if((level != 0) && (context->getClientVersion() < 3))
+			{
+				return error(GL_INVALID_VALUE);
+			}
+
+			if((level < 0) || (level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS))
 			{
 				return error(GL_INVALID_VALUE);
 			}
@@ -2358,10 +2363,10 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 			{
 				return error(GL_INVALID_ENUM);
 			}
-			framebuffer->setColorbuffer(textarget, texture, attachment - GL_COLOR_ATTACHMENT0);
+			framebuffer->setColorbuffer(textarget, texture, attachment - GL_COLOR_ATTACHMENT0, level);
 			break;
-		case GL_DEPTH_ATTACHMENT:   framebuffer->setDepthbuffer(textarget, texture);   break;
-		case GL_STENCIL_ATTACHMENT: framebuffer->setStencilbuffer(textarget, texture); break;
+		case GL_DEPTH_ATTACHMENT:   framebuffer->setDepthbuffer(textarget, texture, level);   break;
+		case GL_STENCIL_ATTACHMENT: framebuffer->setStencilbuffer(textarget, texture, level); break;
 		}
 	}
 }

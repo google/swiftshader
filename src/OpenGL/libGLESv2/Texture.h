@@ -112,7 +112,7 @@ public:
     virtual bool isCompressed(GLenum target, GLint level) const = 0;
 	virtual bool isDepth(GLenum target, GLint level) const = 0;
 
-    virtual Renderbuffer *getRenderbuffer(GLenum target) = 0;
+    virtual Renderbuffer *getRenderbuffer(GLenum target, GLint level, GLint layer) = 0;
     virtual egl::Image *getRenderTarget(GLenum target, unsigned int level) = 0;
     virtual egl::Image *createSharedImage(GLenum target, unsigned int level);
     virtual bool isShared(GLenum target, unsigned int level) const = 0;
@@ -187,7 +187,7 @@ public:
 
     virtual void generateMipmaps();
 
-	virtual Renderbuffer *getRenderbuffer(GLenum target);
+	virtual Renderbuffer *getRenderbuffer(GLenum target, GLint level, GLint layer);
     virtual egl::Image *getRenderTarget(GLenum target, unsigned int level);
 	virtual bool isShared(GLenum target, unsigned int level) const;
 
@@ -243,7 +243,7 @@ public:
 
     virtual void generateMipmaps();
 
-    virtual Renderbuffer *getRenderbuffer(GLenum target);
+    virtual Renderbuffer *getRenderbuffer(GLenum target, GLint level, GLint layer);
 	virtual egl::Image *getRenderTarget(GLenum target, unsigned int level);
 	virtual bool isShared(GLenum target, unsigned int level) const;
 
@@ -304,7 +304,7 @@ public:
 
 	virtual void generateMipmaps();
 
-	virtual Renderbuffer *getRenderbuffer(GLenum target);
+	virtual Renderbuffer *getRenderbuffer(GLenum target, GLint level, GLint layer);
 	virtual egl::Image *getRenderTarget(GLenum target, unsigned int level);
 	virtual bool isShared(GLenum target, unsigned int level) const;
 

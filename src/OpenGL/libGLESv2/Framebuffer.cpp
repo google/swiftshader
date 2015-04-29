@@ -42,7 +42,7 @@ Framebuffer::~Framebuffer()
 	mStencilbufferPointer = NULL;
 }
 
-Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle) const
+Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle, GLint level, GLint layer) const
 {
 	Context *context = getContext();
 	Renderbuffer *buffer = NULL;
@@ -57,7 +57,7 @@ Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle) const
 	}
 	else if(IsTextureTarget(type))
 	{
-		buffer = context->getTexture(handle)->getRenderbuffer(type);
+		buffer = context->getTexture(handle)->getRenderbuffer(type, level, layer);
 	}
 	else
 	{
@@ -67,22 +67,22 @@ Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle) const
 	return buffer;
 }
 
-void Framebuffer::setColorbuffer(GLenum type, GLuint colorbuffer, GLuint index)
+void Framebuffer::setColorbuffer(GLenum type, GLuint colorbuffer, GLuint index, GLint level, GLint layer)
 {
 	mColorbufferType[index] = (colorbuffer != 0) ? type : GL_NONE;
-	mColorbufferPointer[index] = lookupRenderbuffer(type, colorbuffer);
+	mColorbufferPointer[index] = lookupRenderbuffer(type, colorbuffer, level, layer);
 }
 
-void Framebuffer::setDepthbuffer(GLenum type, GLuint depthbuffer)
+void Framebuffer::setDepthbuffer(GLenum type, GLuint depthbuffer, GLint level, GLint layer)
 {
 	mDepthbufferType = (depthbuffer != 0) ? type : GL_NONE;
-	mDepthbufferPointer = lookupRenderbuffer(type, depthbuffer);
+	mDepthbufferPointer = lookupRenderbuffer(type, depthbuffer, level, layer);
 }
 
-void Framebuffer::setStencilbuffer(GLenum type, GLuint stencilbuffer)
+void Framebuffer::setStencilbuffer(GLenum type, GLuint stencilbuffer, GLint level, GLint layer)
 {
 	mStencilbufferType = (stencilbuffer != 0) ? type : GL_NONE;
-	mStencilbufferPointer = lookupRenderbuffer(type, stencilbuffer);
+	mStencilbufferPointer = lookupRenderbuffer(type, stencilbuffer, level, layer);
 }
 
 void Framebuffer::detachTexture(GLuint texture)

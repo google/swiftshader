@@ -1484,43 +1484,106 @@ GL_APICALL void GL_APIENTRY glFramebufferTextureLayer(GLenum target, GLenum atta
 	TRACE("(GLenum target = 0x%X, GLenum attachment = 0x%X, GLuint texture = %d, GLint level = %d, GLint layer = %d)",
 	      target, attachment, texture, level, layer);
 	
-	switch(target)
+	if(texture != 0 && layer < 0 || level < 0)
 	{
-	case GL_DRAW_FRAMEBUFFER:
-	case GL_READ_FRAMEBUFFER:
-	case GL_FRAMEBUFFER:
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
+		return error(GL_INVALID_VALUE);
 	}
 
-	switch(attachment)
-	{
-	case GL_COLOR_ATTACHMENT0:
-	case GL_COLOR_ATTACHMENT1:
-	case GL_COLOR_ATTACHMENT2:
-	case GL_COLOR_ATTACHMENT3:
-	case GL_COLOR_ATTACHMENT4:
-	case GL_COLOR_ATTACHMENT5:
-	case GL_COLOR_ATTACHMENT6:
-	case GL_COLOR_ATTACHMENT7:
-	case GL_COLOR_ATTACHMENT8:
-	case GL_COLOR_ATTACHMENT9:
-	case GL_COLOR_ATTACHMENT10:
-	case GL_COLOR_ATTACHMENT11:
-	case GL_COLOR_ATTACHMENT12:
-	case GL_COLOR_ATTACHMENT13:
-	case GL_COLOR_ATTACHMENT14:
-	case GL_COLOR_ATTACHMENT15:
-	case GL_DEPTH_ATTACHMENT:
-	case GL_STENCIL_ATTACHMENT:
-	case GL_DEPTH_STENCIL_ATTACHMENT:
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
-	}
+	es2::Context *context = es2::getContext();
 
-	UNIMPLEMENTED();
+	if(context)
+	{
+		Texture* textureObject = context->getTexture(texture);
+		if(texture != 0)
+		{
+			if(!textureObject)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+
+			switch(textureObject->getTarget())
+			{
+			case GL_TEXTURE_3D:
+			case GL_TEXTURE_2D_ARRAY:
+				if(layer >= es2::IMPLEMENTATION_MAX_TEXTURE_SIZE || (level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS))
+				{
+					return error(GL_INVALID_VALUE);
+				}
+				break;
+			default:
+				return error(GL_INVALID_OPERATION);
+			}
+
+			if(textureObject->isCompressed(target, level))
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+		}
+
+		es2::Framebuffer *framebuffer = nullptr;
+		switch(target)
+		{
+		case GL_DRAW_FRAMEBUFFER:
+		case GL_FRAMEBUFFER:
+			framebuffer = context->getDrawFramebuffer();
+			break;
+		case GL_READ_FRAMEBUFFER:
+			framebuffer = context->getReadFramebuffer();
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+
+		switch(attachment)
+		{
+		case GL_COLOR_ATTACHMENT0:
+		case GL_COLOR_ATTACHMENT1:
+		case GL_COLOR_ATTACHMENT2:
+		case GL_COLOR_ATTACHMENT3:
+		case GL_COLOR_ATTACHMENT4:
+		case GL_COLOR_ATTACHMENT5:
+		case GL_COLOR_ATTACHMENT6:
+		case GL_COLOR_ATTACHMENT7:
+		case GL_COLOR_ATTACHMENT8:
+		case GL_COLOR_ATTACHMENT9:
+		case GL_COLOR_ATTACHMENT10:
+		case GL_COLOR_ATTACHMENT11:
+		case GL_COLOR_ATTACHMENT12:
+		case GL_COLOR_ATTACHMENT13:
+		case GL_COLOR_ATTACHMENT14:
+		case GL_COLOR_ATTACHMENT15:
+			if(!framebuffer || framebuffer->getColorbufferName(attachment - GL_COLOR_ATTACHMENT0) == 0)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			framebuffer->setColorbuffer(target, texture, attachment - GL_COLOR_ATTACHMENT0, layer, level);
+			break;
+		case GL_DEPTH_ATTACHMENT:
+			if(!framebuffer || framebuffer->getDepthbufferName() == 0)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			framebuffer->setDepthbuffer(target, texture, layer, level);
+			break;
+		case GL_STENCIL_ATTACHMENT:
+			if(!framebuffer || framebuffer->getStencilbufferName() == 0)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			framebuffer->setStencilbuffer(target, texture, layer, level);
+			break;
+		case GL_DEPTH_STENCIL_ATTACHMENT:
+			if(!framebuffer || framebuffer->getDepthbufferName() == 0 || framebuffer->getStencilbufferName() == 0)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			framebuffer->setDepthbuffer(target, texture, layer, level);
+			framebuffer->setStencilbuffer(target, texture, layer, level);
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 GL_APICALL void *GL_APIENTRY glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)

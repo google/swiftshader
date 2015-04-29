@@ -35,9 +35,9 @@ public:
 
     virtual ~Framebuffer();
 
-    void setColorbuffer(GLenum type, GLuint colorbuffer, GLuint index);
-    void setDepthbuffer(GLenum type, GLuint depthbuffer);
-    void setStencilbuffer(GLenum type, GLuint stencilbuffer);
+    void setColorbuffer(GLenum type, GLuint colorbuffer, GLuint index, GLint level = 0, GLint layer = 0);
+    void setDepthbuffer(GLenum type, GLuint depthbuffer, GLint level = 0, GLint layer = 0);
+    void setStencilbuffer(GLenum type, GLuint stencilbuffer, GLint level = 0, GLint layer = 0);
 
     void detachTexture(GLuint texture);
     void detachRenderbuffer(GLuint renderbuffer);
@@ -78,7 +78,7 @@ protected:
     gl::BindingPointer<Renderbuffer> mStencilbufferPointer;
 
 private:
-    Renderbuffer *lookupRenderbuffer(GLenum type, GLuint handle) const;
+    Renderbuffer *lookupRenderbuffer(GLenum type, GLuint handle, GLint level, GLint layer) const;
 };
 
 class DefaultFramebuffer : public Framebuffer

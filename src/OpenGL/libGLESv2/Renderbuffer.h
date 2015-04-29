@@ -62,7 +62,7 @@ public:
 class RenderbufferTexture2D : public RenderbufferInterface
 {
 public:
-	RenderbufferTexture2D(Texture2D *texture);
+	RenderbufferTexture2D(Texture2D *texture, GLint level);
 
 	virtual ~RenderbufferTexture2D();
 
@@ -81,12 +81,13 @@ public:
 
 private:
 	gl::BindingPointer<Texture2D> mTexture2D;
+	GLint mLevel;
 };
 
 class RenderbufferTexture3D : public RenderbufferInterface
 {
 public:
-	RenderbufferTexture3D(Texture3D *texture);
+	RenderbufferTexture3D(Texture3D *texture, GLint level, GLint layer);
 
 	virtual ~RenderbufferTexture3D();
 
@@ -105,12 +106,14 @@ public:
 
 private:
 	gl::BindingPointer<Texture3D> mTexture3D;
+	GLint mLevel;
+	GLint mLayer;
 };
 
 class RenderbufferTextureCubeMap : public RenderbufferInterface
 {
 public:
-	RenderbufferTextureCubeMap(TextureCubeMap *texture, GLenum target);
+	RenderbufferTextureCubeMap(TextureCubeMap *texture, GLenum target, GLint level);
 
 	virtual ~RenderbufferTextureCubeMap();
 
@@ -130,6 +133,7 @@ public:
 private:
 	gl::BindingPointer<TextureCubeMap> mTextureCubeMap;
 	GLenum mTarget;
+	GLint mLevel;
 };
 
 // A class derived from RenderbufferStorage is created whenever glRenderbufferStorage
