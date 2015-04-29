@@ -18,7 +18,6 @@
 #include "common/Image.hpp"
 #include "Texture.h"
 
-#define GL_APICALL
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 

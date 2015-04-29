@@ -17,7 +17,6 @@
 
 #include "Context.h"
 
-#define GL_API
 #include <GLES/gl.h>
 
 namespace es1

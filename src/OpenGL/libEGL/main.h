@@ -17,9 +17,7 @@
 #include "libGLES_CM/libGLES_CM.hpp"
 #include "libGLESv2/libGLESv2.hpp"
 
-#define EGLAPI
 #include <EGL/egl.h>
-#define EGL_EGLEXT_PROTOTYPES
 #include <EGL/eglext.h>
 
 namespace egl

@@ -19,7 +19,6 @@
 #include "common/Object.hpp"
 #include "Common/Resource.hpp"
 
-#define GL_APICALL
 #include <GLES2/gl2.h>
 
 #include <cstddef>

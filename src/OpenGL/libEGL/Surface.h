@@ -19,7 +19,6 @@
 #include "Main/FrameBuffer.hpp"
 #include "common/Object.hpp"
 
-#define EGLAPI
 #include <EGL/egl.h>
 
 namespace egl

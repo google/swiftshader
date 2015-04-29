@@ -23,13 +23,10 @@
 #include "Common/Version.h"
 #include "Main/Register.hpp"
 
-#define EGLAPI
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-#define GL_API
 #include <GLES/gl.h>
-#define GL_GLEXT_PROTOTYPES
 #include <GLES/glext.h>
 
 #include <limits>

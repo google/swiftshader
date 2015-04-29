@@ -17,6 +17,8 @@
 #include "Buffer.h"
 #include "Context.h"
 
+#include <GLES2/gl2.h>
+
 namespace es2
 {
 

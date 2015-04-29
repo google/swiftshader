@@ -17,7 +17,6 @@
 
 #include "common/debug.h"
 
-#define EGLAPI
 #include <EGL/eglext.h>
 
 #include <algorithm>

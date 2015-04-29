@@ -18,7 +18,6 @@
 #include "common/Object.hpp"
 #include "common/Image.hpp"
 
-#define GL_APICALL
 #include <GLES2/gl2.h>
 
 namespace es2

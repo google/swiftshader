@@ -17,7 +17,6 @@
 
 #include "common/NameSpace.hpp"
 
-#define GL_API
 #include <GLES/gl.h>
 
 #include <map>

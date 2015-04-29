@@ -4,8 +4,6 @@
 #include "libEGL/Texture.hpp"
 #include "Renderer/Surface.hpp"
 
-#define GL_API
-#define GL_APICALL
 #include <GLES/gl.h>
 #include <GLES2/gl2.h>
 

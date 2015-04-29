@@ -14,7 +14,6 @@
 #ifndef LIBGLESV2_FENCE_H_
 #define LIBGLESV2_FENCE_H_
 
-#define GL_APICALL
 #include <GLES2/gl2.h>
 
 namespace es2

@@ -3,9 +3,7 @@
 
 #include "common/Object.hpp"
 
-#define EGLAPI
 #include <EGL/egl.h>
-#define GL_API
 #include <GLES/gl.h>
 
 namespace egl

@@ -22,7 +22,6 @@
 #include "libEGL/Texture.hpp"
 #include "common/debug.h"
 
-#define GL_API
 #include <GLES/gl.h>
 
 #include <vector>

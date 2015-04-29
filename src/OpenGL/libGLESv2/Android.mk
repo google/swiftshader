@@ -36,6 +36,9 @@ LOCAL_CFLAGS += -UNDEBUG -g -O0
 
 LOCAL_CFLAGS += -fno-operator-names -msse2 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS
 LOCAL_CFLAGS += -std=c++11
+LOCAL_CFLAGS += -DGL_API=
+LOCAL_CFLAGS += -DGL_APICALL=
+LOCAL_CFLAGS += -DGL_GLEXT_PROTOTYPES
 
 LOCAL_SHARED_LIBRARIES += libdl liblog libcutils libhardware libui libutils \
     $(GCE_STLPORT_LIBS)

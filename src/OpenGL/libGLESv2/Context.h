@@ -23,11 +23,9 @@
 #include "Renderer/Sampler.hpp"
 #include "TransformFeedback.h"
 
-#define GL_APICALL
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #include <GLES3/gl3.h>
-#define EGLAPI
 #include <EGL/egl.h>
 
 #include <map>

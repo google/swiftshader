@@ -20,7 +20,6 @@
 #include "Common/SharedLibrary.hpp"
 #include "common/debug.h"
 
-#define GL_GLEXT_PROTOTYPES
 #include <GLES/glext.h>
 
 #if !defined(_MSC_VER)

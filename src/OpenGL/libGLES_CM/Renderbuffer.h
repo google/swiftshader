@@ -20,7 +20,6 @@
 #include "common/Object.hpp"
 #include "common/Image.hpp"
 
-#define GL_API
 #include <GLES/gl.h>
 
 namespace es1

@@ -17,7 +17,6 @@
 
 #include "Context.h"
 
-#define GL_APICALL
 #include <GLES2/gl2.h>
 
 namespace es2

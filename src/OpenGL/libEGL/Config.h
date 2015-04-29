@@ -18,7 +18,6 @@
 
 #include "Renderer/Surface.hpp"
 
-#define EGLAPI
 #include <EGL/egl.h>
 
 #include <set>

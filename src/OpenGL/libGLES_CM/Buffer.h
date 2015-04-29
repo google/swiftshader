@@ -19,7 +19,6 @@
 #include "common/Object.hpp"
 #include "Common/Resource.hpp"
 
-#define GL_API
 #include <GLES/gl.h>
 
 #include <cstddef>

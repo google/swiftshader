@@ -23,11 +23,8 @@
 #include "Renderer/Sampler.hpp"
 #include "common/MatrixStack.hpp"
 
-#define GL_API
 #include <GLES/gl.h>
-#define GL_GLEXT_PROTOTYPES
 #include <GLES/glext.h>
-#define EGLAPI
 #include <EGL/egl.h>
 
 #include <map>
