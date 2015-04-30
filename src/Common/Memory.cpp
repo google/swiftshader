@@ -31,6 +31,8 @@
 #undef allocateZero
 #undef deallocateZero
 
+namespace sw
+{
 size_t memoryPageSize()
 {
 	static int pageSize = 0;
@@ -123,36 +125,4 @@ void deallocateExecutable(void *memory, size_t bytes)
 
 	deallocate(memory);
 }
-
-void *allocate(size_t bytes, const char *function)
-{
-	trace("[0x%0.8X]%s(...)\n", 0xFFFFFFFF, function);
-
-	void *memory = allocate(bytes);
-
-	trace("\t0x%0.8X = allocate(%d)\n", memory, bytes);
-
-	return memory;
-}
-
-void *allocateZero(size_t bytes, const char *function)
-{
-	trace("[0x%0.8X]%s(...)\n", 0xFFFFFFFF, function);
-
-	void *memory = allocateZero(bytes);
-
-	trace("\t0x%0.8X = allocateZero(%d)\n", memory, bytes);
-
-	return memory;
-}
-
-void deallocate(void *memory, const char *function)
-{
-	if(memory)
-	{
-		trace("[0x%0.8X]%s(...)\n", 0xFFFFFFFF, function);
-		trace("\tdeallocate(0x%0.8X)\n", memory);
-
-		deallocate(memory);
-	}
 }

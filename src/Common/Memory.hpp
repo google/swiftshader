@@ -14,6 +14,8 @@
 
 #include <stddef.h>
 
+namespace sw
+{
 size_t memoryPageSize();
 
 void *allocate(size_t bytes, size_t alignment = 16);
@@ -23,15 +25,6 @@ void deallocate(void *memory);
 void *allocateExecutable(size_t bytes);   // Allocates memory that can be made executable using markExecutable()
 void markExecutable(void *memory, size_t bytes);
 void deallocateExecutable(void *memory, size_t bytes);
-
-void *allocate(size_t bytes, const char *function);
-void *allocateZero(size_t bytes, const char *function);
-void deallocate(void *memory, const char *function);
-
-#ifndef NDEBUG
-	#define allocate(bytes) allocate((bytes), __FUNCTION__)
-	#define allocateZero(bytes) allocateZero((bytes), __FUNCTION__)
-	#define deallocate(memory) deallocate((memory), __FUNCTION__)
-#endif
+}
 
 #endif   // Memory_hpp
