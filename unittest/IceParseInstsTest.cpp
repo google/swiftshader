@@ -107,7 +107,7 @@ TEST(IceParseInstsTests, AllocaAlignment) {
 
   // Show what happens when changing alignment to 0.
   const uint64_t Align0[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_ALLOCA, 1, getEncAlignZero(), Terminator,
   };
   EXPECT_TRUE(Munger.runTest("Good alloca alignment 0", Align0,
@@ -119,7 +119,7 @@ TEST(IceParseInstsTests, AllocaAlignment) {
 
   // Show what happens when changing alignment to 2**30.
   const uint64_t Align30[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_ALLOCA, 1, getEncAlignPower(30), Terminator,
   };
   EXPECT_FALSE(Munger.runTest("Bad alloca alignment 30", Align30,
@@ -137,7 +137,7 @@ TEST(IceParseInstsTests, AllocaAlignment) {
 
   // Show what happens when changing alignment to 2**29.
   const uint64_t Align29[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_ALLOCA, 1, getEncAlignPower(29), Terminator,
   };
   EXPECT_TRUE(Munger.runTest("Good alloca alignment 29", Align29,
@@ -180,7 +180,7 @@ TEST(IceParseInstsTests, LoadI32Alignment) {
 
   // Show what happens when changing alignment to 0.
   const uint64_t Align0[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignZero(), 0, Terminator,
   };
   EXPECT_FALSE(Munger.runTest("Bad load i32 alignment 0", Align0,
@@ -195,7 +195,7 @@ TEST(IceParseInstsTests, LoadI32Alignment) {
 
   // Show what happens when changing alignment to 4.
   const uint64_t Align4[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignPower(2), 0, Terminator,
   };
   EXPECT_FALSE(Munger.runTest("Bad load i32 alignment 4", Align4,
@@ -210,7 +210,7 @@ TEST(IceParseInstsTests, LoadI32Alignment) {
 
   // Show what happens when changing alignment to 2**29.
   const uint64_t Align29[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignPower(29), 0, Terminator,
   };
   EXPECT_FALSE(Munger.runTest("Bad load i32 alignment 29", Align29,
@@ -225,7 +225,7 @@ TEST(IceParseInstsTests, LoadI32Alignment) {
 
   // Show what happens when changing alignment to 2**30.
   const uint64_t Align30[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignPower(30), 0, Terminator,
   };
   EXPECT_FALSE(Munger.runTest("Bad load i32 alignment 30", Align30,
@@ -272,7 +272,7 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
 
   // Show what happens when changing alignment to 0.
   const uint64_t Align0[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignZero(), 0, Terminator,
   };
   EXPECT_FALSE(Munger.runTest("Bad load float alignment 0", Align0,
@@ -288,7 +288,7 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
 
   // Show what happens when changing alignment to 4.
   const uint64_t Align4[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignPower(2), 0, Terminator,
   };
   EXPECT_TRUE(Munger.runTest("Good load float alignment 4", Align4,
@@ -299,7 +299,7 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
             DumpMunger.getLinesWithSubstring("load"));
 
   const uint64_t Align29[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignPower(29), 0, Terminator,
   };
   EXPECT_FALSE(Munger.runTest("Bad load float alignment 29", Align29,
@@ -315,7 +315,7 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
 
   // Show what happens when changing alignment to 2**30.
   const uint64_t Align30[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignPower(30), 0, Terminator,
   };
   EXPECT_FALSE(Munger.runTest("Bad load float alignment 30", Align30,
@@ -363,7 +363,7 @@ TEST(NaClParseInstsTests, StoreAlignment) {
 
   // Show what happens when changing alignment to 0.
   const uint64_t Align0[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_STORE, 2, 1, getEncAlignZero(), Terminator,
   };
   EXPECT_FALSE(
@@ -379,7 +379,7 @@ TEST(NaClParseInstsTests, StoreAlignment) {
 
   // Show what happens when changing alignment to 4.
   const uint64_t Align4[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_STORE, 2, 1, getEncAlignPower(2), Terminator,
   };
   EXPECT_TRUE(
@@ -389,7 +389,7 @@ TEST(NaClParseInstsTests, StoreAlignment) {
 
   // Show what happens when changing alignment to 8.
   const uint64_t Align8[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_STORE, 2, 1, getEncAlignPower(3), Terminator,
   };
   EXPECT_FALSE(
@@ -405,7 +405,7 @@ TEST(NaClParseInstsTests, StoreAlignment) {
 
   // Show what happens when changing alignment to 2**29.
   const uint64_t Align29[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_STORE, 2, 1, getEncAlignPower(29), Terminator,
   };
   EXPECT_FALSE(Munger.runTest("Bad store alignment 29", Align29,
@@ -420,7 +420,7 @@ TEST(NaClParseInstsTests, StoreAlignment) {
       DumpMunger.getLinesWithSubstring("store"));
 
   const uint64_t Align30[] = {
-      ReplaceIndex, NaClBitcodeMunger::Replace,
+      ReplaceIndex, NaClMungedBitcode::Replace,
       // Note: alignment stored as 0 or log2(Alignment)+1.
       3, naclbitc::FUNC_CODE_INST_STORE, 2, 1, getEncAlignPower(30), Terminator,
   };
