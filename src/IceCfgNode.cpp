@@ -824,15 +824,14 @@ void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
     SizeT NumVars = Src->getNumVars();
     for (SizeT J = 0; J < NumVars; ++J) {
       const Variable *Var = Src->getVar(J);
-      if (Var->hasReg()) {
-        if (Instr->isLastUse(Var) && --LiveRegCount[Var->getRegNum()] == 0) {
-          if (First)
-            Str << " \t# END=";
-          else
-            Str << ",";
-          Var->emit(Func);
-          First = false;
-        }
+      if (Instr->isLastUse(Var) &&
+          (!Var->hasReg() || --LiveRegCount[Var->getRegNum()] == 0)) {
+        if (First)
+          Str << " \t# END=";
+        else
+          Str << ",";
+        Var->emit(Func);
+        First = false;
       }
     }
   }
@@ -870,8 +869,10 @@ void CfgNode::emit(Cfg *Func) const {
       Liveness && Func->getContext()->getFlags().getDecorateAsm();
   Str << getAsmName() << ":\n";
   std::vector<SizeT> LiveRegCount(Func->getTarget()->getNumRegisters());
-  if (DecorateAsm)
-    emitRegisterUsage(Str, Func, this, true, LiveRegCount);
+  if (DecorateAsm) {
+    const bool IsLiveIn = true;
+    emitRegisterUsage(Str, Func, this, IsLiveIn, LiveRegCount);
+  }
 
   for (const Inst &I : Phis) {
     if (I.isDeleted())
@@ -894,8 +895,10 @@ void CfgNode::emit(Cfg *Func) const {
     Str << "\n";
     updateStats(Func, &I);
   }
-  if (DecorateAsm)
-    emitRegisterUsage(Str, Func, this, false, LiveRegCount);
+  if (DecorateAsm) {
+    const bool IsLiveIn = false;
+    emitRegisterUsage(Str, Func, this, IsLiveIn, LiveRegCount);
+  }
 }
 
 // Helper class for emitIAS().
