@@ -67,7 +67,7 @@ public:
                               size_t BasicFrameOffset, size_t &InArgsSizeBytes);
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
-  x86::Address stackVarToAsmOperand(const Variable *Var) const;
+  X8632::Address stackVarToAsmOperand(const Variable *Var) const;
 
   enum X86InstructionSet {
     Begin,

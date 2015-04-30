@@ -38,7 +38,7 @@ using RegX8632::XmmRegister;
 using RegX8632::ByteRegister;
 using RegX8632::X87STRegister;
 
-namespace x86 {
+namespace X8632 {
 
 const int MAX_NOP_SIZE = 8;
 
@@ -170,7 +170,7 @@ private:
            && ((encoding_[0] & 0x07) == reg); // Register codes match.
   }
 
-  friend class AssemblerX86;
+  friend class AssemblerX8632;
 };
 
 class Address : public Operand {
@@ -330,20 +330,20 @@ private:
   // llvm::SmallVector<intptr_t, kMaxUnresolvedBranches> ?
   intptr_t unresolved_near_positions_[kMaxUnresolvedBranches];
 
-  friend class AssemblerX86;
+  friend class AssemblerX8632;
 };
 
-class AssemblerX86 : public Assembler {
-  AssemblerX86(const AssemblerX86 &) = delete;
-  AssemblerX86 &operator=(const AssemblerX86 &) = delete;
+class AssemblerX8632 : public Assembler {
+  AssemblerX8632(const AssemblerX8632 &) = delete;
+  AssemblerX8632 &operator=(const AssemblerX8632 &) = delete;
 
 public:
-  explicit AssemblerX86(bool use_far_branches = false) : Assembler() {
+  explicit AssemblerX8632(bool use_far_branches = false) : Assembler() {
     // This mode is only needed and implemented for MIPS and ARM.
     assert(!use_far_branches);
     (void)use_far_branches;
   }
-  ~AssemblerX86() override;
+  ~AssemblerX8632() override;
 
   static const bool kNearJump = true;
   static const bool kFarJump = false;
@@ -377,18 +377,19 @@ public:
   }
 
   // Operations to emit GPR instructions (and dispatch on operand type).
-  typedef void (AssemblerX86::*TypedEmitGPR)(Type, GPRRegister);
-  typedef void (AssemblerX86::*TypedEmitAddr)(Type, const Address &);
+  typedef void (AssemblerX8632::*TypedEmitGPR)(Type, GPRRegister);
+  typedef void (AssemblerX8632::*TypedEmitAddr)(Type, const Address &);
   struct GPREmitterOneOp {
     TypedEmitGPR Reg;
     TypedEmitAddr Addr;
   };
 
-  typedef void (AssemblerX86::*TypedEmitGPRGPR)(Type, GPRRegister, GPRRegister);
-  typedef void (AssemblerX86::*TypedEmitGPRAddr)(Type, GPRRegister,
-                                                 const Address &);
-  typedef void (AssemblerX86::*TypedEmitGPRImm)(Type, GPRRegister,
-                                                const Immediate &);
+  typedef void (AssemblerX8632::*TypedEmitGPRGPR)(Type, GPRRegister,
+                                                  GPRRegister);
+  typedef void (AssemblerX8632::*TypedEmitGPRAddr)(Type, GPRRegister,
+                                                   const Address &);
+  typedef void (AssemblerX8632::*TypedEmitGPRImm)(Type, GPRRegister,
+                                                  const Immediate &);
   struct GPREmitterRegOp {
     TypedEmitGPRGPR GPRGPR;
     TypedEmitGPRAddr GPRAddr;
@@ -402,9 +403,9 @@ public:
     TypedEmitGPRImm GPRImm;
   };
 
-  typedef void (AssemblerX86::*TypedEmitGPRGPRImm)(Type, GPRRegister,
-                                                   GPRRegister,
-                                                   const Immediate &);
+  typedef void (AssemblerX8632::*TypedEmitGPRGPRImm)(Type, GPRRegister,
+                                                     GPRRegister,
+                                                     const Immediate &);
   struct GPREmitterShiftD {
     // Technically AddrGPR and AddrGPRImm are also allowed, but in practice
     // we always normalize Dest to a Register first.
@@ -412,35 +413,36 @@ public:
     TypedEmitGPRGPRImm GPRGPRImm;
   };
 
-  typedef void (AssemblerX86::*TypedEmitAddrGPR)(Type, const Address &,
-                                                 GPRRegister);
-  typedef void (AssemblerX86::*TypedEmitAddrImm)(Type, const Address &,
-                                                 const Immediate &);
+  typedef void (AssemblerX8632::*TypedEmitAddrGPR)(Type, const Address &,
+                                                   GPRRegister);
+  typedef void (AssemblerX8632::*TypedEmitAddrImm)(Type, const Address &,
+                                                   const Immediate &);
   struct GPREmitterAddrOp {
     TypedEmitAddrGPR AddrGPR;
     TypedEmitAddrImm AddrImm;
   };
 
   // Operations to emit XMM instructions (and dispatch on operand type).
-  typedef void (AssemblerX86::*TypedEmitXmmXmm)(Type, XmmRegister, XmmRegister);
-  typedef void (AssemblerX86::*TypedEmitXmmAddr)(Type, XmmRegister,
-                                                 const Address &);
+  typedef void (AssemblerX8632::*TypedEmitXmmXmm)(Type, XmmRegister,
+                                                  XmmRegister);
+  typedef void (AssemblerX8632::*TypedEmitXmmAddr)(Type, XmmRegister,
+                                                   const Address &);
   struct XmmEmitterRegOp {
     TypedEmitXmmXmm XmmXmm;
     TypedEmitXmmAddr XmmAddr;
   };
 
-  typedef void (AssemblerX86::*EmitXmmXmm)(XmmRegister, XmmRegister);
-  typedef void (AssemblerX86::*EmitXmmAddr)(XmmRegister, const Address &);
-  typedef void (AssemblerX86::*EmitAddrXmm)(const Address &, XmmRegister);
+  typedef void (AssemblerX8632::*EmitXmmXmm)(XmmRegister, XmmRegister);
+  typedef void (AssemblerX8632::*EmitXmmAddr)(XmmRegister, const Address &);
+  typedef void (AssemblerX8632::*EmitAddrXmm)(const Address &, XmmRegister);
   struct XmmEmitterMovOps {
     EmitXmmXmm XmmXmm;
     EmitXmmAddr XmmAddr;
     EmitAddrXmm AddrXmm;
   };
 
-  typedef void (AssemblerX86::*TypedEmitXmmImm)(Type, XmmRegister,
-                                                const Immediate &);
+  typedef void (AssemblerX8632::*TypedEmitXmmImm)(Type, XmmRegister,
+                                                  const Immediate &);
 
   struct XmmEmitterShiftOp {
     TypedEmitXmmXmm XmmXmm;
@@ -450,8 +452,9 @@ public:
 
   // Cross Xmm/GPR cast instructions.
   template <typename DReg_t, typename SReg_t> struct CastEmitterRegOp {
-    typedef void (AssemblerX86::*TypedEmitRegs)(Type, DReg_t, SReg_t);
-    typedef void (AssemblerX86::*TypedEmitAddr)(Type, DReg_t, const Address &);
+    typedef void (AssemblerX8632::*TypedEmitRegs)(Type, DReg_t, SReg_t);
+    typedef void (AssemblerX8632::*TypedEmitAddr)(Type, DReg_t,
+                                                  const Address &);
 
     TypedEmitRegs RegReg;
     TypedEmitAddr RegAddr;
@@ -460,11 +463,11 @@ public:
   // Three operand (potentially) cross Xmm/GPR instructions.
   // The last operand must be an immediate.
   template <typename DReg_t, typename SReg_t> struct ThreeOpImmEmitter {
-    typedef void (AssemblerX86::*TypedEmitRegRegImm)(Type, DReg_t, SReg_t,
-                                                     const Immediate &);
-    typedef void (AssemblerX86::*TypedEmitRegAddrImm)(Type, DReg_t,
-                                                      const Address &,
-                                                      const Immediate &);
+    typedef void (AssemblerX8632::*TypedEmitRegRegImm)(Type, DReg_t, SReg_t,
+                                                       const Immediate &);
+    typedef void (AssemblerX8632::*TypedEmitRegAddrImm)(Type, DReg_t,
+                                                        const Address &,
+                                                        const Immediate &);
 
     TypedEmitRegRegImm RegRegImm;
     TypedEmitRegAddrImm RegAddrImm;
@@ -853,34 +856,34 @@ private:
   Label *GetOrCreateLabel(SizeT Number, LabelVector &Labels);
 };
 
-inline void AssemblerX86::EmitUint8(uint8_t value) {
+inline void AssemblerX8632::EmitUint8(uint8_t value) {
   buffer_.Emit<uint8_t>(value);
 }
 
-inline void AssemblerX86::EmitInt16(int16_t value) {
+inline void AssemblerX8632::EmitInt16(int16_t value) {
   buffer_.Emit<int16_t>(value);
 }
 
-inline void AssemblerX86::EmitInt32(int32_t value) {
+inline void AssemblerX8632::EmitInt32(int32_t value) {
   buffer_.Emit<int32_t>(value);
 }
 
-inline void AssemblerX86::EmitRegisterOperand(int rm, int reg) {
+inline void AssemblerX8632::EmitRegisterOperand(int rm, int reg) {
   assert(rm >= 0 && rm < 8);
   buffer_.Emit<uint8_t>(0xC0 + (rm << 3) + reg);
 }
 
-inline void AssemblerX86::EmitXmmRegisterOperand(int rm, XmmRegister reg) {
+inline void AssemblerX8632::EmitXmmRegisterOperand(int rm, XmmRegister reg) {
   EmitRegisterOperand(rm, static_cast<GPRRegister>(reg));
 }
 
-inline void AssemblerX86::EmitFixup(AssemblerFixup *fixup) {
+inline void AssemblerX8632::EmitFixup(AssemblerFixup *fixup) {
   buffer_.EmitFixup(fixup);
 }
 
-inline void AssemblerX86::EmitOperandSizeOverride() { EmitUint8(0x66); }
+inline void AssemblerX8632::EmitOperandSizeOverride() { EmitUint8(0x66); }
 
-} // end of namespace x86
+} // end of namespace X8632
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ASSEMBLER_IA32_H

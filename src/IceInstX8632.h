@@ -76,8 +76,8 @@ public:
   Variable *getIndex() const { return Index; }
   uint16_t getShift() const { return Shift; }
   SegmentRegisters getSegmentRegister() const { return SegmentReg; }
-  void emitSegmentOverride(x86::AssemblerX86 *Asm) const;
-  x86::Address toAsmAddress(Assembler *Asm) const;
+  void emitSegmentOverride(X8632::AssemblerX8632 *Asm) const;
+  X8632::Address toAsmAddress(Assembler *Asm) const;
   void emit(const Cfg *Func) const override;
   using OperandX8632::dump;
   void dump(const Cfg *Func, Ostream &Str) const override;
@@ -115,7 +115,7 @@ public:
   }
   int32_t getOffset() const { return Part == High ? 4 : 0; }
 
-  x86::Address toAsmAddress(const Cfg *Func) const;
+  X8632::Address toAsmAddress(const Cfg *Func) const;
   void emit(const Cfg *Func) const override;
   using OperandX8632::dump;
   void dump(const Cfg *Func, Ostream &Str) const override;
@@ -501,7 +501,7 @@ private:
 
 // Emit a one-operand (GPR) instruction.
 void emitIASOpTyGPR(const Cfg *Func, Type Ty, const Operand *Var,
-                    const x86::AssemblerX86::GPREmitterOneOp &Emitter);
+                    const X8632::AssemblerX8632::GPREmitterOneOp &Emitter);
 
 // Instructions of the form x := op(x).
 template <InstX8632::InstKindX8632 K>
@@ -546,7 +546,7 @@ private:
   }
   ~InstX8632InplaceopGPR() override {}
   static const char *Opcode;
-  static const x86::AssemblerX86::GPREmitterOneOp Emitter;
+  static const X8632::AssemblerX8632::GPREmitterOneOp Emitter;
 };
 
 // Emit a two-operand (GPR) instruction, where the dest operand is a
@@ -554,7 +554,7 @@ private:
 template <bool VarCanBeByte = true, bool SrcCanBeByte = true>
 void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Dst,
                        const Operand *Src,
-                       const x86::AssemblerX86::GPREmitterRegOp &Emitter);
+                       const X8632::AssemblerX8632::GPREmitterRegOp &Emitter);
 
 // Instructions of the form x := op(y).
 template <InstX8632::InstKindX8632 K>
@@ -610,12 +610,12 @@ private:
   }
   ~InstX8632UnaryopGPR() override {}
   static const char *Opcode;
-  static const x86::AssemblerX86::GPREmitterRegOp Emitter;
+  static const X8632::AssemblerX8632::GPREmitterRegOp Emitter;
 };
 
 void emitIASRegOpTyXMM(const Cfg *Func, Type Ty, const Variable *Var,
                        const Operand *Src,
-                       const x86::AssemblerX86::XmmEmitterRegOp &Emitter);
+                       const X8632::AssemblerX8632::XmmEmitterRegOp &Emitter);
 
 template <InstX8632::InstKindX8632 K>
 class InstX8632UnaryopXmm : public InstX8632 {
@@ -660,7 +660,7 @@ private:
   }
   ~InstX8632UnaryopXmm() override {}
   static const char *Opcode;
-  static const x86::AssemblerX86::XmmEmitterRegOp Emitter;
+  static const X8632::AssemblerX8632::XmmEmitterRegOp Emitter;
 };
 
 // See the definition of emitTwoAddress() for a description of
@@ -670,7 +670,7 @@ void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
 
 void emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
                      const Operand *Src,
-                     const x86::AssemblerX86::GPREmitterShiftOp &Emitter);
+                     const X8632::AssemblerX8632::GPREmitterShiftOp &Emitter);
 
 template <InstX8632::InstKindX8632 K>
 class InstX8632BinopGPRShift : public InstX8632 {
@@ -714,7 +714,7 @@ private:
   }
   ~InstX8632BinopGPRShift() override {}
   static const char *Opcode;
-  static const x86::AssemblerX86::GPREmitterShiftOp Emitter;
+  static const X8632::AssemblerX8632::GPREmitterShiftOp Emitter;
 };
 
 template <InstX8632::InstKindX8632 K>
@@ -758,7 +758,7 @@ private:
   }
   ~InstX8632BinopGPR() override {}
   static const char *Opcode;
-  static const x86::AssemblerX86::GPREmitterRegOp Emitter;
+  static const X8632::AssemblerX8632::GPREmitterRegOp Emitter;
 };
 
 template <InstX8632::InstKindX8632 K, bool NeedsElementType>
@@ -806,12 +806,12 @@ private:
   }
   ~InstX8632BinopXmm() override {}
   static const char *Opcode;
-  static const x86::AssemblerX86::XmmEmitterRegOp Emitter;
+  static const X8632::AssemblerX8632::XmmEmitterRegOp Emitter;
 };
 
 void emitIASXmmShift(const Cfg *Func, Type Ty, const Variable *Var,
                      const Operand *Src,
-                     const x86::AssemblerX86::XmmEmitterShiftOp &Emitter);
+                     const X8632::AssemblerX8632::XmmEmitterShiftOp &Emitter);
 
 template <InstX8632::InstKindX8632 K, bool AllowAllTypes = false>
 class InstX8632BinopXmmShift : public InstX8632 {
@@ -859,7 +859,7 @@ private:
   }
   ~InstX8632BinopXmmShift() override {}
   static const char *Opcode;
-  static const x86::AssemblerX86::XmmEmitterShiftOp Emitter;
+  static const X8632::AssemblerX8632::XmmEmitterShiftOp Emitter;
 };
 
 template <InstX8632::InstKindX8632 K> class InstX8632Ternop : public InstX8632 {

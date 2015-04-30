@@ -28,6 +28,7 @@
 #include "assembler.h"
 
 namespace Ice {
+namespace ARM32 {
 
 class AssemblerARM32 : public Assembler {
   AssemblerARM32(const AssemblerARM32 &) = delete;
@@ -67,6 +68,7 @@ public:
   }
 };
 
+} // end of namespace ARM32
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ASSEMBLER_ARM32_H

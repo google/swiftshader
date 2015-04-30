@@ -518,7 +518,7 @@ void TargetX8632::emitVariable(const Variable *Var) const {
   Str << "(%" << getRegName(getFrameOrStackReg(), Ty) << ")";
 }
 
-x86::Address TargetX8632::stackVarToAsmOperand(const Variable *Var) const {
+X8632::Address TargetX8632::stackVarToAsmOperand(const Variable *Var) const {
   if (Var->hasReg())
     llvm_unreachable("Stack Variable has a register assigned");
   if (Var->getWeight().isInf())
@@ -526,7 +526,7 @@ x86::Address TargetX8632::stackVarToAsmOperand(const Variable *Var) const {
   int32_t Offset = Var->getStackOffset();
   if (!hasFramePointer())
     Offset += getStackAdjustment();
-  return x86::Address(RegX8632::getEncodedGPR(getFrameOrStackReg()), Offset);
+  return X8632::Address(RegX8632::getEncodedGPR(getFrameOrStackReg()), Offset);
 }
 
 void TargetX8632::lowerArguments() {

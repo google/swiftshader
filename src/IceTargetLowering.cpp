@@ -80,15 +80,10 @@ TargetLowering::TargetLowering(Cfg *Func)
 
 std::unique_ptr<Assembler> TargetLowering::createAssembler(TargetArch Target,
                                                            Cfg *Func) {
-  // These statements can be #ifdef'd to specialize the assembler
-  // to a subset of the available targets.  TODO: use CRTP.
-  // TODO(jvoung): use SZTargets.def (rename AssemblerX86 -> AssemblerX8632),
-  // and make the namespaces consistent.
-  if (Target == Target_X8632)
-    return std::unique_ptr<Assembler>(new x86::AssemblerX86());
-
-  if (Target == Target_ARM32)
-    return std::unique_ptr<Assembler>(new AssemblerARM32());
+#define SUBZERO_TARGET(X)                                                      \
+  if (Target == Target_##X)                                                    \
+    return std::unique_ptr<Assembler>(new X::Assembler##X());
+#include "llvm/Config/SZTargets.def"
 
   Func->setError("Unsupported target assembler");
   return nullptr;
