@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b017cafa_7bc337a7",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2821,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-30T05:30:04Z",
+      "side": 1,
+      "message": "This might have to be 0x7FFFFFFF instead, if I\u0027m reading the spec correctly (section 6.1.2). This would be a prior bug in the 32-bit getInteger too.",
+      "range": {
+        "startLine": 2821,
+        "startChar": 37,
+        "endLine": 2821,
+        "endChar": 47
+      },
+      "revId": "4d9382815ddedd7005561ce57bd8ec32618ed40a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
