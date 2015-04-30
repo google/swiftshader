@@ -3151,6 +3151,8 @@ void GetProgramiv(GLuint program, GLenum pname, GLint* params)
 			return error(GL_INVALID_VALUE);
 		}
 
+		egl::GLint clientVersion = egl::getClientVersion();
+
 		switch(pname)
 		{
 		case GL_DELETE_STATUS:
@@ -3180,6 +3182,20 @@ void GetProgramiv(GLuint program, GLenum pname, GLint* params)
 		case GL_ACTIVE_UNIFORM_MAX_LENGTH:
 			*params = programObject->getActiveUniformMaxLength();
 			return;
+		case GL_ACTIVE_UNIFORM_BLOCKS:
+			if(clientVersion >= 3)
+			{
+				*params = programObject->getActiveUniformBlockCount();
+				return;
+			}
+			else return error(GL_INVALID_ENUM);
+		case GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH:
+			if(clientVersion >= 3)
+			{
+				*params = programObject->getActiveUniformBlockMaxLength();
+				return;
+			}
+			else return error(GL_INVALID_ENUM);
 		default:
 			return error(GL_INVALID_ENUM);
 		}

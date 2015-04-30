@@ -2672,6 +2672,11 @@ GL_APICALL void GL_APIENTRY glGetUniformIndices(GLuint program, GLsizei uniformC
 	TRACE("(GLuint program = %d, GLsizei uniformCount = %d, const GLchar *const*uniformNames = %p, GLuint *uniformIndices = %p)",
 	      program, uniformCount, uniformNames, uniformIndices);
 
+	if (uniformCount < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -2682,9 +2687,22 @@ GL_APICALL void GL_APIENTRY glGetUniformIndices(GLuint program, GLsizei uniformC
 		{
 			return error(GL_INVALID_OPERATION);
 		}
-	}
 
-	UNIMPLEMENTED();
+		if(!programObject->isLinked())
+		{
+			for(int uniformId = 0; uniformId < uniformCount; uniformId++)
+			{
+				uniformIndices[uniformId] = GL_INVALID_INDEX;
+			}
+		}
+		else
+		{
+			for(int uniformId = 0; uniformId < uniformCount; uniformId++)
+			{
+				uniformIndices[uniformId] = programObject->getUniformIndex(uniformNames[uniformId]);
+			}
+		}
+	}
 }
 
 GL_APICALL void GL_APIENTRY glGetActiveUniformsiv(GLuint program, GLsizei uniformCount, const GLuint *uniformIndices, GLenum pname, GLint *params)
@@ -2737,30 +2755,15 @@ GL_APICALL GLuint GL_APIENTRY glGetUniformBlockIndex(GLuint program, const GLcha
 		{
 			return error(GL_INVALID_OPERATION, GL_INVALID_INDEX);
 		}
-	}
 
-	UNIMPLEMENTED();
-	return GL_INVALID_INDEX;
+		return programObject->getUniformBlockIndex(uniformBlockName);
+	}
 }
 
 GL_APICALL void GL_APIENTRY glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params)
 {
 	TRACE("(GLuint program = %d, GLuint uniformBlockIndex = %d, GLenum pname = 0x%X, GLint *params = %p)",
 	      program, uniformBlockIndex, pname, params);
-
-	switch(pname)
-	{
-	case GL_UNIFORM_BLOCK_BINDING:
-	case GL_UNIFORM_BLOCK_DATA_SIZE:
-	case GL_UNIFORM_BLOCK_NAME_LENGTH:
-	case GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS:
-	case GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES:
-	case GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER:
-	case GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER:
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
-	}
 
 	es2::Context *context = es2::getContext();
 
@@ -2772,9 +2775,24 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformBlockiv(GLuint program, GLuint uni
 		{
 			return error(GL_INVALID_OPERATION);
 		}
-	}
 
-	UNIMPLEMENTED();
+		switch(pname)
+		{
+		case GL_UNIFORM_BLOCK_BINDING:
+			*params = static_cast<GLint>(program->getUniformBlockBinding(uniformBlockIndex));
+			break;
+		case GL_UNIFORM_BLOCK_DATA_SIZE:
+		case GL_UNIFORM_BLOCK_NAME_LENGTH:
+		case GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS:
+		case GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES:
+		case GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER:
+		case GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER:
+			program->getActiveUniformBlockiv(uniformBlockIndex, pname, params);
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 GL_APICALL void GL_APIENTRY glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformBlockName)
@@ -2792,15 +2810,20 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformBlockName(GLuint program, GLuint u
 		{
 			return error(GL_INVALID_OPERATION);
 		}
-	}
 
-	UNIMPLEMENTED();
+		programObject->getActiveUniformBlockName(uniformBlockIndex, bufSize, length, uniformBlockName);
+	}
 }
 
 GL_APICALL void GL_APIENTRY glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding)
 {
 	TRACE("(GLuint program = %d, GLuint uniformBlockIndex = %d, GLuint uniformBlockBinding = %d)",
 	      program, uniformBlockIndex, uniformBlockBinding);
+
+	if(uniformBlockBinding >= es2::IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
 
 	es2::Context *context = es2::getContext();
 
@@ -2812,9 +2835,9 @@ GL_APICALL void GL_APIENTRY glUniformBlockBinding(GLuint program, GLuint uniform
 		{
 			return error(GL_INVALID_VALUE);
 		}
-	}
 
-	UNIMPLEMENTED();
+		programObject->bindUniformBlock(uniformBlockIndex, uniformBlockIndex);
+	}
 }
 
 GL_APICALL void GL_APIENTRY glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount)

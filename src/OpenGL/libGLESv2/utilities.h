@@ -48,6 +48,10 @@ namespace es2
 	bool IsColorRenderable(GLenum internalformat);
 	bool IsDepthRenderable(GLenum internalformat);
 	bool IsStencilRenderable(GLenum internalformat);
+
+	// Parse the base uniform name and array index.  Returns the base name of the uniform. outSubscript is
+	// set to GL_INVALID_INDEX if the provided name is not an array or the array index is invalid.
+	std::string ParseUniformName(const std::string &name, size_t *outSubscript);
 }
 
 namespace es2sw

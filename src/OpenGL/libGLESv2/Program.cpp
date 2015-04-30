@@ -66,6 +66,26 @@ namespace es2
 		return size() * VariableRowCount(type);
 	}
 
+	UniformBlock::UniformBlock(const std::string &name, unsigned int elementIndex, unsigned int dataSize) :
+		name(name), elementIndex(elementIndex), dataSize(dataSize), psRegisterIndex(GL_INVALID_INDEX), vsRegisterIndex(GL_INVALID_INDEX)
+	{
+	}
+
+	bool UniformBlock::isArrayElement() const
+	{
+		return elementIndex != GL_INVALID_INDEX;
+	}
+
+	bool UniformBlock::isReferencedByVertexShader() const
+	{
+		return vsRegisterIndex != GL_INVALID_INDEX;
+	}
+
+	bool UniformBlock::isReferencedByFragmentShader() const
+	{
+		return psRegisterIndex != GL_INVALID_INDEX;
+	}
+
 	UniformLocation::UniformLocation(const std::string &name, unsigned int element, unsigned int index) : name(name), element(element), index(index)
 	{
 	}
@@ -82,6 +102,7 @@ namespace es2
 		infoLog = 0;
 		validated = false;
 
+		resetUniformBlockBindings();
 		unlink();
 
 		orphaned = false;
@@ -261,30 +282,127 @@ namespace es2
 		return TEXTURE_2D;
 	}
 
-	GLint Program::getUniformLocation(std::string name)
+	GLint Program::getUniformLocation(const std::string &name) const
 	{
-		int subscript = 0;
-
-		// Strip any trailing array operator and retrieve the subscript
-		size_t open = name.find_last_of('[');
-		size_t close = name.find_last_of(']');
-		if(open != std::string::npos && close == name.length() - 1)
-		{
-			subscript = atoi(name.substr(open + 1).c_str());
-			name.erase(open);
-		}
+		size_t subscript = GL_INVALID_INDEX;
+		std::string baseName = es2::ParseUniformName(name, &subscript);
 
 		unsigned int numUniforms = uniformIndex.size();
 		for(unsigned int location = 0; location < numUniforms; location++)
 		{
-			if(uniformIndex[location].name == name &&
-			   uniformIndex[location].element == subscript)
+			const int index = uniformIndex[location].index;
+			const bool isArray = uniforms[index]->isArray();
+
+			if(uniformIndex[location].name == baseName &&
+			   ((isArray && uniformIndex[location].element == subscript) ||
+			    (subscript == GL_INVALID_INDEX)))
 			{
 				return location;
 			}
 		}
 
 		return -1;
+	}
+
+	GLuint Program::getUniformIndex(const std::string &name) const
+	{
+		size_t subscript = GL_INVALID_INDEX;
+		std::string baseName = es2::ParseUniformName(name, &subscript);
+
+		// The app is not allowed to specify array indices other than 0 for arrays of basic types
+		if(subscript != 0 && subscript != GL_INVALID_INDEX)
+		{
+			return GL_INVALID_INDEX;
+		}
+
+		unsigned int numUniforms = uniforms.size();
+		for(unsigned int index = 0; index < numUniforms; index++)
+		{
+			if(uniforms[index]->name == baseName)
+			{
+				if(uniforms[index]->isArray() || subscript == GL_INVALID_INDEX)
+				{
+					return index;
+				}
+			}
+		}
+
+		return GL_INVALID_INDEX;
+	}
+
+	void Program::getActiveUniformBlockiv(GLuint uniformBlockIndex, GLenum pname, GLint *params) const
+	{
+		ASSERT(uniformBlockIndex < getActiveUniformBlockCount());
+
+		const UniformBlock &uniformBlock = *uniformBlocks[uniformBlockIndex];
+
+		switch(pname)
+		{
+		case GL_UNIFORM_BLOCK_DATA_SIZE:
+			*params = static_cast<GLint>(uniformBlock.dataSize);
+			break;
+		case GL_UNIFORM_BLOCK_NAME_LENGTH:
+			*params = static_cast<GLint>(uniformBlock.name.size() + 1 + (uniformBlock.isArrayElement() ? 3 : 0));
+			break;
+		case GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS:
+			*params = static_cast<GLint>(uniformBlock.memberUniformIndexes.size());
+			break;
+		case GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES:
+			{
+				for(unsigned int blockMemberIndex = 0; blockMemberIndex < uniformBlock.memberUniformIndexes.size(); blockMemberIndex++)
+				{
+					params[blockMemberIndex] = static_cast<GLint>(uniformBlock.memberUniformIndexes[blockMemberIndex]);
+				}
+			}
+			break;
+		case GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER:
+			*params = static_cast<GLint>(uniformBlock.isReferencedByVertexShader());
+			break;
+		case GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER:
+			*params = static_cast<GLint>(uniformBlock.isReferencedByFragmentShader());
+			break;
+		default: UNREACHABLE();
+		}
+	}
+
+	GLuint Program::getUniformBlockIndex(const std::string &name) const
+	{
+		size_t subscript = GL_INVALID_INDEX;
+		std::string baseName = es2::ParseUniformName(name, &subscript);
+
+		unsigned int numUniformBlocks = getActiveUniformBlockCount();
+		for(unsigned int blockIndex = 0; blockIndex < numUniformBlocks; blockIndex++)
+		{
+			const UniformBlock &uniformBlock = *uniformBlocks[blockIndex];
+			if(uniformBlock.name == baseName)
+			{
+				const bool arrayElementZero = (subscript == GL_INVALID_INDEX && uniformBlock.elementIndex == 0);
+				if(subscript == uniformBlock.elementIndex || arrayElementZero)
+				{
+					return blockIndex;
+				}
+			}
+		}
+
+		return GL_INVALID_INDEX;
+	}
+
+	void Program::bindUniformBlock(GLuint uniformBlockIndex, GLuint uniformBlockBinding)
+	{
+		uniformBlockBindings[uniformBlockIndex] = uniformBlockBinding;
+	}
+
+	GLuint Program::getUniformBlockBinding(GLuint uniformBlockIndex) const
+	{
+		return uniformBlockBindings[uniformBlockIndex];
+	}
+
+	void Program::resetUniformBlockBindings()
+	{
+		for(unsigned int blockId = 0; blockId < MAX_UNIFORM_BUFFER_BINDINGS; blockId++)
+		{
+			uniformBlockBindings[blockId] = 0;
+		}
 	}
 
 	bool Program::setUniformfv(GLint location, GLsizei count, const GLfloat *v, int numElements)
@@ -1046,6 +1164,8 @@ namespace es2
 	{
 		unlink();
 
+		resetUniformBlockBindings();
+
 		if(!fragmentShader || !fragmentShader->isCompiled())
 		{
 			return;
@@ -1163,7 +1283,7 @@ namespace es2
 		return -1;
 	}
 
-	bool Program::linkUniforms(Shader *shader)
+	bool Program::linkUniforms(const Shader *shader)
 	{
 		const glsl::ActiveUniforms &activeUniforms = shader->activeUniforms;
 
@@ -2158,7 +2278,7 @@ namespace es2
 		linked = false;
 	}
 
-	bool Program::isLinked()
+	bool Program::isLinked() const
 	{
 		return linked;
 	}
@@ -2374,6 +2494,63 @@ namespace es2
 					length += 3;  // Counting in "[0]".
 				}
 				maxLength = std::max(length, maxLength);
+			}
+		}
+
+		return maxLength;
+	}
+
+	void Program::getActiveUniformBlockName(GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name) const
+	{
+		ASSERT(index < getActiveUniformBlockCount());
+
+		const UniformBlock &uniformBlock = *uniformBlocks[index];
+
+		if(bufSize > 0)
+		{
+			std::string string = uniformBlock.name;
+
+			if(uniformBlock.isArrayElement())
+			{
+				string += "[";
+				string += std::to_string(uniformBlock.elementIndex);
+				string += "]";
+			}
+
+			strncpy(name, string.c_str(), bufSize);
+			name[bufSize - 1] = '\0';
+
+			if(length)
+			{
+				*length = strlen(name);
+			}
+		}
+	}
+
+	GLint Program::getActiveUniformBlockCount() const
+	{
+		return uniformBlocks.size();
+	}
+
+	GLint Program::getActiveUniformBlockMaxLength() const
+	{
+		int maxLength = 0;
+
+		if(isLinked())
+		{
+			unsigned int numUniformBlocks = getActiveUniformBlockCount();
+			for(unsigned int uniformBlockIndex = 0; uniformBlockIndex < numUniformBlocks; uniformBlockIndex++)
+			{
+				const UniformBlock &uniformBlock = *uniformBlocks[uniformBlockIndex];
+				if(!uniformBlock.name.empty())
+				{
+					const int length = uniformBlock.name.length() + 1;
+
+					// Counting in "[0]".
+					const int arrayLength = (uniformBlock.isArrayElement() ? 3 : 0);
+
+					maxLength = std::max(length + arrayLength, maxLength);
+				}
 			}
 		}
 

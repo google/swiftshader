@@ -44,7 +44,7 @@ public:
 
     virtual ~Shader();
 
-    virtual GLenum getType() = 0;
+    virtual GLenum getType() const = 0;
     GLuint getName() const;
 
     void deleteSource();
@@ -96,7 +96,7 @@ public:
 
     ~VertexShader();
 
-    virtual GLenum getType();
+    virtual GLenum getType() const;
     int getSemanticIndex(const std::string &attributeName);
 
 	virtual sw::Shader *getShader() const;
@@ -116,7 +116,7 @@ public:
 
     ~FragmentShader();
 
-    virtual GLenum getType();
+    virtual GLenum getType() const;
 
 	virtual sw::Shader *getShader() const;
 	virtual sw::PixelShader *getPixelShader() const;

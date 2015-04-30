@@ -54,6 +54,26 @@ namespace es2
 		short vsRegisterIndex;
 	};
 
+	// Helper struct representing a single shader uniform block
+	struct UniformBlock
+	{
+		// use GL_INVALID_INDEX for non-array elements
+		UniformBlock(const std::string &name, unsigned int elementIndex, unsigned int dataSize);
+
+		bool isArrayElement() const;
+		bool isReferencedByVertexShader() const;
+		bool isReferencedByFragmentShader() const;
+
+		const std::string name;
+		const unsigned int elementIndex;
+		const unsigned int dataSize;
+
+		std::vector<unsigned int> memberUniformIndexes;
+
+		unsigned int psRegisterIndex;
+		unsigned int vsRegisterIndex;
+	};
+
 	// Struct used for correlating uniforms/elements of uniform arrays to handles
 	struct UniformLocation
 	{
@@ -85,7 +105,13 @@ namespace es2
 		GLint getSamplerMapping(sw::SamplerType type, unsigned int samplerIndex);
 		TextureType getSamplerTextureType(sw::SamplerType type, unsigned int samplerIndex);
 
-		GLint getUniformLocation(std::string name);
+		GLuint getUniformIndex(const std::string &name) const;
+		GLuint getUniformBlockIndex(const std::string &name) const;
+		void bindUniformBlock(GLuint uniformBlockIndex, GLuint uniformBlockBinding);
+		GLuint getUniformBlockBinding(GLuint uniformBlockIndex) const;
+		void getActiveUniformBlockiv(GLuint uniformBlockIndex, GLenum pname, GLint *params) const;
+
+		GLint getUniformLocation(const std::string &name) const;
 		bool setUniform1fv(GLint location, GLsizei count, const GLfloat *v);
 		bool setUniform2fv(GLint location, GLsizei count, const GLfloat *v);
 		bool setUniform3fv(GLint location, GLsizei count, const GLfloat *v);
@@ -116,7 +142,7 @@ namespace es2
 		void applyUniforms();
 
 		void link();
-		bool isLinked();
+		bool isLinked() const;
 		int getInfoLogLength() const;
 		void getInfoLog(GLsizei bufSize, GLsizei *length, char *infoLog);
 		void getAttachedShaders(GLsizei maxCount, GLsizei *count, GLuint *shaders);
@@ -128,6 +154,10 @@ namespace es2
 		void getActiveUniform(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name) const;
 		GLint getActiveUniformCount() const;
 		GLint getActiveUniformMaxLength() const;
+
+		void getActiveUniformBlockName(GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name) const;
+		GLint getActiveUniformBlockCount() const;
+		GLint getActiveUniformBlockMaxLength() const;
 
 		void addRef();
 		void release();
@@ -143,13 +173,14 @@ namespace es2
 
 	private:
 		void unlink();
+		void resetUniformBlockBindings();
 
 		bool linkVaryings();
 
 		bool linkAttributes();
 		int getAttributeBinding(const std::string &name);
 
-		bool linkUniforms(Shader *shader);
+		bool linkUniforms(const Shader *shader);
 		bool defineUniform(GLenum shader, GLenum type, GLenum precision, const std::string &_name, unsigned int arraySize, int registerIndex);
 		bool applyUniform1bv(GLint location, GLsizei count, const GLboolean *v);
 		bool applyUniform2bv(GLint location, GLsizei count, const GLboolean *v);
@@ -199,6 +230,8 @@ namespace es2
 		glsl::Attribute linkedAttribute[MAX_VERTEX_ATTRIBS];
 		int attributeStream[MAX_VERTEX_ATTRIBS];
 
+		GLuint uniformBlockBindings[MAX_UNIFORM_BUFFER_BINDINGS];
+
 		struct Sampler
 		{
 			bool active;
@@ -213,6 +246,8 @@ namespace es2
 		UniformArray uniforms;
 		typedef std::vector<UniformLocation> UniformIndex;
 		UniformIndex uniformIndex;
+		typedef std::vector<UniformBlock*> UniformBlockArray;
+		UniformBlockArray uniformBlocks;
 
 		bool linked;
 		bool orphaned;   // Flag to indicate that the program can be deleted when no longer in use

@@ -408,7 +408,7 @@ VertexShader::~VertexShader()
 	delete vertexShader;
 }
 
-GLenum VertexShader::getType()
+GLenum VertexShader::getType() const
 {
     return GL_VERTEX_SHADER;
 }
@@ -461,7 +461,7 @@ FragmentShader::~FragmentShader()
 	delete pixelShader;
 }
 
-GLenum FragmentShader::getType()
+GLenum FragmentShader::getType() const
 {
     return GL_FRAGMENT_SHADER;
 }
