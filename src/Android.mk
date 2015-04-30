@@ -4,6 +4,7 @@ include $(CLEAR_VARS)
 LOCAL_CLANG := true
 
 LOCAL_MODULE := swiftshader_top
+LOCAL_MODULE_TAGS := optional
 
 LOCAL_SRC_FILES := \
 	Common/CPUID.cpp \

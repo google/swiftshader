@@ -3,8 +3,8 @@ include $(CLEAR_VARS)
 
 LOCAL_CLANG := true
 
-LOCAL_MODULE_PATH := $(TARGET_OUT)/vendor/lib/egl
 LOCAL_MODULE := libLLVM_swiftshader
+LOCAL_MODULE_TAGS := optional
 
 LOCAL_SRC_FILES := \
 	lib/Analysis/AliasAnalysis.cpp \
