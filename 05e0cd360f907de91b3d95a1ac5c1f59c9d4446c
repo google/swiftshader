@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "300cbaed_f6f0f0ab",
+        "filename": "src/OpenGL/libGL/ResourceManager.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-04-30T19:55:35Z",
+      "side": 0,
+      "message": "This was inefficient when glGenBuffers was called with large amount (e.g. 35k in Minecraft)",
+      "range": {
+        "startLine": 75,
+        "startChar": 3,
+        "endLine": 75,
+        "endChar": 27
+      },
+      "revId": "05e0cd360f907de91b3d95a1ac5c1f59c9d4446c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
