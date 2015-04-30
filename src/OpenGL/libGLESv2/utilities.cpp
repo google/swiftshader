@@ -197,7 +197,17 @@ namespace es2
 		       format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ||
                format == GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE ||
                format == GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE ||
-               format == GL_ETC1_RGB8_OES;
+               format == GL_ETC1_RGB8_OES ||
+               format == GL_COMPRESSED_R11_EAC ||
+               format == GL_COMPRESSED_SIGNED_R11_EAC ||
+               format == GL_COMPRESSED_RG11_EAC ||
+               format == GL_COMPRESSED_SIGNED_RG11_EAC ||
+               format == GL_COMPRESSED_RGB8_ETC2 ||
+               format == GL_COMPRESSED_SRGB8_ETC2 ||
+               format == GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2 ||
+               format == GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 ||
+               format == GL_COMPRESSED_RGBA8_ETC2_EAC ||
+               format == GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC;
 	}
 
 	bool IsDepthTexture(GLenum format)
