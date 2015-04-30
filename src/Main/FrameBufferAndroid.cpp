@@ -6,8 +6,8 @@
 namespace sw
 {
     FrameBufferAndroid::FrameBufferAndroid(ANativeWindow* window, int width, int height)
-        : FrameBuffer(width, height, false, false),
-        nativeWindow(window), buffer(0), gralloc(0)
+			: FrameBuffer(width, height, false, false),
+			  nativeWindow(window), buffer(0), gralloc(0)
     {
         hw_module_t const* pModule;
         hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &pModule);
@@ -31,15 +31,14 @@ namespace sw
     void FrameBufferAndroid::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format format)
     {
         copy(source, format);
-        nativeWindow->queueBuffer(nativeWindow, buffer, -1);
+		nativeWindow->queueBuffer(nativeWindow, buffer, -1);
+		if (buffer && locked)
+		{
+			locked = 0;
+			unlock(buffer);
+		}
 
-        if (buffer && locked)
-        {
-            locked = 0;
-            unlock(buffer);
-        }
-
-        buffer->common.decRef(&buffer->common);
+		buffer->common.decRef(&buffer->common);
     }
 
     void* FrameBufferAndroid::lock()
@@ -64,6 +63,13 @@ namespace sw
             ALOGE("connect() failed to lock buffer %p", buffer);
             return NULL;
         }
+
+		if ((buffer->width < width) || (buffer->height < height))
+		{
+			ALOGI("lock failed: buffer of %dx%d too small for window of %dx%d",
+				  buffer->width, buffer->height, width, height);
+			return NULL;
+		}
 
 		switch(buffer->format)
 		{
