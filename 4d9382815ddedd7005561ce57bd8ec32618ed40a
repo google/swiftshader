@@ -22,6 +22,30 @@
       "revId": "4d9382815ddedd7005561ce57bd8ec32618ed40a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "300cbaed_31c9dbfb",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2821,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-04-30T14:06:39Z",
+      "side": 1,
+      "message": "Hmmm... actually, for 64 bits, I should probably be using GLdouble and 0xFFFFFFFFFFFFFFFF, not 0xFFFFFFFF, but I think this code is right, since we should be receiving [0,1] values here and there\u0027s a \"* 0.5f\" at the end before converting to int.",
+      "parentUuid": "b017cafa_7bc337a7",
+      "range": {
+        "startLine": 2821,
+        "startChar": 37,
+        "endLine": 2821,
+        "endChar": 47
+      },
+      "revId": "4d9382815ddedd7005561ce57bd8ec32618ed40a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
