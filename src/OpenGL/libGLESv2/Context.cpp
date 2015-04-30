@@ -1957,12 +1957,10 @@ bool Context::getIntegerv(GLenum pname, GLint *params) const
 		*params = 3;
 		break;
 	case GL_MAX_3D_TEXTURE_SIZE: // GLint, at least 2048
-		UNIMPLEMENTED();
-		*params = 2048;
+		*params = IMPLEMENTATION_MAX_TEXTURE_SIZE;
 		break;
 	case GL_MAX_ARRAY_TEXTURE_LAYERS: // GLint, at least 2048
-		UNIMPLEMENTED();
-		*params = 2048;
+		*params = IMPLEMENTATION_MAX_TEXTURE_SIZE;
 		break;
 	case GL_MAX_COLOR_ATTACHMENTS: // integer, at least 8
 		UNIMPLEMENTED();
@@ -2157,8 +2155,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params) const
 		*params = 0;
 		break;
 	case GL_VERTEX_ARRAY_BINDING: // GLint, initially 0
-		UNIMPLEMENTED();
-		*params = 0;
+		*params = getCurrentVertexArray()->name;
 		break;
 	default:
         return false;
