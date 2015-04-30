@@ -46,6 +46,30 @@
       "revId": "4d9382815ddedd7005561ce57bd8ec32618ed40a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "300cbaed_f00f5866",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2821,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-04-30T18:36:09Z",
+      "side": 1,
+      "message": "Ah, I misread the * 0.5f for + 0.5f. Still, it looks fishy whether this correctly implements the convert_float_int() with nearest rounding. Also, the spec says to use the conversion for INT from table 4.5, which is 32-bit even for the 64-bit query. So I\u0027d rather explicitly multiply by 0x7FFFFFFF and have a convert_float_int() function to round it to the nearest integer and clamp.",
+      "parentUuid": "300cbaed_31c9dbfb",
+      "range": {
+        "startLine": 2821,
+        "startChar": 37,
+        "endLine": 2821,
+        "endChar": 47
+      },
+      "revId": "4d9382815ddedd7005561ce57bd8ec32618ed40a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
