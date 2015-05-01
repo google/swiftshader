@@ -114,6 +114,9 @@ GLboolean Query::testQuery()
             case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
                 mResult = (numPixels > 0) ? GL_TRUE : GL_FALSE;
                 break;
+            case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
+                UNIMPLEMENTED();
+                break;
             default:
                 ASSERT(false);
             }

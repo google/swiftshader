@@ -739,6 +739,9 @@ GLuint Context::getActiveQuery(GLenum target) const
     case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
         queryObject = mState.activeQuery[QUERY_ANY_SAMPLES_PASSED_CONSERVATIVE];
         break;
+    case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
+        queryObject = mState.activeQuery[QUERY_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN];
+        break;
     default:
         ASSERT(false);
     }
@@ -1271,6 +1274,9 @@ void Context::beginQuery(GLenum target, GLuint query)
     case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT: 
         qType = QUERY_ANY_SAMPLES_PASSED_CONSERVATIVE; 
         break;
+    case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
+        qType = QUERY_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN;
+        break;
     default: 
         ASSERT(false);
     }
@@ -1307,6 +1313,9 @@ void Context::endQuery(GLenum target)
         break;
     case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT: 
         qType = QUERY_ANY_SAMPLES_PASSED_CONSERVATIVE; 
+        break;
+    case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
+        qType = QUERY_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN;
         break;
     default: 
         ASSERT(false);
