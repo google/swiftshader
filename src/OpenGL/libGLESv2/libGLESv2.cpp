@@ -5027,7 +5027,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 			case GL_RGBA32UI:
 				switch(type)
 				{
-				case GL_INT:
+				case GL_UNSIGNED_INT:
 					break;
 				default:
 					return error(GL_INVALID_ENUM);
@@ -5036,7 +5036,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 			case GL_RGBA32I:
 				switch(type)
 				{
-				case GL_UNSIGNED_INT:
+				case GL_INT:
 					break;
 				default:
 					return error(GL_INVALID_ENUM);
