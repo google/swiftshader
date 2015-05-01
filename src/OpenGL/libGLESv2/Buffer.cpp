@@ -64,7 +64,8 @@ void Buffer::bufferData(const void *data, GLsizeiptr size, GLenum usage)
 
 		if(data)
 		{
-			memcpy((void*)mContents->data(), data, size);
+			char *buffer = (char*)mContents->data();
+			memcpy(buffer + mOffset, data, size);
 		}
 	}
 }

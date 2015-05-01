@@ -469,7 +469,7 @@ void BindBuffer(GLenum target, GLuint buffer)
 		case GL_UNIFORM_BUFFER:
 			if(clientVersion >= 3)
 			{
-				context->bindUniformBuffer(buffer);
+				context->bindGenericUniformBuffer(buffer);
 				return;
 			}
 			else return error(GL_INVALID_ENUM);

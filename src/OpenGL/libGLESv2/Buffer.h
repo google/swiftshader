@@ -36,7 +36,7 @@ class Buffer : public gl::NamedObject
     void bufferData(const void *data, GLsizeiptr size, GLenum usage);
     void bufferSubData(const void *data, GLsizeiptr size, GLintptr offset);
 
-	const void *data() { return mContents ? mContents->data() : 0; }
+	const void *data() const { return mContents ? mContents->data() : 0; }
     size_t size() const { return mSize; }
     GLenum usage() const { return mUsage; }
 	bool isMapped() const { return mIsMapped; }
@@ -44,6 +44,8 @@ class Buffer : public gl::NamedObject
 	GLsizeiptr length() const { return mLength; }
 	GLbitfield access() const { return mAccess; }
 
+	void setOffset(GLintptr offset) { mOffset = offset; }
+	void setSize(size_t size) { mSize = size; }
 	void* mapRange(GLintptr offset, GLsizeiptr length, GLbitfield access);
 	bool unmap();
 	void flushMappedRange(GLintptr offset, GLsizeiptr length) {}

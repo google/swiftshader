@@ -336,7 +336,8 @@ struct State
 	gl::BindingPointer<Buffer> copyWriteBuffer;
 	gl::BindingPointer<Buffer> pixelPackBuffer;
 	gl::BindingPointer<Buffer> pixelUnpackBuffer;
-	gl::BindingPointer<Buffer> uniformBuffer;
+	gl::BindingPointer<Buffer> genericUniformBuffer;
+	gl::BindingPointer<Buffer> uniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
 
     GLuint readFramebuffer;
     GLuint drawFramebuffer;
@@ -517,7 +518,6 @@ public:
 	void bindPixelPackBuffer(GLuint buffer);
 	void bindPixelUnpackBuffer(GLuint buffer);
 	void bindTransformFeedbackBuffer(GLuint buffer);
-	void bindUniformBuffer(GLuint buffer);
     void bindTexture2D(GLuint texture);
     void bindTextureCubeMap(GLuint texture);
     void bindTextureExternal(GLuint texture);
@@ -527,6 +527,10 @@ public:
     void bindDrawFramebuffer(GLuint framebuffer);
     void bindRenderbuffer(GLuint renderbuffer);
 	bool bindVertexArray(GLuint array);
+	void bindGenericUniformBuffer(GLuint buffer);
+	void bindIndexedUniformBuffer(GLuint buffer, GLuint index, GLintptr offset, GLsizeiptr size);
+	void bindGenericTransformFeedbackBuffer(GLuint buffer);
+	void bindIndexedTransformFeedbackBuffer(GLuint buffer, GLuint index, GLintptr offset, GLsizeiptr size);
 	bool bindTransformFeedback(GLuint transformFeedback);
 	bool bindSampler(GLuint unit, GLuint sampler);
     void useProgram(GLuint program);
@@ -563,7 +567,7 @@ public:
 	Buffer *getCopyWriteBuffer() const;
 	Buffer *getPixelPackBuffer() const;
 	Buffer *getPixelUnpackBuffer() const;
-	Buffer *getUniformBuffer() const;
+	Buffer *getGenericUniformBuffer() const;
 	bool getBuffer(GLenum target, es2::Buffer **buffer) const;
 	Program *getCurrentProgram() const;
 	Texture2D *getTexture2D() const;
