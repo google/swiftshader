@@ -188,6 +188,9 @@ copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platf
       <Command>mkdir "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"
 copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN64</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -253,6 +256,9 @@ copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platf
       <Command>mkdir "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"
 copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN64</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
     <ClCompile>
@@ -316,6 +322,9 @@ copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platf
       <Command>mkdir "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"
 copy "$(OutDir)opengl32.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN64</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\MatrixStack.cpp" />

@@ -304,6 +304,9 @@ copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Comman
       <Command>mkdir "$(ProjectDir)..\..\..\lib\$(Configuration)\"
 copy "$(OutDir)libRAD.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)\"</Command>
     </PostBuildEvent>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN64</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Config.cpp" />

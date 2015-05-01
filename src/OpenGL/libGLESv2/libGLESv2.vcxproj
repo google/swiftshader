@@ -316,6 +316,9 @@ copy "$(OutDir)libGLESv2.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Plat
 mkdir "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\translator"
 copy "$(OutDir)libGLESv2.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platform)\translator\libGLES_V2_translator.dll"</Command>
     </PostBuildEvent>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN64</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\Image.cpp" />
