@@ -22,6 +22,30 @@
       "revId": "83c5f5d5adfbdb5f57f280914c041ef7dd919ea5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7042b231_8ec89b2a",
+        "filename": "src/OpenGL/libGLESv2/Query.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-04T11:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d078be71_65e8d027",
+      "range": {
+        "startLine": 115,
+        "startChar": 12,
+        "endLine": 117,
+        "endChar": 22
+      },
+      "revId": "83c5f5d5adfbdb5f57f280914c041ef7dd919ea5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
