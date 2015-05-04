@@ -415,6 +415,9 @@ protected:
   void _sbb(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Sbb::create(Func, Dest, Src0));
   }
+  void _setcc(Variable *Dest, CondX86::BrCond Condition) {
+    Context.insert(InstX8632Setcc::create(Func, Dest, Condition));
+  }
   void _shl(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Shl::create(Func, Dest, Src0));
   }

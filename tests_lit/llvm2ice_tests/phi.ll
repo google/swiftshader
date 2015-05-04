@@ -22,9 +22,7 @@ target:
 ; put in the right place.
 ; CHECK-LABEL: testPhi1
 ; CHECK: cmp {{.*}},0x0
-; CHECK: mov {{.*}},0x1
-; CHECK: jg
-; CHECK: mov {{.*}},0x0
+; CHECK: setg
 ; CHECK: mov [[PHI:.*]],
 ; CHECK: cmp {{.*}},0x0
 ; CHECK: je

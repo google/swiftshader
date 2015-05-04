@@ -96,22 +96,23 @@ entry:
 ; boundary should not trigger nop padding.
 define void @label_at_boundary(i32 %arg) {
 entry:
+  %cmp = icmp eq i32 %arg, 0
   call void @call_target()
   ; bundle boundary
   %addr_short = bitcast [2 x i8]* @global_short to i16*
   store i16 0, i16* %addr_short, align 1   ; 9-byte instruction
-  %cmp = icmp eq i32 %arg, 0               ; 23-byte lowering sequence
+  %blah = select i1 %cmp, i32 3, i32 5     ; 23-byte lowering sequence
   ; label is here
   store i16 0, i16* %addr_short, align 1   ; 9-byte instruction
   ret void
 }
 ; CHECK-LABEL: label_at_boundary
 ; CHECK: call
-; We rely on the hideous 4-instruction 23-byte Om1 lowering sequence for icmp.
+; We rely on the hideous 4-instruction 23-byte Om1 lowering sequence for select.
 ; CHECK-NEXT: 20: {{.*}} mov WORD PTR
-; CHECK-NEXT: 29: {{.*}} cmp DWORD PTR
+; CHECK-NEXT: 29: {{.*}} cmp BYTE PTR
 ; CHECK-NEXT: 2e: {{.*}} mov DWORD PTR
-; CHECK-NEXT: 36: {{.*}} je 40
+; CHECK-NEXT: 36: {{.*}} jne 40
 ; CHECK-NEXT: 38: {{.*}} mov DWORD PTR
 ; CHECK-NEXT: 40: {{.*}} mov WORD PTR
 

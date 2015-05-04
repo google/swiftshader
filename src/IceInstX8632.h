@@ -242,6 +242,7 @@ public:
     Rol,
     Sar,
     Sbb,
+    Setcc,
     Shl,
     Shld,
     Shr,
@@ -1583,6 +1584,30 @@ public:
 private:
   InstX8632Ret(Cfg *Func, Variable *Source);
   ~InstX8632Ret() override {}
+};
+
+// Conditional set-byte instruction.
+class InstX8632Setcc : public InstX8632 {
+  InstX8632Setcc() = delete;
+  InstX8632Setcc(const InstX8632Cmov &) = delete;
+  InstX8632Setcc &operator=(const InstX8632Setcc &) = delete;
+
+public:
+  static InstX8632Setcc *create(Cfg *Func, Variable *Dest,
+                                CondX86::BrCond Cond) {
+    return new (Func->allocate<InstX8632Setcc>())
+        InstX8632Setcc(Func, Dest, Cond);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Setcc); }
+
+private:
+  InstX8632Setcc(Cfg *Func, Variable *Dest, CondX86::BrCond Cond);
+  ~InstX8632Setcc() override {}
+
+  const CondX86::BrCond Condition;
 };
 
 // Exchanging Add instruction.  Exchanges the first operand (destination

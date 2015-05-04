@@ -41,7 +41,7 @@ done:
 ; OM1-LABEL: test_atomic_cmpxchg_loop
 ; OM1: lock cmpxchg DWORD PTR [e{{[^a].}}],e{{[^a]}}
 ; OM1: cmp
-; OM1: je
+; OM1: sete
 ; OM1: call
 
 ; Still works if the compare operands are flipped.
@@ -130,4 +130,4 @@ done:
 ; O2: lock cmpxchg DWORD PTR [e{{[^a].}}],e{{[^a]}}
 ; O2: mov {{.*}}
 ; O2: cmp
-; O2: je
+; O2: sete

@@ -492,6 +492,7 @@ public:
   void popal();
 
   void setcc(CondX86::BrCond condition, ByteRegister dst);
+  void setcc(CondX86::BrCond condition, const Address &address);
 
   void mov(Type Ty, GPRRegister dst, const Immediate &src);
   void mov(Type Ty, GPRRegister dst, GPRRegister src);

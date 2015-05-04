@@ -282,7 +282,7 @@ entry:
 }
 ; CHECK-LABEL: selectI8Var
 ; CHECK: cmp
-; CHECK: jl
+; CHECK: setl
 ; CHECK: mov {{[a-d]l}}
 
 define internal i32 @testPhi8(i32 %arg, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7, i32 %arg8, i32 %arg9, i32 %arg10) {

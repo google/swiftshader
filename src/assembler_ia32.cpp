@@ -156,6 +156,13 @@ void AssemblerX8632::setcc(CondX86::BrCond condition, ByteRegister dst) {
   EmitUint8(0xC0 + dst);
 }
 
+void AssemblerX8632::setcc(CondX86::BrCond condition, const Address &address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x90 + condition);
+  EmitOperand(0, address);
+}
+
 void AssemblerX8632::mov(Type Ty, GPRRegister dst, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (isByteSizedType(Ty)) {

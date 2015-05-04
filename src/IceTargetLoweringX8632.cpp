@@ -2748,12 +2748,8 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   // cmp b, c
   Operand *Src0RM =
       legalize(Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg);
-  InstX8632Label *Label = InstX8632Label::create(Func, this);
   _cmp(Src0RM, Src1);
-  _mov(Dest, One);
-  _br(getIcmp32Mapping(Inst->getCondition()), Label);
-  _mov_nonkillable(Dest, Zero);
-  Context.insert(Label);
+  _setcc(Dest, getIcmp32Mapping(Inst->getCondition()));
 }
 
 void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {

@@ -339,6 +339,9 @@ InstX8632Ret::InstX8632Ret(Cfg *Func, Variable *Source)
     addSource(Source);
 }
 
+InstX8632Setcc::InstX8632Setcc(Cfg *Func, Variable *Dest, CondX86::BrCond Cond)
+    : InstX8632(Func, InstX8632::Setcc, 0, Dest), Condition(Cond) {}
+
 InstX8632Xadd::InstX8632Xadd(Cfg *Func, Operand *Dest, Variable *Source,
                              bool Locked)
     : InstX8632Lockable(Func, InstX8632::Xadd, 2,
@@ -2724,6 +2727,35 @@ void InstX8632Ret::dump(const Cfg *Func) const {
   Type Ty = (getSrcSize() == 0 ? IceType_void : getSrc(0)->getType());
   Str << "ret." << Ty << " ";
   dumpSources(Func);
+}
+
+void InstX8632Setcc::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\tset" << InstX8632BrAttributes[Condition].DisplayString << "\t";
+  Dest->emit(Func);
+}
+
+void InstX8632Setcc::emitIAS(const Cfg *Func) const {
+  assert(Condition != CondX86::Br_None);
+  assert(getDest()->getType() == IceType_i1);
+  assert(getSrcSize() == 0);
+  X8632::AssemblerX8632 *Asm = Func->getAssembler<X8632::AssemblerX8632>();
+  if (getDest()->hasReg())
+    Asm->setcc(Condition, RegX8632::getEncodedByteReg(getDest()->getRegNum()));
+  else
+    Asm->setcc(Condition, static_cast<TargetX8632 *>(Func->getTarget())
+                              ->stackVarToAsmOperand(getDest()));
+  return;
+}
+
+void InstX8632Setcc::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "setcc." << InstX8632BrAttributes[Condition].DisplayString << " ";
+  dumpDest(Func);
 }
 
 void InstX8632Xadd::emit(const Cfg *Func) const {

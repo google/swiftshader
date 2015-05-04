@@ -53,7 +53,7 @@ target:
 
 ; OM1-LABEL: testCondFallthroughToNextBlock
 ; OM1: cmp {{.*}},0x7b
-; OM1: jge
+; OM1: setge
 ; OM1: cmp
 ; OM1: jne
 ; OM1: jmp
@@ -88,7 +88,7 @@ target:
 
 ; OM1-LABEL: testCondTargetNextBlock
 ; OM1: cmp {{.*}},0x7b
-; OM1: jge
+; OM1: setge
 ; OM1: cmp
 ; OM1: jne
 ; OM1: jmp

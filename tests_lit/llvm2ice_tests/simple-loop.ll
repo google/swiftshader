@@ -46,5 +46,5 @@ for.end:
 ; such atrocious code (by design).
 ; OPTM1-LABEL: simple_loop
 ; OPTM1:      cmp {{.*}},0x0
-; OPTM1:      jg
+; OPTM1:      setl
 ; OPTM1:      ret
