@@ -227,13 +227,7 @@ namespace
 	template<>
 	void LoadImageRow<UByte4>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
 	{
-		const unsigned int *sourceI = reinterpret_cast<const unsigned int*>(source);
-		unsigned int *destI = reinterpret_cast<unsigned int*>(dest + xoffset * 4);
-
-		for(int x = 0; x < width; x++)
-		{
-			memcpy(dest + xoffset * 4, source, width * 4);
-		}
+		memcpy(dest + xoffset * 4, source, width * 4);
 	}
 
 	template<>
