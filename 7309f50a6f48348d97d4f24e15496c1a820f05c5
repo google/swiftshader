@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d19f971_a8493fbe",
+        "filename": "src/OpenGL/common/Image.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-06T04:18:16Z",
+      "side": 1,
+      "message": "I\u0027d prefer something more descriptive. Even \"data\" would do.",
+      "range": {
+        "startLine": 197,
+        "startChar": 9,
+        "endLine": 197,
+        "endChar": 13
+      },
+      "revId": "7309f50a6f48348d97d4f24e15496c1a820f05c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6d19f971_9c0a4457",
+        "filename": "src/OpenGL/common/Image.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-06T04:18:16Z",
+      "side": 1,
+      "message": "Move comment inside of the conditional block.",
+      "range": {
+        "startLine": 199,
+        "startChar": 3,
+        "endLine": 200,
+        "endChar": 64
+      },
+      "revId": "7309f50a6f48348d97d4f24e15496c1a820f05c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
