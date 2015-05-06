@@ -3,11 +3,17 @@
 # Invoke this from the root of an internal Android tree. It will create
 # links to build swiftshader as vendor code in vendor/swiftshader
 
+set -o errexit
+
 pushd $(dirname "$0") > /dev/null 2>&1
 DIR="$(pwd)"
 popd > /dev/null 2>&1
 
-OUT="$(pwd)/vendor/swiftshader"
+OUT="$(pwd)/vendor/transgaming/swiftshader-src"
+
+JOBS=$(grep '^processor' /proc/cpuinfo | wc -l)
+
+rm -rf "${OUT}"
 mkdir -p "${OUT}"
 ln -s "${DIR}/.dir-locals.el" "${OUT}"
 
@@ -16,3 +22,14 @@ for i in $(find "${DIR}/src" -name Android.mk -print); do
   ln -s "$(dirname "${i}" )" "${OUT}"
 done
 unset IFS
+. build/envsetup.sh
+lunch gce_x86-userdebug
+. device/google/gce_x86/configure_java.sh
+rm -rf vendor/transgaming/swiftshader/x86
+make -j ${JOBS} \
+    libEGL_swiftshader_vendor_debug \
+    libEGL_swiftshader_vendor_release \
+    libGLESv1_CM_swiftshader_vendor_debug \
+    libGLESv1_CM_swiftshader_vendor_release \
+    libGLESv2_swiftshader_vendor_debug \
+    libGLESv2_swiftshader_vendor_release
