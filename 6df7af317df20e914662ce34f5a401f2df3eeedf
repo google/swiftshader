@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d19f971_48598b8e",
+        "filename": "android_vendor_setup.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-06T04:09:39Z",
+      "side": 1,
+      "message": "Seems a bit high. Won\u0027t make use the virtual core count by default?",
+      "range": {
+        "startLine": 27,
+        "startChar": 5,
+        "endLine": 27,
+        "endChar": 9
+      },
+      "revId": "6df7af317df20e914662ce34f5a401f2df3eeedf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
