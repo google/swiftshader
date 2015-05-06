@@ -194,7 +194,15 @@ private:
 	{
 		if(nativeBuffer)   // Lock the buffer from ANativeWindowBuffer
 		{
-			return lockNativeBuffer(GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN);
+			void *data = lockNativeBuffer(
+				GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN);
+			if (lock == sw::LOCK_UNLOCKED)
+			{
+				// We're never going to get a corresponding unlock, so unlock
+				// immediately. This keeps the gralloc reference counts sane.
+				unlockNativeBuffer();
+			}
+			return data;
 		}
 		return sw::Surface::lockInternal(x, y, z, lock, client);
 	}

@@ -56,7 +56,6 @@ namespace sw
 
 	protected:
 		void copy(void *source, Format format);
-		
 		int width;
 		int height;
 		Format sourceFormat;

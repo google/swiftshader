@@ -35,7 +35,7 @@ namespace sw
 		if (buffer && locked)
 		{
 			locked = 0;
-			unlock(buffer);
+			unlock();
 		}
 
 		buffer->common.decRef(&buffer->common);
@@ -58,9 +58,13 @@ namespace sw
 
         buffer->common.incRef(&buffer->common);
 
-        if (lock(buffer, GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN, &locked) != android::NO_ERROR)
+        if (gralloc->lock(
+				gralloc, buffer->handle,
+				GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN,
+				0, 0, buffer->width, buffer->height, &locked)
+			!= android::NO_ERROR)
         {
-            ALOGE("connect() failed to lock buffer %p", buffer);
+            ALOGE("%s failed to lock buffer %p", __FUNCTION__, buffer);
             return NULL;
         }
 
@@ -87,18 +91,16 @@ namespace sw
 
     void FrameBufferAndroid::unlock()
     {
-        locked = 0;
-    }
-
-    int FrameBufferAndroid::lock(ANativeWindowBuffer* buf, int usage, void** vaddr)
-    {
-        return gralloc->lock(gralloc, buf->handle, usage, 0, 0, buf->width, buf->height, vaddr);
-    }
-
-    int FrameBufferAndroid::unlock(ANativeWindowBuffer* buf)
-    {
-        if (!buf) return -1;
-        return gralloc->unlock(gralloc, buf->handle);
+        if (!buffer)
+		{
+			ALOGE("%s: badness unlock with no active buffer", __FUNCTION__);
+			return;
+		}
+		locked = 0;
+        if (gralloc->unlock(gralloc, buffer->handle) != android::NO_ERROR)
+		{
+			ALOGE("%s: badness unlock failed", __FUNCTION__);
+		}
     }
 }
 

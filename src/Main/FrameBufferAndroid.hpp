@@ -25,9 +25,6 @@ namespace sw
         bool setSwapRectangle(int l, int t, int w, int h);
 
     private:
-        int lock(ANativeWindowBuffer* buf, int usage, void** vaddr);
-        int unlock(ANativeWindowBuffer* buf);
-
         ANativeWindow* nativeWindow;
         ANativeWindowBuffer* buffer;
         gralloc_module_t const* gralloc;
