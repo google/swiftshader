@@ -120,6 +120,7 @@
 		<Unit filename="../common/Object.cpp" />
 		<Unit filename="../common/Object.hpp" />
 		<Unit filename="../common/debug.cpp" />
+		<Unit filename="../common/debug.h" />
 		<Unit filename="Config.cpp" />
 		<Unit filename="Config.h" />
 		<Unit filename="Display.cpp" />

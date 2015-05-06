@@ -22,7 +22,6 @@
 #include "Common/SharedLibrary.hpp"
 #include "common/debug.h"
 
-#define EGL_EGLEXT_PROTOTYPES
 #include <EGL/eglext.h>
 
 static sw::Thread::LocalStorageKey currentTLS = TLS_OUT_OF_INDEXES;

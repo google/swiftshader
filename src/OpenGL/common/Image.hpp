@@ -144,7 +144,6 @@ public:
 		release();
 	}
 
-
 protected:
 	const GLsizei width;
 	const GLsizei height;

@@ -114,8 +114,15 @@ void *loadLibrary(const char *(&names)[n], const char *mustContainSymbol = nullp
 
 	inline void *getProcAddress(void *library, const char *name)
 	{
-		return library ? dlsym(library, name) : 0;
-	}
+		void *symbol = dlsym(library, name);
+
+		if(!symbol)
+		{
+			const char *reason = dlerror();   // Silence the error
+		}
+
+		return symbol;
+    }
 #endif
 
 #endif   // SharedLibrary_hpp
