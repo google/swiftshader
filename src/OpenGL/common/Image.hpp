@@ -16,8 +16,10 @@
 
 #ifdef __ANDROID__
 #include "../../Common/DebugAndroid.hpp"
+#define LOGLOCK(fmt, ...) // ALOGI(fmt " tid=%d", ##__VA_ARGS__, gettid())
 #else
 #include <assert.h>
+#define LOGLOCK(...)
 #endif
 
 namespace egl
@@ -191,9 +193,18 @@ private:
 
 	virtual void *lockInternal(int x, int y, int z, sw::Lock lock, sw::Accessor client)
 	{
-		if(nativeBuffer)   // Lock the buffer from ANativeWindowBuffer
+		LOGLOCK("image=%p op=%s.swsurface lock=%d", this, __FUNCTION__, lock);
+		// Always do this for reference counting.
+		void *data = sw::Surface::lockInternal(x, y, z, lock, client);
+		if(nativeBuffer)
 		{
-			void *data = lockNativeBuffer(
+			if (x || y || z)
+			{
+				ALOGI("badness: %s called with unsupported parms: image=%p x=%d y=%d z=%d", __FUNCTION__, this, x, y, z);
+			}
+			LOGLOCK("image=%p op=%s.ani lock=%d", this, __FUNCTION__, lock);
+			// Lock the ANativeWindowBuffer and use it's address.
+			data = lockNativeBuffer(
 				GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN);
 			if (lock == sw::LOCK_UNLOCKED)
 			{
@@ -201,28 +212,34 @@ private:
 				// immediately. This keeps the gralloc reference counts sane.
 				unlockNativeBuffer();
 			}
-			return data;
 		}
-		return sw::Surface::lockInternal(x, y, z, lock, client);
+		return data;
 	}
 
 	virtual void unlockInternal()
 	{
 		if(nativeBuffer)   // Unlock the buffer from ANativeWindowBuffer
 		{
-			return unlockNativeBuffer();
+			LOGLOCK("image=%p op=%s.ani", this, __FUNCTION__);
+			unlockNativeBuffer();
 		}
-		return sw::Surface::unlockInternal();
+		LOGLOCK("image=%p op=%s.swsurface", this, __FUNCTION__);
+		sw::Surface::unlockInternal();
 	}
 
-	virtual void *lock(unsigned int /*left*/, unsigned int /*top*/, sw::Lock /*lock*/)
+	virtual void *lock(unsigned int left, unsigned int top, sw::Lock lock)
 	{
+		LOGLOCK("image=%p op=%s lock=%d", this, __FUNCTION__, lock);
+		(void)sw::Surface::lockExternal(left, top, 0, lock, sw::PUBLIC);
 		return lockNativeBuffer(GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN);
 	}
 
 	virtual void unlock()
 	{
+		LOGLOCK("image=%p op=%s.ani", this, __FUNCTION__);
 		unlockNativeBuffer();
+		LOGLOCK("image=%p op=%s.swsurface", this, __FUNCTION__);
+		sw::Surface::unlockExternal();
 	}
 
 	void* lockNativeBuffer(int usage)

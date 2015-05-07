@@ -446,8 +446,8 @@ namespace egl
 		{
 			return parentTexture->addRef();
 		}
-
-		sw::atomicIncrement(&referenceCount);
+		int newCount = sw::atomicIncrement(&referenceCount);
+		LOGLOCK("%s image=%p referenceCount=%d", __FUNCTION__, this, newCount);
 	}
 
 	void Image::release()
@@ -457,12 +457,9 @@ namespace egl
 			return parentTexture->release();
 		}
 
-		if(referenceCount > 0)
-		{
-			sw::atomicDecrement(&referenceCount);
-		}
-
-		if(referenceCount == 0)
+		int newCount = sw::atomicDecrement(&referenceCount);
+		LOGLOCK("%s image=%p referenceCount=%d", __FUNCTION__, this, newCount);
+		if (newCount == 0)
 		{
 			ASSERT(!shared);   // Should still hold a reference if eglDestroyImage hasn't been called
 			delete this;
