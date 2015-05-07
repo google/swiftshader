@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ed5b293d_96cc52e6",
+        "filename": "src/OpenGL/common/Image.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-07T18:29:54Z",
+      "side": 1,
+      "message": "You might want to log badness when x, y, or z are not 0, as that\u0027s currently not handled for native buffers.",
+      "range": {
+        "startLine": 205,
+        "startChar": 3,
+        "endLine": 205,
+        "endChar": 26
+      },
+      "revId": "4bb309e2bff2b9894a08a45402dea404e836796c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
