@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4d8435cc_2e566c2f",
+        "filename": "src/OpenGL/common/Image.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-07T14:03:49Z",
+      "side": 1,
+      "message": "You\u0027ll have to call this last, as it may destroy \u0027this\u0027.",
+      "range": {
+        "startLine": 220,
+        "startChar": 2,
+        "endLine": 220,
+        "endChar": 32
+      },
+      "revId": "1b5cb193458e8f64f9c1cff936d862aa9a75f3b6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4d8435cc_ce526039",
+        "filename": "src/OpenGL/common/Image.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-07T14:03:49Z",
+      "side": 1,
+      "message": "Same.",
+      "range": {
+        "startLine": 237,
+        "startChar": 2,
+        "endLine": 237,
+        "endChar": 32
+      },
+      "revId": "1b5cb193458e8f64f9c1cff936d862aa9a75f3b6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
