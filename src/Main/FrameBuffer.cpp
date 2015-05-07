@@ -275,207 +275,255 @@ namespace sw
 					}
 				#endif
 
-				if(state.destFormat == FORMAT_X8R8G8B8 || state.destFormat == FORMAT_A8R8G8B8)
+				switch(state.destFormat)
 				{
-					Int x = x0;
-
-					if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
+				case FORMAT_X8R8G8B8:
+				case FORMAT_A8R8G8B8:
 					{
-						For(, x < width - 3, x += 4)
-						{
-							*Pointer<Int4>(d, 1) = *Pointer<Int4>(s, width % 4 ? 1 : 16);
+						Int x = x0;
 
-							s += 4 * sBytes;
-							d += 4 * dBytes;
+						switch(state.sourceFormat)
+						{
+						case FORMAT_X8R8G8B8:
+						case FORMAT_A8R8G8B8:
+							For(, x < width - 3, x += 4)
+							{
+								*Pointer<Int4>(d, 1) = *Pointer<Int4>(s, width % 4 ? 1 : 16);
+
+								s += 4 * sBytes;
+								d += 4 * dBytes;
+							}
+							break;
+						case FORMAT_X8B8G8R8:
+						case FORMAT_A8B8G8R8:
+							For(, x < width - 3, x += 4)
+							{
+								Int4 bgra = *Pointer<Int4>(s, width % 4 ? 1 : 16);
+
+								*Pointer<Int4>(d, 1) = ((bgra & Int4(0x00FF0000)) >> 16) |
+								                       ((bgra & Int4(0x000000FF)) << 16) |
+								                       (bgra & Int4(0xFF00FF00));
+
+								s += 4 * sBytes;
+								d += 4 * dBytes;
+							}
+							break;
+						case FORMAT_A16B16G16R16:
+							For(, x < width - 1, x += 2)
+							{
+								UShort4 c0 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 0), 0xC6)) >> 8;
+								UShort4 c1 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 8), 0xC6)) >> 8;
+
+								*Pointer<Int2>(d) = As<Int2>(Pack(c0, c1));
+
+								s += 2 * sBytes;
+								d += 2 * dBytes;
+							}
+							break;
+						default:
+							ASSERT(false);
+							break;
+						}
+
+						For(, x < width, x++)
+						{
+							switch(state.sourceFormat)
+							{
+							case FORMAT_X8R8G8B8:
+							case FORMAT_A8R8G8B8:
+								*Pointer<Int>(d) = *Pointer<Int>(s);
+								break;
+							case FORMAT_X8B8G8R8:
+							case FORMAT_A8B8G8R8:
+								{
+									Int rgba = *Pointer<Int>(s);
+
+									*Pointer<Int>(d) = ((rgba & Int(0x00FF0000)) >> 16) |
+									                   ((rgba & Int(0x000000FF)) << 16) |
+									                   (rgba & Int(0xFF00FF00));
+								}
+								break;
+							case FORMAT_A16B16G16R16:
+								{
+									UShort4 c = As<UShort4>(Swizzle(*Pointer<Short4>(s), 0xC6)) >> 8;
+
+									*Pointer<Int>(d) = Int(As<Int2>(Pack(c, c)));
+								}
+								break;
+							default:
+								ASSERT(false);
+								break;
+							}
+
+							s += sBytes;
+							d += dBytes;
 						}
 					}
-					else if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
+					break;
+				case FORMAT_X8B8G8R8:
+				case FORMAT_A8B8G8R8:
 					{
-						For(, x < width - 3, x += 4)
+						Int x = x0;
+
+						switch(state.sourceFormat)
 						{
-							Int4 bgra = *Pointer<Int4>(s, width % 4 ? 1 : 16);
+						case FORMAT_X8B8G8R8:
+						case FORMAT_A8B8G8R8:
+							For(, x < width - 3, x += 4)
+							{
+								*Pointer<Int4>(d, 1) = *Pointer<Int4>(s, width % 4 ? 1 : 16);
 
-							*Pointer<Int4>(d, 1) = ((bgra & Int4(0x00FF0000)) >> 16) |
-							                       ((bgra & Int4(0x000000FF)) << 16) |
-							                       (bgra & Int4(0xFF00FF00));
+								s += 4 * sBytes;
+								d += 4 * dBytes;
+							}
+							break;
+						case FORMAT_X8R8G8B8:
+						case FORMAT_A8R8G8B8:
+							For(, x < width - 3, x += 4)
+							{
+								Int4 bgra = *Pointer<Int4>(s, width % 4 ? 1 : 16);
 
-							s += 4 * sBytes;
-							d += 4 * dBytes;
+								*Pointer<Int4>(d, 1) = ((bgra & Int4(0x00FF0000)) >> 16) |
+								                       ((bgra & Int4(0x000000FF)) << 16) |
+								                       (bgra & Int4(0xFF00FF00));
+
+								s += 4 * sBytes;
+								d += 4 * dBytes;
+							}
+							break;
+						case FORMAT_A16B16G16R16:
+							For(, x < width - 1, x += 2)
+							{
+								UShort4 c0 = *Pointer<UShort4>(s + 0) >> 8;
+								UShort4 c1 = *Pointer<UShort4>(s + 8) >> 8;
+
+								*Pointer<Int2>(d) = As<Int2>(Pack(c0, c1));
+
+								s += 2 * sBytes;
+								d += 2 * dBytes;
+							}
+							break;
+						default:
+							ASSERT(false);
+							break;
+						}
+
+						For(, x < width, x++)
+						{
+							switch(state.sourceFormat)
+							{
+							case FORMAT_X8B8G8R8:
+							case FORMAT_A8B8G8R8:
+								*Pointer<Int>(d) = *Pointer<Int>(s);
+								break;
+							case FORMAT_X8R8G8B8:
+							case FORMAT_A8R8G8B8:
+								{
+									Int bgra = *Pointer<Int>(s);
+									*Pointer<Int>(d) = ((bgra & Int(0x00FF0000)) >> 16) |
+									                   ((bgra & Int(0x000000FF)) << 16) |
+									                   (bgra & Int(0xFF00FF00));
+								}
+								break;
+							case FORMAT_A16B16G16R16:
+								{
+									UShort4 c = *Pointer<UShort4>(s) >> 8;
+
+									*Pointer<Int>(d) = Int(As<Int2>(Pack(c, c)));
+								}
+								break;
+							default:
+								ASSERT(false);
+								break;
+							}
+
+							s += sBytes;
+							d += dBytes;
 						}
 					}
-					else if(state.sourceFormat == FORMAT_A16B16G16R16)
+				case FORMAT_R8G8B8:
 					{
-						For(, x < width - 1, x += 2)
+						For(Int x = x0, x < width, x++)
 						{
-							UShort4 c0 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 0), 0xC6)) >> 8;
-							UShort4 c1 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 8), 0xC6)) >> 8;
+							switch(state.sourceFormat)
+							{
+							case FORMAT_X8R8G8B8:
+							case FORMAT_A8R8G8B8:
+								*Pointer<Byte>(d + 0) = *Pointer<Byte>(s + 0);
+								*Pointer<Byte>(d + 1) = *Pointer<Byte>(s + 1);
+								*Pointer<Byte>(d + 2) = *Pointer<Byte>(s + 2);
+								break;
+							case FORMAT_X8B8G8R8:
+							case FORMAT_A8B8G8R8:
+								*Pointer<Byte>(d + 0) = *Pointer<Byte>(s + 2);
+								*Pointer<Byte>(d + 1) = *Pointer<Byte>(s + 1);
+								*Pointer<Byte>(d + 2) = *Pointer<Byte>(s + 0);
+								break;
+							case FORMAT_A16B16G16R16:
+								*Pointer<Byte>(d + 0) = *Pointer<Byte>(s + 5);
+								*Pointer<Byte>(d + 1) = *Pointer<Byte>(s + 3);
+								*Pointer<Byte>(d + 2) = *Pointer<Byte>(s + 1);
+								break;
+							default:
+								ASSERT(false);
+								break;
+							}
 
-							*Pointer<Int2>(d) = As<Int2>(Pack(c0, c1));
-
-							s += 2 * sBytes;
-							d += 2 * dBytes;
+							s += sBytes;
+							d += dBytes;
 						}
 					}
-					else ASSERT(false);
-
-					For(, x < width, x++)
+					break;
+				case FORMAT_R5G6B5:
 					{
-						if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
+						For(Int x = x0, x < width, x++)
 						{
-							*Pointer<Int>(d) = *Pointer<Int>(s);
-						}
-						else if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
-						{
-							Int rgba = *Pointer<Int>(s);
+							switch(state.sourceFormat)
+							{
+							case FORMAT_X8R8G8B8:
+							case FORMAT_A8R8G8B8:
+								{
+									Int c = *Pointer<Int>(s);
 
-							*Pointer<Int>(d) = ((rgba & Int(0x00FF0000)) >> 16) |
-							                   ((rgba & Int(0x000000FF)) << 16) |
-							                   (rgba & Int(0xFF00FF00));
-						}
-						else if(state.sourceFormat == FORMAT_A16B16G16R16)
-						{
-							UShort4 c = As<UShort4>(Swizzle(*Pointer<Short4>(s), 0xC6)) >> 8;
+									*Pointer<Short>(d) = Short((c & 0x00F80000) >> 8 |
+									                           (c & 0x0000FC00) >> 5 |
+									                           (c & 0x000000F8) >> 3);
+								}
+								break;
+							case FORMAT_X8B8G8R8:
+							case FORMAT_A8B8G8R8:
+								{
+									Int c = *Pointer<Int>(s);
 
-							*Pointer<Int>(d) = Int(As<Int2>(Pack(c, c)));
-						}
-						else ASSERT(false);
+									*Pointer<Short>(d) = Short((c & 0x00F80000) >> 19 |
+									                           (c & 0x0000FC00) >> 5 |
+									                           (c & 0x000000F8) << 8);
+								}
+								break;
+							case FORMAT_A16B16G16R16:
+								{
+									UShort4 cc = *Pointer<UShort4>(s) >> 8;
+									Int c = Int(As<Int2>(Pack(cc, cc)));
 
-						s += sBytes;
-						d += dBytes;
+									*Pointer<Short>(d) = Short((c & 0x00F80000) >> 19 |
+									                           (c & 0x0000FC00) >> 5 |
+									                           (c & 0x000000F8) << 8);
+								}
+								break;
+							default:
+								ASSERT(false);
+								break;
+							}
+
+							s += sBytes;
+							d += dBytes;
+						}
 					}
+					break;
+				default:
+					ASSERT(false);
+					break;
 				}
-				else if(state.destFormat == FORMAT_X8B8G8R8 || state.destFormat == FORMAT_A8B8G8R8)
-				{
-					Int x = x0;
-
-					if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
-					{
-						For(, x < width - 3, x += 4)
-						{
-							*Pointer<Int4>(d, 1) = *Pointer<Int4>(s, width % 4 ? 1 : 16);
-
-							s += 4 * sBytes;
-							d += 4 * dBytes;
-						}
-					}
-					else if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
-					{
-						For(, x < width - 3, x += 4)
-						{
-							Int4 bgra = *Pointer<Int4>(s, width % 4 ? 1 : 16);
-
-							*Pointer<Int4>(d, 1) = ((bgra & Int4(0x00FF0000)) >> 16) |
-							                       ((bgra & Int4(0x000000FF)) << 16) |
-							                       (bgra & Int4(0xFF00FF00));
-
-							s += 4 * sBytes;
-							d += 4 * dBytes;
-						}
-					}
-					else if(state.sourceFormat == FORMAT_A16B16G16R16)
-					{
-						For(, x < width - 1, x += 2)
-						{
-							UShort4 c0 = *Pointer<UShort4>(s + 0) >> 8;
-							UShort4 c1 = *Pointer<UShort4>(s + 8) >> 8;
-
-							*Pointer<Int2>(d) = As<Int2>(Pack(c0, c1));
-
-							s += 2 * sBytes;
-							d += 2 * dBytes;
-						}
-					}
-					else ASSERT(false);
-
-					For(, x < width, x++)
-					{
-						if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
-						{
-							*Pointer<Int>(d) = *Pointer<Int>(s);
-						}
-						else if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
-						{
-							Int bgra = *Pointer<Int>(s);
-							*Pointer<Int>(d) = ((bgra & Int(0x00FF0000)) >> 16) |
-							                   ((bgra & Int(0x000000FF)) << 16) |
-							                   (bgra & Int(0xFF00FF00));
-						}
-						else if(state.sourceFormat == FORMAT_A16B16G16R16)
-						{
-							UShort4 c = *Pointer<UShort4>(s) >> 8;
-
-							*Pointer<Int>(d) = Int(As<Int2>(Pack(c, c)));
-						}
-						else ASSERT(false);
-
-						s += sBytes;
-						d += dBytes;
-					}
-				}
-				else if(state.destFormat == FORMAT_R8G8B8)
-				{
-					For(Int x = x0, x < width, x++)
-					{
-						if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
-						{
-							*Pointer<Byte>(d + 0) = *Pointer<Byte>(s + 0);
-							*Pointer<Byte>(d + 1) = *Pointer<Byte>(s + 1);
-							*Pointer<Byte>(d + 2) = *Pointer<Byte>(s + 2);
-						}
-						else if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
-						{
-							*Pointer<Byte>(d + 0) = *Pointer<Byte>(s + 2);
-							*Pointer<Byte>(d + 1) = *Pointer<Byte>(s + 1);
-							*Pointer<Byte>(d + 2) = *Pointer<Byte>(s + 0);
-						}
-						else if(state.sourceFormat == FORMAT_A16B16G16R16)
-						{
-							*Pointer<Byte>(d + 0) = *Pointer<Byte>(s + 5);
-							*Pointer<Byte>(d + 1) = *Pointer<Byte>(s + 3);
-							*Pointer<Byte>(d + 2) = *Pointer<Byte>(s + 1);
-						}
-						else ASSERT(false);
-
-						s += sBytes;
-						d += dBytes;
-					}
-				}
-				else if(state.destFormat == FORMAT_R5G6B5)
-				{
-					For(Int x = x0, x < width, x++)
-					{
-						if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
-						{
-							Int c = *Pointer<Int>(s);
-
-							*Pointer<Short>(d) = Short((c & 0x00F80000) >> 8 |
-						                               (c & 0x0000FC00) >> 5 |
-						                               (c & 0x000000F8) >> 3);
-						}
-						else if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
-						{
-							Int c = *Pointer<Int>(s);
-
-							*Pointer<Short>(d) = Short((c & 0x00F80000) >> 19 |
-						                               (c & 0x0000FC00) >> 5 |
-						                               (c & 0x000000F8) << 8);
-						}
-						else if(state.sourceFormat == FORMAT_A16B16G16R16)
-						{
-							UShort4 cc = *Pointer<UShort4>(s) >> 8;
-							Int c = Int(As<Int2>(Pack(cc, cc)));
-
-							*Pointer<Short>(d) = Short((c & 0x00F80000) >> 19 |
-						                               (c & 0x0000FC00) >> 5 |
-						                               (c & 0x000000F8) << 8);
-						}
-						else ASSERT(false);
-
-						s += sBytes;
-						d += dBytes;
-					}
-				}
-				else ASSERT(false);
 			}
 
 			#if DISPLAY_LOGO
@@ -551,19 +599,23 @@ namespace sw
 
 		c1 = UnpackLow(As<Byte8>(c1), *Pointer<Byte8>(c));
 
-		if(state.sourceFormat == FORMAT_X8R8G8B8 || state.sourceFormat == FORMAT_A8R8G8B8)
+		switch(state.sourceFormat)
 		{
+		case FORMAT_X8R8G8B8:
+		case FORMAT_A8R8G8B8:
 			c2 = UnpackLow(As<Byte8>(c2), *Pointer<Byte8>(s));
-		}
-		else if(state.sourceFormat == FORMAT_X8B8G8R8 || state.sourceFormat == FORMAT_A8B8G8R8)
-		{
+			break;
+		case FORMAT_X8B8G8R8:
+		case FORMAT_A8B8G8R8:
 			c2 = Swizzle(UnpackLow(As<Byte8>(c2), *Pointer<Byte8>(s)), 0xC6);
-		}
-		else if(state.sourceFormat == FORMAT_A16B16G16R16)
-		{
+			break;
+		case FORMAT_A16B16G16R16:
 			c2 = Swizzle(*Pointer<Short4>(s + 0), 0xC6);
+			break;
+		default:
+			ASSERT(false);
+			break;
 		}
-		else ASSERT(false);
 
 		c1 = As<Short4>(As<UShort4>(c1) >> 9);
 		c2 = As<Short4>(As<UShort4>(c2) >> 9);
@@ -575,33 +627,42 @@ namespace sw
 		c1 = c1 + c2;
 		c1 = c1 + c1;
 
-		if(state.destFormat == FORMAT_X8R8G8B8 || state.destFormat == FORMAT_A8R8G8B8)
+		switch(state.destFormat)
 		{
+		case FORMAT_X8R8G8B8:
+		case FORMAT_A8R8G8B8:
 			*Pointer<UInt>(d) = UInt(As<Long>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
-		}
-		else if(state.destFormat == FORMAT_X8B8G8R8 || state.destFormat == FORMAT_A8B8G8R8)
-		{
-			c1 = Swizzle(c1, 0xC6);
+			break;
+		case FORMAT_X8B8G8R8:
+		case FORMAT_A8B8G8R8:
+			{
+				c1 = Swizzle(c1, 0xC6);
 
-			*Pointer<UInt>(d) = UInt(As<Long>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
-		}
-		else if(state.destFormat == FORMAT_R8G8B8)
-		{
-			Int c = Int(As<Int2>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
+				*Pointer<UInt>(d) = UInt(As<Long>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
+			}
+			break;
+		case FORMAT_R8G8B8:
+			{
+				Int c = Int(As<Int2>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
 
-			*Pointer<Byte>(d + 0) = Byte(c >> 0);
-			*Pointer<Byte>(d + 1) = Byte(c >> 8);
-			*Pointer<Byte>(d + 2) = Byte(c >> 16);
-		}
-		else if(state.destFormat == FORMAT_R5G6B5)
-		{
-			Int c = Int(As<Int2>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
+				*Pointer<Byte>(d + 0) = Byte(c >> 0);
+				*Pointer<Byte>(d + 1) = Byte(c >> 8);
+				*Pointer<Byte>(d + 2) = Byte(c >> 16);
+			}
+			break;
+		case FORMAT_R5G6B5:
+			{
+				Int c = Int(As<Int2>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
 
-			*Pointer<Short>(d) = Short((c & 0x00F80000) >> 8 |
-			                           (c & 0x0000FC00) >> 5 |
-			                           (c & 0x000000F8) >> 3);
+				*Pointer<Short>(d) = Short((c & 0x00F80000) >> 8 |
+				                           (c & 0x0000FC00) >> 5 |
+				                           (c & 0x000000F8) >> 3);
+			}
+			break;
+		default:
+			ASSERT(false);
+			break;
 		}
-		else ASSERT(false);
 	}
 
 	void FrameBuffer::threadFunction(void *parameters)
