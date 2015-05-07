@@ -38,8 +38,8 @@
 
 #define ICMPX8632_TABLE                     \
   /* val, C_32,  C1_64,   C2_64,   C3_64 */ \
-  X(Eq,   Br_e,  Br_None, Br_None, Br_None) \
-  X(Ne,   Br_ne, Br_None, Br_None, Br_None) \
+  X(Eq,   Br_e,  Br_None, Br_ne,   Br_e)    \
+  X(Ne,   Br_ne, Br_ne,   Br_None, Br_ne)   \
   X(Ugt,  Br_a,  Br_a,    Br_b,    Br_a)    \
   X(Uge,  Br_ae, Br_a,    Br_b,    Br_ae)   \
   X(Ult,  Br_b,  Br_b,    Br_a,    Br_b)    \

@@ -732,18 +732,18 @@ if.end3:                                          ; preds = %if.then2, %if.end
 }
 ; CHECK-LABEL: icmpEq64
 ; CHECK: jne
-; CHECK: jne
+; CHECK: je
 ; CHECK: call
 ; CHECK: jne
-; CHECK: jne
+; CHECK: je
 ; CHECK: call
 ;
 ; OPTM1-LABEL: icmpEq64
 ; OPTM1: jne
-; OPTM1: jne
+; OPTM1: je
 ; OPTM1: call
 ; OPTM1: jne
-; OPTM1: jne
+; OPTM1: je
 ; OPTM1: call
 
 declare void @func()
@@ -952,11 +952,11 @@ entry:
 }
 ; CHECK-LABEL: icmpEq64Bool
 ; CHECK: jne
-; CHECK: jne
+; CHECK: je
 ;
 ; OPTM1-LABEL: icmpEq64Bool
 ; OPTM1: jne
-; OPTM1: jne
+; OPTM1: je
 
 define internal i32 @icmpNe64Bool(i64 %a, i64 %b) {
 entry:

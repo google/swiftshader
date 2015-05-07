@@ -2710,8 +2710,6 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   }
 
   // a=icmp cond, b, c ==> cmp b,c; a=1; br cond,L1; FakeUse(a); a=0; L1:
-  Constant *Zero = Ctx->getConstantZero(IceType_i32);
-  Constant *One = Ctx->getConstantInt32(1);
   if (Src0->getType() == IceType_i64) {
     InstIcmp::ICond Condition = Inst->getCondition();
     size_t Index = static_cast<size_t>(Condition);
@@ -2720,28 +2718,21 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
     Operand *Src0HiRM = legalize(hiOperand(Src0), Legal_Reg | Legal_Mem);
     Operand *Src1LoRI = legalize(loOperand(Src1), Legal_Reg | Legal_Imm);
     Operand *Src1HiRI = legalize(hiOperand(Src1), Legal_Reg | Legal_Imm);
-    if (Condition == InstIcmp::Eq || Condition == InstIcmp::Ne) {
-      InstX8632Label *Label = InstX8632Label::create(Func, this);
-      _mov(Dest, (Condition == InstIcmp::Eq ? Zero : One));
-      _cmp(Src0LoRM, Src1LoRI);
-      _br(CondX86::Br_ne, Label);
-      _cmp(Src0HiRM, Src1HiRI);
-      _br(CondX86::Br_ne, Label);
-      _mov_nonkillable(Dest, (Condition == InstIcmp::Eq ? One : Zero));
-      Context.insert(Label);
-    } else {
-      InstX8632Label *LabelFalse = InstX8632Label::create(Func, this);
-      InstX8632Label *LabelTrue = InstX8632Label::create(Func, this);
-      _mov(Dest, One);
-      _cmp(Src0HiRM, Src1HiRI);
+    Constant *Zero = Ctx->getConstantZero(IceType_i32);
+    Constant *One = Ctx->getConstantInt32(1);
+    InstX8632Label *LabelFalse = InstX8632Label::create(Func, this);
+    InstX8632Label *LabelTrue = InstX8632Label::create(Func, this);
+    _mov(Dest, One);
+    _cmp(Src0HiRM, Src1HiRI);
+    if (TableIcmp64[Index].C1 != CondX86::Br_None)
       _br(TableIcmp64[Index].C1, LabelTrue);
+    if (TableIcmp64[Index].C2 != CondX86::Br_None)
       _br(TableIcmp64[Index].C2, LabelFalse);
-      _cmp(Src0LoRM, Src1LoRI);
-      _br(TableIcmp64[Index].C3, LabelTrue);
-      Context.insert(LabelFalse);
-      _mov_nonkillable(Dest, Zero);
-      Context.insert(LabelTrue);
-    }
+    _cmp(Src0LoRM, Src1LoRI);
+    _br(TableIcmp64[Index].C3, LabelTrue);
+    Context.insert(LabelFalse);
+    _mov_nonkillable(Dest, Zero);
+    Context.insert(LabelTrue);
     return;
   }
 
