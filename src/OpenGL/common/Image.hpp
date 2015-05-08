@@ -183,12 +183,13 @@ public:
 private:
 	ANativeWindowBuffer *nativeBuffer;
 
-	virtual ~AndroidNativeImage() { }
-
-	void setNativeBuffer(ANativeWindowBuffer* buffer)
+	virtual ~AndroidNativeImage()
 	{
-		nativeBuffer = buffer;
-		nativeBuffer->common.incRef(&nativeBuffer->common);
+		// Wait for any draw calls that use this image to finish
+		resource->lock(sw::DESTRUCT);
+		resource->unlock();
+
+		nativeBuffer->common.decRef(&nativeBuffer->common);
 	}
 
 	virtual void *lockInternal(int x, int y, int z, sw::Lock lock, sw::Accessor client)
@@ -254,15 +255,6 @@ private:
 	void unlockNativeBuffer()
 	{
 		GrallocModule::getInstance()->unlock(nativeBuffer->handle);
-	}
-
-	virtual void destroyShared()   // Release a shared image
-	{
-		if(nativeBuffer)
-		{
-			nativeBuffer->common.decRef(&nativeBuffer->common);
-		}
-		egl::Image::destroyShared();
 	}
 };
 

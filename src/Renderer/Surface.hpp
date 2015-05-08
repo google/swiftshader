@@ -244,6 +244,9 @@ namespace sw
 
 		static void setTexturePalette(unsigned int *palette);
 
+	protected:
+		sw::Resource *resource;
+
 	private:
 		typedef unsigned char byte;
 		typedef unsigned short word;
@@ -365,7 +368,6 @@ namespace sw
 		static unsigned int *palette;   // FIXME: Not multi-device safe
 		static unsigned int paletteID;
 
-		sw::Resource *resource;
 		bool hasParent;
 	};
 }
