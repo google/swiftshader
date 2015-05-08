@@ -45,6 +45,30 @@
       "revId": "1b5cb193458e8f64f9c1cff936d862aa9a75f3b6",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4d8435cc_2e8e6c00",
+        "filename": "src/OpenGL/common/Image.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-05-08T00:07:04Z",
+      "side": 1,
+      "message": "Oops.",
+      "parentUuid": "4d8435cc_ce526039",
+      "range": {
+        "startLine": 237,
+        "startChar": 2,
+        "endLine": 237,
+        "endChar": 32
+      },
+      "revId": "1b5cb193458e8f64f9c1cff936d862aa9a75f3b6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
