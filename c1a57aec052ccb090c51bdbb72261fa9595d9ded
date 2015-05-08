@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4d8435cc_826d1a9d",
+        "filename": "src/OpenGL/common/Image.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-08T15:26:52Z",
+      "side": 1,
+      "message": "I\u0027d prefer not to have any of these logging calls in non-Android code (and even for Android code I think it belongs in a temporary patch instead of master, although I realize that might be utopic). Either way, I won\u0027t let it stop you from landing this.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 20
+      },
+      "revId": "c1a57aec052ccb090c51bdbb72261fa9595d9ded",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
