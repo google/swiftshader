@@ -584,8 +584,8 @@ DisplayMode Display::getDisplayMode() const
 
 		ReleaseDC(0, deviceContext);
 	#elif defined(__ANDROID__)
-		displayMode.width = GceFrameBufferConfig::getInstance()->x_res();
-		displayMode.height = GceFrameBufferConfig::getInstance()->y_res();
+		displayMode.width = GceFrameBufferConfig::getInstance().x_res();
+		displayMode.height = GceFrameBufferConfig::getInstance().y_res();
 		displayMode.format = sw::FORMAT_X8R8G8B8;
 		ALOGI("Returning framebuffer config width=%d height=%d, format=%d", displayMode.width, displayMode.height, displayMode.format);
     #else
