@@ -158,6 +158,8 @@ namespace sw
 			return;
 		}
 
+		sourceFormat = format;
+
 		if(topLeftOrigin)
 		{
 			target = source;
@@ -170,8 +172,6 @@ namespace sw
 
 			target = (byte*)source + (height - 1) * sStride;
 		}
-
-		sourceFormat = format;
 
 		cursorX = cursorPositionX - cursorHotspotX;
 		cursorY = cursorPositionY - cursorHotspotY;
