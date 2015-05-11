@@ -1223,6 +1223,13 @@ void Context::bindTexture3D(GLuint texture)
 	mState.samplerTexture[TEXTURE_3D][mState.activeSampler] = getTexture(texture);
 }
 
+void Context::bindTexture2DArray(GLuint texture)
+{
+	mResourceManager->checkTextureAllocation(texture, TEXTURE_2D_ARRAY);
+
+	mState.samplerTexture[TEXTURE_2D_ARRAY][mState.activeSampler] = getTexture(texture);
+}
+
 void Context::bindReadFramebuffer(GLuint framebuffer)
 {
     if(!getFramebuffer(framebuffer))

@@ -516,6 +516,7 @@ public:
     void bindTextureCubeMap(GLuint texture);
     void bindTextureExternal(GLuint texture);
 	void bindTexture3D(GLuint texture);
+	void bindTexture2DArray(GLuint texture);
     void bindReadFramebuffer(GLuint framebuffer);
     void bindDrawFramebuffer(GLuint framebuffer);
     void bindRenderbuffer(GLuint renderbuffer);
