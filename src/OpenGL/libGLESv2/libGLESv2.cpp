@@ -637,6 +637,8 @@ void BlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dst
 	TRACE("(GLenum srcRGB = 0x%X, GLenum dstRGB = 0x%X, GLenum srcAlpha = 0x%X, GLenum dstAlpha = 0x%X)",
 	      srcRGB, dstRGB, srcAlpha, dstAlpha);
 
+	egl::GLint clientVersion = egl::getClientVersion();
+
 	switch(srcRGB)
 	{
 	case GL_ZERO:
@@ -675,6 +677,12 @@ void BlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dst
 	case GL_ONE_MINUS_CONSTANT_COLOR:
 	case GL_CONSTANT_ALPHA:
 	case GL_ONE_MINUS_CONSTANT_ALPHA:
+		break;
+	case GL_SRC_ALPHA_SATURATE:
+		if(clientVersion < 3)
+		{
+			return error(GL_INVALID_ENUM);
+		}
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
@@ -718,6 +726,12 @@ void BlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dst
 	case GL_ONE_MINUS_CONSTANT_COLOR:
 	case GL_CONSTANT_ALPHA:
 	case GL_ONE_MINUS_CONSTANT_ALPHA:
+		break;
+	case GL_SRC_ALPHA_SATURATE:
+		if(clientVersion < 3)
+		{
+			return error(GL_INVALID_ENUM);
+		}
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
