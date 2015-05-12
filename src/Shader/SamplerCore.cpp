@@ -133,6 +133,7 @@ namespace sw
 				switch(state.textureFormat)
 				{
 				case FORMAT_R8:
+				case FORMAT_R5G6B5:
 				case FORMAT_X8R8G8B8:
 				case FORMAT_X8B8G8R8:
 				case FORMAT_A8R8G8B8:
@@ -289,6 +290,7 @@ namespace sw
 				switch(state.textureFormat)
 				{
 				case FORMAT_R8:
+				case FORMAT_R5G6B5:
 				case FORMAT_X8R8G8B8:
 				case FORMAT_X8B8G8R8:
 				case FORMAT_A8R8G8B8:
@@ -1477,7 +1479,21 @@ namespace sw
 
 		if(has16bitTextureFormat())
 		{
-			UNIMPLEMENTED();
+			c.x = Insert(c.x, *Pointer<Short>(buffer[f0] + 2 * index[0]), 0);
+			c.x = Insert(c.x, *Pointer<Short>(buffer[f1] + 2 * index[1]), 1);
+			c.x = Insert(c.x, *Pointer<Short>(buffer[f2] + 2 * index[2]), 2);
+			c.x = Insert(c.x, *Pointer<Short>(buffer[f3] + 2 * index[3]), 3);
+
+			switch(state.textureFormat)
+			{
+			case FORMAT_R5G6B5:
+				c.z = (c.x & Short4(0x001Fu)) << 11;
+				c.y = (c.x & Short4(0x07E0u)) << 5;
+				c.x = (c.x & Short4(0xF800u));
+				break;
+			default:
+				ASSERT(false);
+			}
 		}
 		else if(!has16bitTextureComponents())   // 8-bit components
 		{
@@ -1568,8 +1584,8 @@ namespace sw
 				case FORMAT_G8R8:
 				case FORMAT_V8U8:
 				case FORMAT_A8L8:
-					c.y = (c.x & Short4(0xFF00, 0xFF00, 0xFF00, 0xFF00)) | As<Short4>(As<UShort4>(c.x) >> 8);
-					c.x = (c.x & Short4(0x00FF, 0x00FF, 0x00FF, 0x00FF)) | (c.x << 8);
+					c.y = (c.x & Short4(0xFF00u, 0xFF00u, 0xFF00u, 0xFF00u)) | As<Short4>(As<UShort4>(c.x) >> 8);
+					c.x = (c.x & Short4(0x00FFu, 0x00FFu, 0x00FFu, 0x00FFu)) | (c.x << 8);
 					break;
 				default:
 					ASSERT(false);
