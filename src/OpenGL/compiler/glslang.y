@@ -671,6 +671,14 @@ function_identifier
                 case 4:       FRAG_VERT_ONLY("ivec4", $1.line); op = EOpConstructIVec4; break;
                 }
                 break;
+            case EbtUInt:
+                switch($1.primarySize) {
+                case 1:                                         op = EOpConstructUInt;  break;
+                case 2:       FRAG_VERT_ONLY("uvec2", $1.line); op = EOpConstructUVec2; break;
+                case 3:       FRAG_VERT_ONLY("uvec3", $1.line); op = EOpConstructUVec3; break;
+                case 4:       FRAG_VERT_ONLY("uvec4", $1.line); op = EOpConstructUVec4; break;
+                }
+                break;
             case EbtBool:
                 switch($1.primarySize) {
                 case 1:                                         op = EOpConstructBool;  break;

@@ -889,6 +889,10 @@ namespace glsl
 		case EOpConstructIVec2:
 		case EOpConstructIVec3:
 		case EOpConstructIVec4:
+		case EOpConstructUInt:
+		case EOpConstructUVec2:
+		case EOpConstructUVec3:
+		case EOpConstructUVec4:
 			if(visit == PostVisit)
 			{
 				int component = 0;
