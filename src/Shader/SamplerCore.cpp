@@ -20,7 +20,7 @@ namespace sw
 	{
 	}
 
-	void SamplerCore::sampleTexture(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool bias, bool fixed12, bool gradients, bool lodProvided)
+	void SamplerCore::sampleTexture(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool bias, bool gradients, bool lodProvided, bool fixed12)
 	{
 		#if PERF_PROFILE
 			AddAtomic(Pointer<Long>(&profiler.texOperations), 4);
@@ -259,7 +259,7 @@ namespace sw
 			{
 				Vector4s cs;
 
-				sampleTexture(texture, cs, u, v, w, q, dsx, dsy, bias, false, gradients, lodProvided);
+				sampleTexture(texture, cs, u, v, w, q, dsx, dsy, bias, gradients, lodProvided, false);
 
 				for(int component = 0; component < textureComponentCount(); component++)
 				{
