@@ -2988,14 +2988,22 @@ void PNaClTranslator::translate(const std::string &IRFilename,
 
   // Read header and verify it is good.
   NaClBitcodeHeader Header;
-  if (Header.Read(MemObj.get()) || !Header.IsSupported()) {
+  if (Header.Read(MemObj.get())) {
     errs() << "Invalid PNaCl bitcode header.\n";
     ErrorStatus.assign(EC_Bitcode);
     return;
   }
+  if (!Header.IsSupported()) {
+    errs() << Header.Unsupported();
+    if (!Header.IsReadable()) {
+      errs() << "Invalid PNaCl bitcode header.\n";
+      ErrorStatus.assign(EC_Bitcode);
+      return;
+    }
+  }
 
   // Create a bitstream reader to read the bitcode file.
-  NaClBitstreamReader InputStreamFile(MemObj.release(), Header.getHeaderSize());
+  NaClBitstreamReader InputStreamFile(MemObj.release(), Header);
   NaClBitstreamCursor InputStream(InputStreamFile);
 
   TopLevelParser Parser(*this, InputStream, ErrorStatus);
