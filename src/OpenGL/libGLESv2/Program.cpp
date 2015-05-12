@@ -517,6 +517,7 @@ namespace es2
 	bool Program::setUniformiv(GLint location, GLsizei count, const GLint *v, int numElements)
 	{
 		static GLenum intType[] = { GL_INT, GL_INT_VEC2, GL_INT_VEC3, GL_INT_VEC4 };
+		static GLenum uintType[] = { GL_UNSIGNED_INT, GL_UNSIGNED_INT_VEC2, GL_UNSIGNED_INT_VEC3, GL_UNSIGNED_INT_VEC4 };
 		static GLenum boolType[] = { GL_BOOL, GL_BOOL_VEC2, GL_BOOL_VEC3, GL_BOOL_VEC4 };
 
 		if(location < 0 || location >= (int)uniformIndex.size())
@@ -537,7 +538,7 @@ namespace es2
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		int index = numElements - 1;
-		if(targetUniform->type == intType[index])
+		if(targetUniform->type == intType[index] || targetUniform->type == uintType[index])
 		{
 			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLint)* numElements,
 				   v, numElements * sizeof(GLint)* count);
@@ -639,6 +640,7 @@ namespace es2
 	bool Program::setUniformuiv(GLint location, GLsizei count, const GLuint *v, int numElements)
 	{
 		static GLenum intType[] = { GL_INT, GL_INT_VEC2, GL_INT_VEC3, GL_INT_VEC4 };
+		static GLenum uintType[] = { GL_UNSIGNED_INT, GL_UNSIGNED_INT_VEC2, GL_UNSIGNED_INT_VEC3, GL_UNSIGNED_INT_VEC4 };
 		static GLenum boolType[] = { GL_BOOL, GL_BOOL_VEC2, GL_BOOL_VEC3, GL_BOOL_VEC4 };
 
 		if(location < 0 || location >= (int)uniformIndex.size())
@@ -659,7 +661,7 @@ namespace es2
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		int index = numElements - 1;
-		if(targetUniform->type == intType[index])
+		if(targetUniform->type == uintType[index] || targetUniform->type == intType[index])
 		{
 			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLuint)* numElements,
 				   v, numElements * sizeof(GLuint)* count);
@@ -743,6 +745,17 @@ namespace es2
 				}
 			}
 			break;
+			case GL_UNSIGNED_INT:
+			{
+				GLuint *uintParams = (GLuint*)targetUniform->data + uniformIndex[location].element * count;
+
+				for(unsigned int i = 0; i < count; i++)
+				{
+					params[i] = (float)uintParams[i];
+				}
+			}
+			break;
+
 		  default: UNREACHABLE();
 		}
 
@@ -788,6 +801,7 @@ namespace es2
 			}
 			break;
 		  case GL_INT:
+		  case GL_UNSIGNED_INT:
 			memcpy(params, targetUniform->data + uniformIndex[location].element * count * sizeof(GLint),
 				   count * sizeof(GLint));
 			break;
@@ -836,6 +850,7 @@ namespace es2
 		}
 			break;
 		case GL_INT:
+		case GL_UNSIGNED_INT:
 			memcpy(params, targetUniform->data + uniformIndex[location].element * count * sizeof(GLuint),
 				   count * sizeof(GLuint));
 			break;
@@ -872,6 +887,7 @@ namespace es2
 				int size = targetUniform->size();
 				GLfloat *f = (GLfloat*)targetUniform->data;
 				GLint *i = (GLint*)targetUniform->data;
+				GLuint *ui = (GLuint*)targetUniform->data;
 				GLboolean *b = (GLboolean*)targetUniform->data;
 
 				switch(targetUniform->type)
@@ -901,6 +917,10 @@ namespace es2
 				  case GL_INT_VEC2:   applyUniform2iv(location, size, i);       break;
 				  case GL_INT_VEC3:   applyUniform3iv(location, size, i);       break;
 				  case GL_INT_VEC4:   applyUniform4iv(location, size, i);       break;
+				  case GL_UNSIGNED_INT:      applyUniform1uiv(location, size, ui); break;
+				  case GL_UNSIGNED_INT_VEC2: applyUniform2uiv(location, size, ui); break;
+				  case GL_UNSIGNED_INT_VEC3: applyUniform3uiv(location, size, ui); break;
+				  case GL_UNSIGNED_INT_VEC4: applyUniform4uiv(location, size, ui); break;
 				  default:
 					UNREACHABLE();
 				}
@@ -1854,6 +1874,158 @@ namespace es2
 	}
 
 	bool Program::applyUniform4iv(GLint location, GLsizei count, const GLint *v)
+	{
+		float vector[MAX_UNIFORM_VECTORS][4];
+
+		for(int i = 0; i < count; i++)
+		{
+			vector[i][0] = (float)v[0];
+			vector[i][1] = (float)v[1];
+			vector[i][2] = (float)v[2];
+			vector[i][3] = (float)v[3];
+
+			v += 4;
+		}
+
+		Uniform *targetUniform = uniforms[uniformIndex[location].index];
+
+		if(targetUniform->psRegisterIndex != -1)
+		{
+			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
+		}
+
+		if(targetUniform->vsRegisterIndex != -1)
+		{
+			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
+		}
+
+		return true;
+	}
+
+	bool Program::applyUniform1uiv(GLint location, GLsizei count, const GLuint *v)
+	{
+		float vector[MAX_UNIFORM_VECTORS][4];
+
+		for(int i = 0; i < count; i++)
+		{
+			vector[i][0] = (float)v[i];
+			vector[i][1] = 0;
+			vector[i][2] = 0;
+			vector[i][3] = 0;
+		}
+
+		Uniform *targetUniform = uniforms[uniformIndex[location].index];
+
+		if(targetUniform->psRegisterIndex != -1)
+		{
+			if(targetUniform->type == GL_SAMPLER_2D ||
+			   targetUniform->type == GL_SAMPLER_CUBE ||
+			   targetUniform->type == GL_SAMPLER_EXTERNAL_OES ||
+			   targetUniform->type == GL_SAMPLER_3D_OES)
+			{
+				for(int i = 0; i < count; i++)
+				{
+					unsigned int samplerIndex = targetUniform->psRegisterIndex + i;
+
+					if(samplerIndex < MAX_TEXTURE_IMAGE_UNITS)
+					{
+						ASSERT(samplersPS[samplerIndex].active);
+						samplersPS[samplerIndex].logicalTextureUnit = v[i];
+					}
+				}
+			}
+			else
+			{
+				device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
+			}
+		}
+
+		if(targetUniform->vsRegisterIndex != -1)
+		{
+			if(targetUniform->type == GL_SAMPLER_2D ||
+			   targetUniform->type == GL_SAMPLER_CUBE ||
+			   targetUniform->type == GL_SAMPLER_EXTERNAL_OES ||
+			   targetUniform->type == GL_SAMPLER_3D_OES)
+			{
+				for(int i = 0; i < count; i++)
+				{
+					unsigned int samplerIndex = targetUniform->vsRegisterIndex + i;
+
+					if(samplerIndex < MAX_VERTEX_TEXTURE_IMAGE_UNITS)
+					{
+						ASSERT(samplersVS[samplerIndex].active);
+						samplersVS[samplerIndex].logicalTextureUnit = v[i];
+					}
+				}
+			}
+			else
+			{
+				device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
+			}
+		}
+
+		return true;
+	}
+
+	bool Program::applyUniform2uiv(GLint location, GLsizei count, const GLuint *v)
+	{
+		float vector[MAX_UNIFORM_VECTORS][4];
+
+		for(int i = 0; i < count; i++)
+		{
+			vector[i][0] = (float)v[0];
+			vector[i][1] = (float)v[1];
+			vector[i][2] = 0;
+			vector[i][3] = 0;
+
+			v += 2;
+		}
+
+		Uniform *targetUniform = uniforms[uniformIndex[location].index];
+
+		if(targetUniform->psRegisterIndex != -1)
+		{
+			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
+		}
+
+		if(targetUniform->vsRegisterIndex != -1)
+		{
+			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
+		}
+
+		return true;
+	}
+
+	bool Program::applyUniform3uiv(GLint location, GLsizei count, const GLuint *v)
+	{
+		float vector[MAX_UNIFORM_VECTORS][4];
+
+		for(int i = 0; i < count; i++)
+		{
+			vector[i][0] = (float)v[0];
+			vector[i][1] = (float)v[1];
+			vector[i][2] = (float)v[2];
+			vector[i][3] = 0;
+
+			v += 3;
+		}
+
+		Uniform *targetUniform = uniforms[uniformIndex[location].index];
+
+		if(targetUniform->psRegisterIndex != -1)
+		{
+			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
+		}
+
+		if(targetUniform->vsRegisterIndex != -1)
+		{
+			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
+		}
+
+		return true;
+	}
+
+	bool Program::applyUniform4uiv(GLint location, GLsizei count, const GLuint *v)
 	{
 		float vector[MAX_UNIFORM_VECTORS][4];
 

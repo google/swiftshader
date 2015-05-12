@@ -172,6 +172,10 @@ namespace es2
 		bool applyUniform2iv(GLint location, GLsizei count, const GLint *v);
 		bool applyUniform3iv(GLint location, GLsizei count, const GLint *v);
 		bool applyUniform4iv(GLint location, GLsizei count, const GLint *v);
+		bool applyUniform1uiv(GLint location, GLsizei count, const GLuint *v);
+		bool applyUniform2uiv(GLint location, GLsizei count, const GLuint *v);
+		bool applyUniform3uiv(GLint location, GLsizei count, const GLuint *v);
+		bool applyUniform4uiv(GLint location, GLsizei count, const GLuint *v);
 
 		bool setUniformfv(GLint location, GLsizei count, const GLfloat *v, int numElements);
 		bool setUniformMatrixfv(GLint location, GLsizei count, const GLfloat *value, GLenum type);
