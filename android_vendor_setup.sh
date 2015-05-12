@@ -33,3 +33,15 @@ make -j ${JOBS} \
     libGLESv1_CM_swiftshader_vendor_release \
     libGLESv2_swiftshader_vendor_debug \
     libGLESv2_swiftshader_vendor_release
+
+# JBMR2 (and earlier?) doesn't allow the library name to differ from the
+# module name. Rename the generated libraries.
+IFS=$'\n'
+for i in $(find vendor/transgaming/swiftshader/x86 -name '*_vendor_*'); do
+  j="${i/_vendor_debug/}"
+  j="${j/_vendor_release/}"
+  if [[ "$i" != "$j" ]]; then
+    mv "$i" "$j"
+  fi
+done
+unset IFS
