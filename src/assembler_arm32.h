@@ -42,29 +42,32 @@ public:
   }
   ~AssemblerARM32() override = default;
 
-  void alignFunction() override {
-    llvm::report_fatal_error("Not yet implemented.");
-  }
+  void alignFunction() override { llvm_unreachable("Not yet implemented."); }
 
   SizeT getBundleAlignLog2Bytes() const override { return 4; }
 
+  const char *getNonExecPadDirective() const override { return ".p2alignl"; }
+
   llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const override {
-    llvm::report_fatal_error("Not yet implemented.");
+    // Use a particular UDF encoding -- TRAPNaCl in LLVM: 0xE7FEDEF0
+    // http://llvm.org/viewvc/llvm-project?view=revision&revision=173943
+    static const uint8_t Padding[] = {0xE7, 0xFE, 0xDE, 0xF0};
+    return llvm::ArrayRef<uint8_t>(Padding, 4);
   }
 
   void padWithNop(intptr_t Padding) override {
     (void)Padding;
-    llvm::report_fatal_error("Not yet implemented.");
+    llvm_unreachable("Not yet implemented.");
   }
 
   void BindCfgNodeLabel(SizeT NodeNumber) override {
     (void)NodeNumber;
-    llvm::report_fatal_error("Not yet implemented.");
+    llvm_unreachable("Not yet implemented.");
   }
 
   bool fixupIsPCRel(FixupKind Kind) const override {
     (void)Kind;
-    llvm::report_fatal_error("Not yet implemented.");
+    llvm_unreachable("Not yet implemented.");
   }
 };
 

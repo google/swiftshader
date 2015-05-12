@@ -111,6 +111,11 @@ cl::opt<bool>
                                 cl::desc("Randomize register allocation"),
                                 cl::init(false));
 
+cl::opt<bool> SkipUnimplemented(
+    "skip-unimplemented",
+    cl::desc("Skip through unimplemented lowering code instead of aborting."),
+    cl::init(false));
+
 cl::opt<bool> SubzeroTimingEnabled(
     "timing", cl::desc("Enable breakdown timing of Subzero translation"));
 
@@ -260,6 +265,7 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.PhiEdgeSplit = false;
   OutFlags.RandomNopInsertion = false;
   OutFlags.RandomRegAlloc = false;
+  OutFlags.SkipUnimplemented = false;
   OutFlags.SubzeroTimingEnabled = false;
   OutFlags.TimeEachFunction = false;
   OutFlags.UseSandboxing = false;
@@ -311,6 +317,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setRandomSeed(::RandomSeed);
   OutFlags.setShouldDoNopInsertion(::ShouldDoNopInsertion);
   OutFlags.setShouldRandomizeRegAlloc(::RandomizeRegisterAllocation);
+  OutFlags.setSkipUnimplemented(::SkipUnimplemented);
   OutFlags.setSubzeroTimingEnabled(::SubzeroTimingEnabled);
   OutFlags.setTargetArch(::TargetArch);
   OutFlags.setTargetInstructionSet(::TargetInstructionSet);

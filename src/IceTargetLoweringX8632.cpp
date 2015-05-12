@@ -509,13 +509,13 @@ void TargetX8632::emitVariable(const Variable *Var) const {
   }
   if (Var->getWeight().isInf())
     llvm_unreachable("Infinite-weight Variable has no register assigned");
-  const Type Ty = IceType_i32;
   int32_t Offset = Var->getStackOffset();
   if (!hasFramePointer())
     Offset += getStackAdjustment();
   if (Offset)
     Str << Offset;
-  Str << "(%" << getRegName(getFrameOrStackReg(), Ty) << ")";
+  const Type FrameSPTy = IceType_i32;
+  Str << "(%" << getRegName(getFrameOrStackReg(), FrameSPTy) << ")";
 }
 
 X8632::Address TargetX8632::stackVarToAsmOperand(const Variable *Var) const {

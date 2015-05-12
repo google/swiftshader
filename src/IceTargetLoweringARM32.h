@@ -16,6 +16,7 @@
 #define SUBZERO_SRC_ICETARGETLOWERINGARM32_H
 
 #include "IceDefs.h"
+#include "IceInstARM32.h"
 #include "IceRegistersARM32.h"
 #include "IceTargetLowering.h"
 
@@ -90,6 +91,14 @@ protected:
       const llvm::SmallBitVector &ExcludeRegisters) const override;
 
   static Type stackSlotType();
+
+  // The following are helpers that insert lowered ARM32 instructions
+  // with minimal syntactic overhead, so that the lowering code can
+  // look as close to assembly as practical.
+
+  void _ret(Variable *LR, Variable *Src0 = nullptr) {
+    Context.insert(InstARM32Ret::create(Func, LR, Src0));
+  }
 
   bool UsesFramePointer;
   bool NeedsStackAlignment;

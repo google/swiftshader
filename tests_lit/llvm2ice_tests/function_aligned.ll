@@ -4,6 +4,12 @@
 ; Also, we are currently using hlts for non-executable padding.
 
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
+; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
+; once enough infrastructure is in. Also, switch to --filetype=obj
+; when possible.
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix ARM32 %s
 
 define void @foo() {
   ret void
@@ -11,9 +17,16 @@ define void @foo() {
 ; CHECK-LABEL: foo
 ; CHECK-NEXT: 0: {{.*}} ret
 ; CHECK-NEXT: 1: {{.*}} hlt
+; ARM32-LABEL: foo
+; ARM32-NEXT: 0: {{.*}} bx lr
+; ARM32-NEXT: 4: e7fedef0 udf
+; ARM32-NEXT: 8: e7fedef0 udf
+; ARM32-NEXT: c: e7fedef0 udf
 
 define void @bar() {
   ret void
 }
 ; CHECK-LABEL: bar
 ; CHECK-NEXT: 20: {{.*}} ret
+; ARM32-LABEL: bar
+; ARM32-NEXT: 10: {{.*}} bx lr

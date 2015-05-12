@@ -30,6 +30,17 @@
 
 namespace Ice {
 
+namespace {
+void UnimplementedError(const ClFlags &Flags) {
+  if (!Flags.getSkipUnimplemented()) {
+    // Use llvm_unreachable instead of report_fatal_error, which gives better
+    // stack traces.
+    llvm_unreachable("Not yet implemented");
+    abort();
+  }
+}
+} // end of anonymous namespace
+
 TargetARM32::TargetARM32(Cfg *Func)
     : TargetLowering(Func), UsesFramePointer(false) {
   // TODO: Don't initialize IntegerRegisters and friends every time.
@@ -205,7 +216,8 @@ void TargetARM32::translateOm1() {
 bool TargetARM32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
   (void)I;
   (void)NextNode;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
+  return false;
 }
 
 IceString TargetARM32::RegNames[] = {
@@ -233,9 +245,9 @@ Variable *TargetARM32::getPhysicalRegister(SizeT RegNum, Type Ty) {
     Reg = Func->makeVariable(Ty);
     Reg->setRegNum(RegNum);
     PhysicalRegisters[Ty][RegNum] = Reg;
-    // Specially mark SP as an "argument" so that it is considered
+    // Specially mark SP and LR as an "argument" so that it is considered
     // live upon function entry.
-    if (RegNum == RegARM32::Reg_sp) {
+    if (RegNum == RegARM32::Reg_sp || RegNum == RegARM32::Reg_lr) {
       Func->addImplicitArg(Reg);
       Reg->setIgnoreLiveness();
     }
@@ -245,25 +257,42 @@ Variable *TargetARM32::getPhysicalRegister(SizeT RegNum, Type Ty) {
 
 void TargetARM32::emitVariable(const Variable *Var) const {
   Ostream &Str = Ctx->getStrEmit();
-  (void)Var;
-  (void)Str;
-  llvm::report_fatal_error("emitVariable: Not yet implemented");
+  if (Var->hasReg()) {
+    Str << getRegName(Var->getRegNum(), Var->getType());
+    return;
+  }
+  if (Var->getWeight().isInf()) {
+    llvm::report_fatal_error(
+        "Infinite-weight Variable has no register assigned");
+  }
+  int32_t Offset = Var->getStackOffset();
+  if (!hasFramePointer())
+    Offset += getStackAdjustment();
+  // TODO(jvoung): Handle out of range. Perhaps we need a scratch register
+  // to materialize a larger offset.
+  const bool SignExt = false;
+  if (!OperandARM32Mem::canHoldOffset(Var->getType(), SignExt, Offset)) {
+    llvm::report_fatal_error("Illegal stack offset");
+  }
+  const Type FrameSPTy = IceType_i32;
+  Str << "[" << getRegName(getFrameOrStackReg(), FrameSPTy) << ", " << Offset
+      << "]";
 }
 
 void TargetARM32::lowerArguments() {
-  llvm::report_fatal_error("lowerArguments: Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 Type TargetARM32::stackSlotType() { return IceType_i32; }
 
 void TargetARM32::addProlog(CfgNode *Node) {
   (void)Node;
-  llvm::report_fatal_error("addProlog: Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::addEpilog(CfgNode *Node) {
   (void)Node;
-  llvm::report_fatal_error("addEpilog: Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
@@ -305,7 +334,7 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
   // restriction can be relaxed in some cases.
   NeedsStackAlignment = true;
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
@@ -314,75 +343,75 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     llvm_unreachable("Unknown arithmetic operator");
     break;
   case InstArithmetic::Add:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::And:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Or:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Xor:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Sub:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Mul:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Shl:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Lshr:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Ashr:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Udiv:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Sdiv:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Urem:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Srem:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Fadd:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Fsub:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Fmul:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Fdiv:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Frem:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
 }
 
 void TargetARM32::lowerAssign(const InstAssign *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::lowerBr(const InstBr *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::lowerCall(const InstCall *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::lowerCast(const InstCast *Inst) {
@@ -392,39 +421,39 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     Func->setError("Cast type not supported");
     return;
   case InstCast::Sext: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
   case InstCast::Zext: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
   case InstCast::Trunc: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
   case InstCast::Fptrunc:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstCast::Fpext: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
   case InstCast::Fptosi:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstCast::Fptoui:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstCast::Sitofp:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstCast::Uitofp: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
   case InstCast::Bitcast: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
   }
@@ -432,72 +461,72 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
 
 void TargetARM32::lowerExtractElement(const InstExtractElement *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::lowerFcmp(const InstFcmp *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::lowerInsertElement(const InstInsertElement *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   switch (Intrinsics::IntrinsicID ID = Instr->getIntrinsicInfo().ID) {
   case Intrinsics::AtomicCmpxchg: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::AtomicFence:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   case Intrinsics::AtomicFenceAll:
     // NOTE: FenceAll should prevent and load/store from being moved
     // across the fence (both atomic and non-atomic). The InstARM32Mfence
     // instruction is currently marked coarsely as "HasSideEffects".
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   case Intrinsics::AtomicIsLockFree: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::AtomicLoad: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::AtomicRMW:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   case Intrinsics::AtomicStore: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Bswap: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Ctpop: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Ctlz: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Cttz: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Fabs: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Longjmp: {
@@ -542,7 +571,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   }
   case Intrinsics::NaClReadTP: {
     if (Ctx->getFlags().getUseSandboxing()) {
-      llvm::report_fatal_error("Not yet implemented");
+      UnimplementedError(Func->getContext()->getFlags());
     } else {
       InstCall *Call = makeHelperCall(H_call_read_tp, Instr->getDest(), 0);
       lowerCall(Call);
@@ -556,19 +585,19 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Sqrt: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Stacksave: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Stackrestore: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Trap:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   case Intrinsics::UnknownIntrinsic:
     Func->setError("Should not be lowering UnknownIntrinsic");
@@ -579,17 +608,17 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
 
 void TargetARM32::lowerLoad(const InstLoad *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::doAddressOptLoad() {
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::randomlyInsertNop(float Probability) {
   RandomNumberGeneratorWrapper RNG(Ctx->getRNG());
   if (RNG.getTrueWithProbability(Probability)) {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
   }
 }
 
@@ -598,27 +627,42 @@ void TargetARM32::lowerPhi(const InstPhi * /*Inst*/) {
 }
 
 void TargetARM32::lowerRet(const InstRet *Inst) {
-  (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  Variable *Reg = nullptr;
+  if (Inst->hasRetValue()) {
+    UnimplementedError(Func->getContext()->getFlags());
+  }
+  // Add a ret instruction even if sandboxing is enabled, because
+  // addEpilog explicitly looks for a ret instruction as a marker for
+  // where to insert the frame removal instructions.
+  // addEpilog is responsible for restoring the "lr" register as needed
+  // prior to this ret instruction.
+  _ret(getPhysicalRegister(RegARM32::Reg_lr), Reg);
+  // Add a fake use of sp to make sure sp stays alive for the entire
+  // function.  Otherwise post-call sp adjustments get dead-code
+  // eliminated.  TODO: Are there more places where the fake use
+  // should be inserted?  E.g. "void f(int n){while(1) g(n);}" may not
+  // have a ret instruction.
+  Variable *SP = Func->getTarget()->getPhysicalRegister(RegARM32::Reg_sp);
+  Context.insert(InstFakeUse::create(Func, SP));
 }
 
 void TargetARM32::lowerSelect(const InstSelect *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::lowerStore(const InstStore *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::doAddressOptStore() {
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::lowerSwitch(const InstSwitch *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::lowerUnreachable(const InstUnreachable * /*Inst*/) {
@@ -630,7 +674,7 @@ void TargetARM32::lowerUnreachable(const InstUnreachable * /*Inst*/) {
 // turned into zeroes, since loOperand() and hiOperand() don't expect
 // Undef input.
 void TargetARM32::prelowerPhis() {
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 // Lower the pre-ordered list of assignments into mov instructions.
@@ -639,7 +683,7 @@ void TargetARM32::lowerPhiAssignments(CfgNode *Node,
                                       const AssignList &Assignments) {
   (void)Node;
   (void)Assignments;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::postLower() {
@@ -647,7 +691,7 @@ void TargetARM32::postLower() {
     return;
   // Find two-address non-SSA instructions where Dest==Src0, and set
   // the DestNonKillable flag to keep liveness analysis consistent.
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetARM32::makeRandomRegisterPermutation(
@@ -655,7 +699,7 @@ void TargetARM32::makeRandomRegisterPermutation(
     const llvm::SmallBitVector &ExcludeRegisters) const {
   (void)Permutation;
   (void)ExcludeRegisters;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 /* TODO(jvoung): avoid duplicate symbols with multiple targets.
@@ -673,7 +717,7 @@ TargetDataARM32::TargetDataARM32(GlobalContext *Ctx)
 
 void TargetDataARM32::lowerGlobal(const VariableDeclaration &Var) const {
   (void)Var;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Ctx->getFlags());
 }
 
 void TargetDataARM32::lowerGlobals(
@@ -699,7 +743,7 @@ void TargetDataARM32::lowerGlobals(
 void TargetDataARM32::lowerConstants() const {
   if (Ctx->getFlags().getDisableTranslation())
     return;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Ctx->getFlags());
 }
 
 } // end of namespace Ice

@@ -61,5 +61,24 @@
 
 // TODO(jvoung): add condition code tables, etc.
 
+// Load/Store instruction width suffixes.
+#define ICETYPEARM32_TABLE                                              \
+  /* tag,          element type, width, addr off bits sext, zext */     \
+  X(IceType_void,  IceType_void, "",  0, 0)                             \
+  X(IceType_i1,    IceType_void, "b", 8, 12)                            \
+  X(IceType_i8,    IceType_void, "b", 8, 12)                            \
+  X(IceType_i16,   IceType_void, "h", 8, 8)                             \
+  X(IceType_i32,   IceType_void, "", 12, 12)                            \
+  X(IceType_i64,   IceType_void, "d", 8, 8)                             \
+  X(IceType_f32,   IceType_void, "", 10, 10)                            \
+  X(IceType_f64,   IceType_void, "", 10, 10)                            \
+  X(IceType_v4i1,  IceType_i32 , "",  0,  0)                            \
+  X(IceType_v8i1,  IceType_i16 , "",  0,  0)                            \
+  X(IceType_v16i1, IceType_i8  , "",  0,  0)                            \
+  X(IceType_v16i8, IceType_i8  , "",  0,  0)                            \
+  X(IceType_v8i16, IceType_i16 , "",  0,  0)                            \
+  X(IceType_v4i32, IceType_i32 , "",  0,  0)                            \
+  X(IceType_v4f32, IceType_f32 , "",  0,  0)                            \
+//#define X(tag, elementty, width, sbits, ubits)
 
 #endif // SUBZERO_SRC_ICEINSTARM32_DEF

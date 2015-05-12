@@ -51,9 +51,24 @@ public:
     return (0 <= value) && (value < limit);
   }
 
+  // Check whether the magnitude of value fits in N bits, i.e., whether an
+  // (N+1)-bit sign-magnitude representation can hold value.
+  template <typename T> static inline bool IsAbsoluteUint(int N, T Value) {
+    assert((0 < N) &&
+           (static_cast<unsigned int>(N) < (CHAR_BIT * sizeof(Value))));
+    if (Value < 0)
+      Value = -Value;
+    return IsUint(N, Value);
+  }
+
   template <typename T> static inline bool WouldOverflowAdd(T X, T Y) {
     return ((X > 0 && Y > 0 && (X > std::numeric_limits<T>::max() - Y)) ||
             (X < 0 && Y < 0 && (X < std::numeric_limits<T>::min() - Y)));
+  }
+
+  template <typename T> static inline bool IsAligned(T X, intptr_t N) {
+    assert(llvm::isPowerOf2_64(N));
+    return (X & (N - 1)) == 0;
   }
 
   static inline uint64_t OffsetToAlignment(uint64_t Pos, uint64_t Align) {

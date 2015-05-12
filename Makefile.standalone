@@ -177,6 +177,7 @@ SRCS = \
 	IceGlobalContext.cpp \
 	IceGlobalInits.cpp \
 	IceInst.cpp \
+	IceInstARM32.cpp \
 	IceInstX8632.cpp \
 	IceIntrinsics.cpp \
 	IceLiveness.cpp \

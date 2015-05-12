@@ -464,9 +464,10 @@ void Cfg::emitTextHeader(const IceString &MangledName, GlobalContext *Ctx,
     Str << "\t.section\t.text." << MangledName << ",\"ax\",@progbits\n";
   if (!Asm->getInternal() || Ctx->getFlags().getDisableInternal()) {
     Str << "\t.globl\t" << MangledName << "\n";
-    Str << "\t.type\t" << MangledName << ",@function\n";
+    Str << "\t.type\t" << MangledName << ",%function\n";
   }
-  Str << "\t.p2align " << Asm->getBundleAlignLog2Bytes() << ",0x";
+  Str << "\t" << Asm->getNonExecPadDirective() << " "
+      << Asm->getBundleAlignLog2Bytes() << ",0x";
   for (uint8_t I : Asm->getNonExecBundlePadding())
     Str.write_hex(I);
   Str << "\n";

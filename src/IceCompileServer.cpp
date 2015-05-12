@@ -17,6 +17,7 @@
 
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_os_ostream.h"
+#include "llvm/Support/Signals.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/StreamingMemoryObject.h"
 
@@ -49,6 +50,9 @@ ErrorCodes getReturnValue(const Ice::ClFlagsExtra &Flags, ErrorCodes Val) {
 } // end of anonymous namespace
 
 void CLCompileServer::run() {
+  if (ALLOW_DUMP) {
+    llvm::sys::PrintStackTraceOnErrorSignal();
+  }
   ClFlags::parseFlags(argc, argv);
   ClFlags Flags;
   ClFlagsExtra ExtraFlags;

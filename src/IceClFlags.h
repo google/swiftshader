@@ -86,6 +86,9 @@ public:
   bool shouldRandomizeRegAlloc() const { return RandomRegAlloc; }
   void setShouldRandomizeRegAlloc(bool NewValue) { RandomRegAlloc = NewValue; }
 
+  bool getSkipUnimplemented() const { return SkipUnimplemented; }
+  void setSkipUnimplemented(bool NewValue) { SkipUnimplemented = NewValue; }
+
   bool getSubzeroTimingEnabled() const { return SubzeroTimingEnabled; }
   void setSubzeroTimingEnabled(bool NewValue) {
     SubzeroTimingEnabled = NewValue;
@@ -184,6 +187,7 @@ private:
   bool PhiEdgeSplit;
   bool RandomNopInsertion;
   bool RandomRegAlloc;
+  bool SkipUnimplemented;
   bool SubzeroTimingEnabled;
   bool TimeEachFunction;
   bool UseSandboxing;

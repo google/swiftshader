@@ -352,6 +352,8 @@ public:
 
   SizeT getBundleAlignLog2Bytes() const override { return 5; }
 
+  const char *getNonExecPadDirective() const override { return ".p2align"; }
+
   llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const override {
     static const uint8_t Padding[] = {0xF4};
     return llvm::ArrayRef<uint8_t>(Padding, 1);

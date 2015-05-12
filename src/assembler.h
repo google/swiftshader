@@ -182,6 +182,7 @@ public:
 
   virtual SizeT getBundleAlignLog2Bytes() const = 0;
 
+  virtual const char *getNonExecPadDirective() const = 0;
   virtual llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const = 0;
 
   // Mark the current text location as the start of a CFG node
