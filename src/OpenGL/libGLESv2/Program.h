@@ -160,8 +160,14 @@ namespace es2
 		bool applyUniform3fv(GLint location, GLsizei count, const GLfloat *v);
 		bool applyUniform4fv(GLint location, GLsizei count, const GLfloat *v);
 		bool applyUniformMatrix2fv(GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix2x3fv(GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix2x4fv(GLint location, GLsizei count, const GLfloat *value);
 		bool applyUniformMatrix3fv(GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix3x2fv(GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix3x4fv(GLint location, GLsizei count, const GLfloat *value);
 		bool applyUniformMatrix4fv(GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix4x2fv(GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix4x3fv(GLint location, GLsizei count, const GLfloat *value);
 		bool applyUniform1iv(GLint location, GLsizei count, const GLint *v);
 		bool applyUniform2iv(GLint location, GLsizei count, const GLint *v);
 		bool applyUniform3iv(GLint location, GLsizei count, const GLint *v);

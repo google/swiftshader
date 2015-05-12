@@ -884,9 +884,15 @@ namespace es2
 				  case GL_FLOAT_VEC2: applyUniform2fv(location, size, f);       break;
 				  case GL_FLOAT_VEC3: applyUniform3fv(location, size, f);       break;
 				  case GL_FLOAT_VEC4: applyUniform4fv(location, size, f);       break;
-				  case GL_FLOAT_MAT2: applyUniformMatrix2fv(location, size, f); break;
-				  case GL_FLOAT_MAT3: applyUniformMatrix3fv(location, size, f); break;
-				  case GL_FLOAT_MAT4: applyUniformMatrix4fv(location, size, f); break;
+				  case GL_FLOAT_MAT2:   applyUniformMatrix2fv(location, size, f);   break;
+				  case GL_FLOAT_MAT2x3: applyUniformMatrix2x3fv(location, size, f); break;
+				  case GL_FLOAT_MAT2x4: applyUniformMatrix2x4fv(location, size, f); break;
+				  case GL_FLOAT_MAT3x2: applyUniformMatrix3x2fv(location, size, f); break;
+				  case GL_FLOAT_MAT3:   applyUniformMatrix3fv(location, size, f);   break;
+				  case GL_FLOAT_MAT3x4: applyUniformMatrix3x4fv(location, size, f); break;
+				  case GL_FLOAT_MAT4x2: applyUniformMatrix4x2fv(location, size, f); break;
+				  case GL_FLOAT_MAT4x3: applyUniformMatrix4x3fv(location, size, f); break;
+				  case GL_FLOAT_MAT4:   applyUniformMatrix4fv(location, size, f);   break;
 				  case GL_SAMPLER_2D:
 				  case GL_SAMPLER_CUBE:
 				  case GL_SAMPLER_EXTERNAL_OES:
@@ -1511,6 +1517,60 @@ namespace es2
 		return true;
 	}
 
+	bool Program::applyUniformMatrix2x3fv(GLint location, GLsizei count, const GLfloat *value)
+	{
+		float matrix[(MAX_UNIFORM_VECTORS + 1) / 2][2][4];
+
+		for(int i = 0; i < count; i++)
+		{
+			matrix[i][0][0] = value[0];	matrix[i][0][1] = value[1];	matrix[i][0][2] = value[2]; matrix[i][0][3] = 0;
+			matrix[i][1][0] = value[3];	matrix[i][1][1] = value[4];	matrix[i][1][2] = value[5]; matrix[i][1][3] = 0;
+
+			value += 6;
+		}
+
+		Uniform *targetUniform = uniforms[uniformIndex[location].index];
+
+		if(targetUniform->psRegisterIndex != -1)
+		{
+			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
+		}
+
+		if(targetUniform->vsRegisterIndex != -1)
+		{
+			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
+		}
+
+		return true;
+	}
+
+	bool Program::applyUniformMatrix2x4fv(GLint location, GLsizei count, const GLfloat *value)
+	{
+		float matrix[(MAX_UNIFORM_VECTORS + 1) / 2][2][4];
+
+		for(int i = 0; i < count; i++)
+		{
+			matrix[i][0][0] = value[0];	matrix[i][0][1] = value[1];	matrix[i][0][2] = value[2]; matrix[i][0][3] = value[3];
+			matrix[i][1][0] = value[4];	matrix[i][1][1] = value[5];	matrix[i][1][2] = value[6]; matrix[i][1][3] = value[7];
+
+			value += 8;
+		}
+
+		Uniform *targetUniform = uniforms[uniformIndex[location].index];
+
+		if(targetUniform->psRegisterIndex != -1)
+		{
+			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
+		}
+
+		if(targetUniform->vsRegisterIndex != -1)
+		{
+			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
+		}
+
+		return true;
+	}
+
 	bool Program::applyUniformMatrix3fv(GLint location, GLsizei count, const GLfloat *value)
 	{
 		float matrix[(MAX_UNIFORM_VECTORS + 2) / 3][3][4];
@@ -1539,6 +1599,62 @@ namespace es2
 		return true;
 	}
 
+	bool Program::applyUniformMatrix3x2fv(GLint location, GLsizei count, const GLfloat *value)
+	{
+		float matrix[(MAX_UNIFORM_VECTORS + 2) / 3][3][4];
+
+		for(int i = 0; i < count; i++)
+		{
+			matrix[i][0][0] = value[0];	matrix[i][0][1] = value[1];	matrix[i][0][2] = 0; matrix[i][0][3] = 0;
+			matrix[i][1][0] = value[2];	matrix[i][1][1] = value[3];	matrix[i][1][2] = 0; matrix[i][1][3] = 0;
+			matrix[i][2][0] = value[4];	matrix[i][2][1] = value[5];	matrix[i][2][2] = 0; matrix[i][2][3] = 0;
+
+			value += 6;
+		}
+
+		Uniform *targetUniform = uniforms[uniformIndex[location].index];
+
+		if(targetUniform->psRegisterIndex != -1)
+		{
+			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
+		}
+
+		if(targetUniform->vsRegisterIndex != -1)
+		{
+			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
+		}
+
+		return true;
+	}
+
+	bool Program::applyUniformMatrix3x4fv(GLint location, GLsizei count, const GLfloat *value)
+	{
+		float matrix[(MAX_UNIFORM_VECTORS + 2) / 3][3][4];
+
+		for(int i = 0; i < count; i++)
+		{
+			matrix[i][0][0] = value[0];	matrix[i][0][1] = value[1];	matrix[i][0][2] = value[2]; 	matrix[i][0][3] = value[3];
+			matrix[i][1][0] = value[4];	matrix[i][1][1] = value[5];	matrix[i][1][2] = value[6]; 	matrix[i][1][3] = value[7];
+			matrix[i][2][0] = value[8];	matrix[i][2][1] = value[9];	matrix[i][2][2] = value[10];	matrix[i][2][3] = value[11];
+
+			value += 12;
+		}
+
+		Uniform *targetUniform = uniforms[uniformIndex[location].index];
+
+		if(targetUniform->psRegisterIndex != -1)
+		{
+			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
+		}
+
+		if(targetUniform->vsRegisterIndex != -1)
+		{
+			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
+		}
+
+		return true;
+	}
+
 	bool Program::applyUniformMatrix4fv(GLint location, GLsizei count, const GLfloat *value)
 	{
 		Uniform *targetUniform = uniforms[uniformIndex[location].index];
@@ -1551,6 +1667,64 @@ namespace es2
 		if(targetUniform->vsRegisterIndex != -1)
 		{
 			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)value, targetUniform->registerCount());
+		}
+
+		return true;
+	}
+
+	bool Program::applyUniformMatrix4x2fv(GLint location, GLsizei count, const GLfloat *value)
+	{
+		float matrix[(MAX_UNIFORM_VECTORS + 2) / 3][3][4];
+
+		for(int i = 0; i < count; i++)
+		{
+			matrix[i][0][0] = value[0];	matrix[i][0][1] = value[1];	matrix[i][0][2] = 0; matrix[i][0][3] = 0;
+			matrix[i][1][0] = value[2];	matrix[i][1][1] = value[3];	matrix[i][1][2] = 0; matrix[i][1][3] = 0;
+			matrix[i][2][0] = value[4];	matrix[i][2][1] = value[5];	matrix[i][2][2] = 0; matrix[i][2][3] = 0;
+			matrix[i][3][0] = value[6];	matrix[i][3][1] = value[7];	matrix[i][3][2] = 0; matrix[i][3][3] = 0;
+
+			value += 8;
+		}
+
+		Uniform *targetUniform = uniforms[uniformIndex[location].index];
+
+		if(targetUniform->psRegisterIndex != -1)
+		{
+			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
+		}
+
+		if(targetUniform->vsRegisterIndex != -1)
+		{
+			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
+		}
+
+		return true;
+	}
+
+	bool Program::applyUniformMatrix4x3fv(GLint location, GLsizei count, const GLfloat *value)
+	{
+		float matrix[(MAX_UNIFORM_VECTORS + 2) / 3][3][4];
+
+		for(int i = 0; i < count; i++)
+		{
+			matrix[i][0][0] = value[0];	matrix[i][0][1] = value[1];  matrix[i][0][2] = value[2];  matrix[i][0][3] = 0;
+			matrix[i][1][0] = value[3];	matrix[i][1][1] = value[4];  matrix[i][1][2] = value[5];  matrix[i][1][3] = 0;
+			matrix[i][2][0] = value[6];	matrix[i][2][1] = value[7];  matrix[i][2][2] = value[8];  matrix[i][2][3] = 0;
+			matrix[i][3][0] = value[9];	matrix[i][3][1] = value[10]; matrix[i][3][2] = value[11]; matrix[i][3][3] = 0;
+
+			value += 12;
+		}
+
+		Uniform *targetUniform = uniforms[uniformIndex[location].index];
+
+		if(targetUniform->psRegisterIndex != -1)
+		{
+			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
+		}
+
+		if(targetUniform->vsRegisterIndex != -1)
+		{
+			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
 		}
 
 		return true;
