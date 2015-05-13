@@ -28,6 +28,12 @@ const char* getOperatorString(TOperator op) {
       case EOpAddAssign: return "+=";
       case EOpSubAssign: return "-=";
       case EOpDivAssign: return "/=";
+      case EOpIModAssign: return "%=";
+      case EOpBitShiftLeftAssign: return "<<=";
+      case EOpBitShiftRightAssign: return ">>=";
+      case EOpBitwiseAndAssign: return "&=";
+      case EOpBitwiseXorAssign: return "^=";
+      case EOpBitwiseOrAssign: return "|=";
 
       // Fall-through.
       case EOpMulAssign:
@@ -64,9 +70,16 @@ const char* getOperatorString(TOperator op) {
       case EOpLogicalOr: return "||";
       case EOpLogicalXor: return "^^";
       case EOpLogicalAnd: return "&&";
+      case EOpIMod: return "%";
+      case EOpBitShiftLeft: return "<<";
+      case EOpBitShiftRight: return ">>";
+      case EOpBitwiseAnd: return "&";
+      case EOpBitwiseXor: return "^";
+      case EOpBitwiseOr: return "|";
       case EOpNegative: return "-";
       case EOpVectorLogicalNot: return "not";
       case EOpLogicalNot: return "!";
+      case EOpBitwiseNot: return "~";
       case EOpPostIncrement: return "++";
       case EOpPostDecrement: return "--";
       case EOpPreIncrement: return "++";
@@ -589,6 +602,12 @@ bool TIntermOperator::modifiesState() const
         case EOpMatrixTimesScalarAssign:
         case EOpMatrixTimesMatrixAssign:
         case EOpDivAssign:
+        case EOpIModAssign:
+        case EOpBitShiftLeftAssign:
+        case EOpBitShiftRightAssign:
+        case EOpBitwiseAndAssign:
+        case EOpBitwiseXorAssign:
+        case EOpBitwiseOrAssign:
             return true;
         default:
             return false;
@@ -836,6 +855,12 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
         case EOpAddAssign:
         case EOpSubAssign:
         case EOpDivAssign:
+        case EOpIModAssign:
+        case EOpBitShiftLeftAssign:
+        case EOpBitShiftRightAssign:
+        case EOpBitwiseAndAssign:
+        case EOpBitwiseXorAssign:
+        case EOpBitwiseOrAssign:
             if ((left->isMatrix() && right->isVector()) ||
                 (left->isVector() && right->isMatrix()))
                 return false;

@@ -765,6 +765,10 @@ unary_operator
     : PLUS  { $$.line = $1.line; $$.op = EOpNull; }
     | DASH  { $$.line = $1.line; $$.op = EOpNegative; }
     | BANG  { $$.line = $1.line; $$.op = EOpLogicalNot; }
+    | TILDE {
+        ES3_ONLY("~", $1.line);
+        $$.line = $1.line; $$.op = EOpBitwiseNot;
+    }
     ;
 // Grammar Note:  No '*' or '&' unary ops.  Pointers are not supported.
 
@@ -784,6 +788,16 @@ multiplicative_expression
         $$ = context->intermediate.addBinaryMath(EOpDiv, $1, $3, $2.line);
         if ($$ == 0) {
             context->binaryOpError($2.line, "/", $1->getCompleteString(), $3->getCompleteString());
+            context->recover();
+            $$ = $1;
+        }
+    }
+    | multiplicative_expression PERCENT unary_expression {
+        FRAG_VERT_ONLY("%", $2.line);
+        ES3_ONLY("%", $2.line);
+        $$ = context->intermediate.addBinaryMath(EOpIMod, $1, $3, $2.line);
+        if ($$ == 0) {
+            context->binaryOpError($2.line, "%", $1->getCompleteString(), $3->getCompleteString());
             context->recover();
             $$ = $1;
         }
@@ -812,6 +826,24 @@ additive_expression
 
 shift_expression
     : additive_expression { $$ = $1; }
+    | shift_expression LEFT_OP additive_expression {
+        ES3_ONLY("<<", $2.line);
+        context->intermediate.addBinaryMath(EOpBitShiftLeft, $1, $3, $2.line);
+        if ($$ == 0) {
+            context->binaryOpError($2.line, "<<", $1->getCompleteString(), $3->getCompleteString());
+            context->recover();
+            $$ = $1;
+        }
+    }
+    | shift_expression RIGHT_OP additive_expression {
+        ES3_ONLY(">>", $2.line);
+        context->intermediate.addBinaryMath(EOpBitShiftRight, $1, $3, $2.line);
+        if ($$ == 0) {
+            context->binaryOpError($2.line, ">>", $1->getCompleteString(), $3->getCompleteString());
+            context->recover();
+            $$ = $1;
+        }
+    }
     ;
 
 relational_expression
@@ -884,14 +916,47 @@ equality_expression
 
 and_expression
     : equality_expression { $$ = $1; }
+    | and_expression AMPERSAND equality_expression {
+        ES3_ONLY("&", $2.line);
+        $$ = context->intermediate.addBinaryMath(EOpBitwiseAnd, $1, $3, $2.line);
+        if ($$ == 0) {
+            context->binaryOpError($2.line, "&", $1->getCompleteString(), $3->getCompleteString());
+            context->recover();
+            ConstantUnion *unionArray = new ConstantUnion[1];
+            unionArray->setBConst(false);
+            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), $2.line);
+        }
+    }
     ;
 
 exclusive_or_expression
     : and_expression { $$ = $1; }
+    | exclusive_or_expression CARET and_expression {
+        ES3_ONLY("^", $2.line);
+        $$ = context->intermediate.addBinaryMath(EOpBitwiseXor, $1, $3, $2.line);
+        if ($$ == 0) {
+            context->binaryOpError($2.line, "^", $1->getCompleteString(), $3->getCompleteString());
+            context->recover();
+            ConstantUnion *unionArray = new ConstantUnion[1];
+            unionArray->setBConst(false);
+            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), $2.line);
+        }
+    }
     ;
 
 inclusive_or_expression
     : exclusive_or_expression { $$ = $1; }
+    | inclusive_or_expression VERTICAL_BAR exclusive_or_expression {
+        ES3_ONLY("|", $2.line);
+        $$ = context->intermediate.addBinaryMath(EOpBitwiseOr, $1, $3, $2.line);
+        if ($$ == 0) {
+            context->binaryOpError($2.line, "|", $1->getCompleteString(), $3->getCompleteString());
+            context->recover();
+            ConstantUnion *unionArray = new ConstantUnion[1];
+            unionArray->setBConst(false);
+            $$ = context->intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), $2.line);
+        }
+    }
     ;
 
 logical_and_expression
@@ -972,8 +1037,20 @@ assignment_operator
     : EQUAL        {                                    $$.line = $1.line; $$.op = EOpAssign; }
     | MUL_ASSIGN   { FRAG_VERT_ONLY("*=", $1.line);     $$.line = $1.line; $$.op = EOpMulAssign; }
     | DIV_ASSIGN   { FRAG_VERT_ONLY("/=", $1.line);     $$.line = $1.line; $$.op = EOpDivAssign; }
+    | MOD_ASSIGN   { ES3_ONLY("%=", $1.line); 
+                     FRAG_VERT_ONLY("%=", $1.line);     $$.line = $1.line; $$.op = EOpIModAssign; }
     | ADD_ASSIGN   {                                    $$.line = $1.line; $$.op = EOpAddAssign; }
     | SUB_ASSIGN   {                                    $$.line = $1.line; $$.op = EOpSubAssign; }
+    | LEFT_ASSIGN  { ES3_ONLY("<<=", $1.line);
+                     FRAG_VERT_ONLY("<<=", $1.line);    $$.line = $1.line; $$.op = EOpBitShiftLeftAssign; }
+    | RIGHT_ASSIGN { ES3_ONLY(">>=", $1.line);
+                     FRAG_VERT_ONLY(">>=", $1.line);    $$.line = $1.line; $$.op = EOpBitShiftRightAssign; }
+    | AND_ASSIGN   { ES3_ONLY("&=", $1.line);
+                     FRAG_VERT_ONLY("&=", $1.line);     $$.line = $1.line; $$.op = EOpBitwiseAndAssign; }
+    | XOR_ASSIGN   { ES3_ONLY("^=", $1.line);
+                     FRAG_VERT_ONLY("^=", $1.line);     $$.line = $1.line; $$.op = EOpBitwiseXorAssign; }
+    | OR_ASSIGN    { ES3_ONLY("|=", $1.line);
+                     FRAG_VERT_ONLY("|=", $1.line);     $$.line = $1.line; $$.op = EOpBitwiseOrAssign; }
     ;
 
 expression

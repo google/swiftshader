@@ -40,6 +40,7 @@ enum TOperator {
     EOpNegative,
     EOpLogicalNot,
     EOpVectorLogicalNot,
+    EOpBitwiseNot,
 
     EOpPostIncrement,
     EOpPostDecrement,
@@ -77,6 +78,13 @@ enum TOperator {
     EOpLogicalOr,
     EOpLogicalXor,
     EOpLogicalAnd,
+
+    EOpIMod,
+    EOpBitShiftLeft,
+    EOpBitShiftRight,
+    EOpBitwiseAnd,
+    EOpBitwiseXor,
+    EOpBitwiseOr,
 
     EOpIndexDirect,
     EOpIndexIndirect,
@@ -210,7 +218,13 @@ enum TOperator {
     EOpVectorTimesScalarAssign,
     EOpMatrixTimesScalarAssign,
     EOpMatrixTimesMatrixAssign,
-    EOpDivAssign
+    EOpDivAssign,
+    EOpIModAssign,
+    EOpBitShiftLeftAssign,
+    EOpBitShiftRightAssign,
+    EOpBitwiseAndAssign,
+    EOpBitwiseXorAssign,
+    EOpBitwiseOrAssign
 };
 
 extern const char* getOperatorString(TOperator op);
