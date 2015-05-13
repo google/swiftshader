@@ -626,7 +626,7 @@ namespace sw
 				// Bilinear interpolation
 				if(componentCount >= 1)
 				{
-					if(has16bitTexture() && hasUnsignedTextureComponent(0))
+					if(has16bitTextureComponents() && hasUnsignedTextureComponent(0))
 					{
 						c0.x = As<UShort4>(c0.x) - MulHigh(As<UShort4>(c0.x), f0u) + MulHigh(As<UShort4>(c1.x), f0u);
 						c2.x = As<UShort4>(c2.x) - MulHigh(As<UShort4>(c2.x), f0u) + MulHigh(As<UShort4>(c3.x), f0u);
@@ -656,7 +656,7 @@ namespace sw
 
 				if(componentCount >= 2)
 				{
-					if(has16bitTexture() && hasUnsignedTextureComponent(1))
+					if(has16bitTextureComponents() && hasUnsignedTextureComponent(1))
 					{
 						c0.y = As<UShort4>(c0.y) - MulHigh(As<UShort4>(c0.y), f0u) + MulHigh(As<UShort4>(c1.y), f0u);
 						c2.y = As<UShort4>(c2.y) - MulHigh(As<UShort4>(c2.y), f0u) + MulHigh(As<UShort4>(c3.y), f0u);
@@ -686,7 +686,7 @@ namespace sw
 
 				if(componentCount >= 3)
 				{
-					if(has16bitTexture() && hasUnsignedTextureComponent(2))
+					if(has16bitTextureComponents() && hasUnsignedTextureComponent(2))
 					{
 						c0.z = As<UShort4>(c0.z) - MulHigh(As<UShort4>(c0.z), f0u) + MulHigh(As<UShort4>(c1.z), f0u);
 						c2.z = As<UShort4>(c2.z) - MulHigh(As<UShort4>(c2.z), f0u) + MulHigh(As<UShort4>(c3.z), f0u);
@@ -716,7 +716,7 @@ namespace sw
 
 				if(componentCount >= 4)
 				{
-					if(has16bitTexture() && hasUnsignedTextureComponent(3))
+					if(has16bitTextureComponents() && hasUnsignedTextureComponent(3))
 					{
 						c0.w = As<UShort4>(c0.w) - MulHigh(As<UShort4>(c0.w), f0u) + MulHigh(As<UShort4>(c1.w), f0u);
 						c2.w = As<UShort4>(c2.w) - MulHigh(As<UShort4>(c2.w), f0u) + MulHigh(As<UShort4>(c3.w), f0u);
@@ -1475,13 +1475,12 @@ namespace sw
 		int f2 = state.textureType == TEXTURE_CUBE ? 2 : 0;
 		int f3 = state.textureType == TEXTURE_CUBE ? 3 : 0;
 
-		if(!has16bitTexture())
+		if(has16bitTextureFormat())
 		{
-			Int c0;
-			Int c1;
-			Int c2;
-			Int c3;
-
+			UNIMPLEMENTED();
+		}
+		else if(!has16bitTextureComponents())   // 8-bit components
+		{
 			switch(textureComponentCount())
 			{
 			case 4:
@@ -1577,18 +1576,20 @@ namespace sw
 				}
 				break;
 			case 1:
-				c0 = Int(*Pointer<Byte>(buffer[f0] + index[0]));
-				c1 = Int(*Pointer<Byte>(buffer[f1] + index[1]));
-				c2 = Int(*Pointer<Byte>(buffer[f2] + index[2]));
-				c3 = Int(*Pointer<Byte>(buffer[f3] + index[3]));
-				c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
-				c.x = Unpack(As<Byte4>(c0));
+				{
+					Int c0 = Int(*Pointer<Byte>(buffer[f0] + index[0]));
+					Int c1 = Int(*Pointer<Byte>(buffer[f1] + index[1]));
+					Int c2 = Int(*Pointer<Byte>(buffer[f2] + index[2]));
+					Int c3 = Int(*Pointer<Byte>(buffer[f3] + index[3]));
+					c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
+					c.x = Unpack(As<Byte4>(c0));
+				}
 				break;
 			default:
 				ASSERT(false);
 			}
 		}
-		else
+		else   // 16-bit components
 		{
 			switch(textureComponentCount())
 			{
@@ -1826,10 +1827,49 @@ namespace sw
 		return Surface::componentCount(state.textureFormat);
 	}
 
-	bool SamplerCore::has16bitTexture() const
+	bool SamplerCore::has16bitTextureFormat() const
 	{
 		switch(state.textureFormat)
 		{
+		case FORMAT_R5G6B5:
+			return true;
+		case FORMAT_G8R8:
+		case FORMAT_X8R8G8B8:
+		case FORMAT_X8B8G8R8:
+		case FORMAT_A8R8G8B8:
+		case FORMAT_A8B8G8R8:
+		case FORMAT_V8U8:
+		case FORMAT_Q8W8V8U8:
+		case FORMAT_X8L8V8U8:
+		case FORMAT_R32F:
+		case FORMAT_G32R32F:
+		case FORMAT_A32B32G32R32F:
+		case FORMAT_A8:
+		case FORMAT_R8:
+		case FORMAT_L8:
+		case FORMAT_A8L8:
+		case FORMAT_D32F_LOCKABLE:
+		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32FS8_SHADOW:
+		case FORMAT_L16:
+		case FORMAT_G16R16:
+		case FORMAT_A16B16G16R16:
+		case FORMAT_V16U16:
+		case FORMAT_A16W16V16U16:
+		case FORMAT_Q16W16V16U16:
+			return false;
+		default:
+			ASSERT(false);
+		}
+		
+		return false;
+	}
+
+	bool SamplerCore::has16bitTextureComponents() const
+	{
+		switch(state.textureFormat)
+		{
+		case FORMAT_R5G6B5:
 		case FORMAT_G8R8:
 		case FORMAT_X8R8G8B8:
 		case FORMAT_X8B8G8R8:
@@ -1867,6 +1907,7 @@ namespace sw
 	{
 		switch(state.textureFormat)
 		{
+		case FORMAT_R5G6B5:         return component < 3;
 		case FORMAT_G8R8:           return component < 2;
 		case FORMAT_X8R8G8B8:       return component < 3;
 		case FORMAT_X8B8G8R8:       return component < 3;

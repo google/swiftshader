@@ -60,7 +60,8 @@ namespace sw
 		bool hasFloatTexture() const;
 		bool hasUnsignedTextureComponent(int component) const;
 		int textureComponentCount() const;
-		bool has16bitTexture() const;
+		bool has16bitTextureFormat() const;
+		bool has16bitTextureComponents() const;
 		bool isRGBComponent(int component) const;
 
 		Pointer<Byte> &constants;
