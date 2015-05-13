@@ -27,7 +27,8 @@ GLenum getColorFormatFromAndroid(int format)
             if (GrallocModule::getInstance()->supportsConversion()) {
                 return GL_RGB565_OES;
             } else {
-                UNIMPLEMENTED();
+				ALOGE("%s badness converting gralloc not supported for RGB_565",
+					  __FUNCTION__);
                 return GL_RGB565_OES;
             }
 #else
@@ -41,7 +42,7 @@ GLenum getColorFormatFromAndroid(int format)
         case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
         case HAL_PIXEL_FORMAT_YCbCr_420_888:
         default:
-            UNIMPLEMENTED();
+			ALOGE("%s badness unsupported format=%x", __FUNCTION__, format);
     }
     return GL_RGBA;
 }
@@ -61,7 +62,8 @@ GLenum getPixelFormatFromAndroid(int format)
             if (GrallocModule::getInstance()->supportsConversion()) {
                 return GL_UNSIGNED_SHORT_5_6_5;
             } else {
-                UNIMPLEMENTED();
+				ALOGE("%s badness converting gralloc not supported for RGB_565",
+					  __FUNCTION__);
                 return GL_UNSIGNED_SHORT_5_6_5;
             }
 #else
@@ -75,7 +77,7 @@ GLenum getPixelFormatFromAndroid(int format)
         case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
         case HAL_PIXEL_FORMAT_YCbCr_420_888:
         default:
-            UNIMPLEMENTED();
+			ALOGE("%s badness unsupported format=%x", __FUNCTION__, format);
     }
     return GL_UNSIGNED_BYTE;
 }
@@ -85,20 +87,22 @@ GLenum isSupportedAndroidBuffer(GLuint name)
 {
     ANativeWindowBuffer *nativeBuffer = reinterpret_cast<ANativeWindowBuffer*>(name);
 
-    if(!name)
+    if (!name)
     {
-        ALOGE("%s called with name==NULL %s:%d", __FUNCTION__, __FILE__, __LINE__);
+		ALOGE("badness %s called with name==NULL %s:%d", __FUNCTION__, __FILE__, __LINE__);
         return EGL_BAD_PARAMETER;
     }
-    if(nativeBuffer->common.magic != ANDROID_NATIVE_BUFFER_MAGIC)
+    if (nativeBuffer->common.magic != ANDROID_NATIVE_BUFFER_MAGIC)
     {
-        ALOGE("%s: failed: bad magic", __FUNCTION__);
+		ALOGE("badness %s failed: bad magic=%x, expected=%x",
+			  __FUNCTION__, nativeBuffer->common.magic, ANDROID_NATIVE_BUFFER_MAGIC);
         return EGL_BAD_PARAMETER;
     }
 
-    if(nativeBuffer->common.version != sizeof(ANativeWindowBuffer))
+    if (nativeBuffer->common.version != sizeof(ANativeWindowBuffer))
     {
-        ALOGE("%s: failed: bad size", __FUNCTION__ );
+		ALOGE("badness %s failed: bad size=%d, expected=%d",
+			  __FUNCTION__, nativeBuffer->common.version, sizeof(ANativeWindowBuffer));
         return EGL_BAD_PARAMETER;
     }
 
@@ -112,14 +116,14 @@ GLenum isSupportedAndroidBuffer(GLuint name)
             if (GrallocModule::getInstance()->supportsConversion()) {
                 return EGL_SUCCESS;
             } else {
-                ALOGE("%s: failed: bad format", __FUNCTION__ );
+				ALOGE("badness %s failed: conversion not supported", __FUNCTION__ );
                 return EGL_BAD_PARAMETER;
             }
 #else
             return EGL_SUCCESS;
 #endif
         default:
-            ALOGE("%s: failed: bad format", __FUNCTION__ );
+			ALOGE("badness %s failed: bad format=%x", __FUNCTION__, nativeBuffer->format);
             return EGL_BAD_PARAMETER;
     }
 }
