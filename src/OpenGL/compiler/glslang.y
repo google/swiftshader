@@ -749,6 +749,7 @@ unary_expression
                 switch($1.op) {
                 case EOpNegative:   errorOp = "-"; break;
                 case EOpLogicalNot: errorOp = "!"; break;
+                case EOpBitwiseNot: errorOp = "~"; break;
                 default: break;
                 }
                 context->unaryOpError($1.line, errorOp, $2->getCompleteString());
