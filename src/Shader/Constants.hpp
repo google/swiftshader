@@ -19,9 +19,7 @@ namespace sw
 	struct Constants
 	{
 		Constants();
-
-		unsigned short sRGBtoLinear8[256];
-
+		
 		unsigned int transposeBit0[16];
 		unsigned int transposeBit1[16];
 		unsigned int transposeBit2[16];
@@ -67,8 +65,12 @@ namespace sw
 		dword4 maskD01X[4];
 		dword4 invMaskD01X[4];
 
-		unsigned short linToSRGB12_16[4096];
-		unsigned short sRGBtoLin12_16[4096];
+		unsigned short sRGBtoLinear8_12[256];
+		unsigned short sRGBtoLinear6_12[64];
+		unsigned short sRGBtoLinear5_12[32];
+
+		unsigned short linearToSRGB12_16[4096];
+		unsigned short sRGBtoLinear12_16[4096];
 
 		// Centroid parameters
 		float4 sampleX[4][16];

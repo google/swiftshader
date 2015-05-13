@@ -198,9 +198,9 @@ namespace sw
 		Float4 convertUnsigned16(UShort4 cs);
 		UShort4 convertFixed16(Float4 &cf, bool saturate = true);
 		void convertFixed16(Vector4s &cs, Vector4f &cf, bool saturate = true);
-		void sRGBtoLinear16_16(Registers &r, Vector4s &c);
+		void sRGBtoLinear16_12_16(Registers &r, Vector4s &c);
 		void sRGBtoLinear12_16(Registers &r, Vector4s &c);
-		void linearToSRGB16_16(Registers &r, Vector4s &c);
+		void linearToSRGB16_12_16(Registers &r, Vector4s &c);
 		void linearToSRGB12_16(Registers &r, Vector4s &c);
 		Float4 sRGBtoLinear(const Float4 &x);
 		Float4 linearToSRGB(const Float4 &x);

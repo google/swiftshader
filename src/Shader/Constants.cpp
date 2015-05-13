@@ -22,11 +22,6 @@ namespace sw
 
 	Constants::Constants()
 	{
-		for(int i = 0; i < 256; i++)
-		{
-			sRGBtoLinear8[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0xFF) * 0x1000 + 0.5f);
-		}
-
 		static const unsigned int transposeBit0[16] =
 		{
 			0x00000000,
@@ -266,10 +261,25 @@ namespace sw
 			invMaskD01X[i][3] =  ~-(i >> 1 & 1);
 		}
 
+		for(int i = 0; i < 256; i++)
+		{
+			sRGBtoLinear8_12[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0xFF) * 0x1000 + 0.5f);
+		}
+
+		for(int i = 0; i < 64; i++)
+		{
+			sRGBtoLinear6_12[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0x3F) * 0x1000 + 0.5f);
+		}
+
+		for(int i = 0; i < 32; i++)
+		{
+			sRGBtoLinear5_12[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0x1F) * 0x1000 + 0.5f);
+		}
+
 		for(int i = 0; i < 0x1000; i++)
 		{
-			linToSRGB12_16[i] = (unsigned short)(clamp(sw::linearToSRGB((float)i / 0x0FFF) * 0xFFFF + 0.5f, 0.0f, (float)0xFFFF));
-			sRGBtoLin12_16[i] = (unsigned short)(clamp(sw::sRGBtoLinear((float)i / 0x0FFF) * 0xFFFF + 0.5f, 0.0f, (float)0xFFFF));
+			linearToSRGB12_16[i] = (unsigned short)(clamp(sw::linearToSRGB((float)i / 0x0FFF) * 0xFFFF + 0.5f, 0.0f, (float)0xFFFF));
+			sRGBtoLinear12_16[i] = (unsigned short)(clamp(sw::sRGBtoLinear((float)i / 0x0FFF) * 0xFFFF + 0.5f, 0.0f, (float)0xFFFF));
 		}
 
 		for(int q = 0; q < 4; q++)
