@@ -15,9 +15,10 @@ void AndroidEnterDebugger()
     int debug_uid = atoi(value);
     if ((debug_uid >= 0) && (geteuid() < static_cast<uid_t>(debug_uid)))
     {
-        ALOGE("Waiting for debugger: gdbserver :${PORT} --attach %u", gettid());
-        while (1) {
-            pause();
+        ALOGE("Waiting for debugger: gdbserver :${PORT} --attach %u. Look for thread %u", getpid(), gettid());
+        volatile int waiting = 1;
+        while (waiting) {
+            sleep(1);
         }
     } else {
         ALOGE("No debugger");
