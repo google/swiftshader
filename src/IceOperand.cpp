@@ -422,27 +422,28 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
   }
 }
 
-void ConstantRelocatable::emitWithoutDollar(GlobalContext *Ctx) const {
-  if (!ALLOW_DUMP)
-    return;
-  Ostream &Str = Ctx->getStrEmit();
-  if (SuppressMangling)
-    Str << Name;
-  else
-    Str << Ctx->mangleName(Name);
-  if (Offset) {
-    if (Offset > 0)
-      Str << "+";
-    Str << Offset;
-  }
+template <> void ConstantInteger32::emit(TargetLowering *Target) const {
+  Target->emit(this);
 }
 
-void ConstantRelocatable::emit(GlobalContext *Ctx) const {
-  if (!ALLOW_DUMP)
-    return;
-  Ostream &Str = Ctx->getStrEmit();
-  Str << "$";
-  emitWithoutDollar(Ctx);
+template <> void ConstantInteger64::emit(TargetLowering *Target) const {
+  Target->emit(this);
+}
+
+template <> void ConstantFloat::emit(TargetLowering *Target) const {
+  Target->emit(this);
+}
+
+template <> void ConstantDouble::emit(TargetLowering *Target) const {
+  Target->emit(this);
+}
+
+void ConstantRelocatable::emit(TargetLowering *Target) const {
+  Target->emit(this);
+}
+
+void ConstantRelocatable::emitWithoutPrefix(TargetLowering *Target) const {
+  Target->emitWithoutPrefix(this);
 }
 
 void ConstantRelocatable::dump(const Cfg *Func, Ostream &Str) const {
@@ -457,6 +458,8 @@ void ConstantRelocatable::dump(const Cfg *Func, Ostream &Str) const {
   if (Offset)
     Str << "+" << Offset;
 }
+
+void ConstantUndef::emit(TargetLowering *Target) const { Target->emit(this); }
 
 void LiveRange::dump(Ostream &Str) const {
   if (!ALLOW_DUMP)

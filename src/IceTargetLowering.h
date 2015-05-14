@@ -23,6 +23,7 @@
 
 #include "IceDefs.h"
 #include "IceInst.h" // for the names of the Inst subtypes
+#include "IceOperand.h"
 #include "IceTypes.h"
 
 namespace Ice {
@@ -206,6 +207,16 @@ public:
   }
 
   virtual void emitVariable(const Variable *Var) const = 0;
+
+  void emitWithoutPrefix(const ConstantRelocatable *CR) const;
+  void emit(const ConstantRelocatable *CR) const;
+  virtual const char *getConstantPrefix() const = 0;
+
+  virtual void emit(const ConstantUndef *C) const = 0;
+  virtual void emit(const ConstantInteger32 *C) const = 0;
+  virtual void emit(const ConstantInteger64 *C) const = 0;
+  virtual void emit(const ConstantFloat *C) const = 0;
+  virtual void emit(const ConstantDouble *C) const = 0;
 
   // Performs target-specific argument lowering.
   virtual void lowerArguments() = 0;

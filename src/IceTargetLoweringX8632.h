@@ -54,6 +54,14 @@ public:
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
   void emitVariable(const Variable *Var) const override;
+
+  const char *getConstantPrefix() const final { return "$"; }
+  void emit(const ConstantUndef *C) const final;
+  void emit(const ConstantInteger32 *C) const final;
+  void emit(const ConstantInteger64 *C) const final;
+  void emit(const ConstantFloat *C) const final;
+  void emit(const ConstantDouble *C) const final;
+
   void lowerArguments() override;
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
@@ -522,11 +530,6 @@ private:
   ~TargetDataX8632() override {}
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };
-
-template <> void ConstantInteger32::emit(GlobalContext *Ctx) const;
-template <> void ConstantInteger64::emit(GlobalContext *Ctx) const;
-template <> void ConstantFloat::emit(GlobalContext *Ctx) const;
-template <> void ConstantDouble::emit(GlobalContext *Ctx) const;
 
 } // end of namespace Ice
 

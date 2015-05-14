@@ -234,6 +234,30 @@ InstCall *TargetLowering::makeHelperCall(const IceString &Name, Variable *Dest,
   return Call;
 }
 
+void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Ctx->getStrEmit();
+  if (C->getSuppressMangling())
+    Str << C->getName();
+  else
+    Str << Ctx->mangleName(C->getName());
+  RelocOffsetT Offset = C->getOffset();
+  if (Offset) {
+    if (Offset > 0)
+      Str << "+";
+    Str << Offset;
+  }
+}
+
+void TargetLowering::emit(const ConstantRelocatable *C) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Ctx->getStrEmit();
+  Str << getConstantPrefix();
+  emitWithoutPrefix(C);
+}
+
 std::unique_ptr<TargetDataLowering>
 TargetDataLowering::createLowering(GlobalContext *Ctx) {
   TargetArch Target = Ctx->getFlags().getTargetArch();

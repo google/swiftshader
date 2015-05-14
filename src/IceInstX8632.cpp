@@ -526,8 +526,12 @@ void InstX8632Call::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   Str << "\tcall\t";
-  if (const auto CallTarget = llvm::dyn_cast<Constant>(getCallTarget())) {
-    CallTarget->emitWithoutDollar(Func->getContext());
+  if (const auto CI = llvm::dyn_cast<ConstantInteger32>(getCallTarget())) {
+    // Emit without a leading '$'.
+    Str << CI->getValue();
+  } else if (const auto CallTarget =
+                 llvm::dyn_cast<ConstantRelocatable>(getCallTarget())) {
+    CallTarget->emitWithoutPrefix(Func->getTarget());
   } else {
     Str << "*";
     getCallTarget()->emit(Func);
@@ -2848,7 +2852,7 @@ void OperandX8632Mem::emit(const Cfg *Func) const {
       // Emit a non-zero offset without a leading '$'.
       Str << CI->getValue();
   } else if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
-    CR->emitWithoutDollar(Func->getContext());
+    CR->emitWithoutPrefix(Func->getTarget());
   } else {
     llvm_unreachable("Invalid offset type for x86 mem operand");
   }

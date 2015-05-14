@@ -702,15 +702,28 @@ void TargetARM32::makeRandomRegisterPermutation(
   UnimplementedError(Func->getContext()->getFlags());
 }
 
-/* TODO(jvoung): avoid duplicate symbols with multiple targets.
-void ConstantUndef::emitWithoutDollar(GlobalContext *) const {
-  llvm_unreachable("Not expecting to emitWithoutDollar undef");
+void TargetARM32::emit(const ConstantInteger32 *C) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Ctx->getStrEmit();
+  Str << getConstantPrefix() << C->getValue();
 }
 
-void ConstantUndef::emit(GlobalContext *) const {
-  llvm_unreachable("undef value encountered by emitter.");
+void TargetARM32::emit(const ConstantInteger64 *) const {
+  llvm::report_fatal_error("Not expecting to emit 64-bit integers");
 }
-*/
+
+void TargetARM32::emit(const ConstantFloat *C) const {
+  UnimplementedError(Ctx->getFlags());
+}
+
+void TargetARM32::emit(const ConstantDouble *C) const {
+  UnimplementedError(Ctx->getFlags());
+}
+
+void TargetARM32::emit(const ConstantUndef *) const {
+  llvm::report_fatal_error("undef value encountered by emitter.");
+}
 
 TargetDataARM32::TargetDataARM32(GlobalContext *Ctx)
     : TargetDataLowering(Ctx) {}

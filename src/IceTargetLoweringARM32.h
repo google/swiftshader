@@ -53,6 +53,14 @@ public:
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
   void emitVariable(const Variable *Var) const override;
+
+  const char *getConstantPrefix() const final { return "#"; }
+  void emit(const ConstantUndef *C) const final;
+  void emit(const ConstantInteger32 *C) const final;
+  void emit(const ConstantInteger64 *C) const final;
+  void emit(const ConstantFloat *C) const final;
+  void emit(const ConstantDouble *C) const final;
+
   void lowerArguments() override;
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;

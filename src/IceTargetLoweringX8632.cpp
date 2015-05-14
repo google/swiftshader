@@ -4650,58 +4650,33 @@ void TargetX8632::makeRandomRegisterPermutation(
   }
 }
 
-template <>
-void ConstantInteger32::emitWithoutDollar(GlobalContext *Ctx) const {
+void TargetX8632::emit(const ConstantInteger32 *C) const {
   if (!ALLOW_DUMP)
     return;
   Ostream &Str = Ctx->getStrEmit();
-  Str << (int32_t)getValue();
+  Str << getConstantPrefix() << C->getValue();
 }
 
-template <> void ConstantInteger32::emit(GlobalContext *Ctx) const {
+void TargetX8632::emit(const ConstantInteger64 *) const {
+  llvm::report_fatal_error("Not expecting to emit 64-bit integers");
+}
+
+void TargetX8632::emit(const ConstantFloat *C) const {
   if (!ALLOW_DUMP)
     return;
   Ostream &Str = Ctx->getStrEmit();
-  Str << "$";
-  emitWithoutDollar(Ctx);
+  C->emitPoolLabel(Str);
 }
 
-template <> void ConstantInteger64::emitWithoutDollar(GlobalContext *) const {
-  llvm_unreachable("Not expecting to emitWithoutDollar 64-bit integers");
-}
-
-template <> void ConstantInteger64::emit(GlobalContext *) const {
-  llvm_unreachable("Not expecting to emit 64-bit integers");
-}
-
-template <> void ConstantFloat::emitWithoutDollar(GlobalContext *) const {
-  llvm_unreachable("Not expecting to emitWithoutDollar floats");
-}
-
-template <> void ConstantFloat::emit(GlobalContext *Ctx) const {
+void TargetX8632::emit(const ConstantDouble *C) const {
   if (!ALLOW_DUMP)
     return;
   Ostream &Str = Ctx->getStrEmit();
-  emitPoolLabel(Str);
+  C->emitPoolLabel(Str);
 }
 
-template <> void ConstantDouble::emitWithoutDollar(GlobalContext *) const {
-  llvm_unreachable("Not expecting to emitWithoutDollar doubles");
-}
-
-template <> void ConstantDouble::emit(GlobalContext *Ctx) const {
-  if (!ALLOW_DUMP)
-    return;
-  Ostream &Str = Ctx->getStrEmit();
-  emitPoolLabel(Str);
-}
-
-void ConstantUndef::emitWithoutDollar(GlobalContext *) const {
-  llvm_unreachable("Not expecting to emitWithoutDollar undef");
-}
-
-void ConstantUndef::emit(GlobalContext *) const {
-  llvm_unreachable("undef value encountered by emitter.");
+void TargetX8632::emit(const ConstantUndef *) const {
+  llvm::report_fatal_error("undef value encountered by emitter.");
 }
 
 TargetDataX8632::TargetDataX8632(GlobalContext *Ctx)
