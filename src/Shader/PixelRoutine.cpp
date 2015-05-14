@@ -2675,11 +2675,6 @@ namespace sw
 
 	void PixelRoutine::writeColor(Registers &r, int index, Pointer<Byte> &cBuffer, Int &x, Vector4s &current, Int &sMask, Int &zMask, Int &cMask)
 	{
-		if(!state.colorWriteActive(index))
-		{
-			return;
-		}
-
 		if(postBlendSRGB && state.writeSRGB)
 		{
 			linearToSRGB16_12_16(r, current);
@@ -2815,20 +2810,6 @@ namespace sw
 		case FORMAT_A16B16G16R16:
 			transpose4x4(current.x, current.y, current.z, current.w);
 			break;
-		case FORMAT_R32F:
-		case FORMAT_G32R32F:
-		case FORMAT_A32B32G32R32F:
-			{
-				Vector4f oC;
-
-				oC.x = convertUnsigned16(UShort4(current.x));
-				oC.y = convertUnsigned16(UShort4(current.y));
-				oC.z = convertUnsigned16(UShort4(current.z));
-				oC.w = convertUnsigned16(UShort4(current.w));
-
-				writeColor(r, index, cBuffer, x, oC, sMask, zMask, cMask);
-			}
-			return;
 		default:
 			ASSERT(false);
 		}
@@ -3236,154 +3217,6 @@ namespace sw
 		// Read pixel
 		switch(state.targetFormat[index])
 		{
-		case FORMAT_A8R8G8B8:
-			buffer = cBuffer + 4 * x;
-			c01 = *Pointer<Short4>(buffer);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
-			c23 = *Pointer<Short4>(buffer);
-			color.z = c01;
-			color.y = c01;
-			color.z = UnpackLow(As<Byte8>(color.z), As<Byte8>(c23));
-			color.y = UnpackHigh(As<Byte8>(color.y), As<Byte8>(c23));
-			color.x = color.z;
-			color.z = UnpackLow(As<Byte8>(color.z), As<Byte8>(color.y));
-			color.x = UnpackHigh(As<Byte8>(color.x), As<Byte8>(color.y));
-			color.y = color.z;
-			color.w = color.x;
-			color.x = UnpackLow(As<Byte8>(color.x), As<Byte8>(color.x));
-			color.y = UnpackHigh(As<Byte8>(color.y), As<Byte8>(color.y));
-			color.z = UnpackLow(As<Byte8>(color.z), As<Byte8>(color.z));
-			color.w = UnpackHigh(As<Byte8>(color.w), As<Byte8>(color.w));
-
-			pixel.x = convertUnsigned16(As<UShort4>(color.x));
-			pixel.y = convertUnsigned16(As<UShort4>(color.y));
-			pixel.z = convertUnsigned16(As<UShort4>(color.z));
-			pixel.w = convertUnsigned16(As<UShort4>(color.w));
-			break;
-		case FORMAT_A8B8G8R8:
-			buffer = cBuffer + 4 * x;
-			c01 = *Pointer<Short4>(buffer);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
-			c23 = *Pointer<Short4>(buffer);
-			color.z = c01;
-			color.y = c01;
-			color.z = UnpackLow(As<Byte8>(color.z), As<Byte8>(c23));
-			color.y = UnpackHigh(As<Byte8>(color.y), As<Byte8>(c23));
-			color.x = color.z;
-			color.z = UnpackLow(As<Byte8>(color.z), As<Byte8>(color.y));
-			color.x = UnpackHigh(As<Byte8>(color.x), As<Byte8>(color.y));
-			color.y = color.z;
-			color.w = color.x;
-			color.x = UnpackLow(As<Byte8>(color.x), As<Byte8>(color.x));
-			color.y = UnpackHigh(As<Byte8>(color.y), As<Byte8>(color.y));
-			color.z = UnpackLow(As<Byte8>(color.z), As<Byte8>(color.z));
-			color.w = UnpackHigh(As<Byte8>(color.w), As<Byte8>(color.w));
-
-			pixel.x = convertUnsigned16(As<UShort4>(color.z));
-			pixel.y = convertUnsigned16(As<UShort4>(color.y));
-			pixel.z = convertUnsigned16(As<UShort4>(color.x));
-			pixel.w = convertUnsigned16(As<UShort4>(color.w));
-			break;
-		case FORMAT_X8R8G8B8:
-			buffer = cBuffer + 4 * x;
-			c01 = *Pointer<Short4>(buffer);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
-			c23 = *Pointer<Short4>(buffer);
-			color.z = c01;
-			color.y = c01;
-			color.z = UnpackLow(As<Byte8>(color.z), As<Byte8>(c23));
-			color.y = UnpackHigh(As<Byte8>(color.y), As<Byte8>(c23));
-			color.x = color.z;
-			color.z = UnpackLow(As<Byte8>(color.z), As<Byte8>(color.y));
-			color.x = UnpackHigh(As<Byte8>(color.x), As<Byte8>(color.y));
-			color.y = color.z;
-			color.x = UnpackLow(As<Byte8>(color.x), As<Byte8>(color.x));
-			color.y = UnpackHigh(As<Byte8>(color.y), As<Byte8>(color.y));
-			color.z = UnpackLow(As<Byte8>(color.z), As<Byte8>(color.z));
-
-			pixel.x = convertUnsigned16(As<UShort4>(color.x));
-			pixel.y = convertUnsigned16(As<UShort4>(color.y));
-			pixel.z = convertUnsigned16(As<UShort4>(color.z));
-			pixel.w = Float4(1.0f);
-			break;
-		case FORMAT_X8B8G8R8:
-			buffer = cBuffer + 4 * x;
-			c01 = *Pointer<Short4>(buffer);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
-			c23 = *Pointer<Short4>(buffer);
-			color.z = c01;
-			color.y = c01;
-			color.z = UnpackLow(As<Byte8>(color.z), As<Byte8>(c23));
-			color.y = UnpackHigh(As<Byte8>(color.y), As<Byte8>(c23));
-			color.x = color.z;
-			color.z = UnpackLow(As<Byte8>(color.z), As<Byte8>(color.y));
-			color.x = UnpackHigh(As<Byte8>(color.x), As<Byte8>(color.y));
-			color.y = color.z;
-			color.x = UnpackLow(As<Byte8>(color.x), As<Byte8>(color.x));
-			color.y = UnpackHigh(As<Byte8>(color.y), As<Byte8>(color.y));
-			color.z = UnpackLow(As<Byte8>(color.z), As<Byte8>(color.z));
-
-			pixel.x = convertUnsigned16(As<UShort4>(color.z));
-			pixel.y = convertUnsigned16(As<UShort4>(color.y));
-			pixel.z = convertUnsigned16(As<UShort4>(color.x));
-			pixel.w = Float4(1.0f);
-			break;
-		case FORMAT_A8:
-			buffer = cBuffer + 1 * x;
-			c01 = Insert(c01, *Pointer<Short>(buffer), 0);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
-			c01 = Insert(c01, *Pointer<Short>(buffer), 1);
-			pixel.w = convertUnsigned16(As<UShort4>(UnpackLow(As<Byte8>(c01), As<Byte8>(c01))));
-			pixel.x = Float4(0.0f);
-			pixel.y = Float4(0.0f);
-			pixel.z = Float4(0.0f);
-			break;
-		case FORMAT_A8G8R8B8Q:
-			UNIMPLEMENTED();
-		//	UnpackLow(pixel.z, qword_ptr [cBuffer+8*x+0]);
-		//	UnpackHigh(pixel.x, qword_ptr [cBuffer+8*x+0]);
-		//	UnpackLow(pixel.y, qword_ptr [cBuffer+8*x+8]);
-		//	UnpackHigh(pixel.w, qword_ptr [cBuffer+8*x+8]);
-			break;
-		case FORMAT_X8G8R8B8Q:
-			UNIMPLEMENTED();
-		//	UnpackLow(pixel.z, qword_ptr [cBuffer+8*x+0]);
-		//	UnpackHigh(pixel.x, qword_ptr [cBuffer+8*x+0]);
-		//	UnpackLow(pixel.y, qword_ptr [cBuffer+8*x+8]);
-		//	pixel.w = Short4(0xFFFFu);
-			break;
-		case FORMAT_A16B16G16R16:
-			buffer  = cBuffer;
-			color.x = *Pointer<Short4>(buffer + 8 * x);
-			color.y = *Pointer<Short4>(buffer + 8 * x + 8);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
-			color.z = *Pointer<Short4>(buffer + 8 * x);
-			color.w = *Pointer<Short4>(buffer + 8 * x + 8);
-			
-			transpose4x4(color.x, color.y, color.z, color.w);
-
-			pixel.x = convertUnsigned16(As<UShort4>(color.x));
-			pixel.y = convertUnsigned16(As<UShort4>(color.y));
-			pixel.z = convertUnsigned16(As<UShort4>(color.z));
-			pixel.w = convertUnsigned16(As<UShort4>(color.w));
-			break;
-		case FORMAT_G16R16:
-			buffer = cBuffer;
-			color.x = *Pointer<Short4>(buffer  + 4 * x);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
-			color.y = *Pointer<Short4>(buffer  + 4 * x);
-			color.z = color.x;
-			color.x = As<Short4>(UnpackLow(color.x, color.y));
-			color.z = As<Short4>(UnpackHigh(color.z, color.y));
-			color.y = color.z;
-			color.x = As<Short4>(UnpackLow(color.x, color.z));
-			color.y = As<Short4>(UnpackHigh(color.y, color.z));
-			
-			pixel.x = convertUnsigned16(As<UShort4>(color.x));
-			pixel.y = convertUnsigned16(As<UShort4>(color.y));
-			pixel.z = Float4(1.0f);
-			pixel.w = Float4(1.0f);
-			break;
 		case FORMAT_R32F:
 			buffer = cBuffer;
 			// FIXME: movlps
@@ -3541,25 +3374,8 @@ namespace sw
 
 	void PixelRoutine::writeColor(Registers &r, int index, Pointer<Byte> &cBuffer, Int &x, Vector4f &oC, Int &sMask, Int &zMask, Int &cMask)
 	{
-		if(!state.colorWriteActive(index))
-		{
-			return;
-		}
-
-		Vector4s color;
-
 		switch(state.targetFormat[index])
 		{
-		case FORMAT_X8R8G8B8:
-		case FORMAT_X8B8G8R8:
-		case FORMAT_A8R8G8B8:
-		case FORMAT_A8B8G8R8:
-		case FORMAT_A8:
-		case FORMAT_G16R16:
-		case FORMAT_A16B16G16R16:
-			convertFixed16(color, oC, true);
-			writeColor(r, index, cBuffer, x, color, sMask, zMask, cMask);
-			return;
 		case FORMAT_R32F:
 			break;
 		case FORMAT_G32R32F:
