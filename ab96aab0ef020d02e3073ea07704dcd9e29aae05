@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd8d8546_42f0c291",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2360,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-14T13:25:16Z",
+      "side": 1,
+      "message": "There\u0027s no need to bind it to the context (and then unbind it). Just call clearColorBuffer() on the Image directly (look at what Context::clear() and Device::clearColor() do).",
+      "range": {
+        "startLine": 2355,
+        "startChar": 4,
+        "endLine": 2360,
+        "endChar": 26
+      },
+      "revId": "ab96aab0ef020d02e3073ea07704dcd9e29aae05",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
