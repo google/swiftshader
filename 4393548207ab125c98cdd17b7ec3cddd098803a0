@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd8d8546_c2d832f3",
+        "filename": "src/Shader/SamplerCore.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-14T14:48:47Z",
+      "side": 1,
+      "message": "Minor comment: it would have been nice to have a separate input and output, even if they can be the same.",
+      "range": {
+        "startLine": 56,
+        "startChar": 2,
+        "endLine": 58,
+        "endChar": 38
+      },
+      "revId": "4393548207ab125c98cdd17b7ec3cddd098803a0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
