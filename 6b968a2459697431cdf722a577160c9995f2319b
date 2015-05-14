@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "adc3f158_75ff2878",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1490,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-14T00:24:09Z",
+      "side": 1,
+      "message": "I must be missing something, I don\u0027t see how this would fill the remaining bits after the first 5/6 most significant bits are set.",
+      "range": {
+        "startLine": 1488,
+        "startChar": 4,
+        "endLine": 1490,
+        "endChar": 34
+      },
+      "revId": "6b968a2459697431cdf722a577160c9995f2319b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
