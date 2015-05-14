@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd8d8546_c20112c1",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-14T14:52:29Z",
+      "side": 1,
+      "message": "The values of these constants aren\u0027t intuitive, maybe some comment or define would help the readability?",
+      "range": {
+        "startLine": 124,
+        "startChar": 47,
+        "endLine": 124,
+        "endChar": 53
+      },
+      "revId": "4ff1f0e46f08d97f76b402135b3549de0b73fc4b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
