@@ -535,6 +535,9 @@ namespace sw
 		{
 			switch(texGen[coordinate])
 			{
+			case TEXGEN_NONE:
+				hasTexture = true;
+				break;
 			case TEXGEN_PASSTHRU:
 				hasTexture = hasTexture || (component < input[TexCoord0 + textureStage[coordinate].texCoordIndex].count);
 				break;

@@ -542,6 +542,16 @@ namespace sw
 
 			switch(state.textureState[stage].texGenActive)
 			{
+			case TEXGEN_NONE:
+				{
+					Vector4f v = r.v[TexCoord0 + i];
+
+					r.o[T0 + stage].x = v.x;
+					r.o[T0 + stage].y = v.y;
+					r.o[T0 + stage].z = v.z;
+					r.o[T0 + stage].w = v.w;
+				}
+				break;
 			case TEXGEN_PASSTHRU:
 				{
 					Vector4f v = r.v[TexCoord0 + i];

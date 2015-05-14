@@ -231,8 +231,9 @@ namespace sw
 		TEXGEN_POSITION,
 		TEXGEN_REFLECTION,
 		TEXGEN_SPHEREMAP,
+		TEXGEN_NONE,
 
-		TEXGEN_LAST = TEXGEN_SPHEREMAP
+		TEXGEN_LAST = TEXGEN_NONE
 	};
 
 	enum TransparencyAntialiasing : unsigned int

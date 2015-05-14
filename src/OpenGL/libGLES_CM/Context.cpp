@@ -1718,6 +1718,8 @@ void Context::applyState(GLenum drawMode)
 	device->setTextureMatrix(1, textureStack1.current());
 	device->setTextureTransform(0, textureStack0.isIdentity() ? 0 : 4, false);
 	device->setTextureTransform(1, textureStack1.isIdentity() ? 0 : 4, false);
+	device->setTexGen(0, sw::TEXGEN_NONE);
+	device->setTexGen(1, sw::TEXGEN_NONE);
 }
 
 GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count)

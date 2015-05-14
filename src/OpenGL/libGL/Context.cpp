@@ -2485,6 +2485,8 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
 		device->setTextureMatrix(1, texture[1].current());
 		device->setTextureTransform(0, texture[0].isIdentity() ? 0 : 4, false);
 		device->setTextureTransform(1, texture[1].isIdentity() ? 0 : 4, false);
+		device->setTexGen(0, sw::TEXGEN_NONE);
+		device->setTexGen(1, sw::TEXGEN_NONE);
     }
 
     PrimitiveType primitiveType;
