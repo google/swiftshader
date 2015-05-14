@@ -1555,8 +1555,9 @@ namespace sw
 //	RValue<Int2> RoundInt(RValue<Float4> cast);
 	RValue<Long1> UnpackLow(RValue<Int2> x, RValue<Int2> y);
 	RValue<Long1> UnpackHigh(RValue<Int2> x, RValue<Int2> y);
+	RValue<Int2> Concatenate(RValue<Int> lo, RValue<Int> hi);
 	RValue<Int> Extract(RValue<Int2> val, int i);
-//	RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i);
+	RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i);
 
 	class UInt2 : public Variable<UInt2>
 	{

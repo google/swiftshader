@@ -4824,6 +4824,17 @@ namespace sw
 		}
 	}
 
+	RValue<Int2> Concatenate(RValue<Int> lo, RValue<Int> hi)
+	{
+		Constant *shuffle[2];
+		shuffle[0] = Nucleus::createConstantInt(0);
+		shuffle[1] = Nucleus::createConstantInt(1);
+
+		Value *packed = Nucleus::createShuffleVector(Nucleus::createBitCast(lo.value, VectorType::get(Int::getType(), 1)), Nucleus::createBitCast(hi.value, VectorType::get(Int::getType(), 1)), Nucleus::createConstantVector(shuffle, 2));
+
+		return RValue<Int2>(Nucleus::createBitCast(packed, Int2::getType()));
+	}
+
 	RValue<Int> Extract(RValue<Int2> val, int i)
 	{
 		if(false)   // FIXME: LLVM does not generate optimal code
@@ -4845,11 +4856,10 @@ namespace sw
 		}
 	}
 
-	// FIXME: Crashes LLVM
-//	RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i)
-//	{
-//		return RValue<Int2>(Nucleus::createInsertElement(val.value, element.value, Nucleus::createConstantInt(i)));
-//	}
+	RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i)
+	{
+		return RValue<Int2>(Nucleus::createBitCast(Nucleus::createInsertElement(Nucleus::createBitCast(val.value, VectorType::get(Int::getType(), 2)), element.value, i), Int2::getType()));
+	}
 
 	Type *Int2::getType()
 	{
