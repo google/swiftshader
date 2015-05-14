@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd8d8546_8242aafc",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1490,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-14T14:57:40Z",
+      "side": 1,
+      "message": "I\u0027m confused. Why do you shift both here to put these values in the most significant bits and inside sRGBtoLinear16_6_12/sRGBtoLinear16_5_12 to bring them back to the least significant bits instead of simply keeping these values in the least significant bits here?",
+      "range": {
+        "startLine": 1488,
+        "startChar": 4,
+        "endLine": 1490,
+        "endChar": 34
+      },
+      "revId": "97470d35b608820ba4fd82a0fc398227d77979e2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
