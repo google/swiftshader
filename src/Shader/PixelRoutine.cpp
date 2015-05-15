@@ -20,8 +20,6 @@
 #include "Constants.hpp"
 #include "Debug.hpp"
 
-extern bool localShaderConstants;
-
 namespace sw
 {
 	extern bool complementaryDepthBuffer;
@@ -5911,7 +5909,7 @@ namespace sw
 			c.z = c.z.zzzz;
 			c.w = c.w.wwww;
 
-			if(localShaderConstants)   // Constant may be known at compile time
+			if(shader->containsDefineInstruction())   // Constant may be known at compile time
 			{
 				for(size_t j = 0; j < shader->getLength(); j++)
 				{

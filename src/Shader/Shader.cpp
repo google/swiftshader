@@ -1337,6 +1337,11 @@ namespace sw
 		return containsLeave;
 	}
 
+	bool Shader::containsDefineInstruction() const
+	{
+		return containsDefine;
+	}
+
 	bool Shader::usesSampler(int index) const
 	{
 		return (usedSamplers & (1 << index)) != 0;
@@ -1545,6 +1550,7 @@ namespace sw
 		containsLeave = false;
 		containsBreak = false;
 		containsContinue = false;
+		containsDefine = false;
 
 		// Determine global presence of branching instructions
 		for(unsigned int i = 0; i < instruction.size(); i++)
@@ -1579,6 +1585,10 @@ namespace sw
 				{
 					containsContinue = true;
 				}
+			case OPCODE_DEF:
+			case OPCODE_DEFB:
+			case OPCODE_DEFI:
+				containsDefine = true;
 			}
 		}
 

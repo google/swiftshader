@@ -25,8 +25,6 @@
 #include "Common/Timer.hpp"
 #include "../common/debug.h"
 
-bool localShaderConstants = false;
-
 namespace es1
 {
 	using namespace sw;

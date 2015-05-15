@@ -519,6 +519,7 @@ namespace sw
 		bool containsBreakInstruction() const;
 		bool containsContinueInstruction() const;
 		bool containsLeaveInstruction() const;
+		bool containsDefineInstruction() const;
 		bool usesSampler(int i) const;
 
 		struct Semantic
@@ -593,6 +594,7 @@ namespace sw
 		bool containsBreak;
 		bool containsContinue;
 		bool containsLeave;
+		bool containsDefine;
 	};
 }
 
