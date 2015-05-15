@@ -41,7 +41,7 @@ LOCAL_SRC_FILES += \
 	util.cpp \
 	ValidateLimitations.cpp \
 
-LOCAL_CFLAGS += -DLOG_TAG=\"swiftshader_compiler\"
+LOCAL_CFLAGS += -DLOG_TAG=\"swiftshader_compiler\" -Wno-unused-parameter
 
 # Android's make system also uses NDEBUG, so we need to set/unset it forcefully
 # Uncomment for ON:

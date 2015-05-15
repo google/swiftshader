@@ -9,7 +9,8 @@ COMMON_CFLAGS := \
 	-std=c++11 \
 	-DGL_API= \
 	-DGL_APICALL= \
-	-DGL_GLEXT_PROTOTYPES
+	-DGL_GLEXT_PROTOTYPES \
+	-Wno-unused-parameter
 
 COMMON_SRC_FILES := \
 	Buffer.cpp \

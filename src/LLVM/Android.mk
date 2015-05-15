@@ -396,7 +396,7 @@ LOCAL_SRC_FILES += \
 	lib/VMCore/Verifier.cpp \
 
 
-LOCAL_CFLAGS += -DLOG_TAG=\"libLLVM_swiftshader\"
+LOCAL_CFLAGS += -DLOG_TAG=\"libLLVM_swiftshader\" -Wno-unused-parameter
 LOCAL_CFLAGS += -fomit-frame-pointer -Os -ffunction-sections -fdata-sections
 LOCAL_CFLAGS += -fno-operator-names -msse2 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS
 LOCAL_CFLAGS += -std=c++11
