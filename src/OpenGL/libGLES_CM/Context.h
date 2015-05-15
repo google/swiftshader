@@ -322,7 +322,8 @@ public:
 	void setFogEnd(float fogEnd);
 	void setFogColor(float r, float g, float b, float a);
 
-    void setTexture2D(bool enabled);
+    void setTexture2Denabled(bool enabled);
+	void setTextureExternalEnabled(bool enabled);
     void clientActiveTexture(GLenum texture);
 	GLenum getClientActiveTexture() const;
 	unsigned int getActiveTexture() const;
@@ -513,7 +514,8 @@ private:
 	sw::MatrixStack textureStack0;
 	sw::MatrixStack textureStack1;
 
-	bool texture2D;
+	bool texture2Denabled[MAX_TEXTURE_UNITS];
+	bool textureExternalEnabled[MAX_TEXTURE_UNITS];
 	GLenum clientTexture;
 
 	Device *device;

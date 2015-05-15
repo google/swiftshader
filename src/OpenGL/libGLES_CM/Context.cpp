@@ -164,7 +164,13 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 	materialEmission = {0.0f, 0.0f, 0.0f, 1.0f};
 
 	matrixMode = GL_MODELVIEW;
-    texture2D = false;
+    
+	for(int i = 0; i < MAX_TEXTURE_UNITS; i++)
+	{
+		texture2Denabled[i] = false;
+		textureExternalEnabled[i] = false;
+	}
+
 	clientTexture = GL_TEXTURE0;
 
 	setVertexAttrib(sw::Color0, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -619,9 +625,14 @@ void Context::setFogColor(float r, float g, float b, float a)
 	device->setFogColor(sw::Color<float>(r, g, b, a));
 }
 
-void Context::setTexture2D(bool enable)
+void Context::setTexture2Denabled(bool enable)
 {
-    texture2D = enable;
+    texture2Denabled[mState.activeSampler] = enable;
+}
+
+void Context::setTextureExternalEnabled(bool enable)
+{
+    textureExternalEnabled[mState.activeSampler] = enable;
 }
 
 void Context::setLineWidth(GLfloat width)
@@ -1774,9 +1785,18 @@ void Context::applyTextures()
 
 	for(int samplerIndex = 0; samplerIndex < MAX_TEXTURE_UNITS; samplerIndex++)
     {
-        Texture *texture = getSamplerTexture(samplerIndex, TEXTURE_2D);
+        Texture *texture = nullptr;
+		
+		if(textureExternalEnabled[samplerIndex])
+		{
+			texture = getSamplerTexture(samplerIndex, TEXTURE_EXTERNAL);
+		}
+		else if(texture2Denabled[samplerIndex])
+		{
+			texture = getSamplerTexture(samplerIndex, TEXTURE_2D);
+		}
 
-		if(texture2D && texture->isSamplerComplete())
+		if(texture && texture->isSamplerComplete())
         {
             GLenum wrapS = texture->getWrapS();
             GLenum wrapT = texture->getWrapT();
