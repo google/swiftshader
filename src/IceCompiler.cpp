@@ -47,11 +47,8 @@ struct {
 // Validates values of build attributes. Prints them to Stream if
 // Stream is non-null.
 void ValidateAndGenerateBuildAttributes(const ClFlags &Flags, Ostream *Stream) {
+  // List the supported targets.
   if (Stream) {
-    // List the requested target.
-    *Stream << Flags.getTargetArch() << "\n";
-
-// List the supported targets.
 #define SUBZERO_TARGET(TARGET) *Stream << "target_" #TARGET << "\n";
 #include "llvm/Config/SZTargets.def"
   }

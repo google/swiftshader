@@ -5,7 +5,7 @@
 ; This test depends to some degree on the stability of "--verbose
 ; addropt" output format.
 
-; REQUIRES: x86-32
+; REQUIRES: target_X8632
 ; REQUIRES: allow_dump
 ; RUN: %p2i -i %s --args -O2 --verbose addropt | FileCheck %s
 
