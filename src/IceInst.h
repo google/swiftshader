@@ -81,6 +81,7 @@ public:
 
   bool isDeleted() const { return Deleted; }
   void setDeleted() { Deleted = true; }
+  void setDead(bool Value = true) { Dead = Value; }
   void deleteIfDead();
 
   bool hasSideEffects() const { return HasSideEffects; }
@@ -178,7 +179,9 @@ protected:
   InstNumberT Number;
   // Deleted means irrevocably deleted.
   bool Deleted;
-  // Dead means pending deletion after liveness analysis converges.
+  // Dead means one of two things depending on context: (1) pending
+  // deletion after liveness analysis converges, or (2) marked for
+  // deletion during lowering due to a folded bool operation.
   bool Dead;
   // HasSideEffects means the instruction is something like a function
   // call or a volatile load that can't be removed even if its Dest

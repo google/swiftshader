@@ -16,13 +16,80 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGX8632_H
 #define SUBZERO_SRC_ICETARGETLOWERINGX8632_H
 
+#include <unordered_map>
+
 #include "assembler_ia32.h"
 #include "IceDefs.h"
+#include "IceInst.h"
 #include "IceInstX8632.h"
 #include "IceRegistersX8632.h"
 #include "IceTargetLowering.h"
 
 namespace Ice {
+
+class BoolFoldingEntry {
+  BoolFoldingEntry(const BoolFoldingEntry &) = delete;
+
+public:
+  BoolFoldingEntry()
+      : Instr(nullptr), IsComplex(false), IsLiveOut(true), NumUses(0) {}
+  explicit BoolFoldingEntry(Inst *I);
+  BoolFoldingEntry &operator=(const BoolFoldingEntry &) = default;
+  // Instr is the instruction producing the i1-type variable of interest.
+  Inst *Instr;
+  // IsComplex is the cached result of BoolFolding::hasComplexLowering(Instr).
+  bool IsComplex;
+  // IsLiveOut is initialized conservatively to true, and is set to false when
+  // we encounter an instruction that ends Var's live range.  We disable the
+  // folding optimization when Var is live beyond this basic block.  Note that
+  // if liveness analysis is not performed (e.g. in Om1 mode), IsLiveOut will
+  // always be true and the folding optimization will never be performed.
+  bool IsLiveOut;
+  // NumUses counts the number of times Var is used as a source operand in the
+  // basic block.  If IsComplex is true and there is more than one use of Var,
+  // then the folding optimization is disabled for Var.
+  uint32_t NumUses;
+};
+
+class BoolFolding {
+public:
+  enum BoolFoldingProducerKind {
+    PK_None,
+    PK_Icmp32,
+    PK_Icmp64,
+    PK_Fcmp,
+    PK_Trunc
+  };
+
+  // Currently the actual enum values are not used (other than CK_None), but we
+  // go
+  // ahead and produce them anyway for symmetry with the
+  // BoolFoldingProducerKind.
+  enum BoolFoldingConsumerKind { CK_None, CK_Br, CK_Select, CK_Sext, CK_Zext };
+
+private:
+  BoolFolding(const BoolFolding &) = delete;
+  BoolFolding &operator=(const BoolFolding &) = delete;
+
+public:
+  BoolFolding() {}
+  static BoolFoldingProducerKind getProducerKind(const Inst *Instr);
+  static BoolFoldingConsumerKind getConsumerKind(const Inst *Instr);
+  static bool hasComplexLowering(const Inst *Instr);
+  void init(CfgNode *Node);
+  const Inst *getProducerFor(const Operand *Opnd) const;
+  void dump(const Cfg *Func) const;
+
+private:
+  // Returns true if Producers contains a valid entry for the given VarNum.
+  bool containsValid(SizeT VarNum) const {
+    auto Element = Producers.find(VarNum);
+    return Element != Producers.end() && Element->second.Instr != nullptr;
+  }
+  void setInvalid(SizeT VarNum) { Producers[VarNum].Instr = nullptr; }
+  // Producers maps Variable::Number to a BoolFoldingEntry.
+  std::unordered_map<SizeT, BoolFoldingEntry> Producers;
+};
 
 class TargetX8632 : public TargetLowering {
   TargetX8632() = delete;
@@ -63,6 +130,7 @@ public:
   void emit(const ConstantDouble *C) const final;
 
   void lowerArguments() override;
+  void initNodeForLowering(CfgNode *Node) override;
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
   // Ensure that a 64-bit Variable has been split into 2 32-bit
@@ -157,6 +225,8 @@ protected:
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
                     int32_t RegNum = Variable::NoRegister);
   Variable *legalizeToVar(Operand *From, int32_t RegNum = Variable::NoRegister);
+  // Legalize the first source operand for use in the cmp instruction.
+  Operand *legalizeSrc0ForCmp(Operand *Src0, Operand *Src1);
   // Turn a pointer operand into a memory operand that can be
   // used by a real load/store operation. Legalizes the operand as well.
   // This is a nop if the operand is already a legal memory operand.
@@ -507,6 +577,7 @@ protected:
 
 private:
   ~TargetX8632() override {}
+  BoolFolding FoldingInfo;
 };
 
 class TargetDataX8632 : public TargetDataLowering {

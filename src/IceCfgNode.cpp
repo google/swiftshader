@@ -516,6 +516,7 @@ void CfgNode::genCode() {
   LoweringContext &Context = Target->getContext();
   // Lower the regular instructions.
   Context.init(this);
+  Target->initNodeForLowering(this);
   while (!Context.atEnd()) {
     InstList::iterator Orig = Context.getCur();
     if (llvm::isa<InstRet>(*Orig))

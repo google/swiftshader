@@ -126,82 +126,85 @@ void TargetLowering::doNopInsertion() {
 void TargetLowering::lower() {
   assert(!Context.atEnd());
   Inst *Inst = Context.getCur();
-  // Mark the current instruction as deleted before lowering,
-  // otherwise the Dest variable will likely get marked as non-SSA.
-  // See Variable::setDefinition().
-  Inst->setDeleted();
-  switch (Inst->getKind()) {
-  case Inst::Alloca:
-    lowerAlloca(llvm::dyn_cast<InstAlloca>(Inst));
-    break;
-  case Inst::Arithmetic:
-    lowerArithmetic(llvm::dyn_cast<InstArithmetic>(Inst));
-    break;
-  case Inst::Assign:
-    lowerAssign(llvm::dyn_cast<InstAssign>(Inst));
-    break;
-  case Inst::Br:
-    lowerBr(llvm::dyn_cast<InstBr>(Inst));
-    break;
-  case Inst::Call:
-    lowerCall(llvm::dyn_cast<InstCall>(Inst));
-    break;
-  case Inst::Cast:
-    lowerCast(llvm::dyn_cast<InstCast>(Inst));
-    break;
-  case Inst::ExtractElement:
-    lowerExtractElement(llvm::dyn_cast<InstExtractElement>(Inst));
-    break;
-  case Inst::Fcmp:
-    lowerFcmp(llvm::dyn_cast<InstFcmp>(Inst));
-    break;
-  case Inst::Icmp:
-    lowerIcmp(llvm::dyn_cast<InstIcmp>(Inst));
-    break;
-  case Inst::InsertElement:
-    lowerInsertElement(llvm::dyn_cast<InstInsertElement>(Inst));
-    break;
-  case Inst::IntrinsicCall: {
-    InstIntrinsicCall *Call = llvm::dyn_cast<InstIntrinsicCall>(Inst);
-    if (Call->getIntrinsicInfo().ReturnsTwice)
-      setCallsReturnsTwice(true);
-    lowerIntrinsicCall(Call);
-    break;
-  }
-  case Inst::Load:
-    lowerLoad(llvm::dyn_cast<InstLoad>(Inst));
-    break;
-  case Inst::Phi:
-    lowerPhi(llvm::dyn_cast<InstPhi>(Inst));
-    break;
-  case Inst::Ret:
-    lowerRet(llvm::dyn_cast<InstRet>(Inst));
-    break;
-  case Inst::Select:
-    lowerSelect(llvm::dyn_cast<InstSelect>(Inst));
-    break;
-  case Inst::Store:
-    lowerStore(llvm::dyn_cast<InstStore>(Inst));
-    break;
-  case Inst::Switch:
-    lowerSwitch(llvm::dyn_cast<InstSwitch>(Inst));
-    break;
-  case Inst::Unreachable:
-    lowerUnreachable(llvm::dyn_cast<InstUnreachable>(Inst));
-    break;
-  case Inst::BundleLock:
-  case Inst::BundleUnlock:
-  case Inst::FakeDef:
-  case Inst::FakeUse:
-  case Inst::FakeKill:
-  case Inst::Target:
-    // These are all Target instruction types and shouldn't be
-    // encountered at this stage.
-    Func->setError("Can't lower unsupported instruction type");
-    break;
-  }
+  Inst->deleteIfDead();
+  if (!Inst->isDeleted()) {
+    // Mark the current instruction as deleted before lowering,
+    // otherwise the Dest variable will likely get marked as non-SSA.
+    // See Variable::setDefinition().
+    Inst->setDeleted();
+    switch (Inst->getKind()) {
+    case Inst::Alloca:
+      lowerAlloca(llvm::cast<InstAlloca>(Inst));
+      break;
+    case Inst::Arithmetic:
+      lowerArithmetic(llvm::cast<InstArithmetic>(Inst));
+      break;
+    case Inst::Assign:
+      lowerAssign(llvm::cast<InstAssign>(Inst));
+      break;
+    case Inst::Br:
+      lowerBr(llvm::cast<InstBr>(Inst));
+      break;
+    case Inst::Call:
+      lowerCall(llvm::cast<InstCall>(Inst));
+      break;
+    case Inst::Cast:
+      lowerCast(llvm::cast<InstCast>(Inst));
+      break;
+    case Inst::ExtractElement:
+      lowerExtractElement(llvm::cast<InstExtractElement>(Inst));
+      break;
+    case Inst::Fcmp:
+      lowerFcmp(llvm::cast<InstFcmp>(Inst));
+      break;
+    case Inst::Icmp:
+      lowerIcmp(llvm::cast<InstIcmp>(Inst));
+      break;
+    case Inst::InsertElement:
+      lowerInsertElement(llvm::cast<InstInsertElement>(Inst));
+      break;
+    case Inst::IntrinsicCall: {
+      InstIntrinsicCall *Call = llvm::cast<InstIntrinsicCall>(Inst);
+      if (Call->getIntrinsicInfo().ReturnsTwice)
+        setCallsReturnsTwice(true);
+      lowerIntrinsicCall(Call);
+      break;
+    }
+    case Inst::Load:
+      lowerLoad(llvm::cast<InstLoad>(Inst));
+      break;
+    case Inst::Phi:
+      lowerPhi(llvm::cast<InstPhi>(Inst));
+      break;
+    case Inst::Ret:
+      lowerRet(llvm::cast<InstRet>(Inst));
+      break;
+    case Inst::Select:
+      lowerSelect(llvm::cast<InstSelect>(Inst));
+      break;
+    case Inst::Store:
+      lowerStore(llvm::cast<InstStore>(Inst));
+      break;
+    case Inst::Switch:
+      lowerSwitch(llvm::cast<InstSwitch>(Inst));
+      break;
+    case Inst::Unreachable:
+      lowerUnreachable(llvm::cast<InstUnreachable>(Inst));
+      break;
+    case Inst::BundleLock:
+    case Inst::BundleUnlock:
+    case Inst::FakeDef:
+    case Inst::FakeUse:
+    case Inst::FakeKill:
+    case Inst::Target:
+      // These are all Target instruction types and shouldn't be
+      // encountered at this stage.
+      Func->setError("Can't lower unsupported instruction type");
+      break;
+    }
 
-  postLower();
+    postLower();
+  }
 
   Context.advanceCur();
   Context.advanceNext();

@@ -3,6 +3,8 @@
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
+declare void @useInt(i32 %x)
+
 define internal i32 @add8Bit(i32 %a, i32 %b) {
 entry:
   %a_8 = trunc i32 %a to i8
@@ -278,6 +280,9 @@ entry:
   %cmp = icmp slt i8 %a_8, %b_8
   %ret = select i1 %cmp, i8 %a_8, i8 %b_8
   %ret_ext = zext i8 %ret to i32
+  ; Create a "fake" use of %cmp to prevent O2 bool folding.
+  %d1 = zext i1 %cmp to i32
+  call void @useInt(i32 %d1)
   ret i32 %ret_ext
 }
 ; CHECK-LABEL: selectI8Var

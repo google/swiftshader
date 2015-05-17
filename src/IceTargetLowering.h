@@ -221,6 +221,7 @@ public:
   // Performs target-specific argument lowering.
   virtual void lowerArguments() = 0;
 
+  virtual void initNodeForLowering(CfgNode *) {}
   virtual void addProlog(CfgNode *Node) = 0;
   virtual void addEpilog(CfgNode *Node) = 0;
 

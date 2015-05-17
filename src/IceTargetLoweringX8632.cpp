@@ -260,6 +260,152 @@ ICETYPE_TABLE
 
 } // end of anonymous namespace
 
+BoolFoldingEntry::BoolFoldingEntry(Inst *I)
+    : Instr(I), IsComplex(BoolFolding::hasComplexLowering(I)), IsLiveOut(true),
+      NumUses(0) {}
+
+BoolFolding::BoolFoldingProducerKind
+BoolFolding::getProducerKind(const Inst *Instr) {
+  if (llvm::isa<InstIcmp>(Instr)) {
+    if (Instr->getSrc(0)->getType() != IceType_i64)
+      return PK_Icmp32;
+    return PK_None; // TODO(stichnot): actually PK_Icmp64;
+  }
+  return PK_None; // TODO(stichnot): remove this
+
+  if (llvm::isa<InstFcmp>(Instr))
+    return PK_Fcmp;
+  if (auto *Cast = llvm::dyn_cast<InstCast>(Instr)) {
+    switch (Cast->getCastKind()) {
+    default:
+      return PK_None;
+    case InstCast::Trunc:
+      return PK_Trunc;
+    }
+  }
+  return PK_None;
+}
+
+BoolFolding::BoolFoldingConsumerKind
+BoolFolding::getConsumerKind(const Inst *Instr) {
+  if (llvm::isa<InstBr>(Instr))
+    return CK_Br;
+  if (llvm::isa<InstSelect>(Instr))
+    return CK_Select;
+  return CK_None; // TODO(stichnot): remove this
+
+  if (auto *Cast = llvm::dyn_cast<InstCast>(Instr)) {
+    switch (Cast->getCastKind()) {
+    default:
+      return CK_None;
+    case InstCast::Sext:
+      return CK_Sext;
+    case InstCast::Zext:
+      return CK_Zext;
+    }
+  }
+  return CK_None;
+}
+
+// Returns true if the producing instruction has a "complex" lowering
+// sequence.  This generally means that its lowering sequence requires
+// more than one conditional branch, namely 64-bit integer compares
+// and some floating-point compares.  When this is true, and there is
+// more than one consumer, we prefer to disable the folding
+// optimization because it minimizes branches.
+bool BoolFolding::hasComplexLowering(const Inst *Instr) {
+  switch (getProducerKind(Instr)) {
+  default:
+    return false;
+  case PK_Icmp64:
+    return true;
+  case PK_Fcmp:
+    return TableFcmp[llvm::cast<InstFcmp>(Instr)->getCondition()].C2 !=
+           CondX86::Br_None;
+  }
+}
+
+void BoolFolding::init(CfgNode *Node) {
+  Producers.clear();
+  for (Inst &Instr : Node->getInsts()) {
+    // Check whether Instr is a valid producer.
+    Variable *Var = Instr.getDest();
+    if (!Instr.isDeleted() // only consider non-deleted instructions
+        && Var             // only instructions with an actual dest var
+        && Var->getType() == IceType_i1          // only bool-type dest vars
+        && getProducerKind(&Instr) != PK_None) { // white-listed instructions
+      Producers[Var->getIndex()] = BoolFoldingEntry(&Instr);
+    }
+    // Check each src variable against the map.
+    for (SizeT I = 0; I < Instr.getSrcSize(); ++I) {
+      Operand *Src = Instr.getSrc(I);
+      SizeT NumVars = Src->getNumVars();
+      for (SizeT J = 0; J < NumVars; ++J) {
+        const Variable *Var = Src->getVar(J);
+        SizeT VarNum = Var->getIndex();
+        if (containsValid(VarNum)) {
+          if (I != 0 // All valid consumers use Var as the first source operand
+              || getConsumerKind(&Instr) == CK_None // must be white-listed
+              || (Producers[VarNum].IsComplex && // complex can't be multi-use
+                  Producers[VarNum].NumUses > 0)) {
+            setInvalid(VarNum);
+            continue;
+          }
+          ++Producers[VarNum].NumUses;
+          if (Instr.isLastUse(Var)) {
+            Producers[VarNum].IsLiveOut = false;
+          }
+        }
+      }
+    }
+  }
+  for (auto &I : Producers) {
+    // Ignore entries previously marked invalid.
+    if (I.second.Instr == nullptr)
+      continue;
+    // Disable the producer if its dest may be live beyond this block.
+    if (I.second.IsLiveOut) {
+      setInvalid(I.first);
+      continue;
+    }
+    // Mark as "dead" rather than outright deleting.  This is so that
+    // other peephole style optimizations during or before lowering
+    // have access to this instruction in undeleted form.  See for
+    // example tryOptimizedCmpxchgCmpBr().
+    I.second.Instr->setDead();
+  }
+}
+
+const Inst *BoolFolding::getProducerFor(const Operand *Opnd) const {
+  auto *Var = llvm::dyn_cast<const Variable>(Opnd);
+  if (Var == nullptr)
+    return nullptr;
+  SizeT VarNum = Var->getIndex();
+  auto Element = Producers.find(VarNum);
+  if (Element == Producers.end())
+    return nullptr;
+  return Element->second.Instr;
+}
+
+void BoolFolding::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP || !Func->isVerbose(IceV_Folding))
+    return;
+  OstreamLocker L(Func->getContext());
+  Ostream &Str = Func->getContext()->getStrDump();
+  for (auto &I : Producers) {
+    if (I.second.Instr == nullptr)
+      continue;
+    Str << "Found foldable producer:\n  ";
+    I.second.Instr->dump(Func);
+    Str << "\n";
+  }
+}
+
+void TargetX8632::initNodeForLowering(CfgNode *Node) {
+  FoldingInfo.init(Node);
+  FoldingInfo.dump(Func);
+}
+
 TargetX8632::TargetX8632(Cfg *Func)
     : TargetLowering(Func),
       InstructionSet(static_cast<X86InstructionSet>(
@@ -1719,12 +1865,35 @@ void TargetX8632::lowerAssign(const InstAssign *Inst) {
 void TargetX8632::lowerBr(const InstBr *Inst) {
   if (Inst->isUnconditional()) {
     _br(Inst->getTargetUnconditional());
-  } else {
-    Operand *Src0 = legalize(Inst->getCondition(), Legal_Reg | Legal_Mem);
-    Constant *Zero = Ctx->getConstantZero(IceType_i32);
-    _cmp(Src0, Zero);
-    _br(CondX86::Br_ne, Inst->getTargetTrue(), Inst->getTargetFalse());
+    return;
   }
+  Operand *Cond = Inst->getCondition();
+
+  // Handle folding opportunities.
+  if (const class Inst *Producer = FoldingInfo.getProducerFor(Cond)) {
+    assert(Producer->isDeleted());
+    switch (BoolFolding::getProducerKind(Producer)) {
+    default:
+      break;
+    case BoolFolding::PK_Icmp32: {
+      // TODO(stichnot): Refactor similarities between this block and
+      // the corresponding code in lowerIcmp().
+      auto *Cmp = llvm::dyn_cast<InstIcmp>(Producer);
+      Operand *Src0 = Producer->getSrc(0);
+      Operand *Src1 = legalize(Producer->getSrc(1));
+      Operand *Src0RM = legalizeSrc0ForCmp(Src0, Src1);
+      _cmp(Src0RM, Src1);
+      _br(getIcmp32Mapping(Cmp->getCondition()), Inst->getTargetTrue(),
+          Inst->getTargetFalse());
+      return;
+    }
+    }
+  }
+
+  Operand *Src0 = legalize(Cond, Legal_Reg | Legal_Mem);
+  Constant *Zero = Ctx->getConstantZero(IceType_i32);
+  _cmp(Src0, Zero);
+  _br(CondX86::Br_ne, Inst->getTargetTrue(), Inst->getTargetFalse());
 }
 
 void TargetX8632::lowerCall(const InstCall *Instr) {
@@ -2678,37 +2847,6 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
     return;
   }
 
-  // If Src1 is an immediate, or known to be a physical register, we can
-  // allow Src0 to be a memory operand.  Otherwise, Src0 must be copied into
-  // a physical register.  (Actually, either Src0 or Src1 can be chosen for
-  // the physical register, but unfortunately we have to commit to one or
-  // the other before register allocation.)
-  bool IsSrc1ImmOrReg = false;
-  if (llvm::isa<Constant>(Src1)) {
-    IsSrc1ImmOrReg = true;
-  } else if (Variable *Var = llvm::dyn_cast<Variable>(Src1)) {
-    if (Var->hasReg())
-      IsSrc1ImmOrReg = true;
-  }
-
-  // Try to fuse a compare immediately followed by a conditional branch.  This
-  // is possible when the compare dest and the branch source operands are the
-  // same, and are their only uses.  TODO: implement this optimization for i64.
-  if (InstBr *NextBr = llvm::dyn_cast_or_null<InstBr>(Context.getNextInst())) {
-    if (Src0->getType() != IceType_i64 && !NextBr->isUnconditional() &&
-        Dest == NextBr->getSrc(0) && NextBr->isLastUse(Dest)) {
-      NextBr->setDeleted();
-      Operand *Src0RM =
-          legalize(Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg);
-      _cmp(Src0RM, Src1);
-      _br(getIcmp32Mapping(Inst->getCondition()), NextBr->getTargetTrue(),
-          NextBr->getTargetFalse());
-      // Skip over the following branch instruction.
-      Context.advanceNext();
-      return;
-    }
-  }
-
   // a=icmp cond, b, c ==> cmp b,c; a=1; br cond,L1; FakeUse(a); a=0; L1:
   if (Src0->getType() == IceType_i64) {
     InstIcmp::ICond Condition = Inst->getCondition();
@@ -2737,8 +2875,7 @@ void TargetX8632::lowerIcmp(const InstIcmp *Inst) {
   }
 
   // cmp b, c
-  Operand *Src0RM =
-      legalize(Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg);
+  Operand *Src0RM = legalizeSrc0ForCmp(Src0, Src1);
   _cmp(Src0RM, Src1);
   _setcc(Dest, getIcmp32Mapping(Inst->getCondition()));
 }
@@ -4001,7 +4138,51 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     return;
   }
 
-  // a=d?b:c ==> cmp d,0; a=b; jne L1; FakeUse(a); a=c; L1:
+  // Handle folding opportunities.
+  if (const class Inst *Producer = FoldingInfo.getProducerFor(Condition)) {
+    assert(Producer->isDeleted());
+    switch (BoolFolding::getProducerKind(Producer)) {
+    default:
+      break;
+    case BoolFolding::PK_Icmp32: {
+      // d=cmp e,f; a=d?b:c ==> cmp e,f; a=b; jne L1; a=c; L1:
+      auto *Cmp = llvm::dyn_cast<InstIcmp>(Producer);
+      InstX8632Label *Label = InstX8632Label::create(Func, this);
+      Operand *Src0 = Producer->getSrc(0);
+      Operand *Src1 = legalize(Producer->getSrc(1));
+      Operand *Src0RM = legalizeSrc0ForCmp(Src0, Src1);
+      _cmp(Src0RM, Src1);
+      // This is the same code as below (for both i64 and non-i64),
+      // except without the _cmp instruction and with a different
+      // branch condition.  TODO(stichnot): refactor.
+      if (Dest->getType() == IceType_i64) {
+        Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+        Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+        Operand *SrcLoRI = legalize(loOperand(SrcT), Legal_Reg | Legal_Imm);
+        Operand *SrcHiRI = legalize(hiOperand(SrcT), Legal_Reg | Legal_Imm);
+        _mov(DestLo, SrcLoRI);
+        _mov(DestHi, SrcHiRI);
+        _br(getIcmp32Mapping(Cmp->getCondition()), Label);
+        Operand *SrcFLo = loOperand(SrcF);
+        Operand *SrcFHi = hiOperand(SrcF);
+        SrcLoRI = legalize(SrcFLo, Legal_Reg | Legal_Imm);
+        SrcHiRI = legalize(SrcFHi, Legal_Reg | Legal_Imm);
+        _mov_nonkillable(DestLo, SrcLoRI);
+        _mov_nonkillable(DestHi, SrcHiRI);
+      } else {
+        SrcT = legalize(SrcT, Legal_Reg | Legal_Imm);
+        _mov(Dest, SrcT);
+        _br(getIcmp32Mapping(Cmp->getCondition()), Label);
+        SrcF = legalize(SrcF, Legal_Reg | Legal_Imm);
+        _mov_nonkillable(Dest, SrcF);
+      }
+      Context.insert(Label);
+      return;
+    }
+    }
+  }
+
+  // a=d?b:c ==> cmp d,0; a=b; jne L1; a=c; L1:
   Operand *ConditionRM = legalize(Condition, Legal_Reg | Legal_Mem);
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   InstX8632Label *Label = InstX8632Label::create(Func, this);
@@ -4532,6 +4713,23 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
 // Provide a trivial wrapper to legalize() for this common usage.
 Variable *TargetX8632::legalizeToVar(Operand *From, int32_t RegNum) {
   return llvm::cast<Variable>(legalize(From, Legal_Reg, RegNum));
+}
+
+// For the cmp instruction, if Src1 is an immediate, or known to be a
+// physical register, we can allow Src0 to be a memory operand.
+// Otherwise, Src0 must be copied into a physical register.
+// (Actually, either Src0 or Src1 can be chosen for the physical
+// register, but unfortunately we have to commit to one or the other
+// before register allocation.)
+Operand *TargetX8632::legalizeSrc0ForCmp(Operand *Src0, Operand *Src1) {
+  bool IsSrc1ImmOrReg = false;
+  if (llvm::isa<Constant>(Src1)) {
+    IsSrc1ImmOrReg = true;
+  } else if (Variable *Var = llvm::dyn_cast<Variable>(Src1)) {
+    if (Var->hasReg())
+      IsSrc1ImmOrReg = true;
+  }
+  return legalize(Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg);
 }
 
 OperandX8632Mem *TargetX8632::FormMemoryOperand(Operand *Operand, Type Ty) {

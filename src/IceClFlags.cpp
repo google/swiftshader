@@ -195,6 +195,7 @@ cl::list<Ice::VerboseItem> VerboseList(
         clEnumValN(Ice::IceV_Frame, "frame", "Stack frame layout details"),
         clEnumValN(Ice::IceV_AddrOpt, "addropt", "Address mode optimization"),
         clEnumValN(Ice::IceV_Random, "random", "Randomization details"),
+        clEnumValN(Ice::IceV_Folding, "fold", "Instruction folding details"),
         clEnumValN(Ice::IceV_All, "all", "Use all verbose options"),
         clEnumValN(Ice::IceV_Most, "most",
                    "Use all verbose options except 'regalloc'"),

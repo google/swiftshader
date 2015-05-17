@@ -14,6 +14,11 @@ entry:
   %cmp1 = icmp sgt i32 %a, %b
   %cond2 = select i1 %cmp1, i32 10, i32 20
   tail call void @useInt(i32 %cond2)
+  ; Create "fake" uses of %cmp and %cmp1 to prevent O2 bool folding.
+  %d1 = zext i1 %cmp to i32
+  call void @useInt(i32 %d1)
+  %d2 = zext i1 %cmp1 to i32
+  call void @useInt(i32 %d2)
   ret void
 }
 
