@@ -45,9 +45,9 @@ LOCAL_CFLAGS += -DLOG_TAG=\"swiftshader_compiler\" -Wno-unused-parameter
 
 # Android's make system also uses NDEBUG, so we need to set/unset it forcefully
 # Uncomment for ON:
-LOCAL_CFLAGS += -UNDEBUG -g -O0
+# LOCAL_CFLAGS += -UNDEBUG -g -O0
 # Uncomment for OFF:
-#LOCAL_CFLAGS += -fomit-frame-pointer -ffunction-sections -fdata-sections -DANGLE_DISABLE_TRACE
+LOCAL_CFLAGS += -fomit-frame-pointer -ffunction-sections -fdata-sections -DANGLE_DISABLE_TRACE
 
 LOCAL_CFLAGS += -fno-operator-names -msse2 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS
 LOCAL_CFLAGS += -std=c++11

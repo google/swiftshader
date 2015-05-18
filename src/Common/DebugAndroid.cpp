@@ -28,8 +28,10 @@ void AndroidEnterDebugger()
 
 void trace(const char *format, ...)
 {
+#ifndef NDEBUG
     va_list vararg;
     va_start(vararg, format);
     android_vprintLog(ANDROID_LOG_VERBOSE, NULL, LOG_TAG, format, vararg);
     va_end(vararg);
+#endif
 }

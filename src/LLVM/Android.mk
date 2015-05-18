@@ -403,7 +403,7 @@ LOCAL_CFLAGS += -std=c++11
 
 # Android's make system also uses NDEBUG, so we need to set/unset it forcefully
 # Uncomment for debug ON:
-LOCAL_CFLAGS += -UNDEBUG -g -O0
+# LOCAL_CFLAGS += -UNDEBUG -g -O0
 
 LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/include-android \
