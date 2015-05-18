@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cdabc59c_3bcdf0e0",
+        "filename": "src/LLVM/lib/CodeGen/MachineSSAUpdater.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-18T21:30:22Z",
+      "side": 1,
+      "message": "The latest LLVM code appears to use \"delete static_cast\u003cAvailableValsTy*\u003e(AV);\". I\u0027d prefer to use that, if it works too.",
+      "range": {
+        "startLine": 49,
+        "startChar": 2,
+        "endLine": 50,
+        "endChar": 33
+      },
+      "revId": "dee67b913d1e922536b63fe3e1b3a5aad1a0dad3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
