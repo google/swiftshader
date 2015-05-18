@@ -956,8 +956,6 @@ private:
   static const char *Opcode;
 };
 
-bool checkForRedundantAssign(const Variable *Dest, const Operand *Source);
-
 // Base class for assignment instructions
 template <InstX8632::InstKindX8632 K>
 class InstX8632Movlike : public InstX8632 {

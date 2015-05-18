@@ -39,6 +39,10 @@ void UnimplementedError(const ClFlags &Flags) {
     abort();
   }
 }
+
+// The maximum number of arguments to pass in GPR registers.
+const uint32_t ARM32_MAX_GPR_ARG = 4;
+
 } // end of anonymous namespace
 
 TargetARM32::TargetARM32(Cfg *Func)
@@ -275,12 +279,92 @@ void TargetARM32::emitVariable(const Variable *Var) const {
     llvm::report_fatal_error("Illegal stack offset");
   }
   const Type FrameSPTy = IceType_i32;
-  Str << "[" << getRegName(getFrameOrStackReg(), FrameSPTy) << ", " << Offset
-      << "]";
+  Str << "[" << getRegName(getFrameOrStackReg(), FrameSPTy);
+  if (Offset != 0) {
+    Str << ", " << getConstantPrefix() << Offset;
+  }
+  Str << "]";
 }
 
 void TargetARM32::lowerArguments() {
-  UnimplementedError(Func->getContext()->getFlags());
+  VarList &Args = Func->getArgs();
+  // The first few integer type parameters can use r0-r3, regardless of their
+  // position relative to the floating-point/vector arguments in the argument
+  // list. Floating-point and vector arguments can use q0-q3 (aka d0-d7,
+  // s0-s15).
+  unsigned NumGPRRegsUsed = 0;
+
+  // For each register argument, replace Arg in the argument list with the
+  // home register.  Then generate an instruction in the prolog to copy the
+  // home register to the assigned location of Arg.
+  Context.init(Func->getEntryNode());
+  Context.setInsertPoint(Context.getCur());
+
+  for (SizeT I = 0, E = Args.size(); I < E; ++I) {
+    Variable *Arg = Args[I];
+    Type Ty = Arg->getType();
+    // TODO(jvoung): handle float/vector types.
+    if (isVectorType(Ty)) {
+      UnimplementedError(Func->getContext()->getFlags());
+      continue;
+    } else if (isFloatingType(Ty)) {
+      UnimplementedError(Func->getContext()->getFlags());
+      continue;
+    } else if (Ty == IceType_i64) {
+      if (NumGPRRegsUsed >= ARM32_MAX_GPR_ARG)
+        continue;
+      int32_t RegLo = RegARM32::Reg_r0 + NumGPRRegsUsed;
+      int32_t RegHi = 0;
+      ++NumGPRRegsUsed;
+      // Always start i64 registers at an even register, so this may end
+      // up padding away a register.
+      if (RegLo % 2 != 0) {
+        ++RegLo;
+        ++NumGPRRegsUsed;
+      }
+      // If this leaves us without room to consume another register,
+      // leave any previously speculatively consumed registers as consumed.
+      if (NumGPRRegsUsed >= ARM32_MAX_GPR_ARG)
+        continue;
+      RegHi = RegARM32::Reg_r0 + NumGPRRegsUsed;
+      ++NumGPRRegsUsed;
+      Variable *RegisterArg = Func->makeVariable(Ty);
+      Variable *RegisterLo = Func->makeVariable(IceType_i32);
+      Variable *RegisterHi = Func->makeVariable(IceType_i32);
+      if (ALLOW_DUMP) {
+        RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
+        RegisterLo->setName(Func, "home_reg_lo:" + Arg->getName(Func));
+        RegisterHi->setName(Func, "home_reg_hi:" + Arg->getName(Func));
+      }
+      RegisterLo->setRegNum(RegLo);
+      RegisterLo->setIsArg();
+      RegisterHi->setRegNum(RegHi);
+      RegisterHi->setIsArg();
+      RegisterArg->setLoHi(RegisterLo, RegisterHi);
+      RegisterArg->setIsArg();
+      Arg->setIsArg(false);
+
+      Args[I] = RegisterArg;
+      Context.insert(InstAssign::create(Func, Arg, RegisterArg));
+      continue;
+    } else {
+      assert(Ty == IceType_i32);
+      if (NumGPRRegsUsed >= ARM32_MAX_GPR_ARG)
+        continue;
+      int32_t RegNum = RegARM32::Reg_r0 + NumGPRRegsUsed;
+      ++NumGPRRegsUsed;
+      Variable *RegisterArg = Func->makeVariable(Ty);
+      if (ALLOW_DUMP) {
+        RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
+      }
+      RegisterArg->setRegNum(RegNum);
+      RegisterArg->setIsArg();
+      Arg->setIsArg(false);
+
+      Args[I] = RegisterArg;
+      Context.insert(InstAssign::create(Func, Arg, RegisterArg));
+    }
+  }
 }
 
 Type TargetARM32::stackSlotType() { return IceType_i32; }
@@ -293,6 +377,116 @@ void TargetARM32::addProlog(CfgNode *Node) {
 void TargetARM32::addEpilog(CfgNode *Node) {
   (void)Node;
   UnimplementedError(Func->getContext()->getFlags());
+}
+
+void TargetARM32::split64(Variable *Var) {
+  assert(Var->getType() == IceType_i64);
+  Variable *Lo = Var->getLo();
+  Variable *Hi = Var->getHi();
+  if (Lo) {
+    assert(Hi);
+    return;
+  }
+  assert(Hi == nullptr);
+  Lo = Func->makeVariable(IceType_i32);
+  Hi = Func->makeVariable(IceType_i32);
+  if (ALLOW_DUMP) {
+    Lo->setName(Func, Var->getName(Func) + "__lo");
+    Hi->setName(Func, Var->getName(Func) + "__hi");
+  }
+  Var->setLoHi(Lo, Hi);
+  if (Var->getIsArg()) {
+    Lo->setIsArg();
+    Hi->setIsArg();
+  }
+}
+
+Operand *TargetARM32::loOperand(Operand *Operand) {
+  assert(Operand->getType() == IceType_i64);
+  if (Operand->getType() != IceType_i64)
+    return Operand;
+  if (Variable *Var = llvm::dyn_cast<Variable>(Operand)) {
+    split64(Var);
+    return Var->getLo();
+  }
+  if (ConstantInteger64 *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
+    return Ctx->getConstantInt32(static_cast<uint32_t>(Const->getValue()));
+  }
+  if (OperandARM32Mem *Mem = llvm::dyn_cast<OperandARM32Mem>(Operand)) {
+    // Conservatively disallow memory operands with side-effects (pre/post
+    // increment) in case of duplication.
+    assert(Mem->getAddrMode() == OperandARM32Mem::Offset ||
+           Mem->getAddrMode() == OperandARM32Mem::NegOffset);
+    if (Mem->isRegReg()) {
+      return OperandARM32Mem::create(Func, IceType_i32, Mem->getBase(),
+                                     Mem->getIndex(), Mem->getShiftOp(),
+                                     Mem->getShiftAmt(), Mem->getAddrMode());
+    } else {
+      return OperandARM32Mem::create(Func, IceType_i32, Mem->getBase(),
+                                     Mem->getOffset(), Mem->getAddrMode());
+    }
+  }
+  llvm_unreachable("Unsupported operand type");
+  return nullptr;
+}
+
+Operand *TargetARM32::hiOperand(Operand *Operand) {
+  assert(Operand->getType() == IceType_i64);
+  if (Operand->getType() != IceType_i64)
+    return Operand;
+  if (Variable *Var = llvm::dyn_cast<Variable>(Operand)) {
+    split64(Var);
+    return Var->getHi();
+  }
+  if (ConstantInteger64 *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
+    return Ctx->getConstantInt32(
+        static_cast<uint32_t>(Const->getValue() >> 32));
+  }
+  if (OperandARM32Mem *Mem = llvm::dyn_cast<OperandARM32Mem>(Operand)) {
+    // Conservatively disallow memory operands with side-effects
+    // in case of duplication.
+    assert(Mem->getAddrMode() == OperandARM32Mem::Offset ||
+           Mem->getAddrMode() == OperandARM32Mem::NegOffset);
+    const Type SplitType = IceType_i32;
+    if (Mem->isRegReg()) {
+      // We have to make a temp variable T, and add 4 to either Base or Index.
+      // The Index may be shifted, so adding 4 can mean something else.
+      // Thus, prefer T := Base + 4, and use T as the new Base.
+      Variable *Base = Mem->getBase();
+      Constant *Four = Ctx->getConstantInt32(4);
+      Variable *NewBase = Func->makeVariable(Base->getType());
+      lowerArithmetic(InstArithmetic::create(Func, InstArithmetic::Add, NewBase,
+                                             Base, Four));
+      return OperandARM32Mem::create(Func, SplitType, NewBase, Mem->getIndex(),
+                                     Mem->getShiftOp(), Mem->getShiftAmt(),
+                                     Mem->getAddrMode());
+    } else {
+      Variable *Base = Mem->getBase();
+      ConstantInteger32 *Offset = Mem->getOffset();
+      assert(!Utils::WouldOverflowAdd(Offset->getValue(), 4));
+      int32_t NextOffsetVal = Offset->getValue() + 4;
+      const bool SignExt = false;
+      if (!OperandARM32Mem::canHoldOffset(SplitType, SignExt, NextOffsetVal)) {
+        // We have to make a temp variable and add 4 to either Base or Offset.
+        // If we add 4 to Offset, this will convert a non-RegReg addressing
+        // mode into a RegReg addressing mode. Since NaCl sandboxing disallows
+        // RegReg addressing modes, prefer adding to base and replacing instead.
+        // Thus we leave the old offset alone.
+        Constant *Four = Ctx->getConstantInt32(4);
+        Variable *NewBase = Func->makeVariable(Base->getType());
+        lowerArithmetic(InstArithmetic::create(Func, InstArithmetic::Add,
+                                               NewBase, Base, Four));
+        Base = NewBase;
+      } else {
+        Offset =
+            llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(NextOffsetVal));
+      }
+      return OperandARM32Mem::create(Func, SplitType, Base, Offset,
+                                     Mem->getAddrMode());
+    }
+  }
+  llvm_unreachable("Unsupported operand type");
+  return nullptr;
 }
 
 llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
@@ -338,70 +532,126 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
 }
 
 void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
-  switch (Inst->getOp()) {
-  case InstArithmetic::_num:
-    llvm_unreachable("Unknown arithmetic operator");
-    break;
-  case InstArithmetic::Add:
+  Variable *Dest = Inst->getDest();
+  // TODO(jvoung): Should be able to flip Src0 and Src1 if it is easier
+  // to legalize Src0 to flex or Src1 to flex and there is a reversible
+  // instruction. E.g., reverse subtract with immediate, register vs
+  // register, immediate.
+  // Or it may be the case that the operands aren't swapped, but the
+  // bits can be flipped and a different operation applied.
+  // E.g., use BIC (bit clear) instead of AND for some masks.
+  Variable *Src0 = legalizeToVar(Inst->getSrc(0));
+  Operand *Src1 = legalize(Inst->getSrc(1), Legal_Reg | Legal_Flex);
+  (void)Src0;
+  (void)Src1;
+  if (Dest->getType() == IceType_i64) {
     UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::And:
+  } else if (isVectorType(Dest->getType())) {
     UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Or:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Xor:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Sub:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Mul:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Shl:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Lshr:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Ashr:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Udiv:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Sdiv:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Urem:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Srem:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Fadd:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Fsub:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Fmul:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Fdiv:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Frem:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
+  } else { // Dest->getType() is non-i64 scalar
+    switch (Inst->getOp()) {
+    case InstArithmetic::_num:
+      llvm_unreachable("Unknown arithmetic operator");
+      break;
+    case InstArithmetic::Add: {
+      UnimplementedError(Func->getContext()->getFlags());
+      // Variable *T = makeReg(Dest->getType());
+      // _add(T, Src0, Src1);
+      // _mov(Dest, T);
+    } break;
+    case InstArithmetic::And:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Or:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Xor:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Sub:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Mul:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Shl:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Lshr:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Ashr:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Udiv:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Sdiv:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Urem:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Srem:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Fadd:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Fsub:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Fmul:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Fdiv:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Frem:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    }
   }
 }
 
 void TargetARM32::lowerAssign(const InstAssign *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  Variable *Dest = Inst->getDest();
+  Operand *Src0 = Inst->getSrc(0);
+  assert(Dest->getType() == Src0->getType());
+  if (Dest->getType() == IceType_i64) {
+    Src0 = legalize(Src0);
+    Operand *Src0Lo = loOperand(Src0);
+    Operand *Src0Hi = hiOperand(Src0);
+    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    Variable *T_Lo = nullptr, *T_Hi = nullptr;
+    _mov(T_Lo, Src0Lo);
+    _mov(DestLo, T_Lo);
+    _mov(T_Hi, Src0Hi);
+    _mov(DestHi, T_Hi);
+  } else {
+    Operand *SrcR;
+    if (Dest->hasReg()) {
+      // If Dest already has a physical register, then legalize the
+      // Src operand into a Variable with the same register
+      // assignment.  This is mostly a workaround for advanced phi
+      // lowering's ad-hoc register allocation which assumes no
+      // register allocation is needed when at least one of the
+      // operands is non-memory.
+      // TODO(jvoung): check this for ARM.
+      SrcR = legalize(Src0, Legal_Reg, Dest->getRegNum());
+    } else {
+      // Dest could be a stack operand. Since we could potentially need
+      // to do a Store (and store can only have Register operands),
+      // legalize this to a register.
+      SrcR = legalize(Src0, Legal_Reg);
+    }
+    if (isVectorType(Dest->getType())) {
+      UnimplementedError(Func->getContext()->getFlags());
+    } else {
+      _mov(Dest, SrcR);
+    }
+  }
 }
 
 void TargetARM32::lowerBr(const InstBr *Inst) {
@@ -629,7 +879,20 @@ void TargetARM32::lowerPhi(const InstPhi * /*Inst*/) {
 void TargetARM32::lowerRet(const InstRet *Inst) {
   Variable *Reg = nullptr;
   if (Inst->hasRetValue()) {
-    UnimplementedError(Func->getContext()->getFlags());
+    Operand *Src0 = Inst->getRetValue();
+    if (Src0->getType() == IceType_i64) {
+      Variable *R0 = legalizeToVar(loOperand(Src0), RegARM32::Reg_r0);
+      Variable *R1 = legalizeToVar(hiOperand(Src0), RegARM32::Reg_r1);
+      Reg = R0;
+      Context.insert(InstFakeUse::create(Func, R1));
+    } else if (isScalarFloatingType(Src0->getType())) {
+      UnimplementedError(Func->getContext()->getFlags());
+    } else if (isVectorType(Src0->getType())) {
+      UnimplementedError(Func->getContext()->getFlags());
+    } else {
+      Operand *Src0F = legalize(Src0, Legal_Reg | Legal_Flex);
+      _mov(Reg, Src0F, RegARM32::Reg_r0);
+    }
   }
   // Add a ret instruction even if sandboxing is enabled, because
   // addEpilog explicitly looks for a ret instruction as a marker for
@@ -666,7 +929,7 @@ void TargetARM32::lowerSwitch(const InstSwitch *Inst) {
 }
 
 void TargetARM32::lowerUnreachable(const InstUnreachable * /*Inst*/) {
-  llvm_unreachable("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 // Turn an i64 Phi instruction into a pair of i32 Phi instructions, to
@@ -686,12 +949,191 @@ void TargetARM32::lowerPhiAssignments(CfgNode *Node,
   UnimplementedError(Func->getContext()->getFlags());
 }
 
+Variable *TargetARM32::makeVectorOfZeros(Type Ty, int32_t RegNum) {
+  Variable *Reg = makeReg(Ty, RegNum);
+  UnimplementedError(Func->getContext()->getFlags());
+  return Reg;
+}
+
+// Helper for legalize() to emit the right code to lower an operand to a
+// register of the appropriate type.
+Variable *TargetARM32::copyToReg(Operand *Src, int32_t RegNum) {
+  Type Ty = Src->getType();
+  Variable *Reg = makeReg(Ty, RegNum);
+  if (isVectorType(Ty)) {
+    UnimplementedError(Func->getContext()->getFlags());
+  } else {
+    // Mov's Src operand can really only be the flexible second operand type
+    // or a register. Users should guarantee that.
+    _mov(Reg, Src);
+  }
+  return Reg;
+}
+
+Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
+                               int32_t RegNum) {
+  // Assert that a physical register is allowed.  To date, all calls
+  // to legalize() allow a physical register. Legal_Flex converts
+  // registers to the right type OperandARM32FlexReg as needed.
+  assert(Allowed & Legal_Reg);
+  // Go through the various types of operands:
+  // OperandARM32Mem, OperandARM32Flex, Constant, and Variable.
+  // Given the above assertion, if type of operand is not legal
+  // (e.g., OperandARM32Mem and !Legal_Mem), we can always copy
+  // to a register.
+  if (auto Mem = llvm::dyn_cast<OperandARM32Mem>(From)) {
+    // Before doing anything with a Mem operand, we need to ensure
+    // that the Base and Index components are in physical registers.
+    Variable *Base = Mem->getBase();
+    Variable *Index = Mem->getIndex();
+    Variable *RegBase = nullptr;
+    Variable *RegIndex = nullptr;
+    if (Base) {
+      RegBase = legalizeToVar(Base);
+    }
+    if (Index) {
+      RegIndex = legalizeToVar(Index);
+    }
+    // Create a new operand if there was a change.
+    if (Base != RegBase || Index != RegIndex) {
+      // There is only a reg +/- reg or reg + imm form.
+      // Figure out which to re-create.
+      if (Mem->isRegReg()) {
+        Mem = OperandARM32Mem::create(Func, Mem->getType(), RegBase, RegIndex,
+                                      Mem->getShiftOp(), Mem->getShiftAmt(),
+                                      Mem->getAddrMode());
+      } else {
+        Mem = OperandARM32Mem::create(Func, Mem->getType(), RegBase,
+                                      Mem->getOffset(), Mem->getAddrMode());
+      }
+    }
+    if (!(Allowed & Legal_Mem)) {
+      Type Ty = Mem->getType();
+      Variable *Reg = makeReg(Ty, RegNum);
+      _ldr(Reg, Mem);
+      From = Reg;
+    } else {
+      From = Mem;
+    }
+    return From;
+  }
+
+  if (auto Flex = llvm::dyn_cast<OperandARM32Flex>(From)) {
+    if (!(Allowed & Legal_Flex)) {
+      if (auto FlexReg = llvm::dyn_cast<OperandARM32FlexReg>(Flex)) {
+        if (FlexReg->getShiftOp() == OperandARM32::kNoShift) {
+          From = FlexReg->getReg();
+          // Fall through and let From be checked as a Variable below,
+          // where it may or may not need a register.
+        } else {
+          return copyToReg(Flex, RegNum);
+        }
+      } else {
+        return copyToReg(Flex, RegNum);
+      }
+    } else {
+      return From;
+    }
+  }
+
+  if (llvm::isa<Constant>(From)) {
+    if (llvm::isa<ConstantUndef>(From)) {
+      // Lower undefs to zero.  Another option is to lower undefs to an
+      // uninitialized register; however, using an uninitialized register
+      // results in less predictable code.
+      if (isVectorType(From->getType()))
+        return makeVectorOfZeros(From->getType(), RegNum);
+      From = Ctx->getConstantZero(From->getType());
+    }
+    // There should be no constants of vector type (other than undef).
+    assert(!isVectorType(From->getType()));
+    bool CanBeFlex = Allowed & Legal_Flex;
+    if (auto C32 = llvm::dyn_cast<ConstantInteger32>(From)) {
+      uint32_t RotateAmt;
+      uint32_t Immed_8;
+      uint32_t Value = static_cast<uint32_t>(C32->getValue());
+      // Check if the immediate will fit in a Flexible second operand,
+      // if a Flexible second operand is allowed. We need to know the exact
+      // value, so that rules out relocatable constants.
+      // Also try the inverse and use MVN if possible.
+      if (CanBeFlex &&
+          OperandARM32FlexImm::canHoldImm(Value, &RotateAmt, &Immed_8)) {
+        return OperandARM32FlexImm::create(Func, From->getType(), Immed_8,
+                                           RotateAmt);
+      } else if (CanBeFlex && OperandARM32FlexImm::canHoldImm(
+                                  ~Value, &RotateAmt, &Immed_8)) {
+        auto InvertedFlex = OperandARM32FlexImm::create(Func, From->getType(),
+                                                        Immed_8, RotateAmt);
+        Type Ty = From->getType();
+        Variable *Reg = makeReg(Ty, RegNum);
+        _mvn(Reg, InvertedFlex);
+        return Reg;
+      } else {
+        // Do a movw/movt to a register.
+        Type Ty = From->getType();
+        Variable *Reg = makeReg(Ty, RegNum);
+        uint32_t UpperBits = (Value >> 16) & 0xFFFF;
+        _movw(Reg,
+              UpperBits != 0 ? Ctx->getConstantInt32(Value & 0xFFFF) : C32);
+        if (UpperBits != 0) {
+          _movt(Reg, Ctx->getConstantInt32(UpperBits));
+        }
+        return Reg;
+      }
+    } else if (auto C = llvm::dyn_cast<ConstantRelocatable>(From)) {
+      Type Ty = From->getType();
+      Variable *Reg = makeReg(Ty, RegNum);
+      _movw(Reg, C);
+      _movt(Reg, C);
+      return Reg;
+    } else {
+      // Load floats/doubles from literal pool.
+      UnimplementedError(Func->getContext()->getFlags());
+      From = copyToReg(From, RegNum);
+    }
+    return From;
+  }
+
+  if (auto Var = llvm::dyn_cast<Variable>(From)) {
+    // Check if the variable is guaranteed a physical register.  This
+    // can happen either when the variable is pre-colored or when it is
+    // assigned infinite weight.
+    bool MustHaveRegister = (Var->hasReg() || Var->getWeight().isInf());
+    // We need a new physical register for the operand if:
+    //   Mem is not allowed and Var isn't guaranteed a physical
+    //   register, or
+    //   RegNum is required and Var->getRegNum() doesn't match.
+    if ((!(Allowed & Legal_Mem) && !MustHaveRegister) ||
+        (RegNum != Variable::NoRegister && RegNum != Var->getRegNum())) {
+      From = copyToReg(From, RegNum);
+    }
+    return From;
+  }
+  llvm_unreachable("Unhandled operand kind in legalize()");
+
+  return From;
+}
+
+// Provide a trivial wrapper to legalize() for this common usage.
+Variable *TargetARM32::legalizeToVar(Operand *From, int32_t RegNum) {
+  return llvm::cast<Variable>(legalize(From, Legal_Reg, RegNum));
+}
+
+Variable *TargetARM32::makeReg(Type Type, int32_t RegNum) {
+  // There aren't any 64-bit integer registers for ARM32.
+  assert(Type != IceType_i64);
+  Variable *Reg = Func->makeVariable(Type);
+  if (RegNum == Variable::NoRegister)
+    Reg->setWeightInfinite();
+  else
+    Reg->setRegNum(RegNum);
+  return Reg;
+}
+
 void TargetARM32::postLower() {
   if (Ctx->getFlags().getOptLevel() == Opt_m1)
     return;
-  // Find two-address non-SSA instructions where Dest==Src0, and set
-  // the DestNonKillable flag to keep liveness analysis consistent.
-  UnimplementedError(Func->getContext()->getFlags());
+  inferTwoAddress();
 }
 
 void TargetARM32::makeRandomRegisterPermutation(
@@ -714,10 +1156,12 @@ void TargetARM32::emit(const ConstantInteger64 *) const {
 }
 
 void TargetARM32::emit(const ConstantFloat *C) const {
+  (void)C;
   UnimplementedError(Ctx->getFlags());
 }
 
 void TargetARM32::emit(const ConstantDouble *C) const {
+  (void)C;
   UnimplementedError(Ctx->getFlags());
 }
 

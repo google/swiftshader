@@ -65,6 +65,13 @@ public:
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
 
+  // Ensure that a 64-bit Variable has been split into 2 32-bit
+  // Variables, creating them if necessary.  This is needed for all
+  // I64 operations.
+  void split64(Variable *Var);
+  Operand *loOperand(Operand *Operand);
+  Operand *hiOperand(Operand *Operand);
+
 protected:
   explicit TargetARM32(Cfg *Func);
 
@@ -94,16 +101,58 @@ protected:
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
   void randomlyInsertNop(float Probability) override;
+
+  enum OperandLegalization {
+    Legal_None = 0,
+    Legal_Reg = 1 << 0,  // physical register, not stack location
+    Legal_Flex = 1 << 1, // A flexible operand2, which can hold rotated
+                         // small immediates, or shifted registers.
+    Legal_Mem = 1 << 2,  // includes [r0, r1 lsl #2] as well as [sp, #12]
+    Legal_All = ~Legal_None
+  };
+  typedef uint32_t LegalMask;
+  Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
+                    int32_t RegNum = Variable::NoRegister);
+  Variable *legalizeToVar(Operand *From, int32_t RegNum = Variable::NoRegister);
+
+  Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
+  static Type stackSlotType();
+  Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
+
+  // Returns a vector in a register with the given constant entries.
+  Variable *makeVectorOfZeros(Type Ty, int32_t RegNum = Variable::NoRegister);
+
   void makeRandomRegisterPermutation(
       llvm::SmallVectorImpl<int32_t> &Permutation,
       const llvm::SmallBitVector &ExcludeRegisters) const override;
-
-  static Type stackSlotType();
 
   // The following are helpers that insert lowered ARM32 instructions
   // with minimal syntactic overhead, so that the lowering code can
   // look as close to assembly as practical.
 
+  void _ldr(Variable *Dest, OperandARM32Mem *Addr) {
+    Context.insert(InstARM32Ldr::create(Func, Dest, Addr));
+  }
+  // If Dest=nullptr is passed in, then a new variable is created,
+  // marked as infinite register allocation weight, and returned
+  // through the in/out Dest argument.
+  void _mov(Variable *&Dest, Operand *Src0,
+            int32_t RegNum = Variable::NoRegister) {
+    if (Dest == nullptr)
+      Dest = makeReg(Src0->getType(), RegNum);
+    Context.insert(InstARM32Mov::create(Func, Dest, Src0));
+  }
+  // The Operand can only be a 16-bit immediate or a ConstantRelocatable
+  // (with an upper16 relocation).
+  void _movt(Variable *&Dest, Operand *Src0) {
+    Context.insert(InstARM32Movt::create(Func, Dest, Src0));
+  }
+  void _movw(Variable *&Dest, Operand *Src0) {
+    Context.insert(InstARM32Movw::create(Func, Dest, Src0));
+  }
+  void _mvn(Variable *&Dest, Operand *Src0) {
+    Context.insert(InstARM32Mvn::create(Func, Dest, Src0));
+  }
   void _ret(Variable *LR, Variable *Src0 = nullptr) {
     Context.insert(InstARM32Ret::create(Func, LR, Src0));
   }

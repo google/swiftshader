@@ -78,6 +78,19 @@ public:
       return 0;
     return Align - Mod;
   }
+
+  // Precondition: 0 <= shift < 32
+  static inline uint32_t rotateLeft32(uint32_t value, uint32_t shift) {
+    if (shift == 0)
+      return value;
+    return (value << shift) | (value >> (32 - shift));
+  }
+
+  static inline uint32_t rotateRight32(uint32_t value, uint32_t shift) {
+    if (shift == 0)
+      return value;
+    return (value >> shift) | (value << (32 - shift));
+  }
 };
 
 } // end of namespace Ice

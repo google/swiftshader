@@ -4636,7 +4636,7 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
   // work, e.g. allow the shl shift amount to be either an immediate
   // or in ecx.)
   assert(RegNum == Variable::NoRegister || Allowed == Legal_Reg);
-  if (OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(From)) {
+  if (auto Mem = llvm::dyn_cast<OperandX8632Mem>(From)) {
     // Before doing anything with a Mem operand, we need to ensure
     // that the Base and Index components are in physical registers.
     Variable *Base = Mem->getBase();
@@ -4691,7 +4691,7 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
     }
     return From;
   }
-  if (Variable *Var = llvm::dyn_cast<Variable>(From)) {
+  if (auto Var = llvm::dyn_cast<Variable>(From)) {
     // Check if the variable is guaranteed a physical register.  This
     // can happen either when the variable is pre-colored or when it is
     // assigned infinite weight.
@@ -4766,19 +4766,7 @@ Variable *TargetX8632::makeReg(Type Type, int32_t RegNum) {
 void TargetX8632::postLower() {
   if (Ctx->getFlags().getOptLevel() == Opt_m1)
     return;
-  // Find two-address non-SSA instructions where Dest==Src0, and set
-  // the DestNonKillable flag to keep liveness analysis consistent.
-  for (auto Inst = Context.getCur(), E = Context.getNext(); Inst != E; ++Inst) {
-    if (Inst->isDeleted())
-      continue;
-    if (Variable *Dest = Inst->getDest()) {
-      // TODO(stichnot): We may need to consider all source
-      // operands, not just the first one, if using 3-address
-      // instructions.
-      if (Inst->getSrcSize() > 0 && Inst->getSrc(0) == Dest)
-        Inst->setDestNonKillable();
-    }
-  }
+  inferTwoAddress();
 }
 
 void TargetX8632::makeRandomRegisterPermutation(

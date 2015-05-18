@@ -228,6 +228,22 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
   LinearScan.scan(RegMask, Ctx->getFlags().shouldRandomizeRegAlloc());
 }
 
+void TargetLowering::inferTwoAddress() {
+  // Find two-address non-SSA instructions where Dest==Src0, and set
+  // the DestNonKillable flag to keep liveness analysis consistent.
+  for (auto Inst = Context.getCur(), E = Context.getNext(); Inst != E; ++Inst) {
+    if (Inst->isDeleted())
+      continue;
+    if (Variable *Dest = Inst->getDest()) {
+      // TODO(stichnot): We may need to consider all source
+      // operands, not just the first one, if using 3-address
+      // instructions.
+      if (Inst->getSrcSize() > 0 && Inst->getSrc(0) == Dest)
+        Inst->setDestNonKillable();
+    }
+  }
+}
+
 InstCall *TargetLowering::makeHelperCall(const IceString &Name, Variable *Dest,
                                          SizeT MaxSrcs) {
   const bool HasTailCall = false;

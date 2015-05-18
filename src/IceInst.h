@@ -67,6 +67,10 @@ public:
     FakeKill,     // not part of LLVM/PNaCl bitcode
     Target        // target-specific low-level ICE
                   // Anything >= Target is an InstTarget subclass.
+                  // Note that the value-spaces are shared across targets.
+                  // To avoid confusion over the definition of shared values,
+                  // an object specific to one target should never be passed
+                  // to a different target.
   };
   InstKind getKind() const { return Kind; }
 
@@ -925,6 +929,8 @@ protected:
   }
   ~InstTarget() override {}
 };
+
+bool checkForRedundantAssign(const Variable *Dest, const Operand *Source);
 
 } // end of namespace Ice
 

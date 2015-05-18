@@ -889,22 +889,6 @@ void emitIASMovlikeXMM(const Cfg *Func, const Variable *Dest,
   }
 }
 
-bool checkForRedundantAssign(const Variable *Dest, const Operand *Source) {
-  const auto SrcVar = llvm::dyn_cast<const Variable>(Source);
-  if (!SrcVar)
-    return false;
-  if (Dest->hasReg() && Dest->getRegNum() == SrcVar->getRegNum()) {
-    // TODO: On x86-64, instructions like "mov eax, eax" are used to
-    // clear the upper 32 bits of rax.  We need to recognize and
-    // preserve these.
-    return true;
-  }
-  if (!Dest->hasReg() && !SrcVar->hasReg() &&
-      Dest->getStackOffset() == SrcVar->getStackOffset())
-    return true;
-  return false;
-}
-
 // In-place ops
 template <> const char *InstX8632Bswap::Opcode = "bswap";
 template <> const char *InstX8632Neg::Opcode = "neg";

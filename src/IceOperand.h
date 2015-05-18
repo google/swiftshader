@@ -46,7 +46,10 @@ public:
     kVariable_Target, // leave space for target-specific variable kinds
     kVariable_Num = kVariable_Target + MaxTargetKinds,
     // Target-specific operand classes use kTarget as the starting
-    // point for their Kind enum space.
+    // point for their Kind enum space. Note that the value-spaces are shared
+    // across targets. To avoid confusion over the definition of shared
+    // values, an object specific to one target should never be passed
+    // to a different target.
     kTarget
   };
   OperandKind getKind() const { return Kind; }

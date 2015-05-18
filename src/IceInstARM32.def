@@ -81,4 +81,14 @@
   X(IceType_v4f32, IceType_f32 , "",  0,  0)                            \
 //#define X(tag, elementty, width, sbits, ubits)
 
+// Shifter types for Data-processing operands as defined in section A5.1.2.
+#define ICEINSTARM32SHIFT_TABLE                 \
+  /* enum value, emit */                        \
+  X(LSL, "lsl")                                 \
+  X(LSR, "lsr")                                 \
+  X(ASR, "asr")                                 \
+  X(ROR, "ror")                                 \
+  X(RRX, "rrx")                                 \
+//#define X(tag, emit)
+
 #endif // SUBZERO_SRC_ICEINSTARM32_DEF

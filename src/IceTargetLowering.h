@@ -255,6 +255,10 @@ protected:
   // expansion before returning.
   virtual void postLower() {}
 
+  // Find two-address non-SSA instructions and set the DestNonKillable flag
+  // to keep liveness analysis consistent.
+  void inferTwoAddress();
+
   // Make a call to an external helper function.
   InstCall *makeHelperCall(const IceString &Name, Variable *Dest,
                            SizeT MaxSrcs);
