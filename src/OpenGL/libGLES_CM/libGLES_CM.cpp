@@ -500,7 +500,15 @@ void ClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 
 void ClearColorx(GLclampx red, GLclampx green, GLclampx blue, GLclampx alpha)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLclampx red = %d, GLclampx green = %d, GLclampx blue = %d, GLclampx alpha = %d)",
+	      red, green, blue, alpha);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		context->setClearColor((float)red/65536.0f, (float)green/65536.0f, (float)blue/65536.0f, (float)alpha/65536.0f);
+	}
 }
 
 void ClearDepthf(GLclampf depth)
