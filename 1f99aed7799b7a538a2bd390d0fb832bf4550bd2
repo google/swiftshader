@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "2d37016d_f48bf96f",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-19T21:13:01Z",
+      "side": 1,
+      "message": "As discussed, can be (integer) vectors too.",
+      "range": {
+        "startLine": 183,
+        "startChar": 16,
+        "endLine": 183,
+        "endChar": 36
+      },
+      "revId": "1f99aed7799b7a538a2bd390d0fb832bf4550bd2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d37016d_346ba1a1",
         "filename": "src/OpenGL/compiler/Intermediate.cpp",
         "patchSetId": 3
