@@ -540,40 +540,135 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   // Or it may be the case that the operands aren't swapped, but the
   // bits can be flipped and a different operation applied.
   // E.g., use BIC (bit clear) instead of AND for some masks.
-  Variable *Src0 = legalizeToVar(Inst->getSrc(0));
-  Operand *Src1 = legalize(Inst->getSrc(1), Legal_Reg | Legal_Flex);
-  (void)Src0;
-  (void)Src1;
+  Operand *Src0 = Inst->getSrc(0);
+  Operand *Src1 = Inst->getSrc(1);
   if (Dest->getType() == IceType_i64) {
-    UnimplementedError(Func->getContext()->getFlags());
+    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    Variable *Src0RLo = legalizeToVar(loOperand(Src0));
+    Variable *Src0RHi = legalizeToVar(hiOperand(Src0));
+    Operand *Src1Lo = legalize(loOperand(Src1), Legal_Reg | Legal_Flex);
+    Operand *Src1Hi = legalize(hiOperand(Src1), Legal_Reg | Legal_Flex);
+    Variable *T_Lo = makeReg(DestLo->getType());
+    Variable *T_Hi = makeReg(DestHi->getType());
+    switch (Inst->getOp()) {
+    case InstArithmetic::_num:
+      llvm_unreachable("Unknown arithmetic operator");
+      break;
+    case InstArithmetic::Add:
+      _adds(T_Lo, Src0RLo, Src1Lo);
+      _mov(DestLo, T_Lo);
+      _adc(T_Hi, Src0RHi, Src1Hi);
+      _mov(DestHi, T_Hi);
+      break;
+    case InstArithmetic::And:
+      _and(T_Lo, Src0RLo, Src1Lo);
+      _mov(DestLo, T_Lo);
+      _and(T_Hi, Src0RHi, Src1Hi);
+      _mov(DestHi, T_Hi);
+      break;
+    case InstArithmetic::Or:
+      _orr(T_Lo, Src0RLo, Src1Lo);
+      _mov(DestLo, T_Lo);
+      _orr(T_Hi, Src0RHi, Src1Hi);
+      _mov(DestHi, T_Hi);
+      break;
+    case InstArithmetic::Xor:
+      _eor(T_Lo, Src0RLo, Src1Lo);
+      _mov(DestLo, T_Lo);
+      _eor(T_Hi, Src0RHi, Src1Hi);
+      _mov(DestHi, T_Hi);
+      break;
+    case InstArithmetic::Sub:
+      _subs(T_Lo, Src0RLo, Src1Lo);
+      _mov(DestLo, T_Lo);
+      _sbc(T_Hi, Src0RHi, Src1Hi);
+      _mov(DestHi, T_Hi);
+      break;
+    case InstArithmetic::Mul: {
+      // GCC 4.8 does:
+      // a=b*c ==>
+      //   t_acc =(mul) (b.lo * c.hi)
+      //   t_acc =(mla) (c.lo * b.hi) + t_acc
+      //   t.hi,t.lo =(umull) b.lo * c.lo
+      //   t.hi += t_acc
+      //   a.lo = t.lo
+      //   a.hi = t.hi
+      //
+      // LLVM does:
+      //   t.hi,t.lo =(umull) b.lo * c.lo
+      //   t.hi =(mla) (b.lo * c.hi) + t.hi
+      //   t.hi =(mla) (b.hi * c.lo) + t.hi
+      //   a.lo = t.lo
+      //   a.hi = t.hi
+      //
+      // LLVM's lowering has fewer instructions, but more register pressure:
+      // t.lo is live from beginning to end, while GCC delays the two-dest
+      // instruction till the end, and kills c.hi immediately.
+      Variable *T_Acc = makeReg(IceType_i32);
+      Variable *T_Acc1 = makeReg(IceType_i32);
+      Variable *T_Hi1 = makeReg(IceType_i32);
+      Variable *Src1RLo = legalizeToVar(Src1Lo);
+      Variable *Src1RHi = legalizeToVar(Src1Hi);
+      _mul(T_Acc, Src0RLo, Src1RHi);
+      _mla(T_Acc1, Src1RLo, Src0RHi, T_Acc);
+      _umull(T_Lo, T_Hi1, Src0RLo, Src1RLo);
+      _add(T_Hi, T_Hi1, T_Acc1);
+      _mov(DestLo, T_Lo);
+      _mov(DestHi, T_Hi);
+    } break;
+    case InstArithmetic::Shl:
+    case InstArithmetic::Lshr:
+    case InstArithmetic::Ashr:
+    case InstArithmetic::Udiv:
+    case InstArithmetic::Sdiv:
+    case InstArithmetic::Urem:
+    case InstArithmetic::Srem:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Fadd:
+    case InstArithmetic::Fsub:
+    case InstArithmetic::Fmul:
+    case InstArithmetic::Fdiv:
+    case InstArithmetic::Frem:
+      llvm_unreachable("FP instruction with i64 type");
+      break;
+    }
   } else if (isVectorType(Dest->getType())) {
     UnimplementedError(Func->getContext()->getFlags());
   } else { // Dest->getType() is non-i64 scalar
+    Variable *Src0R = legalizeToVar(Inst->getSrc(0));
+    Src1 = legalize(Inst->getSrc(1), Legal_Reg | Legal_Flex);
+    Variable *T = makeReg(Dest->getType());
     switch (Inst->getOp()) {
     case InstArithmetic::_num:
       llvm_unreachable("Unknown arithmetic operator");
       break;
     case InstArithmetic::Add: {
-      UnimplementedError(Func->getContext()->getFlags());
-      // Variable *T = makeReg(Dest->getType());
-      // _add(T, Src0, Src1);
-      // _mov(Dest, T);
+      _add(T, Src0R, Src1);
+      _mov(Dest, T);
     } break;
-    case InstArithmetic::And:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Or:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Xor:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Sub:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Mul:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
+    case InstArithmetic::And: {
+      _and(T, Src0R, Src1);
+      _mov(Dest, T);
+    } break;
+    case InstArithmetic::Or: {
+      _orr(T, Src0R, Src1);
+      _mov(Dest, T);
+    } break;
+    case InstArithmetic::Xor: {
+      _eor(T, Src0R, Src1);
+      _mov(Dest, T);
+    } break;
+    case InstArithmetic::Sub: {
+      _sub(T, Src0R, Src1);
+      _mov(Dest, T);
+    } break;
+    case InstArithmetic::Mul: {
+      Variable *Src1R = legalizeToVar(Src1);
+      _mul(T, Src0R, Src1R);
+      _mov(Dest, T);
+    } break;
     case InstArithmetic::Shl:
       UnimplementedError(Func->getContext()->getFlags());
       break;

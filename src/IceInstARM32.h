@@ -245,12 +245,22 @@ class InstARM32 : public InstTarget {
 public:
   enum InstKindARM32 {
     k__Start = Inst::Target,
+    Adc,
+    Add,
+    And,
+    Eor,
+    Ldr,
+    Mla,
     Mov,
     Movt,
     Movw,
+    Mul,
     Mvn,
+    Orr,
     Ret,
-    Ldr
+    Sbc,
+    Sub,
+    Umull
   };
 
   static const char *getWidthString(Type Ty);
@@ -267,6 +277,8 @@ protected:
 };
 
 void emitTwoAddr(const char *Opcode, const Inst *Inst, const Cfg *Func);
+void emitThreeAddr(const char *Opcode, const Inst *Inst, const Cfg *Func,
+                   bool SetFlags);
 
 // TODO(jvoung): add condition codes if instruction can be predicated.
 
@@ -397,6 +409,63 @@ private:
   static const char *Opcode;
 };
 
+// Instructions of the form x := y op z. May have the side-effect of setting
+// status flags.
+template <InstARM32::InstKindARM32 K>
+class InstARM32ThreeAddrGPR : public InstARM32 {
+  InstARM32ThreeAddrGPR() = delete;
+  InstARM32ThreeAddrGPR(const InstARM32ThreeAddrGPR &) = delete;
+  InstARM32ThreeAddrGPR &operator=(const InstARM32ThreeAddrGPR &) = delete;
+
+public:
+  // Create an ordinary binary-op instruction like add, and sub.
+  // Dest and Src1 must be registers.
+  static InstARM32ThreeAddrGPR *create(Cfg *Func, Variable *Dest,
+                                       Variable *Src1, Operand *Src2,
+                                       bool SetFlags = false) {
+    return new (Func->allocate<InstARM32ThreeAddrGPR>())
+        InstARM32ThreeAddrGPR(Func, Dest, Src1, Src2, SetFlags);
+  }
+  void emit(const Cfg *Func) const override {
+    if (!ALLOW_DUMP)
+      return;
+    emitThreeAddr(Opcode, this, Func, SetFlags);
+  }
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm::report_fatal_error("Not yet implemented");
+  }
+  void dump(const Cfg *Func) const override {
+    if (!ALLOW_DUMP)
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = " << Opcode << (SetFlags ? "s" : "") << "."
+        << getDest()->getType() << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstARM32ThreeAddrGPR(Cfg *Func, Variable *Dest, Variable *Src1,
+                        Operand *Src2, bool SetFlags)
+      : InstARM32(Func, K, 2, Dest), SetFlags(SetFlags) {
+    addSource(Src1);
+    addSource(Src2);
+  }
+  ~InstARM32ThreeAddrGPR() override {}
+  static const char *Opcode;
+  bool SetFlags;
+};
+
+typedef InstARM32ThreeAddrGPR<InstARM32::Adc> InstARM32Adc;
+typedef InstARM32ThreeAddrGPR<InstARM32::Add> InstARM32Add;
+typedef InstARM32ThreeAddrGPR<InstARM32::And> InstARM32And;
+typedef InstARM32ThreeAddrGPR<InstARM32::Eor> InstARM32Eor;
+typedef InstARM32ThreeAddrGPR<InstARM32::Mul> InstARM32Mul;
+typedef InstARM32ThreeAddrGPR<InstARM32::Orr> InstARM32Orr;
+typedef InstARM32ThreeAddrGPR<InstARM32::Sbc> InstARM32Sbc;
+typedef InstARM32ThreeAddrGPR<InstARM32::Sub> InstARM32Sub;
 // Move instruction (variable <- flex). This is more of a pseudo-inst.
 // If var is a register, then we use "mov". If var is stack, then we use
 // "str" to store to the stack.
@@ -428,6 +497,30 @@ private:
   ~InstARM32Ldr() override {}
 };
 
+// Multiply Accumulate: d := x * y + a
+class InstARM32Mla : public InstARM32 {
+  InstARM32Mla() = delete;
+  InstARM32Mla(const InstARM32Mla &) = delete;
+  InstARM32Mla &operator=(const InstARM32Mla &) = delete;
+
+public:
+  // Everything must be a register.
+  static InstARM32Mla *create(Cfg *Func, Variable *Dest, Variable *Src0,
+                              Variable *Src1, Variable *Acc) {
+    return new (Func->allocate<InstARM32Mla>())
+        InstARM32Mla(Func, Dest, Src0, Src1, Acc);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Mla); }
+
+private:
+  InstARM32Mla(Cfg *Func, Variable *Dest, Variable *Src0, Variable *Src1,
+               Variable *Acc);
+  ~InstARM32Mla() override {}
+};
+
 // Ret pseudo-instruction.  This is actually a "bx" instruction with
 // an "lr" register operand, but epilogue lowering will search for a Ret
 // instead of a generic "bx". This instruction also takes a Source
@@ -451,6 +544,31 @@ public:
 private:
   InstARM32Ret(Cfg *Func, Variable *LR, Variable *Source);
   ~InstARM32Ret() override {}
+};
+
+// Unsigned Multiply Long: d.lo, d.hi := x * y
+class InstARM32Umull : public InstARM32 {
+  InstARM32Umull() = delete;
+  InstARM32Umull(const InstARM32Umull &) = delete;
+  InstARM32Umull &operator=(const InstARM32Umull &) = delete;
+
+public:
+  // Everything must be a register.
+  static InstARM32Umull *create(Cfg *Func, Variable *DestLo, Variable *DestHi,
+                                Variable *Src0, Variable *Src1) {
+    return new (Func->allocate<InstARM32Umull>())
+        InstARM32Umull(Func, DestLo, DestHi, Src0, Src1);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Umull); }
+
+private:
+  InstARM32Umull(Cfg *Func, Variable *DestLo, Variable *DestHi, Variable *Src0,
+                 Variable *Src1);
+  ~InstARM32Umull() override {}
+  Variable *DestHi;
 };
 
 // Declare partial template specializations of emit() methods that

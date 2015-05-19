@@ -4,6 +4,7 @@
 ; Also, we are currently using hlts for non-executable padding.
 
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
+
 ; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
 ; once enough infrastructure is in. Also, switch to --filetype=obj
 ; when possible.

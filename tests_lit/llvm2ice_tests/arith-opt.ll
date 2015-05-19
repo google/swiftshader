@@ -5,13 +5,6 @@
 
 ; RUN: %p2i -i %s --filetype=asm --args --verbose inst -threads=0 | FileCheck %s
 
-; TODO(jvoung): Enable test when it does not llvm::report_fatal_error.
-; The test runner wrappers don't handle error expected errors
-; so we can't just "not" the command.
-; RUIN: %if --need=target_ARM32 --command %p2i -i %s --filetype=asm \
-; RUIN:   --args --verbose inst -threads=0 --target arm32 \
-; RUIN:   | %if --need=target_ARM32 --command FileCheck %s --check-prefix ARM32
-
 define i32 @Add(i32 %a, i32 %b) {
 ; CHECK: define i32 @Add
 entry:

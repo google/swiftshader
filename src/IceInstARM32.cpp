@@ -60,11 +60,24 @@ void emitTwoAddr(const char *Opcode, const Inst *Inst, const Cfg *Func) {
   assert(Inst->getSrcSize() == 2);
   Variable *Dest = Inst->getDest();
   assert(Dest == Inst->getSrc(0));
-  Operand *Src1 = Inst->getSrc(1);
   Str << "\t" << Opcode << "\t";
   Dest->emit(Func);
   Str << ", ";
-  Src1->emit(Func);
+  Inst->getSrc(1)->emit(Func);
+}
+
+void emitThreeAddr(const char *Opcode, const Inst *Inst, const Cfg *Func,
+                   bool SetFlags) {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(Inst->getSrcSize() == 2);
+  Str << "\t" << Opcode << (SetFlags ? "s" : "") << "\t";
+  Inst->getDest()->emit(Func);
+  Str << ", ";
+  Inst->getSrc(0)->emit(Func);
+  Str << ", ";
+  Inst->getSrc(1)->emit(Func);
 }
 
 OperandARM32Mem::OperandARM32Mem(Cfg * /* Func */, Type Ty, Variable *Base,
@@ -146,11 +159,28 @@ InstARM32Ldr::InstARM32Ldr(Cfg *Func, Variable *Dest, OperandARM32Mem *Mem)
   addSource(Mem);
 }
 
+InstARM32Mla::InstARM32Mla(Cfg *Func, Variable *Dest, Variable *Src0,
+                           Variable *Src1, Variable *Acc)
+    : InstARM32(Func, InstARM32::Mla, 3, Dest) {
+  addSource(Src0);
+  addSource(Src1);
+  addSource(Acc);
+}
+
 InstARM32Ret::InstARM32Ret(Cfg *Func, Variable *LR, Variable *Source)
     : InstARM32(Func, InstARM32::Ret, Source ? 2 : 1, nullptr) {
   addSource(LR);
   if (Source)
     addSource(Source);
+}
+
+InstARM32Umull::InstARM32Umull(Cfg *Func, Variable *DestLo, Variable *DestHi,
+                               Variable *Src0, Variable *Src1)
+    : InstARM32(Func, InstARM32::Umull, 2, DestLo),
+      // DestHi is expected to have a FakeDef inserted by the lowering code.
+      DestHi(DestHi) {
+  addSource(Src0);
+  addSource(Src1);
 }
 
 // ======================== Dump routines ======================== //
@@ -162,6 +192,15 @@ template <> const char *InstARM32Movw::Opcode = "movw";
 template <> const char *InstARM32Mvn::Opcode = "mvn";
 // Mov-like ops
 template <> const char *InstARM32Mov::Opcode = "mov";
+// Three-addr ops
+template <> const char *InstARM32Adc::Opcode = "adc";
+template <> const char *InstARM32Add::Opcode = "add";
+template <> const char *InstARM32And::Opcode = "and";
+template <> const char *InstARM32Eor::Opcode = "eor";
+template <> const char *InstARM32Mul::Opcode = "mul";
+template <> const char *InstARM32Orr::Opcode = "orr";
+template <> const char *InstARM32Sbc::Opcode = "sbc";
+template <> const char *InstARM32Sub::Opcode = "sub";
 
 void InstARM32::dump(const Cfg *Func) const {
   if (!ALLOW_DUMP)
@@ -217,7 +256,7 @@ void InstARM32Ldr::emit(const Cfg *Func) const {
 }
 
 void InstARM32Ldr::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 2);
+  assert(getSrcSize() == 1);
   (void)Func;
   llvm_unreachable("Not yet implemented");
 }
@@ -227,7 +266,40 @@ void InstARM32Ldr::dump(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
-  Str << "ldr." << getSrc(0)->getType() << " ";
+  Str << " = ldr." << getSrc(0)->getType() << " ";
+  dumpSources(Func);
+}
+
+void InstARM32Mla::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 3);
+  assert(getDest()->hasReg());
+  Str << "\t"
+      << "mla"
+      << "\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+  Str << ", ";
+  getSrc(2)->emit(Func);
+}
+
+void InstARM32Mla::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 3);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Mla::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpDest(Func);
+  Str << " = mla." << getSrc(0)->getType() << " ";
   dumpSources(Func);
 }
 
@@ -274,7 +346,9 @@ void InstARM32Ret::emit(const Cfg *Func) const {
   assert(LR->hasReg());
   assert(LR->getRegNum() == RegARM32::Reg_lr);
   Ostream &Str = Func->getContext()->getStrEmit();
-  Str << "\tbx\t";
+  Str << "\t"
+      << "bx"
+      << "\t";
   LR->emit(Func);
 }
 
@@ -289,6 +363,39 @@ void InstARM32Ret::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = (getSrcSize() == 1 ? IceType_void : getSrc(0)->getType());
   Str << "ret." << Ty << " ";
+  dumpSources(Func);
+}
+
+void InstARM32Umull::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 2);
+  assert(getDest()->hasReg());
+  Str << "\t"
+      << "umull"
+      << "\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  DestHi->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+}
+
+void InstARM32Umull::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Umull::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpDest(Func);
+  Str << " = umull." << getSrc(0)->getType() << " ";
   dumpSources(Func);
 }
 

@@ -1,8 +1,7 @@
 ; This file checks that Subzero generates code in accordance with the
 ; calling convention for integers.
 
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
-; RUN:   | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
 
 ; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
 ; once enough infrastructure is in. Also, switch to --filetype=obj
