@@ -510,7 +510,8 @@ public:
 
   void lea(Type Ty, GPRRegister dst, const Address &src);
 
-  void cmov(CondX86::BrCond cond, GPRRegister dst, GPRRegister src);
+  void cmov(Type Ty, CondX86::BrCond cond, GPRRegister dst, GPRRegister src);
+  void cmov(Type Ty, CondX86::BrCond cond, GPRRegister dst, const Address &src);
 
   void rep_movsb();
 

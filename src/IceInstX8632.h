@@ -265,6 +265,7 @@ public:
 
   static const char *getWidthString(Type Ty);
   static const char *getFldString(Type Ty);
+  static CondX86::BrCond getOppositeCondition(CondX86::BrCond Cond);
   void dump(const Cfg *Func) const override;
 
 protected:

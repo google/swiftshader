@@ -9,6 +9,7 @@
 declare void @call_target()
 @global_byte = internal global [1 x i8] zeroinitializer
 @global_short = internal global [2 x i8] zeroinitializer
+@global_int = internal global [4 x i8] zeroinitializer
 
 ; A direct call sequence uses the right mask and register-call sequence.
 define void @test_direct_call() {
@@ -94,26 +95,31 @@ entry:
 
 ; A zero-byte instruction (e.g. local label definition) at a bundle
 ; boundary should not trigger nop padding.
-define void @label_at_boundary(i32 %arg) {
+define void @label_at_boundary(i32 %arg, float %farg1, float %farg2) {
 entry:
-  %cmp = icmp eq i32 %arg, 0
+  %argi8 = trunc i32 %arg to i8
   call void @call_target()
   ; bundle boundary
   %addr_short = bitcast [2 x i8]* @global_short to i16*
-  store i16 0, i16* %addr_short, align 1   ; 9-byte instruction
-  %blah = select i1 %cmp, i32 3, i32 5     ; 23-byte lowering sequence
+  %addr_int = bitcast [4 x i8]* @global_int to i32*
+  store i32 0, i32* %addr_int, align 1           ; 10-byte instruction
+  %blah = select i1 true, i8 %argi8, i8 %argi8   ; 22-byte lowering sequence
   ; label is here
-  store i16 0, i16* %addr_short, align 1   ; 9-byte instruction
+  store i16 0, i16* %addr_short, align 1         ; 9-byte instruction
   ret void
 }
 ; CHECK-LABEL: label_at_boundary
 ; CHECK: call
-; We rely on the hideous 4-instruction 23-byte Om1 lowering sequence for select.
-; CHECK-NEXT: 20: {{.*}} mov WORD PTR
-; CHECK-NEXT: 29: {{.*}} cmp BYTE PTR
-; CHECK-NEXT: 2e: {{.*}} mov DWORD PTR
+; We rely on a particular 7-instruction 22-byte Om1 lowering sequence
+; for select.
+; CHECK-NEXT: 20: {{.*}} mov DWORD PTR
+; CHECK-NEXT: 2a: {{.*}} mov {{.*}},0x1
+; CHECK-NEXT: 2c: {{.*}} cmp {{.*}},0x0
+; CHECK-NEXT: 2e: {{.*}} mov {{.*}},BYTE PTR
+; CHECK-NEXT: 32: {{.*}} mov BYTE PTR
 ; CHECK-NEXT: 36: {{.*}} jne 40
-; CHECK-NEXT: 38: {{.*}} mov DWORD PTR
+; CHECK-NEXT: 38: {{.*}} mov {{.*}},BYTE PTR
+; CHECK-NEXT: 3c: {{.*}} mov BYTE PTR
 ; CHECK-NEXT: 40: {{.*}} mov WORD PTR
 
 ; Bundle lock without padding.

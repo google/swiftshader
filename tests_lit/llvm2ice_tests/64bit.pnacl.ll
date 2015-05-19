@@ -1190,7 +1190,7 @@ entry:
 ; CHECK: cmp
 ; CHECK: jb
 ; CHECK: cmp
-; CHECK: jne
+; CHECK: cmovne
 ;
 ; OPTM1-LABEL: select64VarVar
 ; OPTM1: cmp
@@ -1199,7 +1199,7 @@ entry:
 ; OPTM1: cmp
 ; OPTM1: jb
 ; OPTM1: cmp
-; OPTM1: jne
+; OPTM1: cmovne
 
 define internal i64 @select64VarConst(i64 %a, i64 %b) {
 entry:
@@ -1214,7 +1214,7 @@ entry:
 ; CHECK: cmp
 ; CHECK: jb
 ; CHECK: cmp
-; CHECK: jne
+; CHECK: cmovne
 ;
 ; OPTM1-LABEL: select64VarConst
 ; OPTM1: cmp
@@ -1223,7 +1223,7 @@ entry:
 ; OPTM1: cmp
 ; OPTM1: jb
 ; OPTM1: cmp
-; OPTM1: jne
+; OPTM1: cmovne
 
 define internal i64 @select64ConstVar(i64 %a, i64 %b) {
 entry:
@@ -1238,7 +1238,7 @@ entry:
 ; CHECK: cmp
 ; CHECK: jb
 ; CHECK: cmp
-; CHECK: jne
+; CHECK: cmove
 ;
 ; OPTM1-LABEL: select64ConstVar
 ; OPTM1: cmp
@@ -1247,7 +1247,7 @@ entry:
 ; OPTM1: cmp
 ; OPTM1: jb
 ; OPTM1: cmp
-; OPTM1: jne
+; OPTM1: cmove
 
 define internal void @icmpEq64Imm() {
 entry:

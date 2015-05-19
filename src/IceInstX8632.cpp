@@ -84,6 +84,10 @@ const char *InstX8632::getFldString(Type Ty) {
   return TypeX8632Attributes[Ty].FldString;
 }
 
+CondX86::BrCond InstX8632::getOppositeCondition(CondX86::BrCond Cond) {
+  return InstX8632BrAttributes[Cond].Opposite;
+}
+
 OperandX8632Mem::OperandX8632Mem(Cfg *Func, Type Ty, Variable *Base,
                                  Constant *Offset, Variable *Index,
                                  uint16_t Shift, SegmentRegisters SegmentReg)
@@ -181,7 +185,7 @@ bool InstX8632Br::optimizeBranch(const CfgNode *NextNode) {
   // condition, swap the targets, and set new fallthrough to nullptr.
   if (getTargetTrue() == NextNode) {
     assert(Condition != CondX86::Br_None);
-    Condition = InstX8632BrAttributes[Condition].Opposite;
+    Condition = getOppositeCondition(Condition);
     TargetTrue = getTargetFalse();
     TargetFalse = nullptr;
     return true;
@@ -1558,13 +1562,28 @@ void InstX8632Cmov::emitIAS(const Cfg *Func) const {
   assert(Condition != CondX86::Br_None);
   assert(getDest()->hasReg());
   assert(getSrcSize() == 2);
-  // Only need the reg/reg form now.
-  const auto SrcVar = llvm::cast<Variable>(getSrc(1));
-  assert(SrcVar->hasReg());
-  assert(SrcVar->getType() == IceType_i32);
+  Operand *Src = getSrc(1);
+  Type SrcTy = Src->getType();
+  assert(SrcTy == IceType_i16 || SrcTy == IceType_i32);
   X8632::AssemblerX8632 *Asm = Func->getAssembler<X8632::AssemblerX8632>();
-  Asm->cmov(Condition, RegX8632::getEncodedGPR(getDest()->getRegNum()),
-            RegX8632::getEncodedGPR(SrcVar->getRegNum()));
+  if (const auto *SrcVar = llvm::dyn_cast<Variable>(Src)) {
+    if (SrcVar->hasReg()) {
+      Asm->cmov(SrcTy, Condition,
+                RegX8632::getEncodedGPR(getDest()->getRegNum()),
+                RegX8632::getEncodedGPR(SrcVar->getRegNum()));
+    } else {
+      Asm->cmov(SrcTy, Condition,
+                RegX8632::getEncodedGPR(getDest()->getRegNum()),
+                static_cast<TargetX8632 *>(Func->getTarget())
+                    ->stackVarToAsmOperand(SrcVar));
+    }
+  } else if (const auto Mem = llvm::dyn_cast<OperandX8632Mem>(Src)) {
+    assert(Mem->getSegmentRegister() == OperandX8632Mem::DefaultSegment);
+    Asm->cmov(SrcTy, Condition, RegX8632::getEncodedGPR(getDest()->getRegNum()),
+              Mem->toAsmAddress(Asm));
+  } else {
+    llvm_unreachable("Unexpected operand type");
+  }
 }
 
 void InstX8632Cmov::dump(const Cfg *Func) const {

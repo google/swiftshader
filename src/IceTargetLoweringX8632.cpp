@@ -4076,11 +4076,12 @@ void TargetX8632::lowerRet(const InstRet *Inst) {
 
 void TargetX8632::lowerSelect(const InstSelect *Inst) {
   Variable *Dest = Inst->getDest();
+  Type DestTy = Dest->getType();
   Operand *SrcT = Inst->getTrueOperand();
   Operand *SrcF = Inst->getFalseOperand();
   Operand *Condition = Inst->getCondition();
 
-  if (isVectorType(Dest->getType())) {
+  if (isVectorType(DestTy)) {
     Type SrcTy = SrcT->getType();
     Variable *T = makeReg(SrcTy);
     Operand *SrcTRM = legalize(SrcT, Legal_Reg | Legal_Mem);
@@ -4138,6 +4139,9 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     return;
   }
 
+  CondX86::BrCond Cond = CondX86::Br_ne;
+  Operand *CmpOpnd0 = nullptr;
+  Operand *CmpOpnd1 = nullptr;
   // Handle folding opportunities.
   if (const class Inst *Producer = FoldingInfo.getProducerFor(Condition)) {
     assert(Producer->isDeleted());
@@ -4145,73 +4149,69 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
     default:
       break;
     case BoolFolding::PK_Icmp32: {
-      // d=cmp e,f; a=d?b:c ==> cmp e,f; a=b; jne L1; a=c; L1:
       auto *Cmp = llvm::dyn_cast<InstIcmp>(Producer);
-      InstX8632Label *Label = InstX8632Label::create(Func, this);
-      Operand *Src0 = Producer->getSrc(0);
-      Operand *Src1 = legalize(Producer->getSrc(1));
-      Operand *Src0RM = legalizeSrc0ForCmp(Src0, Src1);
-      _cmp(Src0RM, Src1);
-      // This is the same code as below (for both i64 and non-i64),
-      // except without the _cmp instruction and with a different
-      // branch condition.  TODO(stichnot): refactor.
-      if (Dest->getType() == IceType_i64) {
-        Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-        Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-        Operand *SrcLoRI = legalize(loOperand(SrcT), Legal_Reg | Legal_Imm);
-        Operand *SrcHiRI = legalize(hiOperand(SrcT), Legal_Reg | Legal_Imm);
-        _mov(DestLo, SrcLoRI);
-        _mov(DestHi, SrcHiRI);
-        _br(getIcmp32Mapping(Cmp->getCondition()), Label);
-        Operand *SrcFLo = loOperand(SrcF);
-        Operand *SrcFHi = hiOperand(SrcF);
-        SrcLoRI = legalize(SrcFLo, Legal_Reg | Legal_Imm);
-        SrcHiRI = legalize(SrcFHi, Legal_Reg | Legal_Imm);
-        _mov_nonkillable(DestLo, SrcLoRI);
-        _mov_nonkillable(DestHi, SrcHiRI);
-      } else {
-        SrcT = legalize(SrcT, Legal_Reg | Legal_Imm);
-        _mov(Dest, SrcT);
-        _br(getIcmp32Mapping(Cmp->getCondition()), Label);
-        SrcF = legalize(SrcF, Legal_Reg | Legal_Imm);
-        _mov_nonkillable(Dest, SrcF);
-      }
-      Context.insert(Label);
-      return;
-    }
+      Cond = getIcmp32Mapping(Cmp->getCondition());
+      CmpOpnd1 = legalize(Producer->getSrc(1));
+      CmpOpnd0 = legalizeSrc0ForCmp(Producer->getSrc(0), CmpOpnd1);
+    } break;
     }
   }
+  if (CmpOpnd0 == nullptr) {
+    CmpOpnd0 = legalize(Condition, Legal_Reg | Legal_Mem);
+    CmpOpnd1 = Ctx->getConstantZero(IceType_i32);
+  }
+  assert(CmpOpnd0);
+  assert(CmpOpnd1);
 
-  // a=d?b:c ==> cmp d,0; a=b; jne L1; a=c; L1:
-  Operand *ConditionRM = legalize(Condition, Legal_Reg | Legal_Mem);
-  Constant *Zero = Ctx->getConstantZero(IceType_i32);
-  InstX8632Label *Label = InstX8632Label::create(Func, this);
-
-  if (Dest->getType() == IceType_i64) {
-    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    Operand *SrcLoRI = legalize(loOperand(SrcT), Legal_Reg | Legal_Imm);
-    Operand *SrcHiRI = legalize(hiOperand(SrcT), Legal_Reg | Legal_Imm);
-    _cmp(ConditionRM, Zero);
-    _mov(DestLo, SrcLoRI);
-    _mov(DestHi, SrcHiRI);
-    _br(CondX86::Br_ne, Label);
-    Operand *SrcFLo = loOperand(SrcF);
-    Operand *SrcFHi = hiOperand(SrcF);
-    SrcLoRI = legalize(SrcFLo, Legal_Reg | Legal_Imm);
-    SrcHiRI = legalize(SrcFHi, Legal_Reg | Legal_Imm);
-    _mov_nonkillable(DestLo, SrcLoRI);
-    _mov_nonkillable(DestHi, SrcHiRI);
-  } else {
-    _cmp(ConditionRM, Zero);
+  _cmp(CmpOpnd0, CmpOpnd1);
+  if (typeWidthInBytes(DestTy) == 1 || isFloatingType(DestTy)) {
+    // The cmov instruction doesn't allow 8-bit or FP operands, so
+    // we need explicit control flow.
+    // d=cmp e,f; a=d?b:c ==> cmp e,f; a=b; jne L1; a=c; L1:
+    InstX8632Label *Label = InstX8632Label::create(Func, this);
     SrcT = legalize(SrcT, Legal_Reg | Legal_Imm);
     _mov(Dest, SrcT);
-    _br(CondX86::Br_ne, Label);
+    _br(Cond, Label);
     SrcF = legalize(SrcF, Legal_Reg | Legal_Imm);
     _mov_nonkillable(Dest, SrcF);
+    Context.insert(Label);
+    return;
+  }
+  // mov t, SrcF; cmov_cond t, SrcT; mov dest, t
+  // But if SrcT is immediate, we might be able to do better, as
+  // the cmov instruction doesn't allow an immediate operand:
+  // mov t, SrcT; cmov_!cond t, SrcF; mov dest, t
+  if (llvm::isa<Constant>(SrcT) && !llvm::isa<Constant>(SrcF)) {
+    std::swap(SrcT, SrcF);
+    Cond = InstX8632::getOppositeCondition(Cond);
+  }
+  if (DestTy == IceType_i64) {
+    // Set the low portion.
+    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    Variable *TLo = nullptr;
+    Operand *SrcFLo = legalize(loOperand(SrcF));
+    _mov(TLo, SrcFLo);
+    Operand *SrcTLo = legalize(loOperand(SrcT), Legal_Reg | Legal_Mem);
+    _cmov(TLo, SrcTLo, Cond);
+    _mov(DestLo, TLo);
+    // Set the high portion.
+    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    Variable *THi = nullptr;
+    Operand *SrcFHi = legalize(hiOperand(SrcF));
+    _mov(THi, SrcFHi);
+    Operand *SrcTHi = legalize(hiOperand(SrcT), Legal_Reg | Legal_Mem);
+    _cmov(THi, SrcTHi, Cond);
+    _mov(DestHi, THi);
+    return;
   }
 
-  Context.insert(Label);
+  assert(DestTy == IceType_i16 || DestTy == IceType_i32);
+  Variable *T = nullptr;
+  SrcF = legalize(SrcF);
+  _mov(T, SrcF);
+  SrcT = legalize(SrcT, Legal_Reg | Legal_Mem);
+  _cmov(T, SrcT, Cond);
+  _mov(Dest, T);
 }
 
 void TargetX8632::lowerStore(const InstStore *Inst) {

@@ -272,12 +272,28 @@ void AssemblerX8632::lea(Type Ty, GPRRegister dst, const Address &src) {
   EmitOperand(dst, src);
 }
 
-void AssemblerX8632::cmov(CondX86::BrCond cond, GPRRegister dst,
+void AssemblerX8632::cmov(Type Ty, CondX86::BrCond cond, GPRRegister dst,
                           GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  else
+    assert(Ty == IceType_i32);
   EmitUint8(0x0F);
   EmitUint8(0x40 + cond);
   EmitRegisterOperand(dst, src);
+}
+
+void AssemblerX8632::cmov(Type Ty, CondX86::BrCond cond, GPRRegister dst,
+                          const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (Ty == IceType_i16)
+    EmitOperandSizeOverride();
+  else
+    assert(Ty == IceType_i32);
+  EmitUint8(0x0F);
+  EmitUint8(0x40 + cond);
+  EmitOperand(dst, src);
 }
 
 void AssemblerX8632::rep_movsb() {

@@ -91,8 +91,7 @@ entry:
 
 ; CHECK-LABEL: fold_cmp_select
 ; CHECK: cmp
-; CHECK: jl
-; CHECK: mov
+; CHECK: cmovl
 
 
 ; 64-bit cmp/select folding.
@@ -107,9 +106,8 @@ entry:
 
 ; CHECK-LABEL: fold_cmp_select_64
 ; CHECK: cmp
-; CHECK: jl
-; CHECK: mov
-; CHECK: mov
+; CHECK: cmovl
+; CHECK: cmovl
 
 
 ; Cmp/select folding with intervening instructions.
@@ -125,8 +123,7 @@ entry:
 ; CHECK-NOT: cmp
 ; CHECK: call
 ; CHECK: cmp
-; CHECK: jl
-; CHECK: mov
+; CHECK: cmovl
 
 
 ; Cmp/multi-select folding.
@@ -143,11 +140,11 @@ entry:
 
 ; CHECK-LABEL: fold_cmp_select_multi
 ; CHECK: cmp
-; CHECK: jl
+; CHECK: cmovl
 ; CHECK: cmp
-; CHECK: jl
+; CHECK: cmovl
 ; CHECK: cmp
-; CHECK: jl
+; CHECK: cmovge
 ; CHECK: add
 ; CHECK: add
 
@@ -169,11 +166,11 @@ next:
 ; CHECK-LABEL: no_fold_cmp_select_multi_liveout
 ; CHECK: set
 ; CHECK: cmp
-; CHECK: jne
+; CHECK: cmovne
 ; CHECK: cmp
-; CHECK: jne
+; CHECK: cmovne
 ; CHECK: cmp
-; CHECK: jne
+; CHECK: cmove
 ; CHECK: add
 ; CHECK: add
 
@@ -195,11 +192,11 @@ entry:
 ; CHECK-LABEL: no_fold_cmp_select_multi_non_whitelist
 ; CHECK: set
 ; CHECK: cmp
-; CHECK: jne
+; CHECK: cmovne
 ; CHECK: cmp
-; CHECK: jne
+; CHECK: cmovne
 ; CHECK: cmp
-; CHECK: jne
+; CHECK: cmove
 ; CHECK: movzx
 ; CHECK: add
 ; CHECK: add
