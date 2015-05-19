@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2d37016d_4ad9e21a",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-19T19:45:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d37016d_ea431671",
+      "range": {
+        "startLine": 183,
+        "startChar": 16,
+        "endLine": 183,
+        "endChar": 142
+      },
+      "revId": "42425c5f6e287e81942bf50f01cd5eea6a8e34c2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d37016d_8a8b6a20",
         "filename": "src/OpenGL/compiler/Intermediate.cpp",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "2d37016d_aad98ef6",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 754,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-19T19:45:14Z",
+      "side": 1,
+      "message": "Renamed \"size\" by \"primarySize\", but renaming \"getNominalSize\" is a little involved for this cl, so I\u0027ll do that later.",
+      "parentUuid": "2d37016d_8a8b6a20",
+      "range": {
+        "startLine": 754,
+        "startChar": 4,
+        "endLine": 754,
+        "endChar": 73
+      },
+      "revId": "42425c5f6e287e81942bf50f01cd5eea6a8e34c2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d37016d_aa88ae23",
         "filename": "src/OpenGL/compiler/Intermediate.cpp",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2015-05-19T19:30:25Z",
       "side": 1,
       "message": "Could be removed.",
+      "range": {
+        "startLine": 755,
+        "startChar": 83,
+        "endLine": 755,
+        "endChar": 135
+      },
+      "revId": "42425c5f6e287e81942bf50f01cd5eea6a8e34c2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d37016d_2a99fe50",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 755,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-19T19:45:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d37016d_aa88ae23",
       "range": {
         "startLine": 755,
         "startChar": 83,
