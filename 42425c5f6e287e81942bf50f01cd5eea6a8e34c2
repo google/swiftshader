@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d37016d_ea431671",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-19T19:30:25Z",
+      "side": 1,
+      "message": "Could use isScalarInt(), but I think isScalar() is missing a !array check.",
+      "range": {
+        "startLine": 183,
+        "startChar": 16,
+        "endLine": 183,
+        "endChar": 142
+      },
+      "revId": "42425c5f6e287e81942bf50f01cd5eea6a8e34c2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d37016d_8a8b6a20",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 754,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-19T19:30:25Z",
+      "side": 1,
+      "message": "I think we can rename these to primarySize/getPrimarySize() now to eliminate the confusion.",
+      "range": {
+        "startLine": 754,
+        "startChar": 4,
+        "endLine": 754,
+        "endChar": 73
+      },
+      "revId": "42425c5f6e287e81942bf50f01cd5eea6a8e34c2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d37016d_aa88ae23",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 755,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-19T19:30:25Z",
+      "side": 1,
+      "message": "Could be removed.",
+      "range": {
+        "startLine": 755,
+        "startChar": 83,
+        "endLine": 755,
+        "endChar": 135
+      },
+      "revId": "42425c5f6e287e81942bf50f01cd5eea6a8e34c2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
