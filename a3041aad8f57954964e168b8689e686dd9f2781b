@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d37016d_8f7054d8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-19T21:33:27Z",
+      "side": 1,
+      "message": "That\u0027s depressing. Could you split this off into a separate patch to make it easier to check if we missed anything?",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 31
+      },
+      "revId": "a3041aad8f57954964e168b8689e686dd9f2781b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d37016d_74712907",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-19T21:33:27Z",
+      "side": 1,
+      "message": "unorm\u003c\u003e is for converting float to an unsigned normalized integer. The formats ending in \"I\" are unnormalized (and signed).",
+      "range": {
+        "startLine": 69,
+        "startChar": 2,
+        "endLine": 70,
+        "endChar": 48
+      },
+      "revId": "a3041aad8f57954964e168b8689e686dd9f2781b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d37016d_afc998a8",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-19T21:33:27Z",
+      "side": 1,
+      "message": "Unnormalized formats shouldn\u0027t be scaled. Same below.",
+      "range": {
+        "startLine": 307,
+        "startChar": 7,
+        "endLine": 307,
+        "endChar": 47
+      },
+      "revId": "a3041aad8f57954964e168b8689e686dd9f2781b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
