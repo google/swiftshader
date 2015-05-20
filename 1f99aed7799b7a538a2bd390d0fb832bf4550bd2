@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2d37016d_c4ecfa3c",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-20T14:30:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d37016d_f48bf96f",
+      "range": {
+        "startLine": 183,
+        "startChar": 16,
+        "endLine": 183,
+        "endChar": 36
+      },
+      "revId": "1f99aed7799b7a538a2bd390d0fb832bf4550bd2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d37016d_346ba1a1",
         "filename": "src/OpenGL/compiler/Intermediate.cpp",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-19T20:58:24Z",
       "side": 1,
       "message": "Is this a valid operator for vectors? If not it could also use isScalarInt().",
+      "range": {
+        "startLine": 303,
+        "startChar": 13,
+        "endLine": 303,
+        "endChar": 26
+      },
+      "revId": "1f99aed7799b7a538a2bd390d0fb832bf4550bd2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d37016d_a4ef762f",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-20T14:30:26Z",
+      "side": 1,
+      "message": "As discussed, yes, these are valid for integer vectors.",
+      "parentUuid": "2d37016d_346ba1a1",
       "range": {
         "startLine": 303,
         "startChar": 13,
