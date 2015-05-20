@@ -22,6 +22,7 @@ COMMON_C_INCLUDES := \
 
 COMMON_STATIC_LIBRARIES := \
 	swiftshader_top \
+	libLLVM_swiftshader \
 	libgcemetadata
 
 COMMON_SHARED_LIBRARIES := \
