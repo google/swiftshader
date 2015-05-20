@@ -432,8 +432,11 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
 			context = libGLES_CM->es1CreateContext(config, shareContext);
 		}
 	}
-	else if((clientVersion == 2 && config->mRenderableType & EGL_OPENGL_ES2_BIT) ||
-	        (clientVersion == 3 && config->mRenderableType & EGL_OPENGL_ES3_BIT))
+	else if((clientVersion == 2 && config->mRenderableType & EGL_OPENGL_ES2_BIT)
+#ifndef __ANDROID__ // Do not allow GLES 3.0 on Android
+	     || (clientVersion == 3 && config->mRenderableType & EGL_OPENGL_ES3_BIT)
+#endif
+	        )
 	{
 		if(libGLESv2)
 		{
