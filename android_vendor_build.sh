@@ -103,3 +103,4 @@ git commit \
   -m "$(cd ${SOURCE_DIR}; git log -n1 | grep '^ *Change-Id:' | tail -1 | sed 's,-, ,')" \
   -m "    At $(cd ${SOURCE_DIR}; git remote -v | grep ^origin | head -1 | awk '{ print $2; }')"
 popd
+rm -rf ${SOURCE_DIR_LINKED}
