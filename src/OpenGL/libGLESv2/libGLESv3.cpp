@@ -1160,7 +1160,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix2x3fv(GLint location, GLsizei count, 
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat *value = %p)", location, count, transpose, value);
 
-	if(count < 0 || transpose != GL_FALSE)
+	if(count < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -1181,7 +1181,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix2x3fv(GLint location, GLsizei count, 
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!program->setUniformMatrix2x3fv(location, count, value))
+		if(!program->setUniformMatrix2x3fv(location, count, transpose, value))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -1192,7 +1192,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix3x2fv(GLint location, GLsizei count, 
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat *value = %p)", location, count, transpose, value);
 
-	if(count < 0 || transpose != GL_FALSE)
+	if(count < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -1213,7 +1213,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix3x2fv(GLint location, GLsizei count, 
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!program->setUniformMatrix3x2fv(location, count, value))
+		if(!program->setUniformMatrix3x2fv(location, count, transpose, value))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -1224,7 +1224,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix2x4fv(GLint location, GLsizei count, 
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat *value = %p)", location, count, transpose, value);
 
-	if(count < 0 || transpose != GL_FALSE)
+	if(count < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -1245,7 +1245,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix2x4fv(GLint location, GLsizei count, 
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!program->setUniformMatrix2x4fv(location, count, value))
+		if(!program->setUniformMatrix2x4fv(location, count, transpose, value))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -1256,7 +1256,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix4x2fv(GLint location, GLsizei count, 
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat *value = %p)", location, count, transpose, value);
 
-	if(count < 0 || transpose != GL_FALSE)
+	if(count < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -1277,7 +1277,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix4x2fv(GLint location, GLsizei count, 
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!program->setUniformMatrix4x2fv(location, count, value))
+		if(!program->setUniformMatrix4x2fv(location, count, transpose, value))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -1288,7 +1288,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix3x4fv(GLint location, GLsizei count, 
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat *value = %p)", location, count, transpose, value);
 
-	if(count < 0 || transpose != GL_FALSE)
+	if(count < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -1309,7 +1309,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix3x4fv(GLint location, GLsizei count, 
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!program->setUniformMatrix3x4fv(location, count, value))
+		if(!program->setUniformMatrix3x4fv(location, count, transpose, value))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -1320,7 +1320,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix4x3fv(GLint location, GLsizei count, 
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat *value = %p)", location, count, transpose, value);
 
-	if(count < 0 || transpose != GL_FALSE)
+	if(count < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -1341,7 +1341,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix4x3fv(GLint location, GLsizei count, 
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!program->setUniformMatrix4x3fv(location, count, value))
+		if(!program->setUniformMatrix4x3fv(location, count, transpose, value))
 		{
 			return error(GL_INVALID_OPERATION);
 		}

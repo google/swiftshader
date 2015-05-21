@@ -90,15 +90,15 @@ namespace es2
 		bool setUniform2fv(GLint location, GLsizei count, const GLfloat *v);
 		bool setUniform3fv(GLint location, GLsizei count, const GLfloat *v);
 		bool setUniform4fv(GLint location, GLsizei count, const GLfloat *v);
-		bool setUniformMatrix2fv(GLint location, GLsizei count, const GLfloat *value);
-		bool setUniformMatrix2x3fv(GLint location, GLsizei count, const GLfloat *value);
-		bool setUniformMatrix2x4fv(GLint location, GLsizei count, const GLfloat *value);
-		bool setUniformMatrix3fv(GLint location, GLsizei count, const GLfloat *value);
-		bool setUniformMatrix3x2fv(GLint location, GLsizei count, const GLfloat *value);
-		bool setUniformMatrix3x4fv(GLint location, GLsizei count, const GLfloat *value);
-		bool setUniformMatrix4fv(GLint location, GLsizei count, const GLfloat *value);
-		bool setUniformMatrix4x2fv(GLint location, GLsizei count, const GLfloat *value);
-		bool setUniformMatrix4x3fv(GLint location, GLsizei count, const GLfloat *value);
+		bool setUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+		bool setUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+		bool setUniformMatrix2x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+		bool setUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+		bool setUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+		bool setUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+		bool setUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+		bool setUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+		bool setUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 		bool setUniform1iv(GLint location, GLsizei count, const GLint *v);
 		bool setUniform2iv(GLint location, GLsizei count, const GLint *v);
 		bool setUniform3iv(GLint location, GLsizei count, const GLint *v);
@@ -178,7 +178,7 @@ namespace es2
 		bool applyUniform4uiv(GLint location, GLsizei count, const GLuint *v);
 
 		bool setUniformfv(GLint location, GLsizei count, const GLfloat *v, int numElements);
-		bool setUniformMatrixfv(GLint location, GLsizei count, const GLfloat *value, GLenum type);
+		bool setUniformMatrixfv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value, GLenum type);
 		bool setUniformiv(GLint location, GLsizei count, const GLint *v, int numElements);
 		bool setUniformuiv(GLint location, GLsizei count, const GLuint *v, int numElements);
 

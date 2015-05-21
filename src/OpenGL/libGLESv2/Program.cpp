@@ -354,7 +354,7 @@ namespace es2
 		return setUniformfv(location, count, v, 4);
 	}
 
-	bool Program::setUniformMatrixfv(GLint location, GLsizei count, const GLfloat *value, GLenum type)
+	bool Program::setUniformMatrixfv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value, GLenum type)
 	{
 		int numElements;
 		switch(type)
@@ -406,55 +406,77 @@ namespace es2
 
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
-		memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLfloat)* numElements,
-			   value, numElements * sizeof(GLfloat)* count);
+		GLfloat* dst = reinterpret_cast<GLfloat*>(targetUniform->data + uniformIndex[location].element * sizeof(GLfloat) * numElements);
+
+		if(transpose == GL_FALSE)
+		{
+			memcpy(dst, value, numElements * sizeof(GLfloat) * count);
+		}
+		else
+		{
+			const int rowSize = VariableRowCount(type);
+			const int colSize = VariableColumnCount(type);
+			for(int n = 0; n < count; ++n)
+			{
+				for(int i = 0; i < colSize; ++i)
+				{
+					for(int j = 0; j < rowSize; ++j)
+					{
+						dst[i * rowSize + j] = value[j * colSize + i];
+					}
+				}
+				dst += numElements;
+				value += numElements;
+			}
+		}
+
 
 		return true;
 	}
 
-	bool Program::setUniformMatrix2fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::setUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 	{
-		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT2);
+		return setUniformMatrixfv(location, count, transpose, value, GL_FLOAT_MAT2);
 	}
 
-	bool Program::setUniformMatrix2x3fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::setUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 	{
-		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT2x3);
+		return setUniformMatrixfv(location, count, transpose, value, GL_FLOAT_MAT2x3);
 	}
 
-	bool Program::setUniformMatrix2x4fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::setUniformMatrix2x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 	{
-		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT2x4);
+		return setUniformMatrixfv(location, count, transpose, value, GL_FLOAT_MAT2x4);
 	}
 
-	bool Program::setUniformMatrix3fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::setUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 	{
-		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT3);
+		return setUniformMatrixfv(location, count, transpose, value, GL_FLOAT_MAT3);
 	}
 
-	bool Program::setUniformMatrix3x2fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::setUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 	{
-		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT3x2);
+		return setUniformMatrixfv(location, count, transpose, value, GL_FLOAT_MAT3x2);
 	}
 
-	bool Program::setUniformMatrix3x4fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::setUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 	{
-		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT3x4);
+		return setUniformMatrixfv(location, count, transpose, value, GL_FLOAT_MAT3x4);
 	}
 
-	bool Program::setUniformMatrix4fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::setUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 	{
-		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT4);
+		return setUniformMatrixfv(location, count, transpose, value, GL_FLOAT_MAT4);
 	}
 
-	bool Program::setUniformMatrix4x2fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::setUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 	{
-		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT4x2);
+		return setUniformMatrixfv(location, count, transpose, value, GL_FLOAT_MAT4x2);
 	}
 
-	bool Program::setUniformMatrix4x3fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::setUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 	{
-		return setUniformMatrixfv(location, count, value, GL_FLOAT_MAT4x3);
+		return setUniformMatrixfv(location, count, transpose, value, GL_FLOAT_MAT4x3);
 	}
 
 	bool Program::setUniform1iv(GLint location, GLsizei count, const GLint *v)

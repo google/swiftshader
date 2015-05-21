@@ -2402,7 +2402,7 @@ namespace glsl
 					{
 					case 2: return GL_FLOAT_MAT3x2;
 					case 3: return GL_FLOAT_MAT3;
-					case 4: return GL_FLOAT_MAT4x2;
+					case 4: return GL_FLOAT_MAT3x4;
 					default: UNREACHABLE();
 					}
 				case 4:

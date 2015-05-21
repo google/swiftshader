@@ -6348,7 +6348,7 @@ void UniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const 
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat* value = %p)",
 	      location, count, transpose, value);
 
-	if(count < 0 || transpose != GL_FALSE)
+	if(count < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -6362,6 +6362,11 @@ void UniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const 
 
 	if(context)
 	{
+		if(context->getClientVersion() < 3 && transpose != GL_FALSE)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
 		es2::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -6369,7 +6374,7 @@ void UniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const 
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!program->setUniformMatrix2fv(location, count, value))
+		if(!program->setUniformMatrix2fv(location, count, transpose, value))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -6381,7 +6386,7 @@ void UniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const 
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat* value = %p)",
 	      location, count, transpose, value);
 
-	if(count < 0 || transpose != GL_FALSE)
+	if(count < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -6395,6 +6400,11 @@ void UniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const 
 
 	if(context)
 	{
+		if(context->getClientVersion() < 3 && transpose != GL_FALSE)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
 		es2::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -6402,7 +6412,7 @@ void UniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const 
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!program->setUniformMatrix3fv(location, count, value))
+		if(!program->setUniformMatrix3fv(location, count, transpose, value))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -6414,7 +6424,7 @@ void UniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const 
 	TRACE("(GLint location = %d, GLsizei count = %d, GLboolean transpose = %d, const GLfloat* value = %p)",
 	      location, count, transpose, value);
 
-	if(count < 0 || transpose != GL_FALSE)
+	if(count < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -6428,6 +6438,11 @@ void UniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const 
 
 	if(context)
 	{
+		if(context->getClientVersion() < 3 && transpose != GL_FALSE)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
 		es2::Program *program = context->getCurrentProgram();
 
 		if(!program)
@@ -6435,7 +6450,7 @@ void UniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const 
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!program->setUniformMatrix4fv(location, count, value))
+		if(!program->setUniformMatrix4fv(location, count, transpose, value))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
