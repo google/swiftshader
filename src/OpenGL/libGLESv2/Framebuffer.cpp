@@ -459,7 +459,7 @@ GLenum Framebuffer::getImplementationColorReadType()
 	{
 		switch(colorbuffer->getInternalFormat())
 		{
-		case sw::FORMAT_A16B16G16R16F: return GL_HALF_FLOAT_OES;
+		case sw::FORMAT_A16B16G16R16F: return (egl::getClientVersion() < 3) ? GL_HALF_FLOAT_OES : GL_HALF_FLOAT;
 		case sw::FORMAT_A32B32G32R32F: return GL_FLOAT;
 		case sw::FORMAT_A8R8G8B8:      return GL_UNSIGNED_BYTE;
 		case sw::FORMAT_A8B8G8R8:      return GL_UNSIGNED_BYTE;

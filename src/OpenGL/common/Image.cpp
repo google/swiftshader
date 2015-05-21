@@ -378,6 +378,7 @@ namespace egl
 			default: UNREACHABLE();
 			}
 			break;
+		case GL_HALF_FLOAT:
 		case GL_HALF_FLOAT_OES:
 			switch(format)
 			{
@@ -503,7 +504,7 @@ namespace egl
 		{
 			return sw::FORMAT_A32B32G32R32F;
 		}
-		else if(type == GL_HALF_FLOAT_OES)
+		else if(type == GL_HALF_FLOAT || type == GL_HALF_FLOAT_OES)
 		{
 			return sw::FORMAT_A16B16G16R16F;
 		}
@@ -650,6 +651,7 @@ namespace egl
 				default: UNREACHABLE();
 				}
 				break;
+			case GL_HALF_FLOAT:
 			case GL_HALF_FLOAT_OES:
 				switch(format)
 				{

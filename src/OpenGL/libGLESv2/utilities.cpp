@@ -298,7 +298,7 @@ namespace es2
 	}
 
 	// Verify that format/type are one of the combinations from table 3.4.
-	bool CheckTextureFormatType(GLenum format, GLenum type)
+	bool CheckTextureFormatType(GLenum format, GLenum type, egl::GLint clientVersion)
 	{
 		switch(type)
 		{
@@ -313,6 +313,11 @@ namespace es2
 			case GL_LUMINANCE_ALPHA:
 				return true;
 			default:
+				return false;
+			}
+		case GL_HALF_FLOAT:
+			if(clientVersion < 3)
+			{
 				return false;
 			}
 		case GL_FLOAT:
