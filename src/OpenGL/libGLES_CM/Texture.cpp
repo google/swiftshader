@@ -35,6 +35,7 @@ Texture::Texture(GLuint name) : egl::Texture(name)
     mWrapS = GL_REPEAT;
     mWrapT = GL_REPEAT;
 	mMaxAnisotropy = 1.0f;
+	generateMipmap = GL_FALSE;
 	cropRectU = 0;
 	cropRectV = 0;
 	cropRectW = 0;
@@ -148,6 +149,11 @@ bool Texture::setMaxAnisotropy(float textureMaxAnisotropy)
     return true;
 }
 
+void Texture::setGenerateMipmap(GLboolean enable)
+{
+	generateMipmap = enable;
+}
+
 void Texture::setCropRect(GLint u, GLint v, GLint w, GLint h)
 {
 	cropRectU = u;
@@ -179,6 +185,11 @@ GLenum Texture::getWrapT() const
 GLfloat Texture::getMaxAnisotropy() const
 {
     return mMaxAnisotropy;
+}
+
+GLboolean Texture::getGenerateMipmap() const
+{
+	return generateMipmap;
 }
 
 GLint Texture::getCropRectU() const
@@ -694,6 +705,12 @@ void Texture2D::generateMipmaps()
 
 egl::Image *Texture2D::getImage(unsigned int level)
 {
+	if(generateMipmap && image[0]->hasDirtyMipmaps())
+	{
+		generateMipmaps();
+		image[0]->cleanMipmaps();
+	}
+
 	return image[level];
 }
 

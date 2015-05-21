@@ -2263,6 +2263,9 @@ void GetTexParameterfv(GLenum target, GLenum pname, GLfloat* params)
 		case GL_TEXTURE_MAX_ANISOTROPY_EXT:
 			*params = texture->getMaxAnisotropy();
 			break;
+		case GL_GENERATE_MIPMAP:
+			*params = (GLfloat)texture->getGenerateMipmap();
+			break;
 		case GL_REQUIRED_TEXTURE_IMAGE_UNITS_OES:
 			*params = (GLfloat)1;
 			break;
@@ -2310,6 +2313,9 @@ void GetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 			break;
 		case GL_TEXTURE_MAX_ANISOTROPY_EXT:
 			*params = (GLint)texture->getMaxAnisotropy();
+			break;
+		case GL_GENERATE_MIPMAP:
+			*params = (GLint)texture->getGenerateMipmap();
 			break;
 		case GL_REQUIRED_TEXTURE_IMAGE_UNITS_OES:
 			*params = 1;
@@ -3376,6 +3382,9 @@ void TexParameterf(GLenum target, GLenum pname, GLfloat param)
 				return error(GL_INVALID_VALUE);
 			}
 			break;
+		case GL_GENERATE_MIPMAP:
+			texture->setGenerateMipmap((GLboolean)param);
+			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -3440,6 +3449,9 @@ void TexParameteri(GLenum target, GLenum pname, GLint param)
 			{
 				return error(GL_INVALID_VALUE);
 			}
+			break;
+		case GL_GENERATE_MIPMAP:
+			texture->setGenerateMipmap((GLboolean)param);
 			break;
 		default:
 			return error(GL_INVALID_ENUM);

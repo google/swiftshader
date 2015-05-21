@@ -64,6 +64,7 @@ public:
     bool setWrapS(GLenum wrap);
     bool setWrapT(GLenum wrap);
 	bool setMaxAnisotropy(GLfloat textureMaxAnisotropy);
+	void setGenerateMipmap(GLboolean enable);
 	void setCropRect(GLint u, GLint v, GLint w, GLint h);
 
     GLenum getMinFilter() const;
@@ -71,6 +72,7 @@ public:
     GLenum getWrapS() const;
     GLenum getWrapT() const;
 	GLfloat getMaxAnisotropy() const;
+	GLboolean getGenerateMipmap() const;
 	GLint getCropRectU() const;
     GLint getCropRectV() const;
     GLint getCropRectW() const;
@@ -110,6 +112,7 @@ protected:
     GLenum mWrapS;
     GLenum mWrapT;
 	GLfloat mMaxAnisotropy;
+	GLboolean generateMipmap;
 	GLint cropRectU;
 	GLint cropRectV;
 	GLint cropRectW;
