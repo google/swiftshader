@@ -83,6 +83,7 @@ Context::Context(const egl::Config *config, const Context *shareContext)
     mState.dither = true;
 	mState.shadeModel = GL_SMOOTH;
     mState.generateMipmapHint = GL_DONT_CARE;
+	mState.perspectiveCorrectionHint = GL_DONT_CARE;
 
     mState.lineWidth = 1.0f;
 
@@ -651,6 +652,11 @@ void Context::setGenerateMipmapHint(GLenum hint)
     mState.generateMipmapHint = hint;
 }
 
+void Context::setPerspectiveCorrectionHint(GLenum hint)
+{
+    mState.perspectiveCorrectionHint = hint;
+}
+
 void Context::setViewportParams(GLint x, GLint y, GLsizei width, GLsizei height)
 {
     mState.viewportX = x;
@@ -1052,6 +1058,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
     case GL_PACK_ALIGNMENT:                   *params = mState.packAlignment;                 break;
     case GL_UNPACK_ALIGNMENT:                 *params = mState.unpackAlignment;               break;
     case GL_GENERATE_MIPMAP_HINT:             *params = mState.generateMipmapHint;            break;
+	case GL_PERSPECTIVE_CORRECTION_HINT:      *params = mState.perspectiveCorrectionHint;     break;
     case GL_ACTIVE_TEXTURE:                   *params = (mState.activeSampler + GL_TEXTURE0); break;
     case GL_STENCIL_FUNC:                     *params = mState.stencilFunc;                   break;
     case GL_STENCIL_REF:                      *params = mState.stencilRef;                    break;

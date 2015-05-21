@@ -2363,6 +2363,9 @@ void Hint(GLenum target, GLenum mode)
 		case GL_GENERATE_MIPMAP_HINT:
 			context->setGenerateMipmapHint(mode);
 			break;
+		case GL_PERSPECTIVE_CORRECTION_HINT:
+			context->setPerspectiveCorrectionHint(mode);
+			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}

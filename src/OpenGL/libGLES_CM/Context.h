@@ -221,6 +221,7 @@ struct State
     GLfloat lineWidth;
 
     GLenum generateMipmapHint;
+	GLenum perspectiveCorrectionHint;
 
     GLint viewportX;
     GLint viewportY;
@@ -336,6 +337,7 @@ public:
     void setLineWidth(GLfloat width);
 
     void setGenerateMipmapHint(GLenum hint);
+	void setPerspectiveCorrectionHint(GLenum hint);
 
     void setViewportParams(GLint x, GLint y, GLsizei width, GLsizei height);
 
