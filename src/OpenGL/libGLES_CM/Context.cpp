@@ -1810,6 +1810,8 @@ void Context::applyTextures()
 
 		if(texture && texture->isSamplerComplete())
         {
+			texture->autoGenerateMipmaps();
+
             GLenum wrapS = texture->getWrapS();
             GLenum wrapT = texture->getWrapT();
             GLenum texFilter = texture->getMinFilter();

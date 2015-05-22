@@ -95,6 +95,8 @@ public:
     virtual bool isShared(GLenum target, unsigned int level) const = 0;
 
     virtual void generateMipmaps() = 0;
+	virtual void autoGenerateMipmaps() = 0;
+
     virtual void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source) = 0;
 
 protected:
@@ -156,6 +158,7 @@ public:
     virtual void releaseTexImage();
 
     virtual void generateMipmaps();
+	virtual void autoGenerateMipmaps();
 
 	virtual Renderbuffer *getRenderbuffer(GLenum target);
     virtual egl::Image *getRenderTarget(GLenum target, unsigned int level);

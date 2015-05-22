@@ -618,7 +618,7 @@ bool Texture2D::isSamplerComplete() const
 
     if(isMipmapFiltered())
     {
-        if(!isMipmapComplete())
+        if(!generateMipmap && !isMipmapComplete())
         {
             return false;
         }
@@ -703,14 +703,17 @@ void Texture2D::generateMipmaps()
     }
 }
 
-egl::Image *Texture2D::getImage(unsigned int level)
+void Texture2D::autoGenerateMipmaps()
 {
 	if(generateMipmap && image[0]->hasDirtyMipmaps())
 	{
 		generateMipmaps();
 		image[0]->cleanMipmaps();
 	}
+}
 
+egl::Image *Texture2D::getImage(unsigned int level)
+{
 	return image[level];
 }
 
