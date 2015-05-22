@@ -180,6 +180,25 @@ class VertexAttribute
 
 typedef VertexAttribute VertexAttributeArray[MAX_VERTEX_ATTRIBS];
 
+struct TextureUnit
+{
+	GLenum environmentMode;
+	GLenum combineRGB;
+	GLenum combineAlpha;
+	GLenum src0RGB;
+	GLenum src0Alpha;
+	GLenum src1RGB;
+	GLenum src1Alpha;
+	GLenum src2RGB;
+	GLenum src2Alpha;
+	GLenum operand0RGB;
+	GLenum operand0Alpha;
+	GLenum operand1RGB;
+	GLenum operand1Alpha;
+	GLenum operand2RGB;
+	GLenum operand2Alpha;
+};
+
 // Helper structure to store all raw state
 struct State
 {
@@ -253,7 +272,7 @@ struct State
     GLint unpackAlignment;
     GLint packAlignment;
 
-	GLenum textureEnvMode;
+	TextureUnit textureUnit[MAX_TEXTURE_UNITS];
 };
 
 class Context : public egl::Context
@@ -332,7 +351,6 @@ public:
 	unsigned int getActiveTexture() const;
 
 	void setTextureEnvMode(GLenum texEnvMode);
-	GLenum getTextureEnvMode();
 
     void setLineWidth(GLfloat width);
 

@@ -105,7 +105,24 @@ Context::Context(const egl::Config *config, const Context *shareContext)
     mState.colorMaskAlpha = true;
     mState.depthMask = true;
 
-	mState.textureEnvMode = GL_MODULATE;
+	for(int i = 0; i < MAX_TEXTURE_UNITS; i++)
+	{
+		mState.textureUnit[i].environmentMode = GL_MODULATE;
+		mState.textureUnit[i].combineRGB = GL_MODULATE;
+		mState.textureUnit[i].combineAlpha = GL_MODULATE;
+		mState.textureUnit[i].src0RGB = GL_TEXTURE;
+		mState.textureUnit[i].src1RGB = GL_PREVIOUS;
+		mState.textureUnit[i].src2RGB = GL_CONSTANT;
+		mState.textureUnit[i].src0Alpha = GL_TEXTURE;
+		mState.textureUnit[i].src1Alpha = GL_PREVIOUS;
+		mState.textureUnit[i].src2Alpha = GL_CONSTANT;
+		mState.textureUnit[i].operand0RGB = GL_SRC_COLOR;
+		mState.textureUnit[i].operand1RGB = GL_SRC_COLOR;
+		mState.textureUnit[i].operand2RGB = GL_SRC_ALPHA;
+		mState.textureUnit[i].operand0Alpha = GL_SRC_ALPHA;
+		mState.textureUnit[i].operand1Alpha = GL_SRC_ALPHA;
+		mState.textureUnit[i].operand2Alpha = GL_SRC_ALPHA;
+	}
 
     if(shareContext != NULL)
     {
@@ -1793,19 +1810,17 @@ GLenum Context::applyIndexBuffer(const void *indices, GLsizei count, GLenum mode
 
 void Context::applyTextures()
 {
-	GLenum texEnvMode = getTextureEnvMode();
-
-	for(int samplerIndex = 0; samplerIndex < MAX_TEXTURE_UNITS; samplerIndex++)
+	for(int unit = 0; unit < MAX_TEXTURE_UNITS; unit++)
     {
         Texture *texture = nullptr;
 		
-		if(textureExternalEnabled[samplerIndex])
+		if(textureExternalEnabled[unit])
 		{
-			texture = getSamplerTexture(samplerIndex, TEXTURE_EXTERNAL);
+			texture = getSamplerTexture(unit, TEXTURE_EXTERNAL);
 		}
-		else if(texture2Denabled[samplerIndex])
+		else if(texture2Denabled[unit])
 		{
-			texture = getSamplerTexture(samplerIndex, TEXTURE_2D);
+			texture = getSamplerTexture(unit, TEXTURE_2D);
 		}
 
 		if(texture && texture->isSamplerComplete())
@@ -1818,59 +1833,59 @@ void Context::applyTextures()
             GLenum magFilter = texture->getMagFilter();
 			GLfloat maxAnisotropy = texture->getMaxAnisotropy();
 
-			device->setAddressingModeU(sw::SAMPLER_PIXEL, samplerIndex, es2sw::ConvertTextureWrap(wrapS));
-            device->setAddressingModeV(sw::SAMPLER_PIXEL, samplerIndex, es2sw::ConvertTextureWrap(wrapT));
+			device->setAddressingModeU(sw::SAMPLER_PIXEL, unit, es2sw::ConvertTextureWrap(wrapS));
+            device->setAddressingModeV(sw::SAMPLER_PIXEL, unit, es2sw::ConvertTextureWrap(wrapT));
 
 			sw::FilterType minFilter;
 			sw::MipmapType mipFilter;
             es2sw::ConvertMinFilter(texFilter, &minFilter, &mipFilter, maxAnisotropy);
 		//	ASSERT(minFilter == es2sw::ConvertMagFilter(magFilter));
 
-			device->setTextureFilter(sw::SAMPLER_PIXEL, samplerIndex, minFilter);
-		//	device->setTextureFilter(sw::SAMPLER_PIXEL, samplerIndex, es2sw::ConvertMagFilter(magFilter));
-			device->setMipmapFilter(sw::SAMPLER_PIXEL, samplerIndex, mipFilter);
-			device->setMaxAnisotropy(sw::SAMPLER_PIXEL, samplerIndex, maxAnisotropy);
+			device->setTextureFilter(sw::SAMPLER_PIXEL, unit, minFilter);
+		//	device->setTextureFilter(sw::SAMPLER_PIXEL, unit, es2sw::ConvertMagFilter(magFilter));
+			device->setMipmapFilter(sw::SAMPLER_PIXEL, unit, mipFilter);
+			device->setMaxAnisotropy(sw::SAMPLER_PIXEL, unit, maxAnisotropy);
 
-			applyTexture(samplerIndex, texture);
+			applyTexture(unit, texture);
 
-			if(texEnvMode != GL_COMBINE)
+			if(mState.textureUnit[unit].environmentMode != GL_COMBINE)
 			{
 				GLenum texFormat = texture->getFormat(GL_TEXTURE_2D, 0);
 
-				device->setFirstArgument(samplerIndex, sw::TextureStage::SOURCE_TEXTURE);    // Cs
-				device->setFirstModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
-				device->setSecondArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);   // Cp
-				device->setSecondModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
-				device->setThirdArgument(samplerIndex, sw::TextureStage::SOURCE_CONSTANT);   // Cc
-				device->setThirdModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
+				device->setFirstArgument(unit, sw::TextureStage::SOURCE_TEXTURE);    // Cs
+				device->setFirstModifier(unit, sw::TextureStage::MODIFIER_COLOR);
+				device->setSecondArgument(unit, sw::TextureStage::SOURCE_CURRENT);   // Cp
+				device->setSecondModifier(unit, sw::TextureStage::MODIFIER_COLOR);
+				device->setThirdArgument(unit, sw::TextureStage::SOURCE_CONSTANT);   // Cc
+				device->setThirdModifier(unit, sw::TextureStage::MODIFIER_COLOR);
 
-				device->setFirstArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_TEXTURE);    // As
-				device->setFirstModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
-				device->setSecondArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);   // Ap
-				device->setSecondModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
-				device->setThirdArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CONSTANT);   // Ac
-				device->setThirdModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
+				device->setFirstArgumentAlpha(unit, sw::TextureStage::SOURCE_TEXTURE);    // As
+				device->setFirstModifierAlpha(unit, sw::TextureStage::MODIFIER_ALPHA);
+				device->setSecondArgumentAlpha(unit, sw::TextureStage::SOURCE_CURRENT);   // Ap
+				device->setSecondModifierAlpha(unit, sw::TextureStage::MODIFIER_ALPHA);
+				device->setThirdArgumentAlpha(unit, sw::TextureStage::SOURCE_CONSTANT);   // Ac
+				device->setThirdModifierAlpha(unit, sw::TextureStage::MODIFIER_ALPHA);
 
-				switch(texEnvMode)
+				switch(mState.textureUnit[unit].environmentMode)
 				{
 				case GL_REPLACE:
 					switch(texFormat)
 					{
 					case GL_ALPHA:
 						// Cv = Cp, Av = As
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG1);
 						break;
 					case GL_LUMINANCE:
 					case GL_RGB:
 						// Cv = Cs, Av = Ap
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG1);
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
 					case GL_LUMINANCE_ALPHA:
 					case GL_RGBA:
 						// Cv = Cs, Av = As
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG1);
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG1);
 						break;
 					default: UNREACHABLE();
 					}
@@ -1880,19 +1895,19 @@ void Context::applyTextures()
 					{
 					case GL_ALPHA:
 						// Cv = Cp, Av = ApAs
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
 						break;
 					case GL_LUMINANCE:
 					case GL_RGB:
 						// Cv = CpCs, Av = Ap
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_MODULATE);
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_MODULATE);
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
 					case GL_LUMINANCE_ALPHA:
 					case GL_RGBA:
 						// Cv = CpCs, Av = ApAs
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_MODULATE);
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_MODULATE);
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
 						break;
 					default: UNREACHABLE();
 					}
@@ -1904,17 +1919,17 @@ void Context::applyTextures()
 					case GL_LUMINANCE:
 					case GL_LUMINANCE_ALPHA:
 						// undefined
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
 						break;
 					case GL_RGB:
 						// Cv = Cs, Av = Ap
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG1);
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
 					case GL_RGBA:
 						// Cv = Cp(1 ? As) + CsAs, Av = Ap
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_BLENDTEXTUREALPHA);   // Alpha * (Arg1 - Arg2) + Arg2
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_BLENDTEXTUREALPHA);   // Alpha * (Arg1 - Arg2) + Arg2
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
 						break;
 					default: UNREACHABLE();
 					}
@@ -1924,19 +1939,19 @@ void Context::applyTextures()
 					{
 					case GL_ALPHA:
 						// Cv = Cp, Av = ApAs
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
 						break;
 					case GL_LUMINANCE:
 					case GL_RGB:
 						// Cv = Cp(1 ? Cs) + CcCs, Av = Ap
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_LERP);   // Arg3 * (Arg1 - Arg2) + Arg2
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_LERP);   // Arg3 * (Arg1 - Arg2) + Arg2
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
 					case GL_LUMINANCE_ALPHA:
 					case GL_RGBA:
 						// Cv = Cp(1 ? Cs) + CcCs, Av = ApAs
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_LERP);   // Arg3 * (Arg1 - Arg2) + Arg2
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_LERP);   // Arg3 * (Arg1 - Arg2) + Arg2
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
 						break;
 					default: UNREACHABLE();
 					}
@@ -1946,19 +1961,19 @@ void Context::applyTextures()
 					{
 					case GL_ALPHA:
 						// Cv = Cp, Av = ApAs
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
 						break;
 					case GL_LUMINANCE:
 					case GL_RGB:
 						// Cv = Cp + Cs, Av = Ap
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_ADD);
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_ADD);
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
 					case GL_LUMINANCE_ALPHA:
 					case GL_RGBA:
 						// Cv = Cp + Cs, Av = ApAs
-						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_ADD);
-						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						device->setStageOperation(unit, sw::TextureStage::STAGE_ADD);
+						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
 						break;
 					default: UNREACHABLE();
 					}
@@ -1974,33 +1989,22 @@ void Context::applyTextures()
         }
         else
         {
-            applyTexture(samplerIndex, 0);
+            applyTexture(unit, 0);
 
-			device->setFirstArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
-			device->setFirstModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
-			device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
+			device->setFirstArgument(unit, sw::TextureStage::SOURCE_CURRENT);
+			device->setFirstModifier(unit, sw::TextureStage::MODIFIER_COLOR);
+			device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG1);
 
-			device->setFirstArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
-			device->setFirstModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
-			device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
+			device->setFirstArgumentAlpha(unit, sw::TextureStage::SOURCE_CURRENT);
+			device->setFirstModifierAlpha(unit, sw::TextureStage::MODIFIER_ALPHA);
+			device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG1);
         }
     }
 }
 
 void Context::setTextureEnvMode(GLenum texEnvMode)
 {
-	switch(texEnvMode)
-	{
-	case GL_MODULATE:
-	case GL_DECAL:
-	case GL_BLEND:
-	case GL_ADD:
-	case GL_REPLACE:
-		mState.textureEnvMode = texEnvMode;
-		break;
-	default:
-		UNREACHABLE();
-	}
+	mState.textureUnit[mState.activeSampler].environmentMode = texEnvMode;
 }
 
 void Context::applyTexture(int index, Texture *baseTexture)
@@ -2907,11 +2911,6 @@ GLenum Context::getClientActiveTexture() const
 unsigned int Context::getActiveTexture() const
 {
 	return mState.activeSampler;
-}
-
-GLenum Context::getTextureEnvMode()
-{
-	return mState.textureEnvMode;
 }
 
 }
