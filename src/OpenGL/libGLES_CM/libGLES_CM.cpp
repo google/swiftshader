@@ -648,7 +648,7 @@ void ColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer
 }
 
 void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height,
-                                               GLint border, GLsizei imageSize, const GLvoid* data)
+                          GLint border, GLsizei imageSize, const GLvoid* data)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum internalformat = 0x%X, GLsizei width = %d, "
 	      "GLsizei height = %d, GLint border = %d, GLsizei imageSize = %d, const GLvoid* data = %p)",
@@ -727,7 +727,7 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 }
 
 void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
-                                                  GLenum format, GLsizei imageSize, const GLvoid* data)
+                             GLenum format, GLsizei imageSize, const GLvoid* data)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
 	      "GLsizei width = %d, GLsizei height = %d, GLenum format = 0x%X, "
@@ -3141,41 +3141,58 @@ void TexEnvi(GLenum target, GLenum pname, GLint param)
 				switch((GLenum)param)
 				{
 				case GL_REPLACE:
-					UNIMPLEMENTED();
-					break;
 				case GL_MODULATE:
-					UNIMPLEMENTED();
-					break;
 				case GL_ADD:
-					context->setTextureEnvMode((GLenum)param);
-					break;
 				case GL_ADD_SIGNED:
-					UNIMPLEMENTED();
-					break;
 				case GL_INTERPOLATE:
-					UNIMPLEMENTED();
-					break;
 				case GL_SUBTRACT:
-					UNIMPLEMENTED();
-					break;
 				case GL_DOT3_RGB:
-					UNIMPLEMENTED();
-					break;
 				case GL_DOT3_RGBA:
-					UNIMPLEMENTED();
 					break;
 				default:
 					error(GL_INVALID_ENUM);
 				}
 
+				context->setCombineRGB((GLenum)param);
 				break;
 			case GL_COMBINE_ALPHA:
-				UNIMPLEMENTED();
+				switch((GLenum)param)
+				{
+				case GL_REPLACE:
+				case GL_MODULATE:
+				case GL_ADD:
+				case GL_ADD_SIGNED:
+				case GL_INTERPOLATE:
+				case GL_SUBTRACT:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setCombineAlpha((GLenum)param);
 				break;
 			case GL_RGB_SCALE:
 				UNIMPLEMENTED();
 				break;
 			case GL_ALPHA_SCALE:
+				UNIMPLEMENTED();
+				break;
+			case GL_OPERAND0_RGB:
+				UNIMPLEMENTED();
+				break;
+			case GL_OPERAND1_RGB:
+				UNIMPLEMENTED();
+				break;
+			case GL_OPERAND2_RGB:
+				UNIMPLEMENTED();
+				break;
+			case GL_OPERAND0_ALPHA:
+				UNIMPLEMENTED();
+				break;
+			case GL_OPERAND1_ALPHA:
+				UNIMPLEMENTED();
+				break;
+			case GL_OPERAND2_ALPHA:
 				UNIMPLEMENTED();
 				break;
 			default:
@@ -3204,7 +3221,7 @@ void TexEnvxv(GLenum target, GLenum pname, const GLfixed *params)
 }
 
 void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
-                                     GLint border, GLenum format, GLenum type, const GLvoid* pixels)
+                GLint border, GLenum format, GLenum type, const GLvoid* pixels)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint internalformat = %d, GLsizei width = %d, GLsizei height = %d, "
 	      "GLint border = %d, GLenum format = 0x%X, GLenum type = 0x%X, const GLvoid* pixels =  %p)",
@@ -3508,7 +3525,7 @@ void TexParameterxv(GLenum target, GLenum pname, const GLfixed *params)
 }
 
 void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
-                                        GLenum format, GLenum type, const GLvoid* pixels)
+                   GLenum format, GLenum type, const GLvoid* pixels)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
 	      "GLsizei width = %d, GLsizei height = %d, GLenum format = 0x%X, GLenum type = 0x%X, "

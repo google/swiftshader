@@ -2023,6 +2023,16 @@ void Context::setTextureEnvMode(GLenum texEnvMode)
 	mState.textureUnit[mState.activeSampler].environmentMode = texEnvMode;
 }
 
+void Context::setCombineRGB(GLenum combineRGB)
+{
+	mState.textureUnit[mState.activeSampler].combineRGB = combineRGB;
+}
+
+void Context::setCombineAlpha(GLenum combineAlpha)
+{
+	mState.textureUnit[mState.activeSampler].combineAlpha = combineAlpha;
+}
+
 void Context::applyTexture(int index, Texture *baseTexture)
 {
 	sw::Resource *resource = 0;

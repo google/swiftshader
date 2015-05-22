@@ -351,6 +351,8 @@ public:
 	unsigned int getActiveTexture() const;
 
 	void setTextureEnvMode(GLenum texEnvMode);
+	void setCombineRGB(GLenum combineRGB);
+	void setCombineAlpha(GLenum combineAlpha);
 
     void setLineWidth(GLfloat width);
 
