@@ -2702,14 +2702,15 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
   //   FakeUse(a)         /* only if C1 != Br_None */
   //   mov a, !<default>  /* only if C1 != Br_None */
   //   label:             /* only if C1 != Br_None */
+  //
+  // setcc lowering when C1 != Br_None && C2 == Br_None:
+  //   ucomiss b, c       /* but swap b,c order if SwapOperands==true */
+  //   setcc a, C1
   InstFcmp::FCond Condition = Inst->getCondition();
   size_t Index = static_cast<size_t>(Condition);
   assert(Index < TableFcmpSize);
-  if (TableFcmp[Index].SwapScalarOperands) {
-    Operand *Tmp = Src0;
-    Src0 = Src1;
-    Src1 = Tmp;
-  }
+  if (TableFcmp[Index].SwapScalarOperands)
+    std::swap(Src0, Src1);
   bool HasC1 = (TableFcmp[Index].C1 != CondX86::Br_None);
   bool HasC2 = (TableFcmp[Index].C2 != CondX86::Br_None);
   if (HasC1) {
@@ -2718,6 +2719,11 @@ void TargetX8632::lowerFcmp(const InstFcmp *Inst) {
     Variable *T = nullptr;
     _mov(T, Src0);
     _ucomiss(T, Src1RM);
+    if (!HasC2) {
+      assert(TableFcmp[Index].Default);
+      _setcc(Dest, TableFcmp[Index].C1);
+      return;
+    }
   }
   Constant *Default = Ctx->getConstantInt32(TableFcmp[Index].Default);
   _mov(Dest, Default);

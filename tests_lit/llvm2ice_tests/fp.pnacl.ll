@@ -690,10 +690,10 @@ if.end3:                                          ; preds = %if.then2, %if.end
 }
 ; CHECK-LABEL: fcmpGt
 ; CHECK: ucomiss
-; CHECK: ja
+; CHECK: seta
 ; CHECK: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: ja
+; CHECK: seta
 ; CHECK: call {{.*}} R_{{.*}} func
 
 define internal void @fcmpGe(float %a, float %b, double %c, double %d) {
@@ -718,10 +718,10 @@ if.end3:                                          ; preds = %if.end, %if.then2
 }
 ; CHECK-LABEL: fcmpGe
 ; CHECK: ucomiss
-; CHECK: jb
+; CHECK: setb
 ; CHECK: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: jb
+; CHECK: setb
 ; CHECK: call {{.*}} R_{{.*}} func
 
 define internal void @fcmpLt(float %a, float %b, double %c, double %d) {
@@ -746,10 +746,10 @@ if.end3:                                          ; preds = %if.then2, %if.end
 }
 ; CHECK-LABEL: fcmpLt
 ; CHECK: ucomiss
-; CHECK: ja
+; CHECK: seta
 ; CHECK: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: ja
+; CHECK: seta
 ; CHECK: call {{.*}} R_{{.*}} func
 
 define internal void @fcmpLe(float %a, float %b, double %c, double %d) {
@@ -774,10 +774,10 @@ if.end3:                                          ; preds = %if.end, %if.then2
 }
 ; CHECK-LABEL: fcmpLe
 ; CHECK: ucomiss
-; CHECK: jb
+; CHECK: setb
 ; CHECK: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: jb
+; CHECK: setb
 ; CHECK: call {{.*}} R_{{.*}} func
 
 define internal i32 @fcmpFalseFloat(float %a, float %b) {
@@ -828,7 +828,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOgtFloat
 ; CHECK: ucomiss
-; CHECK: ja
+; CHECK: seta
 
 define internal i32 @fcmpOgtDouble(double %a, double %b) {
 entry:
@@ -838,7 +838,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOgtDouble
 ; CHECK: ucomisd
-; CHECK: ja
+; CHECK: seta
 
 define internal i32 @fcmpOgeFloat(float %a, float %b) {
 entry:
@@ -848,7 +848,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOgeFloat
 ; CHECK: ucomiss
-; CHECK: jae
+; CHECK: setae
 
 define internal i32 @fcmpOgeDouble(double %a, double %b) {
 entry:
@@ -858,7 +858,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOgeDouble
 ; CHECK: ucomisd
-; CHECK: jae
+; CHECK: setae
 
 define internal i32 @fcmpOltFloat(float %a, float %b) {
 entry:
@@ -868,7 +868,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOltFloat
 ; CHECK: ucomiss
-; CHECK: ja
+; CHECK: seta
 
 define internal i32 @fcmpOltDouble(double %a, double %b) {
 entry:
@@ -878,7 +878,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOltDouble
 ; CHECK: ucomisd
-; CHECK: ja
+; CHECK: seta
 
 define internal i32 @fcmpOleFloat(float %a, float %b) {
 entry:
@@ -888,7 +888,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOleFloat
 ; CHECK: ucomiss
-; CHECK: jae
+; CHECK: setae
 
 define internal i32 @fcmpOleDouble(double %a, double %b) {
 entry:
@@ -898,7 +898,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOleDouble
 ; CHECK: ucomisd
-; CHECK: jae
+; CHECK: setae
 
 define internal i32 @fcmpOneFloat(float %a, float %b) {
 entry:
@@ -908,7 +908,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOneFloat
 ; CHECK: ucomiss
-; CHECK: jne
+; CHECK: setne
 
 define internal i32 @fcmpOneDouble(double %a, double %b) {
 entry:
@@ -918,7 +918,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOneDouble
 ; CHECK: ucomisd
-; CHECK: jne
+; CHECK: setne
 
 define internal i32 @fcmpOrdFloat(float %a, float %b) {
 entry:
@@ -928,7 +928,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOrdFloat
 ; CHECK: ucomiss
-; CHECK: jnp
+; CHECK: setnp
 
 define internal i32 @fcmpOrdDouble(double %a, double %b) {
 entry:
@@ -938,7 +938,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpOrdDouble
 ; CHECK: ucomisd
-; CHECK: jnp
+; CHECK: setnp
 
 define internal i32 @fcmpUeqFloat(float %a, float %b) {
 entry:
@@ -948,7 +948,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUeqFloat
 ; CHECK: ucomiss
-; CHECK: je
+; CHECK: sete
 
 define internal i32 @fcmpUeqDouble(double %a, double %b) {
 entry:
@@ -958,7 +958,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUeqDouble
 ; CHECK: ucomisd
-; CHECK: je
+; CHECK: sete
 
 define internal i32 @fcmpUgtFloat(float %a, float %b) {
 entry:
@@ -968,7 +968,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUgtFloat
 ; CHECK: ucomiss
-; CHECK: jb
+; CHECK: setb
 
 define internal i32 @fcmpUgtDouble(double %a, double %b) {
 entry:
@@ -978,7 +978,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUgtDouble
 ; CHECK: ucomisd
-; CHECK: jb
+; CHECK: setb
 
 define internal i32 @fcmpUgeFloat(float %a, float %b) {
 entry:
@@ -988,7 +988,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUgeFloat
 ; CHECK: ucomiss
-; CHECK: jbe
+; CHECK: setbe
 
 define internal i32 @fcmpUgeDouble(double %a, double %b) {
 entry:
@@ -998,7 +998,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUgeDouble
 ; CHECK: ucomisd
-; CHECK: jbe
+; CHECK: setbe
 
 define internal i32 @fcmpUltFloat(float %a, float %b) {
 entry:
@@ -1008,7 +1008,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUltFloat
 ; CHECK: ucomiss
-; CHECK: jb
+; CHECK: setb
 
 define internal i32 @fcmpUltDouble(double %a, double %b) {
 entry:
@@ -1018,7 +1018,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUltDouble
 ; CHECK: ucomisd
-; CHECK: jb
+; CHECK: setb
 
 define internal i32 @fcmpUleFloat(float %a, float %b) {
 entry:
@@ -1028,7 +1028,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUleFloat
 ; CHECK: ucomiss
-; CHECK: jbe
+; CHECK: setbe
 
 define internal i32 @fcmpUleDouble(double %a, double %b) {
 entry:
@@ -1038,7 +1038,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUleDouble
 ; CHECK: ucomisd
-; CHECK: jbe
+; CHECK: setbe
 
 define internal i32 @fcmpUneFloat(float %a, float %b) {
 entry:
@@ -1070,7 +1070,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUnoFloat
 ; CHECK: ucomiss
-; CHECK: jp
+; CHECK: setp
 
 define internal i32 @fcmpUnoDouble(double %a, double %b) {
 entry:
@@ -1080,7 +1080,7 @@ entry:
 }
 ; CHECK-LABEL: fcmpUnoDouble
 ; CHECK: ucomisd
-; CHECK: jp
+; CHECK: setp
 
 define internal i32 @fcmpTrueFloat(float %a, float %b) {
 entry:
@@ -1168,7 +1168,7 @@ entry:
 }
 ; CHECK-LABEL: selectFloatVarVar
 ; CHECK: ucomiss
-; CHECK: ja
+; CHECK: seta
 ; CHECK: fld
 
 define internal double @selectDoubleVarVar(double %a, double %b) {
@@ -1179,5 +1179,5 @@ entry:
 }
 ; CHECK-LABEL: selectDoubleVarVar
 ; CHECK: ucomisd
-; CHECK: ja
+; CHECK: seta
 ; CHECK: fld
