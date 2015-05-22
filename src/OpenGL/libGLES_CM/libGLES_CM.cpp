@@ -102,7 +102,7 @@ void AlphaFunc(GLenum func, GLclampf ref)
 
 void AlphaFuncx(GLenum func, GLclampx ref)
 {
-	UNIMPLEMENTED();
+	AlphaFunc(func, (float)ref / 0x10000);
 }
 
 void BindBuffer(GLenum target, GLuint buffer)
@@ -500,15 +500,7 @@ void ClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 
 void ClearColorx(GLclampx red, GLclampx green, GLclampx blue, GLclampx alpha)
 {
-	TRACE("(GLclampx red = %d, GLclampx green = %d, GLclampx blue = %d, GLclampx alpha = %d)",
-	      red, green, blue, alpha);
-
-	es1::Context *context = es1::getContext();
-
-	if(context)
-	{
-		context->setClearColor((float)red/65536.0f, (float)green/65536.0f, (float)blue/65536.0f, (float)alpha/65536.0f);
-	}
+	ClearColor((float)red / 0x10000, (float)green / 0x10000, (float)blue / 0x10000, (float)alpha / 0x10000);
 }
 
 void ClearDepthf(GLclampf depth)
@@ -525,7 +517,7 @@ void ClearDepthf(GLclampf depth)
 
 void ClearDepthx(GLclampx depth)
 {
-	UNIMPLEMENTED();
+	ClearDepthf((float)depth / 0x10000);
 }
 
 void ClearStencil(GLint s)
@@ -590,7 +582,7 @@ void Color4ub(GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha)
 
 void Color4x(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
 {
-	UNIMPLEMENTED();
+	Color4f((float)red / 0x10000, (float)green / 0x10000, (float)blue / 0x10000, (float)alpha / 0x10000);
 }
 
 void ColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
@@ -1190,11 +1182,6 @@ void DepthMask(GLboolean flag)
 	}
 }
 
-void DepthRangex(GLclampx zNear, GLclampx zFar)
-{
-	UNIMPLEMENTED();
-}
-
 void DepthRangef(GLclampf zNear, GLclampf zFar)
 {
 	TRACE("(GLclampf zNear = %f, GLclampf zFar = %f)", zNear, zFar);
@@ -1205,6 +1192,11 @@ void DepthRangef(GLclampf zNear, GLclampf zFar)
 	{
 		context->setDepthRange(zNear, zFar);
 	}
+}
+
+void DepthRangex(GLclampx zNear, GLclampx zFar)
+{
+	DepthRangef((float)zNear / 0x10000, (float)zFar / 0x10000);
 }
 
 void Disable(GLenum cap)
@@ -1676,7 +1668,7 @@ void Frustumf(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat 
 
 void Frustumx(GLfixed left, GLfixed right, GLfixed bottom, GLfixed top, GLfixed zNear, GLfixed zFar)
 {
-	UNIMPLEMENTED();
+	Frustumf((float)left / 0x10000, (float)right / 0x10000, (float)bottom / 0x10000, (float)top / 0x10000, (float)zNear / 0x10000, (float)zFar / 0x10000);
 }
 
 void GenerateMipmapOES(GLenum target)
@@ -2567,7 +2559,7 @@ void LineWidth(GLfloat width)
 
 void LineWidthx(GLfixed width)
 {
-	UNIMPLEMENTED();
+	LineWidth((float)width / 0x10000);
 }
 
 void LoadIdentity(void)
@@ -2694,7 +2686,7 @@ void Orthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zN
 
 void Orthox(GLfixed left, GLfixed right, GLfixed bottom, GLfixed top, GLfixed zNear, GLfixed zFar)
 {
-	UNIMPLEMENTED();
+	Orthof((float)left / 0x10000, (float)right / 0x10000, (float)bottom / 0x10000, (float)top / 0x10000, (float)zNear / 0x10000, (float)zFar / 0x10000);
 }
 
 void PixelStorei(GLenum pname, GLint param)
@@ -2768,7 +2760,7 @@ void PointSizePointerOES(GLenum type, GLsizei stride, const GLvoid *pointer)
 
 void PointSizex(GLfixed size)
 {
-	UNIMPLEMENTED();
+	PointSize((float)size / 0x10000);
 }
 
 void PolygonOffset(GLfloat factor, GLfloat units)
@@ -2785,7 +2777,7 @@ void PolygonOffset(GLfloat factor, GLfloat units)
 
 void PolygonOffsetx(GLfixed factor, GLfixed units)
 {
-	UNIMPLEMENTED();
+	PolygonOffset((float)factor / 0x10000, (float)units / 0x10000);
 }
 
 void PopMatrix(void)
@@ -2908,7 +2900,7 @@ void Rotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 
 void Rotatex(GLfixed angle, GLfixed x, GLfixed y, GLfixed z)
 {
-	UNIMPLEMENTED();
+	Rotatef((float)angle / 0x10000, (float)x / 0x10000, (float)y / 0x10000, (float)z / 0x10000);
 }
 
 void SampleCoverage(GLclampf value, GLboolean invert)
@@ -2925,7 +2917,7 @@ void SampleCoverage(GLclampf value, GLboolean invert)
 
 void SampleCoveragex(GLclampx value, GLboolean invert)
 {
-	UNIMPLEMENTED();
+	SampleCoverage((float)value / 0x10000, invert);
 }
 
 void Scalef(GLfloat x, GLfloat y, GLfloat z)
@@ -2942,7 +2934,7 @@ void Scalef(GLfloat x, GLfloat y, GLfloat z)
 
 void Scalex(GLfixed x, GLfixed y, GLfixed z)
 {
-	UNIMPLEMENTED();
+	Scalef((float)x / 0x10000, (float)y / 0x10000, (float)z / 0x10000);
 }
 
 void Scissor(GLint x, GLint y, GLsizei width, GLsizei height)
@@ -3569,7 +3561,7 @@ void Translatef(GLfloat x, GLfloat y, GLfloat z)
 
 void Translatex(GLfixed x, GLfixed y, GLfixed z)
 {
-	UNIMPLEMENTED();
+	Translatef((float)x / 0x10000, (float)y / 0x10000, (float)z / 0x10000);
 }
 
 void VertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
