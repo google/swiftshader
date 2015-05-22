@@ -16,6 +16,7 @@
 #ifndef SUBZERO_SRC_ICEINSTARM32_H
 #define SUBZERO_SRC_ICEINSTARM32_H
 
+#include "IceConditionCodesARM32.h"
 #include "IceDefs.h"
 #include "IceInst.h"
 #include "IceInstARM32.def"
@@ -237,6 +238,9 @@ private:
   Operand *ShiftAmt;
 };
 
+// Base class for ARM instructions. While most ARM instructions can be
+// conditionally executed, a few of them are not predicable (halt,
+// memory barriers, etc.).
 class InstARM32 : public InstTarget {
   InstARM32() = delete;
   InstARM32(const InstARM32 &) = delete;
@@ -248,8 +252,12 @@ public:
     Adc,
     Add,
     And,
+    Br,
+    Call,
+    Cmp,
     Eor,
     Ldr,
+    Lsl,
     Mla,
     Mov,
     Movt,
@@ -264,6 +272,7 @@ public:
   };
 
   static const char *getWidthString(Type Ty);
+  static CondARM32::Cond getOppositeCondition(CondARM32::Cond Cond);
 
   void dump(const Cfg *Func) const override;
 
@@ -276,23 +285,51 @@ protected:
   }
 };
 
-void emitTwoAddr(const char *Opcode, const Inst *Inst, const Cfg *Func);
-void emitThreeAddr(const char *Opcode, const Inst *Inst, const Cfg *Func,
-                   bool SetFlags);
+// A predicable ARM instruction.
+class InstARM32Pred : public InstARM32 {
+  InstARM32Pred() = delete;
+  InstARM32Pred(const InstARM32Pred &) = delete;
+  InstARM32Pred &operator=(const InstARM32Pred &) = delete;
 
-// TODO(jvoung): add condition codes if instruction can be predicated.
+public:
+  InstARM32Pred(Cfg *Func, InstKindARM32 Kind, SizeT Maxsrcs, Variable *Dest,
+                CondARM32::Cond Predicate)
+      : InstARM32(Func, Kind, Maxsrcs, Dest), Predicate(Predicate) {}
+
+  CondARM32::Cond getPredicate() const { return Predicate; }
+  void setPredicate(CondARM32::Cond Pred) { Predicate = Pred; }
+
+  static const char *predString(CondARM32::Cond Predicate);
+  void dumpOpcodePred(Ostream &Str, const char *Opcode, Type Ty) const;
+
+  // Shared emit routines for common forms of instructions.
+  static void emitTwoAddr(const char *Opcode, const InstARM32Pred *Inst,
+                          const Cfg *Func);
+  static void emitThreeAddr(const char *Opcode, const InstARM32Pred *Inst,
+                            const Cfg *Func, bool SetFlags);
+
+protected:
+  CondARM32::Cond Predicate;
+};
+
+template <typename StreamType>
+inline StreamType &operator<<(StreamType &Stream, CondARM32::Cond Predicate) {
+  Stream << InstARM32Pred::predString(Predicate);
+  return Stream;
+}
 
 // Instructions of the form x := op(y).
 template <InstARM32::InstKindARM32 K>
-class InstARM32UnaryopGPR : public InstARM32 {
+class InstARM32UnaryopGPR : public InstARM32Pred {
   InstARM32UnaryopGPR() = delete;
   InstARM32UnaryopGPR(const InstARM32UnaryopGPR &) = delete;
   InstARM32UnaryopGPR &operator=(const InstARM32UnaryopGPR &) = delete;
 
 public:
-  static InstARM32UnaryopGPR *create(Cfg *Func, Variable *Dest, Operand *Src) {
+  static InstARM32UnaryopGPR *create(Cfg *Func, Variable *Dest, Operand *Src,
+                                     CondARM32::Cond Predicate) {
     return new (Func->allocate<InstARM32UnaryopGPR>())
-        InstARM32UnaryopGPR(Func, Dest, Src);
+        InstARM32UnaryopGPR(Func, Dest, Src, Predicate);
   }
   void emit(const Cfg *Func) const override {
     if (!ALLOW_DUMP)
@@ -313,14 +350,17 @@ public:
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
-    Str << " = " << Opcode << "." << getDest()->getType() << " ";
+    Str << " = ";
+    dumpOpcodePred(Str, Opcode, getDest()->getType());
+    Str << " ";
     dumpSources(Func);
   }
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 private:
-  InstARM32UnaryopGPR(Cfg *Func, Variable *Dest, Operand *Src)
-      : InstARM32(Func, K, 1, Dest) {
+  InstARM32UnaryopGPR(Cfg *Func, Variable *Dest, Operand *Src,
+                      CondARM32::Cond Predicate)
+      : InstARM32Pred(Func, K, 1, Dest, Predicate) {
     addSource(Src);
   }
   ~InstARM32UnaryopGPR() override {}
@@ -329,16 +369,17 @@ private:
 
 // Instructions of the form x := x op y.
 template <InstARM32::InstKindARM32 K>
-class InstARM32TwoAddrGPR : public InstARM32 {
+class InstARM32TwoAddrGPR : public InstARM32Pred {
   InstARM32TwoAddrGPR() = delete;
   InstARM32TwoAddrGPR(const InstARM32TwoAddrGPR &) = delete;
   InstARM32TwoAddrGPR &operator=(const InstARM32TwoAddrGPR &) = delete;
 
 public:
   // Dest must be a register.
-  static InstARM32TwoAddrGPR *create(Cfg *Func, Variable *Dest, Operand *Src) {
+  static InstARM32TwoAddrGPR *create(Cfg *Func, Variable *Dest, Operand *Src,
+                                     CondARM32::Cond Predicate) {
     return new (Func->allocate<InstARM32TwoAddrGPR>())
-        InstARM32TwoAddrGPR(Func, Dest, Src);
+        InstARM32TwoAddrGPR(Func, Dest, Src, Predicate);
   }
   void emit(const Cfg *Func) const override {
     if (!ALLOW_DUMP)
@@ -354,14 +395,17 @@ public:
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
-    Str << " = " << Opcode << "." << getDest()->getType() << " ";
+    Str << " = ";
+    dumpOpcodePred(Str, Opcode, getDest()->getType());
+    Str << " ";
     dumpSources(Func);
   }
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 private:
-  InstARM32TwoAddrGPR(Cfg *Func, Variable *Dest, Operand *Src)
-      : InstARM32(Func, K, 2, Dest) {
+  InstARM32TwoAddrGPR(Cfg *Func, Variable *Dest, Operand *Src,
+                      CondARM32::Cond Predicate)
+      : InstARM32Pred(Func, K, 2, Dest, Predicate) {
     addSource(Dest);
     addSource(Src);
   }
@@ -372,15 +416,16 @@ private:
 // Base class for assignment instructions.
 // These can be tested for redundancy (and elided if redundant).
 template <InstARM32::InstKindARM32 K>
-class InstARM32Movlike : public InstARM32 {
+class InstARM32Movlike : public InstARM32Pred {
   InstARM32Movlike() = delete;
   InstARM32Movlike(const InstARM32Movlike &) = delete;
   InstARM32Movlike &operator=(const InstARM32Movlike &) = delete;
 
 public:
-  static InstARM32Movlike *create(Cfg *Func, Variable *Dest, Operand *Source) {
+  static InstARM32Movlike *create(Cfg *Func, Variable *Dest, Operand *Source,
+                                  CondARM32::Cond Predicate) {
     return new (Func->allocate<InstARM32Movlike>())
-        InstARM32Movlike(Func, Dest, Source);
+        InstARM32Movlike(Func, Dest, Source, Predicate);
   }
   bool isRedundantAssign() const override {
     return checkForRedundantAssign(getDest(), getSrc(0));
@@ -392,7 +437,8 @@ public:
     if (!ALLOW_DUMP)
       return;
     Ostream &Str = Func->getContext()->getStrDump();
-    Str << Opcode << "." << getDest()->getType() << " ";
+    dumpOpcodePred(Str, Opcode, getDest()->getType());
+    Str << " ";
     dumpDest(Func);
     Str << ", ";
     dumpSources(Func);
@@ -400,8 +446,9 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 private:
-  InstARM32Movlike(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstARM32(Func, K, 1, Dest) {
+  InstARM32Movlike(Cfg *Func, Variable *Dest, Operand *Source,
+                   CondARM32::Cond Predicate)
+      : InstARM32Pred(Func, K, 1, Dest, Predicate) {
     addSource(Source);
   }
   ~InstARM32Movlike() override {}
@@ -412,7 +459,7 @@ private:
 // Instructions of the form x := y op z. May have the side-effect of setting
 // status flags.
 template <InstARM32::InstKindARM32 K>
-class InstARM32ThreeAddrGPR : public InstARM32 {
+class InstARM32ThreeAddrGPR : public InstARM32Pred {
   InstARM32ThreeAddrGPR() = delete;
   InstARM32ThreeAddrGPR(const InstARM32ThreeAddrGPR &) = delete;
   InstARM32ThreeAddrGPR &operator=(const InstARM32ThreeAddrGPR &) = delete;
@@ -422,9 +469,10 @@ public:
   // Dest and Src1 must be registers.
   static InstARM32ThreeAddrGPR *create(Cfg *Func, Variable *Dest,
                                        Variable *Src1, Operand *Src2,
+                                       CondARM32::Cond Predicate,
                                        bool SetFlags = false) {
     return new (Func->allocate<InstARM32ThreeAddrGPR>())
-        InstARM32ThreeAddrGPR(Func, Dest, Src1, Src2, SetFlags);
+        InstARM32ThreeAddrGPR(Func, Dest, Src1, Src2, Predicate, SetFlags);
   }
   void emit(const Cfg *Func) const override {
     if (!ALLOW_DUMP)
@@ -440,16 +488,17 @@ public:
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
-    Str << " = " << Opcode << (SetFlags ? "s" : "") << "."
-        << getDest()->getType() << " ";
+    Str << " = ";
+    dumpOpcodePred(Str, Opcode, getDest()->getType());
+    Str << (SetFlags ? ".s " : " ");
     dumpSources(Func);
   }
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 private:
   InstARM32ThreeAddrGPR(Cfg *Func, Variable *Dest, Variable *Src1,
-                        Operand *Src2, bool SetFlags)
-      : InstARM32(Func, K, 2, Dest), SetFlags(SetFlags) {
+                        Operand *Src2, CondARM32::Cond Predicate, bool SetFlags)
+      : InstARM32Pred(Func, K, 2, Dest, Predicate), SetFlags(SetFlags) {
     addSource(Src1);
     addSource(Src2);
   }
@@ -462,6 +511,7 @@ typedef InstARM32ThreeAddrGPR<InstARM32::Adc> InstARM32Adc;
 typedef InstARM32ThreeAddrGPR<InstARM32::Add> InstARM32Add;
 typedef InstARM32ThreeAddrGPR<InstARM32::And> InstARM32And;
 typedef InstARM32ThreeAddrGPR<InstARM32::Eor> InstARM32Eor;
+typedef InstARM32ThreeAddrGPR<InstARM32::Lsl> InstARM32Lsl;
 typedef InstARM32ThreeAddrGPR<InstARM32::Mul> InstARM32Mul;
 typedef InstARM32ThreeAddrGPR<InstARM32::Orr> InstARM32Orr;
 typedef InstARM32ThreeAddrGPR<InstARM32::Sbc> InstARM32Sbc;
@@ -476,16 +526,123 @@ typedef InstARM32TwoAddrGPR<InstARM32::Movt> InstARM32Movt;
 typedef InstARM32UnaryopGPR<InstARM32::Movw> InstARM32Movw;
 typedef InstARM32UnaryopGPR<InstARM32::Mvn> InstARM32Mvn;
 
+// Direct branch instruction.
+class InstARM32Br : public InstARM32Pred {
+  InstARM32Br() = delete;
+  InstARM32Br(const InstARM32Br &) = delete;
+  InstARM32Br &operator=(const InstARM32Br &) = delete;
+
+public:
+  // Create a conditional branch to one of two nodes.
+  static InstARM32Br *create(Cfg *Func, CfgNode *TargetTrue,
+                             CfgNode *TargetFalse, CondARM32::Cond Predicate) {
+    assert(Predicate != CondARM32::AL);
+    return new (Func->allocate<InstARM32Br>())
+        InstARM32Br(Func, TargetTrue, TargetFalse, Predicate);
+  }
+  // Create an unconditional branch to a node.
+  static InstARM32Br *create(Cfg *Func, CfgNode *Target) {
+    const CfgNode *NoCondTarget = nullptr;
+    return new (Func->allocate<InstARM32Br>())
+        InstARM32Br(Func, NoCondTarget, Target, CondARM32::AL);
+  }
+  // Create a non-terminator conditional branch to a node, with a
+  // fallthrough to the next instruction in the current node.  This is
+  // used for switch lowering.
+  static InstARM32Br *create(Cfg *Func, CfgNode *Target,
+                             CondARM32::Cond Predicate) {
+    assert(Predicate != CondARM32::AL);
+    const CfgNode *NoUncondTarget = nullptr;
+    return new (Func->allocate<InstARM32Br>())
+        InstARM32Br(Func, Target, NoUncondTarget, Predicate);
+  }
+  const CfgNode *getTargetTrue() const { return TargetTrue; }
+  const CfgNode *getTargetFalse() const { return TargetFalse; }
+  bool optimizeBranch(const CfgNode *NextNode);
+  uint32_t getEmitInstCount() const override {
+    uint32_t Sum = 0;
+    if (getTargetTrue())
+      ++Sum;
+    if (getTargetFalse())
+      ++Sum;
+    return Sum;
+  }
+  bool isUnconditionalBranch() const override {
+    return getPredicate() == CondARM32::AL;
+  }
+  bool repointEdge(CfgNode *OldNode, CfgNode *NewNode) override;
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Br); }
+
+private:
+  InstARM32Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
+              CondARM32::Cond Predicate);
+  ~InstARM32Br() override {}
+  const CfgNode *TargetTrue;
+  const CfgNode *TargetFalse;
+};
+
+// Call instruction (bl/blx).  Arguments should have already been pushed.
+// Technically bl and the register form of blx can be predicated, but we'll
+// leave that out until needed.
+class InstARM32Call : public InstARM32 {
+  InstARM32Call() = delete;
+  InstARM32Call(const InstARM32Call &) = delete;
+  InstARM32Call &operator=(const InstARM32Call &) = delete;
+
+public:
+  static InstARM32Call *create(Cfg *Func, Variable *Dest, Operand *CallTarget) {
+    return new (Func->allocate<InstARM32Call>())
+        InstARM32Call(Func, Dest, CallTarget);
+  }
+  Operand *getCallTarget() const { return getSrc(0); }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Call); }
+
+private:
+  InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
+  ~InstARM32Call() override {}
+};
+
+// Integer compare instruction.
+class InstARM32Cmp : public InstARM32Pred {
+  InstARM32Cmp() = delete;
+  InstARM32Cmp(const InstARM32Cmp &) = delete;
+  InstARM32Cmp &operator=(const InstARM32Cmp &) = delete;
+
+public:
+  static InstARM32Cmp *create(Cfg *Func, Variable *Src1, Operand *Src2,
+                              CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32Cmp>())
+        InstARM32Cmp(Func, Src1, Src2, Predicate);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Cmp); }
+
+private:
+  InstARM32Cmp(Cfg *Func, Variable *Src1, Operand *Src2,
+               CondARM32::Cond Predicate);
+  ~InstARM32Cmp() override {}
+};
+
 // Load instruction.
-class InstARM32Ldr : public InstARM32 {
+class InstARM32Ldr : public InstARM32Pred {
   InstARM32Ldr() = delete;
   InstARM32Ldr(const InstARM32Ldr &) = delete;
   InstARM32Ldr &operator=(const InstARM32Ldr &) = delete;
 
 public:
   // Dest must be a register.
-  static InstARM32Ldr *create(Cfg *Func, Variable *Dest, OperandARM32Mem *Mem) {
-    return new (Func->allocate<InstARM32Ldr>()) InstARM32Ldr(Func, Dest, Mem);
+  static InstARM32Ldr *create(Cfg *Func, Variable *Dest, OperandARM32Mem *Mem,
+                              CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32Ldr>())
+        InstARM32Ldr(Func, Dest, Mem, Predicate);
   }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
@@ -493,12 +650,13 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, Ldr); }
 
 private:
-  InstARM32Ldr(Cfg *Func, Variable *Dest, OperandARM32Mem *Mem);
+  InstARM32Ldr(Cfg *Func, Variable *Dest, OperandARM32Mem *Mem,
+               CondARM32::Cond Predicate);
   ~InstARM32Ldr() override {}
 };
 
 // Multiply Accumulate: d := x * y + a
-class InstARM32Mla : public InstARM32 {
+class InstARM32Mla : public InstARM32Pred {
   InstARM32Mla() = delete;
   InstARM32Mla(const InstARM32Mla &) = delete;
   InstARM32Mla &operator=(const InstARM32Mla &) = delete;
@@ -506,9 +664,10 @@ class InstARM32Mla : public InstARM32 {
 public:
   // Everything must be a register.
   static InstARM32Mla *create(Cfg *Func, Variable *Dest, Variable *Src0,
-                              Variable *Src1, Variable *Acc) {
+                              Variable *Src1, Variable *Acc,
+                              CondARM32::Cond Predicate) {
     return new (Func->allocate<InstARM32Mla>())
-        InstARM32Mla(Func, Dest, Src0, Src1, Acc);
+        InstARM32Mla(Func, Dest, Src0, Src1, Acc, Predicate);
   }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
@@ -517,7 +676,7 @@ public:
 
 private:
   InstARM32Mla(Cfg *Func, Variable *Dest, Variable *Src0, Variable *Src1,
-               Variable *Acc);
+               Variable *Acc, CondARM32::Cond Predicate);
   ~InstARM32Mla() override {}
 };
 
@@ -526,6 +685,10 @@ private:
 // instead of a generic "bx". This instruction also takes a Source
 // operand (for non-void returning functions) for liveness analysis, though
 // a FakeUse before the ret would do just as well.
+//
+// NOTE: Even though "bx" can be predicated, for now leave out the predication
+// since it's not yet known to be useful for Ret. That may complicate finding
+// the terminator instruction if it's not guaranteed to be executed.
 class InstARM32Ret : public InstARM32 {
   InstARM32Ret() = delete;
   InstARM32Ret(const InstARM32Ret &) = delete;
@@ -547,7 +710,7 @@ private:
 };
 
 // Unsigned Multiply Long: d.lo, d.hi := x * y
-class InstARM32Umull : public InstARM32 {
+class InstARM32Umull : public InstARM32Pred {
   InstARM32Umull() = delete;
   InstARM32Umull(const InstARM32Umull &) = delete;
   InstARM32Umull &operator=(const InstARM32Umull &) = delete;
@@ -555,9 +718,10 @@ class InstARM32Umull : public InstARM32 {
 public:
   // Everything must be a register.
   static InstARM32Umull *create(Cfg *Func, Variable *DestLo, Variable *DestHi,
-                                Variable *Src0, Variable *Src1) {
+                                Variable *Src0, Variable *Src1,
+                                CondARM32::Cond Predicate) {
     return new (Func->allocate<InstARM32Umull>())
-        InstARM32Umull(Func, DestLo, DestHi, Src0, Src1);
+        InstARM32Umull(Func, DestLo, DestHi, Src0, Src1, Predicate);
   }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
@@ -566,7 +730,7 @@ public:
 
 private:
   InstARM32Umull(Cfg *Func, Variable *DestLo, Variable *DestHi, Variable *Src0,
-                 Variable *Src1);
+                 Variable *Src1, CondARM32::Cond Predicate);
   ~InstARM32Umull() override {}
   Variable *DestHi;
 };

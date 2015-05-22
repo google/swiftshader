@@ -47,32 +47,58 @@ const struct InstARM32ShiftAttributes_ {
 #undef X
 };
 
+const struct InstARM32CondAttributes_ {
+  CondARM32::Cond Opposite;
+  const char *EmitString;
+} InstARM32CondAttributes[] = {
+#define X(tag, encode, opp, emit)                                              \
+  { CondARM32::opp, emit }                                                     \
+  ,
+    ICEINSTARM32COND_TABLE
+#undef X
+};
+
 } // end of anonymous namespace
 
 const char *InstARM32::getWidthString(Type Ty) {
   return TypeARM32Attributes[Ty].WidthString;
 }
 
-void emitTwoAddr(const char *Opcode, const Inst *Inst, const Cfg *Func) {
+const char *InstARM32Pred::predString(CondARM32::Cond Pred) {
+  return InstARM32CondAttributes[Pred].EmitString;
+}
+
+void InstARM32Pred::dumpOpcodePred(Ostream &Str, const char *Opcode,
+                                   Type Ty) const {
+  Str << Opcode << getPredicate() << "." << Ty;
+}
+
+CondARM32::Cond InstARM32::getOppositeCondition(CondARM32::Cond Cond) {
+  return InstARM32CondAttributes[Cond].Opposite;
+}
+
+void InstARM32Pred::emitTwoAddr(const char *Opcode, const InstARM32Pred *Inst,
+                                const Cfg *Func) {
   if (!ALLOW_DUMP)
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Inst->getSrcSize() == 2);
   Variable *Dest = Inst->getDest();
   assert(Dest == Inst->getSrc(0));
-  Str << "\t" << Opcode << "\t";
+  Str << "\t" << Opcode << Inst->getPredicate() << "\t";
   Dest->emit(Func);
   Str << ", ";
   Inst->getSrc(1)->emit(Func);
 }
 
-void emitThreeAddr(const char *Opcode, const Inst *Inst, const Cfg *Func,
-                   bool SetFlags) {
+void InstARM32Pred::emitThreeAddr(const char *Opcode, const InstARM32Pred *Inst,
+                                  const Cfg *Func, bool SetFlags) {
   if (!ALLOW_DUMP)
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Inst->getSrcSize() == 2);
-  Str << "\t" << Opcode << (SetFlags ? "s" : "") << "\t";
+  Str << "\t" << Opcode << (SetFlags ? "s" : "") << Inst->getPredicate()
+      << "\t";
   Inst->getDest()->emit(Func);
   Str << ", ";
   Inst->getSrc(0)->emit(Func);
@@ -154,14 +180,81 @@ OperandARM32FlexReg::OperandARM32FlexReg(Cfg *Func, Type Ty, Variable *Reg,
     Vars[1] = ShiftVar;
 }
 
-InstARM32Ldr::InstARM32Ldr(Cfg *Func, Variable *Dest, OperandARM32Mem *Mem)
-    : InstARM32(Func, InstARM32::Ldr, 1, Dest) {
+InstARM32Br::InstARM32Br(Cfg *Func, const CfgNode *TargetTrue,
+                         const CfgNode *TargetFalse, CondARM32::Cond Pred)
+    : InstARM32Pred(Func, InstARM32::Br, 0, nullptr, Pred),
+      TargetTrue(TargetTrue), TargetFalse(TargetFalse) {}
+
+bool InstARM32Br::optimizeBranch(const CfgNode *NextNode) {
+  // If there is no next block, then there can be no fallthrough to
+  // optimize.
+  if (NextNode == nullptr)
+    return false;
+  // If there is no fallthrough node, such as a non-default case label
+  // for a switch instruction, then there is no opportunity to
+  // optimize.
+  if (getTargetFalse() == nullptr)
+    return false;
+
+  // Unconditional branch to the next node can be removed.
+  if (isUnconditionalBranch() && getTargetFalse() == NextNode) {
+    assert(getTargetTrue() == nullptr);
+    setDeleted();
+    return true;
+  }
+  // If the fallthrough is to the next node, set fallthrough to nullptr
+  // to indicate.
+  if (getTargetFalse() == NextNode) {
+    TargetFalse = nullptr;
+    return true;
+  }
+  // If TargetTrue is the next node, and TargetFalse is not nullptr
+  // (which was already tested above), then invert the branch
+  // condition, swap the targets, and set new fallthrough to nullptr.
+  if (getTargetTrue() == NextNode) {
+    assert(Predicate != CondARM32::AL);
+    setPredicate(getOppositeCondition(getPredicate()));
+    TargetTrue = getTargetFalse();
+    TargetFalse = nullptr;
+    return true;
+  }
+  return false;
+}
+
+bool InstARM32Br::repointEdge(CfgNode *OldNode, CfgNode *NewNode) {
+  if (TargetFalse == OldNode) {
+    TargetFalse = NewNode;
+    return true;
+  } else if (TargetTrue == OldNode) {
+    TargetTrue = NewNode;
+    return true;
+  }
+  return false;
+}
+
+InstARM32Call::InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
+    : InstARM32(Func, InstARM32::Call, 1, Dest) {
+  HasSideEffects = true;
+  addSource(CallTarget);
+}
+
+InstARM32Cmp::InstARM32Cmp(Cfg *Func, Variable *Src1, Operand *Src2,
+                           CondARM32::Cond Predicate)
+    : InstARM32Pred(Func, InstARM32::Cmp, 2, nullptr, Predicate) {
+  addSource(Src1);
+  addSource(Src2);
+}
+
+InstARM32Ldr::InstARM32Ldr(Cfg *Func, Variable *Dest, OperandARM32Mem *Mem,
+                           CondARM32::Cond Predicate)
+    : InstARM32Pred(Func, InstARM32::Ldr, 1, Dest, Predicate) {
   addSource(Mem);
 }
 
 InstARM32Mla::InstARM32Mla(Cfg *Func, Variable *Dest, Variable *Src0,
-                           Variable *Src1, Variable *Acc)
-    : InstARM32(Func, InstARM32::Mla, 3, Dest) {
+                           Variable *Src1, Variable *Acc,
+                           CondARM32::Cond Predicate)
+    : InstARM32Pred(Func, InstARM32::Mla, 3, Dest, Predicate) {
   addSource(Src0);
   addSource(Src1);
   addSource(Acc);
@@ -175,8 +268,9 @@ InstARM32Ret::InstARM32Ret(Cfg *Func, Variable *LR, Variable *Source)
 }
 
 InstARM32Umull::InstARM32Umull(Cfg *Func, Variable *DestLo, Variable *DestHi,
-                               Variable *Src0, Variable *Src1)
-    : InstARM32(Func, InstARM32::Umull, 2, DestLo),
+                               Variable *Src0, Variable *Src1,
+                               CondARM32::Cond Predicate)
+    : InstARM32Pred(Func, InstARM32::Umull, 2, DestLo, Predicate),
       // DestHi is expected to have a FakeDef inserted by the lowering code.
       DestHi(DestHi) {
   addSource(Src0);
@@ -197,6 +291,7 @@ template <> const char *InstARM32Adc::Opcode = "adc";
 template <> const char *InstARM32Add::Opcode = "add";
 template <> const char *InstARM32And::Opcode = "and";
 template <> const char *InstARM32Eor::Opcode = "eor";
+template <> const char *InstARM32Lsl::Opcode = "lsl";
 template <> const char *InstARM32Mul::Opcode = "mul";
 template <> const char *InstARM32Orr::Opcode = "orr";
 template <> const char *InstARM32Sbc::Opcode = "sbc";
@@ -218,8 +313,7 @@ template <> void InstARM32Mov::emit(const Cfg *Func) const {
   Variable *Dest = getDest();
   if (Dest->hasReg()) {
     Str << "\t"
-        << "mov"
-        << "\t";
+        << "mov" << getPredicate() << "\t";
     getDest()->emit(Func);
     Str << ", ";
     getSrc(0)->emit(Func);
@@ -227,8 +321,7 @@ template <> void InstARM32Mov::emit(const Cfg *Func) const {
     Variable *Src0 = llvm::cast<Variable>(getSrc(0));
     assert(Src0->hasReg());
     Str << "\t"
-        << "str"
-        << "\t";
+        << "str" << getPredicate() << "\t";
     Src0->emit(Func);
     Str << ", ";
     Dest->emit(Func);
@@ -241,6 +334,115 @@ template <> void InstARM32Mov::emitIAS(const Cfg *Func) const {
   llvm_unreachable("Not yet implemented");
 }
 
+void InstARM32Br::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t"
+      << "b" << getPredicate() << "\t";
+  if (isUnconditionalBranch()) {
+    Str << getTargetFalse()->getAsmName();
+  } else {
+    Str << getTargetTrue()->getAsmName();
+    if (getTargetFalse()) {
+      Str << "\n\t"
+          << "b"
+          << "\t" << getTargetFalse()->getAsmName();
+    }
+  }
+}
+
+void InstARM32Br::emitIAS(const Cfg *Func) const {
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Br::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "br ";
+
+  if (getPredicate() == CondARM32::AL) {
+    Str << "label %" << getTargetFalse()->getName();
+    return;
+  }
+
+  Str << getPredicate() << ", label %" << getTargetTrue()->getName();
+  if (getTargetFalse()) {
+    Str << ", label %" << getTargetFalse()->getName();
+  }
+}
+
+void InstARM32Call::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  if (llvm::isa<ConstantInteger32>(getCallTarget())) {
+    // This shouldn't happen (typically have to copy the full 32-bits
+    // to a register and do an indirect jump).
+    llvm::report_fatal_error("ARM32Call to ConstantInteger32");
+  } else if (const auto CallTarget =
+                 llvm::dyn_cast<ConstantRelocatable>(getCallTarget())) {
+    // Calls only have 24-bits, but the linker should insert veneers to
+    // extend the range if needed.
+    Str << "\t"
+        << "bl"
+        << "\t";
+    CallTarget->emitWithoutPrefix(Func->getTarget());
+  } else {
+    Str << "\t"
+        << "blx"
+        << "\t";
+    getCallTarget()->emit(Func);
+  }
+  Func->getTarget()->resetStackAdjustment();
+}
+
+void InstARM32Call::emitIAS(const Cfg *Func) const {
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Call::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  if (getDest()) {
+    dumpDest(Func);
+    Str << " = ";
+  }
+  Str << "call ";
+  getCallTarget()->dump(Func);
+}
+
+void InstARM32Cmp::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 2);
+  Str << "\t"
+      << "cmp" << getPredicate() << "\t";
+  getSrc(0)->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+}
+
+void InstARM32Cmp::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Cmp::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpOpcodePred(Str, "cmp", getSrc(0)->getType());
+  dumpSources(Func);
+}
+
 void InstARM32Ldr::emit(const Cfg *Func) const {
   if (!ALLOW_DUMP)
     return;
@@ -249,7 +451,7 @@ void InstARM32Ldr::emit(const Cfg *Func) const {
   assert(getDest()->hasReg());
   Type Ty = getSrc(0)->getType();
   Str << "\t"
-      << "ldr" << getWidthString(Ty) << "\t";
+      << "ldr" << getWidthString(Ty) << getPredicate() << "\t";
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
@@ -266,7 +468,9 @@ void InstARM32Ldr::dump(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
-  Str << " = ldr." << getSrc(0)->getType() << " ";
+  Str << " = ";
+  dumpOpcodePred(Str, "ldr", getDest()->getType());
+  Str << " ";
   dumpSources(Func);
 }
 
@@ -277,8 +481,7 @@ void InstARM32Mla::emit(const Cfg *Func) const {
   assert(getSrcSize() == 3);
   assert(getDest()->hasReg());
   Str << "\t"
-      << "mla"
-      << "\t";
+      << "mla" << getPredicate() << "\t";
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
@@ -299,7 +502,9 @@ void InstARM32Mla::dump(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
-  Str << " = mla." << getSrc(0)->getType() << " ";
+  Str << " = ";
+  dumpOpcodePred(Str, "mla", getDest()->getType());
+  Str << " ";
   dumpSources(Func);
 }
 
@@ -308,7 +513,7 @@ template <> void InstARM32Movw::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
-  Str << "\t" << Opcode << "\t";
+  Str << "\t" << Opcode << getPredicate() << "\t";
   getDest()->emit(Func);
   Str << ", ";
   Constant *Src0 = llvm::cast<Constant>(getSrc(0));
@@ -327,7 +532,7 @@ template <> void InstARM32Movt::emit(const Cfg *Func) const {
   assert(getSrcSize() == 2);
   Variable *Dest = getDest();
   Constant *Src1 = llvm::cast<Constant>(getSrc(1));
-  Str << "\t" << Opcode << "\t";
+  Str << "\t" << Opcode << getPredicate() << "\t";
   Dest->emit(Func);
   Str << ", ";
   if (auto CR = llvm::dyn_cast<ConstantRelocatable>(Src1)) {
@@ -373,8 +578,7 @@ void InstARM32Umull::emit(const Cfg *Func) const {
   assert(getSrcSize() == 2);
   assert(getDest()->hasReg());
   Str << "\t"
-      << "umull"
-      << "\t";
+      << "umull" << getPredicate() << "\t";
   getDest()->emit(Func);
   Str << ", ";
   DestHi->emit(Func);
@@ -395,7 +599,9 @@ void InstARM32Umull::dump(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
-  Str << " = umull." << getSrc(0)->getType() << " ";
+  Str << " = ";
+  dumpOpcodePred(Str, "umull", getDest()->getType());
+  Str << " ";
   dumpSources(Func);
 }
 

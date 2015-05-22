@@ -15,6 +15,19 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGARM32_DEF
 #define SUBZERO_SRC_ICETARGETLOWERINGARM32_DEF
 
-// TODO(jvoung): Fill out comparison tables, etc. for 32/64-bit compares.
+// Patterns for lowering icmp.
+#define ICMPARM32_TABLE                                             \
+  /* val, is_signed, swapped64, C_32, C1_64, C2_64 */               \
+  X(Eq,   false,     false,     EQ,   EQ,    NE)                    \
+  X(Ne,   false,     false,     NE,   NE,    EQ)                    \
+  X(Ugt,  false,     false,     HI,   HI,    LS)                    \
+  X(Uge,  false,     false,     CS,   CS,    CC)                    \
+  X(Ult,  false,     false,     CC,   CC,    CS)                    \
+  X(Ule,  false,     false,     LS,   LS,    HI)                    \
+  X(Sgt,  true,      true,      GT,   LT,    GE)                    \
+  X(Sge,  true,      false,     GE,   GE,    LT)                    \
+  X(Slt,  true,      false,     LT,   LT,    GE)                    \
+  X(Sle,  true,      true,      LE,   GE,    LT)                    \
+//#define X(val, is_signed, swapped64, C_32, C1_64, C2_64)
 
 #endif // SUBZERO_SRC_ICETARGETLOWERINGARM32_DEF

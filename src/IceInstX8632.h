@@ -17,9 +17,9 @@
 #define SUBZERO_SRC_ICEINSTX8632_H
 
 #include "assembler_ia32.h"
+#include "IceConditionCodesX8632.h"
 #include "IceDefs.h"
 #include "IceInst.h"
-#include "IceConditionCodesX8632.h"
 #include "IceInstX8632.def"
 #include "IceOperand.h"
 
@@ -267,6 +267,17 @@ public:
   static const char *getFldString(Type Ty);
   static CondX86::BrCond getOppositeCondition(CondX86::BrCond Cond);
   void dump(const Cfg *Func) const override;
+
+  // Shared emit routines for common forms of instructions.
+  // See the definition of emitTwoAddress() for a description of
+  // ShiftHack.
+  static void emitTwoAddress(const char *Opcode, const Inst *Inst,
+                             const Cfg *Func, bool ShiftHack = false);
+
+  static void
+  emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
+                  const Operand *Src,
+                  const X8632::AssemblerX8632::GPREmitterShiftOp &Emitter);
 
 protected:
   InstX8632(Cfg *Func, InstKindX8632 Kind, SizeT Maxsrcs, Variable *Dest)
@@ -664,15 +675,6 @@ private:
   static const char *Opcode;
   static const X8632::AssemblerX8632::XmmEmitterRegOp Emitter;
 };
-
-// See the definition of emitTwoAddress() for a description of
-// ShiftHack.
-void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
-                    bool ShiftHack = false);
-
-void emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
-                     const Operand *Src,
-                     const X8632::AssemblerX8632::GPREmitterShiftOp &Emitter);
 
 template <InstX8632::InstKindX8632 K>
 class InstX8632BinopGPRShift : public InstX8632 {

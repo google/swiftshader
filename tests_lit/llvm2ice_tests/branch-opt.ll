@@ -1,10 +1,21 @@
 ; Tests the branch optimizations under O2 (against a lack of
 ; optimizations under Om1).
 
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
-; RUN:   | FileCheck --check-prefix=O2 %s
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 \
-; RUN:   | FileCheck --check-prefix=OM1 %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix=O2 %s
+
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -Om1 \
+; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix=OM1 %s
+
+; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
+; once enough infrastructure is in. Also, switch to --filetype=obj
+; when possible.
+; Also test Om1 when addProlog is done.
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix ARM32O2 %s
 
 declare void @dummy()
 
@@ -28,6 +39,10 @@ next:
 ; OM1: call
 ; OM1-NEXT: jmp
 ; OM1: call
+
+; ARM32O2-LABEL: testUncondToNextBlock
+; ARM32O2: bl {{.*}} dummy
+; ARM32O2-NEXT: bl {{.*}} dummy
 
 ; For a conditional branch with a fallthrough to the next block, the
 ; fallthrough branch should be removed.
@@ -61,6 +76,17 @@ target:
 ; OM1: ret
 ; OM1: call
 ; OM1: ret
+
+; Note that compare and branch folding isn't implemented yet (unlike x86-32).
+; ARM32O2-LABEL: testCondFallthroughToNextBlock
+; ARM32O2: cmp {{.*}}, #123
+; ARM32O2-NEXT: movge {{.*}}, #1
+; ARM32O2-NEXT: cmp {{.*}}, #0
+; ARM32O2-NEXT: bne
+; ARM32O2-NEXT: bl
+; ARM32O2-NEXT: bx lr
+; ARM32O2-NEXT: bl
+; ARM32O2-NEXT: bx lr
 
 ; For a conditional branch with the next block as the target and a
 ; different block as the fallthrough, the branch condition should be
@@ -96,3 +122,15 @@ target:
 ; OM1: ret
 ; OM1: call
 ; OM1: ret
+
+; Note that compare and branch folding isn't implemented yet
+; (compared to x86-32).
+; ARM32O2-LABEL: testCondTargetNextBlock
+; ARM32O2: cmp {{.*}}, #123
+; ARM32O2-NEXT: movge {{.*}}, #1
+; ARM32O2-NEXT: cmp {{.*}}, #0
+; ARM32O2-NEXT: beq
+; ARM32O2-NEXT: bl
+; ARM32O2-NEXT: bx lr
+; ARM32O2-NEXT: bl
+; ARM32O2-NEXT: bx lr

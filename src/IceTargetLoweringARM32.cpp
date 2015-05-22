@@ -31,6 +31,7 @@
 namespace Ice {
 
 namespace {
+
 void UnimplementedError(const ClFlags &Flags) {
   if (!Flags.getSkipUnimplemented()) {
     // Use llvm_unreachable instead of report_fatal_error, which gives better
@@ -39,6 +40,85 @@ void UnimplementedError(const ClFlags &Flags) {
     abort();
   }
 }
+
+// The following table summarizes the logic for lowering the icmp instruction
+// for i32 and narrower types.  Each icmp condition has a clear mapping to an
+// ARM32 conditional move instruction.
+
+const struct TableIcmp32_ {
+  CondARM32::Cond Mapping;
+} TableIcmp32[] = {
+#define X(val, is_signed, swapped64, C_32, C1_64, C2_64)                       \
+  { CondARM32::C_32 }                                                          \
+  ,
+    ICMPARM32_TABLE
+#undef X
+};
+const size_t TableIcmp32Size = llvm::array_lengthof(TableIcmp32);
+
+// The following table summarizes the logic for lowering the icmp instruction
+// for the i64 type. Two conditional moves are needed for setting to 1 or 0.
+// The operands may need to be swapped, and there is a slight difference
+// for signed vs unsigned (comparing hi vs lo first, and using cmp vs sbc).
+const struct TableIcmp64_ {
+  bool IsSigned;
+  bool Swapped;
+  CondARM32::Cond C1, C2;
+} TableIcmp64[] = {
+#define X(val, is_signed, swapped64, C_32, C1_64, C2_64)                       \
+  { is_signed, swapped64, CondARM32::C1_64, CondARM32::C2_64 }                 \
+  ,
+    ICMPARM32_TABLE
+#undef X
+};
+const size_t TableIcmp64Size = llvm::array_lengthof(TableIcmp64);
+
+CondARM32::Cond getIcmp32Mapping(InstIcmp::ICond Cond) {
+  size_t Index = static_cast<size_t>(Cond);
+  assert(Index < TableIcmp32Size);
+  return TableIcmp32[Index].Mapping;
+}
+
+// In some cases, there are x-macros tables for both high-level and
+// low-level instructions/operands that use the same enum key value.
+// The tables are kept separate to maintain a proper separation
+// between abstraction layers.  There is a risk that the tables could
+// get out of sync if enum values are reordered or if entries are
+// added or deleted.  The following dummy namespaces use
+// static_asserts to ensure everything is kept in sync.
+
+// Validate the enum values in ICMPARM32_TABLE.
+namespace dummy1 {
+// Define a temporary set of enum values based on low-level table
+// entries.
+enum _tmp_enum {
+#define X(val, signed, swapped64, C_32, C1_64, C2_64) _tmp_##val,
+  ICMPARM32_TABLE
+#undef X
+      _num
+};
+// Define a set of constants based on high-level table entries.
+#define X(tag, str) static const int _table1_##tag = InstIcmp::tag;
+ICEINSTICMP_TABLE
+#undef X
+// Define a set of constants based on low-level table entries, and
+// ensure the table entry keys are consistent.
+#define X(val, signed, swapped64, C_32, C1_64, C2_64)                          \
+  static const int _table2_##val = _tmp_##val;                                 \
+  static_assert(                                                               \
+      _table1_##val == _table2_##val,                                          \
+      "Inconsistency between ICMPARM32_TABLE and ICEINSTICMP_TABLE");
+ICMPARM32_TABLE
+#undef X
+// Repeat the static asserts with respect to the high-level table
+// entries in case the high-level table has extra entries.
+#define X(tag, str)                                                            \
+  static_assert(                                                               \
+      _table1_##tag == _table2_##tag,                                          \
+      "Inconsistency between ICMPARM32_TABLE and ICEINSTICMP_TABLE");
+ICEINSTICMP_TABLE
+#undef X
+} // end of namespace dummy1
 
 // The maximum number of arguments to pass in GPR registers.
 const uint32_t ARM32_MAX_GPR_ARG = 4;
@@ -218,9 +298,9 @@ void TargetARM32::translateOm1() {
 }
 
 bool TargetARM32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
-  (void)I;
-  (void)NextNode;
-  UnimplementedError(Func->getContext()->getFlags());
+  if (InstARM32Br *Br = llvm::dyn_cast<InstARM32Br>(I)) {
+    return Br->optimizeBranch(NextNode);
+  }
   return false;
 }
 
@@ -750,13 +830,109 @@ void TargetARM32::lowerAssign(const InstAssign *Inst) {
 }
 
 void TargetARM32::lowerBr(const InstBr *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  if (Inst->isUnconditional()) {
+    _br(Inst->getTargetUnconditional());
+    return;
+  }
+  Operand *Cond = Inst->getCondition();
+  // TODO(jvoung): Handle folding opportunities.
+
+  Variable *Src0R = legalizeToVar(Cond);
+  Constant *Zero = Ctx->getConstantZero(IceType_i32);
+  _cmp(Src0R, Zero);
+  _br(CondARM32::NE, Inst->getTargetTrue(), Inst->getTargetFalse());
 }
 
-void TargetARM32::lowerCall(const InstCall *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+void TargetARM32::lowerCall(const InstCall *Instr) {
+  // TODO(jvoung): assign arguments to registers and stack. Also reserve stack.
+  if (Instr->getNumArgs()) {
+    UnimplementedError(Func->getContext()->getFlags());
+  }
+
+  // Generate the call instruction.  Assign its result to a temporary
+  // with high register allocation weight.
+  Variable *Dest = Instr->getDest();
+  // ReturnReg doubles as ReturnRegLo as necessary.
+  Variable *ReturnReg = nullptr;
+  Variable *ReturnRegHi = nullptr;
+  if (Dest) {
+    switch (Dest->getType()) {
+    case IceType_NUM:
+      llvm_unreachable("Invalid Call dest type");
+      break;
+    case IceType_void:
+      break;
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
+    case IceType_i32:
+      ReturnReg = makeReg(Dest->getType(), RegARM32::Reg_r0);
+      break;
+    case IceType_i64:
+      ReturnReg = makeReg(IceType_i32, RegARM32::Reg_r0);
+      ReturnRegHi = makeReg(IceType_i32, RegARM32::Reg_r1);
+      break;
+    case IceType_f32:
+    case IceType_f64:
+      // Use S and D regs.
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case IceType_v4i1:
+    case IceType_v8i1:
+    case IceType_v16i1:
+    case IceType_v16i8:
+    case IceType_v8i16:
+    case IceType_v4i32:
+    case IceType_v4f32:
+      // Use Q regs.
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    }
+  }
+  Operand *CallTarget = Instr->getCallTarget();
+  // Allow ConstantRelocatable to be left alone as a direct call,
+  // but force other constants like ConstantInteger32 to be in
+  // a register and make it an indirect call.
+  if (!llvm::isa<ConstantRelocatable>(CallTarget)) {
+    CallTarget = legalize(CallTarget, Legal_Reg);
+  }
+  Inst *NewCall = InstARM32Call::create(Func, ReturnReg, CallTarget);
+  Context.insert(NewCall);
+  if (ReturnRegHi)
+    Context.insert(InstFakeDef::create(Func, ReturnRegHi));
+
+  // Insert a register-kill pseudo instruction.
+  Context.insert(InstFakeKill::create(Func, NewCall));
+
+  // Generate a FakeUse to keep the call live if necessary.
+  if (Instr->hasSideEffects() && ReturnReg) {
+    Inst *FakeUse = InstFakeUse::create(Func, ReturnReg);
+    Context.insert(FakeUse);
+  }
+
+  if (!Dest)
+    return;
+
+  // Assign the result of the call to Dest.
+  if (ReturnReg) {
+    if (ReturnRegHi) {
+      assert(Dest->getType() == IceType_i64);
+      split64(Dest);
+      Variable *DestLo = Dest->getLo();
+      Variable *DestHi = Dest->getHi();
+      _mov(DestLo, ReturnReg);
+      _mov(DestHi, ReturnRegHi);
+    } else {
+      assert(Dest->getType() == IceType_i32 || Dest->getType() == IceType_i16 ||
+             Dest->getType() == IceType_i8 || Dest->getType() == IceType_i1 ||
+             isVectorType(Dest->getType()));
+      if (isFloatingType(Dest->getType()) || isVectorType(Dest->getType())) {
+        UnimplementedError(Func->getContext()->getFlags());
+      } else {
+        _mov(Dest, ReturnReg);
+      }
+    }
+  }
 }
 
 void TargetARM32::lowerCast(const InstCast *Inst) {
@@ -815,8 +991,135 @@ void TargetARM32::lowerFcmp(const InstFcmp *Inst) {
 }
 
 void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  Variable *Dest = Inst->getDest();
+  Operand *Src0 = Inst->getSrc(0);
+  Operand *Src1 = Inst->getSrc(1);
+
+  if (isVectorType(Dest->getType())) {
+    UnimplementedError(Func->getContext()->getFlags());
+    return;
+  }
+
+  // a=icmp cond, b, c ==>
+  // GCC does:
+  //   cmp      b.hi, c.hi     or  cmp      b.lo, c.lo
+  //   cmp.eq   b.lo, c.lo         sbcs t1, b.hi, c.hi
+  //   mov.<C1> t, #1              mov.<C1> t, #1
+  //   mov.<C2> t, #0              mov.<C2> t, #0
+  //   mov      a, t               mov      a, t
+  // where the "cmp.eq b.lo, c.lo" is used for unsigned and "sbcs t1, hi, hi"
+  // is used for signed compares. In some cases, b and c need to be swapped
+  // as well.
+  //
+  // LLVM does:
+  // for EQ and NE:
+  //   eor  t1, b.hi, c.hi
+  //   eor  t2, b.lo, c.hi
+  //   orrs t, t1, t2
+  //   mov.<C> t, #1
+  //   mov  a, t
+  //
+  // that's nice in that it's just as short but has fewer dependencies
+  // for better ILP at the cost of more registers.
+  //
+  // Otherwise for signed/unsigned <, <=, etc. LLVM uses a sequence with
+  // two unconditional mov #0, two cmps, two conditional mov #1,
+  // and one conditonal reg mov. That has few dependencies for good ILP,
+  // but is a longer sequence.
+  //
+  // So, we are going with the GCC version since it's usually better (except
+  // perhaps for eq/ne). We could revisit special-casing eq/ne later.
+  Constant *Zero = Ctx->getConstantZero(IceType_i32);
+  Constant *One = Ctx->getConstantInt32(1);
+  if (Src0->getType() == IceType_i64) {
+    InstIcmp::ICond Conditon = Inst->getCondition();
+    size_t Index = static_cast<size_t>(Conditon);
+    assert(Index < TableIcmp64Size);
+    Variable *Src0Lo, *Src0Hi;
+    Operand *Src1LoRF, *Src1HiRF;
+    if (TableIcmp64[Index].Swapped) {
+      Src0Lo = legalizeToVar(loOperand(Src1));
+      Src0Hi = legalizeToVar(hiOperand(Src1));
+      Src1LoRF = legalize(loOperand(Src0), Legal_Reg | Legal_Flex);
+      Src1HiRF = legalize(hiOperand(Src0), Legal_Reg | Legal_Flex);
+    } else {
+      Src0Lo = legalizeToVar(loOperand(Src0));
+      Src0Hi = legalizeToVar(hiOperand(Src0));
+      Src1LoRF = legalize(loOperand(Src1), Legal_Reg | Legal_Flex);
+      Src1HiRF = legalize(hiOperand(Src1), Legal_Reg | Legal_Flex);
+    }
+    Variable *T = makeReg(IceType_i32);
+    if (TableIcmp64[Index].IsSigned) {
+      Variable *ScratchReg = makeReg(IceType_i32);
+      _cmp(Src0Lo, Src1LoRF);
+      _sbcs(ScratchReg, Src0Hi, Src1HiRF);
+      // ScratchReg isn't going to be used, but we need the
+      // side-effect of setting flags from this operation.
+      Context.insert(InstFakeUse::create(Func, ScratchReg));
+    } else {
+      _cmp(Src0Hi, Src1HiRF);
+      _cmp(Src0Lo, Src1LoRF, CondARM32::EQ);
+    }
+    _mov(T, One, TableIcmp64[Index].C1);
+    _mov_nonkillable(T, Zero, TableIcmp64[Index].C2);
+    _mov(Dest, T);
+    return;
+  }
+
+  // a=icmp cond b, c ==>
+  // GCC does:
+  //   <u/s>xtb tb, b
+  //   <u/s>xtb tc, c
+  //   cmp      tb, tc
+  //   mov.C1   t, #0
+  //   mov.C2   t, #1
+  //   mov      a, t
+  // where the unsigned/sign extension is not needed for 32-bit.
+  // They also have special cases for EQ and NE. E.g., for NE:
+  //   <extend to tb, tc>
+  //   subs     t, tb, tc
+  //   movne    t, #1
+  //   mov      a, t
+  //
+  // LLVM does:
+  //   lsl     tb, b, #<N>
+  //   mov     t, #0
+  //   cmp     tb, c, lsl #<N>
+  //   mov.<C> t, #1
+  //   mov     a, t
+  //
+  // the left shift is by 0, 16, or 24, which allows the comparison to focus
+  // on the digits that actually matter (for 16-bit or 8-bit signed/unsigned).
+  // For the unsigned case, for some reason it does similar to GCC and does
+  // a uxtb first. It's not clear to me why that special-casing is needed.
+  //
+  // We'll go with the LLVM way for now, since it's shorter and has just as
+  // few dependencies.
+  int32_t ShiftAmount = 32 - getScalarIntBitWidth(Src0->getType());
+  assert(ShiftAmount >= 0);
+  Constant *ShiftConst = nullptr;
+  Variable *Src0R = nullptr;
+  Variable *T = makeReg(IceType_i32);
+  if (ShiftAmount) {
+    ShiftConst = Ctx->getConstantInt32(ShiftAmount);
+    Src0R = makeReg(IceType_i32);
+    _lsl(Src0R, legalizeToVar(Src0), ShiftConst);
+  } else {
+    Src0R = legalizeToVar(Src0);
+  }
+  _mov(T, Zero);
+  if (ShiftAmount) {
+    Variable *Src1R = legalizeToVar(Src1);
+    OperandARM32FlexReg *Src1RShifted = OperandARM32FlexReg::create(
+        Func, IceType_i32, Src1R, OperandARM32::LSL, ShiftConst);
+    _cmp(Src0R, Src1RShifted);
+  } else {
+    Operand *Src1RF = legalize(Src1, Legal_Reg | Legal_Flex);
+    _cmp(Src0R, Src1RF);
+  }
+  _mov_nonkillable(T, One, getIcmp32Mapping(Inst->getCondition()));
+  _mov(Dest, T);
+  return;
 }
 
 void TargetARM32::lowerInsertElement(const InstInsertElement *Inst) {
@@ -986,7 +1289,7 @@ void TargetARM32::lowerRet(const InstRet *Inst) {
       UnimplementedError(Func->getContext()->getFlags());
     } else {
       Operand *Src0F = legalize(Src0, Legal_Reg | Legal_Flex);
-      _mov(Reg, Src0F, RegARM32::Reg_r0);
+      _mov(Reg, Src0F, CondARM32::AL, RegARM32::Reg_r0);
     }
   }
   // Add a ret instruction even if sandboxing is enabled, because

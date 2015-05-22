@@ -91,4 +91,27 @@
   X(RRX, "rrx")                                                         \
 //#define X(tag, emit)
 
+// Attributes for the condition code 4-bit encoding (that is independent
+// of the APSR's NZCV fields). For example, EQ is 0, but corresponds to
+// Z = 1, and NE is 1, but corresponds to Z = 0.
+#define ICEINSTARM32COND_TABLE                                          \
+  /* enum value, encoding, opposite, emit */                            \
+  X(EQ, 0, NE, "eq") /* equal */                                        \
+  X(NE, 1, EQ, "ne") /* not equal */                                    \
+  X(CS, 2, CC, "cs") /* carry set/unsigned (AKA hs: higher or same) */  \
+  X(CC, 3, CS, "cc") /* carry clear/unsigned (AKA lo: lower) */         \
+  X(MI, 4, PL, "mi") /* minus/negative */                               \
+  X(PL, 5, MI, "pl") /* plus/positive or zero */                        \
+  X(VS, 6, VC, "vs") /* overflow (float unordered) */                   \
+  X(VC, 7, VS, "vc") /* no overflow (float not unordered) */            \
+  X(HI, 8, LS, "hi") /* unsigned higher */                              \
+  X(LS, 9, HI, "ls") /* unsigned lower or same */                       \
+  X(GE, 10, LT, "ge") /* signed greater than or equal */                \
+  X(LT, 11, GE, "lt") /* signed less than */                            \
+  X(GT, 12, LE, "gt") /* signed greater than */                         \
+  X(LE, 13, GT, "le") /* signed less than or equal */                   \
+  X(AL, 14, kNone, "") /* always (unconditional) */                     \
+  X(kNone, 15, kNone, "??") /* special condition / none */              \
+//#define(tag, encode, opp, emit)
+
 #endif // SUBZERO_SRC_ICEINSTARM32_DEF

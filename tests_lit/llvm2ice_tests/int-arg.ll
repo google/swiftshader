@@ -1,7 +1,9 @@
 ; This file checks that Subzero generates code in accordance with the
 ; calling convention for integers.
 
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
 ; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
 ; once enough infrastructure is in. Also, switch to --filetype=obj

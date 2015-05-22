@@ -583,8 +583,8 @@ void InstX8632Call::dump(const Cfg *Func) const {
 // shift instructions, in order to be syntactically valid.  The
 // Opcode parameter needs to be char* and not IceString because of
 // template issues.
-void emitTwoAddress(const char *Opcode, const Inst *Inst, const Cfg *Func,
-                    bool ShiftHack) {
+void InstX8632::emitTwoAddress(const char *Opcode, const Inst *Inst,
+                               const Cfg *Func, bool ShiftHack) {
   if (!ALLOW_DUMP)
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -703,9 +703,9 @@ void emitIASAsAddrOpTyGPR(
   }
 }
 
-void emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
-                     const Operand *Src,
-                     const X8632::AssemblerX8632::GPREmitterShiftOp &Emitter) {
+void InstX8632::emitIASGPRShift(
+    const Cfg *Func, Type Ty, const Variable *Var, const Operand *Src,
+    const X8632::AssemblerX8632::GPREmitterShiftOp &Emitter) {
   X8632::AssemblerX8632 *Asm = Func->getAssembler<X8632::AssemblerX8632>();
   // Technically, the Dest Var can be mem as well, but we only use Reg.
   // We can extend this to check Dest if we decide to use that form.
