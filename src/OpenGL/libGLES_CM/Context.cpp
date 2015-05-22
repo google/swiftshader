@@ -1833,37 +1833,156 @@ void Context::applyTextures()
 
 			applyTexture(samplerIndex, texture);
 
-			GLenum texFormat = texture->getFormat(GL_TEXTURE_2D, 0);
-			sw::TextureStage::StageOperation rgbOperation, alphaOperation;
-			es2sw::ConvertTextureOperations(texEnvMode, texFormat, &rgbOperation, &alphaOperation);
+			if(texEnvMode != GL_COMBINE)
+			{
+				GLenum texFormat = texture->getFormat(GL_TEXTURE_2D, 0);
 
-			device->setStageOperation(samplerIndex, rgbOperation);
-            device->setFirstArgument(samplerIndex, sw::TextureStage::SOURCE_TEXTURE);
-			device->setFirstModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
-			device->setSecondArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
-			device->setSecondModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
+				device->setFirstArgument(samplerIndex, sw::TextureStage::SOURCE_TEXTURE);    // Cs
+				device->setFirstModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
+				device->setSecondArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);   // Cp
+				device->setSecondModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
+				device->setThirdArgument(samplerIndex, sw::TextureStage::SOURCE_CONSTANT);   // Cc
+				device->setThirdModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
 
-            device->setStageOperationAlpha(samplerIndex, alphaOperation);
-			device->setFirstArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_TEXTURE);
-			device->setFirstModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
-			device->setSecondArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
-			device->setSecondModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
+				device->setFirstArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_TEXTURE);    // As
+				device->setFirstModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
+				device->setSecondArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);   // Ap
+				device->setSecondModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
+				device->setThirdArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CONSTANT);   // Ac
+				device->setThirdModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
+
+				switch(texEnvMode)
+				{
+				case GL_REPLACE:
+					switch(texFormat)
+					{
+					case GL_ALPHA:
+						// Cv = Cp, Av = As
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
+						break;
+					case GL_LUMINANCE:
+					case GL_RGB:
+						// Cv = Cs, Av = Ap
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+					case GL_LUMINANCE_ALPHA:
+					case GL_RGBA:
+						// Cv = Cs, Av = As
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
+						break;
+					default: UNREACHABLE();
+					}
+					break;
+				case GL_MODULATE:
+					switch(texFormat)
+					{
+					case GL_ALPHA:
+						// Cv = Cp, Av = ApAs
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						break;
+					case GL_LUMINANCE:
+					case GL_RGB:
+						// Cv = CpCs, Av = Ap
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+					case GL_LUMINANCE_ALPHA:
+					case GL_RGBA:
+						// Cv = CpCs, Av = ApAs
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						break;
+					default: UNREACHABLE();
+					}
+					break;
+				case GL_DECAL:
+					switch(texFormat)
+					{
+					case GL_ALPHA:
+					case GL_LUMINANCE:
+					case GL_LUMINANCE_ALPHA:
+						// undefined
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						break;
+					case GL_RGB:
+						// Cv = Cs, Av = Ap
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+					case GL_RGBA:
+						// Cv = Cp(1 ? As) + CsAs, Av = Ap
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_BLENDTEXTUREALPHA);   // Alpha * (Arg1 - Arg2) + Arg2
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						break;
+					default: UNREACHABLE();
+					}
+					break;
+				case GL_BLEND:
+					switch(texFormat)
+					{
+					case GL_ALPHA:
+						// Cv = Cp, Av = ApAs
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						break;
+					case GL_LUMINANCE:
+					case GL_RGB:
+						// Cv = Cp(1 ? Cs) + CcCs, Av = Ap
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_LERP);   // Arg3 * (Arg1 - Arg2) + Arg2
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+					case GL_LUMINANCE_ALPHA:
+					case GL_RGBA:
+						// Cv = Cp(1 ? Cs) + CcCs, Av = ApAs
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_LERP);   // Arg3 * (Arg1 - Arg2) + Arg2
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						break;
+					default: UNREACHABLE();
+					}
+					break;
+				case GL_ADD:
+					switch(texFormat)
+					{
+					case GL_ALPHA:
+						// Cv = Cp, Av = ApAs
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						break;
+					case GL_LUMINANCE:
+					case GL_RGB:
+						// Cv = Cp + Cs, Av = Ap
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_ADD);
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG2);
+					case GL_LUMINANCE_ALPHA:
+					case GL_RGBA:
+						// Cv = Cp + Cs, Av = ApAs
+						device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_ADD);
+						device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_MODULATE);
+						break;
+					default: UNREACHABLE();
+					}
+					break;
+				default:
+					UNREACHABLE();
+				}
+			}
+			else   // GL_COMBINE
+			{
+				
+			}
         }
         else
         {
             applyTexture(samplerIndex, 0);
 
-			device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
 			device->setFirstArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
 			device->setFirstModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
-			device->setSecondArgument(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
-			device->setSecondModifier(samplerIndex, sw::TextureStage::MODIFIER_COLOR);
+			device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
 
-            device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
 			device->setFirstArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
 			device->setFirstModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
-			device->setSecondArgumentAlpha(samplerIndex, sw::TextureStage::SOURCE_CURRENT);
-			device->setSecondModifierAlpha(samplerIndex, sw::TextureStage::MODIFIER_ALPHA);
+			device->setStageOperationAlpha(samplerIndex, sw::TextureStage::STAGE_SELECTARG1);
         }
     }
 }
