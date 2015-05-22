@@ -625,6 +625,11 @@ void Context::setFogColor(float r, float g, float b, float a)
 	device->setFogColor(sw::Color<float>(r, g, b, a));
 }
 
+void Context::setPointSize(float size)
+{
+	device->setPointSize(size);
+}
+
 void Context::setTexture2Denabled(bool enable)
 {
     texture2Denabled[mState.activeSampler] = enable;

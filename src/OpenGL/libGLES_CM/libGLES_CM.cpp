@@ -2751,7 +2751,14 @@ void PointParameterxv(GLenum pname, const GLfixed *params)
 
 void PointSize(GLfloat size)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLfloat size = %f)", size);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		context->setPointSize(size);
+	}
 }
 
 void PointSizePointerOES(GLenum type, GLsizei stride, const GLvoid *pointer)
