@@ -644,7 +644,7 @@ void ColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer
 {
 	TRACE("(GLint size = %d, GLenum type = 0x%X, GLsizei stride = %d, const GLvoid *pointer = %p)", size, type, stride, pointer);
 
-	VertexAttribPointer(sw::Color0, size, type, false, stride, pointer);
+	VertexAttribPointer(sw::Color0, size, type, true, stride, pointer);
 }
 
 void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height,
@@ -2678,7 +2678,7 @@ void NormalPointer(GLenum type, GLsizei stride, const GLvoid *pointer)
 {
 	TRACE("(GLenum type = 0x%X, GLsizei stride = %d, const GLvoid *pointer = %p)", type, stride, pointer);
 
-	VertexAttribPointer(sw::Normal, 3, type, false, stride, pointer);
+	VertexAttribPointer(sw::Normal, 3, type, true, stride, pointer);
 }
 
 void Orthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar)

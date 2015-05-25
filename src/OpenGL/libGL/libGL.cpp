@@ -6909,7 +6909,7 @@ void APIENTRY glNormalPointer(GLenum type, GLsizei stride, const GLvoid *pointer
 {
 	TRACE("(*)");
 
-	glVertexAttribPointer(sw::Normal, 3, type, false, stride, pointer);
+	glVertexAttribPointer(sw::Normal, 3, type, true, stride, pointer);
 }
 
 void APIENTRY glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
