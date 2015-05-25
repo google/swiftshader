@@ -1984,7 +1984,23 @@ void Context::applyTextures()
 			}
 			else   // GL_COMBINE
 			{
-				
+				device->setFirstArgument(unit, es2sw::ConvertSourceArgument(mState.textureUnit[unit].src0RGB));
+				device->setFirstModifier(unit, es2sw::ConvertSourceOperand(mState.textureUnit[unit].operand0RGB));
+				device->setSecondArgument(unit, es2sw::ConvertSourceArgument(mState.textureUnit[unit].src1RGB));
+				device->setSecondModifier(unit, es2sw::ConvertSourceOperand(mState.textureUnit[unit].operand1RGB));
+				device->setThirdArgument(unit, es2sw::ConvertSourceArgument(mState.textureUnit[unit].src2RGB));
+				device->setThirdModifier(unit, es2sw::ConvertSourceOperand(mState.textureUnit[unit].operand2RGB));
+
+				device->setStageOperation(unit, es2sw::ConvertCombineOperation(mState.textureUnit[unit].combineRGB));
+
+				device->setFirstArgumentAlpha(unit, es2sw::ConvertSourceArgument(mState.textureUnit[unit].src0Alpha));
+				device->setFirstModifierAlpha(unit, es2sw::ConvertSourceOperand(mState.textureUnit[unit].operand0Alpha));
+				device->setSecondArgumentAlpha(unit, es2sw::ConvertSourceArgument(mState.textureUnit[unit].src1Alpha));
+				device->setSecondModifierAlpha(unit, es2sw::ConvertSourceOperand(mState.textureUnit[unit].operand1Alpha));
+				device->setThirdArgumentAlpha(unit, es2sw::ConvertSourceArgument(mState.textureUnit[unit].src2Alpha));
+				device->setThirdModifierAlpha(unit, es2sw::ConvertSourceOperand(mState.textureUnit[unit].operand2Alpha));
+
+				device->setStageOperationAlpha(unit, es2sw::ConvertCombineOperation(mState.textureUnit[unit].combineAlpha));
 			}
         }
         else

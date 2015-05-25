@@ -399,6 +399,46 @@ namespace es2sw
 		default: UNREACHABLE();       return sw::FORMAT_A8B8G8R8;
 		}
 	}
+
+	sw::TextureStage::StageOperation ConvertCombineOperation(GLenum operation)
+	{
+		switch(operation)
+		{
+		case GL_REPLACE:        return sw::TextureStage::STAGE_SELECTARG1;
+		case GL_MODULATE:       return sw::TextureStage::STAGE_MODULATE;
+		case GL_ADD:            return sw::TextureStage::STAGE_ADD;
+		case GL_ADD_SIGNED:     return sw::TextureStage::STAGE_ADDSIGNED;
+		case GL_INTERPOLATE:    return sw::TextureStage::STAGE_LERP;
+		case GL_SUBTRACT:       return sw::TextureStage::STAGE_SUBTRACT;
+		case GL_DOT3_RGB:       return sw::TextureStage::STAGE_DOT3;
+		case GL_DOT3_RGBA:      return sw::TextureStage::STAGE_DOT3;
+		default: UNREACHABLE(); return sw::TextureStage::STAGE_SELECTARG1;
+		}
+	}
+
+	sw::TextureStage::SourceArgument ConvertSourceArgument(GLenum argument)
+	{
+		switch(argument)
+		{
+		case GL_TEXTURE:        return sw::TextureStage::SOURCE_TEXTURE;
+		case GL_CONSTANT:       return sw::TextureStage::SOURCE_CONSTANT;
+		case GL_PRIMARY_COLOR:  return sw::TextureStage::SOURCE_DIFFUSE;
+		case GL_PREVIOUS:       return sw::TextureStage::SOURCE_CURRENT;
+		default: UNREACHABLE(); return sw::TextureStage::SOURCE_CURRENT;
+		}
+	}
+
+	sw::TextureStage::ArgumentModifier ConvertSourceOperand(GLenum operand)
+	{
+		switch(operand)
+		{
+		case GL_SRC_COLOR:           return sw::TextureStage::MODIFIER_COLOR;
+		case GL_ONE_MINUS_SRC_COLOR: return sw::TextureStage::MODIFIER_INVCOLOR;
+		case GL_SRC_ALPHA:           return sw::TextureStage::MODIFIER_ALPHA;
+		case GL_ONE_MINUS_SRC_ALPHA: return sw::TextureStage::MODIFIER_INVALPHA;
+		default: UNREACHABLE();      return sw::TextureStage::MODIFIER_COLOR;
+		}
+	}
 }
 
 namespace sw2es
