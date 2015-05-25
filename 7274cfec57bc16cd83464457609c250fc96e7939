@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4d0995dc_6eec093b",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 764,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-25T20:12:27Z",
+      "side": 1,
+      "message": "I\u0027ll remove this change for now, we have no support for structs currently.",
+      "parentUuid": "adc5b1ce_c419b333",
+      "range": {
+        "startLine": 763,
+        "startChar": 4,
+        "endLine": 764,
+        "endChar": 46
+      },
+      "revId": "7274cfec57bc16cd83464457609c250fc96e7939",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "adc5b1ce_84185b29",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-25T16:52:32Z",
       "side": 1,
       "message": "In registerSize() you used the secondary size for matrices as well. So one of these seems incorrect.",
+      "range": {
+        "startLine": 2025,
+        "startChar": 3,
+        "endLine": 2025,
+        "endChar": 102
+      },
+      "revId": "7274cfec57bc16cd83464457609c250fc96e7939",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd8f45ac_9eb7fd1a",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2025,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-25T20:12:27Z",
+      "side": 1,
+      "message": "I\u0027m fairly certain registerSize() is correct, so I\u0027ll revert this one.",
+      "parentUuid": "adc5b1ce_84185b29",
       "range": {
         "startLine": 2025,
         "startChar": 3,
