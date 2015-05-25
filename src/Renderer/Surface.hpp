@@ -348,7 +348,7 @@ namespace sw
 		static void update(Buffer &destination, Buffer &source);
 		static void genericUpdate(Buffer &destination, Buffer &source);
 		static void *allocateBuffer(int width, int height, int depth, Format format);
-		static void memfill(void *buffer, int pattern, int bytes);
+		static void memfill4(void *buffer, int pattern, int bytes);
 
 		bool identicalFormats() const;
 		Format selectInternalFormat(Format format) const;

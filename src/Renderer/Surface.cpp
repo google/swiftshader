@@ -2211,7 +2211,7 @@ namespace sw
 		return allocateZero(size(width4, height4, depth, format));
 	}
 
-	void Surface::memfill(void *buffer, int pattern, int bytes)
+	void Surface::memfill4(void *buffer, int pattern, int bytes)
 	{
 		while((size_t)buffer & 0x1 && bytes >= 1)
 		{
@@ -2305,17 +2305,15 @@ namespace sw
 
 	//	if(lockable || !quadLayoutEnabled)
 		{
-			unsigned char *buffer = (unsigned char*)lockInternal(x0, y0, 0, lock, PUBLIC);
-
 			unsigned char r8 = (colorARGB & 0x00FF0000) >> 16;
 			unsigned char g8 = (colorARGB & 0x0000FF00) >> 8;
 			unsigned char b8 = (colorARGB & 0x000000FF) >> 0;
 			unsigned char a8 = (colorARGB & 0xFF000000) >> 24;
 
-			unsigned short r16 = (r8 << 8) + r8;
-			unsigned short g16 = (g8 << 8) + g8;
-			unsigned short b16 = (b8 << 8) + b8;
-			unsigned short a16 = (a8 << 8) + a8;
+			unsigned short r16 = (r8 << 8) | r8;
+			unsigned short g16 = (g8 << 8) | g8;
+			unsigned short b16 = (b8 << 8) | b8;
+			unsigned short a16 = (a8 << 8) | a8;
 
 			float r32f = r8 / 255.0f;
 			float g32f = g8 / 255.0f;
@@ -2326,6 +2324,10 @@ namespace sw
 			unsigned short g16r16[2] = {r16, g16};
 			unsigned char a8b8g8r8[4] = {r8, g8, b8, a8};
 			unsigned int colorABGR = (unsigned int&)a8b8g8r8;
+			unsigned int r5g6b5 = (((unsigned short)r8 << 8) & 0xF800) | (((unsigned short)g8 << 3) & 0x07E0) | ((unsigned short)b8 >> 3);
+			r5g6b5 |= r5g6b5 << 16;
+
+			unsigned char *buffer = (unsigned char*)lockInternal(x0, y0, 0, lock, PUBLIC);
 
 			for(int z = 0; z < internal.depth; z++)
 			{
@@ -2343,7 +2345,7 @@ namespace sw
 				//	case FORMAT_A8G8R8B8Q:   // FIXME
 						if(rgbaMask == 0xF || (internal.format == FORMAT_X8R8G8B8 && rgbaMask == 0x7))
 						{
-							memfill(target, colorARGB, 4 * (x1 - x0));
+							memfill4(target, colorARGB, 4 * (x1 - x0));
 						}
 						else
 						{
@@ -2362,7 +2364,7 @@ namespace sw
 					case FORMAT_A8B8G8R8:
 						if(rgbaMask == 0xF || (internal.format == FORMAT_X8B8G8R8 && rgbaMask == 0x7))
 						{
-							memfill(target, colorABGR, 4 * (x1 - x0));
+							memfill4(target, colorABGR, 4 * (x1 - x0));
 						}
 						else
 						{
@@ -2380,7 +2382,7 @@ namespace sw
 					case FORMAT_G8R8:
 						if((rgbaMask & 0x3) == 0x3)
 						{
-							memfill(target, (int&)g8r8, 2 * (x1 - x0));
+							memfill4(target, (int&)g8r8, 2 * (x1 - x0));
 						}
 						else
 						{
@@ -2398,7 +2400,7 @@ namespace sw
 					case FORMAT_G16R16:
 						if((rgbaMask & 0x3) == 0x3)
 						{
-							memfill(target, (int&)g16r16, 4 * (x1 - x0));
+							memfill4(target, (int&)g16r16, 4 * (x1 - x0));
 						}
 						else
 						{
@@ -2473,6 +2475,24 @@ namespace sw
 							if(rgbaMask & 0x2) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 1] = g32f;
 							if(rgbaMask & 0x4) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 2] = b32f;
 							if(rgbaMask & 0x8) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 3] = a32f;
+						}
+						break;
+					case FORMAT_R5G6B5:
+						if((rgbaMask & 0x7) == 0x7)
+						{
+							memfill4(target, r5g6b5, 2 * (x1 - x0));
+						}
+						else
+						{
+							unsigned short rgbMask = (rgbaMask & 0x1 ? 0xF800 : 0) | (rgbaMask & 0x2 ? 0x07E0 : 0) | (rgbaMask & 0x3 ? 0x001F : 0);
+							unsigned short invMask = ~rgbMask;
+							unsigned short maskedColor = r5g6b5 & rgbMask;
+							unsigned short *target16 = (unsigned short*)target;
+
+							for(int x = 0; x < width; x++)
+							{
+								target16[x] = maskedColor | (target16[x] & invMask);
+							}
 						}
 						break;
 					default:
@@ -2625,7 +2645,7 @@ namespace sw
 			{
 				for(int y = y0; y < y1; y++)
 				{
-					memfill(target, (int&)depth, 4 * width);
+					memfill4(target, (int&)depth, 4 * width);
 					target += width2;
 				}
 			}
@@ -2685,7 +2705,7 @@ namespace sw
 					//	qEnd:
 					//	}
 
-						memfill(&target[((x0 + 1) & ~1) * 2], (int&)depth, 8 * ((x1 & ~1) - ((x0 + 1) & ~1)));
+						memfill4(&target[((x0 + 1) & ~1) * 2], (int&)depth, 8 * ((x1 & ~1) - ((x0 + 1) & ~1)));
 
 						if((x1 & 1) != 0)
 						{
@@ -2745,7 +2765,7 @@ namespace sw
 				{
 					if(mask == 0xFF)
 					{
-						memfill(target, fill, width);
+						memfill4(target, fill, width);
 					}
 					else
 					{
@@ -2781,7 +2801,7 @@ namespace sw
 								target[(x0 & ~1) * 2 + 3] = fill;
 							}
 
-							memfill(&target[((x0 + 1) & ~1) * 2], fill, ((x1 + 1) & ~1) * 2 - ((x0 + 1) & ~1) * 2);
+							memfill4(&target[((x0 + 1) & ~1) * 2], fill, ((x1 + 1) & ~1) * 2 - ((x0 + 1) & ~1) * 2);
 
 							if((x1 & 1) != 0)
 							{
@@ -2834,7 +2854,7 @@ namespace sw
 
 			for(int y = 0; y < height; y++)
 			{
-				memfill(row, c, width * buffer->bytes);
+				memfill4(row, c, width * buffer->bytes);
 
 				row += buffer->pitchB;
 			}
