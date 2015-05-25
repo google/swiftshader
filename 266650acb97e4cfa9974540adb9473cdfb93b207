@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "adc5b1ce_e4414ffb",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-25T16:59:35Z",
+      "side": 1,
+      "message": "Could use VariableRowCount() and VariableColumnCount() for these.",
+      "range": {
+        "startLine": 417,
+        "startChar": 3,
+        "endLine": 456,
+        "endChar": 4
+      },
+      "revId": "266650acb97e4cfa9974540adb9473cdfb93b207",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
