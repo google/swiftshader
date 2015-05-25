@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "adc5b1ce_24b367dc",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4916,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-25T15:17:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "adc5b1ce_28dce3e4",
+      "range": {
+        "startLine": 4916,
+        "startChar": 3,
+        "endLine": 4916,
+        "endChar": 22
+      },
+      "revId": "c6c7083549361051f54761d2ab6c97fb16fc9de0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d0c61ed_a21e4417",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-22T21:20:05Z",
       "side": 1,
       "message": "My point above might apply to this already-existing code, keep in mind-- were you allowing glTexImage2D in ES2 contexts with HALF_FLOAT \u0026 R16F?",
+      "range": {
+        "startLine": 4948,
+        "startChar": 0,
+        "endLine": 4948,
+        "endChar": 23
+      },
+      "revId": "c6c7083549361051f54761d2ab6c97fb16fc9de0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adc5b1ce_84c05b2c",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4948,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-25T15:17:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d0c61ed_a21e4417",
       "range": {
         "startLine": 4948,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "adc5b1ce_64bd5fa2",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 6640,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-25T15:17:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d0c61ed_c2425801",
+      "range": {
+        "startLine": 6640,
+        "startChar": 1,
+        "endLine": 6640,
+        "endChar": 24
+      },
+      "revId": "c6c7083549361051f54761d2ab6c97fb16fc9de0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d0c61ed_4237688f",
         "filename": "src/OpenGL/libGLESv2/utilities.cpp",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2015-05-22T21:20:05Z",
       "side": 1,
       "message": "This is possibly problematic depending on whether ES2 contexts use this function to check type/format combinations.",
+      "range": {
+        "startLine": 319,
+        "startChar": 2,
+        "endLine": 319,
+        "endChar": 21
+      },
+      "revId": "c6c7083549361051f54761d2ab6c97fb16fc9de0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adc5b1ce_a4ef57b2",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-25T15:17:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d0c61ed_4237688f",
       "range": {
         "startLine": 319,
         "startChar": 2,
