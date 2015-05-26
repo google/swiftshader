@@ -70,6 +70,9 @@ void TType::buildMangledName(TString& mangledName)
     }
 
     mangledName += static_cast<char>('0' + getNominalSize());
+    if(isMatrix()) {
+        mangledName += static_cast<char>('0' + getSecondarySize());
+    }
     if (isArray()) {
         char buf[20];
         snprintf(buf, sizeof(buf), "%d", arraySize);
