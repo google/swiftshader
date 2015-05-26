@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d5f9dfa_b8e5b925",
+        "filename": "src/OpenGL/compiler/SymbolTable.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-26T19:45:42Z",
+      "side": 1,
+      "message": "Could be preceded by \"mangledName +\u003d \u0027x\u0027;\"\n\nYour call.",
+      "range": {
+        "startLine": 74,
+        "startChar": 8,
+        "endLine": 74,
+        "endChar": 67
+      },
+      "revId": "4bb8df45c4d96649ff030a0e5af742ad24f5338d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
