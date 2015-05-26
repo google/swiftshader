@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cd8f45ac_0142acfe",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2709,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-26T15:06:21Z",
+      "side": 1,
+      "message": "This will get hit, but exact rounding isn\u0027t that important right now so it will be implemented later.",
+      "parentUuid": "cd8f45ac_8105dc43",
+      "range": {
+        "startLine": 2709,
+        "startChar": 6,
+        "endLine": 2709,
+        "endChar": 19
+      },
+      "revId": "edb64a3094653a25ec957d140f1a3d5acc9257db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd8f45ac_a132d821",
         "filename": "src/Shader/PixelRoutine.cpp",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-26T13:45:36Z",
       "side": 1,
       "message": "Redefinition of buffer (line 2869)\nSame for all following cases.",
+      "range": {
+        "startLine": 2876,
+        "startChar": 18,
+        "endLine": 2876,
+        "endChar": 24
+      },
+      "revId": "edb64a3094653a25ec957d140f1a3d5acc9257db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd8f45ac_2137a890",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2876,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-26T15:06:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd8f45ac_a132d821",
       "range": {
         "startLine": 2876,
         "startChar": 18,
