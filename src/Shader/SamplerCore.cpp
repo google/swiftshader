@@ -106,21 +106,46 @@ namespace sw
 
 			if(fixed12 && !hasFloatTexture())
 			{
-				for(int component = 0; component < textureComponentCount(); component++)
+				if(has16bitTextureFormat())
 				{
-					if(state.sRGB && isRGBComponent(component))
+					switch(state.textureFormat)
 					{
-						sRGBtoLinear16_8_12(c[component]);   // FIXME: Perform linearization at surface level for read-only textures
-					}
-					else
-					{
-						if(hasUnsignedTextureComponent(component))
+					case FORMAT_R5G6B5:
+						if(state.sRGB)
 						{
-							c[component] = As<UShort4>(c[component]) >> 4;
+							sRGBtoLinear16_5_12(c.x);
+							sRGBtoLinear16_6_12(c.y);
+							sRGBtoLinear16_5_12(c.z);
 						}
 						else
 						{
-							c[component] = c[component] >> 3;
+							c.x = MulHigh(As<UShort4>(c.x), UShort4(0x10000000 / 0xF800));
+							c.y = MulHigh(As<UShort4>(c.y), UShort4(0x10000000 / 0xFC00));
+							c.z = MulHigh(As<UShort4>(c.z), UShort4(0x10000000 / 0xF800));
+						}
+						break;
+					default:
+						ASSERT(false);
+					}
+				}
+				else
+				{
+					for(int component = 0; component < textureComponentCount(); component++)
+					{
+						if(state.sRGB && isRGBComponent(component))
+						{
+							sRGBtoLinear16_8_12(c[component]);   // FIXME: Perform linearization at surface level for read-only textures
+						}
+						else
+						{
+							if(hasUnsignedTextureComponent(component))
+							{
+								c[component] = As<UShort4>(c[component]) >> 4;
+							}
+							else
+							{
+								c[component] = c[component] >> 3;
+							}
 						}
 					}
 				}
@@ -264,20 +289,49 @@ namespace sw
 
 				for(int component = 0; component < textureComponentCount(); component++)
 				{
-					if(state.sRGB && isRGBComponent(component))
+					if(has16bitTextureFormat())
 					{
-						sRGBtoLinear16_8_12(cs[component]);   // FIXME: Perform linearization at surface level for read-only textures
-						convertSigned12(c[component], cs[component]);
+						switch(state.textureFormat)
+						{
+						case FORMAT_R5G6B5:
+							if(state.sRGB)
+							{
+								sRGBtoLinear16_5_12(cs.x);
+								sRGBtoLinear16_6_12(cs.y);
+								sRGBtoLinear16_5_12(cs.z);
+
+								convertSigned12(c.x, cs.x);
+								convertSigned12(c.y, cs.y);
+								convertSigned12(c.z, cs.z);
+							}
+							else
+							{
+								c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
+								c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xFC00);
+								c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF800);
+							}
+							break;
+						default:
+							ASSERT(false);
+						}
 					}
 					else
 					{
-						if(hasUnsignedTextureComponent(component))
+						if(state.sRGB && isRGBComponent(component))
 						{
-							convertUnsigned16(c[component], cs[component]);
+							sRGBtoLinear16_8_12(cs[component]);   // FIXME: Perform linearization at surface level for read-only textures
+							convertSigned12(c[component], cs[component]);
 						}
 						else
 						{
-							convertSigned15(c[component], cs[component]);
+							if(hasUnsignedTextureComponent(component))
+							{
+								convertUnsigned16(c[component], cs[component]);
+							}
+							else
+							{
+								convertSigned15(c[component], cs[component]);
+							}
 						}
 					}
 				}
