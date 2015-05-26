@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd8f45ac_c19b6470",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-26T14:18:11Z",
+      "side": 1,
+      "message": "Should be 2",
+      "range": {
+        "startLine": 185,
+        "startChar": 44,
+        "endLine": 185,
+        "endChar": 45
+      },
+      "revId": "7411cd98d444c96caf46b814ec44414c59462a7b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
