@@ -2871,32 +2871,40 @@ namespace sw
 		case FORMAT_R5G6B5:
 			{
 				Pointer<Byte> buffer = cBuffer + 2 * x;
+				Int value = *Pointer<Int>(buffer);
 
-				//Int value = *Pointer<Int>(buffer);
+				Int c01 = Extract(As<Int2>(current.x), 0);
 
-				if((rgbaWriteMask & 0x00000007) != 0x00000007)
+				if((bgraWriteMask & 0x00000007) != 0x00000007)
 				{
-					UNIMPLEMENTED();
+					Int masked = value;
+					c01 &= *Pointer<Int>(r.constants + OFFSET(Constants,mask565Q[bgraWriteMask & 0x7][0]));
+					masked &= *Pointer<Int>(r.constants + OFFSET(Constants,invMask565Q[bgraWriteMask & 0x7][0]));
+					c01 |= masked;
 				}
 
-				//current.x &= *Pointer<Short4>(r.constants + OFFSET(Constants,maskD01Q) + xMask * 8);
-				//value &= *Pointer<Short4>(r.constants + OFFSET(Constants,invMaskD01Q) + xMask * 8);
-				//current.x |= value;
-				*Pointer<Int>(buffer) = Extract(As<Int2>(current.x), 0);
+				c01 &= *Pointer<Int>(r.constants + OFFSET(Constants,maskW4Q[0][0]) + xMask * 8);
+				value &= *Pointer<Int>(r.constants + OFFSET(Constants,invMaskW4Q[0][0]) + xMask * 8);
+				c01 |= value;
+				*Pointer<Int>(buffer) = c01;
 
 				buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
+				value = *Pointer<Int>(buffer);
 
-				//value = *Pointer<Short4>(buffer);
+				Int c23 = Extract(As<Int2>(current.x), 1);
 
-				if((rgbaWriteMask & 0x00000007) != 0x00000007)
+				if((bgraWriteMask & 0x00000007) != 0x00000007)
 				{
-					UNIMPLEMENTED();
+					Int masked = value;
+					c23 &= *Pointer<Int>(r.constants + OFFSET(Constants,mask565Q[bgraWriteMask & 0x7][0]));
+					masked &= *Pointer<Int>(r.constants + OFFSET(Constants,invMask565Q[bgraWriteMask & 0x7][0]));
+					c23 |= masked;
 				}
 
-				//current.y &= *Pointer<Short4>(r.constants + OFFSET(Constants,maskD23Q) + xMask * 8);
-				//value &= *Pointer<Short4>(r.constants + OFFSET(Constants,invMaskD23Q) + xMask * 8);
-				//current.y |= value;
-				*Pointer<Int>(buffer) = Extract(As<Int2>(current.x), 1);
+				c23 &= *Pointer<Int>(r.constants + OFFSET(Constants,maskW4Q[0][2]) + xMask * 8);
+				value &= *Pointer<Int>(r.constants + OFFSET(Constants,invMaskW4Q[0][2]) + xMask * 8);
+				c23 |= value;
+				*Pointer<Int>(buffer) = c23;
 			}
 			break;
 		case FORMAT_A8G8R8B8Q:

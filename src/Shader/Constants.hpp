@@ -64,6 +64,8 @@ namespace sw
 		word4 invMaskW01Q[4];
 		dword4 maskD01X[4];
 		dword4 invMaskD01X[4];
+		word4 mask565Q[8];
+		word4 invMask565Q[8];
 
 		unsigned short sRGBtoLinear8_12[256];
 		unsigned short sRGBtoLinear6_12[64];

@@ -238,6 +238,19 @@ namespace sw
 			invMaskQ23X[i][1] = ~-(i >> 3 & 1);
 		}
 
+		for(int i = 0; i < 8; i++)
+		{
+			mask565Q[i][0] =
+			mask565Q[i][1] =
+			mask565Q[i][2] =
+			mask565Q[i][3] = (i & 0x1 ? 0x001F : 0) | (i & 0x2 ? 0x07E0 : 0) | (i & 0x4 ? 0xF800 : 0);
+
+			invMask565Q[i][0] =
+			invMask565Q[i][1] =
+			invMask565Q[i][2] =
+			invMask565Q[i][3] = ~mask565Q[i][0];
+		}
+
 		for(int i = 0; i < 4; i++)
 		{
 			maskW01Q[i][0] =  -(i >> 0 & 1);
