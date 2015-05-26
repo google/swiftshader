@@ -2305,28 +2305,6 @@ namespace sw
 
 	//	if(lockable || !quadLayoutEnabled)
 		{
-			unsigned char r8 = (colorARGB & 0x00FF0000) >> 16;
-			unsigned char g8 = (colorARGB & 0x0000FF00) >> 8;
-			unsigned char b8 = (colorARGB & 0x000000FF) >> 0;
-			unsigned char a8 = (colorARGB & 0xFF000000) >> 24;
-
-			unsigned short r16 = (r8 << 8) | r8;
-			unsigned short g16 = (g8 << 8) | g8;
-			unsigned short b16 = (b8 << 8) | b8;
-			unsigned short a16 = (a8 << 8) | a8;
-
-			float r32f = r8 / 255.0f;
-			float g32f = g8 / 255.0f;
-			float b32f = b8 / 255.0f;
-			float a32f = a8 / 255.0f;
-			
-			unsigned char g8r8[4] = {r8, g8, r8, g8};
-			unsigned short g16r16[2] = {r16, g16};
-			unsigned char a8b8g8r8[4] = {r8, g8, b8, a8};
-			unsigned int colorABGR = (unsigned int&)a8b8g8r8;
-			unsigned int r5g6b5 = (((unsigned short)r8 << 8) & 0xF800) | (((unsigned short)g8 << 3) & 0x07E0) | ((unsigned short)b8 >> 3);
-			r5g6b5 |= r5g6b5 << 16;
-
 			unsigned char *buffer = (unsigned char*)lockInternal(x0, y0, 0, lock, PUBLIC);
 
 			for(int z = 0; z < internal.depth; z++)
@@ -2362,81 +2340,117 @@ namespace sw
 						break;
 					case FORMAT_X8B8G8R8:
 					case FORMAT_A8B8G8R8:
-						if(rgbaMask == 0xF || (internal.format == FORMAT_X8B8G8R8 && rgbaMask == 0x7))
 						{
-							memfill4(target, colorABGR, 4 * (x1 - x0));
-						}
-						else
-						{
-							unsigned int rgbaMask32 = (rgbaMask & 0x1 ? 0x000000FF : 0) | (rgbaMask & 0x2 ? 0x0000FF00 : 0) | (rgbaMask & 0x4 ? 0x00FF0000 : 0) | (rgbaMask & 0x8 ? 0xFF000000 : 0);
-							unsigned int invMask = ~rgbaMask32;
-							unsigned int maskedColor = colorABGR & rgbaMask32;
- 							unsigned int *target32 = (unsigned int*)target;
+							unsigned char r8 = (colorARGB & 0x00FF0000) >> 16;
+							unsigned char g8 = (colorARGB & 0x0000FF00) >> 8;
+							unsigned char b8 = (colorARGB & 0x000000FF) >> 0;
+							unsigned char a8 = (colorARGB & 0xFF000000) >> 24;
+							unsigned char a8b8g8r8[4] = {r8, g8, b8, a8};
+							unsigned int colorABGR = (unsigned int&)a8b8g8r8;
 
-							for(int x = 0; x < width; x++)
+							if(rgbaMask == 0xF || (internal.format == FORMAT_X8B8G8R8 && rgbaMask == 0x7))
 							{
-								target32[x] = maskedColor | (target32[x] & invMask);
+								memfill4(target, colorABGR, 4 * (x1 - x0));
+							}
+							else
+							{
+								unsigned int rgbaMask32 = (rgbaMask & 0x1 ? 0x000000FF : 0) | (rgbaMask & 0x2 ? 0x0000FF00 : 0) | (rgbaMask & 0x4 ? 0x00FF0000 : 0) | (rgbaMask & 0x8 ? 0xFF000000 : 0);
+								unsigned int invMask = ~rgbaMask32;
+								unsigned int maskedColor = colorABGR & rgbaMask32;
+ 								unsigned int *target32 = (unsigned int*)target;
+
+								for(int x = 0; x < width; x++)
+								{
+									target32[x] = maskedColor | (target32[x] & invMask);
+								}
 							}
 						}
 						break;
 					case FORMAT_G8R8:
-						if((rgbaMask & 0x3) == 0x3)
 						{
-							memfill4(target, (int&)g8r8, 2 * (x1 - x0));
-						}
-						else
-						{
-							unsigned short rgMask = (rgbaMask & 0x1 ? 0x000000FF : 0) | (rgbaMask & 0x2 ? 0x0000FF00 : 0);
-							unsigned short invMask = ~rgMask;
-							unsigned short maskedColor = (unsigned short&)g8r8 & rgMask;
-							unsigned short *target16 = (unsigned short*)target;
+							unsigned char r8 = (colorARGB & 0x00FF0000) >> 16;
+							unsigned char g8 = (colorARGB & 0x0000FF00) >> 8;
+							unsigned char g8r8[4] = {r8, g8, r8, g8};
 
-							for(int x = 0; x < width; x++)
+							if((rgbaMask & 0x3) == 0x3)
 							{
-								target16[x] = maskedColor | (target16[x] & invMask);
+								memfill4(target, (int&)g8r8, 2 * (x1 - x0));
+							}
+							else
+							{
+								unsigned short rgMask = (rgbaMask & 0x1 ? 0x000000FF : 0) | (rgbaMask & 0x2 ? 0x0000FF00 : 0);
+								unsigned short invMask = ~rgMask;
+								unsigned short maskedColor = (unsigned short&)g8r8 & rgMask;
+								unsigned short *target16 = (unsigned short*)target;
+
+								for(int x = 0; x < width; x++)
+								{
+									target16[x] = maskedColor | (target16[x] & invMask);
+								}
 							}
 						}
 						break;
 					case FORMAT_G16R16:
-						if((rgbaMask & 0x3) == 0x3)
 						{
-							memfill4(target, (int&)g16r16, 4 * (x1 - x0));
-						}
-						else
-						{
-							unsigned int rgMask = (rgbaMask & 0x1 ? 0x0000FFFF : 0) | (rgbaMask & 0x2 ? 0xFFFF0000 : 0);
-							unsigned int invMask = ~rgMask;
-							unsigned int maskedColor = (unsigned int&)g16r16 & rgMask;
-							unsigned int *target32 = (unsigned int*)target;
+							unsigned char r8 = (colorARGB & 0x00FF0000) >> 16;
+							unsigned char g8 = (colorARGB & 0x0000FF00) >> 8;
+							unsigned short r16 = (r8 << 8) | r8;
+							unsigned short g16 = (g8 << 8) | g8;
+							unsigned short g16r16[2] = {r16, g16};
 
-							for(int x = 0; x < width; x++)
+							if((rgbaMask & 0x3) == 0x3)
 							{
-								target32[x] = maskedColor | (target32[x] & invMask);
+								memfill4(target, (int&)g16r16, 4 * (x1 - x0));
+							}
+							else
+							{
+								unsigned int rgMask = (rgbaMask & 0x1 ? 0x0000FFFF : 0) | (rgbaMask & 0x2 ? 0xFFFF0000 : 0);
+								unsigned int invMask = ~rgMask;
+								unsigned int maskedColor = (unsigned int&)g16r16 & rgMask;
+								unsigned int *target32 = (unsigned int*)target;
+
+								for(int x = 0; x < width; x++)
+								{
+									target32[x] = maskedColor | (target32[x] & invMask);
+								}
 							}
 						}
 						break;
 					case FORMAT_A16B16G16R16:
-						if(rgbaMask == 0xF)
 						{
-							for(int x = 0; x < width; x++)
+							unsigned char r8 = (colorARGB & 0x00FF0000) >> 16;
+							unsigned char g8 = (colorARGB & 0x0000FF00) >> 8;
+							unsigned char b8 = (colorARGB & 0x000000FF) >> 0;
+							unsigned char a8 = (colorARGB & 0xFF000000) >> 24;
+							unsigned short r16 = (r8 << 8) | r8;
+							unsigned short g16 = (g8 << 8) | g8;
+							unsigned short b16 = (b8 << 8) | b8;
+							unsigned short a16 = (a8 << 8) | a8;
+
+							if(rgbaMask == 0xF)
 							{
-								((unsigned short*)target)[4 * x + 0] = r16;
-								((unsigned short*)target)[4 * x + 1] = g16;
-								((unsigned short*)target)[4 * x + 2] = b16;
-								((unsigned short*)target)[4 * x + 3] = a16;
+								for(int x = 0; x < width; x++)
+								{
+									((unsigned short*)target)[4 * x + 0] = r16;
+									((unsigned short*)target)[4 * x + 1] = g16;
+									((unsigned short*)target)[4 * x + 2] = b16;
+									((unsigned short*)target)[4 * x + 3] = a16;
+								}
 							}
-						}
-						else
-						{
-							if(rgbaMask & 0x1) for(int x = 0; x < width; x++) ((unsigned short*)target)[4 * x + 0] = r16;
-							if(rgbaMask & 0x2) for(int x = 0; x < width; x++) ((unsigned short*)target)[4 * x + 1] = g16;
-							if(rgbaMask & 0x4) for(int x = 0; x < width; x++) ((unsigned short*)target)[4 * x + 2] = b16;
-							if(rgbaMask & 0x8) for(int x = 0; x < width; x++) ((unsigned short*)target)[4 * x + 3] = a16;
+							else
+							{
+								if(rgbaMask & 0x1) for(int x = 0; x < width; x++) ((unsigned short*)target)[4 * x + 0] = r16;
+								if(rgbaMask & 0x2) for(int x = 0; x < width; x++) ((unsigned short*)target)[4 * x + 1] = g16;
+								if(rgbaMask & 0x4) for(int x = 0; x < width; x++) ((unsigned short*)target)[4 * x + 2] = b16;
+								if(rgbaMask & 0x8) for(int x = 0; x < width; x++) ((unsigned short*)target)[4 * x + 3] = a16;
+							}
 						}
 						break;
 					case FORMAT_R32F:
 						if(rgbaMask & 0x1)
 						{
+							float r32f = (float)(colorARGB & 0x00FF0000) / 0x00FF0000;
+
 							for(int x = 0; x < width; x++)
 							{
 								((float*)target)[x] = r32f;
@@ -2444,54 +2458,71 @@ namespace sw
 						}
 						break;
 					case FORMAT_G32R32F:
-						if((rgbaMask & 0x3) == 0x3)
 						{
-							for(int x = 0; x < width; x++)
+							float r32f = (float)(colorARGB & 0x00FF0000) / 0x00FF0000;
+							float g32f = (float)(colorARGB & 0x0000FF00) / 0x0000FF00;
+
+							if((rgbaMask & 0x3) == 0x3)
 							{
-								((float*)target)[2 * x + 0] = r32f;
-								((float*)target)[2 * x + 1] = g32f;
+								for(int x = 0; x < width; x++)
+								{
+									((float*)target)[2 * x + 0] = r32f;
+									((float*)target)[2 * x + 1] = g32f;
+								}
 							}
-						}
-						else
-						{
-							if(rgbaMask & 0x1) for(int x = 0; x < width; x++) ((float*)target)[2 * x + 0] = r32f;
-							if(rgbaMask & 0x2) for(int x = 0; x < width; x++) ((float*)target)[2 * x + 1] = g32f;
+							else
+							{
+								if(rgbaMask & 0x1) for(int x = 0; x < width; x++) ((float*)target)[2 * x + 0] = r32f;
+								if(rgbaMask & 0x2) for(int x = 0; x < width; x++) ((float*)target)[2 * x + 1] = g32f;
+							}
 						}
 						break;
 					case FORMAT_A32B32G32R32F:
-						if(rgbaMask == 0xF)
 						{
-							for(int x = 0; x < width; x++)
+							float r32f = (float)(colorARGB & 0x00FF0000) / 0x00FF0000;
+							float g32f = (float)(colorARGB & 0x0000FF00) / 0x0000FF00;
+							float b32f = (float)(colorARGB & 0x000000FF) / 0x000000FF;
+							float a32f = (float)(colorARGB & 0xFF000000) / 0xFF000000;
+
+							if(rgbaMask == 0xF)
 							{
-								((float*)target)[4 * x + 0] = r32f;
-								((float*)target)[4 * x + 1] = g32f;
-								((float*)target)[4 * x + 2] = b32f;
-								((float*)target)[4 * x + 3] = a32f;
+								for(int x = 0; x < width; x++)
+								{
+									((float*)target)[4 * x + 0] = r32f;
+									((float*)target)[4 * x + 1] = g32f;
+									((float*)target)[4 * x + 2] = b32f;
+									((float*)target)[4 * x + 3] = a32f;
+								}
 							}
-						}
-						else
-						{
-							if(rgbaMask & 0x1) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 0] = r32f;
-							if(rgbaMask & 0x2) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 1] = g32f;
-							if(rgbaMask & 0x4) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 2] = b32f;
-							if(rgbaMask & 0x8) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 3] = a32f;
+							else
+							{
+								if(rgbaMask & 0x1) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 0] = r32f;
+								if(rgbaMask & 0x2) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 1] = g32f;
+								if(rgbaMask & 0x4) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 2] = b32f;
+								if(rgbaMask & 0x8) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 3] = a32f;
+							}
 						}
 						break;
 					case FORMAT_R5G6B5:
-						if((rgbaMask & 0x7) == 0x7)
 						{
-							memfill4(target, r5g6b5, 2 * (x1 - x0));
-						}
-						else
-						{
-							unsigned short rgbMask = (rgbaMask & 0x1 ? 0xF800 : 0) | (rgbaMask & 0x2 ? 0x07E0 : 0) | (rgbaMask & 0x3 ? 0x001F : 0);
-							unsigned short invMask = ~rgbMask;
-							unsigned short maskedColor = r5g6b5 & rgbMask;
-							unsigned short *target16 = (unsigned short*)target;
+							unsigned int r5g6b5 = ((colorARGB >> 8) & 0xF800) | ((colorARGB >> 5) & 0x07E0) | ((colorARGB >> 3) & 0x001F);
 
-							for(int x = 0; x < width; x++)
+							if((rgbaMask & 0x7) == 0x7)
 							{
-								target16[x] = maskedColor | (target16[x] & invMask);
+								unsigned int r5g6b5r5g6b5 = r5g6b5 | (r5g6b5 << 16);
+								memfill4(target, r5g6b5r5g6b5, 2 * (x1 - x0));
+							}
+							else
+							{
+								unsigned short rgbMask = (rgbaMask & 0x1 ? 0xF800 : 0) | (rgbaMask & 0x2 ? 0x07E0 : 0) | (rgbaMask & 0x3 ? 0x001F : 0);
+								unsigned short invMask = ~rgbMask;
+								unsigned short maskedColor = r5g6b5 & rgbMask;
+								unsigned short *target16 = (unsigned short*)target;
+
+								for(int x = 0; x < width; x++)
+								{
+									target16[x] = maskedColor | (target16[x] & invMask);
+								}
 							}
 						}
 						break;
