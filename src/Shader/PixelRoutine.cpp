@@ -1573,7 +1573,7 @@ namespace sw
 				{
 					Int masked = value;
 					c01 &= *Pointer<Int>(constants + OFFSET(Constants,mask565Q[bgraWriteMask & 0x7][0]));
-					masked &= *Pointer<Int>(constants + OFFSET(Constants,invMask565Q[bgraWriteMask & 0x7][0]));
+					masked &= *Pointer<Int>(constants + OFFSET(Constants,mask565Q[~bgraWriteMask & 0x7][0]));
 					c01 |= masked;
 				}
 
@@ -1591,7 +1591,7 @@ namespace sw
 				{
 					Int masked = value;
 					c23 &= *Pointer<Int>(constants + OFFSET(Constants,mask565Q[bgraWriteMask & 0x7][0]));
-					masked &= *Pointer<Int>(constants + OFFSET(Constants,invMask565Q[bgraWriteMask & 0x7][0]));
+					masked &= *Pointer<Int>(constants + OFFSET(Constants,mask565Q[~bgraWriteMask & 0x7][0]));
 					c23 |= masked;
 				}
 
@@ -1791,7 +1791,7 @@ namespace sw
 				{
 					Short4 masked = value;
 					current.x &= *Pointer<Short4>(constants + OFFSET(Constants,maskW01Q[rgbaWriteMask & 0x3][0]));
-					masked &= *Pointer<Short4>(constants + OFFSET(Constants,invMaskW01Q[rgbaWriteMask & 0x3][0]));
+					masked &= *Pointer<Short4>(constants + OFFSET(Constants,maskW01Q[~rgbaWriteMask & 0x3][0]));
 					current.x |= masked;
 				}
 
@@ -1808,7 +1808,7 @@ namespace sw
 				{
 					Short4 masked = value;
 					current.y &= *Pointer<Short4>(constants + OFFSET(Constants,maskW01Q[rgbaWriteMask & 0x3][0]));
-					masked &= *Pointer<Short4>(constants + OFFSET(Constants,invMaskW01Q[rgbaWriteMask & 0x3][0]));
+					masked &= *Pointer<Short4>(constants + OFFSET(Constants,maskW01Q[~rgbaWriteMask & 0x3][0]));
 					current.y |= masked;
 				}
 
@@ -2389,7 +2389,7 @@ namespace sw
 			{
 				Float4 masked = value;
 				oC.x = As<Float4>(As<Int4>(oC.x) & *Pointer<Int4>(constants + OFFSET(Constants,maskD01X[rgbaWriteMask & 0x3][0])));
-				masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants,invMaskD01X[rgbaWriteMask & 0x3][0])));
+				masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants,maskD01X[~rgbaWriteMask & 0x3][0])));
 				oC.x = As<Float4>(As<Int4>(oC.x) | As<Int4>(masked));
 			}
 
@@ -2408,7 +2408,7 @@ namespace sw
 
 				masked = value;
 				oC.y = As<Float4>(As<Int4>(oC.y) & *Pointer<Int4>(constants + OFFSET(Constants,maskD01X[rgbaWriteMask & 0x3][0])));
-				masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants,invMaskD01X[rgbaWriteMask & 0x3][0])));
+				masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants,maskD01X[~rgbaWriteMask & 0x3][0])));
 				oC.y = As<Float4>(As<Int4>(oC.y) | As<Int4>(masked));
 			}
 
