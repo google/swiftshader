@@ -22,6 +22,30 @@
       "revId": "97470d35b608820ba4fd82a0fc398227d77979e2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd8f45ac_a1ef38cb",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1490,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-05-26T14:24:23Z",
+      "side": 1,
+      "message": "It improves filtering precision to keep more trailing bits here.",
+      "parentUuid": "cd8d8546_8242aafc",
+      "range": {
+        "startLine": 1488,
+        "startChar": 4,
+        "endLine": 1490,
+        "endChar": 34
+      },
+      "revId": "97470d35b608820ba4fd82a0fc398227d77979e2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
