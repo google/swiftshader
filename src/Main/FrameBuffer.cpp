@@ -326,9 +326,9 @@ namespace sw
 								Int rgb = Int(*Pointer<Short>(s));
 
 								*Pointer<Int>(d) = 0xFF000000 |
-								                   ((rgb & 0xF800) << 8) | ((rgb & 0xE000) << 3) |
+								                   ((rgb & 0xF800) << 8) | ((rgb & 0xE01F) << 3) |
 								                   ((rgb & 0x07E0) << 5) | ((rgb & 0x0600) >> 1) |
-								                   ((rgb & 0x001F) << 3) | ((rgb & 0x001C) >> 2);
+								                   ((rgb & 0x001C) >> 2);
 
 								s += sBytes;
 								d += dBytes;
@@ -369,9 +369,9 @@ namespace sw
 									Int rgb = Int(*Pointer<Short>(s));
 
 									*Pointer<Int>(d) = 0xFF000000 |
-									                   ((rgb & 0xF800) << 8) | ((rgb & 0xE000) << 3) |
+									                   ((rgb & 0xF800) << 8) | ((rgb & 0xE01F) << 3) |
 								                       ((rgb & 0x07E0) << 5) | ((rgb & 0x0600) >> 1) |
-								                       ((rgb & 0x001F) << 3) | ((rgb & 0x001C) >> 2);
+								                       ((rgb & 0x001C) >> 2);
 								}
 								break;
 							default:
