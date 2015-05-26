@@ -794,19 +794,29 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
     Str << "\t\t\t\t# LiveOut=";
   }
   if (!Live->empty()) {
-    bool First = true;
+    std::vector<Variable *> LiveRegs;
     for (SizeT i = 0; i < Live->size(); ++i) {
       if ((*Live)[i]) {
         Variable *Var = Liveness->getVariable(i, Node);
         if (Var->hasReg()) {
           if (IsLiveIn)
             ++LiveRegCount[Var->getRegNum()];
-          if (!First)
-            Str << ",";
-          First = false;
-          Var->emit(Func);
+          LiveRegs.push_back(Var);
         }
       }
+    }
+    // Sort the variables by regnum so they are always printed in a
+    // familiar order.
+    std::sort(LiveRegs.begin(), LiveRegs.end(),
+              [](const Variable *V1, const Variable *V2) {
+      return V1->getRegNum() < V2->getRegNum();
+    });
+    bool First = true;
+    for (Variable *Var : LiveRegs) {
+      if (!First)
+        Str << ",";
+      First = false;
+      Var->emit(Func);
     }
   }
   Str << "\n";
@@ -825,8 +835,14 @@ void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
     SizeT NumVars = Src->getNumVars();
     for (SizeT J = 0; J < NumVars; ++J) {
       const Variable *Var = Src->getVar(J);
-      if (Instr->isLastUse(Var) &&
-          (!Var->hasReg() || --LiveRegCount[Var->getRegNum()] == 0)) {
+      bool ShouldEmit = Instr->isLastUse(Var);
+      if (Var->hasReg()) {
+        // Don't report end of live range until the live count reaches 0.
+        SizeT NewCount = --LiveRegCount[Var->getRegNum()];
+        if (NewCount)
+          ShouldEmit = false;
+      }
+      if (ShouldEmit) {
         if (First)
           Str << " \t# END=";
         else
@@ -884,12 +900,8 @@ void CfgNode::emit(Cfg *Func) const {
   for (const Inst &I : Insts) {
     if (I.isDeleted())
       continue;
-    if (I.isRedundantAssign()) {
-      Variable *Dest = I.getDest();
-      if (DecorateAsm && Dest->hasReg() && !I.isLastUse(I.getSrc(0)))
-        ++LiveRegCount[Dest->getRegNum()];
+    if (I.isRedundantAssign())
       continue;
-    }
     I.emit(Func);
     if (DecorateAsm)
       emitLiveRangesEnded(Str, Func, &I, LiveRegCount);
