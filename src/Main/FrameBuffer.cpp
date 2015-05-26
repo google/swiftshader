@@ -676,9 +676,9 @@ namespace sw
 			{
 				Int rgb(*Pointer<Short>(s));
 				rgb = 0xFF000000 |
-				      ((rgb & 0x001F) << 19) | ((rgb & 0x001C) << 14) |
+				      ((rgb & 0xF800) << 8) | ((rgb & 0xE01F) << 3) |
 				      ((rgb & 0x07E0) << 5) | ((rgb & 0x0600) >> 1) |
-				      ((rgb & 0xF800) >> 8) | ((rgb & 0xE000) >> 13);
+				      ((rgb & 0x001C) >> 2);
 				c2 = Unpack(As<Byte4>(rgb));
 			}
 			break;
