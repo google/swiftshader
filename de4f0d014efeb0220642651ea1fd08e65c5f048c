@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd8f45ac_0119ccae",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 2327,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-26T13:39:35Z",
+      "side": 1,
+      "message": "why is this value computed here instead of inside the case where it\u0027s needed?",
+      "range": {
+        "startLine": 2327,
+        "startChar": 16,
+        "endLine": 2327,
+        "endChar": 22
+      },
+      "revId": "de4f0d014efeb0220642651ea1fd08e65c5f048c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
