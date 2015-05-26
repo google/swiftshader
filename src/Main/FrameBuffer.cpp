@@ -489,6 +489,7 @@ namespace sw
 							d += dBytes;
 						}
 					}
+					break;
 				case FORMAT_R8G8B8:
 					{
 						For(Int x = x0, x < width, x++)
