@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "cd8f45ac_e175c049",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2709,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-05-26T15:15:12Z",
+      "side": 1,
+      "message": "I still think commenting this out should be done locally only, not as a change landed with the cl, but ok.",
+      "parentUuid": "cd8f45ac_0142acfe",
+      "range": {
+        "startLine": 2709,
+        "startChar": 6,
+        "endLine": 2709,
+        "endChar": 19
+      },
+      "revId": "edb64a3094653a25ec957d140f1a3d5acc9257db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd8f45ac_a132d821",
         "filename": "src/Shader/PixelRoutine.cpp",
         "patchSetId": 2
