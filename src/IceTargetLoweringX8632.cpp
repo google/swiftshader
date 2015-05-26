@@ -138,18 +138,10 @@ const uint32_t X86_LOG2_OF_MAX_STACK_SLOT_SIZE = 4;
 // The number of different NOP instructions
 const uint32_t X86_NUM_NOP_VARIANTS = 5;
 
-// Value and Alignment are in bytes.  Return Value adjusted to the next
-// highest multiple of Alignment.
-uint32_t applyAlignment(uint32_t Value, uint32_t Alignment) {
-  // power of 2
-  assert((Alignment & (Alignment - 1)) == 0);
-  return (Value + Alignment - 1) & -Alignment;
-}
-
 // Value is in bytes. Return Value adjusted to the next highest multiple
 // of the stack alignment.
 uint32_t applyStackAlignment(uint32_t Value) {
-  return applyAlignment(Value, X86_STACK_ALIGNMENT_BYTES);
+  return Utils::applyAlignment(Value, X86_STACK_ALIGNMENT_BYTES);
 }
 
 // In some cases, there are x-macros tables for both high-level and
@@ -957,7 +949,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     assert(SpillAreaAlignmentBytes <= X86_STACK_ALIGNMENT_BYTES);
     uint32_t PaddingStart = X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
     uint32_t SpillAreaStart =
-        applyAlignment(PaddingStart, SpillAreaAlignmentBytes);
+        Utils::applyAlignment(PaddingStart, SpillAreaAlignmentBytes);
     SpillAreaPaddingBytes = SpillAreaStart - PaddingStart;
     SpillAreaSizeBytes += SpillAreaPaddingBytes;
   }
@@ -968,7 +960,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   if (LocalsSlotsAlignmentBytes) {
     assert(LocalsSlotsAlignmentBytes <= SpillAreaAlignmentBytes);
     GlobalsAndSubsequentPaddingSize =
-        applyAlignment(GlobalsSize, LocalsSlotsAlignmentBytes);
+        Utils::applyAlignment(GlobalsSize, LocalsSlotsAlignmentBytes);
     SpillAreaSizeBytes += GlobalsAndSubsequentPaddingSize - GlobalsSize;
   }
 
@@ -1261,7 +1253,7 @@ void TargetX8632::lowerAlloca(const InstAlloca *Inst) {
   // restriction can be relaxed in some cases.
   NeedsStackAlignment = true;
 
-  // TODO(sehr,stichnot): minimize the number of adjustments of esp, etc.
+  // TODO(stichnot): minimize the number of adjustments of esp, etc.
   Variable *esp = getPhysicalRegister(RegX8632::Reg_esp);
   Operand *TotalSize = legalize(Inst->getSizeInBytes());
   Variable *Dest = Inst->getDest();
@@ -1271,17 +1263,17 @@ void TargetX8632::lowerAlloca(const InstAlloca *Inst) {
   AlignmentParam = std::max(AlignmentParam, 1u);
 
   // LLVM enforces power of 2 alignment.
-  assert((AlignmentParam & (AlignmentParam - 1)) == 0);
-  assert((X86_STACK_ALIGNMENT_BYTES & (X86_STACK_ALIGNMENT_BYTES - 1)) == 0);
+  assert(llvm::isPowerOf2_32(AlignmentParam));
+  assert(llvm::isPowerOf2_32(X86_STACK_ALIGNMENT_BYTES));
 
   uint32_t Alignment = std::max(AlignmentParam, X86_STACK_ALIGNMENT_BYTES);
   if (Alignment > X86_STACK_ALIGNMENT_BYTES) {
     _and(esp, Ctx->getConstantInt32(-Alignment));
   }
-  if (ConstantInteger32 *ConstantTotalSize =
+  if (const auto *ConstantTotalSize =
           llvm::dyn_cast<ConstantInteger32>(TotalSize)) {
     uint32_t Value = ConstantTotalSize->getValue();
-    Value = applyAlignment(Value, Alignment);
+    Value = Utils::applyAlignment(Value, Alignment);
     _sub(esp, Ctx->getConstantInt32(Value));
   } else {
     // Non-constant sizes need to be adjusted to the next highest

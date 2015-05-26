@@ -252,6 +252,7 @@ public:
     Adc,
     Add,
     And,
+    Bic,
     Br,
     Call,
     Cmp,
@@ -510,6 +511,7 @@ private:
 typedef InstARM32ThreeAddrGPR<InstARM32::Adc> InstARM32Adc;
 typedef InstARM32ThreeAddrGPR<InstARM32::Add> InstARM32Add;
 typedef InstARM32ThreeAddrGPR<InstARM32::And> InstARM32And;
+typedef InstARM32ThreeAddrGPR<InstARM32::Bic> InstARM32Bic;
 typedef InstARM32ThreeAddrGPR<InstARM32::Eor> InstARM32Eor;
 typedef InstARM32ThreeAddrGPR<InstARM32::Lsl> InstARM32Lsl;
 typedef InstARM32ThreeAddrGPR<InstARM32::Mul> InstARM32Mul;

@@ -61,16 +61,27 @@ public:
     return IsUint(N, Value);
   }
 
+  // Return true if the addition X + Y will cause integer overflow for
+  // integers of type T.
   template <typename T> static inline bool WouldOverflowAdd(T X, T Y) {
     return ((X > 0 && Y > 0 && (X > std::numeric_limits<T>::max() - Y)) ||
             (X < 0 && Y < 0 && (X < std::numeric_limits<T>::min() - Y)));
   }
 
+  // Return true if X is already aligned by N, where N is a power of 2.
   template <typename T> static inline bool IsAligned(T X, intptr_t N) {
     assert(llvm::isPowerOf2_64(N));
     return (X & (N - 1)) == 0;
   }
 
+  // Return Value adjusted to the next highest multiple of Alignment.
+  static inline uint32_t applyAlignment(uint32_t Value, uint32_t Alignment) {
+    assert(llvm::isPowerOf2_32(Alignment));
+    return (Value + Alignment - 1) & -Alignment;
+  }
+
+  // Return amount which must be added to adjust Pos to the next highest
+  // multiple of Align.
   static inline uint64_t OffsetToAlignment(uint64_t Pos, uint64_t Align) {
     assert(llvm::isPowerOf2_64(Align));
     uint64_t Mod = Pos & (Align - 1);
@@ -79,6 +90,7 @@ public:
     return Align - Mod;
   }
 
+  // Rotate the value bit pattern to the left by shift bits.
   // Precondition: 0 <= shift < 32
   static inline uint32_t rotateLeft32(uint32_t value, uint32_t shift) {
     if (shift == 0)
@@ -86,6 +98,7 @@ public:
     return (value << shift) | (value >> (32 - shift));
   }
 
+  // Rotate the value bit pattern to the right by shift bits.
   static inline uint32_t rotateRight32(uint32_t value, uint32_t shift) {
     if (shift == 0)
       return value;

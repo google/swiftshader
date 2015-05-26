@@ -123,6 +123,9 @@ ICEINSTICMP_TABLE
 // The maximum number of arguments to pass in GPR registers.
 const uint32_t ARM32_MAX_GPR_ARG = 4;
 
+// Stack alignment
+const uint32_t ARM32_STACK_ALIGNMENT_BYTES = 16;
+
 } // end of anonymous namespace
 
 TargetARM32::TargetARM32(Cfg *Func)
@@ -607,8 +610,42 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
   // stack alignment is preserved after the alloca.  The stack alignment
   // restriction can be relaxed in some cases.
   NeedsStackAlignment = true;
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+
+  // TODO(stichnot): minimize the number of adjustments of SP, etc.
+  Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
+  Variable *Dest = Inst->getDest();
+  uint32_t AlignmentParam = Inst->getAlignInBytes();
+  // For default align=0, set it to the real value 1, to avoid any
+  // bit-manipulation problems below.
+  AlignmentParam = std::max(AlignmentParam, 1u);
+
+  // LLVM enforces power of 2 alignment.
+  assert(llvm::isPowerOf2_32(AlignmentParam));
+  assert(llvm::isPowerOf2_32(ARM32_STACK_ALIGNMENT_BYTES));
+
+  uint32_t Alignment = std::max(AlignmentParam, ARM32_STACK_ALIGNMENT_BYTES);
+  if (Alignment > ARM32_STACK_ALIGNMENT_BYTES) {
+    alignRegisterPow2(SP, Alignment);
+  }
+  Operand *TotalSize = Inst->getSizeInBytes();
+  if (const auto *ConstantTotalSize =
+          llvm::dyn_cast<ConstantInteger32>(TotalSize)) {
+    uint32_t Value = ConstantTotalSize->getValue();
+    Value = Utils::applyAlignment(Value, Alignment);
+    Operand *SubAmount = legalize(Ctx->getConstantInt32(Value));
+    _sub(SP, SP, SubAmount);
+  } else {
+    // Non-constant sizes need to be adjusted to the next highest
+    // multiple of the required alignment at runtime.
+    TotalSize = legalize(TotalSize);
+    Variable *T = makeReg(IceType_i32);
+    _mov(T, TotalSize);
+    Operand *AddAmount = legalize(Ctx->getConstantInt32(Alignment - 1));
+    _add(T, T, AddAmount);
+    alignRegisterPow2(T, Alignment);
+    _sub(SP, SP, T);
+  }
+  _mov(Dest, SP);
 }
 
 void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
@@ -1526,6 +1563,23 @@ Variable *TargetARM32::makeReg(Type Type, int32_t RegNum) {
   else
     Reg->setRegNum(RegNum);
   return Reg;
+}
+
+void TargetARM32::alignRegisterPow2(Variable *Reg, uint32_t Align) {
+  assert(llvm::isPowerOf2_32(Align));
+  uint32_t RotateAmt = 0;
+  uint32_t Immed_8;
+  Operand *Mask;
+  // Use AND or BIC to mask off the bits, depending on which immediate fits
+  // (if it fits at all). Assume Align is usually small, in which case BIC
+  // works better.
+  if (OperandARM32FlexImm::canHoldImm(Align - 1, &RotateAmt, &Immed_8)) {
+    Mask = legalize(Ctx->getConstantInt32(Align - 1), Legal_Reg | Legal_Flex);
+    _bic(Reg, Reg, Mask);
+  } else {
+    Mask = legalize(Ctx->getConstantInt32(-Align), Legal_Reg | Legal_Flex);
+    _and(Reg, Reg, Mask);
+  }
 }
 
 void TargetARM32::postLower() {

@@ -290,6 +290,7 @@ template <> const char *InstARM32Mov::Opcode = "mov";
 template <> const char *InstARM32Adc::Opcode = "adc";
 template <> const char *InstARM32Add::Opcode = "add";
 template <> const char *InstARM32And::Opcode = "and";
+template <> const char *InstARM32Bic::Opcode = "bic";
 template <> const char *InstARM32Eor::Opcode = "eor";
 template <> const char *InstARM32Lsl::Opcode = "lsl";
 template <> const char *InstARM32Mul::Opcode = "mul";

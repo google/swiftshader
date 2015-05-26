@@ -118,6 +118,7 @@ protected:
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
   static Type stackSlotType();
   Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
+  void alignRegisterPow2(Variable *Reg, uint32_t Align);
 
   // Returns a vector in a register with the given constant entries.
   Variable *makeVectorOfZeros(Type Ty, int32_t RegNum = Variable::NoRegister);
@@ -147,6 +148,10 @@ protected:
   void _and(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32And::create(Func, Dest, Src0, Src1, Pred));
+  }
+  void _bic(Variable *Dest, Variable *Src0, Operand *Src1,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Bic::create(Func, Dest, Src0, Src1, Pred));
   }
   void _br(CondARM32::Cond Condition, CfgNode *TargetTrue,
            CfgNode *TargetFalse) {
