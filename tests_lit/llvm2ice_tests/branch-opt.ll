@@ -12,10 +12,14 @@
 ; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
 ; once enough infrastructure is in. Also, switch to --filetype=obj
 ; when possible.
-; Also test Om1 when addProlog is done.
 ; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix ARM32O2 %s
+
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --command FileCheck \
+; RUN:   --check-prefix ARM32OM1 %s
 
 declare void @dummy()
 
@@ -43,6 +47,11 @@ next:
 ; ARM32O2-LABEL: testUncondToNextBlock
 ; ARM32O2: bl {{.*}} dummy
 ; ARM32O2-NEXT: bl {{.*}} dummy
+
+; ARM32OM1-LABEL: testUncondToNextBlock
+; ARM32OM1: bl {{.*}} dummy
+; ARM32OM1-NEXT: b
+; ARM32OM1-NEXT: bl {{.*}} dummy
 
 ; For a conditional branch with a fallthrough to the next block, the
 ; fallthrough branch should be removed.
@@ -87,6 +96,17 @@ target:
 ; ARM32O2-NEXT: bx lr
 ; ARM32O2-NEXT: bl
 ; ARM32O2-NEXT: bx lr
+
+; ARM32OM1-LABEL: testCondFallthroughToNextBlock
+; ARM32OM1: cmp {{.*}}, #123
+; ARM32OM1-NEXT: movge {{.*}}, #1
+; ARM32OM1: cmp {{.*}}, #0
+; ARM32OM1: bne
+; ARM32OM1: b
+; ARM32OM1: bl
+; ARM32OM1: bx lr
+; ARM32OM1: bl
+; ARM32OM1: bx lr
 
 ; For a conditional branch with the next block as the target and a
 ; different block as the fallthrough, the branch condition should be
@@ -134,3 +154,14 @@ target:
 ; ARM32O2-NEXT: bx lr
 ; ARM32O2-NEXT: bl
 ; ARM32O2-NEXT: bx lr
+
+; ARM32OM1-LABEL: testCondTargetNextBlock
+; ARM32OM1: cmp {{.*}}, #123
+; ARM32OM1: movge {{.*}}, #1
+; ARM32OM1: cmp {{.*}}, #0
+; ARM32OM1: bne
+; ARM32OM1: b
+; ARM32OM1: bl
+; ARM32OM1: bx lr
+; ARM32OM1: bl
+; ARM32OM1: bx lr

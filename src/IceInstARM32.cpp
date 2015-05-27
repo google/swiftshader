@@ -313,8 +313,18 @@ template <> void InstARM32Mov::emit(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   Variable *Dest = getDest();
   if (Dest->hasReg()) {
-    Str << "\t"
-        << "mov" << getPredicate() << "\t";
+    const char *Opcode = "mov";
+    Operand *Src0 = getSrc(0);
+    if (const auto *Src0V = llvm::dyn_cast<Variable>(Src0)) {
+      if (!Src0V->hasReg()) {
+        Opcode = "ldr"; // Always load the full stack slot (vs ldrb, ldrh).
+      }
+    } else {
+      // If Src isn't a variable, it shouldn't be a memory operand either
+      // (otherwise Opcode will have to be ldr).
+      assert(!llvm::isa<OperandARM32Mem>(Src0));
+    }
+    Str << "\t" << Opcode << getPredicate() << "\t";
     getDest()->emit(Func);
     Str << ", ";
     getSrc(0)->emit(Func);

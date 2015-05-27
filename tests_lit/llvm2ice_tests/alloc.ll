@@ -15,6 +15,10 @@
 ; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix ARM32 %s
 
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix ARM32 %s
+
 define void @fixed_416_align_16(i32 %n) {
 entry:
   %array = alloca i8, i32 416, align 16
