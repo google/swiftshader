@@ -567,7 +567,6 @@ protected:
   const X86InstructionSet InstructionSet;
   bool IsEbpBasedFrame;
   bool NeedsStackAlignment;
-  size_t FrameSizeLocals;
   size_t SpillAreaSizeBytes;
   llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
   llvm::SmallBitVector ScratchRegs;

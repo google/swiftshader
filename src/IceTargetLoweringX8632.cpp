@@ -403,7 +403,7 @@ TargetX8632::TargetX8632(Cfg *Func)
       InstructionSet(static_cast<X86InstructionSet>(
           Func->getContext()->getFlags().getTargetInstructionSet() -
           TargetInstructionSet::X86InstructionSet_Begin)),
-      IsEbpBasedFrame(false), NeedsStackAlignment(false), FrameSizeLocals(0),
+      IsEbpBasedFrame(false), NeedsStackAlignment(false),
       SpillAreaSizeBytes(0) {
   static_assert((X86InstructionSet::End - X86InstructionSet::Begin) ==
                     (TargetInstructionSet::X86InstructionSet_End -
@@ -1023,7 +1023,6 @@ void TargetX8632::addProlog(CfgNode *Node) {
     else
       Var->setStackOffset(SpillAreaSizeBytes - NextStackOffset);
   }
-  this->FrameSizeLocals = NextStackOffset - SpillAreaPaddingBytes;
   this->HasComputedFrame = true;
 
   // Assign stack offsets to variables that have been linked to spilled
