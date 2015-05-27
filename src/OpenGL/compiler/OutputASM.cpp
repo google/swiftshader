@@ -1092,6 +1092,17 @@ namespace glsl
 				}
 			}
 			break;
+		case EOpOuterProduct:
+			if(visit == PostVisit)
+			{
+				for(int i = 0; i < dim(arg[1]); i++)
+				{
+					Instruction *mul = emit(sw::Shader::OPCODE_MUL, result, arg[0], arg[1]);
+					mul->dst.index += i;
+					mul->src[1].swizzle = 0x55 * i;
+				}
+			}
+			break;
 		default: UNREACHABLE();
 		}
 
