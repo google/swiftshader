@@ -828,21 +828,26 @@ void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
     return;
   bool First = true;
   Variable *Dest = Instr->getDest();
-  if (Dest && Dest->hasReg())
+  // Normally we increment the live count for the dest register.  But
+  // we shouldn't if the instruction's IsDestNonKillable flag is set,
+  // because this means that the target lowering created this
+  // instruction as a non-SSA assignment; i.e., a different, previous
+  // instruction started the dest variable's live range.
+  if (!Instr->isDestNonKillable() && Dest && Dest->hasReg())
     ++LiveRegCount[Dest->getRegNum()];
   for (SizeT I = 0; I < Instr->getSrcSize(); ++I) {
     Operand *Src = Instr->getSrc(I);
     SizeT NumVars = Src->getNumVars();
     for (SizeT J = 0; J < NumVars; ++J) {
       const Variable *Var = Src->getVar(J);
-      bool ShouldEmit = Instr->isLastUse(Var);
-      if (Var->hasReg()) {
+      bool ShouldReport = Instr->isLastUse(Var);
+      if (ShouldReport && Var->hasReg()) {
         // Don't report end of live range until the live count reaches 0.
         SizeT NewCount = --LiveRegCount[Var->getRegNum()];
         if (NewCount)
-          ShouldEmit = false;
+          ShouldReport = false;
       }
-      if (ShouldEmit) {
+      if (ShouldReport) {
         if (First)
           Str << " \t# END=";
         else
@@ -885,6 +890,10 @@ void CfgNode::emit(Cfg *Func) const {
   bool DecorateAsm =
       Liveness && Func->getContext()->getFlags().getDecorateAsm();
   Str << getAsmName() << ":\n";
+  // LiveRegCount keeps track of the number of currently live
+  // variables that each register is assigned to.  Normally that would
+  // be only 0 or 1, but the register allocator's AllowOverlap
+  // inference allows it to be greater than 1 for short periods.
   std::vector<SizeT> LiveRegCount(Func->getTarget()->getNumRegisters());
   if (DecorateAsm) {
     const bool IsLiveIn = true;
@@ -900,8 +909,21 @@ void CfgNode::emit(Cfg *Func) const {
   for (const Inst &I : Insts) {
     if (I.isDeleted())
       continue;
-    if (I.isRedundantAssign())
+    if (I.isRedundantAssign()) {
+      // Usually, redundant assignments end the live range of the src
+      // variable and begin the live range of the dest variable, with
+      // no net effect on the liveness of their register.  However, if
+      // the register allocator infers the AllowOverlap condition,
+      // then this may be a redundant assignment that does not end the
+      // src variable's live range, in which case the active variable
+      // count for that register needs to be bumped.  That normally
+      // would have happened as part of emitLiveRangesEnded(), but
+      // that isn't called for redundant assignments.
+      Variable *Dest = I.getDest();
+      if (DecorateAsm && Dest->hasReg() && !I.isLastUse(I.getSrc(0)))
+        ++LiveRegCount[Dest->getRegNum()];
       continue;
+    }
     I.emit(Func);
     if (DecorateAsm)
       emitLiveRangesEnded(Str, Func, &I, LiveRegCount);

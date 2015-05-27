@@ -495,7 +495,6 @@ void Cfg::emit() {
 
 void Cfg::emitIAS() {
   TimerMarker T(TimerStack::TT_emit, this);
-  assert(!Ctx->getFlags().getDecorateAsm());
   // The emitIAS() routines emit into the internal assembler buffer,
   // so there's no need to lock the streams.
   for (CfgNode *Node : Nodes)
