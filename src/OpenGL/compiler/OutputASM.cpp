@@ -652,6 +652,24 @@ namespace glsl
 		case EOpFwidth:           if(visit == PostVisit) emit(sw::Shader::OPCODE_FWIDTH, result, arg); break;
 		case EOpAny:              if(visit == PostVisit) emit(sw::Shader::OPCODE_ANY, result, arg); break;
 		case EOpAll:              if(visit == PostVisit) emit(sw::Shader::OPCODE_ALL, result, arg); break;
+		case EOpTranspose:
+			if(visit == PostVisit)
+			{
+				int numCols = arg->getNominalSize();
+				int numRows = arg->getSecondarySize();
+				for(int i = 0; i < numCols; ++i)
+				{
+					for(int j = 0; j < numRows; ++j)
+					{
+						Instruction *mov = emit(sw::Shader::OPCODE_MOV, result, arg);
+						mov->src[0].index += i;
+						mov->src[0].swizzle = 0x55 * j;
+						mov->dst.index += j;
+						mov->dst.mask = 1 << i;
+					}
+				}
+			}
+			break;
 		default: UNREACHABLE();
 		}
 
