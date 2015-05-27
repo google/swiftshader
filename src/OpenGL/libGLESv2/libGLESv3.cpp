@@ -1396,11 +1396,6 @@ GL_APICALL void GL_APIENTRY glRenderbufferStorageMultisample(GLenum target, GLsi
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(!es2::IsColorRenderable(internalformat) && !es2::IsDepthRenderable(internalformat) && !es2::IsStencilRenderable(internalformat))
-	{
-		return error(GL_INVALID_ENUM);
-	}
-
 	if(width < 0 || height < 0 || samples < 0)
 	{
 		return error(GL_INVALID_VALUE);

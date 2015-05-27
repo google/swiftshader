@@ -4542,11 +4542,6 @@ void RenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum 
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(!es2::IsColorRenderable(internalformat) && !es2::IsDepthRenderable(internalformat) && !es2::IsStencilRenderable(internalformat))
-	{
-		return error(GL_INVALID_ENUM);
-	}
-
 	if(width < 0 || height < 0 || samples < 0)
 	{
 		return error(GL_INVALID_VALUE);
@@ -4569,11 +4564,47 @@ void RenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum 
 			return error(GL_INVALID_OPERATION);
 		}
 
+		egl::GLint clientVersion = context->getClientVersion();
 		switch(internalformat)
 		{
+		case GL_DEPTH_COMPONENT24:
+		case GL_DEPTH_COMPONENT32F:
+			if(clientVersion < 3)
+			{
+				return error(GL_INVALID_ENUM);
+			}
+			// fall through
 		case GL_DEPTH_COMPONENT16:
 			context->setRenderbufferStorage(new es2::Depthbuffer(width, height, samples));
 			break;
+		case GL_R8:
+		case GL_R8UI:
+		case GL_R8I:
+		case GL_R16UI:
+		case GL_R16I:
+		case GL_R32UI:
+		case GL_R32I:
+		case GL_RG8:
+		case GL_RG8UI:
+		case GL_RG8I:
+		case GL_RG16UI:
+		case GL_RG16I:
+		case GL_RG32UI:
+		case GL_RG32I:
+		case GL_SRGB8_ALPHA8:
+		case GL_RGB10_A2:
+		case GL_RGBA8UI:
+		case GL_RGBA8I:
+		case GL_RGB10_A2UI:
+		case GL_RGBA16UI:
+		case GL_RGBA16I:
+		case GL_RGBA32I:
+		case GL_RGBA32UI:
+			if(clientVersion < 3)
+			{
+				return error(GL_INVALID_ENUM);
+			}
+			// fall through
 		case GL_RGBA4:
 		case GL_RGB5_A1:
 		case GL_RGB565:
@@ -4584,6 +4615,12 @@ void RenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum 
 		case GL_STENCIL_INDEX8:
 			context->setRenderbufferStorage(new es2::Stencilbuffer(width, height, samples));
 			break;
+		case GL_DEPTH32F_STENCIL8:
+			if(clientVersion < 3)
+			{
+				return error(GL_INVALID_ENUM);
+			}
+			// fall through
 		case GL_DEPTH24_STENCIL8_OES:
 			context->setRenderbufferStorage(new es2::DepthStencilbuffer(width, height, samples));
 			break;
