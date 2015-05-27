@@ -154,6 +154,10 @@ const char* getOperatorString(TOperator op) {
       case EOpAll: return "all";
       case EOpIsNan: return "isnan";
       case EOpIsInf: return "isinf";
+      case EOpOuterProduct: return "outerProduct";
+      case EOpTranspose: return "transpose";
+      case EOpDeterminant: return "determinant";
+      case EOpInverse: return "inverse";
 
       default: break;
     }
@@ -984,6 +988,30 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
             setType(TType(EbtBool, EbpUndefined));
             break;
 
+		case EOpOuterProduct:
+			if(!left->isVector() || !right->isVector())
+				return false;
+			setType(TType(EbtFloat, right->getNominalSize(), left->getNominalSize()));
+			break;
+
+		case EOpTranspose:
+			if(!right->isMatrix())
+				return false;
+			setType(TType(EbtFloat, right->getSecondarySize(), right->getNominalSize()));
+			break;
+
+		case EOpDeterminant:
+			if(!right->isMatrix())
+				return false;
+			setType(TType(EbtFloat));
+			break;
+
+		case EOpInverse:
+			if(!right->isMatrix() || right->getNominalSize() != right->getSecondarySize())
+				return false;
+			setType(right->getType());
+			break;
+
         default:
             return false;
     }
@@ -1032,6 +1060,161 @@ bool CompareStructure(const TType& leftNodeType, ConstantUnion* rightUnionArray,
         return CompareStruct(leftNodeType, rightUnionArray, leftUnionArray);
 
     return true;
+}
+
+float determinant2(float m00, float m01, float m10, float m11)
+{
+	return m00 * m11 - m01 * m10;
+}
+
+float determinant3(float m00, float m01, float m02,
+                   float m10, float m11, float m12,
+                   float m20, float m21, float m22)
+{
+	return m00 * determinant2(m11, m12, m21, m22) -
+	       m10 * determinant2(m01, m02, m21, m22) +
+	       m20 * determinant2(m01, m02, m11, m12);
+}
+
+float determinant4(float m00, float m01, float m02, float m03,
+                   float m10, float m11, float m12, float m13,
+                   float m20, float m21, float m22, float m23,
+                   float m30, float m31, float m32, float m33)
+{
+	return m00 * determinant3(m11, m12, m13, m21, m22, m23, m31, m32, m33) -
+	       m10 * determinant3(m01, m02, m03, m21, m22, m23, m31, m32, m33) +
+	       m20 * determinant3(m01, m02, m03, m11, m12, m13, m31, m32, m33) -
+	       m30 * determinant3(m01, m02, m03, m11, m12, m13, m21, m22, m23);
+}
+
+float ComputeDeterminant(int size, ConstantUnion* unionArray)
+{
+	switch(size)
+	{
+	case 2:
+		return determinant2(unionArray[0].getFConst(),
+		                    unionArray[1].getFConst(),
+		                    unionArray[2].getFConst(),
+		                    unionArray[3].getFConst());
+	case 3:
+		return determinant3(unionArray[0].getFConst(),
+		                    unionArray[1].getFConst(),
+		                    unionArray[2].getFConst(),
+		                    unionArray[3].getFConst(),
+		                    unionArray[4].getFConst(),
+		                    unionArray[5].getFConst(),
+		                    unionArray[6].getFConst(),
+		                    unionArray[7].getFConst(),
+		                    unionArray[8].getFConst());
+	case 4:
+		return determinant4(unionArray[0].getFConst(),
+		                    unionArray[1].getFConst(),
+		                    unionArray[2].getFConst(),
+		                    unionArray[3].getFConst(),
+		                    unionArray[4].getFConst(),
+		                    unionArray[5].getFConst(),
+		                    unionArray[6].getFConst(),
+		                    unionArray[7].getFConst(),
+		                    unionArray[8].getFConst(),
+		                    unionArray[9].getFConst(),
+		                    unionArray[10].getFConst(),
+		                    unionArray[11].getFConst(),
+		                    unionArray[12].getFConst(),
+		                    unionArray[13].getFConst(),
+		                    unionArray[14].getFConst(),
+		                    unionArray[15].getFConst());
+	default:
+		UNREACHABLE();
+		return 0.0f;
+	}
+}
+
+ConstantUnion* CreateInverse(TIntermConstantUnion* node, ConstantUnion* unionArray)
+{
+	ConstantUnion* tempConstArray = 0;
+	int size = node->getNominalSize();
+	float determinant = ComputeDeterminant(size, unionArray);
+	if(determinant != 0.0f)
+	{
+		float invDet = 1.0f / determinant;
+		tempConstArray = new ConstantUnion[size*size];
+		switch(size)
+		{
+		case 2:
+			{
+				float m00 = unionArray[0].getFConst();			// Matrix is:
+				float m01 = unionArray[1].getFConst();			// (m00, m01)
+				float m10 = unionArray[2].getFConst();			// (m10, m11)
+				float m11 = unionArray[3].getFConst();
+				tempConstArray[0].setFConst( invDet * m11);
+				tempConstArray[1].setFConst(-invDet * m01);
+				tempConstArray[2].setFConst(-invDet * m10);
+				tempConstArray[3].setFConst( invDet * m00);
+			}
+			break;
+		case 3:
+			{
+				float m00 = unionArray[0].getFConst();			// Matrix is:
+				float m01 = unionArray[1].getFConst();			// (m00, m01, m02)
+				float m02 = unionArray[2].getFConst();			// (m10, m11, m12)
+				float m10 = unionArray[3].getFConst();			// (m20, m21, m22)
+				float m11 = unionArray[4].getFConst();
+				float m12 = unionArray[5].getFConst();
+				float m20 = unionArray[6].getFConst();
+				float m21 = unionArray[7].getFConst();
+				float m22 = unionArray[8].getFConst();
+				tempConstArray[0].setFConst(invDet * determinant2(m11, m12, m21, m22)); // m00 =  invDet * (m11 * m22 - m12 * m21)
+				tempConstArray[1].setFConst(invDet * determinant2(m12, m10, m22, m20)); // m01 = -invDet * (m10 * m22 - m12 * m20)
+				tempConstArray[2].setFConst(invDet * determinant2(m10, m11, m20, m21)); // m02 =  invDet * (m10 * m21 - m11 * m20)
+				tempConstArray[3].setFConst(invDet * determinant2(m21, m22, m01, m02)); // m10 = -invDet * (m01 * m22 - m02 * m21)
+				tempConstArray[4].setFConst(invDet * determinant2(m00, m02, m20, m22)); // m11 =  invDet * (m00 * m22 - m02 * m20)
+				tempConstArray[5].setFConst(invDet * determinant2(m20, m21, m00, m01)); // m12 = -invDet * (m00 * m21 - m01 * m20)
+				tempConstArray[6].setFConst(invDet * determinant2(m01, m02, m11, m12)); // m20 =  invDet * (m01 * m12 - m02 * m11)
+				tempConstArray[7].setFConst(invDet * determinant2(m10, m12, m00, m02)); // m21 = -invDet * (m00 * m12 - m02 * m10)
+				tempConstArray[8].setFConst(invDet * determinant2(m00, m01, m10, m11)); // m22 =  invDet * (m00 * m11 - m01 * m10)
+			}
+			break;
+		case 4:
+			{
+				float m00 = unionArray[0].getFConst();			// Matrix is:
+				float m01 = unionArray[1].getFConst();			// (m00, m01, m02, m03)
+				float m02 = unionArray[2].getFConst();			// (m10, m11, m12, m13)
+				float m03 = unionArray[3].getFConst();			// (m20, m21, m22, m23)
+				float m10 = unionArray[4].getFConst();			// (m30, m31, m32, m33)
+				float m11 = unionArray[5].getFConst();
+				float m12 = unionArray[6].getFConst();
+				float m13 = unionArray[7].getFConst();
+				float m20 = unionArray[8].getFConst();
+				float m21 = unionArray[9].getFConst();
+				float m22 = unionArray[10].getFConst();
+				float m23 = unionArray[11].getFConst();
+				float m30 = unionArray[12].getFConst();
+				float m31 = unionArray[13].getFConst();
+				float m32 = unionArray[14].getFConst();
+				float m33 = unionArray[15].getFConst();
+				tempConstArray[ 0].setFConst( invDet * determinant3(m11, m12, m13, m21, m22, m23, m31, m32, m33)); // m00
+				tempConstArray[ 1].setFConst(-invDet * determinant3(m10, m12, m13, m20, m22, m23, m30, m32, m33)); // m01
+				tempConstArray[ 2].setFConst( invDet * determinant3(m10, m11, m13, m20, m21, m23, m30, m31, m33)); // m02
+				tempConstArray[ 3].setFConst(-invDet * determinant3(m10, m11, m12, m20, m21, m22, m30, m31, m32)); // m03
+				tempConstArray[ 4].setFConst( invDet * determinant3(m01, m02, m03, m21, m22, m23, m31, m32, m33)); // m10
+				tempConstArray[ 5].setFConst(-invDet * determinant3(m00, m02, m03, m20, m22, m23, m30, m32, m33)); // m11
+				tempConstArray[ 6].setFConst( invDet * determinant3(m00, m01, m03, m20, m21, m23, m30, m31, m33)); // m12
+				tempConstArray[ 7].setFConst(-invDet * determinant3(m00, m01, m02, m20, m21, m22, m30, m31, m32)); // m13
+				tempConstArray[ 8].setFConst( invDet * determinant3(m01, m02, m03, m11, m12, m13, m31, m32, m33)); // m20
+				tempConstArray[ 9].setFConst(-invDet * determinant3(m00, m02, m03, m10, m12, m13, m30, m32, m33)); // m21
+				tempConstArray[10].setFConst( invDet * determinant3(m00, m01, m03, m10, m11, m13, m30, m31, m33)); // m22
+				tempConstArray[11].setFConst(-invDet * determinant3(m00, m01, m02, m10, m11, m12, m30, m31, m32)); // m23
+				tempConstArray[12].setFConst( invDet * determinant3(m01, m02, m03, m11, m12, m13, m21, m22, m23)); // m30
+				tempConstArray[13].setFConst(-invDet * determinant3(m00, m02, m03, m10, m12, m13, m20, m22, m23)); // m31
+				tempConstArray[14].setFConst( invDet * determinant3(m00, m01, m03, m10, m11, m13, m20, m21, m23)); // m32
+				tempConstArray[15].setFConst(-invDet * determinant3(m00, m01, m02, m10, m11, m12, m20, m21, m22)); // m33
+			}
+			break;
+		default:
+			UNREACHABLE();
+		}
+	}
+	return tempConstArray;
 }
 
 //
@@ -1126,6 +1309,66 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
                     returnType.setSecondarySize(static_cast<unsigned char>(tempNumRows));
                 }
                 break;
+
+			case EOpOuterProduct:
+				{
+					int leftSize = getNominalSize();
+					int rightSize = node->getNominalSize();
+					tempConstArray = new ConstantUnion[leftSize*rightSize];
+					for(int row = 0; row < leftSize; row++) {
+						for(int column = 0; column < rightSize; column++) {
+							tempConstArray[leftSize * column + row].setFConst(unionArray[row].getFConst() * rightUnionArray[column].getFConst());
+						}
+					}
+					// update return type for outer product
+					returnType.setNominalSize(static_cast<unsigned char>(rightSize));
+					returnType.setSecondarySize(static_cast<unsigned char>(leftSize));
+				}
+				break;
+
+			case EOpTranspose:
+				{
+					int rightCol = node->getNominalSize();
+					int rightRow = node->getSecondarySize();
+					tempConstArray = new ConstantUnion[rightCol*rightRow];
+					for(int row = 0; row < rightRow; row++) {
+						for(int column = 0; column < rightCol; column++) {
+							tempConstArray[rightRow * column + row].setFConst(rightUnionArray[rightCol * row + column].getFConst());
+						}
+					}
+					// update return type for transpose
+					returnType.setNominalSize(static_cast<unsigned char>(rightRow));
+					returnType.setSecondarySize(static_cast<unsigned char>(rightCol));
+				}
+				break;
+
+			case EOpDeterminant:
+				{
+					ASSERT(node->getNominalSize() == node->getSecondarySize());
+
+					tempConstArray = new ConstantUnion[1];
+					tempConstArray[0].setFConst(ComputeDeterminant(node->getNominalSize(), rightUnionArray));
+					// update return type for determinant
+					returnType.setNominalSize(1);
+					returnType.setSecondarySize(1);
+				}
+				break;
+
+			case EOpInverse:
+				{
+					ASSERT(node->getNominalSize() == node->getSecondarySize());
+
+					tempConstArray = CreateInverse(node, rightUnionArray);
+					if(!tempConstArray)
+					{
+						// Singular matrix, just copy
+						tempConstArray = new ConstantUnion[objectSize];
+						for(int i = 0; i < objectSize; i++)
+							tempConstArray[i] = rightUnionArray[i];
+					}
+				}
+				break;
+
             case EOpDiv:
             case EOpIMod:
                 tempConstArray = new ConstantUnion[objectSize];
