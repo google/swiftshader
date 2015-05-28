@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d1bb95b_ac2d6714",
+        "filename": "src/Common/GrallocAndroid.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-05-28T05:06:42Z",
+      "side": 0,
+      "message": "Can we keep this. We don\u0027t need the m_supportsConversion flag, but I\u0027d like to keep the converting gralloc in place for the YV_12 support.",
+      "revId": "7411cd98d444c96caf46b814ec44414c59462a7b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
