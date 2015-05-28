@@ -35,7 +35,6 @@ GLenum getColorFormatFromAndroid(int format)
             return GL_RGB565_OES;
 #endif
         case HAL_PIXEL_FORMAT_YV12:
-        case HAL_PIXEL_FORMAT_RAW_SENSOR:
         case HAL_PIXEL_FORMAT_BLOB:
         case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
         default:
@@ -67,7 +66,6 @@ GLenum getPixelFormatFromAndroid(int format)
             return GL_UNSIGNED_SHORT_5_6_5;
 #endif
         case HAL_PIXEL_FORMAT_YV12:
-        case HAL_PIXEL_FORMAT_RAW_SENSOR:
         case HAL_PIXEL_FORMAT_BLOB:
         case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
         default:
