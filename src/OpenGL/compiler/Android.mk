@@ -53,6 +53,8 @@ LOCAL_CFLAGS += -fno-operator-names -msse2 -D__STDC_CONSTANT_MACROS -D__STDC_LIM
 LOCAL_CFLAGS += -std=c++11
 
 LOCAL_C_INCLUDES += \
+	bionic \
+	$(GCE_STLPORT_INCLUDES) \
 	$(LOCAL_PATH)/../include \
 	$(LOCAL_PATH)/../ \
 	$(LOCAL_PATH)/../../ \
@@ -64,7 +66,5 @@ LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/../../Common/ \
 	$(LOCAL_PATH)/../../Shader/ \
 	$(LOCAL_PATH)/../../Main/
-
-include external/stlport/libstlport.mk
 
 include $(BUILD_STATIC_LIBRARY)

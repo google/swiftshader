@@ -84,6 +84,8 @@ LOCAL_CFLAGS += -std=c++11
 LOCAL_CFLAGS += -fomit-frame-pointer -ffunction-sections -fdata-sections -DANGLE_DISABLE_TRACE
 
 LOCAL_C_INCLUDES += \
+	bionic \
+	$(GCE_STLPORT_INCLUDES) \
         $(LOCAL_PATH)/OpenGL/include \
         $(LOCAL_PATH)/OpenGL/ \
         $(LOCAL_PATH) \
@@ -92,8 +94,5 @@ LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/Shader/ \
         $(LOCAL_PATH)/LLVM/include \
         $(LOCAL_PATH)/Main/
-
-
-include external/stlport/libstlport.mk
 
 include $(BUILD_STATIC_LIBRARY)
