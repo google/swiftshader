@@ -54,7 +54,7 @@ Config::Config(const DisplayMode &displayMode, EGLint minInterval, EGLint maxInt
         mGreenSize = 8;
         mBlueSize = 8;
         mAlphaSize = 8;
-        mBindToTextureRGBA = true;
+        mBindToTextureRGBA = EGL_TRUE;
         break;
       case sw::FORMAT_R5G6B5:
         mBufferSize = 16;
@@ -69,7 +69,7 @@ Config::Config(const DisplayMode &displayMode, EGLint minInterval, EGLint maxInt
         mGreenSize = 8;
         mBlueSize = 8;
         mAlphaSize = 0;
-        mBindToTextureRGB = true;
+        mBindToTextureRGB = EGL_TRUE;
         break;
       default:
         UNREACHABLE();   // Other formats should not be valid
@@ -158,104 +158,139 @@ bool Config::isSlowConfig() const
 	return mRenderTargetFormat != sw::FORMAT_X8R8G8B8 && mRenderTargetFormat != sw::FORMAT_A8R8G8B8;
 }
 
+// This ordering determines the config ID
+bool CompareConfig::operator()(const Config &x, const Config &y) const
+{
+    #define SORT_SMALLER(attribute)                \
+        if(x.attribute != y.attribute)             \
+        {                                          \
+            return x.attribute < y.attribute;      \
+        }
+
+	#define SORT_LARGER(attribute)                \
+        if(x.attribute != y.attribute)             \
+        {                                          \
+            return x.attribute > y.attribute;      \
+        }
+
+    META_ASSERT(EGL_NONE < EGL_SLOW_CONFIG && EGL_SLOW_CONFIG < EGL_NON_CONFORMANT_CONFIG);
+    SORT_SMALLER(mConfigCaveat);
+
+    META_ASSERT(EGL_RGB_BUFFER < EGL_LUMINANCE_BUFFER);
+    SORT_SMALLER(mColorBufferType);
+
+	SORT_LARGER(mRedSize);
+	SORT_LARGER(mGreenSize);
+	SORT_LARGER(mBlueSize);
+	SORT_LARGER(mAlphaSize);
+    
+	SORT_SMALLER(mBufferSize);
+    SORT_SMALLER(mSampleBuffers);
+    SORT_SMALLER(mSamples);
+    SORT_SMALLER(mDepthSize);
+    SORT_SMALLER(mStencilSize);
+    SORT_SMALLER(mAlphaMaskSize);
+    SORT_SMALLER(mNativeVisualType);
+
+    #undef SORT_SMALLER
+	#undef SORT_LARGER
+
+	// Strict ordering requires sorting all non-equal fields above
+	assert(memcmp(&x, &y, sizeof(Config)) == 0);
+
+    return false;
+}
+
+// Function object used by STL sorting routines for ordering Configs according to [EGL] section 3.4.1 page 24.
+class SortConfig
+{
+public:
+    explicit SortConfig(const EGLint *attribList);
+
+    bool operator()(const Config *x, const Config *y) const;
+
+private:
+    EGLint wantedComponentsSize(const Config *config) const;
+
+    bool mWantRed;
+    bool mWantGreen;
+    bool mWantBlue;
+    bool mWantAlpha;
+    bool mWantLuminance;
+};
+
 SortConfig::SortConfig(const EGLint *attribList)
     : mWantRed(false), mWantGreen(false), mWantBlue(false), mWantAlpha(false), mWantLuminance(false)
 {
-    scanForWantedComponents(attribList);
-}
-
-void SortConfig::scanForWantedComponents(const EGLint *attribList)
-{
-    // [EGL] section 3.4.1 page 24
-    // Sorting rule #3: by larger total number of color bits, not considering
-    // components that are 0 or don't-care.
+	// [EGL] section 3.4.1 page 24
+    // Sorting rule #3: by larger total number of color bits,
+	// not considering components that are 0 or don't-care.
     for(const EGLint *attr = attribList; attr[0] != EGL_NONE; attr += 2)
     {
         if(attr[1] != 0 && attr[1] != EGL_DONT_CARE)
         {
             switch (attr[0])
             {
-              case EGL_RED_SIZE:       mWantRed = true; break;
-              case EGL_GREEN_SIZE:     mWantGreen = true; break;
-              case EGL_BLUE_SIZE:      mWantBlue = true; break;
-              case EGL_ALPHA_SIZE:     mWantAlpha = true; break;
-              case EGL_LUMINANCE_SIZE: mWantLuminance = true; break;
+            case EGL_RED_SIZE:       mWantRed = true;       break;
+            case EGL_GREEN_SIZE:     mWantGreen = true;     break;
+            case EGL_BLUE_SIZE:      mWantBlue = true;      break;
+            case EGL_ALPHA_SIZE:     mWantAlpha = true;     break;
+            case EGL_LUMINANCE_SIZE: mWantLuminance = true; break;
             }
         }
     }
 }
 
-EGLint SortConfig::wantedComponentsSize(const Config &config) const
+EGLint SortConfig::wantedComponentsSize(const Config *config) const
 {
     EGLint total = 0;
 
-    if(mWantRed)       total += config.mRedSize;
-    if(mWantGreen)     total += config.mGreenSize;
-    if(mWantBlue)      total += config.mBlueSize;
-    if(mWantAlpha)     total += config.mAlphaSize;
-    if(mWantLuminance) total += config.mLuminanceSize;
+    if(mWantRed)       total += config->mRedSize;
+    if(mWantGreen)     total += config->mGreenSize;
+    if(mWantBlue)      total += config->mBlueSize;
+    if(mWantAlpha)     total += config->mAlphaSize;
+    if(mWantLuminance) total += config->mLuminanceSize;
 
     return total;
 }
 
 bool SortConfig::operator()(const Config *x, const Config *y) const
 {
-    return (*this)(*x, *y);
-}
-
-bool SortConfig::operator()(const Config &x, const Config &y) const
-{
-    #define SORT(attribute)                        \
-        if(x.attribute != y.attribute)             \
+    #define SORT_SMALLER(attribute)                \
+        if(x->attribute != y->attribute)           \
         {                                          \
-            return x.attribute < y.attribute;      \
+            return x->attribute < y->attribute;    \
         }
 
     META_ASSERT(EGL_NONE < EGL_SLOW_CONFIG && EGL_SLOW_CONFIG < EGL_NON_CONFORMANT_CONFIG);
-    SORT(mConfigCaveat);
+    SORT_SMALLER(mConfigCaveat);
 
     META_ASSERT(EGL_RGB_BUFFER < EGL_LUMINANCE_BUFFER);
-    SORT(mColorBufferType);
+    SORT_SMALLER(mColorBufferType);
 
-    // By larger total number of color bits, only considering those that are requested to be > 0.
-    EGLint xComponentsSize = wantedComponentsSize(x);
-    EGLint yComponentsSize = wantedComponentsSize(y);
-    if(xComponentsSize != yComponentsSize)
-    {
-        return xComponentsSize > yComponentsSize;
-    }
+	// By larger total number of color bits, only considering those that are requested to be > 0.
+	EGLint xComponentsSize = wantedComponentsSize(x);
+	EGLint yComponentsSize = wantedComponentsSize(y);
+	if(xComponentsSize != yComponentsSize)
+	{
+		return xComponentsSize > yComponentsSize;
+	}
 
-    SORT(mBufferSize);
-    SORT(mSampleBuffers);
-    SORT(mSamples);
-    SORT(mDepthSize);
-    SORT(mStencilSize);
-    SORT(mAlphaMaskSize);
-    SORT(mNativeVisualType);
-    SORT(mConfigID);
+    SORT_SMALLER(mBufferSize);
+    SORT_SMALLER(mSampleBuffers);
+    SORT_SMALLER(mSamples);
+    SORT_SMALLER(mDepthSize);
+    SORT_SMALLER(mStencilSize);
+    SORT_SMALLER(mAlphaMaskSize);
+    SORT_SMALLER(mNativeVisualType);
+    SORT_SMALLER(mConfigID);
 
-    #undef SORT
+    #undef SORT_SMALLER
 
     return false;
 }
 
-// We'd like to use SortConfig to also eliminate duplicate configs.
-// This works as long as we never have two configs with different per-RGB-component layouts,
-// but the same total.
-// 5551 and 565 are different because R+G+B is different.
-// 5551 and 555 are different because bufferSize is different.
-const EGLint ConfigSet::mSortAttribs[] =
-{
-    EGL_RED_SIZE, 1,
-    EGL_GREEN_SIZE, 1,
-    EGL_BLUE_SIZE, 1,
-    EGL_LUMINANCE_SIZE, 1,
-    // BUT NOT ALPHA
-    EGL_NONE
-};
-
 ConfigSet::ConfigSet()
-    : mSet(SortConfig(mSortAttribs))
 {
 }
 
