@@ -273,7 +273,7 @@ bool ValidateLimitations::validateForLoopInit(TIntermLoop* node,
     }
     // The loop index has type int or float.
     TBasicType type = symbol->getBasicType();
-    if ((type != EbtInt) && (type != EbtUInt) && (type != EbtFloat)) {
+    if (!IsInteger(type) && (type != EbtFloat)) {
         error(symbol->getLine(),
               "Invalid type for loop index", getBasicString(type));
         return false;

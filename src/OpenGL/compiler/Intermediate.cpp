@@ -212,7 +212,7 @@ TIntermTyped* TIntermediate::addBinaryMath(TOperator op, TIntermTyped* left, TIn
         case EOpBitwiseOr:
         case EOpBitwiseXor:
         case EOpBitwiseAnd:
-            if ((left->getBasicType() != EbtInt && left->getBasicType() != EbtUInt) || left->isMatrix() || left->isArray()) {
+            if (!IsInteger(left->getBasicType()) || left->isMatrix() || left->isArray()) {
                 return 0;
             }
             break;
@@ -333,7 +333,7 @@ TIntermTyped* TIntermediate::addUnaryMath(TOperator op, TIntermNode* childNode, 
 
     switch (op) {
         case EOpBitwiseNot:
-            if ((child->getType().getBasicType() != EbtInt && child->getType().getBasicType() != EbtUInt) || child->getType().isMatrix() || child->getType().isArray()) {
+            if (!IsInteger(child->getType().getBasicType()) || child->getType().isMatrix() || child->getType().isArray()) {
                 return 0;
             }
             break;
@@ -719,7 +719,7 @@ bool TIntermUnary::promote(TInfoSink&)
                 return false;
             break;
         case EOpBitwiseNot:
-            if(operand->getBasicType() != EbtInt && operand->getBasicType() != EbtUInt)
+            if (!IsInteger(operand->getBasicType()))
                 return false;
             break;
         case EOpNegative:
