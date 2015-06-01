@@ -80,7 +80,7 @@ entry:
   %NumArraysElements.bc = bitcast [4 x i8]* @NumArraysElements to i32*
 ; CHECK:   %NumArraysElements.bc = bitcast i32 @NumArraysElements to i32
 ; CROSS:   %NumArraysElements.bc = bitcast i32 @Subzero_NumArraysElements to i32
-  %0 = load i32* %NumArraysElements.bc, align 1
+  %0 = load i32, i32* %NumArraysElements.bc, align 1
   ret i32 %0
 }
 
@@ -91,7 +91,7 @@ entry:
   %NumArraysElements.bc = bitcast [4 x i8]* @NumArraysElements to i32*
 ; CHECK:   %NumArraysElements.bc = bitcast i32 @NumArraysElements to i32
 ; CROSS:   %NumArraysElements.bc = bitcast i32 @Subzero_NumArraysElements to i32
-  %0 = load i32* %NumArraysElements.bc, align 1
+  %0 = load i32, i32* %NumArraysElements.bc, align 1
   %cmp = icmp ugt i32 %0, %WhichArray
 ; CHECK:   %cmp = icmp ugt i32 %__3, %WhichArray
 ; CROSS:   %cmp = icmp ugt i32 %__3, %WhichArray
@@ -114,7 +114,7 @@ if.end:                                           ; preds = %entry
   %gep = add i32 %expanded1, %gep_array
   %gep1 = add i32 %gep, 4
   %gep1.asptr = inttoptr i32 %gep1 to i32*
-  %1 = load i32* %gep1.asptr, align 1
+  %1 = load i32, i32* %gep1.asptr, align 1
   %Len.asptr3 = inttoptr i32 %Len to i32*
 ; CHECK:   %Len.asptr3 = i32 %Len
 ; CROSS:   %Len.asptr3 = i32 %Len
@@ -127,7 +127,7 @@ if.end:                                           ; preds = %entry
 ; CROSS:   %expanded2 = i32 @Subzero_Arrays
   %gep4 = add i32 %expanded2, %gep_array3
   %gep4.asptr = inttoptr i32 %gep4 to i32*
-  %2 = load i32* %gep4.asptr, align 1
+  %2 = load i32, i32* %gep4.asptr, align 1
   br label %return
 
 return:                                           ; preds = %if.end, %if.then
@@ -170,7 +170,7 @@ entry:
   %ExternName1.bc = bitcast [4 x i8]* @ExternName1 to i32*
 ; CHECK:   %ExternName1.bc = bitcast i32 @ExternName1 to i32
 ; CROSS:   %ExternName1.bc = bitcast i32 @ExternName1 to i32
-  %0 = load i32* %ExternName1.bc, align 1
+  %0 = load i32, i32* %ExternName1.bc, align 1
   %expanded6 = ptrtoint [80 x i8]* @_ZL8StructEx to i32
 ; CHECK:   %expanded6 = i32 @_ZL8StructEx
 ; CROSS:   %expanded6 = i32 @Subzero__ZL8StructEx
@@ -198,7 +198,7 @@ entry:
   %ExternName4.bc = bitcast [4 x i8]* @ExternName4 to i32*
 ; CHECK:   %ExternName4.bc = bitcast i32 @ExternName4 to i32
 ; CROSS:   %ExternName4.bc = bitcast i32 @ExternName4 to i32
-  %1 = load i32* %ExternName4.bc, align 1
+  %1 = load i32, i32* %ExternName4.bc, align 1
   %expanded11 = ptrtoint [80 x i8]* @_ZL8StructEx to i32
 ; CHECK:   %expanded11 = i32 @_ZL8StructEx
 ; CROSS:   %expanded11 = i32 @Subzero__ZL8StructEx
@@ -208,7 +208,7 @@ entry:
   %ExternName3.bc = bitcast [4 x i8]* @ExternName3 to i32*
 ; CHECK:   %ExternName3.bc = bitcast i32 @ExternName3 to i32
 ; CROSS:   %ExternName3.bc = bitcast i32 @ExternName3 to i32
-  %2 = load i32* %ExternName3.bc, align 1
+  %2 = load i32, i32* %ExternName3.bc, align 1
   %expanded13 = ptrtoint [80 x i8]* @_ZL8StructEx to i32
 ; CHECK:   %expanded13 = i32 @_ZL8StructEx
 ; CROSS:   %expanded13 = i32 @Subzero__ZL8StructEx
@@ -236,7 +236,7 @@ entry:
   %ExternName2.bc = bitcast [4 x i8]* @ExternName2 to i32*
 ; CHECK:   %ExternName2.bc = bitcast i32 @ExternName2 to i32
 ; CROSS:   %ExternName2.bc = bitcast i32 @ExternName2 to i32
-  %3 = load i32* %ExternName2.bc, align 1
+  %3 = load i32, i32* %ExternName2.bc, align 1
   %expanded18 = ptrtoint [80 x i8]* @_ZL8StructEx to i32
 ; CHECK:   %expanded18 = i32 @_ZL8StructEx
 ; CROSS:   %expanded18 = i32 @Subzero__ZL8StructEx
@@ -246,7 +246,7 @@ entry:
   %ExternName5.bc = bitcast [4 x i8]* @ExternName5 to i32*
 ; CHECK:   %ExternName5.bc = bitcast i32 @ExternName5 to i32
 ; CROSS:   %ExternName5.bc = bitcast i32 @ExternName5 to i32
-  %4 = load i32* %ExternName5.bc, align 1
+  %4 = load i32, i32* %ExternName5.bc, align 1
   %expanded20 = ptrtoint [80 x i8]* @_ZL8StructEx to i32
 ; CHECK:   %expanded20 = i32 @_ZL8StructEx
 ; CROSS:   %expanded20 = i32 @Subzero__ZL8StructEx

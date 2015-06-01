@@ -26,12 +26,12 @@ entry:
   call void @llvm.nacl.atomic.store.i32(i32 %l_a2, i32* %p_a, i32 6)
 
   %p_b = bitcast [4 x i8]* @g32_b to i32*
-  %l_b = load i32* %p_b, align 1
+  %l_b = load i32, i32* %p_b, align 1
   %l_b2 = add i32 %l_b, 1
   store i32 %l_b2, i32* %p_b, align 1
 
   %p_c = bitcast [4 x i8]* @g32_c to i32*
-  %l_c = load i32* %p_c, align 1
+  %l_c = load i32, i32* %p_c, align 1
   %l_c2 = add i32 %l_c, 1
   call void @llvm.nacl.atomic.fence.all()
   store i32 %l_c2, i32* %p_c, align 1
@@ -66,13 +66,13 @@ entry:
   call void @llvm.nacl.atomic.store.i32(i32 %l_a2, i32* %p_a, i32 6)
 
   %p_b = bitcast [4 x i8]* @g32_b to i32*
-  %l_b = load i32* %p_b, align 1
+  %l_b = load i32, i32* %p_b, align 1
   %l_b2 = add i32 %l_b, 1
   store i32 %l_b2, i32* %p_b, align 1
 
   %p_c = bitcast [4 x i8]* @g32_c to i32*
   call void @llvm.nacl.atomic.fence.all()
-  %l_c = load i32* %p_c, align 1
+  %l_c = load i32, i32* %p_c, align 1
   %l_c2 = add i32 %l_c, 1
   store i32 %l_c2, i32* %p_c, align 1
 
@@ -107,13 +107,13 @@ entry:
   call void @llvm.nacl.atomic.store.i32(i32 %l_a2, i32* %p_a, i32 6)
 
   %p_b = bitcast [4 x i8]* @g32_b to i32*
-  %l_b = load i32* %p_b, align 1
+  %l_b = load i32, i32* %p_b, align 1
   call void @llvm.nacl.atomic.fence.all()
   %l_b2 = add i32 %l_b, 1
   store i32 %l_b2, i32* %p_b, align 1
 
   %p_c = bitcast [4 x i8]* @g32_c to i32*
-  %l_c = load i32* %p_c, align 1
+  %l_c = load i32, i32* %p_c, align 1
   %l_c2 = add i32 %l_c, 1
   store i32 %l_c2, i32* %p_c, align 1
 
@@ -143,22 +143,22 @@ entry:
 define i32 @could_have_fused_loads() {
 entry:
   %ptr1 = bitcast [4 x i8]* @g32_d to i8*
-  %b1 = load i8* %ptr1, align 1
+  %b1 = load i8, i8* %ptr1, align 1
 
   %int_ptr2 = ptrtoint [4 x i8]* @g32_d to i32
   %int_ptr_bump2 = add i32 %int_ptr2, 1
   %ptr2 = inttoptr i32 %int_ptr_bump2 to i8*
-  %b2 = load i8* %ptr2, align 1
+  %b2 = load i8, i8* %ptr2, align 1
 
   %int_ptr_bump3 = add i32 %int_ptr2, 2
   %ptr3 = inttoptr i32 %int_ptr_bump3 to i8*
-  %b3 = load i8* %ptr3, align 1
+  %b3 = load i8, i8* %ptr3, align 1
 
   call void @llvm.nacl.atomic.fence.all()
 
   %int_ptr_bump4 = add i32 %int_ptr2, 3
   %ptr4 = inttoptr i32 %int_ptr_bump4 to i8*
-  %b4 = load i8* %ptr4, align 1
+  %b4 = load i8, i8* %ptr4, align 1
 
   %b1.ext = zext i8 %b1 to i32
   %b2.ext = zext i8 %b2 to i32
@@ -188,11 +188,11 @@ entry:
   %cmp = icmp eq i32 %x, 1
   br i1 %cmp, label %branch1, label %branch2
 branch1:
-  %y = load i32* %ptr, align 1
+  %y = load i32, i32* %ptr, align 1
   ret i32 %y
 branch2:
   call void @llvm.nacl.atomic.fence.all()
-  %z = load i32* %ptr, align 1
+  %z = load i32, i32* %ptr, align 1
   ret i32 %z
 }
 ; CHECK-LABEL: could_have_hoisted_loads

@@ -10,7 +10,7 @@
 define <4 x i32> @test_add(i32 %addr_i, <4 x i32> %addend) {
 entry:
   %addr = inttoptr i32 %addr_i to <4 x i32>*
-  %loaded = load <4 x i32>* %addr, align 4
+  %loaded = load <4 x i32>, <4 x i32>* %addr, align 4
   %result = add <4 x i32> %addend, %loaded
   ret <4 x i32> %result
 }
@@ -21,7 +21,7 @@ entry:
 define <4 x i32> @test_and(i32 %addr_i, <4 x i32> %addend) {
 entry:
   %addr = inttoptr i32 %addr_i to <4 x i32>*
-  %loaded = load <4 x i32>* %addr, align 4
+  %loaded = load <4 x i32>, <4 x i32>* %addr, align 4
   %result = and <4 x i32> %addend, %loaded
   ret <4 x i32> %result
 }
@@ -32,7 +32,7 @@ entry:
 define <4 x i32> @test_or(i32 %addr_i, <4 x i32> %addend) {
 entry:
   %addr = inttoptr i32 %addr_i to <4 x i32>*
-  %loaded = load <4 x i32>* %addr, align 4
+  %loaded = load <4 x i32>, <4 x i32>* %addr, align 4
   %result = or <4 x i32> %addend, %loaded
   ret <4 x i32> %result
 }
@@ -43,7 +43,7 @@ entry:
 define <4 x i32> @test_xor(i32 %addr_i, <4 x i32> %addend) {
 entry:
   %addr = inttoptr i32 %addr_i to <4 x i32>*
-  %loaded = load <4 x i32>* %addr, align 4
+  %loaded = load <4 x i32>, <4 x i32>* %addr, align 4
   %result = xor <4 x i32> %addend, %loaded
   ret <4 x i32> %result
 }
@@ -54,7 +54,7 @@ entry:
 define <4 x i32> @test_sub(i32 %addr_i, <4 x i32> %addend) {
 entry:
   %addr = inttoptr i32 %addr_i to <4 x i32>*
-  %loaded = load <4 x i32>* %addr, align 4
+  %loaded = load <4 x i32>, <4 x i32>* %addr, align 4
   %result = sub <4 x i32> %addend, %loaded
   ret <4 x i32> %result
 }
@@ -65,7 +65,7 @@ entry:
 define <4 x float> @test_fadd(i32 %addr_i, <4 x float> %addend) {
 entry:
   %addr = inttoptr i32 %addr_i to <4 x float>*
-  %loaded = load <4 x float>* %addr, align 4
+  %loaded = load <4 x float>, <4 x float>* %addr, align 4
   %result = fadd <4 x float> %addend, %loaded
   ret <4 x float> %result
 }
@@ -76,7 +76,7 @@ entry:
 define <4 x float> @test_fsub(i32 %addr_i, <4 x float> %addend) {
 entry:
   %addr = inttoptr i32 %addr_i to <4 x float>*
-  %loaded = load <4 x float>* %addr, align 4
+  %loaded = load <4 x float>, <4 x float>* %addr, align 4
   %result = fsub <4 x float> %addend, %loaded
   ret <4 x float> %result
 }

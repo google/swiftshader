@@ -17,7 +17,7 @@ for.body:
   %gep_array = mul i32 %i.06, 4
   %gep = add i32 %a, %gep_array
   %__9 = inttoptr i32 %gep to i32*
-  %v0 = load i32* %__9, align 1
+  %v0 = load i32, i32* %__9, align 1
   %add = add i32 %v0, %sum.05
   %inc = add i32 %i.06, 1
   %cmp = icmp slt i32 %inc, %n

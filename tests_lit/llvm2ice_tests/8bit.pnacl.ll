@@ -253,7 +253,7 @@ define internal i32 @icmp8BitMem(i32 %a, i32 %b_iptr) {
 entry:
   %a_8 = trunc i32 %a to i8
   %bptr = inttoptr i32 %b_iptr to i8*
-  %b_8 = load i8* %bptr, align 1
+  %b_8 = load i8, i8* %bptr, align 1
   %icmp = icmp ne i8 %b_8, %a_8
   %ret = zext i1 %icmp to i32
   ret i32 %ret
@@ -265,7 +265,7 @@ define internal i32 @icmp8BitMemSwapped(i32 %a, i32 %b_iptr) {
 entry:
   %a_8 = trunc i32 %a to i8
   %bptr = inttoptr i32 %b_iptr to i8*
-  %b_8 = load i8* %bptr, align 1
+  %b_8 = load i8, i8* %bptr, align 1
   %icmp = icmp ne i8 %a_8, %b_8
   %ret = zext i1 %icmp to i32
   ret i32 %ret
@@ -334,7 +334,7 @@ target:
 define i32 @load_i8(i32 %addr_arg) {
 entry:
   %addr = inttoptr i32 %addr_arg to i8*
-  %ret = load i8* %addr, align 1
+  %ret = load i8, i8* %addr, align 1
   %ret2 = sub i8 %ret, 0
   %ret_ext = zext i8 %ret2 to i32
   ret i32 %ret_ext
@@ -345,7 +345,7 @@ entry:
 define i32 @load_i8_global(i32 %addr_arg) {
 entry:
   %addr = bitcast [1 x i8]* @global8 to i8*
-  %ret = load i8* %addr, align 1
+  %ret = load i8, i8* %addr, align 1
   %ret2 = sub i8 %ret, 0
   %ret_ext = zext i8 %ret2 to i32
   ret i32 %ret_ext

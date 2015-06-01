@@ -15,7 +15,7 @@
 define void @from_int8() {
 entry:
   %__0 = bitcast [1 x i8]* @i8v to i8*
-  %v0 = load i8* %__0, align 1
+  %v0 = load i8, i8* %__0, align 1
   %v1 = sext i8 %v0 to i16
   %__3 = bitcast [2 x i8]* @i16v to i16*
   store i16 %v1, i16* %__3, align 1
@@ -41,7 +41,7 @@ entry:
 define void @from_int16() {
 entry:
   %__0 = bitcast [2 x i8]* @i16v to i16*
-  %v0 = load i16* %__0, align 1
+  %v0 = load i16, i16* %__0, align 1
   %v1 = trunc i16 %v0 to i8
   %__3 = bitcast [1 x i8]* @i8v to i8*
   store i8 %v1, i8* %__3, align 1
@@ -65,7 +65,7 @@ entry:
 define void @from_int32() {
 entry:
   %__0 = bitcast [4 x i8]* @i32v to i32*
-  %v0 = load i32* %__0, align 1
+  %v0 = load i32, i32* %__0, align 1
   %v1 = trunc i32 %v0 to i8
   %__3 = bitcast [1 x i8]* @i8v to i8*
   store i8 %v1, i8* %__3, align 1
@@ -87,7 +87,7 @@ entry:
 define void @from_int64() {
 entry:
   %__0 = bitcast [8 x i8]* @i64v to i64*
-  %v0 = load i64* %__0, align 1
+  %v0 = load i64, i64* %__0, align 1
   %v1 = trunc i64 %v0 to i8
   %__3 = bitcast [1 x i8]* @i8v to i8*
   store i8 %v1, i8* %__3, align 1
@@ -109,7 +109,7 @@ entry:
 define void @from_uint8() {
 entry:
   %__0 = bitcast [1 x i8]* @u8v to i8*
-  %v0 = load i8* %__0, align 1
+  %v0 = load i8, i8* %__0, align 1
   %v1 = zext i8 %v0 to i16
   %__3 = bitcast [2 x i8]* @i16v to i16*
   store i16 %v1, i16* %__3, align 1
@@ -134,7 +134,7 @@ entry:
 define void @from_uint16() {
 entry:
   %__0 = bitcast [2 x i8]* @u16v to i16*
-  %v0 = load i16* %__0, align 1
+  %v0 = load i16, i16* %__0, align 1
   %v1 = trunc i16 %v0 to i8
   %__3 = bitcast [1 x i8]* @i8v to i8*
   store i8 %v1, i8* %__3, align 1
@@ -158,7 +158,7 @@ entry:
 define void @from_uint32() {
 entry:
   %__0 = bitcast [4 x i8]* @u32v to i32*
-  %v0 = load i32* %__0, align 1
+  %v0 = load i32, i32* %__0, align 1
   %v1 = trunc i32 %v0 to i8
   %__3 = bitcast [1 x i8]* @i8v to i8*
   store i8 %v1, i8* %__3, align 1
@@ -180,7 +180,7 @@ entry:
 define void @from_uint64() {
 entry:
   %__0 = bitcast [8 x i8]* @u64v to i64*
-  %v0 = load i64* %__0, align 1
+  %v0 = load i64, i64* %__0, align 1
   %v1 = trunc i64 %v0 to i8
   %__3 = bitcast [1 x i8]* @i8v to i8*
   store i8 %v1, i8* %__3, align 1

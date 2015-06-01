@@ -60,7 +60,7 @@ entry:
   %__1 = ptrtoint i8* %ptr to i32
   %x = add i32 %__1, %__1
   %__3 = inttoptr i32 %x to i32*
-  %v = load i32* %__3, align 1
+  %v = load i32, i32* %__3, align 1
   %v_add = add i32 %v, 1
 
   %ptr2 = call i8* @llvm.nacl.read.tp()
@@ -226,7 +226,7 @@ entry:
 define float @test_sqrt_float_mergeable_load(float %x, i32 %iptr) {
 entry:
   %__2 = inttoptr i32 %iptr to float*
-  %y = load float* %__2, align 4
+  %y = load float, float* %__2, align 4
   %r5 = call float @llvm.sqrt.f32(float %y)
   %r6 = fadd float %x, %r5
   ret float %r6
@@ -253,7 +253,7 @@ entry:
 define double @test_sqrt_double_mergeable_load(double %x, i32 %iptr) {
 entry:
   %__2 = inttoptr i32 %iptr to double*
-  %y = load double* %__2, align 8
+  %y = load double, double* %__2, align 8
   %r5 = call double @llvm.sqrt.f64(double %y)
   %r6 = fadd double %x, %r5
   ret double %r6

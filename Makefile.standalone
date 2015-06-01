@@ -31,7 +31,7 @@ PNACL_TOOLCHAIN_ROOT ?= $(shell readlink -e \
 PNACL_BIN_PATH ?= $(shell readlink -e $(PNACL_TOOLCHAIN_ROOT)/bin)
 
 # Hack to auto-detect autoconf versus cmake build of LLVM.  If the LLVM tools
-# were dynamically linked with something like libLLVM-3.6svn.so, it is an
+# were dynamically linked with something like libLLVM-3.7svn.so, it is an
 # autoconf build, otherwise it is a cmake build.  AUTOCONF is set to 0 for
 # cmake, nonzero for autoconf.
 AUTOCONF ?= $(shell ldd $(PNACL_BIN_PATH)/opt | grep -c libLLVM-)
@@ -133,7 +133,7 @@ ifeq ($(AUTOCONF), 0)
   CLANG_FORMAT_PATH ?= $(PNACL_BIN_PATH)
 else
   # LLVM autoconf build
-  LLVM_LIBS := -lLLVM-3.6svn
+  LLVM_LIBS := -lLLVM-3.7svn
   GTEST_LIB_PATH ?= -L../../out/llvm_x86_64_linux_work/Release+Asserts/lib
   CLANG_FORMAT_PATH ?= ../../out/llvm_x86_64_linux_work/Release+Asserts/bin
 endif

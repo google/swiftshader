@@ -1103,7 +1103,7 @@ entry:
 define internal float @loadFloat(i32 %a) {
 entry:
   %__1 = inttoptr i32 %a to float*
-  %v0 = load float* %__1, align 4
+  %v0 = load float, float* %__1, align 4
   ret float %v0
 }
 ; CHECK-LABEL: loadFloat
@@ -1113,7 +1113,7 @@ entry:
 define internal double @loadDouble(i32 %a) {
 entry:
   %__1 = inttoptr i32 %a to double*
-  %v0 = load double* %__1, align 8
+  %v0 = load double, double* %__1, align 8
   ret double %v0
 }
 ; CHECK-LABEL: loadDouble

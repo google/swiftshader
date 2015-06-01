@@ -1291,7 +1291,7 @@ entry:
 define internal i64 @load64(i32 %a) {
 entry:
   %__1 = inttoptr i32 %a to i64*
-  %v0 = load i64* %__1, align 1
+  %v0 = load i64, i64* %__1, align 1
   ret i64 %v0
 }
 ; CHECK-LABEL: load64

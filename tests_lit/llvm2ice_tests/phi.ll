@@ -59,7 +59,7 @@ body:
   ; addressing mode optimization.
   %interior__4 = add i32 %interior, 0
   %__4 = inttoptr i32 %interior__4 to i32*
-  %elt = load i32* %__4, align 1
+  %elt = load i32, i32* %__4, align 1
   %cmp = icmp eq i32 %elt, 0
   br i1 %cmp, label %exit, label %body
 exit:

@@ -29,7 +29,7 @@ entry:
 define internal void @add_in_place() {
 entry:
   %p_global_char.bc = bitcast [4 x i8]* @p_global_char to i32*
-  %0 = load i32* %p_global_char.bc, align 1
+  %0 = load i32, i32* %p_global_char.bc, align 1
   %expanded1 = ptrtoint [1 x i8]* @global_char to i32
   %gep = add i32 %0, %expanded1
   %p_global_char.bc3 = bitcast [4 x i8]* @p_global_char to i32*
@@ -43,7 +43,7 @@ entry:
 define internal void @cmp_global_immediate() {
 entry:
   %p_global_char.bc = bitcast [4 x i8]* @p_global_char to i32*
-  %0 = load i32* %p_global_char.bc, align 1
+  %0 = load i32, i32* %p_global_char.bc, align 1
   %expanded1 = ptrtoint [1 x i8]* @global_char to i32
   %cmp = icmp eq i32 %0, %expanded1
   br i1 %cmp, label %if.then, label %if.end

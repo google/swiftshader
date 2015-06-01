@@ -699,7 +699,7 @@ void InstLoad::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Type Ty = getDest()->getType();
-  Str << " = load " << Ty << "* ";
+  Str << " = load " << Ty << ", " << Ty << "* ";
   dumpSources(Func);
   Str << ", align " << typeAlignInBytes(Ty);
 }

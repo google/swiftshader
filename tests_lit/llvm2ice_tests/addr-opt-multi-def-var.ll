@@ -15,7 +15,7 @@ define internal i32 @_Balloc(i32 %ptr, i32 %k) {
 entry:
   %gep = add i32 %ptr, 76
   %gep.asptr = inttoptr i32 %gep to i32*
-  %0 = load i32* %gep.asptr, align 1
+  %0 = load i32, i32* %gep.asptr, align 1
   %cmp = icmp eq i32 %0, 0
   br i1 %cmp, label %if.then, label %if.end5
 
@@ -31,11 +31,11 @@ if.end5:                                          ; preds = %if.then, %entry
   %gep_array = mul i32 %k, 4
   %gep2 = add i32 %1, %gep_array
   %gep2.asptr = inttoptr i32 %gep2 to i32*
-  %2 = load i32* %gep2.asptr, align 1
+  %2 = load i32, i32* %gep2.asptr, align 1
 ; The above load instruction is a good target for address mode
 ; optimization.  Correct analysis would lead to dump output like:
 ;   Starting computeAddressOpt for instruction:
-;     [ 15]  %__13 = load i32* %gep2.asptr, align 1
+;     [ 15]  %__13 = load i32, i32* %gep2.asptr, align 1
 ;   Instruction: [ 14]  %gep2.asptr = i32 %gep2
 ;     results in Base=%gep2, Index=<null>, Shift=0, Offset=0
 ;   Instruction: [ 13]  %gep2 = add i32 %__9, %gep_array
@@ -47,7 +47,7 @@ if.end5:                                          ; preds = %if.then, %entry
 ;
 ; Incorrect, overly-aggressive analysis would lead to output like:
 ;   Starting computeAddressOpt for instruction:
-;     [ 15]  %__13 = load i32* %gep2.asptr, align 1
+;     [ 15]  %__13 = load i32, i32* %gep2.asptr, align 1
 ;   Instruction: [ 14]  %gep2.asptr = i32 %gep2
 ;     results in Base=%gep2, Index=<null>, Shift=0, Offset=0
 ;   Instruction: [ 13]  %gep2 = add i32 %__9, %gep_array

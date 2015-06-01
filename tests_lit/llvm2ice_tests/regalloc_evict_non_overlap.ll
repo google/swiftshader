@@ -32,14 +32,14 @@ bb21:                                             ; preds = %bb27, %bb17
   %tmp23 = add i32 undef, -1
   %tmp24 = add i32 undef, undef
   %undef.ptr = inttoptr i32 undef to i32*
-  %tmp25 = load i32* %undef.ptr, align 1
+  %tmp25 = load i32, i32* %undef.ptr, align 1
   %tmp26 = icmp eq i32 undef, %tmp22
   br i1 %tmp26, label %bb34, label %bb32
 
 bb27:                                             ; preds = %bb42, %bb34
   %tmp28 = icmp sgt i32 %tmp23, 0
   %tmp29 = inttoptr i32 %tmp19 to i32*
-  %tmp30 = load i32* %tmp29, align 1
+  %tmp30 = load i32, i32* %tmp29, align 1
   br i1 %tmp28, label %bb21, label %bb46
 
 bb32:                                             ; preds = %bb21
@@ -57,7 +57,7 @@ bb35:                                             ; preds = %bb34
 
 bb42:                                             ; preds = %bb35
   %tmp43 = inttoptr i32 %tmp to i32*
-  %tmp44 = load i32* %tmp43, align 1
+  %tmp44 = load i32, i32* %tmp43, align 1
   %tmp45 = icmp eq i32 %tmp44, %tmp18
   br i1 %tmp45, label %bb27, label %bb15
 

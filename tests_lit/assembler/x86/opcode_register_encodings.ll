@@ -115,9 +115,9 @@ define <16 x i8> @load_v16xI8(i32 %addr, i32 %addr2, i32 %addr3) {
   %addr_v16xI8 = inttoptr i32 %addr to <16 x i8>*
   %addr2_v16xI8 = inttoptr i32 %addr2 to <16 x i8>*
   %addr3_v16xI8 = inttoptr i32 %addr3 to <16 x i8>*
-  %res1 = load <16 x i8>* %addr2_v16xI8, align 1
-  %res2 = load <16 x i8>* %addr_v16xI8, align 1
-  %res3 = load <16 x i8>* %addr3_v16xI8, align 1
+  %res1 = load <16 x i8>, <16 x i8>* %addr2_v16xI8, align 1
+  %res2 = load <16 x i8>, <16 x i8>* %addr_v16xI8, align 1
+  %res3 = load <16 x i8>, <16 x i8>* %addr3_v16xI8, align 1
   %res12 = add <16 x i8> %res1, %res2
   %res123 = add <16 x i8> %res12, %res3
   ret <16 x i8> %res123
@@ -135,7 +135,7 @@ entry:
   %__1 = ptrtoint i8* %ptr to i32
   %x = add i32 %__1, %__1
   %__3 = inttoptr i32 %x to i32*
-  %v = load i32* %__3, align 1
+  %v = load i32, i32* %__3, align 1
   %v_add = add i32 %v, 1
 
   %ptr2 = call i8* @llvm.nacl.read.tp()

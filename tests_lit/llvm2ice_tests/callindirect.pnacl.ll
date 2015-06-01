@@ -44,7 +44,7 @@ entry:
 define internal void @CallIndirectGlobal() {
 entry:
   %fp_ptr_i32 = bitcast [4 x i8]* @fp_v to i32*
-  %fp_ptr = load i32* %fp_ptr_i32, align 1
+  %fp_ptr = load i32, i32* %fp_ptr_i32, align 1
   %fp = inttoptr i32 %fp_ptr to void ()*
   call void %fp()
   call void %fp()
