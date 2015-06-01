@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b91fb853_9d3fd5e8",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1836,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-01T16:43:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b91fb853_2462fc0b",
+      "range": {
+        "startLine": 1836,
+        "startChar": 50,
+        "endLine": 1836,
+        "endChar": 65
+      },
+      "revId": "05456bdd67571a2205c8a8d6ad61ce12acce9412",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b91fb853_e463e40b",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-29T20:15:57Z",
       "side": 1,
       "message": "vertexShader-\u003einstanceIdDeclared \u003d true; return 0;",
+      "range": {
+        "startLine": 1872,
+        "startChar": 31,
+        "endLine": 1872,
+        "endChar": 65
+      },
+      "revId": "05456bdd67571a2205c8a8d6ad61ce12acce9412",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b91fb853_7d34f909",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1872,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-01T16:43:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b91fb853_e463e40b",
       "range": {
         "startLine": 1872,
         "startChar": 31,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "b91fb853_bda171b3",
+        "filename": "src/Renderer/VertexProcessor.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 805,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-01T16:43:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b91fb853_e47884a5",
+      "range": {
+        "startLine": 805,
+        "startChar": 2,
+        "endLine": 805,
+        "endChar": 41
+      },
+      "revId": "05456bdd67571a2205c8a8d6ad61ce12acce9412",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b91fb853_648d9439",
         "filename": "src/Renderer/VertexProcessor.hpp",
         "patchSetId": 5
@@ -82,6 +154,30 @@
       "writtenOn": "2015-05-29T20:15:57Z",
       "side": 1,
       "message": "This isn\u0027t a state we want to compile into the routine, it\u0027s a variable.",
+      "range": {
+        "startLine": 52,
+        "startChar": 3,
+        "endLine": 52,
+        "endChar": 38
+      },
+      "revId": "05456bdd67571a2205c8a8d6ad61ce12acce9412",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b91fb853_fd47e96a",
+        "filename": "src/Renderer/VertexProcessor.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-01T16:43:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b91fb853_648d9439",
       "range": {
         "startLine": 52,
         "startChar": 3,
