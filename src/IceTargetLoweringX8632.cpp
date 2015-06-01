@@ -883,7 +883,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     // that stack slot.
     if (SpillVariable *SpillVar = llvm::dyn_cast<SpillVariable>(Var)) {
       assert(Var->getWeight().isZero());
-      if (!SpillVar->getLinkedTo()->hasReg()) {
+      if (SpillVar->getLinkedTo() && !SpillVar->getLinkedTo()->hasReg()) {
         VariablesLinkedToSpillSlots.push_back(Var);
         continue;
       }
@@ -1160,8 +1160,9 @@ void TargetX8632::split64(Variable *Var) {
 }
 
 Operand *TargetX8632::loOperand(Operand *Operand) {
-  assert(Operand->getType() == IceType_i64);
-  if (Operand->getType() != IceType_i64)
+  assert(Operand->getType() == IceType_i64 ||
+         Operand->getType() == IceType_f64);
+  if (Operand->getType() != IceType_i64 && Operand->getType() != IceType_f64)
     return Operand;
   if (Variable *Var = llvm::dyn_cast<Variable>(Operand)) {
     split64(Var);
@@ -1180,8 +1181,9 @@ Operand *TargetX8632::loOperand(Operand *Operand) {
 }
 
 Operand *TargetX8632::hiOperand(Operand *Operand) {
-  assert(Operand->getType() == IceType_i64);
-  if (Operand->getType() != IceType_i64)
+  assert(Operand->getType() == IceType_i64 ||
+         Operand->getType() == IceType_f64);
+  if (Operand->getType() != IceType_i64 && Operand->getType() != IceType_f64)
     return Operand;
   if (Variable *Var = llvm::dyn_cast<Variable>(Operand)) {
     split64(Var);
@@ -2463,20 +2465,25 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
       //   a_lo.i32 = t_lo.i32
       //   t_hi.i32 = hi(s.f64)
       //   a_hi.i32 = t_hi.i32
-      SpillVariable *SpillVar = Func->makeVariable<SpillVariable>(IceType_f64);
-      SpillVar->setLinkedTo(llvm::dyn_cast<Variable>(Src0RM));
-      Variable *Spill = SpillVar;
-      Spill->setWeight(RegWeight::Zero);
-      _movq(Spill, Src0RM);
+      Operand *SpillLo, *SpillHi;
+      if (auto *Src0Var = llvm::dyn_cast<Variable>(Src0RM)) {
+        SpillVariable *SpillVar =
+            Func->makeVariable<SpillVariable>(IceType_f64);
+        SpillVar->setLinkedTo(Src0Var);
+        Variable *Spill = SpillVar;
+        Spill->setWeight(RegWeight::Zero);
+        _movq(Spill, Src0RM);
+        SpillLo = VariableSplit::create(Func, Spill, VariableSplit::Low);
+        SpillHi = VariableSplit::create(Func, Spill, VariableSplit::High);
+      } else {
+        SpillLo = loOperand(Src0RM);
+        SpillHi = hiOperand(Src0RM);
+      }
 
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
       Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Variable *T_Lo = makeReg(IceType_i32);
       Variable *T_Hi = makeReg(IceType_i32);
-      VariableSplit *SpillLo =
-          VariableSplit::create(Func, Spill, VariableSplit::Low);
-      VariableSplit *SpillHi =
-          VariableSplit::create(Func, Spill, VariableSplit::High);
 
       _mov(T_Lo, SpillLo);
       _mov(DestLo, T_Lo);
@@ -2486,6 +2493,12 @@ void TargetX8632::lowerCast(const InstCast *Inst) {
     case IceType_f64: {
       Src0 = legalize(Src0);
       assert(Src0->getType() == IceType_i64);
+      if (llvm::isa<OperandX8632Mem>(Src0)) {
+        Variable *T = Func->makeVariable(Dest->getType());
+        _movq(T, Src0);
+        _movq(Dest, T);
+        break;
+      }
       // a.f64 = bitcast b.i64 ==>
       //   t_lo.i32 = b_lo.i32
       //   FakeDef(s.f64)
@@ -3955,19 +3968,22 @@ void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
 
 } // anonymous namespace
 
-void TargetX8632::lowerLoad(const InstLoad *Inst) {
+void TargetX8632::lowerLoad(const InstLoad *Load) {
   // A Load instruction can be treated the same as an Assign
   // instruction, after the source operand is transformed into an
   // OperandX8632Mem operand.  Note that the address mode
   // optimization already creates an OperandX8632Mem operand, so it
   // doesn't need another level of transformation.
-  Type Ty = Inst->getDest()->getType();
-  Operand *Src0 = FormMemoryOperand(Inst->getSourceAddress(), Ty);
+  Type Ty = Load->getDest()->getType();
+  Operand *Src0 = FormMemoryOperand(Load->getSourceAddress(), Ty);
 
   // Fuse this load with a subsequent Arithmetic instruction in the
   // following situations:
   //   a=[mem]; c=b+a ==> c=b+[mem] if last use of a and a not in b
   //   a=[mem]; c=a+b ==> c=b+[mem] if commutative and above is true
+  //
+  // Fuse this load with a subsequent Cast instruction:
+  //   a=[mem]; b=cast(a) ==> b=cast([mem]) if last use of a
   //
   // TODO: Clean up and test thoroughly.
   // (E.g., if there is an mfence-all make sure the load ends up on the
@@ -3979,30 +3995,46 @@ void TargetX8632::lowerLoad(const InstLoad *Inst) {
   // load instruction's dest variable, and that instruction ends that
   // variable's live range, then make the substitution.  Deal with
   // commutativity optimization in the arithmetic instruction lowering.
-  InstArithmetic *NewArith = nullptr;
-  if (InstArithmetic *Arith =
-          llvm::dyn_cast_or_null<InstArithmetic>(Context.getNextInst())) {
-    Variable *DestLoad = Inst->getDest();
-    Variable *Src0Arith = llvm::dyn_cast<Variable>(Arith->getSrc(0));
-    Variable *Src1Arith = llvm::dyn_cast<Variable>(Arith->getSrc(1));
-    if (Src1Arith == DestLoad && Arith->isLastUse(Src1Arith) &&
-        DestLoad != Src0Arith) {
-      NewArith = InstArithmetic::create(Func, Arith->getOp(), Arith->getDest(),
-                                        Arith->getSrc(0), Src0);
-    } else if (Src0Arith == DestLoad && Arith->isCommutative() &&
-               Arith->isLastUse(Src0Arith) && DestLoad != Src1Arith) {
-      NewArith = InstArithmetic::create(Func, Arith->getOp(), Arith->getDest(),
-                                        Arith->getSrc(1), Src0);
-    }
-    if (NewArith) {
-      Arith->setDeleted();
-      Context.advanceNext();
-      lowerArithmetic(NewArith);
-      return;
+  //
+  // TODO(stichnot): Do load fusing as a separate pass.  Run it before
+  // the bool folding pass.  Modify Ice::Inst to allow src operands to
+  // be replaced, including updating Inst::LiveRangesEnded, to avoid
+  // having to manually mostly clone each instruction type.
+  Inst *NextInst = Context.getNextInst();
+  Variable *DestLoad = Load->getDest();
+  if (NextInst && NextInst->isLastUse(DestLoad)) {
+    if (auto *Arith = llvm::dyn_cast<InstArithmetic>(NextInst)) {
+      InstArithmetic *NewArith = nullptr;
+      Variable *Src0Arith = llvm::dyn_cast<Variable>(Arith->getSrc(0));
+      Variable *Src1Arith = llvm::dyn_cast<Variable>(Arith->getSrc(1));
+      if (Src1Arith == DestLoad && DestLoad != Src0Arith) {
+        NewArith = InstArithmetic::create(
+            Func, Arith->getOp(), Arith->getDest(), Arith->getSrc(0), Src0);
+      } else if (Src0Arith == DestLoad && Arith->isCommutative() &&
+                 DestLoad != Src1Arith) {
+        NewArith = InstArithmetic::create(
+            Func, Arith->getOp(), Arith->getDest(), Arith->getSrc(1), Src0);
+      }
+      if (NewArith) {
+        Arith->setDeleted();
+        Context.advanceNext();
+        lowerArithmetic(NewArith);
+        return;
+      }
+    } else if (auto *Cast = llvm::dyn_cast<InstCast>(NextInst)) {
+      Variable *Src0Cast = llvm::dyn_cast<Variable>(Cast->getSrc(0));
+      if (Src0Cast == DestLoad) {
+        InstCast *NewCast =
+            InstCast::create(Func, Cast->getCastKind(), Cast->getDest(), Src0);
+        Cast->setDeleted();
+        Context.advanceNext();
+        lowerCast(NewCast);
+        return;
+      }
     }
   }
 
-  InstAssign *Assign = InstAssign::create(Func, Inst->getDest(), Src0);
+  InstAssign *Assign = InstAssign::create(Func, DestLoad, Src0);
   lowerAssign(Assign);
 }
 

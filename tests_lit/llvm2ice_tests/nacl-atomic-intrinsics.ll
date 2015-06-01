@@ -48,7 +48,8 @@ entry:
   %ptr = inttoptr i32 %iptr to i8*
   ; parameter value "6" is for the sequential consistency memory order.
   %i = call i8 @llvm.nacl.atomic.load.i8(i8* %ptr, i32 6)
-  %r = zext i8 %i to i32
+  %i2 = sub i8 %i, 0
+  %r = zext i8 %i2 to i32
   ret i32 %r
 }
 ; CHECK-LABEL: test_atomic_load_8
@@ -59,7 +60,8 @@ define i32 @test_atomic_load_16(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i16*
   %i = call i16 @llvm.nacl.atomic.load.i16(i16* %ptr, i32 6)
-  %r = zext i16 %i to i32
+  %i2 = sub i16 %i, 0
+  %r = zext i16 %i2 to i32
   ret i32 %r
 }
 ; CHECK-LABEL: test_atomic_load_16

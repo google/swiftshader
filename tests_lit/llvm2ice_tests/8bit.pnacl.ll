@@ -335,7 +335,8 @@ define i32 @load_i8(i32 %addr_arg) {
 entry:
   %addr = inttoptr i32 %addr_arg to i8*
   %ret = load i8* %addr, align 1
-  %ret_ext = zext i8 %ret to i32
+  %ret2 = sub i8 %ret, 0
+  %ret_ext = zext i8 %ret2 to i32
   ret i32 %ret_ext
 }
 ; CHECK-LABEL: load_i8
@@ -345,7 +346,8 @@ define i32 @load_i8_global(i32 %addr_arg) {
 entry:
   %addr = bitcast [1 x i8]* @global8 to i8*
   %ret = load i8* %addr, align 1
-  %ret_ext = zext i8 %ret to i32
+  %ret2 = sub i8 %ret, 0
+  %ret_ext = zext i8 %ret2 to i32
   ret i32 %ret_ext
 }
 ; CHECK-LABEL: load_i8_global
