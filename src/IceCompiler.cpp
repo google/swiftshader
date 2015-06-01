@@ -46,7 +46,7 @@ struct {
 
 // Validates values of build attributes. Prints them to Stream if
 // Stream is non-null.
-void ValidateAndGenerateBuildAttributes(const ClFlags &Flags, Ostream *Stream) {
+void validateAndGenerateBuildAttributes(Ostream *Stream) {
   // List the supported targets.
   if (Stream) {
 #define SUBZERO_TARGET(TARGET) *Stream << "target_" #TARGET << "\n";
@@ -80,8 +80,7 @@ void ValidateAndGenerateBuildAttributes(const ClFlags &Flags, Ostream *Stream) {
 
 void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
                    std::unique_ptr<llvm::DataStreamer> &&InputStream) {
-  ValidateAndGenerateBuildAttributes(
-      Ctx.getFlags(),
+  validateAndGenerateBuildAttributes(
       ExtraFlags.getGenerateBuildAtts() ? &Ctx.getStrDump() : nullptr);
   if (ExtraFlags.getGenerateBuildAtts())
     return Ctx.getErrorStatus()->assign(EC_None);
