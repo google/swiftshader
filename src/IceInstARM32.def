@@ -15,9 +15,14 @@
 #define SUBZERO_SRC_ICEINSTARM32_DEF
 
 // NOTE: PC and SP are not considered isInt, to avoid register allocating.
+//
 // For the NaCl sandbox we also need to r9 for TLS, so just reserve always.
 // TODO(jvoung): Allow r9 to be isInt when sandboxing is turned off
 // (native mode).
+//
+// LR is not considered isInt to avoid being allocated as a register.
+// It is technically preserved, but save/restore is handled separately,
+// based on whether or not the function MaybeLeafFunc.
 #define REGARM32_GPR_TABLE                                                     \
   /* val, encode, name, scratch, preserved, stackptr, frameptr, isInt, isFP */ \
   X(Reg_r0,  = 0,            "r0",  1, 0, 0, 0, 1, 0)                   \
@@ -33,9 +38,9 @@
   X(Reg_r10, = Reg_r0 + 10,  "r10", 0, 1, 0, 0, 1, 0)                   \
   X(Reg_fp,  = Reg_r0 + 11,  "fp",  0, 1, 0, 1, 1, 0)                   \
   X(Reg_ip,  = Reg_r0 + 12,  "ip",  1, 0, 0, 0, 1, 0)                   \
-  X(Reg_sp,  = Reg_r0 + 13,  "sp",  0, 1, 1, 0, 0, 0)                   \
-  X(Reg_lr,  = Reg_r0 + 14,  "lr",  0, 1, 0, 0, 1, 0)                   \
-  X(Reg_pc,  = Reg_r0 + 15,  "pc",  0, 1, 0, 0, 0, 0)                   \
+  X(Reg_sp,  = Reg_r0 + 13,  "sp",  0, 0, 1, 0, 0, 0)                   \
+  X(Reg_lr,  = Reg_r0 + 14,  "lr",  0, 0, 0, 0, 0, 0)                   \
+  X(Reg_pc,  = Reg_r0 + 15,  "pc",  0, 0, 0, 0, 0, 0)                   \
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isFP)
 

@@ -113,7 +113,14 @@ public:
   AddrMode getAddrMode() const { return Mode; }
 
   bool isRegReg() const { return Index != nullptr; }
-  bool isNegAddrMode() const { return Mode >= NegOffset; }
+  bool isNegAddrMode() const {
+    // Positive address modes have the "U" bit set, and negative modes don't.
+    static_assert((PreIndex & (4 << 21)) != 0,
+                  "Positive addr modes should have U bit set.");
+    static_assert((NegPreIndex & (4 << 21)) == 0,
+                  "Negative addr modes should have U bit clear.");
+    return (Mode & (4 << 21)) == 0;
+  }
 
   void emit(const Cfg *Func) const override;
   using OperandARM32::dump;
@@ -266,6 +273,8 @@ public:
     Mul,
     Mvn,
     Orr,
+    Pop,
+    Push,
     Ret,
     Sbc,
     Sub,
@@ -680,6 +689,49 @@ private:
   InstARM32Mla(Cfg *Func, Variable *Dest, Variable *Src0, Variable *Src1,
                Variable *Acc, CondARM32::Cond Predicate);
   ~InstARM32Mla() override {}
+};
+
+// Pop into a list of GPRs. Technically this can be predicated, but we don't
+// need that functionality.
+class InstARM32Pop : public InstARM32 {
+  InstARM32Pop() = delete;
+  InstARM32Pop(const InstARM32Pop &) = delete;
+  InstARM32Pop &operator=(const InstARM32Pop &) = delete;
+
+public:
+  static InstARM32Pop *create(Cfg *Func, const VarList &Dests) {
+    return new (Func->allocate<InstARM32Pop>()) InstARM32Pop(Func, Dests);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Pop); }
+
+private:
+  InstARM32Pop(Cfg *Func, const VarList &Dests);
+  ~InstARM32Pop() override {}
+  VarList Dests;
+};
+
+// Push a list of GPRs. Technically this can be predicated, but we don't
+// need that functionality.
+class InstARM32Push : public InstARM32 {
+  InstARM32Push() = delete;
+  InstARM32Push(const InstARM32Push &) = delete;
+  InstARM32Push &operator=(const InstARM32Push &) = delete;
+
+public:
+  static InstARM32Push *create(Cfg *Func, const VarList &Srcs) {
+    return new (Func->allocate<InstARM32Push>()) InstARM32Push(Func, Srcs);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Push); }
+
+private:
+  InstARM32Push(Cfg *Func, const VarList &Srcs);
+  ~InstARM32Push() override {}
 };
 
 // Ret pseudo-instruction.  This is actually a "bx" instruction with

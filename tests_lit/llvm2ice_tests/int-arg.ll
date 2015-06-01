@@ -73,8 +73,7 @@ entry:
 ; CHECK-NEXT: mov eax,{{.*}} [esp+0x14]
 ; CHECK-NEXT: ret
 ; ARM32-LABEL: test_returning32_arg4
-; TODO(jvoung): Toggle this on, once addProlog is done.
-; TODOARM32-NEXT: ldr r0, [sp]
+; ARM32-NEXT: ldr r0, [sp]
 ; ARM32-NEXT: bx lr
 
 
@@ -86,8 +85,7 @@ entry:
 ; CHECK-NEXT: mov eax,{{.*}} [esp+0x18]
 ; CHECK-NEXT: ret
 ; ARM32-LABEL: test_returning32_arg5
-; TODO(jvoung): Toggle this on, once addProlog is done.
-; TODOARM32-NEXT: ldr r0, [sp, #4]
+; ARM32-NEXT: ldr r0, [sp, #4]
 ; ARM32-NEXT: bx lr
 
 ; i64
@@ -126,9 +124,8 @@ entry:
 ; CHECK: ret
 ; ARM32-LABEL: test_returning64_arg2
 ; This could have been a ldm sp, {r0, r1}, but we don't do the ldm optimization.
-; TODO(jvoung): enable this once addProlog is done.
-; TODOARM32-NEXT: ldr r0, [sp]
-; TODOARM32-NEXT: ldr r1, [sp, #4]
+; ARM32-NEXT: ldr r0, [sp]
+; ARM32-NEXT: ldr r1, [sp, #4]
 ; ARM32-NEXT: bx lr
 
 define i64 @test_returning64_arg3(i64 %arg0, i64 %arg1, i64 %arg2, i64 %arg3) {
@@ -140,9 +137,8 @@ entry:
 ; CHECK-NEXT: mov {{.*}} [esp+0x20]
 ; CHECK: ret
 ; ARM32-LABEL: test_returning64_arg3
-; TODO(jvoung): enable this once addProlog is done.
-; TODOARM32-NEXT: ldr r0, [sp, #8]
-; TODOARM32-NEXT: ldr r1, [sp, #12]
+; ARM32-NEXT: ldr r0, [sp, #8]
+; ARM32-NEXT: ldr r1, [sp, #12]
 ; ARM32-NEXT: bx lr
 
 
@@ -185,9 +181,8 @@ entry:
 ; CHECK-NEXT: mov {{.*}} [esp+0x14]
 ; CHECK: ret
 ; ARM32-LABEL: test_returning64_even_arg2
-; TODO(jvoung): enable this once addProlog is done.
-; TODOARM32-NEXT: ldr r0, [sp]
-; TODOARM32-NEXT: ldr r1, [sp, #4]
+; ARM32-NEXT: ldr r0, [sp]
+; ARM32-NEXT: ldr r1, [sp, #4]
 ; ARM32-NEXT: bx lr
 
 define i64 @test_returning64_even_arg2b(i64 %arg0, i32 %arg1, i32 %arg1b, i64 %arg2) {
@@ -199,9 +194,8 @@ entry:
 ; CHECK-NEXT: mov {{.*}} [esp+0x18]
 ; CHECK: ret
 ; ARM32-LABEL: test_returning64_even_arg2b
-; TODO(jvoung): enable this once addProlog is done.
-; TODOARM32-NEXT: ldr r0, [sp]
-; TODOARM32-NEXT: ldr r1, [sp, #4]
+; ARM32-NEXT: ldr r0, [sp]
+; ARM32-NEXT: ldr r1, [sp, #4]
 ; ARM32-NEXT: bx lr
 
 define i32 @test_returning32_even_arg2(i64 %arg0, i32 %arg1, i32 %arg2) {
@@ -236,8 +230,7 @@ entry:
 ; CHECK-NEXT: mov {{.*}} [esp+0x18]
 ; CHECK-NEXT: ret
 ; ARM32-LABEL: test_returning32_even_arg4
-; TODO(jvoung): enable this once addProlog is done.
-; TODOARM32-NEXT: ldr r0, [sp, #8]
+; ARM32-NEXT: ldr r0, [sp, #8]
 ; ARM32-NEXT: bx lr
 
 ; Test interleaving float/double and integer (different register streams on ARM).

@@ -244,6 +244,159 @@ void TargetLowering::inferTwoAddress() {
   }
 }
 
+void TargetLowering::sortVarsByAlignment(VarList &Dest,
+                                         const VarList &Source) const {
+  Dest = Source;
+  // Instead of std::sort, we could do a bucket sort with log2(alignment)
+  // as the buckets, if performance is an issue.
+  std::sort(Dest.begin(), Dest.end(),
+            [this](const Variable *V1, const Variable *V2) {
+              return typeWidthInBytesOnStack(V1->getType()) >
+                  typeWidthInBytesOnStack(V2->getType());
+            });
+}
+
+void TargetLowering::getVarStackSlotParams(
+    VarList &SortedSpilledVariables, llvm::SmallBitVector &RegsUsed,
+    size_t *GlobalsSize, size_t *SpillAreaSizeBytes,
+    uint32_t *SpillAreaAlignmentBytes, uint32_t *LocalsSlotsAlignmentBytes,
+    std::function<bool(Variable *)> TargetVarHook) {
+  const VariablesMetadata *VMetadata = Func->getVMetadata();
+  llvm::BitVector IsVarReferenced(Func->getNumVariables());
+  for (CfgNode *Node : Func->getNodes()) {
+    for (Inst &Inst : Node->getInsts()) {
+      if (Inst.isDeleted())
+        continue;
+      if (const Variable *Var = Inst.getDest())
+        IsVarReferenced[Var->getIndex()] = true;
+      for (SizeT I = 0; I < Inst.getSrcSize(); ++I) {
+        Operand *Src = Inst.getSrc(I);
+        SizeT NumVars = Src->getNumVars();
+        for (SizeT J = 0; J < NumVars; ++J) {
+          const Variable *Var = Src->getVar(J);
+          IsVarReferenced[Var->getIndex()] = true;
+        }
+      }
+    }
+  }
+
+  // If SimpleCoalescing is false, each variable without a register
+  // gets its own unique stack slot, which leads to large stack
+  // frames.  If SimpleCoalescing is true, then each "global" variable
+  // without a register gets its own slot, but "local" variable slots
+  // are reused across basic blocks.  E.g., if A and B are local to
+  // block 1 and C is local to block 2, then C may share a slot with A or B.
+  //
+  // We cannot coalesce stack slots if this function calls a "returns twice"
+  // function. In that case, basic blocks may be revisited, and variables
+  // local to those basic blocks are actually live until after the
+  // called function returns a second time.
+  const bool SimpleCoalescing = !callsReturnsTwice();
+
+  std::vector<size_t> LocalsSize(Func->getNumNodes());
+  const VarList &Variables = Func->getVariables();
+  VarList SpilledVariables;
+  for (Variable *Var : Variables) {
+    if (Var->hasReg()) {
+      RegsUsed[Var->getRegNum()] = true;
+      continue;
+    }
+    // An argument either does not need a stack slot (if passed in a
+    // register) or already has one (if passed on the stack).
+    if (Var->getIsArg())
+      continue;
+    // An unreferenced variable doesn't need a stack slot.
+    if (!IsVarReferenced[Var->getIndex()])
+      continue;
+    // Check a target-specific variable (it may end up sharing stack slots)
+    // and not need accounting here.
+    if (TargetVarHook(Var))
+      continue;
+    SpilledVariables.push_back(Var);
+  }
+
+  SortedSpilledVariables.reserve(SpilledVariables.size());
+  sortVarsByAlignment(SortedSpilledVariables, SpilledVariables);
+
+  for (Variable *Var : SortedSpilledVariables) {
+    size_t Increment = typeWidthInBytesOnStack(Var->getType());
+    // We have sorted by alignment, so the first variable we encounter that
+    // is located in each area determines the max alignment for the area.
+    if (!*SpillAreaAlignmentBytes)
+      *SpillAreaAlignmentBytes = Increment;
+    if (SimpleCoalescing && VMetadata->isTracked(Var)) {
+      if (VMetadata->isMultiBlock(Var)) {
+        *GlobalsSize += Increment;
+      } else {
+        SizeT NodeIndex = VMetadata->getLocalUseNode(Var)->getIndex();
+        LocalsSize[NodeIndex] += Increment;
+        if (LocalsSize[NodeIndex] > *SpillAreaSizeBytes)
+          *SpillAreaSizeBytes = LocalsSize[NodeIndex];
+        if (!*LocalsSlotsAlignmentBytes)
+          *LocalsSlotsAlignmentBytes = Increment;
+      }
+    } else {
+      *SpillAreaSizeBytes += Increment;
+    }
+  }
+}
+
+void TargetLowering::alignStackSpillAreas(uint32_t SpillAreaStartOffset,
+                                          uint32_t SpillAreaAlignmentBytes,
+                                          size_t GlobalsSize,
+                                          uint32_t LocalsSlotsAlignmentBytes,
+                                          uint32_t *SpillAreaPaddingBytes,
+                                          uint32_t *LocalsSlotsPaddingBytes) {
+  if (SpillAreaAlignmentBytes) {
+    uint32_t PaddingStart = SpillAreaStartOffset;
+    uint32_t SpillAreaStart =
+        Utils::applyAlignment(PaddingStart, SpillAreaAlignmentBytes);
+    *SpillAreaPaddingBytes = SpillAreaStart - PaddingStart;
+  }
+
+  // If there are separate globals and locals areas, make sure the
+  // locals area is aligned by padding the end of the globals area.
+  if (LocalsSlotsAlignmentBytes) {
+    uint32_t GlobalsAndSubsequentPaddingSize = GlobalsSize;
+    GlobalsAndSubsequentPaddingSize =
+        Utils::applyAlignment(GlobalsSize, LocalsSlotsAlignmentBytes);
+    *LocalsSlotsPaddingBytes = GlobalsAndSubsequentPaddingSize - GlobalsSize;
+  }
+}
+
+void TargetLowering::assignVarStackSlots(VarList &SortedSpilledVariables,
+                                         size_t SpillAreaPaddingBytes,
+                                         size_t SpillAreaSizeBytes,
+                                         size_t GlobalsAndSubsequentPaddingSize,
+                                         bool UsesFramePointer) {
+  const VariablesMetadata *VMetadata = Func->getVMetadata();
+  size_t GlobalsSpaceUsed = SpillAreaPaddingBytes;
+  size_t NextStackOffset = SpillAreaPaddingBytes;
+  std::vector<size_t> LocalsSize(Func->getNumNodes());
+  const bool SimpleCoalescing = !callsReturnsTwice();
+  for (Variable *Var : SortedSpilledVariables) {
+    size_t Increment = typeWidthInBytesOnStack(Var->getType());
+    if (SimpleCoalescing && VMetadata->isTracked(Var)) {
+      if (VMetadata->isMultiBlock(Var)) {
+        GlobalsSpaceUsed += Increment;
+        NextStackOffset = GlobalsSpaceUsed;
+      } else {
+        SizeT NodeIndex = VMetadata->getLocalUseNode(Var)->getIndex();
+        LocalsSize[NodeIndex] += Increment;
+        NextStackOffset = SpillAreaPaddingBytes +
+                          GlobalsAndSubsequentPaddingSize +
+                          LocalsSize[NodeIndex];
+      }
+    } else {
+      NextStackOffset += Increment;
+    }
+    if (UsesFramePointer)
+      Var->setStackOffset(-NextStackOffset);
+    else
+      Var->setStackOffset(SpillAreaSizeBytes - NextStackOffset);
+  }
+}
+
 InstCall *TargetLowering::makeHelperCall(const IceString &Name, Variable *Dest,
                                          SizeT MaxSrcs) {
   const bool HasTailCall = false;

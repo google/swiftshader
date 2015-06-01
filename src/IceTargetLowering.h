@@ -165,6 +165,7 @@ public:
   virtual bool hasFramePointer() const { return false; }
   virtual SizeT getFrameOrStackReg() const = 0;
   virtual size_t typeWidthInBytesOnStack(Type Ty) const = 0;
+
   bool hasComputedFrame() const { return HasComputedFrame; }
   // Returns true if this function calls a function that has the
   // "returns twice" attribute.
@@ -259,9 +260,65 @@ protected:
   // to keep liveness analysis consistent.
   void inferTwoAddress();
 
+  // Make a pass over the Cfg to determine which variables need stack slots
+  // and place them in a sorted list (SortedSpilledVariables). Among those,
+  // vars, classify the spill variables as local to the basic block vs
+  // global (multi-block) in order to compute the parameters GlobalsSize
+  // and SpillAreaSizeBytes (represents locals or general vars if the
+  // coalescing of locals is disallowed) along with alignments required
+  // for variables in each area. We rely on accurate VMetadata in order to
+  // classify a variable as global vs local (otherwise the variable is
+  // conservatively global). The in-args should be initialized to 0.
+  //
+  // This is only a pre-pass and the actual stack slot assignment is
+  // handled separately.
+  //
+  // There may be target-specific Variable types, which will be handled
+  // by TargetVarHook. If the TargetVarHook returns true, then the variable
+  // is skipped and not considered with the rest of the spilled variables.
+  void getVarStackSlotParams(VarList &SortedSpilledVariables,
+                             llvm::SmallBitVector &RegsUsed,
+                             size_t *GlobalsSize, size_t *SpillAreaSizeBytes,
+                             uint32_t *SpillAreaAlignmentBytes,
+                             uint32_t *LocalsSlotsAlignmentBytes,
+                             std::function<bool(Variable *)> TargetVarHook);
+
+  // Calculate the amount of padding needed to align the local and global
+  // areas to the required alignment.  This assumes the globals/locals layout
+  // used by getVarStackSlotParams and assignVarStackSlots.
+  void alignStackSpillAreas(uint32_t SpillAreaStartOffset,
+                            uint32_t SpillAreaAlignmentBytes,
+                            size_t GlobalsSize,
+                            uint32_t LocalsSlotsAlignmentBytes,
+                            uint32_t *SpillAreaPaddingBytes,
+                            uint32_t *LocalsSlotsPaddingBytes);
+
+  // Make a pass through the SortedSpilledVariables and actually assign
+  // stack slots. SpillAreaPaddingBytes takes into account stack alignment
+  // padding. The SpillArea starts after that amount of padding.
+  // This matches the scheme in getVarStackSlotParams, where there may
+  // be a separate multi-block global var spill area and a local var
+  // spill area.
+  void assignVarStackSlots(VarList &SortedSpilledVariables,
+                           size_t SpillAreaPaddingBytes,
+                           size_t SpillAreaSizeBytes,
+                           size_t GlobalsAndSubsequentPaddingSize,
+                           bool UsesFramePointer);
+
+  // Sort the variables in Source based on required alignment.
+  // The variables with the largest alignment need are placed in the front
+  // of the Dest list.
+  void sortVarsByAlignment(VarList &Dest, const VarList &Source) const;
+
   // Make a call to an external helper function.
   InstCall *makeHelperCall(const IceString &Name, Variable *Dest,
                            SizeT MaxSrcs);
+
+  void
+  _bundle_lock(InstBundleLock::Option BundleOption = InstBundleLock::Opt_None) {
+    Context.insert(InstBundleLock::create(Func, BundleOption));
+  }
+  void _bundle_unlock() { Context.insert(InstBundleUnlock::create(Func)); }
 
   Cfg *Func;
   GlobalContext *Ctx;

@@ -120,6 +120,7 @@ public:
     // i8, and i16 are rounded up to 4 bytes.
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
+
   void emitVariable(const Variable *Var) const override;
 
   const char *getConstantPrefix() const final { return "$"; }
@@ -139,10 +140,10 @@ public:
   // function calls using the 32-bit push instruction (though the
   // latter could be done by directly writing to the stack).
   void split64(Variable *Var);
-  void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
-                              size_t BasicFrameOffset, size_t &InArgsSizeBytes);
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
+  void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
+                              size_t BasicFrameOffset, size_t &InArgsSizeBytes);
   X8632::Address stackVarToAsmOperand(const Variable *Var) const;
 
   enum X86InstructionSet {
@@ -204,8 +205,6 @@ protected:
 
   void scalarizeArithmetic(InstArithmetic::OpKind K, Variable *Dest,
                            Operand *Src0, Operand *Src1);
-
-  void sortByAlignment(VarList &Dest, const VarList &Source) const;
 
   // Operand legalization helpers.  To deal with address mode
   // constraints, the helpers will create a new Operand and emit
@@ -303,11 +302,6 @@ protected:
   void _bswap(Variable *SrcDest) {
     Context.insert(InstX8632Bswap::create(Func, SrcDest));
   }
-  void
-  _bundle_lock(InstBundleLock::Option BundleOption = InstBundleLock::Opt_None) {
-    Context.insert(InstBundleLock::create(Func, BundleOption));
-  }
-  void _bundle_unlock() { Context.insert(InstBundleUnlock::create(Func)); }
   void _cbwdq(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Cbwdq::create(Func, Dest, Src0));
   }

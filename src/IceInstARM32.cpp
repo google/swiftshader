@@ -260,6 +260,20 @@ InstARM32Mla::InstARM32Mla(Cfg *Func, Variable *Dest, Variable *Src0,
   addSource(Acc);
 }
 
+InstARM32Pop::InstARM32Pop(Cfg *Func, const VarList &Dests)
+    : InstARM32(Func, InstARM32::Pop, 0, nullptr), Dests(Dests) {
+  // Track modifications to Dests separately via FakeDefs.
+  // Also, a pop instruction affects the stack pointer and so it should not
+  // be allowed to be automatically dead-code eliminated. This is automatic
+  // since we leave the Dest as nullptr.
+}
+
+InstARM32Push::InstARM32Push(Cfg *Func, const VarList &Srcs)
+    : InstARM32(Func, InstARM32::Push, Srcs.size(), nullptr) {
+  for (Variable *Source : Srcs)
+    addSource(Source);
+}
+
 InstARM32Ret::InstARM32Ret(Cfg *Func, Variable *LR, Variable *Source)
     : InstARM32(Func, InstARM32::Ret, Source ? 2 : 1, nullptr) {
   addSource(LR);
@@ -554,6 +568,66 @@ template <> void InstARM32Movt::emit(const Cfg *Func) const {
   }
 }
 
+void InstARM32Pop::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  assert(Dests.size() > 0);
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t"
+      << "pop"
+      << "\t{";
+  for (SizeT I = 0; I < Dests.size(); ++I) {
+    if (I > 0)
+      Str << ", ";
+    Dests[I]->emit(Func);
+  }
+  Str << "}";
+}
+
+void InstARM32Pop::emitIAS(const Cfg *Func) const {
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Pop::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "pop"
+      << " ";
+  for (SizeT I = 0; I < Dests.size(); ++I) {
+    if (I > 0)
+      Str << ", ";
+    Dests[I]->dump(Func);
+  }
+}
+
+void InstARM32Push::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  assert(getSrcSize() > 0);
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t"
+      << "push"
+      << "\t{";
+  emitSources(Func);
+  Str << "}";
+}
+
+void InstARM32Push::emitIAS(const Cfg *Func) const {
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Push::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "push"
+      << " ";
+  dumpSources(Func);
+}
+
 void InstARM32Ret::emit(const Cfg *Func) const {
   if (!ALLOW_DUMP)
     return;
@@ -683,7 +757,7 @@ void OperandARM32Mem::dump(const Cfg *Func, Ostream &Str) const {
   } else {
     getOffset()->dump(Func, Str);
   }
-  Str << "] AddrMode==" << getAddrMode() << "\n";
+  Str << "] AddrMode==" << getAddrMode();
 }
 
 void OperandARM32FlexImm::emit(const Cfg *Func) const {

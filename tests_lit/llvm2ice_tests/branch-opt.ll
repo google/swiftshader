@@ -93,9 +93,9 @@ target:
 ; ARM32O2-NEXT: cmp {{.*}}, #0
 ; ARM32O2-NEXT: bne
 ; ARM32O2-NEXT: bl
-; ARM32O2-NEXT: bx lr
-; ARM32O2-NEXT: bl
-; ARM32O2-NEXT: bx lr
+; ARM32O2: bx lr
+; ARM32O2: bl
+; ARM32O2: bx lr
 
 ; ARM32OM1-LABEL: testCondFallthroughToNextBlock
 ; ARM32OM1: cmp {{.*}}, #123
@@ -151,9 +151,9 @@ target:
 ; ARM32O2-NEXT: cmp {{.*}}, #0
 ; ARM32O2-NEXT: beq
 ; ARM32O2-NEXT: bl
-; ARM32O2-NEXT: bx lr
-; ARM32O2-NEXT: bl
-; ARM32O2-NEXT: bx lr
+; ARM32O2: bx lr
+; ARM32O2: bl
+; ARM32O2: bx lr
 
 ; ARM32OM1-LABEL: testCondTargetNextBlock
 ; ARM32OM1: cmp {{.*}}, #123

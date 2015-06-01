@@ -127,6 +127,8 @@ entry:
 }
 ; In -O2, the order of the CHECK-DAG lines in the output is switched.
 ; CHECK-LABEL: variable_n_align_32
+; CHECK:      push    ebp
+; CHECK:      mov     ebp,esp
 ; CHECK-DAG:  and     esp,0xffffffe0
 ; CHECK-DAG:  mov     eax,DWORD PTR [ebp+0x8]
 ; CHECK:      add     eax,0x1f
@@ -135,13 +137,19 @@ entry:
 ; CHECK:      sub     esp,0x10
 ; CHECK:      mov     DWORD PTR [esp],eax
 ; CHECK:      call {{.*}} R_{{.*}}    f2
+; CHECK:      mov     esp,ebp
+; CHECK:      pop     ebp
 
 ; ARM32-LABEL: variable_n_align_32
+; ARM32:      push {fp, lr}
+; ARM32:      mov fp, sp
 ; ARM32:      bic sp, sp, #31
 ; ARM32:      add r0, r0, #31
 ; ARM32:      bic r0, r0, #31
 ; ARM32:      sub sp, sp, r0
 ; ARM32:      bl {{.*}} R_{{.*}}    f2
+; ARM32:      mov sp, fp
+; ARM32:      pop {fp, lr}
 
 ; Test alloca with default (0) alignment.
 define void @align0(i32 %n) {

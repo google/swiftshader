@@ -126,10 +126,17 @@ const uint32_t ARM32_MAX_GPR_ARG = 4;
 // Stack alignment
 const uint32_t ARM32_STACK_ALIGNMENT_BYTES = 16;
 
+// Value is in bytes. Return Value adjusted to the next highest multiple
+// of the stack alignment.
+uint32_t applyStackAlignment(uint32_t Value) {
+  return Utils::applyAlignment(Value, ARM32_STACK_ALIGNMENT_BYTES);
+}
+
 } // end of anonymous namespace
 
 TargetARM32::TargetARM32(Cfg *Func)
-    : TargetLowering(Func), UsesFramePointer(false) {
+    : TargetLowering(Func), UsesFramePointer(false), NeedsStackAlignment(false),
+      MaybeLeafFunc(true), SpillAreaSizeBytes(0) {
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
   // class.
@@ -396,21 +403,21 @@ void TargetARM32::lowerArguments() {
     } else if (Ty == IceType_i64) {
       if (NumGPRRegsUsed >= ARM32_MAX_GPR_ARG)
         continue;
-      int32_t RegLo = RegARM32::Reg_r0 + NumGPRRegsUsed;
-      int32_t RegHi = 0;
-      ++NumGPRRegsUsed;
+      int32_t RegLo;
+      int32_t RegHi;
       // Always start i64 registers at an even register, so this may end
       // up padding away a register.
-      if (RegLo % 2 != 0) {
-        ++RegLo;
+      if (NumGPRRegsUsed % 2 != 0) {
         ++NumGPRRegsUsed;
       }
-      // If this leaves us without room to consume another register,
-      // leave any previously speculatively consumed registers as consumed.
-      if (NumGPRRegsUsed >= ARM32_MAX_GPR_ARG)
-        continue;
+      RegLo = RegARM32::Reg_r0 + NumGPRRegsUsed;
+      ++NumGPRRegsUsed;
       RegHi = RegARM32::Reg_r0 + NumGPRRegsUsed;
       ++NumGPRRegsUsed;
+      // If this bumps us past the boundary, don't allocate to a register
+      // and leave any previously speculatively consumed registers as consumed.
+      if (NumGPRRegsUsed > ARM32_MAX_GPR_ARG)
+        continue;
       Variable *RegisterArg = Func->makeVariable(Ty);
       Variable *RegisterLo = Func->makeVariable(IceType_i32);
       Variable *RegisterHi = Func->makeVariable(IceType_i32);
@@ -450,16 +457,344 @@ void TargetARM32::lowerArguments() {
   }
 }
 
+// Helper function for addProlog().
+//
+// This assumes Arg is an argument passed on the stack.  This sets the
+// frame offset for Arg and updates InArgsSizeBytes according to Arg's
+// width.  For an I64 arg that has been split into Lo and Hi components,
+// it calls itself recursively on the components, taking care to handle
+// Lo first because of the little-endian architecture.  Lastly, this
+// function generates an instruction to copy Arg into its assigned
+// register if applicable.
+void TargetARM32::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
+                                         size_t BasicFrameOffset,
+                                         size_t &InArgsSizeBytes) {
+  Variable *Lo = Arg->getLo();
+  Variable *Hi = Arg->getHi();
+  Type Ty = Arg->getType();
+  if (Lo && Hi && Ty == IceType_i64) {
+    assert(Lo->getType() != IceType_i64); // don't want infinite recursion
+    assert(Hi->getType() != IceType_i64); // don't want infinite recursion
+    finishArgumentLowering(Lo, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+    finishArgumentLowering(Hi, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+    return;
+  }
+  if (isVectorType(Ty)) {
+    InArgsSizeBytes = applyStackAlignment(InArgsSizeBytes);
+  }
+  Arg->setStackOffset(BasicFrameOffset + InArgsSizeBytes);
+  InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
+  // If the argument variable has been assigned a register, we need to load
+  // the value from the stack slot.
+  if (Arg->hasReg()) {
+    assert(Ty != IceType_i64);
+    OperandARM32Mem *Mem = OperandARM32Mem::create(
+        Func, Ty, FramePtr, llvm::cast<ConstantInteger32>(
+                                Ctx->getConstantInt32(Arg->getStackOffset())));
+    if (isVectorType(Arg->getType())) {
+      UnimplementedError(Func->getContext()->getFlags());
+    } else {
+      _ldr(Arg, Mem);
+    }
+    // This argument-copying instruction uses an explicit
+    // OperandARM32Mem operand instead of a Variable, so its
+    // fill-from-stack operation has to be tracked separately for
+    // statistics.
+    Ctx->statsUpdateFills();
+  }
+}
+
 Type TargetARM32::stackSlotType() { return IceType_i32; }
 
 void TargetARM32::addProlog(CfgNode *Node) {
-  (void)Node;
-  UnimplementedError(Func->getContext()->getFlags());
+  // Stack frame layout:
+  //
+  // +------------------------+
+  // | 1. preserved registers |
+  // +------------------------+
+  // | 2. padding             |
+  // +------------------------+
+  // | 3. global spill area   |
+  // +------------------------+
+  // | 4. padding             |
+  // +------------------------+
+  // | 5. local spill area    |
+  // +------------------------+
+  // | 6. padding             |
+  // +------------------------+
+  // | 7. allocas             |
+  // +------------------------+
+  //
+  // The following variables record the size in bytes of the given areas:
+  //  * PreservedRegsSizeBytes: area 1
+  //  * SpillAreaPaddingBytes:  area 2
+  //  * GlobalsSize:            area 3
+  //  * GlobalsAndSubsequentPaddingSize: areas 3 - 4
+  //  * LocalsSpillAreaSize:    area 5
+  //  * SpillAreaSizeBytes:     areas 2 - 6
+  // Determine stack frame offsets for each Variable without a
+  // register assignment.  This can be done as one variable per stack
+  // slot.  Or, do coalescing by running the register allocator again
+  // with an infinite set of registers (as a side effect, this gives
+  // variables a second chance at physical register assignment).
+  //
+  // A middle ground approach is to leverage sparsity and allocate one
+  // block of space on the frame for globals (variables with
+  // multi-block lifetime), and one block to share for locals
+  // (single-block lifetime).
+
+  Context.init(Node);
+  Context.setInsertPoint(Context.getCur());
+
+  llvm::SmallBitVector CalleeSaves =
+      getRegisterSet(RegSet_CalleeSave, RegSet_None);
+  RegsUsed = llvm::SmallBitVector(CalleeSaves.size());
+  VarList SortedSpilledVariables;
+  size_t GlobalsSize = 0;
+  // If there is a separate locals area, this represents that area.
+  // Otherwise it counts any variable not counted by GlobalsSize.
+  SpillAreaSizeBytes = 0;
+  // If there is a separate locals area, this specifies the alignment
+  // for it.
+  uint32_t LocalsSlotsAlignmentBytes = 0;
+  // The entire spill locations area gets aligned to largest natural
+  // alignment of the variables that have a spill slot.
+  uint32_t SpillAreaAlignmentBytes = 0;
+  // For now, we don't have target-specific variables that need special
+  // treatment (no stack-slot-linked SpillVariable type).
+  std::function<bool(Variable *)> TargetVarHook =
+      [](Variable *) { return false; };
+
+  // Compute the list of spilled variables and bounds for GlobalsSize, etc.
+  getVarStackSlotParams(SortedSpilledVariables, RegsUsed, &GlobalsSize,
+                        &SpillAreaSizeBytes, &SpillAreaAlignmentBytes,
+                        &LocalsSlotsAlignmentBytes, TargetVarHook);
+  uint32_t LocalsSpillAreaSize = SpillAreaSizeBytes;
+  SpillAreaSizeBytes += GlobalsSize;
+
+  // Add push instructions for preserved registers.
+  // On ARM, "push" can push a whole list of GPRs via a bitmask (0-15).
+  // Unlike x86, ARM also has callee-saved float/vector registers.
+  // The "vpush" instruction can handle a whole list of float/vector
+  // registers, but it only handles contiguous sequences of registers
+  // by specifying the start and the length.
+  VarList GPRsToPreserve;
+  GPRsToPreserve.reserve(CalleeSaves.size());
+  uint32_t NumCallee = 0;
+  size_t PreservedRegsSizeBytes = 0;
+  // Consider FP and LR as callee-save / used as needed.
+  if (UsesFramePointer) {
+    CalleeSaves[RegARM32::Reg_fp] = true;
+    assert(RegsUsed[RegARM32::Reg_fp] == false);
+    RegsUsed[RegARM32::Reg_fp] = true;
+  }
+  if (!MaybeLeafFunc) {
+    CalleeSaves[RegARM32::Reg_lr] = true;
+    RegsUsed[RegARM32::Reg_lr] = true;
+  }
+  for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
+    if (CalleeSaves[i] && RegsUsed[i]) {
+      // TODO(jvoung): do separate vpush for each floating point
+      // register segment and += 4, or 8 depending on type.
+      ++NumCallee;
+      PreservedRegsSizeBytes += 4;
+      GPRsToPreserve.push_back(getPhysicalRegister(i));
+    }
+  }
+  Ctx->statsUpdateRegistersSaved(NumCallee);
+  if (!GPRsToPreserve.empty())
+    _push(GPRsToPreserve);
+
+  // Generate "mov FP, SP" if needed.
+  if (UsesFramePointer) {
+    Variable *FP = getPhysicalRegister(RegARM32::Reg_fp);
+    Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
+    _mov(FP, SP);
+    // Keep FP live for late-stage liveness analysis (e.g. asm-verbose mode).
+    Context.insert(InstFakeUse::create(Func, FP));
+  }
+
+  // Align the variables area. SpillAreaPaddingBytes is the size of
+  // the region after the preserved registers and before the spill areas.
+  // LocalsSlotsPaddingBytes is the amount of padding between the globals
+  // and locals area if they are separate.
+  assert(SpillAreaAlignmentBytes <= ARM32_STACK_ALIGNMENT_BYTES);
+  assert(LocalsSlotsAlignmentBytes <= SpillAreaAlignmentBytes);
+  uint32_t SpillAreaPaddingBytes = 0;
+  uint32_t LocalsSlotsPaddingBytes = 0;
+  alignStackSpillAreas(PreservedRegsSizeBytes, SpillAreaAlignmentBytes,
+                       GlobalsSize, LocalsSlotsAlignmentBytes,
+                       &SpillAreaPaddingBytes, &LocalsSlotsPaddingBytes);
+  SpillAreaSizeBytes += SpillAreaPaddingBytes + LocalsSlotsPaddingBytes;
+  uint32_t GlobalsAndSubsequentPaddingSize =
+      GlobalsSize + LocalsSlotsPaddingBytes;
+
+  // Align SP if necessary.
+  if (NeedsStackAlignment) {
+    uint32_t StackOffset = PreservedRegsSizeBytes;
+    uint32_t StackSize = applyStackAlignment(StackOffset + SpillAreaSizeBytes);
+    SpillAreaSizeBytes = StackSize - StackOffset;
+  }
+
+  // Generate "sub sp, SpillAreaSizeBytes"
+  if (SpillAreaSizeBytes) {
+    // Use the IP inter-procedural scratch register if needed to legalize
+    // the immediate.
+    Operand *SubAmount = legalize(Ctx->getConstantInt32(SpillAreaSizeBytes),
+                                  Legal_Reg | Legal_Flex, RegARM32::Reg_ip);
+    Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
+    _sub(SP, SP, SubAmount);
+  }
+  Ctx->statsUpdateFrameBytes(SpillAreaSizeBytes);
+
+  resetStackAdjustment();
+
+  // Fill in stack offsets for stack args, and copy args into registers
+  // for those that were register-allocated.  Args are pushed right to
+  // left, so Arg[0] is closest to the stack/frame pointer.
+  Variable *FramePtr = getPhysicalRegister(getFrameOrStackReg());
+  size_t BasicFrameOffset = PreservedRegsSizeBytes;
+  if (!UsesFramePointer)
+    BasicFrameOffset += SpillAreaSizeBytes;
+
+  const VarList &Args = Func->getArgs();
+  size_t InArgsSizeBytes = 0;
+  unsigned NumGPRArgs = 0;
+  for (Variable *Arg : Args) {
+    Type Ty = Arg->getType();
+    // Skip arguments passed in registers.
+    if (isVectorType(Ty)) {
+      UnimplementedError(Func->getContext()->getFlags());
+      continue;
+    } else if (isFloatingType(Ty)) {
+      UnimplementedError(Func->getContext()->getFlags());
+      continue;
+    } else if (Ty == IceType_i64 && NumGPRArgs < ARM32_MAX_GPR_ARG) {
+      // Start at an even register.
+      if (NumGPRArgs % 2 == 1) {
+        ++NumGPRArgs;
+      }
+      NumGPRArgs += 2;
+      if (NumGPRArgs <= ARM32_MAX_GPR_ARG)
+        continue;
+    } else if (NumGPRArgs < ARM32_MAX_GPR_ARG) {
+      ++NumGPRArgs;
+      continue;
+    }
+    finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+  }
+
+  // Fill in stack offsets for locals.
+  assignVarStackSlots(SortedSpilledVariables, SpillAreaPaddingBytes,
+                      SpillAreaSizeBytes, GlobalsAndSubsequentPaddingSize,
+                      UsesFramePointer);
+  this->HasComputedFrame = true;
+
+  if (ALLOW_DUMP && Func->isVerbose(IceV_Frame)) {
+    OstreamLocker L(Func->getContext());
+    Ostream &Str = Func->getContext()->getStrDump();
+
+    Str << "Stack layout:\n";
+    uint32_t SPAdjustmentPaddingSize =
+        SpillAreaSizeBytes - LocalsSpillAreaSize -
+        GlobalsAndSubsequentPaddingSize - SpillAreaPaddingBytes;
+    Str << " in-args = " << InArgsSizeBytes << " bytes\n"
+        << " preserved registers = " << PreservedRegsSizeBytes << " bytes\n"
+        << " spill area padding = " << SpillAreaPaddingBytes << " bytes\n"
+        << " globals spill area = " << GlobalsSize << " bytes\n"
+        << " globals-locals spill areas intermediate padding = "
+        << GlobalsAndSubsequentPaddingSize - GlobalsSize << " bytes\n"
+        << " locals spill area = " << LocalsSpillAreaSize << " bytes\n"
+        << " SP alignment padding = " << SPAdjustmentPaddingSize << " bytes\n";
+
+    Str << "Stack details:\n"
+        << " SP adjustment = " << SpillAreaSizeBytes << " bytes\n"
+        << " spill area alignment = " << SpillAreaAlignmentBytes << " bytes\n"
+        << " locals spill area alignment = " << LocalsSlotsAlignmentBytes
+        << " bytes\n"
+        << " is FP based = " << UsesFramePointer << "\n";
+  }
 }
 
 void TargetARM32::addEpilog(CfgNode *Node) {
-  (void)Node;
-  UnimplementedError(Func->getContext()->getFlags());
+  InstList &Insts = Node->getInsts();
+  InstList::reverse_iterator RI, E;
+  for (RI = Insts.rbegin(), E = Insts.rend(); RI != E; ++RI) {
+    if (llvm::isa<InstARM32Ret>(*RI))
+      break;
+  }
+  if (RI == E)
+    return;
+
+  // Convert the reverse_iterator position into its corresponding
+  // (forward) iterator position.
+  InstList::iterator InsertPoint = RI.base();
+  --InsertPoint;
+  Context.init(Node);
+  Context.setInsertPoint(InsertPoint);
+
+  Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
+  if (UsesFramePointer) {
+    Variable *FP = getPhysicalRegister(RegARM32::Reg_fp);
+    // For late-stage liveness analysis (e.g. asm-verbose mode),
+    // adding a fake use of SP before the assignment of SP=FP keeps
+    // previous SP adjustments from being dead-code eliminated.
+    Context.insert(InstFakeUse::create(Func, SP));
+    _mov(SP, FP);
+  } else {
+    // add SP, SpillAreaSizeBytes
+    if (SpillAreaSizeBytes) {
+      // Use the IP inter-procedural scratch register if needed to legalize
+      // the immediate. It shouldn't be live at this point.
+      Operand *AddAmount = legalize(Ctx->getConstantInt32(SpillAreaSizeBytes),
+                                    Legal_Reg | Legal_Flex, RegARM32::Reg_ip);
+      _add(SP, SP, AddAmount);
+    }
+  }
+
+  // Add pop instructions for preserved registers.
+  llvm::SmallBitVector CalleeSaves =
+      getRegisterSet(RegSet_CalleeSave, RegSet_None);
+  VarList GPRsToRestore;
+  GPRsToRestore.reserve(CalleeSaves.size());
+  // Consider FP and LR as callee-save / used as needed.
+  if (UsesFramePointer) {
+    CalleeSaves[RegARM32::Reg_fp] = true;
+  }
+  if (!MaybeLeafFunc) {
+    CalleeSaves[RegARM32::Reg_lr] = true;
+  }
+  // Pop registers in ascending order just like push
+  // (instead of in reverse order).
+  for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
+    if (CalleeSaves[i] && RegsUsed[i]) {
+      GPRsToRestore.push_back(getPhysicalRegister(i));
+    }
+  }
+  if (!GPRsToRestore.empty())
+    _pop(GPRsToRestore);
+
+  if (!Ctx->getFlags().getUseSandboxing())
+    return;
+
+  // Change the original ret instruction into a sandboxed return sequence.
+  // bundle_lock
+  // bic lr, #0xc000000f
+  // bx lr
+  // bundle_unlock
+  // This isn't just aligning to the getBundleAlignLog2Bytes(). It needs to
+  // restrict to the lower 1GB as well.
+  Operand *RetMask =
+      legalize(Ctx->getConstantInt32(0xc000000f), Legal_Reg | Legal_Flex);
+  Variable *LR = makeReg(IceType_i32, RegARM32::Reg_lr);
+  Variable *RetValue = nullptr;
+  if (RI->getSrcSize())
+    RetValue = llvm::cast<Variable>(RI->getSrc(0));
+  _bundle_lock();
+  _bic(LR, LR, RetMask);
+  _ret(LR, RetValue);
+  _bundle_unlock();
+  RI->setDeleted();
 }
 
 void TargetARM32::split64(Variable *Var) {
@@ -881,6 +1216,8 @@ void TargetARM32::lowerBr(const InstBr *Inst) {
 }
 
 void TargetARM32::lowerCall(const InstCall *Instr) {
+  MaybeLeafFunc = false;
+
   // TODO(jvoung): assign arguments to registers and stack. Also reserve stack.
   if (Instr->getNumArgs()) {
     UnimplementedError(Func->getContext()->getFlags());
@@ -1567,12 +1904,12 @@ Variable *TargetARM32::makeReg(Type Type, int32_t RegNum) {
 
 void TargetARM32::alignRegisterPow2(Variable *Reg, uint32_t Align) {
   assert(llvm::isPowerOf2_32(Align));
-  uint32_t RotateAmt = 0;
+  uint32_t RotateAmt;
   uint32_t Immed_8;
   Operand *Mask;
   // Use AND or BIC to mask off the bits, depending on which immediate fits
   // (if it fits at all). Assume Align is usually small, in which case BIC
-  // works better.
+  // works better. Thus, this rounds down to the alignment.
   if (OperandARM32FlexImm::canHoldImm(Align - 1, &RotateAmt, &Immed_8)) {
     Mask = legalize(Ctx->getConstantInt32(Align - 1), Legal_Reg | Legal_Flex);
     _bic(Reg, Reg, Mask);

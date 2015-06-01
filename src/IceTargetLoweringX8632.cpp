@@ -131,10 +131,6 @@ const uint32_t X86_CHAR_BIT = 8;
 const uint32_t X86_STACK_ALIGNMENT_BYTES = 16;
 // Size of the return address on the stack
 const uint32_t X86_RET_IP_SIZE_BYTES = 4;
-// The base 2 logarithm of the width in bytes of the smallest stack slot
-const uint32_t X86_LOG2_OF_MIN_STACK_SLOT_SIZE = 2;
-// The base 2 logarithm of the width in bytes of the largest stack slot
-const uint32_t X86_LOG2_OF_MAX_STACK_SLOT_SIZE = 4;
 // The number of different NOP instructions
 const uint32_t X86_NUM_NOP_VARIANTS = 5;
 
@@ -700,28 +696,6 @@ void TargetX8632::lowerArguments() {
   }
 }
 
-void TargetX8632::sortByAlignment(VarList &Dest, const VarList &Source) const {
-  // Sort the variables into buckets according to the log of their width
-  // in bytes.
-  const SizeT NumBuckets =
-      X86_LOG2_OF_MAX_STACK_SLOT_SIZE - X86_LOG2_OF_MIN_STACK_SLOT_SIZE + 1;
-  VarList Buckets[NumBuckets];
-
-  for (Variable *Var : Source) {
-    uint32_t NaturalAlignment = typeWidthInBytesOnStack(Var->getType());
-    SizeT LogNaturalAlignment = llvm::findFirstSet(NaturalAlignment);
-    assert(LogNaturalAlignment >= X86_LOG2_OF_MIN_STACK_SLOT_SIZE);
-    assert(LogNaturalAlignment <= X86_LOG2_OF_MAX_STACK_SLOT_SIZE);
-    SizeT BucketIndex = LogNaturalAlignment - X86_LOG2_OF_MIN_STACK_SLOT_SIZE;
-    Buckets[BucketIndex].push_back(Var);
-  }
-
-  for (SizeT I = 0, E = NumBuckets; I < E; ++I) {
-    VarList &List = Buckets[NumBuckets - I - 1];
-    Dest.insert(Dest.end(), List.begin(), List.end());
-  }
-}
-
 // Helper function for addProlog().
 //
 // This assumes Arg is an argument passed on the stack.  This sets the
@@ -798,45 +772,6 @@ void TargetX8632::addProlog(CfgNode *Node) {
   //  * LocalsSpillAreaSize:    area 6
   //  * SpillAreaSizeBytes:     areas 3 - 7
 
-  // Make a final pass over the Cfg to determine which variables need
-  // stack slots.
-  llvm::BitVector IsVarReferenced(Func->getNumVariables());
-  for (CfgNode *Node : Func->getNodes()) {
-    for (Inst &Inst : Node->getInsts()) {
-      if (Inst.isDeleted())
-        continue;
-      if (const Variable *Var = Inst.getDest())
-        IsVarReferenced[Var->getIndex()] = true;
-      for (SizeT I = 0; I < Inst.getSrcSize(); ++I) {
-        Operand *Src = Inst.getSrc(I);
-        SizeT NumVars = Src->getNumVars();
-        for (SizeT J = 0; J < NumVars; ++J) {
-          const Variable *Var = Src->getVar(J);
-          IsVarReferenced[Var->getIndex()] = true;
-        }
-      }
-    }
-  }
-
-  // If SimpleCoalescing is false, each variable without a register
-  // gets its own unique stack slot, which leads to large stack
-  // frames.  If SimpleCoalescing is true, then each "global" variable
-  // without a register gets its own slot, but "local" variable slots
-  // are reused across basic blocks.  E.g., if A and B are local to
-  // block 1 and C is local to block 2, then C may share a slot with A or B.
-  //
-  // We cannot coalesce stack slots if this function calls a "returns twice"
-  // function. In that case, basic blocks may be revisited, and variables
-  // local to those basic blocks are actually live until after the
-  // called function returns a second time.
-  const bool SimpleCoalescing = !callsReturnsTwice();
-  size_t InArgsSizeBytes = 0;
-  size_t PreservedRegsSizeBytes = 0;
-  SpillAreaSizeBytes = 0;
-  const VariablesMetadata *VMetadata = Func->getVMetadata();
-  Context.init(Node);
-  Context.setInsertPoint(Context.getCur());
-
   // Determine stack frame offsets for each Variable without a
   // register assignment.  This can be done as one variable per stack
   // slot.  Or, do coalescing by running the register allocator again
@@ -848,76 +783,47 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // multi-block lifetime), and one block to share for locals
   // (single-block lifetime).
 
+  Context.init(Node);
+  Context.setInsertPoint(Context.getCur());
+
   llvm::SmallBitVector CalleeSaves =
       getRegisterSet(RegSet_CalleeSave, RegSet_None);
-
-  size_t GlobalsSize = 0;
-  std::vector<size_t> LocalsSize(Func->getNumNodes());
-
-  // Prepass.  Compute RegsUsed, PreservedRegsSizeBytes, and
-  // SpillAreaSizeBytes.
   RegsUsed = llvm::SmallBitVector(CalleeSaves.size());
-  const VarList &Variables = Func->getVariables();
-  const VarList &Args = Func->getArgs();
-  VarList SpilledVariables, SortedSpilledVariables, VariablesLinkedToSpillSlots;
-
+  VarList SortedSpilledVariables, VariablesLinkedToSpillSlots;
+  size_t GlobalsSize = 0;
+  // If there is a separate locals area, this represents that area.
+  // Otherwise it counts any variable not counted by GlobalsSize.
+  SpillAreaSizeBytes = 0;
   // If there is a separate locals area, this specifies the alignment
   // for it.
   uint32_t LocalsSlotsAlignmentBytes = 0;
   // The entire spill locations area gets aligned to largest natural
   // alignment of the variables that have a spill slot.
   uint32_t SpillAreaAlignmentBytes = 0;
-  for (Variable *Var : Variables) {
-    if (Var->hasReg()) {
-      RegsUsed[Var->getRegNum()] = true;
-      continue;
-    }
-    // An argument either does not need a stack slot (if passed in a
-    // register) or already has one (if passed on the stack).
-    if (Var->getIsArg())
-      continue;
-    // An unreferenced variable doesn't need a stack slot.
-    if (!IsVarReferenced[Var->getIndex()])
-      continue;
-    // A spill slot linked to a variable with a stack slot should reuse
-    // that stack slot.
+  // A spill slot linked to a variable with a stack slot should reuse
+  // that stack slot.
+  std::function<bool(Variable *)> TargetVarHook =
+      [&VariablesLinkedToSpillSlots](Variable *Var) {
     if (SpillVariable *SpillVar = llvm::dyn_cast<SpillVariable>(Var)) {
       assert(Var->getWeight().isZero());
       if (SpillVar->getLinkedTo() && !SpillVar->getLinkedTo()->hasReg()) {
         VariablesLinkedToSpillSlots.push_back(Var);
-        continue;
+        return true;
       }
     }
-    SpilledVariables.push_back(Var);
-  }
+    return false;
+  };
 
-  SortedSpilledVariables.reserve(SpilledVariables.size());
-  sortByAlignment(SortedSpilledVariables, SpilledVariables);
-  for (Variable *Var : SortedSpilledVariables) {
-    size_t Increment = typeWidthInBytesOnStack(Var->getType());
-    if (!SpillAreaAlignmentBytes)
-      SpillAreaAlignmentBytes = Increment;
-    if (SimpleCoalescing && VMetadata->isTracked(Var)) {
-      if (VMetadata->isMultiBlock(Var)) {
-        GlobalsSize += Increment;
-      } else {
-        SizeT NodeIndex = VMetadata->getLocalUseNode(Var)->getIndex();
-        LocalsSize[NodeIndex] += Increment;
-        if (LocalsSize[NodeIndex] > SpillAreaSizeBytes)
-          SpillAreaSizeBytes = LocalsSize[NodeIndex];
-        if (!LocalsSlotsAlignmentBytes)
-          LocalsSlotsAlignmentBytes = Increment;
-      }
-    } else {
-      SpillAreaSizeBytes += Increment;
-    }
-  }
+  // Compute the list of spilled variables and bounds for GlobalsSize, etc.
+  getVarStackSlotParams(SortedSpilledVariables, RegsUsed, &GlobalsSize,
+                        &SpillAreaSizeBytes, &SpillAreaAlignmentBytes,
+                        &LocalsSlotsAlignmentBytes, TargetVarHook);
   uint32_t LocalsSpillAreaSize = SpillAreaSizeBytes;
-
   SpillAreaSizeBytes += GlobalsSize;
 
   // Add push instructions for preserved registers.
   uint32_t NumCallee = 0;
+  size_t PreservedRegsSizeBytes = 0;
   for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
     if (CalleeSaves[i] && RegsUsed[i]) {
       ++NumCallee;
@@ -942,27 +848,20 @@ void TargetX8632::addProlog(CfgNode *Node) {
   }
 
   // Align the variables area. SpillAreaPaddingBytes is the size of
-  // the region after the preserved registers and before the spill
-  // areas.
+  // the region after the preserved registers and before the spill areas.
+  // LocalsSlotsPaddingBytes is the amount of padding between the globals
+  // and locals area if they are separate.
+  assert(SpillAreaAlignmentBytes <= X86_STACK_ALIGNMENT_BYTES);
+  assert(LocalsSlotsAlignmentBytes <= SpillAreaAlignmentBytes);
   uint32_t SpillAreaPaddingBytes = 0;
-  if (SpillAreaAlignmentBytes) {
-    assert(SpillAreaAlignmentBytes <= X86_STACK_ALIGNMENT_BYTES);
-    uint32_t PaddingStart = X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
-    uint32_t SpillAreaStart =
-        Utils::applyAlignment(PaddingStart, SpillAreaAlignmentBytes);
-    SpillAreaPaddingBytes = SpillAreaStart - PaddingStart;
-    SpillAreaSizeBytes += SpillAreaPaddingBytes;
-  }
-
-  // If there are separate globals and locals areas, make sure the
-  // locals area is aligned by padding the end of the globals area.
-  uint32_t GlobalsAndSubsequentPaddingSize = GlobalsSize;
-  if (LocalsSlotsAlignmentBytes) {
-    assert(LocalsSlotsAlignmentBytes <= SpillAreaAlignmentBytes);
-    GlobalsAndSubsequentPaddingSize =
-        Utils::applyAlignment(GlobalsSize, LocalsSlotsAlignmentBytes);
-    SpillAreaSizeBytes += GlobalsAndSubsequentPaddingSize - GlobalsSize;
-  }
+  uint32_t LocalsSlotsPaddingBytes = 0;
+  alignStackSpillAreas(X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes,
+                       SpillAreaAlignmentBytes, GlobalsSize,
+                       LocalsSlotsAlignmentBytes, &SpillAreaPaddingBytes,
+                       &LocalsSlotsPaddingBytes);
+  SpillAreaSizeBytes += SpillAreaPaddingBytes + LocalsSlotsPaddingBytes;
+  uint32_t GlobalsAndSubsequentPaddingSize =
+      GlobalsSize + LocalsSlotsPaddingBytes;
 
   // Align esp if necessary.
   if (NeedsStackAlignment) {
@@ -987,9 +886,10 @@ void TargetX8632::addProlog(CfgNode *Node) {
   if (!IsEbpBasedFrame)
     BasicFrameOffset += SpillAreaSizeBytes;
 
+  const VarList &Args = Func->getArgs();
+  size_t InArgsSizeBytes = 0;
   unsigned NumXmmArgs = 0;
-  for (SizeT i = 0; i < Args.size(); ++i) {
-    Variable *Arg = Args[i];
+  for (Variable *Arg : Args) {
     // Skip arguments passed in registers.
     if (isVectorType(Arg->getType()) && NumXmmArgs < X86_MAX_XMM_ARGS) {
       ++NumXmmArgs;
@@ -999,38 +899,16 @@ void TargetX8632::addProlog(CfgNode *Node) {
   }
 
   // Fill in stack offsets for locals.
-  size_t GlobalsSpaceUsed = SpillAreaPaddingBytes;
-  LocalsSize.assign(LocalsSize.size(), 0);
-  size_t NextStackOffset = GlobalsSpaceUsed;
-  for (Variable *Var : SortedSpilledVariables) {
-    size_t Increment = typeWidthInBytesOnStack(Var->getType());
-    if (SimpleCoalescing && VMetadata->isTracked(Var)) {
-      if (VMetadata->isMultiBlock(Var)) {
-        GlobalsSpaceUsed += Increment;
-        NextStackOffset = GlobalsSpaceUsed;
-      } else {
-        SizeT NodeIndex = VMetadata->getLocalUseNode(Var)->getIndex();
-        LocalsSize[NodeIndex] += Increment;
-        NextStackOffset = SpillAreaPaddingBytes +
-                          GlobalsAndSubsequentPaddingSize +
-                          LocalsSize[NodeIndex];
-      }
-    } else {
-      NextStackOffset += Increment;
-    }
-    if (IsEbpBasedFrame)
-      Var->setStackOffset(-NextStackOffset);
-    else
-      Var->setStackOffset(SpillAreaSizeBytes - NextStackOffset);
-  }
-  this->HasComputedFrame = true;
-
+  assignVarStackSlots(SortedSpilledVariables, SpillAreaPaddingBytes,
+                      SpillAreaSizeBytes, GlobalsAndSubsequentPaddingSize,
+                      IsEbpBasedFrame);
   // Assign stack offsets to variables that have been linked to spilled
   // variables.
   for (Variable *Var : VariablesLinkedToSpillSlots) {
     Variable *Linked = (llvm::cast<SpillVariable>(Var))->getLinkedTo();
     Var->setStackOffset(Linked->getStackOffset());
   }
+  this->HasComputedFrame = true;
 
   if (ALLOW_DUMP && Func->isVerbose(IceV_Frame)) {
     OstreamLocker L(Func->getContext());

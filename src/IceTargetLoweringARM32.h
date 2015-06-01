@@ -52,6 +52,7 @@ public:
     // i8, and i16 are rounded up to 4 bytes.
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
+
   void emitVariable(const Variable *Var) const override;
 
   const char *getConstantPrefix() const final { return "#"; }
@@ -71,6 +72,8 @@ public:
   void split64(Variable *Var);
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
+  void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
+                              size_t BasicFrameOffset, size_t &InArgsSizeBytes);
 
 protected:
   explicit TargetARM32(Cfg *Func);
@@ -219,6 +222,15 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Orr::create(Func, Dest, Src0, Src1, Pred));
   }
+  void _push(const VarList &Sources) {
+    Context.insert(InstARM32Push::create(Func, Sources));
+  }
+  void _pop(const VarList &Dests) {
+    Context.insert(InstARM32Pop::create(Func, Dests));
+    // Mark dests as modified.
+    for (Variable *Dest : Dests)
+      Context.insert(InstFakeDef::create(Func, Dest));
+  }
   void _sbc(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Sbc::create(Func, Dest, Src0, Src1, Pred));
@@ -253,6 +265,8 @@ protected:
 
   bool UsesFramePointer;
   bool NeedsStackAlignment;
+  bool MaybeLeafFunc;
+  size_t SpillAreaSizeBytes;
   llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
