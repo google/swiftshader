@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ed56c9ec_ec0579cd",
+        "filename": "src/OpenGL/libEGL/Config.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-01T18:22:21Z",
+      "side": 1,
+      "message": "Display::initialize() iterates over several color formats, including X8R8G8B8, which in Config::Config() sets mAlphaSize \u003d 0. But it wasn\u0027t properly ending up in the set of configs because the compare functor used EGL\u0027s way of sorting the configs instead of a strict ordering.",
+      "parentUuid": "b91fb853_cf8d8e3b",
+      "range": {
+        "startLine": 233,
+        "startChar": 7,
+        "endLine": 233,
+        "endChar": 17
+      },
+      "revId": "ed68033b23626ee073888dcda93f0cd1cf3ce476",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b91fb853_2f03e241",
         "filename": "src/OpenGL/libEGL/Config.h",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-01T18:12:30Z",
       "side": 1,
       "message": "s/\\t/    for format consistency within this file and same for the other file?",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 1
+      },
+      "revId": "ed68033b23626ee073888dcda93f0cd1cf3ce476",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0d54fde2_55c7fa47",
+        "filename": "src/OpenGL/libEGL/Config.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-01T18:22:21Z",
+      "side": 1,
+      "message": "Unfortunately these files (and many others) already use mixed indentation styles. I intend on fixing it all at once at a later point.",
+      "parentUuid": "b91fb853_2f03e241",
       "range": {
         "startLine": 99,
         "startChar": 0,
