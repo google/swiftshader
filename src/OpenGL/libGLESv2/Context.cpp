@@ -2674,14 +2674,6 @@ void Context::applyState(GLenum drawMode)
 			device->setStencilEnable(true);
 			device->setTwoSidedStencil(true);
 
-            if(mState.stencilWritemask != mState.stencilBackWritemask || 
-               mState.stencilRef != mState.stencilBackRef || 
-               mState.stencilMask != mState.stencilBackMask)
-            {
-				ERR("Separate front/back stencil writemasks, reference values, or stencil mask values are invalid under WebGL.");
-                return error(GL_INVALID_OPERATION);
-            }
-
             // get the maximum size of the stencil ref
             Renderbuffer *stencilbuffer = framebuffer->getStencilbuffer();
             GLuint maxStencil = (1 << stencilbuffer->getStencilSize()) - 1;
