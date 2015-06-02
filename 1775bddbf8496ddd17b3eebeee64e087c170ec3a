@@ -116,6 +116,30 @@
       "revId": "1775bddbf8496ddd17b3eebeee64e087c170ec3a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "39d588cf_662cb4d3",
+        "filename": "src/Shader/VertexShader.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-02T14:54:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39d588cf_66def453",
+      "range": {
+        "startLine": 35,
+        "startChar": 2,
+        "endLine": 35,
+        "endChar": 5
+      },
+      "revId": "1775bddbf8496ddd17b3eebeee64e087c170ec3a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
