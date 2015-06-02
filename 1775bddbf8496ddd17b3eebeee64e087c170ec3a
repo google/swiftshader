@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "39d588cf_a6d4dc32",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 3568,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-02T14:42:20Z",
+      "side": 1,
+      "message": "I don\u0027t think we need this? Non-instanced draw calls execute the above loop once and set the instance ID to 0.",
+      "range": {
+        "startLine": 3568,
+        "startChar": 1,
+        "endLine": 3568,
+        "endChar": 26
+      },
+      "revId": "1775bddbf8496ddd17b3eebeee64e087c170ec3a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "39d588cf_c6d1e041",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 3632,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-02T14:42:20Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 3632,
+        "startChar": 1,
+        "endLine": 3632,
+        "endChar": 26
+      },
+      "revId": "1775bddbf8496ddd17b3eebeee64e087c170ec3a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "39d588cf_66def453",
+        "filename": "src/Shader/VertexShader.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-02T14:42:20Z",
+      "side": 1,
+      "message": "bool",
+      "range": {
+        "startLine": 35,
+        "startChar": 2,
+        "endLine": 35,
+        "endChar": 5
+      },
+      "revId": "1775bddbf8496ddd17b3eebeee64e087c170ec3a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
