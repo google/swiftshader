@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "99a8345d_53cdae59",
+        "filename": "src/OpenGL/libEGL/Config.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5225
+      },
+      "writtenOn": "2015-06-02T21:33:46Z",
+      "side": 1,
+      "message": "indentation chars can be consistent (either tab or spaces)",
+      "range": {
+        "startLine": 170,
+        "startChar": 0,
+        "endLine": 170,
+        "endChar": 1
+      },
+      "revId": "e38a47cf2b3ae48357e142c4c4d284f4f40c9b5f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
