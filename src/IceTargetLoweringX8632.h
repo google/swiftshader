@@ -229,7 +229,7 @@ protected:
   // Turn a pointer operand into a memory operand that can be
   // used by a real load/store operation. Legalizes the operand as well.
   // This is a nop if the operand is already a legal memory operand.
-  OperandX8632Mem *FormMemoryOperand(Operand *Ptr, Type Ty);
+  OperandX8632Mem *formMemoryOperand(Operand *Ptr, Type Ty);
 
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
   static Type stackSlotType();

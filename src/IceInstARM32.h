@@ -91,7 +91,7 @@ public:
   // general Constant operands like ConstantRelocatable, since a relocatable
   // can potentially take up too many bits.
   static OperandARM32Mem *create(Cfg *Func, Type Ty, Variable *Base,
-                                 ConstantInteger32 *ImmOffset = nullptr,
+                                 ConstantInteger32 *ImmOffset,
                                  AddrMode Mode = Offset) {
     return new (Func->allocate<OperandARM32Mem>())
         OperandARM32Mem(Func, Ty, Base, ImmOffset, Mode);
@@ -277,6 +277,7 @@ public:
     Push,
     Ret,
     Sbc,
+    Str,
     Sub,
     Umull
   };
@@ -761,6 +762,31 @@ public:
 private:
   InstARM32Ret(Cfg *Func, Variable *LR, Variable *Source);
   ~InstARM32Ret() override {}
+};
+
+// Store instruction. It's important for liveness that there is no Dest
+// operand (OperandARM32Mem instead of Dest Variable).
+class InstARM32Str : public InstARM32Pred {
+  InstARM32Str() = delete;
+  InstARM32Str(const InstARM32Str &) = delete;
+  InstARM32Str &operator=(const InstARM32Str &) = delete;
+
+public:
+  // Value must be a register.
+  static InstARM32Str *create(Cfg *Func, Variable *Value, OperandARM32Mem *Mem,
+                              CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32Str>())
+        InstARM32Str(Func, Value, Mem, Predicate);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Str); }
+
+private:
+  InstARM32Str(Cfg *Func, Variable *Value, OperandARM32Mem *Mem,
+               CondARM32::Cond Predicate);
+  ~InstARM32Str() override {}
 };
 
 // Unsigned Multiply Long: d.lo, d.hi := x * y

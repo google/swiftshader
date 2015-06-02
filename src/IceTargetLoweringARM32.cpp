@@ -1628,9 +1628,18 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   return;
 }
 
-void TargetARM32::lowerLoad(const InstLoad *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+void TargetARM32::lowerLoad(const InstLoad *Load) {
+  // A Load instruction can be treated the same as an Assign
+  // instruction, after the source operand is transformed into an
+  // OperandARM32Mem operand.
+  Type Ty = Load->getDest()->getType();
+  Operand *Src0 = formMemoryOperand(Load->getSourceAddress(), Ty);
+  Variable *DestLoad = Load->getDest();
+
+  // TODO(jvoung): handled folding opportunities. Sign and zero extension
+  // can be folded into a load.
+  InstAssign *Assign = InstAssign::create(Func, DestLoad, Src0);
+  lowerAssign(Assign);
 }
 
 void TargetARM32::doAddressOptLoad() {
@@ -1687,8 +1696,22 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
 }
 
 void TargetARM32::lowerStore(const InstStore *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  Operand *Value = Inst->getData();
+  Operand *Addr = Inst->getAddr();
+  OperandARM32Mem *NewAddr = formMemoryOperand(Addr, Value->getType());
+  Type Ty = NewAddr->getType();
+
+  if (Ty == IceType_i64) {
+    Variable *ValueHi = legalizeToVar(hiOperand(Value));
+    Variable *ValueLo = legalizeToVar(loOperand(Value));
+    _str(ValueHi, llvm::cast<OperandARM32Mem>(hiOperand(NewAddr)));
+    _str(ValueLo, llvm::cast<OperandARM32Mem>(loOperand(NewAddr)));
+  } else if (isVectorType(Ty)) {
+    UnimplementedError(Func->getContext()->getFlags());
+  } else {
+    Variable *ValueR = legalizeToVar(Value);
+    _str(ValueR, NewAddr);
+  }
 }
 
 void TargetARM32::doAddressOptStore() {
@@ -1889,6 +1912,23 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
 // Provide a trivial wrapper to legalize() for this common usage.
 Variable *TargetARM32::legalizeToVar(Operand *From, int32_t RegNum) {
   return llvm::cast<Variable>(legalize(From, Legal_Reg, RegNum));
+}
+
+OperandARM32Mem *TargetARM32::formMemoryOperand(Operand *Operand, Type Ty) {
+  OperandARM32Mem *Mem = llvm::dyn_cast<OperandARM32Mem>(Operand);
+  // It may be the case that address mode optimization already creates
+  // an OperandARM32Mem, so in that case it wouldn't need another level
+  // of transformation.
+  if (Mem) {
+    return llvm::cast<OperandARM32Mem>(legalize(Mem));
+  }
+  // If we didn't do address mode optimization, then we only
+  // have a base/offset to work with. ARM always requires a base
+  // register, so just use that to hold the operand.
+  Variable *Base = legalizeToVar(Operand);
+  return OperandARM32Mem::create(
+      Func, Ty, Base,
+      llvm::cast<ConstantInteger32>(Ctx->getConstantZero(IceType_i32)));
 }
 
 Variable *TargetARM32::makeReg(Type Type, int32_t RegNum) {

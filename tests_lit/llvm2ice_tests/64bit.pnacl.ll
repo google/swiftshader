@@ -1303,6 +1303,10 @@ entry:
 ; OPTM1: mov e{{..}},DWORD PTR [e{{..}}]
 ; OPTM1: mov e{{..}},DWORD PTR [e{{..}}+0x4]
 
+; ARM32-LABEL: load64
+; ARM32: ldr r{{.*}}, [r[[REG:.*]]]
+; ARM32: ldr r{{.*}}, [r[[REG]], #4]
+
 define internal void @store64(i32 %a, i64 %value) {
 entry:
   %__2 = inttoptr i32 %a to i64*
@@ -1318,6 +1322,10 @@ entry:
 ; OPTM1: mov DWORD PTR [e[[REGISTER:[a-z]+]]+0x4],
 ; OPTM1: mov DWORD PTR [e[[REGISTER]]],
 
+; ARM32-LABEL: store64
+; ARM32: str r{{.*}}, [r[[REG:.*]], #4]
+; ARM32: str r{{.*}}, [r[[REG]]]
+
 define internal void @store64Const(i32 %a) {
 entry:
   %__1 = inttoptr i32 %a to i64*
@@ -1332,6 +1340,14 @@ entry:
 ; OPTM1-LABEL: store64Const
 ; OPTM1: mov DWORD PTR [e[[REGISTER:[a-z]+]]+0x4],0xdeadbeef
 ; OPTM1: mov DWORD PTR [e[[REGISTER]]],0x12345678
+
+; ARM32-LABEL: store64Const
+; ARM32: movw [[REG1:.*]], #48879 ; 0xbeef
+; ARM32: movt [[REG1:.*]], #57005 ; 0xdead
+; ARM32: movw [[REG2:.*]], #22136 ; 0x5678
+; ARM32: movt [[REG2:.*]], #4660  ; 0x1234
+; ARM32: str [[REG1]], [r[[REG:.*]], #4]
+; ARM32: str [[REG2]], [r[[REG]]]
 
 define internal i64 @select64VarVar(i64 %a, i64 %b) {
 entry:

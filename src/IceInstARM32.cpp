@@ -281,6 +281,13 @@ InstARM32Ret::InstARM32Ret(Cfg *Func, Variable *LR, Variable *Source)
     addSource(Source);
 }
 
+InstARM32Str::InstARM32Str(Cfg *Func, Variable *Value, OperandARM32Mem *Mem,
+                           CondARM32::Cond Predicate)
+    : InstARM32Pred(Func, InstARM32::Str, 2, nullptr, Predicate) {
+  addSource(Value);
+  addSource(Mem);
+}
+
 InstARM32Umull::InstARM32Umull(Cfg *Func, Variable *DestLo, Variable *DestHi,
                                Variable *Src0, Variable *Src1,
                                CondARM32::Cond Predicate)
@@ -327,16 +334,15 @@ template <> void InstARM32Mov::emit(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   Variable *Dest = getDest();
   if (Dest->hasReg()) {
-    const char *Opcode = "mov";
+    IceString Opcode = "mov";
     Operand *Src0 = getSrc(0);
     if (const auto *Src0V = llvm::dyn_cast<Variable>(Src0)) {
       if (!Src0V->hasReg()) {
-        Opcode = "ldr"; // Always load the full stack slot (vs ldrb, ldrh).
+        Opcode = IceString("ldr"); // Always use the whole stack slot.
       }
     } else {
-      // If Src isn't a variable, it shouldn't be a memory operand either
-      // (otherwise Opcode will have to be ldr).
-      assert(!llvm::isa<OperandARM32Mem>(Src0));
+      if (llvm::isa<OperandARM32Mem>(Src0))
+        Opcode = IceString("ldr") + getWidthString(Dest->getType());
     }
     Str << "\t" << Opcode << getPredicate() << "\t";
     getDest()->emit(Func);
@@ -654,6 +660,36 @@ void InstARM32Ret::dump(const Cfg *Func) const {
   Type Ty = (getSrcSize() == 1 ? IceType_void : getSrc(0)->getType());
   Str << "ret." << Ty << " ";
   dumpSources(Func);
+}
+
+void InstARM32Str::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 2);
+  Type Ty = getSrc(0)->getType();
+  Str << "\t"
+      << "str" << getWidthString(Ty) << getPredicate() << "\t";
+  getSrc(0)->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+}
+
+void InstARM32Str::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Str::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpOpcodePred(Str, "str", getDest()->getType());
+  Str << " ";
+  getSrc(1)->dump(Func);
+  Str << ", ";
+  getSrc(0)->dump(Func);
 }
 
 void InstARM32Umull::emit(const Cfg *Func) const {

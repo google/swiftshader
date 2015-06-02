@@ -2981,7 +2981,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       // can't happen anyway, since this is x86-32 and integer arithmetic only
       // happens on 32-bit quantities.
       Variable *T = makeReg(IceType_f64);
-      OperandX8632Mem *Addr = FormMemoryOperand(Instr->getArg(0), IceType_f64);
+      OperandX8632Mem *Addr = formMemoryOperand(Instr->getArg(0), IceType_f64);
       _movq(T, Addr);
       // Then cast the bits back out of the XMM register to the i64 Dest.
       InstCast *Cast = InstCast::create(Func, InstCast::Bitcast, Dest, T);
@@ -3030,7 +3030,7 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       InstCast *Cast = InstCast::create(Func, InstCast::Bitcast, T, Value);
       lowerCast(Cast);
       // Then store XMM w/ a movq.
-      OperandX8632Mem *Addr = FormMemoryOperand(Ptr, IceType_f64);
+      OperandX8632Mem *Addr = formMemoryOperand(Ptr, IceType_f64);
       _storeq(T, Addr);
       _mfence();
       return;
@@ -3239,7 +3239,7 @@ void TargetX8632::lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr,
                                      Operand *Expected, Operand *Desired) {
   if (Expected->getType() == IceType_i64) {
     // Reserve the pre-colored registers first, before adding any more
-    // infinite-weight variables from FormMemoryOperand's legalization.
+    // infinite-weight variables from formMemoryOperand's legalization.
     Variable *T_edx = makeReg(IceType_i32, RegX8632::Reg_edx);
     Variable *T_eax = makeReg(IceType_i32, RegX8632::Reg_eax);
     Variable *T_ecx = makeReg(IceType_i32, RegX8632::Reg_ecx);
@@ -3248,7 +3248,7 @@ void TargetX8632::lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr,
     _mov(T_edx, hiOperand(Expected));
     _mov(T_ebx, loOperand(Desired));
     _mov(T_ecx, hiOperand(Desired));
-    OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Expected->getType());
+    OperandX8632Mem *Addr = formMemoryOperand(Ptr, Expected->getType());
     const bool Locked = true;
     _cmpxchg8b(Addr, T_edx, T_eax, T_ecx, T_ebx, Locked);
     Variable *DestLo = llvm::cast<Variable>(loOperand(DestPrev));
@@ -3259,7 +3259,7 @@ void TargetX8632::lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr,
   }
   Variable *T_eax = makeReg(Expected->getType(), RegX8632::Reg_eax);
   _mov(T_eax, Expected);
-  OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Expected->getType());
+  OperandX8632Mem *Addr = formMemoryOperand(Ptr, Expected->getType());
   Variable *DesiredReg = legalizeToVar(Desired);
   const bool Locked = true;
   _cmpxchg(Addr, T_eax, DesiredReg, Locked);
@@ -3357,7 +3357,7 @@ void TargetX8632::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
       Op_Hi = &TargetX8632::_adc;
       break;
     }
-    OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Dest->getType());
+    OperandX8632Mem *Addr = formMemoryOperand(Ptr, Dest->getType());
     const bool Locked = true;
     Variable *T = nullptr;
     _mov(T, Val);
@@ -3372,7 +3372,7 @@ void TargetX8632::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
       Op_Hi = &TargetX8632::_sbb;
       break;
     }
-    OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Dest->getType());
+    OperandX8632Mem *Addr = formMemoryOperand(Ptr, Dest->getType());
     const bool Locked = true;
     Variable *T = nullptr;
     _mov(T, Val);
@@ -3410,7 +3410,7 @@ void TargetX8632::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
       Op_Hi = nullptr;
       break;
     }
-    OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Dest->getType());
+    OperandX8632Mem *Addr = formMemoryOperand(Ptr, Dest->getType());
     Variable *T = nullptr;
     _mov(T, Val);
     _xchg(Addr, T);
@@ -3455,7 +3455,7 @@ void TargetX8632::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo, LowerBinOp Op_Hi,
   if (Ty == IceType_i64) {
     Variable *T_edx = makeReg(IceType_i32, RegX8632::Reg_edx);
     Variable *T_eax = makeReg(IceType_i32, RegX8632::Reg_eax);
-    OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Ty);
+    OperandX8632Mem *Addr = formMemoryOperand(Ptr, Ty);
     _mov(T_eax, loOperand(Addr));
     _mov(T_edx, hiOperand(Addr));
     Variable *T_ecx = makeReg(IceType_i32, RegX8632::Reg_ecx);
@@ -3502,7 +3502,7 @@ void TargetX8632::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo, LowerBinOp Op_Hi,
     _mov(DestHi, T_edx);
     return;
   }
-  OperandX8632Mem *Addr = FormMemoryOperand(Ptr, Ty);
+  OperandX8632Mem *Addr = formMemoryOperand(Ptr, Ty);
   Variable *T_eax = makeReg(Ty, RegX8632::Reg_eax);
   _mov(T_eax, Addr);
   InstX8632Label *Label = InstX8632Label::create(Func, this);
@@ -3853,7 +3853,7 @@ void TargetX8632::lowerLoad(const InstLoad *Load) {
   // optimization already creates an OperandX8632Mem operand, so it
   // doesn't need another level of transformation.
   Type Ty = Load->getDest()->getType();
-  Operand *Src0 = FormMemoryOperand(Load->getSourceAddress(), Ty);
+  Operand *Src0 = formMemoryOperand(Load->getSourceAddress(), Ty);
 
   // Fuse this load with a subsequent Arithmetic instruction in the
   // following situations:
@@ -4124,7 +4124,7 @@ void TargetX8632::lowerSelect(const InstSelect *Inst) {
 void TargetX8632::lowerStore(const InstStore *Inst) {
   Operand *Value = Inst->getData();
   Operand *Addr = Inst->getAddr();
-  OperandX8632Mem *NewAddr = FormMemoryOperand(Addr, Value->getType());
+  OperandX8632Mem *NewAddr = formMemoryOperand(Addr, Value->getType());
   Type Ty = NewAddr->getType();
 
   if (Ty == IceType_i64) {
@@ -4639,7 +4639,7 @@ Operand *TargetX8632::legalizeSrc0ForCmp(Operand *Src0, Operand *Src1) {
   return legalize(Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg);
 }
 
-OperandX8632Mem *TargetX8632::FormMemoryOperand(Operand *Operand, Type Ty) {
+OperandX8632Mem *TargetX8632::formMemoryOperand(Operand *Operand, Type Ty) {
   OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Operand);
   // It may be the case that address mode optimization already creates
   // an OperandX8632Mem, so in that case it wouldn't need another level

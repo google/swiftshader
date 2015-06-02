@@ -117,6 +117,7 @@ protected:
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
                     int32_t RegNum = Variable::NoRegister);
   Variable *legalizeToVar(Operand *From, int32_t RegNum = Variable::NoRegister);
+  OperandARM32Mem *formMemoryOperand(Operand *Ptr, Type Ty);
 
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
   static Type stackSlotType();
@@ -240,6 +241,10 @@ protected:
     const bool SetFlags = true;
     Context.insert(
         InstARM32Sbc::create(Func, Dest, Src0, Src1, Pred, SetFlags));
+  }
+  void _str(Variable *Value, OperandARM32Mem *Addr,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Str::create(Func, Value, Addr, Pred));
   }
   void _sub(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
