@@ -72,7 +72,7 @@ def main():
     args = argparser.parse_args()
 
     nacl_root = FindBaseNaCl()
-    bindir = ('{root}/toolchain/linux_x86/pnacl_newlib/bin'
+    bindir = ('{root}/toolchain/linux_x86/pnacl_newlib_raw/bin'
               .format(root=nacl_root))
     triple = arch_map[args.target] + ('-nacl' if args.sandbox else '')
     mypath = os.path.abspath(os.path.dirname(sys.argv[0]))

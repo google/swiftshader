@@ -20,7 +20,7 @@ if __name__ == '__main__':
     nacl_root = FindBaseNaCl()
     # Prepend bin to $PATH.
     os.environ['PATH'] = (
-        nacl_root + '/toolchain/linux_x86/pnacl_newlib/bin' + os.pathsep +
+        nacl_root + '/toolchain/linux_x86/pnacl_newlib_raw/bin' + os.pathsep +
         os.pathsep + os.environ['PATH'])
 
     try:

@@ -131,7 +131,7 @@ def main():
     to these tools, copy them this way:
       cd native_client
       toolchain_build/toolchain_build_pnacl.py llvm_x86_64_linux \\
-      --install=toolchain/linux_x86/pnacl_newlib
+      --install=toolchain/linux_x86/pnacl_newlib_raw
     """
     argparser = argparse.ArgumentParser(
         description='    ' + main.__doc__,
@@ -153,7 +153,7 @@ def ProcessPexe(args, pexe, exe):
 
     nacl_root = FindBaseNaCl()
     path_addition = (
-        '{root}/toolchain/linux_x86/pnacl_newlib/bin'
+        '{root}/toolchain/linux_x86/pnacl_newlib_raw/bin'
         ).format(root=nacl_root)
     os.environ['PATH'] = (
         '{dir}{sep}{path}'
@@ -286,7 +286,7 @@ def ProcessPexe(args, pexe, exe):
         '{root}/../third_party/llvm-build/Release+Asserts/bin/clang'
         ).format(root=nacl_root)
     if args.sandbox:
-        linklib = ('{root}/toolchain/linux_x86/pnacl_newlib/translator/' +
+        linklib = ('{root}/toolchain/linux_x86/pnacl_newlib_raw/translator/' +
                    'x86-32/lib').format(root=nacl_root)
         shellcmd((
             '{gold} -nostdlib --no-fix-cortex-a8 --eh-frame-hdr -z text ' +
@@ -307,8 +307,9 @@ def ProcessPexe(args, pexe, exe):
             '{ld} -m32 {partial} -o {exe} ' +
             # Keep the rest of this command line (except szrt_native_x8632.o) in
             # sync with RunHostLD() in pnacl-translate.py.
-            '{root}/toolchain/linux_x86/pnacl_newlib/translator/x86-32-linux/' +
-            'lib/{{unsandboxed_irt,irt_random,irt_query_list}}.o ' +
+            '{root}/toolchain/linux_x86/pnacl_newlib_raw/translator/' +
+            'x86-32-linux/lib/' +
+            '{{unsandboxed_irt,irt_random,irt_query_list}}.o ' +
             '{root}/toolchain_build/src/subzero/build/runtime/' +
             'szrt_native_x8632.o -lpthread -lrt ' +
             '-Wl,--defsym=__Sz_AbsoluteZero=0'
