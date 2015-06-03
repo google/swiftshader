@@ -34,48 +34,44 @@ Config::Config(const DisplayMode &displayMode, EGLint minInterval, EGLint maxInt
 
     switch (renderTargetFormat)
     {
-      case sw::FORMAT_A1R5G5B5:
-        mBufferSize = 16;
+    case sw::FORMAT_A1R5G5B5:
         mRedSize = 5;
         mGreenSize = 5;
         mBlueSize = 5;
         mAlphaSize = 1;
         break;
-      case sw::FORMAT_A2R10G10B10:
-        mBufferSize = 32;
+    case sw::FORMAT_A2R10G10B10:
         mRedSize = 10;
         mGreenSize = 10;
         mBlueSize = 10;
         mAlphaSize = 2;
         break;
-      case sw::FORMAT_A8R8G8B8:
-        mBufferSize = 32;
+    case sw::FORMAT_A8R8G8B8:
         mRedSize = 8;
         mGreenSize = 8;
         mBlueSize = 8;
         mAlphaSize = 8;
         mBindToTextureRGBA = EGL_TRUE;
         break;
-      case sw::FORMAT_R5G6B5:
-        mBufferSize = 16;
+    case sw::FORMAT_R5G6B5:
         mRedSize = 5;
         mGreenSize = 6;
         mBlueSize = 5;
         mAlphaSize = 0;
         break;
-      case sw::FORMAT_X8R8G8B8:
-        mBufferSize = 32;
+    case sw::FORMAT_X8R8G8B8:
         mRedSize = 8;
         mGreenSize = 8;
         mBlueSize = 8;
         mAlphaSize = 0;
         mBindToTextureRGB = EGL_TRUE;
         break;
-      default:
+    default:
         UNREACHABLE();   // Other formats should not be valid
     }
 
     mLuminanceSize = 0;
+    mBufferSize = mRedSize + mGreenSize + mBlueSize + mLuminanceSize + mAlphaSize;
     mAlphaMaskSize = 0;
     mColorBufferType = EGL_RGB_BUFFER;
     mConfigCaveat = isSlowConfig() ? EGL_SLOW_CONFIG : EGL_NONE;
@@ -124,7 +120,7 @@ Config::Config(const DisplayMode &displayMode, EGLint minInterval, EGLint maxInt
 //      mDepthSize = 24;
 //      mStencilSize = 8;
 //      break;
-	  default:
+	default:
 		UNREACHABLE();
 	}
 
@@ -167,22 +163,16 @@ bool CompareConfig::operator()(const Config &x, const Config &y) const
             return x.attribute < y.attribute;      \
         }
 
-	#define SORT_LARGER(attribute)                \
-        if(x.attribute != y.attribute)             \
-        {                                          \
-            return x.attribute > y.attribute;      \
-        }
-
     META_ASSERT(EGL_NONE < EGL_SLOW_CONFIG && EGL_SLOW_CONFIG < EGL_NON_CONFORMANT_CONFIG);
     SORT_SMALLER(mConfigCaveat);
 
     META_ASSERT(EGL_RGB_BUFFER < EGL_LUMINANCE_BUFFER);
     SORT_SMALLER(mColorBufferType);
 
-	SORT_LARGER(mRedSize);
-	SORT_LARGER(mGreenSize);
-	SORT_LARGER(mBlueSize);
-	SORT_LARGER(mAlphaSize);
+	SORT_SMALLER(mRedSize);
+	SORT_SMALLER(mGreenSize);
+	SORT_SMALLER(mBlueSize);
+	SORT_SMALLER(mAlphaSize);
     
 	SORT_SMALLER(mBufferSize);
     SORT_SMALLER(mSampleBuffers);
@@ -193,7 +183,6 @@ bool CompareConfig::operator()(const Config &x, const Config &y) const
     SORT_SMALLER(mNativeVisualType);
 
     #undef SORT_SMALLER
-	#undef SORT_LARGER
 
 	// Strict ordering requires sorting all non-equal fields above
 	assert(memcmp(&x, &y, sizeof(Config)) == 0);
@@ -318,6 +307,11 @@ bool ConfigSet::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint 
 
         while(attribute[0] != EGL_NONE)
         {
+			if(attribute[1] == EGL_DONT_CARE)
+			{
+				continue;
+			}
+
             switch(attribute[0])
             {
             case EGL_BUFFER_SIZE:                match = config->mBufferSize >= attribute[1];                      break;
