@@ -314,6 +314,8 @@ bool TParseContext::lValueErrorCheck(int line, const char* op, TIntermTyped* nod
     case EvqConstExpr:      message = "can't modify a const";        break;
     case EvqConstReadOnly:  message = "can't modify a const";        break;
     case EvqAttribute:      message = "can't modify an attribute";   break;
+    case EvqFragmentIn:     message = "can't modify an input";       break;
+    case EvqVertexIn:       message = "can't modify an input";       break;
     case EvqUniform:        message = "can't modify a uniform";      break;
     case EvqSmoothIn:
     case EvqFlatIn:
@@ -624,6 +626,8 @@ bool TParseContext::structQualifierErrorCheck(int line, const TPublicType& pType
 	case EvqFlatIn:
 	case EvqCentroidIn:
 	case EvqAttribute:
+	case EvqVertexIn:
+	case EvqFragmentOut:
 		if(pType.type == EbtStruct)
 		{
 			error(line, "cannot be used with a structure", getQualifierString(pType.qualifier));
@@ -638,7 +642,27 @@ bool TParseContext::structQualifierErrorCheck(int line, const TPublicType& pType
     if (pType.qualifier != EvqUniform && samplerErrorCheck(line, pType, "samplers must be uniform"))
         return true;
 
+	// check for layout qualifier issues
+	const TLayoutQualifier layoutQualifier = pType.layoutQualifier;
+
+	if (pType.qualifier != EvqVertexIn && pType.qualifier != EvqFragmentOut &&
+	    layoutLocationErrorCheck(line, pType.layoutQualifier))
+	{
+		return true;
+	}
+
     return false;
+}
+
+bool TParseContext::layoutLocationErrorCheck(const TSourceLoc &location, const TLayoutQualifier &layoutQualifier)
+{
+	if(layoutQualifier.location != -1)
+	{
+		error(location, "invalid layout qualifier:", "location", "only valid on program inputs and outputs");
+		return true;
+	}
+
+	return false;
 }
 
 bool TParseContext::parameterSamplerErrorCheck(int line, TQualifier qualifier, const TType& type)
@@ -717,7 +741,7 @@ bool TParseContext::arraySizeErrorCheck(int line, TIntermTyped* expr, int& size)
 //
 bool TParseContext::arrayQualifierErrorCheck(int line, TPublicType type)
 {
-    if ((type.qualifier == EvqAttribute) || (type.qualifier == EvqConstExpr)) {
+    if ((type.qualifier == EvqAttribute) || (type.qualifier == EvqVertexIn) || (type.qualifier == EvqConstExpr)) {
         error(line, "cannot declare arrays of this qualifier", TType(type).getCompleteString().c_str());
         return true;
     }
@@ -1122,6 +1146,75 @@ bool TParseContext::areAllChildConst(TIntermAggregate* aggrNode)
     return allConstant;
 }
 
+TPublicType TParseContext::addFullySpecifiedType(TQualifier qualifier, bool invariant, TLayoutQualifier layoutQualifier, const TPublicType &typeSpecifier)
+{
+	TPublicType returnType = typeSpecifier;
+	returnType.qualifier = qualifier;
+	returnType.invariant = invariant;
+	returnType.layoutQualifier = layoutQualifier;
+
+	if(typeSpecifier.array)
+	{
+		error(typeSpecifier.line, "not supported", "first-class array");
+		recover();
+		returnType.clearArrayness();
+	}
+
+	if(shaderVersion < 300)
+	{
+		if(qualifier == EvqAttribute && (typeSpecifier.type == EbtBool || typeSpecifier.type == EbtInt))
+		{
+			error(typeSpecifier.line, "cannot be bool or int", getQualifierString(qualifier));
+			recover();
+		}
+
+		if((qualifier == EvqVaryingIn || qualifier == EvqVaryingOut) &&
+			(typeSpecifier.type == EbtBool || typeSpecifier.type == EbtInt))
+		{
+			error(typeSpecifier.line, "cannot be bool or int", getQualifierString(qualifier));
+			recover();
+		}
+	}
+	else
+	{
+		switch(qualifier)
+		{
+		case EvqSmoothIn:
+		case EvqSmoothOut:
+		case EvqVertexOut:
+		case EvqFragmentIn:
+		case EvqCentroidOut:
+		case EvqCentroidIn:
+			if(typeSpecifier.type == EbtBool)
+			{
+				error(typeSpecifier.line, "cannot be bool", getQualifierString(qualifier));
+				recover();
+			}
+			if(typeSpecifier.type == EbtInt || typeSpecifier.type == EbtUInt)
+			{
+				error(typeSpecifier.line, "must use 'flat' interpolation here", getQualifierString(qualifier));
+				recover();
+			}
+			break;
+
+		case EvqVertexIn:
+		case EvqFragmentOut:
+		case EvqFlatIn:
+		case EvqFlatOut:
+			if(typeSpecifier.type == EbtBool)
+			{
+				error(typeSpecifier.line, "cannot be bool", getQualifierString(qualifier));
+				recover();
+			}
+			break;
+
+		default: break;
+		}
+	}
+
+	return returnType;
+}
+
 // This function is used to test for the correctness of the parameters passed to various constructor functions
 // and also convert them to the right datatype if it is allowed and required.
 //
@@ -1406,7 +1499,7 @@ TPublicType TParseContext::joinInterpolationQualifiers(const TSourceLoc &interpo
 {
 	TQualifier mergedQualifier = EvqSmoothIn;
 
-	if(storageQualifier == EvqVaryingIn) {
+	if(storageQualifier == EvqFragmentIn) {
 		if(interpolationQualifier == EvqSmooth)
 			mergedQualifier = EvqSmoothIn;
 		else if(interpolationQualifier == EvqFlat)
@@ -1420,7 +1513,7 @@ TPublicType TParseContext::joinInterpolationQualifiers(const TSourceLoc &interpo
 			mergedQualifier = EvqFlatIn;
 		else UNREACHABLE();
 	}
-	else if(storageQualifier == EvqVaryingOut) {
+	else if(storageQualifier == EvqVertexOut) {
 		if(interpolationQualifier == EvqSmooth)
 			mergedQualifier = EvqSmoothOut;
 		else if(interpolationQualifier == EvqFlat)

@@ -1573,30 +1573,14 @@ fully_specified_type
         $$ = $1;
 
         if ($1.array) {
-            context->error($1.line, "not supported", "first-class array");
-            context->recover();
-            $1.setArray(false);
+            ES3_ONLY("[]", $1.line);
+            if (context->getShaderVersion() != 300) {
+                $1.clearArrayness();
+            }
         }
     }
     | type_qualifier type_specifier  {
-        if ($2.array) {
-            context->error($2.line, "not supported", "first-class array");
-            context->recover();
-            $2.setArray(false);
-        }
-
-        if ($1.qualifier == EvqAttribute &&
-            ($2.type == EbtBool || $2.type == EbtInt)) {
-            context->error($2.line, "cannot be bool or int", getQualifierString($1.qualifier));
-            context->recover();
-        }
-        if (($1.qualifier == EvqVaryingIn || $1.qualifier == EvqVaryingOut) &&
-            ($2.type == EbtBool || $2.type == EbtInt)) {
-            context->error($2.line, "cannot be bool or int", getQualifierString($1.qualifier));
-            context->recover();
-        }
-        $$ = $2;
-        $$.qualifier = $1.qualifier;
+        $$ = context->addFullySpecifiedType($1.qualifier, $1.invariant, $1.layoutQualifier, $2);
     }
     ;
 
@@ -1671,24 +1655,32 @@ storage_qualifier
     }
     | IN_QUAL {
 		ES3_ONLY("in", $1.line);
-        $$.qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqVaryingIn : EvqAttribute;
+        $$.qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqFragmentIn : EvqVertexIn;
 		$$.line = $1.line;
     }
     | OUT_QUAL {
 		ES3_ONLY("out", $1.line);
-        $$.qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqFragColor : EvqVaryingOut;
+        $$.qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqFragmentOut : EvqVertexOut;
 		$$.line = $1.line;
     }
     | CENTROID IN_QUAL {
-		ES3_ONLY("in", $1.line);
-	    // FIXME: Handle centroid qualifier
-        $$.qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqVaryingIn : EvqAttribute;
+		ES3_ONLY("centroid in", $1.line);
+        if (context->shaderType == GL_VERTEX_SHADER)
+        {
+            context->error($1.line, "invalid storage qualifier", "it is an error to use 'centroid in' in the vertex shader");
+            context->recover();
+        }
+        $$.qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqCentroidIn : EvqVertexIn;
 		$$.line = $2.line;
     }
 	| CENTROID OUT_QUAL {
-		ES3_ONLY("out", $1.line);
-	    // FIXME: Handle centroid qualifier
-        $$.qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqFragColor : EvqVaryingOut;
+		ES3_ONLY("centroid out", $1.line);
+        if (context->shaderType == GL_FRAGMENT_SHADER)
+        {
+            context->error($1.line, "invalid storage qualifier", "it is an error to use 'centroid out' in the fragment shader");
+            context->recover();
+        }
+        $$.qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqFragmentOut : EvqCentroidOut;
 		$$.line = $2.line;
     }
 	| UNIFORM {

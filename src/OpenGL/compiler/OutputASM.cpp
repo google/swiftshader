@@ -166,7 +166,7 @@ namespace glsl
 	{
 		// Vertex varyings don't have to be actively used to successfully link
 		// against pixel shaders that use them. So make sure they're declared.
-		if(symbol->getQualifier() == EvqVaryingOut || symbol->getQualifier() == EvqInvariantVaryingOut)
+		if(symbol->getQualifier() == EvqVaryingOut || symbol->getQualifier() == EvqInvariantVaryingOut || symbol->getQualifier() == EvqVertexOut)
 		{
 			if(symbol->getBasicType() != EbtInvariant)   // Typeless declarations are not new varyings
 			{
@@ -1857,6 +1857,10 @@ namespace glsl
 		case EvqAttribute:           return sw::Shader::PARAMETER_INPUT;
 		case EvqVaryingIn:           return sw::Shader::PARAMETER_INPUT;
 		case EvqVaryingOut:          return sw::Shader::PARAMETER_OUTPUT;
+		case EvqVertexIn:            return sw::Shader::PARAMETER_INPUT;
+		case EvqFragmentOut:         return sw::Shader::PARAMETER_COLOROUT;
+		case EvqVertexOut:           return sw::Shader::PARAMETER_OUTPUT;
+		case EvqFragmentIn:          return sw::Shader::PARAMETER_INPUT;
 		case EvqInvariantVaryingIn:  return sw::Shader::PARAMETER_INPUT;    // FIXME: Guarantee invariance at the backend
 		case EvqInvariantVaryingOut: return sw::Shader::PARAMETER_OUTPUT;   // FIXME: Guarantee invariance at the backend 
 		case EvqUniform:             return sw::Shader::PARAMETER_CONST;
@@ -1893,6 +1897,10 @@ namespace glsl
 		case EvqAttribute:           return attributeRegister(operand);
 		case EvqVaryingIn:           return varyingRegister(operand);
 		case EvqVaryingOut:          return varyingRegister(operand);
+		case EvqVertexIn:            return attributeRegister(operand);
+		case EvqFragmentOut:         return 0;
+		case EvqVertexOut:           return varyingRegister(operand);
+		case EvqFragmentIn:          return varyingRegister(operand);
 		case EvqInvariantVaryingIn:  return varyingRegister(operand);
 		case EvqInvariantVaryingOut: return varyingRegister(operand);
 		case EvqUniform:             return uniformRegister(operand);

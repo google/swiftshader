@@ -275,6 +275,7 @@ struct TPublicType
     TBasicType type;
     TLayoutQualifier layoutQualifier;
     TQualifier qualifier;
+    bool invariant;
     TPrecision precision;
     int primarySize;          // size of vector or matrix, not size of array
 	int secondarySize;        // 1 for scalars/vectors, >1 for matrices
@@ -288,6 +289,7 @@ struct TPublicType
         type = bt;
         layoutQualifier = TLayoutQualifier::create();
         qualifier = q;
+        invariant = false;
         precision = EbpUndefined;
 		primarySize = 1;
 		secondarySize = 1;
@@ -314,6 +316,12 @@ struct TPublicType
         array = a;
         arraySize = s;
     }
+
+	void clearArrayness()
+	{
+		array = false;
+		arraySize = 0;
+	}
 
     bool isStructureContainingArrays() const
     {

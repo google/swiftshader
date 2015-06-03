@@ -741,21 +741,21 @@ static const yytype_uint16 yyrline[] =
     1051,  1053,  1058,  1061,  1072,  1080,  1107,  1112,  1122,  1160,
     1163,  1170,  1178,  1199,  1220,  1231,  1260,  1265,  1275,  1280,
     1290,  1293,  1296,  1299,  1305,  1312,  1315,  1337,  1355,  1379,
-    1402,  1406,  1424,  1432,  1464,  1484,  1572,  1581,  1604,  1607,
-    1613,  1619,  1626,  1635,  1644,  1647,  1650,  1657,  1661,  1668,
-    1672,  1677,  1682,  1688,  1694,  1703,  1713,  1720,  1723,  1726,
-    1732,  1739,  1742,  1748,  1751,  1754,  1760,  1763,  1778,  1782,
-    1786,  1790,  1794,  1798,  1803,  1808,  1813,  1818,  1823,  1828,
-    1833,  1838,  1843,  1848,  1853,  1858,  1864,  1870,  1876,  1882,
-    1888,  1894,  1900,  1906,  1912,  1917,  1922,  1931,  1936,  1941,
-    1946,  1951,  1956,  1961,  1966,  1971,  1976,  1981,  1986,  1991,
-    1996,  2001,  2014,  2014,  2028,  2028,  2037,  2040,  2055,  2087,
-    2091,  2097,  2105,  2121,  2125,  2129,  2130,  2136,  2137,  2138,
-    2139,  2140,  2144,  2145,  2145,  2145,  2155,  2156,  2160,  2160,
-    2161,  2161,  2166,  2169,  2179,  2182,  2188,  2189,  2193,  2201,
-    2205,  2215,  2220,  2237,  2237,  2242,  2242,  2249,  2249,  2257,
-    2260,  2266,  2269,  2275,  2279,  2286,  2293,  2300,  2307,  2318,
-    2327,  2331,  2338,  2341,  2347,  2347
+    1402,  1406,  1424,  1432,  1464,  1484,  1572,  1582,  1588,  1591,
+    1597,  1603,  1610,  1619,  1628,  1631,  1634,  1641,  1645,  1652,
+    1656,  1661,  1666,  1676,  1686,  1695,  1705,  1712,  1715,  1718,
+    1724,  1731,  1734,  1740,  1743,  1746,  1752,  1755,  1770,  1774,
+    1778,  1782,  1786,  1790,  1795,  1800,  1805,  1810,  1815,  1820,
+    1825,  1830,  1835,  1840,  1845,  1850,  1856,  1862,  1868,  1874,
+    1880,  1886,  1892,  1898,  1904,  1909,  1914,  1923,  1928,  1933,
+    1938,  1943,  1948,  1953,  1958,  1963,  1968,  1973,  1978,  1983,
+    1988,  1993,  2006,  2006,  2020,  2020,  2029,  2032,  2047,  2079,
+    2083,  2089,  2097,  2113,  2117,  2121,  2122,  2128,  2129,  2130,
+    2131,  2132,  2136,  2137,  2137,  2137,  2147,  2148,  2152,  2152,
+    2153,  2153,  2158,  2161,  2171,  2174,  2180,  2181,  2185,  2193,
+    2197,  2207,  2212,  2229,  2229,  2234,  2234,  2241,  2241,  2249,
+    2252,  2258,  2261,  2267,  2271,  2278,  2285,  2292,  2299,  2310,
+    2319,  2323,  2330,  2333,  2339,  2339
 };
 #endif
 
@@ -3940,9 +3940,10 @@ yyreduce:
         (yyval.interm.type) = (yyvsp[(1) - (1)].interm.type);
 
         if ((yyvsp[(1) - (1)].interm.type).array) {
-            context->error((yyvsp[(1) - (1)].interm.type).line, "not supported", "first-class array");
-            context->recover();
-            (yyvsp[(1) - (1)].interm.type).setArray(false);
+            ES3_ONLY("[]", (yyvsp[(1) - (1)].interm.type).line);
+            if (context->getShaderVersion() != 300) {
+                (yyvsp[(1) - (1)].interm.type).clearArrayness();
+            }
         }
     }
     break;
@@ -3950,24 +3951,7 @@ yyreduce:
   case 117:
 
     {
-        if ((yyvsp[(2) - (2)].interm.type).array) {
-            context->error((yyvsp[(2) - (2)].interm.type).line, "not supported", "first-class array");
-            context->recover();
-            (yyvsp[(2) - (2)].interm.type).setArray(false);
-        }
-
-        if ((yyvsp[(1) - (2)].interm.type).qualifier == EvqAttribute &&
-            ((yyvsp[(2) - (2)].interm.type).type == EbtBool || (yyvsp[(2) - (2)].interm.type).type == EbtInt)) {
-            context->error((yyvsp[(2) - (2)].interm.type).line, "cannot be bool or int", getQualifierString((yyvsp[(1) - (2)].interm.type).qualifier));
-            context->recover();
-        }
-        if (((yyvsp[(1) - (2)].interm.type).qualifier == EvqVaryingIn || (yyvsp[(1) - (2)].interm.type).qualifier == EvqVaryingOut) &&
-            ((yyvsp[(2) - (2)].interm.type).type == EbtBool || (yyvsp[(2) - (2)].interm.type).type == EbtInt)) {
-            context->error((yyvsp[(2) - (2)].interm.type).line, "cannot be bool or int", getQualifierString((yyvsp[(1) - (2)].interm.type).qualifier));
-            context->recover();
-        }
-        (yyval.interm.type) = (yyvsp[(2) - (2)].interm.type);
-        (yyval.interm.type).qualifier = (yyvsp[(1) - (2)].interm.type).qualifier;
+        (yyval.interm.type) = context->addFullySpecifiedType((yyvsp[(1) - (2)].interm.type).qualifier, (yyvsp[(1) - (2)].interm.type).invariant, (yyvsp[(1) - (2)].interm.type).layoutQualifier, (yyvsp[(2) - (2)].interm.type));
     }
     break;
 
@@ -4082,7 +4066,7 @@ yyreduce:
 
     {
 		ES3_ONLY("in", (yyvsp[(1) - (1)].lex).line);
-        (yyval.interm.type).qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqVaryingIn : EvqAttribute;
+        (yyval.interm.type).qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqFragmentIn : EvqVertexIn;
 		(yyval.interm.type).line = (yyvsp[(1) - (1)].lex).line;
     }
     break;
@@ -4091,7 +4075,7 @@ yyreduce:
 
     {
 		ES3_ONLY("out", (yyvsp[(1) - (1)].lex).line);
-        (yyval.interm.type).qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqFragColor : EvqVaryingOut;
+        (yyval.interm.type).qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqFragmentOut : EvqVertexOut;
 		(yyval.interm.type).line = (yyvsp[(1) - (1)].lex).line;
     }
     break;
@@ -4099,9 +4083,13 @@ yyreduce:
   case 132:
 
     {
-		ES3_ONLY("in", (yyvsp[(1) - (2)].lex).line);
-	    // FIXME: Handle centroid qualifier
-        (yyval.interm.type).qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqVaryingIn : EvqAttribute;
+		ES3_ONLY("centroid in", (yyvsp[(1) - (2)].lex).line);
+        if (context->shaderType == GL_VERTEX_SHADER)
+        {
+            context->error((yyvsp[(1) - (2)].lex).line, "invalid storage qualifier", "it is an error to use 'centroid in' in the vertex shader");
+            context->recover();
+        }
+        (yyval.interm.type).qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqCentroidIn : EvqVertexIn;
 		(yyval.interm.type).line = (yyvsp[(2) - (2)].lex).line;
     }
     break;
@@ -4109,9 +4097,13 @@ yyreduce:
   case 133:
 
     {
-		ES3_ONLY("out", (yyvsp[(1) - (2)].lex).line);
-	    // FIXME: Handle centroid qualifier
-        (yyval.interm.type).qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqFragColor : EvqVaryingOut;
+		ES3_ONLY("centroid out", (yyvsp[(1) - (2)].lex).line);
+        if (context->shaderType == GL_FRAGMENT_SHADER)
+        {
+            context->error((yyvsp[(1) - (2)].lex).line, "invalid storage qualifier", "it is an error to use 'centroid out' in the fragment shader");
+            context->recover();
+        }
+        (yyval.interm.type).qualifier = (context->shaderType == GL_FRAGMENT_SHADER) ? EvqFragmentOut : EvqCentroidOut;
 		(yyval.interm.type).line = (yyvsp[(2) - (2)].lex).line;
     }
     break;

@@ -102,6 +102,7 @@ struct TParseContext {
     bool nonInitErrorCheck(int line, TString& identifier, TPublicType& type, TVariable*& variable);
     bool paramErrorCheck(int line, TQualifier qualifier, TQualifier paramQualifier, TType* type);
     bool extensionErrorCheck(int line, const TString&);
+    bool layoutLocationErrorCheck(const TSourceLoc &location, const TLayoutQualifier &layoutQualifier);
 
     const TExtensionBehavior& extensionBehavior() const { return directiveHandler.extensionBehavior(); }
     bool supportsExtension(const char* extension);
@@ -115,6 +116,8 @@ struct TParseContext {
     const TFunction* findFunction(int line, TFunction* pfnCall, bool *builtIn = 0);
     bool executeInitializer(TSourceLoc line, TString& identifier, TPublicType& pType,
                             TIntermTyped* initializer, TIntermNode*& intermNode, TVariable* variable = 0);
+
+    TPublicType addFullySpecifiedType(TQualifier qualifier, bool invariant, TLayoutQualifier layoutQualifier, const TPublicType &typeSpecifier);
     bool arraySetMaxSize(TIntermSymbol*, TType*, int, bool, TSourceLoc);
 
     TIntermTyped* addConstructor(TIntermNode*, const TType*, TOperator, TFunction*, TSourceLoc);
