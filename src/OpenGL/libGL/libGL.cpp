@@ -1190,8 +1190,6 @@ void APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLi
 			return error(GL_INVALID_OPERATION);
 		}
 
-		gl::Renderbuffer *source = framebuffer->getColorbuffer();
-		GLenum colorbufferFormat = source->getFormat();
 		gl::Texture *texture = NULL;
 
 		if(target == GL_TEXTURE_2D)
@@ -1207,62 +1205,6 @@ void APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLi
 		if(!validateSubImageParams(false, width, height, xoffset, yoffset, target, level, GL_NONE, texture))
 		{
 			return;
-		}
-
-		GLenum textureFormat = texture->getFormat(target, level);
-
-		switch(textureFormat)
-		{
-		case GL_ALPHA:
-			if(colorbufferFormat != GL_ALPHA &&
-			   colorbufferFormat != GL_RGBA &&
-			   colorbufferFormat != GL_RGBA4 &&
-			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_EXT)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			break;
-		case GL_LUMINANCE:
-		case GL_RGB:
-			if(colorbufferFormat != GL_RGB &&
-			   colorbufferFormat != GL_RGB565 &&
-			   colorbufferFormat != GL_RGB8_EXT &&
-			   colorbufferFormat != GL_RGBA &&
-			   colorbufferFormat != GL_RGBA4 &&
-			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_EXT)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			break;
-		case GL_LUMINANCE_ALPHA:
-		case GL_RGBA:
-			if(colorbufferFormat != GL_RGBA &&
-			   colorbufferFormat != GL_RGBA4 &&
-			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8_EXT)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			break;
-		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
-		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-		case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
-		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
-			return error(GL_INVALID_OPERATION);
-		case GL_DEPTH_COMPONENT:
-		case GL_DEPTH_STENCIL_EXT:
-			return error(GL_INVALID_OPERATION);
-		case GL_BGRA_EXT:
-			if(colorbufferFormat != GL_RGB8)
-			{
-				UNIMPLEMENTED();
-				return error(GL_INVALID_OPERATION);
-			}
-			break;
-		default:
-			return error(GL_INVALID_ENUM);
 		}
 
 		texture->copySubImage(target, level, xoffset, yoffset, x, y, width, height, framebuffer);

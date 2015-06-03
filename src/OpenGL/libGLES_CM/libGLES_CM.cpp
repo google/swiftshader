@@ -954,13 +954,13 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 			return error(GL_INVALID_FRAMEBUFFER_OPERATION_OES);
 		}
 
-		if(context->getFramebufferName() != 0 && framebuffer->getColorbuffer()->getSamples() > 1)
+		es1::Renderbuffer *source = framebuffer->getColorbuffer();
+
+		if(context->getFramebufferName() != 0 && (!source || source->getSamples() > 1))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
 
-		es1::Renderbuffer *source = framebuffer->getColorbuffer();
-		GLenum colorbufferFormat = source->getFormat();
 		es1::Texture *texture = NULL;
 
 		if(target == GL_TEXTURE_2D)
@@ -972,62 +972,6 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 		if(!validateSubImageParams(false, width, height, xoffset, yoffset, target, level, GL_NONE_OES, texture))
 		{
 			return;
-		}
-
-		GLenum textureFormat = texture->getFormat(target, level);
-
-		// [OpenGL ES 2.0.24] table 3.9
-		switch(textureFormat)
-		{
-		case GL_ALPHA:
-			if(colorbufferFormat != GL_ALPHA &&
-			   colorbufferFormat != GL_RGBA &&
-			   colorbufferFormat != GL_RGBA4_OES &&
-			   colorbufferFormat != GL_RGB5_A1_OES &&
-			   colorbufferFormat != GL_RGBA8_OES)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			break;
-		case GL_LUMINANCE:
-		case GL_RGB:
-			if(colorbufferFormat != GL_RGB &&
-			   colorbufferFormat != GL_RGB565_OES &&
-			   colorbufferFormat != GL_RGB8_OES &&
-			   colorbufferFormat != GL_RGBA &&
-			   colorbufferFormat != GL_RGBA4_OES &&
-			   colorbufferFormat != GL_RGB5_A1_OES &&
-			   colorbufferFormat != GL_RGBA8_OES)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			break;
-		case GL_LUMINANCE_ALPHA:
-		case GL_RGBA:
-			if(colorbufferFormat != GL_RGBA &&
-			   colorbufferFormat != GL_RGBA4_OES &&
-			   colorbufferFormat != GL_RGB5_A1_OES &&
-			   colorbufferFormat != GL_RGBA8_OES)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			break;
-		case GL_ETC1_RGB8_OES:
-			return error(GL_INVALID_OPERATION);
-		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
-		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-			if(S3TC_SUPPORT)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			else
-			{
-				return error(GL_INVALID_ENUM);
-			}
-		case GL_DEPTH_STENCIL_OES:
-			return error(GL_INVALID_OPERATION);
-		default:
-			return error(GL_INVALID_ENUM);
 		}
 
 		texture->copySubImage(target, level, xoffset, yoffset, x, y, width, height, framebuffer);

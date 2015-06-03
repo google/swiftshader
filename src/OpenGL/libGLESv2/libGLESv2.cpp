@@ -1351,7 +1351,6 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLenum colorbufferFormat = source->getFormat();
 		es2::Texture *texture = NULL;
 
 		if(target == GL_TEXTURE_2D)
@@ -1365,13 +1364,6 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 		else UNREACHABLE();
 
 		if(!validateSubImageParams(false, width, height, xoffset, yoffset, target, level, GL_NONE, texture))
-		{
-			return;
-		}
-
-		GLenum textureFormat = texture->getFormat(target, level);
-
-		if(!validateColorBufferFormat(textureFormat, colorbufferFormat))
 		{
 			return;
 		}
@@ -6965,17 +6957,9 @@ void CopyTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffs
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLenum colorbufferFormat = source->getFormat();
 		es2::Texture3D *texture = context->getTexture3D();
 
 		if(!validateSubImageParams(false, width, height, 1, xoffset, yoffset, zoffset, target, level, GL_NONE, texture))
-		{
-			return;
-		}
-
-		GLenum textureFormat = texture->getFormat(target, level);
-
-		if(!validateColorBufferFormat(textureFormat, colorbufferFormat))
 		{
 			return;
 		}
