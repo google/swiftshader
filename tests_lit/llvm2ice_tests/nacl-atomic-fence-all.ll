@@ -14,7 +14,7 @@ declare void @llvm.nacl.atomic.store.i32(i32, i32*, i32)
 @g32_c = internal global [4 x i8] zeroinitializer, align 4
 @g32_d = internal global [4 x i8] zeroinitializer, align 4
 
-define i32 @test_fused_load_add_a() {
+define i32 @test_fused_load_sub_a() {
 entry:
   %p_alloca = alloca i8, i32 4, align 4
   %p_alloca_bc = bitcast i8* %p_alloca to i32*
@@ -22,39 +22,39 @@ entry:
 
   %p_a = bitcast [4 x i8]* @g32_a to i32*
   %l_a = call i32 @llvm.nacl.atomic.load.i32(i32* %p_a, i32 6)
-  %l_a2 = add i32 %l_a, 1
+  %l_a2 = sub i32 1, %l_a
   call void @llvm.nacl.atomic.store.i32(i32 %l_a2, i32* %p_a, i32 6)
 
   %p_b = bitcast [4 x i8]* @g32_b to i32*
   %l_b = load i32, i32* %p_b, align 1
-  %l_b2 = add i32 %l_b, 1
+  %l_b2 = sub i32 1, %l_b
   store i32 %l_b2, i32* %p_b, align 1
 
   %p_c = bitcast [4 x i8]* @g32_c to i32*
   %l_c = load i32, i32* %p_c, align 1
-  %l_c2 = add i32 %l_c, 1
+  %l_c2 = sub i32 1, %l_c
   call void @llvm.nacl.atomic.fence.all()
   store i32 %l_c2, i32* %p_c, align 1
 
   ret i32 %l_c2
 }
-; CHECK-LABEL: test_fused_load_add_a
+; CHECK-LABEL: test_fused_load_sub_a
 ;    alloca store
 ; CHECK: mov {{.*}},esp
 ; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
-; The load + add are optimized into one everywhere.
-; CHECK: add {{.*}},DWORD PTR {{.*}}g32_a
+; The load + sub are optimized into one everywhere.
+; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_a
 ; CHECK: mov DWORD PTR
 ; CHECK: mfence
-; CHECK: add {{.*}},DWORD PTR {{.*}}g32_b
+; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_b
 ; CHECK: mov DWORD PTR
-; CHECK: add {{.*}},DWORD PTR {{.*}}g32_c
+; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_c
 ; CHECK: mfence
 ; CHECK: mov DWORD PTR
 
 ; Test with the fence moved up a bit.
-define i32 @test_fused_load_add_b() {
+define i32 @test_fused_load_sub_b() {
 entry:
   %p_alloca = alloca i8, i32 4, align 4
   %p_alloca_bc = bitcast i8* %p_alloca to i32*
@@ -62,40 +62,40 @@ entry:
 
   %p_a = bitcast [4 x i8]* @g32_a to i32*
   %l_a = call i32 @llvm.nacl.atomic.load.i32(i32* %p_a, i32 6)
-  %l_a2 = add i32 %l_a, 1
+  %l_a2 = sub i32 1, %l_a
   call void @llvm.nacl.atomic.store.i32(i32 %l_a2, i32* %p_a, i32 6)
 
   %p_b = bitcast [4 x i8]* @g32_b to i32*
   %l_b = load i32, i32* %p_b, align 1
-  %l_b2 = add i32 %l_b, 1
+  %l_b2 = sub i32 1, %l_b
   store i32 %l_b2, i32* %p_b, align 1
 
   %p_c = bitcast [4 x i8]* @g32_c to i32*
   call void @llvm.nacl.atomic.fence.all()
   %l_c = load i32, i32* %p_c, align 1
-  %l_c2 = add i32 %l_c, 1
+  %l_c2 = sub i32 1, %l_c
   store i32 %l_c2, i32* %p_c, align 1
 
   ret i32 %l_c2
 }
-; CHECK-LABEL: test_fused_load_add_b
+; CHECK-LABEL: test_fused_load_sub_b
 ;    alloca store
 ; CHECK: mov {{.*}},esp
 ; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
-; CHECK: add {{.*}},DWORD PTR {{.*}}g32_a
+; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_a
 ; CHECK: mov DWORD PTR
 ; CHECK: mfence
-; CHECK: add {{.*}},DWORD PTR {{.*}}g32_b
+; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_b
 ; CHECK: mov DWORD PTR
 ; CHECK: mfence
-; Load + add can still be optimized into one instruction
+; Load + sub can still be optimized into one instruction
 ; because it is not separated by a fence.
-; CHECK: add {{.*}},DWORD PTR {{.*}}g32_c
+; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_c
 ; CHECK: mov DWORD PTR
 
-; Test with the fence splitting a load/add.
-define i32 @test_fused_load_add_c() {
+; Test with the fence splitting a load/sub.
+define i32 @test_fused_load_sub_c() {
 entry:
   %p_alloca = alloca i8, i32 4, align 4
   %p_alloca_bc = bitcast i8* %p_alloca to i32*
@@ -103,38 +103,39 @@ entry:
 
   %p_a = bitcast [4 x i8]* @g32_a to i32*
   %l_a = call i32 @llvm.nacl.atomic.load.i32(i32* %p_a, i32 6)
-  %l_a2 = add i32 %l_a, 1
+  %l_a2 = sub i32 1, %l_a
   call void @llvm.nacl.atomic.store.i32(i32 %l_a2, i32* %p_a, i32 6)
 
   %p_b = bitcast [4 x i8]* @g32_b to i32*
   %l_b = load i32, i32* %p_b, align 1
   call void @llvm.nacl.atomic.fence.all()
-  %l_b2 = add i32 %l_b, 1
+  %l_b2 = sub i32 1, %l_b
   store i32 %l_b2, i32* %p_b, align 1
 
   %p_c = bitcast [4 x i8]* @g32_c to i32*
   %l_c = load i32, i32* %p_c, align 1
-  %l_c2 = add i32 %l_c, 1
+  %l_c2 = sub i32 1, %l_c
   store i32 %l_c2, i32* %p_c, align 1
 
   ret i32 %l_c2
 }
-; CHECK-LABEL: test_fused_load_add_c
+; CHECK-LABEL: test_fused_load_sub_c
 ;    alloca store
 ; CHECK: mov {{.*}},esp
 ; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
-; CHECK: add {{.*}},DWORD PTR {{.*}}g32_a
+; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_a
 ; CHECK: mov DWORD PTR
 ; CHECK: mfence
-; This load + add are no longer optimized into one,
+; This load + sub are no longer optimized into one,
 ; though perhaps it should be legal as long as
 ; the load stays on the same side of the fence.
 ; CHECK: mov {{.*}},DWORD PTR {{.*}}g32_b
 ; CHECK: mfence
-; CHECK: add {{.*}},0x1
+; CHECK: mov {{.*}},0x1
+; CHECK: sub
 ; CHECK: mov DWORD PTR
-; CHECK: add {{.*}},DWORD PTR {{.*}}g32_c
+; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_c
 ; CHECK: mov DWORD PTR
 
 

@@ -101,6 +101,7 @@ public:
 
   void translateOm1() override;
   void translateO2() override;
+  void doLoadOpt();
   bool doBranchOpt(Inst *I, const CfgNode *NextNode) override;
 
   SizeT getNumRegisters() const override { return RegX8632::Reg_NUM; }
@@ -229,7 +230,8 @@ protected:
   // Turn a pointer operand into a memory operand that can be
   // used by a real load/store operation. Legalizes the operand as well.
   // This is a nop if the operand is already a legal memory operand.
-  OperandX8632Mem *formMemoryOperand(Operand *Ptr, Type Ty);
+  OperandX8632Mem *formMemoryOperand(Operand *Ptr, Type Ty,
+                                     bool DoLegalize = true);
 
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
   static Type stackSlotType();

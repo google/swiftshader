@@ -809,8 +809,8 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
     // familiar order.
     std::sort(LiveRegs.begin(), LiveRegs.end(),
               [](const Variable *V1, const Variable *V2) {
-      return V1->getRegNum() < V2->getRegNum();
-    });
+                return V1->getRegNum() < V2->getRegNum();
+              });
     bool First = true;
     for (Variable *Var : LiveRegs) {
       if (!First)

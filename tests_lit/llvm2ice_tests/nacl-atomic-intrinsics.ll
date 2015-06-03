@@ -95,17 +95,17 @@ entry:
 next:
   %ptr = inttoptr i32 %iptr to i32*
   %r = call i32 @llvm.nacl.atomic.load.i32(i32* %ptr, i32 6)
-  %r2 = add i32 %r, 32
+  %r2 = sub i32 32, %r
   ret i32 %r2
 }
 ; CHECK-LABEL: test_atomic_load_32_with_arith
 ; CHECK: mov {{.*}},DWORD
 ; The next instruction may be a separate load or folded into an add.
 ;
-; In O2 mode, we know that the load and add are going to be fused.
+; In O2 mode, we know that the load and sub are going to be fused.
 ; O2-LABEL: test_atomic_load_32_with_arith
 ; O2: mov {{.*}},DWORD
-; O2: add {{.*}},DWORD
+; O2: sub {{.*}},DWORD
 
 define i32 @test_atomic_load_32_ignored(i32 %iptr) {
 entry:

@@ -112,6 +112,44 @@ bool Inst::isLastUse(const Operand *TestSrc) const {
   return false;
 }
 
+// Given an instruction like:
+//   a = b + c + [x,y] + e
+// which was created from OrigInst:
+//   a = b + c + d + e
+// with SpliceAssn spliced in:
+//   d = [x,y]
+//
+// Reconstruct the LiveRangesEnded bitmask in this instruction by
+// combining the LiveRangesEnded values of OrigInst and SpliceAssn.
+// If operands d and [x,y] contain a different number of variables,
+// then the bitmask position for e may be different in OrigInst and
+// the current instruction, requiring extra shifts and masks in the
+// computation.  In the example above, OrigInst has variable e in bit
+// position 3, whereas the current instruction has e in bit position 4
+// because [x,y] consumes 2 bitmask slots while d only consumed 1.
+//
+// Additionally, set HasSideEffects if either OrigInst or SpliceAssn
+// have HasSideEffects set.
+void Inst::spliceLivenessInfo(Inst *OrigInst, Inst *SpliceAssn) {
+  HasSideEffects |= OrigInst->HasSideEffects;
+  HasSideEffects |= SpliceAssn->HasSideEffects;
+  // Find the bitmask index of SpliceAssn's dest within OrigInst.
+  Variable *SpliceDest = SpliceAssn->getDest();
+  SizeT Index = 0;
+  for (SizeT I = 0; I < OrigInst->getSrcSize(); ++I) {
+    Operand *Src = OrigInst->getSrc(I);
+    if (Src == SpliceDest) {
+      LREndedBits LeftMask = OrigInst->LiveRangesEnded & ((1 << Index) - 1);
+      LREndedBits RightMask = OrigInst->LiveRangesEnded >> (Index + 1);
+      LiveRangesEnded = LeftMask | (SpliceAssn->LiveRangesEnded << Index) |
+                        (RightMask << (Index + getSrc(I)->getNumVars()));
+      return;
+    }
+    Index += getSrc(I)->getNumVars();
+  }
+  llvm::report_fatal_error("Failed to find splice operand");
+}
+
 void Inst::livenessLightweight(Cfg *Func, LivenessBV &Live) {
   assert(!isDeleted());
   resetLastUses();

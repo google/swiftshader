@@ -482,6 +482,7 @@ void TargetX8632::translateO2() {
     return;
   Func->dump("After x86 address mode opt");
 
+  doLoadOpt();
   Func->genCode();
   if (Func->hasError())
     return;
@@ -570,6 +571,126 @@ void TargetX8632::translateOm1() {
   if (Ctx->getFlags().shouldDoNopInsertion()) {
     Func->doNopInsertion();
   }
+}
+
+namespace {
+
+// Converts a ConstantInteger32 operand into its constant value, or
+// MemoryOrderInvalid if the operand is not a ConstantInteger32.
+uint64_t getConstantMemoryOrder(Operand *Opnd) {
+  if (auto Integer = llvm::dyn_cast<ConstantInteger32>(Opnd))
+    return Integer->getValue();
+  return Intrinsics::MemoryOrderInvalid;
+}
+
+// Determines whether the dest of a Load instruction can be folded
+// into one of the src operands of a 2-operand instruction.  This is
+// true as long as the load dest matches exactly one of the binary
+// instruction's src operands.  Replaces Src0 or Src1 with LoadSrc if
+// the answer is true.
+bool canFoldLoadIntoBinaryInst(Operand *LoadSrc, Variable *LoadDest,
+                               Operand *&Src0, Operand *&Src1) {
+  if (Src0 == LoadDest && Src1 != LoadDest) {
+    Src0 = LoadSrc;
+    return true;
+  }
+  if (Src0 != LoadDest && Src1 == LoadDest) {
+    Src1 = LoadSrc;
+    return true;
+  }
+  return false;
+}
+
+} // end of anonymous namespace
+
+void TargetX8632::doLoadOpt() {
+  for (CfgNode *Node : Func->getNodes()) {
+    Context.init(Node);
+    while (!Context.atEnd()) {
+      Variable *LoadDest = nullptr;
+      Operand *LoadSrc = nullptr;
+      Inst *CurInst = Context.getCur();
+      Inst *Next = Context.getNextInst();
+      // Determine whether the current instruction is a Load
+      // instruction or equivalent.
+      if (auto *Load = llvm::dyn_cast<InstLoad>(CurInst)) {
+        // An InstLoad always qualifies.
+        LoadDest = Load->getDest();
+        const bool DoLegalize = false;
+        LoadSrc = formMemoryOperand(Load->getSourceAddress(),
+                                    LoadDest->getType(), DoLegalize);
+      } else if (auto *Intrin = llvm::dyn_cast<InstIntrinsicCall>(CurInst)) {
+        // An AtomicLoad intrinsic qualifies as long as it has a valid
+        // memory ordering, and can be implemented in a single
+        // instruction (i.e., not i64).
+        Intrinsics::IntrinsicID ID = Intrin->getIntrinsicInfo().ID;
+        if (ID == Intrinsics::AtomicLoad &&
+            Intrin->getDest()->getType() != IceType_i64 &&
+            Intrinsics::isMemoryOrderValid(
+                ID, getConstantMemoryOrder(Intrin->getArg(1)))) {
+          LoadDest = Intrin->getDest();
+          const bool DoLegalize = false;
+          LoadSrc = formMemoryOperand(Intrin->getArg(0), LoadDest->getType(),
+                                      DoLegalize);
+        }
+      }
+      // A Load instruction can be folded into the following
+      // instruction only if the following instruction ends the Load's
+      // Dest variable's live range.
+      if (LoadDest && Next && Next->isLastUse(LoadDest)) {
+        assert(LoadSrc);
+        Inst *NewInst = nullptr;
+        if (auto *Arith = llvm::dyn_cast<InstArithmetic>(Next)) {
+          Operand *Src0 = Arith->getSrc(0);
+          Operand *Src1 = Arith->getSrc(1);
+          if (canFoldLoadIntoBinaryInst(LoadSrc, LoadDest, Src0, Src1)) {
+            NewInst = InstArithmetic::create(Func, Arith->getOp(),
+                                             Arith->getDest(), Src0, Src1);
+          }
+        } else if (auto *Icmp = llvm::dyn_cast<InstIcmp>(Next)) {
+          Operand *Src0 = Icmp->getSrc(0);
+          Operand *Src1 = Icmp->getSrc(1);
+          if (canFoldLoadIntoBinaryInst(LoadSrc, LoadDest, Src0, Src1)) {
+            NewInst = InstIcmp::create(Func, Icmp->getCondition(),
+                                       Icmp->getDest(), Src0, Src1);
+          }
+        } else if (auto *Fcmp = llvm::dyn_cast<InstFcmp>(Next)) {
+          Operand *Src0 = Fcmp->getSrc(0);
+          Operand *Src1 = Fcmp->getSrc(1);
+          if (canFoldLoadIntoBinaryInst(LoadSrc, LoadDest, Src0, Src1)) {
+            NewInst = InstFcmp::create(Func, Fcmp->getCondition(),
+                                       Fcmp->getDest(), Src0, Src1);
+          }
+        } else if (auto *Select = llvm::dyn_cast<InstSelect>(Next)) {
+          Operand *Src0 = Select->getTrueOperand();
+          Operand *Src1 = Select->getFalseOperand();
+          if (canFoldLoadIntoBinaryInst(LoadSrc, LoadDest, Src0, Src1)) {
+            NewInst = InstSelect::create(Func, Select->getDest(),
+                                         Select->getCondition(), Src0, Src1);
+          }
+        } else if (auto *Cast = llvm::dyn_cast<InstCast>(Next)) {
+          // The load dest can always be folded into a Cast
+          // instruction.
+          Variable *Src0 = llvm::dyn_cast<Variable>(Cast->getSrc(0));
+          if (Src0 == LoadDest) {
+            NewInst = InstCast::create(Func, Cast->getCastKind(),
+                                       Cast->getDest(), LoadSrc);
+          }
+        }
+        if (NewInst) {
+          CurInst->setDeleted();
+          Next->setDeleted();
+          Context.insert(NewInst);
+          // Update NewInst->LiveRangesEnded so that target lowering
+          // may benefit.  Also update NewInst->HasSideEffects.
+          NewInst->spliceLivenessInfo(Next, CurInst);
+        }
+      }
+      Context.advanceCur();
+      Context.advanceNext();
+    }
+  }
+  Func->dump("After load optimization");
 }
 
 bool TargetX8632::doBranchOpt(Inst *I, const CfgNode *NextNode) {
@@ -804,15 +925,15 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // that stack slot.
   std::function<bool(Variable *)> TargetVarHook =
       [&VariablesLinkedToSpillSlots](Variable *Var) {
-    if (SpillVariable *SpillVar = llvm::dyn_cast<SpillVariable>(Var)) {
-      assert(Var->getWeight().isZero());
-      if (SpillVar->getLinkedTo() && !SpillVar->getLinkedTo()->hasReg()) {
-        VariablesLinkedToSpillSlots.push_back(Var);
-        return true;
-      }
-    }
-    return false;
-  };
+        if (SpillVariable *SpillVar = llvm::dyn_cast<SpillVariable>(Var)) {
+          assert(Var->getWeight().isZero());
+          if (SpillVar->getLinkedTo() && !SpillVar->getLinkedTo()->hasReg()) {
+            VariablesLinkedToSpillSlots.push_back(Var);
+            return true;
+          }
+        }
+        return false;
+      };
 
   // Compute the list of spilled variables and bounds for GlobalsSize, etc.
   getVarStackSlotParams(SortedSpilledVariables, RegsUsed, &GlobalsSize,
@@ -1170,6 +1291,10 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
   Operand *Src0 = legalize(Inst->getSrc(0));
   Operand *Src1 = legalize(Inst->getSrc(1));
+  if (Inst->isCommutative()) {
+    if (!llvm::isa<Variable>(Src0) && llvm::isa<Variable>(Src1))
+      std::swap(Src0, Src1);
+  }
   if (Dest->getType() == IceType_i64) {
     Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
     Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
@@ -2891,18 +3016,6 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Inst) {
   }
 }
 
-namespace {
-
-// Converts a ConstantInteger32 operand into its constant value, or
-// MemoryOrderInvalid if the operand is not a ConstantInteger32.
-uint64_t getConstantMemoryOrder(Operand *Opnd) {
-  if (auto Integer = llvm::dyn_cast<ConstantInteger32>(Opnd))
-    return Integer->getValue();
-  return Intrinsics::MemoryOrderInvalid;
-}
-
-} // end of anonymous namespace
-
 void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   switch (Intrinsics::IntrinsicID ID = Instr->getIntrinsicInfo().ID) {
   case Intrinsics::AtomicCmpxchg: {
@@ -3006,10 +3119,11 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       Func->setError("Unexpected memory ordering for AtomicRMW");
       return;
     }
-    lowerAtomicRMW(Instr->getDest(),
-                   static_cast<uint32_t>(llvm::cast<ConstantInteger32>(
-                                             Instr->getArg(0))->getValue()),
-                   Instr->getArg(1), Instr->getArg(2));
+    lowerAtomicRMW(
+        Instr->getDest(),
+        static_cast<uint32_t>(
+            llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue()),
+        Instr->getArg(1), Instr->getArg(2));
     return;
   case Intrinsics::AtomicStore: {
     if (!Intrinsics::isMemoryOrderValid(
@@ -3852,66 +3966,9 @@ void TargetX8632::lowerLoad(const InstLoad *Load) {
   // OperandX8632Mem operand.  Note that the address mode
   // optimization already creates an OperandX8632Mem operand, so it
   // doesn't need another level of transformation.
-  Type Ty = Load->getDest()->getType();
-  Operand *Src0 = formMemoryOperand(Load->getSourceAddress(), Ty);
-
-  // Fuse this load with a subsequent Arithmetic instruction in the
-  // following situations:
-  //   a=[mem]; c=b+a ==> c=b+[mem] if last use of a and a not in b
-  //   a=[mem]; c=a+b ==> c=b+[mem] if commutative and above is true
-  //
-  // Fuse this load with a subsequent Cast instruction:
-  //   a=[mem]; b=cast(a) ==> b=cast([mem]) if last use of a
-  //
-  // TODO: Clean up and test thoroughly.
-  // (E.g., if there is an mfence-all make sure the load ends up on the
-  // same side of the fence).
-  //
-  // TODO: Why limit to Arithmetic instructions?  This could probably be
-  // applied to most any instruction type.  Look at all source operands
-  // in the following instruction, and if there is one instance of the
-  // load instruction's dest variable, and that instruction ends that
-  // variable's live range, then make the substitution.  Deal with
-  // commutativity optimization in the arithmetic instruction lowering.
-  //
-  // TODO(stichnot): Do load fusing as a separate pass.  Run it before
-  // the bool folding pass.  Modify Ice::Inst to allow src operands to
-  // be replaced, including updating Inst::LiveRangesEnded, to avoid
-  // having to manually mostly clone each instruction type.
-  Inst *NextInst = Context.getNextInst();
   Variable *DestLoad = Load->getDest();
-  if (NextInst && NextInst->isLastUse(DestLoad)) {
-    if (auto *Arith = llvm::dyn_cast<InstArithmetic>(NextInst)) {
-      InstArithmetic *NewArith = nullptr;
-      Variable *Src0Arith = llvm::dyn_cast<Variable>(Arith->getSrc(0));
-      Variable *Src1Arith = llvm::dyn_cast<Variable>(Arith->getSrc(1));
-      if (Src1Arith == DestLoad && DestLoad != Src0Arith) {
-        NewArith = InstArithmetic::create(
-            Func, Arith->getOp(), Arith->getDest(), Arith->getSrc(0), Src0);
-      } else if (Src0Arith == DestLoad && Arith->isCommutative() &&
-                 DestLoad != Src1Arith) {
-        NewArith = InstArithmetic::create(
-            Func, Arith->getOp(), Arith->getDest(), Arith->getSrc(1), Src0);
-      }
-      if (NewArith) {
-        Arith->setDeleted();
-        Context.advanceNext();
-        lowerArithmetic(NewArith);
-        return;
-      }
-    } else if (auto *Cast = llvm::dyn_cast<InstCast>(NextInst)) {
-      Variable *Src0Cast = llvm::dyn_cast<Variable>(Cast->getSrc(0));
-      if (Src0Cast == DestLoad) {
-        InstCast *NewCast =
-            InstCast::create(Func, Cast->getCastKind(), Cast->getDest(), Src0);
-        Cast->setDeleted();
-        Context.advanceNext();
-        lowerCast(NewCast);
-        return;
-      }
-    }
-  }
-
+  Type Ty = DestLoad->getType();
+  Operand *Src0 = formMemoryOperand(Load->getSourceAddress(), Ty);
   InstAssign *Assign = InstAssign::create(Func, DestLoad, Src0);
   lowerAssign(Assign);
 }
@@ -4639,7 +4696,8 @@ Operand *TargetX8632::legalizeSrc0ForCmp(Operand *Src0, Operand *Src1) {
   return legalize(Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg);
 }
 
-OperandX8632Mem *TargetX8632::formMemoryOperand(Operand *Operand, Type Ty) {
+OperandX8632Mem *TargetX8632::formMemoryOperand(Operand *Operand, Type Ty,
+                                                bool DoLegalize) {
   OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Operand);
   // It may be the case that address mode optimization already creates
   // an OperandX8632Mem, so in that case it wouldn't need another level
@@ -4656,7 +4714,7 @@ OperandX8632Mem *TargetX8632::formMemoryOperand(Operand *Operand, Type Ty) {
     }
     Mem = OperandX8632Mem::create(Func, Ty, Base, Offset);
   }
-  return llvm::cast<OperandX8632Mem>(legalize(Mem));
+  return llvm::cast<OperandX8632Mem>(DoLegalize ? legalize(Mem) : Mem);
 }
 
 Variable *TargetX8632::makeReg(Type Type, int32_t RegNum) {

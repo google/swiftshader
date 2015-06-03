@@ -102,6 +102,7 @@ public:
   }
 
   bool isLastUse(const Operand *Src) const;
+  void spliceLivenessInfo(Inst *OrigInst, Inst *SpliceAssn);
 
   // Returns a list of out-edges corresponding to a terminator
   // instruction, which is the last instruction of the block.
