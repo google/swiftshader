@@ -29,7 +29,7 @@ namespace es1
 {
 	using namespace sw;
 
-	Device::Device(Context *context) : Renderer(context, true, true, true, true, true), context(context)
+	Device::Device(Context *context) : Renderer(context, OpenGL, true), context(context)
 	{
 		depthStencil = 0;
 		renderTarget = 0;

@@ -21,6 +21,7 @@ namespace sw
 {
 	extern bool complementaryDepthBuffer;
 	extern TranscendentalPrecision logPrecision;
+	extern bool leadingVertexFirst;
 
 	SetupRoutine::SetupRoutine(const SetupProcessor::State &state) : state(state)
 	{
@@ -546,7 +547,8 @@ namespace sw
 		}
 		else
 		{
-			Float C = *Pointer<Float>(triangle + OFFSET(Triangle,v0) + attribute);
+			int leadingVertex = leadingVertexFirst ? OFFSET(Triangle,v0) : OFFSET(Triangle,v2);
+			Float C = *Pointer<Float>(triangle + leadingVertex + attribute);
 
 			*Pointer<Float4>(primitive + planeEquation + 0, 16) = Float4(0, 0, 0, 0);
 			*Pointer<Float4>(primitive + planeEquation + 16, 16) = Float4(0, 0, 0, 0);

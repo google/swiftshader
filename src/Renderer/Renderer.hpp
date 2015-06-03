@@ -53,6 +53,24 @@ namespace sw
 	extern TranscendentalPrecision rsqPrecision;
 	extern bool perspectiveCorrection;
 
+	struct Conventions
+	{
+		bool halfIntegerCoordinates;
+		bool symmetricNormalizedDepth;
+		bool booleanFaceRegister;
+		bool fullPixelPositionRegister;
+		bool leadingVertexFirst;
+	};
+
+	static const Conventions OpenGL =
+	{
+		true,   // halfIntegerCoordinates
+		true,   // symmetricNormalizedDepth
+		true,   // booleanFaceRegister
+		true,   // fullPixelPositionRegister
+		false   // leadingVertexFirst
+	};
+
 	struct Query
 	{
 		Query()
@@ -268,7 +286,7 @@ namespace sw
 		};
 
 	public:
-		Renderer(Context *context, bool halfIntegerCoordinates, bool symmetricNormalizedDepth, bool booleanFaceRegister, bool fullPixelPositionRegister, bool exactColorRounding);
+		Renderer(Context *context, Conventions conventions, bool exactColorRounding);
 
 		virtual ~Renderer();
 

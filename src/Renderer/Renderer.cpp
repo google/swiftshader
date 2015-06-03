@@ -50,6 +50,7 @@ namespace sw
 	extern bool complementaryDepthBuffer;
 	extern bool postBlendSRGB;
 	extern bool exactColorRounding;
+	extern bool leadingVertexFirst;
 	extern TransparencyAntialiasing transparencyAntialiasing;
 	extern bool forceClearRegisters;
 
@@ -99,12 +100,13 @@ namespace sw
 		deallocate(data);
 	}
 
-	Renderer::Renderer(Context *context, bool halfIntegerCoordinates, bool symmetricNormalizedDepth, bool booleanFaceRegister, bool fullPixelPositionRegister, bool exactColorRounding) : context(context), VertexProcessor(context), PixelProcessor(context), SetupProcessor(context), viewport()
+	Renderer::Renderer(Context *context, Conventions conventions, bool exactColorRounding) : context(context), VertexProcessor(context), PixelProcessor(context), SetupProcessor(context), viewport()
 	{
-		sw::halfIntegerCoordinates = halfIntegerCoordinates;
-		sw::symmetricNormalizedDepth = symmetricNormalizedDepth;
-		sw::booleanFaceRegister = booleanFaceRegister;
-		sw::fullPixelPositionRegister = fullPixelPositionRegister;
+		sw::halfIntegerCoordinates = conventions.halfIntegerCoordinates;
+		sw::symmetricNormalizedDepth = conventions.symmetricNormalizedDepth;
+		sw::booleanFaceRegister = conventions.booleanFaceRegister;
+		sw::fullPixelPositionRegister = conventions.fullPixelPositionRegister;
+		sw::leadingVertexFirst = conventions.leadingVertexFirst;
 		sw::exactColorRounding = exactColorRounding;
 
 		setRenderTarget(0, 0);
