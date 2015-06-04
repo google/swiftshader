@@ -14,6 +14,7 @@
 #ifndef SUBZERO_SRC_ICEBROWSERCOMPILESERVER_H
 #define SUBZERO_SRC_ICEBROWSERCOMPILESERVER_H
 
+#include <atomic>
 #include <thread>
 
 #include "IceClFlags.h"
@@ -43,11 +44,13 @@ class BrowserCompileServer : public CompileServer {
 
 public:
   explicit BrowserCompileServer(Compiler &Comp)
-      : CompileServer(Comp), InputStream(nullptr) {}
+      : CompileServer(Comp), InputStream(nullptr), HadError(false) {}
 
   ~BrowserCompileServer() final;
 
   void run() final;
+
+  ErrorCode &getErrorCode() final;
 
   // Parse and set up the flags for compile jobs.
   void getParsedFlags(uint32_t NumThreads, int argc, char **argv);
@@ -66,7 +69,8 @@ public:
   // Wait for the compile thread to complete then reset the state.
   void waitForCompileThread() {
     CompileThread.join();
-    LastError.assign(Ctx->getErrorStatus()->value());
+    if (Ctx->getErrorStatus()->value())
+      LastError.assign(Ctx->getErrorStatus()->value());
     // Reset some state. The InputStream is deleted by the compiler
     // so only reset this to nullptr. Free and flush the rest
     // of the streams.
@@ -76,6 +80,8 @@ public:
   }
 
   StringStream &getErrorStream() { return *ErrorStream; }
+
+  void setFatalError(const IceString &Reason);
 
 private:
   class StringStream {
@@ -102,6 +108,7 @@ private:
   ClFlags Flags;
   ClFlagsExtra ExtraFlags;
   std::thread CompileThread;
+  std::atomic<bool> HadError;
 };
 
 } // end of namespace Ice

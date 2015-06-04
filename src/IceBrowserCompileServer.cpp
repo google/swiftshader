@@ -18,6 +18,7 @@
 #include <cstring>
 #include <irt.h>
 #include <irt_dev.h>
+#include <pthread.h>
 #include <thread>
 
 #include "llvm/Support/QueueStreamer.h"
@@ -78,8 +79,7 @@ int onDataCallback(const void *Data, size_t NumBytes) {
 char *onEndCallback() {
   gCompileServer->endInputStream();
   gCompileServer->waitForCompileThread();
-  // TODO(jvoung): Also return an error string, and UMA data.
-  // Set up a report_fatal_error handler to grab that string.
+  // TODO(jvoung): Also return UMA data.
   if (gCompileServer->getErrorCode().value()) {
     const std::string Error = gCompileServer->getErrorStream().getContents();
     return strdup(Error.empty() ? "Some error occurred" : Error.c_str());
@@ -100,15 +100,28 @@ std::unique_ptr<llvm::raw_fd_ostream> getOutputStream(int FD) {
       new llvm::raw_fd_ostream(FD, CloseOnDtor, Unbuffered));
 }
 
+void fatalErrorHandler(void *UserData, const std::string &Reason,
+                       bool GenCrashDialog) {
+  BrowserCompileServer *Server =
+      reinterpret_cast<BrowserCompileServer *>(UserData);
+  Server->setFatalError(Reason);
+  // Only kill the current thread instead of the whole process.
+  // We need the server thread to remain alive in order to respond with the
+  // error message.
+  // We could also try to pthread_kill all other worker threads, but
+  // pthread_kill / raising signals is not supported by NaCl.
+  // We'll have to assume that the worker/emitter threads will be well behaved
+  // after a fatal error in other threads, and either get stuck waiting
+  // on input from a previous stage, or also call report_fatal_error.
+  pthread_exit(0);
+}
+
 } // end of anonymous namespace
 
 BrowserCompileServer::~BrowserCompileServer() {}
 
 void BrowserCompileServer::run() {
   gCompileServer = this;
-  // TODO(jvoung): make a useful fatal error handler that can
-  // exit all *worker* threads, keep the server thread alive,
-  // and be able to handle a server request for the last error string.
   getIRTInterfaces();
   gIRTFuncs.serve_translate_request(&SubzeroCallbacks);
 }
@@ -129,10 +142,31 @@ void BrowserCompileServer::getParsedFlags(uint32_t NumThreads, int argc,
 }
 
 bool BrowserCompileServer::pushInputBytes(const void *Data, size_t NumBytes) {
+  // If there was an earlier error, do not attempt to push bytes to
+  // the QueueStreamer. Otherwise the thread could become blocked.
+  if (HadError.load())
+    return true;
   return InputStream->PutBytes(
              const_cast<unsigned char *>(
                  reinterpret_cast<const unsigned char *>(Data)),
              NumBytes) != NumBytes;
+}
+
+void BrowserCompileServer::setFatalError(const IceString &Reason) {
+  HadError.store(true);
+  Ctx->getStrError() << Reason;
+  // Make sure that the QueueStreamer is not stuck by signaling an early end.
+  InputStream->SetDone();
+}
+
+ErrorCode &BrowserCompileServer::getErrorCode() {
+  if (HadError.load()) {
+    // HadError means report_fatal_error is called. Make sure that the
+    // LastError is not EC_None. We don't know the type of error so
+    // just pick some error category.
+    LastError.assign(EC_Translation);
+  }
+  return LastError;
 }
 
 void BrowserCompileServer::endInputStream() { InputStream->SetDone(); }
@@ -150,6 +184,7 @@ void BrowserCompileServer::startCompileThread(int ObjFD) {
                               &ErrorStream->getStream(), ELFStream.get(),
                               Flags));
   CompileThread = std::thread([this]() {
+    llvm::install_fatal_error_handler(fatalErrorHandler, this);
     Ctx->initParserThread();
     this->getCompiler().run(ExtraFlags, *Ctx.get(),
                             // Retain original reference, but the compiler

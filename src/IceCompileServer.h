@@ -49,7 +49,7 @@ public:
 
   virtual void run() = 0;
 
-  ErrorCode &getErrorCode() { return LastError; }
+  virtual ErrorCode &getErrorCode() { return LastError; }
   void transferErrorCode(ErrorCodes Code) { LastError.assign(Code); }
 
 protected:

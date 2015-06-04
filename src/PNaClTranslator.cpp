@@ -2985,20 +2985,22 @@ void PNaClTranslator::translateBuffer(const std::string &IRFilename,
 
 void PNaClTranslator::translate(const std::string &IRFilename,
                                 std::unique_ptr<MemoryObject> &&MemObj) {
-
+  // On error, we report_fatal_error to avoid destroying the MemObj.
+  // That may still be in use by IceBrowserCompileServer. Otherwise,
+  // we need to change the MemObj to be ref-counted, or have a wrapper,
+  // or simply leak. We also need a hook to tell the IceBrowserCompileServer
+  // to unblock its QueueStreamer.
+  // https://code.google.com/p/nativeclient/issues/detail?id=4163
+  Ostream &ErrStream = getContext()->getStrError();
   // Read header and verify it is good.
   NaClBitcodeHeader Header;
   if (Header.Read(MemObj.get())) {
-    errs() << "Invalid PNaCl bitcode header.\n";
-    ErrorStatus.assign(EC_Bitcode);
-    return;
+    llvm::report_fatal_error("Invalid PNaCl bitcode header");
   }
   if (!Header.IsSupported()) {
-    errs() << Header.Unsupported();
+    ErrStream << Header.Unsupported();
     if (!Header.IsReadable()) {
-      errs() << "Invalid PNaCl bitcode header.\n";
-      ErrorStatus.assign(EC_Bitcode);
-      return;
+      llvm::report_fatal_error("Invalid PNaCl bitcode header");
     }
   }
 
@@ -3017,16 +3019,16 @@ void PNaClTranslator::translate(const std::string &IRFilename,
   }
 
   if (TopLevelBlocks != 1) {
-    errs() << IRFilename
-           << ": Contains more than one module. Found: " << TopLevelBlocks
-           << "\n";
-    ErrorStatus.assign(EC_Bitcode);
+    ErrStream << IRFilename
+              << ": Contains more than one module. Found: " << TopLevelBlocks
+              << "\n";
+    llvm::report_fatal_error("Bitcode has more than one module");
   }
   if (InputStreamFile.getBitcodeBytes().getExtent() % 4 != 0) {
-    errs() << IRFilename
-           << ": Bitcode stream should be a multiple of 4 bytes in length.\n";
-    ErrorStatus.assign(EC_Bitcode);
-    return;
+    ErrStream
+        << IRFilename
+        << ": Bitcode stream should be a multiple of 4 bytes in length.\n";
+    llvm::report_fatal_error("Bitcode stream should be a multiple of 4 bytes");
   }
 }
 
