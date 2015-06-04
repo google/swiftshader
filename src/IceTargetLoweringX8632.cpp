@@ -4590,6 +4590,7 @@ Variable *TargetX8632::copyToReg(Operand *Src, int32_t RegNum) {
 
 Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
                                int32_t RegNum) {
+  Type Ty = From->getType();
   // Assert that a physical register is allowed.  To date, all calls
   // to legalize() allow a physical register.  If a physical register
   // needs to be explicitly disallowed, then new code will need to be
@@ -4614,9 +4615,9 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
       RegIndex = legalizeToVar(Index);
     }
     if (Base != RegBase || Index != RegIndex) {
-      From = OperandX8632Mem::create(
-          Func, Mem->getType(), RegBase, Mem->getOffset(), RegIndex,
-          Mem->getShift(), Mem->getSegmentRegister());
+      From =
+          OperandX8632Mem::create(Func, Ty, RegBase, Mem->getOffset(), RegIndex,
+                                  Mem->getShift(), Mem->getSegmentRegister());
     }
 
     if (!(Allowed & Legal_Mem)) {
@@ -4637,17 +4638,27 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
       // overestimated.  If the constant being lowered is a 64 bit value,
       // then the result should be split and the lo and hi components will
       // need to go in uninitialized registers.
-      if (isVectorType(From->getType()))
-        return makeVectorOfZeros(From->getType(), RegNum);
-      From = Ctx->getConstantZero(From->getType());
+      if (isVectorType(Ty))
+        return makeVectorOfZeros(Ty, RegNum);
+      From = Ctx->getConstantZero(Ty);
     }
     // There should be no constants of vector type (other than undef).
-    assert(!isVectorType(From->getType()));
+    assert(!isVectorType(Ty));
+    // Convert a scalar floating point constant into an explicit
+    // memory operand.
+    if (isScalarFloatingType(Ty)) {
+      Variable *Base = nullptr;
+      std::string Buffer;
+      llvm::raw_string_ostream StrBuf(Buffer);
+      llvm::cast<Constant>(From)->emitPoolLabel(StrBuf);
+      Constant *Offset = Ctx->getConstantSym(0, StrBuf.str(), true);
+      From = OperandX8632Mem::create(Func, Ty, Base, Offset);
+    }
     bool NeedsReg = false;
-    if (!(Allowed & Legal_Imm))
+    if (!(Allowed & Legal_Imm) && !isScalarFloatingType(Ty))
       // Immediate specifically not allowed
       NeedsReg = true;
-    if (!(Allowed & Legal_Mem) && isScalarFloatingType(From->getType()))
+    if (!(Allowed & Legal_Mem) && isScalarFloatingType(Ty))
       // On x86, FP constants are lowered to mem operands.
       NeedsReg = true;
     if (NeedsReg) {

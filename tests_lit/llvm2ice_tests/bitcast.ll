@@ -10,7 +10,6 @@ entry:
 }
 ; CHECK-LABEL: cast_f2i
 ; CHECK: mov eax
-; CHECK: ret
 
 define internal float @cast_i2f(i32 %i) {
 entry:
@@ -19,7 +18,6 @@ entry:
 }
 ; CHECK-LABEL: cast_i2f
 ; CHECK: fld DWORD PTR
-; CHECK: ret
 
 define internal i64 @cast_d2ll(double %d) {
 entry:
@@ -28,7 +26,6 @@ entry:
 }
 ; CHECK-LABEL: cast_d2ll
 ; CHECK: mov edx
-; CHECK: ret
 
 define internal i64 @cast_d2ll_const() {
 entry:
@@ -36,9 +33,8 @@ entry:
   ret i64 %v0
 }
 ; CHECK-LABEL: cast_d2ll_const
-; CHECK: movsd xmm{{.*}},QWORD PTR
-; CHECK: mov edx
-; CHECK: ret
+; CHECK: mov e{{..}},DWORD PTR ds:0x0 {{.*}} .L$double$0
+; CHECK: mov e{{..}},DWORD PTR ds:0x4 {{.*}} .L$double$0
 
 define internal double @cast_ll2d(i64 %ll) {
 entry:
@@ -47,7 +43,6 @@ entry:
 }
 ; CHECK-LABEL: cast_ll2d
 ; CHECK: fld QWORD PTR
-; CHECK: ret
 
 define internal double @cast_ll2d_const() {
 entry:
@@ -58,4 +53,3 @@ entry:
 ; CHECK: mov {{.*}},0x73ce2ff2
 ; CHECK: mov {{.*}},0xb3a
 ; CHECK: fld QWORD PTR
-; CHECK: ret

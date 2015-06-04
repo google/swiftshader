@@ -182,7 +182,7 @@ entry:
   %val = insertelement <4 x float> %arg, float undef, i32 0
   ret <4 x float> %val
 ; CHECK-LABEL: vector_insertelement_arg2
-; CHECK: movss {{.*}},DWORD PTR {{.*}} .L$float$0
+; CHECK: {{movss|insertps}} {{.*}},DWORD PTR {{.*}} .L$float$0
 }
 
 define float @vector_extractelement_v4f32_index_0() {
