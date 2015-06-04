@@ -193,6 +193,8 @@ typedef union YYSTYPE
             TIntermNodePair nodePair;
             TIntermTyped* intermTypedNode;
             TIntermAggregate* intermAggregate;
+            TIntermSwitch* intermSwitch;
+            TIntermCase* intermCase;
         };
         union {
             TPublicType type;

@@ -34,6 +34,7 @@ struct TParseContext {
             treeRoot(0),
             lexAfterType(false),
             loopNestingLevel(0),
+            switchNestingLevel(0),
             structNestingLevel(0),
             inTypeParen(false),
             currentFunctionType(NULL),
@@ -58,6 +59,7 @@ struct TParseContext {
     TIntermNode* treeRoot;       // root of parse tree being created
     bool lexAfterType;           // true if we've recognized a type, so can only be looking for an identifier
     int loopNestingLevel;        // 0 if outside all loops
+    int switchNestingLevel;      // 0 if outside all switch statements
     int structNestingLevel;      // incremented while parsing a struct declaration
     bool inTypeParen;            // true if in parentheses, looking only for an identifier
     const TType* currentFunctionType;  // the return type of the function that's currently being parsed
@@ -81,6 +83,9 @@ struct TParseContext {
                  const char* extraInfo="");
     void trace(const char* str);
     void recover();
+
+    void incrSwitchNestingLevel() { ++switchNestingLevel; }
+    void decrSwitchNestingLevel() { --switchNestingLevel; }
 
 	// This method is guaranteed to succeed, even if no variable with 'name' exists.
 	const TVariable *getNamedVariable(const TSourceLoc &location, const TString *name, const TSymbol *symbol);
@@ -189,8 +194,15 @@ struct TParseContext {
 
 	bool structNestingErrorCheck(const TSourceLoc &line, const TField &field);
 
+	TIntermSwitch *addSwitch(TIntermTyped *init, TIntermAggregate *statementList, const TSourceLoc &loc);
+	TIntermCase *addCase(TIntermTyped *condition, const TSourceLoc &loc);
+	TIntermCase *addDefault(const TSourceLoc &loc);
+
 	TIntermTyped *addUnaryMath(TOperator op, TIntermTyped *child, const TSourceLoc &loc);
 	TIntermTyped *addUnaryMathLValue(TOperator op, TIntermTyped *child, const TSourceLoc &loc);
+
+	TIntermBranch *addBranch(TOperator op, const TSourceLoc &loc);
+	TIntermBranch *addBranch(TOperator op, TIntermTyped *returnValue, const TSourceLoc &loc);
 
 private:
 	bool declareVariable(const TSourceLoc &line, const TString &identifier, const TType &type, TVariable **variable);

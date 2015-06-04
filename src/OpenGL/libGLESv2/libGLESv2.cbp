@@ -297,6 +297,8 @@
 		<Unit filename="../compiler/Types.h" />
 		<Unit filename="../compiler/ValidateLimitations.cpp" />
 		<Unit filename="../compiler/ValidateLimitations.h" />
+		<Unit filename="../compiler/ValidateSwitch.cpp" />
+		<Unit filename="../compiler/ValidateSwitch.h" />
 		<Unit filename="../compiler/debug.cpp" />
 		<Unit filename="../compiler/debug.h" />
 		<Unit filename="../compiler/glslang.h" />

@@ -67,6 +67,8 @@ WHICH GENERATES THE GLSL ES PARSER (glslang_tab.cpp AND glslang_tab.h).
             TIntermNodePair nodePair;
             TIntermTyped* intermTypedNode;
             TIntermAggregate* intermAggregate;
+            TIntermSwitch* intermSwitch;
+            TIntermCase* intermCase;
         };
         union {
             TPublicType type;
@@ -165,6 +167,8 @@ extern void yyerror(TParseContext* context, const char* reason);
 %type <interm.intermNode> declaration external_declaration
 %type <interm.intermNode> for_init_statement compound_statement_no_new_scope
 %type <interm.nodePair> selection_rest_statement for_rest_statement
+%type <interm.intermSwitch> switch_statement
+%type <interm.intermCase> case_label
 %type <interm.intermNode> iteration_statement jump_statement statement_no_new_scope statement_with_scope
 %type <interm> single_declaration init_declarator_list
 
@@ -357,7 +361,7 @@ function_call
                     $$->getAsAggregate()->setName(fnCandidate->getMangledName());
 
                     TQualifier qual;
-                    for (int i = 0; i < fnCandidate->getParamCount(); ++i) {
+                    for (size_t i = 0; i < fnCandidate->getParamCount(); ++i) {
                         qual = fnCandidate->getParam(i).type->getQualifier();
                         if (qual == EvqOut || qual == EvqInOut) {
                             if (context->lValueErrorCheck($$->getLine(), "assign", $$->getAsAggregate()->getSequence()[i]->getAsTyped())) {
@@ -906,7 +910,7 @@ declaration
         prototype->setType(function.getReturnType());
         prototype->setName(function.getName());
         
-        for (int i = 0; i < function.getParamCount(); i++)
+        for (size_t i = 0; i < function.getParamCount(); i++)
         {
             const TParameter &param = function.getParam(i);
             if (param.name != 0)
@@ -973,7 +977,7 @@ function_prototype
                 context->error($2.line, "overloaded functions must have the same return type", $1->getReturnType().getBasicString());
                 context->recover();
             }
-            for (int i = 0; i < prevDec->getParamCount(); ++i) {
+            for (size_t i = 0; i < prevDec->getParamCount(); ++i) {
                 if (prevDec->getParam(i).type->getQualifier() != $1->getParam(i).type->getQualifier()) {
                     context->error($2.line, "overloaded functions must have the same parameter qualifiers", $1->getParam(i).type->getQualifierString());
                     context->recover();
@@ -1802,6 +1806,8 @@ simple_statement
     : declaration_statement { $$ = $1; }
     | expression_statement  { $$ = $1; }
     | selection_statement   { $$ = $1; }
+    | switch_statement      { $$ = $1; }
+    | case_label            { $$ = $1; }
     | iteration_statement   { $$ = $1; }
     | jump_statement        { $$ = $1; }
     ;
@@ -1874,7 +1880,23 @@ selection_rest_statement
     }
     ;
 
-// Grammar Note:  No 'switch'.  Switch statements not supported.
+switch_statement
+    : SWITCH LEFT_PAREN expression RIGHT_PAREN { context->incrSwitchNestingLevel(); } compound_statement {
+        $$ = context->addSwitch($3, $6, $1.line);
+        context->decrSwitchNestingLevel();
+    }
+    ;
+
+case_label
+    : CASE constant_expression COLON {
+        $$ = context->addCase($2, $1.line);
+    }
+    | DEFAULT COLON {
+        $$ = context->addDefault($1.line);
+    }
+    ;
+
+// Grammar Note:  Labeled statements for SWITCH only; 'goto' is not supported.
 
 condition
     // In 1996 c++ draft, conditions can include single declarations
@@ -1950,40 +1972,20 @@ for_rest_statement
 
 jump_statement
     : CONTINUE SEMICOLON {
-        if (context->loopNestingLevel <= 0) {
-            context->error($1.line, "continue statement only allowed in loops", "");
-            context->recover();
-        }
-        $$ = context->intermediate.addBranch(EOpContinue, $1.line);
+        $$ = context->addBranch(EOpContinue, $1.line);
     }
     | BREAK SEMICOLON {
-        if (context->loopNestingLevel <= 0) {
-            context->error($1.line, "break statement only allowed in loops", "");
-            context->recover();
-        }
-        $$ = context->intermediate.addBranch(EOpBreak, $1.line);
+        $$ = context->addBranch(EOpBreak, $1.line);
     }
     | RETURN SEMICOLON {
-        $$ = context->intermediate.addBranch(EOpReturn, $1.line);
-        if (context->currentFunctionType->getBasicType() != EbtVoid) {
-            context->error($1.line, "non-void function must return a value", "return");
-            context->recover();
-        }
+        $$ = context->addBranch(EOpReturn, $1.line);
     }
     | RETURN expression SEMICOLON {
-        $$ = context->intermediate.addBranch(EOpReturn, $2, $1.line);
-        context->functionReturnsValue = true;
-        if (context->currentFunctionType->getBasicType() == EbtVoid) {
-            context->error($1.line, "void function cannot return a value", "return");
-            context->recover();
-        } else if (*(context->currentFunctionType) != $2->getType()) {
-            context->error($1.line, "function return is not matching type:", "return");
-            context->recover();
-        }
+        $$ = context->addBranch(EOpReturn, $2, $1.line);
     }
     | DISCARD SEMICOLON {
         FRAG_ONLY("discard", $1.line);
-        $$ = context->intermediate.addBranch(EOpKill, $1.line);
+        $$ = context->addBranch(EOpKill, $1.line);
     }
     ;
 
@@ -2065,7 +2067,7 @@ function_definition
         // knows where to find parameters.
         //
         TIntermAggregate* paramNodes = new TIntermAggregate;
-        for (int i = 0; i < function->getParamCount(); i++) {
+        for (size_t i = 0; i < function->getParamCount(); i++) {
             const TParameter& param = function->getParam(i);
             if (param.name != 0) {
                 TVariable *variable = new TVariable(param.name, *param.type);

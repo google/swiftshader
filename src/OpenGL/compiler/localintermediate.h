@@ -33,6 +33,8 @@ public:
     TIntermAggregate* setAggregateOperator(TIntermNode*, TOperator, TSourceLoc);
     TIntermNode*  addSelection(TIntermTyped* cond, TIntermNodePair code, TSourceLoc);
     TIntermTyped* addSelection(TIntermTyped* cond, TIntermTyped* trueBlock, TIntermTyped* falseBlock, TSourceLoc);
+    TIntermSwitch *addSwitch(TIntermTyped *init, TIntermAggregate *statementList, const TSourceLoc &line);
+    TIntermCase *addCase(TIntermTyped *condition, const TSourceLoc &line);
     TIntermTyped* addComma(TIntermTyped* left, TIntermTyped* right, TSourceLoc);
     TIntermConstantUnion* addConstantUnion(ConstantUnion*, const TType&, TSourceLoc);
     TIntermTyped* promoteConstantUnion(TBasicType, TIntermConstantUnion*);

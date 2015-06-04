@@ -552,6 +552,22 @@ TIntermTyped* TIntermediate::addSelection(TIntermTyped* cond, TIntermTyped* true
     return node;
 }
 
+TIntermSwitch *TIntermediate::addSwitch(TIntermTyped *init, TIntermAggregate *statementList, const TSourceLoc &line)
+{
+	TIntermSwitch *node = new TIntermSwitch(init, statementList);
+	node->setLine(line);
+
+	return node;
+}
+
+TIntermCase *TIntermediate::addCase(TIntermTyped *condition, const TSourceLoc &line)
+{
+	TIntermCase *node = new TIntermCase(condition);
+	node->setLine(line);
+
+	return node;
+}
+
 //
 // Constant terminal nodes.  Has a union that contains bool, float or int constants
 //

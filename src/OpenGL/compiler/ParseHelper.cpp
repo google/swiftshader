@@ -11,6 +11,7 @@
 
 #include "glslang.h"
 #include "preprocessor/SourceLocation.h"
+#include "ValidateSwitch.h"
 
 ///////////////////////////////////////////////////////////////////////
 //
@@ -2964,6 +2965,143 @@ bool TParseContext::binaryOpCommonCheck(TOperator op, TIntermTyped *left, TInter
 	}
 
 	return true;
+}
+
+TIntermSwitch *TParseContext::addSwitch(TIntermTyped *init, TIntermAggregate *statementList, const TSourceLoc &loc)
+{
+	TBasicType switchType = init->getBasicType();
+	if((switchType != EbtInt && switchType != EbtUInt) ||
+	   init->isMatrix() ||
+	   init->isArray() ||
+	   init->isVector())
+	{
+		error(init->getLine(), "init-expression in a switch statement must be a scalar integer", "switch");
+		recover();
+		return nullptr;
+	}
+
+	if(statementList)
+	{
+		if(!ValidateSwitch::validate(switchType, this, statementList, loc))
+		{
+			recover();
+			return nullptr;
+		}
+	}
+
+	TIntermSwitch *node = intermediate.addSwitch(init, statementList, loc);
+	if(node == nullptr)
+	{
+		error(loc, "erroneous switch statement", "switch");
+		recover();
+		return nullptr;
+	}
+	return node;
+}
+
+TIntermCase *TParseContext::addCase(TIntermTyped *condition, const TSourceLoc &loc)
+{
+	if(switchNestingLevel == 0)
+	{
+		error(loc, "case labels need to be inside switch statements", "case");
+		recover();
+		return nullptr;
+	}
+	if(condition == nullptr)
+	{
+		error(loc, "case label must have a condition", "case");
+		recover();
+		return nullptr;
+	}
+	if((condition->getBasicType() != EbtInt && condition->getBasicType() != EbtUInt) ||
+	   condition->isMatrix() ||
+	   condition->isArray() ||
+	   condition->isVector())
+	{
+		error(condition->getLine(), "case label must be a scalar integer", "case");
+		recover();
+	}
+	TIntermConstantUnion *conditionConst = condition->getAsConstantUnion();
+	if(conditionConst == nullptr)
+	{
+		error(condition->getLine(), "case label must be constant", "case");
+		recover();
+	}
+	TIntermCase *node = intermediate.addCase(condition, loc);
+	if(node == nullptr)
+	{
+		error(loc, "erroneous case statement", "case");
+		recover();
+		return nullptr;
+	}
+	return node;
+}
+
+TIntermCase *TParseContext::addDefault(const TSourceLoc &loc)
+{
+	if(switchNestingLevel == 0)
+	{
+		error(loc, "default labels need to be inside switch statements", "default");
+		recover();
+		return nullptr;
+	}
+	TIntermCase *node = intermediate.addCase(nullptr, loc);
+	if(node == nullptr)
+	{
+		error(loc, "erroneous default statement", "default");
+		recover();
+		return nullptr;
+	}
+	return node;
+}
+
+TIntermBranch *TParseContext::addBranch(TOperator op, const TSourceLoc &loc)
+{
+	switch(op)
+	{
+	case EOpContinue:
+		if(loopNestingLevel <= 0)
+		{
+			error(loc, "continue statement only allowed in loops", "");
+			recover();
+		}
+		break;
+	case EOpBreak:
+		if(loopNestingLevel <= 0 && switchNestingLevel <= 0)
+		{
+			error(loc, "break statement only allowed in loops and switch statements", "");
+			recover();
+		}
+		break;
+	case EOpReturn:
+		if(currentFunctionType->getBasicType() != EbtVoid)
+		{
+			error(loc, "non-void function must return a value", "return");
+			recover();
+		}
+		break;
+	default:
+		// No checks for discard
+		break;
+	}
+	return intermediate.addBranch(op, loc);
+}
+
+TIntermBranch *TParseContext::addBranch(TOperator op, TIntermTyped *returnValue, const TSourceLoc &loc)
+{
+	ASSERT(op == EOpReturn);
+	functionReturnsValue = true;
+	if(currentFunctionType->getBasicType() == EbtVoid)
+	{
+		error(loc, "void function cannot return a value", "return");
+		recover();
+	}
+	else if(*currentFunctionType != returnValue->getType())
+	{
+		error(loc, "function return is not matching type:", "return");
+		recover();
+	}
+	return intermediate.addBranch(op, returnValue, loc);
 }
 
 //

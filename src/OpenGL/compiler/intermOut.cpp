@@ -78,7 +78,7 @@ void OutputTreeText(TInfoSinkBase& sink, TIntermNode* node, const int depth)
 
 void TOutputTraverser::visitSymbol(TIntermSymbol* node)
 {
-    OutputTreeText(sink, node, depth);
+    OutputTreeText(sink, node, mDepth);
 
     sink << "'" << node->getSymbol() << "' ";
     sink << "(" << node->getCompleteString() << ")\n";
@@ -88,7 +88,7 @@ bool TOutputTraverser::visitBinary(Visit visit, TIntermBinary* node)
 {
     TInfoSinkBase& out = sink;
 
-    OutputTreeText(out, node, depth);
+    OutputTreeText(out, node, mDepth);
 
     switch (node->getOp()) {
         case EOpAssign:                   out << "move second child to first child";           break;
@@ -152,7 +152,7 @@ bool TOutputTraverser::visitUnary(Visit visit, TIntermUnary* node)
 {
     TInfoSinkBase& out = sink;
 
-    OutputTreeText(out, node, depth);
+    OutputTreeText(out, node, mDepth);
 
     switch (node->getOp()) {
         case EOpNegative:       out << "Negate value";         break;
@@ -243,7 +243,7 @@ bool TOutputTraverser::visitAggregate(Visit visit, TIntermAggregate* node)
         return true;
     }
 
-    OutputTreeText(out, node, depth);
+    OutputTreeText(out, node, mDepth);
 
     switch (node->getOp()) {
         case EOpSequence:      out << "Sequence\n"; return true;
@@ -316,18 +316,18 @@ bool TOutputTraverser::visitSelection(Visit visit, TIntermSelection* node)
 {
     TInfoSinkBase& out = sink;
 
-    OutputTreeText(out, node, depth);
+    OutputTreeText(out, node, mDepth);
 
     out << "Test condition and select";
     out << " (" << node->getCompleteString() << ")\n";
 
-    ++depth;
+    ++mDepth;
 
-    OutputTreeText(sink, node, depth);
+    OutputTreeText(sink, node, mDepth);
     out << "Condition\n";
     node->getCondition()->traverse(this);
 
-    OutputTreeText(sink, node, depth);
+    OutputTreeText(sink, node, mDepth);
     if (node->getTrueBlock()) {
         out << "true case\n";
         node->getTrueBlock()->traverse(this);
@@ -335,12 +335,12 @@ bool TOutputTraverser::visitSelection(Visit visit, TIntermSelection* node)
         out << "true case is null\n";
 
     if (node->getFalseBlock()) {
-        OutputTreeText(sink, node, depth);
+        OutputTreeText(sink, node, mDepth);
         out << "false case\n";
         node->getFalseBlock()->traverse(this);
     }
 
-    --depth;
+    --mDepth;
 
     return false;
 }
@@ -352,7 +352,7 @@ void TOutputTraverser::visitConstantUnion(TIntermConstantUnion* node)
     int size = node->getType().getObjectSize();
 
     for (int i = 0; i < size; i++) {
-        OutputTreeText(out, node, depth);
+        OutputTreeText(out, node, mDepth);
         switch (node->getUnionArrayPointer()[i].getType()) {
             case EbtBool:
                 if (node->getUnionArrayPointer()[i].getBConst())
@@ -386,23 +386,23 @@ bool TOutputTraverser::visitLoop(Visit visit, TIntermLoop* node)
 {
     TInfoSinkBase& out = sink;
 
-    OutputTreeText(out, node, depth);
+    OutputTreeText(out, node, mDepth);
 
     out << "Loop with condition ";
     if (node->getType() == ELoopDoWhile)
         out << "not ";
     out << "tested first\n";
 
-    ++depth;
+    ++mDepth;
 
-    OutputTreeText(sink, node, depth);
+    OutputTreeText(sink, node, mDepth);
     if (node->getCondition()) {
         out << "Loop Condition\n";
         node->getCondition()->traverse(this);
     } else
         out << "No loop condition\n";
 
-    OutputTreeText(sink, node, depth);
+    OutputTreeText(sink, node, mDepth);
     if (node->getBody()) {
         out << "Loop Body\n";
         node->getBody()->traverse(this);
@@ -410,12 +410,12 @@ bool TOutputTraverser::visitLoop(Visit visit, TIntermLoop* node)
         out << "No loop body\n";
 
     if (node->getExpression()) {
-        OutputTreeText(sink, node, depth);
+        OutputTreeText(sink, node, mDepth);
         out << "Loop Terminal Expression\n";
         node->getExpression()->traverse(this);
     }
 
-    --depth;
+    --mDepth;
 
     return false;
 }
@@ -424,7 +424,7 @@ bool TOutputTraverser::visitBranch(Visit visit, TIntermBranch* node)
 {
     TInfoSinkBase& out = sink;
 
-    OutputTreeText(out, node, depth);
+    OutputTreeText(out, node, mDepth);
 
     switch (node->getFlowOp()) {
         case EOpKill:      out << "Branch: Kill";           break;
@@ -436,9 +436,9 @@ bool TOutputTraverser::visitBranch(Visit visit, TIntermBranch* node)
 
     if (node->getExpression()) {
         out << " with expression\n";
-        ++depth;
+        ++mDepth;
         node->getExpression()->traverse(this);
-        --depth;
+        --mDepth;
     } else
         out << "\n";
 

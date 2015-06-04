@@ -216,6 +216,7 @@
     <ClCompile Include="ValidateLimitations.cpp" />
     <ClCompile Include="glslang_lex.cpp" />
     <ClCompile Include="glslang_tab.cpp" />
+    <ClCompile Include="ValidateSwitch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="glslang.l">
@@ -318,6 +319,7 @@
     <ClInclude Include="util.h" />
     <ClInclude Include="ValidateLimitations.h" />
     <ClInclude Include="glslang_tab.h" />
+    <ClInclude Include="ValidateSwitch.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="preprocessor\preprocessor.vcxproj">

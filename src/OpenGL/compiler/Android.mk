@@ -40,6 +40,7 @@ LOCAL_SRC_FILES += \
 	TranslatorASM.cpp \
 	util.cpp \
 	ValidateLimitations.cpp \
+	ValidateSwitch.cpp \
 
 LOCAL_CFLAGS += -DLOG_TAG=\"swiftshader_compiler\" -Wno-unused-parameter
 
