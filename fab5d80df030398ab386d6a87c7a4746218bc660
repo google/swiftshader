@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "790f0079_78bbc563",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 692,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-04T19:43:38Z",
+      "side": 1,
+      "message": "this is a member function. It already knows about that member, no need to send it as an argument",
+      "range": {
+        "startLine": 692,
+        "startChar": 200,
+        "endLine": 692,
+        "endChar": 214
+      },
+      "revId": "fab5d80df030398ab386d6a87c7a4746218bc660",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "790f0079_58c089be",
+        "filename": "src/OpenGL/common/Image.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-04T19:43:38Z",
+      "side": 1,
+      "message": "shouldn\u0027t be necessary",
+      "range": {
+        "startLine": 177,
+        "startChar": 193,
+        "endLine": 177,
+        "endChar": 207
+      },
+      "revId": "fab5d80df030398ab386d6a87c7a4746218bc660",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
