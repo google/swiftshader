@@ -289,6 +289,7 @@ namespace sw
 		void trunc(Vector4f &dst, Vector4f &src);
 		void floor(Vector4f &dst, Vector4f &src);
 		void round(Vector4f &dst, Vector4f &src);
+		void roundEven(Vector4f &dst, Vector4f &src);
 		void ceil(Vector4f &dst, Vector4f &src);
 		void powx(Vector4f &dst, Vector4f &src0, Vector4f &src1, bool pp = false);
 		void pow(Vector4f &dst, Vector4f &src0, Vector4f &src1, bool pp = false);

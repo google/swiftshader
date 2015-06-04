@@ -3935,6 +3935,7 @@ namespace sw
 			case Shader::OPCODE_TRUNC:      trunc(d, s0);                                   break;
 			case Shader::OPCODE_FLOOR:      floor(d, s0);                                   break;
 			case Shader::OPCODE_ROUND:		round(d, s0);                                   break;
+			case Shader::OPCODE_ROUNDEVEN:	roundEven(d, s0);                               break;
 			case Shader::OPCODE_CEIL:       ceil(d, s0);                                    break;
 			case Shader::OPCODE_EXP2X:		exp2x(d, s0, pp);								break;
 			case Shader::OPCODE_EXP2:		exp2(d, s0, pp);								break;

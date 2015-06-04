@@ -1001,6 +1001,25 @@ namespace sw
 		dst.w = Round(src.w);
 	}
 
+	void ShaderCore::roundEven(Vector4f &dst, Vector4f &src)
+	{
+		// dst = round(src) + ((round(src) < src) * 2 - 1) * (fract(src) == 0.5) * isOdd(round(src));
+		// ex.: 1.5:  2 + (0 * 2 - 1) * 1 * 0 = 2
+		//      2.5:  3 + (0 * 2 - 1) * 1 * 1 = 2
+		//     -1.5: -2 + (1 * 2 - 1) * 1 * 0 = -2
+		//     -2.5: -3 + (1 * 2 - 1) * 1 * 1 = -2
+		// Even if the round implementation rounds the other way:
+		//      1.5:  1 + (1 * 2 - 1) * 1 * 1 = 2
+		//      2.5:  2 + (1 * 2 - 1) * 1 * 0 = 2
+		//     -1.5: -1 + (0 * 2 - 1) * 1 * 1 = -2
+		//     -2.5: -2 + (0 * 2 - 1) * 1 * 0 = -2
+		round(dst, src);
+		dst.x += ((Float4(CmpLT(dst.x, src.x) & Int4(1)) * Float4(2.0f)) - Float4(1.0f)) * Float4(CmpEQ(Frac(src.x), Float4(0.5f)) & Int4(1)) * Float4(Int4(dst.x) & Int4(1));
+		dst.y += ((Float4(CmpLT(dst.y, src.y) & Int4(1)) * Float4(2.0f)) - Float4(1.0f)) * Float4(CmpEQ(Frac(src.y), Float4(0.5f)) & Int4(1)) * Float4(Int4(dst.y) & Int4(1));
+		dst.z += ((Float4(CmpLT(dst.z, src.z) & Int4(1)) * Float4(2.0f)) - Float4(1.0f)) * Float4(CmpEQ(Frac(src.z), Float4(0.5f)) & Int4(1)) * Float4(Int4(dst.z) & Int4(1));
+		dst.w += ((Float4(CmpLT(dst.w, src.w) & Int4(1)) * Float4(2.0f)) - Float4(1.0f)) * Float4(CmpEQ(Frac(src.w), Float4(0.5f)) & Int4(1)) * Float4(Int4(dst.w) & Int4(1));
+	}
+
 	void ShaderCore::ceil(Vector4f &dst, Vector4f &src)
 	{
 		dst.x = Ceil(src.x);
