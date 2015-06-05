@@ -424,6 +424,11 @@ namespace sw
 					memcpy(&data->vs.b, VertexProcessor::b, sizeof(bool) * draw->vsDirtyConstB);
 					draw->vsDirtyConstB = 0;
 				}
+
+				if(context->vertexShader->instanceIdDeclared)
+				{
+					data->instanceID = context->instanceID;
+				}
 			}
 			else
 			{

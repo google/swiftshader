@@ -67,6 +67,8 @@ namespace sw
 			Int4 enableBreak;
 			Int4 enableContinue;
 			Int4 enableLeave;
+
+			Int instanceID;
 		};
 
 	public:

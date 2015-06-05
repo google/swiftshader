@@ -665,6 +665,9 @@ namespace sw
 				reg = r.o[i + relativeAddress(r, src)];
 			}
 			break;
+		case Shader::PARAMETER_MISCTYPE:
+			reg.x = Float(r.instanceID);
+			return reg;
 		default:
 			ASSERT(false);
 		}

@@ -41,6 +41,7 @@ namespace sw
 			memcpy(input, vs->input, sizeof(input));
 			positionRegister = vs->positionRegister;
 			pointSizeRegister = vs->pointSizeRegister;
+			instanceIdDeclared = vs->instanceIdDeclared;
 			usedSamplers = vs->usedSamplers;
 
 			optimize();
