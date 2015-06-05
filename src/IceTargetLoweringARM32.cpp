@@ -1069,9 +1069,90 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
       _mov(DestLo, T_Lo);
       _mov(DestHi, T_Hi);
     } break;
-    case InstArithmetic::Shl:
+    case InstArithmetic::Shl: {
+      // a=b<<c ==>
+      // GCC 4.8 does:
+      // sub t_c1, c.lo, #32
+      // lsl t_hi, b.hi, c.lo
+      // orr t_hi, t_hi, b.lo, lsl t_c1
+      // rsb t_c2, c.lo, #32
+      // orr t_hi, t_hi, b.lo, lsr t_c2
+      // lsl t_lo, b.lo, c.lo
+      // a.lo = t_lo
+      // a.hi = t_hi
+      // Can be strength-reduced for constant-shifts, but we don't do
+      // that for now.
+      // Given the sub/rsb T_C, C.lo, #32, one of the T_C will be negative.
+      // On ARM, shifts only take the lower 8 bits of the shift register,
+      // and saturate to the range 0-32, so the negative value will
+      // saturate to 32.
+      Variable *T_Hi = makeReg(IceType_i32);
+      Variable *Src1RLo = legalizeToVar(Src1Lo);
+      Constant *ThirtyTwo = Ctx->getConstantInt32(32);
+      Variable *T_C1 = makeReg(IceType_i32);
+      Variable *T_C2 = makeReg(IceType_i32);
+      _sub(T_C1, Src1RLo, ThirtyTwo);
+      _lsl(T_Hi, Src0RHi, Src1RLo);
+      _orr(T_Hi, T_Hi, OperandARM32FlexReg::create(Func, IceType_i32, Src0RLo,
+                                                   OperandARM32::LSL, T_C1));
+      _rsb(T_C2, Src1RLo, ThirtyTwo);
+      _orr(T_Hi, T_Hi, OperandARM32FlexReg::create(Func, IceType_i32, Src0RLo,
+                                                   OperandARM32::LSR, T_C2));
+      _mov(DestHi, T_Hi);
+      Variable *T_Lo = makeReg(IceType_i32);
+      // _mov seems to sometimes have better register preferencing than lsl.
+      // Otherwise mov w/ lsl shifted register is a pseudo-instruction
+      // that maps to lsl.
+      _mov(T_Lo, OperandARM32FlexReg::create(Func, IceType_i32, Src0RLo,
+                                             OperandARM32::LSL, Src1RLo));
+      _mov(DestLo, T_Lo);
+    } break;
     case InstArithmetic::Lshr:
-    case InstArithmetic::Ashr:
+    // a=b>>c (unsigned) ==>
+    // GCC 4.8 does:
+    // rsb t_c1, c.lo, #32
+    // lsr t_lo, b.lo, c.lo
+    // orr t_lo, t_lo, b.hi, lsl t_c1
+    // sub t_c2, c.lo, #32
+    // orr t_lo, t_lo, b.hi, lsr t_c2
+    // lsr t_hi, b.hi, c.lo
+    // a.lo = t_lo
+    // a.hi = t_hi
+    case InstArithmetic::Ashr: {
+      // a=b>>c (signed) ==> ...
+      // Ashr is similar, but the sub t_c2, c.lo, #32 should set flags,
+      // and the next orr should be conditioned on PLUS. The last two
+      // right shifts should also be arithmetic.
+      bool IsAshr = Inst->getOp() == InstArithmetic::Ashr;
+      Variable *T_Lo = makeReg(IceType_i32);
+      Variable *Src1RLo = legalizeToVar(Src1Lo);
+      Constant *ThirtyTwo = Ctx->getConstantInt32(32);
+      Variable *T_C1 = makeReg(IceType_i32);
+      Variable *T_C2 = makeReg(IceType_i32);
+      _rsb(T_C1, Src1RLo, ThirtyTwo);
+      _lsr(T_Lo, Src0RLo, Src1RLo);
+      _orr(T_Lo, T_Lo, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
+                                                   OperandARM32::LSL, T_C1));
+      OperandARM32::ShiftKind RShiftKind;
+      CondARM32::Cond Pred;
+      if (IsAshr) {
+        _subs(T_C2, Src1RLo, ThirtyTwo);
+        RShiftKind = OperandARM32::ASR;
+        Pred = CondARM32::PL;
+      } else {
+        _sub(T_C2, Src1RLo, ThirtyTwo);
+        RShiftKind = OperandARM32::LSR;
+        Pred = CondARM32::AL;
+      }
+      _orr(T_Lo, T_Lo, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
+                                                   RShiftKind, T_C2),
+           Pred);
+      _mov(DestLo, T_Lo);
+      Variable *T_Hi = makeReg(IceType_i32);
+      _mov(T_Hi, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
+                                             RShiftKind, Src1RLo));
+      _mov(DestHi, T_Hi);
+    } break;
     case InstArithmetic::Udiv:
     case InstArithmetic::Sdiv:
     case InstArithmetic::Urem:
@@ -1122,13 +1203,16 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
       _mov(Dest, T);
     } break;
     case InstArithmetic::Shl:
-      UnimplementedError(Func->getContext()->getFlags());
+      _lsl(T, Src0R, Src1);
+      _mov(Dest, T);
       break;
     case InstArithmetic::Lshr:
-      UnimplementedError(Func->getContext()->getFlags());
+      _lsr(T, Src0R, Src1);
+      _mov(Dest, T);
       break;
     case InstArithmetic::Ashr:
-      UnimplementedError(Func->getContext()->getFlags());
+      _asr(T, Src0R, Src1);
+      _mov(Dest, T);
       break;
     case InstArithmetic::Udiv:
       UnimplementedError(Func->getContext()->getFlags());
@@ -1311,20 +1395,123 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
 
 void TargetARM32::lowerCast(const InstCast *Inst) {
   InstCast::OpKind CastKind = Inst->getCastKind();
+  Variable *Dest = Inst->getDest();
+  Operand *Src0 = Inst->getSrc(0);
   switch (CastKind) {
   default:
     Func->setError("Cast type not supported");
     return;
   case InstCast::Sext: {
-    UnimplementedError(Func->getContext()->getFlags());
+    if (isVectorType(Dest->getType())) {
+      UnimplementedError(Func->getContext()->getFlags());
+    } else if (Dest->getType() == IceType_i64) {
+      // t1=sxtb src; t2= mov t1 asr #31; dst.lo=t1; dst.hi=t2
+      Constant *ShiftAmt = Ctx->getConstantInt32(31);
+      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      Variable *T_Lo = makeReg(DestLo->getType());
+      if (Src0->getType() == IceType_i32) {
+        Operand *Src0RF = legalize(Src0, Legal_Reg | Legal_Flex);
+        _mov(T_Lo, Src0RF);
+      } else if (Src0->getType() == IceType_i1) {
+        Variable *Src0R = legalizeToVar(Src0);
+        _lsl(T_Lo, Src0R, ShiftAmt);
+        _asr(T_Lo, T_Lo, ShiftAmt);
+      } else {
+        Variable *Src0R = legalizeToVar(Src0);
+        _sxt(T_Lo, Src0R);
+      }
+      _mov(DestLo, T_Lo);
+      Variable *T_Hi = makeReg(DestHi->getType());
+      if (Src0->getType() != IceType_i1) {
+        _mov(T_Hi, OperandARM32FlexReg::create(Func, IceType_i32, T_Lo,
+                                               OperandARM32::ASR, ShiftAmt));
+      } else {
+        // For i1, the asr instruction is already done above.
+        _mov(T_Hi, T_Lo);
+      }
+      _mov(DestHi, T_Hi);
+    } else if (Src0->getType() == IceType_i1) {
+      // GPR registers are 32-bit, so just use 31 as dst_bitwidth - 1.
+      // lsl t1, src_reg, 31
+      // asr t1, t1, 31
+      // dst = t1
+      Variable *Src0R = legalizeToVar(Src0);
+      Constant *ShiftAmt = Ctx->getConstantInt32(31);
+      Variable *T = makeReg(Dest->getType());
+      _lsl(T, Src0R, ShiftAmt);
+      _asr(T, T, ShiftAmt);
+      _mov(Dest, T);
+    } else {
+      // t1 = sxt src; dst = t1
+      Variable *Src0R = legalizeToVar(Src0);
+      Variable *T = makeReg(Dest->getType());
+      _sxt(T, Src0R);
+      _mov(Dest, T);
+    }
     break;
   }
   case InstCast::Zext: {
-    UnimplementedError(Func->getContext()->getFlags());
+    if (isVectorType(Dest->getType())) {
+      UnimplementedError(Func->getContext()->getFlags());
+    } else if (Dest->getType() == IceType_i64) {
+      // t1=uxtb src; dst.lo=t1; dst.hi=0
+      Constant *Zero = Ctx->getConstantZero(IceType_i32);
+      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      Variable *T_Lo = makeReg(DestLo->getType());
+      // i32 and i1 can just take up the whole register.
+      // i32 doesn't need uxt, while i1 will have an and mask later anyway.
+      if (Src0->getType() == IceType_i32 || Src0->getType() == IceType_i1) {
+        Operand *Src0RF = legalize(Src0, Legal_Reg | Legal_Flex);
+        _mov(T_Lo, Src0RF);
+      } else {
+        Variable *Src0R = legalizeToVar(Src0);
+        _uxt(T_Lo, Src0R);
+      }
+      if (Src0->getType() == IceType_i1) {
+        Constant *One = Ctx->getConstantInt32(1);
+        _and(T_Lo, T_Lo, One);
+      }
+      _mov(DestLo, T_Lo);
+      Variable *T_Hi = makeReg(DestLo->getType());
+      _mov(T_Hi, Zero);
+      _mov(DestHi, T_Hi);
+    } else if (Src0->getType() == IceType_i1) {
+      // t = Src0; t &= 1; Dest = t
+      Operand *Src0RF = legalize(Src0, Legal_Reg | Legal_Flex);
+      Constant *One = Ctx->getConstantInt32(1);
+      Variable *T = makeReg(Dest->getType());
+      // Just use _mov instead of _uxt since all registers are 32-bit.
+      // _uxt requires the source to be a register so could have required
+      // a _mov from legalize anyway.
+      _mov(T, Src0RF);
+      _and(T, T, One);
+      _mov(Dest, T);
+    } else {
+      // t1 = uxt src; dst = t1
+      Variable *Src0R = legalizeToVar(Src0);
+      Variable *T = makeReg(Dest->getType());
+      _uxt(T, Src0R);
+      _mov(Dest, T);
+    }
     break;
   }
   case InstCast::Trunc: {
-    UnimplementedError(Func->getContext()->getFlags());
+    if (isVectorType(Dest->getType())) {
+      UnimplementedError(Func->getContext()->getFlags());
+    } else {
+      Operand *Src0 = Inst->getSrc(0);
+      if (Src0->getType() == IceType_i64)
+        Src0 = loOperand(Src0);
+      Operand *Src0RF = legalize(Src0, Legal_Reg | Legal_Flex);
+      // t1 = trunc Src0RF; Dest = t1
+      Variable *T = makeReg(Dest->getType());
+      _mov(T, Src0RF);
+      if (Dest->getType() == IceType_i1)
+        _and(T, T, Ctx->getConstantInt1(1));
+      _mov(Dest, T);
+    }
     break;
   }
   case InstCast::Fptrunc:
@@ -1348,6 +1535,12 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     break;
   }
   case InstCast::Bitcast: {
+    Operand *Src0 = Inst->getSrc(0);
+    if (Dest->getType() == Src0->getType()) {
+      InstAssign *Assign = InstAssign::create(Func, Dest, Src0);
+      lowerAssign(Assign);
+      return;
+    }
     UnimplementedError(Func->getContext()->getFlags());
     break;
   }
@@ -1469,20 +1662,20 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
   //
   // We'll go with the LLVM way for now, since it's shorter and has just as
   // few dependencies.
-  int32_t ShiftAmount = 32 - getScalarIntBitWidth(Src0->getType());
-  assert(ShiftAmount >= 0);
+  int32_t ShiftAmt = 32 - getScalarIntBitWidth(Src0->getType());
+  assert(ShiftAmt >= 0);
   Constant *ShiftConst = nullptr;
   Variable *Src0R = nullptr;
   Variable *T = makeReg(IceType_i32);
-  if (ShiftAmount) {
-    ShiftConst = Ctx->getConstantInt32(ShiftAmount);
+  if (ShiftAmt) {
+    ShiftConst = Ctx->getConstantInt32(ShiftAmt);
     Src0R = makeReg(IceType_i32);
     _lsl(Src0R, legalizeToVar(Src0), ShiftConst);
   } else {
     Src0R = legalizeToVar(Src0);
   }
   _mov(T, Zero);
-  if (ShiftAmount) {
+  if (ShiftAmt) {
     Variable *Src1R = legalizeToVar(Src1);
     OperandARM32FlexReg *Src1RShifted = OperandARM32FlexReg::create(
         Func, IceType_i32, Src1R, OperandARM32::LSL, ShiftConst);

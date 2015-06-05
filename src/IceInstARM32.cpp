@@ -77,6 +77,24 @@ CondARM32::Cond InstARM32::getOppositeCondition(CondARM32::Cond Cond) {
   return InstARM32CondAttributes[Cond].Opposite;
 }
 
+void InstARM32Pred::emitUnaryopGPR(const char *Opcode,
+                                   const InstARM32Pred *Inst, const Cfg *Func) {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(Inst->getSrcSize() == 1);
+  Type SrcTy = Inst->getSrc(0)->getType();
+  Type DestTy = Inst->getDest()->getType();
+  Str << "\t" << Opcode;
+  // Sxt and Uxt need source type width letter to define the operation.
+  // The other unary operations have the same source and dest type and
+  // as a result need only one letter.
+  if (SrcTy != DestTy)
+    Str << getWidthString(SrcTy);
+  Str << "\t";
+  Inst->getDest()->emit(Func);
+  Str << ", ";
+  Inst->getSrc(0)->emit(Func);
+}
+
 void InstARM32Pred::emitTwoAddr(const char *Opcode, const InstARM32Pred *Inst,
                                 const Cfg *Func) {
   if (!ALLOW_DUMP)
@@ -305,17 +323,22 @@ template <> const char *InstARM32Movt::Opcode = "movt";
 // Unary ops
 template <> const char *InstARM32Movw::Opcode = "movw";
 template <> const char *InstARM32Mvn::Opcode = "mvn";
+template <> const char *InstARM32Sxt::Opcode = "sxt"; // still requires b/h
+template <> const char *InstARM32Uxt::Opcode = "uxt"; // still requires b/h
 // Mov-like ops
 template <> const char *InstARM32Mov::Opcode = "mov";
 // Three-addr ops
 template <> const char *InstARM32Adc::Opcode = "adc";
 template <> const char *InstARM32Add::Opcode = "add";
 template <> const char *InstARM32And::Opcode = "and";
+template <> const char *InstARM32Asr::Opcode = "asr";
 template <> const char *InstARM32Bic::Opcode = "bic";
 template <> const char *InstARM32Eor::Opcode = "eor";
 template <> const char *InstARM32Lsl::Opcode = "lsl";
+template <> const char *InstARM32Lsr::Opcode = "lsr";
 template <> const char *InstARM32Mul::Opcode = "mul";
 template <> const char *InstARM32Orr::Opcode = "orr";
+template <> const char *InstARM32Rsb::Opcode = "rsb";
 template <> const char *InstARM32Sbc::Opcode = "sbc";
 template <> const char *InstARM32Sub::Opcode = "sub";
 
@@ -685,7 +708,8 @@ void InstARM32Str::dump(const Cfg *Func) const {
   if (!ALLOW_DUMP)
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  dumpOpcodePred(Str, "str", getDest()->getType());
+  Type Ty = getSrc(0)->getType();
+  dumpOpcodePred(Str, "str", Ty);
   Str << " ";
   getSrc(1)->dump(Func);
   Str << ", ";

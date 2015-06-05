@@ -1,7 +1,23 @@
 ; Simple test of signed and unsigned integer conversions.
 
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   | %if --need=target_X8632 --command FileCheck %s
+
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -Om1 \
+; RUN:   | %if --need=target_X8632 --command FileCheck %s
+
+; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
+; once enough infrastructure is in. Also, switch to --filetype=obj
+; when possible.
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix ARM32 %s
+
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix ARM32 %s
 
 @i8v = internal global [1 x i8] zeroinitializer, align 1
 @i16v = internal global [2 x i8] zeroinitializer, align 2
@@ -38,6 +54,21 @@ entry:
 ; CHECK-DAG: ds:0x0,{{.*}}i64v
 ; CHECK-DAG: ds:0x4,{{.*}}i64v
 
+; ARM32-LABEL: from_int8
+; ARM32: movw {{.*}}i8v
+; ARM32: ldrb
+; ARM32: sxtb
+; ARM32: movw {{.*}}i16v
+; ARM32: strh
+; ARM32: sxtb
+; ARM32: movw {{.*}}i32v
+; ARM32: str r
+; ARM32: sxtb
+; ARM32: asr
+; ARM32: movw {{.*}}i64v
+; ARM32-DAG: str r{{.*}}, [r{{[0-9]+}}]
+; ARM32-DAG: str r{{.*}}, [{{.*}}, #4]
+
 define void @from_int16() {
 entry:
   %__0 = bitcast [2 x i8]* @i16v to i16*
@@ -62,6 +93,19 @@ entry:
 ; CHECK: sar {{.*}},0x1f
 ; CHECK: 0x0,{{.*}}i64v
 
+; ARM32-LABEL: from_int16
+; ARM32: movw {{.*}}i16v
+; ARM32: ldrh
+; ARM32: movw {{.*}}i8v
+; ARM32: strb
+; ARM32: sxth
+; ARM32: movw {{.*}}i32v
+; ARM32: str r
+; ARM32: sxth
+; ARM32: asr
+; ARM32: movw {{.*}}i64v
+; ARM32: str r
+
 define void @from_int32() {
 entry:
   %__0 = bitcast [4 x i8]* @i32v to i32*
@@ -84,6 +128,17 @@ entry:
 ; CHECK: sar {{.*}},0x1f
 ; CHECK: 0x0,{{.*}} i64v
 
+; ARM32-LABEL: from_int32
+; ARM32: movw {{.*}}i32v
+; ARM32: ldr r
+; ARM32: movw {{.*}}i8v
+; ARM32: strb
+; ARM32: movw {{.*}}i16v
+; ARM32: strh
+; ARM32: asr
+; ARM32: movw {{.*}}i64v
+; ARM32: str r
+
 define void @from_int64() {
 entry:
   %__0 = bitcast [8 x i8]* @i64v to i64*
@@ -105,6 +160,15 @@ entry:
 ; CHECK: 0x0,{{.*}} i16v
 ; CHECK: 0x0,{{.*}} i32v
 
+; ARM32-LABEL: from_int64
+; ARM32: movw {{.*}}i64v
+; ARM32: ldr r
+; ARM32: movw {{.*}}i8v
+; ARM32: strb
+; ARM32: movw {{.*}}i16v
+; ARM32: strh
+; ARM32: movw {{.*}}i32v
+; ARM32: str r
 
 define void @from_uint8() {
 entry:
@@ -131,6 +195,20 @@ entry:
 ; CHECK: mov {{.*}},0x0
 ; CHECK: 0x0,{{.*}} i64v
 
+; ARM32-LABEL: from_uint8
+; ARM32: movw {{.*}}u8v
+; ARM32: ldrb
+; ARM32: uxtb
+; ARM32: movw {{.*}}i16v
+; ARM32: strh
+; ARM32: uxtb
+; ARM32: movw {{.*}}i32v
+; ARM32: str r
+; ARM32: uxtb
+; ARM32: mov {{.*}}, #0
+; ARM32: movw {{.*}}i64v
+; ARM32: str r
+
 define void @from_uint16() {
 entry:
   %__0 = bitcast [2 x i8]* @u16v to i16*
@@ -155,6 +233,19 @@ entry:
 ; CHECK: mov {{.*}},0x0
 ; CHECK: 0x0,{{.*}} i64v
 
+; ARM32-LABEL: from_uint16
+; ARM32: movw {{.*}}u16v
+; ARM32: ldrh
+; ARM32: movw {{.*}}i8v
+; ARM32: strb
+; ARM32: uxth
+; ARM32: movw {{.*}}i32v
+; ARM32: str r
+; ARM32: uxth
+; ARM32: mov {{.*}}, #0
+; ARM32: movw {{.*}}i64v
+; ARM32: str r
+
 define void @from_uint32() {
 entry:
   %__0 = bitcast [4 x i8]* @u32v to i32*
@@ -177,6 +268,17 @@ entry:
 ; CHECK: mov {{.*}},0x0
 ; CHECK: 0x0,{{.*}} i64v
 
+; ARM32-LABEL: from_uint32
+; ARM32: movw {{.*}}u32v
+; ARM32: ldr r
+; ARM32: movw {{.*}}i8v
+; ARM32: strb
+; ARM32: movw {{.*}}i16v
+; ARM32: strh
+; ARM32: mov {{.*}}, #0
+; ARM32: movw {{.*}}i64v
+; ARM32: str r
+
 define void @from_uint64() {
 entry:
   %__0 = bitcast [8 x i8]* @u64v to i64*
@@ -197,3 +299,13 @@ entry:
 ; CHECK: 0x0,{{.*}} i8v
 ; CHECK: 0x0,{{.*}} i16v
 ; CHECK: 0x0,{{.*}} i32v
+
+; ARM32-LABEL: from_uint64
+; ARM32: movw {{.*}}u64v
+; ARM32: ldr r
+; ARM32: movw {{.*}}i8v
+; ARM32: strb
+; ARM32: movw {{.*}}i16v
+; ARM32: strh
+; ARM32: movw {{.*}}i32v
+; ARM32: str r

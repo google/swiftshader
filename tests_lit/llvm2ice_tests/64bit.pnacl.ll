@@ -340,6 +340,14 @@ entry:
 ; OPTM1: test {{.*}},0x20
 ; OPTM1: je
 
+; ARM32-LABEL: shl64BitSigned
+; ARM32: sub [[REG3:r.*]], [[REG2:r.*]], #32
+; ARM32: lsl [[REG1:r.*]], {{r.*}}, [[REG2]]
+; ARM32: orr [[REG1]], [[REG1]], [[REG0:r.*]], lsl [[REG3]]
+; ARM32: rsb [[REG4:r.*]], [[REG2]], #32
+; ARM32: orr [[REG1]], [[REG1]], [[REG0]], lsr [[REG4]]
+; ARM32: lsl {{.*}}, [[REG0]], [[REG2]]
+
 define internal i32 @shl64BitSignedTrunc(i64 %a, i64 %b) {
 entry:
   %shl = shl i64 %a, %b
@@ -358,6 +366,9 @@ entry:
 ; OPTM1: test {{.*}},0x20
 ; OPTM1: je
 
+; ARM32-LABEL: shl64BitSignedTrunc
+; ARM32: lsl r
+
 define internal i64 @shl64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %shl = shl i64 %a, %b
@@ -374,6 +385,14 @@ entry:
 ; OPTM1: shl e
 ; OPTM1: test {{.*}},0x20
 ; OPTM1: je
+
+; ARM32-LABEL: shl64BitUnsigned
+; ARM32: sub
+; ARM32: lsl
+; ARM32: orr
+; ARM32: rsb
+; ARM32: orr
+; ARM32: lsl
 
 define internal i64 @shr64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -394,6 +413,14 @@ entry:
 ; OPTM1: je
 ; OPTM1: sar {{.*}},0x1f
 
+; ARM32-LABEL: shr64BitSigned
+; ARM32: rsb
+; ARM32: lsr
+; ARM32: orr
+; ARM32: subs
+; ARM32: orrpl
+; ARM32: asr
+
 define internal i32 @shr64BitSignedTrunc(i64 %a, i64 %b) {
 entry:
   %shr = ashr i64 %a, %b
@@ -413,6 +440,13 @@ entry:
 ; OPTM1: je
 ; OPTM1: sar {{.*}},0x1f
 
+; ARM32-LABEL: shr64BitSignedTrunc
+; ARM32: rsb
+; ARM32: lsr
+; ARM32: orr
+; ARM32: subs
+; ARM32: orrpl
+
 define internal i64 @shr64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %shr = lshr i64 %a, %b
@@ -429,6 +463,14 @@ entry:
 ; OPTM1: shr
 ; OPTM1: test {{.*}},0x20
 ; OPTM1: je
+
+; ARM32-LABEL: shr64BitUnsigned
+; ARM32: rsb
+; ARM32: lsr
+; ARM32: orr
+; ARM32: sub
+; ARM32: orr
+; ARM32: lsr
 
 define internal i32 @shr64BitUnsignedTrunc(i64 %a, i64 %b) {
 entry:
@@ -447,6 +489,13 @@ entry:
 ; OPTM1: shr
 ; OPTM1: test {{.*}},0x20
 ; OPTM1: je
+
+; ARM32-LABEL: shr64BitUnsignedTrunc
+; ARM32: rsb
+; ARM32: lsr
+; ARM32: orr
+; ARM32: sub
+; ARM32: orr
 
 define internal i64 @and64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -550,16 +599,19 @@ entry:
 ; ARM32: eor
 ; ARM32: eor
 
-define internal i32 @trunc64To32Signed(i64 %a) {
+define internal i32 @trunc64To32Signed(i64 %padding, i64 %a) {
 entry:
   %conv = trunc i64 %a to i32
   ret i32 %conv
 }
 ; CHECK-LABEL: trunc64To32Signed
-; CHECK: mov     eax,DWORD PTR [esp+0x4]
+; CHECK: mov     eax,DWORD PTR [esp+0xc]
 ;
 ; OPTM1-LABEL: trunc64To32Signed
 ; OPTM1: mov     eax,DWORD PTR [esp+
+
+; ARM32-LABEL: trunc64To32Signed
+; ARM32: mov r0, r2
 
 define internal i32 @trunc64To16Signed(i64 %a) {
 entry:
@@ -575,6 +627,9 @@ entry:
 ; OPTM1:      mov     eax,DWORD PTR [esp+
 ; OPTM1: movsx  eax,
 
+; ARM32-LABEL: trunc64To16Signed
+; ARM32: sxth r0, r0
+
 define internal i32 @trunc64To8Signed(i64 %a) {
 entry:
   %conv = trunc i64 %a to i8
@@ -589,6 +644,9 @@ entry:
 ; OPTM1:      mov     eax,DWORD PTR [esp+
 ; OPTM1: movsx  eax,
 
+; ARM32-LABEL: trunc64To8Signed
+; ARM32: sxtb r0, r0
+
 define internal i32 @trunc64To32SignedConst() {
 entry:
   %conv = trunc i64 12345678901234 to i32
@@ -599,6 +657,10 @@ entry:
 ;
 ; OPTM1-LABEL: trunc64To32SignedConst
 ; OPTM1: mov eax,0x73ce2ff2
+
+; ARM32-LABEL: trunc64To32SignedConst
+; ARM32: movw r0, #12274 ; 0x2ff2
+; ARM32: movt r0, #29646 ; 0x73ce
 
 define internal i32 @trunc64To16SignedConst() {
 entry:
@@ -614,16 +676,24 @@ entry:
 ; OPTM1: mov eax,0x73ce2ff2
 ; OPTM1: movsx eax,
 
-define internal i32 @trunc64To32Unsigned(i64 %a) {
+; ARM32-LABEL: trunc64To16SignedConst
+; ARM32: movw r0, #12274 ; 0x2ff2
+; ARM32: movt r0, #29646 ; 0x73ce
+; ARM32: sxth r0, r0
+
+define internal i32 @trunc64To32Unsigned(i64 %padding, i64 %a) {
 entry:
   %conv = trunc i64 %a to i32
   ret i32 %conv
 }
 ; CHECK-LABEL: trunc64To32Unsigned
-; CHECK: mov     eax,DWORD PTR [esp+0x4]
+; CHECK: mov     eax,DWORD PTR [esp+0xc]
 ;
 ; OPTM1-LABEL: trunc64To32Unsigned
 ; OPTM1: mov     eax,DWORD PTR [esp+
+
+; ARM32-LABEL: trunc64To32Unsigned
+; ARM32: mov r0, r2
 
 define internal i32 @trunc64To16Unsigned(i64 %a) {
 entry:
@@ -639,6 +709,9 @@ entry:
 ; OPTM1:      mov     eax,DWORD PTR [esp+
 ; OPTM1: movzx  eax,
 
+; ARM32-LABEL: trunc64To16Unsigned
+; ARM32: uxth
+
 define internal i32 @trunc64To8Unsigned(i64 %a) {
 entry:
   %conv = trunc i64 %a to i8
@@ -652,6 +725,9 @@ entry:
 ; OPTM1-LABEL: trunc64To8Unsigned
 ; OPTM1: mov    eax,DWORD PTR [esp+
 ; OPTM1: movzx  eax,
+
+; ARM32-LABEL: trunc64To8Unsigned
+; ARM32: uxtb
 
 define internal i32 @trunc64To1(i64 %a) {
 entry:
@@ -670,6 +746,10 @@ entry:
 ; OPTM1:      and     eax,0x1
 ; OPTM1:      and     eax,0x1
 
+; ARM32-LABEL: trunc64To1
+; ARM32: and r0, r0, #1
+; ARM32: and r0, r0, #1
+
 define internal i64 @sext32To64(i32 %a) {
 entry:
   %conv = sext i32 %a to i64
@@ -682,6 +762,9 @@ entry:
 ; OPTM1-LABEL: sext32To64
 ; OPTM1: mov
 ; OPTM1: sar {{.*}},0x1f
+
+; ARM32-LABEL: sext32To64
+; ARM32: asr {{.*}}, #31
 
 define internal i64 @sext16To64(i32 %a) {
 entry:
@@ -697,6 +780,10 @@ entry:
 ; OPTM1: movsx
 ; OPTM1: sar {{.*}},0x1f
 
+; ARM32-LABEL: sext16To64
+; ARM32: sxth
+; ARM32: asr {{.*}}, #31
+
 define internal i64 @sext8To64(i32 %a) {
 entry:
   %a.arg_trunc = trunc i32 %a to i8
@@ -710,6 +797,10 @@ entry:
 ; OPTM1-LABEL: sext8To64
 ; OPTM1: movsx
 ; OPTM1: sar {{.*}},0x1f
+
+; ARM32-LABEL: sext8To64
+; ARM32: sxtb
+; ARM32: asr {{.*}}, #31
 
 define internal i64 @sext1To64(i32 %a) {
 entry:
@@ -727,6 +818,10 @@ entry:
 ; OPTM1: shl {{.*}},0x1f
 ; OPTM1: sar {{.*}},0x1f
 
+; ARM32-LABEL: sext1To64
+; ARM32: lsl {{.*}}, #31
+; ARM32: asr {{.*}}, #31
+
 define internal i64 @zext32To64(i32 %a) {
 entry:
   %conv = zext i32 %a to i64
@@ -739,6 +834,9 @@ entry:
 ; OPTM1-LABEL: zext32To64
 ; OPTM1: mov
 ; OPTM1: mov {{.*}},0x0
+
+; ARM32-LABEL: zext32To64
+; ARM32: mov {{.*}}, #0
 
 define internal i64 @zext16To64(i32 %a) {
 entry:
@@ -754,6 +852,10 @@ entry:
 ; OPTM1: movzx
 ; OPTM1: mov {{.*}},0x0
 
+; ARM32-LABEL: zext16To64
+; ARM32: uxth
+; ARM32: mov {{.*}}, #0
+
 define internal i64 @zext8To64(i32 %a) {
 entry:
   %a.arg_trunc = trunc i32 %a to i8
@@ -768,6 +870,10 @@ entry:
 ; OPTM1: movzx
 ; OPTM1: mov {{.*}},0x0
 
+; ARM32-LABEL: zext8To64
+; ARM32: uxtb
+; ARM32: mov {{.*}}, #0
+
 define internal i64 @zext1To64(i32 %a) {
 entry:
   %a.arg_trunc = trunc i32 %a to i1
@@ -781,6 +887,10 @@ entry:
 ; OPTM1-LABEL: zext1To64
 ; OPTM1: and {{.*}},0x1
 ; OPTM1: mov {{.*}},0x0
+
+; ARM32-LABEL: zext1To64
+; ARM32: and {{.*}}, #1
+; ARM32: mov {{.*}}, #0
 
 define internal void @icmpEq64(i64 %a, i64 %b, i64 %c, i64 %d) {
 entry:
@@ -1114,6 +1224,10 @@ entry:
 ; OPTM1: jne
 ; OPTM1: je
 
+; ARM32-LABEL: icmpEq64Bool
+; ARM32: moveq
+; ARM32: movne
+
 define internal i32 @icmpNe64Bool(i64 %a, i64 %b) {
 entry:
   %cmp = icmp ne i64 %a, %b
@@ -1127,6 +1241,10 @@ entry:
 ; OPTM1-LABEL: icmpNe64Bool
 ; OPTM1: jne
 ; OPTM1: jne
+
+; ARM32-LABEL: icmpNe64Bool
+; ARM32: movne
+; ARM32: moveq
 
 define internal i32 @icmpSgt64Bool(i64 %a, i64 %b) {
 entry:
@@ -1148,6 +1266,12 @@ entry:
 ; OPTM1: cmp
 ; OPTM1: ja
 
+; ARM32-LABEL: icmpSgt64Bool
+; ARM32: cmp
+; ARM32: sbcs
+; ARM32: movlt
+; ARM32: movge
+
 define internal i32 @icmpUgt64Bool(i64 %a, i64 %b) {
 entry:
   %cmp = icmp ugt i64 %a, %b
@@ -1167,6 +1291,12 @@ entry:
 ; OPTM1: jb
 ; OPTM1: cmp
 ; OPTM1: ja
+
+; ARM32-LABEL: icmpUgt64Bool
+; ARM32: cmp
+; ARM32: cmpeq
+; ARM32: movhi
+; ARM32: movls
 
 define internal i32 @icmpSge64Bool(i64 %a, i64 %b) {
 entry:
@@ -1188,6 +1318,12 @@ entry:
 ; OPTM1: cmp
 ; OPTM1: jae
 
+; ARM32-LABEL: icmpSge64Bool
+; ARM32: cmp
+; ARM32: sbcs
+; ARM32: movge
+; ARM32: movlt
+
 define internal i32 @icmpUge64Bool(i64 %a, i64 %b) {
 entry:
   %cmp = icmp uge i64 %a, %b
@@ -1207,6 +1343,12 @@ entry:
 ; OPTM1: jb
 ; OPTM1: cmp
 ; OPTM1: jae
+
+; ARM32-LABEL: icmpUge64Bool
+; ARM32: cmp
+; ARM32: cmpeq
+; ARM32: movcs
+; ARM32: movcc
 
 define internal i32 @icmpSlt64Bool(i64 %a, i64 %b) {
 entry:
@@ -1228,6 +1370,12 @@ entry:
 ; OPTM1: cmp
 ; OPTM1: jb
 
+; ARM32-LABEL: icmpSlt64Bool
+; ARM32: cmp
+; ARM32: sbcs
+; ARM32: movlt
+; ARM32: movge
+
 define internal i32 @icmpUlt64Bool(i64 %a, i64 %b) {
 entry:
   %cmp = icmp ult i64 %a, %b
@@ -1247,6 +1395,12 @@ entry:
 ; OPTM1: ja
 ; OPTM1: cmp
 ; OPTM1: jb
+
+; ARM32-LABEL: icmpUlt64Bool
+; ARM32: cmp
+; ARM32: cmpeq
+; ARM32: movcc
+; ARM32: movcs
 
 define internal i32 @icmpSle64Bool(i64 %a, i64 %b) {
 entry:
@@ -1268,6 +1422,12 @@ entry:
 ; OPTM1: cmp
 ; OPTM1: jbe
 
+; ARM32-LABEL: icmpSle64Bool
+; ARM32: cmp
+; ARM32: sbcs
+; ARM32: movge
+; ARM32: movlt
+
 define internal i32 @icmpUle64Bool(i64 %a, i64 %b) {
 entry:
   %cmp = icmp ule i64 %a, %b
@@ -1287,6 +1447,12 @@ entry:
 ; OPTM1: ja
 ; OPTM1: cmp
 ; OPTM1: jbe
+
+; ARM32-LABEL: icmpUle64Bool
+; ARM32: cmp
+; ARM32: cmpeq
+; ARM32: movls
+; ARM32: movhi
 
 define internal i64 @load64(i32 %a) {
 entry:

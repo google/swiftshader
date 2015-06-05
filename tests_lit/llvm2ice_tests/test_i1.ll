@@ -1,7 +1,24 @@
 ; Tests various aspects of i1 related lowering.
 
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 | FileCheck %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   | %if --need=target_X8632 --command FileCheck %s
+
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -Om1 \
+; RUN:   | %if --need=target_X8632 --command FileCheck %s
+
+; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
+; once enough infrastructure is in. Also, switch to --filetype=obj
+; when possible.
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix ARM32 %s
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix ARM32 %s
+
+; TODO(jvoung): test this.
 
 ; Test that and with true uses immediate 1, not -1.
 define internal i32 @testAndTrue(i32 %arg) {
@@ -13,6 +30,8 @@ entry:
 }
 ; CHECK-LABEL: testAndTrue
 ; CHECK: and {{.*}},0x1
+; ARM32-LABEL: testAndTrue
+; ARM32: and {{.*}}, #1
 
 ; Test that or with true uses immediate 1, not -1.
 define internal i32 @testOrTrue(i32 %arg) {
@@ -24,6 +43,8 @@ entry:
 }
 ; CHECK-LABEL: testOrTrue
 ; CHECK: or {{.*}},0x1
+; ARM32-LABEL: testOrTrue
+; ARM32: orr {{.*}}, #1
 
 ; Test that xor with true uses immediate 1, not -1.
 define internal i32 @testXorTrue(i32 %arg) {
@@ -35,6 +56,8 @@ entry:
 }
 ; CHECK-LABEL: testXorTrue
 ; CHECK: xor {{.*}},0x1
+; ARM32-LABEL: testXorTrue
+; ARM32: eor {{.*}}, #1
 
 ; Test that trunc to i1 masks correctly.
 define internal i32 @testTrunc(i32 %arg) {
@@ -45,6 +68,8 @@ entry:
 }
 ; CHECK-LABEL: testTrunc
 ; CHECK: and {{.*}},0x1
+; ARM32-LABEL: testTrunc
+; ARM32: and {{.*}}, #1
 
 ; Test zext to i8.
 define internal i32 @testZextI8(i32 %arg) {
@@ -59,6 +84,9 @@ entry:
 ; CHECK: and {{.*}},0x1
 ; match the zext i1 instruction (NOTE: no mov need between i1 and i8).
 ; CHECK: and {{.*}},0x1
+; ARM32-LABEL: testZextI8
+; ARM32: and {{.*}}, #1
+; ARM32: and {{.*}}, #1
 
 ; Test zext to i16.
 define internal i32 @testZextI16(i32 %arg) {
@@ -75,6 +103,12 @@ entry:
 ; CHECK: movzx [[REG:e.*]],{{[a-d]l|BYTE PTR}}
 ; CHECK: and [[REG]],0x1
 
+; ARM32-LABEL: testZextI16
+; match the trunc instruction
+; ARM32: and {{.*}}, #1
+; match the zext (no need to uxt into a reg if src is already in a reg)
+; ARM32: and {{.*}}, #1
+
 ; Test zext to i32.
 define internal i32 @testZextI32(i32 %arg) {
 entry:
@@ -88,6 +122,9 @@ entry:
 ; match the zext i1 instruction
 ; CHECK: movzx
 ; CHECK: and {{.*}},0x1
+; ARM32-LABEL: testZextI32
+; ARM32: and {{.*}}, #1
+; ARM32: and {{.*}}, #1
 
 ; Test zext to i64.
 define internal i64 @testZextI64(i32 %arg) {
@@ -103,6 +140,10 @@ entry:
 ; CHECK: movzx
 ; CHECK: and {{.*}},0x1
 ; CHECK: mov {{.*}},0x0
+; ARM32-LABEL: testZextI64
+; ARM32: and {{.*}}, #1
+; ARM32: and {{.*}}, #1
+; ARM32: mov {{.*}}, #0
 
 ; Test sext to i8.
 define internal i32 @testSextI8(i32 %arg) {
@@ -118,6 +159,14 @@ entry:
 ; match the sext i1 instruction
 ; CHECK: shl [[REG:.*]],0x7
 ; CHECK-NEXT: sar [[REG]],0x7
+;
+; ARM shifts by 32, since there aren't any byte regs.
+; ARM32-LABEL: testSextI8
+; match the trunc instruction
+; ARM32: and {{.*}}, #1
+; match the sext i1 instruction
+; ARM32: lsl {{.*}}, #31
+; ARM32-NEXT: asr {{.*}}, #31
 
 ; Test sext to i16.
 define internal i32 @testSextI16(i32 %arg) {
@@ -135,6 +184,11 @@ entry:
 ; CHECK-NEXT: shl [[REG]],0xf
 ; CHECK-NEXT: sar [[REG]],0xf
 
+; ARM32-LABEL: testSextI16
+; ARM32: and {{.*}}, #1
+; ARM32: lsl {{.*}}, #31
+; ARM32-NEXT: asr {{.*}}, #31
+
 ; Test sext to i32.
 define internal i32 @testSextI32(i32 %arg) {
 entry:
@@ -150,6 +204,11 @@ entry:
 ; CHECK-NEXT: shl [[REG]],0x1f
 ; CHECK-NEXT: sar [[REG]],0x1f
 
+; ARM32-LABEL: testSextI32
+; ARM32: and {{.*}}, #1
+; ARM32: lsl {{.*}}, #31
+; ARM32-NEXT: asr {{.*}}, #31
+
 ; Test sext to i64.
 define internal i64 @testSextI64(i32 %arg) {
 entry:
@@ -164,6 +223,40 @@ entry:
 ; CHECK: movzx [[REG:.*]],
 ; CHECK-NEXT: shl [[REG]],0x1f
 ; CHECK-NEXT: sar [[REG]],0x1f
+
+; ARM32-LABEL: testSextI64
+; ARM32: and {{.*}}, #1
+; ARM32: lsl {{.*}}, #31
+; ARM32-NEXT: asr [[REG:r.*]], {{.*}}, #31
+; ARM32-NEXT: {{(mov|str).*}} [[REG]]
+
+; Kind of like sext i1 to i32, but with an immediate source. On ARM,
+; sxtb cannot take an immediate operand, so make sure it's using a reg.
+; If we had optimized constants, this could just be mov dst, 0xffffffff
+; or mvn dst, #0.
+define internal i32 @testSextTrue() {
+  %result = sext i1 true to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testSextTrue
+; CHECK: movzx
+; CHECK-NEXT: shl
+; CHECK-NEXT: sar
+; ARM32-LABEL: testSextTrue
+; ARM32: mov{{.*}}, #1
+; ARM32: lsl
+; ARM32: asr
+
+define internal i32 @testZextTrue() {
+  %result = zext i1 true to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testZextTrue
+; CHECK: movzx
+; CHECK: and {{.*}},0x1
+; ARM32-LABEL: testZextTrue
+; ARM32: mov{{.*}}, #1
+; ARM32: and {{.*}}, #1
 
 ; Test fptosi float to i1.
 define internal i32 @testFptosiFloat(float %arg) {

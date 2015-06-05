@@ -259,6 +259,7 @@ public:
     Adc,
     Add,
     And,
+    Asr,
     Bic,
     Br,
     Call,
@@ -266,6 +267,7 @@ public:
     Eor,
     Ldr,
     Lsl,
+    Lsr,
     Mla,
     Mov,
     Movt,
@@ -276,10 +278,13 @@ public:
     Pop,
     Push,
     Ret,
+    Rsb,
     Sbc,
     Str,
     Sub,
-    Umull
+    Sxt,
+    Umull,
+    Uxt
   };
 
   static const char *getWidthString(Type Ty);
@@ -314,6 +319,8 @@ public:
   void dumpOpcodePred(Ostream &Str, const char *Opcode, Type Ty) const;
 
   // Shared emit routines for common forms of instructions.
+  static void emitUnaryopGPR(const char *Opcode, const InstARM32Pred *Inst,
+                             const Cfg *Func);
   static void emitTwoAddr(const char *Opcode, const InstARM32Pred *Inst,
                           const Cfg *Func);
   static void emitThreeAddr(const char *Opcode, const InstARM32Pred *Inst,
@@ -345,12 +352,7 @@ public:
   void emit(const Cfg *Func) const override {
     if (!ALLOW_DUMP)
       return;
-    Ostream &Str = Func->getContext()->getStrEmit();
-    assert(getSrcSize() == 1);
-    Str << "\t" << Opcode << "\t";
-    getDest()->emit(Func);
-    Str << ", ";
-    getSrc(0)->emit(Func);
+    emitUnaryopGPR(Opcode, this, Func);
   }
   void emitIAS(const Cfg *Func) const override {
     (void)Func;
@@ -521,11 +523,14 @@ private:
 typedef InstARM32ThreeAddrGPR<InstARM32::Adc> InstARM32Adc;
 typedef InstARM32ThreeAddrGPR<InstARM32::Add> InstARM32Add;
 typedef InstARM32ThreeAddrGPR<InstARM32::And> InstARM32And;
+typedef InstARM32ThreeAddrGPR<InstARM32::Asr> InstARM32Asr;
 typedef InstARM32ThreeAddrGPR<InstARM32::Bic> InstARM32Bic;
 typedef InstARM32ThreeAddrGPR<InstARM32::Eor> InstARM32Eor;
 typedef InstARM32ThreeAddrGPR<InstARM32::Lsl> InstARM32Lsl;
+typedef InstARM32ThreeAddrGPR<InstARM32::Lsr> InstARM32Lsr;
 typedef InstARM32ThreeAddrGPR<InstARM32::Mul> InstARM32Mul;
 typedef InstARM32ThreeAddrGPR<InstARM32::Orr> InstARM32Orr;
+typedef InstARM32ThreeAddrGPR<InstARM32::Rsb> InstARM32Rsb;
 typedef InstARM32ThreeAddrGPR<InstARM32::Sbc> InstARM32Sbc;
 typedef InstARM32ThreeAddrGPR<InstARM32::Sub> InstARM32Sub;
 // Move instruction (variable <- flex). This is more of a pseudo-inst.
@@ -537,6 +542,11 @@ typedef InstARM32Movlike<InstARM32::Mov> InstARM32Mov;
 typedef InstARM32TwoAddrGPR<InstARM32::Movt> InstARM32Movt;
 typedef InstARM32UnaryopGPR<InstARM32::Movw> InstARM32Movw;
 typedef InstARM32UnaryopGPR<InstARM32::Mvn> InstARM32Mvn;
+// Technically, the uxt{b,h} and sxt{b,h} instructions have a rotation
+// operand as well (rotate source by 8, 16, 24 bits prior to extending),
+// but we aren't using that for now, so just model as a Unaryop.
+typedef InstARM32UnaryopGPR<InstARM32::Sxt> InstARM32Sxt;
+typedef InstARM32UnaryopGPR<InstARM32::Uxt> InstARM32Uxt;
 
 // Direct branch instruction.
 class InstARM32Br : public InstARM32Pred {

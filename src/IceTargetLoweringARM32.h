@@ -153,6 +153,10 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32And::create(Func, Dest, Src0, Src1, Pred));
   }
+  void _asr(Variable *Dest, Variable *Src0, Operand *Src1,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Asr::create(Func, Dest, Src0, Src1, Pred));
+  }
   void _bic(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Bic::create(Func, Dest, Src0, Src1, Pred));
@@ -180,6 +184,10 @@ protected:
   void _lsl(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Lsl::create(Func, Dest, Src0, Src1, Pred));
+  }
+  void _lsr(Variable *Dest, Variable *Src0, Operand *Src1,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Lsr::create(Func, Dest, Src0, Src1, Pred));
   }
   void _mla(Variable *Dest, Variable *Src0, Variable *Src1, Variable *Acc,
             CondARM32::Cond Pred = CondARM32::AL) {
@@ -232,6 +240,10 @@ protected:
     for (Variable *Dest : Dests)
       Context.insert(InstFakeDef::create(Func, Dest));
   }
+  void _rsb(Variable *Dest, Variable *Src0, Operand *Src1,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Rsb::create(Func, Dest, Src0, Src1, Pred));
+  }
   void _sbc(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Sbc::create(Func, Dest, Src0, Src1, Pred));
@@ -256,6 +268,10 @@ protected:
     Context.insert(
         InstARM32Sub::create(Func, Dest, Src0, Src1, Pred, SetFlags));
   }
+  void _sxt(Variable *Dest, Variable *Src0,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Sxt::create(Func, Dest, Src0, Pred));
+  }
   void _ret(Variable *LR, Variable *Src0 = nullptr) {
     Context.insert(InstARM32Ret::create(Func, LR, Src0));
   }
@@ -266,6 +282,10 @@ protected:
     // Model the modification to the second dest as a fake def.
     // Note that the def is not predicated.
     Context.insert(InstFakeDef::create(Func, DestHi, DestLo));
+  }
+  void _uxt(Variable *Dest, Variable *Src0,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Uxt::create(Func, Dest, Src0, Pred));
   }
 
   bool UsesFramePointer;
