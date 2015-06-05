@@ -278,13 +278,8 @@ void *StreamingVertexBuffer::map(const VertexAttribute &attribute, unsigned int 
 
     if(mVertexBuffer)
     {
-		mapPtr = (char*)mVertexBuffer->lock(sw::PUBLIC) + mWritePosition;
-        
-        if(!mapPtr)
-        {
-            ERR("Lock failed");
-            return NULL;
-        }
+		// We can use a private lock because we never overwrite the content
+		mapPtr = (char*)mVertexBuffer->lock(sw::PRIVATE) + mWritePosition;
 
         *offset = mWritePosition;
         mWritePosition += requiredSpace;
