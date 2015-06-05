@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f9b130f2_46a0bc7c",
+        "filename": "src/OpenGL/libGL/VertexDataManager.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-05T20:54:35Z",
+      "side": 1,
+      "message": "overwrite",
+      "range": {
+        "startLine": 287,
+        "startChar": 48,
+        "endLine": 287,
+        "endChar": 58
+      },
+      "revId": "37c48c9944b8a32d587d6c37def1f654d3a49564",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
