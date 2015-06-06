@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d9ab8c9c_e44ece0d",
+        "filename": "src/Renderer/VertexProcessor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-06T14:20:01Z",
+      "side": 1,
+      "message": "Don\u0027t make it a routine state. This will cause a recompile for every instance. Instead use DrawData::instanceID.",
+      "range": {
+        "startLine": 52,
+        "startChar": 3,
+        "endLine": 52,
+        "endChar": 39
+      },
+      "revId": "d7d8eb965257d9f756cba9e3408a10cb0ff4870b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d9ab8c9c_c443d2e3",
+        "filename": "src/Shader/VertexRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-06T14:20:01Z",
+      "side": 1,
+      "message": "Read DrawData::instanceID instead, similar to how constants is read the line above. Also, only read this when shader-\u003einstanceIdDeclared is true.",
+      "range": {
+        "startLine": 55,
+        "startChar": 3,
+        "endLine": 55,
+        "endChar": 40
+      },
+      "revId": "d7d8eb965257d9f756cba9e3408a10cb0ff4870b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
