@@ -36,12 +36,12 @@ public:
   /// Runs PNaClTranslator to translate bitcode records (with defined
   /// record Munges), and puts output into DumpResults. Returns true
   /// if parse is successful.
-  bool runTest(const char *TestName, const uint64_t Munges[], size_t MungeSize);
+  bool runTest(const uint64_t Munges[], size_t MungeSize);
 
   /// Same as above, but without any edits.
-  bool runTest(const char *TestName) {
+  bool runTest() {
     uint64_t NoMunges[] = {0};
-    return runTest(TestName, NoMunges, 0);
+    return runTest(NoMunges, 0);
   }
 
   /// Sets flags back to default assumptions for munging.

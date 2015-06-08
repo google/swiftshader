@@ -259,6 +259,7 @@ $(UNITTEST_OBJS): $(OBJDIR)/unittest/%.o: unittest/%.cpp \
 	$(CXX) -c $(CXXFLAGS) \
 		-Isrc/ \
 		-I$(LLVM_SRC_PATH)/utils/unittest/googletest/include \
+		-I$(LLVM_SRC_PATH) \
 		-DGTEST_HAS_RTTI=0 -DGTEST_USE_OWN_TR1_TUPLE \
 		$< -o $@
 
