@@ -128,7 +128,8 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
         {
             if(!attrib.mBoundBuffer)
             {
-                mStreamingBuffer->addRequiredSpace(attrib.typeSize() * count);
+                const bool isInstanced = attrib.mDivisor > 0;
+                mStreamingBuffer->addRequiredSpace(attrib.typeSize() * (isInstanced ? 1 : count));
             }
         }
     }
@@ -168,7 +169,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
                 }
                 else
                 {
-                    unsigned int streamOffset = writeAttributeData(mStreamingBuffer, firstVertexIndex, count, attrib);
+                    unsigned int streamOffset = writeAttributeData(mStreamingBuffer, firstVertexIndex, isInstanced ? 1 : count, attrib);
 
 					if(streamOffset == -1)
 					{
