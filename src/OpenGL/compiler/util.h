@@ -11,8 +11,15 @@
 extern "C" {
 #endif
 
-// atof_dot is like atof but forcing C locale, i.e. forcing '.' as decimal point.
-double atof_dot(const char *str);
+// atof_clamp is like atof but
+//   1. it forces C locale, i.e. forcing '.' as decimal point.
+//   2. it clamps the value to -FLT_MAX or FLT_MAX if overflow happens.
+// Return false if overflow happens.
+bool atof_clamp(const char *str, float *value);
+
+// If overflow happens, clamp the value to INT_MIN or INT_MAX.
+// Return false if overflow happens.
+bool atoi_clamp(const char *str, int *value);
 
 #ifdef __cplusplus
 } // end extern "C"

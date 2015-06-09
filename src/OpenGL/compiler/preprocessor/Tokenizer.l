@@ -114,12 +114,12 @@ FRACTIONAL_CONSTANT  ({DIGIT}*"."{DIGIT}+)|({DIGIT}+".")
     return pp::Token::IDENTIFIER;
 }
 
-{DECIMAL_CONSTANT}|{OCTAL_CONSTANT}|{HEXADECIMAL_CONSTANT} {
+({DECIMAL_CONSTANT}[uU]?)|({OCTAL_CONSTANT}[uU]?)|({HEXADECIMAL_CONSTANT}[uU]?) {
     yylval->assign(yytext, yyleng);
     return pp::Token::CONST_INT;
 }
 
-({DIGIT}+{EXPONENT_PART})|({FRACTIONAL_CONSTANT}{EXPONENT_PART}?) {
+({DIGIT}+{EXPONENT_PART}[fF]?)|({FRACTIONAL_CONSTANT}{EXPONENT_PART}?[fF]?) {
     yylval->assign(yytext, yyleng);
     return pp::Token::CONST_FLOAT;
 }

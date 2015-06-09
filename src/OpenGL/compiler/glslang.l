@@ -58,6 +58,9 @@ static int ES2_reserved_ES3_keyword(TParseContext *context, int token);
 static int ES2_keyword_ES3_reserved(TParseContext *context, int token);
 static int ES2_identifier_ES3_keyword(TParseContext *context, int token);
 static int uint_constant(TParseContext *context);
+static int int_constant(yyscan_t yyscanner);
+static int float_constant(yyscan_t yyscanner);
+static int floatsuffix_check(TParseContext* context);
 %}
 
 %option noyywrap nounput never-interactive
@@ -314,17 +317,21 @@ O           [0-7]
    return check_type(yyscanner);
 }
 
-0[xX]{H}+         { yylval->lex.i = strtol(yytext, 0, 0); return(INTCONSTANT); }
-0{O}+             { yylval->lex.i = strtol(yytext, 0, 0); return(INTCONSTANT); }
-0{D}+             { context->error(yylineno, "Invalid Octal number.", yytext); context->recover(); return 0;}
-{D}+              { yylval->lex.i = strtol(yytext, 0, 0); return(INTCONSTANT); }
+0[xX]{H}+         { return int_constant(yyscanner); }
+0{O}+             { return int_constant(yyscanner); }
+{D}+              { return int_constant(yyscanner); }
+
 0[xX]{H}+[uU]     { return uint_constant(context); }
 0{O}+[uU]         { return uint_constant(context); }
 {D}+[uU]          { return uint_constant(context); }
 
-{D}+{E}           { yylval->lex.f = static_cast<float>(atof_dot(yytext)); return(FLOATCONSTANT); }
-{D}+"."{D}*({E})? { yylval->lex.f = static_cast<float>(atof_dot(yytext)); return(FLOATCONSTANT); }
-"."{D}+({E})?     { yylval->lex.f = static_cast<float>(atof_dot(yytext)); return(FLOATCONSTANT); }
+{D}+{E}           { return float_constant(yyscanner); }
+{D}+"."{D}*({E})? { return float_constant(yyscanner); }
+"."{D}+({E})?     { return float_constant(yyscanner); }
+
+{D}+{E}[fF]           { return floatsuffix_check(context); }
+{D}+"."{D}*({E})?[fF] { return floatsuffix_check(context); }
+"."{D}+({E})?[fF]     { return floatsuffix_check(context); }
 
 "+="            {  return(ADD_ASSIGN); }
 "-="            {  return(SUB_ASSIGN); }
@@ -479,8 +486,43 @@ int uint_constant(TParseContext *context)
         return 0;
     }
 
-    yylval->lex.u = static_cast<unsigned int>(strtol(yytext, 0, 0));
+    if (!atoi_clamp(yytext, &(yylval->lex.i)))
+        yyextra->warning(yylineno, "Integer overflow", yytext, "");
+
     return UINTCONSTANT;
+}
+
+int floatsuffix_check(TParseContext* context)
+{
+    struct yyguts_t* yyg = (struct yyguts_t*) context->scanner;
+
+    if (context->shaderVersion < 300)
+    {
+        context->error(yylineno, "Floating-point suffix unsupported prior to GLSL ES 3.00", yytext);
+        context->recover();
+        return 0;
+    }
+
+    if (!atof_clamp(yytext, &(yylval->lex.f)))
+        yyextra->warning(yylineno, "Float overflow", yytext, "");
+
+    return(FLOATCONSTANT);
+}
+
+int int_constant(yyscan_t yyscanner) {
+    struct yyguts_t* yyg = (struct yyguts_t*) yyscanner;
+
+    if (!atoi_clamp(yytext, &(yylval->lex.i)))
+        yyextra->warning(yylineno, "Integer overflow", yytext, "");
+    return INTCONSTANT;
+}
+
+int float_constant(yyscan_t yyscanner) {
+    struct yyguts_t* yyg = (struct yyguts_t*) yyscanner;
+
+    if (!atof_clamp(yytext, &(yylval->lex.f)))
+        yyextra->warning(yylineno, "Float overflow", yytext, "");
+    return FLOATCONSTANT;
 }
 
 void yyerror(TParseContext* context, const char* reason) {
