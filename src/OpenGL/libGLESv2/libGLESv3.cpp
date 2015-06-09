@@ -402,7 +402,7 @@ static FormatMapStorage BuildFormatMapStorage2D()
 	return map;
 }
 
-static bool GetStorageType(GLenum internalformat, GLenum type)
+static bool GetStorageType(GLenum internalformat, GLenum& type)
 {
 	static const FormatMapStorage formatMap = BuildFormatMapStorage2D();
 	FormatMapStorage::const_iterator iter = formatMap.find(internalformat);
@@ -2758,6 +2758,8 @@ GL_APICALL GLuint GL_APIENTRY glGetUniformBlockIndex(GLuint program, const GLcha
 
 		return programObject->getUniformBlockIndex(uniformBlockName);
 	}
+
+	return GL_INVALID_INDEX;
 }
 
 GL_APICALL void GL_APIENTRY glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params)
