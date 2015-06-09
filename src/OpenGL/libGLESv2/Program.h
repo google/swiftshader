@@ -34,7 +34,25 @@ namespace es2
 	// Helper struct representing a single shader uniform
 	struct Uniform
 	{
-		Uniform(GLenum type, GLenum precision, const std::string &name, unsigned int arraySize);
+		struct BlockMemberInfo
+		{
+			BlockMemberInfo(int offset, int arrayStride, int matrixStride, bool isRowMajorMatrix)
+			: offset(offset), arrayStride(arrayStride), matrixStride(matrixStride), isRowMajorMatrix(isRowMajorMatrix)
+			{}
+
+			static BlockMemberInfo getDefaultBlockInfo()
+			{
+				return BlockMemberInfo(-1, -1, -1, false);
+			}
+
+			int offset;
+			int arrayStride;
+			int matrixStride;
+			bool isRowMajorMatrix;
+		};
+
+		Uniform(GLenum type, GLenum precision, const std::string &name, unsigned int arraySize,
+		        const int blockIndex, const BlockMemberInfo &blockInfo);
 
 		~Uniform();
 
@@ -46,6 +64,8 @@ namespace es2
 		const GLenum precision;
 		const std::string name;
 		const unsigned int arraySize;
+		const int blockIndex;
+		const BlockMemberInfo blockInfo;
 
 		unsigned char *data;
 		bool dirty;
@@ -154,6 +174,7 @@ namespace es2
 		void getActiveUniform(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name) const;
 		GLint getActiveUniformCount() const;
 		GLint getActiveUniformMaxLength() const;
+		GLint getActiveUniformi(GLuint index, GLenum pname) const;
 
 		void getActiveUniformBlockName(GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name) const;
 		GLint getActiveUniformBlockCount() const;

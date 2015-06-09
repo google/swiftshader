@@ -2735,9 +2735,23 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformsiv(GLuint program, GLsizei unifor
 		{
 			return error(GL_INVALID_OPERATION);
 		}
-	}
 
-	UNIMPLEMENTED();
+		for(int uniformId = 0; uniformId < uniformCount; uniformId++)
+		{
+			const GLuint index = uniformIndices[uniformId];
+
+			if(index >= static_cast<GLuint>(programObject->getActiveUniformCount()))
+			{
+				return error(GL_INVALID_VALUE);
+			}
+		}
+
+		for(int uniformId = 0; uniformId < uniformCount; uniformId++)
+		{
+			const GLuint index = uniformIndices[uniformId];
+			params[uniformId] = programObject->getActiveUniformi(index, pname);
+		}
+	}
 }
 
 GL_APICALL GLuint GL_APIENTRY glGetUniformBlockIndex(GLuint program, const GLchar *uniformBlockName)

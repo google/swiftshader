@@ -35,7 +35,9 @@ namespace es2
 		return buffer;
 	}
 
-	Uniform::Uniform(GLenum type, GLenum precision, const std::string &name, unsigned int arraySize) : type(type), precision(precision), name(name), arraySize(arraySize)
+	Uniform::Uniform(GLenum type, GLenum precision, const std::string &name, unsigned int arraySize,
+	                 const int blockIndex, const BlockMemberInfo &blockInfo)
+	 : type(type), precision(precision), name(name), arraySize(arraySize), blockIndex(blockIndex), blockInfo(blockInfo)
 	{
 		int bytes = UniformTypeSize(type) * size();
 		data = new unsigned char[bytes];
@@ -1382,7 +1384,7 @@ namespace es2
 		}
 		else
 		{
-			uniform = new Uniform(type, precision, name, arraySize);
+			uniform = new Uniform(type, precision, name, arraySize, -1, Uniform::BlockMemberInfo::getDefaultBlockInfo());
 		}
 
 		if(!uniform)
@@ -2498,6 +2500,26 @@ namespace es2
 		}
 
 		return maxLength;
+	}
+
+	GLint Program::getActiveUniformi(GLuint index, GLenum pname) const
+	{
+		const Uniform& uniform = *uniforms[index];
+		switch(pname)
+		{
+		case GL_UNIFORM_TYPE:         return static_cast<GLint>(uniform.type);
+		case GL_UNIFORM_SIZE:         return static_cast<GLint>(uniform.size());
+		case GL_UNIFORM_NAME_LENGTH:  return static_cast<GLint>(uniform.name.size() + 1 + (uniform.isArray() ? 3 : 0));
+		case GL_UNIFORM_BLOCK_INDEX:  return uniform.blockIndex;
+		case GL_UNIFORM_OFFSET:       return uniform.blockInfo.offset;
+		case GL_UNIFORM_ARRAY_STRIDE: return uniform.blockInfo.arrayStride;
+		case GL_UNIFORM_MATRIX_STRIDE: return uniform.blockInfo.matrixStride;
+		case GL_UNIFORM_IS_ROW_MAJOR: return static_cast<GLint>(uniform.blockInfo.isRowMajorMatrix);
+		default:
+			UNREACHABLE();
+			break;
+		}
+		return 0;
 	}
 
 	void Program::getActiveUniformBlockName(GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name) const
