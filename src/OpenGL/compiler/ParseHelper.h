@@ -39,6 +39,8 @@ struct TParseContext {
             currentFunctionType(NULL),
             functionReturnsValue(false),
             checksPrecisionErrors(checksPrecErrors),
+            defaultMatrixPacking(EmpColumnMajor),
+            defaultBlockStorage(EbsShared),
             diagnostics(is),
             shaderVersion(100),
             directiveHandler(ext, diagnostics, shaderVersion),
@@ -58,6 +60,8 @@ struct TParseContext {
     const TType* currentFunctionType;  // the return type of the function that's currently being parsed
     bool functionReturnsValue;   // true if a non-void function has a return
     bool checksPrecisionErrors;  // true if an error will be generated when a variable is declared without precision, explicit or implicit.
+    TLayoutMatrixPacking defaultMatrixPacking;
+    TLayoutBlockStorage defaultBlockStorage;
     TString HashErrMsg;
     bool AfterEOF;
     TDiagnostics diagnostics;
@@ -102,7 +106,8 @@ struct TParseContext {
     bool nonInitErrorCheck(int line, TString& identifier, TPublicType& type, TVariable*& variable);
     bool paramErrorCheck(int line, TQualifier qualifier, TQualifier paramQualifier, TType* type);
     bool extensionErrorCheck(int line, const TString&);
-    bool layoutLocationErrorCheck(const TSourceLoc &location, const TLayoutQualifier &layoutQualifier);
+    bool layoutLocationErrorCheck(const TSourceLoc& location, const TLayoutQualifier &layoutQualifier);
+    bool functionCallLValueErrorCheck(const TFunction *fnCandidate, TIntermAggregate *);
 
     const TExtensionBehavior& extensionBehavior() const { return directiveHandler.extensionBehavior(); }
     bool supportsExtension(const char* extension);
@@ -125,7 +130,12 @@ struct TParseContext {
     TIntermTyped* addConstVectorNode(TVectorFields&, TIntermTyped*, TSourceLoc);
     TIntermTyped* addConstMatrixNode(int , TIntermTyped*, TSourceLoc);
     TIntermTyped* addConstArrayNode(int index, TIntermTyped* node, TSourceLoc line);
-    TIntermTyped* addConstStruct(TString& , TIntermTyped*, TSourceLoc);
+    TIntermTyped* addConstStruct(const TString& , TIntermTyped*, TSourceLoc);
+    TIntermTyped *addIndexExpression(TIntermTyped *baseExpression, const TSourceLoc& location, TIntermTyped *indexExpression);
+    TIntermTyped* addFieldSelectionExpression(TIntermTyped *baseExpression, const TSourceLoc &dotLocation, const TString &fieldString, const TSourceLoc &fieldLocation);
+
+    TFieldList *addStructDeclaratorList(const TPublicType &typeSpecifier, TFieldList *fieldList);
+    TPublicType addStructure(const TSourceLoc &structLine, const TSourceLoc &nameLine, const TString *structName, TFieldList *fieldList);
 
     TLayoutQualifier parseLayoutQualifier(const TString &qualifierType, const TSourceLoc& qualifierTypeLine);
     TLayoutQualifier parseLayoutQualifier(const TString &qualifierType, const TSourceLoc& qualifierTypeLine, const TString &intValueString, int intValue, const TSourceLoc& intValueLine);
@@ -138,7 +148,18 @@ struct TParseContext {
     bool enterStructDeclaration(TSourceLoc line, const TString& identifier);
     void exitStructDeclaration();
 
-    bool structNestingErrorCheck(TSourceLoc line, const TType& fieldType);
+	bool structNestingErrorCheck(const TSourceLoc &line, const TField &field);
+
+	TIntermTyped *addUnaryMath(TOperator op, TIntermTyped *child, const TSourceLoc &loc);
+	TIntermTyped *addUnaryMathLValue(TOperator op, TIntermTyped *child, const TSourceLoc &loc);
+
+private:
+	// The funcReturnType parameter is expected to be non-null when the operation is a built-in function.
+	// It is expected to be null for other unary operators.
+	TIntermTyped *createUnaryMath(TOperator op, TIntermTyped *child, const TSourceLoc &loc, const TType *funcReturnType);
+
+	// Return true if the checks pass
+	bool binaryOpCommonCheck(TOperator op, TIntermTyped *left, TIntermTyped *right, const TSourceLoc &loc);
 };
 
 int PaParseStrings(int count, const char* const string[], const int length[],

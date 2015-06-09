@@ -193,7 +193,7 @@ public:
 
     bool insert(TSymbol &symbol)
     {
-		symbol.setUniqueId(++uniqueId);
+		symbol.setUniqueId(nextUniqueId());
 
         //
         // returning true means symbol was added to the table
@@ -212,6 +212,11 @@ public:
         else
             return (*it).second;
     }
+
+	static int nextUniqueId()
+	{
+		return ++uniqueId;
+	}
 
 protected:
     tLevel level;

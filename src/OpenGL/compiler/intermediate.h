@@ -89,6 +89,7 @@ enum TOperator {
     EOpIndexDirect,
     EOpIndexIndirect,
     EOpIndexDirectStruct,
+    EOpIndexDirectInterfaceBlock,
 
     EOpVectorSwizzle,
 
@@ -295,6 +296,7 @@ public:
     int getNominalSize() const { return type.getNominalSize(); }
 	int getSecondarySize() const { return type.getSecondarySize(); }
     
+	bool isInterfaceBlock() const { return type.isInterfaceBlock(); }
     bool isMatrix() const { return type.isMatrix(); }
     bool isArray()  const { return type.isArray(); }
     bool isVector() const { return type.isVector(); }
@@ -411,6 +413,9 @@ public:
     int getUConst(int index) const { return unionArrayPointer ? unionArrayPointer[index].getUConst() : 0; }
     float getFConst(int index) const { return unionArrayPointer ? unionArrayPointer[index].getFConst() : 0.0f; }
     bool getBConst(int index) const { return unionArrayPointer ? unionArrayPointer[index].getBConst() : false; }
+
+	// Previous union pointer freed on pool deallocation.
+	void replaceConstantUnion(ConstantUnion *safeConstantUnion) { unionArrayPointer = safeConstantUnion; }
 
     virtual TIntermConstantUnion* getAsConstantUnion()  { return this; }
     virtual void traverse(TIntermTraverser*);
