@@ -784,10 +784,61 @@ namespace sw
 		lock = LOCK_UNLOCKED;
 	}
 
+	Surface::Surface(int width, int height, int depth, Format format, void *pixels, int pitch, int slice) : lockable(true), renderTarget(false)
+	{
+		resource = new Resource(0);
+		hasParent = false;
+		ownExternal = false;
+		depth = max(1, depth);
+
+		external.buffer = pixels;
+		external.width = width;
+		external.height = height;
+		external.depth = depth;
+		external.format = format;
+		external.bytes = bytes(external.format);
+		external.pitchB = pitch;
+		external.pitchP = pitch / external.bytes;
+		external.sliceB = slice;
+		external.sliceP = slice / external.bytes;
+		external.lock = LOCK_UNLOCKED;
+		external.dirty = true;
+
+		internal.buffer = 0;
+		internal.width = width;
+		internal.height = height;
+		internal.depth = depth;
+		internal.format = selectInternalFormat(format);
+		internal.bytes = bytes(internal.format);
+		internal.pitchB = pitchB(internal.width, internal.format, false);
+		internal.pitchP = pitchP(internal.width, internal.format, false);
+		internal.sliceB = sliceB(internal.width, internal.height, internal.format, false);
+		internal.sliceP = sliceP(internal.width, internal.height, internal.format, false);
+		internal.lock = LOCK_UNLOCKED;
+		internal.dirty = false;
+
+		stencil.buffer = 0;
+		stencil.width = width;
+		stencil.height = height;
+		stencil.depth = depth;
+		stencil.format = FORMAT_S8;
+		stencil.bytes = bytes(stencil.format);
+		stencil.pitchB = pitchB(stencil.width, stencil.format, false);
+		stencil.pitchP = pitchP(stencil.width, stencil.format, false);
+		stencil.sliceB = sliceB(stencil.width, stencil.height, stencil.format, false);
+		stencil.sliceP = sliceP(stencil.width, stencil.height, stencil.format, false);
+		stencil.lock = LOCK_UNLOCKED;
+		stencil.dirty = false;
+
+		dirtyMipmaps = true;
+		paletteUsed = 0;
+	}
+
 	Surface::Surface(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget) : lockable(lockable), renderTarget(renderTarget)
 	{
 		resource = texture ? texture : new Resource(0);
 		hasParent = texture != 0;
+		ownExternal = true;
 		depth = max(1, depth);
 
 		external.buffer = 0;
@@ -844,7 +895,10 @@ namespace sw
 			resource->destruct();
 		}
 
-		deallocate(external.buffer);
+		if(ownExternal)
+		{
+			deallocate(external.buffer);
+		}
 
 		if(internal.buffer != external.buffer)
 		{

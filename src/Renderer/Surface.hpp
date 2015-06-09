@@ -172,6 +172,7 @@ namespace sw
 		};
 
 	public:
+		Surface(int width, int height, int depth, Format format, void *pixels, int pitch, int slice);
 		Surface(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget);
 		
 		virtual ~Surface();
@@ -386,6 +387,7 @@ namespace sw
 		static unsigned int paletteID;
 
 		bool hasParent;
+		bool ownExternal;
 	};
 }
 
