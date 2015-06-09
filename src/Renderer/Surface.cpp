@@ -225,10 +225,10 @@ namespace sw
 
 	inline Color<float> Surface::Buffer::read(void *element) const
 	{
-		float r = 1;
-		float g = 1;
-		float b = 1;
-		float a = 1;
+		float r = 0.0f;
+		float g = 0.0f;
+		float b = 0.0f;
+		float a = 1.0f;
 
 		switch(format)
 		{
