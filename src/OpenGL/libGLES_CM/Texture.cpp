@@ -786,7 +786,7 @@ egl::Image *createBackBuffer(int width, int height, const egl::Config *config)
 {
 	if(config)
 	{
-		return new egl::Image(0, width, height, config->mAlphaSize ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE);
+		return new egl::Image(width, height, config->mRenderTargetFormat, 1, false, true);
 	}
 
 	return 0;
@@ -825,7 +825,7 @@ egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Form
 		UNREACHABLE();
 	}
 
-	egl::Image *surface = new egl::Image(0, width, height, format, multiSampleDepth, lockable, true);
+	egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable, true);
 
 	if(!surface)
 	{

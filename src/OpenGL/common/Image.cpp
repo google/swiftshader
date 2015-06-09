@@ -356,6 +356,98 @@ namespace
 
 namespace egl
 {
+	sw::Format SelectInternalFormat(GLenum format, GLenum type)
+	{
+		if(format == GL_ETC1_RGB8_OES)
+		{
+			return sw::FORMAT_ETC1;
+		}
+		else
+		#if S3TC_SUPPORT
+		if(format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
+		   format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT)
+		{
+			return sw::FORMAT_DXT1;
+		}
+		else if(format == GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE)
+		{
+			return sw::FORMAT_DXT3;
+		}
+		else if(format == GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE)
+		{
+			return sw::FORMAT_DXT5;
+		}
+		else
+		#endif
+		if(type == GL_FLOAT)
+		{
+			return sw::FORMAT_A32B32G32R32F;
+		}
+		else if(type == GL_HALF_FLOAT || type == GL_HALF_FLOAT_OES)
+		{
+			return sw::FORMAT_A16B16G16R16F;
+		}
+		else if(type == GL_UNSIGNED_BYTE)
+		{
+			if(format == GL_LUMINANCE)
+			{
+				return sw::FORMAT_L8;
+			}
+			else if(format == GL_LUMINANCE_ALPHA)
+			{
+				return sw::FORMAT_A8L8;
+			}
+			else if(format == GL_RGBA)
+			{
+				return sw::FORMAT_A8B8G8R8;
+			}
+			else if(format == GL_BGRA_EXT)
+			{
+				return sw::FORMAT_A8R8G8B8;
+			}
+			else if(format == GL_RGB)
+			{
+				return sw::FORMAT_X8B8G8R8;
+			}
+			else if(format == GL_ALPHA)
+			{
+				return sw::FORMAT_A8;
+			}
+			else UNREACHABLE();
+		}
+		else if(type == GL_UNSIGNED_SHORT || type == GL_UNSIGNED_INT)
+		{
+			if(format == GL_DEPTH_COMPONENT)
+			{
+				return sw::FORMAT_D32FS8_TEXTURE;
+			}
+			else UNREACHABLE();
+		}
+		else if(type == GL_UNSIGNED_INT_24_8_OES)
+		{
+			if(format == GL_DEPTH_STENCIL_OES)
+			{
+				return sw::FORMAT_D32FS8_TEXTURE;
+			}
+			else UNREACHABLE();
+		}
+		else if(type == GL_UNSIGNED_SHORT_4_4_4_4)
+		{
+			return sw::FORMAT_A8R8G8B8;
+		}
+		else if(type == GL_UNSIGNED_SHORT_5_5_5_1)
+		{
+			return sw::FORMAT_A8R8G8B8;
+		}
+		else if(type == GL_UNSIGNED_SHORT_5_6_5)
+		{
+			return sw::FORMAT_X8R8G8B8;
+		}
+		else UNREACHABLE();
+
+		return sw::FORMAT_A8B8G8R8;
+	}
+
 	// Returns the size, in bytes, of a single texel in an Image
 	int ComputePixelSize(GLenum format, GLenum type)
 	{
@@ -489,98 +581,6 @@ namespace egl
 		}
 
 		release();
-	}
-
-	sw::Format Image::selectInternalFormat(GLenum format, GLenum type)
-	{
-		if(format == GL_ETC1_RGB8_OES)
-		{
-			return sw::FORMAT_ETC1;
-		}
-		else
-		#if S3TC_SUPPORT
-		if(format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
-		   format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT)
-		{
-			return sw::FORMAT_DXT1;
-		}
-		else if(format == GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE)
-		{
-			return sw::FORMAT_DXT3;
-		}
-		else if(format == GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE)
-		{
-			return sw::FORMAT_DXT5;
-		}
-		else
-		#endif
-		if(type == GL_FLOAT)
-		{
-			return sw::FORMAT_A32B32G32R32F;
-		}
-		else if(type == GL_HALF_FLOAT || type == GL_HALF_FLOAT_OES)
-		{
-			return sw::FORMAT_A16B16G16R16F;
-		}
-		else if(type == GL_UNSIGNED_BYTE)
-		{
-			if(format == GL_LUMINANCE)
-			{
-				return sw::FORMAT_L8;
-			}
-			else if(format == GL_LUMINANCE_ALPHA)
-			{
-				return sw::FORMAT_A8L8;
-			}
-			else if(format == GL_RGBA)
-			{
-				return sw::FORMAT_A8B8G8R8;
-			}
-			else if(format == GL_BGRA_EXT)
-			{
-				return sw::FORMAT_A8R8G8B8;
-			}
-			else if(format == GL_RGB)
-			{
-				return sw::FORMAT_X8B8G8R8;
-			}
-			else if(format == GL_ALPHA)
-			{
-				return sw::FORMAT_A8;
-			}
-			else UNREACHABLE();
-		}
-		else if(type == GL_UNSIGNED_SHORT || type == GL_UNSIGNED_INT)
-		{
-			if(format == GL_DEPTH_COMPONENT)
-			{
-				return sw::FORMAT_D32FS8_TEXTURE;
-			}
-			else UNREACHABLE();
-		}
-		else if(type == GL_UNSIGNED_INT_24_8_OES)
-		{
-			if(format == GL_DEPTH_STENCIL_OES)
-			{
-				return sw::FORMAT_D32FS8_TEXTURE;
-			}
-			else UNREACHABLE();
-		}
-		else if(type == GL_UNSIGNED_SHORT_4_4_4_4)
-		{
-			return sw::FORMAT_A8R8G8B8;
-		}
-		else if(type == GL_UNSIGNED_SHORT_5_5_5_1)
-		{
-			return sw::FORMAT_A8R8G8B8;
-		}
-		else if(type == GL_UNSIGNED_SHORT_5_6_5)
-		{
-			return sw::FORMAT_X8R8G8B8;
-		}
-		else UNREACHABLE();
-
-		return sw::FORMAT_A8B8G8R8;
 	}
 
 	void Image::loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const UnpackInfo& unpackInfo, const void *input)

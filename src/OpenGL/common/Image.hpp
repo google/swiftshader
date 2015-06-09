@@ -30,6 +30,7 @@ typedef unsigned int GLenum;
 typedef int GLint;
 typedef int GLsizei;
 
+sw::Format SelectInternalFormat(GLenum format, GLenum type);
 int ComputePixelSize(GLenum format, GLenum type);
 GLsizei ComputePitch(GLsizei width, GLenum format, GLenum type, GLint alignment);
 GLsizei ComputeCompressedPitch(GLsizei width, GLenum format);
@@ -37,37 +38,33 @@ GLsizei ComputeCompressedSize(GLsizei width, GLsizei height, GLenum format);
 
 static inline sw::Resource *getParentResource(egl::Texture *texture)
 {
-	if (texture)
-	{
-		return texture->getResource();
-	}
-	return 0;
+	return texture ? texture->getResource() : nullptr;
 }
 
 class Image : public sw::Surface
 {
 public:
 	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
-			: sw::Surface(getParentResource(parentTexture), width, height, 1, selectInternalFormat(format, type), true, true),
-			  width(width), height(height), format(format), type(type), internalFormat(selectInternalFormat(format, type)), depth(1),
-			  parentTexture(parentTexture)
+		: sw::Surface(getParentResource(parentTexture), width, height, 1, SelectInternalFormat(format, type), true, true),
+		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(1),
+		  parentTexture(parentTexture)
 	{
 		shared = false;
 		referenceCount = 1;
 	}
 
 	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type)
-			: sw::Surface(getParentResource(parentTexture), width, height, depth, selectInternalFormat(format, type), true, true),
-			  width(width), height(height), format(format), type(type), internalFormat(selectInternalFormat(format, type)), depth(depth),
-			  parentTexture(parentTexture)
+		: sw::Surface(getParentResource(parentTexture), width, height, depth, SelectInternalFormat(format, type), true, true),
+		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(depth),
+		  parentTexture(parentTexture)
 	{
 		shared = false;
 		referenceCount = 1;
 	}
 
-	Image(Texture *parentTexture, GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable, bool renderTarget)
-			: sw::Surface(getParentResource(parentTexture), width, height, multiSampleDepth, internalFormat, lockable, renderTarget),
-			  width(width), height(height), format(0 /*GL_NONE*/), type(0 /*GL_NONE*/), internalFormat(internalFormat), depth(multiSampleDepth), parentTexture(parentTexture)
+	Image(GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable, bool renderTarget)
+		: sw::Surface(nullptr, width, height, multiSampleDepth, internalFormat, lockable, renderTarget),
+		  width(width), height(height), format(0 /*GL_NONE*/), type(0 /*GL_NONE*/), internalFormat(internalFormat), depth(multiSampleDepth), parentTexture(nullptr)
 	{
 		shared = false;
 		referenceCount = 1;
@@ -144,8 +141,6 @@ public:
 
 	void loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const UnpackInfo& unpackInfo, const void *input);
 	void loadCompressedData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const void *pixels);
-
-	static sw::Format selectInternalFormat(GLenum format, GLenum type);
 
 	virtual void addRef();
 	virtual void release();

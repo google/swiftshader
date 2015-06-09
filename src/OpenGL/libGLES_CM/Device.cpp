@@ -240,7 +240,7 @@ namespace es1
 			UNREACHABLE();
 		}
 
-		egl::Image *surface = new egl::Image(0, width, height, format, multiSampleDepth, lockable, true);
+		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{
@@ -259,7 +259,7 @@ namespace es1
 			return 0;
 		}
 
-		egl::Image *surface = new egl::Image(0, width, height, format, multiSampleDepth, lockable, true);
+		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{
@@ -406,7 +406,7 @@ namespace es1
 		this->viewport = viewport;
 	}
 
-	bool Device::stretchRect(egl::Image *source, const sw::SliceRect *sourceRect, egl::Image *dest, const sw::SliceRect *destRect, bool filter)
+	bool Device::stretchRect(sw::Surface *source, const sw::SliceRect *sourceRect, sw::Surface *dest, const sw::SliceRect *destRect, bool filter)
 	{
 		if(!source || !dest || !validRectangle(sourceRect, source) || !validRectangle(destRect, dest))
 		{
@@ -612,7 +612,7 @@ namespace es1
 		return true;
 	}
 
-	bool Device::validRectangle(const sw::Rect *rect, egl::Image *surface)
+	bool Device::validRectangle(const sw::Rect *rect, sw::Surface *surface)
 	{
 		if(!rect)
 		{

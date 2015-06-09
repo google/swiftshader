@@ -248,7 +248,7 @@ namespace es2
 			UNREACHABLE();
 		}
 
-		egl::Image *surface = new egl::Image(0, width, height, format, multiSampleDepth, lockable, true);
+		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{
@@ -267,7 +267,7 @@ namespace es2
 			return 0;
 		}
 
-		egl::Image *surface = new egl::Image(0, width, height, format, multiSampleDepth, lockable, true);
+		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable, true);
 
 		if(!surface)
 		{
@@ -503,7 +503,7 @@ namespace es2
 		}
 	}
 
-	bool Device::stretchRect(egl::Image *source, const sw::SliceRect *sourceRect, egl::Image *dest, const sw::SliceRect *destRect, bool filter)
+	bool Device::stretchRect(sw::Surface *source, const sw::SliceRect *sourceRect, sw::Surface *dest, const sw::SliceRect *destRect, bool filter)
 	{
 		if(!source || !dest)
 		{
@@ -665,7 +665,7 @@ namespace es2
 		return true;
 	}
 
-	bool Device::stretchCube(egl::Image *source, egl::Image *dest)
+	bool Device::stretchCube(sw::Surface *source, sw::Surface *dest)
 	{
 		if(!source || !dest || egl::Image::isDepth(source->getInternalFormat()) || egl::Image::isStencil(source->getInternalFormat()))
 		{
@@ -846,7 +846,7 @@ namespace es2
 		return true;
 	}
 
-	bool Device::validRectangle(const sw::Rect *rect, egl::Image *surface)
+	bool Device::validRectangle(const sw::Rect *rect, sw::Surface *surface)
 	{
 		if(!rect)
 		{

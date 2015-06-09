@@ -68,8 +68,8 @@ namespace es2
 		virtual void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		virtual void setViewport(const Viewport &viewport);
 
-		virtual bool stretchRect(egl::Image *sourceSurface, const sw::SliceRect *sourceRect, egl::Image *destSurface, const sw::SliceRect *destRect, bool filter);
-		virtual bool stretchCube(egl::Image *sourceSurface, egl::Image *destSurface);
+		virtual bool stretchRect(sw::Surface *sourceSurface, const sw::SliceRect *sourceRect, sw::Surface *destSurface, const sw::SliceRect *destRect, bool filter);
+		virtual bool stretchCube(sw::Surface *sourceSurface, sw::Surface *destSurface);
 		virtual void finish();
 
 		void getScissoredRegion(egl::Image *sourceSurface, int &x0, int &y0, int& width, int& height) const;
@@ -81,7 +81,7 @@ namespace es2
 		void bindShaderConstants();
 		bool bindViewport();   // Also adjusts for scissoring
 
-		bool validRectangle(const sw::Rect *rect, egl::Image *surface);
+		bool validRectangle(const sw::Rect *rect, sw::Surface *surface);
 
 		void copyBuffer(sw::byte *sourceBuffer, sw::byte *destBuffer, unsigned int width, unsigned int height, unsigned int sourcePitch, unsigned int destPitch, unsigned int bytes, bool flipX, bool flipY);
 

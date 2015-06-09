@@ -64,7 +64,7 @@ namespace es1
 		virtual void setScissorRect(const sw::Rect &rect);
 		virtual void setViewport(const Viewport &viewport);
 
-		virtual bool stretchRect(egl::Image *sourceSurface, const sw::SliceRect *sourceRect, egl::Image *destSurface, const sw::SliceRect *destRect, bool filter);
+		virtual bool stretchRect(sw::Surface *sourceSurface, const sw::SliceRect *sourceRect, sw::Surface *destSurface, const sw::SliceRect *destRect, bool filter);
 		virtual void finish();
 
 	private:
@@ -73,7 +73,7 @@ namespace es1
 		bool bindResources();
 		bool bindViewport();   // Also adjusts for scissoring
 
-		bool validRectangle(const sw::Rect *rect, egl::Image *surface);
+		bool validRectangle(const sw::Rect *rect, sw::Surface *surface);
 
 		Viewport viewport;
 		sw::Rect scissorRect;

@@ -173,7 +173,6 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 
     if(mConfig->mDepthStencilFormat != sw::FORMAT_NULL)
     {
-
 		if(libGLES_CM)
 		{
 			mDepthStencil = libGLES_CM->createDepthStencil(backBufferWidth, backBufferHeight, mConfig->mDepthStencilFormat, 1, false);
