@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5934fc65_d6b9243b",
+        "filename": "src/Renderer/Surface.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-10T17:07:11Z",
+      "side": 1,
+      "message": "Seems unrelated to the rest of this cl. These should probably be added in the same cl as the other corresponding functions are removed.",
+      "range": {
+        "startLine": 168,
+        "startChar": 0,
+        "endLine": 169,
+        "endChar": 44
+      },
+      "revId": "616247286e1f4e4271919b52f9b2bfcaf9a0e1e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5934fc65_96bcfc28",
+        "filename": "src/Renderer/Surface.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-10T17:07:11Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 173,
+        "startChar": 0,
+        "endLine": 177,
+        "endChar": 52
+      },
+      "revId": "616247286e1f4e4271919b52f9b2bfcaf9a0e1e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
