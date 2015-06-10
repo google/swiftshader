@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5934fc65_71f2a2e6",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 841,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-10T17:16:12Z",
+      "side": 1,
+      "message": "Why isn\u0027t this dependent on whether texture is NULL or not?",
+      "range": {
+        "startLine": 841,
+        "startChar": 16,
+        "endLine": 841,
+        "endChar": 20
+      },
+      "revId": "7b52e718c6cc17c031a6d09a2858325b2125cf50",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
