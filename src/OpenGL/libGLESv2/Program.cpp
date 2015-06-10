@@ -92,6 +92,16 @@ namespace es2
 	{
 	}
 
+	LinkedVarying::LinkedVarying()
+	{
+	}
+
+	LinkedVarying::LinkedVarying(const std::string &name, GLenum type, GLsizei size, const std::string &semanticName,
+	                             unsigned int semanticIndex, unsigned int semanticIndexCount)
+	 : name(name), type(type), size(size), semanticName(semanticName), semanticIndex(semanticIndex), semanticIndexCount(semanticIndexCount)
+	{
+	}
+
 	Program::Program(ResourceManager *manager, GLuint handle) : resourceManager(manager), handle(handle), serial(issueSerial())
 	{
 		device = getDevice();
@@ -2577,6 +2587,80 @@ namespace es2
 		}
 
 		return maxLength;
+	}
+
+	void Program::setTransformFeedbackVaryings(GLsizei count, const GLchar *const *varyings, GLenum bufferMode)
+	{
+		transformFeedbackVaryings.resize(count);
+		for(GLsizei i = 0; i < count; i++)
+		{
+			transformFeedbackVaryings[i] = varyings[i];
+		}
+
+		transformFeedbackBufferMode = bufferMode;
+	}
+
+	void Program::getTransformFeedbackVarying(GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name) const
+	{
+		if(linked)
+		{
+			ASSERT(index < transformFeedbackLinkedVaryings.size());
+			const LinkedVarying &varying = transformFeedbackLinkedVaryings[index];
+			GLsizei lastNameIdx = std::min(bufSize - 1, static_cast<GLsizei>(varying.name.length()));
+			if(length)
+			{
+				*length = lastNameIdx;
+			}
+			if(size)
+			{
+				*size = varying.size;
+			}
+			if(type)
+			{
+				*type = varying.type;
+			}
+			if(name)
+			{
+				memcpy(name, varying.name.c_str(), lastNameIdx);
+				name[lastNameIdx] = '\0';
+			}
+		}
+	}
+
+	GLsizei Program::getTransformFeedbackVaryingCount() const
+	{
+		if(linked)
+		{
+			return static_cast<GLsizei>(transformFeedbackLinkedVaryings.size());
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	GLsizei Program::getTransformFeedbackVaryingMaxLength() const
+	{
+		if(linked)
+		{
+			GLsizei maxSize = 0;
+			for(size_t i = 0; i < transformFeedbackLinkedVaryings.size(); i++)
+			{
+				const LinkedVarying &varying = transformFeedbackLinkedVaryings[i];
+				maxSize = std::max(maxSize, static_cast<GLsizei>(varying.name.length() + 1));
+			}
+
+			return maxSize;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	GLenum Program::getTransformFeedbackBufferMode() const
+	{
+		return transformFeedbackBufferMode;
 	}
 
 	void Program::flagForDeletion()

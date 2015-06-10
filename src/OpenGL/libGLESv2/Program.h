@@ -104,6 +104,24 @@ namespace es2
 		unsigned int index;
 	};
 
+	struct LinkedVarying
+	{
+		LinkedVarying();
+		LinkedVarying(const std::string &name, GLenum type, GLsizei size, const std::string &semanticName,
+		              unsigned int semanticIndex, unsigned int semanticIndexCount);
+
+		// Original GL name
+		std::string name;
+
+		GLenum type;
+		GLsizei size;
+
+		// DirectX semantic information
+		std::string semanticName;
+		unsigned int semanticIndex;
+		unsigned int semanticIndexCount;
+	};
+
 	class Program
 	{
 	public:
@@ -180,6 +198,12 @@ namespace es2
 		GLint getActiveUniformBlockCount() const;
 		GLint getActiveUniformBlockMaxLength() const;
 
+		void setTransformFeedbackVaryings(GLsizei count, const GLchar *const *varyings, GLenum bufferMode);
+		void getTransformFeedbackVarying(GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name) const;
+		GLsizei getTransformFeedbackVaryingCount() const;
+		GLsizei getTransformFeedbackVaryingMaxLength() const;
+		GLenum getTransformFeedbackBufferMode() const;
+
 		void addRef();
 		void release();
 		unsigned int getRefCount() const;
@@ -253,6 +277,9 @@ namespace es2
 
 		GLuint uniformBlockBindings[MAX_UNIFORM_BUFFER_BINDINGS];
 
+		std::vector<std::string> transformFeedbackVaryings;
+		GLenum transformFeedbackBufferMode;
+
 		struct Sampler
 		{
 			bool active;
@@ -269,6 +296,8 @@ namespace es2
 		UniformIndex uniformIndex;
 		typedef std::vector<UniformBlock*> UniformBlockArray;
 		UniformBlockArray uniformBlocks;
+		typedef std::vector<LinkedVarying> LinkedVaryingArray;
+		LinkedVaryingArray transformFeedbackLinkedVaryings;
 
 		bool linked;
 		bool orphaned;   // Flag to indicate that the program can be deleted when no longer in use

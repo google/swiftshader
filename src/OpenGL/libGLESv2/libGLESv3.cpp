@@ -1971,15 +1971,20 @@ GL_APICALL void GL_APIENTRY glTransformFeedbackVaryings(GLuint program, GLsizei 
 		{
 			return error(GL_INVALID_VALUE);
 		}
-	}
 
-	UNIMPLEMENTED();
+		programObject->setTransformFeedbackVaryings(count, varyings, bufferMode);
+	}
 }
 
 GL_APICALL void GL_APIENTRY glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name)
 {
 	TRACE("(GLuint program = %d, GLuint index = %d, GLsizei bufSize = %d, GLsizei *length = %p, GLsizei *size = %p, GLenum *type = %p, GLchar *name = %p)",
 	      program, index, bufSize, length, size, type, name);
+
+	if(bufSize < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
 
 	es2::Context *context = es2::getContext();
 
@@ -1991,9 +1996,14 @@ GL_APICALL void GL_APIENTRY glGetTransformFeedbackVarying(GLuint program, GLuint
 		{
 			return error(GL_INVALID_VALUE);
 		}
-	}
 
-	UNIMPLEMENTED();
+		if(index >= static_cast<GLuint>(programObject->getTransformFeedbackVaryingCount()))
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		programObject->getTransformFeedbackVarying(index, bufSize, length, size, type, name);
+	}
 }
 
 GL_APICALL void GL_APIENTRY glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer)

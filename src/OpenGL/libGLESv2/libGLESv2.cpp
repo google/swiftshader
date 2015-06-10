@@ -3196,6 +3196,33 @@ void GetProgramiv(GLuint program, GLenum pname, GLint* params)
 				return;
 			}
 			else return error(GL_INVALID_ENUM);
+		case GL_TRANSFORM_FEEDBACK_BUFFER_MODE:
+			if(clientVersion >= 3)
+			{
+				*params = programObject->getTransformFeedbackBufferMode();
+				return;
+			}
+			else return error(GL_INVALID_ENUM);
+		case GL_TRANSFORM_FEEDBACK_VARYINGS:
+			if(clientVersion >= 3)
+			{
+				*params = programObject->getTransformFeedbackVaryingCount();
+				return;
+			}
+			else return error(GL_INVALID_ENUM);
+		case GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH:
+			if(clientVersion >= 3)
+			{
+				*params = programObject->getTransformFeedbackVaryingMaxLength();
+				return;
+			}
+			else return error(GL_INVALID_ENUM);
+		case GL_PROGRAM_BINARY_RETRIEVABLE_HINT:
+			if(clientVersion >= 3)
+			{
+				UNIMPLEMENTED();
+			}
+			else return error(GL_INVALID_ENUM);
 		default:
 			return error(GL_INVALID_ENUM);
 		}
