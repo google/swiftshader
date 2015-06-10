@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "79254042_53f204e6",
+        "filename": "src/OpenGL/compiler/Compiler.vcxproj",
+        "patchSetId": 4
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-10T20:27:39Z",
+      "side": 1,
+      "message": "Also needed in the corresponding .cbp and .mk files.",
+      "range": {
+        "startLine": 219,
+        "startChar": 24,
+        "endLine": 219,
+        "endChar": 42
+      },
+      "revId": "de7f99935ecf34cff31946219ed45a48b3e2a126",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
