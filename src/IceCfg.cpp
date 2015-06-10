@@ -18,6 +18,7 @@
 #include "IceClFlags.h"
 #include "IceDefs.h"
 #include "IceELFObjectWriter.h"
+#include "IceGlobalInits.h"
 #include "IceInst.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
@@ -75,6 +76,69 @@ void Cfg::addImplicitArg(Variable *Arg) {
 // is used for dumping the stack frame location of Variables.
 bool Cfg::hasComputedFrame() const { return getTarget()->hasComputedFrame(); }
 
+namespace {
+constexpr char BlockNameGlobalPrefix[] = ".L$profiler$block_name$";
+constexpr char BlockStatsGlobalPrefix[] = ".L$profiler$block_info$";
+
+VariableDeclaration *nodeNameDeclaration(const IceString &NodeAsmName) {
+  VariableDeclaration *Var = VariableDeclaration::create();
+  Var->setName(BlockNameGlobalPrefix + NodeAsmName);
+  Var->setIsConstant(true);
+  Var->addInitializer(new VariableDeclaration::DataInitializer(
+      NodeAsmName.data(), NodeAsmName.size() + 1));
+  const SizeT Int64ByteSize = typeWidthInBytes(IceType_i64);
+  Var->setAlignment(Int64ByteSize); // Wasteful, 32-bit could use 4 bytes.
+  return Var;
+}
+
+VariableDeclaration *
+blockProfilingInfoDeclaration(const IceString &NodeAsmName,
+                              VariableDeclaration *NodeNameDeclaration) {
+  VariableDeclaration *Var = VariableDeclaration::create();
+  Var->setName(BlockStatsGlobalPrefix + NodeAsmName);
+  const SizeT Int64ByteSize = typeWidthInBytes(IceType_i64);
+  Var->addInitializer(new VariableDeclaration::ZeroInitializer(Int64ByteSize));
+
+  const RelocOffsetT NodeNameDeclarationOffset = 0;
+  Var->addInitializer(new VariableDeclaration::RelocInitializer(
+      NodeNameDeclaration, NodeNameDeclarationOffset));
+  Var->setAlignment(Int64ByteSize);
+  return Var;
+}
+
+} // end of anonymous namespace
+
+void Cfg::profileBlocks() {
+  if (GlobalInits == nullptr)
+    GlobalInits.reset(new VariableDeclarationList());
+
+  for (CfgNode *Node : Nodes) {
+    IceString NodeAsmName = Node->getAsmName();
+    GlobalInits->push_back(nodeNameDeclaration(NodeAsmName));
+    GlobalInits->push_back(
+        blockProfilingInfoDeclaration(NodeAsmName, GlobalInits->back()));
+    Node->profileExecutionCount(GlobalInits->back());
+  }
+}
+
+bool Cfg::isProfileGlobal(const VariableDeclaration &Var) {
+  return Var.getName().find(BlockStatsGlobalPrefix) == 0;
+}
+
+void Cfg::addCallToProfileSummary() {
+  // The call(s) to __Sz_profile_summary are added by the profiler in functions
+  // that cause the program to exit. This function is defined in
+  // runtime/szrt_profiler.c.
+  Constant *ProfileSummarySym =
+      Ctx->getConstantExternSym("__Sz_profile_summary");
+  constexpr SizeT NumArgs = 0;
+  constexpr Variable *Void = nullptr;
+  constexpr bool HasTailCall = false;
+  auto *Call =
+      InstCall::create(this, NumArgs, Void, ProfileSummarySym, HasTailCall);
+  getEntryNode()->getInsts().push_front(Call);
+}
+
 void Cfg::translate() {
   if (hasError())
     return;
@@ -98,6 +162,16 @@ void Cfg::translate() {
   TimerMarker T(TimerStack::TT_translate, this);
 
   dump("Initial CFG");
+
+  if (getContext()->getFlags().getEnableBlockProfile()) {
+    profileBlocks();
+    // TODO(jpp): this is fragile, at best. Figure out a better way of detecting
+    // exit functions.
+    if (GlobalContext::matchSymbolName(getFunctionName(), "exit")) {
+      addCallToProfileSummary();
+    }
+    dump("Profiled CFG");
+  }
 
   // The set of translation passes and their order are determined by
   // the target.

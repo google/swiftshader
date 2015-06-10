@@ -65,6 +65,9 @@ public:
   bool getDumpStats() const { return ALLOW_DUMP && DumpStats; }
   void setDumpStats(bool NewValue) { DumpStats = NewValue; }
 
+  bool getEnableBlockProfile() const { return EnableBlockProfile; }
+  void setEnableBlockProfile(bool NewValue) { EnableBlockProfile = NewValue; }
+
   bool getFunctionSections() const { return FunctionSections; }
   void setFunctionSections(bool NewValue) { FunctionSections = NewValue; }
 
@@ -182,6 +185,7 @@ private:
   bool DisableIRGeneration;
   bool DisableTranslation;
   bool DumpStats;
+  bool EnableBlockProfile;
   bool FunctionSections;
   bool GenerateUnitTestMessages;
   bool PhiEdgeSplit;

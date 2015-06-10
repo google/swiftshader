@@ -190,6 +190,7 @@ public:
   EmitterWorkItem(uint32_t Seq, Cfg *F);
   uint32_t getSequenceNumber() const { return Sequence; }
   ItemKind getKind() const { return Kind; }
+  void setGlobalInits(std::unique_ptr<VariableDeclarationList> GloblInits);
   std::unique_ptr<VariableDeclarationList> getGlobalInits();
   std::unique_ptr<Assembler> getAsm();
   std::unique_ptr<Cfg> getCfg();

@@ -276,7 +276,7 @@ $(SB_OBJDIR):
 $(OBJDIR)/unittest: $(OBJDIR)
 	@mkdir -p $@
 
-RT_SRC := runtime/szrt.c runtime/szrt_ll.ll
+RT_SRC := runtime/szrt.c runtime/szrt_ll.ll runtime/szrt_profiler.c
 RT_OBJ := build/runtime/szrt_native_x8632.o build/runtime/szrt_sb_x8632.o
 
 runtime: $(RT_OBJ)
@@ -285,7 +285,7 @@ runtime: $(RT_OBJ)
 # even in a parallel build.
 .INTERMEDIATE: runtime.is.built
 $(RT_OBJ): runtime.is.built
-runtime.is.built: $(RT_SRC)
+runtime.is.built: $(RT_SRC) pydir/build-runtime.py
 	@echo ================ Building Subzero runtime ================
 	./pydir/build-runtime.py -v --pnacl-root $(PNACL_TOOLCHAIN_ROOT)
 

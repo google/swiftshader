@@ -19,6 +19,7 @@
 #include "llvm/Support/Timer.h"
 
 #include "IceCfg.h"
+#include "IceCfgNode.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
 #include "IceELFObjectWriter.h"
@@ -277,6 +278,7 @@ void GlobalContext::translateFunctions() {
       Cfg::setCurrentCfg(nullptr);
       continue; // Func goes out of scope and gets deleted
     }
+
     Func->translate();
     EmitterWorkItem *Item = nullptr;
     if (Func->hasError()) {
@@ -285,6 +287,7 @@ void GlobalContext::translateFunctions() {
       getStrError() << "ICE translation error: " << Func->getFunctionName()
                     << ": " << Func->getError() << "\n";
       Item = new EmitterWorkItem(Func->getSequenceNumber());
+      Item->setGlobalInits(Func->getGlobalInits());
     } else {
       Func->getAssembler<>()->setInternal(Func->getInternal());
       switch (getFlags().getOutFileType()) {
@@ -299,11 +302,15 @@ void GlobalContext::translateFunctions() {
         // Copy relevant fields into Asm before Func is deleted.
         Asm->setFunctionName(Func->getFunctionName());
         Item = new EmitterWorkItem(Func->getSequenceNumber(), Asm);
+        Item->setGlobalInits(Func->getGlobalInits());
       } break;
       case FT_Asm:
         // The Cfg has not been emitted yet, so stats are not ready
         // to be dumped.
+        std::unique_ptr<VariableDeclarationList> GlobalInits =
+            Func->getGlobalInits();
         Item = new EmitterWorkItem(Func->getSequenceNumber(), Func.release());
+        Item->setGlobalInits(std::move(GlobalInits));
         break;
       }
     }
@@ -315,6 +322,43 @@ void GlobalContext::translateFunctions() {
 }
 
 namespace {
+
+// Adds an array of pointers to all the profiler-generated globals. The
+// __Sz_profile_summary function iterates over this array for printing the
+// profiling counters.
+VariableDeclaration *blockProfileInfo(const VariableDeclarationList &Globals) {
+  auto *Var = VariableDeclaration::create();
+  Var->setAlignment(typeWidthInBytes(IceType_i64));
+  Var->setIsConstant(true);
+
+  // Note: if you change this symbol, make sure to update
+  // runtime/szrt_profiler.c as well.
+  Var->setName("__Sz_block_profile_info");
+  Var->setLinkage(llvm::GlobalValue::ExternalLinkage);
+  for (const VariableDeclaration *Global : Globals) {
+    if (Cfg::isProfileGlobal(*Global)) {
+      constexpr RelocOffsetT BlockExecutionCounterOffset = 0;
+      Var->addInitializer(new VariableDeclaration::RelocInitializer(
+          Global, BlockExecutionCounterOffset));
+    }
+  }
+
+  // This adds a 64-bit sentinel entry to the end of our array. For 32-bit
+  // architectures this will waste 4 bytes.
+  const SizeT Sizeof64BitNullPtr = typeWidthInBytes(IceType_i64);
+  Var->addInitializer(
+      new VariableDeclaration::ZeroInitializer(Sizeof64BitNullPtr));
+
+  return Var;
+}
+
+void addBlockProfileInfoArrayToGlobals(VariableDeclarationList *Globals) {
+  // Purposefully create the Var temp to prevent bugs in case the compiler
+  // reorders instructions in a way that Globals is extended before the call
+  // to profileInfoArray.
+  VariableDeclaration *Var = blockProfileInfo(*Globals);
+  Globals->push_back(Var);
+}
 
 void lowerGlobals(GlobalContext *Ctx,
                   std::unique_ptr<VariableDeclarationList> VariableDeclarations,
@@ -331,6 +375,13 @@ void lowerGlobals(GlobalContext *Ctx,
   }
   if (Ctx->getFlags().getDisableTranslation())
     return;
+
+  // There should be no need to emit the block_profile_info array if profiling
+  // is disabled. In practice, given that szrt_profiler.o will always be
+  // embedded in the application, we need to add it. In a non-profiled build
+  // this array will only contain the nullptr terminator.
+  addBlockProfileInfoArrayToGlobals(VariableDeclarations.get());
+
   DataLowering->lowerGlobals(std::move(VariableDeclarations));
 }
 
@@ -338,6 +389,13 @@ void lowerGlobals(GlobalContext *Ctx,
 void resizePending(std::vector<EmitterWorkItem *> &Pending, uint32_t Index) {
   if (Index >= Pending.size())
     Pending.resize(Index + 1);
+}
+
+void addAllIfNotNull(std::unique_ptr<VariableDeclarationList> src,
+                     VariableDeclarationList *dst) {
+  if (src != nullptr) {
+    dst->insert(dst->end(), src->begin(), src->end());
+  }
 }
 
 } // end of anonymous namespace
@@ -350,6 +408,8 @@ void GlobalContext::emitItems() {
   // the work queue, and if it's not the item we're waiting for, we
   // insert it into Pending and repeat.  The work item is deleted
   // after it is processed.
+  std::unique_ptr<VariableDeclarationList> GlobalInits(
+      new VariableDeclarationList());
   std::vector<EmitterWorkItem *> Pending;
   uint32_t DesiredSequenceNumber = getFirstSequenceNumber();
   while (true) {
@@ -359,7 +419,7 @@ void GlobalContext::emitItems() {
     if (RawItem == nullptr)
       RawItem = emitQueueBlockingPop();
     if (RawItem == nullptr)
-      return;
+      break;
     uint32_t ItemSeq = RawItem->getSequenceNumber();
     if (Threaded && ItemSeq != DesiredSequenceNumber) {
       resizePending(Pending, ItemSeq);
@@ -373,10 +433,10 @@ void GlobalContext::emitItems() {
     case EmitterWorkItem::WI_Nop:
       break;
     case EmitterWorkItem::WI_GlobalInits: {
-      lowerGlobals(this, Item->getGlobalInits(),
-                   TargetDataLowering::createLowering(this).get());
+      addAllIfNotNull(Item->getGlobalInits(), GlobalInits.get());
     } break;
     case EmitterWorkItem::WI_Asm: {
+      addAllIfNotNull(Item->getGlobalInits(), GlobalInits.get());
       std::unique_ptr<Assembler> Asm = Item->getAsm();
       Asm->alignFunction();
       IceString MangledName = mangleName(Asm->getFunctionName());
@@ -398,6 +458,9 @@ void GlobalContext::emitItems() {
     case EmitterWorkItem::WI_Cfg: {
       if (!ALLOW_DUMP)
         llvm::report_fatal_error("WI_Cfg work item created inappropriately");
+
+      addAllIfNotNull(Item->getGlobalInits(), GlobalInits.get());
+
       assert(getFlags().getOutFileType() == FT_Asm);
       std::unique_ptr<Cfg> Func = Item->getCfg();
       // Unfortunately, we have to temporarily install the Cfg in TLS
@@ -410,6 +473,9 @@ void GlobalContext::emitItems() {
     } break;
     }
   }
+
+  lowerGlobals(this, std::move(GlobalInits),
+               TargetDataLowering::createLowering(this).get());
 }
 
 // Scan a string for S[0-9A-Z]*_ patterns and replace them with

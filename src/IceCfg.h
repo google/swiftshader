@@ -128,9 +128,16 @@ public:
     return static_cast<T *>(TargetAssembler.get());
   }
   Assembler *releaseAssembler() { return TargetAssembler.release(); }
+  std::unique_ptr<VariableDeclarationList> getGlobalInits() {
+    return std::move(GlobalInits);
+  }
   bool hasComputedFrame() const;
   bool getFocusedTiming() const { return FocusedTiming; }
   void setFocusedTiming() { FocusedTiming = true; }
+
+  // Returns true if Var is a global variable that is used by the profiling
+  // code.
+  static bool isProfileGlobal(const VariableDeclaration &Var);
 
   // Passes over the CFG.
   void translate();
@@ -188,6 +195,15 @@ public:
 private:
   Cfg(GlobalContext *Ctx, uint32_t SequenceNumber);
 
+  // Adds a call to the ProfileSummary runtime function as the first instruction
+  // in this CFG's entry block.
+  void addCallToProfileSummary();
+
+  // Iterates over the basic blocks in this CFG, adding profiling code to each
+  // one of them. It returns a list with all the globals that the profiling code
+  // needs to be defined.
+  void profileBlocks();
+
   GlobalContext *Ctx;
   uint32_t SequenceNumber; // output order for emission
   VerboseMask VMask;
@@ -209,6 +225,8 @@ private:
   std::unique_ptr<TargetLowering> Target;
   std::unique_ptr<VariablesMetadata> VMetadata;
   std::unique_ptr<Assembler> TargetAssembler;
+  // Globals required by this CFG. Mostly used for the profiler's globals.
+  std::unique_ptr<VariableDeclarationList> GlobalInits;
 
   // CurrentNode is maintained during dumping/emitting just for
   // validating Variable::DefNode.  Normally, a traversal over

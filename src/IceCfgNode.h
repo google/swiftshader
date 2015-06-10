@@ -91,6 +91,8 @@ public:
   void emitIAS(Cfg *Func) const;
   void dump(Cfg *Func) const;
 
+  void profileExecutionCount(VariableDeclaration *Var);
+
 private:
   CfgNode(Cfg *Func, SizeT LabelIndex);
   Cfg *const Func;

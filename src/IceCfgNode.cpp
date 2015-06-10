@@ -15,6 +15,7 @@
 #include "assembler.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
+#include "IceGlobalInits.h"
 #include "IceInst.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
@@ -1241,6 +1242,33 @@ void CfgNode::dump(Cfg *Func) const {
     }
     Str << "\n";
   }
+}
+
+void CfgNode::profileExecutionCount(VariableDeclaration *Var) {
+  constexpr char RMW_I64[] = "llvm.nacl.atomic.rmw.i64";
+
+  GlobalContext *Context = Func->getContext();
+
+  bool BadIntrinsic = false;
+  const Intrinsics::FullIntrinsicInfo *Info =
+      Context->getIntrinsicsInfo().find(RMW_I64, BadIntrinsic);
+  assert(!BadIntrinsic);
+  assert(Info != nullptr);
+
+  Operand *RMWI64Name = Context->getConstantExternSym(RMW_I64);
+  Constant *Counter = Context->getConstantExternSym(Var->getName());
+  Constant *AtomicRMWOp = Context->getConstantInt32(Intrinsics::AtomicAdd);
+  Constant *One = Context->getConstantInt64(1);
+  Constant *OrderAcquireRelease =
+      Context->getConstantInt32(Intrinsics::MemoryOrderAcquireRelease);
+
+  InstIntrinsicCall *Inst = InstIntrinsicCall::create(
+      Func, 5, Func->makeVariable(IceType_i64), RMWI64Name, Info->Info);
+  Inst->addArg(AtomicRMWOp);
+  Inst->addArg(Counter);
+  Inst->addArg(One);
+  Inst->addArg(OrderAcquireRelease);
+  Insts.push_front(Inst);
 }
 
 } // end of namespace Ice

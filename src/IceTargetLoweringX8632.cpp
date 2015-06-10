@@ -3119,11 +3119,10 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       Func->setError("Unexpected memory ordering for AtomicRMW");
       return;
     }
-    lowerAtomicRMW(
-        Instr->getDest(),
-        static_cast<uint32_t>(
-            llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue()),
-        Instr->getArg(1), Instr->getArg(2));
+    lowerAtomicRMW(Instr->getDest(),
+                   static_cast<uint32_t>(llvm::cast<ConstantInteger32>(
+                                             Instr->getArg(0))->getValue()),
+                   Instr->getArg(1), Instr->getArg(2));
     return;
   case Intrinsics::AtomicStore: {
     if (!Intrinsics::isMemoryOrderValid(

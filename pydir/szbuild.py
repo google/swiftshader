@@ -84,7 +84,10 @@ def AddOptionalArgs(argparser):
                            choices=['obj', 'asm', 'iasm'],
                            help='Output file type.  Default %(default)s.')
     argparser.add_argument('--sandbox', dest='sandbox', action='store_true',
-                           help='Enabled sandboxing in the translator')
+                           help='Enable sandboxing in the translator')
+    argparser.add_argument('--enable-block-profile',
+                           dest='enable_block_profile', action='store_true',
+                           help='Enable basic block profiling.')
     argparser.add_argument('--verbose', '-v', dest='verbose',
                            action='store_true',
                            help='Display some extra debugging output')
@@ -217,6 +220,8 @@ def ProcessPexe(args, pexe, exe):
                    '-ffunction-sections',
                    '-fdata-sections'] if hybrid else []) +
                  (['-sandbox'] if args.sandbox else []) +
+                 (['-enable-block-profile'] if
+                      args.enable_block_profile and not args.sandbox else []) +
                  args.sz_args +
                  [pexe],
                  echo=args.verbose)

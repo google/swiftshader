@@ -30,8 +30,15 @@ EmitterWorkItem::EmitterWorkItem(uint32_t Seq, Cfg *F)
     : Sequence(Seq), Kind(WI_Cfg), GlobalInits(nullptr), Function(nullptr),
       RawFunc(F) {}
 
+void EmitterWorkItem::setGlobalInits(
+    std::unique_ptr<VariableDeclarationList> GloblInits) {
+  assert(getKind() == WI_Asm || getKind() == WI_Cfg);
+  GlobalInits = std::move(GloblInits);
+}
+
 std::unique_ptr<VariableDeclarationList> EmitterWorkItem::getGlobalInits() {
-  assert(getKind() == WI_GlobalInits);
+  assert(getKind() == WI_GlobalInits || getKind() == WI_Asm ||
+         getKind() == WI_Cfg);
   return std::move(GlobalInits);
 }
 

@@ -23,10 +23,17 @@ def Translate(ll_files, extra_args, obj, verbose):
               '-o', obj
           ] + extra_args, echo=verbose)
     shellcmd(['objcopy',
-              '--localize-symbol=nacl_tp_tdb_offset',
-              '--localize-symbol=nacl_tp_tls_offset',
+              '--strip-symbol=nacl_tp_tdb_offset',
+              '--strip-symbol=nacl_tp_tls_offset',
               obj
         ], echo=verbose)
+
+def PartialLink(obj_files, extra_args, lib, verbose):
+    """Partially links a set of obj files into a final obj library."""
+    shellcmd(['ld',
+              '-o', lib,
+              '-r',
+        ] + extra_args + obj_files, echo=verbose)
 
 def main():
     """Build the Subzero runtime support library for all architectures.
@@ -72,12 +79,30 @@ def main():
             ], echo=args.verbose)
         ll_files = ['{dir}/szrt.ll'.format(dir=tempdir),
                     '{srcdir}/szrt_ll.ll'.format(srcdir=srcdir)]
-        # Translate tempdir/szrt.ll and srcdir/szrt_ll.ll to szrt_native_x8632.o
+
+        # Translate tempdir/szrt.ll and tempdir/szrt_ll.ll to
+        # szrt_native_x8632.tmp.o.
         Translate(ll_files,
                   ['-mtriple=i686', '-mcpu=pentium4m'],
-                  '{rtdir}/szrt_native_x8632.o'.format(rtdir=rtdir),
+                  '{dir}/szrt_native_x8632.tmp.o'.format(dir=tempdir),
                   args.verbose)
-        # Translate tempdir/szrt.ll and srcdir/szrt_ll.ll to szrt_sb_x8632.o
+        # Compile srcdir/szrt_profiler.c to tempdir/szrt_profiler_native_i686.o
+        shellcmd(['clang',
+                  '-O2',
+                  '-target=i686',
+                  '-c',
+                  '{srcdir}/szrt_profiler.c'.format(srcdir=srcdir),
+                  '-o', '{dir}/szrt_profiler_native_x8632.o'.format(dir=tempdir)
+            ], echo=args.verbose)
+        # Writing full szrt_native_i686.o.
+        PartialLink(['{dir}/szrt_native_x8632.tmp.o'.format(dir=tempdir),
+                     '{dir}/szrt_profiler_native_x8632.o'.format(dir=tempdir)
+            ], ['-m elf_i386'],
+            '{rtdir}/szrt_native_x8632.o'.format(rtdir=rtdir), args.verbose)
+
+        # Translate tempdir/szrt.ll and tempdir/szrt_ll.ll to szrt_sb_x8632.o
+        # The sandboxed library does not get the profiler helper function as the
+        # binaries are linked with -nostdlib.
         Translate(ll_files,
                   ['-mtriple=i686-nacl', '-mcpu=pentium4m'],
                   '{rtdir}/szrt_sb_x8632.o'.format(rtdir=rtdir),

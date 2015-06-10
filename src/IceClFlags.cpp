@@ -65,6 +65,12 @@ cl::opt<bool>
     DumpStats("szstats",
               cl::desc("Print statistics after translating each function"));
 
+cl::opt<bool> EnableBlockProfile(
+    "enable-block-profile",
+    cl::desc("If true, instrument basic blocks, and output profiling "
+             "information to stdout at the end of program execution."),
+    cl::init(false));
+
 cl::opt<bool>
     FunctionSections("ffunction-sections",
                      cl::desc("Emit functions into separate sections"));
@@ -261,6 +267,7 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.DisableIRGeneration = false;
   OutFlags.DisableTranslation = false;
   OutFlags.DumpStats = false;
+  OutFlags.EnableBlockProfile = false;
   OutFlags.FunctionSections = false;
   OutFlags.GenerateUnitTestMessages = false;
   OutFlags.PhiEdgeSplit = false;
@@ -311,6 +318,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setDisableIRGeneration(::DisableIRGeneration);
   OutFlags.setDisableTranslation(::DisableTranslation);
   OutFlags.setDumpStats(::DumpStats);
+  OutFlags.setEnableBlockProfile(::EnableBlockProfile);
   OutFlags.setFunctionSections(::FunctionSections);
   OutFlags.setNumTranslationThreads(::NumThreads);
   OutFlags.setOptLevel(::OLevel);
