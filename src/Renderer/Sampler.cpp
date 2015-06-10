@@ -109,9 +109,9 @@ namespace sw
 				externalTextureFormat = surface->getExternalFormat();
 				internalTextureFormat = surface->getInternalFormat();
 
-				int width = surface->getInternalWidth();
-				int height = surface->getInternalHeight();
-				int depth = surface->getInternalDepth();
+				int width = surface->getWidth();
+				int height = surface->getHeight();
+				int depth = surface->getDepth();
 				int pitchP = surface->getInternalPitchP();
 				int sliceP = surface->getInternalSliceP();
 

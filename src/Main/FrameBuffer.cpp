@@ -124,8 +124,8 @@ namespace sw
 			cursor = cursorImage->lockExternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
 			cursorImage->unlockExternal();
 
-			cursorWidth = cursorImage->getExternalWidth();
-			cursorHeight = cursorImage->getExternalHeight();
+			cursorWidth = cursorImage->getWidth();
+			cursorHeight = cursorImage->getHeight();
 		}
 		else
 		{

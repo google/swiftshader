@@ -161,8 +161,8 @@ namespace es2
 	{
 		x0 = 0;
 		y0 = 0;
-		width = sourceSurface->getExternalWidth();
-		height = sourceSurface->getExternalHeight();
+		width = sourceSurface->getWidth();
+		height = sourceSurface->getHeight();
 
 		if(scissorEnable)   // Clamp against scissor rectangle
 		{
@@ -511,10 +511,10 @@ namespace es2
 			return false;
 		}
 		
-		int sWidth = source->getExternalWidth();
-		int sHeight = source->getExternalHeight();
-		int dWidth = dest->getExternalWidth();
-		int dHeight = dest->getExternalHeight();
+		int sWidth = source->getWidth();
+		int sHeight = source->getHeight();
+		int dWidth = dest->getWidth();
+		int dHeight = dest->getHeight();
 
 		bool flipX = false;
 		bool flipY = false;
@@ -606,7 +606,7 @@ namespace es2
 				sw::byte *sourceBuffer = (sw::byte*)source->lockInternal(0, 0, sourceRect->slice, LOCK_READONLY, PUBLIC);
 				sw::byte *destBuffer = (sw::byte*)dest->lockInternal(0, 0, destRect->slice, LOCK_DISCARD, PUBLIC);
 
-				copyBuffer(sourceBuffer, destBuffer, source->getInternalWidth(), source->getInternalHeight(), source->getInternalPitchB(), dest->getInternalPitchB(), egl::Image::bytes(source->getInternalFormat()), flipX, flipY);
+				copyBuffer(sourceBuffer, destBuffer, source->getWidth(), source->getHeight(), source->getInternalPitchB(), dest->getInternalPitchB(), egl::Image::bytes(source->getInternalFormat()), flipX, flipY);
 
 				source->unlockInternal();
 				dest->unlockInternal();
@@ -617,7 +617,7 @@ namespace es2
 				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(0, PUBLIC);
 				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(0, PUBLIC);
 
-				copyBuffer(sourceBuffer, destBuffer, source->getInternalWidth(), source->getInternalHeight(), source->getInternalPitchB(), dest->getInternalPitchB(), egl::Image::bytes(source->getInternalFormat()), flipX, flipY);
+				copyBuffer(sourceBuffer, destBuffer, source->getWidth(), source->getHeight(), source->getInternalPitchB(), dest->getInternalPitchB(), egl::Image::bytes(source->getInternalFormat()), flipX, flipY);
 
 				source->unlockStencil();
 				dest->unlockStencil();
@@ -673,12 +673,12 @@ namespace es2
 			return false;
 		}
 
-		int sWidth  = source->getExternalWidth();
-		int sHeight = source->getExternalHeight();
-		int sDepth  = source->getExternalDepth();
-		int dWidth  = dest->getExternalWidth();
-		int dHeight = dest->getExternalHeight();
-		int dDepth  = dest->getExternalDepth();
+		int sWidth  = source->getWidth();
+		int sHeight = source->getHeight();
+		int sDepth  = source->getDepth();
+		int dWidth  = dest->getWidth();
+		int dHeight = dest->getHeight();
+		int dDepth  = dest->getDepth();
 
 		bool scaling = (sWidth != dWidth) || (sHeight != dHeight) || (sDepth != dDepth);
 		bool equalFormats = source->getInternalFormat() == dest->getInternalFormat();
@@ -817,17 +817,17 @@ namespace es2
 			if(renderTarget)
 			{
 				scissor.x0 = max(scissor.x0, 0);
-				scissor.x1 = min(scissor.x1, renderTarget->getExternalWidth());
+				scissor.x1 = min(scissor.x1, renderTarget->getWidth());
 				scissor.y0 = max(scissor.y0, 0);
-				scissor.y1 = min(scissor.y1, renderTarget->getExternalHeight());
+				scissor.y1 = min(scissor.y1, renderTarget->getHeight());
 			}
 
 			if(depthStencil)
 			{
 				scissor.x0 = max(scissor.x0, 0);
-				scissor.x1 = min(scissor.x1, depthStencil->getExternalWidth());
+				scissor.x1 = min(scissor.x1, depthStencil->getWidth());
 				scissor.y0 = max(scissor.y0, 0);
-				scissor.y1 = min(scissor.y1, depthStencil->getExternalHeight());
+				scissor.y1 = min(scissor.y1, depthStencil->getHeight());
 			}
 
 			setScissor(scissor);

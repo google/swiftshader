@@ -185,8 +185,8 @@ namespace gl
 
 		int x0 = 0;
 		int y0 = 0;
-		int width = renderTarget->getExternalWidth();
-		int height = renderTarget->getExternalHeight();
+		int width = renderTarget->getWidth();
+		int height = renderTarget->getHeight();
 
 		if(scissorEnable)   // Clamp against scissor rectangle
 		{
@@ -211,8 +211,8 @@ namespace gl
 
 		int x0 = 0;
 		int y0 = 0;
-		int width = depthStencil->getExternalWidth();
-		int height = depthStencil->getExternalHeight();
+		int width = depthStencil->getWidth();
+		int height = depthStencil->getHeight();
 
 		if(scissorEnable)   // Clamp against scissor rectangle
 		{
@@ -234,8 +234,8 @@ namespace gl
 
 		int x0 = 0;
 		int y0 = 0;
-		int width = depthStencil->getExternalWidth();
-		int height = depthStencil->getExternalHeight();
+		int width = depthStencil->getWidth();
+		int height = depthStencil->getHeight();
 
 		if(scissorEnable)   // Clamp against scissor rectangle
 		{
@@ -496,10 +496,10 @@ namespace gl
 			return false;
 		}
 		
-		int sWidth = source->getExternalWidth();
-		int sHeight = source->getExternalHeight();
-		int dWidth = dest->getExternalWidth();
-		int dHeight = dest->getExternalHeight();
+		int sWidth = source->getWidth();
+		int sHeight = source->getHeight();
+		int dWidth = dest->getWidth();
+		int dHeight = dest->getHeight();
 
 		SliceRect sRect;
 		SliceRect dRect;
@@ -547,8 +547,8 @@ namespace gl
 				sw::byte *sourceBuffer = (sw::byte*)source->lockInternal(0, 0, sRect.slice, LOCK_READONLY, PUBLIC);
 				sw::byte *destBuffer = (sw::byte*)dest->lockInternal(0, 0, dRect.slice, LOCK_DISCARD, PUBLIC);
 
-				unsigned int width = source->getInternalWidth();
-				unsigned int height = source->getInternalHeight();
+				unsigned int width = source->getWidth();
+				unsigned int height = source->getHeight();
 				unsigned int pitch = source->getInternalPitchB();
 
 				for(unsigned int y = 0; y < height; y++)
@@ -568,8 +568,8 @@ namespace gl
 				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(0, PUBLIC);
 				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(0, PUBLIC);
 
-				unsigned int width = source->getInternalWidth();
-				unsigned int height = source->getInternalHeight();
+				unsigned int width = source->getWidth();
+				unsigned int height = source->getHeight();
 				unsigned int pitch = source->getStencilPitchB();
 
 				for(unsigned int y = 0; y < height; y++)
@@ -710,17 +710,17 @@ namespace gl
 			if(renderTarget)
 			{
 				scissor.x0 = max(scissor.x0, 0);
-				scissor.x1 = min(scissor.x1, renderTarget->getExternalWidth());
+				scissor.x1 = min(scissor.x1, renderTarget->getWidth());
 				scissor.y0 = max(scissor.y0, 0);
-				scissor.y1 = min(scissor.y1, renderTarget->getExternalHeight());
+				scissor.y1 = min(scissor.y1, renderTarget->getHeight());
 			}
 
 			if(depthStencil)
 			{
 				scissor.x0 = max(scissor.x0, 0);
-				scissor.x1 = min(scissor.x1, depthStencil->getExternalWidth());
+				scissor.x1 = min(scissor.x1, depthStencil->getWidth());
 				scissor.y0 = max(scissor.y0, 0);
-				scissor.y1 = min(scissor.y1, depthStencil->getExternalHeight());
+				scissor.y1 = min(scissor.y1, depthStencil->getHeight());
 			}
 
 			setScissor(scissor);

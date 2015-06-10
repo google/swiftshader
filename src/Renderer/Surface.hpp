@@ -165,11 +165,12 @@ namespace sw
 		
 		virtual ~Surface();
 
+		inline int getWidth() const;
+		inline int getHeight() const;
+		inline int getDepth() const;
+
 		void *lockExternal(int x, int y, int z, Lock lock, Accessor client);
 		void unlockExternal();
-		inline int getExternalWidth() const;
-		inline int getExternalHeight() const;
-		inline int getExternalDepth() const;
 		inline Format getExternalFormat() const;
 		inline int getExternalPitchB() const;
 		inline int getExternalPitchP() const;
@@ -178,9 +179,6 @@ namespace sw
 
 		virtual void *lockInternal(int x, int y, int z, Lock lock, Accessor client);
 		virtual void unlockInternal();
-		inline int getInternalWidth() const;
-		inline int getInternalHeight() const;
-		inline int getInternalDepth() const;
 		inline Format getInternalFormat() const;
 		inline int getInternalPitchB() const;
 		inline int getInternalPitchP() const;
@@ -377,17 +375,17 @@ namespace sw
 
 namespace sw
 {
-	int Surface::getExternalWidth() const
+	int Surface::getWidth() const
 	{
 		return external.width;
 	}
 
-	int Surface::getExternalHeight() const
+	int Surface::getHeight() const
 	{
 		return external.height;
 	}
 
-	int Surface::getExternalDepth() const
+	int Surface::getDepth() const
 	{
 		return external.depth;
 	}
@@ -415,21 +413,6 @@ namespace sw
 	int Surface::getExternalSliceP() const
 	{
 		return external.sliceP;
-	}
-
-	int Surface::getInternalWidth() const
-	{
-		return internal.width;
-	}
-
-	int Surface::getInternalHeight() const
-	{
-		return internal.height;
-	}
-
-	int Surface::getInternalDepth() const
-	{
-		return internal.depth;
 	}
 
 	Format Surface::getInternalFormat() const
