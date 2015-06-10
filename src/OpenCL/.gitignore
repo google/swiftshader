@@ -1,0 +1,28 @@
+# Ignored folders by git #
+/lib/
+/x64/
+/Debug/
+
+# Ignored files #
+*.opensdf
+*.filters
+*.user
+*.cache
+*.exp
+*.ipch
+*.obj
+*.log
+*.tlog
+*.exe
+*.ilk
+*.pdb
+*.sbr
+*.bsc
+*.res
+*.idb
+*.sdf
+*.suo
+*.o
+*.depend
+*.layout
+
