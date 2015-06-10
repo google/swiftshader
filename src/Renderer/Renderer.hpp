@@ -442,8 +442,6 @@ namespace sw
 		VertexProcessor::State vertexState;
 		SetupProcessor::State setupState;
 		PixelProcessor::State pixelState;
-
-		Blitter blitter;
 	};
 }
 

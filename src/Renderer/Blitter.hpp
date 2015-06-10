@@ -69,7 +69,10 @@ namespace sw
 		Routine *generate(BlitState &state);
 
 		RoutineCache<BlitState> *blitCache;
+		BackoffLock criticalSection;
 	};
+
+	extern Blitter blitter;
 }
 
 #endif   // sw_Blitter_hpp
