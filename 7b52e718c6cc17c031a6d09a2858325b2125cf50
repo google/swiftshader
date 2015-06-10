@@ -46,6 +46,30 @@
       "revId": "7b52e718c6cc17c031a6d09a2858325b2125cf50",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1917e4d9_bbf25394",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 841,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-10T18:51:56Z",
+      "side": 1,
+      "message": "Ok, but I just want to understand the difference between this constructor, when texture is NULL VS the new constructor you just added, because they look very similar, except this one will deallocate the resource upon destruction and the new one will not.",
+      "parentUuid": "1917e4d9_78a361fe",
+      "range": {
+        "startLine": 841,
+        "startChar": 16,
+        "endLine": 841,
+        "endChar": 20
+      },
+      "revId": "7b52e718c6cc17c031a6d09a2858325b2125cf50",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
