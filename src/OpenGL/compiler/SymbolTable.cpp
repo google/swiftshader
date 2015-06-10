@@ -26,12 +26,11 @@ int TSymbolTableLevel::uniqueId = 0;
 
 TType::TType(const TPublicType &p) :
     type(p.type), precision(p.precision), primarySize(p.primarySize), secondarySize(p.secondarySize), qualifier(p.qualifier), array(p.array), arraySize(p.arraySize),
-    maxArraySize(0), arrayInformationType(0), structure(0), structureSize(0), deepestStructNesting(0), fieldName(0), mangled(0), typeName(0)
+    maxArraySize(0), arrayInformationType(0), structure(0), deepestStructNesting(0), mangled(0)
 {
     if (p.userDef)
     {
         structure = p.userDef->getStruct();
-        typeName = NewPoolTString(p.userDef->getTypeName().c_str());
         computeDeepestStructNesting();
     }
 }
@@ -52,19 +51,23 @@ void TType::buildMangledName(TString& mangledName)
     case EbtUInt:               mangledName += 'u';      break;
     case EbtBool:               mangledName += 'b';      break;
     case EbtSampler2D:          mangledName += "s2";     break;
-    case EbtSamplerCube:        mangledName += "sC";     break;
-    case EbtSamplerExternalOES: mangledName += "sE";     break;
 	case EbtSampler3D:          mangledName += "s3";     break;
-	case EbtStruct:
-        mangledName += "struct-";
-        if (typeName)
-            mangledName += *typeName;
-        {// support MSVC++6.0
-            for (unsigned int i = 0; i < structure->size(); ++i) {
-                mangledName += '-';
-                (*structure)[i].type->buildMangledName(mangledName);
-            }
-        }
+	case EbtSamplerCube:        mangledName += "sC";     break;
+	case EbtSampler2DArray:		mangledName += "s2a";    break;
+	case EbtSamplerExternalOES: mangledName += "sext";   break;
+	case EbtISampler2D:  		mangledName += "is2";    break;
+	case EbtISampler3D: 		mangledName += "is3";    break;
+	case EbtISamplerCube:		mangledName += "isC";    break;
+	case EbtISampler2DArray:	mangledName += "is2a";   break;
+	case EbtUSampler2D: 		mangledName += "us2";    break;
+	case EbtUSampler3D:  		mangledName += "us3";    break;
+	case EbtUSamplerCube:		mangledName += "usC";    break;
+	case EbtUSampler2DArray:	mangledName += "us2a";   break;
+	case EbtSampler2DShadow:	mangledName += "s2s";    break;
+	case EbtSamplerCubeShadow:  mangledName += "sCs";    break;
+	case EbtSampler2DArrayShadow: mangledName += "s2as"; break;
+	case EbtStruct:             mangledName += structure->mangledName(); break;
+	case EbtInterfaceBlock:	    mangledName += interfaceBlock->mangledName(); break;
     default:
         break;
     }
@@ -89,46 +92,68 @@ int TType::getStructSize() const
         return 0;
     }
 
-    if (structureSize == 0)
-        for (TTypeList::const_iterator tl = getStruct()->begin(); tl != getStruct()->end(); tl++)
-            structureSize += ((*tl).type)->getObjectSize();
-
-    return structureSize;
+    return getStruct()->objectSize();
 }
 
 void TType::computeDeepestStructNesting()
 {
-    if (!structure)
-    {
-        return;
-    }
-
-    int maxNesting = 0;
-    for (TTypeList::const_iterator tl = structure->begin(); tl != structure->end(); tl++)
-    {
-        maxNesting = std::max(maxNesting, ((*tl).type)->getDeepestStructNesting());
-    }
-
-    deepestStructNesting = 1 + maxNesting;
+	deepestStructNesting = structure ? structure->deepestNesting() : 0;
 }
 
-bool TType::isStructureContainingArrays() const
+bool TStructure::containsArrays() const
 {
-    if (!structure)
-    {
-        return false;
-    }
+	for(size_t i = 0; i < mFields->size(); ++i)
+	{
+		const TType *fieldType = (*mFields)[i]->type();
+		if(fieldType->isArray() || fieldType->isStructureContainingArrays())
+			return true;
+	}
+	return false;
+}
 
-    for (TTypeList::const_iterator member = structure->begin(); member != structure->end(); member++)
-    {
-        if (member->type->isArray() ||
-            member->type->isStructureContainingArrays())
-        {
-            return true;
-        }
-    }
+bool TStructure::containsSamplers() const
+{
+	for(size_t i = 0; i < mFields->size(); ++i)
+	{
+		const TType *fieldType = (*mFields)[i]->type();
+		if(IsSampler(fieldType->getBasicType()) || fieldType->isStructureContainingSamplers())
+			return true;
+	}
+	return false;
+}
 
-    return false;
+TString TFieldListCollection::buildMangledName() const
+{
+	TString mangledName(mangledNamePrefix());
+	mangledName += *mName;
+	for(size_t i = 0; i < mFields->size(); ++i)
+	{
+		mangledName += '-';
+		mangledName += (*mFields)[i]->type()->getMangledName();
+	}
+	return mangledName;
+}
+
+size_t TFieldListCollection::calculateObjectSize() const
+{
+	size_t size = 0;
+	for(size_t i = 0; i < mFields->size(); ++i)
+	{
+		size_t fieldSize = (*mFields)[i]->type()->getObjectSize();
+		if(fieldSize > INT_MAX - size)
+			size = INT_MAX;
+		else
+			size += fieldSize;
+	}
+	return size;
+}
+
+int TStructure::calculateDeepestNesting() const
+{
+	int maxNesting = 0;
+	for(size_t i = 0; i < mFields->size(); ++i)
+		maxNesting = std::max(maxNesting, (*mFields)[i]->type()->getDeepestStructNesting());
+	return 1 + maxNesting;
 }
 
 //

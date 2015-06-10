@@ -522,7 +522,7 @@ bool TParseContext::constructorErrorCheck(int line, TIntermNode* node, TFunction
         return true;
     }
 
-    if (op == EOpConstructStruct && !type->isArray() && int(type->getStruct()->size()) != function.getParamCount()) {
+    if (op == EOpConstructStruct && !type->isArray() && int(type->getStruct()->fields().size()) != function.getParamCount()) {
         error(line, "Number of constructor parameters does not match the number of structure fields", "constructor");
         return true;
     }
@@ -682,9 +682,9 @@ bool TParseContext::containsSampler(TType& type)
         return true;
 
     if (type.getBasicType() == EbtStruct) {
-        TTypeList& structure = *type.getStruct();
-        for (unsigned int i = 0; i < structure.size(); ++i) {
-            if (containsSampler(*structure[i].type))
+        const TFieldList& fields = type.getStruct()->fields();
+        for(unsigned int i = 0; i < fields.size(); ++i) {
+            if (containsSampler(*fields[i]->type()))
                 return true;
         }
     }
@@ -1232,12 +1232,12 @@ TIntermTyped* TParseContext::addConstructor(TIntermNode* arguments, const TType*
 
     if(op == EOpConstructStruct)
     {
-        TTypeList &fields = *type->getStruct();
+        const TFieldList &fields = type->getStruct()->fields();
         TIntermSequence &args = aggregateArguments->getSequence();
 
         for(size_t i = 0; i < fields.size(); i++)
         {
-            if(args[i]->getAsTyped()->getType() != *fields[i].type)
+            if(args[i]->getAsTyped()->getType() != *fields[i]->type())
             {
                 error(line, "Structure constructor arguments do not match structure fields", "Error");
                 recover();
@@ -1405,17 +1405,17 @@ TIntermTyped* TParseContext::addConstArrayNode(int index, TIntermTyped* node, TS
 //
 TIntermTyped* TParseContext::addConstStruct(TString& identifier, TIntermTyped* node, TSourceLoc line)
 {
-    const TTypeList* fields = node->getType().getStruct();
+    const TFieldList &fields = node->getType().getStruct()->fields();
     TIntermTyped *typedNode;
     int instanceSize = 0;
     unsigned int index = 0;
     TIntermConstantUnion *tempConstantNode = node->getAsConstantUnion();
 
-    for ( index = 0; index < fields->size(); ++index) {
-        if ((*fields)[index].type->getFieldName() == identifier) {
+    for ( index = 0; index < fields.size(); ++index) {
+        if (fields[index]->name() == identifier) {
             break;
         } else {
-            instanceSize += (*fields)[index].type->getObjectSize();
+            instanceSize += fields[index]->type()->getObjectSize();
         }
     }
 
