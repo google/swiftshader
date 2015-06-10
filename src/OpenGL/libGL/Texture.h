@@ -88,8 +88,8 @@ public:
     virtual void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source) = 0;
 
 protected:
-    void setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image);
-    void subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image);
+	void setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image, int xOffset = 0);
+	void subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image, bool is2DTexture = true);
     void setCompressedImage(GLsizei imageSize, const void *pixels, Image *image);
     void subImageCompressed(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels, Image *image);
 
@@ -126,7 +126,7 @@ public:
     virtual sw::Format getInternalFormat(GLenum target, GLint level) const;
 	virtual int getLevelCount() const;
 
-    void setImage(GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels);
+	void setImage(GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, int xOffset = 0);
     void setCompressedImage(GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels);
     void subImage(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels);
     void subImageCompressed(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels);
@@ -216,6 +216,21 @@ private:
 	unsigned int mFaceProxyRefs[6];
 };
 
+class Texture1D : public Texture2D
+{
+public:
+	explicit Texture1D(GLuint name);
+
+	virtual ~Texture1D();
+	virtual GLenum getTarget() const;
+	virtual GLenum getFormat(GLenum target, GLint level) const;
+	virtual GLenum getType(GLenum target, GLint level) const;
+	virtual GLsizei getWidth(GLenum target, GLint level) const;
+	virtual GLsizei getHeight(GLenum target, GLint level) const;
+	virtual sw::Format getInternalFormat(GLenum target, GLint level) const;
+	virtual void subImage(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels);
+	virtual bool isCompressed(GLenum target, GLint level) const;
+};
 }
 
 #endif   // LIBGL_TEXTURE_H_

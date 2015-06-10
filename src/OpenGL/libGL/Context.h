@@ -31,6 +31,7 @@
 #include <map>
 #include <string>
 #include <list>
+#include <stack>
 
 namespace gl
 {
@@ -293,6 +294,7 @@ class Shader;
 class Program;
 class Texture;
 class Texture2D;
+class Texture1D;
 class TextureCubeMap;
 class Framebuffer;
 class Renderbuffer;
@@ -309,12 +311,15 @@ class Query;
 
 enum
 {
-    MAX_VERTEX_ATTRIBS = 9,
+	MAX_TEXTURE_COORDS = 8,
+	MAX_CLIENT_ATTRIB_STACK_DEPTH = 16,
+	MAX_TEXTURE_STACK_DEPTH = 10,
+    MAX_VERTEX_ATTRIBS = 16,
 	MAX_UNIFORM_VECTORS = 256,   // Device limit
     MAX_VERTEX_UNIFORM_VECTORS = 256 - 3,   // Reserve space for gl_DepthRange
     MAX_VARYING_VECTORS = 10,
-    MAX_TEXTURE_IMAGE_UNITS = 2,
-    MAX_VERTEX_TEXTURE_IMAGE_UNITS = 1,
+    MAX_TEXTURE_IMAGE_UNITS = 16,
+    MAX_VERTEX_TEXTURE_IMAGE_UNITS = 4,
     MAX_COMBINED_TEXTURE_IMAGE_UNITS = MAX_TEXTURE_IMAGE_UNITS + MAX_VERTEX_TEXTURE_IMAGE_UNITS,
     MAX_FRAGMENT_UNIFORM_VECTORS = 224 - 3,    // Reserve space for gl_DepthRange
     MAX_DRAW_BUFFERS = 1,
@@ -488,8 +493,31 @@ struct State
     BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
 	BindingPointer<Query> activeQuery[QUERY_TYPE_COUNT];
 
-    GLint unpackAlignment;
-    GLint packAlignment;
+	GLint unpackAlignment;
+	GLint packAlignment;
+	bool unpackSwapBytes;
+	bool unpackLsbFirst;
+	GLint unpackRowLength;
+	GLint unpackSkipRows;
+	GLint unpackSkipPixels;
+	GLint unpackSkipImages;
+	GLint unpackImageHeight;
+
+	GLenum textureEnvMode;
+};
+
+struct ClientAttributes
+{
+	GLint unpackAlignment;
+	GLint packAlignment;
+	bool unpackSwapBytes;
+	bool unpackLsbFirst;
+	GLint unpackRowLength;
+	GLint unpackSkipRows;
+	GLint unpackSkipPixels;
+	GLint unpackSkipImages;
+	GLint unpackImageHeight;
+	GLbitfield mask;
 };
 
 class Context
@@ -583,6 +611,20 @@ public:
 
     void setPackAlignment(GLint alignment);
     GLint getPackAlignment() const;
+	void setUnpackSwapBytes(bool swapBytes);
+	bool getUnpackSwapBytes() const;
+	void setUnpackLsbFirst(bool length);
+	bool getUnpackLsbFirst() const;
+	void setUnpackRowLength(GLint length);
+	GLint getUnpackRowLength() const;
+	void setUnpackSkipRows(GLint skipRows);
+	GLint getUnpackSkipRows() const;
+	void setUnpackSkipPixels(GLint skipRows);
+	GLint getUnpackSkipPixels() const;
+	void setUnpackSkipImages(GLint skipImage);
+	GLint getUnpackSkipImages() const;
+	void setUnpackImageHeight(GLint imageHeight);
+	GLint getUnpackImageHeight() const;
 
     // These create  and destroy methods are merely pass-throughs to 
     // ResourceManager, which owns these object types
@@ -611,7 +653,8 @@ public:
     void deleteQuery(GLuint query);
 
     void bindArrayBuffer(GLuint buffer);
-    void bindElementArrayBuffer(GLuint buffer);
+	void bindElementArrayBuffer(GLuint buffer);
+	void bindTexture1D(GLuint texture);
     void bindTexture2D(GLuint texture);
     void bindTextureCubeMap(GLuint texture);
     void bindReadFramebuffer(GLuint framebuffer);
@@ -639,10 +682,11 @@ public:
 
     Buffer *getArrayBuffer();
     Buffer *getElementArrayBuffer();
-    Program *getCurrentProgram();
+	Program *getCurrentProgram();
     Texture2D *getTexture2D(GLenum target);
-    TextureCubeMap *getTextureCubeMap();
-    Texture *getSamplerTexture(unsigned int sampler, TextureType type);
+	TextureCubeMap *getTextureCubeMap();
+	Texture *getSamplerTexture(unsigned int sampler, TextureType type);
+	Texture1D *getTexture1D();
     Framebuffer *getReadFramebuffer();
     Framebuffer *getDrawFramebuffer();
 
@@ -658,6 +702,9 @@ public:
     void drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices);
     void finish();
     void flush();
+
+	void setTextureEnvMode(GLenum texEnvMode);
+	GLenum getTextureEnvMode();
 
     void recordInvalidEnum();
     void recordInvalidValue();
@@ -685,6 +732,9 @@ public:
 	void frustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
     void ortho(double left, double right, double bottom, double top, double zNear, double zFar);   // FIXME: GLdouble
 
+	void pushClientAttrib(GLbitfield mask);
+	void popClientAttrib();
+
     void setLighting(bool enabled);
     void setFog(bool enabled);
 	void setAlphaTest(bool enabled);
@@ -693,6 +743,10 @@ public:
 	void setShadeModel(GLenum mode);
     void setLight(int index, bool enable);
 	void setNormalizeNormals(bool enable);
+	void setRectangleTextureEnable(bool enable);
+	bool getRectangleTextureEnable();
+	void set1DTextureEnable(bool enable);
+	bool get1DTextureEnable();
 
 	GLuint genLists(GLsizei range);
 	void newList(GLuint list, GLenum mode);
@@ -702,6 +756,7 @@ public:
 	GLuint getListIndex() {return listIndex;}
 	GLenum getListMode() {return listMode;}
 	void listCommand(Command *command);
+	void shareDisplayListSpace(HGLRC hglrc);
 
 	void captureAttribs();
     void captureDrawArrays(GLenum mode, GLint first, GLsizei count);
@@ -742,6 +797,7 @@ private:
     BindingPointer<Texture2D> mTexture2DZero;
     BindingPointer<Texture2D> mProxyTexture2DZero;
     BindingPointer<TextureCubeMap> mTextureCubeMapZero;
+	BindingPointer<Texture1D> mTexture1DZero;
 
     typedef std::map<GLint, Framebuffer*> FramebufferMap;
     FramebufferMap mFramebufferMap;
@@ -789,12 +845,16 @@ private:
 	sw::MatrixStack projection;
 	sw::MatrixStack texture[8];
 
+	std::stack<ClientAttributes> *clientAttribStack;
+
 	GLenum listMode;
 	//std::map<GLuint, GLuint> listMap;
 	std::map<GLuint, DisplayList*> displayList;
     DisplayList *list;
 	GLuint listIndex;
 	GLuint firstFreeIndex;
+	bool sharedList;
+	HGLRC sharedContextHandle;
 
 	GLenum clientTexture;
 

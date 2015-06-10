@@ -167,6 +167,7 @@ TranslatorASM *Shader::createCompiler(GLenum shaderType)
 	resources.MaxVertexTextureImageUnits = MAX_VERTEX_TEXTURE_IMAGE_UNITS;
 	resources.MaxCombinedTextureImageUnits = MAX_COMBINED_TEXTURE_IMAGE_UNITS;
 	resources.MaxTextureImageUnits = MAX_TEXTURE_IMAGE_UNITS;
+	resources.MaxTextureCoords = MAX_TEXTURE_COORDS;
 	resources.MaxFragmentUniformVectors = MAX_FRAGMENT_UNIFORM_VECTORS;
 	resources.MaxDrawBuffers = MAX_DRAW_BUFFERS;
 	resources.OES_standard_derivatives = 1;

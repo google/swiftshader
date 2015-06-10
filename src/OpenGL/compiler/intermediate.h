@@ -155,6 +155,7 @@ enum TOperator {
     EOpFaceForward,
     EOpReflect,
     EOpRefract,
+	EOpFtransform,
 
     EOpDFdx,            // Fragment only, OES_standard_derivatives extension
     EOpDFdy,            // Fragment only, OES_standard_derivatives extension

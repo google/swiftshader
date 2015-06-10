@@ -346,28 +346,28 @@ public:
 
 	void insertBuiltIn(ESymbolLevel level, TOperator op, const char *ext, TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0, TType *ptype4 = 0)
 	{
-		if(ptype1->getBasicType() == EbtGSampler2D)
+		if(ptype1 && ptype1->getBasicType() == EbtGSampler2D)
 		{
 			bool gvec4 = (rvalue->getBasicType() == EbtGVec4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtFloat, 4) : rvalue, name, new TType(EbtSampler2D), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtInt, 4) : rvalue, name, new TType(EbtISampler2D), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtUInt, 4) : rvalue, name, new TType(EbtUSampler2D), ptype2, ptype3, ptype4);
 		}
-		else if(ptype1->getBasicType() == EbtGSampler3D)
+		else if(ptype1 && ptype1->getBasicType() == EbtGSampler3D)
 		{
 			bool gvec4 = (rvalue->getBasicType() == EbtGVec4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtFloat, 4) : rvalue, name, new TType(EbtSampler3D), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtInt, 4) : rvalue, name, new TType(EbtISampler3D), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtUInt, 4) : rvalue, name, new TType(EbtUSampler3D), ptype2, ptype3, ptype4);
 		}
-		else if(ptype1->getBasicType() == EbtGSamplerCube)
+		else if(ptype1 && ptype1->getBasicType() == EbtGSamplerCube)
 		{
 			bool gvec4 = (rvalue->getBasicType() == EbtGVec4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtFloat, 4) : rvalue, name, new TType(EbtSamplerCube), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtInt, 4) : rvalue, name, new TType(EbtISamplerCube), ptype2, ptype3, ptype4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtUInt, 4) : rvalue, name, new TType(EbtUSamplerCube), ptype2, ptype3, ptype4);
 		}
-		else if(ptype1->getBasicType() == EbtGSampler2DArray)
+		else if(ptype1 && ptype1->getBasicType() == EbtGSampler2DArray)
 		{
 			bool gvec4 = (rvalue->getBasicType() == EbtGVec4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtFloat, 4) : rvalue, name, new TType(EbtSampler2DArray), ptype2, ptype3, ptype4);
@@ -393,8 +393,11 @@ public:
 		{
 			TFunction *function = new TFunction(NewPoolTString(name), *rvalue, op, ext);
 
-			TParameter param1 = {0, ptype1};
-			function->addParameter(param1);
+			if(ptype1)
+			{
+				TParameter param1 = { 0, ptype1 };
+				function->addParameter(param1);
+			}
 
 			if(ptype2)
 			{

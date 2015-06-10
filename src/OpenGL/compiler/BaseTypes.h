@@ -129,10 +129,21 @@ enum TQualifier : unsigned char
     EvqInOut,
     EvqConstReadOnly,
 
+	// built-ins read by fragment shader
+	EvqMultiTexCoord0,
+	EvqMultiTexCoord1,
+	EvqMultiTexCoord2,
+	EvqMultiTexCoord3,
+	EvqMultiTexCoord4,
+	EvqMultiTexCoord5,
+	EvqMultiTexCoord6,
+	EvqMultiTexCoord7,
+
     // built-ins written by vertex shader
     EvqPosition,
     EvqPointSize,
     EvqInstanceID,
+	EvqTexCoords,
 
     // built-ins read by fragment shader
     EvqFragCoord,
@@ -201,7 +212,16 @@ inline const char *getQualifierString(TQualifier qualifier)
     case EvqPosition:       return "Position";       break;
     case EvqPointSize:      return "PointSize";      break;
     case EvqInstanceID:     return "InstanceID";     break;
-    case EvqFragCoord:      return "FragCoord";      break;
+	case EvqFragCoord:      return "FragCoord";      break;
+	case EvqMultiTexCoord0:      return "MultiTexCoord0";      break;
+	case EvqMultiTexCoord1:      return "MultiTexCoord1";      break;
+	case EvqMultiTexCoord2:      return "MultiTexCoord2";      break;
+	case EvqMultiTexCoord3:      return "MultiTexCoord3";      break;
+	case EvqMultiTexCoord4:      return "MultiTexCoord4";      break;
+	case EvqMultiTexCoord5:      return "MultiTexCoord5";      break;
+	case EvqMultiTexCoord6:      return "MultiTexCoord6";      break;
+	case EvqMultiTexCoord7:      return "MultiTexCoord7";      break;
+	case EvqTexCoords:       return "TexCoords";       break;
     case EvqFrontFacing:    return "FrontFacing";    break;
     case EvqFragColor:      return "FragColor";      break;
     case EvqFragData:       return "FragData";       break;

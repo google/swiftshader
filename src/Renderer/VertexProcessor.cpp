@@ -213,6 +213,16 @@ namespace sw
 		updateLighting = true;
 	}
 
+	void VertexProcessor::setRectangleTextureEnable(bool enable)
+	{
+		rectangleTextureEnable = enable;
+	}
+
+	bool VertexProcessor::getRectangleTextureEnable()
+	{
+		return rectangleTextureEnable;
+	}
+
 	void VertexProcessor::setSpecularEnable(bool specularEnable)
 	{
 		context->setSpecularEnable(specularEnable);

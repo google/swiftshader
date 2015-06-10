@@ -37,6 +37,7 @@ struct ShBuiltInResources
     int MaxVertexTextureImageUnits;
     int MaxCombinedTextureImageUnits;
     int MaxTextureImageUnits;
+	int MaxTextureCoords;
     int MaxFragmentUniformVectors;
     int MaxDrawBuffers;
     int MaxVertexOutputVectors;

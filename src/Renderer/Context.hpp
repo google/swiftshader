@@ -284,6 +284,8 @@ namespace sw
 		// Set fixed-function pixel pipeline states, return true when modified
 		bool setDepthBufferEnable(bool depthBufferEnable);
 
+		void setRectangleTextureEnable(bool rectangleTextureEnable);
+
 		bool setAlphaBlendEnable(bool alphaBlendEnable);
 		bool setSourceBlendFactor(BlendFactor sourceBlendFactor);
 		bool setDestBlendFactor(BlendFactor destBlendFactor);

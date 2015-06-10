@@ -69,6 +69,7 @@ namespace es2sw
 	void ConvertMinFilter(GLenum texFilter, sw::FilterType *minFilter, sw::MipmapType *mipFilter, float maxAnisotropy);
 	bool ConvertPrimitiveType(GLenum primitiveType, GLsizei elementCount,  gl::PrimitiveType &swPrimitiveType, int &primitiveCount);
 	sw::Format ConvertRenderbufferFormat(GLenum format);
+	void ConvertTextureOperations(GLenum texEnvMode, GLenum texFormat, sw::TextureStage::StageOperation *rgbOperation, sw::TextureStage::StageOperation *alphaOperation);
 }
 
 namespace sw2es

@@ -30,6 +30,7 @@
 #include <windows.h>
 #include <GL/GL.h>
 #include <GL/glext.h>
+#include <csignal>
 
 #include <limits>
 
@@ -55,7 +56,7 @@ static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei heigh
 		return error(GL_INVALID_OPERATION, false);
 	}
 
-	if(format != GL_NONE && format != texture->getFormat(target, level))
+	if(format != GL_NONE && (format != texture->getFormat(target, level) && target != GL_TEXTURE_1D))
 	{
 		return error(GL_INVALID_OPERATION, false);
 	}
@@ -349,7 +350,17 @@ void APIENTRY glBindTexture(GLenum target, GLuint texture)
 
 		switch(target)
 		{
+		case GL_TEXTURE_1D:
+			context->bindTexture1D(texture);
+			return;
 		case GL_TEXTURE_2D:
+			context->bindTexture2D(texture);
+			return;
+		case GL_TEXTURE_RECTANGLE:
+			/*if(!context->getRectangleTextureEnable())
+			{
+				return error(GL_INVALID_VALUE);
+			}*/
 			context->bindTexture2D(texture);
 			return;
 		case GL_TEXTURE_CUBE_MAP:
@@ -718,6 +729,419 @@ void APIENTRY glClearDepthf(GLclampf depth)
 		context->setClearDepth(depth);
 	}
 }
+
+void APIENTRY glVertexAttrib1dv(GLuint index, const GLdouble *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib1sv(GLuint index, const GLshort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib2dv(GLuint index, const GLdouble *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+
+void APIENTRY glVertexAttrib2sv(GLuint index, const GLshort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib3dv(GLuint index, const GLdouble *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib3sv(GLuint index, const GLshort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib4Nbv(GLuint index, const GLbyte *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib4Niv(GLuint index, const GLint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib4Nsv(GLuint index, const GLshort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib4Nubv(GLuint index, const GLubyte *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib4Nuiv(GLuint index, const GLuint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib4Nusv(GLuint index, const GLushort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glFogCoordfv(const GLfloat *coord)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glFogCoorddv(const GLdouble *coord)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3bv(const GLbyte *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3dv(const GLdouble *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3fv(const GLfloat *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3i(GLint red, GLint green, GLint blue)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3iv(const GLint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3s(GLshort red, GLshort green, GLshort blue)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3sv(const GLshort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3ubv(const GLubyte *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3ui(GLuint red, GLuint green, GLuint blue)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3uiv(const GLuint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3us(GLushort red, GLushort green, GLushort blue)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3usv(const GLushort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glWindowPos2dv(const GLdouble *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glWindowPos2fv(const GLfloat *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glWindowPos2iv(const GLint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glWindowPos2s(GLshort x, GLshort y)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glWindowPos2sv(const GLshort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glWindowPos3dv(const GLdouble *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glWindowPos3fv(const GLfloat *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glWindowPos3iv(const GLint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glWindowPos3s(GLshort x, GLshort y, GLshort z)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glWindowPos3sv(const GLshort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord1dv(GLenum target, const GLdouble *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord1fv(GLenum target, const GLfloat *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord1i(GLenum target, GLint s)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord1iv(GLenum target, const GLint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord1s(GLenum target, GLshort s)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord1sv(GLenum target, const GLshort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord2dv(GLenum target, const GLdouble *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord2fv(GLenum target, const GLfloat *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord2i(GLenum target, GLint s, GLint t)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord2iv(GLenum target, const GLint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord2s(GLenum target, GLshort s, GLshort t)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord2sv(GLenum target, const GLshort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord3dv(GLenum target, const GLdouble *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord3fv(GLenum target, const GLfloat *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord3i(GLenum target, GLint s, GLint t, GLint r)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord3iv(GLenum target, const GLint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord3s(GLenum target, GLshort s, GLshort t, GLshort r)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord3sv(GLenum target, const GLshort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord4dv(GLenum target, const GLdouble *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord4fv(GLenum target, const GLfloat *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord4i(GLenum target, GLint s, GLint t, GLint r, GLint q)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord4iv(GLenum target, const GLint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord4s(GLenum target, GLshort s, GLshort t, GLshort r, GLshort q)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glMultiTexCoord4sv(GLenum target, const GLshort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glBlendEquationEXT(GLenum mode)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glBlendFuncSeparateEXT(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3bEXT(GLbyte red, GLbyte green, GLbyte blue)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3bvEXT(const GLbyte *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3dEXT(GLdouble red, GLdouble green, GLdouble blue)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3dvEXT(const GLdouble *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3fEXT(GLfloat red, GLfloat green, GLfloat blue)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3fvEXT(const GLfloat *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3iEXT(GLint red, GLint green, GLint blue)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3ivEXT(const GLint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3sEXT(GLshort red, GLshort green, GLshort blue)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3svEXT(const GLshort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3ubEXT(GLubyte red, GLubyte green, GLubyte blue)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3ubvEXT(const GLubyte *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3uiEXT(GLuint red, GLuint green, GLuint blue)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3uivEXT(const GLuint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3usEXT(GLushort red, GLushort green, GLushort blue)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColor3usvEXT(const GLushort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glSecondaryColorPointerEXT(GLint size, GLenum type, GLsizei stride, const void *pointer)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glBlitFramebufferEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glRenderbufferStorageMultisampleEXT(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+
 
 void APIENTRY glClearStencil(GLint s)
 {
@@ -1652,29 +2076,31 @@ void APIENTRY glDisable(GLenum cap)
 
 		switch(cap)
 		{
-		case GL_CULL_FACE:                context->setCullFace(false);              break;
-		case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFill(false);     break;
-		case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverage(false); break;
-		case GL_SAMPLE_COVERAGE:          context->setSampleCoverage(false);        break;
-		case GL_SCISSOR_TEST:             context->setScissorTest(false);           break;
-		case GL_STENCIL_TEST:             context->setStencilTest(false);           break;
-		case GL_DEPTH_TEST:               context->setDepthTest(false);             break;
-		case GL_BLEND:                    context->setBlend(false);                 break;
-		case GL_DITHER:                   context->setDither(false);                break;
-		case GL_LIGHTING:                 context->setLighting(false);              break;
-		case GL_FOG:                      context->setFog(false);                   break;
-		case GL_ALPHA_TEST:               context->setAlphaTest(false);             break;
-		case GL_TEXTURE_2D:               context->setTexture2D(false);             break;
-		case GL_LIGHT0:                   context->setLight(0, false);              break;
-		case GL_LIGHT1:                   context->setLight(1, false);              break;
-		case GL_LIGHT2:                   context->setLight(2, false);              break;
-		case GL_LIGHT3:                   context->setLight(3, false);              break;
-		case GL_LIGHT4:                   context->setLight(4, false);              break;
-		case GL_LIGHT5:                   context->setLight(5, false);              break;
-		case GL_LIGHT6:                   context->setLight(6, false);              break;
-		case GL_LIGHT7:                   context->setLight(7, false);              break;
-		case GL_COLOR_MATERIAL:           context->setColorMaterial(false);         break;
-		case GL_RESCALE_NORMAL:           context->setNormalizeNormals(false);      break;
+		case GL_CULL_FACE:                context->setCullFace(false);					break;
+		case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFill(false);			break;
+		case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverage(false);		break;
+		case GL_SAMPLE_COVERAGE:          context->setSampleCoverage(false);			break;
+		case GL_SCISSOR_TEST:             context->setScissorTest(false);				break;
+		case GL_STENCIL_TEST:             context->setStencilTest(false);				break;
+		case GL_DEPTH_TEST:               context->setDepthTest(false);					break;
+		case GL_BLEND:                    context->setBlend(false);						break;
+		case GL_DITHER:                   context->setDither(false);					break;
+		case GL_LIGHTING:                 context->setLighting(false);					break;
+		case GL_FOG:                      context->setFog(false);						break;
+		case GL_ALPHA_TEST:               context->setAlphaTest(false);					break;
+		case GL_TEXTURE_2D:               context->setTexture2D(false);					break;
+		case GL_LIGHT0:                   context->setLight(0, false);					break;
+		case GL_LIGHT1:                   context->setLight(1, false);					break;
+		case GL_LIGHT2:                   context->setLight(2, false);					break;
+		case GL_LIGHT3:                   context->setLight(3, false);					break;
+		case GL_LIGHT4:                   context->setLight(4, false);					break;
+		case GL_LIGHT5:                   context->setLight(5, false);					break;
+		case GL_LIGHT6:                   context->setLight(6, false);					break;
+		case GL_LIGHT7:                   context->setLight(7, false);					break;
+		case GL_COLOR_MATERIAL:           context->setColorMaterial(false);				break;
+		case GL_RESCALE_NORMAL:           context->setNormalizeNormals(false);			break;
+		case GL_TEXTURE_RECTANGLE:		  context->setRectangleTextureEnable(false);	break;
+		case GL_TEXTURE_1D:				  context->set1DTextureEnable(false);			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -1822,6 +2248,8 @@ void APIENTRY glEnable(GLenum cap)
 		case GL_LIGHT6:                   context->setLight(6, true);              break;
 		case GL_LIGHT7:                   context->setLight(7, true);              break;
 		case GL_RESCALE_NORMAL:           context->setNormalizeNormals(true);      break;
+		case GL_TEXTURE_RECTANGLE:		  context->setRectangleTextureEnable(true);break;
+		case GL_TEXTURE_1D:				  context->set1DTextureEnable(true);	   break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -2738,7 +3166,9 @@ void APIENTRY glGetIntegerv(GLenum pname, GLint* params)
 			GLenum nativeType;
 			unsigned int numParams = 0;
 			if(!context->getQueryParameterInfo(pname, &nativeType, &numParams))
+			{
 				return error(GL_INVALID_ENUM);
+			}
 
 			if(numParams == 0)
 				return; // it is known that pname is valid, but there are no parameters to return
@@ -3093,20 +3523,463 @@ const GLubyte* APIENTRY glGetString(GLenum name)
 	switch(name)
 	{
 	case GL_VENDOR:
-		return (GLubyte*)"TransGaming Inc.";
+		return (GLubyte*)"NVIDIA Corporation";// "TransGaming Inc.";
 	case GL_RENDERER:
-		return (GLubyte*)"SwiftShader";
+		return (GLubyte*)"Quadro K600/PCIe/SSE2";// "SwiftShader";
 	case GL_VERSION:
-		return (GLubyte*)"2.1 SwiftShader "VERSION_STRING;
+		return (GLubyte*)"2.1.2 NVIDIA 347.62";//"2.1.2 SwiftShader "VERSION_STRING;
 	case GL_SHADING_LANGUAGE_VERSION:
-		return (GLubyte*)"3.30 SwiftShader "VERSION_STRING;
+		return (GLubyte*)/*"3.0.0 NVIDIA "VERSION_STRING;*/"4.50 NVIDIA";
 	case GL_EXTENSIONS:
 		// Keep list sorted in following order:
 		// OES extensions
 		// EXT extensions
 		// Vendor extensions
 		return (GLubyte*)
+			////1.1
+			//"GL_EXT_blend_logic_op "
+			//"GL_EXT_copy_texture "
+			//"GL_EXT_polygon_offset "
+			//"GL_EXT_subtexture "
+			//"GL_EXT_texture "
+			//"GL_EXT_texture_object "
+			////"GL_EXT_vertex_array "
+			////1.2
+			//"GL_EXT_bgra "
+			//"GL_EXT_draw_range_elements "
+			//"GL_EXT_packed_pixels "
+			//"GL_EXT_rescale_normal "
+			//"GL_EXT_separate_specular_color "
+			//"GL_EXT_texture3D "
+			//"GL_EXT_texture_edge_clamp "
+			//"GL_SGIS_texture_edge_clamp "
+			//"GL_SGIS_texture_lod "
+			////1.3
+			//"GL_ARB_multisample "
+			//"GL_ARB_multitexture "
+			//"GL_ARB_texture_border_clamp "
+			//"GL_ARB_texture_compression "
+			//"GL_ARB_texture_cube_map "
+			//"GL_ARB_texture_env_add "
+			//"GL_ARB_texture_env_combine "
+			//"GL_ARB_texture_env_dot3 "
+			//"GL_ARB_transpose_matrix "
+			////1.4
+			//"GL_ARB_depth_texture "
+			//"GL_ARB_point_parameters "
+			//"GL_ARB_shadow "
+			//"GL_ARB_texture_env_crossbar "
+			//"GL_ARB_texture_mirrored_repeat "
+			//"GL_ARB_windows_pos "
+			//"GL_EXT_blend_color "
+			//"GL_EXT_blend_func_separate "
+			//"GL_EXT_fog_coord "
+			//"GL_EXT_multi_draw_arrays "
+			//"GL_EXT_secondary_color "
+			//"GL_EXT_stencil_wrap "
+			//"GL_EXT_texture_lod_bias "
+			//"GL_NV_blend_square "
+			//"GL_SGIS_generate_mipmap "
+			////1.5
+			//"GL_ARB_occlusion_query "
+			//"GL_ARB_vertex_buffer_object "
+			//"GL_EXT_shadow_funcs "
+			////2.0
+			//"GL_ARB_draw_buffers "
+			//"GL_ARB_fragment_shader "
+			//"GL_ARB_point_sprite "
+			//"GL_ARB_shader objects "
+			//"GL_ARB_shading_language_100 "
+			//"GL_ARB_texture_non_power_of_two "
+			//"GL_ARB_vertex_shader "
+			//"GL_EXT_blend_equation_separate "
+			//"GL_EXT_stencil_two_side "
+
+			////2.1
+			//"GL_ARB_pixel_buffer_object "
+			//"GL_EXT_texture_sRGB "
+
+			//"GL_EXT_framebuffer_object "
+			//"GL_ARB_framebuffer_object "
+			//"GL_ARB_shader_atomic_counters "
+			//"GL_ARB_shader_bit_encoding "
+			//"GL_ARB_shader_draw_parameters "
+			//"GL_ARB_shader_group_vote "
+			//"GL_ARB_shader_image_load_store "
+			//"GL_ARB_shader_image_size "
+			//"GL_ARB_shader_objects "
+			//"GL_ARB_shader_precision "
+			//"GL_ARB_query_buffer_object "
+			//"GL_ARB_shader_storage_buffer_object "
+			//"GL_ARB_shader_subroutine "
+			//"GL_ARB_shader_texture_lod "
+			//"GL_ARB_shadow "
+			//"GL_ARB_shading_language_420pack "
+			//"GL_ARB_shading_language_include "
+			//"GL_ARB_shading_language_packing ";
+
+
+			//NVIDIA CARD EXTENSIONS
+			"GL_AMD_multi_draw_indirect "
+			"GL_AMD_seamless_cubemap_per_texture "
+			"GL_ARB_arrays_of_arrays "
+			"GL_ARB_base_instance "
+			"GL_ARB_bindless_texture "
+			"GL_ARB_blend_func_extended "
+			"GL_ARB_buffer_storage "
+			"GL_ARB_clear_buffer_object "
+			"GL_ARB_clear_texture "
+			"GL_ARB_clip_control "
+			"GL_ARB_color_buffer_float "
+			"GL_ARB_compressed_texture_pixel_storage "
+			"GL_ARB_compute_shader "
+			"GL_ARB_compute_variable_group_size "
+			"GL_ARB_conditional_render_inverted "
+			"GL_ARB_conservative_depth "
+			"GL_ARB_copy_buffer "
+			"GL_ARB_copy_image "
+			"GL_ARB_cull_distance "
+			"GL_ARB_debug_output "
+			"GL_ARB_depth_buffer_float "
+			"GL_ARB_depth_clamp "
+			"GL_ARB_depth_texture "
+			"GL_ARB_derivative_control "
+			"GL_ARB_direct_state_access "
+			"GL_ARB_draw_buffers "
+			"GL_ARB_draw_buffers_blend "
+			"GL_ARB_draw_elements_base_vertex "
+			"GL_ARB_draw_indirect "
+			"GL_ARB_draw_instanced "
+			"GL_ARB_enhanced_layouts "
+			"GL_ARB_ES2_compatibility "
+			"GL_ARB_ES3_1_compatibility "
+			"GL_ARB_ES3_compatibility "
+			"GL_ARB_explicit_attrib_location "
+			"GL_ARB_explicit_uniform_location "
+			"GL_ARB_fragment_coord_conventions "
+			"GL_ARB_fragment_layer_viewport "
+			"GL_ARB_fragment_program "
+			"GL_ARB_fragment_program_shadow "
+			"GL_ARB_fragment_shader "
+			"GL_ARB_framebuffer_no_attachments "
 			"GL_ARB_framebuffer_object "
+			"GL_ARB_framebuffer_sRGB "
+			"GL_ARB_geometry_shader4 "
+			"GL_ARB_get_program_binary "
+			"GL_ARB_get_texture_sub_image "
+			"GL_ARB_gpu_shader5 "
+			"GL_ARB_gpu_shader_fp64 "
+			"GL_ARB_half_float_pixel "
+			"GL_ARB_half_float_vertex "
+			"GL_ARB_imaging "
+			"GL_ARB_indirect_parameters "
+			"GL_ARB_instanced_arrays "
+			"GL_ARB_internalformat_query "
+			"GL_ARB_internalformat_query2 "
+			"GL_ARB_invalidate_subdata "
+			"GL_ARB_map_buffer_alignment "
+			"GL_ARB_map_buffer_range "
+			"GL_ARB_multi_bind "
+			"GL_ARB_multi_draw_indirect "
+			"GL_ARB_multisample "
+			"GL_ARB_multitexture "
+			"GL_ARB_occlusion_query "
+			"GL_ARB_occlusion_query2 "
+			"GL_ARB_pipeline_statistics_query "
+			"GL_ARB_pixel_buffer_object "
+			"GL_ARB_point_parameters "
+			"GL_ARB_point_sprite "
+			"GL_ARB_program_interface_query "
+			"GL_ARB_provoking_vertex "
+			"GL_ARB_query_buffer_object "
+			"GL_ARB_robust_buffer_access_behavior "
+			"GL_ARB_robustness "
+			"GL_ARB_sample_shading "
+			"GL_ARB_sampler_objects "
+			"GL_ARB_seamless_cube_map "
+			"GL_ARB_seamless_cubemap_per_texture "
+			"GL_ARB_separate_shader_objects "
+			"GL_ARB_shader_atomic_counters "
+			"GL_ARB_shader_bit_encoding "
+			"GL_ARB_shader_draw_parameters "
+			"GL_ARB_shader_group_vote "
+			"GL_ARB_shader_image_load_store "
+			"GL_ARB_shader_image_size "
+			"GL_ARB_shader_objects "
+			"GL_ARB_shader_precision "
+			"GL_ARB_shader_storage_buffer_object "
+			"GL_ARB_shader_subroutine "
+			"GL_ARB_shader_texture_image_samples "
+			"GL_ARB_shader_texture_lod "
+			"GL_ARB_shading_language_100 "
+			"GL_ARB_shading_language_420pack "
+			"GL_ARB_shading_language_include "
+			"GL_ARB_shading_language_packing "
+			"GL_ARB_shadow "
+			"GL_ARB_sparse_buffer "
+			"GL_ARB_sparse_texture "
+			"GL_ARB_stencil_texturing "
+			"GL_ARB_sync "
+			"GL_ARB_tessellation_shader "
+			"GL_ARB_texture_barrier "
+			"GL_ARB_texture_border_clamp "
+			"GL_ARB_texture_buffer_object "
+			"GL_ARB_texture_buffer_object_rgb32 "
+			"GL_ARB_texture_buffer_range "
+			"GL_ARB_texture_compression "
+			"GL_ARB_texture_compression_bptc "
+			"GL_ARB_texture_compression_rgtc "
+			"GL_ARB_texture_cube_map "
+			"GL_ARB_texture_cube_map_array "
+			"GL_ARB_texture_env_add "
+			"GL_ARB_texture_env_combine "
+			"GL_ARB_texture_env_crossbar "
+			"GL_ARB_texture_env_dot3 "
+			"GL_ARB_texture_float "
+			"GL_ARB_texture_gather "
+			"GL_ARB_texture_mirror_clamp_to_edge "
+			"GL_ARB_texture_mirrored_repeat "
+			"GL_ARB_texture_multisample "
+			"GL_ARB_texture_non_power_of_two "
+			"GL_ARB_texture_query_levels "
+			"GL_ARB_texture_query_lod "
+			"GL_ARB_texture_rectangle "
+			"GL_ARB_texture_rg "
+			"GL_ARB_texture_rgb10_a2ui "
+			"GL_ARB_texture_stencil8 "
+			"GL_ARB_texture_storage "
+			"GL_ARB_texture_storage_multisample "
+			"GL_ARB_texture_swizzle "
+			"GL_ARB_texture_view "
+			"GL_ARB_timer_query "
+			"GL_ARB_transform_feedback2 "
+			"GL_ARB_transform_feedback3 "
+			"GL_ARB_transform_feedback_instanced "
+			"GL_ARB_transform_feedback_overflow_query "
+			"GL_ARB_transpose_matrix "
+			"GL_ARB_uniform_buffer_object "
+			"GL_ARB_vertex_array_bgra "
+			"GL_ARB_vertex_array_object "
+			"GL_ARB_vertex_attrib_64bit "
+			"GL_ARB_vertex_attrib_binding "
+			"GL_ARB_vertex_buffer_object "
+			"GL_ARB_vertex_program "
+			"GL_ARB_vertex_shader "
+			"GL_ARB_vertex_type_10f_11f_11f_rev "
+			"GL_ARB_vertex_type_2_10_10_10_rev "
+			"GL_ARB_viewport_array "
+			"GL_ARB_window_pos "
+			"GL_ATI_draw_buffers "
+			"GL_ATI_texture_float "
+			"GL_ATI_texture_mirror_once "
+			"GL_EXT_abgr "
+			"GL_EXT_bgra "
+			"GL_EXT_bindable_uniform "
+			"GL_EXT_blend_color "
+			"GL_EXT_blend_equation_separate "
+			"GL_EXT_blend_func_separate "
+			"GL_EXT_blend_minmax "
+			"GL_EXT_blend_subtract "
+			"GL_EXT_Cg_shader "
+			"GL_EXT_compiled_vertex_array "
+			"GL_EXT_depth_bounds_test "
+			"GL_EXT_direct_state_access "
+			"GL_EXT_draw_buffers2 "
+			"GL_EXT_draw_instanced "
+			"GL_EXT_draw_range_elements "
+			"GL_EXT_fog_coord "
+			"GL_EXT_framebuffer_blit "
+			"GL_EXT_framebuffer_multisample "
+			"GL_EXT_framebuffer_multisample_blit_scaled "
+			"GL_EXT_framebuffer_object "
+			"GL_EXT_framebuffer_sRGB "
+			"GL_EXT_geometry_shader4 "
+			"GL_EXT_gpu_program_parameters "
+			"GL_EXT_gpu_shader4 "
+			"GL_EXT_import_sync_object "
+			"GL_EXT_multi_draw_arrays "
+			"GL_EXT_packed_depth_stencil "
+			"GL_EXT_packed_float "
+			//"GL_EXT_packed_pixels "
+			"GL_EXT_pixel_buffer_object "
+			"GL_EXT_point_parameters "
+			"GL_EXT_polygon_offset_clamp "
+			"GL_EXT_provoking_vertex "
+			"GL_EXT_rescale_normal "
+			"GL_EXT_secondary_color "
+			"GL_EXT_separate_shader_objects "
+			"GL_EXT_separate_specular_color "
+			"GL_EXT_shader_image_load_store "
+			"GL_EXT_shader_integer_mix "
+			"GL_EXT_shadow_funcs "
+			"GL_EXT_stencil_two_side "
+			"GL_EXT_stencil_wrap "
+			"GL_EXT_texture3D "
+			"GL_EXT_texture_array "
+			"GL_EXT_texture_buffer_object "
+			"GL_EXT_texture_compression_dxt1 "
+			"GL_EXT_texture_compression_latc "
+			"GL_EXT_texture_compression_rgtc "
+			"GL_EXT_texture_compression_s3tc "
+			"GL_EXT_texture_cube_map "
+			"GL_EXT_texture_edge_clamp "
+			"GL_EXT_texture_env_add "
+			"GL_EXT_texture_env_combine "
+			"GL_EXT_texture_env_dot3 "
+			"GL_EXT_texture_filter_anisotropic "
+			"GL_EXT_texture_integer "
+			"GL_EXT_texture_lod "
+			"GL_EXT_texture_lod_bias "
+			"GL_EXT_texture_mirror_clamp "
+			"GL_EXT_texture_object "
+			"GL_EXT_texture_shared_exponent "
+			"GL_EXT_texture_sRGB "
+			"GL_EXT_texture_sRGB_decode "
+			"GL_EXT_texture_storage "
+			"GL_EXT_texture_swizzle "
+			"GL_EXT_timer_query "
+			"GL_EXT_transform_feedback2 "
+			"GL_EXT_vertex_array "
+			"GL_EXT_vertex_array_bgra "
+			"GL_EXT_vertex_attrib_64bit "
+			"GL_EXTX_framebuffer_mixed_formats "
+			"GL_IBM_rasterpos_clip "
+			"GL_IBM_texture_mirrored_repeat "
+			"GL_KHR_blend_equation_advanced "
+			"GL_KHR_context_flush_control "
+			"GL_KHR_debug "
+			"GL_KHR_robust_buffer_access_behavior "
+			"GL_KHR_robustness "
+			"GL_KTX_buffer_region "
+			"GL_NV_bindless_multi_draw_indirect "
+			"GL_NV_bindless_multi_draw_indirect_count "
+			"GL_NV_bindless_texture "
+			"GL_NV_blend_equation_advanced "
+			"GL_NV_blend_square "
+			"GL_NV_command_list "
+			"GL_NV_compute_program5 "
+			"GL_NV_conditional_render "
+			"GL_NV_copy_depth_to_color "
+			"GL_NV_copy_image "
+			"GL_NV_deep_texture3D "
+			"GL_NV_depth_buffer_float "
+			"GL_NV_depth_clamp "
+			"GL_NV_draw_texture "
+			"GL_NV_ES1_1_compatibility "
+			"GL_NV_ES3_1_compatibility "
+			"GL_NV_explicit_multisample "
+			"GL_NV_fence "
+			"GL_NV_float_buffer "
+			"GL_NV_fog_distance "
+			"GL_NV_fragment_program "
+			"GL_NV_fragment_program2 "
+			"GL_NV_fragment_program_option "
+			"GL_NV_framebuffer_multisample_coverage "
+			"GL_NV_geometry_shader4 "
+			"GL_NV_gpu_program4 "
+			"GL_NV_gpu_program4_1 "
+			"GL_NV_gpu_program5 "
+			"GL_NV_gpu_program5_mem_extended "
+			"GL_NV_gpu_program_fp64 "
+			"GL_NV_gpu_shader5 "
+			"GL_NV_half_float "
+			"GL_NV_internalformat_sample_query "
+			"GL_NV_light_max_exponent "
+			"GL_NV_multisample_coverage "
+			"GL_NV_multisample_filter_hint "
+			"GL_NV_occlusion_query "
+			"GL_NV_packed_depth_stencil "
+			"GL_NV_parameter_buffer_object "
+			"GL_NV_parameter_buffer_object2 "
+			"GL_NV_path_rendering "
+			"GL_NV_pixel_data_range "
+			"GL_NV_point_sprite "
+			"GL_NV_primitive_restart "
+			"GL_NV_register_combiners "
+			"GL_NV_register_combiners2 "
+			"GL_NV_shader_atomic_counters "
+			"GL_NV_shader_atomic_float "
+			"GL_NV_shader_buffer_load "
+			"GL_NV_shader_storage_buffer_object "
+			"GL_NV_shader_thread_group "
+			"GL_NV_shader_thread_shuffle "
+			"GL_NV_texgen_reflection "
+			"GL_NV_texture_barrier "
+			"GL_NV_texture_compression_vtc "
+			"GL_NV_texture_env_combine4 "
+			"GL_NV_texture_multisample "
+			"GL_NV_texture_rectangle "
+			"GL_NV_texture_shader "
+			"GL_NV_texture_shader2 "
+			"GL_NV_texture_shader3 "
+			"GL_NV_transform_feedback "
+			"GL_NV_transform_feedback2 "
+			"GL_NV_uniform_buffer_unified_memory "
+			"GL_NV_vertex_array_range "
+			"GL_NV_vertex_array_range2 "
+			"GL_NV_vertex_attrib_integer_64bit "
+			"GL_NV_vertex_buffer_unified_memory "
+			"GL_NV_vertex_program "
+			"GL_NV_vertex_program1_1 "
+			"GL_NV_vertex_program2 "
+			"GL_NV_vertex_program2_option "
+			"GL_NV_vertex_program3 "
+			"GL_NV_video_capture "
+			"GL_NVX_conditional_render "
+			"GL_NVX_gpu_memory_info "
+			"GL_NVX_nvenc_interop "
+			"GL_S3_s3tc "
+			"GL_SGIS_generate_mipmap "
+			"GL_SGIS_texture_lod "
+			"GL_SGIX_depth_texture "
+			"GL_SGIX_shadow "
+			"GL_SUN_slice_accum "
+			//"GL_WIN_swap_hint "
+			"WGL_ARB_buffer_region "
+			"WGL_ARB_context_flush_control "
+			"WGL_ARB_create_context "
+			"WGL_ARB_create_context_profile "
+			"WGL_ARB_create_context_robustness "
+			"WGL_ARB_extensions_string "
+			"WGL_ARB_make_current_read "
+			"WGL_ARB_multisample "
+			"WGL_ARB_pbuffer "
+			"WGL_ARB_pixel_format "
+			"WGL_ARB_pixel_format_float "
+			"WGL_ARB_render_texture "
+			"WGL_ATI_pixel_format_float "
+			"WGL_EXT_create_context_es2_profile "
+			"WGL_EXT_create_context_es_profile "
+			"WGL_EXT_extensions_string "
+			"WGL_EXT_framebuffer_sRGB "
+			"WGL_EXT_pixel_format_packed_float "
+			"WGL_EXT_swap_control "
+			"WGL_EXT_swap_control_tear "
+			"WGL_NV_copy_image "
+			"WGL_NV_delay_before_swap "
+			"WGL_NV_DX_interop "
+			"WGL_NV_DX_interop2 "
+			"WGL_NV_float_buffer "
+			"WGL_NV_gpu_affinity "
+			"WGL_NV_multisample_coverage "
+			"WGL_NV_render_depth_texture "
+			"WGL_NV_render_texture_rectangle "
+			"WGL_NV_swap_group "
+			"WGL_NV_video_capture "
+			"WGL_NVX_DX_interop";
+
+
+			/*"WGL_ARB_extensions_string "
+			"GL_ARB_extensions_string "
+			"WGL_ARB_create_context "
+			"GL_ARB_create_context "
+			"GL_ARB_texture_non_power_of_two "
+			"GL_ARB_framebuffer_object "
+			"GL_ARB_fragment_shader "
+			"GL_ARB_vertex_shader "
+			"GL_ARB_shader_objects "
+			"GL_ARB_shading_language_100 "
+			"GL_EXT_framebuffer_object "
 			"GL_EXT_blend_minmax "
 			"GL_EXT_depth_texture "
 			"GL_EXT_depth_texture_cube_map "
@@ -3134,7 +4007,330 @@ const GLubyte* APIENTRY glGetString(GLenum name)
 			"GL_EXT_texture_compression_dxt3 "
 			"GL_EXT_texture_compression_dxt5 "
 			#endif
-			"GL_NV_fence";
+			"GL_NV_fence";*/
+
+
+
+			/*"GL_AMD_multi_draw_indirect "
+			"GL_AMD_seamless_cubemap_per_texture "
+			"GL_ARB_arrays_of_arrays "
+			"GL_ARB_base_instance "
+			"GL_ARB_bindless_texture "
+			"GL_ARB_blend_func_extended "
+			"GL_ARB_buffer_storage "
+			"GL_ARB_clear_buffer_object "
+			"GL_ARB_clear_texture "
+			"GL_ARB_color_buffer_float "
+			"GL_ARB_compatibility "
+			"GL_ARB_compressed_texture_pixel_storage "
+			"GL_ARB_conservative_depth "
+			"GL_ARB_compute_shader "
+			"GL_ARB_compute_variable_group_size "
+			"GL_ARB_copy_buffer "
+			"GL_ARB_copy_image "
+			"GL_ARB_debug_output "
+			"GL_ARB_depth_buffer_float "
+			"GL_ARB_depth_clamp "
+			"GL_ARB_depth_texture "
+			"GL_ARB_draw_buffers "
+			"GL_ARB_draw_buffers_blend "
+			"GL_ARB_draw_indirect "
+			"GL_ARB_draw_elements_base_vertex "
+			"GL_ARB_draw_instanced "
+			"GL_ARB_enhanced_layouts "
+			"GL_ARB_ES2_compatibility "
+			"GL_ARB_ES3_compatibility "
+			"GL_ARB_explicit_attrib_location "
+			"GL_ARB_explicit_uniform_location "
+			"GL_ARB_fragment_coord_conventions "
+			"GL_ARB_fragment_layer_viewport "
+			"GL_ARB_fragment_program "
+			"GL_ARB_fragment_program_shadow "
+			"GL_ARB_fragment_shader "
+			"GL_ARB_framebuffer_no_attachments "
+			"GL_ARB_framebuffer_object "
+			"GL_ARB_framebuffer_sRGB "
+			"GL_ARB_geometry_shader4 "
+			"GL_ARB_get_program_binary "
+			"GL_ARB_gpu_shader5 "
+			"GL_ARB_gpu_shader_fp64 "
+			"GL_ARB_half_float_pixel "
+			"GL_ARB_half_float_vertex "
+			"GL_ARB_indirect_parameters "
+			"GL_ARB_instanced_arrays "
+			"GL_ARB_internalformat_query "
+			"GL_ARB_internalformat_query2 "
+			"GL_ARB_invalidate_subdata "
+			"GL_ARB_map_buffer_alignment "
+			"GL_ARB_map_buffer_range "
+			"GL_ARB_multi_bind "
+			"GL_ARB_multi_draw_indirect "
+			"GL_ARB_multisample "
+			"GL_ARB_multitexture "
+			"GL_ARB_occlusion_query "
+			"GL_ARB_occlusion_query2 "
+			"GL_ARB_pixel_buffer_object "
+			"GL_ARB_point_parameters "
+			"GL_ARB_point_sprite "
+			"GL_ARB_program_interface_query "
+			"GL_ARB_provoking_vertex "
+			"GL_ARB_robust_buffer_access_behavior "
+			"GL_ARB_robustness "
+			"GL_ARB_sample_shading "
+			"GL_ARB_sampler_objects "
+			"GL_ARB_seamless_cube_map "
+			"GL_ARB_seamless_cubemap_per_texture "
+			"GL_ARB_separate_shader_objects "
+			"GL_ARB_shader_atomic_counters "
+			"GL_ARB_shader_bit_encoding "
+			"GL_ARB_shader_draw_parameters "
+			"GL_ARB_shader_group_vote "
+			"GL_ARB_shader_image_load_store "
+			"GL_ARB_shader_image_size "
+			"GL_ARB_shader_objects "
+			"GL_ARB_shader_precision "
+			"GL_ARB_query_buffer_object "
+			"GL_ARB_shader_storage_buffer_object "
+			"GL_ARB_shader_subroutine "
+			"GL_ARB_shader_texture_lod "
+			"GL_ARB_shading_language_100 "
+			"GL_ARB_shading_language_420pack "
+			"GL_ARB_shading_language_include "
+			"GL_ARB_shading_language_packing "
+			"GL_ARB_shadow "
+			"GL_ARB_sparse_texture "
+			"GL_ARB_stencil_texturing "
+			"GL_ARB_sync "
+			"GL_ARB_tessellation_shader "
+			"GL_ARB_texture_border_clamp "
+			"GL_ARB_texture_buffer_object "
+			"GL_ARB_texture_buffer_object_rgb32 "
+			"GL_ARB_texture_buffer_range "
+			"GL_ARB_texture_compression "
+			"GL_ARB_texture_compression_bptc "
+			"GL_ARB_texture_compression_rgtc "
+			"GL_ARB_texture_cube_map "
+			"GL_ARB_texture_cube_map_array "
+			"GL_ARB_texture_env_add "
+			"GL_ARB_texture_env_combine "
+			"GL_ARB_texture_env_crossbar "
+			"GL_ARB_texture_env_dot3 "
+			"GL_ARB_texture_float "
+			"GL_ARB_texture_gather "
+			"GL_ARB_texture_mirror_clamp_to_edge "
+			"GL_ARB_texture_mirrored_repeat "
+			"GL_ARB_texture_multisample "
+			"GL_ARB_texture_non_power_of_two "
+			"GL_ARB_texture_query_levels "
+			"GL_ARB_texture_query_lod "
+			"GL_ARB_texture_rectangle "
+			"GL_ARB_texture_rg "
+			"GL_ARB_texture_rgb10_a2ui "
+			"GL_ARB_texture_stencil8 "
+			"GL_ARB_texture_storage "
+			"GL_ARB_texture_storage_multisample "
+			"GL_ARB_texture_swizzle "
+			"GL_ARB_texture_view "
+			"GL_ARB_timer_query "
+			"GL_ARB_transform_feedback2 "
+			"GL_ARB_transform_feedback3 "
+			"GL_ARB_transform_feedback_instanced "
+			"GL_ARB_transpose_matrix "
+			"GL_ARB_uniform_buffer_object "
+			"GL_ARB_vertex_array_bgra "
+			"GL_ARB_vertex_array_object "
+			"GL_ARB_vertex_attrib_64bit "
+			"GL_ARB_vertex_attrib_binding "
+			"GL_ARB_vertex_buffer_object "
+			"GL_ARB_vertex_program "
+			"GL_ARB_vertex_shader "
+			"GL_ARB_vertex_type_10f_11f_11f_rev "
+			"GL_ARB_vertex_type_2_10_10_10_rev "
+			"GL_ARB_viewport_array "
+			"GL_ARB_window_pos "
+			"GL_ATI_draw_buffers "
+			"GL_ATI_texture_float "
+			"GL_ATI_texture_mirror_once "
+			"GL_S3_s3tc "
+			"GL_EXT_abgr "
+			"GL_EXT_bgra "
+			"GL_EXT_bindable_uniform "
+			"GL_EXT_blend_color "
+			"GL_EXT_blend_equation_separate "
+			"GL_EXT_blend_func_separate "
+			"GL_EXT_blend_minmax "
+			"GL_EXT_blend_subtract "
+			"GL_EXT_compiled_vertex_array "
+			"GL_EXT_Cg_shader "
+			"GL_EXT_depth_bounds_test "
+			"GL_EXT_direct_state_access "
+			"GL_EXT_draw_buffers2 "
+			"GL_EXT_draw_instanced "
+			"GL_EXT_draw_range_elements "
+			"GL_EXT_fog_coord "
+			"GL_EXT_framebuffer_blit "
+			"GL_EXT_framebuffer_multisample "
+			"GL_EXT_framebuffer_multisample_blit_scaled "
+			"GL_EXT_framebuffer_object "
+			"GL_EXT_framebuffer_sRGB "
+			"GL_EXT_geometry_shader4 "
+			"GL_EXT_gpu_program_parameters "
+			"GL_EXT_gpu_shader4 "
+			"GL_EXT_multi_draw_arrays "
+			"GL_EXT_packed_depth_stencil "
+			"GL_EXT_packed_float "
+			"GL_EXT_packed_pixels "
+			"GL_EXT_pixel_buffer_object "
+			"GL_EXT_point_parameters "
+			"GL_EXT_post_depth_coverage "
+			"GL_EXT_provoking_vertex "
+			"GL_EXT_rescale_normal "
+			"GL_EXT_raster_multisample "
+			"GL_EXT_secondary_color "
+			"GL_EXT_separate_shader_objects "
+			"GL_EXT_separate_specular_color "
+			"GL_EXT_shader_image_load_formatted "
+			"GL_EXT_shader_image_load_store "
+			"GL_EXT_shader_integer_mix "
+			"GL_EXT_shadow_funcs "
+			"GL_EXT_sparse_texture2 "
+			"GL_EXT_stencil_two_side "
+			"GL_EXT_stencil_wrap "
+			"GL_EXT_texture3D "
+			"GL_EXT_texture_array "
+			"GL_EXT_texture_buffer_object "
+			"GL_EXT_texture_compression_dxt1 "
+			"GL_EXT_texture_compression_latc "
+			"GL_EXT_texture_compression_rgtc "
+			"GL_EXT_texture_compression_s3tc "
+			"GL_EXT_texture_cube_map "
+			"GL_EXT_texture_edge_clamp "
+			"GL_EXT_texture_env_add "
+			"GL_EXT_texture_env_combine "
+			"GL_EXT_texture_env_dot3 "
+			"GL_EXT_texture_filter_anisotropic "
+			"GL_EXT_texture_filter_minmax "
+			"GL_EXT_texture_integer "
+			"GL_EXT_texture_lod_bias "
+			"GL_EXT_texture_mirror_clamp "
+			"GL_EXT_texture_object "
+			"GL_EXT_texture_shared_exponent "
+			"GL_EXT_texture_sRGB "
+			"GL_EXT_texture_sRGB_decode "
+			"GL_EXT_texture_swizzle "
+			"GL_EXT_timer_query "
+			"GL_EXT_transform_feedback2 "
+			"GL_EXT_vertex_array "
+			"GL_EXT_vertex_array_bgra "
+			"GL_EXT_vertex_attrib_64bit "
+			"GL_EXT_import_sync_object "
+			"GL_KHR_debug "
+			"GL_NV_bindless_multi_draw_indirect "
+			"GL_NV_bindless_texture "
+			"GL_NV_blend_equation_advanced "
+			"GL_NV_blend_square "
+			"GL_NV_command_list "
+			"GL_NV_compute_program5 "
+			"GL_NV_conditional_render "
+			"GL_NV_conservative_raster "
+			"GL_NV_copy_depth_to_color "
+			"GL_NV_copy_image "
+			"GL_NV_deep_texture3D "
+			"GL_NV_depth_buffer_float "
+			"GL_NV_depth_clamp "
+			"GL_NV_draw_texture "
+			"GL_NV_explicit_multisample "
+			"GL_NV_fence "
+			"GL_NV_fill_rectangle "
+			"GL_NV_float_buffer "
+			"GL_NV_fog_distance "
+			"GL_NV_fragment_coverage_to_color "
+			"GL_NV_fragment_program "
+			"GL_NV_fragment_program_option "
+			"GL_NV_fragment_program2 "
+			"GL_NV_fragment_shader_interlock "
+			"GL_NV_framebuffer_mixed_samples "
+			"GL_NV_framebuffer_multisample_coverage "
+			"GL_NV_geometry_shader_passthrough "
+			"GL_NV_geometry_shader4 "
+			"GL_NV_gpu_program4 "
+			"GL_NV_gpu_program5 "
+			"GL_NV_gpu_program5_mem_extended "
+			"GL_NV_gpu_shader5 "
+			"GL_NV_half_float "
+			"GL_NV_light_max_exponent "
+			"GL_NV_multisample_coverage "
+			"GL_NV_multisample_filter_hint "
+			"GL_NV_occlusion_query "
+			"GL_NV_packed_depth_stencil "
+			"GL_NV_parameter_buffer_object "
+			"GL_NV_parameter_buffer_object2 "
+			"GL_NV_path_rendering "
+			"GL_NV_path_rendering_shared_edge "
+			"GL_NV_pixel_data_range "
+			"GL_NV_point_sprite "
+			"GL_NV_primitive_restart "
+			"GL_NV_register_combiners "
+			"GL_NV_register_combiners2 "
+			"GL_NV_sample_locations "
+			"GL_NV_sample_mask_override_coverage "
+			"GL_NV_shader_atomic_counters "
+			"GL_NV_shader_atomic_fp16_vector "
+			"GL_NV_shader_atomic_float "
+			"GL_NV_shader_buffer_load "
+			"GL_NV_shader_storage_buffer_object "
+			"GL_NV_shader_thread_group "
+			"GL_NV_shader_thread_shuffle "
+			"GL_NV_texgen_reflection "
+			"GL_NV_texture_barrier "
+			"GL_NV_texture_compression_vtc "
+			"GL_NV_texture_env_combine4 "
+			"GL_NV_texture_expand_normal "
+			"GL_NV_texture_multisample "
+			"GL_NV_texture_rectangle "
+			"GL_NV_texture_shader "
+			"GL_NV_texture_shader2 "
+			"GL_NV_texture_shader3 "
+			"GL_NV_transform_feedback "
+			"GL_NV_transform_feedback2 "
+			"GL_NV_vertex_array_range "
+			"GL_NV_vertex_array_range2 "
+			"GL_NV_vertex_attrib_integer_64bit "
+			"GL_NV_vertex_buffer_unified_memory "
+			"GL_NV_vertex_program "
+			"GL_NV_vertex_program1_1 "
+			"GL_NV_vertex_program2 "
+			"GL_NV_vertex_program2_option "
+			"GL_NV_vertex_program3 "
+			"GL_NV_video_capture "
+			"GL_NVX_conditional_render "
+			"GL_NVX_gpu_memory_info "
+			"GL_SGIS_generate_mipmap "
+			"GL_SGIS_texture_lod "
+			"GL_SGIX_depth_texture "
+			"GL_SGIX_shadow "
+			"GL_SUN_slice_accum "
+			"WGL_ARB_buffer_region "
+			"WGL_ARB_create_context "
+			"WGL_ARB_extensions_string "
+			"WGL_ARB_pbuffer "
+			"WGL_ARB_pixel_format "
+			"WGL ARB render texture "
+			"WGL ATI pixel_format_float "
+			"WGL_EXT_extensions_string "
+			"WGL_EXT_pbuffer "
+			"WGL_EXT_pixel_format "
+			"WGL_EXT_swap_control "
+			"WGL_EXT_swap_control_tear "
+			"WGL_NV_dx_interop "
+			"WGL_NV_gpu_affinity "
+			"WGL NV render depth texture "
+			"WGL NV render texture rectangle "
+			"WGL_NV_swap_group "
+			"WGL_NV_video_out";*/
+
+
+
 	default:
 		return error(GL_INVALID_ENUM, (GLubyte*)NULL);
 	}
@@ -3787,6 +4983,49 @@ void APIENTRY glPixelStorei(GLenum pname, GLint param)
 	{
 		switch(pname)
 		{
+		case GL_UNPACK_SWAP_BYTES:
+			if(param != GL_TRUE && param != GL_FALSE)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setUnpackSwapBytes(param);
+			if(param == GL_TRUE)
+			{
+				UNIMPLEMENTED();
+			}
+			break;
+		case GL_UNPACK_LSB_FIRST:
+			if(param != GL_TRUE && param != GL_FALSE)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setUnpackLsbFirst(param);
+			if(param == GL_TRUE)
+			{
+				UNIMPLEMENTED();
+			}
+			break;
+		case GL_UNPACK_ROW_LENGTH:
+			if(param < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setUnpackRowLength(param);
+			break;
+		case GL_UNPACK_SKIP_ROWS:
+			if(param < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setUnpackSkipRows(param);
+			break;
+		case GL_UNPACK_SKIP_PIXELS:
+			if(param < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setUnpackSkipPixels(param);
+			break;
 		case GL_UNPACK_ALIGNMENT:
 			if(param != 1 && param != 2 && param != 4 && param != 8)
 			{
@@ -3800,6 +5039,28 @@ void APIENTRY glPixelStorei(GLenum pname, GLint param)
 				return error(GL_INVALID_VALUE);
 			}
 			context->setPackAlignment(param);
+			break;
+		case GL_UNPACK_SKIP_IMAGES:
+			if(param < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setUnpackSkipImages(param);
+			if(param != 0)
+			{
+				UNIMPLEMENTED();
+			}
+			break;
+		case GL_UNPACK_IMAGE_HEIGHT:
+			if(param < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setUnpackImageHeight(param);
+			if(param != 0)
+			{
+				UNIMPLEMENTED();
+			}
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -4386,7 +5647,9 @@ void APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, GLs
 
 	switch(target)
 	{
+	case GL_TEXTURE_1D:
 	case GL_TEXTURE_2D:
+	case GL_TEXTURE_RECTANGLE:
 		if(width > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
 		   height > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
 		{
@@ -4454,7 +5717,18 @@ void APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, GLs
 			UNIMPLEMENTED();
 		}
 
-		if(target == GL_TEXTURE_2D || target == GL_PROXY_TEXTURE_2D)
+		if(target == GL_TEXTURE_1D)
+		{
+			gl::Texture1D *texture = context->getTexture1D();
+
+			if(!texture)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+
+			texture->setImage(level, width, height, format, type, context->getUnpackAlignment(), pixels);
+		}
+		else if(target == GL_TEXTURE_2D || target == GL_PROXY_TEXTURE_2D || target == GL_TEXTURE_RECTANGLE)
 		{
 			gl::Texture2D *texture = context->getTexture2D(target);
 
@@ -4580,6 +5854,14 @@ void APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 
 		switch(target)
 		{
+		case GL_TEXTURE_RECTANGLE:
+			if(!context->getRectangleTextureEnable())
+			{
+				return error(GL_INVALID_VALUE);
+			}
+		case GL_TEXTURE_1D:
+			texture = context->getTexture1D();
+			break;
 		case GL_TEXTURE_2D:
 			texture = context->getTexture2D(target);
 			break;
@@ -4685,8 +5967,16 @@ void APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint y
 		{
 			return error(GL_INVALID_VALUE);
 		}
+		if(target == GL_TEXTURE_1D)
+		{
+			gl::Texture1D *texture = context->getTexture1D();
 
-		if(target == GL_TEXTURE_2D)
+			if(validateSubImageParams(false, width, height, xoffset, yoffset, target, level, format, texture))
+			{
+				texture->subImage(level, xoffset, yoffset, width, height, format, type, context->getUnpackAlignment(), pixels);
+			}
+		}
+		else if(target == GL_TEXTURE_2D || target == GL_TEXTURE_RECTANGLE)
 		{
 			gl::Texture2D *texture = context->getTexture2D(target);
 
@@ -6986,12 +8276,25 @@ void APIENTRY glPolygonStipple(const GLubyte *mask)
 
 void APIENTRY glPopAttrib(void)
 {
+	TRACE("()");
 	UNIMPLEMENTED();
 }
 
 void APIENTRY glPopClientAttrib(void)
 {
-	UNIMPLEMENTED();
+	TRACE("()");
+	
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->popClientAttrib();
+	}
 }
 
 void APIENTRY glPopMatrix(void)
@@ -7023,12 +8326,25 @@ void APIENTRY glPrioritizeTextures(GLsizei n, const GLuint *textures, const GLcl
 
 void APIENTRY glPushAttrib(GLbitfield mask)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLbitfield mask = %u)", mask);
+	//UNIMPLEMENTED();
 }
 
 void APIENTRY glPushClientAttrib(GLbitfield mask)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLbitfield mask = %u)", mask);
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->pushClientAttrib(mask);
+	}
 }
 
 void APIENTRY glPushMatrix(void)
@@ -7490,7 +8806,30 @@ void APIENTRY glTexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
 
 void APIENTRY glTexEnvi(GLenum target, GLenum pname, GLint param)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint param = %d)", target, pname, param);
+	
+	if(target != GL_TEXTURE_ENV || pname != GL_TEXTURE_ENV_MODE)
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
+	switch((GLenum)param)
+	{
+	case GL_REPLACE:
+	case GL_MODULATE:
+	case GL_DECAL:
+	case GL_BLEND:
+		break;
+	default:
+		error(GL_INVALID_ENUM);
+	}
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		context->setTextureEnvMode((GLenum)param);
+	}
 }
 
 void APIENTRY glTexEnviv(GLenum target, GLenum pname, const GLint *params)
@@ -7530,12 +8869,20 @@ void APIENTRY glTexGeniv(GLenum coord, GLenum pname, const GLint *params)
 
 void APIENTRY glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint internalformat = %d, GLsizei width = %d, "
+		"GLint border = %d, GLenum format = 0x%X, GLenum type = 0x%X, const GLvoid* pixels =  %p)",
+		target, level, internalformat, width, border, format, type, pixels);
+	
+	glTexImage2D(target, level, internalformat, width, 1, border, format, type, pixels);
 }
 
 void APIENTRY glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const GLvoid *pixels)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLsizei width = %d, "
+		"GLenum format =  0x%X, GLenum type = 0x%X, const GLvoid* pixels =  %p)",
+		target, level, xoffset, width, format, type, pixels);
+
+	glTexSubImage2D(target, level, xoffset, 0, width, 1, format, type, pixels);
 }
 
 void APIENTRY glTranslated(GLdouble x, GLdouble y, GLdouble z)
@@ -7640,6 +8987,11 @@ void APIENTRY glVertex3f(GLfloat x, GLfloat y, GLfloat z)
 }
 
 void APIENTRY glVertex3fv(const GLfloat *v)
+{
+	UNIMPLEMENTED();
+}
+
+GLAPI void APIENTRY glVertexAttrib4dv(GLuint index, const GLdouble *v)
 {
 	UNIMPLEMENTED();
 }
@@ -7826,6 +9178,927 @@ void APIENTRY glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint
 void APIENTRY glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height) {UNIMPLEMENTED();}
 void APIENTRY glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter) {UNIMPLEMENTED();}
 
+void WINAPI glBindAttribLocationARB(GLhandleARB programObj, GLuint index, const GLcharARB *name) { UNIMPLEMENTED(); }
+void WINAPI glGetActiveAttribARB(GLhandleARB programObj, GLuint index, GLsizei maxLength, GLsizei *length, GLint *size, GLenum *type, GLcharARB *name) { UNIMPLEMENTED(); }
+GLint WINAPI glGetAttribLocationARB(GLhandleARB programObj, const GLcharARB *name) { UNIMPLEMENTED(); return 0; }
+GLAPI void APIENTRY glDeleteObjectARB(GLhandleARB obj){ UNIMPLEMENTED(); }
+GLAPI GLhandleARB APIENTRY glGetHandleARB(GLenum pname){ UNIMPLEMENTED(); return 0; }
+GLAPI void APIENTRY glDetachObjectARB(GLhandleARB containerObj, GLhandleARB attachedObj){ UNIMPLEMENTED(); }
+GLAPI GLhandleARB APIENTRY glCreateShaderObjectARB(GLenum shaderType){ UNIMPLEMENTED(); return 0; }
+GLAPI void APIENTRY glShaderSourceARB(GLhandleARB shaderObj, GLsizei count, const GLcharARB **string, const GLint *length){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glCompileShaderARB(GLhandleARB shaderObj){ UNIMPLEMENTED(); }
+GLAPI GLhandleARB APIENTRY glCreateProgramObjectARB(void){ UNIMPLEMENTED(); return 0; }
+GLAPI void APIENTRY glAttachObjectARB(GLhandleARB containerObj, GLhandleARB obj){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glLinkProgramARB(GLhandleARB programObj){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUseProgramObjectARB(GLhandleARB programObj){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glValidateProgramARB(GLhandleARB programObj){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform1fARB(GLint location, GLfloat v0){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform2fARB(GLint location, GLfloat v0, GLfloat v1){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform3fARB(GLint location, GLfloat v0, GLfloat v1, GLfloat v2){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform4fARB(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform1iARB(GLint location, GLint v0){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform2iARB(GLint location, GLint v0, GLint v1){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform3iARB(GLint location, GLint v0, GLint v1, GLint v2){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform4iARB(GLint location, GLint v0, GLint v1, GLint v2, GLint v3){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform1fvARB(GLint location, GLsizei count, const GLfloat *value){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform2fvARB(GLint location, GLsizei count, const GLfloat *value){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform3fvARB(GLint location, GLsizei count, const GLfloat *value){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform4fvARB(GLint location, GLsizei count, const GLfloat *value){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform1ivARB(GLint location, GLsizei count, const GLint *value){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform2ivARB(GLint location, GLsizei count, const GLint *value){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform3ivARB(GLint location, GLsizei count, const GLint *value){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniform4ivARB(GLint location, GLsizei count, const GLint *value){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniformMatrix2fvARB(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniformMatrix3fvARB(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glUniformMatrix4fvARB(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glGetObjectParameterfvARB(GLhandleARB obj, GLenum pname, GLfloat *params){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glGetObjectParameterivARB(GLhandleARB obj, GLenum pname, GLint *params){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glGetInfoLogARB(GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *infoLog){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glGetAttachedObjectsARB(GLhandleARB containerObj, GLsizei maxCount, GLsizei *count, GLhandleARB *obj){ UNIMPLEMENTED(); }
+GLAPI GLint APIENTRY glGetUniformLocationARB(GLhandleARB programObj, const GLcharARB *name){ UNIMPLEMENTED(); return 0; }
+GLAPI void APIENTRY glGetActiveUniformARB(GLhandleARB programObj, GLuint index, GLsizei maxLength, GLsizei *length, GLint *size, GLenum *type, GLcharARB *name){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glGetUniformfvARB(GLhandleARB programObj, GLint location, GLfloat *params){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glGetUniformivARB(GLhandleARB programObj, GLint location, GLint *params){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glGetShaderSourceARB(GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *source){ UNIMPLEMENTED(); }
+
+GLAPI GLboolean APIENTRY glIsRenderbufferEXT(GLuint renderbuffer){ UNIMPLEMENTED(); return 0; }
+GLAPI void APIENTRY glBindRenderbufferEXT(GLenum target, GLuint renderbuffer){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glDeleteRenderbuffersEXT(GLsizei n, const GLuint *renderbuffers){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glGenRenderbuffersEXT(GLsizei n, GLuint *renderbuffers){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glRenderbufferStorageEXT(GLenum target, GLenum internalformat, GLsizei width, GLsizei height){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glGetRenderbufferParameterivEXT(GLenum target, GLenum pname, GLint *params){ UNIMPLEMENTED(); }
+GLAPI GLboolean APIENTRY glIsFramebufferEXT(GLuint framebuffer){ UNIMPLEMENTED(); return 0; }
+GLAPI void APIENTRY glBindFramebufferEXT(GLenum target, GLuint framebuffer){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glDeleteFramebuffersEXT(GLsizei n, const GLuint *framebuffers)
+{ 
+	TRACE("(GLsizei n = %d, const GLuint* framebuffers = %p)", n, framebuffers);
+	
+	glDeleteFramebuffers(n, framebuffers);
+}
+GLAPI void APIENTRY glGenFramebuffersEXT(GLsizei n, GLuint *framebuffers)
+{ 
+	TRACE("(GLsizei n = %d, GLuint* framebuffers = %p)", n, framebuffers);
+
+	glGenFramebuffers(n, framebuffers);
+}
+GLAPI GLenum APIENTRY glCheckFramebufferStatusEXT(GLenum target){ UNIMPLEMENTED(); return 0; }
+GLAPI void APIENTRY glFramebufferTexture1DEXT(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glFramebufferTexture2DEXT(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glFramebufferTexture3DEXT(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glFramebufferRenderbufferEXT(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glGetFramebufferAttachmentParameterivEXT(GLenum target, GLenum attachment, GLenum pname, GLint *params){ UNIMPLEMENTED(); }
+GLAPI void APIENTRY glGenerateMipmapEXT(GLenum target){ UNIMPLEMENTED(); }
+
+HGLRC WINAPI wglCreateContextAttribsARB(HDC hDC, HGLRC hShareContext, const int *attribList)
+{
+	return wglCreateContext(hDC);
+}
+
+HANDLE WINAPI wglCreateBufferRegionARB(HDC hDC, int iLayerPlane, UINT uType) { UNIMPLEMENTED(); return 0; }
+VOID WINAPI wglDeleteBufferRegionARB(HANDLE hRegion) { UNIMPLEMENTED(); }
+BOOL WINAPI wglSaveBufferRegionARB(HANDLE hRegion, int x, int y, int width, int height) { UNIMPLEMENTED(); return FALSE; }
+BOOL WINAPI wglRestoreBufferRegionARB(HANDLE hRegion, int x, int y, int width, int height, int xSrc, int ySrc) { UNIMPLEMENTED(); return FALSE; }
+
+void APIENTRY glColorMaski(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetBooleani_v(GLenum target, GLuint index, GLboolean *data){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetIntegeri_v(GLenum target, GLuint index, GLint *data){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEnablei(GLenum target, GLuint index){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDisablei(GLenum target, GLuint index){ TRACE("*"); UNIMPLEMENTED(); }
+GLboolean APIENTRY glIsEnabledi(GLenum target, GLuint index){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glBeginTransformFeedback(GLenum primitiveMode){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEndTransformFeedback(void){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBindBufferBase(GLenum target, GLuint index, GLuint buffer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTransformFeedbackVaryings(GLuint program, GLsizei count, const GLchar *const*varyings, GLenum bufferMode){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glClampColor(GLenum target, GLenum clamp){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBeginConditionalRender(GLuint id, GLenum mode){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEndConditionalRender(void){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexAttribIiv(GLuint index, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI1i(GLuint index, GLint x){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI2i(GLuint index, GLint x, GLint y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI3i(GLuint index, GLint x, GLint y, GLint z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLint w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI1ui(GLuint index, GLuint x){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI2ui(GLuint index, GLuint x, GLuint y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI1iv(GLuint index, const GLint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI2iv(GLuint index, const GLint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI3iv(GLuint index, const GLint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4iv(GLuint index, const GLint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI1uiv(GLuint index, const GLuint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI2uiv(GLuint index, const GLuint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI3uiv(GLuint index, const GLuint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4uiv(GLuint index, const GLuint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4bv(GLuint index, const GLbyte *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4sv(GLuint index, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4ubv(GLuint index, const GLubyte *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4usv(GLuint index, const GLushort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetUniformuiv(GLuint program, GLint location, GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name){ TRACE("*"); UNIMPLEMENTED(); }
+GLint APIENTRY glGetFragDataLocation(GLuint program, const GLchar *name){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glUniform1ui(GLint location, GLuint v0){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform2ui(GLint location, GLuint v0, GLuint v1){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform3ui(GLint location, GLuint v0, GLuint v1, GLuint v2){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform4ui(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform1uiv(GLint location, GLsizei count, const GLuint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform2uiv(GLint location, GLsizei count, const GLuint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform3uiv(GLint location, GLsizei count, const GLuint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform4uiv(GLint location, GLsizei count, const GLuint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexParameterIiv(GLenum target, GLenum pname, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexParameterIuiv(GLenum target, GLenum pname, const GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTexParameterIiv(GLenum target, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTexParameterIuiv(GLenum target, GLenum pname, GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glClearBufferiv(GLenum buffer, GLint drawbuffer, const GLint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glClearBufferuiv(GLenum buffer, GLint drawbuffer, const GLuint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glClearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil){ TRACE("*"); UNIMPLEMENTED(); }
+const GLubyte *APIENTRY glGetStringi(GLenum name, GLuint index){ TRACE("*"); UNIMPLEMENTED(); return (GLubyte*)""; return 0; }
+void *APIENTRY glMapNamedBufferEXT(GLuint buffer, GLenum access){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+GLboolean APIENTRY glUnmapNamedBufferEXT(GLuint buffer){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glGetNamedBufferParameterivEXT(GLuint buffer, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTextureImageEXT(GLuint texture, GLenum target, GLint level, GLenum format, GLenum type, void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureSubImage2DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureSubImage3DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glcuR0d4nX(GLint* i1)
+{ 
+	i1[1] = 0;
+}
+//
+//000007FEE763807A  lea         rax, [rsp + 20h]
+//000007FEE763807F  lea         rcx, [rsp + 38h]
+//000007FEE7638084  mov         qword ptr[rsp + 20h], rbp
+//000007FEE7638089  mov         qword ptr[rsp + 28h], rsi
+//000007FEE763808E  mov         dword ptr[rsp + 38h], 0Dh
+//000007FEE7638096  mov         dword ptr[rsp + 3Ch], 8
+//000007FEE763809E  mov         qword ptr[rsp + 50h], rax
+//000007FEE76380A3  mov         dword ptr[rsp + 48h], 7
+//000007FEE76380AB  mov         qword ptr[rsp + 40h], 0
+//000007FEE76380B4  call        qword ptr[7FEE81F6890h]
+
+void APIENTRY glCopyTexImage1DEXT(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyTexImage2DEXT(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyTexSubImage1DEXT(GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyTexSubImage2DEXT(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyTexSubImage3DEXT(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glPolygonOffsetEXT(GLfloat factor, GLfloat bias) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexSubImage1DEXT(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexSubImage2DEXT(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexImage3DEXT(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexSubImage3DEXT(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels) { TRACE("*"); UNIMPLEMENTED(); }
+GLboolean APIENTRY glAreTexturesResidentEXT(GLsizei n, const GLuint *textures, GLboolean *residences) { TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glBindTextureEXT(GLenum target, GLuint texture) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDeleteTexturesEXT(GLsizei n, const GLuint *textures) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGenTexturesEXT(GLsizei n, GLuint *textures) { TRACE("*"); UNIMPLEMENTED(); }
+GLboolean APIENTRY glIsTextureEXT(GLuint texture) { TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glPrioritizeTexturesEXT(GLsizei n, const GLuint *textures, const GLclampf *priorities) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDrawRangeElementsEXT(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glSampleCoverageARB(GLfloat value, GLboolean invert) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glActiveTextureARB(GLenum texture) 
+{ 
+	TRACE("(GLenum texture = 0x%X)", texture);
+	glActiveTexture(texture);
+}
+void APIENTRY glClientActiveTextureARB(GLenum texture) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord1dARB(GLenum target, GLdouble s) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord1dvARB(GLenum target, const GLdouble *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord1fARB(GLenum target, GLfloat s) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord1fvARB(GLenum target, const GLfloat *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord1iARB(GLenum target, GLint s) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord1ivARB(GLenum target, const GLint *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord1sARB(GLenum target, GLshort s) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord1svARB(GLenum target, const GLshort *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord2dARB(GLenum target, GLdouble s, GLdouble t) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord2dvARB(GLenum target, const GLdouble *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord2fARB(GLenum target, GLfloat s, GLfloat t) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord2fvARB(GLenum target, const GLfloat *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord2iARB(GLenum target, GLint s, GLint t) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord2ivARB(GLenum target, const GLint *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord2sARB(GLenum target, GLshort s, GLshort t) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord2svARB(GLenum target, const GLshort *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord3dARB(GLenum target, GLdouble s, GLdouble t, GLdouble r) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord3dvARB(GLenum target, const GLdouble *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord3fARB(GLenum target, GLfloat s, GLfloat t, GLfloat r) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord3fvARB(GLenum target, const GLfloat *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord3iARB(GLenum target, GLint s, GLint t, GLint r) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord3ivARB(GLenum target, const GLint *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord3sARB(GLenum target, GLshort s, GLshort t, GLshort r) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord3svARB(GLenum target, const GLshort *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord4dARB(GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdouble q) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord4dvARB(GLenum target, const GLdouble *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord4fARB(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord4fvARB(GLenum target, const GLfloat *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord4iARB(GLenum target, GLint s, GLint t, GLint r, GLint q) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord4ivARB(GLenum target, const GLint *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord4sARB(GLenum target, GLshort s, GLshort t, GLshort r, GLshort q) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord4svARB(GLenum target, const GLshort *v) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedTexImage3DARB(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *data) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedTexImage2DARB(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedTexImage1DARB(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *data) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedTexSubImage3DARB(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedTexSubImage2DARB(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedTexSubImage1DARB(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetCompressedTexImageARB(GLenum target, GLint level, void *img) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glPointParameterfARB(GLenum pname, GLfloat param) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glPointParameterfvARB(GLenum pname, const GLfloat *params) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBlendColorEXT(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFogCoordfEXT(GLfloat coord) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFogCoordfvEXT(const GLfloat *coord) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFogCoorddEXT(GLdouble coord) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFogCoorddvEXT(const GLdouble *coord) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFogCoordPointerEXT(GLenum type, GLsizei stride, const void *pointer) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiDrawArraysEXT(GLenum mode, const GLint *first, const GLsizei *count, GLsizei primcount) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiDrawElementsEXT(GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei primcount) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGenQueriesARB(GLsizei n, GLuint *ids) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDeleteQueriesARB(GLsizei n, const GLuint *ids) { TRACE("*"); UNIMPLEMENTED(); }
+GLboolean APIENTRY glIsQueryARB(GLuint id) { TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glBeginQueryARB(GLenum target, GLuint id) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEndQueryARB(GLenum target) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetQueryivARB(GLenum target, GLenum pname, GLint *params) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetQueryObjectivARB(GLuint id, GLenum pname, GLint *params) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetQueryObjectuivARB(GLuint id, GLenum pname, GLuint *params) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBindBufferARB(GLenum target, GLuint buffer) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDeleteBuffersARB(GLsizei n, const GLuint *buffers) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGenBuffersARB(GLsizei n, GLuint *buffers) { TRACE("*"); UNIMPLEMENTED(); }
+GLboolean APIENTRY glIsBufferARB(GLuint buffer) { TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glBufferDataARB(GLenum target, GLsizeiptrARB size, const void *data, GLenum usage) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBufferSubDataARB(GLenum target, GLintptrARB offset, GLsizeiptrARB size, const void *data) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetBufferSubDataARB(GLenum target, GLintptrARB offset, GLsizeiptrARB size, void *data) { TRACE("*"); UNIMPLEMENTED(); }
+void *APIENTRY glMapBufferARB(GLenum target, GLenum access) { TRACE("*"); UNIMPLEMENTED(); return 0; }
+GLboolean APIENTRY glUnmapBufferARB(GLenum target) { TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glGetBufferParameterivARB(GLenum target, GLenum pname, GLint *params) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetBufferPointervARB(GLenum target, GLenum pname, void **params) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDrawBuffersARB(GLsizei n, const GLenum *bufs) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBlendEquationSeparateEXT(GLenum modeRGB, GLenum modeAlpha) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glActiveStencilFaceEXT(GLenum face) { TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glClampColorARB(GLenum target, GLenum clamp){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDrawArraysInstancedARB(GLenum mode, GLint first, GLsizei count, GLsizei primcount){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDrawElementsInstancedARB(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramParameteriARB(GLuint program, GLenum pname, GLint value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFramebufferTextureARB(GLenum target, GLenum attachment, GLuint texture, GLint level){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFramebufferTextureLayerARB(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFramebufferTextureFaceARB(GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glColorTable(GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *table){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glColorTableParameterfv(GLenum target, GLenum pname, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glColorTableParameteriv(GLenum target, GLenum pname, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyColorTable(GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetColorTable(GLenum target, GLenum format, GLenum type, void *table){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetColorTableParameterfv(GLenum target, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetColorTableParameteriv(GLenum target, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glColorSubTable(GLenum target, GLsizei start, GLsizei count, GLenum format, GLenum type, const void *data){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyColorSubTable(GLenum target, GLsizei start, GLint x, GLint y, GLsizei width){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glConvolutionFilter1D(GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *image){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glConvolutionFilter2D(GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *image){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glConvolutionParameterf(GLenum target, GLenum pname, GLfloat params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glConvolutionParameterfv(GLenum target, GLenum pname, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glConvolutionParameteri(GLenum target, GLenum pname, GLint params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glConvolutionParameteriv(GLenum target, GLenum pname, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyConvolutionFilter1D(GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyConvolutionFilter2D(GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetConvolutionFilter(GLenum target, GLenum format, GLenum type, void *image){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetConvolutionParameterfv(GLenum target, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetConvolutionParameteriv(GLenum target, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetSeparableFilter(GLenum target, GLenum format, GLenum type, void *row, void *column, void *span){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glSeparableFilter2D(GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *row, const void *column){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetHistogram(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetHistogramParameterfv(GLenum target, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetHistogramParameteriv(GLenum target, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMinmax(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMinmaxParameterfv(GLenum target, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMinmaxParameteriv(GLenum target, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glHistogram(GLenum target, GLsizei width, GLenum internalformat, GLboolean sink){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMinmax(GLenum target, GLenum internalformat, GLboolean sink){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glResetHistogram(GLenum target){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glResetMinmax(GLenum target){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribDivisorARB(GLuint index, GLuint divisor){ TRACE("*"); UNIMPLEMENTED(); }
+void *APIENTRY glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexBufferARB(GLenum target, GLenum internalformat, GLuint buffer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBindVertexArray(GLuint array){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDeleteVertexArrays(GLsizei n, const GLuint *arrays){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGenVertexArrays(GLsizei n, GLuint *arrays){ TRACE("*"); UNIMPLEMENTED(); }
+GLboolean APIENTRY glIsVertexArray(GLuint array){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glProgramStringARB(GLenum target, GLenum format, GLsizei len, const void *string){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBindProgramARB(GLenum target, GLuint program){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDeleteProgramsARB(GLsizei n, const GLuint *programs){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGenProgramsARB(GLsizei n, GLuint *programs){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramEnvParameter4dARB(GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramEnvParameter4dvARB(GLenum target, GLuint index, const GLdouble *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramEnvParameter4fARB(GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramEnvParameter4fvARB(GLenum target, GLuint index, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramLocalParameter4dARB(GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramLocalParameter4dvARB(GLenum target, GLuint index, const GLdouble *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramLocalParameter4fARB(GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramLocalParameter4fvARB(GLenum target, GLuint index, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramEnvParameterdvARB(GLenum target, GLuint index, GLdouble *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramEnvParameterfvARB(GLenum target, GLuint index, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramLocalParameterdvARB(GLenum target, GLuint index, GLdouble *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramLocalParameterfvARB(GLenum target, GLuint index, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramivARB(GLenum target, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramStringARB(GLenum target, GLenum pname, void *string){ TRACE("*"); UNIMPLEMENTED(); }
+GLboolean APIENTRY glIsProgramARB(GLuint program){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glEnableVertexAttribArrayARB(GLuint index){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDisableVertexAttribArrayARB(GLuint index){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexAttribdvARB(GLuint index, GLenum pname, GLdouble *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexAttribfvARB(GLuint index, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexAttribivARB(GLuint index, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexAttribPointervARB(GLuint index, GLenum pname, void **pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1dARB(GLuint index, GLdouble x){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1dvARB(GLuint index, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1fARB(GLuint index, GLfloat x){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1fvARB(GLuint index, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1sARB(GLuint index, GLshort x){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1svARB(GLuint index, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2dARB(GLuint index, GLdouble x, GLdouble y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2dvARB(GLuint index, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2fARB(GLuint index, GLfloat x, GLfloat y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2fvARB(GLuint index, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2sARB(GLuint index, GLshort x, GLshort y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2svARB(GLuint index, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3dARB(GLuint index, GLdouble x, GLdouble y, GLdouble z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3dvARB(GLuint index, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3fARB(GLuint index, GLfloat x, GLfloat y, GLfloat z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3fvARB(GLuint index, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3sARB(GLuint index, GLshort x, GLshort y, GLshort z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3svARB(GLuint index, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4NbvARB(GLuint index, const GLbyte *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4NivARB(GLuint index, const GLint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4NsvARB(GLuint index, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4NubARB(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4NubvARB(GLuint index, const GLubyte *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4NuivARB(GLuint index, const GLuint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4NusvARB(GLuint index, const GLushort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4bvARB(GLuint index, const GLbyte *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4dARB(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4dvARB(GLuint index, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4fARB(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4fvARB(GLuint index, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4ivARB(GLuint index, const GLint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4sARB(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4svARB(GLuint index, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4ubvARB(GLuint index, const GLubyte *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4uivARB(GLuint index, const GLuint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4usvARB(GLuint index, const GLushort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribPointerARB(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos2dARB(GLdouble x, GLdouble y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos2dvARB(const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos2fARB(GLfloat x, GLfloat y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos2fvARB(const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos2iARB(GLint x, GLint y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos2ivARB(const GLint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos2sARB(GLshort x, GLshort y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos2svARB(const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos3dARB(GLdouble x, GLdouble y, GLdouble z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos3dvARB(const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos3fARB(GLfloat x, GLfloat y, GLfloat z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos3fvARB(const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos3iARB(GLint x, GLint y, GLint z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos3ivARB(const GLint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos3sARB(GLshort x, GLshort y, GLshort z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glWindowPos3svARB(const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDrawBuffersATI(GLsizei n, const GLenum *bufs){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniformBufferEXT(GLuint program, GLint location, GLuint buffer){ TRACE("*"); UNIMPLEMENTED(); }
+GLint APIENTRY glGetUniformBufferSizeEXT(GLuint program, GLint location){ TRACE("*"); UNIMPLEMENTED();  return 0; }
+GLintptr APIENTRY glGetUniformOffsetEXT(GLuint program, GLint location){ TRACE("*"); UNIMPLEMENTED();  return 0; }
+void APIENTRY glLockArraysEXT(GLint first, GLsizei count){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUnlockArraysEXT(void){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDepthBoundsEXT(GLclampd zmin, GLclampd zmax){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixLoadfEXT(GLenum mode, const GLfloat *m){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixLoaddEXT(GLenum mode, const GLdouble *m){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixMultfEXT(GLenum mode, const GLfloat *m){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixMultdEXT(GLenum mode, const GLdouble *m){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixLoadIdentityEXT(GLenum mode){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixRotatefEXT(GLenum mode, GLfloat angle, GLfloat x, GLfloat y, GLfloat z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixRotatedEXT(GLenum mode, GLdouble angle, GLdouble x, GLdouble y, GLdouble z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixScalefEXT(GLenum mode, GLfloat x, GLfloat y, GLfloat z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixScaledEXT(GLenum mode, GLdouble x, GLdouble y, GLdouble z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixTranslatefEXT(GLenum mode, GLfloat x, GLfloat y, GLfloat z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixTranslatedEXT(GLenum mode, GLdouble x, GLdouble y, GLdouble z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixFrustumEXT(GLenum mode, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixOrthoEXT(GLenum mode, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixPopEXT(GLenum mode){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixPushEXT(GLenum mode){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glClientAttribDefaultEXT(GLbitfield mask){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glPushClientAttribDefaultEXT(GLbitfield mask){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureParameterfEXT(GLuint texture, GLenum target, GLenum pname, GLfloat param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureParameterfvEXT(GLuint texture, GLenum target, GLenum pname, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureParameteriEXT(GLuint texture, GLenum target, GLenum pname, GLint param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureParameterivEXT(GLuint texture, GLenum target, GLenum pname, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureImage1DEXT(GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureImage2DEXT(GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureSubImage1DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyTextureImage1DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyTextureImage2DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyTextureSubImage1DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyTextureSubImage2DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTextureParameterfvEXT(GLuint texture, GLenum target, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTextureParameterivEXT(GLuint texture, GLenum target, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTextureLevelParameterfvEXT(GLuint texture, GLenum target, GLint level, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTextureLevelParameterivEXT(GLuint texture, GLenum target, GLint level, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureImage3DEXT(GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyTextureSubImage3DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBindMultiTextureEXT(GLenum texunit, GLenum target, GLuint texture){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoordPointerEXT(GLenum texunit, GLint size, GLenum type, GLsizei stride, const void *pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexEnvfEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexEnvfvEXT(GLenum texunit, GLenum target, GLenum pname, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexEnviEXT(GLenum texunit, GLenum target, GLenum pname, GLint param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexEnvivEXT(GLenum texunit, GLenum target, GLenum pname, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexGendEXT(GLenum texunit, GLenum coord, GLenum pname, GLdouble param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexGendvEXT(GLenum texunit, GLenum coord, GLenum pname, const GLdouble *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexGenfEXT(GLenum texunit, GLenum coord, GLenum pname, GLfloat param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexGenfvEXT(GLenum texunit, GLenum coord, GLenum pname, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexGeniEXT(GLenum texunit, GLenum coord, GLenum pname, GLint param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexGenivEXT(GLenum texunit, GLenum coord, GLenum pname, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMultiTexEnvfvEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMultiTexEnvivEXT(GLenum texunit, GLenum target, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMultiTexGendvEXT(GLenum texunit, GLenum coord, GLenum pname, GLdouble *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMultiTexGenfvEXT(GLenum texunit, GLenum coord, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMultiTexGenivEXT(GLenum texunit, GLenum coord, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexParameteriEXT(GLenum texunit, GLenum target, GLenum pname, GLint param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexParameterivEXT(GLenum texunit, GLenum target, GLenum pname, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexParameterfEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexParameterfvEXT(GLenum texunit, GLenum target, GLenum pname, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexSubImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexSubImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyMultiTexImage1DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyMultiTexImage2DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyMultiTexSubImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyMultiTexSubImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMultiTexImageEXT(GLenum texunit, GLenum target, GLint level, GLenum format, GLenum type, void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMultiTexParameterfvEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMultiTexParameterivEXT(GLenum texunit, GLenum target, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMultiTexLevelParameterfvEXT(GLenum texunit, GLenum target, GLint level, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMultiTexLevelParameterivEXT(GLenum texunit, GLenum target, GLint level, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexSubImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCopyMultiTexSubImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEnableClientStateIndexedEXT(GLenum array, GLuint index){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDisableClientStateIndexedEXT(GLenum array, GLuint index){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetFloatIndexedvEXT(GLenum target, GLuint index, GLfloat *data){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetDoubleIndexedvEXT(GLenum target, GLuint index, GLdouble *data){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetPointerIndexedvEXT(GLenum target, GLuint index, void **data){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEnableIndexedEXT(GLenum target, GLuint index){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDisableIndexedEXT(GLenum target, GLuint index){ TRACE("*"); UNIMPLEMENTED(); }
+GLboolean APIENTRY glIsEnabledIndexedEXT(GLenum target, GLuint index){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glGetIntegerIndexedvEXT(GLenum target, GLuint index, GLint *data){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetBooleanIndexedvEXT(GLenum target, GLuint index, GLboolean *data){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedTextureImage3DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *bits){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedTextureImage2DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *bits){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedTextureImage1DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *bits){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedTextureSubImage3DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *bits){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedTextureSubImage2DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *bits){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedTextureSubImage1DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *bits){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetCompressedTextureImageEXT(GLuint texture, GLenum target, GLint lod, void *img){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedMultiTexImage3DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *bits){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedMultiTexImage2DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *bits){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedMultiTexImage1DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *bits){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedMultiTexSubImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *bits){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedMultiTexSubImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *bits){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCompressedMultiTexSubImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *bits){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetCompressedMultiTexImageEXT(GLenum texunit, GLenum target, GLint lod, void *img){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixLoadTransposefEXT(GLenum mode, const GLfloat *m){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixLoadTransposedEXT(GLenum mode, const GLdouble *m){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixMultTransposefEXT(GLenum mode, const GLfloat *m){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMatrixMultTransposedEXT(GLenum mode, const GLdouble *m){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedBufferDataEXT(GLuint buffer, GLsizeiptr size, const void *data, GLenum usage){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedBufferSubDataEXT(GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetNamedBufferPointervEXT(GLuint buffer, GLenum pname, void **params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetNamedBufferSubDataEXT(GLuint buffer, GLintptr offset, GLsizeiptr size, void *data){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform1fEXT(GLuint program, GLint location, GLfloat v0){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform2fEXT(GLuint program, GLint location, GLfloat v0, GLfloat v1){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform3fEXT(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform4fEXT(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform1iEXT(GLuint program, GLint location, GLint v0){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform2iEXT(GLuint program, GLint location, GLint v0, GLint v1){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform3iEXT(GLuint program, GLint location, GLint v0, GLint v1, GLint v2){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform4iEXT(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform1fvEXT(GLuint program, GLint location, GLsizei count, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform2fvEXT(GLuint program, GLint location, GLsizei count, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform3fvEXT(GLuint program, GLint location, GLsizei count, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform4fvEXT(GLuint program, GLint location, GLsizei count, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform1ivEXT(GLuint program, GLint location, GLsizei count, const GLint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform2ivEXT(GLuint program, GLint location, GLsizei count, const GLint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform3ivEXT(GLuint program, GLint location, GLsizei count, const GLint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform4ivEXT(GLuint program, GLint location, GLsizei count, const GLint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix2fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix3fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix4fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix2x3fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix3x2fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix2x4fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix4x2fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix3x4fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix4x3fvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureBufferEXT(GLuint texture, GLenum target, GLenum internalformat, GLuint buffer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexBufferEXT(GLenum texunit, GLenum target, GLenum internalformat, GLuint buffer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureParameterIivEXT(GLuint texture, GLenum target, GLenum pname, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureParameterIuivEXT(GLuint texture, GLenum target, GLenum pname, const GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTextureParameterIivEXT(GLuint texture, GLenum target, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTextureParameterIuivEXT(GLuint texture, GLenum target, GLenum pname, GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexParameterIivEXT(GLenum texunit, GLenum target, GLenum pname, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexParameterIuivEXT(GLenum texunit, GLenum target, GLenum pname, const GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMultiTexParameterIivEXT(GLenum texunit, GLenum target, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMultiTexParameterIuivEXT(GLenum texunit, GLenum target, GLenum pname, GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform1uiEXT(GLuint program, GLint location, GLuint v0){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform2uiEXT(GLuint program, GLint location, GLuint v0, GLuint v1){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform3uiEXT(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform4uiEXT(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform1uivEXT(GLuint program, GLint location, GLsizei count, const GLuint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform2uivEXT(GLuint program, GLint location, GLsizei count, const GLuint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform3uivEXT(GLuint program, GLint location, GLsizei count, const GLuint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform4uivEXT(GLuint program, GLint location, GLsizei count, const GLuint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedProgramLocalParameters4fvEXT(GLuint program, GLenum target, GLuint index, GLsizei count, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedProgramLocalParameterI4iEXT(GLuint program, GLenum target, GLuint index, GLint x, GLint y, GLint z, GLint w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedProgramLocalParameterI4ivEXT(GLuint program, GLenum target, GLuint index, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedProgramLocalParametersI4ivEXT(GLuint program, GLenum target, GLuint index, GLsizei count, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedProgramLocalParameterI4uiEXT(GLuint program, GLenum target, GLuint index, GLuint x, GLuint y, GLuint z, GLuint w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedProgramLocalParameterI4uivEXT(GLuint program, GLenum target, GLuint index, const GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedProgramLocalParametersI4uivEXT(GLuint program, GLenum target, GLuint index, GLsizei count, const GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetNamedProgramLocalParameterIivEXT(GLuint program, GLenum target, GLuint index, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetNamedProgramLocalParameterIuivEXT(GLuint program, GLenum target, GLuint index, GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEnableClientStateiEXT(GLenum array, GLuint index){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDisableClientStateiEXT(GLenum array, GLuint index){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetFloati_vEXT(GLenum pname, GLuint index, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetDoublei_vEXT(GLenum pname, GLuint index, GLdouble *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetPointeri_vEXT(GLenum pname, GLuint index, void **params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedProgramStringEXT(GLuint program, GLenum target, GLenum format, GLsizei len, const void *string){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedProgramLocalParameter4dEXT(GLuint program, GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedProgramLocalParameter4dvEXT(GLuint program, GLenum target, GLuint index, const GLdouble *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedProgramLocalParameter4fEXT(GLuint program, GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedProgramLocalParameter4fvEXT(GLuint program, GLenum target, GLuint index, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetNamedProgramLocalParameterdvEXT(GLuint program, GLenum target, GLuint index, GLdouble *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetNamedProgramLocalParameterfvEXT(GLuint program, GLenum target, GLuint index, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetNamedProgramivEXT(GLuint program, GLenum target, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetNamedProgramStringEXT(GLuint program, GLenum target, GLenum pname, void *string){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedRenderbufferStorageEXT(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetNamedRenderbufferParameterivEXT(GLuint renderbuffer, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedRenderbufferStorageMultisampleEXT(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedRenderbufferStorageMultisampleCoverageEXT(GLuint renderbuffer, GLsizei coverageSamples, GLsizei colorSamples, GLenum internalformat, GLsizei width, GLsizei height){ TRACE("*"); UNIMPLEMENTED(); }
+GLenum APIENTRY glCheckNamedFramebufferStatusEXT(GLuint framebuffer, GLenum target){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glNamedFramebufferTexture1DEXT(GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedFramebufferTexture2DEXT(GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedFramebufferTexture3DEXT(GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedFramebufferRenderbufferEXT(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetNamedFramebufferAttachmentParameterivEXT(GLuint framebuffer, GLenum attachment, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGenerateTextureMipmapEXT(GLuint texture, GLenum target){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGenerateMultiTexMipmapEXT(GLenum texunit, GLenum target){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFramebufferDrawBufferEXT(GLuint framebuffer, GLenum mode){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFramebufferDrawBuffersEXT(GLuint framebuffer, GLsizei n, const GLenum *bufs){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFramebufferReadBufferEXT(GLuint framebuffer, GLenum mode){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetFramebufferParameterivEXT(GLuint framebuffer, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedCopyBufferSubDataEXT(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedFramebufferTextureEXT(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedFramebufferTextureLayerEXT(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedFramebufferTextureFaceEXT(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLenum face){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureRenderbufferEXT(GLuint texture, GLenum target, GLuint renderbuffer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexRenderbufferEXT(GLenum texunit, GLenum target, GLuint renderbuffer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayVertexOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayColorOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayEdgeFlagOffsetEXT(GLuint vaobj, GLuint buffer, GLsizei stride, GLintptr offset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayIndexOffsetEXT(GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayNormalOffsetEXT(GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayTexCoordOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayMultiTexCoordOffsetEXT(GLuint vaobj, GLuint buffer, GLenum texunit, GLint size, GLenum type, GLsizei stride, GLintptr offset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayFogCoordOffsetEXT(GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArraySecondaryColorOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayVertexAttribOffsetEXT(GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, GLintptr offset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayVertexAttribIOffsetEXT(GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEnableVertexArrayEXT(GLuint vaobj, GLenum array){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDisableVertexArrayEXT(GLuint vaobj, GLenum array){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEnableVertexArrayAttribEXT(GLuint vaobj, GLuint index){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDisableVertexArrayAttribEXT(GLuint vaobj, GLuint index){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexArrayIntegervEXT(GLuint vaobj, GLenum pname, GLint *param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexArrayPointervEXT(GLuint vaobj, GLenum pname, void **param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexArrayIntegeri_vEXT(GLuint vaobj, GLuint index, GLenum pname, GLint *param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexArrayPointeri_vEXT(GLuint vaobj, GLuint index, GLenum pname, void **param){ TRACE("*"); UNIMPLEMENTED(); }
+void *APIENTRY glMapNamedBufferRangeEXT(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glFlushMappedNamedBufferRangeEXT(GLuint buffer, GLintptr offset, GLsizeiptr length){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedBufferStorageEXT(GLuint buffer, GLsizeiptr size, const void *data, GLbitfield flags){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glClearNamedBufferDataEXT(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glClearNamedBufferSubDataEXT(GLuint buffer, GLenum internalformat, GLsizeiptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNamedFramebufferParameteriEXT(GLuint framebuffer, GLenum pname, GLint param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetNamedFramebufferParameterivEXT(GLuint framebuffer, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform1dEXT(GLuint program, GLint location, GLdouble x){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform2dEXT(GLuint program, GLint location, GLdouble x, GLdouble y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform3dEXT(GLuint program, GLint location, GLdouble x, GLdouble y, GLdouble z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform4dEXT(GLuint program, GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform1dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform2dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform3dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniform4dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix2dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix3dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix4dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix2x3dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix2x4dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix3x2dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix3x4dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix4x2dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformMatrix4x3dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureBufferRangeEXT(GLuint texture, GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureStorage1DEXT(GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureStorage2DEXT(GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureStorage3DEXT(GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureStorage2DMultisampleEXT(GLuint texture, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTextureStorage3DMultisampleEXT(GLuint texture, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayBindVertexBufferEXT(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayVertexAttribFormatEXT(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayVertexAttribIFormatEXT(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayVertexAttribLFormatEXT(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayVertexAttribBindingEXT(GLuint vaobj, GLuint attribindex, GLuint bindingindex){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayVertexBindingDivisorEXT(GLuint vaobj, GLuint bindingindex, GLuint divisor){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayVertexAttribLOffsetEXT(GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexturePageCommitmentEXT(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean resident){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayVertexAttribDivisorEXT(GLuint vaobj, GLuint index, GLuint divisor){ TRACE("*"); UNIMPLEMENTED(); }
+
+
+void APIENTRY glColorMaskIndexedEXT(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDrawArraysInstancedEXT(GLenum mode, GLint start, GLsizei count, GLsizei primcount){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDrawElementsInstancedEXT(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramParameteriEXT(GLuint program, GLenum pname, GLint value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFramebufferTextureEXT(GLenum target, GLenum attachment, GLuint texture, GLint level){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFramebufferTextureLayerEXT(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFramebufferTextureFaceEXT(GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramEnvParameters4fvEXT(GLenum target, GLuint index, GLsizei count, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramLocalParameters4fvEXT(GLenum target, GLuint index, GLsizei count, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetUniformuivEXT(GLuint program, GLint location, GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBindFragDataLocationEXT(GLuint program, GLuint color, const GLchar *name){ TRACE("*"); UNIMPLEMENTED(); }
+GLint APIENTRY glGetFragDataLocationEXT(GLuint program, const GLchar *name){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glUniform1uiEXT(GLint location, GLuint v0){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform2uiEXT(GLint location, GLuint v0, GLuint v1){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform3uiEXT(GLint location, GLuint v0, GLuint v1, GLuint v2){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform4uiEXT(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform1uivEXT(GLint location, GLsizei count, const GLuint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform2uivEXT(GLint location, GLsizei count, const GLuint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform3uivEXT(GLint location, GLsizei count, const GLuint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniform4uivEXT(GLint location, GLsizei count, const GLuint *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI1iEXT(GLuint index, GLint x){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI2iEXT(GLuint index, GLint x, GLint y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI3iEXT(GLuint index, GLint x, GLint y, GLint z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4iEXT(GLuint index, GLint x, GLint y, GLint z, GLint w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI1uiEXT(GLuint index, GLuint x){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI2uiEXT(GLuint index, GLuint x, GLuint y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI3uiEXT(GLuint index, GLuint x, GLuint y, GLuint z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4uiEXT(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI1ivEXT(GLuint index, const GLint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI2ivEXT(GLuint index, const GLint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI3ivEXT(GLuint index, const GLint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4ivEXT(GLuint index, const GLint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI1uivEXT(GLuint index, const GLuint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI2uivEXT(GLuint index, const GLuint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI3uivEXT(GLuint index, const GLuint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4uivEXT(GLuint index, const GLuint *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4bvEXT(GLuint index, const GLbyte *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4svEXT(GLuint index, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4ubvEXT(GLuint index, const GLubyte *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribI4usvEXT(GLuint index, const GLushort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribIPointerEXT(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexAttribIivEXT(GLuint index, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexAttribIuivEXT(GLuint index, GLenum pname, GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glPointParameterfEXT(GLenum pname, GLfloat param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glPointParameterfvEXT(GLenum pname, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexBufferEXT(GLenum target, GLenum internalformat, GLuint buffer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexParameterIivEXT(GLenum target, GLenum pname, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexParameterIuivEXT(GLenum target, GLenum pname, const GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTexParameterIivEXT(GLenum target, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTexParameterIuivEXT(GLenum target, GLenum pname, GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glClearColorIiEXT(GLint red, GLint green, GLint blue, GLint alpha){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glClearColorIuiEXT(GLuint red, GLuint green, GLuint blue, GLuint alpha){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetQueryObjecti64vEXT(GLuint id, GLenum pname, GLint64 *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetQueryObjectui64vEXT(GLuint id, GLenum pname, GLuint64 *params){ TRACE("*"); UNIMPLEMENTED(); }
+#define GL_GLEXT_PROTOTYPES
+void APIENTRY glArrayElementEXT(GLint i){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glColorPointerEXT(GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDrawArraysEXT(GLenum mode, GLint first, GLsizei count){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEdgeFlagPointerEXT(GLsizei stride, GLsizei count, const GLboolean *pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetPointervEXT(GLenum pname, void **params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glIndexPointerEXT(GLenum type, GLsizei stride, GLsizei count, const void *pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNormalPointerEXT(GLenum type, GLsizei stride, GLsizei count, const void *pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexCoordPointerEXT(GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexPointerEXT(GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBeginConditionalRenderNV(GLuint id, GLenum mode){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEndConditionalRenderNV(void){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDepthRangedNV(GLdouble zNear, GLdouble zFar){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glClearDepthdNV(GLdouble depth){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDepthBoundsdNV(GLdouble zmin, GLdouble zmax){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetMultisamplefvNV(GLenum pname, GLuint index, GLfloat *val){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glSampleMaskIndexedNV(GLuint index, GLbitfield mask){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexRenderbufferNV(GLenum target, GLuint renderbuffer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramNamedParameter4fNV(GLuint id, GLsizei len, const GLubyte *name, GLfloat x, GLfloat y, GLfloat z, GLfloat w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramNamedParameter4fvNV(GLuint id, GLsizei len, const GLubyte *name, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramNamedParameter4dNV(GLuint id, GLsizei len, const GLubyte *name, GLdouble x, GLdouble y, GLdouble z, GLdouble w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramNamedParameter4dvNV(GLuint id, GLsizei len, const GLubyte *name, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramNamedParameterfvNV(GLuint id, GLsizei len, const GLubyte *name, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramNamedParameterdvNV(GLuint id, GLsizei len, const GLubyte *name, GLdouble *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glRenderbufferStorageMultisampleCoverageNV(GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLenum internalformat, GLsizei width, GLsizei height){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramLocalParameterI4iNV(GLenum target, GLuint index, GLint x, GLint y, GLint z, GLint w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramLocalParameterI4ivNV(GLenum target, GLuint index, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramLocalParametersI4ivNV(GLenum target, GLuint index, GLsizei count, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramLocalParameterI4uiNV(GLenum target, GLuint index, GLuint x, GLuint y, GLuint z, GLuint w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramLocalParameterI4uivNV(GLenum target, GLuint index, const GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramLocalParametersI4uivNV(GLenum target, GLuint index, GLsizei count, const GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramEnvParameterI4iNV(GLenum target, GLuint index, GLint x, GLint y, GLint z, GLint w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramEnvParameterI4ivNV(GLenum target, GLuint index, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramEnvParametersI4ivNV(GLenum target, GLuint index, GLsizei count, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramEnvParameterI4uiNV(GLenum target, GLuint index, GLuint x, GLuint y, GLuint z, GLuint w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramEnvParameterI4uivNV(GLenum target, GLuint index, const GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramEnvParametersI4uivNV(GLenum target, GLuint index, GLsizei count, const GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramLocalParameterIivNV(GLenum target, GLuint index, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramLocalParameterIuivNV(GLenum target, GLuint index, GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramEnvParameterIivNV(GLenum target, GLuint index, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramEnvParameterIuivNV(GLenum target, GLuint index, GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertex2hNV(GLhalfNV x, GLhalfNV y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertex2hvNV(const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertex3hNV(GLhalfNV x, GLhalfNV y, GLhalfNV z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertex3hvNV(const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertex4hNV(GLhalfNV x, GLhalfNV y, GLhalfNV z, GLhalfNV w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertex4hvNV(const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNormal3hNV(GLhalfNV nx, GLhalfNV ny, GLhalfNV nz){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNormal3hvNV(const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glColor3hNV(GLhalfNV red, GLhalfNV green, GLhalfNV blue){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glColor3hvNV(const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glColor4hNV(GLhalfNV red, GLhalfNV green, GLhalfNV blue, GLhalfNV alpha){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glColor4hvNV(const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexCoord1hNV(GLhalfNV s){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexCoord1hvNV(const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexCoord2hNV(GLhalfNV s, GLhalfNV t){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexCoord2hvNV(const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexCoord3hNV(GLhalfNV s, GLhalfNV t, GLhalfNV r){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexCoord3hvNV(const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexCoord4hNV(GLhalfNV s, GLhalfNV t, GLhalfNV r, GLhalfNV q){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexCoord4hvNV(const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord1hNV(GLenum target, GLhalfNV s){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord1hvNV(GLenum target, const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord2hNV(GLenum target, GLhalfNV s, GLhalfNV t){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord2hvNV(GLenum target, const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord3hNV(GLenum target, GLhalfNV s, GLhalfNV t, GLhalfNV r){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord3hvNV(GLenum target, const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord4hNV(GLenum target, GLhalfNV s, GLhalfNV t, GLhalfNV r, GLhalfNV q){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMultiTexCoord4hvNV(GLenum target, const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFogCoordhNV(GLhalfNV fog){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFogCoordhvNV(const GLhalfNV *fog){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glSecondaryColor3hNV(GLhalfNV red, GLhalfNV green, GLhalfNV blue){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glSecondaryColor3hvNV(const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexWeighthNV(GLhalfNV weight){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexWeighthvNV(const GLhalfNV *weight){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1hNV(GLuint index, GLhalfNV x){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1hvNV(GLuint index, const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2hNV(GLuint index, GLhalfNV x, GLhalfNV y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2hvNV(GLuint index, const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3hNV(GLuint index, GLhalfNV x, GLhalfNV y, GLhalfNV z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3hvNV(GLuint index, const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4hNV(GLuint index, GLhalfNV x, GLhalfNV y, GLhalfNV z, GLhalfNV w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4hvNV(GLuint index, const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs1hvNV(GLuint index, GLsizei n, const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs2hvNV(GLuint index, GLsizei n, const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs3hvNV(GLuint index, GLsizei n, const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs4hvNV(GLuint index, GLsizei n, const GLhalfNV *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBeginOcclusionQueryNV(GLuint id){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEndOcclusionQueryNV(void){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetOcclusionQueryivNV(GLuint id, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetOcclusionQueryuivNV(GLuint id, GLenum pname, GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGenOcclusionQueriesNV(GLsizei n, GLuint *ids){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDeleteOcclusionQueriesNV(GLsizei n, const GLuint *ids){ TRACE("*"); UNIMPLEMENTED(); }
+GLboolean APIENTRY glIsOcclusionQueryNV(GLuint id){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glProgramBufferParametersfvNV(GLenum target, GLuint bindingIndex, GLuint wordIndex, GLsizei count, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramBufferParametersIivNV(GLenum target, GLuint bindingIndex, GLuint wordIndex, GLsizei count, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramBufferParametersIuivNV(GLenum target, GLuint bindingIndex, GLuint wordIndex, GLsizei count, const GLuint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glPixelDataRangeNV(GLenum target, GLsizei length, const void *pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFlushPixelDataRangeNV(GLenum target){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glPointParameteriNV(GLenum pname, GLint param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glPointParameterivNV(GLenum pname, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glPrimitiveRestartNV(void){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glPrimitiveRestartIndexNV(GLuint index){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCombinerParameterfvNV(GLenum pname, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCombinerParameterfNV(GLenum pname, GLfloat param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCombinerParameterivNV(GLenum pname, const GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCombinerParameteriNV(GLenum pname, GLint param){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCombinerInputNV(GLenum stage, GLenum portion, GLenum variable, GLenum input, GLenum mapping, GLenum componentUsage){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCombinerOutputNV(GLenum stage, GLenum portion, GLenum abOutput, GLenum cdOutput, GLenum sumOutput, GLenum scale, GLenum bias, GLboolean abDotProduct, GLboolean cdDotProduct, GLboolean muxSum){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFinalCombinerInputNV(GLenum variable, GLenum input, GLenum mapping, GLenum componentUsage){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetCombinerInputParameterfvNV(GLenum stage, GLenum portion, GLenum variable, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetCombinerInputParameterivNV(GLenum stage, GLenum portion, GLenum variable, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetCombinerOutputParameterfvNV(GLenum stage, GLenum portion, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetCombinerOutputParameterivNV(GLenum stage, GLenum portion, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetFinalCombinerInputParameterfvNV(GLenum variable, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetFinalCombinerInputParameterivNV(GLenum variable, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glCombinerStageParameterfvNV(GLenum stage, GLenum pname, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetCombinerStageParameterfvNV(GLenum stage, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMakeBufferResidentNV(GLenum target, GLenum access){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMakeBufferNonResidentNV(GLenum target){ TRACE("*"); UNIMPLEMENTED(); }
+GLboolean APIENTRY glIsBufferResidentNV(GLenum target){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glMakeNamedBufferResidentNV(GLuint buffer, GLenum access){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glMakeNamedBufferNonResidentNV(GLuint buffer){ TRACE("*"); UNIMPLEMENTED(); }
+GLboolean APIENTRY glIsNamedBufferResidentNV(GLuint buffer){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glGetBufferParameterui64vNV(GLenum target, GLenum pname, GLuint64EXT *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetNamedBufferParameterui64vNV(GLuint buffer, GLenum pname, GLuint64EXT *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetIntegerui64vNV(GLenum value, GLuint64EXT *result){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniformui64NV(GLint location, GLuint64EXT value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glUniformui64vNV(GLint location, GLsizei count, const GLuint64EXT *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetUniformui64vNV(GLuint program, GLint location, GLuint64EXT *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformui64NV(GLuint program, GLint location, GLuint64EXT value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramUniformui64vNV(GLuint program, GLint location, GLsizei count, const GLuint64EXT *value){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBeginTransformFeedbackNV(GLenum primitiveMode){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEndTransformFeedbackNV(void){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTransformFeedbackAttribsNV(GLuint count, const GLint *attribs, GLenum bufferMode){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBindBufferRangeNV(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBindBufferOffsetNV(GLenum target, GLuint index, GLuint buffer, GLintptr offset){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBindBufferBaseNV(GLenum target, GLuint index, GLuint buffer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTransformFeedbackVaryingsNV(GLuint program, GLsizei count, const GLint *locations, GLenum bufferMode){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glActiveVaryingNV(GLuint program, const GLchar *name){ TRACE("*"); UNIMPLEMENTED(); }
+GLint APIENTRY glGetVaryingLocationNV(GLuint program, const GLchar *name){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glGetActiveVaryingNV(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTransformFeedbackVaryingNV(GLuint program, GLuint index, GLint *location){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTransformFeedbackStreamAttribsNV(GLsizei count, const GLint *attribs, GLsizei nbuffers, const GLint *bufstreams, GLenum bufferMode){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFlushVertexArrayRangeNV(void){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexArrayRangeNV(GLsizei length, const void *pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glBufferAddressRangeNV(GLenum pname, GLuint index, GLuint64EXT address, GLsizeiptr length){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexFormatNV(GLint size, GLenum type, GLsizei stride){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glNormalFormatNV(GLenum type, GLsizei stride){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glColorFormatNV(GLint size, GLenum type, GLsizei stride){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glIndexFormatNV(GLenum type, GLsizei stride){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTexCoordFormatNV(GLint size, GLenum type, GLsizei stride){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glEdgeFlagFormatNV(GLsizei stride){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glSecondaryColorFormatNV(GLint size, GLenum type, GLsizei stride){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glFogCoordFormatNV(GLenum type, GLsizei stride){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribFormatNV(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribIFormatNV(GLuint index, GLint size, GLenum type, GLsizei stride){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetIntegerui64i_vNV(GLenum value, GLuint index, GLuint64EXT *result){ TRACE("*"); UNIMPLEMENTED(); }
+GLboolean APIENTRY glAreProgramsResidentNV(GLsizei n, const GLuint *programs, GLboolean *residences){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glBindProgramNV(GLenum target, GLuint id){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glDeleteProgramsNV(GLsizei n, const GLuint *programs){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glExecuteProgramNV(GLenum target, GLuint id, const GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGenProgramsNV(GLsizei n, GLuint *programs){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramParameterdvNV(GLenum target, GLuint index, GLenum pname, GLdouble *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramParameterfvNV(GLenum target, GLuint index, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramivNV(GLuint id, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetProgramStringNV(GLuint id, GLenum pname, GLubyte *program){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetTrackMatrixivNV(GLenum target, GLuint address, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexAttribdvNV(GLuint index, GLenum pname, GLdouble *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexAttribfvNV(GLuint index, GLenum pname, GLfloat *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexAttribivNV(GLuint index, GLenum pname, GLint *params){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glGetVertexAttribPointervNV(GLuint index, GLenum pname, void **pointer){ TRACE("*"); UNIMPLEMENTED(); }
+GLboolean APIENTRY glIsProgramNV(GLuint id){ TRACE("*"); UNIMPLEMENTED(); return 0; }
+void APIENTRY glLoadProgramNV(GLenum target, GLuint id, GLsizei len, const GLubyte *program){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramParameter4dNV(GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramParameter4dvNV(GLenum target, GLuint index, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramParameter4fNV(GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramParameter4fvNV(GLenum target, GLuint index, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramParameters4dvNV(GLenum target, GLuint index, GLsizei count, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glProgramParameters4fvNV(GLenum target, GLuint index, GLsizei count, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glRequestResidentProgramsNV(GLsizei n, const GLuint *programs){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glTrackMatrixNV(GLenum target, GLuint address, GLenum matrix, GLenum transform){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribPointerNV(GLuint index, GLint fsize, GLenum type, GLsizei stride, const void *pointer){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1dNV(GLuint index, GLdouble x){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1dvNV(GLuint index, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1fNV(GLuint index, GLfloat x){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1fvNV(GLuint index, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1sNV(GLuint index, GLshort x){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib1svNV(GLuint index, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2dNV(GLuint index, GLdouble x, GLdouble y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2dvNV(GLuint index, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2fNV(GLuint index, GLfloat x, GLfloat y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2fvNV(GLuint index, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2sNV(GLuint index, GLshort x, GLshort y){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib2svNV(GLuint index, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3dNV(GLuint index, GLdouble x, GLdouble y, GLdouble z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3dvNV(GLuint index, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3fNV(GLuint index, GLfloat x, GLfloat y, GLfloat z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3fvNV(GLuint index, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3sNV(GLuint index, GLshort x, GLshort y, GLshort z){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib3svNV(GLuint index, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4dNV(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4dvNV(GLuint index, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4fNV(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4fvNV(GLuint index, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4sNV(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4svNV(GLuint index, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4ubNV(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttrib4ubvNV(GLuint index, const GLubyte *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs1dvNV(GLuint index, GLsizei count, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs1fvNV(GLuint index, GLsizei count, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs1svNV(GLuint index, GLsizei count, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs2dvNV(GLuint index, GLsizei count, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs2fvNV(GLuint index, GLsizei count, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs2svNV(GLuint index, GLsizei count, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs3dvNV(GLuint index, GLsizei count, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs3fvNV(GLuint index, GLsizei count, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs3svNV(GLuint index, GLsizei count, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs4dvNV(GLuint index, GLsizei count, const GLdouble *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs4fvNV(GLuint index, GLsizei count, const GLfloat *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs4svNV(GLuint index, GLsizei count, const GLshort *v){ TRACE("*"); UNIMPLEMENTED(); }
+void APIENTRY glVertexAttribs4ubvNV(GLuint index, GLsizei count, const GLubyte *v){ TRACE("*"); UNIMPLEMENTED(); }
+
+GLboolean APIENTRY wgl1fx34c0da() 
+{ 
+	return -1;// UNIMPLEMENTED();
+}
+
 BOOL WINAPI wglSwapIntervalEXT(int interval)
 {
 	gl::Surface *drawSurface = static_cast<gl::Surface*>(gl::getCurrentDrawSurface());
@@ -7838,6 +10111,13 @@ BOOL WINAPI wglSwapIntervalEXT(int interval)
 	
 	SetLastError(ERROR_DC_NOT_FOUND);
 	return FALSE;
+}
+
+int WINAPI wglGetSwapIntervalEXT(void)
+{
+	TRACE("(*)");
+	UNIMPLEMENTED();
+	return 1;
 }
 
 int WINAPI wglChoosePixelFormat(HDC hdc, const PIXELFORMATDESCRIPTOR *ppfd)
@@ -7882,7 +10162,7 @@ BOOL WINAPI wglDeleteContext(HGLRC context)
 		return TRUE;
 	}
 
-	return FALSE;
+	return TRUE;// FALSE;
 }
 
 BOOL WINAPI wglDescribeLayerPlane(HDC, int, int, UINT, LPLAYERPLANEDESCRIPTOR)
@@ -7890,6 +10170,40 @@ BOOL WINAPI wglDescribeLayerPlane(HDC, int, int, UINT, LPLAYERPLANEDESCRIPTOR)
 	UNIMPLEMENTED();
 	return FALSE;
 }
+
+
+
+void APIENTRY glVertexAttrib4bv(GLuint index, const GLbyte *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib4iv(GLuint index, const GLint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib4sv(GLuint index, const GLshort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib4ubv(GLuint index, const GLubyte *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib4uiv(GLuint index, const GLuint *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+void APIENTRY glVertexAttrib4usv(GLuint index, const GLushort *v)
+{
+	TRACE("*");
+	UNIMPLEMENTED();
+}
+
 
 int WINAPI wglDescribePixelFormat(HDC hdc, int iPixelFormat, UINT nBytes, LPPIXELFORMATDESCRIPTOR ppfd)
 {
@@ -7960,9 +10274,16 @@ const char *WINAPI wglGetExtensionsStringARB(HDC hdc)
 {
 	TRACE("(*)");
 
-	return "GL_ARB_framebuffer_object "
-		   "WGL_EXT_extensions_string "
-		   "WGL_EXT_swap_control";
+	return "GL_ARB_texture_non_power_of_two "
+		"GL_ARB_framebuffer_object "
+		"GL_ARB_fragment_shader "
+		"GL_ARB_vertex_shader "
+		"GL_ARB_shader_objects "
+		"GL_ARB_shading_language_100 "
+		"GL_EXT_framebuffer_object";
+		//"wglCreateContextAttribsARB";
+	//NVIDIA CARD
+	"WGL_ARB_buffer_region WGL_ARB_create_context WGL_ARB_create_context_profile WGL_ARB_create_context_robustness WGL_ARB_context_flush_control WGL_ARB_extensions_string WGL_ARB_make_current_read WGL_ARB_multisample WGL_ARB_pbuffer WGL_ARB_pixel_format WGL_ARB_pixel_format_float WGL_ARB_render_texture WGL_ATI_pixel_format_float WGL_EXT_create_context_es_profile WGL_EXT_create_context_es2_profile WGL_EXT_extensions_string WGL_EXT_framebuffer_sRGB WGL_EXT_pixel_format_packed_float WGL_EXT_swap_control WGL_EXT_swap_control_tear WGL_NVX_DX_interop WGL_NV_DX_interop WGL_NV_DX_interop2 WGL_NV_copy_image WGL_NV_delay_before_swap WGL_NV_float_buffer WGL_NV_gpu_affinity WGL_NV_multisample_coverage WGL_NV_render_depth_texture WGL_NV_render_texture_rectangle WGL_NV_swap_group WGL_NV_video_capture";
 }
 
 const char *WINAPI wglGetExtensionsStringEXT()
@@ -8160,6 +10481,999 @@ PROC WINAPI wglGetProcAddress(LPCSTR lpszProc)
 		EXT(glDepthRangef),
 		EXT(glClearDepthf),
 
+		// UNIMPLEMENTED
+		EXT(glVertexAttrib1dv),
+		EXT(glVertexAttrib1fv),
+		EXT(glVertexAttrib1sv),
+		EXT(glVertexAttrib2dv),
+		EXT(glVertexAttrib2fv),
+		EXT(glVertexAttrib2sv),
+		EXT(glVertexAttrib3dv),
+		EXT(glVertexAttrib3fv),
+		EXT(glVertexAttrib3sv),
+		EXT(glVertexAttrib4Nbv),
+		EXT(glVertexAttrib4Niv),
+		EXT(glVertexAttrib4Nsv),
+		EXT(glVertexAttrib4Nubv),
+		EXT(glVertexAttrib4Nuiv),
+		EXT(glVertexAttrib4Nusv),
+		EXT(glVertexAttrib4bv),
+		EXT(glVertexAttrib4dv),
+		EXT(glVertexAttrib4iv),
+		EXT(glVertexAttrib4sv),
+		EXT(glVertexAttrib4ubv),
+		EXT(glVertexAttrib4uiv),
+		EXT(glVertexAttrib4usv),
+		EXT(glVertexAttrib4fv),
+		EXT(glFogCoordfv),
+		EXT(glFogCoorddv),
+		EXT(glMultiDrawElements),
+		EXT(glSecondaryColor3bv),
+		EXT(glSecondaryColor3dv),
+		EXT(glSecondaryColor3fv),
+		EXT(glSecondaryColor3i),
+		EXT(glSecondaryColor3iv),
+		EXT(glSecondaryColor3s),
+		EXT(glSecondaryColor3sv),
+		EXT(glSecondaryColor3ubv),
+		EXT(glSecondaryColor3ui),
+		EXT(glSecondaryColor3uiv),
+		EXT(glSecondaryColor3us),
+		EXT(glSecondaryColor3usv),
+		EXT(glWindowPos2s),
+		EXT(glWindowPos2dv),
+		EXT(glWindowPos2fv),
+		EXT(glWindowPos2iv),
+		EXT(glWindowPos2sv),
+		EXT(glWindowPos3s),
+		EXT(glWindowPos3dv),
+		EXT(glWindowPos3fv),
+		EXT(glWindowPos3iv),
+		EXT(glWindowPos3sv),
+		EXT(glMultiTexCoord1dv),
+		EXT(glMultiTexCoord1fv),
+		EXT(glMultiTexCoord1i),
+		EXT(glMultiTexCoord1iv),
+		EXT(glMultiTexCoord1s),
+		EXT(glMultiTexCoord1sv),
+		EXT(glMultiTexCoord2dv),
+		EXT(glMultiTexCoord2fv),
+		EXT(glMultiTexCoord2i),
+		EXT(glMultiTexCoord2iv),
+		EXT(glMultiTexCoord2s),
+		EXT(glMultiTexCoord2sv),
+		EXT(glMultiTexCoord3dv),
+		EXT(glMultiTexCoord3fv),
+		EXT(glMultiTexCoord3i),
+		EXT(glMultiTexCoord3iv),
+		EXT(glMultiTexCoord3s),
+		EXT(glMultiTexCoord3sv),
+		EXT(glMultiTexCoord4dv),
+		EXT(glMultiTexCoord4fv),
+		EXT(glMultiTexCoord4i),
+		EXT(glMultiTexCoord4iv),
+		EXT(glMultiTexCoord4s),
+		EXT(glMultiTexCoord4sv),
+		EXT(glBlendEquationEXT),
+		EXT(glBlendFuncSeparateEXT),
+		EXT(glSecondaryColor3bEXT),
+		EXT(glSecondaryColor3bvEXT),
+		EXT(glSecondaryColor3dEXT),
+		EXT(glSecondaryColor3dvEXT),
+		EXT(glSecondaryColor3fEXT),
+		EXT(glSecondaryColor3fvEXT),
+		EXT(glSecondaryColor3iEXT),
+		EXT(glSecondaryColor3ivEXT),
+		EXT(glSecondaryColor3sEXT),
+		EXT(glSecondaryColor3svEXT),
+		EXT(glSecondaryColor3ubEXT),
+		EXT(glSecondaryColor3ubvEXT),
+		EXT(glSecondaryColor3uiEXT),
+		EXT(glSecondaryColor3uivEXT),
+		EXT(glSecondaryColor3usEXT),
+		EXT(glSecondaryColor3usvEXT),
+		EXT(glSecondaryColorPointerEXT),
+		EXT(glBlitFramebufferEXT),
+		EXT(glRenderbufferStorageMultisampleEXT),
+		EXT(glSecondaryColor3i),
+		EXT(glSecondaryColor3s),
+		EXT(glSecondaryColor3ui),
+		EXT(glSecondaryColor3us),
+		EXT(glSecondaryColor3bv),
+		EXT(glSecondaryColor3fv),
+		EXT(glSecondaryColor3dv),
+		EXT(glSecondaryColor3ubv),
+		EXT(glSecondaryColor3iv),
+		EXT(glSecondaryColor3sv),
+		EXT(glSecondaryColor3uiv),
+		EXT(glSecondaryColor3usv),
+		EXT(glBindAttribLocationARB),
+		EXT(glGetActiveAttribARB),
+		EXT(glGetAttribLocationARB),
+		EXT(glAttachObjectARB),
+		EXT(glCompileShaderARB),
+		EXT(glCreateProgramObjectARB),
+		EXT(glCreateShaderObjectARB),
+		EXT(glDeleteObjectARB),
+		EXT(glDetachObjectARB),
+		EXT(glGetActiveUniformARB),
+		EXT(glGetAttachedObjectsARB),
+		EXT(glGetHandleARB),
+		EXT(glGetInfoLogARB),
+		EXT(glGetObjectParameterfvARB),
+		EXT(glGetObjectParameterivARB),
+		EXT(glGetShaderSourceARB),
+		EXT(glGetUniformLocationARB),
+		EXT(glGetUniformfvARB),
+		EXT(glGetUniformivARB),
+		EXT(glLinkProgramARB),
+		EXT(glShaderSourceARB),
+		EXT(glUniform1fARB),
+		EXT(glUniform1fvARB),
+		EXT(glUniform1iARB),
+		EXT(glUniform1ivARB),
+		EXT(glUniform2fARB),
+		EXT(glUniform2fvARB),
+		EXT(glUniform2iARB),
+		EXT(glUniform2ivARB),
+		EXT(glUniform3fARB),
+		EXT(glUniform3fvARB),
+		EXT(glUniform3iARB),
+		EXT(glUniform3ivARB),
+		EXT(glUniform4fARB),
+		EXT(glUniform4fvARB),
+		EXT(glUniform4iARB),
+		EXT(glUniform4ivARB),
+		EXT(glUniformMatrix2fvARB),
+		EXT(glUniformMatrix3fvARB),
+		EXT(glUniformMatrix4fvARB),
+		EXT(glUseProgramObjectARB),
+		EXT(glValidateProgramARB),
+		EXT(glIsRenderbufferEXT),
+		EXT(glBindRenderbufferEXT),
+		EXT(glDeleteRenderbuffersEXT),
+		EXT(glGenRenderbuffersEXT),
+		EXT(glRenderbufferStorageEXT),
+		EXT(glGetRenderbufferParameterivEXT),
+		EXT(glIsFramebufferEXT),
+		EXT(glBindFramebufferEXT),
+		EXT(glDeleteFramebuffersEXT),
+		EXT(glGenFramebuffersEXT),
+		EXT(glCheckFramebufferStatusEXT),
+		EXT(glFramebufferTexture1DEXT),
+		EXT(glFramebufferTexture2DEXT),
+		EXT(glFramebufferTexture3DEXT),
+		EXT(glFramebufferRenderbufferEXT),
+		EXT(glGetFramebufferAttachmentParameterivEXT),
+		EXT(glGenerateMipmapEXT),
+		EXT(glColorMaski),
+		EXT(glGetBooleani_v),
+		EXT(glGetIntegeri_v),
+		EXT(glEnablei),
+		EXT(glIsEnabledi),
+		EXT(glDisablei),
+		EXT(glBeginTransformFeedback),
+		EXT(glEndTransformFeedback),
+		EXT(glBindBufferRange),
+		EXT(glBindBufferBase),
+		EXT(glTransformFeedbackVaryings),
+		EXT(glGetTransformFeedbackVarying),
+		EXT(glClampColor),
+		EXT(glBeginConditionalRender),
+		EXT(glEndConditionalRender),
+		EXT(glVertexAttribIPointer),
+		EXT(glGetVertexAttribIiv),
+		EXT(glGetVertexAttribIuiv),
+		EXT(glVertexAttribI2i),
+		EXT(glVertexAttribI1i),
+		EXT(glVertexAttribI3i),
+		EXT(glVertexAttribI4i),
+		EXT(glVertexAttribI1ui),
+		EXT(glVertexAttribI2ui),
+		EXT(glVertexAttribI3ui),
+		EXT(glVertexAttribI4ui),
+		EXT(glVertexAttribI1iv),
+		EXT(glVertexAttribI2iv),
+		EXT(glVertexAttribI3iv),
+		EXT(glVertexAttribI4iv),
+		EXT(glVertexAttribI1uiv),
+		EXT(glVertexAttribI2uiv),
+		EXT(glVertexAttribI3uiv),
+		EXT(glVertexAttribI4uiv),
+		EXT(glVertexAttribI4bv),
+		EXT(glVertexAttribI4sv),
+		EXT(glVertexAttribI4ubv),
+		EXT(glVertexAttribI4usv),
+		EXT(glGetUniformuiv),
+		EXT(glBindFragDataLocation),
+		EXT(glGetFragDataLocation),
+		EXT(glUniform1ui),
+		EXT(glUniform2ui),
+		EXT(glUniform3ui),
+		EXT(glUniform4ui),
+		EXT(glUniform1uiv),
+		EXT(glUniform2uiv),
+		EXT(glUniform3uiv),
+		EXT(glUniform4uiv),
+		EXT(glTexParameterIiv),
+		EXT(glTexParameterIuiv),
+		EXT(glGetTexParameterIiv),
+		EXT(glGetTexParameterIuiv),
+		EXT(glClearBufferiv),
+		EXT(glClearBufferuiv),
+		EXT(glClearBufferfv),
+		EXT(glClearBufferfi),
+		EXT(glGetStringi),
+		//EXT(wglCreateContextAttribsARB),
+		EXT(glMapNamedBufferEXT),
+		EXT(glUnmapNamedBufferEXT),
+		EXT(glGetNamedBufferParameterivEXT),
+		EXT(glGetTextureImageEXT),
+		EXT(glTextureSubImage2DEXT),
+		EXT(glTextureSubImage3DEXT),
+
+
+		EXT(glcuR0d4nX),
+		EXT(wgl1fx34c0da),
+
+
+		//MORE unimplemented()
+		EXT(glCopyTexImage1DEXT),
+		EXT(glCopyTexImage2DEXT),
+		EXT(glCopyTexSubImage1DEXT),
+		EXT(glCopyTexSubImage2DEXT),
+		EXT(glCopyTexSubImage3DEXT),
+		EXT(glPolygonOffsetEXT),
+		EXT(glTexSubImage1DEXT),
+		EXT(glTexSubImage2DEXT),
+		EXT(glTexImage3DEXT),
+		EXT(glTexSubImage3DEXT),
+		EXT( glAreTexturesResidentEXT),
+		EXT(glBindTextureEXT),
+		EXT(glDeleteTexturesEXT),
+		EXT(glGenTexturesEXT),
+		EXT(glIsTextureEXT),
+		EXT(glPrioritizeTexturesEXT),
+		EXT(glDrawRangeElementsEXT),
+		EXT(glSampleCoverageARB),
+		EXT(glActiveTextureARB),
+		EXT(glClientActiveTextureARB),
+		EXT(glMultiTexCoord1dARB),
+		EXT(glMultiTexCoord1dvARB),
+		EXT(glMultiTexCoord1fARB),
+		EXT(glMultiTexCoord1fvARB),
+		EXT(glMultiTexCoord1iARB),
+		EXT(glMultiTexCoord1ivARB),
+		EXT(glMultiTexCoord1sARB),
+		EXT(glMultiTexCoord1svARB),
+		EXT(glMultiTexCoord2dARB),
+		EXT(glMultiTexCoord2dvARB),
+		EXT(glMultiTexCoord2fARB),
+		EXT(glMultiTexCoord2fvARB),
+		EXT(glMultiTexCoord2iARB),
+		EXT(glMultiTexCoord2ivARB),
+		EXT(glMultiTexCoord2sARB),
+		EXT(glMultiTexCoord2svARB),
+		EXT(glMultiTexCoord3dARB),
+		EXT(glMultiTexCoord3dvARB),
+		EXT(glMultiTexCoord3fARB),
+		EXT(glMultiTexCoord3fvARB),
+		EXT(glMultiTexCoord3iARB),
+		EXT(glMultiTexCoord3ivARB),
+		EXT(glMultiTexCoord3sARB),
+		EXT(glMultiTexCoord3svARB),
+		EXT(glMultiTexCoord4dARB),
+		EXT(glMultiTexCoord4dvARB),
+		EXT(glMultiTexCoord4fARB),
+		EXT(glMultiTexCoord4fvARB),
+		EXT(glMultiTexCoord4iARB),
+		EXT(glMultiTexCoord4ivARB),
+		EXT(glMultiTexCoord4sARB),
+		EXT(glMultiTexCoord4svARB),
+		EXT(glCompressedTexImage3DARB),
+		EXT(glCompressedTexImage2DARB),
+		EXT(glCompressedTexImage1DARB),
+		EXT(glCompressedTexSubImage3DARB),
+		EXT(glCompressedTexSubImage2DARB),
+		EXT(glCompressedTexSubImage1DARB),
+		EXT(glGetCompressedTexImageARB),
+		EXT(glPointParameterfARB),
+		EXT(glPointParameterfvARB),
+		EXT(glBlendColorEXT),
+		EXT(glFogCoordfEXT),
+		EXT(glFogCoordfvEXT),
+		EXT(glFogCoorddEXT),
+		EXT(glFogCoorddvEXT),
+		EXT(glFogCoordPointerEXT),
+		EXT(glMultiDrawArraysEXT),
+		EXT(glMultiDrawElementsEXT),
+		EXT(glGenQueriesARB),
+		EXT(glDeleteQueriesARB),
+		EXT(glIsQueryARB),
+		EXT(glBeginQueryARB),
+		EXT(glEndQueryARB),
+		EXT(glGetQueryivARB),
+		EXT(glGetQueryObjectivARB),
+		EXT(glGetQueryObjectuivARB),
+		EXT(glBindBufferARB),
+		EXT(glDeleteBuffersARB),
+		EXT(glGenBuffersARB),
+		EXT(glIsBufferARB),
+		EXT(glBufferDataARB),
+		EXT(glBufferSubDataARB),
+		EXT(glGetBufferSubDataARB),
+		EXT(glMapBufferARB),
+		EXT(glUnmapBufferARB),
+		EXT(glGetBufferParameterivARB),
+		EXT(glGetBufferPointervARB),
+		EXT(glDrawBuffersARB),
+		EXT(glBlendEquationSeparateEXT),
+		EXT(glActiveStencilFaceEXT),
+		EXT(glClampColorARB),
+		EXT(glDrawArraysInstancedARB),
+		EXT(glDrawElementsInstancedARB),
+		EXT(glProgramParameteriARB),
+		EXT(glFramebufferTextureARB),
+		EXT(glFramebufferTextureLayerARB),
+		EXT(glFramebufferTextureFaceARB),
+		EXT(glColorTable),
+		EXT(glColorTableParameterfv),
+		EXT(glColorTableParameteriv),
+		EXT(glCopyColorTable),
+		EXT(glGetColorTable),
+		EXT(glGetColorTableParameterfv),
+		EXT(glGetColorTableParameteriv),
+		EXT(glColorSubTable),
+		EXT(glCopyColorSubTable),
+		EXT(glConvolutionFilter1D),
+		EXT(glConvolutionFilter2D),
+		EXT(glConvolutionParameterf),
+		EXT(glConvolutionParameterfv),
+		EXT(glConvolutionParameteri),
+		EXT(glConvolutionParameteriv),
+		EXT(glCopyConvolutionFilter1D),
+		EXT(glCopyConvolutionFilter2D),
+		EXT(glGetConvolutionFilter),
+		EXT(glGetConvolutionParameterfv),
+		EXT(glGetConvolutionParameteriv),
+		EXT(glGetSeparableFilter),
+		EXT(glSeparableFilter2D),
+		EXT(glGetHistogram),
+		EXT(glGetHistogramParameterfv),
+		EXT(glGetHistogramParameteriv),
+		EXT(glGetMinmax),
+		EXT(glGetMinmaxParameterfv),
+		EXT(glGetMinmaxParameteriv),
+		EXT(glHistogram),
+		EXT(glMinmax),
+		EXT(glResetHistogram),
+		EXT(glResetMinmax),
+		EXT(glVertexAttribDivisorARB),
+		EXT(glMapBufferRange),
+		EXT(glFlushMappedBufferRange),
+		EXT(glTexBufferARB),
+		EXT(glBindVertexArray),
+		EXT(glDeleteVertexArrays),
+		EXT(glGenVertexArrays),
+		EXT(glIsVertexArray),
+		EXT(glProgramStringARB),
+		EXT(glBindProgramARB),
+		EXT(glDeleteProgramsARB),
+		EXT(glGenProgramsARB),
+		EXT(glProgramEnvParameter4dARB),
+		EXT(glProgramEnvParameter4dvARB),
+		EXT(glProgramEnvParameter4fARB),
+		EXT(glProgramEnvParameter4fvARB),
+		EXT(glProgramLocalParameter4dARB),
+		EXT(glProgramLocalParameter4dvARB),
+		EXT(glProgramLocalParameter4fARB),
+		EXT(glProgramLocalParameter4fvARB),
+		EXT(glGetProgramEnvParameterdvARB),
+		EXT(glGetProgramEnvParameterfvARB),
+		EXT(glGetProgramLocalParameterdvARB),
+		EXT(glGetProgramLocalParameterfvARB),
+		EXT(glGetProgramivARB),
+		EXT(glGetProgramStringARB),
+		EXT(glIsProgramARB),
+		EXT(glEnableVertexAttribArrayARB),
+		EXT(glDisableVertexAttribArrayARB),
+		EXT(glGetVertexAttribdvARB),
+		EXT(glGetVertexAttribfvARB),
+		EXT(glGetVertexAttribivARB),
+		EXT(glGetVertexAttribPointervARB),
+		EXT(glVertexAttrib1dARB),
+		EXT(glVertexAttrib1dvARB),
+		EXT(glVertexAttrib1fARB),
+		EXT(glVertexAttrib1fvARB),
+		EXT(glVertexAttrib1sARB),
+		EXT(glVertexAttrib1svARB),
+		EXT(glVertexAttrib2dARB),
+		EXT(glVertexAttrib2dvARB),
+		EXT(glVertexAttrib2fARB),
+		EXT(glVertexAttrib2fvARB),
+		EXT(glVertexAttrib2sARB),
+		EXT(glVertexAttrib2svARB),
+		EXT(glVertexAttrib3dARB),
+		EXT(glVertexAttrib3dvARB),
+		EXT(glVertexAttrib3fARB),
+		EXT(glVertexAttrib3fvARB),
+		EXT(glVertexAttrib3sARB),
+		EXT(glVertexAttrib3svARB),
+		EXT(glVertexAttrib4NbvARB),
+		EXT(glVertexAttrib4NivARB),
+		EXT(glVertexAttrib4NsvARB),
+		EXT(glVertexAttrib4NubARB),
+		EXT(glVertexAttrib4NubvARB),
+		EXT(glVertexAttrib4NuivARB),
+		EXT(glVertexAttrib4NusvARB),
+		EXT(glVertexAttrib4bvARB),
+		EXT(glVertexAttrib4dARB),
+		EXT(glVertexAttrib4dvARB),
+		EXT(glVertexAttrib4fARB),
+		EXT(glVertexAttrib4fvARB),
+		EXT(glVertexAttrib4ivARB),
+		EXT(glVertexAttrib4sARB),
+		EXT(glVertexAttrib4svARB),
+		EXT(glVertexAttrib4ubvARB),
+		EXT(glVertexAttrib4uivARB),
+		EXT(glVertexAttrib4usvARB),
+		EXT(glVertexAttribPointerARB),
+		EXT(glEnableVertexAttribArrayARB),
+		EXT(glDisableVertexAttribArrayARB),
+		EXT(glWindowPos2dARB),
+		EXT(glWindowPos2dvARB),
+		EXT(glWindowPos2fARB),
+		EXT(glWindowPos2fvARB),
+		EXT(glWindowPos2iARB),
+		EXT(glWindowPos2ivARB),
+		EXT(glWindowPos2sARB),
+		EXT(glWindowPos2svARB),
+		EXT(glWindowPos3dARB),
+		EXT(glWindowPos3dvARB),
+		EXT(glWindowPos3fARB),
+		EXT(glWindowPos3fvARB),
+		EXT(glWindowPos3iARB),
+		EXT(glWindowPos3ivARB),
+		EXT(glWindowPos3sARB),
+		EXT(glWindowPos3svARB),
+		EXT(glDrawBuffersATI),
+		EXT(glUniformBufferEXT),
+		EXT(glGetUniformBufferSizeEXT),
+		EXT(glGetUniformOffsetEXT),
+		EXT(glLockArraysEXT),
+		EXT(glUnlockArraysEXT),
+		EXT(glDepthBoundsEXT),
+		EXT(glMatrixLoadfEXT),
+		EXT(glMatrixLoaddEXT),
+		EXT(glMatrixMultfEXT),
+		EXT(glMatrixMultdEXT),
+		EXT(glMatrixLoadIdentityEXT),
+		EXT(glMatrixRotatefEXT),
+		EXT(glMatrixRotatedEXT),
+		EXT(glMatrixScalefEXT),
+		EXT(glMatrixScaledEXT),
+		EXT(glMatrixTranslatefEXT),
+		EXT(glMatrixTranslatedEXT),
+		EXT(glMatrixFrustumEXT),
+		EXT(glMatrixOrthoEXT),
+		EXT(glMatrixPopEXT),
+		EXT(glMatrixPushEXT),
+		EXT(glClientAttribDefaultEXT),
+		EXT(glPushClientAttribDefaultEXT),
+		EXT(glTextureParameterfEXT),
+		EXT(glTextureParameterfvEXT),
+		EXT(glTextureParameteriEXT),
+		EXT(glTextureParameterivEXT),
+		EXT(glTextureImage1DEXT),
+		EXT(glTextureImage2DEXT),
+		EXT(glTextureSubImage1DEXT),
+		EXT(glTextureSubImage2DEXT),
+		EXT(glCopyTextureImage1DEXT),
+		EXT(glCopyTextureImage2DEXT),
+		EXT(glCopyTextureSubImage1DEXT),
+		EXT(glCopyTextureSubImage2DEXT),
+		EXT(glGetTextureImageEXT),
+		EXT(glGetTextureParameterfvEXT),
+		EXT(glGetTextureParameterivEXT),
+		EXT(glGetTextureLevelParameterfvEXT),
+		EXT(glGetTextureLevelParameterivEXT),
+		EXT(glTextureImage3DEXT),
+		EXT(glTextureSubImage3DEXT),
+		EXT(glCopyTextureSubImage3DEXT),
+		EXT(glBindMultiTextureEXT),
+		EXT(glMultiTexCoordPointerEXT),
+		EXT(glMultiTexEnvfEXT),
+		EXT(glMultiTexEnvfvEXT),
+		EXT(glMultiTexEnviEXT),
+		EXT(glMultiTexEnvivEXT),
+		EXT(glMultiTexGendEXT),
+		EXT(glMultiTexGendvEXT),
+		EXT(glMultiTexGenfEXT),
+		EXT(glMultiTexGenfvEXT),
+		EXT(glMultiTexGeniEXT),
+		EXT(glMultiTexGenivEXT),
+		EXT(glGetMultiTexEnvfvEXT),
+		EXT(glGetMultiTexEnvivEXT),
+		EXT(glGetMultiTexGendvEXT),
+		EXT(glGetMultiTexGenfvEXT),
+		EXT(glGetMultiTexGenivEXT),
+		EXT(glMultiTexParameteriEXT),
+		EXT(glMultiTexParameterivEXT),
+		EXT(glMultiTexParameterfEXT),
+		EXT(glMultiTexParameterfvEXT),
+		EXT(glMultiTexImage1DEXT),
+		EXT(glMultiTexImage2DEXT),
+		EXT(glMultiTexSubImage1DEXT),
+		EXT(glMultiTexSubImage2DEXT),
+		EXT(glCopyMultiTexImage1DEXT),
+		EXT(glCopyMultiTexImage2DEXT),
+		EXT(glCopyMultiTexSubImage1DEXT),
+		EXT(glCopyMultiTexSubImage2DEXT),
+		EXT(glGetMultiTexImageEXT),
+		EXT(glGetMultiTexParameterfvEXT),
+		EXT(glGetMultiTexParameterivEXT),
+		EXT(glGetMultiTexLevelParameterfvEXT),
+		EXT(glGetMultiTexLevelParameterivEXT),
+		EXT(glMultiTexImage3DEXT),
+		EXT(glMultiTexSubImage3DEXT),
+		EXT(glCopyMultiTexSubImage3DEXT),
+		EXT(glEnableClientStateIndexedEXT),
+		EXT(glDisableClientStateIndexedEXT),
+		EXT(glGetFloatIndexedvEXT),
+		EXT(glGetDoubleIndexedvEXT),
+		EXT(glGetPointerIndexedvEXT),
+		EXT(glEnableIndexedEXT),
+		EXT(glDisableIndexedEXT),
+		EXT(glIsEnabledIndexedEXT),
+		EXT(glGetIntegerIndexedvEXT),
+		EXT(glGetBooleanIndexedvEXT),
+		EXT(glCompressedTextureImage3DEXT),
+		EXT(glCompressedTextureImage2DEXT),
+		EXT(glCompressedTextureImage1DEXT),
+		EXT(glCompressedTextureSubImage3DEXT),
+		EXT(glCompressedTextureSubImage2DEXT),
+		EXT(glCompressedTextureSubImage1DEXT),
+		EXT(glGetCompressedTextureImageEXT),
+		EXT(glCompressedMultiTexImage3DEXT),
+		EXT(glCompressedMultiTexImage2DEXT),
+		EXT(glCompressedMultiTexImage1DEXT),
+		EXT(glCompressedMultiTexSubImage3DEXT),
+		EXT(glCompressedMultiTexSubImage2DEXT),
+		EXT(glCompressedMultiTexSubImage1DEXT),
+		EXT(glGetCompressedMultiTexImageEXT),
+		EXT(glMatrixLoadTransposefEXT),
+		EXT(glMatrixLoadTransposedEXT),
+		EXT(glMatrixMultTransposefEXT),
+		EXT(glMatrixMultTransposedEXT),
+		EXT(glNamedBufferDataEXT),
+		EXT(glNamedBufferSubDataEXT),
+		EXT(glMapNamedBufferEXT),
+		EXT(glUnmapNamedBufferEXT),
+		EXT(glGetNamedBufferParameterivEXT),
+		EXT(glGetNamedBufferPointervEXT),
+		EXT(glGetNamedBufferSubDataEXT),
+		EXT(glProgramUniform1fEXT),
+		EXT(glProgramUniform2fEXT),
+		EXT(glProgramUniform3fEXT),
+		EXT(glProgramUniform4fEXT),
+		EXT(glProgramUniform1iEXT),
+		EXT(glProgramUniform2iEXT),
+		EXT(glProgramUniform3iEXT),
+		EXT(glProgramUniform4iEXT),
+		EXT(glProgramUniform1fvEXT),
+		EXT(glProgramUniform2fvEXT),
+		EXT(glProgramUniform3fvEXT),
+		EXT(glProgramUniform4fvEXT),
+		EXT(glProgramUniform1ivEXT),
+		EXT(glProgramUniform2ivEXT),
+		EXT(glProgramUniform3ivEXT),
+		EXT(glProgramUniform4ivEXT),
+		EXT(glProgramUniformMatrix2fvEXT),
+		EXT(glProgramUniformMatrix3fvEXT),
+		EXT(glProgramUniformMatrix4fvEXT),
+		EXT(glProgramUniformMatrix2x3fvEXT),
+		EXT(glProgramUniformMatrix3x2fvEXT),
+		EXT(glProgramUniformMatrix2x4fvEXT),
+		EXT(glProgramUniformMatrix4x2fvEXT),
+		EXT(glProgramUniformMatrix3x4fvEXT),
+		EXT(glProgramUniformMatrix4x3fvEXT),
+		EXT(glTextureBufferEXT),
+		EXT(glMultiTexBufferEXT),
+		EXT(glTextureParameterIivEXT),
+		EXT(glTextureParameterIuivEXT),
+		EXT(glGetTextureParameterIivEXT),
+		EXT(glGetTextureParameterIuivEXT),
+		EXT(glMultiTexParameterIivEXT),
+		EXT(glMultiTexParameterIuivEXT),
+		EXT(glGetMultiTexParameterIivEXT),
+		EXT(glGetMultiTexParameterIuivEXT),
+		EXT(glProgramUniform1uiEXT),
+		EXT(glProgramUniform2uiEXT),
+		EXT(glProgramUniform3uiEXT),
+		EXT(glProgramUniform4uiEXT),
+		EXT(glProgramUniform1uivEXT),
+		EXT(glProgramUniform2uivEXT),
+		EXT(glProgramUniform3uivEXT),
+		EXT(glProgramUniform4uivEXT),
+		EXT(glNamedProgramLocalParameters4fvEXT),
+		EXT(glNamedProgramLocalParameterI4iEXT),
+		EXT(glNamedProgramLocalParameterI4ivEXT),
+		EXT(glNamedProgramLocalParametersI4ivEXT),
+		EXT(glNamedProgramLocalParameterI4uiEXT),
+		EXT(glNamedProgramLocalParameterI4uivEXT),
+		EXT(glNamedProgramLocalParametersI4uivEXT),
+		EXT(glGetNamedProgramLocalParameterIivEXT),
+		EXT(glGetNamedProgramLocalParameterIuivEXT),
+		EXT(glEnableClientStateiEXT),
+		EXT(glDisableClientStateiEXT),
+		EXT(glGetFloati_vEXT),
+		EXT(glGetDoublei_vEXT),
+		EXT(glGetPointeri_vEXT),
+		EXT(glNamedProgramStringEXT),
+		EXT(glNamedProgramLocalParameter4dEXT),
+		EXT(glNamedProgramLocalParameter4dvEXT),
+		EXT(glNamedProgramLocalParameter4fEXT),
+		EXT(glNamedProgramLocalParameter4fvEXT),
+		EXT(glGetNamedProgramLocalParameterdvEXT),
+		EXT(glGetNamedProgramLocalParameterfvEXT),
+		EXT(glGetNamedProgramivEXT),
+		EXT(glGetNamedProgramStringEXT),
+		EXT(glNamedRenderbufferStorageEXT),
+		EXT(glGetNamedRenderbufferParameterivEXT),
+		EXT(glNamedRenderbufferStorageMultisampleEXT),
+		EXT(glNamedRenderbufferStorageMultisampleCoverageEXT),
+		EXT(glCheckNamedFramebufferStatusEXT),
+		EXT(glNamedFramebufferTexture1DEXT),
+		EXT(glNamedFramebufferTexture2DEXT),
+		EXT(glNamedFramebufferTexture3DEXT),
+		EXT(glNamedFramebufferRenderbufferEXT),
+		EXT(glGetNamedFramebufferAttachmentParameterivEXT),
+		EXT(glGenerateTextureMipmapEXT),
+		EXT(glGenerateMultiTexMipmapEXT),
+		EXT(glFramebufferDrawBufferEXT),
+		EXT(glFramebufferDrawBuffersEXT),
+		EXT(glFramebufferReadBufferEXT),
+		EXT(glGetFramebufferParameterivEXT),
+		EXT(glNamedCopyBufferSubDataEXT),
+		EXT(glNamedFramebufferTextureEXT),
+		EXT(glNamedFramebufferTextureLayerEXT),
+		EXT(glNamedFramebufferTextureFaceEXT),
+		EXT(glTextureRenderbufferEXT),
+		EXT(glMultiTexRenderbufferEXT),
+		EXT(glVertexArrayVertexOffsetEXT),
+		EXT(glVertexArrayColorOffsetEXT),
+		EXT(glVertexArrayEdgeFlagOffsetEXT),
+		EXT(glVertexArrayIndexOffsetEXT),
+		EXT(glVertexArrayNormalOffsetEXT),
+		EXT(glVertexArrayTexCoordOffsetEXT),
+		EXT(glVertexArrayMultiTexCoordOffsetEXT),
+		EXT(glVertexArrayFogCoordOffsetEXT),
+		EXT(glVertexArraySecondaryColorOffsetEXT),
+		EXT(glVertexArrayVertexAttribOffsetEXT),
+		EXT(glVertexArrayVertexAttribIOffsetEXT),
+		EXT(glEnableVertexArrayEXT),
+		EXT(glDisableVertexArrayEXT),
+		EXT(glEnableVertexArrayAttribEXT),
+		EXT(glDisableVertexArrayAttribEXT),
+		EXT(glGetVertexArrayIntegervEXT),
+		EXT(glGetVertexArrayPointervEXT),
+		EXT(glGetVertexArrayIntegeri_vEXT),
+		EXT(glGetVertexArrayPointeri_vEXT),
+		EXT(glMapNamedBufferRangeEXT),
+		EXT(glFlushMappedNamedBufferRangeEXT),
+		EXT(glNamedBufferStorageEXT),
+		EXT(glClearNamedBufferDataEXT),
+		EXT(glClearNamedBufferSubDataEXT),
+		EXT(glNamedFramebufferParameteriEXT),
+		EXT(glGetNamedFramebufferParameterivEXT),
+		EXT(glProgramUniform1dEXT),
+		EXT(glProgramUniform2dEXT),
+		EXT(glProgramUniform3dEXT),
+		EXT(glProgramUniform4dEXT),
+		EXT(glProgramUniform1dvEXT),
+		EXT(glProgramUniform2dvEXT),
+		EXT(glProgramUniform3dvEXT),
+		EXT(glProgramUniform4dvEXT),
+		EXT(glProgramUniformMatrix2dvEXT),
+		EXT(glProgramUniformMatrix3dvEXT),
+		EXT(glProgramUniformMatrix4dvEXT),
+		EXT(glProgramUniformMatrix2x3dvEXT),
+		EXT(glProgramUniformMatrix2x4dvEXT),
+		EXT(glProgramUniformMatrix3x2dvEXT),
+		EXT(glProgramUniformMatrix3x4dvEXT),
+		EXT(glProgramUniformMatrix4x2dvEXT),
+		EXT(glProgramUniformMatrix4x3dvEXT),
+		EXT(glTextureBufferRangeEXT),
+		EXT(glTextureStorage1DEXT),
+		EXT(glTextureStorage2DEXT),
+		EXT(glTextureStorage3DEXT),
+		EXT(glTextureStorage2DMultisampleEXT),
+		EXT(glTextureStorage3DMultisampleEXT),
+		EXT(glVertexArrayBindVertexBufferEXT),
+		EXT(glVertexArrayVertexAttribFormatEXT),
+		EXT(glVertexArrayVertexAttribIFormatEXT),
+		EXT(glVertexArrayVertexAttribLFormatEXT),
+		EXT(glVertexArrayVertexAttribBindingEXT),
+		EXT(glVertexArrayVertexBindingDivisorEXT),
+		EXT(glVertexArrayVertexAttribLOffsetEXT),
+		EXT(glTexturePageCommitmentEXT),
+		EXT(glVertexArrayVertexAttribDivisorEXT),
+		EXT(glColorMaskIndexedEXT),
+		EXT(glDrawArraysInstancedEXT),
+		EXT(glDrawElementsInstancedEXT),
+		EXT(glProgramParameteriEXT),
+		EXT(glFramebufferTextureEXT),
+		EXT(glFramebufferTextureLayerEXT),
+		EXT(glFramebufferTextureFaceEXT),
+		EXT(glProgramEnvParameters4fvEXT),
+		EXT(glProgramLocalParameters4fvEXT),
+		EXT(glGetUniformuivEXT),
+		EXT(glBindFragDataLocationEXT),
+		EXT(glGetFragDataLocationEXT),
+		EXT(glUniform1uiEXT),
+		EXT(glUniform2uiEXT),
+		EXT(glUniform3uiEXT),
+		EXT(glUniform4uiEXT),
+		EXT(glUniform1uivEXT),
+		EXT(glUniform2uivEXT),
+		EXT(glUniform3uivEXT),
+		EXT(glUniform4uivEXT),
+		EXT(glVertexAttribI1iEXT),
+		EXT(glVertexAttribI2iEXT),
+		EXT(glVertexAttribI3iEXT),
+		EXT(glVertexAttribI4iEXT),
+		EXT(glVertexAttribI1uiEXT),
+		EXT(glVertexAttribI2uiEXT),
+		EXT(glVertexAttribI3uiEXT),
+		EXT(glVertexAttribI4uiEXT),
+		EXT(glVertexAttribI1ivEXT),
+		EXT(glVertexAttribI2ivEXT),
+		EXT(glVertexAttribI3ivEXT),
+		EXT(glVertexAttribI4ivEXT),
+		EXT(glVertexAttribI1uivEXT),
+		EXT(glVertexAttribI2uivEXT),
+		EXT(glVertexAttribI3uivEXT),
+		EXT(glVertexAttribI4uivEXT),
+		EXT(glVertexAttribI4bvEXT),
+		EXT(glVertexAttribI4svEXT),
+		EXT(glVertexAttribI4ubvEXT),
+		EXT(glVertexAttribI4usvEXT),
+		EXT(glVertexAttribIPointerEXT),
+		EXT(glGetVertexAttribIivEXT),
+		EXT(glGetVertexAttribIuivEXT),
+		EXT(glPointParameterfEXT),
+		EXT(glPointParameterfvEXT),
+		EXT(glTexBufferEXT),
+		EXT(glTexParameterIivEXT),
+		EXT(glTexParameterIuivEXT),
+		EXT(glGetTexParameterIivEXT),
+		EXT(glGetTexParameterIuivEXT),
+		EXT(glClearColorIiEXT),
+		EXT(glClearColorIuiEXT),
+		EXT(glGetQueryObjecti64vEXT),
+		EXT(glGetQueryObjectui64vEXT),
+		EXT(glArrayElementEXT),
+		EXT(glColorPointerEXT),
+		EXT(glDrawArraysEXT),
+		EXT(glEdgeFlagPointerEXT),
+		EXT(glGetPointervEXT),
+		EXT(glIndexPointerEXT),
+		EXT(glNormalPointerEXT),
+		EXT(glTexCoordPointerEXT),
+		EXT(glVertexPointerEXT),
+		EXT(glBeginConditionalRenderNV),
+		EXT(glEndConditionalRenderNV),
+		EXT(glDepthRangedNV),
+		EXT(glClearDepthdNV),
+		EXT(glDepthBoundsdNV),
+		EXT(glGetMultisamplefvNV),
+		EXT(glSampleMaskIndexedNV),
+		EXT(glTexRenderbufferNV),
+		EXT(glProgramNamedParameter4fNV),
+		EXT(glProgramNamedParameter4fvNV),
+		EXT(glProgramNamedParameter4dNV),
+		EXT(glProgramNamedParameter4dvNV),
+		EXT(glGetProgramNamedParameterfvNV),
+		EXT(glGetProgramNamedParameterdvNV),
+		EXT(glRenderbufferStorageMultisampleCoverageNV),
+		EXT(glProgramLocalParameterI4iNV),
+		EXT(glProgramLocalParameterI4ivNV),
+		EXT(glProgramLocalParametersI4ivNV),
+		EXT(glProgramLocalParameterI4uiNV),
+		EXT(glProgramLocalParameterI4uivNV),
+		EXT(glProgramLocalParametersI4uivNV),
+		EXT(glProgramEnvParameterI4iNV),
+		EXT(glProgramEnvParameterI4ivNV),
+		EXT(glProgramEnvParametersI4ivNV),
+		EXT(glProgramEnvParameterI4uiNV),
+		EXT(glProgramEnvParameterI4uivNV),
+		EXT(glProgramEnvParametersI4uivNV),
+		EXT(glGetProgramLocalParameterIivNV),
+		EXT(glGetProgramLocalParameterIuivNV),
+		EXT(glGetProgramEnvParameterIivNV),
+		EXT(glGetProgramEnvParameterIuivNV),
+		EXT(glVertex2hNV),
+		EXT(glVertex2hvNV),
+		EXT(glVertex3hNV),
+		EXT(glVertex3hvNV),
+		EXT(glVertex4hNV),
+		EXT(glVertex4hvNV),
+		EXT(glNormal3hNV),
+		EXT(glNormal3hvNV),
+		EXT(glColor3hNV),
+		EXT(glColor3hvNV),
+		EXT(glColor4hNV),
+		EXT(glColor4hvNV),
+		EXT(glTexCoord1hNV),
+		EXT(glTexCoord1hvNV),
+		EXT(glTexCoord2hNV),
+		EXT(glTexCoord2hvNV),
+		EXT(glTexCoord3hNV),
+		EXT(glTexCoord3hvNV),
+		EXT(glTexCoord4hNV),
+		EXT(glTexCoord4hvNV),
+		EXT(glMultiTexCoord1hNV),
+		EXT(glMultiTexCoord1hvNV),
+		EXT(glMultiTexCoord2hNV),
+		EXT(glMultiTexCoord2hvNV),
+		EXT(glMultiTexCoord3hNV),
+		EXT(glMultiTexCoord3hvNV),
+		EXT(glMultiTexCoord4hNV),
+		EXT(glMultiTexCoord4hvNV),
+		EXT(glFogCoordhNV),
+		EXT(glFogCoordhvNV),
+		EXT(glSecondaryColor3hNV),
+		EXT(glSecondaryColor3hvNV),
+		EXT(glVertexWeighthNV),
+		EXT(glVertexWeighthvNV),
+		EXT(glVertexAttrib1hNV),
+		EXT(glVertexAttrib1hvNV),
+		EXT(glVertexAttrib2hNV),
+		EXT(glVertexAttrib2hvNV),
+		EXT(glVertexAttrib3hNV),
+		EXT(glVertexAttrib3hvNV),
+		EXT(glVertexAttrib4hNV),
+		EXT(glVertexAttrib4hvNV),
+		EXT(glVertexAttribs1hvNV),
+		EXT(glVertexAttribs2hvNV),
+		EXT(glVertexAttribs3hvNV),
+		EXT(glVertexAttribs4hvNV),
+		EXT(glBeginOcclusionQueryNV),
+		EXT(glEndOcclusionQueryNV),
+		EXT(glGetOcclusionQueryivNV),
+		EXT(glGetOcclusionQueryuivNV),
+		EXT(glGenOcclusionQueriesNV),
+		EXT(glDeleteOcclusionQueriesNV),
+		EXT(glIsOcclusionQueryNV),
+		EXT(glProgramBufferParametersfvNV),
+		EXT(glProgramBufferParametersIivNV),
+		EXT(glProgramBufferParametersIuivNV),
+		EXT(glPixelDataRangeNV),
+		EXT(glFlushPixelDataRangeNV),
+		EXT(glPointParameteriNV),
+		EXT(glPointParameterivNV),
+		EXT(glPrimitiveRestartNV),
+		EXT(glPrimitiveRestartIndexNV),
+		EXT(glCombinerParameterfvNV),
+		EXT(glCombinerParameterfNV),
+		EXT(glCombinerParameterivNV),
+		EXT(glCombinerParameteriNV),
+		EXT(glCombinerInputNV),
+		EXT(glCombinerOutputNV),
+		EXT(glFinalCombinerInputNV),
+		EXT(glGetCombinerInputParameterfvNV),
+		EXT(glGetCombinerInputParameterivNV),
+		EXT(glGetCombinerOutputParameterfvNV),
+		EXT(glGetCombinerOutputParameterivNV),
+		EXT(glGetFinalCombinerInputParameterfvNV),
+		EXT(glGetFinalCombinerInputParameterivNV),
+		EXT(glCombinerStageParameterfvNV),
+		EXT(glGetCombinerStageParameterfvNV),
+		EXT(glMakeBufferResidentNV),
+		EXT(glMakeBufferNonResidentNV),
+		EXT(glIsBufferResidentNV),
+		EXT(glMakeNamedBufferResidentNV),
+		EXT(glMakeNamedBufferNonResidentNV),
+		EXT(glIsNamedBufferResidentNV),
+		EXT(glGetBufferParameterui64vNV),
+		EXT(glGetNamedBufferParameterui64vNV),
+		EXT(glGetIntegerui64vNV),
+		EXT(glUniformui64NV),
+		EXT(glUniformui64vNV),
+		EXT(glGetUniformui64vNV),
+		EXT(glProgramUniformui64NV),
+		EXT(glProgramUniformui64vNV),
+		EXT(glBeginTransformFeedbackNV),
+		EXT(glEndTransformFeedbackNV),
+		EXT(glTransformFeedbackAttribsNV),
+		EXT(glBindBufferRangeNV),
+		EXT(glBindBufferOffsetNV),
+		EXT(glBindBufferBaseNV),
+		EXT(glTransformFeedbackVaryingsNV),
+		EXT(glActiveVaryingNV),
+		EXT(glGetVaryingLocationNV),
+		EXT(glGetActiveVaryingNV),
+		EXT(glGetTransformFeedbackVaryingNV),
+		EXT(glTransformFeedbackStreamAttribsNV),
+		EXT(glFlushVertexArrayRangeNV),
+		EXT(glVertexArrayRangeNV),
+		EXT(glBufferAddressRangeNV),
+		EXT(glVertexFormatNV),
+		EXT(glNormalFormatNV),
+		EXT(glColorFormatNV),
+		EXT(glIndexFormatNV),
+		EXT(glTexCoordFormatNV),
+		EXT(glEdgeFlagFormatNV),
+		EXT(glSecondaryColorFormatNV),
+		EXT(glFogCoordFormatNV),
+		EXT(glVertexAttribFormatNV),
+		EXT(glVertexAttribIFormatNV),
+		EXT(glGetIntegerui64i_vNV),
+		EXT(glAreProgramsResidentNV),
+		EXT(glBindProgramNV),
+		EXT(glDeleteProgramsNV),
+		EXT(glExecuteProgramNV),
+		EXT(glGenProgramsNV),
+		EXT(glGetProgramParameterdvNV),
+		EXT(glGetProgramParameterfvNV),
+		EXT(glGetProgramivNV),
+		EXT(glGetProgramStringNV),
+		EXT(glGetTrackMatrixivNV),
+		EXT(glGetVertexAttribdvNV),
+		EXT(glGetVertexAttribfvNV),
+		EXT(glGetVertexAttribivNV),
+		EXT(glGetVertexAttribPointervNV),
+		EXT(glIsProgramNV),
+		EXT(glLoadProgramNV),
+		EXT(glProgramParameter4dNV),
+		EXT(glProgramParameter4dvNV),
+		EXT(glProgramParameter4fNV),
+		EXT(glProgramParameter4fvNV),
+		EXT(glProgramParameters4dvNV),
+		EXT(glProgramParameters4fvNV),
+		EXT(glRequestResidentProgramsNV),
+		EXT(glTrackMatrixNV),
+		EXT(glVertexAttribPointerNV),
+		EXT(glVertexAttrib1dNV),
+		EXT(glVertexAttrib1dvNV),
+		EXT(glVertexAttrib1fNV),
+		EXT(glVertexAttrib1fvNV),
+		EXT(glVertexAttrib1sNV),
+		EXT(glVertexAttrib1svNV),
+		EXT(glVertexAttrib2dNV),
+		EXT(glVertexAttrib2dvNV),
+		EXT(glVertexAttrib2fNV),
+		EXT(glVertexAttrib2fvNV),
+		EXT(glVertexAttrib2sNV),
+		EXT(glVertexAttrib2svNV),
+		EXT(glVertexAttrib3dNV),
+		EXT(glVertexAttrib3dvNV),
+		EXT(glVertexAttrib3fNV),
+		EXT(glVertexAttrib3fvNV),
+		EXT(glVertexAttrib3sNV),
+		EXT(glVertexAttrib3svNV),
+		EXT(glVertexAttrib4dNV),
+		EXT(glVertexAttrib4dvNV),
+		EXT(glVertexAttrib4fNV),
+		EXT(glVertexAttrib4fvNV),
+		EXT(glVertexAttrib4sNV),
+		EXT(glVertexAttrib4svNV),
+		EXT(glVertexAttrib4ubNV),
+		EXT(glVertexAttrib4ubvNV),
+		EXT(glVertexAttribs1dvNV),
+		EXT(glVertexAttribs1fvNV),
+		EXT(glVertexAttribs1svNV),
+		EXT(glVertexAttribs2dvNV),
+		EXT(glVertexAttribs2fvNV),
+		EXT(glVertexAttribs2svNV),
+		EXT(glVertexAttribs3dvNV),
+		EXT(glVertexAttribs3fvNV),
+		EXT(glVertexAttribs3svNV),
+		EXT(glVertexAttribs4dvNV),
+		EXT(glVertexAttribs4fvNV),
+		EXT(glVertexAttribs4svNV),
+		EXT(glVertexAttribs4ubvNV),
+
 		// ARB
 		EXT(wglGetExtensionsStringARB),
 		EXT(glIsRenderbuffer),
@@ -8186,8 +11500,22 @@ PROC WINAPI wglGetProcAddress(LPCSTR lpszProc)
 		// EXT
 		EXT(wglSwapIntervalEXT),
 		EXT(wglGetExtensionsStringEXT),
+
+		//UNIMPLEMENTEDg
+		EXT(wglGetSwapIntervalEXT),
 		#undef EXT
 	};
+
+	std::set<const char *> setset;
+	for(int ext = 0; ext < sizeof(glExtensions) / sizeof(Extension); ext++)
+	{
+		int size = setset.size();
+		setset.insert(glExtensions[ext].name);
+		if(size == setset.size())
+		{
+			size = size;
+		}
+	}
 
 	for(int ext = 0; ext < sizeof(glExtensions) / sizeof(Extension); ext++)
 	{
@@ -8206,7 +11534,7 @@ PROC WINAPI wglGetProcAddress(LPCSTR lpszProc)
 
 	TRACE("(LPCSTR lpszProc = \"%s\") NOT FOUND!!!", lpszProc);
 
-	return 0;
+	return (PROC)glIsQueryEXT;
 }
 
 BOOL WINAPI wglMakeCurrent(HDC hdc, HGLRC hglrc)
@@ -8248,10 +11576,25 @@ BOOL WINAPI wglSetPixelFormat(HDC hdc, int iPixelFormat, const PIXELFORMATDESCRI
 	return TRUE;
 }
 
-BOOL WINAPI wglShareLists(HGLRC, HGLRC)
+BOOL WINAPI wglShareLists(HGLRC hglrc1, HGLRC hglrc2)
 {
-	UNIMPLEMENTED();
-	return FALSE;
+	if(!hglrc1 || !hglrc2)
+	{
+		SetLastError(ERROR_DC_NOT_FOUND);
+		return FALSE;
+	}
+
+	gl::Context* context1 = (gl::Context*)hglrc1;
+	gl::Context* context2 = (gl::Context*)hglrc2;
+
+	if(!context1 || !context2)
+	{
+		SetLastError(ERROR_DC_NOT_FOUND);
+		return FALSE;
+	}
+
+	context1->shareDisplayListSpace(hglrc2);
+	return TRUE;
 }
 
 BOOL WINAPI wglSwapBuffers(HDC hdc)

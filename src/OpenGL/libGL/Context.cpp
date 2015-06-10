@@ -136,7 +136,8 @@ Context::Context(const Context *shareContext)
 
     mTexture2DZero = new Texture2D(0);
     mProxyTexture2DZero = new Texture2D(0);
-    mTextureCubeMapZero = new TextureCubeMap(0);
+	mTextureCubeMapZero = new TextureCubeMap(0);
+	mTexture1DZero = new Texture1D(0);
 
     mState.activeSampler = 0;
     bindArrayBuffer(0);
@@ -150,7 +151,16 @@ Context::Context(const Context *shareContext)
     mState.currentProgram = 0;
 
     mState.packAlignment = 4;
-    mState.unpackAlignment = 4;
+	mState.unpackAlignment = 4;
+	mState.unpackSwapBytes = false;
+	mState.unpackLsbFirst = false;
+	mState.unpackRowLength = 0;
+	mState.unpackSkipRows = 0;
+	mState.unpackSkipPixels = 0;
+	mState.unpackSkipImages = 0;
+	mState.unpackImageHeight = 0;
+
+	mState.textureEnvMode = GL_MODULATE;
 
     mVertexDataManager = NULL;
     mIndexDataManager = NULL;
@@ -177,6 +187,11 @@ Context::Context(const Context *shareContext)
 
     drawing = false;
     drawMode = 0;   // FIXME
+
+	sharedList = false;
+	sharedContextHandle = NULL;
+
+	clientAttribStack = new std::stack<ClientAttributes>();
 
     mState.vertexAttribute[sw::Color0].mCurrentValue[0] = 1.0f;
     mState.vertexAttribute[sw::Color0].mCurrentValue[1] = 1.0f;
@@ -252,10 +267,13 @@ Context::~Context()
 
     mTexture2DZero = NULL;
 	mProxyTexture2DZero = NULL;
-    mTextureCubeMapZero = NULL;
+	mTextureCubeMapZero = NULL;
+	mTexture1DZero = NULL;
 
     delete mVertexDataManager;
     delete mIndexDataManager;
+
+	delete clientAttribStack;
 
     mResourceManager->release();
 	delete device;
@@ -774,6 +792,76 @@ GLint Context::getUnpackAlignment() const
     return mState.unpackAlignment;
 }
 
+void Context::setUnpackSwapBytes(bool swapBytes)
+{
+	mState.unpackSwapBytes = swapBytes;
+}
+
+bool Context::getUnpackSwapBytes() const
+{
+	return mState.unpackSwapBytes;
+}
+
+void Context::setUnpackLsbFirst(bool lsbFirst)
+{
+	mState.unpackLsbFirst = lsbFirst;
+}
+
+bool Context::getUnpackLsbFirst() const
+{
+	return mState.unpackLsbFirst;
+}
+
+void Context::setUnpackRowLength(GLint length)
+{
+	mState.unpackRowLength = length;
+}
+
+GLint Context::getUnpackRowLength() const
+{
+	return mState.unpackRowLength;
+}
+
+void Context::setUnpackSkipRows(GLint skipRows)
+{
+	mState.unpackSkipRows = skipRows;
+}
+
+GLint Context::getUnpackSkipRows() const
+{
+	return mState.unpackSkipRows;
+}
+
+void Context::setUnpackSkipPixels(GLint skipPixels)
+{
+	mState.unpackSkipPixels = skipPixels;
+}
+
+GLint Context::getUnpackSkipPixels() const
+{
+	return mState.unpackSkipPixels;
+}
+
+void Context::setUnpackSkipImages(GLint skipImages)
+{
+	mState.unpackSkipImages = skipImages;
+}
+
+GLint Context::getUnpackSkipImages() const
+{
+	return mState.unpackSkipImages;
+}
+
+void Context::setUnpackImageHeight(GLint imageHeight)
+{
+	mState.unpackImageHeight = imageHeight;
+}
+
+GLint Context::getUnpackImageHeight() const
+{
+	return mState.unpackImageHeight;
+}
+
 GLuint Context::createBuffer()
 {
     return mResourceManager->createBuffer();
@@ -976,6 +1064,13 @@ void Context::bindElementArrayBuffer(unsigned int buffer)
     mResourceManager->checkBufferAllocation(buffer);
 
     mState.elementArrayBuffer = getBuffer(buffer);
+}
+
+void Context::bindTexture1D(GLuint texture)
+{
+	mResourceManager->checkTextureAllocation(texture, TEXTURE_1D);
+
+	mState.samplerTexture[TEXTURE_1D][mState.activeSampler] = getTexture(texture);
 }
 
 void Context::bindTexture2D(GLuint texture)
@@ -1203,9 +1298,14 @@ Program *Context::getCurrentProgram()
     return mResourceManager->getProgram(mState.currentProgram);
 }
 
+Texture1D *Context::getTexture1D()
+{
+	return static_cast<Texture1D*>(getSamplerTexture(mState.activeSampler, TEXTURE_1D));
+}
+
 Texture2D *Context::getTexture2D(GLenum target)
 {
-    if(target == GL_TEXTURE_2D)
+	if(target == GL_TEXTURE_2D || /*target == GL_TEXTURE_1D ||*/ target == GL_TEXTURE_RECTANGLE)
     {
         return static_cast<Texture2D*>(getSamplerTexture(mState.activeSampler, TEXTURE_2D));
     }
@@ -1234,6 +1334,7 @@ Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type)
         case TEXTURE_2D:       return mTexture2DZero;
         case PROXY_TEXTURE_2D: return mProxyTexture2DZero;
         case TEXTURE_CUBE:     return mTextureCubeMapZero;
+		case TEXTURE_1D:	   return mTexture1DZero;
         default: UNREACHABLE();
         }
     }
@@ -1337,7 +1438,13 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
     // case, this should make no difference to the calling application. You may find it in 
     // Context::getFloatv.
     switch (pname)
-    {
+	{
+	case GL_TEXTURE_RECTANGLE:				  *params = getRectangleTextureEnable(); break;
+	case GL_MAX_GEOMETRY_OUTPUT_VERTICES:	  *params = 1024; break;
+	case GL_GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX: *params = 1048576; break;
+	case GL_MAX_RECTANGLE_TEXTURE_SIZE_NV:	  *params = 16384; break;
+	case GL_MAX_TEXTURE_STACK_DEPTH:		  *params = MAX_TEXTURE_STACK_DEPTH;    break;
+	case GL_MAX_TEXTURE_UNITS:				  *params = MAX_TEXTURE_IMAGE_UNITS;		  break;
     case GL_MAX_VERTEX_ATTRIBS:               *params = MAX_VERTEX_ATTRIBS;               break;
     case GL_MAX_VERTEX_UNIFORM_VECTORS:       *params = MAX_VERTEX_UNIFORM_VECTORS;       break;
     case GL_MAX_VERTEX_UNIFORM_COMPONENTS:    *params = MAX_VERTEX_UNIFORM_VECTORS * 4;   break;   // FIXME: Verify
@@ -1506,6 +1613,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
             }
         }
         break;
+	case GL_TEXTURE_BINDING_1D:
     case GL_TEXTURE_BINDING_2D:
         {
             if(mState.activeSampler < 0 || mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
@@ -2060,6 +2168,8 @@ void Context::applyTextures()
 
 void Context::applyTextures(sw::SamplerType samplerType)
 {
+	GLenum texEnvMode = getTextureEnvMode();
+
     Program *programObject = getCurrentProgram();
 
     int samplerCount = (samplerType == sw::SAMPLER_PIXEL) ? MAX_TEXTURE_IMAGE_UNITS : MAX_VERTEX_TEXTURE_IMAGE_UNITS;   // Range of samplers of given sampler type
@@ -2096,6 +2206,10 @@ void Context::applyTextures(sw::SamplerType samplerType)
 				device->setMaxAnisotropy(samplerType, samplerIndex, maxAnisotropy);
 
 				applyTexture(samplerType, samplerIndex, texture);
+
+				GLenum texFormat = texture->getFormat(GL_TEXTURE_2D, 0);
+				sw::TextureStage::StageOperation rgbOperation, alphaOperation;
+				es2sw::ConvertTextureOperations(texEnvMode, texFormat, &rgbOperation, &alphaOperation);
 
                 device->setStageOperation(samplerIndex, sw::TextureStage::STAGE_MODULATE);
                 device->setFirstArgument(samplerIndex, sw::TextureStage::SOURCE_TEXTURE);
@@ -2421,6 +2535,27 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 
 	renderTarget->unlock();
 	renderTarget->release();
+}
+
+void Context::setTextureEnvMode(GLenum texEnvMode)
+{
+	switch(texEnvMode)
+	{
+	case GL_MODULATE:
+	case GL_DECAL:
+	case GL_BLEND:
+	case GL_ADD:
+	case GL_REPLACE:
+		mState.textureEnvMode = texEnvMode;
+		break;
+	default:
+		UNREACHABLE();
+	}
+}
+
+GLenum Context::getTextureEnvMode()
+{
+	return mState.textureEnvMode;
 }
 
 void Context::clear(GLbitfield mask)
@@ -3205,6 +3340,56 @@ void Context::ortho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top
 	currentMatrixStack().ortho(left, right, bottom, top, zNear, zFar);
 }
 
+void Context::pushClientAttrib(GLbitfield mask)
+{
+	if(clientAttribStack->size() >= MAX_CLIENT_ATTRIB_STACK_DEPTH)
+	{
+		return error(GL_STACK_OVERFLOW);
+	}
+	ClientAttributes attributes;
+	attributes.mask = mask;
+	attributes.unpackSwapBytes = mState.unpackSwapBytes;
+	attributes.unpackLsbFirst = mState.unpackLsbFirst;
+	attributes.unpackImageHeight = mState.unpackImageHeight;
+	attributes.unpackRowLength = mState.unpackRowLength;
+	attributes.unpackSkipRows = mState.unpackSkipRows;
+	attributes.unpackSkipPixels = mState.unpackSkipPixels;
+	attributes.unpackAlignment = mState.unpackAlignment;
+	attributes.packAlignment = mState.packAlignment;
+	attributes.unpackSkipImages = mState.unpackSkipImages;
+	//TODO: other pack options
+	clientAttribStack->push(attributes);
+}
+
+void Context::popClientAttrib()
+{
+	if(clientAttribStack->empty())
+	{
+		return;
+	}
+
+	if(clientAttribStack->top().mask & GL_CLIENT_PIXEL_STORE_BIT)
+	{
+		setUnpackSwapBytes(clientAttribStack->top().unpackSwapBytes);
+		setUnpackLsbFirst(clientAttribStack->top().unpackLsbFirst);
+		setUnpackImageHeight(clientAttribStack->top().unpackImageHeight);
+		setUnpackRowLength(clientAttribStack->top().unpackRowLength);
+		setUnpackSkipRows(clientAttribStack->top().unpackSkipRows);
+		setUnpackSkipPixels(clientAttribStack->top().unpackSkipPixels);
+		setUnpackAlignment(clientAttribStack->top().unpackAlignment);
+		setPackAlignment(clientAttribStack->top().packAlignment);
+		setUnpackSkipImages(clientAttribStack->top().unpackSkipImages);
+		//TODO: other pack options
+	}
+
+	if(clientAttribStack->top().mask & GL_CLIENT_VERTEX_ARRAY_BIT)
+	{
+		UNIMPLEMENTED();
+	}
+
+	clientAttribStack->pop();
+}
+
 void Context::setLighting(bool enable)
 {
     if(drawing)
@@ -3285,12 +3470,32 @@ void Context::setShadeModel(GLenum mode)
 
 void Context::setLight(int index, bool enable)
 {
-    device->setLightEnable(index, enable);
+	device->setLightEnable(index, enable);
 }
 
 void Context::setNormalizeNormals(bool enable)
 {
 	device->setNormalizeNormals(enable);
+}
+
+void Context::setRectangleTextureEnable(bool enable)
+{
+	device->setRectangleTextureEnable(enable);
+}
+
+bool Context::getRectangleTextureEnable()
+{
+	return device->getRectangleTextureEnable();
+}
+
+void Context::set1DTextureEnable(bool enable)
+{
+	device->set1DTextureEnable(enable);
+}
+
+bool Context::get1DTextureEnable()
+{
+	return device->get1DTextureEnable();
 }
 
 GLuint Context::genLists(GLsizei range)
@@ -3343,6 +3548,12 @@ void Context::newList(GLuint list, GLenum mode)
 
 	listIndex = list;
 	listMode = mode;
+
+	if(sharedList)
+	{
+		gl::Context* ctx = (gl::Context*)sharedContextHandle;
+		ctx->newList(list, mode);
+	}
 }
 
 void Context::endList()
@@ -3355,6 +3566,12 @@ void Context::endList()
     ASSERT(list);
 	delete displayList[listIndex];
     displayList[listIndex] = list;
+	if(sharedList)
+	{
+		gl::Context* ctx = (gl::Context*)sharedContextHandle;
+		ctx->endList();
+	}
+
     list = 0;
 
 	listIndex = 0;
@@ -3378,16 +3595,33 @@ void Context::deleteList(GLuint list)
 	firstFreeIndex = std::min(firstFreeIndex , list);
 }
 
+void Context::shareDisplayListSpace(HGLRC hglrc)
+{
+	sharedList = true;
+	sharedContextHandle = hglrc;
+}
+
 void Context::listCommand(Command *command)
 {
     ASSERT(list);
 	list->list.push_back(command);
-
+	
 	if(listMode == GL_COMPILE_AND_EXECUTE)
 	{
 		listMode = 0;
 		command->call();
 		listMode = GL_COMPILE_AND_EXECUTE;
+	}
+	
+	if(sharedList)
+	{
+		gl::Context* ctx = (gl::Context*)sharedContextHandle;
+		if(ctx == NULL)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		ctx->listCommand(command);
 	}
 }
 

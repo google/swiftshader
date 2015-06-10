@@ -309,7 +309,7 @@ namespace gl
 
 	bool IsTextureTarget(GLenum target)
 	{
-		return target == GL_TEXTURE_2D || IsCubemapTextureTarget(target);
+		return target == GL_TEXTURE_1D || target == GL_TEXTURE_RECTANGLE || target == GL_TEXTURE_2D || IsCubemapTextureTarget(target);
 	}
 
 	// Verify that format/type are one of the combinations from table 3.4.
@@ -614,6 +614,59 @@ namespace es2sw
 		if(maxAnisotropy > 1.0f)
 		{
 			*minFilter = sw::FILTER_ANISOTROPIC;
+		}
+	}
+
+	void ConvertTextureOperations(GLenum texEnvMode, GLenum texFormat, sw::TextureStage::StageOperation *rgbOperation, sw::TextureStage::StageOperation *alphaOperation)
+	{
+		switch(texEnvMode)
+		{
+		case GL_MODULATE:
+			switch(texFormat)
+			{
+			case GL_LUMINANCE_ALPHA:
+				*rgbOperation = sw::TextureStage::STAGE_MODULATE;
+				*alphaOperation = sw::TextureStage::STAGE_MODULATE;
+				break;
+			case GL_RGB:
+				*rgbOperation = sw::TextureStage::STAGE_MODULATE;
+				*alphaOperation = sw::TextureStage::STAGE_SELECTARG2;
+				break;
+			case GL_RGBA:
+				*rgbOperation = sw::TextureStage::STAGE_MODULATE;
+				*alphaOperation = sw::TextureStage::STAGE_MODULATE;
+				break;
+			case GL_ALPHA:
+			case GL_LUMINANCE:
+				UNIMPLEMENTED();
+				// Default operations for compatibility
+				*rgbOperation = sw::TextureStage::STAGE_MODULATE;
+				*alphaOperation = sw::TextureStage::STAGE_MODULATE;
+				break;
+			default: UNREACHABLE();
+			}
+			break;
+
+		case GL_REPLACE:
+			*rgbOperation = sw::TextureStage::STAGE_SELECTARG1;
+			*alphaOperation = sw::TextureStage::STAGE_SELECTARG1;
+			break;
+
+		case GL_ADD:
+			*rgbOperation = sw::TextureStage::STAGE_ADD;
+			*alphaOperation = sw::TextureStage::STAGE_SELECTARG1;
+			break;
+
+		case GL_DECAL:
+		case GL_BLEND:
+			// Default operations for compatibility
+			*rgbOperation = sw::TextureStage::STAGE_MODULATE;
+			*alphaOperation = sw::TextureStage::STAGE_MODULATE;
+			UNIMPLEMENTED();
+			break;
+
+		default:
+			UNREACHABLE();
 		}
 	}
 
