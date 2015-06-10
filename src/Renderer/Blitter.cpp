@@ -398,8 +398,11 @@ namespace sw
 
 		BlitState state;
 
-		state.sourceFormat = source->getInternalFormat();
-		state.destFormat = dest->getInternalFormat();
+		bool useSourceInternal = !source->isExternalDirty();
+		bool useDestInternal = !dest->isExternalDirty();
+
+		state.sourceFormat = source->getFormat(useSourceInternal);
+		state.destFormat = dest->getFormat(useDestInternal);
 		state.filter = filter;
 
 		criticalSection.lock();
@@ -424,10 +427,10 @@ namespace sw
 
 		BlitData data;
 
-		data.source = source->lockInternal(0, 0, sourceRect.slice, sw::LOCK_READONLY, sw::PUBLIC);
-		data.dest = dest->lockInternal(0, 0, destRect.slice, sw::LOCK_WRITEONLY, sw::PUBLIC);
-		data.sPitchB = source->getInternalPitchB();
-		data.dPitchB = dest->getInternalPitchB();
+		data.source = source->lock(0, 0, sourceRect.slice, sw::LOCK_READONLY, sw::PUBLIC, useSourceInternal);
+		data.dest = dest->lock(0, 0, destRect.slice, sw::LOCK_WRITEONLY, sw::PUBLIC, useDestInternal);
+		data.sPitchB = source->getPitchB(useSourceInternal);
+		data.dPitchB = dest->getPitchB(useDestInternal);
 
 		data.w = 1.0f / (dRect.x1 - dRect.x0) * (sRect.x1 - sRect.x0);
 		data.h = 1.0f / (dRect.y1 - dRect.y0) * (sRect.y1 - sRect.y0);
@@ -444,8 +447,8 @@ namespace sw
 
 		blitFunction(&data);
 
-		source->unlockInternal();
-		dest->unlockInternal();
+		source->unlock(useSourceInternal);
+		dest->unlock(useDestInternal);
 
 		return true;
 	}
