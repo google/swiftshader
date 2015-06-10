@@ -15,7 +15,7 @@
 #ifndef SUBZERO_SRC_ICECFG_H
 #define SUBZERO_SRC_ICECFG_H
 
-#include "assembler.h"
+#include "IceAssembler.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
 #include "IceGlobalContext.h"

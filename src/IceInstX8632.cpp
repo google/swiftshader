@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "assembler_ia32.h"
+#include "IceAssemblerX8632.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceConditionCodesX8632.h"
@@ -2927,7 +2927,7 @@ void OperandX8632Mem::dump(const Cfg *Func, Ostream &Str) const {
 void OperandX8632Mem::emitSegmentOverride(X8632::AssemblerX8632 *Asm) const {
   if (SegmentReg != DefaultSegment) {
     assert(SegmentReg >= 0 && SegmentReg < SegReg_NUM);
-    Asm->EmitSegmentOverride(InstX8632SegmentPrefixes[SegmentReg]);
+    Asm->emitSegmentOverride(InstX8632SegmentPrefixes[SegmentReg]);
   }
 }
 

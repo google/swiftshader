@@ -1,4 +1,4 @@
-//===- subzero/src/assembler_arm32.h - Assembler for ARM32 ------*- C++ -*-===//
+//===- subzero/src/IceAssemblerARM32.h - Assembler for ARM32 ----*- C++ -*-===//
 //
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19,13 +19,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef SUBZERO_SRC_ASSEMBLER_ARM32_H
-#define SUBZERO_SRC_ASSEMBLER_ARM32_H
+#ifndef SUBZERO_SRC_ICEASSEMBLERARM32_H
+#define SUBZERO_SRC_ICEASSEMBLERARM32_H
 
+#include "IceAssembler.h"
 #include "IceDefs.h"
 #include "IceFixups.h"
-
-#include "assembler.h"
 
 namespace Ice {
 namespace ARM32 {
@@ -60,7 +59,7 @@ public:
     llvm_unreachable("Not yet implemented.");
   }
 
-  void BindCfgNodeLabel(SizeT NodeNumber) override {
+  void bindCfgNodeLabel(SizeT NodeNumber) override {
     (void)NodeNumber;
     llvm_unreachable("Not yet implemented.");
   }
@@ -74,4 +73,4 @@ public:
 } // end of namespace ARM32
 } // end of namespace Ice
 
-#endif // SUBZERO_SRC_ASSEMBLER_ARM32_H
+#endif // SUBZERO_SRC_ICEASSEMBLERARM32_H

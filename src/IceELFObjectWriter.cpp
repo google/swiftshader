@@ -13,7 +13,7 @@
 
 #include "llvm/Support/MathExtras.h"
 
-#include "assembler.h"
+#include "IceAssembler.h"
 #include "IceDefs.h"
 #include "IceELFObjectWriter.h"
 #include "IceELFSection.h"

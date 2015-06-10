@@ -163,8 +163,8 @@ LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib -Wl,--gc-sections \
 SB_LDFLAGS := $(LINKOPTLEVEL) $(LD_EXTRA)
 
 SRCS = \
-	assembler.cpp \
-	assembler_ia32.cpp \
+	IceAssembler.cpp \
+	IceAssemblerX8632.cpp \
 	IceBrowserCompileServer.cpp \
 	IceCfg.cpp \
 	IceCfgNode.cpp \

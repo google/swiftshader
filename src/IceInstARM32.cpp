@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "assembler_arm32.h"
+#include "IceAssemblerARM32.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceInst.h"

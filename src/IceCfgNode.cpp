@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "assembler.h"
+#include "IceAssembler.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceGlobalInits.h"
@@ -1062,7 +1062,7 @@ void CfgNode::emitIAS(Cfg *Func) const {
   // TODO(stichnot): When sandboxing, defer binding the node label
   // until just before the first instruction is emitted, to reduce the
   // chance that a padding nop is a branch target.
-  Asm->BindCfgNodeLabel(getIndex());
+  Asm->bindCfgNodeLabel(getIndex());
   for (const Inst &I : Phis) {
     if (I.isDeleted())
       continue;

@@ -19,17 +19,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef SUBZERO_SRC_ASSEMBLER_IA32_H
-#define SUBZERO_SRC_ASSEMBLER_IA32_H
+#ifndef SUBZERO_SRC_ICEASSEMBLERX8632_H
+#define SUBZERO_SRC_ICEASSEMBLERX8632_H
 
+#include "IceAssembler.h"
 #include "IceConditionCodesX8632.h"
 #include "IceDefs.h"
 #include "IceOperand.h"
 #include "IceRegistersX8632.h"
 #include "IceTypes.h"
 #include "IceUtils.h"
-
-#include "assembler.h"
 
 namespace Ice {
 
@@ -369,7 +368,7 @@ public:
   }
 
   Label *GetOrCreateCfgNodeLabel(SizeT NodeNumber);
-  void BindCfgNodeLabel(SizeT NodeNumber) override;
+  void bindCfgNodeLabel(SizeT NodeNumber) override;
   Label *GetOrCreateLocalLabel(SizeT Number);
   void BindLocalLabel(SizeT Number);
 
@@ -820,35 +819,35 @@ public:
   void xadd(Type Ty, const Address &address, GPRRegister reg, bool Locked);
   void xchg(Type Ty, const Address &address, GPRRegister reg);
 
-  void EmitSegmentOverride(uint8_t prefix);
+  void emitSegmentOverride(uint8_t prefix);
 
-  intptr_t PreferredLoopAlignment() { return 16; }
-  void Align(intptr_t alignment, intptr_t offset);
-  void Bind(Label *label);
+  intptr_t preferredLoopAlignment() { return 16; }
+  void align(intptr_t alignment, intptr_t offset);
+  void bind(Label *label);
 
-  intptr_t CodeSize() const { return buffer_.Size(); }
+  intptr_t CodeSize() const { return Buffer.size(); }
 
 private:
-  inline void EmitUint8(uint8_t value);
-  inline void EmitInt16(int16_t value);
-  inline void EmitInt32(int32_t value);
-  inline void EmitRegisterOperand(int rm, int reg);
-  inline void EmitXmmRegisterOperand(int rm, XmmRegister reg);
-  inline void EmitFixup(AssemblerFixup *fixup);
-  inline void EmitOperandSizeOverride();
+  inline void emitUint8(uint8_t value);
+  inline void emitInt16(int16_t value);
+  inline void emitInt32(int32_t value);
+  inline void emitRegisterOperand(int rm, int reg);
+  inline void emitXmmRegisterOperand(int rm, XmmRegister reg);
+  inline void emitFixup(AssemblerFixup *fixup);
+  inline void emitOperandSizeOverride();
 
-  void EmitOperand(int rm, const Operand &operand);
-  void EmitImmediate(Type ty, const Immediate &imm);
-  void EmitComplexI8(int rm, const Operand &operand,
+  void emitOperand(int rm, const Operand &operand);
+  void emitImmediate(Type ty, const Immediate &imm);
+  void emitComplexI8(int rm, const Operand &operand,
                      const Immediate &immediate);
-  void EmitComplex(Type Ty, int rm, const Operand &operand,
+  void emitComplex(Type Ty, int rm, const Operand &operand,
                    const Immediate &immediate);
-  void EmitLabel(Label *label, intptr_t instruction_size);
-  void EmitLabelLink(Label *label);
-  void EmitNearLabelLink(Label *label);
+  void emitLabel(Label *label, intptr_t instruction_size);
+  void emitLabelLink(Label *label);
+  void emitNearLabelLink(Label *label);
 
-  void EmitGenericShift(int rm, Type Ty, GPRRegister reg, const Immediate &imm);
-  void EmitGenericShift(int rm, Type Ty, const Operand &operand,
+  void emitGenericShift(int rm, Type Ty, GPRRegister reg, const Immediate &imm);
+  void emitGenericShift(int rm, Type Ty, const Operand &operand,
                         GPRRegister shifter);
 
   typedef std::vector<Label *> LabelVector;
@@ -860,34 +859,34 @@ private:
   Label *GetOrCreateLabel(SizeT Number, LabelVector &Labels);
 };
 
-inline void AssemblerX8632::EmitUint8(uint8_t value) {
-  buffer_.Emit<uint8_t>(value);
+inline void AssemblerX8632::emitUint8(uint8_t value) {
+  Buffer.emit<uint8_t>(value);
 }
 
-inline void AssemblerX8632::EmitInt16(int16_t value) {
-  buffer_.Emit<int16_t>(value);
+inline void AssemblerX8632::emitInt16(int16_t value) {
+  Buffer.emit<int16_t>(value);
 }
 
-inline void AssemblerX8632::EmitInt32(int32_t value) {
-  buffer_.Emit<int32_t>(value);
+inline void AssemblerX8632::emitInt32(int32_t value) {
+  Buffer.emit<int32_t>(value);
 }
 
-inline void AssemblerX8632::EmitRegisterOperand(int rm, int reg) {
+inline void AssemblerX8632::emitRegisterOperand(int rm, int reg) {
   assert(rm >= 0 && rm < 8);
-  buffer_.Emit<uint8_t>(0xC0 + (rm << 3) + reg);
+  Buffer.emit<uint8_t>(0xC0 + (rm << 3) + reg);
 }
 
-inline void AssemblerX8632::EmitXmmRegisterOperand(int rm, XmmRegister reg) {
-  EmitRegisterOperand(rm, static_cast<GPRRegister>(reg));
+inline void AssemblerX8632::emitXmmRegisterOperand(int rm, XmmRegister reg) {
+  emitRegisterOperand(rm, static_cast<GPRRegister>(reg));
 }
 
-inline void AssemblerX8632::EmitFixup(AssemblerFixup *fixup) {
-  buffer_.EmitFixup(fixup);
+inline void AssemblerX8632::emitFixup(AssemblerFixup *fixup) {
+  Buffer.emitFixup(fixup);
 }
 
-inline void AssemblerX8632::EmitOperandSizeOverride() { EmitUint8(0x66); }
+inline void AssemblerX8632::emitOperandSizeOverride() { emitUint8(0x66); }
 
 } // end of namespace X8632
 } // end of namespace Ice
 
-#endif // SUBZERO_SRC_ASSEMBLER_IA32_H
+#endif // SUBZERO_SRC_ICEASSEMBLERX8632_H

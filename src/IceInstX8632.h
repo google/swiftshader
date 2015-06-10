@@ -16,7 +16,7 @@
 #ifndef SUBZERO_SRC_ICEINSTX8632_H
 #define SUBZERO_SRC_ICEINSTX8632_H
 
-#include "assembler_ia32.h"
+#include "IceAssemblerX8632.h"
 #include "IceConditionCodesX8632.h"
 #include "IceDefs.h"
 #include "IceInst.h"

@@ -18,7 +18,7 @@
 
 #include <unordered_map>
 
-#include "assembler_ia32.h"
+#include "IceAssemblerX8632.h"
 #include "IceDefs.h"
 #include "IceInst.h"
 #include "IceInstX8632.h"

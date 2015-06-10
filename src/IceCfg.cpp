@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "assembler.h"
+#include "IceAssembler.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceClFlags.h"

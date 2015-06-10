@@ -15,8 +15,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "assembler_arm32.h"
-#include "assembler_ia32.h"
+#include "IceAssemblerARM32.h"
+#include "IceAssemblerX8632.h"
 #include "IceCfg.h" // setError()
 #include "IceCfgNode.h"
 #include "IceOperand.h"
