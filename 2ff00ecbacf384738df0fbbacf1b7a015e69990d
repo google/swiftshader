@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1917e4d9_f8f21167",
+        "filename": "src/Renderer/Surface.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-10T17:55:51Z",
+      "side": 1,
+      "message": "Do we still need these?",
+      "range": {
+        "startLine": 179,
+        "startChar": 0,
+        "endLine": 193,
+        "endChar": 39
+      },
+      "revId": "2ff00ecbacf384738df0fbbacf1b7a015e69990d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
