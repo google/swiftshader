@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5934fc65_4b6ecdf5",
+        "filename": "src/OpenGL/compiler/glslang.y",
+        "patchSetId": 2
+      },
+      "lineNbr": 2107,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-10T04:16:47Z",
+      "side": 1,
+      "message": "Looks suspicious. The line above sets array size on the old $$.",
+      "range": {
+        "startLine": 2107,
+        "startChar": 8,
+        "endLine": 2107,
+        "endChar": 50
+      },
+      "revId": "51925385873396e60f8b0246635e1c3c18ac1e3c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
