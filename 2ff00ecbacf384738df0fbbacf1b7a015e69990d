@@ -22,6 +22,30 @@
       "revId": "2ff00ecbacf384738df0fbbacf1b7a015e69990d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1917e4d9_7b103b57",
+        "filename": "src/Renderer/Surface.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-10T18:46:11Z",
+      "side": 1,
+      "message": "Not \"strictly\" since we could always use the versions that take a parameter, but I\u0027d very much like to keep it explicit *unless* there\u0027s a choice to be made. The Renderer will only ever use the internal methods. The external ones will have to be used for mapping textures. So the above new methods are just for the Blitter (for now) since it can use either internal or external, based on what\u0027s going to be most efficient.",
+      "parentUuid": "1917e4d9_f8f21167",
+      "range": {
+        "startLine": 179,
+        "startChar": 0,
+        "endLine": 193,
+        "endChar": 39
+      },
+      "revId": "2ff00ecbacf384738df0fbbacf1b7a015e69990d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
