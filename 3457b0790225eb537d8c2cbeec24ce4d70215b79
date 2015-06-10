@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5934fc65_96f5dcfc",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-10T17:02:34Z",
+      "side": 1,
+      "message": "nit: I really like scoped guard classes to do the kind of stuff that requires pairing like this. I avoids having to think about all the unlocking possibilities.",
+      "range": {
+        "startLine": 421,
+        "startChar": 2,
+        "endLine": 421,
+        "endChar": 27
+      },
+      "revId": "3457b0790225eb537d8c2cbeec24ce4d70215b79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
