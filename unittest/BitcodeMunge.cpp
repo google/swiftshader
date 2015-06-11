@@ -19,11 +19,6 @@
 
 namespace IceTest {
 
-void IceTest::SubzeroBitcodeMunger::resetFlags() {
-  Ice::ClFlags::resetClFlags(Flags);
-  resetMungeFlags();
-}
-
 void IceTest::SubzeroBitcodeMunger::resetMungeFlags() {
   Flags.setAllowErrorRecovery(true);
   Flags.setGenerateUnitTestMessages(true);
@@ -34,12 +29,14 @@ void IceTest::SubzeroBitcodeMunger::resetMungeFlags() {
 }
 
 bool IceTest::SubzeroBitcodeMunger::runTest(const uint64_t Munges[],
-                                            size_t MungeSize) {
+                                            size_t MungeSize,
+                                            bool DisableTranslation) {
   const bool AddHeader = true;
   setupTest(Munges, MungeSize, AddHeader);
   Ice::GlobalContext Ctx(DumpStream, DumpStream, DumpStream, nullptr, Flags);
   Ice::PNaClTranslator Translator(&Ctx);
   const char *BufferName = "Test";
+  Flags.setDisableTranslation(DisableTranslation);
   Translator.translateBuffer(BufferName, MungedInput.get());
 
   cleanupTest();

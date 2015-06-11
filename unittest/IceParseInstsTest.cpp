@@ -7,6 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <string>
+
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeParser.h"
 #include "llvm/Bitcode/NaCl/NaClLLVMBitCodes.h"
@@ -18,6 +20,10 @@ using namespace llvm;
 using namespace naclmungetest;
 
 namespace {
+
+// The ParseError constant is passed to the BitcodeMunger to prevent translation
+// when we expect a Parse error.
+constexpr bool ParseError = true;
 
 // Note: alignment stored as 0 or log2(Alignment)+1.
 uint64_t getEncAlignPower(unsigned Power) {
@@ -56,13 +62,13 @@ TEST(IceParseInstsTest, NonexistentCallArg) {
 
   // Show that we get appropriate error when parsing in Subzero.
   IceTest::SubzeroBitcodeMunger Munger(ARRAY_TERM(BitcodeRecords));
-  EXPECT_FALSE(Munger.runTest());
+  EXPECT_FALSE(Munger.runTest(ParseError));
   EXPECT_EQ("Error(66:4): Invalid function record: <34 0 4 2 100>\n",
             Munger.getTestResults());
 
   // Show that we generate a fatal error when not allowing error recovery.
   Munger.Flags.setAllowErrorRecovery(false);
-  EXPECT_DEATH(Munger.runTest(), ".*ERROR: Unable to continue.*");
+  EXPECT_DEATH(Munger.runTest(ParseError), ".*ERROR: Unable to continue.*");
 }
 
 /// Test how we recognize alignments in alloca instructions.
@@ -112,7 +118,7 @@ TEST(IceParseInstsTests, AllocaAlignment) {
       ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_ALLOCA, 1, getEncAlignPower(30), Terminator,
   };
-  EXPECT_FALSE(Munger.runTest(ARRAY(Align30)));
+  EXPECT_FALSE(Munger.runTest(ARRAY(Align30), ParseError));
   EXPECT_EQ("Error(62:4): Invalid function record: <19 1 31>\n",
             Munger.getTestResults());
 
@@ -167,7 +173,7 @@ TEST(IceParseInstsTests, LoadI32Alignment) {
       ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignZero(), 0, Terminator,
   };
-  EXPECT_FALSE(Munger.runTest(ARRAY(Align0)));
+  EXPECT_FALSE(Munger.runTest(ARRAY(Align0), ParseError));
   EXPECT_EQ("Error(58:4): Invalid function record: <20 1 0 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly(ARRAY(Align0)));
@@ -180,7 +186,7 @@ TEST(IceParseInstsTests, LoadI32Alignment) {
       ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignPower(2), 0, Terminator,
   };
-  EXPECT_FALSE(Munger.runTest(ARRAY(Align4)));
+  EXPECT_FALSE(Munger.runTest(ARRAY(Align4), ParseError));
   EXPECT_EQ("Error(58:4): Invalid function record: <20 1 3 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly(ARRAY(Align4)));
@@ -193,7 +199,7 @@ TEST(IceParseInstsTests, LoadI32Alignment) {
       ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignPower(29), 0, Terminator,
   };
-  EXPECT_FALSE(Munger.runTest(ARRAY(Align29)));
+  EXPECT_FALSE(Munger.runTest(ARRAY(Align29), ParseError));
   EXPECT_EQ("Error(58:4): Invalid function record: <20 1 30 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly(ARRAY(Align29)));
@@ -206,7 +212,7 @@ TEST(IceParseInstsTests, LoadI32Alignment) {
       ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignPower(30), 0, Terminator,
   };
-  EXPECT_FALSE(Munger.runTest(ARRAY(Align30)));
+  EXPECT_FALSE(Munger.runTest(ARRAY(Align30), ParseError));
   EXPECT_EQ("Error(58:4): Invalid function record: <20 1 31 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly(ARRAY(Align30)));
@@ -249,7 +255,7 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
       ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignZero(), 0, Terminator,
   };
-  EXPECT_FALSE(Munger.runTest(ARRAY(Align0)));
+  EXPECT_FALSE(Munger.runTest(ARRAY(Align0), ParseError));
   EXPECT_EQ("Error(58:4): Invalid function record: <20 1 0 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly(ARRAY(Align0)));
@@ -272,7 +278,7 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
       ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignPower(29), 0, Terminator,
   };
-  EXPECT_FALSE(Munger.runTest(ARRAY(Align29)));
+  EXPECT_FALSE(Munger.runTest(ARRAY(Align29), ParseError));
   EXPECT_EQ("Error(58:4): Invalid function record: <20 1 30 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly(ARRAY(Align29)));
@@ -286,7 +292,7 @@ TEST(IceParseInstsTests, LoadFloatAlignment) {
       ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_LOAD, 1, getEncAlignPower(30), 0, Terminator,
   };
-  EXPECT_FALSE(Munger.runTest(ARRAY(Align30)));
+  EXPECT_FALSE(Munger.runTest(ARRAY(Align30), ParseError));
   EXPECT_EQ("Error(58:4): Invalid function record: <20 1 31 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly(ARRAY(Align30)));
@@ -332,7 +338,7 @@ TEST(NaClParseInstsTests, StoreAlignment) {
       ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_STORE, 2, 1, getEncAlignZero(), Terminator,
   };
-  EXPECT_FALSE(Munger.runTest(ARRAY(Align0)));
+  EXPECT_FALSE(Munger.runTest(ARRAY(Align0), ParseError));
   EXPECT_EQ("Error(62:4): Invalid function record: <24 2 1 0>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly(ARRAY(Align0)));
@@ -354,7 +360,7 @@ TEST(NaClParseInstsTests, StoreAlignment) {
       ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_STORE, 2, 1, getEncAlignPower(3), Terminator,
   };
-  EXPECT_FALSE(Munger.runTest(ARRAY(Align8)));
+  EXPECT_FALSE(Munger.runTest(ARRAY(Align8), ParseError));
   EXPECT_EQ("Error(62:4): Invalid function record: <24 2 1 4>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly(ARRAY(Align8)));
@@ -368,7 +374,7 @@ TEST(NaClParseInstsTests, StoreAlignment) {
       ReplaceIndex, NaClMungedBitcode::Replace,
       3, naclbitc::FUNC_CODE_INST_STORE, 2, 1, getEncAlignPower(29), Terminator,
   };
-  EXPECT_FALSE(Munger.runTest(ARRAY(Align29)));
+  EXPECT_FALSE(Munger.runTest(ARRAY(Align29), ParseError));
   EXPECT_EQ("Error(62:4): Invalid function record: <24 2 1 30>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly(ARRAY(Align29)));
@@ -382,7 +388,7 @@ TEST(NaClParseInstsTests, StoreAlignment) {
       // Note: alignment stored as 0 or log2(Alignment)+1.
       3, naclbitc::FUNC_CODE_INST_STORE, 2, 1, getEncAlignPower(30), Terminator,
   };
-  EXPECT_FALSE(Munger.runTest(ARRAY(Align30)));
+  EXPECT_FALSE(Munger.runTest(ARRAY(Align30), ParseError));
   EXPECT_EQ("Error(62:4): Invalid function record: <24 2 1 31>\n",
             Munger.getTestResults());
   EXPECT_FALSE(DumpMunger.runTestForAssembly(ARRAY(Align30)));

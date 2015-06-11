@@ -33,19 +33,17 @@ public:
     resetMungeFlags();
   }
 
-  /// Runs PNaClTranslator to translate bitcode records (with defined
-  /// record Munges), and puts output into DumpResults. Returns true
-  /// if parse is successful.
-  bool runTest(const uint64_t Munges[], size_t MungeSize);
+  /// Runs PNaClTranslator to parse and (optionally) translate bitcode records
+  /// (with defined record Munges), and puts output into DumpResults. Returns
+  /// true if parse is successful.
+  bool runTest(const uint64_t Munges[], size_t MungeSize,
+               bool DisableTranslation = false);
 
   /// Same as above, but without any edits.
-  bool runTest() {
+  bool runTest(bool DisableTranslation = false) {
     uint64_t NoMunges[] = {0};
-    return runTest(NoMunges, 0);
+    return runTest(NoMunges, 0, DisableTranslation);
   }
-
-  /// Sets flags back to default assumptions for munging.
-  void resetFlags();
 
   /// Flags to use to run tests. Use to change default assumptions.
   Ice::ClFlags Flags;
