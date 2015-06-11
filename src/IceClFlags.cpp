@@ -136,7 +136,10 @@ cl::opt<Ice::TargetArch> TargetArch(
         clEnumValN(Ice::Target_X8664, "x86_64", "x86-64 (same as x8664)"),
         clEnumValN(Ice::Target_ARM32, "arm", "arm32"),
         clEnumValN(Ice::Target_ARM32, "arm32", "arm32 (same as arm)"),
-        clEnumValN(Ice::Target_ARM64, "arm64", "arm64"), clEnumValEnd));
+        clEnumValN(Ice::Target_ARM64, "arm64", "arm64"),
+        clEnumValN(Ice::Target_MIPS32, "mips", "mips32"),
+        clEnumValN(Ice::Target_MIPS32, "mips32", "mips32 (same as mips)"),
+        clEnumValEnd));
 cl::opt<Ice::TargetInstructionSet> TargetInstructionSet(
     "mattr", cl::desc("Target architecture attributes"),
     cl::init(Ice::X86InstructionSet_SSE2),

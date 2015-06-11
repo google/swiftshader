@@ -187,6 +187,7 @@ SRCS = \
 	IceTargetLowering.cpp \
 	IceTargetLoweringARM32.cpp \
 	IceTargetLoweringX8632.cpp \
+	IceTargetLoweringMIPS32.cpp \
 	IceThreading.cpp \
 	IceTimerTree.cpp \
 	IceTranslator.cpp \

@@ -17,12 +17,14 @@
 
 #include "IceAssemblerARM32.h"
 #include "IceAssemblerX8632.h"
+#include "assembler_mips32.h"
 #include "IceCfg.h" // setError()
 #include "IceCfgNode.h"
 #include "IceOperand.h"
 #include "IceRegAlloc.h"
 #include "IceTargetLowering.h"
 #include "IceTargetLoweringARM32.h"
+#include "IceTargetLoweringMIPS32.h"
 #include "IceTargetLoweringX8632.h"
 
 namespace Ice {

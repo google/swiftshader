@@ -1,0 +1,81 @@
+//===- subzero/src/IceInstMIPS32.def - X-Macros for MIPS32 insts --*- C++ -*-===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file defines properties of MIPS32 instructions in the form of x-macros.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef SUBZERO_SRC_ICEINSTMIPS32_DEF
+#define SUBZERO_SRC_ICEINSTMIPS32_DEF
+
+// NOTE: PC and SP are not considered isInt, to avoid register allocating.
+// TODO (reed kotler). This needs to be scrubbed and is a placeholder to get
+// the Mips skeleton in.
+//
+#define REGMIPS32_GPR_TABLE                                                    \
+  /* val, encode, name, scratch, preserved, stackptr, frameptr, isInt, isFP */ \
+  X(Reg_ZERO,     = 0,          "zero",  0, 0, 0, 0, 0, 0)                     \
+  X(Reg_AT,       = Reg_ZERO + 1,   "at",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_V0,       = Reg_ZERO + 2,   "v0",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_V1,       = Reg_ZERO + 3,   "v1",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_A0,       = Reg_ZERO + 4,   "a0",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_A1,       = Reg_ZERO + 5,   "a1",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_A2,       = Reg_ZERO + 6,   "a2",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_A3,       = Reg_ZERO + 7,   "a3",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_T0,       = Reg_ZERO + 8,   "t0",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_T1,       = Reg_ZERO + 9,   "t1",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_T2,       = Reg_ZERO + 10,  "t2",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_T3,       = Reg_ZERO + 11,  "t3",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_T4,       = Reg_ZERO + 12,  "t4",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_T5,       = Reg_ZERO + 14,  "t5",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_T6,       = Reg_ZERO + 14,  "t6",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_T7,       = Reg_ZERO + 15,  "t7",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_S0,       = Reg_ZERO + 16,  "s0",    0, 1, 0, 0, 1, 0)                 \
+  X(Reg_S1,       = Reg_ZERO + 17,  "s1",    0, 1, 0, 0, 1, 0)                 \
+  X(Reg_S2,       = Reg_ZERO + 18,  "s2",    0, 1, 0, 0, 1, 0)                 \
+  X(Reg_S3,       = Reg_ZERO + 19,  "s3",    0, 1, 0, 0, 1, 0)                 \
+  X(Reg_S4,       = Reg_ZERO + 20,  "s4",    0, 1, 0, 0, 1, 0)                 \
+  X(Reg_S5,       = Reg_ZERO + 21,  "s5",    0, 1, 0, 0, 1, 0)                 \
+  X(Reg_S6,       = Reg_ZERO + 22,  "s6",    0, 1, 0, 0, 1, 0)                 \
+  X(Reg_S7,       = Reg_ZERO + 23,  "s7",    0, 1, 0, 0, 1, 0)                 \
+  X(Reg_T8,       = Reg_ZERO + 23,  "t8",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_T9,       = Reg_ZERO + 25,  "t9",    1, 0, 0, 0, 1, 0)                 \
+  X(Reg_K0,       = Reg_ZERO + 26,  "k0",    0, 0, 0, 0, 0, 0)                 \
+  X(Reg_K1,       = Reg_ZERO + 27,  "k1",    0, 0, 0, 0, 0, 0)                 \
+  X(Reg_GP,       = Reg_ZERO + 28,  "gp",    0, 0, 0, 0, 0, 0)                 \
+  X(Reg_SP,       = Reg_ZERO + 29,  "sp",    0, 0, 1, 0, 0, 0)                 \
+  X(Reg_FP,       = Reg_ZERO + 30,  "fp",    0, 0, 0, 1, 0, 0)                 \
+  X(Reg_RA,       = Reg_ZERO + 31,  "ra",    0, 1, 0, 0, 0, 0)                 \
+//#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
+//          isInt, isFP)
+
+// TODO(reed kotler): List FP registers etc.
+// Be able to grab even registers, and the corresponding odd register
+// for each even register.
+
+// We also provide a combined table, so that there is a namespace where
+// all of the registers are considered and have distinct numberings.
+// This is in contrast to the above, where the "encode" is based on how
+// the register numbers will be encoded in binaries and values can overlap.
+#define REGMIPS32_TABLE                                                  \
+  /* val, encode, name, scratch, preserved, stackptr, frameptr, isInt, isFP */ \
+  REGMIPS32_GPR_TABLE
+//#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
+//          isInt, isFP)
+
+#define REGMIPS32_TABLE_BOUNDS                                                 \
+  /* val, init */                                                              \
+  X(Reg_GPR_First, = Reg_ZERO)                                                 \
+  X(Reg_GPR_Last,  = Reg_RA)
+//define X(val, init)
+
+// TODO(reed kotler): add condition code tables, etc.
+
+
+#endif // SUBZERO_SRC_ICEINSTMIPS32_DEF
