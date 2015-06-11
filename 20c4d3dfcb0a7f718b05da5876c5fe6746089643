@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "79254042_7cc10821",
+        "filename": "src/OpenGL/compiler/intermediate.h",
+        "patchSetId": 6
+      },
+      "lineNbr": 662,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-11T20:34:04Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "79254042_6867071b",
+      "range": {
+        "startLine": 659,
+        "startChar": 1,
+        "endLine": 662,
+        "endChar": 2
+      },
+      "revId": "20c4d3dfcb0a7f718b05da5876c5fe6746089643",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "79254042_a833df21",
         "filename": "src/OpenGL/compiler/intermediate.h",
         "patchSetId": 6
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "79254042_3ccb9043",
+        "filename": "src/OpenGL/compiler/intermediate.h",
+        "patchSetId": 6
+      },
+      "lineNbr": 671,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-11T20:34:04Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "79254042_a833df21",
+      "range": {
+        "startLine": 671,
+        "startChar": 1,
+        "endLine": 671,
+        "endChar": 15
+      },
+      "revId": "20c4d3dfcb0a7f718b05da5876c5fe6746089643",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "79254042_28482f7c",
         "filename": "src/OpenGL/compiler/intermediate.h",
         "patchSetId": 6
@@ -59,6 +107,30 @@
       "writtenOn": "2015-06-11T18:07:04Z",
       "side": 1,
       "message": "Do we need the whole stack, or would just the last one suffice?",
+      "range": {
+        "startLine": 674,
+        "startChar": 1,
+        "endLine": 674,
+        "endChar": 30
+      },
+      "revId": "20c4d3dfcb0a7f718b05da5876c5fe6746089643",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79254042_dcdb7c15",
+        "filename": "src/OpenGL/compiler/intermediate.h",
+        "patchSetId": 6
+      },
+      "lineNbr": 674,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-11T20:34:04Z",
+      "side": 1,
+      "message": "I\u0027m not sure how we\u0027d pop the stack without having a stack.",
+      "parentUuid": "79254042_28482f7c",
       "range": {
         "startLine": 674,
         "startChar": 1,
