@@ -101,6 +101,7 @@ git commit \
   -m "${WARN} SwiftShader build as of:" \
   -m "    git hash: $( cd ${SOURCE_DIR}; git log -n1 | grep commit | head -1 | awk '{ print $2; }')" \
   -m "$(cd ${SOURCE_DIR}; git log -n1 | grep '^ *Change-Id:' | tail -1 | sed 's,-, ,')" \
-  -m "    At $(cd ${SOURCE_DIR}; git remote -v | grep ^origin | head -1 | awk '{ print $2; }')"
+  -m "    At $(cd ${SOURCE_DIR}; git remote -v | grep ^origin | head -1 | awk '{ print $2; }')" \
+  -m "$1"
 popd
 rm -rf ${SOURCE_DIR_LINKED}
