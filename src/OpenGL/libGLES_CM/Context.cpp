@@ -1883,6 +1883,7 @@ void Context::applyTextures()
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
 					case GL_LUMINANCE_ALPHA:
 					case GL_RGBA:
+					case GL_BGRA_EXT:
 						// Cv = Cs, Av = As
 						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG1);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG1);
@@ -1905,6 +1906,7 @@ void Context::applyTextures()
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
 					case GL_LUMINANCE_ALPHA:
 					case GL_RGBA:
+					case GL_BGRA_EXT:
 						// Cv = CpCs, Av = ApAs
 						device->setStageOperation(unit, sw::TextureStage::STAGE_MODULATE);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
@@ -1927,6 +1929,7 @@ void Context::applyTextures()
 						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG1);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
 					case GL_RGBA:
+					case GL_BGRA_EXT:
 						// Cv = Cp(1 ? As) + CsAs, Av = Ap
 						device->setStageOperation(unit, sw::TextureStage::STAGE_BLENDTEXTUREALPHA);   // Alpha * (Arg1 - Arg2) + Arg2
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
@@ -1949,6 +1952,7 @@ void Context::applyTextures()
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
 					case GL_LUMINANCE_ALPHA:
 					case GL_RGBA:
+					case GL_BGRA_EXT:
 						// Cv = Cp(1 ? Cs) + CcCs, Av = ApAs
 						device->setStageOperation(unit, sw::TextureStage::STAGE_LERP);   // Arg3 * (Arg1 - Arg2) + Arg2
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
@@ -1971,6 +1975,7 @@ void Context::applyTextures()
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
 					case GL_LUMINANCE_ALPHA:
 					case GL_RGBA:
+					case GL_BGRA_EXT:
 						// Cv = Cp + Cs, Av = ApAs
 						device->setStageOperation(unit, sw::TextureStage::STAGE_ADD);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
