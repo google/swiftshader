@@ -156,8 +156,8 @@ class Assembler {
 
 public:
   Assembler()
-      : Buffer(*this), FunctionName(""), IsInternal(false),
-        Preliminary(false) {}
+      : Allocator(), FunctionName(""), IsInternal(false), Preliminary(false),
+        Buffer(*this) {}
   virtual ~Assembler() = default;
 
   // Allocate a chunk of bytes using the per-Assembler allocator.
@@ -212,9 +212,6 @@ public:
   void setPreliminary(bool Value) { Preliminary = Value; }
   bool getPreliminary() const { return Preliminary; }
 
-protected:
-  AssemblerBuffer Buffer;
-
 private:
   ArenaAllocator<32 * 1024> Allocator;
   // FunctionName and IsInternal are transferred from the original Cfg
@@ -227,6 +224,12 @@ private:
   // final pass where all changes to label bindings, label links, and
   // relocation fixups are fully committed (Preliminary=false).
   bool Preliminary;
+
+protected:
+  // Buffer's constructor uses the Allocator, so it needs to appear after it.
+  // TODO(jpp): dependencies on construction order are a nice way of shooting
+  // yourself in the foot. Fix this.
+  AssemblerBuffer Buffer;
 };
 
 } // end of namespace Ice
