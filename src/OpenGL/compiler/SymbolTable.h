@@ -38,6 +38,7 @@
 
 #include "InfoSink.h"
 #include "intermediate.h"
+#include <set>
 
 //
 // Symbol base class.  (Can build functions or variables out of these...)
@@ -300,6 +301,7 @@ class TSymbolTable
 {
 public:
     TSymbolTable()
+        : mGlobalInvariant(false)
     {
         //
         // The symbol table cannot be used until push() is called, but
@@ -483,12 +485,34 @@ public:
         return prec;
     }
 
+	// This records invariant varyings declared through
+	// "invariant varying_name;".
+	void addInvariantVarying(const std::string &originalName)
+	{
+		mInvariantVaryings.insert(originalName);
+	}
+	// If this returns false, the varying could still be invariant
+	// if it is set as invariant during the varying variable
+	// declaration - this piece of information is stored in the
+	// variable's type, not here.
+	bool isVaryingInvariant(const std::string &originalName) const
+	{
+		return (mGlobalInvariant ||
+			mInvariantVaryings.count(originalName) > 0);
+	}
+
+	void setGlobalInvariant() { mGlobalInvariant = true; }
+	bool getGlobalInvariant() const { return mGlobalInvariant; }
+
 protected:
     ESymbolLevel currentLevel() const { return static_cast<ESymbolLevel>(table.size() - 1); }
 
     std::vector<TSymbolTableLevel*> table;
     typedef std::map< TBasicType, TPrecision > PrecisionStackLevel;
     std::vector< PrecisionStackLevel > precisionStack;
+
+	std::set<std::string> mInvariantVaryings;
+	bool mGlobalInvariant;
 };
 
 #endif // _SYMBOL_TABLE_INCLUDED_

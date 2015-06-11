@@ -556,9 +556,9 @@ bool TParseContext::constructorErrorCheck(int line, TIntermNode* node, TFunction
 //
 // returns true in case of an error
 //
-bool TParseContext::voidErrorCheck(int line, const TString& identifier, const TPublicType& pubType)
+bool TParseContext::voidErrorCheck(int line, const TString& identifier, const TBasicType& type)
 {
-    if (pubType.type == EbtVoid) {
+    if(type == EbtVoid) {
         error(line, "illegal use of type 'void'", identifier.c_str());
         return true;
     }
@@ -654,11 +654,76 @@ bool TParseContext::structQualifierErrorCheck(int line, const TPublicType& pType
     return false;
 }
 
+// These checks are common for all declarations starting a declarator list, and declarators that follow an empty
+// declaration.
+//
+bool TParseContext::singleDeclarationErrorCheck(const TPublicType &publicType, const TSourceLoc &identifierLocation)
+{
+	switch(publicType.qualifier)
+	{
+	case EvqVaryingIn:
+	case EvqVaryingOut:
+	case EvqAttribute:
+	case EvqVertexIn:
+	case EvqFragmentOut:
+		if(publicType.type == EbtStruct)
+		{
+			error(identifierLocation, "cannot be used with a structure",
+				getQualifierString(publicType.qualifier));
+			return true;
+		}
+
+	default: break;
+	}
+
+	if(publicType.qualifier != EvqUniform && samplerErrorCheck(identifierLocation, publicType,
+		"samplers must be uniform"))
+	{
+		return true;
+	}
+
+	// check for layout qualifier issues
+	const TLayoutQualifier layoutQualifier = publicType.layoutQualifier;
+
+	if(layoutQualifier.matrixPacking != EmpUnspecified)
+	{
+		error(identifierLocation, "layout qualifier", getMatrixPackingString(layoutQualifier.matrixPacking),
+			"only valid for interface blocks");
+		return true;
+	}
+
+	if(layoutQualifier.blockStorage != EbsUnspecified)
+	{
+		error(identifierLocation, "layout qualifier", getBlockStorageString(layoutQualifier.blockStorage),
+			"only valid for interface blocks");
+		return true;
+	}
+
+	if(publicType.qualifier != EvqVertexIn && publicType.qualifier != EvqFragmentOut &&
+		layoutLocationErrorCheck(identifierLocation, publicType.layoutQualifier))
+	{
+		return true;
+	}
+
+	return false;
+}
+
 bool TParseContext::layoutLocationErrorCheck(const TSourceLoc &location, const TLayoutQualifier &layoutQualifier)
 {
 	if(layoutQualifier.location != -1)
 	{
 		error(location, "invalid layout qualifier:", "location", "only valid on program inputs and outputs");
+		return true;
+	}
+
+	return false;
+}
+
+bool TParseContext::locationDeclaratorListCheck(const TSourceLoc& line, const TPublicType &pType)
+{
+	if(pType.layoutQualifier.location != -1)
+	{
+		error(line, "location must only be specified for a single input or output variable", "location");
 		return true;
 	}
 
@@ -834,7 +899,7 @@ bool TParseContext::arrayErrorCheck(int line, TString& identifier, TPublicType t
             variable->getType().setArraySize(type.arraySize);
     }
 
-    if (voidErrorCheck(line, identifier, type))
+    if (voidErrorCheck(line, identifier, type.type))
         return true;
 
     return false;
@@ -921,24 +986,74 @@ bool TParseContext::nonInitConstErrorCheck(int line, TString& identifier, TPubli
 //
 // Returns true if there was an error.
 //
-bool TParseContext::nonInitErrorCheck(int line, TString& identifier, TPublicType& type, TVariable*& variable)
+bool TParseContext::nonInitErrorCheck(int line, const TString& identifier, TPublicType& type)
 {
-    if (reservedErrorCheck(line, identifier))
-        recover();
+	if(type.qualifier == EvqConstExpr)
+	{
+		// Make the qualifier make sense.
+		type.qualifier = EvqTemporary;
 
-    variable = new TVariable(&identifier, TType(type));
+		// Generate informative error messages for ESSL1.
+		// In ESSL3 arrays and structures containing arrays can be constant.
+		if(shaderVersion < 300 && type.isStructureContainingArrays())
+		{
+			error(line,
+				"structures containing arrays may not be declared constant since they cannot be initialized",
+				identifier.c_str());
+		}
+		else
+		{
+			error(line, "variables with qualifier 'const' must be initialized", identifier.c_str());
+		}
 
-    if (! symbolTable.declare(*variable)) {
-        error(line, "redefinition", variable->getName().c_str());
-        delete variable;
-        variable = 0;
-        return true;
-    }
+		return true;
+	}
+	if(type.isUnsizedArray())
+	{
+		error(line, "implicitly sized arrays need to be initialized", identifier.c_str());
+		return true;
+	}
+	return false;
+}
 
-    if (voidErrorCheck(line, identifier, type))
-        return true;
+// Do some simple checks that are shared between all variable declarations,
+// and update the symbol table.
+//
+// Returns true if declaring the variable succeeded.
+//
+bool TParseContext::declareVariable(const TSourceLoc &line, const TString &identifier, const TType &type,
+	TVariable **variable)
+{
+	ASSERT((*variable) == nullptr);
 
-    return false;
+	// gl_LastFragData may be redeclared with a new precision qualifier
+	if(type.isArray() && identifier.compare(0, 15, "gl_LastFragData") == 0)
+	{
+		const TVariable *maxDrawBuffers =
+			static_cast<const TVariable *>(symbolTable.findBuiltIn("gl_MaxDrawBuffers", shaderVersion));
+		if(type.getArraySize() != maxDrawBuffers->getConstPointer()->getIConst())
+		{
+			error(line, "redeclaration of gl_LastFragData with size != gl_MaxDrawBuffers", identifier.c_str());
+			return false;
+		}
+	}
+
+	if(reservedErrorCheck(line, identifier))
+		return false;
+
+	(*variable) = new TVariable(&identifier, type);
+	if(!symbolTable.declare(**variable))
+	{
+		error(line, "redefinition", identifier.c_str());
+		delete (*variable);
+		(*variable) = nullptr;
+		return false;
+	}
+
+	if(voidErrorCheck(line, identifier, type.getBasicType()))
+		return false;
+
+	return true;
 }
 
 bool TParseContext::paramErrorCheck(int line, TQualifier qualifier, TQualifier paramQualifier, TType* type)
@@ -1028,6 +1143,64 @@ void TParseContext::handlePragmaDirective(int line, const char* name, const char
 //
 /////////////////////////////////////////////////////////////////////////////////
 
+const TVariable *TParseContext::getNamedVariable(const TSourceLoc &location,
+	const TString *name,
+	const TSymbol *symbol)
+{
+	const TVariable *variable = NULL;
+
+	if(!symbol)
+	{
+		error(location, "undeclared identifier", name->c_str());
+		recover();
+	}
+	else if(!symbol->isVariable())
+	{
+		error(location, "variable expected", name->c_str());
+		recover();
+	}
+	else
+	{
+		variable = static_cast<const TVariable*>(symbol);
+
+		if(symbolTable.findBuiltIn(variable->getName(), shaderVersion))
+		{
+			recover();
+		}
+
+		// Reject shaders using both gl_FragData and gl_FragColor
+		TQualifier qualifier = variable->getType().getQualifier();
+		if(qualifier == EvqFragData)
+		{
+			mUsesFragData = true;
+		}
+		else if(qualifier == EvqFragColor)
+		{
+			mUsesFragColor = true;
+		}
+
+		// This validation is not quite correct - it's only an error to write to
+		// both FragData and FragColor. For simplicity, and because users shouldn't
+		// be rewarded for reading from undefined varaibles, return an error
+		// if they are both referenced, rather than assigned.
+		if(mUsesFragData && mUsesFragColor)
+		{
+			error(location, "cannot use both gl_FragData and gl_FragColor", name->c_str());
+			recover();
+		}
+	}
+
+	if(!variable)
+	{
+		TType type(EbtFloat, EbpUndefined);
+		TVariable *fakeVariable = new TVariable(name, type);
+		symbolTable.declare(*fakeVariable);
+		variable = fakeVariable;
+	}
+
+	return variable;
+}
+
 //
 // Look up a function name in the symbol table, and make sure it is a function.
 //
@@ -1059,7 +1232,7 @@ const TFunction* TParseContext::findFunction(int line, TFunction* call, bool *bu
 // Initializers show up in several places in the grammar.  Have one set of
 // code to handle them here.
 //
-bool TParseContext::executeInitializer(TSourceLoc line, TString& identifier, TPublicType& pType,
+bool TParseContext::executeInitializer(TSourceLoc line, const TString& identifier, const TPublicType& pType,
                                        TIntermTyped* initializer, TIntermNode*& intermNode, TVariable* variable)
 {
     TType type = TType(pType);
@@ -1068,7 +1241,7 @@ bool TParseContext::executeInitializer(TSourceLoc line, TString& identifier, TPu
         if (reservedErrorCheck(line, identifier))
             return true;
 
-        if (voidErrorCheck(line, identifier, pType))
+        if (voidErrorCheck(line, identifier, pType.type))
             return true;
 
         //
@@ -1233,6 +1406,360 @@ TPublicType TParseContext::addFullySpecifiedType(TQualifier qualifier, bool inva
 	}
 
 	return returnType;
+}
+
+TIntermAggregate *TParseContext::parseSingleDeclaration(TPublicType &publicType,
+	const TSourceLoc &identifierOrTypeLocation,
+	const TString &identifier)
+{
+	TIntermSymbol *symbol = intermediate.addSymbol(0, identifier, TType(publicType), identifierOrTypeLocation);
+
+	bool emptyDeclaration = (identifier == "");
+
+	mDeferredSingleDeclarationErrorCheck = emptyDeclaration;
+
+	if(emptyDeclaration)
+	{
+		if(publicType.isUnsizedArray())
+		{
+			// ESSL3 spec section 4.1.9: Array declaration which leaves the size unspecified is an error.
+			// It is assumed that this applies to empty declarations as well.
+			error(identifierOrTypeLocation, "empty array declaration needs to specify a size", identifier.c_str());
+		}
+	}
+	else
+	{
+		if(singleDeclarationErrorCheck(publicType, identifierOrTypeLocation))
+			recover();
+
+		if(nonInitErrorCheck(identifierOrTypeLocation, identifier, publicType))
+			recover();
+
+		TVariable *variable = nullptr;
+		if(!declareVariable(identifierOrTypeLocation, identifier, TType(publicType), &variable))
+			recover();
+
+		if(variable && symbol)
+			symbol->setId(variable->getUniqueId());
+	}
+
+	return intermediate.makeAggregate(symbol, identifierOrTypeLocation);
+}
+
+TIntermAggregate *TParseContext::parseSingleArrayDeclaration(TPublicType &publicType,
+	const TSourceLoc &identifierLocation,
+	const TString &identifier,
+	const TSourceLoc &indexLocation,
+	TIntermTyped *indexExpression)
+{
+	mDeferredSingleDeclarationErrorCheck = false;
+
+	if(singleDeclarationErrorCheck(publicType, identifierLocation))
+		recover();
+
+	if(nonInitErrorCheck(identifierLocation, identifier, publicType))
+		recover();
+
+	if(arrayTypeErrorCheck(indexLocation, publicType) || arrayQualifierErrorCheck(indexLocation, publicType))
+	{
+		recover();
+	}
+
+	TType arrayType(publicType);
+
+	int size;
+	if(arraySizeErrorCheck(identifierLocation, indexExpression, size))
+	{
+		recover();
+	}
+	// Make the type an array even if size check failed.
+	// This ensures useless error messages regarding the variable's non-arrayness won't follow.
+	arrayType.setArraySize(size);
+
+	TVariable *variable = nullptr;
+	if(!declareVariable(identifierLocation, identifier, arrayType, &variable))
+		recover();
+
+	TIntermSymbol *symbol = intermediate.addSymbol(0, identifier, arrayType, identifierLocation);
+	if(variable && symbol)
+		symbol->setId(variable->getUniqueId());
+
+	return intermediate.makeAggregate(symbol, identifierLocation);
+}
+
+TIntermAggregate *TParseContext::parseSingleInitDeclaration(const TPublicType &publicType,
+	const TSourceLoc &identifierLocation,
+	const TString &identifier,
+	const TSourceLoc &initLocation,
+	TIntermTyped *initializer)
+{
+	mDeferredSingleDeclarationErrorCheck = false;
+
+	if(singleDeclarationErrorCheck(publicType, identifierLocation))
+		recover();
+
+	TIntermNode *intermNode = nullptr;
+	if(!executeInitializer(identifierLocation, identifier, publicType, initializer, intermNode))
+	{
+		//
+		// Build intermediate representation
+		//
+		return intermNode ? intermediate.makeAggregate(intermNode, initLocation) : nullptr;
+	}
+	else
+	{
+		recover();
+		return nullptr;
+	}
+}
+
+TIntermAggregate *TParseContext::parseSingleArrayInitDeclaration(TPublicType &publicType,
+	const TSourceLoc &identifierLocation,
+	const TString &identifier,
+	const TSourceLoc &indexLocation,
+	TIntermTyped *indexExpression,
+	const TSourceLoc &initLocation,
+	TIntermTyped *initializer)
+{
+	mDeferredSingleDeclarationErrorCheck = false;
+
+	if(singleDeclarationErrorCheck(publicType, identifierLocation))
+		recover();
+
+	if(arrayTypeErrorCheck(indexLocation, publicType) || arrayQualifierErrorCheck(indexLocation, publicType))
+	{
+		recover();
+	}
+
+	TPublicType arrayType(publicType);
+
+	int size = 0;
+	// If indexExpression is nullptr, then the array will eventually get its size implicitly from the initializer.
+	if(indexExpression != nullptr && arraySizeErrorCheck(identifierLocation, indexExpression, size))
+	{
+		recover();
+	}
+	// Make the type an array even if size check failed.
+	// This ensures useless error messages regarding the variable's non-arrayness won't follow.
+	arrayType.setArray(true, size);
+
+	// initNode will correspond to the whole of "type b[n] = initializer".
+	TIntermNode *initNode = nullptr;
+	if(!executeInitializer(identifierLocation, identifier, arrayType, initializer, initNode))
+	{
+		return initNode ? intermediate.makeAggregate(initNode, initLocation) : nullptr;
+	}
+	else
+	{
+		recover();
+		return nullptr;
+	}
+}
+
+TIntermAggregate *TParseContext::parseInvariantDeclaration(const TSourceLoc &invariantLoc,
+	const TSourceLoc &identifierLoc,
+	const TString *identifier,
+	const TSymbol *symbol)
+{
+	// invariant declaration
+	if(globalErrorCheck(invariantLoc, symbolTable.atGlobalLevel(), "invariant varying"))
+	{
+		recover();
+	}
+
+	if(!symbol)
+	{
+		error(identifierLoc, "undeclared identifier declared as invariant", identifier->c_str());
+		recover();
+		return nullptr;
+	}
+	else
+	{
+		const TString kGlFrontFacing("gl_FrontFacing");
+		if(*identifier == kGlFrontFacing)
+		{
+			error(identifierLoc, "identifier should not be declared as invariant", identifier->c_str());
+			recover();
+			return nullptr;
+		}
+		symbolTable.addInvariantVarying(std::string(identifier->c_str()));
+		const TVariable *variable = getNamedVariable(identifierLoc, identifier, symbol);
+		ASSERT(variable);
+		const TType &type = variable->getType();
+		TIntermSymbol *intermSymbol = intermediate.addSymbol(variable->getUniqueId(),
+			*identifier, type, identifierLoc);
+
+		TIntermAggregate *aggregate = intermediate.makeAggregate(intermSymbol, identifierLoc);
+		aggregate->setOp(EOpInvariantDeclaration);
+		return aggregate;
+	}
+}
+
+TIntermAggregate *TParseContext::parseDeclarator(TPublicType &publicType, TIntermAggregate *aggregateDeclaration,
+	const TSourceLoc &identifierLocation, const TString &identifier)
+{
+	// If the declaration starting this declarator list was empty (example: int,), some checks were not performed.
+	if(mDeferredSingleDeclarationErrorCheck)
+	{
+		if(singleDeclarationErrorCheck(publicType, identifierLocation))
+			recover();
+		mDeferredSingleDeclarationErrorCheck = false;
+	}
+
+	if(locationDeclaratorListCheck(identifierLocation, publicType))
+		recover();
+
+	if(nonInitErrorCheck(identifierLocation, identifier, publicType))
+		recover();
+
+	TVariable *variable = nullptr;
+	if(!declareVariable(identifierLocation, identifier, TType(publicType), &variable))
+		recover();
+
+	TIntermSymbol *symbol = intermediate.addSymbol(0, identifier, TType(publicType), identifierLocation);
+	if(variable && symbol)
+		symbol->setId(variable->getUniqueId());
+
+	return intermediate.growAggregate(aggregateDeclaration, symbol, identifierLocation);
+}
+
+TIntermAggregate *TParseContext::parseArrayDeclarator(TPublicType &publicType, TIntermAggregate *aggregateDeclaration,
+	const TSourceLoc &identifierLocation, const TString &identifier,
+	const TSourceLoc &arrayLocation, TIntermTyped *indexExpression)
+{
+	// If the declaration starting this declarator list was empty (example: int,), some checks were not performed.
+	if(mDeferredSingleDeclarationErrorCheck)
+	{
+		if(singleDeclarationErrorCheck(publicType, identifierLocation))
+			recover();
+		mDeferredSingleDeclarationErrorCheck = false;
+	}
+
+	if(locationDeclaratorListCheck(identifierLocation, publicType))
+		recover();
+
+	if(nonInitErrorCheck(identifierLocation, identifier, publicType))
+		recover();
+
+	if(arrayTypeErrorCheck(arrayLocation, publicType) || arrayQualifierErrorCheck(arrayLocation, publicType))
+	{
+		recover();
+	}
+	else
+	{
+		TType arrayType = TType(publicType);
+		int size;
+		if(arraySizeErrorCheck(arrayLocation, indexExpression, size))
+		{
+			recover();
+		}
+		arrayType.setArraySize(size);
+
+		TVariable *variable = nullptr;
+		if(!declareVariable(identifierLocation, identifier, arrayType, &variable))
+			recover();
+
+		TIntermSymbol *symbol = intermediate.addSymbol(0, identifier, arrayType, identifierLocation);
+		if(variable && symbol)
+			symbol->setId(variable->getUniqueId());
+
+		return intermediate.growAggregate(aggregateDeclaration, symbol, identifierLocation);
+	}
+
+	return nullptr;
+}
+
+TIntermAggregate *TParseContext::parseInitDeclarator(const TPublicType &publicType, TIntermAggregate *aggregateDeclaration,
+	const TSourceLoc &identifierLocation, const TString &identifier,
+	const TSourceLoc &initLocation, TIntermTyped *initializer)
+{
+	// If the declaration starting this declarator list was empty (example: int,), some checks were not performed.
+	if(mDeferredSingleDeclarationErrorCheck)
+	{
+		if(singleDeclarationErrorCheck(publicType, identifierLocation))
+			recover();
+		mDeferredSingleDeclarationErrorCheck = false;
+	}
+
+	if(locationDeclaratorListCheck(identifierLocation, publicType))
+		recover();
+
+	TIntermNode *intermNode = nullptr;
+	if(!executeInitializer(identifierLocation, identifier, publicType, initializer, intermNode))
+	{
+		//
+		// build the intermediate representation
+		//
+		if(intermNode)
+		{
+			return intermediate.growAggregate(aggregateDeclaration, intermNode, initLocation);
+		}
+		else
+		{
+			return aggregateDeclaration;
+		}
+	}
+	else
+	{
+		recover();
+		return nullptr;
+	}
+}
+
+TIntermAggregate *TParseContext::parseArrayInitDeclarator(const TPublicType &publicType,
+	TIntermAggregate *aggregateDeclaration,
+	const TSourceLoc &identifierLocation,
+	const TString &identifier,
+	const TSourceLoc &indexLocation,
+	TIntermTyped *indexExpression,
+	const TSourceLoc &initLocation, TIntermTyped *initializer)
+{
+	// If the declaration starting this declarator list was empty (example: int,), some checks were not performed.
+	if(mDeferredSingleDeclarationErrorCheck)
+	{
+		if(singleDeclarationErrorCheck(publicType, identifierLocation))
+			recover();
+		mDeferredSingleDeclarationErrorCheck = false;
+	}
+
+	if(locationDeclaratorListCheck(identifierLocation, publicType))
+		recover();
+
+	if(arrayTypeErrorCheck(indexLocation, publicType) || arrayQualifierErrorCheck(indexLocation, publicType))
+	{
+		recover();
+	}
+
+	TPublicType arrayType(publicType);
+
+	int size = 0;
+	// If indexExpression is nullptr, then the array will eventually get its size implicitly from the initializer.
+	if(indexExpression != nullptr && arraySizeErrorCheck(identifierLocation, indexExpression, size))
+	{
+		recover();
+	}
+	// Make the type an array even if size check failed.
+	// This ensures useless error messages regarding the variable's non-arrayness won't follow.
+	arrayType.setArray(true, size);
+
+	// initNode will correspond to the whole of "b[n] = initializer".
+	TIntermNode *initNode = nullptr;
+	if(!executeInitializer(identifierLocation, identifier, arrayType, initializer, initNode))
+	{
+		if(initNode)
+		{
+			return intermediate.growAggregate(aggregateDeclaration, initNode, initLocation);
+		}
+		else
+		{
+			return aggregateDeclaration;
+		}
+	}
+	else
+	{
+		recover();
+		return nullptr;
+	}
 }
 
 // This function is used to test for the correctness of the parameters passed to various constructor functions
@@ -1952,7 +2479,7 @@ TPublicType TParseContext::joinInterpolationQualifiers(const TSourceLoc &interpo
 
 TFieldList *TParseContext::addStructDeclaratorList(const TPublicType &typeSpecifier, TFieldList *fieldList)
 {
-	if(voidErrorCheck(typeSpecifier.line, (*fieldList)[0]->name(), typeSpecifier))
+	if(voidErrorCheck(typeSpecifier.line, (*fieldList)[0]->name(), typeSpecifier.type))
 	{
 		recover();
 	}

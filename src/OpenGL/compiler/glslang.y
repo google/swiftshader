@@ -917,9 +917,10 @@ declaration
         context->symbolTable.pop();
     }
     | init_declarator_list SEMICOLON {
-        if ($1.intermAggregate)
-            $1.intermAggregate->setOp(EOpDeclaration);
-        $$ = $1.intermAggregate;
+        TIntermAggregate *aggNode = $1.intermAggregate;
+        if (aggNode && aggNode->getOp() == EOpNull)
+            aggNode->setOp(EOpDeclaration);
+        $$ = aggNode;
     }
     | PRECISION precision_qualifier type_specifier_no_prec SEMICOLON {
         if (!context->symbolTable.setDefaultPrecision( $3, $2 )) {
@@ -1125,191 +1126,61 @@ init_declarator_list
         $$ = $1;
     }
     | init_declarator_list COMMA IDENTIFIER {
-        if ($1.type.type == EbtInvariant && !$3.symbol)
-        {
-            context->error($3.line, "undeclared identifier declared as invariant", $3.string->c_str());
-            context->recover();
-        }
-
-        TIntermSymbol* symbol = context->intermediate.addSymbol(0, *$3.string, TType($1.type), $3.line);
-        $$.intermAggregate = context->intermediate.growAggregate($1.intermNode, symbol, $3.line);
-        
-        if (context->structQualifierErrorCheck($3.line, $$.type))
-            context->recover();
-
-        if (context->nonInitConstErrorCheck($3.line, *$3.string, $$.type, false))
-            context->recover();
-
-        TVariable* variable = 0;
-        if (context->nonInitErrorCheck($3.line, *$3.string, $$.type, variable))
-            context->recover();
-        if (symbol && variable)
-            symbol->setId(variable->getUniqueId());
-    }
-    | init_declarator_list COMMA IDENTIFIER LEFT_BRACKET RIGHT_BRACKET {
-        if (context->structQualifierErrorCheck($3.line, $1.type))
-            context->recover();
-
-        if (context->nonInitConstErrorCheck($3.line, *$3.string, $1.type, true))
-            context->recover();
-
         $$ = $1;
-
-        if (context->arrayTypeErrorCheck($4.line, $1.type) || context->arrayQualifierErrorCheck($4.line, $1.type))
-            context->recover();
-        else {
-            $1.type.setArray(true);
-            TVariable* variable;
-            if (context->arrayErrorCheck($4.line, *$3.string, $1.type, variable))
-                context->recover();
-        }
+        $$.intermAggregate = context->parseDeclarator($$.type, $1.intermAggregate, $3.line, *$3.string);
     }
     | init_declarator_list COMMA IDENTIFIER LEFT_BRACKET constant_expression RIGHT_BRACKET {
-        if (context->structQualifierErrorCheck($3.line, $1.type))
-            context->recover();
-
-        if (context->nonInitConstErrorCheck($3.line, *$3.string, $1.type, true))
-            context->recover();
-
         $$ = $1;
-
-        if (context->arrayTypeErrorCheck($4.line, $1.type) || context->arrayQualifierErrorCheck($4.line, $1.type))
-            context->recover();
-        else {
-            int size;
-            if (context->arraySizeErrorCheck($4.line, $5, size))
-                context->recover();
-            $1.type.setArray(true, size);
-            TVariable* variable = 0;
-            if (context->arrayErrorCheck($4.line, *$3.string, $1.type, variable))
-                context->recover();
-            TType type = TType($1.type);
-            type.setArraySize(size);
-            $$.intermAggregate = context->intermediate.growAggregate($1.intermNode, context->intermediate.addSymbol(variable ? variable->getUniqueId() : 0, *$3.string, type, $3.line), $3.line);
-        }
+        $$.intermAggregate = context->parseArrayDeclarator($$.type, $1.intermAggregate, $3.line, *$3.string, $4.line, $5);
+    }
+    | init_declarator_list COMMA IDENTIFIER LEFT_BRACKET RIGHT_BRACKET EQUAL initializer {
+        ES3_ONLY("[]", $3.line);
+        $$ = $1;
+        $$.intermAggregate = context->parseArrayInitDeclarator($$.type, $1.intermAggregate, $3.line, *$3.string, $4.line, nullptr, $6.line, $7);
+    }
+    | init_declarator_list COMMA IDENTIFIER LEFT_BRACKET constant_expression RIGHT_BRACKET EQUAL initializer {
+        ES3_ONLY("=", $7.line);
+        $$ = $1;
+        $$.intermAggregate = context->parseArrayInitDeclarator($$.type, $1.intermAggregate, $3.line, *$3.string, $4.line, $5, $7.line, $8);
     }
     | init_declarator_list COMMA IDENTIFIER EQUAL initializer {
-        if (context->structQualifierErrorCheck($3.line, $1.type))
-            context->recover();
-
         $$ = $1;
-
-        TIntermNode* intermNode;
-        if (!context->executeInitializer($3.line, *$3.string, $1.type, $5, intermNode)) {
-            //
-            // build the intermediate representation
-            //
-            if (intermNode)
-        $$.intermAggregate = context->intermediate.growAggregate($1.intermNode, intermNode, $4.line);
-            else
-                $$.intermAggregate = $1.intermAggregate;
-        } else {
-            context->recover();
-            $$.intermAggregate = 0;
-        }
+        $$.intermAggregate = context->parseInitDeclarator($$.type, $1.intermAggregate, $3.line, *$3.string, $4.line, $5);
     }
     ;
 
 single_declaration
     : fully_specified_type {
         $$.type = $1;
-        $$.intermAggregate = context->intermediate.makeAggregate(context->intermediate.addSymbol(0, "", TType($1), $1.line), $1.line);
+        $$.intermAggregate = context->parseSingleDeclaration($$.type, $1.line, "");
     }
     | fully_specified_type IDENTIFIER {
-        TIntermSymbol* symbol = context->intermediate.addSymbol(0, *$2.string, TType($1), $2.line);
-        $$.intermAggregate = context->intermediate.makeAggregate(symbol, $2.line);
-        
-        if (context->structQualifierErrorCheck($2.line, $$.type))
-            context->recover();
-
-        if (context->nonInitConstErrorCheck($2.line, *$2.string, $$.type, false))
-            context->recover();
-            
-            $$.type = $1;
-
-        TVariable* variable = 0;
-        if (context->nonInitErrorCheck($2.line, *$2.string, $$.type, variable))
-            context->recover();
-        if (variable && symbol)
-            symbol->setId(variable->getUniqueId());
-    }
-    | fully_specified_type IDENTIFIER LEFT_BRACKET RIGHT_BRACKET {
-        context->error($2.line, "unsized array declarations not supported", $2.string->c_str());
-        context->recover();
-
-        TIntermSymbol* symbol = context->intermediate.addSymbol(0, *$2.string, TType($1), $2.line);
-        $$.intermAggregate = context->intermediate.makeAggregate(symbol, $2.line);
         $$.type = $1;
+        $$.intermAggregate = context->parseSingleDeclaration($$.type, $2.line, *$2.string);
     }
     | fully_specified_type IDENTIFIER LEFT_BRACKET constant_expression RIGHT_BRACKET {
-        TType type = TType($1);
-        int size;
-        if (context->arraySizeErrorCheck($2.line, $4, size))
-            context->recover();
-        type.setArraySize(size);
-        TIntermSymbol* symbol = context->intermediate.addSymbol(0, *$2.string, type, $2.line);
-        $$.intermAggregate = context->intermediate.makeAggregate(symbol, $2.line);
-        
-        if (context->structQualifierErrorCheck($2.line, $1))
-            context->recover();
-
-        if (context->nonInitConstErrorCheck($2.line, *$2.string, $1, true))
-            context->recover();
-
         $$.type = $1;
-
-        if (context->arrayTypeErrorCheck($3.line, $1) || context->arrayQualifierErrorCheck($3.line, $1))
-            context->recover();
-        else {
-            int size;
-            if (context->arraySizeErrorCheck($3.line, $4, size))
-                context->recover();
-
-            $1.setArray(true, size);
-            TVariable* variable = 0;
-            if (context->arrayErrorCheck($3.line, *$2.string, $1, variable))
-                context->recover();
-            if (variable && symbol)
-                symbol->setId(variable->getUniqueId());
-        }
+        $$.intermAggregate = context->parseSingleArrayDeclaration($$.type, $2.line, *$2.string, $3.line, $4);
+    }
+    | fully_specified_type IDENTIFIER LEFT_BRACKET RIGHT_BRACKET EQUAL initializer {
+        ES3_ONLY("[]", $3.line);
+        $$.type = $1;
+        $$.intermAggregate = context->parseSingleArrayInitDeclaration($$.type, $2.line, *$2.string, $3.line, nullptr, $5.line, $6);
+    }
+    | fully_specified_type IDENTIFIER LEFT_BRACKET constant_expression RIGHT_BRACKET EQUAL initializer {
+        ES3_ONLY("=", $6.line);
+        $$.type = $1;
+        $$.intermAggregate = context->parseSingleArrayInitDeclaration($$.type, $2.line, *$2.string, $3.line, $4, $6.line, $7);
     }
     | fully_specified_type IDENTIFIER EQUAL initializer {
-        if (context->structQualifierErrorCheck($2.line, $1))
-            context->recover();
-
         $$.type = $1;
-
-        TIntermNode* intermNode;
-        if (!context->executeInitializer($2.line, *$2.string, $1, $4, intermNode)) {
-        //
-        // Build intermediate representation
-        //
-            if(intermNode)
-                $$.intermAggregate = context->intermediate.makeAggregate(intermNode, $3.line);
-            else
-                $$.intermAggregate = 0;
-        } else {
-            context->recover();
-            $$.intermAggregate = 0;
-        }
+        $$.intermAggregate = context->parseSingleInitDeclaration($$.type, $2.line, *$2.string, $3.line, $4);
     }
     | INVARIANT IDENTIFIER {
-        if (context->globalErrorCheck($1.line, context->symbolTable.atGlobalLevel(), "invariant varying"))
-            context->recover();
-        $$.type.setBasic(EbtInvariant, EvqInvariantVaryingOut, $2.line);
-        if (!$2.symbol)
-        {
-            context->error($2.line, "undeclared identifier declared as invariant", $2.string->c_str());
-            context->recover();
-            
-            $$.intermAggregate = 0;
-        }
-        else
-        {
-            TIntermSymbol *symbol = context->intermediate.addSymbol(0, *$2.string, TType($$.type), $2.line);
-            $$.intermAggregate = context->intermediate.makeAggregate(symbol, $2.line);
-        }
+        // $$.type is not used in invariant declarations.
+        $$.intermAggregate = context->parseInvariantDeclaration($1.line, $2.line, $2.string, $2.symbol);
     }
+    ;
 
 //
 // Place holder for the pack/unpack languages.
