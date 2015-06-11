@@ -120,6 +120,15 @@ def main():
                       '-filetype=obj',
                       '-o=' + obj_sz,
                       asm_sz])
+        # Each separately translated Subzero object file contains its own
+        # definition of the __Sz_block_profile_info profiling symbol.  Avoid
+        # linker errors (multiply defined symbol) by making all copies weak.
+        # (This could also be done by Subzero if it supported weak symbol
+        # definitions.)  This approach should be OK because cross tests are
+        # currently the only situation where multiple translated files are
+        # linked into the executable, but when PNaCl supports shared nexe
+        # libraries, this would need to change.
+        shellcmd(['objcopy', '--weaken-symbol=__Sz_block_profile_info', obj_sz])
         objs.append(obj_sz)
         if args.crosstest_bitcode:
             shellcmd(['{bin}/pnacl-llc'.format(bin=bindir),

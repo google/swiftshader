@@ -287,7 +287,6 @@ void GlobalContext::translateFunctions() {
       getStrError() << "ICE translation error: " << Func->getFunctionName()
                     << ": " << Func->getError() << "\n";
       Item = new EmitterWorkItem(Func->getSequenceNumber());
-      Item->setGlobalInits(Func->getGlobalInits());
     } else {
       Func->getAssembler<>()->setInternal(Func->getInternal());
       switch (getFlags().getOutFileType()) {
@@ -334,6 +333,7 @@ VariableDeclaration *blockProfileInfo(const VariableDeclarationList &Globals) {
   // Note: if you change this symbol, make sure to update
   // runtime/szrt_profiler.c as well.
   Var->setName("__Sz_block_profile_info");
+  Var->setSuppressMangling();
   Var->setLinkage(llvm::GlobalValue::ExternalLinkage);
   for (const VariableDeclaration *Global : Globals) {
     if (Cfg::isProfileGlobal(*Global)) {

@@ -286,7 +286,13 @@ public:
   }
 
   bool getSuppressMangling() const final {
+    if (ForceSuppressMangling)
+      return true;
     return isExternal() && !hasInitializer();
+  }
+
+  void setSuppressMangling() {
+    ForceSuppressMangling = true;
   }
 
 private:
@@ -296,11 +302,13 @@ private:
   uint32_t Alignment;
   // True if a declared (global) constant.
   bool IsConstant;
+  // If set to true, force getSuppressMangling() to return true.
+  bool ForceSuppressMangling;
 
   VariableDeclaration()
       : GlobalDeclaration(VariableDeclarationKind,
                           llvm::GlobalValue::InternalLinkage),
-        Alignment(0), IsConstant(false) {}
+        Alignment(0), IsConstant(false), ForceSuppressMangling(false) {}
 };
 
 template <class StreamType>

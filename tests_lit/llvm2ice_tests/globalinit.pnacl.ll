@@ -13,6 +13,83 @@
 ; RUN: %p2i --assemble --disassemble --dis-flags=-t -i %s --args \
 ; RUN:   --verbose none | FileCheck --check-prefix=SYMTAB %s
 
+define internal i32 @main(i32 %argc, i32 %argv) {
+entry:
+  %expanded1 = ptrtoint [4 x i8]* @PrimitiveInit to i32
+  call void @use(i32 %expanded1)
+  %expanded3 = ptrtoint [4 x i8]* @PrimitiveInitConst to i32
+  call void @use(i32 %expanded3)
+  %expanded5 = ptrtoint [4 x i8]* @PrimitiveInitStatic to i32
+  call void @use(i32 %expanded5)
+  %expanded7 = ptrtoint [4 x i8]* @PrimitiveUninit to i32
+  call void @use(i32 %expanded7)
+  %expanded9 = ptrtoint [20 x i8]* @ArrayInit to i32
+  call void @use(i32 %expanded9)
+  %expanded11 = ptrtoint [40 x i8]* @ArrayInitPartial to i32
+  call void @use(i32 %expanded11)
+  %expanded13 = ptrtoint [20 x i8]* @ArrayUninit to i32
+  call void @use(i32 %expanded13)
+  ret i32 0
+}
+; CHECK-LABEL: main
+; CHECK: movl $PrimitiveInit,
+; CHECK: movl $PrimitiveInitConst,
+; CHECK: movl $PrimitiveInitStatic,
+; CHECK: movl $PrimitiveUninit,
+; CHECK: movl $ArrayInit,
+; CHECK: movl $ArrayInitPartial,
+; CHECK: movl $ArrayUninit,
+
+; objdump does not indicate what symbol the mov/relocation applies to
+; so we grep for "mov {{.*}}, OFFSET, sec", along with
+; "OFFSET {{.*}} sec {{.*}} symbol" in the symbol table as a sanity check.
+; NOTE: The symbol table sorting has no relation to the code's references.
+; IAS-LABEL: main
+; SYMTAB-LABEL: SYMBOL TABLE
+
+; SYMTAB-DAG: 00000000 {{.*}} .data {{.*}} PrimitiveInit
+; IAS: mov {{.*}},0x0 {{.*}} .data
+; IAS: call
+
+; SYMTAB-DAG: 00000000 {{.*}} .rodata {{.*}} PrimitiveInitConst
+; IAS: mov {{.*}},0x0 {{.*}} .rodata
+; IAS: call
+
+; SYMTAB-DAG: 00000000 {{.*}} .bss {{.*}} PrimitiveInitStatic
+; IAS: mov {{.*}},0x0 {{.*}} .bss
+; IAS: call
+
+; SYMTAB-DAG: 00000004 {{.*}} .bss {{.*}} PrimitiveUninit
+; IAS: mov {{.*}},0x4 {{.*}} .bss
+; IAS: call
+
+; SYMTAB-DAG: 00000004{{.*}}.data{{.*}}ArrayInit
+; IAS: mov {{.*}},0x4 {{.*}} .data
+; IAS: call
+
+; SYMTAB-DAG: 00000018 {{.*}} .data {{.*}} ArrayInitPartial
+; IAS: mov {{.*}},0x18 {{.*}} .data
+; IAS: call
+
+; SYMTAB-DAG: 00000008 {{.*}} .bss {{.*}} ArrayUninit
+; IAS: mov {{.*}},0x8 {{.*}} .bss
+; IAS: call
+
+
+declare void @use(i32)
+
+define internal i32 @nacl_tp_tdb_offset(i32 %__0) {
+entry:
+  ret i32 0
+}
+
+define internal i32 @nacl_tp_tls_offset(i32 %size) {
+entry:
+  %result = sub i32 0, %size
+  ret i32 %result
+}
+
+
 @PrimitiveInit = internal global [4 x i8] c"\1B\00\00\00", align 4
 ; CHECK: .type PrimitiveInit,@object
 ; CHECK-NEXT: .section .data,"aw",@progbits
@@ -89,79 +166,3 @@
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__tls_template_start = internal constant [0 x i8] zeroinitializer, align 8
 @__tls_template_alignment = internal constant [4 x i8] c"\01\00\00\00", align 4
-
-define internal i32 @main(i32 %argc, i32 %argv) {
-entry:
-  %expanded1 = ptrtoint [4 x i8]* @PrimitiveInit to i32
-  call void @use(i32 %expanded1)
-  %expanded3 = ptrtoint [4 x i8]* @PrimitiveInitConst to i32
-  call void @use(i32 %expanded3)
-  %expanded5 = ptrtoint [4 x i8]* @PrimitiveInitStatic to i32
-  call void @use(i32 %expanded5)
-  %expanded7 = ptrtoint [4 x i8]* @PrimitiveUninit to i32
-  call void @use(i32 %expanded7)
-  %expanded9 = ptrtoint [20 x i8]* @ArrayInit to i32
-  call void @use(i32 %expanded9)
-  %expanded11 = ptrtoint [40 x i8]* @ArrayInitPartial to i32
-  call void @use(i32 %expanded11)
-  %expanded13 = ptrtoint [20 x i8]* @ArrayUninit to i32
-  call void @use(i32 %expanded13)
-  ret i32 0
-}
-; CHECK-LABEL: main
-; CHECK: movl $PrimitiveInit,
-; CHECK: movl $PrimitiveInitConst,
-; CHECK: movl $PrimitiveInitStatic,
-; CHECK: movl $PrimitiveUninit,
-; CHECK: movl $ArrayInit,
-; CHECK: movl $ArrayInitPartial,
-; CHECK: movl $ArrayUninit,
-
-; objdump does not indicate what symbol the mov/relocation applies to
-; so we grep for "mov {{.*}}, OFFSET, sec", along with
-; "OFFSET {{.*}} sec {{.*}} symbol" in the symbol table as a sanity check.
-; NOTE: The symbol table sorting has no relation to the code's references.
-; IAS-LABEL: main
-; SYMTAB-LABEL: SYMBOL TABLE
-
-; SYMTAB-DAG: 00000000 {{.*}} .data {{.*}} PrimitiveInit
-; IAS: mov {{.*}},0x0 {{.*}} .data
-; IAS: call
-
-; SYMTAB-DAG: 00000000 {{.*}} .rodata {{.*}} PrimitiveInitConst
-; IAS: mov {{.*}},0x0 {{.*}} .rodata
-; IAS: call
-
-; SYMTAB-DAG: 00000000 {{.*}} .bss {{.*}} PrimitiveInitStatic
-; IAS: mov {{.*}},0x0 {{.*}} .bss
-; IAS: call
-
-; SYMTAB-DAG: 00000004 {{.*}} .bss {{.*}} PrimitiveUninit
-; IAS: mov {{.*}},0x4 {{.*}} .bss
-; IAS: call
-
-; SYMTAB-DAG: 00000004{{.*}}.data{{.*}}ArrayInit
-; IAS: mov {{.*}},0x4 {{.*}} .data
-; IAS: call
-
-; SYMTAB-DAG: 00000018 {{.*}} .data {{.*}} ArrayInitPartial
-; IAS: mov {{.*}},0x18 {{.*}} .data
-; IAS: call
-
-; SYMTAB-DAG: 00000008 {{.*}} .bss {{.*}} ArrayUninit
-; IAS: mov {{.*}},0x8 {{.*}} .bss
-; IAS: call
-
-
-declare void @use(i32)
-
-define internal i32 @nacl_tp_tdb_offset(i32 %__0) {
-entry:
-  ret i32 0
-}
-
-define internal i32 @nacl_tp_tls_offset(i32 %size) {
-entry:
-  %result = sub i32 0, %size
-  ret i32 %result
-}
