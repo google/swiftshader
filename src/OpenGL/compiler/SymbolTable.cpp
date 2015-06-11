@@ -16,6 +16,7 @@
 #include "SymbolTable.h"
 
 #include <stdio.h>
+#include <limits.h>
 #include <algorithm>
 
 #if defined(_MSC_VER)
