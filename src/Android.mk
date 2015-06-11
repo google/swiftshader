@@ -73,7 +73,12 @@ LOCAL_SRC_FILES += \
 	OpenGL/common/Object.cpp \
 	OpenGL/common/MatrixStack.cpp \
 
-LOCAL_CFLAGS += -DLOG_TAG=\"swiftshader\" -Wno-unused-parameter -DDISPLAY_LOGO=0
+LOCAL_CFLAGS += -DLOG_TAG=\"swiftshader\" \
+	-Wno-unused-parameter \
+	-DDISPLAY_LOGO=0 \
+	-Wno-implicit-exception-spec-mismatch \
+	-Wno-overloaded-virtual
+
 LOCAL_CFLAGS += -fno-operator-names -msse2 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS
 LOCAL_CFLAGS += -std=c++11
 

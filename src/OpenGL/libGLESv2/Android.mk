@@ -10,7 +10,9 @@ COMMON_CFLAGS := \
 	-DGL_API= \
 	-DGL_APICALL= \
 	-DGL_GLEXT_PROTOTYPES \
-	-Wno-unused-parameter
+	-Wno-unused-parameter \
+	-Wno-implicit-exception-spec-mismatch \
+	-Wno-overloaded-virtual
 
 COMMON_SRC_FILES := \
 	Buffer.cpp \

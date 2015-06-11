@@ -5,7 +5,9 @@ COMMON_CFLAGS := \
 	-std=c++11 \
 	-DEGLAPI= \
 	-DEGL_EGLEXT_PROTOTYPES \
-	-Wno-unused-parameter
+	-Wno-unused-parameter \
+	-Wno-implicit-exception-spec-mismatch \
+	-Wno-overloaded-virtual
 
 COMMON_SRC_FILES := \
 	Config.cpp \
