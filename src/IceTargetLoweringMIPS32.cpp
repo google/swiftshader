@@ -702,4 +702,7 @@ void TargetDataMIPS32::lowerConstants() const {
   llvm::report_fatal_error("Not yet implemented");
 }
 
+TargetHeaderMIPS32::TargetHeaderMIPS32(GlobalContext *Ctx)
+    : TargetHeaderLowering(Ctx) {}
+
 } // end of namespace Ice

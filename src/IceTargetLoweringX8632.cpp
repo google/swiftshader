@@ -5016,4 +5016,7 @@ void TargetDataX8632::lowerConstants() const {
   }
 }
 
+TargetHeaderX8632::TargetHeaderX8632(GlobalContext *Ctx)
+    : TargetHeaderLowering(Ctx) {}
+
 } // end of namespace Ice

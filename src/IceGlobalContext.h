@@ -300,6 +300,9 @@ public:
   // Notifies that no more work will be added to the work queue.
   void optQueueNotifyEnd() { OptQ.notifyEnd(); }
 
+  // Emit file header for output file.
+  void emitFileHeader();
+
   void emitQueueBlockingPush(EmitterWorkItem *Item);
   EmitterWorkItem *emitQueueBlockingPop();
   void emitQueueNotifyEnd() { EmitQ.notifyEnd(); }

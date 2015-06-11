@@ -102,11 +102,7 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
 
   TimerMarker T(Ice::TimerStack::TT_szmain, &Ctx);
 
-  if (Ctx.getFlags().getOutFileType() == FT_Elf) {
-    TimerMarker T1(Ice::TimerStack::TT_emit, &Ctx);
-    Ctx.getObjectWriter()->writeInitialELFHeader();
-  }
-
+  Ctx.emitFileHeader();
   Ctx.startWorkerThreads();
 
   std::unique_ptr<Translator> Translator;

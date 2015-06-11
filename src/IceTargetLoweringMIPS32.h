@@ -56,18 +56,23 @@ public:
 
   const char *getConstantPrefix() const final { return ""; }
   void emit(const ConstantUndef *C) const final {
+    (void)C;
     llvm::report_fatal_error("Not yet implemented");
   }
   void emit(const ConstantInteger32 *C) const final {
+    (void)C;
     llvm::report_fatal_error("Not yet implemented");
   }
   void emit(const ConstantInteger64 *C) const final {
+    (void)C;
     llvm::report_fatal_error("Not yet implemented");
   }
   void emit(const ConstantFloat *C) const final {
+    (void)C;
     llvm::report_fatal_error("Not yet implemented");
   }
   void emit(const ConstantDouble *C) const final {
+    (void)C;
     llvm::report_fatal_error("Not yet implemented");
   }
 
@@ -128,8 +133,8 @@ class TargetDataMIPS32 : public TargetDataLowering {
   TargetDataMIPS32 &operator=(const TargetDataMIPS32 &) = delete;
 
 public:
-  static TargetDataLowering *create(GlobalContext *Ctx) {
-    return new TargetDataMIPS32(Ctx);
+  static std::unique_ptr<TargetDataLowering> create(GlobalContext *Ctx) {
+    return std::unique_ptr<TargetDataLowering>(new TargetDataMIPS32(Ctx));
   }
 
   void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) const final;
@@ -142,6 +147,23 @@ private:
   void lowerGlobal(const VariableDeclaration &Var) const;
   ~TargetDataMIPS32() override {}
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
+};
+
+class TargetHeaderMIPS32 final : public TargetHeaderLowering {
+  TargetHeaderMIPS32() = delete;
+  TargetHeaderMIPS32(const TargetHeaderMIPS32 &) = delete;
+  TargetHeaderMIPS32 &operator=(const TargetHeaderMIPS32 &) = delete;
+
+public:
+  static std::unique_ptr<TargetHeaderLowering> create(GlobalContext *Ctx) {
+    return std::unique_ptr<TargetHeaderLowering>(new TargetHeaderMIPS32(Ctx));
+  }
+
+protected:
+  explicit TargetHeaderMIPS32(GlobalContext *Ctx);
+
+private:
+  ~TargetHeaderMIPS32() = default;
 };
 
 } // end of namespace Ice

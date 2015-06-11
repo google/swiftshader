@@ -437,13 +437,25 @@ TargetDataLowering::createLowering(GlobalContext *Ctx) {
   TargetArch Target = Ctx->getFlags().getTargetArch();
 #define SUBZERO_TARGET(X)                                                      \
   if (Target == Target_##X)                                                    \
-    return std::unique_ptr<TargetDataLowering>(TargetData##X::create(Ctx));
+    return TargetData##X::create(Ctx);
 #include "llvm/Config/SZTargets.def"
 
-  llvm_unreachable("Unsupported target data lowering");
-  return nullptr;
+  llvm::report_fatal_error("Unsupported target data lowering");
 }
 
 TargetDataLowering::~TargetDataLowering() {}
+
+std::unique_ptr<TargetHeaderLowering>
+TargetHeaderLowering::createLowering(GlobalContext *Ctx) {
+  TargetArch Target = Ctx->getFlags().getTargetArch();
+#define SUBZERO_TARGET(X)                                                      \
+  if (Target == Target_##X)                                                    \
+    return TargetHeader##X::create(Ctx);
+#include "llvm/Config/SZTargets.def"
+
+  llvm::report_fatal_error("Unsupported target header lowering");
+}
+
+TargetHeaderLowering::~TargetHeaderLowering() {}
 
 } // end of namespace Ice

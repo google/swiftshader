@@ -400,6 +400,17 @@ void addAllIfNotNull(std::unique_ptr<VariableDeclarationList> src,
 
 } // end of anonymous namespace
 
+void GlobalContext::emitFileHeader() {
+  TimerMarker T1(Ice::TimerStack::TT_emit, this);
+  if (getFlags().getOutFileType() == FT_Elf) {
+    getObjectWriter()->writeInitialELFHeader();
+  } else {
+    if (!ALLOW_DUMP)
+      llvm::report_fatal_error("emitFileHeader for non-ELF");
+    TargetHeaderLowering::createLowering(this)->lower();
+  }
+}
+
 void GlobalContext::emitItems() {
   const bool Threaded = !getFlags().isSequential();
   // Pending is a vector containing the reassembled, ordered list of

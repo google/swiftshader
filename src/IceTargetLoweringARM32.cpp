@@ -2225,4 +2225,43 @@ void TargetDataARM32::lowerConstants() const {
   UnimplementedError(Ctx->getFlags());
 }
 
+TargetHeaderARM32::TargetHeaderARM32(GlobalContext *Ctx)
+    : TargetHeaderLowering(Ctx) {}
+
+void TargetHeaderARM32::lower() {
+  OstreamLocker L(Ctx);
+  Ostream &Str = Ctx->getStrEmit();
+  Str << ".syntax unified\n";
+  // Emit build attributes in format: .eabi_attribute TAG, VALUE.
+  // See Sec. 2 of "Addenda to, and Errata in the ABI for the ARM architecture"
+  // http://infocenter.arm.com/help/topic/com.arm.doc.ihi0045d/IHI0045D_ABI_addenda.pdf
+  //
+  // Tag_conformance should be be emitted first in a file-scope
+  // sub-subsection of the first public subsection of the attributes.
+  Str << ".eabi_attribute 67, \"2.09\"      @ Tag_conformance\n";
+  // Chromebooks are at least A15, but do A9 for higher compat.
+  Str << ".cpu    cortex-a9\n"
+      << ".eabi_attribute 6, 10   @ Tag_CPU_arch: ARMv7\n"
+      << ".eabi_attribute 7, 65   @ Tag_CPU_arch_profile: App profile\n";
+  Str << ".eabi_attribute 8, 1    @ Tag_ARM_ISA_use: Yes\n"
+      << ".eabi_attribute 9, 2    @ Tag_THUMB_ISA_use: Thumb-2\n";
+  // TODO(jvoung): check other CPU features like HW div.
+  Str << ".fpu    neon\n"
+      << ".eabi_attribute 17, 1   @ Tag_ABI_PCS_GOT_use: permit directly\n"
+      << ".eabi_attribute 20, 1   @ Tag_ABI_FP_denormal\n"
+      << ".eabi_attribute 21, 1   @ Tag_ABI_FP_exceptions\n"
+      << ".eabi_attribute 23, 3   @ Tag_ABI_FP_number_model: IEEE 754\n"
+      << ".eabi_attribute 34, 1   @ Tag_CPU_unaligned_access\n"
+      << ".eabi_attribute 24, 1   @ Tag_ABI_align_needed: 8-byte\n"
+      << ".eabi_attribute 25, 1   @ Tag_ABI_align_preserved: 8-byte\n"
+      << ".eabi_attribute 28, 1   @ Tag_ABI_VFP_args\n"
+      << ".eabi_attribute 36, 1   @ Tag_FP_HP_extension\n"
+      << ".eabi_attribute 38, 1   @ Tag_ABI_FP_16bit_format\n"
+      << ".eabi_attribute 42, 1   @ Tag_MPextension_use\n"
+      << ".eabi_attribute 68, 1   @ Tag_Virtualization_use\n";
+  // Technically R9 is used for TLS with Sandboxing, and we reserve it.
+  // However, for compatibility with current NaCl LLVM, don't claim that.
+  Str << ".eabi_attribute 14, 3   @ Tag_ABI_PCS_R9_use: Not used\n";
+}
+
 } // end of namespace Ice

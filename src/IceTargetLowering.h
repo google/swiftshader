@@ -389,6 +389,26 @@ protected:
   GlobalContext *Ctx;
 };
 
+// TargetHeaderLowering is used to "lower" the header of an output file.
+// It writes out the target-specific header attributes. E.g., for ARM
+// this writes out the build attributes (float ABI, etc.).
+class TargetHeaderLowering {
+  TargetHeaderLowering() = delete;
+  TargetHeaderLowering(const TargetHeaderLowering &) = delete;
+  TargetHeaderLowering &operator=(const TargetHeaderLowering &) = delete;
+
+public:
+  static std::unique_ptr<TargetHeaderLowering>
+  createLowering(GlobalContext *Ctx);
+  virtual ~TargetHeaderLowering();
+
+  virtual void lower() {}
+
+protected:
+  explicit TargetHeaderLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
+  GlobalContext *Ctx;
+};
+
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICETARGETLOWERING_H

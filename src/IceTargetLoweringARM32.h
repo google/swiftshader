@@ -308,8 +308,8 @@ class TargetDataARM32 : public TargetDataLowering {
   TargetDataARM32 &operator=(const TargetDataARM32 &) = delete;
 
 public:
-  static TargetDataLowering *create(GlobalContext *Ctx) {
-    return new TargetDataARM32(Ctx);
+  static std::unique_ptr<TargetDataLowering> create(GlobalContext *Ctx) {
+    return std::unique_ptr<TargetDataLowering>(new TargetDataARM32(Ctx));
   }
 
   void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) const final;
@@ -322,6 +322,25 @@ private:
   void lowerGlobal(const VariableDeclaration &Var) const;
   ~TargetDataARM32() override {}
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
+};
+
+class TargetHeaderARM32 final : public TargetHeaderLowering {
+  TargetHeaderARM32() = delete;
+  TargetHeaderARM32(const TargetHeaderARM32 &) = delete;
+  TargetHeaderARM32 &operator=(const TargetHeaderARM32 &) = delete;
+
+public:
+  static std::unique_ptr<TargetHeaderLowering> create(GlobalContext *Ctx) {
+    return std::unique_ptr<TargetHeaderLowering>(new TargetHeaderARM32(Ctx));
+  }
+
+  void lower();
+
+protected:
+  explicit TargetHeaderARM32(GlobalContext *Ctx);
+
+private:
+  ~TargetHeaderARM32() = default;
 };
 
 } // end of namespace Ice

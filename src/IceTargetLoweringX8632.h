@@ -581,8 +581,8 @@ class TargetDataX8632 : public TargetDataLowering {
   TargetDataX8632 &operator=(const TargetDataX8632 &) = delete;
 
 public:
-  static TargetDataLowering *create(GlobalContext *Ctx) {
-    return new TargetDataX8632(Ctx);
+  static std::unique_ptr<TargetDataLowering> create(GlobalContext *Ctx) {
+    return std::unique_ptr<TargetDataLowering>(new TargetDataX8632(Ctx));
   }
 
   void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) const final;
@@ -595,6 +595,23 @@ private:
   void lowerGlobal(const VariableDeclaration &Var) const;
   ~TargetDataX8632() override {}
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
+};
+
+class TargetHeaderX8632 final : public TargetHeaderLowering {
+  TargetHeaderX8632() = delete;
+  TargetHeaderX8632(const TargetHeaderX8632 &) = delete;
+  TargetHeaderX8632 &operator=(const TargetHeaderX8632 &) = delete;
+
+public:
+  static std::unique_ptr<TargetHeaderLowering> create(GlobalContext *Ctx) {
+    return std::unique_ptr<TargetHeaderLowering>(new TargetHeaderX8632(Ctx));
+  }
+
+protected:
+  explicit TargetHeaderX8632(GlobalContext *Ctx);
+
+private:
+  ~TargetHeaderX8632() = default;
 };
 
 } // end of namespace Ice
