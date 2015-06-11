@@ -183,6 +183,8 @@ extern void yyerror(TParseContext* context, const char* reason);
 %type <interm> function_call_header_with_parameters function_call_header_no_parameters function_call_generic function_prototype
 %type <interm> function_call_or_method
 
+%type <lex> enter_struct
+
 %start translation_unit
 %%
 
@@ -888,6 +890,14 @@ constant_expression
     }
     ;
 
+enter_struct
+    : IDENTIFIER LEFT_BRACE {
+        if (context->enterStructDeclaration($1.line, *$1.string))
+            context->recover();
+        $$ = $1;
+    }
+    ;
+
 declaration
     : function_prototype SEMICOLON   {
         TFunction &function = *($1.function);
@@ -927,6 +937,22 @@ declaration
             context->error($1.line, "illegal type argument for default precision qualifier", getBasicString($3.type));
             context->recover();
         }
+        $$ = 0;
+    }
+    | type_qualifier enter_struct struct_declaration_list RIGHT_BRACE SEMICOLON {
+        ES3_ONLY(getQualifierString($1.qualifier), $1.line);
+        $$ = context->addInterfaceBlock($1, $2.line, *$2.string, $3, NULL, $1.line, NULL, $1.line);
+    }
+    | type_qualifier enter_struct struct_declaration_list RIGHT_BRACE IDENTIFIER SEMICOLON {
+        ES3_ONLY(getQualifierString($1.qualifier), $1.line);
+        $$ = context->addInterfaceBlock($1, $2.line, *$2.string, $3, $5.string, $5.line, NULL, $1.line);
+    }
+    | type_qualifier enter_struct struct_declaration_list RIGHT_BRACE IDENTIFIER LEFT_BRACKET constant_expression RIGHT_BRACKET SEMICOLON {
+        ES3_ONLY(getQualifierString($1.qualifier), $1.line);
+        $$ = context->addInterfaceBlock($1, $2.line, *$2.string, $3, $5.string, $5.line, $7, $6.line);
+    }
+    | type_qualifier SEMICOLON {
+        context->parseGlobalLayoutQualifier($1);
         $$ = 0;
     }
     ;

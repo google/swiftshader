@@ -1762,6 +1762,42 @@ TIntermAggregate *TParseContext::parseArrayInitDeclarator(const TPublicType &pub
 	}
 }
 
+void TParseContext::parseGlobalLayoutQualifier(const TPublicType &typeQualifier)
+{
+	if(shaderVersion < 300)
+	{
+		error(typeQualifier.line, "layout qualifiers supported in GLSL ES 3.00 only", "layout");
+		recover();
+		return;
+	}
+
+	if(typeQualifier.qualifier != EvqUniform)
+	{
+		error(typeQualifier.line, "invalid qualifier:", getQualifierString(typeQualifier.qualifier), "global layout must be uniform");
+		recover();
+		return;
+	}
+
+	const TLayoutQualifier layoutQualifier = typeQualifier.layoutQualifier;
+	ASSERT(!layoutQualifier.isEmpty());
+
+	if(layoutLocationErrorCheck(typeQualifier.line, typeQualifier.layoutQualifier))
+	{
+		recover();
+		return;
+	}
+
+	if(layoutQualifier.matrixPacking != EmpUnspecified)
+	{
+		defaultMatrixPacking = layoutQualifier.matrixPacking;
+	}
+
+	if(layoutQualifier.blockStorage != EbsUnspecified)
+	{
+		defaultBlockStorage = layoutQualifier.blockStorage;
+	}
+}
+
 // This function is used to test for the correctness of the parameters passed to various constructor functions
 // and also convert them to the right datatype if it is allowed and required.
 //
@@ -1978,6 +2014,146 @@ TIntermTyped* TParseContext::addConstStruct(const TString& identifier, TIntermTy
     }
 
     return typedNode;
+}
+
+//
+// Interface/uniform blocks
+//
+TIntermAggregate* TParseContext::addInterfaceBlock(const TPublicType& typeQualifier, const TSourceLoc& nameLine, const TString& blockName, TFieldList* fieldList,
+                                                   const TString* instanceName, const TSourceLoc& instanceLine, TIntermTyped* arrayIndex, const TSourceLoc& arrayIndexLine)
+{
+	if(reservedErrorCheck(nameLine, blockName))
+		recover();
+
+	if(typeQualifier.qualifier != EvqUniform)
+	{
+		error(typeQualifier.line, "invalid qualifier:", getQualifierString(typeQualifier.qualifier), "interface blocks must be uniform");
+		recover();
+	}
+
+	TLayoutQualifier blockLayoutQualifier = typeQualifier.layoutQualifier;
+	if(layoutLocationErrorCheck(typeQualifier.line, blockLayoutQualifier))
+	{
+		recover();
+	}
+
+	if(blockLayoutQualifier.matrixPacking == EmpUnspecified)
+	{
+		blockLayoutQualifier.matrixPacking = defaultMatrixPacking;
+	}
+
+	if(blockLayoutQualifier.blockStorage == EbsUnspecified)
+	{
+		blockLayoutQualifier.blockStorage = defaultBlockStorage;
+	}
+
+	TSymbol* blockNameSymbol = new TSymbol(&blockName);
+	if(!symbolTable.declare(*blockNameSymbol)) {
+		error(nameLine, "redefinition", blockName.c_str(), "interface block name");
+		recover();
+	}
+
+	// check for sampler types and apply layout qualifiers
+	for(size_t memberIndex = 0; memberIndex < fieldList->size(); ++memberIndex) {
+		TField* field = (*fieldList)[memberIndex];
+		TType* fieldType = field->type();
+		if(IsSampler(fieldType->getBasicType())) {
+			error(field->line(), "unsupported type", fieldType->getBasicString(), "sampler types are not allowed in interface blocks");
+			recover();
+		}
+
+		const TQualifier qualifier = fieldType->getQualifier();
+		switch(qualifier)
+		{
+		case EvqGlobal:
+		case EvqUniform:
+			break;
+		default:
+			error(field->line(), "invalid qualifier on interface block member", getQualifierString(qualifier));
+			recover();
+			break;
+		}
+
+		// check layout qualifiers
+		TLayoutQualifier fieldLayoutQualifier = fieldType->getLayoutQualifier();
+		if(layoutLocationErrorCheck(field->line(), fieldLayoutQualifier))
+		{
+			recover();
+		}
+
+		if(fieldLayoutQualifier.blockStorage != EbsUnspecified)
+		{
+			error(field->line(), "invalid layout qualifier:", getBlockStorageString(fieldLayoutQualifier.blockStorage), "cannot be used here");
+			recover();
+		}
+
+		if(fieldLayoutQualifier.matrixPacking == EmpUnspecified)
+		{
+			fieldLayoutQualifier.matrixPacking = blockLayoutQualifier.matrixPacking;
+		}
+		else if(!fieldType->isMatrix())
+		{
+			error(field->line(), "invalid layout qualifier:", getMatrixPackingString(fieldLayoutQualifier.matrixPacking), "can only be used on matrix types");
+			recover();
+		}
+
+		fieldType->setLayoutQualifier(fieldLayoutQualifier);
+	}
+
+	// add array index
+	int arraySize = 0;
+	if(arrayIndex != NULL)
+	{
+		if(arraySizeErrorCheck(arrayIndexLine, arrayIndex, arraySize))
+			recover();
+	}
+
+	TInterfaceBlock* interfaceBlock = new TInterfaceBlock(&blockName, fieldList, instanceName, arraySize, blockLayoutQualifier);
+	TType interfaceBlockType(interfaceBlock, typeQualifier.qualifier, blockLayoutQualifier, arraySize);
+
+	TString symbolName = "";
+	int symbolId = 0;
+
+	if(!instanceName)
+	{
+		// define symbols for the members of the interface block
+		for(size_t memberIndex = 0; memberIndex < fieldList->size(); ++memberIndex)
+		{
+			TField* field = (*fieldList)[memberIndex];
+			TType* fieldType = field->type();
+
+			// set parent pointer of the field variable
+			fieldType->setInterfaceBlock(interfaceBlock);
+
+			TVariable* fieldVariable = new TVariable(&field->name(), *fieldType);
+			fieldVariable->setQualifier(typeQualifier.qualifier);
+
+			if(!symbolTable.declare(*fieldVariable)) {
+				error(field->line(), "redefinition", field->name().c_str(), "interface block member name");
+				recover();
+			}
+		}
+	}
+	else
+	{
+		// add a symbol for this interface block
+		TVariable* instanceTypeDef = new TVariable(instanceName, interfaceBlockType, false);
+		instanceTypeDef->setQualifier(typeQualifier.qualifier);
+
+		if(!symbolTable.declare(*instanceTypeDef)) {
+			error(instanceLine, "redefinition", instanceName->c_str(), "interface block instance name");
+			recover();
+		}
+
+		symbolId = instanceTypeDef->getUniqueId();
+		symbolName = instanceTypeDef->getName();
+	}
+
+	TIntermAggregate *aggregate = intermediate.makeAggregate(intermediate.addSymbol(symbolId, symbolName, interfaceBlockType, typeQualifier.line), nameLine);
+	aggregate->setOp(EOpDeclaration);
+
+	exitStructDeclaration();
+	return aggregate;
 }
 
 //
