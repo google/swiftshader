@@ -1881,6 +1881,7 @@ void Context::applyTextures()
 						// Cv = Cs, Av = Ap
 						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG1);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
+						break;
 					case GL_LUMINANCE_ALPHA:
 					case GL_RGBA:
 					case GL_BGRA_EXT:
@@ -1904,6 +1905,7 @@ void Context::applyTextures()
 						// Cv = CpCs, Av = Ap
 						device->setStageOperation(unit, sw::TextureStage::STAGE_MODULATE);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
+						break;
 					case GL_LUMINANCE_ALPHA:
 					case GL_RGBA:
 					case GL_BGRA_EXT:
@@ -1928,6 +1930,7 @@ void Context::applyTextures()
 						// Cv = Cs, Av = Ap
 						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG1);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
+						break;
 					case GL_RGBA:
 					case GL_BGRA_EXT:
 						// Cv = Cp(1 ? As) + CsAs, Av = Ap
@@ -1950,6 +1953,7 @@ void Context::applyTextures()
 						// Cv = Cp(1 ? Cs) + CcCs, Av = Ap
 						device->setStageOperation(unit, sw::TextureStage::STAGE_LERP);   // Arg3 * (Arg1 - Arg2) + Arg2
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
+						break;
 					case GL_LUMINANCE_ALPHA:
 					case GL_RGBA:
 					case GL_BGRA_EXT:
@@ -1973,6 +1977,7 @@ void Context::applyTextures()
 						// Cv = Cp + Cs, Av = Ap
 						device->setStageOperation(unit, sw::TextureStage::STAGE_ADD);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
+						break;
 					case GL_LUMINANCE_ALPHA:
 					case GL_RGBA:
 					case GL_BGRA_EXT:
