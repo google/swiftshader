@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "79254042_a8d67fec",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-11T18:34:39Z",
+      "side": 1,
+      "message": "~(pageSize - 1) would be clearer. e.g. with a page size of 4kB \u003d\u003d 0x1000, we\u0027d get 0xFFF, then 0xFFFFF000, which clearly masks off the lower bits. It\u0027s harder to tell that 0xFFFFEFFF + 1 \u003d 0xFFFFF000.",
+      "range": {
+        "startLine": 104,
+        "startChar": 42,
+        "endLine": 104,
+        "endChar": 57
+      },
+      "revId": "ad36c2ac852b9789ab61a7bf90f1e507e2b0fd09",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79254042_c8809bd1",
+        "filename": "src/LLVM/lib/TableGen/LLVMTableGen.vcxproj",
+        "patchSetId": 1
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-11T18:34:39Z",
+      "side": 1,
+      "message": "What does this do? We generally don\u0027t want any exception handling. It doesn\u0027t work with Chrome\u0027s sandbox, and there\u0027s practically no hope recovering from an exception anyway.",
+      "range": {
+        "startLine": 183,
+        "startChar": 25,
+        "endLine": 183,
+        "endChar": 29
+      },
+      "revId": "ad36c2ac852b9789ab61a7bf90f1e507e2b0fd09",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79254042_2867cfc9",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-11T18:34:39Z",
+      "side": 1,
+      "message": "Should be deleted altogether. We\u0027re defining these in the project settings.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 6
+      },
+      "revId": "ad36c2ac852b9789ab61a7bf90f1e507e2b0fd09",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79254042_e8c6b70d",
+        "filename": "src/OpenGL/common/debug.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-11T18:34:39Z",
+      "side": 1,
+      "message": "I think you can just use #undef immediately. If the macro hasn\u0027t been defined before, it\u0027s a noop.",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 6
+      },
+      "revId": "ad36c2ac852b9789ab61a7bf90f1e507e2b0fd09",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79254042_68db87e6",
+        "filename": "src/OpenGL/libGL/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3098,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-11T18:34:39Z",
+      "side": 1,
+      "message": "nit: spaces",
+      "range": {
+        "startLine": 3098,
+        "startChar": 9,
+        "endLine": 3098,
+        "endChar": 15
+      },
+      "revId": "ad36c2ac852b9789ab61a7bf90f1e507e2b0fd09",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79254042_28e58f9f",
+        "filename": "src/OpenGL/libGL/Program.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 794,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-11T18:34:39Z",
+      "side": 1,
+      "message": "Should we instead make UniformComponentCount() return an unsigned int instead? Or is there a use for a negative count?",
+      "range": {
+        "startLine": 794,
+        "startChar": 2,
+        "endLine": 794,
+        "endChar": 35
+      },
+      "revId": "ad36c2ac852b9789ab61a7bf90f1e507e2b0fd09",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79254042_08f3f36c",
+        "filename": "src/Reactor/RoutineManager.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-11T18:34:39Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 66,
+        "startChar": 45,
+        "endLine": 66,
+        "endChar": 60
+      },
+      "revId": "ad36c2ac852b9789ab61a7bf90f1e507e2b0fd09",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
