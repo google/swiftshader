@@ -63,6 +63,7 @@ inline TFieldList *NewPoolTFieldList()
 class TFieldListCollection
 {
 public:
+	virtual ~TFieldListCollection() { }
 	const TString &name() const
 	{
 		return *mName;

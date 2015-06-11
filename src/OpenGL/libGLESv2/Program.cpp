@@ -2534,9 +2534,9 @@ namespace es2
 
 			if(uniformBlock.isArrayElement())
 			{
-				string += "[";
-				string += std::to_string(uniformBlock.elementIndex);
-				string += "]";
+				std::ostringstream elementIndex;
+				elementIndex << uniformBlock.elementIndex;
+				string += "[" + elementIndex.str()  + "]";
 			}
 
 			strncpy(name, string.c_str(), bufSize);
