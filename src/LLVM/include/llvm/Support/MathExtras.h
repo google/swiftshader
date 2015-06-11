@@ -240,7 +240,7 @@ inline unsigned CountTrailingZeros_32(uint32_t Value) {
     4, 7, 17, 0, 25, 22, 31, 15, 29, 10, 12, 6, 0, 21, 14, 9,
     5, 20, 8, 19, 18
   };
-  return Mod37BitPosition[(-Value & Value) % 37];
+  return Mod37BitPosition[(~(Value - 1) & Value) % 37];
 #endif
 }
 
@@ -267,7 +267,7 @@ inline unsigned CountTrailingZeros_64(uint64_t Value) {
     29, 50, 43, 46, 31, 37, 21, 57, 52, 8, 26, 49, 45, 36, 56,
     7, 48, 35, 6, 34, 33, 0
   };
-  return Mod67Position[(-Value & Value) % 67];
+  return Mod67Position[(~(Value - 1) & Value) % 67];
 #endif
 }
 
@@ -402,7 +402,7 @@ int IsInf(double d);
 /// alignment that may be assumed after adding the two together.
 static inline uint64_t MinAlign(uint64_t A, uint64_t B) {
   // The largest power of 2 that divides both A and B.
-  return (A | B) & -(A | B);
+  return (A | B) & ~((A | B) - 1);
 }
 
 /// NextPowerOf2 - Returns the next power of two (in 64-bits)

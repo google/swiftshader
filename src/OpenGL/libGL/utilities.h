@@ -29,7 +29,7 @@ namespace gl
 {
 	struct Color;
 
-	int UniformComponentCount(GLenum type);
+	unsigned int UniformComponentCount(GLenum type);
 	GLenum UniformComponentType(GLenum type);
 	size_t UniformTypeSize(GLenum type);
 	int VariableRowCount(GLenum type);

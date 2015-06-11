@@ -266,7 +266,7 @@ namespace sw
 		virtual void setDestBlendFactorAlpha(BlendFactor destBlendFactorAlpha);
 		virtual void setBlendOperationAlpha(BlendOperation blendOperationAlpha);
 
-		virtual void setAlphaReference(int alphaReference);
+		virtual void setAlphaReference(float alphaReference);
 
 		virtual void setGlobalMipmapBias(float bias);
 

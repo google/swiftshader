@@ -163,7 +163,7 @@ void setupPixelFormat(HDC hDC)
 	}
 }
 
-int WinMain(__in HINSTANCE hCurrentInst, __in_opt HINSTANCE hPreviousInst, __in_opt LPSTR lpCmdLine, __in int nShowCmd)
+int __stdcall WinMain(__in HINSTANCE hCurrentInst, __in_opt HINSTANCE hPreviousInst, __in_opt LPSTR lpCmdLine, __in int nShowCmd)
 {
 	WNDCLASS wndClass;
 	HWND hWnd;

@@ -43,7 +43,7 @@ namespace gl
 		setDestBlendFactor(BLEND_ZERO);
 		setCullMode(CULL_COUNTERCLOCKWISE);
 		setDepthCompare(DEPTH_LESSEQUAL);
-		setAlphaReference(0);
+		setAlphaReference(0.0f);
 		setAlphaCompare(ALPHA_ALWAYS);
 		setAlphaBlendEnable(false);
 		setFogEnable(false);

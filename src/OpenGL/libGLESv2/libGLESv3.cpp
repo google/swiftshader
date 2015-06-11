@@ -2659,7 +2659,7 @@ GL_APICALL void GL_APIENTRY glCopyBufferSubData(GLenum readTarget, GLenum writeT
 		{
 			return error(GL_INVALID_ENUM);
 		}
-		if((readOffset + size) > readBuffer->size())
+		if(static_cast<size_t>(readOffset + size) > readBuffer->size())
 		{
 			return error(GL_INVALID_VALUE);
 		}
@@ -2669,7 +2669,7 @@ GL_APICALL void GL_APIENTRY glCopyBufferSubData(GLenum readTarget, GLenum writeT
 		{
 			return error(GL_INVALID_ENUM);
 		}
-		if((writeOffset + size) > writeBuffer->size())
+		if(static_cast<size_t>(writeOffset + size) > writeBuffer->size())
 		{
 			return error(GL_INVALID_VALUE);
 		}

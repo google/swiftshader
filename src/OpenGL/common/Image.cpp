@@ -16,7 +16,6 @@
 #include "../common/debug.h"
 #include "Common/Thread.hpp"
 
-#define GL_GLEXT_PROTOTYPES
 #include <GLES/glext.h>
 #include <GLES2/gl2ext.h>
 #include <GLES3/gl3.h>

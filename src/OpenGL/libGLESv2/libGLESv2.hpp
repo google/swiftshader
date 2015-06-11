@@ -233,7 +233,7 @@ public:
 
 	operator bool()
 	{
-		return loadExports();
+		return loadExports() != nullptr;
 	}
 
 	LibGLESv2exports *operator->()

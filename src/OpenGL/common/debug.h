@@ -52,6 +52,7 @@ namespace es
 #endif
 
 // A macro asserting a condition and outputting failures to the debug log
+#undef ASSERT
 #if !defined(NDEBUG)
 #define ASSERT(expression) do { \
     if(!(expression)) \
@@ -63,6 +64,7 @@ namespace es
 #endif
 
 // A macro to indicate unimplemented functionality
+#undef UNIMPLEMENTED
 #if !defined(NDEBUG)
 #define UNIMPLEMENTED() do { \
     FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__); \
@@ -73,7 +75,7 @@ namespace es
 #endif
 
 // A macro for code which is not expected to be reached under valid assumptions
-
+#undef UNREACHABLE
 #if !defined(NDEBUG)
 #define UNREACHABLE() do { \
     ERR("\t! Unreachable reached: %s(%d)\n", __FUNCTION__, __LINE__); \

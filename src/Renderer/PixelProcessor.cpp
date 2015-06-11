@@ -715,14 +715,14 @@ namespace sw
 		context->setBlendOperationAlpha(blendOperationAlpha);
 	}
 
-	void PixelProcessor::setAlphaReference(int alphaReference)
+	void PixelProcessor::setAlphaReference(float alphaReference)
 	{
 		context->alphaReference = alphaReference;
 
-		factor.alphaReference4[0] = (word)iround((float)alphaReference * 0x1000 / 0xFF);
-		factor.alphaReference4[1] = (word)iround((float)alphaReference * 0x1000 / 0xFF);
-		factor.alphaReference4[2] = (word)iround((float)alphaReference * 0x1000 / 0xFF);
-		factor.alphaReference4[3] = (word)iround((float)alphaReference * 0x1000 / 0xFF);
+		factor.alphaReference4[0] = (word)iround(alphaReference * 0x1000 / 0xFF);
+		factor.alphaReference4[1] = (word)iround(alphaReference * 0x1000 / 0xFF);
+		factor.alphaReference4[2] = (word)iround(alphaReference * 0x1000 / 0xFF);
+		factor.alphaReference4[3] = (word)iround(alphaReference * 0x1000 / 0xFF);
 	}
 
 	void PixelProcessor::setGlobalMipmapBias(float bias)

@@ -63,7 +63,7 @@ namespace sw
 
 		// Round up to the next page size
 		size_t pageSize = memoryPageSize();
-		actualSize = (actualSize + pageSize - 1) & -pageSize;
+		actualSize = (actualSize + pageSize - 1) & ~(pageSize - 1);
 
 		delete routine;
 		routine = new Routine(actualSize);

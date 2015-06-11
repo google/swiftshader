@@ -227,7 +227,7 @@ public:
 
 	operator bool()
 	{
-		return loadExports();
+		return loadExports() != nullptr;
 	}
 
 	LibGLES_CMexports *operator->()

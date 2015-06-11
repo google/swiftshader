@@ -22,7 +22,7 @@
 
 namespace es2
 {
-	int UniformComponentCount(GLenum type)
+	unsigned int UniformComponentCount(GLenum type)
 	{
 		switch(type)
 		{

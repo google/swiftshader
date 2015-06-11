@@ -165,7 +165,7 @@ public:
     void setDefined() { defined = true; }
     bool isDefined() { return defined; }
 
-    int getParamCount() const { return static_cast<int>(parameters.size()); }
+    size_t getParamCount() const { return parameters.size(); }
     const TParameter& getParam(int i) const { return parameters[i]; }
 
 protected:

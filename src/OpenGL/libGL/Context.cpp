@@ -3095,7 +3095,7 @@ sw::MatrixStack &Context::currentMatrixStack()
 	case GL_MODELVIEW:  return modelView;                     break;
 	case GL_PROJECTION: return projection;                    break;
 	case GL_TEXTURE:    return texture[mState.activeSampler]; break;
-	default:		    UNREACHABLE();
+	default:            UNREACHABLE(); return modelView;      break;
 	}
 }
 

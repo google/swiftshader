@@ -101,7 +101,7 @@ void *allocateExecutable(size_t bytes)
 {
 	size_t pageSize = memoryPageSize();
 
-	return allocate((bytes + pageSize - 1) & -pageSize, pageSize);
+	return allocate((bytes + pageSize - 1) & ~(pageSize - 1), pageSize);
 }
 
 void markExecutable(void *memory, size_t bytes)

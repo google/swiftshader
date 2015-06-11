@@ -268,7 +268,7 @@ namespace sw
 		blendOperationStateAlpha = BLENDOP_ADD;
 
 		cullMode = CULL_CLOCKWISE;
-		alphaReference = 0;
+		alphaReference = 0.0f;
 		colorWriteMask[0] = 0x0000000F;
 		colorWriteMask[1] = 0x0000000F;
 		colorWriteMask[2] = 0x0000000F;
@@ -491,7 +491,7 @@ namespace sw
 	{
 		if(!alphaTestEnable) return false;
 		if(alphaCompareMode == ALPHA_ALWAYS) return false;
-		if(alphaReference == 0 && alphaCompareMode == ALPHA_GREATEREQUAL) return false;
+		if(alphaReference == 0.0f && alphaCompareMode == ALPHA_GREATEREQUAL) return false;
 		
 		return true;
 	}

@@ -22,7 +22,7 @@
 
 namespace gl
 {
-	int UniformComponentCount(GLenum type)
+	unsigned int UniformComponentCount(GLenum type)
 	{
 		switch(type)
 		{

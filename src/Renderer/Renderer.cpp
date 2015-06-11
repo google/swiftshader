@@ -461,7 +461,7 @@ namespace sw
 
 			if(pixelState.transparencyAntialiasing == TRANSPARENCY_ALPHA_TO_COVERAGE)
 			{
-				float ref = (float)context->alphaReference * (1.0f / 255.0f);
+				float ref = context->alphaReference * (1.0f / 255.0f);
 				float margin = sw::min(ref, 1.0f - ref);
 
 				if(ms == 4)

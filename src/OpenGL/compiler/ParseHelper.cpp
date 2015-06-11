@@ -481,7 +481,7 @@ bool TParseContext::constructorErrorCheck(int line, TIntermNode* node, TFunction
     bool overFull = false;
     bool matrixInMatrix = false;
     bool arrayArg = false;
-    for (int i = 0; i < function.getParamCount(); ++i) {
+    for (size_t i = 0; i < function.getParamCount(); ++i) {
         const TParameter& param = function.getParam(i);
         size += param.type->getObjectSize();
 

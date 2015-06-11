@@ -393,7 +393,7 @@ namespace sw
 		ShadingMode shadingMode;
 
 		CullMode cullMode;
-		int alphaReference;
+		float alphaReference;
 		
 		TextureStage textureStage[8];
 		Sampler sampler[TOTAL_IMAGE_UNITS];
