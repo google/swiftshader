@@ -1287,12 +1287,110 @@ void TargetX8632::lowerAlloca(const InstAlloca *Inst) {
   _mov(Dest, esp);
 }
 
+// Strength-reduce scalar integer multiplication by a constant (for
+// i32 or narrower) for certain constants.  The lea instruction can be
+// used to multiply by 3, 5, or 9, and the lsh instruction can be used
+// to multiply by powers of 2.  These can be combined such that
+// e.g. multiplying by 100 can be done as 2 lea-based multiplies by 5,
+// combined with left-shifting by 2.
+bool TargetX8632::optimizeScalarMul(Variable *Dest, Operand *Src0,
+                                    int32_t Src1) {
+  // Disable this optimization for Om1 and O0, just to keep things
+  // simple there.
+  if (Ctx->getFlags().getOptLevel() < Opt_1)
+    return false;
+  Type Ty = Dest->getType();
+  Variable *T = nullptr;
+  if (Src1 == -1) {
+    _mov(T, Src0);
+    _neg(T);
+    _mov(Dest, T);
+    return true;
+  }
+  if (Src1 == 0) {
+    _mov(Dest, Ctx->getConstantZero(Ty));
+    return true;
+  }
+  if (Src1 == 1) {
+    _mov(T, Src0);
+    _mov(Dest, T);
+    return true;
+  }
+  // Don't bother with the edge case where Src1 == MININT.
+  if (Src1 == -Src1)
+    return false;
+  const bool Src1IsNegative = Src1 < 0;
+  if (Src1IsNegative)
+    Src1 = -Src1;
+  uint32_t Count9 = 0;
+  uint32_t Count5 = 0;
+  uint32_t Count3 = 0;
+  uint32_t Count2 = 0;
+  uint32_t CountOps = 0;
+  while (Src1 > 1) {
+    if (Src1 % 9 == 0) {
+      ++CountOps;
+      ++Count9;
+      Src1 /= 9;
+    } else if (Src1 % 5 == 0) {
+      ++CountOps;
+      ++Count5;
+      Src1 /= 5;
+    } else if (Src1 % 3 == 0) {
+      ++CountOps;
+      ++Count3;
+      Src1 /= 3;
+    } else if (Src1 % 2 == 0) {
+      if (Count2 == 0)
+        ++CountOps;
+      ++Count2;
+      Src1 /= 2;
+    } else {
+      return false;
+    }
+  }
+  // Lea optimization only works for i16 and i32 types, not i8.
+  if (Ty != IceType_i16 && Ty != IceType_i32 && (Count3 || Count5 || Count9))
+    return false;
+  // Limit the number of lea/shl operations for a single multiply, to
+  // a somewhat arbitrary choice of 3.
+  const uint32_t MaxOpsForOptimizedMul = 3;
+  if (CountOps > MaxOpsForOptimizedMul)
+    return false;
+  _mov(T, Src0);
+  Constant *Zero = Ctx->getConstantZero(IceType_i32);
+  for (uint32_t i = 0; i < Count9; ++i) {
+    const uint16_t Shift = 3; // log2(9-1)
+    _lea(T, OperandX8632Mem::create(Func, IceType_void, T, Zero, T, Shift));
+    _set_dest_nonkillable();
+  }
+  for (uint32_t i = 0; i < Count5; ++i) {
+    const uint16_t Shift = 2; // log2(5-1)
+    _lea(T, OperandX8632Mem::create(Func, IceType_void, T, Zero, T, Shift));
+    _set_dest_nonkillable();
+  }
+  for (uint32_t i = 0; i < Count3; ++i) {
+    const uint16_t Shift = 1; // log2(3-1)
+    _lea(T, OperandX8632Mem::create(Func, IceType_void, T, Zero, T, Shift));
+    _set_dest_nonkillable();
+  }
+  if (Count2) {
+    _shl(T, Ctx->getConstantInt(Ty, Count2));
+  }
+  if (Src1IsNegative)
+    _neg(T);
+  _mov(Dest, T);
+  return true;
+}
+
 void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
   Operand *Src0 = legalize(Inst->getSrc(0));
   Operand *Src1 = legalize(Inst->getSrc(1));
   if (Inst->isCommutative()) {
     if (!llvm::isa<Variable>(Src0) && llvm::isa<Variable>(Src1))
+      std::swap(Src0, Src1);
+    if (llvm::isa<Constant>(Src0) && !llvm::isa<Constant>(Src1))
       std::swap(Src0, Src1);
   }
   if (Dest->getType() == IceType_i64) {
@@ -1521,7 +1619,9 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       llvm_unreachable("FP instruction with i64 type");
       break;
     }
-  } else if (isVectorType(Dest->getType())) {
+    return;
+  }
+  if (isVectorType(Dest->getType())) {
     // TODO: Trap on integer divide and integer modulo by zero.
     // See: https://code.google.com/p/nativeclient/issues/detail?id=3899
     if (llvm::isa<OperandX8632Mem>(Src1))
@@ -1650,175 +1750,248 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       scalarizeArithmetic(Inst->getOp(), Dest, Src0, Src1);
       break;
     }
-  } else { // Dest->getType() is non-i64 scalar
-    Variable *T_edx = nullptr;
-    Variable *T = nullptr;
-    switch (Inst->getOp()) {
-    case InstArithmetic::_num:
-      llvm_unreachable("Unknown arithmetic operator");
-      break;
-    case InstArithmetic::Add:
-      _mov(T, Src0);
-      _add(T, Src1);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::And:
-      _mov(T, Src0);
-      _and(T, Src1);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Or:
-      _mov(T, Src0);
-      _or(T, Src1);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Xor:
-      _mov(T, Src0);
-      _xor(T, Src1);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Sub:
-      _mov(T, Src0);
-      _sub(T, Src1);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Mul:
-      // TODO: Optimize for llvm::isa<Constant>(Src1)
-      // TODO: Strength-reduce multiplications by a constant,
-      // particularly -1 and powers of 2.  Advanced: use lea to
-      // multiply by 3, 5, 9.
-      //
-      // The 8-bit version of imul only allows the form "imul r/m8"
-      // where T must be in eax.
-      if (isByteSizedArithType(Dest->getType())) {
-        _mov(T, Src0, RegX8632::Reg_eax);
-        Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-      } else {
-        _mov(T, Src0);
-      }
-      _imul(T, Src1);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Shl:
-      _mov(T, Src0);
-      if (!llvm::isa<Constant>(Src1))
-        Src1 = legalizeToVar(Src1, RegX8632::Reg_ecx);
-      _shl(T, Src1);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Lshr:
-      _mov(T, Src0);
-      if (!llvm::isa<Constant>(Src1))
-        Src1 = legalizeToVar(Src1, RegX8632::Reg_ecx);
-      _shr(T, Src1);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Ashr:
-      _mov(T, Src0);
-      if (!llvm::isa<Constant>(Src1))
-        Src1 = legalizeToVar(Src1, RegX8632::Reg_ecx);
-      _sar(T, Src1);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Udiv:
-      // div and idiv are the few arithmetic operators that do not allow
-      // immediates as the operand.
-      Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-      if (isByteSizedArithType(Dest->getType())) {
-        Variable *T_ah = nullptr;
-        Constant *Zero = Ctx->getConstantZero(IceType_i8);
-        _mov(T, Src0, RegX8632::Reg_eax);
-        _mov(T_ah, Zero, RegX8632::Reg_ah);
-        _div(T, Src1, T_ah);
-        _mov(Dest, T);
-      } else {
-        Constant *Zero = Ctx->getConstantZero(IceType_i32);
-        _mov(T, Src0, RegX8632::Reg_eax);
-        _mov(T_edx, Zero, RegX8632::Reg_edx);
-        _div(T, Src1, T_edx);
-        _mov(Dest, T);
-      }
-      break;
-    case InstArithmetic::Sdiv:
-      Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-      if (isByteSizedArithType(Dest->getType())) {
-        _mov(T, Src0, RegX8632::Reg_eax);
-        _cbwdq(T, T);
-        _idiv(T, Src1, T);
-        _mov(Dest, T);
-      } else {
-        T_edx = makeReg(IceType_i32, RegX8632::Reg_edx);
-        _mov(T, Src0, RegX8632::Reg_eax);
-        _cbwdq(T_edx, T);
-        _idiv(T, Src1, T_edx);
-        _mov(Dest, T);
-      }
-      break;
-    case InstArithmetic::Urem:
-      Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-      if (isByteSizedArithType(Dest->getType())) {
-        Variable *T_ah = nullptr;
-        Constant *Zero = Ctx->getConstantZero(IceType_i8);
-        _mov(T, Src0, RegX8632::Reg_eax);
-        _mov(T_ah, Zero, RegX8632::Reg_ah);
-        _div(T_ah, Src1, T);
-        _mov(Dest, T_ah);
-      } else {
-        Constant *Zero = Ctx->getConstantZero(IceType_i32);
-        _mov(T_edx, Zero, RegX8632::Reg_edx);
-        _mov(T, Src0, RegX8632::Reg_eax);
-        _div(T_edx, Src1, T);
-        _mov(Dest, T_edx);
-      }
-      break;
-    case InstArithmetic::Srem:
-      Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-      if (isByteSizedArithType(Dest->getType())) {
-        Variable *T_ah = makeReg(IceType_i8, RegX8632::Reg_ah);
-        _mov(T, Src0, RegX8632::Reg_eax);
-        _cbwdq(T, T);
-        Context.insert(InstFakeDef::create(Func, T_ah));
-        _idiv(T_ah, Src1, T);
-        _mov(Dest, T_ah);
-      } else {
-        T_edx = makeReg(IceType_i32, RegX8632::Reg_edx);
-        _mov(T, Src0, RegX8632::Reg_eax);
-        _cbwdq(T_edx, T);
-        _idiv(T_edx, Src1, T);
-        _mov(Dest, T_edx);
-      }
-      break;
-    case InstArithmetic::Fadd:
-      _mov(T, Src0);
-      _addss(T, Src1);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Fsub:
-      _mov(T, Src0);
-      _subss(T, Src1);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Fmul:
-      _mov(T, Src0);
-      _mulss(T, Src1);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Fdiv:
-      _mov(T, Src0);
-      _divss(T, Src1);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Frem: {
-      const SizeT MaxSrcs = 2;
-      Type Ty = Dest->getType();
-      InstCall *Call =
-          makeHelperCall(isFloat32Asserting32Or64(Ty) ? H_frem_f32 : H_frem_f64,
-                         Dest, MaxSrcs);
-      Call->addArg(Src0);
-      Call->addArg(Src1);
-      return lowerCall(Call);
-    } break;
+    return;
+  }
+  Variable *T_edx = nullptr;
+  Variable *T = nullptr;
+  switch (Inst->getOp()) {
+  case InstArithmetic::_num:
+    llvm_unreachable("Unknown arithmetic operator");
+    break;
+  case InstArithmetic::Add:
+    _mov(T, Src0);
+    _add(T, Src1);
+    _mov(Dest, T);
+    break;
+  case InstArithmetic::And:
+    _mov(T, Src0);
+    _and(T, Src1);
+    _mov(Dest, T);
+    break;
+  case InstArithmetic::Or:
+    _mov(T, Src0);
+    _or(T, Src1);
+    _mov(Dest, T);
+    break;
+  case InstArithmetic::Xor:
+    _mov(T, Src0);
+    _xor(T, Src1);
+    _mov(Dest, T);
+    break;
+  case InstArithmetic::Sub:
+    _mov(T, Src0);
+    _sub(T, Src1);
+    _mov(Dest, T);
+    break;
+  case InstArithmetic::Mul:
+    if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
+      if (optimizeScalarMul(Dest, Src0, C->getValue()))
+        return;
     }
+    // The 8-bit version of imul only allows the form "imul r/m8"
+    // where T must be in eax.
+    if (isByteSizedArithType(Dest->getType())) {
+      _mov(T, Src0, RegX8632::Reg_eax);
+      Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
+    } else {
+      _mov(T, Src0);
+    }
+    _imul(T, Src1);
+    _mov(Dest, T);
+    break;
+  case InstArithmetic::Shl:
+    _mov(T, Src0);
+    if (!llvm::isa<Constant>(Src1))
+      Src1 = legalizeToVar(Src1, RegX8632::Reg_ecx);
+    _shl(T, Src1);
+    _mov(Dest, T);
+    break;
+  case InstArithmetic::Lshr:
+    _mov(T, Src0);
+    if (!llvm::isa<Constant>(Src1))
+      Src1 = legalizeToVar(Src1, RegX8632::Reg_ecx);
+    _shr(T, Src1);
+    _mov(Dest, T);
+    break;
+  case InstArithmetic::Ashr:
+    _mov(T, Src0);
+    if (!llvm::isa<Constant>(Src1))
+      Src1 = legalizeToVar(Src1, RegX8632::Reg_ecx);
+    _sar(T, Src1);
+    _mov(Dest, T);
+    break;
+  case InstArithmetic::Udiv:
+    // div and idiv are the few arithmetic operators that do not allow
+    // immediates as the operand.
+    Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
+    if (isByteSizedArithType(Dest->getType())) {
+      Variable *T_ah = nullptr;
+      Constant *Zero = Ctx->getConstantZero(IceType_i8);
+      _mov(T, Src0, RegX8632::Reg_eax);
+      _mov(T_ah, Zero, RegX8632::Reg_ah);
+      _div(T, Src1, T_ah);
+      _mov(Dest, T);
+    } else {
+      Constant *Zero = Ctx->getConstantZero(IceType_i32);
+      _mov(T, Src0, RegX8632::Reg_eax);
+      _mov(T_edx, Zero, RegX8632::Reg_edx);
+      _div(T, Src1, T_edx);
+      _mov(Dest, T);
+    }
+    break;
+  case InstArithmetic::Sdiv:
+    // TODO(stichnot): Enable this after doing better performance
+    // and cross testing.
+    if (false && Ctx->getFlags().getOptLevel() >= Opt_1) {
+      // Optimize division by constant power of 2, but not for Om1
+      // or O0, just to keep things simple there.
+      if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
+        int32_t Divisor = C->getValue();
+        uint32_t UDivisor = static_cast<uint32_t>(Divisor);
+        if (Divisor > 0 && llvm::isPowerOf2_32(UDivisor)) {
+          uint32_t LogDiv = llvm::Log2_32(UDivisor);
+          Type Ty = Dest->getType();
+          // LLVM does the following for dest=src/(1<<log):
+          //   t=src
+          //   sar t,typewidth-1 // -1 if src is negative, 0 if not
+          //   shr t,typewidth-log
+          //   add t,src
+          //   sar t,log
+          //   dest=t
+          uint32_t TypeWidth = X86_CHAR_BIT * typeWidthInBytes(Ty);
+          _mov(T, Src0);
+          // If for some reason we are dividing by 1, just treat it
+          // like an assignment.
+          if (LogDiv > 0) {
+            // The initial sar is unnecessary when dividing by 2.
+            if (LogDiv > 1)
+              _sar(T, Ctx->getConstantInt(Ty, TypeWidth - 1));
+            _shr(T, Ctx->getConstantInt(Ty, TypeWidth - LogDiv));
+            _add(T, Src0);
+            _sar(T, Ctx->getConstantInt(Ty, LogDiv));
+          }
+          _mov(Dest, T);
+          return;
+        }
+      }
+    }
+    Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
+    if (isByteSizedArithType(Dest->getType())) {
+      _mov(T, Src0, RegX8632::Reg_eax);
+      _cbwdq(T, T);
+      _idiv(T, Src1, T);
+      _mov(Dest, T);
+    } else {
+      T_edx = makeReg(IceType_i32, RegX8632::Reg_edx);
+      _mov(T, Src0, RegX8632::Reg_eax);
+      _cbwdq(T_edx, T);
+      _idiv(T, Src1, T_edx);
+      _mov(Dest, T);
+    }
+    break;
+  case InstArithmetic::Urem:
+    Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
+    if (isByteSizedArithType(Dest->getType())) {
+      Variable *T_ah = nullptr;
+      Constant *Zero = Ctx->getConstantZero(IceType_i8);
+      _mov(T, Src0, RegX8632::Reg_eax);
+      _mov(T_ah, Zero, RegX8632::Reg_ah);
+      _div(T_ah, Src1, T);
+      _mov(Dest, T_ah);
+    } else {
+      Constant *Zero = Ctx->getConstantZero(IceType_i32);
+      _mov(T_edx, Zero, RegX8632::Reg_edx);
+      _mov(T, Src0, RegX8632::Reg_eax);
+      _div(T_edx, Src1, T);
+      _mov(Dest, T_edx);
+    }
+    break;
+  case InstArithmetic::Srem:
+    // TODO(stichnot): Enable this after doing better performance
+    // and cross testing.
+    if (false && Ctx->getFlags().getOptLevel() >= Opt_1) {
+      // Optimize mod by constant power of 2, but not for Om1 or O0,
+      // just to keep things simple there.
+      if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
+        int32_t Divisor = C->getValue();
+        uint32_t UDivisor = static_cast<uint32_t>(Divisor);
+        if (Divisor > 0 && llvm::isPowerOf2_32(UDivisor)) {
+          uint32_t LogDiv = llvm::Log2_32(UDivisor);
+          Type Ty = Dest->getType();
+          // LLVM does the following for dest=src%(1<<log):
+          //   t=src
+          //   sar t,typewidth-1 // -1 if src is negative, 0 if not
+          //   shr t,typewidth-log
+          //   add t,src
+          //   and t, -(1<<log)
+          //   sub t,src
+          //   neg t
+          //   dest=t
+          uint32_t TypeWidth = X86_CHAR_BIT * typeWidthInBytes(Ty);
+          // If for some reason we are dividing by 1, just assign 0.
+          if (LogDiv == 0) {
+            _mov(Dest, Ctx->getConstantZero(Ty));
+            return;
+          }
+          _mov(T, Src0);
+          // The initial sar is unnecessary when dividing by 2.
+          if (LogDiv > 1)
+            _sar(T, Ctx->getConstantInt(Ty, TypeWidth - 1));
+          _shr(T, Ctx->getConstantInt(Ty, TypeWidth - LogDiv));
+          _add(T, Src0);
+          _and(T, Ctx->getConstantInt(Ty, -(1 << LogDiv)));
+          _sub(T, Src0);
+          _neg(T);
+          _mov(Dest, T);
+          return;
+        }
+      }
+    }
+    Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
+    if (isByteSizedArithType(Dest->getType())) {
+      Variable *T_ah = makeReg(IceType_i8, RegX8632::Reg_ah);
+      _mov(T, Src0, RegX8632::Reg_eax);
+      _cbwdq(T, T);
+      Context.insert(InstFakeDef::create(Func, T_ah));
+      _idiv(T_ah, Src1, T);
+      _mov(Dest, T_ah);
+    } else {
+      T_edx = makeReg(IceType_i32, RegX8632::Reg_edx);
+      _mov(T, Src0, RegX8632::Reg_eax);
+      _cbwdq(T_edx, T);
+      _idiv(T_edx, Src1, T);
+      _mov(Dest, T_edx);
+    }
+    break;
+  case InstArithmetic::Fadd:
+    _mov(T, Src0);
+    _addss(T, Src1);
+    _mov(Dest, T);
+    break;
+  case InstArithmetic::Fsub:
+    _mov(T, Src0);
+    _subss(T, Src1);
+    _mov(Dest, T);
+    break;
+  case InstArithmetic::Fmul:
+    _mov(T, Src0);
+    _mulss(T, Src1);
+    _mov(Dest, T);
+    break;
+  case InstArithmetic::Fdiv:
+    _mov(T, Src0);
+    _divss(T, Src1);
+    _mov(Dest, T);
+    break;
+  case InstArithmetic::Frem: {
+    const SizeT MaxSrcs = 2;
+    Type Ty = Dest->getType();
+    InstCall *Call = makeHelperCall(
+        isFloat32Asserting32Or64(Ty) ? H_frem_f32 : H_frem_f64, Dest, MaxSrcs);
+    Call->addArg(Src0);
+    Call->addArg(Src1);
+    return lowerCall(Call);
+  }
   }
 }
 
@@ -3119,10 +3292,11 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       Func->setError("Unexpected memory ordering for AtomicRMW");
       return;
     }
-    lowerAtomicRMW(Instr->getDest(),
-                   static_cast<uint32_t>(llvm::cast<ConstantInteger32>(
-                                             Instr->getArg(0))->getValue()),
-                   Instr->getArg(1), Instr->getArg(2));
+    lowerAtomicRMW(
+        Instr->getDest(),
+        static_cast<uint32_t>(
+            llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue()),
+        Instr->getArg(1), Instr->getArg(2));
     return;
   case Intrinsics::AtomicStore: {
     if (!Intrinsics::isMemoryOrderValid(

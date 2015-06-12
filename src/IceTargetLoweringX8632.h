@@ -560,6 +560,8 @@ protected:
     Context.getLastInserted()->setDestNonKillable();
   }
 
+  bool optimizeScalarMul(Variable *Dest, Operand *Src0, int32_t Src1);
+
   const X86InstructionSet InstructionSet;
   bool IsEbpBasedFrame;
   bool NeedsStackAlignment;

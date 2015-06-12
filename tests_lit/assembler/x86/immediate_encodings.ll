@@ -197,25 +197,25 @@ entry:
 define internal i32 @testMul16Imm16(i32 %arg) {
 entry:
   %arg_i16 = trunc i32 %arg to i16
-  %tmp = mul i16 %arg_i16, 1024
+  %tmp = mul i16 %arg_i16, 1025
   %result_i16 = add i16 %tmp, 1
   %result = zext i16 %result_i16 to i32
   ret i32 %result
 }
 ; CHECK-LABEL: testMul16Imm16
-; CHECK: 66 69 c0 00 04  imul ax,ax
+; CHECK: 66 69 c0 01 04  imul ax,ax
 ; CHECK-NEXT: add ax,0x1
 
 define internal i32 @testMul16Imm16Neg(i32 %arg) {
 entry:
   %arg_i16 = trunc i32 %arg to i16
-  %tmp = mul i16 %arg_i16, -256
+  %tmp = mul i16 %arg_i16, -255
   %result_i16 = add i16 %tmp, 1
   %result = zext i16 %result_i16 to i32
   ret i32 %result
 }
 ; CHECK-LABEL: testMul16Imm16Neg
-; CHECK: 66 69 c0 00 ff  imul ax,ax
+; CHECK: 66 69 c0 01 ff  imul ax,ax,0xff01
 ; CHECK-NEXT: add ax,0x1
 
 define internal i32 @testMul32Imm8(i32 %arg) {
@@ -236,19 +236,19 @@ entry:
 
 define internal i32 @testMul32Imm16(i32 %arg) {
 entry:
-  %result = mul i32 %arg, 1024
+  %result = mul i32 %arg, 1025
   ret i32 %result
 }
 ; CHECK-LABEL: testMul32Imm16
-; CHECK: 69 c0 00 04 00 00  imul eax,eax
+; CHECK: 69 c0 01 04 00 00  imul eax,eax
 
 define internal i32 @testMul32Imm16Neg(i32 %arg) {
 entry:
-  %result = mul i32 %arg, -256
+  %result = mul i32 %arg, -255
   ret i32 %result
 }
 ; CHECK-LABEL: testMul32Imm16Neg
-; CHECK: 69 c0 00 ff ff ff  imul eax,eax
+; CHECK: 69 c0 01 ff ff ff  imul eax,eax,0xffffff01
 
 ; The GPR shift instructions either allow an 8-bit immediate or
 ; have a special encoding for "1".

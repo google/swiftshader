@@ -291,9 +291,7 @@ public:
     return isExternal() && !hasInitializer();
   }
 
-  void setSuppressMangling() {
-    ForceSuppressMangling = true;
-  }
+  void setSuppressMangling() { ForceSuppressMangling = true; }
 
 private:
   // list of initializers for the declared variable.

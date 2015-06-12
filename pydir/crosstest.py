@@ -40,9 +40,11 @@ def main():
     argparser.add_argument('-O', required=False, default='2', dest='optlevel',
                            choices=['m1', '-1', '0', '1', '2'],
                            metavar='OPTLEVEL',
-                           help='Optimization level ' +
+                           help='Optimization level for llc and Subzero ' +
                                 '(m1 and -1 are equivalent).' +
                                 ' Default %(default)s.')
+    argparser.add_argument('--clang-opt', required=False, default=True,
+                           dest='clang_opt')
     argparser.add_argument('--mattr',  required=False, default='sse2',
                            dest='attr', choices=['sse2', 'sse4.1'],
                            metavar='ATTRIBUTE',
@@ -92,7 +94,8 @@ def main():
             bitcode_nonfinal = os.path.join(args.dir, base + '.' + key + '.bc')
             bitcode = os.path.join(args.dir, base + '.' + key + '.pnacl.ll')
             shellcmd(['{bin}/pnacl-clang'.format(bin=bindir),
-                      '-O2', '-c', arg, '-o', bitcode_nonfinal])
+                      ('-O2' if args.clang_opt else '-O0'), '-c', arg,
+                      '-o', bitcode_nonfinal])
             shellcmd(['{bin}/pnacl-opt'.format(bin=bindir),
                       '-pnacl-abi-simplify-preopt',
                       '-pnacl-abi-simplify-postopt',
