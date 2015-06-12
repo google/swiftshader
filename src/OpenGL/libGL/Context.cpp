@@ -3482,10 +3482,10 @@ void Context::position(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 	v.P.y = y;
 	v.P.z = z;
 	v.P.w = w;
-    v.C.r = mState.vertexAttribute[sw::Color0].mCurrentValue[0];
-	v.C.g = mState.vertexAttribute[sw::Color0].mCurrentValue[1];
-	v.C.b = mState.vertexAttribute[sw::Color0].mCurrentValue[2];
-	v.C.a = mState.vertexAttribute[sw::Color0].mCurrentValue[3];
+    v.C.x = mState.vertexAttribute[sw::Color0].mCurrentValue[0];
+	v.C.y = mState.vertexAttribute[sw::Color0].mCurrentValue[1];
+	v.C.z = mState.vertexAttribute[sw::Color0].mCurrentValue[2];
+	v.C.w = mState.vertexAttribute[sw::Color0].mCurrentValue[3];
 	v.N.x = mState.vertexAttribute[sw::Normal].mCurrentValue[0];
 	v.N.y = mState.vertexAttribute[sw::Normal].mCurrentValue[1];
 	v.N.z = mState.vertexAttribute[sw::Normal].mCurrentValue[2];

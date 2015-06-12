@@ -58,15 +58,12 @@ namespace sw
 
 	ALIGN(16, struct int4
 	{
-		struct
-		{
-			int x;
-			int y;
-			int z;
-			int w;
-		};
+		int x;
+		int y;
+		int z;
+		int w;
 
-		int &operator[](int i)	
+		int &operator[](int i)
 		{
 			return (&x)[i];
 		}
@@ -76,12 +73,12 @@ namespace sw
 			return (&x)[i];
 		}
 
-		bool operator!=(int4 &rhs)
+		bool operator!=(const int4 &rhs)
 		{
 			return x != rhs.x || y != rhs.y || z != rhs.z || w != rhs.w;
 		}
 
-		bool operator==(int4 &rhs)
+		bool operator==(const int4 &rhs)
 		{
 			return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
 		}
@@ -89,26 +86,12 @@ namespace sw
 
 	ALIGN(16, struct float4
 	{
-		union
-		{
-			struct
-			{
-				float x;
-				float y;
-				float z;
-				float w;
-			};
+		float x;
+		float y;
+		float z;
+		float w;
 
-			struct
-			{
-				float r;
-				float g;
-				float b;
-				float a;
-			};
-		};
-
-		float &operator[](int i)	
+		float &operator[](int i)
 		{
 			return (&x)[i];
 		}
@@ -118,12 +101,12 @@ namespace sw
 			return (&x)[i];
 		}
 
-		bool operator!=(float4 &rhs)
+		bool operator!=(const float4 &rhs)
 		{
 			return x != rhs.x || y != rhs.y || z != rhs.z || w != rhs.w;
 		}
 
-		bool operator==(float4 &rhs)
+		bool operator==(const float4 &rhs)
 		{
 			return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
 		}
