@@ -1846,8 +1846,6 @@ void Context::applyTextures()
 
 			if(mState.textureUnit[unit].environmentMode != GL_COMBINE)
 			{
-				GLenum texFormat = texture->getFormat(GL_TEXTURE_2D, 0);
-
 				device->setFirstArgument(unit, sw::TextureStage::SOURCE_TEXTURE);    // Cs
 				device->setFirstModifier(unit, sw::TextureStage::MODIFIER_COLOR);
 				device->setSecondArgument(unit, sw::TextureStage::SOURCE_CURRENT);   // Cp
@@ -1862,127 +1860,116 @@ void Context::applyTextures()
 				device->setThirdArgumentAlpha(unit, sw::TextureStage::SOURCE_CONSTANT);   // Ac
 				device->setThirdModifierAlpha(unit, sw::TextureStage::MODIFIER_ALPHA);
 
+				GLenum texFormat = texture->getFormat(GL_TEXTURE_2D, 0);
+
 				switch(mState.textureUnit[unit].environmentMode)
 				{
 				case GL_REPLACE:
-					switch(texFormat)
+					if(IsAlpha(texFormat))   // GL_ALPHA
 					{
-					case GL_ALPHA:
 						// Cv = Cp, Av = As
 						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG2);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG1);
-						break;
-					case GL_LUMINANCE:
-					case GL_RGB:
+					}
+					else if(IsRGB(texFormat))   // GL_LUMINANCE (or 1) / GL_RGB (or 3)
+					{
 						// Cv = Cs, Av = Ap
 						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG1);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
-						break;
-					case GL_LUMINANCE_ALPHA:
-					case GL_RGBA:
-					case GL_BGRA_EXT:
+					}
+					else if(IsRGBA(texFormat))   // GL_LUMINANCE_ALPHA (or 2) / GL_RGBA (or 4)
+					{
 						// Cv = Cs, Av = As
 						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG1);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG1);
-						break;
-					default: UNREACHABLE(texFormat);
 					}
+					else UNREACHABLE(texFormat);
 					break;
 				case GL_MODULATE:
-					switch(texFormat)
+					if(IsAlpha(texFormat))   // GL_ALPHA
 					{
-					case GL_ALPHA:
 						// Cv = Cp, Av = ApAs
 						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG2);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
-						break;
-					case GL_LUMINANCE:
-					case GL_RGB:
+					}
+					else if(IsRGB(texFormat))   // GL_LUMINANCE (or 1) / GL_RGB (or 3)
+					{
 						// Cv = CpCs, Av = Ap
 						device->setStageOperation(unit, sw::TextureStage::STAGE_MODULATE);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
-						break;
-					case GL_LUMINANCE_ALPHA:
-					case GL_RGBA:
-					case GL_BGRA_EXT:
+					}
+					else if(IsRGBA(texFormat))   // GL_LUMINANCE_ALPHA (or 2) / GL_RGBA (or 4)
+					{
 						// Cv = CpCs, Av = ApAs
 						device->setStageOperation(unit, sw::TextureStage::STAGE_MODULATE);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
-						break;
-					default: UNREACHABLE(texFormat);
 					}
+					else UNREACHABLE(texFormat);
 					break;
 				case GL_DECAL:
-					switch(texFormat)
+					if(texFormat == GL_ALPHA ||
+					   texFormat == GL_LUMINANCE ||
+					   texFormat == GL_LUMINANCE_ALPHA)
 					{
-					case GL_ALPHA:
-					case GL_LUMINANCE:
-					case GL_LUMINANCE_ALPHA:
-						// undefined
+						// undefined   // FIXME: Log
 						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG2);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
-						break;
-					case GL_RGB:
+					}
+					else if(IsRGB(texFormat))   // GL_LUMINANCE (or 1) / GL_RGB (or 3)
+					{
 						// Cv = Cs, Av = Ap
 						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG1);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
-						break;
-					case GL_RGBA:
-					case GL_BGRA_EXT:
-						// Cv = Cp(1 ? As) + CsAs, Av = Ap
+					}
+					else if(IsRGBA(texFormat))   // GL_LUMINANCE_ALPHA (or 2) / GL_RGBA (or 4)
+					{
+						// Cv = Cp(1 - As) + CsAs, Av = Ap
 						device->setStageOperation(unit, sw::TextureStage::STAGE_BLENDTEXTUREALPHA);   // Alpha * (Arg1 - Arg2) + Arg2
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
-						break;
-					default: UNREACHABLE(texFormat);
 					}
+					else UNREACHABLE(texFormat);
 					break;
 				case GL_BLEND:
-					switch(texFormat)
+					if(IsAlpha(texFormat))   // GL_ALPHA
 					{
-					case GL_ALPHA:
 						// Cv = Cp, Av = ApAs
 						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG2);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
-						break;
-					case GL_LUMINANCE:
-					case GL_RGB:
-						// Cv = Cp(1 ? Cs) + CcCs, Av = Ap
+					}
+					else if(IsRGB(texFormat))   // GL_LUMINANCE (or 1) / GL_RGB (or 3)
+					{
+						// Cv = Cp(1 - Cs) + CcCs, Av = Ap
 						device->setStageOperation(unit, sw::TextureStage::STAGE_LERP);   // Arg3 * (Arg1 - Arg2) + Arg2
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
-						break;
-					case GL_LUMINANCE_ALPHA:
-					case GL_RGBA:
-					case GL_BGRA_EXT:
-						// Cv = Cp(1 ? Cs) + CcCs, Av = ApAs
+					}
+					else if(IsRGBA(texFormat))   // GL_LUMINANCE_ALPHA (or 2) / GL_RGBA (or 4)
+					{
+						// Cv = Cp(1 - Cs) + CcCs, Av = ApAs
 						device->setStageOperation(unit, sw::TextureStage::STAGE_LERP);   // Arg3 * (Arg1 - Arg2) + Arg2
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
-						break;
-					default: UNREACHABLE(texFormat);
 					}
+					else UNREACHABLE(texFormat);
 					break;
 				case GL_ADD:
-					switch(texFormat)
+					if(IsAlpha(texFormat))   // GL_ALPHA
 					{
-					case GL_ALPHA:
 						// Cv = Cp, Av = ApAs
 						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG2);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
-						break;
-					case GL_LUMINANCE:
-					case GL_RGB:
+					}
+					else if(IsRGB(texFormat))   // GL_LUMINANCE (or 1) / GL_RGB (or 3)
+					{
 						// Cv = Cp + Cs, Av = Ap
 						device->setStageOperation(unit, sw::TextureStage::STAGE_ADD);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
-						break;
-					case GL_LUMINANCE_ALPHA:
-					case GL_RGBA:
-					case GL_BGRA_EXT:
+					}
+					else if(IsRGBA(texFormat))   // GL_LUMINANCE_ALPHA (or 2) / GL_RGBA (or 4)
+					{
 						// Cv = Cp + Cs, Av = ApAs
 						device->setStageOperation(unit, sw::TextureStage::STAGE_ADD);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
-						break;
-					default: UNREACHABLE(texFormat);
 					}
+					else UNREACHABLE(texFormat);
 					break;
 				default:
 					UNREACHABLE(mState.textureUnit[unit].environmentMode);

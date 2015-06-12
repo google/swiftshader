@@ -38,6 +38,10 @@ namespace es1
 	bool IsColorRenderable(GLenum internalformat);
 	bool IsDepthRenderable(GLenum internalformat);
 	bool IsStencilRenderable(GLenum internalformat);
+
+	bool IsAlpha(GLenum texFormat);
+	bool IsRGB(GLenum texFormat);
+	bool IsRGBA(GLenum texFormat);
 }
 
 namespace es2sw
