@@ -140,6 +140,30 @@
       "revId": "20c4d3dfcb0a7f718b05da5876c5fe6746089643",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "190364c0_7e1a09a1",
+        "filename": "src/OpenGL/compiler/intermediate.h",
+        "patchSetId": 6
+      },
+      "lineNbr": 674,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-12T20:49:33Z",
+      "side": 1,
+      "message": "mPath is now only used by getParentNode(), which is in turn only used by ValidateSwitch::visitAggregate() and it just checks if the stack isn\u0027t empty. It appears to me that mDepth is the same as mPath.size().\n\nThat said, using mDepth is also a bit of a hack (it was previously merely used to indent the debug output of the AST).\n\nChecking whether the switch statement is correctly formatted shouldn\u0027t even require a traverser, because we don\u0027t need to know what\u0027s inside any of the statements.",
+      "parentUuid": "79254042_dcdb7c15",
+      "range": {
+        "startLine": 674,
+        "startChar": 1,
+        "endLine": 674,
+        "endChar": 30
+      },
+      "revId": "20c4d3dfcb0a7f718b05da5876c5fe6746089643",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
