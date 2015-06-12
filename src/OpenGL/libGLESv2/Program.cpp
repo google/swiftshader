@@ -2431,7 +2431,7 @@ namespace es2
 		*type = linkedAttribute[attribute].type;
 	}
 
-	GLint Program::getActiveAttributeCount() const
+	size_t Program::getActiveAttributeCount() const
 	{
 		int count = 0;
 
@@ -2486,7 +2486,7 @@ namespace es2
 		*type = uniforms[index]->type;
 	}
 
-	GLint Program::getActiveUniformCount() const
+	size_t Program::getActiveUniformCount() const
 	{
 		return uniforms.size();
 	}
@@ -2559,7 +2559,7 @@ namespace es2
 		}
 	}
 
-	GLint Program::getActiveUniformBlockCount() const
+	size_t Program::getActiveUniformBlockCount() const
 	{
 		return uniformBlocks.size();
 	}

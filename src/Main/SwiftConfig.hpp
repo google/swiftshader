@@ -103,7 +103,6 @@ namespace sw
 		bool newConfig;
 
 		Socket *listenSocket;
-		Socket *clientSocket;
 
 		int bufferLength;
 		char *receiveBuffer;

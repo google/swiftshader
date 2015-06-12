@@ -78,7 +78,6 @@ namespace sw
 		}
 
 		unsigned short version = (unsigned short)(token[0] & 0x0000FFFF);
-		unsigned char minorVersion = (unsigned char)(token[0] & 0x000000FF);
 		unsigned char majorVersion = (unsigned char)((token[0] & 0x0000FF00) >> 8);
 		ShaderType shaderType = (ShaderType)((token[0] & 0xFFFF0000) >> 16);
 

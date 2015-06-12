@@ -25,8 +25,8 @@ namespace sw
 		struct Registers
 		{
 			Registers(const VertexShader *shader) :
-				r(shader && shader->dynamicallyIndexedTemporaries),
 				v(shader && shader->dynamicallyIndexedInput),
+				r(shader && shader->dynamicallyIndexedTemporaries),
 				o(shader && shader->dynamicallyIndexedOutput)
 			{
 				loopDepth = -1;

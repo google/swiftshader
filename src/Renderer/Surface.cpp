@@ -2469,12 +2469,8 @@ namespace sw
 		const bool entire = x0 == 0 && y0 == 0 && width == internal.width && height == internal.height;
 		const Lock lock = entire ? LOCK_DISCARD : LOCK_WRITEONLY;
 
-		int width2 = (internal.width + 1) & ~1;
-
 		int x1 = x0 + width;
 		int y1 = y0 + height;
-
-		int bytes = 4 * (x1 - x0);
 
 	//	if(lockable || !quadLayoutEnabled)
 		{
@@ -2713,6 +2709,8 @@ namespace sw
 		}
 	/*	else
 		{
+			int width2 = (internal.width + 1) & ~1;
+
 		//	unsigned char *target = (unsigned char*&)buffer;
 		//
 		//	for(int y = y0; y < y1; y++)

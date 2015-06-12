@@ -2747,7 +2747,7 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformsiv(GLuint program, GLsizei unifor
 		{
 			const GLuint index = uniformIndices[uniformId];
 
-			if(index >= static_cast<GLuint>(programObject->getActiveUniformCount()))
+			if(index >= programObject->getActiveUniformCount())
 			{
 				return error(GL_INVALID_VALUE);
 			}

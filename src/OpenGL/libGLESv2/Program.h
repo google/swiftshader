@@ -186,16 +186,16 @@ namespace es2
 		void getAttachedShaders(GLsizei maxCount, GLsizei *count, GLuint *shaders);
 
 		void getActiveAttribute(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name) const;
-		GLint getActiveAttributeCount() const;
+		size_t getActiveAttributeCount() const;
 		GLint getActiveAttributeMaxLength() const;
 
 		void getActiveUniform(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name) const;
-		GLint getActiveUniformCount() const;
+		size_t getActiveUniformCount() const;
 		GLint getActiveUniformMaxLength() const;
 		GLint getActiveUniformi(GLuint index, GLenum pname) const;
 
 		void getActiveUniformBlockName(GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name) const;
-		GLint getActiveUniformBlockCount() const;
+		size_t getActiveUniformBlockCount() const;
 		GLint getActiveUniformBlockMaxLength() const;
 
 		void setTransformFeedbackVaryings(GLsizei count, const GLchar *const *varyings, GLenum bufferMode);

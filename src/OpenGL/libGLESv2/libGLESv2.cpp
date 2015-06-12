@@ -2589,7 +2589,7 @@ void GetActiveAttrib(GLuint program, GLuint index, GLsizei bufsize, GLsizei *len
 			}
 		}
 
-		if(index >= (GLuint)programObject->getActiveAttributeCount())
+		if(index >= programObject->getActiveAttributeCount())
 		{
 			return error(GL_INVALID_VALUE);
 		}
@@ -2627,7 +2627,7 @@ void GetActiveUniform(GLuint program, GLuint index, GLsizei bufsize, GLsizei* le
 			}
 		}
 
-		if(index >= (GLuint)programObject->getActiveUniformCount())
+		if(index >= programObject->getActiveUniformCount())
 		{
 			return error(GL_INVALID_VALUE);
 		}

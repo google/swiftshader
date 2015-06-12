@@ -150,7 +150,7 @@ namespace sw
 		}
 	}
 
-	bool match(const char **url, char *string)
+	bool match(const char **url, const char *string)
 	{
 		size_t length = strlen(string);
 

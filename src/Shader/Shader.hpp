@@ -367,7 +367,7 @@ namespace sw
 				};
 			};
 
-			Parameter() : type(PARAMETER_VOID), index(0)
+			Parameter() : index(0), type(PARAMETER_VOID)
 			{
 				rel.type = PARAMETER_VOID;
 				rel.index = 0;

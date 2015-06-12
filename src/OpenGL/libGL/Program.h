@@ -111,11 +111,11 @@ namespace gl
 		void getAttachedShaders(GLsizei maxCount, GLsizei *count, GLuint *shaders);
 
 		void getActiveAttribute(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name) const;
-		GLint getActiveAttributeCount() const;
+		size_t getActiveAttributeCount() const;
 		GLint getActiveAttributeMaxLength() const;
 
 		void getActiveUniform(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name) const;
-		GLint getActiveUniformCount() const;
+		size_t getActiveUniformCount() const;
 		GLint getActiveUniformMaxLength() const;
 
 		void addRef();

@@ -2088,11 +2088,11 @@ namespace gl
 		*type = linkedAttribute[attribute].type;
 	}
 
-	GLint Program::getActiveAttributeCount() const
+	size_t Program::getActiveAttributeCount() const
 	{
-		int count = 0;
+		size_t count = 0;
 
-		for(int attributeIndex = 0; attributeIndex < MAX_VERTEX_ATTRIBS; attributeIndex++)
+		for(size_t attributeIndex = 0; attributeIndex < MAX_VERTEX_ATTRIBS; ++attributeIndex)
 		{
 			if(!linkedAttribute[attributeIndex].name.empty())
 			{
@@ -2143,7 +2143,7 @@ namespace gl
 		*type = uniforms[index]->type;
 	}
 
-	GLint Program::getActiveUniformCount() const
+	size_t Program::getActiveUniformCount() const
 	{
 		return uniforms.size();
 	}
