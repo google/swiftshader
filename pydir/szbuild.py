@@ -177,6 +177,7 @@ def ProcessPexe(args, pexe, exe):
         ).format(root=nacl_root)
     llcbin = '{base}/pnacl-llc'.format(base=path_addition)
     gold = 'le32-nacl-ld.gold'
+    objcopy = 'le32-nacl-objcopy'
     opt_level = args.optlevel
     opt_level_map = { 'm1':'0', '-1':'0', '0':'0', '1':'1', '2':'2' }
     hybrid = args.include or args.exclude
@@ -200,8 +201,8 @@ def ProcessPexe(args, pexe, exe):
                  echo=args.verbose)
         if not args.sandbox:
             shellcmd((
-                'objcopy --redefine-sym _start=_user_start {obj}'
-                ).format(obj=obj_llc), echo=args.verbose)
+                '{objcopy} --redefine-sym _start=_user_start {obj}'
+                ).format(objcopy=objcopy, obj=obj_llc), echo=args.verbose)
         # Generate llc syms file for consistency, even though it's not used.
         shellcmd((
             'nm {obj} | sed -n "s/.* [a-zA-Z] //p" > {sym}'
@@ -233,8 +234,8 @@ def ProcessPexe(args, pexe, exe):
                      echo=args.verbose)
         if not args.sandbox:
             shellcmd((
-                'objcopy --redefine-sym _start=_user_start {obj}'
-                ).format(obj=obj_sz), echo=args.verbose)
+                '{objcopy} --redefine-sym _start=_user_start {obj}'
+                ).format(objcopy=objcopy, obj=obj_sz), echo=args.verbose)
         if hybrid:
             shellcmd((
                 'nm {obj} | sed -n "s/.* [a-zA-Z] //p" > {sym}'
@@ -259,30 +260,34 @@ def ProcessPexe(args, pexe, exe):
                     f.write(sym + '\n')
                     whitelist_has_items = True
         shellcmd((
-            'objcopy --weaken {obj} {weak}'
-            ).format(obj=obj_sz, weak=obj_sz_weak), echo=args.verbose)
+            '{objcopy} --weaken {obj} {weak}'
+            ).format(objcopy=objcopy, obj=obj_sz, weak=obj_sz_weak),
+            echo=args.verbose)
         if whitelist_has_items:
             # objcopy returns an error if the --weaken-symbols file is empty.
             shellcmd((
-                'objcopy --weaken-symbols={whitelist} {obj} {weak}'
-                ).format(whitelist=whitelist_sz, obj=obj_llc,
+                '{objcopy} --weaken-symbols={whitelist} {obj} {weak}'
+                ).format(objcopy=objcopy,
+                         whitelist=whitelist_sz, obj=obj_llc,
                          weak=obj_llc_weak),
                      echo=args.verbose)
         else:
             shellcmd((
-                'objcopy {obj} {weak}'
-                ).format(obj=obj_llc, weak=obj_llc_weak), echo=args.verbose)
+                '{objcopy} {obj} {weak}'
+                ).format(objcopy=objcopy, obj=obj_llc, weak=obj_llc_weak),
+                echo=args.verbose)
         obj_partial = pexe_base + '.o'
         shellcmd((
             'ld -r -m elf_i386 -o {partial} {sz} {llc}'
             ).format(partial=obj_partial, sz=obj_sz_weak, llc=obj_llc_weak),
                  echo=args.verbose)
         shellcmd((
-            'objcopy -w --localize-symbol="*" {partial}'
-            ).format(partial=obj_partial), echo=args.verbose)
+            '{objcopy} -w --localize-symbol="*" {partial}'
+            ).format(objcopy=objcopy, partial=obj_partial),
+            echo=args.verbose)
         shellcmd((
-            'objcopy --globalize-symbol={start} {partial}'
-            ).format(partial=obj_partial,
+            '{objcopy} --globalize-symbol={start} {partial}'
+            ).format(objcopy=objcopy, partial=obj_partial,
                      start='_start' if args.sandbox else '_user_start'),
                  echo=args.verbose)
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
 import argparse
+from collections import namedtuple
 import os
 import shutil
 import tempfile
@@ -22,7 +23,7 @@ def Translate(ll_files, extra_args, obj, verbose):
               '-bitcode-format=llvm',
               '-o', obj
           ] + extra_args, echo=verbose)
-    shellcmd(['objcopy',
+    shellcmd(['le32-nacl-objcopy',
               '--strip-symbol=nacl_tp_tdb_offset',
               '--strip-symbol=nacl_tp_tls_offset',
               obj
@@ -30,10 +31,52 @@ def Translate(ll_files, extra_args, obj, verbose):
 
 def PartialLink(obj_files, extra_args, lib, verbose):
     """Partially links a set of obj files into a final obj library."""
-    shellcmd(['ld',
+    shellcmd(['le32-nacl-ld',
               '-o', lib,
               '-r',
         ] + extra_args + obj_files, echo=verbose)
+
+
+TargetInfo = namedtuple('TargetInfo',
+                        ['target', 'triple', 'llc_flags', 'ld_emu'])
+
+
+def MakeRuntimesForTarget(target_info, ll_files,
+                          srcdir, tempdir, rtdir, verbose):
+    def TmpFile(template):
+        return template.format(dir=tempdir, target=target_info.target)
+    def OutFile(template):
+        return template.format(rtdir=rtdir, target=target_info.target)
+    # Translate tempdir/szrt.ll and tempdir/szrt_ll.ll to
+    # szrt_native_{target}.tmp.o.
+    Translate(ll_files,
+              ['-mtriple=' + target_info.triple] + target_info.llc_flags,
+              TmpFile('{dir}/szrt_native_{target}.tmp.o'),
+              verbose)
+    # Compile srcdir/szrt_profiler.c to tempdir/szrt_profiler_native_{target}.o
+    shellcmd(['clang',
+              '-O2',
+              '-target=' + target_info.triple,
+              '-c',
+              '{srcdir}/szrt_profiler.c'.format(srcdir=srcdir),
+              '-o', TmpFile('{dir}/szrt_profiler_native_{target}.o')
+    ], echo=verbose)
+    # Writing full szrt_native_{target}.o.
+    PartialLink([TmpFile('{dir}/szrt_native_{target}.tmp.o'),
+                 TmpFile('{dir}/szrt_profiler_native_{target}.o')],
+                ['-m {ld_emu}'.format(ld_emu=target_info.ld_emu)],
+                OutFile('{rtdir}/szrt_native_{target}.o'),
+                verbose)
+
+    # Translate tempdir/szrt.ll and tempdir/szrt_ll.ll to szrt_sb_{target}.o
+    # The sandboxed library does not get the profiler helper function as the
+    # binaries are linked with -nostdlib.
+    Translate(ll_files,
+              ['-mtriple=' + target_info.triple.replace('linux', 'nacl')] +
+              target_info.llc_flags,
+              OutFile('{rtdir}/szrt_sb_{target}.o'),
+              verbose)
+
 
 def main():
     """Build the Subzero runtime support library for all architectures.
@@ -80,33 +123,21 @@ def main():
         ll_files = ['{dir}/szrt.ll'.format(dir=tempdir),
                     '{srcdir}/szrt_ll.ll'.format(srcdir=srcdir)]
 
-        # Translate tempdir/szrt.ll and tempdir/szrt_ll.ll to
-        # szrt_native_x8632.tmp.o.
-        Translate(ll_files,
-                  ['-mtriple=i686', '-mcpu=pentium4m'],
-                  '{dir}/szrt_native_x8632.tmp.o'.format(dir=tempdir),
-                  args.verbose)
-        # Compile srcdir/szrt_profiler.c to tempdir/szrt_profiler_native_i686.o
-        shellcmd(['clang',
-                  '-O2',
-                  '-target=i686',
-                  '-c',
-                  '{srcdir}/szrt_profiler.c'.format(srcdir=srcdir),
-                  '-o', '{dir}/szrt_profiler_native_x8632.o'.format(dir=tempdir)
-            ], echo=args.verbose)
-        # Writing full szrt_native_i686.o.
-        PartialLink(['{dir}/szrt_native_x8632.tmp.o'.format(dir=tempdir),
-                     '{dir}/szrt_profiler_native_x8632.o'.format(dir=tempdir)
-            ], ['-m elf_i386'],
-            '{rtdir}/szrt_native_x8632.o'.format(rtdir=rtdir), args.verbose)
+        x8632_target = TargetInfo(target='x8632',
+                                  triple='i686-none-linux',
+                                  llc_flags=['-mcpu=pentium4m'],
+                                  ld_emu='elf_i386_nacl')
+        MakeRuntimesForTarget(x8632_target, ll_files,
+                              srcdir, tempdir, rtdir, args.verbose)
+        arm32_target = TargetInfo(target='arm32',
+                                  triple='armv7a-none-linux-gnueabihf',
+                                  llc_flags=['-mcpu=cortex-a9',
+                                             '-float-abi=hard',
+                                             '-mattr=+neon'],
+                                  ld_emu='armelf_nacl')
+        MakeRuntimesForTarget(arm32_target, ll_files,
+                              srcdir, tempdir, rtdir, args.verbose)
 
-        # Translate tempdir/szrt.ll and tempdir/szrt_ll.ll to szrt_sb_x8632.o
-        # The sandboxed library does not get the profiler helper function as the
-        # binaries are linked with -nostdlib.
-        Translate(ll_files,
-                  ['-mtriple=i686-nacl', '-mcpu=pentium4m'],
-                  '{rtdir}/szrt_sb_x8632.o'.format(rtdir=rtdir),
-                  args.verbose)
     finally:
         try:
             shutil.rmtree(tempdir)

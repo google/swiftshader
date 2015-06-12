@@ -131,7 +131,8 @@ def main():
         # currently the only situation where multiple translated files are
         # linked into the executable, but when PNaCl supports shared nexe
         # libraries, this would need to change.
-        shellcmd(['objcopy', '--weaken-symbol=__Sz_block_profile_info', obj_sz])
+        shellcmd(['{bin}/le32-nacl-objcopy'.format(bin=bindir),
+                  '--weaken-symbol=__Sz_block_profile_info', obj_sz])
         objs.append(obj_sz)
         if args.crosstest_bitcode:
             shellcmd(['{bin}/pnacl-llc'.format(bin=bindir),
