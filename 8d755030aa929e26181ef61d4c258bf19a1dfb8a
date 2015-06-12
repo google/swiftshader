@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "190364c0_5bc8f743",
+        "filename": "src/OpenGL/libGLES_CM/utilities.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-12T19:30:49Z",
+      "side": 1,
+      "message": "Luminance is a single channel that expands to identical RGB when sampling.",
+      "parentUuid": "190364c0_7877c1fa",
+      "range": {
+        "startLine": 176,
+        "startChar": 7,
+        "endLine": 176,
+        "endChar": 19
+      },
+      "revId": "8d755030aa929e26181ef61d4c258bf19a1dfb8a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "190364c0_58747df4",
         "filename": "src/OpenGL/libGLES_CM/utilities.cpp",
         "patchSetId": 2
