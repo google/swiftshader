@@ -96,8 +96,8 @@ public:
 
   public:
     explicit EnsureCapacity(AssemblerBuffer *Buffer) {
-      if (Buffer->cursor() >= buffer->limit())
-        buffer->extendCapacity();
+      if (Buffer->cursor() >= Buffer->limit())
+        Buffer->extendCapacity();
     }
   };
 
