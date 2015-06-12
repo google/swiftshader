@@ -22,6 +22,30 @@
       "revId": "e0ffb498792fea56aaa1a4c8882813e326d32941",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79254042_e6c5837f",
+        "filename": "src/OpenGL/compiler/ParseHelper.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1255,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-06-12T14:25:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "79254042_4b77a0fa",
+      "range": {
+        "startLine": 1250,
+        "startChar": 0,
+        "endLine": 1255,
+        "endChar": 2
+      },
+      "revId": "e0ffb498792fea56aaa1a4c8882813e326d32941",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
