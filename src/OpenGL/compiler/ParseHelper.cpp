@@ -2083,14 +2083,11 @@ TIntermTyped *TParseContext::addIndexExpression(TIntermTyped *baseExpression, co
 				"[", "array indexes for interface blocks arrays must be constant integral expressions");
 			recover();
 		}
-		// FIXME
-		/*
 		else if(baseExpression->getQualifier() == EvqFragmentOut)
 		{
 			error(location, "", "[", "array indexes for fragment outputs must be constant integral expressions");
 			recover();
 		}
-		*/
 
 		indexedExpression = intermediate.addIndex(EOpIndexIndirect, baseExpression, indexExpression, location);
 	}
