@@ -1753,7 +1753,7 @@ void Context::applyState(GLenum drawMode)
 	device->setEmissiveMaterialSource(sw::MATERIAL_MATERIAL);
 
     device->setProjectionMatrix(projectionStack.current());
-    device->setModelMatrix(modelViewStack.current());
+    device->setViewMatrix(modelViewStack.current());
     device->setTextureMatrix(0, textureStack0.current());
 	device->setTextureMatrix(1, textureStack1.current());
 	device->setTextureTransform(0, textureStack0.isIdentity() ? 0 : 4, false);
