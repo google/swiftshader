@@ -2200,7 +2200,7 @@ void TargetDataARM32::lowerGlobal(const VariableDeclaration &Var) const {
 }
 
 void TargetDataARM32::lowerGlobals(
-    std::unique_ptr<VariableDeclarationList> Vars) const {
+    std::unique_ptr<VariableDeclarationList> Vars) {
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
@@ -2219,7 +2219,7 @@ void TargetDataARM32::lowerGlobals(
   }
 }
 
-void TargetDataARM32::lowerConstants() const {
+void TargetDataARM32::lowerConstants() {
   if (Ctx->getFlags().getDisableTranslation())
     return;
   UnimplementedError(Ctx->getFlags());

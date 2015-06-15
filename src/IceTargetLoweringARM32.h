@@ -302,7 +302,7 @@ private:
   ~TargetARM32() override {}
 };
 
-class TargetDataARM32 : public TargetDataLowering {
+class TargetDataARM32 final : public TargetDataLowering {
   TargetDataARM32() = delete;
   TargetDataARM32(const TargetDataARM32 &) = delete;
   TargetDataARM32 &operator=(const TargetDataARM32 &) = delete;
@@ -312,8 +312,8 @@ public:
     return std::unique_ptr<TargetDataLowering>(new TargetDataARM32(Ctx));
   }
 
-  void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) const final;
-  void lowerConstants() const final;
+  void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) override;
+  void lowerConstants() override;
 
 protected:
   explicit TargetDataARM32(GlobalContext *Ctx);
@@ -334,7 +334,7 @@ public:
     return std::unique_ptr<TargetHeaderLowering>(new TargetHeaderARM32(Ctx));
   }
 
-  void lower();
+  void lower() override;
 
 protected:
   explicit TargetHeaderARM32(GlobalContext *Ctx);

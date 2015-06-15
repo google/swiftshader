@@ -577,7 +577,7 @@ private:
   BoolFolding FoldingInfo;
 };
 
-class TargetDataX8632 : public TargetDataLowering {
+class TargetDataX8632 final : public TargetDataLowering {
   TargetDataX8632() = delete;
   TargetDataX8632(const TargetDataX8632 &) = delete;
   TargetDataX8632 &operator=(const TargetDataX8632 &) = delete;
@@ -587,14 +587,14 @@ public:
     return std::unique_ptr<TargetDataLowering>(new TargetDataX8632(Ctx));
   }
 
-  void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) const final;
-  void lowerConstants() const final;
+  void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) override;
+  void lowerConstants() override;
 
 protected:
   explicit TargetDataX8632(GlobalContext *Ctx);
 
 private:
-  void lowerGlobal(const VariableDeclaration &Var) const;
+  void lowerGlobal(const VariableDeclaration &Var);
   ~TargetDataX8632() override {}
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };

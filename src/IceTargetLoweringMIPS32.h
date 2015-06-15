@@ -127,7 +127,7 @@ private:
   ~TargetMIPS32() override {}
 };
 
-class TargetDataMIPS32 : public TargetDataLowering {
+class TargetDataMIPS32 final : public TargetDataLowering {
   TargetDataMIPS32() = delete;
   TargetDataMIPS32(const TargetDataMIPS32 &) = delete;
   TargetDataMIPS32 &operator=(const TargetDataMIPS32 &) = delete;
@@ -137,8 +137,8 @@ public:
     return std::unique_ptr<TargetDataLowering>(new TargetDataMIPS32(Ctx));
   }
 
-  void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) const final;
-  void lowerConstants() const final;
+  void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) override;
+  void lowerConstants() override;
 
 protected:
   explicit TargetDataMIPS32(GlobalContext *Ctx);

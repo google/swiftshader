@@ -5017,7 +5017,7 @@ void TargetX8632::emit(const ConstantUndef *) const {
 TargetDataX8632::TargetDataX8632(GlobalContext *Ctx)
     : TargetDataLowering(Ctx) {}
 
-void TargetDataX8632::lowerGlobal(const VariableDeclaration &Var) const {
+void TargetDataX8632::lowerGlobal(const VariableDeclaration &Var) {
   // If external and not initialized, this must be a cross test.
   // Don't generate a declaration for such cases.
   bool IsExternal = Var.isExternal() || Ctx->getFlags().getDisableInternal();
@@ -5094,7 +5094,7 @@ void TargetDataX8632::lowerGlobal(const VariableDeclaration &Var) const {
 }
 
 void TargetDataX8632::lowerGlobals(
-    std::unique_ptr<VariableDeclarationList> Vars) const {
+    std::unique_ptr<VariableDeclarationList> Vars) {
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
@@ -5170,7 +5170,7 @@ void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
   }
 }
 
-void TargetDataX8632::lowerConstants() const {
+void TargetDataX8632::lowerConstants() {
   if (Ctx->getFlags().getDisableTranslation())
     return;
   // No need to emit constants from the int pool since (for x86) they

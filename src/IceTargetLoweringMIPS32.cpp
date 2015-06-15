@@ -677,7 +677,7 @@ void TargetDataMIPS32::lowerGlobal(const VariableDeclaration &Var) const {
 }
 
 void TargetDataMIPS32::lowerGlobals(
-    std::unique_ptr<VariableDeclarationList> Vars) const {
+    std::unique_ptr<VariableDeclarationList> Vars) {
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
@@ -696,7 +696,7 @@ void TargetDataMIPS32::lowerGlobals(
   }
 }
 
-void TargetDataMIPS32::lowerConstants() const {
+void TargetDataMIPS32::lowerConstants() {
   if (Ctx->getFlags().getDisableTranslation())
     return;
   llvm::report_fatal_error("Not yet implemented");

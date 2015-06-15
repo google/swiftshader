@@ -380,9 +380,8 @@ public:
   static std::unique_ptr<TargetDataLowering> createLowering(GlobalContext *Ctx);
   virtual ~TargetDataLowering();
 
-  virtual void
-  lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) const = 0;
-  virtual void lowerConstants() const = 0;
+  virtual void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) = 0;
+  virtual void lowerConstants() = 0;
 
 protected:
   explicit TargetDataLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
