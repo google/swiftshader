@@ -2432,7 +2432,24 @@ void LightModelf(GLenum pname, GLfloat param)
 
 void LightModelfv(GLenum pname, const GLfloat *params)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum pname = 0x%X, const GLfloat *params)", pname);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		switch(pname)
+		{
+		case GL_LIGHT_MODEL_AMBIENT:
+			context->setGlobalAmbient(params[0], params[1], params[2], params[3]);
+			break;
+		case GL_LIGHT_MODEL_TWO_SIDE:
+			UNIMPLEMENTED();
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void LightModelx(GLenum pname, GLfixed param)
@@ -2447,7 +2464,30 @@ void LightModelxv(GLenum pname, const GLfixed *params)
 
 void Lightf(GLenum light, GLenum pname, GLfloat param)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum light = 0x%X, GLenum pname = 0x%X, GLfloat param = %f)", light, pname, param);
+
+	int index = light - GL_LIGHT0;
+
+	if(index < 0 || index >= es1::MAX_LIGHTS)
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		switch(pname)
+		{
+		case GL_SPOT_EXPONENT:         UNIMPLEMENTED(); break;
+		case GL_SPOT_CUTOFF:           UNIMPLEMENTED(); break;
+		case GL_CONSTANT_ATTENUATION:  context->setLightAttenuationConstant(index, param);                       break;
+		case GL_LINEAR_ATTENUATION:    context->setLightAttenuationLinear(index, param);                         break;
+		case GL_QUADRATIC_ATTENUATION: context->setLightAttenuationQuadratic(index, param);                      break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void Lightfv(GLenum light, GLenum pname, const GLfloat *params)
@@ -2551,12 +2591,66 @@ void LogicOp(GLenum opcode)
 
 void Materialf(GLenum face, GLenum pname, GLfloat param)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum face = 0x%X, GLenum pname = 0x%X, GLfloat param = %f)", face, pname, param);
+
+	if(face != GL_FRONT_AND_BACK)
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		switch(pname)
+		{
+		case GL_SHININESS:
+			context->setMaterialShininess(param);
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void Materialfv(GLenum face, GLenum pname, const GLfloat *params)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum face = 0x%X, GLenum pname = 0x%X, GLfloat params)", face, pname);
+
+	if(face != GL_FRONT_AND_BACK)
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		switch(pname)
+		{
+		case GL_AMBIENT:
+			context->setMaterialAmbient(params[0], params[1], params[2], params[3]);
+			break;
+		case GL_DIFFUSE:
+			context->setMaterialDiffuse(params[0], params[1], params[2], params[3]);
+			break;
+		case GL_AMBIENT_AND_DIFFUSE:
+			context->setMaterialAmbient(params[0], params[1], params[2], params[3]);
+			context->setMaterialDiffuse(params[0], params[1], params[2], params[3]);
+			break;
+		case GL_SPECULAR:
+			context->setMaterialSpecular(params[0], params[1], params[2], params[3]);
+			break;
+		case GL_EMISSION:
+			context->setMaterialEmission(params[0], params[1], params[2], params[3]);
+			break;
+		case GL_SHININESS:
+			context->setMaterialShininess(params[0]);
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void Materialx(GLenum face, GLenum pname, GLfixed param)

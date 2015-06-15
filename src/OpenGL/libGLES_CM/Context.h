@@ -334,6 +334,13 @@ public:
 	void setLightAttenuationConstant(int index, float constant);
 	void setLightAttenuationLinear(int index, float linear);
 	void setLightAttenuationQuadratic(int index, float quadratic);
+	
+	void setGlobalAmbient(float red, float green, float blue, float alpha);
+	void setMaterialAmbient(float red, float green, float blue, float alpha);
+	void setMaterialDiffuse(float red, float green, float blue, float alpha);
+	void setMaterialSpecular(float red, float green, float blue, float alpha);
+	void setMaterialEmission(float red, float green, float blue, float alpha);
+	void setMaterialShininess(float shininess);
 
 	void setFog(bool enabled);
 	void setFogMode(GLenum mode);
@@ -508,6 +515,7 @@ private:
 	Color materialDiffuse;
 	Color materialSpecular;
 	Color materialEmission;
+	GLfloat materialShininess;
 
     // Recorded errors
     bool mInvalidEnum;

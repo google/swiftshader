@@ -30,6 +30,8 @@
 
 #include <EGL/eglext.h>
 
+#include <algorithm>
+
 #undef near
 #undef far
 
@@ -180,6 +182,7 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 	materialDiffuse = {0.8f, 0.8f, 0.8f, 1.0f};
 	materialSpecular = {0.0f, 0.0f, 0.0f, 1.0f};
 	materialEmission = {0.0f, 0.0f, 0.0f, 1.0f};
+	materialShininess = 0.0f;
 
 	matrixMode = GL_MODELVIEW;
     
@@ -599,6 +602,51 @@ void Context::setLightAttenuationLinear(int index, float linear)
 void Context::setLightAttenuationQuadratic(int index, float quadratic)
 {
 	light[index].attenuation.quadratic = quadratic;
+}
+
+void Context::setGlobalAmbient(float red, float green, float blue, float alpha)
+{
+	globalAmbient.red = red;
+	globalAmbient.green = green;
+	globalAmbient.blue = blue;
+	globalAmbient.alpha = alpha;
+}
+
+void Context::setMaterialAmbient(float red, float green, float blue, float alpha)
+{
+	materialAmbient.red = red;
+	materialAmbient.green = green;
+	materialAmbient.blue = blue;
+	materialAmbient.alpha = alpha;
+}
+
+void Context::setMaterialDiffuse(float red, float green, float blue, float alpha)
+{
+	materialDiffuse.red = red;
+	materialDiffuse.green = green;
+	materialDiffuse.blue = blue;
+	materialDiffuse.alpha = alpha;
+}
+
+void Context::setMaterialSpecular(float red, float green, float blue, float alpha)
+{
+	materialSpecular.red = red;
+	materialSpecular.green = green;
+	materialSpecular.blue = blue;
+	materialSpecular.alpha = alpha;
+}
+
+void Context::setMaterialEmission(float red, float green, float blue, float alpha)
+{
+	materialEmission.red = red;
+	materialEmission.green = green;
+	materialEmission.blue = blue;
+	materialEmission.alpha = alpha;
+}
+
+void Context::setMaterialShininess(float shininess)
+{
+	materialShininess = shininess;
 }
 
 void Context::setFog(bool enable)
@@ -1732,9 +1780,11 @@ void Context::applyState(GLenum drawMode)
 		{
 			device->setLightPosition(i, sw::Point(light[i].position.x / light[i].position.w, light[i].position.y / light[i].position.w, light[i].position.z / light[i].position.w));
 		}
-		else   // Hack: set the position far way
+		else   // Directional light
 		{
-			device->setLightPosition(i, sw::Point(1e10f * light[i].position.x, 1e10f * light[i].position.y, 1e10f * light[i].position.z));
+			// Hack: set the position far way
+			float max = std::max(std::max(abs(light[i].position.x), abs(light[i].position.y)), abs(light[i].position.z));
+			device->setLightPosition(i, sw::Point(1e10f * (light[i].position.x / max), 1e10f * (light[i].position.y / max), 1e10f * (light[i].position.z / max)));
 		}
 	}
 
@@ -1742,6 +1792,7 @@ void Context::applyState(GLenum drawMode)
 	device->setMaterialDiffuse(sw::Color<float>(materialDiffuse.red, materialDiffuse.green, materialDiffuse.blue, materialDiffuse.alpha));
 	device->setMaterialSpecular(sw::Color<float>(materialSpecular.red, materialSpecular.green, materialSpecular.blue, materialSpecular.alpha));
 	device->setMaterialEmission(sw::Color<float>(materialEmission.red, materialEmission.green, materialEmission.blue, materialEmission.alpha));
+	device->setMaterialShininess(materialShininess);
 
     device->setDiffuseMaterialSource(sw::MATERIAL_MATERIAL);
 	device->setSpecularMaterialSource(sw::MATERIAL_MATERIAL);
