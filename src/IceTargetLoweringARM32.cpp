@@ -2194,11 +2194,6 @@ void TargetARM32::emit(const ConstantUndef *) const {
 TargetDataARM32::TargetDataARM32(GlobalContext *Ctx)
     : TargetDataLowering(Ctx) {}
 
-void TargetDataARM32::lowerGlobal(const VariableDeclaration &Var) const {
-  (void)Var;
-  UnimplementedError(Ctx->getFlags());
-}
-
 void TargetDataARM32::lowerGlobals(
     std::unique_ptr<VariableDeclarationList> Vars) {
   switch (Ctx->getFlags().getOutFileType()) {
@@ -2212,7 +2207,7 @@ void TargetDataARM32::lowerGlobals(
     OstreamLocker L(Ctx);
     for (const VariableDeclaration *Var : *Vars) {
       if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
-        lowerGlobal(*Var);
+        emitGlobal(*Var);
       }
     }
   } break;

@@ -319,7 +319,6 @@ protected:
   explicit TargetDataARM32(GlobalContext *Ctx);
 
 private:
-  void lowerGlobal(const VariableDeclaration &Var) const;
   ~TargetDataARM32() override {}
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };

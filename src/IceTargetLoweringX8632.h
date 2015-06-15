@@ -594,7 +594,6 @@ protected:
   explicit TargetDataX8632(GlobalContext *Ctx);
 
 private:
-  void lowerGlobal(const VariableDeclaration &Var);
   ~TargetDataX8632() override {}
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };

@@ -384,6 +384,13 @@ public:
   virtual void lowerConstants() = 0;
 
 protected:
+  void emitGlobal(const VariableDeclaration &Var);
+
+  // For now, we assume .long is the right directive for emitting 4 byte
+  // emit global relocations. However, LLVM MIPS usually uses .4byte instead.
+  // Perhaps there is some difference when the location is unaligned.
+  const char *getEmit32Directive() { return ".long"; }
+
   explicit TargetDataLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
   GlobalContext *Ctx;
 };

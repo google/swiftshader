@@ -144,7 +144,6 @@ protected:
   explicit TargetDataMIPS32(GlobalContext *Ctx);
 
 private:
-  void lowerGlobal(const VariableDeclaration &Var) const;
   ~TargetDataMIPS32() override {}
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };

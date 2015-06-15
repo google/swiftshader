@@ -671,11 +671,6 @@ void ConstantUndef::emit(GlobalContext *) const {
 TargetDataMIPS32::TargetDataMIPS32(GlobalContext *Ctx)
     : TargetDataLowering(Ctx) {}
 
-void TargetDataMIPS32::lowerGlobal(const VariableDeclaration &Var) const {
-  (void)Var;
-  llvm::report_fatal_error("Not yet implemented");
-}
-
 void TargetDataMIPS32::lowerGlobals(
     std::unique_ptr<VariableDeclarationList> Vars) {
   switch (Ctx->getFlags().getOutFileType()) {
@@ -689,7 +684,7 @@ void TargetDataMIPS32::lowerGlobals(
     OstreamLocker L(Ctx);
     for (const VariableDeclaration *Var : *Vars) {
       if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
-        lowerGlobal(*Var);
+        emitGlobal(*Var);
       }
     }
   } break;

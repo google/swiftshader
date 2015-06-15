@@ -5017,82 +5017,6 @@ void TargetX8632::emit(const ConstantUndef *) const {
 TargetDataX8632::TargetDataX8632(GlobalContext *Ctx)
     : TargetDataLowering(Ctx) {}
 
-void TargetDataX8632::lowerGlobal(const VariableDeclaration &Var) {
-  // If external and not initialized, this must be a cross test.
-  // Don't generate a declaration for such cases.
-  bool IsExternal = Var.isExternal() || Ctx->getFlags().getDisableInternal();
-  if (IsExternal && !Var.hasInitializer())
-    return;
-
-  Ostream &Str = Ctx->getStrEmit();
-  const VariableDeclaration::InitializerListType &Initializers =
-      Var.getInitializers();
-  bool HasNonzeroInitializer = Var.hasNonzeroInitializer();
-  bool IsConstant = Var.getIsConstant();
-  uint32_t Align = Var.getAlignment();
-  SizeT Size = Var.getNumBytes();
-  IceString MangledName = Var.mangleName(Ctx);
-  IceString SectionSuffix = "";
-  if (Ctx->getFlags().getDataSections())
-    SectionSuffix = "." + MangledName;
-
-  Str << "\t.type\t" << MangledName << ",@object\n";
-
-  if (IsConstant)
-    Str << "\t.section\t.rodata" << SectionSuffix << ",\"a\",@progbits\n";
-  else if (HasNonzeroInitializer)
-    Str << "\t.section\t.data" << SectionSuffix << ",\"aw\",@progbits\n";
-  else
-    Str << "\t.section\t.bss" << SectionSuffix << ",\"aw\",@nobits\n";
-
-  if (IsExternal)
-    Str << "\t.globl\t" << MangledName << "\n";
-
-  if (Align > 1)
-    Str << "\t.align\t" << Align << "\n";
-
-  Str << MangledName << ":\n";
-
-  if (HasNonzeroInitializer) {
-    for (VariableDeclaration::Initializer *Init : Initializers) {
-      switch (Init->getKind()) {
-      case VariableDeclaration::Initializer::DataInitializerKind: {
-        const auto Data = llvm::cast<VariableDeclaration::DataInitializer>(Init)
-                              ->getContents();
-        for (SizeT i = 0; i < Init->getNumBytes(); ++i) {
-          Str << "\t.byte\t" << (((unsigned)Data[i]) & 0xff) << "\n";
-        }
-        break;
-      }
-      case VariableDeclaration::Initializer::ZeroInitializerKind:
-        Str << "\t.zero\t" << Init->getNumBytes() << "\n";
-        break;
-      case VariableDeclaration::Initializer::RelocInitializerKind: {
-        const auto Reloc =
-            llvm::cast<VariableDeclaration::RelocInitializer>(Init);
-        Str << "\t.long\t";
-        Str << Reloc->getDeclaration()->mangleName(Ctx);
-        if (RelocOffsetT Offset = Reloc->getOffset()) {
-          if (Offset >= 0 || (Offset == INT32_MIN))
-            Str << " + " << Offset;
-          else
-            Str << " - " << -Offset;
-        }
-        Str << "\n";
-        break;
-      }
-      }
-    }
-  } else
-    // NOTE: for non-constant zero initializers, this is BSS (no bits),
-    // so an ELF writer would not write to the file, and only track
-    // virtual offsets, but the .s writer still needs this .zero and
-    // cannot simply use the .size to advance offsets.
-    Str << "\t.zero\t" << Size << "\n";
-
-  Str << "\t.size\t" << MangledName << ", " << Size << "\n";
-}
-
 void TargetDataX8632::lowerGlobals(
     std::unique_ptr<VariableDeclarationList> Vars) {
   switch (Ctx->getFlags().getOutFileType()) {
@@ -5106,7 +5030,7 @@ void TargetDataX8632::lowerGlobals(
     OstreamLocker L(Ctx);
     for (const VariableDeclaration *Var : *Vars) {
       if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
-        lowerGlobal(*Var);
+        emitGlobal(*Var);
       }
     }
   } break;
