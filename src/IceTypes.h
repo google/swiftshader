@@ -43,11 +43,16 @@ inline Ostream &operator<<(Ostream &Stream, TargetArch Arch) {
 // The list of all target instruction sets. Individual targets will
 // map this to include only what is valid for the target.
 enum TargetInstructionSet {
+  // Represents baseline that can be assumed for a target (usually "Begin").
+  BaseInstructionSet,
   X86InstructionSet_Begin,
-  // SSE2 is the PNaCl baseline instruction set.
   X86InstructionSet_SSE2 = X86InstructionSet_Begin,
   X86InstructionSet_SSE4_1,
   X86InstructionSet_End,
+  ARM32InstructionSet_Begin,
+  ARM32InstructionSet_Neon = ARM32InstructionSet_Begin,
+  ARM32InstructionSet_HWDivArm,
+  ARM32InstructionSet_End,
 };
 
 enum OptLevel { Opt_m1, Opt_0, Opt_1, Opt_2 };

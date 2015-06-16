@@ -75,6 +75,16 @@ public:
   void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
                               size_t BasicFrameOffset, size_t &InArgsSizeBytes);
 
+  enum ARM32InstructionSet {
+    Begin,
+    // Neon is the PNaCl baseline instruction set.
+    Neon = Begin,
+    HWDivArm, // HW divide in ARM mode (not just Thumb mode).
+    End
+  };
+
+  ARM32InstructionSet getInstructionSet() const { return InstructionSet; }
+
 protected:
   explicit TargetARM32(Cfg *Func);
 
@@ -288,6 +298,7 @@ protected:
     Context.insert(InstARM32Uxt::create(Func, Dest, Src0, Pred));
   }
 
+  ARM32InstructionSet InstructionSet;
   bool UsesFramePointer;
   bool NeedsStackAlignment;
   bool MaybeLeafFunc;

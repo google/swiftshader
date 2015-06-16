@@ -135,8 +135,21 @@ uint32_t applyStackAlignment(uint32_t Value) {
 } // end of anonymous namespace
 
 TargetARM32::TargetARM32(Cfg *Func)
-    : TargetLowering(Func), UsesFramePointer(false), NeedsStackAlignment(false),
-      MaybeLeafFunc(true), SpillAreaSizeBytes(0) {
+    : TargetLowering(Func), InstructionSet(ARM32InstructionSet::Begin),
+      UsesFramePointer(false), NeedsStackAlignment(false), MaybeLeafFunc(true),
+      SpillAreaSizeBytes(0) {
+  static_assert(
+      (ARM32InstructionSet::End - ARM32InstructionSet::Begin) ==
+          (TargetInstructionSet::ARM32InstructionSet_End -
+           TargetInstructionSet::ARM32InstructionSet_Begin),
+      "ARM32InstructionSet range different from TargetInstructionSet");
+  if (Func->getContext()->getFlags().getTargetInstructionSet() !=
+      TargetInstructionSet::BaseInstructionSet) {
+    InstructionSet = static_cast<ARM32InstructionSet>(
+        (Func->getContext()->getFlags().getTargetInstructionSet() -
+         TargetInstructionSet::ARM32InstructionSet_Begin) +
+        ARM32InstructionSet::Begin);
+  }
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
   // class.

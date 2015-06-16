@@ -142,11 +142,17 @@ cl::opt<Ice::TargetArch> TargetArch(
         clEnumValEnd));
 cl::opt<Ice::TargetInstructionSet> TargetInstructionSet(
     "mattr", cl::desc("Target architecture attributes"),
-    cl::init(Ice::X86InstructionSet_SSE2),
-    cl::values(clEnumValN(Ice::X86InstructionSet_SSE2, "sse2",
-                          "Enable SSE2 instructions (default)"),
+    cl::init(Ice::BaseInstructionSet),
+    cl::values(clEnumValN(Ice::BaseInstructionSet, "base",
+                          "Target chooses baseline instruction set (default)"),
+               clEnumValN(Ice::X86InstructionSet_SSE2, "sse2",
+                          "Enable X86 SSE2 instructions"),
                clEnumValN(Ice::X86InstructionSet_SSE4_1, "sse4.1",
-                          "Enable SSE 4.1 instructions"),
+                          "Enable X86 SSE 4.1 instructions"),
+               clEnumValN(Ice::ARM32InstructionSet_Neon, "neon",
+                          "Enable ARM Neon instructions"),
+               clEnumValN(Ice::ARM32InstructionSet_HWDivArm, "hwdiv-arm",
+                          "Enable ARM integer divide instructions in ARM mode"),
                clEnumValEnd));
 cl::opt<std::string>
     TestPrefix("prefix",

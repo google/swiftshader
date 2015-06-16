@@ -395,16 +395,20 @@ void TargetX8632::initNodeForLowering(CfgNode *Node) {
 }
 
 TargetX8632::TargetX8632(Cfg *Func)
-    : TargetLowering(Func),
-      InstructionSet(static_cast<X86InstructionSet>(
-          Func->getContext()->getFlags().getTargetInstructionSet() -
-          TargetInstructionSet::X86InstructionSet_Begin)),
+    : TargetLowering(Func), InstructionSet(X86InstructionSet::Begin),
       IsEbpBasedFrame(false), NeedsStackAlignment(false),
       SpillAreaSizeBytes(0) {
   static_assert((X86InstructionSet::End - X86InstructionSet::Begin) ==
                     (TargetInstructionSet::X86InstructionSet_End -
                      TargetInstructionSet::X86InstructionSet_Begin),
                 "X86InstructionSet range different from TargetInstructionSet");
+  if (Func->getContext()->getFlags().getTargetInstructionSet() !=
+      TargetInstructionSet::BaseInstructionSet) {
+    InstructionSet = static_cast<X86InstructionSet>(
+        (Func->getContext()->getFlags().getTargetInstructionSet() -
+         TargetInstructionSet::X86InstructionSet_Begin) +
+        X86InstructionSet::Begin);
+  }
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
   // class.

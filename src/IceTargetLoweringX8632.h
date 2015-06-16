@@ -562,7 +562,7 @@ protected:
 
   bool optimizeScalarMul(Variable *Dest, Operand *Src0, int32_t Src1);
 
-  const X86InstructionSet InstructionSet;
+  X86InstructionSet InstructionSet;
   bool IsEbpBasedFrame;
   bool NeedsStackAlignment;
   size_t SpillAreaSizeBytes;
