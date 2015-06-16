@@ -335,8 +335,6 @@ public:
 	void setLightAttenuationLinear(int index, float linear);
 	void setLightAttenuationQuadratic(int index, float quadratic);
 
-	void setPointSize(float size);
-
 	void setFog(bool enabled);
 	void setFogMode(GLenum mode);
 	void setFogDensity(float fogDensity);

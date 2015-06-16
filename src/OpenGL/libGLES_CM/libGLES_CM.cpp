@@ -2702,7 +2702,7 @@ void PointSize(GLfloat size)
 
 	if(context)
 	{
-		context->setPointSize(size);
+		context->setVertexAttrib(sw::PointSize, size, size, size, size);
 	}
 }
 
@@ -3031,7 +3031,6 @@ void TexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *poin
 	if(context)
 	{
 		GLenum texture = context->getClientActiveTexture();
-
 		VertexAttribPointer(sw::TexCoord0 + (texture - GL_TEXTURE0), size, type, false, stride, pointer);
 	}
 }
