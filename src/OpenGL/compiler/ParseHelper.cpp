@@ -3055,6 +3055,91 @@ TIntermCase *TParseContext::addDefault(const TSourceLoc &loc)
 	return node;
 }
 
+TIntermTyped *TParseContext::addBinaryMathInternal(TOperator op, TIntermTyped *left, TIntermTyped *right,
+	const TSourceLoc &loc)
+{
+	if(!binaryOpCommonCheck(op, left, right, loc))
+		return nullptr;
+
+	switch(op)
+	{
+	case EOpEqual:
+	case EOpNotEqual:
+		break;
+	case EOpLessThan:
+	case EOpGreaterThan:
+	case EOpLessThanEqual:
+	case EOpGreaterThanEqual:
+		ASSERT(!left->isArray() && !right->isArray());
+		if(left->isMatrix() || left->isVector() ||
+			left->getBasicType() == EbtStruct)
+		{
+			return nullptr;
+		}
+		break;
+	case EOpLogicalOr:
+	case EOpLogicalXor:
+	case EOpLogicalAnd:
+		ASSERT(!left->isArray() && !right->isArray());
+		if(left->getBasicType() != EbtBool ||
+			left->isMatrix() || left->isVector())
+		{
+			return nullptr;
+		}
+		break;
+	case EOpAdd:
+	case EOpSub:
+	case EOpDiv:
+	case EOpMul:
+		ASSERT(!left->isArray() && !right->isArray());
+		if(left->getBasicType() == EbtStruct || left->getBasicType() == EbtBool)
+		{
+			return nullptr;
+		}
+		break;
+	case EOpIMod:
+		ASSERT(!left->isArray() && !right->isArray());
+		// Note that this is only for the % operator, not for mod()
+		if(left->getBasicType() == EbtStruct || left->getBasicType() == EbtBool || left->getBasicType() == EbtFloat)
+		{
+			return nullptr;
+		}
+		break;
+		// Note that for bitwise ops, type checking is done in promote() to
+		// share code between ops and compound assignment
+	default:
+		break;
+	}
+
+	return intermediate.addBinaryMath(op, left, right, loc);
+}
+
+TIntermTyped *TParseContext::addBinaryMath(TOperator op, TIntermTyped *left, TIntermTyped *right, const TSourceLoc &loc)
+{
+	TIntermTyped *node = addBinaryMathInternal(op, left, right, loc);
+	if(node == 0)
+	{
+		binaryOpError(loc, getOperatorString(op), left->getCompleteString(), right->getCompleteString());
+		recover();
+		return left;
+	}
+	return node;
+}
+
+TIntermTyped *TParseContext::addBinaryMathBooleanResult(TOperator op, TIntermTyped *left, TIntermTyped *right, const TSourceLoc &loc)
+{
+	TIntermTyped *node = addBinaryMathInternal(op, left, right, loc);
+	if(node == 0)
+	{
+		binaryOpError(loc, getOperatorString(op), left->getCompleteString(), right->getCompleteString());
+		recover();
+		ConstantUnion *unionArray = new ConstantUnion[1];
+		unionArray->setBConst(false);
+		return intermediate.addConstantUnion(unionArray, TType(EbtBool, EbpUndefined, EvqConstExpr), loc);
+	}
+	return node;
+}
+
 TIntermBranch *TParseContext::addBranch(TOperator op, const TSourceLoc &loc)
 {
 	switch(op)

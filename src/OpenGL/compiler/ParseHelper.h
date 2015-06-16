@@ -200,12 +200,16 @@ struct TParseContext {
 
 	TIntermTyped *addUnaryMath(TOperator op, TIntermTyped *child, const TSourceLoc &loc);
 	TIntermTyped *addUnaryMathLValue(TOperator op, TIntermTyped *child, const TSourceLoc &loc);
+	TIntermTyped *addBinaryMath(TOperator op, TIntermTyped *left, TIntermTyped *right, const TSourceLoc &loc);
+	TIntermTyped *addBinaryMathBooleanResult(TOperator op, TIntermTyped *left, TIntermTyped *right, const TSourceLoc &loc);
 
 	TIntermBranch *addBranch(TOperator op, const TSourceLoc &loc);
 	TIntermBranch *addBranch(TOperator op, TIntermTyped *returnValue, const TSourceLoc &loc);
 
 private:
 	bool declareVariable(const TSourceLoc &line, const TString &identifier, const TType &type, TVariable **variable);
+
+	TIntermTyped *addBinaryMathInternal(TOperator op, TIntermTyped *left, TIntermTyped *right, const TSourceLoc &loc);
 
 	// The funcReturnType parameter is expected to be non-null when the operation is a built-in function.
 	// It is expected to be null for other unary operators.
