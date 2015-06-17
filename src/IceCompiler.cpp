@@ -141,21 +141,28 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
   }
 
   Ctx.waitForWorkerThreads();
-  Translator->transferErrorCode();
-  Translator->emitConstants();
+  if (Translator->getErrorStatus()) {
+    Ctx.getErrorStatus()->assign(Translator->getErrorStatus().value());
+  } else {
+    Ctx.lowerGlobals("last");
+    Ctx.lowerProfileData();
+    Ctx.lowerConstants();
 
-  if (Ctx.getFlags().getOutFileType() == FT_Elf) {
-    TimerMarker T1(Ice::TimerStack::TT_emit, &Ctx);
-    Ctx.getObjectWriter()->setUndefinedSyms(Ctx.getConstantExternSyms());
-    Ctx.getObjectWriter()->writeNonUserSections();
+    if (Ctx.getFlags().getOutFileType() == FT_Elf) {
+      TimerMarker T1(Ice::TimerStack::TT_emit, &Ctx);
+      Ctx.getObjectWriter()->setUndefinedSyms(Ctx.getConstantExternSyms());
+      Ctx.getObjectWriter()->writeNonUserSections();
+    }
   }
+
   if (Ctx.getFlags().getSubzeroTimingEnabled())
     Ctx.dumpTimers();
+
   if (Ctx.getFlags().getTimeEachFunction()) {
     const bool DumpCumulative = false;
     Ctx.dumpTimers(GlobalContext::TSK_Funcs, DumpCumulative);
   }
-  const bool FinalStats = true;
+  constexpr bool FinalStats = true;
   Ctx.dumpStats("_FINAL_", FinalStats);
 }
 

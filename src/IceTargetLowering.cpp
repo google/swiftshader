@@ -446,40 +446,63 @@ TargetDataLowering::createLowering(GlobalContext *Ctx) {
 
 TargetDataLowering::~TargetDataLowering() {}
 
-void TargetDataLowering::emitGlobal(const VariableDeclaration &Var) {
+namespace {
+
+// dataSectionSuffix decides whether to use SectionSuffix or MangledVarName as
+// data section suffix. Essentially, when using separate data sections for
+// globals SectionSuffix is not necessary.
+IceString dataSectionSuffix(const IceString &SectionSuffix,
+                            const IceString &MangledVarName,
+                            const bool DataSections) {
+  if (SectionSuffix.empty() && !DataSections) {
+    return "";
+  }
+
+  if (DataSections) {
+    // With data sections we don't need to use the SectionSuffix.
+    return "." + MangledVarName;
+  }
+
+  assert(!SectionSuffix.empty());
+  return "." + SectionSuffix;
+}
+
+} // end of anonymous namespace
+
+void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
+                                    const IceString &SectionSuffix) {
   if (!ALLOW_DUMP)
     return;
 
   // If external and not initialized, this must be a cross test.
   // Don't generate a declaration for such cases.
-  bool IsExternal = Var.isExternal() || Ctx->getFlags().getDisableInternal();
+  const bool IsExternal =
+      Var.isExternal() || Ctx->getFlags().getDisableInternal();
   if (IsExternal && !Var.hasInitializer())
     return;
 
   Ostream &Str = Ctx->getStrEmit();
-  const VariableDeclaration::InitializerListType &Initializers =
-      Var.getInitializers();
-  bool HasNonzeroInitializer = Var.hasNonzeroInitializer();
-  bool IsConstant = Var.getIsConstant();
-  uint32_t Align = Var.getAlignment();
-  SizeT Size = Var.getNumBytes();
-  IceString MangledName = Var.mangleName(Ctx);
-  IceString SectionSuffix = "";
-  if (Ctx->getFlags().getDataSections())
-    SectionSuffix = "." + MangledName;
+  const bool HasNonzeroInitializer = Var.hasNonzeroInitializer();
+  const bool IsConstant = Var.getIsConstant();
+  const SizeT Size = Var.getNumBytes();
+  const IceString MangledName = Var.mangleName(Ctx);
 
   Str << "\t.type\t" << MangledName << ",%object\n";
 
+  const bool UseDataSections = Ctx->getFlags().getDataSections();
+  const IceString Suffix =
+      dataSectionSuffix(SectionSuffix, MangledName, UseDataSections);
   if (IsConstant)
-    Str << "\t.section\t.rodata" << SectionSuffix << ",\"a\",%progbits\n";
+    Str << "\t.section\t.rodata" << Suffix << ",\"a\",%progbits\n";
   else if (HasNonzeroInitializer)
-    Str << "\t.section\t.data" << SectionSuffix << ",\"aw\",%progbits\n";
+    Str << "\t.section\t.data" << Suffix << ",\"aw\",%progbits\n";
   else
-    Str << "\t.section\t.bss" << SectionSuffix << ",\"aw\",%nobits\n";
+    Str << "\t.section\t.bss" << Suffix << ",\"aw\",%nobits\n";
 
   if (IsExternal)
     Str << "\t.globl\t" << MangledName << "\n";
 
+  const uint32_t Align = Var.getAlignment();
   if (Align > 1) {
     assert(llvm::isPowerOf2_32(Align));
     // Use the .p2align directive, since the .align N directive can either
@@ -490,11 +513,11 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var) {
   Str << MangledName << ":\n";
 
   if (HasNonzeroInitializer) {
-    for (VariableDeclaration::Initializer *Init : Initializers) {
+    for (VariableDeclaration::Initializer *Init : Var.getInitializers()) {
       switch (Init->getKind()) {
       case VariableDeclaration::Initializer::DataInitializerKind: {
-        const auto Data = llvm::cast<VariableDeclaration::DataInitializer>(Init)
-                              ->getContents();
+        const auto &Data = llvm::cast<VariableDeclaration::DataInitializer>(
+                               Init)->getContents();
         for (SizeT i = 0; i < Init->getNumBytes(); ++i) {
           Str << "\t.byte\t" << (((unsigned)Data[i]) & 0xff) << "\n";
         }
@@ -504,7 +527,7 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var) {
         Str << "\t.zero\t" << Init->getNumBytes() << "\n";
         break;
       case VariableDeclaration::Initializer::RelocInitializerKind: {
-        const auto Reloc =
+        const auto *Reloc =
             llvm::cast<VariableDeclaration::RelocInitializer>(Init);
         Str << "\t" << getEmit32Directive() << "\t";
         Str << Reloc->getDeclaration()->mangleName(Ctx);
@@ -519,12 +542,13 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var) {
       }
       }
     }
-  } else
+  } else {
     // NOTE: for non-constant zero initializers, this is BSS (no bits),
     // so an ELF writer would not write to the file, and only track
     // virtual offsets, but the .s writer still needs this .zero and
     // cannot simply use the .size to advance offsets.
     Str << "\t.zero\t" << Size << "\n";
+  }
 
   Str << "\t.size\t" << MangledName << ", " << Size << "\n";
 }

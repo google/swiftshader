@@ -270,8 +270,7 @@ define void @_start(i32) {
 ; CHECK:     ]
 ; CHECK:     Address: 0x0
 ; CHECK:     Offset: 0x{{[1-9A-F][0-9A-F]*}}
-; Size is 56 instead of 48 due to __Sz_block_profile_info .
-; CHECK:     Size: 56
+; CHECK:     Size: 48
 ; CHECK:     Link: 0
 ; CHECK:     Info: 0
 ; CHECK:     AddressAlignment: 32

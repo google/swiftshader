@@ -137,7 +137,8 @@ public:
     return std::unique_ptr<TargetDataLowering>(new TargetDataMIPS32(Ctx));
   }
 
-  void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) override;
+  void lowerGlobals(const VariableDeclarationList &Vars,
+                    const IceString &SectionSuffix) override;
   void lowerConstants() override;
 
 protected:

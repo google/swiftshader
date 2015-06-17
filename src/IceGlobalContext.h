@@ -303,6 +303,8 @@ public:
   // Emit file header for output file.
   void emitFileHeader();
 
+  void lowerConstants();
+
   void emitQueueBlockingPush(EmitterWorkItem *Item);
   EmitterWorkItem *emitQueueBlockingPop();
   void emitQueueNotifyEnd() { EmitQ.notifyEnd(); }
@@ -380,6 +382,13 @@ public:
   // until the queue is empty.
   void emitItems();
 
+  // Uses DataLowering to lower Globals. As a side effect, clears the Globals
+  // array.
+  void lowerGlobals(const IceString &SectionSuffix);
+
+  // Lowers the profile information.
+  void lowerProfileData();
+
   // Utility function to match a symbol name against a match string.
   // This is used in a few cases where we want to take some action on
   // a particular function or symbol based on a command-line argument,
@@ -432,9 +441,22 @@ private:
   Intrinsics IntrinsicsInfo;
   const ClFlags &Flags;
   RandomNumberGenerator RNG; // TODO(stichnot): Move into Cfg.
+  // TODO(jpp): move to EmitterContext.
   std::unique_ptr<ELFObjectWriter> ObjectWriter;
   BoundedProducerConsumerQueue<Cfg> OptQ;
   BoundedProducerConsumerQueue<EmitterWorkItem> EmitQ;
+  // DataLowering is only ever used by a single thread at a time (either in
+  // emitItems(), or in IceCompiler::run before the compilation is over.)
+  // TODO(jpp): move to EmitterContext.
+  std::unique_ptr<TargetDataLowering> DataLowering;
+  // If !HasEmittedCode, SubZero will accumulate all Globals (which are "true"
+  // program global variables) until the first code WorkItem is seen.
+  // TODO(jpp): move to EmitterContext.
+  bool HasSeenCode;
+  // TODO(jpp): move to EmitterContext.
+  VariableDeclarationList Globals;
+  // TODO(jpp): move to EmitterContext.
+  std::unique_ptr<VariableDeclaration> ProfileBlockInfoVarDecl;
 
   LockedPtr<ArenaAllocator<>> getAllocator() {
     return LockedPtr<ArenaAllocator<>>(&Allocator, &AllocLock);
@@ -447,6 +469,19 @@ private:
   }
   LockedPtr<TimerList> getTimers() {
     return LockedPtr<TimerList>(&Timers, &TimerLock);
+  }
+
+  void accumulateGlobals(std::unique_ptr<VariableDeclarationList> Globls) {
+    if (Globls != nullptr)
+      Globals.insert(Globals.end(), Globls->begin(), Globls->end());
+  }
+
+  void lowerGlobalsIfNoCodeHasBeenSeen() {
+    if (HasSeenCode)
+      return;
+    constexpr char NoSuffix[] = "";
+    lowerGlobals(NoSuffix);
+    HasSeenCode = true;
   }
 
   llvm::SmallVector<ThreadContext *, 128> AllThreadContexts;

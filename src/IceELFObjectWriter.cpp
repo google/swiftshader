@@ -285,7 +285,8 @@ void partitionGlobalsBySection(const VariableDeclarationList &Vars,
 } // end of anonymous namespace
 
 void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
-                                       FixupKind RelocationKind) {
+                                       FixupKind RelocationKind,
+                                       const IceString &SectionSuffix) {
   assert(!SectionNumbersAssigned);
   VariableDeclarationList VarsBySection[ELFObjectWriter::NumSectionTypes];
   for (auto &SectionList : VarsBySection)
@@ -294,18 +295,28 @@ void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
                             Ctx.getFlags().getTranslateOnly());
   size_t I = 0;
   for (auto &SectionList : VarsBySection) {
-    writeDataOfType(static_cast<SectionType>(I++), SectionList, RelocationKind);
+    writeDataOfType(static_cast<SectionType>(I++), SectionList, RelocationKind,
+                    SectionSuffix);
   }
 }
 
+namespace {
+IceString MangleSectionName(const char Base[], const IceString &Suffix) {
+  if (Suffix.empty())
+    return Base;
+  return Base + ("." + Suffix);
+}
+} // end of anonymous namespace
+
+// TODO(jvoung): Handle fdata-sections.
 void ELFObjectWriter::writeDataOfType(SectionType ST,
                                       const VariableDeclarationList &Vars,
-                                      FixupKind RelocationKind) {
+                                      FixupKind RelocationKind,
+                                      const IceString &SectionSuffix) {
   if (Vars.empty())
     return;
   ELFDataSection *Section;
   ELFRelocationSection *RelSection;
-  // TODO(jvoung): Handle fdata-sections.
   IceString SectionName;
   Elf64_Xword ShAddralign = 1;
   for (VariableDeclaration *Var : Vars) {
@@ -316,9 +327,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
   // Lift this out, so it can be re-used if we do fdata-sections?
   switch (ST) {
   case ROData: {
-    SectionName = ".rodata";
-    // Only expecting to write the data sections all in one shot for now.
-    assert(RODataSections.empty());
+    const IceString SectionName = MangleSectionName(".rodata", SectionSuffix);
     const Elf64_Xword ShFlags = SHF_ALLOC;
     Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, ShFlags,
                                             ShAddralign, ShEntsize);
@@ -329,8 +338,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     break;
   }
   case Data: {
-    SectionName = ".data";
-    assert(DataSections.empty());
+    const IceString SectionName = MangleSectionName(".data", SectionSuffix);
     const Elf64_Xword ShFlags = SHF_ALLOC | SHF_WRITE;
     Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, ShFlags,
                                             ShAddralign, ShEntsize);
@@ -341,8 +349,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     break;
   }
   case BSS: {
-    SectionName = ".bss";
-    assert(BSSSections.empty());
+    const IceString SectionName = MangleSectionName(".bss", SectionSuffix);
     const Elf64_Xword ShFlags = SHF_ALLOC | SHF_WRITE;
     Section = createSection<ELFDataSection>(SectionName, SHT_NOBITS, ShFlags,
                                             ShAddralign, ShEntsize);
@@ -383,9 +390,8 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
       for (VariableDeclaration::Initializer *Init : Var->getInitializers()) {
         switch (Init->getKind()) {
         case VariableDeclaration::Initializer::DataInitializerKind: {
-          const auto Data =
-              llvm::cast<VariableDeclaration::DataInitializer>(Init)
-                  ->getContents();
+          const auto Data = llvm::cast<VariableDeclaration::DataInitializer>(
+                                Init)->getContents();
           Section->appendData(Str, llvm::StringRef(Data.data(), Data.size()));
           break;
         }

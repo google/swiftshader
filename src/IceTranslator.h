@@ -48,13 +48,6 @@ public:
   /// Takes ownership of Func.
   void translateFcn(std::unique_ptr<Cfg> Func);
 
-  /// Emits the constant pool.
-  void emitConstants();
-
-  /// If there was an error during bitcode reading/parsing, copy the
-  /// error code into the GlobalContext.
-  void transferErrorCode() const;
-
   /// Lowers the given list of global addresses to target. Generates
   /// list of corresponding variable declarations.
   void

@@ -30,11 +30,12 @@ namespace Ice {
 // sections and write them out.  Expected usage:
 //
 // (1) writeInitialELFHeader (invoke once)
-// (2) writeDataSection  (invoke once)
-// (3) writeFunctionCode (must invoke once per function)
-// (4) writeConstantPool (must invoke once per pooled primitive type)
-// (5) setUndefinedSyms (invoke once)
-// (6) writeNonUserSections (invoke once)
+// (2) writeDataSection      (may be invoked multiple times, as long as
+//                            SectionSuffix is unique)
+// (3) writeFunctionCode     (must invoke once per function)
+// (4) writeConstantPool     (must invoke once per pooled primitive type)
+// (5) setUndefinedSyms      (invoke once)
+// (6) writeNonUserSections  (invoke once)
 //
 // The requirement for writeDataSection to be invoked only once can
 // be relaxed if using -fdata-sections. The requirement to invoke only once
@@ -42,11 +43,6 @@ namespace Ice {
 // SectionType are contiguous in the file. With -fdata-sections, each global
 // variable is in a separate section and therefore the sections will be
 // trivially contiguous.
-//
-// The motivation for requiring that writeFunctionCode happen after
-// writeDataSection: to keep the .text and .data sections contiguous in the
-// file. Having both -fdata-sections and -ffunction-sections does allow
-// relaxing this requirement.
 class ELFObjectWriter {
   ELFObjectWriter() = delete;
   ELFObjectWriter(const ELFObjectWriter &) = delete;
@@ -64,7 +60,8 @@ public:
   // of each global's definition in the symbol table.
   // Use the given target's RelocationKind for any relocations.
   void writeDataSection(const VariableDeclarationList &Vars,
-                        FixupKind RelocationKind);
+                        FixupKind RelocationKind,
+                        const IceString &SectionSuffix);
 
   // Copy data of a function's text section to file and note the offset of the
   // symbol's definition in the symbol table.
@@ -151,7 +148,8 @@ private:
   // SectionType, given the global variables Vars belonging to that SectionType.
   void writeDataOfType(SectionType SectionType,
                        const VariableDeclarationList &Vars,
-                       FixupKind RelocationKind);
+                       FixupKind RelocationKind,
+                       const IceString &SectionSuffix);
 
   // Write the final relocation sections given the final symbol table.
   // May also be able to seek around the file and resolve function calls

@@ -3296,11 +3296,10 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       Func->setError("Unexpected memory ordering for AtomicRMW");
       return;
     }
-    lowerAtomicRMW(
-        Instr->getDest(),
-        static_cast<uint32_t>(
-            llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue()),
-        Instr->getArg(1), Instr->getArg(2));
+    lowerAtomicRMW(Instr->getDest(),
+                   static_cast<uint32_t>(llvm::cast<ConstantInteger32>(
+                                             Instr->getArg(0))->getValue()),
+                   Instr->getArg(1), Instr->getArg(2));
     return;
   case Intrinsics::AtomicStore: {
     if (!Intrinsics::isMemoryOrderValid(
@@ -5021,20 +5020,20 @@ void TargetX8632::emit(const ConstantUndef *) const {
 TargetDataX8632::TargetDataX8632(GlobalContext *Ctx)
     : TargetDataLowering(Ctx) {}
 
-void TargetDataX8632::lowerGlobals(
-    std::unique_ptr<VariableDeclarationList> Vars) {
+void TargetDataX8632::lowerGlobals(const VariableDeclarationList &Vars,
+                                   const IceString &SectionSuffix) {
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    Writer->writeDataSection(*Vars, llvm::ELF::R_386_32);
+    Writer->writeDataSection(Vars, llvm::ELF::R_386_32, SectionSuffix);
   } break;
   case FT_Asm:
   case FT_Iasm: {
     const IceString &TranslateOnly = Ctx->getFlags().getTranslateOnly();
     OstreamLocker L(Ctx);
-    for (const VariableDeclaration *Var : *Vars) {
+    for (const VariableDeclaration *Var : Vars) {
       if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
-        emitGlobal(*Var);
+        emitGlobal(*Var, SectionSuffix);
       }
     }
   } break;

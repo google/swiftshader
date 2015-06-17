@@ -671,20 +671,20 @@ void ConstantUndef::emit(GlobalContext *) const {
 TargetDataMIPS32::TargetDataMIPS32(GlobalContext *Ctx)
     : TargetDataLowering(Ctx) {}
 
-void TargetDataMIPS32::lowerGlobals(
-    std::unique_ptr<VariableDeclarationList> Vars) {
+void TargetDataMIPS32::lowerGlobals(const VariableDeclarationList &Vars,
+                                    const IceString &SectionSuffix) {
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    Writer->writeDataSection(*Vars, llvm::ELF::R_MIPS_GLOB_DAT);
+    Writer->writeDataSection(Vars, llvm::ELF::R_MIPS_GLOB_DAT, SectionSuffix);
   } break;
   case FT_Asm:
   case FT_Iasm: {
     const IceString &TranslateOnly = Ctx->getFlags().getTranslateOnly();
     OstreamLocker L(Ctx);
-    for (const VariableDeclaration *Var : *Vars) {
+    for (const VariableDeclaration *Var : Vars) {
       if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
-        emitGlobal(*Var);
+        emitGlobal(*Var, SectionSuffix);
       }
     }
   } break;

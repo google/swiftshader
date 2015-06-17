@@ -222,7 +222,10 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
       OptQ(/*Sequential=*/Flags.isSequential(),
            /*MaxSize=*/Flags.getNumTranslationThreads()),
       // EmitQ is allowed unlimited size.
-      EmitQ(/*Sequential=*/Flags.isSequential()) {
+      EmitQ(/*Sequential=*/Flags.isSequential()),
+      DataLowering(TargetDataLowering::createLowering(this)),
+      HasSeenCode(false),
+      ProfileBlockInfoVarDecl(VariableDeclaration::create()) {
   assert(OsDump && "OsDump is not defined for GlobalContext");
   assert(OsEmit && "OsEmit is not defined for GlobalContext");
   assert(OsError && "OsError is not defined for GlobalContext");
@@ -254,6 +257,14 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
   case FT_Iasm:
     break;
   }
+  ProfileBlockInfoVarDecl->setAlignment(typeWidthInBytes(IceType_i64));
+  ProfileBlockInfoVarDecl->setIsConstant(true);
+
+  // Note: if you change this symbol, make sure to update
+  // runtime/szrt_profiler.c as well.
+  ProfileBlockInfoVarDecl->setName("__Sz_block_profile_info");
+  ProfileBlockInfoVarDecl->setSuppressMangling();
+  ProfileBlockInfoVarDecl->setLinkage(llvm::GlobalValue::ExternalLinkage);
 }
 
 void GlobalContext::translateFunctions() {
@@ -322,80 +333,22 @@ void GlobalContext::translateFunctions() {
 
 namespace {
 
-// Adds an array of pointers to all the profiler-generated globals. The
-// __Sz_profile_summary function iterates over this array for printing the
-// profiling counters.
-VariableDeclaration *blockProfileInfo(const VariableDeclarationList &Globals) {
-  auto *Var = VariableDeclaration::create();
-  Var->setAlignment(typeWidthInBytes(IceType_i64));
-  Var->setIsConstant(true);
-
-  // Note: if you change this symbol, make sure to update
-  // runtime/szrt_profiler.c as well.
-  Var->setName("__Sz_block_profile_info");
-  Var->setSuppressMangling();
-  Var->setLinkage(llvm::GlobalValue::ExternalLinkage);
+void addBlockInfoPtrs(const VariableDeclarationList &Globals,
+                      VariableDeclaration *ProfileBlockInfo) {
   for (const VariableDeclaration *Global : Globals) {
     if (Cfg::isProfileGlobal(*Global)) {
       constexpr RelocOffsetT BlockExecutionCounterOffset = 0;
-      Var->addInitializer(new VariableDeclaration::RelocInitializer(
-          Global, BlockExecutionCounterOffset));
+      ProfileBlockInfo->addInitializer(
+          new VariableDeclaration::RelocInitializer(
+              Global, BlockExecutionCounterOffset));
     }
   }
-
-  // This adds a 64-bit sentinel entry to the end of our array. For 32-bit
-  // architectures this will waste 4 bytes.
-  const SizeT Sizeof64BitNullPtr = typeWidthInBytes(IceType_i64);
-  Var->addInitializer(
-      new VariableDeclaration::ZeroInitializer(Sizeof64BitNullPtr));
-
-  return Var;
-}
-
-void addBlockProfileInfoArrayToGlobals(VariableDeclarationList *Globals) {
-  // Purposefully create the Var temp to prevent bugs in case the compiler
-  // reorders instructions in a way that Globals is extended before the call
-  // to profileInfoArray.
-  VariableDeclaration *Var = blockProfileInfo(*Globals);
-  Globals->push_back(Var);
-}
-
-void lowerGlobals(GlobalContext *Ctx,
-                  std::unique_ptr<VariableDeclarationList> VariableDeclarations,
-                  TargetDataLowering *DataLowering) {
-  TimerMarker T(TimerStack::TT_emitGlobalInitializers, Ctx);
-  const bool DumpGlobalVariables = ALLOW_DUMP && Ctx->getFlags().getVerbose() &&
-                                   Ctx->getFlags().getVerboseFocusOn().empty();
-  if (DumpGlobalVariables) {
-    OstreamLocker L(Ctx);
-    Ostream &Stream = Ctx->getStrDump();
-    for (const Ice::VariableDeclaration *Global : *VariableDeclarations) {
-      Global->dump(Ctx, Stream);
-    }
-  }
-  if (Ctx->getFlags().getDisableTranslation())
-    return;
-
-  // There should be no need to emit the block_profile_info array if profiling
-  // is disabled. In practice, given that szrt_profiler.o will always be
-  // embedded in the application, we need to add it. In a non-profiled build
-  // this array will only contain the nullptr terminator.
-  addBlockProfileInfoArrayToGlobals(VariableDeclarations.get());
-
-  DataLowering->lowerGlobals(std::move(VariableDeclarations));
 }
 
 // Ensure Pending is large enough that Pending[Index] is valid.
 void resizePending(std::vector<EmitterWorkItem *> &Pending, uint32_t Index) {
   if (Index >= Pending.size())
     Pending.resize(Index + 1);
-}
-
-void addAllIfNotNull(std::unique_ptr<VariableDeclarationList> src,
-                     VariableDeclarationList *dst) {
-  if (src != nullptr) {
-    dst->insert(dst->end(), src->begin(), src->end());
-  }
 }
 
 } // end of anonymous namespace
@@ -411,6 +364,40 @@ void GlobalContext::emitFileHeader() {
   }
 }
 
+void GlobalContext::lowerConstants() {
+  DataLowering->lowerConstants();
+}
+
+void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
+  TimerMarker T(TimerStack::TT_emitGlobalInitializers, this);
+  const bool DumpGlobalVariables =
+      ALLOW_DUMP && Flags.getVerbose() && Flags.getVerboseFocusOn().empty();
+  if (DumpGlobalVariables) {
+    OstreamLocker L(this);
+    Ostream &Stream = getStrDump();
+    for (const Ice::VariableDeclaration *Global : Globals) {
+      Global->dump(this, Stream);
+    }
+  }
+  if (Flags.getDisableTranslation())
+    return;
+
+  addBlockInfoPtrs(Globals, ProfileBlockInfoVarDecl.get());
+  DataLowering->lowerGlobals(Globals, SectionSuffix);
+  Globals.clear();
+}
+
+void GlobalContext::lowerProfileData() {
+  // This adds a 64-bit sentinel entry to the end of our array. For 32-bit
+  // architectures this will waste 4 bytes.
+  const SizeT Sizeof64BitNullPtr = typeWidthInBytes(IceType_i64);
+  ProfileBlockInfoVarDecl->addInitializer(
+      new VariableDeclaration::ZeroInitializer(Sizeof64BitNullPtr));
+  Globals.push_back(ProfileBlockInfoVarDecl.get());
+  constexpr char ProfileDataSection[] = "$sz_profiler$";
+  lowerGlobals(ProfileDataSection);
+}
+
 void GlobalContext::emitItems() {
   const bool Threaded = !getFlags().isSequential();
   // Pending is a vector containing the reassembled, ordered list of
@@ -419,8 +406,6 @@ void GlobalContext::emitItems() {
   // the work queue, and if it's not the item we're waiting for, we
   // insert it into Pending and repeat.  The work item is deleted
   // after it is processed.
-  std::unique_ptr<VariableDeclarationList> GlobalInits(
-      new VariableDeclarationList());
   std::vector<EmitterWorkItem *> Pending;
   uint32_t DesiredSequenceNumber = getFirstSequenceNumber();
   while (true) {
@@ -444,10 +429,12 @@ void GlobalContext::emitItems() {
     case EmitterWorkItem::WI_Nop:
       break;
     case EmitterWorkItem::WI_GlobalInits: {
-      addAllIfNotNull(Item->getGlobalInits(), GlobalInits.get());
+      accumulateGlobals(Item->getGlobalInits());
     } break;
     case EmitterWorkItem::WI_Asm: {
-      addAllIfNotNull(Item->getGlobalInits(), GlobalInits.get());
+      lowerGlobalsIfNoCodeHasBeenSeen();
+      accumulateGlobals(Item->getGlobalInits());
+
       std::unique_ptr<Assembler> Asm = Item->getAsm();
       Asm->alignFunction();
       IceString MangledName = mangleName(Asm->getFunctionName());
@@ -469,8 +456,8 @@ void GlobalContext::emitItems() {
     case EmitterWorkItem::WI_Cfg: {
       if (!ALLOW_DUMP)
         llvm::report_fatal_error("WI_Cfg work item created inappropriately");
-
-      addAllIfNotNull(Item->getGlobalInits(), GlobalInits.get());
+      lowerGlobalsIfNoCodeHasBeenSeen();
+      accumulateGlobals(Item->getGlobalInits());
 
       assert(getFlags().getOutFileType() == FT_Asm);
       std::unique_ptr<Cfg> Func = Item->getCfg();
@@ -485,8 +472,9 @@ void GlobalContext::emitItems() {
     }
   }
 
-  lowerGlobals(this, std::move(GlobalInits),
-               TargetDataLowering::createLowering(this).get());
+  // In case there are no code to be generated, we invoke the conditional
+  // lowerGlobals again -- this is a no-op if code has been emitted.
+  lowerGlobalsIfNoCodeHasBeenSeen();
 }
 
 // Scan a string for S[0-9A-Z]*_ patterns and replace them with

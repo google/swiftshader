@@ -380,16 +380,18 @@ public:
   static std::unique_ptr<TargetDataLowering> createLowering(GlobalContext *Ctx);
   virtual ~TargetDataLowering();
 
-  virtual void lowerGlobals(std::unique_ptr<VariableDeclarationList> Vars) = 0;
+  virtual void lowerGlobals(const VariableDeclarationList &Vars,
+                            const IceString &SectionSuffix) = 0;
   virtual void lowerConstants() = 0;
 
 protected:
-  void emitGlobal(const VariableDeclaration &Var);
+  void emitGlobal(const VariableDeclaration &Var,
+                  const IceString &SectionSuffix);
 
   // For now, we assume .long is the right directive for emitting 4 byte
   // emit global relocations. However, LLVM MIPS usually uses .4byte instead.
   // Perhaps there is some difference when the location is unaligned.
-  const char *getEmit32Directive() { return ".long"; }
+  static const char *getEmit32Directive() { return ".long"; }
 
   explicit TargetDataLowering(GlobalContext *Ctx) : Ctx(Ctx) {}
   GlobalContext *Ctx;

@@ -57,16 +57,6 @@ void Translator::translateFcn(std::unique_ptr<Cfg> Func) {
   Ctx->optQueueBlockingPush(std::move(Func));
 }
 
-void Translator::emitConstants() {
-  if (!getErrorStatus())
-    TargetDataLowering::createLowering(Ctx)->lowerConstants();
-}
-
-void Translator::transferErrorCode() const {
-  if (getErrorStatus())
-    Ctx->getErrorStatus()->assign(getErrorStatus().value());
-}
-
 void Translator::lowerGlobals(
     std::unique_ptr<VariableDeclarationList> VariableDeclarations) {
   EmitterWorkItem *Item = new EmitterWorkItem(getNextSequenceNumber(),
