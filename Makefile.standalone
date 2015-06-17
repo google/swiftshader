@@ -22,10 +22,13 @@ SB_LLVM_PATH ?= $(shell readlink -e \
 NACL_ROOT ?= $(shell python -c "import sys; sys.path.insert(0, 'pydir'); \
 	import utils; print utils.FindBaseNaCl()")
 
+# TOOLCHAIN_ROOT is the location of NaCl/PNaCl toolchains and other
+# tools like qemu.
+TOOLCHAIN_ROOT ?= $(shell readlink -e $(NACL_ROOT)/toolchain/linux_x86)
+
 # PNACL_TOOLCHAIN_ROOT is the location of the PNaCl toolchain.
 # This is used as the default root for finding binutils, libcxx, etc.
-PNACL_TOOLCHAIN_ROOT ?= $(shell readlink -e \
-	$(NACL_ROOT)/toolchain/linux_x86/pnacl_newlib_raw)
+PNACL_TOOLCHAIN_ROOT ?= $(shell readlink -e $(TOOLCHAIN_ROOT)/pnacl_newlib_raw)
 
 # The location of PNaCl tools (e.g., binutils objdump, pnacl-clang++, etc.).
 PNACL_BIN_PATH ?= $(shell readlink -e $(PNACL_TOOLCHAIN_ROOT)/bin)
@@ -105,6 +108,7 @@ $(info -----------------------------------------------)
 $(info Using LLVM_SRC_PATH = $(LLVM_SRC_PATH))
 $(info Using SB_LLVM_PATH = $(SB_LLVM_PATH))
 $(info Using NACL_ROOT = $(NACL_ROOT))
+$(info Using TOOLCHAIN_ROOT = $(TOOLCHAIN_ROOT))
 $(info Using PNACL_TOOLCHAIN_ROOT = $(PNACL_TOOLCHAIN_ROOT))
 $(info Using PNACL_BIN_PATH = $(PNACL_BIN_PATH))
 $(info Using CLANG_PATH = $(CLANG_PATH))
@@ -303,8 +307,10 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
        # Do all native/sse2 tests, but only test_vector_ops for native/sse4.1.
        # For (slow) sandboxed tests, limit to Om1/sse4.1.
 	./pydir/crosstest_generator.py -v --lit \
-	  -i native,sse2 -i native,sse4.1,test_vector_ops \
-	  -i sandbox,sse4.1,Om1
+	  --toolchain-root $(TOOLCHAIN_ROOT) \
+	  -i x8632,native,sse2 -i x8632,native,sse4.1,test_vector_ops \
+	  -i x8632,sandbox,sse4.1,Om1 \
+	  -i arm32,native,neon,Om1,simple_loop
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv crosstest/Output
 endif

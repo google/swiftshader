@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 
+import targets
 from utils import shellcmd
 from utils import FindBaseNaCl
 
@@ -22,8 +23,23 @@ def main():
     results.
 
     """
-    # arch_map maps a Subzero target string to an llvm-mc -triple string.
-    arch_map = { 'x8632':'i686', 'x8664':'x86_64', 'arm':'armv7a' }
+    # arch_map maps a Subzero target string to TargetInfo (e.g., triple).
+    arch_map = { 'x8632': targets.X8632Target,
+                 'x8664': targets.X8664Target,
+                 'arm32': targets.ARM32Target }
+    arch_sz_flags = { 'x8632': [],
+                      'x8664': [],
+                      # TODO(jvoung): remove skip-unimplemented when implemented
+                      'arm32': ['--skip-unimplemented']
+    }
+    arch_llc_flags_extra = {
+        # Use sse2 instructions regardless of input -mattr
+        # argument to avoid differences in (undefined) behavior of
+        # converting NaN to int.
+        'x8632': ['-mattr=sse2'],
+        'x8664': ['-mattr=sse2'],
+        'arm32': [],
+    }
     desc = 'Build a cross-test that compares Subzero and llc translation.'
     argparser = argparse.ArgumentParser(description=desc)
     argparser.add_argument('--test', required=True, action='append',
@@ -46,7 +62,8 @@ def main():
     argparser.add_argument('--clang-opt', required=False, default=True,
                            dest='clang_opt')
     argparser.add_argument('--mattr',  required=False, default='sse2',
-                           dest='attr', choices=['sse2', 'sse4.1'],
+                           dest='attr', choices=['sse2', 'sse4.1',
+                                                 'neon', 'hwdiv-arm'],
                            metavar='ATTRIBUTE',
                            help='Target attribute. Default %(default)s.')
     argparser.add_argument('--sandbox', required=False, default=0, type=int,
@@ -76,7 +93,11 @@ def main():
     nacl_root = FindBaseNaCl()
     bindir = ('{root}/toolchain/linux_x86/pnacl_newlib_raw/bin'
               .format(root=nacl_root))
-    triple = arch_map[args.target] + ('-nacl' if args.sandbox else '')
+    target_info = arch_map[args.target]
+    triple = target_info.triple
+    if args.sandbox:
+        triple = targets.ConvertTripleToNaCl(triple)
+    llc_flags = target_info.llc_flags + arch_llc_flags_extra[args.target]
     mypath = os.path.abspath(os.path.dirname(sys.argv[0]))
 
     objs = []
@@ -116,7 +137,7 @@ def main():
                   '-externalize',
                   '-filetype=' + args.filetype,
                   '-o=' + (obj_sz if args.filetype == 'obj' else asm_sz),
-                  bitcode])
+                  bitcode] + arch_sz_flags[args.target])
         if args.filetype != 'obj':
             shellcmd(['{bin}/llvm-mc'.format(bin=bindir),
                       '-triple=' + triple,
@@ -137,14 +158,10 @@ def main():
         if args.crosstest_bitcode:
             shellcmd(['{bin}/pnacl-llc'.format(bin=bindir),
                       '-mtriple=' + triple,
-                      # Use sse2 instructions regardless of input -mattr
-                      # argument to avoid differences in (undefined) behavior of
-                      # converting NaN to int.
-                      '-mattr=sse2',
                       '-externalize',
                       '-filetype=obj',
                       '-o=' + obj_llc,
-                      bitcode])
+                      bitcode] + llc_flags)
             objs.append(obj_llc)
         else:
             objs.append(arg)
@@ -162,7 +179,8 @@ def main():
     sb_native_args = (['-O0', '--pnacl-allow-native', '-arch', 'x8632',
                        '-Wn,-defsym=__Sz_AbsoluteZero=0']
                       if args.sandbox else
-                      ['-g', '-m32', '-lm', '-lpthread',
+                      ['-g', '-target=' + triple,
+                       '-lm', '-lpthread',
                        '-Wl,--defsym=__Sz_AbsoluteZero=0'])
     shellcmd([compiler, args.driver] + objs +
              ['-o', os.path.join(args.dir, args.output)] + sb_native_args)

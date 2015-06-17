@@ -1,12 +1,14 @@
 #!/usr/bin/env python2
 
 import argparse
-from collections import namedtuple
 import os
 import shutil
 import tempfile
+
+import targets
 from utils import shellcmd
 from utils import FindBaseNaCl
+
 
 def Translate(ll_files, extra_args, obj, verbose):
     """Translate a set of input bitcode files into a single object file.
@@ -29,16 +31,13 @@ def Translate(ll_files, extra_args, obj, verbose):
               obj
         ], echo=verbose)
 
+
 def PartialLink(obj_files, extra_args, lib, verbose):
     """Partially links a set of obj files into a final obj library."""
     shellcmd(['le32-nacl-ld',
               '-o', lib,
               '-r',
         ] + extra_args + obj_files, echo=verbose)
-
-
-TargetInfo = namedtuple('TargetInfo',
-                        ['target', 'triple', 'llc_flags', 'ld_emu'])
 
 
 def MakeRuntimesForTarget(target_info, ll_files,
@@ -72,7 +71,7 @@ def MakeRuntimesForTarget(target_info, ll_files,
     # The sandboxed library does not get the profiler helper function as the
     # binaries are linked with -nostdlib.
     Translate(ll_files,
-              ['-mtriple=' + target_info.triple.replace('linux', 'nacl')] +
+              ['-mtriple=' + targets.ConvertTripleToNaCl(target_info.triple)] +
               target_info.llc_flags,
               OutFile('{rtdir}/szrt_sb_{target}.o'),
               verbose)
@@ -123,19 +122,9 @@ def main():
         ll_files = ['{dir}/szrt.ll'.format(dir=tempdir),
                     '{srcdir}/szrt_ll.ll'.format(srcdir=srcdir)]
 
-        x8632_target = TargetInfo(target='x8632',
-                                  triple='i686-none-linux',
-                                  llc_flags=['-mcpu=pentium4m'],
-                                  ld_emu='elf_i386_nacl')
-        MakeRuntimesForTarget(x8632_target, ll_files,
+        MakeRuntimesForTarget(targets.X8632Target, ll_files,
                               srcdir, tempdir, rtdir, args.verbose)
-        arm32_target = TargetInfo(target='arm32',
-                                  triple='armv7a-none-linux-gnueabihf',
-                                  llc_flags=['-mcpu=cortex-a9',
-                                             '-float-abi=hard',
-                                             '-mattr=+neon'],
-                                  ld_emu='armelf_nacl')
-        MakeRuntimesForTarget(arm32_target, ll_files,
+        MakeRuntimesForTarget(targets.ARM32Target, ll_files,
                               srcdir, tempdir, rtdir, args.verbose)
 
     finally:

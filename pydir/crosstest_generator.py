@@ -27,6 +27,22 @@ def Match(desc, includes, excludes, default_match):
       return True
   return default_match
 
+
+def RunNativePrefix(toolchain_root, target, run_cmd):
+  """Returns a prefix for running an executable for the target.
+
+  For example, we may be running an ARM or MIPS target executable on an
+  x86 machine and need to use an emulator.
+  """
+  arch_map = { 'x8632' : '',
+               'x8664' : '',
+               'arm32' : os.path.join(toolchain_root, 'arm_trusted',
+                                      'run_under_qemu_arm'),
+             }
+  prefix = arch_map[target]
+  return (prefix + ' ' + run_cmd) if prefix else run_cmd
+
+
 def main():
   """Framework for cross test generation and execution.
 
@@ -39,13 +55,20 @@ def main():
   root = FindBaseNaCl()
 
   # The rest of the attribute sets.
-  targets = [ 'x8632' ]
+  targets = [ 'x8632', 'arm32' ]
   sandboxing = [ 'native', 'sandbox' ]
   opt_levels = [ 'Om1', 'O2' ]
-  arch_attrs = [ 'sse2', 'sse4.1' ]
+  arch_attrs = { 'x8632': [ 'sse2', 'sse4.1' ],
+                 'arm32': [ 'neon', 'hwdiv-arm' ] }
+  flat_attrs = []
+  for v in arch_attrs.values():
+    flat_attrs += v
+  arch_flags = { 'x8632': [],
+                 # ARM doesn't have an integrated assembler yet.
+                 'arm32': ['--filetype=asm'] }
   # all_keys is only used in the help text.
   all_keys = '; '.join([' '.join(targets), ' '.join(sandboxing),
-                        ' '.join(opt_levels), ' '.join(arch_attrs)])
+                        ' '.join(opt_levels), ' '.join(flat_attrs)])
 
   argparser = argparse.ArgumentParser(
     description='  ' + main.__doc__ +
@@ -76,6 +99,8 @@ def main():
                          help='Output directory')
   argparser.add_argument('--lit', default=False, action='store_true',
                          help='Generate files for lit testing')
+  argparser.add_argument('--toolchain-root', dest='toolchain_root',
+                           help='Path to toolchain binaries.')
   args = argparser.parse_args()
 
   # Run from the crosstest directory to make it easy to grab inputs.
@@ -113,7 +138,7 @@ def main():
     for target in targets:
       for sb in sandboxing:
         for opt in opt_levels:
-          for attr in arch_attrs:
+          for attr in arch_attrs[target]:
             desc = [ test, target, sb, opt, attr ]
             if Match(set(desc), includes, excludes, default_match):
               exe = '{test}_{target}_{sb}_{opt}_{attr}'.format(
@@ -122,24 +147,27 @@ def main():
               extra = (tests.get(test, 'flags').split(' ')
                        if tests.has_option(test, 'flags') else [])
               # Generate the compile command.
-              cmp_cmd = ['{path}/crosstest.py'.format(path=pypath),
-                         '-{opt}'.format(opt=opt),
-                         '--mattr={attr}'.format(attr=attr),
-                         '--prefix=Subzero_',
-                         '--target={target}'.format(target=target),
-                         '--sandbox={sb}'.format(sb='1' if sb=='sandbox'
-                                                 else '0'),
-                         '--dir={dir}'.format(dir=args.dir),
-                         '--output={exe}'.format(exe=exe),
-                         '--driver={drv}'.format(drv=tests.get(test, 'driver')),
-                        ] + extra + \
-                        [ '--test=' + t
-                          for t in tests.get(test, 'test').split(' ') ]
+              cmp_cmd = (
+                ['{path}/crosstest.py'.format(path=pypath),
+                 '-{opt}'.format(opt=opt),
+                 '--mattr={attr}'.format(attr=attr),
+                 '--prefix=Subzero_',
+                 '--target={target}'.format(target=target),
+                 '--sandbox={sb}'.format(sb='1' if sb=='sandbox' else '0'),
+                 '--dir={dir}'.format(dir=args.dir),
+                 '--output={exe}'.format(exe=exe),
+                 '--driver={drv}'.format(drv=tests.get(test, 'driver'))] +
+                extra +
+                ['--test=' + t
+                 for t in tests.get(test, 'test').split(' ')] +
+                arch_flags[target])
               run_cmd_base = os.path.join(args.dir, exe)
               # Generate the run command.
               run_cmd = run_cmd_base
               if sb == 'sandbox':
                 run_cmd = '{root}/run.py -q '.format(root=root) + run_cmd
+              else:
+                run_cmd = RunNativePrefix(args.toolchain_root, target, run_cmd)
               if args.lit:
                 # Create a file to drive the lit test.
                 with open(run_cmd_base + '.xtest', 'w') as f:
