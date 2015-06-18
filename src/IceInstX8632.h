@@ -175,12 +175,14 @@ public:
   enum InstKindX8632 {
     k__Start = Inst::Target,
     Adc,
+    AdcRMW,
     Add,
     AddRMW,
     Addps,
     Addss,
     Adjuststack,
     And,
+    AndRMW,
     Blendvps,
     Br,
     Bsf,
@@ -221,6 +223,7 @@ public:
     Neg,
     Nop,
     Or,
+    OrRMW,
     Padd,
     Pand,
     Pandn,
@@ -244,6 +247,7 @@ public:
     Rol,
     Sar,
     Sbb,
+    SbbRMW,
     Setcc,
     Shl,
     Shld,
@@ -255,6 +259,7 @@ public:
     StoreP,
     StoreQ,
     Sub,
+    SubRMW,
     Subps,
     Subss,
     Test,
@@ -262,7 +267,8 @@ public:
     UD2,
     Xadd,
     Xchg,
-    Xor
+    Xor,
+    XorRMW
   };
 
   static const char *getWidthString(Type Ty);
@@ -1103,19 +1109,25 @@ typedef InstX8632BinopGPR<InstX8632::Add> InstX8632Add;
 typedef InstX8632BinopRMW<InstX8632::AddRMW> InstX8632AddRMW;
 typedef InstX8632BinopXmm<InstX8632::Addps, true> InstX8632Addps;
 typedef InstX8632BinopGPR<InstX8632::Adc> InstX8632Adc;
+typedef InstX8632BinopRMW<InstX8632::AdcRMW> InstX8632AdcRMW;
 typedef InstX8632BinopXmm<InstX8632::Addss, false> InstX8632Addss;
 typedef InstX8632BinopXmm<InstX8632::Padd, true> InstX8632Padd;
 typedef InstX8632BinopGPR<InstX8632::Sub> InstX8632Sub;
+typedef InstX8632BinopRMW<InstX8632::SubRMW> InstX8632SubRMW;
 typedef InstX8632BinopXmm<InstX8632::Subps, true> InstX8632Subps;
 typedef InstX8632BinopXmm<InstX8632::Subss, false> InstX8632Subss;
 typedef InstX8632BinopGPR<InstX8632::Sbb> InstX8632Sbb;
+typedef InstX8632BinopRMW<InstX8632::SbbRMW> InstX8632SbbRMW;
 typedef InstX8632BinopXmm<InstX8632::Psub, true> InstX8632Psub;
 typedef InstX8632BinopGPR<InstX8632::And> InstX8632And;
+typedef InstX8632BinopRMW<InstX8632::AndRMW> InstX8632AndRMW;
 typedef InstX8632BinopXmm<InstX8632::Pand, false> InstX8632Pand;
 typedef InstX8632BinopXmm<InstX8632::Pandn, false> InstX8632Pandn;
 typedef InstX8632BinopGPR<InstX8632::Or> InstX8632Or;
+typedef InstX8632BinopRMW<InstX8632::OrRMW> InstX8632OrRMW;
 typedef InstX8632BinopXmm<InstX8632::Por, false> InstX8632Por;
 typedef InstX8632BinopGPR<InstX8632::Xor> InstX8632Xor;
+typedef InstX8632BinopRMW<InstX8632::XorRMW> InstX8632XorRMW;
 typedef InstX8632BinopXmm<InstX8632::Pxor, false> InstX8632Pxor;
 typedef InstX8632BinopGPR<InstX8632::Imul> InstX8632Imul;
 typedef InstX8632BinopXmm<InstX8632::Mulps, true> InstX8632Mulps;

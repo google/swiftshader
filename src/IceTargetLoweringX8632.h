@@ -264,6 +264,9 @@ protected:
   void _adc(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Adc::create(Func, Dest, Src0));
   }
+  void _adc_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
+    Context.insert(InstX8632AdcRMW::create(Func, DestSrc0, Src1));
+  }
   void _add(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Add::create(Func, Dest, Src0));
   }
@@ -282,6 +285,9 @@ protected:
   }
   void _and(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632And::create(Func, Dest, Src0));
+  }
+  void _and_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
+    Context.insert(InstX8632AndRMW::create(Func, DestSrc0, Src1));
   }
   void _blendvps(Variable *Dest, Operand *Src0, Operand *Src1) {
     Context.insert(InstX8632Blendvps::create(Func, Dest, Src0, Src1));
@@ -425,6 +431,9 @@ protected:
   void _or(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Or::create(Func, Dest, Src0));
   }
+  void _or_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
+    Context.insert(InstX8632OrRMW::create(Func, DestSrc0, Src1));
+  }
   void _padd(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Padd::create(Func, Dest, Src0));
   }
@@ -494,6 +503,9 @@ protected:
   void _sbb(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Sbb::create(Func, Dest, Src0));
   }
+  void _sbb_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
+    Context.insert(InstX8632SbbRMW::create(Func, DestSrc0, Src1));
+  }
   void _setcc(Variable *Dest, CondX86::BrCond Condition) {
     Context.insert(InstX8632Setcc::create(Func, Dest, Condition));
   }
@@ -526,6 +538,9 @@ protected:
   }
   void _sub(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Sub::create(Func, Dest, Src0));
+  }
+  void _sub_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
+    Context.insert(InstX8632SubRMW::create(Func, DestSrc0, Src1));
   }
   void _subps(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Subps::create(Func, Dest, Src0));
@@ -560,6 +575,9 @@ protected:
   }
   void _xor(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Xor::create(Func, Dest, Src0));
+  }
+  void _xor_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
+    Context.insert(InstX8632XorRMW::create(Func, DestSrc0, Src1));
   }
   void _set_dest_nonkillable() {
     Context.getLastInserted()->setDestNonKillable();

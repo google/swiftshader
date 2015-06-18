@@ -937,19 +937,25 @@ template <> const char *InstX8632Add::Opcode = "add";
 template <> const char *InstX8632AddRMW::Opcode = "add";
 template <> const char *InstX8632Addps::Opcode = "addps";
 template <> const char *InstX8632Adc::Opcode = "adc";
+template <> const char *InstX8632AdcRMW::Opcode = "adc";
 template <> const char *InstX8632Addss::Opcode = "addss";
 template <> const char *InstX8632Padd::Opcode = "padd";
 template <> const char *InstX8632Sub::Opcode = "sub";
+template <> const char *InstX8632SubRMW::Opcode = "sub";
 template <> const char *InstX8632Subps::Opcode = "subps";
 template <> const char *InstX8632Subss::Opcode = "subss";
 template <> const char *InstX8632Sbb::Opcode = "sbb";
+template <> const char *InstX8632SbbRMW::Opcode = "sbb";
 template <> const char *InstX8632Psub::Opcode = "psub";
 template <> const char *InstX8632And::Opcode = "and";
+template <> const char *InstX8632AndRMW::Opcode = "and";
 template <> const char *InstX8632Pand::Opcode = "pand";
 template <> const char *InstX8632Pandn::Opcode = "pandn";
 template <> const char *InstX8632Or::Opcode = "or";
+template <> const char *InstX8632OrRMW::Opcode = "or";
 template <> const char *InstX8632Por::Opcode = "por";
 template <> const char *InstX8632Xor::Opcode = "xor";
+template <> const char *InstX8632XorRMW::Opcode = "xor";
 template <> const char *InstX8632Pxor::Opcode = "pxor";
 template <> const char *InstX8632Imul::Opcode = "imul";
 template <> const char *InstX8632Mulps::Opcode = "mulps";
@@ -1025,25 +1031,43 @@ const X8632::AssemblerX8632::GPREmitterRegOp InstX8632Adc::Emitter = {
     &X8632::AssemblerX8632::adc, &X8632::AssemblerX8632::adc,
     &X8632::AssemblerX8632::adc};
 template <>
+const X8632::AssemblerX8632::GPREmitterAddrOp InstX8632AdcRMW::Emitter = {
+    &X8632::AssemblerX8632::adc, &X8632::AssemblerX8632::adc};
+template <>
 const X8632::AssemblerX8632::GPREmitterRegOp InstX8632And::Emitter = {
     &X8632::AssemblerX8632::And, &X8632::AssemblerX8632::And,
     &X8632::AssemblerX8632::And};
+template <>
+const X8632::AssemblerX8632::GPREmitterAddrOp InstX8632AndRMW::Emitter = {
+    &X8632::AssemblerX8632::And, &X8632::AssemblerX8632::And};
 template <>
 const X8632::AssemblerX8632::GPREmitterRegOp InstX8632Or::Emitter = {
     &X8632::AssemblerX8632::Or, &X8632::AssemblerX8632::Or,
     &X8632::AssemblerX8632::Or};
 template <>
+const X8632::AssemblerX8632::GPREmitterAddrOp InstX8632OrRMW::Emitter = {
+    &X8632::AssemblerX8632::Or, &X8632::AssemblerX8632::Or};
+template <>
 const X8632::AssemblerX8632::GPREmitterRegOp InstX8632Sbb::Emitter = {
     &X8632::AssemblerX8632::sbb, &X8632::AssemblerX8632::sbb,
     &X8632::AssemblerX8632::sbb};
+template <>
+const X8632::AssemblerX8632::GPREmitterAddrOp InstX8632SbbRMW::Emitter = {
+    &X8632::AssemblerX8632::sbb, &X8632::AssemblerX8632::sbb};
 template <>
 const X8632::AssemblerX8632::GPREmitterRegOp InstX8632Sub::Emitter = {
     &X8632::AssemblerX8632::sub, &X8632::AssemblerX8632::sub,
     &X8632::AssemblerX8632::sub};
 template <>
+const X8632::AssemblerX8632::GPREmitterAddrOp InstX8632SubRMW::Emitter = {
+    &X8632::AssemblerX8632::sub, &X8632::AssemblerX8632::sub};
+template <>
 const X8632::AssemblerX8632::GPREmitterRegOp InstX8632Xor::Emitter = {
     &X8632::AssemblerX8632::Xor, &X8632::AssemblerX8632::Xor,
     &X8632::AssemblerX8632::Xor};
+template <>
+const X8632::AssemblerX8632::GPREmitterAddrOp InstX8632XorRMW::Emitter = {
+    &X8632::AssemblerX8632::Xor, &X8632::AssemblerX8632::Xor};
 
 // Binary Shift GPR ops
 template <>

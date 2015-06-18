@@ -708,14 +708,20 @@ public:
   void And(Type Ty, GPRRegister dst, GPRRegister src);
   void And(Type Ty, GPRRegister dst, const Address &address);
   void And(Type Ty, GPRRegister dst, const Immediate &imm);
+  void And(Type Ty, const Address &address, GPRRegister reg);
+  void And(Type Ty, const Address &address, const Immediate &imm);
 
   void Or(Type Ty, GPRRegister dst, GPRRegister src);
   void Or(Type Ty, GPRRegister dst, const Address &address);
   void Or(Type Ty, GPRRegister dst, const Immediate &imm);
+  void Or(Type Ty, const Address &address, GPRRegister reg);
+  void Or(Type Ty, const Address &address, const Immediate &imm);
 
   void Xor(Type Ty, GPRRegister dst, GPRRegister src);
   void Xor(Type Ty, GPRRegister dst, const Address &address);
   void Xor(Type Ty, GPRRegister dst, const Immediate &imm);
+  void Xor(Type Ty, const Address &address, GPRRegister reg);
+  void Xor(Type Ty, const Address &address, const Immediate &imm);
 
   void add(Type Ty, GPRRegister dst, GPRRegister src);
   void add(Type Ty, GPRRegister reg, const Address &address);
@@ -726,14 +732,20 @@ public:
   void adc(Type Ty, GPRRegister dst, GPRRegister src);
   void adc(Type Ty, GPRRegister dst, const Address &address);
   void adc(Type Ty, GPRRegister reg, const Immediate &imm);
+  void adc(Type Ty, const Address &address, GPRRegister reg);
+  void adc(Type Ty, const Address &address, const Immediate &imm);
 
   void sub(Type Ty, GPRRegister dst, GPRRegister src);
   void sub(Type Ty, GPRRegister reg, const Address &address);
   void sub(Type Ty, GPRRegister reg, const Immediate &imm);
+  void sub(Type Ty, const Address &address, GPRRegister reg);
+  void sub(Type Ty, const Address &address, const Immediate &imm);
 
   void sbb(Type Ty, GPRRegister dst, GPRRegister src);
   void sbb(Type Ty, GPRRegister reg, const Address &address);
   void sbb(Type Ty, GPRRegister reg, const Immediate &imm);
+  void sbb(Type Ty, const Address &address, GPRRegister reg);
+  void sbb(Type Ty, const Address &address, const Immediate &imm);
 
   void cbw();
   void cwd();
@@ -859,6 +871,24 @@ private:
   LabelVector LocalLabels;
 
   Label *GetOrCreateLabel(SizeT Number, LabelVector &Labels);
+
+  // The arith_int() methods factor out the commonality between the encodings of
+  // add(), Or(), adc(), sbb(), And(), sub(), Xor(), and cmp().  The Tag
+  // parameter is statically asserted to be less than 8.
+  template <uint32_t Tag>
+  void arith_int(Type Ty, GPRRegister reg, const Immediate &imm);
+
+  template <uint32_t Tag>
+  void arith_int(Type Ty, GPRRegister reg0, GPRRegister reg1);
+
+  template <uint32_t Tag>
+  void arith_int(Type Ty, GPRRegister reg, const Address &address);
+
+  template <uint32_t Tag>
+  void arith_int(Type Ty, const Address &address, GPRRegister reg);
+
+  template <uint32_t Tag>
+  void arith_int(Type Ty, const Address &address, const Immediate &imm);
 };
 
 inline void AssemblerX8632::emitUint8(uint8_t value) {

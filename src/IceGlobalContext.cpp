@@ -364,9 +364,7 @@ void GlobalContext::emitFileHeader() {
   }
 }
 
-void GlobalContext::lowerConstants() {
-  DataLowering->lowerConstants();
-}
+void GlobalContext::lowerConstants() { DataLowering->lowerConstants(); }
 
 void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
   TimerMarker T(TimerStack::TT_emitGlobalInitializers, this);

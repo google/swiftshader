@@ -587,32 +587,31 @@ namespace {
 
 bool canRMW(const InstArithmetic *Arith) {
   Type Ty = Arith->getDest()->getType();
+  // X86 vector instructions write to a register and have no RMW
+  // option.
+  if (isVectorType(Ty))
+    return false;
   bool isI64 = Ty == IceType_i64;
-  bool isVector = isVectorType(Ty);
 
   switch (Arith->getOp()) {
   // Not handled for lack of simple lowering:
-  //   shift on i64 and vectors
+  //   shift on i64
   //   mul, udiv, urem, sdiv, srem, frem
+  // Not handled for lack of RMW instructions:
+  //   fadd, fsub, fmul, fdiv (also vector types)
   default:
     return false;
   case InstArithmetic::Add:
-    return !isI64 && !isVector; // TODO(stichnot): implement i64 and vector
   case InstArithmetic::Sub:
   case InstArithmetic::And:
   case InstArithmetic::Or:
   case InstArithmetic::Xor:
-  case InstArithmetic::Fadd:
-  case InstArithmetic::Fsub:
-  case InstArithmetic::Fmul:
-  case InstArithmetic::Fdiv:
-    return false; // TODO(stichnot): implement
     return true;
   case InstArithmetic::Shl:
   case InstArithmetic::Lshr:
   case InstArithmetic::Ashr:
     return false; // TODO(stichnot): implement
-    return !isI64 && !isVector;
+    return !isI64;
   }
 }
 
@@ -3442,10 +3441,11 @@ void TargetX8632::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       Func->setError("Unexpected memory ordering for AtomicRMW");
       return;
     }
-    lowerAtomicRMW(Instr->getDest(),
-                   static_cast<uint32_t>(llvm::cast<ConstantInteger32>(
-                                             Instr->getArg(0))->getValue()),
-                   Instr->getArg(1), Instr->getArg(2));
+    lowerAtomicRMW(
+        Instr->getDest(),
+        static_cast<uint32_t>(
+            llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue()),
+        Instr->getArg(1), Instr->getArg(2));
     return;
   case Intrinsics::AtomicStore: {
     if (!Intrinsics::isMemoryOrderValid(
@@ -4660,11 +4660,37 @@ void TargetX8632::lowerRMW(const InstX8632FakeRMW *RMW) {
   Type Ty = Src->getType();
   OperandX8632Mem *Addr = formMemoryOperand(RMW->getAddr(), Ty);
   if (Ty == IceType_i64) {
-    // TODO(stichnot): Implement.
-  } else if (isVectorType(Ty)) {
-    // TODO(stichnot): Implement.
+    Operand *SrcLo = legalize(loOperand(Src), Legal_Reg | Legal_Imm);
+    Operand *SrcHi = legalize(hiOperand(Src), Legal_Reg | Legal_Imm);
+    OperandX8632Mem *AddrLo = llvm::cast<OperandX8632Mem>(loOperand(Addr));
+    OperandX8632Mem *AddrHi = llvm::cast<OperandX8632Mem>(hiOperand(Addr));
+    switch (RMW->getOp()) {
+    default:
+      // TODO(stichnot): Implement other arithmetic operators.
+      break;
+    case InstArithmetic::Add:
+      _add_rmw(AddrLo, SrcLo);
+      _adc_rmw(AddrHi, SrcHi);
+      return;
+    case InstArithmetic::Sub:
+      _sub_rmw(AddrLo, SrcLo);
+      _sbb_rmw(AddrHi, SrcHi);
+      return;
+    case InstArithmetic::And:
+      _and_rmw(AddrLo, SrcLo);
+      _and_rmw(AddrHi, SrcHi);
+      return;
+    case InstArithmetic::Or:
+      _or_rmw(AddrLo, SrcLo);
+      _or_rmw(AddrHi, SrcHi);
+      return;
+    case InstArithmetic::Xor:
+      _xor_rmw(AddrLo, SrcLo);
+      _xor_rmw(AddrHi, SrcHi);
+      return;
+    }
   } else {
-    // i8, i16, i32, f32, f64
+    // i8, i16, i32
     switch (RMW->getOp()) {
     default:
       // TODO(stichnot): Implement other arithmetic operators.
@@ -4672,6 +4698,22 @@ void TargetX8632::lowerRMW(const InstX8632FakeRMW *RMW) {
     case InstArithmetic::Add:
       Src = legalize(Src, Legal_Reg | Legal_Imm);
       _add_rmw(Addr, Src);
+      return;
+    case InstArithmetic::Sub:
+      Src = legalize(Src, Legal_Reg | Legal_Imm);
+      _sub_rmw(Addr, Src);
+      return;
+    case InstArithmetic::And:
+      Src = legalize(Src, Legal_Reg | Legal_Imm);
+      _and_rmw(Addr, Src);
+      return;
+    case InstArithmetic::Or:
+      Src = legalize(Src, Legal_Reg | Legal_Imm);
+      _or_rmw(Addr, Src);
+      return;
+    case InstArithmetic::Xor:
+      Src = legalize(Src, Legal_Reg | Legal_Imm);
+      _xor_rmw(Addr, Src);
       return;
     }
   }

@@ -1498,60 +1498,93 @@ void AssemblerX8632::fincstp() {
   emitUint8(0xF7);
 }
 
-void AssemblerX8632::cmp(Type Ty, GPRRegister reg, const Immediate &imm) {
+template <uint32_t Tag>
+void AssemblerX8632::arith_int(Type Ty, GPRRegister reg, const Immediate &imm) {
+  static_assert(Tag < 8, "Tag must be between 0..7");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (isByteSizedType(Ty)) {
-    emitComplexI8(7, Operand(reg), imm);
+    emitComplexI8(Tag, Operand(reg), imm);
     return;
   }
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitComplex(Ty, 7, Operand(reg), imm);
+  emitComplex(Ty, Tag, Operand(reg), imm);
 }
 
-void AssemblerX8632::cmp(Type Ty, GPRRegister reg0, GPRRegister reg1) {
+template <uint32_t Tag>
+void AssemblerX8632::arith_int(Type Ty, GPRRegister reg0, GPRRegister reg1) {
+  static_assert(Tag < 8, "Tag must be between 0..7");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   if (isByteSizedType(Ty))
-    emitUint8(0x3A);
+    emitUint8(Tag * 8 + 2);
   else
-    emitUint8(0x3B);
+    emitUint8(Tag * 8 + 3);
   emitRegisterOperand(reg0, reg1);
 }
 
-void AssemblerX8632::cmp(Type Ty, GPRRegister reg, const Address &address) {
+template <uint32_t Tag>
+void AssemblerX8632::arith_int(Type Ty, GPRRegister reg,
+                               const Address &address) {
+  static_assert(Tag < 8, "Tag must be between 0..7");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   if (isByteSizedType(Ty))
-    emitUint8(0x3A);
+    emitUint8(Tag * 8 + 2);
   else
-    emitUint8(0x3B);
+    emitUint8(Tag * 8 + 3);
   emitOperand(reg, address);
 }
 
-void AssemblerX8632::cmp(Type Ty, const Address &address, GPRRegister reg) {
+template <uint32_t Tag>
+void AssemblerX8632::arith_int(Type Ty, const Address &address,
+                               GPRRegister reg) {
+  static_assert(Tag < 8, "Tag must be between 0..7");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   if (isByteSizedType(Ty))
-    emitUint8(0x38);
+    emitUint8(Tag * 8 + 0);
   else
-    emitUint8(0x39);
+    emitUint8(Tag * 8 + 1);
   emitOperand(reg, address);
+}
+
+template <uint32_t Tag>
+void AssemblerX8632::arith_int(Type Ty, const Address &address,
+                               const Immediate &imm) {
+  static_assert(Tag < 8, "Tag must be between 0..7");
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (isByteSizedType(Ty)) {
+    emitComplexI8(Tag, address, imm);
+    return;
+  }
+  if (Ty == IceType_i16)
+    emitOperandSizeOverride();
+  emitComplex(Ty, Tag, address, imm);
+}
+
+void AssemblerX8632::cmp(Type Ty, GPRRegister reg, const Immediate &imm) {
+  arith_int<7>(Ty, reg, imm);
+}
+
+void AssemblerX8632::cmp(Type Ty, GPRRegister reg0, GPRRegister reg1) {
+  arith_int<7>(Ty, reg0, reg1);
+}
+
+void AssemblerX8632::cmp(Type Ty, GPRRegister reg, const Address &address) {
+  arith_int<7>(Ty, reg, address);
+}
+
+void AssemblerX8632::cmp(Type Ty, const Address &address, GPRRegister reg) {
+  arith_int<7>(Ty, address, reg);
 }
 
 void AssemblerX8632::cmp(Type Ty, const Address &address,
                          const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (isByteSizedType(Ty)) {
-    emitComplexI8(7, address, imm);
-    return;
-  }
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  emitComplex(Ty, 7, address, imm);
+  arith_int<7>(Ty, address, imm);
 }
 
 void AssemblerX8632::test(Type Ty, GPRRegister reg1, GPRRegister reg2) {
@@ -1628,257 +1661,149 @@ void AssemblerX8632::test(Type Ty, const Address &addr,
 }
 
 void AssemblerX8632::And(Type Ty, GPRRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedType(Ty))
-    emitUint8(0x22);
-  else
-    emitUint8(0x23);
-  emitRegisterOperand(dst, src);
+  arith_int<4>(Ty, dst, src);
 }
 
 void AssemblerX8632::And(Type Ty, GPRRegister dst, const Address &address) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedType(Ty))
-    emitUint8(0x22);
-  else
-    emitUint8(0x23);
-  emitOperand(dst, address);
+  arith_int<4>(Ty, dst, address);
 }
 
 void AssemblerX8632::And(Type Ty, GPRRegister dst, const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (isByteSizedType(Ty)) {
-    emitComplexI8(4, Operand(dst), imm);
-    return;
-  }
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  emitComplex(Ty, 4, Operand(dst), imm);
+  arith_int<4>(Ty, dst, imm);
+}
+
+void AssemblerX8632::And(Type Ty, const Address &address, GPRRegister reg) {
+  arith_int<4>(Ty, address, reg);
+}
+
+void AssemblerX8632::And(Type Ty, const Address &address,
+                         const Immediate &imm) {
+  arith_int<4>(Ty, address, imm);
 }
 
 void AssemblerX8632::Or(Type Ty, GPRRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedType(Ty))
-    emitUint8(0x0A);
-  else
-    emitUint8(0x0B);
-  emitRegisterOperand(dst, src);
+  arith_int<1>(Ty, dst, src);
 }
 
 void AssemblerX8632::Or(Type Ty, GPRRegister dst, const Address &address) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedType(Ty))
-    emitUint8(0x0A);
-  else
-    emitUint8(0x0B);
-  emitOperand(dst, address);
+  arith_int<1>(Ty, dst, address);
 }
 
 void AssemblerX8632::Or(Type Ty, GPRRegister dst, const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (isByteSizedType(Ty)) {
-    emitComplexI8(1, Operand(dst), imm);
-    return;
-  }
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  emitComplex(Ty, 1, Operand(dst), imm);
+  arith_int<1>(Ty, dst, imm);
+}
+
+void AssemblerX8632::Or(Type Ty, const Address &address, GPRRegister reg) {
+  arith_int<1>(Ty, address, reg);
+}
+
+void AssemblerX8632::Or(Type Ty, const Address &address, const Immediate &imm) {
+  arith_int<1>(Ty, address, imm);
 }
 
 void AssemblerX8632::Xor(Type Ty, GPRRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedType(Ty))
-    emitUint8(0x32);
-  else
-    emitUint8(0x33);
-  emitRegisterOperand(dst, src);
+  arith_int<6>(Ty, dst, src);
 }
 
 void AssemblerX8632::Xor(Type Ty, GPRRegister dst, const Address &address) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedType(Ty))
-    emitUint8(0x32);
-  else
-    emitUint8(0x33);
-  emitOperand(dst, address);
+  arith_int<6>(Ty, dst, address);
 }
 
 void AssemblerX8632::Xor(Type Ty, GPRRegister dst, const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (isByteSizedType(Ty)) {
-    emitComplexI8(6, Operand(dst), imm);
-    return;
-  }
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  emitComplex(Ty, 6, Operand(dst), imm);
+  arith_int<6>(Ty, dst, imm);
+}
+
+void AssemblerX8632::Xor(Type Ty, const Address &address, GPRRegister reg) {
+  arith_int<6>(Ty, address, reg);
+}
+
+void AssemblerX8632::Xor(Type Ty, const Address &address,
+                         const Immediate &imm) {
+  arith_int<6>(Ty, address, imm);
 }
 
 void AssemblerX8632::add(Type Ty, GPRRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedArithType(Ty))
-    emitUint8(0x02);
-  else
-    emitUint8(0x03);
-  emitRegisterOperand(dst, src);
+  arith_int<0>(Ty, dst, src);
 }
 
 void AssemblerX8632::add(Type Ty, GPRRegister reg, const Address &address) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedArithType(Ty))
-    emitUint8(0x02);
-  else
-    emitUint8(0x03);
-  emitOperand(reg, address);
+  arith_int<0>(Ty, reg, address);
 }
 
 void AssemblerX8632::add(Type Ty, GPRRegister reg, const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (isByteSizedArithType(Ty)) {
-    emitComplexI8(0, Operand(reg), imm);
-    return;
-  }
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  emitComplex(Ty, 0, Operand(reg), imm);
+  arith_int<0>(Ty, reg, imm);
 }
 
 void AssemblerX8632::add(Type Ty, const Address &address, GPRRegister reg) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedArithType(Ty))
-    emitUint8(0x00);
-  else
-    emitUint8(0x01);
-  emitOperand(reg, address);
+  arith_int<0>(Ty, address, reg);
 }
 
 void AssemblerX8632::add(Type Ty, const Address &address,
                          const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (isByteSizedArithType(Ty)) {
-    emitComplexI8(0, address, imm);
-    return;
-  }
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  emitComplex(Ty, 0, address, imm);
+  arith_int<0>(Ty, address, imm);
 }
 
 void AssemblerX8632::adc(Type Ty, GPRRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedArithType(Ty))
-    emitUint8(0x12);
-  else
-    emitUint8(0x13);
-  emitRegisterOperand(dst, src);
+  arith_int<2>(Ty, dst, src);
 }
 
 void AssemblerX8632::adc(Type Ty, GPRRegister dst, const Address &address) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedArithType(Ty))
-    emitUint8(0x12);
-  else
-    emitUint8(0x13);
-  emitOperand(dst, address);
+  arith_int<2>(Ty, dst, address);
 }
 
 void AssemblerX8632::adc(Type Ty, GPRRegister reg, const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (isByteSizedArithType(Ty)) {
-    emitComplexI8(2, Operand(reg), imm);
-    return;
-  }
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  emitComplex(Ty, 2, Operand(reg), imm);
+  arith_int<2>(Ty, reg, imm);
+}
+
+void AssemblerX8632::adc(Type Ty, const Address &address, GPRRegister reg) {
+  arith_int<2>(Ty, address, reg);
+}
+
+void AssemblerX8632::adc(Type Ty, const Address &address,
+                         const Immediate &imm) {
+  arith_int<2>(Ty, address, imm);
 }
 
 void AssemblerX8632::sub(Type Ty, GPRRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedArithType(Ty))
-    emitUint8(0x2A);
-  else
-    emitUint8(0x2B);
-  emitRegisterOperand(dst, src);
+  arith_int<5>(Ty, dst, src);
 }
 
 void AssemblerX8632::sub(Type Ty, GPRRegister reg, const Address &address) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedArithType(Ty))
-    emitUint8(0x2A);
-  else
-    emitUint8(0x2B);
-  emitOperand(reg, address);
+  arith_int<5>(Ty, reg, address);
 }
 
 void AssemblerX8632::sub(Type Ty, GPRRegister reg, const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (isByteSizedArithType(Ty)) {
-    emitComplexI8(5, Operand(reg), imm);
-    return;
-  }
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  emitComplex(Ty, 5, Operand(reg), imm);
+  arith_int<5>(Ty, reg, imm);
+}
+
+void AssemblerX8632::sub(Type Ty, const Address &address, GPRRegister reg) {
+  arith_int<5>(Ty, address, reg);
+}
+
+void AssemblerX8632::sub(Type Ty, const Address &address,
+                         const Immediate &imm) {
+  arith_int<5>(Ty, address, imm);
 }
 
 void AssemblerX8632::sbb(Type Ty, GPRRegister dst, GPRRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedArithType(Ty))
-    emitUint8(0x1A);
-  else
-    emitUint8(0x1B);
-  emitRegisterOperand(dst, src);
+  arith_int<3>(Ty, dst, src);
 }
 
 void AssemblerX8632::sbb(Type Ty, GPRRegister dst, const Address &address) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  if (isByteSizedArithType(Ty))
-    emitUint8(0x1A);
-  else
-    emitUint8(0x1B);
-  emitOperand(dst, address);
+  arith_int<3>(Ty, dst, address);
 }
 
 void AssemblerX8632::sbb(Type Ty, GPRRegister reg, const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (isByteSizedArithType(Ty)) {
-    emitComplexI8(3, Operand(reg), imm);
-    return;
-  }
-  if (Ty == IceType_i16)
-    emitOperandSizeOverride();
-  emitComplex(Ty, 3, Operand(reg), imm);
+  arith_int<3>(Ty, reg, imm);
+}
+
+void AssemblerX8632::sbb(Type Ty, const Address &address, GPRRegister reg) {
+  arith_int<3>(Ty, address, reg);
+}
+
+void AssemblerX8632::sbb(Type Ty, const Address &address,
+                         const Immediate &imm) {
+  arith_int<3>(Ty, address, imm);
 }
 
 void AssemblerX8632::cbw() {
