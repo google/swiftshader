@@ -176,6 +176,7 @@ def main():
                   f.write(' '.join(cmp_cmd) + ' && \\\n')
                   f.write(run_cmd + '\n')
                   f.write('echo Recreate a failure using ' + __file__ +
+                          ' --toolchain-root=' + args.toolchain_root +
                           ' --include=' + ','.join(desc) + '\n')
                   f.write('# CHECK: Failures=0\n')
               else:
