@@ -433,8 +433,12 @@ void Cfg::liveness(LivenessMode Mode) {
       // register.  This is accomplished by extending the entry
       // block's instruction range from [2,n) to [1,n) which will
       // transform the problematic [2,2) live ranges into [1,2).
-      if (FirstInstNum == Inst::NumberInitial)
+      if (Node == getEntryNode()) {
+        // TODO(stichnot): Make it a strict requirement that the entry
+        // node gets the lowest instruction numbers, so that extending
+        // the live range for in-args is guaranteed to work.
         FirstInstNum = Inst::NumberExtended;
+      }
       Node->livenessAddIntervals(getLiveness(), FirstInstNum, LastInstNum);
     }
   }

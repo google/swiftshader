@@ -691,13 +691,15 @@ class InstStore : public InstHighLevel {
 
 public:
   static InstStore *create(Cfg *Func, Operand *Data, Operand *Addr,
-                           uint32_t align = 1) {
+                           uint32_t Align = 1) {
     // TODO(kschimpf) Stop ignoring alignment specification.
-    (void)align;
+    (void)Align;
     return new (Func->allocate<InstStore>()) InstStore(Func, Data, Addr);
   }
   Operand *getAddr() const { return getSrc(1); }
   Operand *getData() const { return getSrc(0); }
+  Variable *getRmwBeacon() const { return llvm::dyn_cast<Variable>(getSrc(2)); }
+  void setRmwBeacon(Variable *Beacon);
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Store; }
 

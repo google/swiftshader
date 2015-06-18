@@ -422,9 +422,16 @@ InstSelect::InstSelect(Cfg *Func, Variable *Dest, Operand *Condition,
 }
 
 InstStore::InstStore(Cfg *Func, Operand *Data, Operand *Addr)
-    : InstHighLevel(Func, Inst::Store, 2, nullptr) {
+    : InstHighLevel(Func, Inst::Store, 3, nullptr) {
   addSource(Data);
   addSource(Addr);
+  // The 3rd operand is a dummy placeholder for the RMW beacon.
+  addSource(Data);
+}
+
+void InstStore::setRmwBeacon(Variable *Beacon) {
+  Dest = llvm::dyn_cast<Variable>(getData());
+  Srcs[2] = Beacon;
 }
 
 InstSwitch::InstSwitch(Cfg *Func, SizeT NumCases, Operand *Source,
@@ -747,11 +754,18 @@ void InstStore::dump(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = getData()->getType();
+  dumpDest(Func);
+  if (Dest)
+    Str << " = ";
   Str << "store " << Ty << " ";
   getData()->dump(Func);
   Str << ", " << Ty << "* ";
   getAddr()->dump(Func);
   Str << ", align " << typeAlignInBytes(Ty);
+  if (getRmwBeacon()) {
+    Str << ", beacon ";
+    getRmwBeacon()->dump(Func);
+  }
 }
 
 void InstSwitch::dump(const Cfg *Func) const {

@@ -180,6 +180,8 @@ protected:
   void lowerStore(const InstStore *Inst) override;
   void lowerSwitch(const InstSwitch *Inst) override;
   void lowerUnreachable(const InstUnreachable *Inst) override;
+  void lowerOther(const Inst *Instr) override;
+  void lowerRMW(const InstX8632FakeRMW *RMW);
   void prelowerPhis() override;
   void lowerPhiAssignments(CfgNode *Node,
                            const AssignList &Assignments) override;
@@ -264,6 +266,9 @@ protected:
   }
   void _add(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Add::create(Func, Dest, Src0));
+  }
+  void _add_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
+    Context.insert(InstX8632AddRMW::create(Func, DestSrc0, Src1));
   }
   void _adjust_stack(int32_t Amount) {
     Context.insert(InstX8632AdjustStack::create(
@@ -561,6 +566,7 @@ protected:
   }
 
   bool optimizeScalarMul(Variable *Dest, Operand *Src0, int32_t Src1);
+  void findRMW();
 
   X86InstructionSet InstructionSet;
   bool IsEbpBasedFrame;

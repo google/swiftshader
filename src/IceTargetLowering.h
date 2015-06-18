@@ -248,6 +248,7 @@ protected:
   virtual void lowerStore(const InstStore *Inst) = 0;
   virtual void lowerSwitch(const InstSwitch *Inst) = 0;
   virtual void lowerUnreachable(const InstUnreachable *Inst) = 0;
+  virtual void lowerOther(const Inst *Instr);
 
   virtual void doAddressOptLoad() {}
   virtual void doAddressOptStore() {}

@@ -130,10 +130,13 @@ void TargetLowering::lower() {
   assert(!Context.atEnd());
   Inst *Inst = Context.getCur();
   Inst->deleteIfDead();
-  if (!Inst->isDeleted()) {
+  if (!Inst->isDeleted() && !llvm::isa<InstFakeDef>(Inst) &&
+      !llvm::isa<InstFakeUse>(Inst)) {
     // Mark the current instruction as deleted before lowering,
     // otherwise the Dest variable will likely get marked as non-SSA.
-    // See Variable::setDefinition().
+    // See Variable::setDefinition().  However, just pass-through
+    // FakeDef and FakeUse instructions that might have been inserted
+    // prior to lowering.
     Inst->setDeleted();
     switch (Inst->getKind()) {
     case Inst::Alloca:
@@ -194,15 +197,8 @@ void TargetLowering::lower() {
     case Inst::Unreachable:
       lowerUnreachable(llvm::cast<InstUnreachable>(Inst));
       break;
-    case Inst::BundleLock:
-    case Inst::BundleUnlock:
-    case Inst::FakeDef:
-    case Inst::FakeUse:
-    case Inst::FakeKill:
-    case Inst::Target:
-      // These are all Target instruction types and shouldn't be
-      // encountered at this stage.
-      Func->setError("Can't lower unsupported instruction type");
+    default:
+      lowerOther(Inst);
       break;
     }
 
@@ -211,6 +207,11 @@ void TargetLowering::lower() {
 
   Context.advanceCur();
   Context.advanceNext();
+}
+
+void TargetLowering::lowerOther(const Inst *Instr) {
+  (void)Instr;
+  Func->setError("Can't lower unsupported instruction type");
 }
 
 // Drives register allocation, allowing all physical registers (except

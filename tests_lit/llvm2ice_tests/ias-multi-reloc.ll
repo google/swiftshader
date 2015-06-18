@@ -26,6 +26,7 @@ entry:
 ; CHECK: .long p_global_char
 ; CHECK: .long global_char
 
+; Also exercises the RMW add operation.
 define internal void @add_in_place() {
 entry:
   %p_global_char.bc = bitcast [4 x i8]* @p_global_char to i32*
@@ -37,8 +38,8 @@ entry:
   ret void
 }
 ; CHECK-LABEL: add_in_place
-; CHECK: .long global_char
 ; CHECK: .long p_global_char
+; CHECK-NEXT: .long global_char
 
 define internal void @cmp_global_immediate() {
 entry:

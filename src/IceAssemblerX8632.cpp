@@ -1759,6 +1759,29 @@ void AssemblerX8632::add(Type Ty, GPRRegister reg, const Immediate &imm) {
   emitComplex(Ty, 0, Operand(reg), imm);
 }
 
+void AssemblerX8632::add(Type Ty, const Address &address, GPRRegister reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (Ty == IceType_i16)
+    emitOperandSizeOverride();
+  if (isByteSizedArithType(Ty))
+    emitUint8(0x00);
+  else
+    emitUint8(0x01);
+  emitOperand(reg, address);
+}
+
+void AssemblerX8632::add(Type Ty, const Address &address,
+                         const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (isByteSizedArithType(Ty)) {
+    emitComplexI8(0, address, imm);
+    return;
+  }
+  if (Ty == IceType_i16)
+    emitOperandSizeOverride();
+  emitComplex(Ty, 0, address, imm);
+}
+
 void AssemblerX8632::adc(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)

@@ -720,6 +720,8 @@ public:
   void add(Type Ty, GPRRegister dst, GPRRegister src);
   void add(Type Ty, GPRRegister reg, const Address &address);
   void add(Type Ty, GPRRegister reg, const Immediate &imm);
+  void add(Type Ty, const Address &address, GPRRegister reg);
+  void add(Type Ty, const Address &address, const Immediate &imm);
 
   void adc(Type Ty, GPRRegister dst, GPRRegister src);
   void adc(Type Ty, GPRRegister dst, const Address &address);

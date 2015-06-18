@@ -173,6 +173,7 @@ enum VerboseItem {
   IceV_AddrOpt = 1 << 9,
   IceV_Random = 1 << 10,
   IceV_Folding = 1 << 11,
+  IceV_RMW = 1 << 12,
   IceV_All = ~IceV_None,
   IceV_Most = IceV_All & ~IceV_LinearScan
 };

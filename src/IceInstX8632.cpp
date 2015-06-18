@@ -111,6 +111,14 @@ OperandX8632Mem::OperandX8632Mem(Cfg *Func, Type Ty, Variable *Base,
   }
 }
 
+InstX8632FakeRMW::InstX8632FakeRMW(Cfg *Func, Operand *Data, Operand *Addr,
+                                   InstArithmetic::OpKind Op, Variable *Beacon)
+    : InstX8632(Func, InstX8632::FakeRMW, 3, nullptr), Op(Op) {
+  addSource(Data);
+  addSource(Addr);
+  addSource(Beacon);
+}
+
 InstX8632AdjustStack::InstX8632AdjustStack(Cfg *Func, SizeT Amount,
                                            Variable *Esp)
     : InstX8632(Func, InstX8632::Adjuststack, 1, Esp), Amount(Amount) {
@@ -370,6 +378,19 @@ void InstX8632::dump(const Cfg *Func) const {
   Inst::dump(Func);
 }
 
+void InstX8632FakeRMW::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Type Ty = getData()->getType();
+  Str << "rmw " << InstArithmetic::getOpName(getOp()) << " " << Ty << " *";
+  getAddr()->dump(Func);
+  Str << ", ";
+  getData()->dump(Func);
+  Str << ", beacon=";
+  getBeacon()->dump(Func);
+}
+
 void InstX8632Label::emit(const Cfg *Func) const {
   if (!ALLOW_DUMP)
     return;
@@ -589,7 +610,9 @@ void InstX8632::emitTwoAddress(const char *Opcode, const Inst *Inst,
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Inst->getSrcSize() == 2);
-  Variable *Dest = Inst->getDest();
+  Operand *Dest = Inst->getDest();
+  if (Dest == nullptr)
+    Dest = Inst->getSrc(0);
   assert(Dest == Inst->getSrc(0));
   Operand *Src1 = Inst->getSrc(1);
   Str << "\t" << Opcode << InstX8632::getWidthString(Dest->getType()) << "\t";
@@ -911,6 +934,7 @@ template <> const char *InstX8632Movp::Opcode = "movups";
 template <> const char *InstX8632Movq::Opcode = "movq";
 // Binary ops
 template <> const char *InstX8632Add::Opcode = "add";
+template <> const char *InstX8632AddRMW::Opcode = "add";
 template <> const char *InstX8632Addps::Opcode = "addps";
 template <> const char *InstX8632Adc::Opcode = "adc";
 template <> const char *InstX8632Addss::Opcode = "addss";
@@ -993,6 +1017,9 @@ template <>
 const X8632::AssemblerX8632::GPREmitterRegOp InstX8632Add::Emitter = {
     &X8632::AssemblerX8632::add, &X8632::AssemblerX8632::add,
     &X8632::AssemblerX8632::add};
+template <>
+const X8632::AssemblerX8632::GPREmitterAddrOp InstX8632AddRMW::Emitter = {
+    &X8632::AssemblerX8632::add, &X8632::AssemblerX8632::add};
 template <>
 const X8632::AssemblerX8632::GPREmitterRegOp InstX8632Adc::Emitter = {
     &X8632::AssemblerX8632::adc, &X8632::AssemblerX8632::adc,

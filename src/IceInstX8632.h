@@ -176,6 +176,7 @@ public:
     k__Start = Inst::Target,
     Adc,
     Add,
+    AddRMW,
     Addps,
     Addss,
     Adjuststack,
@@ -195,6 +196,7 @@ public:
     Div,
     Divps,
     Divss,
+    FakeRMW,
     Fld,
     Fstp,
     Icmp,
@@ -310,6 +312,40 @@ private:
       llvm::report_fatal_error("Possible misaligned vector memory operation");
     }
   }
+};
+
+// InstX8632FakeRMW represents a non-atomic read-modify-write operation on a
+// memory location.  An InstX8632FakeRMW is a "fake" instruction in that it
+// still needs to be lowered to some actual RMW instruction.
+//
+// If A is some memory address, D is some data value to apply, and OP is an
+// arithmetic operator, the instruction operates as: (*A) = (*A) OP D
+class InstX8632FakeRMW : public InstX8632 {
+  InstX8632FakeRMW() = delete;
+  InstX8632FakeRMW(const InstX8632FakeRMW &) = delete;
+  InstX8632FakeRMW &operator=(const InstX8632FakeRMW &) = delete;
+
+public:
+  static InstX8632FakeRMW *create(Cfg *Func, Operand *Data, Operand *Addr,
+                                  Variable *Beacon, InstArithmetic::OpKind Op,
+                                  uint32_t Align = 1) {
+    // TODO(stichnot): Stop ignoring alignment specification.
+    (void)Align;
+    return new (Func->allocate<InstX8632FakeRMW>())
+        InstX8632FakeRMW(Func, Data, Addr, Op, Beacon);
+  }
+  Operand *getAddr() const { return getSrc(1); }
+  Operand *getData() const { return getSrc(0); }
+  InstArithmetic::OpKind getOp() const { return Op; }
+  Variable *getBeacon() const { return llvm::cast<Variable>(getSrc(2)); }
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, FakeRMW); }
+
+private:
+  InstArithmetic::OpKind Op;
+  InstX8632FakeRMW(Cfg *Func, Operand *Data, Operand *Addr,
+                   InstArithmetic::OpKind Op, Variable *Beacon);
+  ~InstX8632FakeRMW() override {}
 };
 
 // InstX8632Label represents an intra-block label that is the target
@@ -515,6 +551,9 @@ private:
 // Emit a one-operand (GPR) instruction.
 void emitIASOpTyGPR(const Cfg *Func, Type Ty, const Operand *Var,
                     const X8632::AssemblerX8632::GPREmitterOneOp &Emitter);
+void emitIASAsAddrOpTyGPR(
+    const Cfg *Func, Type Ty, const Operand *Op0, const Operand *Op1,
+    const X8632::AssemblerX8632::GPREmitterAddrOp &Emitter);
 
 // Instructions of the form x := op(x).
 template <InstX8632::InstKindX8632 K>
@@ -763,6 +802,50 @@ private:
   ~InstX8632BinopGPR() override {}
   static const char *Opcode;
   static const X8632::AssemblerX8632::GPREmitterRegOp Emitter;
+};
+
+template <InstX8632::InstKindX8632 K>
+class InstX8632BinopRMW : public InstX8632 {
+  InstX8632BinopRMW() = delete;
+  InstX8632BinopRMW(const InstX8632BinopRMW &) = delete;
+  InstX8632BinopRMW &operator=(const InstX8632BinopRMW &) = delete;
+
+public:
+  // Create an ordinary binary-op instruction like add or sub.
+  static InstX8632BinopRMW *create(Cfg *Func, OperandX8632Mem *DestSrc0,
+                                   Operand *Src1) {
+    return new (Func->allocate<InstX8632BinopRMW>())
+        InstX8632BinopRMW(Func, DestSrc0, Src1);
+  }
+  void emit(const Cfg *Func) const override {
+    if (!ALLOW_DUMP)
+      return;
+    const bool ShiftHack = false;
+    emitTwoAddress(Opcode, this, Func, ShiftHack);
+  }
+  void emitIAS(const Cfg *Func) const override {
+    Type Ty = getSrc(0)->getType();
+    assert(getSrcSize() == 2);
+    emitIASAsAddrOpTyGPR(Func, Ty, getSrc(0), getSrc(1), Emitter);
+  }
+  void dump(const Cfg *Func) const override {
+    if (!ALLOW_DUMP)
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    Str << Opcode << "." << getSrc(0)->getType() << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstX8632BinopRMW(Cfg *Func, OperandX8632Mem *DestSrc0, Operand *Src1)
+      : InstX8632(Func, K, 2, nullptr) {
+    addSource(DestSrc0);
+    addSource(Src1);
+  }
+  ~InstX8632BinopRMW() override {}
+  static const char *Opcode;
+  static const X8632::AssemblerX8632::GPREmitterAddrOp Emitter;
 };
 
 template <InstX8632::InstKindX8632 K, bool NeedsElementType>
@@ -1017,6 +1100,7 @@ typedef InstX8632Movlike<InstX8632::Movp> InstX8632Movp;
 // Movq - copy between XMM registers, or mem64 and XMM registers.
 typedef InstX8632Movlike<InstX8632::Movq> InstX8632Movq;
 typedef InstX8632BinopGPR<InstX8632::Add> InstX8632Add;
+typedef InstX8632BinopRMW<InstX8632::AddRMW> InstX8632AddRMW;
 typedef InstX8632BinopXmm<InstX8632::Addps, true> InstX8632Addps;
 typedef InstX8632BinopGPR<InstX8632::Adc> InstX8632Adc;
 typedef InstX8632BinopXmm<InstX8632::Addss, false> InstX8632Addss;

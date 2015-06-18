@@ -465,6 +465,12 @@ void TargetX8632::translateO2() {
   Func->getVMetadata()->init(VMK_SingleDefs);
   Func->doAddressOpt();
 
+  // Find read-modify-write opportunities.  Do this after address mode
+  // optimization so that doAddressOpt() doesn't need to be applied to RMW
+  // instructions as well.
+  findRMW();
+  Func->dump("After RMW transform");
+
   // Argument lowering
   Func->doArgLowering();
 
@@ -574,6 +580,146 @@ void TargetX8632::translateOm1() {
   // Nop insertion
   if (Ctx->getFlags().shouldDoNopInsertion()) {
     Func->doNopInsertion();
+  }
+}
+
+namespace {
+
+bool canRMW(const InstArithmetic *Arith) {
+  Type Ty = Arith->getDest()->getType();
+  bool isI64 = Ty == IceType_i64;
+  bool isVector = isVectorType(Ty);
+
+  switch (Arith->getOp()) {
+  // Not handled for lack of simple lowering:
+  //   shift on i64 and vectors
+  //   mul, udiv, urem, sdiv, srem, frem
+  default:
+    return false;
+  case InstArithmetic::Add:
+    return !isI64 && !isVector; // TODO(stichnot): implement i64 and vector
+  case InstArithmetic::Sub:
+  case InstArithmetic::And:
+  case InstArithmetic::Or:
+  case InstArithmetic::Xor:
+  case InstArithmetic::Fadd:
+  case InstArithmetic::Fsub:
+  case InstArithmetic::Fmul:
+  case InstArithmetic::Fdiv:
+    return false; // TODO(stichnot): implement
+    return true;
+  case InstArithmetic::Shl:
+  case InstArithmetic::Lshr:
+  case InstArithmetic::Ashr:
+    return false; // TODO(stichnot): implement
+    return !isI64 && !isVector;
+  }
+}
+
+bool isSameMemAddressOperand(const Operand *A, const Operand *B) {
+  if (A == B)
+    return true;
+  if (auto *MemA = llvm::dyn_cast<OperandX8632Mem>(A)) {
+    if (auto *MemB = llvm::dyn_cast<OperandX8632Mem>(B)) {
+      return MemA->getBase() == MemB->getBase() &&
+             MemA->getOffset() == MemB->getOffset() &&
+             MemA->getIndex() == MemB->getIndex() &&
+             MemA->getShift() == MemB->getShift() &&
+             MemA->getSegmentRegister() == MemB->getSegmentRegister();
+    }
+  }
+  return false;
+}
+
+} // end of anonymous namespace
+
+void TargetX8632::findRMW() {
+  Func->dump("Before RMW");
+  OstreamLocker L(Func->getContext());
+  Ostream &Str = Func->getContext()->getStrDump();
+  for (CfgNode *Node : Func->getNodes()) {
+    // Walk through the instructions, considering each sequence of 3
+    // instructions, and look for the particular RMW pattern.  Note that this
+    // search can be "broken" (false negatives) if there are intervening deleted
+    // instructions, or intervening instructions that could be safely moved out
+    // of the way to reveal an RMW pattern.
+    auto E = Node->getInsts().end();
+    auto I1 = E, I2 = E, I3 = Node->getInsts().begin();
+    for (; I3 != E; I1 = I2, I2 = I3, ++I3) {
+      // Make I3 skip over deleted instructions.
+      while (I3 != E && I3->isDeleted())
+        ++I3;
+      if (I1 == E || I2 == E || I3 == E)
+        continue;
+      assert(!I1->isDeleted());
+      assert(!I2->isDeleted());
+      assert(!I3->isDeleted());
+      if (auto *Load = llvm::dyn_cast<InstLoad>(I1)) {
+        if (auto *Arith = llvm::dyn_cast<InstArithmetic>(I2)) {
+          if (auto *Store = llvm::dyn_cast<InstStore>(I3)) {
+            // Look for:
+            //   a = Load addr
+            //   b = <op> a, other
+            //   Store b, addr
+            // Change to:
+            //   a = Load addr
+            //   b = <op> a, other
+            //   x = FakeDef
+            //   RMW <op>, addr, other, x
+            //   b = Store b, addr, x
+            // Note that inferTwoAddress() makes sure setDestNonKillable() gets
+            // called on the updated Store instruction, to avoid liveness
+            // problems later.
+            //
+            // With this transformation, the Store instruction acquires a Dest
+            // variable and is now subject to dead code elimination if there are
+            // no more uses of "b".  Variable "x" is a beacon for determining
+            // whether the Store instruction gets dead-code eliminated.  If the
+            // Store instruction is eliminated, then it must be the case that
+            // the RMW instruction ends x's live range, and therefore the RMW
+            // instruction will be retained and later lowered.  On the other
+            // hand, if the RMW instruction does not end x's live range, then
+            // the Store instruction must still be present, and therefore the
+            // RMW instruction is ignored during lowering because it is
+            // redundant with the Store instruction.
+            //
+            // Note that if "a" has further uses, the RMW transformation may
+            // still trigger, resulting in two loads and one store, which is
+            // worse than the original one load and one store.  However, this is
+            // probably rare, and caching probably keeps it just as fast.
+            if (!isSameMemAddressOperand(Load->getSourceAddress(),
+                                         Store->getAddr()))
+              continue;
+            if (false && Load->getSourceAddress() != Store->getAddr())
+              continue;
+            if (Arith->getSrc(0) != Load->getDest())
+              continue;
+            if (Arith->getDest() != Store->getData())
+              continue;
+            if (!canRMW(Arith))
+              continue;
+            if (Func->isVerbose(IceV_RMW)) {
+              Str << "Found RMW in " << Func->getFunctionName() << ":\n  ";
+              Load->dump(Func);
+              Str << "\n  ";
+              Arith->dump(Func);
+              Str << "\n  ";
+              Store->dump(Func);
+              Str << "\n";
+            }
+            Variable *Beacon = Func->makeVariable(IceType_i32);
+            Beacon->setWeight(0);
+            Store->setRmwBeacon(Beacon);
+            InstFakeDef *BeaconDef = InstFakeDef::create(Func, Beacon);
+            Node->getInsts().insert(I3, BeaconDef);
+            InstX8632FakeRMW *RMW = InstX8632FakeRMW::create(
+                Func, Arith->getSrc(1), Store->getAddr(), Beacon,
+                Arith->getOp());
+            Node->getInsts().insert(I3, RMW);
+          }
+        }
+      }
+    }
   }
 }
 
@@ -4394,7 +4540,10 @@ void TargetX8632::doAddressOptStore() {
     Constant *OffsetOp = Ctx->getConstantInt32(Offset);
     Addr = OperandX8632Mem::create(Func, Data->getType(), Base, OffsetOp, Index,
                                    Shift, SegmentReg);
-    Context.insert(InstStore::create(Func, Data, Addr));
+    InstStore *NewStore = InstStore::create(Func, Data, Addr);
+    if (Inst->getDest())
+      NewStore->setRmwBeacon(Inst->getRmwBeacon());
+    Context.insert(NewStore);
   }
 }
 
@@ -4496,6 +4645,46 @@ void TargetX8632::eliminateNextVectorSextInstruction(
 }
 
 void TargetX8632::lowerUnreachable(const InstUnreachable * /*Inst*/) { _ud2(); }
+
+void TargetX8632::lowerRMW(const InstX8632FakeRMW *RMW) {
+  // If the beacon variable's live range does not end in this
+  // instruction, then it must end in the modified Store instruction
+  // that follows.  This means that the original Store instruction is
+  // still there, either because the value being stored is used beyond
+  // the Store instruction, or because dead code elimination did not
+  // happen.  In either case, we cancel RMW lowering (and the caller
+  // deletes the RMW instruction).
+  if (!RMW->isLastUse(RMW->getBeacon()))
+    return;
+  Operand *Src = RMW->getData();
+  Type Ty = Src->getType();
+  OperandX8632Mem *Addr = formMemoryOperand(RMW->getAddr(), Ty);
+  if (Ty == IceType_i64) {
+    // TODO(stichnot): Implement.
+  } else if (isVectorType(Ty)) {
+    // TODO(stichnot): Implement.
+  } else {
+    // i8, i16, i32, f32, f64
+    switch (RMW->getOp()) {
+    default:
+      // TODO(stichnot): Implement other arithmetic operators.
+      break;
+    case InstArithmetic::Add:
+      Src = legalize(Src, Legal_Reg | Legal_Imm);
+      _add_rmw(Addr, Src);
+      return;
+    }
+  }
+  llvm::report_fatal_error("Couldn't lower RMW instruction");
+}
+
+void TargetX8632::lowerOther(const Inst *Instr) {
+  if (const auto *RMW = llvm::dyn_cast<InstX8632FakeRMW>(Instr)) {
+    lowerRMW(RMW);
+  } else {
+    TargetLowering::lowerOther(Instr);
+  }
+}
 
 // Turn an i64 Phi instruction into a pair of i32 Phi instructions, to
 // preserve integrity of liveness analysis.  Undef values are also
