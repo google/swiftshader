@@ -11,6 +11,7 @@
 
 #include "glslang.h"
 #include "preprocessor/SourceLocation.h"
+#include "ValidateGlobalInitializer.h"
 #include "ValidateSwitch.h"
 
 ///////////////////////////////////////////////////////////////////////
@@ -462,7 +463,13 @@ bool TParseContext::constructorErrorCheck(const TSourceLoc &line, TIntermNode* n
     bool constructingMatrix = false;
     switch(op) {
     case EOpConstructMat2:
+    case EOpConstructMat2x3:
+    case EOpConstructMat2x4:
+    case EOpConstructMat3x2:
     case EOpConstructMat3:
+    case EOpConstructMat3x4:
+    case EOpConstructMat4x2:
+    case EOpConstructMat4x3:
     case EOpConstructMat4:
         constructingMatrix = true;
         break;
@@ -501,9 +508,13 @@ bool TParseContext::constructorErrorCheck(const TSourceLoc &line, TIntermNode* n
     if (constType)
         type->setQualifier(EvqConstExpr);
 
-    if (type->isArray() && type->getArraySize() != function.getParamCount()) {
-        error(line, "array constructor needs one argument per array element", "constructor");
-        return true;
+    if(type->isArray()) {
+        if(type->getArraySize() == 0) {
+            type->setArraySize(function.getParamCount());
+        } else if(type->getArraySize() != function.getParamCount()) {
+            error(line, "array constructor needs one argument per array element", "constructor");
+            return true;
+        }
     }
 
     if (arrayArg && op != EOpConstructStruct) {
@@ -829,79 +840,6 @@ bool TParseContext::arrayTypeErrorCheck(const TSourceLoc &line, TPublicType type
         error(line, "cannot declare arrays of arrays", TType(type).getCompleteString().c_str());
         return true;
     }
-
-    return false;
-}
-
-//
-// Do all the semantic checking for declaring an array, with and
-// without a size, and make the right changes to the symbol table.
-//
-// size == 0 means no specified size.
-//
-// Returns true if there was an error.
-//
-bool TParseContext::arrayErrorCheck(const TSourceLoc &line, TString& identifier, TPublicType type, TVariable*& variable)
-{
-    //
-    // Don't check for reserved word use until after we know it's not in the symbol table,
-    // because reserved arrays can be redeclared.
-    //
-
-    bool builtIn = false;
-    bool sameScope = false;
-    TSymbol* symbol = symbolTable.find(identifier, shaderVersion, &builtIn, &sameScope);
-    if (symbol == 0 || !sameScope) {
-        if (reservedErrorCheck(line, identifier))
-            return true;
-
-        variable = new TVariable(&identifier, TType(type));
-
-        if (type.arraySize)
-            variable->getType().setArraySize(type.arraySize);
-
-        if (! symbolTable.declare(*variable)) {
-            delete variable;
-            error(line, "INTERNAL ERROR inserting new symbol", identifier.c_str());
-            return true;
-        }
-    } else {
-        if (! symbol->isVariable()) {
-            error(line, "variable expected", identifier.c_str());
-            return true;
-        }
-
-        variable = static_cast<TVariable*>(symbol);
-        if (! variable->getType().isArray()) {
-            error(line, "redeclaring non-array as array", identifier.c_str());
-            return true;
-        }
-        if (variable->getType().getArraySize() > 0) {
-            error(line, "redeclaration of array with size", identifier.c_str());
-            return true;
-        }
-
-        if (! variable->getType().sameElementType(TType(type))) {
-            error(line, "redeclaration of array with a different type", identifier.c_str());
-            return true;
-        }
-
-        TType* t = variable->getArrayInformationType();
-        while (t != 0) {
-            if (t->getMaxArraySize() > type.arraySize) {
-                error(line, "higher index value already used for the array", identifier.c_str());
-                return true;
-            }
-            t->setArraySize(type.arraySize);
-            t = t->getArrayInformationType();
-        }
-
-        if (type.arraySize)
-            variable->getType().setArraySize(type.arraySize);
-    }
-
-    if (voidErrorCheck(line, identifier, type.type))
-        return true;
 
     return false;
 }
@@ -1234,27 +1172,33 @@ const TFunction* TParseContext::findFunction(const TSourceLoc &line, TFunction* 
 // code to handle them here.
 //
 bool TParseContext::executeInitializer(const TSourceLoc& line, const TString& identifier, const TPublicType& pType,
-                                       TIntermTyped* initializer, TIntermNode*& intermNode, TVariable* variable)
+                                       TIntermTyped *initializer, TIntermNode **intermNode)
 {
-    TType type = TType(pType);
+	ASSERT(intermNode != nullptr);
+	TType type = TType(pType);
 
-    if (variable == 0) {
-        if (reservedErrorCheck(line, identifier))
-            return true;
+	TVariable *variable = nullptr;
+	if(type.isArray() && (type.getArraySize() == 0))
+	{
+		type.setArraySize(initializer->getArraySize());
+	}
+	if(!declareVariable(line, identifier, type, &variable))
+	{
+		return true;
+	}
 
-        if (voidErrorCheck(line, identifier, pType.type))
-            return true;
-
-        //
-        // add variable to symbol table
-        //
-        variable = new TVariable(&identifier, type);
-        if (! symbolTable.declare(*variable)) {
-            error(line, "redefinition", variable->getName().c_str());
-            return true;
-            // don't delete variable, it's used by error recovery, and the pool
-            // pop will take care of the memory
-        }
+	bool globalInitWarning = false;
+	if(symbolTable.atGlobalLevel() && !ValidateGlobalInitializer(initializer, this, &globalInitWarning))
+	{
+		// Error message does not completely match behavior with ESSL 1.00, but
+		// we want to steer developers towards only using constant expressions.
+		error(line, "global variable initializers must be constant expressions", "=");
+		return true;
+	}
+	if(globalInitWarning)
+	{
+		warning(line, "global variable initializers should be constant expressions "
+			"(uniforms and globals are allowed in global initializers for legacy compatibility)", "=");
     }
 
     //
@@ -1285,15 +1229,9 @@ bool TParseContext::executeInitializer(const TSourceLoc& line, const TString& id
             return true;
         }
         if (initializer->getAsConstantUnion()) {
-            ConstantUnion* unionArray = variable->getConstPointer();
-
-            if (type.getObjectSize() == 1 && type.getBasicType() != EbtStruct) {
-                *unionArray = (initializer->getAsConstantUnion()->getUnionArrayPointer())[0];
-            } else {
-                variable->shareConstPointer(initializer->getAsConstantUnion()->getUnionArrayPointer());
-            }
+            variable->shareConstPointer(initializer->getAsConstantUnion()->getUnionArrayPointer());
         } else if (initializer->getAsSymbolNode()) {
-            const TSymbol* symbol = symbolTable.find(initializer->getAsSymbolNode()->getSymbol(), shaderVersion);
+            const TSymbol* symbol = symbolTable.find(initializer->getAsSymbolNode()->getSymbol(), 0);
             const TVariable* tVar = static_cast<const TVariable*>(symbol);
 
             ConstantUnion* constArray = tVar->getConstPointer();
@@ -1310,13 +1248,13 @@ bool TParseContext::executeInitializer(const TSourceLoc& line, const TString& id
 
     if (qualifier != EvqConstExpr) {
         TIntermSymbol* intermSymbol = intermediate.addSymbol(variable->getUniqueId(), variable->getName(), variable->getType(), line);
-        intermNode = intermediate.addAssign(EOpInitialize, intermSymbol, initializer, line);
-        if (intermNode == 0) {
+        *intermNode = createAssign(EOpInitialize, intermSymbol, initializer, line);
+        if(*intermNode == nullptr) {
             assignError(line, "=", intermSymbol->getCompleteString(), initializer->getCompleteString());
             return true;
         }
     } else
-        intermNode = 0;
+        *intermNode = nullptr;
 
     return false;
 }
@@ -1500,7 +1438,7 @@ TIntermAggregate *TParseContext::parseSingleInitDeclaration(const TPublicType &p
 		recover();
 
 	TIntermNode *intermNode = nullptr;
-	if(!executeInitializer(identifierLocation, identifier, publicType, initializer, intermNode))
+	if(!executeInitializer(identifierLocation, identifier, publicType, initializer, &intermNode))
 	{
 		//
 		// Build intermediate representation
@@ -1546,7 +1484,7 @@ TIntermAggregate *TParseContext::parseSingleArrayInitDeclaration(TPublicType &pu
 
 	// initNode will correspond to the whole of "type b[n] = initializer".
 	TIntermNode *initNode = nullptr;
-	if(!executeInitializer(identifierLocation, identifier, arrayType, initializer, initNode))
+	if(!executeInitializer(identifierLocation, identifier, arrayType, initializer, &initNode))
 	{
 		return initNode ? intermediate.makeAggregate(initNode, initLocation) : nullptr;
 	}
@@ -1686,7 +1624,7 @@ TIntermAggregate *TParseContext::parseInitDeclarator(const TPublicType &publicTy
 		recover();
 
 	TIntermNode *intermNode = nullptr;
-	if(!executeInitializer(identifierLocation, identifier, publicType, initializer, intermNode))
+	if(!executeInitializer(identifierLocation, identifier, publicType, initializer, &intermNode))
 	{
 		//
 		// build the intermediate representation
@@ -1745,7 +1683,7 @@ TIntermAggregate *TParseContext::parseArrayInitDeclarator(const TPublicType &pub
 
 	// initNode will correspond to the whole of "b[n] = initializer".
 	TIntermNode *initNode = nullptr;
-	if(!executeInitializer(identifierLocation, identifier, arrayType, initializer, initNode))
+	if(!executeInitializer(identifierLocation, identifier, arrayType, initializer, &initNode))
 	{
 		if(initNode)
 		{
@@ -1797,6 +1735,108 @@ void TParseContext::parseGlobalLayoutQualifier(const TPublicType &typeQualifier)
 	{
 		defaultBlockStorage = layoutQualifier.blockStorage;
 	}
+}
+
+TFunction *TParseContext::addConstructorFunc(const TPublicType &publicTypeIn)
+{
+	TPublicType publicType = publicTypeIn;
+	TOperator op = EOpNull;
+	if(publicType.userDef)
+	{
+		op = EOpConstructStruct;
+	}
+	else
+	{
+		switch(publicType.type)
+		{
+		case EbtFloat:
+			if(publicType.isMatrix())
+			{
+				switch(publicType.getCols())
+				{
+				case 2:
+					switch(publicType.getRows())
+					{
+					case 2: op = EOpConstructMat2;  break;
+					case 3: op = EOpConstructMat2x3;  break;
+					case 4: op = EOpConstructMat2x4;  break;
+					}
+					break;
+				case 3:
+					switch(publicType.getRows())
+					{
+					case 2: op = EOpConstructMat3x2;  break;
+					case 3: op = EOpConstructMat3;  break;
+					case 4: op = EOpConstructMat3x4;  break;
+					}
+					break;
+				case 4:
+					switch(publicType.getRows())
+					{
+					case 2: op = EOpConstructMat4x2;  break;
+					case 3: op = EOpConstructMat4x3;  break;
+					case 4: op = EOpConstructMat4;  break;
+					}
+					break;
+				}
+			}
+			else
+			{
+				switch(publicType.getNominalSize())
+				{
+				case 1: op = EOpConstructFloat; break;
+				case 2: op = EOpConstructVec2;  break;
+				case 3: op = EOpConstructVec3;  break;
+				case 4: op = EOpConstructVec4;  break;
+				}
+			}
+			break;
+
+		case EbtInt:
+			switch(publicType.getNominalSize())
+			{
+			case 1: op = EOpConstructInt;   break;
+			case 2: op = EOpConstructIVec2; break;
+			case 3: op = EOpConstructIVec3; break;
+			case 4: op = EOpConstructIVec4; break;
+			}
+			break;
+
+		case EbtUInt:
+			switch(publicType.getNominalSize())
+			{
+			case 1: op = EOpConstructUInt;  break;
+			case 2: op = EOpConstructUVec2; break;
+			case 3: op = EOpConstructUVec3; break;
+			case 4: op = EOpConstructUVec4; break;
+			}
+			break;
+
+		case EbtBool:
+			switch(publicType.getNominalSize())
+			{
+			case 1: op = EOpConstructBool;  break;
+			case 2: op = EOpConstructBVec2; break;
+			case 3: op = EOpConstructBVec3; break;
+			case 4: op = EOpConstructBVec4; break;
+			}
+			break;
+
+		default: break;
+		}
+
+		if(op == EOpNull)
+		{
+			error(publicType.line, "cannot construct this type", getBasicString(publicType.type));
+			recover();
+			publicType.type = EbtFloat;
+			op = EOpConstructFloat;
+		}
+	}
+
+	TString tempString;
+	TType type(publicType);
+	return new TFunction(&tempString, type, op);
 }
 
 // This function is used to test for the correctness of the parameters passed to various constructor functions
@@ -3051,6 +3091,26 @@ TIntermCase *TParseContext::addDefault(const TSourceLoc &loc)
 		error(loc, "erroneous default statement", "default");
 		recover();
 		return nullptr;
+	}
+	return node;
+}
+TIntermTyped *TParseContext::createAssign(TOperator op, TIntermTyped *left, TIntermTyped *right, const TSourceLoc &loc)
+{
+	if(binaryOpCommonCheck(op, left, right, loc))
+	{
+		return intermediate.addAssign(op, left, right, loc);
+	}
+	return nullptr;
+}
+
+TIntermTyped *TParseContext::addAssign(TOperator op, TIntermTyped *left, TIntermTyped *right, const TSourceLoc &loc)
+{
+	TIntermTyped *node = createAssign(op, left, right, loc);
+	if(node == nullptr)
+	{
+		assignError(loc, "assign", left->getCompleteString(), right->getCompleteString());
+		recover();
+		return left;
 	}
 	return node;
 }

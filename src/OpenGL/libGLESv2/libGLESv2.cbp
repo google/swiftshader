@@ -295,6 +295,8 @@
 		<Unit filename="../compiler/TranslatorASM.cpp" />
 		<Unit filename="../compiler/TranslatorASM.h" />
 		<Unit filename="../compiler/Types.h" />
+		<Unit filename="../compiler/ValidateGlobalInitializer.cpp" />
+		<Unit filename="../compiler/ValidateGlobalInitializer.h" />
 		<Unit filename="../compiler/ValidateLimitations.cpp" />
 		<Unit filename="../compiler/ValidateLimitations.h" />
 		<Unit filename="../compiler/ValidateSwitch.cpp" />

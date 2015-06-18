@@ -780,11 +780,7 @@ bool TIntermUnary::promote(TInfoSink&)
 //
 bool TIntermBinary::promote(TInfoSink& infoSink)
 {
-    // This function only handles scalars, vectors, and matrices.
-    if (left->isArray() || right->isArray()) {
-        infoSink.info.message(EPrefixInternalError, "Invalid operation for arrays", getLine());
-        return false;
-    }
+	ASSERT(left->isArray() == right->isArray());
 
     // GLSL ES 2.0 does not support implicit type casting.
     // So the basic type should always match.

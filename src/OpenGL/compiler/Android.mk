@@ -39,6 +39,7 @@ LOCAL_SRC_FILES += \
 	SymbolTable.cpp \
 	TranslatorASM.cpp \
 	util.cpp \
+	ValidateGlobalInitializer.cpp \
 	ValidateLimitations.cpp \
 	ValidateSwitch.cpp \
 
