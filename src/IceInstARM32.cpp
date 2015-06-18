@@ -198,6 +198,13 @@ OperandARM32FlexReg::OperandARM32FlexReg(Cfg *Func, Type Ty, Variable *Reg,
     Vars[1] = ShiftVar;
 }
 
+InstARM32AdjustStack::InstARM32AdjustStack(Cfg *Func, Variable *SP,
+                                           SizeT Amount, Operand *SrcAmount)
+    : InstARM32(Func, InstARM32::Adjuststack, 2, SP), Amount(Amount) {
+  addSource(SP);
+  addSource(SrcAmount);
+}
+
 InstARM32Br::InstARM32Br(Cfg *Func, const CfgNode *TargetTrue,
                          const CfgNode *TargetFalse, CondARM32::Cond Pred)
     : InstARM32Pred(Func, InstARM32::Br, 0, nullptr, Pred),
@@ -629,6 +636,39 @@ void InstARM32Pop::dump(const Cfg *Func) const {
       Str << ", ";
     Dests[I]->dump(Func);
   }
+}
+
+void InstARM32AdjustStack::emit(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 2);
+  Str << "\t"
+      << "sub"
+      << "\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+  Func->getTarget()->updateStackAdjustment(Amount);
+}
+
+void InstARM32AdjustStack::emitIAS(const Cfg *Func) const {
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+  Func->getTarget()->updateStackAdjustment(Amount);
+}
+
+void InstARM32AdjustStack::dump(const Cfg *Func) const {
+  if (!ALLOW_DUMP)
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  getDest()->dump(Func);
+  Str << " = sub.i32 ";
+  getSrc(0)->dump(Func);
+  Str << ", " << Amount << " ; ";
+  getSrc(1)->dump(Func);
 }
 
 void InstARM32Push::emit(const Cfg *Func) const {

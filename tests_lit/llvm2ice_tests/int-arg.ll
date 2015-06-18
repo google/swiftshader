@@ -235,3 +235,40 @@ entry:
 
 ; Test interleaving float/double and integer (different register streams on ARM).
 ; TODO(jvoung): Test once the S/D/Q regs are modeled.
+
+; Test that integers are passed correctly as arguments to a function.
+
+declare void @IntArgs(i32, i32, i32, i32, i32, i32)
+
+declare void @killRegisters()
+
+define void @test_passing_integers(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6) {
+  call void @killRegisters()
+  call void @IntArgs(i32 %arg6, i32 %arg5, i32 %arg4, i32 %arg3, i32 %arg2, i32 %arg1)
+  ret void
+}
+
+; CHECK-LABEL: test_passing_integers
+; CHECK-DAG: mov [[REG1:e.*]],DWORD PTR [esp+0x24]
+; CHECK-DAG: mov [[REG2:e.*]],DWORD PTR [esp+0x28]
+; CHECK-DAG: mov [[REG3:e.*]],DWORD PTR [esp+0x2c]
+; CHECK-DAG: mov [[REG4:e.*]],DWORD PTR [esp+0x30]
+; CHECK: mov DWORD PTR [esp]
+; CHECK: mov DWORD PTR [esp+0x4]
+; CHECK-DAG: mov DWORD PTR [esp+0x8],[[REG4]]
+; CHECK-DAG: mov DWORD PTR [esp+0xc],[[REG3]]
+; CHECK-DAG: mov DWORD PTR [esp+0x10],[[REG2]]
+; CHECK-DAG: mov DWORD PTR [esp+0x14],[[REG1]]
+; CHECK: call
+
+; ARM32-LABEL: test_passing_integers
+; ARM32-DAG: mov [[REG1:.*]], r1
+; ARM32-DAG: mov [[REG2:.*]], r2
+; ARM32-DAG: mov [[REG3:.*]], r3
+; ARM32: str [[REG2]], [sp]
+; ARM32: str [[REG1]], [sp, #4]
+; ARM32-DAG: mov r0
+; ARM32-DAG: mov r1
+; ARM32-DAG: mov r2
+; ARM32-DAG: mov r3, [[REG3]]
+; ARM32: bl

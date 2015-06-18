@@ -25,8 +25,14 @@
 ; RUN:   --dis-flags=-t --target x8632 -i %s --args --verbose none \
 ; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix=SYMTAB %s
 
-; Only checking symtab for ARM for now. TODO(jvoung): Need to lower
-; arguments at callsite.
+; This is not really IAS, but we can switch when that is implemented.
+; For now we can at least see the instructions / relocations.
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s \
+; RUN:   --args --verbose none --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --command FileCheck \
+; RUN:   --check-prefix=IASARM32 %s
+
 ; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --dis-flags=-t --target arm32 -i %s \
 ; RUN:   --args --verbose none --skip-unimplemented \
@@ -69,31 +75,51 @@ entry:
 ; SYMTAB-DAG: 00000000 {{.*}} .data {{.*}} PrimitiveInit
 ; IAS: mov {{.*}},0x0 {{.*}} .data
 ; IAS: call
+; IASARM32: movw {{.*}} PrimitiveInit
+; IASARM32: movt {{.*}} PrimitiveInit
+; IASARM32: bl
 
 ; SYMTAB-DAG: 00000000 {{.*}} .rodata {{.*}} PrimitiveInitConst
 ; IAS: mov {{.*}},0x0 {{.*}} .rodata
 ; IAS: call
+; IASARM32: movw {{.*}} PrimitiveInitConst
+; IASARM32: movt {{.*}} PrimitiveInitConst
+; IASARM32: bl
 
 ; SYMTAB-DAG: 00000000 {{.*}} .bss {{.*}} PrimitiveInitStatic
 ; IAS: mov {{.*}},0x0 {{.*}} .bss
 ; IAS: call
+; IASARM32: movw {{.*}} PrimitiveInitStatic
+; IASARM32: movt {{.*}} PrimitiveInitStatic
+; IASARM32: bl
 
 ; SYMTAB-DAG: 00000004 {{.*}} .bss {{.*}} PrimitiveUninit
 ; IAS: mov {{.*}},0x4 {{.*}} .bss
 ; IAS: call
+; IASARM32: movw {{.*}} PrimitiveUninit
+; IASARM32: movt {{.*}} PrimitiveUninit
+; IASARM32: bl
 
 ; SYMTAB-DAG: 00000004{{.*}}.data{{.*}}ArrayInit
 ; IAS: mov {{.*}},0x4 {{.*}} .data
 ; IAS: call
+; IASARM32: movw {{.*}} ArrayInit
+; IASARM32: movt {{.*}} ArrayInit
+; IASARM32: bl
 
 ; SYMTAB-DAG: 00000018 {{.*}} .data {{.*}} ArrayInitPartial
 ; IAS: mov {{.*}},0x18 {{.*}} .data
 ; IAS: call
+; IASARM32: movw {{.*}} ArrayInitPartial
+; IASARM32: movt {{.*}} ArrayInitPartial
+; IASARM32: bl
 
 ; SYMTAB-DAG: 00000008 {{.*}} .bss {{.*}} ArrayUninit
 ; IAS: mov {{.*}},0x8 {{.*}} .bss
 ; IAS: call
-
+; IASARM32: movw {{.*}} ArrayUninit
+; IASARM32: movt {{.*}} ArrayUninit
+; IASARM32: bl
 
 declare void @use(i32)
 

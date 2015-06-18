@@ -159,6 +159,10 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Adc::create(Func, Dest, Src0, Src1, Pred));
   }
+  void _adjust_stack(int32_t Amount, Operand *SrcAmount) {
+    Context.insert(InstARM32AdjustStack::create(
+        Func, getPhysicalRegister(RegARM32::Reg_sp), Amount, SrcAmount));
+  }
   void _and(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32And::create(Func, Dest, Src0, Src1, Pred));
@@ -308,6 +312,33 @@ protected:
   llvm::SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];
   static IceString RegNames[];
+
+  // Helper class that understands the Calling Convention and register
+  // assignments. The first few integer type parameters can use r0-r3,
+  // regardless of their position relative to the floating-point/vector
+  // arguments in the argument list. Floating-point and vector arguments
+  // can use q0-q3 (aka d0-d7, s0-s15). Technically, arguments that can
+  // start with registers but extend beyond the available registers can be
+  // split between the registers and the stack. However, this is typically
+  // for passing GPR structs by value, and PNaCl transforms expand this out.
+  //
+  // Also, at the point before the call, the stack must be aligned.
+  class CallingConv {
+    CallingConv(const CallingConv &) = delete;
+    CallingConv &operator=(const CallingConv &) = delete;
+
+  public:
+    CallingConv() : NumGPRRegsUsed(0) {}
+    ~CallingConv() = default;
+
+    bool I64InRegs(std::pair<int32_t, int32_t> *Regs);
+    bool I32InReg(int32_t *Reg);
+
+    static constexpr uint32_t ARM32_MAX_GPR_ARG = 4;
+
+  private:
+    uint32_t NumGPRRegsUsed;
+  };
 
 private:
   ~TargetARM32() override {}

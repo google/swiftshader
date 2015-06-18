@@ -120,9 +120,6 @@ ICEINSTICMP_TABLE
 #undef X
 } // end of namespace dummy1
 
-// The maximum number of arguments to pass in GPR registers.
-const uint32_t ARM32_MAX_GPR_ARG = 4;
-
 // Stack alignment
 const uint32_t ARM32_STACK_ALIGNMENT_BYTES = 16;
 
@@ -130,6 +127,18 @@ const uint32_t ARM32_STACK_ALIGNMENT_BYTES = 16;
 // of the stack alignment.
 uint32_t applyStackAlignment(uint32_t Value) {
   return Utils::applyAlignment(Value, ARM32_STACK_ALIGNMENT_BYTES);
+}
+
+// Value is in bytes. Return Value adjusted to the next highest multiple
+// of the stack alignment required for the given type.
+uint32_t applyStackAlignmentTy(uint32_t Value, Type Ty) {
+  // Use natural alignment, except that normally (non-NaCl) ARM only
+  // aligns vectors to 8 bytes.
+  // TODO(jvoung): Check this ...
+  size_t typeAlignInBytes = typeWidthInBytes(Ty);
+  if (isVectorType(Ty))
+    typeAlignInBytes = 8;
+  return Utils::applyAlignment(Value, typeAlignInBytes);
 }
 
 } // end of anonymous namespace
@@ -377,7 +386,7 @@ void TargetARM32::emitVariable(const Variable *Var) const {
     Offset += getStackAdjustment();
   // TODO(jvoung): Handle out of range. Perhaps we need a scratch register
   // to materialize a larger offset.
-  const bool SignExt = false;
+  constexpr bool SignExt = false;
   if (!OperandARM32Mem::canHoldOffset(Var->getType(), SignExt, Offset)) {
     llvm::report_fatal_error("Illegal stack offset");
   }
@@ -389,13 +398,39 @@ void TargetARM32::emitVariable(const Variable *Var) const {
   Str << "]";
 }
 
+bool TargetARM32::CallingConv::I64InRegs(std::pair<int32_t, int32_t> *Regs) {
+  if (NumGPRRegsUsed >= ARM32_MAX_GPR_ARG)
+    return false;
+  int32_t RegLo, RegHi;
+  // Always start i64 registers at an even register, so this may end
+  // up padding away a register.
+  if (NumGPRRegsUsed % 2 != 0) {
+    ++NumGPRRegsUsed;
+  }
+  RegLo = RegARM32::Reg_r0 + NumGPRRegsUsed;
+  ++NumGPRRegsUsed;
+  RegHi = RegARM32::Reg_r0 + NumGPRRegsUsed;
+  ++NumGPRRegsUsed;
+  // If this bumps us past the boundary, don't allocate to a register
+  // and leave any previously speculatively consumed registers as consumed.
+  if (NumGPRRegsUsed > ARM32_MAX_GPR_ARG)
+    return false;
+  Regs->first = RegLo;
+  Regs->second = RegHi;
+  return true;
+}
+
+bool TargetARM32::CallingConv::I32InReg(int32_t *Reg) {
+  if (NumGPRRegsUsed >= ARM32_MAX_GPR_ARG)
+    return false;
+  *Reg = RegARM32::Reg_r0 + NumGPRRegsUsed;
+  ++NumGPRRegsUsed;
+  return true;
+}
+
 void TargetARM32::lowerArguments() {
   VarList &Args = Func->getArgs();
-  // The first few integer type parameters can use r0-r3, regardless of their
-  // position relative to the floating-point/vector arguments in the argument
-  // list. Floating-point and vector arguments can use q0-q3 (aka d0-d7,
-  // s0-s15).
-  unsigned NumGPRRegsUsed = 0;
+  TargetARM32::CallingConv CC;
 
   // For each register argument, replace Arg in the argument list with the
   // home register.  Then generate an instruction in the prolog to copy the
@@ -414,22 +449,8 @@ void TargetARM32::lowerArguments() {
       UnimplementedError(Func->getContext()->getFlags());
       continue;
     } else if (Ty == IceType_i64) {
-      if (NumGPRRegsUsed >= ARM32_MAX_GPR_ARG)
-        continue;
-      int32_t RegLo;
-      int32_t RegHi;
-      // Always start i64 registers at an even register, so this may end
-      // up padding away a register.
-      if (NumGPRRegsUsed % 2 != 0) {
-        ++NumGPRRegsUsed;
-      }
-      RegLo = RegARM32::Reg_r0 + NumGPRRegsUsed;
-      ++NumGPRRegsUsed;
-      RegHi = RegARM32::Reg_r0 + NumGPRRegsUsed;
-      ++NumGPRRegsUsed;
-      // If this bumps us past the boundary, don't allocate to a register
-      // and leave any previously speculatively consumed registers as consumed.
-      if (NumGPRRegsUsed > ARM32_MAX_GPR_ARG)
+      std::pair<int32_t, int32_t> RegPair;
+      if (!CC.I64InRegs(&RegPair))
         continue;
       Variable *RegisterArg = Func->makeVariable(Ty);
       Variable *RegisterLo = Func->makeVariable(IceType_i32);
@@ -439,9 +460,9 @@ void TargetARM32::lowerArguments() {
         RegisterLo->setName(Func, "home_reg_lo:" + Arg->getName(Func));
         RegisterHi->setName(Func, "home_reg_hi:" + Arg->getName(Func));
       }
-      RegisterLo->setRegNum(RegLo);
+      RegisterLo->setRegNum(RegPair.first);
       RegisterLo->setIsArg();
-      RegisterHi->setRegNum(RegHi);
+      RegisterHi->setRegNum(RegPair.second);
       RegisterHi->setIsArg();
       RegisterArg->setLoHi(RegisterLo, RegisterHi);
       RegisterArg->setIsArg();
@@ -452,10 +473,9 @@ void TargetARM32::lowerArguments() {
       continue;
     } else {
       assert(Ty == IceType_i32);
-      if (NumGPRRegsUsed >= ARM32_MAX_GPR_ARG)
+      int32_t RegNum;
+      if (!CC.I32InReg(&RegNum))
         continue;
-      int32_t RegNum = RegARM32::Reg_r0 + NumGPRRegsUsed;
-      ++NumGPRRegsUsed;
       Variable *RegisterArg = Func->makeVariable(Ty);
       if (ALLOW_DUMP) {
         RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
@@ -492,9 +512,7 @@ void TargetARM32::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
     finishArgumentLowering(Hi, FramePtr, BasicFrameOffset, InArgsSizeBytes);
     return;
   }
-  if (isVectorType(Ty)) {
-    InArgsSizeBytes = applyStackAlignment(InArgsSizeBytes);
-  }
+  InArgsSizeBytes = applyStackAlignmentTy(InArgsSizeBytes, Ty);
   Arg->setStackOffset(BasicFrameOffset + InArgsSizeBytes);
   InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
   // If the argument variable has been assigned a register, we need to load
@@ -672,9 +690,10 @@ void TargetARM32::addProlog(CfgNode *Node) {
 
   const VarList &Args = Func->getArgs();
   size_t InArgsSizeBytes = 0;
-  unsigned NumGPRArgs = 0;
+  TargetARM32::CallingConv CC;
   for (Variable *Arg : Args) {
     Type Ty = Arg->getType();
+    bool InRegs = false;
     // Skip arguments passed in registers.
     if (isVectorType(Ty)) {
       UnimplementedError(Func->getContext()->getFlags());
@@ -682,19 +701,16 @@ void TargetARM32::addProlog(CfgNode *Node) {
     } else if (isFloatingType(Ty)) {
       UnimplementedError(Func->getContext()->getFlags());
       continue;
-    } else if (Ty == IceType_i64 && NumGPRArgs < ARM32_MAX_GPR_ARG) {
-      // Start at an even register.
-      if (NumGPRArgs % 2 == 1) {
-        ++NumGPRArgs;
-      }
-      NumGPRArgs += 2;
-      if (NumGPRArgs <= ARM32_MAX_GPR_ARG)
-        continue;
-    } else if (NumGPRArgs < ARM32_MAX_GPR_ARG) {
-      ++NumGPRArgs;
-      continue;
+    } else if (Ty == IceType_i64) {
+      std::pair<int32_t, int32_t> DummyRegs;
+      InRegs = CC.I64InRegs(&DummyRegs);
+    } else {
+      assert(Ty == IceType_i32);
+      int32_t DummyReg;
+      InRegs = CC.I32InReg(&DummyReg);
     }
-    finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+    if (!InRegs)
+      finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, InArgsSizeBytes);
   }
 
   // Fill in stack offsets for locals.
@@ -1314,10 +1330,97 @@ void TargetARM32::lowerBr(const InstBr *Inst) {
 
 void TargetARM32::lowerCall(const InstCall *Instr) {
   MaybeLeafFunc = false;
+  NeedsStackAlignment = true;
 
-  // TODO(jvoung): assign arguments to registers and stack. Also reserve stack.
-  if (Instr->getNumArgs()) {
-    UnimplementedError(Func->getContext()->getFlags());
+  // Assign arguments to registers and stack. Also reserve stack.
+  TargetARM32::CallingConv CC;
+  // Pair of Arg Operand -> GPR number assignments.
+  llvm::SmallVector<std::pair<Operand *, int32_t>,
+                    TargetARM32::CallingConv::ARM32_MAX_GPR_ARG> GPRArgs;
+  // Pair of Arg Operand -> stack offset.
+  llvm::SmallVector<std::pair<Operand *, int32_t>, 8> StackArgs;
+  int32_t ParameterAreaSizeBytes = 0;
+
+  // Classify each argument operand according to the location where the
+  // argument is passed.
+  for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
+    Operand *Arg = Instr->getArg(i);
+    Type Ty = Arg->getType();
+    bool InRegs = false;
+    if (isVectorType(Ty)) {
+      UnimplementedError(Func->getContext()->getFlags());
+    } else if (isFloatingType(Ty)) {
+      UnimplementedError(Func->getContext()->getFlags());
+    } else if (Ty == IceType_i64) {
+      std::pair<int32_t, int32_t> Regs;
+      if (CC.I64InRegs(&Regs)) {
+        InRegs = true;
+        Operand *Lo = loOperand(Arg);
+        Operand *Hi = hiOperand(Arg);
+        GPRArgs.push_back(std::make_pair(Lo, Regs.first));
+        GPRArgs.push_back(std::make_pair(Hi, Regs.second));
+      }
+    } else {
+      assert(Ty == IceType_i32);
+      int32_t Reg;
+      if (CC.I32InReg(&Reg)) {
+        InRegs = true;
+        GPRArgs.push_back(std::make_pair(Arg, Reg));
+      }
+    }
+
+    if (!InRegs) {
+      ParameterAreaSizeBytes =
+          applyStackAlignmentTy(ParameterAreaSizeBytes, Ty);
+      StackArgs.push_back(std::make_pair(Arg, ParameterAreaSizeBytes));
+      ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
+    }
+  }
+
+  // Adjust the parameter area so that the stack is aligned.  It is
+  // assumed that the stack is already aligned at the start of the
+  // calling sequence.
+  ParameterAreaSizeBytes = applyStackAlignment(ParameterAreaSizeBytes);
+
+  // Subtract the appropriate amount for the argument area.  This also
+  // takes care of setting the stack adjustment during emission.
+  //
+  // TODO: If for some reason the call instruction gets dead-code
+  // eliminated after lowering, we would need to ensure that the
+  // pre-call and the post-call esp adjustment get eliminated as well.
+  if (ParameterAreaSizeBytes) {
+    Operand *SubAmount = legalize(Ctx->getConstantInt32(ParameterAreaSizeBytes),
+                                  Legal_Reg | Legal_Flex);
+    _adjust_stack(ParameterAreaSizeBytes, SubAmount);
+  }
+
+  // Copy arguments that are passed on the stack to the appropriate
+  // stack locations.
+  Variable *SP = Func->getTarget()->getPhysicalRegister(RegARM32::Reg_sp);
+  for (auto &StackArg : StackArgs) {
+    ConstantInteger32 *Loc =
+        llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(StackArg.second));
+    Type Ty = StackArg.first->getType();
+    OperandARM32Mem *Addr;
+    constexpr bool SignExt = false;
+    if (OperandARM32Mem::canHoldOffset(Ty, SignExt, StackArg.second)) {
+      Addr = OperandARM32Mem::create(Func, Ty, SP, Loc);
+    } else {
+      Variable *NewBase = Func->makeVariable(SP->getType());
+      lowerArithmetic(
+          InstArithmetic::create(Func, InstArithmetic::Add, NewBase, SP, Loc));
+      Addr = formMemoryOperand(NewBase, Ty);
+    }
+    lowerStore(InstStore::create(Func, StackArg.first, Addr));
+  }
+
+  // Copy arguments to be passed in registers to the appropriate registers.
+  for (auto &GPRArg : GPRArgs) {
+    Variable *Reg = legalizeToVar(GPRArg.first, GPRArg.second);
+    // Generate a FakeUse of register arguments so that they do not get
+    // dead code eliminated as a result of the FakeKill of scratch
+    // registers after the call.
+    Context.insert(InstFakeUse::create(Func, Reg));
   }
 
   // Generate the call instruction.  Assign its result to a temporary
@@ -1361,6 +1464,9 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     }
   }
   Operand *CallTarget = Instr->getCallTarget();
+  // TODO(jvoung): Handle sandboxing.
+  // const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
+
   // Allow ConstantRelocatable to be left alone as a direct call,
   // but force other constants like ConstantInteger32 to be in
   // a register and make it an indirect call.
@@ -1371,6 +1477,15 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   Context.insert(NewCall);
   if (ReturnRegHi)
     Context.insert(InstFakeDef::create(Func, ReturnRegHi));
+
+  // Add the appropriate offset to SP.  The call instruction takes care
+  // of resetting the stack offset during emission.
+  if (ParameterAreaSizeBytes) {
+    Operand *AddAmount = legalize(Ctx->getConstantInt32(ParameterAreaSizeBytes),
+                                  Legal_Reg | Legal_Flex);
+    Variable *SP = Func->getTarget()->getPhysicalRegister(RegARM32::Reg_sp);
+    _add(SP, SP, AddAmount);
+  }
 
   // Insert a register-kill pseudo instruction.
   Context.insert(InstFakeKill::create(Func, NewCall));

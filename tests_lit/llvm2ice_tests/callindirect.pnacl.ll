@@ -2,13 +2,22 @@
 ; should be to the same operand, whether it's in a register or on the
 ; stack.
 
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
-; RUN:   | FileCheck %s
-; RUN: %if --need=allow_dump --command %p2i --filetype=asm --assemble \
-; RUN:     --disassemble -i %s --args -O2 \
-; RUN:   | %if --need=allow_dump --command FileCheck %s
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 \
-; RUN:   | FileCheck --check-prefix=OPTM1 %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   | %if --need=target_X8632 --command FileCheck %s
+; RUN: %if --need=allow_dump --need=target_X8632 --command %p2i --filetype=asm \
+; RUN:     --assemble --disassemble -i %s --args -O2 \
+; RUN:   | %if --need=allow_dump --need=target_X8632 --command FileCheck %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -Om1 \
+; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix=OPTM1 %s
+
+; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
+; once enough infrastructure is in. Also, switch to --filetype=obj
+; when possible.
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix ARM32 %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
@@ -38,6 +47,14 @@ entry:
 ; OPTM1: call [[TARGET]]
 ; OPTM1: call [[TARGET]]
 ; OPTM1: call [[TARGET]]
+;
+; ARM32-LABEL: CallIndirect
+; ARM32: blx [[REGISTER:r.*]]
+; ARM32: blx [[REGISTER]]
+; ARM32: blx [[REGISTER]]
+; ARM32: blx [[REGISTER]]
+; ARM32: blx [[REGISTER]]
+
 
 @fp_v = internal global [4 x i8] zeroinitializer, align 4
 
@@ -63,6 +80,12 @@ entry:
 ; OPTM1: call [[TARGET]]
 ; OPTM1: call [[TARGET]]
 ; OPTM1: call [[TARGET]]
+;
+; ARM32-LABEL: CallIndirectGlobal
+; ARM32: blx [[REGISTER:r.*]]
+; ARM32: blx [[REGISTER]]
+; ARM32: blx [[REGISTER]]
+; ARM32: blx [[REGISTER]]
 
 ; Calling an absolute address is used for non-IRT PNaCl pexes to directly
 ; access syscall trampolines. This is not really an indirect call, but
@@ -85,3 +108,12 @@ entry:
 ; OPTM1: e8 bc 03 01 00 call {{[0-9a-f]+}} {{.*}} R_386_PC32 *ABS*
 ; OPTM1: e8 bc 03 01 00 call {{[0-9a-f]+}} {{.*}} R_386_PC32 *ABS*
 ; OPTM1: e8 bc 03 01 00 call {{[0-9a-f]+}} {{.*}} R_386_PC32 *ABS*
+;
+; ARM32-LABEL: CallConst
+; ARM32: movw [[REGISTER:r.*]], #960
+; ARM32: movt [[REGISTER]], #1
+; ARM32: blx [[REGISTER]]
+; The legalization of the constant could be shared, but it isn't.
+; ARM32: movw [[REGISTER:r.*]], #960
+; ARM32: blx [[REGISTER]]
+; ARM32: blx [[REGISTER]]

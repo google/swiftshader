@@ -82,11 +82,36 @@ entry:
 ; OPTM1:      mov     DWORD PTR [esp+0xc]
 ; OPTM1:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
 
+; ARM32-LABEL: pass64BitArg
+; ARM32:      sub     sp, {{.*}} #16
+; ARM32:      str     {{.*}}, [sp, #4]
+; ARM32:      str     {{.*}}, [sp]
+; ARM32:      movw    r2, #123
+; ARM32:      bl      {{.*}} ignore64BitArgNoInline
+; ARM32:      add     sp, {{.*}} #16
+; ARM32:      sub     sp, {{.*}} #16
+; ARM32:      str     {{.*}}, [sp, #4]
+; ARM32:      str     {{.*}}, [sp]
+; ARM32:      mov     r0
+; ARM32:      mov     r1
+; ARM32:      movw    r2, #123
+; ARM32:      bl      {{.*}} ignore64BitArgNoInline
+; ARM32:      add     sp, {{.*}} #16
+; ARM32:      sub     sp, {{.*}} #16
+; ARM32:      str     {{.*}}, [sp, #4]
+; ARM32:      str     {{.*}}, [sp]
+; ARM32:      mov     r0
+; ARM32:      mov     r1
+; ARM32:      movw    r2, #123
+; ARM32:      bl      {{.*}} ignore64BitArgNoInline
+; ARM32:      add     sp, {{.*}} #16
+
+
 declare i32 @ignore64BitArgNoInline(i64, i32, i64)
 
 define internal i32 @pass64BitConstArg(i64 %a, i64 %b) {
 entry:
-  %call = call i32 @ignore64BitArgNoInline(i64 %a, i32 123, i64 -2401053092306725256)
+  %call = call i32 @ignore64BitArgNoInline(i64 %b, i32 123, i64 -2401053092306725256)
   ret i32 %call
 }
 ; CHECK-LABEL: pass64BitConstArg
@@ -111,6 +136,20 @@ entry:
 ; OPTM1-NEXT: mov     DWORD PTR [esp+0xc],0x12345678
 ; OPTM1-NOT:  mov
 ; OPTM1:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
+
+; ARM32-LABEL: pass64BitConstArg
+; ARM32:      sub     sp, {{.*}} #16
+; ARM32:      movw    [[REG1:r.*]], {{.*}} ; 0xbeef
+; ARM32:      movt    [[REG1:r.*]], {{.*}} ; 0xdead
+; ARM32:      movw    [[REG2:r.*]], {{.*}} ; 0x5678
+; ARM32:      movt    [[REG2:r.*]], {{.*}} ; 0x1234
+; ARM32:      str     [[REG1]], [sp, #4]
+; ARM32:      str     [[REG2]], [sp]
+; ARM32:      mov     r0, r2
+; ARM32:      mov     r1, r3
+; ARM32:      movw    r2, #123
+; ARM32:      bl      {{.*}} ignore64BitArgNoInline
+; ARM32:      add     sp, {{.*}} #16
 
 define internal i64 @return64BitArg(i64 %a) {
 entry:
