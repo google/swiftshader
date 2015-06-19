@@ -1038,7 +1038,7 @@ WHICH GENERATES THE GLSL ES LEXER (glslang_lex.cpp).
 #define YY_INPUT(buf, result, max_size) \
     result = string_input(buf, max_size, yyscanner);
 
-static int string_input(char* buf, int max_size, yyscan_t yyscanner);
+static yy_size_t string_input(char* buf, yy_size_t max_size, yyscan_t yyscanner);
 static int check_type(yyscan_t yyscanner);
 static int reserved_word(yyscan_t yyscanner);
 static int ES2_reserved_ES3_keyword(TParseContext *context, int token);
@@ -1089,6 +1089,8 @@ struct yyguts_t
 
     YYSTYPE * yylval_r;
 
+    YYLTYPE * yylloc_r;
+
     }; /* end struct yyguts_t */
 
 static int yy_init_globals (yyscan_t yyscanner );
@@ -1096,6 +1098,8 @@ static int yy_init_globals (yyscan_t yyscanner );
     /* This must go here because YYSTYPE and YYLTYPE are included
      * from bison output in section 1.*/
     #    define yylval yyg->yylval_r
+    
+    #    define yylloc yyg->yylloc_r
     
 int yylex_init (yyscan_t* scanner);
 
@@ -1134,6 +1138,10 @@ YYSTYPE * yyget_lval (yyscan_t yyscanner );
 
 void yyset_lval (YYSTYPE * yylval_param ,yyscan_t yyscanner );
 
+       YYLTYPE *yyget_lloc (yyscan_t yyscanner );
+    
+        void yyset_lloc (YYLTYPE * yylloc_param ,yyscan_t yyscanner );
+    
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
  */
@@ -1251,10 +1259,10 @@ static int input (yyscan_t yyscanner );
 #define YY_DECL_IS_OURS 1
 
 extern int yylex \
-               (YYSTYPE * yylval_param ,yyscan_t yyscanner);
+               (YYSTYPE * yylval_param,YYLTYPE * yylloc_param ,yyscan_t yyscanner);
 
 #define YY_DECL int yylex \
-               (YYSTYPE * yylval_param , yyscan_t yyscanner)
+               (YYSTYPE * yylval_param, YYLTYPE * yylloc_param , yyscan_t yyscanner)
 #endif /* !YY_DECL */
 
 /* Code executed at the beginning of each rule, after yytext and yyleng
@@ -1286,6 +1294,8 @@ YY_DECL
     /* Single-line comments */
 
     yylval = yylval_param;
+
+    yylloc = yylloc_param;
 
 	if ( !yyg->yy_init )
 		{
@@ -2087,7 +2097,7 @@ case YY_STATE_EOF(FIELDS):
 	YY_BREAK
 case 243:
 YY_RULE_SETUP
-{ context->warning(yylineno, "Unknown char", yytext, ""); return 0; }
+{ context->warning(*yylloc, "Unknown char", yytext, ""); return 0; }
 	YY_BREAK
 case 244:
 YY_RULE_SETUP
@@ -3088,6 +3098,18 @@ void yyset_lval (YYSTYPE *  yylval_param , yyscan_t yyscanner)
     yylval = yylval_param;
 }
 
+YYLTYPE *yyget_lloc  (yyscan_t yyscanner)
+{
+    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+    return yylloc;
+}
+    
+void yyset_lloc (YYLTYPE *  yylloc_param , yyscan_t yyscanner)
+{
+    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+    yylloc = yylloc_param;
+}
+    
 /* User-visible API */
 
 /* yylex_init is special because it creates the scanner itself, so it is
@@ -3263,14 +3285,11 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-int string_input(char* buf, int max_size, yyscan_t yyscanner)
-{
-    int len = 0;
-
+yy_size_t string_input(char* buf, yy_size_t max_size, yyscan_t yyscanner) {
     pp::Token token;
     yyget_extra(yyscanner)->preprocessor.lex(&token);
-    len = token.type == pp::Token::LAST ? 0 : token.text.size();
-    if ((len > 0) && (len < max_size))
+    yy_size_t len = token.type == pp::Token::LAST ? 0 : token.text.size();
+    if (len < max_size)
         memcpy(buf, token.text.c_str(), len);
     yyset_lineno(EncodeSourceLoc(token.location.file, token.location.line),yyscanner);
 
@@ -3300,7 +3319,7 @@ int check_type(yyscan_t yyscanner) {
 int reserved_word(yyscan_t yyscanner) {
     struct yyguts_t* yyg = (struct yyguts_t*) yyscanner;
 
-    yyextra->error(yylineno, "Illegal use of reserved word", yytext, "");
+    yyextra->error(*yylloc, "Illegal use of reserved word", yytext, "");
     yyextra->recover();
     return 0;
 }
@@ -3351,13 +3370,13 @@ int uint_constant(TParseContext *context)
 
     if (context->shaderVersion < 300)
     {
-        context->error(yylineno, "Unsigned integers are unsupported prior to GLSL ES 3.00", yytext, "");
+        context->error(*yylloc, "Unsigned integers are unsupported prior to GLSL ES 3.00", yytext, "");
         context->recover();
         return 0;
     }
 
     if (!atoi_clamp(yytext, &(yylval->lex.i)))
-        yyextra->warning(yylineno, "Integer overflow", yytext, "");
+        yyextra->warning(*yylloc, "Integer overflow", yytext, "");
 
     return UINTCONSTANT;
 }
@@ -3368,13 +3387,13 @@ int floatsuffix_check(TParseContext* context)
 
     if (context->shaderVersion < 300)
     {
-        context->error(yylineno, "Floating-point suffix unsupported prior to GLSL ES 3.00", yytext);
+        context->error(*yylloc, "Floating-point suffix unsupported prior to GLSL ES 3.00", yytext);
         context->recover();
         return 0;
     }
 
     if (!atof_clamp(yytext, &(yylval->lex.f)))
-        yyextra->warning(yylineno, "Float overflow", yytext, "");
+        yyextra->warning(*yylloc, "Float overflow", yytext, "");
 
     return(FLOATCONSTANT);
 }
@@ -3383,7 +3402,7 @@ int int_constant(yyscan_t yyscanner) {
     struct yyguts_t* yyg = (struct yyguts_t*) yyscanner;
 
     if (!atoi_clamp(yytext, &(yylval->lex.i)))
-        yyextra->warning(yylineno, "Integer overflow", yytext, "");
+        yyextra->warning(*yylloc, "Integer overflow", yytext, "");
     return INTCONSTANT;
 }
 
@@ -3391,17 +3410,17 @@ int float_constant(yyscan_t yyscanner) {
     struct yyguts_t* yyg = (struct yyguts_t*) yyscanner;
 
     if (!atof_clamp(yytext, &(yylval->lex.f)))
-        yyextra->warning(yylineno, "Float overflow", yytext, "");
+        yyextra->warning(*yylloc, "Float overflow", yytext, "");
     return FLOATCONSTANT;
 }
 
-void yyerror(TParseContext* context, const char* reason) {
+void yyerror(YYLTYPE* lloc, TParseContext* context, const char* reason) {
     struct yyguts_t* yyg = (struct yyguts_t*) context->scanner;
 
     if (context->AfterEOF) {
-        context->error(yylineno, reason, "unexpected EOF");
+        context->error(*lloc, reason, "unexpected EOF");
     } else {
-        context->error(yylineno, reason, yytext);
+        context->error(*lloc, reason, yytext);
     }
     context->recover();
 }
@@ -3425,7 +3444,7 @@ int glslang_finalize(TParseContext* context) {
     return 0;
 }
 
-int glslang_scan(int count, const char* const string[], const int length[],
+int glslang_scan(size_t count, const char* const string[], const int length[],
                  TParseContext* context) {
     yyrestart(NULL,context->scanner);
     yyset_lineno(EncodeSourceLoc(0, 1),context->scanner);
