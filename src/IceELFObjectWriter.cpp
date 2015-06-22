@@ -490,12 +490,11 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
   size_t EntSize = typeWidthInBytes(Ty);
   char Buf[20];
   SizeT WriteAmt = std::min(EntSize, llvm::array_lengthof(Buf));
+  // Check that we write the full PrimType.
   assert(WriteAmt == EntSize);
   // Assume that writing WriteAmt bytes at a time allows us to avoid aligning
   // between entries.
   assert(WriteAmt % Align == 0);
-  // Check that we write the full PrimType.
-  assert(WriteAmt == sizeof(typename ConstType::PrimType));
   const Elf64_Xword ShFlags = SHF_ALLOC | SHF_MERGE;
   std::string SecBuffer;
   llvm::raw_string_ostream SecStrBuf(SecBuffer);
@@ -511,6 +510,8 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
 
   // Write the data.
   for (Constant *C : Pool) {
+    if (!C->getShouldBePooled())
+      continue;
     auto Const = llvm::cast<ConstType>(C);
     std::string SymBuffer;
     llvm::raw_string_ostream SymStrBuf(SymBuffer);
@@ -535,6 +536,8 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
 template void ELFObjectWriter::writeConstantPool<ConstantFloat>(Type Ty);
 
 template void ELFObjectWriter::writeConstantPool<ConstantDouble>(Type Ty);
+
+template void ELFObjectWriter::writeConstantPool<ConstantInteger32>(Type Ty);
 
 void ELFObjectWriter::writeAllRelocationSections() {
   writeRelocationSections(RelTextSections);

@@ -225,6 +225,9 @@ llvm::iterator_range<typename T::reverse_iterator> reverse_range(T &Container) {
   return llvm::make_range(Container.rbegin(), Container.rend());
 }
 
+// Options for pooling and randomization of immediates
+enum RandomizeAndPoolImmediatesEnum { RPI_None, RPI_Randomize, RPI_Pool };
+
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICEDEFS_H

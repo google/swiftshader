@@ -117,9 +117,21 @@ public:
     return Kind >= kConst_Base && Kind <= kConst_Num;
   }
 
+  // Judge if this given immediate should be randomized or pooled
+  // By default should return false, only constant integers should
+  // truly go through this method.
+  virtual bool shouldBeRandomizedOrPooled(const GlobalContext *Ctx) {
+    (void)Ctx;
+    return false;
+  }
+
+  void setShouldBePooled(bool R) { shouldBePooled = R; }
+
+  bool getShouldBePooled() const { return shouldBePooled; }
+
 protected:
   Constant(OperandKind Kind, Type Ty, uint32_t PoolEntryID)
-      : Operand(Kind, Ty), PoolEntryID(PoolEntryID) {
+      : Operand(Kind, Ty), PoolEntryID(PoolEntryID), shouldBePooled(false) {
     Vars = nullptr;
     NumVars = 0;
   }
@@ -128,6 +140,9 @@ protected:
   // within its constant pool.  It is used for building the constant
   // pool in the object code and for referencing its entries.
   const uint32_t PoolEntryID;
+  // Whether we should pool this constant. Usually Float/Double and pooled
+  // Integers should be flagged true.
+  bool shouldBePooled;
 };
 
 // ConstantPrimitive<> wraps a primitive type.
@@ -160,6 +175,11 @@ public:
     return Operand->getKind() == K;
   }
 
+  virtual bool shouldBeRandomizedOrPooled(const GlobalContext *Ctx) override {
+    (void)Ctx;
+    return false;
+  }
+
 private:
   ConstantPrimitive(Type Ty, PrimType Value, uint32_t PoolEntryID)
       : Constant(K, Ty, PoolEntryID), Value(Value) {}
@@ -181,6 +201,10 @@ inline void ConstantInteger32::dump(const Cfg *, Ostream &Str) const {
   else
     Str << static_cast<int32_t>(getValue());
 }
+
+// Specialization of the template member function for ConstantInteger32
+template <>
+bool ConstantInteger32::shouldBeRandomizedOrPooled(const GlobalContext *Ctx);
 
 template <>
 inline void ConstantInteger64::dump(const Cfg *, Ostream &Str) const {

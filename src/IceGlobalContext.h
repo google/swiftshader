@@ -72,7 +72,8 @@ class GlobalContext {
   X("Regs Saved  ", RegsSaved)                                                 \
   X("Frame Bytes ", FrameByte)                                                 \
   X("Spills      ", NumSpills)                                                 \
-  X("Fills       ", NumFills)
+  X("Fills       ", NumFills)                                                  \
+  X("R/P Imms    ", NumRPImms)
     //#define X(str, tag)
 
   public:
@@ -263,6 +264,15 @@ public:
     Tls->StatsCumulative.update(CodeStats::CS_NumFills);
   }
 
+  // Number of Randomized or Pooled Immediates
+  void statsUpdateRPImms() {
+    if (!getFlags().getDumpStats())
+      return;
+    ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
+    Tls->StatsFunction.update(CodeStats::CS_NumRPImms);
+    Tls->StatsCumulative.update(CodeStats::CS_NumRPImms);
+  }
+
   // These are predefined TimerStackIdT values.
   enum TimerStackKind { TSK_Default = 0, TSK_Funcs, TSK_Num };
 
@@ -400,6 +410,10 @@ public:
     return Match.empty() || Match == SymbolName;
   }
 
+  // Return the randomization cookie for diversification.
+  // Initialize the cookie if necessary
+  uint32_t getRandomizationCookie() const { return RandomizationCookie; }
+
 private:
   // Try to ensure mutexes are allocated on separate cache lines.
 
@@ -494,6 +508,11 @@ private:
   // Private helpers for mangleName()
   typedef llvm::SmallVector<char, 32> ManglerVector;
   void incrementSubstitutions(ManglerVector &OldName) const;
+
+  // Randomization Cookie
+  // Managed by getRandomizationCookie()
+  GlobalLockType RandomizationCookieLock;
+  uint32_t RandomizationCookie;
 
 public:
   static void TlsInit() { ICE_TLS_INIT_FIELD(TLS); }

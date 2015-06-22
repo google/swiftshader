@@ -86,6 +86,10 @@ public:
     return Operand->getKind() == static_cast<OperandKind>(kMem);
   }
 
+  void setRandomized(bool R) { Randomized = R; }
+
+  bool getRandomized() const { return Randomized; }
+
 private:
   OperandX8632Mem(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
                   Variable *Index, uint16_t Shift, SegmentRegisters SegmentReg);
@@ -95,6 +99,10 @@ private:
   Variable *Index;
   uint16_t Shift;
   SegmentRegisters SegmentReg : 16;
+  // A flag to show if this memory operand is a randomized one.
+  // Randomized memory operands are generated in
+  // TargetX8632::randomizeOrPoolImmediate()
+  bool Randomized;
 };
 
 // VariableSplit is a way to treat an f64 memory location as a pair

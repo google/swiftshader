@@ -135,6 +135,22 @@ public:
   }
   void setVerbose(VerboseMask NewValue) { VMask = NewValue; }
 
+  void
+  setRandomizeAndPoolImmediatesOption(RandomizeAndPoolImmediatesEnum Option) {
+    RandomizeAndPoolImmediatesOption = Option;
+  }
+
+  RandomizeAndPoolImmediatesEnum getRandomizeAndPoolImmediatesOption() const {
+    return RandomizeAndPoolImmediatesOption;
+  }
+
+  void setRandomizeAndPoolImmediatesThreshold(uint32_t Threshold) {
+    RandomizeAndPoolImmediatesThreshold = Threshold;
+  }
+  uint32_t getRandomizeAndPoolImmediatesThreshold() const {
+    return RandomizeAndPoolImmediatesThreshold;
+  }
+
   // IceString accessors.
 
   const IceString &getDefaultFunctionPrefix() const {
@@ -210,6 +226,10 @@ private:
   IceString TimingFocusOn;
   IceString TranslateOnly;
   IceString VerboseFocusOn;
+
+  // Immediates Randomization and Pooling options
+  RandomizeAndPoolImmediatesEnum RandomizeAndPoolImmediatesOption;
+  uint32_t RandomizeAndPoolImmediatesThreshold;
 
   size_t NumTranslationThreads; // 0 means completely sequential
   uint64_t RandomSeed;

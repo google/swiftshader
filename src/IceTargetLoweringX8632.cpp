@@ -246,6 +246,22 @@ ICETYPE_TABLE
 #undef X
 } // end of namespace dummy3
 
+// A helper class to ease the settings of RandomizationPoolingPause
+// to disable constant blinding or pooling for some translation phases.
+class BoolFlagSaver {
+  BoolFlagSaver() = delete;
+  BoolFlagSaver(const BoolFlagSaver &) = delete;
+  BoolFlagSaver &operator=(const BoolFlagSaver &) = delete;
+
+public:
+  BoolFlagSaver(bool &F, bool NewValue) : OldValue(F), Flag(F) { F = NewValue; }
+  ~BoolFlagSaver() { Flag = OldValue; }
+
+private:
+  const bool OldValue;
+  bool &Flag;
+};
+
 } // end of anonymous namespace
 
 BoolFoldingEntry::BoolFoldingEntry(Inst *I)
@@ -396,8 +412,8 @@ void TargetX8632::initNodeForLowering(CfgNode *Node) {
 
 TargetX8632::TargetX8632(Cfg *Func)
     : TargetLowering(Func), InstructionSet(X86InstructionSet::Begin),
-      IsEbpBasedFrame(false), NeedsStackAlignment(false),
-      SpillAreaSizeBytes(0) {
+      IsEbpBasedFrame(false), NeedsStackAlignment(false), SpillAreaSizeBytes(0),
+      RandomizationPoolingPaused(false) {
   static_assert((X86InstructionSet::End - X86InstructionSet::Begin) ==
                     (TargetInstructionSet::X86InstructionSet_End -
                      TargetInstructionSet::X86InstructionSet_Begin),
@@ -492,7 +508,11 @@ void TargetX8632::translateO2() {
     return;
   Func->dump("After x86 address mode opt");
 
-  doLoadOpt();
+  // Disable constant blinding or pooling for load optimization.
+  {
+    BoolFlagSaver B(RandomizationPoolingPaused, true);
+    doLoadOpt();
+  }
   Func->genCode();
   if (Func->hasError())
     return;
@@ -519,7 +539,13 @@ void TargetX8632::translateO2() {
   Func->dump("After linear scan regalloc");
 
   if (Ctx->getFlags().getPhiEdgeSplit()) {
-    Func->advancedPhiLowering();
+    // We need to pause constant blinding or pooling during advanced
+    // phi lowering, unless the lowering assignment has a physical
+    // register for the dest Variable.
+    {
+      BoolFlagSaver B(RandomizationPoolingPaused, true);
+      Func->advancedPhiLowering();
+    }
     Func->dump("After advanced Phi lowering");
   }
 
@@ -911,8 +937,9 @@ void TargetX8632::emitVariable(const Variable *Var) const {
     Str << "%" << getRegName(Var->getRegNum(), Var->getType());
     return;
   }
-  if (Var->getWeight().isInf())
+  if (Var->getWeight().isInf()) {
     llvm_unreachable("Infinite-weight Variable has no register assigned");
+  }
   int32_t Offset = Var->getStackOffset();
   if (!hasFramePointer())
     Offset += getStackAdjustment();
@@ -925,8 +952,9 @@ void TargetX8632::emitVariable(const Variable *Var) const {
 X8632::Address TargetX8632::stackVarToAsmOperand(const Variable *Var) const {
   if (Var->hasReg())
     llvm_unreachable("Stack Variable has a register assigned");
-  if (Var->getWeight().isInf())
+  if (Var->getWeight().isInf()) {
     llvm_unreachable("Infinite-weight Variable has no register assigned");
+  }
   int32_t Offset = Var->getStackOffset();
   if (!hasFramePointer())
     Offset += getStackAdjustment();
@@ -1317,12 +1345,18 @@ Operand *TargetX8632::loOperand(Operand *Operand) {
     return Var->getLo();
   }
   if (ConstantInteger64 *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
-    return Ctx->getConstantInt32(static_cast<uint32_t>(Const->getValue()));
+    ConstantInteger32 *ConstInt = llvm::dyn_cast<ConstantInteger32>(
+        Ctx->getConstantInt32(static_cast<int32_t>(Const->getValue())));
+    return legalize(ConstInt);
   }
   if (OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Operand)) {
-    return OperandX8632Mem::create(Func, IceType_i32, Mem->getBase(),
-                                   Mem->getOffset(), Mem->getIndex(),
-                                   Mem->getShift(), Mem->getSegmentRegister());
+    OperandX8632Mem *MemOperand = OperandX8632Mem::create(
+        Func, IceType_i32, Mem->getBase(), Mem->getOffset(), Mem->getIndex(),
+        Mem->getShift(), Mem->getSegmentRegister());
+    // Test if we should randomize or pool the offset, if so randomize it or
+    // pool it then create mem operand with the blinded/pooled constant.
+    // Otherwise, return the mem operand as ordinary mem operand.
+    return legalize(MemOperand);
   }
   llvm_unreachable("Unsupported operand type");
   return nullptr;
@@ -1338,8 +1372,10 @@ Operand *TargetX8632::hiOperand(Operand *Operand) {
     return Var->getHi();
   }
   if (ConstantInteger64 *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
-    return Ctx->getConstantInt32(
-        static_cast<uint32_t>(Const->getValue() >> 32));
+    ConstantInteger32 *ConstInt = llvm::dyn_cast<ConstantInteger32>(
+        Ctx->getConstantInt32(static_cast<int32_t>(Const->getValue() >> 32)));
+    // check if we need to blind/pool the constant
+    return legalize(ConstInt);
   }
   if (OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Operand)) {
     Constant *Offset = Mem->getOffset();
@@ -1355,9 +1391,13 @@ Operand *TargetX8632::hiOperand(Operand *Operand) {
           Ctx->getConstantSym(4 + SymOffset->getOffset(), SymOffset->getName(),
                               SymOffset->getSuppressMangling());
     }
-    return OperandX8632Mem::create(Func, IceType_i32, Mem->getBase(), Offset,
-                                   Mem->getIndex(), Mem->getShift(),
-                                   Mem->getSegmentRegister());
+    OperandX8632Mem *MemOperand = OperandX8632Mem::create(
+        Func, IceType_i32, Mem->getBase(), Offset, Mem->getIndex(),
+        Mem->getShift(), Mem->getSegmentRegister());
+    // Test if the Offset is an eligible i32 constants for randomization and
+    // pooling. Blind/pool it if it is. Otherwise return as oridinary mem
+    // operand.
+    return legalize(MemOperand);
   }
   llvm_unreachable("Unsupported operand type");
   return nullptr;
@@ -1543,6 +1583,49 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       std::swap(Src0, Src1);
   }
   if (Dest->getType() == IceType_i64) {
+    // These helper-call-involved instructions are lowered in this
+    // separate switch. This is because loOperand() and hiOperand()
+    // may insert redundant instructions for constant blinding and
+    // pooling. Such redundant instructions will fail liveness analysis
+    // under -Om1 setting. And, actually these arguments do not need
+    // to be processed with loOperand() and hiOperand() to be used.
+    switch (Inst->getOp()) {
+    case InstArithmetic::Udiv: {
+      const SizeT MaxSrcs = 2;
+      InstCall *Call = makeHelperCall(H_udiv_i64, Dest, MaxSrcs);
+      Call->addArg(Inst->getSrc(0));
+      Call->addArg(Inst->getSrc(1));
+      lowerCall(Call);
+      return;
+    }
+    case InstArithmetic::Sdiv: {
+      const SizeT MaxSrcs = 2;
+      InstCall *Call = makeHelperCall(H_sdiv_i64, Dest, MaxSrcs);
+      Call->addArg(Inst->getSrc(0));
+      Call->addArg(Inst->getSrc(1));
+      lowerCall(Call);
+      return;
+    }
+    case InstArithmetic::Urem: {
+      const SizeT MaxSrcs = 2;
+      InstCall *Call = makeHelperCall(H_urem_i64, Dest, MaxSrcs);
+      Call->addArg(Inst->getSrc(0));
+      Call->addArg(Inst->getSrc(1));
+      lowerCall(Call);
+      return;
+    }
+    case InstArithmetic::Srem: {
+      const SizeT MaxSrcs = 2;
+      InstCall *Call = makeHelperCall(H_srem_i64, Dest, MaxSrcs);
+      Call->addArg(Inst->getSrc(0));
+      Call->addArg(Inst->getSrc(1));
+      lowerCall(Call);
+      return;
+    }
+    default:
+      break;
+    }
+
     Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
     Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     Operand *Src0Lo = loOperand(Src0);
@@ -1732,40 +1815,19 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Inst) {
       _mov(DestLo, T_2);
       _mov(DestHi, T_3);
     } break;
-    case InstArithmetic::Udiv: {
-      const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(H_udiv_i64, Dest, MaxSrcs);
-      Call->addArg(Inst->getSrc(0));
-      Call->addArg(Inst->getSrc(1));
-      lowerCall(Call);
-    } break;
-    case InstArithmetic::Sdiv: {
-      const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(H_sdiv_i64, Dest, MaxSrcs);
-      Call->addArg(Inst->getSrc(0));
-      Call->addArg(Inst->getSrc(1));
-      lowerCall(Call);
-    } break;
-    case InstArithmetic::Urem: {
-      const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(H_urem_i64, Dest, MaxSrcs);
-      Call->addArg(Inst->getSrc(0));
-      Call->addArg(Inst->getSrc(1));
-      lowerCall(Call);
-    } break;
-    case InstArithmetic::Srem: {
-      const SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(H_srem_i64, Dest, MaxSrcs);
-      Call->addArg(Inst->getSrc(0));
-      Call->addArg(Inst->getSrc(1));
-      lowerCall(Call);
-    } break;
     case InstArithmetic::Fadd:
     case InstArithmetic::Fsub:
     case InstArithmetic::Fmul:
     case InstArithmetic::Fdiv:
     case InstArithmetic::Frem:
       llvm_unreachable("FP instruction with i64 type");
+      break;
+    case InstArithmetic::Udiv:
+    case InstArithmetic::Sdiv:
+    case InstArithmetic::Urem:
+    case InstArithmetic::Srem:
+      llvm_unreachable("Call-helper-involved instruction for i64 type \
+                       should have already been handled before");
       break;
     }
     return;
@@ -2161,18 +2223,27 @@ void TargetX8632::lowerAssign(const InstAssign *Inst) {
     _mov(DestHi, T_Hi);
   } else {
     Operand *RI;
-    if (Dest->hasReg())
+    if (Dest->hasReg()) {
       // If Dest already has a physical register, then legalize the
       // Src operand into a Variable with the same register
       // assignment.  This is mostly a workaround for advanced phi
       // lowering's ad-hoc register allocation which assumes no
       // register allocation is needed when at least one of the
       // operands is non-memory.
-      RI = legalize(Src0, Legal_Reg, Dest->getRegNum());
-    else
+
+      // If we have a physical register for the dest variable, we can
+      // enable our constant blinding or pooling again. Note this is
+      // only for advancedPhiLowering(), the flag flip should leave
+      // no other side effect.
+      {
+        BoolFlagSaver B(RandomizationPoolingPaused, false);
+        RI = legalize(Src0, Legal_Reg, Dest->getRegNum());
+      }
+    } else {
       // If Dest could be a stack operand, then RI must be a physical
       // register or a scalar integer immediate.
       RI = legalize(Src0, Legal_Reg | Legal_Imm);
+    }
     if (isVectorType(Dest->getType()))
       _movp(Dest, RI);
     else
@@ -4733,6 +4804,10 @@ void TargetX8632::lowerOther(const Inst *Instr) {
 // turned into zeroes, since loOperand() and hiOperand() don't expect
 // Undef input.
 void TargetX8632::prelowerPhis() {
+  // Pause constant blinding or pooling, blinding or pooling will be done later
+  // during phi lowering assignments
+  BoolFlagSaver B(RandomizationPoolingPaused, true);
+
   CfgNode *Node = Context.getNode();
   for (Inst &I : Node->getPhis()) {
     auto Phi = llvm::dyn_cast<InstPhi>(&I);
@@ -4832,7 +4907,28 @@ void TargetX8632::lowerPhiAssignments(CfgNode *Node,
     Context.rewind();
     auto Assign = llvm::dyn_cast<InstAssign>(&I);
     Variable *Dest = Assign->getDest();
+
+    // If the source operand is ConstantUndef, do not legalize it.
+    // In function test_split_undef_int_vec, the advanced phi
+    // lowering process will find an assignment of undefined
+    // vector. This vector, as the Src here, will crash if it
+    // go through legalize(). legalize() will create new variable
+    // with makeVectorOfZeros(), but this new variable will be
+    // assigned a stack slot. This will fail the assertion in
+    // IceInstX8632.cpp:789, as XmmEmitterRegOp() complain:
+    // Var->hasReg() fails. Note this failure is irrelevant to
+    // randomization or pooling of constants.
+    // So, we do not call legalize() to add pool label for the
+    // src operands of phi assignment instructions.
+    // Instead, we manually add pool label for constant float and
+    // constant double values here.
+    // Note going through legalize() does not affect the testing
+    // results of SPEC2K and xtests.
     Operand *Src = Assign->getSrc(0);
+    if (!llvm::isa<ConstantUndef>(Assign->getSrc(0))) {
+      Src = legalize(Src);
+    }
+
     Variable *SrcVar = llvm::dyn_cast<Variable>(Src);
     // Use normal assignment lowering, except lower mem=mem specially
     // so we can register-allocate at the same time.
@@ -5008,6 +5104,7 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
   // work, e.g. allow the shl shift amount to be either an immediate
   // or in ecx.)
   assert(RegNum == Variable::NoRegister || Allowed == Legal_Reg);
+
   if (auto Mem = llvm::dyn_cast<OperandX8632Mem>(From)) {
     // Before doing anything with a Mem operand, we need to ensure
     // that the Base and Index components are in physical registers.
@@ -5022,18 +5119,21 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
       RegIndex = legalizeToVar(Index);
     }
     if (Base != RegBase || Index != RegIndex) {
-      From =
+      Mem =
           OperandX8632Mem::create(Func, Ty, RegBase, Mem->getOffset(), RegIndex,
                                   Mem->getShift(), Mem->getSegmentRegister());
     }
+
+    // For all Memory Operands, we do randomization/pooling here
+    From = randomizeOrPoolImmediate(Mem);
 
     if (!(Allowed & Legal_Mem)) {
       From = copyToReg(From, RegNum);
     }
     return From;
   }
-  if (llvm::isa<Constant>(From)) {
-    if (llvm::isa<ConstantUndef>(From)) {
+  if (auto *Const = llvm::dyn_cast<Constant>(From)) {
+    if (llvm::isa<ConstantUndef>(Const)) {
       // Lower undefs to zero.  Another option is to lower undefs to an
       // uninitialized register; however, using an uninitialized register
       // results in less predictable code.
@@ -5047,10 +5147,21 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
       // need to go in uninitialized registers.
       if (isVectorType(Ty))
         return makeVectorOfZeros(Ty, RegNum);
-      From = Ctx->getConstantZero(Ty);
+      Const = Ctx->getConstantZero(Ty);
+      From = Const;
     }
     // There should be no constants of vector type (other than undef).
     assert(!isVectorType(Ty));
+
+    // If the operand is an 32 bit constant integer, we should check
+    // whether we need to randomize it or pool it.
+    if (ConstantInteger32 *C = llvm::dyn_cast<ConstantInteger32>(Const)) {
+      Operand *NewConst = randomizeOrPoolImmediate(C, RegNum);
+      if (NewConst != Const) {
+        return NewConst;
+      }
+    }
+
     // Convert a scalar floating point constant into an explicit
     // memory operand.
     if (isScalarFloatingType(Ty)) {
@@ -5058,6 +5169,7 @@ Operand *TargetX8632::legalize(Operand *From, LegalMask Allowed,
       std::string Buffer;
       llvm::raw_string_ostream StrBuf(Buffer);
       llvm::cast<Constant>(From)->emitPoolLabel(StrBuf);
+      llvm::cast<Constant>(From)->setShouldBePooled(true);
       Constant *Offset = Ctx->getConstantSym(0, StrBuf.str(), true);
       From = OperandX8632Mem::create(Func, Ty, Base, Offset);
     }
@@ -5114,25 +5226,37 @@ Operand *TargetX8632::legalizeSrc0ForCmp(Operand *Src0, Operand *Src1) {
   return legalize(Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg);
 }
 
-OperandX8632Mem *TargetX8632::formMemoryOperand(Operand *Operand, Type Ty,
+OperandX8632Mem *TargetX8632::formMemoryOperand(Operand *Opnd, Type Ty,
                                                 bool DoLegalize) {
-  OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Operand);
+  OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Opnd);
   // It may be the case that address mode optimization already creates
   // an OperandX8632Mem, so in that case it wouldn't need another level
   // of transformation.
   if (!Mem) {
-    Variable *Base = llvm::dyn_cast<Variable>(Operand);
-    Constant *Offset = llvm::dyn_cast<Constant>(Operand);
+    Variable *Base = llvm::dyn_cast<Variable>(Opnd);
+    Constant *Offset = llvm::dyn_cast<Constant>(Opnd);
     assert(Base || Offset);
     if (Offset) {
-      // Make sure Offset is not undef.
-      Offset = llvm::cast<Constant>(legalize(Offset));
+      // During memory operand building, we do not blind or pool
+      // the constant offset, we will work on the whole memory
+      // operand later as one entity later, this save one instruction.
+      // By turning blinding and pooling off, we guarantee
+      // legalize(Offset) will return a constant*.
+      {
+        BoolFlagSaver B(RandomizationPoolingPaused, true);
+
+        Offset = llvm::cast<Constant>(legalize(Offset));
+      }
+
       assert(llvm::isa<ConstantInteger32>(Offset) ||
              llvm::isa<ConstantRelocatable>(Offset));
     }
     Mem = OperandX8632Mem::create(Func, Ty, Base, Offset);
   }
-  return llvm::cast<OperandX8632Mem>(DoLegalize ? legalize(Mem) : Mem);
+  // Do legalization, which contains randomization/pooling
+  // or do randomization/pooling.
+  return llvm::cast<OperandX8632Mem>(
+      DoLegalize ? legalize(Mem) : randomizeOrPoolImmediate(Mem));
 }
 
 Variable *TargetX8632::makeReg(Type Type, int32_t RegNum) {
@@ -5297,6 +5421,45 @@ const char *PoolTypeConverter<double>::TypeName = "double";
 const char *PoolTypeConverter<double>::AsmTag = ".quad";
 const char *PoolTypeConverter<double>::PrintfString = "0x%llx";
 
+// Add converter for int type constant pooling
+template <> struct PoolTypeConverter<uint32_t> {
+  typedef uint32_t PrimitiveIntType;
+  typedef ConstantInteger32 IceType;
+  static const Type Ty = IceType_i32;
+  static const char *TypeName;
+  static const char *AsmTag;
+  static const char *PrintfString;
+};
+const char *PoolTypeConverter<uint32_t>::TypeName = "i32";
+const char *PoolTypeConverter<uint32_t>::AsmTag = ".long";
+const char *PoolTypeConverter<uint32_t>::PrintfString = "0x%x";
+
+// Add converter for int type constant pooling
+template <> struct PoolTypeConverter<uint16_t> {
+  typedef uint32_t PrimitiveIntType;
+  typedef ConstantInteger32 IceType;
+  static const Type Ty = IceType_i16;
+  static const char *TypeName;
+  static const char *AsmTag;
+  static const char *PrintfString;
+};
+const char *PoolTypeConverter<uint16_t>::TypeName = "i16";
+const char *PoolTypeConverter<uint16_t>::AsmTag = ".short";
+const char *PoolTypeConverter<uint16_t>::PrintfString = "0x%x";
+
+// Add converter for int type constant pooling
+template <> struct PoolTypeConverter<uint8_t> {
+  typedef uint32_t PrimitiveIntType;
+  typedef ConstantInteger32 IceType;
+  static const Type Ty = IceType_i8;
+  static const char *TypeName;
+  static const char *AsmTag;
+  static const char *PrintfString;
+};
+const char *PoolTypeConverter<uint8_t>::TypeName = "i8";
+const char *PoolTypeConverter<uint8_t>::AsmTag = ".byte";
+const char *PoolTypeConverter<uint8_t>::PrintfString = "0x%x";
+
 template <typename T>
 void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
   if (!ALLOW_DUMP)
@@ -5310,6 +5473,8 @@ void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
       << "\n";
   Str << "\t.align\t" << Align << "\n";
   for (Constant *C : Pool) {
+    if (!C->getShouldBePooled())
+      continue;
     typename T::IceType *Const = llvm::cast<typename T::IceType>(C);
     typename T::IceType::PrimType Value = Const->getValue();
     // Use memcpy() to copy bits from Value into RawValue in a way
@@ -5336,12 +5501,22 @@ void TargetDataX8632::lowerConstants() {
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
+
+    Writer->writeConstantPool<ConstantInteger32>(IceType_i8);
+    Writer->writeConstantPool<ConstantInteger32>(IceType_i16);
+    Writer->writeConstantPool<ConstantInteger32>(IceType_i32);
+
     Writer->writeConstantPool<ConstantFloat>(IceType_f32);
     Writer->writeConstantPool<ConstantDouble>(IceType_f64);
   } break;
   case FT_Asm:
   case FT_Iasm: {
     OstreamLocker L(Ctx);
+
+    emitConstantPool<PoolTypeConverter<uint8_t>>(Ctx);
+    emitConstantPool<PoolTypeConverter<uint16_t>>(Ctx);
+    emitConstantPool<PoolTypeConverter<uint32_t>>(Ctx);
+
     emitConstantPool<PoolTypeConverter<float>>(Ctx);
     emitConstantPool<PoolTypeConverter<double>>(Ctx);
   } break;
@@ -5350,5 +5525,198 @@ void TargetDataX8632::lowerConstants() {
 
 TargetHeaderX8632::TargetHeaderX8632(GlobalContext *Ctx)
     : TargetHeaderLowering(Ctx) {}
+
+// Randomize or pool an Immediate.
+Operand *TargetX8632::randomizeOrPoolImmediate(Constant *Immediate,
+                                               int32_t RegNum) {
+  assert(llvm::isa<ConstantInteger32>(Immediate) ||
+         llvm::isa<ConstantRelocatable>(Immediate));
+  if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_None ||
+      RandomizationPoolingPaused == true) {
+    // Immediates randomization/pooling off or paused
+    return Immediate;
+  }
+  if (Immediate->shouldBeRandomizedOrPooled(Ctx)) {
+    Ctx->statsUpdateRPImms();
+    if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() ==
+        RPI_Randomize) {
+      // blind the constant
+      // FROM:
+      //  imm
+      // TO:
+      //  insert: mov imm+cookie, Reg
+      //  insert: lea -cookie[Reg], Reg
+      //  => Reg
+      // If we have already assigned a phy register, we must come from
+      // andvancedPhiLowering()=>lowerAssign(). In this case we should reuse
+      // the assigned register as this assignment is that start of its use-def
+      // chain. So we add RegNum argument here.
+      // Note we use 'lea' instruction instead of 'xor' to avoid affecting
+      // the flags.
+      Variable *Reg = makeReg(IceType_i32, RegNum);
+      ConstantInteger32 *Integer = llvm::cast<ConstantInteger32>(Immediate);
+      uint32_t Value = Integer->getValue();
+      uint32_t Cookie = Ctx->getRandomizationCookie();
+      _mov(Reg, Ctx->getConstantInt(IceType_i32, Cookie + Value));
+      Constant *Offset = Ctx->getConstantInt(IceType_i32, 0 - Cookie);
+      _lea(Reg,
+           OperandX8632Mem::create(Func, IceType_i32, Reg, Offset, nullptr, 0));
+      // make sure liveness analysis won't kill this variable, otherwise a
+      // liveness
+      // assertion will be triggered.
+      _set_dest_nonkillable();
+      if (Immediate->getType() != IceType_i32) {
+        Variable *TruncReg = makeReg(Immediate->getType(), RegNum);
+        _mov(TruncReg, Reg);
+        return TruncReg;
+      }
+      return Reg;
+    }
+    if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Pool) {
+      // pool the constant
+      // FROM:
+      //  imm
+      // TO:
+      //  insert: mov $label, Reg
+      //  => Reg
+      assert(Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Pool);
+      Immediate->setShouldBePooled(true);
+      // if we have already assigned a phy register, we must come from
+      // andvancedPhiLowering()=>lowerAssign(). In this case we should reuse
+      // the assigned register as this assignment is that start of its use-def
+      // chain. So we add RegNum argument here.
+      Variable *Reg = makeReg(Immediate->getType(), RegNum);
+      IceString Label;
+      llvm::raw_string_ostream Label_stream(Label);
+      Immediate->emitPoolLabel(Label_stream);
+      const RelocOffsetT Offset = 0;
+      const bool SuppressMangling = true;
+      Constant *Symbol =
+          Ctx->getConstantSym(Offset, Label_stream.str(), SuppressMangling);
+      OperandX8632Mem *MemOperand =
+          OperandX8632Mem::create(Func, Immediate->getType(), nullptr, Symbol);
+      _mov(Reg, MemOperand);
+      return Reg;
+    }
+    assert("Unsupported -randomize-pool-immediates option" && false);
+  }
+  // the constant Immediate is not eligible for blinding/pooling
+  return Immediate;
+}
+
+OperandX8632Mem *
+TargetX8632::randomizeOrPoolImmediate(OperandX8632Mem *MemOperand,
+                                      int32_t RegNum) {
+  assert(MemOperand);
+  if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_None ||
+      RandomizationPoolingPaused == true) {
+    // immediates randomization/pooling is turned off
+    return MemOperand;
+  }
+
+  // If this memory operand is already a randommized one, we do
+  // not randomize it again.
+  if (MemOperand->getRandomized())
+    return MemOperand;
+
+  if (Constant *C = llvm::dyn_cast_or_null<Constant>(MemOperand->getOffset())) {
+    if (C->shouldBeRandomizedOrPooled(Ctx)) {
+      // The offset of this mem operand should be blinded or pooled
+      Ctx->statsUpdateRPImms();
+      if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() ==
+          RPI_Randomize) {
+        // blind the constant offset
+        // FROM:
+        //  offset[base, index, shift]
+        // TO:
+        //  insert: lea offset+cookie[base], RegTemp
+        //  => -cookie[RegTemp, index, shift]
+        uint32_t Value =
+            llvm::dyn_cast<ConstantInteger32>(MemOperand->getOffset())
+                ->getValue();
+        uint32_t Cookie = Ctx->getRandomizationCookie();
+        Constant *Mask1 = Ctx->getConstantInt(
+            MemOperand->getOffset()->getType(), Cookie + Value);
+        Constant *Mask2 =
+            Ctx->getConstantInt(MemOperand->getOffset()->getType(), 0 - Cookie);
+
+        OperandX8632Mem *TempMemOperand = OperandX8632Mem::create(
+            Func, MemOperand->getType(), MemOperand->getBase(), Mask1);
+        // If we have already assigned a physical register, we must come from
+        // advancedPhiLowering()=>lowerAssign(). In this case we should reuse
+        // the assigned register as this assignment is that start of its use-def
+        // chain. So we add RegNum argument here.
+        Variable *RegTemp = makeReg(MemOperand->getOffset()->getType(), RegNum);
+        _lea(RegTemp, TempMemOperand);
+        // As source operand doesn't use the dstreg, we don't need to add
+        // _set_dest_nonkillable().
+        // But if we use the same Dest Reg, that is, with RegNum
+        // assigned, we should add this _set_dest_nonkillable()
+        if (RegNum != Variable::NoRegister)
+          _set_dest_nonkillable();
+
+        OperandX8632Mem *NewMemOperand = OperandX8632Mem::create(
+            Func, MemOperand->getType(), RegTemp, Mask2, MemOperand->getIndex(),
+            MemOperand->getShift(), MemOperand->getSegmentRegister());
+
+        // Label this memory operand as randomize, so we won't randomize it
+        // again in case we call legalize() mutiple times on this memory
+        // operand.
+        NewMemOperand->setRandomized(true);
+        return NewMemOperand;
+      }
+      if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Pool) {
+        // pool the constant offset
+        // FROM:
+        //  offset[base, index, shift]
+        // TO:
+        //  insert: mov $label, RegTemp
+        //  insert: lea [base, RegTemp], RegTemp
+        //  =>[RegTemp, index, shift]
+        assert(Ctx->getFlags().getRandomizeAndPoolImmediatesOption() ==
+               RPI_Pool);
+        // Memory operand should never exist as source operands in phi
+        // lowering assignments, so there is no need to reuse any registers
+        // here. For phi lowering, we should not ask for new physical
+        // registers in general.
+        // However, if we do meet Memory Operand during phi lowering, we
+        // should not blind or pool the immediates for now.
+        if (RegNum != Variable::NoRegister)
+          return MemOperand;
+        Variable *RegTemp = makeReg(IceType_i32);
+        IceString Label;
+        llvm::raw_string_ostream Label_stream(Label);
+        MemOperand->getOffset()->emitPoolLabel(Label_stream);
+        MemOperand->getOffset()->setShouldBePooled(true);
+        const RelocOffsetT SymOffset = 0;
+        bool SuppressMangling = true;
+        Constant *Symbol = Ctx->getConstantSym(SymOffset, Label_stream.str(),
+                                               SuppressMangling);
+        OperandX8632Mem *SymbolOperand = OperandX8632Mem::create(
+            Func, MemOperand->getOffset()->getType(), nullptr, Symbol);
+        _mov(RegTemp, SymbolOperand);
+        // If we have a base variable here, we should add the lea instruction
+        // to add the value of the base variable to RegTemp. If there is no
+        // base variable, we won't need this lea instruction.
+        if (MemOperand->getBase()) {
+          OperandX8632Mem *CalculateOperand = OperandX8632Mem::create(
+              Func, MemOperand->getType(), MemOperand->getBase(), nullptr,
+              RegTemp, 0, MemOperand->getSegmentRegister());
+          _lea(RegTemp, CalculateOperand);
+          _set_dest_nonkillable();
+        }
+        OperandX8632Mem *NewMemOperand = OperandX8632Mem::create(
+            Func, MemOperand->getType(), RegTemp, nullptr,
+            MemOperand->getIndex(), MemOperand->getShift(),
+            MemOperand->getSegmentRegister());
+        return NewMemOperand;
+      }
+      assert("Unsupported -randomize-pool-immediates option" && false);
+    }
+  }
+  // the offset is not eligible for blinding or pooling, return the original
+  // mem operand
+  return MemOperand;
+}
 
 } // end of namespace Ice

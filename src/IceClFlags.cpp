@@ -106,7 +106,7 @@ cl::opt<bool>
 // therefore the tests would need to be changed.
 cl::opt<unsigned long long>
     RandomSeed("sz-seed", cl::desc("Seed the random number generator"),
-               cl::init(time(0)));
+               cl::init(1));
 
 cl::opt<bool> ShouldDoNopInsertion("nop-insertion",
                                    cl::desc("Randomly insert NOPs"),
@@ -258,6 +258,27 @@ cl::opt<std::string> OutputFilename("o", cl::desc("Override output filename"),
 
 Ice::IceString AppName;
 
+// Define the command line options for immediates pooling and randomization
+cl::opt<Ice::RandomizeAndPoolImmediatesEnum> RandomizeAndPoolImmediatesOption(
+    "randomize-pool-immediates",
+    cl::desc("Randomize or pooling the representation of immediates"),
+    cl::init(Ice::RPI_None),
+    cl::values(clEnumValN(Ice::RPI_None, "none",
+                          "Do not randomize or pooling immediates (default)"),
+               clEnumValN(Ice::RPI_Randomize, "randomize",
+                          "Turn on immediate constants blinding"),
+               clEnumValN(Ice::RPI_Pool, "pool",
+                          "Turn on immediate constants pooling"),
+               clEnumValEnd));
+// Command line option for x86 immediate integer randomization/pooling
+// threshold. Immediates whose representation are between:
+// -RandomizeAndPoolImmediatesThreshold/2 and
+// +RandomizeAndPoolImmediatesThreshold/2 will be randomized or pooled.
+cl::opt<uint32_t> RandomizeAndPoolImmediatesThreshold(
+    "randomize-pool-threshold",
+    cl::desc("The threshold for immediates randomization and pooling"),
+    cl::init(0xffff));
+
 } // end of anonymous namespace
 
 namespace Ice {
@@ -350,6 +371,12 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setMaxNopsPerInstruction(::MaxNopsPerInstruction);
   OutFlags.setNopProbabilityAsPercentage(::NopProbabilityAsPercentage);
   OutFlags.setVerbose(VMask);
+
+  // set for immediates randomization or pooling option
+  OutFlags.setRandomizeAndPoolImmediatesOption(
+      ::RandomizeAndPoolImmediatesOption);
+  OutFlags.setRandomizeAndPoolImmediatesThreshold(
+      ::RandomizeAndPoolImmediatesThreshold);
 }
 
 void ClFlags::getParsedClFlagsExtra(ClFlagsExtra &OutFlagsExtra) {

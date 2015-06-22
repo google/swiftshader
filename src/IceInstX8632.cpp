@@ -92,7 +92,7 @@ OperandX8632Mem::OperandX8632Mem(Cfg *Func, Type Ty, Variable *Base,
                                  Constant *Offset, Variable *Index,
                                  uint16_t Shift, SegmentRegisters SegmentReg)
     : OperandX8632(kMem, Ty), Base(Base), Offset(Offset), Index(Index),
-      Shift(Shift), SegmentReg(SegmentReg) {
+      Shift(Shift), SegmentReg(SegmentReg), Randomized(false) {
   assert(Shift <= 3);
   Vars = nullptr;
   NumVars = 0;

@@ -596,6 +596,14 @@ protected:
   VarList PhysicalRegisters[IceType_NUM];
   static IceString RegNames[];
 
+  // Randomize a given immediate operand
+  Operand *randomizeOrPoolImmediate(Constant *Immediate,
+                                    int32_t RegNum = Variable::NoRegister);
+  OperandX8632Mem *
+  randomizeOrPoolImmediate(OperandX8632Mem *MemOperand,
+                           int32_t RegNum = Variable::NoRegister);
+  bool RandomizationPoolingPaused;
+
 private:
   ~TargetX8632() override {}
   BoolFolding FoldingInfo;

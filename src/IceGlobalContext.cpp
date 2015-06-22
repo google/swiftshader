@@ -225,7 +225,8 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
       EmitQ(/*Sequential=*/Flags.isSequential()),
       DataLowering(TargetDataLowering::createLowering(this)),
       HasSeenCode(false),
-      ProfileBlockInfoVarDecl(VariableDeclaration::create()) {
+      ProfileBlockInfoVarDecl(VariableDeclaration::create()),
+      RandomizationCookie(0) {
   assert(OsDump && "OsDump is not defined for GlobalContext");
   assert(OsEmit && "OsEmit is not defined for GlobalContext");
   assert(OsError && "OsError is not defined for GlobalContext");
@@ -265,6 +266,14 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
   ProfileBlockInfoVarDecl->setName("__Sz_block_profile_info");
   ProfileBlockInfoVarDecl->setSuppressMangling();
   ProfileBlockInfoVarDecl->setLinkage(llvm::GlobalValue::ExternalLinkage);
+
+  // Initialize the randomization cookie for constant blinding only if constant
+  // blinding or pooling is turned on.
+  // TODO(stichnot): Using RNG for constant blinding will affect the random
+  // number to be used in nop-insertion and randomize-regalloc.
+  if (Flags.getRandomizeAndPoolImmediatesOption() != RPI_None)
+    RandomizationCookie =
+        (uint32_t)RNG.next((uint64_t)std::numeric_limits<uint32_t>::max + 1);
 }
 
 void GlobalContext::translateFunctions() {
@@ -753,7 +762,9 @@ ConstantList GlobalContext::getConstantPool(Type Ty) {
   switch (Ty) {
   case IceType_i1:
   case IceType_i8:
+    return getConstPool()->Integers8.getConstantPool();
   case IceType_i16:
+    return getConstPool()->Integers16.getConstantPool();
   case IceType_i32:
     return getConstPool()->Integers32.getConstantPool();
   case IceType_i64:
