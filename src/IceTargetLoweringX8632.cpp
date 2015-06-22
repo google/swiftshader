@@ -711,10 +711,13 @@ void TargetX8632::findRMW() {
             if (!isSameMemAddressOperand(Load->getSourceAddress(),
                                          Store->getAddr()))
               continue;
-            if (false && Load->getSourceAddress() != Store->getAddr())
-              continue;
-            if (Arith->getSrc(0) != Load->getDest())
-              continue;
+            Operand *ArithSrcFromLoad = Arith->getSrc(0);
+            Operand *ArithSrcOther = Arith->getSrc(1);
+            if (ArithSrcFromLoad != Load->getDest()) {
+              if (!Arith->isCommutative() || ArithSrcOther != Load->getDest())
+                continue;
+              std::swap(ArithSrcFromLoad, ArithSrcOther);
+            }
             if (Arith->getDest() != Store->getData())
               continue;
             if (!canRMW(Arith))
@@ -734,8 +737,7 @@ void TargetX8632::findRMW() {
             InstFakeDef *BeaconDef = InstFakeDef::create(Func, Beacon);
             Node->getInsts().insert(I3, BeaconDef);
             InstX8632FakeRMW *RMW = InstX8632FakeRMW::create(
-                Func, Arith->getSrc(1), Store->getAddr(), Beacon,
-                Arith->getOp());
+                Func, ArithSrcOther, Store->getAddr(), Beacon, Arith->getOp());
             Node->getInsts().insert(I3, RMW);
           }
         }

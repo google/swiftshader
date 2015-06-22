@@ -102,3 +102,31 @@ entry:
 ; Look for something like: add DWORD PTR [eax+ecx*4+12],ecx
 ; CHECK-LABEL: rmw_add_i32_var_addropt
 ; CHECK: add DWORD PTR [e{{..}}+e{{..}}*4+0xc],e{{ax|bx|cx|dx|bp|di|si}}
+
+; Test for commutativity opportunities.  This is the same as rmw_add_i32_var
+; except with the "add" operands reversed.
+define internal void @rmw_add_i32_var_comm(i32 %addr_arg, i32 %var) {
+entry:
+  %addr = inttoptr i32 %addr_arg to i32*
+  %val = load i32, i32* %addr, align 1
+  %rmw = add i32 %var, %val
+  store i32 %rmw, i32* %addr, align 1
+  ret void
+}
+; Look for something like: add DWORD PTR [eax],ecx
+; CHECK-LABEL: rmw_add_i32_var_comm
+; CHECK: add DWORD PTR [e{{ax|bx|cx|dx|bp|di|si}}],e{{ax|bx|cx|dx|bp|di|si}}
+
+; Test that commutativity isn't triggered for a non-commutative arithmetic
+; operator (sub).  This is the same as rmw_add_i32_var_comm except with a
+; "sub" operation.
+define internal i32 @no_rmw_sub_i32_var(i32 %addr_arg, i32 %var) {
+entry:
+  %addr = inttoptr i32 %addr_arg to i32*
+  %val = load i32, i32* %addr, align 1
+  %rmw = sub i32 %var, %val
+  store i32 %rmw, i32* %addr, align 1
+  ret i32 %rmw
+}
+; CHECK-LABEL: no_rmw_sub_i32_var
+; CHECK: sub e{{ax|bx|cx|dx|bp|di|si}},DWORD PTR [e{{ax|bx|cx|dx|bp|di|si}}]
