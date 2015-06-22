@@ -341,7 +341,7 @@ protected:
   };
 
 private:
-  ~TargetARM32() override {}
+  ~TargetARM32() override = default;
 };
 
 class TargetDataARM32 final : public TargetDataLowering {
@@ -362,7 +362,7 @@ protected:
   explicit TargetDataARM32(GlobalContext *Ctx);
 
 private:
-  ~TargetDataARM32() override {}
+  ~TargetDataARM32() override = default;
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };
 

@@ -69,7 +69,7 @@ public:
   CLCompileServer(Compiler &Comp, int argc, char **argv)
       : CompileServer(Comp), argc(argc), argv(argv) {}
 
-  ~CLCompileServer() final {}
+  ~CLCompileServer() final = default;
 
   void run() final;
 

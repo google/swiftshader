@@ -124,7 +124,7 @@ protected:
   static IceString RegNames[];
 
 private:
-  ~TargetMIPS32() override {}
+  ~TargetMIPS32() override = default;
 };
 
 class TargetDataMIPS32 final : public TargetDataLowering {
@@ -145,7 +145,7 @@ protected:
   explicit TargetDataMIPS32(GlobalContext *Ctx);
 
 private:
-  ~TargetDataMIPS32() override {}
+  ~TargetDataMIPS32() override = default;
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };
 

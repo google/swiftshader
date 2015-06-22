@@ -168,7 +168,7 @@ public:
         ErrorStatus(ErrorStatus),
         VariableDeclarations(new Ice::VariableDeclarationList()) {}
 
-  ~TopLevelParser() override {}
+  ~TopLevelParser() override = default;
 
   Ice::Translator &getTranslator() const { return Translator; }
 
@@ -728,7 +728,7 @@ public:
       : BlockParserBaseClass(BlockID, EnclosingParser),
         Timer(Ice::TimerStack::TT_parseTypes, getTranslator().getContext()) {}
 
-  ~TypesParser() override {}
+  ~TypesParser() override = default;
 
 private:
   Ice::TimerMarker Timer;
@@ -909,7 +909,7 @@ public:
             Ice::VariableDeclaration::create(getTranslator().getContext())),
         CurGlobalVar(DummyGlobalVar) {}
 
-  ~GlobalsParser() final {}
+  ~GlobalsParser() final = default;
 
   const char *getBlockName() const override { return "globals"; }
 
@@ -1063,7 +1063,7 @@ public:
   ValuesymtabParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser) {}
 
-  ~ValuesymtabParser() override {}
+  ~ValuesymtabParser() override = default;
 
   const char *getBlockName() const override { return "valuesymtab"; }
 
@@ -1187,7 +1187,7 @@ public:
     return ParserResult;
   }
 
-  ~FunctionParser() final {}
+  ~FunctionParser() final = default;
 
   const char *getBlockName() const override { return "function"; }
 
@@ -2606,7 +2606,7 @@ public:
         Timer(Ice::TimerStack::TT_parseConstants, getTranslator().getContext()),
         FuncParser(FuncParser) {}
 
-  ~ConstantsParser() override {}
+  ~ConstantsParser() override = default;
 
   const char *getBlockName() const override { return "constants"; }
 
@@ -2821,7 +2821,7 @@ public:
         Timer(Ice::TimerStack::TT_parseModule,
               Context->getTranslator().getContext()) {}
 
-  ~ModuleParser() override {}
+  ~ModuleParser() override = default;
 
   const char *getBlockName() const override { return "module"; }
 
@@ -2861,7 +2861,7 @@ public:
         Timer(Ice::TimerStack::TT_parseModuleValuesymtabs,
               getTranslator().getContext()) {}
 
-  ~ModuleValuesymtabParser() override {}
+  ~ModuleValuesymtabParser() override = default;
 
 private:
   Ice::TimerMarker Timer;
