@@ -15,6 +15,10 @@
 #include <iostream>
 #include <thread>
 
+// Include code to handle converting textual bitcode records to binary (for
+// INPUT_IS_TEXTUAL_BITCODE).
+#include "llvm/Bitcode/NaCl/NaClBitcodeMungeUtils.h"
+
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/Signals.h"
@@ -30,6 +34,50 @@
 namespace Ice {
 
 namespace {
+
+static_assert(
+!(INPUT_IS_TEXTUAL_BITCODE && PNACL_BROWSER_TRANSLATOR),
+  "Can not define INPUT_IS_TEXTUAL_BITCODE when building browswer translator");
+
+// Define a SmallVector backed buffer as a data stream, so that it
+// can hold the generated binary version of the textual bitcode in the
+// input file.
+class TextDataStreamer : public llvm::DataStreamer {
+public:
+  TextDataStreamer() = default;
+  ~TextDataStreamer() final = default;
+  static TextDataStreamer *create(const IceString &Filename, std::string *Err);
+  size_t GetBytes(unsigned char *Buf, size_t Len) final;
+private:
+  llvm::SmallVector<char, 1024> BitcodeBuffer;
+  size_t Cursor = 0;
+};
+
+TextDataStreamer *TextDataStreamer::create(const IceString &Filename,
+                                           std::string *Err) {
+  TextDataStreamer *Streamer = new TextDataStreamer();
+  llvm::raw_string_ostream ErrStrm(*Err);
+  if (std::error_code EC = llvm::readNaClRecordTextAndBuildBitcode(
+          Filename, Streamer->BitcodeBuffer, &ErrStrm)) {
+    ErrStrm << "Error: " << EC.message() << "\n";
+    ErrStrm.flush();
+    delete Streamer;
+    return nullptr;
+  }
+  ErrStrm.flush();
+  return Streamer;
+}
+
+size_t TextDataStreamer::GetBytes(unsigned char *Buf, size_t Len) {
+  if (Cursor >= BitcodeBuffer.size())
+    return 0;
+  size_t Remaining = BitcodeBuffer.size();
+  Len = std::min(Len, Remaining);
+  for (size_t i = 0; i < Len; ++i)
+    Buf[i] = BitcodeBuffer[Cursor + i];
+  Cursor += Len;
+  return Len;
+}
 
 std::unique_ptr<Ostream> makeStream(const IceString &Filename,
                                     std::error_code &EC) {
@@ -100,7 +148,10 @@ void CLCompileServer::run() {
 
   IceString StrError;
   std::unique_ptr<llvm::DataStreamer> InputStream(
-      llvm::getDataFileStreamer(ExtraFlags.getIRFilename(), &StrError));
+      INPUT_IS_TEXTUAL_BITCODE
+      ? TextDataStreamer::create(ExtraFlags.getIRFilename(), &StrError)
+      : llvm::getDataFileStreamer(ExtraFlags.getIRFilename(), &StrError)
+                                                  );
   if (!StrError.empty() || !InputStream) {
     llvm::SMDiagnostic Err(ExtraFlags.getIRFilename(),
                            llvm::SourceMgr::DK_Error, StrError);

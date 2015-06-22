@@ -86,6 +86,15 @@ else
     -DALLOW_MINIMAL_BUILD=0
 endif
 
+ifdef TEXTUAL_BITCODE
+  BASE_CXX_DEFINES += -DINPUT_IS_TEXTUAL_BITCODE=1
+  OBJDIR := $(OBJDIR)+Tbc
+  TEXTBC_LIBS = -LLVMNaClBitTestUtils
+else
+  BASE_CXX_DEFINES += -DINPUT_IS_TEXTUAL_BITCODE=0
+  TEXTBC_LIBS =
+endif
+
 SB_CXX_DEFINES := $(BASE_CXX_DEFINES) -DPNACL_BROWSER_TRANSLATOR=1
 CXX_DEFINES := $(BASE_CXX_DEFINES) -DPNACL_BROWSER_TRANSLATOR=0
 
@@ -130,7 +139,7 @@ LLVM_LIBS_LIST := -lLLVMIRReader -lLLVMBitReader -lLLVMNaClBitTestUtils \
 
 ifeq ($(AUTOCONF), 0)
   # LLVM cmake build
-  LLVM_LIBS := $(LLVM_LIBS_LIST)
+  LLVM_LIBS := $(LLVM_LIBS_LIST) $(TEXTBC_LIBS)
   # For the cmake build, the gtest libs end up in the same place as the LLVM
   # libs, so no "-L..." arg is needed.
   GTEST_LIB_PATH ?=
@@ -225,6 +234,14 @@ else
 sb: $(SB_OBJDIR)/pnacl-sz.x86-32.nexe
 endif
 
+# SHOW_BUILD_ATTS is an executable that is run to show what build
+# attributes were used to build pnacl-sz.
+ifdef TEXTUAL_BITCODE
+  SHOW_BUILD_ATTS = echo "Can't show build attributes when TEXTUAL_BITCODE=1"
+else
+  SHOW_BUILD_ATTS = $(OBJDIR)/pnacl-sz --build-atts
+endif
+
 # Creates symbolic link so that testing is easier. Also runs
 # pnacl-sz to verify that the defines flags have valid values,
 # as well as describe the corresponding build attributes.
@@ -232,7 +249,7 @@ make_symlink: $(OBJDIR)/pnacl-sz
 	rm -rf pnacl-sz
 	ln -s $(OBJDIR)/pnacl-sz
 	@echo "Build Attributes:"
-	@$(OBJDIR)/pnacl-sz --build-atts
+	@$(SHOW_BUILD_ATTS)
 
 .PHONY: all make_symlink runtime bloat sb
 
