@@ -122,12 +122,12 @@ bool TCompiler::compile(const char* const shaderStrings[],
     // Parse shader.
     bool success =
         (PaParseStrings(numStrings - firstSource, &shaderStrings[firstSource], NULL, &parseContext) == 0) &&
-        (parseContext.treeRoot != NULL);
+        (parseContext.getTreeRoot() != NULL);
 
     shaderVersion = parseContext.getShaderVersion();
 
     if (success) {
-        TIntermNode* root = parseContext.treeRoot;
+        TIntermNode* root = parseContext.getTreeRoot();
         success = intermediate.postProcess(root);
 
         if (success)

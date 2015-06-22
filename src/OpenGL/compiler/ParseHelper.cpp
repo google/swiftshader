@@ -182,8 +182,8 @@ void TParseContext::error(const TSourceLoc& loc,
 {
     pp::SourceLocation srcLoc;
     DecodeSourceLoc(loc, &srcLoc.file, &srcLoc.line);
-    diagnostics.writeInfo(pp::Diagnostics::PP_ERROR,
-                          srcLoc, reason, token, extraInfo);
+    mDiagnostics.writeInfo(pp::Diagnostics::PP_ERROR,
+                           srcLoc, reason, token, extraInfo);
 
 }
 
@@ -192,13 +192,13 @@ void TParseContext::warning(const TSourceLoc& loc,
                             const char* extraInfo) {
     pp::SourceLocation srcLoc;
     DecodeSourceLoc(loc, &srcLoc.file, &srcLoc.line);
-    diagnostics.writeInfo(pp::Diagnostics::PP_WARNING,
-                          srcLoc, reason, token, extraInfo);
+    mDiagnostics.writeInfo(pp::Diagnostics::PP_WARNING,
+                           srcLoc, reason, token, extraInfo);
 }
 
 void TParseContext::trace(const char* str)
 {
-    diagnostics.writeDebug(str);
+    mDiagnostics.writeDebug(str);
 }
 
 //
@@ -237,7 +237,7 @@ void TParseContext::binaryOpError(const TSourceLoc &line, const char* op, TStrin
 }
 
 bool TParseContext::precisionErrorCheck(const TSourceLoc &line, TPrecision precision, TBasicType type){
-    if (!checksPrecisionErrors)
+    if (!mChecksPrecisionErrors)
         return false;
     switch( type ){
     case EbtFloat:
@@ -847,7 +847,7 @@ bool TParseContext::arrayTypeErrorCheck(const TSourceLoc &line, TPublicType type
 bool TParseContext::arraySetMaxSize(TIntermSymbol *node, TType* type, int size, bool updateFlag, const TSourceLoc &line)
 {
     bool builtIn = false;
-    TSymbol* symbol = symbolTable.find(node->getSymbol(), shaderVersion, &builtIn);
+    TSymbol* symbol = symbolTable.find(node->getSymbol(), mShaderVersion, &builtIn);
     if (symbol == 0) {
         error(line, " undeclared identifier", node->getSymbol().c_str());
         return true;
@@ -860,7 +860,7 @@ bool TParseContext::arraySetMaxSize(TIntermSymbol *node, TType* type, int size, 
     // special casing to test index value of gl_FragData. If the accessed index is >= gl_MaxDrawBuffers
     // its an error
     if (node->getSymbol() == "gl_FragData") {
-        TSymbol* fragData = symbolTable.find("gl_MaxDrawBuffers", shaderVersion, &builtIn);
+        TSymbol* fragData = symbolTable.find("gl_MaxDrawBuffers", mShaderVersion, &builtIn);
         ASSERT(fragData);
 
         int fragDataValue = static_cast<TVariable*>(fragData)->getConstPointer()[0].getIConst();
@@ -934,7 +934,7 @@ bool TParseContext::nonInitErrorCheck(const TSourceLoc &line, const TString& ide
 
 		// Generate informative error messages for ESSL1.
 		// In ESSL3 arrays and structures containing arrays can be constant.
-		if(shaderVersion < 300 && type.isStructureContainingArrays())
+		if(mShaderVersion < 300 && type.isStructureContainingArrays())
 		{
 			error(line,
 				"structures containing arrays may not be declared constant since they cannot be initialized",
@@ -969,7 +969,7 @@ bool TParseContext::declareVariable(const TSourceLoc &line, const TString &ident
 	if(type.isArray() && identifier.compare(0, 15, "gl_LastFragData") == 0)
 	{
 		const TVariable *maxDrawBuffers =
-			static_cast<const TVariable *>(symbolTable.findBuiltIn("gl_MaxDrawBuffers", shaderVersion));
+			static_cast<const TVariable *>(symbolTable.findBuiltIn("gl_MaxDrawBuffers", mShaderVersion));
 		if(type.getArraySize() != maxDrawBuffers->getConstPointer()->getIConst())
 		{
 			error(line, "redeclaration of gl_LastFragData with size != gl_MaxDrawBuffers", identifier.c_str());
@@ -1066,14 +1066,14 @@ void TParseContext::handleExtensionDirective(const TSourceLoc &line, const char*
 {
     pp::SourceLocation loc;
     DecodeSourceLoc(line, &loc.file, &loc.line);
-    directiveHandler.handleExtension(loc, extName, behavior);
+    mDirectiveHandler.handleExtension(loc, extName, behavior);
 }
 
 void TParseContext::handlePragmaDirective(const TSourceLoc &line, const char* name, const char* value)
 {
     pp::SourceLocation loc;
     DecodeSourceLoc(line, &loc.file, &loc.line);
-    directiveHandler.handlePragma(loc, name, value);
+    mDirectiveHandler.handlePragma(loc, name, value);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1102,7 +1102,7 @@ const TVariable *TParseContext::getNamedVariable(const TSourceLoc &location,
 	{
 		variable = static_cast<const TVariable*>(symbol);
 
-		if(symbolTable.findBuiltIn(variable->getName(), shaderVersion))
+		if(symbolTable.findBuiltIn(variable->getName(), mShaderVersion))
 		{
 			recover();
 		}
@@ -1149,9 +1149,9 @@ const TFunction* TParseContext::findFunction(const TSourceLoc &line, TFunction* 
 {
     // First find by unmangled name to check whether the function name has been
     // hidden by a variable name or struct typename.
-    const TSymbol* symbol = symbolTable.find(call->getName(), shaderVersion, builtIn);
+    const TSymbol* symbol = symbolTable.find(call->getName(), mShaderVersion, builtIn);
     if (symbol == 0) {
-        symbol = symbolTable.find(call->getMangledName(), shaderVersion, builtIn);
+        symbol = symbolTable.find(call->getMangledName(), mShaderVersion, builtIn);
     }
 
     if (symbol == 0) {
@@ -1292,7 +1292,7 @@ TPublicType TParseContext::addFullySpecifiedType(TQualifier qualifier, bool inva
 		returnType.clearArrayness();
 	}
 
-	if(shaderVersion < 300)
+	if(mShaderVersion < 300)
 	{
 		if(qualifier == EvqAttribute && (typeSpecifier.type == EbtBool || typeSpecifier.type == EbtInt))
 		{
@@ -1703,7 +1703,7 @@ TIntermAggregate *TParseContext::parseArrayInitDeclarator(const TPublicType &pub
 
 void TParseContext::parseGlobalLayoutQualifier(const TPublicType &typeQualifier)
 {
-	if(shaderVersion < 300)
+	if(mShaderVersion < 300)
 	{
 		error(typeQualifier.line, "layout qualifiers supported in GLSL ES 3.00 only", "layout");
 		recover();
@@ -1728,12 +1728,12 @@ void TParseContext::parseGlobalLayoutQualifier(const TPublicType &typeQualifier)
 
 	if(layoutQualifier.matrixPacking != EmpUnspecified)
 	{
-		defaultMatrixPacking = layoutQualifier.matrixPacking;
+		mDefaultMatrixPacking = layoutQualifier.matrixPacking;
 	}
 
 	if(layoutQualifier.blockStorage != EbsUnspecified)
 	{
-		defaultBlockStorage = layoutQualifier.blockStorage;
+		mDefaultBlockStorage = layoutQualifier.blockStorage;
 	}
 }
 
@@ -2080,12 +2080,12 @@ TIntermAggregate* TParseContext::addInterfaceBlock(const TPublicType& typeQualif
 
 	if(blockLayoutQualifier.matrixPacking == EmpUnspecified)
 	{
-		blockLayoutQualifier.matrixPacking = defaultMatrixPacking;
+		blockLayoutQualifier.matrixPacking = mDefaultMatrixPacking;
 	}
 
 	if(blockLayoutQualifier.blockStorage == EbsUnspecified)
 	{
-		blockLayoutQualifier.blockStorage = defaultBlockStorage;
+		blockLayoutQualifier.blockStorage = mDefaultBlockStorage;
 	}
 
 	TSymbol* blockNameSymbol = new TSymbol(&blockName);
@@ -2535,7 +2535,7 @@ TIntermTyped *TParseContext::addFieldSelectionExpression(TIntermTyped *baseExpre
 	}
 	else
 	{
-		if(shaderVersion < 300)
+		if(mShaderVersion < 300)
 		{
 			error(dotLocation, " field selection requires structure, vector, or matrix on left hand side",
 				fieldString.c_str());
@@ -2785,12 +2785,12 @@ TPublicType TParseContext::addStructure(const TSourceLoc &structLine, const TSou
 
 bool TParseContext::enterStructDeclaration(const TSourceLoc &line, const TString& identifier)
 {
-    ++structNestingLevel;
+    ++mStructNestingLevel;
 
     // Embedded structure definitions are not supported per GLSL ES spec.
     // They aren't allowed in GLSL either, but we need to detect this here
     // so we don't rely on the GLSL compiler to catch it.
-    if (structNestingLevel > 1) {
+    if (mStructNestingLevel > 1) {
         error(line, "", "Embedded struct definitions are not allowed");
         return true;
     }
@@ -2800,7 +2800,7 @@ bool TParseContext::enterStructDeclaration(const TSourceLoc &line, const TString
 
 void TParseContext::exitStructDeclaration()
 {
-    --structNestingLevel;
+    --mStructNestingLevel;
 }
 
 bool TParseContext::structNestingErrorCheck(const TSourceLoc &line, const TField &field)
@@ -2897,7 +2897,7 @@ bool TParseContext::binaryOpCommonCheck(TOperator op, TIntermTyped *left, TInter
 {
 	if(left->isArray() || right->isArray())
 	{
-		if(shaderVersion < 300)
+		if(mShaderVersion < 300)
 		{
 			error(loc, "Invalid operation for arrays", getOperatorString(op));
 			return false;
@@ -2977,7 +2977,7 @@ bool TParseContext::binaryOpCommonCheck(TOperator op, TIntermTyped *left, TInter
 	case EOpEqual:
 	case EOpNotEqual:
 		// ESSL 1.00 sections 5.7, 5.8, 5.9
-		if(shaderVersion < 300 && left->getType().isStructureContainingArrays())
+		if(mShaderVersion < 300 && left->getType().isStructureContainingArrays())
 		{
 			error(loc, "undefined operation for structs containing arrays", getOperatorString(op));
 			return false;
@@ -2985,7 +2985,7 @@ bool TParseContext::binaryOpCommonCheck(TOperator op, TIntermTyped *left, TInter
 		// Samplers as l-values are disallowed also in ESSL 3.00, see section 4.1.7,
 		// we interpret the spec so that this extends to structs containing samplers,
 		// similarly to ESSL 1.00 spec.
-		if((shaderVersion < 300 || op == EOpAssign || op == EOpInitialize) &&
+		if((mShaderVersion < 300 || op == EOpAssign || op == EOpInitialize) &&
 			left->getType().isStructureContainingSamplers())
 		{
 			error(loc, "undefined operation for structs containing samplers", getOperatorString(op));
@@ -3041,7 +3041,7 @@ TIntermSwitch *TParseContext::addSwitch(TIntermTyped *init, TIntermAggregate *st
 
 TIntermCase *TParseContext::addCase(TIntermTyped *condition, const TSourceLoc &loc)
 {
-	if(switchNestingLevel == 0)
+	if(mSwitchNestingLevel == 0)
 	{
 		error(loc, "case labels need to be inside switch statements", "case");
 		recover();
@@ -3079,7 +3079,7 @@ TIntermCase *TParseContext::addCase(TIntermTyped *condition, const TSourceLoc &l
 
 TIntermCase *TParseContext::addDefault(const TSourceLoc &loc)
 {
-	if(switchNestingLevel == 0)
+	if(mSwitchNestingLevel == 0)
 	{
 		error(loc, "default labels need to be inside switch statements", "default");
 		recover();
@@ -3205,21 +3205,21 @@ TIntermBranch *TParseContext::addBranch(TOperator op, const TSourceLoc &loc)
 	switch(op)
 	{
 	case EOpContinue:
-		if(loopNestingLevel <= 0)
+		if(mLoopNestingLevel <= 0)
 		{
 			error(loc, "continue statement only allowed in loops", "");
 			recover();
 		}
 		break;
 	case EOpBreak:
-		if(loopNestingLevel <= 0 && switchNestingLevel <= 0)
+		if(mLoopNestingLevel <= 0 && mSwitchNestingLevel <= 0)
 		{
 			error(loc, "break statement only allowed in loops and switch statements", "");
 			recover();
 		}
 		break;
 	case EOpReturn:
-		if(currentFunctionType->getBasicType() != EbtVoid)
+		if(mCurrentFunctionType->getBasicType() != EbtVoid)
 		{
 			error(loc, "non-void function must return a value", "return");
 			recover();
@@ -3235,13 +3235,13 @@ TIntermBranch *TParseContext::addBranch(TOperator op, const TSourceLoc &loc)
 TIntermBranch *TParseContext::addBranch(TOperator op, TIntermTyped *returnValue, const TSourceLoc &loc)
 {
 	ASSERT(op == EOpReturn);
-	functionReturnsValue = true;
-	if(currentFunctionType->getBasicType() == EbtVoid)
+	mFunctionReturnsValue = true;
+	if(mCurrentFunctionType->getBasicType() == EbtVoid)
 	{
 		error(loc, "void function cannot return a value", "return");
 		recover();
 	}
-	else if(*currentFunctionType != returnValue->getType())
+	else if(*mCurrentFunctionType != returnValue->getType())
 	{
 		error(loc, "function return is not matching type:", "return");
 		recover();

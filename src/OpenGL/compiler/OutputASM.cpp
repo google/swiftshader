@@ -154,7 +154,7 @@ namespace glsl
 	{
 		emitScope = scope;
 		currentScope = GLOBAL;
-		mContext.treeRoot->traverse(this);
+		mContext.getTreeRoot()->traverse(this);
 	}
 
 	void OutputASM::freeTemporary(Temporary *temporary)

@@ -10,7 +10,7 @@
 #include "intermediate.h"
 #include <set>
 
-struct TParseContext;
+class TParseContext;
 
 class ValidateSwitch : public TIntermTraverser
 {

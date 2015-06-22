@@ -4,7 +4,7 @@
 // found in the LICENSE file.
 //
 
-struct TParseContext;
+class TParseContext;
 extern int glslang_initialize(TParseContext* context);
 extern int glslang_finalize(TParseContext* context);
 

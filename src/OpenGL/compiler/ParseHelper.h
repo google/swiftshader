@@ -24,68 +24,81 @@ struct TMatrixFields {
 // The following are extra variables needed during parsing, grouped together so
 // they can be passed to the parser without needing a global.
 //
-struct TParseContext {
+class TParseContext {
+public:
     TParseContext(TSymbolTable& symt, TExtensionBehavior& ext, TIntermediate& interm, GLenum type, int options, bool checksPrecErrors, const char* sourcePath, TInfoSink& is) :
             intermediate(interm),
             symbolTable(symt),
-            shaderType(type),
             compileOptions(options),
             sourcePath(sourcePath),
-            treeRoot(0),
             lexAfterType(false),
-            loopNestingLevel(0),
-            switchNestingLevel(0),
-            structNestingLevel(0),
             inTypeParen(false),
-            currentFunctionType(NULL),
-            functionReturnsValue(false),
-            checksPrecisionErrors(checksPrecErrors),
-            defaultMatrixPacking(EmpColumnMajor),
-            defaultBlockStorage(EbsShared),
-            diagnostics(is),
-            shaderVersion(100),
-            directiveHandler(ext, diagnostics, shaderVersion),
-            preprocessor(&diagnostics, &directiveHandler),
-            scanner(NULL),
+            AfterEOF(false),
             mDeferredSingleDeclarationErrorCheck(false),
+            mShaderType(type),
+            mShaderVersion(100),
+            mTreeRoot(0),
+            mLoopNestingLevel(0),
+            mSwitchNestingLevel(0),
+            mStructNestingLevel(0),
+            mCurrentFunctionType(NULL),
+            mFunctionReturnsValue(false),
+            mChecksPrecisionErrors(checksPrecErrors),
+            mDefaultMatrixPacking(EmpColumnMajor),
+            mDefaultBlockStorage(EbsShared),
+            mDiagnostics(is),
+            mDirectiveHandler(ext, mDiagnostics, mShaderVersion),
+            mPreprocessor(&mDiagnostics, &mDirectiveHandler),
+            mScanner(NULL),
             mUsesFragData(false),
             mUsesFragColor(false) {  }
     TIntermediate& intermediate; // to hold and build a parse tree
     TSymbolTable& symbolTable;   // symbol table that goes with the language currently being parsed
-    GLenum shaderType;              // vertex or fragment language (future: pack or unpack)
-    int shaderVersion;
     int compileOptions;
     const char* sourcePath;      // Path of source file or NULL.
-    TIntermNode* treeRoot;       // root of parse tree being created
     bool lexAfterType;           // true if we've recognized a type, so can only be looking for an identifier
-    int loopNestingLevel;        // 0 if outside all loops
-    int switchNestingLevel;      // 0 if outside all switch statements
-    int structNestingLevel;      // incremented while parsing a struct declaration
     bool inTypeParen;            // true if in parentheses, looking only for an identifier
-    const TType* currentFunctionType;  // the return type of the function that's currently being parsed
-    bool functionReturnsValue;   // true if a non-void function has a return
-    bool checksPrecisionErrors;  // true if an error will be generated when a variable is declared without precision, explicit or implicit.
-    TLayoutMatrixPacking defaultMatrixPacking;
-    TLayoutBlockStorage defaultBlockStorage;
-    TString HashErrMsg;
     bool AfterEOF;
-    TDiagnostics diagnostics;
-    TDirectiveHandler directiveHandler;
-    pp::Preprocessor preprocessor;
-    void* scanner;
 
-    int getShaderVersion() const { return shaderVersion; }
-    int numErrors() const { return diagnostics.numErrors(); }
-    TInfoSink& infoSink() { return diagnostics.infoSink(); }
+    const pp::Preprocessor &getPreprocessor() const { return mPreprocessor; }
+    pp::Preprocessor &getPreprocessor() { return mPreprocessor; }
+    void *getScanner() const { return mScanner; }
+    void setScanner(void *scanner) { mScanner = scanner; }
+    int getShaderVersion() const { return mShaderVersion; }
+    GLenum getShaderType() const { return mShaderType; }
+    int numErrors() const { return mDiagnostics.numErrors(); }
+    TInfoSink &infoSink() { return mDiagnostics.infoSink(); }
     void error(const TSourceLoc &loc, const char *reason, const char* token,
                const char* extraInfo="");
     void warning(const TSourceLoc &loc, const char* reason, const char* token,
                  const char* extraInfo="");
     void trace(const char* str);
     void recover();
+    TIntermNode *getTreeRoot() const { return mTreeRoot; }
+    void setTreeRoot(TIntermNode *treeRoot) { mTreeRoot = treeRoot; }
 
-    void incrSwitchNestingLevel() { ++switchNestingLevel; }
-    void decrSwitchNestingLevel() { --switchNestingLevel; }
+    bool getFunctionReturnsValue() const { return mFunctionReturnsValue; }
+    void setFunctionReturnsValue(bool functionReturnsValue)
+    {
+        mFunctionReturnsValue = functionReturnsValue;
+    }
+
+    void setLoopNestingLevel(int loopNestintLevel)
+    {
+        mLoopNestingLevel = loopNestintLevel;
+    }
+
+    const TType *getCurrentFunctionType() const { return mCurrentFunctionType; }
+    void setCurrentFunctionType(const TType *currentFunctionType)
+    {
+        mCurrentFunctionType = currentFunctionType;
+    }
+
+    void incrLoopNestingLevel() { ++mLoopNestingLevel; }
+    void decrLoopNestingLevel() { --mLoopNestingLevel; }
+
+    void incrSwitchNestingLevel() { ++mSwitchNestingLevel; }
+    void decrSwitchNestingLevel() { --mSwitchNestingLevel; }
 
 	// This method is guaranteed to succeed, even if no variable with 'name' exists.
 	const TVariable *getNamedVariable(const TSourceLoc &location, const TString *name, const TSymbol *symbol);
@@ -121,11 +134,11 @@ struct TParseContext {
     bool layoutLocationErrorCheck(const TSourceLoc& location, const TLayoutQualifier &layoutQualifier);
     bool functionCallLValueErrorCheck(const TFunction *fnCandidate, TIntermAggregate *);
 
-    const TExtensionBehavior& extensionBehavior() const { return directiveHandler.extensionBehavior(); }
+    const TExtensionBehavior& extensionBehavior() const { return mDirectiveHandler.extensionBehavior(); }
     bool supportsExtension(const char* extension);
     void handleExtensionDirective(const TSourceLoc &line, const char* extName, const char* behavior);
 
-    const TPragma& pragma() const { return directiveHandler.pragma(); }
+    const TPragma& pragma() const { return mDirectiveHandler.pragma(); }
     void handlePragmaDirective(const TSourceLoc &line, const char* name, const char* value);
 
     bool containsSampler(TType& type);
@@ -221,7 +234,25 @@ private:
 	// Return true if the checks pass
 	bool binaryOpCommonCheck(TOperator op, TIntermTyped *left, TIntermTyped *right, const TSourceLoc &loc);
 
+	// Set to true when the last/current declarator list was started with an empty declaration.
 	bool mDeferredSingleDeclarationErrorCheck;
+
+	GLenum mShaderType;              // vertex or fragment language (future: pack or unpack)
+	int mShaderVersion;
+	TIntermNode *mTreeRoot;       // root of parse tree being created
+	int mLoopNestingLevel;       // 0 if outside all loops
+	int mSwitchNestingLevel;     // 0 if outside all switch statements
+	int mStructNestingLevel;      // incremented while parsing a struct declaration
+	const TType *mCurrentFunctionType;  // the return type of the function that's currently being parsed
+	bool mFunctionReturnsValue;  // true if a non-void function has a return
+	bool mChecksPrecisionErrors;  // true if an error will be generated when a variable is declared without precision, explicit or implicit.
+
+	TLayoutMatrixPacking mDefaultMatrixPacking;
+	TLayoutBlockStorage mDefaultBlockStorage;
+	TDiagnostics mDiagnostics;
+	TDirectiveHandler mDirectiveHandler;
+	pp::Preprocessor mPreprocessor;
+	void *mScanner;
 	bool mUsesFragData; // track if we are using both gl_FragData and gl_FragColor
 	bool mUsesFragColor;
 };

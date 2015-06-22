@@ -241,7 +241,7 @@ O           [0-7]
 "sampler2DMSArray"  |
 "isampler2DMSArray" |
 "usampler2DMSArray" { 
-    if (context->shaderVersion < 300) {
+    if (context->getShaderVersion() < 300) {
 		yylval->lex.string = NewPoolTString(yytext); 
 	    return check_type(yyscanner); 
 	}
@@ -250,7 +250,7 @@ O           [0-7]
 
     /* Reserved keywords in GLSL ES 1.00 that are not reserved in GLSL ES 3.00 */
 "packed"  {
-    if (context->shaderVersion >= 300)
+    if (context->getShaderVersion() >= 300)
     {
         yylval->lex.string = NewPoolTString(yytext);
         return check_type(yyscanner);
@@ -395,7 +395,7 @@ O           [0-7]
 
 yy_size_t string_input(char* buf, yy_size_t max_size, yyscan_t yyscanner) {
     pp::Token token;
-    yyget_extra(yyscanner)->preprocessor.lex(&token);
+    yyget_extra(yyscanner)->getPreprocessor().lex(&token);
     yy_size_t len = token.type == pp::Token::LAST ? 0 : token.text.size();
     if (len < max_size)
         memcpy(buf, token.text.c_str(), len);
@@ -412,7 +412,7 @@ int check_type(yyscan_t yyscanner) {
     struct yyguts_t* yyg = (struct yyguts_t*) yyscanner;
     
     int token = IDENTIFIER;
-    TSymbol* symbol = yyextra->symbolTable.find(yytext, yyextra->shaderVersion);
+    TSymbol* symbol = yyextra->symbolTable.find(yytext, yyextra->getShaderVersion());
     if (yyextra->lexAfterType == false && symbol && symbol->isVariable()) {
         TVariable* variable = static_cast<TVariable*>(symbol);
         if (variable->isUserType()) {
@@ -434,9 +434,9 @@ int reserved_word(yyscan_t yyscanner) {
 
 int ES2_reserved_ES3_keyword(TParseContext *context, int token)
 {
-    yyscan_t yyscanner = (yyscan_t) context->scanner;
+    yyscan_t yyscanner = (yyscan_t) context->getScanner();
 
-    if (context->shaderVersion < 300)
+    if (context->getShaderVersion() < 300)
     {
         return reserved_word(yyscanner);
     }
@@ -446,9 +446,9 @@ int ES2_reserved_ES3_keyword(TParseContext *context, int token)
 
 int ES2_keyword_ES3_reserved(TParseContext *context, int token)
 {
-    yyscan_t yyscanner = (yyscan_t) context->scanner;
+    yyscan_t yyscanner = (yyscan_t) context->getScanner();
 
-    if (context->shaderVersion >= 300)
+    if (context->getShaderVersion() >= 300)
     {
         return reserved_word(yyscanner);
     }
@@ -458,11 +458,11 @@ int ES2_keyword_ES3_reserved(TParseContext *context, int token)
 
 int ES2_identifier_ES3_keyword(TParseContext *context, int token)
 {
-    struct yyguts_t* yyg = (struct yyguts_t*) context->scanner;
-    yyscan_t yyscanner = (yyscan_t) context->scanner;
+    struct yyguts_t* yyg = (struct yyguts_t*) context->getScanner();
+    yyscan_t yyscanner = (yyscan_t) context->getScanner();
 
     // not a reserved word in GLSL ES 1.00, so could be used as an identifier/type name
-    if (context->shaderVersion < 300)
+    if (context->getShaderVersion() < 300)
     {
         yylval->lex.string = NewPoolTString(yytext);
         return check_type(yyscanner);
@@ -473,10 +473,10 @@ int ES2_identifier_ES3_keyword(TParseContext *context, int token)
 
 int uint_constant(TParseContext *context)
 {
-    struct yyguts_t* yyg = (struct yyguts_t*) context->scanner;
-    yyscan_t yyscanner = (yyscan_t) context->scanner;
+    struct yyguts_t* yyg = (struct yyguts_t*) context->getScanner();
+    yyscan_t yyscanner = (yyscan_t) context->getScanner();
 
-    if (context->shaderVersion < 300)
+    if (context->getShaderVersion() < 300)
     {
         context->error(*yylloc, "Unsigned integers are unsupported prior to GLSL ES 3.00", yytext, "");
         context->recover();
@@ -491,9 +491,9 @@ int uint_constant(TParseContext *context)
 
 int floatsuffix_check(TParseContext* context)
 {
-    struct yyguts_t* yyg = (struct yyguts_t*) context->scanner;
+    struct yyguts_t* yyg = (struct yyguts_t*) context->getScanner();
 
-    if (context->shaderVersion < 300)
+    if (context->getShaderVersion() < 300)
     {
         context->error(*yylloc, "Floating-point suffix unsupported prior to GLSL ES 3.00", yytext);
         context->recover();
@@ -523,7 +523,7 @@ int float_constant(yyscan_t yyscanner) {
 }
 
 void yyerror(YYLTYPE* lloc, TParseContext* context, const char* reason) {
-    struct yyguts_t* yyg = (struct yyguts_t*) context->scanner;
+    struct yyguts_t* yyg = (struct yyguts_t*) context->getScanner();
 
     if (context->AfterEOF) {
         context->error(*lloc, reason, "unexpected EOF");
@@ -538,15 +538,15 @@ int glslang_initialize(TParseContext* context) {
     if (yylex_init_extra(context, &scanner))
         return 1;
 
-    context->scanner = scanner;
+    context->setScanner(scanner);
     return 0;
 }
 
 int glslang_finalize(TParseContext* context) {
-    yyscan_t scanner = context->scanner;
+    yyscan_t scanner = context->getScanner();
     if (scanner == NULL) return 0;
     
-    context->scanner = NULL;
+    context->setScanner(NULL);
     yylex_destroy(scanner);
 
     return 0;
@@ -554,12 +554,12 @@ int glslang_finalize(TParseContext* context) {
 
 int glslang_scan(size_t count, const char* const string[], const int length[],
                  TParseContext* context) {
-    yyrestart(NULL, context->scanner);
-    yyset_lineno(EncodeSourceLoc(0, 1), context->scanner);
+    yyrestart(NULL, context->getScanner());
+    yyset_lineno(EncodeSourceLoc(0, 1), context->getScanner());
     context->AfterEOF = false;
 
     // Initialize preprocessor.
-    if (!context->preprocessor.init(count, string, length))
+    if (!context->getPreprocessor().init(count, string, length))
         return 1;
 
     // Define extension macros.
@@ -567,10 +567,10 @@ int glslang_scan(size_t count, const char* const string[], const int length[],
     for (TExtensionBehavior::const_iterator iter = extBehavior.begin();
          iter != extBehavior.end(); ++iter)
     {
-        context->preprocessor.predefineMacro(iter->first.c_str(), 1);
+        context->getPreprocessor().predefineMacro(iter->first.c_str(), 1);
     }
 
-    context->preprocessor.predefineMacro("GL_FRAGMENT_PRECISION_HIGH", 1);
+    context->getPreprocessor().predefineMacro("GL_FRAGMENT_PRECISION_HIGH", 1);
 
     return 0;
 }
