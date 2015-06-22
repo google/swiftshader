@@ -645,6 +645,16 @@ namespace glsl
 		case EOpFwidth:           if(visit == PostVisit) emit(sw::Shader::OPCODE_FWIDTH, result, arg); break;
 		case EOpAny:              if(visit == PostVisit) emit(sw::Shader::OPCODE_ANY, result, arg); break;
 		case EOpAll:              if(visit == PostVisit) emit(sw::Shader::OPCODE_ALL, result, arg); break;
+		case EOpFloatBitsToInt:   if(visit == PostVisit) emit(sw::Shader::OPCODE_FLOATBITSTOINT, result, arg); break;
+		case EOpFloatBitsToUint:  if(visit == PostVisit) emit(sw::Shader::OPCODE_FLOATBITSTOUINT, result, arg); break;
+		case EOpIntBitsToFloat:   if(visit == PostVisit) emit(sw::Shader::OPCODE_INTBITSTOFLOAT, result, arg); break;
+		case EOpUintBitsToFloat:  if(visit == PostVisit) emit(sw::Shader::OPCODE_UINTBITSTOFLOAT, result, arg); break;
+		case EOpPackSnorm2x16:    if(visit == PostVisit) emit(sw::Shader::OPCODE_PACKSNORM2x16, result, arg); break;
+		case EOpPackUnorm2x16:    if(visit == PostVisit) emit(sw::Shader::OPCODE_PACKUNORM2x16, result, arg); break;
+		case EOpPackHalf2x16:     if(visit == PostVisit) emit(sw::Shader::OPCODE_PACKHALF2x16, result, arg); break;
+		case EOpUnpackSnorm2x16:  if(visit == PostVisit) emit(sw::Shader::OPCODE_UNPACKSNORM2x16, result, arg); break;
+		case EOpUnpackUnorm2x16:  if(visit == PostVisit) emit(sw::Shader::OPCODE_UNPACKUNORM2x16, result, arg); break;
+		case EOpUnpackHalf2x16:   if(visit == PostVisit) emit(sw::Shader::OPCODE_UNPACKHALF2x16, result, arg); break;
 		case EOpTranspose:
 			if(visit == PostVisit)
 			{
@@ -1055,16 +1065,6 @@ namespace glsl
 		case EOpMix:         if(visit == PostVisit) emit(sw::Shader::OPCODE_LRP, result, arg[2], arg[1], arg[0]); break;
 		case EOpStep:        if(visit == PostVisit) emit(sw::Shader::OPCODE_STEP, result, arg[0], arg[1]); break;
 		case EOpSmoothStep:  if(visit == PostVisit) emit(sw::Shader::OPCODE_SMOOTH, result, arg[0], arg[1], arg[2]); break;
-		case EOpFloatBitsToInt:  if(visit == PostVisit) emit(sw::Shader::OPCODE_FLOATBITSTOINT, result, arg[0]); break;
-		case EOpFloatBitsToUint: if(visit == PostVisit) emit(sw::Shader::OPCODE_FLOATBITSTOUINT, result, arg[0]); break;
-		case EOpIntBitsToFloat:  if(visit == PostVisit) emit(sw::Shader::OPCODE_INTBITSTOFLOAT, result, arg[0]); break;
-		case EOpUintBitsToFloat: if(visit == PostVisit) emit(sw::Shader::OPCODE_UINTBITSTOFLOAT, result, arg[0]); break;
-		case EOpPackSnorm2x16:   if(visit == PostVisit) emit(sw::Shader::OPCODE_PACKSNORM2x16, result, arg[0]); break;
-		case EOpPackUnorm2x16:   if(visit == PostVisit) emit(sw::Shader::OPCODE_PACKUNORM2x16, result, arg[0]); break;
-		case EOpPackHalf2x16:    if(visit == PostVisit) emit(sw::Shader::OPCODE_PACKHALF2x16, result, arg[0]); break;
-		case EOpUnpackSnorm2x16: if(visit == PostVisit) emit(sw::Shader::OPCODE_UNPACKSNORM2x16, result, arg[0]); break;
-		case EOpUnpackUnorm2x16: if(visit == PostVisit) emit(sw::Shader::OPCODE_UNPACKUNORM2x16, result, arg[0]); break;
-		case EOpUnpackHalf2x16:  if(visit == PostVisit) emit(sw::Shader::OPCODE_UNPACKHALF2x16, result, arg[0]); break;
 		case EOpDistance:    if(visit == PostVisit) emit(sw::Shader::OPCODE_DIST(dim(arg[0])), result, arg[0], arg[1]); break;
 		case EOpDot:         if(visit == PostVisit) emit(sw::Shader::OPCODE_DP(dim(arg[0])), result, arg[0], arg[1]); break;
 		case EOpCross:       if(visit == PostVisit) emit(sw::Shader::OPCODE_CRS, result, arg[0], arg[1]); break;
