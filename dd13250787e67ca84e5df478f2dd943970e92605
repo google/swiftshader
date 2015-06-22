@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ef6069f_0b8ebd35",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-22T15:25:35Z",
+      "side": 1,
+      "message": "This is the GL extension string, not an EGL extension string.",
+      "range": {
+        "startLine": 164,
+        "startChar": 9,
+        "endLine": 164,
+        "endChar": 24
+      },
+      "revId": "dd13250787e67ca84e5df478f2dd943970e92605",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ef6069f_6b83010e",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-22T15:25:35Z",
+      "side": 1,
+      "message": "There\u0027s no OpenVG implementation.",
+      "range": {
+        "startLine": 165,
+        "startChar": 9,
+        "endLine": 165,
+        "endChar": 24
+      },
+      "revId": "dd13250787e67ca84e5df478f2dd943970e92605",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ef6069f_ab7cc998",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-22T15:25:35Z",
+      "side": 1,
+      "message": "Let\u0027s move this to a separate CL.",
+      "range": {
+        "startLine": 166,
+        "startChar": 9,
+        "endLine": 166,
+        "endChar": 38
+      },
+      "revId": "dd13250787e67ca84e5df478f2dd943970e92605",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ef6069f_4b2605c2",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1055,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-22T15:25:35Z",
+      "side": 1,
+      "message": "UNIMPLEMENTED() ?",
+      "range": {
+        "startLine": 1055,
+        "startChar": 1,
+        "endLine": 1055,
+        "endChar": 7
+      },
+      "revId": "dd13250787e67ca84e5df478f2dd943970e92605",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ef6069f_0b2cfd9f",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1055,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-22T15:25:35Z",
+      "side": 1,
+      "message": "EGL_NO_NATIVE_FENCE_FD_ANDROID",
+      "range": {
+        "startLine": 1055,
+        "startChar": 8,
+        "endLine": 1055,
+        "endChar": 10
+      },
+      "revId": "dd13250787e67ca84e5df478f2dd943970e92605",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ef6069f_8b374dec",
+        "filename": "src/OpenGL/libEGL/main.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 585,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-22T15:25:35Z",
+      "side": 1,
+      "message": "delete",
+      "range": {
+        "startLine": 585,
+        "startChar": 1,
+        "endLine": 585,
+        "endChar": 11
+      },
+      "revId": "dd13250787e67ca84e5df478f2dd943970e92605",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
